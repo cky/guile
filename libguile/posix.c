@@ -867,7 +867,7 @@ SCM_DEFINE (scm_execl, "execl", 1, 0, 1,
 	    "The remaining arguments are supplied to the process; from a C program\n"
 	    "they are accessable as the @code{argv} argument to @code{main}.\n"
 	    "Conventionally the first @var{arg} is the same as @var{path}.\n"
-	    "All arguments must be strings.  \n\n"
+	    "All arguments must be strings.\n\n"
 	    "If @var{arg} is missing, @var{path} is executed with a null\n"
 	    "argument list, which may have system-dependent side-effects.\n\n"
 	    "This procedure is currently implemented using the @code{execv} system\n"

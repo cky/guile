@@ -4069,7 +4069,7 @@ SCM_DEFINE (scm_eval, "eval", 2, 0, 0,
 	    (SCM exp, SCM module),
 	    "Evaluate @var{exp}, a list representing a Scheme expression,\n"
             "in the top-level environment specified by @var{module}.\n"
-            "While @var{exp} is evaluated (using @var{primitive-eval}),\n"
+            "While @var{exp} is evaluated (using @code{primitive-eval}),\n"
             "@var{module} is made the current module.  The current module\n"
             "is reset to its previous value when @var{eval} returns.")
 #define FUNC_NAME s_scm_eval

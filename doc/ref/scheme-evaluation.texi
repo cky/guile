@@ -122,7 +122,8 @@ to use uppercase letters in their identifiers anyway.
 @node Reader Extensions
 @subsection Reader Extensions
 
-@deffn primitive read-hash-extend chr proc
+@deffn {Scheme Procedure} read-hash-extend chr proc
+@deffnx {C Function} scm_read_hash_extend (chr, proc)
 Install the procedure @var{proc} for reading expressions
 starting with the character sequence @code{#} and @var{chr}.
 @var{proc} will be called with two arguments:  the character
@@ -135,7 +136,8 @@ returned will be the return value of @code{read}.
 @section Reading Scheme Code
 
 @rnindex read
-@deffn primitive read [port]
+@deffn {Scheme Procedure} read [port]
+@deffnx {C Function} scm_read (port)
 Read an s-expression from the input port @var{port}, or from
 the current input port if @var{port} is not specified.
 Any whitespace before the next token is discarded.
@@ -149,7 +151,7 @@ available, @xref{Reader options}.
 @c FIXME::martin: This is taken from libguile/options.c.  Is there 
 @c actually a difference between 'help and 'full?
 
-@deffn procedure read-options [setting]
+@deffn {Scheme Procedure} read-options [setting]
 Display the current settings of the read options.  If @var{setting} is
 omitted, only a short form of the current read options is printed.
 Otherwise, @var{setting} should be one of the following symbols:
@@ -161,18 +163,19 @@ Like @code{help}, but also print programmer options.
 @end table
 @end deffn
 
-@deffn procedure read-enable option-name
-@deffnx procedure read-disable option-name
-@deffnx procedure read-set! option-name value
+@deffn {Scheme Procedure} read-enable option-name
+@deffnx {Scheme Procedure} read-disable option-name
+@deffnx {Scheme Procedure} read-set! option-name value
 Modify the read options.  @code{read-enable} should be used with boolean
 options and switches them on, @code{read-disable} switches them off.
 @code{read-set!} can be used to set an option to a specific value.
 @end deffn
 
-@deffn primitive read-options-interface [setting]
+@deffn {Scheme Procedure} read-options-interface [setting]
+@deffnx {C Function} scm_read_options (setting)
 Option interface for the read options. Instead of using
 this procedure directly, use the procedures @code{read-enable},
-@code{read-disable}, @code{read-set!} and @code{read-options}.
+@code{read-disable}, @code{read-set!} and @var{read-options}.
 @end deffn
 
 
@@ -181,13 +184,18 @@ this procedure directly, use the procedures @code{read-enable},
 
 @rnindex eval
 @c ARGFIXME environment/environment specifier
-@deffn primitive eval exp environment
-Evaluate @var{exp}, a list representing a Scheme expression, in the
-environment given by @var{environment specifier}.
+@deffn {Scheme Procedure} eval exp module
+@deffnx {C Function} scm_eval (exp, module)
+Evaluate @var{exp}, a list representing a Scheme expression,
+in the top-level environment specified by @var{module}.
+While @var{exp} is evaluated (using @code{primitive-eval}),
+@var{module} is made the current module.  The current module
+is reset to its previous value when @var{eval} returns.
 @end deffn
 
 @rnindex interaction-environment
-@deffn primitive interaction-environment
+@deffn {Scheme Procedure} interaction-environment
+@deffnx {C Function} scm_interaction_environment ()
 Return a specifier for the environment that contains
 implementation--defined bindings, typically a superset of those
 listed in the report.  The intent is that this procedure will
@@ -195,14 +203,16 @@ return the environment in which the implementation would
 evaluate expressions dynamically typed by the user.
 @end deffn
 
-@deffn primitive eval-string string
+@deffn {Scheme Procedure} eval-string string
+@deffnx {C Function} scm_eval_string (string)
 Evaluate @var{string} as the text representation of a Scheme
 form or forms, and return whatever value they produce.
 Evaluation takes place in the environment returned by the
 procedure @code{interaction-environment}.
 @end deffn
 
-@deffn primitive apply:nconc2last lst
+@deffn {Scheme Procedure} apply:nconc2last lst
+@deffnx {C Function} scm_nconc2last (lst)
 Given a list (@var{arg1} @dots{} @var{args}), this function
 conses the @var{arg1} @dots{} arguments onto the front of
 @var{args}, and returns the resulting list. Note that
@@ -213,13 +223,14 @@ destroys its argument, so use with care.
 @end deffn
 
 @rnindex apply
-@deffn primitive apply proc arg1 @dots{} args
+@deffn {Scheme Procedure} apply proc arg1 @dots{} args
 @var{proc} must be a procedure and @var{args} must be a list.  Call
 @var{proc} with the elements of the list @code{(append (list @var{arg1}
 @dots{}) @var{args})} as the actual arguments.
 @end deffn
 
-@deffn primitive primitive-eval exp
+@deffn {Scheme Procedure} primitive-eval exp
+@deffnx {C Function} scm_primitive_eval (exp)
 Evaluate @var{exp} in the top-level environment specified by
 the current module.
 @end deffn
@@ -229,7 +240,7 @@ the current module.
 @section Loading Scheme Code from File
 
 @rnindex load
-@deffn procedure load filename
+@deffn {Scheme Procedure} load filename
 Load @var{filename} and evaluate its contents in the top-level
 environment.  The load paths are not searched.  If the variable
 @code{%load-hook} is defined, it should be bound to a procedure that
@@ -237,12 +248,13 @@ will be called before any code is loaded.  See documentation for
 @code{%load-hook} later in this section.
 @end deffn
 
-@deffn procedure load-from-path filename
+@deffn {Scheme Procedure} load-from-path filename
 Similar to @code{load}, but searches for @var{filename} in the load
 paths.
 @end deffn
 
-@deffn primitive primitive-load filename
+@deffn {Scheme Procedure} primitive-load filename
+@deffnx {C Function} scm_primitive_load (filename)
 Load the file named @var{filename} and evaluate its contents in
 the top-level environment. The load paths are not searched;
 @var{filename} must either be a full pathname or be a pathname
@@ -252,14 +264,16 @@ that will be called before any code is loaded.  See the
 documentation for @code{%load-hook} later in this section.
 @end deffn
 
-@deffn primitive primitive-load-path filename
+@deffn {Scheme Procedure} primitive-load-path filename
+@deffnx {C Function} scm_primitive_load_path (filename)
 Search @var{%load-path} for the file named @var{filename} and
 load it into the top-level environment.  If @var{filename} is a
 relative pathname and is not found in the list of search paths,
 an error is signalled.
 @end deffn
 
-@deffn primitive %search-load-path filename
+@deffn {Scheme Procedure} %search-load-path filename
+@deffnx {C Function} scm_sys_search_load_path (filename)
 Search @var{%load-path} for the file named @var{filename},
 which must be readable by the current user.  If @var{filename}
 is found in the list of paths to search or is an absolute
@@ -285,7 +299,8 @@ was passed to @code{primitive-load}.
 
 @end defvar
 
-@deffn primitive current-load-port
+@deffn {Scheme Procedure} current-load-port
+@deffnx {C Function} scm_current_load_port ()
 Return the current-load-port.
 The load port is used internally by @code{primitive-load}.
 @end deffn
@@ -303,13 +318,15 @@ list @code{("" ".scm")}.
 
 [delay]
 
-@deffn primitive promise? obj
+@deffn {Scheme Procedure} promise? obj
+@deffnx {C Function} scm_promise_p (obj)
 Return true if @var{obj} is a promise, i.e. a delayed computation
 (@pxref{Delayed evaluation,,,r5rs.info,The Revised^5 Report on Scheme}).
 @end deffn
 
 @rnindex force
-@deffn primitive force x
+@deffn {Scheme Procedure} force x
+@deffnx {C Function} scm_force (x)
 If the promise @var{x} has not been computed yet, compute and
 return @var{x}, otherwise just return the previously computed
 value.
@@ -321,7 +338,8 @@ value.
 
 [the-environment]
 
-@deffn primitive local-eval exp [env]
+@deffn {Scheme Procedure} local-eval exp [env]
+@deffnx {C Function} scm_local_eval (exp, env)
 Evaluate @var{exp} in its environment.  If @var{env} is supplied,
 it is the environment in which to evaluate @var{exp}.  Otherwise,
 @var{exp} must be a memoized code object (in which case, its environment
@@ -343,7 +361,7 @@ available, @xref{Evaluator options}.
 @c FIXME::martin: This is taken from libguile/options.c.  Is there 
 @c actually a difference between 'help and 'full?
 
-@deffn procedure eval-options [setting]
+@deffn {Scheme Procedure} eval-options [setting]
 Display the current settings of the evaluator options.  If @var{setting}
 is omitted, only a short form of the current evaluator options is
 printed.  Otherwise, @var{setting} should be one of the following
@@ -356,24 +374,25 @@ Like @code{help}, but also print programmer options.
 @end table
 @end deffn
 
-@deffn procedure eval-enable option-name
-@deffnx procedure eval-disable option-name
-@deffnx procedure eval-set! option-name value
+@deffn {Scheme Procedure} eval-enable option-name
+@deffnx {Scheme Procedure} eval-disable option-name
+@deffnx {Scheme Procedure} eval-set! option-name value
 Modify the evaluator options.  @code{eval-enable} should be used with boolean
 options and switches them on, @code{eval-disable} switches them off.
 @code{eval-set!} can be used to set an option to a specific value.
 @end deffn
 
-@deffn primitive eval-options-interface [setting]
+@deffn {Scheme Procedure} eval-options-interface [setting]
+@deffnx {C Function} scm_eval_options_interface (setting)
 Option interface for the evaluation options. Instead of using
 this procedure directly, use the procedures @code{eval-enable},
-@code{eval-disable}, @code{eval-set!} and @code{eval-options}.
+@code{eval-disable}, @code{eval-set!} and @var{eval-options}.
 @end deffn
 
 @c FIXME::martin: Why aren't these procedure named like the other options
 @c procedures?
 
-@deffn procedure traps [setting]
+@deffn {Scheme Procedure} traps [setting]
 Display the current settings of the evaluator traps options.  If
 @var{setting} is omitted, only a short form of the current evaluator
 traps options is printed.  Otherwise, @var{setting} should be one of the
@@ -386,15 +405,16 @@ Like @code{help}, but also print programmer options.
 @end table
 @end deffn
 
-@deffn procedure trap-enable option-name
-@deffnx procedure trap-disable option-name
-@deffnx procedure trap-set! option-name value
+@deffn {Scheme Procedure} trap-enable option-name
+@deffnx {Scheme Procedure} trap-disable option-name
+@deffnx {Scheme Procedure} trap-set! option-name value
 Modify the evaluator options.  @code{trap-enable} should be used with boolean
 options and switches them on, @code{trap-disable} switches them off.
 @code{trap-set!} can be used to set an option to a specific value.
 @end deffn
 
-@deffn primitive evaluator-traps-interface [setting]
+@deffn {Scheme Procedure} evaluator-traps-interface [setting]
+@deffnx {C Function} scm_evaluator_traps (setting)
 Option interface for the evaluator trap options.
 @end deffn
 

@@ -582,7 +582,7 @@ scm_shap2ra (SCM args, const char *what)
 
 SCM_DEFINE (scm_dimensions_to_uniform_array, "dimensions->uniform-array", 2, 1, 0,
 	    (SCM dims, SCM prot, SCM fill),
-	    "@deffnx primitive make-uniform-vector length prototype [fill]\n"
+	    "@deffnx {Scheme Procedure} make-uniform-vector length prototype [fill]\n"
 	    "Create and return a uniform array or vector of type\n"
 	    "corresponding to @var{prototype} with dimensions @var{dims} or\n"
 	    "length @var{length}.  If @var{fill} is supplied, it's used to\n"
@@ -1084,7 +1084,7 @@ SCM_REGISTER_PROC(s_array_ref, "array-ref", 1, 0, 1, scm_uniform_vector_ref);
 
 SCM_DEFINE (scm_uniform_vector_ref, "uniform-vector-ref", 2, 0, 0,
            (SCM v, SCM args),
-	    "@deffnx primitive array-ref v . args\n"
+	    "@deffnx {Scheme Procedure} array-ref v . args\n"
 	    "Return the element at the @code{(index1, index2)} element in\n"
 	    "@var{array}.")
 #define FUNC_NAME s_scm_uniform_vector_ref
@@ -1262,8 +1262,8 @@ SCM_REGISTER_PROC(s_uniform_array_set1_x, "uniform-array-set1!", 3, 0, 0, scm_ar
    PROC is used (and it's called from C too).  */
 SCM_DEFINE (scm_array_set_x, "array-set!", 2, 0, 1, 
            (SCM v, SCM obj, SCM args),
-	    "@deffnx primitive uniform-array-set1! v obj args\n"
-	    "Sets the element at the @code{(index1, index2)} element in @var{array} to\n"
+	    "@deffnx {Scheme Procedure} uniform-array-set1! v obj args\n"
+	    "Set the element at the @code{(index1, index2)} element in @var{array} to\n"
 	    "@var{new-value}.  The value returned by array-set! is unspecified.")
 #define FUNC_NAME s_scm_array_set_x           
 {
@@ -1371,7 +1371,6 @@ SCM_DEFINE (scm_array_set_x, "array-set!", 2, 0, 1,
 		     wouldn't have contiguous elements.  */
 SCM_DEFINE (scm_array_contents, "array-contents", 1, 1, 0,
            (SCM ra, SCM strict),
-	    "@deffnx primitive array-contents array strict\n"
 	    "If @var{array} may be @dfn{unrolled} into a one dimensional shared array\n"
 	    "without changing their order (last subscript changing fastest), then\n"
 	    "@code{array-contents} returns that shared array, otherwise it returns\n"
@@ -1482,11 +1481,11 @@ scm_ra2contig (SCM ra, int copy)
 
 SCM_DEFINE (scm_uniform_array_read_x, "uniform-array-read!", 1, 3, 0,
            (SCM ra, SCM port_or_fd, SCM start, SCM end),
-	    "@deffnx primitive uniform-vector-read! uve [port-or-fdes] [start] [end]\n"
-	    "Attempts to read all elements of @var{ura}, in lexicographic order, as\n"
+	    "@deffnx {Scheme Procedure} uniform-vector-read! uve [port-or-fdes] [start] [end]\n"
+	    "Attempt to read all elements of @var{ura}, in lexicographic order, as\n"
 	    "binary objects from @var{port-or-fdes}.\n"
-	    "If an end of file is encountered during\n"
-	    "uniform-array-read! the objects up to that point only are put into @var{ura}\n"
+	    "If an end of file is encountered,\n"
+	    "the objects up to that point are put into @var{ura}\n"
 	    "(starting at the beginning) and the remainder of the array is\n"
 	    "unchanged.\n\n"
 	    "The optional arguments @var{start} and @var{end} allow\n"
@@ -1650,7 +1649,7 @@ loop:
 
 SCM_DEFINE (scm_uniform_array_write, "uniform-array-write", 1, 3, 0,
            (SCM v, SCM port_or_fd, SCM start, SCM end),
-	    "@deffnx primitive uniform-vector-write uve [port-or-fdes] [start] [end]\n"
+	    "@deffnx {Scheme Procedure} uniform-vector-write uve [port-or-fdes] [start] [end]\n"
 	    "Writes all elements of @var{ura} as binary objects to\n"
 	    "@var{port-or-fdes}.\n\n"
 	    "The optional arguments @var{start}\n"
@@ -1890,7 +1889,7 @@ SCM_DEFINE (scm_bit_set_star_x, "bit-set*!", 3, 0, 0,
 	    "length.  If @var{bool} is @code{#t}, uve is OR'ed into\n"
 	    "@var{bv}; If @var{bool} is @code{#f}, the inversion of uve is\n"
 	    "AND'ed into @var{bv}.\n\n"
-	    "If uve is a unsigned integer vector all the elements of uve\n"
+	    "If uve is a unsigned long integer vector all the elements of uve\n"
 	    "must be between 0 and the @code{length} of @var{bv}.  The bits\n"
 	    "of @var{bv} corresponding to the indexes in uve are set to\n"
 	    "@var{bool}.  The return value is unspecified.")
@@ -2011,7 +2010,7 @@ SCM_DEFINE (scm_bit_count_star, "bit-count*", 3, 0, 0,
 
 SCM_DEFINE (scm_bit_invert_x, "bit-invert!", 1, 0, 0, 
            (SCM v),
-	    "Modifies @var{bv} by replacing each element with its negation.")
+	    "Modify @var{bv} by replacing each element with its negation.")
 #define FUNC_NAME s_scm_bit_invert_x
 {
   long int k;
@@ -2187,7 +2186,7 @@ static int l2ra(SCM lst, SCM ra, unsigned long base, unsigned long k);
 
 SCM_DEFINE (scm_list_to_uniform_array, "list->uniform-array", 3, 0, 0,
            (SCM ndim, SCM prot, SCM lst),
-	    "@deffnx procedure list->uniform-vector prot lst\n"
+	    "@deffnx {Scheme Procedure} list->uniform-vector prot lst\n"
 	    "Return a uniform array of the type indicated by prototype\n"
 	    "@var{prot} with elements the same as those of @var{lst}.\n"
 	    "Elements must be of the appropriate type, no coercions are\n"

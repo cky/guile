@@ -52,7 +52,7 @@
 
 SCM_DEFINE (scm_acons, "acons", 3, 0, 0,
            (SCM key, SCM value, SCM alist),
-	    "Adds a new key-value pair to @var{alist}.  A new pair is\n"
+	    "Add a new key-value pair to @var{alist}.  A new pair is\n"
 	    "created whose car is @var{key} and whose cdr is @var{value}, and the\n"
 	    "pair is consed onto @var{alist}, and the new list is returned.  This\n"
 	    "function is @emph{not} destructive; @var{alist} is not modified.")
@@ -133,14 +133,14 @@ SCM_DEFINE (scm_sloppy_assoc, "sloppy-assoc", 2, 0, 0,
 
 SCM_DEFINE (scm_assq, "assq", 2, 0, 0,
            (SCM key, SCM alist),
-	    "@deffnx primitive assv key alist\n"
-	    "@deffnx primitive assoc key alist\n"
-	    "Fetches the entry in @var{alist} that is associated with @var{key}.  To\n"
+	    "@deffnx {Scheme Procedure} assv key alist\n"
+	    "@deffnx {Scheme Procedure} assoc key alist\n"
+	    "Fetch the entry in @var{alist} that is associated with @var{key}.  To\n"
 	    "decide whether the argument @var{key} matches a particular entry in\n"
 	    "@var{alist}, @code{assq} compares keys with @code{eq?}, @code{assv}\n"
 	    "uses @code{eqv?} and @code{assoc} uses @code{equal?}.  If @var{key}\n"
 	    "cannot be found in @var{alist} (according to whichever equality\n"
-	    "predicate is in use), then @code{#f} is returned.  These functions\n"
+	    "predicate is in use), then return @code{#f}.  These functions\n"
 	    "return the entire alist entry found (i.e. both the key and the value).")
 #define FUNC_NAME s_scm_assq
 {
@@ -218,8 +218,8 @@ SCM_DEFINE (scm_assoc, "assoc", 2, 0, 0,
  */
 SCM_DEFINE (scm_assq_ref, "assq-ref", 2, 0, 0,
             (SCM alist, SCM key),
-	    "@deffnx primitive assv-ref alist key\n"
-	    "@deffnx primitive assoc-ref alist key\n"
+	    "@deffnx {Scheme Procedure} assv-ref alist key\n"
+	    "@deffnx {Scheme Procedure} assoc-ref alist key\n"
 	    "Like @code{assq}, @code{assv} and @code{assoc}, except that only the\n"
 	    "value associated with @var{key} in @var{alist} is returned.  These\n"
 	    "functions are equivalent to\n\n"
@@ -282,8 +282,8 @@ SCM_DEFINE (scm_assoc_ref, "assoc-ref", 2, 0, 0,
 
 SCM_DEFINE (scm_assq_set_x, "assq-set!", 3, 0, 0,
             (SCM alist, SCM key, SCM val),
-	    "@deffnx primitive assv-set! alist key value\n"
-	    "@deffnx primitive assoc-set! alist key value\n"
+	    "@deffnx {Scheme Procedure} assv-set! alist key value\n"
+	    "@deffnx {Scheme Procedure} assoc-set! alist key value\n"
 	    "Reassociate @var{key} in @var{alist} with @var{value}: find any existing\n"
 	    "@var{alist} entry for @var{key} and associate it with the new\n"
 	    "@var{value}.  If @var{alist} does not contain an entry for @var{key},\n"
@@ -347,8 +347,8 @@ SCM_DEFINE (scm_assoc_set_x, "assoc-set!", 3, 0, 0,
 
 SCM_DEFINE (scm_assq_remove_x, "assq-remove!", 2, 0, 0,
             (SCM alist, SCM key),
-	    "@deffnx primitive assv-remove! alist key\n"
-	    "@deffnx primitive assoc-remove! alist key\n"
+	    "@deffnx {Scheme Procedure} assv-remove! alist key\n"
+	    "@deffnx {Scheme Procedure} assoc-remove! alist key\n"
 	    "Delete the first entry in @var{alist} associated with @var{key}, and return\n"
 	    "the resulting alist.")
 #define FUNC_NAME s_scm_assq_remove_x

@@ -992,7 +992,8 @@ SCM_DEFINE (scm_simple_format, "simple-format", 2, 0, 1,
 
 SCM_DEFINE (scm_newline, "newline", 0, 1, 0, 
             (SCM port),
-	    "Send a newline to @var{port}.")
+	    "Send a newline to @var{port}.\n"
+	    "If @var{port} is omitted, send to the current output port.")
 #define FUNC_NAME s_scm_newline
 {
   if (SCM_UNBNDP (port))

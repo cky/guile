@@ -143,7 +143,7 @@ exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
   (set! *sig* #f)
   (set! *docstring* #f))
 
-(define *primitive-deffnx-signature* "@deffnx primitive ")
+(define *primitive-deffnx-signature* "@deffnx {Scheme Procedure} ")
 (define *primitive-deffnx-sig-length* (string-length *primitive-deffnx-signature*))
 
 (define (end-multiline)
@@ -184,18 +184,18 @@ exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
 	    (if (and *manual-flag* (eq? *snarf-type* 'primitive))
 		(with-output-to-string
 		  (lambda ()
-                    (format #t "@deffnx function SCM ~A (" *c-function-name*)
+                    (format #t "@deffnx {C Function} ~A (" *c-function-name*)
 		    (unless (null? *args*)
-		      (format #t "SCM ~A" (car *args*))
+		      (format #t "~A" (car *args*))
 		      (let loop ((args (cdr *args*)))
 			(unless (null? args)
-			  (format #t ", SCM ~A" (car args))
+			  (format #t ", ~A" (car args))
 			  (loop (cdr args)))))
 		    (format #t ")\n")))
 		#f)))
       (format #t "\n~A\n" *function-name*)
       (format #t "@c snarfed from ~A:~A\n" *file* *line*)
-      (format #t "@deffn primitive ~A\n" nice-sig)
+      (format #t "@deffn {Scheme Procedure} ~A\n" nice-sig)
       (let loop ((strings *docstring*) (scm-deffnx scm-deffnx))
 	(cond ((null? strings))
 	      ((or (not scm-deffnx)
@@ -209,9 +209,6 @@ exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
 	      (else (display scm-deffnx)
 		    (loop strings #f))))
       (display "\n")
-      (when *manual-flag*
-        (format #t "@findex ~A\n" *function-name*)
-        (format #t "@findex ~A\n" *c-function-name*))
       (display "@end deffn\n"))))
 
 (define (texi-quote s)

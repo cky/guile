@@ -15,24 +15,22 @@
 [FIXME: this is pasted in from Tom Lord's original guile.texi and should
 be reviewed]
 
-@deffn primitive gc
+@deffn {Scheme Procedure} gc
+@deffnx {C Function} scm_gc ()
 Scans all of SCM objects and reclaims for further use those that are
 no longer accessible.
 @end deffn
 
-@deffn primitive gc-stats
+@deffn {Scheme Procedure} gc-stats
+@deffnx {C Function} scm_gc_stats ()
 Return an association list of statistics about Guile's current
 use of storage.
 @end deffn
 
-@deffn primitive object-address obj
+@deffn {Scheme Procedure} object-address obj
+@deffnx {C Function} scm_object_address (obj)
 Return an integer that for the lifetime of @var{obj} is uniquely
 returned by this function for @var{obj}
-@end deffn
-
-@deffn primitive unhash-name name
-Flushes the glocs for @var{name}, or all glocs if @var{name}
-is @code{#t}.
 @end deffn
 
 
@@ -84,9 +82,12 @@ they constitute a doubly-weak table has to be used.
 @node Weak key hashes
 @subsection Weak key hashes
 
-@deffn primitive make-weak-key-hash-table size
-@deffnx primitive make-weak-value-hash-table size
-@deffnx primitive make-doubly-weak-hash-table size
+@deffn {Scheme Procedure} make-weak-key-hash-table size
+@deffnx {Scheme Procedure} make-weak-value-hash-table size
+@deffnx {Scheme Procedure} make-doubly-weak-hash-table size
+@deffnx {C Function} scm_make_weak_key_hash_table (size)
+@deffnx {C Function} scm_make_weak_value_hash_table (size)
+@deffnx {C Function} scm_make_doubly_weak_hash_table (size)
 Return a weak hash table with @var{size} buckets. As with any
 hash table, choosing a good size for the table requires some
 caution.
@@ -95,24 +96,27 @@ You can modify weak hash tables in exactly the same way you
 would modify regular hash tables. (@pxref{Hash Tables})
 @end deffn
 
-@deffn primitive weak-key-hash-table? obj
-@deffnx primitive weak-value-hash-table? obj
-@deffnx primitive doubly-weak-hash-table? obj
+@deffn {Scheme Procedure} weak-key-hash-table? obj
+@deffnx {Scheme Procedure} weak-value-hash-table? obj
+@deffnx {Scheme Procedure} doubly-weak-hash-table? obj
+@deffnx {C Function} scm_weak_key_hash_table_p (obj)
+@deffnx {C Function} scm_weak_value_hash_table_p (obj)
+@deffnx {C Function} scm_doubly_weak_hash_table_p (obj)
 Return @code{#t} if @var{obj} is the specified weak hash
 table. Note that a doubly weak hash table is neither a weak key
 nor a weak value hash table.
 @end deffn
 
-@deffn primitive make-weak-value-hash-table k
+@deffn {Scheme Procedure} make-weak-value-hash-table k
 @end deffn
 
-@deffn primitive weak-value-hash-table? x
+@deffn {Scheme Procedure} weak-value-hash-table? x
 @end deffn
 
-@deffn primitive make-doubly-weak-hash-table k
+@deffn {Scheme Procedure} make-doubly-weak-hash-table k
 @end deffn
 
-@deffn primitive doubly-weak-hash-table? x
+@deffn {Scheme Procedure} doubly-weak-hash-table? x
 @end deffn
 
 
@@ -122,22 +126,25 @@ nor a weak value hash table.
 Weak vectors are mainly useful in Guile's implementation of weak hash
 tables.
 
-@deffn primitive make-weak-vector size [fill]
+@deffn {Scheme Procedure} make-weak-vector size [fill]
+@deffnx {C Function} scm_make_weak_vector (size, fill)
 Return a weak vector with @var{size} elements. If the optional
 argument @var{fill} is given, all entries in the vector will be
 set to @var{fill}. The default value for @var{fill} is the
 empty list.
 @end deffn
 
-@deffn primitive weak-vector . l
-@deffnx primitive list->weak-vector l
+@deffn {Scheme Procedure} weak-vector . l
+@deffnx {Scheme Procedure} list->weak-vector l
+@deffnx {C Function} scm_weak_vector (l)
 Construct a weak vector from a list: @code{weak-vector} uses
 the list of its arguments while @code{list->weak-vector} uses
 its only argument @var{l} (a list) to construct a weak vector
 the same way @code{list->vector} would.
 @end deffn
 
-@deffn primitive weak-vector? obj
+@deffn {Scheme Procedure} weak-vector? obj
+@deffnx {C Function} scm_weak_vector_p (obj)
 Return @code{#t} if @var{obj} is a weak vector. Note that all
 weak hashes are also weak vectors.
 @end deffn
@@ -146,7 +153,8 @@ weak hashes are also weak vectors.
 @node Guardians
 @section Guardians
 
-@deffn primitive make-guardian [greedy?]
+@deffn {Scheme Procedure} make-guardian [greedy?]
+@deffnx {C Function} scm_make_guardian (greedy_p)
 Create a new guardian.
 A guardian protects a set of objects from garbage collection,
 allowing a program to apply cleanup or other actions.
@@ -174,17 +182,20 @@ and Implementation, June 1993.
 paper still (mostly) accurately describes the interface).
 @end deffn
 
-@deffn primitive destroy-guardian! guardian
+@deffn {Scheme Procedure} destroy-guardian! guardian
+@deffnx {C Function} scm_destroy_guardian_x (guardian)
 Destroys @var{guardian}, by making it impossible to put any more
 objects in it or get any objects from it.  It also unguards any
 objects guarded by @var{guardian}.
 @end deffn
 
-@deffn primitive guardian-greedy? guardian
+@deffn {Scheme Procedure} guardian-greedy? guardian
+@deffnx {C Function} scm_guardian_greedy_p (guardian)
 Return @code{#t} if @var{guardian} is a greedy guardian, otherwise @code{#f}.
 @end deffn
 
-@deffn primitive guardian-destroyed? guardian
+@deffn {Scheme Procedure} guardian-destroyed? guardian
+@deffnx {C Function} scm_guardian_destroyed_p (guardian)
 Return @code{#t} if @var{guardian} has been destroyed, otherwise @code{#f}.
 @end deffn
 
@@ -193,25 +204,30 @@ Return @code{#t} if @var{guardian} has been destroyed, otherwise @code{#f}.
 @node Objects
 @chapter Objects
 
-@deffn primitive entity? obj
+@deffn {Scheme Procedure} entity? obj
+@deffnx {C Function} scm_entity_p (obj)
 Return @code{#t} if @var{obj} is an entity.
 @end deffn
 
-@deffn primitive operator? obj
+@deffn {Scheme Procedure} operator? obj
+@deffnx {C Function} scm_operator_p (obj)
 Return @code{#t} if @var{obj} is an operator.
 @end deffn
 
-@deffn primitive set-object-procedure! obj proc
+@deffn {Scheme Procedure} set-object-procedure! obj proc
+@deffnx {C Function} scm_set_object_procedure_x (obj, proc)
 Set the object procedure of @var{obj} to @var{proc}.
 @var{obj} must be either an entity or an operator.
 @end deffn
 
-@deffn primitive make-class-object metaclass layout
+@deffn {Scheme Procedure} make-class-object metaclass layout
+@deffnx {C Function} scm_make_class_object (metaclass, layout)
 Create a new class object of class @var{metaclass}, with the
 slot layout specified by @var{layout}.
 @end deffn
 
-@deffn primitive make-subclass-object class layout
+@deffn {Scheme Procedure} make-subclass-object class layout
+@deffnx {C Function} scm_make_subclass_object (class, layout)
 Create a subclass object of @var{class}, with the slot layout
 specified by @var{layout}.
 @end deffn

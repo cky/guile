@@ -38,7 +38,7 @@ substring is an object that mostly behaves just like an ordinary
 substring, except that it actually shares storage space with its parent
 string.
 
-@deffn primitive make-shared-substring str [start [end]]
+@deffn {Scheme Procedure} make-shared-substring str [start [end]]
 Return a shared substring of @var{str}.  The arguments are the
 same as for the @code{substring} function: the shared substring
 returned includes all of the text from @var{str} between
@@ -132,7 +132,7 @@ now require strings:
 ERROR: Wrong type argument (expecting STRINGP): /home/
 @end lisp
 
-@deffn primitive read-only-string? obj
+@deffn {Scheme Procedure} read-only-string? obj
 Return @code{#t} if @var{obj} is either a string or a symbol,
 otherwise return @code{#f}.
 @end deffn

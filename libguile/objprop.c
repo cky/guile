@@ -56,7 +56,6 @@
 
 SCM_DEFINE (scm_object_properties, "object-properties", 1, 0, 0, 
            (SCM obj),
-	    "@deffnx primitive procedure-properties obj\n"
 	    "Return @var{obj}'s property list.")
 #define FUNC_NAME s_scm_object_properties
 {
@@ -67,7 +66,6 @@ SCM_DEFINE (scm_object_properties, "object-properties", 1, 0, 0,
 
 SCM_DEFINE (scm_set_object_properties_x, "set-object-properties!", 2, 0, 0,
 	    (SCM obj, SCM alist),
-	    "@deffnx primitive set-procedure-properties! obj alist\n"
 	    "Set @var{obj}'s property list to @var{alist}.")
 #define FUNC_NAME s_scm_set_object_properties_x
 {
@@ -79,7 +77,6 @@ SCM_DEFINE (scm_set_object_properties_x, "set-object-properties!", 2, 0, 0,
 
 SCM_DEFINE (scm_object_property, "object-property", 2, 0, 0,
            (SCM obj, SCM key),
-	    "@deffnx primitive procedure-property obj key\n"
 	    "Return the property of @var{obj} with name @var{key}.")
 #define FUNC_NAME s_scm_object_property
 {
@@ -91,7 +88,6 @@ SCM_DEFINE (scm_object_property, "object-property", 2, 0, 0,
 
 SCM_DEFINE (scm_set_object_property_x, "set-object-property!", 3, 0, 0,
 	    (SCM obj, SCM key, SCM value),
-	    "@deffnx primitive set-procedure-property! obj key value\n"
 	    "In @var{obj}'s property list, set the property named @var{key}\n"
 	    "to @var{value}.")
 #define FUNC_NAME s_scm_set_object_property_x

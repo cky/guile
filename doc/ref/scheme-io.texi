@@ -34,20 +34,23 @@ that simulate ports in software.  @dfn{Soft ports} and @dfn{string
 ports} are two interesting and powerful examples of this technique.
 
 @rnindex input-port?
-@deffn primitive input-port? x
+@deffn {Scheme Procedure} input-port? x
+@deffnx {C Function} scm_input_port_p (x)
 Return @code{#t} if @var{x} is an input port, otherwise return
 @code{#f}.  Any object satisfying this predicate also satisfies
 @code{port?}.
 @end deffn
 
 @rnindex output-port?
-@deffn primitive output-port? x
+@deffn {Scheme Procedure} output-port? x
+@deffnx {C Function} scm_output_port_p (x)
 Return @code{#t} if @var{x} is an output port, otherwise return
 @code{#f}.  Any object satisfying this predicate also satisfies
 @code{port?}.
 @end deffn
 
-@deffn primitive port? x
+@deffn {Scheme Procedure} port? x
+@deffnx {C Function} scm_port_p (x)
 Return a boolean indicating whether @var{x} is a port.
 Equivalent to @code{(or (input-port? @var{x}) (output-port?
 @var{x}))}.
@@ -60,13 +63,15 @@ Equivalent to @code{(or (input-port? @var{x}) (output-port?
 [Generic procedures for reading from ports.]
 
 @rnindex eof-object?
-@deffn primitive eof-object? x
+@deffn {Scheme Procedure} eof-object? x
+@deffnx {C Function} scm_eof_object_p (x)
 Return @code{#t} if @var{x} is an end-of-file object; otherwise
 return @code{#f}.
 @end deffn
 
 @rnindex char-ready?
-@deffn primitive char-ready? [port]
+@deffn {Scheme Procedure} char-ready? [port]
+@deffnx {C Function} scm_char_ready_p (port)
 Return @code{#t} if a character is ready on input @var{port}
 and return @code{#f} otherwise.  If @code{char-ready?} returns
 @code{#t} then the next @code{read-char} operation on
@@ -83,14 +88,16 @@ interactive port that has no ready characters.}
 @end deffn
 
 @rnindex read-char?
-@deffn primitive read-char [port]
+@deffn {Scheme Procedure} read-char [port]
+@deffnx {C Function} scm_read_char (port)
 Return the next character available from @var{port}, updating
 @var{port} to point to the following character.  If no more
 characters are available, the end-of-file object is returned.
 @end deffn
 
 @rnindex peek-char?
-@deffn primitive peek-char [port]
+@deffn {Scheme Procedure} peek-char [port]
+@deffnx {C Function} scm_peek_char (port)
 Return the next character available from @var{port},
 @emph{without} updating @var{port} to point to the following
 character.  If no more characters are available, the
@@ -105,21 +112,24 @@ an interactive port will hang waiting for input whenever a call
 to @code{read-char} would have hung.}
 @end deffn
 
-@deffn primitive unread-char cobj port
+@deffn {Scheme Procedure} unread-char cobj [port]
+@deffnx {C Function} scm_unread_char (cobj, port)
 Place @var{char} in @var{port} so that it will be read by the
 next read operation.  If called multiple times, the unread characters
 will be read again in last-in first-out order.  If @var{port} is
 not supplied, the current input port is used.
 @end deffn
 
-@deffn primitive unread-string str port
+@deffn {Scheme Procedure} unread-string str port
+@deffnx {C Function} scm_unread_string (str, port)
 Place the string @var{str} in @var{port} so that its characters will be
 read in subsequent read operations.  If called multiple times, the
 unread characters will be read again in last-in first-out order.  If
 @var{port} is not supplied, the current-input-port is used.
 @end deffn
 
-@deffn primitive drain-input port
+@deffn {Scheme Procedure} drain-input port
+@deffnx {C Function} scm_drain_input (port)
 This procedure clears a port's input buffers, similar
 to the way that force-output clears the output buffer.  The
 contents of the buffers are returned as a single string, e.g.,
@@ -136,8 +146,10 @@ buffered I/O so that the file descriptor can be used directly
 for further input.
 @end deffn
 
-@deffn primitive port-column port
-@deffnx primitive port-line port
+@deffn {Scheme Procedure} port-column port
+@deffnx {Scheme Procedure} port-line port
+@deffnx {C Function} scm_port_column (port)
+@deffnx {C Function} scm_port_line (port)
 Return the current column number or line number of @var{port},
 using the current input port if none is specified.  If the number is
 unknown, the result is #f.  Otherwise, the result is a 0-origin integer
@@ -148,8 +160,10 @@ because lines and column numbers traditionally start with 1, and that is
 what non-programmers will find most natural.)
 @end deffn
 
-@deffn primitive set-port-column! port column
-@deffnx primitive set-port-line! port line
+@deffn {Scheme Procedure} set-port-column! port column
+@deffnx {Scheme Procedure} set-port-line! port line
+@deffnx {C Function} scm_set_port_column_x (port, column)
+@deffnx {C Function} scm_set_port_line_x (port, line)
 Set the current column or line number of @var{port}, using the
 current input port if none is specified.
 @end deffn
@@ -159,13 +173,14 @@ current input port if none is specified.
 
 [Generic procedures for writing to ports.]
 
-@deffn primitive get-print-state port
+@deffn {Scheme Procedure} get-print-state port
+@deffnx {C Function} scm_get_print_state (port)
 Return the print state of the port @var{port}. If @var{port}
 has no associated print state, @code{#f} is returned.
 @end deffn
 
 @rnindex display
-@deffn primitive display obj [port]
+@deffn {Scheme Procedure} display obj [port]
 Send a representation of @var{obj} to @var{current-output-port}.
 Optional second arg @var{port} specifies an alternative output port.
 The representation is similar to that produced by @code{write} (REFFIXME),
@@ -174,23 +189,28 @@ escaped), and characters are rendered as if with @code{write-char}.
 @end deffn
 
 @rnindex newline
-@deffn primitive newline [port]
-Send a newline to @var{port} (default @var{current-output-port} if omitted).
+@deffn {Scheme Procedure} newline [port]
+@deffnx {C Function} scm_newline (port)
+Send a newline to @var{port}.
+If @var{port} is omitted, send to the current output port.
 @end deffn
 
-@deffn primitive port-with-print-state port pstate
+@deffn {Scheme Procedure} port-with-print-state port pstate
+@deffnx {C Function} scm_port_with_print_state (port, pstate)
 Create a new port which behaves like @var{port}, but with an
 included print state @var{pstate}.
 @end deffn
 
-@deffn primitive print-options-interface [setting]
+@deffn {Scheme Procedure} print-options-interface [setting]
+@deffnx {C Function} scm_print_options (setting)
 Option interface for the print options. Instead of using
 this procedure directly, use the procedures
 @code{print-enable}, @code{print-disable}, @code{print-set!}
 and @code{print-options}.
 @end deffn
 
-@deffn primitive simple-format destination message . args
+@deffn {Scheme Procedure} simple-format destination message . args
+@deffnx {C Function} scm_simple_format (destination, message, args)
 Write @var{message} to @var{destination}, defaulting to
 the current output port.
 @var{message} can contain @code{~A} (was @code{%s}) and
@@ -205,12 +225,14 @@ containing the formatted text. Does not add a trailing newline.
 @end deffn
 
 @rnindex write-char
-@deffn primitive write-char chr [port]
+@deffn {Scheme Procedure} write-char chr [port]
+@deffnx {C Function} scm_write_char (chr, port)
 Send character @var{chr} to @var{port}.
 @end deffn
 
 @findex fflush
-@deffn primitive force-output [port]
+@deffn {Scheme Procedure} force-output [port]
+@deffnx {C Function} scm_force_output (port)
 Flush the specified output port, or the current output port if @var{port}
 is omitted.  The current output buffer contents are passed to the
 underlying port implementation (e.g., in the case of fports, the
@@ -220,7 +242,8 @@ It has no effect on an unbuffered port.
 The return value is unspecified.
 @end deffn
 
-@deffn primitive flush-all-ports
+@deffn {Scheme Procedure} flush-all-ports
+@deffnx {C Function} scm_flush_all_ports ()
 Equivalent to calling @code{force-output} on
 all open output ports.  The return value is unspecified.
 @end deffn
@@ -229,7 +252,8 @@ all open output ports.  The return value is unspecified.
 @node Closing
 @section Closing
 
-@deffn primitive close-port port
+@deffn {Scheme Procedure} close-port port
+@deffnx {C Function} scm_close_port (port)
 Close the specified port object.  Return @code{#t} if it
 successfully closes a port or @code{#f} if it was already
 closed.  An exception may be raised if an error occurs, for
@@ -239,7 +263,8 @@ descriptors.
 @end deffn
 
 @rnindex close-input-port
-@deffn primitive close-input-port port
+@deffn {Scheme Procedure} close-input-port port
+@deffnx {C Function} scm_close_input_port (port)
 Close the specified input port object.  The routine has no effect if
 the file has already been closed.  An exception may be raised if an
 error occurs.  The value returned is unspecified.
@@ -249,7 +274,8 @@ which can close file descriptors.
 @end deffn
 
 @rnindex close-output-port
-@deffn primitive close-output-port port
+@deffn {Scheme Procedure} close-output-port port
+@deffnx {C Function} scm_close_output_port (port)
 Close the specified output port object.  The routine has no effect if
 the file has already been closed.  An exception may be raised if an
 error occurs.  The value returned is unspecified.
@@ -258,7 +284,8 @@ See also @ref{Ports and File Descriptors, close}, for a procedure
 which can close file descriptors.
 @end deffn
 
-@deffn primitive port-closed? port
+@deffn {Scheme Procedure} port-closed? port
+@deffnx {C Function} scm_port_closed_p (port)
 Return @code{#t} if @var{port} is closed or @code{#f} if it is
 open.
 @end deffn
@@ -267,7 +294,8 @@ open.
 @node Random Access
 @section Random Access
 
-@deffn primitive seek fd_port offset whence
+@deffn {Scheme Procedure} seek fd_port offset whence
+@deffnx {C Function} scm_seek (fd_port, offset, whence)
 Sets the current position of @var{fd/port} to the integer
 @var{offset}, which is interpreted according to the value of
 @var{whence}.
@@ -293,7 +321,8 @@ that the current position of a port can be obtained using:
 @end lisp
 @end deffn
 
-@deffn primitive ftell fd_port
+@deffn {Scheme Procedure} ftell fd_port
+@deffnx {C Function} scm_ftell (fd_port)
 Return an integer representing the current position of
 @var{fd/port}, measured from the beginning.  Equivalent to:
 
@@ -304,7 +333,8 @@ Return an integer representing the current position of
 
 @findex truncate
 @findex ftruncate
-@deffn primitive truncate-file object [length]
+@deffn {Scheme Procedure} truncate-file object [length]
+@deffnx {C Function} scm_truncate_file (object, length)
 Truncates the object referred to by @var{object} to at most
 @var{length} bytes.  @var{object} can be a string containing a
 file name or an integer file descriptor or a port.
@@ -328,7 +358,7 @@ module from guile-scsh, but does not use multiple values or character
 sets and has an extra procedure @code{write-line}.
 
 @c begin (scm-doc-string "rdelim.scm" "read-line")
-@deffn procedure read-line [port] [handle-delim]
+@deffn {Scheme Procedure} read-line [port] [handle-delim]
 Return a line of text from @var{port} if specified, otherwise from the
 value returned by @code{(current-input-port)}.  Under Unix, a line of text
 is terminated by the first end-of-line character or by end-of-file.
@@ -351,7 +381,7 @@ terminating delimiter or end-of-file object.
 @end deffn
 
 @c begin (scm-doc-string "rdelim.scm" "read-line!")
-@deffn procedure read-line! buf [port]
+@deffn {Scheme Procedure} read-line! buf [port]
 Read a line of text into the supplied string @var{buf} and return the
 number of characters added to @var{buf}.  If @var{buf} is filled, then
 @code{#f} is returned.
@@ -360,7 +390,7 @@ specified, otherwise from the value returned by @code{(current-input-port)}.
 @end deffn
 
 @c begin (scm-doc-string "rdelim.scm" "read-delimited")
-@deffn procedure read-delimited delims [port] [handle-delim]
+@deffn {Scheme Procedure} read-delimited delims [port] [handle-delim]
 Read text until one of the characters in the string @var{delims} is found
 or end-of-file is reached.  Read from @var{port} if supplied, otherwise
 from the value returned by @code{(current-input-port)}.
@@ -368,7 +398,7 @@ from the value returned by @code{(current-input-port)}.
 @end deffn
 
 @c begin (scm-doc-string "rdelim.scm" "read-delimited!")
-@deffn procedure read-delimited! delims buf [port] [handle-delim] [start] [end]
+@deffn {Scheme Procedure} read-delimited! delims buf [port] [handle-delim] [start] [end]
 Read text into the supplied string @var{buf} and return the number of
 characters added to @var{buf} (subject to @var{handle-delim}, which takes
 the same values specified for @code{read-line}.  If @var{buf} is filled,
@@ -379,7 +409,8 @@ or end-of-file is reached.  Read from @var{port} if supplied, otherwise
 from the value returned by @code{(current-input-port)}.
 @end deffn
 
-@deffn primitive write-line obj [port]
+@deffn {Scheme Procedure} write-line obj [port]
+@deffnx {C Function} scm_write_line (obj, port)
 Display @var{obj} and a newline character to @var{port}.  If
 @var{port} is not specified, @code{(current-output-port)} is
 used.  This function is equivalent to:
@@ -393,7 +424,8 @@ Some of the abovementioned I/O functions rely on the following C
 primitives.  These will mainly be of interest to people hacking Guile
 internals.
 
-@deffn primitive %read-delimited! delims str gobble [port [start [end]]]
+@deffn {Scheme Procedure} %read-delimited! delims str gobble [port [start [end]]]
+@deffnx {C Function} scm_read_delimited_x (delims, str, gobble, port, start, end)
 Read characters from @var{port} into @var{str} until one of the
 characters in the @var{delims} string is encountered.  If
 @var{gobble} is true, discard the delimiter character;
@@ -411,7 +443,8 @@ at the end of file, the delimiter returned is the
 a delimiter, this value is @code{#f}.
 @end deffn
 
-@deffn primitive %read-line [port]
+@deffn {Scheme Procedure} %read-line [port]
+@deffnx {C Function} scm_read_line (port)
 Read a newline-terminated line from @var{port}, allocating storage as
 necessary.  The newline terminator (if any) is removed from the string,
 and a pair consisting of the line and its delimiter is returned.  The
@@ -432,7 +465,8 @@ The Block-string-I/O module can be accessed with:
 It currently contains procedures that help to implement the
 @code{(scsh rw)} module in guile-scsh.
 
-@deffn primitive read-string!/partial str [port_or_fdes [start [end]]]
+@deffn {Scheme Procedure} read-string!/partial str [port_or_fdes [start [end]]]
+@deffnx {C Function} scm_read_string_x_partial (str, port_or_fdes, start, end)
 Read characters from a port or file descriptor into a
 string @var{str}.  A port must have an underlying file
 descriptor --- a so-called fport.  This procedure is
@@ -472,7 +506,8 @@ end-of-file check.
 @end itemize
 @end deffn
 
-@deffn primitive write-string/partial str [port_or_fdes start end]
+@deffn {Scheme Procedure} write-string/partial str [port_or_fdes [start [end]]]
+@deffnx {C Function} scm_write_string_partial (str, port_or_fdes, start, end)
 Write characters from a string @var{str} to a port or file
 descriptor.  A port must have an underlying file descriptor
 --- a so-called fport.  This procedure is
@@ -520,38 +555,44 @@ return 0 immediately if the request size is 0 bytes.
 @section Default Ports for Input, Output and Errors
 
 @rnindex current-input-port
-@deffn primitive current-input-port
+@deffn {Scheme Procedure} current-input-port
+@deffnx {C Function} scm_current_input_port ()
 Return the current input port.  This is the default port used
 by many input procedures.  Initially, @code{current-input-port}
 returns the @dfn{standard input} in Unix and C terminology.
 @end deffn
 
 @rnindex current-output-port
-@deffn primitive current-output-port
+@deffn {Scheme Procedure} current-output-port
+@deffnx {C Function} scm_current_output_port ()
 Return the current output port.  This is the default port used
 by many output procedures.  Initially,
 @code{current-output-port} returns the @dfn{standard output} in
 Unix and C terminology.
 @end deffn
 
-@deffn primitive current-error-port
+@deffn {Scheme Procedure} current-error-port
+@deffnx {C Function} scm_current_error_port ()
 Return the port to which errors and warnings should be sent (the
 @dfn{standard error} in Unix and C terminology).
 @end deffn
 
-@deffn primitive set-current-input-port port
-@deffnx primitive set-current-output-port port
-@deffnx primitive set-current-error-port port
+@deffn {Scheme Procedure} set-current-input-port port
+@deffnx {Scheme Procedure} set-current-output-port port
+@deffnx {Scheme Procedure} set-current-error-port port
+@deffnx {C Function} scm_set_current_input_port (port)
+@deffnx {C Function} scm_set_current_output_port (port)
+@deffnx {C Function} scm_set_current_error_port (port)
 Change the ports returned by @code{current-input-port},
 @code{current-output-port} and @code{current-error-port}, respectively,
 so that they use the supplied @var{port} for input or output.
 @end deffn
 
-@deffn primitive set-current-output-port port
+@deffn {Scheme Procedure} set-current-output-port port
 Set the current default output port to PORT.
 @end deffn
 
-@deffn primitive set-current-error-port port
+@deffn {Scheme Procedure} set-current-error-port port
 Set the current default error port to PORT.
 @end deffn
 
@@ -576,7 +617,8 @@ The following procedures are used to open file ports.
 See also @ref{Ports and File Descriptors, open}, for an interface
 to the Unix @code{open} system call.
 
-@deffn primitive open-file filename mode
+@deffn {Scheme Procedure} open-file filename mode
+@deffnx {C Function} scm_open_file (filename, mode)
 Open the file whose name is @var{filename}, and return a port
 representing that file.  The attributes of the port are
 determined by the @var{mode} string.  The way in which this is
@@ -617,7 +659,7 @@ requested, @code{open-file} throws an exception.
 @end deffn
 
 @rnindex open-input-file
-@deffn procedure open-input-file filename
+@deffn {Scheme Procedure} open-input-file filename
 Open @var{filename} for input.  Equivalent to
 @smalllisp
 (open-file @var{filename} "r")
@@ -625,7 +667,7 @@ Open @var{filename} for input.  Equivalent to
 @end deffn
 
 @rnindex open-output-file
-@deffn procedure open-output-file filename
+@deffn {Scheme Procedure} open-output-file filename
 Open @var{filename} for output.  Equivalent to
 @smalllisp
 (open-file @var{filename} "w")
@@ -633,7 +675,7 @@ Open @var{filename} for output.  Equivalent to
 @end deffn
 
 @rnindex call-with-input-file
-@deffn procedure call-with-input-file file proc
+@deffn {Scheme Procedure} call-with-input-file file proc
 @var{proc} should be a procedure of one argument, and @var{file} should
 be a string naming a file.  The file must already exist. These
 procedures call @var{proc} with one argument: the port obtained by
@@ -646,7 +688,7 @@ never again be used for a read or write operation.
 @end deffn
 
 @rnindex call-with-output-file
-@deffn procedure call-with-output-file file proc
+@deffn {Scheme Procedure} call-with-output-file file proc
 @var{proc} should be a procedure of one argument, and @var{file} should
 be a string naming a file.  The behaviour is unspecified if the file
 already exists. These procedures call @var{proc} with one argument: the
@@ -659,7 +701,7 @@ port will never again be used for a read or write operation.
 @end deffn
 
 @rnindex with-input-from-file
-@deffn procedure with-input-from-file file thunk
+@deffn {Scheme Procedure} with-input-from-file file thunk
 @var{thunk} must be a procedure of no arguments, and @var{file} must be
 a string naming a file.  The file must already exist. The file is opened
 for input, an input port connected to it is made the default value
@@ -672,7 +714,7 @@ dependent.
 @end deffn
 
 @rnindex with-output-to-file
-@deffn procedure with-output-to-file file thunk
+@deffn {Scheme Procedure} with-output-to-file file thunk
 @var{thunk} must be a procedure of no arguments, and @var{file} must be
 a string naming a file.  The effect is unspecified if the file already
 exists.  The file is opened for output, an output port connected to it
@@ -684,7 +726,7 @@ used to escape from the continuation of these procedures, their behavior
 is implementation dependent.
 @end deffn
 
-@deffn procedure with-error-to-file file thunk
+@deffn {Scheme Procedure} with-error-to-file file thunk
 @var{thunk} must be a procedure of no arguments, and @var{file} must be
 a string naming a file.  The effect is unspecified if the file already
 exists.  The file is opened for output, an output port connected to it
@@ -696,27 +738,31 @@ from the continuation of these procedures, their behavior is
 implementation dependent.
 @end deffn
 
-@deffn primitive port-mode port
-Returns the port modes associated with the open port @var{port}.  These
-will not necessarily be identical to the modes used when the port was
-opened, since modes such as "append" which are used only during
-port creation are not retained.
+@deffn {Scheme Procedure} port-mode port
+@deffnx {C Function} scm_port_mode (port)
+Return the port modes associated with the open port @var{port}.
+These will not necessarily be identical to the modes used when
+the port was opened, since modes such as "append" which are
+used only during port creation are not retained.
 @end deffn
 
-@deffn primitive port-filename port
+@deffn {Scheme Procedure} port-filename port
+@deffnx {C Function} scm_port_filename (port)
 Return the filename associated with @var{port}.  This function returns
 the strings "standard input", "standard output" and "standard error"
 when called on the current input, output and error ports respectively.
 @end deffn
 
-@deffn primitive set-port-filename! port filename
+@deffn {Scheme Procedure} set-port-filename! port filename
+@deffnx {C Function} scm_set_port_filename_x (port, filename)
 Change the filename associated with @var{port}, using the current input
 port if none is specified.  Note that this does not change the port's
 source of data, but only the value that is returned by
 @code{port-filename} and reported in diagnostic output.
 @end deffn
 
-@deffn primitive file-port? obj
+@deffn {Scheme Procedure} file-port? obj
+@deffnx {C Function} scm_file_port_p (obj)
 Determine whether @var{obj} is a port that is related to a file.
 @end deffn
 
@@ -727,38 +773,42 @@ Determine whether @var{obj} is a port that is related to a file.
 The following allow string ports to be opened by analogy to R4R*
 file port facilities:
 
-@deffn primitive call-with-output-string proc
+@deffn {Scheme Procedure} call-with-output-string proc
+@deffnx {C Function} scm_call_with_output_string (proc)
 Calls the one-argument procedure @var{proc} with a newly created output
 port.  When the function returns, the string composed of the characters
 written into the port is returned.
 @end deffn
 
-@deffn primitive call-with-input-string string proc
+@deffn {Scheme Procedure} call-with-input-string string proc
+@deffnx {C Function} scm_call_with_input_string (string, proc)
 Calls the one-argument procedure @var{proc} with a newly
 created input port from which @var{string}'s contents may be
 read.  The value yielded by the @var{proc} is returned.
 @end deffn
 
-@deffn procedure with-output-to-string thunk
+@deffn {Scheme Procedure} with-output-to-string thunk
 Calls the zero-argument procedure @var{thunk} with the current output
 port set temporarily to a new string port.  It returns a string
 composed of the characters written to the current output.
 @end deffn
 
-@deffn procedure with-input-from-string string thunk
+@deffn {Scheme Procedure} with-input-from-string string thunk
 Calls the zero-argument procedure @var{thunk} with the current input
 port set temporarily to a string port opened on the specified
 @var{string}.  The value yielded by @var{thunk} is returned.
 @end deffn
 
-@deffn primitive open-input-string str
+@deffn {Scheme Procedure} open-input-string str
+@deffnx {C Function} scm_open_input_string (str)
 Take a string and return an input port that delivers characters
 from the string. The port can be closed by
 @code{close-input-port}, though its storage will be reclaimed
 by the garbage collector if it becomes inaccessible.
 @end deffn
 
-@deffn primitive open-output-string
+@deffn {Scheme Procedure} open-output-string
+@deffnx {C Function} scm_open_output_string ()
 Return an output port that will accumulate characters for
 retrieval by @code{get-output-string}. The port can be closed
 by the procedure @code{close-output-port}, though its storage
@@ -766,7 +816,8 @@ will be reclaimed by the garbage collector if it becomes
 inaccessible.
 @end deffn
 
-@deffn primitive get-output-string port
+@deffn {Scheme Procedure} get-output-string port
+@deffnx {C Function} scm_get_output_string (port)
 Given an output port created by @code{open-output-string},
 return a string consisting of the characters that have been
 output to the port so far.
@@ -784,7 +835,8 @@ but trying to extract the file descriptor number will fail.
 A @dfn{soft-port} is a port based on a vector of procedures capable of
 accepting or delivering characters.  It allows emulation of I/O ports.
 
-@deffn primitive make-soft-port pv modes
+@deffn {Scheme Procedure} make-soft-port pv modes
+@deffnx {C Function} scm_make_soft_port (pv, modes)
 Return a port capable of receiving or delivering characters as
 specified by the @var{modes} string (@pxref{File Ports,
 open-file}).  @var{pv} must be a vector of length 5.  Its
@@ -835,11 +887,12 @@ For example:
 This kind of port causes any data to be discarded when written to, and
 always returns the end-of-file object when read from.
 
-@deffn primitive %make-void-port mode
+@deffn {Scheme Procedure} %make-void-port mode
+@deffnx {C Function} scm_sys_make_void_port (mode)
 Create and return a new void port.  A void port acts like
-@code{/dev/null}.  The @var{mode} argument specifies the input/output
-modes for this port: see the documentation for @code{open-file} in
-@ref{File Ports}.
+/dev/null.  The @var{mode} argument
+specifies the input/output modes for this port: see the
+documentation for @code{open-file} in @ref{File Ports}.
 @end deffn
 
 

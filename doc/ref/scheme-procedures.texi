@@ -347,15 +347,18 @@ for primitive procedures, and @code{thunk?} only returns @code{#t} for
 procedures which do not accept any arguments.
 
 @rnindex procedure?
-@deffn primitive procedure? obj
+@deffn {Scheme Procedure} procedure? obj
+@deffnx {C Function} scm_procedure_p (obj)
 Return @code{#t} if @var{obj} is a procedure.
 @end deffn
 
-@deffn primitive closure? obj
+@deffn {Scheme Procedure} closure? obj
+@deffnx {C Function} scm_closure_p (obj)
 Return @code{#t} if @var{obj} is a closure.
 @end deffn
 
-@deffn primitive thunk? obj
+@deffn {Scheme Procedure} thunk? obj
+@deffnx {C Function} scm_thunk_p (obj)
 Return @code{#t} if @var{obj} is a thunk.
 @end deffn
 
@@ -365,19 +368,23 @@ Procedure properties are general properties to be attached to
 procedures.  These can be the name of a procedure or other relevant
 information, such as debug hints.
 
-@deffn primitive procedure-properties proc
+@deffn {Scheme Procedure} procedure-properties proc
+@deffnx {C Function} scm_procedure_properties (proc)
 Return @var{obj}'s property list.
 @end deffn
 
-@deffn primitive procedure-property p k
+@deffn {Scheme Procedure} procedure-property obj key
+@deffnx {C Function} scm_procedure_property (obj, key)
 Return the property of @var{obj} with name @var{key}.
 @end deffn
 
-@deffn primitive set-procedure-properties! proc new_val
+@deffn {Scheme Procedure} set-procedure-properties! proc alist
+@deffnx {C Function} scm_set_procedure_properties_x (proc, alist)
 Set @var{obj}'s property list to @var{alist}.
 @end deffn
 
-@deffn primitive set-procedure-property! p k v
+@deffn {Scheme Procedure} set-procedure-property! obj key value
+@deffnx {C Function} scm_set_procedure_property_x (obj, key, value)
 In @var{obj}'s property list, set the property named @var{key} to
 @var{value}.
 @end deffn
@@ -386,7 +393,8 @@ In @var{obj}'s property list, set the property named @var{key} to
 Documentation for a procedure can be accessed with the procedure
 @code{procedure-documentation}.
 
-@deffn primitive procedure-documentation proc
+@deffn {Scheme Procedure} procedure-documentation proc
+@deffnx {C Function} scm_procedure_documentation (proc)
 Return the documentation string associated with @code{proc}.  By
 convention, if a procedure contains more than one expression and the
 first expression is a string constant, that string is assumed to contain
@@ -398,22 +406,26 @@ documentation for that procedure.
 Source properties are properties which are related to the source code of
 a procedure, such as the line and column numbers, the file name etc.
 
-@deffn primitive set-source-properties! obj plist
+@deffn {Scheme Procedure} set-source-properties! obj plist
+@deffnx {C Function} scm_set_source_properties_x (obj, plist)
 Install the association list @var{plist} as the source property
 list for @var{obj}.
 @end deffn
 
-@deffn primitive set-source-property! obj key datum
+@deffn {Scheme Procedure} set-source-property! obj key datum
+@deffnx {C Function} scm_set_source_property_x (obj, key, datum)
 Set the source property of object @var{obj}, which is specified by
 @var{key} to @var{datum}.  Normally, the key will be a symbol.
 @end deffn
 
-@deffn primitive source-properties obj
+@deffn {Scheme Procedure} source-properties obj
+@deffnx {C Function} scm_source_properties (obj)
 Return the source property association list of @var{obj}.
 @end deffn
 
 
-@deffn primitive source-property obj key
+@deffn {Scheme Procedure} source-property obj key
+@deffnx {C Function} scm_source_property (obj, key)
 Return the source property specified by @var{key} from
 @var{obj}'s source property list.
 @end deffn
@@ -480,22 +492,25 @@ structure stored in @code{f}, or to write into the structure.
 (foo f 0)          @result{} dum
 @end lisp
 
-@deffn primitive make-procedure-with-setter procedure setter
+@deffn {Scheme Procedure} make-procedure-with-setter procedure setter
+@deffnx {C Function} scm_make_procedure_with_setter (procedure, setter)
 Create a new procedure which behaves like @var{procedure}, but
 with the associated setter @var{setter}.
 @end deffn
 
-@deffn primitive procedure-with-setter? obj
+@deffn {Scheme Procedure} procedure-with-setter? obj
+@deffnx {C Function} scm_procedure_with_setter_p (obj)
 Return @code{#t} if @var{obj} is a procedure with an
 associated setter procedure.
 @end deffn
 
-@deffn primitive procedure proc
+@deffn {Scheme Procedure} procedure proc
+@deffnx {C Function} scm_procedure (proc)
 Return the procedure of @var{proc}, which must be either a
 procedure with setter, or an operator struct.
 @end deffn
 
-@deffn primitive setter proc
+@deffn {Scheme Procedure} setter proc
 Return the setter of @var{proc}, which must be either a procedure with
 setter or an operator struct.
 @end deffn
@@ -710,30 +725,34 @@ change.  Use @code{defmacro}, @code{define-macro} (@pxref{Macros}) or
 terms, @code{defmacro}, @code{define-macro} and @code{define-syntax} are
 all implemented as mmacros.)
 
-@deffn primitive procedure->syntax code
-Return a macro which, when a symbol defined to this value appears as the
-first symbol in an expression, returns the result of applying @var{code}
-to the expression and the environment.
+@deffn {Scheme Procedure} procedure->syntax code
+@deffnx {C Function} scm_makacro (code)
+Return a @dfn{macro} which, when a symbol defined to this value
+appears as the first symbol in an expression, returns the
+result of applying @var{code} to the expression and the
+environment.
 @end deffn
 
-@deffn primitive procedure->macro code
-Return a macro which, when a symbol defined to this value appears as the
-first symbol in an expression, evaluates the result of applying
-@var{code} to the expression and the environment.  For example:
+@deffn {Scheme Procedure} procedure->macro code
+@deffnx {C Function} scm_makmacro (code)
+Return a @dfn{macro} which, when a symbol defined to this value
+appears as the first symbol in an expression, evaluates the
+result of applying @var{code} to the expression and the
+environment.  The value returned from @var{code} which has been
+passed to @code{procedure->memoizing-macro} replaces the form
+passed to @var{code}.  For example:
 
 @lisp
 (define trace
   (procedure->macro
-    (lambda (x env)
-      `(set! ,(cadr x) (tracef ,(cadr x) ',(cadr x))))))
+   (lambda (x env) `(set! ,(cadr x) (tracef ,(cadr x) ',(cadr x))))))
 
-(trace @i{foo})
-@equiv{}
-(set! @i{foo} (tracef @i{foo} '@i{foo})).
+(trace @i{foo}) @equiv{} (set! @i{foo} (tracef @i{foo} '@i{foo})).
 @end lisp
 @end deffn
 
-@deffn primitive procedure->memoizing-macro code
+@deffn {Scheme Procedure} procedure->memoizing-macro code
+@deffnx {C Function} scm_makmmacro (code)
 Return a macro which, when a symbol defined to this value appears as the
 first symbol in an expression, evaluates the result of applying
 @var{code} to the expression and the environment.
@@ -746,12 +765,14 @@ of the containing code.
 In the following primitives, @dfn{acro} flavour macros are referred to
 as @dfn{syntax transformers}.
 
-@deffn primitive macro? obj
+@deffn {Scheme Procedure} macro? obj
+@deffnx {C Function} scm_macro_p (obj)
 Return @code{#t} if @var{obj} is a regular macro, a memoizing macro or a
 syntax transformer.
 @end deffn
 
-@deffn primitive macro-type m
+@deffn {Scheme Procedure} macro-type m
+@deffnx {C Function} scm_macro_type (m)
 Return one of the symbols @code{syntax}, @code{macro} or
 @code{macro!}, depending on whether @var{m} is a syntax
 transformer, a regular macro, or a memoizing macro,
@@ -759,15 +780,18 @@ respectively.  If @var{m} is not a macro, @code{#f} is
 returned.
 @end deffn
 
-@deffn primitive macro-name m
+@deffn {Scheme Procedure} macro-name m
+@deffnx {C Function} scm_macro_name (m)
 Return the name of the macro @var{m}.
 @end deffn
 
-@deffn primitive macro-transformer m
+@deffn {Scheme Procedure} macro-transformer m
+@deffnx {C Function} scm_macro_transformer (m)
 Return the transformer of the macro @var{m}.
 @end deffn
 
-@deffn primitive cons-source xorig x y
+@deffn {Scheme Procedure} cons-source xorig x y
+@deffnx {C Function} scm_cons_source (xorig, x, y)
 Create and return a new pair whose car and cdr are @var{x} and @var{y}.
 Any source properties associated with @var{xorig} are also associated
 with the new pair.

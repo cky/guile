@@ -217,19 +217,22 @@ to which new docstrings should be added.")
                                          (match-end 1))))
           (if (string-equal matched "@c module ")
               (setq module (read (current-buffer)))
-            (setq matched
-                  (concat (buffer-substring (match-beginning 2)
-                                            (match-end 2))
-                          " "
-                          (buffer-substring (match-beginning 3)
-                                            (match-end 3))))
-            (message "Found docstring: %S: %s" module matched)
-            (let ((descriptions (assoc module alist)))
-              (setq alist
-                    (cons (cons module (cons matched (cdr-safe descriptions)))
-                          (if descriptions
-                              (delete descriptions alist)
-                            alist))))))))
+	    (let ((type (buffer-substring (match-beginning 2)
+					  (match-end 2))))
+	      (if (string-equal type "{C Function}")
+		  nil
+		(setq matched
+		      (concat type
+			      " "
+			      (buffer-substring (match-beginning 3)
+						(match-end 3))))
+		(message "Found docstring: %S: %s" module matched)
+		(let ((descriptions (assoc module alist)))
+		  (setq alist
+			(cons (cons module (cons matched (cdr-safe descriptions)))
+			      (if descriptions
+				  (delete descriptions alist)
+				alist))))))))))
     alist))
 
 ;; Return the docstring from the specified LOCATION.  LOCATION is a
@@ -428,6 +431,7 @@ new snarfed docstring file.\n\n")
     (insert "\n")
 
     (goto-char (point-min))
+    (local-set-key "d" 'docstring-ediff-this-line)
 
     ;; Popup the issues buffer.
     (let ((pop-up-frames t))

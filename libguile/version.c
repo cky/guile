@@ -94,9 +94,9 @@ SCM_DEFINE (scm_micro_version, "micro-version", 0, 0, 0,
 
 SCM_DEFINE (scm_version, "version", 0, 0, 0, 
             (),
-	    "@deffnx primitive major-version\n"
-	    "@deffnx primitive minor-version\n"
-	    "@deffnx primitive micro-version\n"
+	    "@deffnx {Scheme Procedure} major-version\n"
+	    "@deffnx {Scheme Procedure} minor-version\n"
+	    "@deffnx {Scheme Procedure} micro-version\n"
 	    "Return a string describing Guile's version number, or its major, minor\n"
 	    "or micro version number, respectively.\n\n"
 	    "@lisp\n"

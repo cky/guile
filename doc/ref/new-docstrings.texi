@@ -1,23 +1,27 @@
 
 @c module (guile)
 
-@deffn primitive environment? obj
+@deffn {Scheme Procedure} environment? obj
+@deffnx {C Function} scm_environment_p (obj)
 Return @code{#t} if @var{obj} is an environment, or @code{#f}
 otherwise.
 @end deffn
 
-@deffn primitive environment-bound? env sym
+@deffn {Scheme Procedure} environment-bound? env sym
+@deffnx {C Function} scm_environment_bound_p (env, sym)
 Return @code{#t} if @var{sym} is bound in @var{env}, or
 @code{#f} otherwise.
 @end deffn
 
-@deffn primitive environment-ref env sym
+@deffn {Scheme Procedure} environment-ref env sym
+@deffnx {C Function} scm_environment_ref (env, sym)
 Return the value of the location bound to @var{sym} in
 @var{env}. If @var{sym} is unbound in @var{env}, signal an
 @code{environment:unbound} error.
 @end deffn
 
-@deffn primitive environment-fold env proc init
+@deffn {Scheme Procedure} environment-fold env proc init
+@deffnx {C Function} scm_environment_fold (env, proc, init)
 Iterate over all the bindings in @var{env}, accumulating some
 value.
 For each binding in @var{env}, apply @var{proc} to the symbol
@@ -51,7 +55,8 @@ using environment-fold:
 @end lisp
 @end deffn
 
-@deffn primitive environment-define env sym val
+@deffn {Scheme Procedure} environment-define env sym val
+@deffnx {C Function} scm_environment_define (env, sym, val)
 Bind @var{sym} to a new location containing @var{val} in
 @var{env}. If @var{sym} is already bound to another location
 in @var{env} and the binding is mutable, that binding is
@@ -61,7 +66,8 @@ If @var{sym} is already bound in @var{env}, and the binding is
 immutable, signal an @code{environment:immutable-binding} error.
 @end deffn
 
-@deffn primitive environment-undefine env sym
+@deffn {Scheme Procedure} environment-undefine env sym
+@deffnx {C Function} scm_environment_undefine (env, sym)
 Remove any binding for @var{sym} from @var{env}. If @var{sym}
 is unbound in @var{env}, do nothing.  The return value is
 unspecified.
@@ -69,7 +75,8 @@ If @var{sym} is already bound in @var{env}, and the binding is
 immutable, signal an @code{environment:immutable-binding} error.
 @end deffn
 
-@deffn primitive environment-set! env sym val
+@deffn {Scheme Procedure} environment-set! env sym val
+@deffnx {C Function} scm_environment_set_x (env, sym, val)
 If @var{env} binds @var{sym} to some location, change that
 location's value to @var{val}.  The return value is
 unspecified.
@@ -79,7 +86,8 @@ to an immutable location, signal an
 @code{environment:immutable-location} error.
 @end deffn
 
-@deffn primitive environment-cell env sym for_write
+@deffn {Scheme Procedure} environment-cell env sym for_write
+@deffnx {C Function} scm_environment_cell (env, sym, for_write)
 Return the value cell which @var{env} binds to @var{sym}, or
 @code{#f} if the binding does not live in a value cell.
 The argument @var{for-write} indicates whether the caller
@@ -94,7 +102,8 @@ If you use this function, you should consider using
 re-bound to a new value cell, or becomes undefined.
 @end deffn
 
-@deffn primitive environment-observe env proc
+@deffn {Scheme Procedure} environment-observe env proc
+@deffnx {C Function} scm_environment_observe (env, proc)
 Whenever @var{env}'s bindings change, apply @var{proc} to
 @var{env}.
 This function returns an object, token, which you can pass to
@@ -103,7 +112,8 @@ of procedures observing @var{env}.  The type and value of
 token is unspecified.
 @end deffn
 
-@deffn primitive environment-observe-weak env proc
+@deffn {Scheme Procedure} environment-observe-weak env proc
+@deffnx {C Function} scm_environment_observe_weak (env, proc)
 This function is the same as environment-observe, except that
 the reference @var{env} retains to @var{proc} is a weak
 reference. This means that, if there are no other live,
@@ -112,7 +122,8 @@ garbage-collected, and dropped from @var{env}'s
 list of observing procedures.
 @end deffn
 
-@deffn primitive environment-unobserve token
+@deffn {Scheme Procedure} environment-unobserve token
+@deffnx {C Function} scm_environment_unobserve (token)
 Cancel the observation request which returned the value
 @var{token}.  The return value is unspecified.
 If a call @code{(environment-observe env proc)} returns
@@ -121,18 +132,21 @@ will cause @var{proc} to no longer be called when @var{env}'s
 bindings change.
 @end deffn
 
-@deffn primitive make-leaf-environment
+@deffn {Scheme Procedure} make-leaf-environment
+@deffnx {C Function} scm_make_leaf_environment ()
 Create a new leaf environment, containing no bindings.
 All bindings and locations created in the new environment
 will be mutable.
 @end deffn
 
-@deffn primitive leaf-environment? object
+@deffn {Scheme Procedure} leaf-environment? object
+@deffnx {C Function} scm_leaf_environment_p (object)
 Return @code{#t} if object is a leaf environment, or @code{#f}
 otherwise.
 @end deffn
 
-@deffn primitive make-eval-environment local imported
+@deffn {Scheme Procedure} make-eval-environment local imported
+@deffnx {C Function} scm_make_eval_environment (local, imported)
 Return a new environment object eval whose bindings are the
 union of the bindings in the environments @var{local} and
 @var{imported}, with bindings from @var{local} taking
@@ -156,28 +170,34 @@ In typical use, @var{local} will be a finite environment, and
 @var{imported} will be an import environment
 @end deffn
 
-@deffn primitive eval-environment? object
+@deffn {Scheme Procedure} eval-environment? object
+@deffnx {C Function} scm_eval_environment_p (object)
 Return @code{#t} if object is an eval environment, or @code{#f}
 otherwise.
 @end deffn
 
-@deffn primitive eval-environment-local env
+@deffn {Scheme Procedure} eval-environment-local env
+@deffnx {C Function} scm_eval_environment_local (env)
 Return the local environment of eval environment @var{env}.
 @end deffn
 
-@deffn primitive eval-environment-set-local! env local
+@deffn {Scheme Procedure} eval-environment-set-local! env local
+@deffnx {C Function} scm_eval_environment_set_local_x (env, local)
 Change @var{env}'s local environment to @var{local}.
 @end deffn
 
-@deffn primitive eval-environment-imported env
+@deffn {Scheme Procedure} eval-environment-imported env
+@deffnx {C Function} scm_eval_environment_imported (env)
 Return the imported environment of eval environment @var{env}.
 @end deffn
 
-@deffn primitive eval-environment-set-imported! env imported
+@deffn {Scheme Procedure} eval-environment-set-imported! env imported
+@deffnx {C Function} scm_eval_environment_set_imported_x (env, imported)
 Change @var{env}'s imported environment to @var{imported}.
 @end deffn
 
-@deffn primitive make-import-environment imports conflict_proc
+@deffn {Scheme Procedure} make-import-environment imports conflict_proc
+@deffnx {C Function} scm_make_import_environment (imports, conflict_proc)
 Return a new environment @var{imp} whose bindings are the union
 of the bindings from the environments in @var{imports};
 @var{imports} must be a list of environments. That is,
@@ -205,22 +225,26 @@ notice that the set of bindings in @var{imp} may still change,
 if one of its imported environments changes.
 @end deffn
 
-@deffn primitive import-environment? object
+@deffn {Scheme Procedure} import-environment? object
+@deffnx {C Function} scm_import_environment_p (object)
 Return @code{#t} if object is an import environment, or
 @code{#f} otherwise.
 @end deffn
 
-@deffn primitive import-environment-imports env
+@deffn {Scheme Procedure} import-environment-imports env
+@deffnx {C Function} scm_import_environment_imports (env)
 Return the list of environments imported by the import
 environment @var{env}.
 @end deffn
 
-@deffn primitive import-environment-set-imports! env imports
+@deffn {Scheme Procedure} import-environment-set-imports! env imports
+@deffnx {C Function} scm_import_environment_set_imports_x (env, imports)
 Change @var{env}'s list of imported environments to
 @var{imports}, and check for conflicts.
 @end deffn
 
-@deffn primitive make-export-environment private signature
+@deffn {Scheme Procedure} make-export-environment private signature
+@deffnx {C Function} scm_make_export_environment (private, signature)
 Return a new environment @var{exp} containing only those
 bindings in private whose symbols are present in
 @var{signature}. The @var{private} argument must be an
@@ -267,34 +291,41 @@ notice that the set of bindings in @var{exp} may still change,
 if the bindings in private change.
 @end deffn
 
-@deffn primitive export-environment? object
+@deffn {Scheme Procedure} export-environment? object
+@deffnx {C Function} scm_export_environment_p (object)
 Return @code{#t} if object is an export environment, or
 @code{#f} otherwise.
 @end deffn
 
-@deffn primitive export-environment-private env
+@deffn {Scheme Procedure} export-environment-private env
+@deffnx {C Function} scm_export_environment_private (env)
 Return the private environment of export environment @var{env}.
 @end deffn
 
-@deffn primitive export-environment-set-private! env private
+@deffn {Scheme Procedure} export-environment-set-private! env private
+@deffnx {C Function} scm_export_environment_set_private_x (env, private)
 Change the private environment of export environment @var{env}.
 @end deffn
 
-@deffn primitive export-environment-signature env
+@deffn {Scheme Procedure} export-environment-signature env
+@deffnx {C Function} scm_export_environment_signature (env)
 Return the signature of export environment @var{env}.
 @end deffn
 
-@deffn primitive export-environment-set-signature! env signature
+@deffn {Scheme Procedure} export-environment-set-signature! env signature
+@deffnx {C Function} scm_export_environment_set_signature_x (env, signature)
 Change the signature of export environment @var{env}.
 @end deffn
 
-@deffn primitive %compute-slots class
+@deffn {Scheme Procedure} %compute-slots class
+@deffnx {C Function} scm_sys_compute_slots (class)
 Return a list consisting of the names of all slots belonging to
 class @var{class}, i. e. the slots of @var{class} and of all of
 its superclasses.
 @end deffn
 
-@deffn primitive get-keyword key l default_value
+@deffn {Scheme Procedure} get-keyword key l default_value
+@deffnx {C Function} scm_get_keyword (key, l, default_value)
 Determine an associated value for the keyword @var{key} from
 the list @var{l}.  The list @var{l} has to consist of an even
 number of elements, where, starting with the first, every
@@ -303,222 +334,271 @@ If @var{l} does not hold a value for @var{key}, the value
 @var{default_value} is returned.
 @end deffn
 
-@deffn primitive slot-ref-using-class class obj slot_name
+@deffn {Scheme Procedure} slot-ref-using-class class obj slot_name
+@deffnx {C Function} scm_slot_ref_using_class (class, obj, slot_name)
 
 @end deffn
 
-@deffn primitive slot-set-using-class! class obj slot_name value
+@deffn {Scheme Procedure} slot-set-using-class! class obj slot_name value
+@deffnx {C Function} scm_slot_set_using_class_x (class, obj, slot_name, value)
 
 @end deffn
 
-@deffn primitive class-of x
+@deffn {Scheme Procedure} class-of x
+@deffnx {C Function} scm_class_of (x)
 Return the class of @var{x}.
 @end deffn
 
-@deffn primitive %goops-loaded
+@deffn {Scheme Procedure} %goops-loaded
+@deffnx {C Function} scm_sys_goops_loaded ()
 Announce that GOOPS is loaded and perform initialization
 on the C level which depends on the loaded GOOPS modules.
 @end deffn
 
-@deffn primitive %method-more-specific? m1 m2 targs
+@deffn {Scheme Procedure} %method-more-specific? m1 m2 targs
+@deffnx {C Function} scm_sys_method_more_specific_p (m1, m2, targs)
 
 @end deffn
 
-@deffn primitive find-method . l
+@deffn {Scheme Procedure} find-method . l
+@deffnx {C Function} scm_find_method (l)
 
 @end deffn
 
-@deffn primitive primitive-generic-generic subr
+@deffn {Scheme Procedure} primitive-generic-generic subr
+@deffnx {C Function} scm_primitive_generic_generic (subr)
 
 @end deffn
 
-@deffn primitive enable-primitive-generic! . subrs
+@deffn {Scheme Procedure} enable-primitive-generic! . subrs
+@deffnx {C Function} scm_enable_primitive_generic_x (subrs)
 
 @end deffn
 
-@deffn primitive generic-capability? proc
+@deffn {Scheme Procedure} generic-capability? proc
+@deffnx {C Function} scm_generic_capability_p (proc)
 
 @end deffn
 
-@deffn primitive %invalidate-method-cache! gf
+@deffn {Scheme Procedure} %invalidate-method-cache! gf
+@deffnx {C Function} scm_sys_invalidate_method_cache_x (gf)
 
 @end deffn
 
-@deffn primitive %invalidate-class class
+@deffn {Scheme Procedure} %invalidate-class class
+@deffnx {C Function} scm_sys_invalidate_class (class)
 
 @end deffn
 
-@deffn primitive %modify-class old new
+@deffn {Scheme Procedure} %modify-class old new
+@deffnx {C Function} scm_sys_modify_class (old, new)
 
 @end deffn
 
-@deffn primitive %modify-instance old new
+@deffn {Scheme Procedure} %modify-instance old new
+@deffnx {C Function} scm_sys_modify_instance (old, new)
 
 @end deffn
 
-@deffn primitive %set-object-setter! obj setter
+@deffn {Scheme Procedure} %set-object-setter! obj setter
+@deffnx {C Function} scm_sys_set_object_setter_x (obj, setter)
 
 @end deffn
 
-@deffn primitive %allocate-instance class initargs
+@deffn {Scheme Procedure} %allocate-instance class initargs
+@deffnx {C Function} scm_sys_allocate_instance (class, initargs)
 Create a new instance of class @var{class} and initialize it
 from the arguments @var{initargs}.
 @end deffn
 
-@deffn primitive slot-exists? obj slot_name
+@deffn {Scheme Procedure} slot-exists? obj slot_name
+@deffnx {C Function} scm_slots_exists_p (obj, slot_name)
 Return @code{#t} if @var{obj} has a slot named @var{slot_name}.
 @end deffn
 
-@deffn primitive slot-bound? obj slot_name
+@deffn {Scheme Procedure} slot-bound? obj slot_name
+@deffnx {C Function} scm_slot_bound_p (obj, slot_name)
 Return @code{#t} if the slot named @var{slot_name} of @var{obj}
 is bound.
 @end deffn
 
-@deffn primitive slot-set! obj slot_name value
+@deffn {Scheme Procedure} slot-set! obj slot_name value
+@deffnx {C Function} scm_slot_set_x (obj, slot_name, value)
 Set the slot named @var{slot_name} of @var{obj} to @var{value}.
 @end deffn
 
-@deffn primitive slot-exists-using-class? class obj slot_name
+@deffn {Scheme Procedure} slot-exists-using-class? class obj slot_name
+@deffnx {C Function} scm_slot_exists_using_class_p (class, obj, slot_name)
 
 @end deffn
 
-@deffn primitive slot-bound-using-class? class obj slot_name
+@deffn {Scheme Procedure} slot-bound-using-class? class obj slot_name
+@deffnx {C Function} scm_slot_bound_using_class_p (class, obj, slot_name)
 
 @end deffn
 
-@deffn primitive %fast-slot-set! obj index value
+@deffn {Scheme Procedure} %fast-slot-set! obj index value
+@deffnx {C Function} scm_sys_fast_slot_set_x (obj, index, value)
 Set the slot with index @var{index} in @var{obj} to
 @var{value}.
 @end deffn
 
-@deffn primitive %fast-slot-ref obj index
+@deffn {Scheme Procedure} %fast-slot-ref obj index
+@deffnx {C Function} scm_sys_fast_slot_ref (obj, index)
 Return the slot value with index @var{index} from @var{obj}.
 @end deffn
 
-@deffn primitive @@assert-bound-ref obj index
+@deffn {Scheme Procedure} @@assert-bound-ref obj index
+@deffnx {C Function} scm_at_assert_bound_ref (obj, index)
 Like @code{assert-bound}, but use @var{index} for accessing
 the value from @var{obj}.
 @end deffn
 
-@deffn primitive assert-bound value obj
+@deffn {Scheme Procedure} assert-bound value obj
+@deffnx {C Function} scm_assert_bound (value, obj)
 Return @var{value} if it is bound, and invoke the
 @var{slot-unbound} method of @var{obj} if it is not.
 @end deffn
 
-@deffn primitive unbound? obj
+@deffn {Scheme Procedure} unbound? obj
+@deffnx {C Function} scm_unbound_p (obj)
 Return @code{#t} if @var{obj} is unbound.
 @end deffn
 
-@deffn primitive make-unbound
+@deffn {Scheme Procedure} make-unbound
+@deffnx {C Function} scm_make_unbound ()
 Return the unbound value.
 @end deffn
 
-@deffn primitive accessor-method-slot-definition obj
+@deffn {Scheme Procedure} accessor-method-slot-definition obj
+@deffnx {C Function} scm_accessor_method_slot_definition (obj)
 Return the slot definition of the accessor @var{obj}.
 @end deffn
 
-@deffn primitive method-procedure obj
+@deffn {Scheme Procedure} method-procedure obj
+@deffnx {C Function} scm_method_procedure (obj)
 Return the procedure of the method @var{obj}.
 @end deffn
 
-@deffn primitive method-specializers obj
+@deffn {Scheme Procedure} method-specializers obj
+@deffnx {C Function} scm_method_specializers (obj)
 Return specializers of the method @var{obj}.
 @end deffn
 
-@deffn primitive method-generic-function obj
+@deffn {Scheme Procedure} method-generic-function obj
+@deffnx {C Function} scm_method_generic_function (obj)
 Return the generic function fot the method @var{obj}.
 @end deffn
 
-@deffn primitive generic-function-methods obj
+@deffn {Scheme Procedure} generic-function-methods obj
+@deffnx {C Function} scm_generic_function_methods (obj)
 Return the methods of the generic function @var{obj}.
 @end deffn
 
-@deffn primitive generic-function-name obj
+@deffn {Scheme Procedure} generic-function-name obj
+@deffnx {C Function} scm_generic_function_name (obj)
 Return the name of the generic function @var{obj}.
 @end deffn
 
-@deffn primitive class-environment obj
+@deffn {Scheme Procedure} class-environment obj
+@deffnx {C Function} scm_class_environment (obj)
 Return the environment of the class @var{obj}.
 @end deffn
 
-@deffn primitive class-slots obj
+@deffn {Scheme Procedure} class-slots obj
+@deffnx {C Function} scm_class_slots (obj)
 Return the slot list of the class @var{obj}.
 @end deffn
 
-@deffn primitive class-precedence-list obj
+@deffn {Scheme Procedure} class-precedence-list obj
+@deffnx {C Function} scm_class_precedence_list (obj)
 Return the class precedence list of the class @var{obj}.
 @end deffn
 
-@deffn primitive class-direct-methods obj
+@deffn {Scheme Procedure} class-direct-methods obj
+@deffnx {C Function} scm_class_direct_methods (obj)
 Return the direct methods of the class @var{obj}
 @end deffn
 
-@deffn primitive class-direct-subclasses obj
+@deffn {Scheme Procedure} class-direct-subclasses obj
+@deffnx {C Function} scm_class_direct_subclasses (obj)
 Return the direct subclasses of the class @var{obj}.
 @end deffn
 
-@deffn primitive class-direct-slots obj
+@deffn {Scheme Procedure} class-direct-slots obj
+@deffnx {C Function} scm_class_direct_slots (obj)
 Return the direct slots of the class @var{obj}.
 @end deffn
 
-@deffn primitive class-direct-supers obj
+@deffn {Scheme Procedure} class-direct-supers obj
+@deffnx {C Function} scm_class_direct_supers (obj)
 Return the direct superclasses of the class @var{obj}.
 @end deffn
 
-@deffn primitive class-name obj
+@deffn {Scheme Procedure} class-name obj
+@deffnx {C Function} scm_class_name (obj)
 Return the class name of @var{obj}.
 @end deffn
 
-@deffn primitive instance? obj
+@deffn {Scheme Procedure} instance? obj
+@deffnx {C Function} scm_instance_p (obj)
 Return @code{#t} if @var{obj} is an instance.
 @end deffn
 
-@deffn primitive %inherit-magic! class dsupers
+@deffn {Scheme Procedure} %inherit-magic! class dsupers
+@deffnx {C Function} scm_sys_inherit_magic_x (class, dsupers)
 
 @end deffn
 
-@deffn primitive %prep-layout! class
+@deffn {Scheme Procedure} %prep-layout! class
+@deffnx {C Function} scm_sys_prep_layout_x (class)
 
 @end deffn
 
-@deffn primitive %initialize-object obj initargs
+@deffn {Scheme Procedure} %initialize-object obj initargs
+@deffnx {C Function} scm_sys_initialize_object (obj, initargs)
 Initialize the object @var{obj} with the given arguments
 @var{initargs}.
 @end deffn
 
-@deffn primitive make . args
+@deffn {Scheme Procedure} make . args
+@deffnx {C Function} scm_make (args)
 Make a new object.  @var{args} must contain the class and
 all necessary initialization information.
 @end deffn
 
-@deffn primitive slot-ref obj slot_name
+@deffn {Scheme Procedure} slot-ref obj slot_name
+@deffnx {C Function} scm_slot_ref (obj, slot_name)
 Return the value from @var{obj}'s slot with the name
 @var{slot_name}.
 @end deffn
 
-@deffn primitive builtin-bindings
+@deffn {Scheme Procedure} builtin-bindings
 Create and return a copy of the global symbol table, removing all
 unbound symbols.
 @end deffn
 
-@deffn primitive %tag-body body
+@deffn {Scheme Procedure} %tag-body body
+@deffnx {C Function} scm_sys_tag_body (body)
 Internal GOOPS magic---don't use this function!
 @end deffn
 
-@deffn primitive list*
+@deffn {Scheme Procedure} list*
 implemented by the C function "scm_cons_star"
 @end deffn
 
-@deffn primitive set-current-module module
+@deffn {Scheme Procedure} set-current-module module
+@deffnx {C Function} scm_set_current_module (module)
 Set the current module to @var{module} and return
 the previous current module.
 @end deffn
 
-@deffn primitive current-module
+@deffn {Scheme Procedure} current-module
+@deffnx {C Function} scm_current_module ()
 Return the current module.
 @end deffn
 
-@deffn primitive c-clear-registered-modules
+@deffn {Scheme Procedure} c-clear-registered-modules
 Destroy the list of modules registered with the current Guile process.
 The return value is unspecified.  @strong{Warning:} this function does
 not actually unlink or deallocate these modules, but only destroys the
@@ -526,7 +606,7 @@ records of which modules have been loaded.  It should therefore be used
 only by module bookkeeping operations.
 @end deffn
 
-@deffn primitive c-registered-modules
+@deffn {Scheme Procedure} c-registered-modules
 Return a list of the object code modules that have been imported into
 the current Guile process.  Each element of the list is a pair whose
 car is the name of the module, and whose cdr is the function handle
@@ -534,12 +614,12 @@ for that module's initializer function.  The name is the string that
 has been passed to scm_register_module_xxx.
 @end deffn
 
-@deffn primitive include-deprecated-features
+@deffn {Scheme Procedure} include-deprecated-features
 Return @code{#t} iff deprecated features should be included
 in public interfaces.
 @end deffn
 
-@deffn primitive issue-deprecation-warning . msgs
+@deffn {Scheme Procedure} issue-deprecation-warning . msgs
 Output @var{msgs} to @code{(current-error-port)} when this
 is the first call to @code{issue-deprecation-warning} with
 this specific @var{msg}.  Do nothing otherwise.
@@ -547,23 +627,28 @@ The argument @var{msgs} should be a list of strings;
 they are printed in turn, each one followed by a newline.
 @end deffn
 
-@deffn primitive valid-object-procedure? proc
+@deffn {Scheme Procedure} valid-object-procedure? proc
+@deffnx {C Function} scm_valid_object_procedure_p (proc)
 Return @code{#t} iff @var{proc} is a procedure that can be used with @code{set-object-procedure}.  It is always valid to use a closure constructed by @code{lambda}.
 @end deffn
 
-@deffn primitive %get-pre-modules-obarray
+@deffn {Scheme Procedure} %get-pre-modules-obarray
+@deffnx {C Function} scm_get_pre_modules_obarray ()
 Return the obarray that is used for all new bindings before the module system is booted.  The first call to @code{set-current-module} will boot the module system.
 @end deffn
 
-@deffn primitive standard-interface-eval-closure module
+@deffn {Scheme Procedure} standard-interface-eval-closure module
+@deffnx {C Function} scm_standard_interface_eval_closure (module)
 Return a interface eval closure for the module @var{module}. Such a closure does not allow new bindings to be added.
 @end deffn
 
-@deffn primitive env-module env
+@deffn {Scheme Procedure} env-module env
+@deffnx {C Function} scm_env_module (env)
 Return the module of @var{ENV}, a lexical environment.
 @end deffn
 
-@deffn primitive load-extension lib init
+@deffn {Scheme Procedure} load-extension lib init
+@deffnx {C Function} scm_load_extension (lib, init)
 Load and initialize the extension designated by LIB and INIT.
 When there is no pre-registered function for LIB/INIT, this is
 equivalent to

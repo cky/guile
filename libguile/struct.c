@@ -560,7 +560,7 @@ SCM_DEFINE (scm_make_vtable_vtable, "make-vtable-vtable", 2, 0, 1,
 
 SCM_DEFINE (scm_struct_ref, "struct-ref", 2, 0, 0,
             (SCM handle, SCM pos),
-	    "@deffnx primitive struct-set! struct n value\n"
+	    "@deffnx {Scheme Procedure} struct-set! struct n value\n"
 	    "Access (or modify) the @var{n}th field of @var{struct}.\n\n"
 	    "If the field is of type 'p', then it can be set to an arbitrary value.\n\n"
 	    "If the field is of type 'u', then it can only be set to a non-negative\n"

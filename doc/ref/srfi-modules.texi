@@ -199,24 +199,24 @@ processing procedure, you should also have a look at the sections
 New lists can be constructed by calling one of the following
 procedures.
 
-@deffn procedure xcons d a
+@deffn {Scheme Procedure} xcons d a
 Like @code{cons}, but with interchanged arguments.  Useful mostly when
 passed to higher-order procedures.
 @end deffn
 
-@deffn procedure list-tabulate n init-proc
+@deffn {Scheme Procedure} list-tabulate n init-proc
 Return an @var{n}-element list, where each list element is produced by
 applying the procedure @var{init-proc} to the corresponding list
 index.  The order in which @var{init-proc} is applied to the indices
 is not specified.
 @end deffn
 
-@deffn procedure circular-list elt1 elt2 @dots{}
+@deffn {Scheme Procedure} circular-list elt1 elt2 @dots{}
 Return a circular list containing the given arguments @var{elt1}
 @var{elt2} @dots{}.
 @end deffn
 
-@deffn procedure iota count [start step]
+@deffn {Scheme Procedure} iota count [start step]
 Return a list containing @var{count} elements, where each element is
 calculated as follows:
 
@@ -233,23 +233,23 @@ calculated as follows:
 
 The procedures in this section test specific properties of lists.
 
-@deffn procedure proper-list? obj
+@deffn {Scheme Procedure} proper-list? obj
 Return @code{#t} if @var{obj} is a proper list, that is a finite list,
 terminated with the empty list.  Otherwise, return @code{#f}.
 @end deffn
 
-@deffn procedure circular-list? obj
+@deffn {Scheme Procedure} circular-list? obj
 Return @code{#t} if @var{obj} is a circular list, otherwise return
 @code{#f}.
 @end deffn
 
-@deffn procedure dotted-list? obj
+@deffn {Scheme Procedure} dotted-list? obj
 Return @code{#t} if @var{obj} is a dotted list, return @code{#f}
 otherwise.  A dotted list is a finite list which is not terminated by
 the empty list, but some other value.
 @end deffn
 
-@deffn procedure null-list? lst
+@deffn {Scheme Procedure} null-list? lst
 Return @code{#t} if @var{lst} is the empty list @code{()}, @code{#f}
 otherwise.  If something else than a proper or circular list is passed
 as @var{lst}, an error is signalled.  This procedure is recommented
@@ -257,14 +257,14 @@ for checking for the end of a list in contexts where dotted lists are
 not allowed.
 @end deffn
 
-@deffn procedure not-pair? obj
+@deffn {Scheme Procedure} not-pair? obj
 Return @code{#t} is @var{obj} is not a pair, @code{#f} otherwise.
 This is shorthand notation @code{(not (pair? @var{obj}))} and is
 supposed to be used for end-of-list checking in contexts where dotted
 lists are allowed.
 @end deffn
 
-@deffn procedure list= elt= list1 @dots{}
+@deffn {Scheme Procedure} list= elt= list1 @dots{}
 Return @code{#t} if all argument lists are equal, @code{#f} otherwise.
 List equality is determined by testing whether all lists have the same
 length and the corresponding elements are equal in the sense of the
@@ -278,42 +278,42 @@ equality predicate @var{elt=}.  If no or only one list is given,
 
 @c FIXME::martin: Review me!
 
-@deffn procedure first pair
-@deffnx procedure second pair
-@deffnx procedure third pair
-@deffnx procedure fourth pair
-@deffnx procedure fifth pair
-@deffnx procedure sixth pair
-@deffnx procedure seventh pair
-@deffnx procedure eighth pair
-@deffnx procedure ninth pair
-@deffnx procedure tenth pair
+@deffn {Scheme Procedure} first pair
+@deffnx {Scheme Procedure} second pair
+@deffnx {Scheme Procedure} third pair
+@deffnx {Scheme Procedure} fourth pair
+@deffnx {Scheme Procedure} fifth pair
+@deffnx {Scheme Procedure} sixth pair
+@deffnx {Scheme Procedure} seventh pair
+@deffnx {Scheme Procedure} eighth pair
+@deffnx {Scheme Procedure} ninth pair
+@deffnx {Scheme Procedure} tenth pair
 These are synonyms for @code{car}, @code{cadr}, @code{caddr}, @dots{}.
 @end deffn
 
-@deffn procedure car+cdr pair
+@deffn {Scheme Procedure} car+cdr pair
 Return two values, the @sc{car} and the @sc{cdr} of @var{pair}.
 @end deffn
 
-@deffn procedure take lst i
-@deffnx procedure take! lst i
+@deffn {Scheme Procedure} take lst i
+@deffnx {Scheme Procedure} take! lst i
 Return a list containing the first @var{i} elements of @var{lst}.
 
 @code{take!} may modify the structure of the argument list @var{lst}
 in order to produce the result.
 @end deffn
 
-@deffn procedure drop lst i
+@deffn {Scheme Procedure} drop lst i
 Return a list containing all but the first @var{i} elements of
 @var{lst}.
 @end deffn
 
-@deffn procedure take-right lst i
+@deffn {Scheme Procedure} take-right lst i
 Return the a list containing the @var{i} last elements of @var{lst}.
 @end deffn
 
-@deffn procedure drop-right lst i
-@deffnx procedure drop-right! lst i
+@deffn {Scheme Procedure} drop-right lst i
+@deffnx {Scheme Procedure} drop-right! lst i
 Return the a list containing all but the @var{i} last elements of
 @var{lst}.
 
@@ -321,8 +321,8 @@ Return the a list containing all but the @var{i} last elements of
 @var{lst} in order to produce the result.
 @end deffn
 
-@deffn procedure split-at lst i
-@deffnx procedure split-at! lst i
+@deffn {Scheme Procedure} split-at lst i
+@deffnx {Scheme Procedure} split-at! lst i
 Return two values, a list containing the first @var{i} elements of the
 list @var{lst} and a list containing the remaining elements.
 
@@ -330,7 +330,7 @@ list @var{lst} and a list containing the remaining elements.
 @var{lst} in order to produce the result.
 @end deffn
 
-@deffn procedure last lst
+@deffn {Scheme Procedure} last lst
 Return the last element of the non-empty, finite list @var{lst}.
 @end deffn
 
@@ -340,21 +340,21 @@ Return the last element of the non-empty, finite list @var{lst}.
 
 @c FIXME::martin: Review me!
 
-@deffn procedure length+ lst
+@deffn {Scheme Procedure} length+ lst
 Return the length of the argument list @var{lst}.  When @var{lst} is a
 circular list, @code{#f} is returned.
 @end deffn
 
-@deffn procedure concatenate list-of-lists
-@deffnx procedure concatenate! list-of-lists
+@deffn {Scheme Procedure} concatenate list-of-lists
+@deffnx {Scheme Procedure} concatenate! list-of-lists
 Construct a list by appending all lists in @var{list-of-lists}.
 
 @code{concatenate!} may modify the structure of the given lists in
 order to produce the result.
 @end deffn
 
-@deffn procedure append-reverse rev-head tail
-@deffnx procedure append-reverse! rev-head tail
+@deffn {Scheme Procedure} append-reverse rev-head tail
+@deffnx {Scheme Procedure} append-reverse! rev-head tail
 Reverse @var{rev-head}, append @var{tail} and return the result.  This
 is equivalent to @code{(append (reverse @var{rev-head}) @var{tail})},
 but more efficient.
@@ -363,18 +363,18 @@ but more efficient.
 the result.
 @end deffn
 
-@deffn procedure zip lst1 lst2 @dots{}
+@deffn {Scheme Procedure} zip lst1 lst2 @dots{}
 Return a list as long as the shortest of the argument lists, where
 each element is a list.  The first list contains the first elements of
 the argument lists, the second list contains the second elements, and
 so on.
 @end deffn
 
-@deffn procedure unzip1 lst
-@deffnx procedure unzip2 lst
-@deffnx procedure unzip3 lst
-@deffnx procedure unzip4 lst
-@deffnx procedure unzip5 lst
+@deffn {Scheme Procedure} unzip1 lst
+@deffnx {Scheme Procedure} unzip2 lst
+@deffnx {Scheme Procedure} unzip3 lst
+@deffnx {Scheme Procedure} unzip4 lst
+@deffnx {Scheme Procedure} unzip5 lst
 @code{unzip1} takes a list of lists, and returns a list containing the
 first elements of each list, @code{unzip2} returns two lists, the
 first containing the first elements of each lists and the second
@@ -387,7 +387,7 @@ containing the second elements of each lists, and so on.
 
 @c FIXME::martin: Review me!
 
-@deffn procedure fold kons knil lst1 lst2 @dots{}
+@deffn {Scheme Procedure} fold kons knil lst1 lst2 @dots{}
 Fold the procedure @var{kons} across all elements of @var{lst1},
 @var{lst2}, @dots{}.  Produce the result of
 
@@ -398,7 +398,7 @@ if @var{enm} are the elements of the lists @var{lst1}, @var{lst2},
 @dots{}.
 @end deffn
 
-@deffn procedure fold-right kons knil lst1 lst2 @dots{}
+@deffn {Scheme Procedure} fold-right kons knil lst1 lst2 @dots{}
 Similar to @code{fold}, but applies @var{kons} in right-to-left order
 to the list elements, that is:
 
@@ -406,27 +406,27 @@ to the list elements, that is:
 @var{e22}  @dots{} (@var{kons} @var{en1} @var{en2} @var{knil})))},
 @end deffn
 
-@deffn procedure pair-fold kons knil lst1 lst2 @dots{}
+@deffn {Scheme Procedure} pair-fold kons knil lst1 lst2 @dots{}
 Like @code{fold}, but apply @var{kons} to the pairs of the list
 instead of the list elements.
 @end deffn
 
-@deffn procedure pair-fold-right kons knil lst1 lst2 @dots{}
+@deffn {Scheme Procedure} pair-fold-right kons knil lst1 lst2 @dots{}
 Like @code{fold-right}, but apply @var{kons} to the pairs of the list
 instead of the list elements.
 @end deffn
 
-@deffn procedure reduce f ridentity lst
+@deffn {Scheme Procedure} reduce f ridentity lst
 @code{reduce} is a variant of @code{reduce}.  If @var{lst} is
 @code{()}, @var{ridentity} is returned.  Otherwise, @code{(fold (car
 @var{lst}) (cdr @var{lst}))} is returned.
 @end deffn
 
-@deffn procedure reduce-right f ridentity lst
+@deffn {Scheme Procedure} reduce-right f ridentity lst
 This is the @code{fold-right} variant of @var{reduce}.
 @end deffn
 
-@deffn procedure unfold p f g seed [tail-gen]
+@deffn {Scheme Procedure} unfold p f g seed [tail-gen]
 @code{unfold} is defined as follows:
 
 @lisp
@@ -458,7 +458,7 @@ elements by @var{f}.  These elements are put into a list in
 left-to-right order, and @var{p} tells when to stop unfolding.
 @end deffn
 
-@deffn procedure unfold-right p f g seed [tail]
+@deffn {Scheme Procedure} unfold-right p f g seed [tail]
 Construct a list with the following loop.
 
 @lisp
@@ -487,7 +487,7 @@ Creates the tail of the list; defaults to @code{(lambda (x) '())}.
 
 @end deffn
 
-@deffn procedure map f lst1 lst2 @dots{}
+@deffn {Scheme Procedure} map f lst1 lst2 @dots{}
 Map the procedure over the list(s) @var{lst1}, @var{lst2}, @dots{} and
 return a list containing the results of the procedure applications.
 This procedure is extended with respect to R5RS, because the argument
@@ -496,7 +496,7 @@ length as the shortest argument lists.  The order in which @var{f}
 will be applied to the list element(s) is not specified.
 @end deffn
 
-@deffn procedure for-each f lst1 lst2 @dots{}
+@deffn {Scheme Procedure} for-each f lst1 lst2 @dots{}
 Apply the procedure @var{f} to each pair of corresponding elements of
 the list(s) @var{lst1}, @var{lst2}, @dots{}.  The return value is not
 specified.  This procedure is extended with respect to R5RS, because
@@ -506,8 +506,8 @@ be applied to tge list elements in left-to-right order.
 
 @end deffn
 
-@deffn procedure append-map f lst1 lst2 @dots{}
-@deffnx procedure append-map! f lst1 lst2 @dots{}
+@deffn {Scheme Procedure} append-map f lst1 lst2 @dots{}
+@deffnx {Scheme Procedure} append-map! f lst1 lst2 @dots{}
 Equivalent to
 
 @lisp
@@ -530,7 +530,7 @@ The dynamic order in which the various applications of @var{f} are
 made is not specified.
 @end deffn
 
-@deffn procedure map! f lst1 lst2 @dots{}
+@deffn {Scheme Procedure} map! f lst1 lst2 @dots{}
 Linear-update variant of @code{map} -- @code{map!} is allowed, but not
 required, to alter the cons cells of @var{lst1} to construct the
 result list.
@@ -540,13 +540,13 @@ made is not specified. In the n-ary case, @var{lst2}, @var{lst3},
 @dots{} must have at least as many elements as @var{lst1}.
 @end deffn
 
-@deffn procedure pair-for-each f lst1 lst2 @dots{}
+@deffn {Scheme Procedure} pair-for-each f lst1 lst2 @dots{}
 Like @code{for-each}, but applies the procedure @var{f} to the pairs
 from which the argument lists are constructed, instead of the list
 elements.  The return value is not specified.
 @end deffn
 
-@deffn procedure filter-map f lst1 lst2 @dots{}
+@deffn {Scheme Procedure} filter-map f lst1 lst2 @dots{}
 Like @code{map}, but only results from the applications of @var{f}
 which are true are saved in the result list.
 @end deffn
@@ -562,8 +562,8 @@ specific condition.  Partitioning a list means to make two groups of
 list elements, one which contains the elements satisfying a condition,
 and the other for the elements which don't.
 
-@deffn procedure filter pred lst
-@deffnx procedure filter! pred lst
+@deffn {Scheme Procedure} filter pred lst
+@deffnx {Scheme Procedure} filter! pred lst
 Return a list containing all elements from @var{lst} which satisfy the
 predicate @var{pred}.  The elements in the result list have the same
 order as in @var{lst}.  The order in which @var{pred} is applied to
@@ -572,8 +572,8 @@ the list elements is not specified.
 @code{filter!} is allowed, but not required to modify the structure of
 @end deffn
 
-@deffn procedure partition pred lst
-@deffnx procedure partition! pred lst
+@deffn {Scheme Procedure} partition pred lst
+@deffnx {Scheme Procedure} partition! pred lst
 Return two lists, one containing all elements from @var{lst} which
 satisfy the predicate @var{pred}, and one list containing the elements
 which do not satisfy the predicated.  The elements in the result lists
@@ -584,8 +584,8 @@ applied to the list elements is not specified.
 the input list.
 @end deffn
 
-@deffn procedure remove pred lst
-@deffnx procedure remove! pred lst
+@deffn {Scheme Procedure} remove pred lst
+@deffnx {Scheme Procedure} remove! pred lst
 Return a list containing all elements from @var{lst} which do not
 satisfy the predicate @var{pred}.  The elements in the result list
 have the same order as in @var{lst}.  The order in which @var{pred} is
@@ -605,18 +605,18 @@ The procedures for searching elements in lists either accept a
 predicate or a comparison object for determining which elements are to
 be searched.
 
-@deffn procedure find pred lst
+@deffn {Scheme Procedure} find pred lst
 Return the first element of @var{lst} which satisfies the predicate
 @var{pred} and @code{#f} if no such element is found.
 @end deffn
 
-@deffn procedure find-tail pred lst
+@deffn {Scheme Procedure} find-tail pred lst
 Return the first pair of @var{lst} whose @sc{car} satisfies the
 predicate @var{pred} and @code{#f} if no such element is found.
 @end deffn
 
-@deffn procedure take-while pred lst
-@deffnx procedure take-while! pred lst
+@deffn {Scheme Procedure} take-while pred lst
+@deffnx {Scheme Procedure} take-while! pred lst
 Return the longest initial prefix of @var{lst} whose elements all
 satisfy the predicate @var{pred}.
 
@@ -624,15 +624,15 @@ satisfy the predicate @var{pred}.
 list while producing the result.
 @end deffn
 
-@deffn procedure drop-while pred lst
+@deffn {Scheme Procedure} drop-while pred lst
 Drop the longest initial prefix of @var{lst} whose elements all
 satisfy the predicate @var{pred}.
 @end deffn
 
-@deffn procedure span pred lst
-@deffnx procedure span! pred lst
-@deffnx procedure break pred lst
-@deffnx procedure break! pred lst
+@deffn {Scheme Procedure} span pred lst
+@deffnx {Scheme Procedure} span! pred lst
+@deffnx {Scheme Procedure} break pred lst
+@deffnx {Scheme Procedure} break! pred lst
 @code{span} splits the list @var{lst} into the longest initial prefix
 whose elements all satisfy the predicate @var{pred}, and the remaining
 tail.  @code{break} inverts the sense of the predicate.
@@ -642,25 +642,25 @@ the structure of the input list @var{lst} in order to produce the
 result.
 @end deffn
 
-@deffn procedure any pred lst1 lst2 @dots{}
+@deffn {Scheme Procedure} any pred lst1 lst2 @dots{}
 Apply @var{pred} across the lists and return a true value if the
 predicate returns true for any of the list elements(s); return
 @code{#f} otherwise.  The true value returned is always the result of
 the first succesful application of @var{pred}.
 @end deffn
 
-@deffn procedure every pred lst1 lst2 @dots{}
+@deffn {Scheme Procedure} every pred lst1 lst2 @dots{}
 Apply @var{pred} across the lists and return a true value if the
 predicate returns true for every of the list elements(s); return
 @code{#f} otherwise.  The true value returned is always the result of
 the final succesful application of @var{pred}.
 @end deffn
 
-@deffn procedure list-index pred lst1 lst2 @dots{}
+@deffn {Scheme Procedure} list-index pred lst1 lst2 @dots{}
 Return the index of the leftmost element that satisfies @var{pred}.
 @end deffn
 
-@deffn procedure member x lst [=]
+@deffn {Scheme Procedure} member x lst [=]
 Return the first sublist of @var{lst} whose @sc{car} is equal to
 @var{x}.  If @var{x} does no appear in @var{lst}, return @code{#f}.
 Equality is determined by the equality predicate @var{=}, or
@@ -677,8 +677,8 @@ The procedures for deleting elements from a list either accept a
 predicate or a comparison object for determining which elements are to
 be removed.
 
-@deffn procedure delete x lst [=]
-@deffnx procedure delete! x lst [=]
+@deffn {Scheme Procedure} delete x lst [=]
+@deffnx {Scheme Procedure} delete! x lst [=]
 Return a list containing all elements from @var{lst}, but without the
 elements equal to @var{x}.  Equality is determined by the equality
 predicate @var{=}, which defaults to @code{equal?} if not given.
@@ -687,8 +687,8 @@ predicate @var{=}, which defaults to @code{equal?} if not given.
 the argument list in order to produce the result.
 @end deffn
 
-@deffn procedure delete-duplicates lst [=]
-@deffnx procedure delete-duplicates! lst [=]
+@deffn {Scheme Procedure} delete-duplicates lst [=]
+@deffnx {Scheme Procedure} delete-duplicates! lst [=]
 Return a list containing all elements from @var{lst}, but without
 duplicate elements.  Equality of elements is determined by the
 equality predicate @var{=}, which defaults to @code{equal?} if not
@@ -708,13 +708,13 @@ Association lists are described in detail in section @ref{Association
 Lists}.  The present section only documents the additional procedures
 for dealing with association lists defined by SRFI-1.
 
-@deffn procedure assoc key alist [=]
+@deffn {Scheme Procedure} assoc key alist [=]
 Return the pair from @var{alist} which matches @var{key}.  Equality is
 determined by @var{=}, which defaults to @code{equal?} if not given.
 @var{alist} must be an association lists---a list of pairs.
 @end deffn
 
-@deffn procedure alist-cons key datum alist
+@deffn {Scheme Procedure} alist-cons key datum alist
 Equivalent to
 
 @lisp
@@ -725,13 +725,13 @@ This procedure is used to coons a new pair onto an existing
 association list.
 @end deffn
 
-@deffn procedure alist-copy alist
+@deffn {Scheme Procedure} alist-copy alist
 Return a newly allocated copy of @var{alist}, that means that the
 spine of the list as well as the pairs are copied.
 @end deffn
 
-@deffn procedure alist-delete key alist [=]
-@deffnx procedure alist-delete! key alist [=]
+@deffn {Scheme Procedure} alist-delete key alist [=]
+@deffnx {Scheme Procedure} alist-delete! key alist [=]
 Return a list containing the pairs of @var{alist}, but without the
 pairs whose @sc{cars} are equal to @var{key}.  Equality is determined
 by @var{=}, which defaults to @code{equal?} if not given.
@@ -759,43 +759,43 @@ All these procedures accept an equality predicate as the first
 argument.  This predicate is used for testing the objects in the list
 sets for sameness.
 
-@deffn procedure lset<= = list1 @dots{}
+@deffn {Scheme Procedure} lset<= = list1 @dots{}
 Return @code{#t} if every @var{listi} is a subset of @var{listi+1},
 otherwise return @code{#f}.  Returns @code{#t} if called with less
 than two arguments. @var{=} is used for testing element equality.
 @end deffn
 
-@deffn procedure lset= = list1 list2 @dots{}
+@deffn {Scheme Procedure} lset= = list1 list2 @dots{}
 Return @code{#t} if all argument lists are equal. @var{=} is used for
 testing element equality.
 @end deffn
 
-@deffn procedure lset-adjoin = list elt1 @dots{}
-@deffnx procedure lset-adjoin! = list elt1 @dots{}
+@deffn {Scheme Procedure} lset-adjoin = list elt1 @dots{}
+@deffnx {Scheme Procedure} lset-adjoin! = list elt1 @dots{}
 Add all @var{elts} to the list @var{list}, suppressing duplicates and
 return the resulting list.  @code{lset-adjoin!} is allowed, but not
 required to modify its first argument. @var{=} is used for testing
 element equality.
 @end deffn
 
-@deffn procedure lset-union = list1 @dots{}
-@deffnx procedure lset-union! = list1 @dots{}
+@deffn {Scheme Procedure} lset-union = list1 @dots{}
+@deffnx {Scheme Procedure} lset-union! = list1 @dots{}
 Return the union of all argument list sets.  The union is the set of
 all elements which appear in any of the argument sets.
 @code{lset-union!} is allowed, but not required to modify its first
 argument. @var{=} is used for testing element equality.
 @end deffn
 
-@deffn procedure lset-intersection = list1 list2 @dots{}
-@deffnx procedure lset-intersection! = list1 list2 @dots{}
+@deffn {Scheme Procedure} lset-intersection = list1 list2 @dots{}
+@deffnx {Scheme Procedure} lset-intersection! = list1 list2 @dots{}
 Return the intersection of all argument list sets.  The intersection
 is the set containing all elements which appear in all argument sets.
 @code{lset-intersection!} is allowed, but not required to modify its
 first argument. @var{=} is used for testing element equality.
 @end deffn
 
-@deffn procedure lset-difference = list1 list2 @dots{}
-@deffnx procedure lset-difference! = list1 list2 @dots{}
+@deffn {Scheme Procedure} lset-difference = list1 list2 @dots{}
+@deffnx {Scheme Procedure} lset-difference! = list1 list2 @dots{}
 Return the difference of all argument list sets.  The difference is
 the the set containing all elements of the first list which do not
 appear in the other lists.  @code{lset-difference!}  is allowed, but
@@ -803,8 +803,8 @@ not required to modify its first argument. @var{=} is used for testing
 element equality.
 @end deffn
 
-@deffn procedure lset-xor = list1 @dots{}
-@deffnx procedure lset-xor! = list1 @dots{}
+@deffn {Scheme Procedure} lset-xor = list1 @dots{}
+@deffnx {Scheme Procedure} lset-xor! = list1 @dots{}
 Return the set containing all elements which appear in the first
 argument list set, but not in the second; or, more generally: which
 appear in an odd number of sets.  @code{lset-xor!}  is allowed, but
@@ -812,8 +812,8 @@ not required to modify its first argument. @var{=} is used for testing
 element equality.
 @end deffn
 
-@deffn procedure lset-diff+intersection = list1 list2 @dots{}
-@deffnx procedure lset-diff+intersection! = list1 list2 @dots{}
+@deffn {Scheme Procedure} lset-diff+intersection = list1 list2 @dots{}
+@deffnx {Scheme Procedure} lset-diff+intersection! = list1 list2 @dots{}
 Return two values, the difference and the intersection of the argument
 list sets. This works like a combination of @code{lset-difference} and
 @code{lset-intersection}, but is more efficient.
@@ -939,42 +939,42 @@ For example, you can use the procedures @code{u8vector?},
 @code{make-s8vector}, @code{u16vector}, @code{u32vector-length},
 @code{s64vector-ref}, @code{f32vector-set!} or @code{f64vector->list}.
 
-@deffn primitive TAGvector? obj
+@deffn {Scheme Procedure} TAGvector? obj
 Return @code{#t} if @var{obj} is a homogeneous numeric vector of type
 @code{TAG}.
 @end deffn
 
-@deffn primitive make-TAGvector n [value]
+@deffn {Scheme Procedure} make-TAGvector n [value]
 Create a newly allocated homogeneous numeric vector of type
 @code{TAG}, which can hold @var{n} elements.  If @var{value} is given,
 the vector is initialized with the value, otherwise, the contents of
 the returned vector is not specified.
 @end deffn
 
-@deffn primitive TAGvector value1 @dots{}
+@deffn {Scheme Procedure} TAGvector value1 @dots{}
 Create a newly allocated homogeneous numeric vector of type
 @code{TAG}. The returned vector is as long as the number of arguments
 given, and is initialized with the argument values.
 @end deffn
 
-@deffn primitive TAGvector-length TAGvec
+@deffn {Scheme Procedure} TAGvector-length TAGvec
 Return the number of elements in @var{TAGvec}.
 @end deffn
 
-@deffn primitive TAGvector-ref TAGvec i
+@deffn {Scheme Procedure} TAGvector-ref TAGvec i
 Return the element at index @var{i} in @var{TAGvec}.
 @end deffn
 
-@deffn primitive TAGvector-ref TAGvec i value
+@deffn {Scheme Procedure} TAGvector-ref TAGvec i value
 Set the element at index @var{i} in @var{TAGvec} to @var{value}.  The
 return value is not specified.
 @end deffn
 
-@deffn primitive TAGvector->list TAGvec
+@deffn {Scheme Procedure} TAGvector->list TAGvec
 Return a newly allocated list holding all elements of @var{TAGvec}.
 @end deffn
 
-@deffn primitive list->TAGvector lst
+@deffn {Scheme Procedure} list->TAGvector lst
 Return a newly allocated homogeneous numeric vector of type @code{TAG},
 initialized with the elements of the list @var{lst}.
 @end deffn
@@ -1079,7 +1079,7 @@ Example:
 Please note the quote before the @code{#,(file ...)} expression.  This
 is necessary because ports are not self-evaluating in Guile.
 
-@deffn procedure define-reader-ctor symbol proc
+@deffn {Scheme Procedure} define-reader-ctor symbol proc
 Define @var{proc} as the reader constructor for hash-comma forms with a
 tag @var{symbol}.  @var{proc} will be applied to the datum(s) following
 the tag in the hash-comma expression after the complete form has been
@@ -1196,7 +1196,7 @@ In addition to the primitives @code{string?} and @code{string-null?},
 which are already in the Guile core, the string predicates
 @code{string-any} and @code{string-every} are defined by SRFI-13.
 
-@deffn primitive string-any pred s [start end]
+@deffn {Scheme Procedure} string-any pred s [start end]
 Check if the predicate @var{pred} is true for any character in
 the string @var{s}, proceeding from left (index @var{start}) to
 right (index @var{end}).  If @code{string-any} returns true,
@@ -1204,7 +1204,7 @@ the returned true value is the one produced by the first
 successful application of @var{pred}.
 @end deffn
 
-@deffn primitive string-every pred s [start end]
+@deffn {Scheme Procedure} string-every pred s [start end]
 Check if the predicate @var{pred} is true for every character
 in the string @var{s}, proceeding from left (index @var{start})
 to right (index @var{end}).  If @code{string-every} returns
@@ -1222,7 +1222,7 @@ SRFI-13 defines several procedures for constructing new strings.  In
 addition to @code{make-string} and @code{string} (available in the Guile
 core library), the procedure @code{string-tabulate} does exist.
 
-@deffn primitive string-tabulate proc len
+@deffn {Scheme Procedure} string-tabulate proc len
 @var{proc} is an integer->char procedure.  Construct a string
 of size @var{len} by applying @var{proc} to each index to
 produce the corresponding string element.  The order in which
@@ -1241,11 +1241,11 @@ The Guile core already contains the procedure @code{list->string} for
 converting a list of characters into a string (@pxref{List/String
 Conversion}).
 
-@deffn primitive string->list str [start end]
+@deffn {Scheme Procedure} string->list str [start end]
 Convert the string @var{str} into a list of characters.
 @end deffn
 
-@deffn primitive reverse-list->string chrs
+@deffn {Scheme Procedure} reverse-list->string chrs
 An efficient implementation of @code{(compose string->list
 reverse)}:
 
@@ -1254,7 +1254,7 @@ reverse)}:
 @end smalllisp
 @end deffn
 
-@deffn primitive string-join ls [delimiter grammar]
+@deffn {Scheme Procedure} string-join ls [delimiter grammar]
 Append the string in the string list @var{ls}, using the string
 @var{delim} as a delimiter between the elements of @var{ls}.
 @var{grammar} is a symbol which specifies how the delimiter is
@@ -1294,18 +1294,18 @@ Additional selector procedures are documented in the Strings section
 @code{string-copy} is also available in core Guile, but this version
 accepts additional start/end indices.
 
-@deffn primitive string-copy str [start end]
+@deffn {Scheme Procedure} string-copy str [start end]
 Return a freshly allocated copy of the string @var{str}.  If
 given, @var{start} and @var{end} delimit the portion of
 @var{str} which is copied.
 @end deffn
 
-@deffn primitive substring/shared str start [end]
+@deffn {Scheme Procedure} substring/shared str start [end]
 Like @code{substring}, but the result may share memory with the
 argument @var{str}.
 @end deffn
 
-@deffn primitive string-copy! target tstart s [start end]
+@deffn {Scheme Procedure} string-copy! target tstart s [start end]
 Copy the sequence of characters from index range [@var{start},
 @var{end}) in string @var{s} to string @var{target}, beginning
 at index @var{tstart}.  The characters are copied left-to-right
@@ -1315,27 +1315,27 @@ error if the copy operation runs off the end of the target
 string.
 @end deffn
 
-@deffn primitive string-take s n
-@deffnx primitive string-take-right s n
+@deffn {Scheme Procedure} string-take s n
+@deffnx {Scheme Procedure} string-take-right s n
 Return the @var{n} first/last characters of @var{s}.
 @end deffn
 
-@deffn primitive string-drop s n
-@deffnx primitive string-drop-right s n
+@deffn {Scheme Procedure} string-drop s n
+@deffnx {Scheme Procedure} string-drop-right s n
 Return all but the first/last @var{n} characters of @var{s}.
 @end deffn
 
-@deffn primitive string-pad s len [chr start end]
-@deffnx primitive string-pad-right s len [chr start end]
+@deffn {Scheme Procedure} string-pad s len [chr start end]
+@deffnx {Scheme Procedure} string-pad-right s len [chr start end]
 Take that characters from @var{start} to @var{end} from the
 string @var{s} and return a new string, right(left)-padded by the
 character @var{chr} to length @var{len}.  If the resulting
 string is longer than @var{len}, it is truncated on the right (left).
 @end deffn
 
-@deffn primitive string-trim s [char_pred start end]
-@deffnx primitive string-trim-right s [char_pred start end]
-@deffnx primitive string-trim-both s [char_pred start end]
+@deffn {Scheme Procedure} string-trim s [char_pred start end]
+@deffnx {Scheme Procedure} string-trim-right s [char_pred start end]
+@deffnx {Scheme Procedure} string-trim-both s [char_pred start end]
 Trim @var{s} by skipping over all characters on the left/right/both
 sides of the string that satisfy the parameter @var{char_pred}:
 
@@ -1368,7 +1368,7 @@ of the same name in the Guile core.  The second modification procedure
 @code{string-set!} is documented in the Strings section (@pxref{String
 Modification}).
 
-@deffn primitive string-fill! str chr [start end]
+@deffn {Scheme Procedure} string-fill! str chr [start end]
 Stores @var{chr} in every element of the given @var{str} and
 returns an unspecified value.
 @end deffn
@@ -1387,8 +1387,8 @@ index in the case of a true return value.
 @code{string-hash} and @code{string-hash-ci} are for calculating hash
 values for strings, useful for implementing fast lookup mechanisms.
 
-@deffn primitive string-compare s1 s2 proc_lt proc_eq proc_gt [start1 end1 start2 end2]
-@deffnx primitive string-compare-ci s1 s2 proc_lt proc_eq proc_gt [start1 end1 start2 end2]
+@deffn {Scheme Procedure} string-compare s1 s2 proc_lt proc_eq proc_gt [start1 end1 start2 end2]
+@deffnx {Scheme Procedure} string-compare-ci s1 s2 proc_lt proc_eq proc_gt [start1 end1 start2 end2]
 Apply @var{proc_lt}, @var{proc_eq}, @var{proc_gt} to the
 mismatch index, depending upon whether @var{s1} is less than,
 equal to, or greater than @var{s2}.  The mismatch index is the
@@ -1398,30 +1398,30 @@ largest index @var{i} such that for every 0 <= @var{j} <
 character comparison is done case-insensitively.
 @end deffn
 
-@deffn primitive string= s1 s2 [start1 end1 start2 end2]
-@deffnx primitive string<> s1 s2 [start1 end1 start2 end2]
-@deffnx primitive string< s1 s2 [start1 end1 start2 end2]
-@deffnx primitive string> s1 s2 [start1 end1 start2 end2]
-@deffnx primitive string<= s1 s2 [start1 end1 start2 end2]
-@deffnx primitive string>= s1 s2 [start1 end1 start2 end2]
+@deffn {Scheme Procedure} string= s1 s2 [start1 end1 start2 end2]
+@deffnx {Scheme Procedure} string<> s1 s2 [start1 end1 start2 end2]
+@deffnx {Scheme Procedure} string< s1 s2 [start1 end1 start2 end2]
+@deffnx {Scheme Procedure} string> s1 s2 [start1 end1 start2 end2]
+@deffnx {Scheme Procedure} string<= s1 s2 [start1 end1 start2 end2]
+@deffnx {Scheme Procedure} string>= s1 s2 [start1 end1 start2 end2]
 Compare @var{s1} and @var{s2} and return @code{#f} if the predicate
 fails.  Otherwise, the mismatch index is returned (or @var{end1} in the
 case of @code{string=}.
 @end deffn
 
-@deffn primitive string-ci= s1 s2 [start1 end1 start2 end2]
-@deffnx primitive string-ci<> s1 s2 [start1 end1 start2 end2]
-@deffnx primitive string-ci< s1 s2 [start1 end1 start2 end2]
-@deffnx primitive string-ci> s1 s2 [start1 end1 start2 end2]
-@deffnx primitive string-ci<= s1 s2 [start1 end1 start2 end2]
-@deffnx primitive string-ci>= s1 s2 [start1 end1 start2 end2]
+@deffn {Scheme Procedure} string-ci= s1 s2 [start1 end1 start2 end2]
+@deffnx {Scheme Procedure} string-ci<> s1 s2 [start1 end1 start2 end2]
+@deffnx {Scheme Procedure} string-ci< s1 s2 [start1 end1 start2 end2]
+@deffnx {Scheme Procedure} string-ci> s1 s2 [start1 end1 start2 end2]
+@deffnx {Scheme Procedure} string-ci<= s1 s2 [start1 end1 start2 end2]
+@deffnx {Scheme Procedure} string-ci>= s1 s2 [start1 end1 start2 end2]
 Compare @var{s1} and @var{s2} and return @code{#f} if the predicate
 fails.  Otherwise, the mismatch index is returned (or @var{end1} in the
 case of @code{string=}.  These are the case-insensitive variants.
 @end deffn
 
-@deffn primitive string-hash s [bound start end]
-@deffnx primitive string-hash-ci s [bound start end]
+@deffn {Scheme Procedure} string-hash s [bound start end]
+@deffnx {Scheme Procedure} string-hash-ci s [bound start end]
 Return a hash value of the string @var{s} in the range 0 @dots{}
 @var{bound} - 1.  @code{string-hash-ci} is the case-insensitive variant.
 @end deffn
@@ -1436,19 +1436,19 @@ Using these procedures you can determine whether a given string is a
 prefix or suffix of another string or how long a common prefix/suffix
 is.
 
-@deffn primitive string-prefix-length s1 s2 [start1 end1 start2 end2]
-@deffnx primitive string-prefix-length-ci s1 s2 [start1 end1 start2 end2]
-@deffnx primitive string-suffix-length s1 s2 [start1 end1 start2 end2]
-@deffnx primitive string-suffix-length-ci s1 s2 [start1 end1 start2 end2]
+@deffn {Scheme Procedure} string-prefix-length s1 s2 [start1 end1 start2 end2]
+@deffnx {Scheme Procedure} string-prefix-length-ci s1 s2 [start1 end1 start2 end2]
+@deffnx {Scheme Procedure} string-suffix-length s1 s2 [start1 end1 start2 end2]
+@deffnx {Scheme Procedure} string-suffix-length-ci s1 s2 [start1 end1 start2 end2]
 Return the length of the longest common prefix/suffix of the two
 strings. @code{string-prefix-length-ci} and
 @code{string-suffix-length-ci} are the case-insensitive variants.
 @end deffn
 
-@deffn primitive string-prefix? s1 s2 [start1 end1 start2 end2]
-@deffnx primitive string-prefix-ci? s1 s2 [start1 end1 start2 end2]
-@deffnx primitive string-suffix? s1 s2 [start1 end1 start2 end2]
-@deffnx primitive string-suffix-ci? s1 s2 [start1 end1 start2 end2]
+@deffn {Scheme Procedure} string-prefix? s1 s2 [start1 end1 start2 end2]
+@deffnx {Scheme Procedure} string-prefix-ci? s1 s2 [start1 end1 start2 end2]
+@deffnx {Scheme Procedure} string-suffix? s1 s2 [start1 end1 start2 end2]
+@deffnx {Scheme Procedure} string-suffix-ci? s1 s2 [start1 end1 start2 end2]
 Is @var{s1} a prefix/suffix of @var{s2}. @code{string-prefix-ci?} and
 @code{string-suffix-ci?} are the case-insensitive variants.
 @end deffn
@@ -1462,8 +1462,8 @@ Is @var{s1} a prefix/suffix of @var{s2}. @code{string-prefix-ci?} and
 Use these procedures to find out whether a string contains a given
 character or a given substring, or a character from a set of characters.
 
-@deffn primitive string-index s char_pred [start end]
-@deffnx primitive string-index-right s char_pred [start end]
+@deffn {Scheme Procedure} string-index s char_pred [start end]
+@deffnx {Scheme Procedure} string-index-right s char_pred [start end]
 Search through the string @var{s} from left to right (right to left),
 returning the index of the first (last) occurence of a character which
 
@@ -1480,8 +1480,8 @@ is in the set @var{char_pred}, if it is a character set.
 @end itemize
 @end deffn
 
-@deffn primitive string-skip s char_pred [start end]
-@deffnx primitive string-skip-right s char_pred [start end]
+@deffn {Scheme Procedure} string-skip s char_pred [start end]
+@deffnx {Scheme Procedure} string-skip-right s char_pred [start end]
 Search through the string @var{s} from left to right (right to left),
 returning the index of the first (last) occurence of a character which
 
@@ -1498,7 +1498,7 @@ is not in the set if @var{char_pred} is a character set.
 @end itemize
 @end deffn
 
-@deffn primitive string-count s char_pred [start end]
+@deffn {Scheme Procedure} string-count s char_pred [start end]
 Return the count of the number of characters in the string
 @var{s} which
 
@@ -1514,8 +1514,8 @@ is in the set @var{char_pred}, if it is a character set.
 @end itemize
 @end deffn
 
-@deffn primitive string-contains s1 s2 [start1 end1 start2 end2]
-@deffnx primitive string-contains-ci s1 s2 [start1 end1 start2 end2]
+@deffn {Scheme Procedure} string-contains s1 s2 [start1 end1 start2 end2]
+@deffnx {Scheme Procedure} string-contains-ci s1 s2 [start1 end1 start2 end2]
 Does string @var{s1} contain string @var{s2}?  Return the index
 in @var{s1} where @var{s2} occurs as a substring, or false.
 The optional start/end indices restrict the operation to the
@@ -1534,20 +1534,20 @@ These procedures convert the alphabetic case of strings.  They are
 similar to the procedures in the Guile core, but are extended to handle
 optional start/end indices.
 
-@deffn primitive string-upcase s [start end]
-@deffnx primitive string-upcase! s [start end]
+@deffn {Scheme Procedure} string-upcase s [start end]
+@deffnx {Scheme Procedure} string-upcase! s [start end]
 Upcase every character in @var{s}.  @code{string-upcase!} is the
 side-effecting variant.
 @end deffn
 
-@deffn primitive string-downcase s [start end]
-@deffnx primitive string-downcase! s [start end]
+@deffn {Scheme Procedure} string-downcase s [start end]
+@deffnx {Scheme Procedure} string-downcase! s [start end]
 Downcase every character in @var{s}.  @code{string-downcase!} is the
 side-effecting variant.
 @end deffn
 
-@deffn primitive string-titlecase s [start end]
-@deffnx primitive string-titlecase! s [start end]
+@deffn {Scheme Procedure} string-titlecase s [start end]
+@deffnx {Scheme Procedure} string-titlecase! s [start end]
 Upcase every first character in every word in @var{s}, downcase the
 other characters.  @code{string-titlecase!} is the side-effecting
 variant.
@@ -1562,8 +1562,8 @@ variant.
 One appending procedure, @code{string-append} is the same in R5RS and in
 SRFI-13, so it is not redefined.
 
-@deffn primitive string-reverse str [start end]
-@deffnx primitive string-reverse! str [start end]
+@deffn {Scheme Procedure} string-reverse str [start end]
+@deffnx {Scheme Procedure} string-reverse! str [start end]
 Reverse the string @var{str}.  The optional arguments
 @var{start} and @var{end} delimit the region of @var{str} to
 operate on.
@@ -1572,23 +1572,23 @@ operate on.
 unspecified value.
 @end deffn
 
-@deffn primitive string-append/shared ls @dots{}
+@deffn {Scheme Procedure} string-append/shared ls @dots{}
 Like @code{string-append}, but the result may share memory
 with the argument strings.
 @end deffn
 
-@deffn primitive string-concatenate ls
+@deffn {Scheme Procedure} string-concatenate ls
 Append the elements of @var{ls} (which must be strings)
 together into a single string.  Guaranteed to return a freshly
 allocated string.
 @end deffn
 
-@deffn primitive string-concatenate/shared ls
+@deffn {Scheme Procedure} string-concatenate/shared ls
 Like @code{string-concatenate}, but the result may share memory
 with the strings in the list @var{ls}.
 @end deffn
 
-@deffn primitive string-concatenate-reverse ls final_string end
+@deffn {Scheme Procedure} string-concatenate-reverse ls final_string end
 Without optional arguments, this procedure is equivalent to
 
 @smalllisp
@@ -1604,7 +1604,7 @@ is given, only the characters of @var{final_string} up to index
 Guaranteed to return a freshly allocated string.
 @end deffn
 
-@deffn primitive string-concatenate-reverse/shared ls final_string end
+@deffn {Scheme Procedure} string-concatenate-reverse/shared ls final_string end
 Like @code{string-concatenate-reverse}, but the result may
 share memory with the the strings in the @var{ls} arguments.
 @end deffn
@@ -1619,29 +1619,29 @@ share memory with the the strings in the @var{ls} arguments.
 the characters a string is composed of.  The fold and unfold procedures
 are list iterators and constructors.
 
-@deffn primitive string-map proc s [start end]
+@deffn {Scheme Procedure} string-map proc s [start end]
 @var{proc} is a char->char procedure, it is mapped over
 @var{s}.  The order in which the procedure is applied to the
 string elements is not specified.
 @end deffn
 
-@deffn primitive string-map! proc s [start end]
+@deffn {Scheme Procedure} string-map! proc s [start end]
 @var{proc} is a char->char procedure, it is mapped over
 @var{s}.  The order in which the procedure is applied to the
 string elements is not specified.  The string @var{s} is
 modified in-place, the return value is not specified.
 @end deffn
 
-@deffn primitive string-fold kons knil s [start end]
-@deffnx primitive string-fold-right kons knil s [start end]
+@deffn {Scheme Procedure} string-fold kons knil s [start end]
+@deffnx {Scheme Procedure} string-fold-right kons knil s [start end]
 Fold @var{kons} over the characters of @var{s}, with @var{knil} as the
 terminating element, from left to right (or right to left, for
 @code{string-fold-right}).  @var{kons} must expect two arguments: The
 actual character and the last result of @var{kons}' application.
 @end deffn
 
-@deffn primitive string-unfold p f g seed [base make_final]
-@deffnx primitive string-unfold-right p f g seed [base make_final]
+@deffn {Scheme Procedure} string-unfold p f g seed [base make_final]
+@deffnx {Scheme Procedure} string-unfold-right p f g seed [base make_final]
 These are the fundamental string constructors.
 @itemize @bullet
 @item @var{g} is used to generate a series of @emph{seed}
@@ -1662,7 +1662,7 @@ value (on which @var{p} returns true) to produce the final/rightmost
 @end itemize
 @end deffn
 
-@deffn primitive string-for-each proc s [start end]
+@deffn {Scheme Procedure} string-for-each proc s [start end]
 @var{proc} is mapped over @var{s} in left-to-right order.  The
 return value is not specified.
 @end deffn
@@ -1684,7 +1684,7 @@ consider this code fragment, which replicates the input string
 "foofoo"
 @end lisp
 
-@deffn primitive xsubstring s from [to start end]
+@deffn {Scheme Procedure} xsubstring s from [to start end]
 This is the @emph{extended substring} procedure that implements
 replicated copying of a substring of some string.
 
@@ -1697,7 +1697,7 @@ beginning at index @var{from}, and ending at @var{to}, which
 defaults to @var{from} + (@var{end} - @var{start}).
 @end deffn
 
-@deffn primitive string-xcopy! target tstart s sfrom [sto start end]
+@deffn {Scheme Procedure} string-xcopy! target tstart s sfrom [sto start end]
 Exactly the same as @code{xsubstring}, but the extracted text
 is written into the string @var{target} starting at index
 @var{tstart}.  The operation is not defined if @code{(eq?
@@ -1715,13 +1715,13 @@ cannot copy a string on top of itself.
 another string and @code{string-tokenize} splits a string into a list of
 strings, breaking it up at a specified character.
 
-@deffn primitive string-replace s1 s2 [start1 end1 start2 end2]
+@deffn {Scheme Procedure} string-replace s1 s2 [start1 end1 start2 end2]
 Return the string @var{s1}, but with the characters
 @var{start1} @dots{} @var{end1} replaced by the characters
 @var{start2} @dots{} @var{end2} from @var{s2}.
 @end deffn
 
-@deffn primitive string-tokenize s [token_char start end]
+@deffn {Scheme Procedure} string-tokenize s [token_char start end]
 Split the string @var{s} into a list of substrings, where each
 substring is a maximal non-empty contiguous sequence of
 characters equal to the character @var{token_char}, or
@@ -1739,7 +1739,7 @@ token borders.
 @dfn{Filtering} means to remove all characters from a string which do
 not match a given criteria, @dfn{deleting} means the opposite.
 
-@deffn primitive string-filter s char_pred [start end]
+@deffn {Scheme Procedure} string-filter s char_pred [start end]
 Filter the string @var{s}, retaining only those characters that
 satisfy the @var{char_pred} argument.  If the argument is a
 procedure, it is applied to each character as a predicate, if
@@ -1747,7 +1747,7 @@ it is a character, it is tested for equality and if it is a
 character set, it is tested for membership.
 @end deffn
 
-@deffn primitive string-delete s char_pred [start end]
+@deffn {Scheme Procedure} string-delete s char_pred [start end]
 Filter the string @var{s}, retaining only those characters that
 do not satisfy the @var{char_pred} argument.  If the argument
 is a procedure, it is applied to each character as a predicate,
@@ -1823,21 +1823,21 @@ or whether several character sets are equal or subsets of each other.
 @code{char-set-hash} can be used for calculating a hash value, maybe for
 usage in fast lookup procedures.
 
-@deffn primitive char-set? obj
+@deffn {Scheme Procedure} char-set? obj
 Return @code{#t} if @var{obj} is a character set, @code{#f}
 otherwise.
 @end deffn
 
-@deffn primitive char-set= cs1 @dots{}
+@deffn {Scheme Procedure} char-set= cs1 @dots{}
 Return @code{#t} if all given character sets are equal.
 @end deffn
 
-@deffn primitive char-set<= cs1 @dots{}
+@deffn {Scheme Procedure} char-set<= cs1 @dots{}
 Return @code{#t} if every character set @var{cs}i is a subset
 of character set @var{cs}i+1.
 @end deffn
 
-@deffn primitive char-set-hash cs [bound]
+@deffn {Scheme Procedure} char-set-hash cs [bound]
 Compute a hash value for the character set @var{cs}.  If
 @var{bound} is given and not @code{#f}, it restricts the
 returned value to the range 0 @dots{} @var{bound - 1}.
@@ -1859,34 +1859,34 @@ element of the set can be checked with @code{end-of-char-set?}.
 Additionally, mapping and (un-)folding procedures for character sets are
 provided.
 
-@deffn primitive char-set-cursor cs
+@deffn {Scheme Procedure} char-set-cursor cs
 Return a cursor into the character set @var{cs}.
 @end deffn
 
-@deffn primitive char-set-ref cs cursor
+@deffn {Scheme Procedure} char-set-ref cs cursor
 Return the character at the current cursor position
 @var{cursor} in the character set @var{cs}.  It is an error to
 pass a cursor for which @code{end-of-char-set?} returns true.
 @end deffn
 
-@deffn primitive char-set-cursor-next cs cursor
+@deffn {Scheme Procedure} char-set-cursor-next cs cursor
 Advance the character set cursor @var{cursor} to the next
 character in the character set @var{cs}.  It is an error if the
 cursor given satisfies @code{end-of-char-set?}.
 @end deffn
 
-@deffn primitive end-of-char-set? cursor
+@deffn {Scheme Procedure} end-of-char-set? cursor
 Return @code{#t} if @var{cursor} has reached the end of a
 character set, @code{#f} otherwise.
 @end deffn
 
-@deffn primitive char-set-fold kons knil cs
+@deffn {Scheme Procedure} char-set-fold kons knil cs
 Fold the procedure @var{kons} over the character set @var{cs},
 initializing it with @var{knil}.
 @end deffn
 
-@deffn primitive char-set-unfold p f g seed [base_cs]
-@deffnx primitive char-set-unfold! p f g seed base_cs
+@deffn {Scheme Procedure} char-set-unfold p f g seed [base_cs]
+@deffnx {Scheme Procedure} char-set-unfold! p f g seed base_cs
 This is a fundamental constructor for character sets.
 @itemize @bullet
 @item @var{g} is used to generate a series of ``seed'' values
@@ -1902,12 +1902,12 @@ form the result; @var{base_cs} defaults to the empty set.
 @code{char-set-unfold!} is the side-effecting variant.
 @end deffn
 
-@deffn primitive char-set-for-each proc cs
+@deffn {Scheme Procedure} char-set-for-each proc cs
 Apply @var{proc} to every character in the character set
 @var{cs}.  The return value is not specified.
 @end deffn
 
-@deffn primitive char-set-map proc cs
+@deffn {Scheme Procedure} char-set-map proc cs
 Map the procedure @var{proc} over every character in @var{cs}.
 @var{proc} must be a character -> character procedure.
 @end deffn
@@ -1920,17 +1920,17 @@ Map the procedure @var{proc} over every character in @var{cs}.
 
 New character sets are produced with these procedures.
 
-@deffn primitive char-set-copy cs
+@deffn {Scheme Procedure} char-set-copy cs
 Return a newly allocated character set containing all
 characters in @var{cs}.
 @end deffn
 
-@deffn primitive char-set char1 @dots{}
+@deffn {Scheme Procedure} char-set char1 @dots{}
 Return a character set containing all given characters.
 @end deffn
 
-@deffn primitive list->char-set char_list [base_cs]
-@deffnx primitive list->char-set! char_list base_cs
+@deffn {Scheme Procedure} list->char-set char_list [base_cs]
+@deffnx {Scheme Procedure} list->char-set! char_list base_cs
 Convert the character list @var{list} to a character set.  If
 the character set @var{base_cs} is given, the character in this
 set are also included in the result.
@@ -1938,8 +1938,8 @@ set are also included in the result.
 @code{list->char-set!} is the side-effecting variant.
 @end deffn
 
-@deffn primitive string->char-set s [base_cs]
-@deffnx primitive string->char-set! s base_cs
+@deffn {Scheme Procedure} string->char-set s [base_cs]
+@deffnx {Scheme Procedure} string->char-set! s base_cs
 Convert the string @var{str} to a character set.  If the
 character set @var{base_cs} is given, the characters in this
 set are also included in the result.
@@ -1947,8 +1947,8 @@ set are also included in the result.
 @code{string->char-set!} is the side-effecting variant.
 @end deffn
 
-@deffn primitive char-set-filter pred cs [base_cs]
-@deffnx primitive char-set-filter! pred cs base_cs
+@deffn {Scheme Procedure} char-set-filter pred cs [base_cs]
+@deffnx {Scheme Procedure} char-set-filter! pred cs base_cs
 Return a character set containing every character from @var{cs}
 so that it satisfies @var{pred}.  If provided, the characters
 from @var{base_cs} are added to the result.
@@ -1956,8 +1956,8 @@ from @var{base_cs} are added to the result.
 @code{char-set-filter!} is the side-effecting variant.
 @end deffn
 
-@deffn primitive ucs-range->char-set lower upper [error? base_cs]
-@deffnx primitive uce-range->char-set! lower upper error? base_cs
+@deffn {Scheme Procedure} ucs-range->char-set lower upper [error? base_cs]
+@deffnx {Scheme Procedure} uce-range->char-set! lower upper error? base_cs
 Return a character set containing all characters whose
 character codes lie in the half-open range
 [@var{lower},@var{upper}).
@@ -1974,7 +1974,7 @@ given.
 @code{ucs-range->char-set!} is the side-effecting variant.
 @end deffn
 
-@deffn procedure ->char-set x
+@deffn {Scheme Procedure} ->char-set x
 Coerce @var{x} into a character set.  @var{x} may be a string, a
 character or a character set.
 @end deffn
@@ -1988,37 +1988,37 @@ character or a character set.
 Access the elements and other information of a character set with these
 procedures.
 
-@deffn primitive char-set-size cs
+@deffn {Scheme Procedure} char-set-size cs
 Return the number of elements in character set @var{cs}.
 @end deffn
 
-@deffn primitive char-set-count pred cs
+@deffn {Scheme Procedure} char-set-count pred cs
 Return the number of the elements int the character set
 @var{cs} which satisfy the predicate @var{pred}.
 @end deffn
 
-@deffn primitive char-set->list cs
+@deffn {Scheme Procedure} char-set->list cs
 Return a list containing the elements of the character set
 @var{cs}.
 @end deffn
 
-@deffn primitive char-set->string cs
+@deffn {Scheme Procedure} char-set->string cs
 Return a string containing the elements of the character set
 @var{cs}.  The order in which the characters are placed in the
 string is not defined.
 @end deffn
 
-@deffn primitive char-set-contains? cs char
+@deffn {Scheme Procedure} char-set-contains? cs char
 Return @code{#t} iff the character @var{ch} is contained in the
 character set @var{cs}.
 @end deffn
 
-@deffn primitive char-set-every pred cs
+@deffn {Scheme Procedure} char-set-every pred cs
 Return a true value if every character in the character set
 @var{cs} satisfies the predicate @var{pred}.
 @end deffn
 
-@deffn primitive char-set-any pred cs
+@deffn {Scheme Procedure} char-set-any pred cs
 Return a true value if any character in the character set
 @var{cs} satisfies the predicate @var{pred}.
 @end deffn
@@ -2034,45 +2034,45 @@ such as union, complement, intersection etc.  All of these procedures
 provide side-effecting variants, which modify their character set
 argument(s).
 
-@deffn primitive char-set-adjoin cs char1 @dots{}
-@deffnx primitive char-set-adjoin! cs char1 @dots{}
+@deffn {Scheme Procedure} char-set-adjoin cs char1 @dots{}
+@deffnx {Scheme Procedure} char-set-adjoin! cs char1 @dots{}
 Add all character arguments to the first argument, which must
 be a character set.
 @end deffn
 
-@deffn primitive char-set-delete cs char1 @dots{}
-@deffnx primitive char-set-delete! cs char1 @dots{}
+@deffn {Scheme Procedure} char-set-delete cs char1 @dots{}
+@deffnx {Scheme Procedure} char-set-delete! cs char1 @dots{}
 Delete all character arguments from the first argument, which
 must be a character set.
 @end deffn
 
-@deffn primitive char-set-complement cs
-@deffnx primitive char-set-complement! cs
+@deffn {Scheme Procedure} char-set-complement cs
+@deffnx {Scheme Procedure} char-set-complement! cs
 Return the complement of the character set @var{cs}.
 @end deffn
 
-@deffn primitive char-set-union cs1 @dots{}
-@deffnx primitive char-set-union! cs1 @dots{}
+@deffn {Scheme Procedure} char-set-union cs1 @dots{}
+@deffnx {Scheme Procedure} char-set-union! cs1 @dots{}
 Return the union of all argument character sets.
 @end deffn
 
-@deffn primitive char-set-intersection cs1 @dots{}
-@deffnx primitive char-set-intersection! cs1 @dots{}
+@deffn {Scheme Procedure} char-set-intersection cs1 @dots{}
+@deffnx {Scheme Procedure} char-set-intersection! cs1 @dots{}
 Return the intersection of all argument character sets.
 @end deffn
 
-@deffn primitive char-set-difference cs1 @dots{}
-@deffnx primitive char-set-difference! cs1 @dots{}
+@deffn {Scheme Procedure} char-set-difference cs1 @dots{}
+@deffnx {Scheme Procedure} char-set-difference! cs1 @dots{}
 Return the difference of all argument character sets.
 @end deffn
 
-@deffn primitive char-set-xor cs1 @dots{}
-@deffnx primitive char-set-xor! cs1 @dots{}
+@deffn {Scheme Procedure} char-set-xor cs1 @dots{}
+@deffnx {Scheme Procedure} char-set-xor! cs1 @dots{}
 Return the exclusive-or of all argument character sets.
 @end deffn
 
-@deffn primitive char-set-diff+intersection cs1 @dots{}
-@deffnx primitive char-set-diff+intersection! cs1 @dots{}
+@deffn {Scheme Procedure} char-set-diff+intersection cs1 @dots{}
+@deffnx {Scheme Procedure} char-set-diff+intersection! cs1 @dots{}
 Return the difference and the intersection of all argument
 character sets.
 @end deffn

@@ -1,5 +1,11 @@
 2001-11-16  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* snarf-check-and-output-texi: Change generated @deffn categories
+	from "function" and "primitive" to "C Function" and "Scheme
+	Procedure".
+	(end-multiline): Take out @findex generation again; not needed
+	since index entries are implicit in @deffn forms.
+
 	These changes add a @deffnx C function declaration and function
 	index entries for each Guile primitive to the copy of the doc
 	snarf output that is used for reference manual synchronization.

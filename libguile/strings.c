@@ -58,8 +58,7 @@
 
 SCM_DEFINE (scm_string_p, "string?", 1, 0, 0, 
 	    (SCM obj),
-	    "Return @code{#t} iff @var{obj} is a string, else returns\n"
-	    "@code{#f}.")
+	    "Return @code{#t} iff @var{obj} is a string, else @code{#f}.")
 #define FUNC_NAME s_scm_string_p
 {
   return SCM_BOOL (SCM_STRINGP (obj));
@@ -71,7 +70,7 @@ SCM_REGISTER_PROC (s_scm_list_to_string, "list->string", 1, 0, 0, scm_string);
 
 SCM_DEFINE (scm_string, "string", 0, 0, 1, 
             (SCM chrs),
-	    "@deffnx primitive list->string chrs\n"
+	    "@deffnx {Scheme Procedure} list->string chrs\n"
 	    "Return a newly allocated string composed of the arguments,\n"
 	    "@var{chrs}.")
 #define FUNC_NAME s_scm_string

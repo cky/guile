@@ -136,8 +136,8 @@ static void scm_resolv_error (const char *subr, SCM bad_value)
 
 SCM_DEFINE (scm_gethost, "gethost", 0, 1, 0, 
             (SCM host),
-	    "@deffnx procedure gethostbyname hostname\n"
-	    "@deffnx procedure gethostbyaddr address\n"
+	    "@deffnx {Scheme Procedure} gethostbyname hostname\n"
+	    "@deffnx {Scheme Procedure} gethostbyaddr address\n"
 	    "Look up a host by name or address, returning a host object.  The\n"
 	    "@code{gethost} procedure will accept either a string name or an integer\n"
 	    "address; if given no arguments, it behaves like @code{gethostent} (see\n"
@@ -219,8 +219,8 @@ SCM_DEFINE (scm_gethost, "gethost", 0, 1, 0,
 #if defined(HAVE_GETNETENT) && defined(HAVE_GETNETBYNAME) && defined(HAVE_GETNETBYADDR)
 SCM_DEFINE (scm_getnet, "getnet", 0, 1, 0, 
             (SCM net),
-	    "@deffnx procedure getnetbyname net-name\n"
-	    "@deffnx procedure getnetbyaddr net-number\n"
+	    "@deffnx {Scheme Procedure} getnetbyname net-name\n"
+	    "@deffnx {Scheme Procedure} getnetbyaddr net-number\n"
 	    "Look up a network by name or net number in the network database.  The\n"
 	    "@var{net-name} argument must be a string, and the @var{net-number}\n"
 	    "argument must be an integer.  @code{getnet} will accept either type of\n"
@@ -269,8 +269,8 @@ SCM_DEFINE (scm_getnet, "getnet", 0, 1, 0,
 #ifdef HAVE_GETPROTOENT
 SCM_DEFINE (scm_getproto, "getproto", 0, 1, 0, 
             (SCM protocol),
-	    "@deffnx procedure getprotobyname name\n"
-	    "@deffnx procedure getprotobynumber number\n"
+	    "@deffnx {Scheme Procedure} getprotobyname name\n"
+	    "@deffnx {Scheme Procedure} getprotobynumber number\n"
 	    "Look up a network protocol by name or by number.  @code{getprotobyname}\n"
 	    "takes a string argument, and @code{getprotobynumber} takes an integer\n"
 	    "argument.  @code{getproto} will accept either type, behaving like\n"
@@ -332,8 +332,8 @@ scm_return_entry (struct servent *entry)
 
 SCM_DEFINE (scm_getserv, "getserv", 0, 2, 0,
             (SCM name, SCM protocol),
-	    "@deffnx procedure getservbyname name protocol\n"
-	    "@deffnx procedure getservbyport port protocol\n"
+	    "@deffnx {Scheme Procedure} getservbyname name protocol\n"
+	    "@deffnx {Scheme Procedure} getservbyport port protocol\n"
 	    "Look up a network service by name or by service number, and return a\n"
 	    "network service object.  The @var{protocol} argument specifies the name\n"
 	    "of the desired protocol; if the protocol found in the network service\n"

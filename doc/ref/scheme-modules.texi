@@ -193,7 +193,7 @@ This example also shows how to use the convenience procedure
 @code{symbol-prefix-proc}.
 
 @c begin (scm-doc-string "boot-9.scm" "symbol-prefix-proc")
-@deffn procedure symbol-prefix-proc prefix-sym
+@deffn {Scheme Procedure} symbol-prefix-proc prefix-sym
 Return a procedure that prefixes its arg (a symbol) with
 @var{prefix-sym}.
 @c Insert gratuitous C++ slam here.  --ttn
@@ -332,7 +332,8 @@ The procedures in this section are useful if you want to dig into the
 innards of Guile's module system.  If you don't know precisely what you
 do, you should probably avoid using any of them.
 
-@deffn primitive standard-eval-closure module
+@deffn {Scheme Procedure} standard-eval-closure module
+@deffnx {C Function} scm_standard_eval_closure (module)
 Return an eval closure for the module @var{module}.
 @end deffn
 
@@ -495,7 +496,8 @@ When using the low level procedures to do your dynamic linking, you have
 complete control over which library is loaded when and what get's done
 with it.
 
-@deffn primitive dynamic-link library
+@deffn {Scheme Procedure} dynamic-link library
+@deffnx {C Function} scm_dynamic_link (library)
 Find the shared library denoted by @var{library} (a string) and link it
 into the running Guile application.  When everything works out, return a
 Scheme object suitable for representing the linked object file.
@@ -507,24 +509,26 @@ that will be searched for in the places where shared libraries usually
 reside, such as in @file{/usr/lib} and @file{/usr/local/lib}.
 @end deffn
 
-@deffn primitive dynamic-object? val
-Determine whether @var{val} represents a dynamically linked object file.
+@deffn {Scheme Procedure} dynamic-object? obj
+@deffnx {C Function} scm_dynamic_object_p (obj)
+Return @code{#t} if @var{obj} is a dynamic library handle, or @code{#f}
+otherwise.
 @end deffn
 
-@deffn primitive dynamic-unlink dynobj
-Unlink the indicated object file from the application.  The argument
-@var{dynobj} should be one of the values returned by
-@code{dynamic-link}.  When @code{dynamic-unlink} has been called on
-@var{dynobj}, it is no longer usable as an argument to the functions
-below and you will get type mismatch errors when you try to.
+@deffn {Scheme Procedure} dynamic-unlink dobj
+@deffnx {C Function} scm_dynamic_unlink (dobj)
+Unlink the indicated object file from the application.  The
+argument @var{dobj} must have been obtained by a call to
+@code{dynamic-link}.  After @code{dynamic-unlink} has been
+called on @var{dobj}, its content is no longer accessible.
 @end deffn
 
-@deffn primitive dynamic-func function dynobj
-Search the C function indicated by @var{function} (a string or symbol)
-in @var{dynobj} and return some Scheme object that can later be used
-with @code{dynamic-call} to actually call this function.  Right now,
-these Scheme objects are formed by casting the address of the function
-to @code{long} and converting this number to its Scheme representation.
+@deffn {Scheme Procedure} dynamic-func name dobj
+@deffnx {C Function} scm_dynamic_func (name, dobj)
+Search the dynamic object @var{dobj} for the C function
+indicated by the string @var{name} and return some Scheme
+handle that can later be used with @code{dynamic-call} to
+actually call the function.
 
 Regardless whether your C compiler prepends an underscore @samp{_} to
 the global names in a program, you should @strong{not} include this
@@ -532,35 +536,37 @@ underscore in @var{function}.  Guile knows whether the underscore is
 needed or not and will add it when necessary.
 @end deffn
 
-@deffn primitive dynamic-call function dynobj
-Call the C function indicated by @var{function} and @var{dynobj}.  The
-function is passed no arguments and its return value is ignored.  When
-@var{function} is something returned by @code{dynamic-func}, call that
-function and ignore @var{dynobj}.  When @var{function} is a string (or
-symbol, etc.), look it up in @var{dynobj}; this is equivalent to
-
+@deffn {Scheme Procedure} dynamic-call func dobj
+@deffnx {C Function} scm_dynamic_call (func, dobj)
+Call the C function indicated by @var{func} and @var{dobj}.
+The function is passed no arguments and its return value is
+ignored.  When @var{function} is something returned by
+@code{dynamic-func}, call that function and ignore @var{dobj}.
+When @var{func} is a string , look it up in @var{dynobj}; this
+is equivalent to
 @smallexample
-(dynamic-call (dynamic-func @var{function} @var{dynobj} #f))
+(dynamic-call (dynamic-func @var{func} @var{dobj} #f))
 @end smallexample
 
 Interrupts are deferred while the C function is executing (with
 @code{SCM_DEFER_INTS}/@code{SCM_ALLOW_INTS}).
 @end deffn
 
-@deffn primitive dynamic-args-call function dynobj args
-Call the C function indicated by @var{function} and @var{dynobj}, just
-like @code{dynamic-call}, but pass it some arguments and return its
-return value.  The C function is expected to take two arguments and
-return an @code{int}, just like @code{main}:
-
+@deffn {Scheme Procedure} dynamic-args-call func dobj args
+@deffnx {C Function} scm_dynamic_args_call (func, dobj, args)
+Call the C function indicated by @var{func} and @var{dobj},
+just like @code{dynamic-call}, but pass it some arguments and
+return its return value.  The C function is expected to take
+two arguments and return an @code{int}, just like @code{main}:
 @smallexample
 int c_func (int argc, char **argv);
 @end smallexample
 
-The parameter @var{args} must be a list of strings and is converted into
-an array of @code{char *}.  The array is passed in @var{argv} and its
-size in @var{argc}.  The return value is converted to a Scheme number
-and returned from the call to @code{dynamic-args-call}.
+The parameter @var{args} must be a list of strings and is
+converted into an array of @code{char *}.  The array is passed
+in @var{argv} and its size in @var{argc}.  The return value is
+converted to a Scheme number and returned from the call to
+@code{dynamic-args-call}.
 @end deffn
 
 When dynamic linking is disabled or not supported on your system,

@@ -516,9 +516,10 @@ SCM_DEFINE (scm_sorted_p, "sorted?", 2, 0, 0,
    Note:  this does _not_ accept vectors. */
 SCM_DEFINE (scm_merge, "merge", 3, 0, 0, 
             (SCM alist, SCM blist, SCM less),
-	    "Takes two lists @var{alist} and @var{blist} such that\n"
-	    "@code{(sorted? alist less?)} and @code{(sorted? blist less?)} and\n"
-	    "returns a new list in which the elements of @var{alist} and\n"
+	    "Merge two already sorted lists into one.\n"
+	    "Given two lists @var{alist} and @var{blist}, such that\n"
+	    "@code{(sorted? alist less?)} and @code{(sorted? blist less?)},\n"
+	    "return a new list in which the elements of @var{alist} and\n"
 	    "@var{blist} have been stably interleaved so that\n"
 	    "@code{(sorted? (merge alist blist less?) less?)}.\n"
 	    "Note:  this does _not_ accept vectors.")

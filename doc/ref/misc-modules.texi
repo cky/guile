@@ -30,7 +30,7 @@ how @code{pretty-print} will format the output, see the following:
           (else (if (= x 1) 2 (* x x x))))))
 @end lisp
 
-@deffn procedure pretty-print obj [port]
+@deffn {Scheme Procedure} pretty-print obj [port]
 Print the textual representation of the Scheme object @var{obj} to
 @var{port}.  @var{port} defaults to the current output port, if not
 given.
@@ -76,7 +76,7 @@ The @code{format} procedure, to be found in module @code{(ice-9
 format)}, can do all this, and even more.  If you are a C programmer,
 you can think of this procedure as Guile's @code{fprintf}.
 
-@deffn procedure format destination format-string args @dots{}
+@deffn {Scheme Procedure} format destination format-string args @dots{}
 The first parameter is the @var{destination}, it determines where the
 output of @code{format} will go.
 

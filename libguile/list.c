@@ -445,7 +445,7 @@ SCM_REGISTER_PROC(s_list_cdr_ref, "list-cdr-ref", 2, 0, 0, scm_list_tail);
 
 SCM_DEFINE (scm_list_tail, "list-tail", 2, 0, 0,
            (SCM lst, SCM k),
-	    "@deffnx primitive list-cdr-ref lst k\n"
+	    "@deffnx {Scheme Procedure} list-cdr-ref lst k\n"
 	    "Return the \"tail\" of @var{lst} beginning with its @var{k}th element.\n"
 	    "The first element of the list is considered to be element 0.\n\n"
 	    "@code{list-tail} and @code{list-cdr-ref} are identical.  It may help to\n"
@@ -628,8 +628,8 @@ SCM_DEFINE (scm_member, "member", 2, 0, 0,
 
 SCM_DEFINE (scm_delq_x, "delq!", 2, 0, 0,
            (SCM item, SCM lst),
-	    "@deffnx primitive delv! item lst\n"
-	    "@deffnx primitive delete! item lst\n"
+	    "@deffnx {Scheme Procedure} delv! item lst\n"
+	    "@deffnx {Scheme Procedure} delete! item lst\n"
 	    "These procedures are destructive versions of @code{delq}, @code{delv}\n"
 	    "and @code{delete}: they modify the pointers in the existing @var{lst}\n"
 	    "rather than creating a new list.  Caveat evaluator: Like other\n"

@@ -273,7 +273,7 @@ for escape procedures and your program is running too slow, you might
 want to use exceptions (@pxref{Exceptions}) instead.
 
 @rnindex call-with-current-continuation
-@deffn primitive call-with-current-continuation proc
+@deffn {Scheme Procedure} call-with-current-continuation proc
 Capture the current continuation and call @var{proc} with the captured
 continuation as the single argument.  This continuation can then be
 called with arbitrarily many arguments.  Such a call will work like a
@@ -325,7 +325,8 @@ multiple values with a procedure which accepts these values as
 parameters.
 
 @rnindex values
-@deffn primitive values expr @dots{}
+@deffn {Scheme Procedure} values . args
+@deffnx {C Function} scm_values (args)
 Delivers all of its arguments to its continuation.  Except for
 continuations created by the @code{call-with-values} procedure,
 all continuations take exactly one value.  The effect of
@@ -334,7 +335,7 @@ were not created by @code{call-with-values} is unspecified.
 @end deffn
 
 @rnindex call-with-values
-@deffn primitive call-with-values producer consumer
+@deffn {Scheme Procedure} call-with-values producer consumer
 Calls its @var{producer} argument with no values and a
 continuation that, when passed some values, calls the
 @var{consumer} procedure with those values as arguments.  The
@@ -490,7 +491,8 @@ procedure must be designed to accept a number of arguments that
 corresponds to the number of arguments in all @code{throw} expressions
 that can be caught by this @code{catch}.
 
-@deffn primitive catch key thunk handler
+@deffn {Scheme Procedure} catch key thunk handler
+@deffnx {C Function} scm_catch (key, thunk, handler)
 Invoke @var{thunk} in the dynamic context of @var{handler} for
 exceptions matching @var{key}.  If thunk throws to the symbol
 @var{key}, then @var{handler} is invoked this way:
@@ -545,7 +547,8 @@ depends on the exception type.  The documentation for each possible type
 of exception should specify the additional arguments that are expected
 for that kind of exception.
 
-@deffn primitive throw key . args
+@deffn {Scheme Procedure} throw key . args
+@deffnx {C Function} scm_throw (key, args)
 Invoke the catch form matching @var{key}, passing @var{args} to the
 @var{handler}.  
 
@@ -607,7 +610,8 @@ one important respect: the handler procedure is executed without
 unwinding the call stack from the context of the @code{throw} expression
 that caused the handler to be invoked.
 
-@deffn primitive lazy-catch key thunk handler
+@deffn {Scheme Procedure} lazy-catch key thunk handler
+@deffnx {C Function} scm_lazy_catch (key, thunk, handler)
 This behaves exactly like @code{catch}, except that it does
 not unwind the stack before invoking @var{handler}.
 The @var{handler} procedure is not allowed to return:
@@ -728,12 +732,13 @@ Guile provides a set of convenience procedures for signaling error
 conditions that are implemented on top of the exception primitives just
 described.
 
-@deffn procedure error msg args @dots{}
+@deffn {Scheme Procedure} error msg args @dots{}
 Raise an error with key @code{misc-error} and a message constructed by
 displaying @var{msg} and writing @var{args}.
 @end deffn
 
-@deffn primitive scm-error key subr message args data
+@deffn {Scheme Procedure} scm-error key subr message args data
+@deffnx {C Function} scm_error_scm (key, subr, message, args, data)
 Raise an error with key @var{key}.  @var{subr} can be a string
 naming the procedure associated with the error, or @code{#f}.
 @var{message} is the error message string, possibly containing
@@ -749,7 +754,8 @@ should be a list containing the Unix signal number; otherwise
 it will usually be @code{#f}.
 @end deffn
 
-@deffn primitive strerror err
+@deffn {Scheme Procedure} strerror err
+@deffnx {C Function} scm_strerror (err)
 Return the Unix error message corresponding to @var{err}, which
 must be an integer value.
 @end deffn
@@ -769,7 +775,8 @@ if an exception occurs then @code{#f} is returned instead.
 be reviewed]
 
 @rnindex dynamic-wind
-@deffn primitive dynamic-wind in_guard thunk out_guard
+@deffn {Scheme Procedure} dynamic-wind in_guard thunk out_guard
+@deffnx {C Function} scm_dynamic_wind (in_guard, thunk, out_guard)
 All three arguments must be 0-argument procedures.
 @var{in_guard} is called, then @var{thunk}, then
 @var{out_guard}.
@@ -861,12 +868,12 @@ be @code{#f} if no additional objects are required.
 In addition to @code{catch} and @code{throw}, the following Scheme
 facilities are available:
 
-@deffn primitive scm-error key subr message args rest
+@deffn {Scheme Procedure} scm-error key subr message args rest
 Throw an error, with arguments
 as described above.
 @end deffn
 
-@deffn procedure error msg arg @dots{}
+@deffn {Scheme Procedure} error msg arg @dots{}
 Throw an error using the key @code{'misc-error}.  The error
 message is created by displaying @var{msg} and writing the @var{args}.
 @end deffn

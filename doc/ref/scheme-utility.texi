@@ -47,7 +47,7 @@ procedures for testing for equality are provided, which correspond to
 the three kinds of @dfn{sameness} defined above.
 
 @rnindex eq?
-@deffn primitive eq? x y
+@deffn {Scheme Procedure} eq? x y
 Return @code{#t} iff @var{x} references the same object as @var{y}.
 @code{eq?} is similar to @code{eqv?} except that in some cases it is
 capable of discerning distinctions finer than those detectable by
@@ -55,7 +55,7 @@ capable of discerning distinctions finer than those detectable by
 @end deffn
 
 @rnindex eqv?
-@deffn primitive eqv? x y
+@deffn {Scheme Procedure} eqv? x y
 The @code{eqv?} procedure defines a useful equivalence relation on objects.
 Briefly, it returns @code{#t} if @var{x} and @var{y} should normally be
 regarded as the same object.  This relation is left slightly open to
@@ -64,7 +64,7 @@ and inexact numbers.
 @end deffn
 
 @rnindex equal?
-@deffn primitive equal? x y
+@deffn {Scheme Procedure} equal? x y
 Return @code{#t} iff @var{x} and @var{y} are recursively @code{eqv?} equivalent.
 @code{equal?} recursively compares the contents of pairs,
 vectors, and strings, applying @code{eqv?} on other objects such as
@@ -89,23 +89,23 @@ closures than for other kinds of objects.  Therefore, when manipulating
 a property list associated with a procedure object, use the
 @code{procedure} functions; otherwise, use the @code{object} functions.
 
-@deffn primitive object-properties obj
-@deffnx primitive procedure-properties obj
+@deffn {Scheme Procedure} object-properties obj
+@deffnx {C Function} scm_object_properties (obj)
 Return @var{obj}'s property list.
 @end deffn
 
-@deffn primitive set-object-properties! obj alist
-@deffnx primitive set-procedure-properties! obj alist
+@deffn {Scheme Procedure} set-object-properties! obj alist
+@deffnx {C Function} scm_set_object_properties_x (obj, alist)
 Set @var{obj}'s property list to @var{alist}.
 @end deffn
 
-@deffn primitive object-property obj key
-@deffnx primitive procedure-property obj key
+@deffn {Scheme Procedure} object-property obj key
+@deffnx {C Function} scm_object_property (obj, key)
 Return the property of @var{obj} with name @var{key}.
 @end deffn
 
-@deffn primitive set-object-property! obj key value
-@deffnx primitive set-procedure-property! obj key value
+@deffn {Scheme Procedure} set-object-property! obj key value
+@deffnx {C Function} scm_set_object_property_x (obj, key, value)
 In @var{obj}'s property list, set the property named @var{key}
 to @var{value}.
 @end deffn
@@ -117,14 +117,16 @@ the user provides a "property table" that is possibly private.]
 @node Primitive Properties
 @section Primitive Properties
 
-@deffn primitive primitive-make-property not_found_proc
+@deffn {Scheme Procedure} primitive-make-property not_found_proc
+@deffnx {C Function} scm_primitive_make_property (not_found_proc)
 Create a @dfn{property token} that can be used with
 @code{primitive-property-ref} and @code{primitive-property-set!}.
 See @code{primitive-property-ref} for the significance of
 @var{not_found_proc}.
 @end deffn
 
-@deffn primitive primitive-property-ref prop obj
+@deffn {Scheme Procedure} primitive-property-ref prop obj
+@deffnx {C Function} scm_primitive_property_ref (prop, obj)
 Return the property @var{prop} of @var{obj}.  When no value
 has yet been associated with @var{prop} and @var{obj}, call
 @var{not-found-proc} instead (see @code{primitive-make-property})
@@ -134,11 +136,13 @@ and use its return value.  That value is also associated with
 default value of @var{prop}.
 @end deffn
 
-@deffn primitive primitive-property-set! prop obj val
+@deffn {Scheme Procedure} primitive-property-set! prop obj val
+@deffnx {C Function} scm_primitive_property_set_x (prop, obj, val)
 Associate @var{code} with @var{prop} and @var{obj}.
 @end deffn
 
-@deffn primitive primitive-property-del! prop obj
+@deffn {Scheme Procedure} primitive-property-del! prop obj
+@deffnx {C Function} scm_primitive_property_del_x (prop, obj)
 Remove any value associated with @var{prop} and @var{obj}.
 @end deffn
 
@@ -161,15 +165,19 @@ The first group of procedures can be used to merge two lists (which must
 be already sorted on their own) and produce sorted lists containing
 all elements of the input lists.
 
-@deffn primitive merge alist blist less
-Take two lists @var{alist} and @var{blist} such that
-@code{(sorted? alist less?)} and @code{(sorted? blist less?)} and
-returns a new list in which the elements of @var{alist} and
+@deffn {Scheme Procedure} merge alist blist less
+@deffnx {C Function} scm_merge (alist, blist, less)
+Merge two already sorted lists into one.
+Given two lists @var{alist} and @var{blist}, such that
+@code{(sorted? alist less?)} and @code{(sorted? blist less?)},
+return a new list in which the elements of @var{alist} and
 @var{blist} have been stably interleaved so that
 @code{(sorted? (merge alist blist less?) less?)}.
+Note:  this does _not_ accept vectors.
 @end deffn
 
-@deffn primitive merge! alist blist less
+@deffn {Scheme Procedure} merge! alist blist less
+@deffnx {C Function} scm_merge_x (alist, blist, less)
 Takes two lists @var{alist} and @var{blist} such that
 @code{(sorted? alist less?)} and @code{(sorted? blist less?)} and
 returns a new list in which the elements of @var{alist} and
@@ -189,19 +197,22 @@ If two or more elements are the same according to the comparison
 predicate, they are left in the same order as they appeared in the
 input.
 
-@deffn primitive sorted? items less
+@deffn {Scheme Procedure} sorted? items less
+@deffnx {C Function} scm_sorted_p (items, less)
 Return @code{#t} iff @var{items} is a list or a vector such that
 for all 1 <= i <= m, the predicate @var{less} returns true when
 applied to all elements i - 1 and i
 @end deffn
 
-@deffn primitive sort items less
+@deffn {Scheme Procedure} sort items less
+@deffnx {C Function} scm_sort (items, less)
 Sort the sequence @var{items}, which may be a list or a
 vector.  @var{less} is used for comparing the sequence
 elements.  This is not a stable sort.
 @end deffn
 
-@deffn primitive sort! items less
+@deffn {Scheme Procedure} sort! items less
+@deffnx {C Function} scm_sort_x (items, less)
 Sort the sequence @var{items}, which may be a list or a
 vector.  @var{less} is used for comparing the sequence
 elements.  The sorting is destructive, that means that the
@@ -209,13 +220,15 @@ input sequence is modified to produce the sorted result.
 This is not a stable sort.
 @end deffn
 
-@deffn primitive stable-sort items less
+@deffn {Scheme Procedure} stable-sort items less
+@deffnx {C Function} scm_stable_sort (items, less)
 Sort the sequence @var{items}, which may be a list or a
 vector. @var{less} is used for comparing the sequence elements.
 This is a stable sort.
 @end deffn
 
-@deffn primitive stable-sort! items less
+@deffn {Scheme Procedure} stable-sort! items less
+@deffnx {C Function} scm_stable_sort_x (items, less)
 Sort the sequence @var{items}, which may be a list or a
 vector. @var{less} is used for comparing the sequence elements.
 The sorting is destructive, that means that the input sequence
@@ -226,19 +239,22 @@ This is a stable sort.
 The procedures in the last group only accept lists or vectors as input,
 as their names indicate.
 
-@deffn primitive sort-list items less
+@deffn {Scheme Procedure} sort-list items less
+@deffnx {C Function} scm_sort_list (items, less)
 Sort the list @var{items}, using @var{less} for comparing the
 list elements. This is a stable sort.
 @end deffn
 
-@deffn primitive sort-list! items less
+@deffn {Scheme Procedure} sort-list! items less
+@deffnx {C Function} scm_sort_list_x (items, less)
 Sort the list @var{items}, using @var{less} for comparing the
 list elements. The sorting is destructive, that means that the
 input list is modified to produce the sorted result.
 This is a stable sort.
 @end deffn
 
-@deffn primitive restricted-vector-sort! vec less startpos endpos
+@deffn {Scheme Procedure} restricted-vector-sort! vec less startpos endpos
+@deffnx {C Function} scm_restricted_vector_sort_x (vec, less, startpos, endpos)
 Sort the vector @var{vec}, using @var{less} for comparing
 the vector elements.  @var{startpos} and @var{endpos} delimit
 the range of the vector which gets sorted.  The return value
@@ -257,7 +273,8 @@ procedures for copying vectors.  @code{copy-tree} can be used for these
 application, as it does not only copy the spine of a list, but also
 copies any pairs in the cars of the input lists.
 
-@deffn primitive copy-tree obj
+@deffn {Scheme Procedure} copy-tree obj
+@deffnx {C Function} scm_copy_tree (obj)
 Recursively copy the data tree that is bound to @var{obj}, and return a
 pointer to the new data structure.  @code{copy-tree} recurses down the
 contents of both pairs and vectors (since both cons cells and vector
@@ -283,7 +300,8 @@ Converting an object back from the string is only possible if the object
 type has a read syntax and the read syntax is preserved by the printing
 procedure.
 
-@deffn primitive object->string obj [printer]
+@deffn {Scheme Procedure} object->string obj [printer]
+@deffnx {C Function} scm_object_to_string (obj, printer)
 Return a Scheme string obtained by printing @var{obj}.
 Printing function can be specified by the optional second
 argument @var{printer} (default: @code{write}).

@@ -124,7 +124,7 @@ SCM_REGISTER_PROC(s_list_to_weak_vector, "list->weak-vector", 1, 0, 0, scm_weak_
 
 SCM_DEFINE (scm_weak_vector, "weak-vector", 0, 0, 1, 
            (SCM l),
-	    "@deffnx primitive list->weak-vector l\n"
+	    "@deffnx {Scheme Procedure} list->weak-vector l\n"
 	    "Construct a weak vector from a list: @code{weak-vector} uses\n"
 	    "the list of its arguments while @code{list->weak-vector} uses\n"
 	    "its only argument @var{l} (a list) to construct a weak vector\n"
@@ -167,8 +167,8 @@ SCM_DEFINE (scm_weak_vector_p, "weak-vector?", 1, 0, 0,
 
 SCM_DEFINE (scm_make_weak_key_hash_table, "make-weak-key-hash-table", 1, 0, 0, 
 	    (SCM size),
-	    "@deffnx primitive make-weak-value-hash-table size\n"
-	    "@deffnx primitive make-doubly-weak-hash-table size\n"
+	    "@deffnx {Scheme Procedure} make-weak-value-hash-table size\n"
+	    "@deffnx {Scheme Procedure} make-doubly-weak-hash-table size\n"
 	    "Return a weak hash table with @var{size} buckets. As with any\n"
 	    "hash table, choosing a good size for the table requires some\n"
 	    "caution.\n"
@@ -206,8 +206,8 @@ SCM_DEFINE (scm_make_doubly_weak_hash_table, "make-doubly-weak-hash-table", 1, 0
 
 SCM_DEFINE (scm_weak_key_hash_table_p, "weak-key-hash-table?", 1, 0, 0, 
            (SCM obj),
-	    "@deffnx primitive weak-value-hash-table? obj\n"
-	    "@deffnx primitive doubly-weak-hash-table? obj\n"
+	    "@deffnx {Scheme Procedure} weak-value-hash-table? obj\n"
+	    "@deffnx {Scheme Procedure} doubly-weak-hash-table? obj\n"
 	    "Return @code{#t} if @var{obj} is the specified weak hash\n"
 	    "table. Note that a doubly weak hash table is neither a weak key\n"
 	    "nor a weak value hash table.")

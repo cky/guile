@@ -6,7 +6,8 @@
     from the appendix describing the debugger UI.  The intro
     should have a pointer to the UI appendix.
 
-@deffn primitive display-error stack port subr message args rest
+@deffn {Scheme Procedure} display-error stack port subr message args rest
+@deffnx {C Function} scm_display_error (stack, port, subr, message, args, rest)
 Display an error message to the output port @var{port}.
 @var{stack} is the saved stack for the error, @var{subr} is
 the name of the procedure in which the error occured and
@@ -16,13 +17,15 @@ the list @var{args} accordingly.  @var{rest} is currently
 ignored.
 @end deffn
 
-@deffn primitive display-application frame [port [indent]]
+@deffn {Scheme Procedure} display-application frame [port [indent]]
+@deffnx {C Function} scm_display_application (frame, port, indent)
 Display a procedure application @var{frame} to the output port
 @var{port}. @var{indent} specifies the indentation of the
 output.
 @end deffn
 
-@deffn primitive display-backtrace stack port [first [depth]]
+@deffn {Scheme Procedure} display-backtrace stack port [first [depth]]
+@deffnx {C Function} scm_display_backtrace (stack, port, first, depth)
 Display a backtrace to the output port @var{port}. @var{stack}
 is the stack to take the backtrace from, @var{first} specifies
 where in the stack to start and @var{depth} how much frames
@@ -30,12 +33,13 @@ to display. Both @var{first} and @var{depth} can be @code{#f},
 which means that default values will be used.
 @end deffn
 
-@deffn primitive backtrace
+@deffn {Scheme Procedure} backtrace
+@deffnx {C Function} scm_backtrace ()
 Display a backtrace of the stack saved by the last error
 to the current output port.
 @end deffn
 
-@deffn primitive malloc-stats
+@deffn {Scheme Procedure} malloc-stats
 Return an alist ((@var{what} . @var{n}) ...) describing number
 of malloced objects.
 @var{what} is the second argument to @code{scm_must_malloc},
@@ -43,98 +47,120 @@ of malloced objects.
 allocated.
 @end deffn
 
-@deffn primitive debug-options-interface [setting]
+@deffn {Scheme Procedure} debug-options-interface [setting]
+@deffnx {C Function} scm_debug_options (setting)
 Option interface for the debug options. Instead of using
 this procedure directly, use the procedures @code{debug-enable},
 @code{debug-disable}, @code{debug-set!} and @var{debug-options}.
 @end deffn
 
-@deffn primitive with-traps thunk
+@deffn {Scheme Procedure} with-traps thunk
+@deffnx {C Function} scm_with_traps (thunk)
 Call @var{thunk} with traps enabled.
 @end deffn
 
-@deffn primitive memoized? obj
+@deffn {Scheme Procedure} memoized? obj
+@deffnx {C Function} scm_memoized_p (obj)
 Return @code{#t} if @var{obj} is memoized.
 @end deffn
 
-@deffn primitive unmemoize m
+@deffn {Scheme Procedure} unmemoize m
+@deffnx {C Function} scm_unmemoize (m)
 Unmemoize the memoized expression @var{m},
 @end deffn
 
-@deffn primitive memoized-environment m
+@deffn {Scheme Procedure} memoized-environment m
+@deffnx {C Function} scm_memoized_environment (m)
 Return the environment of the memoized expression @var{m}.
 @end deffn
 
-@deffn primitive procedure-name proc
+@deffn {Scheme Procedure} procedure-name proc
+@deffnx {C Function} scm_procedure_name (proc)
 Return the name of the procedure @var{proc}
 @end deffn
 
-@deffn primitive procedure-source proc
+@deffn {Scheme Procedure} procedure-source proc
+@deffnx {C Function} scm_procedure_source (proc)
 Return the source of the procedure @var{proc}.
 @end deffn
 
-@deffn primitive procedure-environment proc
+@deffn {Scheme Procedure} procedure-environment proc
+@deffnx {C Function} scm_procedure_environment (proc)
 Return the environment of the procedure @var{proc}.
 @end deffn
 
-@deffn primitive debug-object? obj
+@deffn {Scheme Procedure} debug-object? obj
+@deffnx {C Function} scm_debug_object_p (obj)
 Return @code{#t} if @var{obj} is a debug object.
 @end deffn
 
-@deffn primitive frame-arguments frame
+@deffn {Scheme Procedure} frame-arguments frame
+@deffnx {C Function} scm_frame_arguments (frame)
 Return the arguments of @var{frame}.
 @end deffn
 
-@deffn primitive frame-evaluating-args? frame
+@deffn {Scheme Procedure} frame-evaluating-args? frame
+@deffnx {C Function} scm_frame_evaluating_args_p (frame)
 Return @code{#t} if @var{frame} contains evaluated arguments.
 @end deffn
 
-@deffn primitive frame-next frame
+@deffn {Scheme Procedure} frame-next frame
+@deffnx {C Function} scm_frame_next (frame)
 Return the next frame of @var{frame}, or @code{#f} if
 @var{frame} is the last frame in its stack.
 @end deffn
 
-@deffn primitive frame-number frame
+@deffn {Scheme Procedure} frame-number frame
+@deffnx {C Function} scm_frame_number (frame)
 Return the frame number of @var{frame}.
 @end deffn
 
-@deffn primitive frame-overflow? frame
+@deffn {Scheme Procedure} frame-overflow? frame
+@deffnx {C Function} scm_frame_overflow_p (frame)
 Return @code{#t} if @var{frame} is an overflow frame.
 @end deffn
 
-@deffn primitive frame-previous frame
+@deffn {Scheme Procedure} frame-previous frame
+@deffnx {C Function} scm_frame_previous (frame)
 Return the previous frame of @var{frame}, or @code{#f} if
 @var{frame} is the first frame in its stack.
 @end deffn
 
-@deffn primitive frame-procedure frame
+@deffn {Scheme Procedure} frame-procedure frame
+@deffnx {C Function} scm_frame_procedure (frame)
 Return the procedure for @var{frame}, or @code{#f} if no
 procedure is associated with @var{frame}.
 @end deffn
 
-@deffn primitive frame-procedure? frame
+@deffn {Scheme Procedure} frame-procedure? frame
+@deffnx {C Function} scm_frame_procedure_p (frame)
 Return @code{#t} if a procedure is associated with @var{frame}.
 @end deffn
 
-@deffn primitive frame-real? frame
+@deffn {Scheme Procedure} frame-real? frame
+@deffnx {C Function} scm_frame_real_p (frame)
 Return @code{#t} if @var{frame} is a real frame.
 @end deffn
 
-@deffn primitive frame-source frame
+@deffn {Scheme Procedure} frame-source frame
+@deffnx {C Function} scm_frame_source (frame)
 Return the source of @var{frame}.
 @end deffn
 
-@deffn primitive frame? obj
+@deffn {Scheme Procedure} frame? obj
+@deffnx {C Function} scm_frame_p (obj)
 Return @code{#t} if @var{obj} is a stack frame.
 @end deffn
 
-@deffn primitive last-stack-frame obj
+@deffn {Scheme Procedure} last-stack-frame obj
+@deffnx {C Function} scm_last_stack_frame (obj)
 Return a stack which consists of a single frame, which is the
 last stack frame for @var{obj}. @var{obj} must be either a
 debug object or a continuation.
 @end deffn
 
-@deffn primitive make-stack obj . args
+@deffn {Scheme Procedure} make-stack obj . args
+@deffnx {C Function} scm_make_stack (obj, args)
 Create a new stack. If @var{obj} is @code{#t}, the current
 evaluation stack is used for creating the stack frames,
 otherwise the frames are taken from @var{obj} (which must be
@@ -165,19 +191,23 @@ If the @var{outer_cut_N} of the last pair is missing, it is
 taken as 0.
 @end deffn
 
-@deffn primitive stack-id stack
+@deffn {Scheme Procedure} stack-id stack
+@deffnx {C Function} scm_stack_id (stack)
 Return the identifier given to @var{stack} by @code{start-stack}.
 @end deffn
 
-@deffn primitive stack-length stack
+@deffn {Scheme Procedure} stack-length stack
+@deffnx {C Function} scm_stack_length (stack)
 Return the length of @var{stack}.
 @end deffn
 
-@deffn primitive stack-ref stack index
+@deffn {Scheme Procedure} stack-ref stack index
+@deffnx {C Function} scm_stack_ref (stack, index)
 Return the @var{index}'th frame from @var{stack}.
 @end deffn
 
-@deffn primitive stack? obj
+@deffn {Scheme Procedure} stack? obj
+@deffnx {C Function} scm_stack_p (obj)
 Return @code{#t} if @var{obj} is a calling stack.
 @end deffn
 

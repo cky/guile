@@ -117,11 +117,11 @@ function calls, each of which is called a @dfn{frame}.  The programmer
 can learn more about the program's state at the point of interruption by
 inspecting and modifying these frames.
 
-@deffn primitive stack? obj
+@deffn {Scheme Procedure} stack? obj
 Return @code{#t} if @var{obj} is a calling stack.
 @end deffn
 
-@deffn primitive make-stack
+@deffn {Scheme Procedure} make-stack
 @end deffn
 
 @deffn syntax start-stack id exp
@@ -132,48 +132,48 @@ way of artificially limiting backtraces and stack procedures, largely as
 a convenience to the user.
 @end deffn
 
-@deffn primitive stack-id stack
+@deffn {Scheme Procedure} stack-id stack
 Return the identifier given to @var{stack} by @code{start-stack}.
 @end deffn
 
-@deffn primitive stack-ref
+@deffn {Scheme Procedure} stack-ref
 @end deffn
 
-@deffn primitive stack-length
+@deffn {Scheme Procedure} stack-length
 @end deffn
 
-@deffn primitive frame?
+@deffn {Scheme Procedure} frame?
 @end deffn
 
-@deffn primitive last-stack-frame
+@deffn {Scheme Procedure} last-stack-frame
 @end deffn
 
-@deffn primitive frame-number
+@deffn {Scheme Procedure} frame-number
 @end deffn
 
-@deffn primitive frame-source
+@deffn {Scheme Procedure} frame-source
 @end deffn
 
-@deffn primitive frame-procedure
+@deffn {Scheme Procedure} frame-procedure
 @end deffn
 
-@deffn primitive frame-arguments
+@deffn {Scheme Procedure} frame-arguments
 @end deffn
 
-@deffn primitive frame-previous
+@deffn {Scheme Procedure} frame-previous
 @end deffn
 
-@deffn primitive frame-next
+@deffn {Scheme Procedure} frame-next
 @end deffn
 
-@deffn primitive frame-real?
+@deffn {Scheme Procedure} frame-real?
 @end deffn
 
-@deffn primitive frame-procedure?
+@deffn {Scheme Procedure} frame-procedure?
 @end deffn
 
-@deffn primitive frame-evaluating-args?
+@deffn {Scheme Procedure} frame-evaluating-args?
 @end deffn
 
-@deffn primitive frame-overflow
+@deffn {Scheme Procedure} frame-overflow
 @end deffn

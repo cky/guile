@@ -175,7 +175,7 @@ SCM_DEFINE (scm_macro_type, "macro-type", 1, 0, 0,
             (SCM m),
 	    "Return one of the symbols @code{syntax}, @code{macro} or\n"
 	    "@code{macro!}, depending on whether @var{m} is a syntax\n"
-	    "tranformer, a regular macro, or a memoizing macro,\n"
+	    "transformer, a regular macro, or a memoizing macro,\n"
 	    "respectively.  If @var{m} is not a macro, @code{#f} is\n"
 	    "returned.")
 #define FUNC_NAME s_scm_macro_type

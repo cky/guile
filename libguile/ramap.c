@@ -458,7 +458,7 @@ scm_ramapc (int (*cproc)(), SCM data, SCM ra0, SCM lra, const char *what)
 
 SCM_DEFINE (scm_array_fill_x, "array-fill!", 2, 0, 0,
 	    (SCM ra, SCM fill),
-	    "Stores @var{fill} in every element of @var{array}.  The value returned\n"
+	    "Store @var{fill} in every element of @var{array}.  The value returned\n"
 	    "is unspecified.")
 #define FUNC_NAME s_scm_array_fill_x
 {
@@ -829,8 +829,8 @@ SCM_REGISTER_PROC(s_array_copy_in_order_x, "array-copy-in-order!", 2, 0, 0, scm_
 
 SCM_DEFINE (scm_array_copy_x, "array-copy!", 2, 0, 0,
 	    (SCM src, SCM dst),
-	    "@deffnx primitive array-copy-in-order! src dst\n"
-	    "Copies every element from vector or array @var{source} to the\n"
+	    "@deffnx {Scheme Procedure} array-copy-in-order! src dst\n"
+	    "Copy every element from vector or array @var{source} to the\n"
 	    "corresponding element of @var{destination}.  @var{destination} must have\n"
 	    "the same rank as @var{source}, and be at least as large in each\n"
 	    "dimension.  The order is unspecified.")
@@ -1512,7 +1512,7 @@ SCM_REGISTER_PROC(s_array_map_in_order_x, "array-map-in-order!", 2, 0, 1, scm_ar
 
 SCM_DEFINE (scm_array_map_x, "array-map!", 2, 0, 1,
 	    (SCM ra0, SCM proc, SCM lra),
-	    "@deffnx primitive array-map-in-order! ra0 proc . lra\n"
+	    "@deffnx {Scheme Procedure} array-map-in-order! ra0 proc . lra\n"
 	    "@var{array1}, @dots{} must have the same number of dimensions as\n"
 	    "@var{array0} and have a range for each index which includes the range\n"
 	    "for the corresponding index in @var{array0}.  @var{proc} is applied to\n"
@@ -1664,7 +1664,7 @@ rafe (SCM ra0,SCM proc,SCM ras)
 
 SCM_DEFINE (scm_array_for_each, "array-for-each", 2, 0, 1,
 	    (SCM proc, SCM ra0, SCM lra),
-	    "@var{proc} is applied to each tuple of elements of @var{array0} @dots{}\n"
+	    "Apply @var{proc} to each tuple of elements of @var{array0} @dots{}\n"
 	    "in row-major order.  The value returned is unspecified.")
 #define FUNC_NAME s_scm_array_for_each
 {
@@ -1677,7 +1677,7 @@ SCM_DEFINE (scm_array_for_each, "array-for-each", 2, 0, 1,
 
 SCM_DEFINE (scm_array_index_map_x, "array-index-map!", 2, 0, 0,
 	    (SCM ra, SCM proc),
-	    "applies @var{proc} to the indices of each element of @var{array} in\n"
+	    "Apply @var{proc} to the indices of each element of @var{array} in\n"
 	    "turn, storing the result in the corresponding element.  The value\n"
 	    "returned and the order of application are unspecified.\n\n"
 	    "One can implement @var{array-indexes} as\n"

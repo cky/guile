@@ -395,8 +395,8 @@ SCM_DEFINE (scm_current_load_port, "current-load-port", 0, 0, 0,
 
 SCM_DEFINE (scm_set_current_input_port, "set-current-input-port", 1, 0, 0,
            (SCM port),
-	    "@deffnx primitive set-current-output-port port\n"
-	    "@deffnx primitive set-current-error-port port\n"
+	    "@deffnx {Scheme Procedure} set-current-output-port port\n"
+	    "@deffnx {Scheme Procedure} set-current-error-port port\n"
 	    "Change the ports returned by @code{current-input-port},\n"
 	    "@code{current-output-port} and @code{current-error-port}, respectively,\n"
 	    "so that they use the supplied @var{port} for input or output.")
@@ -1400,7 +1400,7 @@ SCM_DEFINE (scm_set_port_line_x, "set-port-line!", 2, 0, 0,
 
 SCM_DEFINE (scm_port_column, "port-column", 1, 0, 0,
             (SCM port),
-	    "@deffnx primitive port-line port\n"
+	    "@deffnx {Scheme Procedure} port-line port\n"
 	    "Return the current column number or line number of @var{port},\n"
 	    "using the current input port if none is specified.  If the number is\n"
 	    "unknown, the result is #f.  Otherwise, the result is a 0-origin integer\n"
@@ -1419,7 +1419,7 @@ SCM_DEFINE (scm_port_column, "port-column", 1, 0, 0,
 
 SCM_DEFINE (scm_set_port_column_x, "set-port-column!", 2, 0, 0,
             (SCM port, SCM column),
-	    "@deffnx primitive set-port-line! port line\n"
+	    "@deffnx {Scheme Procedure} set-port-line! port line\n"
 	    "Set the current column or line number of @var{port}, using the\n"
 	    "current input port if none is specified.")
 #define FUNC_NAME s_scm_set_port_column_x

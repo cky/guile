@@ -343,7 +343,7 @@ as ordinary argument strings.
 @node getopt-long Reference
 @subsection Reference Documentation for @code{getopt-long}
 
-@deffn procedure getopt-long args grammar
+@deffn {Scheme Procedure} getopt-long args grammar
 Parse the command line given in @var{args} (which must be a list of
 strings) according to the option specification @var{grammar}.
 
@@ -416,7 +416,7 @@ An option predicate fails.
 @node option-ref Reference
 @subsection Reference Documentation for @code{option-ref}
 
-@deffn procedure option-ref options key default
+@deffn {Scheme Procedure} option-ref options key default
 Search @var{options} for a command line option named @var{key} and
 return its value, if found.  If the option has no value, but was given,
 return @code{#t}.  If the option was not given, return @var{default}.

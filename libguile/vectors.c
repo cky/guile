@@ -83,8 +83,8 @@ SCM_REGISTER_PROC (s_list_to_vector, "list->vector", 1, 0, 0, scm_vector);
 */
 SCM_DEFINE (scm_vector, "vector", 0, 0, 1, 
 	    (SCM l),
-	    "@deffnx primitive list->vector l\n"
-	    "Return a newly allocated vector whose elements contain the\n"
+	    "@deffnx {Scheme Procedure} list->vector l\n"
+	    "Return a newly allocated vector composed of the\n"
 	    "given arguments.  Analogous to @code{list}.\n"
 	    "\n"
 	    "@lisp\n"
@@ -173,8 +173,8 @@ scm_vector_set_x (SCM v, SCM k, SCM obj)
 SCM_DEFINE (scm_make_vector, "make-vector", 1, 1, 0,
             (SCM k, SCM fill),
 	    "Return a newly allocated vector of @var{k} elements.  If a\n"
-	    "second argument is given, then each element is initialized to\n"
-	    "@var{fill}.  Otherwise the initial contents of each element is\n"
+	    "second argument is given, then each position is initialized to\n"
+	    "@var{fill}.  Otherwise the initial contents of each position is\n"
 	    "unspecified.")
 #define FUNC_NAME s_scm_make_vector
 {
@@ -226,8 +226,7 @@ scm_c_make_vector (unsigned long int k, SCM fill)
 
 SCM_DEFINE (scm_vector_to_list, "vector->list", 1, 0, 0, 
 	    (SCM v),
-	    "Return a newly allocated list of the objects contained in the\n"
-	    "elements of @var{vector}.\n"
+	    "Return a newly allocated list composed of the elements of @var{v}.\n"
 	    "\n"
 	    "@lisp\n"
 	    "(vector->list '#(dah dah didah)) @result{}  (dah dah didah)\n"
@@ -248,7 +247,7 @@ SCM_DEFINE (scm_vector_to_list, "vector->list", 1, 0, 0,
 
 SCM_DEFINE (scm_vector_fill_x, "vector-fill!", 2, 0, 0,
             (SCM v, SCM fill),
-	    "Store @var{fill} in every element of @var{vector}.  The value\n"
+	    "Store @var{fill} in every position of @var{vector}.  The value\n"
 	    "returned by @code{vector-fill!} is unspecified.")
 #define FUNC_NAME s_scm_vector_fill_x
 {

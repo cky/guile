@@ -12,28 +12,32 @@
 @node Emacs Lisp Support
 @section Emacs Lisp Support
 
-@deffn primitive nil-car x
+@deffn {Scheme Procedure} nil-car x
+@deffnx {C Function} scm_nil_car (x)
 Return the car of @var{x}, but convert it to LISP nil if it
 is Scheme's end-of-list.
 @end deffn
 
-@deffn primitive nil-cdr x
+@deffn {Scheme Procedure} nil-cdr x
+@deffnx {C Function} scm_nil_cdr (x)
 Return the cdr of @var{x}, but convert it to LISP nil if it
 is Scheme's end-of-list.
 @end deffn
 
-@deffn primitive nil-cons x y
+@deffn {Scheme Procedure} nil-cons x y
+@deffnx {C Function} scm_nil_cons (x, y)
 Create a new cons cell with @var{x} as the car and @var{y} as
 the cdr, but convert @var{y} to Scheme's end-of-list if it is
 a LISP nil.
 @end deffn
 
-@deffn primitive nil-eq x y
+@deffn {Scheme Procedure} nil-eq x y
 Compare @var{x} and @var{y} and return LISP's t if they are
 @code{eq?}, return LISP's nil otherwise.
 @end deffn
 
-@deffn primitive null x
+@deffn {Scheme Procedure} null x
+@deffnx {C Function} scm_null (x)
 Return LISP's @code{t} if @var{x} is nil in the LISP sense,
 return LISP's nil otherwise.
 @end deffn

@@ -472,15 +472,15 @@ SCM_DEFINE (scm_string_split, "string-split", 2, 0, 0,
 	    "result list.\n"
 	    "\n"
 	    "@lisp\n"
-	    "(string-split \"root:x:0:0:root:/root:/bin/bash\" #\:)\n"
+	    "(string-split \"root:x:0:0:root:/root:/bin/bash\" #\\:)\n"
 	    "@result{}\n"
 	    "(\"root\" \"x\" \"0\" \"0\" \"root\" \"/root\" \"/bin/bash\")\n"
 	    "\n"
-	    "(string-split \"::\" #\:)\n"
+	    "(string-split \"::\" #\\:)\n"
 	    "@result{}\n"
 	    "(\"\" \"\" \"\")\n"
 	    "\n"
-	    "(string-split \"\" #\:)\n"
+	    "(string-split \"\" #\\:)\n"
 	    "@result{}\n"
 	    "(\"\")\n"
 	    "@end lisp")
@@ -518,7 +518,7 @@ SCM_DEFINE (scm_string_ci_to_symbol, "string-ci->symbol", 1, 0, 0,
 	    (SCM str),
 	    "Return the symbol whose name is @var{str}.  @var{str} is\n"
 	    "converted to lowercase before the conversion is done, if Guile\n"
-	    "is currently reading symbols case--insensitively.")
+	    "is currently reading symbols case-insensitively.")
 #define FUNC_NAME s_scm_string_ci_to_symbol
 {
   return scm_string_to_symbol (SCM_CASE_INSENSITIVE_P

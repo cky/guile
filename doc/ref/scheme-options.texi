@@ -34,11 +34,11 @@ We will use the expression @code{<group>} to represent @code{read},
 @subheading Low level
 
 @c NJFIXME
-@deffn primitive <group>-options-interface
-@deffnx primitive read-options-interface [SOME-INT]
-@deffnx primitive print-options-interface [SOME-INT]
-@deffnx primitive evaluator-traps-interface [SOME-INT]
-@deffnx primitive read-options-interface [SOME-INT]
+@deffn {Scheme Procedure} <group>-options-interface
+@deffnx {Scheme Procedure} read-options-interface [SOME-INT]
+@deffnx {Scheme Procedure} print-options-interface [SOME-INT]
+@deffnx {Scheme Procedure} evaluator-traps-interface [SOME-INT]
+@deffnx {Scheme Procedure} read-options-interface [SOME-INT]
 [FIXME: I have just taken the comments for C routine scm_options that
 implements all of these.  It needs to be presented better.]
 
@@ -59,11 +59,11 @@ and documentation string.
 @c @end deftp
 
 @c NJFIXME
-@deffn procedure <group>-options [arg]
-@deffnx procedure read-options [arg]
-@deffnx procedure print-options [arg]
-@deffnx procedure debug-options [arg]
-@deffnx procedure traps [arg]
+@deffn {Scheme Procedure} <group>-options [arg]
+@deffnx {Scheme Procedure} read-options [arg]
+@deffnx {Scheme Procedure} print-options [arg]
+@deffnx {Scheme Procedure} debug-options [arg]
+@deffnx {Scheme Procedure} traps [arg]
 These functions list the options in their group.  The optional argument
 @var{arg} is a symbol which modifies the form in which the options are
 presented.
@@ -81,22 +81,22 @@ options) and symbols followed by values.
 up?]
 
 @c NJFIXME
-@deffn procedure <group>-enable option-symbol
-@deffnx procedure read-enable option-symbol
-@deffnx procedure print-enable option-symbol
-@deffnx procedure debug-enable option-symbol
-@deffnx procedure trap-enable option-symbol
+@deffn {Scheme Procedure} <group>-enable option-symbol
+@deffnx {Scheme Procedure} read-enable option-symbol
+@deffnx {Scheme Procedure} print-enable option-symbol
+@deffnx {Scheme Procedure} debug-enable option-symbol
+@deffnx {Scheme Procedure} trap-enable option-symbol
 These functions set the specified @var{option-symbol} in their options
 group.  They only work if the option is boolean, and throw an error
 otherwise.
 @end deffn
 
 @c NJFIXME
-@deffn procedure <group>-disable option-symbol
-@deffnx procedure read-disable option-symbol
-@deffnx procedure print-disable option-symbol
-@deffnx procedure debug-disable option-symbol
-@deffnx procedure trap-disable option-symbol
+@deffn {Scheme Procedure} <group>-disable option-symbol
+@deffnx {Scheme Procedure} read-disable option-symbol
+@deffnx {Scheme Procedure} print-disable option-symbol
+@deffnx {Scheme Procedure} debug-disable option-symbol
+@deffnx {Scheme Procedure} trap-disable option-symbol
 These functions turn off the specified @var{option-symbol} in their
 options group.  They only work if the option is boolean, and throw an
 error otherwise.
@@ -331,10 +331,14 @@ It is often useful to have site-specific information about the current
 Guile installation.  This chapter describes how to find out about
 Guile's configuration at run time.
 
-@deffn primitive version
-@deffnx primitive major-version
-@deffnx primitive minor-version
-@deffnx primitive micro-version
+@deffn {Scheme Procedure} version
+@deffnx {Scheme Procedure} major-version
+@deffnx {Scheme Procedure} minor-version
+@deffnx {Scheme Procedure} micro-version
+@deffnx {C Function} scm_version ()
+@deffnx {C Function} scm_major_version ()
+@deffnx {C Function} scm_minor_version ()
+@deffnx {C Function} scm_micro_version ()
 Return a string describing Guile's version number, or its major, minor
 or micro version number, respectively.
 
@@ -347,37 +351,42 @@ or micro version number, respectively.
 @end deffn
 
 @c NJFIXME not in libguile!
-@deffn primitive libguile-config-stamp
+@deffn {Scheme Procedure} libguile-config-stamp
 Return a string describing the date on which @code{libguile} was
 configured.  This is used to determine whether the Guile core
 interpreter and the ice-9 runtime have grown out of date with one
 another.
 @end deffn
 
-@deffn primitive %package-data-dir
+@deffn {Scheme Procedure} %package-data-dir
+@deffnx {C Function} scm_sys_package_data_dir ()
 Return the name of the directory where Scheme packages, modules and
 libraries are kept.  On most Unix systems, this will be
 @samp{/usr/local/share/guile}.
 @end deffn
 
-@deffn primitive %library-dir
+@deffn {Scheme Procedure} %library-dir
+@deffnx {C Function} scm_sys_library_dir ()
 Return the directory where the Guile Scheme library files are installed.
 E.g., may return "/usr/share/guile/1.3.5".
 @end deffn
 
-@deffn primitive %site-dir
+@deffn {Scheme Procedure} %site-dir
+@deffnx {C Function} scm_sys_site_dir ()
 Return the directory where the Guile site files are installed.
 E.g., may return "/usr/share/guile/site".
 @end deffn
 
-@deffn primitive parse-path path [tail]
+@deffn {Scheme Procedure} parse-path path [tail]
+@deffnx {C Function} scm_parse_path (path, tail)
 Parse @var{path}, which is expected to be a colon-separated
 string, into a list and return the resulting list with
 @var{tail} appended. If @var{path} is @code{#f}, @var{tail}
 is returned.
 @end deffn
 
-@deffn primitive search-path path filename [extensions]
+@deffn {Scheme Procedure} search-path path filename [extensions]
+@deffnx {C Function} scm_search_path (path, filename, extensions)
 Search @var{path} for a directory containing a file named
 @var{filename}. The file must be readable, and not a directory.
 If we find one, return its full filename; otherwise, return

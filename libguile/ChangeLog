@@ -1,5 +1,30 @@
 2001-11-16  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* gc.h (scm_unhash_name): Old declaration removed.
+
+	* eval.c (s_scm_eval): Change @var{primitive-eval} to
+	@code{primitive-eval}.
+
+	* feature.c, vectors.c, net_db.c, unif.c, weaks.c, struct.c,
+	version.c, alist.c, ports.c, ramap.c, unif.c, strings.c, list.c:
+	Change @deffnx lines in docstrings to say {Scheme Procedure}
+	rather than primitive or procedure.
+
+	* posix.c (scm_execl), filesys.c (scm_close), unif.c
+	(scm_array_set_x, scm_array_contents, scm_uniform_array_read_x,
+	scm_bit_set_star_x, scm_bit_invert_x), ramap.c (scm_array_fill_x,
+	scm_array_for_each, scm_array_index_map_x), vectors.c (scm_vector,
+	scm_make_vector, scm_vector_to_list, scm_vector_fill_x), strop.c
+	(scm_string_split, scm_string_ci_to_symbol), strings.c
+	(scm_string_p), sort.c (scm_merge), print.c (scm_newline),
+	macros.c (scm_macro_type), alist.c (scm_acons, scm_assq):
+	Docstring fixes and improvements reflecting edits that have been
+	made in the reference manual source.
+
+	* objprop.c (scm_object_properties, scm_set_object_properties_x,
+	scm_object_property, scm_set_object_property_x): Remove invalid
+	@deffnx lines for corresponding procedure property primitives.
+
 	These changes add a @deffnx C function declaration and function
 	index entries for each Guile primitive to the copy of the doc
 	snarf output that is used for reference manual synchronization.

@@ -123,7 +123,8 @@ number 0 (like in C and C++), and not the same as the ``empty list''
 The @code{not} procedure returns the boolean inverse of its argument:
 
 @rnindex not
-@deffn primitive not x
+@deffn {Scheme Procedure} not x
+@deffnx {C Function} scm_not (x)
 Return @code{#t} iff @var{x} is @code{#f}, else return @code{#f}.
 @end deffn
 
@@ -131,7 +132,8 @@ The @code{boolean?} procedure is a predicate that returns @code{#t} if
 its argument is one of the boolean values, otherwise @code{#f}.
 
 @rnindex boolean?
-@deffn primitive boolean? obj
+@deffn {Scheme Procedure} boolean? obj
+@deffnx {C Function} scm_boolean_p (obj)
 Return @code{#t} iff @var{obj} is either @code{#t} or @code{#f}.
 @end deffn
 
@@ -205,8 +207,10 @@ converted by Guile to the corresponding real number.
 The @code{number?} predicate may be applied to any Scheme value to
 discover whether the value is any of the supported numerical types.
 
-@deffn primitive number? obj
+@deffn {Scheme Procedure} number? obj
+@deffnx {C Function} scm_number_p (obj)
 Return @code{#t} if @var{obj} is any kind of number, @code{#f} else.
+@findex number?
 @end deffn
 
 For example:
@@ -275,7 +279,8 @@ completely invisible to the Scheme level programmer.
 @c REFFIXME Maybe point here to discussion of handling immediates/bignums
 @c on the C level, where the conversion is not so automatic - NJ
 
-@deffn primitive integer? x
+@deffn {Scheme Procedure} integer? x
+@deffnx {C Function} scm_integer_p (x)
 Return @code{#t} if @var{x} is an integer number, @code{#f} else.
 
 @lisp
@@ -338,14 +343,17 @@ rational numbers and real irrational numbers such as square roots,
 and in such a way that the new kinds of number integrate seamlessly
 with those that are already implemented.
 
-@deffn primitive real? obj
+@deffn {Scheme Procedure} real? obj
+@deffnx {C Function} scm_real_p (obj)
 Return @code{#t} if @var{obj} is a real number, @code{#f} else.
 Note that the sets of integer and rational values form subsets
 of the set of real numbers, so the predicate will also be fulfilled
 if @var{obj} is an integer number or a rational number.
+@findex real?
 @end deffn
 
-@deffn primitive rational? x
+@deffn {Scheme Procedure} rational? x
+@deffnx {C Function} scm_real_p (x)
 Return @code{#t} if @var{x} is a rational number, @code{#f}
 else.  Note that the set of integer values forms a subset of
 the set of rational numbers, i. e. the predicate will also be
@@ -384,7 +392,8 @@ Guile represents a complex number as a pair of numbers both of which are
 real, so the real and imaginary parts of a complex number have the same
 properties of inexactness and limited precision as single real numbers.
 
-@deffn primitive complex? x
+@deffn {Scheme Procedure} complex? x
+@deffnx {C Function} scm_number_p (x)
 Return @code{#t} if @var{x} is a complex number, @code{#f}
 else.  Note that the sets of real, rational and integer
 values form subsets of the set of complex numbers, i. e. the
@@ -411,22 +420,25 @@ available, has no fractional part, and is printed as @code{5.0}.  Guile
 will only convert the latter value to the former when forced to do so by
 an invocation of the @code{inexact->exact} procedure.
 
-@deffn primitive exact? x
+@deffn {Scheme Procedure} exact? x
+@deffnx {C Function} scm_exact_p (x)
 Return @code{#t} if @var{x} is an exact number, @code{#f}
 otherwise.
 @end deffn
 
-@deffn primitive inexact? x
+@deffn {Scheme Procedure} inexact? x
+@deffnx {C Function} scm_inexact_p (x)
 Return @code{#t} if @var{x} is an inexact number, @code{#f}
 else.
 @end deffn
 
-@deffn primitive inexact->exact z
+@deffn {Scheme Procedure} inexact->exact z
+@deffnx {C Function} scm_inexact_to_exact (z)
 Return an exact number that is numerically closest to @var{z}.
 @end deffn
 
 @c begin (texi-doc-string "guile" "exact->inexact")
-@deffn primitive exact->inexact z
+@deffn {Scheme Procedure} exact->inexact z
 Convert the number @var{z} to its inexact representation.
 @end deffn
 
@@ -508,23 +520,25 @@ multiplying by 10^N.
 @rnindex gcd
 @rnindex lcm
 
-@deffn primitive odd? n
+@deffn {Scheme Procedure} odd? n
+@deffnx {C Function} scm_odd_p (n)
 Return @code{#t} if @var{n} is an odd number, @code{#f}
 otherwise.
 @end deffn
 
-@deffn primitive even? n
+@deffn {Scheme Procedure} even? n
+@deffnx {C Function} scm_even_p (n)
 Return @code{#t} if @var{n} is an even number, @code{#f}
 otherwise.
 @end deffn
 
 @c begin (texi-doc-string "guile" "quotient")
-@deffn primitive quotient
+@deffn {Scheme Procedure} quotient
 Return the quotient of the numbers @var{x} and @var{y}.
 @end deffn
 
 @c begin (texi-doc-string "guile" "remainder")
-@deffn primitive remainder
+@deffn {Scheme Procedure} remainder
 Return the remainder of the numbers @var{x} and @var{y}.
 @lisp
 (remainder 13 4) @result{} 1
@@ -533,7 +547,7 @@ Return the remainder of the numbers @var{x} and @var{y}.
 @end deffn
 
 @c begin (texi-doc-string "guile" "modulo")
-@deffn primitive modulo
+@deffn {Scheme Procedure} modulo
 Return the modulo of the numbers @var{x} and @var{y}.
 @lisp
 (modulo 13 4) @result{} 1
@@ -542,13 +556,13 @@ Return the modulo of the numbers @var{x} and @var{y}.
 @end deffn
 
 @c begin (texi-doc-string "guile" "gcd")
-@deffn primitive gcd
+@deffn {Scheme Procedure} gcd
 Return the greatest common divisor of all arguments.
 If called without arguments, 0 is returned.
 @end deffn
 
 @c begin (texi-doc-string "guile" "lcm")
-@deffn primitive lcm
+@deffn {Scheme Procedure} lcm
 Return the least common multiple of the arguments.
 If called without arguments, 1 is returned.
 @end deffn
@@ -561,48 +575,48 @@ If called without arguments, 1 is returned.
 @rnindex negative?
 
 @c begin (texi-doc-string "guile" "=")
-@deffn primitive =
+@deffn {Scheme Procedure} =
 Return @code{#t} if all parameters are numerically equal.
 @end deffn
 
 @c begin (texi-doc-string "guile" "<")
-@deffn primitive <
+@deffn {Scheme Procedure} <
 Return @code{#t} if the list of parameters is monotonically
 increasing.
 @end deffn
 
 @c begin (texi-doc-string "guile" ">")
-@deffn primitive >
+@deffn {Scheme Procedure} >
 Return @code{#t} if the list of parameters is monotonically
 decreasing.
 @end deffn
 
 @c begin (texi-doc-string "guile" "<=")
-@deffn primitive <=
+@deffn {Scheme Procedure} <=
 Return @code{#t} if the list of parameters is monotonically
 non-decreasing.
 @end deffn
 
 @c begin (texi-doc-string "guile" ">=")
-@deffn primitive >=
+@deffn {Scheme Procedure} >=
 Return @code{#t} if the list of parameters is monotonically
 non-increasing.
 @end deffn
 
 @c begin (texi-doc-string "guile" "zero?")
-@deffn primitive zero?
+@deffn {Scheme Procedure} zero?
 Return @code{#t} if @var{z} is an exact or inexact number equal to
 zero.
 @end deffn
 
 @c begin (texi-doc-string "guile" "positive?")
-@deffn primitive positive?
+@deffn {Scheme Procedure} positive?
 Return @code{#t} if @var{x} is an exact or inexact number greater than
 zero.
 @end deffn
 
 @c begin (texi-doc-string "guile" "negative?")
-@deffn primitive negative?
+@deffn {Scheme Procedure} negative?
 Return @code{#t} if @var{x} is an exact or inexact number less than
 zero.
 @end deffn
@@ -613,13 +627,15 @@ zero.
 @rnindex number->string
 @rnindex string->number
 
-@deffn primitive number->string n [radix]
+@deffn {Scheme Procedure} number->string n [radix]
+@deffnx {C Function} scm_number_to_string (n, radix)
 Return a string holding the external representation of the
 number @var{n} in the given @var{radix}.  If @var{n} is
 inexact, a radix of 10 will be used.
 @end deffn
 
-@deffn primitive string->number string [radix]
+@deffn {Scheme Procedure} string->number string [radix]
+@deffnx {C Function} scm_string_to_number (string, radix)
 Return a number of the maximally precise representation
 expressed by the given @var{string}. @var{radix} must be an
 exact integer, either 2, 8, 10, or 16. If supplied, @var{radix}
@@ -640,33 +656,35 @@ syntactically valid notation for a number, then
 @rnindex magnitude
 @rnindex angle
 
-@deffn primitive make-rectangular real imaginary
+@deffn {Scheme Procedure} make-rectangular real imaginary
+@deffnx {C Function} scm_make_rectangular (real, imaginary)
 Return a complex number constructed of the given @var{real} and
 @var{imaginary} parts.
 @end deffn
 
-@deffn primitive make-polar x y
+@deffn {Scheme Procedure} make-polar x y
+@deffnx {C Function} scm_make_polar (x, y)
 Return the complex number @var{x} * e^(i * @var{y}).
 @end deffn
 
 @c begin (texi-doc-string "guile" "real-part")
-@deffn primitive real-part
+@deffn {Scheme Procedure} real-part
 Return the real part of the number @var{z}.
 @end deffn
 
 @c begin (texi-doc-string "guile" "imag-part")
-@deffn primitive imag-part
+@deffn {Scheme Procedure} imag-part
 Return the imaginary part of the number @var{z}.
 @end deffn
 
 @c begin (texi-doc-string "guile" "magnitude")
-@deffn primitive magnitude
+@deffn {Scheme Procedure} magnitude
 Return the magnitude of the number @var{z}. This is the same as
 @code{abs} for real arguments, but also allows complex numbers.
 @end deffn
 
 @c begin (texi-doc-string "guile" "angle")
-@deffn primitive angle
+@deffn {Scheme Procedure} angle
 Return the angle of the complex number @var{z}.
 @end deffn
 
@@ -686,62 +704,62 @@ Return the angle of the complex number @var{z}.
 @rnindex round
 
 @c begin (texi-doc-string "guile" "+")
-@deffn primitive + z1 @dots{}
+@deffn {Scheme Procedure} + z1 @dots{}
 Return the sum of all parameter values.  Return 0 if called without any
 parameters.
 @end deffn
 
 @c begin (texi-doc-string "guile" "-")
-@deffn primitive - z1 z2 @dots{}
+@deffn {Scheme Procedure} - z1 z2 @dots{}
 If called with one argument @var{z1}, -@var{z1} is returned. Otherwise
 the sum of all but the first argument are subtracted from the first
 argument.
 @end deffn
 
 @c begin (texi-doc-string "guile" "*")
-@deffn primitive * z1 @dots{}
+@deffn {Scheme Procedure} * z1 @dots{}
 Return the product of all arguments.  If called without arguments, 1 is
 returned.
 @end deffn
 
 @c begin (texi-doc-string "guile" "/")
-@deffn primitive / z1 z2 @dots{}
+@deffn {Scheme Procedure} / z1 z2 @dots{}
 Divide the first argument by the product of the remaining arguments.  If
 called with one argument @var{z1}, 1/@var{z1} is returned.
 @end deffn
 
 @c begin (texi-doc-string "guile" "abs")
-@deffn primitive abs x
+@deffn {Scheme Procedure} abs x
 Return the absolute value of @var{x}.
 @end deffn
 
 @c begin (texi-doc-string "guile" "max")
-@deffn primitive max x1 x2 @dots{}
+@deffn {Scheme Procedure} max x1 x2 @dots{}
 Return the maximum of all parameter values.
 @end deffn
 
 @c begin (texi-doc-string "guile" "min")
-@deffn primitive min x1 x2 @dots{}
+@deffn {Scheme Procedure} min x1 x2 @dots{}
 Return the minium of all parameter values.
 @end deffn
 
 @c begin (texi-doc-string "guile" "truncate")
-@deffn primitive truncate
+@deffn {Scheme Procedure} truncate
 Round the inexact number @var{x} towards zero.
 @end deffn
 
 @c begin (texi-doc-string "guile" "round")
-@deffn primitive round x
+@deffn {Scheme Procedure} round x
 Round the inexact number @var{x} towards zero.
 @end deffn
 
 @c begin (texi-doc-string "guile" "floor")
-@deffn primitive floor x
+@deffn {Scheme Procedure} floor x
 Round the number @var{x} towards minus infinity.
 @end deffn
 
 @c begin (texi-doc-string "guile" "ceiling")
-@deffn primitive ceiling x
+@deffn {Scheme Procedure} ceiling x
 Round the number @var{x} towards infinity.
 @end deffn
 
@@ -754,97 +772,97 @@ including complex numbers.
 
 @rnindex sqrt
 @c begin (texi-doc-string "guile" "sqrt")
-@deffn procedure sqrt z
+@deffn {Scheme Procedure} sqrt z
 Return the square root of @var{z}.
 @end deffn
 
 @rnindex expt
 @c begin (texi-doc-string "guile" "expt")
-@deffn procedure expt z1 z2
+@deffn {Scheme Procedure} expt z1 z2
 Return @var{z1} raised to the power of @var{z2}.
 @end deffn
 
 @rnindex sin
 @c begin (texi-doc-string "guile" "sin")
-@deffn procedure sin z
+@deffn {Scheme Procedure} sin z
 Return the sine of @var{z}.
 @end deffn
 
 @rnindex cos
 @c begin (texi-doc-string "guile" "cos")
-@deffn procedure cos z
+@deffn {Scheme Procedure} cos z
 Return the cosine of @var{z}.
 @end deffn
 
 @rnindex tan
 @c begin (texi-doc-string "guile" "tan")
-@deffn procedure tan z
+@deffn {Scheme Procedure} tan z
 Return the tangent of @var{z}.
 @end deffn
 
 @rnindex asin
 @c begin (texi-doc-string "guile" "asin")
-@deffn procedure asin z
+@deffn {Scheme Procedure} asin z
 Return the arcsine of @var{z}.
 @end deffn
 
 @rnindex acos
 @c begin (texi-doc-string "guile" "acos")
-@deffn procedure acos z
+@deffn {Scheme Procedure} acos z
 Return the arccosine of @var{z}.
 @end deffn
 
 @rnindex atan
 @c begin (texi-doc-string "guile" "atan")
-@deffn procedure atan z
+@deffn {Scheme Procedure} atan z
 Return the arctangent of @var{z}.
 @end deffn
 
 @rnindex exp
 @c begin (texi-doc-string "guile" "exp")
-@deffn procedure exp z
+@deffn {Scheme Procedure} exp z
 Return e to the power of @var{z}, where e is the base of natural
 logarithms (2.71828@dots{}).
 @end deffn
 
 @rnindex log
 @c begin (texi-doc-string "guile" "log")
-@deffn procedure log z
+@deffn {Scheme Procedure} log z
 Return the natural logarithm of @var{z}.
 @end deffn
 
 @c begin (texi-doc-string "guile" "log10")
-@deffn procedure log10 z
+@deffn {Scheme Procedure} log10 z
 Return the base 10 logarithm of @var{z}.
 @end deffn
 
 @c begin (texi-doc-string "guile" "sinh")
-@deffn procedure sinh z
+@deffn {Scheme Procedure} sinh z
 Return the hyperbolic sine of @var{z}.
 @end deffn
 
 @c begin (texi-doc-string "guile" "cosh")
-@deffn procedure cosh z
+@deffn {Scheme Procedure} cosh z
 Return the hyperbolic cosine of @var{z}.
 @end deffn
 
 @c begin (texi-doc-string "guile" "tanh")
-@deffn procedure tanh z
+@deffn {Scheme Procedure} tanh z
 Return the hyperbolic tangent of @var{z}.
 @end deffn
 
 @c begin (texi-doc-string "guile" "asinh")
-@deffn procedure asinh z
+@deffn {Scheme Procedure} asinh z
 Return the hyperbolic arcsine of @var{z}.
 @end deffn
 
 @c begin (texi-doc-string "guile" "acosh")
-@deffn procedure acosh z
+@deffn {Scheme Procedure} acosh z
 Return the hyperbolic arccosine of @var{z}.
 @end deffn
 
 @c begin (texi-doc-string "guile" "atanh")
-@deffn procedure atanh z
+@deffn {Scheme Procedure} atanh z
 Return the hyperbolic arctangent of @var{z}.
 @end deffn
 
@@ -858,51 +876,53 @@ procedures that use the following real number-based primitives.  These
 primitives signal an error if they are called with complex arguments.
 
 @c begin (texi-doc-string "guile" "$abs")
-@deffn primitive $abs x
+@deffn {Scheme Procedure} $abs x
 Return the absolute value of @var{x}.
 @end deffn
 
 @c begin (texi-doc-string "guile" "$sqrt")
-@deffn primitive $sqrt x
+@deffn {Scheme Procedure} $sqrt x
 Return the square root of @var{x}.
 @end deffn
 
-@deffn primitive $expt x y
+@deffn {Scheme Procedure} $expt x y
+@deffnx {C Function} scm_sys_expt (x, y)
 Return @var{x} raised to the power of @var{y}. This
 procedure does not accept complex arguments.
 @end deffn
 
 @c begin (texi-doc-string "guile" "$sin")
-@deffn primitive $sin x
+@deffn {Scheme Procedure} $sin x
 Return the sine of @var{x}.
 @end deffn
 
 @c begin (texi-doc-string "guile" "$cos")
-@deffn primitive $cos x
+@deffn {Scheme Procedure} $cos x
 Return the cosine of @var{x}.
 @end deffn
 
 @c begin (texi-doc-string "guile" "$tan")
-@deffn primitive $tan x
+@deffn {Scheme Procedure} $tan x
 Return the tangent of @var{x}.
 @end deffn
 
 @c begin (texi-doc-string "guile" "$asin")
-@deffn primitive $asin x
+@deffn {Scheme Procedure} $asin x
 Return the arcsine of @var{x}.
 @end deffn
 
 @c begin (texi-doc-string "guile" "$acos")
-@deffn primitive $acos x
+@deffn {Scheme Procedure} $acos x
 Return the arccosine of @var{x}.
 @end deffn
 
 @c begin (texi-doc-string "guile" "$atan")
-@deffn primitive $atan x
+@deffn {Scheme Procedure} $atan x
 Return the arctangent of @var{x} in the range -PI/2 to PI/2.
 @end deffn
 
-@deffn primitive $atan2 x y
+@deffn {Scheme Procedure} $atan2 x y
+@deffnx {C Function} scm_sys_atan2 (x, y)
 Return the arc tangent of the two arguments @var{x} and
 @var{y}. This is similar to calculating the arc tangent of
 @var{x} / @var{y}, except that the signs of both arguments
@@ -911,43 +931,43 @@ procedure does not accept complex arguments.
 @end deffn
 
 @c begin (texi-doc-string "guile" "$exp")
-@deffn primitive $exp x
+@deffn {Scheme Procedure} $exp x
 Return e to the power of @var{x}, where e is the base of natural
 logarithms (2.71828@dots{}).
 @end deffn
 
 @c begin (texi-doc-string "guile" "$log")
-@deffn primitive $log x
+@deffn {Scheme Procedure} $log x
 Return the natural logarithm of @var{x}.
 @end deffn
 
 @c begin (texi-doc-string "guile" "$sinh")
-@deffn primitive $sinh x
+@deffn {Scheme Procedure} $sinh x
 Return the hyperbolic sine of @var{x}.
 @end deffn
 
 @c begin (texi-doc-string "guile" "$cosh")
-@deffn primitive $cosh x
+@deffn {Scheme Procedure} $cosh x
 Return the hyperbolic cosine of @var{x}.
 @end deffn
 
 @c begin (texi-doc-string "guile" "$tanh")
-@deffn primitive $tanh x
+@deffn {Scheme Procedure} $tanh x
 Return the hyperbolic tangent of @var{x}.
 @end deffn
 
 @c begin (texi-doc-string "guile" "$asinh")
-@deffn primitive $asinh x
+@deffn {Scheme Procedure} $asinh x
 Return the hyperbolic arcsine of @var{x}.
 @end deffn
 
 @c begin (texi-doc-string "guile" "$acosh")
-@deffn primitive $acosh x
+@deffn {Scheme Procedure} $acosh x
 Return the hyperbolic arccosine of @var{x}.
 @end deffn
 
 @c begin (texi-doc-string "guile" "$atanh")
-@deffn primitive $atanh x
+@deffn {Scheme Procedure} $atanh x
 Return the hyperbolic arctangent of @var{x}.
 @end deffn
 
@@ -955,7 +975,7 @@ Return the hyperbolic arctangent of @var{x}.
 @node Bitwise Operations
 @subsection Bitwise Operations
 
-@deffn primitive logand n1 n2
+@deffn {Scheme Procedure} logand n1 n2
 Return the bitwise AND of the integer arguments.
 
 @lisp
@@ -965,7 +985,7 @@ Return the bitwise AND of the integer arguments.
 @end lisp
 @end deffn
 
-@deffn primitive logior n1 n2
+@deffn {Scheme Procedure} logior n1 n2
 Return the bitwise OR of the integer arguments.
 
 @lisp
@@ -975,7 +995,7 @@ Return the bitwise OR of the integer arguments.
 @end lisp
 @end deffn
 
-@deffn primitive logxor n1 n2
+@deffn {Scheme Procedure} logxor n1 n2
 Return the bitwise XOR of the integer arguments.  A bit is
 set in the result if it is set in an odd number of arguments.
 @lisp
@@ -986,7 +1006,8 @@ set in the result if it is set in an odd number of arguments.
 @end lisp
 @end deffn
 
-@deffn primitive lognot n
+@deffn {Scheme Procedure} lognot n
+@deffnx {C Function} scm_lognot (n)
 Return the integer which is the 2s-complement of the integer
 argument.
 
@@ -998,7 +1019,8 @@ argument.
 @end lisp
 @end deffn
 
-@deffn primitive logtest j k
+@deffn {Scheme Procedure} logtest j k
+@deffnx {C Function} scm_logtest (j, k)
 @lisp
 (logtest j k) @equiv{} (not (zero? (logand j k)))
 
@@ -1007,7 +1029,8 @@ argument.
 @end lisp
 @end deffn
 
-@deffn primitive logbit? index j
+@deffn {Scheme Procedure} logbit? index j
+@deffnx {C Function} scm_logbit_p (index, j)
 @lisp
 (logbit? index j) @equiv{} (logtest (integer-expt 2 index) j)
 
@@ -1019,7 +1042,8 @@ argument.
 @end lisp
 @end deffn
 
-@deffn primitive ash n cnt
+@deffn {Scheme Procedure} ash n cnt
+@deffnx {C Function} scm_ash (n, cnt)
 The function ash performs an arithmetic shift left by @var{cnt}
 bits (or shift right, if @var{cnt} is negative).  'Arithmetic'
 means, that the function does not guarantee to keep the bit
@@ -1037,7 +1061,8 @@ Formally, the function returns an integer equivalent to
 @end lisp
 @end deffn
 
-@deffn primitive logcount n
+@deffn {Scheme Procedure} logcount n
+@deffnx {C Function} scm_logcount (n)
 Return the number of bits in integer @var{n}.  If integer is
 positive, the 1-bits in its binary representation are counted.
 If negative, the 0-bits in its two's-complement binary
@@ -1053,7 +1078,8 @@ representation are counted.  If 0, 0 is returned.
 @end lisp
 @end deffn
 
-@deffn primitive integer-length n
+@deffn {Scheme Procedure} integer-length n
+@deffnx {C Function} scm_integer_length (n)
 Return the number of bits neccessary to represent @var{n}.
 
 @lisp
@@ -1066,7 +1092,8 @@ Return the number of bits neccessary to represent @var{n}.
 @end lisp
 @end deffn
 
-@deffn primitive integer-expt n k
+@deffn {Scheme Procedure} integer-expt n k
+@deffnx {C Function} scm_integer_expt (n, k)
 Return @var{n} raised to the non-negative integer exponent
 @var{k}.
 
@@ -1078,7 +1105,8 @@ Return @var{n} raised to the non-negative integer exponent
 @end lisp
 @end deffn
 
-@deffn primitive bit-extract n start end
+@deffn {Scheme Procedure} bit-extract n start end
+@deffnx {C Function} scm_bit_extract (n, start, end)
 Return the integer composed of the @var{start} (inclusive)
 through @var{end} (exclusive) bits of @var{n}.  The
 @var{start}th bit becomes the 0-th bit in the result.
@@ -1095,11 +1123,13 @@ through @var{end} (exclusive) bits of @var{n}.  The
 @node Random
 @subsection Random Number Generation
 
-@deffn primitive copy-random-state [state]
+@deffn {Scheme Procedure} copy-random-state [state]
+@deffnx {C Function} scm_copy_random_state (state)
 Return a copy of the random state @var{state}.
 @end deffn
 
-@deffn primitive random n [state]
+@deffn {Scheme Procedure} random n [state]
+@deffnx {C Function} scm_random (n, state)
 Return a number in [0,N).
 
 Accepts a positive integer or real n and returns a
@@ -1114,13 +1144,15 @@ the state of the pseudo-random-number generator and is altered
 as a side effect of the random operation.
 @end deffn
 
-@deffn primitive random:exp [state]
+@deffn {Scheme Procedure} random:exp [state]
+@deffnx {C Function} scm_random_exp (state)
 Return an inexact real in an exponential distribution with mean
 1.  For an exponential distribution with mean u use (* u
 (random:exp)).
 @end deffn
 
-@deffn primitive random:hollow-sphere! v [state]
+@deffn {Scheme Procedure} random:hollow-sphere! v [state]
+@deffnx {C Function} scm_random_hollow_sphere_x (v, state)
 Fills vect with inexact real random numbers
 the sum of whose squares is equal to 1.0.
 Thinking of vect as coordinates in space of
@@ -1129,20 +1161,23 @@ are uniformly distributed over the surface of the
 unit n-sphere.
 @end deffn
 
-@deffn primitive random:normal [state]
+@deffn {Scheme Procedure} random:normal [state]
+@deffnx {C Function} scm_random_normal (state)
 Return an inexact real in a normal distribution.  The
 distribution used has mean 0 and standard deviation 1.  For a
 normal distribution with mean m and standard deviation d use
 @code{(+ m (* d (random:normal)))}.
 @end deffn
 
-@deffn primitive random:normal-vector! v [state]
+@deffn {Scheme Procedure} random:normal-vector! v [state]
+@deffnx {C Function} scm_random_normal_vector_x (v, state)
 Fills vect with inexact real random numbers that are
 independent and standard normally distributed
 (i.e., with mean 0 and variance 1).
 @end deffn
 
-@deffn primitive random:solid-sphere! v [state]
+@deffn {Scheme Procedure} random:solid-sphere! v [state]
+@deffnx {C Function} scm_random_solid_sphere_x (v, state)
 Fills vect with inexact real random numbers
 the sum of whose squares is less than 1.0.
 Thinking of vect as coordinates in space of
@@ -1151,12 +1186,14 @@ are uniformly distributed within the unit n-sphere.
 The sum of the squares of the numbers is returned.
 @end deffn
 
-@deffn primitive random:uniform [state]
+@deffn {Scheme Procedure} random:uniform [state]
+@deffnx {C Function} scm_random_uniform (state)
 Return a uniformly distributed inexact real random number in
 [0,1).
 @end deffn
 
-@deffn primitive seed->random-state seed
+@deffn {Scheme Procedure} seed->random-state seed
+@deffnx {C Function} scm_seed_to_random_state (seed)
 Return a new random state using @var{seed}.
 @end deffn
 
@@ -1228,123 +1265,134 @@ Several characters have more than one name:
 @end itemize
 
 @rnindex char?
-@deffn primitive char? x
+@deffn {Scheme Procedure} char? x
+@deffnx {C Function} scm_char_p (x)
 Return @code{#t} iff @var{x} is a character, else @code{#f}.
 @end deffn
 
 @rnindex char=?
-@deffn primitive char=? x y
+@deffn {Scheme Procedure} char=? x y
 Return @code{#t} iff @var{x} is the same character as @var{y}, else @code{#f}.
 @end deffn
 
 @rnindex char<?
-@deffn primitive char<? x y
+@deffn {Scheme Procedure} char<? x y
 Return @code{#t} iff @var{x} is less than @var{y} in the ASCII sequence,
 else @code{#f}.
 @end deffn
 
 @rnindex char<=?
-@deffn primitive char<=? x y
+@deffn {Scheme Procedure} char<=? x y
 Return @code{#t} iff @var{x} is less than or equal to @var{y} in the
 ASCII sequence, else @code{#f}.
 @end deffn
 
 @rnindex char>?
-@deffn primitive char>? x y
+@deffn {Scheme Procedure} char>? x y
 Return @code{#t} iff @var{x} is greater than @var{y} in the ASCII
 sequence, else @code{#f}.
 @end deffn
 
 @rnindex char>=?
-@deffn primitive char>=? x y
+@deffn {Scheme Procedure} char>=? x y
 Return @code{#t} iff @var{x} is greater than or equal to @var{y} in the
 ASCII sequence, else @code{#f}.
 @end deffn
 
 @rnindex char-ci=?
-@deffn primitive char-ci=? x y
+@deffn {Scheme Procedure} char-ci=? x y
 Return @code{#t} iff @var{x} is the same character as @var{y} ignoring
 case, else @code{#f}.
 @end deffn
 
 @rnindex char-ci<?
-@deffn primitive char-ci<? x y
+@deffn {Scheme Procedure} char-ci<? x y
 Return @code{#t} iff @var{x} is less than @var{y} in the ASCII sequence
 ignoring case, else @code{#f}.
 @end deffn
 
 @rnindex char-ci<=?
-@deffn primitive char-ci<=? x y
+@deffn {Scheme Procedure} char-ci<=? x y
 Return @code{#t} iff @var{x} is less than or equal to @var{y} in the
 ASCII sequence ignoring case, else @code{#f}.
 @end deffn
 
 @rnindex char-ci>?
-@deffn primitive char-ci>? x y
+@deffn {Scheme Procedure} char-ci>? x y
 Return @code{#t} iff @var{x} is greater than @var{y} in the ASCII
 sequence ignoring case, else @code{#f}.
 @end deffn
 
 @rnindex char-ci>=?
-@deffn primitive char-ci>=? x y
+@deffn {Scheme Procedure} char-ci>=? x y
 Return @code{#t} iff @var{x} is greater than or equal to @var{y} in the
 ASCII sequence ignoring case, else @code{#f}.
 @end deffn
 
 @rnindex char-alphabetic?
-@deffn primitive char-alphabetic? chr
+@deffn {Scheme Procedure} char-alphabetic? chr
+@deffnx {C Function} scm_char_alphabetic_p (chr)
 Return @code{#t} iff @var{chr} is alphabetic, else @code{#f}.
 Alphabetic means the same thing as the isalpha C library function.
 @end deffn
 
 @rnindex char-numeric?
-@deffn primitive char-numeric? chr
+@deffn {Scheme Procedure} char-numeric? chr
+@deffnx {C Function} scm_char_numeric_p (chr)
 Return @code{#t} iff @var{chr} is numeric, else @code{#f}.
 Numeric means the same thing as the isdigit C library function.
 @end deffn
 
 @rnindex char-whitespace?
-@deffn primitive char-whitespace? chr
+@deffn {Scheme Procedure} char-whitespace? chr
+@deffnx {C Function} scm_char_whitespace_p (chr)
 Return @code{#t} iff @var{chr} is whitespace, else @code{#f}.
 Whitespace means the same thing as the isspace C library function.
 @end deffn
 
 @rnindex char-upper-case?
-@deffn primitive char-upper-case? chr
+@deffn {Scheme Procedure} char-upper-case? chr
+@deffnx {C Function} scm_char_upper_case_p (chr)
 Return @code{#t} iff @var{chr} is uppercase, else @code{#f}.
 Uppercase means the same thing as the isupper C library function.
 @end deffn
 
 @rnindex char-lower-case?
-@deffn primitive char-lower-case? chr
+@deffn {Scheme Procedure} char-lower-case? chr
+@deffnx {C Function} scm_char_lower_case_p (chr)
 Return @code{#t} iff @var{chr} is lowercase, else @code{#f}.
 Lowercase means the same thing as the islower C library function.
 @end deffn
 
-@deffn primitive char-is-both? chr
+@deffn {Scheme Procedure} char-is-both? chr
+@deffnx {C Function} scm_char_is_both_p (chr)
 Return @code{#t} iff @var{chr} is either uppercase or lowercase, else @code{#f}.
 Uppercase and lowercase are as defined by the isupper and islower
 C library functions.
 @end deffn
 
 @rnindex char->integer
-@deffn primitive char->integer chr
+@deffn {Scheme Procedure} char->integer chr
+@deffnx {C Function} scm_char_to_integer (chr)
 Return the number corresponding to ordinal position of @var{chr} in the
 ASCII sequence.
 @end deffn
 
 @rnindex integer->char
-@deffn primitive integer->char n
+@deffn {Scheme Procedure} integer->char n
+@deffnx {C Function} scm_integer_to_char (n)
 Return the character at position @var{n} in the ASCII sequence.
 @end deffn
 
 @rnindex char-upcase
-@deffn primitive char-upcase chr
+@deffn {Scheme Procedure} char-upcase chr
+@deffnx {C Function} scm_char_upcase (chr)
 Return the uppercase character version of @var{chr}.
 @end deffn
 
 @rnindex char-downcase
-@deffn primitive char-downcase chr
+@deffn {Scheme Procedure} char-downcase chr
+@deffnx {C Function} scm_char_downcase (chr)
 Return the lowercase character version of @var{chr}.
 @end deffn
 
@@ -1410,11 +1458,13 @@ The following procedures can be used to check whether a given string
 fulfills some specified property.
 
 @rnindex string?
-@deffn primitive string? obj
+@deffn {Scheme Procedure} string? obj
+@deffnx {C Function} scm_string_p (obj)
 Return @code{#t} iff @var{obj} is a string, else @code{#f}.
 @end deffn
 
-@deffn primitive string-null? str
+@deffn {Scheme Procedure} string-null? str
+@deffnx {C Function} scm_string_null_p (str)
 Return @code{#t} if @var{str}'s length is zero, and
 @code{#f} otherwise.
 @lisp
@@ -1434,14 +1484,16 @@ initializing them with some specified character data.
 
 @rnindex string
 @rnindex list->string
-@deffn primitive string . chrs
-@deffnx primitive list->string chrs
+@deffn {Scheme Procedure} string . chrs
+@deffnx {Scheme Procedure} list->string chrs
+@deffnx {C Function} scm_string (chrs)
 Return a newly allocated string composed of the arguments,
 @var{chrs}.
 @end deffn
 
 @rnindex make-string
-@deffn primitive make-string k [chr]
+@deffn {Scheme Procedure} make-string k [chr]
+@deffnx {C Function} scm_make_string (k, chr)
 Return a newly allocated string of
 length @var{k}.  If @var{chr} is given, then all elements of
 the string are initialized to @var{chr}, otherwise the contents
@@ -1457,14 +1509,16 @@ work with the resulting list, and then convert it back into a string.
 These procedures are useful for similar tasks.
 
 @rnindex string->list
-@deffn primitive string->list str
+@deffn {Scheme Procedure} string->list str
+@deffnx {C Function} scm_string_to_list (str)
 Return a newly allocated list of the characters that make up
 the given string @var{str}. @code{string->list} and
 @code{list->string} are inverses as far as @samp{equal?} is
 concerned.
 @end deffn
 
-@deffn primitive string-split str chr
+@deffn {Scheme Procedure} string-split str chr
+@deffnx {C Function} scm_string_split (str, chr)
 Split the string @var{str} into the a list of the substrings delimited
 by appearances of the character @var{chr}.  Note that an empty substring
 between separator characters will result in an empty string in the
@@ -1494,23 +1548,27 @@ Portions of strings can be extracted by these procedures.
 @code{substring} can be used to extract substrings from longer strings.
 
 @rnindex string-length
-@deffn primitive string-length string
+@deffn {Scheme Procedure} string-length string
+@deffnx {C Function} scm_string_length (string)
 Return the number of characters in @var{string}.
 @end deffn
 
 @rnindex string-ref
-@deffn primitive string-ref str k
+@deffn {Scheme Procedure} string-ref str k
+@deffnx {C Function} scm_string_ref (str, k)
 Return character @var{k} of @var{str} using zero-origin
 indexing. @var{k} must be a valid index of @var{str}.
 @end deffn
 
 @rnindex string-copy
-@deffn primitive string-copy str
+@deffn {Scheme Procedure} string-copy str
+@deffnx {C Function} scm_string_copy (str)
 Return a newly allocated copy of the given @var{string}.
 @end deffn
 
 @rnindex substring
-@deffn primitive substring str start [end]
+@deffn {Scheme Procedure} substring str start [end]
+@deffnx {C Function} scm_substring (str, start, end)
 Return a newly allocated string formed from the characters
 of @var{str} beginning with index @var{start} (inclusive) and
 ending with index @var{end} (exclusive).
@@ -1528,19 +1586,22 @@ result of the operation is not a new string; instead, the original string's
 memory representation is modified.
 
 @rnindex string-set!
-@deffn primitive string-set! str k chr
+@deffn {Scheme Procedure} string-set! str k chr
+@deffnx {C Function} scm_string_set_x (str, k, chr)
 Store @var{chr} in element @var{k} of @var{str} and return
 an unspecified value. @var{k} must be a valid index of
 @var{str}.
 @end deffn
 
 @rnindex string-fill!
-@deffn primitive string-fill! str chr
+@deffn {Scheme Procedure} string-fill! str chr
+@deffnx {C Function} scm_string_fill_x (str, chr)
 Store @var{char} in every element of the given @var{string} and
 return an unspecified value.
 @end deffn
 
-@deffn primitive substring-fill! str start end fill
+@deffn {Scheme Procedure} substring-fill! str start end fill
+@deffnx {C Function} scm_substring_fill_x (str, start, end, fill)
 Change every character in @var{str} between @var{start} and
 @var{end} to @var{fill}.
 
@@ -1552,56 +1613,11 @@ y
 @end lisp
 @end deffn
 
-@deffn primitive substring-move! str1 start1 end1 str2 start2
-@deffnx primitive substring-move-left! str1 start1 end1 str2 start2
-@deffnx primitive substring-move-right! str1 start1 end1 str2 start2
+@deffn {Scheme Procedure} substring-move! str1 start1 end1 str2 start2
+@deffnx {C Function} scm_substring_move_x (str1, start1, end1, str2, start2)
 Copy the substring of @var{str1} bounded by @var{start1} and @var{end1}
 into @var{str2} beginning at position @var{start2}.
-@code{substring-move-right!} begins copying from the rightmost character
-and moves left, and @code{substring-move-left!} copies from the leftmost
-character moving right.
-
-It is useful to have two functions that copy in different directions so
-that substrings can be copied back and forth within a single string.  If
-you wish to copy text from the left-hand side of a string to the
-right-hand side of the same string, and the source and destination
-overlap, you must be careful to copy the rightmost characters of the
-text first, to avoid clobbering your data.  Hence, when @var{str1} and
-@var{str2} are the same string, you should use
-@code{substring-move-right!} when moving text from left to right, and
-@code{substring-move-left!}  otherwise.  If @code{str1} and @samp{str2}
-are different strings, it does not matter which function you use.
-
-@example
-(define x (make-string 10 #\a))
-(define y "bcd")
-(substring-move-left! x 2 5 y 0)
-y
-@result{} "aaa"
-
-x
-@result{} "aaaaaaaaaa"
-
-(define y "bcdefg")
-(substring-move-left! x 2 5 y 0)
-y
-@result{} "aaaefg"
-
-(define y "abcdefg")
-(substring-move-left! y 2 5 y 3)
-y
-@result{} "abccccg"
-
-(define y "abcdefg")
-(substring-move-right! y 2 5 y 0)
-y
-@result{} "ededefg"
-
-(define y "abcdefg")
-(substring-move-right! y 2 5 y 3)
-y
-@result{} "abccdeg"
-@end example
+@var{str1} and @var{str2} can be the same string.
 @end deffn
 
 
@@ -1616,7 +1632,7 @@ strings.
 
 
 @rnindex string=?
-@deffn primitive string=? s1 s2
+@deffn {Scheme Procedure} string=? s1 s2
 Lexicographic equality predicate; return @code{#t} if the two
 strings are the same length and contain the same characters in
 the same positions, otherwise return @code{#f}.
@@ -1628,31 +1644,31 @@ characters.
 @end deffn
 
 @rnindex string<?
-@deffn primitive string<? s1 s2
+@deffn {Scheme Procedure} string<? s1 s2
 Lexicographic ordering predicate; return @code{#t} if @var{s1}
 is lexicographically less than @var{s2}.
 @end deffn
 
 @rnindex string<=?
-@deffn primitive string<=? s1 s2
+@deffn {Scheme Procedure} string<=? s1 s2
 Lexicographic ordering predicate; return @code{#t} if @var{s1}
 is lexicographically less than or equal to @var{s2}.
 @end deffn
 
 @rnindex string>?
-@deffn primitive string>? s1 s2
+@deffn {Scheme Procedure} string>? s1 s2
 Lexicographic ordering predicate; return @code{#t} if @var{s1}
 is lexicographically greater than @var{s2}.
 @end deffn
 
 @rnindex string>=?
-@deffn primitive string>=? s1 s2
+@deffn {Scheme Procedure} string>=? s1 s2
 Lexicographic ordering predicate; return @code{#t} if @var{s1}
 is lexicographically greater than or equal to @var{s2}.
 @end deffn
 
 @rnindex string-ci=?
-@deffn primitive string-ci=? s1 s2
+@deffn {Scheme Procedure} string-ci=? s1 s2
 Case-insensitive string equality predicate; return @code{#t} if
 the two strings are the same length and their component
 characters match (ignoring case) at each position; otherwise
@@ -1660,28 +1676,28 @@ return @code{#f}.
 @end deffn
 
 @rnindex string-ci<
-@deffn primitive string-ci<? s1 s2
+@deffn {Scheme Procedure} string-ci<? s1 s2
 Case insensitive lexicographic ordering predicate; return
 @code{#t} if @var{s1} is lexicographically less than @var{s2}
 regardless of case.
 @end deffn
 
 @rnindex string<=?
-@deffn primitive string-ci<=? s1 s2
+@deffn {Scheme Procedure} string-ci<=? s1 s2
 Case insensitive lexicographic ordering predicate; return
 @code{#t} if @var{s1} is lexicographically less than or equal
 to @var{s2} regardless of case.
 @end deffn
 
 @rnindex string-ci>?
-@deffn primitive string-ci>? s1 s2
+@deffn {Scheme Procedure} string-ci>? s1 s2
 Case insensitive lexicographic ordering predicate; return
 @code{#t} if @var{s1} is lexicographically greater than
 @var{s2} regardless of case.
 @end deffn
 
 @rnindex string-ci>=?
-@deffn primitive string-ci>=? s1 s2
+@deffn {Scheme Procedure} string-ci>=? s1 s2
 Case insensitive lexicographic ordering predicate; return
 @code{#t} if @var{s1} is lexicographically greater than or
 equal to @var{s2} regardless of case.
@@ -1694,7 +1710,8 @@ equal to @var{s2} regardless of case.
 When searching for the index of a character in a string, these
 procedures can be used.
 
-@deffn primitive string-index str chr [frm [to]]
+@deffn {Scheme Procedure} string-index str chr [frm [to]]
+@deffnx {C Function} scm_string_index (str, chr, frm, to)
 Return the index of the first occurrence of @var{chr} in
 @var{str}.  The optional integer arguments @var{frm} and
 @var{to} limit the search to a portion of the string.  This
@@ -1713,7 +1730,8 @@ procedure essentially implements the @code{index} or
 @end lisp
 @end deffn
 
-@deffn primitive string-rindex str chr [frm [to]]
+@deffn {Scheme Procedure} string-rindex str chr [frm [to]]
+@deffnx {C Function} scm_string_rindex (str, chr, frm, to)
 Like @code{string-index}, but search from the right of the
 string rather than from the left.  This procedure essentially
 implements the @code{rindex} or @code{strrchr} functions from
@@ -1737,12 +1755,14 @@ the C library.
 These are procedures for mapping strings to their upper- or lower-case
 equivalents, respectively, or for capitalizing strings.
 
-@deffn primitive string-upcase str
+@deffn {Scheme Procedure} string-upcase str
+@deffnx {C Function} scm_string_upcase (str)
 Return a freshly allocated string containing the characters of
 @var{str} in upper case.
 @end deffn
 
-@deffn primitive string-upcase! str
+@deffn {Scheme Procedure} string-upcase! str
+@deffnx {C Function} scm_string_upcase_x (str)
 Destructively upcase every character in @var{str} and return
 @var{str}.
 @lisp
@@ -1752,12 +1772,14 @@ y                  @result{} "ARRDEFG"
 @end lisp
 @end deffn
 
-@deffn primitive string-downcase str
+@deffn {Scheme Procedure} string-downcase str
+@deffnx {C Function} scm_string_downcase (str)
 Return a freshly allocation string containing the characters in
 @var{str} in lower case.
 @end deffn
 
-@deffn primitive string-downcase! str
+@deffn {Scheme Procedure} string-downcase! str
+@deffnx {C Function} scm_string_downcase_x (str)
 Destructively downcase every character in @var{str} and return
 @var{str}.
 @lisp
@@ -1767,13 +1789,15 @@ y                     @result{} "arrdefg"
 @end lisp
 @end deffn
 
-@deffn primitive string-capitalize str
+@deffn {Scheme Procedure} string-capitalize str
+@deffnx {C Function} scm_string_capitalize (str)
 Return a freshly allocated string with the characters in
 @var{str}, where the first character of every word is
 capitalized.
 @end deffn
 
-@deffn primitive string-capitalize! str
+@deffn {Scheme Procedure} string-capitalize! str
+@deffnx {C Function} scm_string_capitalize_x (str)
 Upcase the first character of every word in @var{str}
 destructively and return @var{str}.
 
@@ -1792,9 +1816,10 @@ The procedure @code{string-append} appends several strings together to
 form a longer result string.
 
 @rnindex string-append
-@deffn primitive string-append  string1 @dots{}
+@deffn {Scheme Procedure} string-append . args
+@deffnx {C Function} scm_string_append (args)
 Return a newly allocated string whose characters form the
-concatenation of the given strings.
+concatenation of the given strings, @var{args}.
 @end deffn
 
 
@@ -1803,7 +1828,8 @@ concatenation of the given strings.
 
 This section contains all remaining string procedures.
 
-@deffn primitive string-ci->symbol str
+@deffn {Scheme Procedure} string-ci->symbol str
+@deffnx {C Function} scm_string_ci_to_symbol (str)
 Return the symbol whose name is @var{str}.  @var{str} is
 converted to lowercase before the conversion is done, if Guile
 is currently reading symbols case-insensitively.
@@ -1854,7 +1880,7 @@ implemented by SCSH, the Scheme Shell.  It is intended to be
 upwardly compatible with SCSH regular expressions.
 
 @c begin (scm-doc-string "regex.scm" "string-match")
-@deffn procedure string-match pattern str [start]
+@deffn {Scheme Procedure} string-match pattern str [start]
 Compile the string @var{pattern} into a regular expression and compare
 it with @var{str}.  The optional numeric argument @var{start} specifies
 the position of @var{str} at which to begin matching.
@@ -1872,7 +1898,8 @@ the same regular expression is used several times (for example, in a
 loop).  For better performance, you can compile a regular expression in
 advance and then match strings against the compiled regexp.
 
-@deffn primitive make-regexp pat . flags
+@deffn {Scheme Procedure} make-regexp pat . flags
+@deffnx {C Function} scm_make_regexp (pat, flags)
 Compile the regular expression described by @var{pat}, and
 return the compiled regexp structure.  If @var{pat} does not
 describe a legal regular expression, @code{make-regexp} throws
@@ -1912,7 +1939,8 @@ one which comes last will override the earlier one.
 @end table
 @end deffn
 
-@deffn primitive regexp-exec rx str [start [flags]]
+@deffn {Scheme Procedure} regexp-exec rx str [start [flags]]
+@deffnx {C Function} scm_regexp_exec (rx, str, start, flags)
 Match the compiled regular expression @var{rx} against
 @code{str}.  If the optional integer @var{start} argument is
 provided, begin matching from that position in the string.
@@ -1934,7 +1962,8 @@ considered the end of a line.
 @end table
 @end deffn
 
-@deffn primitive regexp? obj
+@deffn {Scheme Procedure} regexp? obj
+@deffnx {C Function} scm_regexp_p (obj)
 Return @code{#t} if @var{obj} is a compiled regular expression,
 or @code{#f} otherwise.
 @end deffn
@@ -1943,7 +1972,7 @@ Regular expressions are commonly used to find patterns in one string and
 replace them with the contents of another string.
 
 @c begin (scm-doc-string "regex.scm" "regexp-substitute")
-@deffn procedure regexp-substitute port match [item@dots{}]
+@deffn {Scheme Procedure} regexp-substitute port match [item@dots{}]
 Write to the output port @var{port} selected contents of the match
 structure @var{match}.  Each @var{item} specifies what should be
 written, and may be one of the following arguments:
@@ -1970,7 +1999,7 @@ the regexp match is written.
 @end deffn
 
 @c begin (scm-doc-string "regex.scm" "regexp-substitute")
-@deffn procedure regexp-substitute/global port regexp target [item@dots{}]
+@deffn {Scheme Procedure} regexp-substitute/global port regexp target [item@dots{}]
 Similar to @code{regexp-substitute}, but can be used to perform global
 substitutions on @var{str}.  Instead of taking a match structure as an
 argument, @code{regexp-substitute/global} takes two string arguments: a
@@ -2016,13 +2045,13 @@ matched against a regular expression; we will call that string
 @var{target} for easy reference.
 
 @c begin (scm-doc-string "regex.scm" "regexp-match?")
-@deffn procedure regexp-match? obj
+@deffn {Scheme Procedure} regexp-match? obj
 Return @code{#t} if @var{obj} is a match structure returned by a
 previous call to @code{regexp-exec}, or @code{#f} otherwise.
 @end deffn
 
 @c begin (scm-doc-string "regex.scm" "match:substring")
-@deffn procedure match:substring match [n]
+@deffn {Scheme Procedure} match:substring match [n]
 Return the portion of @var{target} matched by subexpression number
 @var{n}.  Submatch 0 (the default) represents the entire regexp match.
 If the regular expression as a whole matched, but the subexpression
@@ -2030,34 +2059,34 @@ number @var{n} did not match, return @code{#f}.
 @end deffn
 
 @c begin (scm-doc-string "regex.scm" "match:start")
-@deffn procedure match:start match [n]
+@deffn {Scheme Procedure} match:start match [n]
 Return the starting position of submatch number @var{n}.
 @end deffn
 
 @c begin (scm-doc-string "regex.scm" "match:end")
-@deffn procedure match:end match [n]
+@deffn {Scheme Procedure} match:end match [n]
 Return the ending position of submatch number @var{n}.
 @end deffn
 
 @c begin (scm-doc-string "regex.scm" "match:prefix")
-@deffn procedure match:prefix match
+@deffn {Scheme Procedure} match:prefix match
 Return the unmatched portion of @var{target} preceding the regexp match.
 @end deffn
 
 @c begin (scm-doc-string "regex.scm" "match:suffix")
-@deffn procedure match:suffix match
+@deffn {Scheme Procedure} match:suffix match
 Return the unmatched portion of @var{target} following the regexp match.
 @end deffn
 
 @c begin (scm-doc-string "regex.scm" "match:count")
-@deffn procedure match:count match
+@deffn {Scheme Procedure} match:count match
 Return the number of parenthesized subexpressions from @var{match}.
 Note that the entire regular expression match itself counts as a
 subexpression, and failed submatches are included in the count.
 @end deffn
 
 @c begin (scm-doc-string "regex.scm" "match:string")
-@deffn procedure match:string match
+@deffn {Scheme Procedure} match:string match
 Return the original @var{target} string.
 @end deffn
 
@@ -2091,7 +2120,7 @@ by any number of alphabetic characters.  The regular expression
 regexp each match a single backslash in the target string.
 
 @c begin (scm-doc-string "regex.scm" "regexp-quote")
-@deffn procedure regexp-quote str
+@deffn {Scheme Procedure} regexp-quote str
 Quote each special character found in @var{str} with a backslash, and
 return the resulting string.
 @end deffn
@@ -2180,7 +2209,7 @@ guile>
 The definitions of @code{regcomp} and @code{regexec} are as follows:
 
 @c NJFIXME not in libguile!
-@deffn primitive regcomp pattern [flags]
+@deffn {Scheme Procedure} regcomp pattern [flags]
 Compile the regular expression pattern using POSIX rules.  Flags is
 optional and should be specified using symbolic names:
 @defvar REG_EXTENDED
@@ -2203,7 +2232,7 @@ literal string e.g., @code{"\\(a\\)\\?"}.
 @end deffn
 
 @c NJFIXME not in libguile!
-@deffn primitive regexec regex string [match-pick] [flags]
+@deffn {Scheme Procedure} regexec regex string [match-pick] [flags]
 
 Match @var{string} against the compiled POSIX regular expression
 @var{regex}.
@@ -2262,32 +2291,32 @@ Here are some other procedures that might be used when using regular
 expressions:
 
 @c NJFIXME not in libguile!
-@deffn primitive compiled-regexp? obj
+@deffn {Scheme Procedure} compiled-regexp? obj
 Test whether obj is a compiled regular expression.
 @end deffn
 
 @c NJFIXME not in libguile!
-@deffn primitive regexp->dfa regex [flags]
+@deffn {Scheme Procedure} regexp->dfa regex [flags]
 @end deffn
 
 @c NJFIXME not in libguile!
-@deffn primitive dfa-fork dfa
+@deffn {Scheme Procedure} dfa-fork dfa
 @end deffn
 
 @c NJFIXME not in libguile!
-@deffn primitive reset-dfa! dfa
+@deffn {Scheme Procedure} reset-dfa! dfa
 @end deffn
 
 @c NJFIXME not in libguile!
-@deffn primitive dfa-final-tag dfa
+@deffn {Scheme Procedure} dfa-final-tag dfa
 @end deffn
 
 @c NJFIXME not in libguile!
-@deffn primitive dfa-continuable? dfa
+@deffn {Scheme Procedure} dfa-continuable? dfa
 @end deffn
 
 @c NJFIXME not in libguile!
-@deffn primitive advance-dfa! dfa string
+@deffn {Scheme Procedure} advance-dfa! dfa string
 @end deffn
 
 
@@ -2373,13 +2402,15 @@ Usage of this form of read syntax is discouraged, because it is not
 portable at all, and is not very readable.
 
 @rnindex symbol?
-@deffn primitive symbol? obj
+@deffn {Scheme Procedure} symbol? obj
+@deffnx {C Function} scm_symbol_p (obj)
 Return @code{#t} if @var{obj} is a symbol, otherwise return
 @code{#f}.
 @end deffn
 
 @rnindex string->symbol
-@deffn primitive string->symbol string
+@deffn {Scheme Procedure} string->symbol string
+@deffnx {C Function} scm_string_to_symbol (string)
 Return the symbol whose name is @var{string}. This procedure
 can create symbols with names containing special characters or
 letters in the non-standard case, but it is usually a bad idea
@@ -2403,7 +2434,8 @@ standard case is lower case:
 @end deffn
 
 @rnindex symbol->string
-@deffn primitive symbol->string s
+@deffn {Scheme Procedure} symbol->string s
+@deffnx {C Function} scm_symbol_to_string (s)
 Return the name of @var{symbol} as a string.  If the symbol was
 part of an object returned as the value of a literal expression
 (section @pxref{Literal expressions,,,r5rs, The Revised^5
@@ -2446,12 +2478,13 @@ table (with an undefined value) if none is yet present.
 @c FIXME::martin: According to NEWS, removed.  Remove here too, or 
 @c leave for compatibility?
 @c @c docstring begin (texi-doc-string "guile" "builtin-bindings")
-@c @deffn primitive builtin-bindings
+@c @deffn {Scheme Procedure} builtin-bindings
 @c Create and return a copy of the global symbol table, removing all
 @c unbound symbols.
 @c @end deffn
 
-@deffn primitive gensym [prefix]
+@deffn {Scheme Procedure} gensym [prefix]
+@deffnx {C Function} scm_gensym (prefix)
 Create a new symbol with a name constructed from a prefix and
 a counter value. The string @var{prefix} can be specified as
 an optional argument. Default prefix is @code{g}.  The counter
@@ -2459,7 +2492,7 @@ is increased by 1 at each call. There is no provision for
 resetting the counter.
 @end deffn
 
-@deffn primitive gentemp [prefix [obarray]]
+@deffn {Scheme Procedure} gentemp [prefix [obarray]]
 Create a new symbol with a name unique in an obarray.
 The name is constructed from an optional string @var{prefix}
 and a counter value.  The default prefix is @code{t}.  The
@@ -2469,25 +2502,25 @@ interned.  The counter is increased by 1 at each
 call.  There is no provision for resetting the counter.
 @end deffn
 
-@deffn primitive intern-symbol obarray string
+@deffn {Scheme Procedure} intern-symbol obarray string
 Add a new symbol to @var{obarray} with name @var{string}, bound to an
 unspecified initial value.  The symbol table is not modified if a symbol
 with this name is already present.
 @end deffn
 
-@deffn primitive string->obarray-symbol obarray string [soft?]
+@deffn {Scheme Procedure} string->obarray-symbol obarray string [soft?]
 Intern a new symbol in @var{obarray}, a symbol table, with name
 @var{string}.
 @end deffn
 
-@deffn primitive symbol-binding obarray string
+@deffn {Scheme Procedure} symbol-binding obarray string
 Look up in @var{obarray} the symbol whose name is @var{string}, and
 return the value to which it is bound.  If @var{obarray} is @code{#f},
 use the global symbol table.  If @var{string} is not interned in
 @var{obarray}, an error is signalled.
 @end deffn
 
-@deffn primitive symbol-bound? obarray string
+@deffn {Scheme Procedure} symbol-bound? obarray string
 Return @code{#t} if @var{obarray} contains a symbol with name
 @var{string} bound to a defined value.  This differs from
 @var{symbol-interned?} in that the mere mention of a symbol
@@ -2496,38 +2529,43 @@ determines whether a symbol has been given any meaningful
 value.
 @end deffn
 
-@deffn primitive symbol-fref symbol
+@deffn {Scheme Procedure} symbol-fref symbol
+@deffnx {C Function} scm_symbol_fref (symbol)
 Return the contents of @var{symbol}'s @dfn{function slot}.
 @end deffn
 
-@deffn primitive symbol-fset! symbol value
+@deffn {Scheme Procedure} symbol-fset! symbol value
+@deffnx {C Function} scm_symbol_fset_x (symbol, value)
 Change the binding of @var{symbol}'s function slot.
 @end deffn
 
-@deffn primitive symbol-hash symbol
+@deffn {Scheme Procedure} symbol-hash symbol
+@deffnx {C Function} scm_symbol_hash (symbol)
 Return a hash value for @var{symbol}.
 @end deffn
 
-@deffn primitive symbol-interned? obarray string
+@deffn {Scheme Procedure} symbol-interned? obarray string
 Return @code{#t} if @var{obarray} contains a symbol with name
 @var{string}, and @code{#f} otherwise.
 @end deffn
 
-@deffn primitive symbol-pref symbol
+@deffn {Scheme Procedure} symbol-pref symbol
+@deffnx {C Function} scm_symbol_pref (symbol)
 Return the @dfn{property list} currently associated with @var{symbol}.
 @end deffn
 
-@deffn primitive symbol-pset! symbol value
+@deffn {Scheme Procedure} symbol-pset! symbol value
+@deffnx {C Function} scm_symbol_pset_x (symbol, value)
 Change the binding of @var{symbol}'s property slot.
 @end deffn
 
-@deffn primitive symbol-set! obarray string value
+@deffn {Scheme Procedure} symbol-set! obarray string value
 Find the symbol in @var{obarray} whose name is @var{string}, and rebind
 it to @var{value}.  An error is signalled if @var{string} is not present
 in @var{obarray}.
 @end deffn
 
-@deffn primitive unintern-symbol obarray string
+@deffn {Scheme Procedure} unintern-symbol obarray string
 Remove the symbol with name @var{string} from @var{obarray}.  This
 function returns @code{#t} if the symbol was present and @code{#f}
 otherwise.
@@ -2551,38 +2589,44 @@ one of the constructor procedures @code{make-variable} or
 First-class variables are especially useful for interacting with the
 current module system (@pxref{The Guile module system}).
 
-@deffn primitive builtin-variable name
+@deffn {Scheme Procedure} builtin-variable name
 Return the built-in variable with the name @var{name}.
 @var{name} must be a symbol (not a string).
 Then use @code{variable-ref} to access its value.
 @end deffn
 
-@deffn primitive make-undefined-variable
+@deffn {Scheme Procedure} make-undefined-variable
+@deffnx {C Function} scm_make_undefined_variable ()
 Return a variable that is initially unbound.
 @end deffn
 
-@deffn primitive make-variable init
+@deffn {Scheme Procedure} make-variable init
+@deffnx {C Function} scm_make_variable (init)
 Return a variable initialized to value @var{init}.
 @end deffn
 
-@deffn primitive variable-bound? var
+@deffn {Scheme Procedure} variable-bound? var
+@deffnx {C Function} scm_variable_bound_p (var)
 Return @code{#t} iff @var{var} is bound to a value.
 Throws an error if @var{var} is not a variable object.
 @end deffn
 
-@deffn primitive variable-ref var
+@deffn {Scheme Procedure} variable-ref var
+@deffnx {C Function} scm_variable_ref (var)
 Dereference @var{var} and return its value.
 @var{var} must be a variable object; see @code{make-variable}
 and @code{make-undefined-variable}.
 @end deffn
 
-@deffn primitive variable-set! var val
+@deffn {Scheme Procedure} variable-set! var val
+@deffnx {C Function} scm_variable_set_x (var, val)
 Set the value of the variable @var{var} to @var{val}.
 @var{var} must be a variable object, @var{val} can be any
 value. Return an unspecified value.
 @end deffn
 
-@deffn primitive variable? obj
+@deffn {Scheme Procedure} variable? obj
+@deffnx {C Function} scm_variable_p (obj)
 Return @code{#t} iff @var{obj} is a variable object, else
 return @code{#f}.
 @end deffn
@@ -2778,11 +2822,11 @@ ABORT: (unbound-variable)
 The following procedures can be used for converting symbols to keywords
 and back.
 
-@deffn procedure symbol->keyword sym
+@deffn {Scheme Procedure} symbol->keyword sym
 Return a keyword with the same characters as in @var{sym}.
 @end deffn
 
-@deffn procedure keyword->symbol kw
+@deffn {Scheme Procedure} keyword->symbol kw
 Return a symbol with the same characters as in @var{kw}.
 @end deffn
 
@@ -2803,16 +2847,19 @@ construct a keyword object programmatically, you can do so by calling
 (as the reader does).  The dash symbol for a keyword object can be
 retrieved using the @code{keyword-dash-symbol} procedure.
 
-@deffn primitive make-keyword-from-dash-symbol symbol
+@deffn {Scheme Procedure} make-keyword-from-dash-symbol symbol
+@deffnx {C Function} scm_make_keyword_from_dash_symbol (symbol)
 Make a keyword object from a @var{symbol} that starts with a dash.
 @end deffn
 
-@deffn primitive keyword? obj
+@deffn {Scheme Procedure} keyword? obj
+@deffnx {C Function} scm_keyword_p (obj)
 Return @code{#t} if the argument @var{obj} is a keyword, else
 @code{#f}.
 @end deffn
 
-@deffn primitive keyword-dash-symbol keyword
+@deffn {Scheme Procedure} keyword-dash-symbol keyword
+@deffnx {C Function} scm_keyword_dash_symbol (keyword)
 Return the dash symbol for @var{keyword}.
 This is the inverse of @code{make-keyword-from-dash-symbol}.
 @end deffn
@@ -2867,14 +2914,16 @@ pair, and the pair is returned.  The name @code{cons} stands for
 given Scheme object is a pair or not.
 
 @rnindex cons
-@deffn primitive cons x y
+@deffn {Scheme Procedure} cons x y
+@deffnx {C Function} scm_cons (x, y)
 Return a newly allocated pair whose car is @var{x} and whose
 cdr is @var{y}.  The pair is guaranteed to be different (in the
 sense of @code{eq?}) from every previously existing object.
 @end deffn
 
 @rnindex pair?
-@deffn primitive pair? x
+@deffn {Scheme Procedure} pair? x
+@deffnx {C Function} scm_pair_p (x)
 Return @code{#t} if @var{x} is a pair; otherwise return
 @code{#f}.
 @end deffn
@@ -2889,15 +2938,15 @@ are also predefined.
 
 @rnindex car
 @rnindex cdr
-@deffn primitive car pair
-@deffnx primitive cdr pair
+@deffn {Scheme Procedure} car pair
+@deffnx {Scheme Procedure} cdr pair
 Return the car or the cdr of @var{pair}, respectively.
 @end deffn
 
-@deffn primitive caar pair
-@deffnx primitive cadr pair @dots{}
-@deffnx primitive cdddar pair
-@deffnx primitive cddddr pair
+@deffn {Scheme Procedure} caar pair
+@deffnx {Scheme Procedure} cadr pair @dots{}
+@deffnx {Scheme Procedure} cdddar pair
+@deffnx {Scheme Procedure} cddddr pair
 These procedures are compositions of @code{car} and @code{cdr}, where
 for example @code{caddr} could be defined by
 
@@ -2907,13 +2956,15 @@ for example @code{caddr} could be defined by
 @end deffn
 
 @rnindex set-car!
-@deffn primitive set-car! pair value
+@deffn {Scheme Procedure} set-car! pair value
+@deffnx {C Function} scm_set_car_x (pair, value)
 Stores @var{value} in the car field of @var{pair}.  The value returned
 by @code{set-car!} is unspecified.
 @end deffn
 
 @rnindex set-cdr!
-@deffn primitive set-cdr! pair value
+@deffn {Scheme Procedure} set-cdr! pair value
+@deffnx {C Function} scm_set_cdr_x (pair, value)
 Stores @var{value} in the cdr field of @var{pair}.  The value returned
 by @code{set-cdr!} is unspecified.
 @end deffn
@@ -3006,7 +3057,8 @@ whether their input is valid, or they could do different things
 depending on the datatype of their arguments.
 
 @rnindex list?
-@deffn primitive list? x
+@deffn {Scheme Procedure} list? x
+@deffnx {C Function} scm_list_p (x)
 Return @code{#t} iff @var{x} is a proper list, else @code{#f}.
 @end deffn
 
@@ -3016,7 +3068,8 @@ somehow deals with the elements of a list until the list satisfies
 @code{null?}.  Then, the algorithm terminates.
 
 @rnindex null?
-@deffn primitive null? x
+@deffn {Scheme Procedure} null? x
+@deffnx {C Function} scm_null_p (x)
 Return @code{#t} iff @var{x} is the empty list, else @code{#f}.
 @end deffn
 
@@ -3029,12 +3082,14 @@ This section describes the procedures for constructing new lists.
 the last pair of the list.
 
 @rnindex list
-@deffn primitive list arg1 @dots{}
+@deffn {Scheme Procedure} list . objs
+@deffnx {C Function} scm_list (objs)
 Return a list containing @var{objs}, the arguments to
 @code{list}.
 @end deffn
 
-@deffn primitive cons* arg1 arg2 @dots{}
+@deffn {Scheme Procedure} cons* arg1 arg2 @dots{}
+@deffnx {C Function} scm_cons_star (arg1, rest)
 Like @code{list}, but the last arg provides the tail of the
 constructed list, returning @code{(cons @var{arg1} (cons
 @var{arg2} (cons @dots{} @var{argn})))}.  Requires at least one
@@ -3043,11 +3098,12 @@ result.  This function is called @code{list*} in some other
 Schemes and in Common LISP.
 @end deffn
 
-@deffn primitive list-copy lst
+@deffn {Scheme Procedure} list-copy lst
+@deffnx {C Function} scm_list_copy (lst)
 Return a (newly-created) copy of @var{lst}.
 @end deffn
 
-@deffn procedure make-list n [init]
+@deffn {Scheme Procedure} make-list n [init]
 Create a list containing of @var{n} elements, where each element is
 initialized to @var{init}.  @var{init} defaults to the empty list
 @code{()} if not given.
@@ -3070,23 +3126,27 @@ These procedures are used to get some information about a list, or to
 retrieve one or more elements of a list.
 
 @rnindex length
-@deffn primitive length lst
+@deffn {Scheme Procedure} length lst
+@deffnx {C Function} scm_length (lst)
 Return the number of elements in list @var{lst}.
 @end deffn
 
-@deffn primitive last-pair lst
+@deffn {Scheme Procedure} last-pair lst
+@deffnx {C Function} scm_last_pair (lst)
 Return a pointer to the last pair in @var{lst}, signalling an error if
 @var{lst} is circular.
 @end deffn
 
 @rnindex list-ref
-@deffn primitive list-ref list k
+@deffn {Scheme Procedure} list-ref list k
+@deffnx {C Function} scm_list_ref (list, k)
 Return the @var{k}th element from @var{list}.
 @end deffn
 
 @rnindex list-tail
-@deffn primitive list-tail lst k
-@deffnx primitive list-cdr-ref lst k
+@deffn {Scheme Procedure} list-tail lst k
+@deffnx {Scheme Procedure} list-cdr-ref lst k
+@deffnx {C Function} scm_list_tail (lst, k)
 Return the "tail" of @var{lst} beginning with its @var{k}th element.
 The first element of the list is considered to be element 0.
 
@@ -3095,7 +3155,8 @@ think of @code{list-cdr-ref} as accessing the @var{k}th cdr of the list,
 or returning the results of cdring @var{k} times down @var{lst}.
 @end deffn
 
-@deffn primitive list-head lst k
+@deffn {Scheme Procedure} list-head lst k
+@deffnx {C Function} scm_list_head (lst, k)
 Copy the first @var{k} elements from @var{lst} into a new list, and
 return it.
 @end deffn
@@ -3114,7 +3175,8 @@ pairs.  This is why you should be careful when using the side-effecting
 variants.
 
 @rnindex append
-@deffn primitive append . args
+@deffn {Scheme Procedure} append . args
+@deffnx {C Function} scm_append (args)
 Return a list consisting of the elements the lists passed as
 arguments.
 @lisp
@@ -3132,23 +3194,26 @@ if the last argument is not a proper list.
 @end lisp
 @end deffn
 
-@deffn primitive append! . lists
+@deffn {Scheme Procedure} append! . lists
+@deffnx {C Function} scm_append_x (lists)
 A destructive version of @code{append} (@pxref{Pairs and
-lists,,,r5rs, The Revised^5 Report on Scheme}).  The cdr field
+Lists,,,r5rs, The Revised^5 Report on Scheme}).  The cdr field
 of each list's final pair is changed to point to the head of
 the next list, so no consing is performed.  Return a pointer to
 the mutated list.
 @end deffn
 
 @rnindex reverse
-@deffn primitive reverse lst
+@deffn {Scheme Procedure} reverse lst
+@deffnx {C Function} scm_reverse (lst)
 Return a new list that contains the elements of @var{lst} but
 in reverse order.
 @end deffn
 
 @c NJFIXME explain new_tail
-@deffn primitive reverse! lst [new_tail]
-A destructive version of @code{reverse} (@pxref{Pairs and lists,,,r5rs,
+@deffn {Scheme Procedure} reverse! lst [new_tail]
+@deffnx {C Function} scm_reverse_x (lst, new_tail)
+A destructive version of @code{reverse} (@pxref{Pairs and Lists,,,r5rs,
 The Revised^5 Report on Scheme}).  The cdr of each cell in @var{lst} is
 modified to point to the previous list element.  Return a pointer to the
 head of the reversed list.
@@ -3167,38 +3232,46 @@ of the modified list is not lost, it is wise to save the return value of
 The following procedures modify an existing list, either by changing
 elements of the list, or by changing the list structure itself.
 
-@deffn primitive list-set! list k val
+@deffn {Scheme Procedure} list-set! list k val
+@deffnx {C Function} scm_list_set_x (list, k, val)
 Set the @var{k}th element of @var{list} to @var{val}.
 @end deffn
 
-@deffn primitive list-cdr-set! list k val
+@deffn {Scheme Procedure} list-cdr-set! list k val
+@deffnx {C Function} scm_list_cdr_set_x (list, k, val)
 Set the @var{k}th cdr of @var{list} to @var{val}.
 @end deffn
 
-@deffn primitive delq item lst
+@deffn {Scheme Procedure} delq item lst
+@deffnx {C Function} scm_delq (item, lst)
 Return a newly-created copy of @var{lst} with elements
 @code{eq?} to @var{item} removed.  This procedure mirrors
 @code{memq}: @code{delq} compares elements of @var{lst} against
 @var{item} with @code{eq?}.
 @end deffn
 
-@deffn primitive delv item lst
+@deffn {Scheme Procedure} delv item lst
+@deffnx {C Function} scm_delv (item, lst)
 Return a newly-created copy of @var{lst} with elements
 @code{eqv?}  to @var{item} removed.  This procedure mirrors
 @code{memv}: @code{delv} compares elements of @var{lst} against
 @var{item} with @code{eqv?}.
 @end deffn
 
-@deffn primitive delete item lst
+@deffn {Scheme Procedure} delete item lst
+@deffnx {C Function} scm_delete (item, lst)
 Return a newly-created copy of @var{lst} with elements
 @code{equal?}  to @var{item} removed.  This procedure mirrors
 @code{member}: @code{delete} compares elements of @var{lst}
 against @var{item} with @code{equal?}.
 @end deffn
 
-@deffn primitive delq! item lst
-@deffnx primitive delv! item lst
-@deffnx primitive delete! item lst
+@deffn {Scheme Procedure} delq! item lst
+@deffnx {Scheme Procedure} delv! item lst
+@deffnx {Scheme Procedure} delete! item lst
+@deffnx {C Function} scm_delq_x (item, lst)
+@deffnx {C Function} scm_delv_x (item, lst)
+@deffnx {C Function} scm_delete_x (item, lst)
 These procedures are destructive versions of @code{delq}, @code{delv}
 and @code{delete}: they modify the pointers in the existing @var{lst}
 rather than creating a new list.  Caveat evaluator: Like other
@@ -3207,19 +3280,22 @@ destructive list functions, these functions cannot modify the binding of
 @var{lst} destructively.
 @end deffn
 
-@deffn primitive delq1! item lst
+@deffn {Scheme Procedure} delq1! item lst
+@deffnx {C Function} scm_delq1_x (item, lst)
 Like @code{delq!}, but only deletes the first occurrence of
 @var{item} from @var{lst}.  Tests for equality using
 @code{eq?}.  See also @code{delv1!} and @code{delete1!}.
 @end deffn
 
-@deffn primitive delv1! item lst
+@deffn {Scheme Procedure} delv1! item lst
+@deffnx {C Function} scm_delv1_x (item, lst)
 Like @code{delv!}, but only deletes the first occurrence of
 @var{item} from @var{lst}.  Tests for equality using
 @code{eqv?}.  See also @code{delq1!} and @code{delete1!}.
 @end deffn
 
-@deffn primitive delete1! item lst
+@deffn {Scheme Procedure} delete1! item lst
+@deffnx {C Function} scm_delete1_x (item, lst)
 Like @code{delete!}, but only deletes the first occurrence of
 @var{item} from @var{lst}.  Tests for equality using
 @code{equal?}.  See also @code{delq1!} and @code{delv1!}.
@@ -3237,7 +3313,8 @@ they return the sublist whose car is equal to the search object, where
 equality depends on the equality predicate used.
 
 @rnindex memq
-@deffn primitive memq x lst
+@deffn {Scheme Procedure} memq x lst
+@deffnx {C Function} scm_memq (x, lst)
 Return the first sublist of @var{lst} whose car is @code{eq?}
 to @var{x} where the sublists of @var{lst} are the non-empty
 lists returned by @code{(list-tail @var{lst} @var{k})} for
@@ -3247,7 +3324,8 @@ returned.
 @end deffn
 
 @rnindex memv
-@deffn primitive memv x lst
+@deffn {Scheme Procedure} memv x lst
+@deffnx {C Function} scm_memv (x, lst)
 Return the first sublist of @var{lst} whose car is @code{eqv?}
 to @var{x} where the sublists of @var{lst} are the non-empty
 lists returned by @code{(list-tail @var{lst} @var{k})} for
@@ -3257,7 +3335,8 @@ returned.
 @end deffn
 
 @rnindex member
-@deffn primitive member x lst
+@deffn {Scheme Procedure} member x lst
+@deffnx {C Function} scm_member (x, lst)
 Return the first sublist of @var{lst} whose car is
 @code{equal?} to @var{x} where the sublists of @var{lst} are
 the non-empty lists returned by @code{(list-tail @var{lst}
@@ -3270,19 +3349,19 @@ empty list) is returned.
 high level at all?  Maybe these docs should be relegated to a "Guile
 Internals" node or something. -twp]
 
-@deffn primitive sloppy-memq x lst
+@deffn {Scheme Procedure} sloppy-memq x lst
 This procedure behaves like @code{memq}, but does no type or error checking.
 Its use is recommended only in writing Guile internals,
 not for high-level Scheme programs.
 @end deffn
 
-@deffn primitive sloppy-memv x lst
+@deffn {Scheme Procedure} sloppy-memv x lst
 This procedure behaves like @code{memv}, but does no type or error checking.
 Its use is recommended only in writing Guile internals,
 not for high-level Scheme programs.
 @end deffn
 
-@deffn primitive sloppy-member x lst
+@deffn {Scheme Procedure} sloppy-member x lst
 This procedure behaves like @code{member}, but does no type or error checking.
 Its use is recommended only in writing Guile internals,
 not for high-level Scheme programs.
@@ -3302,8 +3381,9 @@ return value.
 
 @rnindex map
 @c begin (texi-doc-string "guile" "map")
-@deffn primitive map proc arg1 arg2 @dots{}
-@deffnx primitive map-in-order proc arg1 arg2 @dots{}
+@deffn {Scheme Procedure} map proc arg1 arg2 @dots{}
+@deffnx {Scheme Procedure} map-in-order proc arg1 arg2 @dots{}
+@deffnx {C Function} scm_map (proc, arg1, args)
 Apply @var{proc} to each element of the list @var{arg1} (if only two
 arguments are given), or to the corresponding elements of the argument
 lists (if more than two arguments are given).  The result(s) of the
@@ -3315,7 +3395,7 @@ elements.
 
 @rnindex for-each
 @c begin (texi-doc-string "guile" "for-each")
-@deffn primitive for-each proc arg1 arg2 @dots{}
+@deffn {Scheme Procedure} for-each proc arg1 arg2 @dots{}
 Like @code{map}, but the procedure is always applied from left to right,
 and the result(s) of the procedure applications are thrown away.  The
 return value is not specified.
@@ -3362,7 +3442,8 @@ number in hexadecimal notation.
 @subsection Vector Predicates
 
 @rnindex vector?
-@deffn primitive vector? obj
+@deffn {Scheme Procedure} vector? obj
+@deffnx {C Function} scm_vector_p (obj)
 Return @code{#t} if @var{obj} is a vector, otherwise return
 @code{#f}.
 @end deffn
@@ -3370,19 +3451,21 @@ Return @code{#t} if @var{obj} is a vector, otherwise return
 @subsection Vector Constructors
 
 @rnindex make-vector
-@deffn primitive make-vector k [fill]
+@deffn {Scheme Procedure} make-vector k [fill]
+@deffnx {C Function} scm_make_vector (k, fill)
 Return a newly allocated vector of @var{k} elements.  If a
 second argument is given, then each position is initialized to
-@var{fill}.  Otherwise the initial contents of each position are
+@var{fill}.  Otherwise the initial contents of each position is
 unspecified.
 @end deffn
 
 @rnindex vector
 @rnindex list->vector
-@deffn primitive vector . l
-@deffnx primitive list->vector l
-Return a newly allocated vector composed of the given arguments.
-Analogous to @code{list}.
+@deffn {Scheme Procedure} vector . l
+@deffnx {Scheme Procedure} list->vector l
+@deffnx {C Function} scm_vector (l)
+Return a newly allocated vector composed of the
+given arguments.  Analogous to @code{list}.
 
 @lisp
 (vector 'a 'b 'c) @result{} #(a b c)
@@ -3390,7 +3473,8 @@ Analogous to @code{list}.
 @end deffn
 
 @rnindex vector->list
-@deffn primitive vector->list v
+@deffn {Scheme Procedure} vector->list v
+@deffnx {C Function} scm_vector_to_list (v)
 Return a newly allocated list composed of the elements of @var{v}.
 
 @lisp
@@ -3411,7 +3495,7 @@ considered to be constant, although Guile currently does not detect this
 error.
 
 @rnindex vector-set!
-@deffn primitive vector-set! vector k obj
+@deffn {Scheme Procedure} vector-set! vector k obj
 Store @var{obj} in position @var{k} of @var{vector}.
 @var{k} must be a valid index of @var{vector}.
 The value returned by @samp{vector-set!} is unspecified.
@@ -3423,19 +3507,20 @@ The value returned by @samp{vector-set!} is unspecified.
 @end deffn
 
 @rnindex vector-fill!
-@deffn primitive vector-fill! v fill
+@deffn {Scheme Procedure} vector-fill! v fill
+@deffnx {C Function} scm_vector_fill_x (v, fill)
 Store @var{fill} in every position of @var{vector}.  The value
 returned by @code{vector-fill!} is unspecified.
 @end deffn
 
-@deffn primitive vector-move-left! vec1 start1 end1 vec2 start2
-Vector version of @code{substring-move-left!} (@pxref{String
-Modification}).
+@deffn {Scheme Procedure} vector-move-left! vec1 start1 end1 vec2 start2
+@deffnx {C Function} scm_vector_move_left_x (vec1, start1, end1, vec2, start2)
+Vector version of @code{substring-move-left!}.
 @end deffn
 
-@deffn primitive vector-move-right! vec1 start1 end1 vec2 start2
-Vector version of @code{substring-move-right!} (@pxref{String
-Modification}).
+@deffn {Scheme Procedure} vector-move-right! vec1 start1 end1 vec2 start2
+@deffnx {C Function} scm_vector_move_right_x (vec1, start1, end1, vec2, start2)
+Vector version of @code{substring-move-right!}.
 @end deffn
 
 @subsection Vector Selection
@@ -3444,12 +3529,12 @@ These procedures return information about a given vector, such as the
 size or what elements are contained in the vector.
 
 @rnindex vector-length
-@deffn primitive vector-length vector
+@deffn {Scheme Procedure} vector-length vector
 Return the number of elements in @var{vector} as an exact integer.
 @end deffn
 
 @rnindex vector-ref
-@deffn primitive vector-ref vector k
+@deffn {Scheme Procedure} vector-ref vector k
 Return the contents of position @var{k} of @var{vector}.
 @var{k} must be a valid index of @var{vector}.
 @lisp
@@ -3469,7 +3554,7 @@ Return the contents of position @var{k} of @var{vector}.
 A @dfn{record type} is a first class object representing a user-defined
 data type.  A @dfn{record} is an instance of a record type.
 
-@deffn procedure record? obj
+@deffn {Scheme Procedure} record? obj
 Return @code{#t} if @var{obj} is a record of any type and @code{#f}
 otherwise.
 
@@ -3477,7 +3562,7 @@ Note that @code{record?} may be true of any Scheme value; there is no
 promise that records are disjoint with other Scheme types.
 @end deffn
 
-@deffn procedure make-record-type type-name field-names
+@deffn {Scheme Procedure} make-record-type type-name field-names
 Return a @dfn{record-type descriptor}, a value representing a new data
 type disjoint from all others.  The @var{type-name} argument must be a
 string, but is only used for debugging purposes (such as the printed
@@ -3487,7 +3572,7 @@ new type.  It is an error if the list contains any duplicates.  It is
 unspecified how record-type descriptors are represented.
 @end deffn
 
-@deffn procedure record-constructor rtd [field-names]
+@deffn {Scheme Procedure} record-constructor rtd [field-names]
 Return a procedure for constructing new members of the type represented
 by @var{rtd}.  The returned procedure accepts exactly as many arguments
 as there are symbols in the given list, @var{field-names}; these are
@@ -3500,14 +3585,14 @@ if the @var{field-names} argument is provided, it is an error if it
 contains any duplicates or any symbols not in the default list.
 @end deffn
 
-@deffn procedure record-predicate rtd
+@deffn {Scheme Procedure} record-predicate rtd
 Return a procedure for testing membership in the type represented by
 @var{rtd}.  The returned procedure accepts exactly one argument and
 returns a true value if the argument is a member of the indicated record
 type; it returns a false value otherwise.
 @end deffn
 
-@deffn procedure record-accessor rtd field-name
+@deffn {Scheme Procedure} record-accessor rtd field-name
 Return a procedure for reading the value of a particular field of a
 member of the type represented by @var{rtd}.  The returned procedure
 accepts exactly one argument which must be a record of the appropriate
@@ -3517,7 +3602,7 @@ member of the list of field-names in the call to @code{make-record-type}
 that created the type represented by @var{rtd}.
 @end deffn
 
-@deffn procedure record-modifier rtd field-name
+@deffn {Scheme Procedure} record-modifier rtd field-name
 Return a procedure for writing the value of a particular field of a
 member of the type represented by @var{rtd}.  The returned procedure
 accepts exactly two arguments: first, a record of the appropriate type,
@@ -3529,7 +3614,7 @@ to @code{make-record-type} that created the type represented by
 @var{rtd}.
 @end deffn
 
-@deffn procedure record-type-descriptor record
+@deffn {Scheme Procedure} record-type-descriptor record
 Return a record-type descriptor representing the type of the given
 record.  That is, for example, if the returned descriptor were passed to
 @code{record-predicate}, the resulting predicate would return a true
@@ -3539,14 +3624,14 @@ case that the returned descriptor is the one that was passed to
 procedure that created the given record.
 @end deffn
 
-@deffn procedure record-type-name rtd
+@deffn {Scheme Procedure} record-type-name rtd
 Return the type-name associated with the type represented by rtd.  The
 returned value is @code{eqv?} to the @var{type-name} argument given in
 the call to @code{make-record-type} that created the type represented by
 @var{rtd}.
 @end deffn
 
-@deffn procedure record-type-fields rtd
+@deffn {Scheme Procedure} record-type-fields rtd
 Return a list of the symbols naming the fields in members of the type
 represented by @var{rtd}.  The returned value is @code{equal?} to the
 field-names argument given in the call to @code{make-record-type} that
@@ -3708,7 +3793,8 @@ Structure layouts are represented by specially interned symbols whose
 name is a string of type and protection codes.  To create a new
 structure layout, use this procedure:
 
-@deffn primitive make-struct-layout fields
+@deffn {Scheme Procedure} make-struct-layout fields
+@deffnx {C Function} scm_make_struct_layout (fields)
 Return a new structure layout object.
 
 @var{fields} must be a string made up of pairs of characters
@@ -3729,7 +3815,8 @@ indicate that the field is a tail-array.
 This section describes the basic procedures for creating and accessing
 structures.
 
-@deffn primitive make-struct vtable tail_array_size . init
+@deffn {Scheme Procedure} make-struct vtable tail_array_size . init
+@deffnx {C Function} scm_make_struct (vtable, tail_array_size, init)
 Create a new structure.
 
 @var{type} must be a vtable structure (@pxref{Vtables}).
@@ -3757,14 +3844,17 @@ more powerful.
 For more information, see the documentation for @code{make-vtable-vtable}.
 @end deffn
 
-@deffn primitive struct? x
+@deffn {Scheme Procedure} struct? x
+@deffnx {C Function} scm_struct_p (x)
 Return @code{#t} iff @var{x} is a structure object, else
 @code{#f}.
 @end deffn
 
 
-@deffn primitive struct-ref handle pos
-@deffnx primitive struct-set! struct n value
+@deffn {Scheme Procedure} struct-ref handle pos
+@deffnx {Scheme Procedure} struct-set! struct n value
+@deffnx {C Function} scm_struct_ref (handle, pos)
+@deffnx {C Function} scm_struct_set_x (struct, n, value)
 Access (or modify) the @var{n}th field of @var{struct}.
 
 If the field is of type 'p', then it can be set to an arbitrary value.
@@ -3786,11 +3876,13 @@ which are used only internally to libguile.  The variable
 @code{vtable-offset-user} is bound to a field number.  Vtable fields
 at that position or greater are user definable.
 
-@deffn primitive struct-vtable handle
+@deffn {Scheme Procedure} struct-vtable handle
+@deffnx {C Function} scm_struct_vtable (handle)
 Return the vtable structure that describes the type of @var{struct}.
 @end deffn
 
-@deffn primitive struct-vtable? x
+@deffn {Scheme Procedure} struct-vtable? x
+@deffnx {C Function} scm_struct_vtable_p (x)
 Return @code{#t} iff @var{x} is a vtable structure.
 @end deffn
 
@@ -3802,7 +3894,8 @@ created by using @code{(make-struct V' ...)}.  Another possibility is
 that @code{V} is an instance of the type it itself describes.  Vtable
 structures of the second sort are created by this procedure:
 
-@deffn primitive make-vtable-vtable user_fields tail_array_size . init
+@deffn {Scheme Procedure} make-vtable-vtable user_fields tail_array_size . init
+@deffnx {C Function} scm_make_vtable_vtable (user_fields, tail_array_size, init)
 Return a new, self-describing vtable structure.
 
 @var{user-fields} is a string describing user defined fields of the
@@ -3861,15 +3954,18 @@ ball @result{} #<a green ball owned by Nisse>
 @end lisp
 @end deffn
 
-@deffn primitive struct-vtable-name vtable
+@deffn {Scheme Procedure} struct-vtable-name vtable
+@deffnx {C Function} scm_struct_vtable_name (vtable)
 Return the name of the vtable @var{vtable}.
 @end deffn
 
-@deffn primitive set-struct-vtable-name! vtable name
+@deffn {Scheme Procedure} set-struct-vtable-name! vtable name
+@deffnx {C Function} scm_set_struct_vtable_name_x (vtable, name)
 Set the name of the vtable @var{vtable} to @var{name}.
 @end deffn
 
-@deffn primitive struct-vtable-tag handle
+@deffn {Scheme Procedure} struct-vtable-tag handle
+@deffnx {C Function} scm_struct_vtable_tag (handle)
 Return the vtable tag of the structure @var{handle}.
 @end deffn
 
@@ -3928,13 +4024,14 @@ a vector:
 
 The following procedures can be used with conventional arrays (or vectors).
 
-@deffn primitive array? v [prot]
+@deffn {Scheme Procedure} array? v [prot]
+@deffnx {C Function} scm_array_p (v, prot)
 Return @code{#t} if the @var{obj} is an array, and @code{#f} if
 not.  The @var{prototype} argument is used with uniform arrays
 and is described elsewhere.
 @end deffn
 
-@deffn procedure make-array initial-value bound1 bound2 @dots{}
+@deffn {Scheme Procedure} make-array initial-value bound1 bound2 @dots{}
 Create and return an array that has as many dimensions as there are
 @var{bound}s and fill it with @var{initial-value}.  Each @var{bound}
 may be a positive non-zero integer @var{N}, in which case the index for
@@ -3947,25 +4044,29 @@ same number (however, @var{lower} cannot be greater than @var{upper}).
 @c array-ref's type is `compiled-closure'.  There's some weird stuff
 @c going on in array.c, too.  Let's call it a primitive. -twp
 
-@deffn primitive uniform-vector-ref v args
-@deffnx primitive array-ref v . args
+@deffn {Scheme Procedure} uniform-vector-ref v args
+@deffnx {Scheme Procedure} array-ref v . args
+@deffnx {C Function} scm_uniform_vector_ref (v, args)
 Return the element at the @code{(index1, index2)} element in
 @var{array}.
 @end deffn
 
-@deffn primitive array-in-bounds? v . args
+@deffn {Scheme Procedure} array-in-bounds? v . args
+@deffnx {C Function} scm_array_in_bounds_p (v, args)
 Return @code{#t} if its arguments would be acceptable to
 @code{array-ref}.
 @end deffn
 
 @c fixme: why do these sigs differ?  -ttn 2001/07/19 01:14:12
-@deffn primitive array-set! v obj . args
-@deffnx primitive uniform-array-set1! v obj args
+@deffn {Scheme Procedure} array-set! v obj . args
+@deffnx {Scheme Procedure} uniform-array-set1! v obj args
+@deffnx {C Function} scm_array_set_x (v, obj, args)
 Set the element at the @code{(index1, index2)} element in @var{array} to
 @var{new-value}.  The value returned by array-set! is unspecified.
 @end deffn
 
-@deffn primitive make-shared-array oldra mapfunc . dims
+@deffn {Scheme Procedure} make-shared-array oldra mapfunc . dims
+@deffnx {C Function} scm_make_shared_array (oldra, mapfunc, dims)
 @code{make-shared-array} can be used to create shared subarrays of other
 arrays.  The @var{mapper} is a function that translates coordinates in
 the new array into coordinates in the old array.  A @var{mapper} must be
@@ -3983,19 +4084,23 @@ it can be otherwise arbitrary.  A simple example:
 @end lisp
 @end deffn
 
-@deffn primitive shared-array-increments ra
+@deffn {Scheme Procedure} shared-array-increments ra
+@deffnx {C Function} scm_shared_array_increments (ra)
 For each dimension, return the distance between elements in the root vector.
 @end deffn
 
-@deffn primitive shared-array-offset ra
+@deffn {Scheme Procedure} shared-array-offset ra
+@deffnx {C Function} scm_shared_array_offset (ra)
 Return the root vector index of the first element in the array.
 @end deffn
 
-@deffn primitive shared-array-root ra
+@deffn {Scheme Procedure} shared-array-root ra
+@deffnx {C Function} scm_shared_array_root (ra)
 Return the root vector of a shared array.
 @end deffn
 
-@deffn primitive transpose-array ra . args
+@deffn {Scheme Procedure} transpose-array ra . args
+@deffnx {C Function} scm_transpose_array (ra, args)
 Return an array sharing contents with @var{array}, but with
 dimensions arranged in a different order.  There must be one
 @var{dim} argument for each dimension of @var{array}.
@@ -4017,7 +4122,8 @@ have smaller rank than @var{array}.
 @end lisp
 @end deffn
 
-@deffn primitive enclose-array ra . axes
+@deffn {Scheme Procedure} enclose-array ra . axes
+@deffnx {C Function} scm_enclose_array (ra, axes)
 @var{dim0}, @var{dim1} @dots{} should be nonnegative integers less than
 the rank of @var{array}.  @var{enclose-array} returns an array
 resembling an array of shared arrays.  The dimensions of each shared
@@ -4041,14 +4147,15 @@ examples:
 @end lisp
 @end deffn
 
-@deffn procedure array-shape array
+@deffn {Scheme Procedure} array-shape array
 Return a list of inclusive bounds of integers.
 @example
 (array-shape (make-array 'foo '(-1 3) 5)) @result{} ((-1 3) (0 4))
 @end example
 @end deffn
 
-@deffn primitive array-dimensions ra
+@deffn {Scheme Procedure} array-dimensions ra
+@deffnx {C Function} scm_array_dimensions (ra)
 @code{Array-dimensions} is similar to @code{array-shape} but replaces
 elements with a @code{0} minimum with one greater than the maximum. So:
 @lisp
@@ -4056,31 +4163,35 @@ elements with a @code{0} minimum with one greater than the maximum. So:
 @end lisp
 @end deffn
 
-@deffn primitive array-rank ra
+@deffn {Scheme Procedure} array-rank ra
+@deffnx {C Function} scm_array_rank (ra)
 Return the number of dimensions of @var{obj}.  If @var{obj} is
 not an array, @code{0} is returned.
 @end deffn
 
-@deffn primitive array->list v
+@deffn {Scheme Procedure} array->list v
+@deffnx {C Function} scm_t_arrayo_list (v)
 Return a list consisting of all the elements, in order, of
 @var{array}.
 @end deffn
 
-@deffn primitive array-copy! src dst
-@deffnx primitive array-copy-in-order! src dst
+@deffn {Scheme Procedure} array-copy! src dst
+@deffnx {Scheme Procedure} array-copy-in-order! src dst
+@deffnx {C Function} scm_array_copy_x (src, dst)
 Copy every element from vector or array @var{source} to the
 corresponding element of @var{destination}.  @var{destination} must have
 the same rank as @var{source}, and be at least as large in each
 dimension.  The order is unspecified.
 @end deffn
 
-@deffn primitive array-fill! ra fill
+@deffn {Scheme Procedure} array-fill! ra fill
+@deffnx {C Function} scm_array_fill_x (ra, fill)
 Store @var{fill} in every element of @var{array}.  The value returned
 is unspecified.
 @end deffn
 
 @c begin (texi-doc-string "guile" "array-equal?")
-@deffn primitive array-equal? ra0 ra1
+@deffn {Scheme Procedure} array-equal? ra0 ra1
 Return @code{#t} iff all arguments are arrays with the same shape, the
 same type, and have corresponding elements which are either
 @code{equal?}  or @code{array-equal?}.  This function differs from
@@ -4088,8 +4199,8 @@ same type, and have corresponding elements which are either
 @var{array-equal?} but not @var{equal?} to a vector or uniform vector.
 @end deffn
 
-@deffn primitive array-contents ra [strict]
-@deffnx primitive array-contents array strict
+@deffn {Scheme Procedure} array-contents array [strict]
+@deffnx {C Function} scm_array_contents (array, strict)
 If @var{array} may be @dfn{unrolled} into a one dimensional shared array
 without changing their order (last subscript changing fastest), then
 @code{array-contents} returns that shared array, otherwise it returns
@@ -4105,8 +4216,9 @@ memory.
 @node Array Mapping
 @subsection Array Mapping
 
-@deffn primitive array-map! ra0 proc . lra
-@deffnx primitive array-map-in-order! ra0 proc . lra
+@deffn {Scheme Procedure} array-map! ra0 proc . lra
+@deffnx {Scheme Procedure} array-map-in-order! ra0 proc . lra
+@deffnx {C Function} scm_array_map_x (ra0, proc, lra)
 @var{array1}, @dots{} must have the same number of dimensions as
 @var{array0} and have a range for each index which includes the range
 for the corresponding index in @var{array0}.  @var{proc} is applied to
@@ -4115,12 +4227,14 @@ as the corresponding element in @var{array0}.  The value returned is
 unspecified.  The order of application is unspecified.
 @end deffn
 
-@deffn primitive array-for-each proc ra0 . lra
+@deffn {Scheme Procedure} array-for-each proc ra0 . lra
+@deffnx {C Function} scm_array_for_each (proc, ra0, lra)
 Apply @var{proc} to each tuple of elements of @var{array0} @dots{}
 in row-major order.  The value returned is unspecified.
 @end deffn
 
-@deffn primitive array-index-map! ra proc
+@deffn {Scheme Procedure} array-index-map! ra proc
+@deffnx {C Function} scm_array_index_map_x (ra, proc)
 Apply @var{proc} to the indices of each element of @var{array} in
 turn, storing the result in the corresponding element.  The value
 returned and the order of application are unspecified.
@@ -4198,44 +4312,48 @@ except that a single character from the above table is put between
 @code{#} and @code{(}.  For example, a uniform vector of signed
 long integers is displayed in the form @code{'#e(3 5 9)}.
 
-@deffn primitive array? v [prot]
+@deffn {Scheme Procedure} array? v [prot]
 Return @code{#t} if the @var{obj} is an array, and @code{#f} if not.
 
 The @var{prototype} argument is used with uniform arrays and is described
 elsewhere.
 @end deffn
 
-@deffn procedure make-uniform-array prototype bound1 bound2 @dots{}
+@deffn {Scheme Procedure} make-uniform-array prototype bound1 bound2 @dots{}
 Create and return a uniform array of type corresponding to
 @var{prototype} that has as many dimensions as there are @var{bound}s
 and fill it with @var{prototype}.
 @end deffn
 
-@deffn primitive array-prototype ra
+@deffn {Scheme Procedure} array-prototype ra
+@deffnx {C Function} scm_array_prototype (ra)
 Return an object that would produce an array of the same type
 as @var{array}, if used as the @var{prototype} for
 @code{make-uniform-array}.
 @end deffn
 
-@deffn primitive list->uniform-array ndim prot lst
-@deffnx procedure list->uniform-vector prot lst
+@deffn {Scheme Procedure} list->uniform-array ndim prot lst
+@deffnx {Scheme Procedure} list->uniform-vector prot lst
+@deffnx {C Function} scm_list_to_uniform_array (ndim, prot, lst)
 Return a uniform array of the type indicated by prototype
 @var{prot} with elements the same as those of @var{lst}.
 Elements must be of the appropriate type, no coercions are
 done.
 @end deffn
 
-@deffn primitive uniform-vector-fill! uve fill
+@deffn {Scheme Procedure} uniform-vector-fill! uve fill
 Store @var{fill} in every element of @var{uve}.  The value returned is
 unspecified.
 @end deffn
 
-@deffn primitive uniform-vector-length v
+@deffn {Scheme Procedure} uniform-vector-length v
+@deffnx {C Function} scm_uniform_vector_length (v)
 Return the number of elements in @var{uve}.
 @end deffn
 
-@deffn primitive dimensions->uniform-array dims prot [fill]
-@deffnx primitive make-uniform-vector length prototype [fill]
+@deffn {Scheme Procedure} dimensions->uniform-array dims prot [fill]
+@deffnx {Scheme Procedure} make-uniform-vector length prototype [fill]
+@deffnx {C Function} scm_dimensions_to_uniform_array (dims, prot, fill)
 Create and return a uniform array or vector of type
 corresponding to @var{prototype} with dimensions @var{dims} or
 length @var{length}.  If @var{fill} is supplied, it's used to
@@ -4244,12 +4362,13 @@ fill the array, otherwise @var{prototype} is used.
 
 @c Another compiled-closure. -twp
 
-@deffn primitive uniform-array-read! ra [port_or_fd [start [end]]]
-@deffnx primitive uniform-vector-read! uve [port-or-fdes] [start] [end]
+@deffn {Scheme Procedure} uniform-array-read! ra [port_or_fd [start [end]]]
+@deffnx {Scheme Procedure} uniform-vector-read! uve [port-or-fdes] [start] [end]
+@deffnx {C Function} scm_uniform_array_read_x (ra, port_or_fd, start, end)
 Attempt to read all elements of @var{ura}, in lexicographic order, as
 binary objects from @var{port-or-fdes}.
-If an end of file is encountered during
-uniform-array-read! the objects up to that point only are put into @var{ura}
+If an end of file is encountered,
+the objects up to that point are put into @var{ura}
 (starting at the beginning) and the remainder of the array is
 unchanged.
 
@@ -4262,8 +4381,9 @@ leaving the remainder of the vector unchanged.
 returned by @code{(current-input-port)}.
 @end deffn
 
-@deffn primitive uniform-array-write v [port_or_fd [start [end]]]
-@deffnx primitive uniform-vector-write uve [port-or-fdes] [start] [end]
+@deffn {Scheme Procedure} uniform-array-write v [port_or_fd [start [end]]]
+@deffnx {Scheme Procedure} uniform-vector-write uve [port-or-fdes] [start] [end]
+@deffnx {C Function} scm_uniform_array_write (v, port_or_fd, start, end)
 Writes all elements of @var{ura} as binary objects to
 @var{port-or-fdes}.
 
@@ -4296,22 +4416,26 @@ They are displayed as a sequence of @code{0}s and
 #*101
 @end example
 
-@deffn primitive bit-count b bitvector
+@deffn {Scheme Procedure} bit-count b bitvector
+@deffnx {C Function} scm_bit_count (b, bitvector)
 Return the number of occurrences of the boolean @var{b} in
 @var{bitvector}.
 @end deffn
 
-@deffn primitive bit-position item v k
+@deffn {Scheme Procedure} bit-position item v k
+@deffnx {C Function} scm_bit_position (item, v, k)
 Return the minimum index of an occurrence of @var{bool} in
 @var{bv} which is at least @var{k}.  If no @var{bool} occurs
 within the specified range @code{#f} is returned.
 @end deffn
 
-@deffn primitive bit-invert! v
+@deffn {Scheme Procedure} bit-invert! v
+@deffnx {C Function} scm_bit_invert_x (v)
 Modify @var{bv} by replacing each element with its negation.
 @end deffn
 
-@deffn primitive bit-set*! v kv obj
+@deffn {Scheme Procedure} bit-set*! v kv obj
+@deffnx {C Function} scm_bit_set_star_x (v, kv, obj)
 If uve is a bit-vector @var{bv} and uve must be of the same
 length.  If @var{bool} is @code{#t}, uve is OR'ed into
 @var{bv}; If @var{bool} is @code{#f}, the inversion of uve is
@@ -4323,7 +4447,8 @@ of @var{bv} corresponding to the indexes in uve are set to
 @var{bool}.  The return value is unspecified.
 @end deffn
 
-@deffn primitive bit-count* v kv obj
+@deffn {Scheme Procedure} bit-count* v kv obj
+@deffnx {C Function} scm_bit_count_star (v, kv, obj)
 Return
 @lisp
 (bit-count (bit-set*! (if bool bv (bit-invert! bv)) uve #t) #t).
@@ -4552,16 +4677,20 @@ independent from the list that results from modification by
 use @code{list-copy} to copy the old association list before modifying
 it.
 
-@deffn primitive acons key value alist
+@deffn {Scheme Procedure} acons key value alist
+@deffnx {C Function} scm_acons (key, value, alist)
 Add a new key-value pair to @var{alist}.  A new pair is
 created whose car is @var{key} and whose cdr is @var{value}, and the
 pair is consed onto @var{alist}, and the new list is returned.  This
 function is @emph{not} destructive; @var{alist} is not modified.
 @end deffn
 
-@deffn primitive assq-set! alist key val
-@deffnx primitive assv-set! alist key value
-@deffnx primitive assoc-set! alist key value
+@deffn {Scheme Procedure} assq-set! alist key val
+@deffnx {Scheme Procedure} assv-set! alist key value
+@deffnx {Scheme Procedure} assoc-set! alist key value
+@deffnx {C Function} scm_assq_set_x (alist, key, val)
+@deffnx {C Function} scm_assv_set_x (alist, key, val)
+@deffnx {C Function} scm_assoc_set_x (alist, key, val)
 Reassociate @var{key} in @var{alist} with @var{value}: find any existing
 @var{alist} entry for @var{key} and associate it with the new
 @var{value}.  If @var{alist} does not contain an entry for @var{key},
@@ -4584,9 +4713,12 @@ arguments and return the entry for that key if an entry exists, or
 where an entry exists, these procedures return the complete entry, that
 is @code{(KEY . VALUE)}, not just the value.
 
-@deffn primitive assq key alist
-@deffnx primitive assv key alist
-@deffnx primitive assoc key alist
+@deffn {Scheme Procedure} assq key alist
+@deffnx {Scheme Procedure} assv key alist
+@deffnx {Scheme Procedure} assoc key alist
+@deffnx {C Function} scm_assq (key, alist)
+@deffnx {C Function} scm_assv (key, alist)
+@deffnx {C Function} scm_assoc (key, alist)
 Fetch the entry in @var{alist} that is associated with @var{key}.  To
 decide whether the argument @var{key} matches a particular entry in
 @var{alist}, @code{assq} compares keys with @code{eq?}, @code{assv}
@@ -4608,9 +4740,12 @@ Consequently, @code{assq-ref} and friends should only be used where it
 is known that an entry exists, or where the ambiguity doesn't matter
 for some other reason.
 
-@deffn primitive assq-ref alist key
-@deffnx primitive assv-ref alist key
-@deffnx primitive assoc-ref alist key
+@deffn {Scheme Procedure} assq-ref alist key
+@deffnx {Scheme Procedure} assv-ref alist key
+@deffnx {Scheme Procedure} assoc-ref alist key
+@deffnx {C Function} scm_assq_ref (alist, key)
+@deffnx {C Function} scm_assv_ref (alist, key)
+@deffnx {C Function} scm_assoc_ref (alist, key)
 Like @code{assq}, @code{assv} and @code{assoc}, except that only the
 value associated with @var{key} in @var{alist} is returned.  These
 functions are equivalent to
@@ -4681,9 +4816,12 @@ two distinct entries to @code{address-list}.  When compared using
 after removing the first matching entry that it finds, and so one of the
 "mary" entries is left in place.
 
-@deffn primitive assq-remove! alist key
-@deffnx primitive assv-remove! alist key
-@deffnx primitive assoc-remove! alist key
+@deffn {Scheme Procedure} assq-remove! alist key
+@deffnx {Scheme Procedure} assv-remove! alist key
+@deffnx {Scheme Procedure} assoc-remove! alist key
+@deffnx {C Function} scm_assq_remove_x (alist, key)
+@deffnx {C Function} scm_assv_remove_x (alist, key)
+@deffnx {C Function} scm_assoc_remove_x (alist, key)
 Delete the first entry in @var{alist} associated with @var{key}, and return
 the resulting alist.
 @end deffn
@@ -4733,17 +4871,20 @@ it is much safer to use the non-@code{sloppy-} procedures, because they
 help to highlight coding and data errors that the @code{sloppy-}
 versions would silently cover up.
 
-@deffn primitive sloppy-assq key alist
+@deffn {Scheme Procedure} sloppy-assq key alist
+@deffnx {C Function} scm_sloppy_assq (key, alist)
 Behaves like @code{assq} but does not do any error checking.
 Recommended only for use in Guile internals.
 @end deffn
 
-@deffn primitive sloppy-assv key alist
+@deffn {Scheme Procedure} sloppy-assv key alist
+@deffnx {C Function} scm_sloppy_assv (key, alist)
 Behaves like @code{assv} but does not do any error checking.
 Recommended only for use in Guile internals.
 @end deffn
 
-@deffn primitive sloppy-assoc key alist
+@deffn {Scheme Procedure} sloppy-assoc key alist
+@deffnx {C Function} scm_sloppy_assoc (key, alist)
 Behaves like @code{assoc} but does not do any error checking.
 Recommended only for use in Guile internals.
 @end deffn
@@ -4895,7 +5036,7 @@ In each of the functions that follow, the @var{table} argument
 must be a vector.  The @var{key} and @var{value} arguments may be
 any Scheme object.
 
-@deffn procedure make-hash-table size
+@deffn {Scheme Procedure} make-hash-table size
 Create a new hash table of @var{size} slots.  Note that the number of
 slots does not limit the size of the table, it just tells how large
 the underlying vector will be.  The @var{size} should be similar to
@@ -4904,54 +5045,63 @@ they need not match.  For good performance, it might be a good idea to
 use a prime number as the @var{size}.
 @end deffn
 
-@deffn primitive hashq-ref table key [dflt]
+@deffn {Scheme Procedure} hashq-ref table key [dflt]
+@deffnx {C Function} scm_hashq_ref (table, key, dflt)
 Look up @var{key} in the hash table @var{table}, and return the
 value (if any) associated with it.  If @var{key} is not found,
 return @var{default} (or @code{#f} if no @var{default} argument
 is supplied).  Uses @code{eq?} for equality testing.
 @end deffn
 
-@deffn primitive hashv-ref table key [dflt]
+@deffn {Scheme Procedure} hashv-ref table key [dflt]
+@deffnx {C Function} scm_hashv_ref (table, key, dflt)
 Look up @var{key} in the hash table @var{table}, and return the
 value (if any) associated with it.  If @var{key} is not found,
 return @var{default} (or @code{#f} if no @var{default} argument
 is supplied).  Uses @code{eqv?} for equality testing.
 @end deffn
 
-@deffn primitive hash-ref table key [dflt]
+@deffn {Scheme Procedure} hash-ref table key [dflt]
+@deffnx {C Function} scm_hash_ref (table, key, dflt)
 Look up @var{key} in the hash table @var{table}, and return the
 value (if any) associated with it.  If @var{key} is not found,
 return @var{default} (or @code{#f} if no @var{default} argument
 is supplied).  Uses @code{equal?} for equality testing.
 @end deffn
 
-@deffn primitive hashq-set! table key val
+@deffn {Scheme Procedure} hashq-set! table key val
+@deffnx {C Function} scm_hashq_set_x (table, key, val)
 Find the entry in @var{table} associated with @var{key}, and
 store @var{value} there. Uses @code{eq?} for equality testing.
 @end deffn
 
-@deffn primitive hashv-set! table key val
+@deffn {Scheme Procedure} hashv-set! table key val
+@deffnx {C Function} scm_hashv_set_x (table, key, val)
 Find the entry in @var{table} associated with @var{key}, and
 store @var{value} there. Uses @code{eqv?} for equality testing.
 @end deffn
 
-@deffn primitive hash-set! table key val
+@deffn {Scheme Procedure} hash-set! table key val
+@deffnx {C Function} scm_hash_set_x (table, key, val)
 Find the entry in @var{table} associated with @var{key}, and
 store @var{value} there. Uses @code{equal?} for equality
 testing.
 @end deffn
 
-@deffn primitive hashq-remove! table key
+@deffn {Scheme Procedure} hashq-remove! table key
+@deffnx {C Function} scm_hashq_remove_x (table, key)
 Remove @var{key} (and any value associated with it) from
 @var{table}.  Uses @code{eq?} for equality tests.
 @end deffn
 
-@deffn primitive hashv-remove! table key
+@deffn {Scheme Procedure} hashv-remove! table key
+@deffnx {C Function} scm_hashv_remove_x (table, key)
 Remove @var{key} (and any value associated with it) from
 @var{table}.  Uses @code{eqv?} for equality tests.
 @end deffn
 
-@deffn primitive hash-remove! table key
+@deffn {Scheme Procedure} hash-remove! table key
+@deffnx {C Function} scm_hash_remove_x (table, key)
 Remove @var{key} (and any value associated with it) from
 @var{table}.  Uses @code{equal?} for equality tests.
 @end deffn
@@ -4971,7 +5121,8 @@ use comfortably.  If you are interested in learning more, see an
 introductory textbook on data structures or algorithms for an
 explanation of how hash tables are implemented.
 
-@deffn primitive hashq key size
+@deffn {Scheme Procedure} hashq key size
+@deffnx {C Function} scm_hashq (key, size)
 Determine a hash value for @var{key} that is suitable for
 lookups in a hashtable of size @var{size}, where @code{eq?} is
 used as the equality predicate.  The function returns an
@@ -4984,7 +5135,8 @@ in between.  This can happen, for example with symbols:
 different values, since @code{foo} will be garbage collected.
 @end deffn
 
-@deffn primitive hashv key size
+@deffn {Scheme Procedure} hashv key size
+@deffnx {C Function} scm_hashv (key, size)
 Determine a hash value for @var{key} that is suitable for
 lookups in a hashtable of size @var{size}, where @code{eqv?} is
 used as the equality predicate.  The function returns an
@@ -4997,14 +5149,16 @@ in between.  This can happen, for example with symbols:
 different values, since @code{foo} will be garbage collected.
 @end deffn
 
-@deffn primitive hash key size
+@deffn {Scheme Procedure} hash key size
+@deffnx {C Function} scm_hash (key, size)
 Determine a hash value for @var{key} that is suitable for
 lookups in a hashtable of size @var{size}, where @code{equal?}
 is used as the equality predicate.  The function returns an
 integer in the range 0 to @var{size} - 1.
 @end deffn
 
-@deffn primitive hashx-ref hash assoc table key [dflt]
+@deffn {Scheme Procedure} hashx-ref hash assoc table key [dflt]
+@deffnx {C Function} scm_hashx_ref (hash, assoc, table, key, dflt)
 This behaves the same way as the corresponding @code{ref}
 function, but uses @var{hash} as a hash function and
 @var{assoc} to compare keys.  @code{hash} must be a function
@@ -5016,7 +5170,8 @@ By way of illustration, @code{hashq-ref table key} is
 equivalent to @code{hashx-ref hashq assq table key}.
 @end deffn
 
-@deffn primitive hashx-set! hash assoc table key val
+@deffn {Scheme Procedure} hashx-set! hash assoc table key val
+@deffnx {C Function} scm_hashx_set_x (hash, assoc, table, key, val)
 This behaves the same way as the corresponding @code{set!}
 function, but uses @var{hash} as a hash function and
 @var{assoc} to compare keys.  @code{hash} must be a function
@@ -5028,28 +5183,32 @@ that takes two arguments, a key to be hashed and a table size.
 equivalent to @code{hashx-set!  hashq assq table key}.
 @end deffn
 
-@deffn primitive hashq-get-handle table key
+@deffn {Scheme Procedure} hashq-get-handle table key
+@deffnx {C Function} scm_hashq_get_handle (table, key)
 This procedure returns the @code{(key . value)} pair from the
 hash table @var{table}.  If @var{table} does not hold an
 associated value for @var{key}, @code{#f} is returned.
 Uses @code{eq?} for equality testing.
 @end deffn
 
-@deffn primitive hashv-get-handle table key
+@deffn {Scheme Procedure} hashv-get-handle table key
+@deffnx {C Function} scm_hashv_get_handle (table, key)
 This procedure returns the @code{(key . value)} pair from the
 hash table @var{table}.  If @var{table} does not hold an
 associated value for @var{key}, @code{#f} is returned.
 Uses @code{eqv?} for equality testing.
 @end deffn
 
-@deffn primitive hash-get-handle table key
+@deffn {Scheme Procedure} hash-get-handle table key
+@deffnx {C Function} scm_hash_get_handle (table, key)
 This procedure returns the @code{(key . value)} pair from the
 hash table @var{table}.  If @var{table} does not hold an
 associated value for @var{key}, @code{#f} is returned.
 Uses @code{equal?} for equality testing.
 @end deffn
 
-@deffn primitive hashx-get-handle hash assoc table key
+@deffn {Scheme Procedure} hashx-get-handle hash assoc table key
+@deffnx {C Function} scm_hashx_get_handle (hash, assoc, table, key)
 This behaves the same way as the corresponding
 @code{-get-handle} function, but uses @var{hash} as a hash
 function and @var{assoc} to compare keys.  @code{hash} must be
@@ -5058,25 +5217,29 @@ table size.  @code{assoc} must be an associator function, like
 @code{assoc}, @code{assq} or @code{assv}.
 @end deffn
 
-@deffn primitive hashq-create-handle! table key init
+@deffn {Scheme Procedure} hashq-create-handle! table key init
+@deffnx {C Function} scm_hashq_create_handle_x (table, key, init)
 This function looks up @var{key} in @var{table} and returns its handle.
 If @var{key} is not already present, a new handle is created which
 associates @var{key} with @var{init}.
 @end deffn
 
-@deffn primitive hashv-create-handle! table key init
+@deffn {Scheme Procedure} hashv-create-handle! table key init
+@deffnx {C Function} scm_hashv_create_handle_x (table, key, init)
 This function looks up @var{key} in @var{table} and returns its handle.
 If @var{key} is not already present, a new handle is created which
 associates @var{key} with @var{init}.
 @end deffn
 
-@deffn primitive hash-create-handle! table key init
+@deffn {Scheme Procedure} hash-create-handle! table key init
+@deffnx {C Function} scm_hash_create_handle_x (table, key, init)
 This function looks up @var{key} in @var{table} and returns its handle.
 If @var{key} is not already present, a new handle is created which
 associates @var{key} with @var{init}.
 @end deffn
 
-@deffn primitive hashx-create-handle! hash assoc table key init
+@deffn {Scheme Procedure} hashx-create-handle! hash assoc table key init
+@deffnx {C Function} scm_hashx_create_handle_x (hash, assoc, table, key, init)
 This behaves the same way as the corresponding
 @code{-create-handle} function, but uses @var{hash} as a hash
 function and @var{assoc} to compare keys.  @code{hash} must be
@@ -5085,7 +5248,8 @@ table size.  @code{assoc} must be an associator function, like
 @code{assoc}, @code{assq} or @code{assv}.
 @end deffn
 
-@deffn primitive hash-fold proc init table
+@deffn {Scheme Procedure} hash-fold proc init table
+@deffnx {C Function} scm_hash_fold (proc, init, table)
 An iterator over hash-table elements.
 Accumulates and returns a result by applying PROC successively.
 The arguments to PROC are "(key value prior-result)" where key
@@ -5188,45 +5352,53 @@ are always called from first to last when they are invoked via
 When calling @code{hook->list}, the procedures in the resulting list are
 in the same order as they would have been called by @code{run-hook}.
 
-@deffn primitive make-hook [n_args]
+@deffn {Scheme Procedure} make-hook [n_args]
+@deffnx {C Function} scm_make_hook (n_args)
 Create a hook for storing procedure of arity @var{n_args}.
 @var{n_args} defaults to zero.  The returned value is a hook
 object to be used with the other hook procedures.
 @end deffn
 
-@deffn primitive hook? x
+@deffn {Scheme Procedure} hook? x
+@deffnx {C Function} scm_hook_p (x)
 Return @code{#t} if @var{x} is a hook, @code{#f} otherwise.
 @end deffn
 
-@deffn primitive hook-empty? hook
+@deffn {Scheme Procedure} hook-empty? hook
+@deffnx {C Function} scm_hook_empty_p (hook)
 Return @code{#t} if @var{hook} is an empty hook, @code{#f}
 otherwise.
 @end deffn
 
-@deffn primitive add-hook! hook proc [append_p]
+@deffn {Scheme Procedure} add-hook! hook proc [append_p]
+@deffnx {C Function} scm_add_hook_x (hook, proc, append_p)
 Add the procedure @var{proc} to the hook @var{hook}. The
 procedure is added to the end if @var{append_p} is true,
 otherwise it is added to the front.  The return value of this
 procedure is not specified.
 @end deffn
 
-@deffn primitive remove-hook! hook proc
+@deffn {Scheme Procedure} remove-hook! hook proc
+@deffnx {C Function} scm_remove_hook_x (hook, proc)
 Remove the procedure @var{proc} from the hook @var{hook}.  The
 return value of this procedure is not specified.
 @end deffn
 
-@deffn primitive reset-hook! hook
+@deffn {Scheme Procedure} reset-hook! hook
+@deffnx {C Function} scm_reset_hook_x (hook)
 Remove all procedures from the hook @var{hook}.  The return
 value of this procedure is not specified.
 @end deffn
 
-@deffn primitive run-hook hook . args
+@deffn {Scheme Procedure} run-hook hook . args
+@deffnx {C Function} scm_run_hook (hook, args)
 Apply all procedures from the hook @var{hook} to the arguments
 @var{args}.  The order of the procedure application is first to
 last.  The return value of this procedure is not specified.
 @end deffn
 
-@deffn primitive hook->list hook
+@deffn {Scheme Procedure} hook->list hook
+@deffnx {C Function} scm_hook_to_list (hook)
 Convert the procedure list of @var{hook} to a list.
 @end deffn
 

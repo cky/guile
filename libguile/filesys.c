@@ -382,7 +382,7 @@ SCM_DEFINE (scm_open, "open", 2, 1, 0,
 
 SCM_DEFINE (scm_close, "close", 1, 0, 0, 
             (SCM fd_or_port),
-	    "Similar to close-port (@pxref{Generic Port Operations, close-port}),\n"
+	    "Similar to close-port (@pxref{Closing, close-port}),\n"
 	    "but also works on file descriptors.  A side\n"
 	    "effect of closing a file descriptor is that any ports using that file\n"
 	    "descriptor are moved to a different file descriptor and have\n"
