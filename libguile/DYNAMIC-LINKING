@@ -36,17 +36,25 @@ Here is my plan with indications of progress.
   "dynl-dld.c", "dynl-dl.c" or "dynl-shl.c".
 
   I have renamed the SCM names of the functions, because they didnn't
-  fit very well into Guile, the semantics are the same:
+  fit very well into Guile, the semantics are mostly the same:
 
     SCM name       Guile name
 
-    dynl:link      dynamic-link
-    dynl:call      dynamic-call
-    dynl:main-call dynamic-args-call
-    dynl:unlink    dynamic-unlink
+    dynl:link      dynamic-link FILENAME
+    dynl:call      dynamic-call SYMBOL DYNOBJ
+    dynl:main-call dynamic-args-call SYMBOL DYNOBJ STRING-LIST
+    dynl:unlink    dynamic-unlink DYNOBJ
 
   I plan to generalise dynamic-call and dynamic-args-call to work with
   arbitrary arguments, so these names are likely to change.
+
+* There's now one new function
+
+    dynamic-func SYMB DYNOBJ
+
+  It determines the address of a function in a dynamic object.  The
+  result of this function can be used with `dynamic-call' and
+  `dynamic-args-call' as the SYMBOL.
 
   PROBLEMS:
 
@@ -60,6 +68,8 @@ Here is my plan with indications of progress.
   libguile as a shared library on the systems that support it. Libtool
   seems to be the right solution.
 
+* Libguile is now build using libtool and it works fine for me.
+
 
 - see how to couple dynamic linking with the module system. Dynamic
   objects should have a way to specify the module they want to add
@@ -71,9 +81,80 @@ Here is my plan with indications of progress.
   current scm_top_level_lookup_closure and do all the module switching
   from Scheme.
 
+* I now have modified scm_sysintern to use the lookup procedure when
+  there is one.  This is a temporal hack while waiting for the module
+  system to be accessible from C.
+ 
 
 - use gtcltk as a test case for the above, so that TCL/Tk capabilities
   can be added to guile at runtime.
+
+* Works.
+
+  When you link libgtcltk into your application and initialize it with
+
+    scm_init_gtcl ();
+    scm_init_gtk ();
+
+  you get the old behaviour.  If you initialize it with
+
+    scm_init_ice_9_gtcltk_module ();
+
+  the TCL/Tk functions are made available in a module called
+  #/ice-9/gtcltk.
+
+  When you don't link libgtcltk into your application but put it
+  somewhere in your %load-path, it will be linked dynamically upon the
+  first `:use-module #/ice-9/gtcltk'.  Using the %load-path for this
+  is probably not very smart.
+
+  From boot-9:
+
+;;; Dynamic linking of modules
+
+;; Initializing a module that is written in C is a two step process.
+;; First the module's `module init' function is called.  This function
+;; is expected to call `scm_register_module_xxx' to register the `real
+;; init' function.  Later, when the module is referenced for the first
+;; time, this real init function is called in the right context.  See
+;; gtcltk-lib/gtcltk-module.c for an example.
+;;
+;; The code for the module can be in a regular shared library (so that
+;; the `module init' function will be called when libguile is
+;; initialized).  Or it can be dynamically linked.
+;;
+;; You can safely call `scm_register_module_xxx' before libguile
+;; itself is initialized.  You could call it from an C++ constructor
+;; of a static object, for example.
+;;
+;; To make your Guile extension into a dynamic linkable module, follow
+;; these easy steps:
+;;
+;; - Find a name for your module, like #/ice-9/gtcltk
+;; - Write a function with a name like
+;;
+;;     scm_init_ice_9_gtcltk_module
+;;
+;;   This is your `module init' function.  It should call
+;;   
+;;     scm_register_module_xxx ("ice-9 gtcltk", scm_init_gtcltk);
+;;   
+;;   "ice-9 gtcltk" is the C version of the module name. Slashes are
+;;   replaced by spaces, the rest is untouched. `scm_init_gtcltk' is
+;;   the real init function that executes the usual initilizations
+;;   like making new smobs, etc.
+;;
+;; - Make a shared library with your code and a name like
+;;
+;;     ice-9/libgtcltk.so
+;;
+;;   and put it somewhere in %load-path.
+;;
+;; - Then you can simply write `:use-module #/ice-9/gtcltk' and it
+;;   will be linked automatically.
+;;
+;; This is all very experimental.
+
 
 - see how G-Wrap and libffi can work together and extend dyn:call to
   functions taking arbitrary arguments. Something along the lines
