@@ -1,3 +1,12 @@
+1998-09-05  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	* configure.in: Remove --disable-debug option.  The debugging
+	support is pretty stable now, and it's confusing people.
+	* configure: Regenerated.
+
+	* HACKING: Remove -Wstrict-prototypes from the list of requested
+	flags (to match 1998-07-30 change).
+
 1998-07-30  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	* configure.in: Don't use -Wstrict-prototypes after all.

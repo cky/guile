@@ -1,3 +1,30 @@
+1998-09-05  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	* stackchk.h (SCM_STACK_OVERFLOW_P): Change definition to avoid
+	signed/unsigned comparisons.
+
+	* smob.c (scm_numsmob): Make this an int, not an scm_sizet, to
+	avoid signed/unsigned comparisons.
+	* smob.h (scm_numsmob): Change extern declaration to match.
+
+	* ports.c (scm_numptob): Make this an int, not an scm_sizet, to
+	avoid signed/unsigned comparisons.
+	* ports.h (scm_numptob): Change extern declaration to match.
+	(scm_current_load_port, scm_set_port_line_x,
+	scm_set_port_column_x): New prototypes.
+
+	* gsubr.c (GSUBR_TEST): Don't #define this.  Nobody's using the
+ 	test code, and it causes warnings.
+
+	* gh.h (gh_int2scmb, gh_uniform_vector_length,
+ 	gh_uniform_vector_ref): Added prototypes.
+
+	* Makefile.am (libguile_la_SOURCES): Include Scheme-level
+	debugging support unconditionally.  That's backtrace.c, stack.c,
+	debug.c, and srcprop.c.
+	(EXTRA_libguile_la_SOURCES): Omit those from here.
+	* Makefile.in: Regenerated.
+
 1998-08-21  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* options.c (scm_options): Bugfix: Allow empty list of options!
