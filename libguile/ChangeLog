@@ -1,5 +1,7 @@
 2000-08-18  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* filesys.c (scm_fcntl): Docstring fix - missing newlines inserted.
+
 	* net_db.c (scm_gethost, scm_getnet, scm_getproto, scm_sethost,
 	scm_setnet, setproto, setserv): Argument names changed to match
 	doc string.
