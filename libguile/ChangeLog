@@ -1,3 +1,8 @@
+2005-02-08  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* deprecated.h (SCM_ARRAY_DIMS): Rename scm_i_attay_dims -->
+	scm_i_array_dims.
+
 2005-01-28  Kevin Ryde  <user42@zip.com.au>
 
 	* numbers.c (scm_ash): Rewrite using shifts, much faster than

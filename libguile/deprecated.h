@@ -5,7 +5,7 @@
 #ifndef SCM_DEPRECATED_H
 #define SCM_DEPRECATED_H
 
-/* Copyright (C) 2003,2004 Free Software Foundation, Inc.
+/* Copyright (C) 2003,2004, 2005 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -509,7 +509,7 @@ SCM_API scm_t_array_dim *scm_i_array_dims (SCM a);
 #define SCM_ARRAY_MEM(a)   scm_i_array_mem(a)
 #define SCM_ARRAY_V(a)     scm_i_array_v(a)
 #define SCM_ARRAY_BASE(a)  scm_i_array_base(a)
-#define SCM_ARRAY_DIMS(a)  scm_i_attay_dims(a)
+#define SCM_ARRAY_DIMS(a)  scm_i_array_dims(a)
 
 void scm_i_init_deprecated (void);
 
