@@ -53,7 +53,8 @@ use absolute filenames when possible.
 
 If you pass a filename without an extension to `dynamic-link', it will
 try a few appropriate ones.  Thus, the most platform ignorant way is
-specify a name like "libfoo", without any directories and extensions.
+to specify a name like "libfoo", without any directories and
+extensions.
 
 * Changes to the distribution
 
