@@ -46,11 +46,14 @@
 #include "libguile/srfi-13.h"
 #include "libguile/srfi-4.h"
 #include "libguile/vectors.h"
+#include "libguile/list.h"
+#include "libguile/deprecation.h"
 
 #include "libguile/validate.h"
 #include "libguile/unif.h"
 #include "libguile/ramap.h"
 #include "libguile/print.h"
+#include "libguile/read.h"
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -63,7 +66,7 @@
 
 /* The set of uniform scm_vector types is:
  *  Vector of:		 Called:   Replaced by:
- * unsigned char	string     u8
+ * unsigned char	string
  * char			byvect     s8
  * boolean		bvect      
  * signed long		ivect      s32
@@ -94,72 +97,90 @@ singp (SCM obj)
     }
 }
 
-static SCM
-make_uve (long type, long k, size_t size)
-#define FUNC_NAME "scm_make_uve"
-{
-  SCM_ASSERT_RANGE (1, scm_from_long (k), k <= SCM_UVECTOR_MAX_LENGTH);
+static SCM scm_i_proc_make_vector;
+static SCM scm_i_proc_make_string;
+static SCM scm_i_proc_make_u1vector;
 
-  return scm_cell (SCM_MAKE_UVECTOR_TAG (k, type),
-		   (scm_t_bits) scm_gc_malloc (k * size, "vector"));
+#if SCM_ENABLE_DEPRECATED
+
+SCM_SYMBOL (scm_sym_s, "s");
+SCM_SYMBOL (scm_sym_l, "l");
+
+SCM scm_make_u1vector (SCM len, SCM fill);
+
+SCM_DEFINE (scm_make_u1vector, "make-u1vector", 1, 1, 0,
+	    (SCM len, SCM fill),
+	    "...")
+#define FUNC_NAME s_scm_make_u1vector
+{
+  long k = scm_to_long (len);
+  if (k > 0)
+    {
+      long i;
+      SCM_ASSERT_RANGE (1, scm_from_long (k),
+			k <= SCM_BITVECTOR_MAX_LENGTH);
+      i = sizeof (long) * ((k + SCM_LONG_BIT - 1) / SCM_LONG_BIT);
+      return scm_cell (SCM_MAKE_BITVECTOR_TAG (k), 
+		       (scm_t_bits) scm_gc_malloc (i, "vector"));
+    }
+  else
+    return scm_cell (SCM_MAKE_BITVECTOR_TAG (0), 0);
 }
 #undef FUNC_NAME
+
+static SCM
+scm_i_convert_old_prototype (SCM proto)
+{
+  SCM new_proto;
+
+  /* All new 'prototypes' are creator procedures. 
+   */
+  if (scm_is_true (scm_procedure_p (proto)))
+    return proto;
+
+  if (scm_is_eq (proto, SCM_BOOL_T))
+    new_proto = scm_i_proc_make_u1vector;
+  else if (scm_is_eq (proto, SCM_MAKE_CHAR ('a')))
+    new_proto = scm_i_proc_make_string;
+  else if (scm_is_eq (proto, SCM_MAKE_CHAR (0)))
+    new_proto = scm_i_proc_make_s8vector;
+  else if (scm_is_eq (proto, scm_sym_s))
+    new_proto = scm_i_proc_make_s16vector;
+  else if (scm_is_true (scm_eqv_p (proto, scm_from_int (1))))
+    new_proto = scm_i_proc_make_u32vector;
+  else if (scm_is_true (scm_eqv_p (proto, scm_from_int (-1))))
+    new_proto = scm_i_proc_make_s32vector;
+  else if (scm_is_eq (proto, scm_sym_l))
+    new_proto = scm_i_proc_make_s64vector;
+  else if (scm_is_true (scm_eqv_p (proto, scm_from_double (1.0))))
+    new_proto = scm_i_proc_make_f32vector;
+  else if (scm_is_true (scm_eqv_p (proto, scm_divide (scm_from_int (1),
+							 scm_from_int (3)))))
+    new_proto = scm_i_proc_make_f64vector;
+  else if (scm_is_true (scm_eqv_p (proto, scm_c_make_rectangular (0, 1))))
+    new_proto = scm_i_proc_make_c64vector;
+  else if (scm_is_null (proto))
+    new_proto = scm_i_proc_make_vector;
+  else
+    new_proto = proto;
+
+  scm_c_issue_deprecation_warning
+    ("Using prototypes with arrays is deprecated.  "
+     "Use creator functions instead.");
+
+  return new_proto;
+}
+
+#endif
 
 SCM 
 scm_make_uve (long k, SCM prot)
 #define FUNC_NAME "scm_make_uve"
 {
-  if (scm_is_eq (prot, SCM_BOOL_T))
-    {
-      if (k > 0)
-	{
-	  long i;
-	  SCM_ASSERT_RANGE (1, scm_from_long (k),
-			    k <= SCM_BITVECTOR_MAX_LENGTH);
-	  i = sizeof (long) * ((k + SCM_LONG_BIT - 1) / SCM_LONG_BIT);
-	  return scm_cell (SCM_MAKE_BITVECTOR_TAG (k), 
-			   (scm_t_bits) scm_gc_malloc (i, "vector"));
-	}
-      else
-	return scm_cell (SCM_MAKE_BITVECTOR_TAG (0), 0);
-    }
-  else if (SCM_CHARP (prot) && (SCM_CHAR (prot) == '\0'))
-    return scm_make_s8vector (scm_from_long (k), SCM_UNDEFINED);
-  else if (SCM_CHARP (prot))
-    return scm_c_make_string (sizeof (char) * k, SCM_UNDEFINED);
-  else if (SCM_I_INUMP (prot))
-    return make_uve (SCM_I_INUM (prot) > 0 ? scm_tc7_uvect : scm_tc7_ivect,
-		     k,
-		     sizeof (long));
-  else if (SCM_FRACTIONP (prot))
-    {
-      if (scm_num_eq_p (exactly_one_third, prot))
-        goto dvect;
-    }
-  else if (scm_is_symbol (prot) && (1 == scm_i_symbol_length (prot)))
-    {
-      char s;
-
-      s = scm_i_symbol_chars (prot)[0];
-      if (s == 's')
-	return make_uve (scm_tc7_svect, k, sizeof (short));
-#if SCM_SIZEOF_LONG_LONG != 0
-      else if (s == 'l')
-	return make_uve (scm_tc7_llvect, k, sizeof (long long));
+#if SCM_ENABLE_DEPRECATED
+  prot = scm_i_convert_old_prototype (prot);
 #endif
-      else
-	return scm_c_make_vector (k, SCM_UNDEFINED);
-    }
-  else if (!SCM_INEXACTP (prot))
-    /* Huge non-unif vectors are NOT supported. */
-    /* no special scm_vector */
-    return scm_c_make_vector (k, SCM_UNDEFINED);
-  else if (singp (prot))
-    return make_uve (scm_tc7_fvect, k, sizeof (float));
-  else if (SCM_COMPLEXP (prot))
-    return make_uve (scm_tc7_cvect, k, 2 * sizeof (double));
- dvect:
-  return make_uve (scm_tc7_dvect, k, sizeof (double));
+  return scm_call_2 (prot, scm_from_long (k), SCM_UNDEFINED);
 }
 #undef FUNC_NAME
 
@@ -186,12 +207,31 @@ SCM_DEFINE (scm_array_p, "array?", 1, 1, 0,
       v = SCM_ARRAY_V (v);
     }
 
+  /* XXX - clean up
+   */
   if (scm_is_uniform_vector (v))
     {
       if (nprot)
 	return SCM_BOOL_T;
       else
-	return scm_eq_p (prot, scm_i_uniform_vector_prototype (v));
+	{
+#if SCM_ENABLE_DEPRECATED
+	  prot = scm_i_convert_old_prototype (prot);
+#endif
+	  return scm_eq_p (prot, scm_i_uniform_vector_creator (v));
+	}
+    }
+  else if (scm_is_true (scm_vector_p (v)))
+    {
+      if (nprot)
+	return SCM_BOOL_T;
+      else
+	{
+#if SCM_ENABLE_DEPRECATED
+	  prot = scm_i_convert_old_prototype (prot);
+#endif
+	  return scm_eq_p (prot, scm_i_proc_make_vector);
+	}
     }
 
   if (nprot)
@@ -520,7 +560,7 @@ SCM_DEFINE (scm_dimensions_to_uniform_array, "dimensions->uniform-array", 2, 1, 
 	scm_array_fill_x (answer, fill);
       else if (scm_is_symbol (prot) || scm_is_eq (prot, SCM_MAKE_CHAR (0)))
 	scm_array_fill_x (answer, scm_from_int (0));
-      else
+      else if (scm_is_false (scm_procedure_p (prot)))
 	scm_array_fill_x (answer, prot);
       return answer;
     }
@@ -545,7 +585,7 @@ SCM_DEFINE (scm_dimensions_to_uniform_array, "dimensions->uniform-array", 2, 1, 
     scm_array_fill_x (ra, fill);
   else if (scm_is_symbol (prot) || scm_is_eq (prot, SCM_MAKE_CHAR (0)))
     scm_array_fill_x (ra, scm_from_int (0));
-  else
+  else if (scm_is_false (scm_procedure_p (prot)))
     scm_array_fill_x (ra, prot);
 
   if (1 == SCM_ARRAY_NDIM (ra) && 0 == SCM_ARRAY_BASE (ra))
@@ -2178,26 +2218,51 @@ SCM_DEFINE (scm_list_to_uniform_array, "list->uniform-array", 3, 0, 0,
 	    "Return a uniform array of the type indicated by prototype\n"
 	    "@var{prot} with elements the same as those of @var{lst}.\n"
 	    "Elements must be of the appropriate type, no coercions are\n"
-	    "done.")
+	    "done.\n"
+	    "\n"
+	    "The argument @var{ndim} determines the number of dimensions\n"
+	    "of the array.  It is either an exact integer, giving the\n"
+	    " number directly, or a list of exact integers, whose length\n"
+	    "specifies the number of dimensions and each element is the\n"
+	    "lower index bound of its dimension.")
 #define FUNC_NAME s_scm_list_to_uniform_array
 {
-  SCM shp = SCM_EOL;
-  SCM row = lst;
+  SCM shape, row;
   SCM ra;
   unsigned long k;
-  long n;
-  k = scm_to_ulong (ndim);
-  while (k--)
+
+  shape = SCM_EOL;
+  row = lst;
+  if (scm_is_integer (ndim))
     {
-      n = scm_ilength (row);
-      SCM_ASSERT (n >= 0, lst, SCM_ARG3, FUNC_NAME);
-      shp = scm_cons (scm_from_long (n), shp);
-      if (SCM_NIMP (row))
-	row = SCM_CAR (row);
+      size_t k = scm_to_size_t (ndim);
+      while (k-- > 0)
+	{
+	  shape = scm_cons (scm_length (row), shape);
+	  if (k > 0)
+	    row = scm_car (row);
+	}
     }
-  ra = scm_dimensions_to_uniform_array (scm_reverse (shp), prot,
+  else
+    {
+      while (1)
+	{
+	  shape = scm_cons (scm_list_2 (scm_car (ndim),
+					scm_sum (scm_sum (scm_car (ndim),
+							  scm_length (row)),
+						 scm_from_int (-1))),
+			    shape);
+	  ndim = scm_cdr (ndim);
+	  if (scm_is_pair (ndim))
+	    row = scm_car (row);
+	  else
+	    break;
+	}
+    }
+
+  ra = scm_dimensions_to_uniform_array (scm_reverse_x (shape, SCM_EOL), prot,
 					SCM_UNDEFINED);
-  if (scm_is_null (shp))
+  if (scm_is_null (shape))
     {
       SCM_ASRTGO (1 == scm_ilength (lst), badlst);
       scm_array_set_x (ra, SCM_CAR (lst), SCM_EOL);
@@ -2507,7 +2572,10 @@ scm_i_legacy_tag (SCM v)
  *   #<rank><unif><@lower><@lower>...
  *
  * <rank> is a positive integer in decimal giving the rank of the
- * array.  It is omitted when the rank is 1.
+ * array.  It is omitted when the rank is 1 and the array is
+ * non-shared and has zero-origin.  For shared arrays and for a
+ * non-zero origin, the rank is always printed even when it is 1 to
+ * dinstinguish them from ordinary vectors.
  *
  * <unif> is the tag for a uniform (or homogenous) numeric vector,
  * like u8, s16, etc, as defined by SRFI-4.  It is omitted when the
@@ -2544,7 +2612,7 @@ scm_i_print_array (SCM array, SCM port, scm_print_state *pstate)
   long i;
 
   scm_putc ('#', port);
-  if (ndim != 1)
+  if (rank != 1 || dim_specs[0].lbnd != 0)
     scm_intprint (ndim, 10, port);
   if (scm_is_uniform_vector (SCM_ARRAY_V (array)))
     scm_puts (scm_i_uniform_vector_tag (SCM_ARRAY_V (array)), port);
@@ -2570,13 +2638,223 @@ scm_i_print_array (SCM array, SCM port, scm_print_state *pstate)
   return scm_i_print_array_dimension (array, 0, base, port, pstate);
 }
 
+/* Read an array.  This function can also read vectors and uniform
+   vectors.  Also, the conflict between '#f' and '#f32' and '#f64' is
+   handled here.
+
+   C is the first character read after the '#'.
+*/
+
+typedef struct {
+  const char *tag;
+  SCM *proto_var;
+} tag_proto;
+
+static SCM scm_i_proc_make_vector;
+
+static tag_proto tag_proto_table[] = {
+  { "", &scm_i_proc_make_vector },
+  { "u8", &scm_i_proc_make_u8vector },
+  { "s8", &scm_i_proc_make_s8vector },
+  { "u16", &scm_i_proc_make_u16vector },
+  { "s16", &scm_i_proc_make_s16vector },
+  { "u32", &scm_i_proc_make_u32vector },
+  { "s32", &scm_i_proc_make_s32vector },
+  { "u64", &scm_i_proc_make_u64vector },
+  { "s64", &scm_i_proc_make_s64vector },
+  { "f32", &scm_i_proc_make_f32vector },
+  { "f64", &scm_i_proc_make_f64vector },
+  { NULL, NULL }
+};
+
+static SCM
+scm_i_tag_to_prototype (const char *tag, SCM port)
+{
+  tag_proto *tp;
+
+  for (tp = tag_proto_table; tp->tag; tp++)
+    if (!strcmp (tp->tag, tag))
+      return *(tp->proto_var);
+  
+#if SCM_ENABLE_DEPRECATED
+  {
+    /* Recognize the old syntax, producing the old prototypes.
+     */
+    SCM proto = SCM_EOL;
+    const char *instead;
+    switch (tag[0])
+      {
+      case 'a':
+	proto = SCM_MAKE_CHAR ('a');
+	instead = "???";
+	break;
+      case 'u':
+	proto = scm_from_int (1);
+	instead = "u32";
+	break;
+      case 'e':
+	proto = scm_from_int (-1);
+	instead = "s32";
+	break;
+      case 's':
+	proto = scm_from_double (1.0);
+	instead = "f32";
+	break;
+      case 'i':
+	proto = scm_divide (scm_from_int (1), scm_from_int (3));
+	instead = "f64";
+	break;
+      case 'y':
+	proto = SCM_MAKE_CHAR (0);
+	instead = "s8";
+	break;
+      case 'h':
+	proto = scm_from_locale_symbol ("s");
+	instead = "s16";
+	break;
+      case 'l':
+	proto = scm_from_locale_symbol ("l");
+	instead = "s64";
+	break;
+      case 'c':
+	proto = scm_c_make_rectangular (0.0, 1.0);
+	instead = "???";
+	break;
+      }
+    if (!scm_is_eq (proto, SCM_EOL) && tag[1] == '\0')
+      {
+	scm_c_issue_deprecation_warning_fmt
+	  ("The tag '%c' is deprecated for uniform vectors. "
+	   "Use '%s' instead.", tag[0], instead);
+	return proto;
+      }
+  }
+#endif
+
+  scm_i_input_error (NULL, port,
+		     "unrecognized uniform array tag: ~a",
+		     scm_list_1 (scm_from_locale_string (tag)));
+  return SCM_BOOL_F;
+}
+
+SCM
+scm_i_read_array (SCM port, int c)
+{
+  size_t rank;
+  int got_rank;
+  char tag[80];
+  int tag_len;
+
+  SCM lower_bounds, elements;
+
+  /* XXX - shortcut for ordinary vectors.  Shouldn't be necessary but
+     the array code can not deal with zero-length dimensions yet, and
+     we want to allow zero-length vectors, of course.
+  */
+  if (c == '(')
+    {
+      scm_ungetc (c, port);
+      return scm_vector (scm_read (port));
+    }
+
+  /* Disambiguate between '#f' and uniform floating point vectors.
+   */
+  if (c == 'f')
+    {
+      c = scm_getc (port);
+      if (c != '3' && c != '6')
+	{
+	  if (c != EOF)
+	    scm_ungetc (c, port);
+	  return SCM_BOOL_F;
+	}
+      rank = 1;
+      got_rank = 1;
+      tag[0] = 'f';
+      tag_len = 1;
+      goto continue_reading_tag;
+    }
+
+  /* Read rank.  We disallow arrays of rank zero since they do not
+     seem to work reliably yet. */
+  rank = 0;
+  got_rank = 0;
+  while ('0' <= c && c <= '9')
+    {
+      rank = 10*rank + c-'0';
+      got_rank = 1;
+      c = scm_getc (port);
+    }
+  if (!got_rank)
+    rank = 1;
+  else if (rank == 0)
+    scm_i_input_error (NULL, port,
+		       "array rank must be positive", SCM_EOL);
+
+  /* Read tag. */
+  tag_len = 0;
+ continue_reading_tag:
+  while (c != EOF && c != '(' && c != '@' && tag_len < 80)
+    {
+      tag[tag_len++] = c;
+      c = scm_getc (port);
+    }
+  tag[tag_len] = '\0';
+  
+  /* Read lower bounds. */
+  lower_bounds = SCM_EOL;
+  while (c == '@')
+    {
+      /* Yeah, right, we should use some ready-made integer parsing
+	 routine for this...
+       */
+
+      long lbnd = 0;
+      long sign = 1;
+
+      c = scm_getc (port);
+      if (c == '-')
+	{
+	  sign = -1;
+	  c = scm_getc (port);
+	}
+      while ('0' <= c && c <= '9')
+	{
+	  lbnd = 10*lbnd + c-'0';
+	  c = scm_getc (port);
+	}
+      lower_bounds = scm_cons (scm_from_long (sign*lbnd), lower_bounds);
+    }
+
+  /* Read nested lists of elements.
+   */
+  if (c != '(')
+    scm_i_input_error (NULL, port,
+		       "missing '(' in vector or array literal",
+		       SCM_EOL);
+  scm_ungetc (c, port);
+  elements = scm_read (port);
+
+  if (scm_is_null (lower_bounds))
+    lower_bounds = scm_from_size_t (rank);
+  else if (scm_ilength (lower_bounds) != rank)
+    scm_i_input_error (NULL, port,
+		       "the number of lower bounds must match the array rank",
+		       SCM_EOL);
+
+  /* Construct array. */
+  return scm_list_to_uniform_array (lower_bounds,
+				    scm_i_tag_to_prototype (tag, port),
+				    elements);
+}
+
 int 
 scm_raprin1 (SCM exp, SCM port, scm_print_state *pstate)
 {
   SCM v = exp;
   unsigned long base = 0;
 
-  if (SCM_ARRAYP (exp)) // && scm_is_uniform_vector (SCM_ARRAY_V (exp)))
+  if (SCM_ARRAYP (exp) && !SCM_ARRAYP (SCM_ARRAY_V (exp)))
     return scm_i_print_array (exp, port, pstate);
 
   scm_putc ('#', port);
@@ -2675,7 +2953,9 @@ SCM_DEFINE (scm_array_prototype, "array-prototype", 1, 0, 0,
   SCM_ASRTGO (SCM_NIMP (ra), badarg);
 loop:
   if (scm_is_uniform_vector (ra))
-    return scm_i_uniform_vector_prototype (ra);
+    return scm_i_uniform_vector_creator (ra);
+  else if (scm_is_true (scm_vector_p (ra)))
+    return scm_i_proc_make_vector;
 
   switch SCM_TYP7 (ra)
     {
@@ -2744,6 +3024,10 @@ scm_init_unif ()
 							scm_from_int (3)));
   scm_add_feature ("array");
 #include "libguile/unif.x"
+
+  scm_i_proc_make_vector = scm_variable_ref (scm_c_lookup ("make-vector"));
+  scm_i_proc_make_string = scm_variable_ref (scm_c_lookup ("make-string"));
+  scm_i_proc_make_u1vector = scm_variable_ref (scm_c_lookup ("make-u1vector"));
 }
 
 /*
