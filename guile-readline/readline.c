@@ -468,7 +468,7 @@ static int
 match_paren (int x, int k)
 {
   int tmp;
-  fd_set readset;
+  SELECT_TYPE readset;
   struct timeval timeout;
   
   rl_insert (x, k);
