@@ -61,6 +61,7 @@
 #include "eq.h"
 #include "error.h"
 #include "eval.h"
+#include "evalext.h"
 #include "feature.h"
 #include "filesys.h"
 #include "fluids.h"
@@ -77,6 +78,7 @@
 #include "kw.h"
 #include "list.h"
 #include "load.h"
+#include "macros.h"
 #include "mallocs.h"
 #include "net_db.h"
 #include "numbers.h"
@@ -444,6 +446,7 @@ scm_boot_guile_1 (base, closure)
       scm_init_ioext ();
       scm_init_kw ();
       scm_init_list ();
+      scm_init_macros ();
       scm_init_mallocs ();
       scm_init_net_db ();
       scm_init_numbers ();
@@ -483,6 +486,7 @@ scm_boot_guile_1 (base, closure)
       scm_init_weaks ();
       scm_init_vports ();
       scm_init_eval ();
+      scm_init_evalext ();
 #ifdef DEBUG_EXTENSIONS
       scm_init_debug ();	/* Requires macro smobs */
 #endif
