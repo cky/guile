@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996,1998, 2000 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -128,15 +128,15 @@ scm_i_procedure_arity (SCM proc)
       proc = SCM_PROCEDURE (proc);
       goto loop;
     case scm_tcs_closures:
-      proc = SCM_CAR (SCM_CODE (proc));
-      if (SCM_IMP (proc))
+      proc = SCM_CLOSURE_FORMALS (proc);
+      if (SCM_NULLP (proc))
 	break;
       while (SCM_CONSP (proc))
 	{
 	  ++a;
 	  proc = SCM_CDR (proc);
 	}
-      if (SCM_NIMP (proc))
+      if (!SCM_NULLP (proc))
 	r = 1;
       break;
     case scm_tcs_cons_gloc:

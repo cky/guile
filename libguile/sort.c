@@ -1,4 +1,4 @@
-/*      Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+/* Copyright (C) 1999,2000,2001 Free Software Foundation, Inc.
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2, or (at your option)
@@ -374,7 +374,7 @@ lsubrless (SCM less, const void *a, const void *b)
 static int 
 closureless (SCM code, const void *a, const void *b)
 {
-  SCM env = SCM_EXTEND_ENV (SCM_CAR (SCM_CODE (code)),
+  SCM env = SCM_EXTEND_ENV (SCM_CLOSURE_FORMALS (code),
 			    scm_cons (*(SCM *) a,
 				      scm_cons (*(SCM *) b, SCM_EOL)),
 			    SCM_ENV (code));

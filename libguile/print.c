@@ -128,8 +128,8 @@ char *scm_isymnames[] =
 };
 
 scm_option scm_print_opts[] = {
-  { SCM_OPTION_SCM, "closure-hook", SCM_UNPACK(SCM_BOOL_F),
-    "Hook for printing closures." },
+  { SCM_OPTION_SCM, "closure-hook", SCM_UNPACK (SCM_BOOL_F),
+    "Hook for printing closures (should handle macros as well)." },
   { SCM_OPTION_BOOLEAN, "source", 0,
     "Print closures with source." }
 };
@@ -310,6 +310,7 @@ print_circref (SCM port,scm_print_state *pstate,SCM ref)
 SCM_GPROC(s_write, "write", 1, 1, 0, scm_write, g_write);
 SCM_GPROC(s_display, "display", 1, 1, 0, scm_display, g_display);
 
+
 void 
 scm_iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 {
@@ -408,83 +409,29 @@ taloop:
 	circref:
 	  print_circref (port, pstate, exp);
 	  break;
-	macros:
-	  if (!SCM_CLOSUREP (SCM_CDR (exp)))
-	    goto prinmacro;
 	case scm_tcs_closures:
-	  /* The user supplied print closure procedure must handle
-	     macro closures as well. */
 	  if (SCM_FALSEP (scm_procedure_p (SCM_PRINT_CLOSURE))
 	      || SCM_FALSEP (scm_printer_apply (SCM_PRINT_CLOSURE,
 						exp, port, pstate)))
-	  {
-	    SCM name, code, env;
-	    if (SCM_MACROP (exp))
-	      {
-		/* Printing a macro. */
-	      prinmacro:
-		name = scm_macro_name (exp);
-		if (!SCM_CLOSUREP (SCM_CDR (exp)))
-		  {
-		    code = env = SCM_UNDEFINED;
-		    scm_puts ("#<primitive-", port);
-		  }
-		else
-		  {
-		    code = SCM_CODE (SCM_CDR (exp));
-		    env = SCM_ENV (SCM_CDR (exp));
-		    scm_puts ("#<", port);
-		  }
-		if (SCM_CELL_WORD_0 (exp) & (3L << 16))
-		  scm_puts ("macro", port);
-		else
-		  scm_puts ("syntax", port);
-		if (SCM_CELL_WORD_0 (exp) & (2L << 16))
-		  scm_putc ('!', port);
-	      }
-	    else
-	      {
-		/* Printing a closure. */
-		name = scm_procedure_name (exp);
-		code = SCM_CODE (exp);
-		env = SCM_ENV (exp);
-		scm_puts ("#<procedure", port);
-	      }
-	    if (SCM_SYMBOLP (name))
-	      {
-		scm_putc (' ', port);
-		scm_lfwrite (SCM_SYMBOL_CHARS (name), SCM_SYMBOL_LENGTH (name), port);
-	      }
-	    else if (SCM_STRINGP (name))
-	      {
-		scm_putc (' ', port);
-		scm_lfwrite (SCM_STRING_CHARS (name), SCM_STRING_LENGTH (name), port);
-	      }
-	    if (!SCM_UNBNDP (code))
-	      {
-		if (SCM_PRINT_SOURCE_P)
-		  {
-		    code = scm_unmemocopy (code,
-					   SCM_EXTEND_ENV (SCM_CAR (code),
-							   SCM_EOL,
-							   env));
-		    ENTER_NESTED_DATA (pstate, exp, circref);
-		    scm_iprlist (" ", code, '>', port, pstate);
-		    EXIT_NESTED_DATA (pstate);
-		  }
-		else
-		  {
-		    if (SCM_TYP16 (exp) != scm_tc16_macro)
-		      {
-			scm_putc (' ', port);
-			scm_iprin1 (SCM_CAR (code), port, pstate);
-		      }
-		    scm_putc ('>', port);
-		  }
-	      }
-	    else
+	    {
+	      SCM formals = SCM_CLOSURE_FORMALS (exp);
+	      scm_puts ("#<procedure", port);
+	      scm_putc (' ', port);
+	      scm_iprin1 (scm_procedure_name (exp), port, pstate);
+	      scm_putc (' ', port);
+	      if (SCM_PRINT_SOURCE_P)
+		{
+		  SCM env = SCM_ENV (exp);
+		  SCM xenv = SCM_EXTEND_ENV (formals, SCM_EOL, env);
+		  SCM src = scm_unmemocopy (SCM_CODE (exp), xenv);
+		  ENTER_NESTED_DATA (pstate, exp, circref);
+		  scm_iprin1 (src, port, pstate);
+		  EXIT_NESTED_DATA (pstate);
+		}
+	      else
+		scm_iprin1 (formals, port, pstate);
 	      scm_putc ('>', port);
-	  }
+	    }
 	  break;
 	case scm_tc7_substring:
 	case scm_tc7_string:
@@ -698,19 +645,10 @@ taloop:
 	    register long i;
 	    ENTER_NESTED_DATA (pstate, exp, circref);
 	    i = SCM_SMOBNUM (exp);
-	    if (i < scm_numsmob && scm_smobs[i].print
-		&& (scm_smobs[i].print) (exp, port, pstate))
-	      {
-		EXIT_NESTED_DATA (pstate);
-		break;
-	      }
+	    if (i < scm_numsmob && scm_smobs[i].print)
+	      (scm_smobs[i].print) (exp, port, pstate);
 	    EXIT_NESTED_DATA (pstate);
-	    /* Macros have their print field set to NULL.  They are
-	       handled at the same place as closures in order to achieve
-	       non-redundancy.  Placing the condition here won't slow
-	       down printing of other smobs. */
-	    if (SCM_TYP16 (exp) == scm_tc16_macro)
-	      goto macros;
+	    break;
 	  }
 	default:
 	punk:

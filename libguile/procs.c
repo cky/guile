@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995, 1996, 1997, 1999, 2000 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1999,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -223,7 +223,7 @@ SCM_DEFINE (scm_closure_p, "closure?", 1, 0, 0,
 	    "Return @code{#t} if @var{obj} is a closure.")
 #define FUNC_NAME s_scm_closure_p
 {
-  return SCM_BOOL(SCM_CLOSUREP (obj));
+  return SCM_BOOL (SCM_CLOSUREP (obj));
 }
 #undef FUNC_NAME
 
@@ -238,8 +238,7 @@ SCM_DEFINE (scm_thunk_p, "thunk?", 1, 0, 0,
       switch (SCM_TYP7 (obj))
 	{
 	case scm_tcs_closures:
-	  if (SCM_NULLP (SCM_CAR (SCM_CODE (obj))))
-	    return SCM_BOOL_T;
+	  return SCM_BOOL (!SCM_CONSP (SCM_CLOSURE_FORMALS (obj)));
 	case scm_tc7_subr_0:
 	case scm_tc7_subr_1o:
 	case scm_tc7_lsubr:

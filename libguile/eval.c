@@ -1489,10 +1489,10 @@ scm_badargsp (SCM formals, SCM args)
 static int 
 scm_badformalsp (SCM closure, int n)
 {
-  SCM formals = SCM_CAR (SCM_CODE (closure));
-  while (SCM_NIMP (formals))
+  SCM formals = SCM_CLOSURE_FORMALS (closure);
+  while (!SCM_NULLP (formals))
     {
-      if (SCM_NCONSP (formals)) 
+      if (!SCM_CONSP (formals)) 
         return 0;
       if (n == 0) 
         return 1;
@@ -2218,7 +2218,7 @@ dispatch:
 	      debug.info->a.args = t.arg1;
 #endif
 #ifndef SCM_RECKLESS
-	      if (scm_badargsp (SCM_CAR (SCM_CODE (proc)), t.arg1))
+	      if (scm_badargsp (SCM_CLOSURE_FORMALS (proc), t.arg1))
 		goto wrongnumargs;
 #endif
 	      ENTER_APPLY;
@@ -2238,7 +2238,7 @@ dispatch:
 		  SCM_SETCDR (tl, t.arg1);
 		}
 	      
-	      env = EXTEND_ENV (SCM_CAR (SCM_CODE (proc)), argl, SCM_ENV (proc));
+	      env = EXTEND_ENV (SCM_CLOSURE_FORMALS (proc), argl, SCM_ENV (proc));
 	      x = SCM_CODE (proc);
 	      goto nontoplevel_cdrxbegin;
 	    }
@@ -2630,9 +2630,9 @@ dispatch:
 #endif
       if (SCM_CLOSUREP (proc))
 	{
-	  arg2 = SCM_CAR (SCM_CODE (proc));
+	  arg2 = SCM_CLOSURE_FORMALS (proc);
 	  t.arg1 = SCM_CDR (x);
-	  while (!SCM_IMP (arg2))
+	  while (!SCM_NULLP (arg2))
 	    {
 	      if (!SCM_CONSP (arg2))
 		goto evapply;
@@ -2690,7 +2690,7 @@ evapply:
 	  goto umwrongnumargs;
       case scm_tcs_closures:
 	x = SCM_CODE (proc);
-	env = EXTEND_ENV (SCM_CAR (x), SCM_EOL, SCM_ENV (proc));
+	env = EXTEND_ENV (SCM_CLOSURE_FORMALS (proc), SCM_EOL, SCM_ENV (proc));
 	goto nontoplevel_cdrxbegin;
       case scm_tcs_cons_gloc:
 	if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
@@ -2842,9 +2842,9 @@ evapply:
 	  /* clos1: */
 	  x = SCM_CODE (proc);
 #ifdef DEVAL
-	  env = EXTEND_ENV (SCM_CAR (x), debug.info->a.args, SCM_ENV (proc));
+	  env = EXTEND_ENV (SCM_CLOSURE_FORMALS (proc), debug.info->a.args, SCM_ENV (proc));
 #else
-	  env = EXTEND_ENV (SCM_CAR (x), scm_cons (t.arg1, SCM_EOL), SCM_ENV (proc));
+	  env = EXTEND_ENV (SCM_CLOSURE_FORMALS (proc), scm_cons (t.arg1, SCM_EOL), SCM_ENV (proc));
 #endif
 	  goto nontoplevel_cdrxbegin;
 	case scm_tcs_cons_gloc:
@@ -3005,11 +3005,11 @@ evapply:
 	case scm_tcs_closures:
 	  /* clos2: */
 #ifdef DEVAL
-	  env = EXTEND_ENV (SCM_CAR (SCM_CODE (proc)),
+	  env = EXTEND_ENV (SCM_CLOSURE_FORMALS (proc),
 			    debug.info->a.args,
 			    SCM_ENV (proc));
 #else
-	  env = EXTEND_ENV (SCM_CAR (SCM_CODE (proc)),
+	  env = EXTEND_ENV (SCM_CLOSURE_FORMALS (proc),
 			    scm_cons2 (t.arg1, arg2, SCM_EOL), SCM_ENV (proc));
 #endif
 	  x = SCM_CODE (proc);
@@ -3083,11 +3083,11 @@ evapply:
 	debug.info->a.proc = proc;
 	if (!SCM_CLOSUREP (proc))
 	  goto evap3;
-	if (scm_badargsp (SCM_CAR (SCM_CODE (proc)), debug.info->a.args))
+	if (scm_badargsp (SCM_CLOSURE_FORMALS (proc), debug.info->a.args))
 	  goto umwrongnumargs;
       case scm_tcs_closures:
 	SCM_SET_ARGSREADY (debug);
-	env = EXTEND_ENV (SCM_CAR (SCM_CODE (proc)),
+	env = EXTEND_ENV (SCM_CLOSURE_FORMALS (proc),
 			      debug.info->a.args,
 			      SCM_ENV (proc));
 	x = SCM_CODE (proc);
@@ -3145,7 +3145,7 @@ evapply:
 	if (!SCM_CLOSUREP (proc))
 	  goto evap3;
 	{
-	  SCM formals = SCM_CAR (SCM_CODE (proc));
+	  SCM formals = SCM_CLOSURE_FORMALS (proc);
 	  if (SCM_NULLP (formals)
 	      || (SCM_CONSP (formals)
 		  && (SCM_NULLP (SCM_CDR (formals))
@@ -3157,7 +3157,7 @@ evapply:
 #ifdef DEVAL
 	SCM_SET_ARGSREADY (debug);
 #endif
-	env = EXTEND_ENV (SCM_CAR (SCM_CODE (proc)),
+	env = EXTEND_ENV (SCM_CLOSURE_FORMALS (proc),
 			      scm_cons2 (t.arg1,
 					 arg2,
 					 scm_eval_args (x, env, proc)),
@@ -3471,7 +3471,7 @@ tail:
       arg1 = (SCM_UNBNDP (arg1) ? SCM_EOL : scm_cons (arg1, args));
 #endif
 #ifndef SCM_RECKLESS
-      if (scm_badargsp (SCM_CAR (SCM_CODE (proc)), arg1))
+      if (scm_badargsp (SCM_CLOSURE_FORMALS (proc), arg1))
 	goto wrongnumargs;
 #endif
       
@@ -3490,7 +3490,7 @@ tail:
 	  SCM_SETCDR (tl, arg1);
 	}
       
-      args = EXTEND_ENV (SCM_CAR (SCM_CODE (proc)), args, SCM_ENV (proc));
+      args = EXTEND_ENV (SCM_CLOSURE_FORMALS (proc), args, SCM_ENV (proc));
       proc = SCM_CDR (SCM_CODE (proc));
     again:
       arg1 = proc;

@@ -1,5 +1,33 @@
 2001-04-19  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* procs.h (SCM_CLOSURE_FORMALS):  New macro.
+
+	* debug.c (scm_procedure_source), eval.c (scm_badformalsp,
+	SCM_CEVAL, SCM_APPLY), goops.c (get_slot_value, set_slot_value),
+	procprop.c (scm_i_procedure_arity), sort.c (closureless):  Use 
+	SCM_CLOSURE_FORMALS.
+
+	* eval.c (scm_badformalsp, SCM_CEVAL), procprop.c
+	(scm_i_procedure_arity):  Prefer stronger predicates like
+	SCM_NULLP or SCM_FALSEP over SCM_IMP.
+
+	* macros.c (macro_print):  Extracted macro printing code from
+	print.c and simplified it.
+
+	(scm_macro_type):  Use SCM_MACRO_TYPE;
+
+	(scm_init_macros):  Use macro_print for printing macros.
+
+	* print.c (scm_print_opts):  Improved option documentation.
+
+	(scm_iprin1):  Extracted printing of macros to macros.c.
+	Simplified printing of ordinary closures.
+
+	* procs.c (scm_thunk_p):  Fixed handling of closures.  Thanks to
+	Martin Grabmueller for the bug report.
+
+2001-04-19  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	This patch eliminates some further applications of SCM_C[AD]R to
 	non pair cells.
 

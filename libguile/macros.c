@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996,1997,1998, 2000 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,6 +45,10 @@
 
 
 #include "libguile/_scm.h"
+#include "libguile/alist.h" /* for SCM_EXTEND_ENV (well...) */
+#include "libguile/eval.h"
+#include "libguile/ports.h"
+#include "libguile/print.h"
 #include "libguile/root.h"
 #include "libguile/smob.h"
 
@@ -52,6 +56,47 @@
 #include "libguile/macros.h"
 
 scm_bits_t scm_tc16_macro;
+
+
+static int
+macro_print (SCM macro, SCM port, scm_print_state *pstate)
+{
+  SCM code = SCM_MACRO_CODE (macro);
+  if (!SCM_CLOSUREP (code)
+      || SCM_FALSEP (scm_procedure_p (SCM_PRINT_CLOSURE))
+      || SCM_FALSEP (scm_printer_apply (SCM_PRINT_CLOSURE,
+					macro, port, pstate)))
+    {
+      if (!SCM_CLOSUREP (code))
+	scm_puts ("#<primitive-", port);
+      else
+	scm_puts ("#<", port);
+
+      if (SCM_MACRO_TYPE (macro) == 0)
+	scm_puts ("syntax", port);
+      else if (SCM_MACRO_TYPE (macro) == 1)
+	scm_puts ("macro", port);
+      if (SCM_MACRO_TYPE (macro) == 2)
+	scm_puts ("macro!", port);
+      scm_putc (' ', port);
+      scm_iprin1 (scm_macro_name (macro), port, pstate);
+
+      if (SCM_CLOSUREP (code) && SCM_PRINT_SOURCE_P)
+	{
+	  SCM formals = SCM_CLOSURE_FORMALS (code);
+	  SCM env = SCM_ENV (code);
+	  SCM xenv = SCM_EXTEND_ENV (formals, SCM_EOL, env);
+	  SCM src = scm_unmemocopy (SCM_CODE (code), xenv);
+	  scm_putc (' ', port);
+	  scm_iprin1 (src, port, pstate);
+	}
+
+      scm_putc ('>', port);
+    }
+
+  return 1;
+}
+
 
 SCM_DEFINE (scm_makacro, "procedure->syntax", 1, 0, 0,
             (SCM code),
@@ -139,7 +184,7 @@ SCM_DEFINE (scm_macro_type, "macro-type", 1, 0, 0,
 {
   if (!SCM_TYP16_PREDICATE (scm_tc16_macro, m))
     return SCM_BOOL_F;
-  switch (SCM_CELL_WORD_0 (m) >> 16)
+  switch (SCM_MACRO_TYPE (m))
     {
     case 0: return scm_sym_syntax;
     case 1: return scm_sym_macro;
@@ -186,6 +231,7 @@ scm_init_macros ()
 {
   scm_tc16_macro = scm_make_smob_type ("macro", 0);
   scm_set_smob_mark (scm_tc16_macro, scm_markcdr);
+  scm_set_smob_print (scm_tc16_macro, macro_print);
 #ifndef SCM_MAGIC_SNARFER
 #include "libguile/macros.x"
 #endif

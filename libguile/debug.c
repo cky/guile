@@ -429,7 +429,7 @@ SCM_DEFINE (scm_procedure_source, "procedure-source", 1, 0, 0,
       SCM src;
       src = scm_source_property (SCM_CDR (SCM_CODE (proc)), scm_sym_copy);
       if (! SCM_FALSEP (src))
-	return scm_cons2 (scm_sym_lambda, SCM_CAR (SCM_CODE (proc)), src);
+	return scm_cons2 (scm_sym_lambda, SCM_CLOSURE_FORMALS (proc), src);
       src = SCM_CODE (proc);
       return scm_cons (scm_sym_lambda,
 		       scm_unmemocopy (src,

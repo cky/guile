@@ -1,4 +1,4 @@
-/*	Copyright (C) 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
+/* Copyright (C) 1998,1999,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1065,7 +1065,7 @@ get_slot_value (SCM class, SCM obj, SCM slotdef)
       code = SCM_CAR (access);
       if (!SCM_CLOSUREP (code))
 	return SCM_SUBRF (code) (obj);
-      env  = SCM_EXTEND_ENV (SCM_CAR (SCM_CODE (code)),
+      env  = SCM_EXTEND_ENV (SCM_CLOSURE_FORMALS (code),
 			     SCM_LIST1 (obj),
 			     SCM_ENV (code));
       /* Evaluate the closure body */
@@ -1104,7 +1104,7 @@ set_slot_value (SCM class, SCM obj, SCM slotdef, SCM value)
 	SCM_SUBRF (code) (obj, value);
       else
 	{
-	  env  = SCM_EXTEND_ENV (SCM_CAR (SCM_CODE (code)),
+	  env  = SCM_EXTEND_ENV (SCM_CLOSURE_FORMALS (code),
 				 SCM_LIST2 (obj, value),
 				 SCM_ENV (code));
 	  /* Evaluate the closure body */
