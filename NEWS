@@ -30,9 +30,78 @@ the following builtin procedures:
 
 There is no `fluid-let' yet.
 
-** A new procedure primitive-exit can be used to terminate the current
-process without unwinding the Scheme stack.  This would usually be used
-after a fork.
+* Changes to system call interfaces:
+
+** close-port, close-input-port and close-output-port now return a
+boolean instead of an `unspecified' object.  #t means that the port
+was successfully closed, while #f means it was already closed.  It is
+also now possible for these procedures to raise an exception if an
+error occurs (some errors from write can be delayed until close.)
+
+** The following new procedures have been added (most use scsh
+interfaces):
+
+** close PORT/FD
+Similar to close-port, but also works on file descriptors.  A side
+effect of closing a file descriptor is that any ports using that file
+descriptor are moved to a different file descriptor and have
+their revealed counts set to zero.
+
+The next five procedures perform a dup2 system call, if NEWFD (an
+integer) is supplied, otherwise a dup.  The file descriptor to be
+duplicated can be supplied as an integer or wrapped in a port.  The
+type of value returned varies depending on which procedure is used.
+
+All procedures also have the side effect when performing dup2 that any
+ports using NEWFD are moved to a different file descriptor and have
+their revealed counts set to zero.
+
+** dup->fdes PORT/FD [NEWFD]
+Returns an integer file descriptor.
+
+** dup->inport PORT/FD [NEWFD]
+Returns a new input port using the new file descriptor.
+
+** dup->outport PORT/FD [NEWFD]
+Returns a new output port using the new file descriptor.
+
+** dup PORT/FD [NEWFD]
+Returns a new port if PORT/FD is a port, with the same mode as the
+supplied port, otherwise returns an integer file descriptor.
+
+** dup->port PORT/FD MODE [NEWFD]
+Returns a new port using the new file descriptor.  MODE supplies a 
+mode string for the port (as for `open-file').
+
+** primitive-dup PORT/FD
+Performs a dup system call on the file descriptor FD, or the file
+descriptor underlying PORT and returns a new integer file descriptor.
+
+** primitive-dup2 PORT/FD NEWFD
+
+Performs a dup2 system call on the file descriptor FD, or the file
+descriptor underlying PORT, using NEWFD (an integer) as the target
+file descriptor.  Any ports using NEWFD are moved to a different file
+descriptor and have their revealed counts set to zero.  The value
+returned is NEWFD.
+
+** port->fdes PORT
+Returns the integer file descriptor underlying PORT.  As a
+side effect the revealed count of PORT is incremented.
+
+** fdes->inport FDES
+Returns an existing input port which has FDES as its underlying file
+descriptor, if one exists, and increments its revealed count.
+Otherwise, returns a new input port with a revealed count of 1.
+
+** fdes->outport FDES
+Returns an existing output port which has FDES as its underlying file
+descriptor, if one exists, and increments its revealed count.
+Otherwise, returns a new output port with a revealed count of 1.
+
+** primitive-exit [STATUS]
+Terminates the current process without unwinding the Scheme stack.
+This would usually be used after a fork.
 
 * Changes to the gh_ interface
 
