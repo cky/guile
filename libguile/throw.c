@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2003 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2003, 2004 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -387,18 +387,28 @@ handler_message (void *handler_data, SCM tag, SCM args)
   char *prog_name = (char *) handler_data;
   SCM p = scm_cur_errp;
 
-  if (scm_ilength (args) >= 3)
+  if (scm_ilength (args) == 4)
     {
       SCM stack   = scm_make_stack (SCM_BOOL_T, SCM_EOL);
       SCM subr    = SCM_CAR (args);
       SCM message = SCM_CADR (args);
       SCM parts   = SCM_CADDR (args);
-      SCM rest    = SCM_CDDDR (args);
+      SCM rest    = SCM_CADDDR (args);
 
       if (SCM_BACKTRACE_P && scm_is_true (stack))
 	{
+	  SCM highlights;
+
+	  if (scm_is_eq (tag, scm_arg_type_key)
+	      || scm_is_eq (tag, scm_out_of_range_key))
+	    highlights = rest;
+	  else
+	    highlights = SCM_EOL;
+
 	  scm_puts ("Backtrace:\n", p);
-	  scm_display_backtrace (stack, p, SCM_UNDEFINED, SCM_UNDEFINED);
+	  scm_display_backtrace_with_highlights (stack, p,
+						 SCM_BOOL_F, SCM_BOOL_F,
+						 highlights);
 	  scm_newline (p);
 	}
       scm_i_display_error (stack, p, subr, message, parts, rest);
