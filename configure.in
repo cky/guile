@@ -637,6 +637,9 @@ AC_TRY_LINK([#include <gmp.h>],
             [mpz_import (0, 0, 0, 0, 0, 0, 0);] , ,
   [AC_MSG_ERROR([At least GNU MP 4.1 is required, see http://swox.com/gmp])])
 
+dnl i18n tests
+AM_GNU_GETTEXT([external], [need-ngettext])
+
 ### Some systems don't declare some functions.  On such systems, we
 ### need to at least provide our own K&R-style declarations.
 
