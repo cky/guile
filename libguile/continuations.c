@@ -42,7 +42,13 @@
 
 #include <stdio.h>
 #include "_scm.h"
+#include "stackchk.h"
+#ifdef DEBUG_EXTENSIONS
+#include "debug.h"
+#endif
+#include "dynwind.h"
 
+#include "continuations.h"
 
 
 /* {Continuations}
@@ -118,7 +124,7 @@ scm_make_cont (answer)
 }
 
 
-void scm_dynthrow SCM_P ((SCM *a));
+void scm_dynthrow PROTO ((SCM *a));
 
 /* Grow the stack so that there is room */
 /* to copy in the continuation.  Then */
