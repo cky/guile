@@ -97,6 +97,13 @@
 (primitive-load-path "ice-9/r4rs.scm")
 
 
+;;; {Deprecated stuff}
+
+(begin-deprecated
+ (primitive-load-path "ice-9/deprecated.scm"))
+
+
+
 ;;; {Simple Debugging Tools}
 ;;
 
@@ -1679,7 +1686,9 @@
 ;; (define-special-value '(app modules new-ws) (lambda () (make-scm-module)))
 
 (define (try-load-module name)
-  (try-module-autoload name))
+  (or (begin-deprecated (try-module-linked name))
+      (try-module-autoload name)
+      (begin-deprecated (try-module-dynamic-link name))))
 
 (define (purify-module! module)
   "Removes bindings in MODULE which are inherited from the (guile) module."
