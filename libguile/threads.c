@@ -1158,7 +1158,6 @@ scm_c_thread_exited_p (SCM thread)
 
 static scm_t_cond wake_up_cond;
 int scm_i_thread_go_to_sleep;
-static scm_thread *gc_thread;
 static scm_t_mutex gc_section_mutex;
 static scm_thread *gc_section_owner;
 static int gc_section_count = 0;
@@ -1177,12 +1176,22 @@ scm_i_thread_put_to_sleep ()
 	if (SCM_CAR (threads) != cur_thread)
 	  {
 	    scm_thread *t = SCM_THREAD_DATA (SCM_CAR (threads));
-	    t->clear_freelists_p = 1;
 	    scm_i_plugin_mutex_lock (&t->heap_mutex);
 	  }
-      gc_thread = suspend ();
       scm_i_thread_go_to_sleep = 0;
     }
+}
+
+void
+scm_i_thread_invalidate_freelists ()
+{
+  SCM threads = all_threads;
+  for (; !SCM_NULLP (threads); threads = SCM_CDR (threads))
+    if (SCM_CAR (threads) != cur_thread)
+      {
+	scm_thread *t = SCM_THREAD_DATA (SCM_CAR (threads));
+	t->clear_freelists_p = 1;
+      }
 }
 
 void
@@ -1191,7 +1200,6 @@ scm_i_thread_wake_up ()
   if (threads_initialized_p && gc_section_count == 1)
     {
       SCM threads = all_threads;
-      resume (gc_thread);
       scm_i_plugin_cond_broadcast (&wake_up_cond);
       for (; !SCM_NULLP (threads); threads = SCM_CDR (threads))
 	if (SCM_CAR (threads) != cur_thread)
@@ -1208,11 +1216,8 @@ scm_i_thread_sleep_for_gc ()
 {
   scm_thread *t;
   t = suspend ();
-  *SCM_FREELIST_LOC (scm_i_freelist) = SCM_EOL;
-  *SCM_FREELIST_LOC (scm_i_freelist2) = SCM_EOL;
   scm_i_plugin_cond_wait (&wake_up_cond, &t->heap_mutex);
-  t->clear_freelists_p = 0;
-  t->top = NULL; /* resume (t); but don't clear freelists */
+  resume (t);
 }
 
 /* The mother of all recursive critical sections */

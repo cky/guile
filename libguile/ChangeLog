@@ -1,3 +1,12 @@
+2002-12-10  Mikael Djurfeldt  <mdj@kvast.blakulla.net>
+
+	* threads.c (scm_i_thread_invalidate_freelists): New
+	function.
+
+	* gc.c (scm_igc): Call scm_i_thread_invalidate_freelists.
+
+	* modules.c (scm_export): Inserted a return statement.
+
 2002-12-10  Han-Wen Nienhuys  <hanwen@cs.uu.nl>
 
 	* modules.c (scm_export): new function

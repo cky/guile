@@ -570,6 +570,8 @@ scm_igc (const char *what)
 
   ++scm_gc_heap_lock;
 
+  scm_i_thread_invalidate_freelists ();
+  
   /*
     Let's finish the sweep. The conservative GC might point into the
     garbage, and marking that would create a mess.

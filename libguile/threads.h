@@ -182,6 +182,7 @@ extern int scm_i_thread_go_to_sleep;
 
 void scm_i_thread_put_to_sleep (void);
 void scm_i_thread_wake_up (void);
+void scm_i_thread_invalidate_freelists (void);
 void scm_i_thread_sleep_for_gc (void);
 void scm_threads_prehistory (void);
 void scm_threads_init_first_thread (void);
