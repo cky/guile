@@ -1,5 +1,14 @@
 Sat Mar  8 00:27:05 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
+	* read.c (scm_init_read): intitialise scm_read_hash_procedures
+	(idea from Mikael: make it a pair so scm_permanent object only
+	called once.)
+	(scm_read_hash_extend): don't call scm_permanent_object.
+	(ideas from Mikael): if chr is already in the list, replace its
+	procedure instead of appending it again.  If chr is #f, remove
+	it from the list.
+	(scm_get_hash_procedure): take CDR of scm_read_hash_procedures.
+
 	* strports.c (scm_read_0str, scm_eval_0str): update scm_read usage.
 
 	* gdbint.c (gdb_read): update scm_lreadr usage.

@@ -82,8 +82,9 @@ scm_read_options (setting)
   return ans;
 }
 
-/* Association list mapping extra hash characters to procedures.  */
-static SCM scm_read_hash_procedures = SCM_EOL;
+/* CDR contains an association list mapping extra hash characters to
+   procedures.  */
+static SCM scm_read_hash_procedures;
 
 SCM_PROC (s_read, "read", 0, 1, 0, scm_read);
 
@@ -762,16 +763,42 @@ scm_read_hash_extend (chr, proc)
      SCM chr;
      SCM proc;
 {
-  SCM_ASSERT (SCM_ICHRP(chr), chr, SCM_ARG1, s_read_hash_extend);
-  SCM_ASSERT (SCM_NIMP(proc), proc, SCM_ARG2, s_read_hash_extend);
+  SCM this;
+  SCM prev;
 
-  /* We are making every member of this list a permanent object.
-     Is that bad?  */
-  SCM_DEFER_INTS;
-  scm_read_hash_procedures = scm_cons (scm_cons (chr, proc),
-				       scm_read_hash_procedures);
-  scm_permanent_object (scm_read_hash_procedures);
-  SCM_ALLOW_INTS;
+  SCM_ASSERT (SCM_ICHRP(chr), chr, SCM_ARG1, s_read_hash_extend);
+  SCM_ASSERT (SCM_FALSEP (proc) || SCM_NIMP(proc), proc, SCM_ARG2,
+	      s_read_hash_extend);
+
+  /* See it this chr is already in the alist.  */
+  this = SCM_CDR (scm_read_hash_procedures);
+  prev = scm_read_hash_procedures;
+  while (1)
+    {
+      if (SCM_NULLP (this))
+	{
+	  /* not found, so add it to the beginning.  */
+	  if (SCM_NFALSEP (proc))
+	    {
+	      scm_set_cdr_x (scm_read_hash_procedures,
+			     scm_cons (scm_cons (chr, proc),
+				       SCM_CDR (scm_read_hash_procedures)));
+	    }
+	  break;
+	}
+      if (chr == SCM_CAAR (this))
+	{
+	  /* already in the alist.  */
+	  if (SCM_FALSEP (proc))
+	    scm_set_cdr_x (prev, SCM_CDR (this)); /* remove it.  */
+	  else
+	    scm_set_cdr_x (SCM_CAR (this), proc); /* replace it.  */
+	  break;
+	}
+      prev = this;
+      this = SCM_CDR (this);
+    }
+
   return SCM_UNSPECIFIED;
 }
 
@@ -780,7 +807,8 @@ static SCM
 scm_get_hash_procedure (c)
      int c;
 {
-  SCM rest = scm_read_hash_procedures;
+  SCM rest = SCM_CDR (scm_read_hash_procedures);
+
   while (1)
     {
       if (SCM_NULLP (rest))
@@ -796,6 +824,9 @@ scm_get_hash_procedure (c)
 void
 scm_init_read ()
 {
+  scm_read_hash_procedures = scm_cons (SCM_BOOL_F, SCM_EOL);
+  scm_permanent_object (scm_read_hash_procedures);
+
   scm_init_opts (scm_read_options, scm_read_opts, SCM_N_READ_OPTIONS);
 #include "read.x"
 }
