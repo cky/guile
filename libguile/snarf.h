@@ -67,7 +67,7 @@
  *     SCM_INIT (NAME = foo ())
  *
  * The SCM_INIT text goes into the corresponding .x file
- * up through the first occurrence of $$$ on that line, if any.
+ * up through the first occurrence of SCM__D on that line, if any.
  */
 
 #ifndef SCM_MAGIC_SNARFER
@@ -76,7 +76,7 @@
 #  define SCM_DOCS(X)
 #else
 #  define SCM_HERE(X)
-#  define SCM_INIT(X) %%% X
+#  define SCM_INIT(X) SCM__I X
 #  define SCM_DOCS(X) X
 #endif
 
@@ -89,7 +89,7 @@ SCM_INIT(\
 scm_make_gsubr (s_ ## FNAME, REQ, OPT, VAR, (SCM_FUNC_CAST_ARBITRARY_ARGS) FNAME); \
 )\
 SCM_DOCS(\
-$$$P PRIMNAME #ARGLIST | REQ | OPT | VAR | __FILE__:__LINE__ | @@@ DOCSTRING @!!! \
+SCM__DP PRIMNAME #ARGLIST | REQ | OPT | VAR | __FILE__:__LINE__ | SCM__S DOCSTRING SCM__E \
 )
 
 #define SCM_DEFINE1(FNAME, PRIMNAME, TYPE, ARGLIST, DOCSTRING) \
@@ -99,7 +99,7 @@ SCM FNAME ARGLIST\
 )\
 SCM_INIT(scm_make_subr (s_ ## FNAME, TYPE, FNAME); ) \
 SCM_DOCS(\
-$$$1 PRIMNAME #ARGLIST | 2 | 0 | 0 | __FILE__:__LINE__ | @@@ DOCSTRING @!!! \
+SCM__D1 PRIMNAME #ARGLIST | 2 | 0 | 0 | __FILE__:__LINE__ | SCM__S DOCSTRING SCM__E \
 )
 
 #define SCM_PROC(RANAME, STR, REQ, OPT, VAR, CFN)  \
@@ -110,7 +110,7 @@ SCM_INIT(scm_make_gsubr (RANAME, REQ, OPT, VAR, (SCM_FUNC_CAST_ARBITRARY_ARGS) C
 SCM_HERE(static const char RANAME[]=STR) \
 SCM_INIT(scm_make_gsubr (RANAME, REQ, OPT, VAR, (SCM_FUNC_CAST_ARBITRARY_ARGS) CFN);) \
 SCM_DOCS(\
-$$$R STR | REQ | OPT | VAR | __FILE__:__LINE__ | @@@ CFN @!!! \
+SCM__DR STR | REQ | OPT | VAR | __FILE__:__LINE__ | SCM__S CFN SCM__E \
 )
 
 #define SCM_GPROC(RANAME, STR, REQ, OPT, VAR, CFN, GF)  \
