@@ -1,3 +1,9 @@
+2003-05-02  Marius Vollmer  <mvo@zagadka.de>
+
+	* deprecated.h (scm_rstate, scm_rng, SCM_SLOPPY_CONSP,
+	SCM_SLOPPY_NCONSP, scm_tc7_ssymbol, scm_tc7_msymbol,
+	scm_tcs_symbols): New.
+
 2003-04-30  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* deprecated.h, deprecated.c (scm_protect_object,
