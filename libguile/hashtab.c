@@ -529,6 +529,48 @@ scm_hashx_remove_x (hash, assoc, delete, table, obj)
   return scm_hash_fn_remove_x (table, obj, scm_ihashx, scm_sloppy_assx, scm_delx_x, 0);
 }
 
+static const char s_hash_fold[];
+
+SCM
+scm_internal_hash_fold (SCM table, SCM (*fn) (), void *closure, SCM init)
+{
+  int i, n = SCM_LENGTH (table);
+  SCM result = init;
+  for (i = 0; i < n; ++i)
+    {
+      SCM ls = SCM_VELTS (table)[i], handle;
+      while (SCM_NNULLP (ls))
+	{
+	  SCM_ASSERT (SCM_NIMP (ls) && SCM_CONSP (ls),
+		      table, SCM_ARG1, s_hash_fold);
+	  handle = SCM_CAR (ls);
+	  SCM_ASSERT (SCM_NIMP (handle) && SCM_CONSP (handle),
+		      table, SCM_ARG1, s_hash_fold);
+	  result = fn (closure, SCM_CAR (handle), SCM_CDR (handle), result);
+	  ls = SCM_CDR (ls);
+	}
+    }
+  return result;
+}
+
+static SCM
+fold_proc (void *proc, SCM key, SCM data, SCM value)
+{
+  return scm_apply ((SCM) proc, SCM_LIST3 (key, data, value), SCM_EOL);
+}
+
+SCM_PROC (s_hash_fold, "hash-fold", 3, 0, 0, scm_hash_fold);
+
+SCM
+scm_hash_fold (SCM table, SCM proc, SCM init)
+{
+  SCM_ASSERT (SCM_NIMP (table) && SCM_VECTORP (table),
+	      table, SCM_ARG1, s_hash_fold);
+  SCM_ASSERT (SCM_NIMP (proc) && SCM_NFALSEP (scm_procedure_p (proc)),
+	      proc, SCM_ARG2, s_hash_fold);
+  return scm_internal_hash_fold (table, fold_proc, (void *) proc, init);
+}
+
 
 
 
@@ -537,4 +579,3 @@ scm_init_hashtab ()
 {
 #include "hashtab.x"
 }
-
