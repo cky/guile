@@ -728,8 +728,7 @@ display_backtrace_body (struct display_backtrace_args *a)
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_display_backtrace_with_highlights, "display-backtrace",
-	    2, 3, 0, 
+SCM_DEFINE (scm_display_backtrace_with_highlights, "display-backtrace", 2, 3, 0, 
 	    (SCM stack, SCM port, SCM first, SCM depth, SCM highlights),
 	    "Display a backtrace to the output port @var{port}. @var{stack}\n"
 	    "is the stack to take the backtrace from, @var{first} specifies\n"
