@@ -1,3 +1,8 @@
+2004-12-23  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* tests/eval.test: News tests for making stacks from
+	continuations.  From Neil Jerram.
+
 2004-12-10  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/socket.test (inet-pton): New tests.

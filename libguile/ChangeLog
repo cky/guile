@@ -1,3 +1,14 @@
+2004-12-23  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* continuations.h, continuations.c (scm_t_contregs): New 'offset'
+	member for relocating debug frames.
+	(scm_make_continuation): Set it.
+
+	* stacks.c (read_frame, read_frames, scm_make_stack,
+	scm_last_stack_frame, scm_stack_id): Use the new 'offset' member
+	of continuations instead of calculating the offset ourselves.
+	Relocate 'vect' member of scm_t_debug_frame.
+	
 2004-12-16  Kevin Ryde  <user42@zip.com.au>
 
 	* ramap.c (scm_array_map_x): Check for at least one source argument.
