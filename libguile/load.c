@@ -47,6 +47,7 @@
 #include "read.h"
 #include "eval.h"
 #include "throw.h"
+#include "alist.h"
 
 #include "load.h"
 
@@ -322,7 +323,25 @@ scm_read_and_eval_x (port)
 }
 
 
+/* Information about the build environment.  */
 
+/* Initialize the scheme variable %guile-build-info, based on data
+   provided by the Makefile, via libpath.h.  */
+static void
+init_build_info ()
+{
+  static struct { char *name; char *value; } info[] = SCM_BUILD_INFO;
+  SCM *loc = SCM_CDRLOC (scm_sysintern ("%guile-build-info", SCM_EOL));
+  int i;
+
+  for (i = 0; i < (sizeof (info) / sizeof (info[0])); i++)
+    *loc = scm_acons (SCM_CAR (scm_intern0 (info[i].name)),
+		      scm_makfrom0str (info[i].value),
+		      *loc);
+}
+
+
+
 void
 scm_init_load ()
 {
@@ -333,6 +352,8 @@ scm_init_load ()
 					    scm_makfrom0str (".scm"),
 					    SCM_UNDEFINED)));
   scm_loc_load_hook = SCM_CDRLOC(scm_sysintern("%load-hook", SCM_BOOL_F));
+
+  init_build_info ();
 
 #include "load.x"
 }
