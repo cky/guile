@@ -1,3 +1,15 @@
+1998-09-29  Jim Blandy  <jimb@totoro.red-bean.com>
+
+	* snarf.h: Add SCM_VCELL_INIT and SCM_GLOBAL_VCELL_INIT macros;
+ 	these are analogous to SCM_VCELL and SCM_GLOBAL_VCELL but take a
+ 	third argument, a C expression that should result in a SCM value,
+ 	which is used to initialize the variable. Reimplemented
+ 	SCM_CONST_LONG in terms of SCM_VCELL_INIT.  (Thanks to Maciej
+	Stachowiak.)
+
+	* version.h (scm_libguile_config_stamp): Add prototype.
+	(From Maciej Stachowiak.)
+
 1998-09-26  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	* eval.c (scm_force): Assert that x is SCM_NIMP to fix segv when
