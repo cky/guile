@@ -2791,7 +2791,7 @@ done
 ac_given_srcdir=$srcdir
 ac_given_INSTALL="$INSTALL"
 
-trap 'rm -fr `echo "Makefile fd.h scmconfig.h" | sed "s/:[^ ]*//g"` conftest*; exit 1' 1 2 15
+trap 'rm -fr `echo "Makefile fd.h guile-snarf scmconfig.h" | sed "s/:[^ ]*//g"` conftest*; exit 1' 1 2 15
 EOF
 cat >> $CONFIG_STATUS <<EOF
 
@@ -2874,7 +2874,7 @@ EOF
 
 cat >> $CONFIG_STATUS <<EOF
 
-CONFIG_FILES=\${CONFIG_FILES-"Makefile fd.h"}
+CONFIG_FILES=\${CONFIG_FILES-"Makefile fd.h guile-snarf"}
 EOF
 cat >> $CONFIG_STATUS <<\EOF
 for ac_file in .. $CONFIG_FILES; do if test "x$ac_file" != x..; then
@@ -3047,7 +3047,7 @@ cat >> $CONFIG_STATUS <<EOF
 EOF
 cat >> $CONFIG_STATUS <<\EOF
 test -z "$CONFIG_HEADER" || echo timestamp > stamp-h
-
+chmod +x guile-snarf
 exit 0
 EOF
 chmod +x $CONFIG_STATUS

@@ -1,3 +1,10 @@
+Mon Dec  9 23:23:35 1996  Tom Tromey  <tromey@cygnus.com>
+
+	* Makefile.am (.c.x): Use guile-snarf.
+	* configure.in (AC_OUTPUT): Generate guile-snarf; make it
+	executable.
+	* guile-snarf.in: New file, resurrected from old guile-snarf.sh.
+
 Mon Dec  9 18:36:50 1996  Jim Blandy  <jimb@duality.gnu.ai.mit.edu>
 
 	* backtrace.c (scm_display_error_message): Made non-static, and

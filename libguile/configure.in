@@ -209,7 +209,7 @@ AC_DEFINE_UNQUOTED(GUILE_MINOR_VERSION, "$GUILE_MINOR_VERSION")
 AC_DEFINE_UNQUOTED(GUILE_VERSION, "$GUILE_VERSION")
 
 AC_SUBST(FD_SETTER)
-AC_OUTPUT(Makefile fd.h)
+AC_OUTPUT([Makefile fd.h guile-snarf], [chmod +x guile-snarf])
 
 dnl Local Variables:
 dnl comment-start: "dnl "

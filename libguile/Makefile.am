@@ -34,8 +34,11 @@ stackchk.h stacks.h stime.h strings.h strop.h strorder.h strports.h struct.h \
 symbols.h tag.h tags.h throw.h unif.h variable.h vectors.h version.h \
 vports.h weaks.h snarf.h
 
-## This file is generated at configure time.
+## This file is generated at configure time.  That is why it is DATA
+## and not a header -- headers are included in the distribution.
 modinclude_DATA = scmconfig.h
+
+bin_SCRIPTS = guile-snarf
 
 EXTRA_DIST = gscm.c gscm.h ChangeLog-scm dynl-dl.c dynl-dld.c dynl-shl.c \
 dynl-vms.c PLUGIN/REQ PLUGIN/guile.config PLUGIN/guile.libs
@@ -51,8 +54,7 @@ libpath.h: Makefile
 
 SUFFIXES = .x
 .c.x:
-	$(CPP) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) \
-	   -DSCM_MAGIC_SNARFER $< | grep "^%%%" | sed -e "s/^%%%//" > $@
+	./guile-snarf $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< > $@
 
 ## Add -MG to make the .x magic work with auto-dep code.
 MKDEP = gcc -M -MG $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)

@@ -1,0 +1,4 @@
+#!/bin/sh
+# Extract the initialization actions for builtin things.
+
+@CPP@ -DSCM_MAGIC_SNARFER $* | grep "^%%%" | sed -e "s/^%%%//"

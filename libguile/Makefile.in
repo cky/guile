@@ -1,4 +1,4 @@
-# Makefile.in generated automatically by automake 1.1k from Makefile.am
+# Makefile.in generated automatically by automake 1.1l from Makefile.am
 
 # Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
@@ -37,9 +37,13 @@ INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 transform = @program_transform_name@
-RANLIB = @RANLIB@
-CC = @CC@
 FD_SETTER = @FD_SETTER@
+RANLIB = @RANLIB@
+INSTALL_SCRIPT = @INSTALL_SCRIPT@
+PACKAGE = @PACKAGE@
+VERSION = @VERSION@
+module = @module@
+CC = @CC@
 
 AUTOMAKE_OPTIONS = foreign
 
@@ -74,6 +78,8 @@ vports.h weaks.h snarf.h
 
 modinclude_DATA = scmconfig.h
 
+bin_SCRIPTS = guile-snarf
+
 EXTRA_DIST = gscm.c gscm.h ChangeLog-scm dynl-dl.c dynl-dld.c dynl-shl.c \
 dynl-vms.c PLUGIN/REQ PLUGIN/guile.config PLUGIN/guile.libs
 
@@ -84,7 +90,7 @@ ACLOCAL = $(top_srcdir)/aclocal.m4
 CONFIG_HEADER_IN = scmconfig.h.in
 mkinstalldirs = $(SHELL) $(top_srcdir)/../mkinstalldirs
 CONFIG_HEADER = scmconfig.h
-CONFIG_CLEAN_FILES =  fd.h
+CONFIG_CLEAN_FILES =  fd.h guile-snarf
 LIBRARIES =  $(lib_LIBRARIES)
 
 
@@ -104,20 +110,19 @@ srcprop.o stackchk.o stacks.o stime.o strerror.o strings.o strop.o \
 strorder.o strports.o struct.o symbols.o tag.o throw.o unif.o \
 variable.o vectors.o version.o vports.o weaks.o
 AR = ar
+SCRIPTS =  $(bin_SCRIPTS)
+
 CFLAGS = @CFLAGS@
 COMPILE = $(CC) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
 LINK = $(CC) $(LDFLAGS) -o $@
 DATA =  $(modinclude_DATA)
 
-HEADERS =  $(modinclude_HEADERS) $(include_HEADERS)
+HEADERS =  $(include_HEADERS) $(modinclude_HEADERS)
 
 DIST_COMMON =  COPYING ChangeLog Makefile.am Makefile.in acconfig.h \
-acinclude.m4 aclocal.m4 configure configure.in fd.h.in scmconfig.h.in \
-stamp-h.in
+acinclude.m4 aclocal.m4 configure configure.in fd.h.in guile-snarf.in \
+scmconfig.h.in stamp-h.in
 
-
-PACKAGE = @PACKAGE@
-VERSION = @VERSION@
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) \
 	$(TEXINFOS) $(MANS) $(EXTRA_DIST)
@@ -147,7 +152,7 @@ default: all
 
 .SUFFIXES:
 .SUFFIXES: .c .o .x
-$(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in 
+$(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL) 
 	cd $(top_srcdir) && automake --foreign Makefile
 
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status $(BUILT_SOURCES)
@@ -183,6 +188,8 @@ distclean-hdr:
 maintainer-clean-hdr:
 fd.h: $(top_builddir)/config.status fd.h.in
 	cd $(top_builddir) && CONFIG_FILES=$@ CONFIG_HEADERS= ./config.status
+guile-snarf: $(top_builddir)/config.status guile-snarf.in
+	cd $(top_builddir) && CONFIG_FILES=$@ CONFIG_HEADERS= ./config.status
 
 mostlyclean-libLIBRARIES:
 
@@ -198,12 +205,14 @@ install-libLIBRARIES: $(lib_LIBRARIES)
 	$(mkinstalldirs) $(libdir)
 	list="$(lib_LIBRARIES)"; for p in $$list; do \
 	  if test -f $$p; then \
+	    echo "$(INSTALL_DATA) $$p $(libdir)/$$p"; \
 	    $(INSTALL_DATA) $$p $(libdir)/$$p; \
 	  else :; fi; \
 	done
 	$(POST_INSTALL)
-	list="$(lib_LIBRARIES)"; for p in $$list; do \
+	@list="$(lib_LIBRARIES)"; for p in $$list; do \
 	  if test -f $$p; then \
+	    echo "$(RANLIB) $(libdir)/$$p"; \
 	    $(RANLIB) $(libdir)/$$p; \
 	  else :; fi; \
 	done
@@ -232,13 +241,33 @@ libguile.a: $(libguile_a_OBJECTS) $(libguile_a_DEPENDENCIES)
 	$(AR) cru libguile.a $(libguile_a_OBJECTS) $(libguile_a_LIBADD)
 	$(RANLIB) libguile.a
 
+install-binSCRIPTS: $(bin_SCRIPTS)
+	$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(bindir)
+	@list="$(bin_SCRIPTS)"; for p in $$list; do \
+	  if test -f $$p; then \
+	    echo "$(INSTALL_SCRIPT) $$p $(bindir)/`echo $$p|sed '$(transform)'`"; \
+	    $(INSTALL_SCRIPT) $$p $(bindir)/`echo $$p|sed '$(transform)'`; \
+	  else if test -f $(srcdir)/$$p; then \
+	    echo "$(INSTALL_SCRIPT) $(srcdir)/$$p $(bindir)/`echo $$p|sed '$(transform)'`"; \
+	    $(INSTALL_SCRIPT) $(srcdir)/$$p $(bindir)/`echo $$p|sed '$(transform)'`; \
+	  else :; fi; fi; \
+	done
+
+uninstall-binSCRIPTS:
+	list="$(bin_SCRIPTS)"; for p in $$list; do \
+	  rm -f $(bindir)/`echo $$p|sed '$(transform)'`; \
+	done
+
 install-modincludeDATA: $(modinclude_DATA)
 	$(NORMAL_INSTALL)
 	$(mkinstalldirs) $(modincludedir)
-	list="$(modinclude_DATA)"; for p in $$list; do \
+	@list="$(modinclude_DATA)"; for p in $$list; do \
 	  if test -f $(srcdir)/$$p; then \
+	    echo "$(INSTALL_DATA) $(srcdir)/$$p $(modincludedir)/$$p"; \
 	    $(INSTALL_DATA) $(srcdir)/$$p $(modincludedir)/$$p; \
 	  else if test -f $$p; then \
+	    echo "$(INSTALL_DATA) $$p $(modincludedir)/$$p"; \
 	    $(INSTALL_DATA) $$p $(modincludedir)/$$p; \
 	  fi; fi; \
 	done
@@ -248,28 +277,30 @@ uninstall-modincludeDATA:
 	  rm -f $(modincludedir)/$$p; \
 	done
 
-install-modincludeHEADERS: $(modinclude_HEADERS)
-	$(NORMAL_INSTALL)
-	$(mkinstalldirs) $(modincludedir)
-	list="$(modinclude_HEADERS)"; for p in $$list; do \
-	  $(INSTALL_DATA) $(srcdir)/$$p $(modincludedir)/$$p; \
-	done
-
-uninstall-modincludeHEADERS:
-	list="$(modinclude_HEADERS)"; for p in $$list; do \
-	  rm -f $(modincludedir)/$$p; \
-	done
-
 install-includeHEADERS: $(include_HEADERS)
 	$(NORMAL_INSTALL)
 	$(mkinstalldirs) $(includedir)
-	list="$(include_HEADERS)"; for p in $$list; do \
+	@list="$(include_HEADERS)"; for p in $$list; do \
+	  echo "$(INSTALL_DATA) $(srcdir)/$$p $(includedir)/$$p"; \
 	  $(INSTALL_DATA) $(srcdir)/$$p $(includedir)/$$p; \
 	done
 
 uninstall-includeHEADERS:
 	list="$(include_HEADERS)"; for p in $$list; do \
 	  rm -f $(includedir)/$$p; \
+	done
+
+install-modincludeHEADERS: $(modinclude_HEADERS)
+	$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(modincludedir)
+	@list="$(modinclude_HEADERS)"; for p in $$list; do \
+	  echo "$(INSTALL_DATA) $(srcdir)/$$p $(modincludedir)/$$p"; \
+	  $(INSTALL_DATA) $(srcdir)/$$p $(modincludedir)/$$p; \
+	done
+
+uninstall-modincludeHEADERS:
+	list="$(modinclude_HEADERS)"; for p in $$list; do \
+	  rm -f $(modincludedir)/$$p; \
 	done
 
 tags: TAGS
@@ -365,24 +396,24 @@ dvi:
 check: all
 	$(MAKE)
 installcheck:
-install-exec: install-libLIBRARIES
+install-exec: install-libLIBRARIES install-binSCRIPTS
 	$(NORMAL_INSTALL)
 
-install-data: install-modincludeDATA install-modincludeHEADERS install-includeHEADERS
+install-data: install-modincludeDATA install-includeHEADERS install-modincludeHEADERS
 	$(NORMAL_INSTALL)
 
 install: install-exec install-data all
 	@:
 
-uninstall: uninstall-libLIBRARIES uninstall-modincludeDATA uninstall-modincludeHEADERS uninstall-includeHEADERS
+uninstall: uninstall-libLIBRARIES uninstall-binSCRIPTS uninstall-modincludeDATA uninstall-includeHEADERS uninstall-modincludeHEADERS
 
-all: $(LIBRARIES) $(DATA) $(HEADERS) Makefile scmconfig.h
+all: $(LIBRARIES) $(SCRIPTS) $(DATA) $(HEADERS) Makefile scmconfig.h
 
 install-strip:
 	$(MAKE) INSTALL_PROGRAM='$(INSTALL_PROGRAM) -s' install
 installdirs:
-	$(mkinstalldirs)  $(libdir) $(modincludedir) $(modincludedir) \
-		$(includedir)
+	$(mkinstalldirs)  $(libdir) $(bindir) $(modincludedir) $(includedir) \
+		$(modincludedir)
 
 
 mostlyclean-generic:
@@ -422,15 +453,16 @@ maintainer-clean:  maintainer-clean-hdr maintainer-clean-libLIBRARIES \
 maintainer-clean-hdr mostlyclean-libLIBRARIES distclean-libLIBRARIES \
 clean-libLIBRARIES maintainer-clean-libLIBRARIES uninstall-libLIBRARIES \
 install-libLIBRARIES mostlyclean-compile distclean-compile \
-clean-compile maintainer-clean-compile uninstall-modincludeDATA \
-install-modincludeDATA uninstall-modincludeHEADERS \
-install-modincludeHEADERS uninstall-includeHEADERS \
-install-includeHEADERS tags mostlyclean-tags distclean-tags clean-tags \
-maintainer-clean-tags distdir mostlyclean-depend distclean-depend \
-clean-depend maintainer-clean-depend info dvi installcheck install-exec \
-install-data install uninstall all installdirs mostlyclean-generic \
-distclean-generic clean-generic maintainer-clean-generic clean \
-mostlyclean distclean maintainer-clean
+clean-compile maintainer-clean-compile uninstall-binSCRIPTS \
+install-binSCRIPTS uninstall-modincludeDATA install-modincludeDATA \
+uninstall-includeHEADERS install-includeHEADERS \
+uninstall-modincludeHEADERS install-modincludeHEADERS tags \
+mostlyclean-tags distclean-tags clean-tags maintainer-clean-tags \
+distdir mostlyclean-depend distclean-depend clean-depend \
+maintainer-clean-depend info dvi installcheck install-exec install-data \
+install uninstall all installdirs mostlyclean-generic distclean-generic \
+clean-generic maintainer-clean-generic clean mostlyclean distclean \
+maintainer-clean
 
 
 libpath.h: Makefile
@@ -439,8 +471,7 @@ libpath.h: Makefile
 	echo '#define SCM_LIBRARY_DIR "$(pkgdatadir)/$(VERSION)"' >> libpath.h
 	echo '#define SCM_SITE_DIR "$(pkgdatadir)/site"' >> libpath.h
 .c.x:
-	$(CPP) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) \
-	   -DSCM_MAGIC_SNARFER $< | grep "^%%%" | sed -e "s/^%%%//" > $@
+	./guile-snarf $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< > $@
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
