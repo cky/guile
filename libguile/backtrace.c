@@ -46,6 +46,10 @@
 #include <stdio.h>
 #include <ctype.h>
 
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+
 #include "_scm.h"
 #include "stacks.h"
 #include "srcprop.h"
