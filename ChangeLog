@@ -1,3 +1,13 @@
+Fri May  2 16:24:15 1997  Jim Blandy  <jimb@floss.cyclic.com>
+
+	Upgrade to libtool 0.9e.
+	* ltconfig, ltmain.sh, config.guess, config.sub: New versions,
+	supplied by libtool.
+
+	* configure.in: When configuring qt, sunos needs the underscore
+	files; Solaris and Linux both need the normal files.
+	* configure: Reebilt.
+	
 Thu May  1 15:35:49 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* configure.in: Get the paths for qt's md files right, so it can
