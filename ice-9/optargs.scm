@@ -200,19 +200,6 @@
 		  accum
 		  (loop (car rest) (cdr rest) accum)))))))
 
-;; This is a reader extension to support the (deprecated) use of
-;; "#&optional" instead of "#:optional"
-
-(read-hash-extend #\& (lambda (c port)
-			(issue-deprecation-warning 
-			 "`#&' is deprecated, use `#:' instead.")
-			(case (read port)
-			  ((optional) #:optional)
-			  ((key) #:key)
-			  ((rest) #:rest)
-			  ((allow-other-keys) #:allow-other-keys)
-			  (else (error "Bad #& value.")))))
-
 
 ;; lambda* args . body
 ;;   lambda extended for optional and keyword arguments

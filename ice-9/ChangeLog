@@ -1,5 +1,9 @@
 2001-08-31  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* optargs.scm:  Remove #& reader extension.
+
+2001-08-31  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* and-let-star-compat.scm:  Deleted.
 
 	* Makefile.am: Remove references to and-let-star-compat.scm.
