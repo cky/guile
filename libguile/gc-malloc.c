@@ -113,33 +113,6 @@ scm_gc_init_malloc (void)
  */
 
 void *
-scm_malloc (size_t size)
-{
-  void *ptr;
-
-  if (size == 0)
-    return NULL;
-
-  SCM_SYSCALL (ptr = malloc (size));
-  if (ptr)
-    return ptr;
-
-  scm_i_sweep_all_segments ("malloc");
-  SCM_SYSCALL (ptr = malloc (size));
-  if (ptr)
-    return ptr;
-
-  scm_igc ("malloc");
-  scm_i_sweep_all_segments ("malloc/gc");
-
-  SCM_SYSCALL (ptr = malloc (size));
-  if (ptr)
-    return ptr;
-
-  scm_memory_error ("malloc");
-}
-
-void *
 scm_realloc (void *mem, size_t size)
 {
   void *ptr;
@@ -163,6 +136,13 @@ scm_realloc (void *mem, size_t size)
 
   scm_memory_error ("realloc");
 }
+
+void *
+scm_malloc (size_t sz)
+{
+  return scm_realloc (NULL, sz);
+}
+	    
 
 char *
 scm_strndup (const char *str, size_t n)
@@ -267,6 +247,15 @@ scm_gc_malloc (size_t size, const char *what)
   scm_gc_register_collectable_memory (ptr, size, what);
   return ptr;
 }
+
+void *
+scm_gc_calloc (size_t size, const char *what)
+{
+  void *ptr = scm_gc_malloc (size, what);
+  memset (ptr, 0x0, size);
+  return ptr;
+}
+
 
 void *
 scm_gc_realloc (void *mem, size_t old_size, size_t new_size, const char *what)

@@ -456,9 +456,7 @@ scm_t_port *
 scm_new_port_table_entry (void)
 #define FUNC_NAME "scm_new_port_table_entry"
 {
-  scm_t_port *entry = (scm_t_port *) scm_gc_malloc (sizeof (scm_t_port), "port");
-  memset (entry, 0x0, sizeof (scm_t_port));
-
+  scm_t_port *entry = (scm_t_port *) scm_gc_calloc (sizeof (scm_t_port), "port");
   if (scm_port_table_size == scm_port_table_room)
     {
       /* initial malloc is in gc.c.  this doesn't use scm_gc_malloc etc.,

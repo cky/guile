@@ -337,6 +337,7 @@ SCM_API void scm_gc_register_collectable_memory (void *mem, size_t size,
 						 const char *what);
 SCM_API void scm_gc_unregister_collectable_memory (void *mem, size_t size,
 						   const char *what);
+SCM_API void *scm_gc_calloc (size_t size, const char *what);
 SCM_API void *scm_gc_malloc (size_t size, const char *what);
 SCM_API void *scm_gc_realloc (void *mem, size_t old_size, 
 			      size_t new_size, const char *what);

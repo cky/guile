@@ -1,3 +1,14 @@
+2002-08-05  Han-Wen Nienhuys  <hanwen@cs.uu.nl>
+
+	* read.c (INPUT_ERROR): Prepare for file:line:column error
+	messages for errors in scm_lreadr() and friends.
+
+2002-08-04  Han-Wen Nienhuys  <hanwen@cs.uu.nl>
+
+	* gc-malloc.c (scm_malloc): use scm_realloc() (simplifies
+	implementation). 
+	(scm_gc_calloc): new function
+
 2002-08-04  Han-Wen  <hanwen@cs.uu.nl>
 
 	* ports.c (scm_new_port_table_entry): init port entry to 0

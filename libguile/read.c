@@ -75,6 +75,65 @@ scm_t_option scm_read_opts[] = {
     "Style of keyword recognition: #f or 'prefix."}
 };
 
+/*
+  Give meaningful error messages for errors
+
+  We use the format
+
+  MESSAGE
+  This happened in ....
+
+  This is not standard GNU format, but the test-suite likes the real
+  message to be in front.
+
+  Hmmm.
+
+  Maybe this is a kludge? Perhaps we should throw (list EXPR FILENAME
+  LINENO COLUMNO), and have the exception handler sort out the error
+  message?Where does the handler live, what are the conventions for
+  the expression argument of the handler? How does this work for an
+  error message like
+
+Backtrace:
+In standard input:
+   4: 0* [list ...
+
+standard input:4:1: While evaluating arguments to list in expression (list a b):standard input:4:1: Unbound variable: a
+ABORT: (unbound-variable)
+
+
+
+  In any case, we would have to assemble that information anyway. 
+ */
+
+
+#if 0
+
+#ifndef HAVE_SNPRINTF
+#define snprintf  sprintf
+/*
+  should warn about buffer overflow? 
+ */
+#endif
+
+#define  INPUT_ERROR(port, message, arg) { 									\
+      char s[1024];\
+      int fn_found =  SCM_STRINGP (SCM_FILENAME(port));\
+      char *fn = "";\
+      if (fn_found)\
+         fn = SCM_STRING_CHARS(SCM_FILENAME(port));\
+      snprintf (s, 1024, "%s\nThis happened in %s%s%s line %d column %d", message, \
+		fn_found ? "`" : "", \
+		fn,\
+		fn_found ? "'" : "", \
+	       SCM_LINUM(port) + 1, SCM_COL(port) + 1);			\
+      SCM_MISC_ERROR(s, arg);											\
+    }
+#else
+#define  INPUT_ERROR(port, message, arg) SCM_MISC_ERROR(message, arg)
+#endif
+
+
 SCM_DEFINE (scm_read_options, "read-options-interface", 0, 1, 0, 
             (SCM setting),
 	    "Option interface for the read options. Instead of using\n"
@@ -300,7 +359,7 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
 	? scm_lreadrecparen (tok_buf, port, s_list, copy)
 	: scm_lreadparen (tok_buf, port, s_list, copy);
     case ')':
-      SCM_MISC_ERROR ("unexpected \")\"", SCM_EOL);
+      INPUT_ERROR(port,"unexpected \")\"", SCM_EOL);
       goto tryagain;
     
     case '\'':
@@ -430,7 +489,7 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
 	    if (scm_charnames[c]
 		&& (scm_casei_streq (scm_charnames[c], SCM_STRING_CHARS (*tok_buf))))
 	      return SCM_MAKE_CHAR (scm_charnums[c]);
-	  SCM_MISC_ERROR ("unknown # object", SCM_EOL);
+	  INPUT_ERROR (port, "unknown # object", SCM_EOL);
 
 	  /* #:SYMBOL is a syntax for keywords supported in all contexts.  */
 	case ':':
@@ -460,8 +519,8 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
 	      }
 	  }
 	unkshrp:
-	scm_misc_error (s_scm_read, "Unknown # object: ~S",
-			scm_list_1 (SCM_MAKE_CHAR (c)));
+	INPUT_ERROR (port, "Unknown # object: ~S",
+		     scm_list_1 (SCM_MAKE_CHAR (c)));
 	}
 
     case '"':
@@ -469,7 +528,7 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
       while ('"' != (c = scm_getc (port)))
 	{
 	  if (c == EOF)
-	    SCM_MISC_ERROR ("end of file in string constant", SCM_EOL);
+	    INPUT_ERROR (port, "end of file in string constant", SCM_EOL);
 
 	  while (j + 2 >= SCM_STRING_LENGTH (*tok_buf))
 	    scm_grow_tok_buf (tok_buf);
@@ -531,7 +590,7 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
 	      c = SCM_STRING_CHARS (*tok_buf)[1];
 	      goto callshrp;
 	    }
-	  SCM_MISC_ERROR ("unknown # object", SCM_EOL);
+	  INPUT_ERROR (port, "unknown # object", SCM_EOL);
 	}
       goto tok;
 
@@ -662,7 +721,7 @@ scm_lreadparen (SCM *tok_buf, SCM port, char *name, SCM *copy)
       ans = scm_lreadr (tok_buf, port, copy);
     closeit:
       if (')' != (c = scm_flush_ws (port, name)))
-	SCM_MISC_ERROR ("missing close paren", SCM_EOL);
+	INPUT_ERROR (port, "missing close paren", SCM_EOL);
       return ans;
     }
   ans = tl = scm_cons (tmp, SCM_EOL);
@@ -702,7 +761,7 @@ scm_lreadrecparen (SCM *tok_buf, SCM port, char *name, SCM *copy)
     {
       ans = scm_lreadr (tok_buf, port, copy);
       if (')' != (c = scm_flush_ws (port, name)))
-	SCM_MISC_ERROR ("missing close paren", SCM_EOL);
+	INPUT_ERROR (port, "missing close paren", SCM_EOL);
       return ans;
     }
   /* Build the head of the list structure. */
@@ -726,7 +785,7 @@ scm_lreadrecparen (SCM *tok_buf, SCM port, char *name, SCM *copy)
 				       : tmp,
 				       SCM_EOL));
 	  if (')' != (c = scm_flush_ws (port, name)))
-	    SCM_MISC_ERROR ("missing close paren", SCM_EOL);
+	    INPUT_ERROR (port, "missing close paren", SCM_EOL);
 	  goto exit;
 	}
 

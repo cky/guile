@@ -276,6 +276,7 @@ AC_CHECK_FUNCS(gethostbyname)
 if test $ac_cv_func_gethostbyname = no; then
     AC_CHECK_LIB(nsl, gethostbyname)
 fi
+
 AC_CHECK_FUNCS(connect)
 if test $ac_cv_func_connect = no; then
     AC_CHECK_LIB(socket, connect)

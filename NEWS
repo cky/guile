@@ -8,29 +8,6 @@ Changes since the stable branch:
 
 * Changes to the standalone interpreter
 
-** SCM_VELTS macros is now read-only. For writing, use the new macros
-SCM_WRITABLE_VELTS, SCM_SET_VECTOR_LENGTH.  The use of
-SCM_WRITABLE_VELTS is discouraged, though. 
-
-** Garbage collector rewrite.
-
-The garbage collector is cleaned up a lot, and now uses lazy
-sweeping. This is reflected in the output of (gc-stats); since cells
-are being freed when they are allocated, the cells-allocated field
-stays roughly constant.
-
-For malloc related triggers, the behavior is changed. It uses the same
-heuristic as the cell-triggered collections.  It may be tuned with the
-environment variables GUILE_MIN_YIELD_MALLOC.  This is the percentage
-for minimum yield of malloc related triggers; (default: 40)
-GUILE_INIT_MALLOC_LIMIT is the trigger for doing a GC. The default is
-200 kb.
-
-Debugging operations for the freelist have been deprecated, along with
-the C variables that control garbage collection.  The environment
-variables GUILE_MAX_SEGMENT_SIZE, GUILE_INIT_SEGMENT_SIZE_2,
-GUILE_INIT_SEGMENT_SIZE_1, and GUILE_MIN_YIELD_2 should be used.
-
 ** New command line option `--no-debug'.
 
 Specifying `--no-debug' on the command line will keep the debugging
@@ -126,6 +103,29 @@ during evaluation, but prior to evaluation.
 
 * Changes to the C interface
 
+** The SCM_VELTS macros now returns a read-only vector. For writing,
+use the new macros SCM_WRITABLE_VELTS, SCM_SET_VECTOR_LENGTH.  The use
+of SCM_WRITABLE_VELTS is discouraged, though.
+
+** Garbage collector rewrite.
+
+The garbage collector is cleaned up a lot, and now uses lazy
+sweeping. This is reflected in the output of (gc-stats); since cells
+are being freed when they are allocated, the cells-allocated field
+stays roughly constant.
+
+For malloc related triggers, the behavior is changed. It uses the same
+heuristic as the cell-triggered collections.  It may be tuned with the
+environment variables GUILE_MIN_YIELD_MALLOC.  This is the percentage
+for minimum yield of malloc related triggers. The default is 40.
+GUILE_INIT_MALLOC_LIMIT sets the initial trigger for doing a GC. The
+default is 200 kb.
+
+Debugging operations for the freelist have been deprecated, along with
+the C variables that control garbage collection.  The environment
+variables GUILE_MAX_SEGMENT_SIZE, GUILE_INIT_SEGMENT_SIZE_2,
+GUILE_INIT_SEGMENT_SIZE_1, and GUILE_MIN_YIELD_2 should be used.
+
 ** The struct scm_cell has been renamed to scm_t_cell
 
 This is in accordance to Guile's naming scheme for types.  Note that
@@ -143,7 +143,7 @@ The new functions are more symmetrical and do not need cooperation
 from smob free routines, among other improvements.
 
 The new functions are scm_malloc, scm_realloc, scm_strdup,
-scm_strndup, scm_gc_malloc, scm_gc_realloc, scm_gc_free,
+scm_strndup, scm_gc_malloc, scm_gc_calloc, scm_gc_realloc, scm_gc_free,
 scm_gc_register_collectable_memory, and
 scm_gc_unregister_collectable_memory.  Refer to the manual for more
 details and for upgrading instructions.
