@@ -104,6 +104,7 @@ SCM weak_hashtables = SCM_EOL;
 static SCM
 make_hash_table (int flags, unsigned long k, const char *func_name) {
   SCM table, vector;
+  scm_t_hashtable *t;
   int i = 0, n = k ? k : 31;
   while (i < HASHTABLE_SIZE_N && n > hashtable_size[i])
     ++i;
@@ -118,7 +119,7 @@ make_hash_table (int flags, unsigned long k, const char *func_name) {
 					 func_name);
   else
     vector = scm_c_make_vector (n, SCM_EOL);
-  scm_t_hashtable *t = scm_gc_malloc (sizeof (*t), s_hashtable);
+  t = scm_gc_malloc (sizeof (*t), s_hashtable);
   t->min_size_index = t->size_index = i;
   t->n_items = 0;
   t->lower = 0;
