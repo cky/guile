@@ -1,3 +1,7 @@
+2003-04-17  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* goops.scm (compute-getters-n-setters): Check for bad init-thunk.
+
 2003-04-15  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* goops.scm (compute-getter-method): For custom getter: Check
