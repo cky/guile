@@ -1,3 +1,9 @@
+Thu May  1 15:35:49 1997  Jim Blandy  <jimb@floss.cyclic.com>
+
+	* configure.in: Get the paths for qt's md files right, so it can
+ 	build correctly when using a separate compilation directory.
+	* configure: Regenerated.
+
 Thu Apr 24 01:20:34 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 	Get threads to work again.

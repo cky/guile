@@ -16,9 +16,10 @@ it in the distribution.
 4) Update the version numbers in GUILE-VERSION, and README, to remove the
    "unreleased" indications.  They should be straight numbers, of the form
    "N.M", not alpha numbers, of the form "N.Ma".
-5) Do a `cvs update -A', to get rid of any sticky tags.
-6) Commit all changes to the CVS repository.
-7) Verify that the disty works, too:
+5) Choose new interface numbers for shared libraries.
+6) Do a `cvs update -A', to get rid of any sticky tags.
+7) Commit all changes to the CVS repository.
+8) Verify that the disty works, too:
    a) Make a disty, using 'make dist'.
    b) Unpack it somewhere else.
    c) Remove automake and autoconf from your path, or turn off their
@@ -27,17 +28,17 @@ it in the distribution.
    d) Configure, make, and install.
    e) Test the installed version; don't forget to unset SCHEME_LOAD_PATH.
    f) If you made any fixes, commit them, and start from a) again
-8) Tag the entire source tree with a tag of the form "release_N_M".
-9) Copy the tar file over to the GNU machines, and ask the appropriate
-   person to put it on prep.  At the time of this writing, Daniel Hagerty
-   <hag@ai.mit.edu> has been generous about helping with that.
-10) Send an announcement message to gnu-announce@prep.ai.mit.edu.  If I
+9) Tag the entire source tree with a tag of the form "release_N_M".
+10) Copy the tar file over to the GNU machines, and ask the appropriate
+    person to put it on prep.  At the time of this writing, Daniel Hagerty
+    <hag@ai.mit.edu> has been generous about helping with that.
+11) Send an announcement message to gnu-announce@prep.ai.mit.edu.  If I
     remember correctly, the moderator will delay it until the tar file
     appears on prep.  The announcement text should be mostly taken from 
     Guile's README file.
-11) Tweak the version numbers in GUILE-VERSION, and README to indicate that 
+12) Tweak the version numbers in GUILE-VERSION, and README to indicate that 
     the sources are snapshot again.  Snapshots should have version numbers 
     of the form "N.Ma", where the "a" means "alpha".
-12) Start a new section of the NEWS file.
-13) Send mail to majordomo-owner@cygnus.com updating the message you get
+13) Start a new section of the NEWS file.
+14) Send mail to majordomo-owner@cygnus.com updating the message you get
     when you ask majordomo for "info guile".
