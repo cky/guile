@@ -1,5 +1,8 @@
 2001-01-24  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	This patch modifies scm_display_error to perform parameter
+	checking.  Thanks to Neil Jerram for the bug report.
+
 	* backtrace.[ch] (scm_i_display_error):  New function.
 
 	* backtrace.c (scm_display_error):  Added parameter check and
