@@ -973,127 +973,161 @@ from separate @code{and} and @code{let*}, or from @code{cond} with
 
 
 @node SRFI-4
-@section SRFI-4 - Homogeneous numeric vector datatypes.
+@section SRFI-4 - Homogeneous numeric vector datatypes
 @cindex SRFI-4
 
 @c FIXME::martin: Review me!
 
-SRFI-4 defines a set of datatypes for vectors whose elements are all
-of the same numeric type.  Vectors for signed and unsigned exact
-integer or inexact real numbers in several precisions are available.
+SRFI-4 defines a set of datatypes and functions for vectors whose
+elements are numbers, all of the same numeric type.  Vectors for
+signed and unsigned exact integers and inexact reals in several
+precisions are available.  Being homogeneous means they require less
+memory than normal vectors.
+
+The functions and the read syntax in this section are made available
+with
+
+@lisp
+(use-modules (srfi srfi-4))
+@end lisp
 
 Procedures similar to the vector procedures (@pxref{Vectors}) are
 provided for handling these homogeneous vectors, but they are distinct
-datatypes.
-
-The reason for providing this set of datatypes is that with the
-limitation (all elements must have the same type), it is possible to
-implement them much more memory-efficient than normal, heterogenous
-vectors.
-
-If you want to use these datatypes and the corresponding procedures,
-you have to use the module @code{(srfi srfi-4)}.
+datatypes and the two cannot be inter-mixed.
 
 Ten vector data types are provided: Unsigned and signed integer values
 with 8, 16, 32 and 64 bits and floating point values with 32 and 64
-bits.  In the following descriptions, the tags @code{u8}, @code{s8},
-@code{u16}, @code{s16}, @code{u32}, @code{s32}, @code{u64},
-@code{s64}, @code{f32}, @code{f64}, respectively, are used for
-denoting the various types.
+bits.  The type is indicated by a tag in the function names,
+@code{u8}, @code{s8}, @code{u16}, @code{s16}, @code{u32}, @code{s32},
+@code{u64}, @code{s64}, @code{f32}, @code{f64}.
 
-@menu
-* SRFI-4 - Read Syntax::        How to write homogeneous vector literals.
-* SRFI-4 - Procedures::         Available homogeneous vector procedures.
-@end menu
-
-
-@node SRFI-4 - Read Syntax
-@subsection SRFI-4 - Read Syntax
-
-Homogeneous numeric vectors have an external representation (read
-syntax) similar to normal Scheme vectors, but with an additional tag
-telling the vector's type.
+The external representation (ie.@: read syntax) for these vectors is
+similar to normal Scheme vectors, but with an additional tag
+indiciating the vector's type.  For example,
 
 @lisp
 #u16(1 2 3)
-@end lisp
-
-denotes a homogeneous numeric vector of three elements, which are the
-values 1, 2 and 3, represented as 16-bit unsigned integers.
-Correspondingly,
-
-@lisp
 #f64(3.1415 2.71)
 @end lisp
 
-denotes a vector of two elements, which are the values 3.1415 and
-2.71, represented as floating-point values of 64 bit precision.
+Note that the read syntax for floating-point here conflicts with
+@code{#f} for false.  In Standard Scheme one can write @code{(1
+#f3)} for a three element list @code{(1 #f 3)}, but with the SRFI-4
+module @code{(1 #f3)} is invalid.  @code{(1 #f 3)} is almost certainly
+what one should write anyway to make the intention clear, so this is
+rarely a problem.
 
-Please note that the read syntax for floating-point vectors conflicts
-with Standard Scheme, because there @code{#f} is defined to be the
-literal false value.  That means, that with the loaded SRFI-4 module,
-it is not possible to enter some list like
-
-@lisp
-'(1 #f3)
-@end lisp
-
-and hope that it will be parsed as a three-element list with the
-elements 1, @code{#f} and 3.  In normal use, this should be no
-problem, because people tend to terminate tokens sensibly when writing
-Scheme expressions.
-
-@node SRFI-4 - Procedures
-@subsection SRFI-4 Procedures
-
-The procedures listed in this section are provided for all homogeneous
-numeric vector datatypes.  For brevity, they are not all documented,
-but a summary of the procedures is given.  In the following
-descriptions, you can replace @code{TAG} by any of the datatype
-indicators @code{u8}, @code{s8}, @code{u16}, @code{s16}, @code{u32},
-@code{s32}, @code{u64}, @code{s64}, @code{f32} and @code{f64}.
-
-For example, you can use the procedures @code{u8vector?},
-@code{make-s8vector}, @code{u16vector}, @code{u32vector-length},
-@code{s64vector-ref}, @code{f32vector-set!} or @code{f64vector->list}.
-
-@deffn {Scheme Procedure} TAGvector? obj
-Return @code{#t} if @var{obj} is a homogeneous numeric vector of type
-@code{TAG}.
+@deffn {Scheme Procedure} u8vector? obj
+@deffnx {Scheme Procedure} s8vector? obj
+@deffnx {Scheme Procedure} u16vector? obj
+@deffnx {Scheme Procedure} s16vector? obj
+@deffnx {Scheme Procedure} u32vector? obj
+@deffnx {Scheme Procedure} s32vector? obj
+@deffnx {Scheme Procedure} u64vector? obj
+@deffnx {Scheme Procedure} s64vector? obj
+@deffnx {Scheme Procedure} f32vector? obj
+@deffnx {Scheme Procedure} f64vector? obj
+Return @code{#t} if @var{obj} is a homogeneous numeric vector of the
+indicated type.
 @end deffn
 
-@deffn {Scheme Procedure} make-TAGvector n [value]
-Create a newly allocated homogeneous numeric vector of type
-@code{TAG}, which can hold @var{n} elements.  If @var{value} is given,
-the vector is initialized with the value, otherwise, the contents of
-the returned vector is not specified.
+@deffn {Scheme Procedure} make-u8vector n [value]
+@deffnx {Scheme Procedure} make-s8vector n [value]
+@deffnx {Scheme Procedure} make-u16vector n [value]
+@deffnx {Scheme Procedure} make-s16vector n [value]
+@deffnx {Scheme Procedure} make-u32vector n [value]
+@deffnx {Scheme Procedure} make-s32vector n [value]
+@deffnx {Scheme Procedure} make-u64vector n [value]
+@deffnx {Scheme Procedure} make-s64vector n [value]
+@deffnx {Scheme Procedure} make-f32vector n [value]
+@deffnx {Scheme Procedure} make-f64vector n [value]
+Return a newly allocated homogeneous numeric vector holding @var{n}
+elements of the indicated type.  If @var{value} is given, the vector
+is initialized with that value, otherwise the contents are
+unspecified.
 @end deffn
 
-@deffn {Scheme Procedure} TAGvector value1 @dots{}
-Create a newly allocated homogeneous numeric vector of type
-@code{TAG}. The returned vector is as long as the number of arguments
-given, and is initialized with the argument values.
+@deffn {Scheme Procedure} u8vector value @dots{}
+@deffnx {Scheme Procedure} s8vector value @dots{}
+@deffnx {Scheme Procedure} u16vector value @dots{}
+@deffnx {Scheme Procedure} s16vector value @dots{}
+@deffnx {Scheme Procedure} u32vector value @dots{}
+@deffnx {Scheme Procedure} s32vector value @dots{}
+@deffnx {Scheme Procedure} u64vector value @dots{}
+@deffnx {Scheme Procedure} s64vector value @dots{}
+@deffnx {Scheme Procedure} f32vector value @dots{}
+@deffnx {Scheme Procedure} f64vector value @dots{}
+Return a newly allocated homogeneous numeric vector of the indicated
+type, holding the given parameter @var{value}s.  The vector length is
+the number of parameters given.
 @end deffn
 
-@deffn {Scheme Procedure} TAGvector-length TAGvec
-Return the number of elements in @var{TAGvec}.
+@deffn {Scheme Procedure} u8vector-length vec
+@deffnx {Scheme Procedure} s8vector-length vec
+@deffnx {Scheme Procedure} u16vector-length vec
+@deffnx {Scheme Procedure} s16vector-length vec
+@deffnx {Scheme Procedure} u32vector-length vec
+@deffnx {Scheme Procedure} s32vector-length vec
+@deffnx {Scheme Procedure} u64vector-length vec
+@deffnx {Scheme Procedure} s64vector-length vec
+@deffnx {Scheme Procedure} f32vector-length vec
+@deffnx {Scheme Procedure} f64vector-length vec
+Return the number of elements in @var{vec}.
 @end deffn
 
-@deffn {Scheme Procedure} TAGvector-ref TAGvec i
-Return the element at index @var{i} in @var{TAGvec}.
+@deffn {Scheme Procedure} u8vector-ref vec i
+@deffnx {Scheme Procedure} s8vector-ref vec i
+@deffnx {Scheme Procedure} u16vector-ref vec i
+@deffnx {Scheme Procedure} s16vector-ref vec i
+@deffnx {Scheme Procedure} u32vector-ref vec i
+@deffnx {Scheme Procedure} s32vector-ref vec i
+@deffnx {Scheme Procedure} u64vector-ref vec i
+@deffnx {Scheme Procedure} s64vector-ref vec i
+@deffnx {Scheme Procedure} f32vector-ref vec i
+@deffnx {Scheme Procedure} f64vector-ref vec i
+Return the element at index @var{i} in @var{vec}.  The first element
+in @var{vec} is index 0.
 @end deffn
 
-@deffn {Scheme Procedure} TAGvector-ref TAGvec i value
-Set the element at index @var{i} in @var{TAGvec} to @var{value}.  The
-return value is not specified.
+@deffn {Scheme Procedure} u8vector-ref vec i value
+@deffnx {Scheme Procedure} s8vector-ref vec i value
+@deffnx {Scheme Procedure} u16vector-ref vec i value
+@deffnx {Scheme Procedure} s16vector-ref vec i value
+@deffnx {Scheme Procedure} u32vector-ref vec i value
+@deffnx {Scheme Procedure} s32vector-ref vec i value
+@deffnx {Scheme Procedure} u64vector-ref vec i value
+@deffnx {Scheme Procedure} s64vector-ref vec i value
+@deffnx {Scheme Procedure} f32vector-ref vec i value
+@deffnx {Scheme Procedure} f64vector-ref vec i value
+Set the element at index @var{i} in @var{vec} to @var{value}.  The
+first element in @var{vec} is index 0.  The return value is
+unspecified.
 @end deffn
 
-@deffn {Scheme Procedure} TAGvector->list TAGvec
-Return a newly allocated list holding all elements of @var{TAGvec}.
+@deffn {Scheme Procedure} u8vector->list vec
+@deffnx {Scheme Procedure} s8vector->list vec
+@deffnx {Scheme Procedure} u16vector->list vec
+@deffnx {Scheme Procedure} s16vector->list vec
+@deffnx {Scheme Procedure} u32vector->list vec
+@deffnx {Scheme Procedure} s32vector->list vec
+@deffnx {Scheme Procedure} u64vector->list vec
+@deffnx {Scheme Procedure} s64vector->list vec
+@deffnx {Scheme Procedure} f32vector->list vec
+@deffnx {Scheme Procedure} f64vector->list vec
+Return a newly allocated list holding all elements of @var{vec}.
 @end deffn
 
-@deffn {Scheme Procedure} list->TAGvector lst
-Return a newly allocated homogeneous numeric vector of type @code{TAG},
+@deffn {Scheme Procedure} list->u8vector lst
+@deffnx {Scheme Procedure} list->s8vector lst
+@deffnx {Scheme Procedure} list->u16vector lst
+@deffnx {Scheme Procedure} list->s16vector lst
+@deffnx {Scheme Procedure} list->u32vector lst
+@deffnx {Scheme Procedure} list->s32vector lst
+@deffnx {Scheme Procedure} list->u64vector lst
+@deffnx {Scheme Procedure} list->s64vector lst
+@deffnx {Scheme Procedure} list->f32vector lst
+@deffnx {Scheme Procedure} list->f64vector lst
+Return a newly allocated homogeneous numeric vector of the indicated type,
 initialized with the elements of the list @var{lst}.
 @end deffn
 
