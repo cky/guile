@@ -1,5 +1,8 @@
 2003-04-05  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
+	* Makefile.am (scmconfig.h): Look for config.h in top_builddir,
+	not top_srcdir.
+
 	* hashtab.c (rehash_after_gc): Clear to_rehash list before
 	processing it in order to avoid an infinite loop.
 

@@ -47,7 +47,7 @@ gen-scmconfig.$(OBJEXT): gen-scmconfig.c
 		$(COMPILE) -c -o $@ $<; \
 	fi
 
-scmconfig.h: ${top_srcdir}/config.h gen-scmconfig
+scmconfig.h: ${top_builddir}/config.h gen-scmconfig
 	rm -f scmconfig.h.tmp
 	cat $(srcdir)/scmconfig.h.top > scmconfig.h.tmp
 	./gen-scmconfig >> scmconfig.h.tmp
