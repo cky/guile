@@ -66,17 +66,19 @@
 
 
 
-/* Evaluator */
+/* {Evaluator}
+ *
+ * For an explanation of symbols containing "EVAL", see beginning of eval.c.
+ */
 #ifdef DEBUG_EXTENSIONS
-#define EVAL(x, env) (SCM_IMP(x) \
+#define XEVAL(x, env) (SCM_IMP(x) \
 		      ? (x) \
 		      : (*scm_ceval_ptr) ((x), (env)))
 #else
-#define EVAL(x, env) (SCM_IMP(x)?(x):scm_ceval((x), (env)))
+#define XEVAL(x, env) (SCM_IMP(x)?(x):scm_ceval((x), (env)))
 #endif /* DEBUG_EXTENSIONS */
 
 #define SCM_CEVAL scm_ceval
-#define SCM_APPLY scm_apply
 #define SIDEVAL(x, env) if SCM_NIMP(x) SCM_CEVAL((x), (env))
 
 
@@ -111,6 +113,7 @@ extern SCM scm_i_name;
 extern SCM * scm_ilookup (SCM iloc, SCM env);
 extern SCM * scm_lookupcar (SCM vloc, SCM genv);
 extern SCM scm_unmemocar (SCM form, SCM env);
+extern SCM scm_unmemocopy (SCM form, SCM env);
 extern SCM scm_eval_car (SCM pair, SCM env);
 extern SCM scm_m_quote (SCM xorig, SCM env);
 extern SCM scm_m_begin (SCM xorig, SCM env);
@@ -164,6 +167,7 @@ extern void scm_init_eval (void);
 extern SCM * scm_ilookup ();
 extern SCM * scm_lookupcar ();
 extern SCM scm_unmemocar ();
+extern SCM scm_unmemocopy ();
 extern SCM scm_eval_car ();
 extern SCM scm_m_quote ();
 extern SCM scm_m_begin ();
