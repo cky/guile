@@ -3,7 +3,7 @@
  * Copyright (c) 1991-1995 by Xerox Corporation.  All rights reserved.
  * Copyright (c) 1996-1999 by Silicon Graphics.  All rights reserved.
  * Copyright (c) 1999 by Hewlett-Packard Company.  All rights reserved.
- * Copyright (c) 2000, 2001, 2002 Free Software Foundation
+ * Copyright (c) 2000, 2001, 2002, 2003 Free Software Foundation
  *
  * THIS MATERIAL IS PROVIDED AS IS, WITH ABSOLUTELY NO WARRANTY EXPRESSED
  * OR IMPLIED.  ANY USE IS AT YOUR OWN RISK.
@@ -394,8 +394,14 @@ typedef int GC_bool;
 /* SYSV on an M68K actually means A/UX.					*/
 /* The distinction in these cases is usually the stack starting address */
 # ifndef mach_type_known
-	--> unknown machine type
-# endif
+
+void *
+scm_get_stack_base ()
+{
+  return NULL;
+}
+
+# else
 		    /* Mapping is: M68K       ==> Motorola 680X0	*/
 		    /*		   (SUNOS4,HP,NEXT, and SYSV (A/UX),	*/
 		    /*		   MACOS and AMIGA variants)		*/
@@ -1923,4 +1929,5 @@ void *scm_get_stack_base()
 # endif /* ! OS2 */
 # endif /* ! MSWIN32 */
 
+#endif /* mach_type_known */
 #endif /* ! HAVE_LIBC_STACK_END */
