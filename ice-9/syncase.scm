@@ -95,14 +95,19 @@
 	    (apply consumer (access-values result))
 	    (consumer result))))))
 
-(let ((old #f))
+(let ((old-debug #f)
+      (old-read #f))
   (dynamic-wind (lambda ()
-		  (set! old (read-options)))
+		  (set! old-debug (debug-options))
+		  (set! old-read (read-options)))
 		(lambda ()
+		  (debug-disable 'debug 'procnames)
+		  (read-disable 'positions)
 		  (load-from-path "ice-9/psyntax.pp"))
 		(lambda ()
-		  (read-options old))))
-		
+		  (debug-options old-debug)
+		  (read-options old-read))))
+
 ;; The followin line is necessary only if we start making changes
 ;; (load-from-path "ice-9/psyntax.ss")
 
