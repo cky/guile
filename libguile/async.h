@@ -3,7 +3,7 @@
 #ifndef SCM_ASYNC_H
 #define SCM_ASYNC_H
 
-/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2002 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2002, 2004 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -44,6 +44,8 @@ SCM_API SCM scm_call_with_blocked_asyncs (SCM proc);
 SCM_API SCM scm_call_with_unblocked_asyncs (SCM proc);
 void *scm_c_call_with_blocked_asyncs (void *(*p) (void *d), void *d);
 void *scm_c_call_with_unblocked_asyncs (void *(*p) (void *d), void *d);
+void scm_with_blocked_asyncs (void);
+void scm_with_unblocked_asyncs (void);
 SCM_API void scm_init_async (void);
 
 #if (SCM_ENABLE_DEPRECATED == 1)
