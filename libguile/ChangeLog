@@ -1,3 +1,9 @@
+Sun Nov 30 11:29:18 1997  Mikael Djurfeldt  <mdj@kenneth>
+
+	* coop-defs.h (struct coop_t): Renamed errno --> _errno to prevent
+	errno macro expansion of this field name.  (errno is a C
+	preprocessor macro on some systems.)
+
 1997-11-29  Tim Pierce  <twp@skepsis.com>
 
 	* iselect.c: Doc fix.

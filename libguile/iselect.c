@@ -367,7 +367,7 @@ error_revive (void)
   
   while ((t = coop_qget (&coop_global_sleepq)) != NULL)
     {
-      t->errno = errno;
+      t->_errno = errno;
       t->retval = -1;
       coop_qput (&coop_global_runq, t);
     }
@@ -581,7 +581,7 @@ scm_internal_select (int nfds,
     }
 
   if (curr->retval == -1)
-    errno = curr->errno;
+    errno = curr->_errno;
   return curr->retval;
 }
 

@@ -100,7 +100,7 @@ typedef struct coop_t {
   SELECT_TYPE *exceptfds;
   int timeoutp;
   struct timeval wakeup_time;	/* Time to stop sleeping */
-  int errno;
+  int _errno;
   int retval;
 #else
   time_t wakeup_time;    /* Time to stop sleeping */
