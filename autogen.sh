@@ -5,7 +5,8 @@
   exit 1
 }
 
-aclocal -I .
+./guile-aclocal.sh
+
 libtoolize --copy --automake --ltdl
 autoheader
 autoconf

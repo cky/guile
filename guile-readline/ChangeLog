@@ -1,3 +1,7 @@
+2000-06-01  Michael Livshin  <mlivshin@bigfoot.com>
+
+	* autogen.sh: call ../guile-aclocal.sh instead of aclocal
+	
 2000-05-01  Gary Houston  <ghouston@arglist.com>
 
 	* readline.c: include libguile.h, not libguile/libguile.h.
