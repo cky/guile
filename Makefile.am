@@ -21,4 +21,6 @@
 
 SUBDIRS = ice-9 qt libltdl libguile guile-config guile-readline doc
 
+include_HEADERS = libguile.h
+
 EXTRA_DIST = qthreads.m4 HACKING GUILE-VERSION ANON-CVS SNAPSHOTS
