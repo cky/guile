@@ -37,7 +37,35 @@
 # endif
 #endif
 
+
+
 /* In the beginning was the Word:
+ *
+ * For the representation of scheme objects and their handling, Guile provides
+ * two types:  scm_t_bits and SCM.
+ *
+ * - scm_t_bits values can hold bit patterns of non-objects and objects:
+ *
+ *   Non-objects -- in this case the value may not be changed into a SCM value
+ *   in any way.
+ *
+ *   Objects -- in this case the value may be changed into a SCM value using
+ *   the SCM_PACK macro.
+ *
+ * - SCM values can hold proper scheme objects only.  They can be changed into
+ *   a scm_t_bits value using the SCM_UNPACK macro.
+ *
+ * When working in the domain of scm_t_bits values, programmers must keep
+ * track of any scm_t_bits value they create that is not a proper scheme
+ * object.  This makes sure that in the domain of SCM values developers can
+ * rely on the fact that they are dealing with proper scheme objects only.
+ * Thus, the distinction between scm_t_bits and SCM values helps to identify
+ * those parts of the code where special care has to be taken not to create
+ * bad SCM values.
+ */
+
+/* For dealing with the bit level representation of scheme objects we define
+ * scm_t_bits:
  */
 /* On Solaris 7 and 8, /usr/include/sys/int_limits.h defines
    INTPTR_MAX and UINTPTR_MAX to empty, INTPTR_MIN is not defined.
@@ -65,8 +93,8 @@ typedef unsigned long scm_t_bits;
 
 #endif
 
-/* But as external interface, we use SCM, which may, according to the desired
- * level of type checking, be defined in several ways:
+/* But as external interface, we define SCM, which may, according to the
+ * desired level of type checking, be defined in several ways:
  */
 #if (SCM_DEBUG_TYPING_STRICTNESS == 2)
     typedef union { struct { scm_t_bits n; } n; } SCM;
@@ -98,186 +126,282 @@ typedef unsigned long scm_t_bits;
 
 
 
-/* SCM variables can contain:
+/* Representation of scheme objects:
  *
- * Non-objects -- meaning that the tag-related macros don't apply to them
- * in the usual way.
+ * Guile's type system is designed to work on systems where scm_t_bits and SCM
+ * variables consist of at least 32 bits.  The objects that a SCM variable can
+ * represent belong to one of the following two major categories:
  *
- * Immediates -- meaning that the variable contains an entire Scheme object.
+ * - Immediates -- meaning that the SCM variable contains an entire Scheme
+ *   object.  That means, all the object's data (including the type tagging
+ *   information that is required to identify the object's type) must fit into
+ *   32 bits.
  *
- * Non-immediates -- meaning that the variable holds a (possibly
- * tagged) pointer into the cons pair heap.
+ * - Non-immediates -- meaning that the SCM variable holds a pointer into the
+ *   heap of cells (see below).  On systems where a pointer needs more than 32
+ *   bits this means that scm_t_bits and SCM variables need to be large enough
+ *   to hold such pointers.  In contrast to immediates, the object's data of
+ *   a non-immediate can consume arbitrary amounts of memory: The heap cell
+ *   being pointed to consists of at least two scm_t_bits variables and thus
+ *   can be used to hold pointers to malloc'ed memory of any size.
  *
- * Non-objects are distinguished from other values by careful coding
- * only (i.e., programmers must keep track of any SCM variables they
- * create that don't contain ordinary scheme values).
+ * The 'heap' is the memory area that is under control of Guile's garbage
+ * collector.  It holds 'single-cells' or 'double-cells', which consist of
+ * either two or four scm_t_bits variables, respectively.  It is guaranteed
+ * that the address of a cell on the heap is 8-byte aligned.  That is, since
+ * non-immediates hold a cell address, the three least significant bits of a
+ * non-immediate can be used to store additional information.  The bits are
+ * used to store information about the object's type and thus are called
+ * tc3-bits, where tc stands for type-code.  
  *
- * All immediates and pointers to cells of non-immediates have a 0 in
- * bit 0.  All non-immediates that are not pairs have a 1 in bit 0 of
- * the first word of their cell.  This is how pairs are distinguished
- * from other non-immediates; a pair can have a immediate in its car
- * (thus a 0 in bit 0), or a pointer to the cell of a non-immediate
- * (again, this pointer has a 0 in bit 0).
+ * For a given SCM value, the distinction whether it holds an immediate or
+ * non-immediate object is based on the tc3-bits (see above) of its scm_t_bits
+ * equivalent: If the tc3-bits equal #b000, then the SCM value holds a
+ * non-immediate, and the scm_t_bits variable's value is just the pointer to
+ * the heap cell.
  *
- * Immediates and non-immediates are distinguished by bits 1 and 2.
- * Immediate values must have a 1 in at least one of those bits.
- * Consequently, a pointer to a cell of a non-immediate must have
- * zeros in bits 1 and 2.  Together with the requirement from above
- * that bit 0 must also be zero, this means that pointers to cells of
- * non-immediates must have their three low bits all zero.  This in
- * turn means that cells must be aligned on a 8 byte boundary, which
- * is just right for two 32bit numbers (surprise, surprise).  Does
- * this (or any other detail of tagging) seem arbitrary?  Try changing
- * it!  (Not always impossible but it is fair to say that many details
- * of tags are mutually dependent).  */
-
-#define SCM_IMP(x) 		(6 & SCM_UNPACK (x))
-#define SCM_NIMP(x) 		(!SCM_IMP (x))
-
-/* Here is a summary of tagging in SCM values as they might occur in
- * SCM variables or in the heap.
- *
- * low bits    meaning
- *
- *
- * 0		Most objects except...
- * 1 		... structs (this tag is valid only in the header
- *              of a struct's data, as with all odd tags).
- *
- * 00		heap addresses and many immediates (not integers)
- * 01		structs, some tc7_ codes
- * 10		immediate integers
- * 11		various tc7_ codes including, tc16_ codes.
+ * Summarized, the data of a scheme object that is represented by a SCM
+ * variable consists of a) the SCM variable itself, b) in case of
+ * non-immediates the data of the single-cell or double-cell the SCM object
+ * points to, c) in case of non-immediates potentially additional data outside
+ * of the heap (like for example malloc'ed data), and d) in case of
+ * non-immediates potentially additional data inside of the heap, since data
+ * stored in b) and c) may hold references to other cells.
  *
  *
- * 000		heap address
- * 001		structs
- * 010		integer
- * 011		closure
- * 100		immediates
- * 101		tc7_
- * 110 		integer
- * 111		tc7_
+ * Immediates
+ *
+ * Operations on immediate objects can typically be processed faster than on
+ * non-immediates.  The reason is that the object's data can be extracted
+ * directly from the SCM variable (or rather a corresponding scm_t_bits
+ * variable), instead of having to perform additional memory accesses to
+ * obtain the object's data from the heap.  In order to get the best possible
+ * performance frequently used data types should be realized as immediates.
+ * This is, as has been mentioned above, only possible if the objects can be
+ * represented with 32 bits (including type tagging).
+ *
+ * In Guile, the following data types and special objects are realized as
+ * immediates: booleans, characters, small integers (see below), the empty
+ * list, the end of file object, the 'unspecified' object (which is delivered
+ * as a return value by functions for which the return value is unspecified),
+ * a 'nil' object used in the elisp-compatibility mode and certain other
+ * 'special' objects which are only used internally in Guile.
+ *
+ * Integers in Guile can be arbitrarily large.  On the other hand, integers
+ * are one of the most frequently used data types.  Especially integers with
+ * less than 32 bits are commonly used.  Thus, internally and transparently
+ * for application code guile distinguishes between small and large integers.
+ * Whether an integer is a large or a small integer depends on the number of
+ * bits needed to represent its value.  Small integers are those which can be
+ * represented as immediates.  Since they don't require more than a fixed
+ * number of bits for their representation, they are also known as 'fixnums'.
+ *
+ * The tc3-combinations #b010 and #b110 are used to represent small integers,
+ * which allows to use the most significant bit of the tc3-bits to be part of
+ * the integer value being represented.  This means that all integers with up
+ * to 30 bits (including one bit for the sign) can be represented as
+ * immediates.  On systems where SCM and scm_t_bits variables hold more than
+ * 32 bits, the amount of bits usable for small integers will even be larger.
+ * The tc3-code #b100 is shared among booleans, characters and the other
+ * special objects listed above.
  *
  *
- * 100 --- IMMEDIATES
+ * Non-Immediates
  *
- * Looking at the seven final bits of an immediate:
+ * All object types not mentioned above in the list of immedate objects are
+ * represented as non-immediates.  Whether a non-immediate scheme object is
+ * represented by a single-cell or a double-cell depends on the object's type,
+ * namely on the set of attributes that have to be stored with objects of that
+ * type.  Every non-immediate type is allowed to define its own layout and
+ * interpretation of the data stored in its cell (with some restrictions, see
+ * below).
  *
- * 0000-100	short instruction
- * 0001-100	short instruction
- * 0010-100	short instruction
- * 0011-100	short instruction
- * 0100-100	short instruction
- * 0101-100	short instruction
- * 0110-100	short instruction
- * 0111-100	short instruction
- * 1000-100	short instruction
- * 1001-100	short instruction
- * 1010-100	short instruction
- * 1011-100	short instruction
- * 1100-100	short instruction
- * 1101-100	short instruction
- * 1110-100	immediate characters, various immediates and long instructions
- * 1111-100	ilocs
+ * One of the design goals of guile's type system is to make it possible to
+ * store a scheme pair with as little memory usage as possible.  The minimum
+ * amount of memory that is required to store two scheme objects (car and cdr
+ * of a pair) is the amount of memory required by two scm_t_bits or SCM
+ * variables.  Therefore pairs in guile are stored in single-cells.
  *
- * Some of the 1110100 immediates are long instructions (they dispatch in
- * three steps compared to one step for a short instruction).  The three steps
- * are, (1) dispatch on 7 bits to the long instruction handler, (2) check, if
- * the immediate indicates a long instruction (rather than a character or
- * other immediate) (3) dispatch on the additional bits.
+ * Another design goal for the type system is to store procedure objects
+ * created by lambda expresssions (closures) and class instances (goops
+ * objects) with as little memory usage as possible.  Closures are represented
+ * by a reference to the function code and a reference to the closure's
+ * environment.  Class instances are represented by a reference to the
+ * instance's class definition and a reference to the instance's data.  Thus,
+ * closures as well as class instances also can be stored in single-cells.
  *
- * One way to think of it is that there are 128 short instructions,
- * with the 13 immediates above being some of the most interesting.
- *
- * Also noteworthy are the groups of 16 7-bit instructions implied by
- * some of the 3-bit tags.  For example, closure references consist of
- * an 8-byte aligned address tagged with 011.  There are 16 identical
- * 7-bit instructions, all ending 011, which are invoked by evaluating
- * closures.
- *
- * In other words, if you hand the evaluator a closure, the evaluator
- * treats the closure as a graph of virtual machine instructions.  A
- * closure is a pair with a pointer to the body of the procedure in
- * the CDR and a pointer to the environment of the closure in the CAR.
- * The environment pointer is tagged 011 which implies that the least
- * significant 7 bits of the environment pointer also happen to be a
- * virtual machine instruction we could call "SELF" (for
- * self-evaluating object).
- *
- * A less trivial example are the 16 instructions ending 000.  If
- * those bits tag the CAR of a pair, then evidently the pair is an
- * ordinary cons pair and should be evaluated as a procedure
- * application.  The sixteen, 7-bit 000 instructions are all
- * "NORMAL-APPLY" (Things get trickier.  For example, if the CAR of a
- * procedure application is a symbol, the NORMAL-APPLY instruction
- * will, as a side effect, overwrite that CAR with a new instruction
- * that contains a cached address for the variable named by the
- * symbol.)
- *
- * Here is a summary of tags in the CAR of a non-immediate:
- *
- * cons	   ..........SCM car..............0  ...........SCM cdr.............0
- * struct  ..........void * type........001  ...........void * data.........0
- * closure ..........SCM code...........011  ...........SCM env.............0
- * tc7	   ......24.bits of data...0xxxx1S1  ..........void *data............
+ * Certain other non-immediate types also store their data in single-cells.
+ * By design decision, the heap is split into areas for single-cells and
+ * double-cells, but not into areas for single-cells-holding-pairs and areas
+ * for single-cells-holding-non-pairs.  Any single-cell on the heap therefore
+ * can hold pairs (consisting of two scm_t_bits variables representing two
+ * scheme objects - the car and cdr of the pair) and non-pairs (consisting of
+ * two scm_t_bits variables that hold bit patterns as defined by the layout of
+ * the corresponding object's type).
  *
  *
+ * Garbage collection
  *
- * 101 & 111 --- tc7_ types
+ * During garbage collection, unreachable cells on the heap will be freed.
+ * That is, the garbage collector will detect cells which have no SCM variable
+ * pointing towards them.  In order to properly release all memory belonging
+ * to the object to which a cell belongs, the gc needs to be able to interpret
+ * the cell contents in the correct way.  That means that the gc needs to be
+ * able to determine the object type associated with a cell only from the cell
+ * itself.
  *
- *		tc7_tags are 7 bit tags ending in 1x1.  These tags
- *		occur only in the CAR of heap cells, and have the
- *		handy property that all bits of the CAR above the
- *		bottom eight can be used to store some data, thus
- *		saving a word in the body itself.  Thus, we use them
- *		for strings and vectors (among other things).
+ * Consequently, if the gc detects an unreachable single-cell, those two
+ * scm_t_bits variables must provide enough information to determine whether
+ * they belong to a pair (i. e. both scm_t_bits variables represent valid
+ * scheme objects), to a closure, a class instance or if they belong to any
+ * other non-immediate.  Guile's type system is designed to make it possible
+ * to determine a the type to which a cell belongs in the majority of cases
+ * from the cell's first scm_t_bits variable.  (Given a SCM variable X holding
+ * a non-immediate object, the macro SCM_CELL_TYPE(X) will deliver the
+ * corresponding cell's first scm_t_bits variable.)
  *
- *		TYP7(X) returns bits 0...6 of CELL_TYPE (X)
+ * If the cell holds a scheme pair, then we already know that the first
+ * scm_t_bits variable of the cell will hold a scheme object with one of the
+ * following tc3-codes: #b000 (non-immediate), #b010 (small integer), #b100
+ * (small integer), #b110 (non-integer immediate).  All these tc3-codes have
+ * in common, that their least significant bit is #b0.  This fact is used by
+ * the garbage collector to identify cells that hold pairs.  The remaining
+ * tc3-codes are assigned as follows: #b001 (class instance or, more
+ * precisely, a struct, of which a class instance is a special case), #b011
+ * (closure), #b101/#b111 (all remaining non-immediate types).
  *
- *              Sometimes we choose the bottom seven bits carefully,
- *              so that the 2-valued bit (called S bit) can be masked
- *              off to reveal a common type.
  *
- *		TYP7S(X) returns TYP7, but masking out the option bit S.
+ * Summary of type codes of scheme objects (SCM variables)
  *
- *		Some TC7 types are subdivided into 256 subtypes giving
- *		rise to the macros:
+ * Here is a summary of tagging bits as they might occur in a scheme object.
+ * The notation is as follows: tc stands for type code as before, tc<n> with n
+ * being a number indicates a type code formed by the n least significant bits
+ * of the SCM variables corresponding scm_t_bits value.
  *
- *		TYP16
- *		TYP16S
+ * Note that (as has been explained above) tc1==1 can only occur in the first
+ * scm_t_bits variable of a cell belonging to a non-immediate object that is
+ * not a pair.  For an explanation of the tc tags with tc1==1, see the next
+ * section with the summary of the type codes on the heap.
  *
- *		TYP16S functions similarly wrt to TYP16 as TYP7S to TYP7,
- *		but a different option bit is used (bit 2 for TYP7S,
- *		bit 8 for TYP16S).
+ * tc1:
+ *   0:  For scheme objects, tc1==0 must be fulfilled.
+ *  (1:  This can never be the case for a scheme object.)
+ *
+ * tc2:
+ *   00:  Either a non-immediate or some non-integer immediate
+ *  (01:  This can never be the case for a scheme object.)
+ *   10:  Small integer
+ *  (11:  This can never be the case for a scheme object.)
+ *
+ * tc3:
+ *   000:  a non-immediate object (pair, closure, class instance etc.)
+ *  (001:  This can never be the case for a scheme object.)
+ *   010:  an even small integer (least significant bit is 0).
+ *  (011:  This can never be the case for a scheme object.)
+ *   100:  Non-integer immediate
+ *  (101:  This can never be the case for a scheme object.)
+ *   110:  an odd small integer (least significant bit is 1).
+ *  (111:  This can never be the case for a scheme object.)
+ *
+ * The remaining bits of the non-immediate objects form the pointer to the
+ * heap cell.  The remaining bits of the small integers form the integer's
+ * value and sign.  Thus, the only scheme objects for which a further
+ * subdivision is of interest are the ones with tc3==100.
+ *
+ * tc7, tc8, tc9 (for objects with tc3==100):
+ *   xx-0000-100:  \  evaluator byte codes ('short instructions').  The byte
+ *       ...        } code interpreter can dispatch on them in one step based
+ *   xx-1101-100:  /  on their tc7 value.
+ *   00-1110-100:  evaluator byte codes ('long instructions').  The byte code
+ *                 interpreter needs to dispatch on them in three steps:
+ *                 The first dispatch is based on the tc7-code.  The second
+ *                 dispatch checks for tc9==00-1110-100.  The third dispatch
+ *                 is based on the actual byte code that is extracted from the
+ *                 upper bits.
+ *   x1-1110-100:  characters with x as their least significant bit
+ *   10-1110-100:  various constants ('flags')
+ *   xx-1111-100:  evaluator byte codes ('ilocs')
+ *
+ *
+ * Summary of type codes on the heap
+ *
+ * Here is a summary of tagging in scm_t_bits values as they might occur in
+ * the first scm_t_bits variable of a heap cell.
+ *
+ * tc1:
+ *   0:  the cell belongs to a pair.
+ *   1:  the cell belongs to a non-pair.
+ *
+ * tc2:
+ *   00:  the cell belongs to a pair with no short integer in its car.
+ *   01:  the cell belongs to a non-pair (struct or some other non-immediate).
+ *   10:  the cell belongs to a pair with a short integer in its car.
+ *   11:  the cell belongs to a non-pair (closure or some other non-immediate).
+ *
+ * tc3:
+ *   000:  the cell belongs to a pair with a non-immediate in its car.
+ *   001:  the cell belongs to a struct
+ *   010:  the cell belongs to a pair with an even short integer in its car.
+ *   011:  the cell belongs to a closure
+ *   100:  the cell belongs to a pair with a non-integer immediate in its car.
+ *   101:  the cell belongs to some other non-immediate.
+ *   110:  the cell belongs to a pair with an odd short integer in its car.
+ *   111:  the cell belongs to some other non-immediate.
+ *
+ * tc7 (for tc3==1x1):
+ *   See below for the list of types.  Note the special case of scm_tc7_vector
+ *   and scm_tc7_wvect:  vectors and weak vectors are treated the same in many
+ *   cases.  Thus, their tc7-codes are chosen to only differ in one bit.  This
+ *   makes it possible to check an object at the same time for being a vector
+ *   or a weak vector by comparing its tc7 code with that bit masked (using
+ *   the TYP7S macro).  Two more special tc7-codes are of interest:  ports and
+ *   smobs in fact each represent collections of types, which are subdivided
+ *   using tc16-codes.
+ *
+ * tc16 (for tc7==scm_tc7_smob):
+ *   The largest part of the space of smob types is not subdivided in a
+ *   predefined way, since smobs can be added arbitrarily by user C code.
+ *   However, while Guile also defines a number of smob types throughout,
+ *   there are four smob types for which Guile assumes that they are declared
+ *   first and thus get known-in-advance tc16-codes.  These are
+ *   scm_tc_free_cell, scm_tc16_big, scm_tc16_real and scm_tc16_complex.  The
+ *   reason of requiring fixed tc16-codes for these types is performance.  For
+ *   the same reason, scm_tc16_real and scm_tc16_complex are given tc16-codes
+ *   that only differ in one bit: This way, checking if an object is an
+ *   inexact number can be done quickly (using the TYP16S macro)
  */
 
 
-/* {Non-immediate values.}
- *
- * If X is non-immediate, it is necessary to look at SCM_CAR (X) to
- * figure out Xs type.  X may be a cons pair, in which case the value
- * SCM_CAR (x) will be either an immediate or non-immediate value.  X
- * may be something other than a cons pair, in which case the value
- * SCM_CAR (x) will be a non-object value.
- *
- * All immediates and non-immediates have a 0 in bit 0.  We
- * additionally preserve the invariant that all non-object values
- * stored in the SCM_CAR of a non-immediate object have a 1 in bit 1:
- */
 
+/* Checking if a SCM variable holds an immediate or a non-immediate object:
+ * This check can either be performed by checking for tc3==000 or tc3==00x,
+ * since for a SCM variable it is known that tc1==0.  */
+#define SCM_IMP(x) 		(6 & SCM_UNPACK (x))
+#define SCM_NIMP(x) 		(!SCM_IMP (x))
+
+/* Checking if a SCM variable holds an immediate integer: See numbers.h for
+ * the definition of the following macros: SCM_I_FIXNUM_BIT,
+ * SCM_MOST_POSITIVE_FIXNUM, SCM_INUMP, SCM_MAKINUM, SCM_INUM.  */
+
+/* Checking if a SCM variable holds a pair (for historical reasons, in Guile
+ * also known as a cons-cell): This is done by first checking that the SCM
+ * variable holds a non-immediate, and second, by checking that tc1==0 holds
+ * for the SCM_CELL_TYPE of the SCM variable.  */
 #define SCM_CONSP(x)  (!SCM_IMP (x) && ((1 & SCM_CELL_TYPE (x)) == 0))
 #define SCM_NCONSP(x) (!SCM_CONSP (x))
 
 
 
-/* See numbers.h for macros relating to immediate integers.
- */
+/* Definitions for tc2: */
 
 #define scm_tc2_int              2
 
+
+/* Definitions for tc3: */
+
 #define SCM_ITAG3(x) 		 (7 & SCM_UNPACK (x))
 #define SCM_TYP3(x) 		 (7 & SCM_CELL_TYPE (x))
+
 #define scm_tc3_cons	 	 0
 #define scm_tc3_struct    	 1
 #define scm_tc3_int_1		 (scm_tc2_int + 0)
@@ -288,22 +412,11 @@ typedef unsigned long scm_t_bits;
 #define scm_tc3_tc7_2		 7
 
 
-/*
- * Do not change the three bit tags.
- */
-
+/* Definitions for tc7: */
 
 #define SCM_ITAG7(x) 		(127 & SCM_UNPACK (x))
 #define SCM_TYP7(x) 		(0x7f &        SCM_CELL_TYPE (x))
 #define SCM_TYP7S(x) 		((0x7f & ~2) & SCM_CELL_TYPE (x))
-
-
-#define SCM_TYP16(x) 		(0xffff & SCM_CELL_TYPE (x))
-#define SCM_TYP16S(x) 		(0xfeff & SCM_CELL_TYPE (x))
-
-#define SCM_TYP16_PREDICATE(tag, x) (!SCM_IMP (x) && SCM_TYP16 (x) == (tag))
-
-
 
 #define scm_tc7_symbol		5
 #define scm_tc7_variable        7
@@ -317,8 +430,8 @@ typedef unsigned long scm_t_bits;
 
 /* Many of the following should be turned
  * into structs or smobs.  We need back some
- * of these 7 bit tags!
- */
+ * of these 7 bit tags!  */
+
 #define scm_tc7_pws		31
 
 #if SCM_HAVE_ARRAYS
@@ -348,30 +461,29 @@ typedef unsigned long scm_t_bits;
 #define scm_tc7_lsubr_2		117
 #define scm_tc7_lsubr		119
 
-
-/* There are 256 port subtypes.
- */
+/* There are 256 port subtypes.  */
 #define scm_tc7_port		125
-
 
 /* There are 256 smob subtypes.  [**] If you change scm_tc7_smob, you must
  * also change the places it is hard coded in this file and possibly others.
  * Dirk:FIXME:: Any hard coded reference to scm_tc7_smob must be replaced by a
- * symbolic reference.
- */
+ * symbolic reference.  */
 #define scm_tc7_smob		127 /* DO NOT CHANGE [**] */
 
 
-/* Here are the first four smob subtypes.
- */
+/* Definitions for tc16: */
+#define SCM_TYP16(x) 		(0xffff & SCM_CELL_TYPE (x))
+#define SCM_TYP16S(x) 		(0xfeff & SCM_CELL_TYPE (x))
+
+#define SCM_TYP16_PREDICATE(tag, x) (!SCM_IMP (x) && SCM_TYP16 (x) == (tag))
+
+/* Here are the first four smob subtypes.  */
 
 /* scm_tc_free_cell is the 0th smob type.  We place this in free cells to tell
- * the conservative marker not to trace it.
- */
+ * the conservative marker not to trace it.  */
 #define scm_tc_free_cell	(scm_tc7_smob + 0 * 256L)
 
-/* Smob type 1 to 3 (note the dependency on the predicate SCM_NUMP)
- */
+/* Smob type 1 to 3 (note the dependency on the predicate SCM_NUMP)  */
 #define scm_tc16_big		(scm_tc7_smob + 1 * 256L)
 #define scm_tc16_real           (scm_tc7_smob + 2 * 256L)
 #define scm_tc16_complex        (scm_tc7_smob + 3 * 256L)

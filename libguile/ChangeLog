@@ -1,5 +1,10 @@
 2003-09-04  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* tags.h: Added description of Guile's type system.  Removed some
+	old and misleading comments.
+
+2003-09-04  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* unit.c (scm_cvref): Eliminate unnecessary uses of SCM_NIMP,
 	SCM_SLOPPY_REALP and SCM_SLOPPY_COMPLEXP.
 
