@@ -1,3 +1,20 @@
+Thu Mar  2 16:06:58 2000  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* error.h, error.c: Added `scm_wrong_type_arg_msg' to support
+ 	displaying the expected type.  Use SCM_LISTn in a couple places
+	instead of scm_cons-ing by hand.
+
+	* __scm.h: Added SCM_ASSERT_TYPE macro.
+
+	* validate.h, scm_validate.h: Added the former, as a renamed
+	version of the latter with SCM_ASSERT_TYPE used in
+	SCM_MAKE_VALIDATE (instead of just SCM_ASSERT)
+
+	* Makefile.am: Rename scm_validate.h to validate.h.
+
+	* *.c, *.h: Include validate.h, not scm_validate.h (old name's
+	prefix was superfluous).
+
 Thu Mar  2 15:33:12 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* hashtab.c: Improved documentation for lots of functions.  Added
