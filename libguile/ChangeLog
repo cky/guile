@@ -1,3 +1,14 @@
+1999-09-27  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* stacks.c: Avoid compiler warning re: unitialized var.
+
+	* scmconfig.h.in: Added DEBUG_FREELIST
+
+	* pairs.h: Fix macro that was not do-while(0) sandwiched.
+
+	* gc.h, gc.c: Added scm_gc_set_debug_check_freelist_x,
+ 	scm_map_free_list
+
 1999-09-23  Gary Houston  <ghouston@freewire.co.uk>
 
 	* ioext.c (scm_init_ioext): enable "i/o-extensions" feature here
