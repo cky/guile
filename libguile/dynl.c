@@ -304,6 +304,15 @@ mark_dynl_obj (ptr)
     return d->filename;
 }
 
+static scm_sizet free_dynl_obj SCM_P ((SCM ptr));
+static scm_sizet
+free_dynl_obj (ptr)
+     SCM ptr;
+{
+  scm_must_free ((char *)SCM_CDR (ptr));
+  return sizeof (struct dynl_obj);
+}
+
 static int print_dynl_obj SCM_P ((SCM exp, SCM port, scm_print_state *pstate));
 static int
 print_dynl_obj (exp, port, pstate)
@@ -322,7 +331,7 @@ print_dynl_obj (exp, port, pstate)
 
 static scm_smobfuns dynl_obj_smob = {
     mark_dynl_obj,
-    scm_free0,
+    free_dynl_obj,
     print_dynl_obj
 };
   
@@ -333,15 +342,19 @@ scm_dynamic_link (fname)
      SCM fname;
 {
     SCM z;
+    void *handle;
     struct dynl_obj *d;
 
     fname = scm_coerce_rostring (fname, s_dynamic_link, SCM_ARG1);
+
+    SCM_DEFER_INTS;
+    handle = sysdep_dynl_link (SCM_CHARS (fname), s_dynamic_link);
+
     d = (struct dynl_obj *)scm_must_malloc (sizeof (struct dynl_obj),
 					    s_dynamic_link);
     d->filename = fname;
+    d->handle = handle;
 
-    SCM_DEFER_INTS;
-    d->handle = sysdep_dynl_link (SCM_CHARS (fname), s_dynamic_link);
     SCM_NEWCELL (z);
     SCM_SETCHARS (z, d);
     SCM_SETCAR (z, scm_tc16_dynamic_obj);
