@@ -31,6 +31,7 @@ scripts_sources =		\
 	generate-autoload	\
 	punify			\
 	read-scheme-source	\
+	read-text-outline	\
 	use2dot                 \
 	snarf-check-and-output-texi
 
