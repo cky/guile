@@ -1,3 +1,21 @@
+1998-05-11  Mikael Djurfeldt  <mdj@kenneth>
+
+	* readline.c (scm_add_history): Bugfix: Do strdup before giving
+	away the string to add_history.
+	(completion_function): Do completion for readline.
+	(scm_filename_completion_function): New procedure: Filename
+	completer.
+	(current_input_getc): New function.  Use this one instead of
+	standard getc from readline.
+
+	* throw.c, throw.h (scm_handle_by_throw): New function: This
+	handler throws errors to next handler on the dynwind chain.
+
+1998-05-09  Mikael Djurfeldt  <mdj@kenneth>
+
+	* scmsigs.c (scm_usleep): Bugfix: Don't define j if it isn't
+	used.
+
 1998-05-03  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* procprop.c (scm_i_procedure_arity): New function.  Returns arity

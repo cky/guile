@@ -548,6 +548,17 @@ scm_handle_by_message_noexit (handler_data, tag, args)
 }
 
 
+SCM
+scm_handle_by_throw (handler_data, tag, args)
+     void *handler_data;
+     SCM tag;
+     SCM args;
+{
+  scm_ithrow (tag, args, 1);
+  return SCM_UNSPECIFIED;  /* never returns */
+}
+
+
 
 /* the Scheme-visible CATCH and LAZY-CATCH functions */
 
