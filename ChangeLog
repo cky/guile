@@ -1,3 +1,12 @@
+2000-09-02  Keisuke Nishida  <kxn30@po.cwru.edu>
+
+	* src/vm_engine.c (VM_NAME): Renamed the variable `an' to `nargs'.
+	Removed the variables `a2' and `a3'.
+	* src/vm_engine.h (VM_SETUP_ARGS2, VM_SETUP_ARGS3): Setup local
+	variables.
+	(VM_SETUP_ARGS4): Removed.
+	* src/vm_system.c, src/vm_scheme.c, src/vm_number.c: Updated.
+
 2000-08-24  Keisuke Nishida  <kxn30@po.cwru.edu>
 
 	* src/vm.c (lookup_variable): New function.
