@@ -1,3 +1,7 @@
+1999-10-26  Gary Houston  <ghouston@freewire.co.uk>
+
+	* strports.c (st_end_input): avoid dubious pointer arithmetic.
+
 1999-10-24  Gary Houston  <ghouston@freewire.co.uk>
 
 	* Move the responsibility for resetting port buffers from the
