@@ -1,5 +1,10 @@
 Wed May 14 12:18:12 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
+	* strports.c (scm_eval_string): New function.
+	(scm_eval_0str): Trivially re-implemented in terms of
+	scm_eval_string.
+	* strports.h (scm_eval_string): New extern decl.
+
 	* net_db.c (h_errno): Add extern decl for this.
 
 	* fports.c (local_pclose): New function.
