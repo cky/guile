@@ -35,16 +35,16 @@
   (cons 'misc-error "^duplicate formals"))
 (define exception:missing-clauses
   (cons 'syntax-error "Missing clauses"))
-(define exception:bad-var
-  (cons 'misc-error "^bad variable"))
-(define exception:bad/missing-clauses
-  (cons 'misc-error "^bad or missing clauses"))
+(define exception:misplaced-else-clause
+  (cons 'syntax-error "Misplaced else clause"))
 (define exception:bad-case-clause
   (cons 'syntax-error "Bad case clause"))
-(define exception:extra-case-clause
-  (cons 'syntax-error "Extra case clause"))
 (define exception:bad-case-labels
   (cons 'syntax-error "Bad case labels"))
+(define exception:bad-cond-clause
+  (cons 'syntax-error "Bad cond clause"))
+(define exception:bad-var
+  (cons 'misc-error "^bad variable"))
 (define exception:missing/extra-expr
   (cons 'misc-error "^missing or extra expression"))
 
@@ -435,47 +435,47 @@
   (with-test-prefix "bad or missing clauses"
 
     (pass-if-exception "(cond)"
-      exception:bad/missing-clauses
+      exception:missing-clauses
       (eval '(cond)
 	    (interaction-environment)))
 
     (pass-if-exception "(cond #t)"
-      exception:bad/missing-clauses
+      exception:bad-cond-clause
       (eval '(cond #t)
 	    (interaction-environment)))
 
     (pass-if-exception "(cond 1)"
-      exception:bad/missing-clauses
+      exception:bad-cond-clause
       (eval '(cond 1)
 	    (interaction-environment)))
 
     (pass-if-exception "(cond 1 2)"
-      exception:bad/missing-clauses
+      exception:bad-cond-clause
       (eval '(cond 1 2)
 	    (interaction-environment)))
 
     (pass-if-exception "(cond 1 2 3)"
-      exception:bad/missing-clauses
+      exception:bad-cond-clause
       (eval '(cond 1 2 3)
 	    (interaction-environment)))
 
     (pass-if-exception "(cond 1 2 3 4)"
-      exception:bad/missing-clauses
+      exception:bad-cond-clause
       (eval '(cond 1 2 3 4)
 	    (interaction-environment)))
 
     (pass-if-exception "(cond ())"
-      exception:bad/missing-clauses
+      exception:bad-cond-clause
       (eval '(cond ())
 	    (interaction-environment)))
 
     (pass-if-exception "(cond () 1)"
-      exception:bad/missing-clauses
+      exception:bad-cond-clause
       (eval '(cond () 1)
 	    (interaction-environment)))
 
     (pass-if-exception "(cond (1) 1)"
-      exception:bad/missing-clauses
+      exception:bad-cond-clause
       (eval '(cond (1) 1)
 	    (interaction-environment)))))
 
@@ -483,13 +483,11 @@
 
   (with-test-prefix "cond is hygienic"
 
-    (expect-fail "bound 'else is handled correctly"
-      (false-if-exception
-       (eq? (let ((else 'ok)) (cond (else))) 'ok)))
+    (pass-if "bound 'else is handled correctly"
+      (eq? (let ((else 'ok)) (cond (else))) 'ok))
 
-    (expect-fail "bound '=> is handled correctly"
-      (false-if-exception
-       (eq? (let ((=> #f)) (cond (#t => 'ok))) 'ok))))
+    (pass-if "bound '=> is handled correctly"
+      (eq? (let ((=> #f)) (cond (#t => 'ok))) 'ok)))
 
   (with-test-prefix "else is handled correctly"
 
@@ -577,7 +575,7 @@
 	    (interaction-environment)))
 
     (pass-if-exception "(case 1 (else #f) ((1) #t))"
-      exception:extra-case-clause
+      exception:misplaced-else-clause
       (eval '(case 1 (else #f) ((1) #t))
 	    (interaction-environment)))))
 

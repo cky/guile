@@ -100,20 +100,24 @@ char *alloca ();
  * expression is expected, a 'Bad expression' error is signalled.  */
 static const char s_bad_expression[] = "Bad expression";
 
+/* If a form is detected that holds more expressions than are allowed in that
+ * contect, an 'Extra expression' error is signalled.  */
+static const char s_extra_expression[] = "Extra expression in";
+
 /* Case or cond expressions must have at least one clause.  If a case or cond
  * expression without any clauses is detected, a 'Missing clauses' error is
  * signalled.  */
 static const char s_missing_clauses[] = "Missing clauses";
 
+/* If there is an 'else' clause in a case or a cond statement, it must be the
+ * last clause.  If after the 'else' case clause further clauses are detected,
+ * a 'Misplaced else clause' error is signalled.  */
+static const char s_misplaced_else_clause[] = "Misplaced else clause";
+
 /* If a case clause is detected that is not in the format
  *   (<label(s)> <expression1> <expression2> ...)
  * a 'Bad case clause' error is signalled.  */
 static const char s_bad_case_clause[] = "Bad case clause";
-
-/* If there is an 'else' clause in a case statement, it must be the last
- * clause.  If after the 'else' case clause further clauses are detected, an
- * 'Extra case clause' error is signalled.  */
-static const char s_extra_case_clause[] = "Extra case clause";
 
 /* If a case clause is detected where the <label(s)> element is neither a
  * proper list nor (in case of the last clause) the syntactic keyword 'else',
@@ -128,6 +132,16 @@ static const char s_bad_case_labels[] = "Bad case labels";
  * a label occurs more than once, a 'Duplicate case label' error is
  * signalled.  */
 static const char s_duplicate_case_label[] = "Duplicate case label";
+
+/* If a cond clause is detected that is not in one of the formats
+ *   (<test> <expression1> ...) or (else <expression1> <expression2> ...)
+ * a 'Bad cond clause' error is signalled.  */
+static const char s_bad_cond_clause[] = "Bad cond clause";
+
+/* If a cond clause is detected that uses the alternate '=>' form, but does
+ * not hold a recipient element for the test result, a 'Missing recipient'
+ * error is signalled.  */
+static const char s_missing_recipient[] = "Missing recipient in";
 
 
 /* Signal a syntax error.  We distinguish between the form that caused the
@@ -621,7 +635,6 @@ scm_eval_car (SCM pair, SCM env)
  * some memoized forms have different syntax 
  */
 
-SCM_GLOBAL_SYMBOL (scm_sym_arrow, "=>");
 SCM_GLOBAL_SYMBOL (scm_sym_else, "else");
 SCM_GLOBAL_SYMBOL (scm_sym_unquote, "unquote");
 SCM_GLOBAL_SYMBOL (scm_sym_uq_splicing, "unquote-splicing");
@@ -753,7 +766,7 @@ scm_m_case (SCM expr, SCM env)
           ASSERT_SYNTAX_2 (SCM_EQ_P (labels, scm_sym_else) && else_literal_p,
                            s_bad_case_labels, labels, expr);
           ASSERT_SYNTAX_2 (SCM_NULLP (SCM_CDR (clauses)),
-                           s_extra_case_clause, SCM_CDR (clauses), expr);
+                           s_misplaced_else_clause, clause, expr);
         }
 
       /* build the new clause */
@@ -782,31 +795,53 @@ scm_m_case (SCM expr, SCM env)
 
 SCM_SYNTAX (s_cond, "cond", scm_i_makbimacro, scm_m_cond);
 SCM_GLOBAL_SYMBOL (scm_sym_cond, s_cond);
+SCM_GLOBAL_SYMBOL (scm_sym_arrow, "=>");
 
 SCM
-scm_m_cond (SCM xorig, SCM env SCM_UNUSED)
+scm_m_cond (SCM expr, SCM env)
 {
-  SCM cdrx = SCM_CDR (xorig);
-  SCM clauses = cdrx;
-  SCM_ASSYNT (scm_ilength (clauses) >= 1, s_clauses, s_cond);
-  while (!SCM_NULLP (clauses))
+  /* Check, whether 'else or '=> is a literal, i. e. not bound to a value. */
+  const int else_literal_p = literal_p (scm_sym_else, env);
+  const int arrow_literal_p = literal_p (scm_sym_arrow, env);
+
+  const SCM clauses = SCM_CDR (expr);
+  SCM clause_idx;
+
+  ASSERT_SYNTAX (scm_ilength (clauses) >= 0, s_bad_expression, expr);
+  ASSERT_SYNTAX (scm_ilength (clauses) >= 1, s_missing_clauses, expr);
+
+  for (clause_idx = clauses;
+       !SCM_NULLP (clause_idx);
+       clause_idx = SCM_CDR (clause_idx))
     {
-      SCM clause = SCM_CAR (clauses);
-      long len = scm_ilength (clause);
-      SCM_ASSYNT (len >= 1, s_clauses, s_cond);
-      if (SCM_EQ_P (scm_sym_else, SCM_CAR (clause)))
+      SCM test;
+
+      const SCM clause = SCM_CAR (clause_idx);
+      const long length = scm_ilength (clause);
+      ASSERT_SYNTAX_2 (length >= 1, s_bad_cond_clause, clause, expr);
+
+      test = SCM_CAR (clause);
+      if (SCM_EQ_P (test, scm_sym_else) && else_literal_p)
 	{
-	  int last_clause_p = SCM_NULLP (SCM_CDR (clauses));
-	  SCM_ASSYNT (len >= 2 && last_clause_p, "bad ELSE clause", s_cond);
+	  const int last_clause_p = SCM_NULLP (SCM_CDR (clause_idx));
+          ASSERT_SYNTAX_2 (length >= 2,
+                           s_bad_cond_clause, clause, expr);
+          ASSERT_SYNTAX_2 (last_clause_p,
+                           s_misplaced_else_clause, clause, expr);
+          SCM_SETCAR (clause, SCM_IM_ELSE);
 	}
-      else if (len >= 2 && SCM_EQ_P (scm_sym_arrow, SCM_CADR (clause)))
-	{
-	  SCM_ASSYNT (len > 2, "missing recipient", s_cond);
-	  SCM_ASSYNT (len == 3, "bad recipient", s_cond);
+      else if (length >= 2
+               && SCM_EQ_P (SCM_CADR (clause), scm_sym_arrow)
+               && arrow_literal_p)
+        {
+          ASSERT_SYNTAX_2 (length > 2, s_missing_recipient, clause, expr);
+          ASSERT_SYNTAX_2 (length == 3, s_extra_expression, clause, expr);
+          SCM_SETCAR (SCM_CDR (clause), SCM_IM_ARROW);
 	}
-      clauses = SCM_CDR (clauses);
     }
-  return scm_cons (SCM_IM_COND, cdrx);
+
+  SCM_SETCAR (expr, SCM_IM_COND);
+  return expr;
 }
 
 
@@ -1880,6 +1915,11 @@ loop:
 	  SCM_SETCDR (z, unmemocar (copy, env));
 	  z = SCM_CDR (z);
 	}
+      else if (SCM_EQ_P (form, SCM_IM_ARROW))
+        {
+	  SCM_SETCDR (z, scm_cons (scm_sym_arrow, SCM_UNSPECIFIED));
+	  z = SCM_CDR (z);
+        }
       x = SCM_CDR (x);
     }
   SCM_SETCDR (z, x);
@@ -2424,7 +2464,7 @@ dispatch:
       while (!SCM_NULLP (x))
 	{
 	  SCM clause = SCM_CAR (x);
-	  if (SCM_EQ_P (SCM_CAR (clause), scm_sym_else))
+	  if (SCM_EQ_P (SCM_CAR (clause), SCM_IM_ELSE))
 	    {
 	      x = SCM_CDR (clause);
 	      PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
@@ -2438,7 +2478,7 @@ dispatch:
 		  x = SCM_CDR (clause);
 		  if (SCM_NULLP (x))
 		    RETURN (arg1);
-		  else if (!SCM_EQ_P (SCM_CAR (x), scm_sym_arrow))
+		  else if (!SCM_EQ_P (SCM_CAR (x), SCM_IM_ARROW))
 		    {
 		      PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
 		      goto begin;

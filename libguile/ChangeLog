@@ -1,5 +1,24 @@
 2003-10-11  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* eval.c (s_extra_expression, s_misplaced_else_clause,
+	s_bad_cond_clause, s_missing_recipient): New static identifiers.
+
+	(s_extra_case_clause): Removed.
+
+	(scm_m_case, scm_m_cond): If a clause appears after an else
+	clause, report a misplaced else clause.
+
+	(scm_m_cond): Use ASSERT_SYNTAX to signal syntax errors.  Be more
+	specific about the kind of error that was detected.  Handle bound
+	'else and '=>.  Avoid unnecessary consing when creating the
+	memoized code.
+
+	(scm_m_cond, unmemocopy, SCM_CEVAL): Use SCM_IM_ELSE to memoize
+	the syntactic keyword 'else and SCM_IM_ARROW to memoize the
+	syntactic keyword '=>.
+
+2003-10-11  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* eval.c (scm_m_case): Allow empty lists of case labels.
 
 2003-10-11  Dirk Herrmann  <D.Herrmann@tu-bs.de>

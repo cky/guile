@@ -1,5 +1,18 @@
 2003-10-11  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* tests/syntax.test (exception:misplaced-else-clause,
+	exception:bad-cond-clause): New.
+
+	(exception:bad/missing-clauses, exception:extra-case-clause):
+	Removed.
+
+	Adapted tests for 'case' and 'cond' to the new way of error
+	reporting.
+
+	The tests that check if cond is hygienic pass now.
+
+2003-10-11  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* tests/syntax.test: Fixed and activated test of empty case label
 	support.
 
