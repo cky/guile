@@ -1,3 +1,8 @@
+1999-01-11  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	* alloca.c (alloca): Cast value returned by malloc.  (Thanks to
+	Christian Lynbech.)
+
 1999-01-11  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* random.c: Removed alloca includes.
