@@ -27,7 +27,7 @@ SUBDIRS = breakpoints
 ice9_debugger_sources = behaviour.scm breakpoints.scm command-loop.scm \
 	commands.scm state.scm trap-hooks.scm trc.scm utils.scm
 
-subpkgdatadir = $(pkgdatadir)/$(VERSION)/ice-9/debugger
+subpkgdatadir = $(pkgdatadir)/$(GUILE_EFFECTIVE_VERSION)/ice-9/debugger
 subpkgdata_DATA = $(ice9_debugger_sources)
 ETAGS_ARGS = $(subpkgdata_DATA)
 
