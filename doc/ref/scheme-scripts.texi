@@ -132,6 +132,15 @@ that is defined in the script.  It can also be of the form @code{(@@
 @var{module-name} @var{symbol})} and in that case, the symbol is
 looked up in the module named @var{module-name}.
 
+For compatibility with some versions of Guile 1.4, you can also use the
+form @code{(symbol ...)} (that is, a list of only symbols that doesn't
+start with @code{@@}), which is equivalent to @code{(@@ (symbol ...)
+main)}, or @code{(symbol ...)  symbol} (that is, a list of only symbols
+followed by a symbol), which is equivalent to @code{(@@ (symbol ...)
+symbol)}.  We recommend to use the equivalent forms directly since they
+corresponf to the @code{(@@ ...)}  read syntax that can be used in
+normal code, @xref{Using Guile Modules}.
+
 @xref{Scripting Examples}.
 
 @item -ds
