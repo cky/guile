@@ -434,7 +434,7 @@ handler_message (void *handler_data, SCM tag, SCM args)
 	  scm_display_backtrace (stack, p, SCM_UNDEFINED, SCM_UNDEFINED);
 	  scm_newline (p);
 	}
-      scm_display_error (stack, p, subr, message, parts, rest);
+      scm_i_display_error (stack, p, subr, message, parts, rest);
     }
   else
     {

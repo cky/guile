@@ -52,6 +52,7 @@
 extern SCM scm_the_last_stack_fluid;
 
 void scm_display_error_message (SCM message, SCM args, SCM port);
+void scm_i_display_error (SCM stack, SCM port, SCM subr, SCM message, SCM args, SCM rest);
 SCM scm_display_error (SCM stack, SCM port, SCM subr, SCM message, SCM args, SCM rest);
 SCM scm_display_application (SCM frame, SCM port, SCM indent);
 SCM scm_display_backtrace (SCM stack, SCM port, SCM first, SCM depth);

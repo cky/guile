@@ -1,3 +1,14 @@
+2001-01-24  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* backtrace.[ch] (scm_i_display_error):  New function.
+
+	* backtrace.c (scm_display_error):  Added parameter check and
+	extracted the core functionality into function
+	scm_i_display_error.
+
+	* throw.c (handler_message):  Call scm_i_display_error to display
+	the error message.
+
 2001-01-23  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
 
 	* eval.c (SCM_APPLY): Added # args check for application of

@@ -219,10 +219,14 @@ display_error_handler (struct display_error_handler_data *data,
   return SCM_UNSPECIFIED;
 }
 
-SCM_DEFINE (scm_display_error, "display-error", 6, 0, 0,
-           (SCM stack, SCM port, SCM subr, SCM message, SCM args, SCM rest),
-"")
-#define FUNC_NAME s_scm_display_error
+
+/* The function scm_i_display_error prints out a detailed error message.  This
+ * function will be called directly within libguile to signal error messages.
+ * No parameter checks will be performed by scm_i_display_error.  Thus, User
+ * code should rather use the function scm_display_error.
+ */
+void
+scm_i_display_error (SCM stack, SCM port, SCM subr, SCM message, SCM args, SCM rest)
 {
   struct display_error_args a;
   struct display_error_handler_data data;
@@ -237,9 +241,22 @@ SCM_DEFINE (scm_display_error, "display-error", 6, 0, 0,
   scm_internal_catch (SCM_BOOL_T,
 		      (scm_catch_body_t) display_error_body, &a,
 		      (scm_catch_handler_t) display_error_handler, &data);
+}
+
+
+SCM_DEFINE (scm_display_error, "display-error", 6, 0, 0,
+	    (SCM stack, SCM port, SCM subr, SCM message, SCM args, SCM rest),
+	    "")
+#define FUNC_NAME s_scm_display_error
+{
+  SCM_VALIDATE_OUTPUT_PORT (2, port);
+
+  scm_i_display_error (stack, port, subr, message, args, rest);
+
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
+
 
 typedef struct {
   int level;
