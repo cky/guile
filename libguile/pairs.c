@@ -43,11 +43,12 @@
    gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
 
 
+
 #include <stdio.h>
 #include "libguile/_scm.h"
-
-
 #include "libguile/validate.h"
+
+#include "libguile/pairs.h"
 
 
 
@@ -55,16 +56,16 @@
  */
 
 SCM_DEFINE (scm_cons, "cons", 2, 0, 0,
-           (SCM x, SCM y),
+	    (SCM x, SCM y),
             "Returns a newly allocated pair whose car is @var{x} and whose cdr is\n"
             "@var{y}.  The pair is guaranteed to be different (in the sense of\n"
             "@code{eqv?}) from every previously existing object.")
 #define FUNC_NAME s_scm_cons
 {
-  register SCM z;
+  SCM z;
   SCM_NEWCELL (z);
-  SCM_SETCAR (z, x);
-  SCM_SETCDR (z, y);
+  SCM_SET_CELL_OBJECT_0 (z, x);
+  SCM_SET_CELL_OBJECT_1 (z, y);
   return z;
 }
 #undef FUNC_NAME
@@ -73,15 +74,18 @@ SCM_DEFINE (scm_cons, "cons", 2, 0, 0,
 SCM 
 scm_cons2 (SCM w, SCM x, SCM y)
 {
-  register SCM z;
-  SCM_NEWCELL (z);
-  SCM_SETCAR (z, x);
-  SCM_SETCDR (z, y);
-  x = z;
-  SCM_NEWCELL (z);
-  SCM_SETCAR (z, w);
-  SCM_SETCDR (z, x);
-  return z;
+  SCM z1;
+  SCM z2;
+
+  SCM_NEWCELL (z1);
+  SCM_SET_CELL_OBJECT_0 (z1, x);
+  SCM_SET_CELL_OBJECT_1 (z1, y);
+
+  SCM_NEWCELL (z2);
+  SCM_SET_CELL_OBJECT_0 (z2, w);
+  SCM_SET_CELL_OBJECT_1 (z2, z1);
+
+  return z2;
 }
 
 
@@ -90,11 +94,10 @@ SCM_DEFINE (scm_pair_p, "pair?", 1, 0, 0,
             "Returns @code{#t} if @var{x} is a pair; otherwise returns @code{#f}.")
 #define FUNC_NAME s_scm_pair_p
 {
-  if (SCM_IMP (x))
-    return SCM_BOOL_F;
-  return SCM_BOOL(SCM_CONSP (x));
+  return SCM_BOOL (SCM_CONSP (x));
 }
 #undef FUNC_NAME
+
 
 SCM_DEFINE (scm_set_car_x, "set-car!", 2, 0, 0,
             (SCM pair, SCM value),
@@ -102,11 +105,12 @@ SCM_DEFINE (scm_set_car_x, "set-car!", 2, 0, 0,
             "by @code{set-car!} is unspecified.")
 #define FUNC_NAME s_scm_set_car_x
 {
-  SCM_VALIDATE_CONS (1,pair);
+  SCM_VALIDATE_CONS (1, pair);
   SCM_SETCAR (pair, value);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
+
 
 SCM_DEFINE (scm_set_cdr_x, "set-cdr!", 2, 0, 0,
             (SCM pair, SCM value),
@@ -114,12 +118,11 @@ SCM_DEFINE (scm_set_cdr_x, "set-cdr!", 2, 0, 0,
             "by @code{set-cdr!} is unspecified.")
 #define FUNC_NAME s_scm_set_cdr_x
 {
-  SCM_VALIDATE_CONS (1,pair);
+  SCM_VALIDATE_CONS (1, pair);
   SCM_SETCDR (pair, value);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
-
 
 
 

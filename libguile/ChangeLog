@@ -1,5 +1,12 @@
 2000-05-05  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* pairs.c (scm_cons, scm_cons2):  Use SCM{_SET}?_CELL_OBJECT as
+	long as a cell is not known to be a valid pair.
+
+	(scm_pair_p):  Eliminated redundant SCM_IMP test.
+
+2000-05-05  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* eval.c (scm_m_body, scm_macroexp, unmemocopy, scm_eval_args,
 	scm_deval_args):  Eliminated redundant SCM_IMP tests.
 
