@@ -1,3 +1,72 @@
+1999-03-14  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+
+	Most of this batch of changes is about how to deal with extended
+	types when an object system is loaded into Guile.  A nice object
+	system is capable of representing Guile's types as class objects.
+	
+	For example, we want a regular expression to be of class <regex>.
+	But regular expressions are smobs which aren't under direct
+	control of the object system, so there has to be some mechanism
+	which informs the object system that a new class should be created
+	which can represent the smob type.  I call this a "wrapper class".
+	
+	* objects.c: #include "smob.h";
+	(scm_class_keyword): Removed.  (Class is automatically created by
+	make_smob_classes.)
+	(scm_smob_class): Array of smob classes indexed by smobnum.
+	(scm_make_extended_class): "Plugin" function pointer for creation
+	of wrapper classes for smob and struct types.
+	(scm_class_of): Handle compiled closures.  (Currently regarded as
+	<procedure>.);
+	Use scm_smob_class to handle smob types;
+	Handle scm_tc16_bigpos, scm_tc16_bigneg, and, scm_tc16_keyword
+	through scm_smob_class;
+	Handle structs.
+
+	* smob.c (scm_newsmob): Also create a wrapper class if
+	scm_smob_class has been initialized.
+
+	* smob.h (SCM_TC2SMOBNUM): New macro for conversion between tc16
+	type code and smobnum.
+
+	* struct.c: #include "alist.h", "weaks.h", "hashtab.h";
+	(scm_struct_table): Weak key table with auxilliary information for
+	struct types.  Currently used for names and wrapper classes.
+	(scm_struct_ihashq): Hash function for structs.
+	(scm_struct_create_handle): Get/create entry in scm_struct_table.
+	(scm_struct_vtable_name, scm_set_struct_vtable_name_x): Procedures
+	for accessing names of vtables.  The record implementation in
+	boot-9.scm currently uses the setter to record the name of record
+	types.  When the object system is initialized, it can use this
+	information to create wrapper classes with suitable names.
+	(scm_init_struct): Allocate scm_struct_table.
+	(scm_alloc_struct): Don't initialize scm_struct_i_tag here.
+	(struct tags are a finite resource and we might want to restrict
+	the use of tags to vtables only.  E.g., Goops only uses tags for
+	classes.)
+	(scm_make_struct): Use scm_struct_entity_n_extra_words instead of
+	magic number 5.
+	(scm_struct_vtable_tag): Use scm_struct_i_tag instead of magic
+	number -1.
+
+	* struct.h (SCM_STRUCT_TABLE_NAME, SCM_SET_STRUCT_TABLE_NAME,
+	SCM_STRUCT_TABLE_CLASS, SCM_SET_STRUCT_TABLE_CLASS): New macros.
+	Used for access of struct table entries.
+	
+	* hashtab.c, hashtab.h (scm_internal_hash_fold): New function.
+	(scm_hash_fold): New procedure.  Used to process all entries in a
+	hash table (in no particular order).
+
+	Argh!  For the umpteenth time I got compilation errors because of
+	the "intuitive" name `kw'.  This has to have an end:
+	
+	* Makefile.am, init.c, libguile.h, objects.c, root.h: Replaced
+	"kw" --> "keywords" everywhere.
+	(I doubt that this will cause big compatibility problems since the
+	application interface is unaffected.)
+
+	* keywords.c, keywords.h: Files renamed from kw.c, kw.h.
+
 1999-03-12  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* srcprop.c (scm_set_source_property_x): Bugfix: Convert line and

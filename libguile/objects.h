@@ -72,7 +72,7 @@
 (SCM_STRUCT_VTABLE_DATA (obj)[scm_struct_i_flags])
 #define SCM_SET_CLASS_FLAGS(c, f) (SCM_CLASS_FLAGS (c) |= (f))
 #define SCM_CLEAR_CLASS_FLAGS(c, f) (SCM_CLASS_FLAGS (c) &= ~(f))
-#define SCM_CLASSF_MASK (0xFF << 24)
+#define SCM_CLASSF_MASK SCM_STRUCTF_MASK
 
 #define SCM_CLASSF_ENTITY	SCM_STRUCTF_ENTITY
 /* Operator classes need to be identified in the evaluator.
@@ -162,15 +162,21 @@ struct scm_metaclass_operator {
  */
 #define SCM_ENTITY_LAYOUT ""
 
-/* The following three definitions are Goops dependencies needed by
-   scm_class_of. */
+/* {Interface to Goops}
+ *
+ * The evaluator contains a multi-method dispatch mechanism.
+ * This interface is used by that mechanism and during creation of
+ * smob and struct classes. 
+ */
+
+/* Internal representation of Goops objects. */
 #define SCM_CLASSF_GOOPS       (0x10 << 24)
 #define scm_si_redefined       18
 #define scm_si_hashsets        20
 #define SCM_CLASS_OF(x)        SCM_STRUCT_VTABLE (x)
-
 #define SCM_OBJ_CLASS_REDEF(x) (SCM_STRUCT_VTABLE_DATA(x)[scm_si_redefined])
 
+/* Plugin proxy classes for basic types. */
 extern SCM scm_metaclass_standard;
 extern SCM scm_metaclass_operator;
 extern SCM scm_class_boolean, scm_class_char, scm_class_pair;
@@ -178,8 +184,11 @@ extern SCM scm_class_procedure, scm_class_string, scm_class_symbol;
 extern SCM scm_class_procedure_with_setter;
 extern SCM scm_class_vector, scm_class_null;
 extern SCM scm_class_real, scm_class_complex, scm_class_integer;
-extern SCM scm_class_keyword, scm_class_unknown;
+extern SCM scm_class_unknown;
+extern SCM *scm_smob_class;
 
+/* Plugin Goops functions. */
+extern SCM (*scm_make_extended_class) (char *type_name);
 extern void (*scm_change_object_class) (SCM, SCM, SCM);
 extern void (*scm_memoize_method) (SCM x, SCM args);
 

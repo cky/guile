@@ -1,3 +1,9 @@
+1999-03-14  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+
+	* boot-9.scm (make-record-type): Use `set-struct-vtable-name!' to
+	associate a name to the record type descriptor so that the object
+	system can create a wrapper class for it.
+
 1999-03-12  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	Improvement of backtraces: Introduces a new stack narrowing
