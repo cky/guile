@@ -1,3 +1,10 @@
+1999-01-07  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* acconfig.h: Added HAVE_LONG_LONGS.
+
+	* configure.in: Added AC_CHECK_SIZEOF(long), AC_CHECK_SIZEOF(int);
+	Added check for long longs.
+
 1998-12-14  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	* configure.in: Check for tgoto in ncurses, then termcap.
