@@ -93,6 +93,10 @@ Return @code{#t} if @var{x} is a pair; otherwise return
 @code{#f}.
 @end deffn
 
+@deftypefn {C Function} int scm_is_pair (SCM x)
+Return 1 when @var{x} is a pair; otherwise return 0.
+@end deftypefn
+
 The two parts of a pair are traditionally called @dfn{car} and
 @dfn{cdr}.  They can be retrieved with procedures of the same name
 (@code{car} and @code{cdr}), and can be modified with the procedures
@@ -105,13 +109,67 @@ are also predefined.
 @rnindex cdr
 @deffn {Scheme Procedure} car pair
 @deffnx {Scheme Procedure} cdr pair
+@deffnx {C Function} scm_car (pair)
+@deffnx {C Function} scm_cdr (pair)
 Return the car or the cdr of @var{pair}, respectively.
 @end deffn
 
-@deffn {Scheme Procedure} caar pair
-@deffnx {Scheme Procedure} cadr pair @dots{}
-@deffnx {Scheme Procedure} cdddar pair
+@deffn  {Scheme Procedure} cddr pair
+@deffnx {Scheme Procedure} cdar pair
+@deffnx {Scheme Procedure} cadr pair
+@deffnx {Scheme Procedure} caar pair
+@deffnx {Scheme Procedure} cdddr pair
+@deffnx {Scheme Procedure} cddar pair
+@deffnx {Scheme Procedure} cdadr pair
+@deffnx {Scheme Procedure} cdaar pair
+@deffnx {Scheme Procedure} caddr pair
+@deffnx {Scheme Procedure} cadar pair
+@deffnx {Scheme Procedure} caadr pair
+@deffnx {Scheme Procedure} caaar pair
 @deffnx {Scheme Procedure} cddddr pair
+@deffnx {Scheme Procedure} cdddar pair
+@deffnx {Scheme Procedure} cddadr pair
+@deffnx {Scheme Procedure} cddaar pair
+@deffnx {Scheme Procedure} cdaddr pair
+@deffnx {Scheme Procedure} cdadar pair
+@deffnx {Scheme Procedure} cdaadr pair
+@deffnx {Scheme Procedure} cdaaar pair
+@deffnx {Scheme Procedure} cadddr pair
+@deffnx {Scheme Procedure} caddar pair
+@deffnx {Scheme Procedure} cadadr pair
+@deffnx {Scheme Procedure} cadaar pair
+@deffnx {Scheme Procedure} caaddr pair
+@deffnx {Scheme Procedure} caadar pair
+@deffnx {Scheme Procedure} caaadr pair
+@deffnx {Scheme Procedure} caaaar pair
+@deffnx {C Function} scm_cddr (pair)
+@deffnx {C Function} scm_cdar (pair)
+@deffnx {C Function} scm_cadr (pair)
+@deffnx {C Function} scm_caar (pair)
+@deffnx {C Function} scm_cdddr (pair)
+@deffnx {C Function} scm_cddar (pair)
+@deffnx {C Function} scm_cdadr (pair)
+@deffnx {C Function} scm_cdaar (pair)
+@deffnx {C Function} scm_caddr (pair)
+@deffnx {C Function} scm_cadar (pair)
+@deffnx {C Function} scm_caadr (pair)
+@deffnx {C Function} scm_caaar (pair)
+@deffnx {C Function} scm_cddddr (pair)
+@deffnx {C Function} scm_cdddar (pair)
+@deffnx {C Function} scm_cddadr (pair)
+@deffnx {C Function} scm_cddaar (pair)
+@deffnx {C Function} scm_cdaddr (pair)
+@deffnx {C Function} scm_cdadar (pair)
+@deffnx {C Function} scm_cdaadr (pair)
+@deffnx {C Function} scm_cdaaar (pair)
+@deffnx {C Function} scm_cadddr (pair)
+@deffnx {C Function} scm_caddar (pair)
+@deffnx {C Function} scm_cadadr (pair)
+@deffnx {C Function} scm_cadaar (pair)
+@deffnx {C Function} scm_caaddr (pair)
+@deffnx {C Function} scm_caadar (pair)
+@deffnx {C Function} scm_caaadr (pair)
+@deffnx {C Function} scm_caaaar (pair)
 These procedures are compositions of @code{car} and @code{cdr}, where
 for example @code{caddr} could be defined by
 
@@ -231,6 +289,11 @@ somehow deals with the elements of a list until the list satisfies
 @deffnx {C Function} scm_null_p (x)
 Return @code{#t} iff @var{x} is the empty list, else @code{#f}.
 @end deffn
+
+@deftypefn {C Function} int scm_is_null (SCM x)
+Return 1 when @var{x} is the empty list; otherwise return 0.
+@end deftypefn
+
 
 @node List Constructors
 @subsubsection List Constructors
