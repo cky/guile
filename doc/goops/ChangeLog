@@ -1,3 +1,8 @@
+2004-05-19  Kevin Ryde  <user42@zip.com.au>
+
+	* Makefile.am (CLEANFILES): Remove, goops.tmp goops.cps cleaned by
+	automake these days.
+
 2003-04-17  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* goops.texi (Object Comparisons): Removed object-eqv? and
