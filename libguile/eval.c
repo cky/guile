@@ -916,7 +916,7 @@ static SCM
 scm_m_letrec1 (SCM op, SCM imm, SCM xorig, SCM env)
 {
   SCM cdrx = SCM_CDR (xorig);	/* locally mutable version of form */
-  char *what = SCM_CHARS (SCM_CAR (xorig));
+  char *what = SCM_SYMBOL_CHARS (SCM_CAR (xorig));
   SCM x = cdrx, proc, arg1;	/* structure traversers */
   SCM vars = SCM_EOL, inits = SCM_EOL, *initloc = &inits;
 
@@ -2761,15 +2761,15 @@ evapply:
 #endif
 	    floerr:
 	      SCM_WTA_DISPATCH_1 (*SCM_SUBR_GENERIC (proc), t.arg1,
-				  SCM_ARG1, SCM_CHARS (SCM_SNAME (proc)));
+				  SCM_ARG1, SCM_SYMBOL_CHARS (SCM_SNAME (proc)));
 	    }
 	  proc = SCM_SNAME (proc);
 	  {
-	    char *chrs = SCM_CHARS (proc) + SCM_LENGTH (proc) - 1;
+	    char *chrs = SCM_SYMBOL_CHARS (proc) + SCM_LENGTH (proc) - 1;
 	    while ('c' != *--chrs)
 	      {
 		SCM_ASSERT (SCM_CONSP (t.arg1),
-			    t.arg1, SCM_ARG1, SCM_CHARS (proc));
+			    t.arg1, SCM_ARG1, SCM_SYMBOL_CHARS (proc));
 		t.arg1 = ('a' == *chrs) ? SCM_CAR (t.arg1) : SCM_CDR (t.arg1);
 	      }
 	    RETURN (t.arg1);
@@ -3392,15 +3392,15 @@ tail:
 #endif
 	floerr:
 	  SCM_WTA_DISPATCH_1 (*SCM_SUBR_GENERIC (proc), arg1,
-			      SCM_ARG1, SCM_CHARS (SCM_SNAME (proc)));
+			      SCM_ARG1, SCM_SYMBOL_CHARS (SCM_SNAME (proc)));
 	}
       proc = SCM_SNAME (proc);
       {
-	char *chrs = SCM_CHARS (proc) + SCM_LENGTH (proc) - 1;
+	char *chrs = SCM_SYMBOL_CHARS (proc) + SCM_LENGTH (proc) - 1;
 	while ('c' != *--chrs)
 	  {
 	    SCM_ASSERT (SCM_CONSP (arg1),
-		    arg1, SCM_ARG1, SCM_CHARS (proc));
+		    arg1, SCM_ARG1, SCM_SYMBOL_CHARS (proc));
 	    arg1 = ('a' == *chrs) ? SCM_CAR (arg1) : SCM_CDR (arg1);
 	  }
 	RETURN (arg1)

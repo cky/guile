@@ -1,5 +1,13 @@
 2000-09-26  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* eval.c (scm_m_letrec1, SCM_CEVAL, SCM_APPLY):  Use
+	SCM_STRING_U?CHARS or SCM_SYMBOL_U?CHARS instead of SCM_U?CHARS.
+
+	* unif.h (SCM_UVECTOR_BASE), vectors.h (SCM_VECTOR_BASE):  Added
+	as replacements for SCM_CHARS and SCM_VELTS.
+
+2000-09-26  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* continuations.c (scm_make_cont, scm_dynthrow), print.c
 	(scm_iprin1), stacks.c (scm_make_stack, scm_stack_id,
 	scm_last_stack_frame):  For continuations, use SCM_CONTREGS

@@ -85,6 +85,8 @@ extern long scm_tc16_array;
 #define SCM_ARRAY_BASE(a) (((scm_array *) SCM_CELL_WORD_1 (a))->base)
 #define SCM_ARRAY_DIMS(a) ((scm_array_dim *)(SCM_CHARS(a)+sizeof(scm_array))) 
 
+#define SCM_UVECTOR_BASE(x) ((void *) (SCM_CELL_WORD_1 (x)))
+
 /* apparently it's possible to have more than SCM_LENGTH_MAX elements
    in an array: if the length is SCM_LENGTH_MAX then the SCM_VELTS
    block begins with the true length (a long int).  I wonder if it
