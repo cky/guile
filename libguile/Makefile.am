@@ -155,7 +155,8 @@ libpath.h: $(srcdir)/Makefile.in  $(top_builddir)/config.status
 
 SUFFIXES = .x
 .c.x:
-	./guile-snarf $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< > $@
+	./guile-snarf $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< > $@ \
+	|| (rm $@; false)
 
 ## Add -MG to make the .x magic work with auto-dep code.
 MKDEP = gcc -M -MG $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
