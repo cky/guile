@@ -1,5 +1,15 @@
 2000-03-12  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
+	* async.c, boolean.h, debug.c, dynl.c, dynwind.c, eval.c, eval.h,
+	  feature.h, filesys.h, fluids.h, fports.c, fports.h, gc.c, gc.h,
+	  hash.c, keywords.h, macros.c, numbers.c, numbers.h, objects.c,
+	  objects.h, options.c, pairs.h, ports.c, ports.h, print.c,
+	  procs.h, ramap.c, read.c, smob.c, smob.h, srcprop.h, stacks.c,
+	  stacks.h, strports.c, struct.c, struct.h, tag.c, tags.h,
+	  throw.c, unif.c, unif.h, variable.h, vectors.h, weaks.c,
+	  weaks.h (SCM_SCM, SCM_BITS, SCM_CARBITS): Renamed from
+	  SCM_ASSCM, SCM_ASWORD, SCM_CARW).
+
 	* numbers.h (SCM_SRS, SCM_INUM): Corrected SCM_ASSCM/ASWORD fixes.
 
 	* alist.c, eval.c, net_db.c, posix.c, print.c, snarf.h, struct.c,
