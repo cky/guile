@@ -1,5 +1,10 @@
 2001-03-09  Neil Jerram  <neil@ossau.uklinux.net>
 
+	Both the following files are about to be replaced by files from
+	guile-doc/ref.
+	
+	* texinfo.tex: Removed.
+
 	* data-rep.texi: Removed.
 
 2001-02-15  Neil Jerram  <neil@ossau.uklinux.net>
