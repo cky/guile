@@ -2090,22 +2090,107 @@ omitted, in which case it defaults to the value returned by
 
 @deffn {Scheme Procedure} make-shared-array oldarray mapfunc bound @dots{}
 @deffnx {C Function} scm_make_shared_array (oldarray, mapfunc, boundlist)
-@code{make-shared-array} can be used to create shared subarrays of other
-arrays.  The @var{mapper} is a function that translates coordinates in
-the new array into coordinates in the old array.  A @var{mapper} must be
-affine, and its range must stay within the bounds of the old array, but
-it can be otherwise arbitrary.  A simple example:
+Return a new array which shares the storage of @var{oldarray}.
+Changes made through either affect the same underlying storage.  The
+@var{bound@dots{}} arguments are the shape of the new array, the same
+as @code{make-array} (@pxref{Array Procedures}).
 
-@lisp
-(define fred (make-array #f 8 8))
-(define freds-diagonal
-  (make-shared-array fred (lambda (i) (list i i)) 8))
-(array-set! freds-diagonal 'foo 3)
-(array-ref fred 3 3) @result{} foo
-(define freds-center
-  (make-shared-array fred (lambda (i j) (list (+ 3 i) (+ 3 j))) 2 2))
-(array-ref freds-center 0 0) @result{} foo
-@end lisp
+@var{mapfunc} translates coordinates from the new array to the
+@var{oldarray}.  It's called as @code{(@var{mapfunc} newidx1 @dots{})}
+with one parameter for each dimension of the new array, and should
+return a list of indices for @var{oldarray}, one for each dimension of
+@var{oldarray}.
+
+@var{mapfunc} must be affine linear, meaning that each @var{oldarray}
+index must be formed by adding integer multiples (possibly negative)
+of some or all of @var{newidx1} etc, plus a possible integer offset.
+The multiples and offset must be the same in each call.
+
+@sp 1
+One good use for a shared array is to restrict the range of some
+dimensions, so as to apply say @code{array-for-each} or
+@code{array-fill!} to only part of an array.  The plain @code{list}
+function can be used for @var{mapfunc} in this case, making no changes
+to the index values.  For example,
+
+@example
+(make-shared-array #2((a b c) (d e f) (g h i)) list 3 2)
+@result{} #2((a b) (d e) (g h))
+@end example
+
+The new array can have fewer dimensions than @var{oldarray}, for
+example to take a column from an array.
+
+@example
+(make-shared-array #2((a b c) (d e f) (g h i))
+                   (lambda (i) (list i 2))
+                   '(0 2))
+@result{} #1(c f i)
+@end example
+
+A diagonal can be taken by using the single new array index for both
+row and column in the old array.  For example,
+
+@example
+(make-shared-array #2((a b c) (d e f) (g h i))
+                   (lambda (i) (list i i))
+                   '(0 2))
+@result{} #1(a e i)
+@end example
+
+Dimensions can be increased by for instance considering portions of a
+one dimensional array as rows in a two dimensional array.
+(@code{array-contents} below can do the opposite, flattening an
+array.)
+
+@example
+(make-shared-array #1(a b c d e f g h i j k l)
+                   (lambda (i j) (list (+ (* i 3) j)))
+                   4 3)
+@result{} #2((a b c) (d e f) (g h i) (j k l))
+@end example
+
+By negating an index the order that elements appear can be reversed.
+The following just reverses the column order,
+
+@example
+(make-shared-array #2((a b c) (d e f) (g h i))
+                   (lambda (i j) (list i (- 2 j)))
+                   3 3)
+@result{} #2((c b a) (f e d) (i h g))
+@end example
+
+A fixed offset on indexes allows for instance a change from a 0 based
+to a 1 based array,
+
+@example
+(define x #2((a b c) (d e f) (g h i)))
+(define y (make-shared-array x
+                             (lambda (i j) (list (1- i) (1- j)))
+                             '(1 3) '(1 3)))
+(array-ref x 0 0) @result{} a
+(array-ref y 1 1) @result{} a
+@end example
+
+A multiple on an index allows every Nth element of an array to be
+taken.  The following is every third element,
+
+@example
+(make-shared-array #1(a b c d e f g h i j k l)
+                   (lambda (i) (* i 3))
+                   4)
+@result{} #1(a d g j)
+@end example
+
+The above examples can be combined to make weird and wonderful
+selections from an array, but it's important to note that because
+@var{mapfunc} must be affine linear, arbitrary permutations are not
+possible.
+
+In the current implementation, @var{mapfunc} is not called for every
+access to the new array but only on some sample points to establish a
+base and stride for new array indices in @var{oldarray} data.  A few
+sample points are enough because @var{mapfunc} is linear.
 @end deffn
 
 @deffn {Scheme Procedure} shared-array-increments array
