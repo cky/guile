@@ -1,3 +1,8 @@
+2001-05-08  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* modules/module-snippets.texi: Fixed a lot of typos and clarified
+	some points.  Thanks to Neil for the typo+questions patch!
+
 2001-05-07  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* modules/module-snippets.texi: New file, documenting the module
