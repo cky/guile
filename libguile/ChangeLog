@@ -1,5 +1,8 @@
 2002-11-03  Marius Vollmer  <mvo@zagadka.ping.de>
 
+	* iselect.c: Include "_scm.h" before testing HAVE_UNISTD_H.
+	Thanks to Bill Schottstaedt!
+
 	* numbers.c (scm_integer_expt): Make 0^z == 0 for z != 0.
 
 	* _scm.h (HAVE_RESTARTABLE_SYSCALLS): Do define even when
