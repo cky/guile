@@ -26,6 +26,11 @@
 ;;;
 
 
+;;; {R4RS compliance}
+
+(primitive-load-path "ice-9/r4rs.scm")
+
+
 ;;; {Simple Debugging Tools}
 ;;
 
@@ -70,8 +75,17 @@
 
 
 
-;;; {apply-to-args}
+;;; {Trivial Functions}
 ;;;
+
+(define (id x) x)
+(define (1+ n) (+ n 1))
+(define (-1+ n) (+ n -1))
+(define 1- -1+)
+(define return-it noop)
+(define (and=> value thunk) (and value (thunk value)))
+(define (make-hash-table k) (make-vector k '()))
+
 ;;; apply-to-args is functionally redunant with apply and, worse,
 ;;; is less general than apply since it only takes two arguments.
 ;;;
@@ -87,26 +101,8 @@
 (define (apply-to-args args fn) (apply fn args))
 
 
-;;; {Silly Naming Cleanups and Trivial Functions}
-;;;
-
-(define (id x) x)
-(define < <?)
-(define <= <=?)
-(define = =?)
-(define > >?)
-(define >= >=?)
-(define (1+ n) (+ n 1))
-(define (-1+ n) (+ n -1))
-(define 1- -1+)
-(define return-it noop)
-(define (and=> value thunk) (and value (thunk value)))
-(define (make-hash-table k) (make-vector k '()))
-
 ;;; {Integer Math}
 ;;;
-
-(define (integer? x) (and (number? x) (= x (inexact->exact x))))
 
 (define (ipow-by-squaring x k acc proc)
   (cond ((zero? k) acc)
@@ -128,102 +124,6 @@
    ((null? args) 0)
    ((null? (cdr args)) (car args))
    (else (apply logior args))))
-
-
-;;; {Basic Port Code}
-;;; 
-;;; Specificly, the parts of the low-level port code that are written in 
-;;; Scheme rather than C.
-;;;
-;;; WARNING: the parts of this interface that refer to file ports
-;;; is going away.   It would be gone already except that it is used
-;;; "internally" in a few places.
-;;;
-
-
-;; OPEN_READ, OPEN_WRITE, and OPEN_BOTH are used to request the proper
-;; mode to open files in.  MSDOS does carraige return - newline
-;; translation if not opened in `b' mode.
-;;
-(define OPEN_READ (case (software-type)
-		    ((MS-DOS WINDOWS ATARIST) "rb")
-		    (else "r")))
-(define OPEN_WRITE (case (software-type)
-		     ((MS-DOS WINDOWS ATARIST) "wb")
-		     (else "w")))
-(define OPEN_BOTH (case (software-type)
-		    ((MS-DOS WINDOWS ATARIST) "r+b")
-		    (else "r+")))
-
-(define *null-device* "/dev/null")
-
-(define (open-input-file str)
-  (open-file str OPEN_READ))
-
-(define (open-output-file str)
-  (open-file str OPEN_WRITE))
-
-(define (open-io-file str) (open-file str OPEN_BOTH))
-(define close-input-port close-port)
-(define close-output-port close-port)
-(define close-io-port close-port)
-
-(define (call-with-input-file str proc)
-  (let* ((file (open-input-file str))
-	 (ans (proc file)))
-    (close-input-port file)
-    ans))
-
-(define (call-with-output-file str proc)
-  (let* ((file (open-output-file str))
-	 (ans (proc file)))
-    (close-output-port file)
-    ans))
-
-(define (with-input-from-port port thunk)
-  (let* ((swaports (lambda () (set! port (set-current-input-port port)))))
-    (dynamic-wind swaports thunk swaports)))
-
-(define (with-output-to-port port thunk)
-  (let* ((swaports (lambda () (set! port (set-current-output-port port)))))
-    (dynamic-wind swaports thunk swaports)))
-
-(define (with-error-to-port port thunk)
-  (let* ((swaports (lambda () (set! port (set-current-error-port port)))))
-    (dynamic-wind swaports thunk swaports)))
-
-(define (with-input-from-file file thunk)
-  (let* ((nport (open-input-file file))
-	 (ans (with-input-from-port nport thunk)))
-    (close-port nport)
-    ans))
-
-(define (with-output-to-file file thunk)
-  (let* ((nport (open-output-file file))
-	 (ans (with-output-to-port nport thunk)))
-    (close-port nport)
-    ans))
-
-(define (with-error-to-file file thunk)
-  (let* ((nport (open-output-file file))
-	 (ans (with-error-to-port nport thunk)))
-    (close-port nport)
-    ans))
-
-(define (with-input-from-string string thunk)
-  (call-with-input-string string
-   (lambda (p) (with-input-from-port p thunk))))
-
-(define (with-output-to-string thunk)
-  (call-with-output-string
-   (lambda (p) (with-output-to-port p thunk))))
-
-(define (with-error-to-string thunk)
-  (call-with-output-string
-   (lambda (p) (with-error-to-port p thunk))))
-
-(define the-eof-object (call-with-input-string "" (lambda (p) (read-char p))))
-
 
 
 ;;; {Symbol Properties}
@@ -786,30 +686,6 @@
 
 (define (try-load name)
   (primitive-load-path name #t read-sharp))
-
-
-;;; {Load}
-;;;
-
-(if (not (defined? %load-verbosely))
-    (define %load-verbosely #t))
-(define (assert-load-verbosity v) (set! %load-verbosely v))
-
-(define (%load-announce file)
-  (if %load-verbosely
-      (with-output-to-port (current-error-port)
-	(lambda ()
-	  (display ";;; ")
-	  (display "loading ")
-	  (display file)
-	  (newline)
-	  (force-output)))))
-
-(set! %load-hook %load-announce)
-
-(define (load name)
-  (start-stack 'load-stack
-	       (primitive-load-path name #t read-sharp)))
 
 
 ;;; {Transcendental Functions}
@@ -1971,7 +1847,7 @@
 (define scm-repl-silent #f)
 (define (assert-repl-silence v) (set! scm-repl-silent v))
 
-(define scm-repl-verbose #t)
+(define scm-repl-verbose #f)
 (define (assert-repl-verbosity v) (set! scm-repl-verbose v))
 
 (define scm-repl-prompt #t)
@@ -2006,7 +1882,6 @@
 	       (case key
 		 ((quit)
 		  (force-output)
-		  (pk 'quit args)
 		  #f)
 
 		 ((switch-repl)
