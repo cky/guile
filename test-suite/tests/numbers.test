@@ -15,7 +15,9 @@
 ;;;; License along with this library; if not, write to the Free Software
 ;;;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-(use-modules (ice-9 documentation))
+(define-module (test-suite test-numbers)
+  #:use-module (test-suite lib)
+  #:use-module (ice-9 documentation))
 
 ;;;
 ;;; miscellaneous
@@ -32,6 +34,36 @@
 
 (define fixnum-min most-negative-fixnum)
 (define fixnum-max most-positive-fixnum)
+
+;; Divine the number of bits in the mantissa of a flonum.
+;; We look for when 2.0^i+1.0 gets rounded, ie. the difference between that
+;; value and 2.0^k is not 1.0.
+;; Of course this assumes flonums have a fixed precision mantissa, but
+;; that's the case now and probably into the forseeable future.
+;; On an IEEE system, which means pretty much everywhere, the value here is
+;; the usual 53.
+;;
+(define dbl-mant-dig
+  (let more ((i 1)
+	     (d 2.0))
+    (if (> i 1024)
+	(error "Oops, cannot determine number of bits in mantissa of inexact"))
+    (let* ((sum  (+ 1.0 d))
+	   (diff (- sum d)))
+      (if (= diff 1.0)
+	  (more (1+ i) (* 2.0 d))
+	  i))))
+
+;; like ash, but working on a flonum
+(define (ash-flo x n)
+  (while (> n 0)
+    (set! x (* 2.0 x))
+    (set! n (1- n)))
+  (while (< n 0)
+    (set! x (* 0.5 x))
+    (set! n (1+ n)))
+  x)
+    
 
 ;;;
 ;;; exact?
@@ -1964,6 +1996,86 @@
 ;;;
 ;;; exact->inexact
 ;;;
+
+(with-test-prefix "exact->inexact"
+  
+  ;; Test "(exact->inexact n)", expect "want".
+  ;; "i" is a index, for diagnostic purposes.
+  (define (try-i i n want)
+    (with-test-prefix (list i n want)
+      (with-test-prefix "pos"
+	(let ((got (exact->inexact n)))
+	  (pass-if "inexact?" (inexact? got))
+	  (pass-if (list "=" got) (= want got))))
+      (set! n    (- n))
+      (set! want (- want))
+      (with-test-prefix "neg"
+	(let ((got (exact->inexact n)))
+	  (pass-if "inexact?" (inexact? got))
+	  (pass-if (list "=" got) (= want got))))))
+  
+  (with-test-prefix "2^i, no round"
+    (do ((i    0   (1+ i))
+	 (n    1   (* 2 n))
+	 (want 1.0 (* 2.0 want)))
+	((> i 100))
+      (try-i i n want)))
+  
+  (with-test-prefix "2^i+1, no round"
+    (do ((i    1   (1+ i))
+	 (n    3   (1- (* 2 n)))
+	 (want 3.0 (- (* 2.0 want) 1.0)))
+	((>= i dbl-mant-dig))
+      (try-i i n want)))
+  
+  (with-test-prefix "(2^i+1)*2^100, no round"
+    (do ((i    1   (1+ i))
+	 (n    3   (1- (* 2 n)))
+	 (want 3.0 (- (* 2.0 want) 1.0)))
+	((>= i dbl-mant-dig))
+      (try-i i (ash n 100) (ash-flo want 100))))
+  
+  ;; bit pattern: 1111....11100.00
+  ;;              <-mantdig-><-i->
+  ;;
+  (with-test-prefix "mantdig ones then zeros, no rounding"
+    (do ((i    0  (1+ i))
+	 (n    (- (ash     1   dbl-mant-dig) 1)   (* 2 n))
+	 (want (- (ash-flo 1.0 dbl-mant-dig) 1.0) (* 2.0 want)))
+	((> i 100))
+      (try-i i n want)))
+  
+  ;; bit pattern: 1111....111011..1
+  ;;              <-mantdig-> <-i->
+  ;; This sort of value was incorrectly rounded upwards in Guile 1.6.4 when
+  ;; i >= 11 (that's when the total is 65 or more bits).
+  ;;
+  (with-test-prefix "mantdig ones then 011..11, round down"
+    (do ((i    0  (1+ i))
+	 (n    (- (ash     1   (+ 1 dbl-mant-dig)) 2)   (+ 1 (* 2 n)))
+	 (want (- (ash-flo 1.0 (+ 1 dbl-mant-dig)) 2.0) (* 2.0 want)))
+	((> i 100))
+      (try-i i n want)))
+  
+  ;; bit pattern: 1111....111100..001
+  ;;              <-mantdig-> <--i->
+  ;;
+  (with-test-prefix "mantdig ones then 100..001, round up"
+    (do ((i    0  (1+ i))
+	 (n    (- (ash     1   (+ 2 dbl-mant-dig)) 1)  (1- (* 2 n)))
+	 (want    (ash-flo 1.0 (+ 2 dbl-mant-dig))     (* 2.0 want)))
+	((> i 100))
+      (try-i i n want)))
+  
+  ;; bit pattern: 1000....000100..001
+  ;;              <-mantdig-> <--i->
+  ;;
+  (with-test-prefix "2^mantdig then 100..001, round up"
+    (do ((i    0  (1+ i))
+	 (n    (- (ash     1   (+ 2 dbl-mant-dig)) 1)   (1- (* 2 n)))
+	 (want (+ (ash-flo 1.0 (+ 2 dbl-mant-dig)) 4.0) (* 2.0 want)))
+	((> i 100))
+      (try-i i n want))))
 
 ;;;
 ;;; floor
