@@ -1,3 +1,9 @@
+2003-04-30  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* Makefile.am (SCM_TESTS): Add tests/srfi-34.test.
+
+	* tests/srfi-34.test: New file.
+
 2003-04-23  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* tests/syntax.test: Modified some tests to use eval when

@@ -1,3 +1,7 @@
+2003-04-30  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* srfi-34.scm: New file.
+
 2003-04-23  Marius Vollmer  <mvo@zagadka.de>
 
 	* srfi-1.scm: Removed stray "o" from exports list.

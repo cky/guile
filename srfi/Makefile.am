@@ -67,7 +67,8 @@ srfi_DATA = srfi-1.scm \
             srfi-14.scm \
 	    srfi-16.scm \
             srfi-17.scm \
-            srfi-19.scm
+            srfi-19.scm \
+            srfi-34.scm
 
 EXTRA_DIST = $(srfi_DATA)
 ETAGS_ARGS = $(srfi_DATA)
