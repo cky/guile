@@ -1,3 +1,28 @@
+1998-01-26  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* iselect.c: Small fixes.
+
+	* coop.c (coop_mutex_init, coop_mutex_lock, coop_mutex_unlock,
+	coop_condition_variable_init, coop_condition_variable_wait,
+	coop_condition_variable_signal): Changed return type from `void'
+	to `int'.  This is to adhere closer to the pthreads interface.
+	This, in turn, is part of an attempt to provide C versions of the
+	mutex and condition variable primitives which can be part of a
+	frontend to COOP or pthreads.
+
+	* coop.c (coop_mutex_destroy, coop_condition_variable_wait_mutex,
+	coop_condition_variable_destroy): New functions.
+	
+	* coop-threads.c (scm_wait_condition_variable): Use
+	coop_condition_variable_wait_mutex.
+
+	* coop-threads.h, coop-defs.h (coop_q_t, coop_m, coop_c):
+	Definitions moved to coop-defs.h.
+
+	* coop-defs.h (scm_mutex_init, scm_mutex_lock, scm_mutex_unlock,
+	scm_mutex_destroy, scm_cond_init, scm_cond_wait, scm_cond_signal,
+	scm_cond_destroy): New C interface to mutecis and cond vars.
+
 1998-01-24  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* error.c (scm_wta): Added support for SCM_ARG6 and SCM_ARG7.
