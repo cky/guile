@@ -26,6 +26,8 @@
 #include <string.h>
 #endif
 
+#include <assert.h>
+
 /* data conversion C->scheme */
 
 SCM 
@@ -120,65 +122,57 @@ gh_doubles2scm (const double *d, long n)
   return v;
 }
 
-#if SCM_HAVE_ARRAYS
-/* Do not use this function for building normal Scheme vectors, unless
-   you arrange for the elements to be protected from GC while you
-   initialize the vector.  */
-static SCM
-makvect (char *m, size_t len, int type)
-{
-  return scm_cell (SCM_MAKE_UVECTOR_TAG (len, type), (scm_t_bits) m);
-}
 
 SCM
 gh_chars2byvect (const char *d, long n)
 {
-  SCM uvec = scm_make_s8vector (scm_from_long (n), SCM_UNDEFINED);
-  char *m = scm_s8vector_elements (uvec);
+  char *m = scm_malloc (n);
   memcpy (m, d, n * sizeof (char));
-  return uvec;
+  return scm_take_s8vector (m, n);
 }
 
 SCM
 gh_shorts2svect (const short *d, long n)
 {
-  char *m = scm_gc_malloc (n * sizeof (short), "vector");
+  char *m = scm_malloc (n * sizeof (short));
   memcpy (m, d, n * sizeof (short));
-  return makvect (m, n, scm_tc7_svect);
+  assert (sizeof (scm_t_int16) == sizeof (short));
+  return scm_take_s16vector ((scm_t_int16 *)m, n);
 }
 
 SCM
 gh_longs2ivect (const long *d, long n)
 {
-  char *m = scm_gc_malloc (n * sizeof (long), "vector");
+  char *m = scm_malloc (n * sizeof (long));
   memcpy (m, d, n * sizeof (long));
-  return makvect (m, n, scm_tc7_ivect);
+  assert (sizeof (scm_t_int32) == sizeof (long));
+  return scm_take_s32vector ((scm_t_int32 *)m, n);
 }
 
 SCM
 gh_ulongs2uvect (const unsigned long *d, long n)
 {
-  char *m = scm_gc_malloc (n * sizeof (unsigned long), "vector");
+  char *m = scm_malloc (n * sizeof (unsigned long));
   memcpy (m, d, n * sizeof (unsigned long));
-  return makvect (m, n, scm_tc7_uvect);
+  assert (sizeof (scm_t_uint32) == sizeof (unsigned long));
+  return scm_take_u32vector ((scm_t_uint32 *)m, n);
 }
 
 SCM
 gh_floats2fvect (const float *d, long n)
 {
-  char *m = scm_gc_malloc (n * sizeof (float), "vector");
+  char *m = scm_malloc (n * sizeof (float));
   memcpy (m, d, n * sizeof (float));
-  return makvect (m, n, scm_tc7_fvect);
+  return scm_take_f32vector ((float *)m, n);
 }
 
 SCM
 gh_doubles2dvect (const double *d, long n)
 {
-  char *m = scm_gc_malloc (n * sizeof (double), "vector");
+  char *m = scm_malloc (n * sizeof (double));
   memcpy (m, d, n * sizeof (double));
-  return makvect (m, n, scm_tc7_dvect);
+  return scm_take_f64vector ((double *)m, n);
 }
-#endif
 
 /* data conversion scheme->C */
 int 
@@ -281,6 +275,26 @@ gh_scm2chars (SCM obj, char *m)
   return m;
 }
 
+static void *
+scm2whatever (SCM obj, void *m, size_t size)
+{
+  size_t n = scm_c_uniform_vector_length (obj);
+  if (m == 0)
+    m = malloc (n * sizeof (size));
+  if (m == NULL)
+    return NULL;
+  memcpy (m, scm_uniform_vector_elements (obj), n * size);
+  scm_uniform_vector_release (obj);
+  return m;
+}
+
+#define SCM2WHATEVER(obj,pred,utype,mtype)                   \
+  if (scm_is_true (pred (obj)))                              \
+    {                                                        \
+      assert (sizeof (utype) == sizeof (mtype));             \
+      return (mtype *)scm2whatever (obj, m, sizeof (utype)); \
+    }
+
 /* Convert a vector, weak vector or uniform vector into an array of
    shorts.  If result array in arg 2 is NULL, malloc a new one.  If
    out of memory, return NULL.  */
@@ -292,6 +306,9 @@ gh_scm2shorts (SCM obj, short *m)
   SCM val;
   if (SCM_IMP (obj))
     scm_wrong_type_arg (0, 0, obj);
+
+  SCM2WHATEVER (obj, scm_s16vector_p, scm_t_int16, short)
+
   switch (SCM_TYP7 (obj))
     {
     case scm_tc7_vector:
@@ -316,16 +333,6 @@ gh_scm2shorts (SCM obj, short *m)
       for (i = 0; i < n; ++i)
 	m[i] = SCM_I_INUM (SCM_VELTS (obj)[i]);
       break;
-#if SCM_HAVE_ARRAYS
-    case scm_tc7_svect:
-      n = SCM_UVECTOR_LENGTH (obj);
-      if (m == 0)
-	m = (short *) malloc (n * sizeof (short));
-      if (m == NULL)
-	return NULL;
-      memcpy (m, SCM_VELTS (obj), n * sizeof (short));
-      break;
-#endif
     default:
       scm_wrong_type_arg (0, 0, obj);
     }
@@ -342,6 +349,9 @@ gh_scm2longs (SCM obj, long *m)
   SCM val;
   if (SCM_IMP (obj))
     scm_wrong_type_arg (0, 0, obj);
+
+  SCM2WHATEVER (obj, scm_s32vector_p, scm_t_int32, long)
+
   switch (SCM_TYP7 (obj))
     {
     case scm_tc7_vector:
@@ -365,17 +375,6 @@ gh_scm2longs (SCM obj, long *m)
 	    : scm_to_long (val);
 	}
       break;
-#if SCM_HAVE_ARRAYS
-    case scm_tc7_ivect:
-    case scm_tc7_uvect:
-      n = SCM_UVECTOR_LENGTH (obj);
-      if (m == 0)
-	m = (long *) malloc (n * sizeof (long));
-      if (m == NULL)
-	return NULL;
-      memcpy (m, SCM_VELTS (obj), n * sizeof (long));
-      break;
-#endif
     default:
       scm_wrong_type_arg (0, 0, obj);
     }
@@ -392,6 +391,11 @@ gh_scm2floats (SCM obj, float *m)
   SCM val;
   if (SCM_IMP (obj))
     scm_wrong_type_arg (0, 0, obj);
+
+  /* XXX - f64vectors are rejected now.
+   */
+  SCM2WHATEVER (obj, scm_f32vector_p, float, float)
+
   switch (SCM_TYP7 (obj))
     {
     case scm_tc7_vector:
@@ -419,26 +423,6 @@ gh_scm2floats (SCM obj, float *m)
 	    m[i] = SCM_REAL_VALUE (val);
 	}
       break;
-#if SCM_HAVE_ARRAYS
-    case scm_tc7_fvect:
-      n = SCM_UVECTOR_LENGTH (obj);
-      if (m == 0)
-	m = (float *) malloc (n * sizeof (float));
-      if (m == NULL)
-	return NULL;
-      memcpy (m, (float *) SCM_VELTS (obj), n * sizeof (float));
-      break;
-
-    case scm_tc7_dvect:
-      n = SCM_UVECTOR_LENGTH (obj);
-      if (m == 0)
-	m = (float*) malloc (n * sizeof (float));
-      if (m == NULL)
-	return NULL;
-      for (i = 0; i < n; ++i)
-	m[i] = ((double *) SCM_VELTS (obj))[i];
-      break;
-#endif
     default:
       scm_wrong_type_arg (0, 0, obj);
     }
@@ -455,6 +439,11 @@ gh_scm2doubles (SCM obj, double *m)
   SCM val;
   if (SCM_IMP (obj))
     scm_wrong_type_arg (0, 0, obj);
+
+  /* XXX - f32vectors are rejected now.
+   */
+  SCM2WHATEVER (obj, scm_f64vector_p, double, double)
+
   switch (SCM_TYP7 (obj))
     {
     case scm_tc7_vector:
@@ -482,26 +471,7 @@ gh_scm2doubles (SCM obj, double *m)
 	    m[i] = SCM_REAL_VALUE (val);
 	}
       break;
-#if SCM_HAVE_ARRAYS
-    case scm_tc7_fvect:
-      n = SCM_UVECTOR_LENGTH (obj);
-      if (m == 0)
-	m = (double *) malloc (n * sizeof (double));
-      if (m == NULL)
-	return NULL;
-      for (i = 0; i < n; ++i)
-	m[i] = ((float *) SCM_VELTS (obj))[i];
-      break;
 
-    case scm_tc7_dvect:
-      n = SCM_UVECTOR_LENGTH (obj);
-      if (m == 0)
-	m = (double*) malloc (n * sizeof (double));
-      if (m == NULL)
-	return NULL;
-      memcpy (m, SCM_VELTS (obj), n * sizeof (double));
-      break;
-#endif
     default:
       scm_wrong_type_arg (0, 0, obj);
     }
