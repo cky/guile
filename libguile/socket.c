@@ -66,7 +66,7 @@
 
 
 #ifndef STDC_HEADERS
-int close P ((int fd));
+int close ();
 #endif /* STDC_HEADERS */
 
 extern int inet_aton ();
