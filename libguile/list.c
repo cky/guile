@@ -418,8 +418,6 @@ scm_list_copy (lst)
 
 /* membership tests (memq, memv, etc.) */ 
 
-static void sloppy_mem_check SCM_P ((SCM obj, char * where, char * why));
-
 SCM_PROC (s_sloppy_memq, "sloppy-memq", 2, 0, 0, scm_sloppy_memq);
 SCM
 scm_sloppy_memq(x, lst)
