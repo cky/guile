@@ -1,3 +1,8 @@
+2000-05-30  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* tasks.text: Use outline-mode.  Added section for tasks in need
+	of attention.
+
 2000-05-29  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* tasks.text: New file.
