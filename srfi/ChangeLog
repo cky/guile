@@ -2,10 +2,6 @@
 
 	* srfi-14.c (scm_char_set_intersection, scm_char_set_xor): remove
 	the compulsory cs1 arguments: all args are optional in final spec.
-	(scm_char_set_xor): bug fix: characters should only be included if
-	they occur in exactly one argument, but were included if they
-	occured an odd number of times >= 3, e.g, in (char-set-xor a a a)
-	where a is (char-set #\a).  fix it with a "mask" array.
 
 	* srfi-14.h: declarations updated.
 
