@@ -37,6 +37,17 @@ The new configure option `--enable-deprecated=LEVEL' and the
 environment variable GUILE_WARN_DEPRECATED control this mechanism.
 See INSTALL and README for more information.
 
+** The #. reader extension is now disabled by default.
+
+For safety reasons, #. evaluation is disabled by default.  To
+re-enable it, set the fluid read-eval? to #t.  For example:
+
+  (fluid-set read-eval? #t)
+
+but make sure you realize the potential security risks involved.  With
+read-eval?  enabled, reading a data file from an untrusted source can
+be dangerous.
+
 ** New SRFI modules have been added:
 
 SRFI-0 `cond-expand' is now supported in Guile, without requiring

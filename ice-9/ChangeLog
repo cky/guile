@@ -1,3 +1,8 @@
+2001-07-06  Rob Browning  <rlb@defaultvalue.org>
+
+	* boot-9.scm: added fix suggested by Matthias for #. read
+	extension -- now only works if read-eval? is not #f.
+
 2001-06-30  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* arrays.scm:  Don't install a read-hash-extension for 'b':  #b
