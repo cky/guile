@@ -1,3 +1,13 @@
+2000-11-30  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	Thanks to Julian Satchell for the bug report:
+
+	* coop-threads.c (scm_join_thread):  Check whether a thread is
+	finished before trying to join it.
+
+	* coop.c (coop_aborthelp, coop_join):  When a thread finishes, its
+	stack base is not set to NULL any more.
+
 2000-11-28  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* strop.c (scm_i_index):  Removed outdated comment.

@@ -40,7 +40,7 @@
  * If you do not wish that, delete this exception notice.  */
 
 
-/* $Id: coop.c,v 1.25 2000-04-21 14:16:30 mdj Exp $ */
+/* $Id: coop.c,v 1.26 2000-11-30 10:26:44 dirk Exp $ */
 
 /* Cooperative thread library, based on QuickThreads */
 
@@ -698,11 +698,6 @@ coop_aborthelp (qt_t *sp, void *old, void *null)
 {
   coop_t *oldthread = (coop_t *) old;
 
-#if 0
-  /* Marking old->base NULL indicates that this thread is dead */
-  oldthread->base = NULL;
-#endif
-
   if (oldthread->specific)
     free (oldthread->specific);
 #ifndef GUILE_PTHREAD_COMPAT
@@ -721,10 +716,6 @@ coop_join(coop_t *t)
 {
   coop_t *old, *newthread;
   
-  /* Check if t is already finished */
-  if (t->base == NULL)
-    return;
-
   /* Create a join list if necessary */
   if (t->joining == NULL)
     {

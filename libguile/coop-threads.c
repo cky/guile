@@ -377,11 +377,24 @@ scm_spawn_thread (scm_catch_body_t body, void *body_data,
 }
 
 SCM
-scm_join_thread (SCM t)
+scm_join_thread (SCM thread)
 #define FUNC_NAME s_join_thread
 {
-  SCM_VALIDATE_THREAD (1,t);
-  coop_join (SCM_THREAD_DATA (t));
+  coop_t *thread_data;
+  SCM_VALIDATE_THREAD (1, thread);
+  /* Dirk:FIXME:: SCM_THREAD_DATA is a handle for a thread.  It may be that a
+   * certain thread implementation uses a value of 0 as a valid thread handle.
+   * With the following code, this thread would always be considered finished.
+   */
+  /* Dirk:FIXME:: With preemptive threading, a thread may finish immediately
+   * after SCM_THREAD_DATA is read.  Thus, it must be guaranteed that the
+   * handle remains valid until the thread-object is garbage collected, or
+   * a mutex has to be used for reading and modifying SCM_THREAD_DATA.
+   */
+  thread_data = SCM_THREAD_DATA (thread);
+  if (thread_data)
+    /* The thread is still alive */
+    coop_join (thread_data);
   return SCM_BOOL_T;
 }
 #undef FUNC_NAME

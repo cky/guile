@@ -1,14 +1,14 @@
 The Guile maintainer committee consists of
 
 	Jim Blandy
+     Mikael Djurfeldt
      Maciej Stachowiak
      Marius Vollmer
-     Mikael Djurfeldt
 
 Contributors since the last release:
 
-       Greg Harvey
        Jost Boekemeier
+       Greg Harvey
 
 For fixes or providing information which led to a fix:
 
@@ -19,11 +19,12 @@ For fixes or providing information which led to a fix:
        Brad Knotwell
    Matthias Köppe
       Bruce Korb
+       Ralf Mattes
       Shuji Narazaki
     Nicolas Neuss
     Han-Wen Nienhuys
       David Pirotte
-    William Webber
+     Julian Satchell
     Dale P. Smith
-       Ralf Mattes
  Jacques A. Vidrine.
+    William Webber
