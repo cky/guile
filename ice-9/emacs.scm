@@ -32,7 +32,8 @@
 (define-module (ice-9 emacs)
   :use-module (ice-9 debug)
   :use-module (ice-9 threads)
-  :use-module (ice-9 session))
+  :use-module (ice-9 session)
+  :no-backtrace)
 
 (define emacs-escape-character #\sub)
 
