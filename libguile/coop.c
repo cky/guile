@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995, 1996, 1997, 1998 Free Software Foundation, Inc.
+/*	Copyright (C) 1995, 1996, 1997, 1998, 1999 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,13 +40,15 @@
  * If you do not wish that, delete this exception notice.  */
 
 
-/* $Id: coop.c,v 1.16 1999-12-19 18:24:12 gjb Exp $ */
+/* $Id: coop.c,v 1.17 2000-03-12 00:33:56 mdj Exp $ */
 
 /* Cooperative thread library, based on QuickThreads */
 
 #ifdef HAVE_UNISTD_H 
 #include <unistd.h>
 #endif
+
+#include <errno.h>
 
 #include <qt.h>
 #include "eval.h"
@@ -124,6 +126,29 @@ coop_all_qremove (coop_q_t *q, coop_t *t)
   if (t->all_next)
       t->all_next->all_prev = t->all_prev;
 }
+
+#ifdef GUILE_ISELECT
+/* Insert thread t into the ordered queue q.
+   q is ordered after wakeup_time.  Threads which aren't sleeping but
+   waiting for I/O go last into the queue. */
+void
+coop_timeout_qinsert (coop_q_t *q, coop_t *t)
+{
+  coop_t *pred = &q->t;
+  int sec = t->wakeup_time.tv_sec;
+  int usec = t->wakeup_time.tv_usec;
+  while (pred->next != &q->t
+	 && pred->next->timeoutp
+	 && (pred->next->wakeup_time.tv_sec < sec
+	     || (pred->next->wakeup_time.tv_sec == sec
+		 && pred->next->wakeup_time.tv_usec < usec)))
+    pred = pred->next;
+  t->next = pred->next;
+  pred->next = t;
+  if (t->next == &q->t)
+    q->tail = t;
+}
+#endif
 
 
 /* Thread routines. */
@@ -212,9 +237,27 @@ coop_starthelp (qt_t *old, void *ignore0, void *ignore1)
 int
 coop_mutex_init (coop_m *m)
 {
+  return coop_new_mutex_init (m, NULL);
+}
+
+int
+coop_new_mutex_init (coop_m *m, coop_mattr *attr)
+{
   m->owner = NULL;
   coop_qinit(&(m->waiting));
   return 0;
+}
+
+int
+coop_mutex_trylock (coop_m *m)
+{
+  if (m->owner == NULL)
+    {
+      m->owner = coop_global_curr;
+      return 0;
+    }
+  else
+    return EBUSY;
 }
 
 int
@@ -282,6 +325,12 @@ coop_mutex_destroy (coop_m *m)
 int 
 coop_condition_variable_init (coop_c *c)
 {
+  return coop_new_condition_variable_init (c, NULL);
+}
+
+int
+coop_new_condition_variable_init (coop_c *c, coop_cattr *a)
+{
   coop_qinit(&(c->waiting));
   return 0;
 }
@@ -300,6 +349,7 @@ coop_condition_variable_wait_mutex (coop_c *c, coop_m *m)
   else
     {
       m->owner = NULL;
+      /*fixme* Should we really wait here?  Isn't it OK just to proceed? */
 #ifdef GUILE_ISELECT
       newthread = coop_wait_for_runnable_thread();
       if (newthread == coop_global_curr)
@@ -317,6 +367,54 @@ coop_condition_variable_wait_mutex (coop_c *c, coop_m *m)
   return 0;
 }
 
+int 
+coop_condition_variable_timed_wait_mutex (coop_c *c,
+					  coop_m *m,
+					  const struct timespec *abstime)
+{
+  coop_t *old, *t;
+  int res = ETIME;
+
+  /* coop_mutex_unlock (m); */
+  t = coop_qget (&(m->waiting));
+  if (t != NULL)
+    {
+      m->owner = t;
+    }
+  else
+    {
+      m->owner = NULL;
+#ifdef GUILE_ISELECT
+      coop_global_curr->timeoutp = 1;
+      coop_global_curr->wakeup_time.tv_sec = abstime->tv_sec;
+      coop_global_curr->wakeup_time.tv_usec = abstime->tv_nsec / 1000;
+      coop_timeout_qinsert (&coop_global_sleepq, coop_global_curr);
+      t = coop_wait_for_runnable_thread();
+#else
+      /*fixme* Implement!*/
+      t = coop_next_runnable_thread();
+#endif
+    }
+  if (t != coop_global_curr)
+    {
+      coop_global_curr->top = &old;
+      old = coop_global_curr;
+      coop_global_curr = t;
+      QT_BLOCK (coop_yieldhelp, old, &(c->waiting), t->sp);
+
+      /* Are we still in the sleep queue? */
+      old = &coop_global_sleepq.t;
+      for (t = old->next; t != &coop_global_sleepq.t; old = t, t = t->next)
+	if (t == coop_global_curr)
+	  {
+	    old->next = t->next; /* unlink */
+	    res = 0;
+	    break;
+	  }
+    }
+  coop_mutex_lock (m);
+  return res;
+}
 
 int 
 coop_condition_variable_signal (coop_c *c)
@@ -330,6 +428,72 @@ coop_condition_variable_signal (coop_c *c)
   return 0;
 }
 
+/* {Keys}
+ */
+
+static int n_keys = 0;
+static int max_keys = 0;
+static void (**destructors) (void *) = 0;
+
+int
+coop_key_create (coop_k *keyp, void (*destructor) (void *value))
+{
+  if (n_keys >= max_keys)
+    {
+      int i;
+      max_keys = max_keys ? max_keys * 3 / 2 : 10;
+      destructors = realloc (destructors, sizeof (void *) * max_keys);
+      if (destructors == 0)
+	{
+	  fprintf (stderr, "Virtual memory exceeded in coop_key_create\n");
+	  exit (1);
+	}
+      for (i = n_keys; i < max_keys; ++i)
+	destructors[i] = NULL;
+    }
+  destructors[n_keys] = destructor;
+  *keyp = n_keys++;
+  return 0;
+}
+
+int
+coop_setspecific (coop_k key, const void *value)
+{
+  int n_keys = coop_global_curr->n_keys;
+  if (key >= n_keys)
+    {
+      int i;
+      coop_global_curr->n_keys = max_keys;
+      coop_global_curr->specific = realloc (n_keys
+					    ? coop_global_curr->specific
+					    : NULL,
+					    sizeof (void *) * max_keys);
+      if (coop_global_curr->specific == 0)
+	{
+	  fprintf (stderr, "Virtual memory exceeded in coop_setspecific\n");
+	  exit (1);
+	}
+      for (i = n_keys; i < max_keys; ++i)
+	coop_global_curr->specific[i] = NULL;
+    }
+  coop_global_curr->specific[key] = (void *) value;
+  return 0;
+}
+
+void *
+coop_getspecific (coop_k key)
+{
+  return (key < coop_global_curr->n_keys
+	  ? coop_global_curr->specific[key]
+	  : NULL);
+}
+
+int
+coop_key_delete (coop_k key)
+{
+  return 0;
+}
+
 
 int 
 coop_condition_variable_destroy (coop_c *c)
@@ -337,6 +501,19 @@ coop_condition_variable_destroy (coop_c *c)
   return 0;
 }
 
+#ifdef GUILE_PTHREAD_COMPAT
+static void *
+dummy_start (void *coop_thread)
+{
+  coop_t *t = (coop_t *) coop_thread;
+  t->sto = &t + 1;
+  pthread_mutex_init (&t->dummy_mutex, NULL);
+  pthread_mutex_lock (&t->dummy_mutex);
+  pthread_cond_init (&t->dummy_cond, NULL);
+  pthread_cond_wait (&t->dummy_cond, &t->dummy_mutex);
+  return 0;
+}
+#endif
 
 coop_t *
 coop_create (coop_userf_t *f, void *pu)
@@ -347,7 +524,12 @@ coop_create (coop_userf_t *f, void *pu)
   t = malloc (sizeof(coop_t));
 
   t->data = NULL;
+  t->n_keys = 0;
+#ifdef GUILE_PTHREAD_COMPAT
+  pthread_create (&t->dummy_thread, NULL, dummy_start, t);
+#else
   t->sto = malloc (COOP_STKSIZE);
+#endif
   sto = COOP_STKALIGN (t->sto, QT_STKALIGN);
   t->sp = QT_SP (sto, COOP_STKSIZE - QT_STKALIGN);
   t->base = t->sp;
@@ -398,6 +580,9 @@ coop_abort ()
   coop_all_qremove(&coop_global_allq, coop_global_curr);
   old = coop_global_curr;
   coop_global_curr = newthread;
+#ifdef GUILE_PTHREAD_COMPAT
+  pthread_cond_signal (&old->dummy_cond);
+#endif
   QT_ABORT (coop_aborthelp, old, (void *)NULL, newthread->sp);
 }
 
