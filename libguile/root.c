@@ -187,12 +187,14 @@ static int n_dynamic_roots = 0;
    passed to cwdr as A1 and ARGS.  */
 
 struct cwdr_body_data {
-
   /* Arguments to pass to the cwdr body function.  */
   SCM a1, args;
 
   /* Scheme procedure to use as body of cwdr.  */
   SCM body_proc;
+
+  /* Scheme handler function to establish.  */
+  SCM handler;
 };
 
 
@@ -202,10 +204,8 @@ struct cwdr_body_data {
 
    With a little thought, we could replace this with scm_body_thunk,
    but I don't want to mess with that at the moment.  */
-static SCM cwdr_body SCM_P ((void *, SCM));
-
 static SCM
-cwdr_body (void *data, SCM jmpbuf)
+cwdr_inner_body (void *data, SCM jmpbuf)
 {
   struct cwdr_body_data *c = (struct cwdr_body_data *) data;
 
@@ -213,7 +213,20 @@ cwdr_body (void *data, SCM jmpbuf)
 }
 
 
-static SCM cwdr SCM_P ((SCM thunk, SCM a1, SCM args, SCM handler, SCM_STACKITEM *stack_start));
+/* Invoke the body of a cwdr, assuming that the last-ditch handler has
+   been established.  The structure DATA points to must live on the
+   stack, or else it won't be found by the GC.  Establish the user's
+   handler, and pass control to cwdr_inner_body, which will invoke the
+   users' body.  Maybe the user has a nice body.  */
+static SCM
+cwdr_outer_body (void *data, SCM jmpbuf)
+{
+  struct cwdr_body_data *c = (struct cwdr_body_data *) data;
+
+  return scm_internal_catch (SCM_BOOL_T,
+			     cwdr_inner_body, &c,
+			     scm_handle_by_proc, &c->handler);
+}
 
 /* This is the basic code for new root creation.
  *
@@ -222,12 +235,7 @@ static SCM cwdr SCM_P ((SCM thunk, SCM a1, SCM args, SCM handler, SCM_STACKITEM 
  * in a messed up state.  */
 
 static SCM 
-cwdr (proc, a1, args, handler, stack_start)
-     SCM proc;
-     SCM a1;
-     SCM args;
-     SCM handler;
-     SCM_STACKITEM *stack_start;
+cwdr (SCM proc, SCM a1, SCM args, SCM handler, SCM_STACKITEM *stack_start)
 {
   int old_ints_disabled = scm_ints_disabled;
   SCM old_rootcont, old_winds;
@@ -263,17 +271,20 @@ cwdr (proc, a1, args, handler, stack_start)
   scm_last_debug_frame = 0;
 #endif
   
-  /* Catch all errors. */
+  /* Catch absolutely all errors.  We actually use
+     scm_handle_by_message_noexit here, and then install HANDLER in
+     cwdr_outer_body, because HANDLER might encounter errors itself.  */
   {
     struct cwdr_body_data c;
 
     c.a1 = a1;
     c.args = args;
     c.body_proc = proc;
+    c.handler = handler;
 
     answer = scm_internal_catch (SCM_BOOL_T,
-				 cwdr_body, &c,
-				 scm_handle_by_proc, &handler);
+				 cwdr_outer_body, &c,
+				 scm_handle_by_message_noexit, 0);
   }
   
   scm_dowinds (old_winds, - scm_ilength (old_winds));

@@ -385,6 +385,54 @@ scm_handle_by_proc (handler_data, tag, throw_args)
 }
 
 
+/* Derive the an exit status from the arguments to (quit ...).  */
+int
+scm_exit_status (args)
+  SCM args;
+{
+  if (SCM_NNULLP (args))
+    {
+      SCM cqa = SCM_CAR (args);
+      
+      if (SCM_INUMP (cqa))
+	return (SCM_INUM (cqa));
+      else if (SCM_FALSEP (cqa))
+	return 1;
+    }
+  return 0;
+}
+	
+
+static void
+handler_message (void *handler_data, SCM tag, SCM args)
+{
+  char *prog_name = (char *) handler_data;
+  SCM p = scm_def_errp;
+
+  if (! prog_name)
+    prog_name = "guile";
+
+  scm_gen_puts (scm_regular_string, prog_name, p);
+  scm_gen_puts (scm_regular_string, ": ", p);
+
+  if (scm_ilength (args) >= 3)
+    {
+      SCM message = SCM_CADR (args);
+      SCM parts = SCM_CADDR (args);
+
+      scm_display_error_message (message, parts, p);
+    }
+  else
+    {
+      scm_gen_puts (scm_regular_string, "uncaught throw to ", p);
+      scm_prin1 (tag, p, 0);
+      scm_gen_puts (scm_regular_string, ": ", p);
+      scm_prin1 (args, p, 1);
+      scm_gen_putc ('\n', p);
+    }
+}
+
+
 /* This is a handler function to use if you want scheme to print a
    message and die.  Useful for dealing with throws to uncaught keys
    at the top level.
@@ -408,55 +456,29 @@ scm_handle_by_message (handler_data, tag, args)
      SCM tag;
      SCM args;
 {
-  char *prog_name = (char *) handler_data;
-  SCM p = scm_def_errp;
-
   if (SCM_NFALSEP (scm_eq_p (tag, SCM_CAR (scm_intern0 ("quit")))))
     exit (scm_exit_status (args));
 
-  if (! prog_name)
-    prog_name = "guile";
-
-  scm_gen_puts (scm_regular_string, prog_name, p);
-  scm_gen_puts (scm_regular_string, ": ", p);
-
-  if (scm_ilength (args) >= 3)
-    {
-      SCM message = SCM_CADR (args);
-      SCM parts = SCM_CADDR (args);
-
-      scm_display_error_message (message, parts, p);
-    }
-  else
-    {
-      scm_gen_puts (scm_regular_string, "uncaught throw to ", p);
-      scm_prin1 (tag, p, 0);
-      scm_gen_puts (scm_regular_string, ": ", p);
-      scm_prin1 (args, p, 1);
-      scm_gen_putc ('\n', p);
-    }
+  handler_message (handler_data, tag, args);
 
   exit (2);
 }
 
 
-/* Derive the an exit status from the arguments to (quit ...).  */
-int
-scm_exit_status (args)
-  SCM args;
+/* This is just like scm_handle_by_message, but it doesn't exit; it
+   just returns #f.  It's useful in cases where you don't really know
+   enough about the body to handle things in a better way, but don't
+   want to let throws fall off the bottom of the wind list.  */
+SCM
+scm_handle_by_message_noexit (handler_data, tag, args)
+     void *handler_data;
+     SCM tag;
+     SCM args;
 {
-  if (SCM_NNULLP (args))
-    {
-      SCM cqa = SCM_CAR (args);
-      
-      if (SCM_INUMP (cqa))
-	return (SCM_INUM (cqa));
-      else if (SCM_FALSEP (cqa))
-	return 1;
-    }
-  return 0;
+  handler_message (handler_data, tag, args);
+
+  return SCM_BOOL_F;
 }
-	
 
 
 
