@@ -2277,8 +2277,20 @@
 
 (define abort-hook '())
 
+;; defined in error-catching-loop as a closures.
+(define set-batch-mode?! #f)
+(define batch-mode? #f)
+
 (define (error-catching-loop thunk)
-  (let ((status #f))
+  (let ((status #f)
+	(interactive #t))
+    (set! set-batch-mode?! (lambda (arg)
+			     (cond (arg 
+				    (set! interactive #f)
+				    (restore-signals))
+				   (#t
+				    (error "sorry, not implemented")))))
+    (set! batch-mode? (lambda () (not interactive)))
     (define (loop first)
       (let ((next 
 	     (catch #t
@@ -2324,16 +2336,18 @@
 			   (display "ABORT: "  (current-error-port))
 			   (write args (current-error-port))
 			   (newline (current-error-port))
-			   (if (and (not has-shown-debugger-hint?)
-				    (not (memq 'backtrace
-					       (debug-options-interface)))
-				    (stack? the-last-stack))
-			       (begin
-				 (newline (current-error-port))
-				 (display
-				  "Type \"(backtrace)\" to get more information.\n"
-				  (current-error-port))
-				 (set! has-shown-debugger-hint? #t)))
+			   (if interactive
+			       (if (and (not has-shown-debugger-hint?)
+					(not (memq 'backtrace
+						   (debug-options-interface)))
+					(stack? the-last-stack))
+				   (begin
+				     (newline (current-error-port))
+				     (display
+				      "Type \"(backtrace)\" to get more information.\n"
+				      (current-error-port))
+				     (set! has-shown-debugger-hint? #t)))
+			       (primitive-exit 1))
 			   (set! stack-saved? #f)))
 
 			(else

@@ -1,3 +1,16 @@
+Thu Oct  9 05:44:00 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* expect.scm: (expect-regexec): new procedure, use it in
+	expect-strings to fix the => syntax under the new regex system.
+	(top): include regex module in define-module statement.
+
+Wed Oct  8 03:16:01 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* (error-catching-loop): new local variable "interactive".  if
+	#f, abort terminates the process.
+	(set-batch-mode?!, batch-mode?): new closures, defined in 
+	error-catching-loop.  the names are from scsh.
+
 1997-10-06  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* boot-9.scm (inherit-print-state): If NEW-PORT contains a
