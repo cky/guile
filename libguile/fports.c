@@ -143,8 +143,7 @@ SCM_DEFINE (scm_setvbuf, "setvbuf", 2, 1, 0,
 	    "@item _IOFBF\n"
 	    "block buffered, using a newly allocated buffer of @var{size} bytes.\n"
 	    "If @var{size} is omitted, a default size will be used.\n"
-	    "@end table\n"
-	    )
+	    "@end table")
 #define FUNC_NAME s_scm_setvbuf
 {
   int cmode, csize;

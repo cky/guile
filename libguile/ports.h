@@ -288,7 +288,6 @@ extern void scm_ungets (const char *s, int n, SCM port);
 extern SCM scm_peek_char (SCM port);
 extern SCM scm_unread_char (SCM cobj, SCM port);
 extern SCM scm_unread_string (SCM str, SCM port);
-extern char *scm_generic_fgets (SCM port, int *len);
 extern SCM scm_seek (SCM object, SCM offset, SCM whence);
 extern SCM scm_truncate_file (SCM object, SCM length);
 extern SCM scm_port_line (SCM port);
