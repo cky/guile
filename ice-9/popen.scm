@@ -10,7 +10,7 @@
 (define pipe-guardian (make-guardian))
 
 ;; a weak hash-table to store the process ids.
-(define port/pid-table (make-weak-key-hash-table 31))
+(define-public port/pid-table (make-weak-key-hash-table 31))
 
 ;; run a process connected to an input or output port.
 ;; mode: OPEN_READ or OPEN_WRITE.
@@ -59,6 +59,25 @@ be the value of @code{OPEN_READ} or @code{OPEN_WRITE}."
   (close-port (car port/pid))
   (cdr (waitpid (cdr port/pid))))
 
+;; for the background cleanup handler: just clean up without reporting
+;; errors.  also avoids blocking the process: if the child isn't ready
+;; to be collected, puts it back into the guardian's live list so it
+;; can be tried again the next time the cleanup runs.
+(define (close-process-quietly port/pid)
+  (catch 'system-error
+	 (lambda ()
+	   (close-port (car port/pid)))
+	 (lambda args #f))
+  (catch 'system-error
+	 (lambda ()
+	   (let ((pid/status (waitpid (cdr port/pid) WNOHANG)))
+	     (cond ((= (car pid/status) 0)
+		    ;; not ready for collection
+		    (pipe-guardian (car port/pid))
+		    (hashq-set! port/pid-table
+				(car port/pid) (cdr port/pid))))))
+	 (lambda args #f)))
+
 (define-public (close-pipe p)
   "Closes the pipe created by @code{open-pipe}, then waits for the process
 to terminate and returns its status value, @xref{Processes, waitpid}, for
@@ -75,7 +94,7 @@ information on how to interpret this value."
 	     ;; maybe removed already by close-pipe.
 	     (let ((pid (fetch-pid p)))
 	       (if pid
-		   (close-process (cons p pid))))
+		   (close-process-quietly (cons p pid))))
 	     (loop (pipe-guardian)))))))
 
 (set! gc-thunk 
