@@ -3,7 +3,7 @@
 #ifndef SCM_STIME_H
 #define SCM_STIME_H
 
-/* Copyright (C) 1995,1996,1997,1998,2000 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000, 2003 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -47,6 +47,32 @@
 
 
 #include "libguile/__scm.h"
+
+
+
+# ifdef TIME_WITH_SYS_TIME
+#  include <sys/time.h>
+#  include <time.h>
+# else
+#  ifdef HAVE_SYS_TIME_H
+#   include <sys/time.h>
+#  else
+#   ifdef HAVE_TIME_H
+#    include <time.h>
+#   endif
+#  endif
+# endif
+
+/* This should be figured out by autoconf.  */
+#if ! defined(SCM_TIME_UNITS_PER_SECOND) && defined(CLK_TCK)
+#  define SCM_TIME_UNITS_PER_SECOND ((int) CLK_TCK)
+#endif
+#if ! defined(SCM_TIME_UNITS_PER_SECOND) && defined(CLOCKS_PER_SEC)
+#  define SCM_TIME_UNITS_PER_SECOND ((int) CLOCKS_PER_SEC)
+#endif
+#if ! defined(SCM_TIME_UNITS_PER_SECOND)
+#  define SCM_TIME_UNITS_PER_SECOND 60
+#endif
 
 
 SCM_API long scm_c_get_internal_run_time (void);

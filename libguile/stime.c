@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2003 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -66,19 +66,6 @@
 #include <string.h>
 #endif
 
-# ifdef TIME_WITH_SYS_TIME
-#  include <sys/time.h>
-#  include <time.h>
-# else
-#  ifdef HAVE_SYS_TIME_H
-#   include <sys/time.h>
-#  else
-#   ifdef HAVE_TIME_H
-#    include <time.h>
-#   endif
-#  endif
-# endif
-
 #ifdef HAVE_SYS_TIMES_H
 # include <sys/times.h>
 #endif
@@ -98,17 +85,6 @@ extern char *tzname[]; /* RS6000 and others reject char **tzname.  */
 extern char *strptime ();
 #endif
 
-/* This should be figured out by autoconf.  */
-#if ! defined(CLKTCK) && defined(CLK_TCK)
-#  define CLKTCK ((int) CLK_TCK)
-#endif
-#if ! defined(CLKTCK) && defined(CLOCKS_PER_SEC)
-#  define CLKTCK ((int) CLOCKS_PER_SEC)
-#endif
-#if ! defined(CLKTCK)
-#  define CLKTCK 60
-#endif
-
 #ifdef __STDC__
 # define timet time_t
 #else
@@ -125,7 +101,7 @@ timet mytime()
 }
 #else
 # ifdef LACK_CLOCK
-#    define mytime() ((time((timet*)0) - scm_your_base) * CLKTCK)
+#    define mytime() ((time((timet*)0) - scm_your_base) * SCM_TIME_UNITS_PER_SECOND)
 # else
 #  define mytime clock
 # endif
@@ -153,10 +129,10 @@ SCM_DEFINE (scm_get_internal_real_time, "get-internal-real-time", 0, 0, 0,
   tmp = scm_sum (tmp,
 		 scm_product (SCM_MAKINUM (1000),
 			      SCM_MAKINUM (time_buffer.time)));
-  return scm_quotient (scm_product (tmp, SCM_MAKINUM (CLKTCK)),
+  return scm_quotient (scm_product (tmp, SCM_MAKINUM (SCM_TIME_UNITS_PER_SECOND)),
 		       SCM_MAKINUM (1000));
 #else
-  return scm_long2num((time((timet*)0) - scm_your_base) * (int)CLKTCK);
+  return scm_long2num((time((timet*)0) - scm_your_base) * (int)SCM_TIME_UNITS_PER_SECOND);
 #endif /* HAVE_FTIME */
 }
 #undef FUNC_NAME
@@ -706,7 +682,7 @@ void
 scm_init_stime()
 {
   scm_c_define ("internal-time-units-per-second",
-		scm_long2num((long)CLKTCK));
+		scm_long2num((long) SCM_TIME_UNITS_PER_SECOND));
 
 #ifdef HAVE_FTIME
   if (!scm_your_base.time) ftime(&scm_your_base);

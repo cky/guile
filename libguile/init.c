@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -76,6 +76,7 @@
 #include "libguile/filesys.h"
 #include "libguile/fluids.h"
 #include "libguile/fports.h"
+#include "libguile/futures.h"
 #include "libguile/gc.h"
 #include "libguile/gdbint.h"
 #include "libguile/goops.h"
@@ -482,6 +483,7 @@ scm_init_guile_1 (SCM_STACKITEM *base)
   scm_init_eq ();
   scm_init_error ();
   scm_init_fluids ();
+  scm_init_futures ();
   scm_init_backtrace ();	/* Requires fluids */
   scm_init_fports ();
   scm_init_strports ();

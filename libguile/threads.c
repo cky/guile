@@ -495,63 +495,6 @@ SCM_DEFINE (scm_join_thread, "join-thread", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM *scm_loc_sys_thread_handler;
-
-SCM
-scm_i_make_future (SCM thunk)
-{
-  SCM_RETURN_NEWSMOB2 (scm_tc16_future,
-		       create_thread ((scm_t_catch_body) scm_call_0,
-				      thunk,
-				      (scm_t_catch_handler) scm_apply_1,
-				      *scm_loc_sys_thread_handler,
-				      scm_cons (thunk,
-						*scm_loc_sys_thread_handler)),
-		       scm_make_rec_mutex ());
-}
-
-static size_t
-future_free (SCM future)
-{
-  scm_rec_mutex_free (SCM_FUTURE_MUTEX (future));
-  return 0;
-}
-
-static int 
-future_print (SCM exp, SCM port, scm_print_state *pstate)
-{
-  int writingp = SCM_WRITINGP (pstate);
-  scm_puts ("#<future ", port);
-  SCM_SET_WRITINGP (pstate, 1);
-  scm_iprin1 (SCM_FUTURE_DATA (exp), port, pstate);
-  SCM_SET_WRITINGP (pstate, writingp);
-  scm_putc ('>', port);
-  return !0;
-}
-
-SCM_DEFINE (scm_future_ref, "future-ref", 1, 0, 0,
-	    (SCM future),
-	    "If the future @var{x} has not been computed yet, compute and\n"
-	    "return @var{x}, otherwise just return the previously computed\n"
-	    "value.")
-#define FUNC_NAME s_scm_future_ref
-{
-  SCM_VALIDATE_FUTURE (1, future);
-  scm_rec_mutex_lock (SCM_FUTURE_MUTEX (future));
-  if (!SCM_FUTURE_COMPUTED_P (future))
-    {
-      SCM value = scm_join_thread (SCM_FUTURE_DATA (future));
-      if (!SCM_FUTURE_COMPUTED_P (future))
-	{
-	  SCM_SET_FUTURE_DATA (future, value);
-	  SCM_SET_FUTURE_COMPUTED (future);
-	}
-    }
-  scm_rec_mutex_unlock (SCM_FUTURE_MUTEX (future));
-  return SCM_FUTURE_DATA (future);
-}
-#undef FUNC_NAME
-
 /*** Fair mutexes */
 
 /* We implement our own mutex type since we want them to be 'fair', we
@@ -1388,19 +1331,12 @@ scm_init_threads (SCM_STACKITEM *base)
 
   scm_set_smob_mark (scm_tc16_fair_condvar, fair_cond_mark);
 
-  scm_tc16_future = scm_make_smob_type ("future", 0);
-  scm_set_smob_mark (scm_tc16_future, scm_markcdr);
-  scm_set_smob_free (scm_tc16_future, future_free);
-  scm_set_smob_print (scm_tc16_future, future_print);
-
   threads_initialized_p = 1;
 }
 
 void
 scm_init_thread_procs ()
 {
-  scm_loc_sys_thread_handler
-    = SCM_VARIABLE_LOC (scm_c_define ("%thread-handler", SCM_BOOL_F));
 #include "libguile/threads.x"
 }
 

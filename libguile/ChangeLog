@@ -1,3 +1,36 @@
+2003-01-23  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* futures.h, futures.c: New files; Introduced recycling of
+	futures.  For fine-grained threading this lifts performance to
+	another level.  We can now use parallelization in inner loops of
+	Guile programs without impossible overhead.
+
+	* threads.h, threads.c: Moved futures to their own file.
+
+	* Makefile.am (libguile_la_SOURCES): Added futures.c.
+	(DOT_X_FILES): Added futures.x.
+	(DOT_DOC_FILES): Added futures.doc.
+	(modinclude_HEADERS): Added futures.h.
+
+	* threads.c, threads.h (scm_i_create_thread): Renamed from
+	create_thread and made global.
+
+	* futures.c (scm_make_future): New procedure.
+
+	* eval.c: #include "libguile/futures.h".
+
+	* init.c: #include "futures.h"
+	(scm_init_guile_1): Call scm_init_futures.
+
+	* stime.c (SCM_TIME_UNITS_PER_SECOND): Renamed from CLKTCK.
+
+	* stime.h (SCM_TIME_UNITS_PER_SECOND): Definition moved here.
+
+	* eval.c, eval.h (scm_trampoline_0, scm_i_call_closure_0): New
+	functions.
+
+	* eval.c (scm_trampoline_1): Fixed arguments test for closures.
+
 2003-01-22  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* threads.c (create_thread): Don't unwind dynwind chain of parent

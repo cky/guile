@@ -3,7 +3,7 @@
 #ifndef SCM_EVAL_H
 #define SCM_EVAL_H
 
-/* Copyright (C) 1995,1996,1998,1999,2000,2001,2002 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001,2002, 2003 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -145,6 +145,7 @@ SCM_API scm_t_bits scm_tc16_promise;
 #define SCM_XEVALCAR(x, env) EVALCAR (x, env)
 #endif /* DEBUG_EXTENSIONS */
 
+typedef SCM (*scm_t_trampoline_0) (SCM proc);
 typedef SCM (*scm_t_trampoline_1) (SCM proc, SCM arg1);
 typedef SCM (*scm_t_trampoline_2) (SCM proc, SCM arg1, SCM arg2);
 
@@ -243,6 +244,8 @@ SCM_API SCM scm_apply_0 (SCM proc, SCM args);
 SCM_API SCM scm_apply_1 (SCM proc, SCM arg1, SCM args);
 SCM_API SCM scm_apply_2 (SCM proc, SCM arg1, SCM arg2, SCM args);
 SCM_API SCM scm_apply_3 (SCM proc, SCM arg1, SCM arg2, SCM arg3, SCM args);
+SCM_API SCM scm_i_call_closure_0 (SCM proc);
+SCM_API scm_t_trampoline_0 scm_trampoline_0 (SCM proc);
 SCM_API scm_t_trampoline_1 scm_trampoline_1 (SCM proc);
 SCM_API scm_t_trampoline_2 scm_trampoline_2 (SCM proc);
 SCM_API SCM scm_nconc2last (SCM lst);

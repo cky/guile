@@ -3,7 +3,7 @@
 #ifndef SCM_THREADS_H
 #define SCM_THREADS_H
 
-/* Copyright (C) 1996,1997,1998,2000,2001, 2002 Free Software Foundation, Inc.
+/* Copyright (C) 1996,1997,1998,2000,2001, 2002, 2003 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -82,20 +82,6 @@ SCM_API scm_t_bits scm_tc16_fair_condvar;
 #define SCM_VALIDATE_CONDVAR(pos, a) \
  SCM_ASSERT_TYPE (SCM_CONDVARP (a) || SCM_FAIR_CONDVAR_P (a), \
                   a, pos, FUNC_NAME, "condition variable");
-
-#define SCM_VALIDATE_FUTURE(pos, obj) \
-  SCM_ASSERT_TYPE (SCM_TYP16_PREDICATE (scm_tc16_future, obj), \
-		   obj, pos, FUNC_NAME, "future");
-#define SCM_F_FUTURE_COMPUTED (1L << 16)
-#define SCM_FUTURE_COMPUTED_P(future) \
-  (SCM_F_FUTURE_COMPUTED & SCM_CELL_WORD_0 (future))
-#define SCM_SET_FUTURE_COMPUTED(future) \
-  SCM_SET_CELL_WORD_0 (future, scm_tc16_future | SCM_F_FUTURE_COMPUTED)
-#define SCM_FUTURE_MUTEX(future) \
-  ((scm_t_rec_mutex *) SCM_CELL_WORD_2 (future))
-#define SCM_FUTURE_DATA SCM_CELL_OBJECT_1
-#define SCM_SET_FUTURE_DATA SCM_SET_CELL_OBJECT_1
-SCM_API scm_t_bits scm_tc16_future;
 
 SCM_API void scm_threads_mark_stacks (void);
 SCM_API void scm_init_threads (SCM_STACKITEM *);
@@ -199,8 +185,6 @@ SCM_API unsigned long scm_thread_usleep (unsigned long);
 /* End of low-level C API */
 /*----------------------------------------------------------------------*/
 
-extern SCM *scm_loc_sys_thread_handler;
-
 typedef struct scm_thread scm_thread;
 
 SCM_API void scm_i_enter_guile (scm_thread *t);
@@ -235,12 +219,14 @@ do { \
     scm_i_thread_sleep_for_gc (); \
 } while (0)
 
+SCM scm_i_create_thread (scm_t_catch_body body, void *body_data,
+			 scm_t_catch_handler handler, void *handler_data,
+			 SCM protects);
+
 /* The C versions of the Scheme-visible thread functions.  */
 SCM_API SCM scm_call_with_new_thread (SCM thunk, SCM handler);
 SCM_API SCM scm_yield (void);
 SCM_API SCM scm_join_thread (SCM t);
-SCM_API SCM scm_i_make_future (SCM thunk);
-SCM_API SCM scm_future_ref (SCM future);
 SCM_API SCM scm_make_mutex (void);
 SCM_API SCM scm_make_fair_mutex (void);
 SCM_API SCM scm_lock_mutex (SCM m);
@@ -262,6 +248,12 @@ SCM_API SCM scm_thread_exited_p (SCM thread);
 
 SCM_API scm_root_state *scm_i_thread_root (SCM thread);
 
+#ifdef USE_PTHREAD_THREADS
+#include "libguile/pthread-threads.h"
+#else
+#include "libguile/null-threads.h"
+#endif
+
 #define SCM_CURRENT_THREAD \
   ((scm_thread *) scm_i_plugin_getspecific (scm_i_thread_key))
 extern scm_t_key scm_i_thread_key;
@@ -281,12 +273,6 @@ struct timespec
   long int tv_sec;		/* Seconds.  */
   long int tv_nsec;		/* Nanoseconds.  */
 };
-#endif
-
-#ifdef USE_PTHREAD_THREADS
-#include "libguile/pthread-threads.h"
-#else
-#include "libguile/null-threads.h"
 #endif
 
 #endif  /* SCM_THREADS_H */

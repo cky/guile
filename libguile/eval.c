@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002, 2003 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -80,6 +80,7 @@ char *alloca ();
 #include "libguile/alist.h"
 #include "libguile/eq.h"
 #include "libguile/continuations.h"
+#include "libguile/futures.h"
 #include "libguile/throw.h"
 #include "libguile/smob.h"
 #include "libguile/macros.h"
@@ -3803,6 +3804,78 @@ ret:
  */
 
 static SCM
+call_subr0_0 (SCM proc)
+{
+  return SCM_SUBRF (proc) ();
+}
+
+static SCM
+call_subr1o_0 (SCM proc)
+{
+  return SCM_SUBRF (proc) (SCM_UNDEFINED);
+}
+
+static SCM
+call_lsubr_0 (SCM proc)
+{
+  return SCM_SUBRF (proc) (SCM_EOL);
+}
+
+SCM 
+scm_i_call_closure_0 (SCM proc)
+{
+  return scm_eval_body (SCM_CLOSURE_BODY (proc),
+			SCM_EXTEND_ENV (SCM_CLOSURE_FORMALS (proc),
+					SCM_EOL,
+					SCM_ENV (proc)));
+}
+
+scm_t_trampoline_0
+scm_trampoline_0 (SCM proc)
+{
+  if (SCM_IMP (proc))
+    return 0;
+  if (SCM_DEBUGGINGP)
+    return scm_call_0;
+  switch (SCM_TYP7 (proc))
+    {
+    case scm_tc7_subr_0:
+      return call_subr0_0;
+    case scm_tc7_subr_1o:
+      return call_subr1o_0;
+    case scm_tc7_lsubr:
+      return call_lsubr_0;
+    case scm_tcs_closures:
+      {
+	SCM formals = SCM_CLOSURE_FORMALS (proc);
+	if (SCM_NULLP (formals) || SCM_SYMBOLP (formals))
+	  return scm_i_call_closure_0;
+	else
+	  return 0;
+      }
+    case scm_tcs_struct:
+      if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
+	return scm_call_generic_0;
+      else if (!SCM_I_OPERATORP (proc))
+	return 0;
+      return scm_call_0;
+    case scm_tc7_smob:
+      if (SCM_SMOB_APPLICABLE_P (proc))
+	return SCM_SMOB_DESCRIPTOR (proc).apply_0;
+      else
+	return 0;
+      /* fall through */
+    case scm_tc7_asubr:
+    case scm_tc7_rpsubr:
+    case scm_tc7_cclo:
+    case scm_tc7_pws:
+      return scm_call_0;
+    default:
+      return 0; /* not applicable on one arg */
+    }
+}
+
+static SCM
 call_subr1_1 (SCM proc, SCM arg1)
 {
   return SCM_SUBRF (proc) (arg1);
@@ -3888,7 +3961,8 @@ scm_trampoline_1 (SCM proc)
     case scm_tcs_closures:
       {
 	SCM formals = SCM_CLOSURE_FORMALS (proc);
-	if (!SCM_CONSP (formals) || SCM_NULLP (SCM_CDR (formals)))
+	if ((SCM_CONSP (formals) && SCM_NULLP (SCM_CDR (formals)))
+	    || SCM_SYMBOLP (formals))
 	  return call_closure_1;
 	else
 	  return 0;
