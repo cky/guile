@@ -1,3 +1,8 @@
+2004-03-23  Kevin Ryde  <user42@zip.com.au>
+
+	* srfi-1.scm (circular-list): Rewrite using set-cdr!, no need to copy
+	parameter list.
+
 2004-02-08  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* Makefile.am (TAGS_FILES): Use this variable instead of
