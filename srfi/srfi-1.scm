@@ -795,46 +795,6 @@
 	    (else
 	     (lp (map1 cdr lists) (+ i 1)))))))
 
-;;; Deletion
-
-(define (delete x list . rest)
-  (let ((l= (if (pair? rest) (car rest) equal?)))
-    (let lp ((l list))
-      (if (null? l)
-	'()
-	(if (l= x (car l))
-	  (lp (cdr l))
-	  (cons (car l) (lp (cdr l))))))))
-
-(define (delete! x list . rest)
-  (let ((l= (if (pair? rest) (car rest) equal?)))
-    (delete x list l=)))		; XXX:optimize
-
-(define (delete-duplicates list . rest)
-  (let ((l= (if (pair? rest) (car rest) equal?)))
-    (let lp0 ((l1 list))
-      (if (null? l1)
-	'()
-	(if (let lp1 ((l2 (cdr l1)))
-	      (if (null? l2)
-		#f
-		(if (l= (car l1) (car l2))
-		  #t
-		  (lp1 (cdr l2)))))
-	  (lp0 (cdr l1))
-	  (cons (car l1) (lp0 (cdr l1))))))))
-
-(define (delete-duplicates list . rest)
-  (let ((l= (if (pair? rest) (car rest) equal?)))
-    (let lp ((list list))
-      (if (null? list)
-	'()
-	(cons (car list) (lp (delete (car list) (cdr list) l=)))))))
-
-(define (delete-duplicates! list . rest)
-  (let ((l= (if (pair? rest) (car rest) equal?)))
-    (delete-duplicates list l=)))	; XXX:optimize
-
 ;;; Association lists
 
 (define (alist-cons key datum alist)
