@@ -28,7 +28,7 @@ enum t_state {
     SKIP,
     MULTILINE,
     MULTILINE_COOKIE,
-    COOKIE,
+    COOKIE
 };
 
 enum t_state state = SKIP;
