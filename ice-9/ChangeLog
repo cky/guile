@@ -1,3 +1,8 @@
+2002-12-12  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* optargs.scm (improper-list-copy): New.
+	(parse-arglist): Use it instead of list-copy.
+
 2002-12-09  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* threads.scm (letpar): New macro.
