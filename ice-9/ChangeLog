@@ -1,3 +1,8 @@
+2003-10-12  Marius Vollmer  <mvo@zagadka.de>
+
+	* ftw.scm (directory-files): Close dir-stream when done.  Thanks
+	to Paul Jarc!
+
 2003-10-09  Kevin Ryde  <user42@zip.com.au>
 
 	* poe.scm (funcq-assoc): Rewrite, don't assume '() is false, and
