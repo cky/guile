@@ -1,5 +1,16 @@
 2000-09-26  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* numbers.c (scm_adjbig):  Use SCM_BDIGITS instead of SCM_CHARS.
+
+	(big2str, scm_bigprint):  Use SCM_STRING_CHARS instead of
+	SCM_CHARS.
+
+	* vectors.c (scm_vector_set_length_x):  Distinguish between
+	strings, scheme vectors and uniform vectors, thus getting rid of
+	references to SCM_CHARS.  (The code still needs improvement.)
+
+2000-09-26  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* eval.c (scm_m_letrec1, SCM_CEVAL, SCM_APPLY):  Use
 	SCM_STRING_U?CHARS or SCM_SYMBOL_U?CHARS instead of SCM_U?CHARS.
 

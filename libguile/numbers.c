@@ -1363,7 +1363,7 @@ scm_adjbig (SCM b, scm_sizet nlen)
   {
     SCM_BIGDIG *digits
       = ((SCM_BIGDIG *)
-	 scm_must_realloc ((char *) SCM_CHARS (b),
+	 scm_must_realloc ((char *) SCM_BDIGITS (b),
 			   (long) (SCM_NUMDIGS (b) * sizeof (SCM_BIGDIG)),
 			   (long) (nsiz * sizeof (SCM_BIGDIG)), s_bignum));
 
@@ -2179,7 +2179,7 @@ big2str (SCM b, unsigned int radix)
   scm_sizet ch;			/* jeh */
   SCM_BIGDIG radpow = 1, radmod = 0;
   SCM ss = scm_makstr ((long) j, 0);
-  char *s = SCM_CHARS (ss), c;
+  char *s = SCM_STRING_CHARS (ss), c;
   while ((long) radpow * radix < SCM_BIGRAD)
     {
       radpow *= radix;
@@ -2271,7 +2271,7 @@ scm_bigprint (SCM exp, SCM port, scm_print_state *pstate)
 {
 #ifdef SCM_BIGDIG
   exp = big2str (exp, (unsigned int) 10);
-  scm_lfwrite (SCM_CHARS (exp), (scm_sizet) SCM_LENGTH (exp), port);
+  scm_lfwrite (SCM_STRING_CHARS (exp), (scm_sizet) SCM_LENGTH (exp), port);
 #else
   scm_ipruk ("bignum", exp, port);
 #endif

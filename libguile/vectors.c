@@ -71,6 +71,7 @@ scm_vector_set_length_x (SCM vect, SCM len)
   long l;
   scm_sizet siz;
   scm_sizet sz;
+  char *base;
 
   l = SCM_INUM (len);
   SCM_ASRTGO (SCM_NIMP (vect), badarg1);
@@ -81,7 +82,9 @@ scm_vector_set_length_x (SCM vect, SCM len)
       l = (l + SCM_LONG_BIT - 1) / SCM_LONG_BIT;
     }
   sz = scm_uniform_element_size (vect);
-  if (sz == 0)
+  if (sz != 0)
+    base = SCM_UVECTOR_BASE (vect);
+  else
 #endif
   switch (SCM_TYP7 (vect))
     {
@@ -90,12 +93,14 @@ scm_vector_set_length_x (SCM vect, SCM len)
     case scm_tc7_string:
       SCM_ASRTGO (!SCM_EQ_P (vect, scm_nullstr), badarg1);
       sz = sizeof (char);
+      base = SCM_STRING_CHARS (vect);
       l++;
       break;
     case scm_tc7_vector:
     case scm_tc7_wvect:
       SCM_ASRTGO (!SCM_EQ_P (vect, scm_nullvect), badarg1);
       sz = sizeof (SCM);
+      base = (char *) SCM_VECTOR_BASE (vect);
       break;
     }
   SCM_ASSERT (SCM_INUMP (len), len, SCM_ARG2, s_vector_set_length_x);
@@ -107,7 +112,7 @@ scm_vector_set_length_x (SCM vect, SCM len)
   SCM_REDEFER_INTS;
   SCM_SETCHARS (vect,
 	    ((char *)
-	     scm_must_realloc (SCM_CHARS (vect),
+	     scm_must_realloc (base,
 			       (long) SCM_LENGTH (vect) * sz,
 			       (long) siz,
 			       s_vector_set_length_x)));
@@ -118,7 +123,7 @@ scm_vector_set_length_x (SCM vect, SCM len)
 	SCM_VELTS (vect)[--l] = SCM_UNSPECIFIED;
     }
   else if (SCM_STRINGP (vect))
-    SCM_CHARS (vect)[l - 1] = 0;
+    SCM_STRING_CHARS (vect)[l - 1] = 0;
   SCM_SETLENGTH (vect, SCM_INUM (len), SCM_TYP7 (vect));
   SCM_REALLOW_INTS;
   return vect;
