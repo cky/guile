@@ -1,3 +1,8 @@
+2002-10-07  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* scheme-scheduling.texi (Asyncs): Updated.
+	* posix.texi (sigaction): Updated.
+
 2002-10-03  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* posix.texi (Processes), scheme-options.texi (Common Feature
