@@ -70,7 +70,7 @@
    Applied to the full name of the file.  */
 static SCM *scm_loc_load_hook;
 
-void
+static void
 swap_port (void *data)
 {
   SCM *save_port = data, tmp = scm_cur_loadp;
@@ -235,8 +235,8 @@ scm_search_path (path, filename, extensions)
 {
   char *buf;
   int filename_len;
-  int max_path_len;
-  int max_ext_len;
+  size_t max_path_len;
+  size_t max_ext_len;
 
   SCM_ASSERT (scm_ilength (path) >= 0, path, SCM_ARG1, s_search_path);
   SCM_ASSERT (SCM_NIMP (filename) && SCM_ROSTRINGP (filename), filename,
@@ -416,7 +416,7 @@ init_build_info ()
 {
   static struct { char *name; char *value; } info[] = SCM_BUILD_INFO;
   SCM *loc = SCM_CDRLOC (scm_sysintern ("%guile-build-info", SCM_EOL));
-  int i;
+  unsigned int i;
 
   for (i = 0; i < (sizeof (info) / sizeof (info[0])); i++)
     *loc = scm_acons (SCM_CAR (scm_intern0 (info[i].name)),
