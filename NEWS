@@ -16,6 +16,15 @@ next read operation will work on the pushed back characters.
 If unread-char is called multiple times, the unread characters will be
 read again in last-in first-out order.
 
+** New function: serial-map PROC LIST1 LIST2 ...
+Version of `map' which guarantees that the procedure is applied to the
+lists in serial order.
+
+** New syntax: sequence->list BODY1 ...
+Version of `begin' which returns a list of the results of the body
+forms instead of the result of the last body form.  In contrast to
+`begin', sequence->list allows an empty body.
+
 * Changes to the gh_ interface
 
 ** gh_scm2doubles
