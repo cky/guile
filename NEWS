@@ -283,37 +283,10 @@ to the distribution" above.
 Futures are like promises, but begun immediately in a new thread.  See
 the "Futures" section in the reference manual.
 
-** New syntax: parallel FORM ...
+** New threading functions: parallel, letpar, par-map, and friends
 
-Compute the results of FORM ... in parallel (in a separate thread for
-each form) and return them as multiple values.
-
-** New syntax: letpar ((VAR EXP) ...) BODYFORM ...
-
-Like 'let' but evaluates the binding expressions EXP ... in parallel.
-
-** New functions: par-map, par-for-each PROC ARGLIST ...
-
-Like 'map' and 'for-each' but evaluate the procedure PROC in a
-separate thread for each (set of) argument(s).  All applications are
-guaranteed to be completed before the procedure returns.
-
-** New functions: n-par-map, n-par-for-each N PROC ARGLIST ...
-
-Like 'par-map' and 'par-for-each' but evaluate the procedure PROC in N
-threads.  This is useful when PROC uses large amounts of resources
-and/or the argument list(s) is/are long so that one thread per (set
-of) argument(s) would consume too much system resources.  On a
-dual-CPU system, N = 4 would often be a good choice.
-
-** New function: n-for-each-par-map N S-PROC P-PROC ARGLIST ...
-
-Using N parallel processes, apply S-PROC in serial order to each
-result of applying P-PROC to each set of arguments in the argument
-lists ARGLIST ...
-
-Like a composition of 'for-each' and 'n-par-map', but allows S-PROC to
-start processing while the results of P-PROC are being produced.
+These are convenient ways to run calculations in parallel in new
+threads.  See "Parallel forms" in the manual for details.
 
 ** Fair mutexes and condition variables
 
