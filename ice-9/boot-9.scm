@@ -569,6 +569,26 @@
 (define (feature? feature)
   (and (memq feature *features*) #t))
 
+;; Using the vector returned by stat directly is probably not a good
+;; idea (it could just as well be a record).  Hence some accessors.
+(define (stat:dev f) (vector-ref f 0))
+(define (stat:ino f) (vector-ref f 1))
+(define (stat:mode f) (vector-ref f 2))
+(define (stat:nlink f) (vector-ref f 3))
+(define (stat:uid f) (vector-ref f 4))
+(define (stat:gid f) (vector-ref f 5))
+(define (stat:rdev f) (vector-ref f 6))
+(define (stat:size f) (vector-ref f 7))
+(define (stat:atime f) (vector-ref f 8))
+(define (stat:mtime f) (vector-ref f 9))
+(define (stat:ctime f) (vector-ref f 10))
+(define (stat:blksize f) (vector-ref f 11))
+(define (stat:blocks f) (vector-ref f 12))
+
+;; derived from stat mode.
+(define (stat:type f) (vector-ref f 13))
+(define (stat:perms f) (vector-ref f 14))
+
 (define file-exists?
   (if (feature? 'posix)
       (lambda (str)
@@ -582,9 +602,7 @@
 (define file-is-directory?
   (if (feature? 'i/o-extensions)
       (lambda (str)
-	(> (logand S_IFDIR
-		   (vector-ref (stat str) 2))
-	   0))
+	(eq? (stat:type (stat str)) 'directory))
       (lambda (str)
 	(display str)
 	(newline)
