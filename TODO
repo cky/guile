@@ -32,3 +32,7 @@ TCL, Emacs Lisp, and Rexx.
 for conditional prototypes, instead of explicit conditionals.
 
 * A package for time conversions and formatting.
+
+* Make GDB work with Guile
+
+This would permit programmable debugging and a nice integrated GUI.
