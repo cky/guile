@@ -147,9 +147,8 @@ In the subdirectory srfi, wrote:
 In the subdirectory scripts, wrote:
     doc-snarf
 In the subdirectory doc, wrote:
-    script-getopt.texi
-    srfi-modules.texi
-    repl-modules.texi
+    script-getopt.texi    srfi-modules.texi
+    repl-modules.texi     misc-modules.texi
 In the subdirectory doc, changes to:
     guile.texi      intro.texi      posix.texi
     scheme-binding.texi             scheme-control.texi
