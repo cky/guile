@@ -1,5 +1,11 @@
 2001-04-15  Keisuke Nishida  <kxn30@po.cwru.edu>
 
+	* boot-9.scm (call-with-deprecation): New procedure.
+	(identity): New procedure.
+	(id): Deprecated.	
+
+2001-04-15  Keisuke Nishida  <kxn30@po.cwru.edu>
+
 	* boot-9.scm (defmacro, define-macro, define-syntax-macro):
 	Define only at the top level.
 

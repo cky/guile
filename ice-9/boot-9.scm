@@ -87,7 +87,7 @@
 ;;; {Trivial Functions}
 ;;;
 
-(define (id x) x)
+(define (identity x) x)
 (define (1+ n) (+ n 1))
 (define (-1+ n) (+ n -1))
 (define 1- -1+)
@@ -108,6 +108,25 @@
 ;;;
 
 (define (apply-to-args args fn) (apply fn args))
+
+
+;;; {Deprecation}
+;;;
+
+(define call-with-deprecation
+  (let ((issued-warnings (make-hash-table 13)))
+    (lambda (msg thunk)
+      (cond ((not (hashv-ref issued-warnings msg #f))
+	     (display ";;; " (current-error-port))
+	     (display msg (current-error-port))
+	     (newline (current-error-port))
+	     (hashv-set! issued-warnings msg #t)))
+      (thunk))))
+
+(define (id x)
+  (call-with-deprecation "`id' is deprecated.  Use `identity' instead."
+    (lambda ()
+      (identity x))))
 
 
 ;;; {Integer Math}
