@@ -1,3 +1,8 @@
+2003-04-17  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* goops.texi (Object Comparisons): Removed object-eqv? and
+	object-equal? and added eqv?, equal? and =.
+
 2003-01-10  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* goops.texi (Class Redefinition): Clarifications; Removed
