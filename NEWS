@@ -660,12 +660,12 @@ Guile always defines
   scm_t_int32
   scm_t_uint32
 
-Guile always defines
+Guile always defines these to 0 or 1
 
   SCM_HAVE_T_INT64
   SCM_HAVE_T_UINT64
 
-and when either of these are defined to 1, optionally defines 
+and when either of these are defined to 1, also defines
 
   scm_t_int64
   scm_t_uint64
