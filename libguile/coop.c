@@ -40,7 +40,7 @@
  * If you do not wish that, delete this exception notice.  */
 
 
-/* $Id: coop.c,v 1.4 1998-01-26 01:43:16 mdj Exp $ */
+/* $Id: coop.c,v 1.5 1998-01-30 21:07:00 mdj Exp $ */
 
 /* Cooperative thread library, based on QuickThreads */
 
@@ -297,6 +297,8 @@ coop_mutex_lock ()
 
 #ifdef GUILE_ISELECT
       newthread = coop_wait_for_runnable_thread();
+      if (newthread == coop_global_curr)
+	coop_abort ();
 #else
       newthread = coop_next_runnable_thread();
 #endif
@@ -377,6 +379,8 @@ coop_condition_variable_wait (c)
 
 #ifdef GUILE_ISELECT
   newthread = coop_wait_for_runnable_thread();
+  if (newthread == coop_global_curr)
+    coop_abort ();
 #else
   newthread = coop_next_runnable_thread();
 #endif
@@ -505,7 +509,11 @@ coop_abort ()
     }
 
 #ifdef GUILE_ISELECT
-  newthread = coop_wait_for_runnable_thread();
+  scm_I_am_dead = 1;
+  do {
+    newthread = coop_wait_for_runnable_thread();
+  } while (newthread == coop_global_curr);
+  scm_I_am_dead = 0;
 #else
   newthread = coop_next_runnable_thread();
 #endif
@@ -564,6 +572,8 @@ coop_join()
 
 #ifdef GUILE_ISELECT
   newthread = coop_wait_for_runnable_thread();
+  if (newthread == coop_global_curr)
+    return;
 #else
   newthread = coop_next_runnable_thread();
 #endif
@@ -587,8 +597,13 @@ coop_yield()
 
   /* There may be no other runnable threads. Return if this is the 
      case. */
+#if GUILE_ISELECT
+  if (newthread == coop_global_curr)
+      return;
+#else
   if (newthread == NULL)
       return;
+#endif
 
   old = coop_global_curr;
 
