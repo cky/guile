@@ -829,11 +829,49 @@ scm_builtin_weak_bindings ()
   return obarray;
 }
 
+static int gensym_counter;
+static SCM gensym_prefix;
 
+/*fixme* Optimize */
+SCM_PROC (s_gensym, "gensym", 0, 2, 0, scm_gensym);
+
+SCM
+scm_gensym (name, obarray)
+     SCM name;
+     SCM obarray;
+{
+  SCM new;
+  if (SCM_UNBNDP (name))
+    name = gensym_prefix;
+  else
+    SCM_ASSERT (SCM_ROSTRINGP (name), name, SCM_ARG1, s_gensym);
+  new = name;
+  if (SCM_UNBNDP (obarray))
+    {
+      obarray = SCM_BOOL_F;
+      goto skip_test;
+    }
+  else
+    SCM_ASSERT (SCM_NIMP (obarray)
+		&& (SCM_VECTORP (obarray) || SCM_WVECTP (obarray)),
+		obarray,
+		SCM_ARG2,
+		s_gensym);
+  while (scm_string_to_obarray_symbol (obarray, new, SCM_BOOL_T)
+	 != SCM_BOOL_F)
+    skip_test:
+    new = scm_string_append
+      (scm_cons2 (name,
+		  scm_number_to_string (SCM_MAKINUM (gensym_counter++),
+					SCM_UNDEFINED),
+		  SCM_EOL));
+  return scm_string_to_obarray_symbol (obarray, new, SCM_BOOL_F);
+}
 
 void
 scm_init_symbols ()
 {
+  gensym_counter = 0;
+  gensym_prefix = scm_permanent_object (scm_makfrom0str ("%%gensym"));
 #include "symbols.x"
 }
-

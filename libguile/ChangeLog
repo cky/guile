@@ -1,3 +1,12 @@
+Tue Sep  2 00:27:07 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* symbols.h (scm_builtin_bindings, scm_builtin_weak_bindings,
+ 	scm_gensym): Added prototypes.
+
+	* symbols.c (scm_gensym): New function.  This will speed up
+ 	certain types of applications (such as macro systems) which
+ 	generate lots of symbols.
+
 Mon Sep  1 22:30:33 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* numbers.c (logand, logior, logxor): Handle 0 or 1 arguments.

@@ -132,6 +132,9 @@ extern SCM scm_symbol_pref SCM_P ((SCM s));
 extern SCM scm_symbol_fset_x SCM_P ((SCM s, SCM val));
 extern SCM scm_symbol_pset_x SCM_P ((SCM s, SCM val));
 extern SCM scm_symbol_hash SCM_P ((SCM s));
+extern SCM scm_builtin_bindings SCM_P ((void));
+extern SCM scm_builtin_weak_bindings SCM_P ((void));
+extern SCM scm_gensym SCM_P ((SCM name, SCM obarray));
 extern void scm_init_symbols SCM_P ((void));
 
 extern int scm_can_use_top_level_lookup_closure_var;
