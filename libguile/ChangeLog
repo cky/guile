@@ -1,3 +1,10 @@
+2002-09-24  Gary Houston  <ghouston@arglist.com>
+
+	* inline.h (scm_double_cell): prevent reordering of statements
+	with any following code (for GCC 3 strict-aliasing).
+	* numbers.c (scm_make_real), num2float.i.c (FLOAT2NUM): removed
+	the earlier version of the reordering prevention.
+
 2002-09-19  Han-Wen Nienhuys  <hanwen@cs.uu.nl>
 
 	* inline.h (scm_double_cell): move SET_GCMARK set out of if body. 

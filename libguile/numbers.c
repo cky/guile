@@ -3013,15 +3013,8 @@ SCM_DEFINE (scm_string_to_number, "string->number", 1, 1, 0,
 SCM
 scm_make_real (double x)
 {
-  SCM z;
-  z = scm_double_cell (scm_tc16_real, 0, 0, 0);
+  SCM z = scm_double_cell (scm_tc16_real, 0, 0, 0);
 
-  /*
-    scm_double_cell is inlined. strict C aliasing rules say that it's
-    OK to interchange the initialization above and the one below. We
-    don't want that, of course.
-   */
-  scm_remember_upto_here_1 (z);
   SCM_REAL_VALUE (z) = x;
   return z;
 }

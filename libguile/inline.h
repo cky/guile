@@ -215,6 +215,26 @@ scm_double_cell (scm_t_bits car, scm_t_bits cbr,
 
 #endif
 
+  /* When this function is inlined, it's possible that the last
+     SCM_GC_SET_CELL_WORD above will be adjacent to a following
+     initialization of z.  E.g., it occurred in scm_make_real.  GCC
+     from around version 3 (e.g., certainly 3.2) began taking
+     advantage of strict C aliasing rules which say that it's OK to
+     interchange the initialization above and the one below when the
+     pointer types appear to differ sufficiently.  We don't want that,
+     of course.  GCC allows this behaviour to be disabled with the
+     -fno-strict-aliasing option, but would also need to be supplied
+     by Guile users.  Instead, the following statements prevent the
+     reordering.
+   */
+#ifdef __GNUC__
+  asm volatile ("" : : : "memory");
+#else
+  /* portable version, just in case any other compiler does the same
+     thing.  */
+  scm_remember_upto_here_1 (z);
+#endif
+
   return z;
 }
 
