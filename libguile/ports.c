@@ -975,11 +975,8 @@ scm_puts (const char *s, SCM port)
 
 /* scm_lfwrite
  *
- * Currently, this function has an identical implementation to
- * scm_c_write.  We could have turned it into a macro expanding into a
- * call to scm_c_write.  However, the implementation is small and
- * might differ in the future.
- */
+ * This function differs from scm_c_write; it updates port line and
+ * column. */
 
 void 
 scm_lfwrite (const char *ptr, size_t size, SCM port)
@@ -991,6 +988,18 @@ scm_lfwrite (const char *ptr, size_t size, SCM port)
     scm_end_input (port);
 
   ptob->write (port, ptr, size);
+
+  for (; size; ptr++, size--) {
+    if (*ptr == '\n') {
+      SCM_INCLINE(port);
+    }
+    else if (*ptr == '\t') {
+      SCM_TABCOL(port);
+    }
+    else {
+      SCM_INCCOL(port);
+    }
+  }
 
   if (pt->rw_random)
     pt->rw_active = SCM_PORT_WRITE;
