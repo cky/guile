@@ -73,9 +73,9 @@
 
 
 
-extern SCM scm_not (SCM x);
-extern SCM scm_boolean_p (SCM obj);
-extern void scm_init_boolean (void);
+SCM_API SCM scm_not (SCM x);
+SCM_API SCM scm_boolean_p (SCM obj);
+SCM_API void scm_init_boolean (void);
 
 #endif  /* SCM_BOOLEAN_H */
 

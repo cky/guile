@@ -50,10 +50,10 @@
 
 
 
-extern SCM scm_make_arbiter (SCM name);
-extern SCM scm_try_arbiter (SCM arb);
-extern SCM scm_release_arbiter (SCM arb);
-extern void scm_init_arbiters (void);
+SCM_API SCM scm_make_arbiter (SCM name);
+SCM_API SCM scm_try_arbiter (SCM arb);
+SCM_API SCM scm_release_arbiter (SCM arb);
+SCM_API void scm_init_arbiters (void);
 
 #endif  /* SCM_ARBITERS_H */
 

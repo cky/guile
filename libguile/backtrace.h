@@ -51,19 +51,19 @@
 
 #include "libguile/__scm.h"
 
-extern SCM scm_the_last_stack_fluid_var;
+SCM_API SCM scm_the_last_stack_fluid_var;
 
-void scm_display_error_message (SCM message, SCM args, SCM port);
-void scm_i_display_error (SCM stack, SCM port, SCM subr, SCM message, SCM args, SCM rest);
-SCM scm_display_error (SCM stack, SCM port, SCM subr, SCM message, SCM args, SCM rest);
-SCM scm_display_application (SCM frame, SCM port, SCM indent);
-SCM scm_display_backtrace (SCM stack, SCM port, SCM first, SCM depth);
-SCM scm_backtrace (void);
+SCM_API void scm_display_error_message (SCM message, SCM args, SCM port);
+SCM_API void scm_i_display_error (SCM stack, SCM port, SCM subr, SCM message, SCM args, SCM rest);
+SCM_API SCM scm_display_error (SCM stack, SCM port, SCM subr, SCM message, SCM args, SCM rest);
+SCM_API SCM scm_display_application (SCM frame, SCM port, SCM indent);
+SCM_API SCM scm_display_backtrace (SCM stack, SCM port, SCM first, SCM depth);
+SCM_API SCM scm_backtrace (void);
 #ifdef GUILE_DEBUG
-SCM scm_set_print_params_x (SCM params);
+SCM_API SCM scm_set_print_params_x (SCM params);
 #endif
 
-void scm_init_backtrace (void);
+SCM_API void scm_init_backtrace (void);
 
 #endif  /* SCM_BACKTRACE_H */
 
