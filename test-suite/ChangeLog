@@ -1,3 +1,7 @@
+2001-08-31  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* tests/numbers.test:  Made some of the patterns better readable.
+
 2001-08-25  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
 	* tests/srfi-19.test (test-time-comparision,
