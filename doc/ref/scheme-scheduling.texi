@@ -438,9 +438,16 @@ Lock mutex @var{m}, evaluate @var{body}, and then unlock @var{m}.
 These sub-operations form the branches of a @code{dynamic-wind}.
 @end deffn
 
-@deffn macro monitor first [rest@dots{}]
-Evaluate forms @var{first} and @var{rest} under a newly created
-anonymous mutex, using @code{with-mutex}.
+@deffn macro monitor body@dots{}
+Evaluate @var{body}, with a mutex locked so only one thread can
+execute that code at any one time.  Each @code{monitor} form has its
+own private mutex and the locking is done as per @code{with-mutex}
+above.  The return value is the return from the last form in
+@var{body}.
+
+The term ``monitor'' comes from operating system theory, where it
+means a particular bit of code managing access to some resource and
+which only ever executes on behalf of one process at any one time.
 @end deffn
 
 @node C level thread interface
