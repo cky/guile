@@ -213,6 +213,7 @@ scheme_launch_thread (void *p)
 		     (scm_catch_handler_t) scheme_handler_bootstrip,
 		     &data,
 		     (SCM_STACKITEM *) &thread);
+  SCM_SET_CELL_WORD_1 (thread, 0);
   scm_thread_count--;
   SCM_DEFER_INTS;
 }
@@ -268,7 +269,7 @@ scm_call_with_new_thread (SCM argl)
        argl variable may not exist in memory when the thread starts.  */
     t = coop_create (scheme_launch_thread, (void *) argl);
     t->data = SCM_ROOT_STATE (root);
-    SCM_SETCDR (thread, t);
+    SCM_SET_CELL_WORD_1 (thread, t);
     scm_thread_count++;
     /* Note that the following statement also could cause coop_yield.*/
     SCM_ALLOW_INTS;
@@ -359,7 +360,7 @@ scm_spawn_thread (scm_catch_body_t body, void *body_data,
   t = coop_create (c_launch_thread, (void *) data);
   
   t->data = SCM_ROOT_STATE (root);
-  SCM_SETCDR (thread, t);
+  SCM_SET_CELL_WORD_1 (thread, t);
   scm_thread_count++;
   /* Note that the following statement also could cause coop_yield.*/
   SCM_ALLOW_INTS;
