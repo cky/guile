@@ -93,6 +93,9 @@ char *alloca ();
 #include "feature.h"
 
 #include "eval.h"
+
+void (*scm_memoize_method) (SCM, SCM);
+
 
 
 /* The evaluator contains a plethora of EVAL symbols.
@@ -498,19 +501,21 @@ scm_m_if (xorig, env)
 }
 
 
-SCM_SYNTAX(s_set,"set!", scm_makmmacro, scm_m_set);
-SCM_SYMBOL(scm_i_set,s_set);
+/* Will go into the RnRS module when Guile is factorized.
+SCM_SYNTAX(scm_s_set_x,"set!", scm_makmmacro, scm_m_set_x); */
+const char scm_s_set_x[] = "set!";
+SCM_GLOBAL_SYMBOL(scm_sym_set_x, scm_s_set_x);
 
 SCM 
-scm_m_set (xorig, env)
+scm_m_set_x (xorig, env)
      SCM xorig;
      SCM env;
 {
   SCM x = SCM_CDR (xorig);
-  SCM_ASSYNT (2 == scm_ilength (x), xorig, scm_s_expression, s_set);
+  SCM_ASSYNT (2 == scm_ilength (x), xorig, scm_s_expression, scm_s_set_x);
   SCM_ASSYNT (SCM_NIMP (SCM_CAR (x)) && SCM_SYMBOLP (SCM_CAR (x)),
-	      xorig, scm_s_variable, s_set);
-  return scm_cons (SCM_IM_SET, x);
+	      xorig, scm_s_variable, scm_s_set_x);
+  return scm_cons (SCM_IM_SET_X, x);
 }
 
 
@@ -1180,8 +1185,8 @@ unmemocopy (x, env)
     case (127 & SCM_IM_QUOTE):
       ls = z = scm_cons (scm_i_quote, SCM_UNSPECIFIED);
       break;
-    case (127 & SCM_IM_SET):
-      ls = z = scm_cons (scm_i_set, SCM_UNSPECIFIED);
+    case (127 & SCM_IM_SET_X):
+      ls = z = scm_cons (scm_sym_set_x, SCM_UNSPECIFIED);
       break;
     case (127 & SCM_IM_DEFINE):
       {
@@ -1844,7 +1849,7 @@ dispatch:
       RETURN (SCM_CAR (SCM_CDR (x)));
 
 
-    case (127 & SCM_IM_SET):
+    case (127 & SCM_IM_SET_X):
       x = SCM_CDR (x);
       proc = SCM_CAR (x);
       switch (7 & (int) proc)
@@ -1976,6 +1981,54 @@ dispatch:
 	  ENTER_APPLY;
 	  goto evap1;
 
+	case (SCM_ISYMNUM (SCM_IM_DISPATCH)):
+	  {
+	    int i, end, mask;
+	    mask = -1;
+	    proc = SCM_CDR (x);
+	    i = 0;
+	    end = SCM_LENGTH (proc);
+	  find_method:
+	    do
+	      {
+		t.arg1 = SCM_CDDAR (env);
+		arg2 = SCM_VELTS (proc)[i];
+		do
+		  {
+		    if (scm_class_of (SCM_CAR (t.arg1)) != SCM_CAR (arg2))
+		      goto next_method;
+		    t.arg1 = SCM_CDR (t.arg1);
+		    arg2 = SCM_CDR (arg2);
+		  }
+		while (SCM_NIMP (t.arg1));
+		x = SCM_CAR (arg2);
+		env = scm_cons (SCM_CAR (env), SCM_CDR (arg2));
+		goto begin;
+	      next_method:
+		i = (i + 1) & mask;
+	      } while (i != end);
+	    scm_memoize_method (x, SCM_CDAR (env));
+	    goto loop;
+	  
+	  case (SCM_ISYMNUM (SCM_IM_HASH_DISPATCH)):
+	    {
+	      int hashset = SCM_INUM (SCM_CADR (x));
+	      mask = SCM_INUM (SCM_CADDR (x));
+	      proc = SCM_CDDDR (x);
+	      i = 0;
+	      t.arg1 = SCM_CDDAR (env);
+	      do
+		{
+		  i += SCM_STRUCT_DATA (scm_class_of (SCM_CAR (t.arg1)))[scm_si_hashsets + hashset];
+		  t.arg1 = SCM_CDR (t.arg1);
+		}
+	      while (SCM_NIMP (t.arg1));
+	      i &= mask;
+	      end = i;
+	    }
+	    goto find_method;
+	  }
+	  
 	default:
 	  goto badfun;
 	}
@@ -2007,6 +2060,7 @@ dispatch:
 #ifdef CCLO
     case scm_tc7_cclo:
 #endif
+    case scm_tc7_pws:
     case scm_tcs_subrs:
       RETURN (x);
 
@@ -2148,6 +2202,7 @@ evapply:
   PREP_APPLY (proc, SCM_EOL);
   if (SCM_NULLP (SCM_CDR (x))) {
     ENTER_APPLY;
+  evap0:
     switch (SCM_TYP7 (proc))
       {				/* no arguments given */
       case scm_tc7_subr_0:
@@ -2170,6 +2225,12 @@ evapply:
 #endif
 	goto evap1;
 #endif
+      case scm_tc7_pws:
+	proc = SCM_PROCEDURE (proc);
+#ifdef DEVAL
+	debug.info->a.proc = proc;
+#endif
+	goto evap0;
       case scm_tcs_closures:
 	x = SCM_CODE (proc);
 	env = EXTEND_ENV (SCM_CAR (x), SCM_EOL, SCM_ENV (proc));
@@ -2310,6 +2371,12 @@ evapply:
 #endif
 	  goto evap2;
 #endif
+	case scm_tc7_pws:
+	  proc = SCM_PROCEDURE (proc);
+#ifdef DEVAL
+	  debug.info->a.proc = proc;
+#endif
+	  goto evap1;
 	case scm_tcs_closures:
 	clos1:
 	  x = SCM_CODE (proc);
@@ -2422,6 +2489,12 @@ evapply:
 		proc = SCM_CCLO_SUBR(proc);
 		goto evap3; */
 #endif
+	case scm_tc7_pws:
+	  proc = SCM_PROCEDURE (proc);
+#ifdef DEVAL
+	  debug.info->a.proc = proc;
+#endif
+	  goto evap2;
 	case scm_tcs_cons_gloc:
 	  if (!SCM_I_OPERATORP (proc))
 	    goto badfun;
@@ -2485,6 +2558,7 @@ evapply:
 		      SCM_CDRLOC (SCM_CDR (debug.info->a.args))));
 #endif
     ENTER_APPLY;
+  evap3:
     switch (SCM_TYP7 (proc))
       {			/* have 3 or more arguments */
 #ifdef DEVAL
@@ -2533,6 +2607,10 @@ evapply:
       case scm_tc7_cclo:
 	goto cclon;
 #endif
+      case scm_tc7_pws:
+	proc = SCM_PROCEDURE (proc);
+	debug.info->a.proc = proc;
+	goto evap3;
       case scm_tcs_closures:
 	SCM_SET_ARGSREADY (debug);
 	env = EXTEND_ENV (SCM_CAR (SCM_CODE (proc)),
@@ -2585,6 +2663,9 @@ evapply:
       case scm_tc7_cclo:
 	goto cclon;
 #endif
+      case scm_tc7_pws:
+	proc = SCM_PROCEDURE (proc);
+	goto evap3;
       case scm_tcs_closures:
 #ifdef DEVAL
 	SCM_SET_ARGSREADY (debug);
@@ -2972,6 +3053,12 @@ tail:
 #endif
       goto tail;
 #endif
+    case scm_tc7_pws:
+      proc = SCM_PROCEDURE (proc);
+#ifdef DEVAL
+      debug.vect[0].a.proc = proc;
+#endif
+      goto tail;
     case scm_tcs_cons_gloc:
       if (!SCM_I_OPERATORP (proc))
 	goto badproc;
