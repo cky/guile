@@ -123,6 +123,10 @@ tty device.  Previously in this situation it was line-buffered.
 
 * Changes to Scheme functions and syntax
 
+** New procedures: close-input-port, close-output-port
+
+These are R5RS procedures.
+
 ** New procedure: simple-format PORT MESSAGE ARG1 ...
 
 (ice-9 boot) makes `format' an alias for `simple-format' until possibly
@@ -180,6 +184,10 @@ E.g., in order to set bit 7 in an SCM value x, use the expression
   SCM_PACK (SCM_UNPACK (x) | 0x80)
 
 SCM_UNPACK_CAR (X) is defined as SCM_UNPACK (SCM_CAR (X))
+
+** Deprecated macros: SCM_INPORTP, SCM_OUTPORTP
+
+These macros will be removed in next release of Guile.
 
 ** Port internals: the rw_random variable in the scm_port structure
 must be set to non-zero in any random access port.  In recent Guile

@@ -16,6 +16,9 @@ In release 1.4:
 - remove deprecated function scm_newsmob.
 - remove deprecated function scm_make_named_hook.
 
+In release 1.5:
+- remove deprecated macros: SCM_INPORTP, SCM_OUTPORTP
+
 Modules sort.c and random.c should be factored out into separate
 modules (but still be distributed with guile-core) when we get a new
 module system.

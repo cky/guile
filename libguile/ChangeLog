@@ -1,3 +1,15 @@
+2000-04-15  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* ports.h (SCM_INPUT_PORT_P, SCM_OUTPUT_PORT_P): New macros.
+	(SCM_INPORTP, SCM_OUTPORTP): Marked as deprecated.
+
+	* validate.h (SCM_VALIDATE_INPUT_PORT, SCM_VALIDATE_OUTPUT_PORT):
+	New macros.
+	Cleanup of code layout.
+
+	* ports.c, ports.h (close-input-port, close-output-port): New R5RS
+	procedures.
+
 2000-04-13  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* continuations.c (scm_make_cont, scm_dynthrow):  Completely
