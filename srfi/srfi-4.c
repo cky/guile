@@ -68,6 +68,7 @@ typedef signed long long int_s64;
 typedef float float_f32;
 typedef double float_f64;
 
+
 /* Smob type code for homogeneous numeric vectors.  */
 int scm_tc16_uvec = 0;
 
@@ -2138,6 +2139,8 @@ SCM_DEFINE (scm_list_to_f64vector, "list->f64vector", 1, 0, 0,
 #undef FUNC_NAME
 
 
+/* Create the smob type for homogeneous numeric vectors and install
+   the primitives.  */
 void
 scm_init_srfi_4 (void)
 {
@@ -2148,3 +2151,5 @@ scm_init_srfi_4 (void)
 #include "srfi/srfi-4.x"
 #endif
 }
+
+/* End of srfi-4.c.  */

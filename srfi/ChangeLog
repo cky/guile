@@ -1,3 +1,37 @@
+2001-06-28  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* srfi-4.c: Minor cleanups.
+
+	* srfi-14.c (scm_char_set_fold, scm_char_set_unfold)
+	(scm_char_set_unfold_x, scm_char_set_for_each)
+	(scm_char_set_map, scm_char_set_filter)
+	(scm_char_set_filter_x, scm_char_set_count)
+	(scm_char_set_every, scm_char_set_any): Replace calls to
+	scm_apply() with the corresponding scm_call_N() functions.
+
+	* srfi-14.c (scm_char_set_ref, scm_char_set_cursor_next)
+	(scm_char_set_unfold, scm_char_set_unfold_x)
+	(scm_char_set_map, scm_char_set_diff_plus_intersection)
+	(scm_char_set_diff_plus_intersection_x): Replace deprecated macros
+	SCM_LISTN with calls to scm_list_N().
+
+	* srfi-13.c (scm_string_tabulate, scm_string_map)
+	(scm_string_map_x, scm_string_unfold)
+	(scm_string_unfold_right): Replace deprecated macros SCM_LISTN
+	with calls to scm_list_N().
+
+	* srfi-13.c (scm_string_any, scm_string_every),
+	(scm_string_tabulate, scm_string_trim),
+	(scm_string_trim_right, scm_string_trim_both),
+	(scm_string_compare, scm_string_compare_ci),
+	(scm_string_indexS, scm_string_index_right),
+	(scm_string_skip, scm_string_skip_right, scm_string_count),
+	(scm_string_map, scm_string_map_x, scm_string_fold),
+	(scm_string_fold_right, scm_string_unfold),
+	(scm_string_unfold_right, scm_string_for_each),
+	(scm_string_filter, scm_string_delete): Replace calls to
+	scm_apply() with the corresponding scm_call_N() functions.
+
 2001-06-27  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* Makefile.am: Added SRFI-4 files in various places.

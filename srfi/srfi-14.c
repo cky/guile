@@ -237,7 +237,7 @@ SCM_DEFINE (scm_char_set_ref, "char-set-ref", 2, 0, 0,
   SCM_VALIDATE_INUM_COPY (2, cursor, ccursor);
 
   if (ccursor >= SCM_CHARSET_SIZE || !SCM_CHARSET_GET (cs, ccursor))
-    SCM_MISC_ERROR ("invalid character set cursor: ~A", SCM_LIST1 (cursor));
+    SCM_MISC_ERROR ("invalid character set cursor: ~A", scm_list_1 (cursor));
   return SCM_MAKE_CHAR (ccursor);
 }
 #undef FUNC_NAME
@@ -256,7 +256,7 @@ SCM_DEFINE (scm_char_set_cursor_next, "char-set-cursor-next", 2, 0, 0,
   SCM_VALIDATE_INUM_COPY (2, cursor, ccursor);
 
   if (ccursor >= SCM_CHARSET_SIZE || !SCM_CHARSET_GET (cs, ccursor))
-    SCM_MISC_ERROR ("invalid character set cursor: ~A", SCM_LIST1 (cursor));
+    SCM_MISC_ERROR ("invalid character set cursor: ~A", scm_list_1 (cursor));
   for (ccursor++; ccursor < SCM_CHARSET_SIZE; ccursor++)
     {
       if (SCM_CHARSET_GET (cs, ccursor))
@@ -295,12 +295,12 @@ SCM_DEFINE (scm_char_set_fold, "char-set-fold", 3, 0, 0,
   for (k = 0; k < SCM_CHARSET_SIZE; k++)
     if (SCM_CHARSET_GET (cs, k))
       {
-	knil = scm_apply (kons, SCM_LIST2 (SCM_MAKE_CHAR (k), (knil)),
-			  SCM_EOL);
+	knil = scm_call_2 (kons, SCM_MAKE_CHAR (k), knil);
       }
   return knil;
 }
 #undef FUNC_NAME
+
 
 SCM_DEFINE (scm_char_set_unfold, "char-set-unfold", 4, 1, 0,
 	    (SCM p, SCM f, SCM g, SCM seed, SCM base_cs),
@@ -330,16 +330,16 @@ SCM_DEFINE (scm_char_set_unfold, "char-set-unfold", 4, 1, 0,
   else
     result = make_char_set (FUNC_NAME);
 
-  tmp = scm_apply (p, seed, scm_listofnull);
+  tmp = scm_call_1 (p, seed);
   while (SCM_FALSEP (tmp))
     {
-      SCM ch = scm_apply (f, seed, scm_listofnull);
+      SCM ch = scm_call_1 (f, seed);
       if (!SCM_CHARP (ch))
-	SCM_MISC_ERROR ("procedure ~S returned non-char", SCM_LIST1 (f));
+	SCM_MISC_ERROR ("procedure ~S returned non-char", scm_list_1 (f));
       SCM_CHARSET_SET (result, SCM_CHAR (ch));
 
-      seed = scm_apply (g, seed, scm_listofnull);
-      tmp = scm_apply (p, seed, scm_listofnull);
+      seed = scm_call_1 (g, seed);
+      tmp = scm_call_1 (p, seed);
     }
   return result;
 }
@@ -368,16 +368,16 @@ SCM_DEFINE (scm_char_set_unfold_x, "char-set-unfold!", 5, 0, 0,
   SCM_VALIDATE_PROC (3, g);
   SCM_VALIDATE_SMOB (5, base_cs, charset);
 
-  tmp = scm_apply (p, seed, scm_listofnull);
+  tmp = scm_call_1 (p, seed);
   while (SCM_FALSEP (tmp))
     {
-      SCM ch = scm_apply (f, seed, scm_listofnull);
+      SCM ch = scm_call_1 (f, seed);
       if (!SCM_CHARP (ch))
-	SCM_MISC_ERROR ("procedure ~S returned non-char", SCM_LIST1 (f));
+	SCM_MISC_ERROR ("procedure ~S returned non-char", scm_list_1 (f));
       SCM_CHARSET_SET (base_cs, SCM_CHAR (ch));
 
-      seed = scm_apply (g, seed, scm_listofnull);
-      tmp = scm_apply (p, seed, scm_listofnull);
+      seed = scm_call_1 (g, seed);
+      tmp = scm_call_1 (p, seed);
     }
   return base_cs;
 }
@@ -397,7 +397,7 @@ SCM_DEFINE (scm_char_set_for_each, "char-set-for-each", 2, 0, 0,
 
   for (k = 0; k < SCM_CHARSET_SIZE; k++)
     if (SCM_CHARSET_GET (cs, k))
-      scm_apply (proc, SCM_MAKE_CHAR (k), scm_listofnull);
+      scm_call_1 (proc, SCM_MAKE_CHAR (k));
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -419,9 +419,9 @@ SCM_DEFINE (scm_char_set_map, "char-set-map", 2, 0, 0,
   for (k = 0; k < SCM_CHARSET_SIZE; k++)
     if (SCM_CHARSET_GET (cs, k))
       {
-	SCM ch = scm_apply (proc, SCM_MAKE_CHAR (k), scm_listofnull);
+	SCM ch = scm_call_1 (proc, SCM_MAKE_CHAR (k));
 	if (!SCM_CHARP (ch))
-	  SCM_MISC_ERROR ("procedure ~S returned non-char", SCM_LIST1 (proc));
+	  SCM_MISC_ERROR ("procedure ~S returned non-char", scm_list_1 (proc));
 	SCM_CHARSET_SET (cs, SCM_CHAR (ch));
       }
   return result;
@@ -620,7 +620,7 @@ SCM_DEFINE (scm_char_set_filter, "char-set-filter", 2, 1, 0,
     {
       if (SCM_CHARSET_GET (cs, k))
 	{
-	  SCM res = scm_apply (pred, SCM_MAKE_CHAR (k), scm_listofnull);
+	  SCM res = scm_call_1 (pred, SCM_MAKE_CHAR (k));
 
 	  if (!SCM_FALSEP (res))
 	    p[k / sizeof (long)] |= 1 << (k % sizeof (long));
@@ -649,7 +649,7 @@ SCM_DEFINE (scm_char_set_filter_x, "char-set-filter!", 3, 0, 0,
     {
       if (SCM_CHARSET_GET (cs, k))
 	{
-	  SCM res = scm_apply (pred, SCM_MAKE_CHAR (k), scm_listofnull);
+	  SCM res = scm_call_1 (pred, SCM_MAKE_CHAR (k));
 
 	  if (!SCM_FALSEP (res))
 	    p[k / sizeof (long)] |= 1 << (k % sizeof (long));
@@ -787,7 +787,7 @@ SCM_DEFINE (scm_char_set_count, "char-set-count", 2, 0, 0,
   for (k = 0; k < SCM_CHARSET_SIZE; k++)
     if (SCM_CHARSET_GET (cs, k))
       {
-	SCM res = scm_apply (pred, SCM_MAKE_CHAR (k), scm_listofnull);
+	SCM res = scm_call_1 (pred, SCM_MAKE_CHAR (k));
 	if (!SCM_FALSEP (res))
 	  count++;
       }
@@ -869,7 +869,7 @@ SCM_DEFINE (scm_char_set_every, "char-set-every", 2, 0, 0,
   for (k = 0; k < SCM_CHARSET_SIZE; k++)
     if (SCM_CHARSET_GET (cs, k))
       {
-	res = scm_apply (pred, SCM_MAKE_CHAR (k), scm_listofnull);
+	res = scm_call_1 (pred, SCM_MAKE_CHAR (k));
 	if (SCM_FALSEP (res))
 	  return res;
       }
@@ -892,7 +892,7 @@ SCM_DEFINE (scm_char_set_any, "char-set-any", 2, 0, 0,
   for (k = 0; k < SCM_CHARSET_SIZE; k++)
     if (SCM_CHARSET_GET (cs, k))
       {
-	SCM res = scm_apply (pred, SCM_MAKE_CHAR (k), scm_listofnull);
+	SCM res = scm_call_1 (pred, SCM_MAKE_CHAR (k));
 	if (!SCM_FALSEP (res))
 	  return res;
       }
@@ -928,6 +928,7 @@ SCM_DEFINE (scm_char_set_adjoin, "char-set-adjoin", 1, 0, 1,
 }
 #undef FUNC_NAME
 
+
 SCM_DEFINE (scm_char_set_delete, "char-set-delete", 1, 0, 1,
 	    (SCM cs, SCM rest),
 	    "Delete all character arguments from the first argument, which\n"
@@ -955,6 +956,7 @@ SCM_DEFINE (scm_char_set_delete, "char-set-delete", 1, 0, 1,
 }
 #undef FUNC_NAME
 
+
 SCM_DEFINE (scm_char_set_adjoin_x, "char-set-adjoin!", 1, 0, 1,
 	    (SCM cs, SCM rest),
 	    "Add all character arguments to the first argument, which must\n"
@@ -980,6 +982,7 @@ SCM_DEFINE (scm_char_set_adjoin_x, "char-set-adjoin!", 1, 0, 1,
   return cs;
 }
 #undef FUNC_NAME
+
 
 SCM_DEFINE (scm_char_set_delete_x, "char-set-delete!", 1, 0, 1,
 	    (SCM cs, SCM rest),
@@ -1179,7 +1182,7 @@ SCM_DEFINE (scm_char_set_diff_plus_intersection, "char-set-diff+intersection", 1
 	  q[k] &= ((long *) SCM_SMOB_DATA (cs))[k];
 	}
     }
-  return scm_values (SCM_LIST2 (res1, res2));
+  return scm_values (scm_list_2 (res1, res2));
 }
 #undef FUNC_NAME
 
@@ -1315,7 +1318,8 @@ SCM_DEFINE (scm_char_set_xor_x, "char-set-xor!", 1, 0, 1,
 
 SCM_DEFINE (scm_char_set_diff_plus_intersection_x, "char-set-diff+intersection!", 1, 0, 1,
 	    (SCM cs1, SCM rest),
-	    "Return the difference and the intersection of all argument character sets.")
+	    "Return the difference and the intersection of all argument\n"
+	    "character sets.")
 #define FUNC_NAME s_scm_char_set_diff_plus_intersection_x
 {
   int c = 2;
@@ -1342,14 +1346,19 @@ SCM_DEFINE (scm_char_set_diff_plus_intersection_x, "char-set-diff+intersection!"
 	  q[k] &= ((long *) SCM_SMOB_DATA (cs))[k];
 	}
     }
-  return scm_values (SCM_LIST2 (cs1, res2));
+  return scm_values (scm_list_2 (cs1, res2));
 }
 #undef FUNC_NAME
 
 
+/* Create the charset smob type.  */
 void
 scm_c_init_srfi_14 (void)
 {
+  /* Charset smob creation is protected by this variable because this
+     function can be both called from the SRFI-13 and SRFI-14
+     initialization functions.  This is because the SRFI-13 procedures
+     access the charset smob type code.  */
   static int initialized = 0;
 
   if (!initialized)
@@ -1362,11 +1371,19 @@ scm_c_init_srfi_14 (void)
     }
 }
 
+
+/* Initialize the SRFI-14 module.  This function will be called by the
+   loading Scheme module.  */
 void
 scm_init_srfi_14 (void)
 {
+  /* Do the smob type initialization.  */
   scm_c_init_srfi_14 ();
+
+  /* Install the charset primitives.  */
 #ifndef SCM_MAGIC_SNARFER
 #include "srfi/srfi-14.x"
 #endif
 }
+
+/* End of srfi-14.c.  */

@@ -72,7 +72,7 @@ SCM_DEFINE (scm_string_any, "string-any", 2, 2, 0,
   cstr += cstart;
   while (cstart < cend)
     {
-      res = scm_apply (pred, SCM_MAKE_CHAR (*cstr), scm_listofnull);
+      res = scm_call_1 (pred, SCM_MAKE_CHAR (*cstr));
       if (!SCM_FALSEP (res))
 	return res;
       cstr++;
@@ -104,7 +104,7 @@ SCM_DEFINE (scm_string_every, "string-every", 2, 2, 0,
   cstr += cstart;
   while (cstart < cend)
     {
-      res = scm_apply (pred, SCM_MAKE_CHAR (*cstr), scm_listofnull);
+      res = scm_call_1 (pred, SCM_MAKE_CHAR (*cstr));
       if (SCM_FALSEP (res))
 	return res;
       cstr++;
@@ -137,9 +137,9 @@ SCM_DEFINE (scm_string_tabulate, "string-tabulate", 2, 0, 0,
   i = 0;
   while (i < clen)
     {
-      ch = scm_apply (proc, SCM_MAKINUM (i), scm_listofnull);
+      ch = scm_call_1 (proc, SCM_MAKINUM (i));
       if (!SCM_CHARP (ch))
-	SCM_MISC_ERROR ("procedure ~S returned non-char", SCM_LIST1 (proc));
+	SCM_MISC_ERROR ("procedure ~S returned non-char", scm_list_1 (proc));
       *p++ = SCM_CHAR (ch);
       i++;
     }
@@ -650,8 +650,7 @@ SCM_DEFINE (scm_string_trim, "string-trim", 1, 3, 0,
 	{
 	  SCM res;
 
-	  res = scm_apply (char_pred, SCM_MAKE_CHAR (cstr[cstart]),
-			   scm_listofnull);
+	  res = scm_call_1 (char_pred, SCM_MAKE_CHAR (cstr[cstart]));
 	  if (SCM_FALSEP (res))
 	    break;
 	  cstart++;
@@ -726,8 +725,7 @@ SCM_DEFINE (scm_string_trim_right, "string-trim-right", 1, 3, 0,
 	{
 	  SCM res;
 
-	  res = scm_apply (char_pred, SCM_MAKE_CHAR (cstr[cend - 1]),
-			   scm_listofnull);
+	  res = scm_call_1 (char_pred, SCM_MAKE_CHAR (cstr[cend - 1]));
 	  if (SCM_FALSEP (res))
 	    break;
 	  cend--;
@@ -820,8 +818,7 @@ SCM_DEFINE (scm_string_trim_both, "string-trim-both", 1, 3, 0,
 	{
 	  SCM res;
 
-	  res = scm_apply (char_pred, SCM_MAKE_CHAR (cstr[cstart]),
-			   scm_listofnull);
+	  res = scm_call_1 (char_pred, SCM_MAKE_CHAR (cstr[cstart]));
 	  if (SCM_FALSEP (res))
 	    break;
 	  cstart++;
@@ -830,8 +827,7 @@ SCM_DEFINE (scm_string_trim_both, "string-trim-both", 1, 3, 0,
 	{
 	  SCM res;
 
-	  res = scm_apply (char_pred, SCM_MAKE_CHAR (cstr[cend - 1]),
-			   scm_listofnull);
+	  res = scm_call_1 (char_pred, SCM_MAKE_CHAR (cstr[cend - 1]));
 	  if (SCM_FALSEP (res))
 	    break;
 	  cend--;
@@ -890,18 +886,18 @@ SCM_DEFINE (scm_string_compare, "string-compare", 5, 4, 0,
   while (cstart1 < cend1 && cstart2 < cend2)
     {
       if (cstr1[cstart1] < cstr2[cstart2])
-	return scm_apply (proc_lt, SCM_MAKINUM (cstart1), scm_listofnull);
+	return scm_call_1 (proc_lt, SCM_MAKINUM (cstart1));
       else if (cstr1[cstart1] > cstr2[cstart2])
-	return scm_apply (proc_gt, SCM_MAKINUM (cstart1), scm_listofnull);
+	return scm_call_1 (proc_gt, SCM_MAKINUM (cstart1));
       cstart1++;
       cstart2++;
     }
   if (cstart1 < cend1)
-    return scm_apply (proc_gt, SCM_MAKINUM (cstart1), scm_listofnull);
+    return scm_call_1 (proc_gt, SCM_MAKINUM (cstart1));
   else if (cstart2 < cend2)
-    return scm_apply (proc_lt, SCM_MAKINUM (cstart1), scm_listofnull);
+    return scm_call_1 (proc_lt, SCM_MAKINUM (cstart1));
   else
-    return scm_apply (proc_eq, SCM_MAKINUM (cstart1), scm_listofnull);
+    return scm_call_1 (proc_eq, SCM_MAKINUM (cstart1));
 }
 #undef FUNC_NAME
 
@@ -933,18 +929,18 @@ SCM_DEFINE (scm_string_compare_ci, "string-compare-ci", 5, 4, 0,
   while (cstart1 < cend1 && cstart2 < cend2)
     {
       if (scm_downcase (cstr1[cstart1]) < scm_downcase (cstr2[cstart2]))
-	return scm_apply (proc_lt, SCM_MAKINUM (cstart1), scm_listofnull);
+	return scm_call_1 (proc_lt, SCM_MAKINUM (cstart1));
       else if (scm_downcase (cstr1[cstart1]) > scm_downcase (cstr2[cstart2]))
-	return scm_apply (proc_gt, SCM_MAKINUM (cstart1), scm_listofnull);
+	return scm_call_1 (proc_gt, SCM_MAKINUM (cstart1));
       cstart1++;
       cstart2++;
     }
   if (cstart1 < cend1)
-    return scm_apply (proc_gt, SCM_MAKINUM (cstart1), scm_listofnull);
+    return scm_call_1 (proc_gt, SCM_MAKINUM (cstart1));
   else if (cstart2 < cend2)
-    return scm_apply (proc_lt, SCM_MAKINUM (cstart1), scm_listofnull);
+    return scm_call_1 (proc_lt, SCM_MAKINUM (cstart1));
   else
-    return scm_apply (proc_eq, SCM_MAKINUM (cstart1), scm_listofnull);
+    return scm_call_1 (proc_eq, SCM_MAKINUM (cstart1));
 }
 #undef FUNC_NAME
 
@@ -1657,8 +1653,7 @@ SCM_DEFINE (scm_string_indexS, "string-index", 2, 2, 0,
       while (cstart < cend)
 	{
 	  SCM res;
-	  res = scm_apply (char_pred, SCM_MAKE_CHAR (cstr[cstart]),
-			   scm_listofnull);
+	  res = scm_call_1 (char_pred, SCM_MAKE_CHAR (cstr[cstart]));
 	  if (!SCM_FALSEP (res))
 	    return SCM_MAKINUM (cstart);
 	  cstart++;
@@ -1718,8 +1713,7 @@ SCM_DEFINE (scm_string_index_right, "string-index-right", 2, 2, 0,
 	{
 	  SCM res;
 	  cend--;
-	  res = scm_apply (char_pred, SCM_MAKE_CHAR (cstr[cend]),
-			   scm_listofnull);
+	  res = scm_call_1 (char_pred, SCM_MAKE_CHAR (cstr[cend]));
 	  if (!SCM_FALSEP (res))
 	    return SCM_MAKINUM (cend);
 	}
@@ -1778,8 +1772,7 @@ SCM_DEFINE (scm_string_skip, "string-skip", 2, 2, 0,
       while (cstart < cend)
 	{
 	  SCM res;
-	  res = scm_apply (char_pred, SCM_MAKE_CHAR (cstr[cstart]),
-			   scm_listofnull);
+	  res = scm_call_1 (char_pred, SCM_MAKE_CHAR (cstr[cstart]));
 	  if (SCM_FALSEP (res))
 	    return SCM_MAKINUM (cstart);
 	  cstart++;
@@ -1840,8 +1833,7 @@ SCM_DEFINE (scm_string_skip_right, "string-skip-right", 2, 2, 0,
 	{
 	  SCM res;
 	  cend--;
-	  res = scm_apply (char_pred, SCM_MAKE_CHAR (cstr[cend]),
-			   scm_listofnull);
+	  res = scm_call_1 (char_pred, SCM_MAKE_CHAR (cstr[cend]));
 	  if (SCM_FALSEP (res))
 	    return SCM_MAKINUM (cend);
 	}
@@ -1900,8 +1892,7 @@ SCM_DEFINE (scm_string_count, "string-count", 2, 2, 0,
       while (cstart < cend)
 	{
 	  SCM res;
-	  res = scm_apply (char_pred, SCM_MAKE_CHAR (cstr[cstart]),
-			   scm_listofnull);
+	  res = scm_call_1 (char_pred, SCM_MAKE_CHAR (cstr[cstart]));
 	  if (!SCM_FALSEP (res))
 	    count++;
 	  cstart++;
@@ -2427,10 +2418,9 @@ SCM_DEFINE (scm_string_map, "string-map", 2, 2, 0,
   p = SCM_STRING_CHARS (result);
   while (cstart < cend)
     {
-      SCM ch = scm_apply (proc, SCM_MAKE_CHAR (cstr[cstart]), 
-			  scm_listofnull);
+      SCM ch = scm_call_1 (proc, SCM_MAKE_CHAR (cstr[cstart]));
       if (!SCM_CHARP (ch))
-	SCM_MISC_ERROR ("procedure ~S returned non-char", SCM_LIST1 (proc));
+	SCM_MISC_ERROR ("procedure ~S returned non-char", scm_list_1 (proc));
       cstart++;
       *p++ = SCM_CHAR (ch);
     }
@@ -2457,10 +2447,9 @@ SCM_DEFINE (scm_string_map_x, "string-map!", 2, 2, 0,
   p = SCM_STRING_CHARS (s) + cstart;
   while (cstart < cend)
     {
-      SCM ch = scm_apply (proc, SCM_MAKE_CHAR (cstr[cstart]), 
-			  scm_listofnull);
+      SCM ch = scm_call_1 (proc, SCM_MAKE_CHAR (cstr[cstart]));
       if (!SCM_CHARP (ch))
-	SCM_MISC_ERROR ("procedure ~S returned non-char", SCM_LIST1 (proc));
+	SCM_MISC_ERROR ("procedure ~S returned non-char", scm_list_1 (proc));
       cstart++;
       *p++ = SCM_CHAR (ch);
     }
@@ -2488,8 +2477,7 @@ SCM_DEFINE (scm_string_fold, "string-fold", 3, 2, 0,
   result = knil;
   while (cstart < cend)
     {
-      result = scm_apply (kons, SCM_LIST2 (SCM_MAKE_CHAR (cstr[cstart]),
-					   result), SCM_EOL);
+      result = scm_call_2 (kons, SCM_MAKE_CHAR (cstr[cstart]), result);
       cstart++;
     }
   return result;
@@ -2516,8 +2504,7 @@ SCM_DEFINE (scm_string_fold_right, "string-fold-right", 3, 2, 0,
   result = knil;
   while (cstart < cend)
     {
-      result = scm_apply (kons, SCM_LIST2 (SCM_MAKE_CHAR (cstr[cend - 1]),
-					   result), SCM_EOL);
+      result = scm_call_2 (kons, SCM_MAKE_CHAR (cstr[cend - 1]), result);
       cend--;
     }
   return result;
@@ -2562,24 +2549,24 @@ SCM_DEFINE (scm_string_unfold, "string-unfold", 4, 2, 0,
   if (!SCM_UNBNDP (make_final))
     SCM_VALIDATE_PROC (6, make_final);
 
-  res = scm_apply (p, seed, scm_listofnull);
+  res = scm_call_1 (p, seed);
   while (SCM_FALSEP (res))
     {
       SCM str;
-      SCM ch = scm_apply (f, seed, scm_listofnull);
+      SCM ch = scm_call_1 (f, seed);
       if (!SCM_CHARP (ch))
-	SCM_MISC_ERROR ("procedure ~S returned non-char", SCM_LIST1 (f));
+	SCM_MISC_ERROR ("procedure ~S returned non-char", scm_list_1 (f));
       str = scm_allocate_string (1);
       *SCM_STRING_CHARS (str) = SCM_CHAR (ch);
 
-      ans = scm_string_append (SCM_LIST2 (ans, str));
-      seed = scm_apply (g, seed, scm_listofnull);
-      res = scm_apply (p, seed, scm_listofnull);
+      ans = scm_string_append (scm_list_2 (ans, str));
+      seed = scm_call_1 (g, seed);
+      res = scm_call_1 (p, seed);
     }
   if (!SCM_UNBNDP (make_final))
     {
-      res = scm_apply (make_final, seed, scm_listofnull);
-      return scm_string_append (SCM_LIST2 (ans, res));
+      res = scm_call_1 (make_final, seed);
+      return scm_string_append (scm_list_2 (ans, res));
     }
   else
     return ans;
@@ -2624,24 +2611,24 @@ SCM_DEFINE (scm_string_unfold_right, "string-unfold-right", 4, 2, 0,
   if (!SCM_UNBNDP (make_final))
     SCM_VALIDATE_PROC (6, make_final);
 
-  res = scm_apply (p, seed, scm_listofnull);
+  res = scm_call_1 (p, seed);
   while (SCM_FALSEP (res))
     {
       SCM str;
-      SCM ch = scm_apply (f, seed, scm_listofnull);
+      SCM ch = scm_call_1 (f, seed);
       if (!SCM_CHARP (ch))
-	SCM_MISC_ERROR ("procedure ~S returned non-char", SCM_LIST1 (f));
+	SCM_MISC_ERROR ("procedure ~S returned non-char", scm_list_1 (f));
       str = scm_allocate_string (1);
       *SCM_STRING_CHARS (str) = SCM_CHAR (ch);
 
-      ans = scm_string_append (SCM_LIST2 (str, ans));
-      seed = scm_apply (g, seed, scm_listofnull);
-      res = scm_apply (p, seed, scm_listofnull);
+      ans = scm_string_append (scm_list_2 (str, ans));
+      seed = scm_call_1 (g, seed);
+      res = scm_call_1 (p, seed);
     }
   if (!SCM_UNBNDP (make_final))
     {
-      res = scm_apply (make_final, seed, scm_listofnull);
-      return scm_string_append (SCM_LIST2 (res, ans));
+      res = scm_call_1 (make_final, seed);
+      return scm_string_append (scm_list_2 (res, ans));
     }
   else
     return ans;
@@ -2664,7 +2651,7 @@ SCM_DEFINE (scm_string_for_each, "string-for-each", 2, 2, 0,
   SCM_VALIDATE_PROC (2, proc);
   while (cstart < cend)
     {
-      scm_apply (proc, SCM_MAKE_CHAR (cstr[cstart]), scm_listofnull);
+      scm_call_1 (proc, SCM_MAKE_CHAR (cstr[cstart]));
       cstart++;
     }
   return SCM_UNSPECIFIED;
@@ -2940,8 +2927,7 @@ SCM_DEFINE (scm_string_filter, "string-filter", 2, 2, 0,
       while (idx < cend)
 	{
 	  SCM res;
-	  res = scm_apply (char_pred, SCM_MAKE_CHAR (cstr[idx]),
-			   scm_listofnull);
+	  res = scm_call_1 (char_pred, SCM_MAKE_CHAR (cstr[idx]));
 	  if (!SCM_FALSEP (res))
 	    ls = scm_cons (SCM_MAKE_CHAR (cstr[idx]), ls);
 	  idx++;
@@ -3007,8 +2993,7 @@ SCM_DEFINE (scm_string_delete, "string-delete", 2, 2, 0,
       while (idx < cend)
 	{
 	  SCM res;
-	  res = scm_apply (char_pred, SCM_MAKE_CHAR (cstr[idx]),
-			   scm_listofnull);
+	  res = scm_call_1 (char_pred, SCM_MAKE_CHAR (cstr[idx]));
 	  if (SCM_FALSEP (res))
 	    ls = scm_cons (SCM_MAKE_CHAR (cstr[idx]), ls);
 	  idx++;
@@ -3020,11 +3005,19 @@ SCM_DEFINE (scm_string_delete, "string-delete", 2, 2, 0,
 #undef FUNC_NAME
 
 
+/* Initialize the SRFI-13 module.  This function will be called by the
+   loading Scheme module.  */
 void
 scm_init_srfi_13 (void)
 {
+  /* We initialize the SRFI-14 module here, because the string
+     primitives need the charset smob type created by that module.  */
   scm_c_init_srfi_14 ();
+
+  /* Install the string primitives.  */
 #ifndef SCM_MAGIC_SNARFER
 #include "srfi/srfi-13.x"
 #endif
 }
+
+/* End of srfi-13.c.  */
