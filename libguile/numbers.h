@@ -49,15 +49,15 @@
 #include "libguile/__scm.h"
 #include "libguile/print.h"
 
-#if defined (HAVE_FLOATINGPOINT_H)
+#if defined (SCM_HAVE_FLOATINGPOINT_H)
 #include <floatingpoint.h>
 #endif
 
-#if defined (HAVE_IEEEFP_H)
+#if defined (SCM_HAVE_IEEEFP_H)
 #include <ieeefp.h>
 #endif
 
-#if defined (HAVE_NAN_H)
+#if defined (SCM_HAVE_NAN_H)
 #if defined (SCO)
 #define _IEEE 1
 #endif
@@ -110,7 +110,7 @@
  * SCM_FLTMAX is less than or scm_equal the largest single precision float
  */
 
-#ifdef STDC_HEADERS
+#ifdef SCM_HAVE_STDC_HEADERS
 #ifndef GO32
 #include <float.h>
 #endif /* ndef GO32 */
@@ -253,9 +253,9 @@ SCM_API SCM scm_i_uint2big (unsigned int n);
 SCM_API SCM scm_i_long2big (long n);
 SCM_API SCM scm_i_ulong2big (unsigned long n);
 SCM_API SCM scm_i_size2big (size_t n);
-SCM_API SCM scm_i_ptrdiff2big (ptrdiff_t n);
+SCM_API SCM scm_i_ptrdiff2big (scm_t_ptrdiff n);
 
-#ifdef HAVE_LONG_LONGS
+#if SCM_SIZEOF_LONG_LONG != 0
 SCM_API SCM scm_i_long_long2big (long long n);
 SCM_API SCM scm_i_ulong_long2big (unsigned long long n);
 #endif
@@ -323,7 +323,7 @@ SCM_API SCM scm_uint2num (unsigned int n);
 SCM_API SCM scm_long2num (long n);
 SCM_API SCM scm_ulong2num (unsigned long n);
 SCM_API SCM scm_size2num (size_t n);
-SCM_API SCM scm_ptrdiff2num (ptrdiff_t n);
+SCM_API SCM scm_ptrdiff2num (scm_t_ptrdiff n);
 SCM_API short scm_num2short (SCM num, unsigned long int pos,
 			     const char *s_caller);
 SCM_API unsigned short scm_num2ushort (SCM num, unsigned long int pos,
@@ -336,11 +336,11 @@ SCM_API long scm_num2long (SCM num, unsigned long int pos,
 			   const char *s_caller);
 SCM_API unsigned long scm_num2ulong (SCM num, unsigned long int pos,
 				     const char *s_caller);
-SCM_API ptrdiff_t scm_num2ptrdiff (SCM num, unsigned long int pos,
-				   const char *s_caller);
+SCM_API scm_t_ptrdiff scm_num2ptrdiff (SCM num, unsigned long int pos,
+                                       const char *s_caller);
 SCM_API size_t scm_num2size (SCM num, unsigned long int pos,
 			     const char *s_caller);
-#ifdef HAVE_LONG_LONGS
+#if SCM_SIZEOF_LONG_LONG != 0
 SCM_API SCM scm_long_long2num (long long sl);
 SCM_API SCM scm_ulong_long2num (unsigned long long sl);
 SCM_API long long scm_num2long_long (SCM num, unsigned long int pos,
