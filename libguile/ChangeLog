@@ -1,3 +1,11 @@
+2001-08-07  Michael Livshin  <mlivshin@bigfoot.com>
+
+	* guile-snarf-docs-texi.in: don't call the tokenizer here, we now
+	do it from the Makefile.
+
+	* Makefile.am: rearrange the snarfing slightly, so that .doc files
+	are of a reasonable size.
+
 2001-08-02  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* stacks.c (scm_make_stack): Improve docstring by explaining use

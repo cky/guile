@@ -34,4 +34,4 @@ if [ `basename ${bindir}` = libguile ]; then
    GUILE_LOAD_PATH=${srcdir}/..; export GUILE_LOAD_PATH
 fi
 
-cat "$@" | ${bindir}/guile_filter_doc_snarfage --filter-snarfage | ${bindir}/guile -c "${apply_main}"
+${bindir}/guile -c "${apply_main}"

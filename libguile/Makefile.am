@@ -192,19 +192,19 @@ SUFFIXES = .x .doc
 	|| { rm $@; false; }
 .c.doc:
 	-(test -n "${AWK+set}" || AWK="@AWK@"; ${AWK} -f ./guile-func-name-check $<)
-	./guile-snarf-docs $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< > $@ \
-        || { rm $@; false; }
+	(./guile-snarf-docs $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< | \
+	./guile_filter_doc_snarfage --filter-snarfage) > $@ || { rm $@; false; }
 
 $(DOT_X_FILES) $(EXTRA_DOT_DOC_FILES): snarf.h guile-snarf.in
 
-$(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES): snarf.h guile-snarf-docs.in
+$(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES): snarf.h guile-snarf-docs.in guile_filter_doc_snarfage
 
 error.x: cpp_err_symbols.c
 posix.x: cpp_sig_symbols.c
 load.x: libpath.h
 
-guile.texi: $(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES) guile-snarf-docs-texi.in guile guile_filter_doc_snarfage
-	./guile-snarf-docs-texi $(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES) > $@ \
+guile.texi: $(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES) guile-snarf-docs-texi.in guile
+	cat $(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES) | ./guile-snarf-docs-texi > $@ \
 	|| { rm $@; false; }
 
 guile-procedures.txt: guile.texi
