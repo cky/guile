@@ -1,3 +1,10 @@
+2004-01-22  Marius Vollmer  <mvo@zagadka.de>
+
+	* eval.c (m_expand_body): Rewrite the expression in place (by
+	overwriting FORMS) also when a letrec is constructed, not only
+	when no definitions are found.  Do not return rewritten expression
+	to emphasize the in-place rewriting.  Changed all users.
+
 2004-01-19  Han-Wen Nienhuys   <hanwen@xs4all.nl>
 
 	* gc.c: add protected_object_count, a number that is dumped from
