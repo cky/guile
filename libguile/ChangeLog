@@ -1,3 +1,26 @@
+1998-11-26  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+
+	* procprop.h (scm_i_procedure_arity): Added declaration.
+
+	* procprop.c (scm_i_procedure_arity): Made global; New code to
+	handle operators and entities.
+	(scm_procedure_property): No need to call scm_procedure_p since
+	scm_i_procedure_arity now does all necessary type checking.
+	Added #include "objects.h".
+
+	* feature.c (scm_remove_hook_x): Bugfix: Changed reference to
+	s_add_hook_x --> s_remove_hook_x.
+	(scm_add_hook_x, scm_remove_hook_x): Hooks now takes arguments.
+	Added #include "procprop.h"
+
+	* feature.c, feature.h (scm_reset_hook_x): New procedure.
+	(scm_make_hook): Optional argument defines number of arguments to
+	the hook.
+	(scm_make_named_hook): Take number of args as second arg.
+	(scm_run_hook): Renamed from scm_run_hooks (old name kept for a
+	while); First arg is the hook.  The rest are arguments passed on
+	to the hook procedures.
+
 1998-11-23  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	* numbers.c (scm_logand, scm_logior, scm_logxor, scm_logtest,
