@@ -1,3 +1,20 @@
+2003-04-13  Rob Browning  <rlb@defaultvalue.org>
+
+	* __scm.h (SCM_FLUSH_REGISTER_WINDOWS): don't just rely on "sparc"
+	test.  Instead use
+	#if defined (sparc) || defined (__sparc__) || defined (__sparc)
+	as gc_os_dep.c suggests is appropriate.
+
+	* goops.c (prep_hashsets): make static to match prototype.
+	(scm_sym_args): SCM_SYMBOL -> SCM_GLOBAL_SYMBOL.  Thanks to Albert
+	Chin.
+	
+	* c-tokenize.lex: remove trailing comma from enum.  Thanks to
+	Albert Chin.
+
+	* gc_os_dep.c: add NetBSD powerpc config info.  Thanks to Thomas
+	Klausner.
+
 2003-04-13  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* goops.c (scm_sys_prep_layout_x): Instance allocation is now

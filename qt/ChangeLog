@@ -1,3 +1,9 @@
+2003-04-13  Rob Browning  <rlb@defaultvalue.org>
+
+	* md/axp.s '.file 2 "axp.s"' -> '.file 2 "axp.s".
+	(qt_vstart): .end qt_vstart, not qt_start.  Thanks to Falk
+	Hueffner.
+
 2002-08-24  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* md/Makefile.am (EXTRA_DIST): Added arm.h and arm.s.
