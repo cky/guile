@@ -1,3 +1,11 @@
+1998-10-03    <jimb@savonarola.red-bean.com>
+
+	Some anti-warning changes from Greg Harvey.
+	* gh_data.c (gh_scm2doubles): Initialize m, to avoid compiler
+	warnings when it doesn't understand our NORETURN declarations in
+	error.h.
+	* posix.c (scm_mknod): Similar.
+
 1998-10-03  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	* posix.c (scm_getpwuid): If we can't find an entry, return our
