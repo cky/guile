@@ -30,7 +30,8 @@ ice9_sources =								   \
 	posix.scm psyntax.pp psyntax.ss q.scm r4rs.scm r5rs.scm		   \
 	rdelim.scm receive.scm srfi-8.scm regex.scm runq.scm		   \
 	safe-r5rs.scm safe.scm session.scm slib.scm stack-catch.scm	   \
-	streams.scm string-fun.scm syncase.scm tags.scm threads.scm
+	streams.scm string-fun.scm syncase.scm tags.scm threads.scm        \
+	buffered-input.scm
 
 subpkgdatadir = $(pkgdatadir)/$(VERSION)/ice-9
 subpkgdata_DATA = $(ice9_sources)

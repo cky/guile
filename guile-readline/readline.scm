@@ -26,6 +26,7 @@
 (define-module (ice-9 readline)
   :use-module (ice-9 session)
   :use-module (ice-9 regex)
+  :use-module (ice-9 buffered-input)
   :no-backtrace)
 
 
@@ -74,41 +75,20 @@
 (define read-hook #f)
 
 (define (make-readline-port)
-  (let ((read-string "")
-	(string-index -1))
-    (letrec ((get-character
-	      (lambda ()
-		(cond 
-		 ((eof-object? read-string)
-		  read-string)
-		 ((>= string-index (string-length read-string))
-		  (begin
-		    (set! string-index -1)
-		    #\nl))
-		 ((= string-index -1)
-		  (begin
-		    (set! read-string
-			  (%readline (if (string? prompt)
-					 prompt
-					 (prompt))
-				     input-port
-				     output-port
-				     read-hook))
-		    (set! string-index 0)
-		    (if (not (eof-object? read-string))
-			(begin
-			  (or (string=? read-string "")
-			      (add-history read-string))
-			  (get-character))
-			read-string)))
-		 (else 
-		  (let ((res (string-ref read-string string-index)))
-		    (set! string-index (+ 1 string-index))
-		    (set! prompt prompt2)
-		    res))))))
-      (make-soft-port
-       (vector #f #f #f get-character #f)
-       "r"))))
+  (make-line-buffered-input-port (lambda (continuation?)
+                                   (let* ((prompt (if continuation?
+                                                      prompt2
+                                                      prompt))
+                                          (str (%readline (if (string? prompt)
+                                                              prompt
+                                                              (prompt))
+                                                          input-port
+                                                          output-port
+                                                          read-hook)))
+                                     (or (eof-object? str)
+                                         (string=? str "")
+                                         (add-history str))
+                                     str))))
 
 ;;; We only create one readline port.  There's no point in having
 ;;; more, since they would all share the tty and history ---
@@ -215,6 +195,7 @@
 	      (lambda (prompt)
 		(dynamic-wind
 		    (lambda ()
+                      (set-buffered-input-continuation?! (readline-port) #f)
 		      (set-readline-prompt! prompt "... ")
 		      (set-readline-read-hook! read-hook))
 		    (lambda () (read))

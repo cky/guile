@@ -1,3 +1,8 @@
+2001-03-05  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* buffered-input.scm: New file, with guts of line buffered input
+	port implementation extracted from guile-readline/readline.scm.
+
 2001-03-03  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
 
 	* stack-catch.scm: New file.
