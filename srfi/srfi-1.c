@@ -737,7 +737,7 @@ SCM_DEFINE (scm_srfi1_member, "member", 2, 1, 0,
     }
   for (; !SCM_NULL_OR_NIL_P (lst); lst = SCM_CDR (lst))
     {
-      if (scm_is_true (equal_p (pred, SCM_CAR (lst), x)))
+      if (scm_is_true (equal_p (pred, x, SCM_CAR (lst))))
 	return lst;
     }
   return SCM_BOOL_F;
