@@ -255,7 +255,7 @@ SCM_DEFINE (scm_gettimeofday, "gettimeofday", 0, 0, 0,
 #undef FUNC_NAME
 
 static SCM
-filltime (struct tm *bd_time, int zoff, char *zname)
+filltime (struct tm *bd_time, int zoff, const char *zname)
 {
   SCM result = scm_c_make_vector (11, SCM_UNDEFINED);
 
@@ -405,6 +405,7 @@ SCM_DEFINE (scm_gmtime, "gmtime", 1, 0, 0,
   timet itime;
   struct tm *bd_time;
   SCM result;
+  const char *zname;
 
   itime = SCM_NUM2LONG (1, time);
   SCM_DEFER_INTS;
@@ -414,7 +415,12 @@ SCM_DEFINE (scm_gmtime, "gmtime", 1, 0, 0,
   bd_time = gmtime (&itime);
   if (bd_time == NULL)
     SCM_SYSERROR;
-  result = filltime (bd_time, 0, "GMT");
+#if HAVE_STRUCT_TM_TM_ZONE
+  zname = bd_time->tm_zone;
+#else
+  zname = "GMT";
+#endif
+  result = filltime (bd_time, 0, zname);
   SCM_ALLOW_INTS;
   return result;
 }
