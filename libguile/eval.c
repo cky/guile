@@ -2145,7 +2145,9 @@ evapply:
 	env = EXTEND_ENV (SCM_CAR (x), SCM_EOL, SCM_ENV (proc));
 	goto cdrxbegin;
       case scm_tcs_cons_gloc:
-	if (SCM_I_OPERATORP (proc))
+	if (!SCM_I_OPERATORP (proc))
+	  goto badfun;
+	else
 	  {
 	    x = (SCM_I_ENTITYP (proc)
 		 ? SCM_ENTITY_PROC_0 (proc)
@@ -2290,7 +2292,9 @@ evapply:
 	case scm_tc7_contin:
 	  scm_call_continuation (proc, t.arg1);
 	case scm_tcs_cons_gloc:
-	  if (SCM_I_OPERATORP (proc))
+	  if (!SCM_I_OPERATORP (proc))
+	    goto badfun;
+	  else
 	    {
 	      x = (SCM_I_ENTITYP (proc)
 		   ? SCM_ENTITY_PROC_1 (proc)
@@ -2389,7 +2393,9 @@ evapply:
 		goto evap3; */
 #endif
 	case scm_tcs_cons_gloc:
-	  if (SCM_I_OPERATORP (proc))
+	  if (!SCM_I_OPERATORP (proc))
+	    goto badfun;
+	  else
 	    {
 	      x = (SCM_I_ENTITYP (proc)
 		   ? SCM_ENTITY_PROC_2 (proc)
@@ -2562,7 +2568,9 @@ evapply:
 	goto cdrxbegin;
 #endif /* DEVAL */
       case scm_tcs_cons_gloc:
-	if (SCM_I_OPERATORP (proc))
+	if (!SCM_I_OPERATORP (proc))
+	  goto badfun;
+	else
 	  {
 	    SCM p = (SCM_I_ENTITYP (proc)
 		     ? SCM_ENTITY_PROC_3 (proc)
@@ -2935,7 +2943,9 @@ tail:
       goto tail;
 #endif
     case scm_tcs_cons_gloc:
-      if (SCM_I_OPERATORP (proc))
+      if (!SCM_I_OPERATORP (proc))
+	goto badproc;
+      else
 	{
 #ifdef DEVAL
 	  args = (SCM_UNBNDP(arg1) ? SCM_EOL : debug.vect[0].a.args);
