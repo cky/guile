@@ -1,3 +1,7 @@
+2003-04-25  Mikael Djurfeldt  <mdj@kvast.blakulla.net>
+
+	* serialize.scm: New file.
+
 2003-04-24  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* threads.scm (n-for-each-par-map): New procedure.

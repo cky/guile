@@ -77,6 +77,41 @@ portable way.
 The default is now "coop-pthread", unless your platform doesn't have
 pthreads, in which case "null" threads are used.
 
+** New module (ice-9 serialize):
+
+(serialize FORM1 ...) and (parallelize FORM1 ...) are useful when
+you don't trust the thread safety of most of your program, but
+where you have some section(s) of code which you consider can run
+in parallel to other sections.
+
+They "flag" (with dynamic extent) sections of code to be of
+"serial" or "parallel" nature and have the single effect of
+preventing a serial section from being run in parallel with any
+serial section (including itself).
+
+Both serialize and parallelize can be nested.  If so, the
+inner-most construct is in effect.
+
+NOTE 1: A serial section can run in parallel with a parallel
+section.
+
+NOTE 2: If a serial section S is "interrupted" by a parallel
+section P in the following manner: S = S1 P S2, S2 is not
+guaranteed to be resumed by the same thread that previously
+executed S1.
+
+WARNING: Spawning new threads within a serial section have
+undefined effects.  It is OK, though, to spawn threads in unflagged
+sections of code where neither serialize or parallelize is in
+effect.
+
+A typical usage is when Guile is used as scripting language in some
+application doing heavy computations.  If each thread is
+encapsulated with a serialize form, you can then put a parallelize
+form around the code performing the heavy computations (typically a
+C code primitive), enabling the computations to run in parallel
+while the scripting code runs single-threadedly.
+
 ** Guile now includes its own version of libltdl.
 
 We now use a modified version of libltdl that allows us to make
