@@ -1,3 +1,8 @@
+2002-08-20  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* print.c (scm_iprin1): Print primitives generics always as
+	"primitive-generic" even when they have no primitive methods yet.
+
 2002-08-17  Han-Wen Nienhuys  <hanwen@cs.uu.nl>
 
 	* ports.c (scm_add_to_port_table): small bugfix.
@@ -13,7 +18,6 @@
 
 	* ports.h: use scm_i_ prefix for port table and port table size.
 	
-
 2002-08-15  Mikael Djurfeldt  <mdj@linnaeus>
 
 	* vports.c (scm_make_soft_port): Initialize pt variable.
