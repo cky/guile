@@ -1,5 +1,11 @@
 1999-06-19  Jim Blandy  <jimb@savonarola.red-bean.com>
 
+	Patch from Greg Harvey:
+	* eq.c, eval.c, list.c, ramap.c, vectors.c: Always write parens
+	around the condition of an `if', `while', etc., even if the
+	condition is a macro invocation that expands to something
+	surrounded by parens.  It's more readable. 
+
 	* eval.c (scm_map, scm_for_each): Verify that all arguments are
 	proper lists, and of the appropriate lengths.
 	(check_map_args): New function.  (Thanks to Greg Harvey for the
