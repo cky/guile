@@ -80,6 +80,7 @@ char *alloca ();
 #include "unif.h"
 #include "ramap.h"
 #include "alist.h"
+#include "feature.h"
 
 #include "sort.h"
 
