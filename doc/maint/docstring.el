@@ -1,6 +1,6 @@
 ;;; docstring.el --- utilities for Guile docstring maintenance
 ;;;
-;;; Copyright (C) 2001 Neil Jerram
+;;; Copyright (C) 2001, 2004 Neil Jerram
 ;;;
 ;;; This file is not part of GNU Emacs, but the same permissions apply.
 ;;;
@@ -372,7 +372,7 @@ to which new docstrings should be added.")
                                          (setq consider-removal-list
                                                (cons (cons module description)
                                                      consider-removal-list)))))))
-                    (cdr module-list)))))
+                    (reverse (cdr module-list))))))
      alist)
 
     ;; Prepare a buffer describing the results.
