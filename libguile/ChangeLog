@@ -1,5 +1,14 @@
 2000-03-25  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* tags.h (SCM_STRICT_TYPING):  New macro that, if defined,
+	activates strict compile time type checking for variables of
+	type SCM.
+	(SCM, SCM_PACK, SCM_UNPACK):  Define according to whether
+	SCM_STRICT_TYPING or SCM_VOIDP_TEST are defined.
+	(SCM_EQ_P):  Defined as a macro equivalent for eq?.
+
+2000-03-25  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* tags.h (SCM_POINTERS_MUNGED):  Removed.
 
 	* gc.c (scm_gc_sweep, init_heap_seg):  Removed use of

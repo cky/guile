@@ -54,24 +54,49 @@
 
 
 
+/* #define SCM_STRICT_TYPING */
+/* #define SCM_VOIDP_TEST    */
 
 /* In the beginning was the Word:
  */
 typedef long scm_bits_t;
-/*
-  But as external interface, we use void*, which will be checked more strictly for
-  dubious conversions.
+
+/* But as external interface, we use SCM, which may, according to the desired
+ * level of type checking, be defined in several ways:
  */
-/* #define SCM_VOIDP_TEST */
-#ifndef SCM_VOIDP_TEST
-typedef scm_bits_t  SCM;
-#define SCM_UNPACK(x) (x)
-#define SCM_PACK(x) (x)
+#if defined (SCM_STRICT_TYPING)
+/* Use this for _compile time_ type checking only, since the compiled result
+ * will be quite inefficient.  The right way to make use of this mode is to do
+ * a 'make clean' of your project, 'make all CFLAGS=-DSCM_STRICT_TYPING', fix
+ * your errors, and then do 'make clean; make all'.
+*/
+    typedef union { struct { scm_bits_t n; } n; } SCM;
+    static SCM scm_pack(scm_bits_t b) { SCM s; s.n.n = b; return s; }
+    #define SCM_UNPACK(x) ((x).n.n)
+    #define SCM_PACK(x) (scm_pack (x))
+#elif defined (SCM_VOIDP_TEST)
+/* This is the default, which provides an intermediate level of compile time
+ * type checking while still resulting in very efficient code.
+ */
+    typedef void * SCM;
+    #define SCM_UNPACK(x) ((scm_bits_t) (x))
+    #define SCM_PACK(x) ((SCM) (x))
 #else
-typedef void * SCM;
-#define SCM_UNPACK(x) ((scm_bits_t) (x))
-#define SCM_PACK(x) ((SCM) (x))
+/* This should be used as a fall back solution for machines on which casting
+ * to a pointer may lead to loss of bit information, e. g. in the three least
+ * significant bits.
+ */
+    typedef scm_bits_t SCM;
+    #define SCM_UNPACK(x) (x)
+    #define SCM_PACK(x) (x)
 #endif
+
+
+/* SCM values can not be compared by using the operator ==.  Use the following
+ * macro instead, which is the equivalent of the scheme predicate 'eq?'.
+ */
+#define SCM_EQ_P(x, y) (SCM_UNPACK (x) == SCM_UNPACK (y))
+
 
 /* SCM_UNPACK_CAR is a convenience for treating the CAR of X as a word */
 #define SCM_UNPACK_CAR(x) SCM_UNPACK (SCM_CAR (x))
@@ -81,8 +106,8 @@ typedef void * SCM;
  * rather than each byte, the 3 most significant bits encode the byte
  * within the word.  The following macros deal with this by storing the
  * native Cray pointers like the ones that looks like scm expects.  This
- * is done for any pointers that might appear in the car of a scm_cell, pointers
- * to scm_vector elts, functions, &c are not munged.
+ * is done for any pointers that might appear in the car of a scm_cell,
+ * pointers to scm_vector elts, functions, &c are not munged.
  */
 #ifdef _UNICOS
 # define SCM2PTR(x) ((void *) (SCM_UNPACK (x) >> 3))
