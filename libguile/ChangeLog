@@ -1,3 +1,9 @@
+2000-03-20  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* numbers.c (scm_ash):  Fixed typing problems with the second
+	parameter and added some documentation.  (Thanks Thien-Thi Nguyen
+	for indicating the problem.)
+
 2000-03-19  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* gc.c, gc.h (scm_gc_yield): New variable.

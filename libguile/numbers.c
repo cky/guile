@@ -1053,8 +1053,14 @@ SCM_DEFINE (scm_integer_expt, "integer-expt", 2, 0, 0,
 
 SCM_DEFINE (scm_ash, "ash", 2, 0, 0,
             (SCM n, SCM cnt),
-	    "Returns an integer equivalent to\n"
-	    "@code{(inexact->exact (floor (* @var{int} (expt 2 @var{count}))))}.@refill\n\n"
+	    "The function ash performs an arithmetic shift left by CNT bits\n"
+	    "(or shift right, if CNT is negative).  'Arithmetic' means, that\n"
+            "the function does not guarantee to keep the bit structure of N,\n"
+            "but rather guarantees that the result will always be rounded\n"
+	    "towards minus infinity.  Therefore, the results of ash and a\n"
+	    "corresponding bitwise shift will differ if N is negative.\n\n"
+	    "Formally, the function returns an integer equivalent to\n"
+	    "@code{(inexact->exact (floor (* N (expt 2 CNT))))}.@refill\n\n"
 	    "Example:\n"
 	    "@lisp\n"
 	    "(number->string (ash #b1 3) 2)\n"
@@ -1064,30 +1070,40 @@ SCM_DEFINE (scm_ash, "ash", 2, 0, 0,
 	    "@end lisp")
 #define FUNC_NAME s_scm_ash
 {
-  /* GJB:FIXME:: what is going on here? */
-  SCM res = SCM_PACK (SCM_INUM (n));
-  SCM_VALIDATE_INUM (2,cnt);
+  long bits_to_shift;
+
+#ifndef SCM_BIGDIG
+  SCM_VALIDATE_INUM (1, n)
+#endif
+  SCM_VALIDATE_INUM (2, cnt);
+
+  bits_to_shift = SCM_INUM (cnt);
 #ifdef SCM_BIGDIG
-  if (cnt < 0)
-    {
-      res = scm_integer_expt (SCM_MAKINUM (2), SCM_MAKINUM (-SCM_INUM (cnt)));
-      if (SCM_NFALSEP (scm_negative_p (n)))
-	return scm_sum (SCM_MAKINUM (-1L),
-			scm_quotient (scm_sum (SCM_MAKINUM (1L), n), res));
-      else
-	return scm_quotient (n, res);
-    }
-  else
+  if (bits_to_shift < 0) {
+    /* Shift right by abs(cnt) bits.  This is realized as a division by
+       div:=2^abs(cnt).  However, to guarantee the floor rounding, negative
+       values require some special treatment.
+     */
+    SCM div = scm_integer_expt (SCM_MAKINUM (2), SCM_MAKINUM (-bits_to_shift));
+    if (SCM_FALSEP (scm_negative_p (n)))
+      return scm_quotient (n, div);
+    else
+      return scm_sum (SCM_MAKINUM (-1L),
+		      scm_quotient (scm_sum (SCM_MAKINUM (1L), n), div));
+  } else
+    /* Shift left is done by multiplication with 2^CNT */
     return scm_product (n, scm_integer_expt (SCM_MAKINUM (2), cnt));
 #else
-  SCM_VALIDATE_INUM (1,n)
-  cnt = SCM_INUM (cnt);
-  if (cnt < 0)
-    return SCM_MAKINUM (SCM_SRS (res, -cnt));
-  res = SCM_MAKINUM (res << cnt);
-  if (SCM_INUM (res) >> cnt != SCM_INUM (n))
-    scm_num_overflow (FUNC_NAME);
-  return res;
+  if (bits_to_shift < 0)
+    /* Signed right shift (SCM_SRS does it right) by abs(cnt) bits. */
+    return SCM_MAKINUM (SCM_SRS (SCM_INUM (n), -bits_to_shift));
+  else {
+    /* Shift left, but make sure not to leave the range of inums */
+    SCM res = SCM_MAKINUM (SCM_INUM (n) << cnt);
+    if (SCM_INUM (res) >> cnt != SCM_INUM (n))
+      scm_num_overflow (FUNC_NAME);
+    return res;
+  }
 #endif
 }
 #undef FUNC_NAME
