@@ -108,41 +108,60 @@ In C, the two Scheme boolean values are available as the two constants
 @code{SCM_BOOL_T} for @code{#t} and @code{SCM_BOOL_F} for @code{#f}.
 Care must be taken with the false value @code{SCM_BOOL_F}: it is not
 false when used in C conditionals.  In order to test for it, use
-@code{SCM_FALSEP} or @code{SCM_NFALSEP}.
+@code{scm_is_false} or @code{scm_is_true}.
 
 @rnindex not
 @deffn {Scheme Procedure} not x
 @deffnx {C Function} scm_not (x)
-Return @code{#t} iff @var{x} is @code{#f}, else return @code{#f}.
+Return @code{#t} if @var{x} is @code{#f}, else return @code{#f}.
 @end deffn
 
 @rnindex boolean?
 @deffn {Scheme Procedure} boolean? obj
 @deffnx {C Function} scm_boolean_p (obj)
-Return @code{#t} iff @var{obj} is either @code{#t} or @code{#f}.
+Return @code{#t} if @var{obj} is either @code{#t} or @code{#f}, else
+return @code{#f}.
 @end deffn
 
 @rnindex SCM_BOOL_T
-@deffn {C Macro} SCM_BOOL_T
-Represents a value that is true in the Scheme sense.
-@end deffn
+@deftypevr {C Macro} SCM SCM_BOOL_T
+The @code{SCM} representation of the Scheme object @code{#t}.
+@end deftypevr
 
 @rnindex SCM_BOOL_T
-@deffn {C Macro} SCM_BOOL_F
-Represents a value that is false in the Scheme sense.
-@end deffn
+@deftypevr {C Macro} SCM SCM_BOOL_F
+The @code{SCM} representation of the Scheme object @code{#f}.
+@end deftypevr
 
-@rnindex SCM_FALSEP
-@deffn {C Macro} SCM_FALSEP (SCM obj)
-Return true in the C sense when @var{obj} is false in the Scheme
-sense; return false in the C sense otherwise.
-@end deffn
+@rnindex scm_is_true
+@deftypefn {C Macro} int scm_is_true (SCM obj)
+Return @code{0} if @var{obj} is @code{#f}, else return @code{1}.
+@end deftypefn
 
-@rnindex SCM_NFALSEP
-@deffn {C Macro} SCM_NFALSEP (SCM obj)
-Return true in the C sense when @var{obj} is true in the Scheme
-sense; return false in the C sense otherwise.
-@end deffn
+@rnindex scm_is_false
+@deftypefn {C Macro} int scm_is_false (SCM obj)
+Return @code{1} if @var{obj} is @code{#f}, else return @code{0}.
+@end deftypefn
+
+@rnindex scm_is_bool
+@deftypefn {C Macro} scm_is_bool (SCM obj)
+Return @code{1} if @var{obj} is either @code{#t} or @code{#f}, else
+return @code{0}.
+@end deftypefn
+
+@rnindex scm_from_bool
+@deftypefn {C Macro} SCM scm_from_bool (int val)
+Return @code{#f} if @var{val} is @code{0}, else return @code{#t}.
+@end deftypefn
+
+@rnindex scm_to_bool
+@deftypefn {C Macro} int scm_to_bool (SCM val)
+Return @code{1} if @var{val} is @code{SCM_BOOL_T}, return @code{0}
+when @var{val} is @code{SCM_BOOL_F}, else signal a `wrong type' error.
+
+You should probably use @code{scm_is_true} instead of this function
+when you just want to test a @code{SCM} value for trueness.
+@end deftypefn
 
 @node Numbers
 @subsection Numerical data types
