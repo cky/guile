@@ -1,4 +1,5 @@
-/* Copyright (C) 1995,1996,1997,1999,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1999,2000,2001,2003 Free Software
+ * Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -90,7 +91,7 @@ scm_input_error(char const * function,
   scm_error_scm (scm_str2symbol ("read-error"),
 		 scm_makfrom0str (function),
 		 string,
-		 SCM_EOL,
+		 arg,
 		 SCM_BOOL_F);
 }
 
