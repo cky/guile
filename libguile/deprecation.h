@@ -52,6 +52,12 @@
 
 #if (SCM_ENABLE_DEPRECATED == 1)
 
+/* These functions are _not_ deprecated, but we exclude them along
+   with the really deprecated features to be sure that no-one is
+   trying to emit deprecation warnings when libguile is supposed to be
+   clean of them.
+*/
+
 SCM_API void scm_c_issue_deprecation_warning (const char *msg);
 SCM_API void scm_c_issue_deprecation_warning_fmt (const char *msg, ...);
 SCM_API SCM scm_issue_deprecation_warning (SCM msgs);
