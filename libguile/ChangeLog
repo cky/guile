@@ -1,3 +1,11 @@
+2000-03-22  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* async.c, __scm.h: Removed lots of the old async click logic.  It
+	is possible to reinsert it by defining GUILE_OLD_ASYNC_CLICK in
+	__scm.h.  Let's try this out and dump the old code after the
+	threads reorganization.
+	(set-tick-rate, set-switch-rate): Conditionally removed.
+
 2000-03-21  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* gc.c (scm_gc_mark): Bugfix 1: The recent SCM_PACK/UNPACK change
