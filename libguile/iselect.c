@@ -524,10 +524,14 @@ scm_internal_select (int nfds,
       && timeout->tv_usec == 0)
     return select (nfds, readfds, writefds, exceptfds, timeout);
 
+  ++scm_ints_disabled;
+
   /* Add our file descriptor flags to the common set. */
   if (add_fd_sets (nfds, readfds, writefds, exceptfds))
     {
       errno = EBADF; /* Several threads can't select on same fds. */
+      if (!--scm_ints_disabled)
+	SCM_ASYNC_TICK;
       return -1;
     }
 
@@ -553,6 +557,9 @@ scm_internal_select (int nfds,
       coop_timeout_qinsert (&coop_global_sleepq, curr);
       t = coop_wait_for_runnable_thread_now (&now);
     }
+
+  if (!--scm_ints_disabled)
+    SCM_ASYNC_TICK;
 
   /* If the new thread is the same as the sleeping thread, do nothing */
   if (t != curr)
