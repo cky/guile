@@ -3610,8 +3610,8 @@ immediately after creating the Scheme string.  In certain cases, Guile
 can then use @var{str} directly as its internal representation.
 @end deftypefn
 
-@deftypefn  {C Function} char *scm_to_locale_string (SCM str)
-@deftypefnx {C Function} char *scm_to_locale_stringn (SCM str, size_t *lenp)
+@deftypefn  {C Function} {char *} scm_to_locale_string (SCM str)
+@deftypefnx {C Function} {char *} scm_to_locale_stringn (SCM str, size_t *lenp)
 Returns a C string in the current locale encoding with the same
 contents as @var{str}.  The C string must be freed with @code{free}
 eventually, maybe by using @code{scm_frame_free}, @xref{Frames}.
