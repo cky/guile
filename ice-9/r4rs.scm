@@ -40,19 +40,17 @@
 ;;; "internally" in a few places.
 
 
-;; OPEN_READ, OPEN_WRITE, and OPEN_BOTH are used to request the proper
-;; mode to open files in.  MSDOS does carraige return - newline
-;; translation if not opened in `b' mode.
-;;
-(define OPEN_READ (case (software-type)
-		    ((MS-DOS WINDOWS ATARIST) "rb")
-		    (else "r")))
-(define OPEN_WRITE (case (software-type)
-		     ((MS-DOS WINDOWS ATARIST) "wb")
-		     (else "w")))
-(define OPEN_BOTH (case (software-type)
-		    ((MS-DOS WINDOWS ATARIST) "r+b")
-		    (else "r+")))
+;;; OPEN_READ, OPEN_WRITE, and OPEN_BOTH are used to request the
+;;; proper mode to open files in.
+;;;
+;;; If we want to support systems that do CRLF->LF translation, like
+;;; Windows, then we should have a symbol in scmconfig.h made visible
+;;; to the Scheme level that we can test here, and autoconf magic to
+;;; #define it when appropriate.  Windows will probably just have a
+;;; hand-generated scmconfig.h file.
+(define OPEN_READ "r")
+(define OPEN_WRITE "w")
+(define OPEN_BOTH "r+")
 
 (define *null-device* "/dev/null")
 
