@@ -59,13 +59,25 @@ typedef struct extension_t
 
 static extension_t *registered_extensions;
 
+/* Register a LIB/INIT pair for use by `scm_load_extension'.  LIB is
+   allowed to be NULL and then only INIT is used to identify the
+   registered entry.  This is useful when you don't know the library
+   name (which isn't really relevant anyway in a completely linked
+   program) and you are sure that INIT is unique (which it must be for
+   static linking).  Hmm, given this reasoning, what use is LIB
+   anyway?
+*/
+
 void
 scm_c_register_extension (const char *lib, const char *init,
 			  void (*func) (void *), void *data)
 {
   extension_t *ext = scm_must_malloc (sizeof(extension_t),
 					   "scm_register_extension");
-  ext->lib = scm_must_strdup (lib);
+  if (lib)
+    ext->lib = scm_must_strdup (lib);
+  else
+    ext->lib = NULL;
   ext->init = scm_must_strdup (init);
   ext->func = func;
   ext->data = data;
@@ -82,7 +94,7 @@ load_extension (SCM lib, SCM init)
     extension_t *ext;
 
     for (ext = registered_extensions; ext; ext = ext->next)
-      if (!strcmp (ext->lib, SCM_STRING_CHARS (lib))
+      if ((ext->lib == NULL || !strcmp (ext->lib, SCM_STRING_CHARS (lib)))
 	  && !strcmp (ext->init, SCM_STRING_CHARS (init)))
 	{
 	  ext->func (ext->data);
