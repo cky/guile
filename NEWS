@@ -136,6 +136,37 @@ Example:
 
 * Changes to Scheme functions and syntax
 
+** The empty combination is no longer valid syntax.
+
+Previously, the expression "()" evaluated to the empty list.  This has
+been changed to signal a "missing expression" error.  The correct way
+to write the empty list as a literal constant is to use quote: "'()".
+
+** Auto-loading of compiled-code modules is deprecated.
+
+Guile used to be able to automatically find and link a shared
+libraries to satisfy requests for a module.  For example, the module
+`(foo bar)' could be implemented by placing a shared library named
+"foo/libbar.so" (or with a different extension) in a directory on the
+load path of Guile.
+
+This has been found to be too tricky, and is no longer supported.
+What you should do instead now is to write a small Scheme file that
+explicitly calls `dynamic-link' to load the shared library and
+`dynamic-call' to initialize it.
+
+The shared libraries themselves should be installed in the usual
+places for shared libraries, with names like "libguile-foo-bar".
+
+For example, place this into a file "foo/bar.scm"
+
+    (define-module (foo bar))
+
+    (dynamic-call "foobar_init" (dynamic-link "libguile-foo-bar"))
+
+The file name passed to `dynamic-link' should not contain an
+extension.  It will be provided automatically.
+
 ** The module system has been made more disciplined.
 
 The function `eval' will now save and restore the current module

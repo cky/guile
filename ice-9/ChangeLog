@@ -1,4 +1,18 @@
+2001-03-27  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* r4rs.scm (call-with-values): New definition, defers to
+	@call-with-values.
+
+2001-03-26  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* boot-9.scm (warn-autoload-deprecation): New function.
+	(init-dynamic-module): Use it here to print warning.  Only give
+	warning when a module has actually been found.
+
 2001-03-25  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* boot-9.scm (init-dynamic-module): Issue warning about
+	auto-loading of compiled code modules being deprecated.
 
 	* Makefile.am (ice9_sources): Added "time.scm".
 

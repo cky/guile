@@ -40,6 +40,12 @@ In release 1.5:
 - remove deprecated macro from tags.h: SCM_DOUBLE_CELLP
 
 In release 1.6:
+- remove support for autoloading compiled-code modules:
+    try-module-linked
+    try-module-dynamic-link
+    init-dynamic-module
+    scm_register_module_xxx
+    etc.
 - remove deprecated variables:
     scm_top_level_lookup_closure_var
 - remove deprecated functions:
