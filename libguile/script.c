@@ -411,16 +411,7 @@ SCM_SYMBOL (sym_quit, "quit");
    probably agree.  I'd say I didn't feel comfortable doing that in
    the present system.  You'd say, well, fix the system so you are
    comfortable doing that.  I'd agree again.  *shrug*
-
-   We load the ice-9 system from here.  It might be nicer if the
-   libraries initialized from the inner_main function in guile.c (which
-   will be auto-generated eventually) could assume ice-9 were already
-   loaded.  Then again, it might be nice if ice-9 could assume that
-   certain libraries were already loaded.  The solution is to break up
-   ice-9 into modules which can be frozen and statically linked like any
-   other module.  Then all the modules can describe their dependencies in
-   the usual way, and the auto-generated inner_main will do the right
-   thing. */
+ */
 
 static char guile[] = "guile";
 
