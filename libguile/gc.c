@@ -651,7 +651,6 @@ scm_debug_newcell (void)
     {
       new = scm_freelist;
       scm_freelist = SCM_FREE_CELL_CDR (scm_freelist);
-      SCM_SET_FREE_CELL_TYPE (new, scm_tc16_allocated);
     }
 
   return new;
@@ -677,7 +676,6 @@ scm_debug_newcell2 (void)
     {
       new = scm_freelist2;
       scm_freelist2 = SCM_FREE_CELL_CDR (scm_freelist2);
-      SCM_SET_FREE_CELL_TYPE (new, scm_tc16_allocated);
     }
 
   return new;
@@ -935,7 +933,6 @@ scm_gc_for_newcell (scm_freelist_t *master, SCM *freelist)
 
   --scm_ints_disabled;
   *freelist = SCM_FREE_CELL_CDR (cell);
-  SCM_SET_FREE_CELL_TYPE (cell, scm_tc16_allocated);
   return cell;
 }
 
@@ -1342,7 +1339,6 @@ gc_mark_nimp:
 	{ /* should be faster than going through scm_smobs */
 	case scm_tc_free_cell:
 	  /* printf("found free_cell %X ", ptr); fflush(stdout); */
-        case scm_tc16_allocated:
 	case scm_tc16_big:
 	case scm_tc16_real:
 	case scm_tc16_complex:
@@ -1427,10 +1423,8 @@ scm_mark_locations (SCM_STACKITEM x[], scm_sizet n)
 
 		  if (scm_heap_table[seg_id].span == 1
 		      || SCM_DOUBLE_CELLP (obj))
-		    {
-		      if (!SCM_FREE_CELL_P (obj))
-			scm_gc_mark (obj);
-		    }
+                    scm_gc_mark (obj);
+                  
 		  break;
 		}
 	    }
