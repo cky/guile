@@ -1,3 +1,11 @@
+1999-02-15  Jim Blandy  <jimb@savonarola.red-bean.com>
+
+	Fix from Russ McManus:
+	* getopt-long.scm (parse-option-spec): Store 'optional as the
+	value-required? field for options that take optional values.
+	(process-short-option): Grab a value for the option when it takes
+	either an optional or required value.
+
 1999-02-12  Jim Blandy  <jimb@savonarola.red-bean.com>
 
 	* getopt-long.scm: Remove debugging calls to `pk'.
