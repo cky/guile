@@ -1,3 +1,15 @@
+2003-12-03  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/fractions.test: Exercise most-negative-fixnum over -ve of
+	most-negative-fixnum.
+
+	* tests/fractions.test (real-part): Expect fraction return, not
+	converted to flonum.
+
+	* tests/numbers.test (abs): Add a few more tests.
+
+	* tests/srfi-1.test (count): New tests.
+
 2003-12-01  Mikael Djurfeldt  <mdj@chunk.mit.edu>
 
 	* standalone/Makefile.am (snarfcppopts): Added -I$(top_srcdir).

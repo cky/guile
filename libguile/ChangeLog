@@ -1,3 +1,14 @@
+2003-12-03  Kevin Ryde  <user42@zip.com.au>
+
+	* numbers.c (scm_less_p): Remove spurious xisnan from frac+big case.
+
+	* numbers.c (scm_make_ratio): Check for numerator equal to
+	SCM_MOST_NEGATIVE_FIXNUM and bignum denominator the negative of that,
+	giving integer -1.
+
+	* numbers.c (scm_real_part): Return fraction unchanged rather than
+	converting to flonum.
+
 2003-11-30  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* modules.c (module_variable): Fixed (and thus simplified) the
