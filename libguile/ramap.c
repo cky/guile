@@ -129,7 +129,6 @@ do { type *v0 = (type*)SCM_VELTS (ra0);\
      IVDEP (ra0 != ra1, \
 	    for (; n-- > 0; i0 += inc0, i1 += inc1) \
 	       v0[i0] OPERATOR v1[i1];) \
-     break; \
 } while (0)
 
 /* This macro is used for all but binary division and
@@ -143,14 +142,12 @@ do { type (*v0)[2] = (type (*)[2]) SCM_VELTS (ra0);\
 	       v0[i0][0] OPERATOR v1[i1][0]; \
 	       v0[i0][1] OPERATOR v1[i1][1]; \
             }) \
-     break; \
 } while (0)
 
 #define UNARY_ELTS_CODE(OPERATOR, type) \
 	  do { type *v0 = (type *) SCM_VELTS (ra0);\
 	    for (; n-- > 0; i0 += inc0) \
 	      v0[i0] OPERATOR v0[i0];\
-	    break;\
 	  } while (0)
 
 

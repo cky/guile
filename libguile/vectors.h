@@ -1,8 +1,8 @@
 /* classes: h_files */
 
-#ifndef VECTORSH
-#define VECTORSH
-/*	Copyright (C) 1995, 1996, 1998, 2000 Free Software Foundation, Inc.
+#ifndef SCM_VECTORS_H
+#define SCM_VECTORS_H
+/* Copyright (C) 1995,1996,1998,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -67,9 +67,9 @@
 /*
   bit vectors
  */
-#define SCM_BITVEC_REF(a, i) ((SCM_UNPACK(SCM_VELTS(a)[(i)/SCM_LONG_BIT]) & (1L<<((i)%SCM_LONG_BIT))) ? 1 : 0)
-#define SCM_BITVEC_SET(a, i) SCM_UNPACK(SCM_VELTS(a)[(i)/SCM_LONG_BIT]) |= (1L<<((i)%SCM_LONG_BIT))
-#define SCM_BITVEC_CLR(a, i) SCM_UNPACK(SCM_VELTS(a)[(i)/SCM_LONG_BIT]) &= ~(1L<<((i)%SCM_LONG_BIT))
+#define SCM_BITVEC_REF(a, i) ((SCM_VECTOR_BASE (a) [(i) / SCM_LONG_BIT] & (1L << ((i) % SCM_LONG_BIT))) ? 1 : 0)
+#define SCM_BITVEC_SET(a, i) SCM_VECTOR_BASE (a) [(i) / SCM_LONG_BIT] |= (1L << ((i) % SCM_LONG_BIT))
+#define SCM_BITVEC_CLR(a, i) SCM_VECTOR_BASE (a) [(i) / SCM_LONG_BIT] &= ~(1L << ((i) % SCM_LONG_BIT))
 
 
 
@@ -99,7 +99,7 @@ extern SCM scm_vector_set_length_x (SCM vect, SCM len);
 
 #endif  /* SCM_DEBUG_DEPRECATED == 0 */
 
-#endif  /* VECTORSH */
+#endif  /* SCM_VECTORS_H */
 
 /*
   Local Variables:

@@ -111,7 +111,6 @@
    h1.
 */
 
-#define SCM_CLASS_REDEF(c) SCM_SLOT (c, scm_si_redefined)
 /* The following definition is located in libguile/objects.h:
 #define SCM_OBJ_CLASS_REDEF(x) (SCM_STRUCT_VTABLE_DATA(x)[scm_si_redefined])
 */
@@ -168,7 +167,7 @@ static SCM scm_sys_goops_loaded (void);
  * Compute-cpl
  *
  *   This version doesn't handle multiple-inheritance. It serves only for
- * booting classes and will be overaloaded in Scheme
+ * booting classes and will be overloaded in Scheme
  *
  ******************************************************************************/
 
@@ -302,7 +301,7 @@ SCM_DEFINE (scm_sys_compute_slots, "%compute-slots", 1, 0, 0,
  * compute-getters-n-setters
  *  
  *   This version doesn't handle slot options. It serves only for booting 
- * classes and will be overaloaded in Scheme.
+ * classes and will be overloaded in Scheme.
  *
  ******************************************************************************/
 
@@ -528,7 +527,7 @@ SCM_DEFINE (scm_sys_prep_layout_x, "%prep-layout!", 1, 0, 0,
       s[i + 1] = a;
       slots = SCM_CDR (slots);
     }
-  SCM_SLOT (class, scm_si_layout) = scm_mem2symbol (s, n);
+  SCM_SET_SLOT (class, scm_si_layout, scm_mem2symbol (s, n));
   if (s)
     scm_must_free (s);
   return SCM_UNSPECIFIED;
@@ -589,11 +588,10 @@ SCM_DEFINE (scm_sys_inherit_magic_x, "%inherit-magic!", 2, 0, 0,
 void
 prep_hashsets (SCM class)
 {
-  int i;
+  unsigned int i;
 
   for (i = 0; i < 7; ++i)
-    SCM_SLOT (class, scm_si_hashsets + i)
-      = SCM_PACK (scm_c_uniform32 (goops_rstate));
+    SCM_SET_HASHSET (class, i, scm_c_uniform32 (goops_rstate));
 }
 
 /******************************************************************************/
@@ -610,30 +608,31 @@ scm_basic_basic_make_class (SCM class, SCM name, SCM dsupers, SCM dslots)
 #if 0
   cpl   = compute_cpl (dsupers, SCM_LIST1(z));
 #endif
-  SCM_SLOT (z, scm_si_direct_supers) = dsupers;
+  SCM_SET_SLOT (z, scm_si_direct_supers, dsupers);
   cpl   = compute_cpl (z);
   slots = build_slots_list (maplist (dslots), cpl);
   nfields = SCM_MAKINUM (scm_ilength (slots));
   g_n_s = compute_getters_n_setters (slots);
 
-  SCM_SLOT(z, scm_si_name)	        = name;
-  SCM_SLOT(z, scm_si_direct_slots)      = dslots;
-  SCM_SLOT(z, scm_si_direct_subclasses) = SCM_EOL;
-  SCM_SLOT(z, scm_si_direct_methods)    = SCM_EOL;
-  SCM_SLOT(z, scm_si_cpl)               = cpl;
-  SCM_SLOT(z, scm_si_slots)	        = slots;
-  SCM_SLOT(z, scm_si_nfields)	        = nfields;
-  SCM_SLOT(z, scm_si_getters_n_setters) = g_n_s;
-  SCM_SLOT(z, scm_si_redefined)         = SCM_BOOL_F;
-  SCM_SLOT(z, scm_si_environment)
-    = scm_top_level_env (SCM_TOP_LEVEL_LOOKUP_CLOSURE);
+  SCM_SET_SLOT (z, scm_si_name, name);
+  SCM_SET_SLOT (z, scm_si_direct_slots, dslots);
+  SCM_SET_SLOT (z, scm_si_direct_subclasses, SCM_EOL);
+  SCM_SET_SLOT (z, scm_si_direct_methods, SCM_EOL);
+  SCM_SET_SLOT (z, scm_si_cpl, cpl);
+  SCM_SET_SLOT (z, scm_si_slots, slots);
+  SCM_SET_SLOT (z, scm_si_nfields, nfields);
+  SCM_SET_SLOT (z, scm_si_getters_n_setters, g_n_s);
+  SCM_SET_SLOT (z, scm_si_redefined, SCM_BOOL_F);
+  SCM_SET_SLOT (z, scm_si_environment,
+		scm_top_level_env (SCM_TOP_LEVEL_LOOKUP_CLOSURE));
 
   /* Add this class in the direct-subclasses slot of dsupers */
   {
     SCM tmp;
-    for (tmp = dsupers; SCM_NNULLP(tmp); tmp = SCM_CDR(tmp))
-      SCM_SLOT(SCM_CAR(tmp), scm_si_direct_subclasses)
-	= scm_cons(z, SCM_SLOT(SCM_CAR(tmp), scm_si_direct_subclasses));
+    for (tmp = dsupers; !SCM_NULLP (tmp); tmp = SCM_CDR (tmp))
+      SCM_SET_SLOT (SCM_CAR (tmp), scm_si_direct_subclasses,
+		    scm_cons (z, SCM_SLOT (SCM_CAR (tmp),
+					   scm_si_direct_subclasses)));
   }
 
   /* Support for the underlying structs: */
@@ -733,19 +732,19 @@ create_basic_classes (void)
   SCM_SET_CLASS_FLAGS (scm_class_class, (SCM_CLASSF_GOOPS_OR_VALID
 					 | SCM_CLASSF_METACLASS));
 
-  SCM_SLOT(scm_class_class, scm_si_name) 		 = name;
-  SCM_SLOT(scm_class_class, scm_si_direct_supers)	 = SCM_EOL;  /* will be changed */
-  /* SCM_SLOT(scm_class_class, scm_si_direct_slots) = slots_of_class; */
-  SCM_SLOT(scm_class_class, scm_si_direct_subclasses)= SCM_EOL;
-  SCM_SLOT(scm_class_class, scm_si_direct_methods) = SCM_EOL;  
-  SCM_SLOT(scm_class_class, scm_si_cpl)		 = SCM_EOL;  /* will be changed */
-  /* SCM_SLOT(scm_class_class, scm_si_slots) = slots_of_class; */
-  SCM_SLOT(scm_class_class, scm_si_nfields)	 = SCM_MAKINUM (SCM_N_CLASS_SLOTS);
-  /* SCM_SLOT(scm_class_class, scm_si_getters_n_setters)
-     = compute_getters_n_setters (slots_of_class); */
-  SCM_SLOT(scm_class_class, scm_si_redefined) 	 = SCM_BOOL_F;
-  SCM_SLOT(scm_class_class, scm_si_environment)
-    = scm_top_level_env (SCM_TOP_LEVEL_LOOKUP_CLOSURE);
+  SCM_SET_SLOT (scm_class_class, scm_si_name, name);
+  SCM_SET_SLOT (scm_class_class, scm_si_direct_supers, SCM_EOL);  /* will be changed */
+  /* SCM_SET_SLOT (scm_class_class, scm_si_direct_slots, slots_of_class); */
+  SCM_SET_SLOT (scm_class_class, scm_si_direct_subclasses, SCM_EOL);
+  SCM_SET_SLOT (scm_class_class, scm_si_direct_methods, SCM_EOL);  
+  SCM_SET_SLOT (scm_class_class, scm_si_cpl, SCM_EOL);  /* will be changed */
+  /* SCM_SET_SLOT (scm_class_class, scm_si_slots, slots_of_class); */
+  SCM_SET_SLOT (scm_class_class, scm_si_nfields, SCM_MAKINUM (SCM_N_CLASS_SLOTS));
+  /* SCM_SET_SLOT (scm_class_class, scm_si_getters_n_setters,
+                   compute_getters_n_setters (slots_of_class)); */
+  SCM_SET_SLOT (scm_class_class, scm_si_redefined, SCM_BOOL_F);
+  SCM_SET_SLOT (scm_class_class, scm_si_environment,
+		scm_top_level_env (SCM_TOP_LEVEL_LOOKUP_CLOSURE));
 
   prep_hashsets (scm_class_class);
 
@@ -770,10 +769,10 @@ create_basic_classes (void)
   DEFVAR (name, scm_class_object);
 
   /* <top> <object> and <class> were partially initialized. Correct them here */
-  SCM_SLOT (scm_class_object, scm_si_direct_subclasses) = SCM_LIST1 (scm_class_class);
+  SCM_SET_SLOT (scm_class_object, scm_si_direct_subclasses, SCM_LIST1 (scm_class_class));
 
-  SCM_SLOT (scm_class_class, scm_si_direct_supers)      = SCM_LIST1 (scm_class_object);
-  SCM_SLOT (scm_class_class, scm_si_cpl)		    = SCM_LIST3 (scm_class_class, scm_class_object, scm_class_top);
+  SCM_SET_SLOT (scm_class_class, scm_si_direct_supers, SCM_LIST1 (scm_class_object));
+  SCM_SET_SLOT (scm_class_class, scm_si_cpl, SCM_LIST3 (scm_class_class, scm_class_object, scm_class_top));
 }
 
 /******************************************************************************/
@@ -1021,7 +1020,7 @@ SCM_DEFINE (scm_sys_fast_slot_set_x, "%fast-slot-set!", 3, 0, 0,
   SCM_VALIDATE_INUM (2, index);
   i = SCM_INUM (index);
   SCM_ASSERT_RANGE (2, index, i >= 0 && i < SCM_NUMBER_OF_SLOTS (obj));
-  SCM_SLOT (obj, i) = value;
+  SCM_SET_SLOT (obj, i, value);
 
   return SCM_UNSPECIFIED;
 }
@@ -1092,7 +1091,7 @@ set_slot_value (SCM class SCM_UNUSED, SCM obj, SCM slotdef, SCM value)
    *	- otherwise (cadr access) is the setter function to apply
    */
   if (SCM_INUMP (access))
-    SCM_SLOT (obj, SCM_INUM (access)) = value;
+    SCM_SET_SLOT (obj, SCM_INUM (access), value);
   else
     {
       /* We must evaluate (apply (cadr l) (list obj value))
@@ -1349,9 +1348,9 @@ SCM_DEFINE (scm_sys_allocate_instance, "%allocate-instance", 2, 0, 0,
       /* allocate class object */
       SCM z = scm_make_struct (class, SCM_INUM0, SCM_EOL);
 
-      SCM_SLOT (z, scm_si_print) = SCM_GOOPS_UNBOUND;
+      SCM_SET_SLOT (z, scm_si_print, SCM_GOOPS_UNBOUND);
       for (i = scm_si_goops_fields; i < n; i++)
-	SCM_SLOT (z, i) = SCM_GOOPS_UNBOUND;
+	SCM_SET_SLOT (z, i, SCM_GOOPS_UNBOUND);
 
       if (SCM_SUBCLASSP (class, scm_class_entity_class))
 	SCM_SET_CLASS_FLAGS (z, SCM_CLASSF_OPERATOR | SCM_CLASSF_ENTITY);
@@ -1564,7 +1563,7 @@ clear_method_cache (SCM gf)
 {
   SCM cache = scm_make_method_cache (gf);
   SCM_SET_ENTITY_PROCEDURE (gf, cache);
-  SCM_SLOT (gf, scm_si_used_by) = SCM_BOOL_F;
+  SCM_SET_SLOT (gf, scm_si_used_by, SCM_BOOL_F);
 }
 
 SCM_DEFINE (scm_sys_invalidate_method_cache_x, "%invalidate-method-cache!", 1, 0, 0,
@@ -1582,7 +1581,7 @@ SCM_DEFINE (scm_sys_invalidate_method_cache_x, "%invalidate-method-cache!", 1, 0
 	scm_sys_invalidate_method_cache_x (SCM_CAR (used_by));
       clear_method_cache (gf);
       for (; SCM_CONSP (methods); methods = SCM_CDR (methods))
-	SCM_SLOT (SCM_CAR (methods), scm_si_code_table) = SCM_EOL;
+	SCM_SET_SLOT (SCM_CAR (methods), scm_si_code_table, SCM_EOL);
     }
   {
     SCM n = SCM_SLOT (gf, scm_si_n_specialized);
@@ -1692,7 +1691,7 @@ more_specificp (SCM m1, SCM m2, SCM *targs)
     if (SCM_CAR(s1) != SCM_CAR(s2)) {
       register SCM l, cs1 = SCM_CAR(s1), cs2 = SCM_CAR(s2);
       
-      for (l = SCM_SLOT(targs[i], scm_si_cpl);   ; l = SCM_CDR(l)) {
+      for (l = SCM_SLOT (targs[i], scm_si_cpl);   ; l = SCM_CDR(l)) {
 	if (cs1 == SCM_CAR(l))
 	  return 1;
 	if (cs2 == SCM_CAR(l))
@@ -2032,47 +2031,47 @@ SCM_DEFINE (scm_make, "make",  0, 0, 1,
 	  || class == scm_class_simple_method
 	  || class == scm_class_accessor)
 	{
-	  SCM_SLOT (z, scm_si_generic_function) =  
+	  SCM_SET_SLOT (z, scm_si_generic_function, 
 	    scm_i_get_keyword (k_gf,
 			       args,
 			       len - 1,
 			       SCM_BOOL_F,
-			       FUNC_NAME);
-	  SCM_SLOT (z, scm_si_specializers) =  
+			       FUNC_NAME));
+	  SCM_SET_SLOT (z, scm_si_specializers, 
 	    scm_i_get_keyword (k_specializers,
 			       args,
 			       len - 1,
 			       SCM_EOL,
-			       FUNC_NAME);
-	  SCM_SLOT (z, scm_si_procedure) =
+			       FUNC_NAME));
+	  SCM_SET_SLOT (z, scm_si_procedure, 
 	    scm_i_get_keyword (k_procedure,
 			       args,
 			       len - 1,
 			       SCM_EOL,
-			       FUNC_NAME);
-	  SCM_SLOT (z, scm_si_code_table) = SCM_EOL;
+			       FUNC_NAME));
+	  SCM_SET_SLOT (z, scm_si_code_table, SCM_EOL);
 	}
       else
 	{
 	  /* In all the others case, make a new class .... No instance here */
-	  SCM_SLOT (z, scm_si_name) = 
+	  SCM_SET_SLOT (z, scm_si_name, 
 	    scm_i_get_keyword (k_name,
 			       args,
 			       len - 1,
 			       scm_str2symbol ("???"),
-			       FUNC_NAME);
-	  SCM_SLOT (z, scm_si_direct_supers) = 
+			       FUNC_NAME));
+	  SCM_SET_SLOT (z, scm_si_direct_supers, 
 	    scm_i_get_keyword (k_dsupers,
 			       args,
 			       len - 1,
 			       SCM_EOL,
-			       FUNC_NAME);
-	  SCM_SLOT (z, scm_si_direct_slots)  = 
+			       FUNC_NAME));
+	  SCM_SET_SLOT (z, scm_si_direct_slots, 
 	    scm_i_get_keyword (k_slots,
 			       args,
 			       len - 1,
 			       SCM_EOL,
-			       FUNC_NAME);
+			       FUNC_NAME));
 	}
     }
   return z;
@@ -2210,10 +2209,10 @@ create_standard_classes (void)
   /* Continue initialization of class <class> */
   
   slots = build_class_class_slots ();
-  SCM_SLOT (scm_class_class, scm_si_direct_slots) = slots;
-  SCM_SLOT (scm_class_class, scm_si_slots) = slots;
-  SCM_SLOT (scm_class_class, scm_si_getters_n_setters)
-    = compute_getters_n_setters (slots);
+  SCM_SET_SLOT (scm_class_class, scm_si_direct_slots, slots);
+  SCM_SET_SLOT (scm_class_class, scm_si_slots, slots);
+  SCM_SET_SLOT (scm_class_class, scm_si_getters_n_setters,
+		compute_getters_n_setters (slots));
   
   make_stdcls (&scm_class_foreign_class, "<foreign-class>",
 	       scm_class_class, scm_class_class,
@@ -2258,12 +2257,12 @@ create_standard_classes (void)
 	       SCM_EOL);
 #if 0
   /* Patch cpl since compute_cpl doesn't support multiple inheritance. */
-  SCM_SLOT (scm_class_generic_with_setter, scm_si_cpl) =
+  SCM_SET_SLOT (scm_class_generic_with_setter, scm_si_cpl, 
     scm_append (SCM_LIST3 (SCM_LIST2 (scm_class_generic_with_setter,
 				      scm_class_generic),
 			   SCM_SLOT (scm_class_entity_with_setter,
 				     scm_si_cpl),
-			   SCM_EOL));
+			   SCM_EOL)));
 #endif
   SCM_SET_CLASS_FLAGS (scm_class_generic_with_setter, SCM_CLASSF_PURE_GENERIC);
 
@@ -2395,8 +2394,8 @@ scm_make_port_classes (long ptobnum, char *type_name)
 				SCM_LIST2 (class,
 					   scm_class_input_output_port));
   /* Patch cpl (since this tree is too complex for the C level compute-cpl) */
-  SCM_SLOT (c, scm_si_cpl)
-    = scm_cons2 (c, class, SCM_SLOT (scm_class_input_output_port, scm_si_cpl));
+  SCM_SET_SLOT (c, scm_si_cpl,
+		scm_cons2 (c, class, SCM_SLOT (scm_class_input_output_port, scm_si_cpl)));
 }
 
 static void
@@ -2478,7 +2477,7 @@ scm_make_class (SCM meta, char *s_name, SCM supers, size_t size,
 
   if (destructor != 0)
     {
-      SCM_SLOT (class, scm_si_destructor) = (SCM) destructor;
+      SCM_SET_SLOT (class, scm_si_destructor, (SCM) destructor);
       SCM_SET_CLASS_DESTRUCTOR (class, scm_free_foreign_object);
     }
   else if (size > 0)
@@ -2487,8 +2486,8 @@ scm_make_class (SCM meta, char *s_name, SCM supers, size_t size,
       SCM_SET_CLASS_INSTANCE_SIZE (class, size);
     }
   
-  SCM_SLOT (class, scm_si_layout) = scm_str2symbol ("");
-  SCM_SLOT (class, scm_si_constructor) = (SCM) constructor;
+  SCM_SET_SLOT (class, scm_si_layout, scm_str2symbol (""));
+  SCM_SET_SLOT (class, scm_si_constructor, (SCM) constructor);
 
   return class;
 }
@@ -2544,19 +2543,18 @@ scm_add_slot (SCM class, char *slot_name, SCM slot_class,
 					   k_procedure, setm)));
       DEFVAR (aname, gf);
       
-      SCM_SLOT (class, scm_si_slots)
-	= scm_append_x (SCM_LIST2 (SCM_SLOT (class, scm_si_slots),
-				   SCM_LIST1 (slot)));
-      SCM_SLOT (class, scm_si_getters_n_setters)
-	= scm_append_x (SCM_LIST2 (SCM_SLOT (class, scm_si_getters_n_setters),
-				   SCM_LIST1 (gns)));
+      SCM_SET_SLOT (class, scm_si_slots,
+		    scm_append_x (SCM_LIST2 (SCM_SLOT (class, scm_si_slots),
+					     SCM_LIST1 (slot))));
+      SCM_SET_SLOT (class, scm_si_getters_n_setters,
+		    scm_append_x (SCM_LIST2 (SCM_SLOT (class, scm_si_getters_n_setters),
+					     SCM_LIST1 (gns))));
     }
   }
   {  
     long n = SCM_INUM (SCM_SLOT (class, scm_si_nfields));
 
-    SCM_SLOT (class, scm_si_nfields)
-      = SCM_MAKINUM (n + 1);
+    SCM_SET_SLOT (class, scm_si_nfields, SCM_MAKINUM (n + 1));
   }
 }
 

@@ -141,6 +141,8 @@ typedef struct scm_method_t {
 				   | SCM_CLASSF_SIMPLE_METHOD))
 
 #define SCM_SLOT(x, i)         (SCM_PACK (SCM_INST (x) [i]))
+#define SCM_SET_SLOT(x, i, v)  (SCM_INST (x) [i] = SCM_UNPACK (v))
+#define SCM_SET_HASHSET(c, i, h)  (SCM_INST (c) [scm_si_hashsets + (i)] = (h))
 #define SCM_SUBCLASSP(c1, c2)  (!SCM_FALSEP (scm_c_memq (c2, SCM_SLOT (c1, scm_si_cpl))))
 #define SCM_IS_A_P(x, c)       (SCM_NIMP (x) \
 				&& SCM_INSTANCEP (x) \
