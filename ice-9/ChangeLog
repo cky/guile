@@ -1,5 +1,7 @@
 2001-09-19  Thien-Thi Nguyen  <ttn@glug.org>
 
+	* expect.scm: Commentary fix; nfc.
+
 	* boot-9.scm (process-use-modules): Fix typo.
 
 2001-09-18  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
