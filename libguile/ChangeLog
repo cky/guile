@@ -1,3 +1,10 @@
+2000-11-24  Matthias Koeppe  <mkoeppe@mail.math.uni-magdeburg.de>
+
+        * goops.c (filter_cpl, remove_duplicate_slots), goops.h
+	(SCM_SUBCLASSP):  Fix previous change:  In contrast to
+	scm_sloppy_memq the function scm_memq returns #f if the
+	object was not contained in the list.
+
 2000-11-24  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* goops.c:  Include validate.h.

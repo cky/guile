@@ -218,7 +218,7 @@ filter_cpl (SCM ls)
   while (SCM_NIMP (ls))
     {
       SCM el = SCM_CAR (ls);
-      if (SCM_IMP (scm_memq (el, res)))
+      if (SCM_FALSEP (scm_memq (el, res)))
 	res = scm_cons (el, res);
       ls = SCM_CDR (ls);
     }
@@ -259,7 +259,7 @@ remove_duplicate_slots (SCM l, SCM res, SCM slots_already_seen)
 		    "bad slot name ~S",
 		    SCM_LIST1 (tmp));
   
-  if (SCM_NULLP (scm_memq (tmp, slots_already_seen))) {
+  if (SCM_FALSEP (scm_memq (tmp, slots_already_seen))) {
     res 	       = scm_cons (SCM_CAR (l), res);
     slots_already_seen = scm_cons (tmp, slots_already_seen);
   }
