@@ -1,4 +1,4 @@
-/* Copyright (C) 1996,1997,1998,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1996,1997,1998,2000,2001, 2002 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -922,7 +922,8 @@ SCM_DEFINE (scm_listen, "listen", 2, 0, 0,
 
 /* Put the components of a sockaddr into a new SCM vector.  */
 static SCM
-scm_addr_vector (const struct sockaddr *address, const char *proc)
+scm_addr_vector (const struct sockaddr *address, int addr_size, 
+		 const char *proc)
 {
   short int fam = address->sa_family;
   SCM result =SCM_EOL;
@@ -967,7 +968,13 @@ scm_addr_vector (const struct sockaddr *address, const char *proc)
 	result = scm_c_make_vector (2, SCM_UNSPECIFIED);
 
 	SCM_VECTOR_SET(result, 0, scm_ulong2num ((unsigned long) fam));
-	SCM_VECTOR_SET(result, 1, scm_mem2string (nad->sun_path, strlen (nad->sun_path)));
+	/* When addr_size is not enough to cover sun_path, do not try
+	   to access it. */
+	if (addr_size <= offsetof (struct sockaddr_un, sun_path))
+	  SCM_VECTOR_SET(result, 1, SCM_BOOL_F);
+	else
+	  SCM_VECTOR_SET(result, 1, scm_mem2string (nad->sun_path,
+						    strlen (nad->sun_path)));
       }
       break;
 #endif
@@ -1028,7 +1035,7 @@ SCM_DEFINE (scm_accept, "accept", 1, 0, 0,
   if (newfd == -1)
     SCM_SYSERROR;
   newsock = SCM_SOCK_FD_TO_PORT (newfd);
-  address = scm_addr_vector (addr, FUNC_NAME);
+  address = scm_addr_vector (addr, addr_size, FUNC_NAME);
   return scm_cons (newsock, address);
 }
 #undef FUNC_NAME
@@ -1050,7 +1057,7 @@ SCM_DEFINE (scm_getsockname, "getsockname", 1, 0, 0,
   fd = SCM_FPORT_FDES (sock);
   if (getsockname (fd, addr, &addr_size) == -1)
     SCM_SYSERROR;
-  return scm_addr_vector (addr, FUNC_NAME);
+  return scm_addr_vector (addr, addr_size, FUNC_NAME);
 }
 #undef FUNC_NAME
 
@@ -1072,7 +1079,7 @@ SCM_DEFINE (scm_getpeername, "getpeername", 1, 0, 0,
   fd = SCM_FPORT_FDES (sock);
   if (getpeername (fd, addr, &addr_size) == -1)
     SCM_SYSERROR;
-  return scm_addr_vector (addr, FUNC_NAME);
+  return scm_addr_vector (addr, addr_size, FUNC_NAME);
 }
 #undef FUNC_NAME
 
@@ -1199,7 +1206,7 @@ SCM_DEFINE (scm_recvfrom, "recvfrom!", 2, 3, 0,
   if (rv == -1)
     SCM_SYSERROR;
   if (addr->sa_family != AF_UNSPEC)
-    address = scm_addr_vector (addr, FUNC_NAME);
+    address = scm_addr_vector (addr, addr_size, FUNC_NAME);
   else
     address = SCM_BOOL_F;
 
