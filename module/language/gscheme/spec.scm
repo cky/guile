@@ -85,13 +85,16 @@
 		   (else (error "bad cond" x))))))
       ((do)
        (match rest
-	 ((((sym init update) ...) (test . result) body ...)
+	 ((((sym init . update) ...) (test . result) body ...)
+	  (define (translate-update s x)
+	    (if (pair? x) (translate (car x)) s))
 	  `(@letrec ((_loop (@lambda
 			     ,sym
 			     (@if ,(translate test)
 				  (@begin ,@(map translate result))
 				  (@begin ,@(map translate body)
-					  (_loop ,@(map translate update)))))))
+					  (_loop ,@(map translate-update
+							sym update)))))))
 		    (_loop ,@(map translate init))))))
 
       ((eval-case)
