@@ -1,3 +1,8 @@
+2004-11-09  Marius Vollmer  <mvo@zagadka.de>
+
+	* gh_data.c (gh_uniform_vector_length): Properly use
+	scm_c_uniform_vector_length instead of scm_uniform_vector_length.
+
 2004-11-09  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* srfi-4.h (scm_c_uniform_vector_ref, scm_c_uniform_vector_set_x):
