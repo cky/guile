@@ -109,8 +109,8 @@ do { \
 
 #define SEND_STRING(str) \
 do { \
-  gdb_output = str; \
-  gdb_output_length = strlen (str); \
+  gdb_output = (char *) (str); \
+  gdb_output_length = strlen ((const char *) (str)); \
 } while (0)
 
 
