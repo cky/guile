@@ -521,11 +521,12 @@ scm_force_output (port)
      SCM port;
 {
   if (SCM_UNBNDP (port))
- port = scm_cur_outp;
+    port = scm_cur_outp;
   else
     {
       port = SCM_COERCE_OUTPORT (port);
-      SCM_ASSERT (SCM_NIMP (port) && SCM_OPOUTPORTP (port), port, SCM_ARG1, s_force_output);
+      SCM_ASSERT (SCM_NIMP (port) && SCM_OPOUTPORTP (port), port, SCM_ARG1, 
+		  s_force_output);
     }
   {
     scm_sizet i = SCM_PTOBNUM (port);
