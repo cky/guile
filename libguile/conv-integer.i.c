@@ -112,11 +112,7 @@ SCM_FROM_TYPE_PROTO (TYPE val)
   if (SCM_FIXABLE (val))
     return SCM_I_MAKINUM (val);
   else if (val >= LONG_MIN && val <= LONG_MAX)
-    {
-      SCM z = scm_double_cell (scm_tc16_big, 0, 0, 0);
-      mpz_init_set_si (SCM_I_BIG_MPZ (z), val);
-      return z;
-    }
+    return scm_i_long2big (val);
   else
     {
       SCM z = scm_double_cell (scm_tc16_big, 0, 0, 0);

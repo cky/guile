@@ -180,7 +180,7 @@ SCM_DEFINE (scm_registered_modules, "c-registered-modules", 0, 0, 0,
   res = SCM_EOL;
   for (md = registered_mods; md; md = md->link)
     res = scm_cons (scm_cons (scm_makfrom0str (md->module_name),
-			      scm_ulong2num ((unsigned long) md->init_func)),
+			      scm_from_ulong ((unsigned long) md->init_func)),
 		    res);
   return res;
 }

@@ -305,30 +305,6 @@ SCM_API SCM scm_gentemp (SCM prefix, SCM obarray);
 
 #define SCM_CELL_WORD_LOC(x, n)   ((scm_t_bits*)SCM_CELL_OBJECT_LOC((x),(n)))
 
-/* Deprecated because they do not follow the naming convention.  that
-   is, they endiin "P" but return a C boolean.  Also, SCM_BOOLP
-   evaluates its argument twice.
-*/
-
-#define SCM_FALSEP		scm_is_false
-#define SCM_NFALSEP		scm_is_true
-#define SCM_BOOLP               scm_is_bool
-#define SCM_EQ_P                scm_is_eq
-
-
-/* Convert from a C boolean to a SCM boolean value */
-#define SCM_BOOL		scm_from_bool
-
-/* Convert from a C boolean to a SCM boolean value and negate it */
-#define SCM_NEGATE_BOOL(f)	scm_from_bool(!(f))
-
-/* SCM_BOOL_NOT returns the other boolean.  
- * The order of ^s here is important for Borland C++ (!?!?!)
- */
-#define SCM_BOOL_NOT(x)		(SCM_PACK (SCM_UNPACK (x) \
-					   ^ (SCM_UNPACK (SCM_BOOL_T) \
-					      ^ SCM_UNPACK (SCM_BOOL_F))))
-
 /* Users shouldn't know about INUMs.
  */
 

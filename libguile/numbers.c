@@ -164,6 +164,24 @@ scm_i_mkbig ()
   return z;
 }
 
+SCM_C_INLINE_KEYWORD SCM
+scm_i_long2big (long x)
+{
+  /* Return a newly created bignum initialized to X. */
+  SCM z = scm_double_cell (scm_tc16_big, 0, 0, 0);
+  mpz_init_set_si (SCM_I_BIG_MPZ (z), x);
+  return z;
+}
+
+SCM_C_INLINE_KEYWORD SCM
+scm_i_ulong2big (unsigned long x)
+{
+  /* Return a newly created bignum initialized to X. */
+  SCM z = scm_double_cell (scm_tc16_big, 0, 0, 0);
+  mpz_init_set_ui (SCM_I_BIG_MPZ (z), x);
+  return z;
+}
+
 SCM_C_INLINE_KEYWORD static SCM
 scm_i_clonebig (SCM src_big, int same_sign_p)
 {
@@ -1048,7 +1066,7 @@ scm_gcd (SCM x, SCM y)
           scm_remember_upto_here_1 (x);
           return (SCM_POSFIXABLE (result) 
 		  ? SCM_I_MAKINUM (result)
-		  : scm_ulong2num (result));
+		  : scm_from_ulong (result));
         }
       else if (SCM_BIGP (y))
         {
@@ -1130,12 +1148,6 @@ scm_lcm (SCM n1, SCM n2)
         }
     }
 }
-
-#ifndef scm_long2num
-#define SCM_LOGOP_RETURN(x) scm_ulong2num(x)
-#else
-#define SCM_LOGOP_RETURN(x) SCM_I_MAKINUM(x)
-#endif
 
 /* Emulating 2's complement bignums with sign magnitude arithmetic:
 
@@ -4114,7 +4126,8 @@ scm_difference (SCM x, SCM y)
 
 	  scm_remember_upto_here_1 (x);
 	  if (sgn_x == 0)
-	    return SCM_FIXABLE (-yy) ? SCM_I_MAKINUM (-yy) : scm_long2num (-yy);
+	    return (SCM_FIXABLE (-yy) ?
+		    SCM_I_MAKINUM (-yy) : scm_from_long (-yy));
 	  else
 	    {
 	      SCM result = scm_i_mkbig ();
@@ -5517,124 +5530,6 @@ SCM_DEFINE (scm_rationalize, "rationalize", 2, 0, 0,
 }
 #undef FUNC_NAME
 
-/* Parameters for creating integer conversion routines.
-
-   Define the following preprocessor macros before including
-   "libguile/num2integral.i.c":
-
-   NUM2INTEGRAL - the name of the function for converting from a
-     Scheme object to the integral type.  This function will be
-     defined when including "num2integral.i.c".
-
-   INTEGRAL2NUM - the name of the function for converting from the
-     integral type to a Scheme object.  This function will be defined.
-
-   INTEGRAL2BIG - the name of an internal function that createas a
-     bignum from the integral type.  This function will be defined.
-     The name should start with "scm_i_".
-
-   ITYPE - the name of the integral type.
-
-   UNSIGNED - Define this to 1 when ITYPE is an unsigned type.  Define
-   it to 0 otherwise.
-
-   UNSIGNED_ITYPE - the name of the the unsigned variant of the
-     integral type.  If you don't define this, it defaults to
-     "unsigned ITYPE" for signed types and simply "ITYPE" for unsigned
-     ones.
-
-   SIZEOF_ITYPE - an expression giving the size of the integral type
-     in bytes.  This expression must be computable by the
-     preprocessor.  (SIZEOF_FOO values are calculated by configure.in
-     for common types).
-
-*/
-
-#define NUM2INTEGRAL scm_num2short
-#define INTEGRAL2NUM scm_short2num
-#define INTEGRAL2BIG scm_i_short2big
-#define UNSIGNED 0
-#define ITYPE short
-#define SIZEOF_ITYPE SIZEOF_SHORT
-#include "libguile/num2integral.i.c"
-
-#define NUM2INTEGRAL scm_num2ushort
-#define INTEGRAL2NUM scm_ushort2num
-#define INTEGRAL2BIG scm_i_ushort2big
-#define UNSIGNED 1
-#define ITYPE unsigned short
-#define SIZEOF_ITYPE SIZEOF_UNSIGNED_SHORT
-#include "libguile/num2integral.i.c"
-
-#define NUM2INTEGRAL scm_num2int
-#define INTEGRAL2NUM scm_int2num
-#define INTEGRAL2BIG scm_i_int2big
-#define UNSIGNED 0
-#define ITYPE int
-#define SIZEOF_ITYPE SIZEOF_INT
-#include "libguile/num2integral.i.c"
-
-#define NUM2INTEGRAL scm_num2uint
-#define INTEGRAL2NUM scm_uint2num
-#define INTEGRAL2BIG scm_i_uint2big
-#define UNSIGNED 1
-#define ITYPE unsigned int
-#define SIZEOF_ITYPE SIZEOF_UNSIGNED_INT
-#include "libguile/num2integral.i.c"
-
-#define NUM2INTEGRAL scm_num2long
-#define INTEGRAL2NUM scm_long2num
-#define INTEGRAL2BIG scm_i_long2big
-#define UNSIGNED 0
-#define ITYPE long
-#define SIZEOF_ITYPE SIZEOF_LONG
-#include "libguile/num2integral.i.c"
-
-#define NUM2INTEGRAL scm_num2ulong
-#define INTEGRAL2NUM scm_ulong2num
-#define INTEGRAL2BIG scm_i_ulong2big
-#define UNSIGNED 1
-#define ITYPE unsigned long
-#define SIZEOF_ITYPE SIZEOF_UNSIGNED_LONG
-#include "libguile/num2integral.i.c"
-
-#define NUM2INTEGRAL scm_num2ptrdiff
-#define INTEGRAL2NUM scm_ptrdiff2num
-#define INTEGRAL2BIG scm_i_ptrdiff2big
-#define UNSIGNED 0
-#define ITYPE scm_t_ptrdiff
-#define UNSIGNED_ITYPE size_t
-#define SIZEOF_ITYPE SCM_SIZEOF_SCM_T_PTRDIFF
-#include "libguile/num2integral.i.c"
-
-#define NUM2INTEGRAL scm_num2size
-#define INTEGRAL2NUM scm_size2num
-#define INTEGRAL2BIG scm_i_size2big
-#define UNSIGNED 1
-#define ITYPE size_t
-#define SIZEOF_ITYPE SIZEOF_SIZE_T
-#include "libguile/num2integral.i.c"
-
-#if SCM_SIZEOF_LONG_LONG != 0
-
-#define NUM2INTEGRAL scm_num2long_long
-#define INTEGRAL2NUM scm_long_long2num
-#define INTEGRAL2BIG scm_i_long_long2big
-#define UNSIGNED 0
-#define ITYPE long long
-#define SIZEOF_ITYPE SIZEOF_LONG_LONG
-#include "libguile/num2integral.i.c"
-
-#define NUM2INTEGRAL scm_num2ulong_long
-#define INTEGRAL2NUM scm_ulong_long2num
-#define INTEGRAL2BIG scm_i_ulong_long2big
-#define UNSIGNED 1
-#define ITYPE unsigned long long
-#define SIZEOF_ITYPE SIZEOF_UNSIGNED_LONG_LONG
-#include "libguile/num2integral.i.c"
-
-#endif /* SCM_SIZEOF_LONG_LONG != 0 */
-
 #define NUM2FLOAT scm_num2float
 #define FLOAT2NUM scm_float2num
 #define FTYPE float
@@ -5851,116 +5746,6 @@ scm_from_double (double val)
 {
   return scm_make_real (val);
 }
-
-#ifdef GUILE_DEBUG
-
-#ifndef SIZE_MAX
-#define SIZE_MAX ((size_t) (-1))
-#endif
-#ifndef PTRDIFF_MIN
-#define PTRDIFF_MIN \
- ((scm_t_ptrdiff) ((scm_t_ptrdiff) 1 \
-  << ((sizeof (scm_t_ptrdiff) * SCM_CHAR_BIT) - 1)))
-#endif
-#ifndef PTRDIFF_MAX
-#define PTRDIFF_MAX (~ PTRDIFF_MIN)
-#endif
-
-#define CHECK(type, v)							   \
-  do									   \
-    {									   \
-      if ((v) != scm_num2##type (scm_##type##2num (v), 1, "check_sanity")) \
-	abort ();							   \
-    }									   \
-  while (0)
-
-static void
-check_sanity ()
-{
-  CHECK (short, 0);
-  CHECK (ushort, 0U);
-  CHECK (int, 0);
-  CHECK (uint, 0U);
-  CHECK (long, 0L);
-  CHECK (ulong, 0UL);
-  CHECK (size, 0);
-  CHECK (ptrdiff, 0);
-
-  CHECK (short, -1);
-  CHECK (int, -1);
-  CHECK (long, -1L);
-  CHECK (ptrdiff, -1);
-
-  CHECK (short, SHRT_MAX);
-  CHECK (short, SHRT_MIN);
-  CHECK (ushort, USHRT_MAX);
-  CHECK (int, INT_MAX);
-  CHECK (int, INT_MIN);
-  CHECK (uint, UINT_MAX);
-  CHECK (long, LONG_MAX);
-  CHECK (long, LONG_MIN);
-  CHECK (ulong, ULONG_MAX);
-  CHECK (size, SIZE_MAX);
-  CHECK (ptrdiff, PTRDIFF_MAX);
-  CHECK (ptrdiff, PTRDIFF_MIN);
-
-#if SCM_SIZEOF_LONG_LONG != 0
-  CHECK (long_long, 0LL);
-  CHECK (ulong_long, 0ULL);
-  CHECK (long_long, -1LL);
-  CHECK (long_long, SCM_I_LLONG_MAX);
-  CHECK (long_long, SCM_I_LLONG_MIN);
-  CHECK (ulong_long, SCM_I_ULLONG_MAX);
-#endif
-}
-
-#undef CHECK
-
-#define CHECK \
-        scm_internal_catch (SCM_BOOL_T, check_body, &data, check_handler, &data); \
-        if (scm_is_true (data)) abort();
-
-static SCM
-check_body (void *data)
-{
-  SCM num = *(SCM *) data;
-  scm_num2ulong (num, 1, NULL);
-  
-  return SCM_UNSPECIFIED;
-}
-
-static SCM
-check_handler (void *data, SCM tag, SCM throw_args)
-{
-  SCM *num = (SCM *) data;
-  *num = SCM_BOOL_F;
-
-  return SCM_UNSPECIFIED;
-}
-  
-SCM_DEFINE (scm_sys_check_number_conversions, "%check-number-conversions", 0, 0, 0, 
-            (void),
-	    "Number conversion sanity checking.")
-#define FUNC_NAME s_scm_sys_check_number_conversions
-{
-  SCM data = SCM_I_MAKINUM (-1);
-  CHECK;
-  data = scm_int2num (INT_MIN);
-  CHECK;
-  data = scm_ulong2num (ULONG_MAX);
-  data = scm_difference (SCM_INUM0, data);
-  CHECK;
-  data = scm_ulong2num (ULONG_MAX);
-  data = scm_sum (SCM_I_MAKINUM (1), data); data = scm_difference (SCM_INUM0, data);
-  CHECK;
-  data = scm_int2num (-10000); data = scm_product (data, data); data = scm_product (data, data);
-  CHECK;
-
-  return SCM_UNSPECIFIED;
-}
-#undef FUNC_NAME
-
-#endif
 
 void
 scm_init_numbers ()

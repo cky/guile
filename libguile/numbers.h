@@ -258,39 +258,6 @@ SCM_API SCM scm_exact_to_inexact (SCM z);
 SCM_API SCM scm_inexact_to_exact (SCM z);
 SCM_API SCM scm_trunc (SCM x);
 
-SCM_API SCM scm_short2num (short n);
-SCM_API SCM scm_ushort2num (unsigned short n);
-SCM_API SCM scm_int2num (int n);
-SCM_API SCM scm_uint2num (unsigned int n);
-SCM_API SCM scm_long2num (long n);
-SCM_API SCM scm_ulong2num (unsigned long n);
-SCM_API SCM scm_size2num (size_t n);
-SCM_API SCM scm_ptrdiff2num (scm_t_ptrdiff n);
-SCM_API short scm_num2short (SCM num, unsigned long int pos,
-			     const char *s_caller);
-SCM_API unsigned short scm_num2ushort (SCM num, unsigned long int pos,
-				       const char *s_caller);
-SCM_API int scm_num2int (SCM num, unsigned long int pos,
-			 const char *s_caller);
-SCM_API unsigned int scm_num2uint (SCM num, unsigned long int pos,
-				   const char *s_caller);
-SCM_API long scm_num2long (SCM num, unsigned long int pos,
-			   const char *s_caller);
-SCM_API unsigned long scm_num2ulong (SCM num, unsigned long int pos,
-				     const char *s_caller);
-SCM_API scm_t_ptrdiff scm_num2ptrdiff (SCM num, unsigned long int pos,
-                                       const char *s_caller);
-SCM_API size_t scm_num2size (SCM num, unsigned long int pos,
-			     const char *s_caller);
-#if SCM_SIZEOF_LONG_LONG != 0
-SCM_API SCM scm_long_long2num (long long sl);
-SCM_API SCM scm_ulong_long2num (unsigned long long sl);
-SCM_API long long scm_num2long_long (SCM num, unsigned long int pos,
-				     const char *s_caller);
-SCM_API unsigned long long scm_num2ulong_long (SCM num, unsigned long int pos,
-					       const char *s_caller);
-#endif
-
 SCM_API SCM scm_float2num (float n);
 SCM_API SCM scm_double2num (double n);
 SCM_API float scm_num2float (SCM num, unsigned long int pos,
