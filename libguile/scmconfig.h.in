@@ -76,6 +76,10 @@
    caller's stack frame.  On most machines, this is not the case.  */
 #undef SCM_STACK_GROWS_UP
 
+/* Define this if <utime.h> doesn't define struct utimbuf unless
+   _POSIX_SOURCE is #defined.  */
+#undef UTIMBUF_NEEDS_POSIX
+
 /* Define these to indicate the current version of Guile.  These
    values are supposed to be supplied by the configuration system.  */
 #undef GUILE_MAJOR_VERSION
@@ -208,8 +212,14 @@
 /* Define if you have the <sys/types.h> header file.  */
 #undef HAVE_SYS_TYPES_H
 
+/* Define if you have the <sys/utime.h> header file.  */
+#undef HAVE_SYS_UTIME_H
+
 /* Define if you have the <time.h> header file.  */
 #undef HAVE_TIME_H
 
 /* Define if you have the <unistd.h> header file.  */
 #undef HAVE_UNISTD_H
+
+/* Define if you have the <utime.h> header file.  */
+#undef HAVE_UTIME_H

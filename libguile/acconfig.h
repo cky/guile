@@ -23,6 +23,10 @@
    caller's stack frame.  On most machines, this is not the case.  */
 #undef SCM_STACK_GROWS_UP
 
+/* Define this if <utime.h> doesn't define struct utimbuf unless
+   _POSIX_SOURCE is #defined.  */
+#undef UTIMBUF_NEEDS_POSIX
+
 /* Define these to indicate the current version of Guile.  These
    values are supposed to be supplied by the configuration system.  */
 #undef GUILE_MAJOR_VERSION
