@@ -4,6 +4,8 @@
 
 	* Makefile.am (scripts_sources): Add api-diff and read-rfc822.
 
+	* scan-api (scan-api): No longer include timestamp.
+
 2002-05-11  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* scan-api (scan-api): Fix bug: No longer omit `C' and `Scheme' in
