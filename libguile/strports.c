@@ -95,15 +95,17 @@ stfill_buffer (SCM port)
 static void 
 st_resize_port (scm_port *pt, off_t new_size)
 {
+  SCM stream = SCM_PACK (pt->stream);
+
   off_t index = pt->write_pos - pt->write_buf;
 
   pt->write_buf_size = new_size;
 
-  scm_vector_set_length_x (pt->stream, SCM_MAKINUM (new_size));
+  scm_vector_set_length_x (stream, SCM_MAKINUM (new_size));
 
   /* reset buffer in case reallocation moved the string. */
   {
-    pt->read_buf = pt->write_buf = SCM_CHARS (pt->stream);
+    pt->read_buf = pt->write_buf = SCM_CHARS (stream);
     pt->read_pos = pt->write_pos = pt->write_buf + index;
     pt->write_end = pt->write_buf + pt->write_buf_size;
     pt->read_end = pt->read_buf + pt->read_buf_size;
@@ -273,7 +275,7 @@ scm_mkstrport (SCM pos, SCM str, long modes, const char *caller)
   pt = scm_add_to_port_table (z);
   SCM_SETCAR (z, scm_tc16_strport | modes);
   SCM_SETPTAB_ENTRY (z, pt);
-  SCM_SETSTREAM (z, str);
+  SCM_SETSTREAM (z, SCM_UNPACK (str));
   pt->write_buf = pt->read_buf = SCM_ROCHARS (str);
   pt->read_pos = pt->write_pos = pt->read_buf + SCM_INUM (pos);
   pt->write_buf_size = pt->read_buf_size = str_len;

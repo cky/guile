@@ -74,9 +74,8 @@ typedef struct
   int revealed;			/* 0 not revealed, > 1 revealed.
 				 * Revealed ports do not get GC'd.
 				 */
-  /* data for the underlying port implementation.  may be an SCM cell or 
-     cast to a pointer to C data.  */
-  SCM stream;
+  /* data for the underlying port implementation as a raw C value. */
+  scm_bits_t stream;
 
   SCM file_name;		/* debugging support.  */
   int line_number;		/* debugging support.  */
@@ -163,9 +162,9 @@ extern int scm_port_table_size; /* Number of ports in scm_port_table.  */
 #define SCM_CLOSEDP(x) (!SCM_OPENP(x))
 
 #define SCM_PTAB_ENTRY(x)         ((scm_port *) SCM_CELL_WORD_1 (x))
-#define SCM_SETPTAB_ENTRY(x,ent)  (SCM_SET_CELL_WORD_1 ((x), (ent)))
+#define SCM_SETPTAB_ENTRY(x,ent)  (SCM_SET_CELL_WORD_1 ((x), (scm_bits_t) (ent)))
 #define SCM_STREAM(x)             (SCM_PTAB_ENTRY(x)->stream)
-#define SCM_SETSTREAM(x,s)        (SCM_PTAB_ENTRY(x)->stream = (SCM) (s))
+#define SCM_SETSTREAM(x,s)        (SCM_PTAB_ENTRY(x)->stream = (scm_bits_t) (s))
 #define SCM_FILENAME(x)           (SCM_PTAB_ENTRY(x)->file_name)
 #define SCM_LINUM(x)              (SCM_PTAB_ENTRY(x)->line_number)
 #define SCM_COL(x)                (SCM_PTAB_ENTRY(x)->column_number)

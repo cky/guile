@@ -1,3 +1,16 @@
+2000-03-31  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* ports.h (scm_port):  Change type of stream member to scm_bits_t.
+
+	* gdbint.c (unmark_port, remark_port), ports.c (scm_markstream),
+	strports.c (st_resize_port, scm_mkstrport), vports (sf_flush,
+	sf_write, sf_fill_input, sf_close, scm_make_soft_port):  Since
+	streams are now of type scm_bits_t, SCM streams have to be
+	unpacked/packed.
+
+	* ports.h (SCM_SETPTAB_ENTRY, SCM_SETSTREAM):  Cast input to
+	scm_bits_t.
+
 2000-03-31  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* coop-defs.h (struct coop_t): Added `sto'-field again because of

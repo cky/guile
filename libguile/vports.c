@@ -71,7 +71,7 @@ static void
 sf_flush (SCM port)
 {
   scm_port *pt = SCM_PTAB_ENTRY (port);
-  SCM stream = pt->stream;
+  SCM stream = SCM_PACK (pt->stream);
 
   if (pt->write_pos > pt->write_buf)
     {
@@ -93,7 +93,7 @@ sf_flush (SCM port)
 static void
 sf_write (SCM port, const void *data, size_t size)
 {
-  SCM p = SCM_STREAM (port);
+  SCM p = SCM_PACK (SCM_STREAM (port));
 
   scm_apply (SCM_VELTS (p)[1], 
 	     scm_cons (scm_makfromstr ((char *) data, size, 0), SCM_EOL),
@@ -108,7 +108,7 @@ sf_write (SCM port, const void *data, size_t size)
 static int 
 sf_fill_input (SCM port)
 {
-  SCM p = SCM_STREAM (port);
+  SCM p = SCM_PACK (SCM_STREAM (port));
   SCM ans;
 
   ans = scm_apply (SCM_VELTS (p)[3], SCM_EOL, SCM_EOL); /* get char.  */
@@ -129,7 +129,7 @@ sf_fill_input (SCM port)
 static int 
 sf_close (SCM port)
 {
-  SCM p = SCM_STREAM (port);
+  SCM p = SCM_PACK (SCM_STREAM (port));
   SCM f = SCM_VELTS (p)[4];
   if (SCM_BOOL_F == f)
     return 0;
@@ -190,7 +190,7 @@ SCM_DEFINE (scm_make_soft_port, "make-soft-port", 2, 0, 0,
   scm_port_non_buffer (pt);
   SCM_SETCAR (z, scm_tc16_sfport | scm_mode_bits (SCM_ROCHARS (modes)));
   SCM_SETPTAB_ENTRY (z, pt);
-  SCM_SETSTREAM (z, pv);
+  SCM_SETSTREAM (z, SCM_UNPACK (pv));
   SCM_ALLOW_INTS;
   return z;
 }

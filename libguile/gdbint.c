@@ -145,7 +145,7 @@ unmark_port (SCM port)
   SCM stream, string;
   port_mark_p = SCM_GC8MARKP (port);
   SCM_CLRGC8MARK (port);
-  stream = SCM_STREAM (port);
+  stream = SCM_PACK (SCM_STREAM (port));
   stream_mark_p = SCM_GCMARKP (stream);
   SCM_CLRGCMARK (stream);
   string = SCM_CDR (stream);
@@ -157,7 +157,7 @@ unmark_port (SCM port)
 static void
 remark_port (SCM port)
 {
-  SCM stream = SCM_STREAM (port);
+  SCM stream = SCM_PACK (SCM_STREAM (port));
   SCM string = SCM_CDR (stream);
   if (string_mark_p) SCM_SETGC8MARK (string);
   if (stream_mark_p) SCM_SETGCMARK (stream);

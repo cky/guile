@@ -93,7 +93,7 @@ scm_markstream (SCM ptr)
   int openp;
   openp = SCM_UNPACK_CAR (ptr) & SCM_OPN;
   if (openp)
-    return SCM_STREAM  (ptr);
+    return SCM_PACK (SCM_STREAM (ptr));
   else
     return SCM_BOOL_F;
 }
