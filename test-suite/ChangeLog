@@ -1,3 +1,8 @@
+2004-04-06  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/numbers.test (quotient, remainder): Exercise inum/big at and
+	near special case inum == fixnum-min, big == -fixnum-min.
+
 2004-03-26  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/numbers.test (min, max): Check inexactness of big/real and
