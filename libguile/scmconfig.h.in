@@ -155,6 +155,9 @@
 /* Define if you want support for dynamic linking. */
 #undef DYNAMIC_LINKING
 
+/* Define if symbol tables on this system use leading underscores. */
+#undef USCORE
+
 /* Define if dlsym automatically supplies a leading underscore. */
 #undef DLSYM_ADDS_USCORE
 
