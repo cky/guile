@@ -114,7 +114,8 @@
 (define (run-last-command state)
   (let ((procedure (fluid-ref last-command)))
     (if procedure
-	(procedure state))))
+	(procedure state)
+	state)))
 
 (define (catch-user-errors port thunk)
   (catch 'debugger-user-error

@@ -1,3 +1,8 @@
+2001-08-02  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* debugger.scm (run-last-command): Return current state if
+	last-command fluid is not yet set.
+
 2001-08-02  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
 	* getopt-long.scm: Refill to fit in 80 columns.
