@@ -1,3 +1,11 @@
+2001-05-19  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* posix.texi (Networking): Split existing material into new nodes
+	`Network Address Conversion' and `Network Databases'.
+
+	* scheme-control.texi (Lazy Catch): Update doc for new constraint
+	that lazy-catch handlers are not allowed to return.
+
 2001-05-16  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* data-rep.texi, srfi-modules.texi (SRFI-14 Iterating Over

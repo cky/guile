@@ -1542,18 +1542,18 @@ close a pipe, but doesn't return the status.
 @section Networking
 
 @menu
-* Network Databases and Address Conversion::  
+* Network Address Conversion::
+* Network Databases::  
 * Network Sockets and Communication::  
 @end menu
 
-@node Network Databases and Address Conversion
-@subsection Network Databases and Address Conversion
+@node Network Address Conversion
+@subsection Network Address Conversion
 
 This section describes procedures which convert internet addresses
-and query various network databases.  Care should be taken when using
-the database routines since they are not reentrant.
+between numeric and string formats.
 
-@subsubsection Address Conversion
+@subsubsection IPv4 Address Conversion
 
 @deffn primitive inet-aton address
 Convert an IPv4 Internet address from printable string
@@ -1629,6 +1629,14 @@ the result is an integer with normal host byte ordering.
 (inet-pton AF_INET6 "::1") @result{} 1
 @end lisp
 @end deffn
+
+
+@node Network Databases
+@subsection Network Databases
+
+This section describes procedures which query various network databases.
+Care should be taken when using the database routines since they are not
+reentrant.
 
 @subsubsection The Host Database
 
