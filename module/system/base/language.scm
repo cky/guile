@@ -99,7 +99,7 @@
   (let ((compiled (object-file-name file)))
     (if (or (not (file-exists? compiled))
 	    (> (stat:mtime (stat file)) (stat:mtime (stat compiled))))
-	(compile-file-in file env lang))
+	(compile-file-in file env lang :O))
     (call-with-input-file compiled
       (lambda (p)
 	(let ((bytes (make-uniform-vector (stat:size (stat compiled)) #\a)))

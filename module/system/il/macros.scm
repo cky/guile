@@ -260,9 +260,9 @@
 
 ;;;; 6.4 Control features
 
-;; (define (@procedure? x) `(@@ procedure? x))
+(define (@procedure? x) `((@ Core::procedure?) ,x))
 
-;; (define (@apply proc . args) ...)
+(define (@apply proc . args) `(@@ apply ,proc ,@args))
 
 ;;; (define (@force promise) `(@@ force promise))
 

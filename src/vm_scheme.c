@@ -169,8 +169,7 @@ VM_DEFINE_FUNCTION (vector, "vector", -1)
 {
   ARGSN (n);
   POP_LIST (n);
-  *sp = scm_vector (*sp);
-  NEXT;
+  RETURN (scm_vector (*sp));
 }
 
 

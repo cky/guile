@@ -94,12 +94,13 @@ vm_engine (SCM vm, SCM program, SCM args)
     /* Initial frame */
     CACHE_REGISTER ();
     CACHE_PROGRAM ();
+    PUSH (program);
     NEW_FRAME ();
 
     /* Initial arguments */
+    PUSH (prog);
     for (; !SCM_NULLP (args); args = SCM_CDR (args))
       PUSH (SCM_CAR (args));
-    PUSH (prog);
   }
 
   /* Let's go! */

@@ -72,8 +72,7 @@
     (($ <vm-asm> venv ($ <glil-asm> nargs nrest nlocs nexts _) body)
      (let ((stack '())
 	   (label-alist '())
-	   (object-alist '())
-	   (nvars (+ nargs nlocs -1)))
+	   (object-alist '()))
        (define (push-code! code)
 	 (set! stack (optimizing-push code stack)))
        (define (push-object! x)
@@ -106,18 +105,17 @@
 		      (else (push-object! x)))))
 
 	   (($ <glil-argument> op index)
-	    (push-code! `(,(symbol-append 'local- op) ,(- nvars index))))
+	    (push-code! `(,(symbol-append 'local- op) ,index)))
 
 	   (($ <glil-local> op index)
-	    (push-code! `(,(symbol-append 'local- op)
-			  ,(- nvars (+ nargs index)))))
+	    (push-code! `(,(symbol-append 'local- op) ,(+ nargs index))))
 
 	   (($ <glil-external> op depth index)
 	    (do ((e venv (venv-parent e))
 		 (d depth (1- d))
-		 (i 0 (+ i (venv-nexts e))))
+		 (n 0 (+ n (venv-nexts e))))
 		((= d 0)
-		 (push-code! `(,(symbol-append 'external- op) ,(+ index i))))))
+		 (push-code! `(,(symbol-append 'external- op) ,(+ n index))))))
 
 	   (($ <glil-module> op module name)
 	    ;; (let ((vlink (make-vlink (make-vmod module) name)))

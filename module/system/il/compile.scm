@@ -39,14 +39,36 @@
 
 (define (optimize x)
   (match x
-    (($ <ghil-call> proc args)
+    (($ <ghil-set> env var val)
+     (make-<ghil-set> env var (optimize val)))
+
+    (($ <ghil-if> test then else)
+     (make-<ghil-if> (optimize test) (optimize then) (optimize else)))
+
+    (($ <ghil-begin> exps)
+     (make-<ghil-begin> (map optimize exps)))
+
+    (($ <ghil-bind> env vars vals body)
+     (make-<ghil-bind> env vars (map optimize vals) (optimize body)))
+
+    (($ <ghil-lambda> env vars rest body)
+     (make-<ghil-lambda> env vars rest (optimize body)))
+
+    (($ <ghil-inst> inst args)
+     (make-<ghil-inst> inst (map optimize args)))
+
+    (($ <ghil-call> env proc args)
      (match proc
        ;; ((@lambda (VAR...) BODY...) ARG...) =>
        ;;   (@let ((VAR ARG) ...) BODY...)
-       (($ <ghil-lambda> env vars #f body)
-	(optimize (make-<ghil-bind> vars args body)))
+       (($ <ghil-lambda> lambda-env vars #f body)
+	(for-each (lambda (v)
+		    (if (eq? v.kind 'argument) (set! v.kind 'local))
+		    (ghil-env-add! env v))
+		  lambda-env.variables)
+	(optimize (make-<ghil-bind> env vars args body)))
        (else
-	(make-<ghil-call> (optimize proc) (for-each optimize args)))))
+	(make-<ghil-call> env (optimize proc) (map optimize args)))))
     (else x)))
 
 
@@ -144,7 +166,7 @@
 		   (reverse vars))
 	 (comp-tail body))
 
-	(($ <ghil-lambda> vars rest body)
+	(($ <ghil-lambda> env vars rest body)
 	 (return-code! (codegen tree)))
 
 	(($ <ghil-inst> inst args)
@@ -155,12 +177,12 @@
 	 (if drop (push-code! *ia-drop*))
 	 (if tail (push-code! *ia-return*)))
 
-	(($ <ghil-call> proc args)
-	 ;; ARGS...
+	(($ <ghil-call> env proc args)
 	 ;; PROC
+	 ;; ARGS...
 	 ;; ([tail-]call NARGS)
-	 (for-each comp-push args)
 	 (comp-push proc)
+	 (for-each comp-push args)
 	 (let ((inst (if tail 'tail-call 'call)))
 	   (push-code! (make-<glil-call> inst (length args))))
 	 (if drop (push-code! *ia-drop*)))))

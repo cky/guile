@@ -41,7 +41,7 @@
 
 /* This file is included in vm_engine.c */
 
-VM_DEFINE_INSTRUCTION (load_integer, "load-integer", -1, 0, 1)
+VM_DEFINE_LOADER (load_integer, "load-integer")
 {
   size_t len;
 
@@ -58,7 +58,7 @@ VM_DEFINE_INSTRUCTION (load_integer, "load-integer", -1, 0, 1)
     SCM_MISC_ERROR ("load-integer: not implemented yet", SCM_EOL);
 }
 
-VM_DEFINE_INSTRUCTION (load_number, "load-number", -1, 0, 1)
+VM_DEFINE_LOADER (load_number, "load-number")
 {
   size_t len;
   FETCH_LENGTH (len);
@@ -67,7 +67,7 @@ VM_DEFINE_INSTRUCTION (load_number, "load-number", -1, 0, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (load_string, "load-string", -1, 0, 1)
+VM_DEFINE_LOADER (load_string, "load-string")
 {
   size_t len;
   FETCH_LENGTH (len);
@@ -76,7 +76,7 @@ VM_DEFINE_INSTRUCTION (load_string, "load-string", -1, 0, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (load_symbol, "load-symbol", -1, 0, 1)
+VM_DEFINE_LOADER (load_symbol, "load-symbol")
 {
   size_t len;
   FETCH_LENGTH (len);
@@ -85,7 +85,7 @@ VM_DEFINE_INSTRUCTION (load_symbol, "load-symbol", -1, 0, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (load_keyword, "load-keyword", -1, 0, 1)
+VM_DEFINE_LOADER (load_keyword, "load-keyword")
 {
   SCM sym;
   size_t len;
@@ -96,7 +96,7 @@ VM_DEFINE_INSTRUCTION (load_keyword, "load-keyword", -1, 0, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (load_module, "load-module", -1, 0, 1)
+VM_DEFINE_LOADER (load_module, "load-module")
 {
   size_t len;
   FETCH_LENGTH (len);
@@ -105,7 +105,7 @@ VM_DEFINE_INSTRUCTION (load_module, "load-module", -1, 0, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (load_program, "load-program", -1, 0, 1)
+VM_DEFINE_LOADER (load_program, "load-program")
 {
   size_t len;
   SCM prog, x;
@@ -148,11 +148,11 @@ VM_DEFINE_INSTRUCTION (load_program, "load-program", -1, 0, 1)
   else
     {
       /* Other cases */
-      SCM_PROGRAM_NARGS (prog) = SCM_INUM (sp[4]);
-      SCM_PROGRAM_NREST (prog) = SCM_INUM (sp[3]);
-      SCM_PROGRAM_NLOCS (prog) = SCM_INUM (sp[2]);
-      SCM_PROGRAM_NEXTS (prog) = SCM_INUM (sp[1]);
-      sp += 4;
+      sp -= 4;
+      SCM_PROGRAM_NARGS (prog) = SCM_INUM (sp[1]);
+      SCM_PROGRAM_NREST (prog) = SCM_INUM (sp[2]);
+      SCM_PROGRAM_NLOCS (prog) = SCM_INUM (sp[3]);
+      SCM_PROGRAM_NEXTS (prog) = SCM_INUM (sp[4]);
     }
 
   *sp = prog;
@@ -161,8 +161,8 @@ VM_DEFINE_INSTRUCTION (load_program, "load-program", -1, 0, 1)
 
 VM_DEFINE_INSTRUCTION (link, "link", 0, 2, 1)
 {
-  sp[1] = scm_c_env_vcell (sp[1], sp[0], 1);
-  DROP ();
+  sp--;
+  *sp = scm_c_env_vcell (sp[0], sp[1], 1);
   NEXT;
 }
 

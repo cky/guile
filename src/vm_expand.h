@@ -56,6 +56,7 @@
 
 #undef VM_DEFINE_INSTRUCTION
 #undef VM_DEFINE_FUNCTION
+#undef VM_DEFINE_LOADER
 #ifdef VM_INSTRUCTION_TO_TABLE
 /*
  * These will go to scm_instruction_table in vm.c
@@ -64,6 +65,8 @@
   {VM_OPCODE (tag), name, len, npop, npush},
 #define VM_DEFINE_FUNCTION(tag,name,nargs) \
   {VM_OPCODE (tag), name, (nargs < 0) ? 1 : 0, nargs, 1},
+#define VM_DEFINE_LOADER(tag,name) \
+  {VM_OPCODE (tag), name, -1, 0, 1},
 
 #else
 #ifdef VM_INSTRUCTION_TO_LABEL
@@ -72,6 +75,7 @@
  */
 #define VM_DEFINE_INSTRUCTION(tag,name,len,npop,npush)	VM_ADDR (tag),
 #define VM_DEFINE_FUNCTION(tag,name,nargs)		VM_ADDR (tag),
+#define VM_DEFINE_LOADER(tag,name)			VM_ADDR (tag),
 
 #else
 #ifdef VM_INSTRUCTION_TO_OPCODE
@@ -80,6 +84,7 @@
  */
 #define VM_DEFINE_INSTRUCTION(tag,name,len,npop,npush)	VM_OPCODE (tag),
 #define VM_DEFINE_FUNCTION(tag,name,nargs)		VM_OPCODE (tag),
+#define VM_DEFINE_LOADER(tag,name)			VM_OPCODE (tag),
 
 #else /* Otherwise */
 /*
@@ -87,6 +92,7 @@
  */
 #define VM_DEFINE_INSTRUCTION(tag,name,len,npop,npush)	VM_TAG (tag)
 #define VM_DEFINE_FUNCTION(tag,name,nargs)		VM_TAG (tag)
+#define VM_DEFINE_LOADER(tag,name)			VM_TAG (tag)
 
 #endif /* VM_INSTRUCTION_TO_OPCODE */
 #endif /* VM_INSTRUCTION_TO_LABEL */

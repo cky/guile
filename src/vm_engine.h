@@ -179,15 +179,15 @@
  */
 
 #define CHECK_OVERFLOW()			\
-  if (sp < stack_base)				\
+  if (sp > stack_limit)				\
     goto vm_error_stack_overflow
 
 #define CHECK_UNDERFLOW()			\
-  if (sp >= stack_limit)			\
+  if (sp < stack_base)				\
     goto vm_error_stack_underflow
 
-#define PUSH(x)	do { CHECK_OVERFLOW (); *--sp = x; } while (0)
-#define DROP()	do { CHECK_UNDERFLOW (); sp++; } while (0)
+#define PUSH(x)	do { sp++; CHECK_OVERFLOW (); *sp = x; } while (0)
+#define DROP()	do { CHECK_UNDERFLOW (); sp--; } while (0)
 #define POP(x)	do { x = *sp; DROP (); } while (0)
 
 #define CONS(x,y,z)				\
@@ -204,10 +204,10 @@
 do {						\
   int i;					\
   SCM l = SCM_EOL;				\
-  for (i = 0; i < n; i++)			\
+  sp -= n;					\
+  for (i = n; i; i--)				\
     CONS (l, sp[i], l);				\
-  sp += n - 1;					\
-  *sp = l;					\
+  PUSH (l);					\
 } while (0)
 
 
@@ -245,8 +245,8 @@ do {						\
  */
 
 #define ARGS1(a1)	SCM a1 = sp[0];
-#define ARGS2(a1,a2)	SCM a1 = sp[1], a2 = sp[0]; sp++;
-#define ARGS3(a1,a2,a3)	SCM a1 = sp[2], a2 = sp[1], a3 = sp[0]; sp += 2;
+#define ARGS2(a1,a2)	SCM a1 = sp[-1], a2 = sp[0]; sp--;
+#define ARGS3(a1,a2,a3)	SCM a1 = sp[-2], a2 = sp[-1], a3 = sp[0]; sp -= 2;
 #define ARGSN(an)	int an = FETCH ();
 
 #define RETURN(x)	do { *sp = x; NEXT; } while (0)
@@ -255,26 +255,6 @@ do {						\
 /*
  * Frame allocation
  */
-
-#define NEW_FRAME()				\
-{						\
-  SCM ra = SCM_VM_MAKE_FRAME_ADDRESS (ip);	\
-  SCM dl = SCM_VM_MAKE_BYTE_ADDRESS (fp);	\
-  ip = bp->base;				\
-  fp = sp - bp->nlocs;				\
-  sp = SCM_VM_FRAME_LOWER_ADDRESS (fp);		\
-  CHECK_OVERFLOW ();				\
-  SCM_VM_FRAME_PROGRAM (fp) = program;		\
-  SCM_VM_FRAME_DYNAMIC_LINK (fp) = dl;		\
-  SCM_VM_FRAME_RETURN_ADDRESS (fp) = ra;	\
-}
-
-#define FREE_FRAME()						\
-{								\
-  sp = fp + bp->nargs + bp->nlocs;				\
-  ip = SCM_VM_BYTE_ADDRESS (SCM_VM_FRAME_RETURN_ADDRESS (fp));	\
-  fp = SCM_VM_FRAME_ADDRESS (SCM_VM_FRAME_DYNAMIC_LINK (fp));	\
-}
 
 #define INIT_ARGS()				\
 {						\
@@ -290,6 +270,27 @@ do {						\
       if (nargs != bp->nargs)			\
 	goto vm_error_wrong_num_args;		\
     }						\
+}
+
+/* See vm.h for the layout of stack frames */
+
+#define NEW_FRAME()				\
+{						\
+  sp[1] = SCM_VM_MAKE_BYTE_ADDRESS (ip);	\
+  sp[2] = SCM_VM_MAKE_STACK_ADDRESS (fp);	\
+  ip = bp->base;				\
+  fp = sp - bp->nargs + 1;			\
+  sp = sp + 2;					\
+  CHECK_OVERFLOW ();				\
+}
+
+#define FREE_FRAME()				\
+{						\
+  SCM *new_sp = fp - 2;				\
+  sp = fp + bp->nargs + bp->nlocs;		\
+  ip = SCM_VM_BYTE_ADDRESS (sp[0]);		\
+  fp = SCM_VM_STACK_ADDRESS (sp[1]);		\
+  sp = new_sp;					\
 }
 
 /*

@@ -37,7 +37,7 @@
    <ghil-bind>-1 <ghil-bind>-2 <ghil-bind>-3 <ghil-bind>-4
    make-<ghil-lambda> <ghil-lambda>?
    <ghil-lambda>-1 <ghil-lambda>-2 <ghil-lambda>-3 <ghil-lambda>-4
-   make-<ghil-call> <ghil-call>? <ghil-call>-1 <ghil-call>-2
+   make-<ghil-call> <ghil-call>? <ghil-call>-1 <ghil-call>-2 <ghil-call>-3
    make-<ghil-inst> <ghil-inst>? <ghil-inst>-1 <ghil-inst>-2
    ))
 
@@ -53,8 +53,8 @@
 (define-structure (<ghil-if> test then else))
 (define-structure (<ghil-begin> exps))
 (define-structure (<ghil-bind> env vars vals body))
-(define-structure (<ghil-lambda> env args rest body))
-(define-structure (<ghil-call> proc args))
+(define-structure (<ghil-lambda> env vars rest body))
+(define-structure (<ghil-call> env proc args))
 (define-structure (<ghil-inst> inst args))
 
 
@@ -128,14 +128,13 @@
 (define-method (ghil-env-ref (env <ghil-env>) (sym <symbol>))
   (assq-ref env.table sym))
 
-(define-method (ghil-env-add! (env <ghil-env>) (sym <symbol>) kind)
-  (let ((var (make-ghil-var env sym kind)))
-    (set! env.table (acons sym var env.table))
-    (set! env.variables (cons var env.variables))
-    var))
+(export ghil-env-add!)
+(define-method (ghil-env-add! (env <ghil-env>) (var <ghil-var>))
+  (set! env.table (acons var.name var env.table))
+  (set! env.variables (cons var env.variables)))
 
-(define-method (ghil-env-remove! (env <ghil-env>) (sym <symbol>))
-  (set! env.table (assq-remove! env.table sym)))
+(define-method (ghil-env-remove! (env <ghil-env>) (var <ghil-var>))
+  (set! env.table (assq-remove! env.table var.name)))
 
 (define-method (ghil-lookup (env <ghil-env>) (sym <symbol>))
   (or (ghil-env-ref env sym)
@@ -173,7 +172,7 @@
 	(if (ghil-primitive-macro? head)
 	    (parse (apply (ghil-macro-expander head) tail) e)
 	    (parse-primitive head tail e))
-	(make-<ghil-call> (parse head e) (map-parse tail e)))))
+	(make-<ghil-call> e (parse head e) (map-parse tail e)))))
 
 (define (parse-primitive prim args e)
   (case prim
@@ -229,24 +228,17 @@
     ((@begin)
      (parse-body args e))
 
-    ;; (@let ((SYM INIT)...) BODY...)
-    ((@let)
-     (match args
-       ((((sym init) ...) body ...)
-	(let* ((vals (map-parse init e))
-	       (vars (map (lambda (s) (ghil-env-add! e s 'local)) sym))
-	       (body (parse-body body e)))
-	  (for-each (lambda (s) (ghil-env-remove! e s)) sym)
-	  (make-<ghil-bind> e vars vals body)))))
-
     ;; (@letrec ((SYM INIT)...) BODY...)
     ((@letrec)
      (match args
        ((((sym init) ...) body ...)
-	(let* ((vars (map (lambda (s) (ghil-env-add! e s 'local)) sym))
+	(let* ((vars (map (lambda (s)
+			    (let ((v (make-ghil-var e s 'local)))
+			      (ghil-env-add! e v) v))
+			  sym))
 	       (vals (map-parse init e))
 	       (body (parse-body body e)))
-	  (for-each (lambda (s) (ghil-env-remove! e s)) sym)
+	  (for-each (lambda (v) (ghil-env-remove! e v)) vars)
 	  (make-<ghil-bind> e vars vals body)))))
 
     ;; (@lambda FORMALS BODY...)
@@ -255,8 +247,11 @@
        ((formals . body)
 	(receive (syms rest) (parse-formals formals)
 	  (let* ((e (make-ghil-env e))
-		 (args (map (lambda (s) (ghil-env-add! e s 'argument)) syms)))
-	    (make-<ghil-lambda> e args rest (parse-body body e)))))))
+		 (vars (map (lambda (s)
+			      (let ((v (make-ghil-var e s 'argument)))
+				(ghil-env-add! e v) v))
+			    syms)))
+	    (make-<ghil-lambda> e vars rest (parse-body body e)))))))
 
     (else (error "Unknown primitive:" prim))))
 

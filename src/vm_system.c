@@ -209,9 +209,9 @@ VM_DEFINE_INSTRUCTION (external_set, "external-set", 1, 1, 0)
 
 VM_DEFINE_INSTRUCTION (variable_set, "variable-set", 0, 1, 0)
 {
-  VARIABLE_SET (sp[0], sp[1]);
-  scm_set_object_property_x (sp[1], scm_sym_name, SCM_CAR (sp[0]));
-  sp += 2;
+  VARIABLE_SET (sp[0], sp[-1]);
+  scm_set_object_property_x (sp[-1], scm_sym_name, SCM_CAR (sp[0]));
+  sp -= 2;
   NEXT;
 }
 
@@ -279,23 +279,27 @@ VM_DEFINE_INSTRUCTION (make_closure, "make-closure", 0, 1, 1)
 
 VM_DEFINE_INSTRUCTION (call, "call", 1, -1, 1)
 {
-  POP (program);
+  SCM x;
   nargs = FETCH ();
+  x = sp[-nargs];
 
  vm_call:
   /*
    * Subprogram call
    */
-  if (SCM_PROGRAM_P (program))
+  if (SCM_PROGRAM_P (x))
     {
-      int i;
+      int i, last;
+
+      program = x;
     vm_call_program:
       CACHE_PROGRAM ();
       INIT_ARGS ();
       NEW_FRAME ();
 
       /* Init local variables */
-      for (i = 0; i < bp->nlocs; i++)
+      last = bp->nargs + bp->nlocs;
+      for (i = bp->nargs; i < last; i++)
 	LOCAL_SET (i, SCM_UNDEFINED);
 
       /* Create external variables */
@@ -309,29 +313,29 @@ VM_DEFINE_INSTRUCTION (call, "call", 1, -1, 1)
   /*
    * Function call
    */
-  if (!SCM_FALSEP (scm_procedure_p (program)))
+  if (!SCM_FALSEP (scm_procedure_p (x)))
     {
       POP_LIST (nargs);
-      *sp = scm_apply (program, *sp, SCM_EOL);
-      program = SCM_VM_FRAME_PROGRAM (fp);
+      sp[-1] = scm_apply (x, *sp, SCM_EOL);
+      sp--;
       NEXT;
     }
   /*
    * Continuation call
    */
-  if (SCM_VM_CONT_P (program))
+  if (SCM_VM_CONT_P (x))
     {
     vm_call_cc:
       /* Check the number of arguments */
       if (nargs != 1)
-	scm_wrong_num_args (program);
+	scm_wrong_num_args (x);
 
       /* Reinstate the continuation */
       EXIT_HOOK ();
-      reinstate_vm_cont (vp, program);
+      reinstate_vm_cont (vp, x);
       CACHE_REGISTER ();
-      /* We don't need to set the return value here
-	 because it is already on the top of the stack. */
+      program = SCM_VM_FRAME_PROGRAM (fp);
+      CACHE_PROGRAM ();
       NEXT;
     }
 
@@ -341,8 +345,8 @@ VM_DEFINE_INSTRUCTION (call, "call", 1, -1, 1)
 VM_DEFINE_INSTRUCTION (tail_call, "tail-call", 1, -1, 1)
 {
   SCM x;
-  POP (x);
   nargs = FETCH ();
+  x = sp[-nargs];
 
   SCM_TICK;	/* allow interrupt here */
 
@@ -357,54 +361,58 @@ VM_DEFINE_INSTRUCTION (tail_call, "tail-call", 1, -1, 1)
       if (bp->nargs)
 	{
 	  int i;
-	  SCM *base = fp + bp->nlocs;
+	  sp -= bp->nargs - 1;
 	  for (i = 0; i < bp->nargs; i++)
-	    base[i] = sp[i];
+	    LOCAL_SET (i, sp[i]);
+	  sp -= 2;
 	}
 
       ip = bp->base;
-      sp = SCM_VM_FRAME_LOWER_ADDRESS (fp);
       APPLY_HOOK ();
       NEXT;
     }
-  program = x;
   /*
    * Proper tail call
    */
-  if (SCM_PROGRAM_P (program))
+  if (SCM_PROGRAM_P (x))
     {
-      int i;
-      SCM *base = sp;
+      SCM *limit = sp;
+      SCM *base  = sp - nargs - 1;
 
       /* Exit the current frame */
       EXIT_HOOK ();
       FREE_FRAME ();
 
       /* Move arguments */
-      sp -= nargs;
-      for (i = 0; i < nargs; i++)
-	sp[i] = base[i];
+      while (base < limit)
+	*++sp = *++base;
 
       /* Call the program */
+      program = x;
       goto vm_call_program;
     }
   /*
    * Function call
    */
-  if (!SCM_FALSEP (scm_procedure_p (program)))
+  if (!SCM_FALSEP (scm_procedure_p (x)))
     {
       POP_LIST (nargs);
-      *sp = scm_apply (program, *sp, SCM_EOL);
-      program = SCM_VM_FRAME_PROGRAM (fp);
+      sp[-1] = scm_apply (x, *sp, SCM_EOL);
+      sp--;
       goto vm_return;
     }
   /*
    * Continuation call
    */
-  if (SCM_VM_CONT_P (program))
+  if (SCM_VM_CONT_P (x))
     goto vm_call_cc;
 
   goto vm_error_wrong_type_apply;
+}
+
+VM_DEFINE_INSTRUCTION (apply, "apply", 1, -1, 1)
+{
+  
 }
 
 VM_DEFINE_INSTRUCTION (call_cc, "call/cc", 1, 1, 1)

@@ -353,7 +353,7 @@ Start debugger."
   (debug))
 
 (define (trace repl form . opts)
-  "trace [-a] FORM
+  "trace [-b] FORM
 Trace execution."
   (apply vm-trace repl.vm (repl-compile repl form) opts))
 
