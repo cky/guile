@@ -22,13 +22,13 @@ exec ${GUILE-guile} -c "(apply $main (cdr (command-line)))" "$@"
 ;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
 ;; Boston, MA 02111-1307 USA
 
+;;; Author: Thien-Thi Nguyen
+
 ;;; Commentary:
 
 ;; Usage: display-commentary FILE1 FILE2 ...
 ;;
 ;; Display Commentary section from FILE1, FILE2 and so on.
-;;
-;; Author: Thien-Thi Nguyen
 
 ;;; Code:
 

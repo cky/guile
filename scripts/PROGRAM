@@ -22,6 +22,8 @@ exec ${GUILE-guile} -c "(apply $main (cdr (command-line)))" "$@"
 ;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
 ;; Boston, MA 02111-1307 USA
 
+;;; Author: J.R.Hacker
+
 ;;; Commentary:
 
 ;; Usage: PROGRAM [ARGS]
@@ -29,8 +31,6 @@ exec ${GUILE-guile} -c "(apply $main (cdr (command-line)))" "$@"
 ;; PROGRAM does something.
 ;;
 ;; TODO: Write it!
-;;
-;; Author: J.R.Hacker
 
 ;;; Code:
 

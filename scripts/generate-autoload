@@ -22,6 +22,8 @@ exec ${GUILE-guile} -c "(apply $main (cdr (command-line)))" "$@"
 ;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
 ;; Boston, MA 02111-1307 USA
 
+;;; Author: Thien-Thi Nguyen
+
 ;;; Commentary:
 
 ;; Usage: generate-autoload [OPTIONS] FILE1 FILE2 ...
@@ -55,8 +57,6 @@ exec ${GUILE-guile} -c "(apply $main (cdr (command-line)))" "$@"
 ;; (generate-autoload "generate-autoload")
 ;; (generate-autoload "--target" "(my module)" "generate-autoload")
 ;; (apply generate-autoload "--target" "(my module)" '("foo" "bar" "baz"))
-;;
-;; Author: Thien-Thi Nguyen
 
 ;;; Code:
 

@@ -22,6 +22,8 @@ exec ${GUILE-guile} -c "(apply $main (cdr (command-line)))" "$@"
 ;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
 ;; Boston, MA 02111-1307 USA
 
+;;; Author: Thien-Thi Nguyen based on PERL script by Keisuke Nishida
+
 ;;; Commentary:
 
 ;; Usage: use2dot [OPTIONS] [FILE ...]
@@ -51,8 +53,6 @@ exec ${GUILE-guile} -c "(apply $main (cdr (command-line)))" "$@"
 ;; - add `--load-synonyms' option
 ;; - add `--ignore-module' option
 ;; - handle arbitrary command-line key/value configuration
-;;
-;; Author: Thien-Thi Nguyen based on PERL script by Keisuke Nishida
 
 ;;; Code:
 

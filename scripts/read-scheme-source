@@ -22,6 +22,8 @@ exec ${GUILE-guile} -c "(apply $main (cdr (command-line)))" "$@"
 ;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
 ;; Boston, MA 02111-1307 USA
 
+;;; Author: Thien-Thi Nguyen
+
 ;;; Commentary:
 
 ;; Usage: read-scheme-source FILE1 FILE2 ...
@@ -35,7 +37,7 @@ exec ${GUILE-guile} -c "(apply $main (cdr (command-line)))" "$@"
 ;;
 ;;    (quote (filename FILENAME))
 ;;
-;;    (quote (comment :leading-parens N
+;;    (quote (comment :leading-semicolons N
 ;;                    :text LINE))
 ;;
 ;;    (quote (whitespace :text LINE))
@@ -77,8 +79,6 @@ exec ${GUILE-guile} -c "(apply $main (cdr (command-line)))" "$@"
 ;;
 ;; TODO: Add option "--clump-comments", maybe w/ different clumping styles.
 ;;       Make `annotate!' extensible.
-;;
-;; Author: Thien-Thi Nguyen
 
 ;;; Code:
 
@@ -154,8 +154,9 @@ exec ${GUILE-guile} -c "(apply $main (cdr (command-line)))" "$@"
                   ((regexp-exec all-comment-rx line)
                    => (lambda (m)
                         (nb! `'(comment
-                                :leading-parens ,(let ((m1 (vector-ref m 1)))
-                                                   (- (cdr m1) (car m1)))
+                                :leading-semicolons
+                                ,(let ((m1 (vector-ref m 1)))
+                                   (- (cdr m1) (car m1)))
                                 :text ,line))))
                   (else
                    (unread-string line p)

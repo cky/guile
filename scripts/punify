@@ -22,6 +22,8 @@ exec ${GUILE-guile} -c "(apply $main (cdr (command-line)))" "$@"
 ;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
 ;; Boston, MA 02111-1307 USA
 
+;;; Author: Thien-Thi Nguyen
+
 ;;; Commentary:
 
 ;; Usage: punify FILE1 FILE2 ...
@@ -38,8 +40,6 @@ exec ${GUILE-guile} -c "(apply $main (cdr (command-line)))" "$@"
 ;; TODO: Read from stdin.
 ;;       Handle vectors.
 ;;       Identifier punification.
-;;
-;; Author: Thien-Thi Nguyen
 
 ;;; Code:
 
