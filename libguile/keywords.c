@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998, 1999 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998, 1999, 2000 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -64,15 +64,6 @@ prin_keyword (SCM exp,SCM port,scm_print_state *pstate)
 }
 
 int scm_tc16_keyword;
-
-
-#if (SCM_DEBUG_DEPRECATED == 0)
-
-/* This global is only kept for backward compatibility.
-   Will be removed in next release.  */
-int scm_tc16_kw;
-
-#endif  /* SCM_DEBUG_DEPRECATED == 0 */
 
 
 SCM_DEFINE (scm_make_keyword_from_dash_symbol, "make-keyword-from-dash-symbol", 1, 0, 0, 
@@ -141,12 +132,6 @@ scm_init_keywords ()
 {
   scm_tc16_keyword = scm_make_smob_type_mfpe ("keyword", 0,
                                              scm_markcdr, NULL, prin_keyword, NULL);
-
-#if (SCM_DEBUG_DEPRECATED == 0)
-
-  scm_tc16_kw = scm_tc16_keyword;
-
-#endif  /* SCM_DEBUG_DEPRECATED == 0 */
 
   scm_keyword_obarray = scm_make_vector (SCM_MAKINUM (256), SCM_EOL);
 #include "libguile/keywords.x"
