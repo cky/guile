@@ -1,3 +1,20 @@
+2001-03-04  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* debug.c (scm_procedure_source, scm_procedure_environment),
+	print.c (scm_get_print_state), ramap.c (scm_array_fill_int,
+	scm_array_index_map_x), sort.c (scm_sort_x, scm_sort,
+	scm_stable_sort_x, scm_stable_sort), stacks.c (scm_make_stack,
+	scm_last_stack_frame), symbols.c (scm_sym2vcell, scm_sym2ovcell),
+	unif.c (scm_list_to_uniform_array, scm_uniform_vector_length,
+	scm_transpose_array, scm_enclose_array, scm_array_in_bounds_p,
+	scm_uniform_vector_ref, scm_array_set_x, scm_uniform_array_read_x,
+	scm_uniform_array_write, scm_bit_set_star_x, scm_bit_count_star,
+	scm_array_to_list, scm_array_prototype), validate.h
+	(SCM_VALIDATE_NUMBER_COPY):  Don't call function scm_wta, call
+	scm_misc_error or scm_wrong_type_arg instead.
+
+	* validate.h (SCM_WTA, RETURN_SCM_WTA):  Deprecated.
+
 2001-03-04  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
 
 	* goops.c, goops.h (scm_sys_pre_expand_closure_x): Removed.

@@ -535,7 +535,7 @@ scm_array_fill_int (SCM ra, SCM fill, SCM ignore)
 		  ve[i] |= ~(~0L << ((base + n) % SCM_LONG_BIT));
 	      }
 	    else
-	      badarg2:SCM_WTA (2,fill);
+	      badarg2:SCM_WRONG_TYPE_ARG (2, fill);
 	  }
 	else
 	  {
@@ -1700,7 +1700,7 @@ SCM_DEFINE (scm_array_index_map_x, "array-index-map!", 2, 0, 0,
   switch (SCM_TYP7(ra))
     {
     default:
-    badarg:SCM_WTA (1,ra);
+    badarg:SCM_WRONG_TYPE_ARG (1, ra);
     case scm_tc7_vector:
     case scm_tc7_wvect:
       {

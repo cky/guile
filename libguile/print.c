@@ -1130,7 +1130,7 @@ SCM_DEFINE (scm_get_print_state, "get-print-state", 1, 0, 0,
     return SCM_PORT_WITH_PS_PS (port);
   if (SCM_OUTPUT_PORT_P (port))
     return SCM_BOOL_F;
-  RETURN_SCM_WTA (1,port);
+  SCM_WRONG_TYPE_ARG (1, port);
 }
 #undef FUNC_NAME
 

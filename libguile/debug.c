@@ -446,8 +446,8 @@ SCM_DEFINE (scm_procedure_source, "procedure-source", 1, 0, 0,
        built in procedures! */
     return scm_procedure_property (proc, scm_sym_source);
   default:
-    SCM_WTA(1,proc);
-    return SCM_BOOL_F;
+    SCM_WRONG_TYPE_ARG (1, proc);
+    /* not reached */
   }
 }
 #undef FUNC_NAME
@@ -467,8 +467,8 @@ SCM_DEFINE (scm_procedure_environment, "procedure-environment", 1, 0, 0,
 #endif
     return SCM_EOL;
   default:
-    SCM_WTA(1,proc);
-    return SCM_BOOL_F;
+    SCM_WRONG_TYPE_ARG (1, proc);
+    /* not reached */
   }
 }
 #undef FUNC_NAME

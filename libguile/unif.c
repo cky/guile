@@ -256,7 +256,7 @@ SCM_DEFINE (scm_uniform_vector_length, "uniform-vector-length", 1, 0, 0,
   switch SCM_TYP7 (v)
     {
     default:
-    badarg1:SCM_WTA(1,v);
+    badarg1:SCM_WRONG_TYPE_ARG (1, v);
     case scm_tc7_vector:
     case scm_tc7_wvect:
       return SCM_MAKINUM (SCM_VECTOR_LENGTH (v));
@@ -798,7 +798,7 @@ SCM_DEFINE (scm_transpose_array, "transpose-array", 1, 0, 1,
   switch (SCM_TYP7 (ra))
     {
     default:
-    badarg:SCM_WTA (1,ra);
+    badarg:SCM_WRONG_TYPE_ARG (1, ra);
     case scm_tc7_bvect:
     case scm_tc7_string:
     case scm_tc7_byvect:
@@ -911,7 +911,7 @@ SCM_DEFINE (scm_enclose_array, "enclose-array", 1, 0, 1,
   switch SCM_TYP7 (ra)
     {
     default:
-    badarg1:SCM_WTA (1,ra);
+    badarg1:SCM_WRONG_TYPE_ARG (1, ra);
     case scm_tc7_string:
     case scm_tc7_bvect:
     case scm_tc7_byvect:
@@ -996,7 +996,7 @@ tail:
   switch SCM_TYP7 (v)
     {
     default:
-    badarg1:SCM_WTA (1,v);
+    badarg1:SCM_WRONG_TYPE_ARG (1, v);
     wna: scm_wrong_num_args (scm_makfrom0str (FUNC_NAME));
     case scm_tc7_smob:
       k = SCM_ARRAY_NDIM (v);
@@ -1095,8 +1095,8 @@ SCM_DEFINE (scm_uniform_vector_ref, "uniform-vector-ref", 2, 0, 0,
       if (SCM_NULLP (args))
  return v;
     badarg:
-      SCM_WTA (1,v);
-      abort ();
+      SCM_WRONG_TYPE_ARG (1, v);
+      /* not reached */
 
     outrng:
       scm_out_of_range (FUNC_NAME, SCM_MAKINUM (pos));
@@ -1265,8 +1265,8 @@ SCM_DEFINE (scm_array_set_x, "array-set!", 2, 0, 1,
   switch (SCM_TYP7 (v))
     {
     default: badarg1:
-      SCM_WTA (1,v);
-      abort ();
+      SCM_WRONG_TYPE_ARG (1, v);
+      /* not reached */
     outrng:
       scm_out_of_range (FUNC_NAME, SCM_MAKINUM (pos));
     wna:
@@ -1279,7 +1279,7 @@ SCM_DEFINE (scm_array_set_x, "array-set!", 2, 0, 1,
       else if (SCM_EQ_P (obj, SCM_BOOL_T))
 	SCM_BITVEC_SET(v,pos);
       else
-      badobj:SCM_WTA (2,obj);
+	badobj:SCM_WRONG_TYPE_ARG (2, obj);
       break;
     case scm_tc7_string:
       SCM_ASRTGO (SCM_CHARP (obj), badobj);
@@ -1485,7 +1485,7 @@ loop:
   switch SCM_TYP7 (v)
     {
     default:
-    badarg1:SCM_WTA (SCM_ARG1,v);
+    badarg1:SCM_WRONG_TYPE_ARG (SCM_ARG1, v);
     case scm_tc7_smob:
       SCM_ASRTGO (SCM_ARRAYP (v), badarg1);
       cra = scm_ra2contig (ra, 0);
@@ -1649,7 +1649,7 @@ loop:
   switch SCM_TYP7 (v)
     {
     default:
-    badarg1:SCM_WTA (1, v);
+    badarg1:SCM_WRONG_TYPE_ARG (1, v);
     case scm_tc7_smob:
       SCM_ASRTGO (SCM_ARRAYP (v), badarg1);
       v = scm_ra2contig (v, 1);
@@ -1866,7 +1866,7 @@ SCM_DEFINE (scm_bit_set_star_x, "bit-set*!", 3, 0, 0,
   switch SCM_TYP7 (kv)
     {
     default:
-    badarg2:SCM_WTA (2,kv);
+    badarg2:SCM_WRONG_TYPE_ARG (2, kv);
     case scm_tc7_uvect:
       vlen = SCM_BITVECTOR_LENGTH (v);
       if (SCM_FALSEP (obj))
@@ -1886,7 +1886,7 @@ SCM_DEFINE (scm_bit_set_star_x, "bit-set*!", 3, 0, 0,
 	    SCM_BITVEC_SET(v,k);
 	  }
       else
-	badarg3:SCM_WTA (3,obj);
+	badarg3:SCM_WRONG_TYPE_ARG (3, obj);
       break;
     case scm_tc7_bvect:
       SCM_ASSERT (SCM_BITVECTOR_LENGTH (v) == SCM_BITVECTOR_LENGTH (kv), v, SCM_ARG1, FUNC_NAME);
@@ -1924,7 +1924,7 @@ SCM_DEFINE (scm_bit_count_star, "bit-count*", 3, 0, 0,
     {
     default:
     badarg2:
-        SCM_WTA (2,kv);
+        SCM_WRONG_TYPE_ARG (2, kv);
     case scm_tc7_uvect:
       vlen = SCM_BITVECTOR_LENGTH (v);
       if (SCM_FALSEP (obj))
@@ -1946,7 +1946,7 @@ SCM_DEFINE (scm_bit_count_star, "bit-count*", 3, 0, 0,
 	      count++;
 	  }
       else
-	badarg3:SCM_WTA (3,obj);
+	badarg3:SCM_WRONG_TYPE_ARG (3, obj);
       break;
     case scm_tc7_bvect:
       SCM_ASSERT (SCM_BITVECTOR_LENGTH (v) == SCM_BITVECTOR_LENGTH (kv), v, SCM_ARG1, FUNC_NAME);
@@ -2062,7 +2062,7 @@ SCM_DEFINE (scm_array_to_list, "array->list", 1, 0, 0,
   switch SCM_TYP7 (v)
     {
     default:
-    badarg1:SCM_WTA (1,v);
+    badarg1:SCM_WRONG_TYPE_ARG (1, v);
     case scm_tc7_smob:
       SCM_ASRTGO (SCM_ARRAYP (v), badarg1);
       return ra2l (v, SCM_ARRAY_BASE (v), 0);
@@ -2138,8 +2138,6 @@ SCM_DEFINE (scm_array_to_list, "array->list", 1, 0, 0,
 #undef FUNC_NAME
 
 
-static char s_bad_ralst[] = "Bad scm_array contents list";
-
 static int l2ra(SCM lst, SCM ra, scm_sizet base, scm_sizet k);
 
 SCM_DEFINE (scm_list_to_uniform_array, "list->uniform-array", 3, 0, 0,
@@ -2167,7 +2165,6 @@ SCM_DEFINE (scm_list_to_uniform_array, "list->uniform-array", 3, 0, 0,
   ra = scm_dimensions_to_uniform_array (scm_reverse (shp), prot,
 					SCM_UNDEFINED);
   if (SCM_NULLP (shp))
-
     {
       SCM_ASRTGO (1 == scm_ilength (lst), badlst);
       scm_array_set_x (ra, SCM_CAR (lst), SCM_EOL);
@@ -2183,8 +2180,7 @@ SCM_DEFINE (scm_list_to_uniform_array, "list->uniform-array", 3, 0, 0,
   if (l2ra (lst, ra, SCM_ARRAY_BASE (ra), 0))
     return ra;
   else
-    badlst:scm_wta (lst, s_bad_ralst, FUNC_NAME);
-  return SCM_BOOL_F;
+    badlst:SCM_MISC_ERROR ("Bad scm_array contents list: ~S", SCM_LIST1 (lst));
 }
 #undef FUNC_NAME
 
@@ -2509,7 +2505,7 @@ loop:
   switch SCM_TYP7 (ra)
     {
     default:
-    badarg:SCM_WTA (1,ra);
+    badarg:SCM_WRONG_TYPE_ARG (1, ra);
     case scm_tc7_smob:
       SCM_ASRTGO (SCM_ARRAYP (ra), badarg);
       if (enclosed++)

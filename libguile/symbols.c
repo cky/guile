@@ -155,6 +155,7 @@ scm_str2symbol (const char *str)
 
 SCM 
 scm_sym2vcell (SCM sym, SCM thunk, SCM definep)
+#define FUNC_NAME "scm_sym2vcell"
 {
   if (SCM_NIMP (thunk))
     {
@@ -171,7 +172,7 @@ scm_sym2vcell (SCM sym, SCM thunk, SCM definep)
       else if (SCM_VARIABLEP (var))
 	return SCM_VARVCELL (var);
       else
-	return scm_wta (sym, "strangely interned symbol? ", "");
+	SCM_MISC_ERROR ("strangely interned symbol: ~S", SCM_LIST1 (sym));
     }
   else
     {
@@ -207,6 +208,8 @@ scm_sym2vcell (SCM sym, SCM thunk, SCM definep)
 	}
     }
 }
+#undef FUNC_NAME
+
 
 /* scm_sym2ovcell
  * looks up the symbol in an arbitrary obarray.
@@ -236,14 +239,17 @@ scm_sym2ovcell_soft (SCM sym, SCM obarray)
 
 SCM 
 scm_sym2ovcell (SCM sym, SCM obarray)
+#define FUNC_NAME "scm_sym2ovcell"
 {
   SCM answer;
   answer = scm_sym2ovcell_soft (sym, obarray);
   if (!SCM_FALSEP (answer))
     return answer;
-  scm_wta (sym, "uninterned symbol? ", "");
+  SCM_MISC_ERROR ("uninterned symbol: ~S", SCM_LIST1 (sym));
   return SCM_UNSPECIFIED;		/* not reached */
 }
+#undef FUNC_NAME
+
 
 /* Intern a symbol whose name is the LEN characters at NAME in OBARRAY.
 

@@ -449,8 +449,8 @@ SCM_DEFINE (scm_make_stack, "make-stack", 1, 0, 1,
 	}
       else
 	{
-	  SCM_WTA (SCM_ARG1, obj);
-	  abort ();
+	  SCM_WRONG_TYPE_ARG (SCM_ARG1, obj);
+	  /* not reached */
 	}
     }
 
@@ -605,8 +605,8 @@ SCM_DEFINE (scm_last_stack_frame, "last-stack-frame", 1, 0, 0,
     }
   else
     {
-      SCM_WTA (1,obj);
-      abort ();
+      SCM_WRONG_TYPE_ARG (1, obj);
+      /* not reached */
     }
   
   if (!dframe || SCM_VOIDFRAMEP (*dframe))
