@@ -366,7 +366,9 @@ SCM
 scm_usleep (i)
      SCM i;
 {
+#ifndef USLEEP_RETURNS_VOID
   int j;
+#endif
   SCM_ASSERT (SCM_INUMP (i) && (SCM_INUM (i) >= 0), i, SCM_ARG1, s_usleep);
 #ifdef USLEEP_RETURNS_VOID
   usleep (SCM_INUM (i));
