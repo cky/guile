@@ -1,5 +1,8 @@
 2002-09-09  Marius Vollmer  <mvo@zagadka.ping.de>
 
+	* scheme-ideas.texi (Creating a Procedure): Fixed typo.  Thanks to
+	Pieter Pareit!
+
 	* intro.texi: Updated GNu ftp server name.  Use "-lguile" instead
 	of "libguile.a".  Some small fixes/improvements.
 	
