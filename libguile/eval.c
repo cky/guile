@@ -3836,9 +3836,9 @@ SCM_DEFINE (scm_copy_tree, "copy-tree", 1, 0, 0,
 
 SCM scm_system_transformer;
 
-// XXX - scm_i_eval is meant to be useable for evaluation in
-// non-toplevel environments, for example when used by the debugger.
-// Can the system transform deal with this?
+/* XXX - scm_i_eval is meant to be useable for evaluation in
+   non-toplevel environments, for example when used by the debugger.
+   Can the system transform deal with this? */
 
 SCM 
 scm_i_eval_x (SCM exp, SCM env)
