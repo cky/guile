@@ -195,8 +195,11 @@ INTEGRAL2BIG (ITYPE n)
       /* mpz_import doesn't handle sign -- have to use #if here rather
          than if b/c gcc warnings for ushort, etc. */
 #if !UNSIGNED
-      if (n < 0) neg_input = 1;
-      n = - n;
+      if (n < 0)
+	{
+	  neg_input = 1;
+	  n = - n;
+	}
 #endif
 
       mpz_import (SCM_I_BIG_MPZ (result),

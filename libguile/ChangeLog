@@ -1,6 +1,11 @@
+2003-04-06  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* num2integral.i.c (INTEGRAL2BIG): Put negation of n inside then
+	clause.
+
 2003-04-05  Rob Browning  <rlb@defaultvalue.org>
 
-	* modules.c (s_scm_module_import_interface): move declaration of
+	* modules.c (scm_module_import_interface): move declaration of
 	uses before any code.
 
 2003-04-05  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
