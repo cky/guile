@@ -2321,7 +2321,7 @@ scm_unmemocopy (SCM x, SCM env)
                     copy = scm_unmemocopy (SCM_CADR (b), env);
                     initializer = unmemocar (scm_list_1 (copy), env);
                     SCM_SETCDR (z, scm_acons (SCM_CAR (b),
-                                              copy,
+                                              initializer,
                                               SCM_UNSPECIFIED));
                     z = SCM_CDR (z);
                     env = SCM_EXTEND_ENV (SCM_CAR (b), SCM_BOOL_F, env);
@@ -2765,10 +2765,10 @@ SCM_DEFINE (scm_evaluator_traps, "evaluator-traps-interface", 0, 1, 0,
 static SCM
 deval_args (SCM l, SCM env, SCM proc, SCM *lloc)
 {
-  SCM *results = lloc, res;
+  SCM *results = lloc;
   while (SCM_CONSP (l))
     {
-      res = EVALCAR (l, env);
+      const SCM res = EVALCAR (l, env);
 
       *lloc = scm_list_1 (res);
       lloc = SCM_CDRLOC (*lloc);
@@ -2969,7 +2969,7 @@ dispatch:
         nontoplevel_begin:
           while (!SCM_NULLP (SCM_CDR (x)))
             {
-              SCM form = SCM_CAR (x);
+              const SCM form = SCM_CAR (x);
               if (SCM_IMP (form))
                 {
                   if (SCM_ISYMP (form))
@@ -2985,14 +2985,14 @@ dispatch:
                     SCM_VALIDATE_NON_EMPTY_COMBINATION (form);
                 }
               else
-                EVAL (form, env);
+                (void) EVAL (form, env);
               x = SCM_CDR (x);
             }
-      
+
         carloop:
           {
             /* scm_eval last form in list */
-            SCM last_form = SCM_CAR (x);
+            const SCM last_form = SCM_CAR (x);
 
             if (SCM_CONSP (last_form))
               {
@@ -3014,11 +3014,11 @@ dispatch:
         case (SCM_ISYMNUM (SCM_IM_CASE)):
           x = SCM_CDR (x);
           {
-            SCM key = EVALCAR (x, env);
+            const SCM key = EVALCAR (x, env);
             x = SCM_CDR (x);
             while (!SCM_NULLP (x))
               {
-                SCM clause = SCM_CAR (x);
+                const SCM clause = SCM_CAR (x);
                 SCM labels = SCM_CAR (clause);
                 if (SCM_EQ_P (labels, SCM_IM_ELSE))
                   {
@@ -3028,7 +3028,7 @@ dispatch:
                   }
                 while (!SCM_NULLP (labels))
                   {
-                    SCM label = SCM_CAR (labels);
+                    const SCM label = SCM_CAR (labels);
                     if (SCM_EQ_P (label, key)
                         || !SCM_FALSEP (scm_eqv_p (label, key)))
                       {
@@ -3048,7 +3048,7 @@ dispatch:
           x = SCM_CDR (x);
           while (!SCM_NULLP (x))
             {
-              SCM clause = SCM_CAR (x);
+              const SCM clause = SCM_CAR (x);
               if (SCM_EQ_P (SCM_CAR (clause), SCM_IM_ELSE))
                 {
                   x = SCM_CDR (clause);
@@ -3115,16 +3115,16 @@ dispatch:
                        temp_forms = SCM_CDR (temp_forms))
                     {
                       SCM form = SCM_CAR (temp_forms);
-                      /* Dirk:FIXME: We only need to eval forms, that may have a
-                       * side effect here.  This is only true for forms that start
-                       * with a pair.  All others are just constants.  However,
-                       * since in the common case there is no constant expression
-                       * in a body of a do form, we just check for immediates here
-                       * and have CEVAL take care of other cases.  In the long run
-                       * it would make sense to get rid of this test and have the
-                       * macro transformer of 'do' eliminate all forms that have
-                       * no sideeffect.  */
-                      EVAL (form, env);
+                      /* Dirk:FIXME: We only need to eval forms that may have
+                       * a side effect here.  This is only true for forms that
+                       * start with a pair.  All others are just constants.
+                       * Since with the current memoizer 'form' may hold a
+                       * constant, we call EVAL here to handle the constant
+                       * cases.  In the long run it would make sense to have
+                       * the macro transformer of 'do' eliminate all forms
+                       * that have no sideeffect.  Then instead of EVAL we
+                       * could call CEVAL directly here.  */
+                      (void) EVAL (form, env);
                     }
                 }
 
@@ -3136,7 +3136,7 @@ dispatch:
                        !SCM_NULLP (temp_forms);
                        temp_forms = SCM_CDR (temp_forms))
                     {
-                      SCM value = EVALCAR (temp_forms, env);
+                      const SCM value = EVALCAR (temp_forms, env);
                       step_values = scm_cons (value, step_values);
                     }
                   env = SCM_EXTEND_ENV (SCM_CAAR (env),
@@ -4602,7 +4602,7 @@ tail:
 		SCM_VALIDATE_NON_EMPTY_COMBINATION (SCM_CAR (proc));
 	    }
 	  else
-	    EVAL (SCM_CAR (proc), args);
+	    (void) EVAL (SCM_CAR (proc), args);
 	  proc = arg1;
           arg1 = SCM_CDR (proc);
 	}

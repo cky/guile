@@ -1,3 +1,11 @@
+2004-04-19  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
+
+	* eval.c (scm_unmemocopy): Fixed unmemoization of let*.
+
+	(deval_args, CEVAL): Minor improvements: Reduced variable scopes,
+	added const qualifiers, cast intentionally unused expressions to
+	void for emphasis, improved comment.
+
 2004-04-18  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
 
 	* tags.h (scm_tags, scm_tc8_tags, scm_tc9_flag, scm_tc8_flag,
