@@ -96,14 +96,16 @@ SCM_API scm_t_bits scm_tc16_array;
 #define SCM_SET_UVECTOR_BASE(v, b) (SCM_SET_CELL_WORD_1 ((v), (b)))
 #define SCM_UVECTOR_MAX_LENGTH SCM_I_MAX_LENGTH
 #define SCM_UVECTOR_LENGTH(x) (((unsigned long) SCM_CELL_WORD_0 (x)) >> 8)
-#define SCM_SET_UVECTOR_LENGTH(v, l, t) (SCM_SET_CELL_WORD_0 ((v), ((l) << 8) + (t)))
+#define SCM_MAKE_UVECTOR_TAG(l,t)  (((l) << 8) + (t))
+#define SCM_SET_UVECTOR_LENGTH(v, l, t) (SCM_SET_CELL_WORD_0 ((v), SCM_MAKE_UVECTOR_TAG(l,t)))
 
 #define SCM_BITVECTOR_P(x) (!SCM_IMP (x) && (SCM_TYP7 (x) == scm_tc7_bvect))
 #define SCM_BITVECTOR_BASE(x) ((unsigned long *) (SCM_CELL_WORD_1 (x)))
 #define SCM_SET_BITVECTOR_BASE(v, b) (SCM_SET_CELL_WORD_1 ((v), (b)))
 #define SCM_BITVECTOR_MAX_LENGTH SCM_I_MAX_LENGTH
 #define SCM_BITVECTOR_LENGTH(x) (((unsigned long) SCM_CELL_WORD_0 (x)) >> 8)
-#define SCM_SET_BITVECTOR_LENGTH(v, l) (SCM_SET_CELL_WORD_0 ((v), ((l) << 8) + scm_tc7_bvect))
+#define SCM_MAKE_BITVECTOR_TAG(l)  (((l) << 8) + scm_tc7_bvect)
+#define SCM_SET_BITVECTOR_LENGTH(v, l) (SCM_SET_CELL_WORD_0 ((v), SCM_MAKE_BITVECTOR_TAG (l)))
 
 
 
