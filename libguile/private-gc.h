@@ -109,6 +109,7 @@ typedef struct scm_t_cell_type_statistics {
    */
   unsigned long heap_size;
 
+  
 } scm_t_cell_type_statistics;
 
 

@@ -77,13 +77,14 @@ maybe_drag_in_eprintf ()
 
 #include "libltdl/ltdl.h"
 
-/* From the libtool manual: "Note that libltdl is not threadsafe,
-   i.e. a multithreaded application has to use a mutex for libltdl.".
+/*
+  From the libtool manual: "Note that libltdl is not threadsafe,
+  i.e. a multithreaded application has to use a mutex for libltdl.".
 
-   Guile does not currently support pre-emptive threads, so there is
-   no mutex.  Previously SCM_DEFER_INTS and SCM_ALLOW_INTS were used:
-   they are mentioned here in case somebody is grepping for thread
-   problems ;)
+  Guile does not currently support pre-emptive threads, so there is
+  no mutex.  Previously SCM_DEFER_INTS and SCM_ALLOW_INTS were used:
+  they are mentioned here in case somebody is grepping for thread
+  problems ;)
 */
 
 static void *

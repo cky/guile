@@ -256,7 +256,7 @@ SCM scm_structs_to_free;
 
 /* GC Statistics Keeping
  */
-unsigned long scm_cells_allocated = 0;
+long scm_cells_allocated = 0;
 unsigned long scm_mallocated = 0;
 unsigned long scm_gc_cells_collected;
 unsigned long scm_gc_cells_collected_1 = 0; /* previous GC yield */
@@ -264,12 +264,14 @@ unsigned long scm_gc_malloc_collected;
 unsigned long scm_gc_ports_collected;
 unsigned long scm_gc_time_taken = 0;
 static unsigned long t_before_gc;
-static unsigned long t_before_sweep;
 unsigned long scm_gc_mark_time_taken = 0;
 unsigned long scm_gc_times = 0;
 unsigned long scm_gc_cells_swept = 0;
 double scm_gc_cells_marked_acc = 0.;
 double scm_gc_cells_swept_acc = 0.;
+int scm_gc_cell_yield_percentage =0;
+int scm_gc_malloc_yield_percentage = 0;
+
 
 SCM_SYMBOL (sym_cells_allocated, "cells-allocated");
 SCM_SYMBOL (sym_heap_size, "cell-heap-size");
@@ -281,6 +283,8 @@ SCM_SYMBOL (sym_gc_mark_time_taken, "gc-mark-time-taken");
 SCM_SYMBOL (sym_times, "gc-times");
 SCM_SYMBOL (sym_cells_marked, "cells-marked");
 SCM_SYMBOL (sym_cells_swept, "cells-swept");
+SCM_SYMBOL (sym_malloc_yield, "malloc-yield");
+SCM_SYMBOL (sym_cell_yield, "cell-yield");
 
 
 
@@ -292,7 +296,7 @@ unsigned scm_newcell2_count;
 
 /* {Scheme Interface to GC}
  */
-
+extern int scm_gc_malloc_yield_percentage;
 SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
             (),
 	    "Return an association list of statistics about Guile's current\n"
@@ -304,7 +308,9 @@ SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
   unsigned long int local_scm_mtrigger;
   unsigned long int local_scm_mallocated;
   unsigned long int local_scm_heap_size;
-  unsigned long int local_scm_cells_allocated;
+  int local_scm_gc_cell_yield_percentage;
+  int local_scm_gc_malloc_yield_percentage;
+  long int local_scm_cells_allocated;
   unsigned long int local_scm_gc_time_taken;
   unsigned long int local_scm_gc_times;
   unsigned long int local_scm_gc_mark_time_taken;
@@ -341,13 +347,15 @@ SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
   local_scm_gc_time_taken = scm_gc_time_taken;
   local_scm_gc_mark_time_taken = scm_gc_mark_time_taken;
   local_scm_gc_times = scm_gc_times;
-
-
-  local_scm_gc_cells_swept = scm_gc_cells_swept_acc  + scm_gc_cells_swept;
+  local_scm_gc_malloc_yield_percentage = scm_gc_malloc_yield_percentage;
+  local_scm_gc_cell_yield_percentage=  scm_gc_cell_yield_percentage;
+  
+  local_scm_gc_cells_swept =
+    (double) scm_gc_cells_swept_acc
+    + (double) scm_gc_cells_swept;
   local_scm_gc_cells_marked = scm_gc_cells_marked_acc 
     +(double) scm_gc_cells_swept 
     -(double) scm_gc_cells_collected;
-
 
   for (i = table_size; i--;)
     {
@@ -357,7 +365,7 @@ SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
     }
   
   answer = scm_list_n (scm_cons (sym_gc_time_taken, scm_ulong2num (local_scm_gc_time_taken)),
-		       scm_cons (sym_cells_allocated, scm_ulong2num (local_scm_cells_allocated)),
+		       scm_cons (sym_cells_allocated, scm_long2num (local_scm_cells_allocated)),
 		       scm_cons (sym_heap_size, scm_ulong2num (local_scm_heap_size)),
 		       scm_cons (sym_mallocated, scm_ulong2num (local_scm_mallocated)),
 		       scm_cons (sym_mtrigger, scm_ulong2num (local_scm_mtrigger)),
@@ -365,6 +373,8 @@ SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
 		       scm_cons (sym_gc_mark_time_taken, scm_ulong2num (local_scm_gc_mark_time_taken)),
 		       scm_cons (sym_cells_marked, scm_i_dbl2big (local_scm_gc_cells_marked)),
 		       scm_cons (sym_cells_swept, scm_i_dbl2big (local_scm_gc_cells_swept)),
+		       scm_cons (sym_malloc_yield, scm_long2num (local_scm_gc_malloc_yield_percentage)),
+		       scm_cons (sym_cell_yield, scm_long2num (local_scm_gc_cell_yield_percentage)),		       
 		       scm_cons (sym_heap_segments, heap_segs),
 		       SCM_UNDEFINED);
   SCM_ALLOW_INTS;
@@ -381,8 +391,10 @@ gc_start_stats (const char *what SCM_UNUSED)
 
   scm_gc_cells_marked_acc += (double) scm_gc_cells_swept
     - (double) scm_gc_cells_collected;
-  scm_gc_cells_swept_acc += scm_gc_cells_swept;
+  scm_gc_cells_swept_acc += (double) scm_gc_cells_swept;
 
+  scm_gc_cell_yield_percentage = ( scm_gc_cells_collected * 100 ) / SCM_HEAP_SIZE; 
+  
   scm_gc_cells_swept = 0;
   scm_gc_cells_collected_1 = scm_gc_cells_collected;
 
@@ -554,8 +566,7 @@ scm_igc (const char *what)
 
   scm_mark_all ();
   
-  t_before_sweep = scm_c_get_internal_run_time ();
-  scm_gc_mark_time_taken += (t_before_sweep - t_before_gc);
+  scm_gc_mark_time_taken += (scm_c_get_internal_run_time () - t_before_gc);
 
   scm_c_hook_run (&scm_before_sweep_c_hook, 0);
 

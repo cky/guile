@@ -195,7 +195,12 @@ scm_i_sweep_some_cards (scm_t_heap_segment *seg)
 
   scm_gc_cells_swept +=  cards_swept * (SCM_GC_CARD_N_CELLS - SCM_GC_CARD_N_HEADER_CELLS);
   scm_gc_cells_collected += collected * seg->span;
+
+  if (!seg->first_time)
+    scm_cells_allocated -= collected * seg->span;
+  
   seg->freelist->collected += collected  * seg->span;
+  
 
   if(next_free == seg->bounds[1])
     {
@@ -212,8 +217,10 @@ scm_i_sweep_some_cards (scm_t_heap_segment *seg)
   statistics, it just frees the memory pointed to by to-be-swept
   cells.
 
-  Implementation is slightly ugh, and how do we handle the swept_cells
-  statistic?
+  Implementation is slightly ugh.
+
+  FIXME: if you do scm_i_sweep_segment(), and then allocate from this
+  segment again, the statistics are off.
  */
 void
 scm_i_sweep_segment (scm_t_heap_segment * seg)
@@ -221,11 +228,13 @@ scm_i_sweep_segment (scm_t_heap_segment * seg)
   scm_t_cell * p = seg->next_free_card;
   int yield = scm_gc_cells_collected;
   int coll = seg->freelist->collected;
-
+  int alloc = scm_cells_allocated ;
+  
   while (scm_i_sweep_some_cards (seg) != SCM_EOL)
     ;
 
   scm_gc_cells_collected = yield;
+  scm_cells_allocated = alloc;
   seg->freelist->collected = coll; 
   
   seg->next_free_card =p;

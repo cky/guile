@@ -1,9 +1,12 @@
 2002-08-04  Han-Wen  <hanwen@cs.uu.nl>
 
+	* gc.c (s_scm_gc_stats): add cell-yield and malloc-yield statistic
+	to gc-stats.
+
 	* numbers.c (big2str): return "0" for 0 iso. ""
 
-        * gc-segment.c, gc-malloc.c gc-mark.c, gc-freelist.c, gc-card.c, private-gc.h:
-        new file
+        * gc-segment.c, gc-malloc.c gc-mark.c, gc-freelist.c, gc-card.c,
+	private-gc.h: new file
 
         * gc.c: completely revised and cleaned up the GC. It now uses lazy
         sweeping. More documentation in workbook/newgc.text
