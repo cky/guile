@@ -169,7 +169,7 @@ realclean:
 TAGS tags:
 	etags \
 	  --regex='/SCM_PROC[^"]*"[^"]*"/' \
-	  `find . -name '*.[ch]' -o -name '*.scm'`
+	  `find ${srcdir} -name '*.[ch]' -o -name '*.scm'`
 
 #`info'
 #     Generate any info files needed.  The best way to write the rules
