@@ -124,6 +124,8 @@
       (nameify traced-procedures)
       (begin
 	(for-each (lambda (proc)
+		    (if (not (procedure? proc))
+			(error "trace: Wrong type argument:" proc))
 		    (set-procedure-property! proc 'trace #t)
 		    (if (not (memq proc traced-procedures))
 			(set! traced-procedures
