@@ -1,5 +1,20 @@
 2000-03-28  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* continuations.h (SCM_CONTREGS, SCM_SET_CONTREGS):  New macros to
+	access continuation data.
+
+	(SCM_SETJMPBUF):  Deprecated.  Use SCM_SET_CONTREGS instead.
+
+	(SCM_JMPBUF, SCM_DYNENV, SCM_THROW_VALUE, SCM_BASE, SCM_SEQ,
+	SCM_DFRAME):  Use SCM_CONTREGS instead of SCM_CHARS to access
+	continuation data.
+
+	* continuations.c (scm_make_cont), init.c (start_stack), 
+	root.c (scm_internal_cwdr):  Use SCM_SET_CONTREGS instead of
+	SCM_SETJMPBUF.
+
+2000-03-28  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* symbols.h (SCM_LENGTH, SCM_SETLENGTH):  Access the length field
 	of strings and symbols by using SCM_{SET_}?CELL_WORD_0.
 

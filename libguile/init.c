@@ -175,8 +175,8 @@ start_stack (void *base)
   /* Create an object to hold the root continuation.
    */
   SCM_NEWCELL (scm_rootcont);
-  SCM_SETJMPBUF (scm_rootcont, scm_must_malloc ((long) sizeof (scm_contregs),
-						"continuation"));
+  SCM_SET_CONTREGS (scm_rootcont, scm_must_malloc (sizeof (scm_contregs),
+						   "continuation"));
   SCM_SETCAR (scm_rootcont, scm_tc7_contin);
   SCM_SEQ (scm_rootcont) = 0;
   /* The root continuation if further initialized by restart_stack. */

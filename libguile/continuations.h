@@ -60,13 +60,17 @@ typedef struct
 #endif
 } scm_contregs;
 
-#define SCM_JMPBUF(x) (((scm_contregs *)SCM_CHARS(x))->jmpbuf)
-#define SCM_SETJMPBUF(z, x) SCM_SETCDR (z, (SCM) x)
-#define SCM_DYNENV(x) (((scm_contregs *)SCM_CHARS(x))->dynenv)
-#define SCM_THROW_VALUE(x) (((scm_contregs *)SCM_CHARS(x))->throw_value)
-#define SCM_BASE(x) (((scm_contregs *)SCM_CHARS(x))->base)
-#define SCM_SEQ(x) (((scm_contregs *)SCM_CHARS(x))->seq)
-#define SCM_DFRAME(x) (((scm_contregs *)SCM_CHARS(x))->dframe)
+
+#define SCM_CONTREGS(x)		((scm_contregs *) SCM_CELL_WORD_1 (x))	 
+#define SCM_SET_CONTREGS(x, r)	(SCM_SET_CELL_WORD_1 ((x), (scm_bits_t) (r))) 
+#define SCM_SETJMPBUF(x, r)	(SCM_SET_CONTREGS ((x), (r))) /* deprecated */
+
+#define SCM_JMPBUF(x)		((SCM_CONTREGS (x))->jmpbuf)
+#define SCM_DYNENV(x)		((SCM_CONTREGS (x))->dynenv)
+#define SCM_THROW_VALUE(x)	((SCM_CONTREGS (x))->throw_value)
+#define SCM_BASE(x)		((SCM_CONTREGS (x))->base) 
+#define SCM_SEQ(x)		((SCM_CONTREGS (x))->seq)   
+#define SCM_DFRAME(x)		((SCM_CONTREGS (x))->dframe)
 
 
 

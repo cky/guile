@@ -253,7 +253,7 @@ scm_internal_cwdr (scm_catch_body_t body, void *body_data,
 		   SCM_STACKITEM *stack_start)
 {
 #ifdef USE_STACKJMPBUF
-  scm_contregs static_jmpbuf;
+  scm_contregs static_contregs;
 #endif
   int old_ints_disabled = scm_ints_disabled;
   SCM old_rootcont, old_winds;
@@ -266,11 +266,11 @@ scm_internal_cwdr (scm_catch_body_t body, void *body_data,
     SCM_NEWCELL (new_rootcont);
     SCM_REDEFER_INTS;
 #ifdef USE_STACKJMPBUF
-    SCM_SETJMPBUF (new_rootcont, &static_jmpbuf);
+    SCM_SET_CONTREGS (new_rootcont, &static_contregs);
 #else
-    SCM_SETJMPBUF (new_rootcont,
-		   scm_must_malloc ((long) sizeof (scm_contregs),
-				    "inferior root continuation"));
+    SCM_SET_CONTREGS (new_rootcont,
+		      scm_must_malloc (sizeof (scm_contregs),
+				       "inferior root continuation"));
 #endif
     SCM_SETCAR (new_rootcont, scm_tc7_contin);
     SCM_DYNENV (new_rootcont) = SCM_EOL;
@@ -303,7 +303,7 @@ scm_internal_cwdr (scm_catch_body_t body, void *body_data,
   scm_dowinds (old_winds, - scm_ilength (old_winds));
   SCM_REDEFER_INTS;
 #ifdef USE_STACKCJMPBUF
-  SCM_SETJMPBUF (scm_rootcont, NULL);
+  SCM_SET_CONTREGS (scm_rootcont, NULL);
 #endif
 #ifdef DEBUG_EXTENSIONS
   scm_last_debug_frame = SCM_DFRAME (old_rootcont);
