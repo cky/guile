@@ -1,3 +1,48 @@
+2003-08-30  Kevin Ryde  <user42@zip.com.au>
+
+	* data-rep.texi (Remembering During Operations): Note
+	scm_remember_upto_here_1 applies only to C automatic variables.
+
+	* guile.texi: Move @contents to usual place after title page, and
+	after first menu since that looks nice in html.
+
+	* posix.texi (Ports and File Descriptors): In pipe PIPE_BUF, use
+	@defvar, reword a bit for clarity, cross reference glibc.
+
+	* posix.texi (Network Sockets and Communication): In socket, use
+	@defvar for protocol variables, cross reference for getprotobyname,
+	note it's usually connect and accept that establishes communication.
+
+	* posix.texi (Network Sockets and Communication): In socketpair,
+	clarify the return is a pair with ports in car and cdr, note
+	connection is full duplex, refer to socket for parameters, refer to
+	PF_UNIX rather than AF_UNIX.
+
+	* scheme-compound.texi (Append/Reverse): Merge append and append!,
+	shown parameters as lst1 ... lstN, describe list argument for
+	scm_append and scm_append_x and note that it's unmodified.
+
+	* scheme-compound.texi (Hash Table Reference): Add hashx- case
+	insensitive string example, add cross references to symbol-hash,
+	string-hash, string-hash-ci, and char-set-hash.
+
+	* scheme-control.texi (Multiple Values): In values, show args as "arg1
+	... argN".  In scm_values, note args is a list and returned object
+	shares structure with it.
+
+	* scheme-control.texi (Catch): Add scm_internal_catch.
+	(Lazy Catch): Add scm_internal_lazy_catch.
+
+	* scheme-data.texi (Arithmetic): Use a table for scheme to C libm
+	equivalences, add C99 trunc.
+
+	* scheme-procedures.texi (Lambda): Note ". rest" list argument is
+	always newly created.
+
+	* srfi-modules.texi (SRFI-1 Association Lists): In alist-delete and
+	alist-delete!, note argument order for the equality calls per SRFI-1
+	spec.
+
 2003-08-26  Kevin Ryde  <user42@zip.com.au>
 
 	* scheme-data.texi (Scientific): Add two-argument atan.

@@ -1,3 +1,8 @@
+2003-08-30  Kevin Ryde  <user42@zip.com.au>
+
+	* numbers.c (scm_lognot): Rewrite using ~ and mpz_com, for directness
+	and to have non-integer types rejected as per other logical funcs.
+	
 2003-08-28  Kevin Ryde  <user42@zip.com.au>
 
 	* gc.h (scm_remember_upto_here_1): Revise comments on the asm form.
