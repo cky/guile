@@ -1,3 +1,13 @@
+2001-06-25  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* srcprop.h, srcprop.c (scm_srcprops_to_plist): Renamed from
+	scm_t_srcpropso_plist.  See the big type renaming.
+	* coop-defs.h (scm_mutex_trylock, scm_cond_timedwait): Likewise.
+	Thanks to Seth Alves!
+	
+	* numbers.c (SIZE_MAX, PTRDIFF_MIN, PTRDIFF_MAX): Only define when
+	they aren't defined already.
+
 2001-06-23  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* backtrace.c (display_backtrace_body):  Use SCM_VALIDATE_STACK
