@@ -97,6 +97,8 @@ typedef unsigned long *ulongptr;
 static char bc[256]; /* Bit counting array.  bc[x] is the number of
 			bits in x. */
 
+int scm_I_am_dead;
+
 /* This flag indicates that several threads are waiting on the same
    file descriptor.  When this is the case, the common fd sets are
    updated in a more inefficient way.  */
@@ -415,8 +417,8 @@ first_interesting_fd (void)
 }
 
 /* Revive all threads with an error status.  */
-static void
-error_revive (void)
+void
+scm_error_revive_threads (void)
 {
   coop_t *t;
   
@@ -424,8 +426,10 @@ error_revive (void)
     {
       t->_errno = errno;
       t->retval = -1;
-      coop_qput (&coop_global_runq, t);
+      if (t != coop_global_curr)
+	coop_qput (&coop_global_runq, t);
     }
+  collisionp = 0;
   gnfds = 0;
   FD_ZERO (&greadfds);
   FD_ZERO (&gwritefds);
@@ -436,12 +440,21 @@ error_revive (void)
    try to wake up some threads and return the first one.  Return NULL
    if we couldn't find any.  */
 static coop_t *
-find_thread (int n, struct timeval *now)
+find_thread (int n, struct timeval *now, int sleepingp)
 {
   coop_t *t;
   int fd;
 
-  if (n == 0)
+  if (n < 0)
+    /* An error or a signal has occured.  Wake all threads.  Since we
+       don't care to calculate if there is a sinner we report the
+       error to all of them.  */
+    {
+      scm_error_revive_threads ();
+      if (!scm_I_am_dead)
+	return coop_global_curr;
+    }
+  else if (n == 0)
     {
       while (!QEMPTYP (coop_global_sleepq)
 	     && (t = QFIRST (coop_global_sleepq))->timeoutp
@@ -510,11 +523,6 @@ find_thread (int n, struct timeval *now)
 	    coop_qput (&coop_global_sleepq, t);
 	}
     }
-  else /* n < 0 */
-    /* An error has occured.  Wake all threads.  Since we don't care
-       to calculate if there is a sinner we report the error to all of
-       them.  */
-    error_revive ();
 
   return coop_qget (&coop_global_runq);
 }
@@ -532,9 +540,13 @@ coop_next_runnable_thread ()
 
   /* Just return next thread on the runq if the sleepq is empty. */
   if (QEMPTYP (coop_global_sleepq))
-    return coop_qget (&coop_global_runq);
+    {
+      if (QEMPTYP (coop_global_runq))
+	return coop_global_curr;
+      else
+	return coop_qget (&coop_global_runq);
+    }
 
-  ++scm_ints_disabled;
   if (gnfds > 0)
     n = safe_select (gnfds, &greadfds, &gwritefds, &gexceptfds, &timeout0);
   else
@@ -542,13 +554,11 @@ coop_next_runnable_thread ()
   if (QFIRST (coop_global_sleepq)->timeoutp)
     {
       gettimeofday (&now, NULL);
-      t = find_thread (n, &now);
+      t = find_thread (n, &now, 0);
     }
   else
-    t = find_thread (n, 0);
-  if (!--scm_ints_disabled)
-    SCM_ASYNC_TICK;
-  return t;
+    t = find_thread (n, 0, 0);
+  return t == NULL ? coop_global_curr : t;
 }
 
 coop_t *
@@ -557,13 +567,12 @@ coop_wait_for_runnable_thread_now (struct timeval *now)
   int n;
   coop_t *t;
 
-  ++scm_ints_disabled;
   if (gnfds > 0)
     n = safe_select (gnfds, &greadfds, &gwritefds, &gexceptfds, &timeout0);
   else
     n = 0;
   /* Is there any other runnable thread? */
-  t = find_thread (n, now);
+  t = find_thread (n, now, 1);
   while (t == NULL)
     {
       /* No.  Let the process go to sleep. */
@@ -582,11 +591,9 @@ coop_wait_for_runnable_thread_now (struct timeval *now)
       else
 	n = safe_select (gnfds, &greadfds, &gwritefds, &gexceptfds, NULL);
       gettimeofday (now, NULL);
-      t = find_thread (n, now);
+      t = find_thread (n, now, 1);
     }
 
-  if (!--scm_ints_disabled)
-    SCM_ASYNC_TICK;
   return t;
 }
 
@@ -596,7 +603,12 @@ coop_wait_for_runnable_thread ()
   struct timeval now;
 
   if (QEMPTYP (coop_global_sleepq))
-    return coop_qget (&coop_global_runq);
+    {
+      if (QEMPTYP (coop_global_runq))
+	return coop_global_curr;
+      else
+	return coop_qget (&coop_global_runq);
+    }
 
   if (QFIRST (coop_global_sleepq)->timeoutp)
     gettimeofday (&now, NULL);
@@ -613,14 +625,14 @@ scm_internal_select (int nfds,
 {
   struct timeval now;
   coop_t *t, *curr = coop_global_curr;
-  
+
   /* If the timeout is 0, we're polling and can handle it quickly. */
   if (timeout != NULL
       && timeout->tv_sec == 0
       && timeout->tv_usec == 0)
     return select (nfds, readfds, writefds, exceptfds, timeout);
 
-  ++scm_ints_disabled;
+  SCM_DEFER_INTS;
 
   /* Add our file descriptor flags to the common set. */
   curr->nfds = nfds;
@@ -652,20 +664,18 @@ scm_internal_select (int nfds,
       t = coop_wait_for_runnable_thread_now (&now);
     }
 
-  if (!--scm_ints_disabled)
-    SCM_ASYNC_TICK;
-
   /* If the new thread is the same as the sleeping thread, do nothing */
-  if (t != curr)
+  if (t != coop_global_curr)
     {
       /* Do a context switch. */
       coop_global_curr = t;
       QT_BLOCK (coop_sleephelp, curr, NULL, t->sp);
     }
 
-  if (curr->retval == -1)
-    errno = curr->_errno;
-  return curr->retval;
+  if (coop_global_curr->retval == -1)
+    errno = coop_global_curr->_errno;
+  SCM_ALLOW_INTS;
+  return coop_global_curr->retval;
 }
 
 /* Initialize bit counting array */

@@ -1,4 +1,53 @@
-1998-01-26  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+1998-01-30  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	*  dynwind.c (scm_wind_chain): New debug function.
+
+	* coop-threads.c (scheme_launch_data, scheme_body_bootstrip,
+	scheme_handler_bootstrip, scheme_launch_thread, c_launch_data,
+	c_body_bootstrip, c_handler_bootstrip, c_launch_thread): Add an
+	extra layer of functions around the body and handler of a thread.
+	This extra layer makes sure that the handler is called in the
+	dynamic context of the surround (= empty dynwind list), but under
+	the *dynamic root* of the body.  We can not use the dynamic root
+	of the surround since that root belongs to another thread => stack
+	is not handled correctly.  It may seem ugly to use this extra
+	layer, but the extra cost in terms of execution time is really
+	negligible compared to the total amount of time required to create
+	a thread, and it would reduce maintainability to duplicate the
+	crucial and complicated steps performed by cwdr.
+
+	* __scm.h (SCM_ASYNC_TICK): Removed thread switching code.
+	(SCM_ALLOW_INTS): Added thread switching code before interrupts
+	get re-enabled.  The important effect of this is that interrupts
+	are blocked during thread switching so that thread data structures
+	don't risk getting messed up by an unfortunate signal.
+	(SCM_REDEFER_INTS, SCM_REALLOW_INTS): It turned out that gcc-2.8.0
+	seems to do more aggressive optimization which actually move
+	instructions around in these macros in a fatal way.  Therefore:
+	Introduce Anthony's SCM_FENCE macro!  (And I who thought he was
+	just superstitious...)
+	(SCM_TICK): Maybe do a context switch and take care of asyncs.
+	This macro should be used instead of SCM_ASYNC_TICK since the
+	latter doesn't do context switches any more.
+
+	* eval.c (scm_eval, scm_deval), eq.c (scm_equal_p): Use SCM_TICK
+	instead of SCM_ASYNC_TICK.
+
+	* coop.c, iselect.c: Since thread switches are now performed with
+	interrupts masked, we can't use the old mechanism of delivering
+	signals immediately when they arrive.  Signals must instead be
+	delivered when the asyncs run *after* the end of the critical
+	section in scm_internal_select.  But this also means after context
+	switch so that the signal will be delivered to a different thread.
+	To avoid this, I have changed the protocol of
+	coop_wait_for_runnable_thread and friends so that they are allowed
+	to return the original thread.  So, if a signal arrives during
+	scm_internal_select, we won't any longer be forced do a context
+	switch, but can remain in the same thread and deliver the signal
+	to it.
+
+	* async.c, async.h (asyncs_pending): Renamed asyncs_pending -->
+	scm_asyncs_pending and made it global.
 
 	* iselect.c: Small fixes.
 

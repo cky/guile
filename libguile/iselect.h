@@ -83,11 +83,14 @@
 
 #endif /* no FD_SET */
 
+extern int scm_I_am_dead;
+
 extern int scm_internal_select (int fds,
 				SELECT_TYPE *rfds,
 				SELECT_TYPE *wfds,
 				SELECT_TYPE *efds,
 				struct timeval *timeout);
+extern void scm_error_revive_threads (void);
 extern void scm_init_iselect (void);
 
 #endif
