@@ -3,7 +3,7 @@
 #ifndef SCM_THREADS_PLUGIN_H
 #define SCM_THREADS_PLUGIN_H
 
-/* Copyright (C) 1996,1997,1998,2000,2001, 2002 Free Software Foundation, Inc.
+/* Copyright (C) 1996,1997,1998,2000,2001, 2002, 2003, 2004 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -23,8 +23,11 @@
 
 #include <pthread.h> /* This file should *not* need to include pthread.h */
 
-/* Size is checked in scm_init_threads_plugin */
-#define SCM_MUTEX_MAXSIZE (9 * sizeof (long))
+/* Size is checked in scm_init_threads_plugin.
+   For reference, sizes encountered include,
+       powerpc-apple-darwin5.5 pthread_mutex_t    44 bytes
+ */
+#define SCM_MUTEX_MAXSIZE (12 * sizeof (long))
 typedef struct { char _[SCM_MUTEX_MAXSIZE]; } scm_t_mutex;
 
 /*fixme* Should be defined similarly to scm_t_mutex. */
