@@ -1,3 +1,10 @@
+Wed Dec 15 19:45:14 1999  Greg J. Badros  <gjb@cs.washington.edu>
+
+ 	* *.h: Use SCM_NIMP(X) && in all the FOOP macros.
+
+	* *.[ch]: Use do { ... } while (0) idiom in macros that expanded
+ 	to a bare block.
+
 Tue Dec 14 10:53:14 1999  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* snarf.h: Put SCM_PROC and SCM_PROC1 back in for
