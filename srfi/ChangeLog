@@ -1,3 +1,11 @@
+2001-04-27  Rob Browning  <rlb@cs.utexas.edu>
+
+	* srfi-13.h
+	(scm_reverse_string_concatenate): renamed to
+	scm_string_concatentate_reverse.
+	(scm_reverse_string_concatenate_shared): renamed to
+	scm_string_concatenate_reverse_shared.
+
 2001-04-27  Gary Houston  <ghouston@arglist.com>
 
 	* srfi-13.c (scm_init_srfi_13), srfi-14.c (scm_init_srfi_14):

@@ -1,3 +1,31 @@
+2001-04-27  Rob Browning  <rlb@cs.utexas.edu>
+
+	* error.c (scm_sysmissing): deprecation expired - removed.
+
+	* error.h (scm_sysmissing): deprecation expired - removed.
+
+	* gc.c
+	(scm_init_gc): gc-thunk deprecation expired - removed.
+	(scm_gc_vcell): deprecation expired - removed.
+	(gc_async_thunk): scm_gc_vcell related code removed.
+
+	* vectors.h (SCM_NVECTORP): deprecation expired - removed.
+
+	* strings.h
+	(SCM_NSTRINGP): deprecation expired - removed.
+	(SCM_NRWSTRINGP): deprecation expired - removed.
+
+	* continuations.h (SCM_SETJMPBUF): deprecation expired - removed.
+
+	* chars.h
+	(SCM_ICHRP): deprecation expired - removed.
+	(SCM_ICHR): deprecation expired - removed.
+	(SCM_MAKICHR): deprecation expired - removed.
+
+	* ports.h
+	(SCM_INPORTP): deprecation expired - removed.
+	(SCM_OUTPORTP): deprecation expired - removed.
+
 2001-04-25  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* modules.c (scm_module_type): New.
