@@ -73,6 +73,12 @@ continuation_mark (SCM obj)
 
   scm_gc_mark (continuation->throw_value);
   scm_mark_locations (continuation->stack, continuation->num_stack_items);
+#ifdef __ia64__
+  if (continuation->backing_store)
+    scm_mark_locations (continuation->backing_store, 
+                        continuation->backing_store_size / 
+                        sizeof (SCM_STACKITEM));
+#endif /* __ia64__ */
   return continuation->dynenv;
 }
 
@@ -86,7 +92,11 @@ continuation_free (SCM obj)
     : 0;
   size_t bytes_free = sizeof (scm_t_contregs)
     + extra_items * sizeof (SCM_STACKITEM);
-  
+
+#ifdef __ia64__
+  bytes_free += continuation->backing_store_size;
+  scm_must_free (continuation->backing_store);
+#endif /* __ia64__ */ 
   scm_must_free (continuation);
   return bytes_free;
 }
@@ -104,6 +114,16 @@ continuation_print (SCM obj, SCM port, scm_print_state *state SCM_UNUSED)
   return 1;
 }
 
+#ifdef __ia64__
+struct rv
+{
+  long retval;
+  long first_return;
+};
+extern struct rv getcontext (ucontext_t *);
+extern int setcontext (ucontext_t *);
+#endif /* __ia64__ */
+
 /* this may return more than once: the first time with the escape
    procedure, then subsequently with the value to be passed to the
    continuation.  */
@@ -116,6 +136,9 @@ scm_make_continuation (int *first)
   scm_t_contregs *rootcont = SCM_CONTREGS (scm_rootcont);
   long stack_size;
   SCM_STACKITEM * src;
+#ifdef __ia64__
+  struct rv rv;
+#endif
 
   SCM_ENTER_A_SECTION;
   SCM_FLUSH_REGISTER_WINDOWS;
@@ -139,6 +162,28 @@ scm_make_continuation (int *first)
 #endif
   memcpy (continuation->stack, src, sizeof (SCM_STACKITEM) * stack_size);
 
+#ifdef __ia64__
+  rv = getcontext (&continuation->ctx);
+  if (rv.first_return)
+    {
+      continuation->backing_store_size = 
+        continuation->ctx.uc_mcontext.sc_ar_bsp - 
+        __libc_ia64_register_backing_store_base;
+      continuation->backing_store = NULL;
+      continuation->backing_store = 
+        scm_must_malloc (continuation->backing_store_size, FUNC_NAME);
+      memcpy (continuation->backing_store, 
+              (void *) __libc_ia64_register_backing_store_base, 
+              continuation->backing_store_size);
+      *first = 1;
+      return cont;
+    }
+  else
+    {
+      *first = 0;
+      return continuation->throw_value;
+    }
+#else /* !__ia64__ */
   if (setjmp (continuation->jmpbuf))
     {
       *first = 0;
@@ -149,6 +194,7 @@ scm_make_continuation (int *first)
       *first = 1;
       return cont;
     }
+#endif /* !__ia64__ */
 }
 #undef FUNC_NAME
 
@@ -189,7 +235,14 @@ copy_stack_and_call (scm_t_contregs *continuation, SCM val,
 #endif
 
   continuation->throw_value = val;
+#ifdef __ia64__
+  memcpy ((void *) __libc_ia64_register_backing_store_base,
+          continuation->backing_store,
+          continuation->backing_store_size);
+  setcontext (&continuation->ctx);
+#else
   longjmp (continuation->jmpbuf, 1);
+#endif
 }
 
 
