@@ -1,3 +1,15 @@
+2000-03-11  Dale P. Smith  <dpsm@en.com>, applied by Greg J. Badros, <gjb@cs.washington.edu>
+
+        * numbers.c (scm_copy_big_dec, scm_copy_smaller, scm_big_ior,
+        scm_big_xor, scm_big_and, scm_big_test): Added new lowlevel bignum
+        logical functions from SCM.
+
+        (logand, logior, logxor, logtest, logbit?): Extended scheme
+        logical functions to use bignums from SCM.
+
+        (lognot): Removed call to `SCM_VALIDATE_INUM' that prevented
+        lognot from using bignums.
+
 Thu Mar  9 11:33:25 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* vectors.h (SCM_VELTS_AS_STACKITEMS): Added this macro to help in 
