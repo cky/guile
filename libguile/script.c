@@ -563,7 +563,7 @@ scm_shell_usage (int fatal, char *message)
            scm_usage_name);
 
   if (fatal)
-    exit (1);
+    exit (fatal);
 }
 
 
