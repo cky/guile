@@ -170,6 +170,10 @@ previous section.  In their place, it had the functions
 @code{scm_must_free}.  This section explains why we want you to stop
 using them, and how to do this.
 
+@findex scm_must_malloc
+@findex scm_must_realloc
+@findex scm_must_calloc
+@findex scm_must_free
 The functions @code{scm_must_malloc} and @code{scm_must_realloc}
 behaved like @code{scm_gc_malloc} and @code{scm_gc_realloc} do now,
 respectively.  They would inform the GC about the newly allocated
@@ -194,6 +198,8 @@ of sync with reality and could even overflow in long running programs.
 When this happened, the result was a dramatic increase in (senseless)
 GC activity which would effectively stop the program dead.
 
+@findex scm_done_malloc
+@findex scm_done_free
 The functions @code{scm_done_malloc} and @code{scm_done_free} were
 introduced to help restore balance to the force, but existing bugs did
 not magically disappear, of course.
