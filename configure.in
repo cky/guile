@@ -70,6 +70,7 @@ if test "$enable_dynamic_linking" = "yes"; then
 
 AC_CHECK_LIB(dl,dlopen)
 if test "$ac_cv_lib_dl_dlopen" = "yes"; then
+  AC_DEFINE(HAVE_DLOPEN)
   AC_DEFINE(DYNAMIC_LINKING)
 else
 AC_CHECK_LIB(dld,dld_link)

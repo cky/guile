@@ -1,3 +1,8 @@
+1998-04-19  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* dynl.c: Only check that HAVE_DLOPEN is defined before loading
+	dynl-dl.c; Test on HAVE_LIBDLD instead of HAVE_DLD.
+
 1998-04-18  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* Makefile.am (BUILT_SOURCES): Added cpp_err_symbols.c,
