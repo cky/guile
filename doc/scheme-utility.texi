@@ -66,9 +66,8 @@ a property list associated with a procedure object, use the
 Return @var{obj}'s property list.
 @end deffn
 
-@c ARGFIXME alist/plist
 @c docstring begin (texi-doc-string "guile" "set-object-properties!")
-@deffn primitive set-object-properties! obj plist
+@deffn primitive set-object-properties! obj alist
 @deffnx primitive set-procedure-properties! obj alist
 Set @var{obj}'s property list to @var{alist}.
 @end deffn
@@ -79,12 +78,11 @@ Set @var{obj}'s property list to @var{alist}.
 Return the property of @var{obj} with name @var{key}.
 @end deffn
 
-@c ARGFIXME val/value
 @c docstring begin (texi-doc-string "guile" "set-object-property!")
-@deffn primitive set-object-property! obj key val
+@deffn primitive set-object-property! obj key value
 @deffnx primitive set-procedure-property! obj key value
-In @var{obj}'s property list, set the property named @var{key} to
-@var{value}.
+In @var{obj}'s property list, set the property named @var{key}
+to @var{value}.
 @end deffn
 
 [Interface bug:  there should be a second level of interface in which

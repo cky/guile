@@ -419,7 +419,7 @@ else.
 
 @c docstring begin (texi-doc-string "guile" "inexact->exact")
 @deffn primitive inexact->exact z
-Returns an exact number that is numerically closest to @var{z}.
+Return an exact number that is numerically closest to @var{z}.
 @end deffn
 
 @c begin (texi-doc-string "guile" "exact->inexact")
@@ -621,7 +621,7 @@ inexact, a radix of 10 will be used.
 
 @c docstring begin (texi-doc-string "guile" "string->number")
 @deffn primitive string->number string [radix]
-Returns a number of the maximally precise representation
+Return a number of the maximally precise representation
 expressed by the given @var{string}. @var{radix} must be an
 exact integer, either 2, 8, 10, or 16. If supplied, @var{radix}
 is a default radix that may be overridden by an explicit radix
@@ -960,10 +960,8 @@ Return the hyperbolic arctangent of @var{x}.
 
 @c docstring begin (texi-doc-string "guile" "logand")
 @deffn primitive logand n1 n2
-Returns the integer which is the bit-wise AND of the two integer
+Return the integer which is the bit-wise AND of the two integer
 arguments.
-
-Example:
 @lisp
 (number->string (logand #b1100 #b1010) 2)
    @result{} "1000"
@@ -972,10 +970,8 @@ Example:
 
 @c docstring begin (texi-doc-string "guile" "logior")
 @deffn primitive logior n1 n2
-Returns the integer which is the bit-wise OR of the two integer
+Return the integer which is the bit-wise OR of the two integer
 arguments.
-
-Example:
 @lisp
 (number->string (logior #b1100 #b1010) 2)
    @result{} "1110"
@@ -984,10 +980,8 @@ Example:
 
 @c docstring begin (texi-doc-string "guile" "logxor")
 @deffn primitive logxor n1 n2
-Returns the integer which is the bit-wise XOR of the two integer
+Return the integer which is the bit-wise XOR of the two integer
 arguments.
-
-Example:
 @lisp
 (number->string (logxor #b1100 #b1010) 2)
    @result{} "110"
@@ -996,9 +990,8 @@ Example:
 
 @c docstring begin (texi-doc-string "guile" "lognot")
 @deffn primitive lognot n
-Returns the integer which is the 2s-complement of the integer argument.
-
-Example:
+Return the integer which is the 2s-complement of the integer
+argument.
 @lisp
 (number->string (lognot #b10000000) 2)
    @result{} "-10000001"
@@ -1007,20 +1000,19 @@ Example:
 @end lisp
 @end deffn
 
-@c ARGFIXME j/n1 k/n2
 @c docstring begin (texi-doc-string "guile" "logtest")
-@deffn primitive logtest n1 n2
-@example
+@deffn primitive logtest j k
+@lisp
 (logtest j k) @equiv{} (not (zero? (logand j k)))
 
 (logtest #b0100 #b1011) @result{} #f
 (logtest #b0100 #b0111) @result{} #t
-@end example
+@end lisp
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "logbit?")
 @deffn primitive logbit? index j
-@example
+@lisp
 (logbit? index j) @equiv{} (logtest (integer-expt 2 index) j)
 
 (logbit? 0 #b1101) @result{} #t
@@ -1028,40 +1020,32 @@ Example:
 (logbit? 2 #b1101) @result{} #t
 (logbit? 3 #b1101) @result{} #t
 (logbit? 4 #b1101) @result{} #f
-@end example
+@end lisp
 @end deffn
 
-@c ARGFIXME n/int cnt/count
 @c docstring begin (texi-doc-string "guile" "ash")
 @deffn primitive ash n cnt
-The function ash performs an arithmetic shift left by @var{CNT}
-bits (or shift right, if @var{cnt} is negative).
-'Arithmetic' means, that the function does not guarantee to
-keep the bit structure of @var{n}, but rather guarantees that
-the result will always be rounded towards minus infinity.
-Therefore, the results of ash and a corresponding bitwise
-shift will differ if N is negative.
-
+The function ash performs an arithmetic shift left by @var{cnt}
+bits (or shift right, if @var{cnt} is negative).  'Arithmetic'
+means, that the function does not guarantee to keep the bit
+structure of @var{n}, but rather guarantees that the result
+will always be rounded towards minus infinity.  Therefore, the
+results of ash and a corresponding bitwise shift will differ if
+@var{n} is negative.
 Formally, the function returns an integer equivalent to
 @code{(inexact->exact (floor (* @var{n} (expt 2 @var{cnt}))))}.
-
-Example:
 @lisp
-(number->string (ash #b1 3) 2)
-   @result{} "1000"
-(number->string (ash #b1010 -1) 2)
-   @result{} "101"
+(number->string (ash #b1 3) 2)     @result{} "1000"
+(number->string (ash #b1010 -1) 2) @result{} "101"
 @end lisp
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "logcount")
 @deffn primitive logcount n
-Returns the number of bits in integer @var{n}.  If integer is positive,
-the 1-bits in its binary representation are counted.  If negative, the
-0-bits in its two's-complement binary representation are counted.  If 0,
-0 is returned.
-
-Example:
+Return the number of bits in integer @var{n}.  If integer is
+positive, the 1-bits in its binary representation are counted.
+If negative, the 0-bits in its two's-complement binary
+representation are counted.  If 0, 0 is returned.
 @lisp
 (logcount #b10101010)
    @result{} 4
@@ -1074,9 +1058,7 @@ Example:
 
 @c docstring begin (texi-doc-string "guile" "integer-length")
 @deffn primitive integer-length n
-Returns the number of bits neccessary to represent @var{n}.
-
-Example:
+Return the number of bits neccessary to represent @var{n}.
 @lisp
 (integer-length #b10101010)
    @result{} 8
@@ -1089,9 +1071,8 @@ Example:
 
 @c docstring begin (texi-doc-string "guile" "integer-expt")
 @deffn primitive integer-expt n k
-Returns @var{n} raised to the non-negative integer exponent @var{k}.
-
-Example:
+Return @var{n} raised to the non-negative integer exponent
+@var{k}.
 @lisp
 (integer-expt 2 5)
    @result{} 32
@@ -1102,11 +1083,9 @@ Example:
 
 @c docstring begin (texi-doc-string "guile" "bit-extract")
 @deffn primitive bit-extract n start end
-Returns the integer composed of the @var{start} (inclusive) through
-@var{end} (exclusive) bits of @var{n}.  The @var{start}th bit becomes
-the 0-th bit in the result.@refill
-
-Example:
+Return the integer composed of the @var{start} (inclusive)
+through @var{end} (exclusive) bits of @var{n}.  The
+@var{start}th bit becomes the 0-th bit in the result.
 @lisp
 (number->string (bit-extract #b1101101010 0 4) 2)
    @result{} "1010"
@@ -1140,8 +1119,9 @@ as a side effect of the random operation.
 
 @c docstring begin (texi-doc-string "guile" "random:exp")
 @deffn primitive random:exp [state]
-Returns an inexact real in an exponential distribution with mean 1.
-For an exponential distribution with mean u use (* u (random:exp)).
+Return an inexact real in an exponential distribution with mean
+1.  For an exponential distribution with mean u use (* u
+(random:exp)).
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "random:hollow-sphere!")
@@ -1156,10 +1136,10 @@ unit n-shere.
 
 @c docstring begin (texi-doc-string "guile" "random:normal")
 @deffn primitive random:normal [state]
-Returns an inexact real in a normal distribution.
-The distribution used has mean 0 and standard deviation 1.
-For a normal distribution with mean m and standard deviation
-d use @code{(+ m (* d (random:normal)))}.
+Return an inexact real in a normal distribution.  The
+distribution used has mean 0 and standard deviation 1.  For a
+normal distribution with mean m and standard deviation d use
+@code{(+ m (* d (random:normal)))}.
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "random:normal-vector!")
@@ -1181,7 +1161,8 @@ The sum of the squares of the numbers is returned.
 
 @c docstring begin (texi-doc-string "guile" "random:uniform")
 @deffn primitive random:uniform [state]
-Returns a uniformly distributed inexact real random number in [0,1).
+Return a uniformly distributed inexact real random number in
+[0,1).
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "seed->random-state")
@@ -1444,20 +1425,19 @@ fulfills some specified property.
 @r5index string?
 @c docstring begin (texi-doc-string "guile" "string?")
 @deffn primitive string? obj
-Returns @code{#t} iff @var{obj} is a string, else returns
+Return @code{#t} iff @var{obj} is a string, else returns
 @code{#f}.
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "string-null?")
 @deffn primitive string-null? str
-Return @code{#t} if @var{str}'s length is nonzero, and @code{#f}
-otherwise.
-
-@example
+Return @code{#t} if @var{str}'s length is nonzero, and
+@code{#f} otherwise.
+@lisp
 (string-null? "")  @result{} #t
-y                  @result{} "foo"
-(string-null? y)   @result{} #f
-@end example
+y                    @result{} "foo"
+(string-null? y)     @result{} #f
+@end lisp
 @end deffn
 
 @node String Constructors
@@ -1474,7 +1454,7 @@ initializing them with some specified character data.
 @c docstring begin (texi-doc-string "guile" "list->string")
 @deffn primitive string . chrs
 @deffnx primitive list->string chrs
-Returns a newly allocated string composed of the arguments,
+Return a newly allocated string composed of the arguments,
 @var{chrs}.
 @end deffn
 
@@ -1498,12 +1478,10 @@ These procedures are useful for similar tasks.
 @r5index string->list
 @c docstring begin (texi-doc-string "guile" "string->list")
 @deffn primitive string->list str
-@samp{String->list} returns a newly allocated list of the
-characters that make up the given string.  @samp{List->string}
-returns a newly allocated string formed from the characters in the list
-@var{list}, which must be a list of characters. @samp{String->list}
-and @samp{list->string} are
-inverses so far as @samp{equal?} is concerned.  (r5rs)
+Return a newly allocated list of the characters that make up
+the given string @var{str}. @code{string->list} and
+@code{list->string} are inverses as far as @samp{equal?} is
+concerned.
 @end deffn
 
 @node String Selection
@@ -1529,7 +1507,7 @@ indexing. @var{k} must be a valid index of @var{str}.
 @r5index string-copy
 @c docstring begin (texi-doc-string "guile" "string-copy")
 @deffn primitive string-copy str
-Returns a newly allocated copy of the given @var{string}. (r5rs)
+Return a newly allocated copy of the given @var{string}.
 @end deffn
 
 @r5index substring
@@ -1562,24 +1540,20 @@ an unspecified value. @var{k} must be a valid index of
 @r5index string-fill!
 @c docstring begin (texi-doc-string "guile" "string-fill!")
 @deffn primitive string-fill! str chr
-Stores @var{char} in every element of the given @var{string} and returns an
-unspecified value.  (r5rs)
+Store @var{char} in every element of the given @var{string} and
+return an unspecified value.
 @end deffn
 
-@c ARGFIXME fill/fill-char
 @c docstring begin (texi-doc-string "guile" "substring-fill!")
 @deffn primitive substring-fill! str start end fill
-Change every character in @var{str} between @var{start} and @var{end} to
-@var{fill-char}.
-
-(qdocs:) Destructively fills @var{str}, from @var{start} to @var{end}, with @var{fill}.
-
-@example
+Change every character in @var{str} between @var{start} and
+@var{end} to @var{fill}.
+@lisp
 (define y "abcdefg")
 (substring-fill! y 1 3 #\r)
 y
 @result{} "arrdefg"
-@end example
+@end lisp
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "substring-move!")
@@ -1670,67 +1644,64 @@ ending in @code{-ci} ignore the character case when comparing strings.
 @r5index string<=?
 @c docstring begin (texi-doc-string "guile" "string-ci<=?")
 @deffn primitive string-ci<=? s1 s2
-Case insensitive lexicographic ordering predicate;
-returns @code{#t} if @var{s1} is lexicographically less than
-or equal to @var{s2} regardless of case.  (r5rs)
+Case insensitive lexicographic ordering predicate; return
+@code{#t} if @var{s1} is lexicographically less than or equal
+to @var{s2} regardless of case.
 @end deffn
 
 @r5index string-ci<
 @c docstring begin (texi-doc-string "guile" "string-ci<?")
 @deffn primitive string-ci<? s1 s2
-Case insensitive lexicographic ordering predicate;
-returns @code{#t} if @var{s1} is lexicographically less than
-@var{s2} regardless of case.  (r5rs)
+Case insensitive lexicographic ordering predicate; return
+@code{#t} if @var{s1} is lexicographically less than @var{s2}
+regardless of case.
 @end deffn
 
 @r5index string-ci=?
 @c docstring begin (texi-doc-string "guile" "string-ci=?")
 @deffn primitive string-ci=? s1 s2
-Case-insensitive string equality predicate; returns @code{#t}
-if the two strings are the same length and their component
+Case-insensitive string equality predicate; return @code{#t} if
+the two strings are the same length and their component
 characters match (ignoring case) at each position; otherwise
-returns @code{#f}. (r5rs)
+return @code{#f}.
 @end deffn
 
 @r5index string-ci>=?
 @c docstring begin (texi-doc-string "guile" "string-ci>=?")
 @deffn primitive string-ci>=? s1 s2
-Case insensitive lexicographic ordering predicate;
-returns @code{#t} if @var{s1} is lexicographically greater
-than or equal to @var{s2} regardless of case.  (r5rs)
+Case insensitive lexicographic ordering predicate; return
+@code{#t} if @var{s1} is lexicographically greater than or
+equal to @var{s2} regardless of case.
 @end deffn
 
 @r5index string-ci>?
 @c docstring begin (texi-doc-string "guile" "string-ci>?")
 @deffn primitive string-ci>? s1 s2
-Case insensitive lexicographic ordering predicate;
-returns @code{#t} if @var{s1} is lexicographically greater
-than @var{s2} regardless of case.  (r5rs)
+Case insensitive lexicographic ordering predicate; return
+@code{#t} if @var{s1} is lexicographically greater than
+@var{s2} regardless of case.
 @end deffn
 
 @r5index string<=?
 @c docstring begin (texi-doc-string "guile" "string<=?")
 @deffn primitive string<=? s1 s2
-Lexicographic ordering predicate; returns @code{#t} if
-@var{s1} is lexicographically less than or equal to @var{s2}.
-(r5rs)
+Lexicographic ordering predicate; return @code{#t} if @var{s1}
+is lexicographically less than or equal to @var{s2}.
 @end deffn
 
 @r5index string<?
 @c docstring begin (texi-doc-string "guile" "string<?")
 @deffn primitive string<? s1 s2
-Lexicographic ordering predicate; returns @code{#t} if
-@var{s1} is lexicographically less than @var{s2}.  (r5rs)
+Lexicographic ordering predicate; return @code{#t} if @var{s1}
+is lexicographically less than @var{s2}.
 @end deffn
 
 @r5index string=?
 @c docstring begin (texi-doc-string "guile" "string=?")
 @deffn primitive string=? s1 s2
-Lexicographic equality predicate;
-Returns @code{#t} if the two strings are the same length and
-contain the same characters in the same positions, otherwise
-returns @code{#f}. (r5rs)
-
+Lexicographic equality predicate; return @code{#t} if the two
+strings are the same length and contain the same characters in
+the same positions, otherwise return @code{#f}.
 The procedure @code{string-ci=?} treats upper and lower case
 letters as though they were the same character, but
 @code{string=?} treats upper and lower case as distinct
@@ -1740,16 +1711,15 @@ characters.
 @r5index string>=?
 @c docstring begin (texi-doc-string "guile" "string>=?")
 @deffn primitive string>=? s1 s2
-Lexicographic ordering predicate; returns @code{#t} if
-@var{s1} is lexicographically greater than or equal to
-@var{s2}.  (r5rs)
+Lexicographic ordering predicate; return @code{#t} if @var{s1}
+is lexicographically greater than or equal to @var{s2}.
 @end deffn
 
 @r5index string>?
 @c docstring begin (texi-doc-string "guile" "string>?")
 @deffn primitive string>? s1 s2
-Lexicographic ordering predicate; returns @code{#t} if
-@var{s1} is lexicographically greater than @var{s2}.  (r5rs)
+Lexicographic ordering predicate; return @code{#t} if @var{s1}
+is lexicographically greater than @var{s2}.
 @end deffn
 
 @node String Searching
@@ -1760,17 +1730,12 @@ can be used.
 
 @c docstring begin (texi-doc-string "guile" "string-index")
 @deffn primitive string-index str chr [frm [to]]
-Return the index of the first occurrence of @var{chr} in @var{str}.  The
-optional integer arguments @var{frm} and @var{to} limit the search to
-a portion of the string.  This procedure essentially implements the
-@code{index} or @code{strchr} functions from the C library.
-
-(qdocs:)  Returns the index of @var{char} in @var{str}, or @code{#f} if the
-@var{char} isn't in @var{str}. If @var{frm} is given and not @code{#f},
-it is used as the starting index; if @var{to} is given and not @code{#f},
-it is used as the ending index (exclusive).
-
-@example
+Return the index of the first occurrence of @var{chr} in
+@var{str}.  The optional integer arguments @var{frm} and
+@var{to} limit the search to a portion of the string.  This
+procedure essentially implements the @code{index} or
+@code{strchr} functions from the C library.
+@lisp
 (string-index "weiner" #\e)
 @result{} 1
 
@@ -1779,20 +1744,16 @@ it is used as the ending index (exclusive).
 
 (string-index "weiner" #\e 2 4)
 @result{} #f
-@end example
+@end lisp
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "string-rindex")
 @deffn primitive string-rindex str chr [frm [to]]
-Like @code{string-index}, but search from the right of the string rather
-than from the left.  This procedure essentially implements the
-@code{rindex} or @code{strrchr} functions from the C library.
-
-(qdocs:) The same as @code{string-index}, except it gives the rightmost occurance
-of @var{char} in the range [@var{frm}, @var{to}-1], which defaults to
-the entire string.
-
-@example
+Like @code{string-index}, but search from the right of the
+string rather than from the left.  This procedure essentially
+implements the @code{rindex} or @code{strrchr} functions from
+the C library.
+@lisp
 (string-rindex "weiner" #\e)
 @result{} 4
 
@@ -1801,7 +1762,7 @@ the entire string.
 
 (string-rindex "weiner" #\e 2 5)
 @result{} 4
-@end example
+@end lisp
 @end deffn
 
 @node Alphabetic Case Mapping
@@ -1810,59 +1771,56 @@ the entire string.
 These are procedures for mapping strings to their upper-- or lower--case
 equivalents, respectively, or for capitalizing strings.
 
-@c ARGFIXME v/str
 @c docstring begin (texi-doc-string "guile" "string-upcase!")
 @deffn primitive string-upcase! str
-Destructively upcase every character in @code{str}.
-
-(qdocs:) Converts each element in @var{str} to upper case.
-
-@example
-(string-upcase! y)
-@result{} "ARRDEFG"
-
-y
-@result{} "ARRDEFG"
-@end example
+Destructively upcase every character in @var{str} and return
+@var{str}.
+@lisp
+y                  @result{} "arrdefg"
+(string-upcase! y) @result{} "ARRDEFG"
+y                  @result{} "ARRDEFG"
+@end lisp
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "string-upcase")
 @deffn primitive string-upcase str
-Upcase every character in @code{str}.
+Return a freshly allocated string containing the characters of
+@var{str} in upper case.
 @end deffn
 
-@c ARGFIXME v/str
 @c docstring begin (texi-doc-string "guile" "string-downcase!")
 @deffn primitive string-downcase! str
-Destructively downcase every character in @code{str}.
-
-(qdocs:) Converts each element in @var{str} to lower case.
-
-@example
-y
-@result{} "ARRDEFG"
-
-(string-downcase! y)
-@result{} "arrdefg"
-
-y
-@result{} "arrdefg"
-@end example
+Destructively downcase every character in @var{str} and return
+@var{str}.
+@lisp
+y                     @result{} "ARRDEFG"
+(string-downcase! y)  @result{} "arrdefg"
+y                     @result{} "arrdefg"
+@end lisp
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "string-downcase")
 @deffn primitive string-downcase str
-Downcase every character in @code{str}.
+Return a freshly allocation string containing the characters in
+@var{str} in lower case.
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "string-capitalize!")
 @deffn primitive string-capitalize! str
-Destructively capitalize every character in @code{str}.
+Upcase the first character of every word in @var{str}
+destructively and return @var{str}.
+@lisp
+y                      @result{} "hello world"
+(string-capitalize! y) @result{} "Hello World"
+y                      @result{} "Hello World"
+@end lisp
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "string-capitalize")
 @deffn primitive string-capitalize str
-Capitalize every character in @code{str}.
+Return a freshly allocated string with the characters in
+@var{str}, where the first character of every word is
+capitalized.
 @end deffn
 
 @node Appending Strings
@@ -1900,7 +1858,9 @@ Vector version of @code{substring-move-right!}.
 
 @c docstring begin (texi-doc-string "guile" "string-ci->symbol")
 @deffn primitive string-ci->symbol str
-Return the symbol whose name is @var{str}, downcased in necessary(???).
+Return the symbol whose name is @var{str}.  @var{str} is
+converted to lowercase before the conversion is done, if Guile
+is currently reading symbols case--insensitively.
 @end deffn
 
 
@@ -1923,16 +1883,15 @@ substring is an object that mostly behaves just like an ordinary
 substring, except that it actually shares storage space with its parent
 string.
 
-@c ARGFIXME frm/start to/end
 @c docstring begin (texi-doc-string "guile" "make-shared-substring")
-@deffn primitive make-shared-substring str [frm [to]]
-Return a shared substring of @var{str}.  The semantics are the same as
-for the @code{substring} function: the shared substring returned
-includes all of the text from @var{str} between indexes @var{start}
-(inclusive) and @var{end} (exclusive).  If @var{end} is omitted, it
-defaults to the end of @var{str}.  The shared substring returned by
-@code{make-shared-substring} occupies the same storage space as
-@var{str}.
+@deffn primitive make-shared-substring str [start [end]]
+Return a shared substring of @var{str}.  The semantics are the
+same as for the @code{substring} function: the shared substring
+returned includes all of the text from @var{str} between
+indexes @var{start} (inclusive) and @var{end} (exclusive).  If
+@var{end} is omitted, it defaults to the end of @var{str}.  The
+shared substring returned by @code{make-shared-substring}
+occupies the same storage space as @var{str}.
 @end deffn
 
 Example:
@@ -1993,7 +1952,6 @@ and read only strings.  Mutable strings answer @code{#t} to
 @code{string?}  while read only strings may or may not.   All kinds of
 strings, whether or not they are mutable return #t to this:
 
-@c ARGFIXME x/obj
 @c docstring begin (texi-doc-string "guile" "read-only-string?")
 @deffn primitive read-only-string? obj
 Return true if @var{obj} can be read as a string,
@@ -2001,13 +1959,13 @@ Return true if @var{obj} can be read as a string,
 This illustrates the difference between @code{string?} and
 @code{read-only-string?}:
 
-@example
+@lisp
 (string? "a string") @result{} #t
 (string? 'a-symbol) @result{} #f
 
 (read-only-string? "a string") @result{} #t
 (read-only-string? 'a-symbol) @result{} #t
-@end example
+@end lisp
 @end deffn
 
 "Read-only" refers to how the string will be used, not how the string is
@@ -2085,62 +2043,58 @@ the same regular expression is used several times (for example, in a
 loop).  For better performance, you can compile a regular expression in
 advance and then match strings against the compiled regexp.
 
-@c ARGFIXME pat/str flags/flag
 @c docstring begin (texi-doc-string "guile" "make-regexp")
 @deffn primitive make-regexp pat . flags
-Compile the regular expression described by @var{str}, and return the
-compiled regexp structure.  If @var{str} does not describe a legal
-regular expression, @code{make-regexp} throws a
-@code{regular-expression-syntax} error.
-
-The @var{flag} arguments change the behavior of the compiled regexp.
-The following flags may be supplied:
-
+Compile the regular expression described by @var{pat}, and
+return the compiled regexp structure.  If @var{pat} does not
+describe a legal regular expression, @code{make-regexp} throws
+a @code{regular-expression-syntax} error.
+The @var{flags} arguments change the behavior of the compiled
+regular expression.  The following flags may be supplied:
 @table @code
 @item regexp/icase
-Consider uppercase and lowercase letters to be the same when matching.
-
+Consider uppercase and lowercase letters to be the same when
+matching.
 @item regexp/newline
-If a newline appears in the target string, then permit the @samp{^} and
-@samp{$} operators to match immediately after or immediately before the
-newline, respectively.  Also, the @samp{.} and @samp{[^...]} operators
-will never match a newline character.  The intent of this flag is to
-treat the target string as a buffer containing many lines of text, and
-the regular expression as a pattern that may match a single one of those
-lines.
-
+If a newline appears in the target string, then permit the
+@samp{^} and @samp{$} operators to match immediately after or
+immediately before the newline, respectively.  Also, the
+@samp{.} and @samp{[^...]} operators will never match a newline
+character.  The intent of this flag is to treat the target
+string as a buffer containing many lines of text, and the
+regular expression as a pattern that may match a single one of
+those lines.
 @item regexp/basic
 Compile a basic (``obsolete'') regexp instead of the extended
-(``modern'') regexps that are the default.  Basic regexps do not
-consider @samp{|}, @samp{+} or @samp{?} to be special characters, and
-require the @samp{@{...@}} and @samp{(...)} metacharacters to be
-backslash-escaped (@pxref{Backslash Escapes}).  There are several other
-differences between basic and extended regular expressions, but these
-are the most significant.
-
+(``modern'') regexps that are the default.  Basic regexps do
+not consider @samp{|}, @samp{+} or @samp{?} to be special
+characters, and require the @samp{@{...@}} and @samp{(...)}
+metacharacters to be backslash-escaped (@pxref{Backslash
+Escapes}).  There are several other differences between basic
+and extended regular expressions, but these are the most
+significant.
 @item regexp/extended
-Compile an extended regular expression rather than a basic regexp.  This
-is the default behavior; this flag will not usually be needed.  If a
-call to @code{make-regexp} includes both @code{regexp/basic} and
-@code{regexp/extended} flags, the one which comes last will override
-the earlier one.
+Compile an extended regular expression rather than a basic
+regexp.  This is the default behavior; this flag will not
+usually be needed.  If a call to @code{make-regexp} includes
+both @code{regexp/basic} and @code{regexp/extended} flags, the
+one which comes last will override the earlier one.
 @end table
 @end deffn
 
-@c ARGFIXME rx/regexp
 @c docstring begin (texi-doc-string "guile" "regexp-exec")
 @deffn primitive regexp-exec rx str [start [flags]]
-Match the compiled regular expression @var{regexp} against @code{str}.
-If the optional integer @var{start} argument is provided, begin matching
-from that position in the string.  Return a match structure describing
-the results of the match, or @code{#f} if no match could be found.
+Match the compiled regular expression @var{rx} against
+@code{str}.  If the optional integer @var{start} argument is
+provided, begin matching from that position in the string.
+Return a match structure describing the results of the match,
+or @code{#f} if no match could be found.
 @end deffn
 
-@c ARGFIXME x/obj
 @c docstring begin (texi-doc-string "guile" "regexp?")
-@deffn primitive regexp? x
-Return @code{#t} if @var{obj} is a compiled regular expression, or
-@code{#f} otherwise.
+@deffn primitive regexp? obj
+Return @code{#t} if @var{obj} is a compiled regular expression,
+or @code{#f} otherwise.
 @end deffn
 
 Regular expressions are commonly used to find patterns in one string and
@@ -2559,15 +2513,14 @@ table; instead, simply return @code{#f}.
 
 @c docstring begin (texi-doc-string "guile" "string->symbol")
 @deffn primitive string->symbol string
-Returns the symbol whose name is @var{string}.  This procedure can
-create symbols with names containing special characters or letters in
-the non-standard case, but it is usually a bad idea to create such
-symbols because in some implementations of Scheme they cannot be read as
-themselves.  See @code{symbol->string}.
-
+Return the symbol whose name is @var{string}. This procedure
+can create symbols with names containing special characters or
+letters in the non-standard case, but it is usually a bad idea
+to create such symbols because in some implementations of
+Scheme they cannot be read as themselves.  See
+@code{symbol->string}.
 The following examples assume that the implementation's
 standard case is lower case:
-
 @lisp
 (eq? 'mISSISSIppi 'mississippi) @result{} #t
 (string->symbol "mISSISSIppi") @result{} @r{the symbol with name "mISSISSIppi"}
@@ -2582,26 +2535,24 @@ standard case is lower case:
 
 @c docstring begin (texi-doc-string "guile" "symbol->string")
 @deffn primitive symbol->string s
-Returns the name of @var{symbol} as a string.  If the symbol
-was part of an object returned as the value of a literal
-expression (section @pxref{Literal expressions,,,r4rs, The
-Revised^4 Report on Scheme}) or by a call to the @code{read}
-procedure, and its name contains alphabetic characters, then
-the string returned will contain characters in the
-implementation's preferred standard case---some implementations
-will prefer upper case, others lower case.  If the symbol was
-returned by @code{string->symbol}, the case of characters in
-the string returned will be the same as the case in the string
-that was passed to @code{string->symbol}.  It is an error to
-apply mutation procedures like @code{string-set!} to strings
-returned by this procedure. (r5rs)
-
+Return the name of @var{symbol} as a string.  If the symbol was
+part of an object returned as the value of a literal expression
+(section @pxref{Literal expressions,,,r4rs, The Revised^4
+Report on Scheme}) or by a call to the @code{read} procedure,
+and its name contains alphabetic characters, then the string
+returned will contain characters in the implementation's
+preferred standard case---some implementations will prefer
+upper case, others lower case.  If the symbol was returned by
+@code{string->symbol}, the case of characters in the string
+returned will be the same as the case in the string that was
+passed to @code{string->symbol}.  It is an error to apply
+mutation procedures like @code{string-set!} to strings returned
+by this procedure.
 The following examples assume that the implementation's
 standard case is lower case:
-
 @lisp
-(symbol->string 'flying-fish) @result{} "flying-fish"
-(symbol->string 'Martin)      @result{}  "martin"
+(symbol->string 'flying-fish)    @result{} "flying-fish"
+(symbol->string 'Martin)         @result{}  "martin"
 (symbol->string
    (string->symbol "Malvina")) @result{} "Malvina"
 @end lisp
@@ -2665,8 +2616,8 @@ in @var{obarray}.
 
 @c docstring begin (texi-doc-string "guile" "symbol?")
 @deffn primitive symbol? obj
-Returns @code{#t} if @var{obj} is a symbol, otherwise returns
-@code{#f}. (r5rs)
+Return @code{#t} if @var{obj} is a symbol, otherwise return
+@code{#f}.
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "unintern-symbol")
@@ -2931,7 +2882,8 @@ Make a keyword object from a @var{symbol} that starts with a dash.
 
 @c docstring begin (texi-doc-string "guile" "keyword?")
 @deffn primitive keyword? obj
-Returns @code{#t} if the argument @var{obj} is a keyword, else @code{#f}.
+Return @code{#t} if the argument @var{obj} is a keyword, else
+@code{#f}.
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "keyword-dash-symbol")
@@ -2943,21 +2895,19 @@ This is the inverse of @code{make-keyword-from-dash-symbol}.
 
 @node Pairs
 @section Pairs
-@r5index pair?
 @r5index cons
-@r5index set-car!
-@r5index set-cdr!
-
 @c docstring begin (texi-doc-string "guile" "cons")
 @deffn primitive cons x y
-Returns a newly allocated pair whose car is @var{x} and whose cdr is
-@var{y}.  The pair is guaranteed to be different (in the sense of
-@code{eqv?}) from every previously existing object.
+Return a newly allocated pair whose car is @var{x} and whose
+cdr is @var{y}.  The pair is guaranteed to be different (in the
+sense of @code{eq?}) from every previously existing object.
 @end deffn
 
+@r5index pair?
 @c docstring begin (texi-doc-string "guile" "pair?")
 @deffn primitive pair? x
-Returns @code{#t} if @var{x} is a pair; otherwise returns @code{#f}.
+Return @code{#t} if @var{x} is a pair; otherwise return
+@code{#f}.
 @end deffn
 
 @r5index car
@@ -2979,12 +2929,14 @@ for example @code{caddr} could be defined by
 @end lisp
 @end deffn
 
+@r5index set-car!
 @c docstring begin (texi-doc-string "guile" "set-car!")
 @deffn primitive set-car! pair value
 Stores @var{value} in the car field of @var{pair}.  The value returned
 by @code{set-car!} is unspecified.
 @end deffn
 
+@r5index set-cdr!
 @c docstring begin (texi-doc-string "guile" "set-cdr!")
 @deffn primitive set-cdr! pair value
 Stores @var{value} in the cdr field of @var{pair}.  The value returned
@@ -3042,28 +2994,28 @@ Return the number of elements in list @var{lst}.
 @deffn primitive append . args
 Return a list consisting of the elements the lists passed as
 arguments.
-@example
+@lisp
 (append '(x) '(y))          @result{}  (x y)
 (append '(a) '(b c d))      @result{}  (a b c d)
 (append '(a (b)) '((c)))    @result{}  (a (b) (c))
-@end example
+@end lisp
 The resulting list is always newly allocated, except that it
 shares structure with the last list argument.  The last
 argument may actually be any object; an improper list results
 if the last argument is not a proper list.
-@example
+@lisp
 (append '(a b) '(c . d))    @result{}  (a b c . d)
 (append '() 'a)             @result{}  a
-@end example
+@end lisp
 @end deffn
 
-@c ARGFIXME args ?
 @c docstring begin (texi-doc-string "guile" "append!")
-@deffn primitive append! . args
-A destructive version of @code{append} (@pxref{Pairs and Lists,,,r4rs,
-The Revised^4 Report on Scheme}).  The cdr field of each list's final
-pair is changed to point to the head of the next list, so no consing is
-performed.  Return a pointer to the mutated list.
+@deffn primitive append! . lists
+A destructive version of @code{append} (@pxref{Pairs and
+Lists,,,r4rs, The Revised^4 Report on Scheme}).  The cdr field
+of each list's final pair is changed to point to the head of
+the next list, so no consing is performed.  Return a pointer to
+the mutated list.
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "last-pair")
@@ -3643,7 +3595,7 @@ sub-system: one vtable-vtable working as the root and one or several
 "types", each with a set of "instances".  (The vtable-vtable should be
 compared to the class <class> which is the class of itself.)
 
-@example
+@lisp
 (define ball-root (make-vtable-vtable "pr" 0))
 
 (define (make-ball-type ball-color)
@@ -3664,7 +3616,7 @@ compared to the class <class> which is the class of itself.)
 
 (define ball (make-ball green 'Nisse))
 ball @result{} #<a green ball owned by Nisse>
-@end example
+@end lisp
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "struct-vtable-name")
@@ -3738,10 +3690,9 @@ The following procedures can be used with conventional arrays (or vectors).
 
 @c docstring begin (texi-doc-string "guile" "array?")
 @deffn primitive array? v [prot]
-Returns @code{#t} if the @var{obj} is an array, and @code{#f} if not.
-
-The @var{prototype} argument is used with uniform arrays and is described
-elsewhere.
+Return @code{#t} if the @var{obj} is an array, and @code{#f} if
+not.  The @var{prototype} argument is used with uniform arrays
+and is described elsewhere.
 @end deffn
 
 @deffn procedure make-array initial-value bound1 bound2 @dots{}
@@ -3756,12 +3707,14 @@ Creates and returns an array that has as many dimensions as there are
 @c docstring begin (texi-doc-string "guile" "array-ref")
 @deffn primitive uniform-vector-ref v args
 @deffnx primitive array-ref v . args
-Returns the element at the @code{(index1, index2)} element in @var{array}.
+Return the element at the @code{(index1, index2)} element in
+@var{array}.
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "array-in-bounds?")
 @deffn primitive array-in-bounds? v . args
-Returns @code{#t} if its arguments would be acceptable to array-ref.
+Return @code{#t} if its arguments would be acceptable to
+@code{array-ref}.
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "array-set!")
@@ -3779,7 +3732,7 @@ arrays.  The @var{mapper} is a function that translates coordinates in
 the new array into coordinates in the old array.  A @var{mapper} must be
 linear, and its range must stay within the bounds of the old array, but
 it can be otherwise arbitrary.  A simple example:
-@example
+@lisp
 (define fred (make-array #f 8 8))
 (define freds-diagonal
   (make-shared-array fred (lambda (i) (list i i)) 8))
@@ -3788,7 +3741,7 @@ it can be otherwise arbitrary.  A simple example:
 (define freds-center
   (make-shared-array fred (lambda (i j) (list (+ 3 i) (+ 3 j))) 2 2))
 (array-ref freds-center 0 0) @result{} foo
-@end example
+@end lisp
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "shared-array-increments")
@@ -3808,25 +3761,23 @@ Return the root vector of a shared array.
 
 @c docstring begin (texi-doc-string "guile" "transpose-array")
 @deffn primitive transpose-array ra . args
-Returns an array sharing contents with @var{array}, but with dimensions
-arranged in a different order.  There must be one @var{dim} argument for
-each dimension of @var{array}.  @var{dim0}, @var{dim1}, @dots{} should
-be integers between 0 and the rank of the array to be returned.  Each
-integer in that range must appear at least once in the argument list.
-
-The values of @var{dim0}, @var{dim1}, @dots{} correspond to dimensions
-in the array to be returned, their positions in the argument list to
-dimensions of @var{array}.  Several @var{dim}s may have the same value,
-in which case the returned array will have smaller rank than
-@var{array}.
-
-examples:
-@example
+Return an array sharing contents with @var{array}, but with
+dimensions arranged in a different order.  There must be one
+@var{dim} argument for each dimension of @var{array}.
+@var{dim0}, @var{dim1}, @dots{} should be integers between 0
+and the rank of the array to be returned.  Each integer in that
+range must appear at least once in the argument list.
+The values of @var{dim0}, @var{dim1}, @dots{} correspond to
+dimensions in the array to be returned, their positions in the
+argument list to dimensions of @var{array}.  Several @var{dim}s
+may have the same value, in which case the returned array will
+have smaller rank than @var{array}.
+@lisp
 (transpose-array '#2((a b) (c d)) 1 0) @result{} #2((a c) (b d))
 (transpose-array '#2((a b) (c d)) 0 0) @result{} #1(a d)
 (transpose-array '#3(((a b c) (d e f)) ((1 2 3) (4 5 6))) 1 1 0) @result{}
                 #2((a 4) (b 5) (c 6))
-@end example
+@end lisp
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "enclose-array")
@@ -3845,13 +3796,13 @@ an enclosed array will be @code{equal?} but will not in general be
 enclosed array is unspecified.
 
 examples:
-@example
+@lisp
 (enclose-array '#3(((a b c) (d e f)) ((1 2 3) (4 5 6))) 1) @result{}
    #<enclosed-array (#1(a d) #1(b e) #1(c f)) (#1(1 4) #1(2 5) #1(3 6))>
 
 (enclose-array '#3(((a b c) (d e f)) ((1 2 3) (4 5 6))) 1 0) @result{}
    #<enclosed-array #2((a 1) (d 4)) #2((b 2) (e 5)) #2((c 3) (f 6))>
-@end example
+@end lisp
 @end deffn
 
 @deffn procedure array-shape array
@@ -3865,20 +3816,21 @@ Returns a list of inclusive bounds of integers.
 @deffn primitive array-dimensions ra
 @code{Array-dimensions} is similar to @code{array-shape} but replaces
 elements with a @code{0} minimum with one greater than the maximum. So:
-@example
+@lisp
 (array-dimensions (make-array 'foo '(-1 3) 5)) @result{} ((-1 3) 5)
-@end example
+@end lisp
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "array-rank")
 @deffn primitive array-rank ra
-Returns the number of dimensions of @var{obj}.  If @var{obj} is not an
-array, @code{0} is returned.
+Return the number of dimensions of @var{obj}.  If @var{obj} is
+not an array, @code{0} is returned.
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "array->list")
 @deffn primitive array->list v
-Returns a list consisting of all the elements, in order, of @var{array}.
+Return a list consisting of all the elements, in order, of
+@var{array}.
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "array-copy!")
@@ -3949,19 +3901,19 @@ turn, storing the result in the corresponding element.  The value
 returned and the order of application are unspecified.
 
 One can implement @var{array-indexes} as
-@example
+@lisp
 (define (array-indexes array)
     (let ((ra (apply make-array #f (array-shape array))))
       (array-index-map! ra (lambda x x))
       ra))
-@end example
+@end lisp
 Another example:
-@example
+@lisp
 (define (apl:index-generator n)
     (let ((v (make-uniform-vector n 1)))
       (array-index-map! v (lambda (i) i))
       v))
-@end example
+@end lisp
 @end deffn
 
 @node Uniform Arrays
@@ -4036,17 +3988,18 @@ and fills it with @var{prototype}.
 
 @c docstring begin (texi-doc-string "guile" "array-prototype")
 @deffn primitive array-prototype ra
-Returns an object that would produce an array of the same type as
-@var{array}, if used as the @var{prototype} for
+Return an object that would produce an array of the same type
+as @var{array}, if used as the @var{prototype} for
 @code{make-uniform-array}.
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "list->uniform-array")
 @deffn primitive list->uniform-array ndim prot lst
 @deffnx procedure list->uniform-vector prot lst
-Returns a uniform array of the type indicated by prototype @var{prot}
-with elements the same as those of @var{lst}.  Elements must be of the
-appropriate type, no coercions are done.
+Return a uniform array of the type indicated by prototype
+@var{prot} with elements the same as those of @var{lst}.
+Elements must be of the appropriate type, no coercions are
+done.
 @end deffn
 
 @deffn primitive uniform-vector-fill! uve fill
@@ -4056,16 +4009,16 @@ unspecified.
 
 @c docstring begin (texi-doc-string "guile" "uniform-vector-length")
 @deffn primitive uniform-vector-length v
-Returns the number of elements in @var{uve}.
+Return the number of elements in @var{uve}.
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "dimensions->uniform-array")
 @deffn primitive dimensions->uniform-array dims prot [fill]
 @deffnx primitive make-uniform-vector length prototype [fill]
-Creates and returns a uniform array or vector of type corresponding to
-@var{prototype} with dimensions @var{dims} or length @var{length}.  If
-@var{fill} is supplied, it's used to fill the array, otherwise
-@var{prototype} is used.
+Create and return a uniform array or vector of type
+corresponding to @var{prototype} with dimensions @var{dims} or
+length @var{length}.  If @var{fill} is supplied, it's used to
+fill the array, otherwise @var{prototype} is used.
 @end deffn
 
 @c Another compiled-closure. -twp
@@ -4126,15 +4079,15 @@ They are displayed as a sequence of @code{0}s and
 
 @c docstring begin (texi-doc-string "guile" "bit-count")
 @deffn primitive bit-count b bitvector
-Returns the number of occurrences of the boolean @var{b} in
+Return the number of occurrences of the boolean @var{b} in
 @var{bitvector}.
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "bit-position")
 @deffn primitive bit-position item v k
-Returns the minimum index of an occurrence of @var{bool} in @var{bv}
-which is at least @var{k}.  If no @var{bool} occurs within the specified
-range @code{#f} is returned.
+Return the minimum index of an occurrence of @var{bool} in
+@var{bv} which is at least @var{k}.  If no @var{bool} occurs
+within the specified range @code{#f} is returned.
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "bit-invert!")
@@ -4157,10 +4110,10 @@ of @var{bv} corresponding to the indexes in uve are set to
 
 @c docstring begin (texi-doc-string "guile" "bit-count*")
 @deffn primitive bit-count* v kv obj
-Returns
-@example
+Return
+@lisp
 (bit-count (bit-set*! (if bool bv (bit-invert! bv)) uve #t) #t).
-@end example
+@end lisp
 @var{bv} is not modified.
 @end deffn
 
@@ -4648,72 +4601,63 @@ In each of the functions that follow, the @var{table} argument
 must be a vector.  The @var{key} and @var{value} arguments may be
 any Scheme object.
 
-@c ARGFIXME obj/key
 @c docstring begin (texi-doc-string "guile" "hashq-ref")
-@deffn primitive hashq-ref table obj [dflt]
+@deffn primitive hashq-ref table key [dflt]
 Look up @var{key} in the hash table @var{table}, and return the
 value (if any) associated with it.  If @var{key} is not found,
 return @var{default} (or @code{#f} if no @var{default} argument
 is supplied).  Uses @code{eq?} for equality testing.
 @end deffn
 
-@c ARGFIXME obj/key
 @c docstring begin (texi-doc-string "guile" "hashv-ref")
-@deffn primitive hashv-ref table obj [dflt]
+@deffn primitive hashv-ref table key [dflt]
 Look up @var{key} in the hash table @var{table}, and return the
 value (if any) associated with it.  If @var{key} is not found,
 return @var{default} (or @code{#f} if no @var{default} argument
 is supplied).  Uses @code{eqv?} for equality testing.
 @end deffn
 
-@c ARGFIXME obj/key
 @c docstring begin (texi-doc-string "guile" "hash-ref")
-@deffn primitive hash-ref table obj [dflt]
+@deffn primitive hash-ref table key [dflt]
 Look up @var{key} in the hash table @var{table}, and return the
 value (if any) associated with it.  If @var{key} is not found,
 return @var{default} (or @code{#f} if no @var{default} argument
 is supplied).  Uses @code{equal?} for equality testing.
 @end deffn
 
-@c ARGFIXME obj/key
 @c docstring begin (texi-doc-string "guile" "hashq-set!")
-@deffn primitive hashq-set! table obj val
+@deffn primitive hashq-set! table key val
 Find the entry in @var{table} associated with @var{key}, and
 store @var{value} there. Uses @code{eq?} for equality testing.
 @end deffn
 
-@c ARGFIXME obj/key
 @c docstring begin (texi-doc-string "guile" "hashv-set!")
-@deffn primitive hashv-set! table obj val
+@deffn primitive hashv-set! table key val
 Find the entry in @var{table} associated with @var{key}, and
 store @var{value} there. Uses @code{eqv?} for equality testing.
 @end deffn
 
-@c ARGFIXME obj/key
 @c docstring begin (texi-doc-string "guile" "hash-set!")
-@deffn primitive hash-set! table obj val
+@deffn primitive hash-set! table key val
 Find the entry in @var{table} associated with @var{key}, and
 store @var{value} there. Uses @code{equal?} for equality
 testing.
 @end deffn
 
-@c ARGFIXME obj/key
 @c docstring begin (texi-doc-string "guile" "hashq-remove!")
-@deffn primitive hashq-remove! table obj
+@deffn primitive hashq-remove! table key
 Remove @var{key} (and any value associated with it) from
 @var{table}.  Uses @code{eq?} for equality tests.
 @end deffn
 
-@c ARGFIXME obj/key
 @c docstring begin (texi-doc-string "guile" "hashv-remove!")
-@deffn primitive hashv-remove! table obj
+@deffn primitive hashv-remove! table key
 Remove @var{key} (and any value associated with it) from
 @var{table}.  Uses @code{eqv?} for equality tests.
 @end deffn
 
-@c ARGFIXME obj/key
 @c docstring begin (texi-doc-string "guile" "hash-remove!")
-@deffn primitive hash-remove! table obj
+@deffn primitive hash-remove! table key
 Remove @var{key} (and any value associated with it) from
 @var{table}.  Uses @code{equal?} for equality tests.
 @end deffn
@@ -4769,69 +4713,60 @@ is used as the equality predicate.  The function returns an
 integer in the range 0 to @var{size} - 1.
 @end deffn
 
-@c ARGFIXME hash/hasher
 @c docstring begin (texi-doc-string "guile" "hashx-ref")
-@deffn primitive hashx-ref hash assoc table obj [dflt]
+@deffn primitive hashx-ref hash assoc table key [dflt]
 This behaves the same way as the corresponding @code{ref}
-function, but uses @var{hasher} as a
-hash function and @var{assoc} to compare keys.  @code{hasher} must
-be a function that takes two arguments, a key to be hashed and a
-table size.  @code{assoc} must be an associator function, like
-@code{assoc}, @code{assq} or @code{assv}.
-
-By way of illustration, @code{hashq-ref table key} is equivalent
-to @code{hashx-ref hashq assq table key}.
+function, but uses @var{hash} as a hash function and
+@var{assoc} to compare keys.  @code{hash} must be a function
+that takes two arguments, a key to be hashed and a table size.
+@code{assoc} must be an associator function, like @code{assoc},
+@code{assq} or @code{assv}.
+By way of illustration, @code{hashq-ref table key} is
+equivalent to @code{hashx-ref hashq assq table key}.
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "hashx-set!")
-@deffn primitive hashx-set! hash assoc table obj val
+@deffn primitive hashx-set! hash assoc table key val
 This behaves the same way as the corresponding @code{set!}
-function, but uses @var{hasher} as a
-hash function and @var{assoc} to compare keys.  @code{hasher} must
-be a function that takes two arguments, a key to be hashed and a
-table size.  @code{assoc} must be an associator function, like
-@code{assoc}, @code{assq} or @code{assv}.
-
-By way of illustration, @code{hashq-set! table key} is equivalent
-to @code{hashx-set! hashq assq table key}.
+function, but uses @var{hash} as a hash function and
+@var{assoc} to compare keys.  @code{hash} must be a function
+that takes two arguments, a key to be hashed and a table size.
+@code{assoc} must be an associator function, like @code{assoc},
+@code{assq} or @code{assv}.
+ By way of illustration, @code{hashq-set! table key} is
+equivalent to @code{hashx-set!  hashq assq table key}.
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "hashq-get-handle")
-@deffn primitive hashq-get-handle table obj
-This procedure is similar to its @code{-ref} cousin, but returns a
-@dfn{handle} from the hash table rather than the value associated with
-@var{key}.  By convention, a handle in a hash table is the pair which
-associates a key with a value.  Where @code{hashq-ref table key} returns
-only a @code{value}, @code{hashq-get-handle table key} returns the pair
-@code{(key . value)}.
+@deffn primitive hashq-get-handle table key
+This procedure returns the @code{(key . value)} pair from the
+hash table @var{table}.  If @var{table} does not hold an
+associated value for @var{key}, @code{#f} is returned.
+Uses @code{eq?} for equality testing.
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "hashv-get-handle")
-@deffn primitive hashv-get-handle table obj
-This procedure is similar to its @code{-ref} cousin, but returns a
-@dfn{handle} from the hash table rather than the value associated with
-@var{key}.  By convention, a handle in a hash table is the pair which
-associates a key with a value.  Where @code{hashv-ref table key} returns
-only a @code{value}, @code{hashv-get-handle table key} returns the pair
-@code{(key . value)}.
+@deffn primitive hashv-get-handle table key
+This procedure returns the @code{(key . value)} pair from the
+hash table @var{table}.  If @var{table} does not hold an
+associated value for @var{key}, @code{#f} is returned.
+Uses @code{eqv?} for equality testing.
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "hash-get-handle")
-@deffn primitive hash-get-handle table obj
-This procedure is similar to its @code{-ref} cousin, but returns a
-@dfn{handle} from the hash table rather than the value associated with
-@var{key}.  By convention, a handle in a hash table is the pair which
-associates a key with a value.  Where @code{hash-ref table key} returns
-only a @code{value}, @code{hash-get-handle table key} returns the pair
-@code{(key . value)}.
+@deffn primitive hash-get-handle table key
+This procedure returns the @code{(key . value)} pair from the
+hash table @var{table}.  If @var{table} does not hold an
+associated value for @var{key}, @code{#f} is returned.
+Uses @code{equal?} for equality testing.
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "hashx-get-handle")
-@deffn primitive hashx-get-handle hash assoc table obj
-This behaves the same way as the corresponding @code{-get-handle}
-function, but uses @var{hasher} as a
-hash function and @var{assoc} to compare keys.  @code{hasher} must
-be a function that takes two arguments, a key to be hashed and a
+@deffn primitive hashx-get-handle hash assoc table key
+This behaves the same way as the corresponding
+@code{-get-handle} function, but uses @var{hash} as a hash
+function and @var{assoc} to compare keys.  @code{hash} must be
+a function that takes two arguments, a key to be hashed and a
 table size.  @code{assoc} must be an associator function, like
 @code{assoc}, @code{assq} or @code{assv}.
 @end deffn
@@ -4858,11 +4793,11 @@ associates @var{key} with @var{init}.
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "hashx-create-handle!")
-@deffn primitive hashx-create-handle! hash assoc table obj init
-This behaves the same way as the corresponding @code{-create-handle}
-function, but uses @var{hasher} as a
-hash function and @var{assoc} to compare keys.  @code{hasher} must
-be a function that takes two arguments, a key to be hashed and a
+@deffn primitive hashx-create-handle! hash assoc table key init
+This behaves the same way as the corresponding
+@code{-create-handle} function, but uses @var{hash} as a hash
+function and @var{assoc} to compare keys.  @code{hash} must be
+a function that takes two arguments, a key to be hashed and a
 table size.  @code{assoc} must be an associator function, like
 @code{assoc}, @code{assq} or @code{assv}.
 @end deffn
@@ -4886,9 +4821,10 @@ table into an a-list of key-value pairs.
 @r5index make-vector
 @c docstring begin (texi-doc-string "guile" "make-vector")
 @deffn primitive make-vector k [fill]
-Returns a newly allocated vector of @var{k} elements.  If a second
-argument is given, then each element is initialized to @var{fill}.
-Otherwise the initial contents of each element is unspecified. (r5rs)
+Return a newly allocated vector of @var{k} elements.  If a
+second argument is given, then each element is initialized to
+@var{fill}.  Otherwise the initial contents of each element is
+unspecified.
 @end deffn
 
 @r5index vector
@@ -4897,20 +4833,18 @@ Otherwise the initial contents of each element is unspecified. (r5rs)
 @c docstring begin (texi-doc-string "guile" "list->vector")
 @deffn primitive vector . l
 @deffnx primitive list->vector l
-Returns a newly allocated vector whose elements contain the
-given arguments.  Analogous to @code{list}. (r5rs)
-
+Return a newly allocated vector whose elements contain the
+given arguments.  Analogous to @code{list}.
 @lisp
-(vector 'a 'b 'c) @result{}  #(a b c)
+(vector 'a 'b 'c) @result{} #(a b c)
 @end lisp
 @end deffn
 
 @r5index vector->list
 @c docstring begin (texi-doc-string "guile" "vector->list")
 @deffn primitive vector->list v
-@samp{Vector->list} returns a newly allocated list of the
-objects contained in the elements of @var{vector}.  (r5rs)
-
+Return a newly allocated list of the objects contained in the
+elements of @var{vector}.
 @lisp
 (vector->list '#(dah dah didah)) @result{}  (dah dah didah)
 (list->vector '(dididit dah)) @result{}  #(dididit dah)
@@ -4918,18 +4852,17 @@ objects contained in the elements of @var{vector}.  (r5rs)
 @end deffn
 
 @r5index vector-fill!
-@c FIXME::martin: Argument names
 @c docstring begin (texi-doc-string "guile" "vector-fill!")
-@deffn primitive vector-fill! v fill_x
-Stores @var{fill} in every element of @var{vector}.
-The value returned by @code{vector-fill!} is unspecified. (r5rs)
+@deffn primitive vector-fill! v fill
+Store @var{fill} in every element of @var{vector}.  The value
+returned by @code{vector-fill!} is unspecified.
 @end deffn
 
 @r5index vector?
 @c docstring begin (texi-doc-string "guile" "vector?")
 @deffn primitive vector? obj
-Returns @code{#t} if @var{obj} is a vector, otherwise returns
-@code{#f}. (r5rs)
+Return @code{#t} if @var{obj} is a vector, otherwise return
+@code{#f}.
 @end deffn
 
 @r5index vector-length

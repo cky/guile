@@ -88,28 +88,22 @@ Instead of using @code{call-with-current-continuation}, the exception
 primitives documented here are implemented as built-ins that take
 advantage of the @emph{upward only} nature of exceptions.
 
-@c ARGFIXME tag/key
 @c docstring begin (texi-doc-string "guile" "catch")
-@deffn primitive catch tag thunk handler
+@deffn primitive catch key thunk handler
 Invoke @var{thunk} in the dynamic context of @var{handler} for
-exceptions matching @var{key}.  If thunk throws to the symbol @var{key},
-then @var{handler} is invoked this way:
-
-@example
+exceptions matching @var{key}.  If thunk throws to the symbol
+@var{key}, then @var{handler} is invoked this way:
+@lisp
 (handler key args ...)
-@end example
-
-@var{key} is a symbol or #t.
-
-@var{thunk} takes no arguments.  If @var{thunk} returns normally, that
-is the return value of @code{catch}.
-
-Handler is invoked outside the scope of its own @code{catch}.  If
-@var{handler} again throws to the same key, a new handler from further
-up the call chain is invoked.
-
-If the key is @code{#t}, then a throw to @emph{any} symbol will match
-this call to @code{catch}.
+@end lisp
+@var{key} is a symbol or @code{#t}.
+@var{thunk} takes no arguments.  If @var{thunk} returns
+normally, that is the return value of @code{catch}.
+Handler is invoked outside the scope of its own @code{catch}.
+If @var{handler} again throws to the same key, a new handler
+from further up the call chain is invoked.
+If the key is @code{#t}, then a throw to @emph{any} symbol will
+match this call to @code{catch}.
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "throw")
@@ -124,7 +118,7 @@ If there is no handler at all, an error is signaled.
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "lazy-catch")
-@deffn primitive lazy-catch tag thunk handler
+@deffn primitive lazy-catch key thunk handler
 This behaves exactly like @code{catch}, except that it does
 not unwind the stack (this is the major difference), and if
 handler returns, its value is returned from the throw.
@@ -145,25 +139,27 @@ displaying @var{msg} and writing @var{args}.
 @end deffn
 @c end
 
-@c ARGFIXME rest/data
 @c docstring begin (texi-doc-string "guile" "scm-error")
-@deffn primitive scm-error key subr message args rest
-Raise an error with key @var{key}.  @var{subr} can be a string naming
-the procedure associated with the error, or @code{#f}.  @var{message}
-is the error message string, possibly containing @code{~S} and @code{~A}
-escapes.  When an error is reported, these are replaced by formating the
-corresponding members of @var{args}: @code{~A} (was @code{%s}) formats using @code{display}
-and @code{~S} (was @code{%S}) formats using @code{write}.  @var{data} is a
-list or @code{#f} depending on @var{key}: if @var{key} is
-@code{system-error} then it should be a list
-containing the Unix @code{errno} value;  If @var{key} is @code{signal} then
-it should be a list containing the Unix signal number; otherwise it
-will usually be @code{#f}.
+@deffn primitive scm-error key subr message args data
+Raise an error with key @var{key}.  @var{subr} can be a string
+naming the procedure associated with the error, or @code{#f}.
+@var{message} is the error message string, possibly containing
+@code{~S} and @code{~A} escapes.  When an error is reported,
+these are replaced by formatting the corresponding members of
+@var{args}: @code{~A} (was @code{%s} in older versions of
+Guile) formats using @code{display} and @code{~S} (was
+@code{%S}) formats using @code{write}.  @var{data} is a list or
+@code{#f} depending on @var{key}: if @var{key} is
+@code{system-error} then it should be a list containing the
+Unix @code{errno} value; If @var{key} is @code{signal} then it
+should be a list containing the Unix signal number; otherwise
+it will usually be @code{#f}.
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "strerror")
 @deffn primitive strerror err
-Returns the Unix error message corresponding to @var{err}, an integer.
+Return the Unix error message corresponding to @var{err}, which
+must be an integer value.
 @end deffn
 
 @c begin (scm-doc-string "boot-9.scm" "false-if-exception")
@@ -181,23 +177,20 @@ if an exception occurs then @code{#f} is returned instead.
 be reviewed]
 
 @r5index dynamic-wind
-@c ARGFIXME in-guard/thunk1 thunk/thunk2 out-guard/thunk3
 @c docstring begin (texi-doc-string "guile" "dynamic-wind")
-@deffn primitive dynamic-wind thunk1 thunk2 thunk3
+@deffn primitive dynamic-wind in_guard thunk out_guard
 All three arguments must be 0-argument procedures.
-
-@var{in-guard} is called, then @var{thunk}, then @var{out-guard}.
-
-If, any time during the execution of @var{thunk}, the continuation
-of the @code{dynamic-wind} expression is escaped non-locally, @var{out-guard}
-is called.   If the continuation of the dynamic-wind is re-entered,
-@var{in-guard} is called.   Thus @var{in-guard} and @var{out-guard} may
-be called any number of times.
-
-@example
+@var{in_guard} is called, then @var{thunk}, then
+@var{out_guard}.
+If, any time during the execution of @var{thunk}, the
+continuation of the @code{dynamic_wind} expression is escaped
+non-locally, @var{out_guard} is called.  If the continuation of
+the dynamic-wind is re-entered, @var{in_guard} is called.  Thus
+@var{in_guard} and @var{out_guard} may be called any number of
+times.
+@lisp
 (define x 'normal-binding)
 @result{} x
-
 (define a-cont  (call-with-current-continuation
 		  (lambda (escape)
 		     (let ((old-x x))
@@ -205,38 +198,31 @@ be called any number of times.
 			  ;; in-guard:
 			  ;;
 			  (lambda () (set! x 'special-binding))
-
 			  ;; thunk
 			  ;;
 		 	  (lambda () (display x) (newline)
 				     (call-with-current-continuation escape)
 				     (display x) (newline)
 				     x)
-
 			  ;; out-guard:
 			  ;;
 			  (lambda () (set! x old-x)))))))
-
 ;; Prints:
 special-binding
 ;; Evaluates to:
 @result{} a-cont
-
 x
 @result{} normal-binding
-
 (a-cont #f)
 ;; Prints:
 special-binding
 ;; Evaluates to:
 @result{} a-cont  ;; the value of the (define a-cont...)
-
 x
 @result{} normal-binding
-
 a-cont
 @result{} special-binding
-@end example
+@end lisp
 @end deffn
 @c Local Variables:
 @c TeX-master: "guile.texi"

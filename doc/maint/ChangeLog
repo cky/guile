@@ -1,3 +1,7 @@
+2001-04-03  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* guile.texi: Automated docstring merging.
+
 2001-03-23  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* ChangeLog, README, docstring.el, guile.texi: New files.

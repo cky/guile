@@ -1,3 +1,16 @@
+2001-04-03  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* scheme-options.texi, scheme-procedures.texi,
+	scheme-modules.texi, scheme-memory.texi, scheme-control.texi,
+	scheme-utility.texi, scheme-io.texi, scheme-evaluation.texi,
+	scheme-data.texi: Removed a lot of ARGFIXME's after tweaking
+	docstrings and C source.
+
+	* new-docstrings.texi, scheme-io.texi, scheme-data.texi,
+	posix.texi, scheme-control.texi, scheme-evaluation.texi,
+	scheme-memory.texi, scheme-procedures.texi, scheme-modules.texi,
+	scheme-scheduling.texi: Automated docstring merging.
+
 2001-04-02  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* data-rep.texi (Immediates vs. Non-immediates): Update

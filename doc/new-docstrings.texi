@@ -29,26 +29,26 @@ If @var{env} contains no bindings, this function simply returns
 @var{init}.
 If @var{env} binds the symbol sym1 to the value val1, sym2 to
 val2, and so on, then this procedure computes:
-@example
+@lisp
   (proc sym1 val1
         (proc sym2 val2
               ...
               (proc symn valn
                     init)))
-@end example
+@end lisp
 Each binding in @var{env} will be processed exactly once.
 @code{environment-fold} makes no guarantees about the order in
 which the bindings are processed.
 Here is a function which, given an environment, constructs an
 association list representing that environment's bindings,
 using environment-fold:
-@example
+@lisp
   (define (environment->alist env)
     (environment-fold env
                       (lambda (sym val tail)
                         (cons (cons sym val) tail))
                       '()))
-@end example
+@end lisp
 @end deffn
 
 @deffn primitive environment-define env sym val
@@ -586,12 +586,11 @@ crypt(3) library call
 @end deffn
 
 @deffn primitive mkstemp! tmpl
-mkstemp creates a new unique file in the file system and
-returns a new buffered port open for reading and writing to
-the file.  @var{tmpl} is a string specifying where the
-file should be created: it must end with @code{XXXXXX}
-and will be changed in place to return the name of the
-temporary file.
+Create a new unique file in the file system and returns a new
+buffered port open for reading and writing to the file.
+@var{tmpl} is a string specifying where the file should be
+created: it must end with @code{XXXXXX} and will be changed in
+place to return the name of the temporary file.
 @end deffn
 
 @deffn primitive %tag-body body

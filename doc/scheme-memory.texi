@@ -23,7 +23,8 @@ no longer accessible.
 
 @c docstring begin (texi-doc-string "guile" "gc-stats")
 @deffn primitive gc-stats
-Returns an association list of statistics about Guile's current use of storage.
+Return an association list of statistics about Guile's current
+use of storage.
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "object-address")
@@ -87,21 +88,19 @@ they constitute a doubly-weak table has to be used.
 @node Weak key hashes
 @subsection Weak key hashes
 
-@c ARGFIXME k/size
 @c docstring begin (texi-doc-string "guile" "make-weak-key-hash-table")
-@deffn primitive make-weak-key-hash-table k
+@deffn primitive make-weak-key-hash-table size
 @deffnx primitive make-weak-value-hash-table size
 @deffnx primitive make-doubly-weak-hash-table size
-Return a weak hash table with @var{size} buckets. As with any hash
-table, choosing a good size for the table requires some caution.
-
-You can modify weak hash tables in exactly the same way you would modify
-regular hash tables. (@pxref{Hash Tables})
+Return a weak hash table with @var{size} buckets. As with any
+hash table, choosing a good size for the table requires some
+caution.
+You can modify weak hash tables in exactly the same way you
+would modify regular hash tables. (@pxref{Hash Tables})
 @end deffn
 
-@c ARGFIXME x/obj
 @c docstring begin (texi-doc-string "guile" "weak-key-hash-table?")
-@deffn primitive weak-key-hash-table? x
+@deffn primitive weak-key-hash-table? obj
 @deffnx primitive weak-value-hash-table? obj
 @deffnx primitive doubly-weak-hash-table? obj
 Return @code{#t} if @var{obj} is the specified weak hash
@@ -132,28 +131,26 @@ nor a weak value hash table.
 Weak vectors are mainly useful in Guile's implementation of weak hash
 tables.
 
-@c ARGFIXME k/size
 @c docstring begin (texi-doc-string "guile" "make-weak-vector")
-@deffn primitive make-weak-vector k [fill]
+@deffn primitive make-weak-vector size [fill]
 Return a weak vector with @var{size} elements. If the optional
-argument @var{fill} is given, all entries in the vector will be set to
-@var{fill}. The default value for @var{fill} is the empty list.
+argument @var{fill} is given, all entries in the vector will be
+set to @var{fill}. The default value for @var{fill} is the
+empty list.
 @end deffn
 
-@c NJFIXME should vector->list here be list->vector ?
 @c docstring begin (texi-doc-string "guile" "weak-vector")
 @c docstring begin (texi-doc-string "guile" "list->weak-vector")
 @deffn primitive weak-vector . l
 @deffnx primitive list->weak-vector l
-Construct a weak vector from a list: @code{weak-vector} uses the list of
-its arguments while @code{list->weak-vector} uses its only argument
-@var{l} (a list) to construct a weak vector the same way
-@code{vector->list} would.
+Construct a weak vector from a list: @code{weak-vector} uses
+the list of its arguments while @code{list->weak-vector} uses
+its only argument @var{l} (a list) to construct a weak vector
+the same way @code{list->vector} would.
 @end deffn
 
-@c ARGFIXME x/obj
 @c docstring begin (texi-doc-string "guile" "weak-vector?")
-@deffn primitive weak-vector? x
+@deffn primitive weak-vector? obj
 Return @code{#t} if @var{obj} is a weak vector. Note that all
 weak hashes are also weak vectors.
 @end deffn

@@ -128,45 +128,44 @@ or Aubrey for help. -twp]
 
 @c docstring begin (texi-doc-string "guile" "procedure->syntax")
 @deffn primitive procedure->syntax code
-Returns a @dfn{macro} which, when a symbol defined to this value
-appears as the first symbol in an expression, returns the result
-of applying @var{code} to the expression and the environment.
+Return a @dfn{macro} which, when a symbol defined to this value
+appears as the first symbol in an expression, returns the
+result of applying @var{code} to the expression and the
+environment.
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "procedure->macro")
 @deffn primitive procedure->macro code
-Returns a @dfn{macro} which, when a symbol defined to this value
-appears as the first symbol in an expression, evaluates the result
-of applying @var{code} to the expression and the environment.
-The value returned from @var{code} which has been passed to
-@code{procedure->memoizing-macro} replaces the form passed to
-@var{code}.  For example:
-
-@example
+Return a @dfn{macro} which, when a symbol defined to this value
+appears as the first symbol in an expression, evaluates the
+result of applying @var{code} to the expression and the
+environment.  The value returned from @var{code} which has been
+passed to @code{procedure->memoizing-macro} replaces the form
+passed to @var{code}.  For example:
+@lisp
 (define trace
   (procedure->macro
    (lambda (x env) `(set! ,(cadr x) (tracef ,(cadr x) ',(cadr x))))))
 
 (trace @i{foo}) @equiv{} (set! @i{foo} (tracef @i{foo} '@i{foo})).
-@end example
+@end lisp
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "procedure->memoizing-macro")
 @deffn primitive procedure->memoizing-macro code
-Returns a @dfn{macro} which, when a symbol defined to this value
-appears as the first symbol in an expression, evaluates the result
-of applying @var{proc} to the expression and the environment.
-The value returned from @var{proc} which has been passed to
-@code{procedure->memoizing-macro} replaces the form passed to
-@var{proc}.  For example:
-
-@example
+Return a @dfn{macro} which, when a symbol defined to this value
+appears as the first symbol in an expression, evaluates the
+result of applying @var{proc} to the expression and the
+environment.  The value returned from @var{proc} which has been
+passed to @code{procedure->memoizing-macro} replaces the form
+passed to @var{proc}.  For example:
+@lisp
 (define trace
   (procedure->macro
    (lambda (x env) `(set! ,(cadr x) (tracef ,(cadr x) ',(cadr x))))))
 
 (trace @i{foo}) @equiv{} (set! @i{foo} (tracef @i{foo} '@i{foo})).
-@end example
+@end lisp
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "macro?")
@@ -175,13 +174,13 @@ Return @code{#t} if @var{obj} is a regular macro, a memoizing macro or a
 syntax transformer.
 @end deffn
 
-@c ARGFIXME m/obj
 @c docstring begin (texi-doc-string "guile" "macro-type")
 @deffn primitive macro-type m
-Return one of the symbols @code{syntax}, @code{macro} or @code{macro!},
-depending on whether @var{obj} is a syntax tranformer, a regular macro,
-or a memoizing macro, respectively.  If @var{obj} is not a macro,
-@code{#f} is returned.
+Return one of the symbols @code{syntax}, @code{macro} or
+@code{macro!}, depending on whether @var{m} is a syntax
+tranformer, a regular macro, or a memoizing macro,
+respectively.  If @var{m} is not a macro, @code{#f} is
+returned.
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "macro-name")

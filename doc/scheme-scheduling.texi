@@ -123,7 +123,7 @@ Before calling @var{thunk}, the dynamic-wind chain is un-wound back to
 the root and a new chain started for @var{thunk}.  Therefore, this call
 may not do what you expect:
 
-@example
+@lisp
 ;; Almost certainly a bug:
 (with-output-to-port
  some-port
@@ -134,7 +134,7 @@ may not do what you expect:
       (display 'fnord)
       (newline))
     (lambda (errcode) errcode))))
-@end example
+@end lisp
 
 The problem is, on what port will @samp{fnord} be displayed?  You
 might expect that because of the @code{with-output-to-port} that
@@ -353,13 +353,15 @@ in its own dynamic root, you can use fluids for thread local storage.
 
 @c docstring begin (texi-doc-string "guile" "fluid?")
 @deffn primitive fluid? obj
-Return #t iff @var{obj} is a fluid; otherwise, return #f.
+Return @code{#t} iff @var{obj} is a fluid; otherwise, return
+@code{#f}.
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "fluid-ref")
 @deffn primitive fluid-ref fluid
-Return the value associated with @var{fluid} in the current dynamic root.
-If @var{fluid} has not been set, then this returns #f.
+Return the value associated with @var{fluid} in the current
+dynamic root.  If @var{fluid} has not been set, then return
+@code{#f}.
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "fluid-set!")

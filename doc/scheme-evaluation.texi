@@ -123,11 +123,11 @@ environment given by @var{environment specifier}.
 @r5index interaction-environment
 @c docstring begin (texi-doc-string "guile" "interaction-environment")
 @deffn primitive interaction-environment
-This procedure returns a specifier for the environment that contains
-implementation-defined bindings, typically a superset of those listed in
-the report.  The intent is that this procedure will return the
-environment in which the implementation would evaluate expressions
-dynamically typed by the user.
+Return a specifier for the environment that contains
+implementation--defined bindings, typically a superset of those
+listed in the report.  The intent is that this procedure will
+return the environment in which the implementation would
+evaluate expressions dynamically typed by the user.
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "eval-string")
@@ -189,7 +189,6 @@ any code is loaded.  See documentation for @code{%load-hook} later in
 this section.
 @end deffn
 
-@c ARGFIXME file/filename
 @c docstring begin (texi-doc-string "guile" "primitive-load")
 @deffn primitive primitive-load filename
 Load the file named @var{filename} and evaluate its contents in
@@ -201,7 +200,6 @@ that will be called before any code is loaded.  See the
 documentation for @code{%load-hook} later in this section.
 @end deffn
 
-@c ARGFIXME file/filename
 @c docstring begin (texi-doc-string "guile" "primitive-load-path")
 @deffn primitive primitive-load-path filename
 Search @var{%load-path} for the file named @var{filename} and
@@ -210,7 +208,6 @@ relative pathname and is not found in the list of search paths,
 an error is signalled.
 @end deffn
 
-@c ARGFIXME file/filename
 @c docstring begin (texi-doc-string "guile" "%search-load-path")
 @deffn primitive %search-load-path filename
 Search @var{%load-path} for the file named @var{filename},
@@ -257,7 +254,6 @@ list @code{("" ".scm")}.
 
 [delay]
 
-@c ARGFIXME x/obj
 @c docstring begin (texi-doc-string "guile" "promise?")
 @deffn primitive promise? obj
 Return true if @var{obj} is a promise, i.e. a delayed computation

@@ -284,11 +284,11 @@ Guile's configuration at run time.
 Return a string describing Guile's version number, or its major or minor
 version numbers, respectively.
 
-@example
+@lisp
 (version) @result{} "1.3a"
 (major-version) @result{} "1"
 (minor-version) @result{} "3a"
-@end example
+@end lisp
 @end deffn
 
 @c NJFIXME not in libguile!

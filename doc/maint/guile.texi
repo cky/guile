@@ -484,10 +484,11 @@ only by module bookkeeping operations.
 
 dynamic-link
 @c snarfed from dynl.c:356
-@deffn primitive dynamic-link fname
-Open the dynamic library @var{library-file}.  A library handle
-representing the opened library is returned; this handle should be used
-as the @var{lib} argument to the following functions.
+@deffn primitive dynamic-link filename
+Open the dynamic library called @var{filename}.  A library
+handle representing the opened library is returned; this handle
+should be used as the @var{dobj} argument to the following
+functions.
 @end deffn
 
 dynamic-object?
@@ -500,13 +501,10 @@ otherwise.
 dynamic-unlink
 @c snarfed from dynl.c:388
 @deffn primitive dynamic-unlink dobj
-Unlink the library represented by @var{library-handle},
-and remove any imported symbols from the address space.
-GJB:FIXME:DOC: 2nd version below:
 Unlink the indicated object file from the application.  The
-argument @var{dynobj} must have been obtained by a call to
+argument @var{dobj} must have been obtained by a call to
 @code{dynamic-link}.  After @code{dynamic-unlink} has been
-called on @var{dynobj}, its content is no longer accessible.
+called on @var{dobj}, its content is no longer accessible.
 @end deffn
 
 dynamic-func
@@ -526,20 +524,14 @@ needed or not and will add it when necessary.
 dynamic-call
 @c snarfed from dynl.c:460
 @deffn primitive dynamic-call func dobj
-Call @var{lib-thunk}, a procedure of no arguments.  If @var{lib-thunk}
-is a string, it is assumed to be a symbol found in the dynamic library
-@var{lib} and is fetched with @code{dynamic-func}.  Otherwise, it should
-be a function handle returned by a previous call to @code{dynamic-func}.
-The return value is unspecified.
-GJB:FIXME:DOC 2nd version below
-Call the C function indicated by @var{function} and @var{dynobj}.  The
-function is passed no arguments and its return value is ignored.  When
-@var{function} is something returned by @code{dynamic-func}, call that
-function and ignore @var{dynobj}.  When @var{function} is a string (or
-symbol, etc.), look it up in @var{dynobj}; this is equivalent to
-
+Call the C function indicated by @var{func} and @var{dobj}.
+The function is passed no arguments and its return value is
+ignored.  When @var{function} is something returned by
+@code{dynamic-func}, call that function and ignore @var{dobj}.
+When @var{func} is a string , look it up in @var{dynobj}; this
+is equivalent to
 @smallexample
-(dynamic-call (dynamic-func @var{function} @var{dynobj} #f))
+(dynamic-call (dynamic-func @var{func} @var{dobj} #f))
 @end smallexample
 
 Interrupts are deferred while the C function is executing (with
@@ -549,47 +541,36 @@ Interrupts are deferred while the C function is executing (with
 dynamic-args-call
 @c snarfed from dynl.c:494
 @deffn primitive dynamic-args-call func dobj args
-Call @var{proc}, a dynamically loaded function, passing it the argument
-list @var{args} (a list of strings).  As with @code{dynamic-call},
-@var{proc} should be either a function handle or a string, in which case
-it is first fetched from @var{lib} with @code{dynamic-func}.
-
-@var{proc} is assumed to return an integer, which is used as the return
-value from @code{dynamic-args-call}.
-
-GJB:FIXME:DOC 2nd version below
-Call the C function indicated by @var{function} and @var{dynobj}, just
-like @code{dynamic-call}, but pass it some arguments and return its
-return value.  The C function is expected to take two arguments and
-return an @code{int}, just like @code{main}:
-
+Call the C function indicated by @var{func} and @var{dobj},
+just like @code{dynamic-call}, but pass it some arguments and
+return its return value.  The C function is expected to take
+two arguments and return an @code{int}, just like @code{main}:
 @smallexample
 int c_func (int argc, char **argv);
 @end smallexample
 
-The parameter @var{args} must be a list of strings and is converted into
-an array of @code{char *}.  The array is passed in @var{argv} and its
-size in @var{argc}.  The return value is converted to a Scheme number
-and returned from the call to @code{dynamic-args-call}.
+The parameter @var{args} must be a list of strings and is
+converted into an array of @code{char *}.  The array is passed
+in @var{argv} and its size in @var{argc}.  The return value is
+converted to a Scheme number and returned from the call to
+@code{dynamic-args-call}.
 @end deffn
 
 dynamic-wind
 @c snarfed from dynwind.c:115
-@deffn primitive dynamic-wind thunk1 thunk2 thunk3
+@deffn primitive dynamic-wind in_guard thunk out_guard
 All three arguments must be 0-argument procedures.
-
-@var{in-guard} is called, then @var{thunk}, then @var{out-guard}.
-
-If, any time during the execution of @var{thunk}, the continuation
-of the @code{dynamic-wind} expression is escaped non-locally, @var{out-guard}
-is called.   If the continuation of the dynamic-wind is re-entered,
-@var{in-guard} is called.   Thus @var{in-guard} and @var{out-guard} may
-be called any number of times.
-
-@example
+@var{in_guard} is called, then @var{thunk}, then
+@var{out_guard}.
+If, any time during the execution of @var{thunk}, the
+continuation of the @code{dynamic_wind} expression is escaped
+non-locally, @var{out_guard} is called.  If the continuation of
+the dynamic-wind is re-entered, @var{in_guard} is called.  Thus
+@var{in_guard} and @var{out_guard} may be called any number of
+times.
+@lisp
 (define x 'normal-binding)
 @result{} x
-
 (define a-cont  (call-with-current-continuation
 		  (lambda (escape)
 		     (let ((old-x x))
@@ -597,38 +578,31 @@ be called any number of times.
 			  ;; in-guard:
 			  ;;
 			  (lambda () (set! x 'special-binding))
-
 			  ;; thunk
 			  ;;
 		 	  (lambda () (display x) (newline)
 				     (call-with-current-continuation escape)
 				     (display x) (newline)
 				     x)
-
 			  ;; out-guard:
 			  ;;
 			  (lambda () (set! x old-x)))))))
-
 ;; Prints:
 special-binding
 ;; Evaluates to:
 @result{} a-cont
-
 x
 @result{} normal-binding
-
 (a-cont #f)
 ;; Prints:
 special-binding
 ;; Evaluates to:
 @result{} a-cont  ;; the value of the (define a-cont...)
-
 x
 @result{} normal-binding
-
 a-cont
 @result{} special-binding
-@end example
+@end lisp
 @end deffn
 
 environment?
@@ -667,26 +641,26 @@ If @var{env} contains no bindings, this function simply returns
 @var{init}.
 If @var{env} binds the symbol sym1 to the value val1, sym2 to
 val2, and so on, then this procedure computes:
-@example
+@lisp
   (proc sym1 val1
         (proc sym2 val2
               ...
               (proc symn valn
                     init)))
-@end example
+@end lisp
 Each binding in @var{env} will be processed exactly once.
 @code{environment-fold} makes no guarantees about the order in
 which the bindings are processed.
 Here is a function which, given an environment, constructs an
 association list representing that environment's bindings,
 using environment-fold:
-@example
+@lisp
   (define (environment->alist env)
     (environment-fold env
                       (lambda (sym val tail)
                         (cons (cons sym val) tail))
                       '()))
-@end example
+@end lisp
 @end deffn
 
 environment-define
@@ -1008,24 +982,27 @@ terminate if its arguments are circular data structures.
 
 scm-error
 @c snarfed from error.c:112
-@deffn primitive scm-error key subr message args rest
-Raise an error with key @var{key}.  @var{subr} can be a string naming
-the procedure associated with the error, or @code{#f}.  @var{message}
-is the error message string, possibly containing @code{~S} and @code{~A}
-escapes.  When an error is reported, these are replaced by formating the
-corresponding members of @var{args}: @code{~A} (was @code{%s}) formats using @code{display}
-and @code{~S} (was @code{%S}) formats using @code{write}.  @var{data} is a
-list or @code{#f} depending on @var{key}: if @var{key} is
-@code{system-error} then it should be a list
-containing the Unix @code{errno} value;  If @var{key} is @code{signal} then
-it should be a list containing the Unix signal number; otherwise it
-will usually be @code{#f}.
+@deffn primitive scm-error key subr message args data
+Raise an error with key @var{key}.  @var{subr} can be a string
+naming the procedure associated with the error, or @code{#f}.
+@var{message} is the error message string, possibly containing
+@code{~S} and @code{~A} escapes.  When an error is reported,
+these are replaced by formatting the corresponding members of
+@var{args}: @code{~A} (was @code{%s} in older versions of
+Guile) formats using @code{display} and @code{~S} (was
+@code{%S}) formats using @code{write}.  @var{data} is a list or
+@code{#f} depending on @var{key}: if @var{key} is
+@code{system-error} then it should be a list containing the
+Unix @code{errno} value; If @var{key} is @code{signal} then it
+should be a list containing the Unix signal number; otherwise
+it will usually be @code{#f}.
 @end deffn
 
 strerror
 @c snarfed from error.c:153
 @deffn primitive strerror err
-Returns the Unix error message corresponding to @var{err}, an integer.
+Return the Unix error message corresponding to @var{err}, which
+must be an integer value.
 @end deffn
 
 apply:nconc2last
@@ -1178,8 +1155,8 @@ E.g., @code{(umask #o022)} sets the mask to octal 22, decimal 18.
 open-fdes
 @c snarfed from filesys.c:237
 @deffn primitive open-fdes path flags [mode]
-Similar to @code{open} but returns a file descriptor instead of a
-port.
+Similar to @code{open} but return a file descriptor instead of
+a port.
 @end deffn
 
 open
@@ -1237,25 +1214,24 @@ The return value is unspecified.
 stat
 @c snarfed from filesys.c:518
 @deffn primitive stat object
-Returns an object containing various information
-about the file determined by @var{obj}.
-@var{obj} can be a string containing a file name or a port or integer file
-descriptor which is open on a file (in which case @code{fstat} is used
-as the underlying system call).
-
-The object returned by @code{stat} can be passed as a single parameter
-to the following procedures, all of which return integers:
-
+Return an object containing various information about the file
+determined by @var{obj}.  @var{obj} can be a string containing
+a file name or a port or integer file descriptor which is open
+on a file (in which case @code{fstat} is used as the underlying
+system call).
+The object returned by @code{stat} can be passed as a single
+parameter to the following procedures, all of which return
+integers:
 @table @code
 @item stat:dev
 The device containing the file.
 @item stat:ino
-The file serial number, which distinguishes this file from all other
-files on the same device.
+The file serial number, which distinguishes this file from all
+other files on the same device.
 @item stat:mode
-The mode of the file.  This includes file type information
-and the file permission bits.  See @code{stat:type} and @code{stat:perms}
-below.
+The mode of the file.  This includes file type information and
+the file permission bits.  See @code{stat:type} and
+@code{stat:perms} below.
 @item stat:nlink
 The number of hard links to the file.
 @item stat:uid
@@ -1274,20 +1250,19 @@ The last modification time for the file.
 @item stat:ctime
 The last modification time for the attributes of the file.
 @item stat:blksize
-The optimal block size for reading or writing the file, in bytes.
+The optimal block size for reading or writing the file, in
+bytes.
 @item stat:blocks
-The amount of disk space that the file occupies measured in units of
-512 byte blocks.
+The amount of disk space that the file occupies measured in
+units of 512 byte blocks.
 @end table
-
 In addition, the following procedures return the information
 from stat:mode in a more convenient form:
-
 @table @code
 @item stat:type
 A symbol representing the type of file.  Possible values are
-regular, directory, symlink, block-special, char-special,
-fifo, socket and unknown
+regular, directory, symlink, block-special, char-special, fifo,
+socket and unknown
 @item stat:perms
 An integer representing the access permission bits.
 @end table
@@ -1334,8 +1309,8 @@ be empty for this to succeed.  The return value is unspecified.
 directory-stream?
 @c snarfed from filesys.c:689
 @deffn primitive directory-stream? obj
-Returns a boolean indicating whether @var{object} is a directory stream
-as returned by @code{opendir}.
+Return a boolean indicating whether @var{object} is a directory
+stream as returned by @code{opendir}.
 @end deffn
 
 opendir
@@ -1377,7 +1352,7 @@ The return value is unspecified.
 getcwd
 @c snarfed from filesys.c:825
 @deffn primitive getcwd
-Returns the name of the current working directory.
+Return the name of the current working directory.
 @end deffn
 
 select
@@ -1463,9 +1438,8 @@ Create a symbolic link named @var{path-to} with the value (i.e., pointing to)
 readlink
 @c snarfed from filesys.c:1252
 @deffn primitive readlink path
-Returns the value of the symbolic link named by
-@var{path} (a string), i.e., the
-file that the link points to.
+Return the value of the symbolic link named by @var{path} (a
+string), i.e., the file that the link points to.
 @end deffn
 
 lstat
@@ -1515,14 +1489,16 @@ in its own dynamic root, you can use fluids for thread local storage.
 fluid?
 @c snarfed from fluids.c:141
 @deffn primitive fluid? obj
-Return #t iff @var{obj} is a fluid; otherwise, return #f.
+Return @code{#t} iff @var{obj} is a fluid; otherwise, return
+@code{#f}.
 @end deffn
 
 fluid-ref
 @c snarfed from fluids.c:151
 @deffn primitive fluid-ref fluid
-Return the value associated with @var{fluid} in the current dynamic root.
-If @var{fluid} has not been set, then this returns #f.
+Return the value associated with @var{fluid} in the current
+dynamic root.  If @var{fluid} has not been set, then return
+@code{#f}.
 @end deffn
 
 fluid-set!
@@ -1563,14 +1539,12 @@ Determine whether @var{obj} is a port that is related to a file.
 
 open-file
 @c snarfed from fports.c:282
-@deffn primitive open-file filename modes
-Open the file whose name is @var{string}, and return a port
+@deffn primitive open-file filename mode
+Open the file whose name is @var{filename}, and return a port
 representing that file.  The attributes of the port are
-determined by the @var{mode} string.  The way in
-which this is interpreted is similar to C stdio:
-
-The first character must be one of the following:
-
+determined by the @var{mode} string.  The way in which this is
+interpreted is similar to C stdio.  The first character must be
+one of the following:
 @table @samp
 @item r
 Open an existing file for input.
@@ -1578,40 +1552,38 @@ Open an existing file for input.
 Open a file for output, creating it if it doesn't already exist
 or removing its contents if it does.
 @item a
-Open a file for output, creating it if it doesn't already exist.
-All writes to the port will go to the end of the file.
+Open a file for output, creating it if it doesn't already
+exist.  All writes to the port will go to the end of the file.
 The "append mode" can be turned off while the port is in use
 @pxref{Ports and File Descriptors, fcntl}
 @end table
-
 The following additional characters can be appended:
-
 @table @samp
 @item +
 Open the port for both input and output.  E.g., @code{r+}: open
 an existing file for both input and output.
 @item 0
-Create an "unbuffered" port.  In this case input and output operations
-are passed directly to the underlying port implementation without
-additional buffering.  This is likely to slow down I/O operations.
-The buffering mode can be changed while a port is in use
-@pxref{Ports and File Descriptors, setvbuf}
+Create an "unbuffered" port.  In this case input and output
+operations are passed directly to the underlying port
+implementation without additional buffering.  This is likely to
+slow down I/O operations.  The buffering mode can be changed
+while a port is in use @pxref{Ports and File Descriptors,
+setvbuf}
 @item l
 Add line-buffering to the port.  The port output buffer will be
 automatically flushed whenever a newline character is written.
 @end table
-
-In theory we could create read/write ports which were buffered in one
-direction only.  However this isn't included in the current interfaces.
-
-If a file cannot be opened with the access requested,
-@code{open-file} throws an exception.
+In theory we could create read/write ports which were buffered
+in one direction only.  However this isn't included in the
+current interfaces.  If a file cannot be opened with the access
+requested, @code{open-file} throws an exception.
 @end deffn
 
 gc-stats
 @c snarfed from gc.c:742
 @deffn primitive gc-stats
-Returns an association list of statistics about Guile's current use of storage.
+Return an association list of statistics about Guile's current
+use of storage.
 @end deffn
 
 object-address
@@ -2014,13 +1986,11 @@ integer in the range 0 to @var{size} - 1.
 
 hashq-get-handle
 @c snarfed from hashtab.c:174
-@deffn primitive hashq-get-handle table obj
-This procedure is similar to its @code{-ref} cousin, but returns a
-@dfn{handle} from the hash table rather than the value associated with
-@var{key}.  By convention, a handle in a hash table is the pair which
-associates a key with a value.  Where @code{hashq-ref table key} returns
-only a @code{value}, @code{hashq-get-handle table key} returns the pair
-@code{(key . value)}.
+@deffn primitive hashq-get-handle table key
+This procedure returns the @code{(key . value)} pair from the
+hash table @var{table}.  If @var{table} does not hold an
+associated value for @var{key}, @code{#f} is returned.
+Uses @code{eq?} for equality testing.
 @end deffn
 
 hashq-create-handle!
@@ -2033,7 +2003,7 @@ associates @var{key} with @var{init}.
 
 hashq-ref
 @c snarfed from hashtab.c:199
-@deffn primitive hashq-ref table obj [dflt]
+@deffn primitive hashq-ref table key [dflt]
 Look up @var{key} in the hash table @var{table}, and return the
 value (if any) associated with it.  If @var{key} is not found,
 return @var{default} (or @code{#f} if no @var{default} argument
@@ -2042,27 +2012,25 @@ is supplied).  Uses @code{eq?} for equality testing.
 
 hashq-set!
 @c snarfed from hashtab.c:213
-@deffn primitive hashq-set! table obj val
+@deffn primitive hashq-set! table key val
 Find the entry in @var{table} associated with @var{key}, and
 store @var{value} there. Uses @code{eq?} for equality testing.
 @end deffn
 
 hashq-remove!
 @c snarfed from hashtab.c:225
-@deffn primitive hashq-remove! table obj
+@deffn primitive hashq-remove! table key
 Remove @var{key} (and any value associated with it) from
 @var{table}.  Uses @code{eq?} for equality tests.
 @end deffn
 
 hashv-get-handle
 @c snarfed from hashtab.c:242
-@deffn primitive hashv-get-handle table obj
-This procedure is similar to its @code{-ref} cousin, but returns a
-@dfn{handle} from the hash table rather than the value associated with
-@var{key}.  By convention, a handle in a hash table is the pair which
-associates a key with a value.  Where @code{hashv-ref table key} returns
-only a @code{value}, @code{hashv-get-handle table key} returns the pair
-@code{(key . value)}.
+@deffn primitive hashv-get-handle table key
+This procedure returns the @code{(key . value)} pair from the
+hash table @var{table}.  If @var{table} does not hold an
+associated value for @var{key}, @code{#f} is returned.
+Uses @code{eqv?} for equality testing.
 @end deffn
 
 hashv-create-handle!
@@ -2075,7 +2043,7 @@ associates @var{key} with @var{init}.
 
 hashv-ref
 @c snarfed from hashtab.c:267
-@deffn primitive hashv-ref table obj [dflt]
+@deffn primitive hashv-ref table key [dflt]
 Look up @var{key} in the hash table @var{table}, and return the
 value (if any) associated with it.  If @var{key} is not found,
 return @var{default} (or @code{#f} if no @var{default} argument
@@ -2084,27 +2052,25 @@ is supplied).  Uses @code{eqv?} for equality testing.
 
 hashv-set!
 @c snarfed from hashtab.c:281
-@deffn primitive hashv-set! table obj val
+@deffn primitive hashv-set! table key val
 Find the entry in @var{table} associated with @var{key}, and
 store @var{value} there. Uses @code{eqv?} for equality testing.
 @end deffn
 
 hashv-remove!
 @c snarfed from hashtab.c:292
-@deffn primitive hashv-remove! table obj
+@deffn primitive hashv-remove! table key
 Remove @var{key} (and any value associated with it) from
 @var{table}.  Uses @code{eqv?} for equality tests.
 @end deffn
 
 hash-get-handle
 @c snarfed from hashtab.c:308
-@deffn primitive hash-get-handle table obj
-This procedure is similar to its @code{-ref} cousin, but returns a
-@dfn{handle} from the hash table rather than the value associated with
-@var{key}.  By convention, a handle in a hash table is the pair which
-associates a key with a value.  Where @code{hash-ref table key} returns
-only a @code{value}, @code{hash-get-handle table key} returns the pair
-@code{(key . value)}.
+@deffn primitive hash-get-handle table key
+This procedure returns the @code{(key . value)} pair from the
+hash table @var{table}.  If @var{table} does not hold an
+associated value for @var{key}, @code{#f} is returned.
+Uses @code{equal?} for equality testing.
 @end deffn
 
 hash-create-handle!
@@ -2117,7 +2083,7 @@ associates @var{key} with @var{init}.
 
 hash-ref
 @c snarfed from hashtab.c:333
-@deffn primitive hash-ref table obj [dflt]
+@deffn primitive hash-ref table key [dflt]
 Look up @var{key} in the hash table @var{table}, and return the
 value (if any) associated with it.  If @var{key} is not found,
 return @var{default} (or @code{#f} if no @var{default} argument
@@ -2126,7 +2092,7 @@ is supplied).  Uses @code{equal?} for equality testing.
 
 hash-set!
 @c snarfed from hashtab.c:348
-@deffn primitive hash-set! table obj val
+@deffn primitive hash-set! table key val
 Find the entry in @var{table} associated with @var{key}, and
 store @var{value} there. Uses @code{equal?} for equality
 testing.
@@ -2134,59 +2100,57 @@ testing.
 
 hash-remove!
 @c snarfed from hashtab.c:360
-@deffn primitive hash-remove! table obj
+@deffn primitive hash-remove! table key
 Remove @var{key} (and any value associated with it) from
 @var{table}.  Uses @code{equal?} for equality tests.
 @end deffn
 
 hashx-get-handle
 @c snarfed from hashtab.c:429
-@deffn primitive hashx-get-handle hash assoc table obj
-This behaves the same way as the corresponding @code{-get-handle}
-function, but uses @var{hasher} as a
-hash function and @var{assoc} to compare keys.  @code{hasher} must
-be a function that takes two arguments, a key to be hashed and a
+@deffn primitive hashx-get-handle hash assoc table key
+This behaves the same way as the corresponding
+@code{-get-handle} function, but uses @var{hash} as a hash
+function and @var{assoc} to compare keys.  @code{hash} must be
+a function that takes two arguments, a key to be hashed and a
 table size.  @code{assoc} must be an associator function, like
 @code{assoc}, @code{assq} or @code{assv}.
 @end deffn
 
 hashx-create-handle!
 @c snarfed from hashtab.c:447
-@deffn primitive hashx-create-handle! hash assoc table obj init
-This behaves the same way as the corresponding @code{-create-handle}
-function, but uses @var{hasher} as a
-hash function and @var{assoc} to compare keys.  @code{hasher} must
-be a function that takes two arguments, a key to be hashed and a
+@deffn primitive hashx-create-handle! hash assoc table key init
+This behaves the same way as the corresponding
+@code{-create-handle} function, but uses @var{hash} as a hash
+function and @var{assoc} to compare keys.  @code{hash} must be
+a function that takes two arguments, a key to be hashed and a
 table size.  @code{assoc} must be an associator function, like
 @code{assoc}, @code{assq} or @code{assv}.
 @end deffn
 
 hashx-ref
 @c snarfed from hashtab.c:468
-@deffn primitive hashx-ref hash assoc table obj [dflt]
+@deffn primitive hashx-ref hash assoc table key [dflt]
 This behaves the same way as the corresponding @code{ref}
-function, but uses @var{hasher} as a
-hash function and @var{assoc} to compare keys.  @code{hasher} must
-be a function that takes two arguments, a key to be hashed and a
-table size.  @code{assoc} must be an associator function, like
-@code{assoc}, @code{assq} or @code{assv}.
-
-By way of illustration, @code{hashq-ref table key} is equivalent
-to @code{hashx-ref hashq assq table key}.
+function, but uses @var{hash} as a hash function and
+@var{assoc} to compare keys.  @code{hash} must be a function
+that takes two arguments, a key to be hashed and a table size.
+@code{assoc} must be an associator function, like @code{assoc},
+@code{assq} or @code{assv}.
+By way of illustration, @code{hashq-ref table key} is
+equivalent to @code{hashx-ref hashq assq table key}.
 @end deffn
 
 hashx-set!
 @c snarfed from hashtab.c:492
-@deffn primitive hashx-set! hash assoc table obj val
+@deffn primitive hashx-set! hash assoc table key val
 This behaves the same way as the corresponding @code{set!}
-function, but uses @var{hasher} as a
-hash function and @var{assoc} to compare keys.  @code{hasher} must
-be a function that takes two arguments, a key to be hashed and a
-table size.  @code{assoc} must be an associator function, like
-@code{assoc}, @code{assq} or @code{assv}.
-
-By way of illustration, @code{hashq-set! table key} is equivalent
-to @code{hashx-set! hashq assq table key}.
+function, but uses @var{hash} as a hash function and
+@var{assoc} to compare keys.  @code{hash} must be a function
+that takes two arguments, a key to be hashed and a table size.
+@code{assoc} must be an associator function, like @code{assoc},
+@code{assq} or @code{assv}.
+ By way of illustration, @code{hashq-set! table key} is
+equivalent to @code{hashx-set!  hashq assq table key}.
 @end deffn
 
 hash-fold
@@ -2298,19 +2262,19 @@ end-of-file check
 
 ftell
 @c snarfed from ioext.c:173
-@deffn primitive ftell object
-Returns an integer representing the current position of @var{fd/port},
-measured from the beginning.  Equivalent to:
-@smalllisp
+@deffn primitive ftell fd_port
+Return an integer representing the current position of
+@var{fd/port}, measured from the beginning.  Equivalent to:
+@lisp
 (seek port 0 SEEK_CUR)
-@end smalllisp
+@end lisp
 @end deffn
 
 fseek
 @c snarfed from ioext.c:186
-@deffn primitive fseek object offset whence
-Obsolete.  Almost the same as seek, above, but the return value is
-unspecified.
+@deffn primitive fseek fd_port offset whence
+Obsolete.  Almost the same as @code{seek}, but the return value
+is unspecified.
 @end deffn
 
 redirect-port
@@ -2334,7 +2298,9 @@ revealed counts.
 dup->fdes
 @c snarfed from ioext.c:245
 @deffn primitive dup->fdes fd_or_port [fd]
-Returns an integer file descriptor.
+Return a new integer file descriptor referring to the open file
+designated by @var{fd_or_port}, which must be either an open
+file port or a file descriptor.
 @end deffn
 
 dup2
@@ -2353,24 +2319,24 @@ The return value is unspecified.
 fileno
 @c snarfed from ioext.c:311
 @deffn primitive fileno port
-Returns the integer file descriptor underlying @var{port}.
-Does not change its revealed count.
+Return the integer file descriptor underlying @var{port}.  Does
+not change its revealed count.
 @end deffn
 
 isatty?
 @c snarfed from ioext.c:327
 @deffn primitive isatty? port
-Returns @code{#t} if @var{port} is using a serial
-non-file device, otherwise @code{#f}.
+Return @code{#t} if @var{port} is using a serial non--file
+device, otherwise @code{#f}.
 @end deffn
 
 fdopen
 @c snarfed from ioext.c:349
 @deffn primitive fdopen fdes modes
-Returns a new port based on the file descriptor @var{fdes}.
-Modes are given by the string @var{modes}.  The revealed count of the port
-is initialized to zero.  The modes string is the same as that accepted
-by @ref{File Ports, open-file}.
+Return a new port based on the file descriptor @var{fdes}.
+Modes are given by the string @var{modes}.  The revealed count
+of the port is initialized to zero.  The modes string is the
+same as that accepted by @ref{File Ports, open-file}.
 @end deffn
 
 primitive-move->fdes
@@ -2387,8 +2353,9 @@ required value or @code{#t} if it was moved.
 fdes->ports
 @c snarfed from ioext.c:407
 @deffn primitive fdes->ports fd
-Returns a list of existing ports which have @var{fdes} as an
-underlying file descriptor, without changing their revealed counts.
+Return a list of existing ports which have @var{fdes} as an
+underlying file descriptor, without changing their revealed
+counts.
 @end deffn
 
 make-keyword-from-dash-symbol
@@ -2400,7 +2367,8 @@ Make a keyword object from a @var{symbol} that starts with a dash.
 keyword?
 @c snarfed from keywords.c:112
 @deffn primitive keyword? obj
-Returns @code{#t} if the argument @var{obj} is a keyword, else @code{#f}.
+Return @code{#t} if the argument @var{obj} is a keyword, else
+@code{#f}.
 @end deffn
 
 keyword-dash-symbol
@@ -2493,28 +2461,29 @@ Return the number of elements in list @var{lst}.
 @deffn primitive append . args
 Return a list consisting of the elements the lists passed as
 arguments.
-@example
+@lisp
 (append '(x) '(y))          @result{}  (x y)
 (append '(a) '(b c d))      @result{}  (a b c d)
 (append '(a (b)) '((c)))    @result{}  (a (b) (c))
-@end example
+@end lisp
 The resulting list is always newly allocated, except that it
 shares structure with the last list argument.  The last
 argument may actually be any object; an improper list results
 if the last argument is not a proper list.
-@example
+@lisp
 (append '(a b) '(c . d))    @result{}  (a b c . d)
 (append '() 'a)             @result{}  a
-@end example
+@end lisp
 @end deffn
 
 append!
 @c snarfed from list.c:242
-@deffn primitive append! . args
-A destructive version of @code{append} (@pxref{Pairs and Lists,,,r4rs,
-The Revised^4 Report on Scheme}).  The cdr field of each list's final
-pair is changed to point to the head of the next list, so no consing is
-performed.  Return a pointer to the mutated list.
+@deffn primitive append! . lists
+A destructive version of @code{append} (@pxref{Pairs and
+Lists,,,r4rs, The Revised^4 Report on Scheme}).  The cdr field
+of each list's final pair is changed to point to the head of
+the next list, so no consing is performed.  Return a pointer to
+the mutated list.
 @end deffn
 
 last-pair
@@ -2819,47 +2788,46 @@ signalled.
 procedure->syntax
 @c snarfed from macros.c:60
 @deffn primitive procedure->syntax code
-Returns a @dfn{macro} which, when a symbol defined to this value
-appears as the first symbol in an expression, returns the result
-of applying @var{code} to the expression and the environment.
+Return a @dfn{macro} which, when a symbol defined to this value
+appears as the first symbol in an expression, returns the
+result of applying @var{code} to the expression and the
+environment.
 @end deffn
 
 procedure->macro
 @c snarfed from macros.c:82
 @deffn primitive procedure->macro code
-Returns a @dfn{macro} which, when a symbol defined to this value
-appears as the first symbol in an expression, evaluates the result
-of applying @var{code} to the expression and the environment.
-The value returned from @var{code} which has been passed to
-@code{procedure->memoizing-macro} replaces the form passed to
-@var{code}.  For example:
-
-@example
+Return a @dfn{macro} which, when a symbol defined to this value
+appears as the first symbol in an expression, evaluates the
+result of applying @var{code} to the expression and the
+environment.  The value returned from @var{code} which has been
+passed to @code{procedure->memoizing-macro} replaces the form
+passed to @var{code}.  For example:
+@lisp
 (define trace
   (procedure->macro
    (lambda (x env) `(set! ,(cadr x) (tracef ,(cadr x) ',(cadr x))))))
 
 (trace @i{foo}) @equiv{} (set! @i{foo} (tracef @i{foo} '@i{foo})).
-@end example
+@end lisp
 @end deffn
 
 procedure->memoizing-macro
 @c snarfed from macros.c:104
 @deffn primitive procedure->memoizing-macro code
-Returns a @dfn{macro} which, when a symbol defined to this value
-appears as the first symbol in an expression, evaluates the result
-of applying @var{proc} to the expression and the environment.
-The value returned from @var{proc} which has been passed to
-@code{procedure->memoizing-macro} replaces the form passed to
-@var{proc}.  For example:
-
-@example
+Return a @dfn{macro} which, when a symbol defined to this value
+appears as the first symbol in an expression, evaluates the
+result of applying @var{proc} to the expression and the
+environment.  The value returned from @var{proc} which has been
+passed to @code{procedure->memoizing-macro} replaces the form
+passed to @var{proc}.  For example:
+@lisp
 (define trace
   (procedure->macro
    (lambda (x env) `(set! ,(cadr x) (tracef ,(cadr x) ',(cadr x))))))
 
 (trace @i{foo}) @equiv{} (set! @i{foo} (tracef @i{foo} '@i{foo})).
-@end example
+@end lisp
 @end deffn
 
 macro?
@@ -2872,10 +2840,11 @@ syntax transformer.
 macro-type
 @c snarfed from macros.c:133
 @deffn primitive macro-type m
-Return one of the symbols @code{syntax}, @code{macro} or @code{macro!},
-depending on whether @var{obj} is a syntax tranformer, a regular macro,
-or a memoizing macro, respectively.  If @var{obj} is not a macro,
-@code{#f} is returned.
+Return one of the symbols @code{syntax}, @code{macro} or
+@code{macro!}, depending on whether @var{m} is a syntax
+tranformer, a regular macro, or a memoizing macro,
+respectively.  If @var{m} is not a macro, @code{#f} is
+returned.
 @end deffn
 
 macro-name
@@ -2893,11 +2862,11 @@ Return the transformer of the macro @var{m}.
 interaction-environment
 @c snarfed from modules.c:102
 @deffn primitive interaction-environment
-This procedure returns a specifier for the environment that contains
-implementation-defined bindings, typically a superset of those listed in
-the report.  The intent is that this procedure will return the
-environment in which the implementation would evaluate expressions
-dynamically typed by the user.
+Return a specifier for the environment that contains
+implementation--defined bindings, typically a superset of those
+listed in the report.  The intent is that this procedure will
+return the environment in which the implementation would
+evaluate expressions dynamically typed by the user.
 @end deffn
 
 standard-eval-closure
@@ -2909,56 +2878,52 @@ Return an eval closure for the module @var{module}.
 inet-aton
 @c snarfed from net_db.c:96
 @deffn primitive inet-aton address
-Converts a string containing an Internet host address in the traditional
-dotted decimal notation into an integer.
-
-@smalllisp
+Converts a string containing an Internet host address in the
+traditional dotted decimal notation into an integer.
+@lisp
 (inet-aton "127.0.0.1") @result{} 2130706433
-
-@end smalllisp
+@end lisp
 @end deffn
 
 inet-ntoa
 @c snarfed from net_db.c:116
 @deffn primitive inet-ntoa inetid
-Converts an integer Internet host address into a string with the
-traditional dotted decimal representation.
-
-@smalllisp
+Converts an integer Internet host address into a string with
+the traditional dotted decimal representation.
+@lisp
 (inet-ntoa 2130706433) @result{} "127.0.0.1"
-@end smalllisp
+@end lisp
 @end deffn
 
 inet-netof
 @c snarfed from net_db.c:135
 @deffn primitive inet-netof address
-Returns the network number part of the given integer Internet address.
-
-@smalllisp
+Return the network number part of the given integer Internet
+address.
+@lisp
 (inet-netof 2130706433) @result{} 127
-@end smalllisp
+@end lisp
 @end deffn
 
 inet-lnaof
 @c snarfed from net_db.c:152
 @deffn primitive inet-lnaof address
-Returns the local-address-with-network part of the given Internet
-address.
-
-@smalllisp
+Return the local-address-with-network part of the given
+Internet address.
+@lisp
 (inet-lnaof 2130706433) @result{} 1
-@end smalllisp
+@end lisp
 @end deffn
 
 inet-makeaddr
 @c snarfed from net_db.c:169
 @deffn primitive inet-makeaddr net lna
-Makes an Internet host address by combining the network number @var{net}
-with the local-address-within-network number @var{lna}.
-
-@smalllisp
+Makes an Internet host address by combining the network number
+@var{net} with the local-address-within-network number
+@var{lna}.
+@lisp
 (inet-makeaddr 127 1) @result{} 2130706433
-@end smalllisp
+@end lisp
 @end deffn
 
 gethost
@@ -3067,10 +3032,8 @@ otherwise.
 logand
 @c snarfed from numbers.c:755
 @deffn primitive logand n1 n2
-Returns the integer which is the bit-wise AND of the two integer
+Return the integer which is the bit-wise AND of the two integer
 arguments.
-
-Example:
 @lisp
 (number->string (logand #b1100 #b1010) 2)
    @result{} "1000"
@@ -3080,10 +3043,8 @@ Example:
 logior
 @c snarfed from numbers.c:842
 @deffn primitive logior n1 n2
-Returns the integer which is the bit-wise OR of the two integer
+Return the integer which is the bit-wise OR of the two integer
 arguments.
-
-Example:
 @lisp
 (number->string (logior #b1100 #b1010) 2)
    @result{} "1110"
@@ -3093,10 +3054,8 @@ Example:
 logxor
 @c snarfed from numbers.c:928
 @deffn primitive logxor n1 n2
-Returns the integer which is the bit-wise XOR of the two integer
+Return the integer which is the bit-wise XOR of the two integer
 arguments.
-
-Example:
 @lisp
 (number->string (logxor #b1100 #b1010) 2)
    @result{} "110"
@@ -3105,19 +3064,19 @@ Example:
 
 logtest
 @c snarfed from numbers.c:997
-@deffn primitive logtest n1 n2
-@example
+@deffn primitive logtest j k
+@lisp
 (logtest j k) @equiv{} (not (zero? (logand j k)))
 
 (logtest #b0100 #b1011) @result{} #f
 (logtest #b0100 #b0111) @result{} #t
-@end example
+@end lisp
 @end deffn
 
 logbit?
 @c snarfed from numbers.c:1054
 @deffn primitive logbit? index j
-@example
+@lisp
 (logbit? index j) @equiv{} (logtest (integer-expt 2 index) j)
 
 (logbit? 0 #b1101) @result{} #t
@@ -3125,15 +3084,14 @@ Example:
 (logbit? 2 #b1101) @result{} #t
 (logbit? 3 #b1101) @result{} #t
 (logbit? 4 #b1101) @result{} #f
-@end example
+@end lisp
 @end deffn
 
 lognot
 @c snarfed from numbers.c:1102
 @deffn primitive lognot n
-Returns the integer which is the 2s-complement of the integer argument.
-
-Example:
+Return the integer which is the 2s-complement of the integer
+argument.
 @lisp
 (number->string (lognot #b10000000) 2)
    @result{} "-10000001"
@@ -3145,9 +3103,8 @@ Example:
 integer-expt
 @c snarfed from numbers.c:1118
 @deffn primitive integer-expt n k
-Returns @var{n} raised to the non-negative integer exponent @var{k}.
-
-Example:
+Return @var{n} raised to the non-negative integer exponent
+@var{k}.
 @lisp
 (integer-expt 2 5)
    @result{} 32
@@ -3159,34 +3116,27 @@ Example:
 ash
 @c snarfed from numbers.c:1166
 @deffn primitive ash n cnt
-The function ash performs an arithmetic shift left by @var{CNT}
-bits (or shift right, if @var{cnt} is negative).
-'Arithmetic' means, that the function does not guarantee to
-keep the bit structure of @var{n}, but rather guarantees that
-the result will always be rounded towards minus infinity.
-Therefore, the results of ash and a corresponding bitwise
-shift will differ if N is negative.
-
+The function ash performs an arithmetic shift left by @var{cnt}
+bits (or shift right, if @var{cnt} is negative).  'Arithmetic'
+means, that the function does not guarantee to keep the bit
+structure of @var{n}, but rather guarantees that the result
+will always be rounded towards minus infinity.  Therefore, the
+results of ash and a corresponding bitwise shift will differ if
+@var{n} is negative.
 Formally, the function returns an integer equivalent to
 @code{(inexact->exact (floor (* @var{n} (expt 2 @var{cnt}))))}.
-
-Example:
 @lisp
-(number->string (ash #b1 3) 2)
-   @result{} "1000"
-(number->string (ash #b1010 -1) 2)
-   @result{} "101"
+(number->string (ash #b1 3) 2)     @result{} "1000"
+(number->string (ash #b1010 -1) 2) @result{} "101"
 @end lisp
 @end deffn
 
 bit-extract
 @c snarfed from numbers.c:1219
 @deffn primitive bit-extract n start end
-Returns the integer composed of the @var{start} (inclusive) through
-@var{end} (exclusive) bits of @var{n}.  The @var{start}th bit becomes
-the 0-th bit in the result.@refill
-
-Example:
+Return the integer composed of the @var{start} (inclusive)
+through @var{end} (exclusive) bits of @var{n}.  The
+@var{start}th bit becomes the 0-th bit in the result.
 @lisp
 (number->string (bit-extract #b1101101010 0 4) 2)
    @result{} "1010"
@@ -3198,12 +3148,10 @@ Example:
 logcount
 @c snarfed from numbers.c:1291
 @deffn primitive logcount n
-Returns the number of bits in integer @var{n}.  If integer is positive,
-the 1-bits in its binary representation are counted.  If negative, the
-0-bits in its two's-complement binary representation are counted.  If 0,
-0 is returned.
-
-Example:
+Return the number of bits in integer @var{n}.  If integer is
+positive, the 1-bits in its binary representation are counted.
+If negative, the 0-bits in its two's-complement binary
+representation are counted.  If 0, 0 is returned.
 @lisp
 (logcount #b10101010)
    @result{} 4
@@ -3217,9 +3165,7 @@ Example:
 integer-length
 @c snarfed from numbers.c:1342
 @deffn primitive integer-length n
-Returns the number of bits neccessary to represent @var{n}.
-
-Example:
+Return the number of bits neccessary to represent @var{n}.
 @lisp
 (integer-length #b10101010)
    @result{} 8
@@ -3241,7 +3187,7 @@ inexact, a radix of 10 will be used.
 string->number
 @c snarfed from numbers.c:2873
 @deffn primitive string->number string [radix]
-Returns a number of the maximally precise representation
+Return a number of the maximally precise representation
 expressed by the given @var{string}. @var{radix} must be an
 exact integer, either 2, 8, 10, or 16. If supplied, @var{radix}
 is a default radix that may be overridden by an explicit radix
@@ -3331,7 +3277,7 @@ Return the complex number @var{x} * e^(i * @var{y}).
 inexact->exact
 @c snarfed from numbers.c:4231
 @deffn primitive inexact->exact z
-Returns an exact number that is numerically closest to @var{z}.
+Return an exact number that is numerically closest to @var{z}.
 @end deffn
 
 class-of
@@ -3382,7 +3328,7 @@ Return @var{obj}'s property list.
 
 set-object-properties!
 @c snarfed from objprop.c:73
-@deffn primitive set-object-properties! obj plist
+@deffn primitive set-object-properties! obj alist
 @deffnx primitive set-procedure-properties! obj alist
 Set @var{obj}'s property list to @var{alist}.
 @end deffn
@@ -3396,24 +3342,25 @@ Return the property of @var{obj} with name @var{key}.
 
 set-object-property!
 @c snarfed from objprop.c:98
-@deffn primitive set-object-property! obj key val
+@deffn primitive set-object-property! obj key value
 @deffnx primitive set-procedure-property! obj key value
-In @var{obj}'s property list, set the property named @var{key} to
-@var{value}.
+In @var{obj}'s property list, set the property named @var{key}
+to @var{value}.
 @end deffn
 
 cons
 @c snarfed from pairs.c:61
 @deffn primitive cons x y
-Returns a newly allocated pair whose car is @var{x} and whose cdr is
-@var{y}.  The pair is guaranteed to be different (in the sense of
-@code{eqv?}) from every previously existing object.
+Return a newly allocated pair whose car is @var{x} and whose
+cdr is @var{y}.  The pair is guaranteed to be different (in the
+sense of @code{eq?}) from every previously existing object.
 @end deffn
 
 pair?
 @c snarfed from pairs.c:93
 @deffn primitive pair? x
-Returns @code{#t} if @var{x} is a pair; otherwise returns @code{#f}.
+Return @code{#t} if @var{x} is a pair; otherwise return
+@code{#f}.
 @end deffn
 
 set-car!
@@ -3433,26 +3380,26 @@ by @code{set-cdr!} is unspecified.
 char-ready?
 @c snarfed from ports.c:246
 @deffn primitive char-ready? [port]
-Returns @code{#t} if a character is ready on input @var{port} and
-returns @code{#f} otherwise.  If @code{char-ready?} returns @code{#t}
-then the next @code{read-char} operation on @var{port} is
-guaranteed not to hang.  If @var{port} is a file port at end of
-file then @code{char-ready?} returns @code{#t}.
+Return @code{#t} if a character is ready on input @var{port}
+and return @code{#f} otherwise.  If @code{char-ready?} returns
+@code{#t} then the next @code{read-char} operation on
+@var{port} is guaranteed not to hang.  If @var{port} is a file
+port at end of file then @code{char-ready?} returns @code{#t}.
 @footnote{@code{char-ready?} exists to make it possible for a
-program to accept characters from interactive ports without getting
-stuck waiting for input.  Any input editors associated with such ports
-must make sure that characters whose existence has been asserted by
-@code{char-ready?} cannot be rubbed out.  If @code{char-ready?} were to
-return @code{#f} at end of file, a port at end of file would be
-indistinguishable from an interactive port that has no ready
-characters.}
+program to accept characters from interactive ports without
+getting stuck waiting for input.  Any input editors associated
+with such ports must make sure that characters whose existence
+has been asserted by @code{char-ready?} cannot be rubbed out.
+If @code{char-ready?} were to return @code{#f} at end of file,
+a port at end of file would be indistinguishable from an
+interactive port that has no ready characters.}
 @end deffn
 
 drain-input
 @c snarfed from ports.c:312
 @deffn primitive drain-input port
 Drain @var{port}'s read buffers (including any pushed-back
-characters) and returns the content as a single string.
+characters) and return the content as a single string.
 @end deffn
 
 current-input-port
@@ -3511,7 +3458,7 @@ Set the current default error port to @var{port}.
 port-revealed
 @c snarfed from ports.c:556
 @deffn primitive port-revealed port
-Returns the revealed count for @var{port}.
+Return the revealed count for @var{port}.
 @end deffn
 
 set-port-revealed!
@@ -3524,21 +3471,21 @@ The return value is unspecified.
 port-mode
 @c snarfed from ports.c:612
 @deffn primitive port-mode port
-Returns the port modes associated with the open port @var{port}.  These
-will not necessarily be identical to the modes used when the port was
-opened, since modes such as "append" which are used only during
-port creation are not retained.
+Return the port modes associated with the open port @var{port}.
+These will not necessarily be identical to the modes used when
+the port was opened, since modes such as "append" which are
+used only during port creation are not retained.
 @end deffn
 
 close-port
 @c snarfed from ports.c:649
 @deffn primitive close-port port
-Close the specified port object.  Returns @code{#t} if it successfully
-closes a port or @code{#f} if it was already
-closed.  An exception may be raised if an error occurs, for example
-when flushing buffered output.
-See also @ref{Ports and File Descriptors, close}, for a procedure
-which can close file descriptors.
+Close the specified port object.  Return @code{#t} if it
+successfully closes a port or @code{#f} if it was already
+closed.  An exception may be raised if an error occurs, for
+example when flushing buffered output.  See also @ref{Ports and
+File Descriptors, close}, for a procedure which can close file
+descriptors.
 @end deffn
 
 close-input-port
@@ -3588,7 +3535,7 @@ Use port-for-each instead.
 input-port?
 @c snarfed from ports.c:791
 @deffn primitive input-port? x
-Returns @code{#t} if @var{x} is an input port, otherwise returns
+Return @code{#t} if @var{x} is an input port, otherwise return
 @code{#f}.  Any object satisfying this predicate also satisfies
 @code{port?}.
 @end deffn
@@ -3596,7 +3543,7 @@ Returns @code{#t} if @var{x} is an input port, otherwise returns
 output-port?
 @c snarfed from ports.c:804
 @deffn primitive output-port? x
-Returns @code{#t} if @var{x} is an output port, otherwise returns
+Return @code{#t} if @var{x} is an output port, otherwise return
 @code{#f}.  Any object satisfying this predicate also satisfies
 @code{port?}.
 @end deffn
@@ -3604,7 +3551,7 @@ Returns @code{#t} if @var{x} is an output port, otherwise returns
 port?
 @c snarfed from ports.c:819
 @deffn primitive port? x
-Returns a boolean indicating whether @var{x} is a port.
+Return a boolean indicating whether @var{x} is a port.
 Equivalent to @code{(or (input-port? @var{x}) (output-port?
 @var{x}))}.
 @end deffn
@@ -3612,14 +3559,15 @@ Equivalent to @code{(or (input-port? @var{x}) (output-port?
 port-closed?
 @c snarfed from ports.c:828
 @deffn primitive port-closed? port
-Returns @code{#t} if @var{port} is closed or @code{#f} if it is open.
+Return @code{#t} if @var{port} is closed or @code{#f} if it is
+open.
 @end deffn
 
 eof-object?
 @c snarfed from ports.c:839
 @deffn primitive eof-object? x
-Returns @code{#t} if @var{x} is an end-of-file object; otherwise
-returns @code{#f}.
+Return @code{#t} if @var{x} is an end-of-file object; otherwise
+return @code{#f}.
 @end deffn
 
 force-output
@@ -3644,25 +3592,26 @@ all open output ports.  The return value is unspecified.
 read-char
 @c snarfed from ports.c:889
 @deffn primitive read-char [port]
-Returns the next character available from @var{port}, updating
+Return the next character available from @var{port}, updating
 @var{port} to point to the following character.  If no more
-characters are available, an end-of-file object is returned.
+characters are available, the end-of-file object is returned.
 @end deffn
 
 peek-char
 @c snarfed from ports.c:1205
 @deffn primitive peek-char [port]
-Returns the next character available from @var{port},
+Return the next character available from @var{port},
 @emph{without} updating @var{port} to point to the following
-character.  If no more characters are available, an end-of-file object
-is returned.@footnote{The value returned by a call to @code{peek-char}
-is the same as the value that would have been returned by a call to
-@code{read-char} on the same port.  The only difference is that the very
-next call to @code{read-char} or @code{peek-char} on that
-@var{port} will return the value returned by the preceding call to
-@code{peek-char}.  In particular, a call to @code{peek-char} on an
-interactive port will hang waiting for input whenever a call to
-@code{read-char} would have hung.}
+character.  If no more characters are available, the
+end-of-file object is returned.@footnote{The value returned by
+a call to @code{peek-char} is the same as the value that would
+have been returned by a call to @code{read-char} on the same
+port.  The only difference is that the very next call to
+@code{read-char} or @code{peek-char} on that @var{port} will
+return the value returned by the preceding call to
+@code{peek-char}.  In particular, a call to @code{peek-char} on
+an interactive port will hang waiting for input whenever a call
+to @code{read-char} would have hung.}
 @end deffn
 
 unread-char
@@ -3685,12 +3634,12 @@ unread characters will be read again in last-in first-out order.  If
 
 seek
 @c snarfed from ports.c:1285
-@deffn primitive seek object offset whence
-Sets the current position of @var{fd/port} to the integer @var{offset},
-which is interpreted according to the value of @var{whence}.
-
-One of the following variables should be supplied
-for @var{whence}:
+@deffn primitive seek fd_port offset whence
+Sets the current position of @var{fd/port} to the integer
+@var{offset}, which is interpreted according to the value of
+@var{whence}.
+One of the following variables should be supplied for
+@var{whence}:
 @defvar SEEK_SET
 Seek from the beginning of the file.
 @end defvar
@@ -3700,27 +3649,24 @@ Seek from the current position.
 @defvar SEEK_END
 Seek from the end of the file.
 @end defvar
-
-If @var{fd/port} is a file descriptor, the underlying system call is
-@code{lseek}.  @var{port} may be a string port.
-
-The value returned is the new position in the file.  This means that
-the current position of a port can be obtained using:
-@smalllisp
+If @var{fd/port} is a file descriptor, the underlying system
+call is @code{lseek}.  @var{port} may be a string port.
+The value returned is the new position in the file.  This means
+that the current position of a port can be obtained using:
+@lisp
 (seek port 0 SEEK_CUR)
-@end smalllisp
+@end lisp
 @end deffn
 
 truncate-file
 @c snarfed from ports.c:1326
 @deffn primitive truncate-file object [length]
-Truncates the object referred to by @var{obj} to at most @var{size} bytes.
-@var{obj} can be a string containing a file name or an integer file
-descriptor or a port.  @var{size} may be omitted if @var{obj} is not
-a file name, in which case the truncation occurs at the current port.
-position.
-
-The return value is unspecified.
+Truncates the object referred to by @var{object} to at most
+@var{length} bytes.  @var{object} can be a string containing a
+file name or an integer file descriptor or a port.
+@var{length} may be omitted if @var{object} is not a file name,
+in which case the truncation occurs at the current port.
+position.  The return value is unspecified.
 @end deffn
 
 port-line
@@ -3786,25 +3732,25 @@ documentation for @code{open-file} in @ref{File Ports}.
 pipe
 @c snarfed from posix.c:201
 @deffn primitive pipe
-Returns a newly created pipe: a pair of ports which are linked
-together on the local machine.  The CAR is the input port and
-the CDR is the output port.  Data written (and flushed) to the
-output port can be read from the input port.
-Pipes are commonly used for communication with a newly
-forked child process.  The need to flush the output port
-can be avoided by making it unbuffered using @code{setvbuf}.
-
-Writes occur atomically provided the size of the data in
-bytes is not greater than the value of @code{PIPE_BUF}
-Note that the output port is likely to block if too much data
-(typically equal to @code{PIPE_BUF}) has been written but not
-yet read from the input port
+Return a newly created pipe: a pair of ports which are linked
+together on the local machine.  The @emph{car} is the input
+port and the @emph{cdr} is the output port.  Data written (and
+flushed) to the output port can be read from the input port.
+Pipes are commonly used for communication with a newly forked
+child process.  The need to flush the output port can be
+avoided by making it unbuffered using @code{setvbuf}.
+Writes occur atomically provided the size of the data in bytes
+is not greater than the value of @code{PIPE_BUF}.  Note that
+the output port is likely to block if too much data (typically
+equal to @code{PIPE_BUF}) has been written but not yet read
+from the input port.
 @end deffn
 
 getgroups
 @c snarfed from posix.c:221
 @deffn primitive getgroups
-Returns a vector of integers representing the current supplimentary group IDs.
+Return a vector of integers representing the current
+supplimentary group IDs.
 @end deffn
 
 getpw
@@ -3920,59 +3866,60 @@ The integer status value.
 status:exit-val
 @c snarfed from posix.c:478
 @deffn primitive status:exit-val status
-Returns the exit status value, as would be
-set if a process ended normally through a
-call to @code{exit} or @code{_exit}, if any, otherwise @code{#f}.
+Return the exit status value, as would be set if a process
+ended normally through a call to @code{exit} or @code{_exit},
+if any, otherwise @code{#f}.
 @end deffn
 
 status:term-sig
 @c snarfed from posix.c:498
 @deffn primitive status:term-sig status
-Returns the signal number which terminated the
-process, if any, otherwise @code{#f}.
+Return the signal number which terminated the process, if any,
+otherwise @code{#f}.
 @end deffn
 
 status:stop-sig
 @c snarfed from posix.c:516
 @deffn primitive status:stop-sig status
-Returns the signal number which stopped the
-process, if any, otherwise @code{#f}.
+Return the signal number which stopped the process, if any,
+otherwise @code{#f}.
 @end deffn
 
 getppid
 @c snarfed from posix.c:533
 @deffn primitive getppid
-Returns an integer representing the process ID of the parent process.
+Return an integer representing the process ID of the parent
+process.
 @end deffn
 
 getuid
 @c snarfed from posix.c:544
 @deffn primitive getuid
-Returns an integer representing the current real user ID.
+Return an integer representing the current real user ID.
 @end deffn
 
 getgid
 @c snarfed from posix.c:555
 @deffn primitive getgid
-Returns an integer representing the current real group ID.
+Return an integer representing the current real group ID.
 @end deffn
 
 geteuid
 @c snarfed from posix.c:569
 @deffn primitive geteuid
-Returns an integer representing the current effective user ID.
+Return an integer representing the current effective user ID.
 If the system does not support effective IDs, then the real ID
-is returned.  @code{(feature? 'EIDs)} reports whether the system
-supports effective IDs.
+is returned.  @code{(feature? 'EIDs)} reports whether the
+system supports effective IDs.
 @end deffn
 
 getegid
 @c snarfed from posix.c:587
 @deffn primitive getegid
-Returns an integer representing the current effective group ID.
+Return an integer representing the current effective group ID.
 If the system does not support effective IDs, then the real ID
-is returned.  @code{(feature? 'EIDs)} reports whether the system
-supports effective IDs.
+is returned.  @code{(feature? 'EIDs)} reports whether the
+system supports effective IDs.
 @end deffn
 
 setuid
@@ -4014,7 +3961,7 @@ The return value is unspecified.
 getpgrp
 @c snarfed from posix.c:679
 @deffn primitive getpgrp
-Returns an integer representing the current process group ID.
+Return an integer representing the current process group ID.
 This is the POSIX definition, not BSD.
 @end deffn
 
@@ -4040,24 +3987,23 @@ The return value is an integer representing the new process group ID.
 ttyname
 @c snarfed from posix.c:728
 @deffn primitive ttyname port
-Returns a string with the name of the serial terminal device underlying
-@var{port}.
+Return a string with the name of the serial terminal device
+underlying @var{port}.
 @end deffn
 
 ctermid
 @c snarfed from posix.c:751
 @deffn primitive ctermid
-Returns a string containing the file name of the controlling terminal
-for the current process.
+Return a string containing the file name of the controlling
+terminal for the current process.
 @end deffn
 
 tcgetpgrp
 @c snarfed from posix.c:773
 @deffn primitive tcgetpgrp port
-Returns the process group ID of the foreground
-process group associated with the terminal open on the file descriptor
+Return the process group ID of the foreground process group
+associated with the terminal open on the file descriptor
 underlying @var{port}.
-
 If there is no foreground process group, the return value is a
 number greater than 1 that does not match the process group ID
 of any existing process group.  This can happen if all of the
@@ -4129,78 +4075,69 @@ with the scsh fork.
 uname
 @c snarfed from posix.c:968
 @deffn primitive uname
-Returns an object with some information about the computer system the
-program is running on.
+Return an object with some information about the computer
+system the program is running on.
 @end deffn
 
 environ
 @c snarfed from posix.c:997
 @deffn primitive environ [env]
-If @var{env} is omitted, returns the current environment as a list of strings.
-Otherwise it sets the current environment, which is also the
-default environment for child processes, to the supplied list of strings.
-Each member of @var{env} should be of the form
-@code{NAME=VALUE} and values of @code{NAME} should not be duplicated.
-If @var{env} is supplied then the return value is unspecified.
+If @var{env} is omitted, return the current environment (in the
+Unix sense) as a list of strings.  Otherwise set the current
+environment, which is also the default environment for child
+processes, to the supplied list of strings.  Each member of
+@var{env} should be of the form @code{NAME=VALUE} and values of
+@code{NAME} should not be duplicated.  If @var{env} is supplied
+then the return value is unspecified.
 @end deffn
 
 tmpnam
 @c snarfed from posix.c:1035
 @deffn primitive tmpnam
-tmpnam returns a name in the file system that does not match
-any existing file.  However there is no guarantee that
-another process will not create the file after tmpnam
-is called.  Care should be taken if opening the file,
-e.g., use the O_EXCL open flag or use @code{mkstemp!} instead.
+Return a name in the file system that does not match any
+existing file.  However there is no guarantee that another
+process will not create the file after @code{tmpnam} is called.
+Care should be taken if opening the file, e.g., use the
+@code{O_EXCL} open flag or use @code{mkstemp!} instead.
 @end deffn
 
 mkstemp!
 @c snarfed from posix.c:1058
 @deffn primitive mkstemp! tmpl
-mkstemp creates a new unique file in the file system and
-returns a new buffered port open for reading and writing to
-the file.  @var{tmpl} is a string specifying where the
-file should be created: it must end with @code{XXXXXX}
-and will be changed in place to return the name of the
-temporary file.
+Create a new unique file in the file system and returns a new
+buffered port open for reading and writing to the file.
+@var{tmpl} is a string specifying where the file should be
+created: it must end with @code{XXXXXX} and will be changed in
+place to return the name of the temporary file.
 @end deffn
 
 utime
 @c snarfed from posix.c:1086
 @deffn primitive utime pathname [actime [modtime]]
-@code{utime} sets the access and modification times for
-the file named by @var{path}.  If @var{actime} or @var{modtime}
-is not supplied, then the current time is used.
-@var{actime} and @var{modtime}
-must be integer time values as returned by the @code{current-time}
-procedure.
-
-E.g.,
-
-@smalllisp
+@code{utime} sets the access and modification times for the
+file named by @var{path}.  If @var{actime} or @var{modtime} is
+not supplied, then the current time is used.  @var{actime} and
+@var{modtime} must be integer time values as returned by the
+@code{current-time} procedure.
+@lisp
 (utime "foo" (- (current-time) 3600))
-@end smalllisp
-
-will set the access time to one hour in the past and the modification
-time to the current time.
+@end lisp
+will set the access time to one hour in the past and the
+modification time to the current time.
 @end deffn
 
 access?
 @c snarfed from posix.c:1135
 @deffn primitive access? path how
-Returns @code{#t} if @var{path} corresponds to an existing
-file and the current process
-has the type of access specified by @var{how}, otherwise
-@code{#f}.
-@var{how} should be specified
-using the values of the variables listed below.  Multiple values can
-be combined using a bitwise or, in which case @code{#t} will only
-be returned if all accesses are granted.
-
-Permissions are checked using the real id of the current process,
-not the effective id, although it's the effective id which determines
-whether the access would actually be granted.
-
+Return @code{#t} if @var{path} corresponds to an existing file
+and the current process has the type of access specified by
+@var{how}, otherwise @code{#f}.  @var{how} should be specified
+using the values of the variables listed below.  Multiple
+values can be combined using a bitwise or, in which case
+@code{#t} will only be returned if all accesses are granted.
+Permissions are checked using the real id of the current
+process, not the effective id, although it's the effective id
+which determines whether the access would actually be granted.
 @defvar R_OK
 test for read permission.
 @end defvar
@@ -4218,7 +4155,7 @@ test for existence of the file.
 getpid
 @c snarfed from posix.c:1150
 @deffn primitive getpid
-Returns an integer representing the current process ID.
+Return an integer representing the current process ID.
 @end deffn
 
 putenv
@@ -4240,16 +4177,14 @@ The return value is unspecified.
 setlocale
 @c snarfed from posix.c:1198
 @deffn primitive setlocale category [locale]
-If @var{locale} is omitted, returns the current value of the specified
-locale category
-as a system-dependent string.
-@var{category} should be specified using the values @code{LC_COLLATE},
-@code{LC_ALL} etc.
-
-Otherwise the specified locale category is set to
-the string @var{locale}
-and the new value is returned as a system-dependent string.  If @var{locale}
-is an empty string, the locale will be set using envirionment variables.
+If @var{locale} is omitted, return the current value of the
+specified locale category as a system-dependent string.
+@var{category} should be specified using the values
+@code{LC_COLLATE}, @code{LC_ALL} etc.
+Otherwise the specified locale category is set to the string
+@var{locale} and the new value is returned as a
+system-dependent string.  If @var{locale} is an empty string,
+the locale will be set using envirionment variables.
 @end deffn
 
 mknod
@@ -4265,9 +4200,9 @@ to.  Its exact interpretation depends on the kind of special file
 being created.
 
 E.g.,
-@example
+@lisp
 (mknod "/dev/fd0" 'block-special #o660 (+ (* 2 256) 2))
-@end example
+@end lisp
 
 The return value is unspecified.
 @end deffn
@@ -4614,19 +4549,19 @@ turn, storing the result in the corresponding element.  The value
 returned and the order of application are unspecified.
 
 One can implement @var{array-indexes} as
-@example
+@lisp
 (define (array-indexes array)
     (let ((ra (apply make-array #f (array-shape array))))
       (array-index-map! ra (lambda x x))
       ra))
-@end example
+@end lisp
 Another example:
-@example
+@lisp
 (define (apl:index-generator n)
     (let ((v (make-uniform-vector n 1)))
       (array-index-map! v (lambda (i) i))
       v))
-@end example
+@end lisp
 @end deffn
 
 random
@@ -4659,16 +4594,17 @@ Return a new random state using @var{seed}.
 random:uniform
 @c snarfed from random.c:418
 @deffn primitive random:uniform [state]
-Returns a uniformly distributed inexact real random number in [0,1).
+Return a uniformly distributed inexact real random number in
+[0,1).
 @end deffn
 
 random:normal
 @c snarfed from random.c:433
 @deffn primitive random:normal [state]
-Returns an inexact real in a normal distribution.
-The distribution used has mean 0 and standard deviation 1.
-For a normal distribution with mean m and standard deviation
-d use @code{(+ m (* d (random:normal)))}.
+Return an inexact real in a normal distribution.  The
+distribution used has mean 0 and standard deviation 1.  For a
+normal distribution with mean m and standard deviation d use
+@code{(+ m (* d (random:normal)))}.
 @end deffn
 
 random:solid-sphere!
@@ -4704,8 +4640,9 @@ independent and standard normally distributed
 random:exp
 @c snarfed from random.c:554
 @deffn primitive random:exp [state]
-Returns an inexact real in an exponential distribution with mean 1.
-For an exponential distribution with mean u use (* u (random:exp)).
+Return an inexact real in an exponential distribution with mean
+1.  For an exponential distribution with mean u use (* u
+(random:exp)).
 @end deffn
 
 %read-delimited!
@@ -4741,14 +4678,13 @@ delimiter may be either a newline or the @var{eof-object}; if
 write-line
 @c snarfed from rdelim.c:277
 @deffn primitive write-line obj [port]
-Display @var{obj} and a newline character to @var{port}.  If @var{port}
-is not specified, @code{(current-output-port)} is used.  This function
-is equivalent to:
-
-@smalllisp
+Display @var{obj} and a newline character to @var{port}.  If
+@var{port} is not specified, @code{(current-output-port)} is
+used.  This function is equivalent to:
+@lisp
 (display obj [port])
 (newline [port])
-@end smalllisp
+@end lisp
 @end deffn
 
 read-options-interface
@@ -4779,60 +4715,59 @@ returned will be the return value of @code{read}.
 
 regexp?
 @c snarfed from regex-posix.c:139
-@deffn primitive regexp? x
-Return @code{#t} if @var{obj} is a compiled regular expression, or
-@code{#f} otherwise.
+@deffn primitive regexp? obj
+Return @code{#t} if @var{obj} is a compiled regular expression,
+or @code{#f} otherwise.
 @end deffn
 
 make-regexp
 @c snarfed from regex-posix.c:179
 @deffn primitive make-regexp pat . flags
-Compile the regular expression described by @var{str}, and return the
-compiled regexp structure.  If @var{str} does not describe a legal
-regular expression, @code{make-regexp} throws a
-@code{regular-expression-syntax} error.
-
-The @var{flag} arguments change the behavior of the compiled regexp.
-The following flags may be supplied:
-
+Compile the regular expression described by @var{pat}, and
+return the compiled regexp structure.  If @var{pat} does not
+describe a legal regular expression, @code{make-regexp} throws
+a @code{regular-expression-syntax} error.
+The @var{flags} arguments change the behavior of the compiled
+regular expression.  The following flags may be supplied:
 @table @code
 @item regexp/icase
-Consider uppercase and lowercase letters to be the same when matching.
-
+Consider uppercase and lowercase letters to be the same when
+matching.
 @item regexp/newline
-If a newline appears in the target string, then permit the @samp{^} and
-@samp{$} operators to match immediately after or immediately before the
-newline, respectively.  Also, the @samp{.} and @samp{[^...]} operators
-will never match a newline character.  The intent of this flag is to
-treat the target string as a buffer containing many lines of text, and
-the regular expression as a pattern that may match a single one of those
-lines.
-
+If a newline appears in the target string, then permit the
+@samp{^} and @samp{$} operators to match immediately after or
+immediately before the newline, respectively.  Also, the
+@samp{.} and @samp{[^...]} operators will never match a newline
+character.  The intent of this flag is to treat the target
+string as a buffer containing many lines of text, and the
+regular expression as a pattern that may match a single one of
+those lines.
 @item regexp/basic
 Compile a basic (``obsolete'') regexp instead of the extended
-(``modern'') regexps that are the default.  Basic regexps do not
-consider @samp{|}, @samp{+} or @samp{?} to be special characters, and
-require the @samp{@{...@}} and @samp{(...)} metacharacters to be
-backslash-escaped (@pxref{Backslash Escapes}).  There are several other
-differences between basic and extended regular expressions, but these
-are the most significant.
-
+(``modern'') regexps that are the default.  Basic regexps do
+not consider @samp{|}, @samp{+} or @samp{?} to be special
+characters, and require the @samp{@{...@}} and @samp{(...)}
+metacharacters to be backslash-escaped (@pxref{Backslash
+Escapes}).  There are several other differences between basic
+and extended regular expressions, but these are the most
+significant.
 @item regexp/extended
-Compile an extended regular expression rather than a basic regexp.  This
-is the default behavior; this flag will not usually be needed.  If a
-call to @code{make-regexp} includes both @code{regexp/basic} and
-@code{regexp/extended} flags, the one which comes last will override
-the earlier one.
+Compile an extended regular expression rather than a basic
+regexp.  This is the default behavior; this flag will not
+usually be needed.  If a call to @code{make-regexp} includes
+both @code{regexp/basic} and @code{regexp/extended} flags, the
+one which comes last will override the earlier one.
 @end table
 @end deffn
 
 regexp-exec
 @c snarfed from regex-posix.c:226
 @deffn primitive regexp-exec rx str [start [flags]]
-Match the compiled regular expression @var{regexp} against @code{str}.
-If the optional integer @var{start} argument is provided, begin matching
-from that position in the string.  Return a match structure describing
-the results of the match, or @code{#f} if no match could be found.
+Match the compiled regular expression @var{rx} against
+@code{str}.  If the optional integer @var{start} argument is
+provided, begin matching from that position in the string.
+Return a match structure describing the results of the match,
+or @code{#f} if no match could be found.
 @end deffn
 
 call-with-dynamic-root
@@ -4855,7 +4790,7 @@ Before calling @var{thunk}, the dynamic-wind chain is un-wound back to
 the root and a new chain started for @var{thunk}.  Therefore, this call
 may not do what you expect:
 
-@example
+@lisp
 ;; Almost certainly a bug:
 (with-output-to-port
  some-port
@@ -4866,7 +4801,7 @@ may not do what you expect:
       (display 'fnord)
       (newline))
     (lambda (errcode) errcode))))
-@end example
+@end lisp
 
 The problem is, on what port will @samp{fnord} be displayed?  You
 might expect that because of the @code{with-output-to-port} that
@@ -4977,12 +4912,12 @@ Sends a specified signal @var{sig} to the current process, where
 system
 @c snarfed from simpos.c:76
 @deffn primitive system [cmd]
-Executes @var{cmd} using the operating system's "command processor".
-Under Unix this is usually the default shell @code{sh}.  The value
-returned is @var{cmd}'s exit status as returned by @code{waitpid}, which
-can be interpreted using the functions above.
-
-If @code{system} is called without arguments, it returns a boolean
+Execute @var{cmd} using the operating system's "command
+processor".  Under Unix this is usually the default shell
+@code{sh}.  The value returned is @var{cmd}'s exit status as
+returned by @code{waitpid}, which can be interpreted using the
+functions above.
+If @code{system} is called without arguments, return a boolean
 indicating whether the command processor is available.
 @end deffn
 
@@ -5005,74 +4940,72 @@ is @var{status} if supplied, otherwise zero.
 htons
 @c snarfed from socket.c:89
 @deffn primitive htons in
-Returns a new integer from @var{value} by converting from host to
-network order. @var{value} must be within the range of a C unsigned
-short integer.
+Return a new integer from @var{value} by converting from host
+to network order. @var{value} must be within the range of a C
+unsigned short integer.
 @end deffn
 
 ntohs
 @c snarfed from socket.c:106
 @deffn primitive ntohs in
-Returns a new integer from @var{value} by converting from network to
-host order.  @var{value} must be within the range of a C unsigned short
-integer.
+Return a new integer from @var{value} by converting from
+network to host order.  @var{value} must be within the range of
+a C unsigned short integer.
 @end deffn
 
 htonl
 @c snarfed from socket.c:123
 @deffn primitive htonl in
-Returns a new integer from @var{value} by converting from host to
-network order. @var{value} must be within the range of a C unsigned
-long integer.
+Return a new integer from @var{value} by converting from host
+to network order. @var{value} must be within the range of a C
+unsigned long integer.
 @end deffn
 
 ntohl
 @c snarfed from socket.c:135
 @deffn primitive ntohl in
-Returns a new integer from @var{value} by converting from network to
-host order. @var{value} must be within the range of a C unsigned
-long integer.
+Return a new integer from @var{value} by converting from
+network to host order. @var{value} must be within the range of
+a C unsigned long integer.
 @end deffn
 
 socket
 @c snarfed from socket.c:158
 @deffn primitive socket family style proto
-Returns a new socket port of the type specified by @var{family}, @var{style}
-and @var{protocol}.  All three parameters are integers.  Typical values
-for @var{family} are the values of @code{AF_UNIX}
-and @code{AF_INET}.  Typical values for @var{style} are
-the values of @code{SOCK_STREAM}, @code{SOCK_DGRAM} and @code{SOCK_RAW}.
-
+Return a new socket port of the type specified by @var{family},
+@var{style} and @var{protocol}.  All three parameters are
+integers.  Typical values for @var{family} are the values of
+@code{AF_UNIX} and @code{AF_INET}.  Typical values for
+@var{style} are the values of @code{SOCK_STREAM},
+@code{SOCK_DGRAM} and @code{SOCK_RAW}.
 @var{protocol} can be obtained from a protocol name using
-@code{getprotobyname}.  A value of
-zero specifies the default protocol, which is usually right.
-
-A single socket port cannot by used for communication until
-it has been connected to another socket.
+@code{getprotobyname}.  A value of zero specifies the default
+protocol, which is usually right.
+A single socket port cannot by used for communication until it
+has been connected to another socket.
 @end deffn
 
 socketpair
 @c snarfed from socket.c:180
 @deffn primitive socketpair family style proto
-Returns a pair of connected (but unnamed) socket ports of the type specified
-by @var{family}, @var{style} and @var{protocol}.
-Many systems support only
-socket pairs of the @code{AF_UNIX} family.  Zero is likely to be
-the only meaningful value for @var{protocol}.
+Return a pair of connected (but unnamed) socket ports of the
+type specified by @var{family}, @var{style} and @var{protocol}.
+Many systems support only socket pairs of the @code{AF_UNIX}
+family.  Zero is likely to be the only meaningful value for
+@var{protocol}.
 @end deffn
 
 getsockopt
 @c snarfed from socket.c:209
 @deffn primitive getsockopt sock level optname
-Returns the value of a particular socket option for the socket
-port @var{socket}.  @var{level} is an integer code for type of option
-being requested, e.g., @code{SOL_SOCKET} for socket-level options.
-@var{optname} is an
-integer code for the option required and should be specified using one of
-the symbols @code{SO_DEBUG}, @code{SO_REUSEADDR} etc.
-
-The returned value is typically an integer but @code{SO_LINGER} returns a
-pair of integers.
+Return the value of a particular socket option for the socket
+port @var{socket}.  @var{level} is an integer code for type of
+option being requested, e.g., @code{SOL_SOCKET} for
+socket-level options.  @var{optname} is an integer code for the
+option required and should be specified using one of the
+symbols @code{SO_DEBUG}, @code{SO_REUSEADDR} etc.
+The returned value is typically an integer but @code{SO_LINGER}
+returns a pair of integers.
 @end deffn
 
 setsockopt
@@ -5207,18 +5140,18 @@ connection and will continue to accept new requests.
 getsockname
 @c snarfed from socket.c:668
 @deffn primitive getsockname sock
-Returns the address of @var{socket}, in the same form as the object
-returned by @code{accept}.  On many systems the address of a socket
-in the @code{AF_FILE} namespace cannot be read.
+Return the address of @var{socket}, in the same form as the
+object returned by @code{accept}.  On many systems the address
+of a socket in the @code{AF_FILE} namespace cannot be read.
 @end deffn
 
 getpeername
 @c snarfed from socket.c:695
 @deffn primitive getpeername sock
-Returns the address of the socket that the socket @var{socket} is connected to,
-in the same form as the object
-returned by @code{accept}.  On many systems the address of a socket
-in the @code{AF_FILE} namespace cannot be read.
+Return the address of the socket that the socket @var{socket}
+is connected to, in the same form as the object returned by
+@code{accept}.  On many systems the address of a socket in the
+@code{AF_FILE} namespace cannot be read.
 @end deffn
 
 recv!
@@ -5258,27 +5191,23 @@ any unflushed buffered port data is ignored.
 recvfrom!
 @c snarfed from socket.c:797
 @deffn primitive recvfrom! sock str [flags [start [end]]]
-Returns data from the socket port @var{socket} and also information about
-where the data was received from.  @var{socket} must already
-be bound to the address from which data is to be received.
-@code{str}, is a string into which
-the data will be written.  The size of @var{str} limits the amount of
-data which can be received: in the case of packet
-protocols, if a packet larger than this limit is encountered then some data
-will be irrevocably lost.
-
-The optional @var{flags} argument is a value or
-bitwise OR of MSG_OOB, MSG_PEEK, MSG_DONTROUTE etc.
-
-The value returned is a pair: the CAR is the number of bytes read from
-the socket and the CDR an address object in the same form as returned by
-@code{accept}.
-
-The @var{start} and @var{end} arguments specify a substring of @var{str}
-to which the data should be written.
-
-Note that the data is read directly from the socket file descriptor:
-any unread buffered port data is ignored.
+Return data from the socket port @var{socket} and also
+information about where the data was received from.
+@var{socket} must already be bound to the address from which
+data is to be received.  @code{str}, is a string into which the
+data will be written.  The size of @var{str} limits the amount
+of data which can be received: in the case of packet protocols,
+if a packet larger than this limit is encountered then some
+data will be irrevocably lost.
+The optional @var{flags} argument is a value or bitwise OR of
+@code{MSG_OOB}, @code{MSG_PEEK}, @code{MSG_DONTROUTE} etc.
+The value returned is a pair: the @emph{car} is the number of
+bytes read from the socket and the @emph{cdr} an address object
+in the same form as returned by @code{accept}.
+The @var{start} and @var{end} arguments specify a substring of
+@var{str} to which the data should be written.
+Note that the data is read directly from the socket file
+descriptor: any unread buffered port data is ignored.
 @end deffn
 
 sendto
@@ -5531,16 +5460,16 @@ Return @code{#t} if @var{frame} is an overflow frame.
 get-internal-real-time
 @c snarfed from stime.c:141
 @deffn primitive get-internal-real-time
-Returns the number of time units since the interpreter was started.
+Return the number of time units since the interpreter was
+started.
 @end deffn
 
 times
 @c snarfed from stime.c:183
 @deffn primitive times
-Returns an object with information about real and processor time.
-The following procedures accept such an object as an argument and
-return a selected component:
-
+Return an object with information about real and processor
+time.  The following procedures accept such an object as an
+argument and return a selected component:
 @table @code
 @item tms:clock
 The current real time, expressed as time units relative to an
@@ -5548,10 +5477,12 @@ arbitrary base.
 @item tms:utime
 The CPU time units used by the calling process.
 @item tms:stime
-The CPU time units used by the system on behalf of the calling process.
+The CPU time units used by the system on behalf of the calling
+process.
 @item tms:cutime
-The CPU time units used by terminated child processes of the calling
-process, whose status has been collected (e.g., using @code{waitpid}).
+The CPU time units used by terminated child processes of the
+calling process, whose status has been collected (e.g., using
+@code{waitpid}).
 @item tms:cstime
 Similarly, the CPU times units used by the system on behalf of
 terminated child processes.
@@ -5561,41 +5492,43 @@ terminated child processes.
 get-internal-run-time
 @c snarfed from stime.c:214
 @deffn primitive get-internal-run-time
-Returns the number of time units of processor time used by the interpreter.
-Both "system" and "user" time are included but subprocesses are not.
+Return the number of time units of processor time used by the
+interpreter.  Both @emph{system} and @emph{user} time are
+included but subprocesses are not.
 @end deffn
 
 current-time
 @c snarfed from stime.c:224
 @deffn primitive current-time
-Returns the number of seconds since 1970-01-01 00:00:00 UTC, excluding
-leap seconds.
+Return the number of seconds since 1970-01-01 00:00:00 UTC,
+excluding leap seconds.
 @end deffn
 
 gettimeofday
 @c snarfed from stime.c:241
 @deffn primitive gettimeofday
-Returns a pair containing the number of seconds and microseconds since
-1970-01-01 00:00:00 UTC, excluding leap seconds.  Note: whether true
-microsecond resolution is available depends on the operating system.
+Return a pair containing the number of seconds and microseconds
+since 1970-01-01 00:00:00 UTC, excluding leap seconds.  Note:
+whether true microsecond resolution is available depends on the
+operating system.
 @end deffn
 
 localtime
 @c snarfed from stime.c:341
 @deffn primitive localtime time [zone]
-Returns an object representing the broken down components of @var{time},
-an integer like the one returned by @code{current-time}.  The time zone
-for the calculation is optionally specified by @var{zone} (a string),
-otherwise the @code{TZ} environment variable or the system default is
-used.
+Return an object representing the broken down components of
+@var{time}, an integer like the one returned by
+@code{current-time}.  The time zone for the calculation is
+optionally specified by @var{zone} (a string), otherwise the
+@code{TZ} environment variable or the system default is used.
 @end deffn
 
 gmtime
 @c snarfed from stime.c:413
 @deffn primitive gmtime time
-Returns an object representing the broken down components of @var{time},
-an integer like the one returned by @code{current-time}.  The values
-are calculated for UTC.
+Return an object representing the broken down components of
+@var{time}, an integer like the one returned by
+@code{current-time}.  The values are calculated for UTC.
 @end deffn
 
 mktime
@@ -5650,7 +5583,7 @@ which were used for the conversion.
 string?
 @c snarfed from strings.c:62
 @deffn primitive string? obj
-Returns @code{#t} iff @var{obj} is a string, else returns
+Return @code{#t} iff @var{obj} is a string, else returns
 @code{#f}.
 @end deffn
 
@@ -5662,13 +5595,13 @@ Return true if @var{obj} can be read as a string,
 This illustrates the difference between @code{string?} and
 @code{read-only-string?}:
 
-@example
+@lisp
 (string? "a string") @result{} #t
 (string? 'a-symbol) @result{} #f
 
 (read-only-string? "a string") @result{} #t
 (read-only-string? 'a-symbol) @result{} #t
-@end example
+@end lisp
 @end deffn
 
 list->string
@@ -5681,7 +5614,7 @@ scm_string
 @c snarfed from strings.c:100
 @deffn primitive string . chrs
 @deffnx primitive list->string chrs
-Returns a newly allocated string composed of the arguments,
+Return a newly allocated string composed of the arguments,
 @var{chrs}.
 @end deffn
 
@@ -5736,14 +5669,14 @@ concatenation of the given strings, @var{args}.
 
 make-shared-substring
 @c snarfed from strings.c:400
-@deffn primitive make-shared-substring str [frm [to]]
-Return a shared substring of @var{str}.  The semantics are the same as
-for the @code{substring} function: the shared substring returned
-includes all of the text from @var{str} between indexes @var{start}
-(inclusive) and @var{end} (exclusive).  If @var{end} is omitted, it
-defaults to the end of @var{str}.  The shared substring returned by
-@code{make-shared-substring} occupies the same storage space as
-@var{str}.
+@deffn primitive make-shared-substring str [start [end]]
+Return a shared substring of @var{str}.  The semantics are the
+same as for the @code{substring} function: the shared substring
+returned includes all of the text from @var{str} between
+indexes @var{start} (inclusive) and @var{end} (exclusive).  If
+@var{end} is omitted, it defaults to the end of @var{str}.  The
+shared substring returned by @code{make-shared-substring}
+occupies the same storage space as @var{str}.
 @end deffn
 
 string-index
@@ -5754,15 +5687,7 @@ Return the index of the first occurrence of @var{chr} in
 @var{to} limit the search to a portion of the string.  This
 procedure essentially implements the @code{index} or
 @code{strchr} functions from the C library.
-
-(qdocs:) Returns
-the index of @var{char} in @var{str}, or @code{#f} if the
-@var{char} isn't in @var{str}. If @var{frm} is given and not
-@code{#f}, it is used as the starting index; if @var{to} is
-given and not @code{#f}, it is used as the ending index
-(exclusive).
-
-@example
+@lisp
 (string-index "weiner" #\e)
 @result{} 1
 
@@ -5771,21 +5696,17 @@ given and not @code{#f}, it is used as the ending index
 
 (string-index "weiner" #\e 2 4)
 @result{} #f
-@end example
+@end lisp
 @end deffn
 
 string-rindex
 @c snarfed from strop.c:152
 @deffn primitive string-rindex str chr [frm [to]]
-Like @code{string-index}, but search from the right of the string rather
-than from the left.  This procedure essentially implements the
-@code{rindex} or @code{strrchr} functions from the C library.
-
-(qdocs:) The same as @code{string-index}, except it gives the rightmost occurance
-of @var{char} in the range [@var{frm}, @var{to}-1], which defaults to
-the entire string.
-
-@example
+Like @code{string-index}, but search from the right of the
+string rather than from the left.  This procedure essentially
+implements the @code{rindex} or @code{strrchr} functions from
+the C library.
+@lisp
 (string-rindex "weiner" #\e)
 @result{} 4
 
@@ -5794,7 +5715,7 @@ the entire string.
 
 (string-rindex "weiner" #\e 2 5)
 @result{} 4
-@end example
+@end lisp
 @end deffn
 
 substring-move-left!
@@ -5835,133 +5756,122 @@ are different strings, it does not matter which function you use.
 substring-fill!
 @c snarfed from strop.c:280
 @deffn primitive substring-fill! str start end fill
-Change every character in @var{str} between @var{start} and @var{end} to
-@var{fill-char}.
-
-(qdocs:) Destructively fills @var{str}, from @var{start} to @var{end}, with @var{fill}.
-
-@example
+Change every character in @var{str} between @var{start} and
+@var{end} to @var{fill}.
+@lisp
 (define y "abcdefg")
 (substring-fill! y 1 3 #\r)
 y
 @result{} "arrdefg"
-@end example
+@end lisp
 @end deffn
 
 string-null?
 @c snarfed from strop.c:307
 @deffn primitive string-null? str
-Return @code{#t} if @var{str}'s length is nonzero, and @code{#f}
-otherwise.
-
-(qdocs:) Returns @code{#t} if @var{str} is empty, else returns @code{#f}.
-
-@example
-(string-null? "")
-@result{} #t
-
-(string-null? y)
-@result{} #f
-@end example
+Return @code{#t} if @var{str}'s length is nonzero, and
+@code{#f} otherwise.
+@lisp
+(string-null? "")  @result{} #t
+y                    @result{} "foo"
+(string-null? y)     @result{} #f
+@end lisp
 @end deffn
 
 string->list
 @c snarfed from strop.c:323
 @deffn primitive string->list str
-@samp{String->list} returns a newly allocated list of the
-characters that make up the given string.  @samp{List->string}
-returns a newly allocated string formed from the characters in the list
-@var{list}, which must be a list of characters. @samp{String->list}
-and @samp{list->string} are
-inverses so far as @samp{equal?} is concerned.  (r5rs)
+Return a newly allocated list of the characters that make up
+the given string @var{str}. @code{string->list} and
+@code{list->string} are inverses as far as @samp{equal?} is
+concerned.
 @end deffn
 
 string-copy
 @c snarfed from strop.c:348
 @deffn primitive string-copy str
-Returns a newly allocated copy of the given @var{string}. (r5rs)
+Return a newly allocated copy of the given @var{string}.
 @end deffn
 
 string-fill!
 @c snarfed from strop.c:361
 @deffn primitive string-fill! str chr
-Stores @var{char} in every element of the given @var{string} and returns an
-unspecified value.  (r5rs)
+Store @var{char} in every element of the given @var{string} and
+return an unspecified value.
 @end deffn
 
 string-upcase!
 @c snarfed from strop.c:397
 @deffn primitive string-upcase! str
-Destructively upcase every character in @code{str}.
-
-(qdocs:) Converts each element in @var{str} to upper case.
-
-@example
-(string-upcase! y)
-@result{} "ARRDEFG"
-
-y
-@result{} "ARRDEFG"
-@end example
+Destructively upcase every character in @var{str} and return
+@var{str}.
+@lisp
+y                  @result{} "arrdefg"
+(string-upcase! y) @result{} "ARRDEFG"
+y                  @result{} "ARRDEFG"
+@end lisp
 @end deffn
 
 string-upcase
 @c snarfed from strop.c:409
 @deffn primitive string-upcase str
-Upcase every character in @code{str}.
+Return a freshly allocated string containing the characters of
+@var{str} in upper case.
 @end deffn
 
 string-downcase!
 @c snarfed from strop.c:444
 @deffn primitive string-downcase! str
-Destructively downcase every character in @code{str}.
-
-(qdocs:) Converts each element in @var{str} to lower case.
-
-@example
-y
-@result{} "ARRDEFG"
-
-(string-downcase! y)
-@result{} "arrdefg"
-
-y
-@result{} "arrdefg"
-@end example
+Destructively downcase every character in @var{str} and return
+@var{str}.
+@lisp
+y                     @result{} "ARRDEFG"
+(string-downcase! y)  @result{} "arrdefg"
+y                     @result{} "arrdefg"
+@end lisp
 @end deffn
 
 string-downcase
 @c snarfed from strop.c:456
 @deffn primitive string-downcase str
-Downcase every character in @code{str}.
+Return a freshly allocation string containing the characters in
+@var{str} in lower case.
 @end deffn
 
 string-capitalize!
 @c snarfed from strop.c:493
 @deffn primitive string-capitalize! str
-Destructively capitalize every character in @code{str}.
+Upcase the first character of every word in @var{str}
+destructively and return @var{str}.
+@lisp
+y                      @result{} "hello world"
+(string-capitalize! y) @result{} "Hello World"
+y                      @result{} "Hello World"
+@end lisp
 @end deffn
 
 string-capitalize
 @c snarfed from strop.c:505
 @deffn primitive string-capitalize str
-Capitalize every character in @code{str}.
+Return a freshly allocated string with the characters in
+@var{str}, where the first character of every word is
+capitalized.
 @end deffn
 
 string-ci->symbol
 @c snarfed from strop.c:517
 @deffn primitive string-ci->symbol str
-Return the symbol whose name is @var{str}, downcased in necessary(???).
+Return the symbol whose name is @var{str}.  @var{str} is
+converted to lowercase before the conversion is done, if Guile
+is currently reading symbols case--insensitively.
 @end deffn
 
 string=?
 @c snarfed from strorder.c:64
 @deffn primitive string=? s1 s2
-Lexicographic equality predicate;
-Returns @code{#t} if the two strings are the same length and
-contain the same characters in the same positions, otherwise
-returns @code{#f}. (r5rs)
-
+Lexicographic equality predicate; return @code{#t} if the two
+strings are the same length and contain the same characters in
+the same positions, otherwise return @code{#f}.
 The procedure @code{string-ci=?} treats upper and lower case
 letters as though they were the same character, but
 @code{string=?} treats upper and lower case as distinct
@@ -5971,72 +5881,70 @@ characters.
 string-ci=?
 @c snarfed from strorder.c:99
 @deffn primitive string-ci=? s1 s2
-Case-insensitive string equality predicate; returns @code{#t}
-if the two strings are the same length and their component
+Case-insensitive string equality predicate; return @code{#t} if
+the two strings are the same length and their component
 characters match (ignoring case) at each position; otherwise
-returns @code{#f}. (r5rs)
+return @code{#f}.
 @end deffn
 
 string<?
 @c snarfed from strorder.c:156
 @deffn primitive string<? s1 s2
-Lexicographic ordering predicate; returns @code{#t} if
-@var{s1} is lexicographically less than @var{s2}.  (r5rs)
+Lexicographic ordering predicate; return @code{#t} if @var{s1}
+is lexicographically less than @var{s2}.
 @end deffn
 
 string<=?
 @c snarfed from strorder.c:171
 @deffn primitive string<=? s1 s2
-Lexicographic ordering predicate; returns @code{#t} if
-@var{s1} is lexicographically less than or equal to @var{s2}.
-(r5rs)
+Lexicographic ordering predicate; return @code{#t} if @var{s1}
+is lexicographically less than or equal to @var{s2}.
 @end deffn
 
 string>?
 @c snarfed from strorder.c:185
 @deffn primitive string>? s1 s2
-Lexicographic ordering predicate; returns @code{#t} if
-@var{s1} is lexicographically greater than @var{s2}.  (r5rs)
+Lexicographic ordering predicate; return @code{#t} if @var{s1}
+is lexicographically greater than @var{s2}.
 @end deffn
 
 string>=?
 @c snarfed from strorder.c:200
 @deffn primitive string>=? s1 s2
-Lexicographic ordering predicate; returns @code{#t} if
-@var{s1} is lexicographically greater than or equal to
-@var{s2}.  (r5rs)
+Lexicographic ordering predicate; return @code{#t} if @var{s1}
+is lexicographically greater than or equal to @var{s2}.
 @end deffn
 
 string-ci<?
 @c snarfed from strorder.c:239
 @deffn primitive string-ci<? s1 s2
-Case insensitive lexicographic ordering predicate;
-returns @code{#t} if @var{s1} is lexicographically less than
-@var{s2} regardless of case.  (r5rs)
+Case insensitive lexicographic ordering predicate; return
+@code{#t} if @var{s1} is lexicographically less than @var{s2}
+regardless of case.
 @end deffn
 
 string-ci<=?
 @c snarfed from strorder.c:254
 @deffn primitive string-ci<=? s1 s2
-Case insensitive lexicographic ordering predicate;
-returns @code{#t} if @var{s1} is lexicographically less than
-or equal to @var{s2} regardless of case.  (r5rs)
+Case insensitive lexicographic ordering predicate; return
+@code{#t} if @var{s1} is lexicographically less than or equal
+to @var{s2} regardless of case.
 @end deffn
 
 string-ci>?
 @c snarfed from strorder.c:269
 @deffn primitive string-ci>? s1 s2
-Case insensitive lexicographic ordering predicate;
-returns @code{#t} if @var{s1} is lexicographically greater
-than @var{s2} regardless of case.  (r5rs)
+Case insensitive lexicographic ordering predicate; return
+@code{#t} if @var{s1} is lexicographically greater than
+@var{s2} regardless of case.
 @end deffn
 
 string-ci>=?
 @c snarfed from strorder.c:284
 @deffn primitive string-ci>=? s1 s2
-Case insensitive lexicographic ordering predicate;
-returns @code{#t} if @var{s1} is lexicographically greater
-than or equal to @var{s2} regardless of case.  (r5rs)
+Case insensitive lexicographic ordering predicate; return
+@code{#t} if @var{s1} is lexicographically greater than or
+equal to @var{s2} regardless of case.
 @end deffn
 
 object->string
@@ -6057,17 +5965,17 @@ written into the port is returned.
 
 call-with-input-string
 @c snarfed from strports.c:371
-@deffn primitive call-with-input-string str proc
-Calls the one-argument procedure @var{proc} with a newly created input
-port from which @var{string}'s contents may be read.  The value yielded
-by the @var{proc} is returned.
+@deffn primitive call-with-input-string string proc
+Calls the one-argument procedure @var{proc} with a newly
+created input port from which @var{string}'s contents may be
+read.  The value yielded by the @var{proc} is returned.
 @end deffn
 
 open-input-string
 @c snarfed from strports.c:384
 @deffn primitive open-input-string str
-Takes a string and returns an input port that delivers
-characters from the string. The port can be closed by
+Take a string and return an input port that delivers characters
+from the string. The port can be closed by
 @code{close-input-port}, though its storage will be reclaimed
 by the garbage collector if it becomes inaccessible.
 @end deffn
@@ -6075,7 +5983,7 @@ by the garbage collector if it becomes inaccessible.
 open-output-string
 @c snarfed from strports.c:398
 @deffn primitive open-output-string
-Returns an output port that will accumulate characters for
+Return an output port that will accumulate characters for
 retrieval by @code{get-output-string}. The port can be closed
 by the procedure @code{close-output-port}, though its storage
 will be reclaimed by the garbage collector if it becomes
@@ -6086,7 +5994,7 @@ inaccessible.
 @c snarfed from strports.c:415
 @deffn primitive get-output-string port
 Given an output port created by @code{open-output-string},
-returns a string consisting of the characters that have been
+return a string consisting of the characters that have been
 output to the port so far.
 @end deffn
 
@@ -6194,7 +6102,7 @@ sub-system: one vtable-vtable working as the root and one or several
 "types", each with a set of "instances".  (The vtable-vtable should be
 compared to the class <class> which is the class of itself.)
 
-@example
+@lisp
 (define ball-root (make-vtable-vtable "pr" 0))
 
 (define (make-ball-type ball-color)
@@ -6215,7 +6123,7 @@ compared to the class <class> which is the class of itself.)
 
 (define ball (make-ball green 'Nisse))
 ball @result{} #<a green ball owned by Nisse>
-@end example
+@end lisp
 @end deffn
 
 struct-ref
@@ -6265,33 +6173,31 @@ Set the name of the vtable @var{vtable} to @var{name}.
 symbol?
 @c snarfed from symbols.c:422
 @deffn primitive symbol? obj
-Returns @code{#t} if @var{obj} is a symbol, otherwise returns
-@code{#f}. (r5rs)
+Return @code{#t} if @var{obj} is a symbol, otherwise return
+@code{#f}.
 @end deffn
 
 symbol->string
 @c snarfed from symbols.c:451
 @deffn primitive symbol->string s
-Returns the name of @var{symbol} as a string.  If the symbol
-was part of an object returned as the value of a literal
-expression (section @pxref{Literal expressions,,,r4rs, The
-Revised^4 Report on Scheme}) or by a call to the @code{read}
-procedure, and its name contains alphabetic characters, then
-the string returned will contain characters in the
-implementation's preferred standard case---some implementations
-will prefer upper case, others lower case.  If the symbol was
-returned by @code{string->symbol}, the case of characters in
-the string returned will be the same as the case in the string
-that was passed to @code{string->symbol}.  It is an error to
-apply mutation procedures like @code{string-set!} to strings
-returned by this procedure. (r5rs)
-
+Return the name of @var{symbol} as a string.  If the symbol was
+part of an object returned as the value of a literal expression
+(section @pxref{Literal expressions,,,r4rs, The Revised^4
+Report on Scheme}) or by a call to the @code{read} procedure,
+and its name contains alphabetic characters, then the string
+returned will contain characters in the implementation's
+preferred standard case---some implementations will prefer
+upper case, others lower case.  If the symbol was returned by
+@code{string->symbol}, the case of characters in the string
+returned will be the same as the case in the string that was
+passed to @code{string->symbol}.  It is an error to apply
+mutation procedures like @code{string-set!} to strings returned
+by this procedure.
 The following examples assume that the implementation's
 standard case is lower case:
-
 @lisp
-(symbol->string 'flying-fish) @result{} "flying-fish"
-(symbol->string 'Martin)      @result{}  "martin"
+(symbol->string 'flying-fish)    @result{} "flying-fish"
+(symbol->string 'Martin)         @result{}  "martin"
 (symbol->string
    (string->symbol "Malvina")) @result{} "Malvina"
 @end lisp
@@ -6299,16 +6205,15 @@ standard case is lower case:
 
 string->symbol
 @c snarfed from symbols.c:478
-@deffn primitive string->symbol s
-Returns the symbol whose name is @var{string}. This procedure
+@deffn primitive string->symbol string
+Return the symbol whose name is @var{string}. This procedure
 can create symbols with names containing special characters or
 letters in the non-standard case, but it is usually a bad idea
-to create such because in some implementations of Scheme they
-cannot be read as themselves.  See @code{symbol->string}.
-
+to create such symbols because in some implementations of
+Scheme they cannot be read as themselves.  See
+@code{symbol->string}.
 The following examples assume that the implementation's
 standard case is lower case:
-
 @lisp
 (eq? 'mISSISSIppi 'mississippi) @result{} #t
 (string->symbol "mISSISSIppi") @result{} @r{the symbol with name "mISSISSIppi"}
@@ -6457,31 +6362,26 @@ Return an integer corresponding to the type of X.  Deprecated.
 
 catch
 @c snarfed from throw.c:529
-@deffn primitive catch tag thunk handler
+@deffn primitive catch key thunk handler
 Invoke @var{thunk} in the dynamic context of @var{handler} for
-exceptions matching @var{key}.  If thunk throws to the symbol @var{key},
-then @var{handler} is invoked this way:
-
-@example
+exceptions matching @var{key}.  If thunk throws to the symbol
+@var{key}, then @var{handler} is invoked this way:
+@lisp
 (handler key args ...)
-@end example
-
-@var{key} is a symbol or #t.
-
-@var{thunk} takes no arguments.  If @var{thunk} returns normally, that
-is the return value of @code{catch}.
-
-Handler is invoked outside the scope of its own @code{catch}.  If
-@var{handler} again throws to the same key, a new handler from further
-up the call chain is invoked.
-
-If the key is @code{#t}, then a throw to @emph{any} symbol will match
-this call to @code{catch}.
+@end lisp
+@var{key} is a symbol or @code{#t}.
+@var{thunk} takes no arguments.  If @var{thunk} returns
+normally, that is the return value of @code{catch}.
+Handler is invoked outside the scope of its own @code{catch}.
+If @var{handler} again throws to the same key, a new handler
+from further up the call chain is invoked.
+If the key is @code{#t}, then a throw to @emph{any} symbol will
+match this call to @code{catch}.
 @end deffn
 
 lazy-catch
 @c snarfed from throw.c:556
-@deffn primitive lazy-catch tag thunk handler
+@deffn primitive lazy-catch key thunk handler
 This behaves exactly like @code{catch}, except that it does
 not unwind the stack (this is the major difference), and if
 handler returns, its value is returned from the throw.
@@ -6502,23 +6402,22 @@ If there is no handler at all, an error is signaled.
 uniform-vector-length
 @c snarfed from unif.c:255
 @deffn primitive uniform-vector-length v
-Returns the number of elements in @var{uve}.
+Return the number of elements in @var{uve}.
 @end deffn
 
 array?
 @c snarfed from unif.c:289
 @deffn primitive array? v [prot]
-Returns @code{#t} if the @var{obj} is an array, and @code{#f} if not.
-
-The @var{prototype} argument is used with uniform arrays and is described
-elsewhere.
+Return @code{#t} if the @var{obj} is an array, and @code{#f} if
+not.  The @var{prototype} argument is used with uniform arrays
+and is described elsewhere.
 @end deffn
 
 array-rank
 @c snarfed from unif.c:360
 @deffn primitive array-rank ra
-Returns the number of dimensions of @var{obj}.  If @var{obj} is not an
-array, @code{0} is returned.
+Return the number of dimensions of @var{obj}.  If @var{obj} is
+not an array, @code{0} is returned.
 @end deffn
 
 array-dimensions
@@ -6526,9 +6425,9 @@ array, @code{0} is returned.
 @deffn primitive array-dimensions ra
 @code{Array-dimensions} is similar to @code{array-shape} but replaces
 elements with a @code{0} minimum with one greater than the maximum. So:
-@example
+@lisp
 (array-dimensions (make-array 'foo '(-1 3) 5)) @result{} ((-1 3) 5)
-@end example
+@end lisp
 @end deffn
 
 shared-array-root
@@ -6553,10 +6452,10 @@ For each dimension, return the distance between elements in the root vector.
 @c snarfed from unif.c:586
 @deffn primitive dimensions->uniform-array dims prot [fill]
 @deffnx primitive make-uniform-vector length prototype [fill]
-Creates and returns a uniform array or vector of type corresponding to
-@var{prototype} with dimensions @var{dims} or length @var{length}.  If
-@var{fill} is supplied, it's used to fill the array, otherwise
-@var{prototype} is used.
+Create and return a uniform array or vector of type
+corresponding to @var{prototype} with dimensions @var{dims} or
+length @var{length}.  If @var{fill} is supplied, it's used to
+fill the array, otherwise @var{prototype} is used.
 @end deffn
 
 make-shared-array
@@ -6567,7 +6466,7 @@ arrays.  The @var{mapper} is a function that translates coordinates in
 the new array into coordinates in the old array.  A @var{mapper} must be
 linear, and its range must stay within the bounds of the old array, but
 it can be otherwise arbitrary.  A simple example:
-@example
+@lisp
 (define fred (make-array #f 8 8))
 (define freds-diagonal
   (make-shared-array fred (lambda (i) (list i i)) 8))
@@ -6576,31 +6475,29 @@ it can be otherwise arbitrary.  A simple example:
 (define freds-center
   (make-shared-array fred (lambda (i j) (list (+ 3 i) (+ 3 j))) 2 2))
 (array-ref freds-center 0 0) @result{} foo
-@end example
+@end lisp
 @end deffn
 
 transpose-array
 @c snarfed from unif.c:802
 @deffn primitive transpose-array ra . args
-Returns an array sharing contents with @var{array}, but with dimensions
-arranged in a different order.  There must be one @var{dim} argument for
-each dimension of @var{array}.  @var{dim0}, @var{dim1}, @dots{} should
-be integers between 0 and the rank of the array to be returned.  Each
-integer in that range must appear at least once in the argument list.
-
-The values of @var{dim0}, @var{dim1}, @dots{} correspond to dimensions
-in the array to be returned, their positions in the argument list to
-dimensions of @var{array}.  Several @var{dim}s may have the same value,
-in which case the returned array will have smaller rank than
-@var{array}.
-
-examples:
-@example
+Return an array sharing contents with @var{array}, but with
+dimensions arranged in a different order.  There must be one
+@var{dim} argument for each dimension of @var{array}.
+@var{dim0}, @var{dim1}, @dots{} should be integers between 0
+and the rank of the array to be returned.  Each integer in that
+range must appear at least once in the argument list.
+The values of @var{dim0}, @var{dim1}, @dots{} correspond to
+dimensions in the array to be returned, their positions in the
+argument list to dimensions of @var{array}.  Several @var{dim}s
+may have the same value, in which case the returned array will
+have smaller rank than @var{array}.
+@lisp
 (transpose-array '#2((a b) (c d)) 1 0) @result{} #2((a c) (b d))
 (transpose-array '#2((a b) (c d)) 0 0) @result{} #1(a d)
 (transpose-array '#3(((a b c) (d e f)) ((1 2 3) (4 5 6))) 1 1 0) @result{}
                 #2((a 4) (b 5) (c 6))
-@end example
+@end lisp
 @end deffn
 
 enclose-array
@@ -6620,19 +6517,20 @@ an enclosed array will be @code{equal?} but will not in general be
 enclosed array is unspecified.
 
 examples:
-@example
+@lisp
 (enclose-array '#3(((a b c) (d e f)) ((1 2 3) (4 5 6))) 1) @result{}
    #<enclosed-array (#1(a d) #1(b e) #1(c f)) (#1(1 4) #1(2 5) #1(3 6))>
 
 (enclose-array '#3(((a b c) (d e f)) ((1 2 3) (4 5 6))) 1 0) @result{}
    #<enclosed-array #2((a 1) (d 4)) #2((b 2) (e 5)) #2((c 3) (f 6))>
-@end example
+@end lisp
 @end deffn
 
 array-in-bounds?
 @c snarfed from unif.c:994
 @deffn primitive array-in-bounds? v . args
-Returns @code{#t} if its arguments would be acceptable to array-ref.
+Return @code{#t} if its arguments would be acceptable to
+@code{array-ref}.
 @end deffn
 
 array-ref
@@ -6645,7 +6543,8 @@ scm_uniform_vector_ref
 @c snarfed from unif.c:1079
 @deffn primitive uniform-vector-ref v args
 @deffnx primitive array-ref v . args
-Returns the element at the @code{(index1, index2)} element in @var{array}.
+Return the element at the @code{(index1, index2)} element in
+@var{array}.
 @end deffn
 
 uniform-array-set1!
@@ -6718,16 +6617,16 @@ omitted, in which case it defaults to the value returned by
 bit-count
 @c snarfed from unif.c:1774
 @deffn primitive bit-count b bitvector
-Returns the number of occurrences of the boolean @var{b} in
+Return the number of occurrences of the boolean @var{b} in
 @var{bitvector}.
 @end deffn
 
 bit-position
 @c snarfed from unif.c:1813
 @deffn primitive bit-position item v k
-Returns the minimum index of an occurrence of @var{bool} in @var{bv}
-which is at least @var{k}.  If no @var{bool} occurs within the specified
-range @code{#f} is returned.
+Return the minimum index of an occurrence of @var{bool} in
+@var{bv} which is at least @var{k}.  If no @var{bool} occurs
+within the specified range @code{#f} is returned.
 @end deffn
 
 bit-set*!
@@ -6747,10 +6646,10 @@ of @var{bv} corresponding to the indexes in uve are set to
 bit-count*
 @c snarfed from unif.c:1935
 @deffn primitive bit-count* v kv obj
-Returns
-@example
+Return
+@lisp
 (bit-count (bit-set*! (if bool bv (bit-invert! bv)) uve #t) #t).
-@end example
+@end lisp
 @var{bv} is not modified.
 @end deffn
 
@@ -6763,23 +6662,25 @@ Modifies @var{bv} by replacing each element with its negation.
 array->list
 @c snarfed from unif.c:2077
 @deffn primitive array->list v
-Returns a list consisting of all the elements, in order, of @var{array}.
+Return a list consisting of all the elements, in order, of
+@var{array}.
 @end deffn
 
 list->uniform-array
 @c snarfed from unif.c:2169
 @deffn primitive list->uniform-array ndim prot lst
 @deffnx procedure list->uniform-vector prot lst
-Returns a uniform array of the type indicated by prototype @var{prot}
-with elements the same as those of @var{lst}.  Elements must be of the
-appropriate type, no coercions are done.
+Return a uniform array of the type indicated by prototype
+@var{prot} with elements the same as those of @var{lst}.
+Elements must be of the appropriate type, no coercions are
+done.
 @end deffn
 
 array-prototype
 @c snarfed from unif.c:2520
 @deffn primitive array-prototype ra
-Returns an object that would produce an array of the same type as
-@var{array}, if used as the @var{prototype} for
+Return an object that would produce an array of the same type
+as @var{array}, if used as the @var{prototype} for
 @code{make-uniform-array}.
 @end deffn
 
@@ -6874,8 +6775,8 @@ Throws an error if @var{var} is not a variable object.
 vector?
 @c snarfed from vectors.c:142
 @deffn primitive vector? obj
-Returns @code{#t} if @var{obj} is a vector, otherwise returns
-@code{#f}. (r5rs)
+Return @code{#t} if @var{obj} is a vector, otherwise return
+@code{#f}.
 @end deffn
 
 list->vector
@@ -6888,28 +6789,27 @@ scm_vector
 @c snarfed from vectors.c:177
 @deffn primitive vector . l
 @deffnx primitive list->vector l
-Returns a newly allocated vector whose elements contain the
-given arguments.  Analogous to @code{list}. (r5rs)
-
+Return a newly allocated vector whose elements contain the
+given arguments.  Analogous to @code{list}.
 @lisp
-(vector 'a 'b 'c) @result{}  #(a b c)
+(vector 'a 'b 'c) @result{} #(a b c)
 @end lisp
 @end deffn
 
 make-vector
 @c snarfed from vectors.c:255
 @deffn primitive make-vector k [fill]
-Returns a newly allocated vector of @var{k} elements.  If a second
-argument is given, then each element is initialized to @var{fill}.
-Otherwise the initial contents of each element is unspecified. (r5rs)
+Return a newly allocated vector of @var{k} elements.  If a
+second argument is given, then each element is initialized to
+@var{fill}.  Otherwise the initial contents of each element is
+unspecified.
 @end deffn
 
 vector->list
 @c snarfed from vectors.c:311
 @deffn primitive vector->list v
-@samp{Vector->list} returns a newly allocated list of the
-objects contained in the elements of @var{vector}.  (r5rs)
-
+Return a newly allocated list of the objects contained in the
+elements of @var{vector}.
 @lisp
 (vector->list '#(dah dah didah)) @result{}  (dah dah didah)
 (list->vector '(dididit dah)) @result{}  #(dididit dah)
@@ -6918,9 +6818,9 @@ objects contained in the elements of @var{vector}.  (r5rs)
 
 vector-fill!
 @c snarfed from vectors.c:328
-@deffn primitive vector-fill! v fill_x
-Stores @var{fill} in every element of @var{vector}.
-The value returned by @code{vector-fill!} is unspecified. (r5rs)
+@deffn primitive vector-fill! v fill
+Store @var{fill} in every element of @var{vector}.  The value
+returned by @code{vector-fill!} is unspecified.
 @end deffn
 
 vector-move-left!
@@ -6957,21 +6857,20 @@ E.g., "3.5".
 Return a string describing Guile's version number, or its major or minor
 version numbers, respectively.
 
-@example
+@lisp
 (version) @result{} "1.3a"
 (major-version) @result{} "1"
 (minor-version) @result{} "3a"
-@end example
+@end lisp
 @end deffn
 
 make-soft-port
 @c snarfed from vports.c:184
 @deffn primitive make-soft-port pv modes
-Returns a port capable of receiving or delivering characters as
+Return a port capable of receiving or delivering characters as
 specified by the @var{modes} string (@pxref{File Ports,
-open-file}).  @var{vector} must be a vector of length 6.  Its components
-are as follows:
-
+open-file}).  @var{pv} must be a vector of length 5.  Its
+components are as follows:
 @enumerate 0
 @item
 procedure accepting one character for output
@@ -6984,17 +6883,15 @@ thunk for getting one character
 @item
 thunk for closing port (not by garbage collection)
 @end enumerate
-
 For an output-only port only elements 0, 1, 2, and 4 need be
-procedures.  For an input-only port only elements 3 and 4 need be
-procedures.  Thunks 2 and 4 can instead be @code{#f} if there is no useful
-operation for them to perform.
-
-If thunk 3 returns @code{#f} or an @code{eof-object} (@pxref{Input,
-eof-object?, ,r4rs, The Revised^4 Report on Scheme}) it indicates that
-the port has reached end-of-file.  For example:
-
-@example
+procedures.  For an input-only port only elements 3 and 4 need
+be procedures.  Thunks 2 and 4 can instead be @code{#f} if
+there is no useful operation for them to perform.
+If thunk 3 returns @code{#f} or an @code{eof-object}
+(@pxref{Input, eof-object?, ,r4rs, The Revised^4 Report on
+Scheme}) it indicates that the port has reached end-of-file.
+For example:
+@lisp
 (define stdout (current-output-port))
 (define p (make-soft-port
            (vector
@@ -7004,17 +6901,17 @@ the port has reached end-of-file.  For example:
             (lambda () (char-upcase (read-char)))
             (lambda () (display "@@" stdout)))
            "rw"))
-
 (write p p) @result{} #<input-output: soft 8081e20>
-@end example
+@end lisp
 @end deffn
 
 make-weak-vector
 @c snarfed from weaks.c:62
-@deffn primitive make-weak-vector k [fill]
+@deffn primitive make-weak-vector size [fill]
 Return a weak vector with @var{size} elements. If the optional
-argument @var{fill} is given, all entries in the vector will be set to
-@var{fill}. The default value for @var{fill} is the empty list.
+argument @var{fill} is given, all entries in the vector will be
+set to @var{fill}. The default value for @var{fill} is the
+empty list.
 @end deffn
 
 list->weak-vector
@@ -7027,29 +6924,29 @@ scm_weak_vector
 @c snarfed from weaks.c:87
 @deffn primitive weak-vector . l
 @deffnx primitive list->weak-vector l
-Construct a weak vector from a list: @code{weak-vector} uses the list of
-its arguments while @code{list->weak-vector} uses its only argument
-@var{l} (a list) to construct a weak vector the same way
-@code{vector->list} would.
+Construct a weak vector from a list: @code{weak-vector} uses
+the list of its arguments while @code{list->weak-vector} uses
+its only argument @var{l} (a list) to construct a weak vector
+the same way @code{list->vector} would.
 @end deffn
 
 weak-vector?
 @c snarfed from weaks.c:110
-@deffn primitive weak-vector? x
+@deffn primitive weak-vector? obj
 Return @code{#t} if @var{obj} is a weak vector. Note that all
 weak hashes are also weak vectors.
 @end deffn
 
 make-weak-key-hash-table
 @c snarfed from weaks.c:130
-@deffn primitive make-weak-key-hash-table k
+@deffn primitive make-weak-key-hash-table size
 @deffnx primitive make-weak-value-hash-table size
 @deffnx primitive make-doubly-weak-hash-table size
-Return a weak hash table with @var{size} buckets. As with any hash
-table, choosing a good size for the table requires some caution.
-
-You can modify weak hash tables in exactly the same way you would modify
-regular hash tables. (@pxref{Hash Tables})
+Return a weak hash table with @var{size} buckets. As with any
+hash table, choosing a good size for the table requires some
+caution.
+You can modify weak hash tables in exactly the same way you
+would modify regular hash tables. (@pxref{Hash Tables})
 @end deffn
 
 make-weak-value-hash-table
@@ -7068,7 +6965,7 @@ buckets.  (@pxref{Hash Tables})
 
 weak-key-hash-table?
 @c snarfed from weaks.c:184
-@deffn primitive weak-key-hash-table? x
+@deffn primitive weak-key-hash-table? obj
 @deffnx primitive weak-value-hash-table? obj
 @deffnx primitive doubly-weak-hash-table? obj
 Return @code{#t} if @var{obj} is the specified weak hash
