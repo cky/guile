@@ -888,32 +888,10 @@ SCM_DEFINE (scm_tcsetpgrp, "tcsetpgrp", 2, 0, 0,
 #undef FUNC_NAME
 #endif /* HAVE_TCSETPGRP */
 
-/* return a newly allocated array of char pointers to each of the strings
-   in args, with a terminating NULL pointer.  */
-/* Note: a similar function is defined in dynl.c, but we don't necessarily
-   want to export it.  */
-static char **allocate_string_pointers (SCM args)
+static void
+free_string_pointers (void *data)
 {
-  char **result;
-  int n_args = scm_ilength (args);
-  int i;
-
-  SCM_ASSERT (n_args >= 0, args, SCM_ARGn, "allocate_string_pointers");
-  result = (char **) scm_malloc ((n_args + 1) * sizeof (char *));
-  result[n_args] = NULL;
-  for (i = 0; i < n_args; i++)
-    {
-      SCM car = SCM_CAR (args);
-
-      if (!SCM_STRINGP (car))
-	{
-	  free (result);
-	  scm_wrong_type_arg ("allocate_string_pointers", SCM_ARGn, car);
-	}
-      result[i] = SCM_STRING_CHARS (SCM_CAR (args));
-      args = SCM_CDR (args);
-    }
-  return result;
+  scm_i_free_string_pointers ((char **)data);
 }
 
 SCM_DEFINE (scm_execl, "execl", 1, 0, 1, 
@@ -929,16 +907,23 @@ SCM_DEFINE (scm_execl, "execl", 1, 0, 1,
 	    "call, but we call it @code{execl} because of its Scheme calling interface.")
 #define FUNC_NAME s_scm_execl
 {
-  char **execargv;
-  int save_errno;
-  SCM_VALIDATE_STRING (1, filename);
-  execargv = allocate_string_pointers (args);
-  execv (SCM_STRING_CHARS (filename), execargv);
-  save_errno = errno;
-  free (execargv);
-  errno = save_errno;
+  char *exec_file;
+  char **exec_argv;
+
+  scm_frame_begin (0);
+
+  exec_file = scm_to_locale_string (filename);
+  scm_frame_free (exec_file);
+
+  exec_argv = scm_i_allocate_string_pointers (args);
+  scm_frame_unwind_handler (free_string_pointers, exec_argv, 
+			    SCM_F_WIND_EXPLICITLY);
+
+  execv (exec_file, exec_argv);
   SCM_SYSERROR;
+
   /* not reached.  */
+  scm_frame_end ();
   return SCM_BOOL_F;
 }
 #undef FUNC_NAME
@@ -953,50 +938,27 @@ SCM_DEFINE (scm_execlp, "execlp", 1, 0, 1,
 	    "call, but we call it @code{execlp} because of its Scheme calling interface.")
 #define FUNC_NAME s_scm_execlp
 {
-  char **execargv;
-  int save_errno;
-  SCM_VALIDATE_STRING (1, filename);
-  execargv = allocate_string_pointers (args);
-  execvp (SCM_STRING_CHARS (filename), execargv);
-  save_errno = errno;
-  free (execargv);
-  errno = save_errno;
+  char *exec_file;
+  char **exec_argv;
+
+  scm_frame_begin (0);
+
+  exec_file = scm_to_locale_string (filename);
+  scm_frame_free (exec_file);
+
+  exec_argv = scm_i_allocate_string_pointers (args);
+  scm_frame_unwind_handler (free_string_pointers, exec_argv, 
+			    SCM_F_WIND_EXPLICITLY);
+
+  execvp (exec_file, exec_argv);
   SCM_SYSERROR;
+
   /* not reached.  */
+  scm_frame_end ();
   return SCM_BOOL_F;
 }
 #undef FUNC_NAME
 
-static char **
-environ_list_to_c (SCM envlist, int arg, const char *proc)
-{
-  int num_strings;
-  char **result;
-  int i;
-
-  num_strings = scm_ilength (envlist);
-  SCM_ASSERT (num_strings >= 0, envlist, arg, proc);
-  result = (char **) scm_malloc ((num_strings + 1) * sizeof (char *));
-  if (result == NULL)
-    scm_memory_error (proc);
-  for (i = 0; !SCM_NULL_OR_NIL_P (envlist); ++i, envlist = SCM_CDR (envlist))
-    {
-      SCM str = SCM_CAR (envlist);
-      int len;
-      char *src;
-
-      SCM_ASSERT (SCM_STRINGP (str), envlist, arg, proc);
-      len = SCM_STRING_LENGTH (str);
-      src = SCM_STRING_CHARS (str);
-      result[i] = scm_malloc (len + 1);
-      if (result[i] == NULL)
-	scm_memory_error (proc);
-      memcpy (result[i], src, len);
-      result[i][len] = 0;
-    }
-  result[i] = 0;
-  return result;
-}
 
 /* OPTIMIZE-ME: scm_execle doesn't need malloced copies of the environment
    list strings the way environ_list_to_c gives.  */
@@ -1010,23 +972,28 @@ SCM_DEFINE (scm_execle, "execle", 2, 0, 1,
 	    "call, but we call it @code{execle} because of its Scheme calling interface.")
 #define FUNC_NAME s_scm_execle
 {
-  char **execargv;
+  char **exec_argv;
   char **exec_env;
-  int save_errno, i;
+  char *exec_file;
 
-  SCM_VALIDATE_STRING (1, filename);
-  
-  execargv = allocate_string_pointers (args);
-  exec_env = environ_list_to_c (env, SCM_ARG2, FUNC_NAME);
-  execve (SCM_STRING_CHARS (filename), execargv, exec_env);
-  save_errno = errno;
-  free (execargv);
-  for (i = 0; exec_env[i] != NULL; i++)
-    free (exec_env[i]);
-  free (exec_env);
-  errno = save_errno;
+  scm_frame_begin (0);
+
+  exec_file = scm_to_locale_string (filename);
+  scm_frame_free (exec_file);
+
+  exec_argv = scm_i_allocate_string_pointers (args);
+  scm_frame_unwind_handler (free_string_pointers, exec_argv,
+			    SCM_F_WIND_EXPLICITLY);
+
+  exec_env = scm_i_allocate_string_pointers (env);
+  scm_frame_unwind_handler (free_string_pointers, exec_env,
+			    SCM_F_WIND_EXPLICITLY);
+
+  execve (exec_file, exec_argv, exec_env);
   SCM_SYSERROR;
+
   /* not reached.  */
+  scm_frame_end ();
   return SCM_BOOL_F;
 }
 #undef FUNC_NAME
@@ -1096,19 +1063,14 @@ SCM_DEFINE (scm_environ, "environ", 0, 1, 0,
     {
       char **new_environ;
 
-      new_environ = environ_list_to_c (env, SCM_ARG1, FUNC_NAME);
+      new_environ = scm_i_allocate_string_pointers (env);
       /* Free the old environment, except when called for the first
        * time.
        */
       {
-	char **ep;
 	static int first = 1;
 	if (!first)
-	  {
-	    for (ep = environ; *ep != NULL; ep++)
-	      free (*ep);
-	    free ((char *) environ);
-	  }
+	  scm_i_free_string_pointers (environ);
 	first = 0;
       }
       environ = new_environ;
