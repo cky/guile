@@ -1,5 +1,7 @@
 2001-06-14  Marius Vollmer  <mvo@zagadka.ping.de>
 
+	* libguile.h: Added deprecated section with the olde type names.
+
 	* configure.in: Check for header <stdint.h>.  Check for uintptr_t
 	type.  Use AC_CHECK_TYPES for this.  Do not caus ptrdiff_t to be
 	`#defined'.

@@ -22,6 +22,8 @@ After signal handling and threading have been fixed:
 
 === In release 1.8.0:
 
+- remove deprecated "scm_*_t" type names in libguile.h.
+
 - remove re-exporting behaviour of `export'.
     in boot-9.scm, remove begin-deprecated part of `module-export!' 
     in format.scm, remove kluge at top

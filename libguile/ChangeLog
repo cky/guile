@@ -1,7 +1,7 @@
 2001-06-14  Marius Vollmer  <mvo@zagadka.ping.de>
 
-	Throughout: replace "scm_*_t" with "scm_t_*".
-	
+	Throughout: replace "scm_*_t" with "scm_t_*", except "scm_lisp_t".
+
 2001-06-14  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* unif.h (SCM_ARRAY_NDIM): Shift then cast so that no sign
