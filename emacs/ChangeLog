@@ -3,6 +3,8 @@
 	* README: Use less forking for indexing command.
 	Update index.
 
+	* gud-guile.el: New file.
+
 	* update-changelog.el:
 	When run as a batch program, invoke `(ucl-update "ChangeLog")'
 	instead of `(ucl-update-all)'.
