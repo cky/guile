@@ -1,3 +1,10 @@
+Sat Feb 19 12:20:12 2000  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* ports.c: Made `set-port-column!' and `set-port-line!' each
+	return SCM_UNSPECIFIED instead of a (not-scheme-object) integer
+	that caused a seg fault.  Also fixed `set-port-column!'s
+	docstring.  Thanks Han-Wen Nienhuys for finding the bug!
+
 Sun Feb 13 19:11:42 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* arbiters.c, eq.c, gc.c, guardians.c, list.c, ports.c, print.c,
