@@ -124,7 +124,7 @@ scm_make_gsubr_with_generic (RANAME, REQ, OPT, VAR, (SCM_FUNC_CAST_ARBITRARY_ARG
 #define SCM_PROC1(RANAME, STR, TYPE, CFN) \
 SCM_HERE(static const char RANAME[]=STR) \
 SCM_INIT(\
-scm_make_subr(RANAME, TYPE, (SCM (*)(...))CFN) \
+scm_make_subr (RANAME, TYPE, (SCM_FUNC_CAST_ARBITRARY_ARGS) CFN) \
 )
 
 
@@ -133,7 +133,7 @@ SCM_HERE(\
 static const char RANAME[]=STR; \
 static SCM GF = 0 \
 )SCM_INIT(\
-scm_make_subr_with_generic(RANAME, TYPE, (SCM_FUNC_CAST_ARBITRARY_ARGS) CFN, &GF) \
+scm_make_subr_with_generic (RANAME, TYPE, (SCM_FUNC_CAST_ARBITRARY_ARGS) CFN, &GF) \
 )
 
 #define SCM_SYNTAX(RANAME, STR, TYPE, CFN)  \
