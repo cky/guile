@@ -2162,6 +2162,10 @@ The ports are initially unbuffered, to make reading and writing to the
 same port more reliable.  A buffer can be added to the port using
 @code{setvbuf}; see @ref{Ports and File Descriptors}.
 
+Most systems have limits on how many files and sockets can be open, so
+it's strongly recommended that socket ports be closed explicitly when
+no longer required (@pxref{Ports}).
+
 The convention used for ``host'' vs.@: ``network'' addresses is that
 addresses are always held in host order at the Scheme level.  The
 procedures in this section automatically convert between host and
