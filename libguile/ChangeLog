@@ -1,7 +1,10 @@
 2003-04-16  Rob Browning  <rlb@defaultvalue.org>
 
-	* gc_os_dep.c: add check for __arm__ in addition to arm for
-	LINUX.  Thanks to James Treacy for tracking this one down.
+	* gc_os_dep.c: Added patch for UnixWare and OpenUNIX support.
+	Thanks to Boyd Gerber.
+	Added check for __arm__ in addition to arm for LINUX and copied
+	__s390__ defines from upstream libgc. Thanks to James Treacy for
+	reporting the problems.
 
 	* numbers.c (PTRDIFF_MIN): use SCM_CHAR_BIT.
 
@@ -10,9 +13,6 @@
 	* random.c (scm_c_random_bignum): use SCM_CHAR_BIT.
 
 	* num2integral.i.c (NUM2INTEGRAL): use SCM_CHAR_BIT.
-
-	* gc_os_dep.c (mach_type_known): added patch for UnixWare and
-	OpenUNIX support.  Thanks to Boyd Gerber.
 
 2003-04-16  Mikael Djurfeldt  <mdj@kvast.blakulla.net>
 
