@@ -1,5 +1,30 @@
 2004-12-27  Marius Vollmer  <mvo@zagadka.de>
 
+	* unif.h, unif.c (scm_bitvector_elements): Made return value "const".
+	(scm_bitvector_writable_elements): New.
+	(scm_bitvector_release, scm_bitvector_release_elements):
+	Renamed former to latter.  Added explicit call to
+	scm_remember_upto_here_1.
+	(scm_frame_bitvector_release,
+	scm_frame_bitvector_release_elements): Renamed former to latter.
+	(scm_bitvector_release_writable_elements,
+	scm_bitvector_release_writable_elements): New.
+	Changed all uses as required by the changes above.
+
+	* srfi-4.h, srfi-4.c, srfi-4.i.c (scm_uniform_vector_elements,
+	scm_u8vector_elements, etc): Made return value "const".
+	(scm_uniform_vector_writable_elements,
+	scm_u8vector_writable_elements, etc): New.
+	(scm_uniform_vector_release, scm_uniform_vector_release_elements):
+	Renamed former to latter.  Added explicit call to
+	scm_remember_upto_here_1.
+	(scm_frame_uniform_vector_release,
+	scm_frame_uniform_vector_release_elements): Renamed former to latter.
+	(scm_uniform_vector_release_writable_elements,
+	scm_frame_uniform_vector_release_writable_elements): New. Takes
+	crown of longest identifier yet.
+	Changed all uses as required by the changes above.
+	
 	* vectors.h, vectors.c (scm_c_vector_set_x): Make return type
 	void.
 	(scm_is_vector, scm_vector_p, scm_vector_length,
@@ -7,6 +32,12 @@
 	scm_vector_set_x, scm_c_vector_set_x, scm_vector_to_list,
 	scm_vector_move_left_x, scm_vector_move_right_x,
 	scm_vector_fill_x): handle one-dimensional arrays.
+	(scm_vector_elements, scm_vector_release_elements,
+	scm_vector_frame_release_elements, scm_vector_writable_elements,
+	scm_vector_release_writable_elements,
+	scm_vector_frame_release_writable_elements): New.
+	(scm_list_to_vector, scm_vector_to_list, scm_vector_fill,
+	scm_vector_move_left_x, scm_vector_move_right_x): Use them.
 
 	* ramap.c (scm_ramapc, scm_raeql): Use
 	scm_c_generalized_vector_length instead of

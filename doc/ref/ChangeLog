@@ -1,3 +1,9 @@
+2004-12-27  Marius Vollmer  <mvo@zagadka.de>
+
+	* api-compound.texi (Vectors, Bit Vectors, Uniform Numeric
+	Vectors): Updated for the distinction between read-only and write
+	access to storage locations.
+
 2004-12-22  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* api-compound.texi (Arrays): Reorganized and 'modernized'.
