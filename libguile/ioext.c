@@ -337,7 +337,7 @@ scm_redirect_port (old, new)
     {
       scm_port *pt = SCM_PTAB_ENTRY (new);
       scm_port *old_pt = SCM_PTAB_ENTRY (old);
-      scm_ptobfuns *ptob = &scm_ptobs[SCM_PTOBNUM (new)];
+      scm_ptob_descriptor *ptob = &scm_ptobs[SCM_PTOBNUM (new)];
 
       /* must flush to old fdes.  */
       if (pt->rw_active == SCM_PORT_WRITE)
