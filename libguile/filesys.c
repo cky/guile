@@ -928,6 +928,29 @@ scm_input_waiting_p (f, caller)
 #endif
 
 
+
+SCM_PROC (s_fcntl, "fcntl", 3, 0, 0, scm_fcntl);
+
+SCM 
+scm_fcntl (port, cmd, value)
+     SCM port;
+     SCM cmd;
+     SCM value;
+{
+  int rv;
+
+  SCM_ASSERT (SCM_OPFPORTP (port), port, SCM_ARG1, s_fcntl);
+  SCM_ASSERT (SCM_INUMP (cmd), cmd, SCM_ARG2, s_fcntl);
+  SCM_ASSERT (SCM_INUMP (value), value, SCM_ARG3, s_fcntl);
+
+  rv = fileno ((FILE *)SCM_STREAM (port));
+  if (rv != -1)
+    SCM_SYSCALL (rv = fcntl (rv, SCM_INUM (cmd), SCM_INUM (value)));
+  if (rv == -1)
+    scm_syserror (s_fcntl);
+  return SCM_MAKINUM (rv);
+}
+
 /* {Symbolic Links} 
  */
 
@@ -1108,7 +1131,30 @@ scm_sysintern ("O_NDELAY", scm_long2num (O_NDELAY));
 scm_sysintern ("O_SYNC", scm_long2num (O_SYNC));
 #endif 
 
-
+#ifdef F_DUPFD  
+scm_sysintern ("F_DUPFD", scm_long2num (F_DUPFD));
+#endif 
+#ifdef F_GETFD  
+scm_sysintern ("F_GETFD", scm_long2num (F_GETFD));
+#endif 
+#ifdef F_SETFD  
+scm_sysintern ("F_SETFD", scm_long2num (F_SETFD));
+#endif 
+#ifdef F_GETFL  
+scm_sysintern ("F_GETFL", scm_long2num (F_GETFL));
+#endif 
+#ifdef F_SETFL  
+scm_sysintern ("F_SETFL", scm_long2num (F_SETFL));
+#endif 
+#ifdef F_GETOWN  
+scm_sysintern ("F_GETOWN", scm_long2num (F_GETOWN));
+#endif 
+#ifdef F_SETOWN  
+scm_sysintern ("F_SETOWN", scm_long2num (F_SETOWN));
+#endif 
+#ifdef FD_CLOEXEC  
+scm_sysintern ("FD_CLOEXEC", scm_long2num (FD_CLOEXEC));
+#endif 
 
 #include "filesys.x"
 }

@@ -72,6 +72,7 @@ extern SCM scm_chdir SCM_P ((SCM str));
 extern SCM scm_getcwd SCM_P ((void));
 extern SCM scm_select SCM_P ((SCM reads, SCM writes, SCM excepts, SCM secs, SCM msecs));
 extern int scm_input_waiting_p SCM_P ((FILE *file, char *caller));
+extern SCM scm_fcntl SCM_P ((SCM port, SCM cmd, SCM value));
 extern SCM scm_symlink SCM_P ((SCM oldpath, SCM newpath));
 extern SCM scm_readlink SCM_P ((SCM path));
 extern SCM scm_lstat SCM_P ((SCM str));
