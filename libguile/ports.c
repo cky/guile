@@ -1198,15 +1198,17 @@ SCM_DEFINE (scm_peek_char, "peek-char", 0, 1, 0,
 	    "to @code{read-char} would have hung.}")
 #define FUNC_NAME s_scm_peek_char
 {
-  int c;
+  int c, column;
   if (SCM_UNBNDP (port))
     port = scm_cur_inp;
   else
     SCM_VALIDATE_OPINPORT (1, port);
+  column = SCM_COL(port);
   c = scm_getc (port);
   if (EOF == c)
     return SCM_EOF_VAL;
   scm_ungetc (c, port);
+  SCM_COL(port) = column;
   return SCM_MAKE_CHAR (c);
 }
 #undef FUNC_NAME
