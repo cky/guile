@@ -140,6 +140,12 @@ sys_deliver_signals (void)
     {
       if (got_signal[i])
 	{
+	  /* The flag is reset before calling the handler in case the
+	     handler doesn't return.  If the handler doesn't return
+	     but leaves other signals flagged, they their handlers
+	     will be applied some time later when the async is checked
+	     again.  It would probably be better to reset the flags
+	     after doing a longjmp.  */
 	  got_signal[i] = 0;
 #ifndef HAVE_SIGACTION
 	  signal (i, take_signal);
