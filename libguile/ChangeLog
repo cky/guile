@@ -1,3 +1,11 @@
+Mon Mar  2 21:35:02 1998  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* ports.c (scm_add_to_port_table): allocate in units of 
+	struct scm_port_table *, not struct scm_port_table.
+	* posix.c (scm_close_pipe): remove the port from the port table
+	and mark as closed.
+	Thanks to Rob Engle for both fixes.
+
 1998-02-06  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* iselect.h, iselect.c, coop.c, coop-threads.c, coop-threads.h,

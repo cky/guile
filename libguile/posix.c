@@ -988,6 +988,8 @@ scm_close_pipe (port)
 	      && SCM_OPENP (port), port, SCM_ARG1, s_close_pipe);
   SCM_DEFER_INTS;
   rv = pclose ((FILE *) SCM_STREAM (port));
+  scm_remove_from_port_table (port);
+  SCM_SETAND_CAR (port, ~SCM_OPN);
   if (rv == -1)
     scm_syserror (s_close_pipe);
   SCM_ALLOW_INTS;

@@ -246,8 +246,8 @@ scm_add_to_port_table (port)
     {
       scm_port_table = ((struct scm_port_table **)
 			realloc ((char *) scm_port_table,
-				 (long) (sizeof (struct scm_port_table)
-					 * scm_port_table_room * 2)));
+				 (scm_sizet) (sizeof (struct scm_port_table *)
+					      * scm_port_table_room * 2)));
       /* !!! error checking */
       scm_port_table_room *= 2;
     }
