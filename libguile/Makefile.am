@@ -50,7 +50,7 @@ libguile_la_SOURCES = \
     strports.c struct.c symbols.c tag.c throw.c variable.c	\
     vectors.c version.c vports.c weaks.c
 
-BUILT_SOURCES = \
+DOT_X_FILES = \
     cpp_err_symbols.c cpp_sig_symbols.c libpath.h alist.x arbiters.x	\
     async.x backtrace.x boolean.x chars.x continuations.x debug.x	\
     dynl.x dynwind.x eq.x error.x eval.x evalext.x feature.x filesys.x	\
@@ -63,6 +63,10 @@ BUILT_SOURCES = \
     srcprop.x stackchk.x stacks.x stime.x strings.x strop.x strorder.x	\
     strports.x struct.x symbols.x tag.x threads.x throw.x unif.x	\
     variable.x vectors.x version.x vports.x weaks.x
+
+DOT_DOC_FILES = $(DOT_X_FILES:.x=.doc)
+
+BUILT_SOURCES = $(DOT_X_FILES) $(DOT_DOC_FILES)
 
 EXTRA_libguile_la_SOURCES = _scm.h		\
     alloca.c inet_aton.c memmove.c putenv.c strerror.c	\
@@ -167,8 +171,7 @@ SUFFIXES = .x .doc
 	PATH=.:${PATH} ./guile-doc-snarf $< $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< \
         || { rm $@; false; }
 
-## GJB:FIXME:: this is ugly;  generate the *.doc files from the *.x file list, above
-guile-procedures.txt: *.doc
+guile-procedures.txt: $(DOT_DOC_FILES)
 	cat *.doc > $@
 
 pkgdata_DATA = guile-procedures.txt
