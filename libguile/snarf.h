@@ -221,6 +221,55 @@ SCM_SNARF_INIT(scm_i_plugin_rec_mutex_init (&c_name, &scm_i_plugin_rec_mutex))
 SCM_SNARF_HERE(scm_t_rec_mutex c_name) \
 SCM_SNARF_INIT(scm_i_plugin_rec_mutex_init (&c_name, &scm_i_plugin_rec_mutex))
 
+#define SCM_SMOB(tag, scheme_name, size) \
+SCM_SNARF_HERE(static scm_t_bits tag) \
+SCM_SNARF_INIT((tag)=scm_make_smob_type((scheme_name), (size));)
+
+#define SCM_GLOBAL_SMOB(tag, scheme_name, size) \
+SCM_SNARF_HERE(scm_t_bits tag) \
+SCM_SNARF_INIT((tag)=scm_make_smob_type((scheme_name), (size));)
+
+#define SCM_SMOB_MARK(tag, c_name, arg) \
+SCM_SNARF_HERE(static SCM c_name(SCM arg)) \
+SCM_SNARF_INIT(scm_set_smob_mark((tag), (c_name));)
+
+#define SCM_GLOBAL_SMOB_MARK(tag, c_name, arg) \
+SCM_SNARF_HERE(SCM c_name(SCM arg)) \
+SCM_SNARF_INIT(scm_set_smob_mark((tag), (c_name));)
+
+#define SCM_SMOB_FREE(tag, c_name, arg) \
+SCM_SNARF_HERE(static size_t c_name(SCM arg)) \
+SCM_SNARF_INIT(scm_set_smob_free((tag), (c_name));)
+
+#define SCM_GLOBAL_SMOB_FREE(tag, c_name, arg) \
+SCM_SNARF_HERE(size_t c_name(SCM arg)) \
+SCM_SNARF_INIT(scm_set_smob_free((tag), (c_name));)
+
+#define SCM_SMOB_PRINT(tag, c_name, obj, port, pstate) \
+SCM_SNARF_HERE(static int c_name(SCM obj, SCM port, scm_print_state* pstate)) \
+SCM_SNARF_INIT(scm_set_smob_print((tag), (c_name));)
+
+#define SCM_GLOBAL_SMOB_PRINT(tag, c_name, obj, port, pstate) \
+SCM_SNARF_HERE(int c_name(SCM obj, SCM port, scm_print_state* pstate)) \
+SCM_SNARF_INIT(scm_set_smob_print((tag), (c_name));)
+
+#define SCM_SMOB_EQUALP(tag, c_name, obj1, obj2) \
+SCM_SNARF_HERE(static SCM c_name(SCM obj1, SCM obj2)) \
+SCM_SNARF_INIT(scm_set_smob_equalp((tag), (c_name));)
+
+#define SCM_GLOBAL_SMOB_EQUALP(tag, c_name, obj1, obj2) \
+SCM_SNARF_HERE(SCM c_name(SCM obj1, SCM obj2)) \
+SCM_SNARF_INIT(scm_set_smob_equalp((tag), (c_name));)
+
+#define SCM_SMOB_APPLY(tag, c_name, req, opt, rest, arglist) \
+SCM_SNARF_HERE(static SCM c_name arglist) \
+SCM_SNARF_INIT(scm_set_smob_apply((tag), (c_name), (req), (opt), (rest));)
+
+#define SCM_GLOBAL_SMOB_APPLY(tag, c_name, req, opt, rest, arglist) \
+SCM_SNARF_HERE(SCM c_name arglist) \
+SCM_SNARF_INIT(scm_set_smob_apply((tag), (c_name), (req), (opt), (rest));)
+
+
 #ifdef SCM_MAGIC_SNARF_DOCS
 #undef SCM_ASSERT
 #define SCM_ASSERT(_cond, _arg, _pos, _subr) ^^ argpos _arg _pos __LINE__ ^^
