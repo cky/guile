@@ -1,3 +1,8 @@
+1999-06-03  Mikael Djurfeldt  <mdj@mdj-pc.nada.kth.se>
+
+	* optargs.scm (lambda*): Bugfix: Replaced ARGLIST -->
+	non-optional-args.  (Thanks to David Lutterkort.)
+
 1999-05-09  Jim Blandy  <jimb@savonarola.red-bean.com>
 
 	* string-case.scm: Removed; functions moved to libguile/strop.c
