@@ -1,4 +1,4 @@
-# Makefile.in generated automatically by automake 1.1l from Makefile.am
+# Makefile.in generated automatically by automake 1.1n from Makefile.am
 
 # Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
@@ -32,16 +32,27 @@ pkgincludedir = $(includedir)/@PACKAGE@
 
 top_builddir = .
 
+ACLOCAL = @ACLOCAL@
+AUTOCONF = @AUTOCONF@
+AUTOMAKE = @AUTOMAKE@
+AUTOHEADER = @AUTOHEADER@
+
 INSTALL = @INSTALL@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 transform = @program_transform_name@
+
+NORMAL_INSTALL = true
+PRE_INSTALL = true
+POST_INSTALL = true
+NORMAL_UNINSTALL = true
+PRE_UNINSTALL = true
+POST_UNINSTALL = true
 MAINT = @MAINT@
-INSTALL_SCRIPT = @INSTALL_SCRIPT@
 PACKAGE = @PACKAGE@
-module = @module@
 VERSION = @VERSION@
+module = @module@
 
 AUTOMAKE_OPTIONS = foreign
 
@@ -50,7 +61,7 @@ subpkgdata_DATA = boot-9.scm debug.scm expect.scm hcons.scm lineio.scm \
 mapping.scm poe.scm slib.scm tags.scm threads.scm r4rs.scm
 
 EXTRA_DIST = PLUGIN/REQ $(subpkgdata_DATA) test.scm
-ACLOCAL = $(top_srcdir)/aclocal.m4
+ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 mkinstalldirs = $(SHELL) $(top_srcdir)/../mkinstalldirs
 CONFIG_CLEAN_FILES = 
 DATA =  $(subpkgdata_DATA)
@@ -59,43 +70,44 @@ DIST_COMMON =  COPYING ChangeLog Makefile.am Makefile.in aclocal.m4 \
 configure configure.in
 
 
-DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) \
-	$(TEXINFOS) $(MANS) $(EXTRA_DIST)
+DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
 TAR = tar
+GZIP = --best
 default: all
 
 .SUFFIXES:
-$(srcdir)/Makefile.in: @MAINT@ Makefile.am $(top_srcdir)/configure.in $(ACLOCAL) 
-	cd $(top_srcdir) && automake --foreign Makefile
+$(srcdir)/Makefile.in: @MAINT@ Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
+	cd $(top_srcdir) && $(AUTOMAKE) --foreign Makefile
 
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status $(BUILT_SOURCES)
 	cd $(top_builddir) \
 	  && CONFIG_FILES=$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
-$(srcdir)/aclocal.m4: @MAINT@configure.in
-	cd $(srcdir) && aclocal
+$(srcdir)/aclocal.m4: @MAINT@ configure.in 
+	cd $(srcdir) && $(ACLOCAL)
 
 config.status: configure
 	$(SHELL) ./config.status --recheck
-$(srcdir)/configure: @MAINT@configure.in $(ACLOCAL) $(CONFIGURE_DEPENDENCIES)
-	cd $(srcdir) && autoconf
+$(srcdir)/configure: @MAINT@configure.in $(ACLOCAL_M4) $(CONFIGURE_DEPENDENCIES)
+	cd $(srcdir) && $(AUTOCONF)
 
 install-subpkgdataDATA: $(subpkgdata_DATA)
-	$(NORMAL_INSTALL)
+	@$(NORMAL_INSTALL)
 	$(mkinstalldirs) $(subpkgdatadir)
-	@list="$(subpkgdata_DATA)"; for p in $$list; do \
+	@list='$(subpkgdata_DATA)'; for p in $$list; do \
 	  if test -f $(srcdir)/$$p; then \
-	    echo "$(INSTALL_DATA) $(srcdir)/$$p $(subpkgdatadir)/$$p"; \
+	    echo " $(INSTALL_DATA) $(srcdir)/$$p $(subpkgdatadir)/$$p"; \
 	    $(INSTALL_DATA) $(srcdir)/$$p $(subpkgdatadir)/$$p; \
 	  else if test -f $$p; then \
-	    echo "$(INSTALL_DATA) $$p $(subpkgdatadir)/$$p"; \
+	    echo " $(INSTALL_DATA) $$p $(subpkgdatadir)/$$p"; \
 	    $(INSTALL_DATA) $$p $(subpkgdatadir)/$$p; \
 	  fi; fi; \
 	done
 
 uninstall-subpkgdataDATA:
-	list="$(subpkgdata_DATA)"; for p in $$list; do \
+	$(NORMAL_UNINSTALL)
+	list='$(subpkgdata_DATA)'; for p in $$list; do \
 	  rm -f $(subpkgdatadir)/$$p; \
 	done
 tags: TAGS
@@ -108,7 +120,7 @@ distdir = $(PACKAGE)-$(VERSION)
 # tarfile.
 distcheck: dist
 	rm -rf $(distdir)
-	$(TAR) zxf $(distdir).tar.gz
+	GZIP=$(GZIP) $(TAR) zxf $(distdir).tar.gz
 	mkdir $(distdir)/=build
 	mkdir $(distdir)/=inst
 	dc_install_base=`cd $(distdir)/=inst && pwd`; \
@@ -126,11 +138,11 @@ distcheck: dist
 	echo "========================"
 dist: distdir
 	-chmod -R a+r $(distdir)
-	$(TAR) chozf $(distdir).tar.gz $(distdir)
+	GZIP=$(GZIP) $(TAR) chozf $(distdir).tar.gz $(distdir)
 	rm -rf $(distdir)
 dist-all: distdir
 	-chmod -R a+r $(distdir)
-	$(TAR) chozf $(distdir).tar.gz $(distdir)
+	GZIP=$(GZIP) $(TAR) chozf $(distdir).tar.gz $(distdir)
 	rm -rf $(distdir)
 distdir: $(DISTFILES)
 	rm -rf $(distdir)
@@ -138,7 +150,7 @@ distdir: $(DISTFILES)
 	-chmod 755 $(distdir)
 	here=`pwd`; distdir=`cd $(distdir) && pwd` \
 	  && cd $(srcdir) \
-	  && automake --include-deps --build-dir=$$here --srcdir-name=$(srcdir) --output-dir=$$distdir --foreign
+	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(srcdir) --output-dir=$$distdir --foreign
 	$(mkinstalldirs) $(distdir)/PLUGIN
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
@@ -152,10 +164,10 @@ check: all
 	$(MAKE)
 installcheck:
 install-exec: 
-	$(NORMAL_INSTALL)
+	@$(NORMAL_INSTALL)
 
 install-data: install-subpkgdataDATA
-	$(NORMAL_INSTALL)
+	@$(NORMAL_INSTALL)
 
 install: install-exec install-data all
 	@:
