@@ -1,3 +1,12 @@
+Tue May 27 23:48:38 1997  Jim Blandy  <jimb@floss.cyclic.com>
+
+	Add new R4RS-compliant syntax for keywords.
+	* read.c (scm_lreadr): Recognize `#:' as a prefix for keywords,
+	regardless of the setting of the `keywords' read option.
+	* kw.c (prin_kw): Print keywords using the `#:' syntax, so they
+	can be re-read no matter what the setting of the `keywords' read
+	option.
+
 Tue May 27 22:47:31 1997  Tim Pierce  <twp@twp.tezcat.com>
 
 	Add support for POSIX regular expressions.
