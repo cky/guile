@@ -53,8 +53,9 @@
 /* Return a Scheme string containing Guile's major version number.  */
 
 SCM_DEFINE (scm_major_version, "major-version", 0, 0, 0, 
-           (),
-"")
+            (),
+            "Return a string containing Guile's major version number.\n"
+            "E.g., \"1\".")
 #define FUNC_NAME s_scm_major_version
 {
   return scm_makfrom0str (GUILE_MAJOR_VERSION);
@@ -64,8 +65,9 @@ SCM_DEFINE (scm_major_version, "major-version", 0, 0, 0,
 /* Return a Scheme string containing Guile's minor version number.  */
 
 SCM_DEFINE (scm_minor_version, "minor-version", 0, 0, 0, 
-           (),
-"")
+            (),
+            "Return a string containing Guile's minor version number.\n"
+            "E.g., \"3.5\".")
 #define FUNC_NAME s_scm_minor_version
 {
   return scm_makfrom0str (GUILE_MINOR_VERSION);
@@ -75,7 +77,7 @@ SCM_DEFINE (scm_minor_version, "minor-version", 0, 0, 0,
 /* Return a Scheme string containing Guile's complete version.  */
 
 SCM_DEFINE (scm_version, "version", 0, 0, 0, 
-           (),
+            (),
 	    "@deffnx primitive major-version\n"
 	    "@deffnx primitive minor-version\n"
 	    "Return a string describing Guile's version number, or its major or minor\n"
