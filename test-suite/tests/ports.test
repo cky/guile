@@ -303,6 +303,13 @@
     (pass-if "output check"
 	     (string=? text result))))
 
+(with-test-prefix "call-with-output-string"
+
+  ;; In Guile 1.6.4, closing the port resulted in a segv, check that doesn't
+  ;; occur.
+  (pass-if-exception "proc closes port" exception:wrong-type-arg
+    (call-with-output-string close-port)))
+
 
 
 ;;;; Soft ports.  No tests implemented yet.
