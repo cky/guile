@@ -59,7 +59,7 @@ important for Guile "add-on" packages, since it provides a directory
 that they can install to that won't be changed out from under them
 with each micro release during a stable series.
 
-** There are two new thread implementation options: "null" and "coop-pthreads".
+** Thread implementation has changed.
 
 When you configure "--with-threads=null", you will get the usual
 threading API (call-with-new-thread, make-mutex, etc), but you can't
@@ -68,14 +68,14 @@ equivalent to "--with-threads=null".  This means that the thread API
 is always present, although you might not be able to create new
 threads.
 
-The "coop-pthread" (or shorter: "copt") thread implementation will use
-portable POSIX threads but will restrict them so that only one thread
-can execute 'in Guile' at any one time.  This option will give you the
-same basic behavior as the old "coop" option, but hopefully in a more
-portable way.
+When you configure "--with-threads=pthreads" or "--with-threads=yes",
+you will get threads that are implemented with the portable POSIX
+threads.  These threads can run concurrently (unlike the previous
+"coop" thread implementation), but need to cooperate for things like
+the GC.  See the manual for details. [XXX - write this.]
 
-The default is now "coop-pthread", unless your platform doesn't have
-pthreads, in which case "null" threads are used.
+The default is "pthreads", unless your platform doesn't have pthreads,
+in which case "null" threads are used.
 
 ** New module (ice-9 serialize):
 
