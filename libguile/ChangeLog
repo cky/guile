@@ -1,5 +1,10 @@
 2003-06-05  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* eval.c: Partially undid my patch from 2003-05-31.  This patch
+	caused the segfault referenced in the previous changelog entry.
+
+2003-06-05  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* tags.h: Fixed comment about the immediate type code layout.
 
 	* eval.c: Fixed handling of non-special instructions.  Without

@@ -1,5 +1,10 @@
 2003-06-05  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* tests/chars.test: Fixed test comment.  The bug that this test
+	detects was actually introduced by my patch from 2003-05-31.
+
+2003-06-05  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* tests/chars.test: Added test, attempting to apply a character.
 	This test will only pass if the other changes that are submitted
 	together with this patch are also applied.
