@@ -1,3 +1,12 @@
+2000-04-01  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* eval.c (scm_lookupcar1, scm_lookupcar, scm_m_case, scm_m_cond,
+	scm_m_lambda, iqq, scm_m_define, scm_m_expand_body, unmemocopy,
+	SCM_CEVAL), procs.h (SCM_TOP_LEVEL):  Don't use C operators to
+	compare SCM values.
+
+	(scm_makprom):  Smob data is of type scm_bits_t.
+
 2000-03-31  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* backtrace.c (display_error_body), debug.c (scm_procedure_source,

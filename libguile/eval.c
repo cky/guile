@@ -278,18 +278,18 @@ scm_lookupcar (SCM vloc, SCM genv, int check)
 #endif
   for (; SCM_NIMP (env); env = SCM_CDR (env))
     {
-      if (SCM_BOOL_T == scm_procedure_p (SCM_CAR (env)))
+      if (SCM_TRUE_P (scm_procedure_p (SCM_CAR (env))))
 	break;
       al = SCM_CARLOC (env);
       for (fl = SCM_CAR (*al); SCM_NIMP (fl); fl = SCM_CDR (fl))
 	{
 	  if (SCM_NCONSP (fl))
 	    {
-	      if (fl == var)
+	      if (SCM_EQ_P (fl, var))
 	      {
 #ifdef MEMOIZE_LOCALS
 #ifdef USE_THREADS
-		if (SCM_CAR (vloc) != var)
+		if (! SCM_EQ_P (SCM_CAR (vloc), var))
 		  goto race;
 #endif
 		SCM_SETCAR (vloc, iloc + SCM_ICDR);
@@ -300,7 +300,7 @@ scm_lookupcar (SCM vloc, SCM genv, int check)
 		break;
 	    }
 	  al = SCM_CDRLOC (*al);
-	  if (SCM_CAR (fl) == var)
+	  if (SCM_EQ_P (SCM_CAR (fl), var))
 	    {
 #ifdef MEMOIZE_LOCALS
 #ifndef SCM_RECKLESS		/* letrec inits to SCM_UNDEFINED */
@@ -336,7 +336,7 @@ scm_lookupcar (SCM vloc, SCM genv, int check)
     else
       top_thunk = SCM_BOOL_F;
     vcell = scm_sym2vcell (var, top_thunk, SCM_BOOL_F);
-    if (vcell == SCM_BOOL_F)
+    if (SCM_FALSEP (vcell))
       goto errout;
     else
       var = vcell;
@@ -638,7 +638,7 @@ scm_m_case (SCM xorig, SCM env)
       proc = SCM_CAR (x);
       SCM_ASSYNT (scm_ilength (proc) >= 2, xorig, scm_s_clauses, s_case);
       SCM_ASSYNT (scm_ilength (SCM_CAR (proc)) >= 0
-		  || scm_sym_else == SCM_CAR (proc),
+		  || SCM_EQ_P (scm_sym_else, SCM_CAR (proc)),
 		  xorig, scm_s_clauses, s_case);
     }
   return scm_cons (SCM_IM_CASE, cdrx);
@@ -660,13 +660,13 @@ scm_m_cond (SCM xorig, SCM env)
       arg1 = SCM_CAR (x);
       len = scm_ilength (arg1);
       SCM_ASSYNT (len >= 1, xorig, scm_s_clauses, s_cond);
-      if (scm_sym_else == SCM_CAR (arg1))
+      if (SCM_EQ_P (scm_sym_else, SCM_CAR (arg1)))
 	{
 	  SCM_ASSYNT (SCM_NULLP (SCM_CDR (x)) && len >= 2,
 		      xorig, "bad ELSE clause", s_cond);
 	  SCM_SETCAR (arg1, SCM_BOOL_T);
 	}
-      if (len >= 2 && scm_sym_arrow == SCM_CAR (SCM_CDR (arg1)))
+      if (len >= 2 && SCM_EQ_P (scm_sym_arrow, SCM_CAR (SCM_CDR (arg1))))
 	SCM_ASSYNT (3 == len && SCM_NIMP (SCM_CAR (SCM_CDR (SCM_CDR (arg1)))),
 		    xorig, "bad recipient", s_cond);
       x = SCM_CDR (x);
@@ -686,7 +686,7 @@ scm_m_lambda (SCM xorig, SCM env)
   proc = SCM_CAR (x);
   if (SCM_NULLP (proc))
     goto memlambda;
-  if (SCM_IM_LET == proc)  /* named let */
+  if (SCM_EQ_P (SCM_IM_LET, proc))  /* named let */
     goto memlambda;
   if (SCM_IMP (proc))
     goto badforms;
@@ -835,12 +835,12 @@ iqq (SCM form,SCM env,int depth)
   if (SCM_NCONSP(form)) 
     return form;
   tmp = SCM_CAR (form);
-  if (scm_sym_quasiquote == tmp)
+  if (SCM_EQ_P (scm_sym_quasiquote, tmp))
     {
       depth++;
       goto label;
     }
-  if (scm_sym_unquote == tmp)
+  if (SCM_EQ_P (scm_sym_unquote, tmp))
     {
       --depth;
     label:
@@ -851,7 +851,7 @@ iqq (SCM form,SCM env,int depth)
 	return evalcar (form, env);
       return scm_cons2 (tmp, iqq (SCM_CAR (form), env, depth), SCM_EOL);
     }
-  if (SCM_NIMP (tmp) && (scm_sym_uq_splicing == SCM_CAR (tmp)))
+  if (SCM_NIMP (tmp) && (SCM_EQ_P (scm_sym_uq_splicing, SCM_CAR (tmp))))
     {
       tmp = SCM_CDR (tmp);
       if (0 == --edepth)
@@ -903,10 +903,10 @@ scm_m_define (SCM x, SCM env)
 	proc:
 	  if (SCM_CLOSUREP (arg1)
 	      /* Only the first definition determines the name. */
-	      && scm_procedure_property (arg1, scm_sym_name) == SCM_BOOL_F)
+	      && SCM_FALSEP (scm_procedure_property (arg1, scm_sym_name)))
 	    scm_set_procedure_property_x (arg1, scm_sym_name, proc);
 	  else if (SCM_TYP16 (arg1) == scm_tc16_macro
-		   && SCM_CDR (arg1) != arg1)
+		   && !SCM_EQ_P (SCM_CDR (arg1), arg1))
 	    {
 	      arg1 = SCM_CDR (arg1);
 	      goto proc;
@@ -1197,7 +1197,7 @@ scm_m_expand_body (SCM xorig, SCM env)
 					    SCM_CDR (form)),
 			   env);
 
-      if (SCM_IM_DEFINE == SCM_CAR (form))
+      if (SCM_EQ_P (SCM_IM_DEFINE, SCM_CAR (form)))
 	{
 	  defs = scm_cons (SCM_CDR (form), defs);
 	  x = SCM_CDR(x);
@@ -1206,7 +1206,7 @@ scm_m_expand_body (SCM xorig, SCM env)
 	{
 	  break;
 	}
-      else if (SCM_IM_BEGIN == SCM_CAR (form))
+      else if (SCM_EQ_P (SCM_IM_BEGIN, SCM_CAR (form)))
 	{
 	  x = scm_append (scm_cons2 (SCM_CDR (form), SCM_CDR (x), SCM_EOL));
 	}
@@ -1348,10 +1348,10 @@ unmemocopy (SCM x, SCM env)
 	z = EXTEND_ENV (f, SCM_EOL, env);
 	/* inits */
 	e = scm_reverse (unmemocopy (SCM_CAR (x),
-				     SCM_CAR (ls) == scm_sym_letrec ? z : env));
+				     SCM_EQ_P (SCM_CAR (ls), scm_sym_letrec) ? z : env));
 	env = z;
 	/* increments */
-	s = SCM_CAR (ls) == scm_sym_do
+	s = SCM_EQ_P (SCM_CAR (ls), scm_sym_do)
 	    ? scm_reverse (unmemocopy (SCM_CDR (SCM_CDR (SCM_CDR (x))), env))
 	    : f;
 	/* build transformed binding list */
@@ -1360,7 +1360,7 @@ unmemocopy (SCM x, SCM env)
 	  {
 	    z = scm_acons (SCM_CAR (v),
 			   scm_cons (SCM_CAR (e),
-				     SCM_CAR (s) == SCM_CAR (v)
+				     SCM_EQ_P (SCM_CAR (s), SCM_CAR (v))
 				     ? SCM_EOL
 				     : scm_cons (SCM_CAR (s), SCM_EOL)),
 			   z);
@@ -1371,7 +1371,7 @@ unmemocopy (SCM x, SCM env)
 	while (SCM_NIMP (v));
 	z = scm_cons (z, SCM_UNSPECIFIED);
 	SCM_SETCDR (ls, z);
-	if (SCM_CAR (ls) == scm_sym_do)
+	if (SCM_EQ_P (SCM_CAR (ls), scm_sym_do))
 	  {
 	    x = SCM_CDR (x);
 	    /* test clause */
@@ -1977,7 +1977,7 @@ dispatch:
       while (SCM_NIMP (x = SCM_CDR (x)))
 	{
 	  proc = SCM_CAR (x);
-	  if (scm_sym_else == SCM_CAR (proc))
+	  if (SCM_EQ_P (scm_sym_else, SCM_CAR (proc)))
 	    {
 	      x = SCM_CDR (proc);
 	      PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
@@ -2010,7 +2010,7 @@ dispatch:
 		{
 		  RETURN (t.arg1)
 		}
-	      if (scm_sym_arrow != SCM_CAR (x))
+	      if (! SCM_EQ_P (scm_sym_arrow, SCM_CAR (x)))
 		{
 		  PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
 		  goto begin;
@@ -2318,7 +2318,7 @@ dispatch:
 		  do
 		    {
 		      /* More arguments than specifiers => CLASS != ENV */
-		      if (scm_class_of (SCM_CAR (t.arg1)) != SCM_CAR (z))
+		      if (! SCM_EQ_P (scm_class_of (SCM_CAR (t.arg1)), SCM_CAR (z)))
 			goto next_method;
 		      t.arg1 = SCM_CDR (t.arg1);
 		      z = SCM_CDR (z);
@@ -2362,7 +2362,7 @@ dispatch:
 	      if (!(SCM_FALSEP (t.arg1 = EVALCAR (proc, env))
 		    || t.arg1 == scm_lisp_nil))
 		{
-		  if (SCM_CAR (x) == SCM_UNSPECIFIED)
+		  if (SCM_EQ_P (SCM_CAR (x), SCM_UNSPECIFIED))
 		    RETURN (t.arg1);
 		  PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
 		  goto carloop;
@@ -2390,7 +2390,7 @@ dispatch:
 	      if (!(SCM_FALSEP (t.arg1 = EVALCAR (proc, env))
 		    || t.arg1 == SCM_INUM0))
 		{
-		  if (SCM_CAR (x) == SCM_UNSPECIFIED)
+		  if (SCM_EQ_P (SCM_CAR (x), SCM_UNSPECIFIED))
 		    RETURN (t.arg1);
 		  PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
 		  goto carloop;
@@ -3685,7 +3685,7 @@ long scm_tc16_promise;
 SCM 
 scm_makprom (SCM code)
 {
-  SCM_RETURN_NEWSMOB (scm_tc16_promise, code);
+  SCM_RETURN_NEWSMOB (scm_tc16_promise, SCM_UNPACK (code));
 }
 
 

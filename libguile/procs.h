@@ -109,7 +109,7 @@ typedef struct
                            + scm_tc3_closure))
 #define SCM_ENV(x) SCM_CDR(x)
 #define SCM_SETENV(x, e) SCM_SETCDR (x, e)
-#define SCM_TOP_LEVEL(SCM_ENV)  (SCM_NULLP(SCM_ENV) || (SCM_BOOL_T == scm_procedure_p (SCM_CAR (SCM_ENV))))
+#define SCM_TOP_LEVEL(SCM_ENV)  (SCM_NULLP (SCM_ENV) || (SCM_TRUE_P (scm_procedure_p (SCM_CAR (SCM_ENV)))))
 
 /* Procedure-with-setter
 
