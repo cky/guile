@@ -401,6 +401,21 @@ Set/remove an advisory shared or exclusive lock on `file'.
 Set or get the hostname of the machine the current process is running
 on.
 
+** New function: open-input-string string
+
+Return an input string port which delivers the characters from
+`string'.  This procedure, together with `open-input-string' and
+`get-output-string' implements SRFI-6.
+
+** New function: open-output-string
+
+Return an output string port which collects all data written to it.
+The data can then be retrieved by `get-output-string'.
+
+** New function: get-output-string
+
+Return the contents of an output string port.
+
 ** Deprecated: close-all-ports-except.  This was intended for closing
 ports in a child process after a fork, but it has the undesirable side
 effect of flushing buffers.  port-for-each is more flexible.
