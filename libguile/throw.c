@@ -551,7 +551,9 @@ SCM_DEFINE (scm_catch, "catch", 3, 0, 0,
 
 SCM_DEFINE (scm_lazy_catch, "lazy-catch", 3, 0, 0,
            (SCM tag, SCM thunk, SCM handler),
-	    "")
+	    "This behaves exactly like @code{catch}, except that it does\n"
+	    "not unwind the stack (this is the major difference), and if\n"
+	    "handler returns, its value is returned from the throw.")
 #define FUNC_NAME s_scm_lazy_catch
 {
   struct scm_body_thunk_data c;
