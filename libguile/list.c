@@ -264,22 +264,28 @@ SCM_DEFINE (scm_append_x, "append!", 0, 0, 1,
 	    "the mutated list.")
 #define FUNC_NAME s_scm_append_x
 {
+  SCM ret, *loc;
   SCM_VALIDATE_REST_ARGUMENT (lists);
-  while (1) {
-    if (SCM_NULLP (lists)) {
-      return SCM_EOL;
-    } else {
+
+  if (SCM_NULLP (lists))
+    return SCM_EOL;
+
+  loc = &ret;
+  for (;;)
+    {
       SCM arg = SCM_CAR (lists);
+      *loc = arg;
+
       lists = SCM_CDR (lists);
-      if (SCM_NULLP (lists)) {
-	return arg;
-      } else if (!SCM_NULL_OR_NIL_P (arg)) {
-	SCM_VALIDATE_CONS (SCM_ARG1, arg);
-	SCM_SETCDR (scm_last_pair (arg), scm_append_x (lists));
-	return arg;
-      }
+      if (SCM_NULLP (lists))
+        return ret;
+
+      if (!SCM_NULL_OR_NIL_P (arg))
+        {
+          SCM_VALIDATE_CONS (SCM_ARG1, arg);
+          loc = SCM_CDRLOC (scm_last_pair (arg));
+        }
     }
-  }
 }
 #undef FUNC_NAME
 
