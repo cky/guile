@@ -1,4 +1,19 @@
-2000-11-22  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+2000-11-23  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* symbols.h (SCM_LENGTH_MAX):  Deprecated.
+
+	* unif.c (scm_make_uve):  Use SCM_BITVECTOR_MAX_LENGTH and
+	SCM_UVECTOR_MAX_LENGTH instead of SCM_LENGTH_MAX.  Postpone length
+	checks for strings and vectors to their constructors.  Eliminate
+	redundant SCM_IMP test.
+
+	(scm_dimensions_to_uniform_array):  Postpone length checks to
+	scm_make_uve.
+
+	* unif.h (SCM_BITVECTOR_MAX_LENGTH, SCM_UVECTOR_MAX_LENGTH):
+	Added.
+
+2000-11-23  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* gh_data.c (makvect), numbers.c (scm_mkbig, scm_adjbig),
 	strings.c (scm_makstr, scm_take_str), symbols.c

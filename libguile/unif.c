@@ -158,13 +158,12 @@ scm_make_uve (long k, SCM prot)
   SCM v;
   long i, type;
 
-  SCM_ASSERT_RANGE (1, scm_long2num (k), k <= SCM_LENGTH_MAX);
-
   if (SCM_EQ_P (prot, SCM_BOOL_T))
     {
       SCM_NEWCELL (v);
       if (k > 0)
 	{
+	  SCM_ASSERT_RANGE (1, scm_long2num (k), k <= SCM_BITVECTOR_MAX_LENGTH);
 	  i = sizeof (long) * ((k + SCM_LONG_BIT - 1) / SCM_LONG_BIT);
 	  SCM_SET_BITVECTOR_BASE (v, (char *) scm_must_malloc (i, "vector"));
 	  SCM_SET_BITVECTOR_LENGTH (v, k);
@@ -180,7 +179,7 @@ scm_make_uve (long k, SCM prot)
     {
       i = sizeof (char) * k;
       type = scm_tc7_byvect;
-    }    
+    }
   else if (SCM_CHARP (prot))
     {
       i = sizeof (char) * k;
@@ -216,8 +215,7 @@ scm_make_uve (long k, SCM prot)
 	  return scm_make_vector (SCM_MAKINUM (k), SCM_UNDEFINED);
 	}
     }
-  else
-  if (SCM_IMP (prot) || !SCM_INEXACTP (prot))
+  else if (!SCM_INEXACTP (prot))
     /* Huge non-unif vectors are NOT supported. */
     /* no special scm_vector */
     return scm_make_vector (SCM_MAKINUM (k), SCM_UNDEFINED);
@@ -236,6 +234,8 @@ scm_make_uve (long k, SCM prot)
       i = sizeof (double) * k;
       type = scm_tc7_dvect;
     }
+
+  SCM_ASSERT_RANGE (1, scm_long2num (k), k <= SCM_UVECTOR_MAX_LENGTH);
 
   SCM_NEWCELL (v);
   SCM_DEFER_INTS;
@@ -581,11 +581,7 @@ SCM_DEFINE (scm_dimensions_to_uniform_array, "dimensions->uniform-array", 2, 1, 
   SCM ra;
   if (SCM_INUMP (dims))
     {
-      SCM answer;
-
-      SCM_ASSERT_RANGE (1, dims, SCM_INUM (dims) <= SCM_LENGTH_MAX);
-
-      answer = scm_make_uve (SCM_INUM (dims), prot);
+      SCM answer = scm_make_uve (SCM_INUM (dims), prot);
       if (!SCM_UNBNDP (fill))
 	scm_array_fill_x (answer, fill);
       else if (SCM_SYMBOLP (prot))
@@ -606,8 +602,6 @@ SCM_DEFINE (scm_dimensions_to_uniform_array, "dimensions->uniform-array", 2, 1, 
       SCM_ASSERT_RANGE (1, dims, s[k].lbnd <= s[k].ubnd);
       rlen = (s[k].ubnd - s[k].lbnd + 1) * s[k].inc;
     }
-
-  SCM_ASSERT_RANGE (1, dims, rlen <= SCM_LENGTH_MAX);
 
   SCM_ARRAY_V (ra) = scm_make_uve (rlen, prot);
 

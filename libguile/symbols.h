@@ -63,8 +63,6 @@ extern int scm_symhash_dim;
 #define SCM_SYMBOL_LENGTH(x)  (((unsigned long) SCM_CELL_WORD_0 (x)) >> 8)
 #define SCM_SET_SYMBOL_LENGTH(s, l) (SCM_SET_CELL_WORD_0 ((s), ((l) << 8) + scm_tc7_symbol))
 
-#define SCM_LENGTH_MAX		(0xffffffL)
-
 #define SCM_PROP_SLOTS(X)           (SCM_CELL_WORD_3 (X))
 #define SCM_SET_PROP_SLOTS(X, v)    (SCM_SET_CELL_WORD_3 ((X), (v)))
 #define SCM_SYMBOL_FUNC(X)	    (SCM_CAR (SCM_CELL_WORD_3 (X)))
@@ -119,6 +117,7 @@ extern void scm_init_symbols (void);
 #define SCM_SLOPPY_SUBSTRP(x) (SCM_SUBSTRP (x))
 #define SCM_SUBSTR_STR(x) (SCM_CDDR (x))
 #define SCM_SUBSTR_OFFSET(x) (SCM_CADR (x))
+#define SCM_LENGTH_MAX (0xffffffL)
 #define SCM_LENGTH(x) (((unsigned long) SCM_CELL_WORD_0 (x)) >> 8)
 #define SCM_SETLENGTH(x, v, t) (SCM_SET_CELL_WORD_0 ((x), ((v) << 8) + (t)))
 #define SCM_ROSTRINGP(x) (SCM_NIMP(x) && ((SCM_TYP7S(x)==scm_tc7_string) \

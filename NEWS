@@ -237,6 +237,10 @@ collector has set this variable.  But, this is an implementation detail that
 may change.  Further, scm_gc_heap_lock is not set throughout gc, thus the use
 of this variable is (and has been) not fully safe anyway.
 
+** New macros:  SCM_BITVECTOR_MAX_LENGTH, SCM_UVECTOR_MAX_LENGTH
+
+Use these instead of SCM_LENGTH_MAX.
+
 ** New macros:  SCM_CONTINUATION_LENGTH, SCM_CCLO_LENGTH, SCM_STACK_LENGTH, 
 SCM_STRING_LENGTH, SCM_SYMBOL_LENGTH, SCM_UVECTOR_LENGTH,
 SCM_BITVECTOR_LENGTH, SCM_VECTOR_LENGTH.
@@ -276,7 +280,7 @@ SCM_VALIDATE_ROSTRING, SCM_VALIDATE_ROSTRING_COPY,
 SCM_VALIDATE_NULLORROSTRING_COPY, SCM_ROLENGTH, SCM_LENGTH, SCM_HUGE_LENGTH,
 SCM_SUBSTRP, SCM_SUBSTR_STR, SCM_SUBSTR_OFFSET, SCM_COERCE_SUBSTR,
 SCM_ROSTRINGP, SCM_RWSTRINGP, SCM_VALIDATE_RWSTRING, SCM_ROCHARS,
-SCM_ROUCHARS, SCM_SETLENGTH, SCM_SETCHARS
+SCM_ROUCHARS, SCM_SETLENGTH, SCM_SETCHARS, SCM_LENGTH_MAX
 
 Use SCM_ASSERT_RANGE or SCM_VALIDATE_XXX_RANGE instead of SCM_OUTOFRANGE.
 Use scm_memory_error instead of SCM_NALLOC.
@@ -294,6 +298,7 @@ Use SCM_STRING_CHARS instead of SCM_ROCHARS.
 Use SCM_STRING_UCHARS instead of SCM_ROUCHARS.
 Use a type specific setter macro instead of SCM_SETLENGTH.
 Use a type specific setter macro instead of SCM_SETCHARS.
+Use a type specific length macro instead of SCM_LENGTH_MAX.
 
 ** Removed function:  scm_struct_init
 
