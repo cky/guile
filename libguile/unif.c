@@ -1970,9 +1970,9 @@ GUILE_PROC(scm_array_to_list, "array->list", 1, 0, 0,
 	register unsigned long mask;
 	for (k = (SCM_LENGTH (v) - 1) / SCM_LONG_BIT; k > 0; k--)
 	  for (mask = 1UL << (SCM_LONG_BIT - 1); mask; mask >>= 1)
-	    res = scm_cons (((long *) data)[k] & mask ? SCM_BOOL_T : SCM_BOOL_F, res);
+	    res = scm_cons (SCM_BOOL(((long *) data)[k] & mask), res);
 	for (mask = 1L << ((SCM_LENGTH (v) % SCM_LONG_BIT) - 1); mask; mask >>= 1)
-	  res = scm_cons (((long *) data)[k] & mask ? SCM_BOOL_T : SCM_BOOL_F, res);
+	  res = scm_cons (SCM_BOOL(((long *) data)[k] & mask), res);
 	return res;
       }
 # ifdef SCM_INUMS_ONLY

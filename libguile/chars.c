@@ -57,7 +57,7 @@ GUILE_PROC (scm_char_p, "char?", 1, 0, 0,
 "Return #t iff X is a character, else #f.")
 #define FUNC_NAME s_scm_char_p
 {
-  return SCM_ICHRP(x) ? SCM_BOOL_T : SCM_BOOL_F;
+  return SCM_BOOL(SCM_ICHRP(x));
 }
 #undef FUNC_NAME
 

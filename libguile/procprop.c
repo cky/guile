@@ -142,7 +142,7 @@ scm_i_procedure_arity (SCM proc)
     }
   return SCM_LIST3 (SCM_MAKINUM (a),
 		    SCM_MAKINUM (o),
-		    r ? SCM_BOOL_T : SCM_BOOL_F);
+		    SCM_BOOL(r));
 }
 
 static SCM

@@ -1682,7 +1682,7 @@ scm_eval_body (SCM code, SCM env)
   if (CHECK_APPLY && SCM_TRAPS_P)\
     if (SCM_APPLY_FRAME_P || (SCM_TRACE_P && PROCTRACEP (proc)))\
       {\
-	SCM tmp, tail = SCM_TRACED_FRAME_P (debug) ? SCM_BOOL_T : SCM_BOOL_F;\
+	SCM tmp, tail = SCM_BOOL(SCM_TRACED_FRAME_P (debug)); \
 	SCM_SET_TRACED_FRAME (debug); \
 	if (SCM_CHEAPTRAPS_P)\
 	  {\
@@ -1943,7 +1943,7 @@ start:
   if (CHECK_ENTRY && SCM_TRAPS_P)
     if (SCM_ENTER_FRAME_P || (SCM_BREAKPOINTS_P && SRCBRKP (x)))
       {
-	SCM tail = SCM_TAILRECP (debug) ? SCM_BOOL_T : SCM_BOOL_F;
+	SCM tail = SCM_BOOL(SCM_TAILRECP (debug));
 	SCM_SET_TAILREC (debug);
 	if (SCM_CHEAPTRAPS_P)
 	  t.arg1 = scm_make_debugobj (&debug);

@@ -960,7 +960,7 @@ GUILE_PROC (scm_access, "access?", 2, 0, 0,
     path = scm_makfromstr (SCM_ROCHARS (path), SCM_ROLENGTH (path), 0);
   SCM_VALIDATE_INT(2,how);
   rv = access (SCM_ROCHARS (path), SCM_INUM (how));
-  return rv ? SCM_BOOL_F : SCM_BOOL_T;
+  return SCM_NEGATE_BOOL(rv);
 }
 #undef FUNC_NAME
 

@@ -76,7 +76,7 @@ GUILE_PROC1 (scm_eqv_p, "eqv?", scm_tc7_rpsubr,
   if (SCM_CAR(x) != SCM_CAR(y)) return SCM_BOOL_F;
   if (SCM_NUMP(x)) {
 # ifdef SCM_BIGDIG
-    if (SCM_BIGP(x)) return (0==scm_bigcomp(x, y)) ? SCM_BOOL_T : SCM_BOOL_F;
+    if (SCM_BIGP(x)) return SCM_BOOL(0==scm_bigcomp(x, y));
 # endif
 #ifdef SCM_FLOATS
     if (SCM_REALPART(x) != SCM_REALPART(y)) return SCM_BOOL_F;

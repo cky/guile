@@ -2014,7 +2014,7 @@ raeql (SCM ra0,SCM as_equal,SCM ra1)
 SCM
 scm_raequal (SCM ra0, SCM ra1)
 {
-  return (raeql (ra0, SCM_BOOL_T, ra1) ? SCM_BOOL_T : SCM_BOOL_F);
+  return SCM_BOOL(raeql (ra0, SCM_BOOL_T, ra1));
 }
 
 static char s_array_equal_p[] = "array-equal?";
@@ -2063,7 +2063,7 @@ scm_array_equal_p (SCM ra0, SCM ra1)
 	if (!SCM_ARRAYP (ra1))
 	  goto callequal;
       }
-  return (raeql (ra0, SCM_BOOL_F, ra1) ? SCM_BOOL_T : SCM_BOOL_F);
+  return SCM_BOOL(raeql (ra0, SCM_BOOL_F, ra1));
 }
 
 

@@ -49,12 +49,12 @@
 SCM 
 gh_int2scmb (int x)		/* this is being phased out */
 {
-  return (x ? SCM_BOOL_T : SCM_BOOL_F);
+  return SCM_BOOL(x);
 }
 SCM 
 gh_bool2scm (int x)
 {
-  return (x ? SCM_BOOL_T : SCM_BOOL_F);
+  return SCM_BOOL(x);
 }
 SCM 
 gh_int2scm (int x)

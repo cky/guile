@@ -124,7 +124,7 @@ scm_string_less_p (s1, s2)
   }
   {
     SCM answer;
-    answer = (s2len != len) ? SCM_BOOL_T : SCM_BOOL_F;
+    answer = SCM_BOOL(s2len != len);
     return answer;
   }
 }
@@ -181,7 +181,7 @@ scm_string_ci_less_p (s1, s2)
     if (c>0) return SCM_BOOL_F;
     if (c<0) return SCM_BOOL_T;
   }
-  return (s2len != len) ? SCM_BOOL_T : SCM_BOOL_F;
+  return SCM_BOOL(s2len != len);
 }
 
 SCM_PROC1 (s_string_ci_leq_p, "string-ci<=?", scm_tc7_rpsubr, scm_string_ci_leq_p);

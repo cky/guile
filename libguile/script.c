@@ -577,7 +577,7 @@ scm_compile_shell_switches (int argc, char **argv)
   /* If the --emacs switch was set, now is when we process it.  */
   {
     SCM vcell = scm_sysintern0_no_module_lookup ("use-emacs-interface");
-    SCM_SETCDR (vcell, use_emacs_interface ? SCM_BOOL_T : SCM_BOOL_F);
+    SCM_SETCDR (vcell, SCM_BOOL(use_emacs_interface));
   }
 
   /* Handle the `-e' switch, if it was specified.  */

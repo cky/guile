@@ -380,8 +380,7 @@ GUILE_PROC (scm_dynamic_object_p, "dynamic-object?", 1, 0, 0,
 "")
 #define FUNC_NAME s_scm_dynamic_object_p
 {
-    return (SCM_NIMP (obj) && SCM_CAR (obj) == scm_tc16_dynamic_obj)?
-	SCM_BOOL_T : SCM_BOOL_F;
+    return SCM_BOOL(SCM_NIMP (obj) && SCM_CAR (obj) == scm_tc16_dynamic_obj);
 }
 #undef FUNC_NAME
 

@@ -733,7 +733,7 @@ GUILE_PROC(scm_frame_overflow_p, "frame-overflow?", 1, 0, 0,
 #define FUNC_NAME s_scm_frame_overflow_p
 {
   SCM_VALIDATE_FRAME(1,frame);
-  return SCM_FRAME_OVERFLOW_P (frame) ? SCM_BOOL_T : SCM_BOOL_F;
+  return SCM_BOOL(SCM_FRAME_OVERFLOW_P (frame));
 }
 #undef FUNC_NAME
 
