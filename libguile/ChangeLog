@@ -1,3 +1,8 @@
+2000-08-06  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* read.c (scm_flush_ws): Include filename in error message when it
+	is not `#f'.
+
 2000-08-05  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* iselect.c: Include <unistd.h>.  Thanks to Bertrand Petit!
