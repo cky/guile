@@ -1,3 +1,9 @@
+2001-07-01  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* strports.c (scm_read_0str, scm_eval_0str): Call
+	scm_c_read_string and scm_c_eval_string respectively, not
+	themselves.  Thanks to Dale P. Smith!
+
 2001-06-30  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* unif.c (scm_array_set_x):  The variable args does not
