@@ -1561,7 +1561,7 @@ zero bit in twos complement form.
 
 @deffn {Scheme Procedure} integer-expt n k
 @deffnx {C Function} scm_integer_expt (n, k)
-Return @var{n} raised to the non-negative integer exponent
+Return @var{n} raised to the exact integer exponent
 @var{k}.
 
 @lisp
