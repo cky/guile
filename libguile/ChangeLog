@@ -1,5 +1,8 @@
 2001-05-06  Marius Vollmer  <mvo@zagadka.ping.de>
 
+	* snarf.h (SCM_FUNC_CAST_ARBITRARY_ARGS): Use "SCM (*)()" for C++
+	as well.  "SCM (*)(...)" does not work on RedHat 7.1.
+
 	* __scm.h (SCM_WTA_DISPATCH_0): Removed ARG and POS parameters,
 	they are not used.  Changed `wrong type' error into `wrong num
 	args' error.  Changed all callers.
