@@ -52,35 +52,18 @@
  */
 
 
-/* All errors should pass through here.  */
+/* Scheme interface to scm_error_scm.  */
 void
 scm_error (SCM key, const char *subr, const char *message, SCM args, SCM rest)
 {
-  SCM arg_list;
-  if (scm_gc_running_p)
-    {
-      /* The error occured during GC --- abort */
-      fprintf (stderr, "Error in %s during GC: %s\n",
-	       subr ? subr : "unknown function",
-	       message ? message : "<empty message>");
-      abort ();
-    }
-  arg_list = scm_list_4 (subr ? scm_makfrom0str (subr) : SCM_BOOL_F,
-			 message ? scm_makfrom0str (message) : SCM_BOOL_F,
-			 args,
-			 rest);
-  scm_ithrow (key, arg_list, 1);
-  
-  /* No return, but just in case: */
-  {
-    const char msg[] = "guile:scm_error:scm_ithrow returned!\n";
-
-    write (2, msg, (sizeof msg) - 1);
-  }
-  exit (1);
+  scm_error_scm 
+    (key,
+     (subr == NULL) ? SCM_BOOL_F : scm_from_locale_string (subr),
+     (message == NULL) ? SCM_BOOL_F : scm_from_locale_string (message),
+     args, rest);
 }
 
-/* Scheme interface to scm_error.  */
+/* All errors should pass through here.  */
 SCM_DEFINE (scm_error_scm, "scm-error", 5, 0, 0, 
            (SCM key, SCM subr, SCM message, SCM args, SCM data),
 	    "Raise an error with key @var{key}.  @var{subr} can be a string\n"
@@ -98,37 +81,18 @@ SCM_DEFINE (scm_error_scm, "scm-error", 5, 0, 0,
 	    "it will usually be @code{#f}.")
 #define FUNC_NAME s_scm_error_scm
 {
-  char *szSubr;
-  char *szMessage;
-
-  SCM_VALIDATE_SYMBOL (1, key);
-
-  if (scm_is_false (subr))
+  if (scm_gc_running_p)
     {
-      szSubr = NULL;
-    }
-  else if (SCM_SYMBOLP (subr))
-    {
-      szSubr = SCM_SYMBOL_CHARS (subr);
-    }
-  else
-    {
-      SCM_VALIDATE_STRING (2, subr);
-      szSubr = SCM_STRING_CHARS (subr);
+      /* The error occured during GC --- abort */
+      fprintf (stderr, "Guile: error during GC.\n"),
+      abort ();
     }
 
-  if (scm_is_false (message))
-    {
-      szMessage = NULL;
-    }
-  else
-    {
-      SCM_VALIDATE_STRING (2, message);
-      szMessage = SCM_STRING_CHARS (message);
-    }
-
-  scm_error (key, szSubr, szMessage, args, data);
-  /* not reached.  */
+  scm_ithrow (key, scm_list_4 (subr, message, args, data), 1);
+  
+  /* No return, but just in case: */
+  fprintf (stderr, "Guile scm_ithrow returned!\n");
+  exit (1);
 }
 #undef FUNC_NAME
 
