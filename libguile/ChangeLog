@@ -1,3 +1,7 @@
+2004-03-21  Kevin Ryde  <user42@zip.com.au>
+
+	* stime.c (scm_gmtime): Use gmtime_r when available, for thread safety.
+
 2004-03-20  Kevin Ryde  <user42@zip.com.au>
 
 	* posix.c (scm_gethostname): Preserve errno across free() call.
