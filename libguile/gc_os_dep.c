@@ -238,7 +238,7 @@ typedef int GC_bool;
 #    define SPARC
 #    define mach_type_known
 # endif
-# if defined(LINUX) && defined(arm)
+# if defined(LINUX) && (defined(arm) || defined (__arm__))
 #    define ARM32
 #    define mach_type_known
 # endif
