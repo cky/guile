@@ -63,8 +63,8 @@ the GC.
 The default is "pthreads", unless your platform doesn't have pthreads,
 in which case "null" threads are used.
 
-See the manual for details, nodes "Initialization", "Multi-Threading"
-and "Blocking".
+See the manual for details, nodes "Initialization", "Multi-Threading",
+"Blocking", and others.
 
 ** There is the new notion of 'discouraged' features.
 
@@ -968,7 +968,12 @@ This function calls 'free' on a given pointer when a frame is left.
 Thus the call to scm_frame_unwind_handler above could be replaced with
 simply scm_frame_free (mem).
 
-** New way to block and unblock asyncs
+** New functions scm_c_call_with_blocked_asyncs and
+   scm_c_call_with_unblocked_asyncs
+
+Like scm_call_with_blocked_asyncs etc. but for C functions.
+
+** New functions scm_frame_block_asyncs and scm_frame_unblock_asyncs
 
 In addition to scm_c_call_with_blocked_asyncs you can now also use
 scm_frame_block_asyncs in a 'frame' (see above).  Likewise for
@@ -980,7 +985,13 @@ scm_c_call_with_unblocked_asyncs and scm_frame_unblock_asyncs.
 They do no longer fulfill their original role of blocking signal
 delivery.  Depending on what you want to achieve, replace a pair of
 SCM_DEFER_INTS and SCM_ALLOW_INTS with a frame that locks a mutex,
-blocks asyncs, or both.
+blocks asyncs, or both.  See node "Critical Sections" in the manual.
+
+** The value 'scm_mask_ints' is no longer writable.
+
+Previously, you could set scm_mask_ints directly.  This is no longer
+possible.  Use scm_c_call_with_blocked_asyncs and
+scm_c_call_with_unblocked_asyncs instead.
 
 ** New way to temporarily set the current input, output or error ports
 
@@ -1053,17 +1064,6 @@ arguments are now passed directly:
     SCM scm_call_with_new_thread (SCM thunk, SCM handler);
 
 This is an incompatible change.
-
-** The value 'scm_mask_ints' is no longer writable.
-
-Previously, you could set scm_mask_ints directly.  This is no longer
-possible.  Use scm_c_call_with_blocked_asyncs and
-scm_c_call_with_unblocked_asyncs instead.
-
-** New functions scm_c_call_with_blocked_asyncs and
-   scm_c_call_with_unblocked_asyncs
-
-Like scm_call_with_blocked_asyncs etc. but for C functions.
 
 ** New snarfer macro SCM_DEFINE_PUBLIC.
 
@@ -1172,14 +1172,6 @@ function as the callback instead of a SCM value.
    scm_thread_usleep have been discouraged.
 
 Use scm_std_select, scm_std_sleep, scm_std_usleep instead.
-
-** SCM_DEFER_INTS and SCM_ALLOW_INTS have been deprecated.
-
-Use, for example, scm_frame_critical_section to mark critical
-sections.
-
-SCM_REDEFER_INTS and SCM_REALLOW_INTS are deprecated as well, of
-course.
 
 ** Many definitions have been removed that were previously deprecated.
 
