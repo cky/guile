@@ -1,3 +1,8 @@
+2005-01-29  Kevin Ryde  <user42@zip.com.au>
+
+	* posix.texi (Signals): In sigaction, add SA_NOCLDSTOP, make it
+	clearer SA_RESTART is a variable.
+
 2005-01-28  Kevin Ryde  <user42@zip.com.au>
 
 	* srfi-modules.texi (SRFI-1 Predicates): Clarify proper-list?,
