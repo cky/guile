@@ -39,6 +39,7 @@
 
 #include "libguile/validate.h"
 #include "libguile/posix.h"
+#include "libguile/i18n.h"
 
 
 #ifdef HAVE_STRING_H
@@ -1365,7 +1366,7 @@ SCM_DEFINE (scm_setlocale, "setlocale", 1, 1, 0,
       scm_frame_free (clocale);
     }
 
-  rv = setlocale (scm_to_int (category), clocale);
+  rv = setlocale (scm_i_to_lc_category (category, 1), clocale);
   if (rv == NULL)
     SCM_SYSERROR;
 
@@ -1928,6 +1929,24 @@ scm_init_posix ()
 #endif
 #ifdef LC_ALL
   scm_c_define ("LC_ALL", scm_from_int (LC_ALL));
+#endif
+#ifdef LC_PAPER
+  scm_c_define ("LC_PAPER", scm_from_int (LC_PAPER));
+#endif
+#ifdef LC_NAME
+  scm_c_define ("LC_NAME", scm_from_int (LC_NAME));
+#endif
+#ifdef LC_ADDRESS
+  scm_c_define ("LC_ADDRESS", scm_from_int (LC_ADDRESS));
+#endif
+#ifdef LC_TELEPHONE
+  scm_c_define ("LC_TELEPHONE", scm_from_int (LC_TELEPHONE));
+#endif
+#ifdef LC_MEASUREMENT
+  scm_c_define ("LC_MEASUREMENT", scm_from_int (LC_MEASUREMENT));
+#endif
+#ifdef LC_IDENTIFICATION
+  scm_c_define ("LC_IDENTIFICATION", scm_from_int (LC_IDENTIFICATION));
 #endif
 #ifdef PIPE_BUF
   scm_c_define ("PIPE_BUF", scm_from_long (PIPE_BUF));

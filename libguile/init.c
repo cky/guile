@@ -63,6 +63,7 @@
 #include "libguile/hash.h"
 #include "libguile/hashtab.h"
 #include "libguile/hooks.h"
+#include "libguile/i18n.h"
 #include "libguile/iselect.h"
 #include "libguile/ioext.h"
 #include "libguile/keywords.h"
@@ -477,6 +478,7 @@ scm_init_guile_1 (SCM_STACKITEM *base)
   scm_init_properties ();
   scm_init_hooks ();            /* Requires smob_prehistory */
   scm_init_gc ();		/* Requires hooks, async */
+  scm_init_i18n ();
   scm_init_ioext ();
   scm_init_keywords ();
   scm_init_list ();
