@@ -68,15 +68,12 @@ the documentation.
 
 For ways to deal with exceptions, @ref{Exceptions}.
 
-Errors which the C-library would report by returning a NULL
-pointer or through some other means are reported by raising a
-@code{system-error} exception.
-The value of the Unix @code{errno} variable is available
+Errors which the C-library would report by returning a NULL pointer or
+through some other means are reported by raising a @code{system-error}
+exception.  The value of the Unix @code{errno} variable is available
 in the data passed by the exception.
 
-Here's an ad-hoc@footnote{This may be changed in the future; be prepared
-to rewrite this sort of code.} way to extract the @code{errno} value
-from an exception:
+It can be extracted with the function @code{system-error-errno}:
 
 @example
 (catch
@@ -84,7 +81,7 @@ from an exception:
  (lambda ()
    (mkdir "/this-ought-to-fail-if-I'm-not-root"))
  (lambda stuff
-   (let ((errno (car (list-ref stuff 4))))
+   (let ((errno (system-error-errno 4)))
      (cond
       ((= errno EACCES)
        (display "You're not allowed to do that."))
@@ -94,9 +91,6 @@ from an exception:
        (display (strerror errno))))
      (newline))))
 @end example
-
-The important thing to note is that the @code{errno} value can be
-extracted with @code{(car (list-ref stuff 4))}.
 
 @node Ports and File Descriptors
 @section Ports and File Descriptors
