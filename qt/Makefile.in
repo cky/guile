@@ -42,9 +42,11 @@ host_triplet = @host@
 RANLIB = @RANLIB@
 qtmd_h = @qtmd_h@
 CC = @CC@
+qtmds_o = @qtmds_o@
+qtmdc_o = @qtmdc_o@
 target_libs = @target_libs@
-qtmdc_c = @qtmdc_c@
 qtmds_s = @qtmds_s@
+qtmdc_c = @qtmdc_c@
 qtmdb_s = @qtmdb_s@
 
 AUTOMAKE_OPTIONS = foreign
@@ -370,10 +372,12 @@ maintainer-clean-generic clean mostlyclean distclean maintainer-clean
 
 
 qtmds.o: @qtmds_s@ 
-	$(COMPILE) -o qtmds.o @qtmds_s@
+	$(COMPILE) -c @qtmds_s@
+	mv @qtmds_o@ qtmds.o
 
 qtmdc.o: @qtmdc_c@ @qtmd_h@
-	$(COMPILE) -o qtmdc.o @qtmdc_c@
+	$(COMPILE) -c @qtmdc_c@
+	mv @qtmdc_o@ qtmdc.o
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
