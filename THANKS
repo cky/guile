@@ -1,70 +1,11 @@
 The Guile core distribution:
 - Marcus Daniels contributed changes to make Guile work under Windows NT
   (using the cygwin32 DLL).
+- Bernard Urban, for his work on the Hobbit Scheme->C compiler
+- Tim Pierce, for faster line-oriented I/O (%read-line and friends)
 
 Bug reports and fixes from:
-Jim Ravan
+    Jim Ravan
+Bernard Urban
 
 Also, thanks to Pat Eyler, for his continuing work on the Guile web pages!
-
-The Guile reference manual:
-- Mark Galassi, for general stewardship
-- Tim Pierce, for writing sections on script interpreter triggers, alists,
-  function tracing, and splitting the manual into its own module.
-Doc bug fixes from:
-Marcus Daniels
-
-The Guile SCSH port:
-- Gary Houston did the port
-
-guile-core 1.2
-
-The Guile core distribution:
-- Tim Pierce, for the light-weight SCSH-compatible regexp interface,
-  tracking down Solaris problems, and miscellaneous bug fixes
-- Gary Houston, for continued work on the system call support
-- Anthony Green, for help debugging problems on Solaris under Sun's
-  compiler, and general thread expertise
-- Marius Vollmer, for tracking down problems with disappearing
-  threads, and improving the way structures print
-- Bernard URBAN, for making Hobbit work with Guile, and bug reports
-- Marcus Daniels and Russ McManus, for work on the cygwin (or
-  gnu-win32) port.
-
-Bug reports and fixes from:
-   Aleksandar Bakic
-       Thomas Bushnell
-       Marcus Daniels
-         Bill Janssen
-      Russell McManus
-         Bill Nell
-        Larry Schwimmer
-       Maciej Stachowiak
-        Bruce Stephens
-     Maurizio Vitale
-       YABUKI Youichi
-
-Also, thanks to Pat Eyler, for his work on the Guile web pages!
-
-
-guile-core 1.1
-
-The Guile core distribution:
-- Gary Houston, much work on system call support, many bug fixes 
-- Marius Vollmer, much work on dynamic linking support
-- Mikael Djurfeldt, debugging support and general hacking
-- Tim Pierce, for writing the gh_lookup and gh_module_lookup functions,
-  fixing bugs in the shared substring support throughout the core, 
-  fixes to gethost, getproto, etc.,
-- Philippe Defert, for testing on a bunch of different machines
-- Peter Mattis, for testing with the GIMP
-- Roland McGrath, for the fcntl implementation
-- Aubrey Jaffer, for some of the code in script.c
-- Anthony Green, bug fixes
-- Bernard URBAN, for new shl shared library support
-- Daniel Hagerty, for providing test machines and help with the release 
-Bug reports from: Philippe Defert, Fred Fish, Anthony Green, Thomas
-Morgan, Tim Pierce, and many others before I started keeping track
-
-
-
