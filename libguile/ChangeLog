@@ -1,3 +1,17 @@
+1999-05-02  Jim Blandy  <jimb@savonarola.red-bean.com>
+
+	* procs.h: Doc fix.
+
+	* Makefile.am (modinclude_HEADERS): Add kw.h, so the new version
+	gets installed.
+	* Makefile.in: Regenerated.
+
+	* numbers.c: If we're supporting floating-point, provide the
+	feature "inexact".
+
+	* scmconfig.h.in: Regenerated; see today's change to
+	../configure.in.
+
 1999-04-17  Jim Blandy  <jimb@savonarola.red-bean.com>
 
 	* Makefile.in: Regenerated.

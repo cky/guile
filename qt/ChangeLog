@@ -1,6 +1,6 @@
 1999-04-17  Jim Blandy  <jimb@savonarola.red-bean.com>
 
-	* Makefile.in: Regenerated.
+	* Makefile.in, time/Makefile.in: Regenerated.
 
 1998-10-16  Jim Blandy  <jimb@zwingli.cygnus.com>
 

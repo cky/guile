@@ -1,3 +1,25 @@
+1999-05-02  Jim Blandy  <jimb@savonarola.red-bean.com>
+
+	* boot-9.scm (provided?): New function.
+
+	* Makefile.am: Add string-case.scm and format.scm to ice9_sources.
+	* Makefile.in: Regenerated.
+	
+	* string-case.scm: New file, brought in from SLIB, and adapted to
+	Guile's module system.
+
+	* format.scm: New file, brought in from SLIB, with the following
+	changes:
+	(format:format): If the first argument is the format string, stick
+	a #f on the front of it, so it is now a valid CL format argument
+	list.  This is easier than changing everyplace else (like the
+	error formatter) that expects it to be in CL form.  The other
+	clause which explicitly tests for this case is now dead code.
+	(format:format-work): Allow `@' and `:' in either order, as per
+	modern CL behavior.
+	(format:num->cardinal): Don't assume that an elseless if returns
+	'() when the condition is false.
+ 
 1999-04-17  Jim Blandy  <jimb@savonarola.red-bean.com>
 
 	* Makefile.in: Regenerated.

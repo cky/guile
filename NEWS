@@ -46,6 +46,459 @@ in backtraces.
 
 * Changes to Scheme functions and syntax
 
+** New function provided?
+
+ - Function: provided? FEATURE
+     Return true iff FEATURE is supported by this installation of
+     Guile.  FEATURE must be a symbol naming a feature; the global
+     variable `*features*' is a list of available features.
+
+** New module (ice-9 format), implementing the Common Lisp `format' function.
+
+This code, and the documentation for it that appears here, was
+borrowed from SLIB, with minor adaptations for Guile.
+
+ - Function: format DESTINATION FORMAT-STRING . ARGUMENTS
+     An almost complete implementation of Common LISP format description
+     according to the CL reference book `Common LISP' from Guy L.
+     Steele, Digital Press.  Backward compatible to most of the
+     available Scheme format implementations.
+
+     Returns `#t', `#f' or a string; has side effect of printing
+     according to FORMAT-STRING.  If DESTINATION is `#t', the output is
+     to the current output port and `#t' is returned.  If DESTINATION
+     is `#f', a formatted string is returned as the result of the call.
+     NEW: If DESTINATION is a string, DESTINATION is regarded as the
+     format string; FORMAT-STRING is then the first argument and the
+     output is returned as a string. If DESTINATION is a number, the
+     output is to the current error port if available by the
+     implementation. Otherwise DESTINATION must be an output port and
+     `#t' is returned.
+
+     FORMAT-STRING must be a string.  In case of a formatting error
+     format returns `#f' and prints a message on the current output or
+     error port.  Characters are output as if the string were output by
+     the `display' function with the exception of those prefixed by a
+     tilde (~).  For a detailed description of the FORMAT-STRING syntax
+     please consult a Common LISP format reference manual.  For a test
+     suite to verify this format implementation load `formatst.scm'.
+     Please send bug reports to `lutzeb@cs.tu-berlin.de'.
+
+     Note: `format' is not reentrant, i.e. only one `format'-call may
+     be executed at a time.
+
+
+*** Format Specification (Format version 3.0)
+
+   Please consult a Common LISP format reference manual for a detailed
+description of the format string syntax.  For a demonstration of the
+implemented directives see `formatst.scm'.
+
+   This implementation supports directive parameters and modifiers (`:'
+and `@' characters). Multiple parameters must be separated by a comma
+(`,').  Parameters can be numerical parameters (positive or negative),
+character parameters (prefixed by a quote character (`''), variable
+parameters (`v'), number of rest arguments parameter (`#'), empty and
+default parameters.  Directive characters are case independent. The
+general form of a directive is:
+
+DIRECTIVE ::= ~{DIRECTIVE-PARAMETER,}[:][@]DIRECTIVE-CHARACTER
+
+DIRECTIVE-PARAMETER ::= [ [-|+]{0-9}+ | 'CHARACTER | v | # ]
+
+*** Implemented CL Format Control Directives
+
+   Documentation syntax: Uppercase characters represent the
+corresponding control directive characters. Lowercase characters
+represent control directive parameter descriptions.
+
+`~A'
+     Any (print as `display' does).
+    `~@A'
+          left pad.
+
+    `~MINCOL,COLINC,MINPAD,PADCHARA'
+          full padding.
+
+`~S'
+     S-expression (print as `write' does).
+    `~@S'
+          left pad.
+
+    `~MINCOL,COLINC,MINPAD,PADCHARS'
+          full padding.
+
+`~D'
+     Decimal.
+    `~@D'
+          print number sign always.
+
+    `~:D'
+          print comma separated.
+
+    `~MINCOL,PADCHAR,COMMACHARD'
+          padding.
+
+`~X'
+     Hexadecimal.
+    `~@X'
+          print number sign always.
+
+    `~:X'
+          print comma separated.
+
+    `~MINCOL,PADCHAR,COMMACHARX'
+          padding.
+
+`~O'
+     Octal.
+    `~@O'
+          print number sign always.
+
+    `~:O'
+          print comma separated.
+
+    `~MINCOL,PADCHAR,COMMACHARO'
+          padding.
+
+`~B'
+     Binary.
+    `~@B'
+          print number sign always.
+
+    `~:B'
+          print comma separated.
+
+    `~MINCOL,PADCHAR,COMMACHARB'
+          padding.
+
+`~NR'
+     Radix N.
+    `~N,MINCOL,PADCHAR,COMMACHARR'
+          padding.
+
+`~@R'
+     print a number as a Roman numeral.
+
+`~:@R'
+     print a number as an "old fashioned" Roman numeral.
+
+`~:R'
+     print a number as an ordinal English number.
+
+`~:@R'
+     print a number as a cardinal English number.
+
+`~P'
+     Plural.
+    `~@P'
+          prints `y' and `ies'.
+
+    `~:P'
+          as `~P but jumps 1 argument backward.'
+
+    `~:@P'
+          as `~@P but jumps 1 argument backward.'
+
+`~C'
+     Character.
+    `~@C'
+          prints a character as the reader can understand it (i.e. `#\'
+          prefixing).
+
+    `~:C'
+          prints a character as emacs does (eg. `^C' for ASCII 03).
+
+`~F'
+     Fixed-format floating-point (prints a flonum like MMM.NNN).
+    `~WIDTH,DIGITS,SCALE,OVERFLOWCHAR,PADCHARF'
+    `~@F'
+          If the number is positive a plus sign is printed.
+
+`~E'
+     Exponential floating-point (prints a flonum like MMM.NNN`E'EE).
+    `~WIDTH,DIGITS,EXPONENTDIGITS,SCALE,OVERFLOWCHAR,PADCHAR,EXPONENTCHARE'
+    `~@E'
+          If the number is positive a plus sign is printed.
+
+`~G'
+     General floating-point (prints a flonum either fixed or
+     exponential).
+    `~WIDTH,DIGITS,EXPONENTDIGITS,SCALE,OVERFLOWCHAR,PADCHAR,EXPONENTCHARG'
+    `~@G'
+          If the number is positive a plus sign is printed.
+
+`~$'
+     Dollars floating-point (prints a flonum in fixed with signs
+     separated).
+    `~DIGITS,SCALE,WIDTH,PADCHAR$'
+    `~@$'
+          If the number is positive a plus sign is printed.
+
+    `~:@$'
+          A sign is always printed and appears before the padding.
+
+    `~:$'
+          The sign appears before the padding.
+
+`~%'
+     Newline.
+    `~N%'
+          print N newlines.
+
+`~&'
+     print newline if not at the beginning of the output line.
+    `~N&'
+          prints `~&' and then N-1 newlines.
+
+`~|'
+     Page Separator.
+    `~N|'
+          print N page separators.
+
+`~~'
+     Tilde.
+    `~N~'
+          print N tildes.
+
+`~'<newline>
+     Continuation Line.
+    `~:'<newline>
+          newline is ignored, white space left.
+
+    `~@'<newline>
+          newline is left, white space ignored.
+
+`~T'
+     Tabulation.
+    `~@T'
+          relative tabulation.
+
+    `~COLNUM,COLINCT'
+          full tabulation.
+
+`~?'
+     Indirection (expects indirect arguments as a list).
+    `~@?'
+          extracts indirect arguments from format arguments.
+
+`~(STR~)'
+     Case conversion (converts by `string-downcase').
+    `~:(STR~)'
+          converts by `string-capitalize'.
+
+    `~@(STR~)'
+          converts by `string-capitalize-first'.
+
+    `~:@(STR~)'
+          converts by `string-upcase'.
+
+`~*'
+     Argument Jumping (jumps 1 argument forward).
+    `~N*'
+          jumps N arguments forward.
+
+    `~:*'
+          jumps 1 argument backward.
+
+    `~N:*'
+          jumps N arguments backward.
+
+    `~@*'
+          jumps to the 0th argument.
+
+    `~N@*'
+          jumps to the Nth argument (beginning from 0)
+
+`~[STR0~;STR1~;...~;STRN~]'
+     Conditional Expression (numerical clause conditional).
+    `~N['
+          take argument from N.
+
+    `~@['
+          true test conditional.
+
+    `~:['
+          if-else-then conditional.
+
+    `~;'
+          clause separator.
+
+    `~:;'
+          default clause follows.
+
+`~{STR~}'
+     Iteration (args come from the next argument (a list)).
+    `~N{'
+          at most N iterations.
+
+    `~:{'
+          args from next arg (a list of lists).
+
+    `~@{'
+          args from the rest of arguments.
+
+    `~:@{'
+          args from the rest args (lists).
+
+`~^'
+     Up and out.
+    `~N^'
+          aborts if N = 0
+
+    `~N,M^'
+          aborts if N = M
+
+    `~N,M,K^'
+          aborts if N <= M <= K
+
+*** Not Implemented CL Format Control Directives
+
+`~:A'
+     print `#f' as an empty list (see below).
+
+`~:S'
+     print `#f' as an empty list (see below).
+
+`~<~>'
+     Justification.
+
+`~:^'
+     (sorry I don't understand its semantics completely)
+
+*** Extended, Replaced and Additional Control Directives
+
+`~MINCOL,PADCHAR,COMMACHAR,COMMAWIDTHD'
+`~MINCOL,PADCHAR,COMMACHAR,COMMAWIDTHX'
+`~MINCOL,PADCHAR,COMMACHAR,COMMAWIDTHO'
+`~MINCOL,PADCHAR,COMMACHAR,COMMAWIDTHB'
+`~N,MINCOL,PADCHAR,COMMACHAR,COMMAWIDTHR'
+     COMMAWIDTH is the number of characters between two comma
+     characters.
+
+`~I'
+     print a R4RS complex number as `~F~@Fi' with passed parameters for
+     `~F'.
+
+`~Y'
+     Pretty print formatting of an argument for scheme code lists.
+
+`~K'
+     Same as `~?.'
+
+`~!'
+     Flushes the output if format DESTINATION is a port.
+
+`~_'
+     Print a `#\space' character
+    `~N_'
+          print N `#\space' characters.
+
+`~/'
+     Print a `#\tab' character
+    `~N/'
+          print N `#\tab' characters.
+
+`~NC'
+     Takes N as an integer representation for a character. No arguments
+     are consumed. N is converted to a character by `integer->char'.  N
+     must be a positive decimal number.
+
+`~:S'
+     Print out readproof.  Prints out internal objects represented as
+     `#<...>' as strings `"#<...>"' so that the format output can always
+     be processed by `read'.
+
+`~:A'
+     Print out readproof.  Prints out internal objects represented as
+     `#<...>' as strings `"#<...>"' so that the format output can always
+     be processed by `read'.
+
+`~Q'
+     Prints information and a copyright notice on the format
+     implementation.
+    `~:Q'
+          prints format version.
+
+`~F, ~E, ~G, ~$'
+     may also print number strings, i.e. passing a number as a string
+     and format it accordingly.
+
+*** Configuration Variables
+
+   The format module exports some configuration variables to suit the
+systems and users needs. There should be no modification necessary for
+the configuration that comes with Guile.  Format detects automatically
+if the running scheme system implements floating point numbers and
+complex numbers.
+
+format:symbol-case-conv
+     Symbols are converted by `symbol->string' so the case type of the
+     printed symbols is implementation dependent.
+     `format:symbol-case-conv' is a one arg closure which is either
+     `#f' (no conversion), `string-upcase', `string-downcase' or
+     `string-capitalize'. (default `#f')
+
+format:iobj-case-conv
+     As FORMAT:SYMBOL-CASE-CONV but applies for the representation of
+     implementation internal objects. (default `#f')
+
+format:expch
+     The character prefixing the exponent value in `~E' printing.
+     (default `#\E')
+
+*** Compatibility With Other Format Implementations
+
+SLIB format 2.x:
+     See `format.doc'.
+
+SLIB format 1.4:
+     Downward compatible except for padding support and `~A', `~S',
+     `~P', `~X' uppercase printing.  SLIB format 1.4 uses C-style
+     `printf' padding support which is completely replaced by the CL
+     `format' padding style.
+
+MIT C-Scheme 7.1:
+     Downward compatible except for `~', which is not documented
+     (ignores all characters inside the format string up to a newline
+     character).  (7.1 implements `~a', `~s', ~NEWLINE, `~~', `~%',
+     numerical and variable parameters and `:/@' modifiers in the CL
+     sense).
+
+Elk 1.5/2.0:
+     Downward compatible except for `~A' and `~S' which print in
+     uppercase.  (Elk implements `~a', `~s', `~~', and `~%' (no
+     directive parameters or modifiers)).
+
+Scheme->C 01nov91:
+     Downward compatible except for an optional destination parameter:
+     S2C accepts a format call without a destination which returns a
+     formatted string. This is equivalent to a #f destination in S2C.
+     (S2C implements `~a', `~s', `~c', `~%', and `~~' (no directive
+     parameters or modifiers)).
+
+
+** New module (ice-9 string-case), for upcasing, downcasing, and the like.
+
+(This code, and the documentation for it that appears here, was
+borrowed from SLIB, with minor adaptations for Guile.)
+
+This module exports seven functions:
+
+ - Procedure: string-upcase STR
+ - Procedure: string-downcase STR
+ - Procedure: string-capitalize STR
+     The obvious string conversion routines.  These are non-destructive.
+
+ - Function: string-upcase! STR
+ - Function: string-downcase! STR
+ - Function: string-captialize! STR
+     The destructive versions of the functions above.
+
+ - Function: string-ci->symbol STR
+     Converts string STR to a symbol having the same case as if the
+     symbol had been `read'.
+
 ** New module (ice-9 getopt-long), with the function `getopt-long'.
 
 getopt-long is a function for parsing command-line arguments in a
