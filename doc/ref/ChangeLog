@@ -1,3 +1,12 @@
+2004-12-14  Kevin Ryde  <user42@zip.com.au>
+
+	* api-data.texi (Regexp Functions): Revise regex-substitute and
+	regex-substitute/global for clarity, add some examples.
+
+	* api-procedures.texi (lambda* Reference): Revise for clarity, note
+	how #:rest works with #:key, note previous bindings available to
+	default expressions.
+
 2004-12-05  Kevin Ryde  <user42@zip.com.au>
 
 	* srfi-modules.texi (SRFI-1 Length Append etc): In concatenate, note

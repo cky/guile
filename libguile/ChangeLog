@@ -1,3 +1,16 @@
+2004-12-10  Kevin Ryde  <user42@zip.com.au>
+
+	* eq.c (scm_eq_p, scm_eqv_p, scm_equal_p): Update docstrings from
+	recent revision to the reference manual.
+
+	* numbers.c (scm_modulo): Amend fixme comment about negative divisor
+	with "%", C99 says it's well-defined.
+
+	* socket.c (scm_from_ipv6): Just use mpz_import.  Don't bother trying
+	to fit scm_from_ulong_long, since that uses mpz_import anyway.  Don't
+	bother trying to fit scm_from_ulong, not really worth the trouble if
+	addresses are more than 4 bytes usually.
+
 2004-11-30  Kevin Ryde  <user42@zip.com.au>
 
 	* gc_os_dep.c (NetBSD): Test __m68k__ and __arm__ as well as m68k and
