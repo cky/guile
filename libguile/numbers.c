@@ -1164,7 +1164,7 @@ SCM_DEFINE1 (scm_logand, "logand", scm_tc7_asubr,
 	     "@lisp\n"
 	     "(logand) @result{} -1\n"
 	     "(logand 7) @result{} 7\n"
-	     "(logand #b111 #b011 #\b001) @result{} 1\n"
+	     "(logand #b111 #b011 #b001) @result{} 1\n"
 	     "@end lisp")
 #define FUNC_NAME s_scm_logand
 {
