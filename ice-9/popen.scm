@@ -23,9 +23,7 @@
       (cond ((= pid 0)
 	     ;; child
 	     (set-batch-mode?! #t)
-	     (if reading
-		 (close-port (car p))
-		 (close-port (cdr p)))
+	     (close-all-ports-except (if reading (cdr p) (car p)))
 	     (move->fdes (if reading (cdr p) (car p))
 			 (if reading 1 0))
 	     (apply execlp prog prog args))
