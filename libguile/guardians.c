@@ -1,4 +1,4 @@
-/*	Copyright (C) 1998 Free Software Foundation, Inc.
+/*	Copyright (C) 1998, 1999 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -184,60 +184,35 @@ scm_guardian_zombify ()
      of this list, so they'll be processed properly.  */
   for (g = first_live_guardian; g; g = g->next)
     {
-      /* Loop through the live list and
-	 1. move unmarked objects to the zombies tconc
-	 2. mark the live tconc.  */
+      /* Scan the live list for unmarked objects, and move them to the
+         zombies tconc.  */
       SCM tconc_tail = g->live.tail;
-      SCM prev_pair = SCM_BOOL_F;
+      SCM *prev_ptr = &g->live.head;
       SCM pair = g->live.head;
+
       while (pair != tconc_tail)
 	{
 	  SCM next_pair = SCM_CDR (pair);
-
-	  /* Since next_pair is never assigned to, and since pair is
-	     always set to next_pair at the end of the loop, we know
-	     that this loop always reaches every pair in the tconc
-	     once, except the tail.
-
-	     At each iteration, we either throw the pair out of the
-	     live list, or we mark it.  And when we edit a pair's CDR,
-	     we make sure to preserve its mark bit.  So when this loop
-	     terminates, all pairs left in the live tconc (except the
-	     tail) have been marked.
-
-	     Whenever we throw out a pair, we always relink the tconc,
-	     so the tconc list structure is valid at the end of every
-	     iteration.  */
 
 	  if (SCM_NMARKEDP (SCM_CAR (pair)))
 	    {
 	      /* got you, zombie! */
 
 	      /* out of the live list! */
-	      if (SCM_FALSEP (prev_pair))
-		g->live.head = next_pair;
-	      else
-		{
-		  SCM_SETCDR (prev_pair, next_pair);
-		  /* Don't lose the mark bit!  */
-		  SCM_SETGCMARK (prev_pair);
-		}
+	      *prev_ptr = next_pair;
 
 	      /* to the zombie list! */
 	      TCONC_IN (g->zombies, SCM_CAR (pair), pair);
 	    }
 	  else
-	    {
-	      SCM_SETGCMARK (pair);
-	      prev_pair = pair;
-	    }
+	    prev_ptr = SCM_CDRLOC (pair);
 
 	  pair = next_pair;
 	}
-      
-      /* Mark the tconc's tail cell.  All the other pairs in the tconc
-         are already marked.  */
-      SCM_SETGCMARK (tconc_tail);
+
+      /* Mark the cells of the live list.  */
+      for (pair = g->live.head; SCM_NIMP (pair); pair = SCM_GCCDR (pair))
+	SCM_SETGCMARK (pair);
 
       /* Bring the zombies back from the dead.  */
       scm_gc_mark (g->zombies.head);
