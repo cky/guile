@@ -1,5 +1,9 @@
 Fri May 16 03:06:08 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
+	* Makefile.am (libguile_la_LDFLAGS): Update libguile's shared
+	library version info to 1:0.
+	* Makefile.in: Regenerated.
+
 	* backtrace.c, backtrace.h, debug.c, debug.h, eq.c,
  	gdb_interface.h, gdbint.c, gdbint.h, gh_data.c, gh_init.c,
  	gh_io.c, gh_list.c, gh_predicates.c, gh_test_c.c, gh_test_repl.c,

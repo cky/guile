@@ -1,3 +1,8 @@
+Fri May 16 04:24:48 1997  Jim Blandy  <jimb@floss.cyclic.com>
+
+	Guile 1.1 released.
+	* GUILE-VERSION: Bump to 1.1.
+
 Tue May 13 16:34:40 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 	Switch to automake-1.1p.
