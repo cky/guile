@@ -157,6 +157,18 @@ SCM_API SCM scm_allocate_string (size_t len);
 #define SCM_NULLP(x)		(scm_is_null (x))
 #define SCM_NNULLP(x)		(!scm_is_null (x))
 
+/* Discouraged because they are just strange.
+ */
+
+SCM_API SCM scm_make_keyword_from_dash_symbol (SCM symbol);
+SCM_API SCM scm_keyword_dash_symbol (SCM keyword);
+
+/* Discouraged because it does not state what encoding S is in.
+ */
+
+SCM_API SCM scm_c_make_keyword (const char *s);
+
+
 void scm_i_init_discouraged (void);
 
 #endif /* SCM_ENABLE_DISCOURAGED == 1 */

@@ -28,16 +28,16 @@
 
 SCM_API scm_t_bits scm_tc16_keyword;
 
-#define SCM_KEYWORDP(X)		(SCM_SMOB_PREDICATE (scm_tc16_keyword, (X)))
-#define SCM_KEYWORDSYM(X)	(SCM_SMOB_OBJECT (X))
-
 
 
-
-SCM_API SCM scm_make_keyword_from_dash_symbol (SCM symbol);
-SCM_API SCM scm_c_make_keyword (char *s);
 SCM_API SCM scm_keyword_p (SCM obj);
-SCM_API SCM scm_keyword_dash_symbol (SCM keyword);
+SCM_API SCM scm_symbol_to_keyword (SCM symbol);
+SCM_API SCM scm_keyword_to_symbol (SCM keyword);
+
+SCM_API int scm_is_keyword (SCM val);
+SCM_API SCM scm_from_locale_keyword (const char *str);
+SCM_API SCM scm_from_locale_keywordn (const char *str, size_t len);
+
 SCM_API void scm_init_keywords (void);
 
 #endif  /* SCM_KEYWORDS_H */

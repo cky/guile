@@ -1192,6 +1192,22 @@ SCM_SYMBOL_LENGTH (SCM sym)
   return scm_i_symbol_length (sym);
 }
 
+int
+SCM_KEYWORDP (SCM obj)
+{
+  scm_c_issue_deprecation_warning
+    ("SCM_KEYWORDP is deprecated.  Use scm_is_keyword instead.");
+  return scm_is_keyword (obj);
+}
+
+SCM
+SCM_KEYWORDSYM (SCM keyword);
+{
+  scm_c_issue_deprecation_warning
+    ("SCM_KEYWORDSYM is deprecated.  See scm_keyword_to_symbol instead.");
+  return scm_keyword_dash_symbol (keyword);
+}
+
 void
 scm_i_init_deprecated ()
 {

@@ -447,6 +447,14 @@ SCM_API double scm_round (double x);
 SCM_API char *SCM_SYMBOL_CHARS (SCM sym);
 SCM_API size_t SCM_SYMBOL_LENGTH (SCM sym);
 
+/* Deprecated because the macros used to evaluate the arguments more
+   than once and because the symbol of a keyword now has no dash.
+*/
+
+SCM_API int SCM_KEYWORDP (SCM obj);
+SCM_API SCM SCM_KEYWORDSYM (SCM keyword);
+
+
 void scm_i_init_deprecated (void);
 
 #endif

@@ -156,6 +156,47 @@ scm_allocate_string (size_t len)
   return scm_i_make_string (len, NULL);
 }
 
+SCM_DEFINE (scm_make_keyword_from_dash_symbol, "make-keyword-from-dash-symbol", 1, 0, 0, 
+            (SCM symbol),
+            "Make a keyword object from a @var{symbol} that starts with a dash.")
+#define FUNC_NAME s_scm_make_keyword_from_dash_symbol
+{
+  SCM dash_string, non_dash_symbol;
+
+  SCM_ASSERT (scm_is_symbol (symbol)
+	      && ('-' == scm_i_symbol_chars(symbol)[0]),
+	      symbol, SCM_ARG1, FUNC_NAME);
+
+  dash_string = scm_symbol_to_string (symbol);
+  non_dash_symbol =
+    scm_string_to_symbol (scm_c_substring (dash_string,
+					   1,
+					   scm_c_string_length (dash_string)));
+
+  return scm_symbol_to_keyword (non_dash_symbol);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_keyword_dash_symbol, "keyword-dash-symbol", 1, 0, 0, 
+            (SCM keyword),
+	    "Return the dash symbol for @var{keyword}.\n"
+	    "This is the inverse of @code{make-keyword-from-dash-symbol}.")
+#define FUNC_NAME s_scm_keyword_dash_symbol
+{
+  SCM symbol = scm_keyword_to_symbol (keyword);
+  SCM parts = scm_list_2 (scm_from_locale_string ("-"),
+			  scm_symbol_to_string (symbol));
+  return scm_string_to_symbol (scm_string_append (parts));
+}
+#undef FUNC_NAME
+
+SCM
+scm_c_make_keyword (const char *s)
+{
+  return scm_from_locale_keyword (s);
+}
+
+
 void
 scm_i_init_discouraged (void)
 {

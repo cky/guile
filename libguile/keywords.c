@@ -34,29 +34,35 @@
 
 scm_t_bits scm_tc16_keyword;
 
+#define KEYWORDP(X)	(SCM_SMOB_PREDICATE (scm_tc16_keyword, (X)))
+#define KEYWORDSYM(X)	(SCM_SMOB_OBJECT (X))
+
 static int
 keyword_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
-  SCM symbol = SCM_KEYWORDSYM (exp);
-
   scm_puts ("#:", port);
-  scm_print_symbol_name (scm_i_symbol_chars (symbol) + 1,
-			 scm_i_symbol_length (symbol) - 1,
-			 port);
-  scm_remember_upto_here_1 (symbol);
+  scm_display (KEYWORDSYM (exp), port);
   return 1;
 }
 
-SCM_DEFINE (scm_make_keyword_from_dash_symbol, "make-keyword-from-dash-symbol", 1, 0, 0, 
-            (SCM symbol),
-            "Make a keyword object from a @var{symbol} that starts with a dash.")
-#define FUNC_NAME s_scm_make_keyword_from_dash_symbol
+SCM_DEFINE (scm_keyword_p, "keyword?", 1, 0, 0, 
+            (SCM obj),
+	    "Return @code{#t} if the argument @var{obj} is a keyword, else\n"
+	    "@code{#f}.")
+#define FUNC_NAME s_scm_keyword_p
+{
+  return scm_from_bool (KEYWORDP (obj));
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_symbol_to_keyword, "symbol->keyword", 1, 0, 0,
+	    (SCM symbol),
+	    "Return the keyword with the same name as @var{symbol}.")
+#define FUNC_NAME s_scm_symbol_to_keyword
 {
   SCM keyword;
 
-  SCM_ASSERT (scm_is_symbol (symbol)
-	      && ('-' == scm_i_symbol_chars(symbol)[0]),
-	      symbol, SCM_ARG1, FUNC_NAME);
+  SCM_ASSERT (scm_is_symbol (symbol), symbol, 0, NULL);
 
   SCM_DEFER_INTS;
   keyword = scm_hashq_ref (scm_keyword_obarray, symbol, SCM_BOOL_F);
@@ -70,43 +76,33 @@ SCM_DEFINE (scm_make_keyword_from_dash_symbol, "make-keyword-from-dash-symbol", 
 }
 #undef FUNC_NAME
 
+SCM_DEFINE (scm_keyword_to_symbol, "keyword->symbol", 1, 0, 0,
+	    (SCM keyword),
+	    "Return the symbol with the same name as @var{keyword}.")
+#define FUNC_NAME s_scm_keyword_to_symbol
+{
+  scm_assert_smob_type (scm_tc16_keyword, keyword);
+  return KEYWORDSYM (keyword);
+}
+#undef FUNC_NAME
+
+int
+scm_is_keyword (SCM val)
+{
+  return KEYWORDP (val);
+}
+
 SCM
-scm_c_make_keyword (char *s)
+scm_from_locale_keyword (const char *str)
 {
-  char *buf;
-  size_t len;
-  SCM string, symbol;
-
-  len = strlen (s) + 1;
-  string = scm_i_make_string (len, &buf);
-  buf[0] = '-';
-  strcpy (buf + 1, s);
-  symbol = scm_string_to_symbol (string);
-  return scm_make_keyword_from_dash_symbol (symbol);
+  return scm_symbol_to_keyword (scm_from_locale_symbol (str));
 }
 
-SCM_DEFINE (scm_keyword_p, "keyword?", 1, 0, 0, 
-            (SCM obj),
-	    "Return @code{#t} if the argument @var{obj} is a keyword, else\n"
-	    "@code{#f}.")
-#define FUNC_NAME s_scm_keyword_p
+SCM
+scm_from_locale_keywordn (const char *str, size_t len)
 {
-  return scm_from_bool (SCM_KEYWORDP (obj));
+  return scm_symbol_to_keyword (scm_from_locale_symboln (str, len));
 }
-#undef FUNC_NAME
-
-
-SCM_DEFINE (scm_keyword_dash_symbol, "keyword-dash-symbol", 1, 0, 0, 
-            (SCM keyword),
-	    "Return the dash symbol for @var{keyword}.\n"
-	    "This is the inverse of @code{make-keyword-from-dash-symbol}.")
-#define FUNC_NAME s_scm_keyword_dash_symbol
-{
-  SCM_VALIDATE_KEYWORD (1, keyword);
-  return SCM_KEYWORDSYM (keyword);
-}
-#undef FUNC_NAME
-
 
 
 void
