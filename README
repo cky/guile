@@ -6,6 +6,14 @@ well, giving users of Guile-based applications a choice of languages.
 
 Please send bug reports to bug-guile@gnu.org.
 
+Guile Documentation ==================================================
+
+There is some preliminary documentation for Guile under the directory
+doc.  The real Guile manual is incomplete, and is currently being
+revised.  A development snapshot of the manual is available at
+ftp.red-bean.com as /pub/guile/snapshots/guile-doc-snap.tar.gz.
+
+
 About This Distribution ==============================================
 
 Interesting files include:
@@ -53,6 +61,8 @@ qt: 	A cooperative threads package from the University of Washington,
         copyright; see `qt/README' for more details.
 doc:	Some preliminary documentation for Guile.  The real Guile
 	manual is incomplete, and is currently being revised.
+	A development snapshot of the manual is available at
+        ftp.red-bean.com as /pub/guile/snapshots/guile-doc-snap.tar.gz.
 doc/example-smob: Sample code, discussed in the preliminary
 	documentation above, for a program that extends Guile with a
 	new data type, and functions that operate on it.
