@@ -9,19 +9,15 @@ Guile 1.0b3
 User-visible changes since Thursday, September 5:
 
 
-* Guile now distinguishes between #f and the empty list.
 
-This is for compatibility with the IEEE standard, the (possibly)
-upcoming Revised^5 Report on Scheme, and many extant Scheme
-implementations.
+* Changes to the 'guile' program:
 
-Guile used to have #f and '() denote the same object, to make Scheme's
-type system more compatible with Emacs Lisp's.  However, the change
-caused too much trouble for Scheme programmers, and we found another
-way to reconcile Emacs Lisp with Scheme that didn't require this.
+** Guile now loads some new files when it starts up.  Guile first
+searches the load path for init.scm, and loads it if found.  Then, if
+Guile is not being used to execute a script, and the user's home
+directory contains a file named `.guile', Guile loads that.
 
-
-* You can now use Guile as a shell script interpreter.
+** You can now use Guile as a shell script interpreter.
 
 To paraphrase the SCSH manual:
 
@@ -80,7 +76,7 @@ exec /really/long/path/to/guile -s "$0" ${1+"$@"}
 Note that some very old Unix systems don't support the `#!' syntax.
 
 
-* You can now run Guile without installing it.
+** You can now run Guile without installing it.
 
 Previous versions of the interactive Guile interpreter (`guile')
 couldn't start up unless Guile's Scheme library had been installed;
@@ -99,7 +95,167 @@ you might say
 	export SCHEME_LOAD_PATH=/home/jimb/my-scheme:/home/jimb/guile-1.0b3
 
 
-* Guile's header files should no longer conflict with your system's
+** Guile's read-eval-print loop no longer prints #<unspecified>
+results.  If the user wants to see this, she can evaluate the
+expression (assert-repl-print-unspecified #t), perhaps in her startup
+file. 
+
+** Guile no longer shows backtraces by default when an error occurs;
+however, it does display a message saying how to get one, and how to
+request that they be displayed by default.  After an error, evaluate
+   (backtrace)
+to see a backtrace, and
+   (debug-enable 'backtrace)
+to see them by default.
+
+
+
+* Changes to Guile Scheme:
+
+** Guile now distinguishes between #f and the empty list.
+
+This is for compatibility with the IEEE standard, the (possibly)
+upcoming Revised^5 Report on Scheme, and many extant Scheme
+implementations.
+
+Guile used to have #f and '() denote the same object, to make Scheme's
+type system more compatible with Emacs Lisp's.  However, the change
+caused too much trouble for Scheme programmers, and we found another
+way to reconcile Emacs Lisp with Scheme that didn't require this.
+
+
+** Guile's delq, delv, delete functions, and their destructive
+counterparts, delq!, delv!, and delete!, now remove all matching
+elements from the list, not just the first.  This matches the behavior
+of the corresponding Emacs Lisp functions, and (I believe) the Maclisp
+functions which inspired them.
+
+I recognize that this change may break code in subtle ways, but it
+seems best to make the change before the FSF's first Guile release,
+rather than after.
+
+
+** The compiled-library-path function has been deleted from libguile.
+
+** The facilities for loading Scheme source files have changed.
+
+*** The variable %load-path now tells Guile which directories to search
+for Scheme code.  Its value is a list of strings, each of which names
+a directory.
+
+*** The variable %load-extensions now tells Guile which extensions to
+try appending to a filename when searching the load path.  Its value
+is a list of strings.  Its default value is ("" ".scm").
+
+*** (%search-load-path FILENAME) searches the directories listed in the
+value of the %load-path variable for a Scheme file named FILENAME,
+with all the extensions listed in %load-extensions.  If it finds a
+match, then it returns its full filename.  If FILENAME is absolute, it
+returns it unchanged.  Otherwise, it returns #f.
+
+%search-load-path will not return matches that refer to directories.
+
+*** (primitive-load FILENAME :optional CASE-INSENSITIVE-P SHARP)
+uses %seach-load-path to find a file named FILENAME, and loads it if
+it finds it.  If it can't read FILENAME for any reason, it throws an
+error.
+
+The arguments CASE-INSENSITIVE-P and SHARP are interpreted as by the
+`read' function.
+
+*** load uses the same searching semantics as primitive-load.
+
+*** The functions %try-load, try-load-with-path, %load, load-with-path,
+basic-try-load-with-path, basic-load-with-path, try-load-module-with-
+path, and load-module-with-path have been deleted.  The functions
+above should serve their purposes.
+
+*** If the value of the variable %load-hook is a procedure,
+`primitive-load' applies its value to the name of the file being
+loaded (without the load path directory name prepended).  If its value
+is #f, it is ignored.  Otherwise, an error occurs.
+
+This is mostly useful for printing load notification messages.
+
+
+** The function `eval!' is no longer accessible from the scheme level.
+We can't allow operations which introduce glocs into the scheme level,
+because Guile's type system can't handle these as data.  Use `eval' or
+`read-and-eval!' (see below) as replacement.
+
+** The new function read-and-eval! reads an expression from PORT,
+evaluates it, and returns the result.  This is more efficient than
+simply calling `read' and `eval', since it is not necessary to make a
+copy of the expression for the evaluator to munge.
+
+Its optional arguments CASE_INSENSITIVE_P and SHARP are interpreted as
+for the `read' function.
+
+
+** The function `int?' has been removed; its definition was identical
+to that of `integer?'.
+
+** The functions `<?', `<?', `<=?', `=?', `>?', and `>=?'.  Code should
+use the R4RS names for these functions.
+
+** The function object-properties no longer returns the hash handle;
+it simply returns the object's property list.
+
+** Many functions have been changed to throw errors, instead of
+returning #f on failure.  The point of providing exception handling in
+the language is to simplify the logic of user code, but this is less
+useful if Guile's primitives don't throw exceptions.
+
+** The function `fileno' has been renamed from `%fileno'.
+
+** The function primitive-mode->fdes returns #t or #f now, not 1 or 0.
+
+
+* Changes to Guile's C interface:
+
+** The library's initialization procedure has been simplified.
+scm_boot_guile now has the prototype:
+
+void scm_boot_guile (int ARGC,
+                     char **ARGV,
+	             void (*main_func) (),
+	             void *closure);
+
+scm_boot_guile calls MAIN_FUNC, passing it CLOSURE, ARGC, and ARGV.
+MAIN_FUNC should do all the work of the program (initializing other
+packages, reading user input, etc.) before returning.  When MAIN_FUNC
+returns, call exit (0); this function never returns.  If you want some
+other exit value, MAIN_FUNC may call exit itself.
+
+scm_boot_guile arranges for program-arguments to return the strings
+given by ARGC and ARGV.  If MAIN_FUNC modifies ARGC/ARGV, should call
+scm_set_program_arguments with the final list, so Scheme code will
+know which arguments have been processed.
+
+scm_boot_guile establishes a catch-all catch handler which prints an
+error message and exits the process.  This means that Guile exits in a
+coherent way when system errors occur and the user isn't prepared to
+handle it.  If the user doesn't like this behavior, they can establish
+their own universal catcher in MAIN_FUNC to shadow this one.
+
+Why must the caller do all the real work from MAIN_FUNC?  The garbage
+collector assumes that all local variables of type SCM will be above
+scm_boot_guile's stack frame on the stack.  If you try to manipulate
+SCM values after this function returns, it's the luck of the draw
+whether the GC will be able to find the objects you allocate.  So,
+scm_boot_guile function exits, rather than returning, to discourage
+people from making that mistake.
+
+The IN, OUT, and ERR arguments were removed; there are other
+convenient ways to override these when desired.
+
+The RESULT argument was deleted; this function should never return.
+
+The BOOT_CMD argument was deleted; the MAIN_FUNC argument is more
+general.
+
+
+** Guile's header files should no longer conflict with your system's
 header files.
 
 In order to compile code which #included <libguile.h>, previous
@@ -114,39 +270,36 @@ Guile's installation procedure puts libguile.h in $(includedir), and
 the rest in $(includedir)/libguile.
 
 
-* Guile's delq, delv, delete functions, and their destructive
-counterparts, delq!, delv!, and delete!, now remove all matching
-elements from the list, not just the first.  This matches the behavior
-of the corresponding Emacs Lisp functions, and (I believe) the Maclisp
-functions which inspired them.
+** Two new C functions, scm_protect_object and scm_unprotect_object,
+have been added to the Guile library.
 
-I recognize that this change may break code in subtle ways, but it
-seems best to make the change before the FSF's first Guile release,
-rather than after.
+scm_protect_object (OBJ) protects OBJ from the garbage collector.
+OBJ will not be freed, even if all other references are dropped,
+until someone does scm_unprotect_object (OBJ).  Both functions
+return OBJ.
+
+Note that calls to scm_protect_object do not nest.  You can call
+scm_protect_object any number of times on a given object, and the
+next call to scm_unprotect_object will unprotect it completely.
+
+Basically, scm_protect_object and scm_unprotect_object just
+maintain a list of references to things.  Since the GC knows about
+this list, all objects it mentions stay alive.  scm_protect_object
+adds its argument to the list; scm_unprotect_object remove its
+argument from the list.
 
 
-* The compiled-library-path function has been deleted from libguile.
+** scm_eval_0str now returns the value of the last expression
+evaluated.
 
+** The new function scm_read_0str reads an s-expression from a
+null-terminated string, and returns it.
 
-* A variable and two new functions have been added to libguile:
+** The new function `scm_stdio_to_port' converts a STDIO file pointer
+to a Scheme port object.
 
-** The variable %load-path now tells Guile which directories to search
-for Scheme code.  Its value is a list of strings, each of which names
-a directory.
-
-** (%search-load-path FILENAME) searches the directories listed in the
-value of the %load-path variable for a Scheme file named FILENAME.  If
-it finds a match, then it returns its full filename.  Otherwise, it
-returns #f.  %search-load-path will not return matches that refer to
-directories.
-
-** (%try-load-path FILENAME :optional CASE-INSENSITIVE-P SHARP)
-searches the directories listed in %load-path for a file named
-FILENAME, and loads it if it finds it.  If it can't read FILENAME for
-any reason, it throws an error.
-
-The arguments CASE-INSENSITIVE-P and SHARP are interpreted as by the
-%try-load function.
+** The new function `scm_set_program_arguments' allows C code to set
+the value teruturned by the Scheme `program-arguments' function.
 
 
 Older changes:
