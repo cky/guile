@@ -1,3 +1,36 @@
+2002-12-01  Mikael Djurfeldt  <mdj@linnaeus>
+
+	The following change makes it possible to move procedure
+	application dispatch outside inner loops.  The motivation was
+	clean implementation of efficient replacements of R5RS primitives
+	in SRFI-1.
+
+	The semantics is clear: scm_trampoline_N returns an optimized
+	version of scm_call_N (or NULL if the procedure isn't applicable
+	on N args).
+
+	Applying the optimization to map and for-each increases efficiency
+	noticeably.  For example, (map abs ls) is 8 times faster than
+	before.
+
+	* eval.h (scm_t_trampoline_1, scm_t_trampoline_2): New types.
+
+	* eval.c, eval.h (scm_trampoline_1, scm_trampoline_2): New functions.
+
+	* eval.c (call_subr2_2, call_lsubr_2, call_closure_2): New functions;
+	(map, for-each): Handle also application on two args as a special
+	case; Use trampolines.
+
+	Other changes:
+	
+	* sort.c (scm_cmp_function): Choose subr2less for scm_tc7_subr_2o;
+	(subr2oless): Removed.
+	(scm_restricted_vector_sort_x): Use scm_return_first to keep the
+	vector GC protected.
+
+	* eval.c (check_map_args): Use scm_out_of_range_pos instead of
+	scm_out_of_range.
+
 2002-11-24  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* evalext.[ch] (scm_m_undefine, undefine):  Deprecated.
@@ -290,7 +323,7 @@
 
 2002-10-11  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
-	* async.c (s_scm_system_async_mark_for_thread): Only call
+	* async.c (scm_system_async_mark_for_thread): Only call
 	scm_i_thread_root when USE_THREADS is defined.  Use scm_root
 	otherwise.
 
@@ -367,7 +400,7 @@
 	* Makefile.am (libguile_la_LIBADD): switch to use
 	libguile-ltdl.la.
 
-	* numbers.c (s_scm_integer_expt): (expt 0 1) should be 1.
+	* numbers.c (scm_integer_expt): (expt 0 1) should be 1.
 
 2002-10-04  Marius Vollmer  <mvo@zagadka.ping.de>
 
@@ -627,10 +660,10 @@
 	scm_add_to_port_table. This prevents cells with null-pointers from
 	being exposed to GC.
 
-	* vports.c (s_scm_make_soft_port) strports.c (scm_mkstrport),
+	* vports.c (scm_make_soft_port) strports.c (scm_mkstrport),
 	fports.c (scm_fdes_to_port): Use scm_new_port_table_entry().
 
-	* gc.c (s_scm_gc_stats): add cell-yield and malloc-yield statistic
+	* gc.c (scm_gc_stats): add cell-yield and malloc-yield statistic
 	to gc-stats.
 
 	* numbers.c (big2str): return "0" for 0 iso. ""
@@ -667,9 +700,9 @@
 
 	* macros.c: include deprecation.h
 
-	* vectors.c (s_scm_vector_move_right_x): remove side effect in
+	* vectors.c (scm_vector_move_right_x): remove side effect in
 	macro arg.
-	(s_scm_vector_move_left_x): idem.
+	(scm_vector_move_left_x): idem.
 
 	* net_db.c, posix.c, socket.c: variable naming: change ans to
 	result.
@@ -878,7 +911,7 @@
 
 	* goops.h (scm_slot_exists_p): Rename from scm_slots_exists_p.
 	* goops.c (scm_slot_exists_p): Rename from scm_slots_exists_p.
-	(s_scm_slot_exists_p): Rename from s_scm_slots_exists_p.
+	(scm_slot_exists_p): Rename from scm_slots_exists_p.
 	Thanks to Andreas Rottmann.
 
 2002-04-20  Gary Houston  <ghouston@arglist.com>
@@ -1344,7 +1377,7 @@
 	* socket.c: Include `stdint.h' if available for the `uint32_t'
 	declaration.
 
-	* scmsigs.c (s_scm_sigaction): Initialize `chandler' (inhibits
+	* scmsigs.c (scm_sigaction): Initialize `chandler' (inhibits
 	compiler warning).
 
 	* backtrace.c: Include `lang.h' for GUILE_DEBUG conditional.

@@ -1,4 +1,4 @@
-/* Copyright (C) 1999,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1999,2000,2001,2002 Free Software Foundation, Inc.
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2, or (at your option)
@@ -356,14 +356,6 @@ subr2less (SCM less, const void *a, const void *b)
 }				/* subr2less */
 
 static int 
-subr2oless (SCM less, const void *a, const void *b)
-{
-  return SCM_NFALSEP (SCM_SUBRF (less) (*(SCM *) a,
-					*(SCM *) b,
-					SCM_UNDEFINED));
-}				/* subr2oless */
-
-static int 
 lsubrless (SCM less, const void *a, const void *b)
 {
   return SCM_NFALSEP (SCM_SUBRF (less)
@@ -394,11 +386,10 @@ scm_cmp_function (SCM p)
   switch (SCM_TYP7 (p))
     {
     case scm_tc7_subr_2:
+    case scm_tc7_subr_2o:
     case scm_tc7_rpsubr:
     case scm_tc7_asubr:
       return subr2less;
-    case scm_tc7_subr_2o:
-      return subr2oless;
     case scm_tc7_lsubr:
       return lsubrless;
     case scm_tcs_closures:
@@ -438,7 +429,7 @@ SCM_DEFINE (scm_restricted_vector_sort_x, "restricted-vector-sort!", 4, 0, 0,
 
   quicksort (&vp[spos], len, size, scm_cmp_function (less), less);
   
-  return SCM_UNSPECIFIED;
+  return scm_return_first (SCM_UNSPECIFIED, vec);
   /* return vec; */
 }
 #undef FUNC_NAME
