@@ -166,9 +166,8 @@ scm_i_rehash (SCM table,
      We need to cope with this while rehashing its elements.  We do
      this by first installing the new, empty bucket vector and turning
      the old bucket vector into a regularily scanned weak vector.
-     Then we iterate over the elements in the old bucket vector.
-     While iterating, the elements in LS will not disappear since they
-     are protected.
+     Then we remove the elements from the old bucket vector and insert
+     them into the new one.
   */
 
   SCM_SET_HASHTABLE_VECTOR (table, new_buckets);
@@ -182,6 +181,8 @@ scm_i_rehash (SCM table,
       SCM ls, cell, handle;
 
       ls = SCM_SIMPLE_VECTOR_REF (buckets, i);
+      SCM_SIMPLE_VECTOR_SET (buckets, i, SCM_EOL);
+
       while (scm_is_pair (ls))
 	{
 	  unsigned long h;
