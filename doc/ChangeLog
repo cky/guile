@@ -1,3 +1,20 @@
+2001-06-18  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* srfi-modules.texi (SRFI-1): Completed procedure documentation.
+
+	* scheme-data.texi (List Constructors): Added make-list.
+	Added type index entries for all data types.
+
+2001-06-15  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* srfi-modules.texi (SRFI-1): New section documenting the SRFI-1
+	module.
+
+2001-06-14  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* scheme-modules.texi (Included Guile Modules): Added reference to
+	(srfi srfi-1) module.
+
 2001-06-16  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* posix.texi (Conventions): Use `system-error-errno' instead of

@@ -399,6 +399,10 @@ Line- and character-delimited input (@pxref{Line/Delimited}).
 @item (ice-9 documentation)
 Online documentation (REFFIXME).
 
+@item (srfi srfi-1)
+A library providing a lot of useful list and pair processing
+procedures (@pxref{SRFI-1}).
+
 @item (srfi srfi-2)
 Support for @code{and-let*} (@pxref{SRFI-2}).
 

@@ -63,6 +63,7 @@ sections of this manual that cover them.
 
 @node Booleans
 @section Booleans
+@tpindex Booleans
 
 The two boolean values are @code{#t} for true and @code{#f} for false.
 
@@ -137,6 +138,7 @@ Return @code{#t} iff @var{obj} is either @code{#t} or @code{#f}.
 
 @node Numbers
 @section Numerical data types
+@tpindex Numbers
 
 Guile supports a rich ``tower'' of numerical types --- integer,
 rational, real and complex --- and provides an extensive set of
@@ -227,9 +229,11 @@ For example:
 The next few subsections document each of Guile's numerical data types
 in detail.
 
-
 @node Integers
 @subsection Integers
+
+@tpindex Integer numbers
+
 @rnindex integer?
 
 Integers are whole numbers, that is numbers with no fractional part,
@@ -288,6 +292,9 @@ Return @code{#t} if @var{x} is an integer number, @code{#f} else.
 
 @node Reals and Rationals
 @subsection Real and Rational Numbers
+@tpindex Real numbers
+@tpindex Rational numbers
+
 @rnindex real?
 @rnindex rational?
 
@@ -350,6 +357,8 @@ precision.
 
 @node Complex Numbers
 @subsection Complex Numbers
+@tpindex Complex numbers
+
 @rnindex complex?
 
 Complex numbers are the set of numbers that describe all possible points
@@ -386,6 +395,9 @@ rational or integer number.
 
 @node Exactness
 @subsection Exact and Inexact Numbers
+@tpindex Exact numbers
+@tpindex Inexact numbers
+
 @rnindex exact?
 @rnindex inexact?
 @rnindex exact->inexact
@@ -1150,7 +1162,7 @@ Return a new random state using @var{seed}.
 
 @node Characters
 @section Characters
-
+@tpindex Characters
 
 Most of the characters in the ASCII character set may be referred to by
 name: for example, @code{#\tab}, @code{#\esc}, @code{#\stx}, and so on.
@@ -1338,6 +1350,7 @@ Return the lowercase character version of @var{chr}.
 
 @node Strings
 @section Strings
+@tpindex Strings
 
 Strings are fixed-length sequences of characters.  They can be created
 by calling constructor procedures, but they can also literally get
@@ -1798,6 +1811,7 @@ is currently reading symbols case-insensitively.
 
 @node Regular Expressions
 @section Regular Expressions
+@tpindex Regular expressions
 
 @cindex regular expressions
 @cindex regex
@@ -2285,6 +2299,7 @@ be used for interacting with the module system.
 
 @node Symbols
 @subsection Symbols
+@tpindex Symbols
 
 @c FIXME::martin: Review me!
 
@@ -2505,6 +2520,7 @@ otherwise.
 
 @node Variables
 @subsection Variables
+@tpindex Variables
 
 @c FIXME::martin: Review me!
 
@@ -2567,6 +2583,7 @@ return @code{#f}
 
 @node Keywords
 @section Keywords
+@tpindex Keywords
 
 Keywords are self-evaluating objects with a convenient read syntax that
 makes them easy to type.
@@ -2795,6 +2812,7 @@ This is the inverse of @code{make-keyword-from-dash-symbol}.
 
 @node Pairs
 @section Pairs
+@tpindex Pairs
 
 @c FIXME::martin: Review me!
 
@@ -2896,6 +2914,7 @@ by @code{set-cdr!} is unspecified.
 
 @node Lists
 @section Lists
+@tpindex Lists
 
 @c FIXME::martin: Review me!
 
@@ -3019,6 +3038,12 @@ Schemes and in Common LISP.
 
 @deffn primitive list-copy lst
 Return a (newly-created) copy of @var{lst}.
+@end deffn
+
+@deffn procedure make-list n [init]
+Create a list containing of @var{n} elements, where each element is
+initialized to @var{init}.  @var{init} defaults to the empty list
+@code{()} if not given.
 @end deffn
 
 Note that @code{list-copy} only makes a copy of the pairs which make up
@@ -3295,6 +3320,7 @@ return value is not specified.
 
 @node Vectors
 @section Vectors
+@tpindex Vectors
 
 @c FIXME::martin: Review me!
 
@@ -3527,6 +3553,7 @@ created the type represented by @var{rtd}.@refill
 
 @node Structures
 @section Structures
+@tpindex Structures
 
 [FIXME: this is pasted in from Tom Lord's original guile.texi and should
 be reviewed]
@@ -3846,6 +3873,7 @@ Return the vtable tag of the structure @var{handle}.
 
 @node Arrays
 @section Arrays
+@tpindex Arrays
 
 @menu
 * Conventional Arrays::         Arrays with arbitrary data.
@@ -4106,6 +4134,7 @@ Another example:
 
 @node Uniform Arrays
 @subsection Uniform Arrays
+@tpindex Uniform Arrays
 
 @noindent
 @dfn{Uniform arrays} have elements all of the
@@ -4344,6 +4373,9 @@ of tools for using either association lists or hash tables.
 
 @node Association Lists
 @subsection Association Lists
+@tpindex Association Lists
+@tpindex Alist
+
 @cindex Association List
 @cindex Alist
 @cindex Database
@@ -4750,6 +4782,7 @@ capitals
 
 @node Hash Tables
 @subsection Hash Tables
+@tpindex Hash Tables
 
 Like the association list functions, the hash table functions come
 in several varieties: @code{hashq}, @code{hashv}, and @code{hash}.
@@ -4956,6 +4989,7 @@ table into an a-list of key-value pairs.
 
 @node Hooks
 @section Hooks
+@tpindex Hooks
 
 @c FIXME::martin: Review me!
 

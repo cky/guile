@@ -15,6 +15,7 @@ get the relevant SRFI documents from the SRFI home page
 @menu
 * About SRFI Usage::            What to know about Guile's SRFI support.
 * SRFI-0::                      cond-expand
+* SRFI-1::                      List library.
 * SRFI-2::                      and-let*.
 * SRFI-6::                      Basic String Ports.
 * SRFI-8::                      receive.
@@ -157,6 +158,649 @@ the following snippet will expand to @code{'hooray}.
 @lisp
 (cond-expand (srfi-8 'hooray))
 @end lisp
+
+
+@node SRFI-1
+@section SRFI-1 - List library
+
+@c FIXME::martin: Review me!
+
+The list library defined in SRFI-1 contains a lot of useful list
+processing procedures for construction, examining, destructuring and
+manipulating lists and pairs.
+
+Since SRFI-1 also defines some procedures which are already contained
+in R5RS and thus are supported by the Guile core library, some list
+and pair procedures which appear in the SRFI-1 document may not appear
+in this section.  So when looking for a particular list/pair
+processing procedure, you should also have a look at the sections
+@ref{Lists} and @ref{Pairs}.
+
+@menu
+* SRFI-1 Constructors::         Constructing new lists.
+* SRFI-1 Predicates::           Testing list for specific properties.
+* SRFI-1 Selectors::            Selecting elements from lists.
+* SRFI-1 Length Append etc::    Length calculation and list appending.
+* SRFI-1 Fold and Map::         Higher-order list processing.
+* SRFI-1 Filtering and Partitioning::  Filter lists based on predicates.
+* SRFI-1 Searching::            Search for elments.
+* SRFI-1 Deleting::             Delete elements from lists.
+* SRFI-1 Association Lists::    Handle association lists.
+* SRFI-1 Set Operations::       Use lists for representing sets.
+@end menu
+
+@node SRFI-1 Constructors
+@subsection Constructors
+
+@c FIXME::martin: Review me!
+
+New lists can be constructed by calling one of the following
+procedures.
+
+@deffn procedure xcons d a
+Like @code{cons}, but with interchanged arguments.  Useful mostly when
+passed to higher-order procedures.
+@end deffn
+
+@deffn procedure list-tabulate n init-proc
+Return an @var{n}-element list, where each list element is produced by
+applying the procedure @var{init-proc} to the corresponding list
+index.  The order in which @var{init-proc} is applied to the indices
+is not specified.
+@end deffn
+
+@deffn procedure circular-list elt1 elt2 @dots{}
+Return a circular list containing the given arguments @var{elt1}
+@var{elt2} @dots{}.
+@end deffn
+
+@deffn procedure iota count [start step]
+Return a list containing @var{count} elements, where each element is
+calculated as follows:
+
+@var{start} + (@var{count} - 1) * @var{step}
+
+@var{start} defaults to 0 and @var{step} defaults to 1.
+@end deffn
+
+
+@node SRFI-1 Predicates
+@subsection Predicates
+
+@c FIXME::martin: Review me!
+
+The procedures in this section test specific properties of lists.
+
+@deffn procedure proper-list? obj
+Return @code{#t} if @var{obj} is a proper list, that is a finite list,
+terminated with the empty list.  Otherwise, return @code{#f}.
+@end deffn
+
+@deffn procedure circular-list? obj
+Return @code{#t} if @var{obj} is a circular list, otherwise return
+@code{#f}.
+@end deffn
+
+@deffn procedure dotted-list? obj
+Return @code{#t} if @var{obj} is a dotted list, return @code{#f}
+otherwise.  A dotted list is a finite list which is not terminated by
+the empty list, but some other value.
+@end deffn
+
+@deffn procedure null-list? lst
+Return @code{#t} if @var{lst} is the empty list @code{()}, @code{#f}
+otherwise.  If something else than a proper or circular list is passed
+as @var{lst}, an error is signalled.  This procedure is recommented
+for checking for the end of a list in contexts where dotted lists are
+not allowed.
+@end deffn
+
+@deffn procedure not-pair? obj
+Return @code{#t} is @var{obj} is not a pair, @code{#f} otherwise.
+This is shorthand notation @code{(not (pair? @var{obj}))} and is
+supposed to be used for end-of-list checking in contexts where dotted
+lists are allowed.
+@end deffn
+
+@deffn procedure list= elt= list1 @dots{}
+Return @code{#t} if all argument lists are equal, @code{#f} otherwise.
+List equality is determined by testing whether all lists have the same
+length and the corresponding elements are equal in the sense of the
+equality predicate @var{elt=}.  If no or only one list is given,
+@code{#t} is returned.
+@end deffn
+
+
+@node SRFI-1 Selectors
+@subsection Selectors
+
+@c FIXME::martin: Review me!
+
+@deffn procedure first pair
+@deffnx procedure second pair
+@deffnx procedure third pair
+@deffnx procedure fourth pair
+@deffnx procedure fifth pair
+@deffnx procedure sixth pair
+@deffnx procedure seventh pair
+@deffnx procedure eighth pair
+@deffnx procedure ninth pair
+@deffnx procedure tenth pair
+These are synonyms for @code{car}, @code{cadr}, @code{caddr}, @dots{}.
+@end deffn
+
+@deffn procedure car+cdr pair
+Return two values, the @sc{car} and the @sc{cdr} of @var{pair}.
+@end deffn
+
+@deffn procedure take lst i
+@deffnx procedure take! lst i
+Return a list containing the first @var{i} elements of @var{lst}.
+
+@code{take!} may modify the structure of the argument list @var{lst}
+in order to produce the result.
+@end deffn
+
+@deffn procedure drop lst i
+Return a list containing all but the first @var{i} elements of
+@var{lst}.
+@end deffn
+
+@deffn procedure take-right lst i
+Return the a list containing the @var{i} last elements of @var{lst}.
+@end deffn
+
+@deffn procedure drop-right lst i
+@deffnx procedure drop-right! lst i
+Return the a list containing all but the @var{i} last elements of
+@var{lst}.
+
+@code{drop-right!} may modify the structure of the argument list
+@var{lst} in order to produce the result.
+@end deffn
+
+@deffn procedure split-at lst i
+@deffnx procedure split-at! lst i
+Return two values, a list containing the first @var{i} elements of the
+list @var{lst} and a list containing the remaining elements.
+
+@code{split-at!} may modify the structure of the argument list
+@var{lst} in order to produce the result.
+@end deffn
+
+@deffn procedure last lst
+Return the last element of the non-empty, finite list @var{lst}.
+@end deffn
+
+
+@node SRFI-1 Length Append etc
+@subsection Length, Append, Concatenate, etc.
+
+@c FIXME::martin: Review me!
+
+@deffn procedure length+ lst
+Return the length of the argument list @var{lst}.  When @var{lst} is a
+circular list, @code{#f} is returned.
+@end deffn
+
+@deffn procedure concatenate list-of-lists
+@deffnx procedure concatenate! list-of-lists
+Construct a list by appending all lists in @var{list-of-lists}.
+
+@code{concatenate!} may modify the structure of the given lists in
+order to produce the result.
+@end deffn
+
+@deffn procedure append-reverse rev-head tail
+@deffnx procedure append-reverse! rev-head tail
+Reverse @var{rev-head}, append @var{tail} and return the result.  This
+is equivalent to @code{(append (reverse @var{rev-head}) @var{tail})},
+but more efficient.
+
+@code{append-reverse!} may modify @var{rev-head} in order to produce
+the result.
+@end deffn
+
+@deffn procedure zip lst1 lst2 @dots{}
+Return a list as long as the shortest of the argument lists, where
+each element is a list.  The first list contains the first elements of
+the argument lists, the second list contains the second elements, and
+so on.
+@end deffn
+
+@deffn procedure unzip1 lst
+@deffnx procedure unzip2 lst
+@deffnx procedure unzip3 lst
+@deffnx procedure unzip4 lst
+@deffnx procedure unzip5 lst
+@code{unzip1} takes a list of lists, and returns a list containing the
+first elements of each list, @code{unzip2} returns two lists, the
+first containing the first elements of each lists and the second
+containing the second elements of each lists, and so on.
+@end deffn
+
+
+@node SRFI-1 Fold and Map
+@subsection Fold, Unfold & Map
+
+@c FIXME::martin: Review me!
+
+@deffn procedure fold kons knil lst1 lst2 @dots{}
+Fold the procedure @var{kons} across all elements of @var{lst1},
+@var{lst2}, @dots{}.  Produce the result of
+
+@code{(@var{kons} @var{en1} @var{en2} @dots{} (@var{kons} @var{e21}
+@var{e22} (@var{kons} @var{e11} @var{e12} @var{knil})))},
+
+if @var{enm} are the elements of the lists @var{lst1}, @var{lst2},
+@dots{}.
+@end deffn
+
+@deffn procedure fold-right kons knil lst1 lst2 @dots{}
+Similar to @code{fold}, but applies @var{kons} in right-to-left order
+to the list elements, that is:
+
+@code{(@var{kons} @var{e11} @var{e12}(@var{kons} @var{e21}
+@var{e22}  @dots{} (@var{kons} @var{en1} @var{en2} @var{knil})))},
+@end deffn
+
+@deffn procedure pair-fold kons knil lst1 lst2 @dots{}
+Like @code{fold}, but apply @var{kons} to the pairs of the list
+instead of the list elements.
+@end deffn
+
+@deffn procedure pair-fold-right kons knil lst1 lst2 @dots{}
+Like @code{fold-right}, but apply @var{kons} to the pairs of the list
+instead of the list elements.
+@end deffn
+
+@deffn procedure reduce f ridentity lst
+@code{reduce} is a variant of @code{reduce}.  If @var{lst} is
+@code{()}, @var{ridentity} is returned.  Otherwise, @code{(fold (car
+@var{lst}) (cdr @var{lst}))} is returned.
+@end deffn
+
+@deffn procedure reduce-right f ridentity lst
+This is the @code{fold-right} variant of @var{reduce}.
+@end deffn
+
+@deffn procedure unfold p f g seed [tail-gen]
+@code{unfold} is defined as follows:
+
+@lisp
+(unfold p f g seed) =
+   (if (p seed) (tail-gen seed)
+       (cons (f seed)
+             (unfold p f g (g seed))))
+@end lisp
+
+@table @var
+@item p
+Determines when to stop unfolding.
+
+@item f
+Maps each seed value to the corresponding list element.
+
+@item g
+Maps each seed value to next seed valu.
+
+@item seed
+The state value for the unfold.
+
+@item tail-gen
+Creates the tail of the list; defaults to @code{(lambda (x) '())}.
+@end table
+
+@var{g} produces a series of seed values, which are mapped to list
+elements by @var{f}.  These elements are put into a list in
+left-to-right order, and @var{p} tells when to stop unfolding.
+@end deffn
+
+@deffn procedure unfold-right p f g seed [tail]
+Construct a list with the following loop.
+
+@lisp
+(let lp ((seed seed) (lis tail))
+   (if (p seed) lis
+       (lp (g seed)
+           (cons (f seed) lis))))
+@end lisp
+
+@table @var
+@item p
+Determines when to stop unfolding.
+
+@item f
+Maps each seed value to the corresponding list element.
+
+@item g
+Maps each seed value to next seed valu.
+
+@item seed
+The state value for the unfold.
+
+@item tail-gen
+Creates the tail of the list; defaults to @code{(lambda (x) '())}.
+@end table
+
+@end deffn
+
+@deffn procedure append-map f lst1 lst2 @dots{}
+@deffnx procedure append-map! f lst1 lst2 @dots{}
+Equivalent to 
+
+@lisp
+(apply append (map f clist1 clist2 ...)) 
+@end lisp
+
+and 
+
+@lisp
+(apply append! (map f clist1 clist2 ...)) 
+@end lisp
+
+Map @var{f} over the elements of the lists, just as in the @code{map}
+function. However, the results of the applications are appended
+together to make the final result. @code{append-map} uses
+@code{append} to append the results together; @code{append-map!} uses
+@code{append!}.
+
+The dynamic order in which the various applications of @var{f} are
+made is not specified.
+@end deffn
+
+@deffn procedure map! f lst1 lst2 @dots{}
+Linear-update variant of @code{map} -- @code{map!} is allowed, but not
+required, to alter the cons cells of @var{lst1} to construct the
+result list.
+
+The dynamic order in which the various applications of @var{f} are
+made is not specified. In the n-ary case, @var{lst2}, @var{lst3},
+@dots{} must have at least as many elements as @var{lst1}.
+@end deffn
+
+@deffn procedure pair-for-each f lst1 lst2 @dots{}
+Like @code{for-each}, but applies the procedure @var{f} to the pairs
+from which the argument lists are constructed, instead of the list
+elements.  The return value is not specified.
+@end deffn
+
+@deffn procedure filter-map f lst1 lst2 @dots{}
+Like @code{map}, but only results from the applications of @var{f}
+which are true are saved in the result list.
+@end deffn
+
+
+@node SRFI-1 Filtering and Partitioning
+@subsection Filtering and Partitioning
+
+@c FIXME::martin: Review me!
+
+Filtering means to collect all elements from a list which satisfy a
+specific condition.  Partitioning a list means to make two groups of
+list elements, one which contains the elements satisfying a condition,
+and the other for the elements which don't.
+
+@deffn procedure filter pred lst
+@deffnx procedure filter! pred lst
+Return a list containing all elements from @var{lst} which satisfy the
+predicate @var{pred}.  The elements in the result list have the same
+order as in @var{lst}.  The order in which @var{pred} is applied to
+the list elements is not specified.
+
+@code{filter!} is allowed, but not required to modify the structure of
+@end deffn
+
+@deffn procedure partition pred lst
+@deffnx procedure partition! pred lst
+Return two lists, one containing all elements from @var{lst} which
+satisfy the predicate @var{pred}, and one list containing the elements
+which do not satisfy the predicated.  The elements in the result lists
+have the same order as in @var{lst}.  The order in which @var{pred} is
+applied to the list elements is not specified.
+
+@code{partition!} is allowed, but not required to modify the structure of
+the input list.
+@end deffn
+
+@deffn procedure remove pred lst
+@deffnx procedure remove! pred lst
+Return a list containing all elements from @var{lst} which do not
+satisfy the predicate @var{pred}.  The elements in the result list
+have the same order as in @var{lst}.  The order in which @var{pred} is
+applied to the list elements is not specified.
+
+@code{remove!} is allowed, but not required to modify the structure of
+the input list.
+@end deffn
+
+
+@node SRFI-1 Searching
+@subsection Searching
+
+@c FIXME::martin: Review me!
+
+The procedures for searching elements in lists either accept a
+predicate or a comparison object for determining which elements are to
+be searched.
+
+@deffn procedure find pred lst
+Return the first element of @var{lst} which satisfies the predicate
+@var{pred} and @code{#f} if no such element is found.
+@end deffn
+
+@deffn procedure find-tail pred lst
+Return the first pair of @var{lst} whose @sc{car} satisfies the
+predicate @var{pred} and @code{#f} if no such element is found.
+@end deffn
+
+@deffn procedure take-while pred lst
+@deffnx procedure take-while! pred lst
+Return the longest initial prefix of @var{lst} whose elements all
+satisfy the predicate @var{pred}.
+
+@code{take-while!} is allowed, but not required to modify the input
+list while producing the result.
+@end deffn
+
+@deffn procedure drop-while pred lst
+Drop the longest initial prefix of @var{lst} whose elements all
+satisfy the predicate @var{pred}.
+@end deffn
+
+@deffn procedure span pred lst
+@deffnx procedure span! pred lst
+@deffnx procedure break pred lst
+@deffnx procedure break! pred lst
+@code{span} splits the list @var{lst} into the longest initial prefix
+whose elements all satisfy the predicate @var{pred}, and the remaining
+tail.  @code{break} inverts the sense of the predicate.
+
+@code{span!} and @code{break!} are allowed, but not required to modify
+the structure of the input list @var{lst} in order to produce the
+result.
+@end deffn
+
+@deffn procedure any pred lst1 lst2 @dots{}
+Apply @var{pred} across the lists and return a true value if the
+predicate returns true for any of the list elements(s); return
+@code{#f} otherwise.  The true value returned is always the result of
+the first succesful application of @var{pred}.
+@end deffn
+
+@deffn procedure every pred lst1 lst2 @dots{}
+Apply @var{pred} across the lists and return a true value if the
+predicate returns true for every of the list elements(s); return
+@code{#f} otherwise.  The true value returned is always the result of
+the final succesful application of @var{pred}.
+@end deffn
+
+@deffn procedure list-index pred lst1 lst2 @dots{}
+Return the index of the leftmost element that satisfies @var{pred}.
+@end deffn
+
+@deffn procedure member x lst [=]
+Return the first sublist of @var{lst} whose @sc{car} is equal to
+@var{x}.  If @var{x} does no appear in @var{lst}, return @code{#f}.
+Equality is determined by the equality predicate @var{=}, or
+@code{equal?} if @var{=} is not given.
+@end deffn
+
+
+@node SRFI-1 Deleting
+@subsection Deleting
+
+@c FIXME::martin: Review me!
+
+The procedures for deleting elements from a list either accept a
+predicate or a comparison object for determining which elements are to
+be removed.
+
+@deffn procedure delete x lst [=]
+@deffnx procedure delete! x lst [=]
+Return a list containing all elements from @var{lst}, but without the
+elements equal to @var{x}.  Equality is determined by the equality
+predicate @var{=}, which defaults to @code{equal?} if not given.
+
+@code{delete!} is allowed, but not required to modify the structure of
+the argument list in order to produce the result.
+@end deffn
+
+@deffn procedure delete-duplicates lst [=]
+@deffnx procedure delete-duplicates! lst [=]
+Return a list containing all elements from @var{lst}, but without
+duplicate elements.  Equality of elements is determined by the
+equality predicate @var{=}, which defaults to @code{equal?} if not
+given.
+
+@code{delete-duplicates!} is allowed, but not required to modify the
+structure of the argument list in order to produce the result.
+@end deffn
+
+
+@node SRFI-1 Association Lists
+@subsection Association Lists
+
+@c FIXME::martin: Review me!
+
+Association lists are described in detail in section @ref{Association
+Lists}.  The present section only documents the additional procedures
+for dealing with association lists defined by SRFI-1.
+
+@deffn procedure assoc key alist [=]
+Return the pair from @var{alist} which matches @var{key}.  Equality is
+determined by @var{=}, which defaults to @code{equal?} if not given.
+@var{alist} must be an association lists---a list of pairs.
+@end deffn
+
+@deffn procedure alist-cons key datum alist
+Equivalent to
+
+@lisp
+(cons (cons @var{key} @var{datum}) @var{alist})
+@end lisp
+
+This procedure is used to coons a new pair onto an existing
+association list.
+@end deffn
+
+@deffn procedure alist-copy alist
+Return a newly allocated copy of @var{alist}, that means that the
+spine of the list as well as the pairs are copied.
+@end deffn
+
+@deffn procedure alist-delete key alist [=]
+@deffnx procedure alist-delete! key alist [=]
+Return a list containing the pairs of @var{alist}, but without the
+pairs whose @sc{cars} are equal to @var{key}.  Equality is determined
+by @var{=}, which defaults to @code{equal?} if not given.
+
+@code{alist-delete!} is allowed, but not required to modify the
+structure of the list @var{alist} in order to produce the result.
+@end deffn
+
+
+@node SRFI-1 Set Operations
+@subsection Set Operations on Lists
+
+@c FIXME::martin: Review me!
+
+Lists can be used for representing sets of objects.  The procedures
+documented in this section can be used for such set representations.
+Man combinding several sets or adding elements, they make sure that no
+object is contained more than once in a given list.  Please note that
+lists are not a too efficient implementation method for sets, so if
+you need high performance, you should think about implementing a
+custom data structure for representing sets, such as trees, bitsets,
+hash tables or something similar.
+
+All these procedures accept an equality predicate as the first
+argument.  This predicate is used for testing the objects in the list
+sets for sameness.
+
+@deffn procedure lset<= = list1 @dots{}
+Return @code{#t} if every @var{listi} is a subset of @var{listi+1},
+otherwise return @code{#f}.  Returns @code{#t} if called with less
+than two arguments. @var{=} is used for testing element equality.
+@end deffn
+
+@deffn procedure lset= = list1 list2 @dots{}
+Return @code{#t} if all argument lists are equal. @var{=} is used for
+testing element equality.
+@end deffn
+
+@deffn procedure lset-adjoin = list elt1 @dots{}
+@deffnx procedure lset-adjoin! = list elt1 @dots{}
+Add all @var{elts} to the list @var{list}, suppressing duplicates and
+return the resulting list.  @code{lset-adjoin!} is allowed, but not
+required to modify its first argument. @var{=} is used for testing
+element equality.
+@end deffn
+
+@deffn procedure lset-union = list1 @dots{}
+@deffnx procedure lset-union! = list1 @dots{}
+Return the union of all argument list sets.  The union is the set of
+all elements which appear in any of the argument sets.
+@code{lset-union!} is allowed, but not required to modify its first
+argument. @var{=} is used for testing element equality.
+@end deffn
+
+@deffn procedure lset-intersection = list1 list2 @dots{}
+@deffnx procedure lset-intersection! = list1 list2 @dots{}
+Return the intersection of all argument list sets.  The intersection
+is the set containing all elements which appear in all argument sets.
+@code{lset-intersection!} is allowed, but not required to modify its
+first argument. @var{=} is used for testing element equality.
+@end deffn
+
+@deffn procedure lset-difference = list1 list2 @dots{}
+@deffnx procedure lset-difference! = list1 list2 @dots{}
+Return the difference of all argument list sets.  The difference is
+the the set containing all elements of the first list which do not
+appear in the other lists.  @code{lset-difference!}  is allowed, but
+not required to modify its first argument. @var{=} is used for testing
+element equality.
+@end deffn
+
+@deffn procedure lset-xor = list1 @dots{}
+@deffnx procedure lset-xor! = list1 @dots{}
+Return the set containing all elements which appear in the first
+argument list set, but not in the second; or, more generally: which
+appear in an odd number of sets.  @code{lset-xor!}  is allowed, but
+not required to modify its first argument. @var{=} is used for testing
+element equality.
+@end deffn
+
+@deffn procedure lset-diff+intersection = list1 list2 @dots{}
+@deffnx procedure lset-diff+intersection! = list1 list2 @dots{}
+Return two values, the difference and the intersection of the argument
+list sets. This works like a combination of @code{lset-difference} and
+@code{lset-intersection}, but is more efficient.
+@code{lset-diff+intersection!}  is allowed, but not required to modify
+its first argument. @var{=} is used for testing element equality.  You
+have to use some means to deal with the multiple values these
+procedures return (@pxref{Multiple Values}).
+@end deffn
 
 
 @node SRFI-2
