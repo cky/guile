@@ -1,5 +1,8 @@
 2001-11-13  Marius Vollmer  <mvo@zagadka.ping.de>
 
+	* modules.c (scm_c_export): Call va_end after collecting the
+	symbols.
+
 	* strop.h, strop.c (scm_substring_move_left_x,
 	scm_substring_move_right_x): Removed.
 
