@@ -602,14 +602,6 @@ Change the ports returned by @code{current-input-port},
 so that they use the supplied @var{port} for input or output.
 @end deffn
 
-@deffn {Scheme Procedure} set-current-output-port port
-Set the current default output port to PORT.
-@end deffn
-
-@deffn {Scheme Procedure} set-current-error-port port
-Set the current default error port to PORT.
-@end deffn
-
 
 @node Port Types
 @section Types of Port
