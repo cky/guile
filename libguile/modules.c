@@ -171,7 +171,7 @@ void
 scm_c_use_module (const char *name)
 {
   scm_call_1 (SCM_VARIABLE_REF (process_use_modules_var),
-	      scm_list_1 (convert_module_name (name)));
+	      scm_list_1 (scm_list_1 (convert_module_name (name))));
 }
 
 static SCM module_export_x_var;
