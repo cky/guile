@@ -584,6 +584,7 @@ dnl   configure script, but here they are.
 AC_DEFUN([QTHREADS_CONFIGURE],[
   AC_REQUIRE([AC_PROG_LN_S])
 
+  AC_MSG_CHECKING(QuickThreads configuration)
   # How can we refer to the qt source directory from within the qt build
   # directory?  For headers, we can rely on the fact that the qt src
   # directory appears in the #include path.
@@ -594,36 +595,42 @@ AC_DEFUN([QTHREADS_CONFIGURE],[
   THREAD_PACKAGE=QT
   case "$host" in
     i[3456]86-*-*)
+      port_name=i386
       qtmd_h=md/i386.h
       qtmds_s=md/i386.s
       qtmdc_c=md/null.c 
       qtdmdb_s=
       ;;
     mips-sgi-irix[56]*)
+      port_name=irix
       qtmd_h=md/mips.h
       qtmds_s=md/mips-irix5.s
       qtmdc_c=md/null.c
       qtdmdb_s=md/mips_b.s 
       ;;
     mips-*-*)
+      port_name=mips
       qtmd_h=md/mips.h
       qtmds_s=md/mips.s
       qtmdc_c=md/null.c
       qtdmdb_s=md/mips_b.s 
       ;;
     sparc-*-sunos*)
+      port_name=sparc-sunos
       qtmd_h=md/sparc.h
       qtmds_s=md/_sparc.s
       qtmdc_c=md/null.c
       qtdmdb_s=md/_sparc_b.s 
       ;;
     sparc-*-*)
+      port_name=sparc
       qtmd_h=md/sparc.h
       qtmds_s=md/sparc.s
       qtmdc_c=md/null.c
       qtdmdb_s=md/sparc_b.s 
       ;;
     alpha-*-*)
+      port_name=alpha
       qtmd_h=md/axp.h
       qtmds_s=md/axp.s
       qtmdc_c=md/null.c
@@ -638,10 +645,13 @@ AC_DEFUN([QTHREADS_CONFIGURE],[
 
   # Did configuration succeed?
   if test -n "$THREAD_PACKAGE"; then
+    AC_MSG_RESULT($port_name)
     QTHREAD_LTLIBS=libqthreads.la
     THREAD_CPPFLAGS="-I$qtsrcdir -I../qt"
     THREAD_LIBS_LOCAL="../qt/libqthreads.la"
     THREAD_LIBS_INSTALLED="-lqthreads"
+  else
+    AC_MSG_RESULT(none; disabled)
   fi
 
   AC_SUBST(QTHREAD_LTLIBS)
