@@ -119,6 +119,9 @@
 /* Define if uint32_t typedef is defined when netdb.h is include.  */
 #undef HAVE_UINT32_T
 
+/* Define if you want support for IPv6.  */
+#undef HAVE_IPV6
+
 /* Define if localtime caches the TZ setting.  */
 #undef LOCALTIME_CACHE
 

@@ -287,6 +287,16 @@ if test $guile_cv_have_uint32_t = yes; then
   AC_DEFINE(HAVE_UINT32_T)
 fi
 
+AC_MSG_CHECKING(for working IPv6 support)
+AC_CACHE_VAL(guile_cv_have_ipv6,
+[AC_TRY_COMPILE([#include <netinet/in.h>],
+[struct sockaddr_in6 a;  a.sin6_family = AF_INET6;],
+guile_cv_have_ipv6=yes, guile_cv_have_ipv6=no)])
+AC_MSG_RESULT($guile_cv_have_ipv6)
+if test $guile_cv_have_ipv6 = yes; then
+  AC_DEFINE(HAVE_IPV6)
+fi
+
 # included in rfc2553 but not in older implementations, e.g., glibc 2.1.3.
 AC_MSG_CHECKING(whether sockaddr_in6 has sin6_scope_id)
 AC_CACHE_VAL(guile_cv_have_sin6_scope_id,
