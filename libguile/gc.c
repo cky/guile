@@ -2173,14 +2173,14 @@ scm_unprotect_object (SCM obj)
       fprintf (stderr, "scm_unprotect_object called on unprotected object\n");
       abort ();
     }
-  
-  {
-    int count = SCM_INUM (SCM_CDR (handle)) - 1;
-    if (count <= 0)
-      scm_hashq_remove_x (scm_protects, obj);
-    else
-      SCM_SETCDR (handle, SCM_MAKINUM (count));
-  }
+  else
+    {
+      unsigned long int count = SCM_INUM (SCM_CDR (handle)) - 1;
+      if (count == 0)
+	scm_hashq_remove_x (scm_protects, obj);
+      else
+	SCM_SETCDR (handle, SCM_MAKINUM (count));
+    }
 
   SCM_REALLOW_INTS;
 
