@@ -1,4 +1,4 @@
-/*      Copyright (C) 1995,1996,1997,1998 Free Software Foundation, Inc.
+/*      Copyright (C) 1995,1996,1997,1998, 1999 Free Software Foundation, Inc.
 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -2335,7 +2335,7 @@ scm_istr2flo (str, len, radix)
       {				/* polar input for complex number */
 	/* get a `real' for scm_angle */
 	second = scm_istr2flo (&str[i], (long) (len - i), radix);
-	if (!(SCM_INEXP (second)))
+	if (!(SCM_NIMP (second) && SCM_INEXP (second)))
 	  return SCM_BOOL_F;	/* not `real' */
 	if (SCM_CPLXP (second))
 	  return SCM_BOOL_F;	/* not `real' */
@@ -2354,7 +2354,7 @@ scm_istr2flo (str, len, radix)
     return scm_makdbl (res, lead_sgn);
   /* get a `ureal' for complex part */
   second = scm_istr2flo (&str[i], (long) ((len - i) - 1), radix);
-  if (!(SCM_INEXP (second)))
+  if (! (SCM_NIMP (second) && SCM_INEXP (second)))
     return SCM_BOOL_F;		/* not `ureal' */
   if (SCM_CPLXP (second))
     return SCM_BOOL_F;		/* not `ureal' */
