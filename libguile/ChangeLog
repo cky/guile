@@ -1,5 +1,7 @@
 1998-10-11  Jim Blandy  <jimb@zwingli.cygnus.com>
 
+	* scmconfig.h.in: Regenerated.
+
 	* libguile.h: Don't omit the dynamic linking functions.  (Thanks
 	to Greg Badros.)
 

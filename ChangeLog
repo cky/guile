@@ -1,3 +1,7 @@
+1998-10-11  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	* acconfig.h (HAVE_RL_GETC_FUNCTION): Fix this entry.
+
 1998-10-10  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	* GUILE-VERSION: bump to 1.2.91, since we're doing snapshots again.
