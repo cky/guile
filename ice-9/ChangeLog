@@ -1,3 +1,21 @@
+1999-06-14  Jim Blandy  <jimb@savonarola.red-bean.com>
+
+	* string-fun.scm (split-before-predicate, split-after-predicate,
+	split-discarding-predicate): Make these public.  (Thanks to
+	Thien-Thi Nguyen.)
+
+	1999-06-13  Gary Houston  <ghouston@easynet.co.uk>
+
+	* more changes to expect.scm, to avoid the one-character lookhead
+	that was introduced to fix the $ problem:
+
+	* expect.scm (expect): call the match proc an extra time at end
+	of file and set the eof? argument appropriately.  call 
+	expect-eof-proc only if the last call didn't match.
+	* expect.scm (expect-strings): change port to eof? in match proc.
+	* expect.scm (expect-regexec): take an eof indicator as an argument
+	instead of a port.
+
 1999-06-09  Jim Blandy	<jimb@savonarola.red-bean.com>
 
 	* Makefile.am (ice9_sources): Add popen.scm to list.
