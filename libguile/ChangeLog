@@ -1,5 +1,8 @@
 Fri Aug 23 03:02:46 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
 
+	* debug.c (scm_init_debug): Added initialization for
+	scm_evaluator_traps.
+
 	* debug.h, debug.c: Various name changes.
 	(Mostly prefixing with SCM_.)  Renamed "debug-options" -->
 	"debug-options-interface".  See commentary in options.c.
