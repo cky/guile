@@ -1,3 +1,8 @@
+2005-02-18  Kevin Ryde  <user42@zip.com.au>
+
+	* srfi-1.scm (lset-adjoin): Revert change using `list' not `acc', the
+	spec is not quite clear, but reference code uses acc, so do that.
+	
 2005-02-12  Kevin Ryde  <user42@zip.com.au>
 
 	* srfi-1.scm (reduce, reduce-right): Don't call f with ridentity, use
