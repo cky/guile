@@ -13,7 +13,8 @@ This reference manual documents Guile, GNU's Ubiquitous Intelligent
 Language for Extensions, manual edition @value{MANUAL-EDITION}
 corresponding to Guile @value{VERSION}.
 
-Copyright 1996, 1997, 2000, 2001, 2002, 2003 Free Software Foundation.
+Copyright 1996, 1997, 2000, 2001, 2002, 2003, 2004 Free Software
+Foundation.
 
 Permission is granted to make and distribute verbatim copies of
 this manual provided the copyright notice and this permission notice
@@ -129,7 +130,7 @@ notice identical to this one except for the removal of this paragraph
 @comment The title is printed in a large font.
 @title Guile Reference Manual
 @subtitle Edition @value{MANUAL-EDITION}, for use with Guile @value{VERSION}
-@subtitle $Id: guile.texi,v 1.25 2003-11-03 00:53:08 kryde Exp $
+@subtitle $Id: guile.texi,v 1.26 2004-01-10 21:40:26 kryde Exp $
 
 @c AUTHORS
 
@@ -271,6 +272,7 @@ Part V: Guile Modules
 * Formatted Output::            The @code{format} procedure.
 * Rx Regexps::                  The Rx regular expression library.
 * File Tree Walk::              Traversing the file system.
+* Queues::                      First-in first-out queuing.
 * Expect::			Controlling interactive programs with Guile.
 * The Scheme shell (scsh)::     Using scsh interfaces in Guile.
 
