@@ -100,7 +100,8 @@ libguile_la_SOURCES = \
     posix.c print.c procprop.c procs.c ramap.c read.c root.c scmsigs.c \
     script.c sequences.c simpos.c smob.c socket.c stackchk.c stime.c \
     strings.c strop.c strorder.c strports.c struct.c symbols.c tag.c \
-    throw.c unif.c variable.c vectors.c version.c vports.c weaks.c
+    throw.c unif.c variable.c vectors.c version.c vports.c weaks.c \
+    fluids.c
 
 EXTRA_libguile_la_SOURCES = _scm.h \
     backtrace.c stacks.c debug.c srcprop.c \
@@ -131,7 +132,7 @@ modinclude_HEADERS = __scm.h alist.h append.h arbiters.h async.h \
     sequences.h simpos.h smob.h socket.h srcprop.h stackchk.h stacks.h \
     stime.h strings.h strop.h strorder.h strports.h struct.h symbols.h \
     tag.h tags.h throw.h unif.h variable.h vectors.h version.h vports.h \
-    weaks.h snarf.h threads.h coop-defs.h
+    weaks.h snarf.h threads.h coop-defs.h fluids.h
 
 modinclude_DATA = scmconfig.h
 
@@ -182,7 +183,7 @@ ports.lo posix.lo print.lo procprop.lo procs.lo ramap.lo read.lo \
 root.lo scmsigs.lo script.lo sequences.lo simpos.lo smob.lo socket.lo \
 stackchk.lo stime.lo strings.lo strop.lo strorder.lo strports.lo \
 struct.lo symbols.lo tag.lo throw.lo unif.lo variable.lo vectors.lo \
-version.lo vports.lo weaks.lo
+version.lo vports.lo weaks.lo fluids.lo
 PROGRAMS =  $(bin_PROGRAMS)
 
 guile_OBJECTS =  guile.o
@@ -217,8 +218,8 @@ DEP_FILES =  .deps/alist.P .deps/alloca.P .deps/append.P .deps/appinit.P \
 .deps/arbiters.P .deps/async.P .deps/backtrace.P .deps/boolean.P \
 .deps/chars.P .deps/continuations.P .deps/debug.P .deps/dynl.P \
 .deps/dynwind.P .deps/eq.P .deps/error.P .deps/eval.P .deps/extchrs.P \
-.deps/feature.P .deps/filesys.P .deps/fports.P .deps/gc.P \
-.deps/gdbint.P .deps/genio.P .deps/gh_data.P .deps/gh_eval.P \
+.deps/feature.P .deps/filesys.P .deps/fluids.P .deps/fports.P \
+.deps/gc.P .deps/gdbint.P .deps/genio.P .deps/gh_data.P .deps/gh_eval.P \
 .deps/gh_funcs.P .deps/gh_init.P .deps/gh_io.P .deps/gh_list.P \
 .deps/gh_predicates.P .deps/gh_test_c.P .deps/gh_test_repl.P \
 .deps/gsubr.P .deps/guile.P .deps/hash.P .deps/hashtab.P \

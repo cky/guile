@@ -25,7 +25,8 @@ libguile_la_SOURCES = \
     posix.c print.c procprop.c procs.c ramap.c read.c root.c scmsigs.c \
     script.c sequences.c simpos.c smob.c socket.c stackchk.c stime.c \
     strings.c strop.c strorder.c strports.c struct.c symbols.c tag.c \
-    throw.c unif.c variable.c vectors.c version.c vports.c weaks.c
+    throw.c unif.c variable.c vectors.c version.c vports.c weaks.c \
+    fluids.c
 
 EXTRA_libguile_la_SOURCES = _scm.h \
     backtrace.c stacks.c debug.c srcprop.c \
@@ -60,7 +61,7 @@ modinclude_HEADERS = __scm.h alist.h append.h arbiters.h async.h \
     sequences.h simpos.h smob.h socket.h srcprop.h stackchk.h stacks.h \
     stime.h strings.h strop.h strorder.h strports.h struct.h symbols.h \
     tag.h tags.h throw.h unif.h variable.h vectors.h version.h vports.h \
-    weaks.h snarf.h threads.h coop-defs.h
+    weaks.h snarf.h threads.h coop-defs.h fluids.h
 
 ## This file is generated at configure time.  That is why it is DATA
 ## and not a header -- headers are included in the distribution.
