@@ -363,6 +363,15 @@ local_ffwrite (ptr, size, nitems, fp)
   return ffwrite (ptr, size, nitems, fp);
 }
 
+static int
+print_pipe_port (SCM exp, SCM port, scm_print_state *pstate)
+{
+  scm_prinport (exp, port, "pipe");
+  return 1;
+}
+
+
+
 /* On SunOS, there's no declaration for pclose in the headers, so
    putting it directly in the initializer for scm_pipob doesn't really
    fly.  We could add an extern declaration for it, but then it'll
@@ -395,7 +404,7 @@ scm_ptobfuns scm_pipob =
 {
   scm_mark0,
   (int (*) SCM_P ((SCM))) local_pclose,  
-  scm_prinport,
+  print_pipe_port,
   0,
   (int (*) SCM_P ((int, SCM))) local_fputc,
   (int (*) SCM_P ((char *, SCM))) local_fputs,
