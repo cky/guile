@@ -12,6 +12,13 @@ In release 1.3:
 In release 1.4:
 - remove #/ syntax
 
+Platforms for test builds:
+SunOS (gcc and pcc) --- galapas.ai.mit.edu
+Solaris (gcc and SUN cc) --- saturn.ai.mit.edu
+NetBSD (gcc) --- repo-man.ai.mit.edu (use /home/repo/jimb)
+HP/UX (gcc, HP cc) --- nutrimat.gnu.ai.mit.edu
+
+
 1) Verify that Guile builds and runs in your working directory.  I
    hope that we'll eventually have a test suite to make this more
    concrete, but for the moment, just make sure things seem sane.
