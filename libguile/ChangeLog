@@ -1,3 +1,12 @@
+1999-12-28  Gary Houston  <ghouston@arglist.com>
+
+	* posix.c (scm_waitpid): move the HAVE_WAITPID test out of the
+	procedure body, so that the procedure is left undefined if waitpid
+	is not available.  previously in this case the procedure was
+	defined but would raise a system-error when called, which is
+	pointless.  I intend to make the same change for other procedures
+	and deprecate SCM_SYSMISSING and scm_sysmissing.
+	
 1999-12-22  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* feature.c (s_scm_add_hook_x): Call scm_wrong_type_arg instead of

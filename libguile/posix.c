@@ -400,8 +400,7 @@ Interrupt signal.
 }
 #undef FUNC_NAME
 
-
-
+#ifdef HAVE_WAITPID
 GUILE_PROC (scm_waitpid, "waitpid", 1, 1, 0,
             (SCM pid, SCM options),
 "This procedure collects status information from a child process which
@@ -447,7 +446,6 @@ The integer status value.
 @end enumerate")
 #define FUNC_NAME s_scm_waitpid
 {
-#ifdef HAVE_WAITPID
   int i;
   int status;
   int ioptions;
@@ -464,13 +462,9 @@ The integer status value.
   if (i == -1)
     SCM_SYSERROR;
   return scm_cons (SCM_MAKINUM (0L + i), SCM_MAKINUM (0L + status));
-#else
-  SCM_SYSMISSING;
-  /* not reached.  */
-  return SCM_BOOL_F;
-#endif
 }
 #undef FUNC_NAME
+#endif /* HAVE_WAITPID */
 
 GUILE_PROC (scm_status_exit_val, "status:exit-val", 1, 0, 0, 
             (SCM status),
