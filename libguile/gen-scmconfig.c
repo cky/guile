@@ -244,11 +244,6 @@ main (int argc, char *argv[])
   pf ("/* Set to 1 to add Elisp support (in addition to Scheme). */\n");
   pf ("#define SCM_ENABLE_ELISP %d /* 0 or 1 */\n", SCM_I_GSC_ENABLE_ELISP);
 
-  /*** SCM_HAVE_ARRAYS (0 or 1) ***/
-  pf ("\n");
-  pf ("/* Set to 1 to add support for arrays and uniform arrays. */\n");
-  pf ("#define SCM_HAVE_ARRAYS %d /* 0 or 1 */\n", SCM_I_GSC_HAVE_ARRAYS);
-
   /*** SCM_STACK_GROWS_UP (0 or 1) ***/
   pf ("\n");
   pf ("/* Set to 1 if the stack grows up, 0 otherwise. */\n");
@@ -405,6 +400,8 @@ main (int argc, char *argv[])
       "# define DYNAMIC_LINKING 1 /* always true now */\n"
       "#endif\n");
   printf ("\n");
+
+  pf ("#define SCM_HAVE_ARRAYS +++ /* always true now */\n");
 
   printf ("#endif\n");
 
