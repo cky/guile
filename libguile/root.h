@@ -116,8 +116,8 @@ typedef struct scm_root_state
 
   SCM fluids;
 
-  SCM system_transformer;
-  SCM top_level_lookup_closure_var;
+  SCM system_transformer;	    /* No longer used (but kept for binary compatibility) */
+  SCM top_level_lookup_closure_var; /* No longer used (but kept for binary compatibility) */
 
   SCM handle;			/* The root object for this root state */
   SCM parent;			/* The parent root object */
@@ -143,9 +143,6 @@ typedef struct scm_root_state
 #define scm_def_outp			(scm_root->def_outp)
 #define scm_def_errp			(scm_root->def_errp)
 #define scm_cur_loadp			(scm_root->cur_loadp)
-#define scm_top_level_lookup_closure_var \
-                                       (scm_root->top_level_lookup_closure_var)
-#define scm_system_transformer		(scm_root->system_transformer)
      
 #ifdef USE_THREADS
 #define scm_root ((scm_root_state *) SCM_THREAD_LOCAL_DATA)
