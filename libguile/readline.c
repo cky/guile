@@ -43,9 +43,7 @@
 
 
 #include "_scm.h"
-#if defined (HAVE_RL_GETC_FUNCTION) || defined (TOTORO)
-/* The test for TOTORO is a kludge to make totoro.red-bean.com
-   generate snapshots correctly. */
+#if defined (HAVE_RL_GETC_FUNCTION)
 #include <libguile.h>
 #include <readline.h>
 #include <gh.h>

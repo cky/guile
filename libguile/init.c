@@ -458,9 +458,7 @@ scm_boot_guile_1 (base, closure)
       scm_init_unif ();
       scm_init_simpos ();
       scm_init_load_path ();
-#if defined (HAVE_RL_GETC_FUNCTION) || defined (TOTORO)
-      /* The test for TOTORO is a kludge to make totoro.red-bean.com
-         generate snapshots correctly. */
+#if defined (HAVE_RL_GETC_FUNCTION)
       scm_init_readline ();
 #endif
       scm_init_standard_ports ();
