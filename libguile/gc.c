@@ -1113,9 +1113,19 @@ scm_gc_sweep ()
 		if ((SCM_CDR (vcell) == 0) || (SCM_CDR (vcell) == 1))
 		  {
 		    SCM *p = (SCM *) SCM_GCCDR (scmptr);
- 		    m += p[scm_struct_i_n_words] * sizeof (SCM);
-		    /* I feel like I'm programming in BCPL here... */
-		    free ((char *) p[scm_struct_i_ptr]);
+		    if (((SCM*) vcell)[scm_vtable_index_layout]
+			& SCM_STRUCTF_LIGHT)
+		      {
+			SCM layout = ((SCM*)vcell)[scm_vtable_index_layout];
+			m += SCM_LENGTH (layout) / 2;
+			free ((char *) p);
+		      }
+		    else
+		      {
+			m += p[scm_struct_i_n_words] * sizeof (SCM);
+			/* I feel like I'm programming in BCPL here... */
+			free ((char *) p[scm_struct_i_ptr]);
+		      }
 		  }
 	      }
 	      break;

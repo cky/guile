@@ -93,6 +93,9 @@ char *alloca ();
 #include "feature.h"
 
 #include "eval.h"
+
+void (*scm_memoize_method) (SCM, SCM);
+
 
 
 /* The evaluator contains a plethora of EVAL symbols.
@@ -1975,6 +1978,55 @@ dispatch:
 	  ENTER_APPLY;
 	  goto evap1;
 
+	case (SCM_ISYMNUM (SCM_IM_DISPATCH)):
+	  {
+	    int i, end, mask;
+	    mask = -1;
+	    proc = SCM_CDR (x);
+	    i = 0;
+	    end = SCM_LENGTH (proc);
+	  find_method:
+	    do
+	      {
+		t.arg1 = SCM_CDDAR (env);
+		arg2 = SCM_VELTS (proc)[i];
+		do
+		  {
+		    if (scm_class_of (SCM_CAR (t.arg1)) != SCM_CAR (arg2))
+		      goto next_method;
+		    t.arg1 = SCM_CDR (t.arg1);
+		    arg2 = SCM_CDR (arg2);
+		  }
+		while (SCM_NIMP (t.arg1));
+		x = SCM_CAR (arg2);
+		env = scm_cons (SCM_CAR (env), SCM_CDR (arg2));
+		goto begin;
+	      next_method:
+		i = (i + 1) & mask;
+	      } while (i != end);
+	  memoize_method:
+	    scm_memoize_method (x, SCM_CDAR (env));
+	    goto loop;
+	  
+	  case (SCM_ISYMNUM (SCM_IM_HASH_DISPATCH)):
+	    {
+	      int hashset = SCM_INUM (SCM_CADR (x));
+	      mask = SCM_INUM (SCM_CADDR (x));
+	      proc = SCM_CDDDR (x);
+	      i = 0;
+	      t.arg1 = SCM_CDDAR (env);
+	      do
+		{
+		  i += SCM_STRUCT_DATA (scm_class_of (SCM_CAR (t.arg1)))[scm_si_hashsets + hashset];
+		  t.arg1 = SCM_CDR (t.arg1);
+		}
+	      while (SCM_NIMP (t.arg1));
+	      i &= mask;
+	      end = i;
+	    }
+	    goto find_method;
+	  }
+	  
 	default:
 	  goto badfun;
 	}
