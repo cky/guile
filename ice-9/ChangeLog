@@ -1,3 +1,10 @@
+2001-06-13  Thien-Thi Nguyen  <ttn@revel.glug.org>
+
+	* common-list.scm:
+	Clean up some docstrings; nfc.
+	Add Commentary.
+	Update copyright.
+
 2001-06-11  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* boot-9.scm: Use `begin-deprecated' instead of testing
@@ -17,7 +24,7 @@
 	* optargs.scm (lambda*): Make sure that BODY is always put into a
 	real body context so that it can contain internal definitions.
 	Thanks to Matthias Köppe!
-	
+
 	* format.scm: Use (ice-9 and-let-star).
 	(format:out): Initialize format:output-col with current column of
 	`port', if it has one.  Else leave it alone.  Thanks to Matthias
@@ -36,7 +43,7 @@
 	(module-re-export!): New.  Use this for re-exporting imported
 	variables.
 	(re-export): New, to go with `module-re-export!'.
-	
+
 	* format.scm: Added kluge at top that keeps `export' from
 	re-exporting the `format' variable of the `(guile)' module.
 
@@ -52,7 +59,7 @@
 2001-06-04  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	Added exception notice to all files.
-	
+
 	* boot-9.scm (module-export!): Revert 2001-06-02 change.  It
 	caused more problems than it solved by accidentally re-exporting
 	importing bindings once in a while.
@@ -121,7 +128,7 @@
 
 	* boot-9.scm (use-srfis): Do not extend the srfi-0 feature list.
 	(cond-expand-provide): New procedure.
-	
+
 2001-05-22  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* boot-9.scm (define-module): Return the new module.
@@ -142,7 +149,7 @@
 	* match.scm: Likewise.
 	* expect.scm: Likewise.
 	* psyntax.pp: Regenerated.
-	
+
 	* rdelim.scm:  Call `%init-rdelim-builtins'.
 
 	* rw.scm: Call `%init-rw-builtins'.
