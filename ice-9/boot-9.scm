@@ -1691,6 +1691,7 @@
 		     (append (cadr kws) exports)))
 	      (else	
 	       (error "unrecognized defmodule argument" kws))))))
+    (set-current-module module)
     module))
 
 ;;; {Autoload}
@@ -2509,16 +2510,51 @@
 	     (car rest)
 	     `(lambda ,(cdr first) ,@rest))))
     `(define ,name (defmacro:syntax-transformer ,transformer))))
+
+;; EVAL-WHEN
+;;
+;; (eval-when ((situation*) forms)* (else forms)?)
+;;
+;; Evaluate certain code based on the situation that eval-when is used
+;; in.  The only defined situation right now is `load-toplevel' which
+;; triggers for code evaluated at the top-level, for example from the
+;; REPL or when loading a file.
+ 
+(define eval-when
+  (procedure->memoizing-macro
+   (lambda (exp env)
+     (define (toplevel-env? env)
+       (or (not (pair? env)) (not (pair? (car env)))))
+     (define (syntax)
+       (error "syntax error in eval-when"))
+     (let loop ((clauses (cdr exp)))
+       (cond 
+	((null? clauses)
+	 #f)
+	((not (list? (car clauses)))
+	 (syntax))
+	((eq? 'else (caar clauses))
+	 (or (null? (cdr clauses))
+	     (syntax))
+	 (cons 'begin (cdar clauses)))
+	((not (list? (caar clauses)))
+	 (syntax))
+	((and (toplevel-env? env)
+	      (memq 'load-toplevel (caar clauses)))
+	 (cons 'begin (cdar clauses)))
+	(else
+	 (loop (cdr clauses))))))))
+
 
 ;;; {Module System Macros}
 ;;;
 
 (defmacro define-module args
-  `(let* ((process-define-module process-define-module)
-	  (set-current-module set-current-module)
-	  (module (process-define-module ',args)))
-     (set-current-module module)
-     module))
+  `(eval-when
+    ((load-toplevel)
+     (process-define-module ',args))
+    (else
+     (error "define-module can only be used at the top level"))))
 
 ;; the guts of the use-modules macro.  add the interfaces of the named
 ;; modules to the use-list of the current module, in order
@@ -2531,16 +2567,23 @@
 	    (reverse module-names)))
 
 (defmacro use-modules modules
-  `(process-use-modules ',modules))
+  `(eval-when
+    ((load-toplevel)
+     (process-use-modules ',modules))
+    (else
+     (error "use-modules can only be used at the top level"))))
 
 (defmacro use-syntax (spec)
-  `(begin
+  `(eval-when
+    ((load-toplevel)
      ,@(if (pair? spec)
 	   `((process-use-modules ',(list spec))
 	     (set-module-transformer! (current-module)
 				      ,(car (last-pair spec))))
 	   `((set-module-transformer! (current-module) ,spec)))
-     (fluid-set! scm:eval-transformer (module-transformer (current-module)))))
+     (fluid-set! scm:eval-transformer (module-transformer (current-module))))
+    (else
+     (error "use-modules can only be used at the top level"))))
 
 (define define-private define)
 
@@ -2553,52 +2596,29 @@
      ((pair? n) (defined-name (car n)))
      (else (syntax))))
   (cond
-   ((null? args) (syntax))
-
-   (#t (let ((name (defined-name (car args))))
-	 `(begin
-	    (let ((public-i (module-public-interface (current-module))))
-	      ;; Make sure there is a local variable:
-	      ;;
-	      (module-define! (current-module)
-			      ',name
-			      (module-ref (current-module) ',name #f))
-			       
-	      ;; Make sure that local is exported:
-	      ;;
-	      (module-add! public-i ',name
-			   (module-variable (current-module) ',name)))
-			       
-	    ;; Now (re)define the var normally.
-	    (define-private ,@ args) (interaction-environment))))))
+   ((null? args)
+    (syntax))
+   (#t
+    (let ((name (defined-name (car args))))
+      `(begin
+	 (eval-when ((load-toplevel) (export ,name)))
+	 (define-private ,@args))))))
 
 (defmacro defmacro-public args
   (define (syntax)
     (error "bad syntax" (list 'defmacro-public args)))
   (define (defined-name n)
     (cond
-     ((symbol? n)	n)
-     (else 		(syntax))))
+     ((symbol? n) n)
+     (else (syntax))))
   (cond
-   ((null? args)	(syntax))
-
-   (#t 			(let ((name (defined-name (car args))))
-			  `(begin
-			     (let ((public-i (module-public-interface (current-module))))
-			       ;; Make sure there is a local variable:
-			       ;;
-			       (module-define! (current-module)
-					       ',name
-					       (module-ref (current-module) ',name #f))
-			       
-			       ;; Make sure that local is exported:
-			       ;;
-			       (module-add! public-i ',name (module-variable (current-module) ',name)))
-			       
-			     ;; Now (re)define the var normally.
-			     ;;
-			     (defmacro ,@ args))))))
-
+   ((null? args)
+    (syntax))
+   (#t
+    (let ((name (defined-name (car args))))
+      `(begin
+	 (eval-when ((load-toplevel) (export ,name)))
+	 (defmacro ,@args))))))
 
 (define (module-export! m names)
   (let ((public-i (module-public-interface m)))
@@ -2610,7 +2630,11 @@
 	      names)))
 
 (defmacro export names
-  `(module-export! (current-module) ',names))
+  `(eval-when
+    ((load-toplevel)
+     (module-export! (current-module) ',names))
+    (else
+     (error "export can only be used at the top level"))))
 
 (define export-syntax export)
 
@@ -2622,10 +2646,13 @@
 
 ;;; {Load emacs interface support if emacs option is given.}
 
+(define (named-module-use! user usee)
+  (module-use! (resolve-module user) (resolve-module usee)))
+
 (define (load-emacs-interface)
   (if (memq 'debug-extensions *features*)
       (debug-enable 'backtrace))
-  (define-module (guile-user) :use-module (ice-9 emacs)))
+  (named-module-use! '(guile-user) '(ice-9 emacs)))
 
 
 
@@ -2643,15 +2670,16 @@
       (load-emacs-interface))
 
   ;; Place the user in the guile-user module.
-  (define-module (guile-user)
-    :use-module (guile) ;so that bindings will be checked here first
-    :use-module (ice-9 session)
-    :use-module (ice-9 debug)
-    :autoload (ice-9 debugger) (debug))	;load debugger on demand
+  (process-define-module 
+   '((guile-user)
+     :use-module (guile)    ;so that bindings will be checked here first
+     :use-module (ice-9 session)
+     :use-module (ice-9 debug)
+     :autoload (ice-9 debugger) (debug)))  ;load debugger on demand
   (if (memq 'threads *features*)
-      (define-module (guile-user) :use-module (ice-9 threads)))
+      (named-module-use! '(guile-user) '(ice-9 threads)))
   (if (memq 'regex *features*)
-      (define-module (guile-user) :use-module (ice-9 regex)))
+      (named-module-use! '(guile-user) '(ice-9 regex)))
 
   (let ((old-handlers #f)
 	(signals (if (provided? 'posix)
