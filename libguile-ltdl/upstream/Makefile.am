@@ -34,8 +34,8 @@ ETAGS_ARGS = --regex='/SCM_\(GLOBAL_\)?\(G?PROC\|G?PROC1\|SYMBOL\|VCELL\|CONST_L
 EXTRA_DIST := ltdl.h ltdl.c ltdl.h.diff ltdl.c.diff
 BUILT_SOURCES := ltdl.h.diff ltdl.c.diff
 
-ltdl.h.diff: ltdl.h ../raw-ltdl.h
-	cp ../raw-ltdl.h raw-ltdl.guilemod.h.tmp
+ltdl.h.diff: ltdl.h $(srcdir)/../raw-ltdl.h
+	cp $(srcdir)/../raw-ltdl.h raw-ltdl.guilemod.h.tmp
 	perl -pi \
 	  -e 's/SCMLTXT/extern/go;' \
 	  -e 's/SCMLTSTATIC //go;' \
@@ -46,8 +46,8 @@ ltdl.h.diff: ltdl.h ../raw-ltdl.h
 	diff -ru ltdl.h raw-ltdl.guilemod.h > ltdl.h.diff; \
 	  test "$$?" -eq 1
 
-ltdl.c.diff: ltdl.c ../raw-ltdl.c
-	cp ../raw-ltdl.c raw-ltdl.guilemod.c.tmp
+ltdl.c.diff: ltdl.c $(srcdir)/../raw-ltdl.c
+	cp $(srcdir)/../raw-ltdl.c raw-ltdl.guilemod.c.tmp
 	perl -pi \
 	  -e 's/SCMLTXT/extern/go;' \
 	  -e 's/SCMLTSTATIC //go;' \
