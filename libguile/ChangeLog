@@ -1,3 +1,7 @@
+1999-01-22  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* eval.c (SCM_CEVAL): Added ENTER_APPLY in code for SCM_IM_APPLY.
+
 1999-01-21  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
 	* random.c, random.h (scm_i_make_rstate): New function: Makes
