@@ -1,7 +1,13 @@
+1997-11-22  Tim Pierce  <twp@twp.tezcat.com>
+
+	* dynl-dl.c (sysdep_dynl_func): Fix memory leak created by
+	yesterday's underscore patch.  (Thanks to Marius Vollmer for
+	spotting this.)
+
 1997-11-21  Tim Pierce  <twp@twp.tezcat.com>
 
 	* dynl-dl.c (sysdep_dynl_func): Prepend symb with underscore if
-	DLSYM_ADDS_UNDERSCORE is not defined.
+	DLSYM_ADDS_USCORE is not defined.
 
 1997-11-06  Mikael Djurfeldt  <mdj@nada.kth.se>
 

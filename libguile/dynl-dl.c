@@ -89,22 +89,22 @@ sysdep_dynl_func (symb, handle, subr)
     char *err;
     char *usymb;
 
-    usymb = (char *) malloc (strlen (symb) + 2);
 #ifdef DLSYM_ADDS_USCORE
-    strcpy (usymb, symb);
+    fptr = dlsym (handle, symb);
 #else
+    usymb = (char *) malloc (strlen (symb) + 2);
     *usymb = '_';
     strcpy (usymb + 1, symb);
+    fptr = dlsym (handle, usymb);
+    free (usymb);
 #endif
 
-    fptr = dlsym (handle, usymb);
     err = (char *)dlerror ();
     if (!fptr)
       {
 	SCM_ALLOW_INTS;
 	scm_misc_error (subr, err? err : "symbol has NULL address", SCM_EOL);
       }
-    free (usymb);
     return fptr;
 }
 
