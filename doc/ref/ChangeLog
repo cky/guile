@@ -20,6 +20,9 @@
 
 	* srfi-modules.texi (SRFI-1 Constructors): Add list-copy.
 
+	* srfi-modules.texi (SRFI-19): Rewrite, adding descriptions of all
+	functions, and a bit of an introduction.
+
 2003-09-03  Kevin Ryde  <user42@zip.com.au>
 
 	* scheme-data.texi (Keyword Primitives): Add examples to
