@@ -271,7 +271,7 @@ scm_read_history (SCM file)
 {
   SCM_ASSERT (SCM_NIMP (file) && SCM_STRINGP (file),
 	      file, SCM_ARG1, s_read_history);
-  return read_history (SCM_CHARS (file)) ? SCM_BOOL_F : SCM_BOOL_T;
+  return read_history (SCM_ROCHARS (file)) ? SCM_BOOL_F : SCM_BOOL_T;
 }
 
 
@@ -282,7 +282,7 @@ scm_write_history (SCM file)
 {
   SCM_ASSERT (SCM_NIMP (file) && SCM_STRINGP (file),
 	      file, SCM_ARG1, s_write_history);
-  return write_history (SCM_CHARS (file)) ? SCM_BOOL_F : SCM_BOOL_T;
+  return write_history (SCM_ROCHARS (file)) ? SCM_BOOL_F : SCM_BOOL_T;
 }
 
 
