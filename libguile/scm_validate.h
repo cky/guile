@@ -1,4 +1,4 @@
-/* $Id: scm_validate.h,v 1.8 1999-12-19 01:04:36 gjb Exp $ */
+/* $Id: scm_validate.h,v 1.9 2000-01-05 16:16:57 gjb Exp $ */
 /*	Copyright (C) 1999 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
@@ -263,6 +263,11 @@
                    v, pos, FUNC_NAME); } while (0)
 
 #define SCM_VALIDATE_VECTOR(pos,v) SCM_MAKE_VALIDATE(pos,v,VECTORP)
+
+#define SCM_VALIDATE_VECTOR_OR_DVECTOR(pos,v) \
+  do { SCM_ASSERT ((SCM_VECTORP (v) ||  \
+                    (SCM_NIMP (v) && SCM_TYP7 (v) == scm_tc7_dvect)), \
+                   v, pos, FUNC_NAME); } while (0) 
 
 #define SCM_VALIDATE_STRUCT(pos,v) SCM_MAKE_VALIDATE(pos,v,STRUCTP)
 

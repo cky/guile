@@ -827,8 +827,7 @@ prefix for the new symbol's name.  The default prefix is @code{%%gensym}.")
       goto skip_test;
     }
   else
-    SCM_ASSERT (SCM_NIMP (obarray)
-		&& (SCM_VECTORP (obarray) || SCM_WVECTP (obarray)),
+    SCM_ASSERT ((SCM_VECTORP (obarray) || SCM_WVECTP (obarray)),
 		obarray,
 		SCM_ARG2,
 		FUNC_NAME);

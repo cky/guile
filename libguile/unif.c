@@ -305,15 +305,13 @@ loop:
       return nprot || SCM_BOOL(SCM_INUMP(prot) && SCM_INUM(prot)<=0);
     case scm_tc7_svect:
       return (   nprot
-	      || (SCM_NIMP (prot)
-		  && SCM_SYMBOLP (prot)
+	      || (SCM_SYMBOLP (prot)
 		  && (1 == SCM_LENGTH (prot))
 		  && ('s' == SCM_CHARS (prot)[0])));
 #ifdef HAVE_LONG_LONGS
     case scm_tc7_llvect:
       return (   nprot
-	      || (SCM_NIMP (prot)
-		  && SCM_SYMBOLP (prot)
+	      || (SCM_SYMBOLP (prot)
 		  && (1 == SCM_LENGTH (prot))
 		  && ('s' == SCM_CHARS (prot)[0])));
 #endif

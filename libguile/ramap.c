@@ -182,8 +182,7 @@ scm_ra_matchp (SCM ra0, SCM ras)
 	bas0 = SCM_ARRAY_BASE (ra0);
 	break;
       }
-  while SCM_NIMP
-    (ras)
+  while (SCM_NIMP (ras))
       {
 	ra1 = SCM_CAR (ras);
 	if (SCM_IMP (ra1))

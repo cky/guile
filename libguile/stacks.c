@@ -364,15 +364,13 @@ narrow_stack (SCM stack,int inner,SCM inner_key,int outer,SCM outer_key)
       for (i = 0; inner; ++i, --inner)
 	{
 	  SCM m = s->frames[i].source;
-	  if (SCM_NIMP (m)
-	      && SCM_MEMOIZEDP (m)
+	  if (   SCM_MEMOIZEDP (m)
 	      && SCM_NIMP (SCM_MEMOIZED_ENV (m))
 	      && SCM_FALSEP (scm_system_module_env_p (SCM_MEMOIZED_ENV (m))))
 	    {
 	      /* Back up in order to include any non-source frames */
 	      while (i > 0
-		     && !((SCM_NIMP (m = s->frames[i - 1].source)
-			   && SCM_MEMOIZEDP (m))
+		     && !((m = s->frames[i - 1].source, SCM_MEMOIZEDP (m))
 			  || (SCM_NIMP (m = s->frames[i - 1].proc)
 			      && SCM_NFALSEP (scm_procedure_p (m))
 			      && SCM_NFALSEP (scm_procedure_property

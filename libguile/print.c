@@ -888,10 +888,9 @@ circref:
 int
 scm_valid_oport_value_p	(SCM val)
 {
-  return (SCM_NIMP (val)
-	  && (SCM_OPOUTPORTP (val)
-	      || (SCM_PORT_WITH_PS_P (val)
-		  && SCM_OPOUTPORTP (SCM_PORT_WITH_PS_PORT (val)))));
+  return (SCM_OPOUTPORTP (val)
+          || (SCM_PORT_WITH_PS_P (val)
+              && SCM_OPOUTPORTP (SCM_PORT_WITH_PS_PORT (val))));
 }
 
 /* SCM_GPROC(s_write, "write", 1, 1, 0, scm_write, g_write); */
@@ -1022,13 +1021,10 @@ GUILE_PROC (scm_get_print_state, "get-print-state", 1, 0, 0,
 "")
 #define FUNC_NAME s_scm_get_print_state
 {
-  if (SCM_NIMP (port))
-    {
-      if (SCM_PORT_WITH_PS_P (port))
-	return SCM_PORT_WITH_PS_PS (port);
-      if (SCM_OUTPORTP (port))
-	return SCM_BOOL_F;
-    }
+  if (SCM_PORT_WITH_PS_P (port))
+    return SCM_PORT_WITH_PS_PS (port);
+  if (SCM_OUTPORTP (port))
+    return SCM_BOOL_F;
   RETURN_SCM_WTA (1,port);
 }
 #undef FUNC_NAME

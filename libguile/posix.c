@@ -928,8 +928,7 @@ environ_list_to_c (SCM envlist, int arg, const char *proc)
       int len;
       char *src;
 
-      SCM_ASSERT (SCM_NIMP (SCM_CAR (envlist))
-		  && SCM_ROSTRINGP (SCM_CAR (envlist)),
+      SCM_ASSERT (SCM_ROSTRINGP (SCM_CAR (envlist)),
 		  envlist, arg, proc);
       len = 1 + SCM_ROLENGTH (SCM_CAR (envlist));
       result[i] = malloc ((long) len);

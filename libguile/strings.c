@@ -333,8 +333,7 @@ GUILE_PROC(scm_string_append, "string-append", 0, 0, 1,
   register long i = 0;
   register SCM l, s;
   register unsigned char *data;
-  for (l = args;SCM_NIMP (l);) {
-    SCM_ASSERT (SCM_CONSP (l), l, SCM_ARGn, FUNC_NAME);
+  for (l = args;SCM_CONSP (l);) {
     s = SCM_CAR (l);
     SCM_VALIDATE_ROSTRING(SCM_ARGn,s);
     i += SCM_ROLENGTH (s);

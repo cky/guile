@@ -466,9 +466,7 @@ GUILE_PROC (scm_random_solid_sphere_x, "random:solid-sphere!", 1, 1, 0,
 "")
 #define FUNC_NAME s_scm_random_solid_sphere_x
 {
-  SCM_ASSERT (SCM_NIMP (v)
-	      && (SCM_VECTORP (v) || SCM_TYP7 (v) == scm_tc7_dvect),
-	      v, SCM_ARG1, FUNC_NAME);
+  SCM_VALIDATE_VECTOR_OR_DVECTOR(1,v);
   if (SCM_UNBNDP (state))
     state = SCM_CDR (scm_var_random_state);
   SCM_VALIDATE_RSTATE(2,state);
@@ -486,9 +484,7 @@ GUILE_PROC (scm_random_hollow_sphere_x, "random:hollow-sphere!", 1, 1, 0,
 "")
 #define FUNC_NAME s_scm_random_hollow_sphere_x
 {
-  SCM_ASSERT (SCM_NIMP (v)
-	      && (SCM_VECTORP (v) || SCM_TYP7 (v) == scm_tc7_dvect),
-	      v, SCM_ARG1, FUNC_NAME);
+  SCM_VALIDATE_VECTOR_OR_DVECTOR(1,v);
   if (SCM_UNBNDP (state))
     state = SCM_CDR (scm_var_random_state);
   SCM_VALIDATE_RSTATE(2,state);
@@ -505,9 +501,7 @@ GUILE_PROC (scm_random_normal_vector_x, "random:normal-vector!", 1, 1, 0,
 #define FUNC_NAME s_scm_random_normal_vector_x
 {
   int n;
-  SCM_ASSERT (SCM_NIMP (v)
-	      && (SCM_VECTORP (v) || SCM_TYP7 (v) == scm_tc7_dvect),
-	      v, SCM_ARG1, FUNC_NAME);
+  SCM_VALIDATE_VECTOR_OR_DVECTOR(1,v);
   if (SCM_UNBNDP (state))
     state = SCM_CDR (scm_var_random_state);
   SCM_VALIDATE_RSTATE(2,state);
