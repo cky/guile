@@ -195,13 +195,6 @@ if test "$use_modules" != no; then
    AC_LIBOBJ([dynl])
 fi
 
-SCM_I_GSC_HAVE_ARRAYS=0
-if test "$enable_arrays" = yes; then
-   AC_LIBOBJ([ramap])
-   AC_LIBOBJ([unif])
-   SCM_I_GSC_HAVE_ARRAYS=1
-fi
-
 if test "$enable_posix" = yes; then
    AC_LIBOBJ([filesys])
    AC_LIBOBJ([posix])
@@ -1214,7 +1207,6 @@ AC_SUBST([SCM_I_GSC_GUILE_DEBUG_FREELIST])
 AC_SUBST([SCM_I_GSC_ENABLE_DISCOURAGED])
 AC_SUBST([SCM_I_GSC_ENABLE_DEPRECATED])
 AC_SUBST([SCM_I_GSC_ENABLE_ELISP])
-AC_SUBST([SCM_I_GSC_HAVE_ARRAYS])
 AC_SUBST([SCM_I_GSC_STACK_GROWS_UP])
 AC_SUBST([SCM_I_GSC_C_INLINE])
 AC_CONFIG_FILES([libguile/gen-scmconfig.h])
