@@ -411,6 +411,21 @@ There is no such concept as a weak binding any more.
 
 ** Removed constants:  bignum-radix, scm-line-incrementors
 
+** define-method: New syntax mandatory.
+
+The new method syntax is now mandatory:
+
+(define-method (NAME ARG-SPEC ...) BODY ...)
+(define-method (NAME ARG-SPEC ... . REST-ARG) BODY ...)
+
+  ARG-SPEC ::= ARG-NAME | (ARG-NAME TYPE)
+  REST-ARG ::= ARG-NAME
+
+If you have old code using the old syntax, import
+(oop goops old-define-method) before (oop goops) as in:
+
+  (use-modules (oop goops old-define-method) (oop goops))
+
 * Changes to the gh_ interface
 
 * Changes to the scm_ interface

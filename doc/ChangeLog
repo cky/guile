@@ -2,7 +2,7 @@
 
 	* goops.texi (VERSION): Bumped to version 0.3.
 
-	* goops-tutorial.texi, goops.texi: Updated to reflext new
+	* goops-tutorial.texi, goops.texi: Updated to reflect new
 	define-method syntax.
 
 2001-03-09  Neil Jerram  <neil@ossau.uklinux.net>
