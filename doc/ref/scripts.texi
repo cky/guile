@@ -94,6 +94,17 @@ the feature identifier for the loaded SRFIs is recognized by
 guile --use-srfi=8,13
 @end example
 
+@item --debug
+Start with the debugging evaluator and enable backtraces.  Using the
+debugging evaluator will give you better error messages but it will
+slow down execution.  By default, the debugging evaluator is only used
+when entering an interactive session.  When executing a script with
+@code{-s} or @code{-c}, the normal, faster evaluator is used by default.
+
+@item --no-debug
+Do not use the debugging evaluator, even when entering an interactive
+session.
+
 @item -h@r{, }--help
 Display help on invoking Guile, and then exit.
 
