@@ -465,7 +465,7 @@ scm_addr_vector (address, proc)
       ve[2] = scm_ulong2num ((unsigned long) ntohs (nad->sin_port));
     }
   else
-    scm_misc_error (proc, "Unrecognised internet address type: %s",
+    scm_misc_error (proc, "Unrecognised address family: %s",
 		    scm_listify (SCM_MAKINUM (fam), SCM_UNSPECIFIED));
 
   return result;

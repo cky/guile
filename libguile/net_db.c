@@ -316,6 +316,7 @@ scm_getserv (name, proto)
       entry = getservent ();
       if (!entry)
 	scm_syserror (s_getserv);
+      SCM_ALLOW_INTS;
       return scm_return_entry (entry);
     }
   SCM_ASSERT (SCM_NIMP (proto) && SCM_STRINGP (proto), proto, SCM_ARG2, s_getserv);
@@ -328,10 +329,11 @@ scm_getserv (name, proto)
     {
       SCM_ASSERT (SCM_INUMP (name), name, SCM_ARG1, s_getserv);
       SCM_DEFER_INTS;
-      entry = getservbyport (SCM_INUM (name), SCM_CHARS (proto));
+      entry = getservbyport (htons (SCM_INUM (name)), SCM_CHARS (proto));
     }
   if (!entry)
     scm_syserror (s_getserv);
+  SCM_ALLOW_INTS;
   return scm_return_entry (entry);
 }
 

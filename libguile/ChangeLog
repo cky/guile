@@ -1,3 +1,8 @@
+Wed Jan  8 06:54:54 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* net_db.c (scm_getserv): add missing SCM_ALLOW_INTS.
+	use htons in getservbyport argument.
+
 Tue Jan  7 18:11:24 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* ports.h (SCM_PTOBNUM): Removed extraneous semicolon.
