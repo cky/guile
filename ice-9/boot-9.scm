@@ -2831,6 +2831,7 @@
      (error "re-export can only be used at the top level"))))
 
 (define export-syntax export)
+(define re-export-syntax re-export)
 
 
 (define load load-module)
