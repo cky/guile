@@ -1,3 +1,9 @@
+2000-12-07  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* gc.c (scm_init_gc):  gc_async is already protected from gc,
+	namely via scm_asyncs.  Thanks to Keisuke Nishida for pointing
+	this out.
+
 2000-12-07  Keisuke Nishida  <kxn30@po.cwru.edu>
 
 	* smob.h (scm_smob_apply_0, scm_smob_apply_1, scm_smob_apply_2,

@@ -2581,8 +2581,7 @@ scm_init_gc ()
   scm_gc_vcell = scm_sysintern ("gc-thunk", SCM_BOOL_F);
 #endif  /* SCM_DEBUG_DEPRECATED == 0 */
   after_gc_thunk = scm_make_subr_opt ("%gc-thunk", scm_tc7_subr_0, gc_async_thunk, 0);
-  gc_async = scm_system_async (after_gc_thunk);
-  scm_permanent_object (gc_async);
+  gc_async = scm_system_async (after_gc_thunk);  /* protected via scm_asyncs */
 
   scm_c_hook_add (&scm_after_gc_c_hook, mark_gc_async, NULL, 0);
 
