@@ -52,6 +52,10 @@
 
 #include "libguile/convert.h"
 
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif
+
 #define CTYPE char
 #define SCM2CTYPES_FN "scm_c_scm2chars"
 #define SCM2CTYPES scm_c_scm2chars

@@ -1,3 +1,7 @@
+2002-02-25  Gary Houston  <ghouston@arglist.com>
+
+	* convert.c: include <string.h> for convert_i.c.
+
 2002-02-24  Rob Browning  <rlb@defaultvalue.org>
 
 	* .cvsignore: add stamp-h1.
