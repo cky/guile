@@ -1,3 +1,8 @@
+2002-02-09  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* guile-test (main): Handle `--flag-unresolved'.  No longer set
+	exit value to #f unconditionally on UNRESOLVED results.
+
 2002-02-08  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* tests/elisp.test: Add tests of Elisp expression evaluation.
