@@ -31,7 +31,7 @@ ice9_sources =								   \
 	rdelim.scm receive.scm srfi-8.scm regex.scm runq.scm		   \
 	safe-r5rs.scm safe.scm session.scm slib.scm stack-catch.scm	   \
 	streams.scm string-fun.scm syncase.scm tags.scm threads.scm        \
-	buffered-input.scm
+	buffered-input.scm time.scm
 
 subpkgdatadir = $(pkgdatadir)/$(VERSION)/ice-9
 subpkgdata_DATA = $(ice9_sources)
