@@ -1178,7 +1178,7 @@ gc_mark_nimp:
             int len = SCM_LENGTH (layout);
             char * fields_desc = SCM_CHARS (layout);
             scm_bits_t * struct_data = (scm_bits_t *) SCM_STRUCT_DATA (ptr);
-            
+
             if (vtable_data[scm_struct_i_flags] & SCM_STRUCTF_ENTITY)
               {
                 scm_gc_mark (SCM_PACK (struct_data[scm_struct_i_procedure]));
@@ -1187,7 +1187,7 @@ gc_mark_nimp:
             if (len)
               {
                 int x;
-                
+
                 for (x = 0; x < len - 2; x += 2, ++struct_data)
                   if (fields_desc[x] == 'p')
                     scm_gc_mark (SCM_PACK (*struct_data));
@@ -1421,10 +1421,10 @@ scm_mark_locations (SCM_STACKITEM x[], scm_sizet n)
 			    break;
 			}
 		    }
-                  
+
                   if (SCM_GC_IN_CARD_HEADERP (ptr))
                     break;
-                  
+
 		  if (scm_heap_table[seg_id].span == 1
 		      || SCM_DOUBLE_CELLP (obj))
 		    {
@@ -1581,7 +1581,7 @@ scm_gc_sweep ()
 
           if (SCM_GCMARKP (scmptr))
               continue;
-          
+
 	  switch SCM_TYP7 (scmptr)
             {
 	    case scm_tcs_cons_gloc:
@@ -1601,6 +1601,7 @@ scm_gc_sweep ()
 		     */
 		    SCM_SET_STRUCT_GC_CHAIN (scmptr, scm_structs_to_free);
 		    scm_structs_to_free = scmptr;
+                    continue;
 		  }
 		/* fall through so that scmptr gets collected */
 	      }
@@ -1720,7 +1721,7 @@ scm_gc_sweep ()
 	    sweeperr:
 	      SCM_MISC_ERROR ("unknown type", SCM_EOL);
 	    }
-          
+
 	  if (!--left_to_collect)
 	    {
 	      SCM_SETCAR (scmptr, nfreelist);
