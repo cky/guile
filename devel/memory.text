@@ -130,7 +130,7 @@ everybody else to systematically review their code.
 	itself.  (We don't do this out of lazyness but because it will
 	keep the memory management overhead very low.)
 
-The normal thing to use is scm_gc_malloc / scm_gc_free.
+The normal thing to use is scm_gc_malloc, scm_gc_realloc, and scm_gc_free.
 
 
 Cell allocation and initialization
