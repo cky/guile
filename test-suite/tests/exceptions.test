@@ -243,14 +243,6 @@
     (goad x:wrong-type-arg (set! '#t 1))
     (goad x:wrong-type-arg (set! '#f 1))
 
-    (expect-fail-exception "mutating string derived from symbol"
-      exception:bad-var
-      (string-set! (symbol->string 'abc) 1 #\space))
-
-    (expect-fail-exception "mutating string constant"
-      exception:bad-var
-      (string-set! "abc" 1 #\space))
-
     ;; Add more (bindings immutable-modification) exceptions here.
     )
   (with-test-prefix "let"

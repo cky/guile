@@ -1,3 +1,20 @@
+2001-03-01  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* symbols.test:  New file.
+
+	(exception:immutable-string):  New constant.  Currently, this is a
+	dummy since guile does not have immutable strings.
+
+	* exceptions.test, strings.test, symbols.test:  Moved the string
+	related test cases from exceptions.test to strings.test and the
+	symbol related test cases to symbols.test.
+
+	* strings.test:  Copyright notice updated.  Added a couple of test
+	cases.
+
+	(exception:immutable-string):  New constant.  Currently, this is a
+	dummy since guile does not have immutable strings.
+
 2001-02-28  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* exceptions.test:  Use expect-fail-exception to indicate test

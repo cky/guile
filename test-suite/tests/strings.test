@@ -1,7 +1,7 @@
 ;;;; strings.test --- test suite for Guile's string functions    -*- scheme -*-
 ;;;; Jim Blandy <jimb@red-bean.com> --- August 1999
 ;;;;
-;;;; 	Copyright (C) 1999 Free Software Foundation, Inc.
+;;;; Copyright (C) 1999, 2001 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -18,17 +18,71 @@
 ;;;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
 ;;;; Boston, MA 02111-1307 USA
 
-(use-modules (test-suite lib))
+
+;; FIXME:  As soon as guile supports immutable strings, this has to be
+;; replaced with the appropriate error type and message.
+(define exception:immutable-string
+  (cons 'some-error-type "^trying to modify an immutable string"))
 
 
-(pass-if-exception "string=? does not accept symbols"
-  exception:wrong-type-arg
-  (string=? 'a 'b))
+(with-test-prefix "string=?"
 
-(pass-if "string<? respects string length"
-	 (not (string<? "foo\0" "foo")))
-(pass-if "string-ci<? respects string length"
-	 (not (string-ci<? "foo\0" "foo")))
-(pass-if-exception "substring-move! checks start and end correctly"
-  exception:out-of-range
-  (substring-move! "sample" 3 0 "test" 3))
+  (pass-if "respects 1st parameter's string length"
+    (not (string=? "foo\0" "foo")))
+
+  (pass-if "respects 2nd paramter's string length"
+    (not (string=? "foo" "foo\0")))
+
+  (with-test-prefix "wrong argument type"
+
+    (pass-if-exception "1st argument symbol"
+      exception:wrong-type-arg
+      (string=? 'a "a"))
+
+    (pass-if-exception "2nd argument symbol"
+      exception:wrong-type-arg
+      (string=? "a" 'b))))
+
+(with-test-prefix "string<?"
+
+  (pass-if "respects string length"
+    (and (not (string<? "foo\0a" "foo\0a"))
+	 (string<? "foo\0a" "foo\0b")))
+
+  (with-test-prefix "wrong argument type"
+
+    (pass-if-exception "1st argument symbol"
+      exception:wrong-type-arg
+      (string<? 'a "a"))
+
+    (pass-if-exception "2nd argument symbol"
+      exception:wrong-type-arg
+      (string<? "a" 'b))))
+
+(with-test-prefix "string-ci<?"
+
+  (pass-if "respects string length"
+    (and (not (string-ci<? "foo\0a" "foo\0a"))
+	 (string-ci<? "foo\0a" "foo\0b")))
+
+  (with-test-prefix "wrong argument type"
+
+    (pass-if-exception "1st argument symbol"
+      exception:wrong-type-arg
+      (string-ci<? 'a "a"))
+
+    (pass-if-exception "2nd argument symbol"
+      exception:wrong-type-arg
+      (string-ci<? "a" 'b))))
+
+(with-test-prefix "string-set!"
+
+  (expect-fail-exception "string constant"
+    exception:immutable-string
+    (string-set! "abc" 1 #\space)))
+
+(with-test-prefix "substring-move!"
+
+  (pass-if-exception "substring-move! checks start and end correctly"
+    exception:out-of-range
+    (substring-move! "sample" 3 0 "test" 3)))
