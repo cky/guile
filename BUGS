@@ -107,5 +107,31 @@ Keith Wright sez:
 > >  applied to all numerical values) are:
 > >
 > >   * `#e', `#E' -- the number is exact
+
+
+bug 6 -- exactness prefix doesn't do nothing gracefully
+reported-by: kwright@gis.net / 2001-10-09
+fixed: not-yet
+
+[this may be related to bug 5. --ttn]
+
+Keith Wright sez:
+> The saga continues...
+> 
+> > >     The codes for indicating exactness (which can, incidentally, be
+> > >  applied to all numerical values) are:
+> > >
+> > >   * `#e', `#E' -- the number is exact
+> 
+>   guile> #E3  ==>  3
+>   guile> #E3.0
+>   ERROR: In procedure scm_lreadr:
+>   ERROR: unknown # object
+> 
+> Better change the reference manual s/, incidentally,/'t/.
+> 
+> (That's a joke son.  The Scheme language requires #e in front
+> of any number to at least do nothing successfully.)
+
 
 [BUGS ends here]
