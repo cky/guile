@@ -1,3 +1,8 @@
+2000-09-26  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* tests/strings.test:  Added a test to help remember that string=?
+	and friends need fixing.
+
 2000-09-12  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* tests/environments.test:  For tests that rely on garbage
