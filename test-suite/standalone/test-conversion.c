@@ -41,6 +41,9 @@ test_is_signed_integer ()
 	  0);
   test_1 ("3.0", 
 	  SCM_T_INTMAX_MIN, SCM_T_INTMAX_MAX,
+	  0);
+  test_1 ("(inexact->exact 3.0)", 
+	  SCM_T_INTMAX_MIN, SCM_T_INTMAX_MAX,
 	  1);
   test_1 ("3.5",
 	  SCM_T_INTMAX_MIN, SCM_T_INTMAX_MAX,
@@ -122,6 +125,9 @@ test_is_unsigned_integer ()
 	  0, SCM_T_UINTMAX_MAX,
 	  0);
   test_2 ("3.0", 
+	  0, SCM_T_UINTMAX_MAX,
+	  0);
+  test_2 ("(inexact->exact 3.0)", 
 	  0, SCM_T_UINTMAX_MAX,
 	  1);
   test_2 ("3.5",
