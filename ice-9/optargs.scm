@@ -369,6 +369,7 @@
 	       (else (parse-opt-and-fixed arglist '() #f rest cont)))))))))
   (define (parse-rest arglist cont)
     (cond 
+     ((null? arglist) (cont '() '() '() #f #f))
      ((not (pair? arglist)) (cont '() '() '() #f arglist))
      ((not (list? arglist))
 	  (let* ((copy (list-copy arglist))

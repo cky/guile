@@ -1,3 +1,7 @@
+1999-02-16  Maciej Stachowiak  <mstachow@alum.mit.edu>
+
+	* optargs.scm (lambda*): Handle empty argument lists properly.
+
 1999-02-15  Jim Blandy  <jimb@savonarola.red-bean.com>
 
 	Fix from Russ McManus:
