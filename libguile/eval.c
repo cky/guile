@@ -1472,7 +1472,9 @@ unmemocopy (SCM x, SCM env)
 	z = scm_cons (n, SCM_UNSPECIFIED);
 	ls = scm_cons (scm_sym_define, z);
 	if (!SCM_NULLP (env))
-	  SCM_SETCAR (SCM_CAR (env), scm_cons (n, SCM_CAAR (env)));
+	  env = scm_cons (scm_cons (scm_cons (n, SCM_CAAR (env)),
+				    SCM_CDAR (env)),
+			  SCM_CDR (env));
 	break;
       }
     case SCM_BIT8(SCM_MAKISYM (0)):

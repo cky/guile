@@ -1,3 +1,9 @@
+2002-07-13  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* eval.c (unmemocopy): Fix for
+	1001-local-eval-error-backtrace-segfaults (unmemoization crash
+	with internal definitions and local-eval).
+
 2002-07-12  Gary Houston  <ghouston@arglist.com>
 
 	* dynl.c: Don't define stub procedures if DYNAMIC_LINKING is not
