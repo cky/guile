@@ -1,5 +1,12 @@
 2000-03-14  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
+	* init.c (scm_boot_guile_1): Use same initial segment size for
+	1-word and 2-word segments.  Having the smaller size causes Guile
+	to GC too often.  Obviously something needs to be done to allow
+	for a smaller 2-word segment without this to happen.  (The amount
+	of heap for each type should be automatically adapted to the
+	application somehow.)
+
 	[Almost all of these changes should be documented in the NEWS
 	file.]
 
