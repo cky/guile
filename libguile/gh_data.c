@@ -700,18 +700,26 @@ gh_uniform_vector_ref (SCM v, SCM ilist)
 SCM
 gh_lookup (const char *sname)
 {
-  return gh_module_lookup (SCM_BOOL_F, sname);
+  return gh_module_lookup (scm_current_module (), sname);
 }
 
+
 SCM
-gh_module_lookup (SCM vec, const char *sname)
+gh_module_lookup (SCM module, const char *sname)
+#define FUNC_NAME "gh_module_lookup"
 {
-  SCM sym = gh_symbol2scm (sname);
-  if (SCM_EQ_P (scm_symbol_bound_p (vec, sym), SCM_BOOL_T))
-    return scm_symbol_binding (vec, sym);
+  SCM sym, cell;
+
+  SCM_VALIDATE_MODULE (SCM_ARG1, module);
+
+  sym = gh_symbol2scm (sname);
+  cell = scm_sym2vcell (sym, scm_module_lookup_closure (module), SCM_BOOL_F);
+  if (cell != SCM_BOOL_F)
+    return SCM_CDR (cell);
   else
     return SCM_UNDEFINED;
 }
+#undef FUNC_NAME
 
 /*
   Local Variables:

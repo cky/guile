@@ -185,7 +185,7 @@ SCM gh_uniform_vector_ref (SCM v, SCM ilist);
 #define gh_vector_to_list(v) scm_vector_to_list(v)
 
 SCM gh_lookup (const char *sname);
-SCM gh_module_lookup (SCM vector, const char *sname);
+SCM gh_module_lookup (SCM module, const char *sname);
 
 SCM gh_cons(SCM x, SCM y);
 #define gh_list scm_listify
