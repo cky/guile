@@ -1,3 +1,19 @@
+2001-02-21  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* eval.c (scm_ceval, scm_deval): Check for wrong number of args
+	before applying arrow procedure in `cond' and before applying
+	receiver procedure in call-with-current-continuation.
+	(scm_i_eval): Do not invoke scm_copy_tree in argument in SCM_XEVAL
+	macro.  The argument is expanded more than one time.
+
+	* numbers.c (scm_logior) [SCM_DIGSTOOBIG]: Correctly use
+	SCM_BIGDIG instead of BIGDIG.  Thanks to Steven G. Johnson!
+
+2001-02-20  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* guile-doc-snarf.in, guile-func-name-check.in: Added copyright
+	notice and license.
+
 2001-02-17  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* variable.c (scm_make_variable, scm_make_undefined_variable)
