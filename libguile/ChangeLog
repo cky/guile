@@ -1,5 +1,7 @@
 2004-09-22  Marius Vollmer  <mvo@zagadka.de>
 
+	* gh_list.c: Replaced SCM_CAR, etc with scm_car, etc.
+
 	* discouraged.h, tags.h (SCM_CONSP, SCM_NCONSP): Moved to
 	discouraged.h.  Replaced all uses with scm_is_pair.
 	(SCM_I_CONSP): New name for SCM_CONSP.
