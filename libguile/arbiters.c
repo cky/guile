@@ -73,15 +73,16 @@ arbiter_print (SCM exp, SCM port, scm_print_state *pstate)
   scm_puts ("#<arbiter ", port);
   if (SCM_ARB_LOCKED (exp))
     scm_puts ("locked ", port);
-  scm_iprin1 (SCM_CDR (exp), port, pstate);
+  scm_iprin1 (SCM_PACK (SCM_SMOB_DATA (exp)), port, pstate);
   scm_putc ('>', port);
   return !0;
 }
 
 SCM_DEFINE (scm_make_arbiter, "make-arbiter", 1, 0, 0, 
-           (SCM name),
-"Returns an object of type arbiter and name name. Its state is initially unlocked.\n"
-"Arbiters are a way to achieve process synchronization.")
+	    (SCM name),
+	    "Return an object of type arbiter and name @var{name}. Its\n"
+	    "state is initially unlocked.  Arbiters are a way to achieve\n"
+	    "process synchronization.")
 #define FUNC_NAME s_scm_make_arbiter
 {
   SCM_RETURN_NEWSMOB (scm_tc16_arbiter, SCM_UNPACK (name));
@@ -89,11 +90,12 @@ SCM_DEFINE (scm_make_arbiter, "make-arbiter", 1, 0, 0,
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_try_arbiter, "try-arbiter", 1, 0, 0, 
-           (SCM arb),
-"Returns #t and locks arbiter if arbiter was unlocked. Otherwise, returns #f.")
+	    (SCM arb),
+	    "Return @code{#t} and lock the arbiter @var{arb} if the arbiter\n"
+	    "was unlocked. Otherwise, return @code{#f}.")
 #define FUNC_NAME s_scm_try_arbiter
 {
-  SCM_VALIDATE_SMOB (1,arb,arbiter);
+  SCM_VALIDATE_SMOB (1, arb, arbiter);
   SCM_DEFER_INTS;
   if (SCM_ARB_LOCKED(arb))
     arb = SCM_BOOL_F;
@@ -109,12 +111,13 @@ SCM_DEFINE (scm_try_arbiter, "try-arbiter", 1, 0, 0,
 
 
 SCM_DEFINE (scm_release_arbiter, "release-arbiter", 1, 0, 0, 
-           (SCM arb),
-"Returns #t and unlocks arbiter if arbiter was locked. Otherwise, returns #f.")
+	    (SCM arb),
+	    "Return @code{#t} and unlock the arbiter @var{arb} if the\n"
+	    "arbiter was locked. Otherwise, return @code{#f}.")
 #define FUNC_NAME s_scm_release_arbiter
 {
-  SCM_VALIDATE_SMOB (1,arb,arbiter);
-  if (! SCM_ARB_LOCKED(arb))
+  SCM_VALIDATE_SMOB (1, arb, arbiter);
+  if (!SCM_ARB_LOCKED(arb))
     return SCM_BOOL_F;
   SCM_UNLOCK_ARB (arb);
   return SCM_BOOL_T;
