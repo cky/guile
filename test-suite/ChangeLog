@@ -1,3 +1,8 @@
+2004-04-24  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/srfi-11.test: New file.
+	* Makefile.am (SCM_TESTS): Add it.
+
 2004-04-22  Kevin Ryde  <user42@zip.com.au>
 
 	* standalone/test-round.c: New file, exercising scm_round.

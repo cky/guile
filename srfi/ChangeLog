@@ -1,3 +1,8 @@
+2004-04-24  Kevin Ryde  <user42@zip.com.au>
+
+	* srfi-11.scm (let-values): Use make-symbol rather than gensym, for
+	guaranteed uniqueness of temp variable symbols.
+
 2004-04-15  Kevin Ryde  <user42@zip.com.au>
 
 	* srfi-13.c (scm_string_trim, scm_string_trim_right,
