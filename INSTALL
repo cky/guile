@@ -56,8 +56,12 @@ cooperative threading.  If you use this switch, Guile will also build
 and install the QuickThreads non-preemptive threading library,
 libqt.a, which you will need to link into your programs after
 libguile.a.  That is, you should pass the switches -lguile -qt to your
-linker.  Coop threads are not yet thoroughly tested; once they are,
-they will be enabled by default.
+linker.
+
+Coop threads are not yet thoroughly tested; once they are, they will
+be enabled by default.  The interaction with blocking I/O is pretty ad
+hoc at the moment.  In our experience, bugs in the thread support do
+not affect you if you don't actually use threads.
 
 --enable-dynamic-linking --- Build a Guile executable and library
 providing Scheme functions which can load a shared library and
