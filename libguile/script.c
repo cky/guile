@@ -584,7 +584,7 @@ scm_compile_shell_switches (int argc, char **argv)
 	{
 	  /* Print version number.  */
 	  printf ("Guile %s\n"
-		  "Copyright (c) 1995, 1996, 1997, 2000 Free Software Foundation\n"
+		  "Copyright (c) 1995, 1996, 1997, 2000, 2001 Free Software Foundation\n"
 		  "Guile may be distributed under the terms of the GNU General Public Licence;\n"
 		  "certain other uses are permitted as well.  For details, see the file\n"
 		  "`COPYING', which is included in the Guile distribution.\n"

@@ -1,5 +1,5 @@
 /* Turning errno values into English error messages.
-   Copyright (C) 1985, 86, 87, 88, 93, 94, 95, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1985, 86, 87, 88, 93, 94, 95, 2000, 2001 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

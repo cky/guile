@@ -2,7 +2,7 @@
 
 #ifndef SCM_ASYNC_H
 #define SCM_ASYNC_H
-/* Copyright (C) 1995, 96, 97, 98, 2000 Free Software Foundation, Inc.
+/* Copyright (C) 1995, 96, 97, 98, 2000, 2001 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

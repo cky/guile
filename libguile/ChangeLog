@@ -13,6 +13,21 @@
 	* scmsigs.c (s_scm_setitimer): new function.
 	(s_scm_setitimer): new function.
 
+2001-07-18  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* alist.c, arbiters.c, async.h, backtrace.h, boolean.c, chars.c,
+	chars.h, continuations.h, debug-malloc.h, dynl.c, feature.c,
+	feature.h, filesys.h, fluids.h, fports.h, gc_os_dep.c,
+	gdb_interface.h, gh_eval.c, gh_funcs.c, gh_io.c, gh_list.c,
+	gh_predicates.c, gsubr.c, gsubr.h, guardians.h,
+	guile-func-name-check.in, guile-snarf-docs-texi.in,
+	guile-snarf-docs.in, guile-snarf.awk.in, guile-snarf.in,
+	hashtab.h, iselect.h, keywords.h, lang.c, list.h, load.h,
+	objprop.c, objprop.h, options.c, options.h, random.h,
+	regex-posix.h, root.c, root.h, script.c, snarf.h, stackchk.c,
+	strerror.c, strop.h, strports.h, threads.h, values.c, values.h,
+	version.c, version.h: Updated copyright notice.
+
 2001-07-17  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* goops.c (sym_layout, sym_vcell, sym_vtable, sym_print,
