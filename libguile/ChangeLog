@@ -1,3 +1,19 @@
+Tue Aug  6 14:49:08 1996  Jim Blandy  <jimb@totoro.cyclic.com>
+
+	Changes for NeXT, suggested by Robert Brown.
+	* configure.in: Call AC_TYPE_MODE_T.
+ 	(AC_CHECK_HEADERS): Add libc.h, to get more prototypes on the
+ 	NeXT.  Put header file list in alphabetical order.
+	* configure, scmconfig.h.in: Regenerated.
+	* filesys.c [HAVE_LIBC_H]: #include <libc.h>.
+
+	* filesys.c [HAVE_STRING_H]: #include <string.h>, to get prototype
+	for strerror.
+	
+	* acconfig.h: New file, providing documentation for the CPP
+	symbols defined in configure.in
+	* acconfig-1.5.h: Removed; superceded by the above.
+
 Sat Aug  3 01:27:14 1996  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* ioext.c (scm_sys_fdopen): fix the port-table assignment.
