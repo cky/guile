@@ -1,15 +1,15 @@
 /* Copyright (C) 1995,1996,1997,1998, 1999, 2000 Free Software Foundation, Inc.
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2, or (at your option)
  * any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
@@ -106,7 +106,6 @@ extern char *strptime ();
 #  define CLKTCK 60
 #endif
 
-
 #ifdef __STDC__
 # define timet time_t
 #else
@@ -115,7 +114,7 @@ extern char *strptime ();
 
 #ifdef HAVE_TIMES
 static
-long mytime()
+timet mytime()
 {
   struct tms time_buffer;
   times(&time_buffer);
@@ -137,7 +136,7 @@ struct timeb scm_your_base = {0};
 timet scm_your_base = 0;
 #endif
 
-SCM_DEFINE (scm_get_internal_real_time, "get-internal-real-time", 0, 0, 0, 
+SCM_DEFINE (scm_get_internal_real_time, "get-internal-real-time", 0, 0, 0,
            (),
 	    "Returns the number of time units since the interpreter was started.")
 #define FUNC_NAME s_scm_get_internal_real_time
@@ -162,7 +161,7 @@ SCM_DEFINE (scm_get_internal_real_time, "get-internal-real-time", 0, 0, 0,
 
 
 #ifdef HAVE_TIMES
-SCM_DEFINE (scm_times, "times", 0, 0, 0, 
+SCM_DEFINE (scm_times, "times", 0, 0, 0,
             (void),
 	    "Returns an object with information about real and processor time.\n"
 	    "The following procedures accept such an object as an argument and\n"
@@ -203,17 +202,23 @@ SCM_DEFINE (scm_times, "times", 0, 0, 0,
 
 static long scm_my_base = 0;
 
-SCM_DEFINE (scm_get_internal_run_time, "get-internal-run-time", 0, 0, 0, 
+long
+scm_c_get_internal_run_time ()
+{
+  return mytime () - scm_my_base;
+}
+
+SCM_DEFINE (scm_get_internal_run_time, "get-internal-run-time", 0, 0, 0,
            (void),
 	    "Returns the number of time units of processor time used by the interpreter.\n"
 	    "Both \"system\" and \"user\" time are included but subprocesses are not.")
 #define FUNC_NAME s_scm_get_internal_run_time
 {
-  return scm_long2num(mytime()-scm_my_base);
+  return scm_long2num (scm_c_get_internal_run_time ());
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_current_time, "current-time", 0, 0, 0, 
+SCM_DEFINE (scm_current_time, "current-time", 0, 0, 0,
            (void),
 	    "Returns the number of seconds since 1970-01-01 00:00:00 UTC, excludingleap seconds.")
 #define FUNC_NAME s_scm_current_time
@@ -228,7 +233,7 @@ SCM_DEFINE (scm_current_time, "current-time", 0, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_gettimeofday, "gettimeofday", 0, 0, 0, 
+SCM_DEFINE (scm_gettimeofday, "gettimeofday", 0, 0, 0,
             (void),
 	    "Returns a pair containing the number of seconds and microseconds since\n"
 	    "1970-01-01 00:00:00 UTC, excluding leap seconds.  Note: whether true\n"
@@ -249,11 +254,11 @@ SCM_DEFINE (scm_gettimeofday, "gettimeofday", 0, 0, 0,
   struct timeb time;
 
   ftime(&time);
-  return scm_cons (scm_long2num ((long) time.time), 
+  return scm_cons (scm_long2num ((long) time.time),
 		   SCM_MAKINUM (time.millitm * 1000));
 # else
   timet timv;
-  
+
   SCM_DEFER_INTS;
   if ((timv = time (0)) == -1)
     SCM_SYSERROR;
@@ -327,7 +332,7 @@ restorezone (SCM zone, char **oldenv, const char *subr)
     }
 }
 
-SCM_DEFINE (scm_localtime, "localtime", 1, 1, 0, 
+SCM_DEFINE (scm_localtime, "localtime", 1, 1, 0,
             (SCM time, SCM zone),
 	    "Returns an object representing the broken down components of @var{time},\n"
 	    "an integer like the one returned by @code{current-time}.  The time zone\n"
@@ -393,7 +398,7 @@ SCM_DEFINE (scm_localtime, "localtime", 1, 1, 0,
     zoff -= 24 * 60 * 60;
   else if (utc->tm_yday > lt.tm_yday)
     zoff += 24 * 60 * 60;
-  
+
   result = filltime (&lt, zoff, zname);
   SCM_ALLOW_INTS;
   scm_must_free (zname);
@@ -401,7 +406,7 @@ SCM_DEFINE (scm_localtime, "localtime", 1, 1, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_gmtime, "gmtime", 1, 0, 0, 
+SCM_DEFINE (scm_gmtime, "gmtime", 1, 0, 0,
             (SCM time),
 	    "Returns an object representing the broken down components of @var{time},\n"
 	    "an integer like the one returned by @code{current-time}.  The values\n"
@@ -459,7 +464,7 @@ bdtime2c (SCM sbd_time, struct tm *lt, int pos, const char *subr)
 #endif
 }
 
-SCM_DEFINE (scm_mktime, "mktime", 1, 1, 0, 
+SCM_DEFINE (scm_mktime, "mktime", 1, 1, 0,
             (SCM sbd_time, SCM zone),
 	    "@var{bd-time} is an object representing broken down time and @code{zone}\n"
 	    "is an optional time zone specifier (otherwise the TZ environment variable\n"
@@ -535,7 +540,7 @@ SCM_DEFINE (scm_mktime, "mktime", 1, 1, 0,
 #undef FUNC_NAME
 
 #ifdef HAVE_TZSET
-SCM_DEFINE (scm_tzset, "tzset", 0, 0, 0, 
+SCM_DEFINE (scm_tzset, "tzset", 0, 0, 0,
             (void),
 	    "Initialize the timezone from the TZ environment variable\n"
 	    "or the system default.  It's not usually necessary to call this procedure\n"
@@ -606,7 +611,7 @@ SCM_DEFINE (scm_strftime, "strftime", 2, 0, 0,
 	  scm_string_append (scm_cons (velts[10],
 				       scm_cons (scm_makfrom0str ("0"),
 						 SCM_EOL)));
-	
+
 	have_zone = 1;
 	SCM_DEFER_INTS;
 	oldenv = setzone (zone, SCM_ARG2, FUNC_NAME);
