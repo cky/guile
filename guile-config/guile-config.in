@@ -184,9 +184,14 @@
   ;; See gcc manual wrt fixincludes.  Search for "Use of
   ;; `-I/usr/include' may cause trouble."  For now we hard-code this.
   ;; Later maybe we can do something more dynamic.
-  (if (not (string=? (get-build-info 'includedir) "/usr/include"))
-      (display (string-append "-I" (get-build-info 'includedir))))
-  (display-line (get-build-info 'CFLAGS)))
+  (display
+   (string-join
+    (if (not (string=? (get-build-info 'includedir) "/usr/include"))
+	 (string-append "-I" (get-build-info 'includedir))
+	 "")
+    (get-build-info 'CFLAGS)
+    "\n"
+    )))
 
 (define (help-compile)
   (let ((dle display-line-error))
