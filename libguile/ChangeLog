@@ -1,3 +1,29 @@
+2001-04-19  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	This patch eliminates some further applications of SCM_C[AD]R to
+	non pair cells.
+
+	* gc.h (SCM_SETAND_CAR, SCM_SETOR_CAR):  Deprecated.  These have
+	never been applied to real pairs.
+
+	* srcprop.h (SCM_SOURCE_PROPERTY_FLAG_BREAK):  Added.
+
+	(SRCPROPBRK):  Use SCM_SOURCE_PROPERTY_FLAG_BREAK.
+
+	* unif.h (SCM_ARRAY_CONTIGUOUS, SCM_ARRAY_FLAG_CONTIGUOUS,
+	SCM_ARRAY_CONTP):  Renamed SCM_ARRAY_CONTIGUOUS to
+	SCM_ARRAY_FLAG_CONTIGUOUS and use it.
+
+	(SCM_SET_ARRAY_CONTIGUOUS_FLAG, SCM_CLR_ARRAY_CONTIGUOUS_FLAG):
+	Added.
+
+	* srcprop.h (SRCPROPH), unif.h (UNIFH):  Renamed to
+	SCM_SOURCE_PROPERTIES_H and SCM_UNIFORM_VECTORS_H, respectively.
+
+	* srcprop.h (SETSRCPROPBRK, CLEARSRCPROPBRK), unif.c
+	(scm_dimensions_to_uniform_array, scm_ra_set_contp):  Don't use
+	SCM_SET{AND,OR}_CAR.
+
 2001-04-17  Gary Houston  <ghouston@arglist.com>
 
 	* some initial support for IPv6:

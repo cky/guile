@@ -604,7 +604,7 @@ SCM_DEFINE (scm_dimensions_to_uniform_array, "dimensions->uniform-array", 2, 1, 
   SCM_ASSERT (SCM_NULLP (dims) || SCM_CONSP (dims),
               dims, SCM_ARG1, FUNC_NAME);
   ra = scm_shap2ra (dims, FUNC_NAME);
-  SCM_SETOR_CAR (ra, SCM_ARRAY_CONTIGUOUS);
+  SCM_SET_ARRAY_CONTIGUOUS_FLAG (ra);
   s = SCM_ARRAY_DIMS (ra);
   k = SCM_ARRAY_NDIM (ra);
   while (k--)
@@ -642,14 +642,14 @@ scm_ra_set_contp (SCM ra)
 	{
 	  if (inc != SCM_ARRAY_DIMS (ra)[k].inc)
 	    {
-	      SCM_SETAND_CAR (ra, ~SCM_ARRAY_CONTIGUOUS);
+	      SCM_CLR_ARRAY_CONTIGUOUS_FLAG (ra);
 	      return;
 	    }
 	  inc *= (SCM_ARRAY_DIMS (ra)[k].ubnd 
 		  - SCM_ARRAY_DIMS (ra)[k].lbnd + 1);
 	}
     }
-  SCM_SETOR_CAR (ra, SCM_ARRAY_CONTIGUOUS);
+  SCM_SET_ARRAY_CONTIGUOUS_FLAG (ra);
 }
 
 

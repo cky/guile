@@ -218,11 +218,6 @@ typedef unsigned long scm_c_bvec_limb_t;
   (((const scm_bits_t *) SCM2PTR (x)) [0])
 
 
-#define SCM_SETAND_CAR(x, y) \
-  (SCM_SETCAR ((x), SCM_PACK (SCM_UNPACK (SCM_CAR (x)) & (y))))
-#define SCM_SETOR_CAR(x, y)\
-  (SCM_SETCAR ((x), SCM_PACK (SCM_UNPACK (SCM_CAR (x)) | (y))))
-
 #define SCM_CELL_WORD_LOC(x, n) ((scm_bits_t *) & SCM_CELL_WORD (x, n))
 #define SCM_CARLOC(x) ((SCM *) SCM_CELL_WORD_LOC ((x), 0))
 #define SCM_CDRLOC(x) ((SCM *) SCM_CELL_WORD_LOC ((x), 1))
@@ -394,6 +389,10 @@ extern void scm_init_gc (void);
 
 #if (SCM_DEBUG_DEPRECATED == 0)
 
+#define SCM_SETAND_CAR(x, y) \
+  (SCM_SETCAR ((x), SCM_PACK (SCM_UNPACK (SCM_CAR (x)) & (y))))
+#define SCM_SETOR_CAR(x, y)\
+  (SCM_SETCAR ((x), SCM_PACK (SCM_UNPACK (SCM_CAR (x)) | (y))))
 #define SCM_SETAND_CDR(x, y)\
   (SCM_SETCDR ((x), SCM_PACK (SCM_UNPACK (SCM_CDR (x)) & (y))))
 #define SCM_SETOR_CDR(x, y)\

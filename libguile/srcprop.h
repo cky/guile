@@ -1,8 +1,8 @@
 /* classes: h_files */
 
-#ifndef SRCPROPH
-#define SRCPROPH
-/*	Copyright (C) 1995,1996, 2000 Free Software Foundation
+#ifndef SCM_SOURCE_PROPERTIES_H
+#define SCM_SOURCE_PROPERTIES_H
+/* Copyright (C) 1995,1996,2000,2001 Free Software Foundation
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -95,16 +95,23 @@ typedef struct scm_srcprops_chunk
   scm_srcprops srcprops[1];
 } scm_srcprops_chunk;
 
+#define SCM_SOURCE_PROPERTY_FLAG_BREAK (1L << 16)
+
 #define SRCPROPSP(p) (SCM_TYP16_PREDICATE (scm_tc16_srcprops, p))
-#define SRCPROPBRK(p) (SCM_BOOL (SCM_CELL_WORD_0 (p) & (1L << 16)))
+#define SRCPROPBRK(p) \
+  (SCM_BOOL (SCM_CELL_WORD_0 (p) & SCM_SOURCE_PROPERTY_FLAG_BREAK))
 #define SRCPROPPOS(p) ((scm_srcprops *) SCM_CELL_WORD_1 (p))->pos
 #define SRCPROPLINE(p) (SRCPROPPOS(p) >> 12)
 #define SRCPROPCOL(p) (SRCPROPPOS(p) & 0x0fffL)
 #define SRCPROPFNAME(p) ((scm_srcprops *) SCM_CELL_WORD_1 (p))->fname
 #define SRCPROPCOPY(p) ((scm_srcprops *) SCM_CELL_WORD_1 (p))->copy
 #define SRCPROPPLIST(p) ((scm_srcprops *) SCM_CELL_WORD_1 (p))->plist
-#define SETSRCPROPBRK(p) (SCM_SETOR_CAR (p, (1L << 16)))
-#define CLEARSRCPROPBRK(p) SCM_SETAND_CAR (p, ~(1L << 16))
+#define SETSRCPROPBRK(p) \
+  (SCM_SET_CELL_WORD_0 ((p), SCM_CELL_WORD_0 (p) \
+                             | SCM_SOURCE_PROPERTY_FLAG_BREAK))
+#define CLEARSRCPROPBRK(p)  \
+  (SCM_SET_CELL_WORD_0 ((p), SCM_CELL_WORD_0 (p) \
+                             & ~SCM_SOURCE_PROPERTY_FLAG_BREAK))
 #define SRCPROPMAKPOS(l,c) (((l) << 12) + (c))
 #define SETSRCPROPPOS(p,l,c) (SRCPROPPOS (p) = SRCPROPMAKPOS (l, c))
 #define SETSRCPROPLINE(p,l) SETSRCPROPPOS (p, l, SRCPROPCOL (p))
@@ -134,7 +141,7 @@ extern SCM scm_set_source_properties_x (SCM obj, SCM props);
 extern void scm_finish_srcprop (void);
 extern void scm_init_srcprop (void);
 
-#endif /* SRCPROPH */
+#endif /* SCM_SOURCE_PROPERTIES_H */
 
 /*
   Local Variables:
