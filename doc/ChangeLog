@@ -1,3 +1,7 @@
+2001-04-10  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* api.txt (Accessing Cell Entries): Fix typo.
+
 2001-04-09  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* deprecated.texi (Shared And Read Only Strings): New section for
