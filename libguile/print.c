@@ -586,7 +586,7 @@ scm_iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 	  }
 	  EXIT_NESTED_DATA (pstate);
 	  break;
-#ifdef HAVE_ARRAYS
+#ifdef SCM_HAVE_ARRAYS
 	case scm_tc7_bvect:
 	case scm_tc7_byvect:
 	case scm_tc7_svect:
@@ -595,7 +595,7 @@ scm_iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 	case scm_tc7_fvect:
 	case scm_tc7_dvect:
 	case scm_tc7_cvect:
-#ifdef HAVE_LONG_LONGS
+#if SCM_SIZEOF_LONG_LONG != 0
 	case scm_tc7_llvect:
 #endif
 	  scm_raprin1 (exp, port, pstate);
