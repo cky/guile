@@ -46,8 +46,7 @@ void *gdb_interface[] = { \
   (void *) gdb_eval, \
   (void *) gdb_print, \
   (void *) gdb_binding \
-}; \
-
+}
 
 /* GDB_OPTIONS is a set of flags informing gdb what features are present
    in the interface.  Currently only one option is supported: */
