@@ -2491,18 +2491,6 @@
         (loop (1- count) (cons count result)))))
 
 
-;;; {While}
-;;;
-;;; with `continue' and `break'.
-;;;
-
-(defmacro while (cond . body)
-  `(letrec ((continue (lambda () (or (not ,cond) (begin (begin ,@ body) (continue)))))
-	    (break (lambda val (apply throw 'break val))))
-     (catch 'break
-	    (lambda () (continue))
-	    (lambda v (cadr v)))))
-
 ;;; {collect}
 ;;;
 ;;; Similar to `begin' but returns a list of the results of all constituent
@@ -2559,6 +2547,26 @@
        (define ,name (defmacro:syntax-transformer ,transformer)))
       (else
        (error "define-syntax-macro can only be used at the top level")))))
+
+;;; {While}
+;;;
+;;; with `continue' and `break'.
+;;;
+
+;; The inner `do' loop avoids re-establishing a catch every iteration,
+;; that's only necessary if continue is actually used.
+;;
+(define-macro (while cond . body)
+  (let ((key (make-symbol "while-key")))
+    `(,do ((break    ,(lambda () (throw key #t)))
+	   (continue ,(lambda () (throw key #f))))
+	 ((,catch (,quote ,key)
+		  (,lambda ()
+		    (,do ()
+			((,not ,cond))
+		      ,@body)
+		    #t)
+		  ,(lambda (key arg) arg))))))
 
 
 ;;; {Module System Macros}
