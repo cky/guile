@@ -1,5 +1,8 @@
 2004-01-20  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* gds.el: Changes throughout because of (i) change of gds-send
+	args, (ii) introduction of evaluation correlator.
+
 	* gds-client.scm: Extensive changes to implement eval threads, and
 	to tidy up and organize the rest of the code.
 

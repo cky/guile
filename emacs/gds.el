@@ -105,8 +105,8 @@
   )
 
 ;; Send input to the subprocess.
-(defun gds-send (string)
-  (process-send-string gds-process string))
+(defun gds-send (string client)
+  (process-send-string gds-process (format "(%S %s)\n" client string)))
 
 
 ;;;; Multiple application scheduling.
@@ -179,7 +179,7 @@
     (with-current-buffer gds-transcript
       (goto-char (point-max))
       (let ((inhibit-read-only t))
-	(insert (format "<%S %S %S>" client proc args) "\n")))
+	(insert (format "rx %S" (cons client (cons proc args))) "\n")))
     (cond (;; (name ...) - Client name.
 	   (eq proc 'name)
 	   (setq gds-pid (cadr args))
@@ -239,7 +239,7 @@
 
 	  (;; (eval-results ...) - Results of evaluation.
 	   (eq proc 'eval-results)
-	   (gds-display-results client args))
+	   (gds-display-results client (car args) (cdr args)))
 
 	  ((eq proc 'completion-result)
 	   (setq gds-completion-results (or (car args) t)))
@@ -492,7 +492,7 @@ the following symbols.
 
 (defun gds-async-break (w &rest ignore)
   (interactive)
-  (gds-send (format "(%S async-break)\n" gds-focus-client)))
+  (gds-send "async-break" gds-focus-client))
 
 (defun gds-toggle-debug-exceptions (w &rest ignore)
   (interactive)
@@ -559,9 +559,8 @@ the following symbols.
 (defun gds-select-stack-frame (widget &rest ignored)
   (let* ((s (widget-value widget))
 	 (ind (memq 'index (text-properties-at 0 s))))
-    (gds-send (format "(%S debugger-command frame %d)\n"
-		      gds-focus-client
-		      (cadr ind)))))
+    (gds-send (format "debugger-command frame %d" (cadr ind))
+	      gds-focus-client)))
 
 ;; Overlay used to highlight the source expression corresponding to
 ;; the selected frame.
@@ -697,11 +696,11 @@ are not readable by Emacs.")
       ;; Set flag to indicate module expanded.
       (setcdr minfo (list t))
       ;; Get symlist from Guile.
-      (gds-send (format "(%S query-module %S)\n" client name)))))
+      (gds-send (format "query-module %S" name) client))))
 
 (defun gds-query-modules ()
   (interactive)
-  (gds-send (format "(%S query-modules)\n" gds-focus-client)))
+  (gds-send "query-modules" gds-focus-client))
 
 (defun gds-view-browser ()
   (interactive)
@@ -735,38 +734,36 @@ are not readable by Emacs.")
 
 (defun gds-go ()
   (interactive)
-  (gds-send (format "(%S debugger-command continue)\n" gds-focus-client)))
+  (gds-send "debugger-command continue" gds-focus-client))
 
 (defun gds-next ()
   (interactive)
-  (gds-send (format "(%S debugger-command next 1)\n" gds-focus-client)))
+  (gds-send "debugger-command next 1" gds-focus-client))
 
 (defun gds-evaluate (expr)
   (interactive "sEvaluate (in this stack frame): ")
-  (gds-send (format "(%S debugger-command evaluate %s)\n"
-		    gds-focus-client
-		    (prin1-to-string expr))))
+  (gds-send (format "debugger-command evaluate %s" (prin1-to-string expr))
+	    gds-focus-client))
 
 (defun gds-step-in ()
   (interactive)
-  (gds-send (format "(%S debugger-command step 1)\n" gds-focus-client)))
+  (gds-send "debugger-command step 1" gds-focus-client))
 
 (defun gds-step-out ()
   (interactive)
-  (gds-send (format "(%S debugger-command finish)\n" gds-focus-client)))
+  (gds-send "debugger-command finish" gds-focus-client))
 
 (defun gds-trace-finish ()
   (interactive)
-  (gds-send (format "(%S debugger-command trace-finish)\n"
-		    gds-focus-client)))
+  (gds-send "debugger-command trace-finish" gds-focus-client))
 
 (defun gds-frame-info ()
   (interactive)
-  (gds-send (format "(%S debugger-command info-frame)\n" gds-focus-client)))
+  (gds-send "debugger-command info-frame" gds-focus-client))
 
 (defun gds-frame-args ()
   (interactive)
-  (gds-send (format "(%S debugger-command info-args)\n" gds-focus-client)))
+  (gds-send "debugger-command info-args" gds-focus-client))
 
 
 ;;;; Setting breakpoints.
@@ -821,11 +818,11 @@ are not readable by Emacs.")
 	    nil
 	    nil
 	    "debug-here")))
-      (gds-send (format "(%S set-breakpoint %s %s %s)\n"
-			gds-focus-client
+      (gds-send (format "set-breakpoint %s %s %s"
 			module
 			sym
-			behaviour)))))
+			behaviour)
+		gds-focus-client))))
 
 
 ;;;; Scheme source breakpoints.
@@ -1056,19 +1053,25 @@ region's code."
       (setq column (current-column))	; 0-based
       (beginning-of-line)
       (setq line (count-lines (point-min) (point)))) ; 0-based
-    (gds-send (format "(%S eval %s %S %d %d %S %S)\n"
-		      client
+    (gds-send (format "eval region %s %S %d %d %s %S"
 		      (if module (prin1-to-string module) "#f")
 		      port-name line column
-		      (gds-region-breakpoint-info start end)
-		      (buffer-substring-no-properties start end)))))
+		      (let ((bpinfo (gds-region-breakpoint-info start end)))
+			;; Make sure that "no bpinfo" is represented
+			;; as "()", not "nil", as Scheme doesn't
+			;; understand "nil".
+			(if bpinfo (format "%S" bpinfo) "()"))
+		      (buffer-substring-no-properties start end))
+	      client)))
 
-(defun gds-eval-expression (expr &optional client)
+(defun gds-eval-expression (expr &optional client correlator)
   "Evaluate the supplied EXPR (a string)."
   (interactive "sEvaluate expression: \nP")
   (setq client (gds-choose-client client))
-  (gds-send (format "(%S eval #f \"Emacs expression\" 0 0 %S)\n"
-		    client expr)))
+  (gds-send (format "eval %S #f \"Emacs expression\" 0 0 () %S"
+		    (or correlator 'expression)
+		    expr)
+	    client))
 
 (defun gds-eval-defun (&optional client)
   "Evaluate the defun (top-level form) at point."
@@ -1087,13 +1090,8 @@ region's code."
 
 ;;;; Help.
 
-;; Help is implemented as a special case of evaluation, where we
-;; arrange for the evaluation result to be a known symbol that is
-;; unlikely to crop up otherwise.  When the evaluation result is this
-;; symbol, we only display the output from the evaluation.
-
-(defvar gds-help-symbol '%-gds-help-%
-  "Symbol used by GDS to identify an evaluation response as help.")
+;; Help is implemented as a special case of evaluation, identified by
+;; the evaluation correlator 'help.
 
 (defun gds-help-symbol (sym &optional client)
   "Get help for SYM (a Scheme symbol)."
@@ -1107,8 +1105,7 @@ region's code."
 		  "Describe Guile symbol: ")))
      (list (if (zerop (length val)) sym val)
 	   current-prefix-arg)))
-  (gds-eval-expression (format "(begin (help %s) '%S)" sym gds-help-symbol)
-		       client))
+  (gds-eval-expression (format "(help %s)" sym) client 'help))
 
 (defun gds-apropos (regex &optional client)
   "List Guile symbols matching REGEX."
@@ -1122,8 +1119,7 @@ region's code."
 		  "Guile apropos (regexp): ")))
      (list (if (zerop (length val)) sym val)
 	   current-prefix-arg)))
-  (gds-eval-expression (format "(begin (apropos %S) '%S)" regex gds-help-symbol)
-		       client))
+  (gds-eval-expression (format "(apropos %S)" regex) client 'help))
 
 (defvar gds-completion-results nil)
 
@@ -1140,10 +1136,11 @@ interesting happened, `nil' if not."
 	nil
       (setq client (gds-choose-client client))
       (setq gds-completion-results nil)
-      (gds-send (format "(%S complete %s)\n" client
+      (gds-send (format "complete %s"
 			(prin1-to-string
 			 (buffer-substring-no-properties (- (point) chars)
-							 (point)))))
+							 (point))))
+		 client)
       (while (null gds-completion-results)
 	(accept-process-output gds-process 0 200))
       (cond ((eq gds-completion-results t)
@@ -1167,11 +1164,8 @@ interesting happened, `nil' if not."
 
 ;;;; Display of evaluation and help results.
 
-(defun gds-display-results (client results)
-  (let ((helpp (and (= (length results) 2)
-		    (= (length (cadr results)) 1)
-		    (string-equal (caadr results)
-				  (prin1-to-string gds-help-symbol)))))
+(defun gds-display-results (client correlator results)
+  (let ((helpp (eq correlator 'help)))
     (let ((buf (get-buffer-create (if helpp
 				      "*Guile Help*"
 				    "*Guile Results*"))))
@@ -1221,7 +1215,7 @@ Used for determining the default for the next `gds-load-file'.")
   (setq gds-prev-load-dir/file (cons (file-name-directory    file-name)
 				     (file-name-nondirectory file-name)))
   (setq client (gds-choose-client client))
-  (gds-send (format "(%S load %S)\n" client file-name)))
+  (gds-send (format "load %S" file-name) client))
 
 
 ;;;; Scheme mode keymap items.
