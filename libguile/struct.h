@@ -50,23 +50,26 @@
 
 
 /* Number of words with negative index */
-#define scm_struct_n_extra_words 3
-#define scm_struct_entity_n_extra_words 8
+#define scm_struct_n_extra_words 4
+#define scm_struct_entity_n_extra_words 9
 
 /* These are how the initial words of a vtable are allocated. */
-#define scm_struct_i_setter	-8 /* Setter */
-#define scm_struct_i_proc	-7 /* Optional procedure slots */
-#define scm_struct_i_ptr	-3 /* start of block (see alloc_struct) */
+#define scm_struct_i_setter	-9 /* Setter */
+#define scm_struct_i_proc	-8 /* Optional procedure slots */
+#define scm_struct_i_free	-4 /* Destructor */
+#define scm_struct_i_ptr	-3 /* Start of block (see alloc_struct) */
 #define scm_struct_i_n_words	-2 /* How many words allocated to this struct? */
-#define scm_struct_i_tag	-1 /* A unique tag for this type.. */
-#define scm_struct_i_flags	-1 /* Upper 8 bits used as flags */
+#define scm_struct_i_size	-1 /* Instance size */
+#define scm_struct_i_flags	-1 /* Upper 12 bits used as flags */
 #define scm_vtable_index_layout  0 /* A symbol describing the physical arrangement of this type. */
 #define scm_vtable_index_vcell   1 /* An opaque word, managed by the garbage collector.  */
 #define scm_vtable_index_vtable  2 /* A pointer to the handle for this vtable. */
 #define scm_vtable_index_printer 3 /* A printer for this struct type. */
 #define scm_vtable_offset_user   4 /* Where do user fields start? */
 
-#define SCM_STRUCTF_MASK   (0xFF << 24)
+typedef size_t (*scm_struct_free_t) (SCM *vtable, SCM *data);
+
+#define SCM_STRUCTF_MASK   (0xFFF << 20)
 #define SCM_STRUCTF_ENTITY (1L << 30) /* Indicates presence of proc slots */
 #define SCM_STRUCTF_LIGHT  (1L << 31) /* Light representation
 					 (no hidden words) */
@@ -77,6 +80,7 @@
 #define SCM_STRUCT_LAYOUT(X) 		(SCM_STRUCT_VTABLE_DATA(X)[scm_vtable_index_layout])
 #define SCM_STRUCT_VTABLE(X) 		(SCM_STRUCT_VTABLE_DATA(X)[scm_vtable_index_vtable])
 #define SCM_STRUCT_PRINTER(X) 		(SCM_STRUCT_VTABLE_DATA(X)[scm_vtable_index_printer])
+#define SCM_SET_VTABLE_DESTRUCTOR(X, D) (SCM_STRUCT_DATA(X)[scm_struct_i_free] = (SCM) D)
 /* Efficiency is important in the following macro, since it's used in GC */
 #define SCM_LAYOUT_TAILP(X)		(((X) & 32) == 0) /* R, W or O */
 
@@ -88,7 +92,13 @@ extern SCM scm_struct_table;
 
 
 
-extern SCM *scm_alloc_struct SCM_P ((int n_words, int n_extra, char *who));
+extern SCM *scm_alloc_struct (int n_words,
+			      int n_extra,
+			      char *who);
+extern size_t scm_struct_free_0 (SCM *vtable, SCM *data);
+extern size_t scm_struct_free_light (SCM *vtable, SCM *data);
+extern size_t scm_struct_free_standard (SCM *vtable, SCM *data);
+extern size_t scm_struct_free_entity (SCM *vtable, SCM *data);
 extern void scm_struct_init SCM_P ((SCM handle, int tail_elts, SCM inits));
 extern SCM scm_make_struct_layout SCM_P ((SCM fields));
 extern SCM scm_struct_p SCM_P ((SCM x));

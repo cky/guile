@@ -58,7 +58,6 @@
 
 
 static SCM required_vtable_fields = SCM_BOOL_F;
-static int struct_num = 0;
 SCM scm_struct_table;
 
 
@@ -299,7 +298,7 @@ scm_struct_vtable_p (x)
 
    This function initializes the following fields of the struct:
 
-     scm_struct_i_ptr --- the actual stort of the block of memory; the
+     scm_struct_i_ptr --- the actual start of the block of memory; the
 	 address you should pass to 'free' to dispose of the block.
 	 This field allows us to both guarantee that the returned
 	 address is divisible by eight, and allow the GC to free the
@@ -307,9 +306,6 @@ scm_struct_vtable_p (x)
 
      scm_struct_i_n_words --- the number of words allocated to the
          block, including the extra fields.  This is used by the GC.
-
-     scm_struct_i_tag --- a unique tag assigned to this struct,
-         allocated according to struct_num.
 
      Ugh.  */
 
@@ -326,13 +322,45 @@ scm_alloc_struct (int n_words, int n_extra, char *who)
   /* Adjust it even further so it's aligned on an eight-byte boundary.  */
   p = (SCM *) (((SCM) p + 7) & ~7);
 
-  /* Initialize a few fields as described above, except for the tag.  */
+  /* Initialize a few fields as described above.  */
+  p[scm_struct_i_free] = (SCM) scm_struct_free_standard;
   p[scm_struct_i_ptr] = (SCM) block;
-  p[scm_struct_i_n_words] = (SCM) (n_words + n_extra);
+  p[scm_struct_i_n_words] = (SCM) n_words;
+  p[scm_struct_i_flags] = 0;
 
   return p;
 }
 
+size_t
+scm_struct_free_0 (SCM *vtable, SCM *data)
+{
+  return 0;
+}
+
+size_t
+scm_struct_free_light (SCM *vtable, SCM *data)
+{
+  free (data);
+  return vtable[scm_struct_i_size] & ~SCM_STRUCTF_MASK;
+}
+
+size_t
+scm_struct_free_standard (SCM *vtable, SCM *data)
+{
+  size_t n = ((data[scm_struct_i_n_words] + scm_struct_n_extra_words)
+	      * sizeof (SCM) + 7);
+  free ((void *) data[scm_struct_i_ptr]);
+  return n;
+}
+
+size_t
+scm_struct_free_entity (SCM *vtable, SCM *data)
+{
+  size_t n = ((data[scm_struct_i_n_words] + scm_struct_entity_n_extra_words)
+	      * sizeof (SCM) + 7);
+  free ((void *) data[scm_struct_i_ptr]);
+  return n;
+}
 
 SCM_PROC (s_make_struct, "make-struct", 2, 0, 1, scm_make_struct);
 
@@ -373,7 +401,6 @@ scm_make_struct (vtable, tail_array_size, init)
     data = scm_alloc_struct (basic_size + tail_elts,
 			     scm_struct_n_extra_words,
 			     "make-struct");
-  data[scm_struct_i_tag] = struct_num++;
   SCM_SETCDR (handle, data);
   SCM_SETCAR (handle, ((SCM)SCM_STRUCT_DATA (vtable)) + scm_tc3_cons_gloc);
   scm_struct_init (handle, tail_elts, init);
@@ -414,7 +441,6 @@ scm_make_vtable_vtable (extra_fields, tail_array_size, init)
   data = scm_alloc_struct (basic_size + tail_elts,
 			   scm_struct_n_extra_words,
 			   "make-vtable-vtable");
-  data[scm_struct_i_tag] = struct_num++;
   SCM_SETCDR (handle, data);
   SCM_SETCAR (handle, ((SCM)data) + scm_tc3_cons_gloc);
   SCM_STRUCT_LAYOUT (handle) = layout;
@@ -450,8 +476,8 @@ scm_struct_ref (handle, pos)
   data = SCM_STRUCT_DATA (handle);
   p = SCM_INUM (pos);
 
-  fields_desc = (unsigned char *)SCM_CHARS (layout);
-  n_fields = data[scm_struct_i_n_words] - scm_struct_n_extra_words;
+  fields_desc = (unsigned char *) SCM_CHARS (layout);
+  n_fields = data[scm_struct_i_n_words];
   
   SCM_ASSERT (p < n_fields, pos, SCM_OUTOFRANGE, s_struct_ref);
 
@@ -533,7 +559,7 @@ scm_struct_set_x (handle, pos, val)
   p = SCM_INUM (pos);
 
   fields_desc = (unsigned char *)SCM_CHARS (layout);
-  n_fields = data[scm_struct_i_n_words] - scm_struct_n_extra_words;
+  n_fields = data[scm_struct_i_n_words];
 
   SCM_ASSERT (p < n_fields, pos, SCM_OUTOFRANGE, s_struct_set_x);
 
@@ -606,7 +632,7 @@ scm_struct_vtable_tag (handle)
 {
   SCM_ASSERT (SCM_NFALSEP (scm_struct_vtable_p (handle)),
 	      handle, SCM_ARG1, s_struct_vtable_tag);
-  return scm_long2num (SCM_STRUCT_DATA (handle)[scm_struct_i_tag]);
+  return scm_long2num ((long) SCM_STRUCT_DATA (handle) >> 3);
 }
 
 /* {Associating names and classes with vtables}
@@ -619,7 +645,9 @@ scm_struct_vtable_tag (handle)
 unsigned int
 scm_struct_ihashq (SCM obj, unsigned int n)
 {
-  return (SCM_STRUCT_DATA (obj)[scm_struct_i_tag] & ~SCM_STRUCTF_MASK) % n;
+  /* The length of the hash table should be a relative prime it's not
+     necessary to shift down the address.  */
+  return obj % n;
 }
 
 SCM
