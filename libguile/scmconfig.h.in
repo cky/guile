@@ -173,6 +173,9 @@
 /* The number of bytes in a long.  */
 #undef SIZEOF_LONG
 
+/* Define if you have the atexit function.  */
+#undef HAVE_ATEXIT
+
 /* Define if you have the bcopy function.  */
 #undef HAVE_BCOPY
 
