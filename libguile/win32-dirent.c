@@ -45,7 +45,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "dirent.h"
+#include "win32-dirent.h"
 
 DIR *
 opendir (const char * name)
