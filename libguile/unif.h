@@ -152,12 +152,19 @@ SCM_API SCM scm_c_make_bitvector (size_t len, SCM fill);
 SCM_API size_t scm_c_bitvector_length (SCM vec);
 SCM_API SCM scm_c_bitvector_ref (SCM vec, size_t idx);
 SCM_API void scm_c_bitvector_set_x (SCM vec, size_t idx, SCM val);
-SCM_API const scm_t_uint32 *scm_bitvector_elements (SCM vec);
-SCM_API void scm_bitvector_release_elements (SCM vec);
-SCM_API void scm_frame_bitvector_release_elements (SCM vec);
-SCM_API scm_t_uint32 *scm_bitvector_writable_elements (SCM vec);
-SCM_API void scm_bitvector_release_writable_elements (SCM vec);
-SCM_API void scm_frame_bitvector_release_writable_elements (SCM vec);
+SCM_API const scm_t_uint32 *scm_array_handle_bit_elements (scm_t_array_handle *h);
+SCM_API scm_t_uint32 *scm_array_handle_bit_writable_elements (scm_t_array_handle *h);
+SCM_API size_t scm_array_handle_bit_elements_offset (scm_t_array_handle *h);
+SCM_API const scm_t_uint32 *scm_bitvector_elements (SCM vec,
+						    scm_t_array_handle *h,
+						    size_t *basep,
+						    size_t *lenp,
+						    ssize_t *incp);
+SCM_API scm_t_uint32 *scm_bitvector_writable_elements (SCM vec, 
+						       scm_t_array_handle *h,
+						       size_t *basep,
+						       size_t *lenp,
+						       ssize_t *incp);
 
 /* deprecated. */
 
