@@ -1,3 +1,20 @@
+Guile Installation Guide
+Copyright (c) 1996, 1997, 1998, 1999, 2000 Free software Foundation, Inc.
+
+   Permission is granted to anyone to make or distribute verbatim copies
+   of this document as received, in any medium, provided that the
+   copyright notice and permission notice are preserved,
+   and that the distributor grants the recipient permission
+   for further redistribution as permitted by this notice.
+
+   Permission is granted to distribute modified versions
+   of this document, or of portions of it,
+   under the above conditions, provided also that they
+   carry prominent notices stating who last changed them,
+   and that any new or changed statements about the activities
+   of the Free Software Foundation are approved by the Foundation.
+
+
 Brief Installation Instructions ===========================================
 
 To build Guile on unix, there are two basic steps:
@@ -249,3 +266,4 @@ Makefile(s), the header file containing system-dependent definitions
 The file `configure.in' is used as a template to create `configure' by
 a program called `autoconf'.  You will only need it if you want to
 regenerate `configure' using a newer version of `autoconf'.
+

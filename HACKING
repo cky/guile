@@ -1,3 +1,20 @@
+Guile Hacking Guide
+Copyright (c) 1996, 1997, 1998, 1999, 2000 Free software Foundation, Inc.
+
+   Permission is granted to anyone to make or distribute verbatim copies
+   of this document as received, in any medium, provided that the
+   copyright notice and permission notice are preserved,
+   and that the distributor grants the recipient permission
+   for further redistribution as permitted by this notice.
+
+   Permission is granted to distribute modified versions
+   of this document, or of portions of it,
+   under the above conditions, provided also that they
+   carry prominent notices stating who last changed them,
+   and that any new or changed statements about the activities
+   of the Free Software Foundation are approved by the Foundation.
+
+
 Hacking It Yourself ==================================================
 
 As distributed, Guile needs only an ANSI C compiler and a Unix system
