@@ -235,9 +235,7 @@ GUILE_PROC (scm_add_hook_x, "add-hook!", 2, 1, 0,
       || (SCM_FALSEP (SCM_CADDR (arity))
 	  && (SCM_INUM (SCM_CAR (arity)) + SCM_INUM (SCM_CADR (arity))
 	      < n_args)))
-    scm_misc_error (FUNC_NAME,
-		    "This hook requires %s arguments",
-		    SCM_LIST1 (SCM_MAKINUM (SCM_HOOK_ARITY (hook))));
+    scm_wrong_type_arg (FUNC_NAME, 2, proc);
   rest = scm_delq_x (proc, SCM_HOOK_PROCEDURES (hook));
   SCM_SET_HOOK_PROCEDURES (hook,
 			   (!SCM_UNBNDP (append_p) && SCM_NFALSEP (append_p)
