@@ -1,3 +1,10 @@
+2002-02-04  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* symbols.c (scm_make_symbol): Fix typo in docstring.
+
+	* symbols.h (scm_mem2uninterned_symbol, scm_symbol_interned_p,
+	scm_make_symbol): New prototypes.
+
 2002-02-03  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* symbols.h (SCM_SET_SYMBOL_HASH): Removed.

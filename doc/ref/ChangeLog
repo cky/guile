@@ -1,3 +1,7 @@
+2002-02-04  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* scheme-data.texi (Symbol Uninterned): Added node.
+
 2002-01-29  Stefan Jahn  <stefan@lkcc.org>
 
 	* gh.texi (scm transition summary): Documented gh equivalents
