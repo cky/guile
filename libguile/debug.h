@@ -47,9 +47,9 @@
  */
 
 
-#include "options.h"
 #include "libguile/__scm.h"
 
+#include "libguile/options.h"
 
 
 /*
