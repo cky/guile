@@ -271,6 +271,7 @@ scm_init_standard_ports ()
   scm_cur_inp = scm_def_inp;
   scm_cur_outp = scm_def_outp;
   scm_cur_errp = scm_def_errp;
+  scm_cur_loadp = SCM_BOOL_F;
 }
 
 
@@ -416,11 +417,7 @@ scm_boot_guile_1 (base, closure)
       scm_init_net_db ();
       scm_init_numbers ();
       scm_init_objprop ();
-#if DEBUG_EXTENSIONS
-      /* Excluding this until it's really needed makes the binary
-       * smaller after linking.  */
       scm_init_options ();
-#endif
       scm_init_pairs ();
       scm_init_ports ();
       scm_init_posix ();
