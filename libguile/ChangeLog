@@ -1,3 +1,8 @@
+Sun Feb  6 20:26:21 2000  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* pairs.c: Doc patches from Richard Kim.  Pasted from MIT Scheme
+	(which is GNU GPL'd).
+
 2000-01-31  Gary Houston  <ghouston@arglist.com>
 
 	* strings.h: don't use SCM_P.  don't include <string.h>.
