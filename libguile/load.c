@@ -203,18 +203,6 @@ scm_init_load_path ()
 		      SCM_UNDEFINED);
 #endif /* SCM_LIBRARY_DIR */
 
-  /* For compatibility, we still check this, but give a warning.  */
-  {
-    char *p = getenv ("SCHEME_LOAD_PATH");
-    if (p && p[0] != '\0')
-      {
-	fprintf (stderr, "guile: warning: SCHEME_LOAD_PATH variable will be"
-		 " removed by Guile 1.4;\n"
-		 "                use GUILE_LOAD_PATH instead\n");
-	path = scm_internal_parse_path (p, path);
-      }
-  }
-
   path = scm_internal_parse_path (getenv ("GUILE_LOAD_PATH"), path);
 
   *scm_loc_load_path = path;
