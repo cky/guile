@@ -1,3 +1,15 @@
+Thu Aug 29 21:48:47 1996  Jim Blandy  <jimb@floss.cyclic.com>
+
+	Don't use the PLUGIN system to gather information for the
+	Makefile's distribution and installation targets; just put it all
+	in the Makefile directly.
+	* PLUGIN/this.configure (scm_files, aux_files): Remove sections
+	for these.
+	* configure.in: Remove code that gets and substitutes scm_files and
+	aux_files.
+	* Makefile.in (scm_files, aux_files): Write out the list of files
+	here, where people expect to find them.
+
 Fri Aug 23 06:44:36 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
 
 	* boot-9.scm: Preliminary solution: optionally load the debug
