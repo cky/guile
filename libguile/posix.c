@@ -1426,20 +1426,46 @@ SCM_DEFINE (scm_sync, "sync", 0, 0, 0,
 #undef FUNC_NAME
 #endif /* HAVE_SYNC */
 
+
+/* crypt() returns a pointer to a static buffer, so we use scm_i_misc_mutex
+   to avoid another thread overwriting it.  A test program running crypt
+   continuously in two threads can be quickly seen tripping this problem.
+   crypt() is pretty slow normally, so a mutex shouldn't add much overhead.
+
+   glibc has a thread-safe crypt_r, but (in version 2.3.2) it runs a lot
+   slower (about 5x) than plain crypt if you pass an uninitialized data
+   block each time.  Presumably there's some one-time setups.  The best way
+   to use crypt_r for parallel execution in multiple threads would probably
+   be to maintain a little pool of initialized crypt_data structures, take
+   one and use it, then return it to the pool.  That pool could be garbage
+   collected so it didn't add permanently to memory use if only a few crypt
+   calls are made.  But we expect crypt will be used rarely, and even more
+   rarely will there be any desire for lots of parallel execution on
+   multiple cpus.  So for now we don't bother with anything fancy, just
+   ensure it works.  */
+
 #if HAVE_CRYPT
-SCM_DEFINE (scm_crypt, "crypt", 2, 0, 0, 
+SCM_DEFINE (scm_crypt, "crypt", 2, 0, 0,
             (SCM key, SCM salt),
 	    "Encrypt @var{key} using @var{salt} as the salt value to the\n"
 	    "crypt(3) library call.")
 #define FUNC_NAME s_scm_crypt
 {
-  char * p;
-
+  SCM ret;
   SCM_VALIDATE_STRING (1, key);
   SCM_VALIDATE_STRING (2, salt);
 
-  p = crypt (SCM_STRING_CHARS (key), SCM_STRING_CHARS (salt));
-  return scm_makfrom0str (p);
+  scm_frame_begin (0);
+  scm_frame_unwind_handler ((void(*)(void*)) scm_mutex_unlock,
+                            &scm_i_misc_mutex,
+                            SCM_F_WIND_EXPLICITLY);
+  scm_mutex_lock (&scm_i_misc_mutex);
+
+  ret = scm_makfrom0str (crypt (SCM_STRING_CHARS (key),
+                                SCM_STRING_CHARS (salt)));
+
+  scm_frame_end ();
+  return ret;
 }
 #undef FUNC_NAME
 #endif /* HAVE_CRYPT */
