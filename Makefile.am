@@ -11,4 +11,4 @@ guile-dist:
 aclocaldir = $(datadir)/aclocal
 aclocal_DATA = guile.m4 threads.m4
 
-EXTRA_DIST = $(aclocal_DATA) HACKING GUILE-VERSION
+EXTRA_DIST = $(aclocal_DATA) ltconfig ltmain.sh HACKING GUILE-VERSION

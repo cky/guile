@@ -49,7 +49,7 @@ guile_dirs = @existingdirs@ doc
 aclocaldir = $(datadir)/aclocal
 aclocal_DATA = guile.m4 threads.m4
 
-EXTRA_DIST = $(aclocal_DATA) HACKING GUILE-VERSION
+EXTRA_DIST = $(aclocal_DATA) ltconfig ltmain.sh HACKING GUILE-VERSION
 ACLOCAL = $(top_srcdir)/aclocal.m4
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_CLEAN_FILES = 
@@ -68,7 +68,7 @@ default: all
 
 .SUFFIXES:
 $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL) 
-	cd $(top_srcdir) && automake --gnu Makefile
+	cd $(top_srcdir) && automake --foreign Makefile
 
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status $(BUILT_SOURCES)
 	cd $(top_builddir) \
@@ -164,7 +164,7 @@ distdir: $(DISTFILES)
 	-chmod 755 $(distdir)
 	here=`pwd`; distdir=`cd $(distdir) && pwd` \
 	  && cd $(srcdir) \
-	  && automake --include-deps --build-dir=$$here --srcdir-name=$(srcdir) --output-dir=$$distdir --gnu
+	  && automake --include-deps --build-dir=$$here --srcdir-name=$(srcdir) --output-dir=$$distdir --foreign
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
 	  test -f $(distdir)/$$file \
