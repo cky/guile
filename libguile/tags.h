@@ -291,14 +291,18 @@ typedef void * SCM;
 /* SCM_ECONSP should be used instead of SCM_CONSP at places where GLOCS
  * can be expected to occur.
  */
-#define SCM_ECONSP(x) (SCM_NIMP (x) \
-		       && (SCM_SLOPPY_CONSP (x) \
-			   || (SCM_TYP3 (x) == 1 \
-			       && SCM_CDR (SCM_CAR (x) - 1) != 0)))
-#define SCM_NECONSP(x) (SCM_IMP (x) \
-			|| (SCM_SLOPPY_NCONSP (x) \
-			    && (SCM_TYP3 (x) != 1 \
-				|| SCM_CDR (SCM_CAR (x) - 1) == 0)))
+#define SCM_ECONSP(x) \
+  (SCM_NIMP (x) \
+   && (SCM_SLOPPY_CONSP (x) \
+       || (SCM_TYP3 (x) == 1 \
+	   && (SCM_CDR ((SCM) SCM_STRUCT_VTABLE_DATA (x)) \
+	       != (SCM) 0))))
+#define SCM_NECONSP(x) \
+  (SCM_IMP (x) \
+   || (SCM_SLOPPY_NCONSP (x) \
+       && (SCM_TYP3 (x) != 1 \
+	   || (SCM_CDR ((SCM) SCM_STRUCT_VTABLE_DATA (x)) \
+	       == (SCM) 0))))
 
 
 
