@@ -1,5 +1,8 @@
 2000-08-19  Michael Livshin  <mlivshin@bigfoot.com>
 
+	* gc.c (scm_gc_sweep): added a `continue' statement that have
+ 	fallen through the cracks in the merge.  thanks to Shuji Narazaki!
+
 	* gc.h: removed some stuff that broke compilation for people and
  	wasn't actually needed anyway.
 
