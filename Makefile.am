@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in.
 ##
-##  	Copyright (C) 1998 Free Software Foundation, Inc.
+##  	Copyright (C) 1998, 1999 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##   
@@ -21,10 +21,5 @@
 
 SUBDIRS = ice-9 qt libguile guile-config guile-readline doc
 
-## FIXME: in the future there will be direct automake support for
-## doing this.  When that happens, switch over.
-aclocaldir = $(datadir)/aclocal
-aclocal_DATA = guile.m4 qthreads.m4
-
-EXTRA_DIST = $(aclocal_DATA) ltconfig ltmain.sh acconfig.h \
+EXTRA_DIST = qthreads.m4 ltconfig ltmain.sh acconfig.h \
 	HACKING GUILE-VERSION ANON-CVS SNAPSHOTS
