@@ -177,12 +177,14 @@ SCM_DEFINE (scm_vector, "vector", 0, 0, 1,
   res = scm_c_make_vector (len, SCM_UNSPECIFIED);
   data = scm_vector_writable_elements (res, &handle, NULL, NULL);
   i = 0;
-  while (!SCM_NULL_OR_NIL_P (l) && i < len) 
+  while (scm_is_pair (l) && i < len) 
     {
       data[i] = SCM_CAR (l);
       l = SCM_CDR (l);
       i += 1;
     }
+
+  scm_array_handle_release (&handle);
 
   return res;
 }
@@ -353,6 +355,7 @@ SCM_DEFINE (scm_vector_copy, "vector-copy", 1, 0, 0,
   dst = scm_gc_malloc (len * sizeof (SCM), "vector");
   for (i = 0; i < len; i++, src += inc)
     dst[i] = *src;
+  scm_array_handle_release (&handle);
 
   return scm_cell ((len << 8) | scm_tc7_vector, (scm_t_bits) dst);
 }
@@ -425,6 +428,7 @@ SCM_DEFINE (scm_vector_to_list, "vector->list", 1, 0, 0,
       i -= inc;
       res = scm_cons (data[i], res);
     }
+  scm_array_handle_release (&handle);
   return res;
 }
 #undef FUNC_NAME
@@ -444,6 +448,7 @@ SCM_DEFINE (scm_vector_fill_x, "vector-fill!", 2, 0, 0,
   data = scm_vector_writable_elements (v, &handle, &len, &inc);
   for (i = 0; i < len; i += inc)
     data[i] = fill;
+  scm_array_handle_release (&handle);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -492,6 +497,9 @@ SCM_DEFINE (scm_vector_move_left_x, "vector-move-left!", 5, 0, 0,
   for (; i < e; i += inc1, j += inc2)
     elts2[j] = elts1[i];
 
+  scm_array_handle_release (&handle2);
+  scm_array_handle_release (&handle1);
+
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -530,6 +538,9 @@ SCM_DEFINE (scm_vector_move_right_x, "vector-move-right!", 5, 0, 0,
       j -= inc2;
       elts2[j] = elts1[e];
     }
+
+  scm_array_handle_release (&handle2);
+  scm_array_handle_release (&handle1);
 
   return SCM_UNSPECIFIED;
 }

@@ -93,6 +93,8 @@ SCM_DEFINE (scm_restricted_vector_sort_x, "restricted-vector-sort!", 4, 0, 0,
   else
     quicksort (velts + spos*vinc, len, vinc, cmp, less);
 
+  scm_array_handle_release (&handle);
+
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -157,6 +159,8 @@ SCM_DEFINE (scm_sorted_p, "sorted?", 2, 0, 0,
 	      break;
 	    }
 	}
+
+      scm_array_handle_release (&handle);
 
       return result;
     }
@@ -508,6 +512,9 @@ SCM_DEFINE (scm_stable_sort_x, "stable-sort!", 2, 0, 0,
 						NULL, NULL);
 
       scm_merge_vector_step (vec_elts, temp_elts, cmp, less, 0, len-1, inc);
+
+      scm_array_handle_release (&temp_handle);
+      scm_array_handle_release (&vec_handle);
 
       return items;
     }

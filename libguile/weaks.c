@@ -107,6 +107,8 @@ SCM_DEFINE (scm_weak_vector, "weak-vector", 0, 0, 1,
       i--;
     }
 
+  scm_array_handle_release (&handle);
+
   return res;
 }
 #undef FUNC_NAME

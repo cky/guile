@@ -1904,6 +1904,7 @@ sort_applicable_methods (SCM method_list, long size, SCM const *targs)
     }
 
   /* If we are here, that's that we did it the hard way... */
+  scm_array_handle_release (&handle);
   return scm_vector_to_list (vector);
 }
 
@@ -1962,6 +1963,9 @@ scm_compute_applicable_methods (SCM gf, SCM args, long len, int find_method_p)
 	    break;
 	}
     }
+
+  if (len >= BUFFSIZE)
+      scm_array_handle_release (&handle);
 
   if (count == 0)
     {
@@ -2188,17 +2192,15 @@ SCM_DEFINE (scm_sys_method_more_specific_p, "%method-more-specific?", 3, 0, 0,
   v = scm_c_make_vector (len, SCM_EOL);
   v_elts = scm_vector_writable_elements (v, &handle, NULL, NULL);
 
-  for (i = 0, l = targs; !scm_is_null (l); i++, l = SCM_CDR (l))
+  for (i = 0, l = targs; i < len && scm_is_pair (l); i++, l = SCM_CDR (l))
     {
       SCM_ASSERT (SCM_CLASSP (SCM_CAR (l)), targs, SCM_ARG3, FUNC_NAME);
       v_elts[i] = SCM_CAR(l);
     }
-
-  /* V_ELTS is only protected as long as HANDLE is, so we need to make
-     sure that more_specificp is not tail-called.
-  */
   result = more_specificp (m1, m2, v_elts) ? SCM_BOOL_T: SCM_BOOL_F;
-  scm_remember_upto_here_1 (v);
+
+  scm_array_handle_release (&handle);
+
   return result;
 }
 #undef FUNC_NAME

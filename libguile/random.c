@@ -446,6 +446,8 @@ vector_scale_x (SCM v, double c)
 
       for (i = 0; i < len; i++, elts += inc)
 	*elts *= c;
+      
+      scm_array_handle_release (&handle);
     }
 }
 
@@ -479,6 +481,7 @@ vector_sum_squares (SCM v)
 	  sum += x * x;
 	}
 
+      scm_array_handle_release (&handle);
     }
   return sum;
 }
@@ -545,7 +548,7 @@ SCM_DEFINE (scm_random_normal_vector_x, "random:normal-vector!", 1, 1, 0,
     state = SCM_VARIABLE_REF (scm_var_random_state);
   SCM_VALIDATE_RSTATE (2, state);
 
-  scm_vector_get_handle (v, &handle);
+  scm_generalized_vector_get_handle (v, &handle);
   dim = scm_array_handle_dims (&handle);
 
   if (scm_is_vector (v))
@@ -561,6 +564,8 @@ SCM_DEFINE (scm_random_normal_vector_x, "random:normal-vector!", 1, 1, 0,
       for (i = dim->lbnd; i <= dim->ubnd; i++, elts += dim->inc)
 	*elts = scm_c_normal01 (SCM_RSTATE (state));
     }
+
+  scm_array_handle_release (&handle);
 
   return SCM_UNSPECIFIED;
 }

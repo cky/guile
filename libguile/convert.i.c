@@ -79,6 +79,8 @@ SCM2CTYPES (SCM obj, CTYPE *data)
   for (i = 0; i < len; i++, uvec_elements += inc)
     data[i] = uvec_elements[i];
 
+  scm_array_handle_release (&handle);
+
   return data;
 }
 
@@ -114,6 +116,8 @@ CTYPES2UVECT (const CTYPE *data, long n)
   for (i = 0; i < n; i++)
     uvec_elements[i] = data[i];
 
+  scm_array_handle_release (&handle);
+
   return uvec;
 }
 
@@ -133,6 +137,8 @@ CTYPES2UVECT_2 (const CTYPE_2 *data, long n)
 
   for (i = 0; i < n; i++)
     uvec_elements[i] = data[i];
+
+  scm_array_handle_release (&handle);
 
   return uvec;
 }

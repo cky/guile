@@ -258,9 +258,11 @@ gh_scm2chars (SCM obj, char *m)
 			    scm_list_1 (obj));
 	  if (m == 0)
 	    m = (char *) malloc (len);
+	  if (m != NULL)
+	    memcpy (m, elts, len);
+	  scm_array_handle_release (&handle);
 	  if (m == NULL)
 	    return NULL;
-	  memcpy (m, elts, len);
 	  break;
 	}
       else
@@ -296,9 +298,11 @@ scm2whatever (SCM obj, void *m, size_t size)
 
   if (m == 0)
     m = malloc (len * sizeof (size));
-  if (m == NULL)
-    return NULL;
-  memcpy (m, elts, len * size);
+  if (m != NULL)
+    memcpy (m, elts, len * size);
+
+  scm_array_handle_release (&handle);
+
   return m;
 }
 
