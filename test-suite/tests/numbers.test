@@ -1,5 +1,5 @@
 ;;;; numbers.test --- tests guile's numbers     -*- scheme -*-
-;;;; Copyright (C) 2000, 2001, 2003 Free Software Foundation, Inc.
+;;;; Copyright (C) 2000, 2001, 2003, 2004 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -1863,6 +1863,30 @@
 ;;;
 
 (with-test-prefix "max"
+  (pass-if-exception "no args" exception:wrong-num-args
+    (max))
+
+  (pass-if-exception "one complex" exception:wrong-type-arg
+    (max 1+i))
+
+  (pass-if-exception "inum/complex" exception:wrong-type-arg
+    (max 123 1+i))
+  (pass-if-exception "big/complex" exception:wrong-type-arg
+    (max 9999999999999999999999999999999999999999 1+i))
+  (pass-if-exception "real/complex" exception:wrong-type-arg
+    (max 123.0 1+i))
+  (pass-if-exception "frac/complex" exception:wrong-type-arg
+    (max 123/456 1+i))
+
+  (pass-if-exception "complex/inum" exception:wrong-type-arg
+    (max 1+i 123))
+  (pass-if-exception "complex/big" exception:wrong-type-arg
+    (max 1+i 9999999999999999999999999999999999999999))
+  (pass-if-exception "complex/real" exception:wrong-type-arg
+    (max 1+i 123.0))
+  (pass-if-exception "complex/frac" exception:wrong-type-arg
+    (max 1+i 123/456))
+
   (pass-if (= 456.0 (max 123.0 456.0)))
   (pass-if (= 456.0 (max 456.0 123.0)))
 
@@ -1914,6 +1938,30 @@
 ;; FIXME: unfinished...
 
 (with-test-prefix "min"
+  (pass-if-exception "no args" exception:wrong-num-args
+    (min))
+
+  (pass-if-exception "one complex" exception:wrong-type-arg
+    (min 1+i))
+
+  (pass-if-exception "inum/complex" exception:wrong-type-arg
+    (min 123 1+i))
+  (pass-if-exception "big/complex" exception:wrong-type-arg
+    (min 9999999999999999999999999999999999999999 1+i))
+  (pass-if-exception "real/complex" exception:wrong-type-arg
+    (min 123.0 1+i))
+  (pass-if-exception "frac/complex" exception:wrong-type-arg
+    (min 123/456 1+i))
+
+  (pass-if-exception "complex/inum" exception:wrong-type-arg
+    (min 1+i 123))
+  (pass-if-exception "complex/big" exception:wrong-type-arg
+    (min 1+i 9999999999999999999999999999999999999999))
+  (pass-if-exception "complex/real" exception:wrong-type-arg
+    (min 1+i 123.0))
+  (pass-if-exception "complex/frac" exception:wrong-type-arg
+    (min 1+i 123/456))
+
   (pass-if (= 123.0 (min 123.0 456.0)))
   (pass-if (= 123.0 (min 456.0 123.0)))
 
