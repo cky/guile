@@ -1,3 +1,10 @@
+2003-05-17  Marius Vollmer  <mvo@zagadka.de>
+
+	* c-tokenize.lex: Gobble up complete lines after a '#'.  This
+	removes preprocessor directives from the snarfage that might
+	otherwise confuse us.  These directives appear when compiling with
+	"-g3", for example.
+
 2003-05-16  Han-Wen Nienhuys  <hanwen@cs.uu.nl>
 
 	* ChangeLog: add my surname
