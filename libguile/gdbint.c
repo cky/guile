@@ -50,6 +50,7 @@
 #include "read.h"
 #include "eval.h"
 #include "chars.h"
+#include "modules.h"
 
 #include "gdbint.h"
 
