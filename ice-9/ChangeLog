@@ -1,3 +1,12 @@
+1998-01-30  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* threads.scm: Added simple error and signal handler.
+	(make-thread, begin-handler): Use this handler.  The most
+	important effect of this is that signals get unmasked.
+	Previously, when a signal was thrown signals remained masked
+	(signals get masked when a signal is taken) which influenced other
+	threads.
+
 1998-01-01  Tim Pierce  <twp@skepsis.com>
 
 	A better fix to the SLIB identity problem -- thanks to Marius Vollmer.

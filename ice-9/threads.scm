@@ -29,18 +29,41 @@
 
 ; --- MACROS -------------------------------------------------------
 
+(define-public (%thread-handler tag . args)
+  (fluid-set! the-last-stack #f)
+  (unmask-signals)
+  (let ((n (length args))
+	(p (current-error-port)))
+  (display "In thread:" p)
+  (newline p)
+  (if (>= n 3)
+      (display-error #f
+		     p
+		     (car args)
+		     (cadr args)
+		     (caddr args)
+		     (if (= n 4)
+			 (cadddr args)
+			 '()))
+      (begin
+	(display "uncaught throw to " p)
+	(display tag p)
+	(display ": " p)
+	(display args p)
+	(newline p)))))
+
 (defmacro-public make-thread (fn . args)
   `(call-with-new-thread
     (lambda ()
       (,fn ,@args))
-    (lambda args args)))
+    %thread-handler))
 
 (defmacro-public begin-thread (first . thunk)
   `(call-with-new-thread
     (lambda ()
       (begin
 	,first ,@thunk))
-    (lambda args args)))
+    %thread-handler))
 
 (defmacro-public with-mutex (m . thunk)
   `(dynamic-wind
