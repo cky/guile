@@ -63,7 +63,9 @@ that user-visible changes are reflected in NEWS.
 
 * Before releasing 1.8.0:
 
-- incorporate SCM_API patch(es) by Stefan Jahn [mvo]
+- add DLL support [ela]		<-- set by ttn (my bad)
+
+- sync srfi-modules.texi [ttn]
 
 - For GOOPS: [ttn]
   - rewrite method cache management in C
