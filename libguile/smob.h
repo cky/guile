@@ -57,6 +57,8 @@ typedef struct scm_smob_descriptor
   scm_sizet (*free) (SCM);
   int (*print) (SCM exp, SCM port, scm_print_state *pstate);
   SCM (*equalp) (SCM, SCM);
+  SCM (*apply) ();
+  int gsubr_type;
 } scm_smob_descriptor;
 
 
@@ -112,6 +114,7 @@ do { \
 #define SCM_SMOBNAME(smobnum)		(scm_smobs[smobnum].name)
 #define SCM_SMOB_PREDICATE(tag, obj)	(SCM_NIMP (obj) \
 					 && SCM_TYP16 (obj) == (tag))
+#define SCM_SMOB_DESCRIPTOR(x)		(scm_smobs[SCM_SMOBNUM (x)])
 
 extern int scm_numsmob;
 extern scm_smob_descriptor *scm_smobs;
@@ -124,6 +127,10 @@ extern scm_sizet scm_free0 (SCM ptr);
 extern scm_sizet scm_smob_free (SCM obj);
 extern int scm_smob_print (SCM exp, SCM port, scm_print_state *pstate);
 
+extern SCM scm_smob_apply_0 (SCM smob);
+extern SCM scm_smob_apply_1 (SCM smob, SCM a1);
+extern SCM scm_smob_apply_2 (SCM smob, SCM a1, SCM a2);
+extern SCM scm_smob_apply_3 (SCM smob, SCM a1, SCM a2, SCM rest);
 
 /* The following set of functions is the standard way to create new
  * SMOB types.
@@ -141,6 +148,7 @@ extern void scm_set_smob_print (long tc, int (*print) (SCM,
 						       SCM,
 						       scm_print_state*));
 extern void scm_set_smob_equalp (long tc, SCM (*equalp) (SCM, SCM));
+extern void scm_set_smob_apply (long tc, SCM (*apply) (), int req, int opt, int rst);
 
 
 /* Functions for registering multiple handler functions simultaneously.

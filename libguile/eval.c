@@ -2642,6 +2642,10 @@ evapply:
 	RETURN (SCM_BOOL_T);
       case scm_tc7_asubr:
 	RETURN (SCM_SUBRF (proc) (SCM_UNDEFINED, SCM_UNDEFINED));
+      case scm_tc7_smob:
+	if (!SCM_SMOB_DESCRIPTOR (proc).apply)
+	  goto badfun;
+	RETURN (scm_smob_apply_0 (proc));
 #ifdef CCLO
       case scm_tc7_cclo:
 	t.arg1 = proc;
@@ -2790,6 +2794,10 @@ evapply:
 #else
 	  RETURN (SCM_SUBRF (proc) (scm_cons (t.arg1, SCM_EOL)));
 #endif
+	case scm_tc7_smob:
+	  if (!SCM_SMOB_DESCRIPTOR (proc).apply)
+	    goto badfun;
+	  RETURN (scm_smob_apply_1 (proc, t.arg1));
 #ifdef CCLO
 	case scm_tc7_cclo:
 	  arg2 = t.arg1;
@@ -2908,6 +2916,10 @@ evapply:
 	case scm_tc7_rpsubr:
 	case scm_tc7_asubr:
 	  RETURN (SCM_SUBRF (proc) (t.arg1, arg2));
+	case scm_tc7_smob:
+	  if (!SCM_SMOB_DESCRIPTOR (proc).apply)
+	    goto badfun;
+	  RETURN (scm_smob_apply_2 (proc, t.arg1, arg2));
 #ifdef CCLO
 	cclon:
 	case scm_tc7_cclo:
@@ -3052,6 +3064,11 @@ evapply:
 				  SCM_CDR (SCM_CDR (debug.info->a.args))))
       case scm_tc7_lsubr:
 	RETURN (SCM_SUBRF (proc) (debug.info->a.args))
+      case scm_tc7_smob:
+	if (!SCM_SMOB_DESCRIPTOR (proc).apply)
+	  goto badfun;
+	RETURN (scm_smob_apply_3 (proc, t.arg1, arg2,
+				  SCM_CDDR (debug.info->a.args)));
 #ifdef CCLO
       case scm_tc7_cclo:
 	goto cclon;
@@ -3111,6 +3128,11 @@ evapply:
 	RETURN (SCM_SUBRF (proc) (scm_cons2 (t.arg1,
 					     arg2,
 					     scm_eval_args (x, env, proc))));
+      case scm_tc7_smob:
+	if (!SCM_SMOB_DESCRIPTOR (proc).apply)
+	  goto badfun;
+	RETURN (scm_smob_apply_3 (proc, t.arg1, arg2,
+				  scm_eval_args (x, env, proc)));
 #ifdef CCLO
       case scm_tc7_cclo:
 	goto cclon;
@@ -3471,6 +3493,18 @@ tail:
 	  proc = arg1;
 	}
       RETURN (EVALCAR (proc, args));
+    case scm_tc7_smob:
+      if (!SCM_SMOB_DESCRIPTOR (proc).apply)
+	goto badproc;
+      if (SCM_NULLP (args))
+	RETURN (scm_smob_apply_0 (proc))
+      else if (SCM_NULLP (SCM_CDR (args)))
+	RETURN (scm_smob_apply_1 (proc, SCM_CAR (args)))
+      else if (SCM_NULLP (SCM_CDDR (args)))
+	RETURN (scm_smob_apply_2 (proc, SCM_CAR (args), SCM_CADR (args)))
+      else
+	RETURN (scm_smob_apply_3 (proc, SCM_CAR (args), SCM_CADR (args),
+				  SCM_CDDR (args)));
     case scm_tc7_contin:
       SCM_ASRTGO (SCM_NULLP (args), wrongnumargs);
       scm_call_continuation (proc, arg1);

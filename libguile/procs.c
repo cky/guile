@@ -50,6 +50,7 @@
 #include "libguile/objects.h"
 #include "libguile/strings.h"
 #include "libguile/vectors.h"
+#include "libguile/smob.h"
 
 #include "libguile/validate.h"
 #include "libguile/procs.h"
@@ -198,6 +199,8 @@ SCM_DEFINE (scm_procedure_p, "procedure?", 1, 0, 0,
 #endif
       case scm_tc7_pws:
 	return SCM_BOOL_T;
+      case scm_tc7_smob:
+	return SCM_BOOL (SCM_SMOB_DESCRIPTOR (obj).apply);
       default:
 	return SCM_BOOL_F;
       }

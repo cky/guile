@@ -122,6 +122,160 @@ scm_smob_print (SCM exp, SCM port, scm_print_state *pstate)
   return 1;
 }
 
+/* {Apply}
+ */
+
+SCM
+scm_smob_apply_0 (SCM smob)
+{
+  int type = SCM_SMOB_DESCRIPTOR (smob).gsubr_type;
+  switch (type)
+    {
+    case SCM_GSUBR_MAKTYPE (0, 0, 0):
+      return SCM_SMOB_DESCRIPTOR (smob).apply ();
+    case SCM_GSUBR_MAKTYPE (0, 1, 0):
+      return SCM_SMOB_DESCRIPTOR (smob).apply (smob, SCM_UNDEFINED);
+    case SCM_GSUBR_MAKTYPE (0, 0, 1):
+      return SCM_SMOB_DESCRIPTOR (smob).apply (smob, SCM_EOL);
+    case SCM_GSUBR_MAKTYPE (0, 2, 0):
+      return SCM_SMOB_DESCRIPTOR (smob).apply (smob,
+					       SCM_UNDEFINED,
+					       SCM_UNDEFINED);
+    case SCM_GSUBR_MAKTYPE (0, 1, 1):
+      return SCM_SMOB_DESCRIPTOR (smob).apply (smob,
+					       SCM_UNDEFINED,
+					       SCM_EOL);
+    case SCM_GSUBR_MAKTYPE (0, 3, 0):
+      return SCM_SMOB_DESCRIPTOR (smob).apply (smob,
+					       SCM_UNDEFINED,
+					       SCM_UNDEFINED,
+					       SCM_UNDEFINED);
+    case SCM_GSUBR_MAKTYPE (0, 2, 1):
+      return SCM_SMOB_DESCRIPTOR (smob).apply (smob,
+					       SCM_UNDEFINED,
+					       SCM_UNDEFINED,
+					       SCM_EOL);
+    default:
+      if (SCM_GSUBR_REQ (type) > 0)
+	scm_wrong_num_args (smob);
+      scm_misc_error ("scm_smob_apply_0",
+		      "Unsupported smob application: ~S",
+		      SCM_LIST1 (smob));
+    }
+}
+
+SCM
+scm_smob_apply_1 (SCM smob, SCM a1)
+{
+  int type = SCM_SMOB_DESCRIPTOR (smob).gsubr_type;
+  switch (type)
+    {
+    case SCM_GSUBR_MAKTYPE (0, 0, 0):
+      scm_wrong_num_args (smob);
+    case SCM_GSUBR_MAKTYPE (1, 0, 0):
+    case SCM_GSUBR_MAKTYPE (0, 1, 0):
+      return SCM_SMOB_DESCRIPTOR (smob).apply (smob, a1);
+    case SCM_GSUBR_MAKTYPE (0, 0, 1):
+      return SCM_SMOB_DESCRIPTOR (smob).apply (smob, SCM_LIST1 (a1));
+    case SCM_GSUBR_MAKTYPE (1, 1, 0):
+    case SCM_GSUBR_MAKTYPE (0, 2, 0):
+      return SCM_SMOB_DESCRIPTOR (smob).apply (smob, a1, SCM_UNDEFINED);
+    case SCM_GSUBR_MAKTYPE (1, 0, 1):
+    case SCM_GSUBR_MAKTYPE (0, 1, 1):
+      return SCM_SMOB_DESCRIPTOR (smob).apply (smob, a1, SCM_EOL);
+    case SCM_GSUBR_MAKTYPE (1, 2, 0):
+    case SCM_GSUBR_MAKTYPE (0, 3, 0):
+      return SCM_SMOB_DESCRIPTOR (smob).apply (smob, a1,
+					       SCM_UNDEFINED,
+					       SCM_UNDEFINED);
+    case SCM_GSUBR_MAKTYPE (1, 1, 1):
+    case SCM_GSUBR_MAKTYPE (0, 2, 1):
+      return SCM_SMOB_DESCRIPTOR (smob).apply (smob, a1,
+					       SCM_UNDEFINED,
+					       SCM_EOL);
+    default:
+      if (SCM_GSUBR_REQ (type) > 1)
+	scm_wrong_num_args (smob);
+      scm_misc_error ("scm_smob_apply_1",
+		      "Unsupported smob application: ~S",
+		      SCM_LIST1 (smob));
+    }
+}
+
+SCM
+scm_smob_apply_2 (SCM smob, SCM a1, SCM a2)
+{
+  int type = SCM_SMOB_DESCRIPTOR (smob).gsubr_type;
+  switch (type)
+    {
+    case SCM_GSUBR_MAKTYPE (0, 0, 0):
+    case SCM_GSUBR_MAKTYPE (1, 0, 0):
+    case SCM_GSUBR_MAKTYPE (0, 1, 0):
+      scm_wrong_num_args (smob);
+    case SCM_GSUBR_MAKTYPE (0, 0, 1):
+      return SCM_SMOB_DESCRIPTOR (smob).apply (smob, SCM_LIST2 (a1, a2));
+    case SCM_GSUBR_MAKTYPE (2, 0, 0):
+    case SCM_GSUBR_MAKTYPE (1, 1, 0):
+    case SCM_GSUBR_MAKTYPE (0, 2, 0):
+      return SCM_SMOB_DESCRIPTOR (smob).apply (smob, a1, a2);
+    case SCM_GSUBR_MAKTYPE (1, 0, 1):
+    case SCM_GSUBR_MAKTYPE (0, 1, 1):
+      return SCM_SMOB_DESCRIPTOR (smob).apply (smob, a1, SCM_LIST1 (a2));
+    case SCM_GSUBR_MAKTYPE (2, 1, 0):
+    case SCM_GSUBR_MAKTYPE (1, 2, 0):
+    case SCM_GSUBR_MAKTYPE (0, 3, 0):
+      return SCM_SMOB_DESCRIPTOR (smob).apply (smob, a1, a2, SCM_UNDEFINED);
+    case SCM_GSUBR_MAKTYPE (2, 0, 1):
+    case SCM_GSUBR_MAKTYPE (1, 1, 1):
+    case SCM_GSUBR_MAKTYPE (0, 2, 1):
+      return SCM_SMOB_DESCRIPTOR (smob).apply (smob, a1, a2, SCM_EOL);
+    default:
+      if (SCM_GSUBR_REQ (type) > 2)
+	scm_wrong_num_args (smob);
+      scm_misc_error ("scm_smob_apply_2",
+		      "Unsupported smob application: ~S",
+		      SCM_LIST1 (smob));
+    }
+}
+
+SCM
+scm_smob_apply_3 (SCM smob, SCM a1, SCM a2, SCM rest)
+{
+  int type = SCM_SMOB_DESCRIPTOR (smob).gsubr_type;
+  switch (type)
+    {
+    case SCM_GSUBR_MAKTYPE (0, 0, 0):
+    case SCM_GSUBR_MAKTYPE (1, 0, 0):
+    case SCM_GSUBR_MAKTYPE (0, 1, 0):
+    case SCM_GSUBR_MAKTYPE (2, 0, 0):
+    case SCM_GSUBR_MAKTYPE (1, 1, 0):
+    case SCM_GSUBR_MAKTYPE (0, 2, 0):
+      scm_wrong_num_args (smob);
+    case SCM_GSUBR_MAKTYPE (0, 0, 1):
+      return SCM_SMOB_DESCRIPTOR (smob).apply (smob, scm_cons (a1, scm_cons (a2, rest)));
+    case SCM_GSUBR_MAKTYPE (1, 0, 1):
+    case SCM_GSUBR_MAKTYPE (0, 1, 1):
+      return SCM_SMOB_DESCRIPTOR (smob).apply (smob, a1, scm_cons (a2, rest));
+    case SCM_GSUBR_MAKTYPE (3, 0, 0):
+    case SCM_GSUBR_MAKTYPE (2, 1, 0):
+    case SCM_GSUBR_MAKTYPE (1, 2, 0):
+    case SCM_GSUBR_MAKTYPE (0, 3, 0):
+      if (!SCM_NULLP (SCM_CDR (rest)))
+	scm_wrong_num_args (smob);
+      return SCM_SMOB_DESCRIPTOR (smob).apply (smob, a1, a2, SCM_CAR (rest));
+    case SCM_GSUBR_MAKTYPE (2, 0, 1):
+    case SCM_GSUBR_MAKTYPE (1, 1, 1):
+    case SCM_GSUBR_MAKTYPE (0, 2, 1):
+      return SCM_SMOB_DESCRIPTOR (smob).apply (smob, a1, a2, rest);
+    default:
+      if (SCM_GSUBR_REQ (type) > 3)
+	scm_wrong_num_args (smob);
+      scm_misc_error ("scm_smob_apply_3",
+		      "Unsupported smob application: ~S",
+		      SCM_LIST1 (smob));
+    }
+}
+
 long 
 scm_make_smob_type (char *name, scm_sizet size)
 {
@@ -141,6 +295,8 @@ scm_make_smob_type (char *name, scm_sizet size)
       scm_smobs[scm_numsmob].free = (size == 0 ? scm_free0 : scm_smob_free);
       scm_smobs[scm_numsmob].print = scm_smob_print;
       scm_smobs[scm_numsmob].equalp = 0;
+      scm_smobs[scm_numsmob].apply = 0;
+      scm_smobs[scm_numsmob].gsubr_type = 0;
       scm_numsmob++;
     }
   SCM_ALLOW_INTS;
@@ -190,6 +346,13 @@ void
 scm_set_smob_equalp (long tc, SCM (*equalp) (SCM, SCM))
 {
   scm_smobs[SCM_TC2SMOBNUM (tc)].equalp = equalp;
+}
+
+void
+scm_set_smob_apply (long tc, SCM (*apply) (), int req, int opt, int rst)
+{
+  scm_smobs[SCM_TC2SMOBNUM (tc)].apply = apply;
+  scm_smobs[SCM_TC2SMOBNUM (tc)].gsubr_type = SCM_GSUBR_MAKTYPE (req, opt, rst);
 }
 
 void
