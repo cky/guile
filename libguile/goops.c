@@ -69,6 +69,7 @@
 #include "libguile/vectors.h"
 #include "libguile/weaks.h"
 
+#include "libguile/validate.h"
 #include "libguile/goops.h"
 
 #define CLASSP(x)   (SCM_STRUCTP (x) \
@@ -81,8 +82,8 @@
 
 
 #define DEFVAR(v,val) \
-{ scm_eval2 (SCM_LIST3 (scm_sym_define_public, (v), (val)), \
-	     scm_goops_lookup_closure); }
+{ scm_i_eval (SCM_LIST3 (scm_sym_define_public, (v), (val)), \
+	      scm_top_level_env (scm_goops_lookup_closure)); }
 /* Temporary hack until we get the new module system */
 /*fixme* Should optimize by keeping track of the variable object itself */
 #define GETVAR(v) (SCM_CDDR (scm_apply (scm_goops_lookup_closure, \
@@ -217,7 +218,7 @@ filter_cpl (SCM ls)
   while (SCM_NIMP (ls))
     {
       SCM el = SCM_CAR (ls);
-      if (SCM_IMP (scm_sloppy_memq (el, res)))
+      if (SCM_IMP (scm_memq (el, res)))
 	res = scm_cons (el, res);
       ls = SCM_CDR (ls);
     }
@@ -258,7 +259,7 @@ remove_duplicate_slots (SCM l, SCM res, SCM slots_already_seen)
 		    "bad slot name ~S",
 		    SCM_LIST1 (tmp));
   
-  if (SCM_NULLP (scm_sloppy_memq (tmp, slots_already_seen))) {
+  if (SCM_NULLP (scm_memq (tmp, slots_already_seen))) {
     res 	       = scm_cons (SCM_CAR (l), res);
     slots_already_seen = scm_cons (tmp, slots_already_seen);
   }
@@ -991,6 +992,7 @@ SCM_PROC (s_sys_fast_slot_ref, "%fast-slot-ref", 2, 0, 0, scm_sys_fast_slot_ref)
 
 SCM
 scm_sys_fast_slot_ref (SCM obj, SCM index)
+#define FUNC_NAME s_sys_fast_slot_ref
 {
   register long i;
 
@@ -998,15 +1000,18 @@ scm_sys_fast_slot_ref (SCM obj, SCM index)
 	      obj, SCM_ARG1, s_sys_fast_slot_ref);
   SCM_ASSERT (SCM_INUMP (index), index, SCM_ARG2, s_sys_fast_slot_ref);
   i = SCM_INUM (index);
-  SCM_ASSERT (i >= 0 && i < SCM_NUMBER_OF_SLOTS (obj),
-	      index, SCM_OUTOFRANGE, s_sys_fast_slot_ref);
+  
+  SCM_ASSERT_RANGE (2, index, i >= 0 && i < SCM_NUMBER_OF_SLOTS (obj));
   return scm_at_assert_bound_ref (obj, index);
 }
+#undef FUNC_NAME
+
 
 SCM_PROC (s_sys_fast_slot_set_x, "%fast-slot-set!", 3, 0, 0, scm_sys_fast_slot_set_x);
 
 SCM
 scm_sys_fast_slot_set_x (SCM obj, SCM index, SCM value)
+#define FUNC_NAME s_sys_fast_slot_set_x
 {
   register long i;
 
@@ -1014,12 +1019,13 @@ scm_sys_fast_slot_set_x (SCM obj, SCM index, SCM value)
 	      obj, SCM_ARG1, s_sys_fast_slot_set_x);
   SCM_ASSERT (SCM_INUMP (index), index, SCM_ARG2, s_sys_fast_slot_set_x);
   i = SCM_INUM (index);
-  SCM_ASSERT (i >= 0 && i < SCM_NUMBER_OF_SLOTS (obj),
-	      index, SCM_OUTOFRANGE, s_sys_fast_slot_set_x);
-
+  SCM_ASSERT_RANGE (2, index, i >= 0 && i < SCM_NUMBER_OF_SLOTS (obj));
   SCM_SLOT (obj, i) = value;
+
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
+
 
 /** Utilities **/
 
@@ -1127,56 +1133,6 @@ test_slot_existence (SCM class, SCM obj, SCM slot_name)
       return SCM_BOOL_T;
 
   return SCM_BOOL_F;
-}
-
-/* The current libguile logand doesn't handle bignums.
- * This (primitive) version handles them up to 32 bits.
- */
-
-SCM_PROC1 (s_sys_logand, "%logand", scm_tc7_asubr, scm_sys_logand);
-
-static unsigned long
-scm_sloppy_num2ulong (SCM num, char *pos, const char *s_caller)
-{
-  unsigned long res;
-
-  if (SCM_INUMP (num))
-    {
-      if (SCM_INUM (num) < 0)
-	goto out_of_range;
-      res = SCM_INUM (num);
-      return res;
-    }
-  SCM_ASRTGO (SCM_NIMP (num), wrong_type_arg);
-  if (SCM_BIGP (num))
-    {
-      scm_sizet l;
-
-      res = 0;
-      for (l = SCM_NUMDIGS (num); l--;)
-	res = SCM_BIGUP (res) + SCM_BDIGITS (num)[l];
-      return res;
-    }
- wrong_type_arg:
-  scm_wrong_type_arg (s_caller, (int) pos, num);
- out_of_range:
-  scm_out_of_range (s_caller, num);
-}
-
-static SCM
-scm_sys_logand (SCM n1, SCM n2)
-{
-  if (SCM_UNBNDP (n2))
-    {
-      if (SCM_UNBNDP (n1))
-	return SCM_MAKINUM (-1);
-      return n1;
-    }
-  {
-    unsigned long u1 = scm_sloppy_num2ulong (n1, (char *) 1, s_sys_logand);
-    unsigned long u2 = scm_sloppy_num2ulong (n2, (char *) 2, s_sys_logand);
-    return scm_ulong2num (u1 & u2);
-  }
 }
 
 		/* ======================================== */
@@ -1951,6 +1907,7 @@ SCM_SYMBOL (sym_atdispatch, s_atdispatch);
 
 SCM
 scm_m_atdispatch (SCM xorig, SCM env)
+#define FUNC_NAME s_atdispatch
 {
   SCM args, n, v, gf, x = SCM_CDR (xorig);
   SCM_ASSYNT (scm_ilength (x) == 4, xorig, scm_s_expression, s_atdispatch);
@@ -1960,7 +1917,7 @@ scm_m_atdispatch (SCM xorig, SCM env)
   x = SCM_CDR (x);
   n = SCM_XEVALCAR (x, env);
   SCM_ASSYNT (SCM_INUMP (n), n, SCM_ARG2, s_atdispatch);
-  SCM_ASSYNT (SCM_INUM (n) >= 1, n, SCM_OUTOFRANGE, s_atdispatch);
+  SCM_ASSERT_RANGE (0, n, SCM_INUM (n) >= 1);
   x = SCM_CDR (x);
   v = SCM_XEVALCAR (x, env);
   SCM_ASSYNT (SCM_NIMP (v) && SCM_VECTORP (v), v, SCM_ARG3, s_atdispatch);
@@ -1970,6 +1927,8 @@ scm_m_atdispatch (SCM xorig, SCM env)
 	      gf, SCM_ARG4, s_atdispatch);
   return SCM_LIST5 (SCM_IM_DISPATCH, args, n, v, gf);
 }
+#undef FUNC_NAME
+
 
 #ifdef USE_THREADS
 static void
@@ -2663,8 +2622,8 @@ SCM_SYMBOL (sym_internal_add_method_x, "internal-add-method!");
 void
 scm_add_method (SCM gf, SCM m)
 {
-  scm_eval2 (SCM_LIST3 (sym_internal_add_method_x, gf, m),
-	     scm_goops_lookup_closure);
+  scm_i_eval (SCM_LIST3 (sym_internal_add_method_x, gf, m),
+	      scm_top_level_env (scm_goops_lookup_closure));
 }
 
 #ifdef GUILE_DEBUG

@@ -77,8 +77,7 @@
     generic-function-methods method-generic-function method-specializers
     primitive-generic-generic enable-primitive-generic!
     method-procedure accessor-method-slot-definition
-    slot-exists? make find-method get-keyword
-    %logand)
+    slot-exists? make find-method get-keyword)
 
 
 (define min-fixnum (- (expt 2 29)))

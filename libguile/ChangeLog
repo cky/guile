@@ -1,3 +1,19 @@
+2000-11-24  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* goops.c:  Include validate.h.
+
+	(DEFVAR, scm_add_method):  Don't use deprecated scm_eval2.
+
+	(scm_sys_fast_slot_ref, scm_sys_fast_slot_set_x,
+	scm_m_atdispatch):  Provide FUNC_NAME definition.  Don't use
+	deprecated SCM_OUTOFRANGE macro.
+
+	(scm_sloppy_num2ulong, scm_sys_logand):  Removed.  Guile's logand
+	function now provides the desired behaviour.
+
+	* goops.c (filter_cpl, remove_duplicate_slots), goops.h
+	(SCM_SUBCLASSP):  Don't use deprecated scm_sloppy_memq.
+
 2000-11-23  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* symbols.h (SCM_LENGTH_MAX):  Deprecated.

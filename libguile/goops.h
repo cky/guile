@@ -134,7 +134,7 @@ typedef struct scm_method_t {
 				   | SCM_CLASSF_SIMPLE_METHOD))
 
 #define SCM_SLOT(x, i)         (SCM_INST(x)[i])
-#define SCM_SUBCLASSP(c1, c2)  SCM_NNULLP (scm_sloppy_memq (c2, SCM_SLOT (c1, scm_si_cpl)))
+#define SCM_SUBCLASSP(c1, c2)  SCM_NNULLP (scm_memq (c2, SCM_SLOT (c1, scm_si_cpl)))
 #define SCM_IS_A_P(x, c)       (SCM_NIMP (x) \
 				&& SCM_INSTANCEP (x) \
 				&& SCM_SUBCLASSP (SCM_CLASS_OF (x), c))

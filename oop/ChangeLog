@@ -1,3 +1,10 @@
+2000-11-24  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* goops.scm:  Don't export removed %logand any more.
+
+	* goops/dispatch.scm (cache-try-hash!):  Use logand instead of
+	%logand.
+
 2000-11-06  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
 
 	* goops.scm (internal-add-method!): Set n-specialized of a generic
