@@ -4,6 +4,13 @@
 	the top of the node about it being the default, rather than just in
 	the description of random.
 
+2003-11-13  Marius Vollmer  <mvo@zagadka.de>
+
+	* preface.texi (Manual Layout): Wrap POSIX, API, and SLIB in
+	@acronym.  Change from paragraph format (somewhat clumsy-looking
+	on paper, at least) to @table format, with headers @strong.  Made
+	example modules complete sentences.  From Stephen Compall, thanks!
+
 2003-11-09  Kevin Ryde  <user42@zip.com.au>
 
 	* misc-modules.texi (Pretty Printing): Add new keyword options, break
