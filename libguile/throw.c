@@ -476,21 +476,24 @@ handler_message (void *handler_data, SCM tag, SCM args)
   char *prog_name = (char *) handler_data;
   SCM p = scm_cur_errp;
 
-  if (! prog_name)
-    prog_name = "guile";
-
-  scm_puts (prog_name, p);
-  scm_puts (": ", p);
-
   if (scm_ilength (args) >= 3)
     {
+      SCM stack   = scm_make_stack (SCM_LIST1 (SCM_BOOL_T));
+      SCM subr    = SCM_CAR (args);
       SCM message = SCM_CADR (args);
-      SCM parts = SCM_CADDR (args);
+      SCM parts   = SCM_CADDR (args);
+      SCM rest    = SCM_CDDDR (args);
 
-      scm_display_error_message (message, parts, p);
+      scm_display_error (stack, p, subr, message, parts, rest);
     }
   else
     {
+      if (! prog_name)
+	prog_name = "guile";
+
+      scm_puts (prog_name, p);
+      scm_puts (": ", p);
+
       scm_puts ("uncaught throw to ", p);
       scm_prin1 (tag, p, 0);
       scm_puts (": ", p);
