@@ -420,16 +420,6 @@ scm_list_copy (lst)
 
 static void sloppy_mem_check SCM_P ((SCM obj, char * where, char * why));
 
-static void
-sloppy_mem_check (obj, where, why)
-     SCM obj;
-     char * where;
-     char * why;
-{
-  SCM_ASSERT ((scm_ilength (obj) >= 0), obj, where, why);
-}
-
-
 SCM_PROC (s_sloppy_memq, "sloppy-memq", 2, 0, 0, scm_sloppy_memq);
 SCM
 scm_sloppy_memq(x, lst)
@@ -483,8 +473,8 @@ scm_memq(x, lst)
      SCM lst;
 {
   SCM answer;
+  SCM_ASSERT (scm_ilength (lst) >= 0, lst, SCM_ARG2, s_memq);
   answer = scm_sloppy_memq (x, lst);
-  sloppy_mem_check (answer, (char *)SCM_ARG2, s_memq);
   return (answer == SCM_EOL) ? SCM_BOOL_F : answer;
 }
 
@@ -497,8 +487,8 @@ scm_memv(x, lst)
      SCM lst;
 {
   SCM answer;
+  SCM_ASSERT (scm_ilength (lst) >= 0, lst, SCM_ARG2, s_memv);
   answer = scm_sloppy_memv (x, lst);
-  sloppy_mem_check (answer, (char *)SCM_ARG2, s_memv);
   return (answer == SCM_EOL) ? SCM_BOOL_F : answer;
 }
 
@@ -510,8 +500,8 @@ scm_member(x, lst)
      SCM lst;
 {
   SCM answer;
+  SCM_ASSERT (scm_ilength (lst) >= 0, lst, SCM_ARG2, s_member);
   answer = scm_sloppy_member (x, lst);
-  sloppy_mem_check (answer, (char *)SCM_ARG2, s_member);
   return (answer == SCM_EOL) ? SCM_BOOL_F : answer;
 }
 
@@ -626,6 +616,84 @@ scm_delete (item, lst)
 
   copy = scm_list_copy (lst);
   return scm_delete_x (item, copy);
+}
+
+
+SCM_PROC(s_delq1_x, "delq1!", 2, 0, 0, scm_delq1_x);
+SCM
+scm_delq1_x (item, lst)
+     SCM item;
+     SCM lst;
+{
+  SCM walk;
+  SCM *prev;
+
+  for (prev = &lst, walk = lst;
+       SCM_NIMP (walk) && SCM_CONSP (walk);
+       walk = SCM_CDR (walk))
+    {
+      if (SCM_CAR (walk) == item)
+	{
+	  *prev = SCM_CDR (walk);
+	  break;
+	}
+      else
+	prev = SCM_CDRLOC (walk);
+    }
+    
+  return lst;
+}
+
+
+SCM_PROC(s_delv1_x, "delv1!", 2, 0, 0, scm_delv1_x);
+SCM
+scm_delv1_x (item, lst)
+     SCM item;
+     SCM lst;
+{
+  SCM walk;
+  SCM *prev;
+
+  for (prev = &lst, walk = lst;
+       SCM_NIMP (walk) && SCM_CONSP (walk);
+       walk = SCM_CDR (walk))
+    {
+      if (SCM_BOOL_F != scm_eqv_p (SCM_CAR (walk), item))
+	{
+	  *prev = SCM_CDR (walk);
+	  break;
+	}
+      else
+	prev = SCM_CDRLOC (walk);
+    }
+    
+  return lst;
+}
+
+
+SCM_PROC(s_delete1_x, "delete1!", 2, 0, 0, scm_delete1_x);
+SCM
+scm_delete1_x (item, lst)
+     SCM item;
+     SCM lst;
+{
+  SCM walk;
+  SCM *prev;
+
+  for (prev = &lst, walk = lst;
+       SCM_NIMP (walk) && SCM_CONSP (walk);
+       walk = SCM_CDR (walk))
+    {
+      if (SCM_BOOL_F != scm_equal_p (SCM_CAR (walk), item))
+	{
+	  *prev = SCM_CDR (walk);
+	  break;
+	}
+      else
+	prev = SCM_CDRLOC (walk);
+    }
+
+  return lst;
 }
 
 
