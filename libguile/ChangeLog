@@ -1,3 +1,21 @@
+Sun Dec 22 23:06:14 1996  Jim Blandy  <jimb@floss.cyclic.com>
+
+*	* list.c (scm_delq_x, scm_delv_x, scm_delete_x): Delete all
+ 	occurrences of the given element from the list, not just the
+ 	first.  This is how the Emacs Lisp functions behave, how the
+ 	analogous Common Lisp functions behave, and (I believe) how the
+ 	older Maclisp functions worked.  I realize that this change may
+ 	break code, but it seemed better to break it before the Guile
+ 	release than after.
+
+*	* gc.c (scm_protect_object, scm_unprotect_object): New functions.
+	Their prototypes were already present in gc.h, but they weren't
+	implemented.
+	(scm_init_storage): Initialize scm_protects.
+	* root.c (scm_protects): New element of scm_sys_protects.
+
+	* net_db.h (scm_init_net_db): Fix spelling from scm_init_netdb.
+
 Sat Dec 21 15:38:32 1996  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* libguile.h: Added #include "libguile/net_db.h".

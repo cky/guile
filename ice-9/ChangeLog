@@ -1,3 +1,9 @@
+Sun Dec 22 23:27:25 1996  Jim Blandy  <jimb@floss.cyclic.com>
+
+	* boot-9.scm (delq-all!): Function deleted; delq!'s semantics have
+	been fixed, so this function is superfluous.
+	(transform-usage-lambda): Use delq!, not delq-all!.
+
 Tue Dec 17 20:36:45 1996  Marius Vollmer  <mvo@zagadka.ping.de>
 
 *	* boot-9.scm (resolve-module): New optional parameter that
