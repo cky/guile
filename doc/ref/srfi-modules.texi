@@ -672,6 +672,11 @@ tail.  @code{break} inverts the sense of the predicate.
 @code{span!} and @code{break!} are allowed, but not required to modify
 the structure of the input list @var{lst} in order to produce the
 result.
+
+Note that the name @code{break} conflicts with the @code{break}
+binding established by @code{while} (@pxref{while do}).  Applications
+wanting to use @code{break} from within a @code{while} loop will need
+to make a new define under a different name.
 @end deffn
 
 @deffn {Scheme Procedure} any pred lst1 lst2 @dots{}
