@@ -68,20 +68,27 @@ extern int scm_gc_heap_lock;
 
 
 typedef struct scm_freelist_t {
+  /* collected cells */
   SCM cells;
 #ifdef GUILE_NEW_GC_SCHEME
-  int n_objects;
+  /* number of cells left to collect before cluster is full */
+  unsigned int left_to_collect;
   /* a list of freelists, each of size gc_trigger,
      except the last one which may be shorter */
   SCM clusters;
   SCM *clustertail;
-  /* GC trigger */
-  int triggeredp;
-  /* minimum number of objects allocated before GC is triggered and
-   * cluster size.  These two concepts should be divorced when we go
-   * to POSIX threads.
+  /* this is the number of cells in each cluster, including the spine cell */
+  int cluster_size;
+  /* set to grow the heap when we run out of clusters
+   */
+  int grow_heap_p;
+  /* minimum number of objects allocated before GC is triggered
    */
   int gc_trigger;
+  /* defines gc_trigger as percent of heap size
+   * 0 => constant trigger
+   */
+  int gc_trigger_fraction;
 #endif
   /* number of cells per object on this list */
   int span;
@@ -93,7 +100,7 @@ typedef struct scm_freelist_t {
   int heap_size;
 } scm_freelist_t;
 
-extern unsigned long scm_heap_size;
+extern scm_sizet scm_max_segment_size;
 extern SCM_CELLPTR scm_heap_org;
 #ifdef GUILE_NEW_GC_SCHEME
 extern SCM scm_freelist;
@@ -129,11 +136,14 @@ extern SCM scm_gc_stats (void);
 extern void scm_gc_start (const char *what);
 extern void scm_gc_end (void);
 extern SCM scm_gc (void);
-extern void scm_gc_for_alloc (scm_freelist_t *freelistp);
+extern void scm_gc_for_alloc (scm_freelist_t *freelist);
 #ifdef GUILE_NEW_GC_SCHEME
 extern SCM scm_gc_for_newcell (scm_freelist_t *master, SCM *freelist);
+#if 0
+extern void scm_alloc_cluster (scm_freelist_t *master);
+#endif
 #else
-extern SCM scm_gc_for_newcell (scm_freelist_t *freelistp);
+extern SCM scm_gc_for_newcell (scm_freelist_t *freelist);
 #endif
 extern void scm_igc (const char *what);
 extern void scm_gc_mark (SCM p);
@@ -154,7 +164,8 @@ extern SCM scm_protect_object (SCM obj);
 extern SCM scm_unprotect_object (SCM obj);
 #ifdef GUILE_NEW_GC_SCHEME
 extern int scm_init_storage (scm_sizet init_heap_size, int trig,
-                             scm_sizet init_heap2_size, int trig2);
+                             scm_sizet init_heap2_size, int trig2,
+			     scm_sizet max_segment_size);
 #else
 extern int scm_init_storage (scm_sizet init_heap_size,
                              scm_sizet init_heap2_size);
