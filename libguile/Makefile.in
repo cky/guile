@@ -67,6 +67,10 @@ AUTOMAKE_OPTIONS = foreign
 INCLUDES = -I.. -I$(srcdir)/..
 
 lib_LTLIBRARIES = libguile.la
+bin_PROGRAMS = guile
+
+guile_SOURCES = guile.c
+guile_LDADD = libguile.la ${THREAD_LIBS}
 
 libguile_la_SOURCES = \
     alist.c append.c appinit.c arbiters.c async.c boolean.c chars.c \
@@ -76,13 +80,14 @@ libguile_la_SOURCES = \
     hashtab.c init.c ioext.c kw.c list.c load.c mallocs.c markers.c \
     mbstrings.c net_db.c numbers.c objprop.c options.c pairs.c ports.c \
     posix.c print.c procprop.c procs.c ramap.c read.c root.c scmsigs.c \
-    sequences.c simpos.c smob.c socket.c stackchk.c stime.c strings.c \
-    strop.c strorder.c strports.c struct.c symbols.c tag.c throw.c unif.c \
-    variable.c vectors.c version.c vports.c weaks.c
+    script.c sequences.c simpos.c smob.c socket.c stackchk.c stime.c \
+    strings.c strop.c strorder.c strports.c struct.c symbols.c tag.c \
+    throw.c unif.c variable.c vectors.c version.c vports.c weaks.c
+
 EXTRA_libguile_la_SOURCES = _scm.h \
     backtrace.c stacks.c debug.c srcprop.c \
     strerror.c inet_aton.c putenv.c \
-    threads.c
+    threads.c alloca.c
 
 noinst_HEADERS = coop-threads.c coop-threads.h coop.c
 
@@ -103,7 +108,7 @@ modinclude_HEADERS = __scm.h alist.h append.h arbiters.h async.h \
     gdb_interface.h gdbint.h genio.h gsubr.h hash.h hashtab.h init.h \
     ioext.h kw.h list.h load.h mallocs.h markers.h mbstrings.h net_db.h \
     numbers.h objprop.h options.h pairs.h ports.h posix.h print.h \
-    procprop.h procs.h ramap.h read.h root.h scmhob.h scmsigs.h \
+    procprop.h procs.h ramap.h read.h root.h scmhob.h scmsigs.h script.h \
     sequences.h simpos.h smob.h socket.h srcprop.h stackchk.h stacks.h \
     stime.h strings.h strop.h strorder.h strports.h struct.h symbols.h \
     tag.h tags.h throw.h unif.h variable.h vectors.h version.h vports.h \
@@ -121,7 +126,7 @@ gh_test_c_LDADD = ${check_ldadd}
 gh_test_repl_SOURCES = gh_test_repl.c
 gh_test_repl_LDADD = ${check_ldadd}
 
-EXTRA_DIST = gscm.c gscm.h ChangeLog-scm dynl-dl.c dynl-dld.c dynl-shl.c \
+EXTRA_DIST = ChangeLog-scm dynl-dl.c dynl-dld.c dynl-shl.c \
     dynl-vms.c DYNAMIC-LINKING PLUGIN/REQ PLUGIN/guile.config \
     PLUGIN/guile.libs.in cpp_signal.c cpp_errno.c cpp_err_symbols.in \
     cpp_sig_symbols.in cpp_cnvt.awk \
@@ -155,10 +160,15 @@ gh_io.lo gh_list.lo gh_predicates.lo gsubr.lo hash.lo hashtab.lo \
 init.lo ioext.lo kw.lo list.lo load.lo mallocs.lo markers.lo \
 mbstrings.lo net_db.lo numbers.lo objprop.lo options.lo pairs.lo \
 ports.lo posix.lo print.lo procprop.lo procs.lo ramap.lo read.lo \
-root.lo scmsigs.lo sequences.lo simpos.lo smob.lo socket.lo stackchk.lo \
-stime.lo strings.lo strop.lo strorder.lo strports.lo struct.lo \
-symbols.lo tag.lo throw.lo unif.lo variable.lo vectors.lo version.lo \
-vports.lo weaks.lo
+root.lo scmsigs.lo script.lo sequences.lo simpos.lo smob.lo socket.lo \
+stackchk.lo stime.lo strings.lo strop.lo strorder.lo strports.lo \
+struct.lo symbols.lo tag.lo throw.lo unif.lo variable.lo vectors.lo \
+version.lo vports.lo weaks.lo
+PROGRAMS =  $(bin_PROGRAMS)
+
+guile_OBJECTS =  guile.o
+guile_DEPENDENCIES =  libguile.la
+guile_LDFLAGS = 
 gh_test_c_OBJECTS =  gh_test_c.o
 gh_test_c_DEPENDENCIES =  libguile.la
 gh_test_c_LDFLAGS = 
@@ -185,7 +195,7 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
 TAR = tar
 GZIP = --best
-DEP_FILES =  .deps/alist.P .deps/append.P .deps/appinit.P \
+DEP_FILES =  .deps/alist.P .deps/alloca.P .deps/append.P .deps/appinit.P \
 .deps/arbiters.P .deps/async.P .deps/backtrace.P .deps/boolean.P \
 .deps/chars.P .deps/continuations.P .deps/debug.P .deps/dynl.P \
 .deps/dynwind.P .deps/eq.P .deps/error.P .deps/eval.P .deps/extchrs.P \
@@ -193,20 +203,21 @@ DEP_FILES =  .deps/alist.P .deps/append.P .deps/appinit.P \
 .deps/gdbint.P .deps/genio.P .deps/gh_data.P .deps/gh_eval.P \
 .deps/gh_funcs.P .deps/gh_init.P .deps/gh_io.P .deps/gh_list.P \
 .deps/gh_predicates.P .deps/gh_test_c.P .deps/gh_test_repl.P \
-.deps/gsubr.P .deps/hash.P .deps/hashtab.P .deps/inet_aton.P \
-.deps/init.P .deps/ioext.P .deps/kw.P .deps/list.P .deps/load.P \
-.deps/mallocs.P .deps/markers.P .deps/mbstrings.P .deps/net_db.P \
-.deps/numbers.P .deps/objprop.P .deps/options.P .deps/pairs.P \
-.deps/ports.P .deps/posix.P .deps/print.P .deps/procprop.P \
-.deps/procs.P .deps/putenv.P .deps/ramap.P .deps/read.P .deps/root.P \
-.deps/scmsigs.P .deps/sequences.P .deps/simpos.P .deps/smob.P \
-.deps/socket.P .deps/srcprop.P .deps/stackchk.P .deps/stacks.P \
-.deps/stime.P .deps/strerror.P .deps/strings.P .deps/strop.P \
-.deps/strorder.P .deps/strports.P .deps/struct.P .deps/symbols.P \
-.deps/tag.P .deps/threads.P .deps/throw.P .deps/unif.P .deps/variable.P \
+.deps/gsubr.P .deps/guile.P .deps/hash.P .deps/hashtab.P \
+.deps/inet_aton.P .deps/init.P .deps/ioext.P .deps/kw.P .deps/list.P \
+.deps/load.P .deps/mallocs.P .deps/markers.P .deps/mbstrings.P \
+.deps/net_db.P .deps/numbers.P .deps/objprop.P .deps/options.P \
+.deps/pairs.P .deps/ports.P .deps/posix.P .deps/print.P \
+.deps/procprop.P .deps/procs.P .deps/putenv.P .deps/ramap.P \
+.deps/read.P .deps/root.P .deps/scmsigs.P .deps/script.P \
+.deps/sequences.P .deps/simpos.P .deps/smob.P .deps/socket.P \
+.deps/srcprop.P .deps/stackchk.P .deps/stacks.P .deps/stime.P \
+.deps/strerror.P .deps/strings.P .deps/strop.P .deps/strorder.P \
+.deps/strports.P .deps/struct.P .deps/symbols.P .deps/tag.P \
+.deps/threads.P .deps/throw.P .deps/unif.P .deps/variable.P \
 .deps/vectors.P .deps/version.P .deps/vports.P .deps/weaks.P
-SOURCES = $(libguile_la_SOURCES) $(EXTRA_libguile_la_SOURCES) $(gh_test_c_SOURCES) $(gh_test_repl_SOURCES)
-OBJECTS = $(libguile_la_OBJECTS) $(gh_test_c_OBJECTS) $(gh_test_repl_OBJECTS)
+SOURCES = $(libguile_la_SOURCES) $(EXTRA_libguile_la_SOURCES) $(guile_SOURCES) $(gh_test_c_SOURCES) $(gh_test_repl_SOURCES)
+OBJECTS = $(libguile_la_OBJECTS) $(guile_OBJECTS) $(gh_test_c_OBJECTS) $(gh_test_repl_OBJECTS)
 
 default: all
 
@@ -303,6 +314,31 @@ maintainer-clean-libtool:
 libguile.la: $(libguile_la_OBJECTS) $(libguile_la_DEPENDENCIES)
 	$(LINK) -rpath $(libdir) $(libguile_la_LDFLAGS) $(libguile_la_OBJECTS) $(libguile_la_LIBADD) $(LIBS)
 
+mostlyclean-binPROGRAMS:
+
+clean-binPROGRAMS:
+	test -z "$(bin_PROGRAMS)" || rm -f $(bin_PROGRAMS)
+
+distclean-binPROGRAMS:
+
+maintainer-clean-binPROGRAMS:
+
+install-binPROGRAMS: $(bin_PROGRAMS)
+	@$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(bindir)
+	@list='$(bin_PROGRAMS)'; for p in $$list; do \
+	  if test -f $$p; then \
+	    echo " $(LIBTOOL)  --mode=install $(INSTALL_PROGRAM) $$p $(bindir)/`echo $$p|sed '$(transform)'`"; \
+	    $(LIBTOOL)  --mode=install $(INSTALL_PROGRAM) $$p $(bindir)/`echo $$p|sed '$(transform)'`; \
+	  else :; fi; \
+	done
+
+uninstall-binPROGRAMS:
+	$(NORMAL_UNINSTALL)
+	list='$(bin_PROGRAMS)'; for p in $$list; do \
+	  rm -f $(bindir)/`echo $$p|sed '$(transform)'`; \
+	done
+
 mostlyclean-checkPROGRAMS:
 
 clean-checkPROGRAMS:
@@ -311,6 +347,10 @@ clean-checkPROGRAMS:
 distclean-checkPROGRAMS:
 
 maintainer-clean-checkPROGRAMS:
+
+guile: $(guile_OBJECTS) $(guile_DEPENDENCIES)
+	@rm -f guile
+	$(LINK) $(guile_LDFLAGS) $(guile_OBJECTS) $(guile_LDADD) $(LIBS)
 
 gh_test_c: $(gh_test_c_OBJECTS) $(gh_test_c_DEPENDENCIES)
 	@rm -f gh_test_c
@@ -493,7 +533,7 @@ dvi:
 check: all $(check_PROGRAMS)
 	$(MAKE)
 installcheck:
-install-exec: install-libLTLIBRARIES install-binSCRIPTS
+install-exec: install-libLTLIBRARIES install-binPROGRAMS install-binSCRIPTS
 	@$(NORMAL_INSTALL)
 
 install-data: install-modincludeDATA install-includeHEADERS install-modincludeHEADERS install-pkgincludeHEADERS
@@ -502,15 +542,15 @@ install-data: install-modincludeDATA install-includeHEADERS install-modincludeHE
 install: install-exec install-data all
 	@:
 
-uninstall: uninstall-libLTLIBRARIES uninstall-binSCRIPTS uninstall-modincludeDATA uninstall-includeHEADERS uninstall-modincludeHEADERS uninstall-pkgincludeHEADERS
+uninstall: uninstall-libLTLIBRARIES uninstall-binPROGRAMS uninstall-binSCRIPTS uninstall-modincludeDATA uninstall-includeHEADERS uninstall-modincludeHEADERS uninstall-pkgincludeHEADERS
 
-all: $(LTLIBRARIES) $(SCRIPTS) $(DATA) $(HEADERS) Makefile scmconfig.h
+all: $(LTLIBRARIES) $(PROGRAMS) $(SCRIPTS) $(DATA) $(HEADERS) Makefile scmconfig.h
 
 install-strip:
 	$(MAKE) INSTALL_PROGRAM='$(INSTALL_PROGRAM) -s' install
 installdirs:
-	$(mkinstalldirs)  $(libdir) $(bindir) $(modincludedir) $(includedir) \
-		$(modincludedir) $(pkgincludedir)
+	$(mkinstalldirs)  $(libdir) $(bindir) $(bindir) $(modincludedir) \
+		$(includedir) $(modincludedir) $(pkgincludedir)
 
 
 mostlyclean-generic:
@@ -529,21 +569,23 @@ maintainer-clean-generic:
 	test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
 mostlyclean:  mostlyclean-hdr mostlyclean-libLTLIBRARIES \
 		mostlyclean-compile mostlyclean-libtool \
-		mostlyclean-checkPROGRAMS mostlyclean-tags \
-		mostlyclean-depend mostlyclean-generic
+		mostlyclean-binPROGRAMS mostlyclean-checkPROGRAMS \
+		mostlyclean-tags mostlyclean-depend mostlyclean-generic
 
 clean:  clean-hdr clean-libLTLIBRARIES clean-compile clean-libtool \
-		clean-checkPROGRAMS clean-tags clean-depend \
-		clean-generic mostlyclean
+		clean-binPROGRAMS clean-checkPROGRAMS clean-tags \
+		clean-depend clean-generic mostlyclean
 
 distclean:  distclean-hdr distclean-libLTLIBRARIES distclean-compile \
-		distclean-libtool distclean-checkPROGRAMS \
-		distclean-tags distclean-depend distclean-generic clean
+		distclean-libtool distclean-binPROGRAMS \
+		distclean-checkPROGRAMS distclean-tags distclean-depend \
+		distclean-generic clean
 	rm -f config.status
 	rm -f libtool
 
 maintainer-clean:  maintainer-clean-hdr maintainer-clean-libLTLIBRARIES \
 		maintainer-clean-compile maintainer-clean-libtool \
+		maintainer-clean-binPROGRAMS \
 		maintainer-clean-checkPROGRAMS maintainer-clean-tags \
 		maintainer-clean-depend maintainer-clean-generic \
 		distclean
@@ -558,6 +600,8 @@ maintainer-clean-libLTLIBRARIES uninstall-libLTLIBRARIES \
 install-libLTLIBRARIES mostlyclean-compile distclean-compile \
 clean-compile maintainer-clean-compile mostlyclean-libtool \
 distclean-libtool clean-libtool maintainer-clean-libtool \
+mostlyclean-binPROGRAMS distclean-binPROGRAMS clean-binPROGRAMS \
+maintainer-clean-binPROGRAMS uninstall-binPROGRAMS install-binPROGRAMS \
 mostlyclean-checkPROGRAMS distclean-checkPROGRAMS clean-checkPROGRAMS \
 maintainer-clean-checkPROGRAMS uninstall-binSCRIPTS install-binSCRIPTS \
 uninstall-modincludeDATA install-modincludeDATA \

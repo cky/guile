@@ -36,11 +36,6 @@ AC_AIX
 AC_ISC_POSIX
 AC_MINIX
 
-CY_AC_WITH_THREADS
-CFLAGS="$CFLAGS $cy_cv_threads_cflags"
-THREAD_LIBS="$cy_cv_threads_libs"
-AC_SUBST(THREAD_LIBS)
-
 AC_C_CONST
 
 AC_HEADER_STDC
@@ -71,6 +66,10 @@ GUILE_STRUCT_UTIMBUF
 xtra_PLUGIN_guile_libs=""
 AC_SUBST(xtra_PLUGIN_guile_libs)
 
+AC_CHECK_LIB(m, main)
+AC_CHECK_LIB(socket, main)
+AC_CHECK_LIB(nsl, main)
+
 if test "$enable_dynamic_linking" = "yes"; then
 
 AC_CHECK_LIB(dl,dlopen)
@@ -83,9 +82,6 @@ if test "$ac_cv_lib_dld_dld_link" = "yes"; then
   xtra_PLUGIN_guile_libs="-lguile -ldld"
   AC_DEFINE(DYNAMIC_LINKING)
 else
-AC_CHECK_LIB(m, main)
-AC_CHECK_LIB(socket, main)
-AC_CHECK_LIB(nsl, main)
 AC_CHECK_FUNCS(shl_load)
 if test "$ac_cv_func_shl_load" = "yes"; then
   AC_DEFINE(DYNAMIC_LINKING)
@@ -202,6 +198,11 @@ fi
 # Flags for thread support
 #
 #--------------------------------------------------------------------
+
+CY_AC_WITH_THREADS
+CFLAGS="$CFLAGS $cy_cv_threads_cflags"
+THREAD_LIBS="$cy_cv_threads_libs"
+AC_SUBST(THREAD_LIBS)
 
 dnl
 dnl Set the appropriate flags!

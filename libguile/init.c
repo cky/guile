@@ -441,6 +441,7 @@ scm_boot_guile_1 (base, closure)
       scm_init_load_path ();
       scm_init_standard_ports ();
       scm_init_dynamic_linking ();
+      scm_init_script ();
       initialized = 1;
     }
 
