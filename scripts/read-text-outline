@@ -1,0 +1,161 @@
+#!/bin/sh
+# aside from this initial boilerplate, this is actually -*- scheme -*- code
+main='(module-ref (resolve-module '\''(scripts read-text-outline)) '\'main')'
+exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
+!#
+;;; read-text-outline --- Read a text outline and display it as a sexp
+
+;; 	Copyright (C) 2002 Free Software Foundation, Inc.
+;;
+;; This program is free software; you can redistribute it and/or
+;; modify it under the terms of the GNU General Public License as
+;; published by the Free Software Foundation; either version 2, or
+;; (at your option) any later version.
+;;
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;; General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with this software; see the file COPYING.  If not, write to
+;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+;; Boston, MA 02111-1307 USA
+
+;;; Author: Thien-Thi Nguyen <ttn@gnu.org>
+
+;;; Commentary:
+
+;; Usage: read-text-outline OUTLINE
+;;
+;; Scan OUTLINE file and display a list of trees, the structure of
+;; each reflecting the "levels" in OUTLINE.  The recognized outline
+;; format (used to indicate outline headings) is zero or more pairs of
+;; leading spaces followed by "-" or "+".  Something like:
+;;
+;;    - a                  0
+;;      - b                1
+;;        - c              2
+;;      - d                1
+;;    - e                  0
+;;      - f                1
+;;        - g              2
+;;      -h                 1
+;;
+;; In this example the levels are shown to the right.  The output for
+;; such a file would be the single line:
+;;
+;;   (("a" ("b" "c") "d") ("e" ("f" "g") "h"))
+;;
+;;
+;; Usage from a Scheme program: These three procs are exported:
+;;
+;;   (read-text-outline . args)           ; only first arg is used
+;;   (read-text-outline-silently port)
+;;   (display-outline-tree tree)
+;;
+;; Don't forget to iterate (say, `display-outline-tree') over the list of
+;; trees that `read-text-outline-silently' returns.
+;;
+;;
+;; Bugs and caveats:
+;;
+;; (1) Only the first file specified on the command line is scanned.
+;; (2) TAB characters at the beginnings of lines are not recognized.
+;; (3) Outlines that "skip" levels signal an error.  In other words,
+;;     this will fail:
+;;
+;;            - a               0
+;;              - b             1
+;;                  - c         3       <-- skipped 2 -- error!
+;;              - d             1
+;;
+;;
+;; TODO: Determine what's the right thing to do for skips.
+;;       Handle TABs.
+;;       Handle follow-on lines.
+;;       Make line/display format customizable via longopts.
+
+;;; Code:
+
+(define-module (scripts read-text-outline)
+  :export (read-text-outline read-text-outline-silently display-outline-tree)
+  :use-module (ice-9 regex)
+  :use-module (ice-9 rdelim))
+
+;; todo: make customizable
+(define *depth-cue-rx* (make-regexp "(([ ][ ])*)[-+] *"))
+(define *subm-number* 1)
+(define *level-divisor* 2)
+
+(define (>> level line)
+  (format #t "\t~A\t~A- ~A\n" level (make-string level #\space) line))
+
+(define (display-outline-tree level tree)
+  (cond ((list? tree)
+         (>> level (car tree))
+         (for-each (lambda (kid)
+                     (display-outline-tree (+ *level-divisor* level) kid))
+                   (cdr tree)))
+        (else (>> level tree))))
+
+(define (read-text-outline-silently port)
+  (let* ((all '(start))
+         (pchain (list))                ; parents chain
+         (tp all))                      ; tail pointer
+    (let loop ((line (read-line port)) (prev-level -1))
+      (or (eof-object? line)
+          (cond ((regexp-exec *depth-cue-rx* line)
+                 => (lambda (m)
+                      (let* ((words (list (match:suffix m)))
+                             (level (/ (string-length
+                                        (or (match:substring m *subm-number*)
+                                            ""))
+                                       *level-divisor*))
+                             (diff (- level prev-level))
+                             (saved-tp tp))
+                        (cond
+
+                         ;; sibling
+                         ((zero? diff)
+                          (set-cdr! tp words)
+                          (set! tp words))
+
+                         ;; child
+                         ((positive? diff)
+                          (or (= 1 diff)
+                              (error "unhandled diff not 1:" diff line))
+                          (set-object-property! tp 'level prev-level)
+                          (set! pchain (cons tp pchain))
+                          (set-car! tp (cons (car tp) words))
+                          (set! tp words))
+
+                         ;; uncle
+                         ((negative? diff)
+                          (do ((p pchain (cdr p)))
+                              ((= level (object-property (car p) 'level))
+                               (set! pchain p)))
+                          (set-cdr! (car pchain) words)
+                          (set! pchain (cdr pchain))
+                          (set! tp words)))
+
+                        (loop (read-line port) level))))
+                (else (loop (read-line port) prev-level)))))
+    (set! all (car all))
+    (if (eq? 'start all)
+        '()
+        (cdr all))))
+
+(define (read-text-outline . args)
+  (let ((trees (read-text-outline-silently (open-file (car args) "r"))))
+    ;; try this
+    ;; (for-each (lambda (tree)
+    ;;             (display-outline-tree 0 tree))
+    ;;           trees))
+    (write trees)
+    (newline))
+  #t)                                   ; exit val
+
+(define main read-text-outline)
+
+;;; read-text-outline ends here
