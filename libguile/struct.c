@@ -1,4 +1,4 @@
-/*	Copyright (C) 1996, 1997, 1998, 1999 Free Software Foundation, Inc.
+/* Copyright (C) 1996, 97, 98, 99, 2000 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -199,7 +199,9 @@ scm_struct_init (SCM handle, int tail_elts, SCM inits)
 	    *mem = 0;
 	  else
 	    {
-	      *mem = scm_num2ulong (SCM_CAR (inits), SCM_ARGn, "scm_struct_init");
+	      *mem = SCM_ASSCM (scm_num2ulong (SCM_CAR (inits),
+					       SCM_ARGn,
+					       "scm_struct_init"));
 	      inits = SCM_CDR (inits);
 	    }
 	  break;
@@ -533,7 +535,7 @@ SCM_DEFINE (scm_struct_ref, "struct-ref", 2, 0, 0,
   p = SCM_INUM (pos);
 
   fields_desc = (unsigned char *) SCM_CHARS (layout);
-  n_fields = data[scm_struct_i_n_words];
+  n_fields = SCM_ASWORD (data[scm_struct_i_n_words]);
   
   SCM_ASSERT_RANGE(1,pos, p < n_fields);
 
@@ -561,7 +563,7 @@ SCM_DEFINE (scm_struct_ref, "struct-ref", 2, 0, 0,
   switch (field_type)
     {
     case 'u':
-      answer = scm_ulong2num (data[p]);
+      answer = scm_ulong2num (SCM_ASWORD (data[p]));
       break;
 
 #if 0
@@ -610,7 +612,7 @@ SCM_DEFINE (scm_struct_set_x, "struct-set!", 3, 0, 0,
   p = SCM_INUM (pos);
 
   fields_desc = (unsigned char *)SCM_CHARS (layout);
-  n_fields = data[scm_struct_i_n_words];
+  n_fields = SCM_ASWORD (data[scm_struct_i_n_words]);
 
   SCM_ASSERT_RANGE (1,pos, p < n_fields);
 
@@ -633,7 +635,7 @@ SCM_DEFINE (scm_struct_set_x, "struct-set!", 3, 0, 0,
   switch (field_type)
     {
     case 'u':
-      data[p] = SCM_NUM2ULONG (3,val);
+      data[p] = SCM_ASSCM (SCM_NUM2ULONG (3, val));
       break;
 
 #if 0
