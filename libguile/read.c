@@ -239,13 +239,16 @@ recsexpr (obj, line, column, filename)
 
 
 /* Consume an SCSH-style block comment.  Assume that we've already
-   read the initial `#!', and eat characters until the matching `!#'.  */
+   read the initial `#!', and eat characters until we get a
+   newline/exclamation-point/sharp-sign/newline sequence.  */
 
 static void
 skip_scsh_block_comment (port)
      SCM port;
 {
-  char last_c = '\0';
+  /* Is this portable?  Dear God, spare me from the non-eight-bit
+     characters.  But is it tasteful?  */
+  long history = 0;
 
   for (;;)
     {
@@ -254,10 +257,11 @@ skip_scsh_block_comment (port)
       if (c == EOF)
 	scm_wta (SCM_UNDEFINED,
 		 "unterminated `#! ... !#' comment", "read");
-      else if (c == '#' && last_c == '!')
-	return;
+      history = ((history << 8) | (c & 0xff)) & 0xffffffff;
 
-      last_c = c;
+      /* Were the last four characters read "\n!#\n"?  */
+      if (history == (('\n' << 24) | ('!' << 16) | ('#' << 8) | '\n'))
+	return;
     }
 }
 
