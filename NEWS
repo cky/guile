@@ -86,6 +86,11 @@ space" for Guile headers.  This means that the compiler only is given
 
 * Changes to the stand-alone interpreter
 
+** New help facility
+
+Typing (help) prints helpful information.
+Typing (help NAME) gives documentation about NAME.
+
 ** Dynamic linking now uses libltdl from the libtool package.
 
 The old system dependent code for doing dynamic linking has been
