@@ -1334,6 +1334,8 @@ scm_bitvector_release (SCM vec)
      Also, a call to scm_bitvector_release acts like
      scm_remember_upto_here, which is needed in any case.
   */
+
+  scm_remember_upto_here_1 (vec);
 }
 
 void
@@ -1636,7 +1638,7 @@ SCM_DEFINE (scm_bit_set_star_x, "bit-set*!", 3, 0, 0,
   else if (scm_is_true (scm_u32vector_p (kv)))
     {
       size_t ulen, i;
-      scm_t_uint32 *indices;
+      const scm_t_uint32 *indices;
 
       /* assert that obj is a boolean. 
        */
@@ -1646,7 +1648,7 @@ SCM_DEFINE (scm_bit_set_star_x, "bit-set*!", 3, 0, 0,
 
       ulen = scm_c_uniform_vector_length (kv);
       indices = scm_u32vector_elements (kv);
-      scm_frame_uniform_vector_release (kv);
+      scm_frame_uniform_vector_release_elements (kv);
 
       for (i = 0; i < ulen; i++)
 	scm_c_bitvector_set_x (v, (size_t)indices[i], obj);
@@ -1714,14 +1716,14 @@ SCM_DEFINE (scm_bit_count_star, "bit-count*", 3, 0, 0,
   else if (scm_is_true (scm_u32vector_p (kv)))
     {
       size_t count = 0, ulen, i;
-      scm_t_uint32 *indices;
+      const scm_t_uint32 *indices;
       int bit = scm_to_bool (obj);
 
       scm_frame_begin (0);
 
       ulen = scm_c_uniform_vector_length (kv);
       indices = scm_u32vector_elements (kv);
-      scm_frame_uniform_vector_release (kv);
+      scm_frame_uniform_vector_release_elements (kv);
 
       for (i = 0; i < ulen; i++)
 	if ((scm_is_true (scm_c_bitvector_ref (v, (size_t)indices[i])) != 0)
