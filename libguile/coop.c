@@ -40,7 +40,7 @@
  * If you do not wish that, delete this exception notice.  */
 
 
-/* $Id: coop.c,v 1.21 2000-03-29 10:43:18 mdj Exp $ */
+/* $Id: coop.c,v 1.22 2000-03-30 23:23:10 mdj Exp $ */
 
 /* Cooperative thread library, based on QuickThreads */
 
@@ -164,7 +164,12 @@ coop_t *coop_global_curr;	/* Currently-executing thread. */
 
 #ifdef GUILE_PTHREAD_COMPAT
 static coop_q_t coop_deadq;
-pthread_cond_t coop_cond_quit;
+static int coop_quitting_p = -1;
+static pthread_cond_t coop_cond_quit;
+static pthread_cond_t coop_cond_create;
+static pthread_mutex_t coop_mutex_create;
+static pthread_t coop_mother;
+static coop_t *coop_child;
 #endif
 
 static void *coop_starthelp (qt_t *old, void *ignore0, void *ignore1);
@@ -189,6 +194,8 @@ coop_finish (int status, void *arg)
 #endif
 {
 #ifdef GUILE_PTHREAD_COMPAT
+  coop_quitting_p = 1;
+  pthread_cond_signal (&coop_cond_create);
   pthread_cond_broadcast (&coop_cond_quit);
 #endif
 }
@@ -204,6 +211,8 @@ coop_init ()
 #ifdef GUILE_PTHREAD_COMPAT
   coop_qinit (&coop_deadq);
   pthread_cond_init (&coop_cond_quit, NULL);
+  pthread_cond_init (&coop_cond_create, NULL);
+  pthread_mutex_init (&coop_mutex_create, NULL);
 #endif
 #ifdef HAVE_ATEXIT
   atexit (coop_finish);
@@ -552,11 +561,28 @@ dummy_start (void *coop_thread)
 {
   coop_t *t = (coop_t *) coop_thread;
   t->sp = (qt_t *) (&t + COOP_STACK_ROOM);
+  pthread_mutex_init (&t->dummy_mutex, NULL);
   pthread_mutex_lock (&t->dummy_mutex);
-  pthread_cond_signal (&t->dummy_cond);
+  coop_child = 0;
   pthread_cond_wait (&coop_cond_quit, &t->dummy_mutex);
   return 0;
 }
+
+static void *
+mother (void *dummy)
+{
+  pthread_mutex_lock (&coop_mutex_create);
+  while (!coop_quitting_p)
+    {
+      pthread_create (&coop_child->dummy_thread,
+		      NULL,
+		      dummy_start,
+		      coop_child);
+      pthread_cond_wait (&coop_cond_create, &coop_mutex_create);
+    }
+  return 0;
+}
+
 #endif
 
 coop_t *
@@ -583,12 +609,26 @@ coop_create (coop_userf_t *f, void *pu)
       t->specific = NULL;
       t->n_keys = 0;
 #ifdef GUILE_PTHREAD_COMPAT
-      pthread_cond_init (&t->dummy_cond, NULL);
-      pthread_mutex_init (&t->dummy_mutex, NULL);
-      pthread_mutex_lock (&t->dummy_mutex);
-      pthread_create (&t->dummy_thread, NULL, dummy_start, t);
-      pthread_cond_wait (&t->dummy_cond, &t->dummy_mutex);
-      pthread_mutex_unlock (&t->dummy_mutex);
+      coop_child = t;
+      if (coop_quitting_p < 0)
+	{
+	  coop_quitting_p = 0;
+	  /* We can't create threads ourselves since the pthread
+	   * corresponding to this stack might be sleeping.
+	   */
+	  pthread_create (&coop_mother, NULL, mother, NULL);
+	}
+      else
+	{
+	  pthread_cond_signal (&coop_cond_create);
+	}
+      /* We can't use a pthreads condition variable since "this"
+       * pthread could already be asleep.  We can't use a COOP
+       * condition variable because they are not safe against
+       * pre-emptive switching.
+       */
+      while (coop_child)
+	usleep (0);
 #else
       t->sto = malloc (COOP_STKSIZE);
       sto = COOP_STKALIGN (t->sto, QT_STKALIGN);
