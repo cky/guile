@@ -18,6 +18,277 @@ The next stable release will be version 1.8.0.
 
 Please send bug reports to bug-guile@gnu.org.
 
+See the LICENSE file for the specific terms that apply to Guile.
+
+
+Additional INSTALL instructions ===========================================
+
+Generic instructions for configuring and compiling Guile can be found
+in the INSTALL file.  Guile specific information and configure options
+can be found below, including instructions for installing SLIB.
+
+Guile can use a number of external packages such as `readline' when
+they are available.  Guile expects to be able to find these packages
+in the default compiler setup, it does not try to make any special
+arrangements itself.  For example, for the `readline' package, Guile
+expects to be able to find the include file <readline/readline.h>,
+without passing any special `-I' options to the compiler.
+
+If you installed an external package, and you used the --prefix
+installation option to install it somewhere else than /usr/local, you
+must arrange for your compiler to find it by default.  If that
+compiler is gcc, one convenient way of making such arrangements is to
+use the --with-local-prefix option during installation, naming the
+same directory as you used in the --prefix option of the package.  In
+particular, it is not good enough to use the same --prefix option when
+you install gcc and the package; you need to use the
+--with-local-prefix option as well.  See the gcc documentation for
+more details.
+
+
+Special Instructions For Some Systems =====================================
+
+We would like Guile to build on all systems using the simple
+instructions above, but it seems that a few systems still need special
+treatment.  If you can send us fixes for these problems, we'd be
+grateful.
+
+SunOS 4.1: Guile's shared library support seems to be confused, but
+    hey; shared libraries are confusing.  You may need to configure
+    Guile with a command like:
+	./configure --disable-shared
+    For more information on `--disable-shared', see below, "Flags
+    Accepted by Configure".
+
+HP/UX: GCC 2.7.2 (and maybe other versions) have trouble creating
+    shared libraries if they depend on any non-shared libraries.  GCC
+    seems to have other problems as well.  To work around this, we
+    suggest you configure Guile to use the system's C compiler:
+	CC=cc ./configure
+
+NetBSD: Perry Metzger says, "Guile will build under NetBSD only using
+    gmake -- the native make will not work.  (gmake is in our package
+    system, so this will not be a problem when we packagize 1.3.)"
+
+
+Guile specific flags Accepted by Configure =================================
+
+If you run the configure script with no arguments, it should examine
+your system and set things up appropriately.  However, there are a few
+switches specific to Guile you may find useful in some circumstances.
+
+--with-threads  ---  Build with thread support
+
+  Build a Guile executable and library that supports cooperative
+  threading.  If you use this switch, Guile will also build and
+  install the QuickThreads non-preemptive threading library,
+  libqthreads, which you will need to link into your programs after
+  libguile.  When you use `guile-config', you will pick up all
+  neccessary linker flags automatically.
+
+  Cooperative threads are not yet thoroughly tested; once they are,
+  they will be enabled by default.  The interaction with blocking I/O
+  is pretty ad hoc at the moment.  In our experience, bugs in the
+  thread support do not affect you if you don't actually use threads.
+
+--with-modules  ---  Specify statically linked `modules'
+
+  Guile can dynamically load `plugin modules' during runtime, using
+  facilities provided by libtool.  Not all platforms support this,
+  however.  On these platforms, you can statically link the plugin
+  modules into libguile when Guile itself is built.  XXX - how does
+  one specify the modules?
+
+--enable-deprecated=LEVEL
+
+  Guile may contain features that are `deprecated'.  When a feature is
+  deprecated, it means that it is still there and fully functional,
+  but that there is a better way of achieving the same thing, and we'd
+  rather have you use this better way.  This allows us to eventually
+  remove the old implementation and helps to keep Guile reasonably
+  clean of historic baggage.
+
+  See the file NEWS for a list of features that are currently
+  deprecated.  Each entry will also tell you what you should replace
+  your code with.
+
+  To give you some help with this process, and to encourage (OK,
+  nudge) people to switch to the newer methods, Guile can emit
+  warnings or errors when you use a deprecated feature.  There is
+  quite a range of possibilities, from being completely silent to
+  giving errors at link time.  What exactly happens is determined both
+  by the value of the `--enable-deprecated' configuration option when
+  Guile was built, and by the GUILE_WARN_DEPRECATED environment
+  variable.
+
+  It works like this:
+
+    When Guile has been configured with `--enable-deprecated=no' (or,
+    equivalently, with `--disable-deprecated') then all deprecated
+    features are omitted from Guile.  You will get "undefined
+    reference", "variable unbound" or similar errors when you try to
+    use them.
+
+    When `--enable-deprecated=LEVEL' has been specified (for LEVEL not
+    "no"), LEVEL will be used as the default value of the environment
+    variable GUILE_WARN_DEPRECATED.  A value of "yes" is changed to
+    "summary" and "shutup" is changed to "no", however.
+
+    When GUILE_WARN_DEPRECATED has the value "no", nothing special
+    will happen when a deprecated feature is used.
+
+    When GUILE_WARN_DEPRECATED has the value "summary", and a
+    deprecated feature has been used, Guile will print this message at
+    exit:
+
+      Some deprecated features have been used.  Set the environment
+      variable GUILE_WARN_DEPRECATED to "detailed" and rerun the
+      program to get more information.  Set it to "no" to suppress
+      this message.
+
+    When GUILE_WARN_DEPRECATED has the value "detailed", a detailed
+    warning is emitted immediatly for the first use of a deprecated
+    feature.
+
+  The default is `--enable-deprecated=yes'.
+
+--disable-shared  ---  Do not build shared libraries.
+--disable-static  ---  Do not build static libraries.
+
+  Normally, both static and shared libraries will be built if your
+  system supports them.
+
+
+--enable-debug-freelist  ---  Enable freelist debugging.
+
+  This enables a debugging version of SCM_NEWCELL(), and also
+  registers an extra primitive, the setter
+  `gc-set-debug-check-freelist!'.
+
+  Configure with the --enable-debug-freelist option to enable the
+  gc-set-debug-check-freelist! primitive, and then use:
+
+  (gc-set-debug-check-freelist! #t)  # turn on checking of the freelist
+  (gc-set-debug-check-freelist! #f)  # turn off checking
+
+  Checking of the freelist forces a traversal of the freelist and a
+  garbage collection before each allocation of a cell.  This can slow
+  down the interpreter dramatically, so the setter should be used to
+  turn on this extra processing only when necessary.
+
+
+--enable-debug-malloc  ---  Enable malloc debugging.
+
+  Include code for debugging of calls to scm_must_malloc/realloc/free.
+
+  Checks that
+
+  1. objects freed by scm_must_free has been mallocated by scm_must_malloc
+  2. objects reallocated by scm_must_realloc has been allocated by
+     scm_must_malloc
+  3. reallocated objects are reallocated with the same what string
+
+  But, most importantly, it records the number of allocated objects of
+  each kind.  This is useful when searching for memory leaks.
+
+  A Guile compiled with this option provides the primitive
+  `malloc-stats' which returns an alist with pairs of kind and the
+  number of objects of that kind.
+
+
+--enable-guile-debug  ---  Include internal debugging functions
+--disable-arrays      ---  omit array and uniform array support
+--disable-posix       ---  omit posix interfaces
+--disable-networking  ---  omit networking interfaces
+--disable-regex       ---  omit regular expression interfaces
+
+
+Cross building Guile  =====================================================
+
+As of guile-1.5.x, the build process uses compiled C files for
+snarfing, and (indirectly, through libtool) for linking, and uses the
+guile executable for generating documentation.
+
+When cross building guile, you first need to configure, build and
+install guile for your build host.
+
+Then, you may configure guile for cross building, eg:
+
+    ./configure --host=i686-pc-cygwin --disable-shared
+
+Two special options for cross building are available:
+
+--with-cc-for-build      --- native C compiler, to be used during build
+                             defaults to: `PATH=/usr/bin:$PATH cc'
+
+--with-guile-for-build   --- native Guile executable, to be used during build
+                             defaults to: `guile', assuming you just
+                             installed this guile natively.
+
+
+Using Guile Without Installing It =========================================
+
+If you want to run Guile without installing it, set the environment
+variable `GUILE_LOAD_PATH' to a colon-separated list of directories,
+including the directory containing this INSTALL file.  If you used a
+separate build directory, you'll need to include the build directory
+in the path as well.
+
+For example, suppose the Guile distribution unpacked into a directory
+called `/home/jimb/guile-snap' (so the full name of this INSTALL file
+would be `/home/jimb/guile-snap/INSTALL').  Then you might say, if
+you're using Bash or any other Bourne shell variant,
+
+  export GUILE_LOAD_PATH=/home/jimb/guile-snap
+
+or if you're using CSH or one of its variants:
+
+  setenv GUILE_LOAD_PATH /home/jimb/guile-snap
+
+You will additionally need to set your `LTDL_LIBRARY_PATH' environment
+variable to the directory in which the compiled SRFI support modules
+are created if you want to use the modules for SRFI-4, SRFI-13 or
+SRFI-14 support.  Similar to the example above, this will be,
+
+  export LTDL_LIBRARY_PATH=/home/jimb/guile-snap/srfi/.libs
+
+or if you're using CSH or one of its variants:
+
+  setenv LTDL_LIBRARY_PATH /home/jimb/guile-snap/srfi/.libs
+
+
+Installing SLIB ===========================================================
+
+In order to use SLIB from Guile you basically only need to put the
+`slib' directory _in_ one of the directories on Guile's load path.
+
+The standard installation is:
+
+  1. Obtain slib from http://www-swiss.ai.mit.edu/~jaffer/SLIB.html
+
+  2. Put it in Guile's data directory, that is the directory printed when
+     you type
+
+       guile-config info pkgdatadir
+
+     at the shell prompt.  This is normally `/usr/local/share/guile', so the
+     directory will normally have full path `/usr/local/share/guile/slib'.
+
+  3. Start guile as a user with write access to the data directory and type
+
+       (use-modules (ice-9 slib))
+
+     at the Guile prompt.  This will generate the slibcat catalog next to
+     the slib directory.
+
+SLIB's `require' is provided by the Guile module (ice-9 slib).
+
+Example:
+
+  (use-modules (ice-9 slib))
+  (require 'primes)
+  (prime? 7)
+
 Guile Documentation ==================================================
 
 The doc directory contains a few articles on specific topics and some
@@ -42,106 +313,13 @@ The Guile WWW page is at
 
 It contains a link to the Guile FAQ.
 
-Guile License ==================================================
-
-The license of Guile consists of the GNU GPL plus a special statement
-giving blanket permission to link with non-free software.  This is the
-license statement as found in any individual file that it applies to:
-
- This program is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2, or (at your option)
- any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this software; see the file COPYING.  If not, write to
- the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- Boston, MA 02111-1307 USA
-
- As a special exception, the Free Software Foundation gives permission
- for additional uses of the text contained in its release of GUILE.
-
- The exception is that, if you link the GUILE library with other files
- to produce an executable, this does not by itself cause the
- resulting executable to be covered by the GNU General Public License.
- Your use of that executable is in no way restricted on account of
- linking the GUILE library code into it.
-
- This exception does not however invalidate any other reasons why
- the executable file might be covered by the GNU General Public License.
-
- This exception applies only to the code released by the
- Free Software Foundation under the name GUILE.  If you copy
- code from other Free Software Foundation releases into a copy of
- GUILE, as the General Public License permits, the exception does
- not apply to the code that you add in this way.  To avoid misleading
- anyone as to the status of such modified files, you must delete
- this exception notice from them.
-
- If you write modifications of your own for GUILE, it is your choice
- whether to permit this exception to apply to your modifications.
- If you do not wish that, delete this exception notice.
-
-Handling of Deprecated Features ======================================
-
-Guile may contain features that are `deprecated'.  When a feature is
-deprecated, it means that it is still there and fully functional, but
-that there is a better way of achieving the same thing, and we'd
-rather have you use this better way.  This allows us to eventually
-remove the old implementation and helps to keep Guile reasonably clean
-of historic baggage.
-
-See the file NEWS for a list of features that are currently
-deprecated.  Each entry will also tell you what you should replace
-your code with.
-
-To give you some help with this process, and to encourage (OK, nudge)
-people to switch to the newer methods, Guile can emit warnings or
-errors when you use a deprecated feature.  There is quite a range of
-possibilities, from being completely silent to giving errors at link
-time.  What exactly happens is determined both by the value of the
-`--enable-deprecated' configuration option when Guile was built, and
-by the GUILE_WARN_DEPRECATED environment variable.
-
-It works like this:
-
-  When Guile has been configured with `--enable-deprecated=no' (or,
-  equivalently, with `--disable-deprecated') then all deprecated
-  features are omitted from Guile.  You will get "undefined
-  reference", "variable unbound" or similar errors when you try to use
-  them.
-
-  When `--enable-deprecated=LEVEL' has been specified (for LEVEL not
-  "no"), LEVEL will be used as the default value of the environment
-  variable GUILE_WARN_DEPRECATED.  A value of "yes" is changed to
-  "summary" and "shutup" is changed to "no", however.
-
-  When GUILE_WARN_DEPRECATED has the value "no", nothing special will
-  happen when a deprecated feature is used.
-
-  When GUILE_WARN_DEPRECATED has the value "summary", and a deprecated
-  feature has been used, Guile will print this message at exit:
-
-    Some deprecated features have been used.  Set the environment
-    variable GUILE_WARN_DEPRECATED to "detailed" and rerun the program
-    to get more information.  Set it to "no" to suppress this message.
-
-  When GUILE_WARN_DEPRECATED has the value "detailed", a detailed
-  warning is emitted immediatly for the first use of a deprecated
-  feature.
-
-The default is `--enable-deprecated=yes'.
-
 About This Distribution ==============================================
 
 Interesting files include:
 
-- INSTALL, which contains instructions on building and installing Guile.
+- LICENSE, which contains the exact terms of the Guile license.
+- COPYING, which contains the terms of the GNU General Public License.
+- INSTALL, which contains general instructions for building/installing Guile.
 - NEWS, which describes user-visible changes since the last release of Guile.
 
 Files are usually installed according to the prefix specified to
