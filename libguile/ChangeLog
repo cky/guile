@@ -1,3 +1,7 @@
+1999-06-04  Mikael Djurfeldt  <mdj@mdj-pc.nada.kth.se>
+
+	* numbers.c: Added #include "feature.h".
+
 1999-05-23  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
 	* smob.c, smob.h (scm_make_smob_type): New interface to smob

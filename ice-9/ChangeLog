@@ -1,3 +1,8 @@
+1999-06-04  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+       * boot-9.scm (iota):  replaced by a tail recursive version.
+       (reverse-iota):  removed.
+
 1999-06-03  Mikael Djurfeldt  <mdj@mdj-pc.nada.kth.se>
 
 	* optargs.scm (lambda*): Bugfix: Replaced ARGLIST -->
