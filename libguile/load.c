@@ -23,6 +23,7 @@
 #endif
 
 #include <string.h>
+#include <stdio.h>
 
 #include "libguile/_scm.h"
 #include "libguile/libpath.h"
@@ -36,6 +37,8 @@
 #include "libguile/strings.h"
 #include "libguile/modules.h"
 #include "libguile/lang.h"
+#include "libguile/chars.h"
+#include "libguile/strop.h"
 
 #include "libguile/validate.h"
 #include "libguile/load.h"
@@ -172,37 +175,6 @@ static SCM *scm_loc_load_path;
 static SCM *scm_loc_load_extensions;
 
 
-/* Parse the null-terminated string PATH as if it were a standard path
-   environment variable (i.e. a colon-separated list of strings), and
-   prepend the elements to TAIL.  */
-SCM
-scm_internal_parse_path (char *path, SCM tail)
-{
-  if (path && path[0] != '\0')
-    {
-      char *scan, *elt_end;
-
-      /* Scan backwards from the end of the string, to help
-	 construct the list in the right order.  */
-      scan = elt_end = path + strlen (path);
-      do {
-	/* Scan back to the beginning of the current element.  */
-	do scan--;
-#ifdef __MINGW32__
-	while (scan >= path && *scan != ';');
-#else
-	while (scan >= path && *scan != ':');
-#endif
-	tail = scm_cons (scm_mem2string (scan + 1, elt_end - (scan + 1)),
-			 tail);
-	elt_end = scan;
-      } while (scan >= path);
-    }
-
-  return tail;
-}
-
-
 SCM_DEFINE (scm_parse_path, "parse-path", 1, 1, 0, 
             (SCM path, SCM tail),
 	    "Parse @var{path}, which is expected to be a colon-separated\n"
@@ -211,14 +183,17 @@ SCM_DEFINE (scm_parse_path, "parse-path", 1, 1, 0,
 	    "is returned.")
 #define FUNC_NAME s_scm_parse_path
 {
-  SCM_ASSERT (scm_is_false (path) || (SCM_STRINGP (path)),
-	      path,
-	      SCM_ARG1, FUNC_NAME);
+#ifdef __MINGW32__
+  SCM sep = SCM_MAKE_CHAR (';');
+#else
+  SCM sep = SCM_MAKE_CHAR (':');
+#endif
+  
   if (SCM_UNBNDP (tail))
     tail = SCM_EOL;
   return (scm_is_false (path)
 	  ? tail
-	  : scm_internal_parse_path (SCM_STRING_CHARS (path), tail));
+	  : scm_append_x (scm_list_2 (scm_string_split (path, sep), tail)));
 }
 #undef FUNC_NAME
 
@@ -237,13 +212,86 @@ scm_init_load_path ()
 		     scm_makfrom0str (SCM_PKGDATA_DIR));
 #endif /* SCM_LIBRARY_DIR */
 
-  path = scm_internal_parse_path (getenv ("GUILE_LOAD_PATH"), path);
+  path = scm_parse_path (scm_from_locale_string (getenv ("GUILE_LOAD_PATH")),
+			 path);
 
   *scm_loc_load_path = path;
 }
 
 SCM scm_listofnullstr;
 
+/* Utility functions for assembling C strings in a buffer.
+ */
+
+struct stringbuf {
+  char *buf, *ptr;
+  size_t buf_len;
+};
+
+static void
+stringbuf_free (void *data)
+{
+  struct stringbuf *buf = (struct stringbuf *)data;
+  free (buf->buf);
+}
+
+static void
+stringbuf_grow (struct stringbuf *buf)
+{
+  size_t ptroff = buf->ptr - buf->buf;
+  buf->buf_len *= 2; 
+  // fprintf (stderr, "growing to %u\n", buf->buf_len);
+  buf->buf = scm_realloc (buf->buf, buf->buf_len);
+  buf->ptr = buf->buf + ptroff;
+}
+
+static void
+stringbuf_cat_locale_string (struct stringbuf *buf, SCM str)
+{
+  size_t max_len = buf->buf_len - (buf->ptr - buf->buf) - 1;
+  size_t len = scm_to_locale_stringbuf (str, buf->ptr, max_len);
+  if (len > max_len)
+    {
+      /* buffer is too small, double its size and try again. 
+       */
+      stringbuf_grow (buf);
+      stringbuf_cat_locale_string (buf, str);
+    }
+  else
+    {
+      /* string fits, terminate it and check for embedded '\0'.
+       */
+      buf->ptr[len] = '\0';
+      if (strlen (buf->ptr) != len)
+	scm_misc_error (NULL,
+			"string contains #\\nul character: ~S",
+			scm_list_1 (str));
+      buf->ptr += len;
+    }
+}
+
+static void
+stringbuf_cat (struct stringbuf *buf, char *str)
+{
+  size_t max_len = buf->buf_len - (buf->ptr - buf->buf) - 1;
+  size_t len = strlen (str);
+  if (len > max_len)
+    {
+      /* buffer is too small, double its size and try again. 
+       */
+      stringbuf_grow (buf);
+      stringbuf_cat (buf, str);
+    }
+  else
+    {
+      /* string fits, copy it into buffer.
+       */
+      strcpy (buf->ptr, str);
+      buf->ptr += len;
+    }
+}
+
+  
 /* Search PATH for a directory containing a file named FILENAME.
    The file must be readable, and not a directory.
    If we find one, return its full filename; otherwise, return #f.
@@ -261,20 +309,19 @@ SCM_DEFINE (scm_search_path, "search-path", 2, 1, 0,
 	    "concatenated with each @var{extension}.")
 #define FUNC_NAME s_scm_search_path
 {
+  struct stringbuf buf;
   char *filename_chars;
-  int filename_len;
-  size_t max_path_len;		/* maximum length of any PATH element */
-  size_t max_ext_len;		/* maximum length of any EXTENSIONS element */
+  size_t filename_len;
+  SCM result = SCM_BOOL_F;
 
-  SCM_VALIDATE_LIST (1, path);
-  SCM_VALIDATE_STRING (2, filename);
   if (SCM_UNBNDP (extensions))
     extensions = SCM_EOL;
-  else
-    SCM_VALIDATE_LIST (3, extensions);
 
-  filename_chars = SCM_STRING_CHARS (filename);
-  filename_len = SCM_STRING_LENGTH (filename);
+  scm_frame_begin (0);
+
+  filename_chars = scm_to_locale_string (filename);
+  filename_len = strlen (filename_chars);
+  scm_frame_free (filename_chars);
 
   /* If FILENAME is absolute, return it unchanged.  */
 #ifdef __MINGW32__
@@ -287,22 +334,10 @@ SCM_DEFINE (scm_search_path, "search-path", 2, 1, 0,
 #else
   if (filename_len >= 1 && filename_chars[0] == '/')
 #endif
-    return filename;
-
-  /* Find the length of the longest element of path.  */
-  {
-    SCM walk;
-
-    max_path_len = 0;
-    for (walk = path; !SCM_NULL_OR_NIL_P (walk); walk = SCM_CDR (walk))
-      {
-	SCM elt = SCM_CAR (walk);
-	SCM_ASSERT_TYPE (SCM_STRINGP (elt), path, 1, FUNC_NAME,
-			 "list of strings");
-	if (SCM_STRING_LENGTH (elt) > max_path_len)
-	  max_path_len = SCM_STRING_LENGTH (elt);
-      }
-  }
+    {
+      scm_frame_end ();
+      return filename;
+    }
 
   /* If FILENAME has an extension, don't try to add EXTENSIONS to it.  */
   {
@@ -330,81 +365,70 @@ SCM_DEFINE (scm_search_path, "search-path", 2, 1, 0,
       }
   }
 
-  /* Find the length of the longest element of the load extensions
-     list.  */
-  { /* scope */
-    SCM walk;
+  /* This simplifies the loop below a bit.
+   */
+  if (SCM_NULLP (extensions))
+    extensions = scm_listofnullstr;
 
-    max_ext_len = 0;
-    for (walk = extensions; !SCM_NULL_OR_NIL_P (walk); walk = SCM_CDR (walk))
-      {
-	SCM elt = SCM_CAR (walk);
-	SCM_ASSERT_TYPE (SCM_STRINGP (elt), elt, 3, FUNC_NAME,
-			 "list of strings");
-	if (SCM_STRING_LENGTH (elt) > max_ext_len)
-	  max_ext_len = SCM_STRING_LENGTH (elt);
-      }
-  }
+  buf.buf_len = 512;
+  buf.buf = scm_malloc (buf.buf_len);
+  scm_frame_unwind_handler (stringbuf_free, &buf, SCM_F_WIND_EXPLICITLY);
 
-  SCM_DEFER_INTS;
+  /* Try every path element.
+   */
+  for (; SCM_CONSP (path); path = SCM_CDR (path))
+    {
+      SCM dir = SCM_CAR (path);
+      SCM exts;
+      size_t sans_ext_len;
 
-  { /* scope */
-    SCM result = SCM_BOOL_F;
-    size_t buf_size = max_path_len + 1 + filename_len + max_ext_len + 1;
-    char *buf = scm_malloc (buf_size);
-
-    /* This simplifies the loop below a bit.  */
-    if (SCM_NULL_OR_NIL_P (extensions))
-      extensions = scm_listofnullstr;
-
-    /* Try every path element.  At this point, we know the path is a
-       proper list of strings.  */
-    for (; !SCM_NULL_OR_NIL_P (path); path = SCM_CDR (path))
-      {
-	size_t len;
-	SCM dir = SCM_CAR (path);
-	SCM exts;
-
-	/* Concatenate the path name and the filename. */
-	len = SCM_STRING_LENGTH (dir);
-	memcpy (buf, SCM_STRING_CHARS (dir), len);
+      buf.ptr = buf.buf;
+      stringbuf_cat_locale_string (&buf, dir);
+	
+      /* Concatenate the path name and the filename. */
+      
 #ifdef __MINGW32__
-	if (len >= 1 && buf[len - 1] != '/' && buf[len - 1] != '\\')
+      if (buf.ptr > buf.buf && buf.ptr[-1] != '/' && buf.ptr[-1] != '\\')
 #else
-	if (len >= 1 && buf[len - 1] != '/')
+      if (buf.ptr > buf.buf >= 1 && buf.ptr[-1] != '/')
 #endif
-	  buf[len++] = '/';
-	memcpy (buf + len, filename_chars, filename_len);
-	len += filename_len;
+	stringbuf_cat (&buf, "/");
 
-	/* Try every extension.  At this point, we know the extension
-	   list is a proper, nonempty list of strings.  */
-	for (exts = extensions; !SCM_NULL_OR_NIL_P (exts); exts = SCM_CDR (exts))
-	  {
-	    SCM ext = SCM_CAR (exts);
-	    size_t ext_len = SCM_STRING_LENGTH (ext);
-	    struct stat mode;
+      stringbuf_cat (&buf, filename_chars);
+      sans_ext_len = buf.ptr - buf.buf;
 
-	    /* Concatenate the extension. */
-	    memcpy (buf + len, SCM_STRING_CHARS (ext), ext_len);
-	    buf[len + ext_len] = '\0';
-	    
-	    /* If the file exists at all, we should return it.  If the
-	       file is inaccessible, then that's an error.  */
-	    if (stat (buf, &mode) == 0
-		&& ! (mode.st_mode & S_IFDIR))
-	      {
-		result = scm_mem2string (buf, len + ext_len);
-		goto end;
-	      }
-	  }
-      }
+      /* Try every extension. */
+      for (exts = extensions; SCM_CONSP (exts); exts = SCM_CDR (exts))
+	{
+	  SCM ext = SCM_CAR (exts);
+	  struct stat mode;
+	  
+	  buf.ptr = buf.buf + sans_ext_len;
+	  stringbuf_cat_locale_string (&buf, ext);
+	  
+	  /* If the file exists at all, we should return it.  If the
+	     file is inaccessible, then that's an error.  */
 
-  end:
-    free (buf);
-    SCM_ALLOW_INTS;
-    return result;
-  }
+	  // fprintf (stderr, "trying: %s\n", buf.buf);
+
+	  if (stat (buf.buf, &mode) == 0
+	      && ! (mode.st_mode & S_IFDIR))
+	    {
+	      result = scm_from_locale_string (buf.buf);
+	      goto end;
+	    }
+	}
+      
+      if (!SCM_NULL_OR_NIL_P (exts))
+	scm_wrong_type_arg_msg (NULL, 0, extensions, "proper list");
+    }
+
+  if (!SCM_NULL_OR_NIL_P (path))
+    scm_wrong_type_arg_msg (NULL, 0, path, "proper list");
+
+ end:
+  scm_frame_end ();
+  return result;
 }
 #undef FUNC_NAME
 

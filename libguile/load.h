@@ -25,7 +25,6 @@
 #include "libguile/__scm.h"
 
 
-SCM_API SCM scm_internal_parse_path (char *path, SCM tail);
 SCM_API SCM scm_parse_path (SCM path, SCM tail);
 SCM_API void scm_init_load_path (void);
 SCM_API SCM scm_primitive_load (SCM filename);
