@@ -25,6 +25,14 @@ itself does not lead to infinite recursion.
 "libguile/fluid.h" to find out more. It is accessible from Scheme with
 the following functions and macros:
 
+** struct-vtable-offset renamed to vtable-offset-user
+
+** New constants: vtable-index-layout, vtable-index-vtable, vtable-index-printer
+
+** There is now a fourth (optional) argument to make-vtable-vtable and
+   make-struct when constructing new types (vtables).  This argument
+   initializes field vtable-index-printer of the vtable.
+
 Function: make-fluid
 
     Create a new fluid object.  Fluids are not special variables or
