@@ -317,7 +317,7 @@ the sample programs @code{learn0} and @code{learn1}.
 procedures in C.  The ugly mess of arguments is required because of how
 C handles procedures with variable numbers of arguments.
 
-@strong{Note:} what about documentation strings?
+@strong{NB:} what about documentation strings?
 
 @cartouche
 There are several important considerations to be made when writing the C
