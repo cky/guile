@@ -180,7 +180,7 @@ expand the summary so that it fills up the column.
 @end titlepage
 
 @c INFO first page
-@ifinfo
+@ifnottex
 
 @c  First page
 
@@ -195,15 +195,14 @@ expand the summary so that it fills up the column.
 @sp 1
 
 
-@center @c begin-tabular
 @quotation
+R@sc{ichard} K@sc{elsey}, W@sc{illiam} C@sc{linger, and} J@sc{onathan} R@sc{ees} (@i{Editors}) 
+@sp 1
 @multitable @columnfractions 0.25 0.25 0.25 0.25
-@item 
-@center R@sc{ICHARD} K@sc{ELSEY}, W@sc{ILLIAM} C@sc{LINGER, AND} J@sc{ONATHAN} R@sc{EES} (@i{Editors}) 
-@item H. A@sc{BELSON}     @tab R. K. D@sc{YBVIG}   @tab C. T. H@sc{AYNES}   @tab G. J. R@sc{OZAS}    
-@item N. I. A@sc{DAMS IV} @tab D. P. F@sc{RIEDMAN} @tab E. K@sc{OHLBECKER}  @tab G. L. S@sc{TEELE} J@sc{R}. 
-@item D. H. B@sc{ARTLEY}  @tab R. H@sc{ALSTEAD}    @tab D. O@sc{XLEY}      @tab G. J. S@sc{USSMAN}  
-@item G. B@sc{ROOKS}            @tab C. H@sc{ANSON}             @tab K. M. P@sc{ITMAN}   @tab M. W@sc{AND}       
+@item H. A@sc{belson}     @tab R. K. D@sc{ybvig}   @tab C. T. H@sc{aynes}   @tab G. J. R@sc{ozas}    
+@item N. I. A@sc{dams IV} @tab D. P. F@sc{riedman} @tab E. K@sc{ohlbecker}  @tab G. L. S@sc{teele} J@sc{r}. 
+@item D. H. B@sc{artley}  @tab R. H@sc{alstead}    @tab D. O@sc{xley}      @tab G. J. S@sc{ussman}  
+@item G. B@sc{rooks}            @tab C. H@sc{anson}             @tab K. M. P@sc{itman}   @tab M. W@sc{and}       
 @item 
 @end multitable
 @end quotation
@@ -298,7 +297,7 @@ expand the summary so that it fills up the column.
 
 @page
 
-@end ifinfo
+@end ifnottex
 
    
 @c @include{intro}
