@@ -137,8 +137,8 @@ scm_cell (scm_t_bits car, scm_t_bits cdr)
   SCM_GC_SET_CELL_WORD (z, 0, car);
 
 #ifdef USE_THREADS
-#ifndef USE_COOP_THREADS
-  /* When we are using non-cooperating threads, we might need to make
+#if !defined(USE_COOP_THREADS) && !defined(USE_NULL_THREADS)
+  /* When we are using preemtive threads, we might need to make
      sure that the initial values for the slots are protected until
      the cell is completely initialized.
   */
@@ -188,7 +188,7 @@ scm_double_cell (scm_t_bits car, scm_t_bits cbr,
   SCM_GC_SET_CELL_WORD (z, 0, car);
 
 #ifdef USE_THREADS
-#ifndef USE_COOP_THREADS
+#if !defined(USE_COOP_THREADS) && !defined(USE_NULL_THREADS)
   /* When we are using non-cooperating threads, we might need to make
      sure that the initial values for the slots are protected until
      the cell is completely initialized.
