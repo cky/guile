@@ -1,3 +1,7 @@
+2003-08-28  Kevin Ryde  <user42@zip.com.au>
+
+	* gc.h (scm_remember_upto_here_1): Revise comments on the asm form.
+
 2003-08-23  Kevin Ryde  <user42@zip.com.au>
 
 	* simpos.c (scm_system): Remove SCM_DEFER_INTS, system() should be
