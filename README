@@ -91,7 +91,7 @@ Autoconf 2.12 --- a system for automatically generating `configure'
 	program would like to use.  Available in
 	"ftp://prep.ai.mit.edu/pub/gnu".
 
-Automake 1.2c --- a system for automatically generating Makefiles that
+Automake 1.2d --- a system for automatically generating Makefiles that
 	conform to the (rather Byzantine) GNU coding standards.  The
 	nice thing is that it takes care of hairy targets like 'make
 	dist' and 'make distclean', and automatically generates

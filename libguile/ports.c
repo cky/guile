@@ -418,7 +418,7 @@ scm_close_port (port)
 
   port = SCM_COERCE_OUTPORT (port);
 
-  SCM_ASSERT (SCM_NIMP (port) && SCM_OPPORTP (port), port, SCM_ARG1,
+  SCM_ASSERT (SCM_NIMP (port) && SCM_PORTP (port), port, SCM_ARG1,
 	      s_close_port);
   if (SCM_CLOSEDP (port))
     return SCM_BOOL_F;

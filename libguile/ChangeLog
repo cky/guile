@@ -1,3 +1,14 @@
+Sun Dec  7 01:43:56 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* simpos.c (scm_system): always define: use sysmissing if not
+	available.  Check for HAVE_SYSTEM instead of _Windows (does
+	Windows lack system or does it have an unusable one?).
+	Check for error conditions -1 and 127.  Use SCM_DEFER_INTS.
+	Let the argument be optional: if not supplied, call system(NULL).
+
+	* ports.c (scm_close_port): relax the type check from OPPORTP to
+	PORTP; closing a closed port is allowed.
+
 1997-12-04  Tim Pierce  <twp@ppp39.Nantucket.net>
 
 	* fports.c (scm_fgets): Return if the last char in a chunk is

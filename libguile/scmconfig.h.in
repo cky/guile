@@ -314,6 +314,9 @@
 /* Define if you have the sync function.  */
 #undef HAVE_SYNC
 
+/* Define if you have the system function.  */
+#undef HAVE_SYSTEM
+
 /* Define if you have the tcgetpgrp function.  */
 #undef HAVE_TCGETPGRP
 

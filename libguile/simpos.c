@@ -57,24 +57,38 @@
 extern int system();
 
 
-#ifndef _Windows
-SCM_PROC(s_system, "system", 1, 0, 0, scm_system);
+SCM_PROC(s_system, "system", 0, 1, 0, scm_system);
 
 SCM
 scm_system(cmd)
      SCM cmd;
 {
+  int rv;
+
+  if (SCM_UNBNDP (cmd))
+    {
+#ifdef HAVE_SYSTEM
+      rv = system (NULL);
+#else
+      rv = 0;
+#endif
+      return rv ? SCM_BOOL_T : SCM_BOOL_F;
+    }
   SCM_ASSERT(SCM_NIMP(cmd) && SCM_ROSTRINGP(cmd), cmd, SCM_ARG1, s_system);
+#ifdef HAVE_SYSTEM
+  SCM_DEFER_INTS;
+  errno = 0;
   if (SCM_ROSTRINGP (cmd))
     cmd = scm_makfromstr (SCM_ROCHARS (cmd), SCM_ROLENGTH (cmd), 0);
-# ifdef AZTEC_C
-  cmd = SCM_MAKINUM(Execute(SCM_ROCHARS(cmd), 0, 0));
-# else
-  cmd = SCM_MAKINUM(0L+system(SCM_ROCHARS(cmd)));
-# endif
-  return cmd;
-}
+  rv = system(SCM_ROCHARS(cmd));
+  if (rv == -1 || (rv == 127 && errno != 0))
+    scm_syserror (s_system);
+  SCM_ALLOW_INTS;
+  return SCM_MAKINUM (rv);
+#else
+  scm_sysmissing (s_system);
 #endif
+}
 
 extern char *getenv();
 SCM_PROC (s_getenv, "getenv", 1, 0, 0, scm_getenv);

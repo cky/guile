@@ -1,3 +1,8 @@
+Sun Dec  7 06:11:24 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* README: using Automake 1.2d
+	* configure.in: AC_CHECK_FUNCS: add "system".
+
 1997-12-01  Tim Pierce  <twp@skepsis.com>
 
 	* acconfig.h: Add USCORE.
