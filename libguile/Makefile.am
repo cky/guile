@@ -94,7 +94,8 @@ EXTRA_libguile_la_SOURCES = _scm.h			\
     alloca.c inet_aton.c memmove.c putenv.c strerror.c	\
     threads.c regex-posix.c				\
     filesys.c posix.c net_db.c socket.c			\
-    ramap.c unif.c debug-malloc.c mkstemp.c win32-uname.c win32-dirent.c
+    ramap.c unif.c debug-malloc.c mkstemp.c             \
+    win32-uname.c win32-dirent.c win32-socket.c
 
 ## In next release, threads will be factored out of libguile.
 ## Until then, the machine specific headers is a temporary kludge.
@@ -112,7 +113,8 @@ install-exec-hook:
 ## Perhaps we can deal with them normally once the merge seems to be
 ## working.
 noinst_HEADERS = coop-threads.c coop-threads.h coop.c \
-		 num2integral.i.c num2float.i.c win32-uname.h win32-dirent.h
+    num2integral.i.c num2float.i.c                    \
+    win32-uname.h win32-dirent.h win32-socket.h
 
 libguile_la_DEPENDENCIES = @LIBLOBJS@
 libguile_la_LIBADD = @LIBLOBJS@ $(LIBLTDL) $(THREAD_LIBS_LOCAL)

@@ -151,6 +151,17 @@ SCM_DEFINE (scm_error_scm, "scm-error", 5, 0, 0,
 }
 #undef FUNC_NAME
 
+#ifdef __MINGW32__
+# include "win32-socket.h"
+# define SCM_I_STRERROR(err) \
+    ((err >= WSABASEERR) ? scm_i_socket_strerror (err) : strerror (err))
+# define SCM_I_ERRNO() \
+    (errno ? errno : scm_i_socket_errno ())
+#else
+# define SCM_I_STRERROR(err) strerror (err)
+# define SCM_I_ERRNO() errno
+#endif /* __MINGW32__ */
+
 SCM_DEFINE (scm_strerror, "strerror", 1, 0, 0, 
             (SCM err),
 	    "Return the Unix error message corresponding to @var{err}, which\n"
@@ -158,7 +169,7 @@ SCM_DEFINE (scm_strerror, "strerror", 1, 0, 0,
 #define FUNC_NAME s_scm_strerror
 {
   SCM_VALIDATE_INUM (1,err);
-  return scm_makfrom0str (strerror (SCM_INUM (err)));
+  return scm_makfrom0str (SCM_I_STRERROR (SCM_INUM (err)));
 }
 #undef FUNC_NAME
 
@@ -166,12 +177,12 @@ SCM_GLOBAL_SYMBOL (scm_system_error_key, "system-error");
 void
 scm_syserror (const char *subr)
 {
-  int save_errno = errno;
+  int save_errno = SCM_I_ERRNO ();
   
   scm_error (scm_system_error_key,
 	     subr,
 	     "~A",
-	     scm_cons (scm_makfrom0str (strerror (save_errno)), SCM_EOL),
+	     scm_cons (scm_makfrom0str (SCM_I_STRERROR (save_errno)), SCM_EOL),
 	     scm_cons (SCM_MAKINUM (save_errno), SCM_EOL));
 }
 

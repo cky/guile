@@ -1,3 +1,8 @@
+2001-11-07  Stefan Jahn  <stefan@lkcc.org>
+
+	* configure.in: Include `win32-socket.o' in the list of object
+	files if networking is enabled on Win32.
+
 2001-11-06  Thien-Thi Nguyen  <ttn@glug.org>
 
 	* TODO (sync srfi-modules.texi): New, done.

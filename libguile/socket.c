@@ -54,6 +54,10 @@
 #include "libguile/validate.h"
 #include "libguile/socket.h"
 
+#ifdef __MINGW32__
+#include "win32-socket.h"
+#endif
+
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
@@ -1381,6 +1385,10 @@ scm_init_socket ()
 #endif
 #ifdef MSG_DONTROUTE
   scm_c_define ("MSG_DONTROUTE", SCM_MAKINUM (MSG_DONTROUTE));
+#endif
+
+#ifdef __MINGW32__
+  scm_i_init_socket_Win32 ();
 #endif
 
   scm_add_feature ("socket");

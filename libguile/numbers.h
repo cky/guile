@@ -333,6 +333,10 @@ SCM_API float scm_num2float (SCM num, unsigned long int pos,
 SCM_API double scm_num2double (SCM num, unsigned long int pos,
 			       const char *s_caller);
 
+#ifdef GUILE_DEBUG
+SCM_API SCM scm_sys_check_number_conversions (void);
+#endif
+
 SCM_API void scm_init_numbers (void);
 
 #endif  /* SCM_NUMBERS_H */

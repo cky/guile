@@ -1,3 +1,22 @@
+2001-11-07  Stefan Jahn  <stefan@lkcc.org>
+
+	* win32-socket.[ch]: New files.  Defines Winsock-API error codes
+	and makes them available through Guile.  That is because the
+	Winsock-API does not store its errors in `errno' and thus cannot
+	return error messages via `strerror (errno)'.
+
+	* socket.c (scm_init_socket): Initialize `win32-socket' part
+	here under M$-Windows.
+
+	* numbers.h: Added missing declaration of 
+	`scm_sys_check_number_conversions()'.
+
+	* error.c: Local definition of SCM_I_STRERROR and SCM_I_ERRNO
+	and use in `(strerror)' and `(system-error)'.
+
+	* Makefile.am (EXTRA_libguile_la_SOURCES): Added 
+	`win32-socket.[ch]' to extra source and header files.
+
 2001-11-06  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* script.c (scm_shell_usage, scm_compile_shell_switches): Prepend

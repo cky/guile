@@ -4448,7 +4448,7 @@ check_handler (void *data, SCM tag, SCM throw_args)
 }
   
 SCM_DEFINE (scm_sys_check_number_conversions, "%check-number-conversions", 0, 0, 0, 
-            (),
+            (void),
 	    "Number conversion sanity checking.")
 #define FUNC_NAME s_scm_sys_check_number_conversions
 {

@@ -1,7 +1,7 @@
 /* classes: h_files */
 
-#ifndef SCM_UNAME_H
-#define SCM_UNAME_H
+#ifndef SCM_WIN32_UNAME_H
+#define SCM_WIN32_UNAME_H
 
 /* Copyright (C) 2001 Free Software Foundation, Inc.
  *
@@ -70,6 +70,6 @@ struct utsname
   char domainname[_UTSNAME_DOMAIN_LENGTH];
 };
 
-int uname (struct utsname *uts);
+int uname (struct utsname * uts);
 
-#endif /* SCM_UNAME_H */
+#endif /* SCM_WIN32_UNAME_H */
