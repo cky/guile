@@ -570,6 +570,8 @@ respectively before callong scm_boot_guile.
 (See entry "New environment variables ..." in section
 "Changes to the stand-alone interpreter" above.)
 
+** scm_protect_object/scm_unprotect_object now nest
+
 ** Deprecated type tags:  scm_tc16_flo, scm_tc_flo, scm_tc_dblr, scm_tc_dblc
 
 Guile does not provide the float representation for inexact real numbers any
