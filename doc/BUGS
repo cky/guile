@@ -1,0 +1,13 @@
+
+Known Guile documentation bugs                -*- outline -*-
+
+* The building of HTML docs is dependent on GNU Make
+
+This is because the Makefile.am's for the Guile reference manual and
+tutorial use a $(shell ...) command to list the set of HTML files to
+install.
+
+Probably this will not be fixed until Automake gains proper HTML doc
+support.  On the other hand, if we've overlooked a more
+version-independent way of achieving the same thing, please let us
+know.

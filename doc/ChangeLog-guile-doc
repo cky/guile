@@ -1,0 +1,48 @@
+2001-02-15  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* sources/data-rep.texi: Removed.  (ref/data-rep.texi is now the
+	current version of this essay.)
+
+2001-01-26  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* configure.in: Only check for `texi2html' program if HTML is
+	enabled, and explain where to get `texi2html' from if the check
+	fails.
+	
+	* configure.in, Makefile.am, ref/Makefile.am,
+	tutorial/Makefile.am: Clean up Makefile.am's and support
+	(configurable) building of HTML documentation in addition to
+	Info.  Thanks to Steve Tell for the patch on which these changes
+	were based.
+
+2000-10-14  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* sources/data-rep.texi: Merged a lot of changes from
+	guile-core/doc/data-rep.texi.
+
+2000-08-07  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* configure.in, configure: Advance version number to 1.4.
+
+2000-07-28  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* sources/data-rep.texi (Garbage Collection): Fix "accomodate"
+	spelling mistake.
+
+1998-07-27  Mark Galassi  <rosalia@cygnus.com>
+
+	* simple test
+
+1998-04-13  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	Have "make dist" include the sources directory:
+	* Makefile.am: Added "sources" directory to SUBDIRS.
+	* sources/Makefile.am: New file.
+	* configure.in: Added "sources/Makefile" to AC_OUTPUT.
+
+Sun Jun 22 18:38:28 1997  Tim Pierce  <twp@twp.tezcat.com>
+
+	New documentation module.
+
+
+

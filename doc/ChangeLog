@@ -1,7 +1,7 @@
 2001-03-09  Neil Jerram  <neil@ossau.uklinux.net>
 
-	Moving texinfo files from guile-doc/ref and guile-doc/tutorial
-	into guile-core/doc:
+	Moving documentation files from guile-doc and guile-doc into
+	guile-core/doc:
 
 	* env.texi, indices.texi, mbapi.texi, mltext.texi, scripts.texi,
 	scsh.texi, tcltk.texi, hierarchy.txt, scheme-indices.texi,
@@ -16,10 +16,13 @@
 	scheme-scheduling.texi, scheme-translation.texi, guile.texi,
 	scheme-data.texi, scheme-ideas.texi, expect.texi,
 	ChangeLog-guile-doc-ref, guile-tut.texi,
-	ChangeLog-guile-doc-tutorial: New files.
+	ChangeLog-guile-doc-tutorial, AUTHORS, BUGS, NEWS, THANKS: New
+	files.
 
-	* .cvsignore, Makefile.am: Merged.
+	* .cvsignore, Makefile.am, README: Merged.
 
+	* sources: New subdirectory.
+	
 	Both the following files are about to be replaced by files from
 	guile-doc/ref.
 	

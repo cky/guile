@@ -1,18 +1,29 @@
-This directory contains documentation on the Guile core.
+This directory contains documentation on the Guile core.         -*-text-*-
 
-At the moment, we don't have a full manual on Guile; that's at the
-head of our task list.  You can see a snapshot of the new Guile
-reference manual by checking out the `guile-doc' CVS module.
+The documentation consists of the following manuals.
+
+- The Guile Tutorial (guile-tut.texi) contains a tutorial introduction
+  to using Guile.
+
+- The Guile Reference Manual (guile.texi) contains (or is intended to
+  contain) reference documentation on all aspects of Guile.
+
+- The GOOPS Manual (goops.texi) contains both tutorial-style and
+  reference documentation for using GOOPS, Guile's Object Oriented
+  Programming System.
+
+- The Revised^4 and Revised^5 Reports on the Algorithmic Language
+  Scheme (r4rs.texi and r5rs.texi).
+
+Please be aware that this is all very much work in progress (apart
+from the Revised Reports).  Bug reports and contributions are
+welcome!
 
 The file `oldfmt.c' contains a function which can be used by
 application writers to support both old-style and new-style error
 format strings.
 
-The file `data-rep.texi', which used to be in this directory, is now
-integrated into the Guile reference manual: the integrated version of
-this essay is the `Data Representation' chapter.  (This chapter is an
-essay on how to write C code that uses Guile values.  If you're
-interested in writing a application which is extensible via Guile,
-this is a good place to start.)  To update the Texinfo source for this
-essay - for example, when the smob interface changes - please update
-the file `guile-doc/ref/data-rep.texi' in the guile-doc module.
+The `sources' directory includes some stuff relevant to the Guile
+reference manual, and which may eventually be folded in to it.  It's
+not immediately relevant, however, which is why it's not in this
+directory.

@@ -1,0 +1,12 @@
+The Guile reference and tutorial manuals were written and edited
+largely by Mark Galassi and Jim Blandy.  Significant portions were
+contributed by Gary Houston and Tim Pierce.
+
+Tom Lord contributed a great deal of material with early Guile
+snapshots; although most of this text has been rewritten, all of it
+was important, and much of the structure remains.
+
+Aubrey Jaffer wrote the SCM Scheme implementation and manual upon
+which the Guile program and manual are based.  Some portions of the
+SCM and SLIB manuals have been included here verbatim.
+
