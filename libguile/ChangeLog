@@ -1,3 +1,8 @@
+Sun Mar 16 11:43:49 1997  Mikael Djurfeldt  <mdj@floss.cyclic.com>
+
+ 	* eval.c (safe_setjmp): Temporarily use old setjmp until someone
+ 	has time to check why this doesn't work well with continuations.
+
 Sun Mar 16 05:09:55 1997  Jim Blandy  <jimb@totoro.cyclic.com>
 
 	* Fix shell syntax error; some shells won't tolerate 

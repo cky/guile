@@ -1171,8 +1171,11 @@ scm_eval_args (l, env)
    the second condition, and making x and env volatile would be a
    speed problem, so we'll just trivially meet the first, by having no
    "automatic variables local to the function containing setjmp."  */
+/* This doesn't work well together with continuations - I haven't had
+   time to check why, so I make this temporary fix. /mdj */
+#define safe_setjmp(x) setjmp (x)
 static int
-safe_setjmp (jmp_buf env)
+unsafe_setjmp (jmp_buf env)
 {
   /* I think ANSI requires us to write the function this way, instead
      of just saying "return setjmp (env)".  Maybe I'm being silly.
