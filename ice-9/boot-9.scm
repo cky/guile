@@ -1783,7 +1783,13 @@
 		   (append (cadr kws) re-exports)))
 	    (else
 	     (unrecognized kws)))))
+    (run-hook module-defined-hook module)
     module))
+
+;; `module-defined-hook' is a hook that is run whenever a new module
+;; is defined.  Its members are called with one argument, the new
+;; module.
+(define module-defined-hook (make-hook 1))
 
 ;;; {Autoload}
 
