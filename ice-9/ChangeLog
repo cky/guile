@@ -1,3 +1,9 @@
+Sun Sep 15 03:55:35 1996  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* boot-9.scm (%%handle-system-error key): set args and rest to
+	the empty list if they are #f.
+	Initialize out-of-range as an error key.
+
 Sat Sep 14 03:41:15 1996  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* PLUGIN/REQ: remove the "ice-9 lgh" line which causes a cycle.

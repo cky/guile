@@ -674,8 +674,10 @@
   (cond ((= (length arg-list) 4)
 	 (letrec ((subr (car arg-list))
 		  (message (cadr arg-list))
-		  (args (caddr arg-list))
-		  (rest (cadddr arg-list))
+		  (args (or (caddr arg-list)
+			    '()))
+		  (rest (or (cadddr arg-list)
+			    '()))
 		  (cep (current-error-port))
 		  (fill-message
 		   (lambda (message args)
@@ -728,7 +730,7 @@
 	   (apply error fixed-args)))))
 
 ;; associate error symbols with the default handler.
-(let loop ((keys '(system-error numerical-overflow)))
+(let loop ((keys '(system-error numerical-overflow out-of-range)))
   (cond ((not (null? keys))
 	 (set-symbol-property! (car keys)
 			       'throw-handler-default
