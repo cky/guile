@@ -315,7 +315,7 @@
   (make-keyword-from-dash-symbol (symbol-append '- symbol)))
 
 (define (keyword->symbol kw)
-  (let ((sym (keyword-dash-symbol kw)))
+  (let ((sym (symbol->string (keyword-dash-symbol kw))))
     (string->symbol (substring sym 1 (string-length sym)))))
 
 (define (kw-arg-ref args kw)
@@ -383,7 +383,7 @@
   (let ((printer-fn (and (pair? opt) (car opt))))
     (let ((struct (make-struct record-type-vtable 0
 			       (make-struct-layout
-				(apply symbol-append
+				(apply string-append
 				       (map (lambda (f) "pw") fields)))
 			       (or printer-fn
 				   (lambda (s p)
@@ -471,21 +471,13 @@
 ;;;
 
 (define (symbol-append . args)
-  (string->symbol (apply string-append args)))
+  (string->symbol (apply string-append (map symbol->string args))))
 
 (define (list->symbol . args)
   (string->symbol (apply list->string args)))
 
 (define (symbol . args)
   (string->symbol (apply string args)))
-
-(define (obarray-symbol-append ob . args)
-  (string->obarray-symbol (apply string-append ob args)))
-
-(define (obarray-gensym obarray . opt)
-  (if (null? opt)
-      (gensym "%%gensym" obarray)
-      (gensym (car opt) obarray)))
 
 
 ;;; {Lists}
@@ -1813,12 +1805,12 @@
 			(module-use! module interface))
 		      reversed-interfaces)
 	    (module-export! module exports))
-	  (let ((keyword (cond ((keyword? (car kws))
-				(keyword->symbol (car kws)))
-			       ((and (symbol? (car kws))
-				     (eq? (string-ref (car kws) 0) #\:))
-				(string->symbol (substring (car kws) 1)))
-			       (else #f))))
+	  (let ((keyword (if (keyword? (car kws))
+			     (keyword->symbol (car kws))
+			     (and (symbol? (car kws))
+				  (let ((s (symbol->string (car kws))))
+				    (and (eq? (string-ref s 0) #\:)
+					 (string->symbol (substring s 1))))))))
 	    (case keyword
 	      ((use-module use-syntax)
 	       (if (not (pair? (cdr kws)))
@@ -1890,9 +1882,12 @@
 
 (define (try-module-autoload module-name)
   (let* ((reverse-name (reverse module-name))
-	 (name (car reverse-name))
+	 (name (symbol->string (car reverse-name)))
 	 (dir-hint-module-name (reverse (cdr reverse-name)))
-	 (dir-hint (apply symbol-append (map (lambda (elt) (symbol-append elt "/")) dir-hint-module-name))))
+	 (dir-hint (apply string-append
+			  (map (lambda (elt)
+				 (string-append (symbol->string elt) "/"))
+			       dir-hint-module-name))))
     (resolve-module dir-hint-module-name #f)
     (and (not (autoload-done-or-in-progress? dir-hint name))
 	 (let ((didit #f))
@@ -2034,11 +2029,13 @@
 	 (let loop ((dirs "")
 		    (syms module-name))
 	   (if (null? (cdr syms))
-	       (cons dirs (string-append "lib" (car syms)))
-	       (loop (string-append dirs (car syms) "/") (cdr syms)))))
+	       (cons dirs (string-append "lib" (symbol->string (car syms))))
+	       (loop (string-append dirs (symbol->string (car syms)) "/")
+		     (cdr syms)))))
 	(init (make-init-name (apply string-append
 				     (map (lambda (s)
-					    (string-append "_" s))
+					    (string-append "_"
+							   (symbol->string s)))
 					  module-name)))))
     (let ((subdir (car subdir-and-libname))
 	  (libname (cdr subdir-and-libname)))
