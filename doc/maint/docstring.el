@@ -63,10 +63,14 @@
 ;;    docstring-ediff-this-line
 ;;    docstring-show-source
 
-;;; Code:
 
 (defvar guile-core-dir (or (getenv "GUILE_MAINTAINER_GUILE_CORE_DIR")
-                           "~/Guile/cvs/guile-core"))
+			   (error "GUILE_MAINTAINER_GUILE_CORE_DIR not set"))
+  "*Full path of guile-core source directory.")
+
+(defvar guile-build-dir (or (getenv "GUILE_MAINTAINER_BUILD_CORE_DIR")
+			   guile-core-dir)
+  "*Full path of guile-core build directory.  Defaults to guile-core-dir.")
 
 (defvar docstring-manual-directory (expand-file-name "doc/ref" guile-core-dir)
   "*The directory containing the Texinfo source for the Guile reference manual.")
@@ -555,6 +559,10 @@ new snarfed docstring file.\n\n")
 						       guile-core-dir)
   "*The directory containing the C source for libguile.")
 
+(defvar docstring-libguile-build-directory (expand-file-name "libguile"
+							     guile-build-dir)
+  "*The directory containing the libguile build directory.")
+
 (defun docstring-display-location (file line)
   (let ((buffer (find-file-noselect
 		 (expand-file-name file docstring-libguile-directory))))
@@ -589,7 +597,7 @@ docstring so that it is easy for you to do this."
 				 (end-of-line)
 				 (point)))))
 	 (guile-texi-file
-	  (expand-file-name "guile.texi" docstring-libguile-directory))
+	  (expand-file-name "guile.texi" docstring-libguile-build-directory))
 	 (source-location
 	  (save-excursion
 	    (set-buffer (find-file-noselect guile-texi-file))

@@ -13,11 +13,18 @@ in the libguile C source change.
     `docstring-process-module' and
     `docstring-ediff-this-line'.
 
-- guile.texi is a snapshot of the built file
-  guile-core/libguile/guile.texi, copied last time the reference
-  manual was determined to be in sync with the libguile source.
+- guile.texi is a snapshot of the built file libguile/guile.texi,
+  copied last time the reference manual was determined to be in sync
+  with the libguile source.
 
-For example:
+docstring.el requires the setting of an environment variable, e.g.,
+
+export GUILE_MAINTAINER_GUILE_CORE_DIR=$HOME/guile/guile-core
+
+If the build directory differs from the source directory, an additional
+variable is required:
+
+export GUILE_MAINTAINER_BUILD_CORE_DIR=$HOME/guile/guile-core-build
 
 If you've just fixed a docstring in, say, ../libguile/strop.c, do in emacs:
 
