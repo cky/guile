@@ -2211,6 +2211,7 @@ objects @i{per se}.
 * Symbol Primitives::           Operations related to symbols.
 * Symbol Discrete::             Using symbols as discrete values.
 * Symbol Props::                Function slots and property lists.
+* Symbol Uninterned::           Uninterned symbols.
 @end menu
 
 
@@ -2390,6 +2391,92 @@ Return the @dfn{property list} currently associated with @var{symbol}.
 Change the binding of @var{symbol}'s property slot.
 @end deffn
 
+@node Symbol Uninterned
+@subsection Uninterned Symbols
+
+What makes symbols useful is that they are automatically kept unique.
+There are no two symbols that are distinct objects but have the same
+name.  But of course, there is no rule without exception.  In addition
+to the normal symbols that have been discussed upto now, you can also
+create special @dfn{uninterned} symbols that behave slightly
+differently.
+
+To understand what is different about them and why they might be useful,
+we look at how normal symbols are actually kept unique.
+
+Whenever Guile wants to find the symbol with a specific name, for
+example during @code{read} or when executing @code{string->symbol}, it
+first looks into a table of all existing symbols to find out whether a
+symbol with the given name already exists.  When this is the case, Guile
+just returns that symbol.  When not, a new symbol with the name is
+created and entered into the table so that it can be found later.
+
+Sometimes you might want to create a symbol that is guaranteed `fresh',
+i.e., a symbol that did not exist previously.  You might also want to
+somehow guarantee that no one else will ever unintentionally stumble
+across your symbol in the future.  These properties of a symbol are
+often needed when generating code during macro expansion.  When
+introducing new temporary variables, you want to guarantee that they
+don't conflict with variables in other peoples code.
+
+The simplest way to arrange for this is to create a new symbol and to
+not enter it into the global table of all symbols.  That way, no one
+will ever get access to your symbol by chance.  Symbols that are not in
+the table are called @dfn{uninterned}.  Of course, symbols that
+@emph{are} in the table are called @dfn{interned}.
+
+You create new uninterned symbols with the function @code{make-symbol}.
+You can test whether a symbol is interned or not with
+@code{symbol-interned?}.
+
+Uninterned symbols break the rule that the name of a symbol uniquely
+identifies the symbol object.  Because of this, they can not be written
+out and read back in like interned symbols.  Currently, Guile has no
+support for reading uninterned symbols.  Note that the function
+@code{gensym} does not return uninterned symbols for this reason.
+
+@deffn {Scheme Procedure} make-symbol name
+@deffnx {C Function} scm_make_symbol (name)
+Return a new uninterned symbol with the name @var{name}.  The returned
+symbol is guaranteed to be unique and future calls to
+@code{string->symbol} will not return it.
+@end deffn
+
+@deffn {Scheme Procedure} symbol-interned? symbol
+@deffnx {C Function} scm_symbol_interned_p (symbol)
+Return @code{#t} if @var{symbol} is interned, otherwise return
+@code{#f}.
+@end deffn
+
+For example:
+
+@lisp
+(define foo-1 (string->symbol "foo"))
+(define foo-2 (string->symbol "foo"))
+(define foo-3 (make-symbol "foo"))
+(define foo-4 (make-symbol "foo"))
+
+(eq? foo-1 foo-2)
+@result{#t}  ; Two interned symbols with the same name are the same object,
+
+(eq? foo-1 foo-3)
+@result{#f}  ; but a call to make-symbol with the same name returns a
+             ; distinct object.
+
+(eq? foo-3 foo-4)
+@result{#f}  ; A call to make-symbol always returns a new object, even for
+             ; the same name.
+
+foo-3
+@result{#<uninterned-symbol foo 8085290>}
+             ; Uninterned symbols print different from interned symbols,
+(symbol? foo-3)
+@result{#t}  ; but they are still symbols.
+
+(symbol-interned? foo-3)
+@result{#f}  ; Just not interned.
+
+@end lisp
 
 @node Keywords
 @section Keywords
