@@ -1,3 +1,9 @@
+Sun Mar  2 19:47:14 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* boot-9.scm (scm-style-repl): call repl-report-start-timing if
+	read gets EOF.
+	* (exit): alias for quit.
+
 Sun Mar  2 05:25:11 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* boot-9.scm (error-catching-loop thunk): use a status variable to
@@ -5,7 +11,7 @@ Sun Mar  2 05:25:11 1997  Gary Houston  <ghouston@actrix.gen.nz>
 	(scm-style-repl): call -quit, passing return value from
 	error-catching-repl.  Make -quit return its args.
 	stand-alone-repl: comment out, since it seems unused.
-	
+
 	(error-catching-loop thunk): discard trailing junk after a (quit).
 
 Sat Mar  1 15:24:39 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>

@@ -2176,6 +2176,8 @@
 (define (quit . args)
   (apply throw 'quit args))
 
+(define exit quit)
+
 ;;(define has-shown-backtrace-hint? #f) Defined by scm_init_backtrace ()
 
 ;; Replaced by C code:
@@ -2236,6 +2238,7 @@
 		      (run-hooks after-read-hook)
 		      (if (eof-object? val)
 			  (begin
+			    (repl-report-start-timing)
 			    (if scm-repl-verbose
 				(begin
 				  (newline)
