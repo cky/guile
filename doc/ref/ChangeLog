@@ -1,3 +1,8 @@
+2005-02-17  Kevin Ryde  <user42@zip.com.au>
+
+	* api-data.texi (Reals and Rationals): Use tex for sqrt2 and pi.
+	(Complex Numbers): Add polar form read syntax.
+
 2005-02-15  Kevin Ryde  <user42@zip.com.au>
 
 	* posix.texi (File System): In tmpnam, clarify security and use of
