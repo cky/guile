@@ -652,8 +652,8 @@ alternatives.
   SCM_VALIDATE_INUM_*   ->  Do not use these, scm_to_int, etc. will
                             do the validating for you.
 
-** The scm_num2<type> and scm_<type>2num functions have been
-   discouraged.
+** The scm_num2<type> and scm_<type>2num functions and scm_make_real
+   have been discouraged.
 
 Use the newer scm_to_<type> and scm_from_<type> functions instead for
 new code.  The functions have been discouraged since they don't fit

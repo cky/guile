@@ -1,5 +1,8 @@
 2004-08-03  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
+	* numbers.h. numbers.c (scm_make_ratio): Renamed to
+	scm_i_make_ratio and made static, replaced uses with scm_divide.
+
 	* discouraged.h, discouraged.c, numbers.c, numbers.h
 	(scm_is_rational): New.
 	(scm_i_short2big, scm_i_int2big, scm_i_uint2big, scm_i_size2big,
