@@ -1,3 +1,11 @@
+2003-05-16  Kevin Ryde  <user42@zip.com.au>
+
+	* guile.texi: Use @copying, show copyright and permissions at start of
+	info and html.
+
+	* srfi-modules.texi (SRFI-1 Deleting): Rewrite delete and
+	delete-duplicates, adding behaviour details specified by srfi-1.
+
 2003-05-12  Kevin Ryde  <user42@zip.com.au>
 
 	* preface.texi (Guile License): Refer to COPYING.LIB.
