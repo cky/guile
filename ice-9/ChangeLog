@@ -1,3 +1,11 @@
+Fri May 30 18:08:10 1997  Jim Blandy  <jimb@floss.cyclic.com>
+
+	* slib.scm (slib:load): Use primitive-load-path instead of
+	basic-load.  This is probably wrong, but hopefully the entire
+	source access system will be revised soon anyway, and this will
+	make require behave more like Emacs Lisp's require.  If this
+	breaks something, please let me know.  Maybe this is real dumb.
+
 Thu May 29 02:36:48 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* regex.scm: Add a module declaration.  Use DEFINE-PUBLIC everywhere.
