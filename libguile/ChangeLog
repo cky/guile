@@ -2,7 +2,7 @@
 
 	* guile-doc-snarf.in: Don't use absolute path for `sed'.  (Note
 	that we can't use autoconf for this.  Autoconf itself relies on
-	the existence of `sed' somewhere on your path.  (Thanks to Dirk
+	the existence of `sed' somewhere on your path.)  (Thanks to Dirk
 	Herrman.)
 	
 2000-03-13  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
