@@ -39,13 +39,13 @@ expression below:
 @end lisp
 
 If the two calls to @code{display} and @code{newline} were not embedded
-in a @code{begin}--statement, the call to @code{newline} would get
-misinterpreted as the else--branch of the @code{if}--expression.
+in a @code{begin}-statement, the call to @code{newline} would get
+misinterpreted as the else-branch of the @code{if}-expression.
 
 @deffn syntax begin expr1 expr2 @dots{}
-The expression(s) are evaluated in left--to--right order and the value
+The expression(s) are evaluated in left-to-right order and the value
 of the last expression is returned as the value of the
-@code{begin}--expression.  This expression type is used when the
+@code{begin}-expression.  This expression type is used when the
 expressions before the last one are evaluated for their side effects.
 @end deffn
 
@@ -62,7 +62,7 @@ expressions before the last one are evaluated for their side effects.
 @cindex cond
 
 Guile provides three syntactic constructs for conditional evaluation.
-@code{if} is the normal if--then--else expression (with an optional else
+@code{if} is the normal if-then-else expression (with an optional else
 branch), @code{cond} is a conditional expression with multiple branches
 and @code{case} branches if an expression has one of a set of constant
 values.
@@ -98,13 +98,13 @@ where @var{expression} must evaluate to a procedure.
 The @var{test}s of the clauses are evaluated in order and as soon as one
 of them evaluates to a true values, the corresponding @var{expression}s
 are evaluated in order and the last value is returned as the value of
-the @code{cond}--expression.  For the @code{=>} clause type,
+the @code{cond}-expression.  For the @code{=>} clause type,
 @var{expression} is evaluated and the resulting procedure is applied to
 the value of @var{test}.  The result of this procedure application is
-then the result of the @code{cond}--expression.
+then the result of the @code{cond}-expression.
 
 The @var{test} of the last @var{clause} may be the keyword @code{else}.
-Then, if none of the preceding @var{test}s is true, the @var{expression}s following the @code{else} are evaluated to produce the result of the @code{cond}--expression.
+Then, if none of the preceding @var{test}s is true, the @var{expression}s following the @code{else} are evaluated to produce the result of the @code{cond}-expression.
 @end deffn
 
 @deffn syntax case key clause1 clause2 @dots{}
@@ -127,7 +127,7 @@ the @var{datum} are evaluated from left to right, returning the value of
 the last expression as the result of the @code{case} expression.
 
 If the @var{key} matches no @var{datum} and there is an
-@code{else}--clause, the expressions following the @code{else} are
+@code{else}-clause, the expressions following the @code{else} are
 evaluated.  If there is no such clause, the result of the expression is
 unspecified.
 @end deffn
@@ -204,11 +204,11 @@ is @code{#f} right from the start.
 
 @cindex named let
 Another very common way of expressing iteration in Scheme programs is
-the use of the so--called @dfn{named let}.
+the use of the so-called @dfn{named let}.
 
 Named let is a variant of @code{let} which creates a procedure and calls
 it in one step.  Because of the newly created procedure, named let is
-more powerful than @code{do}---it can be used for iteration, but also
+more powerful than @code{do}--it can be used for iteration, but also
 for arbitrary recursion.
 
 @deffn syntax let variable bindings body
@@ -310,7 +310,7 @@ called only one time.  This can be confusing at times.
 
 Scheme allows a procedure to return more than one value to its caller.
 This is quite different to other languages which only allow
-single--value returns.  Returning multiple values is different from
+single-value returns.  Returning multiple values is different from
 returning a list (or pair or vector) of values to the caller, because
 conceptionally not @emph{one} compound object is returned, but several
 distinct values.

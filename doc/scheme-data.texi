@@ -1337,7 +1337,7 @@ Return the lowercase character version of @var{chr}.
 @node Strings
 @section Strings
 
-Strings are fixed--length sequences of characters.  They can be created
+Strings are fixed-length sequences of characters.  They can be created
 by calling constructor procedures, but they can also literally get
 entered at the REPL or in Scheme source files.
 
@@ -1345,11 +1345,11 @@ Guile provides a rich set of string processing procedures, because text
 handling is very important when Guile is used as a scripting language.
 
 Strings always carry the information about how many characters they are
-composed of with them, so there is no special end--of--string character,
+composed of with them, so there is no special end-of-string character,
 like in C.  That means that Scheme strings can contain any character,
 even the NUL character @code{'\0'}.  But note: Since most operating
 system calls dealing with strings (such as for file operations) expect
-strings to be zero--terminated, they might do unexpected things when
+strings to be zero-terminated, they might do unexpected things when
 called with string containing unusal characters.
 
 @menu
@@ -1507,7 +1507,7 @@ exact integers satisfying:
 @node String Modification
 @subsection String Modification
 
-These procedures are for modifying strings in--place.  That means, that
+These procedures are for modifying strings in-place.  That means, that
 not a new string is the result of a string operation, but that the
 actual memory representation of a string is modified.
 
@@ -1738,7 +1738,7 @@ the C library.
 @node Alphabetic Case Mapping
 @subsection Alphabetic Case Mapping
 
-These are procedures for mapping strings to their upper-- or lower--case
+These are procedures for mapping strings to their upper- or lower-case
 equivalents, respectively, or for capitalizing strings.
 
 @deffn primitive string-upcase str
@@ -1810,7 +1810,7 @@ This section contains several remaining string procedures.
 @deffn primitive string-ci->symbol str
 Return the symbol whose name is @var{str}.  @var{str} is
 converted to lowercase before the conversion is done, if Guile
-is currently reading symbols case--insensitively.
+is currently reading symbols case-insensitively.
 @end deffn
 
 
@@ -2292,13 +2292,13 @@ other they can be used as literal data as well.
 The association between symbols and values is maintained in special data
 structures, the symbol tables.
 
-In addition, Guile offers variables as first--class objects.  They can
+In addition, Guile offers variables as first-class objects.  They can
 be used for interacting with the module system.
 
 @menu
 * Symbols::                     All about symbols as a data type.
 * Symbol Tables::               Tables for mapping symbols to values.
-* Variables::                   First--class variables.
+* Variables::                   First-class variables.
 @end menu
 
 @node Symbols
@@ -2398,7 +2398,7 @@ part of an object returned as the value of a literal expression
 Report on Scheme}) or by a call to the @code{read} procedure,
 and its name contains alphabetic characters, then the string
 returned will contain characters in the implementation's
-preferred standard case---some implementations will prefer
+preferred standard case--some implementations will prefer
 upper case, others lower case.  If the symbol was returned by
 @code{string->symbol}, the case of characters in the string
 returned will be the same as the case in the string that was
@@ -2535,7 +2535,7 @@ Variables do not have a read syntax, they have to be created by calling
 one of the constructor procedures @code{make-variable} or
 @code{make-undefined-variable} or retrieved by @code{builtin-variable}.
 
-First--class variables are especially useful for interacting with the
+First-class variables are especially useful for interacting with the
 current module system (REFFIXME).
 
 @deffn primitive builtin-variable name
@@ -2976,7 +2976,7 @@ applications (REFFIXME).
 @c FIXME::martin: Review me!
 
 Often it is useful to test whether a given Scheme object is a list or
-not.  List--processing procedures could use this information to test
+not.  List-processing procedures could use this information to test
 whether their input is valid, or they could do different things
 depending on the datatype of their arguments.
 
@@ -2985,7 +2985,7 @@ depending on the datatype of their arguments.
 Return @code{#t} iff @var{x} is a proper list, else @code{#f}.
 @end deffn
 
-The predicate @code{null?} is often used in list--processing code to
+The predicate @code{null?} is often used in list-processing code to
 tell whether a given list has run out of elements.  That is, a loop
 somehow deals with the elements of a list until the list satisfies
 @code{null?}.  Then, teh algorithm terminates.
@@ -3079,7 +3079,7 @@ lists in order to form a new list.  @code{reverse} and @code{reverse!}
 return lists with the same elements as their arguments, but in reverse
 order.  The procedure variants with an @code{!} directly modify the
 pairs which form the list, whereas the other procedures create new
-pairs.  This is why you should be careful when using the side--effecting
+pairs.  This is why you should be careful when using the side-effecting
 variants.
 
 @rnindex append
@@ -4978,7 +4978,7 @@ a hook with @code{add-hook!} or removed with @code{remove-hook!} or
 @subsection Hook Examples
 
 Hook usage is shown by some examples in this section.  First, we will
-define a hook of arity 2---that is, the procedures stored in the hook
+define a hook of arity 2 --- that is, the procedures stored in the hook
 will have to accept two arguments.
 
 @lisp

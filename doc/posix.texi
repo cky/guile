@@ -2278,7 +2278,7 @@ the locale will be set using envirionment variables.
 @section Encryption
 
 Please note that the procedures in this section are not suited for
-strong encryption, they are only interfaces to the well--known and
+strong encryption, they are only interfaces to the well-known and
 common system library functions of the same name.  They are just as good
 (or bad) as the underlying functions, so you should refer to your system
 documentation before using them.

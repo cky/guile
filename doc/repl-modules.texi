@@ -1,3 +1,4 @@
+@page
 @node Readline Support
 @chapter Readline Support
 
@@ -6,7 +7,7 @@
 @cindex readline
 @cindex command line history
 Guile comes with an interface module to the readline library.  This
-makes interactive use much more convenient, because of the command--line
+makes interactive use much more convenient, because of the command-line
 editing features of readline.  Using @code{(ice-9 readline)}, you can
 navigate through the current input line with the cursor keys, retrieve
 older command lines from the input history and even search through the
@@ -43,10 +44,11 @@ navigating through the command line and history.
 When you quit your Guile session by evaluating @code{(quit)} or pressing
 Ctrl-D, the history will be saved to the file @file{.guile_history} and
 read in when you start Guile for the next time.  Thus you can start a
-new Guile session and still have the (probably long--winded) definition
+new Guile session and still have the (probably long-winded) definition
 expressions available.
 
 
+@page
 @node Value History
 @chapter Value History
 

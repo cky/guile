@@ -62,7 +62,7 @@ Bindings}) act differently (@pxref{Internal Definitions}).
 As opposed to definitions at the top level, which are visible in the
 whole program (or current module, when Guile modules are used), it is
 also possible to define variables which are only visible in a
-well--defined part of the program.  Normally, this part of a program
+well-defined part of the program.  Normally, this part of a program
 will be a procedure or a subexpression of a procedure.
 
 With the constructs for local binding (@code{let}, @code{let*} and
@@ -83,7 +83,7 @@ using plain @code{let} is a bit inconvenient.
 ((@var{variable1} @var{init1}) @dots{})
 @end lisp
 
-that is zero or more two--element lists of a variable and an arbitrary
+that is zero or more two-element lists of a variable and an arbitrary
 expression each.  All @var{variable} names must be distinct.
 
 A @code{let} expression is evaluated as follows.
@@ -179,9 +179,9 @@ peach
 @end lisp
 
 Here the enclosing form is a @code{let}, so the @code{define}s in the
-@code{let}--body are internal definitions.  Because the scope of the
+@code{let}-body are internal definitions.  Because the scope of the
 internal definitions is the @strong{complete} body of the
-@code{let}--expression, the @code{lambda}--expression which gets bound
+@code{let}-expression, the @code{lambda}-expression which gets bound
 to the variable @code{banana} may refer to the variable @code{apple},
 even thogh it's definition appears lexically @emph{after} the definition
 of @code{banana}.  This is because a sequence of internal definition

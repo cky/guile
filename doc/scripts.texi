@@ -83,6 +83,17 @@ This switch sets the global variable use-emacs-interface to @code{#t}.
 
 This switch is still experimental.
 
+@item --use-srfi=@var{list}
+The option @code{--use-srfi} expects a comma-separated list of numbers,
+each representing a SRFI number to be loaded into the interpreter
+before starting evaluating a script file or the REPL.  Additionally,
+the feature identifier for the loaded SRFIs is recognized by
+`cond-expand' when using this option.
+
+@example
+guile --use-srfi=8,13
+@end example
+
 @item -h@r{, }--help
 Display help on invoking Guile, and then exit.
 

@@ -1,4 +1,4 @@
-@c $Id: intro.texi,v 1.8 2001-05-13 19:14:41 ttn Exp $
+@c $Id: intro.texi,v 1.9 2001-05-16 18:08:12 mgrabmue Exp $
 
 @page
 @node What is Guile?
@@ -869,7 +869,7 @@ be a bug, unless this is explicitly documented.
 
 @item
 When some part of the documentation is not clear and does not make sense
-to you even after re--reading the section, it is a bug.
+to you even after re-reading the section, it is a bug.
 @end itemize
 
 When you write a bug report, please make sure to include as much of the
@@ -915,7 +915,7 @@ unmodified Guile.  But if you've made modifications and you don't tell
 us, you are sending us on a wild goose chase.)
 
 Be precise about these changes.  A description in English is not
-enough--send a context diff for them.
+enough---send a context diff for them.
 
 Adding files of your own, or porting to another machine, is a
 modification of the source.
@@ -979,7 +979,7 @@ certain.
 @item
 Additional information from a C debugger such as GDB might enable
 someone to find a problem on a machine which he does not have available.
-If you don't know how to use GDB, please read the GDB manual--it is not
+If you don't know how to use GDB, please read the GDB manual---it is not
 very long, and using GDB is easy.  You can find the GDB distribution,
 including the GDB manual in online form, in most of the same places you
 can find the Guile distribution.  To run Guile under GDB, you should

@@ -1,3 +1,17 @@
+2001-05-15  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* scripts.texi (Invoking Guile): Added docs for --use-srfi.
+
+	* expect.texi, repl-modules.texi: Start the chapters with a new
+	page.
+
+	* srfi-modules.texi (SRFI-0): Added note about supported feature
+	identifiers and an example.  Start the chapter with a new page.
+
+	* srfi-modules.texi, scheme-data.texi, scheme-control.texi,
+	scheme-binding.texi, repl-modules.texi, posix.texi, intro.texi,
+	scheme-utility.texi: Change `--' to `-' throughout.
+
 2001-05-14  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* srfi-13-14.texi: Removed.

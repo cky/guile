@@ -65,7 +65,7 @@ The procedure takes any number of arguments; when the procedure is
 called, the sequence of actual arguments will converted into a list and
 stored into the newly created location for the formal variable.
 @item (@var{variable1} @dots{} @var{variablen} . @var{variablen+1})
-If a space--delimited period precedes the last variable, then the
+If a space-delimited period precedes the last variable, then the
 procedure takes @var{n} or more variablesm where @var{n} is the number
 of formal arguments before the period.  There must be at least one
 argument before the period.  The first @var{n} actual arguments will be
@@ -432,7 +432,7 @@ Return the source property specified by @var{key} from
 A @dfn{procedure with setter} is a special kind of procedure which
 normally behaves like any accesor procedure, that is a procedure which
 accesses a data structure.  The difference is that this kind of
-procedure has a so--called @dfn{setter} attached, which is a procedure
+procedure has a so-called @dfn{setter} attached, which is a procedure
 for storing something into a data structure.
 
 Procedures with setters are treated specially when the procedure appears

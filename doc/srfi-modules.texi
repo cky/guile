@@ -1,3 +1,4 @@
+@page
 @node SRFI Support
 @chapter Various SRFI Support Modules
 
@@ -5,11 +6,10 @@ SRFI is an acronym for Scheme Request For Implementation.  The SRFI
 documents define a lot of syntactic and procedure extensions to standard
 Scheme as defined in R5RS.
 
-In addition to the string and character-set libraries---documented in
-the next chapter---Guile has support for a number of SRFIs.  This
-chapter gives an overview over the available SRFIs and some usage hints.
-For complete documentation, design rationales and further examples, we
-advise you to get the relevant SRFI documents from the SRFI home page
+Guile has support for a number of SRFIs.  This chapter gives an overview
+over the available SRFIs and some usage hints.  For complete
+documentation, design rationales and further examples, we advise you to
+get the relevant SRFI documents from the SRFI home page
 @url{http://srfi.schemers.org}.
 
 @menu
@@ -83,6 +83,22 @@ provides, it must be accessible without using any
 implementation-dependant operations, such as @code{use-modules} in
 Guile.  Thus, it is not necessary to use any module to get access to
 this form.
+
+Currently, the feature identifiers @code{guile}, @code{r5rs} and
+@code{srfi-0} are supported.  The other SRFIs are not in that list,
+because the SRFI modules must be explicitly used before their exported
+bindings can be used.  So if a Scheme program wishes to detect whether
+SRFI-8 is supported in the running implementation, code similar to this
+may be needed:
+
+@lisp
+(cond-expand
+  (guile
+    (use-modules (srfi srfi-8)))
+  (srfi-8
+    #t))
+  ;; otherwise fail.
+@end lisp
 
 
 @node SRFI-2
@@ -1160,7 +1176,7 @@ Return a true value if any character in the character set
 
 Character sets can be manipulated with the common set algebra operation,
 such as union, complement, intersection etc.  All of these procedures
-provide side--effecting variants, which modify their character set
+provide side-effecting variants, which modify their character set
 argument(s).
 
 @deffn primitive char-set-adjoin cs char1 @dots{}
@@ -1197,7 +1213,7 @@ Return the difference of all argument character sets.
 
 @deffn primitive char-set-xor cs1 @dots{}
 @deffnx primitive char-set-xor! cs1 @dots{}
-Return the exclusive--or of all argument character sets.
+Return the exclusive-or of all argument character sets.
 @end deffn
 
 @deffn primitive char-set-diff+intersection cs1 @dots{}
@@ -1216,11 +1232,11 @@ In order to make the use of the character set data type and procedures
 useful, several predefined character set variables exist.
 
 @defvar char-set:lower-case
-All lower--case characters.
+All lower-case characters.
 @end defvar
 
 @defvar char-set:upper-case
-All upper--case characters.
+All upper-case characters.
 @end defvar
 
 @defvar char-set:title-case
