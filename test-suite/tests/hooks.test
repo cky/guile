@@ -1,0 +1,183 @@
+;;;; hooks.test --- tests guile's hooks implementation  -*- scheme -*-
+;;;; Copyright (C) 1999 Free Software Foundation, Inc.
+;;;; 
+;;;; This program is free software; you can redistribute it and/or modify
+;;;; it under the terms of the GNU General Public License as published by
+;;;; the Free Software Foundation; either version 2, or (at your option)
+;;;; any later version.
+;;;; 
+;;;; This program is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;;;; GNU General Public License for more details.
+;;;; 
+;;;; You should have received a copy of the GNU General Public License
+;;;; along with this software; see the file COPYING.  If not, write to
+;;;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+;;;; Boston, MA 02111-1307 USA
+;;;;
+;;;; As a special exception, the Free Software Foundation gives permission
+;;;; for additional uses of the text contained in its release of GUILE.
+;;;;
+;;;; The exception is that, if you link the GUILE library with other files
+;;;; to produce an executable, this does not by itself cause the
+;;;; resulting executable to be covered by the GNU General Public License.
+;;;; Your use of that executable is in no way restricted on account of
+;;;; linking the GUILE library code into it.
+;;;;
+;;;; This exception does not however invalidate any other reasons why
+;;;; the executable file might be covered by the GNU General Public License.
+;;;;
+;;;; This exception applies only to the code released by the
+;;;; Free Software Foundation under the name GUILE.  If you copy
+;;;; code from other Free Software Foundation releases into a copy of
+;;;; GUILE, as the General Public License permits, the exception does
+;;;; not apply to the code that you add in this way.  To avoid misleading
+;;;; anyone as to the status of such modified files, you must delete
+;;;; this exception notice from them.
+;;;;
+;;;; If you write modifications of your own for GUILE, it is your choice
+;;;; whether to permit this exception to apply to your modifications.
+;;;; If you do not wish that, delete this exception notice.  
+
+;;; {Description} 
+;;;
+;;; A test suite for hooks. I maybe should've split off some of the
+;;; stuff (like with alists), but this is small enough that it
+;;; probably isn't worth the hassle. A little note: in some places it
+;;; catches all errors when it probably shouldn't, since there's only
+;;; one error we consider correct. This is mostly because the
+;;; add-hook! error in released guiles isn't really accurate
+;;; This should be changed once a released version returns
+;;; wrong-type-arg from add-hook!
+
+;; {Utility stuff}
+;; Evaluate form inside a catch; if it throws an error, return true
+;; This is good for checking that errors are not ignored 
+
+(define-macro (catch-error-returning-true error . form)
+  `(catch ,error (lambda () (begin ,@form #f)) (lambda (key . args) #t)))
+
+;; Evaluate form inside a catch; if it throws an error, return false
+;; Good for making sure that errors don't occur
+
+(define-macro (catch-error-returning-false error . form)
+  `(catch ,error (lambda () (begin ,@form #t)) (lambda (key . args) #f)))
+
+;; pass-if-not: syntactic sugar
+
+(define-macro (pass-if-not string form)
+  `(pass-if ,string (not ,form)))
+
+;; {The tests}
+(catch-test-errors
+ (let  ((proc1 (lambda (x) (+ x 1)))
+        (proc2 (lambda (x) (- x 1)))
+        (bad-proc (lambda (x y) #t)))
+   (with-test-prefix "hooks"
+    (pass-if "make-hook"
+             (catch-error-returning-false 
+              #t
+              (define x (make-hook 1))))
+
+    (pass-if "add-hook!"
+             (catch-error-returning-false 
+              #t
+              (let ((x (make-hook 1)))
+                (add-hook! x proc1)
+                (add-hook! x proc2))))
+               
+    (with-test-prefix "add-hook!"
+                      (pass-if "append"
+                               (let ((x (make-hook 1)))
+                                 (add-hook! x proc1)
+                                 (add-hook! x proc2 #t)
+                                 (eq? (cadr (hook->list x))
+                                      proc2)))
+                      (pass-if "illegal proc"
+                               (catch-error-returning-true 
+                                #t 
+                                (let ((x (make-hook 1)))
+                                  (add-hook! x bad-proc))))
+                      (pass-if "illegal hook"
+                               (catch-error-returning-true
+                                'wrong-type-arg
+                                (add-hook! '(foo) proc1))))
+    (pass-if "run-hook"
+             (let ((x (make-hook 1)))
+               (catch-error-returning-false #t
+                                            (add-hook! x proc1)
+                                            (add-hook! x proc2)
+                                            (run-hook x 1))))
+   (with-test-prefix "run-hook"
+                     (pass-if "bad hook"
+                                  (catch-error-returning-true
+                                   #t
+                                   (let ((x (cons 'a 'b)))
+                                     (run-hook x 1))))
+                     (pass-if "too many args"
+                                  (let ((x (make-hook 1)))
+                                    (catch-error-returning-true
+                                     #t
+                                     (add-hook! x proc1)
+                                     (add-hook! x proc2)
+                                     (run-hook x 1 2))))
+
+                     (pass-if 
+                      "destructive procs"
+                      (let ((x (make-hook 1))
+                            (dest-proc1 (lambda (x) 
+                                          (set-car! x 
+                                                    'i-sunk-your-battleship)))
+                            (dest-proc2 (lambda (x) (set-cdr! x 'no-way!)))
+                            (val '(a-game-of battleship)))
+                        (add-hook! x dest-proc1)
+                        (add-hook! x dest-proc2 #t)
+                        (run-hook x val)
+                        (and (eq? (car val) 'i-sunk-your-battleship)
+                             (eq? (cdr val) 'no-way!)))))
+
+   (pass-if "make-hook-with-name"
+            (catch-error-returning-false 
+             #t
+             (let ((x (make-hook-with-name 'x 1)))
+               (add-hook! x proc1))))
+   (pass-if "make-hook-with-name: bad name"
+            (catch-error-returning-true
+             'wrong-type-arg
+             (define x (make-hook-with-name '(a b) 1))))
+
+   (with-test-prefix "remove-hook!"
+                     (pass-if ""
+                              (let ((x (make-hook 1)))
+                                (add-hook! x proc1)
+                                (add-hook! x proc2)
+                                (remove-hook! x proc1)
+                                (not (memq proc1 (hook->list x)))))
+                     ; Maybe it should error, but this is probably
+                     ; more convienient
+                     (pass-if "empty hook"
+                              (catch-error-returning-false
+                               #t
+                               (let ((x (make-hook 1)))
+                                 (remove-hook! x proc1)))))
+   (pass-if "hook->list"
+            (let ((x (make-hook 1)))
+              (add-hook! x proc1)
+              (add-hook! x proc2)
+              (and (memq proc1 (hook->list x) )
+                   (memq proc2 (hook->list x)))))
+   (pass-if "reset-hook!"
+            (let ((x (make-hook 1)))
+              (add-hook! x proc1)
+              (add-hook! x proc2)
+              (reset-hook! x)
+              (null? (hook->list x))))
+   (with-test-prefix "reset-hook!"
+                     (pass-if "empty hook"
+                              (let ((x (make-hook 1)))
+                                (reset-hook! x)))
+                     (pass-if "bad hook"
+                              (catch-error-returning-true
+                               #t
+                               (reset-hook! '(a b))))))))
