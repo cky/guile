@@ -102,7 +102,7 @@ unsigned int scm_gc_running_p = 0;
 
 scm_t_bits scm_tc16_allocated;
 
-/* Set this to != 0 if every cell that is accessed shall be checked: 
+/* Set this to != 0 if every cell that is accessed shall be checked:
  */
 unsigned int scm_debug_cell_accesses_p = 1;
 
@@ -172,7 +172,7 @@ scm_assert_cell_valid (SCM cell)
 	  if (debug_cells_gc_interval)
 	    {
 	      static unsigned int counter = 0;
-	      
+
 	      if (counter != 0)
 		{
 		  --counter;
@@ -528,6 +528,8 @@ clear_mark_space ()
 
 #if defined (GUILE_DEBUG) || defined (GUILE_DEBUG_FREELIST)
 
+static long int heap_segment (SCM obj); /* forw decl: non-debugging func */
+
 static void
 map_free_list (scm_t_freelist *master, SCM freelist)
 {
@@ -540,9 +542,9 @@ map_free_list (scm_t_freelist *master, SCM freelist)
 
       if (this_seg == -1)
 	{
-	  fprintf (stderr, 
+	  fprintf (stderr,
 		   "map_free_list: can't find segment containing cell %lux\n",
-		   (unsigned long int) SCM_UNPACK (cell));
+		   (unsigned long int) SCM_UNPACK (f));
 	  abort ();
 	}
       else if (this_seg != last_seg)
@@ -656,7 +658,7 @@ SCM_DEFINE (scm_free_list_length, "free-list-length", 0, 0, 0,
 }
 #undef FUNC_NAME
 
-#endif
+#endif /* defined (GUILE_DEBUG) || defined (GUILE_DEBUG_FREELIST) */
 
 #ifdef GUILE_DEBUG_FREELIST
 
@@ -1185,7 +1187,7 @@ MARK (SCM p)
 #else
   /* go through the usual marking, but not for self-cycles. */
 # define RECURSE(x) do { if ((x) != p) scm_gc_mark (x); } while (0)
-#endif        
+#endif
   ptr = p;
 
 #ifdef MARK_DEPENDENCIES
@@ -1208,7 +1210,7 @@ gc_mark_loop:
     return;
 
 gc_mark_nimp:
-  
+
 #ifdef MARK_DEPENDENCIES
   if (SCM_EQ_P (ptr, p))
     return;
@@ -1230,10 +1232,10 @@ gc_mark_loop_first_time:
 #endif
 
 #ifndef MARK_DEPENDENCIES
-  
+
   if (SCM_GCMARKP (ptr))
     return;
-  
+
   SCM_SETGCMARK (ptr);
 
 #endif
@@ -1275,7 +1277,7 @@ gc_mark_loop_first_time:
 	if (len)
 	  {
 	    long x;
-	    
+
 	    for (x = 0; x < len - 2; x += 2, ++struct_data)
 	      if (fields_desc[x] == 'p')
 		RECURSE (SCM_PACK (*struct_data));
@@ -1451,7 +1453,7 @@ gc_mark_loop_first_time:
 	   * Thus, no conservative scanning for free cells is necessary, but
 	   * instead cells of type scm_tc16_allocated have to be scanned
 	   * conservatively.  This is done in the mark function of the
-	   * scm_tc16_allocated smob type.  */ 
+	   * scm_tc16_allocated smob type.  */
 #endif
 	  break;
 	case scm_tc16_big:
@@ -1908,7 +1910,7 @@ scm_gc_sweep ()
 
   scm_cells_allocated = (SCM_HEAP_SIZE - scm_gc_cells_collected);
   scm_gc_yield -= scm_cells_allocated;
-  
+
   if (scm_mallocated < m)
     /* The byte count of allocated objects has underflowed.  This is
        probably because you forgot to report the sizes of objects you
@@ -1974,7 +1976,7 @@ scm_must_malloc (size_t size, const char *what)
   scm_igc (what);
 
   nm = scm_mallocated + size;
-  
+
   if (nm < size)
     /* The byte count of allocated objects has overflowed.  This is
        probably because you forgot to report the correct size of freed
@@ -2130,7 +2132,7 @@ scm_done_malloc (long size)
          memory in some of your smob free methods. */
       abort ();
   }
-  
+
   scm_mallocated += size;
 
   if (scm_mallocated > scm_mtrigger)
@@ -2239,7 +2241,7 @@ init_heap_seg (SCM_CELLPTR seg_org, size_t size, scm_t_freelist *freelist)
   /* Find the right place and insert the segment record.
    */
   new_seg_index = 0;
-  while (new_seg_index < scm_n_heap_segs 
+  while (new_seg_index < scm_n_heap_segs
 	 && SCM_PTR_LE (scm_heap_table[new_seg_index].bounds[0], seg_org))
     new_seg_index++;
 
@@ -2627,7 +2629,7 @@ scm_gc_register_root (SCM *p)
 {
   SCM handle;
   SCM key = scm_long2num ((long) p);
-  
+
   /* This critical section barrier will be replaced by a mutex. */
   SCM_REDEFER_INTS;
 
@@ -2877,7 +2879,7 @@ mark_gc_async (void * hook_data SCM_UNUSED,
    * the execution of the next gc.  Then, guile would keep executing the
    * after-gc-hook over and over again, and would never come to do other
    * things.
-   * 
+   *
    * To overcome this problem, if cell access debugging with additional
    * garbage collections is enabled, the after-gc-hook is never run by the
    * garbage collecter.  When running guile with cell access debugging and the
