@@ -1,3 +1,18 @@
+2000-10-26  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* random.c:  Include unif.h.
+
+	* strings.h (SCM_STRING_COERCE_0TERMINATION_X):  Added.  This is
+	intended to replace the macro SCM_COERCE_SUBSTR.  Such a macro
+	will be necessary, even after copy-on-write strings will be added
+	to guile, but the current naming is inappropriate.
+
+	* strorder.c (scm_string_equal_p, scm_string_ci_equal_p,
+	scm_string_less_p, scm_string_ci_less_p):  Don't accept symbols as
+	input parameters.  Further, the functions that test for equality
+	are rewritten to compare from back to front, the others are also a
+	little bit more polished.
+
 2000-10-25  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
 
 	This change merges the GOOPS code into Guile.  However, GOOPS

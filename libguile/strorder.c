@@ -63,24 +63,32 @@ SCM_DEFINE1 (scm_string_equal_p, "string=?", scm_tc7_rpsubr,
 	     "@samp{string=?} treats upper and lower case as distinct characters.")
 #define FUNC_NAME s_scm_string_equal_p
 {
-  register scm_sizet i;
-  register unsigned char *c1, *c2;
-  SCM_VALIDATE_ROSTRING (1,s1);
-  SCM_VALIDATE_ROSTRING (2,s2);
+  scm_sizet length;
 
-  i = SCM_ROLENGTH (s2);
-  if (SCM_ROLENGTH (s1) != i)
+  SCM_VALIDATE_STRING (1, s1);
+  SCM_VALIDATE_STRING (2, s2);
+
+  length = SCM_STRING_LENGTH (s2);
+  if (SCM_STRING_LENGTH (s1) == length)
+    {
+      unsigned char *c1 = SCM_ROUCHARS (s1) + length - 1;
+      unsigned char *c2 = SCM_ROUCHARS (s2) + length - 1;
+      scm_sizet i;
+
+      /* comparing from back to front typically finds mismatches faster */
+      for (i = 0; i != length; ++i, --c1, --c2)
+	if (*c1 != *c2)
+	  return SCM_BOOL_F;
+
+      return SCM_BOOL_T;
+    }
+  else
     {
       return SCM_BOOL_F;
     }
-  c1 = SCM_ROUCHARS (s1);
-  c2 = SCM_ROUCHARS (s2);
-  while (0 != i--)
-    if (*c1++ != *c2++)
-      return SCM_BOOL_F;
-  return SCM_BOOL_T;
 }
 #undef FUNC_NAME
+
 
 SCM_DEFINE1 (scm_string_ci_equal_p, "string-ci=?", scm_tc7_rpsubr,
              (SCM s1, SCM s2),
@@ -89,24 +97,32 @@ SCM_DEFINE1 (scm_string_ci_equal_p, "string-ci=?", scm_tc7_rpsubr,
 	     "match (ignoring case) at each position; otherwise returns @t{#f}. (r5rs)")
 #define FUNC_NAME s_scm_string_ci_equal_p
 {
-  register scm_sizet i;
-  register unsigned char *c1, *c2;
-  SCM_VALIDATE_ROSTRING (1,s1);
-  SCM_VALIDATE_ROSTRING (2,s2);
+  scm_sizet length;
 
-  i = SCM_ROLENGTH (s2);
-  if (SCM_ROLENGTH (s1) != i)
+  SCM_VALIDATE_STRING (1, s1);
+  SCM_VALIDATE_STRING (2, s2);
+
+  length = SCM_STRING_LENGTH (s2);
+  if (SCM_STRING_LENGTH (s1) == length)
+    {
+      unsigned char *c1 = SCM_ROUCHARS (s1) + length - 1;
+      unsigned char *c2 = SCM_ROUCHARS (s2) + length - 1;
+      scm_sizet i;
+
+      /* comparing from back to front typically finds mismatches faster */
+      for (i = 0; i != length; ++i, --c1, --c2)
+	if (scm_upcase (*c1) != scm_upcase (*c2))
+	  return SCM_BOOL_F;
+
+      return SCM_BOOL_T;
+    }
+  else
     {
       return SCM_BOOL_F;
     }
-  c1 = SCM_ROUCHARS (s1);
-  c2 = SCM_ROUCHARS (s2);
-  while (0 != i--)
-    if (scm_upcase(*c1++) != scm_upcase(*c2++))
-      return SCM_BOOL_F;
-  return SCM_BOOL_T;
 }
 #undef FUNC_NAME
+
 
 SCM_DEFINE1 (scm_string_less_p, "string<?", scm_tc7_rpsubr,
              (SCM s1, SCM s2),
@@ -114,32 +130,28 @@ SCM_DEFINE1 (scm_string_less_p, "string<?", scm_tc7_rpsubr,
 	     "is lexicographically less than @var{s2}.  (r5rs)")
 #define FUNC_NAME s_scm_string_less_p
 {
-  register scm_sizet i, len, s2len;
-  register unsigned char *c1, *c2;
-  register int c;
+  scm_sizet i, length1, length2, lengthm;
+  unsigned char *c1, *c2;
 
-  SCM_VALIDATE_ROSTRING (1,s1);
-  SCM_VALIDATE_ROSTRING (2,s2);
-  len = SCM_ROLENGTH (s1);
-  s2len = SCM_ROLENGTH (s2);
-  if (len>s2len) len = s2len;
+  SCM_VALIDATE_STRING (1, s1);
+  SCM_VALIDATE_STRING (2, s2);
+
+  length1 = SCM_STRING_LENGTH (s1);
+  length2 = SCM_STRING_LENGTH (s2);
+  lengthm = min (length1, length2);
   c1 = SCM_ROUCHARS (s1);
   c2 = SCM_ROUCHARS (s2);
 
-  for (i = 0;i<len;i++) {
-    c = (*c1++ - *c2++);
-    if (c>0)
-      return SCM_BOOL_F;
-    if (c<0)
-      return SCM_BOOL_T;
+  for (i = 0; i != lengthm; ++i, ++c1, ++c2) {
+    int c = *c1 - *c2;
+    if (c < 0) return SCM_BOOL_T;
+    if (c > 0) return SCM_BOOL_F;
   }
-  {
-    SCM answer;
-    answer = SCM_BOOL(s2len != len);
-    return answer;
-  }
+
+  return SCM_BOOL (length1 < length2);
 }
 #undef FUNC_NAME
+
 
 SCM_DEFINE1 (scm_string_leq_p, "string<=?", scm_tc7_rpsubr,
              (SCM s1, SCM s2),
@@ -151,6 +163,7 @@ SCM_DEFINE1 (scm_string_leq_p, "string<=?", scm_tc7_rpsubr,
 }
 #undef FUNC_NAME
 
+
 SCM_DEFINE1 (scm_string_gr_p, "string>?", scm_tc7_rpsubr,
              (SCM s1, SCM s2),
 	     "Lexicographic ordering predicate; returns @t{#t} if @var{s1}\n"
@@ -160,6 +173,7 @@ SCM_DEFINE1 (scm_string_gr_p, "string>?", scm_tc7_rpsubr,
   return scm_string_less_p (s2, s1);
 }
 #undef FUNC_NAME
+
 
 SCM_DEFINE1 (scm_string_geq_p, "string>=?", scm_tc7_rpsubr,
              (SCM s1, SCM s2),
@@ -171,6 +185,7 @@ SCM_DEFINE1 (scm_string_geq_p, "string>=?", scm_tc7_rpsubr,
 }
 #undef FUNC_NAME
 
+
 SCM_DEFINE1 (scm_string_ci_less_p, "string-ci<?", scm_tc7_rpsubr,
              (SCM s1, SCM s2),
 	     "Case insensitive lexicographic ordering predicate; \n"
@@ -178,24 +193,28 @@ SCM_DEFINE1 (scm_string_ci_less_p, "string-ci<?", scm_tc7_rpsubr,
 	     "@var{s2} regardless of case.  (r5rs)")
 #define FUNC_NAME s_scm_string_ci_less_p
 {
-  register scm_sizet i, len, s2len;
-  register unsigned char *c1, *c2;
-  register int c;
-  SCM_VALIDATE_ROSTRING (1,s1);
-  SCM_VALIDATE_ROSTRING (2,s2);
-  len = SCM_ROLENGTH (s1);
-  s2len = SCM_ROLENGTH (s2);
-  if (len>s2len) len = s2len;
+  scm_sizet i, length1, length2, lengthm;
+  unsigned char *c1, *c2;
+
+  SCM_VALIDATE_STRING (1, s1);
+  SCM_VALIDATE_STRING (2, s2);
+
+  length1 = SCM_STRING_LENGTH (s1);
+  length2 = SCM_STRING_LENGTH (s2);
+  lengthm = min (length1, length2);
   c1 = SCM_ROUCHARS (s1);
   c2 = SCM_ROUCHARS (s2);
-  for (i = 0;i<len;i++) {
-    c = (scm_upcase(*c1++) - scm_upcase(*c2++));
-    if (c>0) return SCM_BOOL_F;
-    if (c<0) return SCM_BOOL_T;
+
+  for (i = 0; i != lengthm; ++i, ++c1, ++c2) {
+    int c = scm_upcase (*c1) - scm_upcase (*c2);
+    if (c < 0) return SCM_BOOL_T;
+    if (c > 0) return SCM_BOOL_F;
   }
-  return SCM_BOOL(s2len != len);
+
+  return SCM_BOOL (length1 < length2);
 }
 #undef FUNC_NAME
+
 
 SCM_DEFINE1 (scm_string_ci_leq_p, "string-ci<=?", scm_tc7_rpsubr,
              (SCM s1, SCM s2),
@@ -208,6 +227,7 @@ SCM_DEFINE1 (scm_string_ci_leq_p, "string-ci<=?", scm_tc7_rpsubr,
 }
 #undef FUNC_NAME
 
+
 SCM_DEFINE1 (scm_string_ci_gr_p, "string-ci>?", scm_tc7_rpsubr,
              (SCM s1, SCM s2),
 	     "Case insensitive lexicographic ordering predicate; \n"
@@ -218,6 +238,7 @@ SCM_DEFINE1 (scm_string_ci_gr_p, "string-ci>?", scm_tc7_rpsubr,
   return scm_string_ci_less_p (s2, s1);
 }
 #undef FUNC_NAME
+
 
 SCM_DEFINE1 (scm_string_ci_geq_p, "string-ci>=?", scm_tc7_rpsubr,
              (SCM s1, SCM s2),

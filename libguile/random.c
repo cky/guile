@@ -53,6 +53,7 @@
 #include "libguile/numbers.h"
 #include "libguile/feature.h"
 #include "libguile/strings.h"
+#include "libguile/unif.h"
 #include "libguile/vectors.h"
 
 #include "libguile/validate.h"
