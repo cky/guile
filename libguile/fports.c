@@ -273,33 +273,19 @@ prinfport (exp, port, pstate)
 
 
 
-static int scm_fgetc SCM_P ((FILE * s));
-
 static int
-scm_fgetc (s)
-     FILE * s;
+local_fgetc (SCM port)
 {
+  FILE *s = (FILE *) SCM_STREAM (port);
   if (feof (s))
     return EOF;
   else
     return fgetc (s);
 }
 
-/*
- * The fgets method must take a port as its argument, rather than
- * the underlying file handle.  The reason is that we also provide
- * a generic fgets method for ports which can't use fgets(3) (e.g.
- * string ports).  This generic method calls the port's own
- * fgetc method.  In order for it to know how to get that method,
- * we must pass the original Scheme port object.
- */
-
-static char * scm_fgets SCM_P ((SCM port, int *len));
 
 static char *
-scm_fgets (port, len)
-     SCM port;
-     int *len;
+local_fgets (SCM port, int *len)
 {
   FILE *f;
 
@@ -384,53 +370,43 @@ pwrite (ptr, size, nitems, port)
  * crippled C compilers cope with life. 
  */
 
-static int local_fclose SCM_P ((FILE *fp));
-
 static int
-local_fclose (fp)
-     FILE * fp;
+local_fclose (SCM port)
 {
+  FILE *fp = (FILE *) SCM_STREAM (port);
+
   return fclose (fp);
 }
 
-static int local_fflush SCM_P ((FILE *fp));
-
 static int
-local_fflush (fp)
-     FILE * fp;
+local_fflush (SCM port)
 {
+  FILE *fp = (FILE *) SCM_STREAM (port);
   return fflush (fp);
 }
 
-static int local_fputc SCM_P ((int c, FILE *fp));
-
 static int
-local_fputc (c, fp)
-     int c;
-     FILE * fp;
+local_fputc (int c, SCM port)
 {
+  FILE *fp = (FILE *) SCM_STREAM (port);
+
   return fputc (c, fp);
 }
 
-static int local_fputs SCM_P ((char *s, FILE *fp));
-
 static int
-local_fputs (s, fp)
-     char * s;
-     FILE * fp;
+local_fputs (char *s, SCM port)
 {
+  FILE *fp = (FILE *) SCM_STREAM (port);
   return fputs (s, fp);
 }
 
-static scm_sizet local_ffwrite SCM_P ((void *ptr, int size, int nitems, FILE *fp));
-
 static scm_sizet
-local_ffwrite (ptr, size, nitems, fp)
-     void * ptr;
-     int size;
-     int nitems;
-     FILE * fp;
+local_ffwrite (char *ptr,
+	       scm_sizet size,
+	       scm_sizet nitems, 
+	       SCM port)
 {
+  FILE *fp = (FILE *) SCM_STREAM (port);
   return ffwrite (ptr, size, nitems, fp);
 }
 
@@ -441,17 +417,11 @@ print_pipe_port (SCM exp, SCM port, scm_print_state *pstate)
   return 1;
 }
 
-
-
-/* On SunOS, there's no declaration for pclose in the headers, so
-   putting it directly in the initializer for scm_pipob doesn't really
-   fly.  We could add an extern declaration for it, but then it'll
-   mismatch on some systems that do have a declaration.  So we just
-   wrap it up this way.  */
 static int
-local_pclose (fp)
-     FILE * fp;
+local_pclose (SCM port)
 {
+  FILE *fp = (FILE *) SCM_STREAM (port);
+
   return pclose (fp);
 }
 
@@ -459,32 +429,32 @@ local_pclose (fp)
 scm_ptobfuns scm_fptob =
 {
   0,
-  (int (*) SCM_P ((SCM))) local_fclose,
+  local_fclose,
   prinfport,
   0,
-  (int (*) SCM_P ((int, SCM))) local_fputc,
-  (int (*) SCM_P ((char *, SCM))) local_fputs,
-  (scm_sizet (*) SCM_P ((char *, scm_sizet, scm_sizet, SCM))) local_ffwrite,
-  (int (*) SCM_P ((SCM))) local_fflush,
-  (int (*) SCM_P ((SCM))) scm_fgetc,
-  (char * (*) SCM_P ((SCM, int *))) scm_fgets,
-  (int (*) SCM_P ((SCM))) local_fclose
+  local_fputc,
+  local_fputs,
+  local_ffwrite,
+  local_fflush,
+  local_fgetc,
+  local_fgets,
+  local_fclose
 };
 
 /* {Pipe ports} */
 scm_ptobfuns scm_pipob =
 {
   0,
-  (int (*) SCM_P ((SCM))) local_pclose,  
+  local_pclose,  
   print_pipe_port,
   0,
-  (int (*) SCM_P ((int, SCM))) local_fputc,
-  (int (*) SCM_P ((char *, SCM))) local_fputs,
-  (scm_sizet (*) SCM_P ((char *, scm_sizet, scm_sizet, SCM))) local_ffwrite,
-  (int (*) SCM_P ((SCM))) local_fflush,
-  (int (*) SCM_P ((SCM))) scm_fgetc,
-  (char * (*) SCM_P ((SCM, int *))) scm_generic_fgets,
-  (int (*) SCM_P ((SCM))) local_pclose
+  local_fputc,
+  local_fputs,
+  local_ffwrite,
+  local_fflush,
+  local_fgetc,
+  scm_generic_fgets,
+  local_pclose
 };
 
 void
