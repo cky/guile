@@ -1,3 +1,8 @@
+2001-03-03  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* tests/alist.test: Use "'()" instead of "()" in all places
+	where the empty list is meant.
+
 2001-03-01  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* lib.scm (exception:unbound-var, exception:wrong-num-args):  New

@@ -1,3 +1,25 @@
+2001-03-03  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* eval.h (SCM_EVALIM2): New macro.  Use it when a
+	immediate, literal constant should be evaluated.
+	* eval.c (scm_s_duplicate_formals): New error message string.
+	(scm_c_improper_memq): New function.
+	(scm_m_lambda): Check for duplicate arguments.
+	(scm_ceval, scm_deval): When executing a body: only cons a new
+	toplevel environment frame when it is different from the
+	existing one; use EVALCAR instead of SIDEVAL so that we can properly
+	check for empty combinations; use SCM_EVALIM2 for the same reason
+	in the non-toplevel loop.
+	(nontoplevel_cdrxnoap, nontoplevel_cdrxbegin, nontoplevel_begin):
+	New labels with the meaning of their non-"nontoplevel" partners,
+	but they are used when it is known that the body is not evaluated at
+	top-level.
+	(scm_apply, scm_dapply): use SCM_EVALIM2 to get proper error
+	reporting for empty combinations.
+
+	[ I think I recovered the lost performance with this.  I will
+ 	  further clean this up soon, too. ]
+
 2001-03-02  Keisuke Nishida  <kxn30@po.cwru.edu>
 
 	* Remove dump facilities.

@@ -1,3 +1,8 @@
+2001-03-03  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* boot-9.scm, rdelim.scm: Use "'()" instead of "()" in all places
+	where the empty list is meant.
+
 2001-02-26  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
 
 	* boot-9.scm (save-stack): Use `primitive-eval' for stack
