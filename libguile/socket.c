@@ -430,10 +430,9 @@ scm_fill_sockaddr (int fam,SCM address,SCM *args,int which_arg,const char *proc,
 	  scm_must_malloc (sizeof (struct sockaddr_un), proc);
 	memset (soka, 0, sizeof (struct sockaddr_un));
 	soka->sun_family = AF_UNIX;
-	SCM_ASSERT (SCM_ROSTRINGP (address), address,
-		    which_arg, proc);
+	SCM_ASSERT (SCM_STRINGP (address), address, which_arg, proc);
 	memcpy (soka->sun_path, SCM_ROCHARS (address),
-		1 + SCM_ROLENGTH (address));
+		1 + SCM_STRING_LENGTH (address));
 	*size = sizeof (struct sockaddr_un);
 	return (struct sockaddr *) soka;
       }
@@ -735,11 +734,11 @@ SCM_DEFINE (scm_send, "send", 2, 1, 0,
 
   sock = SCM_COERCE_OUTPORT (sock);
   SCM_VALIDATE_OPFPORT (1,sock);
-  SCM_VALIDATE_ROSTRING (2,message);
+  SCM_VALIDATE_STRING (2, message);
   SCM_VALIDATE_INUM_DEF_COPY (3,flags,0,flg);
   fd = SCM_FPORT_FDES (sock);
 
-  SCM_SYSCALL (rv = send (fd, SCM_ROCHARS (message), SCM_ROLENGTH (message), flg));
+  SCM_SYSCALL (rv = send (fd, SCM_ROCHARS (message), SCM_STRING_LENGTH (message), flg));
   if (rv == -1)
     SCM_SYSERROR;
   return SCM_MAKINUM (rv);
@@ -845,7 +844,7 @@ SCM_DEFINE (scm_sendto, "sendto", 4, 0, 1,
 
   sock = SCM_COERCE_OUTPORT (sock);
   SCM_VALIDATE_FPORT (1,sock);
-  SCM_VALIDATE_ROSTRING (2,message);
+  SCM_VALIDATE_STRING (2, message);
   SCM_VALIDATE_INUM (3,fam);
   fd = SCM_FPORT_FDES (sock);
   soka = scm_fill_sockaddr (SCM_INUM (fam), address, &args_and_flags, 4,
@@ -857,7 +856,7 @@ SCM_DEFINE (scm_sendto, "sendto", 4, 0, 1,
       SCM_VALIDATE_CONS (5,args_and_flags);
       flg = SCM_NUM2ULONG (5,SCM_CAR (args_and_flags));
     }
-  SCM_SYSCALL (rv = sendto (fd, SCM_ROCHARS (message), SCM_ROLENGTH (message),
+  SCM_SYSCALL (rv = sendto (fd, SCM_ROCHARS (message), SCM_STRING_LENGTH (message),
 			    flg, soka, size));
   save_err = errno;
   scm_must_free ((char *) soka);

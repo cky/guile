@@ -116,10 +116,34 @@ SCM_DEFINE (scm_error_scm, "scm-error", 5, 0, 0,
 {
   char *szSubr;
   char *szMessage;
-  SCM_VALIDATE_SYMBOL (1,key);
-  SCM_VALIDATE_NULLORROSTRING_COPY (2,subr,szSubr);
-  SCM_VALIDATE_NULLORROSTRING_COPY (3,message,szMessage);
-  SCM_COERCE_SUBSTR (message);
+
+  SCM_VALIDATE_SYMBOL (1, key);
+
+  if (SCM_FALSEP (subr))
+    {
+      szSubr = NULL;
+    }
+  else if (SCM_SYMBOLP (subr))
+    {
+      szSubr = SCM_SYMBOL_CHARS (subr);
+    }
+  else
+    {
+      SCM_VALIDATE_STRING (2, subr);
+      SCM_STRING_COERCE_0TERMINATION_X (subr);
+      szSubr = SCM_STRING_CHARS (subr);
+    }
+
+  if (SCM_FALSEP (message))
+    {
+      szMessage = NULL;
+    }
+  else
+    {
+      SCM_VALIDATE_STRING (2, message);
+      SCM_STRING_COERCE_0TERMINATION_X (message);
+      szMessage = SCM_STRING_CHARS (message);
+    }
 
   scm_error (key, szSubr, szMessage, args, rest);
   /* not reached.  */

@@ -74,33 +74,41 @@ maybe_drag_in_eprintf ()
 
 #include "libguile/validate.h"
 
+/* Create a new C argv array from a scheme list of strings. */
+/* Dirk:FIXME:: A quite similar function is implemented in posix.c */
+/* Dirk:FIXME:: In case of assertion errors, we get memory leaks */
+
 /* Converting a list of SCM strings into a argv-style array.  You must
    have ints disabled for the whole lifetime of the created argv (from
    before MAKE_ARGV_FROM_STRINGLIST until after
    MUST_FREE_ARGV). Atleast this is was the documentation for
    MAKARGVFROMSTRS says, it isn't really used that way.
 
-   This code probably belongs into strings.c */
+   This code probably belongs into strings.c 
+   (Dirk: IMO strings.c is not the right place.) */
 
 static char **
 scm_make_argv_from_stringlist (SCM args,int *argcp,const char *subr,int argn)
 {
   char **argv;
-  int argc, i;
+  int argc;
+  int i;
 
   argc = scm_ilength (args);
-  argv = (char **) scm_must_malloc ((1L + argc) * sizeof (char *), subr);
-  for (i = 0; SCM_NNULLP (args); args = SCM_CDR (args), i++) {
-    size_t len;
-    char *dst, *src;
-    SCM str = SCM_CAR (args);
+  SCM_ASSERT (argc >= 0, args, argn, subr);
+  argv = (char **) scm_must_malloc ((argc + 1) * sizeof (char *), subr);
+  for (i = 0; !SCM_NULLP (args); args = SCM_CDR (args), ++i) {
+    SCM arg = SCM_CAR (args);
+    scm_sizet len;
+    char *dst;
+    char *src;
 
-    SCM_ASSERT (SCM_ROSTRINGP (str), str, argn, subr);
-    len = 1 + SCM_ROLENGTH (str);
-    dst = (char *) scm_must_malloc ((long) len, subr);
-    src = SCM_ROCHARS (str);
-    while (len--)
-      dst[len] = src[len];
+    SCM_ASSERT (SCM_STRINGP (arg), args, argn, subr);
+    len = SCM_STRING_LENGTH (arg);
+    src = SCM_ROCHARS (arg);
+    dst = (char *) scm_must_malloc (len + 1, subr);
+    memcpy (dst, src, len);
+    dst[len] = 0;
     argv[i] = dst;
   }
 
@@ -117,18 +125,6 @@ scm_must_free_argv(char **argv)
   while (*av)
     free (*(av++));
   free (argv);
-}
-
-/* Coerce an arbitrary readonly-string into a zero-terminated string.
- */
-
-static SCM
-scm_coerce_rostring (SCM rostr,const char *subr,int argn)
-{
-  SCM_ASSERT (SCM_ROSTRINGP (rostr), rostr, argn, subr);
-  if (SCM_SUBSTRP (rostr))
-    rostr = scm_makfromstr (SCM_ROCHARS (rostr), SCM_STRING_LENGTH (rostr), 0);
-  return rostr;
 }
 
 /* Module registry
@@ -353,11 +349,10 @@ SCM_DEFINE (scm_dynamic_link, "dynamic-link", 1, 0, 0,
 #define FUNC_NAME s_scm_dynamic_link
 {
   void *handle;
-  char *chars;
 
-  fname = scm_coerce_rostring (fname, FUNC_NAME, 1);
-  chars = SCM_STRINGP (fname) ? SCM_STRING_CHARS (fname) : SCM_SYMBOL_CHARS (fname);
-  handle = sysdep_dynl_link (chars, FUNC_NAME);
+  SCM_VALIDATE_STRING (1, fname);
+  SCM_STRING_COERCE_0TERMINATION_X (fname);
+  handle = sysdep_dynl_link (SCM_STRING_CHARS (fname), FUNC_NAME);
   SCM_RETURN_NEWSMOB2 (scm_tc16_dynamic_obj, SCM_UNPACK (fname), handle);
 }
 #undef FUNC_NAME
@@ -401,24 +396,24 @@ SCM_DEFINE (scm_dynamic_unlink, "dynamic-unlink", 1, 0, 0,
 
 
 SCM_DEFINE (scm_dynamic_func, "dynamic-func", 2, 0, 0, 
-            (SCM symb, SCM dobj),
-	    "Import the symbol @var{func} from @var{lib} (a dynamic library handle).\n"
-	    "A @dfn{function handle} representing the imported function is returned.\n"
-	    "GJB:FIXME:DOC: 2nd version below\n"
-	    "Search the C function indicated by @var{function} (a string or symbol)\n"
-	    "in @var{dynobj} and return some Scheme object that can later be used\n"
-	    "with @code{dynamic-call} to actually call this function.  Right now,\n"
-	    "these Scheme objects are formed by casting the address of the function\n"
-	    "to @code{long} and converting this number to its Scheme representation.\n\n"
+            (SCM name, SCM dobj),
+	    "Search the dynamic object @var{dobj} for the C function\n"
+	    "indicated by the string @var{name} and return some Scheme\n"
+	    "handle that can later be used with @code{dynamic-call} to\n"
+	    "actually call the function.\n\n"
 	    "Regardless whether your C compiler prepends an underscore @samp{_} to\n"
 	    "the global names in a program, you should @strong{not} include this\n"
 	    "underscore in @var{function}.  Guile knows whether the underscore is\n"
 	    "needed or not and will add it when necessary.")
 #define FUNC_NAME s_scm_dynamic_func
 {
+  /* The returned handle is formed by casting the address of the function to a
+   * long value and converting this to a scheme number
+   */
+
   void (*func) ();
 
-  symb = scm_coerce_rostring (symb, FUNC_NAME, 1);
+  SCM_VALIDATE_STRING (1, name);
   /*fixme* GC-problem */
   SCM_VALIDATE_SMOB (SCM_ARG2, dobj, dynamic_obj);
   if (DYNL_HANDLE (dobj) == NULL) {
@@ -427,7 +422,8 @@ SCM_DEFINE (scm_dynamic_func, "dynamic-func", 2, 0, 0,
     char *chars;
 
     SCM_DEFER_INTS;
-    chars = SCM_STRINGP (symb) ? SCM_STRING_CHARS (symb) : SCM_SYMBOL_CHARS (symb);
+    SCM_STRING_COERCE_0TERMINATION_X (name);
+    chars = SCM_STRING_CHARS (name);
     func = (void (*) ()) sysdep_dynl_func (chars, DYNL_HANDLE (dobj), FUNC_NAME);
     SCM_ALLOW_INTS;
     return scm_ulong2num ((unsigned long) func);
@@ -458,7 +454,7 @@ SCM_DEFINE (scm_dynamic_call, "dynamic-call", 2, 0, 0,
 {
   void (*fptr) ();
   
-  if (SCM_ROSTRINGP (func))
+  if (SCM_STRINGP (func))
     func = scm_dynamic_func (func, dobj);
   fptr = (void (*) ()) SCM_NUM2ULONG (1, func);
   SCM_DEFER_INTS;
@@ -494,7 +490,7 @@ SCM_DEFINE (scm_dynamic_args_call, "dynamic-args-call", 3, 0, 0,
   int result, argc;
   char **argv;
 
-  if (SCM_ROSTRINGP (func))
+  if (SCM_STRINGP (func))
     func = scm_dynamic_func (func, dobj);
 
   fptr = (int (*) (int, char **)) SCM_NUM2ULONG (1, func);

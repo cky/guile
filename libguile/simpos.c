@@ -82,12 +82,11 @@ SCM_DEFINE (scm_system, "system", 0, 1, 0,
       rv = system (NULL);
       return SCM_BOOL(rv);
     }
-  SCM_VALIDATE_ROSTRING (1,cmd);
+  SCM_VALIDATE_STRING (1, cmd);
   SCM_DEFER_INTS;
   errno = 0;
-  if (SCM_SUBSTRP (cmd))
-    cmd = scm_makfromstr (SCM_ROCHARS (cmd), SCM_STRING_LENGTH (cmd), 0);
-  rv = system(SCM_ROCHARS(cmd));
+  SCM_STRING_COERCE_0TERMINATION_X (cmd);
+  rv = system (SCM_STRING_CHARS (cmd));
   if (rv == -1 || (rv == 127 && errno != 0))
     SCM_SYSERROR;
   SCM_ALLOW_INTS;
@@ -105,8 +104,8 @@ SCM_DEFINE (scm_getenv, "getenv", 1, 0, 0,
 #define FUNC_NAME s_scm_getenv
 {
   char *val;
-  SCM_VALIDATE_ROSTRING (1,nam);
-  nam = scm_makfromstr (SCM_ROCHARS (nam), SCM_ROLENGTH (nam), 0);
+  SCM_VALIDATE_STRING (1, nam);
+  SCM_STRING_COERCE_0TERMINATION_X (nam);
   val = getenv (SCM_STRING_CHARS (nam));
   return (val) ? scm_makfromstr(val, (scm_sizet)strlen(val), 0) : SCM_BOOL_F;
 }

@@ -1,4 +1,4 @@
-/* $Id: validate.h,v 1.18 2000-10-25 11:01:03 dirk Exp $ */
+/* $Id: validate.h,v 1.19 2000-10-30 11:42:26 dirk Exp $ */
 /*	Copyright (C) 1999, 2000 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -122,24 +122,6 @@
   do { \
     SCM_ASSERT (SCM_CHARP (scm), scm, pos, FUNC_NAME); \
     cvar = SCM_CHAR (scm); \
-  } while (0)
-
-#define SCM_VALIDATE_ROSTRING(pos, str) SCM_MAKE_VALIDATE (pos, str, ROSTRINGP)
-
-#define SCM_VALIDATE_ROSTRING_COPY(pos, str, cvar) \
-  do { \
-    SCM_ASSERT (SCM_ROSTRINGP (str), str, pos, FUNC_NAME); \
-    cvar = SCM_ROCHARS (str); \
-  } while (0)
-
-#define SCM_VALIDATE_NULLORROSTRING_COPY(pos, str, cvar) \
-  do { \
-    SCM_ASSERT (SCM_FALSEP (str) || SCM_ROSTRINGP (str), \
-                str, pos, FUNC_NAME); \
-    if (SCM_FALSEP(str)) \
-      cvar = NULL; \
-    else \
-      cvar = SCM_ROCHARS(str); \
   } while (0)
 
 #define SCM_VALIDATE_STRING(pos, str) SCM_MAKE_VALIDATE (pos, str, STRINGP)
@@ -415,6 +397,24 @@
 #if (SCM_DEBUG_DEPRECATED == 0)
 
 #define SCM_VALIDATE_STRINGORSUBSTR SCM_VALIDATE_STRING
+
+#define SCM_VALIDATE_ROSTRING(pos, str) SCM_MAKE_VALIDATE (pos, str, ROSTRINGP)
+
+#define SCM_VALIDATE_ROSTRING_COPY(pos, str, cvar) \
+  do { \
+    SCM_ASSERT (SCM_ROSTRINGP (str), str, pos, FUNC_NAME); \
+    cvar = SCM_ROCHARS (str); \
+  } while (0)
+
+#define SCM_VALIDATE_NULLORROSTRING_COPY(pos, str, cvar) \
+  do { \
+    SCM_ASSERT (SCM_FALSEP (str) || SCM_ROSTRINGP (str), \
+                str, pos, FUNC_NAME); \
+    if (SCM_FALSEP(str)) \
+      cvar = NULL; \
+    else \
+      cvar = SCM_ROCHARS(str); \
+  } while (0)
 
 #endif  /* SCM_DEBUG_DEPRECATED == 0 */
 

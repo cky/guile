@@ -524,7 +524,7 @@ SCM_DEFINE (scm_string_to_obarray_symbol, "string->obarray-symbol", 2, 1, 0,
   SCM answer;
   int softness;
 
-  SCM_VALIDATE_ROSTRING (2,s);
+  SCM_VALIDATE_STRING (2, s);
   SCM_ASSERT (SCM_BOOLP (o) || SCM_VECTORP (o), o, SCM_ARG1, FUNC_NAME);
 
   softness = (!SCM_UNBNDP (softp) && !SCM_FALSEP(softp));
@@ -535,7 +535,7 @@ SCM_DEFINE (scm_string_to_obarray_symbol, "string->obarray-symbol", 2, 1, 0,
     o = SCM_BOOL_F;
     
   vcell = scm_intern_obarray_soft (SCM_ROCHARS(s),
-				   (scm_sizet)SCM_ROLENGTH(s),
+				   SCM_STRING_LENGTH (s),
 				   o,
 				   softness);
   if (SCM_FALSEP (vcell))

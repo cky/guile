@@ -61,7 +61,7 @@ scm_i_index (SCM *str, SCM chr, int direction, SCM sub_start,
   int upper;
   int ch;
 
-  SCM_ASSERT (SCM_ROSTRINGP (*str), *str, SCM_ARG1, why);
+  SCM_ASSERT (SCM_STRINGP (*str), *str, SCM_ARG1, why);
   SCM_ASSERT (SCM_CHARP (chr), chr, SCM_ARG2, why);
 
   if (SCM_FALSEP (sub_start))
@@ -69,17 +69,15 @@ scm_i_index (SCM *str, SCM chr, int direction, SCM sub_start,
 
   SCM_ASSERT (SCM_INUMP (sub_start), sub_start, SCM_ARG3, why);
   lower = SCM_INUM (sub_start);
-  if (lower < 0
-      || lower > SCM_ROLENGTH (*str))
+  if (lower < 0 || lower > SCM_STRING_LENGTH (*str))
     scm_out_of_range (why, sub_start);
 
   if (SCM_FALSEP (sub_end))
-    sub_end = SCM_MAKINUM (SCM_ROLENGTH (*str));
+    sub_end = SCM_MAKINUM (SCM_STRING_LENGTH (*str));
 
   SCM_ASSERT (SCM_INUMP (sub_end), sub_end, SCM_ARG4, why);
   upper = SCM_INUM (sub_end);
-  if (upper < SCM_INUM (sub_start)
-      || upper > SCM_ROLENGTH (*str))
+  if (upper < SCM_INUM (sub_start) || upper > SCM_STRING_LENGTH (*str))
     scm_out_of_range (why, sub_end);
 
   if (direction > 0)
@@ -309,8 +307,8 @@ SCM_DEFINE (scm_string_null_p, "string-null?", 1, 0, 0,
 	    "@end example")
 #define FUNC_NAME s_scm_string_null_p
 {
-  SCM_VALIDATE_ROSTRING (1,str);
-  return SCM_NEGATE_BOOL(SCM_ROLENGTH (str));
+  SCM_VALIDATE_STRING (1,str);
+  return SCM_NEGATE_BOOL (SCM_STRING_LENGTH (str));
 }
 #undef FUNC_NAME
 
@@ -328,9 +326,9 @@ SCM_DEFINE (scm_string_to_list, "string->list", 1, 0, 0,
   long i;
   SCM res = SCM_EOL;
   unsigned char *src;
-  SCM_VALIDATE_ROSTRING (1,str);
+  SCM_VALIDATE_STRING (1,str);
   src = SCM_ROUCHARS (str);
-  for (i = SCM_ROLENGTH (str)-1;i >= 0;i--) res = scm_cons (SCM_MAKE_CHAR (src[i]), res);
+  for (i = SCM_STRING_LENGTH (str)-1;i >= 0;i--) res = scm_cons (SCM_MAKE_CHAR (src[i]), res);
   return res;
 }
 #undef FUNC_NAME

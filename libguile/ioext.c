@@ -93,8 +93,8 @@ SCM_DEFINE (scm_read_delimited_x, "%read-delimited!", 3, 3, 0,
   char *cdelims;
   int num_delims;
 
-  SCM_VALIDATE_ROSTRING_COPY (1,delims,cdelims);
-  num_delims = SCM_ROLENGTH (delims);
+  SCM_VALIDATE_STRING_COPY (1, delims, cdelims);
+  num_delims = SCM_STRING_LENGTH (delims);
   SCM_VALIDATE_STRING_COPY (2,buf,cbuf);
   cend = SCM_STRING_LENGTH (buf);
   if (SCM_UNBNDP (port))
@@ -457,10 +457,10 @@ SCM_DEFINE (scm_fdopen, "fdopen", 2, 0, 0,
 #define FUNC_NAME s_scm_fdopen
 {
   SCM_VALIDATE_INUM (1,fdes);
-  SCM_VALIDATE_ROSTRING (2,modes);
-  SCM_COERCE_SUBSTR (modes);
+  SCM_VALIDATE_STRING (2, modes);
+  SCM_STRING_COERCE_0TERMINATION_X (modes);
 
-  return scm_fdes_to_port (SCM_INUM (fdes), SCM_ROCHARS (modes), SCM_BOOL_F);
+  return scm_fdes_to_port (SCM_INUM (fdes), SCM_STRING_CHARS (modes), SCM_BOOL_F);
 }
 #undef FUNC_NAME
 

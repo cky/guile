@@ -264,10 +264,9 @@ SCM_DEFINE (scm_getpwuid, "getpw", 0, 1, 0,
     }
   else
     {
-      SCM_VALIDATE_ROSTRING (1,user);
-      if (SCM_SUBSTRP (user))
-	user = scm_makfromstr (SCM_ROCHARS (user), SCM_STRING_LENGTH (user), 0);
-      entry = getpwnam (SCM_ROCHARS (user));
+      SCM_VALIDATE_STRING (1, user);
+      SCM_STRING_COERCE_0TERMINATION_X (user);
+      entry = getpwnam (SCM_STRING_CHARS (user));
     }
   if (!entry)
     SCM_MISC_ERROR ("entry not found", SCM_EOL);
@@ -334,9 +333,9 @@ SCM_DEFINE (scm_getgrgid, "getgr", 0, 1, 0,
     SCM_SYSCALL (entry = getgrgid (SCM_INUM (name)));
   else
     {
-      SCM_VALIDATE_ROSTRING (1,name);
-      SCM_COERCE_SUBSTR (name);
-      SCM_SYSCALL (entry = getgrnam (SCM_ROCHARS (name)));
+      SCM_VALIDATE_STRING (1, name);
+      SCM_STRING_COERCE_0TERMINATION_X (name);
+      SCM_SYSCALL (entry = getgrnam (SCM_STRING_CHARS (name)));
     }
   if (!entry)
     SCM_SYSERROR;
@@ -802,35 +801,37 @@ SCM_DEFINE (scm_tcsetpgrp, "tcsetpgrp", 2, 0, 0,
 #undef FUNC_NAME
 #endif /* HAVE_TCSETPGRP */
 
-/* Copy exec args from an SCM vector into a new C array.  */
+/* Create a new C argv array from a scheme list of strings. */
+/* Dirk:FIXME:: A quite similar function is implemented in dynl.c */
+/* Dirk:FIXME:: In case of assertion errors, we get memory leaks */
 
 static char **
-scm_convert_exec_args (SCM args, int pos, const char *subr)
+scm_convert_exec_args (SCM args, int argn, const char *subr)
 {
-  char **execargv;
-  int num_args;
+  char **argv;
+  int argc;
   int i;
 
-  num_args = scm_ilength (args);
-  SCM_ASSERT (num_args >= 0, args, pos, subr);
-  execargv = (char **) 
-    scm_must_malloc ((num_args + 1) * sizeof (char *), subr);
+  argc = scm_ilength (args);
+  SCM_ASSERT (argc >= 0, args, argn, subr);
+  argv = (char **) scm_must_malloc ((argc + 1) * sizeof (char *), subr);
   for (i = 0; !SCM_NULLP (args); args = SCM_CDR (args), ++i)
     {
+      SCM arg = SCM_CAR (args);
       scm_sizet len;
       char *dst;
       char *src;
-      SCM_ASSERT (SCM_ROSTRINGP (SCM_CAR (args)),
-		  SCM_CAR (args), SCM_ARGn, subr);
-      len = 1 + SCM_ROLENGTH (SCM_CAR (args));
-      dst = (char *) scm_must_malloc ((long) len, subr);
-      src = SCM_ROCHARS (SCM_CAR (args));
-      while (len--) 
-	dst[len] = src[len];
-      execargv[i] = dst;
+
+      SCM_ASSERT (SCM_STRINGP (arg), args, argn, subr);
+      len = SCM_STRING_LENGTH (arg);
+      src = SCM_ROCHARS (arg);
+      dst = (char *) scm_must_malloc (len + 1, subr);
+      memcpy (dst, src, len);
+      dst[len] = 0;
+      argv[i] = dst;
     }
-  execargv[i] = 0;
-  return execargv;
+  argv[i] = 0;
+  return argv;
 }
 
 SCM_DEFINE (scm_execl, "execl", 1, 0, 1, 
@@ -847,10 +848,10 @@ SCM_DEFINE (scm_execl, "execl", 1, 0, 1,
 #define FUNC_NAME s_scm_execl
 {
   char **execargv;
-  SCM_VALIDATE_ROSTRING (1,filename);
-  SCM_COERCE_SUBSTR (filename);
+  SCM_VALIDATE_STRING (1, filename);
+  SCM_STRING_COERCE_0TERMINATION_X (filename);
   execargv = scm_convert_exec_args (args, SCM_ARG2, FUNC_NAME);
-  execv (SCM_ROCHARS (filename), execargv);
+  execv (SCM_STRING_CHARS (filename), execargv);
   SCM_SYSERROR;
   /* not reached.  */
   return SCM_BOOL_F;
@@ -868,10 +869,10 @@ SCM_DEFINE (scm_execlp, "execlp", 1, 0, 1,
 #define FUNC_NAME s_scm_execlp
 {
   char **execargv;
-  SCM_VALIDATE_ROSTRING (1,filename);
-  SCM_COERCE_SUBSTR (filename);
+  SCM_VALIDATE_STRING (1, filename);
+  SCM_STRING_COERCE_0TERMINATION_X (filename);
   execargv = scm_convert_exec_args (args, SCM_ARG2, FUNC_NAME);
-  execvp (SCM_ROCHARS (filename), execargv);
+  execvp (SCM_STRING_CHARS (filename), execargv);
   SCM_SYSERROR;
   /* not reached.  */
   return SCM_BOOL_F;
@@ -883,30 +884,27 @@ environ_list_to_c (SCM envlist, int arg, const char *proc)
 {
   int num_strings;
   char **result;
-  int i = 0;
+  int i;
 
-  SCM_ASSERT (SCM_NULLP (envlist) || SCM_CONSP (envlist),
-	      envlist, arg, proc);
   num_strings = scm_ilength (envlist);
+  SCM_ASSERT (num_strings >= 0, envlist, arg, proc);
   result = (char **) malloc ((num_strings + 1) * sizeof (char *));
   if (result == NULL)
     scm_memory_error (proc);
-  while (SCM_NNULLP (envlist))
+  for (i = 0; !SCM_NULLP (envlist); ++i, envlist = SCM_CDR (envlist))
     {
+      SCM str = SCM_CAR (envlist);
       int len;
       char *src;
 
-      SCM_ASSERT (SCM_ROSTRINGP (SCM_CAR (envlist)),
-		  envlist, arg, proc);
-      len = 1 + SCM_ROLENGTH (SCM_CAR (envlist));
-      result[i] = malloc ((long) len);
+      SCM_ASSERT (SCM_STRINGP (str), envlist, arg, proc);
+      len = SCM_STRING_LENGTH (str);
+      src = SCM_ROCHARS (str);
+      result[i] = malloc (len + 1);
       if (result[i] == NULL)
 	scm_memory_error (proc);
-      src = SCM_ROCHARS (SCM_CAR (envlist));
-      while (len--) 
-	result[i][len] = src[len];
-      envlist = SCM_CDR (envlist);
-      i++;
+      memcpy (result[i], src, len);
+      result[i][len] = 0;
     }
   result[i] = 0;
   return result;
@@ -924,12 +922,12 @@ SCM_DEFINE (scm_execle, "execle", 2, 0, 1,
   char **execargv;
   char **exec_env;
 
-  SCM_VALIDATE_ROSTRING (1,filename);
-  SCM_COERCE_SUBSTR (filename);
+  SCM_VALIDATE_STRING (1, filename);
+  SCM_STRING_COERCE_0TERMINATION_X (filename);
   
   execargv = scm_convert_exec_args (args, SCM_ARG1, FUNC_NAME);
   exec_env = environ_list_to_c (env, SCM_ARG2, FUNC_NAME);
-  execve (SCM_ROCHARS (filename), execargv, exec_env);
+  execve (SCM_STRING_CHARS (filename), execargv, exec_env);
   SCM_SYSERROR;
   /* not reached.  */
   return SCM_BOOL_F;
@@ -1052,8 +1050,8 @@ SCM_DEFINE (scm_utime, "utime", 1, 2, 0,
   int rv;
   struct utimbuf utm_tmp;
 
-  SCM_VALIDATE_ROSTRING (1,pathname);
-  SCM_COERCE_SUBSTR (pathname);
+  SCM_VALIDATE_STRING (1, pathname);
+  SCM_STRING_COERCE_0TERMINATION_X (pathname);
   if (SCM_UNBNDP (actime))
     SCM_SYSCALL (time (&utm_tmp.actime));
   else
@@ -1064,7 +1062,7 @@ SCM_DEFINE (scm_utime, "utime", 1, 2, 0,
   else
     utm_tmp.modtime = SCM_NUM2ULONG (3,modtime);
 
-  SCM_SYSCALL (rv = utime (SCM_ROCHARS (pathname), &utm_tmp));
+  SCM_SYSCALL (rv = utime (SCM_STRING_CHARS (pathname), &utm_tmp));
   if (rv != 0)
     SCM_SYSERROR;
   return SCM_UNSPECIFIED;
@@ -1100,11 +1098,10 @@ SCM_DEFINE (scm_access, "access?", 2, 0, 0,
 {
   int rv;
 
-  SCM_VALIDATE_ROSTRING (1,path);
-  if (SCM_SUBSTRP (path))
-    path = scm_makfromstr (SCM_ROCHARS (path), SCM_ROLENGTH (path), 0);
-  SCM_VALIDATE_INUM (2,how);
-  rv = access (SCM_ROCHARS (path), SCM_INUM (how));
+  SCM_VALIDATE_STRING (1, path);
+  SCM_STRING_COERCE_0TERMINATION_X (path);
+  SCM_VALIDATE_INUM (2, how);
+  rv = access (SCM_STRING_CHARS (path), SCM_INUM (how));
   return SCM_NEGATE_BOOL(rv);
 }
 #undef FUNC_NAME
@@ -1172,9 +1169,9 @@ SCM_DEFINE (scm_setlocale, "setlocale", 1, 1, 0,
     }
   else
     {
-      SCM_VALIDATE_ROSTRING (2,locale);
-      SCM_COERCE_SUBSTR (locale);
-      clocale = SCM_ROCHARS (locale);
+      SCM_VALIDATE_STRING (2, locale);
+      SCM_STRING_COERCE_0TERMINATION_X (locale);
+      clocale = SCM_STRING_CHARS (locale);
     }
 
   rv = setlocale (SCM_INUM (category), clocale);
@@ -1207,11 +1204,11 @@ SCM_DEFINE (scm_mknod, "mknod", 4, 0, 0,
   char *p;
   int ctype = 0;
 
-  SCM_VALIDATE_ROSTRING (1,path);
+  SCM_VALIDATE_STRING (1, path);
   SCM_VALIDATE_SYMBOL (2,type);
   SCM_VALIDATE_INUM (3,perms);
   SCM_VALIDATE_INUM (4,dev);
-  SCM_COERCE_SUBSTR (path);
+  SCM_STRING_COERCE_0TERMINATION_X (path);
 
   p = SCM_SYMBOL_CHARS (type);
   if (strcmp (p, "regular") == 0)
@@ -1233,8 +1230,8 @@ SCM_DEFINE (scm_mknod, "mknod", 4, 0, 0,
   else
     SCM_OUT_OF_RANGE (2,type);
 
-  SCM_SYSCALL (val = mknod(SCM_ROCHARS(path), ctype | SCM_INUM (perms),
-			   SCM_INUM (dev)));
+  SCM_SYSCALL (val = mknod (SCM_STRING_CHARS (path), ctype | SCM_INUM (perms),
+			    SCM_INUM (dev)));
   if (val != 0)
     SCM_SYSERROR;
   return SCM_UNSPECIFIED;

@@ -95,10 +95,9 @@ SCM_DEFINE (scm_inet_aton, "inet-aton", 1, 0, 0,
 {
   struct in_addr soka;
 
-  SCM_VALIDATE_ROSTRING (1,address);
-  if (SCM_SUBSTRP (address))
-    address = scm_makfromstr (SCM_ROCHARS (address), SCM_ROLENGTH (address), 0);
-  if (inet_aton (SCM_ROCHARS (address), &soka) == 0)
+  SCM_VALIDATE_STRING (1, address);
+  SCM_STRING_COERCE_0TERMINATION_X (address);
+  if (inet_aton (SCM_STRING_CHARS (address), &soka) == 0)
     SCM_MISC_ERROR ("bad address", SCM_EOL);
   return scm_ulong2num (ntohl (soka.s_addr));
 }
@@ -277,10 +276,10 @@ SCM_DEFINE (scm_gethost, "gethost", 0, 1, 0,
 	  return SCM_BOOL_F;
 	}
     }
-  else if (SCM_ROSTRINGP (host))
+  else if (SCM_STRINGP (host))
     {
-      SCM_COERCE_SUBSTR (host);
-      entry = gethostbyname (SCM_ROCHARS (host));
+      SCM_STRING_COERCE_0TERMINATION_X (host);
+      entry = gethostbyname (SCM_STRING_CHARS (host));
     }
   else
     {
@@ -351,10 +350,10 @@ SCM_DEFINE (scm_getnet, "getnet", 0, 1, 0,
 	    return SCM_BOOL_F;
 	}
     }
-  else if (SCM_ROSTRINGP (net))
+  else if (SCM_STRINGP (net))
     {
-      SCM_COERCE_SUBSTR (net);
-      entry = getnetbyname (SCM_ROCHARS (net));
+      SCM_STRING_COERCE_0TERMINATION_X (net);
+      entry = getnetbyname (SCM_STRING_CHARS (net));
     }
   else
     {
@@ -403,10 +402,10 @@ SCM_DEFINE (scm_getproto, "getproto", 0, 1, 0,
 	    return SCM_BOOL_F;
 	}
     }
-  else if (SCM_ROSTRINGP (protocol))
+  else if (SCM_STRINGP (protocol))
     {
-      SCM_COERCE_SUBSTR (protocol);
-      entry = getprotobyname (SCM_ROCHARS (protocol));
+      SCM_STRING_COERCE_0TERMINATION_X (protocol);
+      entry = getprotobyname (SCM_STRING_CHARS (protocol));
     }
   else
     {
@@ -468,17 +467,17 @@ SCM_DEFINE (scm_getserv, "getserv", 0, 2, 0,
 	}
       return scm_return_entry (entry);
     }
-  SCM_VALIDATE_ROSTRING (2,protocol);
-  SCM_COERCE_SUBSTR (protocol);
-  if (SCM_ROSTRINGP (name))
+  SCM_VALIDATE_STRING (2, protocol);
+  SCM_STRING_COERCE_0TERMINATION_X (protocol);
+  if (SCM_STRINGP (name))
     {
-      SCM_COERCE_SUBSTR (name);
-      entry = getservbyname (SCM_ROCHARS (name), SCM_ROCHARS (protocol));
+      SCM_STRING_COERCE_0TERMINATION_X (name);
+      entry = getservbyname (SCM_STRING_CHARS (name), SCM_STRING_CHARS (protocol));
     }
   else
     {
       SCM_VALIDATE_INUM (1,name);
-      entry = getservbyport (htons (SCM_INUM (name)), SCM_ROCHARS (protocol));
+      entry = getservbyport (htons (SCM_INUM (name)), SCM_STRING_CHARS (protocol));
     }
   if (!entry)
     SCM_SYSERROR_MSG("no such service ~A", 

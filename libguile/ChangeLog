@@ -1,3 +1,68 @@
+2000-10-27  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* dynl.c (scm_dynamic_link, scm_dynamic_func, scm_dynamic_call,
+	scm_dynamic_args_call), filesys.c (scm_chown, scm_chmod,
+	scm_open_fdes, scm_stat, scm_link, scm_rename, scm_delete_file,
+	scm_mkdir, scm_rmdir, scm_opendir, scm_chdir, scm_symlink,
+	scm_readlink, scm_lstat, scm_copy_file), fports.c (scm_open_file),
+	ioext.c (scm_read_delimited_x, scm_fdopen), load.c
+	(scm_primitive_load, scm_parse_path, scm_search_path,
+	scm_sys_search_load_path, scm_primitive_load_path), net_db.c
+	(scm_inet_aton, scm_gethost, scm_getnet, scm_getproto,
+	scm_getserv), numbers.c (scm_string_to_number), ports.c
+	(scm_truncate_file, scm_sys_make_void_port), posix.c
+	(scm_getpwuid, scm_getgrgid, scm_execl, scm_execlp,
+	environ_list_to_c, scm_execle, scm_utime, scm_access,
+	scm_setlocale, scm_mknod), regex-posix.c (scm_make_regexp),
+	simpos.c (scm_system, scm_getenv), socket.c (scm_fill_sockaddr,
+	scm_send, scm_sendto), stime.c (scm_strftime, scm_strptime),
+	strop.c (scm_i_index, scm_string_null_p, scm_string_to_list),
+	strports.c (scm_mkstrport), symbols.c
+	(scm_string_to_obarray_symbol), vports.c (scm_make_soft_port):
+	Don't accept symbols as input parameters.  Use SCM_STRING_LENGTH
+	instead of SCM_ROLENGTH.
+
+	* dynl.c (scm_dynamic_link, scm_dynamic_func), error.c
+	(scm_error_scm), filesys.c (scm_chown, scm_chmod, scm_open_fdes,
+	scm_stat, scm_link, scm_rename, scm_delete_file, scm_mkdir,
+	scm_rmdir, scm_opendir, scm_chdir, scm_symlink, scm_readlink,
+	scm_lstat, scm_copy_file), fports.c (scm_open_file), ioext.c
+	(scm_fdopen), net_db.c (scm_inet_aton, scm_gethost, scm_getnet,
+	scm_getproto, scm_getserv), ports.c (scm_truncate_file,
+	scm_sys_make_void_port), posix.c (scm_getpwuid, scm_getgrgid,
+	scm_execl, scm_execlp, scm_execle, scm_utime, scm_access,
+	scm_setlocale, scm_mknod), regex-posix.c (scm_make_regexp,
+	scm_regexp_exec), simpos.c (scm_system, scm_getenv), stime.c
+	(setzone, scm_strftime, scm_strptime), vports.c
+	(scm_make_soft_port):  Use SCM_STRING_COERCE_0TERMINATION_X to
+	make sure the characters of a string are followed by a \0.
+	Further, use SCM_STRING_CHARS instead of SCM_ROCHARS on the
+	resulting string.
+
+	* dynl.c (scm_make_argv_from_stringlist), posix.c
+	(scm_convert_exec_args):  Aligned to match each other.
+
+	* dynl.c (scm_coerce_rostring):  Removed.
+
+	(scm_dynamic_func):  Changed the comment to reflect that the
+	function name has to be a string.  Further, hide implementation
+	details from the scheme comment.
+
+	* error (scm_error_scm):  Don't accept a symbol as message
+	parameter.  Fix substring handling.
+
+	* posix.c (environ_list_to_c):  Use memcpy to copy environment
+	strings.  Handle substrings which don't have a trailing \0.
+
+	* symbols.h (SCM_LENGTH, SCM_ROLENGTH, SCM_SUBSTRP,
+	SCM_SUBSTR_STR, SCM_SUBSTR_OFFSET, SCM_COERCE_SUBSTR):
+	Deprecated.
+
+	* unif.h (SCM_HUGE_LENGTH):  Deprecated.
+
+	* validate.h (SCM_VALIDATE_ROSTRING, SCM_VALIDATE_ROSTRING_COPY,
+	SCM_VALIDATE_NULLORROSTRING_COPY):  Deprecated.
+
 2000-10-26  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* random.c:  Include unif.h.
@@ -110,7 +175,6 @@
 
 	* validated.h (SCM_VALIDATE_STRINGORSUBSTR):  Deprecated.
 
->>>>>>> 1.1152
 2000-10-20  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* init.c (scm_init_guile_1, invoke_main_func): Call

@@ -276,15 +276,13 @@ SCM_DEFINE (scm_open_file, "open-file", 2, 0, 0,
   char *mode;
   char *ptr;
 
-  SCM_VALIDATE_ROSTRING (1,filename);
-  SCM_VALIDATE_ROSTRING (2,modes);
-  if (SCM_SUBSTRP (filename))
-    filename = scm_makfromstr (SCM_ROCHARS (filename), SCM_STRING_LENGTH (filename), 0);
-  if (SCM_SUBSTRP (modes))
-    modes = scm_makfromstr (SCM_ROCHARS (modes), SCM_STRING_LENGTH (modes), 0);
+  SCM_VALIDATE_STRING (1, filename);
+  SCM_VALIDATE_STRING (2, modes);
+  SCM_STRING_COERCE_0TERMINATION_X (filename);
+  SCM_STRING_COERCE_0TERMINATION_X (modes);
 
-  file = SCM_ROCHARS (filename);
-  mode = SCM_ROCHARS (modes);
+  file = SCM_STRING_CHARS (filename);
+  mode = SCM_STRING_CHARS (modes);
 
   switch (*mode)
     {

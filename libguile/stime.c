@@ -307,9 +307,9 @@ setzone (SCM zone, int pos, const char *subr)
       char *buf;
 
       SCM_ASSERT (SCM_STRINGP (zone), zone, pos, subr);
-      SCM_COERCE_SUBSTR (zone);
+      SCM_STRING_COERCE_0TERMINATION_X (zone);
       buf = scm_must_malloc (SCM_STRING_LENGTH (zone) + sizeof (tzvar) + 1, subr);
-      sprintf (buf, "%s=%s", tzvar, SCM_ROCHARS (zone));
+      sprintf (buf, "%s=%s", tzvar, SCM_STRING_CHARS (zone));
       oldenv = environ;
       tmpenv[0] = buf;
       tmpenv[1] = 0;
@@ -573,12 +573,12 @@ SCM_DEFINE (scm_strftime, "strftime", 2, 0, 0,
   int len;
   SCM result;
 
-  SCM_VALIDATE_ROSTRING (1,format);
+  SCM_VALIDATE_STRING (1, format);
   bdtime2c (stime, &t, SCM_ARG2, FUNC_NAME);
 
-  SCM_COERCE_SUBSTR (format);
-  fmt = SCM_ROCHARS (format);
-  len = SCM_ROLENGTH (format);
+  SCM_STRING_COERCE_0TERMINATION_X (format);
+  fmt = SCM_STRING_CHARS (format);
+  len = SCM_STRING_LENGTH (format);
 
   /* Ugly hack: strftime can return 0 if its buffer is too small,
      but some valid time strings (e.g. "%p") can sometimes produce
@@ -666,13 +666,13 @@ SCM_DEFINE (scm_strptime, "strptime", 2, 0, 0,
   struct tm t;
   char *fmt, *str, *rest;
 
-  SCM_VALIDATE_ROSTRING (1,format);
-  SCM_VALIDATE_ROSTRING (2,string);
+  SCM_VALIDATE_STRING (1, format);
+  SCM_VALIDATE_STRING (2, string);
 
-  SCM_COERCE_SUBSTR (format);
-  SCM_COERCE_SUBSTR (string);
-  fmt = SCM_ROCHARS (format);
-  str = SCM_ROCHARS (string);
+  SCM_STRING_COERCE_0TERMINATION_X (format);
+  SCM_STRING_COERCE_0TERMINATION_X (string);
+  fmt = SCM_STRING_CHARS (format);
+  str = SCM_STRING_CHARS (string);
 
   /* initialize the struct tm */
 #define tm_init(field) t.field = 0

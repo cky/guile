@@ -184,9 +184,9 @@ SCM_DEFINE (scm_make_regexp, "make-regexp", 1, 0, 1,
   regex_t *rx;
   int status, cflags;
 
-  SCM_VALIDATE_ROSTRING (1,pat);
+  SCM_VALIDATE_STRING (1, pat);
   SCM_VALIDATE_REST_ARGUMENT (flags);
-  SCM_COERCE_SUBSTR (pat);
+  SCM_STRING_COERCE_0TERMINATION_X (pat);
 
   /* Examine list of regexp flags.  If REG_BASIC is supplied, then
      turn off REG_EXTENDED flag (on by default). */
@@ -202,7 +202,7 @@ SCM_DEFINE (scm_make_regexp, "make-regexp", 1, 0, 1,
     }
 	  
   rx = SCM_MUST_MALLOC_TYPE (regex_t);
-  status = regcomp (rx, SCM_ROCHARS (pat),
+  status = regcomp (rx, SCM_STRING_CHARS (pat),
 		    /* Make sure they're not passing REG_NOSUB;
                        regexp-exec assumes we're getting match data.  */
 		    cflags & ~REG_NOSUB);
@@ -232,13 +232,13 @@ SCM_DEFINE (scm_regexp_exec, "regexp-exec", 2, 2, 0,
   SCM mvec = SCM_BOOL_F;
 
   SCM_VALIDATE_RGXP (1,rx);
-  SCM_VALIDATE_STRING (2,str);
+  SCM_VALIDATE_STRING (2, str);
   SCM_VALIDATE_INUM_DEF_COPY (3,start,0,offset);
   SCM_ASSERT_RANGE (3,start, offset >= 0 && offset <= SCM_STRING_LENGTH (str));
   if (SCM_UNBNDP (flags))
     flags = SCM_INUM0;
   SCM_VALIDATE_INUM (4,flags);
-  SCM_COERCE_SUBSTR (str);
+  SCM_STRING_COERCE_0TERMINATION_X (str);
 
   /* re_nsub doesn't account for the `subexpression' representing the
      whole regexp, so add 1 to nmatches. */
@@ -246,7 +246,7 @@ SCM_DEFINE (scm_regexp_exec, "regexp-exec", 2, 2, 0,
   nmatches = SCM_RGX(rx)->re_nsub + 1;
   SCM_DEFER_INTS;
   matches = SCM_MUST_MALLOC_TYPE_NUM (regmatch_t,nmatches);
-  status = regexec (SCM_RGX (rx), SCM_ROCHARS (str) + offset,
+  status = regexec (SCM_RGX (rx), SCM_STRING_CHARS (str) + offset,
 		    nmatches, matches,
 		    SCM_INUM (flags));
   if (!status)

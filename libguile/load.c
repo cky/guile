@@ -118,7 +118,7 @@ SCM_DEFINE (scm_primitive_load, "primitive-load", 1, 0, 0,
 #define FUNC_NAME s_scm_primitive_load
 {
   SCM hook = *scm_loc_load_hook;
-  SCM_VALIDATE_ROSTRING (1,filename);
+  SCM_VALIDATE_STRING (1, filename);
   SCM_ASSERT (SCM_FALSEP (hook) || (SCM_EQ_P (scm_procedure_p (hook), SCM_BOOL_T)),
 	      hook, "value of %load-hook is neither a procedure nor #f",
 	      FUNC_NAME);
@@ -225,7 +225,7 @@ SCM_DEFINE (scm_parse_path, "parse-path", 1, 1, 0,
 	    "")
 #define FUNC_NAME s_scm_parse_path
 {
-  SCM_ASSERT (SCM_FALSEP (path) || (SCM_ROSTRINGP (path)),
+  SCM_ASSERT (SCM_FALSEP (path) || (SCM_STRINGP (path)),
 	      path,
 	      SCM_ARG1, FUNC_NAME);
   if (SCM_UNBNDP (tail))
@@ -276,14 +276,14 @@ SCM_DEFINE (scm_search_path, "search-path", 2, 1, 0,
   size_t max_ext_len;		/* maximum length of any EXTENSIONS element */
 
   SCM_VALIDATE_LIST (1,path);
-  SCM_VALIDATE_ROSTRING (2,filename);
+  SCM_VALIDATE_STRING (2, filename);
   if (SCM_UNBNDP (extensions))
     extensions = SCM_EOL;
   else
     SCM_VALIDATE_LIST (3,extensions);
 
   filename_chars = SCM_ROCHARS (filename);
-  filename_len = SCM_ROLENGTH (filename);
+  filename_len = SCM_STRING_LENGTH (filename);
 
   /* If FILENAME is absolute, return it unchanged.  */
   if (filename_len >= 1 && filename_chars[0] == '/')
@@ -294,14 +294,14 @@ SCM_DEFINE (scm_search_path, "search-path", 2, 1, 0,
     SCM walk;
 
     max_path_len = 0;
-    for (walk = path; SCM_NNULLP (walk); walk = SCM_CDR (walk))
+    for (walk = path; !SCM_NULLP (walk); walk = SCM_CDR (walk))
       {
 	SCM elt = SCM_CAR (walk);
-	SCM_ASSERT (SCM_ROSTRINGP (elt), elt,
+	SCM_ASSERT (SCM_STRINGP (elt), elt,
 		    "path is not a list of strings",
 		    FUNC_NAME);
-	if (SCM_ROLENGTH (elt) > max_path_len)
-	  max_path_len = SCM_ROLENGTH (elt);
+	if (SCM_STRING_LENGTH (elt) > max_path_len)
+	  max_path_len = SCM_STRING_LENGTH (elt);
       }
   }
 
@@ -333,14 +333,14 @@ SCM_DEFINE (scm_search_path, "search-path", 2, 1, 0,
     SCM walk;
 
     max_ext_len = 0;
-    for (walk = extensions; SCM_NNULLP (walk); walk = SCM_CDR (walk))
+    for (walk = extensions; !SCM_NULLP (walk); walk = SCM_CDR (walk))
       {
 	SCM elt = SCM_CAR (walk);
-	SCM_ASSERT (SCM_ROSTRINGP (elt), elt,
+	SCM_ASSERT (SCM_STRINGP (elt), elt,
 		    "extension list is not a list of strings",
 		    FUNC_NAME);
-	if (SCM_ROLENGTH (elt) > max_ext_len)
-	  max_ext_len = SCM_ROLENGTH (elt);
+	if (SCM_STRING_LENGTH (elt) > max_ext_len)
+	  max_ext_len = SCM_STRING_LENGTH (elt);
       }
   }
 
@@ -357,14 +357,14 @@ SCM_DEFINE (scm_search_path, "search-path", 2, 1, 0,
 
     /* Try every path element.  At this point, we know the path is a
        proper list of strings.  */
-    for (; SCM_NNULLP (path); path = SCM_CDR (path))
+    for (; !SCM_NULLP (path); path = SCM_CDR (path))
       {
 	int len;
 	SCM dir = SCM_CAR (path);
 	SCM exts;
 
 	/* Concatenate the path name and the filename. */
-	len = SCM_ROLENGTH (dir);
+	len = SCM_STRING_LENGTH (dir);
 	memcpy (buf, SCM_ROCHARS (dir), len);
 	if (len >= 1 && buf[len - 1] != '/')
 	  buf[len++] = '/';
@@ -373,10 +373,10 @@ SCM_DEFINE (scm_search_path, "search-path", 2, 1, 0,
 
 	/* Try every extension.  At this point, we know the extension
 	   list is a proper, nonempty list of strings.  */
-	for (exts = extensions; SCM_NNULLP (exts); exts = SCM_CDR (exts))
+	for (exts = extensions; !SCM_NULLP (exts); exts = SCM_CDR (exts))
 	  {
 	    SCM ext = SCM_CAR (exts);
-	    int ext_len = SCM_ROLENGTH (ext);
+	    int ext_len = SCM_STRING_LENGTH (ext);
 	    struct stat mode;
 
 	    /* Concatenate the extension. */
@@ -420,7 +420,7 @@ SCM_DEFINE (scm_sys_search_load_path, "%search-load-path", 1, 0, 0,
 {
   SCM path = *scm_loc_load_path;
   SCM exts = *scm_loc_load_extensions;
-  SCM_VALIDATE_ROSTRING (1,filename);
+  SCM_VALIDATE_STRING (1, filename);
 
   SCM_ASSERT (scm_ilength (path) >= 0, path, "load path is not a proper list",
 	      FUNC_NAME);
@@ -441,13 +441,13 @@ SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 1, 0, 0,
 {
   SCM full_filename;
 
-  SCM_VALIDATE_ROSTRING (1,filename);
+  SCM_VALIDATE_STRING (1, filename);
 
   full_filename = scm_sys_search_load_path (filename);
 
   if (SCM_FALSEP (full_filename))
     {
-      int absolute = (SCM_ROLENGTH (filename) >= 1
+      int absolute = (SCM_STRING_LENGTH (filename) >= 1
 		      && SCM_ROCHARS (filename)[0] == '/');
       SCM_MISC_ERROR ((absolute
 		       ? "Unable to load file ~S"

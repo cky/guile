@@ -270,8 +270,8 @@ scm_mkstrport (SCM pos, SCM str, long modes, const char *caller)
   int str_len;
 
   SCM_ASSERT (SCM_INUMP(pos) && SCM_INUM(pos) >= 0, pos, SCM_ARG1, caller);
-  SCM_ASSERT (SCM_ROSTRINGP(str), str, SCM_ARG1, caller);
-  str_len = SCM_ROLENGTH (str);
+  SCM_ASSERT (SCM_STRINGP (str), str, SCM_ARG1, caller);
+  str_len = SCM_STRING_LENGTH (str);
   if (SCM_INUM (pos) > str_len)
     scm_out_of_range (caller, pos);
   if (!((modes & SCM_WRTNG) || (modes & SCM_RDNG)))

@@ -1163,7 +1163,7 @@ SCM_DEFINE (scm_truncate_file, "truncate-file", 1, 1, 0,
   if (SCM_UNBNDP (length))
     {
       /* must supply length if object is a filename.  */
-      if (SCM_ROSTRINGP (object))
+      if (SCM_STRINGP (object))
         SCM_MISC_ERROR("must supply length if OBJECT is a filename",SCM_EOL);
       
       length = scm_seek (object, SCM_INUM0, SCM_MAKINUM (SEEK_CUR));
@@ -1194,9 +1194,9 @@ SCM_DEFINE (scm_truncate_file, "truncate-file", 1, 1, 0,
     }
   else
     {
-      SCM_VALIDATE_ROSTRING (1,object);
-      SCM_COERCE_SUBSTR (object);
-      SCM_SYSCALL (rv = truncate (SCM_ROCHARS (object), c_length));
+      SCM_VALIDATE_STRING (1, object);
+      SCM_STRING_COERCE_0TERMINATION_X (object);
+      SCM_SYSCALL (rv = truncate (SCM_STRING_CHARS (object), c_length));
     }
   if (rv == -1)
     SCM_SYSERROR;
@@ -1386,9 +1386,9 @@ SCM_DEFINE (scm_sys_make_void_port, "%make-void-port", 1, 0, 0,
 	    "documentation for @code{open-file} in @ref{File Ports}.")
 #define FUNC_NAME s_scm_sys_make_void_port
 {
-  SCM_VALIDATE_ROSTRING (1,mode);
-  SCM_COERCE_SUBSTR (mode);
-  return scm_void_port (SCM_ROCHARS (mode));
+  SCM_VALIDATE_STRING (1, mode);
+  SCM_STRING_COERCE_0TERMINATION_X (mode);
+  return scm_void_port (SCM_STRING_CHARS (mode));
 }
 #undef FUNC_NAME
 

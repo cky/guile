@@ -93,14 +93,6 @@ extern long scm_tc16_array;
 #define SCM_BITVECTOR_BASE(x) ((void *) (SCM_CELL_WORD_1 (x)))
 #define SCM_BITVECTOR_LENGTH(x) (((unsigned long) SCM_CELL_WORD_0 (x)) >> 8)
 
-/* apparently it's possible to have more than SCM_LENGTH_MAX elements
-   in an array: if the length is SCM_LENGTH_MAX then the SCM_VELTS
-   block begins with the true length (a long int).  I wonder if it
-   works.  */
-
-#define SCM_HUGE_LENGTH(x)\
-  (SCM_LENGTH_MAX==SCM_LENGTH(x) ? *((long *)SCM_VELTS(x)) : SCM_LENGTH(x))
-
 
 
 extern scm_sizet scm_uniform_element_size (SCM obj);
@@ -139,6 +131,19 @@ extern SCM scm_list_to_uniform_array (SCM ndim, SCM prot, SCM lst);
 extern int scm_raprin1 (SCM exp, SCM port, scm_print_state *pstate);
 extern SCM scm_array_prototype (SCM ra);
 extern void scm_init_unif (void);
+
+
+
+#if (SCM_DEBUG_DEPRECATED == 0)
+
+/* apparently it's possible to have more than SCM_LENGTH_MAX elements
+   in an array: if the length is SCM_LENGTH_MAX then the SCM_VELTS
+   block begins with the true length (a long int).  I wonder if it
+   works.  */
+#define SCM_HUGE_LENGTH(x)\
+  (SCM_LENGTH_MAX==SCM_LENGTH(x) ? *((long *)SCM_VELTS(x)) : SCM_LENGTH(x))
+
+#endif  /* SCM_DEBUG_DEPRECATED == 0 */
 
 #endif  /* UNIFH */
 

@@ -62,7 +62,6 @@ extern int scm_symhash_dim;
 #define SCM_SYMBOL_LENGTH(x)  (((unsigned long) SCM_CELL_WORD_0 (x)) >> 8)
 
 #define SCM_LENGTH_MAX		(0xffffffL)
-#define SCM_LENGTH(x)		(((unsigned long) SCM_CELL_WORD_0 (x)) >> 8)
 #define SCM_SETLENGTH(x, v, t)	(SCM_SET_CELL_WORD_0 ((x), ((v) << 8) + (t)))
 
 #define SCM_SETCHARS(x, v)	(SCM_SET_CELL_WORD_1 ((x), (scm_bits_t) (v)))
@@ -88,14 +87,6 @@ extern int scm_symhash_dim;
 			 : ((SCM_TYP7 (x) == scm_tc7_string) \
 			    ? SCM_STRING_UCHARS (x) \
 			    : SCM_SYMBOL_UCHARS (x)))
-#define SCM_ROLENGTH(x) SCM_LENGTH (x)
-#define SCM_SUBSTRP(x) (SCM_NIMP (x) && (SCM_TYP7 (x) == scm_tc7_substring))
-#define SCM_SUBSTR_STR(x) (SCM_CDDR (x))
-#define SCM_SUBSTR_OFFSET(x) (SCM_CADR (x))
-
-#define SCM_COERCE_SUBSTR(x) { if (SCM_SUBSTRP (x)) \
-				 x = scm_makfromstr (SCM_ROCHARS (x), \
-						     SCM_STRING_LENGTH (x), 0); }
 
 
 
@@ -139,6 +130,12 @@ extern void scm_init_symbols (void);
 #define SCM_CHARS(x) ((char *) (SCM_CELL_WORD_1 (x)))
 #define SCM_UCHARS(x) ((unsigned char *) (SCM_CELL_WORD_1 (x)))
 #define SCM_SLOPPY_SUBSTRP(x) (SCM_SUBSTRP (x))
+#define SCM_SUBSTR_STR(x) (SCM_CDDR (x))
+#define SCM_SUBSTR_OFFSET(x) (SCM_CADR (x))
+#define SCM_LENGTH(x) (((unsigned long) SCM_CELL_WORD_0 (x)) >> 8)
+#define SCM_ROLENGTH(x) SCM_LENGTH (x)
+#define SCM_SUBSTRP(x) (SCM_NIMP (x) && (SCM_TYP7 (x) == scm_tc7_substring))
+#define SCM_COERCE_SUBSTR(x) SCM_STRING_COERCE_0TERMINATION_X (x)
 #define scm_strhash(str, len, n) (scm_string_hash ((str), (len)) % (n))
 
 #endif  /* SCM_DEBUG_DEPRECATED == 0 */
