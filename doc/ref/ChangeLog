@@ -1,3 +1,9 @@
+2004-09-02  Kevin Ryde  <user42@zip.com.au>
+
+	* misc-modules.texi (Formatted Output): Excess arguments are ignored.
+	In ~*, correction N parameter cannot be negative.  In ~t, note
+	port-column used.
+
 2004-08-29  Kevin Ryde  <user42@zip.com.au>
 
 	* srfi-modules.texi (SRFI-2): Note empty body is #t.
