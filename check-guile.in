@@ -37,7 +37,7 @@ fi
 
 # documentation searching ignores GUILE_LOAD_PATH.
 if [ ! -f guile-procedures.txt ] ; then
-   ln -s libguile/guile-procedures.txt .
+   @LN_S@ libguile/guile-procedures.txt .
 fi
 
 exec "$guile" -e main -s "$TEST_SUITE_DIR/guile-test" --test-suite "$TEST_SUITE_DIR/tests" --log-file check-guile.log "$@"
