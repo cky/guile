@@ -51,7 +51,13 @@ SCM_API scm_t_option scm_read_opts[];
 #define SCM_RECORD_POSITIONS_P scm_read_opts[1].val
 #define SCM_CASE_INSENSITIVE_P scm_read_opts[2].val
 #define SCM_KEYWORD_STYLE      scm_read_opts[3].val
+#if SCM_ENABLE_ELISP
+#define SCM_ELISP_VECTORS_P    scm_read_opts[4].val
+#define SCM_ESCAPED_PARENS_P   scm_read_opts[5].val
+#define SCM_N_READ_OPTIONS 6
+#else
 #define SCM_N_READ_OPTIONS 4
+#endif
 
 
 
@@ -64,14 +70,7 @@ SCM_API int scm_flush_ws (SCM port, const char *eoferr);
 SCM_API int scm_casei_streq (char * s1, char * s2);
 SCM_API SCM scm_lreadr (SCM * tok_buf, SCM port, SCM *copy);
 SCM_API size_t scm_read_token (int ic, SCM * tok_buf, SCM port, int weird);
-SCM_API SCM scm_lreadparen (SCM * tok_buf, SCM port, char *name, SCM *copy
-#ifdef SCM_ELISP_READ_EXTENSIONS
-			    , char term_char
-#define SCM_ELISP_CLOSE , ')'
-#else
-#define SCM_ELISP_CLOSE
-#endif
-			    );
+SCM_API SCM scm_lreadparen (SCM * tok_buf, SCM port, char *name, SCM *copy);
 SCM_API SCM scm_lreadrecparen (SCM * tok_buf, SCM port, char *name, SCM *copy);
 SCM_API SCM scm_read_hash_extend (SCM chr, SCM proc);
 SCM_API void scm_init_read (void);

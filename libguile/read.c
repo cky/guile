@@ -52,6 +52,13 @@ scm_t_option scm_read_opts[] = {
     "Convert symbols to lower case."},
   { SCM_OPTION_SCM, "keywords", SCM_UNPACK (SCM_BOOL_F),
     "Style of keyword recognition: #f or 'prefix."}
+#if SCM_ENABLE_ELISP
+  ,
+  { SCM_OPTION_BOOLEAN, "elisp-vectors", 0,
+    "Support Elisp vector syntax, namely `[...]'."},
+  { SCM_OPTION_BOOLEAN, "escaped-parens", 0,
+    "Support `\\(' and `\\)' in strings."}
+#endif
 };
 
 /*
@@ -291,8 +298,10 @@ skip_scsh_block_comment (SCM port)
 
 
 static SCM scm_get_hash_procedure(int c);
+static SCM scm_lreadparen1 (SCM *, SCM, char *, SCM *, char);
 
 static char s_list[]="list";
+static char s_vector[]="vector";
 
 SCM 
 scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
@@ -313,15 +322,19 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
     case '(':
       return SCM_RECORD_POSITIONS_P
 	? scm_lreadrecparen (tok_buf, port, s_list, copy)
-	: scm_lreadparen (tok_buf, port, s_list, copy SCM_ELISP_CLOSE);
+	: scm_lreadparen1 (tok_buf, port, s_list, copy, ')');
     case ')':
       scm_input_error (FUNC_NAME, port,"unexpected \")\"", SCM_EOL);
       goto tryagain;
     
-#ifdef SCM_ELISP_READ_EXTENSIONS
+#if SCM_ENABLE_ELISP
     case '[':
-      p = scm_lreadparen (tok_buf, port, "vector", copy, ']');
-      return SCM_NULLP (p) ? scm_nullvect : scm_vector (p);
+      if (SCM_ELISP_VECTORS_P)
+	{
+	  p = scm_lreadparen1 (tok_buf, port, s_vector, copy, ']');
+	  return SCM_NULLP (p) ? scm_nullvect : scm_vector (p);
+	}
+      goto read_token;
 #endif
     case '\'':
       p = scm_sym_quote;
@@ -382,7 +395,7 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
       switch (c)
 	{
 	case '(':
-	  p = scm_lreadparen (tok_buf, port, "vector", copy SCM_ELISP_CLOSE);
+	  p = scm_lreadparen1 (tok_buf, port, s_vector, copy, ')');
 	  return SCM_NULLP (p) ? scm_nullvect : scm_vector (p);
 
 	case 't':
@@ -502,6 +515,13 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
 	      case '"':
 	      case '\\':
 		break;
+#if SCM_ENABLE_ELISP
+	      case '(':
+	      case ')':
+		if (SCM_ESCAPED_PARENS_P)
+		  break;
+		goto bad_escaped;
+#endif
 	      case '\n':
 		continue;
 	      case '0':
@@ -592,6 +612,9 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
 	}
       /* fallthrough */
     default:
+#if SCM_ENABLE_ELISP
+    read_token:
+#endif
       j = scm_read_token (c, tok_buf, port, 0);
       /* fallthrough */
 
@@ -636,7 +659,7 @@ scm_read_token (int ic, SCM *tok_buf, SCM port, int weird)
 	{
 	case '(':
 	case ')':
-#ifdef SCM_ELISP_READ_EXTENSIONS
+#if SCM_ENABLE_ELISP
 	case '[':
 	case ']':
 #endif
@@ -644,7 +667,11 @@ scm_read_token (int ic, SCM *tok_buf, SCM port, int weird)
 	case ';':
 	case SCM_WHITE_SPACES:
 	case SCM_LINE_INCREMENTORS:
-	  if (weird)
+	  if (weird
+#if SCM_ENABLE_ELISP
+	      || ((!SCM_ELISP_VECTORS_P) && ((c == '[') || (c == ']')))
+#endif
+	      )
 	    goto default_case;
 
 	  scm_ungetc (c, port);
@@ -697,13 +724,13 @@ _Pragma ("opt");		/* # pragma _CRI opt */
 #endif
 
 SCM 
-scm_lreadparen (SCM *tok_buf, SCM port, char *name, SCM *copy
-#ifdef SCM_ELISP_READ_EXTENSIONS
-		, char term_char
-#else
-#define term_char ')'
-#endif
-		)
+scm_lreadparen (SCM *tok_buf, SCM port, char *name, SCM *copy)
+{
+  return scm_lreadparen1 (tok_buf, port, name, copy, ')');
+}
+
+static SCM 
+scm_lreadparen1 (SCM *tok_buf, SCM port, char *name, SCM *copy, char term_char)
 #define FUNC_NAME "scm_lreadparen"
 {
   SCM tmp;
@@ -738,9 +765,6 @@ scm_lreadparen (SCM *tok_buf, SCM port, char *name, SCM *copy
   return ans;
 }
 #undef FUNC_NAME
-#ifndef SCM_ELISP_READ_EXTENSIONS
-#undef term_char
-#endif
 
 
 SCM 

@@ -1,3 +1,22 @@
+2004-02-08  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* read.c (scm_read_opts): New opts `elisp-vectors' and
+	`escaped-parens'.
+	(s_vector): New.
+	(scm_lreadr): Use scm_lreadparen1 instead of scm_lreadparen.  Make
+	handling of elisp vector syntax dependent on SCM_ENABLE_ELISP and
+	`elisp-vectors' option instead of SCM_ELISP_READ_EXTENSIONS.
+	Allow "\(" and "\)" in strings when SCM_ENABLE_ELISP defined and
+	`escaped-parens' option set.
+	(scm_read_token): If elisp vector syntax active, disallow [ and ]
+	in tokens.
+	(scm_lreadparen): Rewrite as interface to scm_lreadparen1.
+	(scm_lreadparen1): New.
+
+	* read.h: Remove conditionally compiled last arg to
+	scm_lreadparen.
+	(SCM_ELISP_VECTORS_P, SCM_ESCAPED_PARENS_P): New.
+	
 2004-01-23  Han-Wen Nienhuys   <hanwen@xs4all.nl>
 
 	* eval.c (m_expand_body): remove stray variable new_body.
