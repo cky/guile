@@ -1,3 +1,8 @@
+Fri Feb 21 23:07:26 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* gdb_interface.h (GDB_INTERFACE): Added some (void *) casts to
+	avoid warnings.
+
 Fri Feb 21 18:00:38 1997  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* Makefile.am (EXTRA_libguile_la_SOURCES): New variable to hold

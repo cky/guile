@@ -41,11 +41,11 @@ void *gdb_interface[] = { \
   &gdb_result, \
   &gdb_output, \
   &gdb_output_length, \
-  gdb_maybe_valid_type_p, \
-  gdb_read, \
-  gdb_eval, \
-  gdb_print, \
-  gdb_binding \
+  (void *) gdb_maybe_valid_type_p, \
+  (void *) gdb_read, \
+  (void *) gdb_eval, \
+  (void *) gdb_print, \
+  (void *) gdb_binding \
 }; \
 
 
