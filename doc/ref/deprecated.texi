@@ -20,5 +20,14 @@ left (@math{@var{start2} < @var{start1}}), or call
 able to do both.
 @end deffn
 
+@deftypefn {C Function} void scm_remember (SCM *ptr)
+Create a reference to the object at @var{ptr}, so it's certain to be
+present on the stack and hence won't be freed by the garbage
+collector.
+
+This function has been superceded by @code{scm_remember_upto_here_1}
+(which takes an object, not a pointer to one), @xref{Remembering
+During Operations}.
+@end deftypefn
 
 
