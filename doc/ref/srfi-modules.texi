@@ -1207,40 +1207,134 @@ desired, exported from a module, etc.
 
 @cindex hash-comma
 @cindex #,()
-The module @code{(srfi srfi-10)} implements the syntax extension
-@code{#,()}, also called hash-comma, which is defined in SRFI-10.
-
-The support for SRFI-10 consists of the procedure
-@code{define-reader-ctor} for defining new reader constructors and the
-read syntax form
+This SRFI implements a reader extension @code{#,()} called hash-comma.
+It allows the reader to give new kinds of objects, for use both in
+data and as constants or literals in source code.  This feature is
+available with
 
 @example
-#,(@var{ctor} @var{datum} ...)
+(use-modules (srfi srfi-10))
 @end example
 
-where @var{ctor} must be a symbol for which a read constructor was
-defined previously, using @code{define-reader-ctor}.
+@noindent
+The new read syntax is of the form
 
-Example:
+@example
+#,(@var{tag} @var{arg}@dots{})
+@end example
 
-@lisp
-(use-modules (ice-9 rdelim)) ; for read-line
-(define-reader-ctor 'file open-input-file)
-(define f '#,(file "/etc/passwd"))
-(read-line f)
-@result{}
-"root:x:0:0:root:/root:/bin/bash"
-@end lisp
+@noindent
+where @var{tag} is a symbol and the @var{arg}s are objects taken as
+parameters.  @var{tag}s are registered with the following procedure.
 
-Please note the quote before the @code{#,(file ...)} expression.  This
-is necessary because ports are not self-evaluating in Guile.
-
-@deffn {Scheme Procedure} define-reader-ctor symbol proc
-Define @var{proc} as the reader constructor for hash-comma forms with a
-tag @var{symbol}.  @var{proc} will be applied to the datum(s) following
-the tag in the hash-comma expression after the complete form has been
-read in.  The result of @var{proc} is returned by the Scheme reader.
+@deffn {Scheme Procedure} define-reader-ctor tag proc
+Register @var{proc} as the constructor for a hash-comma read syntax
+starting with symbol @var{tag}, ie. @nicode{#,(@var{tag} arg@dots{})}.
+@var{proc} is called with the given arguments @code{(@var{proc}
+arg@dots{})} and the object it returns is the result of the read.
 @end deffn
+
+@noindent
+For example, a syntax giving a list of @var{N} copies of an object.
+
+@example
+(define-reader-ctor 'repeat
+  (lambda (obj reps)
+    (make-list reps obj)))
+
+(display '#,(repeat 99 3))
+@print{} (99 99 99)
+@end example
+
+Notice the quote @nicode{'} when the @nicode{#,( )} is used.  The
+@code{repeat} handler returns a list and the program must quote to use
+it literally, the same as any other list.  Ie.
+
+@example
+(display '#,(repeat 99 3))
+@result{}
+(display '(99 99 99))
+@end example
+
+When a handler returns an object which is self-evaluating, like a
+number or a string, then there's no need for quoting, just as there's
+no need when giving those directly as literals.  For example an
+addition,
+
+@example
+(define-reader-ctor 'sum
+  (lambda (x y)
+    (+ x y)))
+(display #,(sum 123 456)) @print{} 579
+@end example
+
+A typical use for @nicode{#,()} is to get a read syntax for objects
+which don't otherwise have one.  For example, the following allows a
+hash table to be given literally, with tags and values, ready for fast
+lookup.
+
+@example
+(define-reader-ctor 'hash
+  (lambda elems
+    (let ((table (make-hash-table)))
+      (for-each (lambda (elem)
+		  (apply hash-set! table elem))
+		elems)
+      table)))
+
+(define (animal->family animal)
+  (hash-ref '#,(hash ("tiger" "cat")
+                     ("lion"  "cat")
+                     ("wolf"  "dog"))
+            animal))
+
+(animal->family "lion") @result{} "cat"
+@end example
+
+Or for example the following is a syntax for a compiled regular
+expression (@pxref{Regular Expressions}).
+
+@example
+(use-modules (ice-9 regex))
+
+(define-reader-ctor 'regexp make-regexp)
+
+(define (extract-angs str)
+  (let ((match (regexp-exec '#,(regexp "<([A-Z0-9]+)>") str)))
+    (and match
+         (match:substring match 1))))
+
+(extract-angs "foo <BAR> quux") @result{} "BAR"
+@end example
+
+@sp 1
+@nicode{#,()} is somewhat similar to @code{define-macro}
+(@pxref{Macros}) in that handler code is run to produce a result, but
+@nicode{#,()} operates at the read stage, so it can appear in data for
+@code{read} (@pxref{Scheme Read}), not just in code to be executed.
+
+Because @nicode{#,()} is handled at read-time it has no direct access
+to variables etc.  A symbol in the arguments is just a symbol, not a
+variable reference.  The arguments are essentially constants, though
+the handler procedure can use them in any complicated way it might
+want.
+
+Once @code{(srfi srfi-10)} has loaded, @nicode{#,()} is available
+globally, there's no need to use @code{(srfi srfi-10)} in later
+modules.  Similarly the tags registered are global and can be used
+anywhere once registered.
+
+There's no attempt to record what previous @nicode{#,()} forms have
+been seen, if two identical forms occur then two calls are made to the
+handler procedure.  The handler might like to maintain a cache or
+similar to avoid making copies of large objects, depending on expected
+usage.
+
+In code the best uses of @nicode{#,()} are generally when there's a
+lot of objects of a particular kind as literals or constants.  If
+there's just a few then some local variables and initializers are
+fine, but that becomes tedious and error prone when there's a lot, and
+the anonymous and compact syntax of @nicode{#,()} is much better.
 
 
 @node SRFI-11
