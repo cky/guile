@@ -2,7 +2,7 @@ The Guile core distribution:
 
 I (Jim Blandy) made the Guile 1.3.2 release in a bit of a rush, and
 then skipped town for a week.  Mikael Djurfeldt did a fantastic job of
-fixing up my mistakes and putting together a new release.  I'm very
+fixing my mistakes and putting together a new release.  I'm very
 grateful to Mikael for this; Guile is very lucky to have him.
 
 Bug reports and fixes from:
