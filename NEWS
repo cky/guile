@@ -75,7 +75,7 @@ Example:
 
   New macro: SCM_GPROC1 (CNAME, SNAME, TYPE, CFUNC, GENERIC)
 
-These do the same job as SCM_PROC and SCM_PROC1, but they also defines
+These do the same job as SCM_PROC and SCM_PROC1, but they also define
 a variable GENERIC which can be used by the dispatch macros below.
 
 [This is experimental code which may change soon.]
