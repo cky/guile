@@ -867,10 +867,6 @@ scm_modulo (SCM x, SCM y)
       else if (SCM_BIGP (y))
 	{
 	  int sgn_y = mpz_sgn (SCM_I_BIG_MPZ (y));
-
-	  if (sgn_y == 0)
-	    scm_num_overflow (s_modulo);
-	  else
 	    {
 	      mpz_t z_x;
 	      SCM result;
@@ -933,10 +929,6 @@ scm_modulo (SCM x, SCM y)
 	}
       else if (SCM_BIGP (y))
 	{
-	  int sgn_y = mpz_sgn (SCM_I_BIG_MPZ (y));
-	  if (sgn_y == 0)
-	    scm_num_overflow (s_modulo);
-	  else
 	    {
 	      SCM result = scm_i_mkbig ();
 	      int y_sgn = mpz_sgn (SCM_I_BIG_MPZ (y));
