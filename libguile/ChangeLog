@@ -1,5 +1,11 @@
 2003-11-15  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* eval.c (try_macro_lookup, expand_user_macros, is_system_macro_p,
+	m_expand_body, scm_m_expand_body): Grouped together with m_body.
+	No further modifications.
+
+2003-11-15  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* eval.c (s_mixed_body_forms): New static identifier.
 
 	(canonicalize_define, scm_m_define): The check for a bad

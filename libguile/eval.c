@@ -713,6 +713,216 @@ m_body (SCM op, SCM exprs)
 }
 
 
+/* The function m_expand_body memoizes a proper list of expressions forming a
+ * body.  This function takes care of dealing with internal defines and
+ * transforming them into an equivalent letrec expression.  */ 
+
+/* This is a helper function for m_expand_body.  It helps to figure out whether
+ * an expression denotes a syntactic keyword.  */ 
+static SCM
+try_macro_lookup (const SCM expr, const SCM env)
+{
+  if (SCM_SYMBOLP (expr))
+    {
+      const SCM tmp_pair = scm_list_1 (expr);
+      const SCM value = *scm_lookupcar1 (tmp_pair, env, 0);
+      return value;
+    }
+  else
+    {
+      return SCM_UNDEFINED;
+    }
+}
+
+/* This is a helper function for m_expand_body.  It expands user macros,
+ * because for the correct translation of a body we need to know whether they
+ * expand to a definition. */ 
+static SCM
+expand_user_macros (SCM expr, const SCM env)
+{
+  while (SCM_CONSP (expr))
+    {
+      const SCM car_expr = SCM_CAR (expr);
+      const SCM new_car = expand_user_macros (car_expr, env);
+      const SCM value = try_macro_lookup (new_car, env);
+
+      if (SCM_MACROP (value) && SCM_MACRO_TYPE (value) == 2)
+	{
+	  /* User macros transform code into code.  */
+	  expr = scm_call_2 (SCM_MACRO_CODE (value), expr, env);
+	  /* We need to reiterate on the transformed code.  */
+	}
+      else
+	{
+	  /* No user macro: return.  */
+	  SCM_SETCAR (expr, new_car);
+	  return expr;
+	}
+    }
+
+  return expr;
+}
+
+/* This is a helper function for m_expand_body.  It determines if a given form
+ * represents an application of a given built-in macro.  The built-in macro to
+ * check for is identified by its syntactic keyword.  The form is an
+ * application of the given macro if looking up the car of the form in the
+ * given environment actually returns the built-in macro.  */
+static int
+is_system_macro_p (const SCM syntactic_keyword, const SCM form, const SCM env)
+{
+  if (SCM_CONSP (form))
+    {
+      const SCM car_form = SCM_CAR (form);
+      const SCM value = try_macro_lookup (car_form, env);
+      if (SCM_BUILTIN_MACRO_P (value))
+        {
+          const SCM macro_name = scm_macro_name (value);
+          return SCM_EQ_P (macro_name, syntactic_keyword);
+        }
+    }
+
+  return 0;
+}
+
+static SCM
+m_expand_body (const SCM forms, const SCM env)
+{
+  /* The first body form can be skipped since it is known to be the ISYM that
+   * was prepended to the body by m_body.  */
+  SCM cdr_forms = SCM_CDR (forms);
+  SCM form_idx = cdr_forms;
+  SCM definitions = SCM_EOL;
+  SCM sequence = SCM_EOL;
+
+  /* According to R5RS, the list of body forms consists of two parts: a number
+   * (maybe zero) of definitions, followed by a non-empty sequence of
+   * expressions.  Each the definitions and the expressions may be grouped
+   * arbitrarily with begin, but it is not allowed to mix definitions and
+   * expressions.  The task of the following loop therefore is to split the
+   * list of body forms into the list of definitions and the sequence of
+   * expressions.  */ 
+  while (!SCM_NULLP (form_idx))
+    {
+      const SCM form = SCM_CAR (form_idx);
+      const SCM new_form = expand_user_macros (form, env);
+      if (is_system_macro_p (scm_sym_define, new_form, env))
+	{
+	  definitions = scm_cons (new_form, definitions);
+	  form_idx = SCM_CDR (form_idx);
+	}
+      else if (is_system_macro_p (scm_sym_begin, new_form, env))
+	{
+          /* We have encountered a group of forms.  This has to be either a
+           * (possibly empty) group of (possibly further grouped) definitions,
+           * or a non-empty group of (possibly further grouped)
+           * expressions.  */
+          const SCM grouped_forms = SCM_CDR (new_form);
+          unsigned int found_definition = 0;
+          unsigned int found_expression = 0;
+          SCM grouped_form_idx = grouped_forms;
+          while (!found_expression && !SCM_NULLP (grouped_form_idx))
+            {
+              const SCM inner_form = SCM_CAR (grouped_form_idx);
+              const SCM new_inner_form = expand_user_macros (inner_form, env);
+              if (is_system_macro_p (scm_sym_define, new_inner_form, env))
+                {
+                  found_definition = 1;
+                  definitions = scm_cons (new_inner_form, definitions);
+                  grouped_form_idx = SCM_CDR (grouped_form_idx);
+                }
+              else if (is_system_macro_p (scm_sym_begin, new_inner_form, env))
+                {
+                  const SCM inner_group = SCM_CDR (new_inner_form);
+                  grouped_form_idx
+                    = scm_append (scm_list_2 (inner_group,
+                                              SCM_CDR (grouped_form_idx)));
+                }
+              else
+                {
+                  /* The group marks the start of the expressions of the body.
+                   * We have to make sure that within the same group we have
+                   * not encountered a definition before.  */
+                  ASSERT_SYNTAX (!found_definition, s_mixed_body_forms, form);
+                  found_expression = 1;
+                  grouped_form_idx = SCM_EOL;
+                }
+            }
+
+          /* We have finished processing the group.  If we have not yet
+           * encountered an expression we continue processing the forms of the
+           * body to collect further definition forms.  Otherwise, the group
+           * marks the start of the sequence of expressions of the body.  */
+          if (!found_expression)
+            {
+              form_idx = SCM_CDR (form_idx);
+            }
+          else
+            {
+              sequence = form_idx;
+              form_idx = SCM_EOL;
+            }
+	}
+      else
+	{
+          /* We have detected a form which is no definition.  This marks the
+           * start of the sequence of expressions of the body.  */
+          sequence = form_idx;
+          form_idx = SCM_EOL;
+	}
+    }
+
+  /* FIXME: forms does not hold information about the file location.  */
+  ASSERT_SYNTAX (SCM_CONSP (sequence), s_missing_body_expression, cdr_forms);
+
+  if (!SCM_NULLP (definitions))
+    {
+      SCM definition_idx;
+      SCM letrec_tail;
+      SCM letrec_expression;
+      SCM new_letrec_expression;
+      SCM new_body;
+
+      SCM bindings = SCM_EOL;
+      for (definition_idx = definitions;
+           !SCM_NULLP (definition_idx);
+           definition_idx = SCM_CDR (definition_idx))
+	{
+	  const SCM definition = SCM_CAR (definition_idx);
+	  const SCM canonical_definition = canonicalize_define (definition);
+	  const SCM binding = SCM_CDR (canonical_definition);
+	  bindings = scm_cons (binding, bindings);
+	};
+
+      letrec_tail = scm_cons (bindings, sequence);
+      /* FIXME: forms does not hold information about the file location.  */
+      letrec_expression = scm_cons_source (forms, scm_sym_letrec, letrec_tail);
+      new_letrec_expression = scm_m_letrec (letrec_expression, env);
+      new_body = scm_list_1 (new_letrec_expression);
+      return new_body;
+    }
+  else
+    {
+      SCM_SETCAR (forms, SCM_CAR (sequence));
+      SCM_SETCDR (forms, SCM_CDR (sequence));
+      return forms;
+    }
+}
+
+#if (SCM_ENABLE_DEPRECATED == 1)
+
+/* Deprecated in guile 1.7.0 on 2003-11-09.  */
+SCM
+scm_m_expand_body (SCM exprs, SCM env)
+{
+  scm_c_issue_deprecation_warning 
+    ("`scm_m_expand_body' is deprecated.");
+  return m_expand_body (exprs, env);
+}
+
+#endif
+
+
 /* Start of the memoizers for the standard R5RS builtin macros.  */
 
 
@@ -1831,216 +2041,6 @@ scm_m_undefine (SCM expr, SCM env)
                    "variable already unbound ", variable, expr);
   SCM_VARIABLE_SET (location, SCM_UNDEFINED);
   return SCM_UNSPECIFIED;
-}
-
-#endif
-
-
-/* The function m_expand_body memoizes a proper list of expressions forming a
- * body.  This function takes care of dealing with internal defines and
- * transforming them into an equivalent letrec expression.  */ 
-
-/* This is a helper function for m_expand_body.  It helps to figure out whether
- * an expression denotes a syntactic keyword.  */ 
-static SCM
-try_macro_lookup (const SCM expr, const SCM env)
-{
-  if (SCM_SYMBOLP (expr))
-    {
-      const SCM tmp_pair = scm_list_1 (expr);
-      const SCM value = *scm_lookupcar1 (tmp_pair, env, 0);
-      return value;
-    }
-  else
-    {
-      return SCM_UNDEFINED;
-    }
-}
-
-/* This is a helper function for m_expand_body.  It expands user macros,
- * because for the correct translation of a body we need to know whether they
- * expand to a definition. */ 
-static SCM
-expand_user_macros (SCM expr, const SCM env)
-{
-  while (SCM_CONSP (expr))
-    {
-      const SCM car_expr = SCM_CAR (expr);
-      const SCM new_car = expand_user_macros (car_expr, env);
-      const SCM value = try_macro_lookup (new_car, env);
-
-      if (SCM_MACROP (value) && SCM_MACRO_TYPE (value) == 2)
-	{
-	  /* User macros transform code into code.  */
-	  expr = scm_call_2 (SCM_MACRO_CODE (value), expr, env);
-	  /* We need to reiterate on the transformed code.  */
-	}
-      else
-	{
-	  /* No user macro: return.  */
-	  SCM_SETCAR (expr, new_car);
-	  return expr;
-	}
-    }
-
-  return expr;
-}
-
-/* This is a helper function for m_expand_body.  It determines if a given form
- * represents an application of a given built-in macro.  The built-in macro to
- * check for is identified by its syntactic keyword.  The form is an
- * application of the given macro if looking up the car of the form in the
- * given environment actually returns the built-in macro.  */
-static int
-is_system_macro_p (const SCM syntactic_keyword, const SCM form, const SCM env)
-{
-  if (SCM_CONSP (form))
-    {
-      const SCM car_form = SCM_CAR (form);
-      const SCM value = try_macro_lookup (car_form, env);
-      if (SCM_BUILTIN_MACRO_P (value))
-        {
-          const SCM macro_name = scm_macro_name (value);
-          return SCM_EQ_P (macro_name, syntactic_keyword);
-        }
-    }
-
-  return 0;
-}
-
-static SCM
-m_expand_body (const SCM forms, const SCM env)
-{
-  /* The first body form can be skipped since it is known to be the ISYM that
-   * was prepended to the body by m_body.  */
-  SCM cdr_forms = SCM_CDR (forms);
-  SCM form_idx = cdr_forms;
-  SCM definitions = SCM_EOL;
-  SCM sequence = SCM_EOL;
-
-  /* According to R5RS, the list of body forms consists of two parts: a number
-   * (maybe zero) of definitions, followed by a non-empty sequence of
-   * expressions.  Each the definitions and the expressions may be grouped
-   * arbitrarily with begin, but it is not allowed to mix definitions and
-   * expressions.  The task of the following loop therefore is to split the
-   * list of body forms into the list of definitions and the sequence of
-   * expressions.  */ 
-  while (!SCM_NULLP (form_idx))
-    {
-      const SCM form = SCM_CAR (form_idx);
-      const SCM new_form = expand_user_macros (form, env);
-      if (is_system_macro_p (scm_sym_define, new_form, env))
-	{
-	  definitions = scm_cons (new_form, definitions);
-	  form_idx = SCM_CDR (form_idx);
-	}
-      else if (is_system_macro_p (scm_sym_begin, new_form, env))
-	{
-          /* We have encountered a group of forms.  This has to be either a
-           * (possibly empty) group of (possibly further grouped) definitions,
-           * or a non-empty group of (possibly further grouped)
-           * expressions.  */
-          const SCM grouped_forms = SCM_CDR (new_form);
-          unsigned int found_definition = 0;
-          unsigned int found_expression = 0;
-          SCM grouped_form_idx = grouped_forms;
-          while (!found_expression && !SCM_NULLP (grouped_form_idx))
-            {
-              const SCM inner_form = SCM_CAR (grouped_form_idx);
-              const SCM new_inner_form = expand_user_macros (inner_form, env);
-              if (is_system_macro_p (scm_sym_define, new_inner_form, env))
-                {
-                  found_definition = 1;
-                  definitions = scm_cons (new_inner_form, definitions);
-                  grouped_form_idx = SCM_CDR (grouped_form_idx);
-                }
-              else if (is_system_macro_p (scm_sym_begin, new_inner_form, env))
-                {
-                  const SCM inner_group = SCM_CDR (new_inner_form);
-                  grouped_form_idx
-                    = scm_append (scm_list_2 (inner_group,
-                                              SCM_CDR (grouped_form_idx)));
-                }
-              else
-                {
-                  /* The group marks the start of the expressions of the body.
-                   * We have to make sure that within the same group we have
-                   * not encountered a definition before.  */
-                  ASSERT_SYNTAX (!found_definition, s_mixed_body_forms, form);
-                  found_expression = 1;
-                  grouped_form_idx = SCM_EOL;
-                }
-            }
-
-          /* We have finished processing the group.  If we have not yet
-           * encountered an expression we continue processing the forms of the
-           * body to collect further definition forms.  Otherwise, the group
-           * marks the start of the sequence of expressions of the body.  */
-          if (!found_expression)
-            {
-              form_idx = SCM_CDR (form_idx);
-            }
-          else
-            {
-              sequence = form_idx;
-              form_idx = SCM_EOL;
-            }
-	}
-      else
-	{
-          /* We have detected a form which is no definition.  This marks the
-           * start of the sequence of expressions of the body.  */
-          sequence = form_idx;
-          form_idx = SCM_EOL;
-	}
-    }
-
-  /* FIXME: forms does not hold information about the file location.  */
-  ASSERT_SYNTAX (SCM_CONSP (sequence), s_missing_body_expression, cdr_forms);
-
-  if (!SCM_NULLP (definitions))
-    {
-      SCM definition_idx;
-      SCM letrec_tail;
-      SCM letrec_expression;
-      SCM new_letrec_expression;
-      SCM new_body;
-
-      SCM bindings = SCM_EOL;
-      for (definition_idx = definitions;
-           !SCM_NULLP (definition_idx);
-           definition_idx = SCM_CDR (definition_idx))
-	{
-	  const SCM definition = SCM_CAR (definition_idx);
-	  const SCM canonical_definition = canonicalize_define (definition);
-	  const SCM binding = SCM_CDR (canonical_definition);
-	  bindings = scm_cons (binding, bindings);
-	};
-
-      letrec_tail = scm_cons (bindings, sequence);
-      /* FIXME: forms does not hold information about the file location.  */
-      letrec_expression = scm_cons_source (forms, scm_sym_letrec, letrec_tail);
-      new_letrec_expression = scm_m_letrec (letrec_expression, env);
-      new_body = scm_list_1 (new_letrec_expression);
-      return new_body;
-    }
-  else
-    {
-      SCM_SETCAR (forms, SCM_CAR (sequence));
-      SCM_SETCDR (forms, SCM_CDR (sequence));
-      return forms;
-    }
-}
-
-#if (SCM_ENABLE_DEPRECATED == 1)
-
-/* Deprecated in guile 1.7.0 on 2003-11-09.  */
-SCM
-scm_m_expand_body (SCM exprs, SCM env)
-{
-  scm_c_issue_deprecation_warning 
-    ("`scm_m_expand_body' is deprecated.");
-  return m_expand_body (exprs, env);
 }
 
 #endif
