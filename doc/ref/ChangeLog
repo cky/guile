@@ -1,3 +1,11 @@
+2004-01-21  Marius Vollmer  <mvo@zagadka.de>
+
+	Added copyright notices to all TeXinfo files.
+	
+	* fdl.texi: New.
+	* guile.texi: Include it as an appendix.
+	* preface.texi: State that the manual is FDL.
+
 2004-01-20  Kevin Ryde  <user42@zip.com.au>
 
 	* preface.texi (Guile License): Note readline is GPL and manual has
