@@ -1,0 +1,123 @@
+@page
+@node Autoconf Support
+@chapter Autoconf Support
+
+When Guile is installed, a set of autoconf macros is also installed as
+PREFIX/share/aclocal/guile.m4.  This chapter documents the macros provided in
+that file.  @xref{Top,The GNU Autoconf Manual,,autoconf}, for more info.
+
+@menu
+* Autoconf Background::         Why use autoconf?
+* Autoconf Macros::             The GUILE_* macros.
+* Using Autoconf Macros::       How to use them, plus examples.
+@end menu
+
+
+@node Autoconf Background
+@section Autoconf Background
+
+As explained elsewhere (@pxref{Top,The GNU Autoconf Manual,,autoconf}), any
+package needs configuration at build-time.  If your package uses Guile (or
+uses a package that in turn uses Guile), you probably need to know what
+specific Guile features are available and details about them.
+
+The way to do this is to write feature tests and arrange for their execution
+by the @file{configure} script, typically by adding the tests to
+@file{configure.ac}, and running @code{autoconf} to create @file{configure}.
+Users of your package then run @file{configure} in the normal way.
+
+Macros are a way to make common feature tests easy to express.  Autoconf
+provides a wide range macros (@pxref{Existing Tests,,,autoconf}), and Guile
+installation provides Guile-specific tests in the areas of: program detection,
+compilation flags reporting, and Scheme module checks.
+
+
+@node Autoconf Macros
+@section Autoconf Macros
+
+The macro names all begin with "GUILE_".
+
+@c see Makefile.am
+@include autoconf-macros.texi
+
+
+@node Using Autoconf Macros
+@section Using Autoconf Macros
+
+Using the autoconf macros is straightforward: Add the macro "calls" (actually
+instantiations) to @file{configure.ac}, run @code{aclocal}, and finally,
+run @code{autoconf}.  If your system doesn't have guile.m4 installed, place
+the desired macro definitions (@code{AC_DEFUN} forms) in @file{acinclude.m4},
+and @code{aclocal} will do the right thing.
+
+Some of the macros can be used inside normal shell constructs: @code{if foo ;
+then GUILE_BAZ ; fi}, but this is not guaranteed.  It's probably a good idea
+to instantiate macros at top-level.
+
+We now include two examples, one simple and one complicated.
+
+The first example is for a package that uses libguile, and thus needs to know
+how to compile and link against it.  So we use @code{GUILE_FLAGS} to set the
+vars @code{GUILE_CFLAGS} and @code{GUILE_LDFLAGS}, which are automatically
+substituted in the Makefile.
+
+@example
+In configure.ac:
+
+  GUILE_FLAGS
+
+In Makefile.in:
+
+  GUILE_CFLAGS  = @@GUILE_CFLAGS@@
+  GUILE_LDFLAGS = @@GUILE_LDFLAGS@@
+
+  myprog.o: myprog.c
+          $(CC) -o $@ $(GUILE_CFLAGS) $<
+  myprog: myprog.o
+          $(CC) -o $@ $< $(GUILE_LDFLAGS)
+@end example
+
+The second example is for a package of Guile Scheme modules that uses an
+external program and other Guile Scheme modules (some might call this a "pure
+scheme" package).  So we use the @code{GUILE_SITE_DIR} macro, a regular
+@code{AC_PATH_PROG} macro, and the @code{GUILE_MODULE_AVAILABLE} macro.
+
+@example
+In configure.ac:
+
+  GUILE_SITE_DIR
+
+  probably_wont_work=""
+
+  # pgtype pgtable
+  GUILE_MODULE_AVAILABLE(have_guile_pg, (database postgres))
+  test $have_guile_pg = no &&
+      probably_wont_work="(my pgtype) (my pgtable) $probably_wont_work"
+
+  # gpgutils
+  AC_PATH_PROG(GNUPG,gpg)
+  test x"$GNUPG" = x &&
+      probably_wont_work="(my gpgutils) $probably_wont_work"
+
+  if test ! "$probably_wont_work" = "" ; then
+      p="         ***"
+      echo
+      echo "$p"
+      echo "$p NOTE:"
+      echo "$p The following modules probably won't work:"
+      echo "$p   $probably_wont_work"
+      echo "$p They can be installed anyway, and will work if their"
+      echo "$p dependencies are installed later.  Please see README."
+      echo "$p"
+      echo
+  fi
+
+In Makefile.in:
+
+  instdir = @@GUILE_SITE@@/my
+
+  install:
+        $(INSTALL) my/*.scm $(instdir)
+@end example
+
+@c autoconf.texi ends here
