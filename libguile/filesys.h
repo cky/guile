@@ -54,15 +54,17 @@ extern long scm_tc16_dir;
 #define SCM_OPDIRP(x) (SCM_CAR(x)==(scm_tc16_dir | SCM_OPN))
 
 
-extern SCM scm_chown SCM_P ((SCM path, SCM owner, SCM group));
-extern SCM scm_chmod SCM_P ((SCM port_or_path, SCM mode));
+extern SCM scm_chown SCM_P ((SCM object, SCM owner, SCM group));
+extern SCM scm_chmod SCM_P ((SCM object, SCM mode));
 extern SCM scm_umask SCM_P ((SCM mode));
-extern SCM scm_open SCM_P ((SCM path, SCM flags, SCM mode));
+extern SCM scm_open_fdes (SCM path, SCM flags, SCM mode);
+extern SCM scm_open (SCM path, SCM flags, SCM mode);
 extern SCM scm_close (SCM fd_or_port);
-extern SCM scm_stat SCM_P ((SCM fd_or_path));
+extern SCM scm_stat SCM_P ((SCM object));
 extern SCM scm_link SCM_P ((SCM oldpath, SCM newpath));
 extern SCM scm_rename SCM_P ((SCM oldname, SCM newname));
 extern SCM scm_delete_file SCM_P ((SCM str));
+extern SCM scm_truncate_file (SCM object, SCM size);
 extern SCM scm_mkdir SCM_P ((SCM path, SCM mode));
 extern SCM scm_rmdir SCM_P ((SCM path));
 extern SCM scm_opendir SCM_P ((SCM dirname));
@@ -73,7 +75,8 @@ extern SCM scm_chdir SCM_P ((SCM str));
 extern SCM scm_getcwd SCM_P ((void));
 extern SCM scm_select SCM_P ((SCM reads, SCM writes, SCM excepts, SCM secs, SCM msecs));
 extern int scm_input_waiting_p SCM_P ((FILE *file, char *caller));
-extern SCM scm_fcntl SCM_P ((SCM port, SCM cmd, SCM value));
+extern SCM scm_fcntl (SCM object, SCM cmd, SCM value);
+extern SCM scm_fsync (SCM object);
 extern SCM scm_symlink SCM_P ((SCM oldpath, SCM newpath));
 extern SCM scm_readlink SCM_P ((SCM path));
 extern SCM scm_lstat SCM_P ((SCM str));

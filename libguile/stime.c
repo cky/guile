@@ -160,6 +160,29 @@ scm_get_internal_real_time()
 }
 #endif
 
+SCM_PROC (s_times, "times", 0, 0, 0, scm_times);
+SCM
+scm_times (void)
+{
+#ifdef HAVE_TIMES
+  struct tms t;
+  clock_t rv;
+
+  SCM result = scm_make_vector (SCM_MAKINUM(5), SCM_UNDEFINED, SCM_UNDEFINED);
+  rv = times (&t);
+  if (rv == -1)
+    scm_syserror (s_times);
+  SCM_VELTS (result)[0] = scm_long2num (rv);
+  SCM_VELTS (result)[1] = scm_long2num (t.tms_utime);
+  SCM_VELTS (result)[2] = scm_long2num (t.tms_stime);
+  SCM_VELTS (result)[3] = scm_long2num (t.tms_cutime);
+  SCM_VELTS (result)[4] = scm_long2num (t.tms_cstime);
+  return result;
+#else
+  scm_sysmissing (s_times);
+#endif
+}
+
 #ifndef HAVE_TZSET
 /* GNU-WIN32's cygwin.dll doesn't have this. */
 #define tzset()

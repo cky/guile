@@ -65,6 +65,15 @@ was successfully closed, while #f means it was already closed.  It is
 also now possible for these procedures to raise an exception if an
 error occurs (some errors from write can be delayed until close.)
 
+** the first argument to chmod, fcntl, ftell and fseek can now be a
+file descriptor.
+
+** the third argument to fcntl is now optional.
+
+** the first argument to chown can now be a file descriptor or a port.
+
+** the argument to stat can now be a port.
+
 ** The following new procedures have been added (most use scsh
 interfaces):
 
@@ -119,6 +128,14 @@ If VALUE is `#f', removes NAME from the environment.  Otherwise
 adds the string NAME=VALUE to the environment, replacing any previous
 value for NAME.
 
+** truncate-file OBJ SIZE
+     Truncates the file referred to by OBJ to at most SIZE bytes.  OBJ
+     can be a string containing a file name or an integer file
+     descriptor or port open for output on the file.  The underlying
+     system calls are `truncate' and `ftruncate'.
+
+     The return value is unspecified.
+
 ** setvbuf PORT MODE [SIZE]
      Set the buffering mode for PORT.  MODE can be:
     `_IONBF'
@@ -139,9 +156,53 @@ value for NAME.
      size.  Procedures e.g., *Note open-file: File Ports, which accept a
      mode string allow `0' to be added to request an unbuffered port.
 
-** primitive-exit [STATUS]
-Terminates the current process without unwinding the Scheme stack.
-This would usually be used after a fork.
+** fsync PORT/FD
+     Copies any unwritten data for the specified output file descriptor
+     to disk.  If PORT/FD is a port, its buffer is flushed before the
+     underlying file descriptor is fsync'd.  The return value is
+     unspecified.
+
+** open-fdes PATH FLAGS [MODES]
+     Similar to `open' but returns a file descriptor instead of a port.
+
+** procedure: execle PATH ENV [ARG] ...
+     Similar to `execl', but the environment of the new process is
+     specified by ENV, which must be a list of strings as returned by
+     the `environ' procedure.
+
+     This procedure is currently implemented using the `execve' system
+     call, but we call it `execle' because of its Scheme calling
+     interface.
+
+** procedure: primitive-exit [STATUS]
+     Terminate the current process without unwinding the Scheme stack.
+     This is would typically be useful after a fork.  The exit status
+     is STATUS if supplied, otherwise zero.
+
+** procedure: times
+     Returns an object with information about real and processor time.
+     The following procedures accept such an object as an argument and
+     return a selected component:
+
+    `tms:clock'
+          The current real time, expressed as time units relative to an
+          arbitrary base.
+
+    `tms:utime'
+          The CPU time units used by the calling process.
+
+    `tms:stime'
+          The CPU time units used by the system on behalf of the
+          calling process.
+
+    `tms:cutime'
+          The CPU time units used by terminated child processes of the
+          calling process, whose status has been collected (e.g., using
+          `waitpid').
+
+    `tms:cstime'
+          Similarly, the CPU times units used by the system on behalf of
+          terminated child processes.
 
 * Changes to the gh_ interface
 

@@ -760,6 +760,12 @@
 (define (set-tm:gmtoff obj val) (vector-set! obj 9 val))
 (define (set-tm:zone obj val) (vector-set! obj 10 val))
 
+(define (tms:clock obj) (vector-ref obj 0))
+(define (tms:utime obj) (vector-ref obj 1))
+(define (tms:stime obj) (vector-ref obj 2))
+(define (tms:cutime obj) (vector-ref obj 3))
+(define (tms:cstime obj) (vector-ref obj 4))
+
 (define (file-position . args) (apply ftell args))
 (define (file-set-position . args) (apply fseek args))
 

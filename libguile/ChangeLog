@@ -1,3 +1,34 @@
+Sat Aug 16 18:42:15 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* stime.h: prototype for scm_times.
+	* stime.c (scm_times): new procedure.
+	* ioext.c (scm_fseek): if the first argument is a file descriptor
+	call lseek.
+	(scm_ftell): if the first argument is a file descriptor call lseek
+	(sic).
+	* filesys.h: prototypes for scm_open_fdes, scm_fsync.
+	* filesys.c (scm_chmod): if the first argument is a file descriptor,
+	call fchmod.
+	(scm_chown): if the first argument is a port or file descriptor,
+	call fchown.
+	(scm_truncate_file): new procedure.
+	Add DEFER/ALLOW INTS to a few other procedures.
+	(scm_fsync): new procedure.
+	(scm_open_fdes): new procedure.
+	(scm_open): use scm_open_fdes.  If mode isn't specified, 666 will
+	now be used.
+	(scm_fcntl): the first argument can now be a file descriptor.  The
+	third argument is now optional.	
+
+	* posix.c (scm_execl, scm_execlp): make the filename argument
+	compulsory, since omitting it causes SEGV.
+	(scm_sync): return unspecified instead of #f.
+	(scm_execle): new procedure.
+	(environ_list_to_c): new procedure.
+	(scm_environ): use environ_list_to_c.  disable interrupts.
+	(scm_convert_exec_args): take pos and subr arguments and
+	improve error checking.
+
 1997-08-14  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* stacks.c (scm_make_stack), coop-threads.c, mit-pthreads.c

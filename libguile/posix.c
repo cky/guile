@@ -719,28 +719,29 @@ scm_tcsetpgrp (port, pgid)
 
 /* Copy exec args from an SCM vector into a new C array.  */
 
-static char ** scm_convert_exec_args SCM_P ((SCM args));
-
 static char **
-scm_convert_exec_args (args)
-     SCM args;
+scm_convert_exec_args (SCM args, int pos, char *subr)
 {
   char **execargv;
   int num_args;
   int i;
+
+  SCM_ASSERT (SCM_NULLP (args)
+	      || (SCM_NIMP (args) && SCM_CONSP (args)),
+	      args, pos, subr);
   SCM_DEFER_INTS;
   num_args = scm_ilength (args);
   execargv = (char **) 
-    scm_must_malloc ((num_args + 1) * sizeof (char *), s_ttyname);
+    scm_must_malloc ((num_args + 1) * sizeof (char *), subr);
   for (i = 0; SCM_NNULLP (args); args = SCM_CDR (args), ++i)
     {
       scm_sizet len;
       char *dst;
       char *src;
       SCM_ASSERT (SCM_NIMP (SCM_CAR (args)) && SCM_ROSTRINGP (SCM_CAR (args)),
-		  SCM_CAR (args), "wrong type in SCM_ARG", "exec arg");
+		  SCM_CAR (args), SCM_ARGn, subr);
       len = 1 + SCM_ROLENGTH (SCM_CAR (args));
-      dst = (char *) scm_must_malloc ((long) len, s_ttyname);
+      dst = (char *) scm_must_malloc ((long) len, subr);
       src = SCM_ROCHARS (SCM_CAR (args));
       while (len--) 
 	dst[len] = src[len];
@@ -751,42 +752,95 @@ scm_convert_exec_args (args)
   return execargv;
 }
 
-SCM_PROC (s_execl, "execl", 0, 0, 1, scm_execl);
+SCM_PROC (s_execl, "execl", 1, 0, 1, scm_execl);
 
 SCM
-scm_execl (args)
-     SCM args;
+scm_execl (filename, args)
+     SCM filename, args;
 {
   char **execargv;
-  SCM filename = SCM_CAR (args);
-  SCM_ASSERT (SCM_NIMP (filename) && SCM_ROSTRINGP (filename), filename, SCM_ARG1, s_execl);
-  if (SCM_SUBSTRP (filename))
-    filename = scm_makfromstr (SCM_ROCHARS (filename), SCM_ROLENGTH (filename), 0);
-  args = SCM_CDR (args);
-  execargv = scm_convert_exec_args (args);
+  SCM_ASSERT (SCM_NIMP (filename) && SCM_ROSTRINGP (filename), filename,
+	      SCM_ARG1, s_execl);
+  SCM_COERCE_SUBSTR (filename);
+  execargv = scm_convert_exec_args (args, SCM_ARG2, s_execl);
   execv (SCM_ROCHARS (filename), execargv);
   scm_syserror (s_execl);
   /* not reached.  */
   return SCM_BOOL_F;
 }
 
-SCM_PROC (s_execlp, "execlp", 0, 0, 1, scm_execlp);
+SCM_PROC (s_execlp, "execlp", 1, 0, 1, scm_execlp);
 
 SCM
-scm_execlp (args)
-     SCM args;
+scm_execlp (filename, args)
+     SCM filename, args;
 {
   char **execargv;
-  SCM filename = SCM_CAR (args);
   SCM_ASSERT (SCM_NIMP (filename) && SCM_ROSTRINGP (filename), filename,
 	      SCM_ARG1, s_execlp);
-  if (SCM_SUBSTRP (filename))
-    filename = scm_makfromstr (SCM_ROCHARS (filename),
-			       SCM_ROLENGTH (filename), 0);
-  args = SCM_CDR (args);
-  execargv = scm_convert_exec_args (args);
+  SCM_COERCE_SUBSTR (filename);
+  execargv = scm_convert_exec_args (args, SCM_ARG2, s_execlp);
   execvp (SCM_ROCHARS (filename), execargv);
   scm_syserror (s_execlp);
+  /* not reached.  */
+  return SCM_BOOL_F;
+}
+
+static char **
+environ_list_to_c (SCM envlist, int arg, char *proc)
+{
+  int num_strings;
+  char **result;
+  int i = 0;
+
+  SCM_REDEFER_INTS;
+  SCM_ASSERT (SCM_NULLP (envlist)
+	      || (SCM_NIMP (envlist) && SCM_CONSP (envlist)),
+	      envlist, arg, proc);
+  num_strings = scm_ilength (envlist);
+  result = (char **) malloc ((num_strings + 1) * sizeof (char *));
+  if (result == NULL)
+    scm_memory_error (proc);
+  while (SCM_NNULLP (envlist))
+    {
+      int len;
+      char *src;
+
+      SCM_ASSERT (SCM_NIMP (SCM_CAR (envlist))
+		  && SCM_ROSTRINGP (SCM_CAR (envlist)),
+		  envlist, arg, proc);
+      len = 1 + SCM_ROLENGTH (SCM_CAR (envlist));
+      result[i] = malloc ((long) len);
+      if (result[i] == NULL)
+	scm_memory_error (proc);
+      src = SCM_ROCHARS (SCM_CAR (envlist));
+      while (len--) 
+	result[i][len] = src[len];
+      envlist = SCM_CDR (envlist);
+      i++;
+    }
+  result[i] = 0;
+  SCM_REALLOW_INTS;
+  return result;
+}
+
+SCM_PROC (s_execle, "execle", 2, 0, 1, scm_execle);
+
+SCM
+scm_execle (filename, env, args)
+     SCM filename, env, args;
+{
+  char **execargv;
+  char **exec_env;
+
+  SCM_ASSERT (SCM_NIMP (filename) && SCM_ROSTRINGP (filename), filename,
+	      SCM_ARG1, s_execle);
+  SCM_COERCE_SUBSTR (filename);
+  
+  execargv = scm_convert_exec_args (args, SCM_ARG1, s_execle);
+  exec_env = environ_list_to_c (env, SCM_ARG2, s_execle);
+  execve (SCM_ROCHARS (filename), execargv, exec_env);
+  scm_syserror (s_execle);
   /* not reached.  */
   return SCM_BOOL_F;
 }
@@ -844,33 +898,10 @@ scm_environ (env)
     return scm_makfromstrs (-1, environ);
   else
     {
-      int num_strings;
       char **new_environ;
-      int i = 0;
-      SCM_ASSERT (SCM_NULLP (env) || (SCM_NIMP (env) && SCM_CONSP (env)),
-	      env, SCM_ARG1, s_environ);
-      num_strings = scm_ilength (env);
-      new_environ = (char **) malloc ((num_strings + 1) * sizeof (char *));
-      if (new_environ == NULL)
-	scm_memory_error (s_environ);
-      while (SCM_NNULLP (env))
-	{
-	  int len;
-	  char *src;
-	  SCM_ASSERT (SCM_NIMP (SCM_CAR (env))
-		      && SCM_ROSTRINGP (SCM_CAR (env)),
-		      env, SCM_ARG1, s_environ);
-	  len = 1 + SCM_ROLENGTH (SCM_CAR (env));
-	  new_environ[i] = malloc ((long) len);
-	  if (new_environ[i] == NULL)
-	    scm_memory_error (s_environ);
-	  src = SCM_ROCHARS (SCM_CAR (env));
-	  while (len--) 
-	    new_environ[i][len] = src[len];
-	  env = SCM_CDR (env);
-	  i++;
-	}
-      new_environ[i] = 0;
+
+      SCM_DEFER_INTS;
+      new_environ = environ_list_to_c (env, SCM_ARG1, s_environ);
       /* Free the old environment, except when called for the first
        * time.
        */
@@ -886,6 +917,7 @@ scm_environ (env)
 	first = 0;
       }
       environ = new_environ;
+      SCM_ALLOW_INTS;
       return SCM_UNSPECIFIED;
     }
 }
@@ -1151,11 +1183,8 @@ scm_sync()
   scm_sysmissing (s_sync);
   /* not reached.  */
 #endif
-  return SCM_BOOL_F;
+  return SCM_UNSPECIFIED;
 }
-
-
-
 
 void 
 scm_init_posix ()

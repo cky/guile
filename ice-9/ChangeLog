@@ -1,3 +1,8 @@
+Sat Aug 16 18:44:24 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* boot-9.scm: define tms accessors: clock, utime, stime, cutime,
+	cstime.
+
 Thu Aug 14 19:55:37 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* emacs.scm (emacs-load): Something has changed in the reader so

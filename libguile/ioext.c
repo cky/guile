@@ -172,16 +172,25 @@ scm_write_line (obj, port)
 SCM_PROC (s_ftell, "ftell", 1, 0, 0, scm_ftell);
 
 SCM 
-scm_ftell (port)
-     SCM port;
+scm_ftell (object)
+     SCM object;
 {
   long pos;
-  SCM_ASSERT (SCM_NIMP (port) && SCM_OPFPORTP (port), port, SCM_ARG1, s_ftell);
-  SCM_SYSCALL (pos = ftell ((FILE *)SCM_STREAM (port)));
+  SCM_DEFER_INTS;
+  if (SCM_NIMP (object) && SCM_OPFPORTP (object))
+    {
+      SCM_SYSCALL (pos = ftell ((FILE *)SCM_STREAM (object)));
+      if (pos > 0 && SCM_CRDYP (object))
+	pos--;
+    }
+  else
+    {
+      SCM_ASSERT (SCM_INUMP (object), object, SCM_ARG1, s_ftell);
+      SCM_SYSCALL (pos = lseek (SCM_INUM (object), 0, SEEK_CUR));
+    }
   if (pos < 0)
     scm_syserror (s_ftell);
-  if (pos > 0 && SCM_CRDYP (port))
-    pos--;
+  SCM_ALLOW_INTS;
   return scm_long2num (pos);
 }
 
@@ -190,28 +199,32 @@ scm_ftell (port)
 SCM_PROC (s_fseek, "fseek", 3, 0, 0, scm_fseek);
 
 SCM 
-scm_fseek (port, offset, whence)
-     SCM port;
+scm_fseek (object, offset, whence)
+     SCM object;
      SCM offset;
      SCM whence;
 {
   int rv;
   long loff;
 
-  SCM_ASSERT (SCM_NIMP (port) && SCM_OPFPORTP (port), port, SCM_ARG1, s_fseek);
   loff = scm_num2long (offset, (char *)SCM_ARG2, s_fseek);
-  SCM_ASSERT (SCM_INUMP (whence) && (SCM_INUM (whence) < 3) && (SCM_INUM (whence) >= 0),
-	  whence, SCM_ARG3, s_fseek);
-  
-  SCM_CLRDY (port);			/* Clear ungetted char */
-  /* Values of whence are interned in scm_init_ioext.  */
-  rv = fseek ((FILE *)SCM_STREAM (port), loff, SCM_INUM (whence));
-  if (rv != 0)
+  SCM_ASSERT (SCM_INUMP (whence), whence, SCM_ARG3, s_fseek);
+  SCM_DEFER_INTS;
+  if (SCM_NIMP (object) && SCM_OPFPORTP (object))
+    {
+      SCM_CLRDY (object);			/* Clear ungetted char */
+      rv = fseek ((FILE *)SCM_STREAM (object), loff, SCM_INUM (whence));
+    }
+  else
+    {
+      SCM_ASSERT (SCM_INUMP (object), object, SCM_ARG1, s_fseek);
+      rv = lseek (SCM_INUM (object), loff, SCM_INUM (whence));
+    }
+  if (rv < 0)
     scm_syserror (s_fseek);
+  SCM_ALLOW_INTS;
   return SCM_UNSPECIFIED;
 }
-
-
 
 SCM_PROC (s_freopen, "freopen", 3, 0, 0, scm_freopen);
 
