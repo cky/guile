@@ -144,8 +144,8 @@ Any whitespace before the next token is discarded.
 @end deffn
 
 The behaviour of Guile's Scheme reader can be modified by manipulating
-its read options.  For more information about options, @xref{General
-option interface}.  If you want to know which reader options are
+its read options.  For more information about options, @xref{User level
+options interfaces}.  If you want to know which reader options are
 available, @xref{Reader options}.
 
 @c FIXME::martin: This is taken from libguile/options.c.  Is there 
@@ -358,8 +358,8 @@ is implicit).
 @c `Evaluator options' under `Options and Config'.
 
 The behaviour of Guile's evaluator can be modified by manipulating the
-evaluator options.  For more information about options, @xref{General
-option interface}.  If you want to know which evaluator options are
+evaluator options.  For more information about options, @xref{User level
+options interfaces}.  If you want to know which evaluator options are
 available, @xref{Evaluator options}.
 
 @c FIXME::martin: This is taken from libguile/options.c.  Is there 

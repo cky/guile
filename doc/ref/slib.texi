@@ -2,8 +2,8 @@
 @node SLIB
 @chapter SLIB
 
-Before the the SLIB facilities can be used, the following Scheme
-expression must be executed:
+Before the SLIB facilities can be used, the following Scheme expression
+must be executed:
 
 @smalllisp
 (use-modules (ice-9 slib))

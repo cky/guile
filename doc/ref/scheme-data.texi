@@ -1901,6 +1901,12 @@ form a longer result string.
 @deffnx {C Function} scm_string_append (args)
 Return a newly allocated string whose characters form the
 concatenation of the given strings, @var{args}.
+
+@example
+(let ((h "hello "))
+  (string-append h "world"))
+@result{} "hello world"
+@end example
 @end deffn
 
 
@@ -1925,6 +1931,11 @@ as Rx, these functions will not be available.  You can tell whether
 your Guile installation includes regular expression support by
 checking whether @code{(provided? 'regex)} returns true.
 
+The following regexp and string matching features are provided by the
+@code{(ice-9 regex)} module.  Before using the described functions,
+you should load this module by executing @code{(use-modules (ice-9
+regex))}.
+
 @menu
 * Regexp Functions::            Functions that create and match regexps.
 * Match Structures::            Finding what was matched by a regexp.
@@ -1932,8 +1943,6 @@ checking whether @code{(provided? 'regex)} returns true.
                                 meta-characters.
 @end menu
 
-[FIXME: it may be useful to include an Examples section.  Parts of this
-interface are bewildering on first glance.]
 
 @node Regexp Functions
 @subsection Regexp Functions
@@ -1947,7 +1956,6 @@ This regular expression interface was modeled after that
 implemented by SCSH, the Scheme Shell.  It is intended to be
 upwardly compatible with SCSH regular expressions.
 
-@c begin (scm-doc-string "regex.scm" "string-match")
 @deffn {Scheme Procedure} string-match pattern str [start]
 Compile the string @var{pattern} into a regular expression and compare
 it with @var{str}.  The optional numeric argument @var{start} specifies
@@ -1958,6 +1966,18 @@ describes what, if anything, was matched by the regular
 expression.  @xref{Match Structures}.  If @var{str} does not match
 @var{pattern} at all, @code{string-match} returns @code{#f}.
 @end deffn
+
+Two examples of a match follow.  In the first example, the pattern
+matches the four digits in the match string.  In the second, the pattern
+matches nothing.
+
+@example
+(string-match "[0-9][0-9][0-9][0-9]" "blah2002")
+@result{} #("blah2002" (4 . 8))
+
+(string-match "[A-Za-z]" "123456")
+@result{} #f
+@end example
 
 Each time @code{string-match} is called, it must compile its
 @var{pattern} argument into a regular expression structure.  This
@@ -2030,6 +2050,22 @@ considered the end of a line.
 @end table
 @end deffn
 
+@lisp
+;; Regexp to match uppercase letters
+(define r (make-regexp "[A-Z]*"))
+
+;; Regexp to match letters, ignoring case
+(define ri (make-regexp "[A-Z]*" regexp/icase))
+
+;; Search for bob using regexp r
+(match:substring (regexp-exec r "bob"))
+@result{} ""                  ; no match
+
+;; Search for bob using regexp ri
+(match:substring (regexp-exec ri "Bob"))
+@result{} "Bob"               ; matched case insensitive
+@end lisp
+
 @deffn {Scheme Procedure} regexp? obj
 @deffnx {C Function} scm_regexp_p (obj)
 Return @code{#t} if @var{obj} is a compiled regular expression,
@@ -2061,10 +2097,24 @@ The symbol @samp{post}.  The portion of the matched string following
 the regexp match is written.
 @end itemize
 
-@var{port} may be @code{#f}, in which case nothing is written; instead,
-@code{regexp-substitute} constructs a string from the specified
-@var{item}s and returns that.
+The @var{port} argument may be @code{#f}, in which case nothing is
+written; instead, @code{regexp-substitute} constructs a string from the
+specified @var{item}s and returns that.
 @end deffn
+
+The following example takes a regular expression that matches a standard
+YYYYMMDD-format date such as @code{"20020828"}.  The
+@code{regexp-substitute} call returns a string computed from the
+information in the match structure, consisting of the fields and text
+from the original string reordered and reformatted.
+
+@lisp
+(define date-regex "([0-9][0-9][0-9][0-9])([0-9][0-9])([0-9][0-9])")
+(define s "Date 20020429 12am.")
+(define sm (string-match date-regex s))
+(regexp-substitute #f sm 'pre 2 "-" 3 "-" 1 'post " (" 0 ")")
+@result{} "Date 04-29-2002 12am. (20020429)"
+@end lisp
 
 @c begin (scm-doc-string "regex.scm" "regexp-substitute")
 @deffn {Scheme Procedure} regexp-substitute/global port regexp target [item@dots{}]
@@ -2091,6 +2141,18 @@ present among the @var{item}s, then @code{regexp-substitute/global} will
 return after processing a single match.
 @end itemize
 @end deffn
+
+The example above for @code{regexp-substitute} could be rewritten as
+follows to remove the @code{string-match} stage:
+
+@lisp
+(define date-regex "([0-9][0-9][0-9][0-9])([0-9][0-9])([0-9][0-9])")
+(define s "Date 20020429 12am.")
+(regexp-substitute/global #f date-regex s
+  'pre 2 "-" 3 "-" 1 'post " (" 0 ")")
+@result{} "Date 04-29-2002 12am. (20020429)"
+@end lisp
+
 
 @node Match Structures
 @subsection Match Structures
@@ -2126,25 +2188,66 @@ If the regular expression as a whole matched, but the subexpression
 number @var{n} did not match, return @code{#f}.
 @end deffn
 
+@lisp
+(define s (string-match "[0-9][0-9][0-9][0-9]" "blah2002foo"))
+(match:substring s)
+@result{} "2002"
+
+;; match starting at offset 6 in the string
+(match:substring
+  (string-match "[0-9][0-9][0-9][0-9]" "blah987654" 6))
+@result{} "7654"
+@end lisp
+
 @c begin (scm-doc-string "regex.scm" "match:start")
 @deffn {Scheme Procedure} match:start match [n]
 Return the starting position of submatch number @var{n}.
 @end deffn
+
+In the following example, the result is 4, since the match starts at
+character index 4:
+
+@lisp
+(define s (string-match "[0-9][0-9][0-9][0-9]" "blah2002foo"))
+(match:start s)
+@result{} 4
+@end lisp
 
 @c begin (scm-doc-string "regex.scm" "match:end")
 @deffn {Scheme Procedure} match:end match [n]
 Return the ending position of submatch number @var{n}.
 @end deffn
 
+In the following example, the result is 8, since the match runs between
+characters 4 and 8 (i.e. the ``2002'').
+
+@lisp
+(define s (string-match "[0-9][0-9][0-9][0-9]" "blah2002foo"))
+(match:end s)
+@result{} 8
+@end lisp
+
 @c begin (scm-doc-string "regex.scm" "match:prefix")
 @deffn {Scheme Procedure} match:prefix match
 Return the unmatched portion of @var{target} preceding the regexp match.
+
+@lisp
+(define s (string-match "[0-9][0-9][0-9][0-9]" "blah2002foo"))
+(match:prefix s)
+@result{} "blah"
+@end lisp
 @end deffn
 
 @c begin (scm-doc-string "regex.scm" "match:suffix")
 @deffn {Scheme Procedure} match:suffix match
 Return the unmatched portion of @var{target} following the regexp match.
 @end deffn
+
+@lisp
+(define s (string-match "[0-9][0-9][0-9][0-9]" "blah2002foo"))
+(match:suffix s)
+@result{} "foo"
+@end lisp
 
 @c begin (scm-doc-string "regex.scm" "match:count")
 @deffn {Scheme Procedure} match:count match
@@ -2157,6 +2260,13 @@ subexpression, and failed submatches are included in the count.
 @deffn {Scheme Procedure} match:string match
 Return the original @var{target} string.
 @end deffn
+
+@lisp
+(define s (string-match "[0-9][0-9][0-9][0-9]" "blah2002foo"))
+(match:string s)
+@result{} "blah2002foo"
+@end lisp
+
 
 @node Backslash Escapes
 @subsection Backslash Escapes
@@ -2987,8 +3097,8 @@ recognizes the alternative read syntax @code{:NAME}.  Otherwise, tokens
 of the form @code{:NAME} are read as symbols, as required by R5RS.
 
 To enable and disable the alternative non-R5RS keyword syntax, you use
-the @code{read-options} procedure documented in @ref{General option
-interface} and @ref{Reader options}.
+the @code{read-set!} procedure documented in @ref{User level options
+interfaces} and @ref{Reader options}.
 
 @smalllisp
 (read-set! keywords 'prefix)

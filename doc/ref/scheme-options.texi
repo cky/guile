@@ -1,371 +1,42 @@
 @page
 @node Options and Config
-@chapter Runtime Options and Configuration
+@chapter Configuration, Features and Runtime Options
 
-Guile's behaviour can be modified by setting options.  For example, is
-the language that Guile accepts case sensitive, or should the debugger
-automatically show a backtrace on error?
+Why is my Guile different from your Guile?  There are three kinds of
+possible variation:
 
-Guile has two levels of interface for managing options: a low-level
-control interface, and a user-level interface which allows the enabling
-or disabling of options.
+@itemize @bullet
+@item
+build differences --- different versions of the Guile source code,
+installation directories, configuration flags that control pieces of
+functionality being included or left out, etc.
 
-Moreover, the options are classified in groups according to whether they
-configure @emph{reading}, @emph{printing}, @emph{debugging} or
-@emph{evaluating}.
+@item
+differences in dynamically loaded code --- behaviour and features
+provided by modules that can be dynamically loaded into a running Guile
+
+@item
+different runtime options --- some of the options that are provided for
+controlling Guile's behaviour may be set differently.
+@end itemize
+
+Guile provides ``introspective'' variables and procedures to query all
+of these possible variations at runtime.  For runtime options, it also
+provides procedures to change the settings of options and to obtain
+documentation on what the options mean.
 
 @menu
-* General option interface::
-* Reader options::
-* Printing options::
-* Debugger options::
-* Evaluator options::
-* Evaluator trap options::
-* Examples of option use::
-* Install Config::              Installation and configuration data.
+* Build Config::                Build and installation configuration.
 * Feature Tracking::            Available features in the Guile process.
+* Runtime Options::             Controlling Guile's runtime behaviour.
 @end menu
 
-@node General option interface
-@section General option interface
 
-We will use the expression @code{<group>} to represent @code{read},
-@code{print}, @code{debug} or @code{evaluator}.
+@node Build Config
+@section Configuration, Build and Installation
 
-@subheading Low level
-
-@c NJFIXME
-@deffn {Scheme Procedure} <group>-options-interface
-@deffnx {Scheme Procedure} read-options-interface [SOME-INT]
-@deffnx {Scheme Procedure} print-options-interface [SOME-INT]
-@deffnx {Scheme Procedure} evaluator-traps-interface [SOME-INT]
-@deffnx {Scheme Procedure} read-options-interface [SOME-INT]
-[FIXME: I have just taken the comments for C routine scm_options that
-implements all of these.  It needs to be presented better.]
-
-If scm_options is called without arguments, the current option setting
-is returned.  If the argument is an option setting, options are altered
-and the old setting is returned.  If the argument isn't a list, a list
-of sublists is returned, where each sublist contains option name, value
-and documentation string.
-@end deffn
-
-
-@subheading User level
-
-@c @deftp {Data type} scm_option
-@c @code{scm_option} is used to represent run time options.  It can be a
-@c @emph{boolean} type, in which case the option will be set by the strings
-@c @code{"yes"} and @code{"no"}.  It can be a
-@c @end deftp
-
-@c NJFIXME
-@deffn {Scheme Procedure} <group>-options [arg]
-@deffnx {Scheme Procedure} read-options [arg]
-@deffnx {Scheme Procedure} print-options [arg]
-@deffnx {Scheme Procedure} debug-options [arg]
-@deffnx {Scheme Procedure} traps [arg]
-These functions list the options in their group.  The optional argument
-@var{arg} is a symbol which modifies the form in which the options are
-presented.
-
-With no arguments, @code{<group>-options} returns the values of the
-options in that particular group.  If @var{arg} is @code{'help}, a
-description of each option is given.  If @var{arg} is @code{'full},
-programmers' options are also shown.
-
-@var{arg} can also be a list representing the state of all options.  In
-this case, the list contains single symbols (for enabled boolean
-options) and symbols followed by values.
-@end deffn
-[FIXME: I don't think 'full is ever any different from 'help.  What's
-up?]
-
-@c NJFIXME
-@deffn {Scheme Procedure} <group>-enable option-symbol
-@deffnx {Scheme Procedure} read-enable option-symbol
-@deffnx {Scheme Procedure} print-enable option-symbol
-@deffnx {Scheme Procedure} debug-enable option-symbol
-@deffnx {Scheme Procedure} trap-enable option-symbol
-These functions set the specified @var{option-symbol} in their options
-group.  They only work if the option is boolean, and throw an error
-otherwise.
-@end deffn
-
-@c NJFIXME
-@deffn {Scheme Procedure} <group>-disable option-symbol
-@deffnx {Scheme Procedure} read-disable option-symbol
-@deffnx {Scheme Procedure} print-disable option-symbol
-@deffnx {Scheme Procedure} debug-disable option-symbol
-@deffnx {Scheme Procedure} trap-disable option-symbol
-These functions turn off the specified @var{option-symbol} in their
-options group.  They only work if the option is boolean, and throw an
-error otherwise.
-@end deffn
-
-@c NJFIXME
-@deffn syntax <group>-set! option-symbol value
-@deffnx syntax read-set! option-symbol value
-@deffnx syntax print-set! option-symbol value
-@deffnx syntax debug-set! option-symbol value
-@deffnx syntax trap-set! option-symbol value
-These functions set a non-boolean @var{option-symbol} to the specified
-@var{value}.
-@end deffn
-
-
-@node Reader options
-@section Reader options
-@cindex options - read
-@cindex read options
-
-Here is the list of reader options generated by typing
-@code{(read-options 'full)} in Guile.  You can also see the default
-values.
-
-@smalllisp
-keywords         #f      Style of keyword recognition: #f or 'prefix
-case-insensitive no      Convert symbols to lower case.
-positions        yes     Record positions of source code expressions.
-copy             no      Copy source code expressions.
-@end smalllisp
-
-Notice that while Standard Scheme is case insensitive, to ease
-translation of other Lisp dialects, notably Emacs Lisp, into Guile,
-Guile is case-sensitive by default.
-
-To make Guile case insensitive, you can type
-
-@smalllisp
-(read-enable 'case-insensitive)
-@end smalllisp
-
-@node Printing options
-@section Printing options
-
-Here is the list of print options generated by typing
-@code{(print-options 'full)} in Guile.  You can also see the default
-values.
-
-@smallexample
-source          no      Print closures with source.
-closure-hook    #f      Hook for printing closures.
-@end smallexample
-
-
-@node Evaluator options
-@section Evaluator options
-
-These are the evaluator options with their default values, as they are
-printed by typing @code{(eval-options 'full)} in Guile.
-
-@smallexample
-stack           22000   Size of thread stacks (in machine words).
-@end smallexample
-
-@node Evaluator trap options
-@section Evaluator trap options
-[FIXME: These flags, together with their corresponding handlers, are not
-user level options.  Probably this entire section should be moved to the
-documentation about the low-level programmer debugging interface.]
-
-Here is the list of evaluator trap options generated by typing
-@code{(traps 'full)} in Guile.  You can also see the default values.
-
-@smallexample
-exit-frame      no      Trap when exiting eval or apply.
-apply-frame     no      Trap when entering apply.
-enter-frame     no      Trap when eval enters new frame.
-traps		yes	Enable evaluator traps.
-@end smallexample
-
-@deffn apply-frame-handler key cont tailp
-Called when a procedure is being applied.
-
-Called if:
-
-@itemize @bullet
-@item
-evaluator traps are enabled [traps interface], and
-@item
-either
-@itemize @minus
-@item
-@code{apply-frame} is enabled [traps interface], or
-@item
-trace mode is on [debug-options interface], and the procedure being
-called has the trace property enabled.
-@end itemize
-@end itemize
-
-If cheap traps are enabled [debug-options interface], @var{cont} is a
-debug object, otherwise it is a restartable continuation.
-
-@var{tailp} is true if this is a tail call
-@end deffn
-
-@deffn exit-frame-handler key cont retval
-Called when a value is returned from a procedure.
-
-Called if:
-
-@itemize @bullet
-@item
-evaluator traps are enabled [traps interface], and
-@item
-either
-@itemize @minus
-@item
- @code{exit-frame} is enabled [traps interface], or
-@item
-trace mode is on [debug-options interface], and the procedure being
-called has the trace property enabled.
-@end itemize
-@end itemize
-
-If cheap traps are enabled [debug-options interface], @var{cont} is a
-debug object, otherwise it is a restartable continuation.
-
-@var{retval} is the return value.
-@end deffn
-
-@node Debugger options
-@section Debugger options
-
-Here is the list of print options generated by typing
-@code{(debug-options 'full)} in Guile.  You can also see the default
-values.
-
-@smallexample
-stack           20000   Stack size limit (0 = no check).
-debug           yes     Use the debugging evaluator.
-backtrace       no      Show backtrace on error.
-depth           20      Maximal length of printed backtrace.
-maxdepth        1000    Maximal number of stored backtrace frames.
-frames          3       Maximum number of tail-recursive frames in backtrace.
-indent          10      Maximal indentation in backtrace.
-backwards       no      Display backtrace in anti-chronological order.
-procnames       yes     Record procedure names at definition.
-trace           no      *Trace mode.
-breakpoints     no      *Check for breakpoints.
-cheap           yes     *Flyweight representation of the stack at traps.
-@end smallexample
-
-@subsection Stack overflow
-
-@cindex overflow, stack
-@cindex stack overflow
-Stack overflow errors are caused by a computation trying to use more
-stack space than has been enabled by the @code{stack} option.  They are
-reported like this:
-
-@lisp
-(non-tail-recursive-factorial 500)
-@print{}
-ERROR: Stack overflow
-ABORT: (stack-overflow)
-@end lisp
-
-If you get an error like this, you can either try rewriting your code to
-use less stack space, or increase the maximum stack size.  To increase
-the maximum stack size, use @code{debug-set!}, for example:
-
-@lisp
-(debug-set! stack 200000)
-@result{}
-(show-file-name #t stack 200000 debug backtrace depth 20 maxdepth 1000 frames 3 indent 10 width 79 procnames cheap)
-
-(non-tail-recursive-factorial 500)
-@result{}
-122013682599111006870123878542304692625357434@dots{}
-@end lisp
-
-If you prefer to try rewriting your code, you may be able to save stack
-space by making some of your procedures @dfn{tail recursive}.  For a
-description of what this means, see @ref{Proper tail
-recursion,,,r5rs,The Revised^5 Report on Scheme}.
-
-
-@node Examples of option use
-@section Examples of option use
-
-Here is an example of a session in which some read and debug option
-handling procedures are used.  In this example, the user
-
-@enumerate
-@item
-Notices that the symbols @code{abc} and @code{aBc} are not the same
-@item
-Examines the @code{read-options}, and sees that @code{case-insensitive}
-is set to ``no''.
-@item
-Enables @code{case-insensitive}
-@item
-Verifies that now @code{aBc} and @code{abc} are the same
-@item
-Disables @code{case-insensitive} and enables debugging @code{backtrace}
-@item
-Reproduces the error of displaying @code{aBc} with backtracing enabled
-[FIXME: this last example is lame because there is no depth in the
-backtrace.  Need to give a better example, possibly putting debugging
-option examples in a separate session.]
-@end enumerate
-
-
-@smalllisp
-guile> (define abc "hello")
-guile> abc
-"hello"
-guile> aBc
-ERROR: In expression aBc:
-ERROR: Unbound variable: aBc
-ABORT: (misc-error)
-
-Type "(backtrace)" to get more information.
-guile> (read-options 'help)
-keywords	#f	Style of keyword recognition: #f or 'prefix
-case-insensitive	no	Convert symbols to lower case.
-positions	yes	Record positions of source code expressions.
-copy		no	Copy source code expressions.
-guile> (debug-options 'help)
-stack		20000	Stack size limit (0 = no check).
-debug		yes	Use the debugging evaluator.
-backtrace	no	Show backtrace on error.
-depth		20	Maximal length of printed backtrace.
-maxdepth	1000	Maximal number of stored backtrace frames.
-frames		3	Maximum number of tail-recursive frames in backtrace.
-indent		10	Maximal indentation in backtrace.
-backwards	no	Display backtrace in anti-chronological order.
-procnames	yes	Record procedure names at definition.
-trace		no	*Trace mode.
-breakpoints	no	*Check for breakpoints.
-cheap		yes	*Flyweight representation of the stack at traps.
-guile> (read-enable 'case-insensitive)
-(keywords #f case-insensitive positions)
-guile> aBc
-"hello"
-guile> (read-disable 'case-insensitive)
-(keywords #f positions)
-guile> (debug-enable 'backtrace)
-(stack 20000 debug backtrace depth 20 maxdepth 1000 frames 3 indent 10 procnames cheap)
-guile> aBc
-
-Backtrace:
-0* aBc
-
-ERROR: In expression aBc:
-ERROR: Unbound variable: aBc
-ABORT: (misc-error)
-guile>
-@end smalllisp
-
-
-@node Install Config
-@section Installation and Configuration Data
-
-It is often useful to have site-specific information about the current
-Guile installation.  This chapter describes how to find out about
-Guile's configuration at run time.
+The following procedures and variables provide information about how
+Guile was configured, built and installed on your system.
 
 @deffn {Scheme Procedure} version
 @deffnx {Scheme Procedure} major-version
@@ -386,32 +57,38 @@ or micro version number, respectively.
 @end lisp
 @end deffn
 
-@c NJFIXME not in libguile!
-@deffn {Scheme Procedure} libguile-config-stamp
-Return a string describing the date on which @code{libguile} was
-configured.  This is used to determine whether the Guile core
-interpreter and the ice-9 runtime have grown out of date with one
-another.
-@end deffn
-
 @deffn {Scheme Procedure} %package-data-dir
 @deffnx {C Function} scm_sys_package_data_dir ()
-Return the name of the directory where Scheme packages, modules and
-libraries are kept.  On most Unix systems, this will be
-@samp{/usr/local/share/guile}.
+Return the name of the directory under which Guile Scheme files in
+general are stored.  On Unix-like systems, this is usually
+@file{/usr/local/share/guile} or @file{/usr/share/guile}.
 @end deffn
 
 @deffn {Scheme Procedure} %library-dir
 @deffnx {C Function} scm_sys_library_dir ()
-Return the directory where the Guile Scheme library files are installed.
-E.g., may return "/usr/share/guile/1.3.5".
+Return the name of the directory where the Guile Scheme files that
+belong to the core Guile installation (as opposed to files from a 3rd
+party package) are installed.  On Unix-like systems, this is usually
+@file{/usr/local/share/guile/<VERSION>} or
+@file{/usr/share/guile/<VERSION>}, for example:
+@file{/usr/local/share/guile/1.6.0}.
 @end deffn
 
 @deffn {Scheme Procedure} %site-dir
 @deffnx {C Function} scm_sys_site_dir ()
-Return the directory where the Guile site files are installed.
-E.g., may return "/usr/share/guile/site".
+Return the name of the directory where Guile Scheme files specific to
+your site should be installed.  On Unix-like systems, this is usually
+@file{/usr/local/share/guile/site} or @file{/usr/share/guile/site}.
 @end deffn
+
+@cindex GUILE_LOAD_PATH
+@defvar %load-path
+List of directories which should be searched for Scheme modules and
+libraries.  @code{%load-path} is initialized when Guile starts up to
+@code{(list (%site-dir) (%library-dir) (%package-data-dir) ".")},
+prepended with the contents of the GUILE_LOAD_PATH environment variable,
+if it is set.
+@end defvar
 
 @deffn {Scheme Procedure} parse-path path [tail]
 @deffnx {C Function} scm_parse_path (path, tail)
@@ -432,34 +109,30 @@ directory in @var{path}, we search for @var{filename}
 concatenated with each @var{extension}.
 @end deffn
 
-@defvar %load-path
-List of directories which should be searched for Scheme
-modules and libraries.
-@end defvar
-
 @defvar %guile-build-info
 Alist of information collected during the building of a particular
-@code{guile} program.  Entries can be grouped into one of several
-categories: directories, env vars, and versioning info.
+Guile.  Entries can be grouped into one of several categories:
+directories, env vars, and versioning info.
 
 Briefly, here are the keys in @code{%guile-build-info}, by group:
-@itemize @bullet
-@item directories
+
+@table @asis
+@item   directories
 srcdir, top_srcdir, prefix, exec_prefix, bindir, sbindir, libexecdir,
 datadir, sysconfdir, sharedstatedir, localstatedir, libdir, infodir,
 mandir, includedir, pkgdatadir, pkglibdir, pkgincludedir
-@item env vars
+@item   env vars
 LIBS
-@item versioning info
+@item   versioning info
 guileversion, libguileinterface, buildstamp
-@end itemize
+@end table
 
-Values are all strings.  The value for @code{LIBS} is typically found also as
-a part of "guile-config link" output.  The value for @code{guileversion} has
-form X.Y.Z, and should be the same as returned by @code{version}.  The value
-for @code{libguileinterface} is libtool compatible and has form
-CURRENT:REVISION:AGE.  The value for @code{buildstamp} is the output of the
-date(1) command.
+Values are all strings.  The value for @code{LIBS} is typically found
+also as a part of "guile-config link" output.  The value for
+@code{guileversion} has form X.Y.Z, and should be the same as returned
+by @code{(version)}.  The value for @code{libguileinterface} is libtool
+compatible and has form CURRENT:REVISION:AGE.  The value for
+@code{buildstamp} is the output of the date(1) command.
 
 In the source, @code{%guile-build-info} is initialized from
 libguile/libpath.h, which is completely generated, so deleting this file
@@ -644,6 +317,377 @@ and available procedures/behaviour are not strictly defined.  If you are
 writing code that needs to check for the existence of some procedure, it
 is probably safer to do so directly using the @code{defined?} procedure
 than to test for the corresponding feature using @code{feature?}.
+
+
+@node Runtime Options
+@section Runtime Options
+
+Guile's runtime behaviour can be modified by setting options.  For
+example, is the language that Guile accepts case sensitive, or should
+the debugger automatically show a backtrace on error?
+
+Guile has two levels of interface for managing options: a low-level
+control interface, and a user-level interface which allows the enabling
+or disabling of options.
+
+Moreover, the options are classified in groups according to whether they
+configure @emph{reading}, @emph{printing}, @emph{debugging} or
+@emph{evaluating}.
+
+@menu
+* Low level options interfaces::
+* User level options interfaces::
+* Reader options::
+* Printing options::
+* Debugger options::
+* Evaluator options::
+* Evaluator trap options::
+* Examples of option use::
+@end menu
+
+
+@node Low level options interfaces
+@subsection Low Level Options Interfaces
+
+@deffn {Scheme Procedure} read-options-interface [setting]
+@deffnx {Scheme Procedure} eval-options-interface [setting]
+@deffnx {Scheme Procedure} print-options-interface [setting]
+@deffnx {Scheme Procedure} debug-options-interface [setting]
+@deffnx {Scheme Procedure} evaluator-traps-interface [setting]
+@deffnx {C Function} scm_read_options (setting)
+@deffnx {C Function} scm_eval_options_interface (setting)
+@deffnx {C Function} scm_print_options (setting)
+@deffnx {C Function} scm_debug_options (setting)
+@deffnx {C Function} scm_evaluator_traps (setting)
+If one of these procedures is called with no arguments (or with
+@code{setting == SCM_UNDEFINED} in C code), it returns a list describing
+the current setting of the read, eval, print, debug or evaluator traps
+options respectively.  The setting of a boolean option is indicated
+simply by the presence or absence of the option symbol in the list.  The
+setting of a non-boolean option is indicated by the presence of the
+option symbol immediately followed by the option's current value.
+
+If called with a list argument, these procedures interpret the list as
+an option setting and modify the relevant options accordingly.  [FIXME
+--- this glosses over a lot of details!]
+
+If called with any other argument, such as @code{'help}, these
+procedures return a list of entries like @code{(@var{OPTION-SYMBOL}
+@var{DEFAULT-VALUE} @var{DOC-STRING})}, with each entry giving the
+default value and documentation for each option symbol in the relevant
+set of options.
+@end deffn
+
+
+@node User level options interfaces
+@subsection User Level Options Interfaces
+
+@c @deftp {Data type} scm_option
+@c @code{scm_option} is used to represent run time options.  It can be a
+@c @emph{boolean} type, in which case the option will be set by the strings
+@c @code{"yes"} and @code{"no"}.  It can be a
+@c @end deftp
+
+@c NJFIXME
+@deffn {Scheme Procedure} <group>-options [arg]
+@deffnx {Scheme Procedure} read-options [arg]
+@deffnx {Scheme Procedure} print-options [arg]
+@deffnx {Scheme Procedure} debug-options [arg]
+@deffnx {Scheme Procedure} traps [arg]
+These functions list the options in their group.  The optional argument
+@var{arg} is a symbol which modifies the form in which the options are
+presented.
+
+With no arguments, @code{<group>-options} returns the values of the
+options in that particular group.  If @var{arg} is @code{'help}, a
+description of each option is given.  If @var{arg} is @code{'full},
+programmers' options are also shown.
+
+@var{arg} can also be a list representing the state of all options.  In
+this case, the list contains single symbols (for enabled boolean
+options) and symbols followed by values.
+@end deffn
+[FIXME: I don't think 'full is ever any different from 'help.  What's
+up?]
+
+@c NJFIXME
+@deffn {Scheme Procedure} <group>-enable option-symbol
+@deffnx {Scheme Procedure} read-enable option-symbol
+@deffnx {Scheme Procedure} print-enable option-symbol
+@deffnx {Scheme Procedure} debug-enable option-symbol
+@deffnx {Scheme Procedure} trap-enable option-symbol
+These functions set the specified @var{option-symbol} in their options
+group.  They only work if the option is boolean, and throw an error
+otherwise.
+@end deffn
+
+@c NJFIXME
+@deffn {Scheme Procedure} <group>-disable option-symbol
+@deffnx {Scheme Procedure} read-disable option-symbol
+@deffnx {Scheme Procedure} print-disable option-symbol
+@deffnx {Scheme Procedure} debug-disable option-symbol
+@deffnx {Scheme Procedure} trap-disable option-symbol
+These functions turn off the specified @var{option-symbol} in their
+options group.  They only work if the option is boolean, and throw an
+error otherwise.
+@end deffn
+
+@c NJFIXME
+@deffn syntax <group>-set! option-symbol value
+@deffnx syntax read-set! option-symbol value
+@deffnx syntax print-set! option-symbol value
+@deffnx syntax debug-set! option-symbol value
+@deffnx syntax trap-set! option-symbol value
+These functions set a non-boolean @var{option-symbol} to the specified
+@var{value}.
+@end deffn
+
+
+@node Reader options
+@subsection Reader options
+@cindex options - read
+@cindex read options
+
+Here is the list of reader options generated by typing
+@code{(read-options 'full)} in Guile.  You can also see the default
+values.
+
+@smalllisp
+keywords         #f      Style of keyword recognition: #f or 'prefix
+case-insensitive no      Convert symbols to lower case.
+positions        yes     Record positions of source code expressions.
+copy             no      Copy source code expressions.
+@end smalllisp
+
+Notice that while Standard Scheme is case insensitive, to ease
+translation of other Lisp dialects, notably Emacs Lisp, into Guile,
+Guile is case-sensitive by default.
+
+To make Guile case insensitive, you can type
+
+@smalllisp
+(read-enable 'case-insensitive)
+@end smalllisp
+
+@node Printing options
+@subsection Printing options
+
+Here is the list of print options generated by typing
+@code{(print-options 'full)} in Guile.  You can also see the default
+values.
+
+@smallexample
+source          no      Print closures with source.
+closure-hook    #f      Hook for printing closures.
+@end smallexample
+
+
+@node Evaluator options
+@subsection Evaluator options
+
+These are the evaluator options with their default values, as they are
+printed by typing @code{(eval-options 'full)} in Guile.
+
+@smallexample
+stack           22000   Size of thread stacks (in machine words).
+@end smallexample
+
+
+@node Evaluator trap options
+@subsection Evaluator trap options
+[FIXME: These flags, together with their corresponding handlers, are not
+user level options.  Probably this entire section should be moved to the
+documentation about the low-level programmer debugging interface.]
+
+Here is the list of evaluator trap options generated by typing
+@code{(traps 'full)} in Guile.  You can also see the default values.
+
+@smallexample
+exit-frame      no      Trap when exiting eval or apply.
+apply-frame     no      Trap when entering apply.
+enter-frame     no      Trap when eval enters new frame.
+traps		yes	Enable evaluator traps.
+@end smallexample
+
+@deffn apply-frame-handler key cont tailp
+Called when a procedure is being applied.
+
+Called if:
+
+@itemize @bullet
+@item
+evaluator traps are enabled [traps interface], and
+@item
+either
+@itemize @minus
+@item
+@code{apply-frame} is enabled [traps interface], or
+@item
+trace mode is on [debug-options interface], and the procedure being
+called has the trace property enabled.
+@end itemize
+@end itemize
+
+If cheap traps are enabled [debug-options interface], @var{cont} is a
+debug object, otherwise it is a restartable continuation.
+
+@var{tailp} is true if this is a tail call
+@end deffn
+
+@deffn exit-frame-handler key cont retval
+Called when a value is returned from a procedure.
+
+Called if:
+
+@itemize @bullet
+@item
+evaluator traps are enabled [traps interface], and
+@item
+either
+@itemize @minus
+@item
+ @code{exit-frame} is enabled [traps interface], or
+@item
+trace mode is on [debug-options interface], and the procedure being
+called has the trace property enabled.
+@end itemize
+@end itemize
+
+If cheap traps are enabled [debug-options interface], @var{cont} is a
+debug object, otherwise it is a restartable continuation.
+
+@var{retval} is the return value.
+@end deffn
+
+@node Debugger options
+@subsection Debugger options
+
+Here is the list of print options generated by typing
+@code{(debug-options 'full)} in Guile.  You can also see the default
+values.
+
+@smallexample
+stack           20000   Stack size limit (0 = no check).
+debug           yes     Use the debugging evaluator.
+backtrace       no      Show backtrace on error.
+depth           20      Maximal length of printed backtrace.
+maxdepth        1000    Maximal number of stored backtrace frames.
+frames          3       Maximum number of tail-recursive frames in backtrace.
+indent          10      Maximal indentation in backtrace.
+backwards       no      Display backtrace in anti-chronological order.
+procnames       yes     Record procedure names at definition.
+trace           no      *Trace mode.
+breakpoints     no      *Check for breakpoints.
+cheap           yes     *Flyweight representation of the stack at traps.
+@end smallexample
+
+@subsubsection Stack overflow
+
+@cindex overflow, stack
+@cindex stack overflow
+Stack overflow errors are caused by a computation trying to use more
+stack space than has been enabled by the @code{stack} option.  They are
+reported like this:
+
+@lisp
+(non-tail-recursive-factorial 500)
+@print{}
+ERROR: Stack overflow
+ABORT: (stack-overflow)
+@end lisp
+
+If you get an error like this, you can either try rewriting your code to
+use less stack space, or increase the maximum stack size.  To increase
+the maximum stack size, use @code{debug-set!}, for example:
+
+@lisp
+(debug-set! stack 200000)
+@result{}
+(show-file-name #t stack 200000 debug backtrace depth 20 maxdepth 1000 frames 3 indent 10 width 79 procnames cheap)
+
+(non-tail-recursive-factorial 500)
+@result{}
+122013682599111006870123878542304692625357434@dots{}
+@end lisp
+
+If you prefer to try rewriting your code, you may be able to save stack
+space by making some of your procedures @dfn{tail recursive}.  For a
+description of what this means, see @ref{Proper tail
+recursion,,,r5rs,The Revised^5 Report on Scheme}.
+
+
+@node Examples of option use
+@subsection Examples of option use
+
+Here is an example of a session in which some read and debug option
+handling procedures are used.  In this example, the user
+
+@enumerate
+@item
+Notices that the symbols @code{abc} and @code{aBc} are not the same
+@item
+Examines the @code{read-options}, and sees that @code{case-insensitive}
+is set to ``no''.
+@item
+Enables @code{case-insensitive}
+@item
+Verifies that now @code{aBc} and @code{abc} are the same
+@item
+Disables @code{case-insensitive} and enables debugging @code{backtrace}
+@item
+Reproduces the error of displaying @code{aBc} with backtracing enabled
+[FIXME: this last example is lame because there is no depth in the
+backtrace.  Need to give a better example, possibly putting debugging
+option examples in a separate session.]
+@end enumerate
+
+
+@smalllisp
+guile> (define abc "hello")
+guile> abc
+"hello"
+guile> aBc
+ERROR: In expression aBc:
+ERROR: Unbound variable: aBc
+ABORT: (misc-error)
+
+Type "(backtrace)" to get more information.
+guile> (read-options 'help)
+keywords	#f	Style of keyword recognition: #f or 'prefix
+case-insensitive	no	Convert symbols to lower case.
+positions	yes	Record positions of source code expressions.
+copy		no	Copy source code expressions.
+guile> (debug-options 'help)
+stack		20000	Stack size limit (0 = no check).
+debug		yes	Use the debugging evaluator.
+backtrace	no	Show backtrace on error.
+depth		20	Maximal length of printed backtrace.
+maxdepth	1000	Maximal number of stored backtrace frames.
+frames		3	Maximum number of tail-recursive frames in backtrace.
+indent		10	Maximal indentation in backtrace.
+backwards	no	Display backtrace in anti-chronological order.
+procnames	yes	Record procedure names at definition.
+trace		no	*Trace mode.
+breakpoints	no	*Check for breakpoints.
+cheap		yes	*Flyweight representation of the stack at traps.
+guile> (read-enable 'case-insensitive)
+(keywords #f case-insensitive positions)
+guile> aBc
+"hello"
+guile> (read-disable 'case-insensitive)
+(keywords #f positions)
+guile> (debug-enable 'backtrace)
+(stack 20000 debug backtrace depth 20 maxdepth 1000 frames 3 indent 10 procnames cheap)
+guile> aBc
+
+Backtrace:
+0* aBc
+
+ERROR: In expression aBc:
+ERROR: Unbound variable: aBc
+ABORT: (misc-error)
+guile>
+@end smalllisp
 
 
 @c Local Variables:

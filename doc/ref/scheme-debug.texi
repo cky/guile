@@ -2,14 +2,63 @@
 @node Debugging
 @chapter Debugging Infrastructure
 
-@deffn {Scheme Procedure} debug-options-interface [setting]
-@deffnx {C Function} scm_debug_options (setting)
-Option interface for the debug options. Instead of using
-this procedure directly, use the procedures @code{debug-enable},
-@code{debug-disable}, @code{debug-set!} and @code{debug-options}.
-@end deffn
+@menu
+* Source Properties::           Remembering the source of an expression.
+* Using Traps::
+* Capturing the Stack or Innermost Stack Frame::
+* Examining the Stack::
+* Examining Stack Frames::
+* Decoding Memoized Source Expressions::
+* Starting a New Stack::
+@end menu
 
 
+@node Source Properties
+@section Source Properties
+
+@cindex source properties
+As Guile reads in Scheme code from file or from standard input, it
+remembers the file name, line number and column number where each
+expression begins.  These pieces of information are known as the
+@dfn{source properties} of the expression.  If an expression undergoes
+transformation --- for example, if there is a syntax transformer in
+effect, or the expression is a macro call --- the source properties are
+copied from the untransformed to the transformed expression so that, if
+an error occurs when evaluating the transformed expression, Guile's
+debugger can point back to the file and location where the expression
+originated.
+
+The way that source properties are stored means that Guile can only
+associate source properties with parenthesized expressions, and not, for
+example, with individual symbols, numbers or strings.  The difference
+can be seen by typing @code{(xxx)} and @code{xxx} at the Guile prompt
+(where the variable @code{xxx} has not been defined):
+
+@example
+guile> (xxx)
+standard input:2:1: In expression (xxx):
+standard input:2:1: Unbound variable: xxx
+ABORT: (unbound-variable)
+guile> xxx
+<unnamed port>: In expression xxx:
+<unnamed port>: Unbound variable: xxx
+ABORT: (unbound-variable)
+@end example
+
+@noindent
+In the latter case, no source properties were stored, so the best that
+Guile could say regarding the location of the problem was ``<unnamed
+port>''.
+
+The recording of source properties is controlled by the read option
+named ``positions'' (@pxref{Reader options}).  This option is switched
+@emph{on} by default, together with the debug options ``debug'' and
+``backtrace'' (@pxref{Debugger options}), when Guile is run
+interactively; all these options are @emph{off} by default when Guile
+runs a script non-interactively.
+
+
+@node Using Traps
 @section Using Traps
 
 @deffn {Scheme Procedure} with-traps thunk
@@ -23,6 +72,7 @@ Return @code{#t} if @var{obj} is a debug object.
 @end deffn
 
 
+@node Capturing the Stack or Innermost Stack Frame
 @section Capturing the Stack or Innermost Stack Frame
 
 When an error occurs in a running program, or the program hits a
@@ -72,6 +122,7 @@ debug object or a continuation.
 @end deffn
 
 
+@node Examining the Stack
 @section Examining the Stack
 
 @deffn {Scheme Procedure} stack? obj
@@ -104,6 +155,7 @@ which means that default values will be used.
 @end deffn
 
 
+@node Examining Stack Frames
 @section Examining Stack Frames
 
 @deffn {Scheme Procedure} frame? obj
@@ -172,6 +224,7 @@ output.
 @end deffn
 
 
+@node Decoding Memoized Source Expressions
 @section Decoding Memoized Source Expressions
 
 @deffn {Scheme Procedure} memoized? obj
@@ -190,6 +243,7 @@ Return the environment of the memoized expression @var{m}.
 @end deffn
 
 
+@node Starting a New Stack
 @section Starting a New Stack
 
 @deffn {Scheme Syntax} start-stack id exp

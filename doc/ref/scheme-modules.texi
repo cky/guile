@@ -168,18 +168,18 @@ algorithmically @dfn{rename} bindings.  In contrast, when using the
 providing module's public interface, the entire export list is available
 without renaming (@pxref{Using Guile Modules}).
 
-To use a module, it must be found and loaded.  All Guile modules have
-a unique @dfn{module name}, which is a list of one or more symbols.
-Examples are @code{(ice-9 popen)} or @code{(srfi srfi-11)}.  When
-Guile searches for the code of a module, it constructs the name of the
-file to load by concatenating the name elements with slashes between
-the elements and appending a number of file name extensions from the
-list @code{%load-extensions} (@pxref{Loading}).  The resulting file
-name is then searched in all directories in the variable
-@code{%load-path} (@pxref{Install Config}).  For example, the
-@code{(ice-9 popen)} module would result in the filename
-@code{ice-9/popen.scm} and searched in the installation directories of
-Guile and in all other directories in the load path.
+To use a module, it must be found and loaded.  All Guile modules have a
+unique @dfn{module name}, which is a list of one or more symbols.
+Examples are @code{(ice-9 popen)} or @code{(srfi srfi-11)}.  When Guile
+searches for the code of a module, it constructs the name of the file to
+load by concatenating the name elements with slashes between the
+elements and appending a number of file name extensions from the list
+@code{%load-extensions} (@pxref{Loading}).  The resulting file name is
+then searched in all directories in the variable @code{%load-path}
+(@pxref{Build Config}).  For example, the @code{(ice-9 popen)} module
+would result in the filename @code{ice-9/popen.scm} and searched in the
+installation directories of Guile and in all other directories in the
+load path.
 
 @c FIXME::martin:  Not sure about this, maybe someone knows better?
 Every module has a so-called syntax transformer associated with it.
@@ -200,11 +200,11 @@ address these eventually.
 To use a Guile module is to access either its public interface or a
 custom interface (@pxref{General Information about Modules}).  Both
 types of access are handled by the syntactic form @code{use-modules},
-which accepts one or more interface specifications and, upon
-evaluation, arranges for those interfaces to be available to the
-current module.  This process may include locating and loading code
-for a given module if that code has not yet been loaded, following
-%load-path (@pxref{Install Config}).
+which accepts one or more interface specifications and, upon evaluation,
+arranges for those interfaces to be available to the current module.
+This process may include locating and loading code for a given module if
+that code has not yet been loaded, following %load-path (@pxref{Build
+Config}).
 
 An @dfn{interface specification} has one of two forms.  The first
 variation is simply to name the module, in which case its public

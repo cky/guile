@@ -1,3 +1,36 @@
+2002-09-25  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scheme-debug.texi (Debugging): Make sections into nodes.
+	(Debugging Options): Node removed.
+
+	* scheme-options.texi (Feature Tracking): Brought forward before
+	sections on options.
+	(Runtime Options): New section, to group options-related nodes.
+
+2002-09-24  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scheme-options.texi (Options and Config): Chapter name changed,
+	and intro text improved.
+	(Install Config): Brought forward, and renamed Build
+	Configuration.
+
+	The following doc updates are from Ian Sheldon - thanks!
+	
+	* scheme-data.texi (Appending Strings, Regexp Functions, Match
+	Structures): Add examples.
+	(Regular Expressions): Add instruction to use (ice-9 regex)
+	module.
+
+	* slib.texi (SLIB): Remove duplicate `the'.
+
+2002-09-22  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scheme-options.texi (General option interface): Mention
+	eval-options-interface and debug-options-interface.
+
+	* scheme-debug.texi (Debugging): New node describing source
+	properties.
+
 2002-09-19  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* scheme-utility.texi (Hook Reference): Improvements to hook docs.
