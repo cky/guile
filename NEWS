@@ -20,7 +20,7 @@ This has been done to prevent problems on lesser operating systems
 that can't tolerate `*'s in file names.  The exported macro continues
 to be named `and-let*', of course.
 
-On systems that support it, there is also a compatability module named
+On systems that support it, there is also a compatibility module named
 (ice-9 and-let*).  It will go away in the next release.
    
 ** New modules (oop goops) etc.:
@@ -79,8 +79,8 @@ Asking for the type of an object
 
   (is-a? v <2D-vector>) --> #t
 
-See further in the GOOPS tutorial available in the guile-doc
-distribution in info (goops.info) and texinfo formats.
+See further in the GOOPS manual and tutorial in the `doc' directory,
+in info (goops.info) and texinfo formats.
 
 ** New module (ice-9 rdelim).
 
@@ -116,6 +116,38 @@ See ice-9/match.scm for brief description or
 http://www.star-lab.com/wright/code.html for complete documentation.
 
 This module requires SLIB to be installed and available from Guile.
+
+** New module (ice-9 buffered-input)
+
+This module provides procedures to construct an input port from an
+underlying source of input that reads and returns its input in chunks.
+The underlying input source is a Scheme procedure, specified by the
+caller, which the port invokes whenever it needs more input.
+
+This is useful when building an input port whose back end is Readline
+or a UI element such as the GtkEntry widget.
+
+** Documentation
+
+The reference and tutorial documentation that was previously
+distributed separately, as `guile-doc', is now included in the core
+Guile distribution.  The documentation consists of the following
+manuals.
+
+- The Guile Tutorial (guile-tut.texi) contains a tutorial introduction
+  to using Guile.
+
+- The Guile Reference Manual (guile.texi) contains (or is intended to
+  contain) reference documentation on all aspects of Guile.
+
+- The GOOPS Manual (goops.texi) contains both tutorial-style and
+  reference documentation for using GOOPS, Guile's Object Oriented
+  Programming System.
+
+- The Revised^4 and Revised^5 Reports on the Algorithmic Language
+  Scheme (r4rs.texi and r5rs.texi).
+
+See the README file in the `doc' directory for more details.
 
 * Changes to the stand-alone interpreter
 
@@ -433,6 +465,7 @@ Set or get the hostname of the machine the current process is running
 on.
 
 ** New function: mkstemp! tmpl
+
 mkstemp creates a new unique file in the file system and returns a
 new buffered port open for reading and writing to the file.  TMPL
 is a string specifying where the file should be created: it must
@@ -442,7 +475,7 @@ of the temporary file.
 ** New function: open-input-string string
 
 Return an input string port which delivers the characters from
-`string'.  This procedure, together with `open-input-string' and
+`string'.  This procedure, together with `open-output-string' and
 `get-output-string' implements SRFI-6.
 
 ** New function: open-output-string
@@ -454,9 +487,11 @@ The data can then be retrieved by `get-output-string'.
 
 Return the contents of an output string port.
 
-** Deprecated: close-all-ports-except.  This was intended for closing
-ports in a child process after a fork, but it has the undesirable side
-effect of flushing buffers.  port-for-each is more flexible.
+** Deprecated: close-all-ports-except.
+
+This was intended for closing ports in a child process after a fork,
+but it has the undesirable side effect of flushing buffers.
+port-for-each is more flexible.
 
 ** The (ice-9 popen) module now attempts to set up file descriptors in
 the child process from the current Scheme ports, instead of using the
