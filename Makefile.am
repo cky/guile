@@ -1,10 +1,6 @@
 ## Process this file with automake to produce Makefile.in.
 
-SUBDIRS = @existingdirs@ newdoc
-
-guile_dirs = @existingdirs@ newdoc
-guile-dist:
-	$(MAKE) SUBDIRS="$(guile_dirs)" dist
+SUBDIRS = libguile ice-9 qt
 
 ## FIXME: in the future there will be direct automake support for
 ## doing this.  When that happens, switch over.

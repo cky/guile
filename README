@@ -66,23 +66,15 @@ The Guile source tree is laid out as follows:
 doc:	Documentation for Guile, in Texinfo form.  (At the moment, these
 	manuals are incomplete and are currently being revised.)
 libguile:
-	The Guile Scheme interpreter, packaged as an object library
-	for you to link with your programs.
-guile:  An interactive front end for the Guile Scheme interpreter.
-rx:     A regular expression matching library, interfaced to Guile.
+	The Guile Scheme interpreter --- both the object library
+	for you to link with your programs, and the executable you can run.
 ice-9:  Guile's module system, initialization code, and other infrastructure.
-lang:   A Guile module of tools for writing lexical analyzers and parsers.
-ctax:   A Guile module providing a C-like syntax for Scheme.
-gtcltk-lib:
-	Glue code for talking to Tcl/Tk from Guile.  The Tcl/Tk
-	developers have big plans for the next major release of Tcl/Tk
-	which will make possible a clean, direct interface between
-	Guile and Tk, so we're providing this very simple-minded
-	interface until that's ready.
 
-This distribution also includes `qt', a cooperative threads package
-from Washington University, which Guile can use.  Qt is under a
-separate copyright; see `qt/README' for more details.
+qt: 	A cooperative threads package from Washington University,
+	which Guile can use.  If you configure Guile with the
+        --with-threads flag, you will need to link against the -lqt
+        library, found in this directory.  Qt is under a separate
+        copyright; see `qt/README' for more details.
 
 
 Hacking It Yourself ==================================================
@@ -129,11 +121,11 @@ Mikael Djurfeldt designed and implemented:
 * the `threads' interface (rewriting Anthony Green's work), and
 * detection of circular references during printing.
 
-Mark Galassi contributed the Guile high-level functions (libgh), and
+Mark Galassi contributed the Guile high-level functions (gh_*), and
 wrote the guile-programmer and guile-user manuals.  (These are in the
 process of revision.)
 
-Anthony Green wrote the original version of `threads' the interface
+Anthony Green wrote the original version of `threads', the interface
 between Guile and qt.
 
 Gary Houston wrote the Unix system call support, including the socket

@@ -1,28 +1,329 @@
 dnl Process this file with autoconf to produce configure.
 AC_INIT(Makefile.in)
 . $srcdir/GUILE-VERSION
-AM_INIT_AUTOMAKE($PACKAGE, $VERSION)
+AM_INIT_AUTOMAKE($PACKAGE, $VERSION, no-define)
 AM_MAINTAINER_MODE
+AM_CONFIG_HEADER(libguile/scmconfig.h)
 
-dnl FIXME: tsort, xargs not GNU standard.
-all_subdirs=`cat $srcdir/*/PLUGIN/REQ $srcdir/*/PLUGIN/OPT /dev/null | tsort | xargs echo`
-req_subdirs=`cat $srcdir/*/PLUGIN/REQ /dev/null | tsort | xargs echo`
-opt_subdirs=`cat $srcdir/*/PLUGIN/OPT /dev/null | tsort | xargs echo`
+#--------------------------------------------------------------------
+#
+# User options
+#
+#--------------------------------------------------------------------
 
-AC_CONFIG_SUBDIRS($all_subdirs)
-for d in $all_subdirs; do
-  if test -d $srcdir/$d ; then
-    existingdirs="$existingdirs $d"
-    test -n "$silent" || echo Configuring plug-in component $d
+AC_ARG_ENABLE(debug,
+[  --disable-debug         Don't include debugging support])
+if test "$enableval" != n && test "$enableval" != no; then
+  AC_DEFINE(DEBUG_EXTENSIONS)
+  AC_DEFINE(READER_EXTENSIONS)
+  LIBOBJS="backtrace.o stacks.o debug.o srcprop.o $LIBOBJS"
+fi
+
+AC_ARG_ENABLE(dynamic-linking,
+  [  --enable-dynamic-linking  Include support for dynamic linking])
+
+AC_ARG_ENABLE(guile-debug,
+[  --enable-guile-debug    Include internal debugging functions])
+if test "$enableval" = y || test "$enableval" = yes; then
+  AC_DEFINE(GUILE_DEBUG)
+fi
+
+#--------------------------------------------------------------------
+
+AC_PROG_CC
+AC_PROG_CPP
+AM_PROG_LIBTOOL
+
+AC_AIX
+AC_ISC_POSIX
+AC_MINIX
+
+AC_C_CONST
+
+AC_HEADER_STDC
+AC_HEADER_DIRENT
+AC_HEADER_TIME
+AC_HEADER_SYS_WAIT
+AC_CHECK_HEADERS(libc.h limits.h malloc.h memory.h string.h sys/ioctl.h sys/select.h sys/time.h sys/timeb.h sys/times.h sys/types.h sys/utime.h time.h unistd.h utime.h)
+GUILE_HEADER_LIBC_WITH_UNISTD
+
+AC_TYPE_GETGROUPS
+AC_TYPE_SIGNAL
+AC_TYPE_MODE_T
+
+AC_CHECK_FUNCS(ctermid ftime getcwd geteuid gethostent gettimeofday lstat mkdir mknod nice readlink rename rmdir select setegid seteuid setlocale setpgid setsid strftime strptime symlink sync tcgetpgrp tcsetpgrp times uname waitpid)
+
+AC_REPLACE_FUNCS(inet_aton putenv strerror)
+
+AC_FUNC_ALLOCA
+
+AC_STRUCT_ST_RDEV
+AC_STRUCT_ST_BLKSIZE
+AC_STRUCT_ST_BLOCKS
+AC_STRUCT_TIMEZONE
+GUILE_STRUCT_UTIMBUF
+
+# Checks for dynamic linking
+
+xtra_PLUGIN_guile_libs=""
+AC_SUBST(xtra_PLUGIN_guile_libs)
+
+AC_CHECK_LIB(m, main)
+AC_CHECK_LIB(socket, main)
+AC_CHECK_LIB(nsl, main)
+
+if test "$enable_dynamic_linking" = "yes"; then
+
+AC_CHECK_LIB(dl,dlopen)
+if test "$ac_cv_lib_dl_dlopen" = "yes"; then
+  xtra_PLUGIN_guile_libs="-lguile -ldl"
+  AC_DEFINE(DYNAMIC_LINKING)
+else
+AC_CHECK_LIB(dld,dld_link)
+if test "$ac_cv_lib_dld_dld_link" = "yes"; then
+  xtra_PLUGIN_guile_libs="-lguile -ldld"
+  AC_DEFINE(DYNAMIC_LINKING)
+else
+AC_CHECK_FUNCS(shl_load)
+if test "$ac_cv_func_shl_load" = "yes"; then
+  AC_DEFINE(DYNAMIC_LINKING)
+fi
+fi
+fi
+
+fi
+
+#--------------------------------------------------------------------
+#
+# Which way does the stack grow?
+#
+#--------------------------------------------------------------------
+
+AC_TRY_RUN(aux (l) unsigned long l;
+	     { int x; exit (l >= ((unsigned long)&x)); }
+	   main () { int q; aux((unsigned long)&q); }, 
+	   AC_DEFINE(SCM_STACK_GROWS_UP),,AC_MSG_WARN(Guessing that stack grows down -- see scmconfig.h.in))
+
+
+AC_TRY_RUN(main () { exit (sizeof(float) != sizeof(long)); },
+	   AC_DEFINE(SCM_SINGLES),,AC_DEFINE(SCM_SINGLES)
+	   AC_MSG_WARN(Guessing that sizeof(long) == sizeof(float) -- see scmconfig.h.in))
+
+AC_MSG_CHECKING(for struct linger)
+AC_CACHE_VAL(scm_cv_struct_linger,
+	AC_TRY_COMPILE([
+#include <sys/types.h>
+#include <sys/socket.h>],
+			[struct linger lgr;  lgr.l_linger = 100],
+			scm_cv_struct_linger="yes",
+			scm_cv_struct_linger="no"))
+AC_MSG_RESULT($scm_cv_struct_linger)
+if test $scm_cv_struct_linger = yes; then
+	AC_DEFINE(HAVE_STRUCT_LINGER)
+fi
+	
+#--------------------------------------------------------------------
+#
+# How can you violate a stdio abstraction by setting a stream's fd?
+#
+#--------------------------------------------------------------------
+
+AC_MSG_CHECKING(how to set a stream file descriptor)
+AC_CACHE_VAL(scm_cv_fd_setter,
+	AC_TRY_COMPILE([#include <stdio.h>],
+			[stdout->_file = 1],
+			scm_cv_fd_setter="_file",
+	AC_TRY_COMPILE([#include <stdio.h>],
+			[stdout->_fileno = 1],
+			scm_cv_fd_setter="_fileno",
+			scm_cv_fd_setter="")))
+
+if test "$scm_cv_fd_setter"; then
+	AC_MSG_RESULT($scm_cv_fd_setter)
+	AC_DEFINE_UNQUOTED(FD_SETTER, $scm_cv_fd_setter)
+else
+	AC_MSG_RESULT(we couldn't do it!)
+fi
+
+#--------------------------------------------------------------------
+# How to find out whether a FILE structure contains buffered data.
+# From Tk we have the following list:
+#		_cnt:		Most UNIX systems
+#		__cnt:		HPUX
+#		_r:		BSD
+#		readCount:	Sprite
+#	Or, in GNU libc there are two fields, _gptr and _egptr, which
+#	have to be compared.
+#	These can also be known as _IO_read_ptr and _IO_read_end.
+#--------------------------------------------------------------------
+
+AC_MSG_CHECKING(how to get buffer char count from FILE structure)
+AC_CACHE_VAL(scm_cv_struct_file_count,
+	AC_TRY_COMPILE([#include <stdio.h>],
+			[FILE *f = stdin; f->_cnt = 0],
+			scm_cv_struct_file_count="_cnt",
+	AC_TRY_COMPILE([#include <stdio.h>],
+			[FILE *f = stdin; f->_r = 0],
+			scm_cv_struct_file_count="_r",
+	AC_TRY_COMPILE([#include <stdio.h>],
+			[FILE *f = stdin; f->readCount = 0],
+			scm_cv_struct_file_count="readCount",
+	scm_cv_struct_file_count=""))))
+if test "$scm_cv_struct_file_count"; then
+	AC_MSG_RESULT($scm_cv_struct_file_count)
+	AC_DEFINE_UNQUOTED(FILE_CNT_FIELD, $scm_cv_struct_file_count)
+else
+AC_CACHE_VAL(scm_cv_struct_file_gptr,
+	AC_TRY_COMPILE([#include <stdio.h>],
+			[FILE *f = stdin; f->_gptr = f->egptr;],
+			scm_cv_struct_file_gptr=1,
+	scm_cv_struct_file_gptr=""))
+if test "$scm_cv_struct_gptr"; then
+	AC_MSG_RESULT(gptr)
+	AC_DEFINE_UNQUOTED(FILE_CNT_GPTR, $scm_cv_struct_file_gptr)
+else
+AC_CACHE_VAL(scm_cv_struct_file_readptr,
+	AC_TRY_COMPILE([#include <stdio.h>],
+			[FILE *f = stdin; f->_IO_read_ptr = f->_IO_read_end;],
+			scm_cv_struct_file_readptr=1))
+if test "$scm_cv_struct_file_readptr"; then
+	AC_MSG_RESULT(read_ptr)
+	AC_DEFINE_UNQUOTED(FILE_CNT_READPTR, $scm_cv_struct_file_readptr)
+else
+	AC_MSG_RESULT(we couldn't do it!)
+fi
+fi
+fi
+
+#--------------------------------------------------------------------
+#
+# Flags for thread support
+#
+#--------------------------------------------------------------------
+
+CY_AC_WITH_THREADS
+CFLAGS="$CFLAGS $cy_cv_threads_cflags"
+THREAD_LIBS="$cy_cv_threads_libs"
+AC_SUBST(THREAD_LIBS)
+
+dnl
+dnl Set the appropriate flags!
+dnl  
+if test "$cy_cv_threads_package" = FSU; then
+  AC_DEFINE(USE_FSU_PTHREADS, 1)
+  else if test "$cy_cv_threads_package" = COOP; then
+    AC_DEFINE(USE_COOP_THREADS, 1)
+    else if test "$cy_cv_threads_package" = MIT; then
+      AC_DEFINE(USE_MIT_PTHREADS, 1)
+      else if test "$cy_cv_threads_package" = PCthreads; then
+        AC_DEFINE(USE_PCTHREADS_PTHREADS, 1)
+        else if test "$cy_cv_threads_package" = unknown; then
+          AC_MSG_ERROR("cannot find threads installation")
+        fi
+      fi
+    fi
   fi
-done
+fi
 
-for d in $req_subdirs; do
-  test -d $srcdir/$d || {
-     echo ERROR: Missing required package: $d 1>&2
-     exit 1
-  }
-done
+if test "$cy_cv_threads_package" != ""; then
+  AC_DEFINE(USE_THREADS)
+  LIBOBJS="$LIBOBJS threads.o"
+fi
 
-AC_SUBST(existingdirs)
-AC_OUTPUT(Makefile newdoc/Makefile newdoc/ref/Makefile newdoc/tutorial/Makefile)
+## If we're using GCC, ask for aggressive warnings.
+case "$GCC" in
+  yes ) CFLAGS="$CFLAGS -Wall -Wpointer-arith" ;;
+esac
+
+AC_PROG_AWK
+
+## If we're creating a shared library (using libtool!), then we'll
+## need to generate a list of .lo files corresponding to the .o files
+## given in LIBOBJS.  We'll call it LIBLOBJS.
+LIBLOBJS="`echo ${LIBOBJS} | sed 's/\.o/.lo/g'`"
+
+AC_DEFINE_UNQUOTED(GUILE_MAJOR_VERSION, "$GUILE_MAJOR_VERSION")
+AC_DEFINE_UNQUOTED(GUILE_MINOR_VERSION, "$GUILE_MINOR_VERSION")
+AC_DEFINE_UNQUOTED(GUILE_VERSION, "$GUILE_VERSION")
+
+AC_SUBST(AWK)
+AC_SUBST(LIBLOBJS)
+
+
+dnl ======================================================================
+dnl configuration for the Qt package
+dnl ======================================================================
+
+threads_enabled=false
+if test "$cy_cv_threads_package" = COOP; then
+	threads_enabled=true
+fi
+
+# Determine the host we are working on
+AC_CANONICAL_HOST
+
+changequote(,)dnl We use [ and ] in a regexp in the case
+case "$host" in
+i[3456]86-*-*)
+	qtmds_s=$srcdir/md/i386.s
+	qtmd_h=$srcdir/md/i386.h
+	qtmdc_c=$srcdir/md/null.c 
+	;;
+mips-sgi-irix5*)
+	qtmds_s=$srcdir/md/mips-irix5.s
+	qtmd_h=$srcdir/md/mips.h
+	qtmdc_c=$srcdir/md/null.c
+	qtdmdb_s=$srcdir/md/mips_b.s 
+	;;
+mips-*-*)
+	qtmds_s=$srcdir/md/mips.s
+	qtmd_h=$srcdir/md/mips.h
+	qtmdc_c=$srcdir/md/null.c
+	qtdmdb_s=$srcdir/md/mips_b.s 
+	;;
+sparc-sun-solaris2.*)
+	qtmd_h=$srcdir/md/sparc.h
+	qtmdc_c=$srcdir/md/null.c
+	qtmds_s=$srcdir/md/sparc.s
+	qtdmdb_s=$srcdir/md/sparc_b.s 
+	;;
+sparc-*-*)
+	qtmd_h=$srcdir/md/sparc.h
+	qtmdc_c=$srcdir/md/null.c
+	qtmds_s=$srcdir/md/_sparc.s
+	qtdmdb_s=$srcdir/md/_sparc_b.s 
+	;;
+*)
+	echo "Unknown configuration; threads package disabled"
+	threads_enabled=false
+	;;
+esac
+changequote([, ])
+
+
+if $threads_enabled; then
+   target_libs=libqt.a
+else
+   target_libs=
+fi
+
+# Give the Makefile the names of the object files that will be
+# generated by compiling $qtmdc_c and $qtmds_s.
+qtmdc_o="`echo ${qtmdc_c} | sed -e 's:^.*/::' | sed -e 's:\.c$:\.o:'`"
+qtmds_o="`echo ${qtmds_s} | sed -e 's:^.*/::' | sed -e 's:\.s$:\.o:'`"
+
+AC_SUBST(target_libs)
+AC_SUBST(qtmd_h)
+AC_SUBST(qtmdc_c)
+AC_SUBST(qtmdc_o)
+AC_SUBST(qtmds_s)
+AC_SUBST(qtmds_o)
+AC_SUBST(qtmdb_s)
+
+AC_OUTPUT([Makefile libguile/Makefile libguile/guile-snarf ice-9/Makefile qt/Makefile qt/qt.h qt/md/Makefile qt/time/Makefile], [chmod +x libguile/guile-snarf])
+
+dnl Local Variables:
+dnl comment-start: "dnl "
+dnl comment-end: ""
+dnl comment-start-skip: "\\bdnl\\b\\s *"
+dnl End:

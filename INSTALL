@@ -26,13 +26,6 @@ The `make' command builds several things:
   talking with the Guile Scheme interpreter.
 - An object library `libguile/.libs/libguile.a', containing the Guile Scheme
   interpreter, ready to be linked into your programs.
-- An object library `gtcltk-lib/.libs/libgtcltk.a', containing a simple
-  interface between Guile and Tcl/Tk.  This is only built if the
-  configure script notices that you have the appropriate version of
-  Tcl/Tk installed on your system already.  If it is installed, `make'
-  will automatically include Tcl/Tk and the interface in the guile
-  shell.  If the interface were documented, we'd include a pointer to
-  it here.
 
 To install Guile, type `make install'.  This installs the executable
 and libraries mentioned above, as well as Guile's header files and
