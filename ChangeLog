@@ -1,3 +1,7 @@
+1999-09-25  Jim Blandy  <jimb@savonarola.red-bean.com>
+
+	* Guile 1.3.4 released.
+
 1999-09-22  Jim Blandy  <jimb@savonarola.red-bean.com>
 
 	* configure.in: Call AM_PROG_CC_STDC before AM_PROG_LIBTOOL, so

@@ -138,6 +138,7 @@ Punting checklist:
 * Add "Guile N.M released." entry to the top-level ChangeLog, and commit it.
 * Tag the entire source tree with a tag of the form "release_N_M" 
   or "release_N_M_L".
+* Do a 'make dist'.
 * Put the distribution up for FTP somewhere, and send mail to
   ftp-upload@gnu.org, asking them to put it on prep.
 * Send an announcement message to gnu-announce@gnu.org.  Put a brief

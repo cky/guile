@@ -1,3 +1,9 @@
+1999-09-25  Jim Blandy  <jimb@savonarola.red-bean.com>
+
+	* Makefile.am (EXTRA_libguile_la_SOURCES): Add memmove.c here,
+	so automake will actually generate rules for it.
+	* Makefile.in: Regenerated.
+
 1999-09-21  Jim Blandy  <jimb@savonarola.red-bean.com>
 
 	* backtrace.c: #include "_scm.h" before testing whether
