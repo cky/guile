@@ -53,6 +53,7 @@
 #include "unif.h"
 #include "alist.h"
 #include "struct.h"
+#include "objects.h"
 
 #include "print.h"
 
@@ -283,7 +284,8 @@ print_circref (port, pstate, ref)
 
 /* Print generally.  Handles both write and display according to PSTATE.
  */
-
+SCM_GPROC(s_write, "write", 1, 1, 0, scm_write, g_write);
+SCM_GPROC(s_display, "display", 1, 1, 0, scm_display, g_display);
 
 void 
 scm_iprin1 (exp, port, pstate)
@@ -347,7 +349,21 @@ taloop:
 	  if (SCM_CDR (SCM_CAR (exp) - 1L) == 0)
 	    {
 	      ENTER_NESTED_DATA (pstate, exp, circref);
-	      scm_print_struct (exp, port, pstate);
+	      if (SCM_OBJ_CLASS_FLAGS (exp) & SCM_CLASSF_GOOPS)
+		{
+		  SCM pwps, print = pstate->writingp ? g_write : g_display;
+		  if (!print)
+		    goto print_struct;
+		  SCM_NEWSMOB (pwps,
+			       scm_tc16_port_with_ps,
+			       scm_cons (port, pstate->handle));
+		  scm_call_generic_2 (print, exp, pwps);
+		}
+	      else
+		{
+		print_struct:
+		  scm_print_struct (exp, port, pstate);
+		}
 	      EXIT_NESTED_DATA (pstate);
 	      break;
 	    }
@@ -892,7 +908,7 @@ scm_valid_oport_value_p	(SCM val)
 		  && SCM_OPOUTPORTP (SCM_PORT_WITH_PS_PORT (val)))));
 }
 
-SCM_PROC(s_write, "write", 1, 1, 0, scm_write);
+/* SCM_GPROC(s_write, "write", 1, 1, 0, scm_write, g_write); */
 
 SCM 
 scm_write (obj, port)
@@ -915,7 +931,7 @@ scm_write (obj, port)
 }
 
 
-SCM_PROC(s_display, "display", 1, 1, 0, scm_display);
+/* SCM_GPROC(s_display, "display", 1, 1, 0, scm_display, g_display); */
 
 SCM 
 scm_display (obj, port)
