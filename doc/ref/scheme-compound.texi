@@ -2137,8 +2137,7 @@ whole is not a proper list:
 (assoc "mary" '((1 . 2) ("key" . "door") . "open sesame"))
 @result{}
 ERROR: In procedure assoc in expression (assoc "mary" (quote #)):
-ERROR: Wrong type argument in position 2 (expecting NULLP): "open sesame"
-ABORT: (wrong-type-arg)
+ERROR: Wrong type argument in position 2 (expecting association list): ((1 . 2) ("key" . "door") . "open sesame")
 
 (sloppy-assoc "mary" '((1 . 2) ("key" . "door") . "open sesame"))
 @result{}
@@ -2152,8 +2151,7 @@ Secondly, if one of the entries in the specified alist is not a pair:
 (assoc 2 '((1 . 1) 2 (3 . 9)))
 @result{}
 ERROR: In procedure assoc in expression (assoc 2 (quote #)):
-ERROR: Wrong type argument in position 2 (expecting CONSP): 2
-ABORT: (wrong-type-arg)
+ERROR: Wrong type argument in position 2 (expecting association list): ((1 . 1) 2 (3 . 9))
 
 (sloppy-assoc 2 '((1 . 1) 2 (3 . 9)))
 @result{}
