@@ -186,7 +186,7 @@ SCM_DEFINE (scm_char_alphabetic_p, "char-alphabetic?", 1, 0, 0,
 #define FUNC_NAME s_scm_char_alphabetic_p
 {
   SCM_VALIDATE_CHAR (1,chr);
-  return SCM_BOOL(isascii(SCM_CHAR(chr)) && isalpha(SCM_CHAR(chr)));
+  return SCM_BOOL(isalpha(SCM_CHAR(chr)));
 }
 #undef FUNC_NAME
 
@@ -197,7 +197,7 @@ SCM_DEFINE (scm_char_numeric_p, "char-numeric?", 1, 0, 0,
 #define FUNC_NAME s_scm_char_numeric_p
 {
   SCM_VALIDATE_CHAR (1,chr);
-  return SCM_BOOL(isascii(SCM_CHAR(chr)) && isdigit(SCM_CHAR(chr)));
+  return SCM_BOOL(isdigit(SCM_CHAR(chr)));
 }
 #undef FUNC_NAME
 
@@ -208,7 +208,7 @@ SCM_DEFINE (scm_char_whitespace_p, "char-whitespace?", 1, 0, 0,
 #define FUNC_NAME s_scm_char_whitespace_p
 {
   SCM_VALIDATE_CHAR (1,chr);
-  return SCM_BOOL(isascii(SCM_CHAR(chr)) && isspace(SCM_CHAR(chr)));
+  return SCM_BOOL(isspace(SCM_CHAR(chr)));
 }
 #undef FUNC_NAME
 
@@ -221,7 +221,7 @@ SCM_DEFINE (scm_char_upper_case_p, "char-upper-case?", 1, 0, 0,
 #define FUNC_NAME s_scm_char_upper_case_p
 {
   SCM_VALIDATE_CHAR (1,chr);
-  return SCM_BOOL(isascii(SCM_CHAR(chr)) && isupper(SCM_CHAR(chr)));
+  return SCM_BOOL(isupper(SCM_CHAR(chr)));
 }
 #undef FUNC_NAME
 
@@ -233,7 +233,7 @@ SCM_DEFINE (scm_char_lower_case_p, "char-lower-case?", 1, 0, 0,
 #define FUNC_NAME s_scm_char_lower_case_p
 {
   SCM_VALIDATE_CHAR (1,chr);
-  return SCM_BOOL(isascii(SCM_CHAR(chr)) && islower(SCM_CHAR(chr)));
+  return SCM_BOOL(islower(SCM_CHAR(chr)));
 }
 #undef FUNC_NAME
 
@@ -247,7 +247,7 @@ SCM_DEFINE (scm_char_is_both_p, "char-is-both?", 1, 0, 0,
 #define FUNC_NAME s_scm_char_is_both_p
 {
   SCM_VALIDATE_CHAR (1,chr);
-  return SCM_BOOL(isascii(SCM_CHAR(chr)) && (isupper(SCM_CHAR(chr)) || islower(SCM_CHAR(chr))));
+  return SCM_BOOL((isupper(SCM_CHAR(chr)) || islower(SCM_CHAR(chr))));
 }
 #undef FUNC_NAME
 
