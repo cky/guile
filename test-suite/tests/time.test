@@ -1,7 +1,7 @@
 ;;;; time.test --- test suite for Guile's time functions     -*- scheme -*-
 ;;;; Jim Blandy <jimb@red-bean.com> --- June 1999
 ;;;;
-;;;; 	Copyright (C) 1999 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1999, 2004 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -21,8 +21,17 @@
 (use-modules (test-suite lib)
 	     (ice-9 regex))
 
+;;;
+;;; strftime
+;;;
+
+;; Note we must force isdst to get the ZOW zone name out of %Z on HP-UX.
+;; If localtime is in daylight savings then it will decide there's no
+;; daylight savings zone name for the fake ZOW, and come back empty.
+;;
 (pass-if "strftime %Z doesn't return garbage"
 	 (let ((t (localtime (current-time))))
-	   (vector-set! t 10 "ZOW")
+	   (set-tm:zone t "ZOW")
+	   (set-tm:isdst t 0)
 	   (string=? (strftime "%Z" t)
 		     "ZOW")))
