@@ -1,7 +1,9 @@
 2003-07-08  Kevin Ryde  <user42@zip.com.au>
 
+	* tests/numbers.test (make-polar, magnitude): New tests.
+
 	* tests/srfi-1.test (delete, delete!): Add more tests.
-	(delete-duplicates, delete-duplicates!): Add tests.
+	(delete-duplicates, delete-duplicates!): New tests.
 
 2003-06-21  Kevin Ryde  <user42@zip.com.au>
 

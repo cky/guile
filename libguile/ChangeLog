@@ -1,3 +1,14 @@
+2003-07-08  Kevin Ryde  <user42@zip.com.au>
+
+	* numbers.c (s_scm_make_polar): Use sincos, when available.
+	(scm_magnitude): Use hypot.
+
+	* ports.c (scm_char_ready_p, scm_peek_char): In docstrings, don't use
+	@footnote since it doesn't go through to guile-procedures.txt.
+
+	* threads.c (scm_call_with_new_thread): In docstring, use "( )"
+	outside @var to quieten makeinfo, and use @code.
+
 2003-07-06  Han-Wen Nienhuys  <hanwen@cs.uu.nl>
 
 	* gc-malloc.c (decrease_mtrigger): new function
