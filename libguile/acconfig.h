@@ -32,3 +32,18 @@
 #undef GUILE_MAJOR_VERSION
 #undef GUILE_MINOR_VERSION
 #undef GUILE_VERSION
+
+/* Define if using cooperative multithreading.  */
+#undef USE_COOP_THREADS
+
+/* Define if using "FSU" pthreads.  */
+#undef USE_FSU_PTHREADS
+
+/* Define if using MIT pthreads.  */
+#undef USE_MIT_PTHREADS
+
+/* Define if using PCthreads pthreads.  */
+#undef USE_PCTHREADS_PTHREADS
+
+/* Define if using any sort of threads.  */
+#undef USE_THREADS

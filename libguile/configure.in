@@ -30,6 +30,10 @@ AC_AIX
 AC_ISC_POSIX
 AC_MINIX
 
+builtin(sinclude, ../aclocal.m4)
+CY_AC_WITH_THREADS
+CFLAGS="$CPPFLAGS $CFLAGS"
+
 AC_C_CONST
 
 AC_HEADER_STDC
@@ -111,6 +115,35 @@ dnl  F is a FILE* and D a descriptor (int).
 dnl
 
 test "x$FD_SETTER" != x && AC_DEFINE(HAVE_FD_SETTER)
+
+#--------------------------------------------------------------------
+#
+# Flags for thread support
+#
+#--------------------------------------------------------------------
+
+dnl
+dnl Set the appropriate flags!
+dnl  
+if test "$cy_cv_threads_package" = FSU; then
+  AC_DEFINE(USE_FSU_PTHREADS, 1)
+  else if test "$cy_cv_threads_package" = COOP; then
+    AC_DEFINE(USE_COOP_THREADS, 1)
+    else if test "$cy_cv_threads_package" = MIT; then
+      AC_DEFINE(USE_MIT_PTHREADS, 1)
+      else if test "$cy_cv_threads_package" = PCthreads; then
+        AC_DEFINE(USE_PCTHREADS_PTHREADS, 1)
+        else if test "$cy_cv_threads_package" = unknown; then
+          AC_MSG_ERROR("cannot find threads installation")
+        fi
+      fi
+    fi
+  fi
+fi
+
+if test "$cy_cv_threads_package" != ""; then
+  AC_DEFINE(USE_THREADS)
+fi
 
 ## If we're using GCC, ask for aggressive warnings.
 case "$GCC" in
