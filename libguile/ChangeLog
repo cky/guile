@@ -1,3 +1,10 @@
+Sun Apr 13 23:03:55 1997  Jim Blandy  <jimb@floss.cyclic.com>
+
+	* acconfig.h: Undo change of Apr 9; including the definition of
+	PACKAGE in the guile headers conflicts with applications' own
+	definitions.
+	* scmconfig.h.in: Regenerated.
+
 Fri Apr 11 14:12:13 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 *	* filesys.c (scm_fcntl): New function from Roland McGrath.
