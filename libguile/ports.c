@@ -36,7 +36,7 @@
 #include "libguile/keywords.h"
 #include "libguile/root.h"
 #include "libguile/strings.h"
-
+#include "libguile/mallocs.h"
 #include "libguile/validate.h"
 #include "libguile/ports.h"
 
@@ -433,9 +433,9 @@ typedef struct {
 } swap_data;
 
 static void
-swap_port (void *data)
+swap_port (SCM scm_data)
 {
-  swap_data *d = (swap_data *)data;
+  swap_data *d = (swap_data *)SCM_MALLOCDATA (scm_data);
   SCM t;
 
   t = d->getter ();
@@ -447,13 +447,14 @@ static void
 scm_with_current_foo_port (SCM port,
 			   SCM (*getter) (void), SCM (*setter) (SCM))
 {
-  swap_data data;
-  data.value = port;
-  data.getter = getter;
-  data.setter = setter;
+  SCM scm_data = scm_malloc_obj (sizeof (swap_data));
+  swap_data *data = (swap_data *)SCM_MALLOCDATA (scm_data);
+  data->value = port;
+  data->getter = getter;
+  data->setter = setter;
   
-  scm_on_rewind (swap_port, &data, SCM_F_WIND_EXPLICITELY);
-  scm_on_unwind (swap_port, &data, SCM_F_WIND_EXPLICITELY);
+  scm_on_rewind_with_scm (swap_port, scm_data, SCM_F_WIND_EXPLICITLY);
+  scm_on_unwind_with_scm (swap_port, scm_data, SCM_F_WIND_EXPLICITLY);
 }
 
 void
