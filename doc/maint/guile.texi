@@ -983,14 +983,14 @@ it will usually be @code{#f}.
 @end deffn
 
 strerror
-@c snarfed from error.c:157
+@c snarfed from error.c:168
 @deffn primitive strerror err
 Return the Unix error message corresponding to @var{err}, which
 must be an integer value.
 @end deffn
 
 apply:nconc2last
-@c snarfed from eval.c:3326
+@c snarfed from eval.c:3329
 @deffn primitive apply:nconc2last lst
 Given a list (@var{arg1} @dots{} @var{args}), this function
 conses the @var{arg1} @dots{} arguments onto the front of
@@ -1002,7 +1002,7 @@ destroys its argument, so use with care.
 @end deffn
 
 force
-@c snarfed from eval.c:3861
+@c snarfed from eval.c:3864
 @deffn primitive force x
 If the promise @var{x} has not been computed yet, compute and
 return @var{x}, otherwise just return the previously computed
@@ -1010,14 +1010,14 @@ value.
 @end deffn
 
 promise?
-@c snarfed from eval.c:3884
+@c snarfed from eval.c:3887
 @deffn primitive promise? obj
 Return true if @var{obj} is a promise, i.e. a delayed computation
 (@pxref{Delayed evaluation,,,r5rs.info,The Revised^5 Report on Scheme}).
 @end deffn
 
 cons-source
-@c snarfed from eval.c:3896
+@c snarfed from eval.c:3899
 @deffn primitive cons-source xorig x y
 Create and return a new pair whose car and cdr are @var{x} and @var{y}.
 Any source properties associated with @var{xorig} are also associated
@@ -1025,7 +1025,7 @@ with the new pair.
 @end deffn
 
 copy-tree
-@c snarfed from eval.c:3918
+@c snarfed from eval.c:3921
 @deffn primitive copy-tree obj
 Recursively copy the data tree that is bound to @var{obj}, and return a
 pointer to the new data structure.  @code{copy-tree} recurses down the
@@ -1035,14 +1035,14 @@ any other object.
 @end deffn
 
 primitive-eval
-@c snarfed from eval.c:4011
+@c snarfed from eval.c:4014
 @deffn primitive primitive-eval exp
 Evaluate @var{exp} in the top-level environment specified by
 the current module.
 @end deffn
 
 eval
-@c snarfed from eval.c:4080
+@c snarfed from eval.c:4083
 @deffn primitive eval exp module
 Evaluate @var{exp}, a list representing a Scheme expression,
 in the top-level environment specified by @var{module}.
@@ -4372,7 +4372,7 @@ y
 string-null?
 @c snarfed from strop.c:321
 @deffn primitive string-null? str
-Return @code{#t} if @var{str}'s length is nonzero, and
+Return @code{#t} if @var{str}'s length is zero, and
 @code{#f} otherwise.
 @lisp
 (string-null? "")  @result{} #t
@@ -4653,14 +4653,14 @@ indicate that the field is a tail-array.
 struct?
 @c snarfed from struct.c:244
 @deffn primitive struct? x
-Return @code{#t} iff @var{obj} is a structure object, else
+Return @code{#t} iff @var{x} is a structure object, else
 @code{#f}.
 @end deffn
 
 struct-vtable?
 @c snarfed from struct.c:253
 @deffn primitive struct-vtable? x
-Return @code{#t} iff obj is a vtable structure.
+Return @code{#t} iff @var{x} is a vtable structure.
 @end deffn
 
 make-struct
@@ -5654,7 +5654,7 @@ as @var{array}, if used as the @var{prototype} for
 @end deffn
 
 chown
-@c snarfed from filesys.c:170
+@c snarfed from filesys.c:213
 @deffn primitive chown object owner group
 Change the ownership and group of the file referred to by @var{object} to
 the integer values @var{owner} and @var{group}.  @var{object} can be
@@ -5671,7 +5671,7 @@ as @code{-1}, then that ID is not changed.
 @end deffn
 
 chmod
-@c snarfed from filesys.c:210
+@c snarfed from filesys.c:253
 @deffn primitive chmod object mode
 Changes the permissions of the file referred to by @var{obj}.
 @var{obj} can be a string containing a file name or a port or integer file
@@ -5683,7 +5683,7 @@ The return value is unspecified.
 @end deffn
 
 umask
-@c snarfed from filesys.c:243
+@c snarfed from filesys.c:286
 @deffn primitive umask [mode]
 If @var{mode} is omitted, retuns a decimal number representing the current
 file creation mask.  Otherwise the file creation mask is set to
@@ -5693,14 +5693,14 @@ E.g., @code{(umask #o022)} sets the mask to octal 22, decimal 18.
 @end deffn
 
 open-fdes
-@c snarfed from filesys.c:266
+@c snarfed from filesys.c:309
 @deffn primitive open-fdes path flags [mode]
 Similar to @code{open} but return a file descriptor instead of
 a port.
 @end deffn
 
 open
-@c snarfed from filesys.c:308
+@c snarfed from filesys.c:351
 @deffn primitive open path flags [mode]
 Open the file named by @var{path} for reading and/or writing.
 @var{flags} is an integer specifying how the file should be opened.
@@ -5732,7 +5732,7 @@ for additional flags.
 @end deffn
 
 close
-@c snarfed from filesys.c:346
+@c snarfed from filesys.c:389
 @deffn primitive close fd_or_port
 Similar to close-port (@pxref{Generic Port Operations, close-port}),
 but also works on file descriptors.  A side
@@ -5742,7 +5742,7 @@ their revealed counts set to zero.
 @end deffn
 
 close-fdes
-@c snarfed from filesys.c:374
+@c snarfed from filesys.c:417
 @deffn primitive close-fdes fd
 A simple wrapper for the @code{close} system call.
 Close file descriptor @var{fd}, which must be an integer.
@@ -5752,7 +5752,7 @@ The return value is unspecified.
 @end deffn
 
 stat
-@c snarfed from filesys.c:577
+@c snarfed from filesys.c:620
 @deffn primitive stat object
 Return an object containing various information about the file
 determined by @var{obj}.  @var{obj} can be a string containing
@@ -5813,7 +5813,7 @@ An integer representing the access permission bits.
 @end deffn
 
 link
-@c snarfed from filesys.c:640
+@c snarfed from filesys.c:683
 @deffn primitive link oldpath newpath
 Creates a new name @var{newpath} in the file system for the
 file named by @var{oldpath}.  If @var{oldpath} is a symbolic
@@ -5822,20 +5822,20 @@ system.
 @end deffn
 
 rename-file
-@c snarfed from filesys.c:661
+@c snarfed from filesys.c:704
 @deffn primitive rename-file oldname newname
 Renames the file specified by @var{oldname} to @var{newname}.
 The return value is unspecified.
 @end deffn
 
 delete-file
-@c snarfed from filesys.c:688
+@c snarfed from filesys.c:731
 @deffn primitive delete-file str
 Deletes (or "unlinks") the file specified by @var{path}.
 @end deffn
 
 mkdir
-@c snarfed from filesys.c:706
+@c snarfed from filesys.c:749
 @deffn primitive mkdir path [mode]
 Create a new directory named by @var{path}.  If @var{mode} is omitted
 then the permissions of the directory file are set using the current
@@ -5844,28 +5844,28 @@ umask.  Otherwise they are set to the decimal value specified with
 @end deffn
 
 rmdir
-@c snarfed from filesys.c:734
+@c snarfed from filesys.c:777
 @deffn primitive rmdir path
 Remove the existing directory named by @var{path}.  The directory must
 be empty for this to succeed.  The return value is unspecified.
 @end deffn
 
 directory-stream?
-@c snarfed from filesys.c:759
+@c snarfed from filesys.c:802
 @deffn primitive directory-stream? obj
 Return a boolean indicating whether @var{object} is a directory
 stream as returned by @code{opendir}.
 @end deffn
 
 opendir
-@c snarfed from filesys.c:770
+@c snarfed from filesys.c:813
 @deffn primitive opendir dirname
 Open the directory specified by @var{path} and return a directory
 stream.
 @end deffn
 
 readdir
-@c snarfed from filesys.c:787
+@c snarfed from filesys.c:830
 @deffn primitive readdir port
 Return (as a string) the next directory entry from the directory stream
 @var{stream}.  If there is no remaining entry to be read then the
@@ -5873,34 +5873,34 @@ end of file object is returned.
 @end deffn
 
 rewinddir
-@c snarfed from filesys.c:810
+@c snarfed from filesys.c:853
 @deffn primitive rewinddir port
 Reset the directory port @var{stream} so that the next call to
 @code{readdir} will return the first directory entry.
 @end deffn
 
 closedir
-@c snarfed from filesys.c:827
+@c snarfed from filesys.c:870
 @deffn primitive closedir port
 Close the directory stream @var{stream}.
 The return value is unspecified.
 @end deffn
 
 chdir
-@c snarfed from filesys.c:877
+@c snarfed from filesys.c:920
 @deffn primitive chdir str
 Change the current working directory to @var{path}.
 The return value is unspecified.
 @end deffn
 
 getcwd
-@c snarfed from filesys.c:893
+@c snarfed from filesys.c:936
 @deffn primitive getcwd
 Return the name of the current working directory.
 @end deffn
 
 select
-@c snarfed from filesys.c:1089
+@c snarfed from filesys.c:1132
 @deffn primitive select reads writes excepts [secs [usecs]]
 This procedure has a variety of uses: waiting for the ability
 to provide input, accept output, or the existance of
@@ -5934,7 +5934,7 @@ An additional @code{select!} interface is provided.
 @end deffn
 
 fcntl
-@c snarfed from filesys.c:1235
+@c snarfed from filesys.c:1278
 @deffn primitive fcntl object cmd [value]
 Apply @var{command} to the specified file descriptor or the underlying
 file descriptor of the specified port.  @var{value} is an optional
@@ -5964,7 +5964,7 @@ The value used to indicate the "close on exec" flag with @code{F_GETFL} or
 @end deffn
 
 fsync
-@c snarfed from filesys.c:1272
+@c snarfed from filesys.c:1315
 @deffn primitive fsync object
 Copies any unwritten data for the specified output file descriptor to disk.
 If @var{port/fd} is a port, its buffer is flushed before the underlying
@@ -5973,21 +5973,21 @@ The return value is unspecified.
 @end deffn
 
 symlink
-@c snarfed from filesys.c:1299
+@c snarfed from filesys.c:1342
 @deffn primitive symlink oldpath newpath
 Create a symbolic link named @var{path-to} with the value (i.e., pointing to)
 @var{path-from}.  The return value is unspecified.
 @end deffn
 
 readlink
-@c snarfed from filesys.c:1318
+@c snarfed from filesys.c:1361
 @deffn primitive readlink path
 Return the value of the symbolic link named by @var{path} (a
 string), i.e., the file that the link points to.
 @end deffn
 
 lstat
-@c snarfed from filesys.c:1347
+@c snarfed from filesys.c:1390
 @deffn primitive lstat str
 Similar to @code{stat}, but does not follow symbolic links, i.e.,
 it will return information about a symbolic link itself, not the
@@ -5995,14 +5995,14 @@ file it points to.  @var{path} must be a string.
 @end deffn
 
 copy-file
-@c snarfed from filesys.c:1371
+@c snarfed from filesys.c:1414
 @deffn primitive copy-file oldfile newfile
 Copy the file specified by @var{path-from} to @var{path-to}.
 The return value is unspecified.
 @end deffn
 
 dirname
-@c snarfed from filesys.c:1416
+@c snarfed from filesys.c:1459
 @deffn primitive dirname filename
 Return the directory name component of the file name
 @var{filename}. If @var{filename} does not contain a directory
@@ -6010,7 +6010,7 @@ component, @code{.} is returned.
 @end deffn
 
 basename
-@c snarfed from filesys.c:1459
+@c snarfed from filesys.c:1502
 @deffn primitive basename filename [suffix]
 Return the base name of the file name @var{filename}. The
 base name is the file name without any directory components.
@@ -6595,7 +6595,7 @@ characters is disabled.
 @end deffn
 
 flock
-@c snarfed from posix.c:1524
+@c snarfed from posix.c:1590
 @deffn primitive flock file operation
 Apply or remove an advisory lock on an open file.
 @var{operation} specifies the action to be done:
@@ -6617,7 +6617,7 @@ file descriptor or an open file descriptior port.
 @end deffn
 
 sethostname
-@c snarfed from posix.c:1550
+@c snarfed from posix.c:1616
 @deffn primitive sethostname name
 Set the host name of the current processor to @var{name}. May
 only be used by the superuser.  The return value is not
@@ -6625,7 +6625,7 @@ specified.
 @end deffn
 
 gethostname
-@c snarfed from posix.c:1565
+@c snarfed from posix.c:1631
 @deffn primitive gethostname
 Return the host name of the current processor.
 @end deffn
@@ -6713,7 +6713,7 @@ Otherwise it is equivalent to @code{setservent stayopen}.
 @end deffn
 
 htons
-@c snarfed from socket.c:101
+@c snarfed from socket.c:105
 @deffn primitive htons value
 Convert a 16 bit quantity from host to network byte ordering.
 @var{value} is packed into 2 bytes, which are then converted
@@ -6721,7 +6721,7 @@ and returned as a new integer.
 @end deffn
 
 ntohs
-@c snarfed from socket.c:118
+@c snarfed from socket.c:122
 @deffn primitive ntohs value
 Convert a 16 bit quantity from network to host byte ordering.
 @var{value} is packed into 2 bytes, which are then converted
@@ -6729,7 +6729,7 @@ and returned as a new integer.
 @end deffn
 
 htonl
-@c snarfed from socket.c:135
+@c snarfed from socket.c:139
 @deffn primitive htonl value
 Convert a 32 bit quantity from host to network byte ordering.
 @var{value} is packed into 4 bytes, which are then converted
@@ -6737,7 +6737,7 @@ and returned as a new integer.
 @end deffn
 
 ntohl
-@c snarfed from socket.c:148
+@c snarfed from socket.c:152
 @deffn primitive ntohl value
 Convert a 32 bit quantity from network to host byte ordering.
 @var{value} is packed into 4 bytes, which are then converted
@@ -6745,7 +6745,7 @@ and returned as a new integer.
 @end deffn
 
 inet-aton
-@c snarfed from socket.c:168
+@c snarfed from socket.c:172
 @deffn primitive inet-aton address
 Convert an IPv4 Internet address from printable string
 (dotted decimal notation) to an integer.  E.g.,
@@ -6756,7 +6756,7 @@ Convert an IPv4 Internet address from printable string
 @end deffn
 
 inet-ntoa
-@c snarfed from socket.c:187
+@c snarfed from socket.c:191
 @deffn primitive inet-ntoa inetid
 Convert an IPv4 Internet address to a printable
 (dotted decimal notation) string.  E.g.,
@@ -6767,7 +6767,7 @@ Convert an IPv4 Internet address to a printable
 @end deffn
 
 inet-netof
-@c snarfed from socket.c:207
+@c snarfed from socket.c:211
 @deffn primitive inet-netof address
 Return the network number part of the given IPv4
 Internet address.  E.g.,
@@ -6778,7 +6778,7 @@ Internet address.  E.g.,
 @end deffn
 
 inet-lnaof
-@c snarfed from socket.c:225
+@c snarfed from socket.c:229
 @deffn primitive inet-lnaof address
 Return the local-address-with-network part of the given
 IPv4 Internet address, using the obsolete class A/B/C system.
@@ -6790,7 +6790,7 @@ E.g.,
 @end deffn
 
 inet-makeaddr
-@c snarfed from socket.c:243
+@c snarfed from socket.c:247
 @deffn primitive inet-makeaddr net lna
 Make an IPv4 Internet address by combining the network number
 @var{net} with the local-address-within-network number
@@ -6802,7 +6802,7 @@ Make an IPv4 Internet address by combining the network number
 @end deffn
 
 inet-pton
-@c snarfed from socket.c:361
+@c snarfed from socket.c:365
 @deffn primitive inet-pton family address
 Convert a string containing a printable network address to
 an integer address.  Note that unlike the C version of this
@@ -6817,7 +6817,7 @@ the result is an integer with normal host byte ordering.
 @end deffn
 
 inet-ntop
-@c snarfed from socket.c:396
+@c snarfed from socket.c:400
 @deffn primitive inet-ntop family address
 Convert a network address into a printable string.
 Note that unlike the C version of this function,
@@ -6832,7 +6832,7 @@ ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff
 @end deffn
 
 socket
-@c snarfed from socket.c:441
+@c snarfed from socket.c:445
 @deffn primitive socket family style proto
 Return a new socket port of the type specified by @var{family},
 @var{style} and @var{proto}.  All three parameters are
@@ -6850,7 +6850,7 @@ has been connected to another socket.
 @end deffn
 
 socketpair
-@c snarfed from socket.c:463
+@c snarfed from socket.c:467
 @deffn primitive socketpair family style proto
 Return a pair of connected (but unnamed) socket ports of the
 type specified by @var{family}, @var{style} and @var{proto}.
@@ -6860,7 +6860,7 @@ family.  Zero is likely to be the only meaningful value for
 @end deffn
 
 getsockopt
-@c snarfed from socket.c:492
+@c snarfed from socket.c:496
 @deffn primitive getsockopt sock level optname
 Return the value of a particular socket option for the socket
 port @var{sock}.  @var{level} is an integer code for type of
@@ -6874,7 +6874,7 @@ returns a pair of integers.
 @end deffn
 
 setsockopt
-@c snarfed from socket.c:560
+@c snarfed from socket.c:564
 @deffn primitive setsockopt sock level optname value
 Set the value of a particular socket option for the socket
 port @var{sock}.  @var{level} is an integer code for type of option
@@ -6890,7 +6890,7 @@ The return value is unspecified.
 @end deffn
 
 shutdown
-@c snarfed from socket.c:664
+@c snarfed from socket.c:668
 @deffn primitive shutdown sock how
 Sockets can be closed simply by using @code{close-port}. The
 @code{shutdown} procedure allows reception or tranmission on a
@@ -6912,7 +6912,7 @@ The return value is unspecified.
 @end deffn
 
 connect
-@c snarfed from socket.c:808
+@c snarfed from socket.c:812
 @deffn primitive connect sock fam address . args
 Initiate a connection from a socket using a specified address
 family to the address
@@ -6938,7 +6938,7 @@ The return value is unspecified.
 @end deffn
 
 bind
-@c snarfed from socket.c:868
+@c snarfed from socket.c:872
 @deffn primitive bind sock fam address . args
 Assign an address to the socket port @var{sock}.
 Generally this only needs to be done for server sockets,
@@ -6986,7 +6986,7 @@ The return value is unspecified.
 @end deffn
 
 listen
-@c snarfed from socket.c:902
+@c snarfed from socket.c:906
 @deffn primitive listen sock backlog
 Enable @var{sock} to accept connection
 requests.  @var{backlog} is an integer specifying
@@ -6999,7 +6999,7 @@ The return value is unspecified.
 @end deffn
 
 accept
-@c snarfed from socket.c:1007
+@c snarfed from socket.c:1011
 @deffn primitive accept sock
 Accept a connection on a bound, listening socket.
 If there
@@ -7018,7 +7018,7 @@ connection and will continue to accept new requests.
 @end deffn
 
 getsockname
-@c snarfed from socket.c:1034
+@c snarfed from socket.c:1038
 @deffn primitive getsockname sock
 Return the address of @var{sock}, in the same form as the
 object returned by @code{accept}.  On many systems the address
@@ -7026,7 +7026,7 @@ of a socket in the @code{AF_FILE} namespace cannot be read.
 @end deffn
 
 getpeername
-@c snarfed from socket.c:1056
+@c snarfed from socket.c:1060
 @deffn primitive getpeername sock
 Return the address that @var{sock}
 is connected to, in the same form as the object returned by
@@ -7035,7 +7035,7 @@ is connected to, in the same form as the object returned by
 @end deffn
 
 recv!
-@c snarfed from socket.c:1091
+@c snarfed from socket.c:1095
 @deffn primitive recv! sock buf [flags]
 Receive data from a socket port.
 @var{sock} must already
@@ -7060,7 +7060,7 @@ any unread buffered port data is ignored.
 @end deffn
 
 send
-@c snarfed from socket.c:1124
+@c snarfed from socket.c:1128
 @deffn primitive send sock message [flags]
 Transmit the string @var{message} on a socket port @var{sock}.
 @var{sock} must already be bound to a destination address.  The
@@ -7078,7 +7078,7 @@ any unflushed buffered port data is ignored.
 @end deffn
 
 recvfrom!
-@c snarfed from socket.c:1164
+@c snarfed from socket.c:1168
 @deffn primitive recvfrom! sock str [flags [start [end]]]
 Return data from the socket port @var{sock} and also
 information about where the data was received from.
@@ -7106,7 +7106,7 @@ descriptor: any unread buffered port data is ignored.
 @end deffn
 
 sendto
-@c snarfed from socket.c:1222
+@c snarfed from socket.c:1226
 @deffn primitive sendto sock message fam address . args_and_flags
 Transmit the string @var{message} on the socket port
 @var{sock}.  The
