@@ -38,7 +38,10 @@ okay.
 
 I think this is terrible, because it suggests that the writer is using
 the test suite as a substitute for having a rock-solid explanation of
-why their changes are correct.
+why their changes are correct.  The problem is that any test suite is
+woefully incomplete.  Diligent reasoning about code can catch corner
+conditions or limitations that no test suite will ever find.
+
 
 
 Jim's rule for test suites:
