@@ -316,3 +316,9 @@ In the subdirectory libguile, changes to:
     keywords.c      list.c          strports.c
     tag.c           Makefile.am     guile-snarf.awk.in
 Many other changes throughout.
+
+Stefan Jahn:
+In the subdirectory libguile, changes to:
+    continuations.h
+    continuations.c
+    gc.c

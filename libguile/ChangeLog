@@ -1,3 +1,17 @@
+2001-10-08  Rob Browning  <rlb@defaultvalue.org>
+
+	* gc.c: support ia64 register backing store.
+	(SCM_MARK_BACKING_STORE): new macro.
+
+	* continuations.h: support ia64 register backing store.
+	(struct scm_t_contregs): add ia64 register backing store.
+
+	* continuations.c: support ia64 register backing store.
+	(continuation_mark): mark ia64 register backing store.
+	(continuation_free): free ia64 register backing store.
+	(scm_make_continuation): capture ia64 register backing store.
+	(copy_stack_and_call): copy ia64 register backing store.
+
 2001-10-08  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* hashtab.c (scm_hash_fn_create_handle_x):  The result of assoc_fn
