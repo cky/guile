@@ -50,6 +50,10 @@
 extern SCM scm_sigaction (SCM signum, SCM handler, SCM flags);
 extern SCM scm_restore_signals (void);
 extern SCM scm_alarm (SCM i);
+extern SCM scm_setitimer (SCM which_timer,
+                          SCM interval_seconds, SCM interval_microseconds,
+                          SCM value_seconds, SCM value_microseconds);
+extern SCM scm_getitimer (SCM which_timer);
 extern SCM scm_pause (void);
 extern SCM scm_sleep (SCM i);
 extern SCM scm_usleep (SCM i);
