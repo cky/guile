@@ -9,7 +9,6 @@ req_subdirs=`cat $srcdir/*/PLUGIN/REQ /dev/null | tsort | xargs echo`
 opt_subdirs=`cat $srcdir/*/PLUGIN/OPT /dev/null | tsort | xargs echo`
 
 AC_CONFIG_SUBDIRS($all_subdirs)
-existingdirs=
 for d in $all_subdirs; do
   if test -d $srcdir/$d ; then
     existingdirs="$existingdirs $d"
