@@ -1,3 +1,9 @@
+2003-10-19  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/numbers.test: Use define-module to hide helper defines.
+	(dbl-mant-dig, ash-flo): New helpers.
+	(exact->inexact): New tests.
+
 2003-10-18  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* tests/syntax.test (exception:bad-var): Removed.
