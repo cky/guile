@@ -334,15 +334,25 @@ Create a new mutex object.
 @deffn {Scheme Procedure} lock-mutex mutex
 Lock @var{mutex}. If the mutex is already locked, the calling thread
 blocks until the mutex becomes available. The function returns when
-the calling thread owns the lock on @var{mutex}.
+the calling thread owns the lock on @var{mutex}.  Locking a mutex that
+a thread already owns will succeed right away and will not block the
+thread.  That is, Guile's mutexes are @emph{recursive}.
+@end deffn
+
+@deffn {Scheme Procedure} try-mutex mutex
+Try to lock @var{mutex}. If the mutex is already locked by someone
+else, return @code{#f}.  Else lock the mutex and return @code{#t}.
 @end deffn
 
 @c begin (texi-doc-string "guile" "unlock-mutex")
 @deffn {Scheme Procedure} unlock-mutex mutex
-Unlocks @var{mutex} if the calling thread owns the lock on @var{mutex}.
-Calling unlock-mutex on a mutex not owned by the current thread results
-in undefined behaviour. Once a mutex has been unlocked, one thread
-blocked on @var{mutex} is awakened and grabs the mutex lock.
+Unlocks @var{mutex} if the calling thread owns the lock on
+@var{mutex}.  Calling unlock-mutex on a mutex not owned by the current
+thread results in undefined behaviour. Once a mutex has been unlocked,
+one thread blocked on @var{mutex} is awakened and grabs the mutex
+lock.  Every call to @code{lock-mutex} by this thread must be matched
+with a call to @code{unlock-mutex}.  Only the last call to
+@code{unlock-mutex} will actually unlock the mutex.
 @end deffn
 
 @c begin (texi-doc-string "guile" "make-condition-variable")
@@ -350,13 +360,25 @@ blocked on @var{mutex} is awakened and grabs the mutex lock.
 @end deffn
 
 @c begin (texi-doc-string "guile" "wait-condition-variable")
-@deffn {Scheme Procedure} wait-condition-variable cond-var mutex
+@deffn {Scheme Procedure} wait-condition-variable cond-var mutex [time]
+Wait until @var{cond-var} has been signalled.  While waiting,
+@var{mutex} is atomically unlocked (as with @code{unlock-mutex}) and
+is locked again when this function returns.  When @var{time} is given,
+it specifies a point in time where the waiting should be aborted.  It
+can be either a integer as returned by @code{current-time} or a pair
+as returned by @code{gettimeofday}.  When the waiting is aborted the
+mutex is locked and @code{#f} is returned.  When the condition
+variable is in fact signalled, the mutex is also locked and @code{#t}
+is returned.
 @end deffn
 
 @c begin (texi-doc-string "guile" "signal-condition-variable")
 @deffn {Scheme Procedure} signal-condition-variable cond-var
 @end deffn
 
+@c begin (texi-doc-string "guile" "broadcast-condition-variable")
+@deffn {Scheme Procedure} signal-condition-variable cond-var
+@end deffn
 
 @node Higher level thread procedures
 @subsection Higher level thread procedures
