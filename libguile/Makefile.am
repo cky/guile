@@ -50,7 +50,8 @@ libguile_la_SOURCES =							\
     print.c procprop.c procs.c random.c read.c root.c scmsigs.c		\
     script.c simpos.c smob.c sort.c srcprop.c stackchk.c stacks.c	\
     stime.c strings.c strop.c strorder.c strports.c struct.c symbols.c	\
-    tag.c throw.c variable.c vectors.c version.c vports.c weaks.c
+    tag.c throw.c variable.c vectors.c version.c vports.c weaks.c       \
+    gc_os_dep.c properties.c
 
 DOT_X_FILES =								\
     alist.x arbiters.x							\
@@ -65,7 +66,7 @@ DOT_X_FILES =								\
     script.x simpos.x smob.x socket.x sort.x srcprop.x stackchk.x	\
     stacks.x stime.x strings.x strop.x strorder.x strports.x struct.x	\
     symbols.x tag.x throw.x variable.x vectors.x			\
-    version.x vports.x weaks.x
+    version.x vports.x weaks.x properties.x
 
 EXTRA_DOT_X_FILES = debug-malloc.x filesys.x net_db.x posix.x ramap.x	\
                     regex-posix.x socket.x threads.x unif.x
@@ -83,7 +84,7 @@ DOT_DOC_FILES =								   \
     script.doc simpos.doc smob.doc socket.doc sort.doc srcprop.doc	   \
     stackchk.doc stacks.doc stime.doc strings.doc strop.doc strorder.doc   \
     strports.doc struct.doc symbols.doc tag.doc throw.doc variable.doc	   \
-    vectors.doc version.doc vports.doc weaks.doc
+    vectors.doc version.doc vports.doc weaks.doc properties.doc
 
 EXTRA_DOT_DOC_FILES = @EXTRA_DOT_DOC_FILES@
 
@@ -130,7 +131,7 @@ modinclude_HEADERS =							\
     strings.h strop.h strorder.h strports.h struct.h symbols.h tag.h	\
     tags.h throw.h unif.h variable.h vectors.h version.h vports.h	\
     weaks.h snarf.h threads.h coop-defs.h fluids.h iselect.h		\
-    debug-malloc.h
+    debug-malloc.h properties.h
 
 ## This file is generated at configure time.  That is why it is DATA
 ## and not a header -- headers are included in the distribution.
@@ -183,9 +184,13 @@ SUFFIXES = .x .doc
 .c.x:
 	PATH=.:${PATH} ./guile-doc-snarf $< $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< > $@ \
 	|| { rm $@; false; }
-.c.doc:
-	PATH=.:${PATH} ./guile-doc-snarf $< $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< > /dev/null \
+.x.doc: 
+	PATH=.:${PATH} ./guile-doc-snarf $*.c $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $*.c > /dev/null \
         || { rm $@; false; }
+
+error.x: cpp_err_symbols.c
+posix.x: cpp_sig_symbols.c
+load.x: libpath.h
 
 guile-procedures.txt: $(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES)
 	cat *.doc > $@
