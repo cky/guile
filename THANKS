@@ -12,6 +12,7 @@ Bug reports and fixes from:
    Jesse N. Glick
        Bill Janssen
 Christopher Lee
+      Shiro Kawai
      Roland McGrath
      Thomas Morgan
         Jim Ravan
@@ -21,4 +22,7 @@ Christopher Lee
        Greg Troxel
     Bernard Urban
 
-Also, thanks to Pat Eyler, for his continuing work on the Guile web pages!
+Also, thanks to:
+- Pat Eyler, for his continuing work on the Guile web pages
+- Oliver Frommel, for setting up the European mirror of the
+  Guile development FTP server
