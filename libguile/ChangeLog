@@ -1,3 +1,19 @@
+2001-02-05  Keisuke Nishida  <kxn30@po.cwru.edu>
+
+	* dump.c, dump.h: Modified a lot.
+	(scm_dump_mark): Removed.
+	(scm_restore_cell_object, scm_store_cell_object): New functions.
+
+	* smob.h (scm_smob_descriptor): Removed slots: dump_mark,
+	dump_dealloc, dump_store, undump_alloc, undump_restore, undump_init.
+	New slots: dump, undump.
+	* smob.c (scm_make_smob_type, scm_set_smob_dump, scm_set_smob_undump):
+	Updated.
+
+	* keywords.c (keyword_dump): Renamed from keyword_dealloc.
+	(keyword_undump): Renamed from keyword_alloc.
+	(scm_init_keywords): Set keyword_dump and keyword_undump.
+
 2001-02-03  Michael Livshin  <mlivshin@bigfoot.com>
 
 	* gc.c (DOUBLECELL_ALIGNED_P): new macro, a better-named analog of

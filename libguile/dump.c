@@ -62,22 +62,30 @@
 
 #define SCM_DUMP_COOKIE			"\x7fGBF-0.0"
 
-#define SCM_DUMP_INITIAL_HASH_SIZE	511
-#define SCM_DUMP_INITIAL_IMAGE_SIZE	4096
+#define SCM_DUMP_HASH_SIZE		151
+#define SCM_DUMP_IMAGE_SIZE		4096
 
 #define SCM_DUMP_INDEX_TO_WORD(x)	((scm_bits_t) ((x) << 3))
 #define SCM_DUMP_WORD_TO_INDEX(x)	((long) ((x) >> 3))
 
 struct scm_dump_header {
-  scm_bits_t cookie;		/* cookie string */
-  scm_bits_t version;		/* version string */
-  scm_bits_t nmeta;		/* the number of meta data */
-  scm_bits_t init;		/* initial object indicator */
+  scm_bits_t cookie;			/* cookie string */
+  scm_bits_t version;			/* version string */
+  scm_bits_t nobjs;			/* the number of objects */
+					/* or immediate value */
 };
 
-struct scm_dump_meta {
-  scm_bits_t tc;		/* the type of objects */
-  scm_bits_t nobjs;		/* the number of objects */
+struct scm_dump_object_update {
+  scm_bits_t id;			/* object identifier */
+  scm_bits_t *addr;			/* object address */
+  struct scm_dump_object_update *next;	/* next update */
+};
+
+struct scm_dump_cell_update {
+  scm_bits_t id;			/* object identifier */
+  SCM cell;				/* cell */
+  int n;				/* 0-3 */
+  struct scm_dump_cell_update *next;	/* next update */
 };
 
 
@@ -88,29 +96,41 @@ struct scm_dump_meta {
 static scm_bits_t scm_tc16_dstate;
 
 struct scm_dstate {
+  /* Memory image */
   int mmapped;
   scm_sizet image_size;
   int image_index;
-  char *image_base;		/* memory image */
-  SCM table;			/* object table */
+  char *image_base;
+
+  /* Object table */
+  int table_index;
+  SCM table;
+
+  /* Update schedule */
+  struct scm_dump_object_update *object_updates;
+  struct scm_dump_cell_update *cell_updates;
 };
 
-#define SCM_DSTATE_DATA(d)	((struct scm_dstate *) SCM_SMOB_DATA (d))
-
-#define SCM_DSTATE_TABLE(d)	   (SCM_DSTATE_DATA (d)->table)
-#define SCM_DSTATE_TABLE_LENGTH(d) SCM_VECTOR_LENGTH (SCM_DSTATE_TABLE (d))
-#define SCM_DSTATE_TABLE_BASE(d)   SCM_VELTS (SCM_DSTATE_TABLE (d))
+#define SCM_DSTATE_DATA(d)	    ((struct scm_dstate *) SCM_SMOB_DATA (d))
+#define SCM_DSTATE_TABLE(d)	    (SCM_DSTATE_DATA (d)->table)
+#define SCM_DSTATE_TABLE_REF(d,i)   (SCM_VELTS (SCM_DSTATE_TABLE (d))[i])
+#define SCM_DSTATE_TABLE_SET(d,i,x) (SCM_VELTS (SCM_DSTATE_TABLE (d))[i] = (x))
+#define SCM_DSTATE_OBJECT_UPDATES(d)(SCM_DSTATE_DATA (d)->object_updates)
+#define SCM_DSTATE_CELL_UPDATES(d)  (SCM_DSTATE_DATA (d)->cell_updates)
 
 static SCM
 make_dstate ()
 #define FUNC_NAME "make_dstate"
 {
   struct scm_dstate *p = SCM_MUST_MALLOC (sizeof (struct scm_dstate));
-  p->mmapped      = 0;
-  p->image_size   = SCM_DUMP_INITIAL_IMAGE_SIZE;
-  p->image_index  = 0;
-  p->image_base   = SCM_MUST_MALLOC (p->image_size);
-  p->table        = SCM_BOOL_F;
+  p->mmapped        = 0;
+  p->image_size     = SCM_DUMP_IMAGE_SIZE;
+  p->image_index    = 0;
+  p->image_base     = SCM_MUST_MALLOC (p->image_size);
+  p->table_index    = 0;
+  p->table          = SCM_BOOL_F;
+  p->object_updates = 0;
+  p->cell_updates   = 0;
   SCM_RETURN_NEWSMOB (scm_tc16_dstate, p);
 }
 #undef FUNC_NAME
@@ -132,11 +152,14 @@ make_dstate_by_mmap (int fd)
   if (addr == MAP_FAILED)
     SCM_SYSERROR;
 
-  p->mmapped     = 1;
-  p->image_size  = st.st_size;
-  p->image_index = 0;
-  p->image_base  = addr;
-  p->table       = SCM_BOOL_F;
+  p->mmapped        = 1;
+  p->image_size     = st.st_size;
+  p->image_index    = 0;
+  p->image_base     = addr;
+  p->table_index    = 0;
+  p->table          = SCM_BOOL_F;
+  p->object_updates = 0;
+  p->cell_updates   = 0;
   SCM_RETURN_NEWSMOB (scm_tc16_dstate, p);
 }
 #undef FUNC_NAME
@@ -153,6 +176,8 @@ dstate_free (SCM obj)
 {
   int size = sizeof (struct scm_dstate);
   struct scm_dstate *p = SCM_DSTATE_DATA (obj);
+
+  /* Free dump image */
   if (p->mmapped)
     {
       int rv;
@@ -166,6 +191,23 @@ dstate_free (SCM obj)
       if (p->image_base)
 	scm_must_free (p->image_base);
     }
+
+  /* Free update schedules */
+  while (p->object_updates)
+    {
+      struct scm_dump_object_update *next = p->object_updates->next;
+      scm_must_free (p->object_updates);
+      size += sizeof (struct scm_dump_object_update);
+      p->object_updates = next;
+    }
+  while (p->cell_updates)
+    {
+      struct scm_dump_cell_update *next = p->cell_updates->next;
+      scm_must_free (p->cell_updates);
+      size += sizeof (struct scm_dump_cell_update);
+      p->cell_updates = next;
+    }
+
   scm_must_free (p);
   return size;
 }
@@ -191,19 +233,17 @@ static scm_bits_t
 scm_object_indicator (SCM obj, SCM dstate)
 {
   if (SCM_IMP (obj))
-    return SCM_UNPACK (obj);
+    {
+      return SCM_UNPACK (obj);
+    }
   else
     {
-      int i;
-      int len = SCM_DSTATE_TABLE_LENGTH (dstate);
-      SCM *base = SCM_DSTATE_TABLE_BASE (dstate);
-      for (i = 0; i < len; i++)
-	if (SCM_EQ_P (obj, base[i]))
-	  return SCM_DUMP_INDEX_TO_WORD (i);
+      SCM id = scm_hashq_ref (SCM_DSTATE_TABLE (dstate), obj, SCM_BOOL_F);
+      if (SCM_FALSEP (id))
+	return -1;
+      else
+	return SCM_DUMP_INDEX_TO_WORD (SCM_INUM (id));
     }
-  scm_misc_error ("scm_object_indicator",
-		  "Non-marked object: ~A", SCM_LIST1 (obj));
-  return 0;
 }
 
 static SCM
@@ -212,13 +252,15 @@ scm_indicator_object (scm_bits_t word, SCM dstate)
   if (SCM_IMP (SCM_PACK (word)))
     return SCM_PACK (word);
   else
-    return SCM_DSTATE_TABLE_BASE (dstate)[SCM_DUMP_WORD_TO_INDEX (word)];
+    return SCM_DSTATE_TABLE_REF (dstate, SCM_DUMP_WORD_TO_INDEX (word));
 }
 
 
 /*
  * Dump interface
  */
+
+/* store functions */
 
 static void
 scm_store_pad (SCM dstate)
@@ -230,21 +272,15 @@ scm_store_pad (SCM dstate)
     p->image_base[p->image_index++] = '\0';
 }
 
-static void
-scm_store_chars (const char *addr, scm_sizet size, SCM dstate)
+void
+scm_store_string (const char *addr, scm_sizet size, SCM dstate)
 {
   struct scm_dstate *p = SCM_DSTATE_DATA (dstate);
-  while (p->image_index + size >= p->image_size)
+  while (p->image_index + size + 1 >= p->image_size)
     dstate_extend (p);
   memcpy (p->image_base + p->image_index, addr, size);
   memcpy (p->image_base + p->image_index + size, "\0", 1);
   p->image_index += size + 1;
-}
-
-void
-scm_store_string (const char *addr, scm_sizet size, SCM dstate)
-{
-  scm_store_chars (addr, size, dstate);
   scm_store_pad (dstate);
 }
 
@@ -268,8 +304,29 @@ scm_store_word (const scm_bits_t word, SCM dstate)
 void
 scm_store_object (SCM obj, SCM dstate)
 {
-  scm_store_word (scm_object_indicator (obj, dstate), dstate);
+  scm_bits_t id = scm_object_indicator (obj, dstate);
+  if (id == -1)
+    {
+      /* OBJ is not stored yet.  Do it later */
+      struct scm_dstate *p = SCM_DSTATE_DATA (dstate);
+      struct scm_dump_object_update *update =
+	scm_must_malloc (sizeof (struct scm_dump_object_update),
+			 "scm_store_object");
+      update->id   = SCM_UNPACK (obj);
+      update->addr = (scm_bits_t *) p->image_index;
+      update->next = p->object_updates;
+      p->object_updates = update;
+    }
+  scm_store_word (id, dstate);
 }
+
+void
+scm_store_cell_object (SCM cell, int n, SCM dstate)
+{
+  scm_store_object (SCM_CELL_OBJECT (cell, n), dstate);
+}
+
+/* restore functions */
 
 static void
 scm_restore_pad (SCM dstate)
@@ -279,20 +336,13 @@ scm_restore_pad (SCM dstate)
     p->image_index++;
 }
 
-static const char *
-scm_restore_chars (SCM dstate, int *lenp)
+const char *
+scm_restore_string (SCM dstate, int *lenp)
 {
   struct scm_dstate *p = SCM_DSTATE_DATA (dstate);
   const char *addr = p->image_base + p->image_index;
   *lenp = strlen (addr);
   p->image_index += *lenp + 1;
-  return addr;
-}
-
-const char *
-scm_restore_string (SCM dstate, int *lenp)
-{
-  const char *addr = scm_restore_chars (dstate, lenp);
   scm_restore_pad (dstate);
   return addr;
 }
@@ -316,10 +366,42 @@ scm_restore_word (SCM dstate)
   return word;
 }
 
-SCM
-scm_restore_object (SCM dstate)
+void
+scm_restore_object (SCM *objp, SCM dstate)
 {
-  return scm_indicator_object (scm_restore_word (dstate), dstate);
+  scm_bits_t id = scm_restore_word (dstate);
+  *objp = scm_indicator_object (id, dstate);
+
+  if (SCM_UNBNDP (*objp))
+    {
+      struct scm_dump_object_update *update =
+	scm_must_malloc (sizeof (struct scm_dump_object_update),
+			 "scm_restore_object");
+      update->id   = id;
+      update->addr = (scm_bits_t *) objp;
+      update->next = SCM_DSTATE_OBJECT_UPDATES (dstate);
+      SCM_DSTATE_OBJECT_UPDATES (dstate) = update;
+    }
+}
+
+void
+scm_restore_cell_object (SCM cell, int n, SCM dstate)
+{
+  scm_bits_t id = scm_restore_word (dstate);
+  SCM obj = scm_indicator_object (id, dstate);
+  SCM_SET_CELL_OBJECT (cell, n, obj);
+
+  if (SCM_UNBNDP (obj))
+    {
+      struct scm_dump_cell_update *update =
+	scm_must_malloc (sizeof (struct scm_dump_cell_update),
+			 "scm_restore_cell_object");
+      update->id   = id;
+      update->cell = cell;
+      update->n    = n;
+      update->next = SCM_DSTATE_CELL_UPDATES (dstate);
+      SCM_DSTATE_CELL_UPDATES (dstate) = update;
+    }
 }
 
 
@@ -327,275 +409,145 @@ scm_restore_object (SCM dstate)
  * Dump routine
  */
 
-void
-scm_dump_mark (SCM obj, SCM dstate)
+static void
+scm_dump (SCM obj, SCM dstate)
 {
-  SCM table = SCM_DSTATE_TABLE (dstate);
+  struct scm_dstate *p = SCM_DSTATE_DATA (dstate);
 
- loop:
-  /* Nothing with immediates */
-  if (SCM_IMP (obj))
+  /* Check if immediate or already dumpped */
+  if (scm_object_indicator (obj, dstate) != -1)
     return;
 
-  /* Return if already marked */
-  if (!SCM_FALSEP (scm_hashq_ref (table, obj, SCM_BOOL_F)))
-    return;
+  /* Mark it */
+  scm_hashq_set_x (p->table, obj, SCM_MAKINUM (p->table_index));
+  p->table_index++;
 
   if (SCM_SLOPPY_CONSP (obj))
     {
-      scm_hashq_set_x (table, obj, SCM_MAKINUM (scm_tc3_cons));
-      scm_dump_mark (SCM_CAR (obj), dstate);
-      obj = SCM_CDR (obj);
-      goto loop;
+      scm_store_word (scm_tc3_cons, dstate);
+      /* Store cdr first in order to avoid a possible deep recursion
+       * with a long list */
+      scm_store_cell_object (obj, 1, dstate);
+      scm_store_cell_object (obj, 0, dstate);
+      goto next_dump;
     }
-
   switch (SCM_TYP7 (obj))
     {
     case scm_tc7_symbol:
-      scm_hashq_set_x (table, obj, SCM_MAKINUM (scm_tc7_symbol));
-      return;
+      {
+	scm_store_word (scm_tc7_symbol, dstate);
+	scm_store_string (SCM_SYMBOL_CHARS (obj),
+			  SCM_SYMBOL_LENGTH (obj),
+			  dstate);
+	return;
+      }
     case scm_tc7_substring:
     case scm_tc7_string:
-      scm_hashq_set_x (table, obj, SCM_MAKINUM (scm_tc7_string));
-      return;
+      {
+	scm_store_word (scm_tc7_string, dstate);
+	scm_store_string (SCM_STRING_CHARS (obj),
+			  SCM_STRING_LENGTH (obj),
+			  dstate);
+	return;
+      }
     case scm_tc7_vector:
       {
 	int i;
 	int len = SCM_VECTOR_LENGTH (obj);
 	SCM *base = SCM_VELTS (obj);
-	scm_hashq_set_x (table, obj, SCM_MAKINUM (scm_tc7_vector));
+	scm_store_word (scm_tc7_vector, dstate);
+	scm_store_word (len, dstate);
 	for (i = 0; i < len; i++)
-	  scm_dump_mark (base[i], dstate);
-	return;
+	  scm_store_object (base[i], dstate);
+	goto next_dump;
       }
     case scm_tc7_smob:
       {
-	SCM (*mark) ()     = SCM_SMOB_DESCRIPTOR (obj).dump_mark;
-	void (*dealloc) () = SCM_SMOB_DESCRIPTOR (obj).dump_dealloc;
-	void (*store) ()   = SCM_SMOB_DESCRIPTOR (obj).dump_store;
+	void (*dump) () = SCM_SMOB_DESCRIPTOR (obj).dump;
+	if (!dump)
+	  goto error;
 
-	if (!(mark || dealloc || store))
-	  break;
-
-	scm_hashq_set_x (table, obj, SCM_MAKINUM (SCM_CELL_TYPE (obj)));
-	if (mark)
-	  {
-	    obj = mark (obj, dstate);
-	    goto loop;
-	  }
-	return;
+	/* FIXME: SCM_CELL_TYPE may change when undump!! */
+	scm_store_word (SCM_CELL_TYPE (obj), dstate);
+	dump (obj, dstate);
+	goto next_dump;
       }
+    default:
+    error:
+      scm_misc_error ("scm_dump_mark", "Cannot dump: ~A", SCM_LIST1 (obj));
     }
-  scm_misc_error ("scm_dump_mark", "Cannot dump: ~A", SCM_LIST1 (obj));
-}
 
-static void
-scm_dump_dealloc (scm_bits_t tc, int nobjs, SCM *table, SCM dstate)
-{
-  switch (SCM_ITAG7 (SCM_PACK (tc)))
+ next_dump:
+  while (p->object_updates)
     {
-    case scm_tc7_symbol:
-      {
-	int i;
-	for (i = 0; i < nobjs; i++)
-	  {
-	    SCM obj = table[i];
-	    scm_store_chars (SCM_SYMBOL_CHARS (obj),
-			     SCM_SYMBOL_LENGTH (obj),
-			     dstate);
-	  }
-	scm_store_pad (dstate);
-	return;
-      }
-    case scm_tc7_string:
-      {
-	int i;
-	for (i = 0; i < nobjs; i++)
-	  {
-	    SCM obj = table[i];
-	    scm_store_chars (SCM_STRING_CHARS (obj),
-			     SCM_STRING_LENGTH (obj),
-			     dstate);
-	  }
-	scm_store_pad (dstate);
-	return;
-      }
-    case scm_tc7_vector:
-      {
-	int i;
-	for (i = 0; i < nobjs; i++)
-	  scm_store_word (SCM_VECTOR_LENGTH (table[i]), dstate);
-	return;
-      }
-    case scm_tc7_smob:
-      {
-	int i;
-	void (*dealloc) () = scm_smobs[SCM_TC2SMOBNUM(tc)].dump_dealloc;
-	if (dealloc)
-	  for (i = 0; i < nobjs; i++)
-	    dealloc (table[i], dstate);
-	return;
-      }
+      struct scm_dump_object_update *update = p->object_updates;
+      p->object_updates = update->next;
+      scm_dump (SCM_PACK (update->id), dstate);
+      *(scm_bits_t *) (p->image_base + (int) update->addr) =
+	scm_object_indicator (SCM_PACK (update->id), dstate);
+      scm_must_free (update);
     }
 }
 
 static void
-scm_dump_store (scm_bits_t tc, int nobjs, SCM *table, SCM dstate)
+scm_undump (SCM dstate)
 {
+  struct scm_dstate *p = SCM_DSTATE_DATA (dstate);
+  scm_bits_t tc = scm_restore_word (dstate);
+  SCM obj;
+
   if (SCM_ITAG3 (SCM_PACK (tc)) == scm_tc3_cons)
     {
-      int i;
-      for (i = 0; i < nobjs; i++)
-	{
-	  SCM obj = table[i];
-	  scm_store_object (SCM_CAR (obj), dstate);
-	  scm_store_object (SCM_CDR (obj), dstate);
-	}
-      return;
-    }
-
-  switch (SCM_ITAG7 (SCM_PACK (tc)))
-    {
-    case scm_tc7_vector:
-      {
-	int i, j;
-	for (i = 0; i < nobjs; i++)
-	  {
-	    SCM obj = table[i];
-	    int len = SCM_VECTOR_LENGTH (obj);
-	    SCM *base = SCM_VELTS (obj);
-	    for (j = 0; j < len; j++)
-	      scm_store_object (base[j], dstate);
-	  }
-	return;
-      }
-    case scm_tc7_smob:
-      {
-	int i;
-	void (*store) () = scm_smobs[SCM_TC2SMOBNUM(tc)].dump_store;
-	if (store)
-	  for (i = 0; i < nobjs; i++)
-	    store (table[i], dstate);
-	return;
-      }
-    }
-}
-
-static void
-scm_undump_alloc (scm_bits_t tc, int nobjs, SCM *table, SCM dstate)
-{
-  if (SCM_ITAG3 (SCM_PACK (tc)) == scm_tc3_cons)
-    {
-      int i;
-      for (i = 0; i < nobjs; i++)
-	SCM_NEWCELL (table[i]);
-      return;
+      SCM_NEWCELL (obj);
+      /* cdr was stored first */
+      scm_restore_cell_object (obj, 1, dstate);
+      scm_restore_cell_object (obj, 0, dstate);
+      goto store_object;
     }
 
   switch (SCM_ITAG7 (SCM_PACK (tc)))
     {
     case scm_tc7_symbol:
       {
-	int i;
-	for (i = 0; i < nobjs; i++)
-	  {
-	    int len;
-	    const char *mem = scm_restore_chars (dstate, &len);
-	    table[i] = scm_mem2symbol (mem, len);
-	  }
-	scm_restore_pad (dstate);
-	return;
+	int len;
+	const char *mem = scm_restore_string (dstate, &len);
+	obj = scm_mem2symbol (mem, len);
+	goto store_object;
       }
     case scm_tc7_string:
       {
-	int i;
-	for (i = 0; i < nobjs; i++)
-	  {
-	    int len;
-	    const char *mem = scm_restore_chars (dstate, &len);
-	    table[i] = scm_makfromstr (mem, len, 0);
-	  }
-	scm_restore_pad (dstate);
-	return;
+	int len;
+	const char *mem = scm_restore_string (dstate, &len);
+	obj = scm_makfromstr (mem, len, 0);
+	goto store_object;
       }
     case scm_tc7_vector:
       {
 	int i;
-	for (i = 0; i < nobjs; i++)
-	  {
-	    int len = scm_restore_word (dstate);
-	    table[i] = scm_c_make_vector (len, SCM_BOOL_F);
-	  }
-	return;
+	int len = scm_restore_word (dstate);
+	SCM *base;
+	obj = scm_c_make_vector (len, SCM_BOOL_F);
+	base = SCM_VELTS (obj);
+	for (i = 0; i < len; i++)
+	  scm_restore_object (&base[i], dstate);
+	goto store_object;
       }
     case scm_tc7_smob:
       {
-	int i;
-	SCM (*alloc) () = scm_smobs[SCM_TC2SMOBNUM(tc)].undump_alloc;
-	if (!alloc)
-	  break;
-	for (i = 0; i < nobjs; i++)
-	  table[i] = alloc (dstate);
-	return;
+	SCM (*undump) () = scm_smobs[SCM_TC2SMOBNUM (tc)].undump;
+	if (!undump)
+	  goto error;
+	obj = undump (dstate);
+	goto store_object;
       }
-    }
-  scm_misc_error ("scm_undump_alloc", "Cannot undump", SCM_EOL);
-}
-
-static void
-scm_undump_restore (scm_bits_t tc, int nobjs, SCM *table, SCM dstate)
-#define FUNC_NAME "scm_undump_restore"
-{
-  if (SCM_ITAG3 (SCM_PACK (tc)) == scm_tc3_cons)
-    {
-      int i;
-      for (i = 0; i < nobjs; i++)
-	{
-	  SCM obj = table[i];
-	  SCM_SETCAR (obj, scm_restore_object (dstate));
-	  SCM_SETCDR (obj, scm_restore_object (dstate));
-	}
-      return;
+    default:
+    error:
+      scm_misc_error ("scm_undump", "Cannot undump", SCM_EOL);
     }
 
-  switch (SCM_ITAG7 (SCM_PACK (tc)))
-    {
-    case scm_tc7_vector:
-      {
-	int i, j;
-	for (i = 0; i < nobjs; i++)
-	  {
-	    SCM obj = table[i];
-	    int len = SCM_VECTOR_LENGTH (obj);
-	    SCM *base = SCM_VELTS (obj);
-	    for (j = 0; j < len; j++)
-	      base[j] = scm_restore_object (dstate);
-	  }
-	return;
-      }
-    case scm_tc7_smob:
-      {
-	int i;
-	void (*restore) () = scm_smobs[SCM_TC2SMOBNUM(tc)].undump_restore;
-	if (restore)
-	  for (i = 0; i < nobjs; i++)
-	    restore (table[i], dstate);
-      }
-    }
-}
-#undef FUNC_NAME
-
-static void
-scm_undump_init (scm_bits_t tc, int nobjs, SCM *table, SCM dstate)
-{
-  if (SCM_ITAG7 (SCM_PACK (tc)) == scm_tc7_smob)
-    {
-      int i;
-      void (*init) () = scm_smobs[SCM_TC2SMOBNUM(tc)].undump_init;
-      if (init)
-	for (i = 0; i < nobjs; i++)
-	  init (table[i]);
-    }
+ store_object:
+  SCM_DSTATE_TABLE_SET (dstate, p->table_index, obj);
+  p->table_index++;
 }
 
 
@@ -603,39 +555,14 @@ scm_undump_init (scm_bits_t tc, int nobjs, SCM *table, SCM dstate)
  * Scheme interface
  */
 
-#define DUMP_APPLY(f,nmeta,meta,table)				\
-{								\
-  int i;							\
-  int len = 0;							\
-  for (i = 0; i < nmeta; i++)					\
-    {								\
-      f (meta[i].tc, meta[i].nobjs, table + len, dstate);	\
-      len += meta[i].nobjs;					\
-    }								\
-}
-
-static SCM
-scm_dump_table_fold (void *proc, SCM key, SCM data, SCM value)
-{
-  SCM handle = scm_sloppy_assq (data, value);
-  if (SCM_CONSP (handle))
-    {
-      SCM_SETCDR (handle, scm_cons (key, SCM_CDR (handle)));
-      return value;
-    }
-  else
-    return scm_acons (data, SCM_LIST1 (key), value);
-}
-
 SCM_DEFINE (scm_binary_write, "binary-write", 1, 1, 0, 
 	    (SCM obj, SCM port),
 	    "Write OBJ to PORT in a binary format.")
 #define FUNC_NAME s_scm_binary_write
 {
-  int i, index, len, nmeta;
+  struct scm_dstate *p;
   struct scm_dump_header header;
-  struct scm_dump_meta *meta;
-  SCM dstate, alist, list, *base;
+  SCM dstate;
 
   /* Check port */
   if (SCM_UNBNDP (port))
@@ -643,57 +570,21 @@ SCM_DEFINE (scm_binary_write, "binary-write", 1, 1, 0,
   else
     SCM_VALIDATE_OUTPUT_PORT (2, port);
 
-  /* Mark objects */
+  /* Dump objects */
   dstate = make_dstate ();
-  SCM_DSTATE_TABLE (dstate) =
-    scm_c_make_hash_table (SCM_DUMP_INITIAL_HASH_SIZE);
-  scm_dump_mark (obj, dstate);
+  p = SCM_DSTATE_DATA (dstate);
+  p->table = scm_c_make_hash_table (SCM_DUMP_HASH_SIZE);
+  scm_dump (obj, dstate);
 
-  /* Build meta information */
-  alist = scm_internal_hash_fold (scm_dump_table_fold, 0, SCM_EOL,
-				  SCM_DSTATE_TABLE (dstate));
-  nmeta = scm_ilength (alist);
-  meta  = alloca (nmeta * sizeof (struct scm_dump_meta));
-  list  = alist;
-  len   = 0;
-  for (i = 0; i < nmeta; i++)
-    {
-      meta[i].tc    = SCM_INUM (SCM_CAAR (list));
-      meta[i].nobjs = scm_ilength (SCM_CDAR (list));
-      len += meta[i].nobjs;
-      list = SCM_CDR (list);
-    }
-
-  /* Build object table */
-  SCM_DSTATE_TABLE (dstate) = scm_c_make_vector (len, SCM_BOOL_F);
-  base  = SCM_DSTATE_TABLE_BASE (dstate);
-  index = 0;
-  for (i = 0; i < nmeta; i++)
-    {
-      SCM list;
-      for (list = SCM_CDAR (alist); !SCM_NULLP (list); list = SCM_CDR (list))
-	base[index++] = SCM_CAR (list);
-      alist = SCM_CDR (alist);
-    }
-
-  /* Dump */
-  DUMP_APPLY (scm_dump_dealloc, nmeta, meta, base);
-  DUMP_APPLY (scm_dump_store, nmeta, meta, base);
-
-  /* Write header */
+  /* Write image */
   header.cookie  = ((scm_bits_t *) SCM_DUMP_COOKIE)[0];
   header.version = ((scm_bits_t *) SCM_DUMP_COOKIE)[1];
-  header.nmeta   = nmeta;
-  header.init    = scm_object_indicator (obj, dstate);
+  header.nobjs   = (p->table_index
+		    ? SCM_DUMP_INDEX_TO_WORD (p->table_index)
+		    : SCM_UNPACK (obj));
   scm_lfwrite ((const char *) &header, sizeof (struct scm_dump_header), port);
-
-  /* Write the rest */
-  scm_lfwrite ((const char *) meta,
-	       nmeta * sizeof (struct scm_dump_meta),
-	       port);
-  scm_lfwrite (SCM_DSTATE_DATA (dstate)->image_base,
-	       SCM_DSTATE_DATA (dstate)->image_index,
-	       port);
+  if (p->image_index)
+    scm_lfwrite (p->image_base, p->image_index, port);
 
   return SCM_UNSPECIFIED;
 }
@@ -704,11 +595,10 @@ SCM_DEFINE (scm_binary_read, "binary-read", 0, 1, 0,
 	    "Read an object from PORT in a binary format.")
 #define FUNC_NAME s_scm_binary_read
 {
-  int i, len;
-  scm_bits_t *data;
+  int i, nobjs;
+  struct scm_dstate *p;
   struct scm_dump_header *header;
-  struct scm_dump_meta *meta;
-  SCM dstate, *base;
+  SCM dstate;
 
   /* Check port */
   if (SCM_UNBNDP (port))
@@ -723,37 +613,53 @@ SCM_DEFINE (scm_binary_read, "binary-read", 0, 1, 0,
   else
     /* Undump with malloc */
     SCM_MISC_ERROR ("Not supported yet", SCM_EOL);
+  p = SCM_DSTATE_DATA (dstate);
 
   /* Read header */
-  header = (struct scm_dump_header *) SCM_DSTATE_DATA (dstate)->image_base;
-  if (SCM_DSTATE_DATA (dstate)->image_size < sizeof (*header))
+  header = (struct scm_dump_header *) p->image_base;
+  p->image_index += sizeof (struct scm_dump_header);
+  if (p->image_size < sizeof (*header))
     SCM_MISC_ERROR ("Invalid binary format: ~A", SCM_LIST1 (port));
   if (header->cookie != ((scm_bits_t *) SCM_DUMP_COOKIE)[0])
     SCM_MISC_ERROR ("Invalid binary format: ~A", SCM_LIST1 (port));
   if (header->version != ((scm_bits_t *) SCM_DUMP_COOKIE)[1])
     SCM_MISC_ERROR ("Unsupported binary version: ~A", SCM_LIST1 (port));
 
-  /* Read the rest */
-  meta = (struct scm_dump_meta *) ((char *) header + sizeof (*header));
-  data = (scm_bits_t *) (meta + header->nmeta);
-  SCM_DSTATE_DATA (dstate)->image_index = (char *) data - (char *) header;
+  /* Check for immediate */
+  if (SCM_IMP (SCM_PACK (header->nobjs)))
+    return SCM_PACK (header->nobjs);
 
   /* Create object table */
-  len = 0;
-  for (i = 0; i < header->nmeta; i++)
-    len += meta[i].nobjs;
-  SCM_DSTATE_TABLE (dstate) = scm_c_make_vector (len, SCM_BOOL_F);
-  base = SCM_DSTATE_TABLE_BASE (dstate);
+  nobjs = SCM_DUMP_WORD_TO_INDEX (header->nobjs);
+  p->table = scm_c_make_vector (nobjs, SCM_UNDEFINED);
 
   /* Undump */
-  DUMP_APPLY (scm_undump_alloc, header->nmeta, meta, base);
-  DUMP_APPLY (scm_undump_restore, header->nmeta, meta, base);
-  DUMP_APPLY (scm_undump_init, header->nmeta, meta, base);
+  for (i = 0; i < nobjs; i++)
+    scm_undump (dstate);
+
+  /* Update references */
+  while (p->object_updates)
+    {
+      struct scm_dump_object_update *update = p->object_updates;
+      p->object_updates = update->next;
+      *(update->addr) = SCM_UNPACK (scm_indicator_object (update->id, dstate));
+      scm_must_free (update);
+    }
+  /* Link objects */
+  while (p->cell_updates)
+    {
+      struct scm_dump_cell_update *update = p->cell_updates;
+      p->cell_updates = update->next;
+      SCM_SET_CELL_OBJECT (update->cell,
+			   update->n,
+			   scm_indicator_object (update->id, dstate));
+      scm_must_free (update);
+    }
 
   /* Return */
   {
-    SCM obj = scm_indicator_object (header->init, dstate);
-    SCM_DSTATE_TABLE (dstate) = SCM_BOOL_F;
+    SCM obj = SCM_DSTATE_TABLE_REF (dstate, 0);
+    p->table = SCM_BOOL_F;
     return obj;
   }
 }

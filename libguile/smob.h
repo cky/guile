@@ -69,12 +69,8 @@ typedef struct scm_smob_descriptor
   int gsubr_type; /* Used in procprop.c */
 
   /* Dump functions */
-  SCM (*dump_mark) (SCM, SCM);
-  void (*dump_dealloc) (SCM, SCM);
-  void (*dump_store) (SCM, SCM);
-  SCM (*undump_alloc) (SCM);
-  void (*undump_restore) (SCM, SCM);
-  void (*undump_init) (SCM);
+  void (*dump) (SCM, SCM);
+  SCM (*undump) (SCM);
 } scm_smob_descriptor;
 
 
@@ -157,27 +153,18 @@ extern int scm_smob_print (SCM exp, SCM port, scm_print_state *pstate);
 
 extern scm_bits_t scm_make_smob_type (char *name, scm_sizet size);
 
-extern void scm_set_smob_mark (scm_bits_t tc,
-			       SCM (*mark) (SCM));
-extern void scm_set_smob_free (scm_bits_t tc,
-			       scm_sizet (*free) (SCM));
+extern void scm_set_smob_mark (scm_bits_t tc, SCM (*mark) (SCM));
+extern void scm_set_smob_free (scm_bits_t tc, scm_sizet (*free) (SCM));
 extern void scm_set_smob_print (scm_bits_t tc,
 				int (*print) (SCM, SCM, scm_print_state*));
-extern void scm_set_smob_equalp (scm_bits_t tc,
-				 SCM (*equalp) (SCM, SCM));
+extern void scm_set_smob_equalp (scm_bits_t tc, SCM (*equalp) (SCM, SCM));
 extern void scm_set_smob_apply (scm_bits_t tc,
 				SCM (*apply) (),
 				unsigned int req,
 				unsigned int opt,
 				unsigned int rst);
-extern void scm_set_smob_dump (scm_bits_t tc,
-			       SCM (*mark) (SCM, SCM),
-			       void (*dealloc) (SCM, SCM),
-			       void (*store) (SCM, SCM));
-extern void scm_set_smob_undump (scm_bits_t tc,
-				 SCM (*alloc) (SCM),
-				 void (*restore) (SCM, SCM),
-				 void (*init) (SCM));
+extern void scm_set_smob_dump (scm_bits_t tc, void (*dump) (SCM, SCM));
+extern void scm_set_smob_undump (scm_bits_t tc, SCM (*undump) (SCM));
 
 /* Function for creating smobs */
 

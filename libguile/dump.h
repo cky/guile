@@ -45,15 +45,17 @@
 
 #include "libguile/__scm.h"
 
-extern void scm_dump_mark (SCM obj, SCM dstate);
 extern void scm_store_string (const char *addr, scm_sizet size, SCM dstate);
 extern void scm_store_bytes (const char *addr, scm_sizet size, SCM dstate);
 extern void scm_store_word (const scm_bits_t word, SCM dstate);
 extern void scm_store_object (SCM obj, SCM dstate);
+extern void scm_store_cell_object (SCM cell, int n, SCM dstate);
+
 extern const char *scm_restore_string (SCM dstate, int *lenp);
 extern const char *scm_restore_bytes (SCM dstate, scm_sizet size);
 extern scm_bits_t scm_restore_word (SCM dstate);
-extern SCM scm_restore_object (SCM dstate);
+extern void scm_restore_object (SCM *objp, SCM dstate);
+extern void scm_restore_cell_object (SCM cell, int n, SCM dstate);
 
 extern SCM scm_binary_write (SCM obj, SCM port);
 extern SCM scm_binary_read (SCM port);

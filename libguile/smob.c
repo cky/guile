@@ -299,13 +299,9 @@ scm_make_smob_type (char *name, scm_sizet size)
       scm_smobs[scm_numsmob].apply_1 = 0;
       scm_smobs[scm_numsmob].apply_2 = 0;
       scm_smobs[scm_numsmob].apply_3 = 0;
-      scm_smobs[scm_numsmob].gsubr_type     = 0;
-      scm_smobs[scm_numsmob].dump_mark      = 0;
-      scm_smobs[scm_numsmob].dump_dealloc   = 0;
-      scm_smobs[scm_numsmob].dump_store     = 0;
-      scm_smobs[scm_numsmob].undump_alloc   = 0;
-      scm_smobs[scm_numsmob].undump_restore = 0;
-      scm_smobs[scm_numsmob].undump_init    = 0;
+      scm_smobs[scm_numsmob].gsubr_type = 0;
+      scm_smobs[scm_numsmob].dump    = 0;
+      scm_smobs[scm_numsmob].undump  = 0;
       scm_numsmob++;
     }
   SCM_ALLOW_INTS;
@@ -456,25 +452,15 @@ scm_set_smob_apply (scm_bits_t tc, SCM (*apply) (),
 }
 
 void
-scm_set_smob_dump (scm_bits_t tc,
-		   SCM (*mark) (SCM, SCM),
-		   void (*dealloc) (SCM, SCM),
-		   void (*store) (SCM, SCM))
+scm_set_smob_dump (scm_bits_t tc, void (*dump) (SCM, SCM))
 {
-  scm_smobs[SCM_TC2SMOBNUM (tc)].dump_mark    = mark;
-  scm_smobs[SCM_TC2SMOBNUM (tc)].dump_dealloc = dealloc;
-  scm_smobs[SCM_TC2SMOBNUM (tc)].dump_store   = store;
+  scm_smobs[SCM_TC2SMOBNUM (tc)].dump = dump;
 }
 
 void
-scm_set_smob_undump (scm_bits_t tc,
-		     SCM (*alloc) (SCM),
-		     void (*restore) (SCM, SCM),
-		     void (*init) (SCM))
+scm_set_smob_undump (scm_bits_t tc, SCM (*undump) (SCM))
 {
-  scm_smobs[SCM_TC2SMOBNUM (tc)].undump_alloc   = alloc;
-  scm_smobs[SCM_TC2SMOBNUM (tc)].undump_restore = restore;
-  scm_smobs[SCM_TC2SMOBNUM (tc)].undump_init    = init;
+  scm_smobs[SCM_TC2SMOBNUM (tc)].undump = undump;
 }
 
 SCM

@@ -69,7 +69,7 @@ keyword_print (SCM exp, SCM port, scm_print_state *pstate)
 }
 
 static void
-keyword_dealloc (SCM obj, SCM dstate)
+keyword_dump (SCM obj, SCM dstate)
 {
   SCM sym = scm_keyword_dash_symbol (obj);
   scm_store_string (SCM_SYMBOL_CHARS (sym),
@@ -78,7 +78,7 @@ keyword_dealloc (SCM obj, SCM dstate)
 }
 
 static SCM
-keyword_alloc (SCM dstate)
+keyword_undump (SCM dstate)
 {
   int len;
   const char *mem = scm_restore_string (dstate, &len);
@@ -156,8 +156,8 @@ scm_init_keywords ()
   scm_tc16_keyword = scm_make_smob_type ("keyword", 0);
   scm_set_smob_mark (scm_tc16_keyword, scm_markcdr);
   scm_set_smob_print (scm_tc16_keyword, keyword_print);
-  scm_set_smob_dump (scm_tc16_keyword, 0, keyword_dealloc, 0);
-  scm_set_smob_undump (scm_tc16_keyword, keyword_alloc, 0, 0);
+  scm_set_smob_dump (scm_tc16_keyword, keyword_dump);
+  scm_set_smob_undump (scm_tc16_keyword, keyword_undump);
 
   scm_keyword_obarray = scm_c_make_hash_table (256);
 #ifndef SCM_MAGIC_SNARFER
