@@ -111,7 +111,7 @@ EXTRA_libguile_la_SOURCES = _scm.h \
     backtrace.c stacks.c debug.c srcprop.c \
     strerror.c inet_aton.c putenv.c \
     threads.c alloca.c \
-    regex-posix.c
+    regex-posix.c iselect.c
 
 noinst_HEADERS = coop-threads.c coop-threads.h coop.c
 
@@ -137,7 +137,7 @@ modinclude_HEADERS = \
     simpos.h smob.h socket.h srcprop.h stackchk.h stacks.h stime.h \
     strings.h strop.h strorder.h strports.h struct.h symbols.h tag.h \
     tags.h throw.h unif.h variable.h vectors.h version.h vports.h \
-    weaks.h snarf.h threads.h coop-defs.h fluids.h
+    weaks.h snarf.h threads.h coop-defs.h fluids.h iselect.h
 
 modinclude_DATA = scmconfig.h
 
@@ -227,18 +227,18 @@ DEP_FILES =  .deps/alist.P .deps/alloca.P .deps/appinit.P \
 .deps/gh_init.P .deps/gh_io.P .deps/gh_list.P .deps/gh_predicates.P \
 .deps/gh_test_c.P .deps/gh_test_repl.P .deps/gsubr.P .deps/guile.P \
 .deps/hash.P .deps/hashtab.P .deps/inet_aton.P .deps/init.P \
-.deps/ioext.P .deps/kw.P .deps/list.P .deps/load.P .deps/mallocs.P \
-.deps/markers.P .deps/net_db.P .deps/numbers.P .deps/objects.P \
-.deps/objprop.P .deps/options.P .deps/pairs.P .deps/ports.P \
-.deps/posix.P .deps/print.P .deps/procprop.P .deps/procs.P \
-.deps/putenv.P .deps/ramap.P .deps/read.P .deps/readline.P \
-.deps/regex-posix.P .deps/root.P .deps/scmsigs.P .deps/script.P \
-.deps/simpos.P .deps/smob.P .deps/socket.P .deps/srcprop.P \
-.deps/stackchk.P .deps/stacks.P .deps/stime.P .deps/strerror.P \
-.deps/strings.P .deps/strop.P .deps/strorder.P .deps/strports.P \
-.deps/struct.P .deps/symbols.P .deps/tag.P .deps/threads.P \
-.deps/throw.P .deps/unif.P .deps/variable.P .deps/vectors.P \
-.deps/version.P .deps/vports.P .deps/weaks.P
+.deps/ioext.P .deps/iselect.P .deps/kw.P .deps/list.P .deps/load.P \
+.deps/mallocs.P .deps/markers.P .deps/net_db.P .deps/numbers.P \
+.deps/objects.P .deps/objprop.P .deps/options.P .deps/pairs.P \
+.deps/ports.P .deps/posix.P .deps/print.P .deps/procprop.P \
+.deps/procs.P .deps/putenv.P .deps/ramap.P .deps/read.P \
+.deps/readline.P .deps/regex-posix.P .deps/root.P .deps/scmsigs.P \
+.deps/script.P .deps/simpos.P .deps/smob.P .deps/socket.P \
+.deps/srcprop.P .deps/stackchk.P .deps/stacks.P .deps/stime.P \
+.deps/strerror.P .deps/strings.P .deps/strop.P .deps/strorder.P \
+.deps/strports.P .deps/struct.P .deps/symbols.P .deps/tag.P \
+.deps/threads.P .deps/throw.P .deps/unif.P .deps/variable.P \
+.deps/vectors.P .deps/version.P .deps/vports.P .deps/weaks.P
 SOURCES = $(libguile_la_SOURCES) $(EXTRA_libguile_la_SOURCES) $(guile_SOURCES) $(gh_test_c_SOURCES) $(gh_test_repl_SOURCES)
 OBJECTS = $(libguile_la_OBJECTS) $(guile_OBJECTS) $(gh_test_c_OBJECTS) $(gh_test_repl_OBJECTS)
 

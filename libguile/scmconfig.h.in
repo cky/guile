@@ -134,6 +134,9 @@
    the Guile library itself.  */
 #undef GUILE_DEBUG
 
+/* Define to implement scm_internal_select */
+#undef GUILE_ISELECT
+
 /* Define if using cooperative multithreading.  */
 #undef USE_COOP_THREADS
 
@@ -152,6 +155,9 @@
 /* Define if you want support for dynamic linking. */
 #undef DYNAMIC_LINKING
 
+/* Define if dlsym automatically supplies a leading underscore. */
+#undef DLSYM_ADDS_USCORE
+
 /* Define if the operating system can restart system calls.  */
 #undef HAVE_RESTARTS
 
@@ -160,6 +166,9 @@
 
 /* This is included as part of a workaround for a autoheader bug. */
 #undef HAVE_REGCOMP
+
+/* Define if you have the bzero function.  */
+#undef HAVE_BZERO
 
 /* Define if you have the ctermid function.  */
 #undef HAVE_CTERMID
