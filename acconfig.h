@@ -90,6 +90,9 @@
 /* Define if the operating system supplies bzero without declaring it. */
 #undef MISSING_BZERO_DECL
 
+/* Define if the operating system supplies sleep without declaring it. */
+#undef MISSING_SLEEP_DECL
+
 /* Define if the operating system supplies usleep without declaring it. */
 #undef MISSING_USLEEP_DECL
 

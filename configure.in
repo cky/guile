@@ -116,6 +116,7 @@ AC_DEFUN(GUILE_FUNC_DECLARED, [
 
 GUILE_FUNC_DECLARED(strptime, time.h)
 GUILE_FUNC_DECLARED(bzero, string.h)
+GUILE_FUNC_DECLARED(sleep, unistd.h)
 GUILE_FUNC_DECLARED(usleep, unistd.h)
 
 # On some systems usleep has no return value
