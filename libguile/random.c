@@ -359,11 +359,11 @@ SCM_DEFINE (scm_random, "random", 1, 1, 0,
             "N (exclusive). The values returned have a uniform \n"
             "distribution.\n"
             "\n"
-            "The optional argument STATE must be of the type produced by\n"
-            "`seed->random-state'. It defaults to the value of the variable\n"
-            "*random-state*. This object is used to maintain the state of\n"
-            "the pseudo-random-number generator and is altered as a side\n"
-            "effect of the random operation.")
+            "The optional argument @var{state} must be of the type produced\n"
+	    "by @code{seed->random-state}. It defaults to the value of the\n"
+	    "variable @var{*random-state*}. This object is used to maintain\n"
+	    "the state of the pseudo-random-number generator and is altered\n"
+	    "as a side effect of the random operation.")
 #define FUNC_NAME s_scm_random
 {
   if (SCM_UNBNDP (state))
@@ -386,7 +386,7 @@ SCM_DEFINE (scm_random, "random", 1, 1, 0,
 
 SCM_DEFINE (scm_copy_random_state, "copy-random-state", 0, 1, 0, 
             (SCM state),
-            "Return a copy of the random state STATE.")
+            "Return a copy of the random state @var{state}.")
 #define FUNC_NAME s_scm_copy_random_state
 {
   if (SCM_UNBNDP (state))
@@ -398,7 +398,7 @@ SCM_DEFINE (scm_copy_random_state, "copy-random-state", 0, 1, 0,
 
 SCM_DEFINE (scm_seed_to_random_state, "seed->random-state", 1, 0, 0, 
             (SCM seed),
-            "Return a new random state using SEED.")
+            "Return a new random state using @var{seed}.")
 #define FUNC_NAME s_scm_seed_to_random_state
 {
   if (SCM_NUMBERP (seed))
