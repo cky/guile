@@ -1,3 +1,12 @@
+Sat Dec 18 15:22:10 1999  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* alist.c, chars.c, dynl.c, net_db.c, numbers.c, unif.c: Use
+ 	SCM_NUM2ULONG instead of scm_num2ulong; SCM_NUM2LONG instead of
+	scm_num2long; SCM_WTA instead of scm_wta.  Only done for when
+	FUNC_NAME was used as an argument of the macro and the formal
+	argument name was the explicit argument in the old function call.
+	These were just missed in my first pass of changes.
+
 1999-12-18  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* guile-doc-snarf.in (filename): Strip path to source dir before
