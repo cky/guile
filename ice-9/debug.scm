@@ -78,9 +78,12 @@
 			(set! traced-procedures
 			      (cons proc traced-procedures))))
 		  args)
-	(set! apply-frame-handler trace-entry)
-	(set! exit-frame-handler trace-exit)
-	(set! trace-level 0)
+	(trap-set! apply-frame-handler trace-entry)
+	(trap-set! exit-frame-handler trace-exit)
+	;; We used to reset `trace-level' here to 0, but this is wrong
+	;; if `trace' itself is being traced, since `trace-exit' will
+	;; then decrement `trace-level' to -1!  It shouldn't actually
+	;; be necessary to set `trace-level' here at all.
 	(debug-enable 'trace)
 	(nameify args))))
 

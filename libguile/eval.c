@@ -1620,18 +1620,20 @@ do { \
       {\
 	SCM tmp, tail = SCM_BOOL(SCM_TRACED_FRAME_P (debug)); \
 	SCM_SET_TRACED_FRAME (debug); \
+	SCM_TRAPS_P = 0;\
 	if (SCM_CHEAPTRAPS_P)\
 	  {\
 	    tmp = scm_make_debugobj (&debug);\
-	    scm_ithrow (scm_sym_apply_frame, scm_cons2 (tmp, tail, SCM_EOL), 0);\
+	    scm_call_3 (SCM_APPLY_FRAME_HDLR, scm_sym_apply_frame, tmp, tail);\
  	  }\
 	else\
 	  {\
             int first;\
 	    tmp = scm_make_continuation (&first);\
 	    if (first)\
-	      scm_ithrow (scm_sym_apply_frame, scm_cons2 (tmp, tail, SCM_EOL), 0);\
+	      scm_call_3 (SCM_APPLY_FRAME_HDLR, scm_sym_apply_frame, tmp, tail);\
 	  }\
+	SCM_TRAPS_P = 1;\
       }\
 } while (0)
 #undef RETURN
@@ -1695,14 +1697,17 @@ scm_t_option scm_debug_opts[] = {
   { SCM_OPTION_BOOLEAN, "backtrace", 0, "Show backtrace on error." },
   { SCM_OPTION_BOOLEAN, "debug", 0, "Use the debugging evaluator." },
   { SCM_OPTION_INTEGER, "stack", 20000, "Stack size limit (measured in words; 0 = no check)." },
-  { SCM_OPTION_SCM, "show-file-name", SCM_BOOL_T, "Show file names and line numbers in backtraces when not `#f'.  A value of `base' displays only base names, while `#t' displays full names."}
+  { SCM_OPTION_SCM, "show-file-name", (unsigned long)SCM_BOOL_T, "Show file names and line numbers in backtraces when not `#f'.  A value of `base' displays only base names, while `#t' displays full names."}
 };
 
 scm_t_option scm_evaluator_trap_table[] = {
   { SCM_OPTION_BOOLEAN, "traps", 0, "Enable evaluator traps." },
   { SCM_OPTION_BOOLEAN, "enter-frame", 0, "Trap when eval enters new frame." },
   { SCM_OPTION_BOOLEAN, "apply-frame", 0, "Trap when entering apply." },
-  { SCM_OPTION_BOOLEAN, "exit-frame", 0, "Trap when exiting eval or apply." }
+  { SCM_OPTION_BOOLEAN, "exit-frame", 0, "Trap when exiting eval or apply." },
+  { SCM_OPTION_SCM, "enter-frame-handler", (unsigned long)SCM_BOOL_F, "Handler for enter-frame traps." },
+  { SCM_OPTION_SCM, "apply-frame-handler", (unsigned long)SCM_BOOL_F, "Handler for apply-frame traps." },
+  { SCM_OPTION_SCM, "exit-frame-handler", (unsigned long)SCM_BOOL_F, "Handler for exit-frame traps." }
 };
 
 SCM_DEFINE (scm_eval_options_interface, "eval-options-interface", 0, 1, 0, 
@@ -1914,10 +1919,13 @@ start:
 		  goto dispatch;
 	      }
 	  }
-	scm_ithrow (scm_sym_enter_frame,
-		    scm_cons2 (t.arg1, tail,
-			       scm_cons (scm_unmemocopy (x, env), SCM_EOL)),
-		    0);
+	SCM_TRAPS_P = 0;
+	scm_call_4 (SCM_ENTER_FRAME_HDLR,
+		    scm_sym_enter_frame,
+		    t.arg1,
+		    tail,
+		    scm_unmemocopy (x, env));
+	SCM_TRAPS_P = 1;
       }
 #endif
 #if defined (USE_THREADS) || defined (DEVAL)
@@ -3231,7 +3239,9 @@ exit:
 		goto ret;
 	      }
 	  }
-	scm_ithrow (scm_sym_exit_frame, scm_cons2 (t.arg1, proc, SCM_EOL), 0);
+	SCM_TRAPS_P = 0;
+	scm_call_3 (SCM_EXIT_FRAME_HDLR, scm_sym_exit_frame, t.arg1, proc);
+	SCM_TRAPS_P = 1;
       }
 ret:
   scm_last_debug_frame = debug.prev;
@@ -3271,6 +3281,13 @@ SCM
 scm_call_3 (SCM proc, SCM arg1, SCM arg2, SCM arg3)
 {
   return scm_apply (proc, arg1, scm_cons2 (arg2, arg3, scm_listofnull));
+}
+
+SCM
+scm_call_4 (SCM proc, SCM arg1, SCM arg2, SCM arg3, SCM arg4)
+{
+  return scm_apply (proc, arg1, scm_cons2 (arg2, arg3,
+					   scm_cons (arg4, scm_listofnull)));
 }
 
 /* Simple procedure applies
@@ -3446,7 +3463,9 @@ SCM_APPLY (SCM proc, SCM arg1, SCM args)
 	  if (!first)
 	    goto entap;
 	}
-      scm_ithrow (scm_sym_enter_frame, scm_cons (tmp, SCM_EOL), 0);
+      SCM_TRAPS_P = 0;
+      scm_call_2 (SCM_ENTER_FRAME_HDLR, scm_sym_enter_frame, tmp);
+      SCM_TRAPS_P = 1;
     }
 entap:
   ENTER_APPLY;
@@ -3676,7 +3695,9 @@ exit:
 		goto ret;
 	      }
 	  }
-	scm_ithrow (scm_sym_exit_frame, scm_cons2 (arg1, proc, SCM_EOL), 0);
+	SCM_TRAPS_P = 0;
+	scm_call_3 (SCM_EXIT_FRAME_HDLR, scm_sym_exit_frame, arg1, proc);
+	SCM_TRAPS_P = 1;
       }
 ret:
   scm_last_debug_frame = debug.prev;

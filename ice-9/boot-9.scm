@@ -2237,20 +2237,8 @@
   (save-stack lazy-handler-dispatch)
   (apply throw key args))
 
-(define enter-frame-handler default-lazy-handler)
-(define apply-frame-handler default-lazy-handler)
-(define exit-frame-handler default-lazy-handler)
-
 (define (lazy-handler-dispatch key . args)
-  (case key
-    ((apply-frame)
-     (apply apply-frame-handler key args))
-    ((exit-frame)
-     (apply exit-frame-handler key args))
-    ((enter-frame)
-     (apply enter-frame-handler key args))
-    (else
-     (apply default-lazy-handler key args))))
+  (apply default-lazy-handler key args))
 
 (define abort-hook (make-hook))
 

@@ -1,3 +1,18 @@
+2001-06-26  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* eval.h, eval.c (scm_call_4): New function.
+
+	* eval.c (SCM_APPLY, SCM_CEVAL, ENTER_APPLY): Call trap handlers
+	directly rather than dispatching to them via scm_ithrow and a lazy
+	catch.
+	
+	* eval.c (scm_evaluator_trap_table), eval.h (SCM_ENTER_FRAME_HDLR,
+	SCM_APPLY_FRAME_HDLR, SCM_EXIT_FRAME_HDLR): Add three new options
+	for trap handler procedures.
+
+	* debug.h (SCM_RESET_DEBUG_MODE): Add checks for trap handler
+	procedures not being #f.
+
 2001-06-27  Michael Livshin  <mlivshin@bigfoot.com>
 
 	* Makefile.am (c-tokenize.c): add rule to generate it.

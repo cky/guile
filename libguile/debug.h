@@ -98,13 +98,15 @@ extern int scm_check_entry_p, scm_check_apply_p, scm_check_exit_p;
 
 #define SCM_RESET_DEBUG_MODE \
 do {\
-  CHECK_ENTRY = SCM_ENTER_FRAME_P || SCM_BREAKPOINTS_P;\
-  CHECK_APPLY = SCM_APPLY_FRAME_P || SCM_TRACE_P;\
-  CHECK_EXIT = SCM_EXIT_FRAME_P || SCM_TRACE_P;\
+  CHECK_ENTRY = (SCM_ENTER_FRAME_P || SCM_BREAKPOINTS_P)\
+    && SCM_NFALSEP (SCM_ENTER_FRAME_HDLR);\
+  CHECK_APPLY = (SCM_APPLY_FRAME_P || SCM_TRACE_P)\
+    && SCM_NFALSEP (SCM_APPLY_FRAME_HDLR);\
+  CHECK_EXIT = (SCM_EXIT_FRAME_P || SCM_TRACE_P)\
+    && SCM_NFALSEP (SCM_EXIT_FRAME_HDLR);\
   scm_debug_mode = SCM_DEVAL_P || CHECK_ENTRY || CHECK_APPLY || CHECK_EXIT;\
   scm_ceval_ptr = scm_debug_mode ? scm_deval : scm_ceval;\
 } while (0)
-
 
 /* {Evaluator}
  */

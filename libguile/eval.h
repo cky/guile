@@ -68,7 +68,10 @@ extern SCM scm_eval_options_interface (SCM setting);
 #define SCM_ENTER_FRAME_P      scm_evaluator_trap_table[1].val
 #define SCM_APPLY_FRAME_P      scm_evaluator_trap_table[2].val
 #define SCM_EXIT_FRAME_P       scm_evaluator_trap_table[3].val
-#define SCM_N_EVALUATOR_TRAPS 4
+#define SCM_ENTER_FRAME_HDLR   (SCM)(scm_evaluator_trap_table[4].val)
+#define SCM_APPLY_FRAME_HDLR   (SCM)(scm_evaluator_trap_table[5].val)
+#define SCM_EXIT_FRAME_HDLR    (SCM)(scm_evaluator_trap_table[6].val)
+#define SCM_N_EVALUATOR_TRAPS 7
 
 
 
@@ -235,6 +238,7 @@ extern SCM scm_call_0 (SCM proc);
 extern SCM scm_call_1 (SCM proc, SCM arg1);
 extern SCM scm_call_2 (SCM proc, SCM arg1, SCM arg2);
 extern SCM scm_call_3 (SCM proc, SCM arg1, SCM arg2, SCM arg3);
+extern SCM scm_call_4 (SCM proc, SCM arg1, SCM arg2, SCM arg3, SCM arg4);
 extern SCM scm_apply_0 (SCM proc, SCM args);
 extern SCM scm_apply_1 (SCM proc, SCM arg1, SCM args);
 extern SCM scm_apply_2 (SCM proc, SCM arg1, SCM arg2, SCM args);

@@ -901,9 +901,7 @@ Use @code{scm_make_real} instead.
 Use @code{SCM_MAKE_CHAR} instead.
 
 @item @code{gh_str2scm}
-Use @code{scm_makfromstr} instead.  Note that @code{scm_makfromstr}
-currently has an additional, third parameter, but it's unused and will
-hopefully disappear soon.  If it's still there, set it to 0.
+Use @code{scm_mem2string} instead.
 
 @item @code{gh_str02scm}
 Use @code{scm_makfrom0str} instead.
