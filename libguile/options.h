@@ -55,14 +55,9 @@
 
 typedef struct scm_t_option
 {
-  int type;
-  char *name;
-
-  /*
-    schizophrenic use: both SCM and int
-   */
-  unsigned long val;
-  /* SCM val */
+  unsigned int type;
+  const char *name;
+  scm_t_bits val;
   char *doc;
 } scm_t_option;
 
@@ -72,8 +67,8 @@ typedef struct scm_t_option
 #define SCM_OPTION_SCM     2
 
 
-extern SCM scm_options (SCM new_mode, scm_t_option options[], int n, const char *s);
-extern void scm_init_opts (SCM (*func) (SCM), scm_t_option options[], int n);
+extern SCM scm_options (SCM, scm_t_option [], unsigned int, const char*);
+extern void scm_init_opts (SCM (*) (SCM), scm_t_option [], unsigned int n);
 extern void scm_init_options (void);
 
 #endif  /* SCM_OPTIONS_H */

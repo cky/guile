@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995, 1996, 1998, 2000, 2001 Free Software Foundation
+/* Copyright (C) 1995,1996,1998,2000,2001 Free Software Foundation
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,10 +42,10 @@
  * The author can be reached at djurfeldt@nada.kth.se
  * Mikael Djurfeldt, SANS/NADA KTH, 10044 STOCKHOLM, SWEDEN */
 
-
 
 
 #include "libguile/_scm.h"
+#include "libguile/mallocs.h"
 #include "libguile/strings.h"
 
 #include "libguile/options.h"
@@ -116,118 +116,173 @@
 SCM_SYMBOL (scm_yes_sym, "yes");
 SCM_SYMBOL (scm_no_sym, "no");
 
-static SCM protected_objects;
+static SCM protected_objects = SCM_EOL;
 
-SCM
-scm_options (SCM arg, scm_t_option options[], int n, const char *s)
+
+/* Return a list of the current option setting.  The format of an option
+ * setting is described in the above documentation.  */
+static SCM
+get_option_setting (const scm_t_option options[], unsigned int n)
 {
-  int i, docp = (!SCM_UNBNDP (arg) && !SCM_NULLP (arg) && !SCM_CONSP (arg));
-  /* Let `arg' GC protect the arguments */
-  SCM new_mode = arg, ans = SCM_EOL, ls;
-  for (i = 0; i < n; ++i)
+  unsigned int i;
+  SCM ls = SCM_EOL;
+  for (i = 0; i != n; ++i)
     {
-      ls = docp ? scm_cons ((SCM) options[i].doc, SCM_EOL) : ans;
       switch (options[i].type)
 	{
 	case SCM_OPTION_BOOLEAN:
-	  if (docp)
-	    ls = scm_cons ((int) options[i].val
-			   ? scm_yes_sym
-			   : scm_no_sym,
-			   ls);
+	  if (options[i].val)
+	    ls = scm_cons (SCM_PACK (options[i].name), ls);
+	  break;
+	case SCM_OPTION_INTEGER:
+	  ls = scm_cons (SCM_MAKINUM (options[i].val), ls);
+	  ls = scm_cons (SCM_PACK (options[i].name), ls);
+	  break;
+	case SCM_OPTION_SCM:
+	  ls = scm_cons (SCM_PACK (options[i].val), ls);
+	  ls = scm_cons (SCM_PACK (options[i].name), ls);
+	}
+    }
+  return ls;
+}
+
+
+/* Return a list of sublists, where each sublist contains option name, value
+ * and documentation string.  */
+static SCM
+get_documented_option_setting (const scm_t_option options[], unsigned int n)
+{
+  SCM ans = SCM_EOL;
+  unsigned int i;
+
+  for (i = 0; i != n; ++i)
+    {
+      SCM ls = scm_cons (scm_str2string (options[i].doc), SCM_EOL);
+      switch (options[i].type)
+	{
+	case SCM_OPTION_BOOLEAN:
+	  ls = scm_cons (options[i].val ? scm_yes_sym : scm_no_sym, ls);
 	  break;
 	case SCM_OPTION_INTEGER:
 	  ls = scm_cons (SCM_MAKINUM (options[i].val), ls);
 	  break;
 	case SCM_OPTION_SCM:
-	  ls = scm_cons ((SCM) options[i].val, ls);
+	  ls = scm_cons (SCM_PACK (options[i].val), ls);
 	}
-      if (!((options[i].type == SCM_OPTION_BOOLEAN)
-	    && !docp
-	    && ! (int) options[i].val))
-	ls = scm_cons ((SCM) options[i].name, ls);
-      ans = docp ? scm_cons (ls, ans) : ls;
-    }
-  if (!(SCM_UNBNDP (new_mode) || docp))
-    {
-      unsigned long *flags;
-      flags = (unsigned long *) scm_must_malloc (n * sizeof (unsigned long),
-						 "mode buffer");
-      for (i = 0; i < n; ++i)
-	if (options[i].type == SCM_OPTION_BOOLEAN)
-	  flags[i] = 0;
-	else
-	  flags[i] = (unsigned long) options[i].val;
-      while (SCM_NNULLP (new_mode))
-	{
-	  SCM_ASSERT (SCM_CONSP (new_mode),
-		      new_mode,
-		      SCM_ARG1,
-		      s);
-	  for (i = 0; i < n; ++i)
-	    if (SCM_CAR (new_mode) == (SCM) options[i].name)
-	      switch (options[i].type)
-		{
-		case SCM_OPTION_BOOLEAN:
-		  flags[i] = 1;
-		  goto cont;
-		case SCM_OPTION_INTEGER:
-		  new_mode = SCM_CDR (new_mode);
-		  SCM_ASSERT (   SCM_CONSP (new_mode)
-			      && SCM_INUMP (SCM_CAR (new_mode)),
-			      new_mode,
-			      SCM_ARG1,
-			      s);
-		  flags[i] = (unsigned long) SCM_INUM (SCM_CAR (new_mode));
-		  goto cont;
-		case SCM_OPTION_SCM:
-		  new_mode = SCM_CDR (new_mode);
-		  flags[i] = SCM_UNPACK (SCM_CAR (new_mode));
-		  goto cont;
-		}
-#ifndef SCM_RECKLESS
-	  scm_must_free ((char *) flags);
-	  scm_misc_error (s, "Unknown mode flag: ~S", 
-			  scm_list_1 (SCM_CAR (new_mode)));
-#endif
-	cont:
-	  new_mode = SCM_CDR (new_mode);
-	}
-      for (i = 0; i < n; ++i)
-	{
-	  /* scm_option doesn't know if its a long or an SCM */
-	  if (options[i].type == SCM_OPTION_SCM)
-	    SCM_SETCDR (protected_objects,
-			scm_cons (SCM_PACK(flags[i]),
-				  scm_delq1_x (SCM_PACK(options[i].val),
-					       SCM_CDR (protected_objects))));
-	  options[i].val = flags[i];
-	}
-      scm_must_free ((char *) flags);
+      ls = scm_cons (SCM_PACK (options[i].name), ls);
+      ans = scm_cons (ls, ans);
     }
   return ans;
 }
 
 
-void
-scm_init_opts (SCM (*func) (SCM), scm_t_option options[], int n)
+/* Alters options according to the given option setting 'args'.  The value of
+ * args is known to be a list, but it is not known whether the list is a well
+ * formed option setting, i. e. if for every non-boolean option a value is
+ * given.  For this reason, the function applies all changes to a copy of the
+ * original setting in memory.  Only if 'args' was successfully processed,
+ * the new setting will overwrite the old one.  */
+static void
+change_option_setting (SCM args, scm_t_option options[], unsigned int n, const char *s)
 {
-  int i;
+  unsigned int i;
+  SCM locally_protected_args = args;
+  SCM malloc_obj = scm_malloc_obj (n * sizeof (scm_t_bits));
+  scm_t_bits *flags = (scm_t_bits *) SCM_MALLOCDATA (malloc_obj);
 
-  for (i = 0; i < n; ++i)
+  for (i = 0; i != n; ++i)
     {
-      SCM name;
-      SCM doc;
+      if (options[i].type == SCM_OPTION_BOOLEAN)
+	flags[i] = 0;
+      else
+	flags[i] = options[i].val;
+    }
 
-      name = scm_str2symbol (options[i].name);
-      options[i].name =	(char *) name;
-      scm_permanent_object (name);
-      doc = scm_take0str (options[i].doc);
-      options[i].doc = (char *) doc;
-      scm_permanent_object (doc);
+  while (!SCM_NULLP (args))
+    {
+      SCM name = SCM_CAR (args);
+      int found = 0;
+
+      for (i = 0; i != n && !found; ++i)
+	{
+	  if (SCM_EQ_P (name, SCM_PACK (options[i].name)))
+	    {
+	      switch (options[i].type)
+		{
+		case SCM_OPTION_BOOLEAN:
+		  flags[i] = 1;
+		  break;
+		case SCM_OPTION_INTEGER:
+		  args = SCM_CDR (args);
+		  SCM_ASSERT (SCM_CONSP (args), args, SCM_ARG1, s);
+		  SCM_ASSERT (SCM_INUMP (SCM_CAR (args)), args, SCM_ARG1, s);
+		  flags[i] = SCM_INUM (SCM_CAR (args));
+		  break;
+		case SCM_OPTION_SCM:
+		  args = SCM_CDR (args);
+		  SCM_ASSERT (SCM_CONSP (args), args, SCM_ARG1, s);
+		  flags[i] = SCM_UNPACK (SCM_CAR (args));
+		  break;
+		}
+	      found = 1;
+	    }
+	}
+
+      if (!found)
+	scm_misc_error (s, "Unknown option name: ~S", scm_list_1 (name));
+
+      args = SCM_CDR (args);
+    }
+
+  for (i = 0; i != n; ++i)
+    {
       if (options[i].type == SCM_OPTION_SCM)
-	SCM_SETCDR (protected_objects,
-		    scm_cons (SCM_PACK(options[i].val), SCM_CDR (protected_objects)));
+	{
+	  SCM old = SCM_PACK (options[i].val);
+	  SCM new = SCM_PACK (flags[i]);
+	  if (!SCM_IMP (old))
+	    protected_objects = scm_delq1_x (old, protected_objects);
+	  if (!SCM_IMP (new))
+	    protected_objects = scm_cons (new, protected_objects);
+	}
+      options[i].val = flags[i];
+    }
+
+  scm_remember_upto_here_2 (locally_protected_args, malloc_obj);
+}
+
+
+SCM
+scm_options (SCM args, scm_t_option options[], unsigned int n, const char *s)
+{
+  if (SCM_UNBNDP (args))
+    return get_option_setting (options, n);
+  else if (!SCM_NULLP (args) && !SCM_CONSP (args))
+    /* Dirk:FIXME:: This criterion should be improved.  IMO it is better to
+     * demand that args is #t if documentation should be shown than to say
+     * that every argument except a list will print out documentation.  */
+    return get_documented_option_setting (options, n);
+  else
+    {
+      SCM old_setting;
+      SCM_ASSERT (!SCM_FALSEP (scm_list_p (args)), args, 1, s);
+      old_setting = get_option_setting (options, n);
+      change_option_setting (args, options, n, s);
+      return old_setting;
+    }
+}
+
+
+void
+scm_init_opts (SCM (*func) (SCM), scm_t_option options[], unsigned int n)
+{
+  unsigned int i;
+
+  for (i = 0; i != n; ++i)
+    {
+      SCM name = scm_str2symbol (options[i].name);
+      options[i].name =	(char *) SCM_UNPACK (name);
+      scm_permanent_object (name);
     }
   func (SCM_UNDEFINED);
 }
@@ -236,7 +291,8 @@ scm_init_opts (SCM (*func) (SCM), scm_t_option options[], int n)
 void
 scm_init_options ()
 {
-  protected_objects = scm_permanent_object (scm_cons (SCM_UNDEFINED, SCM_EOL));
+  scm_gc_register_root (&protected_objects);
+
 #ifndef SCM_MAGIC_SNARFER
 #include "libguile/options.x"
 #endif

@@ -1,5 +1,44 @@
 2001-10-05  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* options.c (protected_objects, scm_init_options):  The content of
+	protected_objects is now protected from garbage collection using
+	scm_gc_register_root instead of scm_permanent_object.
+
+	(get_option_setting):  New static function that	computes an option
+	setting as it was formerly done in the function scm_options.
+
+	(get_documented_option_setting):  New static function that
+	returns option documentation as it was formerly done in the
+	function scm_options.  Note that documentation C strings are no
+	longer precomputed into SCM objects.  Instead, they are converted
+	into SCM strings every time get_documented_option_setting is
+	called.
+
+	(change_option_setting):  New static functions that modifies the
+	option setting as it was formerly done in the function
+	scm_options.  The function is now exception safe, i. e. won't
+	cause a memory leak when interrupted.  Further, only non-immediate
+	option values are added to the protection list.
+
+	(scm_options):  This function now has only the purpose to dispatch
+	to to get_option_setting, get_documented_option_setting or
+	change_option_setting, depending on the arguments given to
+	scm_options.
+
+	(scm_init_opts):  Don't convert documentation C strings into SCM
+	strings.  Further, don't protect any object values:  They _must_
+	be immediate values, otherwise there is no guarantee that they
+	have not been collected before anyway.
+
+	* options.[ch] (scm_t_option):  Made type unsigned, name into a
+	constant char* and val into a scm_t_bits type.
+
+	(scm_options, scm_init_opts):  The number of options is guaranteed
+	to be larger or equal to zero.  Thus, the type is changed to
+	unsigned.
+
+2001-10-05  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* num2integral.i.c (NUM2INTEGRAL):  Eliminated some warnings about
 	testing an unsigned value for being >= 0.
 
