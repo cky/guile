@@ -57,3 +57,5 @@ guile_toc.html: guile.texi $(guile_TEXINFOS)
 	$(TEXI2HTML) -split_chapter guile.texi
 
 endif
+
+CLEANFILES = autoconf-macros.texi
