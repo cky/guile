@@ -1,7 +1,8 @@
-This is release 1.3 of Guile, a portable, embeddable Scheme
-implementation written in C.  Guile provides a machine independent
-execution platform that can be linked in as a library when building
-extensible programs.
+This is release 1.3 of Guile, Project GNU's extension language
+library.  Guile is an interpreter for Scheme, packaged as a library
+that you can link into your applications to give them their own
+scripting language.  Guile will eventually support other languages as
+well, giving users of Guile-based applications a choice of languages.
 
 Please send bug reports to bug-guile@gnu.org.
 
@@ -65,9 +66,9 @@ CVS, and by nightly snapshots, accessible via FTP.  See the files
 
 If you would like to receive mail when people commit changes to the
 Guile CVS repository, you can subscribe to guile-cvs@egcs.cygnus.com
-by sending a message to guile-cvs-subscribe@cygnus.com.  Even better,
-you can get daily digests of these commit messages by sending a
-message to guile-cvs-digest-subscribe@egcs.cygnus.com.
+by sending a message to guile-cvs-subscribe@egcs.cygnus.com.  Even
+better, you can get daily digests of these commit messages by sending
+a message to guile-cvs-digest-subscribe@egcs.cygnus.com.
 
 If you want to subscribe an e-mail address other than the one that
 appears in your From: header, say foo@bar.com, send a mail note to
