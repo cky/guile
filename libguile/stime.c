@@ -80,6 +80,10 @@
 extern char *tzname[]; /* RS6000 and others reject char **tzname.  */
 #endif
 
+#ifdef MISSING_STRPTIME_DECL
+extern char *strptime ();
+#endif
+
 /* This should be figured out by autoconf.  */
 #ifdef CLK_TCK
 # define CLKTCK CLK_TCK
@@ -318,7 +322,7 @@ scm_localtime (SCM time, SCM zone)
   err = errno;
   if (ltptr)
     {
-      char *ptr;
+      const char *ptr;
 
       /* copy zone name before calling gmtime or tzset.  */
 #ifdef HAVE_TM_ZONE
@@ -432,7 +436,7 @@ scm_mktime (SCM sbd_time, SCM zone)
 
   if (itime != -1)
     {
-      char *ptr;
+      const char *ptr;
 
       /* copy zone name before calling gmtime or tzset.  */
 #ifdef HAVE_TM_ZONE

@@ -162,10 +162,13 @@
 #undef HAVE_REGCOMP
 
 /* Define if the operating system supplies bzero without declaring it. */
-#undef DECLARE_BZERO
+#undef MISSING_BZERO_DECL
 
 /* Define if the operating system supplies usleep without declaring it. */
-#undef DECLARE_USLEEP
+#undef MISSING_USLEEP_DECL
+
+/* Define if the operating system supplies strptime without declaring it. */
+#undef MISSING_STRPTIME_DECL
 
 /* Define if usleep doesn't return a value. */
 #undef USLEEP_RETURNS_VOID

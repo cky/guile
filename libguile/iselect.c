@@ -59,7 +59,7 @@
 #include "coop-threads.h"
 #endif
 
-#ifdef DECLARE_BZERO
+#ifdef MISSING_BZERO_DECL
 extern void bzero (void *, size_t);
 #endif
 

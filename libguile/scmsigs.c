@@ -52,7 +52,7 @@
 #include <unistd.h>
 #endif
 
-#if defined(DECLARE_USLEEP) || (defined(GUILE_ISELECT) && !defined(HAVE_USLEEP))
+#if defined(MISSING_USLEEP_DECL) || (defined(GUILE_ISELECT) && !defined(HAVE_USLEEP))
 #ifdef USLEEP_RETURNS_VOID
 extern void usleep (unsigned);
 #else
