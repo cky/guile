@@ -1,6 +1,7 @@
 /* srfi-1.c --- SRFI-1 procedures for Guile
  *
- * 	Copyright (C) 2002, 2003 Free Software Foundation, Inc.
+ * 	Copyright (C) 1995, 1996, 1997, 2000, 2001, 2002, 2003 Free Software
+ * 	Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -54,6 +55,312 @@ srfi1_ilength (SCM sx)
      a cycle.  */
   return -1;
 }
+
+static SCM
+equal_trampoline (SCM proc, SCM arg1, SCM arg2)
+{
+  return scm_equal_p (arg1, arg2);
+}
+
+
+SCM_DEFINE (scm_srfi1_delete, "delete", 2, 1, 0,
+            (SCM x, SCM lst, SCM pred),
+	    "Return a list containing the elements of @var{lst} but with\n"
+	    "those equal to @var{x} deleted.  The returned elements will be\n"
+	    "in the same order as they were in @var{lst}.\n"
+	    "\n"
+	    "Equality is determined by @var{pred}, or @code{equal?} if not\n"
+	    "given.  An equality call is made just once for each element,\n"
+	    "but the order in which the calls are made on the elements is\n"
+	    "unspecified.\n"
+	    "\n"
+	    "The equality calls are always @code{(pred x elem)}, ie.@: the\n"
+	    "given @var{x} is first.  This means for instance elements\n"
+	    "greater than 5 can be deleted with @code{(delete 5 lst <)}.\n"
+	    "\n"
+	    "@var{lst} is not modified, but the returned list might share a\n"
+	    "common tail with @var{lst}.")
+#define FUNC_NAME s_scm_srfi1_delete
+{
+  scm_t_trampoline_2 equal_p;
+  SCM  ret, *p, keeplst;
+
+  if (SCM_UNBNDP (pred))
+    return scm_delete (x, lst);
+
+  equal_p = scm_trampoline_2 (pred);
+  SCM_ASSERT (equal_p, pred, SCM_ARG3, FUNC_NAME);
+
+  /* ret is the return list being constructed.  p is where to append to it,
+     initially &ret then SCM_CDRLOC of the last pair.  lst progresses as
+     elements are considered.
+
+     Elements to be retained are not immediately copied, instead keeplst is
+     the last pair in lst which is to be retained but not yet copied.  When
+     there's no more deletions, *p can be set to keeplst to share the
+     remainder of the original lst.  (The entire original lst if there's no
+     deletions at all.)  */
+
+  keeplst = lst;
+  ret = SCM_EOL;
+  p = &ret;
+
+  for ( ; SCM_CONSP (lst); lst = SCM_CDR (lst))
+    {
+      if (! SCM_FALSEP (equal_p (pred, x, SCM_CAR (lst))))
+        {
+          /* delete this element, so copy from keeplst (inclusive) to lst
+             (exclusive) onto ret */
+          while (! SCM_EQ_P (keeplst, lst))
+            {
+              SCM c = scm_cons (SCM_CAR (keeplst), SCM_EOL);
+              *p = c;
+              p = SCM_CDRLOC (c);
+              keeplst = SCM_CDR (keeplst);
+            }
+
+          keeplst = SCM_CDR (lst);
+        }
+    }
+
+  /* final retained elements */
+  *p = keeplst;
+
+  /* demand that lst was a proper list */
+  SCM_ASSERT_TYPE (SCM_NULL_OR_NIL_P (lst), lst, SCM_ARG2, FUNC_NAME, "list");
+
+  return ret;
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_srfi1_delete_x, "delete!", 2, 1, 0,
+            (SCM x, SCM lst, SCM pred),
+	    "Return a list containing the elements of @var{lst} but with\n"
+	    "those equal to @var{x} deleted.  The returned elements will be\n"
+	    "in the same order as they were in @var{lst}.\n"
+	    "\n"
+	    "Equality is determined by @var{pred}, or @code{equal?} if not\n"
+	    "given.  An equality call is made just once for each element,\n"
+	    "but the order in which the calls are made on the elements is\n"
+	    "unspecified.\n"
+	    "\n"
+	    "The equality calls are always @code{(pred x elem)}, ie.@: the\n"
+	    "given @var{x} is first.  This means for instance elements\n"
+	    "greater than 5 can be deleted with @code{(delete 5 lst <)}.\n"
+	    "\n"
+	    "@var{lst} may be modified to construct the returned list.")
+#define FUNC_NAME s_scm_srfi1_delete_x
+{
+  scm_t_trampoline_2 equal_p;
+  SCM walk;
+  SCM *prev;
+
+  if (SCM_UNBNDP (pred))
+    return scm_delete_x (x, lst);
+
+  equal_p = scm_trampoline_2 (pred);
+  SCM_ASSERT (equal_p, pred, SCM_ARG3, FUNC_NAME);
+
+  for (prev = &lst, walk = lst;
+       SCM_CONSP (walk);
+       walk = SCM_CDR (walk))
+    {
+      if (! SCM_FALSEP (equal_p (pred, x, SCM_CAR (walk))))
+	*prev = SCM_CDR (walk);
+      else
+	prev = SCM_CDRLOC (walk);
+    }
+
+  /* demand the input was a proper list */
+  SCM_ASSERT_TYPE (SCM_NULL_OR_NIL_P (walk), walk, SCM_ARG2, FUNC_NAME,"list");
+  return lst;
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_srfi1_delete_duplicates, "delete-duplicates", 1, 1, 0,
+	    (SCM lst, SCM pred),
+	    "Return a list containing the elements of @var{lst} but without\n"
+	    "duplicates.\n"
+	    "\n"
+	    "When elements are equal, only the first in @var{lst} is\n"
+	    "retained.  Equal elements can be anywhere in @var{lst}, they\n"
+	    "don't have to be adjacent.  The returned list will have the\n"
+	    "retained elements in the same order as they were in @var{lst}.\n"
+	    "\n"
+	    "Equality is determined by @var{pred}, or @code{equal?} if not\n"
+	    "given.  Calls @code{(pred x y)} are made with element @var{x}\n"
+	    "being before @var{y} in @var{lst}.  A call is made at most once\n"
+	    "for each combination, but the sequence of the calls across the\n"
+	    "elements is unspecified.\n"
+	    "\n"
+	    "@var{lst} is not modified, but the return might share a common\n"
+	    "tail with @var{lst}.\n"
+	    "\n"
+	    "In the worst case, this is an @math{O(N^2)} algorithm because\n"
+	    "it must check each element against all those preceding it.  For\n"
+	    "long lists it is more efficient to sort and then compare only\n"
+	    "adjacent elements.")
+#define FUNC_NAME s_scm_srfi1_delete_duplicates
+{
+  scm_t_trampoline_2 equal_p;
+  SCM  ret, *p, keeplst, item, l;
+
+  /* ret is the new list constructed.  p is where to append, initially &ret
+     then SCM_CDRLOC of the last pair.  lst is advanced as each element is
+     considered.
+
+     Elements retained are not immediately appended to ret, instead keeplst
+     is the last pair in lst which is to be kept but is not yet copied.
+     Initially this is the first pair of lst, since the first element is
+     always retained.
+
+     *p is kept set to keeplst, so ret (inclusive) to lst (exclusive) is all
+     the elements retained, making the equality search loop easy.
+
+     If an item must be deleted, elements from keeplst (inclusive) to lst
+     (exclusive) must be copied and appended to ret.  When there's no more
+     deletions, *p is left set to keeplst, so ret shares structure with the
+     original lst.  (ret will be the entire original lst if there are no
+     deletions.)  */
+
+  /* skip to end if an empty list (or something invalid) */
+  ret = lst;
+  if (SCM_CONSP (lst))
+    {
+      if (SCM_UNBNDP (pred))
+        equal_p = equal_trampoline;
+      else
+        {
+          equal_p = scm_trampoline_2 (pred);
+          SCM_ASSERT (equal_p, pred, SCM_ARG2, FUNC_NAME);
+        }
+
+      keeplst = lst;
+      p = &ret;
+
+      /* loop over lst elements starting from second */
+      for (;;)
+        {
+          lst = SCM_CDR (lst);
+          if (! SCM_CONSP (lst))
+            break;
+          item = SCM_CAR (lst);
+
+          /* loop searching ret upto lst */
+          for (l = ret; ! SCM_EQ_P (l, lst); l = SCM_CDR (l))
+            {
+              if (! SCM_FALSEP (equal_p (pred, SCM_CAR (l), item)))
+                {
+                  /* duplicate, don't want this element, so copy keeplst
+                     (inclusive) to lst (exclusive) onto ret */
+                  while (! SCM_EQ_P (keeplst, lst))
+                    {
+                      SCM c = scm_cons (SCM_CAR (keeplst), SCM_EOL);
+                      *p = c;
+                      p = SCM_CDRLOC (c);
+                      keeplst = SCM_CDR (keeplst);
+                    }
+
+                  keeplst = SCM_CDR (lst);  /* elem after the one deleted */
+                  *p = keeplst;
+                  break;
+                }
+            }
+        }
+    }
+
+  /* demand that lst was a proper list */
+  SCM_ASSERT_TYPE (SCM_NULL_OR_NIL_P (lst), lst, SCM_ARG1, FUNC_NAME, "list");
+
+  return ret;
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_srfi1_delete_duplicates_x, "delete-duplicates!", 1, 1, 0,
+	    (SCM lst, SCM pred),
+	    "Return a list containing the elements of @var{lst} but without\n"
+	    "duplicates.\n"
+	    "\n"
+	    "When elements are equal, only the first in @var{lst} is\n"
+	    "retained.  Equal elements can be anywhere in @var{lst}, they\n"
+	    "don't have to be adjacent.  The returned list will have the\n"
+	    "retained elements in the same order as they were in @var{lst}.\n"
+	    "\n"
+	    "Equality is determined by @var{pred}, or @code{equal?} if not\n"
+	    "given.  Calls @code{(pred x y)} are made with element @var{x}\n"
+	    "being before @var{y} in @var{lst}.  A call is made at most once\n"
+	    "for each combination, but the sequence of the calls across the\n"
+	    "elements is unspecified.\n"
+	    "\n"
+	    "@var{lst} may be modified to construct the returned list.\n"
+	    "\n"
+	    "In the worst case, this is an @math{O(N^2)} algorithm because\n"
+	    "it must check each element against all those preceding it.  For\n"
+	    "long lists it is more efficient to sort and then compare only\n"
+	    "adjacent elements.")
+#define FUNC_NAME s_scm_srfi1_delete_duplicates_x
+{
+  scm_t_trampoline_2 equal_p;
+  SCM  ret, endret, item, l;
+
+  /* ret is the return list, constructed from the pairs in lst.  endret is
+     the last pair of ret, initially the first pair.  lst is advanced as
+     elements are considered.  */
+
+  /* skip to end if an empty list (or something invalid) */
+  ret = lst;
+  if (SCM_CONSP (lst))
+    {
+      if (SCM_UNBNDP (pred))
+        equal_p = equal_trampoline;
+      else
+        {
+          equal_p = scm_trampoline_2 (pred);
+          SCM_ASSERT (equal_p, pred, SCM_ARG2, FUNC_NAME);
+        }
+
+      endret = ret;
+
+      /* loop over lst elements starting from second */
+      for (;;)
+        {
+          lst = SCM_CDR (lst);
+          if (! SCM_CONSP (lst))
+            break;
+          item = SCM_CAR (lst);
+
+          /* is item equal to any element from ret to endret (inclusive)? */
+          l = ret;
+          for (;;)
+            {
+              if (! SCM_FALSEP (equal_p (pred, SCM_CAR (l), item)))
+                break;  /* equal, forget this element */
+
+              if (SCM_EQ_P (l, endret))
+                {
+                  /* not equal to any, so append this pair */
+                  SCM_SETCDR (endret, lst);
+                  endret = lst;
+                  break;
+                }
+              l = SCM_CDR (l);
+            }
+        }
+
+      /* terminate, in case last element was deleted */
+      SCM_SETCDR (endret, SCM_EOL);
+    }
+
+  /* demand that lst was a proper list */
+  SCM_ASSERT_TYPE (SCM_NULL_OR_NIL_P (lst), lst, SCM_ARG1, FUNC_NAME, "list");
+
+  return ret;
+}
+#undef FUNC_NAME
+
 
 /* Typechecking for multi-argument MAP and FOR-EACH.
 
@@ -252,12 +559,6 @@ scm_srfi1_for_each (SCM proc, SCM arg1, SCM args)
 }
 #undef FUNC_NAME
 
-
-static SCM
-equal_trampoline (SCM proc, SCM arg1, SCM arg2)
-{
-  return scm_equal_p (arg1, arg2);
-}
 
 SCM_DEFINE (scm_srfi1_member, "member", 2, 1, 0,
            (SCM x, SCM lst, SCM pred),
