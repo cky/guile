@@ -1,3 +1,8 @@
+2000-05-15  Gary Houston  <ghouston@arglist.com>
+
+        * stime.c (scm_strftime): don't reset TZ if zone is an empty
+	string.  append a "0" to the zone for TZ.
+	
 2000-05-15  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* numbers.c (scm_logbit_p, scm_bit_extract):  Reordered dispatch
