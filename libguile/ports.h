@@ -164,7 +164,6 @@ extern SCM scm_markstream SCM_P ((SCM ptr));
 extern long scm_newptob SCM_P ((scm_ptobfuns *ptob));
 extern void scm_fflush SCM_P ((SCM port));
 extern SCM scm_char_ready_p SCM_P ((SCM port));
-extern SCM scm_ungetc_char_ready_p SCM_P ((SCM port));
 extern SCM scm_current_input_port SCM_P ((void));
 extern SCM scm_current_output_port SCM_P ((void));
 extern SCM scm_current_error_port SCM_P ((void));

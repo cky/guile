@@ -155,24 +155,6 @@ scm_char_ready_p (port)
 
 
 
-SCM_PROC (s_ungetc_char_ready_p, "ungetc-char-ready?", 1, 0, 0, scm_ungetc_char_ready_p);
-
-SCM 
-scm_ungetc_char_ready_p (port)
-     SCM port;
-{
-  if (SCM_UNBNDP (port))
-    port = scm_cur_inp;
-  else
-    SCM_ASSERT (SCM_NIMP (port) && SCM_OPINPORTP (port), port, SCM_ARG1, s_ungetc_char_ready_p);
-  return (SCM_CRDYP (port)
-	  ? SCM_BOOL_T
-	  : SCM_BOOL_F);
-}
-
-
-
-
 
 /* {Standard Ports}
  */
