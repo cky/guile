@@ -652,6 +652,9 @@
 (define (alarm-thunk) #t)
 
 (define (signal-handler n)
+  (set! the-last-stack (make-stack #f 1 5))
+  (if (not (eq? (stack-id the-last-stack) 'repl-stack))
+      (set! the-last-stack #f))
   (let* (
 	 ;; these numbers are set in libguile, not the same as those 
 	 ;; interned in posix.c for SIGSEGV etc.
@@ -684,7 +687,8 @@
 	   (write arg-list cep)
 	   (newline cep))
 	  (else
-	   (if (memq 'backtrace (debug-options))
+	   (if (and (memq 'backtrace (debug-options))
+		    (stack? the-last-stack))
 	       (begin
 		 (newline cep)
 		 (display-backtrace the-last-stack cep)
@@ -2084,8 +2088,11 @@
 		   (let ((options (debug-options)))
 		     (if (and (or (memq 'deval options)
 				  (memq 'backtrace options))
-			      (not (memq key '(quit switch-repl abort))))
-			 (set! the-last-stack (make-stack #f 6 1)))
+			      (not (memq key '(quit switch-repl abort error-signal))))
+			 (begin
+			   (set! the-last-stack (make-stack #f 1 7))
+			   (if (not (eq? (stack-id the-last-stack) 'repl-stack))
+			       (set! the-last-stack #f))))
 		     (apply throw key args)))))
 	       
 	     (lambda (key . args)
@@ -2161,7 +2168,7 @@
 
 	   (-eval (lambda (sourc)
 		    (repl-report-start-timing)
-		    (start-stack (eval sourc))))
+		    (start-stack 'repl-stack (eval sourc))))
 
 	   (-print (lambda (result)
 		     (if (not scm-repl-silent)
