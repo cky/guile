@@ -1,5 +1,7 @@
 2005-03-04  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
+	* threads.c (scm_try_mutex): Renamed argument for consistency.
+
 	* root.c (scm_call_with_dynamic_root): New docstring.
 
 	* eval.c: Define _GNU_SOURCE.
