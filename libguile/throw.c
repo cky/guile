@@ -558,9 +558,9 @@ SCM_DEFINE (scm_catch, "catch", 3, 0, 0,
 SCM_DEFINE (scm_lazy_catch, "lazy-catch", 3, 0, 0,
 	    (SCM key, SCM thunk, SCM handler),
 	    "This behaves exactly like @code{catch}, except that it does\n"
-	    "not unwind the stack.  The @var{handler} procedure is not "
-	    "allowed to return, it must throw to another catch, or "
-	    "otherwise exit non-locally.")
+	    "not unwind the stack before invoking @var{handler}.\n"
+	    "The @var{handler} procedure is not allowed to return:\n"
+	    "it must throw to another catch, or otherwise exit non-locally.")
 #define FUNC_NAME s_scm_lazy_catch
 {
   struct scm_body_thunk_data c;
