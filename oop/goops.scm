@@ -61,6 +61,10 @@
 	   make-generic ensure-generic
 	   make-extended-generic
 	   make-accessor ensure-accessor
+	   process-class-pre-define-generic
+	   process-class-pre-define-accessor
+	   process-define-generic
+	   process-define-accessor
 	   make-method add-method!
 	   object-eqv? object-equal?
 	   class-slot-ref class-slot-set! slot-unbound slot-missing 
@@ -180,14 +184,25 @@
 (define (define-class-pre-definition keyword exp env)
   (case keyword
     ((#:getter #:setter)
-     (if (defined? exp env)
-	 `(define ,exp (ensure-generic ,exp ',exp))
-	 `(define ,exp (make-generic ',exp))))
+     `(process-class-pre-define-generic ',exp))
     ((#:accessor)
-     (if (defined? exp env)
-	 `(define ,exp (ensure-accessor ,exp ',exp))
-	 `(define ,exp (make-accessor ',exp))))
+     `(process-class-pre-define-accessor ',exp))
     (else #f)))
+
+(define (process-class-pre-define-generic name)
+  (let ((var (module-variable (current-module) name)))
+    (if (not (and var
+		  (variable-bound? var)
+		  (is-a? (variable-ref var) <generic>)))
+	(process-define-generic name))))
+
+(define (process-class-pre-define-accessor name)
+  (let ((var (module-variable (current-module) name)))
+    (if (not (and var
+		  (variable-bound? var)
+		  (or (is-a? (variable-ref var) <accessor>)
+		      (is-a? (variable-ref var) <extended-generic-with-setter>))))
+	(process-define-accessor name))))
 
 ;;; This code should be implemented in C.
 ;;;
@@ -365,14 +380,19 @@
 	(cond ((not (symbol? name))
 	       (goops-error "bad generic function name: ~S" name))
 	      ((top-level-env? env)
-	       `(let* ((var (module-ensure-local-variable!
-			     (current-module) ',name))
-		       (old (and (variable-bound? var) (variable-ref var))))
-		  (if (or (not old) (is-a? old <generic>))
-		      (variable-set! var (make <generic> #:name ',name))
-		      (variable-set! var (ensure-generic old ',name)))))
+	       `(process-define-generic ',name))
 	      (else
 	       `(define ,name (make <generic> #:name ',name))))))))
+
+(define (process-define-generic name)
+  (let ((var (module-ensure-local-variable! (current-module) name)))
+    (if (or (not var)
+	    (not (variable-bound? var))
+	    (is-a? (variable-ref var) <generic>))
+	;; redefine if NAME isn't defined previously, or is another generic
+	(variable-set! var (make <generic> #:name name))
+	;; otherwise try to upgrade the object to a generic
+	(variable-set! var (ensure-generic (variable-ref var) name)))))
 
 (define define-extended-generic
   (procedure->memoizing-macro
@@ -462,16 +482,20 @@
 	(cond ((not (symbol? name))
 	       (goops-error "bad accessor name: ~S" name))
 	      ((top-level-env? env)
-	       `(let* ((var (module-ensure-local-variable!
-			     (current-module) ',name))
-		       (old (and (variable-bound? var) (variable-ref var))))
-		  (if (or (not old)
-			  (and (is-a? old <accessor>)
-			       (is-a? (setter old) <generic>)))
-		      (variable-set! var (make-accessor ',name))
-		      (variable-set! var (ensure-accessor old ',name)))))
+	       `(process-define-accessor ',name))
 	      (else
 	       `(define ,name (make-accessor ',name))))))))
+
+(define (process-define-accessor name)
+  (let ((var (module-ensure-local-variable! (current-module) name)))
+    (if (or (not var)
+	    (not (variable-bound? var))
+	    (is-a? (variable-ref var) <accessor>)
+	    (is-a? (variable-ref var) <extended-generic-with-setter>))
+	;; redefine if NAME isn't defined previously, or is another accessor
+	(variable-set! var (make-accessor name))
+	;; otherwise try to upgrade the object to an accessor
+	(variable-set! var (ensure-accessor (variable-ref var) name)))))
 
 (define (make-setter-name name)
   (string->symbol (string-append "setter:" (symbol->string name))))

@@ -1,3 +1,15 @@
+2003-03-17  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* goops.scm (process-class-pre-define-generic,
+	process-class-pre-define-accessor, process-define-generic,
+	process-define-accessor): New functions.
+	(define-class-pre-definition): Use
+	process-class-pre-define-generic and
+	process-class-pre-define-accessor; Make sure not to create a new
+	local variable if the variable has been imported.
+	(define-generic): Use process-define-generic.
+	(define-accessor): Use process-define-accessor.
+
 2003-03-12  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* goops.scm (merge-generics): Make sure not to merge a gf with
