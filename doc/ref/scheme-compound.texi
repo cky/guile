@@ -2245,238 +2245,177 @@ a hash table, but @code{hash-fold} can be used for doing exactly that.
 @node Hash Table Reference
 @subsubsection Hash Table Reference
 
-Like the association list functions, the hash table functions come
-in several varieties: @code{hashq}, @code{hashv}, and @code{hash}.
-The @code{hashq} functions use @code{eq?} to determine whether two
-keys match.  The @code{hashv} functions use @code{eqv?}, and the
-@code{hash} functions use @code{equal?}.
+@c  FIXME: Describe in broad terms what happens for resizing, and what
+@c  the initial size means for this.
 
-In each of the functions that follow, the @var{table} argument
-must be a vector.  The @var{key} and @var{value} arguments may be
-any Scheme object.
+Like the association list functions, the hash table functions come in
+several varieties, according to the equality test used for the keys.
+Plain @code{hash-} functions use @code{equal?}, @code{hashq-}
+functions use @code{eq?}, @code{hashv-} functions use @code{eqv?}, and
+the @code{hashx-} functions use an application supplied test (for
+instance to implement case insensitive strings).
 
-@deffn {Scheme Procedure} make-hash-table size
-Create a new hash table of @var{size} slots.  Note that the number of
-slots does not limit the size of the table, it just tells how large
-the underlying vector will be.  The @var{size} should be similar to
-the expected number of elements which will be added to the table, but
-they need not match.  For good performance, it might be a good idea to
-use a prime number as the @var{size}.
-@end deffn
+A single @code{make-hash-table} creates a hash table suitable for use
+with any set of functions, but it's imperative that just one set is
+then used consistently, or results will be unpredictable.
 
-@deffn {Scheme Procedure} hashq-ref table key [dflt]
-@deffnx {C Function} scm_hashq_ref (table, key, dflt)
-Look up @var{key} in the hash table @var{table}, and return the
-value (if any) associated with it.  If @var{key} is not found,
-return @var{default} (or @code{#f} if no @var{default} argument
-is supplied).  Uses @code{eq?} for equality testing.
-@end deffn
+@sp 1
+Hash tables are implemented as a vector indexed by an integer formed
+from the key, with an association list of key/value pairs for each
+bucket in case distinct keys hash together.  Direct access to the
+pairs in those lists is provided by the @code{-handle-} functions.
 
-@deffn {Scheme Procedure} hashv-ref table key [dflt]
-@deffnx {C Function} scm_hashv_ref (table, key, dflt)
-Look up @var{key} in the hash table @var{table}, and return the
-value (if any) associated with it.  If @var{key} is not found,
-return @var{default} (or @code{#f} if no @var{default} argument
-is supplied).  Uses @code{eqv?} for equality testing.
+For the @code{hashx-} ``extended'' routines, an application supplies a
+@var{hash} function producing an integer index (like @code{hashq} etc
+below), and an @var{assoc} alist search function (like @code{assq}
+etc, @xref{Retrieving Alist Entries}.).  The aim in the @var{hash}
+function is to have different keys spread out across the vector, so
+the bucket lists don't become long, but the exact values generated are
+otherwise arbitrary.
+
+@sp 1
+@deffn {Scheme Procedure} make-hash-table [size]
+Create a new hash table, with an optional initial vector @var{size}.
+
+@var{size} doesn't limit the entries in the table, merely gives a
+starting size for the internal vector.  A prime number bigger than the
+expected number of entries would be a good choice.
 @end deffn
 
 @deffn {Scheme Procedure} hash-ref table key [dflt]
+@deffnx {Scheme Procedure} hashq-ref table key [dflt]
+@deffnx {Scheme Procedure} hashv-ref table key [dflt]
+@deffnx {Scheme Procedure} hashx-ref hash assoc table key [dflt]
 @deffnx {C Function} scm_hash_ref (table, key, dflt)
-Look up @var{key} in the hash table @var{table}, and return the
-value (if any) associated with it.  If @var{key} is not found,
-return @var{default} (or @code{#f} if no @var{default} argument
-is supplied).  Uses @code{equal?} for equality testing.
-@end deffn
-
-@deffn {Scheme Procedure} hashq-set! table key val
-@deffnx {C Function} scm_hashq_set_x (table, key, val)
-Find the entry in @var{table} associated with @var{key}, and
-store @var{value} there. Uses @code{eq?} for equality testing.
-@end deffn
-
-@deffn {Scheme Procedure} hashv-set! table key val
-@deffnx {C Function} scm_hashv_set_x (table, key, val)
-Find the entry in @var{table} associated with @var{key}, and
-store @var{value} there. Uses @code{eqv?} for equality testing.
+@deffnx {C Function} scm_hashq_ref (table, key, dflt)
+@deffnx {C Function} scm_hashv_ref (table, key, dflt)
+@deffnx {C Function} scm_hashx_ref (hash, assoc, table, key, dflt)
+Lookup @var{key} in the given hash @var{table}, and return the
+associated value.  If @var{key} is not found, return @var{dflt}, or
+@code{#f} if @var{dflt} is not given.  (For the C functions,
+@var{dflt} must be given.)
 @end deffn
 
 @deffn {Scheme Procedure} hash-set! table key val
+@deffnx {Scheme Procedure} hashq-set! table key val
+@deffnx {Scheme Procedure} hashv-set! table key val
+@deffnx {Scheme Procedure} hashx-set! hash assoc table key val
 @deffnx {C Function} scm_hash_set_x (table, key, val)
-Find the entry in @var{table} associated with @var{key}, and
-store @var{value} there. Uses @code{equal?} for equality
-testing.
-@end deffn
-
-@deffn {Scheme Procedure} hashq-remove! table key
-@deffnx {C Function} scm_hashq_remove_x (table, key)
-Remove @var{key} (and any value associated with it) from
-@var{table}.  Uses @code{eq?} for equality tests.
-@end deffn
-
-@deffn {Scheme Procedure} hashv-remove! table key
-@deffnx {C Function} scm_hashv_remove_x (table, key)
-Remove @var{key} (and any value associated with it) from
-@var{table}.  Uses @code{eqv?} for equality tests.
+@deffnx {C Function} scm_hashq_set_x (table, key, val)
+@deffnx {C Function} scm_hashv_set_x (table, key, val)
+@deffnx {C Function} scm_hashx_set_x (hash, assoc, table, key, val)
+Associate @var{val} with @var{key} in the given hash @var{table}.  If
+@var{key} is already present then it's associated value is changed.
+If it's not present then a new entry is created.
 @end deffn
 
 @deffn {Scheme Procedure} hash-remove! table key
+@deffnx {Scheme Procedure} hashq-remove! table key
+@deffnx {Scheme Procedure} hashv-remove! table key
 @deffnx {C Function} scm_hash_remove_x (table, key)
-Remove @var{key} (and any value associated with it) from
-@var{table}.  Uses @code{equal?} for equality tests.
-@end deffn
-
-The standard hash table functions may be too limited for some
-applications.  For example, you may want a hash table to store
-strings in a case-insensitive manner, so that references to keys
-named ``foobar'', ``FOOBAR'' and ``FooBaR'' will all yield the
-same item.  Guile provides you with @dfn{extended} hash tables
-that permit you to specify a hash function and associator function
-of your choosing.  The functions described in the rest of this section
-can be used to implement such custom hash table structures.
-
-If you are unfamiliar with the inner workings of hash tables, then
-this facility will probably be a little too abstract for you to
-use comfortably.  If you are interested in learning more, see an
-introductory textbook on data structures or algorithms for an
-explanation of how hash tables are implemented.
-
-@deffn {Scheme Procedure} hashq key size
-@deffnx {C Function} scm_hashq (key, size)
-Determine a hash value for @var{key} that is suitable for
-lookups in a hash table of size @var{size}, where @code{eq?} is
-used as the equality predicate.  The function returns an
-integer in the range 0 to @var{size} - 1.  Note that
-@code{hashq} may use internal addresses.  Thus two calls to
-hashq where the keys are @code{eq?} are not guaranteed to
-deliver the same value if the key object gets garbage collected
-in between.  This can happen, for example with symbols:
-@code{(hashq 'foo n) (gc) (hashq 'foo n)} may produce two
-different values, since @code{foo} will be garbage collected.
-@end deffn
-
-@deffn {Scheme Procedure} hashv key size
-@deffnx {C Function} scm_hashv (key, size)
-Determine a hash value for @var{key} that is suitable for
-lookups in a hash table of size @var{size}, where @code{eqv?} is
-used as the equality predicate.  The function returns an
-integer in the range 0 to @var{size} - 1.  Note that
-@code{(hashv key)} may use internal addresses.  Thus two calls
-to hashv where the keys are @code{eqv?} are not guaranteed to
-deliver the same value if the key object gets garbage collected
-in between.  This can happen, for example with symbols:
-@code{(hashv 'foo n) (gc) (hashv 'foo n)} may produce two
-different values, since @code{foo} will be garbage collected.
+@deffnx {C Function} scm_hashq_remove_x (table, key)
+@deffnx {C Function} scm_hashv_remove_x (table, key)
+Remove any association for @var{key} in the given hash @var{table}.
+If @var{key} is not in @var{table} then nothing is done.
 @end deffn
 
 @deffn {Scheme Procedure} hash key size
+@deffnx {Scheme Procedure} hashq key size
+@deffnx {Scheme Procedure} hashv key size
 @deffnx {C Function} scm_hash (key, size)
-Determine a hash value for @var{key} that is suitable for
-lookups in a hash table of size @var{size}, where @code{equal?}
-is used as the equality predicate.  The function returns an
-integer in the range 0 to @var{size} - 1.
-@end deffn
+@deffnx {C Function} scm_hashq (key, size)
+@deffnx {C Function} scm_hashv (key, size)
+Return a hash value for @var{key}.  This is a number in the range
+@math{0} to @math{@var{size}-1}, which is suitable for use in a hash
+table of the given @var{size}.
 
-@deffn {Scheme Procedure} hashx-ref hash assoc table key [dflt]
-@deffnx {C Function} scm_hashx_ref (hash, assoc, table, key, dflt)
-This behaves the same way as the corresponding @code{ref}
-function, but uses @var{hash} as a hash function and
-@var{assoc} to compare keys.  @code{hash} must be a function
-that takes two arguments, a key to be hashed and a table size.
-@code{assoc} must be an associator function, like @code{assoc},
-@code{assq} or @code{assv}.
+Note that @code{hashq} and @code{hashv} may use internal addresses of
+objects, so if an object is garbage collected and re-created it can
+have a different hash value, even when the two are notionally
+@code{eq?}.  For instance with symbols,
 
-By way of illustration, @code{hashq-ref table key} is
-equivalent to @code{hashx-ref hashq assq table key}.
-@end deffn
+@example
+(hashq 'something 123)   @result{} 19
+(gc)
+(hashq 'something 123)   @result{} 62
+@end example
 
-@deffn {Scheme Procedure} hashx-set! hash assoc table key val
-@deffnx {C Function} scm_hashx_set_x (hash, assoc, table, key, val)
-This behaves the same way as the corresponding @code{set!}
-function, but uses @var{hash} as a hash function and
-@var{assoc} to compare keys.  @code{hash} must be a function
-that takes two arguments, a key to be hashed and a table size.
-@code{assoc} must be an associator function, like @code{assoc},
-@code{assq} or @code{assv}.
-
- By way of illustration, @code{hashq-set! table key} is
-equivalent to @code{hashx-set!  hashq assq table key}.
-@end deffn
-
-@deffn {Scheme Procedure} hashq-get-handle table key
-@deffnx {C Function} scm_hashq_get_handle (table, key)
-This procedure returns the @code{(key . value)} pair from the
-hash table @var{table}.  If @var{table} does not hold an
-associated value for @var{key}, @code{#f} is returned.
-Uses @code{eq?} for equality testing.
-@end deffn
-
-@deffn {Scheme Procedure} hashv-get-handle table key
-@deffnx {C Function} scm_hashv_get_handle (table, key)
-This procedure returns the @code{(key . value)} pair from the
-hash table @var{table}.  If @var{table} does not hold an
-associated value for @var{key}, @code{#f} is returned.
-Uses @code{eqv?} for equality testing.
+In normal use this is not a problem, since an object entered into a
+hash table won't be garbage collected until removed.  It's only if
+hashing calculations are somehow separated from normal references that
+its lifetime needs to be considered.
 @end deffn
 
 @deffn {Scheme Procedure} hash-get-handle table key
+@deffnx {Scheme Procedure} hashq-get-handle table key
+@deffnx {Scheme Procedure} hashv-get-handle table key
+@deffnx {Scheme Procedure} hashx-get-handle hash assoc table key
 @deffnx {C Function} scm_hash_get_handle (table, key)
-This procedure returns the @code{(key . value)} pair from the
-hash table @var{table}.  If @var{table} does not hold an
-associated value for @var{key}, @code{#f} is returned.
-Uses @code{equal?} for equality testing.
-@end deffn
-
-@deffn {Scheme Procedure} hashx-get-handle hash assoc table key
+@deffnx {C Function} scm_hashq_get_handle (table, key)
+@deffnx {C Function} scm_hashv_get_handle (table, key)
 @deffnx {C Function} scm_hashx_get_handle (hash, assoc, table, key)
-This behaves the same way as the corresponding
-@code{-get-handle} function, but uses @var{hash} as a hash
-function and @var{assoc} to compare keys.  @code{hash} must be
-a function that takes two arguments, a key to be hashed and a
-table size.  @code{assoc} must be an associator function, like
-@code{assoc}, @code{assq} or @code{assv}.
-@end deffn
-
-@deffn {Scheme Procedure} hashq-create-handle! table key init
-@deffnx {C Function} scm_hashq_create_handle_x (table, key, init)
-This function looks up @var{key} in @var{table} and returns its handle.
-If @var{key} is not already present, a new handle is created which
-associates @var{key} with @var{init}.
-@end deffn
-
-@deffn {Scheme Procedure} hashv-create-handle! table key init
-@deffnx {C Function} scm_hashv_create_handle_x (table, key, init)
-This function looks up @var{key} in @var{table} and returns its handle.
-If @var{key} is not already present, a new handle is created which
-associates @var{key} with @var{init}.
+Return the @code{(@var{key} . @var{value})} pair for @var{key} in the
+given hash @var{table}, or @code{#f} if @var{key} is not in
+@var{table}.
 @end deffn
 
 @deffn {Scheme Procedure} hash-create-handle! table key init
+@deffnx {Scheme Procedure} hashq-create-handle! table key init
+@deffnx {Scheme Procedure} hashv-create-handle! table key init
+@deffnx {Scheme Procedure} hashx-create-handle! hash assoc table key init
 @deffnx {C Function} scm_hash_create_handle_x (table, key, init)
-This function looks up @var{key} in @var{table} and returns its handle.
-If @var{key} is not already present, a new handle is created which
-associates @var{key} with @var{init}.
+@deffnx {C Function} scm_hashq_create_handle_x (table, key, init)
+@deffnx {C Function} scm_hashv_create_handle_x (table, key, init)
+@deffnx {C Function} scm_hashx_create_handle_x (hash, assoc, table, key, init)
+Return the @code{(@var{key} . @var{value})} pair for @var{key} in the
+given hash @var{table}.  If @var{key} is not in @var{table} then
+create an entry for it with @var{init} as the value, and return that
+pair.
 @end deffn
 
-@deffn {Scheme Procedure} hashx-create-handle! hash assoc table key init
-@deffnx {C Function} scm_hashx_create_handle_x (hash, assoc, table, key, init)
-This behaves the same way as the corresponding
-@code{-create-handle} function, but uses @var{hash} as a hash
-function and @var{assoc} to compare keys.  @code{hash} must be
-a function that takes two arguments, a key to be hashed and a
-table size.  @code{assoc} must be an associator function, like
-@code{assoc}, @code{assq} or @code{assv}.
+@deffn {Scheme Procedure} hash-map proc table
+@deffnx {Scheme Procedure} hash-for-each proc table
+@deffnx {C Function} scm_hash_map (proc, table)
+@deffnx {C Function} scm_hash_for_each (proc, table)
+Apply @var{proc} to the entries in the given hash @var{table}.  Each
+call is @code{(@var{proc} @var{key} @var{value})}.  @code{hash-map}
+returns a list of the results from these calls, @code{hash-for-each}
+discards the results and returns unspecified value.
+
+Calls are made over the table entries in an unspecified order, and for
+@code{hash-map} the order of the values in the returned list is
+unspecified.  Results will be unpredictable if @var{table} is modified
+while iterating.
+
+For example the following returns a new alist comprising all the
+entries from @code{mytable}, in no particular order.
+
+@example
+(hash-map cons mytable)
+@end example
 @end deffn
 
 @deffn {Scheme Procedure} hash-fold proc init table
 @deffnx {C Function} scm_hash_fold (proc, init, table)
-An iterator over hash-table elements.
-Accumulates and returns a result by applying PROC successively.
-The arguments to PROC are "(key value prior-result)" where key
-and value are successive pairs from the hash table TABLE, and
-prior-result is either INIT (for the first application of PROC)
-or the return value of the previous application of PROC.
-For example, @code{(hash-fold acons '() tab)} will convert a hash
-table into an a-list of key-value pairs.
+Accumulate a result by applying @var{proc} to the elements of the
+given hash @var{table}.  Each call is @code{(@var{proc} @var{key}
+@var{value} @var{prior-result})}, where @var{key} and @var{value} are
+from the @var{table} and @var{prior-result} is the return from the
+previous @var{proc} call.  For the first call, @var{prior-result} is
+the given @var{init} value.
+
+Calls are made over the table entries in an unspecified order.
+Results will be unpredictable if @var{table} is modified while
+@code{hash-fold} is running.
+
+For example, the following returns a count of how many keys in
+@code{mytable} are strings.
+
+@example
+(hash-fold (lambda (key value prior)
+             (if (string? key) (1+ prior) prior))
+           0 mytable)
+@end example
 @end deffn
 
 
