@@ -67,7 +67,7 @@ libguile_la_SOURCES = alist.c arbiters.c async.c backtrace.c boolean.c	    \
     gc.c gc-mark.c gc-segment.c gc-malloc.c gc-card.c gc-freelist.c	    \
 	gc_os_dep.c gdbint.c gh_data.c gh_eval.c gh_funcs.c gh_init.c	    \
     gh_io.c gh_list.c gh_predicates.c goops.c gsubr.c guardians.c hash.c    \
-    hashtab.c hooks.c init.c inline.c ioext.c iselect.c keywords.c	    \
+    hashtab.c hooks.c init.c inline.c ioext.c keywords.c	    \
     lang.c list.c							    \
     load.c macros.c mallocs.c modules.c numbers.c objects.c objprop.c	    \
     options.c pairs.c ports.c print.c procprop.c procs.c properties.c	    \
@@ -129,11 +129,9 @@ install-exec-hook:
 ## compile, since they are #included.  So instead we list them here.
 ## Perhaps we can deal with them normally once the merge seems to be
 ## working.
-noinst_HEADERS = coop-threads.c coop-threads.h coop.c	\
-    null-threads.c coop-pthreads.c			\
-    num2integral.i.c num2float.i.c convert.i.c		\
-    win32-uname.h win32-dirent.h win32-socket.h		\
-	private-gc.h
+noinst_HEADERS = num2integral.i.c num2float.i.c convert.i.c	\
+                 win32-uname.h win32-dirent.h win32-socket.h	\
+	         private-gc.h
 
 libguile_la_DEPENDENCIES = @LIBLOBJS@
 libguile_la_LIBADD = @LIBLOBJS@ ../libguile-ltdl/libguile-ltdl.la $(THREAD_LIBS_LOCAL)
@@ -145,8 +143,8 @@ pkginclude_HEADERS = gh.h
 # These are headers visible as <libguile/mumble.h>.
 modincludedir = $(includedir)/libguile
 modinclude_HEADERS = __scm.h alist.h arbiters.h async.h backtrace.h boolean.h \
-    chars.h continuations.h convert.h coop-defs.h null-threads.h debug.h      \
-    debug-malloc.h coop-pthreads.h 					      \
+    chars.h continuations.h convert.h debug.h				      \
+    debug-malloc.h null-threads.h pthread-threads.h			      \
     deprecation.h dynl.h dynwind.h environments.h eq.h error.h eval.h	      \
     evalext.h extensions.h feature.h filesys.h fluids.h fports.h gc.h	      \
     gdb_interface.h gdbint.h						      \
