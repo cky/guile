@@ -280,7 +280,7 @@ scm_init_standard_ports ()
 				   isatty (0) ? "r0" : "r",
 				   "standard input");
   scm_def_outp = scm_standard_stream_to_port (1,
-					      isatty (1) ? "wl" : "w",
+					      isatty (1) ? "w0" : "w",
 					      "standard output");
   scm_def_errp = scm_standard_stream_to_port (2,
 					      isatty (2) ? "w0" : "w",

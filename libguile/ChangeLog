@@ -1,3 +1,11 @@
+2000-02-09  Gary Houston  <ghouston@arglist.com>
+
+	* init.c (scm_init_standard_ports): when stdout is a tty, make the
+	current-output-port unbuffered by default.  this is less confusing
+	for interactive use.  it was line-buffered because of a
+	performance problem with unbuffered ports, but I think it will be
+	OK now.
+
 2000-02-08  Gary Houston  <ghouston@arglist.com>
 
 	* __scm.h: don't define long_long or ulong_long if HAVE_LONG_LONGS
