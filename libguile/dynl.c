@@ -1,6 +1,6 @@
 /* dynl.c - dynamic linking
  *
- * Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998 Free Software Foundation, Inc.
+ * Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -252,35 +252,31 @@ sysdep_dynl_init ()
 }
 
 static void
-no_dynl_error (subr)
-     char *subr;
+no_dynl_error (const char *subr)
 {
   SCM_ALLOW_INTS;
   scm_misc_error (subr, "dynamic linking not available", SCM_EOL);
 }
     
 static void *
-sysdep_dynl_link (filename, subr)
-     const char *filename;
-     const char *subr;
+sysdep_dynl_link (const char *filename, 
+		  const char *subr)
 {
     no_dynl_error (subr);
     return NULL;
 }
 
 static void 
-sysdep_dynl_unlink (handle, subr)
-     void *handle;
-     char *subr;
+sysdep_dynl_unlink (void *handle, 
+		    const char *subr)
 {
     no_dynl_error (subr);
 }
 
 static void *
-sysdep_dynl_func (symbol, handle, subr)
-     char *symbol;
-     void *handle;
-     char *subr;
+sysdep_dynl_func (const char *symbol, 
+		  void *handle,
+		  const char *subr)
 {
     no_dynl_error (subr);
     return NULL;
