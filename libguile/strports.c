@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,1999,2000,2001,2002 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001,2002, 2003 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -260,7 +260,7 @@ scm_mkstrport (SCM pos, SCM str, long modes, const char *caller)
   if (!((modes & SCM_WRTNG) || (modes & SCM_RDNG)))
     scm_misc_error ("scm_mkstrport", "port must read or write", SCM_EOL);
 
-  SCM_DEFER_INTS;
+  scm_mutex_lock (&scm_i_port_table_mutex);
   z = scm_new_port_table_entry (scm_tc16_strport);
   pt = SCM_PTAB_ENTRY(z);
   SCM_SETSTREAM (z, SCM_UNPACK (str));
@@ -272,7 +272,7 @@ scm_mkstrport (SCM pos, SCM str, long modes, const char *caller)
 
   pt->rw_random = 1;
 
-  SCM_ALLOW_INTS;
+  scm_mutex_unlock (&scm_i_port_table_mutex);
 
   /* ensure write_pos is writable. */
   if ((modes & SCM_WRTNG) && pt->write_pos == pt->write_end)

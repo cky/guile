@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2003 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -431,6 +431,9 @@ scm_t_port **scm_i_port_table;
 long scm_i_port_table_size = 0;	/* Number of ports in scm_i_port_table.  */
 long scm_i_port_table_room = 20;	/* Size of the array.  */
 
+SCM_GLOBAL_MUTEX (scm_i_port_table_mutex);
+
+/* This function is not and should not be thread safe. */
 
 SCM
 scm_new_port_table_entry (scm_t_bits tag)
@@ -487,6 +490,9 @@ scm_add_to_port_table (SCM port)
 
 
 /* Remove a port from the table and destroy it.  */
+
+/* This function is not and should not be thread safe. */
+
 void
 scm_remove_from_port_table (SCM port)
 #define FUNC_NAME "scm_remove_from_port_table"
@@ -679,7 +685,9 @@ SCM_DEFINE (scm_close_port, "close-port", 1, 0, 0,
     rv = (scm_ptobs[i].close) (port);
   else
     rv = 0;
+  scm_mutex_lock (&scm_i_port_table_mutex);
   scm_remove_from_port_table (port);
+  scm_mutex_unlock (&scm_i_port_table_mutex);
   SCM_CLR_PORT_OPEN_FLAG (port);
   return SCM_BOOL (rv >= 0);
 }
@@ -731,21 +739,18 @@ SCM_DEFINE (scm_port_for_each, "port-for-each", 1, 0, 0,
 
   SCM_VALIDATE_PROC (1, proc);
 
-  /* when pre-emptive multithreading is supported, access to the port
-     table will need to be controlled by a mutex.  */
-
   /* Even without pre-emptive multithreading, running arbitrary code
      while scanning the port table is unsafe because the port table
      can change arbitrarily (from a GC, for example).  So we build a
      list in advance while blocking the GC. -mvo */
 
-  SCM_DEFER_INTS;
+  scm_mutex_lock (&scm_i_port_table_mutex);
   scm_block_gc++;
   ports = SCM_EOL;
   for (i = 0; i < scm_i_port_table_size; i++)
     ports = scm_cons (scm_i_port_table[i]->port, ports);
   scm_block_gc--;
-  SCM_ALLOW_INTS;
+  scm_mutex_unlock (&scm_i_port_table_mutex);
 
   while (ports != SCM_EOL)
     {
@@ -845,11 +850,13 @@ SCM_DEFINE (scm_flush_all_ports, "flush-all-ports", 0, 0, 0,
 {
   size_t i;
 
+  scm_mutex_lock (&scm_i_port_table_mutex);
   for (i = 0; i < scm_i_port_table_size; i++)
     {
       if (SCM_OPOUTPORTP (scm_i_port_table[i]->port))
 	scm_flush (scm_i_port_table[i]->port);
     }
+  scm_mutex_unlock (&scm_i_port_table_mutex);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -1520,7 +1527,7 @@ write_void_port (SCM port SCM_UNUSED,
 SCM
 scm_void_port (char *mode_str)
 {
-  SCM_DEFER_INTS;
+  scm_mutex_lock (&scm_i_port_table_mutex);
   {
     int mode_bits = scm_mode_bits (mode_str);
     SCM answer = scm_new_port_table_entry (scm_tc16_void_port);
@@ -1530,7 +1537,7 @@ scm_void_port (char *mode_str)
   
     SCM_SETSTREAM (answer, 0);
     SCM_SET_CELL_TYPE (answer, scm_tc16_void_port | mode_bits);
-    SCM_ALLOW_INTS;
+    scm_mutex_unlock (&scm_i_port_table_mutex);
     return answer;
   }
 }

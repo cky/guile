@@ -1,3 +1,22 @@
+2003-04-24  Mikael Djurfeldt  <mdj@kvast.blakulla.net>
+
+	* ports.c, ports.h (scm_i_port_table_mutex): New mutex.
+
+	* fports.c (scm_evict_ports): Lock/unlock scm_i_port_table_mutex.
+
+	* ports.c (scm_close_port, scm_flush_all_ports): Ditto.
+
+	* ioext.c (scm_fdes_to_ports): Ditto.
+
+	* vports.c (scm_make_soft_port): Changed SCM_DEFER/ALLOW_INTS into
+	lock/unlock scm_i_port_table_mutex.
+
+	* strports.c (scm_mkstrport): Ditto.
+
+	* ports.c (scm_void_port, scm_port_for_each): Ditto.
+
+	* fports.c (scm_fdes_to_port): Ditto.
+
 2003-04-23  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	This set of patches contains no functional changes, only debatable

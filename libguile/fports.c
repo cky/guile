@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -199,6 +199,8 @@ scm_evict_ports (int fd)
 {
   long i;
 
+  scm_mutex_lock (&scm_i_port_table_mutex);
+
   for (i = 0; i < scm_i_port_table_size; i++)
     {
       SCM port = scm_i_port_table[i]->port;
@@ -216,6 +218,8 @@ scm_evict_ports (int fd)
 	    }
 	}
     }
+
+  scm_mutex_unlock (&scm_i_port_table_mutex);
 }
 
 
@@ -415,7 +419,7 @@ scm_fdes_to_port (int fdes, char *mode, SCM name)
       SCM_MISC_ERROR ("requested file mode not available on fdes", SCM_EOL);
     }
 
-  SCM_DEFER_INTS;
+  scm_mutex_lock (&scm_i_port_table_mutex);
 
   port = scm_new_port_table_entry (scm_tc16_fport);
   SCM_SET_CELL_TYPE(port, scm_tc16_fport | mode_bits);
@@ -433,7 +437,7 @@ scm_fdes_to_port (int fdes, char *mode, SCM name)
       scm_fport_buffer_add (port, -1, -1);
   }
   SCM_SET_FILENAME (port, name);
-  SCM_ALLOW_INTS;
+  scm_mutex_unlock (&scm_i_port_table_mutex);
   return port;
 }
 #undef FUNC_NAME

@@ -1,4 +1,4 @@
-/* 	Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
+/* 	Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2003 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -282,12 +282,14 @@ SCM_DEFINE (scm_fdes_to_ports, "fdes->ports", 1, 0, 0,
   
   SCM_VALIDATE_INUM_COPY (1, fd, int_fd);
 
+  scm_mutex_lock (&scm_i_port_table_mutex);
   for (i = 0; i < scm_i_port_table_size; i++)
     {
       if (SCM_OPFPORTP (scm_i_port_table[i]->port)
 	  && ((scm_t_fport *) scm_i_port_table[i]->stream)->fdes == int_fd)
 	result = scm_cons (scm_i_port_table[i]->port, result);
     }
+  scm_mutex_unlock (&scm_i_port_table_mutex);
   return result;
 }
 #undef FUNC_NAME    

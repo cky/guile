@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2002 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2002, 2003 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -192,14 +192,14 @@ SCM_DEFINE (scm_make_soft_port, "make-soft-port", 2, 0, 0,
   SCM_ASSERT ((vlen == 5) || (vlen == 6), pv, 1, FUNC_NAME);
   SCM_VALIDATE_STRING (2, modes);
   
-  SCM_DEFER_INTS;
+  scm_mutex_lock (&scm_i_port_table_mutex);
   z = scm_new_port_table_entry (scm_tc16_sfport);
   pt = SCM_PTAB_ENTRY (z);
   scm_port_non_buffer (pt);
   SCM_SET_CELL_TYPE (z, scm_tc16_sfport | scm_mode_bits (SCM_STRING_CHARS (modes)));
 
   SCM_SETSTREAM (z, SCM_UNPACK (pv));
-  SCM_ALLOW_INTS;
+  scm_mutex_unlock (&scm_i_port_table_mutex);
   return z;
 }
 #undef FUNC_NAME

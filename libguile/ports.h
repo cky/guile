@@ -3,7 +3,7 @@
 #ifndef SCM_PORTS_H
 #define SCM_PORTS_H
 
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2003 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -26,6 +26,7 @@
 
 #include "libguile/print.h"
 #include "libguile/struct.h"
+#include "libguile/threads.h"
 
 /* Not sure if this is a good idea.  We need it for off_t.  */
 #include <sys/types.h>
@@ -110,6 +111,7 @@ typedef struct
 
 SCM_API scm_t_port **scm_i_port_table;
 SCM_API long scm_i_port_table_size; /* Number of ports in scm_i_port_table.  */
+SCM_API scm_t_mutex scm_i_port_table_mutex;
 
 #define SCM_READ_BUFFER_EMPTY_P(c_port) (c_port->read_pos >= c_port->read_end)
 
