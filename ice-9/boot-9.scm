@@ -17,6 +17,30 @@
 ;;;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
 ;;;; Boston, MA 02111-1307 USA
 ;;;;
+;;;; As a special exception, the Free Software Foundation gives permission
+;;;; for additional uses of the text contained in its release of GUILE.
+;;;;
+;;;; The exception is that, if you link the GUILE library with other files
+;;;; to produce an executable, this does not by itself cause the
+;;;; resulting executable to be covered by the GNU General Public License.
+;;;; Your use of that executable is in no way restricted on account of
+;;;; linking the GUILE library code into it.
+;;;;
+;;;; This exception does not however invalidate any other reasons why
+;;;; the executable file might be covered by the GNU General Public License.
+;;;;
+;;;; This exception applies only to the code released by the
+;;;; Free Software Foundation under the name GUILE.  If you copy
+;;;; code from other Free Software Foundation releases into a copy of
+;;;; GUILE, as the General Public License permits, the exception does
+;;;; not apply to the code that you add in this way.  To avoid misleading
+;;;; anyone as to the status of such modified files, you must delete
+;;;; this exception notice from them.
+;;;;
+;;;; If you write modifications of your own for GUILE, it is your choice
+;;;; whether to permit this exception to apply to your modifications.
+;;;; If you do not wish that, delete this exception notice.
+;;;;
 
 
 ;;; Commentary:
@@ -1261,6 +1285,9 @@
 ;; ensure that there is a variable in MODULE for SYMBOL.  If there is
 ;; no binding for SYMBOL, create a new undefined variable.  Return
 ;; that variable.
+;;
+;; (This is not a really clean thing to do, we should evetually get
+;; rid of the need for `module-ensure-variable!')
 ;;
 (define (module-ensure-variable! module symbol)
   (or (module-variable module symbol)
@@ -2734,8 +2761,8 @@
    (#t
     (let ((name (defined-name (car args))))
       `(begin
-	 (eval-case ((load-toplevel) (export ,name)))
-	 (define-private ,@args))))))
+	 (define-private ,@args)
+	 (eval-case ((load-toplevel) (export ,name))))))))
 
 (defmacro defmacro-public args
   (define (syntax)
@@ -2756,8 +2783,10 @@
 (define (module-export! m names)
   (let ((public-i (module-public-interface m)))
     (for-each (lambda (name)
-		(let ((var (module-ensure-variable! m name)))
-		  (module-add! public-i name var)))
+		;; Make sure there is a local variable:
+		(module-define! m name (module-ref m name #f))
+		;; Make sure that local is exported:
+		(module-add! public-i name (module-variable m name)))
 	      names)))
 
 (defmacro export names
