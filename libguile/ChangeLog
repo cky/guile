@@ -1,3 +1,8 @@
+2000-04-16  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* vectors.c (scm_vector_set_x): Return SCM_UNSPECIFIED (as
+	specified by R5RS).
+
 2000-04-15  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* ports.h (SCM_INPUT_PORT_P, SCM_OUTPUT_PORT_P): New macros.
