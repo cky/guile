@@ -1,9 +1,14 @@
 1998-10-03  Jim Blandy  <jimb@zwingli.cygnus.com>
 
+	* configure.in (FD_SETTER, FILE_CNT_GPTR): New cases for SCO's
+	stdio implementation.  (Thanks to David Tillman.)
+	* configure: Rebuilt.
+	
 	* guile-config: Renamed from `build'.
 	* Makefile.am (SUBDIRS): Mention `guile-config', not `build'.
 	* configure.in: Create `guile-config/Makefile.in', not
 	`build/Makefile.in'.  Doc fix, too.
+
 	* qthreads.m4: Doc fix.
 	* Makefile.in, aclocal.m4, configure: Regeneranegerederadea.
 
