@@ -71,19 +71,12 @@ SCM_DEFINE (scm_class_of, "class-of", 1, 0, 0,
     case scm_tc3_imm24:
       if (SCM_CHARP (x))
 	return scm_class_char;
+      else if (SCM_BOOLP (x))
+        return scm_class_boolean;
+      else if (SCM_NULLP (x))
+        return scm_class_null;
       else
-	{
-	  switch (SCM_ISYMNUM (x))
-	    {
-	    case SCM_ISYMNUM (SCM_BOOL_F):
-	    case SCM_ISYMNUM (SCM_BOOL_T):
-	      return scm_class_boolean;
-	    case SCM_ISYMNUM (SCM_EOL):
-	      return scm_class_null;
-	    default:
-	      return scm_class_unknown;
-	    }
-	}
+        return scm_class_unknown;
 
     case scm_tc3_cons:
       switch (SCM_TYP7 (x))

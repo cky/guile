@@ -317,9 +317,9 @@ typedef unsigned long scm_t_bits;
  *                 first dispatch is based on the tc7-code.  The second
  *                 dispatch is based on the actual byte code that is extracted
  *                 from the upper bits.
- *   x1-1110-100:  characters with x as their least significant bit
- *   10-1110-100:  various constants ('flags')
- *   x1-1111-100:  evaluator byte codes ('ilocs')
+ *   x1-1110-100:  evaluator byte codes ('ilocs')
+ *   x1-1111-100:  characters with x as their least significant bit
+ *   10-1111-100:  various constants ('flags')
  *
  *
  * Summary of type codes on the heap
@@ -493,44 +493,71 @@ typedef unsigned long scm_t_bits;
 
 enum scm_tags
 {
-  scm_tc8_char = 0xf4,
-  scm_tc8_iloc = 0xfc
+  scm_tc8_iloc = 0xf4,
+  scm_tc8_char = 0xfc,
+  scm_tc9_flag = 0x17c
 };
 
 #define SCM_ITAG8(X)		(SCM_UNPACK (X) & 0xff)
 #define SCM_MAKE_ITAG8(X, TAG)	SCM_PACK (((X) << 8) + TAG)
 #define SCM_ITAG8_DATA(X)	(SCM_UNPACK (X) >> 8)
 
+#define SCM_ITAG9(X)		(SCM_UNPACK (X) & 0x1ff)
+#define SCM_MAKE_ITAG9(X, TAG)	SCM_PACK (((X) << 9) + TAG)
+#define SCM_ITAG9_DATA(X)	(SCM_UNPACK (X) >> 9)
+
 
 
-/* Immediate Symbols, Special Symbols, Flags (various constants).
- */
+/* Flags (various constants and special objects).  The indices of the flags
+ * must agree with the declarations in print.c: iflagnames.  */
+
+#define SCM_IFLAGP(n)    (SCM_ITAG9 (n) == scm_tc9_flag)
+#define SCM_MAKIFLAG(n)  SCM_MAKE_ITAG9 ((n), scm_tc9_flag)
+#define SCM_IFLAGNUM(n)  (SCM_ITAG9_DATA (n))
+
+#define SCM_BOOL_F		SCM_MAKIFLAG (0)
+#define SCM_BOOL_T 		SCM_MAKIFLAG (1)
+#define SCM_UNDEFINED	 	SCM_MAKIFLAG (2)
+#define SCM_EOF_VAL 		SCM_MAKIFLAG (3)
+#define SCM_EOL			SCM_MAKIFLAG (4)
+#define SCM_UNSPECIFIED		SCM_MAKIFLAG (5)
+
+/* When a variable is unbound this is marked by the SCM_UNDEFINED
+ * value.  The following is an unbound value which can be handled on
+ * the Scheme level, i.e., it can be stored in and retrieved from a
+ * Scheme variable.  This value is only intended to mark an unbound
+ * slot in GOOPS.  It is needed now, but we should probably rewrite
+ * the code which handles this value in C so that SCM_UNDEFINED can be
+ * used instead.  It is not ideal to let this kind of unique and
+ * strange values loose on the Scheme level.  */
+#define SCM_UNBOUND		SCM_MAKIFLAG (6)
+
+/* The Elisp nil value.  */
+#define SCM_ELISP_NIL		SCM_MAKIFLAG (7)
+
+
+#define SCM_UNBNDP(x)		(SCM_EQ_P ((x), SCM_UNDEFINED))
+
+
+/* Short instructions ('special symbols'), long instructions ('immediate
+ * symbols').  The indices of the SCM_IM_ symbols must agree with the
+ * declarations in print.c: scm_isymnames.  */
+
+#define SCM_MAKSPCSYM(n) 	SCM_PACK (((n) << 9) + ((n) << 3) + 4L)
+#define SCM_MAKISYM(n) 		SCM_PACK (((n) << 9) + 0x6cL)
 
 /* SCM_ISYMP tests for ISPCSYM and ISYM */
 #define SCM_ISYMP(n) 		((0x187 & SCM_UNPACK (n)) == 4)
-
-/* SCM_IFLAGP tests for ISPCSYM, ISYM and IFLAG */
-#define SCM_IFLAGP(n) 		((0x87 & SCM_UNPACK (n)) == 4)
 #define SCM_ISYMNUM(n) 		(SCM_UNPACK (n) >> 9)
-#define SCM_ISYMCHARS(n) 	(scm_isymnames[SCM_ISYMNUM (n)])
-#define SCM_MAKSPCSYM(n) 	SCM_PACK (((n) << 9) + ((n) << 3) + 4L)
-#define SCM_MAKISYM(n) 		SCM_PACK (((n) << 9) + 0x6cL)
-#define SCM_MAKIFLAG(n) 	SCM_PACK (((n) << 9) + 0x174L)
-
 SCM_API char *scm_isymnames[];   /* defined in print.c */
-
-/* This table must agree with the declarations
- * in print.c: {Names of immediate symbols}.
- *
- * These are used only in eval but their values
- * have to be allocated here.
- */
+#define SCM_ISYMCHARS(n) 	(scm_isymnames[SCM_ISYMNUM (n)])
 
 /* Evaluator bytecodes (short instructions): These are uniquely identified by
  * their tc7 value.  This makes it possible for the evaluator to dispatch on
  * them in one step.  However, the type system allows for at most 13 short
  * instructions.  Consequently, the most frequent instructions are chosen to
- * be represented as short instructions.  */
+ * be represented as short instructions.  These constants are used only in
+ * eval but their values have to be allocated here.  */
 
 #define SCM_IM_AND		SCM_MAKSPCSYM (0)
 #define SCM_IM_BEGIN		SCM_MAKSPCSYM (1)
@@ -546,11 +573,14 @@ SCM_API char *scm_isymnames[];   /* defined in print.c */
 #define SCM_IM_QUOTE		SCM_MAKSPCSYM (11)
 #define SCM_IM_SET_X		SCM_MAKSPCSYM (12)
 
+
 /* Evaluator bytecodes (long instructions): All these share a common tc7
- * value.  Thus, the evaluator needs to dispatch on them in two steps.  */
+ * value.  Thus, the evaluator needs to dispatch on them in two steps.  These
+ * constants are used only in eval but their values have to be allocated
+ * here.  */
 
 /* Evaluator bytecode for (define ...) statements.  We make it a long
- * instruction since the executor will see this bytecode only for a very
+ * instruction since the evaluator will see this bytecode only for a very
  * limited number of times, namely once for every top-level and internal
  * definition: Top-level definitions are only executed once and internal
  * definitions are converted to letrec expressions.  */
@@ -558,40 +588,17 @@ SCM_API char *scm_isymnames[];   /* defined in print.c */
 
 #define SCM_IM_APPLY		SCM_MAKISYM (14)
 #define SCM_IM_CONT		SCM_MAKISYM (15)
-#define SCM_BOOL_F		SCM_MAKIFLAG (16)
-#define SCM_BOOL_T 		SCM_MAKIFLAG (17)
-#define SCM_UNDEFINED	 	SCM_MAKIFLAG (18)
-#define SCM_EOF_VAL 		SCM_MAKIFLAG (19)
-#define SCM_EOL			SCM_MAKIFLAG (20)
-#define SCM_UNSPECIFIED		SCM_MAKIFLAG (21)
-#define SCM_IM_DISPATCH		SCM_MAKISYM (22)
-#define SCM_IM_SLOT_REF		SCM_MAKISYM (23)
-#define SCM_IM_SLOT_SET_X	SCM_MAKISYM (24)
+#define SCM_IM_DISPATCH		SCM_MAKISYM (16)
+#define SCM_IM_SLOT_REF		SCM_MAKISYM (17)
+#define SCM_IM_SLOT_SET_X	SCM_MAKISYM (18)
+#define SCM_IM_DELAY		SCM_MAKISYM (19)
+#define SCM_IM_FUTURE		SCM_MAKISYM (20)
+#define SCM_IM_CALL_WITH_VALUES SCM_MAKISYM (21)
 
 /* Multi-language support */
 
-#define SCM_IM_NIL_COND		SCM_MAKISYM (25)
-#define SCM_IM_BIND		SCM_MAKISYM (26)
-
-#define SCM_IM_DELAY		SCM_MAKISYM (27)
-#define SCM_IM_FUTURE		SCM_MAKISYM (28)
-#define SCM_IM_CALL_WITH_VALUES SCM_MAKISYM (29)
-
-/* When a variable is unbound this is marked by the SCM_UNDEFINED
- * value.  The following is an unbound value which can be handled on
- * the Scheme level, i.e., it can be stored in and retrieved from a
- * Scheme variable.  This value is only intended to mark an unbound
- * slot in GOOPS.  It is needed now, but we should probably rewrite
- * the code which handles this value in C so that SCM_UNDEFINED can be
- * used instead.  It is not ideal to let this kind of unique and
- * strange values loose on the Scheme level.
- */
-#define SCM_UNBOUND		SCM_MAKIFLAG (30)
-
-#define SCM_UNBNDP(x)		(SCM_EQ_P ((x), SCM_UNDEFINED))
-
-/* The Elisp nil value. */
-#define SCM_ELISP_NIL		SCM_MAKIFLAG (31)
+#define SCM_IM_NIL_COND		SCM_MAKISYM (22)
+#define SCM_IM_BIND		SCM_MAKISYM (23)
 
 
 

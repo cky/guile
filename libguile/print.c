@@ -49,9 +49,29 @@
  * This table must agree with the declarations in scm.h: {Immediate Symbols}.
  */
 
+/* This table must agree with the list of flags in tags.h.  */
+static const char *iflagnames[] =
+{
+  "#f",
+  "#t",
+  "#<undefined>",
+  "#<eof>",
+  "()",
+  "#<unspecified>",
+
+  /* Unbound slot marker for GOOPS.  For internal use in GOOPS only.  */
+  "#<unbound>",
+
+  /* Elisp nil value.  This is its Scheme name; whenever it's printed in
+   * Elisp, it should appear as the symbol `nil'.  */
+  "#nil"
+};
+
+/* This table must agree with the list of SCM_IM_ constants in tags.h */
 char *scm_isymnames[] =
 {
-  /* This table must agree with the list of SCM_IM_ constants in tags.h */
+  /* Short instructions */
+
   "#@and",
   "#@begin",
   "#@case",
@@ -65,39 +85,23 @@ char *scm_isymnames[] =
   "#@or",
   "#@quote",
   "#@set!",
+
+
+  /* Long instructions */
+
   "#@define",
   "#@apply",
   "#@call-with-current-continuation",
-
- /* user visible ISYMS */
- /* other keywords */
- /* Flags */
-
-  "#f",
-  "#t",
-  "#<undefined>",
-  "#<eof>",
-  "()",
-  "#<unspecified>",
   "#@dispatch",
   "#@slot-ref",
   "#@slot-set!",
-
-  /* Multi-language support */
-  
-  "#@nil-cond",
-  "#@bind",
-  
   "#@delay",
   "#@future",
   "#@call-with-values",
 
-  "#<unbound>",
-
-  /* Elisp nil value.  This is its Scheme name; whenever it's printed
-     in Elisp, it should appear as the symbol `nil'. */
-
-  "#nil"
+  /* Multi-language support */
+  "#@nil-cond",
+  "#@bind"
 };
 
 scm_t_option scm_print_opts[] = {
@@ -434,8 +438,15 @@ scm_iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 	    scm_putc (i, port);
 	}
       else if (SCM_IFLAGP (exp)
+	       && ((size_t) SCM_IFLAGNUM (exp) < (sizeof iflagnames / sizeof (char *))))
+        {
+          scm_puts (iflagnames [SCM_IFLAGNUM (exp)], port);
+        }
+      else if (SCM_ISYMP (exp)
 	       && ((size_t) SCM_ISYMNUM (exp) < (sizeof scm_isymnames / sizeof (char *))))
+        {
 	  scm_puts (SCM_ISYMCHARS (exp), port);
+        }
       else if (SCM_ILOCP (exp))
 	{
 	  scm_puts ("#@", port);

@@ -1,3 +1,39 @@
+2003-09-16  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	This set of patches eliminates the dependency between the
+	implementation of evaluator specific memoization codes and special
+	constants like #f, '() etc. ('flags'), which are not evaluator
+	specific.  The goal is to remove definitions of evaluator
+	memoization codes completely from the public interface.  This will
+	make it possible to experiment more freely with optimizations of
+	guile's internal representation of memoized code.
+
+	* objects.c (scm_class_of): Eliminate dependency on SCM_ISYMNUM.
+
+	* print.c (iflagnames): New array, holding the printed names of
+	guile's special constants ('flags').
+
+	(scm_isymnames): Now holds only the printed names of the
+	memoization codes.
+
+	(scm_iprin1): Separate the handling of memoization codes and
+	guile's special constants.
+
+	* tags.h (scm_tc9_flag, SCM_ITAG9, SCM_MAKE_ITAG9, SCM_ITAG9_DATA,
+	SCM_IFLAGNUM): new
+
+	(scm_tc8_char, scm_tc8_iloc, SCM_BOOL_F, SCM_BOOL_T,
+	SCM_UNDEFINED, SCM_EOF_VAL, SCM_EOL, SCM_UNSPECIFIED, SCM_UNBOUND,
+	SCM_ELISP_NIL, SCM_IM_DISPATCH, SCM_IM_SLOT_REF,
+	SCM_IM_SLOT_SET_X, SCM_IM_DELAY, SCM_IM_FUTURE,
+	SCM_IM_CALL_WITH_VALUES, SCM_IM_NIL_COND, SCM_IM_BIND): Changed
+	values.
+
+	(SCM_IFLAGP): SCM_IFLAGP now only tests for flags.
+
+	(SCM_IFLAGP, SCM_MAKIFLAG, SCM_IFLAGNUM): Generalized to use the
+	tc9 macros and scm_tc9_flag.
+
 2003-09-15  Marius Vollmer  <mvo@zagadka.de>
 
 	* posix.c (scm_setgroups): Check that the gid list is not too
