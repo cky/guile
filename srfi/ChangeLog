@@ -1,3 +1,21 @@
+2001-07-31  Gary Houston  <ghouston@arglist.com>
+
+	* srfi-14.c (scm_char_set_diff_plus_intersection): wasn't correctly
+	accounting for the (char-set-union cs2...) in the spec.  i.e.,
+	(char-set-diff+intersection a) -> copy-of-a, empty-set
+	and the following are equivalent:
+	(char-set-diff+intersection a (char-set #\a) (char-set #\b))
+	(char-set-diff+intersection a (char-set #\a #\b))
+
+	(scm_char_set_xor_x): disabled the side-effecting code, since it
+	gives inconsistent results to scm_char_set_xor for the case
+	(char-set-xor! a a a).
+	
+	(scm_char_set_diff_plus_intersection_x): added cs2 argument, since
+	two arguments are compulsory in final spec.  also similar changes
+	as for scm_char_set_diff_plus_intersection.
+	* srfi-14.h (scm_char_set_diff_plus_intersection_x): added cs2.
+
 2001-07-22  Gary Houston  <ghouston@arglist.com>
 
 	* srfi-14.c (scm_char_set_intersection, scm_char_set_xor): remove

@@ -111,6 +111,6 @@ SCM scm_char_set_union_x (SCM cs1, SCM rest);
 SCM scm_char_set_intersection_x (SCM cs1, SCM rest);
 SCM scm_char_set_difference_x (SCM cs1, SCM rest);
 SCM scm_char_set_xor_x (SCM cs1, SCM rest);
-SCM scm_char_set_diff_plus_intersection_x (SCM cs1, SCM rest);
+SCM scm_char_set_diff_plus_intersection_x (SCM cs1, SCM cs2, SCM rest);
 
 #endif /* SCM_SRFI_14_H */

@@ -1194,22 +1194,25 @@ SCM_DEFINE (scm_char_set_diff_plus_intersection, "char-set-diff+intersection", 1
   SCM_VALIDATE_REST_ARGUMENT (rest);
 
   res1 = scm_char_set_copy (cs1);
-  res2 = scm_char_set_copy (cs1);
+  res2 = make_char_set (FUNC_NAME);
   p = (long *) SCM_SMOB_DATA (res1);
   q = (long *) SCM_SMOB_DATA (res2);
   while (!SCM_NULLP (rest))
     {
       int k;
       SCM cs = SCM_CAR (rest);
+      long *r;
+
       SCM_VALIDATE_SMOB (c, cs, charset);
       c++;
-      rest = SCM_CDR (rest);
+      r = (long *) SCM_SMOB_DATA (cs);
 
       for (k = 0; k < LONGS_PER_CHARSET; k++)
 	{
-	  p[k] &= ~((long *) SCM_SMOB_DATA (cs))[k];
-	  q[k] &= ((long *) SCM_SMOB_DATA (cs))[k];
+	  q[k] |= p[k] & r[k];
+	  p[k] &= ~r[k];
 	}
+      rest = SCM_CDR (rest);
     }
   return scm_values (scm_list_2 (res1, res2));
 }
@@ -1322,6 +1325,15 @@ SCM_DEFINE (scm_char_set_xor_x, "char-set-xor!", 1, 0, 1,
 	    "Return the exclusive-or of all argument character sets.")
 #define FUNC_NAME s_scm_char_set_xor_x
 {
+  /* a side-effecting variant should presumably give consistent results:
+     (define a (char-set #\a))
+     (char-set-xor a a a) -> char set #\a
+     (char-set-xor! a a a) -> char set #\a
+  */
+  return scm_char_set_xor (scm_cons (cs1, rest));
+
+#if 0
+  /* this would give (char-set-xor! a a a) -> empty char set.  */
   int c = 2;
   long * p;
 
@@ -1341,41 +1353,58 @@ SCM_DEFINE (scm_char_set_xor_x, "char-set-xor!", 1, 0, 1,
 	p[k] ^= ((long *) SCM_SMOB_DATA (cs))[k];
     }
   return cs1;
+#endif
 }
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_char_set_diff_plus_intersection_x, "char-set-diff+intersection!", 1, 0, 1,
-	    (SCM cs1, SCM rest),
+SCM_DEFINE (scm_char_set_diff_plus_intersection_x, "char-set-diff+intersection!", 2, 0, 1,
+	    (SCM cs1, SCM cs2, SCM rest),
 	    "Return the difference and the intersection of all argument\n"
 	    "character sets.")
 #define FUNC_NAME s_scm_char_set_diff_plus_intersection_x
 {
-  int c = 2;
-  SCM res2;
+  int c = 3;
   long * p, * q;
+  int k;
 
   SCM_VALIDATE_SMOB (1, cs1, charset);
+  SCM_VALIDATE_SMOB (2, cs2, charset);
   SCM_VALIDATE_REST_ARGUMENT (rest);
 
-  res2 = scm_char_set_copy (cs1);
   p = (long *) SCM_SMOB_DATA (cs1);
-  q = (long *) SCM_SMOB_DATA (res2);
+  q = (long *) SCM_SMOB_DATA (cs2);
+  if (p == q)
+    {
+      /* (char-set-diff+intersection! a a ...): can't share storage,
+	 but we know the answer without checking for further
+	 arguments.  */
+      return scm_values (scm_list_2 (make_char_set (FUNC_NAME), cs1));
+    }
+  for (k = 0; k < LONGS_PER_CHARSET; k++)
+    {
+      long t = p[k];
+
+      p[k] &= ~q[k];
+      q[k] = t & q[k];
+    }
   while (!SCM_NULLP (rest))
     {
-      int k;
       SCM cs = SCM_CAR (rest);
+      long *r;
+
       SCM_VALIDATE_SMOB (c, cs, charset);
       c++;
-      rest = SCM_CDR (rest);
+      r = (long *) SCM_SMOB_DATA (cs);
 
       for (k = 0; k < LONGS_PER_CHARSET; k++)
 	{
-	  p[k] &= ~((long *) SCM_SMOB_DATA (cs))[k];
-	  q[k] &= ((long *) SCM_SMOB_DATA (cs))[k];
+	  q[k] |= p[k] & r[k];
+	  p[k] &= ~r[k];
 	}
+      rest = SCM_CDR (rest);
     }
-  return scm_values (scm_list_2 (cs1, res2));
+  return scm_values (scm_list_2 (cs1, cs2));
 }
 #undef FUNC_NAME
 
