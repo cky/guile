@@ -473,6 +473,29 @@ SCM_DEFINE (scm_srfi1_delete_duplicates_x, "delete-duplicates!", 1, 1, 0,
 #undef FUNC_NAME
 
 
+SCM_DEFINE (scm_srfi1_drop_right, "drop-right", 2, 0, 0,
+            (SCM lst, SCM n),
+	    "Return a new list containing all except the last @var{n}\n"
+	    "elements of @var{lst}.")
+#define FUNC_NAME s_scm_srfi1_drop_right
+{
+  SCM tail = scm_list_tail (lst, n);
+  SCM ret = SCM_EOL;
+  SCM *rend = &ret;
+  while (scm_is_pair (tail))
+    {
+      *rend = scm_cons (SCM_CAR (lst), SCM_EOL);
+      rend = SCM_CDRLOC (*rend);
+      
+      lst = SCM_CDR (lst);
+      tail = SCM_CDR (tail);
+    }
+  SCM_ASSERT_TYPE (SCM_NULL_OR_NIL_P(tail), tail, SCM_ARG1, FUNC_NAME, "list");
+  return ret;
+}
+#undef FUNC_NAME
+
+
 SCM_DEFINE (scm_srfi1_find, "find", 2, 0, 0,
             (SCM pred, SCM lst),
 	    "Return the first element of @var{lst} which satisfies the\n"
@@ -864,6 +887,63 @@ SCM_DEFINE (scm_srfi1_partition, "partition", 2, 0, 0,
 }
 #undef FUNC_NAME
 
+
+SCM_DEFINE (scm_srfi1_partition_x, "partition!", 2, 0, 0,
+            (SCM pred, SCM lst),
+	    "Split @var{lst} into those elements which do and don't satisfy\n"
+	    "the predicate @var{pred}.\n"
+	    "\n"
+	    "The return is two values (@pxref{Multiple Values}), the first\n"
+	    "being a list of all elements from @var{lst} which satisfy\n"
+	    "@var{pred}, the second a list of those which do not.\n"
+	    "\n"
+	    "The elements in the result lists are in the same order as in\n"
+	    "@var{lst} but the order in which the calls @code{(@var{pred}\n"
+	    "elem)} are made on the list elements is unspecified.\n"
+	    "\n"
+	    "@var{lst} may be modified to construct the return lists.")
+#define FUNC_NAME s_scm_srfi1_partition_x
+{
+  SCM  tlst, flst, *tp, *fp;
+  scm_t_trampoline_1 pred_tramp;
+
+  pred_tramp = scm_trampoline_1 (pred);
+  SCM_ASSERT (pred_tramp, pred, SCM_ARG1, FUNC_NAME);
+
+  /* tlst and flst are the lists of true and false elements.  tp and fp are
+     where to store to append to them, initially &tlst and &flst, then
+     SCM_CDRLOC of the last pair in the respective lists.  */
+
+  tlst = SCM_EOL;
+  flst = SCM_EOL;
+  tp = &tlst;
+  fp = &flst;
+
+  for ( ; scm_is_pair (lst); lst = SCM_CDR (lst))
+    {
+      if (scm_is_true (pred_tramp (pred, SCM_CAR (lst))))
+        {
+          *tp = lst;
+          tp = SCM_CDRLOC (lst);
+        }
+      else
+        {
+          *fp = lst;
+          fp = SCM_CDRLOC (lst);
+        }
+    }
+
+  SCM_ASSERT_TYPE (SCM_NULL_OR_NIL_P (lst), lst, SCM_ARG2, FUNC_NAME, "list");
+
+  /* terminate whichever didn't get the last element(s) */
+  *tp = SCM_EOL;
+  *fp = SCM_EOL;
+
+  return scm_values (scm_list_2 (tlst, flst));
+}
+#undef FUNC_NAME
+
+
 SCM_DEFINE (scm_srfi1_remove, "remove", 2, 0, 0,
 	    (SCM pred, SCM list),
 	    "Return a list containing all elements from @var{lst} which do\n"
@@ -894,6 +974,56 @@ SCM_DEFINE (scm_srfi1_remove, "remove", 2, 0, 0,
   return res;
 }
 #undef FUNC_NAME
+
+
+SCM_DEFINE (scm_srfi1_remove_x, "remove!", 2, 0, 0,
+	    (SCM pred, SCM list),
+	    "Return a list containing all elements from @var{list} which do\n"
+	    "not satisfy the predicate @var{pred}.  The elements in the\n"
+	    "result list have the same order as in @var{list}.  The order in\n"
+	    "which @var{pred} is applied to the list elements is not\n"
+	    "specified.  @var{list} may be modified to build the return\n"
+	    "list.")
+#define FUNC_NAME s_scm_srfi1_remove_x
+{
+  scm_t_trampoline_1 call = scm_trampoline_1 (pred);
+  SCM walk;
+  SCM *prev;
+  SCM_ASSERT (call, pred, 1, FUNC_NAME);
+  SCM_VALIDATE_LIST (2, list);
+  
+  for (prev = &list, walk = list;
+       scm_is_pair (walk);
+       walk = SCM_CDR (walk))
+    {
+      if (scm_is_false (call (pred, SCM_CAR (walk))))
+	prev = SCM_CDRLOC (walk);
+      else
+	*prev = SCM_CDR (walk);
+    }
+
+  return list;
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_srfi1_take_right, "take-right", 2, 0, 0,
+            (SCM lst, SCM n),
+	    "Return the a list containing the @var{n} last elements of\n"
+	    "@var{lst}.")
+#define FUNC_NAME s_scm_srfi1_take_right
+{
+  SCM tail = scm_list_tail (lst, n);
+  while (scm_is_pair (tail))
+    {
+      lst = SCM_CDR (lst);
+      tail = SCM_CDR (tail);
+    }
+  SCM_ASSERT_TYPE (SCM_NULL_OR_NIL_P(tail), tail, SCM_ARG1, FUNC_NAME, "list");
+  return lst;
+}
+#undef FUNC_NAME
+
 
 void
 scm_init_srfi_1 (void)

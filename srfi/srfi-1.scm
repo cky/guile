@@ -341,24 +341,6 @@
 (define take list-head)
 (define drop list-tail)
 
-(define (take-right flist i)
-  (let lp ((n i) (l flist))
-    (if (<= n 0)
-      (let lp0 ((s flist) (l l))
-	(if (null? l)
-	  s
-	  (lp0 (cdr s) (cdr l))))
-      (lp (- n 1) (cdr l)))))
-
-(define (drop-right flist i)
-  (let lp ((n i) (l flist))
-    (if (<= n 0)
-      (let lp0 ((s flist) (l l) (acc '()))
-	(if (null? l)
-	  (reverse! acc)
-	  (lp0 (cdr s) (cdr l) (cons (car s) acc))))
-      (lp (- n 1) (cdr l)))))
-
 (define (take! x i)
   (if (<= i 0)
     '()
@@ -567,14 +549,6 @@
 	  (if res
 	    (lp (map1 cdr l) (cons res rl))
 	    (lp (map1 cdr l) rl)))))))
-
-;;; Filtering & partitioning
-
-(define (partition! pred list)
-  (partition pred list))		; XXX:optimize
-
-(define (remove! pred list)
-  (filter! (lambda (x) (not (pred x))) list))
 
 ;;; Searching
 
