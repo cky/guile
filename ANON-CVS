@@ -18,28 +18,35 @@ And it allows us to start testing features earlier.
 Since the CVS tree is arranged for the convenience of the developers,
 it requires GCC and GNU Make, which together support automatic
 dependency management.  You will also need to install autoconf,
-automake, and libtool; the recommended versions are listed in README.
+automake, and libtool; the recommended versions are listed in HACKING.
 
 To check out a CVS working directory:
 
 1) Install CVS version 1.9 or later on your system.
+
 2) Log into the CVS server:
-     $ cvs -d :pserver:anoncvs@anoncvs.cygnus.com:/cvs/guile login
-   At the prompt for `CVS password:', type `anoncvs'.
+ 
+    $ cvs -d :pserver:anoncvs@subversions.gnu.org:/cvs login
+
+   At the prompt for `CVS password:', simply press the enter key.
    Once you have logged in, your password is saved in ~/.cvspass, and you
    will not need to enter it again.
+
 3) Check out a module:
-     $ cvs -z 9 -d :pserver:anoncvs@anoncvs.cygnus.com:/cvs/guile checkout guile-core
+
+    $ cvs -z 9 -d :pserver:anoncvs@subversions.gnu.org:/cvs checkout guile-core
+
    This should create a new directory `guile-core' in your current
    directory, and populate it with the current Guile sources.
+
 4) In the top directory of the source tree, run the command `./autogen.sh'.
    This builds the configure script, Makefile.in, and other derived files
    used by the build system.
 
 The modules available for checkout are:
+
   guile-core --- The scheme interpreter itself.
   guile-doc --- Guile documentation-in-progress.
-  guile-oops --- GOOPS Guile Object Oriented Programming System.
   guile-tcltk --- An interface between Guile and Tcl/Tk.
   guile-scsh --- An incomplete port of SCSH 0.4.4 to Guile.
   guile-rgx-ctax --- This has been discontinued; use Andrew Archibald's
@@ -52,27 +59,21 @@ and efficiently:
 1) Go to the top directory of the source tree.  That is, your current
    directory should be the one containing `configure.in', `README',
    and so on.
+
 2) Do the update:
      $ cvs update
 
 This will incorporate any changes the developers have made to Guile
 since your last update into your source tree.
 
-The EGCS Project is kindly lending us space, time, and bandwidth on
-their CVS server.  Thanks, folks!
-
 
 Change Notification ==================================================
 
 If you would like to receive mail when people commit changes to the
-Guile CVS repository, you can subscribe to guile-cvs@egcs.cygnus.com
-by sending a message to guile-cvs-subscribe@egcs.cygnus.com.  Even
-better, you can get daily digests of these commit messages by sending
-a message to guile-cvs-digest-subscribe@egcs.cygnus.com.
+Guile CVS repository, you can subscribe to guile-cvs@gnu.org by using
+the Mailman mailing list interface at
 
-If you want to subscribe an e-mail address other than the one that
-appears in your From: header, say foo@bar.com, send a mail note to
-guile-cvs-subscribe-foo=bar.com@egcs.cygnus.com.
+  <http://mail.gnu.org/mailman/listinfo/guile-cvs>
 
 
 Questions ============================================================
@@ -100,12 +101,3 @@ Questions ============================================================
   command will not overwrite them; instead, CVS will try to merge its
   changes with your changes, as if you had applied a patch.  Rejects are
   marked in the sources.
-
-- Why does the build process try to run autoconf, aclocal, or automake?
-
-  It shouldn't; if it does, that's a bug, I think.  Those are the
-  tools we use to generate `configure', `aclocal.m4', and the
-  `Makefile.in' files from their respective sources.  Ideally, you
-  shouldn't need to have them installed, if you don't want to change
-  those sources.  If you do, see the section in `README' called
-  `Hacking It Yourself'.

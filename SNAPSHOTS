@@ -24,8 +24,7 @@ Via the web, that's:
 For getit, that's:
     ftp.red-bean.com:/pub/guile/snapshots/guile-core-snap.tar.gz
 
-The snapshot FTP site is mirrored at the following locations:
-  Austria:              ftp://ftp.aec.at/pub/guile
+The snapshot FTP site is mirrored at the following location:
   Japan:                ftp://ftp.jaist.ac.jp/pub/lang/scheme/guile
 
 

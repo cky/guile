@@ -36,7 +36,7 @@ Contributing Your Changes ============================================
 
 - If you have put together a change that meets the coding standards
 described below, we encourage you to submit it to Guile.  The best
-place to post it is guile@sourceware.cygnus.com.  Please don't send it
+place to post it is guile-devel@gnu.org.  Please don't send it
 directly to me; I often don't have time to look things over.  If you
 have tested your change, then you don't need to be shy.
 
@@ -53,14 +53,14 @@ we're just going to regenerate those files anyway.
 CVS conventions ======================================================
 
 - We use CVS to manage the Guile sources.  The repository lives on
-egcs.cygnus.com, in /cvs/guile; you will need an
+subversions.gnu.org, in /cvs; you will need an
 account on that machine to access the repository.  Also, for security
-reasons, egcs presently only supports CVS connections via the SSH
+reasons, subversions presently only supports CVS connections via the SSH
 protocol, so you must first install the SSH client.  Then, you should
 set your CVS_RSH environment variable to ssh, and use the following as
 your CVS root:
 
-	:ext:USER@egcs.cygnus.com:/cvs/guile
+	:ext:USER@subversions.gnu.org:/cvs
 
 Either set your CVSROOT environment variable to that, or give it as
 the value of the global -d option to CVS when you check out a working
@@ -73,7 +73,6 @@ The Guile sources live in several modules:
   - guile-core --- the interpreter, QuickThreads, and ice-9
   - guile-doc --- documentation in progress.  When complete, this will
 	be incorporated into guile-core.
-  - guile-oops --- The Guile Object-Oriented Programming System (talk to mdj)
   - guile-tcltk --- the Guile/Tk interface
   - guile-tk --- the new Guile/Tk interface, based on STk's modified Tk
   - guile-rgx-ctax --- the Guile/Rx interface, and the ctax implementation
@@ -131,12 +130,13 @@ make-stds.texi.
 
 - The Guile tree should compile without warnings under the following
 GCC switches, which are the default in the current configure script:
-    -O2 -Wall -Wpointer-arith -Wmissing-prototypes
-The only warnings which can be tolerated are those about variables
-being clobbered by longjmp/vfork in eval.c.  The variables in question
-are critical to the interpreter's performance; as far as I can tell,
-it is difficult/annoying to avoid these warnings without slowing the
-system down substantially.  (If you can figure out a good fix, I'd be happy to see it.)
+    -O2 -Wall -Wpointer-arith -Wmissing-prototypes The only warnings
+which can be tolerated are those about variables being clobbered by
+longjmp/vfork in eval.c.  The variables in question are critical to
+the interpreter's performance; as far as I can tell, it is
+difficult/annoying to avoid these warnings without slowing the system
+down substantially.  (If you can figure out a good fix, I'd be happy
+to see it.)
 
 Note that the warnings generated vary from one version of GCC to the
 next, and from one architecture to the next (apparently).  To provide
@@ -169,7 +169,7 @@ is our purpose to remove functionality.  Don't deprecate definitions
 if it is unclear when they will be removed.  (This is to ensure that a
 valid way of implementing some functionality always exists.)
 
-When deprecating a definition, always following this procedure:
+When deprecating a definition, always follow this procedure:
 
 1. Mark the definition using
 
@@ -182,7 +182,7 @@ can manage without the deprecated definition.
 
 3. Add an entry that the definition has been deprecated in NEWS
 
-4. At the top of release, there is a list of releases with reminders
+4. At the top of RELEASE, there is a list of releases with reminders
 about what to do at each release.  Add a reminder about the removal of
 the deprecated defintion at the appropriate release.
 

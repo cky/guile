@@ -158,14 +158,10 @@ CVS, and by nightly snapshots, accessible via FTP.  See the files
 `ANON-CVS' and `SNAPSHOTS' for details.
 
 If you would like to receive mail when people commit changes to the
-Guile CVS repository, you can subscribe to guile-cvs@sourceware.cygnus.com
-by sending a message to guile-cvs-subscribe@sourceware.cygnus.com.  Even
-better, you can get daily digests of these commit messages by sending
-a message to guile-cvs-digest-subscribe@sourceware.cygnus.com.
+Guile CVS repository, you can subscribe to guile-cvs@gnu.org by the
+Mailman mailing list interface at
 
-If you want to subscribe an e-mail address other than the one that
-appears in your From: header, say foo@bar.com, send a mail note to
-guile-cvs-subscribe-foo=bar.com@sourceware.cygnus.com.
+  <http://mail.gnu.org/mailman/listinfo/guile-cvs>
 
 
 Obtaining Guile ======================================================
@@ -174,8 +170,8 @@ The latest official Guile release is available via anonymous FTP from
 
 ftp://ftp.gnu.org/pub/gnu/guile/guile-1.4.tar.gz
 
-The mailing list `guile@sourceware.cygnus.com' carries discussions,
-questions, and often answers, about Guile.  To subscribe, send mail to
-guile-subscribe@sourceware.cygnus.com.  Of course, please send bug
-reports (and fixes!) to bug-guile@gnu.org.  Note that one address is
-@sourceware.cygnus.com, and the other is at @gnu.org.
+The mailing list `guile-user@gnu.org' carries discussions, questions,
+and often answers, about Guile.  To subscribe, use the Mailman mailing
+list interface at <http://mail.gnu.org/mailman/listinfo/guile-user>
+Of course, please send bug reports (and fixes!) to bug-guile@gnu.org.
+

@@ -103,6 +103,7 @@ A Guile compiled with this option provides the primitive
 `malloc-stats' which returns an alist with pairs of kind and the
 number of objects of that kind.
 
+--enable-guile-debug --- Include internal debugging functions
 --disable-arrays     --- omit array and uniform array support
 --disable-posix      --- omit posix interfaces
 --disable-networking --- omit networking interfaces
