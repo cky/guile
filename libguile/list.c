@@ -203,10 +203,10 @@ scm_list_append_x(args)
  tail:
   if SCM_NULLP(args) return SCM_EOL;
   arg = SCM_CAR(args);
-  SCM_ASSERT(SCM_NULLP(arg) || (SCM_NIMP(arg) && SCM_CONSP(arg)), arg, SCM_ARG1, s_list_append_x);
   args = SCM_CDR(args);
   if SCM_NULLP(args) return arg;
   if SCM_NULLP(arg) goto tail;
+  SCM_ASSERT(SCM_NIMP(arg) && SCM_CONSP(arg), arg, SCM_ARG1, s_list_append_x);
   SCM_SETCDR (scm_last_pair (arg), scm_list_append_x (args));
   return arg;
 }

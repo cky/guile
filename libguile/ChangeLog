@@ -1,3 +1,9 @@
+Mon Aug 18 14:58:22 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* list.c (scm_list_append_x): Allow non-pair as last argument.
+	This is consistent with the R4RS append and is probably the
+	correct behaviour as specified by R2RS.  (Thanks to Radey Shouman)
+
 Sat Aug 16 18:42:15 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* stime.h: prototype for scm_times.
