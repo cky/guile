@@ -681,7 +681,7 @@ scm_try_mutex (SCM mx)
 
 SCM
 scm_unlock_mutex (SCM mx)
-#define FUNC_NAME s_lock_mutex
+#define FUNC_NAME s_unlock_mutex
 {
   scm_copt_mutex *m;
   SCM_ASSERT (SCM_MUTEXP (mx), mx, SCM_ARG1, FUNC_NAME);
@@ -955,8 +955,6 @@ scm_threads_mark_stacks (void)
 }
 
 /*** Select */
-
-#include "libguile/iselect.h"
 
 int
 scm_internal_select (int nfds,

@@ -1,3 +1,13 @@
+2002-11-14  Mikael Djurfeldt  <mdj@linnaeus>
+
+	* coop-pthreads.c, coop-pthreads.h: scm_internal_select should be
+	part of the API, otherwise it's difficult to write Guile
+	extensions using non-blocking I/O => moved #include
+	"libguile/iselect.h" from coop-pthreads.c --> coop-pthreads.h.
+
+	* coop-pthreads.c (scm_unlock_mutex): Changed s_lock_mutex -->
+	s_unlock_mutex.
+
 2002-11-10  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* __scm.h (USE_THREADS, GUILE_ISELECT): Do not define here.  They

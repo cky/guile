@@ -53,6 +53,8 @@
 
 #include <pthread.h>
 
+#include "libguile/iselect.h"
+
 #if (SCM_ENABLE_DEPRECATED == 1)
 
 /* Thread local data support --- generic C API */
