@@ -50,6 +50,7 @@
 #include "libguile/strings.h"
 #include "libguile/vectors.h"
 #include "libguile/smob.h"
+#include "libguile/deprecation.h"
 
 #include "libguile/validate.h"
 #include "libguile/procs.h"
@@ -70,10 +71,8 @@ int scm_subr_table_size = 0;
 int scm_subr_table_room = 800;
 
 SCM 
-scm_make_subr_opt (const char *name, int type, SCM (*fcn) (), int set)
+scm_c_make_subr (const char *name, int type, SCM (*fcn) ())
 {
-  SCM symbol;
-  SCM var;
   register SCM z;
   int entry;
 
@@ -89,18 +88,11 @@ scm_make_subr_opt (const char *name, int type, SCM (*fcn) (), int set)
       scm_subr_table_room = new_size;
     }
 
-  symbol = scm_str2symbol (name);
-
   SCM_NEWCELL (z);
-  if (set)
-    var = scm_sym2var (symbol, scm_current_module_lookup_closure (),
-		       SCM_BOOL_T);
-  else
-    var = SCM_BOOL_F;
-  
+
   entry = scm_subr_table_size;
   scm_subr_table[entry].handle = z;
-  scm_subr_table[entry].name = symbol;
+  scm_subr_table[entry].name = scm_str2symbol (name);
   scm_subr_table[entry].generic = 0;
   scm_subr_table[entry].properties = SCM_EOL;
   
@@ -108,10 +100,15 @@ scm_make_subr_opt (const char *name, int type, SCM (*fcn) (), int set)
   SCM_SET_CELL_TYPE (z, (entry << 8) + type);
   scm_subr_table_size++;
   
-  if (set)
-    SCM_VARIABLE_SET (var, z);
-  
   return z;
+}
+
+SCM
+scm_c_define_subr (const char *name, int type, SCM (*fcn) ())
+{
+  SCM subr = scm_c_make_subr (name, type, fcn);
+  scm_define (SCM_SUBR_ENTRY(subr).name, subr);
+  return subr;
 }
 
 /* This function isn't currently used since subrs are never freed. */
@@ -126,17 +123,21 @@ scm_free_subr_entry (SCM subr)
   scm_subr_table_size--;
 }
 
-SCM 
-scm_make_subr (const char *name, int type, SCM (*fcn) ())
+SCM
+scm_c_make_subr_with_generic (const char *name, 
+			      int type, SCM (*fcn) (), SCM *gf)
 {
-  return scm_make_subr_opt (name, type, fcn, 1);
+  SCM subr = scm_c_make_subr (name, type, fcn);
+  SCM_SUBR_ENTRY(subr).generic = gf;
+  return subr;
 }
 
 SCM
-scm_make_subr_with_generic (const char *name, int type, SCM (*fcn) (), SCM *gf)
+scm_c_define_subr_with_generic (const char *name, 
+				int type, SCM (*fcn) (), SCM *gf)
 {
-  SCM subr = scm_make_subr_opt (name, type, fcn, 1);
-  scm_subr_table[scm_subr_table_size - 1].generic = gf;
+  SCM subr = scm_c_make_subr_with_generic (name, type, fcn, gf);
+  scm_define (SCM_SUBR_ENTRY(subr).name, subr);
   return subr;
 }
 
@@ -401,6 +402,42 @@ scm_init_procs ()
 #include "libguile/procs.x"
 #endif
 }
+
+#if SCM_DEBUG_DEPRECATED == 0
+
+SCM
+scm_make_subr_opt (const char *name, int type, SCM (*fcn) (), int set)
+{
+  scm_c_issue_deprecation_warning 
+    ("`scm_make_subr_opt' is deprecated.  Use `scm_c_make_subr' or "
+     "`scm_c_define_subr' instead.");
+
+  if (set)
+    return scm_c_define_subr (name, type, fcn);
+  else
+    return scm_c_make_subr (name, type, fcn);
+}
+
+SCM 
+scm_make_subr (const char *name, int type, SCM (*fcn) ())
+{
+  scm_c_issue_deprecation_warning 
+    ("`scm_make_subr' is deprecated.  Use `scm_c_define_subr' instead.");
+
+  return scm_c_define_subr (name, type, fcn);
+}
+
+SCM
+scm_make_subr_with_generic (const char *name, int type, SCM (*fcn) (), SCM *gf)
+{
+  scm_c_issue_deprecation_warning 
+    ("`scm_make_subr_with_generic' is deprecated.  Use "
+     "`scm_c_define_subr_with_generic' instead.");
+  
+  return scm_c_define_subr_with_generic (name, type, fcn);
+}
+
+#endif /* !SCM_DEBUG_DEPRECATION */
 
 /*
   Local Variables:

@@ -161,15 +161,12 @@ extern int scm_subr_table_room;
 
 extern void scm_mark_subr_table (void);
 extern void scm_free_subr_entry (SCM subr);
-extern SCM scm_make_subr (const char *name, int type, SCM (*fcn) ());
-extern SCM scm_make_subr_with_generic (const char *name,
-				       int type,
-				       SCM (*fcn) (),
-				       SCM *gf);
-extern SCM scm_make_subr_opt (const char *name, 
-                              int type, 
-                              SCM (*fcn) (),
-                              int set);
+extern SCM scm_c_make_subr (const char *name, int type, SCM (*fcn)());
+extern SCM scm_c_make_subr_with_generic (const char *name, int type,
+					 SCM (*fcn)(), SCM *gf);
+extern SCM scm_c_define_subr (const char *name, int type, SCM (*fcn)());
+extern SCM scm_c_define_subr_with_generic (const char *name, int type,
+					   SCM (*fcn)(), SCM *gf);
 extern SCM scm_makcclo (SCM proc, long len);
 extern SCM scm_procedure_p (SCM obj);
 extern SCM scm_closure_p (SCM obj);
@@ -192,6 +189,16 @@ extern SCM scm_make_cclo (SCM proc, SCM len);
 #if (SCM_DEBUG_DEPRECATED == 0)
 
 #define SCM_SUBR_DOC(x) SCM_BOOL_F
+
+extern SCM scm_make_subr (const char *name, int type, SCM (*fcn) ());
+extern SCM scm_make_subr_with_generic (const char *name,
+				       int type,
+				       SCM (*fcn) (),
+				       SCM *gf);
+extern SCM scm_make_subr_opt (const char *name, 
+                              int type, 
+                              SCM (*fcn) (),
+                              int set);
 
 #endif  /* SCM_DEBUG_DEPRECATED == 0 */
 
