@@ -245,14 +245,14 @@ scm_init_regex_posix ()
   scm_tc16_regex_t = scm_newsmob (&regex_t_smob);
 
   /* Compilation flags.  */
-  scm_sysintern ("REG_EXTENDED", scm_long2num (REG_EXTENDED));
-  scm_sysintern ("REG_ICASE", scm_long2num (REG_ICASE));
-  scm_sysintern ("REG_NOSUB", scm_long2num (REG_NOSUB));
-  scm_sysintern ("REG_NEWLINE", scm_long2num (REG_NEWLINE));
+  scm_sysintern ("regexp/extended", scm_long2num (REG_EXTENDED));
+  scm_sysintern ("regexp/icase", scm_long2num (REG_ICASE));
+  scm_sysintern ("regexp/nosub", scm_long2num (REG_NOSUB));
+  scm_sysintern ("regexp/newline", scm_long2num (REG_NEWLINE));
 
   /* Execution flags.  */
-  scm_sysintern ("REG_NOTBOL", scm_long2num (REG_NOTBOL));
-  scm_sysintern ("REG_NOTEOL", scm_long2num (REG_NOTEOL));
+  scm_sysintern ("regexp/notbol", scm_long2num (REG_NOTBOL));
+  scm_sysintern ("regexp/noteol", scm_long2num (REG_NOTEOL));
 
 #include "regex-posix.x"
 
