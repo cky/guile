@@ -346,8 +346,10 @@ uvec_print (SCM uvec, SCM port, scm_print_state *pstate SCM_UNUSED)
 static size_t
 uvec_free (SCM uvec)
 {
-  scm_must_free (SCM_UVEC_BASE (uvec));
-  return SCM_UVEC_LENGTH (uvec) * uvec_sizes[SCM_UVEC_TYPE (uvec)];
+  scm_gc_free (SCM_UVEC_BASE (uvec),
+	       SCM_UVEC_LENGTH (uvec) * uvec_sizes[SCM_UVEC_TYPE (uvec)],
+	       "uvec");
+  return 0;
 }
 
 
@@ -363,7 +365,7 @@ make_uvec (const char * func_name, int type, int len)
 {
   void * p;
   
-  p = scm_must_malloc (len * uvec_sizes[type], func_name);
+  p = scm_gc_malloc (len * uvec_sizes[type], "uvec");
   SCM_RETURN_NEWSMOB3 (scm_tc16_uvec, type, len, p);
 }
 
