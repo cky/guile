@@ -47,37 +47,12 @@
 ;;; miscellaneous
 ;;;
 
-
 (define (documented? object)
   (object-documentation object))
 
-
-(define (make-test-name . args)
-  (with-output-to-string
-    (lambda ()
-      (for-each display args))))
-
-
-(define bit-widths '(8 16 27 28 29 30 31 32 64 128 256))
-
-
-(define (2^x-1 x)
-  (- (expt 2 x) 1))
-
-(define (2^ x)
-  (expt 2 x))
-
-(define (n=2^x-1 x)
-  (make-test-name "n = 2^" x " - 1"))
-
-(define (n=-2^x+1 x)
-  (make-test-name "n = -2^" x " + 1"))
-
-(define (n=2^ x)
-  (make-test-name "n = 2^" x))
-
-(define (n=-2^ x)
-  (make-test-name "n = -2^" x))
+(define fixnum-bit 30)
+(define fixnum-min most-negative-fixnum)
+(define fixnum-max most-positive-fixnum)
 
 
 ;;;
@@ -86,39 +61,35 @@
 
 (with-test-prefix "exact?"
 
-  ;; Is documentation available?
-
   (pass-if "documented?"
     (documented? exact?))
 
-  ;; Special case:  0
+  (with-test-prefix "integers"
 
-  (pass-if "0"
-    (eq? #t (exact? 0)))
+    (pass-if "0"
+      (exact? 0))
 
-  ;; integers:
+    (pass-if "fixnum-max"
+      (exact? fixnum-max))
 
-  (for-each 
-   (lambda (x)
-     (pass-if (make-test-name "2^" x " - 1")
-       (eq? #t (exact? (2^x-1 x))))
-     (pass-if (make-test-name "-2^" x " + 1")
-       (eq? #t (exact? (- (2^x-1 x)))))
-     (pass-if (make-test-name "2^" x)
-       (eq? #t (exact? (2^ x))))
-     (pass-if (make-test-name "-2^" x)
-       (eq? #t (exact? (- (2^ x))))))
-   bit-widths)
+    (pass-if "fixnum-max + 1"
+      (exact? (+ fixnum-max 1)))
 
-  ;; floats: (FIXME: need more examples)
+    (pass-if "fixnum-min"
+      (exact? fixnum-min))
 
-  (for-each 
-   (lambda (x)
-     (pass-if (make-test-name "sqrt((2^" x " - 1)^2 - 1)")
-       (eq? #f (exact? (sqrt (- (* (2^x-1 x) (2^x-1 x)) 1)))))
-     (pass-if (make-test-name "sqrt((2^" x ")^2 + 1)")
-       (eq? #f (exact? (sqrt (+ (* (2^ x) (2^ x)) 1))))))
-   bit-widths))
+    (pass-if "fixnum-min - 1"
+      (exact? (- fixnum-min 1))))
+
+  (with-test-prefix "reals"
+
+    ;; (FIXME: need better examples.)
+
+    (pass-if "sqrt (fixnum-max^2 - 1)"
+      (eq? #f (exact? (sqrt (- (expt fixnum-max 2) 1)))))
+
+    (pass-if "sqrt ((fixnum-max+1)^2 - 1)"
+      (eq? #f (exact? (sqrt (- (expt (+ fixnum-max 1) 2) 1)))))))
 
 ;;;
 ;;; odd?
@@ -141,12 +112,8 @@
 
 (with-test-prefix "quotient"
 
-  ;; Is documentation available?
-
   (expect-fail "documented?"
     (documented? quotient))
-
-  ;; Special case:  0 / n
 
   (with-test-prefix "0 / n"
 
@@ -156,77 +123,158 @@
     (pass-if "n = -1"
       (eqv? 0 (quotient 0 -1)))
 
-    (for-each 
-     (lambda (x)
-       (pass-if (n=2^x-1 x)
-	 (eqv? 0 (quotient 0 (2^x-1 x))))
-       (pass-if (n=-2^x+1 x)
-	 (eqv? 0 (quotient 0 (- (2^x-1 x)))))
-       (pass-if (n=2^ x)
-	 (eqv? 0 (quotient 0 (expt 2 x))))
-       (pass-if (n=-2^ x)
-	 (eqv? 0 (quotient 0 (- (expt 2 x))))))
-     bit-widths))
-  
-  ;; Special case:  n / 1
+    (pass-if "n = 2"
+      (eqv? 0 (quotient 0 2)))
 
-  (with-test-prefix "n / 1"
+    (pass-if "n = fixnum-max"
+      (eqv? 0 (quotient 0 fixnum-max)))
+
+    (pass-if "n = fixnum-max + 1"
+      (eqv? 0 (quotient 0 (+ fixnum-max 1))))
+
+    (pass-if "n = fixnum-min"
+      (eqv? 0 (quotient 0 fixnum-min)))
+
+    (pass-if "n = fixnum-min - 1"
+      (eqv? 0 (quotient 0 (- fixnum-min 1)))))
+
+  (with-test-prefix "1 / n"
 
     (pass-if "n = 1"
       (eqv? 1 (quotient 1 1)))
 
     (pass-if "n = -1"
-      (eqv? -1 (quotient -1 1)))
+      (eqv? -1 (quotient 1 -1)))
 
-    (for-each 
-     (lambda (x)
-       (pass-if (n=2^x-1 x)
-	 (eqv? (2^x-1 x) (quotient (2^x-1 x) 1)))
-       (pass-if (n=-2^x+1 x)
-	 (eqv? (- (2^x-1 x)) (quotient (- (2^x-1 x)) 1)))
-       (pass-if (n=2^ x)
-	 (eqv? (2^ x) (quotient (2^ x) 1)))
-       (pass-if (n=-2^ x)
-	 (eqv? (- (2^ x)) (quotient (- (2^ x)) 1))))
-     bit-widths))
+    (pass-if "n = 2"
+      (eqv? 0 (quotient 1 2)))
 
-  ;; Special case:  n / -1
+    (pass-if "n = fixnum-max"
+      (eqv? 0 (quotient 1 fixnum-max)))
 
-  (with-test-prefix "n / -1"
+    (pass-if "n = fixnum-max + 1"
+      (eqv? 0 (quotient 1 (+ fixnum-max 1))))
+
+    (pass-if "n = fixnum-min"
+      (eqv? 0 (quotient 1 fixnum-min)))
+
+    (pass-if "n = fixnum-min - 1"
+      (eqv? 0 (quotient 1 (- fixnum-min 1)))))
+
+  (with-test-prefix "-1 / n"
 
     (pass-if "n = 1"
-      (eqv? -1 (quotient 1 -1)))
+      (eqv? -1 (quotient -1 1)))
 
     (pass-if "n = -1"
       (eqv? 1 (quotient -1 -1)))
 
-    (for-each
-     (lambda (x)
-       (pass-if (n=2^x-1 x)
-	 (eqv? (- (2^x-1 x)) (quotient (2^x-1 x) -1)))
-       (pass-if (n=-2^x+1 x)
-	 (eqv? (2^x-1 x) (quotient (- (2^x-1 x)) -1)))
-       (pass-if (n=2^ x)
-	 (eqv? (- (2^ x)) (quotient (2^ x) -1)))
-       (pass-if (n=-2^ x)
-	 (eqv? (2^ x) (quotient (- (2^ x)) -1))))
-     bit-widths))
+    (pass-if "n = 2"
+      (eqv? 0 (quotient -1 2)))
 
-  ;; Special case:  n / n
+    (pass-if "n = fixnum-max"
+      (eqv? 0 (quotient -1 fixnum-max)))
 
-  (with-test-prefix "n / n"
+    (pass-if "n = fixnum-max + 1"
+      (eqv? 0 (quotient -1 (+ fixnum-max 1))))
 
-    (for-each
-     (lambda (x)
-       (pass-if (n=2^x-1 x)
-	 (eqv? 1 (quotient (2^x-1 x) (2^x-1 x))))
-       (pass-if (n=-2^x+1 x)
-	 (eqv? 1 (quotient (- (2^x-1 x)) (- (2^x-1 x)))))
-       (pass-if (n=2^ x)
-	 (eqv? 1 (quotient (2^ x) (2^ x))))
-       (pass-if (n=-2^ x)
-	 (eqv? 1 (quotient (- (2^ x)) (- (2^ x))))))
-     bit-widths))
+    (pass-if "n = fixnum-min"
+      (eqv? 0 (quotient -1 fixnum-min)))
+
+    (pass-if "n = fixnum-min - 1"
+      (eqv? 0 (quotient -1 (- fixnum-min 1)))))
+
+  (with-test-prefix "fixnum-max / n"
+
+    (pass-if "n = 1"
+      (eqv? fixnum-max (quotient fixnum-max 1)))
+
+    (pass-if "n = -1"
+      (eqv? (- fixnum-max) (quotient fixnum-max -1)))
+
+    (pass-if "n = 2"
+      (eqv? fixnum-max (+ (* (quotient fixnum-max 2) 2) 1)))
+
+    (pass-if "n = fixnum-max"
+      (eqv? 1 (quotient fixnum-max fixnum-max)))
+
+    (pass-if "n = fixnum-max + 1"
+      (eqv? 0 (quotient fixnum-max (+ fixnum-max 1))))
+
+    (pass-if "n = fixnum-min"
+      (eqv? 0 (quotient fixnum-max fixnum-min)))
+
+    (pass-if "n = fixnum-min - 1"
+      (eqv? 0 (quotient fixnum-max (- fixnum-min 1)))))
+
+  (with-test-prefix "(fixnum-max + 1) / n"
+
+    (pass-if "n = 1"
+      (eqv? (+ fixnum-max 1) (quotient (+ fixnum-max 1) 1)))
+
+    (pass-if "n = -1"
+      (eqv? (- (+ fixnum-max 1)) (quotient (+ fixnum-max 1) -1)))
+
+    (pass-if "n = 2"
+      (eqv? (+ fixnum-max 1) (* (quotient (+ fixnum-max 1) 2) 2)))
+
+    (pass-if "n = fixnum-max"
+      (eqv? 1 (quotient (+ fixnum-max 1) fixnum-max)))
+
+    (pass-if "n = fixnum-max + 1"
+      (eqv? 1 (quotient (+ fixnum-max 1) (+ fixnum-max 1))))
+
+    (pass-if "n = fixnum-min"
+      (eqv? -1 (quotient (+ fixnum-max 1) fixnum-min)))
+
+    (pass-if "n = fixnum-min - 1"
+      (eqv? 0 (quotient (+ fixnum-max 1) (- fixnum-min 1)))))
+
+  (with-test-prefix "fixnum-min / n"
+
+    (pass-if "n = 1"
+      (eqv? fixnum-min (quotient fixnum-min 1)))
+
+    (pass-if "n = -1"
+      (eqv? (- fixnum-min) (quotient fixnum-min -1)))
+
+    (pass-if "n = 2"
+      (eqv? fixnum-min (* (quotient fixnum-min 2) 2)))
+
+    (pass-if "n = fixnum-max"
+      (eqv? -1 (quotient fixnum-min fixnum-max)))
+
+    (pass-if "n = fixnum-max + 1"
+      (eqv? -1 (quotient fixnum-min (+ fixnum-max 1))))
+
+    (pass-if "n = fixnum-min"
+      (eqv? 1 (quotient fixnum-min fixnum-min)))
+
+    (pass-if "n = fixnum-min - 1"
+      (eqv? 0 (quotient fixnum-min (- fixnum-min 1)))))
+
+  (with-test-prefix "(fixnum-min - 1) / n"
+
+    (pass-if "n = 1"
+      (eqv? (- fixnum-min 1) (quotient (- fixnum-min 1) 1)))
+
+    (pass-if "n = -1"
+      (eqv? (- (- fixnum-min 1)) (quotient (- fixnum-min 1) -1)))
+
+    (pass-if "n = 2"
+      (eqv? fixnum-min (* (quotient (- fixnum-min 1) 2) 2)))
+
+    (pass-if "n = fixnum-max"
+      (eqv? -1 (quotient (- fixnum-min 1) fixnum-max)))
+
+    (pass-if "n = fixnum-max + 1"
+      (eqv? -1 (quotient (- fixnum-min 1) (+ fixnum-max 1))))
+
+    (pass-if "n = fixnum-min"
+      (eqv? 1 (quotient (- fixnum-min 1) fixnum-min)))
+
+    (pass-if "n = fixnum-min - 1"
+      (eqv? 1 (quotient (- fixnum-min 1) (- fixnum-min 1)))))
   
   ;; Positive dividend and divisor
 
@@ -260,12 +308,8 @@
 
 (with-test-prefix "remainder"
 
-  ;; Is documentation available?
-
   (expect-fail "documented?"
     (documented? remainder))
-
-  ;; Special case:  0 / n
 
   (with-test-prefix "0 / n"
 
@@ -275,77 +319,137 @@
     (pass-if "n = -1"
       (eqv? 0 (remainder 0 -1)))
 
-    (for-each 
-     (lambda (x)
-       (pass-if (n=2^x-1 x)
-	 (eqv? 0 (remainder 0 (2^x-1 x))))
-       (pass-if (n=-2^x+1 x)
-	 (eqv? 0 (remainder 0 (- (2^x-1 x)))))
-       (pass-if (n=2^ x)
-	 (eqv? 0 (remainder 0 (2^ x))))
-       (pass-if (n=-2^ x)
-	 (eqv? 0 (remainder 0 (- (2^ x))))))
-     bit-widths))
+    (pass-if "n = fixnum-max"
+      (eqv? 0 (remainder 0 fixnum-max)))
 
-  ;; Special case:  n / 1
+    (pass-if "n = fixnum-max + 1"
+      (eqv? 0 (remainder 0 (+ fixnum-max 1))))
 
-  (with-test-prefix "n / 1"
+    (pass-if "n = fixnum-min"
+      (eqv? 0 (remainder 0 fixnum-min)))
+
+    (pass-if "n = fixnum-min - 1"
+      (eqv? 0 (remainder 0 (- fixnum-min 1)))))
+
+  (with-test-prefix "1 / n"
 
     (pass-if "n = 1"
       (eqv? 0 (remainder 1 1)))
 
     (pass-if "n = -1"
-      (eqv? 0 (remainder -1 1)))
+      (eqv? 0 (remainder 1 -1)))
 
-    (for-each 
-     (lambda (x)
-       (pass-if (n=2^x-1 x)
-	 (eqv? 0 (remainder (2^x-1 x) 1)))
-       (pass-if (n=-2^x+1 x)
-	 (eqv? 0 (remainder (- (2^x-1 x)) 1)))
-       (pass-if (n=2^ x)
-	 (eqv? 0 (remainder (2^ x) 1)))
-       (pass-if (n=-2^ x)
-	 (eqv? 0 (remainder (- (2^ x)) 1))))
-     bit-widths))
+    (pass-if "n = fixnum-max"
+      (eqv? 1 (remainder 1 fixnum-max)))
 
-  ;; Special case:  n / -1
+    (pass-if "n = fixnum-max + 1"
+      (eqv? 1 (remainder 1 (+ fixnum-max 1))))
 
-  (with-test-prefix "n / -1"
+    (pass-if "n = fixnum-min"
+      (eqv? 1 (remainder 1 fixnum-min)))
+
+    (pass-if "n = fixnum-min - 1"
+      (eqv? 1 (remainder 1 (- fixnum-min 1)))))
+
+  (with-test-prefix "-1 / n"
 
     (pass-if "n = 1"
-      (eqv? 0 (remainder 1 -1)))
+      (eqv? 0 (remainder -1 1)))
 
     (pass-if "n = -1"
       (eqv? 0 (remainder -1 -1)))
 
-    (for-each
-     (lambda (x)
-       (pass-if (n=2^x-1 x)
-	 (eqv? 0 (remainder (2^x-1 x) -1)))
-       (pass-if (n=-2^x+1 x)
-	 (eqv? 0 (remainder (- (2^x-1 x)) -1)))
-       (pass-if (n=2^ x)
-	 (eqv? 0 (remainder (2^ x) -1)))
-       (pass-if (n=-2^ x)
-	 (eqv? 0 (remainder (- (2^ x)) -1))))
-     bit-widths))
+    (pass-if "n = fixnum-max"
+      (eqv? -1 (remainder -1 fixnum-max)))
 
-  ;; Special case:  n / n
+    (pass-if "n = fixnum-max + 1"
+      (eqv? -1 (remainder -1 (+ fixnum-max 1))))
 
-  (with-test-prefix "n / n"
+    (pass-if "n = fixnum-min"
+      (eqv? -1 (remainder -1 fixnum-min)))
 
-    (for-each
-     (lambda (x)
-       (pass-if (n=2^x-1 x)
-	 (eqv? 0 (remainder (2^x-1 x) (2^x-1 x))))
-       (pass-if (n=-2^x+1 x)
-	 (eqv? 0 (remainder (- (2^x-1 x)) (- (2^x-1 x)))))
-       (pass-if (n=2^ x)
-	 (eqv? 0 (remainder (2^ x) (2^ x))))
-       (pass-if (n=-2^ x)
-	 (eqv? 0 (remainder (- (2^ x)) (- (2^ x))))))
-     bit-widths))
+    (pass-if "n = fixnum-min - 1"
+      (eqv? -1 (remainder -1 (- fixnum-min 1)))))
+
+  (with-test-prefix "fixnum-max / n"
+
+    (pass-if "n = 1"
+      (eqv? 0 (remainder fixnum-max 1)))
+
+    (pass-if "n = -1"
+      (eqv? 0 (remainder fixnum-max -1)))
+
+    (pass-if "n = fixnum-max"
+      (eqv? 0 (remainder fixnum-max fixnum-max)))
+
+    (pass-if "n = fixnum-max + 1"
+      (eqv? fixnum-max (remainder fixnum-max (+ fixnum-max 1))))
+
+    (pass-if "n = fixnum-min"
+      (eqv? fixnum-max (remainder fixnum-max fixnum-min)))
+
+    (pass-if "n = fixnum-min - 1"
+      (eqv? fixnum-max (remainder fixnum-max (- fixnum-min 1)))))
+
+  (with-test-prefix "(fixnum-max + 1) / n"
+
+    (pass-if "n = 1"
+      (eqv? 0 (remainder (+ fixnum-max 1) 1)))
+
+    (pass-if "n = -1"
+      (eqv? 0 (remainder (+ fixnum-max 1) -1)))
+
+    (pass-if "n = fixnum-max"
+      (eqv? 1 (remainder (+ fixnum-max 1) fixnum-max)))
+
+    (pass-if "n = fixnum-max + 1"
+      (eqv? 0 (remainder (+ fixnum-max 1) (+ fixnum-max 1))))
+
+    (pass-if "n = fixnum-min"
+      (eqv? 0 (remainder (+ fixnum-max 1) fixnum-min)))
+
+    (pass-if "n = fixnum-min - 1"
+      (eqv? (+ fixnum-max 1) (remainder (+ fixnum-max 1) (- fixnum-min 1)))))
+
+  (with-test-prefix "fixnum-min / n"
+
+    (pass-if "n = 1"
+      (eqv? 0 (remainder fixnum-min 1)))
+
+    (pass-if "n = -1"
+      (eqv? 0 (remainder fixnum-min -1)))
+
+    (pass-if "n = fixnum-max"
+      (eqv? -1 (remainder fixnum-min fixnum-max)))
+
+    (pass-if "n = fixnum-max + 1"
+      (eqv? 0 (remainder fixnum-min (+ fixnum-max 1))))
+
+    (pass-if "n = fixnum-min"
+      (eqv? 0 (remainder fixnum-min fixnum-min)))
+
+    (pass-if "n = fixnum-min - 1"
+      (eqv? fixnum-min (remainder fixnum-min (- fixnum-min 1)))))
+
+  (with-test-prefix "(fixnum-min - 1) / n"
+
+    (pass-if "n = 1"
+      (eqv? 0 (remainder (- fixnum-min 1) 1)))
+
+    (pass-if "n = -1"
+      (eqv? 0 (remainder (- fixnum-min 1) -1)))
+
+    (pass-if "n = fixnum-max"
+      (eqv? -2 (remainder (- fixnum-min 1) fixnum-max)))
+
+    (pass-if "n = fixnum-max + 1"
+      (eqv? -1 (remainder (- fixnum-min 1) (+ fixnum-max 1))))
+
+    (pass-if "n = fixnum-min"
+      (eqv? -1 (remainder (- fixnum-min 1) fixnum-min)))
+
+    (pass-if "n = fixnum-min - 1"
+      (eqv? 0 (remainder (- fixnum-min 1) (- fixnum-min 1)))))
 
   ;; Positive dividend and divisor
 
@@ -379,12 +483,8 @@
 
 (with-test-prefix "modulo"
 
-  ;; Is documentation available?
-
   (expect-fail "documented?"
     (documented? modulo))
-
-  ;; Special case:  0 % n
 
   (with-test-prefix "0 % n"
 
@@ -394,77 +494,137 @@
     (pass-if "n = -1"
       (eqv? 0 (modulo 0 -1)))
 
-    (for-each 
-     (lambda (x)
-       (pass-if (n=2^x-1 x)
-	 (eqv? 0 (modulo 0 (2^x-1 x))))
-       (pass-if (n=-2^x+1 x)
-	 (eqv? 0 (modulo 0 (- (2^x-1 x)))))
-       (pass-if (n=2^ x)
-	 (eqv? 0 (modulo 0 (2^ x))))
-       (pass-if (n=-2^ x)
-	 (eqv? 0 (modulo 0 (- (2^ x))))))
-     bit-widths))
+    (pass-if "n = fixnum-max"
+      (eqv? 0 (modulo 0 fixnum-max)))
 
-  ;; Special case:  n % 1
+    (pass-if "n = fixnum-max + 1"
+      (eqv? 0 (modulo 0 (+ fixnum-max 1))))
 
-  (with-test-prefix "n % 1"
+    (pass-if "n = fixnum-min"
+      (eqv? 0 (modulo 0 fixnum-min)))
+
+    (pass-if "n = fixnum-min - 1"
+      (eqv? 0 (modulo 0 (- fixnum-min 1)))))
+
+  (with-test-prefix "1 % n"
 
     (pass-if "n = 1"
       (eqv? 0 (modulo 1 1)))
 
     (pass-if "n = -1"
-      (eqv? 0 (modulo -1 1)))
+      (eqv? 0 (modulo 1 -1)))
 
-    (for-each
-     (lambda (x)
-       (pass-if (n=2^x-1 x)
-	 (eqv? 0 (modulo (2^x-1 x) 1)))
-       (pass-if (n=-2^x+1 x)
-	 (eqv? 0 (modulo (- (2^x-1 x)) 1)))
-       (pass-if (n=2^ x)
-	 (eqv? 0 (modulo (2^ x) 1)))
-       (pass-if (n=-2^ x)
-	 (eqv? 0 (modulo (- (2^ x)) 1))))
-     bit-widths))
+    (pass-if "n = fixnum-max"
+      (eqv? 1 (modulo 1 fixnum-max)))
 
-  ;; Special case:  n % -1
+    (pass-if "n = fixnum-max + 1"
+      (eqv? 1 (modulo 1 (+ fixnum-max 1))))
 
-  (with-test-prefix "n % -1"
+    (pass-if "n = fixnum-min"
+      (eqv? (+ fixnum-min 1) (modulo 1 fixnum-min)))
+
+    (pass-if "n = fixnum-min - 1"
+      (eqv? fixnum-min (modulo 1 (- fixnum-min 1)))))
+
+  (with-test-prefix "-1 % n"
 
     (pass-if "n = 1"
-      (eqv? 0 (modulo 1 -1)))
+      (eqv? 0 (modulo -1 1)))
 
     (pass-if "n = -1"
       (eqv? 0 (modulo -1 -1)))
 
-    (for-each
-     (lambda (x)
-       (pass-if (n=2^x-1 x)
-	 (eqv? 0 (modulo (2^x-1 x) -1)))
-       (pass-if (n=-2^x+1 x)
-	 (eqv? 0 (modulo (- (2^x-1 x)) -1)))
-       (pass-if (n=2^ x)
-	 (eqv? 0 (modulo (2^ x) -1)))
-       (pass-if (n=-2^ x)
-	 (eqv? 0 (modulo (- (2^ x)) -1))))
-     bit-widths))
+    (pass-if "n = fixnum-max"
+      (eqv? (- fixnum-max 1) (modulo -1 fixnum-max)))
 
-  ;; Special case:  n % n
+    (pass-if "n = fixnum-max + 1"
+      (eqv? fixnum-max (modulo -1 (+ fixnum-max 1))))
 
-  (with-test-prefix "n % n"
+    (pass-if "n = fixnum-min"
+      (eqv? -1 (modulo -1 fixnum-min)))
 
-  (for-each
-   (lambda (x)
-     (pass-if (n=2^x-1 x)
-       (eqv? 0 (modulo (2^x-1 x) (2^x-1 x))))
-     (pass-if (n=-2^x+1 x)
-       (eqv? 0 (modulo (- (2^x-1 x)) (- (2^x-1 x)))))
-     (pass-if (n=2^ x)
-       (eqv? 0 (modulo (2^ x) (2^ x))))
-     (pass-if (n=-2^ x)
-       (eqv? 0 (modulo (- (2^ x)) (- (2^ x))))))
-   bit-widths))
+    (pass-if "n = fixnum-min - 1"
+      (eqv? -1 (modulo -1 (- fixnum-min 1)))))
+
+  (with-test-prefix "fixnum-max % n"
+
+    (pass-if "n = 1"
+      (eqv? 0 (modulo fixnum-max 1)))
+
+    (pass-if "n = -1"
+      (eqv? 0 (modulo fixnum-max -1)))
+
+    (pass-if "n = fixnum-max"
+      (eqv? 0 (modulo fixnum-max fixnum-max)))
+
+    (pass-if "n = fixnum-max + 1"
+      (eqv? fixnum-max (modulo fixnum-max (+ fixnum-max 1))))
+
+    (pass-if "n = fixnum-min"
+      (eqv? -1 (modulo fixnum-max fixnum-min)))
+
+    (pass-if "n = fixnum-min - 1"
+      (eqv? -2 (modulo fixnum-max (- fixnum-min 1)))))
+
+  (with-test-prefix "(fixnum-max + 1) % n"
+
+    (pass-if "n = 1"
+      (eqv? 0 (modulo (+ fixnum-max 1) 1)))
+
+    (pass-if "n = -1"
+      (eqv? 0 (modulo (+ fixnum-max 1) -1)))
+
+    (pass-if "n = fixnum-max"
+      (eqv? 1 (modulo (+ fixnum-max 1) fixnum-max)))
+
+    (pass-if "n = fixnum-max + 1"
+      (eqv? 0 (modulo (+ fixnum-max 1) (+ fixnum-max 1))))
+
+    (pass-if "n = fixnum-min"
+      (eqv? 0 (modulo (+ fixnum-max 1) fixnum-min)))
+
+    (pass-if "n = fixnum-min - 1"
+      (eqv? -1 (modulo (+ fixnum-max 1) (- fixnum-min 1)))))
+
+  (with-test-prefix "fixnum-min % n"
+
+    (pass-if "n = 1"
+      (eqv? 0 (modulo fixnum-min 1)))
+
+    (pass-if "n = -1"
+      (eqv? 0 (modulo fixnum-min -1)))
+
+    (pass-if "n = fixnum-max"
+      (eqv? (- fixnum-max 1) (modulo fixnum-min fixnum-max)))
+
+    (pass-if "n = fixnum-max + 1"
+      (eqv? 0 (modulo fixnum-min (+ fixnum-max 1))))
+
+    (pass-if "n = fixnum-min"
+      (eqv? 0 (modulo fixnum-min fixnum-min)))
+
+    (pass-if "n = fixnum-min - 1"
+      (eqv? fixnum-min (modulo fixnum-min (- fixnum-min 1)))))
+
+  (with-test-prefix "(fixnum-min - 1) % n"
+
+    (pass-if "n = 1"
+      (eqv? 0 (modulo (- fixnum-min 1) 1)))
+
+    (pass-if "n = -1"
+      (eqv? 0 (modulo (- fixnum-min 1) -1)))
+
+    (pass-if "n = fixnum-max"
+      (eqv? (- fixnum-max 2) (modulo (- fixnum-min 1) fixnum-max)))
+
+    (pass-if "n = fixnum-max + 1"
+      (eqv? fixnum-max (modulo (- fixnum-min 1) (+ fixnum-max 1))))
+
+    (pass-if "n = fixnum-min"
+      (eqv? -1 (modulo (- fixnum-min 1) fixnum-min)))
+
+    (pass-if "n = fixnum-min - 1"
+      (eqv? 0 (modulo (- fixnum-min 1) (- fixnum-min 1)))))
 
   ;; Positive dividend and divisor
 
@@ -510,14 +670,13 @@
 
 (with-test-prefix "gcd"
 
-  ;; Is documentation available?
-
   (expect-fail "documented?"
     (documented? gcd))
 
-  ;; Special case:  gcd 0 n
-
   (with-test-prefix "(0 n)"
+
+    (pass-if "n = 0"
+      (eqv? 0 (gcd 0 0)))
 
     (pass-if "n = 1"
       (eqv? 1 (gcd 0 1)))
@@ -525,43 +684,22 @@
     (pass-if "n = -1"
       (eqv? 1 (gcd 0 -1)))
 
-    (for-each 
-     (lambda (x)
-       (pass-if (n=2^x-1 x)
-	 (eqv? (2^x-1 x) (gcd 0 (2^x-1 x))))
-       (pass-if (n=-2^x+1 x)
-	 (eqv? (2^x-1 x) (gcd 0 (- (2^x-1 x)))))
-       (pass-if (n=2^ x)
-	 (eqv? (2^ x) (gcd 0 (2^ x))))
-       (pass-if (n=-2^ x)
-	 (eqv? (2^ x) (gcd 0 (- (2^ x))))))
-     bit-widths))
+    (pass-if "n = fixnum-max"
+      (eqv? fixnum-max (gcd 0 fixnum-max)))
 
-  ;; Special case:  gcd n 0
+    (pass-if "n = fixnum-max + 1"
+      (eqv? (+ fixnum-max 1) (gcd 0 (+ fixnum-max 1))))
 
-  (with-test-prefix "(n 0)"
+    (pass-if "n = fixnum-min"
+      (eqv? (- fixnum-min) (gcd 0 fixnum-min)))
 
-    (pass-if "n = 1"
-      (eqv? 1 (gcd 1 0)))
-
-    (pass-if "n = -1"
-      (eqv? 1 (gcd -1 0)))
-
-    (for-each 
-     (lambda (x)
-       (pass-if (n=2^x-1 x)
-	 (eqv? (2^x-1 x) (gcd (2^x-1 x) 0)))
-       (pass-if (n=-2^x+1 x)
-	 (eqv? (2^x-1 x) (gcd (- (2^x-1 x)) 0)))
-       (pass-if (n=2^ x)
-	 (eqv? (2^ x) (gcd (2^ x) 0)))
-       (pass-if (n=-2^ x)
-	 (eqv? (2^ x) (gcd (- (2^ x)) 0))))
-     bit-widths))
-
-  ;; Special case:  gcd 1 n
+    (pass-if "n = fixnum-min - 1"
+      (eqv? (- (- fixnum-min 1)) (gcd 0 (- fixnum-min 1)))))
 
   (with-test-prefix "(1 n)"
+
+    (pass-if "n = 0"
+      (eqv? 1 (gcd 1 0)))
 
     (pass-if "n = 1"
       (eqv? 1 (gcd 1 1)))
@@ -569,87 +707,132 @@
     (pass-if "n = -1"
       (eqv? 1 (gcd 1 -1)))
 
-    (for-each 
-     (lambda (x)
-       (pass-if (n=2^x-1 x)
-	 (eqv? 1 (gcd 1 (2^x-1 x))))
-       (pass-if (n=-2^x+1 x)
-	 (eqv? 1 (gcd 1 (- (2^x-1 x)))))
-       (pass-if (n=2^ x)
-	 (eqv? 1 (gcd 1 (2^ x))))
-       (pass-if (n=-2^ x)
-	 (eqv? 1 (gcd 1 (- (2^ x))))))
-     bit-widths))
+    (pass-if "n = fixnum-max"
+      (eqv? 1 (gcd 1 fixnum-max)))
 
-  ;; Special case:  gcd n 1
+    (pass-if "n = fixnum-max + 1"
+      (eqv? 1 (gcd 1 (+ fixnum-max 1))))
 
-  (with-test-prefix "(n 1)"
+    (pass-if "n = fixnum-min"
+      (eqv? 1 (gcd 1 fixnum-min)))
 
-    (pass-if "n = -1"
-      (eqv? 1 (gcd -1 1)))
-
-    (for-each 
-     (lambda (x)
-       (pass-if (n=2^x-1 x)
-	 (eqv? 1 (gcd (2^x-1 x) 1)))
-       (pass-if (n=-2^x+1 x)
-	 (eqv? 1 (gcd (- (2^x-1 x)) 1)))
-       (pass-if (n=2^ x)
-	 (eqv? 1 (gcd (2^ x) 1)))
-       (pass-if (n=-2^ x)
-	 (eqv? 1 (gcd (- (2^ x)) 1))))
-     bit-widths))
-
-  ;; Special case:  gcd -1 n
+    (pass-if "n = fixnum-min - 1"
+      (eqv? 1 (gcd 1 (- fixnum-min 1)))))
 
   (with-test-prefix "(-1 n)"
+
+    (pass-if "n = 0"
+      (eqv? 1 (gcd -1 0)))
+
+    (pass-if "n = 1"
+      (eqv? 1 (gcd -1 1)))
 
     (pass-if "n = -1"
       (eqv? 1 (gcd -1 -1)))
 
-    (for-each 
-     (lambda (x)
-       (pass-if (n=2^x-1 x)
-	 (eqv? 1 (gcd -1 (2^x-1 x))))
-       (pass-if (n=-2^x+1 x)
-	 (eqv? 1 (gcd -1 (- (2^x-1 x)))))
-       (pass-if (n=2^ x)
-	 (eqv? 1 (gcd -1 (2^ x))))
-       (pass-if (n=-2^ x)
-	 (eqv? 1 (gcd -1 (- (2^ x))))))
-     bit-widths))
+    (pass-if "n = fixnum-max"
+      (eqv? 1 (gcd -1 fixnum-max)))
 
-  ;; Special case:  gcd n -1
+    (pass-if "n = fixnum-max + 1"
+      (eqv? 1 (gcd -1 (+ fixnum-max 1))))
 
-  (with-test-prefix "(n -1)"
+    (pass-if "n = fixnum-min"
+      (eqv? 1 (gcd -1 fixnum-min)))
 
-    (for-each 
-     (lambda (x)
-       (pass-if (n=2^x-1 x)
-	 (eqv? 1 (gcd (2^x-1 x) -1)))
-       (pass-if (n=-2^x+1 x)
-	 (eqv? 1 (gcd (- (2^x-1 x)) -1)))
-       (pass-if (n=2^ x)
-	 (eqv? 1 (gcd (2^ x) -1)))
-       (pass-if (n=-2^ x)
-	 (eqv? 1 (gcd (- (2^ x)) -1))))
-     bit-widths))
+    (pass-if "n = fixnum-min - 1"
+      (eqv? 1 (gcd -1 (- fixnum-min 1)))))
 
-  ;; Special case:  gcd n n
+  (with-test-prefix "(fixnum-max n)"
 
-  (with-test-prefix "(n n)"
+    (pass-if "n = 0"
+      (eqv? fixnum-max (gcd fixnum-max 0)))
 
-    (for-each 
-     (lambda (x)
-       (pass-if (n=2^x-1 x)
-	 (eqv? (2^x-1 x) (gcd (2^x-1 x) (2^x-1 x))))
-       (pass-if (n=-2^x+1 x)
-	 (eqv? (2^x-1 x) (gcd (- (2^x-1 x)) (- (2^x-1 x)))))
-       (pass-if (n=2^ x)
-	 (eqv? (2^ x) (gcd (2^ x) (2^ x))))
-       (pass-if (n=-2^ x)
-	 (eqv? (2^ x) (gcd (- (2^ x)) (- (2^ x))))))
-     bit-widths))
+    (pass-if "n = 1"
+      (eqv? 1 (gcd fixnum-max 1)))
+
+    (pass-if "n = -1"
+      (eqv? 1 (gcd fixnum-max -1)))
+
+    (pass-if "n = fixnum-max"
+      (eqv? fixnum-max (gcd fixnum-max fixnum-max)))
+
+    (pass-if "n = fixnum-max + 1"
+      (eqv? 1 (gcd fixnum-max (+ fixnum-max 1))))
+
+    (pass-if "n = fixnum-min"
+      (eqv? 1 (gcd fixnum-max fixnum-min)))
+
+    (pass-if "n = fixnum-min - 1"
+      (eqv? 1 (gcd fixnum-max (- fixnum-min 1)))))
+
+  (with-test-prefix "((+ fixnum-max 1) n)"
+
+    (pass-if "n = 0"
+      (eqv? (+ fixnum-max 1) (gcd (+ fixnum-max 1) 0)))
+
+    (pass-if "n = 1"
+      (eqv? 1 (gcd (+ fixnum-max 1) 1)))
+
+    (pass-if "n = -1"
+      (eqv? 1 (gcd (+ fixnum-max 1) -1)))
+
+    (pass-if "n = fixnum-max"
+      (eqv? 1 (gcd (+ fixnum-max 1) fixnum-max)))
+
+    (pass-if "n = fixnum-max + 1"
+      (eqv? (+ fixnum-max 1) (gcd (+ fixnum-max 1) (+ fixnum-max 1))))
+
+    (pass-if "n = fixnum-min"
+      (eqv? (+ fixnum-max 1) (gcd (+ fixnum-max 1) fixnum-min)))
+
+    (pass-if "n = fixnum-min - 1"
+      (eqv? 1 (gcd (+ fixnum-max 1) (- fixnum-min 1)))))
+
+  (with-test-prefix "(fixnum-min n)"
+
+    (pass-if "n = 0"
+      (eqv? (- fixnum-min) (gcd fixnum-min 0)))
+
+    (pass-if "n = 1"
+      (eqv? 1 (gcd fixnum-min 1)))
+
+    (pass-if "n = -1"
+      (eqv? 1 (gcd fixnum-min -1)))
+
+    (pass-if "n = fixnum-max"
+      (eqv? 1 (gcd fixnum-min fixnum-max)))
+
+    (pass-if "n = fixnum-max + 1"
+      (eqv? (+ fixnum-max 1) (gcd fixnum-min (+ fixnum-max 1))))
+
+    (pass-if "n = fixnum-min"
+      (eqv? (- fixnum-min) (gcd fixnum-min fixnum-min)))
+
+    (pass-if "n = fixnum-min - 1"
+      (eqv? 1 (gcd fixnum-min (- fixnum-min 1)))))
+
+  (with-test-prefix "((- fixnum-min 1) n)"
+
+    (pass-if "n = 0"
+      (eqv? (- (- fixnum-min 1)) (gcd (- fixnum-min 1) 0)))
+
+    (pass-if "n = 1"
+      (eqv? 1 (gcd (- fixnum-min 1) 1)))
+
+    (pass-if "n = -1"
+      (eqv? 1 (gcd (- fixnum-min 1) -1)))
+
+    (pass-if "n = fixnum-max"
+      (eqv? 1 (gcd (- fixnum-min 1) fixnum-max)))
+
+    (pass-if "n = fixnum-max + 1"
+      (eqv? 1 (gcd (- fixnum-min 1) (+ fixnum-max 1))))
+
+    (pass-if "n = fixnum-min"
+      (eqv? 1 (gcd (- fixnum-min 1) fixnum-min)))
+
+    (pass-if "n = fixnum-min - 1"
+      (eqv? (- (- fixnum-min 1)) (gcd (- fixnum-min 1) (- fixnum-min 1)))))
 
   ;; Are wrong type arguments detected correctly?
 
@@ -661,12 +844,8 @@
 
 (with-test-prefix "<"
 
-  ;; Is documentation available?
-
   (expect-fail "documented?"
     (documented? <))
-
-  ;; Special case:  0 < n
 
   (with-test-prefix "(< 0 n)"
     
@@ -688,20 +867,18 @@
     (pass-if "n = -1.0"
       (not (< 0 -1.0)))
     
-    (for-each ;; FIXME: compare agains floats.
-     (lambda (x)
-       (pass-if (n=2^x-1 x)
-	 (< 0 (2^x-1 x)))
-       (pass-if (n=-2^x+1 x)
-	 (not (< 0 (- (2^x-1 x)))))
-       (pass-if (n=2^ x)
-	 (< 0 (2^ x)))
-       (pass-if (n=-2^ x)
-	 (not (< 0 (- (2^ x))))))
-     bit-widths))
-  
-  ;; Special case:  0.0 < n
+    (pass-if "n = fixnum-max"
+      (< 0 fixnum-max))
 
+    (pass-if "n = fixnum-max + 1"
+      (< 0 (+ fixnum-max 1)))
+
+    (pass-if "n = fixnum-min"
+      (not (< 0 fixnum-min)))
+
+    (pass-if "n = fixnum-min - 1"
+      (not (< 0 (- fixnum-min 1)))))
+  
   (with-test-prefix "(< 0.0 n)"
     
     (pass-if "n = 0"
@@ -722,152 +899,270 @@
     (pass-if "n = -1.0"
       (not (< 0.0 -1.0)))
     
-    (for-each ;; FIXME: compare agains floats.
-     (lambda (x)
-       (pass-if (n=2^x-1 x)
-	 (< 0.0 (2^x-1 x)))
-       (pass-if (n=-2^x+1 x)
-	 (not (< 0.0 (- (2^x-1 x)))))
-       (pass-if (n=2^ x)
-	 (< 0.0 (2^ x)))
-       (pass-if (n=-2^ x)
-	 (not (< 0.0 (- (2^ x))))))
-     bit-widths))
-  
-  ;; Special case:  n < 0
+    (pass-if "n = fixnum-max"
+      (< 0.0 fixnum-max))
 
-  (with-test-prefix "(< n 0)"
+    (pass-if "n = fixnum-max + 1"
+      (< 0.0 (+ fixnum-max 1)))
+
+    (pass-if "n = fixnum-min"
+      (not (< 0.0 fixnum-min)))
+
+    (pass-if "n = fixnum-min - 1"
+      (not (< 0.0 (- fixnum-min 1)))))
+  
+  (with-test-prefix "(< 1 n)"
     
-    (pass-if "n = 1"
+    (pass-if "n = 0"
       (not (< 1 0)))
     
-    (pass-if "n = 1.0"
-      (not (< 1.0 0)))
-    
-    (pass-if "n = -1"
-      (< -1 0))
-    
-    (pass-if "n = -1.0"
-      (< -1.0 0))
-    
-    (for-each ;; FIXME: compare agains floats.
-     (lambda (x)
-       (pass-if (n=2^x-1 x)
-	 (not (< (2^x-1 x) 0)))
-       (pass-if (n=-2^x+1 x)
-	 (< (- (2^x-1 x)) 0))
-       (pass-if (n=2^ x)
-	 (not (< (2^ x) 0)))
-       (pass-if (n=-2^ x)
-	 (< (- (2^ x)) 0)))
-     bit-widths))
-  
-  ;; Special case:  n < 0.0
-
-  (with-test-prefix "(< n 0.0)"
-    
-    (pass-if "n = 1"
+    (pass-if "n = 0.0"
       (not (< 1 0.0)))
-    
-    (pass-if "n = 1.0"
-      (not (< 1.0 0.0)))
-    
-    (pass-if "n = -1"
-      (< -1 0.0))
-    
-    (pass-if "n = -1.0"
-      (< -1.0 0.0))
-    
-    (for-each ;; FIXME: compare agains floats.
-     (lambda (x)
-       (pass-if (n=2^x-1 x)
-	 (not (< (2^x-1 x) 0.0)))
-       (pass-if (n=-2^x+1 x)
-	 (< (- (2^x-1 x)) 0.0))
-       (pass-if (n=2^ x)
-	 (not (< (2^ x) 0.0)))
-       (pass-if (n=-2^ x)
-	 (< (- (2^ x)) 0.0)))
-     bit-widths))
-  
-  ;; Special case:  n < n
-
-  (with-test-prefix "(< n n)"
     
     (pass-if "n = 1"
       (not (< 1 1)))
     
     (pass-if "n = 1.0"
+      (not (< 1 1.0)))
+    
+    (pass-if "n = -1"
+      (not (< 1 -1)))
+    
+    (pass-if "n = -1.0"
+      (not (< 1 -1.0)))
+    
+    (pass-if "n = fixnum-max"
+      (< 1 fixnum-max))
+
+    (pass-if "n = fixnum-max + 1"
+      (< 1 (+ fixnum-max 1)))
+
+    (pass-if "n = fixnum-min"
+      (not (< 1 fixnum-min)))
+
+    (pass-if "n = fixnum-min - 1"
+      (not (< 1 (- fixnum-min 1)))))
+
+  (with-test-prefix "(< 1.0 n)"
+    
+    (pass-if "n = 0"
+      (not (< 1.0 0)))
+    
+    (pass-if "n = 0.0"
+      (not (< 1.0 0.0)))
+    
+    (pass-if "n = 1"
+      (not (< 1.0 1)))
+    
+    (pass-if "n = 1.0"
       (not (< 1.0 1.0)))
+    
+    (pass-if "n = -1"
+      (not (< 1.0 -1)))
+    
+    (pass-if "n = -1.0"
+      (not (< 1.0 -1.0)))
+    
+    (pass-if "n = fixnum-max"
+      (< 1.0 fixnum-max))
+
+    (pass-if "n = fixnum-max + 1"
+      (< 1.0 (+ fixnum-max 1)))
+
+    (pass-if "n = fixnum-min"
+      (not (< 1.0 fixnum-min)))
+
+    (pass-if "n = fixnum-min - 1"
+      (not (< 1.0 (- fixnum-min 1)))))
+  
+  (with-test-prefix "(< -1 n)"
+    
+    (pass-if "n = 0"
+      (< -1 0))
+    
+    (pass-if "n = 0.0"
+      (< -1 0.0))
+    
+    (pass-if "n = 1"
+      (< -1 1))
+    
+    (pass-if "n = 1.0"
+      (< -1 1.0))
     
     (pass-if "n = -1"
       (not (< -1 -1)))
     
     (pass-if "n = -1.0"
-      (not (< -1.0 -1.0)))
+      (not (< -1 -1.0)))
     
-    (for-each ;; FIXME: compare agains floats.
-     (lambda (x)
-       (pass-if (n=2^x-1 x)
-	 (not (< (2^x-1 x) (2^x-1 x))))
-       (pass-if (n=-2^x+1 x)
-	 (not (< (- (2^x-1 x)) (- (2^x-1 x)))))
-       (pass-if (n=2^ x)
-	 (not (< (2^ x) (2^ x))))
-       (pass-if (n=-2^ x)
-	 (not (< (- (2^ x)) (- (2^ x))))))
-     bit-widths))
+    (pass-if "n = fixnum-max"
+      (< -1 fixnum-max))
 
-  ;; Special case:  n < n + 1
+    (pass-if "n = fixnum-max + 1"
+      (< -1 (+ fixnum-max 1)))
 
-  (with-test-prefix "(< n (+ n 1))"
+    (pass-if "n = fixnum-min"
+      (not (< -1 fixnum-min)))
+
+    (pass-if "n = fixnum-min - 1"
+      (not (< -1 (- fixnum-min 1)))))
+
+  (with-test-prefix "(< -1.0 n)"
     
-    (pass-if "n = 1"
-      (< 1 2))
+    (pass-if "n = 0"
+      (< -1.0 0))
     
-    (pass-if "n = 1.0"
-      (< 1.0 2.0))
-    
-    (pass-if "n = -1"
-      (< -1 0))
-    
-    (pass-if "n = -1.0"
+    (pass-if "n = 0.0"
       (< -1.0 0.0))
     
-    (for-each ;; FIXME: compare agains floats.
-     (lambda (x)
-       (pass-if (n=2^x-1 x)
-	 (< (2^x-1 x) (+ (2^x-1 x) 1)))
-       (pass-if (n=-2^x+1 x)
-	 (< (- (2^x-1 x)) (+ (- (2^x-1 x)) 1)))
-       (pass-if (n=2^ x)
-	 (< (2^ x) (+ (2^ x) 1)))
-       (pass-if (n=-2^ x)
-	 (< (- (2^ x)) (+ (- (2^ x)) 1))))
-     bit-widths))
-
-  ;; Special case:  n < n - 1
-
-  (with-test-prefix "(< n (- n 1))"
+    (pass-if "n = 1"
+      (< -1.0 1))
+    
+    (pass-if "n = 1.0"
+      (< -1.0 1.0))
     
     (pass-if "n = -1"
-      (not (< -1 -2)))
+      (not (< -1.0 -1)))
     
     (pass-if "n = -1.0"
-      (not (< -1.0 -2.0)))
+      (not (< -1.0 -1.0)))
     
-    (for-each ;; FIXME: compare agains floats.
-     (lambda (x)
-       (pass-if (n=2^x-1 x)
-	 (not (< (2^x-1 x) (- (2^x-1 x) 1))))
-       (pass-if (n=-2^x+1 x)
-	 (not (< (- (2^x-1 x)) (- (- (2^x-1 x)) 1))))
-       (pass-if (n=2^ x)
-	 (not (< (2^ x) (- (2^ x) 1))))
-       (pass-if (n=-2^ x)
-	 (not (< (- (2^ x)) (- (- (2^ x)) 1)))))
-     bit-widths))
+    (pass-if "n = fixnum-max"
+      (< -1.0 fixnum-max))
 
-  ;; Special case:  
+    (pass-if "n = fixnum-max + 1"
+      (< -1.0 (+ fixnum-max 1)))
 
-  )
+    (pass-if "n = fixnum-min"
+      (not (< -1.0 fixnum-min)))
+
+    (pass-if "n = fixnum-min - 1"
+      (not (< -1.0 (- fixnum-min 1)))))
+
+  (with-test-prefix "(< fixnum-max n)"
+    
+    (pass-if "n = 0"
+      (not (< fixnum-max 0)))
+    
+    (pass-if "n = 0.0"
+      (not (< fixnum-max 0.0)))
+    
+    (pass-if "n = 1"
+      (not (< fixnum-max 1)))
+    
+    (pass-if "n = 1.0"
+      (not (< fixnum-max 1.0)))
+    
+    (pass-if "n = -1"
+      (not (< fixnum-max -1)))
+    
+    (pass-if "n = -1.0"
+      (not (< fixnum-max -1.0)))
+    
+    (pass-if "n = fixnum-max"
+      (not (< fixnum-max fixnum-max)))
+
+    (pass-if "n = fixnum-max + 1"
+      (< fixnum-max (+ fixnum-max 1)))
+
+    (pass-if "n = fixnum-min"
+      (not (< fixnum-max fixnum-min)))
+
+    (pass-if "n = fixnum-min - 1"
+      (not (< fixnum-max (- fixnum-min 1)))))
+
+  (with-test-prefix "(< (+ fixnum-max 1) n)"
+    
+    (pass-if "n = 0"
+      (not (< (+ fixnum-max 1) 0)))
+    
+    (pass-if "n = 0.0"
+      (not (< (+ fixnum-max 1) 0.0)))
+    
+    (pass-if "n = 1"
+      (not (< (+ fixnum-max 1) 1)))
+    
+    (pass-if "n = 1.0"
+      (not (< (+ fixnum-max 1) 1.0)))
+    
+    (pass-if "n = -1"
+      (not (< (+ fixnum-max 1) -1)))
+    
+    (pass-if "n = -1.0"
+      (not (< (+ fixnum-max 1) -1.0)))
+    
+    (pass-if "n = fixnum-max"
+      (not (< (+ fixnum-max 1) fixnum-max)))
+
+    (pass-if "n = fixnum-max + 1"
+      (not (< (+ fixnum-max 1) (+ fixnum-max 1))))
+
+    (pass-if "n = fixnum-min"
+      (not (< (+ fixnum-max 1) fixnum-min)))
+
+    (pass-if "n = fixnum-min - 1"
+      (not (< (+ fixnum-max 1) (- fixnum-min 1)))))
+
+  (with-test-prefix "(< fixnum-min n)"
+    
+    (pass-if "n = 0"
+      (< fixnum-min 0))
+    
+    (pass-if "n = 0.0"
+      (< fixnum-min 0.0))
+    
+    (pass-if "n = 1"
+      (< fixnum-min 1))
+    
+    (pass-if "n = 1.0"
+      (< fixnum-min 1.0))
+    
+    (pass-if "n = -1"
+      (< fixnum-min -1))
+    
+    (pass-if "n = -1.0"
+      (< fixnum-min -1.0))
+    
+    (pass-if "n = fixnum-max"
+      (< fixnum-min fixnum-max))
+
+    (pass-if "n = fixnum-max + 1"
+      (< fixnum-min (+ fixnum-max 1)))
+
+    (pass-if "n = fixnum-min"
+      (not (< fixnum-min fixnum-min)))
+
+    (pass-if "n = fixnum-min - 1"
+      (not (< fixnum-min (- fixnum-min 1)))))
+
+  (with-test-prefix "(< (- fixnum-min 1) n)"
+    
+    (pass-if "n = 0"
+      (< (- fixnum-min 1) 0))
+    
+    (pass-if "n = 0.0"
+      (< (- fixnum-min 1) 0.0))
+    
+    (pass-if "n = 1"
+      (< (- fixnum-min 1) 1))
+    
+    (pass-if "n = 1.0"
+      (< (- fixnum-min 1) 1.0))
+    
+    (pass-if "n = -1"
+      (< (- fixnum-min 1) -1))
+    
+    (pass-if "n = -1.0"
+      (< (- fixnum-min 1) -1.0))
+    
+    (pass-if "n = fixnum-max"
+      (< (- fixnum-min 1) fixnum-max))
+
+    (pass-if "n = fixnum-max + 1"
+      (< (- fixnum-min 1) (+ fixnum-max 1)))
+
+    (pass-if "n = fixnum-min"
+      (< (- fixnum-min 1) fixnum-min))
+
+    (pass-if "n = fixnum-min - 1"
+      (not (< (- fixnum-min 1) (- fixnum-min 1))))))

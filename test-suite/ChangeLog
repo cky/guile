@@ -1,3 +1,7 @@
+2001-01-18  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* tests/numbers.test:  Converted to do real boundary testing.
+
 2001-01-17  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* tests/bit-operations.test:  Added.
