@@ -65,7 +65,7 @@
 scm_option scm_read_opts[] = {
   { SCM_OPTION_BOOLEAN, "copy", 0,
     "Copy source code expressions." },
-  { SCM_OPTION_BOOLEAN, "positions", 0,
+  { SCM_OPTION_BOOLEAN, "positions", 1,
     "Record positions of source code expressions." }
 };
 
