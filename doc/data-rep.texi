@@ -46,7 +46,7 @@ by the Free Software Foundation.
 @sp 10
 @comment The title is printed in a large font.
 @title Data Representation in Guile
-@subtitle $Id: data-rep.texi,v 1.10 2000-05-15 11:42:01 dirk Exp $
+@subtitle $Id: data-rep.texi,v 1.11 2000-06-20 03:22:56 mdj Exp $
 @subtitle For use with Guile @value{VERSION}
 @author Jim Blandy
 @author Free Software Foundation
@@ -1160,20 +1160,26 @@ never @code{equal?} unless they are @code{eq?}.
 
 @end table
 
-To actually register the new smob type, you must call either @code{scm_make_smob_type}
-or @code{scm_make_smob_type_mfpe}:
+To actually register the new smob type, call @code{scm_make_smob_type}:
 
 @deftypefun long scm_make_smob_type (const char *name, scm_sizet size)
-This function adds a new smob type, named @var{name}, with instance size @var{size} to the system.  
-The return value is a tag that is used in creating instances of the type.  If @var{size}
-is 0, then no memory will be allocated when instances of the smob are created, and
-nothing will be freed by the default free function.
+This function implements the standard way of adding a new smob type,
+named @var{name}, with instance size @var{size}, to the system.  The
+return value is a tag that is used in creating instances of the type.
+If @var{size} is 0, then no memory will be allocated when instances of
+the smob are created, and nothing will be freed by the default free
+function.  Default values are provided for mark, free, print, and,
+equalp, as described above.  If you want to customize any of these
+functions, the call to @code{scm_make_smob_type} should be immediately
+followed by calls to one or several of @code{scm_set_smob_mark},
+@code{scm_set_smob_free}, @code{scm_set_smob_print}, and/or
+@code{scm_set_smob_equalp}.
 @end deftypefun
 
 Each of the below @code{scm_set_smob_XXX} functions registers a smob
-special function for a given type.  You can instead use
-@code{scm_make_smob_type_mfpe} to register the special smob functions
-when you create the smob type, if you prefer.
+special function for a given type.  Each function is intended to be used
+only zero or one time per type, and the call should be placed
+immediately following the call to @code{scm_make_smob_type}.
 
 @deftypefun void scm_set_smob_mark (long tc, SCM (*mark) (SCM))
 This function sets the smob marking procedure for the smob type specified by
@@ -1195,10 +1201,13 @@ This function sets the smob equality-testing predicate for the smob type specifi
 the tag @var{tc}. @var{tc} is the tag returned by @code{scm_make_smob_type}.
 @end deftypefun
 
-Instead of using @code{scm_make_smob_type} and calling each of the individual 
-@code{scm_set_smob_XXXX} functions to register each special function 
-independently, you can use @code{scm_make_smob_type_mfpe} to register all
-of the special functions at once as you create the smob type:
+Instead of using @code{scm_make_smob_type} and calling each of the
+individual @code{scm_set_smob_XXX} functions to register each special
+function independently, you can use @code{scm_make_smob_type_mfpe} to
+register all of the special functions at once as you create the smob
+type@footnote{Warning: There is an ongoing discussion among the developers which
+may result in deprecating @code{scm_make_smob_type_mfpe} in next release
+of Guile.}:
 
 @deftypefun long scm_make_smob_type_mfpe(const char *name, scm_sizet size, SCM (*mark) (SCM), scm_sizet (*free) (SCM), int (*print) (SCM, SCM, scm_print_state*), SCM (*equalp) (SCM, SCM))
 This function invokes @code{scm_make_smob_type} on its first two arguments
