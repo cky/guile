@@ -1,3 +1,8 @@
+Fri Apr 11 15:43:07 1997  Jim Blandy  <jimb@totoro.cyclic.com>
+
+	* ltconfig, ltmain.sh: Upgraded libtool files to 0.9d.
+	* README: Say where to find libtool 0.9d.
+	
 Wed Apr  9 17:51:13 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 	Changes to work with automake-1.1n, which has better libtool

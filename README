@@ -108,9 +108,9 @@ Automake 1.1n --- a system for automatically generating Makefiles that
 	Makefile dependencies.  Available in
 	"ftp://ftp.cygnus.com/pub/tromey".
 
-libtool 0.8 --- a system for managing the zillion hairy options needed
+libtool 0.9d --- a system for managing the zillion hairy options needed
 	on various systems to produce shared libraries.  Available in
-	"http://casual1.enci.ucalgary.ca/~gord/src/".
+	"ftp://alpha.gnu.ai.mit.edu/gnu".
 
 You are lost in a little maze of automatically generated files, all
 different.
