@@ -1,3 +1,17 @@
+1998-11-22  Mikael Djurfeldt  <mdj@kenneth>
+
+	* procs.c: #include "objects.h"
+	(scm_procedure_p): Return #t also on structs which are operators.
+
+	* objects.c (scm_init_objects): Renamed <standard-metaclass>,
+	<operator-metaclass> and <entity-class> to <standard-class>,
+	<operator-class> and <entity> in order to conform with STKlos
+	naming conventions.
+
+	* eval.c (SCM_CEVAL): Jump to badfun if trying to apply a struct
+	which isn't an operator.
+	(SCM_APPLY): Ditto, but jump to badproc.
+
 1998-11-21  Mikael Djurfeldt  <mdj@kenneth>
 
 	* eval.c (SCM_CEVAL): Allow structs implanted in code.
