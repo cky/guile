@@ -1647,7 +1647,7 @@ ramap_a (ra0, proc, ras)
 
 SCM_PROC(s_serial_array_map, "serial-array-map", 2, 0, 1, scm_array_map);
 SCM_PROC(s_array_map, "array-map", 2, 0, 1, scm_array_map);
-SCM_PROC(s_array_map, "array-map!", 2, 0, 1, scm_array_map);
+SCM_PROC(s_array_map_x, "array-map!", 2, 0, 1, scm_array_map);
 
 SCM
 scm_array_map (ra0, proc, lra)
