@@ -1,5 +1,7 @@
 2002-03-14  Marius Vollmer  <mvo@zagadka.ping.de>
 
+	* unif.c (singp): Use SCM_REALP instead of SCM_SLOPPY_REALP.
+
 	* snarf.h (SCM_SNARF_INIT): Add "^:^" after code so that
 	guile-snarf can remove trailing non-init code.
 
