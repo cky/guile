@@ -157,7 +157,7 @@ scm_print_options (setting)
 
 static SCM print_state_pool;
 
-#if 1 /* Used for debugging purposes */
+#ifdef GUILE_DEBUG /* Used for debugging purposes */
 SCM_PROC(s_current_pstate, "current-pstate", 0, 0, 0, scm_current_pstate);
 
 SCM
