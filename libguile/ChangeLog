@@ -1,3 +1,15 @@
+2001-03-07  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
+
+	* symmbols.c (scm_symbols_prehistory): Changed symbol hash table
+	size from 277 --> 1009.
+
+	* symbols.c, symbols.h (scm_sys_symbols): New function GUILE_DEBUG
+	function.
+
+	* coop-threads.c: Fixed change of 2001-03-06.
+	
+	* validate.h: Code formatting.
+
 2001-03-07  Keisuke Nishida  <kxn30@po.cwru.edu>
 
 	* Makefile.am (*.x): Add dependency on snarf.h and guile-doc-snarf.in.
