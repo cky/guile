@@ -1,5 +1,15 @@
 2002-11-03  Marius Vollmer  <mvo@zagadka.ping.de>
 
+	* Makefile.am (libguile_la_SOURCES): Added threads.c
+	(DOT_DOC_FILES): Added threads.doc.
+	(DOT_X_FILES): Added threads.x.
+	(EXTRA_libguile_la_SOURCES): Removed threads.c.
+	(noinst_HEADERS): Added coop-pthreads.c.
+	(modinclude_HEADERS): Added coop-pthreads.h.
+
+	* __scm.h (USE_THREADS, GUILE_ISELECT): Define when
+	SCM_DEBUG_DEPRECATED.  Removed their use thru-out Guile.
+
 	* iselect.c: Include "_scm.h" before testing HAVE_UNISTD_H.
 	Thanks to Bill Schottstaedt!
 
