@@ -1660,9 +1660,10 @@ vectors and ordinary vectors, are the special case of one dimensional
 arrays.
 
 @menu
-* Array Syntax::
-* Array Procedures::
-* Accessing Arrays from C::    
+* Array Syntax::                
+* Array Procedures::            
+* Shared Arrays::               
+* Accessing Arrays from C::     
 @end menu
 
 @node Array Syntax
@@ -1878,64 +1879,6 @@ a @result{} #2((#f #f) (#f #t))
 @end example
 @end deffn
 
-@deffn {Scheme Procedure} make-shared-array oldarray mapfunc bound @dots{}
-@deffnx {C Function} scm_make_shared_array (oldarray, mapfunc, boundlist)
-@code{make-shared-array} can be used to create shared subarrays of other
-arrays.  The @var{mapper} is a function that translates coordinates in
-the new array into coordinates in the old array.  A @var{mapper} must be
-affine, and its range must stay within the bounds of the old array, but
-it can be otherwise arbitrary.  A simple example:
-
-@lisp
-(define fred (make-array #f 8 8))
-(define freds-diagonal
-  (make-shared-array fred (lambda (i) (list i i)) 8))
-(array-set! freds-diagonal 'foo 3)
-(array-ref fred 3 3) @result{} foo
-(define freds-center
-  (make-shared-array fred (lambda (i j) (list (+ 3 i) (+ 3 j))) 2 2))
-(array-ref freds-center 0 0) @result{} foo
-@end lisp
-@end deffn
-
-@deffn {Scheme Procedure} shared-array-increments array
-@deffnx {C Function} scm_shared_array_increments (array)
-For each dimension, return the distance between elements in the root vector.
-@end deffn
-
-@deffn {Scheme Procedure} shared-array-offset array
-@deffnx {C Function} scm_shared_array_offset (array)
-Return the root vector index of the first element in the array.
-@end deffn
-
-@deffn {Scheme Procedure} shared-array-root array
-@deffnx {C Function} scm_shared_array_root (array)
-Return the root vector of a shared array.
-@end deffn
-
-@deffn {Scheme Procedure} transpose-array array dim1 @dots{}
-@deffnx {C Function} scm_transpose_array (array, dimlist)
-Return an array sharing contents with @var{array}, but with
-dimensions arranged in a different order.  There must be one
-@var{dim} argument for each dimension of @var{array}.
-@var{dim1}, @var{dim2}, @dots{} should be integers between 0
-and the rank of the array to be returned.  Each integer in that
-range must appear at least once in the argument list.
-
-The values of @var{dim1}, @var{dim2}, @dots{} correspond to
-dimensions in the array to be returned, and their positions in the
-argument list to dimensions of @var{array}.  Several @var{dim}s
-may have the same value, in which case the returned array will
-have smaller rank than @var{array}.
-
-@lisp
-(transpose-array '#2((a b) (c d)) 1 0) @result{} #2((a c) (b d))
-(transpose-array '#2((a b) (c d)) 0 0) @result{} #1(a d)
-(transpose-array '#3(((a b c) (d e f)) ((1 2 3) (4 5 6))) 1 1 0) @result{}
-                #2((a 4) (b 5) (c 6))
-@end lisp
-@end deffn
-
 @deffn {Scheme Procedure} enclose-array array dim1 @dots{}
 @deffnx {C Function} scm_enclose_array (array, dimlist)
 @var{dim1}, @var{dim2} @dots{} should be nonnegative integers less than
@@ -2140,6 +2083,67 @@ The number of objects actually written is returned.
 @var{port-or-fdes} may be
 omitted, in which case it defaults to the value returned by
 @code{(current-output-port)}.
+@end deffn
+
+@node Shared Arrays
+@subsubsection Shared Arrays
+
+@deffn {Scheme Procedure} make-shared-array oldarray mapfunc bound @dots{}
+@deffnx {C Function} scm_make_shared_array (oldarray, mapfunc, boundlist)
+@code{make-shared-array} can be used to create shared subarrays of other
+arrays.  The @var{mapper} is a function that translates coordinates in
+the new array into coordinates in the old array.  A @var{mapper} must be
+affine, and its range must stay within the bounds of the old array, but
+it can be otherwise arbitrary.  A simple example:
+
+@lisp
+(define fred (make-array #f 8 8))
+(define freds-diagonal
+  (make-shared-array fred (lambda (i) (list i i)) 8))
+(array-set! freds-diagonal 'foo 3)
+(array-ref fred 3 3) @result{} foo
+(define freds-center
+  (make-shared-array fred (lambda (i j) (list (+ 3 i) (+ 3 j))) 2 2))
+(array-ref freds-center 0 0) @result{} foo
+@end lisp
+@end deffn
+
+@deffn {Scheme Procedure} shared-array-increments array
+@deffnx {C Function} scm_shared_array_increments (array)
+For each dimension, return the distance between elements in the root vector.
+@end deffn
+
+@deffn {Scheme Procedure} shared-array-offset array
+@deffnx {C Function} scm_shared_array_offset (array)
+Return the root vector index of the first element in the array.
+@end deffn
+
+@deffn {Scheme Procedure} shared-array-root array
+@deffnx {C Function} scm_shared_array_root (array)
+Return the root vector of a shared array.
+@end deffn
+
+@deffn {Scheme Procedure} transpose-array array dim1 @dots{}
+@deffnx {C Function} scm_transpose_array (array, dimlist)
+Return an array sharing contents with @var{array}, but with
+dimensions arranged in a different order.  There must be one
+@var{dim} argument for each dimension of @var{array}.
+@var{dim1}, @var{dim2}, @dots{} should be integers between 0
+and the rank of the array to be returned.  Each integer in that
+range must appear at least once in the argument list.
+
+The values of @var{dim1}, @var{dim2}, @dots{} correspond to
+dimensions in the array to be returned, and their positions in the
+argument list to dimensions of @var{array}.  Several @var{dim}s
+may have the same value, in which case the returned array will
+have smaller rank than @var{array}.
+
+@lisp
+(transpose-array '#2((a b) (c d)) 1 0) @result{} #2((a c) (b d))
+(transpose-array '#2((a b) (c d)) 0 0) @result{} #1(a d)
+(transpose-array '#3(((a b c) (d e f)) ((1 2 3) (4 5 6))) 1 1 0) @result{}
+                #2((a 4) (b 5) (c 6))
+@end lisp
 @end deffn
 
 @node Accessing Arrays from C
