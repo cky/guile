@@ -460,6 +460,7 @@ if test "${THREAD_PACKAGE}" != "" ; then
 
   ## Include the Guile thread interface in the library...
   LIBOBJS="$LIBOBJS threads.o"
+  EXTRA_DOT_DOC_FILES="$EXTRA_DOT_DOC_FILES threads.doc"
 
   ## ... and tell it which package to talk to.
   case "${THREAD_PACKAGE}" in
@@ -502,6 +503,9 @@ AC_PROG_AWK
 ## given in LIBOBJS.  We'll call it LIBLOBJS.
 LIBLOBJS="`echo ${LIBOBJS} | sed 's/\.o/.lo/g'`"
 
+## We also need to create corresponding .doc files
+EXTRA_DOT_DOC_FILES="`echo ${LIBOBJS} | sed 's/\.o/.doc/g'`"
+
 AC_SUBST(GUILE_MAJOR_VERSION)
 AC_SUBST(GUILE_MINOR_VERSION)
 AC_SUBST(GUILE_VERSION)
@@ -516,6 +520,7 @@ AC_SUBST(GUILE_LIBS)
 
 AC_SUBST(AWK)
 AC_SUBST(LIBLOBJS)
+AC_SUBST(EXTRA_DOT_DOC_FILES)
 
 AC_OUTPUT([Makefile libguile/Makefile libguile/guile-snarf libguile/guile-doc-snarf libguile/guile-func-name-check libguile/guile-snarf.awk libguile/versiondat.h ice-9/Makefile qt/Makefile qt/qt.h qt/md/Makefile qt/time/Makefile guile-config/Makefile doc/Makefile], [chmod +x libguile/guile-snarf libguile/guile-doc-snarf libguile/guile-func-name-check])
 
