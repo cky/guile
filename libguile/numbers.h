@@ -72,7 +72,6 @@
   (SCM_PACK ((((scm_t_signed_bits) (x)) << 2) + scm_tc2_int))
 #define SCM_INUM(x)     (SCM_SRS ((scm_t_signed_bits) SCM_UNPACK (x), 2))
 
-
 /* SCM_FIXABLE is true if its long argument can be encoded in an SCM_INUM. */
 #define SCM_POSFIXABLE(n) ((n) <= SCM_MOST_POSITIVE_FIXNUM)
 #define SCM_NEGFIXABLE(n) ((n) >= SCM_MOST_NEGATIVE_FIXNUM)
@@ -81,7 +80,6 @@
 
 /* A name for 0. */
 #define SCM_INUM0 (SCM_MAKINUM (0))
-
 
 /* SCM_MAXEXP is the maximum double precision exponent
  * SCM_FLTMAX is less than or scm_equal the largest single precision float
@@ -339,6 +337,78 @@ SCM_API int scm_i_print_fraction (SCM sexp, SCM port, scm_print_state *pstate);
 #ifdef GUILE_DEBUG
 SCM_API SCM scm_sys_check_number_conversions (void);
 #endif
+
+/* conversion functions */
+
+SCM_API int scm_is_integer (SCM val);
+SCM_API int scm_is_signed_integer (SCM val,
+				   scm_t_intmax min, scm_t_intmax max);
+SCM_API int scm_is_unsigned_integer (SCM val,
+				     scm_t_uintmax min, scm_t_uintmax max);
+
+SCM_API SCM scm_from_signed_integer (scm_t_intmax val);
+SCM_API SCM scm_from_unsigned_integer (scm_t_uintmax val);
+
+SCM_API scm_t_intmax scm_to_signed_integer (SCM val,
+					    scm_t_intmax min,
+					    scm_t_intmax max);
+SCM_API scm_t_uintmax scm_to_unsigned_integer (SCM val,
+					       scm_t_uintmax min,
+					       scm_t_uintmax max);
+
+#define scm_to_schar(x) \
+  ((signed char)scm_to_signed_integer ((x), SCHAR_MIN, SCHAR_MAX))
+#define scm_to_uchar(x) \
+  ((unsigned char)scm_to_unsigned_integer ((x), 0, UCHAR_MAX))
+#if CHAR_MIN == 0
+#define scm_to_char scm_to_uchar
+#else
+#define scm_to_char scm_to_schar
+#endif
+
+#define scm_to_short(x) \
+  ((short)scm_to_signed_integer ((x), SHORT_MIN, SHORT_MAX))
+#define scm_to_ushort(x) \
+  ((unsigned short)scm_to_unsigned_integer ((x), 0, SHORT_MAX))
+
+#define scm_to_int(x) \
+  ((int)scm_to_signed_integer ((x), INT_MIN, INT_MAX))
+#define scm_to_uint(x) \
+  ((unsigned int)scm_to_unsigned_integer ((x), 0, UINT_MAX))
+
+#define scm_to_long(x) \
+  ((long)scm_to_signed_integer ((x), LONG_MIN, LONG_MAX))
+#define scm_to_ulong(x) \
+  ((unsigned long)scm_to_unsigned_integer ((x), 0, ULONG_MAX))
+
+#define scm_to_ssize_t(x) \
+  ((ssize_t)scm_to_signed_integer ((x), -SSIZE_MAX-1, SSIZE_MAX))
+#define scm_to_size_t(x) \
+  ((unsigned long)scm_to_unsigned_integer ((x), 0, (~(size_t)0)))
+
+#define scm_from_schar(x) scm_from_signed_integer ((signed char)(x))
+#define scm_from_uchar(x) scm_from_unsigned_integer ((unsigned char)(x))
+#if CHAR_MIN == 0
+#define scm_from_char scm_from_uchar
+#else
+#define scm_from_char scm_from_schar
+#endif
+
+#define scm_from_short(x)  scm_from_signed_integer ((short)(x))
+#define scm_from_ushort(x) scm_from_unsigned_integer ((unsigned short)(x))
+
+#define scm_from_int(x)  scm_from_signed_integer ((int)(x))
+#define scm_from_uint(x) scm_from_unsigned_integer ((unsigned int)(x))
+
+#define scm_from_long(x)  scm_from_signed_integer ((long)(x))
+#define scm_from_ulong(x) scm_from_unsigned_integer ((unsigned long)(x))
+
+#define scm_from_ssize_t(x) scm_from_signed_integer ((ssize_t)(x))
+#define scm_from_size_t(x)  scm_from_unsigned_integer ((size_t)(x))
+
+SCM_API int scm_is_real (SCM val);
+SCM_API double scm_to_double (SCM val);
+SCM_API SCM scm_from_double (double val);
 
 SCM_API void scm_init_numbers (void);
 
