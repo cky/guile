@@ -373,7 +373,7 @@ ancillary =	gscm.c \
 		gscm.h \
 		COPYING \
 		ChangeLog \
-		ChangeLog.scm \
+		ChangeLog-scm \
 		Makefile.in \
 		acconfig.h \
 		aclocal.m4 \
