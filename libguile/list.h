@@ -47,82 +47,36 @@
 #include "libguile/__scm.h"
 
 
-
-
-
-
-#ifdef __STDC__
-extern SCM scm_list_head (SCM lst, SCM k);
-extern SCM scm_listify (SCM elt, ...);
-extern SCM scm_list(SCM objs);
-extern SCM scm_null_p(SCM x);
-extern SCM scm_list_p(SCM x);
-extern long scm_ilength(SCM sx);
-extern SCM scm_list_length(SCM x);
-extern SCM scm_list_append(SCM args);
-extern SCM scm_list_append_x(SCM args);
-extern SCM scm_list_reverse(SCM lst);
-extern SCM scm_list_reverse_x (SCM lst, SCM newtail);
-extern SCM scm_list_ref(SCM lst, SCM k);
-extern SCM scm_list_set_x(SCM lst, SCM k, SCM val);
-extern SCM scm_list_cdr_ref(SCM lst, SCM k);
-extern SCM scm_list_cdr_set_x(SCM lst, SCM k, SCM val);
-extern SCM scm_last_pair(SCM sx);
-extern SCM scm_list_tail(SCM lst, SCM k);
-extern SCM scm_sloppy_memq(SCM x, SCM lst);
-extern SCM scm_sloppy_memv(SCM x, SCM lst);
-extern SCM scm_sloppy_member (SCM x, SCM lst);
-extern SCM scm_memq(SCM x, SCM lst);
-extern SCM scm_memv(SCM x, SCM lst);
-extern SCM scm_member(SCM x, SCM lst);
-extern SCM scm_delq_x (SCM item, SCM lst);
-extern SCM scm_delv_x (SCM item, SCM lst);
-extern SCM scm_delete_x (SCM item, SCM lst);
-extern SCM scm_list_copy (SCM lst);
-extern SCM scm_delq (SCM item, SCM lst);
-extern SCM scm_delv (SCM item, SCM lst);
-extern SCM scm_delete (SCM item, SCM lst);
-extern void scm_init_list (void);
-
-#else /* STDC */
-extern SCM scm_list_head ();
-extern SCM scm_listify ();
-extern SCM scm_list();
-extern SCM scm_null_p();
-extern SCM scm_list_p();
-extern long scm_ilength();
-extern SCM scm_list_length();
-extern SCM scm_list_append();
-extern SCM scm_list_append_x();
-extern SCM scm_list_reverse();
-extern SCM scm_list_reverse_x ();
-extern SCM scm_list_ref();
-extern SCM scm_list_set_x();
-extern SCM scm_list_cdr_ref();
-extern SCM scm_list_cdr_set_x();
-extern SCM scm_last_pair();
-extern SCM scm_list_tail();
-extern SCM scm_sloppy_memq();
-extern SCM scm_sloppy_memv();
-extern SCM scm_sloppy_member ();
-extern SCM scm_memq();
-extern SCM scm_memv();
-extern SCM scm_member();
-extern SCM scm_delq_x ();
-extern SCM scm_delv_x ();
-extern SCM scm_delete_x ();
-extern SCM scm_list_copy ();
-extern SCM scm_delq ();
-extern SCM scm_delv ();
-extern SCM scm_delete ();
-extern void scm_init_list ();
-
-#endif /* STDC */
-
-
-
-
-
-
+extern SCM scm_list_head SCM_P ((SCM lst, SCM k));
+extern SCM scm_listify SCM_P ((SCM elt, ...));
+extern SCM scm_list SCM_P ((SCM objs));
+extern SCM scm_null_p SCM_P ((SCM x));
+extern SCM scm_list_p SCM_P ((SCM x));
+extern long scm_ilength SCM_P ((SCM sx));
+extern SCM scm_list_length SCM_P ((SCM x));
+extern SCM scm_list_append SCM_P ((SCM args));
+extern SCM scm_list_append_x SCM_P ((SCM args));
+extern SCM scm_list_reverse SCM_P ((SCM lst));
+extern SCM scm_list_reverse_x SCM_P ((SCM lst, SCM newtail));
+extern SCM scm_list_ref SCM_P ((SCM lst, SCM k));
+extern SCM scm_list_set_x SCM_P ((SCM lst, SCM k, SCM val));
+extern SCM scm_list_cdr_ref SCM_P ((SCM lst, SCM k));
+extern SCM scm_list_cdr_set_x SCM_P ((SCM lst, SCM k, SCM val));
+extern SCM scm_last_pair SCM_P ((SCM sx));
+extern SCM scm_list_tail SCM_P ((SCM lst, SCM k));
+extern SCM scm_sloppy_memq SCM_P ((SCM x, SCM lst));
+extern SCM scm_sloppy_memv SCM_P ((SCM x, SCM lst));
+extern SCM scm_sloppy_member SCM_P ((SCM x, SCM lst));
+extern SCM scm_memq SCM_P ((SCM x, SCM lst));
+extern SCM scm_memv SCM_P ((SCM x, SCM lst));
+extern SCM scm_member SCM_P ((SCM x, SCM lst));
+extern SCM scm_delq_x SCM_P ((SCM item, SCM lst));
+extern SCM scm_delv_x SCM_P ((SCM item, SCM lst));
+extern SCM scm_delete_x SCM_P ((SCM item, SCM lst));
+extern SCM scm_list_copy SCM_P ((SCM lst));
+extern SCM scm_delq SCM_P ((SCM item, SCM lst));
+extern SCM scm_delv SCM_P ((SCM item, SCM lst));
+extern SCM scm_delete SCM_P ((SCM item, SCM lst));
+extern void scm_init_list SCM_P ((void));
 
 #endif  /* LISTH */
