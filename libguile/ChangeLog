@@ -1,3 +1,8 @@
+2000-12-04  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* tags.h (scm_tc_free_cell, scm_tc16_big, scm_tc16_real,
+	scm_tc16_complex):  Eliminate hard-coded value of scm_tc7_smob.
+
 2000-12-01  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* list.[ch] (scm_c_memq):  Added as a fast C level alternative for

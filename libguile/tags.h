@@ -395,16 +395,13 @@ typedef long scm_bits_t;
 /* scm_tc_free_cell is also the 0th smob type.  We place this
  * in free cells to tell the conservative marker not to trace it.
  */
-#define scm_tc_free_cell	0x007f
+#define scm_tc_free_cell	(scm_tc7_smob + 0 * 256L)
 
-/* Smob type 1 (note the dependency on the predicate SCM_NUMP)
+/* Smob type 1 to 3 (note the dependency on the predicate SCM_NUMP)
  */
-#define scm_tc16_big		0x017f
-
-/* Smob types 2 and 3:
- */
-#define scm_tc16_real           0x027f
-#define scm_tc16_complex        0x037f
+#define scm_tc16_big		(scm_tc7_smob + 1 * 256L)
+#define scm_tc16_real           (scm_tc7_smob + 2 * 256L)
+#define scm_tc16_complex        (scm_tc7_smob + 3 * 256L)
 
 
 /* {Immediate Values}
