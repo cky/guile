@@ -19,16 +19,17 @@
  */
 
 
+#include "libguile/_scm.h"
 #if defined (HAVE_RL_GETC_FUNCTION)
-#include <libguile.h>
-#include <readline.h>
-#include <guile/gh.h>
+#include "libguile/libguile.h"
+#include "libguile/gh.h"
+#include "libguile/iselect.h"
+
 #include <readline/readline.h>
 #include <readline/history.h>
-
 #include <sys/time.h>
-#include <libguile/iselect.h>
 
+#include "readline.h"
 
 scm_option scm_readline_opts[] = {
   { SCM_OPTION_BOOLEAN, "history-file", 1,
@@ -166,6 +167,7 @@ handle_error (void *data, SCM tag, SCM args)
 {
   rl_free_line_state ();
   rl_cleanup_after_signal ();
+  fputc ('\n', rl_outstream); /* We don't want next output on this line */
   fclose (rl_instream);
   fclose (rl_outstream);
   --in_readline;
