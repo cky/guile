@@ -150,26 +150,6 @@ scm_c_hook_run (scm_c_hook_t *hook, void *data)
 scm_bits_t scm_tc16_hook;
 
 
-static SCM
-make_hook (SCM n_args, const char *subr)
-{
-  int n;
-
-  if (SCM_UNBNDP (n_args))
-    {
-      n = 0;
-    }
-  else
-    {
-      SCM_ASSERT (SCM_INUMP (n_args), n_args, SCM_ARGn, subr);
-      n = SCM_INUM (n_args);
-      if (n < 0 || n > 16)
-	scm_out_of_range (subr, n_args);
-    }
-  SCM_RETURN_NEWSMOB (scm_tc16_hook + (n << 16), SCM_UNPACK (SCM_EOL));
-}
-
-
 static int
 hook_print (SCM hook, SCM port, scm_print_state *pstate)
 {
@@ -193,16 +173,17 @@ hook_print (SCM hook, SCM port, scm_print_state *pstate)
   return 1;
 }
 
+#if (SCM_DEBUG_DEPRECATED == 0)
 
 SCM
 scm_create_hook (const char *name, int n_args)
 {
-  SCM hook = make_hook (SCM_MAKINUM (n_args), "scm_create_hook");
+  SCM hook = scm_make_hook (SCM_MAKINUM (n_args));
   scm_c_define (name, hook);
-  scm_gc_protect_object (hook); /* cmm:FIXME:: qua? */
-  return hook;
+  return scm_permanent_object (hook);
 }
 
+#endif
 
 SCM_DEFINE (scm_make_hook, "make-hook", 0, 1, 0, 
             (SCM n_args),
@@ -210,7 +191,20 @@ SCM_DEFINE (scm_make_hook, "make-hook", 0, 1, 0,
 	    "@var{n_args}.  @var{n_args} defaults to zero.")
 #define FUNC_NAME s_scm_make_hook
 {
-  return make_hook (n_args, FUNC_NAME);
+  int n;
+
+  if (SCM_UNBNDP (n_args))
+    {
+      n = 0;
+    }
+  else
+    {
+      SCM_VALIDATE_INUM_COPY (SCM_ARG1, n_args, n);
+      if (n < 0 || n > 16)
+	SCM_OUT_OF_RANGE (SCM_ARG1, n_args);
+    }
+  
+  SCM_RETURN_NEWSMOB (scm_tc16_hook + (n << 16), SCM_UNPACK (SCM_EOL));
 }
 #undef FUNC_NAME
 

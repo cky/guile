@@ -1,5 +1,12 @@
 2001-05-28  Michael Livshin  <mlivshin@bigfoot.com>
 
+	* hooks.c (scm_create_hook): deprecated.
+	(make_hook): deleted.
+	(scm_make_hook): all the hook creation code is now here.
+
+	* gc.c (scm_init_gc): don't call `scm_create_hook'.  instead make
+	a hook, make it permanent, and do a `scm_c_define' on it.
+
 	* strop.c (s_scm_string_capitalize_x): fix docstring quoting.
 
 	* socket.c (s_scm_inet_pton): fix docstring quoting.

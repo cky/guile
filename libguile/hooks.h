@@ -104,7 +104,6 @@ extern scm_bits_t scm_tc16_hook;
 #define SCM_SET_HOOK_PROCEDURES(hook, procs) SCM_SET_CELL_OBJECT_1 ((hook), (procs))
 
 extern SCM scm_make_hook (SCM n_args);
-extern SCM scm_create_hook (const char* name, int n_args);
 extern SCM scm_hook_p (SCM x);
 extern SCM scm_hook_empty_p (SCM hook);
 extern SCM scm_add_hook_x (SCM hook, SCM thunk, SCM appendp);
@@ -114,6 +113,10 @@ extern SCM scm_run_hook (SCM hook, SCM args);
 extern void scm_c_run_hook (SCM hook, SCM args);
 extern SCM scm_hook_to_list (SCM hook);
 extern void scm_init_hooks (void);
+
+#if (SCM_DEBUG_DEPRECATED == 0)
+extern SCM scm_create_hook (const char* name, int n_args);
+#endif
 
 #endif  /* SCM_HOOKS_H */
 

@@ -2840,8 +2840,8 @@ scm_init_gc ()
 {
   SCM after_gc_thunk;
 
-  /* Dirk:FIXME:: scm_create_hook is strange. */
-  scm_after_gc_hook = scm_create_hook ("after-gc-hook", 0);
+  scm_after_gc_hook = scm_permanent_object (scm_make_hook (SCM_INUM0));
+  scm_c_define ("after-gc-hook", scm_after_gc_hook);
 
   after_gc_thunk = scm_c_make_subr ("%gc-thunk", scm_tc7_subr_0,
 				    gc_async_thunk);
