@@ -186,7 +186,7 @@ start_stack (void *base)
 						   "continuation"));
   SCM_SET_CELL_TYPE (scm_rootcont, scm_tc7_contin);
   SCM_SEQ (scm_rootcont) = 0;
-  /* The root continuation if further initialized by restart_stack. */
+  /* The root continuation is further initialized by restart_stack. */
 
   /* Create the look-aside stack for variables that are shared between
    * captured continuations.
@@ -397,7 +397,9 @@ struct main_func_closure
 };
 
 
-static void scm_boot_guile_1(SCM_STACKITEM *base, struct main_func_closure *closure);
+static void scm_init_guile_1 (SCM_STACKITEM *base);
+static void scm_boot_guile_1 (SCM_STACKITEM *base,
+			      struct main_func_closure *closure);
 static SCM invoke_main_func(void *body_data);
 
 
@@ -446,151 +448,145 @@ scm_boot_guile (int argc, char ** argv, void (*main_func) (), void *closure)
   scm_boot_guile_1 (&dummy, &c);
 }
 
+extern void *scm_get_stack_base ();
 
-/* Record here whether SCM_BOOT_GUILE_1 has already been called.  This
-   variable is now here and not inside SCM_BOOT_GUILE_1 so that one
-   can tweak it. This is necessary for unexec to work. (Hey, "1-live"
-   is the name of a local radiostation...) */
-
-int scm_boot_guile_1_live = 0;
+void
+scm_init_guile ()
+{
+  scm_init_guile_1 ((SCM_STACKITEM *)scm_get_stack_base ());
+}
 
 int scm_initialized_p = 0;
 
 static void
-scm_boot_guile_1 (SCM_STACKITEM *base, struct main_func_closure *closure)
+scm_init_guile_1 (SCM_STACKITEM *base)
 {
-  /* static int live = 0; */
-  setjmp_type setjmp_val;
+  if (scm_initialized_p)
+    return;
 
-  /* This function is not re-entrant. */
-  if (scm_boot_guile_1_live)
-    abort ();
-
-  scm_boot_guile_1_live = 1;
+  if (base == NULL)
+    {
+      fprintf (stderr, "cannot determine stack base!\n");
+      abort ();
+    }
 
   scm_ints_disabled = 1;
   scm_block_gc = 1;
   
-  if (scm_initialized_p)
-    {
-      restart_stack (base);
-    }
-  else
-    {
-      scm_ports_prehistory ();
-      scm_smob_prehistory ();
-      scm_tables_prehistory ();
+  scm_ports_prehistory ();
+  scm_smob_prehistory ();
+  scm_tables_prehistory ();
 #ifdef GUILE_DEBUG_MALLOC
-      scm_debug_malloc_prehistory ();
+  scm_debug_malloc_prehistory ();
 #endif
-      scm_init_storage (scm_i_getenv_int ("GUILE_INIT_SEGMENT_SIZE_1", 0),
-			scm_i_getenv_int ("GUILE_MIN_YIELD_1", 0),
-			scm_i_getenv_int ("GUILE_INIT_SEGMENT_SIZE_2", 0),
-			scm_i_getenv_int ("GUILE_MIN_YIELD_2", 0),
-			scm_i_getenv_int ("GUILE_MAX_SEGMENT_SIZE", 0));
-      scm_struct_prehistory ();	/* Must come after scm_init_storage */
-      scm_weaks_prehistory ();	/* Must come after scm_init_storage */
-      scm_init_subr_table ();
-      scm_environments_prehistory (); /* create the root environment */
-      scm_init_root ();
+  scm_init_storage (scm_i_getenv_int ("GUILE_INIT_SEGMENT_SIZE_1", 0),
+		    scm_i_getenv_int ("GUILE_MIN_YIELD_1", 0),
+		    scm_i_getenv_int ("GUILE_INIT_SEGMENT_SIZE_2", 0),
+		    scm_i_getenv_int ("GUILE_MIN_YIELD_2", 0),
+		    scm_i_getenv_int ("GUILE_MAX_SEGMENT_SIZE", 0));
+  scm_struct_prehistory ();	/* Must come after scm_init_storage */
+  scm_weaks_prehistory ();	/* Must come after scm_init_storage */
+  scm_init_subr_table ();
+  scm_environments_prehistory (); /* create the root environment */
+  scm_init_root ();
 #ifdef USE_THREADS
-      scm_init_threads (base);
+  scm_init_threads (base);
 #endif
-      start_stack (base);
-      scm_init_gsubr ();
-      scm_init_environments ();
-      scm_init_feature ();
-      scm_init_alist ();
-      scm_init_arbiters ();
-      scm_init_async ();
-      scm_init_boolean ();
-      scm_init_chars ();
-      scm_init_continuations ();
+  start_stack (base);
+  scm_init_gsubr ();
+  scm_init_environments ();
+  scm_init_feature ();
+  scm_init_alist ();
+  scm_init_arbiters ();
+  scm_init_async ();
+  scm_init_boolean ();
+  scm_init_chars ();
+  scm_init_continuations ();
 #ifdef GUILE_DEBUG_MALLOC
-      scm_init_debug_malloc ();
+  scm_init_debug_malloc ();
 #endif
-      scm_init_dynwind ();
-      scm_init_eq ();
-      scm_init_error ();
-      scm_init_fluids ();
-      scm_init_backtrace ();	/* Requires fluids */
-      scm_init_fports ();
-      scm_init_gdbint ();
-      scm_init_hash ();
-      scm_init_hashtab ();
-      scm_init_objprop ();
-      scm_init_hooks ();        /* Requires objprop until hook names are removed */
-      scm_init_gc ();		/* Requires hooks, async */
+  scm_init_dynwind ();
+  scm_init_eq ();
+  scm_init_error ();
+  scm_init_fluids ();
+  scm_init_backtrace ();	/* Requires fluids */
+  scm_init_fports ();
+  scm_init_gdbint ();
+  scm_init_hash ();
+  scm_init_hashtab ();
+  scm_init_objprop ();
+  scm_init_properties ();
+  scm_init_hooks ();        /* Requires objprop until hook names are removed */
+  scm_init_gc ();		/* Requires hooks, async */
 #ifdef GUILE_ISELECT
-      scm_init_iselect ();
+  scm_init_iselect ();
 #endif
-      scm_init_ioext ();
-      scm_init_keywords ();
-      scm_init_list ();
-      scm_init_macros ();
-      scm_init_mallocs ();
-      scm_init_modules ();
-      scm_init_numbers ();
-      scm_init_options ();
-      scm_init_pairs ();
-      scm_init_ports ();
+  scm_init_ioext ();
+  scm_init_keywords ();
+  scm_init_list ();
+  scm_init_macros ();
+  scm_init_mallocs ();
+  scm_init_modules ();
+  scm_init_numbers ();
+  scm_init_options ();
+  scm_init_pairs ();
+  scm_init_ports ();
 #ifdef HAVE_POSIX
-      scm_init_filesys ();
-      scm_init_posix ();
+  scm_init_filesys ();
+  scm_init_posix ();
 #endif
 #ifdef HAVE_REGCOMP
-      scm_init_regex_posix ();
+  scm_init_regex_posix ();
 #endif
-      scm_init_procs ();
-      scm_init_procprop ();
-      scm_init_scmsigs ();
+  scm_init_procs ();
+  scm_init_procprop ();
+  scm_init_scmsigs ();
 #ifdef HAVE_NETWORKING
-      scm_init_net_db ();
-      scm_init_socket ();
+  scm_init_net_db ();
+  scm_init_socket ();
 #endif
-      scm_init_sort ();
+  scm_init_sort ();
 #ifdef DEBUG_EXTENSIONS
-      scm_init_srcprop ();
+  scm_init_srcprop ();
 #endif
-      scm_init_stackchk ();
-      scm_init_struct ();	/* Requires struct */
-      scm_init_stacks ();
-      scm_init_strports ();
-      scm_init_symbols ();
-      scm_init_tag ();
-      scm_init_load ();
-      scm_init_objects ();	/* Requires struct */
-      scm_init_print ();	/* Requires struct */
-      scm_init_read ();
-      scm_init_stime ();
-      scm_init_strings ();
-      scm_init_strorder ();
-      scm_init_strop ();
-      scm_init_throw ();
-      scm_init_variable ();
-      scm_init_vectors ();
-      scm_init_version ();
-      scm_init_weaks ();
-      scm_init_guardian ();
-      scm_init_vports ();
-      scm_init_eval ();
-      scm_init_evalext ();
+  scm_init_stackchk ();
+  scm_init_struct ();	/* Requires struct */
+  scm_init_stacks ();
+  scm_init_strports ();
+  scm_init_symbols ();
+  scm_init_tag ();
+  scm_init_load ();
+  scm_init_objects ();	/* Requires struct */
+  scm_init_print ();	/* Requires struct */
+  scm_init_read ();
+  scm_init_stime ();
+  scm_init_strings ();
+  scm_init_strorder ();
+  scm_init_strop ();
+  scm_init_throw ();
+  scm_init_variable ();
+  scm_init_vectors ();
+  scm_init_version ();
+  scm_init_weaks ();
+  scm_init_guardian ();
+  scm_init_vports ();
+  scm_init_eval ();
+  scm_init_evalext ();
 #ifdef DEBUG_EXTENSIONS
-      scm_init_debug ();	/* Requires macro smobs */
+  scm_init_debug ();	/* Requires macro smobs */
 #endif
-      scm_init_random ();
+  scm_init_random ();
 #ifdef HAVE_ARRAYS
-      scm_init_ramap ();
-      scm_init_unif ();
+  scm_init_ramap ();
+  scm_init_unif ();
 #endif
-      scm_init_simpos ();
-      scm_init_load_path ();
-      scm_init_standard_ports ();
-      scm_init_dynamic_linking ();
-      scm_init_lang ();
-      scm_init_script ();
-      scm_initialized_p = 1;
-    }
+  scm_init_simpos ();
+  scm_init_load_path ();
+  scm_init_standard_ports ();
+  scm_init_dynamic_linking ();
+  scm_init_lang ();
+  scm_init_script ();
+  scm_initialized_p = 1;
 
   scm_block_gc = 0;		/* permit the gc to run */
   /* ints still disabled */
@@ -599,13 +595,28 @@ scm_boot_guile_1 (SCM_STACKITEM *base, struct main_func_closure *closure)
   scm_stack_checking_enabled_p = SCM_STACK_CHECKING_P;
 #endif
 
-  setjmp_val = setjmp (SCM_JMPBUF (scm_rootcont));
-  if (!setjmp_val)
-    {
-      scm_set_program_arguments (closure->argc, closure->argv, 0);
-      scm_internal_lazy_catch (SCM_BOOL_T, invoke_main_func, closure,
-			       scm_handle_by_message, 0);
-    }
+}
+
+/* Record here whether SCM_BOOT_GUILE_1 has already been called.  This
+   variable is now here and not inside SCM_BOOT_GUILE_1 so that one
+   can tweak it. This is necessary for unexec to work. (Hey, "1-live"
+   is the name of a local radiostation...) */
+
+int scm_boot_guile_1_live = 0;
+
+static void
+scm_boot_guile_1 (SCM_STACKITEM *base, struct main_func_closure *closure)
+{
+  scm_init_guile_1 (base);
+
+  /* This function is not re-entrant. */
+  if (scm_boot_guile_1_live)
+    abort ();
+
+  scm_boot_guile_1_live = 1;
+
+  scm_set_program_arguments (closure->argc, closure->argv, 0);
+  invoke_main_func (closure);
 
   scm_restore_signals ();
 
@@ -619,7 +630,6 @@ scm_boot_guile_1 (SCM_STACKITEM *base, struct main_func_closure *closure)
      main_func themselves.  */
   exit (0);
 }
-
 
 static SCM
 invoke_main_func (void *body_data)
