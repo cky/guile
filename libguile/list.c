@@ -329,11 +329,11 @@ SCM_DEFINE (scm_reverse_x, "reverse!", 1, 1, 0,
 	    "@code{reverse!}")
 #define FUNC_NAME s_scm_reverse_x
 {
-  SCM_ASSERT (scm_ilength (lst) >= 0, lst, SCM_ARG1, FUNC_NAME);
+  SCM_VALIDATE_LIST (1, lst);
   if (SCM_UNBNDP (new_tail))
     new_tail = SCM_EOL;
   else
-    SCM_ASSERT (scm_ilength (new_tail) >= 0, new_tail, SCM_ARG2, FUNC_NAME);
+    SCM_VALIDATE_LIST (2, new_tail);
 
   while (SCM_NNULLP (lst))
     {

@@ -1,5 +1,7 @@
 2001-03-11  Keisuke Nishida  <kxn30@po.cwru.edu>
 
+	* list.c (s_scm_reverse_x): Use SCM_VALIDATE_LIST.
+
 	* environments.c, error.c, eval.c, filesys.c, hashtab.c, load.c,
 	net_db.c, procprop.c, read.c, scmsigs.c, socket.c, struct.c:
 	Use SCM_LISTn instead of scm_listify.
