@@ -165,3 +165,16 @@
 (define (list* . args)
   (issue-deprecation-warning "'list*' is deprecated.  Use 'cons*' instead.")
   (apply cons* args))
+
+;; The strange prototype system for uniform arrays has been
+;; deprecated.
+
+(define uniform-vector-fill! array-fill!)
+
+(define make-uniform-vector dimensions->uniform-array)
+
+(define (make-uniform-array prot . args)
+  (dimensions->uniform-array args prot))
+ 
+(define (list->uniform-vector prot lst)
+  (list->uniform-array 1 prot lst))

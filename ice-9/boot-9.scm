@@ -301,8 +301,9 @@
 ;;; {Arrays}
 ;;;
 
-(if (provided? 'array)
-    (primitive-load-path "ice-9/arrays.scm"))
+(define (array-shape a)
+  (map (lambda (ind) (if (number? ind) (list 0 (+ -1 ind)) ind))
+       (array-dimensions a)))
 
 
 

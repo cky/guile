@@ -25,14 +25,14 @@ SUBDIRS = debugger
 
 # These should be installed and distributed.
 ice9_sources =								   \
-	and-let-star.scm arrays.scm boot-9.scm calling.scm common-list.scm \
+	and-let-star.scm boot-9.scm calling.scm common-list.scm		   \
 	debug.scm debugger.scm documentation.scm emacs.scm expect.scm	   \
 	format.scm getopt-long.scm hcons.scm lineio.scm ls.scm mapping.scm \
 	match.scm networking.scm null.scm optargs.scm poe.scm popen.scm	   \
 	posix.scm psyntax.pp psyntax.ss q.scm r4rs.scm r5rs.scm		   \
 	rdelim.scm receive.scm regex.scm runq.scm rw.scm		   \
 	safe-r5rs.scm safe.scm session.scm slib.scm stack-catch.scm	   \
-	streams.scm string-fun.scm syncase.scm threads.scm	   	   \
+	streams.scm string-fun.scm syncase.scm threads.scm		   \
 	buffered-input.scm time.scm history.scm channel.scm		   \
         pretty-print.scm ftw.scm gap-buffer.scm occam-channel.scm	   \
 	weak-vector.scm deprecated.scm list.scm serialize.scm

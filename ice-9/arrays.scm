@@ -21,17 +21,3 @@
 (define (array-shape a)
   (map (lambda (ind) (if (number? ind) (list 0 (+ -1 ind)) ind))
        (array-dimensions a)))
-
-;; deprecated
-
-(begin-deprecated
-
- (define uniform-vector-fill! array-fill!)
-
- (define make-uniform-vector dimensions->uniform-array)
-
- (define (make-uniform-array prot . args)
-   (dimensions->uniform-array args prot))
- 
- (define (list->uniform-vector prot lst)
-   (list->uniform-array 1 prot lst)))
