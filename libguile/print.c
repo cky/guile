@@ -72,7 +72,11 @@ scm_t_option scm_print_opts[] = {
   { SCM_OPTION_SCM, "closure-hook", SCM_UNPACK (SCM_BOOL_F),
     "Hook for printing closures (should handle macros as well)." },
   { SCM_OPTION_BOOLEAN, "source", 0,
-    "Print closures with source." }
+    "Print closures with source." },
+  { SCM_OPTION_SCM, "highlight-prefix", (unsigned long)SCM_BOOL_F,
+    "The string to print before highlighted values." },
+  { SCM_OPTION_SCM, "highlight-suffix", (unsigned long)SCM_BOOL_F,
+    "The string to print after highlighted values." }
 };
 
 SCM_DEFINE (scm_print_options, "print-options-interface", 0, 1, 0, 
@@ -360,9 +364,9 @@ scm_iprin1 (SCM exp, SCM port, scm_print_state *pstate)
   if (pstate->fancyp
       && scm_is_true (scm_memq (exp, pstate->highlight_objects)))
     {
-      scm_lfwrite ("{", 1, port);
+      scm_display (SCM_PRINT_HIGHLIGHT_PREFIX, port);
       iprin1 (exp, port, pstate);
-      scm_lfwrite ("}", 1, port);
+      scm_display (SCM_PRINT_HIGHLIGHT_SUFFIX, port);
     }
   else
     iprin1 (exp, port, pstate);
@@ -1121,6 +1125,11 @@ scm_init_print ()
 
   scm_init_opts (scm_print_options, scm_print_opts, SCM_N_PRINT_OPTIONS);
 
+  scm_print_options (scm_list_4 (scm_from_locale_symbol ("highlight-prefix"),
+				 scm_from_locale_string ("{"),
+				 scm_from_locale_symbol ("highlight-suffix"),
+				 scm_from_locale_string ("}")));
+
   scm_gc_register_root (&print_state_pool);
   scm_gc_register_root (&scm_print_state_vtable);
   vtable = scm_make_vtable_vtable (scm_nullstr, SCM_INUM0, SCM_EOL);
@@ -1134,7 +1143,7 @@ scm_init_print ()
   scm_tc16_port_with_ps = scm_make_smob_type (0, 0);
   scm_set_smob_mark (scm_tc16_port_with_ps, scm_markcdr);
   scm_set_smob_print (scm_tc16_port_with_ps, port_with_ps_print);
-  
+
 #include "libguile/print.x"
 }
 

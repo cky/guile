@@ -28,9 +28,11 @@
 
 SCM_API scm_t_option scm_print_opts[];
 
-#define SCM_PRINT_CLOSURE	(SCM_PACK (scm_print_opts[0].val))
-#define SCM_PRINT_SOURCE_P	((int) scm_print_opts[1].val)
-#define SCM_N_PRINT_OPTIONS 2
+#define SCM_PRINT_CLOSURE	    (SCM_PACK (scm_print_opts[0].val))
+#define SCM_PRINT_SOURCE_P	    ((int) scm_print_opts[1].val)
+#define SCM_PRINT_HIGHLIGHT_PREFIX  (SCM_PACK (scm_print_opts[2].val))
+#define SCM_PRINT_HIGHLIGHT_SUFFIX  (SCM_PACK (scm_print_opts[3].val))
+#define SCM_N_PRINT_OPTIONS 4
 
 /* State information passed around during printing.
  */
