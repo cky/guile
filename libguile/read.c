@@ -599,7 +599,11 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
 	}
       if (j == 0)
 	return scm_nullstr;
-      return scm_c_substring_read_only (*tok_buf, 0, j);
+
+      /* Change this to scm_c_substring_read_only when
+	 SCM_STRING_CHARS has been removed.
+      */
+      return scm_c_substring_copy (*tok_buf, 0, j);
 
     case '0': case '1': case '2': case '3': case '4':
     case '5': case '6': case '7': case '8': case '9':
