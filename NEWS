@@ -150,6 +150,8 @@ completely rewritten, we (Jim Blandy and Richard Stallman) have
 decided not to support the old code.  We'll spend the time instead on
 a good interface to the newer Tk, as soon as it is available.
 
+Until then, gtcltk-lib provides trivial low-maintenance functionality.
+
 
 Copyright information:
 
