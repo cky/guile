@@ -2174,25 +2174,30 @@ in host order.
 
 @deffn {Scheme Procedure} socket family style proto
 @deffnx {C Function} scm_socket (family, style, proto)
-@vindex PF_UNIX
-@vindex PF_INET
-@vindex PF_INET6
-@vindex SOCK_STREAM
-@vindex SOCK_DGRAM
-@vindex SOCK_RAW
 Return a new socket port of the type specified by @var{family},
-@var{style} and @var{proto}.  All three parameters are
-integers.  Supported values for @var{family} are
-@code{PF_UNIX}, @code{PF_INET} and @code{PF_INET6}.
-Typical values for @var{style} are @code{SOCK_STREAM},
-@code{SOCK_DGRAM} and @code{SOCK_RAW}.
+@var{style} and @var{proto}.  All three parameters are integers.  The
+possible values for @var{family} are as follows, where supported by
+the system,
+
+@defvar PF_UNIX
+@defvarx PF_INET
+@defvarx PF_INET6
+@end defvar
+
+The possible values for @var{style} are as follows, again where
+supported by the system,
+
+@defvar SOCK_STREAM
+@defvarx SOCK_DGRAM
+@defvarx SOCK_RAW
+@end defvar
 
 @var{proto} can be obtained from a protocol name using
-@code{getprotobyname}.  A value of zero specifies the default
-protocol, which is usually right.
+@code{getprotobyname} (@pxref{Network Databases}).  A value of zero
+means the default protocol, which is usually right.
 
-A single socket port cannot by used for communication until it
-has been connected to another socket.
+A socket cannot by used for communication until it has been connected
+somewhere, usually with either @code{connect} or @code{accept} below.
 @end deffn
 
 @deffn {Scheme Procedure} socketpair family style proto
