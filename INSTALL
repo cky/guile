@@ -7,8 +7,8 @@ Generic instructions for configuring and compiling GNU distributions
 are included below.  Here is an illustration of commands that might be
 used to build Guile.  The voluminous output of the commands is not shown.
 
-	% tar xvf guile-1.0b3.tar.gz	# unpack the sources
-	% cd guile-1.0b3
+	% tar xvf guile-snap.tar.gz	# unpack the sources
+	% cd guile-snap
 	% ./configure
 	% make
 
@@ -36,13 +36,13 @@ If you want to run Guile without installing it, set the environment
 variable `SCHEME_LOAD_PATH' to a colon-separated list of directories,
 including the directory containing this INSTALL file.  For example, if
 you unpacked Guile so that the full filename of this file is
-`/home/jimb/guile-1.0b3/INSTALL', then you might say
+`/home/jimb/guile-snap/INSTALL', then you might say
 
-	export SCHEME_LOAD_PATH=/home/jimb/my-scheme:/home/jimb/guile-1.0b3
+	export SCHEME_LOAD_PATH=/home/jimb/my-scheme:/home/jimb/guile-snap
 
 if you're using Bash or any other Bourne shell variant, or
 
-	setenv SCHEME_LOAD_PATH /home/jimb/my-scheme:/home/jimb/guile-1.0b3
+	setenv SCHEME_LOAD_PATH /home/jimb/my-scheme:/home/jimb/guile-snap
 
 if you're using CSH or one of its variants.
 
