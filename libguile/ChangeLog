@@ -1,3 +1,9 @@
+2001-05-09  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* eval.c (scm_i_eval): Copy expression before passing it to
+	SCM_XEVAL.  The copy operation was removed unintendedly during my
+	change on 2001-03-25.
+
 2001-05-09  Michael Livshin  <mlivshin@bigfoot.com>
 
 	from Matthias Köppe (thanks!):
