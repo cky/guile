@@ -1,3 +1,9 @@
+2001-02-15  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* data-rep.texi: Replace this copy of data-rep.texi with a notice
+	indicating that it has been retired.  The master copy of
+	data-rep.texi is at guile-doc/ref/data-rep.texi.
+
 2001-02-04  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* data-rep.texi: Use SCM_SMOB_DATA instead of SCM_CDR.  Also
