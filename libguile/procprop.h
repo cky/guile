@@ -50,6 +50,7 @@
 
 extern SCM scm_i_name;
 extern SCM scm_i_inner_name;
+extern SCM scm_sym_arity;
 
 
 
