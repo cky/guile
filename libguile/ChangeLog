@@ -1,3 +1,11 @@
+2000-10-11  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* gc_os_dep.c: Added real implementation based on code from Boehms
+	collector.  This is not well tested yet.
+
+	* gc.h (scm_get_stack_base): Added prototype.
+	* init.c (scm_get_stack_base): Removed prototype.
+
 2000-10-11  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* random.c (scm_seed_to_random_state):  Replace SCM_LENGTH with
