@@ -39,10 +39,10 @@
 #include "libguile/feature.h"
 #include "libguile/vectors.h"
 #include "libguile/lang.h"
+#include "libguile/async.h"
 
 #include "libguile/validate.h"
 #include "libguile/sort.h"
-
 
 /* The routine quicksort was extracted from the GNU C Library qsort.c
    written by Douglas C. Schmidt (schmidt@ics.uci.edu)
@@ -129,6 +129,8 @@ quicksort (SCM *const base_ptr, size_t nr_elems, scm_t_trampoline_2 cmp, SCM les
 	  size_t right;
 	  SCM pivot;
 
+	  SCM_TICK;
+	
 	  /* Select median value from among LO, MID, and HI. Rearrange
 	     LO and HI so the three values are sorted. This lowers the
 	     probability of picking a pathological pivot value and
@@ -246,6 +248,8 @@ quicksort (SCM *const base_ptr, size_t nr_elems, scm_t_trampoline_2 cmp, SCM les
     run = 1;
     while (++run <= end)
       {
+	SCM_TICK;
+
 	tmp = run - 1;
 	while (scm_is_true ((*cmp) (less, base_ptr[run], base_ptr[tmp])))
 	  {
@@ -425,6 +429,7 @@ SCM_DEFINE (scm_merge, "merge", 3, 0, 0,
       last = build;
       while ((alen > 0) && (blen > 0))
 	{
+	  SCM_TICK;
 	  if (scm_is_true ((*cmp) (less, SCM_CAR (blist), SCM_CAR (alist))))
 	    {
 	      SCM_SETCDR (last, scm_cons (SCM_CAR (blist), SCM_EOL));
@@ -477,6 +482,7 @@ scm_merge_list_x (SCM alist, SCM blist,
       last = build;
       while ((alen > 0) && (blen > 0))
 	{
+	  SCM_TICK;
 	  if (scm_is_true ((*cmp) (less, SCM_CAR (blist), SCM_CAR (alist))))
 	    {
 	      SCM_SETCDR (last, blist);
@@ -540,6 +546,7 @@ scm_merge_list_step (SCM * seq, scm_t_trampoline_2 cmp, SCM less, long n)
   if (n > 2)
     {
       long mid = n / 2;
+      SCM_TICK;
       a = scm_merge_list_step (seq, cmp, less, mid);
       b = scm_merge_list_step (seq, cmp, less, n - mid);
       return scm_merge_list_x (a, b, mid, n - mid, cmp, less);
@@ -704,6 +711,7 @@ scm_merge_vector_step (SCM vp,
   if (high > low)
     {
       long mid = (low + high) / 2;
+      SCM_TICK;
       scm_merge_vector_step (vp, temp, cmp, less, low, mid);
       scm_merge_vector_step (vp, temp, cmp, less, mid+1, high);
       scm_merge_vector_x (vp, temp, cmp, less, low, mid, high);
