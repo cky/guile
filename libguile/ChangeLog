@@ -1,3 +1,31 @@
+2000-04-18  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* options.c (scm_options), read.c (recsexpr):  Remove redundant
+	SCM_IMP test.
+
+	* print.c (scm_iprin1):  Made the access of the struct vcell
+	element explicit.
+
+	* print.h (SCM_PRINT_CLOSURE):  Added call to SCM_PACK.
+
+	* ramap.c (scm_ra_eqp, ra_compare), unif.c
+	(scm_uniform_vector_ref, scm_cvref, rapr1):  Separated accesses to
+	unsigned long and signed long arrays and clarified the way the
+	access is performed.
+
+	* ramap.c (scm_array_map_x, raeql), read.c (scm_lreadr), stacks.c
+	(narrow_stack), unif.c (scm_cvref, scm_uniform_array_read_x,
+	scm_raprin1):  Use SCM_EQ_P to compare SCM values.
+
+	* strings.c (scm_makstr):  Treat the msymbol slots as a field of
+	scm_bits_t values.
+
+	* struct.h (SCM_SET_VTABLE_DESTRUCTOR):  Treat the struct data as
+	a field of scm_bits_t values.
+
+	* unif.c (l2ra):  Don't test result of scm_array_set_x against
+	zero:  It is always SCM_UNSPECIFIED.
+
 2000-04-18  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* script.c (scm_compile_shell_switches): Also enable

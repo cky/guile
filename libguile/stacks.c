@@ -389,7 +389,7 @@ narrow_stack (SCM stack,int inner,SCM inner_key,int outer,SCM outer_key)
     /* Use standard cutting procedure. */
     {
       for (i = 0; inner; --inner)
-	if (s->frames[i++].proc == inner_key)
+	if (SCM_EQ_P (s->frames[i++].proc, inner_key))
 	  break;
     }
   s->frames = &s->frames[i];
@@ -397,7 +397,7 @@ narrow_stack (SCM stack,int inner,SCM inner_key,int outer,SCM outer_key)
 
   /* Cut outer part. */
   for (; n && outer; --outer)
-    if (s->frames[--n].proc == outer_key)
+    if (SCM_EQ_P (s->frames[--n].proc, outer_key))
       break;
 
   s->length = n;

@@ -117,18 +117,19 @@ SCM
 scm_makstr (long len, int slots)
 {
   SCM s;
-  SCM * mem;
+  scm_bits_t * mem;
+
   SCM_NEWCELL (s);
   --slots;
   SCM_REDEFER_INTS;
-  mem = (SCM *)scm_must_malloc (sizeof (SCM) * (slots + 1) + len + 1,
-				"scm_makstr");
+  mem = (scm_bits_t *) scm_must_malloc (sizeof (scm_bits_t) * (slots + 1) 
+					+ len + 1, "scm_makstr");
   if (slots >= 0)
     {
       int x;
-      mem[slots] = (SCM)mem;
+      mem[slots] = (scm_bits_t) mem;
       for (x = 0; x < slots; ++x)
-	mem[x] = SCM_BOOL_F;
+	mem[x] = SCM_UNPACK (SCM_BOOL_F);
     }
   SCM_SETCHARS (s, (char *) (mem + slots + 1));
   SCM_SETLENGTH (s, len, scm_tc7_string);

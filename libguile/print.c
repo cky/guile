@@ -349,7 +349,7 @@ taloop:
 	{
 	case scm_tcs_cons_gloc:
 
-	  if (SCM_CDR ((SCM) SCM_STRUCT_VTABLE_DATA (exp)) == (SCM) 0)
+	  if (SCM_STRUCT_VTABLE_DATA (exp) [scm_vtable_index_vcell] == 0)
 	    {
 	      ENTER_NESTED_DATA (pstate, exp, circref);
 	      if (SCM_OBJ_CLASS_FLAGS (exp) & SCM_CLASSF_GOOPS)

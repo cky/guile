@@ -124,9 +124,7 @@ static SCM protected_objects;
 SCM
 scm_options (SCM arg, scm_option options[], int n, const char *s)
 {
-  int i, docp = (!SCM_UNBNDP (arg)
-		 && !SCM_NULLP (arg)
-		 && (SCM_IMP (arg) || SCM_NCONSP (arg)));
+  int i, docp = (!SCM_UNBNDP (arg) && !SCM_NULLP (arg) && !SCM_CONSP (arg));
   /* Let `arg' GC protect the arguments */
   SCM new_mode = arg, ans = SCM_EOL, ls;
   for (i = 0; i < n; ++i)

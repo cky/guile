@@ -1149,9 +1149,9 @@ SCM_DEFINE (scm_uniform_vector_ref, "uniform-vector-ref", 2, 0, 0,
     case scm_tc7_byvect:
       return SCM_MAKINUM (((char *)SCM_CHARS (v))[pos]);
   case scm_tc7_uvect:
-    return scm_ulong2num((unsigned long ) SCM_VELTS(v)[pos]);
+    return scm_ulong2num (((unsigned long *) SCM_VELTS (v))[pos]);
   case scm_tc7_ivect:
-    return scm_long2num((long) SCM_VELTS(v)[pos]);
+    return scm_long2num(((signed long *) SCM_VELTS (v))[pos]);
 
     case scm_tc7_svect:
       return SCM_MAKINUM (((short *) SCM_CELL_WORD_1 (v))[pos]);
@@ -1194,9 +1194,9 @@ scm_cvref (SCM v, scm_sizet pos, SCM last)
     case scm_tc7_byvect:
       return SCM_MAKINUM (((char *)SCM_CHARS (v))[pos]);
     case scm_tc7_uvect:
-      return scm_ulong2num((unsigned long) SCM_VELTS(v)[pos]);
+      return scm_ulong2num(((unsigned long *) SCM_VELTS (v))[pos]);
     case scm_tc7_ivect:
-      return scm_long2num((long) SCM_VELTS(v)[pos]);
+      return scm_long2num(((signed long *) SCM_VELTS (v))[pos]);
     case scm_tc7_svect:
       return SCM_MAKINUM (((short *) SCM_CELL_WORD_1 (v))[pos]);
 #ifdef HAVE_LONG_LONGS
@@ -1204,14 +1204,14 @@ scm_cvref (SCM v, scm_sizet pos, SCM last)
       return scm_long_long2num (((long_long *) SCM_CELL_WORD_1 (v))[pos]);
 #endif
     case scm_tc7_fvect:
-      if (SCM_NIMP (last) && last != scm_flo0 && SCM_SLOPPY_REALP (last))
+      if (SCM_NIMP (last) && !SCM_EQ_P (last, scm_flo0) && SCM_SLOPPY_REALP (last))
 	{
 	  SCM_REAL_VALUE (last) = ((float *) SCM_CELL_WORD_1 (v))[pos];
 	  return last;
 	}
       return scm_make_real (((float *) SCM_CELL_WORD_1 (v))[pos]);
     case scm_tc7_dvect:
-      if (SCM_NIMP (last) && last != scm_flo0 && SCM_SLOPPY_REALP (last))
+      if (SCM_NIMP (last) && !SCM_EQ_P (last, scm_flo0) && SCM_SLOPPY_REALP (last))
 	{
 	  SCM_REAL_VALUE (last) = ((double *) SCM_CELL_WORD_1 (v))[pos];
 	  return last;
@@ -1599,7 +1599,7 @@ loop:
   if (SCM_TYP7 (v) == scm_tc7_bvect)
     ans *= SCM_LONG_BIT;
 
-  if (v != ra && cra != ra)
+  if (!SCM_EQ_P (v, ra) && !SCM_EQ_P (cra, ra))
     scm_array_copy_x (cra, ra);
 
   return SCM_MAKINUM (ans);
@@ -2210,12 +2210,11 @@ l2ra (SCM lst, SCM ra, scm_sizet base, scm_sizet k)
 	{
 	  if (SCM_IMP (lst) || SCM_NCONSP (lst))
 	    return 0;
-	  ok = ok && scm_array_set_x (SCM_ARRAY_V (ra), SCM_CAR (lst), SCM_MAKINUM (base));
 	  base += inc;
 	  lst = SCM_CDR (lst);
 	}
       if (SCM_NNULLP (lst))
- return 0;
+	return 0;
     }
   return ok;
 }
@@ -2313,23 +2312,23 @@ tail:
 	if (n-- > 0)
 	  {
 	    /* intprint can't handle >= 2^31.  */
-	    sprintf (str, "%lu", (unsigned long) SCM_VELTS (ra)[j]);
+	    sprintf (str, "%lu", ((unsigned long *) SCM_VELTS (ra))[j]);
 	    scm_puts (str, port);
 	  }
 	for (j += inc; n-- > 0; j += inc)
 	  {
 	    scm_putc (' ', port);
-	    sprintf (str, "%lu", (unsigned long) SCM_VELTS (ra)[j]);
+	    sprintf (str, "%lu", ((unsigned long *) SCM_VELTS (ra))[j]);
 	    scm_puts (str, port);
 	  }
       }
     case scm_tc7_ivect:
       if (n-- > 0)
-	scm_intprint ((int)SCM_VELTS (ra)[j], 10, port);
+	scm_intprint (((signed long *) SCM_VELTS (ra))[j], 10, port);
       for (j += inc; n-- > 0; j += inc)
 	{
 	  scm_putc (' ', port);
-	  scm_intprint ((int)SCM_VELTS (ra)[j], 10, port);
+	  scm_intprint (((signed long *) SCM_VELTS (ra))[j], 10, port);
 	}
       break;
 
@@ -2425,7 +2424,7 @@ tail:
 	  }
       }
     case scm_tc7_bvect:
-      if (exp == v)
+      if (SCM_EQ_P (exp, v))
 	{			/* a uve, not an scm_array */
 	  register long i, j, w;
 	  scm_putc ('*', port);

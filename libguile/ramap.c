@@ -848,10 +848,15 @@ scm_ra_eqp (SCM ra0, SCM ras)
 	break;
       }
     case scm_tc7_uvect:
+      for (; n-- > 0; i0 += inc0, i1 += inc1, i2 += inc2)
+	if (SCM_BITVEC_REF (ra0, i0))
+	  if (((unsigned long *) SCM_VELTS (ra1))[i1] != ((unsigned long *) SCM_VELTS (ra2))[i2])
+	    SCM_BITVEC_CLR (ra0, i0);
+      break;
     case scm_tc7_ivect:
       for (; n-- > 0; i0 += inc0, i1 += inc1, i2 += inc2)
 	if (SCM_BITVEC_REF (ra0, i0))
-	  if (SCM_VELTS (ra1)[i1] != SCM_VELTS (ra2)[i2])
+	  if (((signed long *) SCM_VELTS (ra1))[i1] != ((signed long *) SCM_VELTS (ra2))[i2])
 	    SCM_BITVEC_CLR (ra0, i0);
       break;
     case scm_tc7_fvect:
@@ -904,13 +909,22 @@ ra_compare (SCM ra0,SCM ra1,SCM ra2,int opt)
 	break;
       }
     case scm_tc7_uvect:
+      for (; n-- > 0; i0 += inc0, i1 += inc1, i2 += inc2)
+	{
+	  if (SCM_BITVEC_REF (ra0, i0))
+	    if (opt ?
+		((unsigned long *) SCM_VELTS (ra1))[i1] < ((unsigned long *) SCM_VELTS (ra2))[i2] :
+		((unsigned long *) SCM_VELTS (ra1))[i1] >= ((unsigned long *) SCM_VELTS (ra2))[i2])
+	      SCM_BITVEC_CLR (ra0, i0);
+	}
+      break;
     case scm_tc7_ivect:
       for (; n-- > 0; i0 += inc0, i1 += inc1, i2 += inc2)
 	{
 	  if (SCM_BITVEC_REF (ra0, i0))
 	    if (opt ?
-		SCM_VELTS (ra1)[i1] < SCM_VELTS (ra2)[i2] :
-		SCM_VELTS (ra1)[i1] >= SCM_VELTS (ra2)[i2])
+		((signed long *) SCM_VELTS (ra1))[i1] < ((signed long *) SCM_VELTS (ra2))[i2] :
+		((signed long *) SCM_VELTS (ra1))[i1] >= ((signed long *) SCM_VELTS (ra2))[i2])
 	      SCM_BITVEC_CLR (ra0, i0);
 	}
       break;
@@ -1511,7 +1525,7 @@ SCM_DEFINE (scm_array_map_x, "array-map!", 2, 0, 1,
 	  goto gencase;
 	scm_array_fill_x (ra0, SCM_BOOL_T);
 	for (p = ra_rpsubrs; p->name; p++)
-	  if (proc == p->sproc)
+	  if (SCM_EQ_P (proc, p->sproc))
 	    {
 	      while (SCM_NNULLP (lra) && SCM_NNULLP (SCM_CDR (lra)))
 		{
@@ -1548,19 +1562,22 @@ SCM_DEFINE (scm_array_map_x, "array-map!", 2, 0, 1,
 	  /* Check to see if order might matter.
 	     This might be an argument for a separate
 	     SERIAL-ARRAY-MAP! */
-	  if (v0 == ra1 || (SCM_ARRAYP (ra1) && v0 == SCM_ARRAY_V (ra1)))
-	    if (ra0 != ra1 || (SCM_ARRAYP(ra0) && !SCM_ARRAY_CONTP(ra0)))
+	  if (SCM_EQ_P (v0, ra1) 
+	      || (SCM_ARRAYP (ra1) && SCM_EQ_P (v0, SCM_ARRAY_V (ra1))))
+	    if (!SCM_EQ_P (ra0, ra1) 
+		|| (SCM_ARRAYP(ra0) && !SCM_ARRAY_CONTP(ra0)))
 	      goto gencase;
 	  for (tail = SCM_CDR (lra); SCM_NNULLP (tail); tail = SCM_CDR (tail))
 	    {
 	      ra1 = SCM_CAR (tail);
-	      if (v0 == ra1 || (SCM_ARRAYP (ra1) && v0 == SCM_ARRAY_V (ra1)))
+	      if (SCM_EQ_P (v0, ra1) 
+		  || (SCM_ARRAYP (ra1) && SCM_EQ_P (v0, SCM_ARRAY_V (ra1))))
 		goto gencase;
 	    }
 	  for (p = ra_asubrs; p->name; p++)
-	    if (proc == p->sproc)
+	    if (SCM_EQ_P (proc, p->sproc))
 	      {
-		if (ra0 != SCM_CAR (lra))
+		if (!SCM_EQ_P (ra0, SCM_CAR (lra)))
 		  scm_ramapc (scm_array_identity, SCM_UNDEFINED, ra0, scm_cons (SCM_CAR (lra), SCM_EOL), FUNC_NAME);
 		lra = SCM_CDR (lra);
 		while (1)
@@ -1906,7 +1923,7 @@ raeql (SCM ra0,SCM as_equal,SCM ra1)
 	  vlen *= s0[k].ubnd - s1[k].lbnd + 1;
 	}
     }
-  if (unroll && bas0 == bas1 && v0 == v1)
+  if (unroll && bas0 == bas1 && SCM_EQ_P (v0, v1))
     return 1;
   return scm_ramapc (raeql_1, as_equal, ra0, scm_cons (ra1, SCM_EOL), "");
 }

@@ -187,9 +187,9 @@ scm_casei_streq (char *s1, char *s2)
 static SCM
 recsexpr (SCM obj,int line,int column,SCM filename)
 {
-  if (SCM_IMP (obj) || SCM_NCONSP(obj))
+  if (!SCM_CONSP(obj)) {
     return obj;
-  {
+  } else {
     SCM tmp = obj, copy;
     /* If this sexpr is visible in the read:sharp source, we want to
        keep that information, so only record non-constant cons cells
@@ -492,7 +492,7 @@ tryagain_no_flush_ws:
       goto tok;
 
     case ':':
-      if (SCM_PACK (SCM_KEYWORD_STYLE) == scm_keyword_prefix)
+      if (SCM_EQ_P (SCM_PACK (SCM_KEYWORD_STYLE), scm_keyword_prefix))
 	{
 	  j = scm_read_token ('-', tok_buf, port, 0);
 	  p = scm_intern (SCM_CHARS (*tok_buf), j);
