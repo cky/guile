@@ -1,3 +1,7 @@
+2004-09-24  Marius Vollmer  <mvo@zagadka.de>
+
+	* image-type.c: Updated from manual.
+
 2002-02-28  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* image-type.c (image_tag): Changed type to scm_t_bits.

@@ -1,5 +1,7 @@
 2004-09-24  Marius Vollmer  <mvo@zagadka.de>
 
+	* Makefile.am (EXTRA_DIST): Added gettext.h.
+
 	* smob.c, smob.h (scm_assert_smob_type): New.
 
 	* Makefile.am (guile_CFLAGS, guile_LDFLAGS, libguile_la_CFLAGS, ):

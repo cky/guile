@@ -1,5 +1,9 @@
 2004-09-24  Marius Vollmer  <mvo@zagadka.de>
 
+	* libguile.h: Include <gmp.h> outside of extern "C" block.
+	(Note that numbers.h still includes gmp.h to make it
+	self-contained.)
+	
 	* configure.in: Do not include PTHREAD_CFLAGS in CFLAGS, CFLAGS is
 	for the user and is often overwritten temporarily.
 	(GUILE_CFLAGS): New, include PTHREAD_CFLAGS here.
