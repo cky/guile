@@ -4,6 +4,9 @@
 	last chars are now tail calls per srfi, and reinstate char_pred can be
 	character or character set (somehow lost in cut and paste).
 
+	* srfi-modules.texi (SRFI-1 Searching): In any and every, revise for
+	clarity, note last call in each is a tail call.
+
 2004-12-27  Marius Vollmer  <mvo@zagadka.de>
 
 	* api-compound.texi (Vectors, Bit Vectors, Uniform Numeric
