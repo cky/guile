@@ -1,3 +1,7 @@
+2003-05-17  Marius Vollmer  <mvo@zagadka.de>
+
+	* posix.texi (socket): Use PF_ instead of AF_ prefix.
+
 2003-05-16  Kevin Ryde  <user42@zip.com.au>
 
 	* guile.texi: Use @copying, show copyright and permissions at start of
