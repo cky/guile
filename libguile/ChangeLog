@@ -1,3 +1,8 @@
+2000-07-13  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* gc.c (scm_mark_locations):  Minimized some variable scopes and
+	simplified the code a bit.
+
 2000-07-10  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* gc.h (SCM_SET_FREE_CELL_TYPE, SCM_SET_FREE_CELL_CDR,

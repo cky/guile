@@ -1212,60 +1212,61 @@ gc_mark_nimp:
 void
 scm_mark_locations (SCM_STACKITEM x[], scm_sizet n)
 {
-  register long m = n;
-  register int i, j;
-  register SCM_CELLPTR ptr;
+  unsigned long m;
 
-  while (0 <= --m)
-    if (SCM_CELLP (* (SCM *) &x[m]))
-      {
-	ptr = SCM2PTR (* (SCM *) &x[m]);
-	i = 0;
-	j = scm_n_heap_segs - 1;
-	if (   SCM_PTR_LE (scm_heap_table[i].bounds[0], ptr)
-	    && SCM_PTR_GT (scm_heap_table[j].bounds[1], ptr))
-	  {
-	    while (i <= j)
-	      {
-		int seg_id;
-		seg_id = -1;
-		if (   (i == j)
-		    || SCM_PTR_GT (scm_heap_table[i].bounds[1], ptr))
-		  seg_id = i;
-		else if (SCM_PTR_LE (scm_heap_table[j].bounds[0], ptr))
-		  seg_id = j;
-		else
-		  {
-		    int k;
-		    k = (i + j) / 2;
-		    if (k == i)
-		      break;
-		    if (SCM_PTR_GT (scm_heap_table[k].bounds[1], ptr))
-		      {
-			j = k;
-			++i;
-			if (SCM_PTR_LE (scm_heap_table[i].bounds[0], ptr))
-			  continue;
-			else
-			  break;
-		      }
-		    else if (SCM_PTR_LE (scm_heap_table[k].bounds[0], ptr))
-		      {
-			i = k;
-			--j;
-			if (SCM_PTR_GT (scm_heap_table[j].bounds[1], ptr))
-			  continue;
-			else
-			  break;
-		      }
-		  }
-		if (scm_heap_table[seg_id].span == 1
-		    || SCM_DOUBLE_CELLP (* (SCM *) &x[m]))
-		  scm_gc_mark (* (SCM *) &x[m]);
-		break;
-	      }
-	  }
-      }
+  for (m = 0; m < n; ++m)
+    {
+      SCM obj = * (SCM *) &x[m];
+      if (SCM_CELLP (obj))
+	{
+	  SCM_CELLPTR ptr = SCM2PTR (obj);
+	  int i = 0;
+	  int j = scm_n_heap_segs - 1;
+	  if (SCM_PTR_LE (scm_heap_table[i].bounds[0], ptr)
+	      && SCM_PTR_GT (scm_heap_table[j].bounds[1], ptr))
+	    {
+	      while (i <= j)
+		{
+		  int seg_id;
+		  seg_id = -1;
+		  if ((i == j)
+		      || SCM_PTR_GT (scm_heap_table[i].bounds[1], ptr))
+		    seg_id = i;
+		  else if (SCM_PTR_LE (scm_heap_table[j].bounds[0], ptr))
+		    seg_id = j;
+		  else
+		    {
+		      int k;
+		      k = (i + j) / 2;
+		      if (k == i)
+			break;
+		      if (SCM_PTR_GT (scm_heap_table[k].bounds[1], ptr))
+			{
+			  j = k;
+			  ++i;
+			  if (SCM_PTR_LE (scm_heap_table[i].bounds[0], ptr))
+			    continue;
+			  else
+			    break;
+			}
+		      else if (SCM_PTR_LE (scm_heap_table[k].bounds[0], ptr))
+			{
+			  i = k;
+			  --j;
+			  if (SCM_PTR_GT (scm_heap_table[j].bounds[1], ptr))
+			    continue;
+			  else
+			    break;
+			}
+		    }
+		  if (scm_heap_table[seg_id].span == 1
+		      || SCM_DOUBLE_CELLP (obj))
+		    scm_gc_mark (obj);
+		  break;
+		}
+	    }
+	}
+    }
 }
 
 
