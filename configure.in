@@ -51,22 +51,26 @@ AC_ARG_ENABLE(error-on-warning,
      *) AC_MSG_ERROR(bad value ${enableval} for --enable-error-on-warning) ;;
    esac])
 
+
 AC_ARG_ENABLE(debug-freelist,
   [  --enable-debug-freelist include garbage collector freelist debugging code],
   if test "$enable_debug_freelist" = y || test "$enable_debug_freelist" = yes; then
-    AC_DEFINE(GUILE_DEBUG_FREELIST)
+    AC_DEFINE(GUILE_DEBUG_FREELIST, 1,
+      [Define this if you want to debug the free list (helps w/ GC bugs).])
   fi)
 
 AC_ARG_ENABLE(debug-malloc,
   [  --enable-debug-malloc   include malloc debugging code],
   if test "$enable_debug_malloc" = y || test "$enable_debug_malloc" = yes; then
-    AC_DEFINE(GUILE_DEBUG_MALLOC)
+    AC_DEFINE(GUILE_DEBUG_MALLOC, 1,
+      [Define this if you want to debug scm_must_malloc/realloc/free calls.])
   fi)
 
 AC_ARG_ENABLE(guile-debug,
   [  --enable-guile-debug    include internal debugging functions],
   if test "$enable_guile_debug" = y || test "$enable_guile_debug" = yes; then
-    AC_DEFINE(GUILE_DEBUG)
+    AC_DEFINE(GUILE_DEBUG, 1,
+      [Define this to include various undocumented functions used to debug.])
   fi)
 
 AC_ARG_ENABLE(arrays,
@@ -110,6 +114,9 @@ AM_CONDITIONAL(HTMLDOC, test x$htmldoc_enabled = xyes)
 AC_ARG_ENABLE(deprecated,
   [  --disable-deprecated    omit deprecated features [no]])
 
+AH_TEMPLATE([SCM_ENABLE_DEPRECATED],
+  [Define this to 1 if you want to include deprecated features.])
+
 if test "$enable_deprecated" = no; then
   AC_DEFINE(SCM_ENABLE_DEPRECATED, 0)
 else
@@ -121,13 +128,16 @@ else
     warn_default=$enable_deprecated
   fi
   AC_DEFINE(SCM_ENABLE_DEPRECATED, 1)
-  AC_DEFINE_UNQUOTED(SCM_WARN_DEPRECATED_DEFAULT, "$warn_default")
+  AC_DEFINE_UNQUOTED(SCM_WARN_DEPRECATED_DEFAULT, "$warn_default",
+  [Define this to control the default warning level for deprecated features.])
 fi
 
 dnl The --disable-debug used to control these two.  But now they are
 dnl a required part of the distribution.
-AC_DEFINE(DEBUG_EXTENSIONS)
-AC_DEFINE(READER_EXTENSIONS)
+AC_DEFINE(DEBUG_EXTENSIONS, 1,
+  [Define if you want support for debugging Scheme programs.])
+AC_DEFINE(READER_EXTENSIONS, 1,
+  [Define if you want support for debugging Scheme programs.])
 
 AC_ARG_ENABLE(elisp,
   [  --disable-elisp         omit Emacs Lisp support],,
@@ -136,26 +146,33 @@ AC_ARG_ENABLE(elisp,
 dnl files which are destined for separate modules.
 
 if test "$enable_arrays" = yes; then
-   LIBOBJS="$LIBOBJS ramap.o unif.o"
-   AC_DEFINE(HAVE_ARRAYS)
+   AC_LIBOBJ([ramap])
+   AC_LIBOBJ([unif])
+   AC_DEFINE(HAVE_ARRAYS, 1,
+     [Define this if you want support for arrays and uniform arrays.])
 fi
 
 if test "$enable_posix" = yes; then
-   LIBOBJS="$LIBOBJS filesys.o posix.o"
-   AC_DEFINE(HAVE_POSIX)
+   AC_LIBOBJ([filesys])
+   AC_LIBOBJ([posix])
+   AC_DEFINE(HAVE_POSIX, 1,
+     [Define this if you want support for POSIX system calls in Guile.])
 fi
 
 if test "$enable_networking" = yes; then
-   LIBOBJS="$LIBOBJS net_db.o socket.o"
-   AC_DEFINE(HAVE_NETWORKING)
+   AC_LIBOBJ([net_db])
+   AC_LIBOBJ([socket])
+   AC_DEFINE(HAVE_NETWORKING, 1,
+     [Define this if you want support for networking in Guile.])
 fi
 
 if test "$enable_debug_malloc" = yes; then
-   LIBOBJS="$LIBOBJS debug-malloc.o"
+   AC_LIBOBJ([debug-malloc])
 fi
 
 if test "$enable_elisp" = yes; then
-   AC_DEFINE(SCM_ENABLE_ELISP)
+   AC_DEFINE(SCM_ENABLE_ELISP, 1,
+     [Define this if you want Elisp support (in addition to Scheme).])
 fi
 
 #--------------------------------------------------------------------
@@ -188,7 +205,8 @@ AC_C_INLINE
 AC_C_BIGENDIAN
 
 if test "$ac_cv_c_inline" != no; then
-  AC_DEFINE(HAVE_INLINE)
+  AC_DEFINE(HAVE_INLINE, 1,
+    [Define if the compiler supports inline functions.])
 fi
 
 AC_CHECK_SIZEOF(short)
@@ -242,9 +260,10 @@ if test "$MINGW32" = "yes" ; then
     AC_CHECK_HEADER(winsock2.h, [AC_DEFINE([HAVE_WINSOCK2_H], 1,
       [Define if you have the <winsock2.h> header file.])])
     AC_CHECK_LIB(ws2_32, main)
-    LIBOBJS="$LIBOBJS win32-uname.o win32-dirent.o"
+    AC_LIBOBJ([win32-uname])
+    AC_LIBOBJ([win32-dirent])
     if test "$enable_networking" = yes ; then
-      LIBOBJS="$LIBOBJS win32-socket.o"
+      AC_LIBOBJ([win32-socket])
     fi
     if test "$enable_shared" = yes ; then
       EXTRA_DEFS="-DSCM_IMPORT"
@@ -266,7 +285,8 @@ use_modules="$withval")
 test -z "$use_modules" && use_modules=yes
 DLPREOPEN=
 if test "$use_modules" != no; then
-  AC_DEFINE(DYNAMIC_LINKING)
+  AC_DEFINE(DYNAMIC_LINKING, 1,
+    [Define if you want support for dynamic linking.])
   if test "$use_modules" = yes; then
     DLPREOPEN="-dlpreopen force"
   else
@@ -300,7 +320,8 @@ AC_DEFUN(GUILE_FUNC_DECLARED, [
 		    guile_cv_func_$1_declared=yes,
 		    guile_cv_func_$1_declared=no))
   if test [x$guile_cv_func_]$1[_declared] = xno; then
-    AC_DEFINE([MISSING_]translit($1, [a-z], [A-Z])[_DECL])
+    AC_DEFINE([MISSING_]translit($1, [a-z], [A-Z])[_DECL], 1,
+      [Define if the operating system supplies $1 without declaring it.])
   fi
 ])
 
@@ -317,13 +338,15 @@ AC_CACHE_CHECK([return type of usleep], guile_cv_func_usleep_return_type,
 		   [guile_cv_func_usleep_return_type=int])])
 case "$guile_cv_func_usleep_return_type" in
   "void" )
-    AC_DEFINE(USLEEP_RETURNS_VOID)
+    AC_DEFINE(USLEEP_RETURNS_VOID, 1,
+      [Define if the system headers declare usleep to return void.])
   ;;
 esac
 
 AC_CHECK_HEADER(sys/un.h, have_sys_un_h=1)
 if test -n "$have_sys_un_h" ; then
-AC_DEFINE(HAVE_UNIX_DOMAIN_SOCKETS)
+  AC_DEFINE(HAVE_UNIX_DOMAIN_SOCKETS, 1,
+    [Define if the system supports Unix-domain (file-domain) sockets.])
 fi
 
 AC_CHECK_FUNCS(socketpair getgroups setpwent pause tzset)
@@ -346,7 +369,7 @@ AC_CACHE_VAL(guile_cv_have_h_errno,
 guile_cv_have_h_errno=yes, guile_cv_have_h_errno=no)])
 AC_MSG_RESULT($guile_cv_have_h_errno)
 if test $guile_cv_have_h_errno = yes; then
-  AC_DEFINE(HAVE_H_ERRNO)
+  AC_DEFINE(HAVE_H_ERRNO, 1, [Define if h_errno is declared in netdb.h.])
 fi
 
 AC_MSG_CHECKING(whether uint32_t is defined)
@@ -362,7 +385,8 @@ AC_CACHE_VAL(guile_cv_have_uint32_t,
 		  guile_cv_have_uint32_t=yes, guile_cv_have_uint32_t=no)])
 AC_MSG_RESULT($guile_cv_have_uint32_t)
 if test $guile_cv_have_uint32_t = yes; then
-  AC_DEFINE(HAVE_UINT32_T)
+  AC_DEFINE(HAVE_UINT32_T, 1,
+    [Define if uint32_t typedef is defined when netdb.h is include.])
 fi
 
 AC_MSG_CHECKING(for working IPv6 support)
@@ -373,7 +397,7 @@ AC_CACHE_VAL(guile_cv_have_ipv6,
 guile_cv_have_ipv6=yes, guile_cv_have_ipv6=no)])
 AC_MSG_RESULT($guile_cv_have_ipv6)
 if test $guile_cv_have_ipv6 = yes; then
-  AC_DEFINE(HAVE_IPV6)
+  AC_DEFINE(HAVE_IPV6, 1, [Define if you want support for IPv6.])
 fi
 
 # included in rfc2553 but not in older implementations, e.g., glibc 2.1.3.
@@ -384,7 +408,8 @@ AC_CACHE_VAL(guile_cv_have_sin6_scope_id,
 guile_cv_have_sin6_scope_id=yes, guile_cv_have_sin6_scope_id=no)])
 AC_MSG_RESULT($guile_cv_have_sin6_scope_id)
 if test $guile_cv_have_sin6_scope_id = yes; then
-  AC_DEFINE(HAVE_SIN6_SCOPE_ID)
+  AC_DEFINE(HAVE_SIN6_SCOPE_ID, 1,
+    [Define this if your IPv6 has sin6_scope_id in sockaddr_in6 struct.])
 fi
 
 AC_MSG_CHECKING(whether localtime caches TZ)
@@ -431,7 +456,7 @@ else
 fi])dnl
 AC_MSG_RESULT($guile_cv_localtime_cache)
 if test $guile_cv_localtime_cache = yes; then
-  AC_DEFINE(LOCALTIME_CACHE)
+  AC_DEFINE(LOCALTIME_CACHE, 1, [Define if localtime caches the TZ setting.])
 fi
 
 dnl Test whether system calls are restartable by default on the
@@ -450,18 +475,19 @@ if test "$enable_regex" = yes; then
    if test "$ac_cv_header_regex_h" = yes ||
       test "$ac_cv_header_rxposix_h" = yes ||
       test "$ac_cv_header_rx_rxposix_h" = yes; then
-     GUILE_NAMED_CHECK_FUNC(regcomp, norx, [LIBOBJS="regex-posix.o $LIBOBJS"],
+     GUILE_NAMED_CHECK_FUNC(regcomp, norx, [AC_LIBOBJ([regex-posix])],
      [AC_CHECK_LIB(rx, main)
-      GUILE_NAMED_CHECK_FUNC(regcomp, rx, [LIBOBJS="regex-posix.o $LIBOBJS"],
+      GUILE_NAMED_CHECK_FUNC(regcomp, rx, [AC_LIBOBJ([regex-posix])],
      [AC_CHECK_LIB(regex, main)
-      GUILE_NAMED_CHECK_FUNC(regcomp, regex, [LIBOBJS="regex-posix.o $LIBOBJS"])])]
+      GUILE_NAMED_CHECK_FUNC(regcomp, regex, [AC_LIBOBJ([regex-posix])])])]
      )
      dnl The following should not be necessary, but for some reason
      dnl autoheader misses it if we don't include it!
      if test "$ac_cv_func_regcomp_norx" = yes ||
         test "$ac_cv_func_regcomp_regex" = yes ||
         test "$ac_cv_func_regcomp_rx" = yes; then
-       AC_DEFINE(HAVE_REGCOMP)
+       AC_DEFINE(HAVE_REGCOMP, 1,
+         [This is included as part of a workaround for a autoheader bug.])
      fi
    fi
 fi
@@ -472,7 +498,7 @@ AC_REPLACE_FUNCS(inet_aton putenv strerror memmove mkstemp)
 # explicitly to LIBOBJS to make sure that it is translated to
 # `alloca.lo' for libtool later on.  This can and should be done more cleanly.
 AC_FUNC_ALLOCA
-if test "$ALLOCA" = "alloca.o"; then LIBOBJS="alloca.o $LIBOBJS"; fi
+if test "$ALLOCA" = "alloca.o"; then AC_LIBOBJ([alloca]); fi
 
 AC_CHECK_MEMBERS([struct stat.st_rdev])
 AC_CHECK_MEMBERS([struct stat.st_blksize])
@@ -487,7 +513,8 @@ AC_CACHE_CHECK([for S_ISLNK in sys/stat.h], ac_cv_macro_S_ISLNK,
                ac_cv_macro_S_ISLNK=yes,
                ac_cv_macro_S_ISLNK=no)])
 if test $ac_cv_macro_S_ISLNK = yes; then
-  AC_DEFINE(HAVE_S_ISLNK)
+  AC_DEFINE(HAVE_S_ISLNK, 1,
+    [Define this if your system defines S_ISLNK in sys/stat.h.])
 fi
 
 AC_STRUCT_TIMEZONE
@@ -502,7 +529,15 @@ GUILE_STRUCT_UTIMBUF
 AC_TRY_RUN(aux (l) unsigned long l;
 	     { int x; exit (l >= ((unsigned long)&x)); }
 	   main () { int q; aux((unsigned long)&q); },
-	   AC_DEFINE(SCM_STACK_GROWS_UP),,AC_MSG_WARN(Guessing that stack grows down -- see scmconfig.h.in))
+	   [AC_DEFINE([SCM_STACK_GROWS_UP], 1,
+              [Define this if a callee's stack frame has a higher address
+               than the caller's stack frame.  On most machines, this is
+               not the case.])],
+	   [],
+           [AC_MSG_WARN(Guessing that stack grows down -- see scmconfig.h.in)])
+
+AH_TEMPLATE([SCM_SINGLES],
+  [Define this if floats are the same size as longs.])
 
 AC_CACHE_CHECK([whether floats fit in longs], guile_cv_type_float_fits_long,
     [AC_TRY_RUN([main () { exit (sizeof(float) > sizeof(long)); }],
@@ -531,7 +566,9 @@ AC_CACHE_VAL(scm_cv_struct_linger,
 			scm_cv_struct_linger="no"))
 AC_MSG_RESULT($scm_cv_struct_linger)
 if test $scm_cv_struct_linger = yes; then
-	AC_DEFINE(HAVE_STRUCT_LINGER)
+	AC_DEFINE(HAVE_STRUCT_LINGER, 1,
+          [Define this if your system defines struct linger, for use with the
+           getsockopt and setsockopt system calls.])
 fi
 
 
@@ -544,7 +581,8 @@ AC_CACHE_VAL(scm_cv_struct_timespec,
 			scm_cv_struct_timespec="no"))
 AC_MSG_RESULT($scm_cv_struct_timespec)
 if test $scm_cv_struct_timespec = yes; then
-	AC_DEFINE(HAVE_STRUCT_TIMESPEC)
+  AC_DEFINE(HAVE_STRUCT_TIMESPEC, 1,
+    [Define this if your system defines struct timespec via <time.h>.])
 fi
 
 #--------------------------------------------------------------------
@@ -586,15 +624,16 @@ esac
 ## If we're using threads, bring in some other parts of Guile which
 ## work with them.
 if test "${THREAD_PACKAGE}" != "" ; then
-  AC_DEFINE(USE_THREADS, 1)
+  AC_DEFINE(USE_THREADS, 1, [Define if using any sort of threads.])
 
   ## Include the Guile thread interface in the library...
-  LIBOBJS="$LIBOBJS threads.o"
+  AC_LIBOBJ([threads])
 
   ## ... and tell it which package to talk to.
   case "${THREAD_PACKAGE}" in
     "QT" )
-      AC_DEFINE(USE_COOP_THREADS, 1)
+      AC_DEFINE(USE_COOP_THREADS, 1,
+        [Define if using cooperative multithreading.])
     ;;
     * )
       AC_MSG_ERROR(invalid value for THREAD_PACKAGE: ${THREAD_PACKAGE})
@@ -604,7 +643,7 @@ if test "${THREAD_PACKAGE}" != "" ; then
   ## Bring in scm_internal_select, if appropriate.
   if test $ac_cv_func_gettimeofday = yes &&
      test $ac_cv_func_select = yes; then
-    AC_DEFINE(GUILE_ISELECT, 1)
+    AC_DEFINE(GUILE_ISELECT, 1, [Define to implement scm_internal_select.])
   fi
 
   AC_ARG_ENABLE(linuxthreads,
@@ -613,7 +652,8 @@ if test "${THREAD_PACKAGE}" != "" ; then
 
   ## Workaround for linuxthreads (optionally disabled)
   if test $host_os = linux-gnu -a "$enable_linuxthreads" = yes; then
-    AC_DEFINE(GUILE_PTHREAD_COMPAT, 1)
+    AC_DEFINE(GUILE_PTHREAD_COMPAT, 1,
+      [Define to enable workaround for COOP-linuxthreads compatibility.])
     AC_CHECK_LIB(pthread, main)
   fi
 fi
@@ -631,18 +671,23 @@ esac
 
 AC_PROG_AWK
 
+## NOTE the code below sets LIBOBJS directly and so is now forbidden
+## -- I'm disabling it for now in the hopes that the newer autoconf
+## will DTRT -- if not, we need to fix up the sed command to match the
+## others...
+##
 ## Remove fileblocks.o from the object list.  This file gets added by
 ## the Autoconf macro AC_STRUCT_ST_BLOCKS.  But there is no need.
-LIBOBJS="`echo ${LIBOBJS} | sed 's/fileblocks\.o//g'`"
+#LIBOBJS="`echo ${LIBOBJS} | sed 's/fileblocks\.o//g'`"
 
 ## If we're creating a shared library (using libtool!), then we'll
 ## need to generate a list of .lo files corresponding to the .o files
 ## given in LIBOBJS.  We'll call it LIBLOBJS.
-LIBLOBJS="`echo ${LIBOBJS} | sed 's/\.o/.lo/g'`"
+LIBLOBJS="`echo ${LIB@&t@OBJS} | sed 's,\.[[^.]]* ,.lo ,g;s,\.[[^.]]*$,.lo,'`"
 
 ## We also need to create corresponding .doc and .x files
-EXTRA_DOT_DOC_FILES="`echo ${LIBOBJS} | sed 's/\.o/.doc/g'`"
-EXTRA_DOT_X_FILES="`echo ${LIBOBJS} | sed 's/\.o/.x/g'`"
+EXTRA_DOT_DOC_FILES="`echo ${LIB@&t@OBJS} | sed 's,\.[[^.]]* ,.doc ,g;s,\.[[^.]]*$,.doc,'`"
+EXTRA_DOT_X_FILES="`echo ${LIB@&t@OBJS} | sed 's,\.[[^.]]* ,.x ,g;s,\.[[^.]]*$,.x,'`"
 
 AC_SUBST(GUILE_MAJOR_VERSION)
 AC_SUBST(GUILE_MINOR_VERSION)
