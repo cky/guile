@@ -27,6 +27,7 @@
 #include "libguile/strings.h"
 #include "libguile/validate.h"
 #include "libguile/gc.h"
+#include "libguile/posix.h"
 #include "libguile/dynwind.h"
 
 #include "libguile/fports.h"
@@ -509,7 +510,7 @@ fport_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
       
 #ifdef HAVE_TTYNAME
       if (isatty (fdes))
-	scm_puts (ttyname (fdes), port);
+	scm_display (scm_ttyname (exp), port);
       else
 #endif /* HAVE_TTYNAME */
 	scm_intprint (fdes, 10, port);
