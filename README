@@ -102,11 +102,15 @@ switches specific to Guile you may find useful in some circumstances.
 --enable-deprecated=LEVEL
 
   Guile may contain features that are `deprecated'.  When a feature is
-  deprecated, it means that it is still there and fully functional,
-  but that there is a better way of achieving the same thing, and we'd
-  rather have you use this better way.  This allows us to eventually
-  remove the old implementation and helps to keep Guile reasonably
-  clean of historic baggage.
+  deprecated, it means that it is still there, but that there is a
+  better way of achieving the same thing, and we'd rather have you use
+  this better way.  This allows us to eventually remove the old
+  implementation and helps to keep Guile reasonably clean of historic
+  baggage.
+
+  Deprecated features are considered harmful; using them is likely a
+  bug.  See below for the related notion of `discouraged' features,
+  which are OK but have fallen out of favour.
 
   See the file NEWS for a list of features that are currently
   deprecated.  Each entry will also tell you what you should replace
@@ -151,6 +155,17 @@ switches specific to Guile you may find useful in some circumstances.
     feature.
 
   The default is `--enable-deprecated=yes'.
+
+--disable-discouraged
+
+  In addition to deprecated features, Guile can also contain things
+  that are merely `discouraged'.  It is OK to continue to use these
+  features in old code, but new code should avoid them since there are
+  better alternatives.
+
+  There is nothing wrong with a discouraged feature per se, but they
+  might have strange names, or be non-standard, for example.  Avoiding
+  them will make your code better.
 
 --disable-shared  ---  Do not build shared libraries.
 --disable-static  ---  Do not build static libraries.
