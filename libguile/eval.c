@@ -93,6 +93,8 @@ char *alloca ();
 
 #include "srcprop.h"
 #include "stackchk.h"
+#include "objects.h"
+#include "feature.h"
 
 #include "eval.h"
 
@@ -2203,6 +2205,25 @@ evapply:
 	  goto cdrxbegin;
 	case scm_tc7_contin:
 	  scm_call_continuation (proc, t.arg1);
+	case scm_tcs_cons_gloc:
+	  if (SCM_I_ENTITYP (proc))
+	    {
+	      x = SCM_ENTITY_PROC_1 (proc);
+	      if (SCM_TYP7 (x) == scm_tc7_subr_2)
+		RETURN (SCM_SUBRF (x) (proc, t.arg1))
+	      else if (SCM_CLOSUREP (x))
+		{
+		  arg2 = t.arg1;
+		  t.arg1 = proc;
+		  proc = x;
+#ifdef DEVAL
+		  debug.info->a.args = scm_cons (t.arg1, debug.info->a.args);
+		  debug.info->a.proc = proc;
+#endif
+		  goto clos2;
+		}
+	      /* Fall through. */
+	    }
 	case scm_tc7_subr_2:
 	case scm_tc7_subr_0:
 	case scm_tc7_subr_3:
@@ -2261,6 +2282,28 @@ evapply:
 		proc = SCM_CCLO_SUBR(proc);
 		goto evap3; */
 #endif
+	case scm_tcs_cons_gloc:
+	  if (SCM_I_ENTITYP (proc))
+	    {
+	      x = SCM_ENTITY_PROC_2 (proc);
+	      if (SCM_TYP7 (x) == scm_tc7_subr_3)
+		RETURN (SCM_SUBRF (x) (proc, t.arg1, arg2))
+	      else if (SCM_CLOSUREP (x))
+		{
+#ifdef DEVAL
+		  SCM_SET_ARGSREADY (debug);
+		  debug.info->a.args = scm_cons (proc, debug.info->a.args);
+		  debug.info->a.proc = x;
+#endif
+		  env = EXTEND_ENV (SCM_CAR (SCM_CODE (x)),
+				    scm_cons2 (proc, t.arg1,
+					       scm_cons (arg2, env)),
+				    SCM_ENV (proc));
+		  x = SCM_CODE (proc);
+		  goto cdrxbegin;
+		}
+	      /* Fall through. */
+	    }
 	case scm_tc7_subr_0:
 	case scm_tc7_cxr:
 	case scm_tc7_subr_1o:
@@ -2271,6 +2314,7 @@ evapply:
 	default:
 	  goto badfun;
 	case scm_tcs_closures:
+	clos2:
 #ifdef DEVAL
 	  env = EXTEND_ENV (SCM_CAR (SCM_CODE (proc)), debug.info->a.args, SCM_ENV (proc));
 #else
@@ -2285,6 +2329,7 @@ evapply:
 	    scm_deval_args (x, env, SCM_CDRLOC (SCM_CDR (debug.info->a.args))));
 #endif
     ENTER_APPLY;
+  evap3:
     switch (SCM_TYP7 (proc))
       {			/* have 3 or more arguments */
 #ifdef DEVAL
@@ -2377,6 +2422,9 @@ evapply:
 	x = SCM_CODE (proc);
 	goto cdrxbegin;
 #endif /* DEVAL */
+      case scm_tcs_cons_gloc:
+	if (SCM_I_ENTITYP (proc))
+	  ;
       case scm_tc7_subr_2:
       case scm_tc7_subr_1o:
       case scm_tc7_subr_2o:
@@ -2728,6 +2776,9 @@ tail:
 #endif
       goto tail;
 #endif
+    case scm_tcs_cons_gloc:
+      if (SCM_I_ENTITYP (proc))
+	;
     wrongnumargs:
       scm_wrong_num_args (proc);
     default:
@@ -2883,8 +2934,10 @@ scm_makprom (code)
 {
   register SCM z;
   SCM_NEWCELL (z);
+  SCM_DEFER_INTS;
   SCM_SETCDR (z, code);
   SCM_SETCAR (z, scm_tc16_promise);
+  SCM_ALLOW_INTS;
   return z;
 }
 

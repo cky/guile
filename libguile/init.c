@@ -76,6 +76,7 @@
 #include "mbstrings.h"
 #include "net_db.h"
 #include "numbers.h"
+#include "objects.h"
 #include "objprop.h"
 #include "options.h"
 #include "pairs.h"
@@ -436,6 +437,7 @@ scm_boot_guile_1 (base, closure)
       scm_init_symbols ();
       scm_init_tag ();
       scm_init_load ();
+      scm_init_objects ();	/* Requires struct */
       scm_init_print ();	/* Requires struct */
       scm_init_read ();
       scm_init_stime ();

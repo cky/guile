@@ -147,7 +147,7 @@ sfgetc (p)
   SCM ans;
   ans = scm_apply (SCM_VELTS (p)[3], SCM_EOL, SCM_EOL);
   errno = 0;
-  if (SCM_FALSEP (ans) || SCM_EOF_VAL == ans)
+  if (SCM_FALSEP (ans) || SCM_EOF_OBJECT_P (ans))
     return EOF;
   SCM_ASSERT (SCM_ICHRP (ans), ans, SCM_ARG1, "getc");
   return SCM_ICHR (ans);

@@ -270,7 +270,7 @@ scm_eval_string (string)
   SCM ans = SCM_UNSPECIFIED;
 
   /* Read expressions from that port; ignore the values.  */
-  while ((form = scm_read (port)) != SCM_EOF_VAL)
+  while (!SCM_EOF_OBJECT_P (form = scm_read (port)))
     ans = scm_eval_x (form);
 
   scm_close_port (port);

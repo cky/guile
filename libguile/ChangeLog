@@ -1,4 +1,22 @@
-Sat Sep 20 15:17:58 1997  Mikael Djurfeldt  <mdj@kenneth>
+Mon Sep 22 01:21:54 1997  Mikael Djurfeldt  <mdj@kenneth>
+
+	* init.c (scm_boot_guile_1): Added scm_init_objects ().
+	Added #include "objects.h"
+
+	* eval.c (scm_makprom): Added SCM_DEFER_INTS and SCM_ALLOW_INTS.
+	Add #include "feature.h".
+
+	* Makefile.am (libguile_la_SOURCES): Added objects.c.
+	(modinclude_HEADERS): Added objects.h.
+
+	* ports.h (SCM_EOF_OBJECT_P): New macro predicate.
+	This test is needed at many places in the code and should be
+	abstracted.  (Motivated by the need of this test in libguiletk.)
+
+	* ports.c (scm_eof_object_p), vports.c (sfgetc), strports.c
+	(scm_eval_string), load.c (scm_primitive_load,
+ 	scm_read_and_eval_x), gh_eval.c (gh_eval_str):
+	Use SCM_EOF_OBJECT_P.
 
 	* eval.c (scm_init_eval): Add feature `delay'.
 

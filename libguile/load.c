@@ -92,7 +92,7 @@ scm_primitive_load (filename)
     while (1)
       {
 	form = scm_read (port);
-	if (SCM_EOF_VAL == form)
+	if (SCM_EOF_OBJECT_P (form))
 	  break;
 	scm_eval_x (form);
       }
@@ -317,7 +317,7 @@ scm_read_and_eval_x (port)
      SCM port;
 {
   SCM form = scm_read (port);
-  if (form == SCM_EOF_VAL)
+  if (SCM_EOF_OBJECT_P (form))
     scm_ithrow (scm_end_of_file_key, SCM_EOL, 1);
   return scm_eval_x (form);
 }

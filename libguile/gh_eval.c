@@ -61,7 +61,7 @@ gh_eval_str (char *scheme_code)
   SCM form;
 
   /* Read expressions from that port; ignore the values.  */
-  while ((form = scm_read (port, SCM_BOOL_F, SCM_BOOL_F)) != SCM_EOF_VAL)
+  while (!SCM_EOF_OBJECT_P (form = scm_read (port, SCM_BOOL_F, SCM_BOOL_F)))
     scm_eval_x (form);
 
   /* Dispose of the port when done.  (Oh icky.)  */

@@ -494,7 +494,7 @@ SCM
 scm_eof_object_p (x)
      SCM x;
 {
-  return (SCM_EOF_VAL == x) ? SCM_BOOL_T : SCM_BOOL_F;
+  return SCM_EOF_OBJECT_P (x) ? SCM_BOOL_T : SCM_BOOL_F;
 }
 
 SCM_PROC(s_force_output, "force-output", 0, 1, 0, scm_force_output);
