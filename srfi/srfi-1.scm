@@ -1,17 +1,17 @@
 ;;;; srfi-1.scm --- SRFI-1 procedures for Guile
 ;;;;
 ;;;; 	Copyright (C) 2001 Free Software Foundation, Inc.
-;;;; 
+;;;;
 ;;;; This program is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU General Public License as
 ;;;; published by the Free Software Foundation; either version 2, or
 ;;;; (at your option) any later version.
-;;;; 
+;;;;
 ;;;; This program is distributed in the hope that it will be useful,
 ;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 ;;;; General Public License for more details.
-;;;; 
+;;;;
 ;;;; You should have received a copy of the GNU General Public License
 ;;;; along with this software; see the file COPYING.  If not, write to
 ;;;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
@@ -60,7 +60,7 @@
   :use-module (ice-9 session)
   :use-module (ice-9 receive))
 
-(export 
+(export
 ;;; Constructors
  ;; cons				<= in the core
  ;; list				<= in the core
@@ -306,7 +306,7 @@
 	 ((not-pair? hare) #t)
 	 (else
 	  (let ((hare (cdr hare)))
-	    (cond 
+	    (cond
 	      ((null? hare) #f)
 	      ((not-pair? hare) #t)
 	      ((eq? hare tortoise) #f)
@@ -315,7 +315,7 @@
 
 (define (null-list? x)
   (cond
-    ((proper-list? x) 
+    ((proper-list? x)
      (null? x))
     ((circular-list? x)
      #f)
@@ -375,7 +375,7 @@
 	  s
 	  (lp0 (cdr s) (cdr l))))
       (lp (- n 1) (cdr l)))))
-  
+
 (define (drop-right flist i)
   (let lp ((n i) (l flist))
     (if (<= n 0)
@@ -390,7 +390,7 @@
     '()
     (let lp ((n (- i 1)) (l x))
       (if (<= n 0)
-	(begin 
+	(begin
 	  (set-cdr! l '())
 	  x)
 	(lp (- n 1) (cdr l))))))
@@ -468,7 +468,7 @@
 	     (begin
 	       (set-cdr! ntail (car l))
 	       (lp (cdr l) (last-pair ntail))))))))))
-	
+
 
 (define (append-reverse rev-head tail)
   (let lp ((l rev-head) (acc tail))
@@ -484,7 +484,7 @@
     (if (any null? l)
       (reverse! acc)
       (lp (map1 cdr l) (cons (map1 car l) acc)))))
-    
+
 
 (define (unzip1 l)
   (map1 first l))
@@ -603,10 +603,15 @@
 ;; Internal helper procedure.  Map `f' over the single list `ls'.
 ;;
 (define (map1 f ls)
-  (let lp ((l ls))
-    (if (null? l)
-      '()
-      (cons (f (car l)) (lp (cdr l))))))
+  (if (null? ls)
+      ls
+      (let ((ret (list (f (car ls)))))
+        (let lp ((ls (cdr ls)) (p ret))         ; tail pointer
+          (if (null? ls)
+              ret
+              (begin
+                (set-cdr! p (list (f (car ls))))
+                (lp (cdr ls) (cdr p))))))))
 
 ;; This `map' is extended from the standard `map'.  It allows argument
 ;; lists of different length, so that the shortest list determines the
@@ -901,7 +906,7 @@
 (define (delete-duplicates list . rest)
   (let ((l= (if (pair? rest) (car rest) equal?)))
     (let lp ((list list))
-      (if (null? list) 
+      (if (null? list)
 	'()
 	(cons (car list) (lp (delete (car list) (cdr list) l=)))))))
 
