@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996,1998 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996,1998,1999 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -70,7 +70,7 @@ static int
 stfill_buffer (SCM port)
 {
   SCM str = SCM_STREAM (port);
-  struct scm_port_table *pt = SCM_PTAB_ENTRY (port);
+  scm_port *pt = SCM_PTAB_ENTRY (port);
   
   pt->read_buf = SCM_ROCHARS (str);
   pt->read_buf_size = SCM_ROLENGTH (str);
@@ -82,29 +82,86 @@ stfill_buffer (SCM port)
     return scm_return_first (*(pt->read_pos++), port);
 }
 
-/* not a conventional "flush": it extends the string for more data.  */
+static void 
+st_grow_port (scm_port *pt, off_t add)
+{
+  off_t new_size = pt->write_buf_size + add;
+
+  scm_vector_set_length_x (pt->stream,
+			   SCM_MAKINUM (new_size));
+  pt->read_buf_size = pt->write_buf_size = new_size;
+  /* reset buffer in case reallocation moved the string. */
+  {
+    off_t index = pt->write_pos - pt->write_buf;
+    
+    pt->read_buf = pt->write_buf = SCM_CHARS (pt->stream);
+    pt->write_pos = pt->write_buf + index;
+    pt->read_end = pt->write_end = pt->write_buf + pt->write_buf_size;
+  }
+}
+
 static void
 st_flush (SCM port)
 {
-  struct scm_port_table *pt = SCM_PTAB_ENTRY (port);
+  scm_port *pt = SCM_PTAB_ENTRY (port);
 
   if (pt->write_pos == pt->write_end)
     {
-      pt->write_buf_size += pt->write_buf_size >> 1;
-      scm_vector_set_length_x (pt->stream,
-			       SCM_MAKINUM (pt->write_buf_size));
-      /* reset buffer in case reallocation moved the string. */
-      {
-	int read = pt->read_pos - pt->read_buf;
-	int written = pt->write_pos - pt->write_buf;
-
-	pt->read_buf = pt->write_buf = SCM_CHARS (pt->stream);
-	pt->read_pos = pt->read_buf + read;
-	pt->write_pos = pt->write_buf + written;
-	pt->write_end = pt->write_buf + pt->write_buf_size;
-	pt->read_end = pt->read_buf + pt->read_buf_size;
-      }
+      st_grow_port (pt, 1);
     }
+  pt->read_pos = pt->write_pos;
+  pt->rw_active = 0;
+}
+
+static void
+st_read_flush (SCM port)
+{
+  scm_port *pt = SCM_PTAB_ENTRY (port);
+
+  pt->write_pos = (unsigned char *) pt->read_pos;
+  pt->rw_active = 0;
+}
+
+static off_t
+st_seek (SCM port, off_t offset, int whence)
+{
+  scm_port *pt = SCM_PTAB_ENTRY (port);
+  off_t target;
+
+  switch (whence)
+    {
+    case SEEK_CUR:
+      if (SCM_CAR (port) & SCM_WRTNG)
+	target = pt->write_pos - pt->write_buf + offset;
+      else
+	target = pt->read_pos - pt->read_buf + offset;
+      break;
+    case SEEK_END:
+      target = pt->write_end - pt->write_buf + offset;
+      break;
+    default: /* SEEK_SET */
+      target = offset;
+      break;
+    }
+  if (target < 0)
+    scm_misc_error ("st_seek", "negative offset",
+		    scm_cons (SCM_MAKINUM (target), EOF));
+  if (target > pt->read_buf_size)
+    {
+      st_grow_port (pt, target - pt->read_buf_size);
+    }
+  pt->read_pos = pt->write_pos = pt->read_buf + target;
+  return target;
+}
+
+static void
+st_ftruncate (SCM port, off_t length)
+{
+  scm_port *pt = SCM_PTAB_ENTRY (port);
+  off_t old_len = pt->write_end - pt->write_buf;
+  
+  if (length != old_len)
+    st_grow_port (pt, length - old_len);
 }
 
 SCM 
@@ -115,27 +172,30 @@ scm_mkstrport (pos, str, modes, caller)
      const char * caller;
 {
   SCM z;
-  SCM stream;
-  struct scm_port_table * pt;
+  scm_port *pt;
+  int str_len;
 
-  SCM_ASSERT(SCM_INUMP(pos) && SCM_INUM(pos) >= 0, pos, SCM_ARG1, caller);
-  SCM_ASSERT(SCM_NIMP(str) && SCM_ROSTRINGP(str), str, SCM_ARG1, caller);
-  stream = str;
+  SCM_ASSERT (SCM_INUMP(pos) && SCM_INUM(pos) >= 0, pos, SCM_ARG1, caller);
+  SCM_ASSERT (SCM_NIMP(str) && SCM_ROSTRINGP(str), str, SCM_ARG1, caller);
+  str_len = SCM_ROLENGTH (str);
+  if (SCM_INUM (pos) > str_len)
+    scm_out_of_range (caller, pos);
+  if (!((modes & SCM_WRTNG) || (modes & SCM_RDNG)))
+    scm_misc_error ("scm_mkstrport", "port must read or write", SCM_EOL);
   SCM_NEWCELL (z);
   SCM_DEFER_INTS;
   pt = scm_add_to_port_table (z);
   SCM_SETCAR (z, scm_tc16_strport | modes);
   SCM_SETPTAB_ENTRY (z, pt);
-  SCM_SETSTREAM (z, stream);
+  SCM_SETSTREAM (z, str);
   pt->write_buf = pt->read_buf = SCM_ROCHARS (str);
-  pt->write_pos = pt->read_pos = pt->read_buf + SCM_INUM (pos);
-  pt->read_buf_size = SCM_ROLENGTH (str);
-  pt->read_end = pt->read_buf + pt->read_buf_size;
-  /* after the last (normally NUL) character is written to,
-     the port will be "flushed".  */
-  pt->write_buf_size = pt->read_buf_size + 1;
-  pt->write_end = pt->write_buf + pt->write_buf_size;
+  pt->read_pos = pt->write_pos = pt->read_buf + SCM_INUM (pos);
+  pt->write_buf_size = pt->read_buf_size = str_len;
+  pt->write_end = pt->read_end = pt->read_buf + pt->read_buf_size;
+  pt->rw_random = (modes & SCM_RDNG) && (modes & SCM_WRTNG);
   SCM_ALLOW_INTS;
+  if ((modes & SCM_WRTNG) && pt->write_pos == pt->write_end)
+    st_flush (z);
   return z;
 }
 
@@ -146,16 +206,25 @@ scm_call_with_output_string (proc)
      SCM proc;
 {
   SCM p;
-  p = scm_mkstrport(SCM_INUM0, scm_make_string(SCM_MAKINUM(30), SCM_UNDEFINED),
-			SCM_OPN | SCM_WRTNG,
-			s_call_with_output_string);
+
+  p = scm_mkstrport (SCM_INUM0, 
+		     scm_make_string (SCM_INUM0, SCM_UNDEFINED),
+		     SCM_OPN | SCM_WRTNG,
+		     s_call_with_output_string);
   scm_apply (proc, p, scm_listofnull);
   {
     SCM answer;
-    struct scm_port_table *pt = SCM_PTAB_ENTRY (p);
 
+    /* can't use pt->write_pos, in case port position was changed with
+       seek.
+       
+       The port buffer protocol promises that you can always store at
+       least one character at write_pos.  This means that the
+       underlying string always has one spare character at the end,
+       that the user didn't write.  Make sure we don't include that in
+       the result.  */
     answer = scm_makfromstr (SCM_CHARS (SCM_STREAM (p)),
-			     pt->write_pos - pt->write_buf,
+			     SCM_LENGTH (SCM_STREAM (p)) - 1,
 			     0);
     return answer;
   }
@@ -178,7 +247,7 @@ scm_strprint_obj (obj)
   port = scm_mkstrport (SCM_MAKINUM (0), str, SCM_OPN | SCM_WRTNG, "scm_strprint_obj");
   scm_prin1 (obj, port, 1);
   {
-    struct scm_port_table *pt = SCM_PTAB_ENTRY (obj);
+    scm_port *pt = SCM_PTAB_ENTRY (obj);
     SCM answer;
 
     answer = scm_makfromstr (SCM_CHARS (SCM_STREAM (port)),
@@ -275,9 +344,11 @@ scm_ptobfuns scm_stptob =
   prinstpt,
   0,
   st_flush,
+  st_read_flush,
   0,
   stfill_buffer,
-  0,
+  st_seek,
+  st_ftruncate,
   0,
 };
 
