@@ -1,3 +1,8 @@
+2001-03-13  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* guile-c.el (guile-c-edit-docstring): Set fill-column to 63, so
+	that fill-paragraph'ed docstrings fit nicely when indented.
+
 2001-03-13  Keisuke Nishida  <kxn30@po.cwru.edu>
 
 	* guile-c.el (guile-c-window-configuration): New variable.

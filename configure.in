@@ -33,6 +33,7 @@ AM_CONFIG_HEADER(libguile/scmconfig.h)
 #--------------------------------------------------------------------
 
 AC_CONFIG_SUBDIRS(guile-readline)
+AC_CONFIG_SUBDIRS(srfi)
 
 #--------------------------------------------------------------------
 #

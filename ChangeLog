@@ -1,3 +1,11 @@
+2001-04-23  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* Makefile.am (SUBDIRS): Added `srfi'.
+
+	* configure.in: Added subdirectory `srfi' to build process.
+
+	* libguile.h: Added inclusion of `values.h'.
+
 2001-04-22  Gary Houston  <ghouston@arglist.com>
 
 	* configure.in: check for inet_pton and inet_ntop.

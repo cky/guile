@@ -126,6 +126,7 @@
 	(if global-font-lock-mode
 	    (font-lock-fontify-buffer))
 	(local-set-key "\C-c\C-c" 'guile-c-edit-finish)
+	(setq fill-column 63)
 	(switch-to-buffer-other-window (current-buffer))
         (message "Type `C-c C-c' to finish")))))
 
