@@ -1,0 +1,97 @@
+@page
+@node Executable Modules
+@chapter Executable Modules
+@cindex guile-tools
+@cindex modules, executable
+@cindex executable modules
+@cindex scripts
+
+When Guile is installed, in addition to the @code{(ice-9 FOO)} modules,
+a set of @dfn{executable modules} @code{(scripts BAR)} is also installed.
+Each is a regular Scheme module that has some additional packaging so
+that it can be called as a program in its own right, from the shell.  For this
+reason, we sometimes use the term @dfn{script} in this context to mean the
+same thing.
+
+As a convenience, the @code{guile-tools} wrapper program is installed along w/
+@code{guile}; it knows where a particular module is installed and calls it
+passing its args to the program.  The result is that you need not augment your
+PATH.  Usage is straightforward:
+
+@example
+guile-tools --help
+guile-tools --version
+guile-tools [OPTION] PROGRAM [ARGS ...]
+
+If PROGRAM is "list" or omitted, display contents of scripts dir, otherwise
+PROGRAM is run w/ ARGS.  Options (only one of which may be used at a time):
+ --scriptsdir DIR    -- Look in DIR for scripts
+ --guileversion VERS -- Look in $pkgdatadir/VERS/scripts for scripts
+ --source            -- Display PROGRAM source (ignore ARGS) to stdout
+@end example
+
+The modules are self-documenting.  For example, to see the documentation for
+@code{lint}, use one (or both) of the shell commands:
+
+@example
+guile-tools display-commentary '(scripts lint)'
+guile-tools --source lint
+@end example
+
+The rest of this chapter describes the packaging that goes into creating an
+executable module.  Feel free to skip to the next chapter.
+
+@section Writing Executable Modules
+
+@c adapted from scripts/README
+
+See template file @code{PROGRAM} for a quick start.
+
+Programs must follow the @dfn{executable module} convention, documented here:
+
+@itemize
+
+@item
+The file name must not end in ".scm".
+
+@item
+The file must be executable (chmod +x).
+
+@item
+The module name must be "(scripts PROGRAM)".  A procedure named PROGRAM w/
+signature "(PROGRAM . args)" must be exported.  Basically, use some variant
+of the form:
+
+@example
+  (define-module (scripts PROGRAM)
+    :export (PROGRAM))
+@end example
+
+Feel free to export other definitions useful in the module context.
+
+@item
+There must be the alias:
+
+@example
+  (define main PROGRAM)
+@end example
+
+However, `main' must NOT be exported.
+
+@item
+The beginning of the file must use the following invocation sequence:
+
+@example
+  #!/bin/sh
+  main='(module-ref (resolve-module '\''(scripts PROGRAM)) '\'main')'
+  exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
+  !#
+@end example
+
+@end itemize
+
+Following these conventions allows the program file to be used as module
+@code{(scripts PROGRAM)} in addition to as a standalone executable.  Please
+also include a helpful Commentary section w/ some usage info.
+
+@c tools.texi ends here
