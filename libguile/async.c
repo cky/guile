@@ -179,7 +179,7 @@ scm_async_click ()
 	  do
 	    {
 	      SCM c = SCM_CDR (asyncs);
-	      SCM_SETCDR (asyncs, SCM_EOL);
+	      SCM_SETCDR (asyncs, SCM_BOOL_F);
 	      scm_call_0 (SCM_CAR (asyncs));
 	      asyncs = c;
 	    }
@@ -204,10 +204,23 @@ SCM_DEFINE (scm_system_async, "system-async", 1, 0, 0,
 void
 scm_i_queue_async_cell (SCM c, scm_root_state *root)
 {
-  if (SCM_CDR (c) == SCM_EOL)
+  if (SCM_CDR (c) == SCM_BOOL_F)
     {
-      SCM_SETCDR (c, root->active_asyncs);
-      root->active_asyncs = c;
+      SCM p = root->active_asyncs;
+      SCM_SETCDR (c, SCM_EOL);
+      if (p == SCM_EOL)
+	root->active_asyncs = c;
+      else
+	{
+	  SCM pp;
+	  while ((pp = SCM_CDR(p)) != SCM_EOL)
+	    {
+	      if (SCM_CAR (p) == SCM_CAR (c))
+		return;
+	      p = pp;
+	    }
+	  SCM_SETCDR (p, c);
+	}
     }
 }
 
@@ -218,7 +231,7 @@ SCM_DEFINE (scm_system_async_mark_for_thread, "system-async-mark", 1, 1, 0,
 	    "use the current thread.")
 #define FUNC_NAME s_scm_system_async_mark_for_thread
 {
-  scm_i_queue_async_cell (scm_cons (proc, SCM_EOL),
+  scm_i_queue_async_cell (scm_cons (proc, SCM_BOOL_F),
 			  (SCM_UNBNDP (thread)
 			   ? scm_root
 			   : scm_i_thread_root (thread)));
