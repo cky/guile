@@ -374,6 +374,11 @@ typedef int GC_bool;
 #    define GNU
 #    define mach_type_known
 # endif
+# if defined(__SCO_VERSION__)
+#    define I386
+#    define SYSV
+#    define mach_type_known
+# endif
 
 /* Feel free to add more clauses here */
 
