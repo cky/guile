@@ -1,3 +1,25 @@
+Sat Sep 28 00:15:37 1996  Gary Houston  <ghouston@actrix.gen.nz>
+
+ 	* boot-9.scm (error): replace another throw with scm-error.  Throw
+ 	to 'misc-error instead of 'error (no need to distinguish these.)
+	Don't set up 'error as a key.
+	Set up regex-error as a key, if regex is available.
+	(signal-handler): use scm-error, not throw.
+
+*	(%try-load, try-load-with-path, %load, load-with-path,
+	basic-try-load-with-path, basic-load-with-path,
+	try-load-module-with-path,load-module-with-path): deleted, since
+	they seem redundant.
+	(try-load): define using %try-load, not try-load-with-path.
+*	(load): rewritten.  load tries to open the file directly and
+	with a .scm extension before searching the library directories
+	(should "." be added to %load-path?  then load could still open
+ 	directly files starting with "/").
+	(try-module-autoload): use load, not load-with-path.
+	(%load-indent): deleted, -2 was causing errors.
+
+	(%read-sharp): use port-line, not line-number.
+
 Tue Sep 24 06:53:04 1996  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* boot-9.scm (%try-load): define using primitive-load.  Previously

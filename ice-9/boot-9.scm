@@ -584,13 +584,13 @@
 
 (define (error . args)
   (if (null? args)
-      (throw 'error #f "?" #f #f)
+      (scm-error 'misc-error #f "?" #f #f)
       (let loop ((msg "%s")
 		 (rest (cdr args)))
 	(if (not (null? rest))
 	    (loop (string-append msg " %S")
 		  (cdr rest))
-	    (scm-error 'error #f msg args #f)))))
+	    (scm-error 'misc-error #f msg args #f)))))
 
 (define (scm-error key subr message args rest)
   (throw key subr message args rest))
@@ -655,13 +655,13 @@
      ((= n 19)	(unmask-signals) (alarm-thunk))
      (else (unmask-signals)
 	   (let ((sig-pair (assoc n signal-messages)))
-	     (throw 'error-signal #f 
-		    (cdr (or sig-pair
-			     (cons n "Unknow signal: %s")))
-		    (if sig-pair
-			#f
-			(list n))
-		    (list n)))))))
+	     (scm-error 'error-signal #f 
+			(cdr (or sig-pair
+				 (cons n "Unknow signal: %s")))
+			(if sig-pair
+			    #f
+			    (list n))
+			(list n)))))))
 
 (define display-error-message
   (lambda (message args port)
@@ -718,15 +718,19 @@
     (throw 'abort key)))
 
 ;; associate error symbols with %%handle-system-error.
-(let loop ((keys '(error error-signal system-error numerical-overflow
-			 out-of-range wrong-type-arg wrong-number-of-args
-			 memory-allocation-error stack-overflow
-			 misc-error)))
-  (cond ((not (null? keys))
-	 (set-symbol-property! (car keys)
-			       'throw-handler-default
-			       %%handle-system-error)
-	 (loop (cdr keys)))))
+(let ((keys '(error-signal system-error numerical-overflow
+			   out-of-range wrong-type-arg
+			   wrong-number-of-args
+			   memory-allocation-error stack-overflow
+			   misc-error)))
+  (if (memq 'regex *features*)
+      (set! keys (cons 'regex-error keys)))
+  (let loop ((keys keys))
+    (cond ((not (null? keys))
+	   (set-symbol-property! (car keys)
+				 'throw-handler-default
+				 %%handle-system-error)
+	   (loop (cdr keys))))))
 
 
 (define (getgrnam name) (getgr name))
@@ -793,44 +797,28 @@
 ;;; {try-load}
 ;;;
 
-(define (%try-load file-name case-insensitive sharp)
-  (catch #t (lambda ()
-	      (primitive-load file-name case-insensitive sharp)
-	      #t)
-	 (lambda args #f)))
-
-(define (try-load-with-path file-name path)
-  (or-map (lambda (d)
-	    (let ((f (in-vicinity d file-name)))
-	      (and (not (file-is-directory? f))
-		   (%try-load f #t read-sharp))))
-	  path))
+;(define (try-load-with-path file-name path)
+;  (or-map (lambda (d)
+;	    (let ((f (in-vicinity d file-name)))
+;	      (and (not (file-is-directory? f))
+;		   (primitive-load f #t read-sharp))))
+;	  path))
 
 (define (try-load name)
-  (if (eval '(defined? %load-path))
-      (try-load-with-path name (eval '%load-path))
-      (%try-load name #t read-sharp)))
+  (%try-load-path name #t read-sharp))
+
 
 ;;; {Load}
 ;;;
 
 (define %load-verbosely #t)
 (define (assert-load-verbosity v) (set! %load-verbosely v))
-(define %load-indent -2)
-
-(define (%load f)
-  (current-module)
-  (or (and (not (file-is-directory? f))
-	   (%try-load f #t read-sharp))
-      (and (not (has-suffix? f (scheme-file-suffix)))
-	   (%try-load (string-append f (scheme-file-suffix)) #t read-sharp))))
 
 (define (%load-announce file)
   (if %load-verbosely
       (with-output-to-port (current-error-port)
 	(lambda ()
 	  (display ";;; ")
-	  (display (make-string %load-indent #\ ))
 	  (display "loading ")
 	  (display file)
 	  (display "...")
@@ -842,39 +830,49 @@
       (with-output-to-port (current-error-port)
 	(lambda () 
 	  (display ";;; ")
-	  (display (make-string %load-indent #\ ))
 	  (display "...loaded ")
 	  (display file)
 	  (display ".")
 	  (newline)
 	  (force-output)))))
 
-(define (load-with-path name path)
-  (define (do-load)
-    (%load-announce name)
-    (if (not (or-map (lambda (d)
-		       (if (%load (in-vicinity d name))
-			   (begin
-			     (%load-announce-win (in-vicinity d name))
-			     #t)
-			   #f))
-		     path))
-	(scm-error 'misc-error #f "Could not load %S from %S"
-		   (list name path) #f)))
+;(define (load-with-path name path)
+;  (define (do-load)
+;    (%load-announce name)
+;    (if (not (or-map (lambda (d)
+;		       (if (%load (in-vicinity d name))
+;			   (begin
+;			     (%load-announce-win (in-vicinity d name))
+;			     #t)
+;			   #f))
+;		     path))
+;	(scm-error 'misc-error #f "Could not load %S from %S"
+;		   (list name path) #f)))
 
-  (let ((indent %load-indent))
-    (dynamic-wind
-     (lambda () (set! %load-indent (modulo (+ indent 2) 16)))
-     do-load
-     (lambda () (set! %load-indent indent))))
-  #t)
-
+;  (let ((indent %load-indent))
+;    (dynamic-wind
+;     (lambda () (set! %load-indent (modulo (+ indent 2) 16)))
+;     do-load
+;     (lambda () (set! %load-indent indent))))
+;  #t)
 
 (define (load name)
-  (if (eval '(defined? %load-path))
-      (load-with-path name (eval '%load-path))
-      (load-with-path name '())))
-
+  (current-module)
+  (%load-announce name)
+  (cond ((and (file-exists? name)
+	      (not (file-is-directory? name)))
+	 (primitive-load name #t read-sharp)
+	 (%load-announce-win name))
+	(else
+	 (let ((name.scm (string-append name (scheme-file-suffix))))
+	   (cond ((and (not (has-suffix? name (scheme-file-suffix)))
+		       (file-exists? name.scm)
+		       (not (file-is-directory? name.scm)))
+		  (primitive-load name.scm #t read-sharp)
+		  (%load-announce-win name.scm))
+		 (else
+		  (%try-load-path name #t read-sharp)
+		  (%load-announce-win name)))))))
 
 
 ;;; {Transcendental Functions}
@@ -1037,7 +1035,7 @@
     ((#\c) (read:uniform-vector 0+i port))
     ((#\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9)
      (read:array c port))
-    ((#\!) (if (= 1 (line-number))
+    ((#\!) (if (= 1 (port-line port))  ; (line-number))
 	       (let skip () (if (eq? #\newline (peek-char port))
 				(read port #t read-sharp)
 				(begin (read-char port) (skip))))
@@ -1679,20 +1677,17 @@
 		    (set-current-module outer-module)
 		    (set! outer-module #f)))))
 
-(define basic-try-load-with-path try-load-with-path)
 (define basic-try-load try-load)
-(define basic-load-with-path load-with-path)
 (define basic-load load)
 
-
-(define (try-load-module-with-path . args)
-  (save-module-excursion (lambda () (apply basic-try-load-with-path args))))
+;;(define (try-load-module-with-path . args)
+;;  (save-module-excursion (lambda () (apply basic-try-load-with-path args))))
 
 (define (try-load-module . args)
   (save-module-excursion (lambda () (apply basic-try-load args))))
 
-(define (load-module-with-path . args)
-  (save-module-excursion (lambda () (apply basic-load-with-path args))))
+;;(define (load-module-with-path . args)
+;;  (save-module-excursion (lambda () (apply basic-load-with-path args))))
 
 (define (load-module . args)
   (save-module-excursion (lambda () (apply basic-load args))))
@@ -1945,8 +1940,8 @@
 					      (begin
 						(save-module-excursion
 						 (lambda ()
-						   (list f d)
-						   (load-with-path f (list d))))
+						   (load (string-append
+							  d "/" f))))
 						#t))))
 				     trys)
 			     (begin
@@ -2319,9 +2314,9 @@
 
 
 
-(define try-load-with-path try-load-module-with-path)
+;;(define try-load-with-path try-load-module-with-path)
 (define try-load try-load-module)
-(define load-with-path load-module-with-path)
+;;(define load-with-path load-module-with-path)
 (define load load-module)
 
 
