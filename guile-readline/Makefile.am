@@ -36,11 +36,11 @@ BUILT_SOURCES = readline.x
 
 pkginclude_HEADERS = readline.h
 
-scmdir = $(datadir)/guile
-scm_DATA = readline-activator.scm
+ice9dir = $(datadir)/guile/$(VERSION)/ice-9
+ice9_DATA = readline.scm
 
 SUFFIXES = .x
 .c.x:
 	$(GUILE_SNARF) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< > $@
 
-EXTRA_DIST = readline-activator.scm
+EXTRA_DIST = readline.scm
