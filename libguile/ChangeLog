@@ -1,3 +1,8 @@
+1998-01-15  Mark Galassi  <rosalia@nis.lanl.gov>
+
+	* gh_eval.c (gh_eval_str): cleanup -- threw out the old
+	commented-out version of gh_eval_str()
+
 Sun Jan  4 02:23:36 1998  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* socket.c (scm_bind): free soka after use.

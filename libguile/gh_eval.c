@@ -1,4 +1,4 @@
-/*      Copyright (C) 1995,1996,1997 Free Software Foundation, Inc.
+/*      Copyright (C) 1995,1996,1997,1998 Free Software Foundation, Inc.
 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,26 +49,6 @@
 typedef SCM (*gh_eval_t) (void *data, SCM jmpbuf);
 
 /* Evaluate the string; toss the value.  */
-#if 0
-void
-gh_eval_str (char *scheme_code)
-{
-  /* Create a port that reads characters from SCHEME_CODE.  */
-  SCM port = scm_mkstrport (SCM_MAKINUM (0),
-			    scm_makfrom0str (scheme_code),
-			    SCM_OPN | SCM_RDNG,
-			    "guile_main");
-  SCM form;
-
-  /* Read expressions from that port; ignore the values.  */
-  while (!SCM_EOF_OBJECT_P (form = scm_read (port, SCM_BOOL_F, SCM_BOOL_F)))
-    scm_eval_x (form);
-
-  /* Dispose of the port when done.  (Oh icky.)  */
-  scm_close_port (port);
-}
-#endif /* 0 */
-
 SCM
 gh_eval_str (char *scheme_code)
 {
