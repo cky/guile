@@ -82,4 +82,30 @@ before next week.  What about adding this code as a test case to the test
 suite?  Until it is fixed, it can be tagged as expected to fail.
 
 
+bug 5 -- uniform vector read-hash "e" clashes w/ exactness specification
+reported-by: kwright@gis.net / 2001-10-07
+fixed: not-yet
+
+Keith Wright sez:
+> Before getting into philosophy, I want to mention that while poking
+> around and rethinking I found the following Bug.
+> 
+>     guile> (version)
+>     "1.5.2"
+>     guile> #E3
+>     3
+>     guile> #e3
+>     ERROR: read:uniform-vector list not found
+>     ABORT: (misc-error)
+>     guile> 3
+> 
+> This violates both R5RS 7.1 ``Case is insignificant'' and 
+> 
+> > From: guile-1.5.2/doc/ref/guile.info-3 Line 568
+> >
+> >     The codes for indicating exactness (which can, incidentally, be
+> >  applied to all numerical values) are:
+> >
+> >   * `#e', `#E' -- the number is exact
+
 [BUGS ends here]
