@@ -145,6 +145,8 @@
 (define (output-port-width . arg) 80)
 (define (output-port-height . arg) 24)
 
+(define (identity x) x)
+
 ;;; {Time}
 ;;;
 
