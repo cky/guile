@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996,1997,1998, 2000, 2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -485,6 +485,7 @@ static char s_bad_ind[] = "Bad scm_array index";
 
 long 
 scm_aind (SCM ra, SCM args, const char *what)
+#define FUNC_NAME what
 {
   SCM ind;
   register long j;
@@ -493,14 +494,16 @@ scm_aind (SCM ra, SCM args, const char *what)
   scm_array_dim *s = SCM_ARRAY_DIMS (ra);
   if (SCM_INUMP (args))
     {
-      SCM_ASSERT (1 == k, scm_makfrom0str (what), SCM_WNA, NULL);
+      if (k != 1)
+	scm_error_num_args_subr (what);
       return pos + (SCM_INUM (args) - s->lbnd) * (s->inc);
     }
   while (k && SCM_NIMP (args))
     {
       ind = SCM_CAR (args);
       args = SCM_CDR (args);
-      SCM_ASSERT (SCM_INUMP (ind), ind, s_bad_ind, what);
+      if (!SCM_INUMP (ind))
+	scm_misc_error (what, s_bad_ind, SCM_EOL);
       j = SCM_INUM (ind);
       if (j < s->lbnd || j > s->ubnd)
 	scm_out_of_range (what, ind);
@@ -508,11 +511,12 @@ scm_aind (SCM ra, SCM args, const char *what)
       k--;
       s++;
     }
-  SCM_ASSERT (0 == k && SCM_NULLP (args), scm_makfrom0str (what), SCM_WNA,
-	      NULL);
+  if (k != 0 || !SCM_NULLP (args))
+    scm_error_num_args_subr (what);
+
   return pos;
 }
-
+#undef FUNC_NAME
 
 
 SCM 
@@ -539,7 +543,9 @@ scm_shap2ra (SCM args, const char *what)
   scm_array_dim *s;
   SCM ra, spec, sp;
   int ndim = scm_ilength (args);
-  SCM_ASSERT (0 <= ndim, args, s_bad_spec, what);
+  if (ndim < 0)
+    scm_misc_error (what, s_bad_spec, SCM_EOL);
+
   ra = scm_make_ra (ndim);
   SCM_ARRAY_BASE (ra) = 0;
   s = SCM_ARRAY_DIMS (ra);
@@ -548,20 +554,22 @@ scm_shap2ra (SCM args, const char *what)
       spec = SCM_CAR (args);
       if (SCM_INUMP (spec))
 	{
-	  SCM_ASSERT (SCM_INUM (spec) >= 0, spec, s_bad_spec, what);
+	  if (SCM_INUM (spec) < 0)
+	    scm_misc_error (what, s_bad_spec, SCM_EOL);
 	  s->lbnd = 0;
 	  s->ubnd = SCM_INUM (spec) - 1;
 	  s->inc = 1;
 	}
       else
 	{
-	  SCM_ASSERT (SCM_CONSP (spec) && SCM_INUMP (SCM_CAR (spec)), spec,
-		      s_bad_spec, what);
+	  if (!SCM_CONSP (spec) || !SCM_INUMP (SCM_CAR (spec)))
+	    scm_misc_error (what, s_bad_spec, SCM_EOL);
 	  s->lbnd = SCM_INUM (SCM_CAR (spec));
 	  sp = SCM_CDR (spec);
-	  SCM_ASSERT (SCM_CONSP (sp)
-		      && SCM_INUMP (SCM_CAR (sp)) && SCM_NULLP (SCM_CDR (sp)),
-		      spec, s_bad_spec, what);
+	  if (!SCM_CONSP (sp) 
+	      || !SCM_INUMP (SCM_CAR (sp))
+	      || !SCM_NULLP (SCM_CDR (sp)))
+	    scm_misc_error (what, s_bad_spec, SCM_EOL);
 	  s->ubnd = SCM_INUM (SCM_CAR (sp));
 	  s->inc = 1;
 	}
@@ -670,6 +678,8 @@ SCM_DEFINE (scm_make_shared_array, "make-shared-array", 2, 0, 1,
   scm_sizet i, k;
   long old_min, new_min, old_max, new_max;
   scm_array_dim *s;
+
+  SCM_VALIDATE_REST_ARGUMENT (dims);
   SCM_VALIDATE_ARRAY (1,oldra);
   SCM_VALIDATE_PROC (2,mapfunc);
   ra = scm_shap2ra (dims, FUNC_NAME);
@@ -715,8 +725,8 @@ SCM_DEFINE (scm_make_shared_array, "make-shared-array", 2, 0, 1,
       if (SCM_NINUMP (imap))
 
 	{
-	  SCM_ASSERT (1 == scm_ilength (imap) && SCM_INUMP (SCM_CAR (imap)),
-		  imap, s_bad_ind, FUNC_NAME);
+	  if (scm_ilength (imap) != 1 || !SCM_INUMP (SCM_CAR (imap)))
+	    SCM_MISC_ERROR (s_bad_ind, SCM_EOL);
 	  imap = SCM_CAR (imap);
 	}
       i = SCM_INUM (imap);
@@ -736,10 +746,9 @@ SCM_DEFINE (scm_make_shared_array, "make-shared-array", 2, 0, 1,
 	  else
 	    {
 	      if (SCM_NINUMP (imap))
-
 		{
-		  SCM_ASSERT (1 == scm_ilength (imap) && SCM_INUMP (SCM_CAR (imap)),
-                              imap, s_bad_ind, FUNC_NAME);
+		  if (scm_ilength (imap) != 1 || !SCM_INUMP (SCM_CAR (imap)))
+		    SCM_MISC_ERROR (s_bad_ind, SCM_EOL);
 		  imap = SCM_CAR (imap);
 		}
 	      s[k].inc = (long) SCM_INUM (imap) - i;
@@ -754,8 +763,8 @@ SCM_DEFINE (scm_make_shared_array, "make-shared-array", 2, 0, 1,
 	s[k].inc = new_max - new_min + 1;	/* contiguous by default */
       indptr = SCM_CDR (indptr);
     }
-  SCM_ASSERT (old_min <= new_min && old_max >= new_max, SCM_UNDEFINED,
-	  "mapping out of range", FUNC_NAME);
+  if (old_min > new_min || old_max < new_max)
+    SCM_MISC_ERROR ("mapping out of range", SCM_EOL);
   if (1 == SCM_ARRAY_NDIM (ra) && 0 == SCM_ARRAY_BASE (ra))
     {
       SCM v = SCM_ARRAY_V (ra);
@@ -797,6 +806,7 @@ SCM_DEFINE (scm_transpose_array, "transpose-array", 1, 0, 1,
   scm_array_dim *s, *r;
   int ndim, i, k;
 
+  SCM_VALIDATE_REST_ARGUMENT (args);
   SCM_ASSERT (SCM_NIMP (ra), ra, SCM_ARG1, FUNC_NAME);
   switch (SCM_TYP7 (ra))
     {
@@ -814,19 +824,18 @@ SCM_DEFINE (scm_transpose_array, "transpose-array", 1, 0, 1,
 #ifdef HAVE_LONG_LONGS
     case scm_tc7_llvect:
 #endif
-      SCM_ASSERT (!SCM_NULLP (args) && SCM_NULLP (SCM_CDR (args)),
-		  scm_makfrom0str (FUNC_NAME), SCM_WNA, NULL);
-      SCM_ASSERT (SCM_INUMP (SCM_CAR (args)), SCM_CAR (args), SCM_ARG2,
-		  FUNC_NAME);
+      if (SCM_NULLP (args) || !SCM_NULLP (SCM_CDR (args)))
+	SCM_WRONG_NUM_ARGS ();
+      SCM_VALIDATE_INUM (SCM_ARG2, SCM_CAR (args));
       SCM_ASSERT_RANGE (SCM_ARG2, SCM_CAR (args), 
 			SCM_EQ_P (SCM_INUM0, SCM_CAR (args)));
       return ra;
     case scm_tc7_smob:
       SCM_ASRTGO (SCM_ARRAYP (ra), badarg);
       vargs = scm_vector (args);
-      SCM_ASSERT (SCM_VECTOR_LENGTH (vargs) == SCM_ARRAY_NDIM (ra),
-		  scm_makfrom0str (FUNC_NAME), SCM_WNA, NULL);
-		  ve = SCM_VELTS (vargs);
+      if (SCM_VECTOR_LENGTH (vargs) != SCM_ARRAY_NDIM (ra))
+	SCM_WRONG_NUM_ARGS ();
+      ve = SCM_VELTS (vargs);
       ndim = 0;
       for (k = 0; k < SCM_ARRAY_NDIM (ra); k++)
 	{
@@ -871,7 +880,8 @@ SCM_DEFINE (scm_transpose_array, "transpose-array", 1, 0, 1,
 	      r->inc += s->inc;
 	    }
 	}
-      SCM_ASSERT (ndim <= 0, args, "bad argument list", FUNC_NAME);
+      if (ndim > 0)
+	SCM_MISC_ERROR ("bad argument list", SCM_EOL);
       scm_ra_set_contp (res);
       return res;
     }
@@ -905,10 +915,12 @@ SCM_DEFINE (scm_enclose_array, "enclose-array", 1, 0, 1,
   scm_array_dim vdim, *s = &vdim;
   int ndim, j, k, ninr, noutr;
 
+  SCM_VALIDATE_REST_ARGUMENT (axes);
   if (SCM_NULLP (axes))
       axes = scm_cons ((SCM_ARRAYP (ra) ? SCM_MAKINUM (SCM_ARRAY_NDIM (ra) - 1) : SCM_INUM0), SCM_EOL);
   ninr = scm_ilength (axes);
-  SCM_ASSERT (0 <= ninr, scm_makfrom0str (FUNC_NAME), SCM_WNA, NULL);
+  if (ninr < 0)
+    SCM_WRONG_NUM_ARGS ();
   ra_inr = scm_make_ra (ninr);
   SCM_ASRTGO (SCM_NIMP (ra), badarg1);
   switch SCM_TYP7 (ra)
@@ -945,14 +957,16 @@ SCM_DEFINE (scm_enclose_array, "enclose-array", 1, 0, 1,
       break;
     }
   noutr = ndim - ninr;
+  if (noutr < 0)
+    SCM_WRONG_NUM_ARGS ();
   axv = scm_make_string (SCM_MAKINUM (ndim), SCM_MAKE_CHAR (0));
-  SCM_ASSERT (0 <= noutr, scm_makfrom0str (FUNC_NAME), SCM_WNA, NULL);
   res = scm_make_ra (noutr);
   SCM_ARRAY_BASE (res) = SCM_ARRAY_BASE (ra_inr);
   SCM_ARRAY_V (res) = ra_inr;
   for (k = 0; k < ninr; k++, axes = SCM_CDR (axes))
     {
-      SCM_ASSERT (SCM_INUMP (SCM_CAR (axes)), SCM_CAR (axes), "bad axis", FUNC_NAME);
+      if (!SCM_INUMP (SCM_CAR (axes)))
+	SCM_MISC_ERROR ("bad axis", SCM_EOL);
       j = SCM_INUM (SCM_CAR (axes));
       SCM_ARRAY_DIMS (ra_inr)[k].lbnd = s[j].lbnd;
       SCM_ARRAY_DIMS (ra_inr)[k].ubnd = s[j].ubnd;
@@ -986,6 +1000,7 @@ SCM_DEFINE (scm_array_in_bounds_p, "array-in-bounds?", 1, 0, 1,
   register long j;
   scm_array_dim *s;
 
+  SCM_VALIDATE_REST_ARGUMENT (args);
   SCM_ASRTGO (SCM_NIMP (v), badarg1);
   if (SCM_NIMP (args))
 
@@ -1000,7 +1015,7 @@ tail:
     {
     default:
     badarg1:SCM_WRONG_TYPE_ARG (1, v);
-    wna: scm_wrong_num_args (scm_makfrom0str (FUNC_NAME));
+    wna: SCM_WRONG_NUM_ARGS ();
     case scm_tc7_smob:
       k = SCM_ARRAY_NDIM (v);
       s = SCM_ARRAY_DIMS (v);
@@ -1025,7 +1040,8 @@ tail:
 	    ind = SCM_CAR (args);
 	    args = SCM_CDR (args);
 	    s++;
-	    SCM_ASSERT (SCM_INUMP (ind), ind, s_bad_ind, FUNC_NAME);
+	    if (!SCM_INUMP (ind))
+	      SCM_MISC_ERROR (s_bad_ind, SCM_EOL);
 	  }
       SCM_ASRTGO (0 == k, wna);
       v = SCM_ARRAY_V (v);
@@ -1104,7 +1120,7 @@ SCM_DEFINE (scm_uniform_vector_ref, "uniform-vector-ref", 2, 0, 0,
     outrng:
       scm_out_of_range (FUNC_NAME, SCM_MAKINUM (pos));
     wna:
-      scm_wrong_num_args (SCM_FUNC_NAME);
+      SCM_WRONG_NUM_ARGS ();
     case scm_tc7_smob:
       {				/* enclosed */
 	int k = SCM_ARRAY_NDIM (v);
@@ -1242,6 +1258,8 @@ SCM_DEFINE (scm_array_set_x, "array-set!", 2, 0, 1,
 #define FUNC_NAME s_scm_array_set_x           
 {
   long pos = 0;
+
+  SCM_VALIDATE_REST_ARGUMENT (args);
   SCM_ASRTGO (SCM_NIMP (v), badarg1);
   if (SCM_ARRAYP (v))
     {
@@ -1273,7 +1291,7 @@ SCM_DEFINE (scm_array_set_x, "array-set!", 2, 0, 1,
     outrng:
       scm_out_of_range (FUNC_NAME, SCM_MAKINUM (pos));
     wna:
-      scm_wrong_num_args (SCM_FUNC_NAME);
+      SCM_WRONG_NUM_ARGS ();
     case scm_tc7_smob:		/* enclosed */
       goto badarg1;
     case scm_tc7_bvect:

@@ -1,5 +1,33 @@
 2001-03-17  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* __scm.h (SCM_ASSERT, SCM_WTA_DISPATCH_0, SCM_WTA_DISPATCH_1,
+	SCM_WTA_DISPATCH_2, SCM_WTA_DISPATCH_n):  Don't call scm_wta, call
+	scm_wrong_type_arg instead.
+
+	(SCM_WNA):  Deprecated.
+
+	* error.[ch] (scm_wta):  Deprecated.
+
+	* numbers.c (s_i_log):  Minor comment fix.
+
+	* read.c (scm_lreadr), unif.c (scm_aind, scm_shap2ra,
+	scm_make_shared_array, scm_transpose_array, scm_enclose_array,
+	scm_array_in_bounds_p): Don't use SCM_ASSERT to check for
+	wrong-num-args or misc errors.
+
+	* unif.c (scm_make_shared_array, scm_transpose_array,
+	scm_enclose_array, scm_array_in_bounds_p, scm_array_set_x):
+	Validate the rest argument (note: this is only done when guile is
+	built with SCM_DEBUG_REST_ARGUMENT=1)
+
+	(scm_array_in_bounds_p, scm_uniform_vector_ref, scm_array_set_x):
+	Replace calls to scm_wrong_num_args by SCM_WRONG_NUM_ARGS.
+
+	* validate.h (SCM_FUNC_NAME, SCM_VALIDATE_NUMBER_COPY,
+	SCM_VALIDATE_NUMBER_DEF_COPY):  Deprecated.
+
+2001-03-17  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* validate.h (SCM_WRONG_NUM_ARGS):  Call scm_error_num_args_subr
 	instead of scm_wrong_num_args.
 

@@ -81,7 +81,6 @@ extern void scm_wrong_type_arg_msg (const char *subr, int pos,
 extern void scm_memory_error (const char *subr) SCM_NORETURN;
 extern void scm_misc_error (const char *subr, const char *message,
                             SCM args) SCM_NORETURN;
-extern SCM scm_wta (SCM arg, const char *pos, const char *s_subr);
 extern void scm_init_error (void);
 
 
@@ -89,6 +88,7 @@ extern void scm_init_error (void);
 #if (SCM_DEBUG_DEPRECATED == 0)
 
 extern void scm_sysmissing (const char *subr) SCM_NORETURN;
+extern SCM scm_wta (SCM arg, const char *pos, const char *s_subr);
 
 #endif  /* SCM_DEBUG_DEPRECATED == 0 */
 

@@ -4000,7 +4000,7 @@ SCM_GPROC1 (s_i_exp, "$exp", scm_tc7_cxr, (SCM (*)()) exp, g_i_exp);
 /* "Return the @var{x}th power of e."
  */
 SCM_GPROC1 (s_i_log, "$log", scm_tc7_cxr, (SCM (*)()) log, g_i_log);
-/* "Return the natural logarithm of the real number@var{x}."
+/* "Return the natural logarithm of the real number @var{x}."
  */
 SCM_GPROC1 (s_i_sin, "$sin", scm_tc7_cxr, (SCM (*)()) sin, g_i_sin);
 /* "Return the sine of the real number @var{x}."

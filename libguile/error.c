@@ -314,7 +314,8 @@ scm_misc_error (const char *subr, const char *message, SCM args)
   scm_error (scm_misc_error_key, subr, message, args, SCM_BOOL_F);
 }
 
-/* implements the SCM_ASSERT interface.  */  
+#if (SCM_DEBUG_DEPRECATED == 0)
+
 SCM
 scm_wta (SCM arg, const char *pos, const char *s_subr)
 {
@@ -350,16 +351,10 @@ scm_wta (SCM arg, const char *pos, const char *s_subr)
 	  scm_wrong_type_arg (s_subr, 7, arg);
 	case SCM_WNA:
 	  scm_wrong_num_args (arg);
-
-#if (SCM_DEBUG_DEPRECATED == 0)
-
 	case SCM_OUTOFRANGE:
 	  scm_out_of_range (s_subr, arg);
 	case SCM_NALLOC:
 	  scm_memory_error (s_subr);
-
-#endif  /* SCM_DEBUG_DEPRECATED == 0 */
-
 	default:
 	  /* this shouldn't happen.  */
 	  scm_misc_error (s_subr, "Unknown error", SCM_EOL);
@@ -367,6 +362,8 @@ scm_wta (SCM arg, const char *pos, const char *s_subr)
     }
   return SCM_UNSPECIFIED;
 }
+
+#endif  /* SCM_DEBUG_DEPRECATED == 0 */
 
 void
 scm_init_error ()

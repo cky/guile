@@ -1,4 +1,4 @@
-/* $Id: validate.h,v 1.29 2001-03-17 12:20:36 dirk Exp $ */
+/* $Id: validate.h,v 1.30 2001-03-17 13:34:21 dirk Exp $ */
 /*	Copyright (C) 1999, 2000 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -44,8 +44,6 @@
 
 #ifndef SCM_VALIDATE_H__
 #define SCM_VALIDATE_H__
-
-#define SCM_FUNC_NAME (scm_makfrom0str (FUNC_NAME))
 
 #define SCM_SYSERROR do { scm_syserror (FUNC_NAME); } while (0)
 
@@ -148,29 +146,6 @@
 #define SCM_VALIDATE_REAL(pos, z) SCM_MAKE_VALIDATE (pos, z, REALP)
 
 #define SCM_VALIDATE_NUMBER(pos, z) SCM_MAKE_VALIDATE (pos, z, NUMBERP)
-
-#define SCM_VALIDATE_NUMBER_COPY(pos, z, cvar)	\
-  do {						\
-    if (SCM_INUMP (z))				\
-      cvar = (double) SCM_INUM (z);		\
-    else if (SCM_REALP (z))			\
-      cvar = SCM_REAL_VALUE (z);		\
-    else if (SCM_BIGP (z))			\
-      cvar = scm_big2dbl (z);			\
-    else					\
-      {						\
-	cvar = 0.0;				\
-        SCM_WRONG_TYPE_ARG (pos, z);		\
-      }						\
-  } while (0)
-
-#define SCM_VALIDATE_NUMBER_DEF_COPY(pos, number, def, cvar)	\
-  do {								\
-    if (SCM_UNBNDP (number))					\
-      cvar = def;						\
-    else							\
-      SCM_VALIDATE_NUMBER_COPY(pos, number, cvar);		\
-  } while (0)
 
 #define SCM_VALIDATE_INUM(pos, k) SCM_MAKE_VALIDATE (pos, k, INUMP)
 
@@ -405,11 +380,36 @@
 
 #if (SCM_DEBUG_DEPRECATED == 0)
 
+#define SCM_FUNC_NAME (scm_makfrom0str (FUNC_NAME))
+
 #define SCM_WTA(pos, scm) \
   do { scm_wta (scm, (char *) pos, FUNC_NAME); } while (0)
 
 #define RETURN_SCM_WTA(pos, scm) \
   do { return scm_wta (scm, (char *) pos, FUNC_NAME); } while (0)
+
+#define SCM_VALIDATE_NUMBER_COPY(pos, z, cvar)	\
+  do {						\
+    if (SCM_INUMP (z))				\
+      cvar = (double) SCM_INUM (z);		\
+    else if (SCM_REALP (z))			\
+      cvar = SCM_REAL_VALUE (z);		\
+    else if (SCM_BIGP (z))			\
+      cvar = scm_big2dbl (z);			\
+    else					\
+      {						\
+	cvar = 0.0;				\
+        SCM_WRONG_TYPE_ARG (pos, z);		\
+      }						\
+  } while (0)
+
+#define SCM_VALIDATE_NUMBER_DEF_COPY(pos, number, def, cvar)	\
+  do {								\
+    if (SCM_UNBNDP (number))					\
+      cvar = def;						\
+    else							\
+      SCM_VALIDATE_NUMBER_COPY(pos, number, cvar);		\
+  } while (0)
 
 #define SCM_VALIDATE_STRINGORSUBSTR SCM_VALIDATE_STRING
 

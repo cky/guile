@@ -445,7 +445,8 @@ tryagain_no_flush_ws:
       j = 0;
       while ('"' != (c = scm_getc (port)))
 	{
-	  SCM_ASSERT (EOF != c, SCM_UNDEFINED, "end of file in ", "string");
+	  if (c == EOF)
+	    SCM_MISC_ERROR ("end of file in string constant", SCM_EOL);
 
 	  while (j + 2 >= SCM_STRING_LENGTH (*tok_buf))
 	    scm_grow_tok_buf (tok_buf);

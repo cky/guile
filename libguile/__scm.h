@@ -2,7 +2,7 @@
 
 #ifndef __SCMH
 #define __SCMH
-/*	Copyright (C) 1995, 1996, 1998, 1999, 2000 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -488,7 +488,7 @@ do { \
 #else
 #define SCM_ASSERT(_cond, _arg, _pos, _subr) \
 	if (!(_cond)) \
-          scm_wta(_arg, (char *)(_pos), _subr)
+          scm_wrong_type_arg (_subr, _pos, _arg)
 #define SCM_ASSERT_TYPE(_cond, _arg, _pos, _subr, _msg) \
 	if (!(_cond)) \
           scm_wrong_type_arg_msg(_subr, _pos, _arg, _msg)
@@ -511,7 +511,7 @@ extern SCM scm_call_generic_0 (SCM gf);
 #define SCM_WTA_DISPATCH_0(gf, arg, pos, subr) \
   return (SCM_UNPACK (gf) \
           ? scm_call_generic_0 ((gf)) \
-          : scm_wta ((arg), (char *) (pos), (subr)))
+          : scm_wrong_type_arg ((subr), (pos), (arg)), 0)
 #define SCM_GASSERT0(cond, gf, arg, pos, subr) \
   if (!(cond)) SCM_WTA_DISPATCH_0((gf), (arg), (pos), (subr))
 
@@ -520,7 +520,7 @@ extern SCM scm_call_generic_1 (SCM gf, SCM a1);
 #define SCM_WTA_DISPATCH_1(gf, a1, pos, subr) \
   return (SCM_UNPACK (gf) \
           ? scm_call_generic_1 ((gf), (a1)) \
-          : scm_wta ((a1), (char *) (pos), (subr)))
+          : scm_wrong_type_arg ((subr), (pos), (a1)), 0)
 #define SCM_GASSERT1(cond, gf, a1, pos, subr) \
   if (!(cond)) SCM_WTA_DISPATCH_1((gf), (a1), (pos), (subr))
 
@@ -529,7 +529,8 @@ extern SCM scm_call_generic_2 (SCM gf, SCM a1, SCM a2);
 #define SCM_WTA_DISPATCH_2(gf, a1, a2, pos, subr) \
   return (SCM_UNPACK (gf) \
           ? scm_call_generic_2 ((gf), (a1), (a2)) \
-          : scm_wta ((pos) == SCM_ARG1 ? (a1) : (a2), (char *) (pos), (subr)))
+          : scm_wrong_type_arg ((subr), (pos), \
+                                (pos) == SCM_ARG1 ? (a1) : (a2)), 0)
 #define SCM_GASSERT2(cond, gf, a1, a2, pos, subr) \
   if (!(cond)) SCM_WTA_DISPATCH_2((gf), (a1), (a2), (pos), (subr))
 
@@ -538,9 +539,9 @@ extern SCM scm_apply_generic (SCM gf, SCM args);
 #define SCM_WTA_DISPATCH_n(gf, args, pos, subr) \
   return (SCM_UNPACK (gf) \
           ? scm_apply_generic ((gf), (args)) \
-          : scm_wta (scm_list_ref ((args), SCM_MAKINUM ((pos) - 1)), \
-		     (char *) (pos), \
-		     (subr)))
+          : scm_wrong_type_arg ((subr), (pos), \
+                                scm_list_ref ((args), \
+                                              SCM_MAKINUM ((pos) - 1))), 0)
 #define SCM_GASSERTn(cond, gf, args, pos, subr) \
   if (!(cond)) SCM_WTA_DISPATCH_n((gf), (args), (pos), (subr))
 
@@ -562,11 +563,10 @@ extern SCM scm_apply_generic (SCM gf, SCM args);
 #define SCM_ARG6 		6
 #define SCM_ARG7 		7 
 
-/* SCM_WNA must follow the last SCM_ARGn in sequence.
- */
-#define SCM_WNA 		8
-
 #if (SCM_DEBUG_DEPRECATED == 0)
+
+/* Use SCM_WRONG_NUM_ARGS instead of: */
+#define SCM_WNA 		8
 
 /* Use SCM_ASSERT_RANGE or SCM_VALIDATE_XXX_RANGE instead of: */
 #define SCM_OUTOFRANGE         10

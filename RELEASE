@@ -59,7 +59,9 @@ In release 1.6:
   SCM_COERCE_SUBSTR, SCM_ROSTRINGP, SCM_RWSTRINGP, SCM_VALIDATE_RWSTRING,
   SCM_ROCHARS, SCM_ROUCHARS, SCM_SETLENGTH, SCM_SETCHARS, SCM_LENGTH_MAX,
   SCM_GC8MARKP, SCM_SETGC8MARK, SCM_CLRGC8MARK, SCM_GCTYP16, SCM_GCCDR,
-  SCM_SUBR_DOC, SCM_OPDIRP, SCM_VALIDATE_OPDIR, SCM_WTA, RETURN_SCM_WTA
+  SCM_SUBR_DOC, SCM_OPDIRP, SCM_VALIDATE_OPDIR, SCM_WTA, RETURN_SCM_WTA,
+  SCM_WNA, SCM_FUNC_NAME, SCM_VALIDATE_NUMBER_COPY,
+  SCM_VALIDATE_NUMBER_DEF_COPY
 - remove scm_vector_set_length_x
 - remove function scm_call_catching_errors
   (replaced by catch functions from throw.[ch])
@@ -80,6 +82,7 @@ In release 1.6:
 - remove scm_close_all_ports_except
 - remove scm_strprint_obj
 - remove SCM_CONST_LONG
+- remove scm_wta
 
 Modules sort.c and random.c should be factored out into separate
 modules (but still be distributed with guile-core) when we get a new
