@@ -1,5 +1,10 @@
 2000-12-06  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* gc.c (scm_init_gc):  gc_async must be protected from gc.  I
+	wonder why we never ran into problems up to now...
+
+2000-12-06  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* gc.c (scm_init_gc):  Don't create a binding for %gc-thunk.
 
 2000-12-06  Dirk Herrmann  <D.Herrmann@tu-bs.de>
