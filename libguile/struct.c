@@ -45,6 +45,9 @@
 #include "chars.h"
 #include "genio.h"
 #include "eval.h"
+#include "alist.h"
+#include "weaks.h"
+#include "hashtab.h"
 
 #include "struct.h"
 
@@ -56,6 +59,7 @@
 
 static SCM required_vtable_fields = SCM_BOOL_F;
 static int struct_num = 0;
+SCM scm_struct_table;
 
 
 SCM_PROC (s_struct_make_layout, "make-struct-layout", 1, 0, 0, scm_make_struct_layout);
@@ -322,10 +326,9 @@ scm_alloc_struct (int n_words, int n_extra, char *who)
   /* Adjust it even further so it's aligned on an eight-byte boundary.  */
   p = (SCM *) (((SCM) p + 7) & ~7);
 
-  /* Initialize a few fields as described above.  */
+  /* Initialize a few fields as described above, except for the tag.  */
   p[scm_struct_i_ptr] = (SCM) block;
   p[scm_struct_i_n_words] = (SCM) (n_words + n_extra);
-  p[scm_struct_i_tag] = struct_num++;
 
   return p;
 }
@@ -358,7 +361,7 @@ scm_make_struct (vtable, tail_array_size, init)
   if (SCM_STRUCT_DATA (vtable)[scm_struct_i_flags] & SCM_STRUCTF_ENTITY)
     {
       data = scm_alloc_struct (basic_size + tail_elts,
-			       scm_struct_n_extra_words + 5,
+			       scm_struct_entity_n_extra_words,
 			       "make-struct");
       data[scm_struct_i_proc + 0] = SCM_BOOL_F;
       data[scm_struct_i_proc + 1] = SCM_BOOL_F;
@@ -370,6 +373,7 @@ scm_make_struct (vtable, tail_array_size, init)
     data = scm_alloc_struct (basic_size + tail_elts,
 			     scm_struct_n_extra_words,
 			     "make-struct");
+  data[scm_struct_i_tag] = struct_num++;
   SCM_SETCDR (handle, data);
   SCM_SETCAR (handle, ((SCM)SCM_STRUCT_DATA (vtable)) + scm_tc3_cons_gloc);
   scm_struct_init (handle, tail_elts, init);
@@ -410,6 +414,7 @@ scm_make_vtable_vtable (extra_fields, tail_array_size, init)
   data = scm_alloc_struct (basic_size + tail_elts,
 			   scm_struct_n_extra_words,
 			   "make-vtable-vtable");
+  data[scm_struct_i_tag] = struct_num++;
   SCM_SETCDR (handle, data);
   SCM_SETCAR (handle, ((SCM)data) + scm_tc3_cons_gloc);
   SCM_STRUCT_LAYOUT (handle) = layout;
@@ -599,9 +604,61 @@ SCM
 scm_struct_vtable_tag (handle)
      SCM handle;
 {
-  SCM_ASSERT (SCM_NIMP (handle) && (SCM_BOOL_F != scm_struct_vtable_p (handle)),
+  SCM_ASSERT (SCM_NFALSEP (scm_struct_vtable_p (handle)),
 	      handle, SCM_ARG1, s_struct_vtable_tag);
-  return scm_long2num (SCM_STRUCT_DATA (handle)[-1]);
+  return scm_long2num (SCM_STRUCT_DATA (handle)[scm_struct_i_tag]);
+}
+
+/* {Associating names and classes with vtables}
+ *
+ * The name of a vtable should probably be stored as a slot.  This is
+ * a backward compatible solution until agreement has been achieved on
+ * how to associate names with vtables.
+ */
+
+unsigned int
+scm_struct_ihashq (SCM obj, unsigned int n)
+{
+  return (SCM_STRUCT_DATA (obj)[scm_struct_i_tag] & ~SCM_STRUCTF_MASK) % n;
+}
+
+SCM
+scm_struct_create_handle (SCM obj)
+{
+  SCM handle = scm_hash_fn_create_handle_x (scm_struct_table,
+					    obj,
+					    SCM_BOOL_F,
+					    scm_struct_ihashq,
+					    scm_sloppy_assq,
+					    0);
+  if (SCM_FALSEP (SCM_CDR (handle)))
+    SCM_SETCDR (handle, scm_cons (SCM_BOOL_F, SCM_BOOL_F));
+  return handle;
+}
+
+SCM_PROC (s_struct_vtable_name, "struct-vtable-name", 1, 0, 0, scm_struct_vtable_name);
+
+SCM
+scm_struct_vtable_name (SCM vtable)
+{
+  SCM_ASSERT (SCM_NFALSEP (scm_struct_vtable_p (vtable)),
+	      vtable, SCM_ARG1, s_struct_vtable_name);
+  
+  return SCM_STRUCT_TABLE_NAME (SCM_CDR (scm_struct_create_handle (vtable)));
+}
+
+SCM_PROC (s_set_struct_vtable_name_x, "set-struct-vtable-name!", 2, 0, 0, scm_set_struct_vtable_name_x);
+
+SCM
+scm_set_struct_vtable_name_x (SCM vtable, SCM name)
+{
+  SCM_ASSERT (SCM_NIMP (vtable) && SCM_NFALSEP (scm_struct_vtable_p (vtable)),
+	      vtable, SCM_ARG1, s_set_struct_vtable_name_x);
+  SCM_ASSERT (SCM_NIMP (name) && SCM_SYMBOLP (name),
+	      name, SCM_ARG2, s_set_struct_vtable_name_x);
+  SCM_SET_STRUCT_TABLE_NAME (SCM_CDR (scm_struct_create_handle (vtable)),
+			     name);
+  return SCM_UNSPECIFIED;
 }
 
 
@@ -628,6 +685,8 @@ scm_print_struct (exp, port, pstate)
 void
 scm_init_struct ()
 {
+  scm_struct_table
+    = scm_permanent_object (scm_make_weak_key_hash_table (SCM_MAKINUM (31)));
   required_vtable_fields = SCM_CAR (scm_intern_obarray ("pruosrpw", sizeof ("pruosrpw") - 1, SCM_BOOL_F));
   scm_permanent_object (required_vtable_fields);
   scm_sysintern ("vtable-index-layout", SCM_MAKINUM (scm_vtable_index_layout));
