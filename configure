@@ -542,7 +542,6 @@ ac_configure=$ac_aux_dir/configure # This should be Cygnus configure.
 
 subdirs="$all_subdirs"
 
-existingdirs=
 for d in $all_subdirs; do
   if test -d $srcdir/$d ; then
     existingdirs="$existingdirs $d"
@@ -670,7 +669,7 @@ else
   yes;
 #endif
 EOF
-if { ac_try='${CC-cc} -E conftest.c'; { (eval echo configure:674: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }; } | egrep yes >/dev/null 2>&1; then
+if { ac_try='${CC-cc} -E conftest.c'; { (eval echo configure:673: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }; } | egrep yes >/dev/null 2>&1; then
   ac_cv_prog_gcc=yes
 else
   ac_cv_prog_gcc=no
@@ -732,7 +731,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-ldl  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 736 "configure"
+#line 735 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -744,7 +743,7 @@ int t() {
 dlopen()
 ; return 0; }
 EOF
-if { (eval echo configure:748: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; }; then
+if { (eval echo configure:747: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; }; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -780,7 +779,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-ltcl7.5 -lm $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 784 "configure"
+#line 783 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -792,7 +791,7 @@ int t() {
 Tcl_CreateInterp()
 ; return 0; }
 EOF
-if { (eval echo configure:796: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; }; then
+if { (eval echo configure:795: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; }; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
