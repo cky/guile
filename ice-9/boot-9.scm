@@ -793,6 +793,12 @@
 ;;; {try-load}
 ;;;
 
+(define (%try-load file-name case-insensitive sharp)
+  (catch #t (lambda ()
+	      (primitive-load file-name case-insensitive sharp)
+	      #t)
+	 (lambda args #f)))
+
 (define (try-load-with-path file-name path)
   (or-map (lambda (d)
 	    (let ((f (in-vicinity d file-name)))
@@ -843,21 +849,6 @@
 	  (newline)
 	  (force-output)))))
 
-(define (%load-announce-lossage file path)
-  (if %load-verbosely
-      (with-output-to-port (current-error-port)
-	(lambda ()
-	  (display ";;; ")
-	  (display (make-string %load-indent #\ ))
-	  (display "...COULD NOT LOAD ")
-	  (display file)
-	  (display " from ")
-	  (write path)
-	  (newline)
-	  (force-output))))
-  (throw 'could-not-load file path))
-
-
 (define (load-with-path name path)
   (define (do-load)
     (%load-announce name)
@@ -868,7 +859,8 @@
 			     #t)
 			   #f))
 		     path))
-	(%load-announce-lossage name path)))
+	(scm-error 'misc-error #f "Could not load %S from %S"
+		   (list name path) #f)))
 
   (let ((indent %load-indent))
     (dynamic-wind

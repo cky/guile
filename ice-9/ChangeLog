@@ -1,3 +1,11 @@
+Tue Sep 24 06:53:04 1996  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* boot-9.scm (%try-load): define using primitive-load.  Previously
+	%try-load itself was the primitive.
+	(load-with-path): use scm-error instead of %load-announce-lossage.
+	Errors are thrown to 'misc-error instead of 'could-not-load.
+	(%load-announce-lossage): deleted.
+
 Mon Sep 23 00:16:31 1996  Mikael Djurfeldt  <mdj@kenneth>
 
 	* boot-9.scm (warn, scm-style-repl): Use C printer instead of `print'.
