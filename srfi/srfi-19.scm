@@ -1247,21 +1247,21 @@
   (let ((padding-ok #t))
     (define (accum-int port accum nchars)
       (let ((ch (peek-char port)))
-        (cond
-         ((>= nchars n) accum)
-         ((eof-object? ch) 
-          (priv:time-error 'string->date 'bad-date-template-string 
+	(cond
+	 ((>= nchars n) accum)
+	 ((eof-object? ch) 
+	  (priv:time-error 'string->date 'bad-date-template-string 
                            "Premature ending to integer read."))
-         ((char-numeric? ch)
-          (set! padding-ok #f)
-          (accum-int port (+ (* accum 10) (priv:char->int (read-char
-                                                           port)))
-                     (+ nchars 1)))
-         (padding-ok
-          (read-ch port) ; consume padding
-          (accum-int prot accum (+ nchars 1)))
-         (else ; padding where it shouldn't be
-          (priv:time-error 'string->date 'bad-date-template-string 
+	 ((char-numeric? ch)
+	  (set! padding-ok #f)
+	  (accum-int port
+                     (+ (* accum 10) (priv:char->int (read-char port)))
+		     (+ nchars 1)))
+	 (padding-ok
+	  (read-char port) ; consume padding
+	  (accum-int port accum (+ nchars 1)))
+	 (else ; padding where it shouldn't be
+	  (priv:time-error 'string->date 'bad-date-template-string 
                            "Non-numeric characters in integer read.")))))
     (accum-int port 0 0)))
 
