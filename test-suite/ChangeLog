@@ -1,3 +1,8 @@
+2004-07-29  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* standalone/test-conversion.c: Many more tests for the integer
+	conversion functions.
+
 2004-07-28  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/regexp.test (make-regexp): Exercise flags args validation.

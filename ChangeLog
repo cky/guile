@@ -1,3 +1,9 @@
+2004-07-29  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* configure.in: Bugfix: logic in detecting ptrdiff_t was inverted;
+	assume ptrdiff_t is available when its size is non-zero, not when
+	it is zero.  Do no longer define SCM_I_GSC_*_LIMITS macros.
+
 2004-07-09  Marius Vollmer  <mvo@zagadka.de>
 
 	* configure.in: Bugfix: set SCM_I_GSC_T_UINTMAX, not
