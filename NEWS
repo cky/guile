@@ -480,6 +480,11 @@ order described by the SRFI-1 specification
 
 list-copy now accepts improper lists, per the specification.
 
+** SRFI-19 fixes
+
+date-week-number now correctly respects the requested day of week
+starting the week.
+
 * Changes to the C interface
 
 ** Many public #defines with generic names have been made private.
