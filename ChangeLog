@@ -1,3 +1,15 @@
+Thu Oct 23 00:58:06 1997  Jim Blandy  <jimb@totoro.red-bean.com>
+
+	* configure.in: Check for the readline library, and the termcap
+	library (on which readline relies).
+	* configure: Regenerated.
+
+Wed Oct 22 16:55:57 1997  Jim Blandy  <jimb@totoro.red-bean.com>
+
+	New libtool: 1.0e
+	* ltconfig, ltmain.sh, config.sub, config.guess: Updated.
+	* configure, aclocal.m4: Regenerated.
+
 1997-10-02  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	Make dynamic linking work on Dec Unix. (Thanks to Clark McGrew)

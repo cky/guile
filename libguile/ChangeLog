@@ -1,3 +1,13 @@
+Thu Oct 23 01:02:03 1997  Jim Blandy  <jimb@totoro.red-bean.com>
+
+	Readline support, from Daniel Risacher.
+	* readline.c, readline.h: New files.
+	* init.c: #include "readline.h".
+	(scm_boot_guile_1): Call scm_init_readline, if we have it.
+	* Makefile.am (libguile_la_SOURCES): Include readline.c.
+	* Makefile.in: Regenerated.
+	* scmconfig.h.in: Regenerated, after change to ../configure.
+
 1997-10-20  Mark Galassi  <rosalia@nis.lanl.gov>
 
 	* gh.h: gh_vector_set -> gh_vector_set_x

@@ -14,24 +14,76 @@ libguile/sequences.h, libguile/sequences.c removed.
 
 * Changes to the stand-alone interpreter
 
-New procedures have been added to implement a "batch mode":
+** New procedures have been added to implement a "batch mode":
 
-Function: batch-mode?
+*** Function: batch-mode?
 
     Returns a boolean indicating whether the interpreter is in batch
     mode.
 
-Function: set-batch-mode?! ARG
+*** Function: set-batch-mode?! ARG
 
     If ARG is true, switches the interpreter to batch mode.  The `#f'
     case has not been implemented.
 
+** Guile now provides full command-line editing, when run interactively.
+To use this feature, you must have the readline library installed.
+The Guile build process will notice it, and automatically include
+support for it.
+
+The readline library is available via anonymous FTP from any GNU
+mirror site; the canonical location is "ftp://prep.ai.mit.edu/pub/gnu".
+
 * Changes to the procedure for linking libguile with your programs
+
+** You can now use the 'build-guile' utility to link against Guile.
+
+Guile now includes a command-line utility called 'build-guile', which
+writes to its standard output a list of flags which you must pass to
+the linker to link against the Guile library.  The flags include
+'-lguile' itself.
+
+This is necessary because the Guile library may depend on other
+libraries for networking functions, thread support, and so on.  To
+link your program against libguile, you must link against these
+libraries as well.  The exact set of libraries depends on the type of
+system you are running, and what you have installed on it.  The
+'build-guile' command uses information recorded in libguile itself to
+determine which libraries you must link against.
+
+For example, here is a Makefile rule that builds a program named 'foo'
+from the object files ${FOO_OBJECTS}, and links them against Guile:
+
+  foo: ${FOO_OBJECTS}
+	  ${CC} ${CFLAGS} ${FOO_OBJECTS} `build-guile link` -o foo
+
 
 * Changes to Scheme functions and syntax
 
 ** Multi-byte strings have been removed, as have multi-byte and wide
 ports.
+
+** New function: readline [PROMPT]
+Read a line from the terminal, and allow the user to edit it,
+prompting with PROMPT.  READLINE provides a large set of Emacs-like
+editing commands, lets the user recall previously typed lines, and
+works on almost every kind of terminal, including dumb terminals.
+
+READLINE assumes that the cursor is at the beginning of the line when
+it is invoked.  Thus, you can't print a prompt yourself, and then call
+READLINE; you need to package up your prompt as a string, pass it to
+the function, and let READLINE print the prompt itself.  This is
+because READLINE needs to know the prompt's screen width.
+
+For Guile to provide this function, you must have the readline library
+installed on your system.
+
+See also ADD-HISTORY function.
+
+** New function: add-history STRING
+Add STRING as the most recent line in the history used by the READLINE
+command.  READLINE does not add lines to the history itself; you must
+call ADD-HISTORY to make previous input available to the user.
 
 ** Some magic has been added to the printer to better handle user
 written printing routines (like record printers, closure printers).

@@ -1,3 +1,22 @@
+Thu Oct 23 01:00:33 1997  Jim Blandy  <jimb@totoro.red-bean.com>
+
+	Add support for readline function.
+	* readline.scm: New module.
+	* boot-9.scm (repl-reader): New function.
+	(scm-style-repl): Call repl-reader, instead of doing the reading
+	ourselves.  Remove repl-report-reset; it was never used for
+	anything.
+	(top-repl): If we've got the readline primitives, then redefine
+	repl-reader to use them.
+	If we've got the readline primitives, import the readline module.
+
+	* ls.scm (ls, lls): Don't assume (eq? #f '()).
+
+Wed Oct 22 18:26:57 1997  Jim Blandy  <jimb@totoro.red-bean.com>
+
+	* calling.scm, common-list.scm, ls.scm, q.scm, runq.scm,
+	string-fun.scm: Added copyright notices; reformatted.
+
 Thu Oct  9 05:44:00 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* expect.scm: (expect-regexec): new procedure, use it in
@@ -16,12 +35,12 @@ Wed Oct  8 03:16:01 1997  Gary Houston  <ghouston@actrix.gen.nz>
 	* boot-9.scm (inherit-print-state): If NEW-PORT contains a
 	print-state, throw it away.
 
-1997-10-03  Mikael Djurfeldt  <mdj@nada.kth.se>
+Fri Oct  3 12:00:00  Mikael Djurfeldt  <mdj@nada.kth.se>
 
 	* boot-9.scm (struct-layout): Use `vtable-index-layout' instead of
 	`0'.
 
-1997-10-02  Mikael Djurfeldt  <mdj@nada.kth.se>
+Thu Oct  2 12:00:00  Mikael Djurfeldt  <mdj@nada.kth.se>
 
 	* boot-9.scm (struct-printer, make-struct-printer,
 	set-struct-printer-in-vtable!, *struct-printer*): Removed.
@@ -31,7 +50,7 @@ Wed Oct  8 03:16:01 1997  Gary Houston  <ghouston@actrix.gen.nz>
 	(record-type-name, record-type-fields): Decreased slot index by
 	one; Use `vtable-offset-user'.
 
-1997-10-02  Marius Vollmer  <mvo@zagadka.ping.de>
+Thu Oct  2 12:00:00  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* boot-9.scm (inherit-print-state): New experimental function.
 
