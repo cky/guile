@@ -4472,16 +4472,15 @@ scm_num2ulong (SCM num, char *pos, const char *s_caller)
     }
   } else if (SCM_BIGP (num)) {
     unsigned long int res = 0;
-    unsigned long int old_res = 0;
     scm_sizet l;
     
+    if (SCM_BIGSIGN (num))
+      scm_out_of_range (s_caller, num);
+      
     for (l = SCM_NUMDIGS (num); l--;) {
-      res = SCM_BIGUP (res) + SCM_BDIGITS (num)[l];
-      if (res >= old_res) {
-	old_res = res;
-      } else {
+      if (res > SCM_BIGDN(ULONG_MAX))
 	scm_out_of_range (s_caller, num);
-      }
+      res = SCM_BIGUP (res) + SCM_BDIGITS (num)[l];
     }
     return res;
   } else if (SCM_REALP (num)) {
