@@ -15,6 +15,15 @@ snapshots or distributions, but is a strictly internal document.
 CONVENTIONS: ChangeLog format. (Reverse chronological order.)
 ----------------------------------------------------------------------
 
+Thu Mar  6 00:54:59 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* libguile/unif.c: Introduce "fancy printing" for vectors.  "Fancy
+ 	printing" is performed by the printer when the `fancyp' flag is
+ 	set in the print state (see print.h).  One of its effects is that
+ 	sequences should be printed with maximum `length' objects.  (This
+ 	is currently only used in backtraces and error messages).
+	This works for lists, but not yet for vectors and arrays.
+
 Wed Mar  5 22:56:19 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* libguile/struct.c, libguile/struct.h, libguile/gc.c: Structs
