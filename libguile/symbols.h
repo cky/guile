@@ -80,7 +80,7 @@ extern int scm_symhash_dim;
 #define SCM_LENGTH(x) (((unsigned long)SCM_CAR(x))>>8)
 #define SCM_LENGTH_MAX (0xffffffL)
 #define SCM_SETLENGTH(x, v, t) SCM_SETCAR((x), ((v)<<8)+(t))
-#define SCM_SETCHARS SCM_SETCDR
+#define SCM_SETCHARS(x, v) SCM_SETCDR (x, (SCM) v)
 #define SCM_CHARS(x) ((char *)(SCM_CDR(x)))
 #define SCM_UCHARS(x) ((unsigned char *)(SCM_CDR(x)))
 #define SCM_SLOTS(x) ((SCM *) (* ((SCM *)SCM_CHARS(x) - 1)))
