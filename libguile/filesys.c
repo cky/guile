@@ -461,81 +461,6 @@ scm_stat (object)
   return scm_stat2scm (&stat_temp);
 }
 
-SCM scm_dot_string;
-
-SCM_PROC (s_dirname, "dirname", 1, 0, 0, scm_dirname);
-
-SCM
-scm_dirname (SCM filename)
-{
-  char *s;
-  int i, len;
-  SCM_ASSERT (SCM_NIMP (filename) && SCM_ROSTRINGP (filename),
-	      filename,
-	      SCM_ARG1,
-	      s_dirname);
-  s = SCM_ROCHARS (filename);
-  len = SCM_LENGTH (filename);
-  i = len - 1;
-  while (i >= 0 && s[i] == '/') --i;
-  while (i >= 0 && s[i] != '/') --i;
-  while (i >= 0 && s[i] == '/') --i;
-  if (i < 0)
-    {
-      if (len > 0 && s[0] == '/')
-	return scm_make_shared_substring (filename, SCM_INUM0, SCM_MAKINUM (1));
-      else
-	return scm_dot_string;
-    }
-  else
-    return scm_make_shared_substring (filename, SCM_INUM0, SCM_MAKINUM (i + 1));
-}
-
-SCM_PROC (s_basename, "basename", 1, 1, 0, scm_basename);
-
-SCM
-scm_basename (SCM filename, SCM suffix)
-{
-  char *f, *s = 0;
-  int i, j, len, end;
-  SCM_ASSERT (SCM_NIMP (filename) && SCM_ROSTRINGP (filename),
-	      filename,
-	      SCM_ARG1,
-	      s_basename);
-  SCM_ASSERT (SCM_UNBNDP (suffix)
-	      || (SCM_NIMP (suffix) && SCM_ROSTRINGP (suffix)),
-	      suffix,
-	      SCM_ARG2,
-	      s_basename);
-  f = SCM_ROCHARS (filename);
-  if (SCM_UNBNDP (suffix))
-    j = -1;
-  else
-    {
-      s = SCM_ROCHARS (suffix);
-      j = SCM_LENGTH (suffix) - 1;
-    }
-  len = SCM_LENGTH (filename);
-  i = len - 1;
-  while (i >= 0 && f[i] == '/') --i;
-  end = i;
-  while (i >= 0 && j >= 0 && f[i] == s[j]) --i, --j;
-  if (j == -1)
-    end = i;
-  while (i >= 0 && f[i] != '/') --i;
-  if (i == end)
-    {
-      if (len > 0 && f[0] == '/')
-	return scm_make_shared_substring (filename, SCM_INUM0, SCM_MAKINUM (1));
-      else
-	return scm_dot_string;
-    }
-  else
-    return scm_make_shared_substring (filename,
-				      SCM_MAKINUM (i + 1),
-				      SCM_MAKINUM (end + 1));
-}
-
 
 /* {Modifying Directories}
  */
@@ -1296,8 +1221,8 @@ scm_readlink(path)
   SCM path;
 {
 #ifdef HAVE_READLINK
-  scm_sizet rv;
-  scm_sizet size = 100;
+  int rv;
+  int size = 100;
   char *buf;
   SCM result;
   SCM_ASSERT (SCM_NIMP (path) && SCM_ROSTRINGP (path), path, (char *) SCM_ARG1,
@@ -1305,7 +1230,7 @@ scm_readlink(path)
   SCM_COERCE_SUBSTR (path);
   SCM_DEFER_INTS;
   buf = scm_must_malloc (size, s_readlink);
-  while ((rv = readlink (SCM_ROCHARS (path), buf, (scm_sizet) size)) == size)
+  while ((rv = readlink (SCM_ROCHARS (path), buf, size)) == size)
     {
       scm_must_free (buf);
       size *= 2;
@@ -1404,6 +1329,86 @@ scm_copy_file (oldfile, newfile)
   SCM_ALLOW_INTS;
   return SCM_UNSPECIFIED;
 }
+
+
+/* Filename manipulation */
+
+SCM scm_dot_string;
+
+SCM_PROC (s_dirname, "dirname", 1, 0, 0, scm_dirname);
+
+SCM
+scm_dirname (SCM filename)
+{
+  char *s;
+  int i, len;
+  SCM_ASSERT (SCM_NIMP (filename) && SCM_ROSTRINGP (filename),
+	      filename,
+	      SCM_ARG1,
+	      s_dirname);
+  s = SCM_ROCHARS (filename);
+  len = SCM_LENGTH (filename);
+  i = len - 1;
+  while (i >= 0 && s[i] == '/') --i;
+  while (i >= 0 && s[i] != '/') --i;
+  while (i >= 0 && s[i] == '/') --i;
+  if (i < 0)
+    {
+      if (len > 0 && s[0] == '/')
+	return scm_make_shared_substring (filename, SCM_INUM0, SCM_MAKINUM (1));
+      else
+	return scm_dot_string;
+    }
+  else
+    return scm_make_shared_substring (filename, SCM_INUM0, SCM_MAKINUM (i + 1));
+}
+
+SCM_PROC (s_basename, "basename", 1, 1, 0, scm_basename);
+
+SCM
+scm_basename (SCM filename, SCM suffix)
+{
+  char *f, *s = 0;
+  int i, j, len, end;
+  SCM_ASSERT (SCM_NIMP (filename) && SCM_ROSTRINGP (filename),
+	      filename,
+	      SCM_ARG1,
+	      s_basename);
+  SCM_ASSERT (SCM_UNBNDP (suffix)
+	      || (SCM_NIMP (suffix) && SCM_ROSTRINGP (suffix)),
+	      suffix,
+	      SCM_ARG2,
+	      s_basename);
+  f = SCM_ROCHARS (filename);
+  if (SCM_UNBNDP (suffix))
+    j = -1;
+  else
+    {
+      s = SCM_ROCHARS (suffix);
+      j = SCM_LENGTH (suffix) - 1;
+    }
+  len = SCM_LENGTH (filename);
+  i = len - 1;
+  while (i >= 0 && f[i] == '/') --i;
+  end = i;
+  while (i >= 0 && j >= 0 && f[i] == s[j]) --i, --j;
+  if (j == -1)
+    end = i;
+  while (i >= 0 && f[i] != '/') --i;
+  if (i == end)
+    {
+      if (len > 0 && f[0] == '/')
+	return scm_make_shared_substring (filename, SCM_INUM0, SCM_MAKINUM (1));
+      else
+	return scm_dot_string;
+    }
+  else
+    return scm_make_shared_substring (filename,
+				      SCM_MAKINUM (i + 1),
+				      SCM_MAKINUM (end + 1));
+}
+
+
 
 
 

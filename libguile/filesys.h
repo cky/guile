@@ -81,6 +81,9 @@ extern SCM scm_symlink SCM_P ((SCM oldpath, SCM newpath));
 extern SCM scm_readlink SCM_P ((SCM path));
 extern SCM scm_lstat SCM_P ((SCM str));
 extern SCM scm_copy_file SCM_P ((SCM oldfile, SCM newfile));
+extern SCM scm_dirname SCM_P ((SCM filename));
+extern SCM scm_basename SCM_P ((SCM filename, SCM suffix));
+
 extern void scm_init_filesys SCM_P ((void));
 
 #endif  /* FILESYSH */
