@@ -1,3 +1,8 @@
+1999-10-05  Jim Blandy  <jimb@savonarola.red-bean.com>
+
+	* Makefile.in: Deleted from CVS repository.  Run the autogen.sh
+	script to create generated files like this one.
+
 1999-09-22  Jim Blandy  <jimb@savonarola.red-bean.com>
 
 	* configure.in: Call AM_PROG_CC_STDC.

@@ -1,5 +1,8 @@
 1999-10-05  Jim Blandy  <jimb@savonarola.red-bean.com>
 
+	* Makefile.in, scmconfig.h.in: Deleted from CVS repository.  Run
+	the autogen.sh script to create generated files like these.
+
 	* numbers.c (scm_string_to_number): Signal an error if radix is
 	less than two.  (Thanks to Jorgen Schaefer.)
 
