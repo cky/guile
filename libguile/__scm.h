@@ -49,7 +49,7 @@
  */
 
 /* New scheme for garbage collection */
-/* #define GUILE_NEW_GC_SCHEME */
+#define GUILE_NEW_GC_SCHEME
 
 /* #define GUILE_DEBUG_FREELIST */
 
@@ -76,7 +76,9 @@
 
 /* GC should relinquish empty cons-pair arenas. 
  */
+#ifndef GUILE_NEW_GC_SCHEME
 #define GC_FREE_SEGMENTS
+#endif
 
 /* Provide a scheme-accessible count-down timer that
  * generates a pseudo-interrupt.
