@@ -21,6 +21,7 @@
 Makefile
 Makefile.in
 autoconf-macros.texi
+mdate-sh
 stamp-vti
 stamp-vti.1
 version.texi

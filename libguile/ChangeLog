@@ -1,3 +1,10 @@
+2003-02-27  Rob Browning  <rlb@defaultvalue.org>
+
+	* Makefile.am (scmconfig.h): new target -- generate file from
+	../config.h.
+	(modinclude_HEADERS): remove version.h.
+	(nodist_modinclude_HEADERS): add version.h.
+
 2003-02-24  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	This fixes a serious GC bug, introduced during the latest
