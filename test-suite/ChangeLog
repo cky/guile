@@ -2,6 +2,7 @@
 
 	* guile-test (main): Handle `--flag-unresolved'.  No longer set
 	exit value to #f unconditionally on UNRESOLVED results.
+	(for-each-file): Do not recurse into "CVS" or "RCS" subdirs.
 
 2002-02-08  Neil Jerram  <neil@ossau.uklinux.net>
 
