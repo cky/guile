@@ -1,3 +1,9 @@
+2004-07-07  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* standalone/test-conversion.c: Don't define SCM_T_INTMAX_MIN,
+	etc, they are now provided by libuile.h.
+	(test_int_sizes): New.
+	
 2004-07-06  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* standalone/test-num2integral.c, standalone/test-unwind.c:

@@ -1,3 +1,23 @@
+2004-07-07  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* gen-scmconfig.h.in: Added all the new SCM_I_GSC_*_LIMITS that
+	configure now produces.
+	* gen-scmconfig.c: Use them to output SCM_T_INT8_MIN, etc
+	definitions, giving the limits of the integer types defined by
+	Guile. Also, output a hard coded SCM_I_LLONG_MIN, etc since
+	LLONG_MIN or LONG_LONG_MIN is hard to get at.
+
+	* numbers.h (scm_to_short, scm_to_ushort): It's SHRT_MIN, etc, not
+	SHORT_MIN.
+	(scm_to_size_t): Use SIZE_MAX instead of cooking our own.
+	(scm_to_long_long, scm_to_ulong_long, scm_to_int8, scm_to_uint8,
+	scm_to_int16, scm_to_uint16, scm_to_int32, scm_to_uint32,
+	scm_to_int64, scm_to_uint64, scm_to_intmax, scm_to_uintmax,
+	scm_from_long_long, scm_from_ulong_long, scm_from_int8,
+	scm_from_uint8, scm_from_int16, scm_from_uint16, scm_from_int32,
+	scm_from_uint32, scm_from_int64, scm_from_uint64, scm_from_intmax,
+	scm_from_uintmax): New.
+	
 2004-07-06  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* tags.h (scm_is_eq): New.
