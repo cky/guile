@@ -49,6 +49,8 @@ Changes since Guile 1.4:
 
 (srfi srfi-14) implements the SRFI Character-Set Library.
 
+(srfi srfi-14) implements the SRFI Time/Date Library.
+
 ** New scripts / "executable modules"
 
 Subdirectory "scripts" contains Scheme modules that are packaged to

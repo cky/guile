@@ -1,3 +1,10 @@
+2001-05-05  Rob Browning  <rlb@cs.utexas.edu>
+
+	* Makefile.am (srfi_DATA): added srfi-19.scm.
+
+	* srfi-19.scm: New file - time/date SRFI.  Thanks to Will
+	Fitzgerald.
+
 2001-05-02  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* srfi-14.c, srfi-13.c: Added @bullet to various @itemize lists.

@@ -93,11 +93,11 @@ In the subdirectory libguile, wrote:
     regex-posix.h
 
 Rob Browning:
-In the subdirectory srfi, wrote the initial files for:
-    srfi-2.scm
-    srfi-6.scm
-    srfi-8.scm
-    srfi-11.scm
+  wrote initial srfi/srfi-2.scm.
+  wrote initial srfi/srfi-6.scm.
+  wrote initial srfi/srfi-8.scm.
+  wrote initial srfi/srfi-11.scm.
+  ported srfi/srfi-19.scm to Guile.
 
 Martin Grabmueller:
 In the subdirectory srfi, wrote:
@@ -111,3 +111,6 @@ In the subdirectory doc, wrote:
     srfi-modules.texi
     srfi-13-14.texi
     repl-modules.texi
+
+Will Fitzgerald:
+  wrote initial srfi/srfi-19.scm.
