@@ -1,3 +1,8 @@
+2004-01-11  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/exceptions.test (false-if-exception): Disable tests on
+	referencing expansion environment, reverted.
+
 2004-01-07  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* standalone/test-unwind.c: Adapted to 'frame' renamings.

@@ -1,9 +1,11 @@
 2004-01-11  Kevin Ryde  <user42@zip.com.au>
 
+	* slib.scm (system): New function, giving an exit code return in
+	accordance with slib spec.
+	
 	Revert this, it breaks test-suite/tests/r5rs_pitfalls.test where
 	false-if-exception is used within syntax-rules.  (Suspect syntax-rules
 	ought to support this sort of thing, but it doesn't right now.)
-	
 	* boot-9.scm (false-if-exception): Unquote catch and lambda, so as not
 	to depend on expansion environment.
 
