@@ -1027,7 +1027,7 @@ scm_c_read (SCM port, void *buffer, scm_sizet size)
   while (n_available < size)
     {
       memcpy (buffer, pt->read_pos, n_available);
-      buffer += n_available;
+      buffer = (char *) buffer + n_available;
       pt->read_pos += n_available;
       n_read += n_available;
       

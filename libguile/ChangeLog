@@ -1,3 +1,13 @@
+2001-05-09  Michael Livshin  <mlivshin@bigfoot.com>
+
+	from Matthias Köppe (thanks!):
+
+	* ports.c (scm_c_read): pointer arithmetic on void pointers isn't
+	portable.
+
+	* deprecation.c (s_scm_include_deprecated_features): ANSI'fied the
+	docstring.
+
 2001-04-21  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* gc.c (scm_init_gc): Added FIXME comment.

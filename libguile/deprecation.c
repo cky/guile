@@ -116,8 +116,8 @@ print_deprecation_summary (void)
 SCM_DEFINE(scm_include_deprecated_features,
 	   "include-deprecated-features", 0, 0, 0,
 	   (),
-	   "Return @code{#t} iff deprecated features should be included
-            in public interfaces.")
+	   "Return @code{#t} iff deprecated features should be included\n"
+           "in public interfaces.")
 #define FUNC_NAME s_scm_include_deprecated_features
 {
 #if SCM_DEBUG_DEPRECATED == 0
