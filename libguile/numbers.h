@@ -308,8 +308,6 @@ typedef struct scm_dblproc
   double (*cproc) ();
 } scm_dblproc;
 
-#define SCM_NEWREAL(z, x) do { z = scm_make_real (x); } while (0)
-#define SCM_NEWCOMPLEX(z, x, y) do { z = scm_make_complex (x, y); } while (0)
 #define SCM_UNEGFIXABLE(n) ((n) <= -SCM_MOST_NEGATIVE_FIXNUM)
 #define SCM_FLOBUFLEN (10+2*(sizeof(double)/sizeof(char)*SCM_CHAR_BIT*3+9)/10)
 #define SCM_INEXP(x) SCM_INEXACTP(x)
