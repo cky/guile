@@ -55,6 +55,34 @@ if [ -f libltdl/configure.in ]; then
 	cat libltdl/configure.tmp >> libltdl/configure.in
 	rm libltdl/configure.tmp
 fi
+
+# Maybe patch ltdl.c.  This is only needed for 1.4.2 and earlier.
+if patch libltdl/ltdl.c <<EOP
+--- ltdl.c~	Fri Apr 12 18:52:48 2002
++++ ltdl.c	Tue Jul  9 14:12:47 2002
+@@ -2246,15 +2246,15 @@
+ static int
+ find_handle_callback (filename, data, ignored)
+      char *filename;
+      lt_ptr data;
+      lt_ptr ignored;
+ {
+   lt_dlhandle  *handle	= (lt_dlhandle *) data;
+-  int		found	= access (filename, R_OK);
++  int		found	= !access (filename, F_OK);
+ 
+   /* Bail out if file cannot be read...  */
+   if (!found)
+     return 0;
+ 
+   /* Try to dlopen the file, but do not continue searching in any
+      case.  */
+EOP
+then true
+else
+   echo "WARNING: could not patch libltdl, but this is probably OK."
+fi
+
 ######################################################################
 
 autoheader
