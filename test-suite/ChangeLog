@@ -1,3 +1,21 @@
+1999-06-15  Jim Blandy  <jimb@savonarola.red-bean.com>
+
+	* tests/r4rs.test: New set of tests, taken from Guile's test
+	script, taken from SCM.
+
+	* tests/ports.test: Group the string port tests under a new
+	test name prefix.
+
+	* tests/ports.test ("line counter"): Check the final column, too.
+
+	* lib.scm: Import (test-suite paths).
+	(data-file): New exported function.
+
+1999-06-12  Jim Blandy  <jimb@savonarola.red-bean.com>
+
+	* tests/ports.test ("line counter"): Add test for correct column
+	at EOF.
+
 1999-06-09  Jim Blandy  <jimb@savonarola.red-bean.com>
 
 	* tests/ports.test ("line counter"): Verify that we do eventually
