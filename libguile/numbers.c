@@ -5750,184 +5750,89 @@ scm_is_unsigned_integer (SCM val, scm_t_uintmax min, scm_t_uintmax max)
     return 0;
 }
 
-scm_t_intmax
-scm_to_signed_integer (SCM val, scm_t_intmax min, scm_t_intmax max)
-{
-  if (SCM_I_INUMP (val))
-    {
-      scm_t_signed_bits n = SCM_I_INUM (val);
-      if (n >= min && n <= max)
-	return n;
-      else
-	{
-	out_of_range:
-	  scm_out_of_range (NULL, val);
-	  return 0;
-	}
-    }
-  else if (SCM_BIGP (val))
-    {
-      if (min >= SCM_MOST_NEGATIVE_FIXNUM && max <= SCM_MOST_POSITIVE_FIXNUM)
-	goto out_of_range;
-      else if (min >= LONG_MIN && max <= LONG_MAX)
-	{
-	  if (mpz_fits_slong_p (SCM_I_BIG_MPZ (val)))
-	    {
-	      long n = mpz_get_si (SCM_I_BIG_MPZ (val));
-	      if (n >= min && n <= max)
-		return n;
-	      else
-		goto out_of_range;
-	    } 
-	  else
-	    goto out_of_range;
-	}
-      else
-	{
-	  scm_t_intmax n;
-	  size_t count;
+#define TYPE                     scm_t_intmax
+#define TYPE_MIN                 min
+#define TYPE_MAX                 max
+#define SIZEOF_TYPE              0
+#define SCM_TO_TYPE_PROTO(arg)   scm_to_signed_integer (arg, scm_t_intmax min, scm_t_intmax max)
+#define SCM_FROM_TYPE_PROTO(arg) scm_from_signed_integer (arg)
+#include "libguile/conv-integer.i.c"
 
-	  if (mpz_sizeinbase (SCM_I_BIG_MPZ (val), 2)
-	      > CHAR_BIT*sizeof (scm_t_uintmax))
-	    goto out_of_range;
-	  
-	  mpz_export (&n, &count, 1, sizeof (scm_t_uintmax), 0, 0,
-		      SCM_I_BIG_MPZ (val));
+#define TYPE                     scm_t_uintmax
+#define TYPE_MIN                 min
+#define TYPE_MAX                 max
+#define SIZEOF_TYPE              0
+#define SCM_TO_TYPE_PROTO(arg)   scm_to_unsigned_integer (arg, scm_t_uintmax min, scm_t_uintmax max)
+#define SCM_FROM_TYPE_PROTO(arg) scm_from_unsigned_integer (arg)
+#include "libguile/conv-uinteger.i.c"
 
-	  if (mpz_sgn (SCM_I_BIG_MPZ (val)) >= 0)
-	    {
-	      if (n < 0)
-		goto out_of_range;
-	    }
-	  else
-	    {
-	      n = -n;
-	      if (n >= 0)
-		goto out_of_range;
-	    }
+#define TYPE                     scm_t_int8
+#define TYPE_MIN                 SCM_T_INT8_MIN
+#define TYPE_MAX                 SCM_T_INT8_MAX
+#define SIZEOF_TYPE              1
+#define SCM_TO_TYPE_PROTO(arg)   scm_to_int8 (arg)
+#define SCM_FROM_TYPE_PROTO(arg) scm_from_int8 (arg)
+#include "libguile/conv-integer.i.c"
 
-	  if (n >= min && n <= max)
-	    return n;
-	  else
-	    goto out_of_range;
-	}
-    }
-  else
-    {
-      scm_wrong_type_arg_msg (NULL, 0, val, "exact integer");
-      return 0;
-    }
-}
+#define TYPE                     scm_t_uint8
+#define TYPE_MIN                 0
+#define TYPE_MAX                 SCM_T_UINT8_MAX
+#define SIZEOF_TYPE              1
+#define SCM_TO_TYPE_PROTO(arg)   scm_to_uint8 (arg)
+#define SCM_FROM_TYPE_PROTO(arg) scm_from_uint8 (arg)
+#include "libguile/conv-uinteger.i.c"
 
-scm_t_uintmax
-scm_to_unsigned_integer (SCM val, scm_t_uintmax min, scm_t_uintmax max)
-{
-  if (SCM_I_INUMP (val))
-    {
-      scm_t_signed_bits n = SCM_I_INUM (val);
-      if (n >= 0 && ((scm_t_uintmax)n) >= min && ((scm_t_uintmax)n) <= max)
-	return n;
-      else
-	{
-	out_of_range:
-	  scm_out_of_range (NULL, val);
-	  return 0;
-	}
-    }
-  else if (SCM_BIGP (val))
-    {
-      if (max <= SCM_MOST_POSITIVE_FIXNUM)
-	goto out_of_range;
-      else if (max <= ULONG_MAX)
-	{
-	  if (mpz_fits_ulong_p (SCM_I_BIG_MPZ (val)))
-	    {
-	      unsigned long n = mpz_get_ui (SCM_I_BIG_MPZ (val));
-	      if (n >= min && n <= max)
-		return n;
-	      else
-		goto out_of_range;
-	    }
-	  else
-	    goto out_of_range;
-	}
-      else
-	{
-	  scm_t_uintmax n;
-	  size_t count;
+#define TYPE                     scm_t_int16
+#define TYPE_MIN                 SCM_T_INT16_MIN
+#define TYPE_MAX                 SCM_T_INT16_MAX
+#define SIZEOF_TYPE              2
+#define SCM_TO_TYPE_PROTO(arg)   scm_to_int16 (arg)
+#define SCM_FROM_TYPE_PROTO(arg) scm_from_int16 (arg)
+#include "libguile/conv-integer.i.c"
 
-	  if (mpz_sgn (SCM_I_BIG_MPZ (val)) < 0)
-	    goto out_of_range;
+#define TYPE                     scm_t_uint16
+#define TYPE_MIN                 0
+#define TYPE_MAX                 SCM_T_UINT16_MAX
+#define SIZEOF_TYPE              2
+#define SCM_TO_TYPE_PROTO(arg)   scm_to_uint16 (arg)
+#define SCM_FROM_TYPE_PROTO(arg) scm_from_uint16 (arg)
+#include "libguile/conv-uinteger.i.c"
 
-	  if (mpz_sizeinbase (SCM_I_BIG_MPZ (val), 2)
-	      > CHAR_BIT*sizeof (scm_t_uintmax))
-	    goto out_of_range;
-	  
-	  mpz_export (&n, &count, 1, sizeof (scm_t_uintmax), 0, 0,
-		      SCM_I_BIG_MPZ (val));
+#define TYPE                     scm_t_int32
+#define TYPE_MIN                 SCM_T_INT32_MIN
+#define TYPE_MAX                 SCM_T_INT32_MAX
+#define SIZEOF_TYPE              4
+#define SCM_TO_TYPE_PROTO(arg)   scm_to_int32 (arg)
+#define SCM_FROM_TYPE_PROTO(arg) scm_from_int32 (arg)
+#include "libguile/conv-integer.i.c"
 
-	  if (n >= min && n <= max)
-	    return n;
-	  else
-	    goto out_of_range;
-	}
-    }
-  else
-    {
-      scm_wrong_type_arg_msg (NULL, 0, val, "exact integer");
-      return 0;
-    }
-}
+#define TYPE                     scm_t_uint32
+#define TYPE_MIN                 0
+#define TYPE_MAX                 SCM_T_UINT32_MAX
+#define SIZEOF_TYPE              4
+#define SCM_TO_TYPE_PROTO(arg)   scm_to_uint32 (arg)
+#define SCM_FROM_TYPE_PROTO(arg) scm_from_uint32 (arg)
+#include "libguile/conv-uinteger.i.c"
 
-SCM
-scm_from_signed_integer (scm_t_intmax val)
-{
-  if (SCM_FIXABLE (val))
-    return SCM_I_MAKINUM (val);
-  else if (val >= LONG_MIN && val <= LONG_MAX)
-    {
-      SCM z = scm_double_cell (scm_tc16_big, 0, 0, 0);
-      mpz_init_set_si (SCM_I_BIG_MPZ (z), val);
-      return z;
-    }
-  else
-    {
-      SCM z = scm_double_cell (scm_tc16_big, 0, 0, 0);
-      mpz_init (SCM_I_BIG_MPZ (z));
-      if (val < 0)
-	{
-	  val = -val;
-	  mpz_import (SCM_I_BIG_MPZ (z), 1, 1, sizeof (scm_t_intmax), 0, 0,
-		      &val);
-	  mpz_neg (SCM_I_BIG_MPZ (z), SCM_I_BIG_MPZ (z));
-	}
-      else
-	mpz_import (SCM_I_BIG_MPZ (z), 1, 1, sizeof (scm_t_intmax), 0, 0,
-		    &val);
-      return z;
-    }
-}
+#if SCM_HAVE_T_INT64
 
-SCM
-scm_from_unsigned_integer (scm_t_uintmax val)
-{
-  if (SCM_POSFIXABLE (val))
-    return SCM_I_MAKINUM (val);
-  else if (val <= ULONG_MAX)
-    {
-      SCM z = scm_double_cell (scm_tc16_big, 0, 0, 0);
-      mpz_init_set_ui (SCM_I_BIG_MPZ (z), val);
-      return z;
-    }
-  else
-    {
-      SCM z = scm_double_cell (scm_tc16_big, 0, 0, 0);
-      mpz_init (SCM_I_BIG_MPZ (z));
-      mpz_import (SCM_I_BIG_MPZ (z), 1, 1, sizeof (scm_t_uintmax), 0, 0,
-		  &val);
-      return z;
-    }
-}
+#define TYPE                     scm_t_int64
+#define TYPE_MIN                 SCM_T_INT64_MIN
+#define TYPE_MAX                 SCM_T_INT64_MAX
+#define SIZEOF_TYPE              8
+#define SCM_TO_TYPE_PROTO(arg)   scm_to_int64 (arg)
+#define SCM_FROM_TYPE_PROTO(arg) scm_from_int64 (arg)
+#include "libguile/conv-integer.i.c"
+
+#define TYPE                     scm_t_uint64
+#define TYPE_MIN                 0
+#define TYPE_MAX                 SCM_T_UINT64_MAX
+#define SIZEOF_TYPE              8
+#define SCM_TO_TYPE_PROTO(arg)   scm_to_uint64 (arg)
+#define SCM_FROM_TYPE_PROTO(arg) scm_from_uint64 (arg)
+#include "libguile/conv-uinteger.i.c"
+
+#endif
 
 int
 scm_is_real (SCM val)

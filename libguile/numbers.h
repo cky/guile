@@ -356,6 +356,34 @@ SCM_API scm_t_uintmax scm_to_unsigned_integer (SCM val,
 					       scm_t_uintmax min,
 					       scm_t_uintmax max);
 
+SCM_API scm_t_int8   scm_to_int8     (SCM x);
+SCM_API SCM          scm_from_int8   (scm_t_int8 x);
+
+SCM_API scm_t_uint8  scm_to_uint8    (SCM x);
+SCM_API SCM          scm_from_uint8  (scm_t_uint8 x);
+
+SCM_API scm_t_int16  scm_to_int16    (SCM x);
+SCM_API SCM          scm_from_int16  (scm_t_int16 x);
+
+SCM_API scm_t_uint16 scm_to_uint16   (SCM x);
+SCM_API SCM          scm_from_uint16 (scm_t_uint16 x);
+
+SCM_API scm_t_int32  scm_to_int32    (SCM x);
+SCM_API SCM          scm_from_int32  (scm_t_int32 x);
+
+SCM_API scm_t_uint32 scm_to_uint32   (SCM x);
+SCM_API SCM          scm_from_uint32 (scm_t_uint32 x);
+
+#if SCM_HAVE_T_INT64
+
+SCM_API scm_t_int64  scm_to_int64    (SCM x);
+SCM_API SCM          scm_from_int64  (scm_t_int64 x);
+
+SCM_API scm_t_uint64 scm_to_uint64   (SCM x);
+SCM_API SCM          scm_from_uint64 (scm_t_uint64 x);
+
+#endif
+
 #define scm_to_schar(x) \
   ((signed char)scm_to_signed_integer ((x), SCHAR_MIN, SCHAR_MAX))
 #define scm_to_uchar(x) \
@@ -382,37 +410,15 @@ SCM_API scm_t_uintmax scm_to_unsigned_integer (SCM val,
   ((unsigned long)scm_to_unsigned_integer ((x), 0, ULONG_MAX))
 
 #define scm_to_ssize_t(x) \
-  ((ssize_t)scm_to_signed_integer ((x), -SSIZE_MAX-1, SSIZE_MAX))
+  ((ssize_t)scm_to_signed_integer ((x), SCM_I_SSIZE_MIN, SCM_I_SSIZE_MAX))
 #define scm_to_size_t(x) \
-  ((unsigned long)scm_to_unsigned_integer ((x), 0, SIZE_MAX))
+  ((unsigned long)scm_to_unsigned_integer ((x), 0, SCM_I_SIZE_MAX))
 
 #if SCM_SIZEOF_LONG_LONG != 0
 #define scm_to_long_long(x) \
   ((long long)scm_to_signed_integer ((x), SCM_I_LLONG_MIN, SCM_I_LLONG_MAX))
 #define scm_to_ulong_long(x) \
   ((unsigned long long)scm_to_unsigned_integer ((x), 0, SCM_I_ULLONG_MAX))
-#endif
-
-#define scm_to_int8(x) \
-  ((scm_t_int8)scm_to_signed_integer ((x), SCM_T_INT8_MIN, SCM_T_INT8_MAX))
-#define scm_to_uint8(x) \
-  ((scm_t_uint8)scm_to_unsigned_integer ((x), 0, SCM_T_UINT8_MAX))
-
-#define scm_to_int16(x) \
-  ((scm_t_int16)scm_to_signed_integer ((x), SCM_T_INT16_MIN, SCM_T_INT16_MAX))
-#define scm_to_uint16(x) \
-  ((scm_t_uint16)scm_to_unsigned_integer ((x), 0, SCM_T_UINT16_MAX))
-
-#define scm_to_int32(x) \
-  ((scm_t_int32)scm_to_signed_integer ((x), SCM_T_INT32_MIN, SCM_T_INT32_MAX))
-#define scm_to_uint32(x) \
-  ((scm_t_uint32)scm_to_unsigned_integer ((x), 0, SCM_T_UINT32_MAX))
-
-#if SCM_HAVE_T_INT64
-#define scm_to_int64(x) \
-  ((scm_t_int64)scm_to_signed_integer ((x), SCM_T_INT64_MIN, SCM_T_INT64_MAX))
-#define scm_to_uint64(x) \
-  ((scm_t_uint64)scm_to_unsigned_integer ((x), 0, SCM_T_UINT64_MAX))
 #endif
 
 #define scm_to_intmax(x) \
@@ -443,20 +449,6 @@ SCM_API scm_t_uintmax scm_to_unsigned_integer (SCM val,
 #if SCM_SIZEOF_LONG_LONG != 0
 #define scm_from_long_long(x)  scm_from_signed_integer ((long long)(x))
 #define scm_from_ulong_long(x) scm_from_unsigned_integer ((unsigned long long)(x))
-#endif
-
-#define scm_from_int8(x)  scm_from_signed_integer ((scm_t_int8)(x))
-#define scm_from_uint8(x) scm_from_unsigned_integer ((scm_t_uint8)(x))
-
-#define scm_from_int16(x)  scm_from_signed_integer ((scm_t_int16)(x))
-#define scm_from_uint16(x) scm_from_unsigned_integer ((scm_t_uint16)(x))
-
-#define scm_from_int32(x)  scm_from_signed_integer ((scm_t_int32)(x))
-#define scm_from_uint32(x) scm_from_unsigned_integer ((scm_t_uint32)(x))
-
-#if SCM_HAVE_T_INT64
-#define scm_from_int64(x)  scm_from_signed_integer ((scm_t_int64)(x))
-#define scm_from_uint64(x) scm_from_unsigned_integer ((scm_t_uint64)(x))
 #endif
 
 #define scm_from_intmax(x)  scm_from_signed_integer ((scm_t_intmax)(x))
