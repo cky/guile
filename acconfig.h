@@ -146,9 +146,6 @@
 /* Define if the operating system supplies usleep without declaring it. */
 #undef MISSING_USLEEP_DECL
 
-/* Define if the operating system supplies inet_aton without declaring it. */
-#undef MISSING_INET_ATON_DECL
-
 /* Define if the system headers declare usleep to return void.  */
 #undef USLEEP_RETURNS_VOID
 
