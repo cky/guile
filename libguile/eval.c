@@ -2026,6 +2026,9 @@ dispatch:
 	      unmemocar (x, env);
 
 	    handle_a_macro:
+#ifdef DEVAL
+	      SCM_SET_MACROFRAME (debug);
+#endif
 	      t.arg1 = SCM_APPLY (SCM_CDR (proc), x,
 				  scm_cons (env, scm_listofnull));
 
@@ -2989,6 +2992,13 @@ ret:
 #ifndef DEVAL
 
 SCM_PROC (s_map, "map", 2, 0, 1, scm_map);
+
+/* Note: Currently, scm_map applies PROC to the argument list(s)
+   sequentially, starting with the first element(s).  This is used in
+   evalext.c where the Scheme procedure `serial-map', which guarantees
+   sequential behaviour, is implemented using scm_map.  If the
+   behaviour changes, we need to update `serial-map'.
+*/
 
 SCM 
 scm_map (proc, arg1, args)
