@@ -1,3 +1,7 @@
+Thu Dec 19 14:03:24 1996  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* tags.h (scm_tags): Removed comma at end of last enumerator.
+
 Thu Dec 19 02:54:59 1996  Jim Blandy  <jimb@floss.cyclic.com>
 
 	Don't use GCC extensions to allocate space for debugging frames.
