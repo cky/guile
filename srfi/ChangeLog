@@ -1,3 +1,8 @@
+2003-02-03  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* srfi-1.c (srfi1_for_each): Corrected argument checking for the
+	case of two argument lists.  (Thanks to Kevin Ryde.)
+
 2002-12-08  Rob Browning  <rlb@defaultvalue.org>
 
 	* Makefile.am (srfidir): VERSION -> GUILE_EFFECTIVE_VERSION.

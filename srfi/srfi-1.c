@@ -1,6 +1,6 @@
 /* srfi-1.c --- SRFI-1 procedures for Guile
  *
- * 	Copyright (C) 2002 Free Software Foundation, Inc.
+ * 	Copyright (C) 2002, 2003 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -175,7 +175,7 @@ scm_srfi1_map (SCM proc, SCM arg1, SCM args)
 		    && len >= 0 && len2 >= -1,
 		    g_srfi1_map,
 		    scm_cons2 (proc, arg1, args),
-		    len2 >= 0 ? SCM_ARG3 : SCM_ARG2,
+		    len2 >= 0 ? SCM_ARG2 : SCM_ARG3,
 		    s_srfi1_map);
       while (len > 0)
 	{
@@ -245,10 +245,10 @@ scm_srfi1_for_each (SCM proc, SCM arg1, SCM args)
       if (len < 0 || (len2 >= 0 && len2 < len))
 	len = len2;
       SCM_GASSERTn ((SCM_NULLP (arg2) || SCM_CONSP (arg2))
-		    && len >= 0 && len2 < len,
+		    && len >= 0 && len2 >= -1,
 		    g_srfi1_for_each,
 		    scm_cons2 (proc, arg1, args),
-		    len2 >= 0 ? SCM_ARG3 : SCM_ARG2,
+		    len2 >= 0 ? SCM_ARG2 : SCM_ARG3,
 		    s_srfi1_for_each);
       while (len > 0)
 	{
