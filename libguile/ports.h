@@ -93,7 +93,7 @@ extern int scm_port_table_size; /* Number of ports in scm_port_table.  */
 #define SCM_CRDY	(32L<<16) /* Should char-ready? return #t? */
 
 /* A mask used to clear the char-ready port flag. */
-#define SCM_CUC		0x001fffffL
+#define SCM_CUC		(~SCM_CRDY)
 
 #define SCM_PORTP(x) (SCM_TYP7(x)==scm_tc7_port)
 #define SCM_OPPORTP(x) (((0x7f | SCM_OPN) & SCM_CAR(x))==(scm_tc7_port | SCM_OPN))

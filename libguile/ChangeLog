@@ -1,3 +1,10 @@
+1998-11-06  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+
+	* ports.h (SCM_CUC): #define as ~SCM_CRDY instead of 0x001fffffL.
+	This is quite important since the latter clears the
+	FPORT_READ_SAFE and FPORT_WRITE_SAFE flags causing flushes at
+	every single character read...
+
 1998-11-03  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
 	* print.c (scm_iprin1): Removed suspect looking (and indeed
