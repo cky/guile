@@ -41,314 +41,257 @@
 
 /* This file is included in vm_engine.c */
 
-/*
- * Variable access
- */
-
-#define LOCAL_VAR(OFFSET)	SCM_VM_FRAME_VARIABLE (fp, OFFSET)
-
-#define EXTERNAL_FOCUS(DEPTH)				\
-{							\
-  int depth = DEPTH;					\
-  env = ext;						\
-  while (depth-- > 0)					\
-   {							\
-     VM_ASSERT_LINK (env);				\
-     env = SCM_VM_EXTERNAL_LINK (env);			\
-   }							\
-}
-
-#define EXTERNAL_VAR(OFFSET)	SCM_VM_EXTERNAL_VARIABLE (env, OFFSET)
-#define EXTERNAL_VAR0(OFFSET)	SCM_VM_EXTERNAL_VARIABLE (ext, OFFSET)
-#define EXTERNAL_VAR1(OFFSET)	SCM_VM_EXTERNAL_VARIABLE (SCM_VM_EXTERNAL_LINK (ext), OFFSET)
-#define EXTERNAL_VAR2(OFFSET)	SCM_VM_EXTERNAL_VARIABLE (SCM_VM_EXTERNAL_LINK (SCM_VM_EXTERNAL_LINK (ext)), OFFSET)
-
 
 /*
  * Basic operations
  */
 
-/* Must be the first instruction! */
-SCM_DEFINE_INSTRUCTION (nop, "%nop", INST_NONE)
+/* This must be the first instruction! */
+VM_DEFINE_INSTRUCTION (nop, "nop", 0)
 {
   NEXT;
 }
 
-SCM_DEFINE_INSTRUCTION (halt, "%halt", INST_NONE)
+VM_DEFINE_INSTRUCTION (halt, "halt", 0)
 {
-  SYNC ();
-  VM_HALT_HOOK ();
-  return ac;
+  SCM ret = *sp;
+  HALT_HOOK ();
+  FREE_FRAME ();
+  SYNC_ALL ();
+  return ret;
 }
 
-SCM_DEFINE_INSTRUCTION (name, "%name", INST_SCM)
+VM_DEFINE_INSTRUCTION (drop, "drop", 0)
 {
-  SCM name = FETCH ();
-  if (SCM_NIMP (name))
-    scm_set_name_x (ac, name);
+  DROP ();
   NEXT;
 }
 
-
-/*
- * %push family
- */
-
-SCM_DEFINE_INSTRUCTION (push, "%push", INST_NONE)
+VM_DEFINE_INSTRUCTION (dup, "dup", 0)
 {
-  PUSH (ac);
-  NEXT;
-}
-
-SCM_DEFINE_INSTRUCTION (push_list, "%push-list", INST_SCM)
-{
-  SCM list;
-  for (list = FETCH (); SCM_NIMP (list); list = SCM_CDR (list))
-    PUSH (SCM_CAR (list));
-  NEXT;
-}
-
-SCM_DEFINE_INSTRUCTION (pushc, "%pushc", INST_SCM)
-{
-  PUSH (FETCH ());
-  NEXT;
-}
-
-SCM_DEFINE_INSTRUCTION (pushl, "%pushl", INST_INUM)
-{
-  PUSH (LOCAL_VAR (SCM_INUM (FETCH ())));
-  NEXT;
-}
-
-SCM_DEFINE_INSTRUCTION (pushl_0, "%pushl:0", INST_NONE)
-{
-  PUSH (LOCAL_VAR (0));
-  NEXT;
-}
-
-SCM_DEFINE_INSTRUCTION (pushl_1, "%pushl:1", INST_NONE)
-{
-  PUSH (LOCAL_VAR (1));
-  NEXT;
-}
-
-SCM_DEFINE_INSTRUCTION (pushe, "%pushe", INST_EXT)
-{
-  SCM env;
-  SCM loc = FETCH ();
-  EXTERNAL_FOCUS (SCM_INUM (SCM_CAR (loc)));
-  PUSH (EXTERNAL_VAR (SCM_INUM (SCM_CDR (loc))));
-  NEXT;
-}
-
-SCM_DEFINE_INSTRUCTION (pushe_0, "%pushe:0", INST_INUM)
-{
-  PUSH (EXTERNAL_VAR0 (SCM_INUM (FETCH ())));
-  NEXT;
-}
-
-SCM_DEFINE_INSTRUCTION (pushe_0_0, "%pushe:0:0", INST_NONE)
-{
-  PUSH (EXTERNAL_VAR0 (0));
-  NEXT;
-}
-
-SCM_DEFINE_INSTRUCTION (pushe_0_1, "%pushe:0:1", INST_NONE)
-{
-  PUSH (EXTERNAL_VAR0 (1));
-  NEXT;
-}
-
-SCM_DEFINE_INSTRUCTION (pushe_1, "%pushe:1", INST_INUM)
-{
-  PUSH (EXTERNAL_VAR1 (SCM_INUM (FETCH ())));
-  NEXT;
-}
-
-SCM_DEFINE_INSTRUCTION (pushe_1_0, "%pushe:1:0", INST_NONE)
-{
-  PUSH (EXTERNAL_VAR1 (0));
-  NEXT;
-}
-
-SCM_DEFINE_INSTRUCTION (pushe_1_1, "%pushe:1:1", INST_NONE)
-{
-  PUSH (EXTERNAL_VAR1 (1));
-  NEXT;
-}
-
-SCM_DEFINE_INSTRUCTION (pushe_2, "%pushe:2", INST_INUM)
-{
-  PUSH (EXTERNAL_VAR2 (SCM_INUM (FETCH ())));
-  NEXT;
-}
-
-SCM_DEFINE_INSTRUCTION (pusht, "%pusht", INST_TOP)
-{
-  ac = FETCH ();
-  VM_ASSERT_BOUND (ac);
-  PUSH (VM_VARIABLE_REF (ac));
+  PUSH (*sp);
   NEXT;
 }
 
 
 /*
- * %load family
+ * Object creation
  */
 
-SCM_DEFINE_INSTRUCTION (load_unspecified, "%load-unspecified", INST_NONE)
+VM_DEFINE_INSTRUCTION (void, "void", 0)
 {
-  RETURN (SCM_UNSPECIFIED);
+  PUSH (SCM_UNSPECIFIED);
+  NEXT;
 }
 
-SCM_DEFINE_INSTRUCTION (loadc, "%loadc", INST_SCM)
+VM_DEFINE_INSTRUCTION (mark, "mark", 0)
 {
-  RETURN (FETCH ());
+  PUSH (SCM_UNDEFINED);
+  NEXT;
 }
 
-SCM_DEFINE_INSTRUCTION (loadl, "%loadl", INST_INUM)
+VM_DEFINE_INSTRUCTION (make_true, "make-true", 0)
 {
-  RETURN (LOCAL_VAR (SCM_INUM (FETCH ())));
+  PUSH (SCM_BOOL_T);
+  NEXT;
 }
 
-SCM_DEFINE_INSTRUCTION (loadl_0, "%loadl:0", INST_NONE)
+VM_DEFINE_INSTRUCTION (make_false, "make-false", 0)
 {
-  RETURN (LOCAL_VAR (0));
+  PUSH (SCM_BOOL_F);
+  NEXT;
 }
 
-SCM_DEFINE_INSTRUCTION (loadl_1, "%loadl:1", INST_NONE)
+VM_DEFINE_INSTRUCTION (make_eol, "make-eol", 0)
 {
-  RETURN (LOCAL_VAR (1));
+  PUSH (SCM_EOL);
+  NEXT;
 }
 
-SCM_DEFINE_INSTRUCTION (loade, "%loade", INST_EXT)
+VM_DEFINE_INSTRUCTION (make_int8, "make-int8", 1)
 {
-  SCM env;
-  SCM loc = FETCH ();
-  EXTERNAL_FOCUS (SCM_INUM (SCM_CAR (loc)));
-  RETURN (EXTERNAL_VAR (SCM_INUM (SCM_CDR (loc))));
+  PUSH (SCM_MAKINUM ((signed char) FETCH ()));
+  NEXT;
 }
 
-SCM_DEFINE_INSTRUCTION (loade_0, "%loade:0", INST_INUM)
+VM_DEFINE_INSTRUCTION (make_int8_0, "make-int8:0", 0)
 {
-  RETURN (EXTERNAL_VAR0 (SCM_INUM (FETCH ())));
+  PUSH (SCM_MAKINUM (0));
+  NEXT;
 }
 
-SCM_DEFINE_INSTRUCTION (loade_0_0, "%loade:0:0", INST_NONE)
+VM_DEFINE_INSTRUCTION (make_int8_1, "make-int8:1", 0)
 {
-  RETURN (EXTERNAL_VAR0 (0));
+  PUSH (SCM_MAKINUM (1));
+  NEXT;
 }
 
-SCM_DEFINE_INSTRUCTION (loade_0_1, "%loade:0:1", INST_NONE)
+VM_DEFINE_INSTRUCTION (make_int16, "make-int16", 2)
 {
-  RETURN (EXTERNAL_VAR0 (1));
+  PUSH (SCM_MAKINUM ((signed short) FETCH2 ()));
+  NEXT;
 }
 
-SCM_DEFINE_INSTRUCTION (loade_1, "%loade:1", INST_INUM)
+VM_DEFINE_INSTRUCTION (make_char8, "make-char8", 1)
 {
-  RETURN (EXTERNAL_VAR1 (SCM_INUM (FETCH ())));
-}
-
-SCM_DEFINE_INSTRUCTION (loade_1_0, "%loade:1:0", INST_NONE)
-{
-  RETURN (EXTERNAL_VAR1 (0));
-}
-
-SCM_DEFINE_INSTRUCTION (loade_1_1, "%loade:1:1", INST_NONE)
-{
-  RETURN (EXTERNAL_VAR1 (1));
-}
-
-SCM_DEFINE_INSTRUCTION (loade_2, "%loade:2", INST_INUM)
-{
-  RETURN (EXTERNAL_VAR2 (SCM_INUM (FETCH ())));
-}
-
-SCM_DEFINE_INSTRUCTION (loadt, "%loadt", INST_TOP)
-{
-  ac = FETCH ();
-  VM_ASSERT_BOUND (ac);
-  RETURN (VM_VARIABLE_REF (ac));
+  PUSH (SCM_MAKE_CHAR (FETCH ()));
+  NEXT;
 }
 
 
 /*
- * %save family
+ * Variable access
  */
 
-SCM_DEFINE_INSTRUCTION (savel, "%savel", INST_INUM)
+#define OBJECT_REF(i)		objects[i]
+#define OBJECT_SET(i,o)		objects[i] = o
+
+#define LOCAL_REF(i)		SCM_VM_FRAME_VARIABLE (fp, i)
+#define LOCAL_SET(i,o)		SCM_VM_FRAME_VARIABLE (fp, i) = o
+
+#define VARIABLE_REF(v)		SCM_CDR (v)
+#define VARIABLE_SET(v,o)	SCM_SETCDR (v, o)
+
+VM_DEFINE_INSTRUCTION (external, "external", 1)
 {
-  LOCAL_VAR (SCM_INUM (FETCH ())) = ac;
+  int n = FETCH ();
+  while (n-- > 0)
+    CONS (external, SCM_UNDEFINED, external);
   NEXT;
 }
 
-SCM_DEFINE_INSTRUCTION (savel_0, "%savel:0", INST_NONE)
+/* ref */
+
+VM_DEFINE_INSTRUCTION (object_ref, "object-ref", 1)
 {
-  LOCAL_VAR (0) = ac;
+  PUSH (OBJECT_REF (FETCH ()));
   NEXT;
 }
 
-SCM_DEFINE_INSTRUCTION (savel_1, "%savel:1", INST_NONE)
+VM_DEFINE_INSTRUCTION (object_ref_2, "object-ref*2", 2)
 {
-  LOCAL_VAR (1) = ac;
+  PUSH (OBJECT_REF (FETCH2 ()));
   NEXT;
 }
 
-SCM_DEFINE_INSTRUCTION (savee, "%savee", INST_EXT)
+VM_DEFINE_INSTRUCTION (local_ref, "local-ref", 1)
 {
-  SCM env;
-  SCM loc = FETCH ();
-  EXTERNAL_FOCUS (SCM_INUM (SCM_CAR (loc)));
-  EXTERNAL_VAR (SCM_INUM (SCM_CDR (loc))) = ac;
+  PUSH (LOCAL_REF (FETCH ()));
   NEXT;
 }
 
-SCM_DEFINE_INSTRUCTION (savee_0, "%savee:0", INST_INUM)
+VM_DEFINE_INSTRUCTION (local_ref_0, "local-ref:0", 0)
 {
-  EXTERNAL_VAR0 (SCM_INUM (FETCH ())) = ac;
+  PUSH (LOCAL_REF (0));
   NEXT;
 }
 
-SCM_DEFINE_INSTRUCTION (savee_0_0, "%savee:0:0", INST_NONE)
+VM_DEFINE_INSTRUCTION (local_ref_2, "local-ref*2", 2)
 {
-  EXTERNAL_VAR0 (0) = ac;
+  PUSH (LOCAL_REF (FETCH2 ()));
   NEXT;
 }
 
-SCM_DEFINE_INSTRUCTION (savee_0_1, "%savee:0:1", INST_NONE)
+VM_DEFINE_INSTRUCTION (external_ref, "external-ref", 1)
 {
-  EXTERNAL_VAR0 (1) = ac;
+  unsigned int i;
+  SCM e = external;
+  for (i = FETCH (); i; i--)
+    e = SCM_CDR (e);
+  PUSH (SCM_CAR (e));
   NEXT;
 }
 
-SCM_DEFINE_INSTRUCTION (savee_1, "%savee:1", INST_INUM)
+VM_DEFINE_INSTRUCTION (module_ref, "module-ref", 1)
 {
-  EXTERNAL_VAR1 (SCM_INUM (FETCH ())) = ac;
+  int i = FETCH ();
+  SCM o, x = OBJECT_REF (i);
+  o = VARIABLE_REF (x);
+  if (SCM_UNBNDP (o))
+    {
+      err_args = SCM_LIST1 (SCM_CAR (x));
+      goto vm_error_unbound;
+    }
+  PUSH (o);
   NEXT;
 }
 
-SCM_DEFINE_INSTRUCTION (savee_1_0, "%savee:1:0", INST_NONE)
+VM_DEFINE_INSTRUCTION (module_ref_2, "module-ref*2", 2)
 {
-  EXTERNAL_VAR1 (0) = ac;
+  int i = FETCH2 ();
+  SCM o, x = OBJECT_REF (i);
+  o = VARIABLE_REF (x);
+  if (SCM_UNBNDP (o))
+    {
+      err_args = SCM_LIST1 (SCM_CAR (x));
+      goto vm_error_unbound;
+    }
+  PUSH (o);
   NEXT;
 }
 
-SCM_DEFINE_INSTRUCTION (savee_1_1, "%savee:1:1", INST_NONE)
+VM_DEFINE_INSTRUCTION (variable_ref, "variable-ref", 0)
 {
-  EXTERNAL_VAR1 (1) = ac;
+  SCM x = *sp;
+  SCM o = VARIABLE_REF (x);
+  if (SCM_UNBNDP (o))
+    {
+      err_args = SCM_LIST1 (SCM_CAR (x));
+      goto vm_error_unbound;
+    }
+  *sp = o;
   NEXT;
 }
 
-SCM_DEFINE_INSTRUCTION (savee_2, "%savee:2", INST_INUM)
+/* set */
+
+VM_DEFINE_INSTRUCTION (local_set, "local-set", 1)
 {
-  EXTERNAL_VAR2 (SCM_INUM (FETCH ())) = ac;
+  LOCAL_SET (FETCH (), *sp);
+  DROP ();
   NEXT;
 }
 
-SCM_DEFINE_INSTRUCTION (savet, "%savet", INST_TOP)
+VM_DEFINE_INSTRUCTION (local_set_2, "local-set*2", 2)
 {
-  SCM cell = FETCH ();
-  VM_VARIABLE_SET (cell, ac);
+  LOCAL_SET (FETCH2 (), *sp);
+  DROP ();
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (external_set, "external-set", 1)
+{
+  unsigned int i;
+  SCM e = external;
+  for (i = FETCH (); i; i--)
+    e = SCM_CDR (e);
+  SCM_SETCAR (e, *sp);
+  DROP ();
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (module_set, "module-set", 1)
+{
+  int i = FETCH ();
+  SCM x = OBJECT_REF (i);
+  VARIABLE_SET (x, *sp);
+  DROP ();
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (module_set_2, "module-set*2", 2)
+{
+  int i = FETCH2 ();
+  SCM x = OBJECT_REF (i);
+  VARIABLE_SET (x, *sp);
+  DROP ();
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (variable_set, "variable-set", 0)
+{
+  VARIABLE_SET (sp[0], sp[1]);
+  sp += 2;
   NEXT;
 }
 
@@ -357,47 +300,48 @@ SCM_DEFINE_INSTRUCTION (savet, "%savet", INST_TOP)
  * branch and jump
  */
 
-SCM_DEFINE_INSTRUCTION (br_if, "%br-if", INST_ADDR)
-{
-  SCM addr = FETCH (); /* must always fetch */
-  if (!SCM_FALSEP (ac))
-    pc = SCM_VM_ADDRESS (addr);
-  NEXT;
+#define BR(p)					\
+{						\
+  signed char offset = FETCH ();		\
+  if (p)					\
+    ip += offset;				\
+  DROP ();					\
+  NEXT;						\
 }
 
-SCM_DEFINE_INSTRUCTION (br_if_not, "%br-if-not", INST_ADDR)
+VM_DEFINE_INSTRUCTION (br_if, "br-if", 1)
 {
-  SCM addr = FETCH (); /* must always fetch */
-  if (SCM_FALSEP (ac))
-    pc = SCM_VM_ADDRESS (addr);
-  NEXT;
+  BR (!SCM_FALSEP (*sp));
 }
 
-SCM_DEFINE_INSTRUCTION (br_if_null, "%br-if-null", INST_ADDR)
+VM_DEFINE_INSTRUCTION (br_if_not, "br-if-not", 1)
 {
-  SCM addr = FETCH (); /* must always fetch */
-  if (SCM_NULLP (ac))
-    {
-      ac = SCM_BOOL_T;
-      pc = SCM_VM_ADDRESS (addr);
-    }
-  NEXT;
+  BR (SCM_FALSEP (*sp));
 }
 
-SCM_DEFINE_INSTRUCTION (br_if_not_null, "%br-if-not-null", INST_ADDR)
+VM_DEFINE_INSTRUCTION (br_if_eq, "br-if-eq", 1)
 {
-  SCM addr = FETCH (); /* must always fetch */
-  if (!SCM_NULLP (ac))
-    {
-      ac = SCM_BOOL_F;
-      pc = SCM_VM_ADDRESS (addr);
-    }
-  NEXT;
+  BR (SCM_EQ_P (sp[0], sp--[1]));
 }
 
-SCM_DEFINE_INSTRUCTION (jump, "%jump", INST_ADDR)
+VM_DEFINE_INSTRUCTION (br_if_not_eq, "br-if-not-eq", 1)
 {
-  pc = SCM_VM_ADDRESS (*pc);
+  BR (!SCM_EQ_P (sp[0], sp--[1]));
+}
+
+VM_DEFINE_INSTRUCTION (br_if_null, "br-if-null", 1)
+{
+  BR (SCM_NULLP (*sp));
+}
+
+VM_DEFINE_INSTRUCTION (br_if_not_null, "br-if-not-null", 1)
+{
+  BR (!SCM_NULLP (*sp));
+}
+
+VM_DEFINE_INSTRUCTION (jump, "jump", 1)
+{
+  ip += (signed char) FETCH ();
   NEXT;
 }
 
@@ -406,159 +350,178 @@ SCM_DEFINE_INSTRUCTION (jump, "%jump", INST_ADDR)
  * Subprogram call
  */
 
-SCM_DEFINE_INSTRUCTION (make_program, "%make-program", INST_CODE)
+VM_DEFINE_INSTRUCTION (make_closure, "make-closure", 0)
 {
-  SYNC (); /* must be called before GC */
-  RETURN (SCM_MAKE_PROGRAM (FETCH (), SCM_VM_FRAME_EXTERNAL_LINK (fp)));
+  SYNC ();
+  *sp = scm_c_make_vclosure (*sp, external);
+  NEXT;
 }
 
-/* Before:
-   ac    = program
-   pc[0] = the number of arguments
-
-   After:
-   pc = program's address
-*/
-SCM_DEFINE_INSTRUCTION (call, "%call", INST_INUM)
+VM_DEFINE_INSTRUCTION (call, "call", 1)
 {
-  nargs = SCM_INUM (FETCH ());	/* the number of arguments */
+  POP (program);
+  nargs = FETCH ();
 
  vm_call:
   /*
    * Subprogram call
    */
-  if (SCM_PROGRAM_P (ac))
+  if (SCM_PROGRAM_P (program))
     {
-      /* Create a new frame */
-      SCM *last_fp = fp;
-      SCM *last_sp = sp + nargs;
-      VM_NEW_FRAME (fp, ac,
-		    SCM_VM_MAKE_ADDRESS (last_fp),
-		    SCM_VM_MAKE_ADDRESS (last_sp),
-		    SCM_VM_MAKE_ADDRESS (pc));
-      VM_CALL_HOOK ();
-
-      /* Jump to the program */
-      pc = SCM_PROGRAM_BASE (ac);
-      VM_APPLY_HOOK ();
+      CACHE_PROGRAM ();
+      INIT_ARGS ();
+      NEW_FRAME ();
+      INIT_VARIABLES ();
+      ENTER_HOOK ();
+      APPLY_HOOK ();
       NEXT;
     }
   /*
    * Function call
    */
-  if (!SCM_FALSEP (scm_procedure_p (ac)))
+  if (!SCM_FALSEP (scm_procedure_p (program)))
     {
-      /* Construct an argument list */
-      SCM list = SCM_EOL;
-      POP_LIST (nargs, list);
-      RETURN (scm_apply (ac, list, SCM_EOL));
+      POP_LIST (nargs);
+      *sp = scm_apply (program, *sp, SCM_EOL);
+      program = SCM_VM_FRAME_PROGRAM (fp);
+      NEXT;
     }
   /*
    * Continuation call
    */
-  if (SCM_VM_CONT_P (ac))
+  if (SCM_VM_CONT_P (program))
     {
     vm_call_cc:
       /* Check the number of arguments */
       if (nargs != 1)
-	scm_wrong_num_args (ac);
+	scm_wrong_num_args (program);
 
       /* Reinstate the continuation */
-      VM_RETURN_HOOK ();
-      SCM_VM_REINSTATE_CONT (vmp, ac);
-      LOAD ();
-      POP (ac); /* return value */
+      EXIT_HOOK ();
+      reinstate_vm_cont (vmp, program);
+      CACHE ();
+      /* We don't need to set the return value here
+	 because it is already on the top of the stack. */
       NEXT;
     }
 
-  SCM_MISC_ERROR ("Wrong type to apply: ~S", SCM_LIST1 (ac));
+  goto vm_error_wrong_type_apply;
 }
 
-/* Before:
-   ac    = program
-   pc[0] = the number of arguments
-
-   After:
-   pc = program's address
-*/
-SCM_DEFINE_INSTRUCTION (tail_call, "%tail-call", INST_INUM)
+VM_DEFINE_INSTRUCTION (tail_call, "tail-call", 1)
 {
-  SCM_TICK;			/* allow interrupt here */
-  nargs = SCM_INUM (FETCH ());	/* the number of arguments */
+  SCM x;
+  POP (x);
+  nargs = FETCH ();
+
+  SCM_TICK;	/* allow interrupt here */
 
   /*
-   * Subprogram call
+   * Tail recursive call
    */
-  if (SCM_PROGRAM_P (ac))
+  if (SCM_EQ_P (x, program))
     {
-      if (SCM_EQ_P (ac, SCM_VM_FRAME_PROGRAM (fp)))
-	/* Tail recursive call */
-	{
-	  /* Setup arguments */
-	  int nvars = SCM_PROGRAM_NVARS (ac); /* the number of local vars */
-	  int nreqs = SCM_PROGRAM_NREQS (ac); /* the number of require args */
-	  int restp = SCM_PROGRAM_RESTP (ac); /* have a rest argument */
-	  VM_FRAME_INIT_ARGS (ac, nreqs, restp);
+      INIT_ARGS ();
 
-	  /* Move arguments */
-	  nreqs += restp;
-	  while (nreqs-- > 0)
-	    {
-	      SCM obj;
-	      POP (obj);
-	      SCM_VM_FRAME_VARIABLE (fp, nvars++) = obj;
-	    }
-
-	  VM_FRAME_INIT_EXTERNAL_VARIABLES (fp, ac);
-	}
-      else
-	/* Proper tail call */
+      /* Move arguments */
+      if (bp->nargs)
 	{
-	  /* FIXME: Must remove the last frame.
-	     FIXME: We need to move arguments before that. */
-	  SCM *last_fp = fp;
-	  VM_RETURN_HOOK ();
-	  VM_NEW_FRAME (fp, ac,
-			SCM_VM_FRAME_DYNAMIC_LINK (last_fp),
-			SCM_VM_FRAME_STACK_POINTER (last_fp),
-			SCM_VM_FRAME_RETURN_ADDRESS (last_fp));
-	  VM_CALL_HOOK ();
+	  int i;
+	  SCM *base = fp + bp->nlocs;
+	  for (i = 0; i < bp->nargs; i++)
+	    base[i] = sp[i];
 	}
 
-      /* Jump to the program */
-      pc = SCM_PROGRAM_BASE (ac);
-      VM_APPLY_HOOK ();
+      ip = bp->base;
+      sp = SCM_VM_FRAME_LOWER_ADDRESS (fp);
+      APPLY_HOOK ();
       NEXT;
+    }
+  program = x;
+  /*
+   * Proper tail call
+   */
+  if (SCM_PROGRAM_P (program))
+    {
+      int i;
+      int n = SCM_VM_FRAME_LOWER_ADDRESS (fp) - sp;
+      SCM *base = sp;
+
+      /* Exit the current frame */
+      EXIT_HOOK ();
+      FREE_FRAME ();
+
+      /* Move arguments */
+      sp -= n;
+      for (i = 0; i < n; i++)
+	sp[i] = base[i];
+
+      /* Call the program */
+      goto vm_call;
     }
   /*
    * Function call
    */
-  if (!SCM_FALSEP (scm_procedure_p (ac)))
+  if (!SCM_FALSEP (scm_procedure_p (program)))
     {
-      /* Construct an argument list */
-      SCM list = SCM_EOL;
-      POP_LIST (nargs, list);
-      ac = scm_apply (ac, list, SCM_EOL);
+      POP_LIST (nargs);
+      *sp = scm_apply (program, *sp, SCM_EOL);
+      program = SCM_VM_FRAME_PROGRAM (fp);
       goto vm_return;
     }
   /*
    * Continuation call
    */
-  if (SCM_VM_CONT_P (ac))
+  if (SCM_VM_CONT_P (program))
     goto vm_call_cc;
 
-  SCM_MISC_ERROR ("Wrong type to apply: ~S", SCM_LIST1 (ac));
+  goto vm_error_wrong_type_apply;
 }
 
-SCM_DEFINE_INSTRUCTION (return, "%return", INST_NONE)
+VM_DEFINE_INSTRUCTION (call_cc, "call/cc", 1)
 {
-  SCM *last_fp;
+  SYNC ();
+  PUSH (capture_vm_cont (vmp));
+  POP (program);
+  nargs = 1;
+  goto vm_call;
+}
+
+VM_DEFINE_INSTRUCTION (return, "return", 0)
+{
+  SCM ret;
  vm_return:
-  VM_RETURN_HOOK ();
-  last_fp = fp;
-  fp = SCM_VM_ADDRESS (SCM_VM_FRAME_DYNAMIC_LINK (last_fp));
-  sp = SCM_VM_ADDRESS (SCM_VM_FRAME_STACK_POINTER (last_fp));
-  pc = SCM_VM_ADDRESS (SCM_VM_FRAME_RETURN_ADDRESS (last_fp));
-  ext = SCM_VM_FRAME_EXTERNAL_LINK (fp);
+  ret = *sp;
+  EXIT_HOOK ();
+  RETURN_HOOK ();
+  FREE_FRAME ();
+
+  /* Cache the last program */
+  program = SCM_VM_FRAME_PROGRAM (fp);
+  CACHE_PROGRAM ();
+  PUSH (ret);
   NEXT;
 }
+
+
+/*
+ * Exception handling
+ */
+
+VM_DEFINE_INSTRUCTION (raise, "raise", 1)
+{
+}
+
+VM_DEFINE_INSTRUCTION (catch, "catch", 0)
+{
+}
+
+VM_DEFINE_INSTRUCTION (stack_catch, "stach_catch", 0)
+{
+}
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

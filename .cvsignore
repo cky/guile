@@ -1,4 +1,4 @@
-.cvsignore
+misc
 libtool
 config.log
 config.cache

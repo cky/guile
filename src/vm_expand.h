@@ -42,52 +42,58 @@
 #include "config.h"
 
 #ifndef VM_LABEL
-#define VM_LABEL(TAG) l_##TAG## 
-#define VM_OPCODE(TAG) op_##TAG## 
+#define VM_LABEL(tag) l_##tag
+#define VM_OPCODE(tag) scm_op_##tag
 
 #ifdef HAVE_LABELS_AS_VALUES
-#define VM_TAG(TAG) VM_LABEL(TAG):
-#define VM_ADDR(TAG) &&VM_LABEL(TAG)
+#define VM_TAG(tag) VM_LABEL(tag):
+#define VM_ADDR(tag) &&VM_LABEL(tag)
 #else /* not HAVE_LABELS_AS_VALUES */
-#define VM_TAG(TAG) case VM_OPCODE(TAG):
-#define VM_ADDR(TAG) NULL
+#define VM_TAG(tag) case VM_OPCODE(tag):
+#define VM_ADDR(tag) NULL
 #endif /* not HAVE_LABELS_AS_VALUES */
 #endif /* VM_LABEL */
 
-#undef SCM_DEFINE_INSTRUCTION
-#undef SCM_DEFINE_VM_FUNCTION
+#undef VM_DEFINE_INSTRUCTION
+#undef VM_DEFINE_FUNCTION
 #ifdef VM_INSTRUCTION_TO_TABLE
 /*
  * These will go to scm_instruction_table in vm.c
  */
-#define SCM_DEFINE_INSTRUCTION(TAG,NAME,TYPE) \
-  {VM_OPCODE(TAG), TYPE, NAME, SCM_PACK (0), NULL, 0, 0},
-#define SCM_DEFINE_VM_FUNCTION(TAG,SNAME,NAME,NARGS,RESTP) \
-  {VM_OPCODE(TAG), INST_NONE, NAME, SCM_PACK (0), SNAME, NARGS, RESTP},
+#define VM_DEFINE_INSTRUCTION(tag,name,len) \
+  {VM_OPCODE (tag), name, len},
+#define VM_DEFINE_FUNCTION(tag,name,nargs) \
+  {VM_OPCODE (tag), name, 0},
 
 #else
 #ifdef VM_INSTRUCTION_TO_LABEL
 /*
  * These will go to jump_table in vm_engine.c
  */
-#define SCM_DEFINE_INSTRUCTION(TAG,NAME,TYPE)		   VM_ADDR(TAG),
-#define SCM_DEFINE_VM_FUNCTION(TAG,SNAME,NAME,NARGS,RESTP) VM_ADDR(TAG),
+#define VM_DEFINE_INSTRUCTION(tag,name,len)		VM_ADDR (tag),
+#define VM_DEFINE_FUNCTION(tag,name,nargs)		VM_ADDR (tag),
 
 #else
 #ifdef VM_INSTRUCTION_TO_OPCODE
 /*
  * These will go to scm_opcode in vm.h
  */
-#define SCM_DEFINE_INSTRUCTION(TAG,NAME,TYPE)		   VM_OPCODE(TAG),
-#define SCM_DEFINE_VM_FUNCTION(TAG,SNAME,NAME,NARGS,RESTP) VM_OPCODE(TAG),
+#define VM_DEFINE_INSTRUCTION(tag,name,len)		VM_OPCODE (tag),
+#define VM_DEFINE_FUNCTION(tag,name,nargs)		VM_OPCODE (tag),
 
 #else /* Otherwise */
 /*
  * These are directly included in vm_engine.c
  */
-#define SCM_DEFINE_INSTRUCTION(TAG,NAME,TYPE)		   VM_TAG(TAG)
-#define SCM_DEFINE_VM_FUNCTION(TAG,SNAME,NAME,NARGS,RESTP) VM_TAG(TAG)
+#define VM_DEFINE_INSTRUCTION(tag,name,len)		VM_TAG (tag)
+#define VM_DEFINE_FUNCTION(tag,name,nargs)		VM_TAG (tag)
 
 #endif /* VM_INSTRUCTION_TO_OPCODE */
 #endif /* VM_INSTRUCTION_TO_LABEL */
 #endif /* VM_INSTRUCTION_TO_TABLE */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

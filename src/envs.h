@@ -1,4 +1,4 @@
-/* Copyright (C) 2000 Free Software Foundation, Inc.
+/* Copyright (C) 2001 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,12 +39,35 @@
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
 
-#include <libguile.h>
+#ifndef _ENVS_H_
+#define _ENVS_H_
 
-int
-main (int argc, char **argv)
-{
-  scm_init_guile ();
-  scm_shell (argc, argv);
-  return 0; /* never reached */
-}
+#include <libguile.h>
+#include "config.h"
+
+extern scm_bits_t scm_tc16_env;
+
+struct scm_env {
+  SCM identifier;
+  SCM obarray;
+};
+
+#define SCM_ENV_P(x)		SCM_SMOB_PREDICATE (scm_tc16_env, x)
+#define SCM_ENV_DATA(x)		((struct scm_env *) SCM_SMOB_DATA (x))
+#define SCM_VALIDATE_ENV(p,x)	SCM_MAKE_VALIDATE (p, x, ENV_P)
+
+#define SCM_ENV_IDENTIFIER(x)	(SCM_ENV_DATA(x)->identifier)
+#define SCM_ENV_OBARRAY(x)	(SCM_ENV_DATA(x)->obarray)
+
+extern SCM scm_c_lookup_env (SCM identifier);
+extern SCM scm_c_env_vcell (SCM env, SCM name, int intern);
+
+extern void scm_init_envs (void);
+
+#endif /* _ENVS_H_ */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

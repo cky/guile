@@ -39,104 +39,96 @@
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
 
-/* This file is included in vm_engine.c */
+#include <string.h>
+#include "instructions.h"
 
-VM_DEFINE_FUNCTION (not, "not", 1)
+struct scm_instruction scm_instruction_table[] = {
+#define VM_INSTRUCTION_TO_TABLE 1
+#include "vm_expand.h"
+#include "vm_system.i"
+#include "vm_scheme.i"
+#include "vm_number.i"
+#include "vm_loader.i"
+#undef VM_INSTRUCTION_TO_TABLE
+  {scm_op_last}
+};
+
+/* C interface */
+
+struct scm_instruction *
+scm_lookup_instruction (SCM name)
 {
-  ARGS1 (a1);
-  RETURN (SCM_BOOL (SCM_FALSEP (a1)));
+  struct scm_instruction *ip;
+  if (SCM_SYMBOLP (name))
+    for (ip = scm_instruction_table; ip->opcode != scm_op_last; ip++)
+      if (strcmp (ip->name, SCM_SYMBOL_CHARS (name)) == 0)
+	return ip;
+  return 0;
 }
 
-VM_DEFINE_FUNCTION (not_not, "not-not", 1)
-{
-  ARGS1 (a1);
-  RETURN (SCM_BOOL (!SCM_FALSEP (a1)));
-}
+/* Scheme interface */
 
-VM_DEFINE_FUNCTION (eq, "eq?", 2)
+SCM_DEFINE (scm_instruction_list, "instruction-list", 0, 0, 0,
+	    (void),
+	    "")
+#define FUNC_NAME s_scm_instruction_list
 {
-  ARGS2 (a1, a2);
-  RETURN (SCM_BOOL (SCM_EQ_P (a1, a2)));
+  SCM list = SCM_EOL;
+  struct scm_instruction *ip;
+  for (ip = scm_instruction_table; ip->opcode != scm_op_last; ip++)
+    list = scm_cons (scm_str2symbol (ip->name), list);
+  return scm_reverse_x (list, SCM_EOL);
 }
+#undef FUNC_NAME
 
-VM_DEFINE_FUNCTION (not_eq, "not-eq?", 2)
+SCM_DEFINE (scm_instruction_p, "instruction?", 1, 0, 0,
+	    (SCM obj),
+	    "")
+#define FUNC_NAME s_scm_instruction_p
 {
-  ARGS2 (a1, a2);
-  RETURN (SCM_BOOL (!SCM_EQ_P (a1, a2)));
+  return SCM_BOOL (SCM_INSTRUCTION_P (obj));
 }
+#undef FUNC_NAME
 
-VM_DEFINE_FUNCTION (nullp, "null?", 1)
+SCM_DEFINE (scm_instruction_length, "instruction-length", 1, 0, 0,
+	    (SCM inst),
+	    "")
+#define FUNC_NAME s_scm_instruction_length
 {
-  ARGS1 (a1);
-  RETURN (SCM_BOOL (SCM_NULLP (a1)));
+  SCM_VALIDATE_INSTRUCTION (1, inst);
+  return SCM_MAKINUM (SCM_INSTRUCTION_LEN (inst));
 }
+#undef FUNC_NAME
 
-VM_DEFINE_FUNCTION (not_nullp, "not-null?", 1)
+SCM_DEFINE (scm_instruction_to_opcode, "instruction->opcode", 1, 0, 0,
+	    (SCM inst),
+	    "")
+#define FUNC_NAME s_scm_instruction_to_opcode
 {
-  ARGS1 (a1);
-  RETURN (SCM_BOOL (!SCM_NULLP (a1)));
+  SCM_VALIDATE_INSTRUCTION (1, inst);
+  return SCM_MAKINUM (SCM_INSTRUCTION_OPCODE (inst));
 }
+#undef FUNC_NAME
 
-VM_DEFINE_FUNCTION (pairp, "pair?", 1)
+SCM_DEFINE (scm_opcode_to_instruction, "opcode->instruction", 1, 0, 0,
+	    (SCM op),
+	    "")
+#define FUNC_NAME s_scm_opcode_to_instruction
 {
-  ARGS1 (a1);
-  RETURN (SCM_BOOL (SCM_CONSP (a1)));
+  int i;
+  SCM_VALIDATE_INUM (1, op);
+  i = SCM_INUM (op);
+  SCM_ASSERT_RANGE (1, op, 0 <= i && i < scm_op_last);
+  return scm_str2symbol (scm_instruction_table[i].name);
 }
+#undef FUNC_NAME
 
-VM_DEFINE_FUNCTION (listp, "list?", 1)
+void
+scm_init_instructions (void)
 {
-  ARGS1 (a1);
-  RETURN (SCM_BOOL (scm_ilength (a1) >= 0));
-}
-
-VM_DEFINE_FUNCTION (cons, "cons", 2)
-{
-  ARGS2 (a1, a2);
-  CONS (a1, a1, a2);
-  RETURN (a1);
-}
-
-VM_DEFINE_FUNCTION (car, "car", 1)
-{
-  ARGS1 (a1);
-  SCM_VALIDATE_CONS (1, a1);
-  RETURN (SCM_CAR (a1));
-}
-
-VM_DEFINE_FUNCTION (cdr, "cdr", 1)
-{
-  ARGS1 (a1);
-  SCM_VALIDATE_CONS (1, a1);
-  RETURN (SCM_CDR (a1));
-}
-
-VM_DEFINE_FUNCTION (set_car, "set-car!", 2)
-{
-  ARGS2 (a1, a2);
-  SCM_VALIDATE_CONS (1, a1);
-  SCM_SETCAR (a1, a2);
-  RETURN (SCM_UNSPECIFIED);
-}
-
-VM_DEFINE_FUNCTION (set_cdr, "set-cdr!", 2)
-{
-  ARGS2 (a1, a2);
-  SCM_VALIDATE_CONS (1, a1);
-  SCM_SETCDR (a1, a2);
-  RETURN (SCM_UNSPECIFIED);
-}
-
-VM_DEFINE_FUNCTION (list, "list", -1)
-{
-  POP_LIST_MARK ();
-  NEXT;
-}
-
-VM_DEFINE_FUNCTION (vector, "vector", -1)
-{
-  POP_LIST_MARK ();
-  *sp = scm_vector (*sp);
-  NEXT;
+#ifndef SCM_MAGIC_SNARFER
+#include "instructions.x"
+#endif
 }
 
 /*

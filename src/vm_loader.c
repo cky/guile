@@ -39,12 +39,95 @@
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
 
-#include <libguile.h>
+/* This file is included in vm_engine.c */
 
-int
-main (int argc, char **argv)
+VM_DEFINE_INSTRUCTION (load_integer, "load-integer", -1)
 {
-  scm_init_guile ();
-  scm_shell (argc, argv);
-  return 0; /* never reached */
+  size_t len;
+  FETCH_LENGTH (len);
+  SCM_MISC_ERROR ("Not implemented yet", SCM_EOL);
+  ip += len;
+  NEXT;
 }
+
+VM_DEFINE_INSTRUCTION (load_symbol, "load-symbol", -1)
+{
+  size_t len;
+  FETCH_LENGTH (len);
+  PUSH (scm_mem2symbol (ip, len));
+  ip += len;
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (load_string, "load-string", -1)
+{
+  size_t len;
+  FETCH_LENGTH (len);
+  PUSH (scm_makfromstr (ip, len, 0));
+  ip += len;
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (load_keyword, "load-keyword", -1)
+{
+  SCM sym;
+  size_t len;
+  FETCH_LENGTH (len);
+  sym = scm_mem2symbol (ip, len);
+  PUSH (scm_make_keyword_from_dash_symbol (sym));
+  ip += len;
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (load_module, "load-module", -1)
+{
+  size_t len;
+  FETCH_LENGTH (len);
+  PUSH (scm_c_lookup_env (scm_mem2symbol (ip, len)));
+  ip += len;
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (load_program, "load-program", -1)
+{
+  size_t len;
+  SCM prog, x;
+
+  FETCH_LENGTH (len);
+  prog = scm_c_make_program (ip, len, program);
+
+  x = sp[0];
+  if (SCM_INUMP (x))
+    {
+      int i = SCM_INUM (x);
+      SCM_PROGRAM_NARGS (prog) = i >> 5;	/* 6-5 bits */
+      SCM_PROGRAM_NREST (prog) = (i >> 4) & 1;	/* 4 bit */
+      SCM_PROGRAM_NLOCS (prog) = i & 15;	/* 3-0 bits */
+    }
+  else
+    {
+      SCM_PROGRAM_NARGS (prog) = SCM_INUM (sp[3]);
+      SCM_PROGRAM_NREST (prog) = SCM_INUM (sp[2]);
+      SCM_PROGRAM_NLOCS (prog) = SCM_INUM (sp[1]);
+      if (SCM_VECTORP (x))
+	SCM_PROGRAM_OBJS (prog) = x;
+      sp += 3;
+    }
+
+  ip += len;
+  *sp = prog;
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (link, "link", 0)
+{
+  sp[1] = scm_c_env_vcell (sp[1], sp[0], 1);
+  DROP ();
+  NEXT;
+}
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

@@ -41,9 +41,86 @@
 
 /* This file is included in vm_engine.c */
 
+
+/*
+ * Predicates
+ */
+
+#undef PRED
+#define PRED(ctest,stest)			\
+{						\
+  ARGS1 (a1);					\
+  if (SCM_INUMP (a1))				\
+    RETURN (SCM_BOOL (ctest));			\
+  RETURN (stest (a1));				\
+}
+
+VM_DEFINE_FUNCTION (zero, "zero?", 1)
+{
+  PRED (SCM_INUM (a1) == 0, scm_zero_p);
+}
+
+
+/*
+ * Relational tests
+ */
+
+#undef REL
+#define REL(crel,srel)						\
+{								\
+  ARGS2 (a1, a2);						\
+  if (SCM_INUMP (a1) && SCM_INUMP (a2))				\
+    RETURN (SCM_BOOL (SCM_INUM (a1) crel SCM_INUM (a2)));	\
+  RETURN (srel (a1, a2));					\
+}
+
+VM_DEFINE_FUNCTION (ee, "ee?", 2)
+{
+  REL (==, scm_num_eq_p);
+}
+
+VM_DEFINE_FUNCTION (lt, "lt?", 2)
+{
+  REL (<, scm_less_p);
+}
+
+VM_DEFINE_FUNCTION (le, "le?", 2)
+{
+  REL (<=, scm_leq_p);
+}
+
+VM_DEFINE_FUNCTION (gt, "gt?", 2)
+{
+  REL (>, scm_gr_p);
+}
+
+VM_DEFINE_FUNCTION (ge, "ge?", 2)
+{
+  REL (>=, scm_geq_p);
+}
+
+
+/*
+ * Functions
+ */
+
+#undef FUNC1
+#define FUNC1(CEXP,SEXP)			\
+{						\
+  ARGS1 (a1);					\
+  if (SCM_INUMP (a1))				\
+    {						\
+      int n = CEXP;				\
+      if (SCM_FIXABLE (n))			\
+	RETURN (SCM_MAKINUM (n));		\
+    }						\
+  RETURN (SEXP);				\
+}
+
+#undef FUNC2
 #define FUNC2(CFUNC,SFUNC)				\
 {							\
-  VM_SETUP_ARGS2 ();					\
+  ARGS2 (a1, a2);					\
   if (SCM_INUMP (a1) && SCM_INUMP (a2))			\
     {							\
       int n = SCM_INUM (a1) CFUNC SCM_INUM (a2);	\
@@ -53,146 +130,39 @@
   RETURN (SFUNC (a1, a2));				\
 }
 
-#define REL2(CREL,SREL)						\
-{								\
-  VM_SETUP_ARGS2 ();						\
-  if (SCM_INUMP (a1) && SCM_INUMP (a2))				\
-    RETURN (SCM_BOOL (SCM_INUM (a1) CREL SCM_INUM (a2)));	\
-  RETURN (SREL (a1, a2));					\
-}
-
-SCM_DEFINE_VM_FUNCTION (zero_p, "zero?", "zero?", 1, 0)
+VM_DEFINE_FUNCTION (neg, "neg", 1)
 {
-  VM_SETUP_ARGS1 ();
-  if (SCM_INUMP (a1))
-    RETURN (SCM_BOOL (SCM_EQ_P (a1, SCM_INUM0)));
-  RETURN (scm_zero_p (a1));
+  FUNC1 (- SCM_INUM (a1), scm_difference (a1, SCM_UNDEFINED));
 }
 
-SCM_DEFINE_VM_FUNCTION (inc, "1+", "inc", 1, 0)
+VM_DEFINE_FUNCTION (inc, "inc", 1)
 {
-  VM_SETUP_ARGS1 ();
-  if (SCM_INUMP (a1))
-    {
-      int n = SCM_INUM (a1) + 1;
-      if (SCM_FIXABLE (n))
-	RETURN (SCM_MAKINUM (n));
-    }
-  RETURN (scm_sum (a1, SCM_MAKINUM (1)));
+  FUNC1 (SCM_INUM (a1) + 1, scm_sum (a1, SCM_MAKINUM (1)));
 }
 
-SCM_DEFINE_VM_FUNCTION (dec, "1-", "dec", 1, 0)
+VM_DEFINE_FUNCTION (dec, "dec", 1)
 {
-  VM_SETUP_ARGS1 ();
-  if (SCM_INUMP (a1))
-    {
-      int n = SCM_INUM (a1) - 1;
-      if (SCM_FIXABLE (n))
-	RETURN (SCM_MAKINUM (n));
-    }
-  RETURN (scm_difference (a1, SCM_MAKINUM (1)));
+  FUNC1 (SCM_INUM (a1) - 1, scm_difference (a1, SCM_MAKINUM (1)));
 }
 
-SCM_DEFINE_VM_FUNCTION (add, "+", "add", 0, 1)
-{
-  VM_SETUP_ARGSN ();
-  ac = SCM_MAKINUM (0);
-  while (nargs-- > 0)
-    {
-      SCM x;
-      POP (x);
-      if (SCM_INUMP (ac) && SCM_INUMP (x))
-	{
-	  int n = SCM_INUM (ac) + SCM_INUM (x);
-	  if (SCM_FIXABLE (n))
-	    {
-	      ac = SCM_MAKINUM (n);
-	      continue;
-	    }
-	}
-      ac = scm_sum (ac, x);
-    }
-  NEXT;
-}
-
-SCM_DEFINE_VM_FUNCTION (add2, "+", "add2", 2, 0)
+VM_DEFINE_FUNCTION (add, "add", 2)
 {
   FUNC2 (+, scm_sum);
 }
 
-SCM_DEFINE_VM_FUNCTION (sub, "-", "sub", 1, 1)
-{
-  SCM x;
-  VM_SETUP_ARGSN ();
-  ac = SCM_MAKINUM (0);
-  while (nargs-- > 1)
-    {
-      POP (x);
-      if (SCM_INUMP (ac) && SCM_INUMP (x))
-	{
-	  int n = SCM_INUM (ac) + SCM_INUM (x);
-	  if (SCM_FIXABLE (n))
-	    {
-	      ac = SCM_MAKINUM (n);
-	      continue;
-	    }
-	}
-      ac = scm_difference (ac, x);
-    }
-  POP (x);
-  if (SCM_INUMP (ac) && SCM_INUMP (x))
-    {
-      int n = SCM_INUM (x) - SCM_INUM (ac);
-      if (SCM_FIXABLE (n))
-	RETURN (SCM_MAKINUM (n));
-    }
-  RETURN (scm_difference (x, ac));
-}
-
-SCM_DEFINE_VM_FUNCTION (sub2, "-", "sub2", 2, 0)
+VM_DEFINE_FUNCTION (sub, "sub", 2)
 {
   FUNC2 (-, scm_difference);
 }
 
-SCM_DEFINE_VM_FUNCTION (minus, "-", "minus", 1, 0)
+VM_DEFINE_FUNCTION (remainder, "remainder", 2)
 {
-  VM_SETUP_ARGS1 ();
-  if (SCM_INUMP (a1))
-    {
-      int n = - SCM_INUM (a1);
-      if (SCM_FIXABLE (n))
-	RETURN (SCM_MAKINUM (n));
-    }
-  RETURN (scm_difference (a1, SCM_UNDEFINED));
-}
-
-SCM_DEFINE_VM_FUNCTION (remainder, "remainder", "remainder", 2, 0)
-{
-  VM_SETUP_ARGS2 ();
+  ARGS2 (a1, a2);
   RETURN (scm_remainder (a1, a2));
 }
 
-SCM_DEFINE_VM_FUNCTION (lt2, "<", "lt2", 2, 0)
-{
-  REL2 (<, scm_less_p);
-}
-
-SCM_DEFINE_VM_FUNCTION (gt2, ">", "gt2", 2, 0)
-{
-  REL2 (>, scm_gr_p);
-}
-
-SCM_DEFINE_VM_FUNCTION (le2, "<=", "le2", 2, 0)
-{
-  REL2 (<=, scm_leq_p);
-}
-
-SCM_DEFINE_VM_FUNCTION (ge2, ">=", "ge2", 2, 0)
-{
-  REL2 (>=, scm_geq_p);
-}
-
-SCM_DEFINE_VM_FUNCTION (num_eq2, "=", "num-eq2", 2, 0)
-{
-  REL2 (==, scm_num_eq_p);
-}
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

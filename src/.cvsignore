@@ -1,8 +1,6 @@
-.cvsignore
 .libs
 .deps
 guile-vm
-guile-compile
 stamp-h
 config.h
 config.h.in
@@ -10,8 +8,6 @@ stamp-h.in
 Makefile
 Makefile.in
 *.x
-*.inst
-*.label
-*.opcode
+*.i
 *.lo
 *.la

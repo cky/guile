@@ -39,12 +39,46 @@
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
 
-#include <libguile.h>
+#ifndef _INSTRUCTIONS_H_
+#define _INSTRUCTIONS_H_
 
-int
-main (int argc, char **argv)
-{
-  scm_init_guile ();
-  scm_shell (argc, argv);
-  return 0; /* never reached */
-}
+#include <libguile.h>
+#include "config.h"
+
+enum scm_opcode {
+#define VM_INSTRUCTION_TO_OPCODE 1
+#include "vm_expand.h"
+#include "vm_system.i"
+#include "vm_scheme.i"
+#include "vm_number.i"
+#include "vm_loader.i"
+#undef VM_INSTRUCTION_TO_OPCODE
+  scm_op_last
+};
+
+struct scm_instruction {
+  enum scm_opcode opcode;	/* opcode */
+  char *name;			/* instruction name */
+  char len;			/* byte length */
+};
+
+#define SCM_INSTRUCTION_P(x)		(scm_lookup_instruction (x))
+#define SCM_INSTRUCTION_OPCODE(i)	(scm_lookup_instruction (i)->opcode)
+#define SCM_INSTRUCTION_NAME(i)		(scm_lookup_instruction (i)->name)
+#define SCM_INSTRUCTION_LEN(i)		(scm_lookup_instruction (i)->len)
+#define SCM_VALIDATE_INSTRUCTION(p,x)	SCM_MAKE_VALIDATE (p, x, INSTRUCTION_P)
+
+#define SCM_INSTRUCTION(i)		(&scm_instruction_table[i])
+
+extern struct scm_instruction scm_instruction_table[];
+extern struct scm_instruction *scm_lookup_instruction (SCM name);
+
+extern void scm_init_instructions (void);
+
+#endif /* _INSTRUCTIONS_H_ */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

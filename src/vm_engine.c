@@ -39,80 +39,130 @@
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
 
-/* This file is included in vm.c two times! */
+/* This file is included in vm.c twice */
 
 #include "vm_engine.h"
 
-/* VM names */
-#undef VM_NAME
-#if VM_ENGINE == SCM_VM_REGULAR_ENGINE
-#define VM_NAME		scm_regular_vm
-#else
-#if VM_ENGINE == SCM_VM_DEBUG_ENGINE
-#define VM_NAME		scm_debug_vm
-#endif
-#endif
-
 static SCM
-VM_NAME (SCM vm, SCM program)
+vm_engine (SCM vm, SCM program, SCM args)
 #define FUNC_NAME "vm-engine"
 {
-  /* Copies of VM registers */
-  SCM ac = SCM_PACK (0);	/* accumulator */
-  SCM *pc = NULL;		/* program counter */
-  SCM *sp = NULL;		/* stack pointer */
-  SCM *fp = NULL;		/* frame pointer */
+  /* VM registers */
+  register scm_byte_t *ip IP_REG;	/* instruction pointer */
+  register SCM *sp SP_REG;		/* stack pointer */
+  register SCM *fp FP_REG;		/* frame pointer */
 
   /* Cache variables */
-  struct scm_vm *vmp = NULL;	/* the VM data pointer */
-  SCM ext = SCM_BOOL_F;		/* the current external frame */
-  SCM *stack_base = NULL;	/* stack base address */
-  SCM *stack_limit = NULL;	/* stack limit address */
+  struct scm_vm *vmp = SCM_VM_DATA (vm);/* VM data pointer */
+  struct scm_program *bp = NULL;	/* program base pointer */
+  SCM external;				/* external environment */
+  SCM *objects = NULL;			/* constant objects */
+  SCM *stack_base = vmp->stack_base;	/* stack base address */
+  SCM *stack_limit = vmp->stack_limit;	/* stack limit address */
 
   /* Internal variables */
-  int nargs = 0;		/* the number of arguments */
-  SCM dynwinds = SCM_EOL;
-#if VM_USE_HOOK
+  int nargs = 0;
+  long run_time = scm_c_get_internal_run_time ();
+  // SCM dynwinds = SCM_EOL;
+  SCM err_msg;
+  SCM err_args;
+#if VM_USE_HOOKS
   SCM hook_args = SCM_LIST1 (vm);
 #endif
 
+#ifdef HAVE_LABELS_AS_VALUES
   /* Jump talbe */
   static void *jump_table[] = {
-#define VM_INSTRUCTION_TO_LABEL
+#define VM_INSTRUCTION_TO_LABEL 1
 #include "vm_expand.h"
 #include "vm_system.i"
 #include "vm_scheme.i"
 #include "vm_number.i"
+#include "vm_loader.i"
 #undef VM_INSTRUCTION_TO_LABEL
   };
+#endif
 
-  /* Initialize the VM */
-  vmp     = SCM_VM_DATA (vm);
-  vmp->pc = SCM_PROGRAM_BASE (program);
-  vmp->sp = vmp->stack_limit;
-  LOAD ();
+  /* Bootcode */
+  scm_byte_t code[3] = {scm_op_call, 0, scm_op_halt};
+  SCM bootcode = scm_c_make_program (code, 3, SCM_BOOL_T);
+  code[1] = scm_ilength (args);
 
-  /* top frame */
-  VM_NEW_FRAME (fp, program, SCM_BOOL_F,
-		SCM_VM_MAKE_ADDRESS (0),
-		SCM_VM_MAKE_ADDRESS (0));
+  /* Initial frame */
+  bp = SCM_PROGRAM_DATA (bootcode);
+  CACHE ();
+  NEW_FRAME ();
+
+  /* Initial arguments */
+  for (; !SCM_NULLP (args); args = SCM_CDR (args))
+    PUSH (SCM_CAR (args));
+  PUSH (program);
 
   /* Let's go! */
-  VM_BOOT_HOOK ();
+  BOOT_HOOK ();
 
 #ifndef HAVE_LABELS_AS_VALUES
-  vm_start: switch (*pc++) {
+ vm_start:
+  switch (*ip++) {
 #endif
 
 #include "vm_expand.h"
 #include "vm_system.c"
 #include "vm_scheme.c"
 #include "vm_number.c"
+#include "vm_loader.c"
 
 #ifndef HAVE_LABELS_AS_VALUES
   }
 #endif
 
+  /* Errors */
+  {
+  vm_error_unbound:
+    err_msg  = scm_makfrom0str ("Unbound variable: ~A");
+    goto vm_error;
+
+  vm_error_wrong_num_args:
+    err_msg  = scm_makfrom0str ("Wrong number of arguments");
+    err_args = SCM_EOL;
+    goto vm_error;
+
+  vm_error_wrong_type_apply:
+    err_msg  = scm_makfrom0str ("Wrong type to apply: ~S");
+    err_args = SCM_LIST1 (program);
+    goto vm_error;
+
+#if VM_CHECK_IP
+  vm_error_invalid_address:
+    err_msg  = scm_makfrom0str ("Invalid program address");
+    err_args = SCM_EOL;
+    goto vm_error;
+#endif
+
+  vm_error_stack_overflow:
+    err_msg  = scm_makfrom0str ("Stack overflow");
+    err_args = SCM_EOL;
+    goto vm_error;
+
+  vm_error_stack_underflow:
+    err_msg  = scm_makfrom0str ("Stack underflow");
+    err_args = SCM_EOL;
+    goto vm_error;
+
+  vm_error:
+    SYNC_ALL ();
+    scm_ithrow (sym_vm_error,
+		SCM_LIST4 (sym_vm_engine, err_msg, err_args,
+			   scm_vm_current_frame (vm)),
+		1);
+  }
+
   abort (); /* never reached */
 }
 #undef FUNC_NAME
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

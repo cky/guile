@@ -1,6 +1,0 @@
-#!@bindir@/@PACKAGE@ -s
-!#
-
-(use-modules (vm compile))
-
-(for-each compile-file (cdr (command-line)))

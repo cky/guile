@@ -1,4 +1,4 @@
-SUBDIRS = src vm doc test
+SUBDIRS = src doc module
 
 EXTRA_DIST = acconfig.h
 

@@ -45,80 +45,72 @@
  * VM Options
  */
 
-#undef VM_USE_BOOT_HOOK
-#undef VM_USE_HALT_HOOK
-#undef VM_USE_NEXT_HOOK
-#undef VM_USE_CALL_HOOK
-#undef VM_USE_APPLY_HOOK
-#undef VM_USE_RETURN_HOOK
-#undef VM_INIT_LOCAL_VARIABLES
-#undef VM_CHECK_LINK
-#undef VM_CHECK_BINDING
-#undef VM_CHECK_PROGRAM_COUNTER
+#define VM_OPTION(regular,debug) debug
 
-#if VM_ENGINE == SCM_VM_REGULAR_ENGINE
-#define VM_USE_BOOT_HOOK		0
-#define	VM_USE_HALT_HOOK		0
-#define	VM_USE_NEXT_HOOK		0
-#define	VM_USE_CALL_HOOK		0
-#define	VM_USE_APPLY_HOOK		0
-#define	VM_USE_RETURN_HOOK		0
-#define VM_INIT_LOCAL_VARIABLES		0
-#define VM_CHECK_LINK			0
-#define VM_CHECK_BINDING		1
-#define VM_CHECK_PROGRAM_COUNTER	0
-#else
-#if VM_ENGINE == SCM_VM_DEBUG_ENGINE
-#define VM_USE_BOOT_HOOK		1
-#define	VM_USE_HALT_HOOK		1
-#define	VM_USE_NEXT_HOOK		1
-#define	VM_USE_CALL_HOOK		1
-#define	VM_USE_APPLY_HOOK		1
-#define	VM_USE_RETURN_HOOK		1
-#define VM_INIT_LOCAL_VARIABLES		1
-#define VM_CHECK_LINK			1
-#define VM_CHECK_BINDING		1
-#define	VM_CHECK_PROGRAM_COUNTER	1
-#endif
-#endif
-
-#undef VM_USE_HOOK
-#if VM_USE_BOOT_HOOK || VM_USE_HALT_HOOK || VM_USE_NEXT_HOOK \
-    || VM_USE_CALL_HOOK || VM_USE_APPLY_HOOK || VM_USE_RETURN_HOOK
-#define VM_USE_HOOK 1
-#else
-#define VM_USE_HOOK 0
-#endif
+#define VM_USE_HOOKS	VM_OPTION (0, 1)	/* Various hooks */
+#define VM_USE_CLOCK	VM_OPTION (0, 1)	/* Bogos clock */
+#define VM_CHECK_IP	VM_OPTION (0, 0)	/* Check IP  */
 
 
 /*
- * Type checking
+ * Registers
  */
 
-#undef VM_ASSERT_LINK
-#if VM_CHECK_LINK
-#define VM_ASSERT_LINK(OBJ)				\
-  if (SCM_FALSEP (OBJ))					\
-    SCM_MISC_ERROR ("VM broken link", SCM_EOL)
-#else
-#define VM_ASSERT_LINK(OBJ)
+/* Register optimization. [ stolen from librep/src/lispmach.h,v 1.3 ]
+
+   Some compilers underestimate the use of the local variables representing
+   the abstract machine registers, and don't put them in hardware registers,
+   which slows down the interpreter considerably.
+   For GCC, I have hand-assigned hardware registers for several architectures.
+*/
+
+#ifdef __GNUC__
+#ifdef __mips__
+#define IP_REG asm("$16")
+#define SP_REG asm("$17")
+#define FP_REG asm("$18")
 #endif
-
-
-/*
- * Top-level variable
- */
-
-#define VM_VARIABLE_REF(VAR)		SCM_CDDR (VAR)
-#define VM_VARIABLE_SET(VAR,VAL)	SCM_SETCDR (SCM_CDR (VAR), VAL)
-
-#undef VM_ASSERT_BOUND
-#if VM_CHECK_BINDING
-#define VM_ASSERT_BOUND(VAR)						\
-  if (SCM_UNBNDP (VM_VARIABLE_REF (VAR)))				\
-    SCM_MISC_ERROR ("Unbound variable: ~S", SCM_LIST1 (SCM_CADR (VAR)))
+#ifdef __sparc__
+#define IP_REG asm("%l0")
+#define SP_REG asm("%l1")
+#define FP_REG asm("%l2")
+#endif
+#ifdef __alpha__
+#ifdef __CRAY__
+#define IP_REG asm("r9")
+#define SP_REG asm("r10")
+#define FP_REG asm("r11")
 #else
-#define VM_ASSERT_BOUND(CELL)
+#define IP_REG asm("$9")
+#define SP_REG asm("$10")
+#define FP_REG asm("$11")
+#endif
+#endif
+#ifdef __i386__
+#define IP_REG asm("%esi")
+#define SP_REG asm("%edi")
+#define FP_REG
+#endif
+#if defined(PPC) || defined(_POWER) || defined(_IBMR2)
+#define IP_REG asm("26")
+#define SP_REG asm("27")
+#define FP_REG asm("28")
+#endif
+#ifdef __hppa__
+#define IP_REG asm("%r18")
+#define SP_REG asm("%r17")
+#define FP_REG asm("%r16")
+#endif
+#ifdef __mc68000__
+#define IP_REG asm("a5")
+#define SP_REG asm("a4")
+#define FP_REG
+#endif
+#ifdef __arm__
+#define IP_REG asm("r9")
+#define SP_REG asm("r8")
+#define FP_REG asm("r7")
+#endif
 #endif
 
 
@@ -126,239 +118,221 @@
  * Hooks
  */
 
-#undef VM_BOOT_HOOK
-#if VM_USE_BOOT_HOOK
-#define VM_BOOT_HOOK()	SYNC (); scm_c_run_hook (vmp->boot_hook, hook_args)
+#undef RUN_HOOK
+#if VM_USE_HOOKS
+#define RUN_HOOK(h)				\
+{						\
+  if (!SCM_FALSEP (h))				\
+    {						\
+      SYNC ();					\
+      scm_c_run_hook (h, hook_args);		\
+    }						\
+}
 #else
-#define VM_BOOT_HOOK()
+#define RUN_HOOK(h)
 #endif
 
-#undef VM_HALT_HOOK
-#if VM_USE_HALT_HOOK
-#define VM_HALT_HOOK()	SYNC (); scm_c_run_hook (vmp->halt_hook, hook_args)
-#else
-#define VM_HALT_HOOK()
-#endif
-
-#undef VM_NEXT_HOOK
-#if VM_USE_NEXT_HOOK
-#define VM_NEXT_HOOK()	SYNC (); scm_c_run_hook (vmp->next_hook, hook_args)
-#else
-#define VM_NEXT_HOOK()
-#endif
-
-#undef VM_CALL_HOOK
-#if VM_USE_CALL_HOOK
-#define VM_CALL_HOOK()	SYNC (); scm_c_run_hook (vmp->call_hook, hook_args)
-#else
-#define VM_CALL_HOOK()
-#endif
-
-#undef VM_APPLY_HOOK
-#if VM_USE_APPLY_HOOK
-#define VM_APPLY_HOOK()	SYNC (); scm_c_run_hook (vmp->apply_hook, hook_args)
-#else
-#define VM_APPLY_HOOK()
-#endif
-
-#undef VM_RETURN_HOOK
-#if VM_USE_RETURN_HOOK
-#define VM_RETURN_HOOK() SYNC (); scm_c_run_hook (vmp->return_hook, hook_args)
-#else
-#define VM_RETURN_HOOK()
-#endif
+#define BOOT_HOOK()	RUN_HOOK (vmp->hooks[SCM_VM_BOOT_HOOK])
+#define HALT_HOOK()	RUN_HOOK (vmp->hooks[SCM_VM_HALT_HOOK])
+#define NEXT_HOOK()	RUN_HOOK (vmp->hooks[SCM_VM_NEXT_HOOK])
+#define ENTER_HOOK()	RUN_HOOK (vmp->hooks[SCM_VM_ENTER_HOOK])
+#define APPLY_HOOK()	RUN_HOOK (vmp->hooks[SCM_VM_APPLY_HOOK])
+#define EXIT_HOOK()	RUN_HOOK (vmp->hooks[SCM_VM_EXIT_HOOK])
+#define RETURN_HOOK()	RUN_HOOK (vmp->hooks[SCM_VM_RETURN_HOOK])
 
 
 /*
  * Basic operations
  */
 
-#define LOAD()					\
+#define CACHE()					\
 {						\
-  ac = vmp->ac;					\
-  pc = vmp->pc;					\
+  ip = vmp->ip;					\
   sp = vmp->sp;					\
   fp = vmp->fp;					\
-  stack_base  = vmp->stack_base;		\
-  stack_limit = vmp->stack_limit;		\
 }
 
 #define SYNC()					\
 {						\
-  vmp->ac = ac;					\
-  vmp->pc = pc;					\
+  vmp->ip = ip;					\
   vmp->sp = sp;					\
   vmp->fp = fp;					\
 }
 
-#define FETCH()		*pc++
-
-#define CONS(X,Y,Z)				\
-{						\
-  SCM cell;					\
-  SYNC ();					\
-  SCM_NEWCELL (cell);				\
-  SCM_SET_CELL_OBJECT_0 (cell, Y);		\
-  SCM_SET_CELL_OBJECT_1 (cell, Z);		\
-  X = cell;					\
+#define SYNC_TIME()					\
+{							\
+  long cur_time = scm_c_get_internal_run_time ();	\
+  vmp->time += cur_time - run_time;			\
+  run_time = cur_time;					\
 }
 
-#define VM_SETUP_ARGS1() SCM a1 = ac;
-#define VM_SETUP_ARGS2() SCM a1, a2; a2 = ac; POP (a1);
-#define VM_SETUP_ARGS3() SCM a1, a2, a3; a3 = ac; POP (a2); POP (a1);
-#define VM_SETUP_ARGSN() nargs = SCM_INUM (FETCH ());
+#define SYNC_ALL()				\
+{						\
+  SYNC ();					\
+  SYNC_TIME ();					\
+}
 
 
 /*
  * Stack operation
  */
 
-#define PUSH(X)					\
-{						\
+#define CHECK_OVERFLOW()			\
   if (sp < stack_base)				\
-    SCM_MISC_ERROR ("FIXME: Stack overflow", SCM_EOL);	\
-  *sp-- = (X);					\
+    goto vm_error_stack_overflow
+
+#define CHECK_UNDERFLOW()			\
+  if (sp > stack_limit)				\
+    goto vm_error_stack_underflow
+
+#define PUSH(x)	do { CHECK_OVERFLOW (); *--sp = x; } while (0)
+#define DROP()	do { CHECK_UNDERFLOW (); sp++; } while (0)
+#define POP(x)	do { x = *sp; DROP (); } while (0)
+
+#define CONS(x,y,z)				\
+{						\
+  SCM cell;					\
+  SYNC ()					\
+  SCM_NEWCELL (cell);				\
+  SCM_SET_CELL_OBJECT_0 (cell, y);		\
+  SCM_SET_CELL_OBJECT_1 (cell, z);		\
+  x = cell;					\
 }
 
-#define POP(X)					\
-{						\
-  if (sp == stack_limit)			\
-    SCM_MISC_ERROR ("FIXME: Stack underflow", SCM_EOL);	\
-  (X) = *++sp;					\
-}
+#define POP_LIST(n)				\
+do {						\
+  int i;					\
+  SCM l = SCM_EOL;				\
+  for (i = 0; i < n; i++)			\
+    CONS (l, sp[i], l);				\
+  sp += n - 1;					\
+  *sp = l;					\
+} while (0)
 
-#define POP_LIST(N,L)				\
-{						\
-  while (N-- > 0)				\
+#define POP_LIST_MARK()				\
+do {						\
+  SCM x;					\
+  SCM l = SCM_EOL;				\
+  POP (x);					\
+  while (!SCM_UNBNDP (x))			\
     {						\
-      SCM obj;					\
-      POP (obj);				\
-      CONS (L, obj, L);				\
+      CONS (l, x, l);				\
+      POP (x);					\
     }						\
+  PUSH (l);					\
+} while (0)
+
+
+/*
+ * Instruction operation
+ */
+
+#define FETCH()		(*ip++)
+#define FETCH2()	(((int) FETCH () << 8) + (int) FETCH ())
+
+#define FETCH_LENGTH(len) do { ip = vm_fetch_length (ip, &len); } while (0)
+
+#undef CLOCK
+#if VM_USE_CLOCK
+#define CLOCK(n)	vmp->clock += n
+#else
+#define CLOCK(n)
+#endif
+
+#undef NEXT_CHECK
+#if VM_CHECK_IP
+#define NEXT_CHECK()				\
+{						\
+  scm_byte_t *base = bp->base;			\
+  if (ip < base || ip >= base + bp->size)	\
+    goto vm_error_invalid_address;		\
 }
+#else
+#define NEXT_CHECK()
+#endif
+
+#undef NEXT_JUMP
+#ifdef HAVE_LABELS_AS_VALUES
+#define NEXT_JUMP()		goto *jump_table[FETCH ()]
+#else
+#define NEXT_JUMP()		goto vm_start
+#endif
+
+#define NEXT					\
+{						\
+  CLOCK (1);					\
+  NEXT_CHECK ();				\
+  NEXT_HOOK ();					\
+  NEXT_JUMP ();					\
+}
+
+
+/*
+ * Function support
+ */
+
+#define ARGS1(a1)	SCM a1 = sp[0];
+#define ARGS2(a1,a2)	SCM a1 = sp[1], a2 = sp[0]; sp++;
+#define ARGS3(a1,a2,a3)	SCM a1 = sp[2], a2 = sp[1], a3 = sp[0]; sp += 2;
+#define ARGSN(an)	int an = FETCH ();
+
+#define RETURN(x)	{ *sp = x; NEXT; }
 
 
 /*
  * Frame allocation
  */
 
-/* nargs = the number of arguments */
-#define VM_FRAME_INIT_ARGS(PROG,NREQS,RESTP)			\
-{								\
-  if (RESTP)							\
-    /* have a rest argument */					\
-    {								\
-      SCM list;							\
-      if (nargs < NREQS)					\
-	scm_wrong_num_args (PROG);				\
-								\
-      /* Construct the rest argument list */			\
-      nargs -= NREQS;	/* the number of rest arguments */	\
-      list = SCM_EOL;	/* list of the rest arguments */	\
-      POP_LIST (nargs, list);					\
-      PUSH (list);						\
-    }								\
-  else								\
-    /* not have a rest argument */				\
-    {								\
-      if (nargs != NREQS)					\
-	scm_wrong_num_args (PROG);				\
-    }								\
+#define NEW_FRAME()				\
+{						\
+  SCM ra = SCM_VM_MAKE_FRAME_ADDRESS (ip);	\
+  SCM dl = SCM_VM_MAKE_BYTE_ADDRESS (fp);	\
+  ip = bp->base;				\
+  fp = sp - bp->nlocs;				\
+  sp = SCM_VM_FRAME_LOWER_ADDRESS (fp);		\
+  CHECK_OVERFLOW ();				\
+  SCM_VM_FRAME_PROGRAM (fp) = program;		\
+  SCM_VM_FRAME_DYNAMIC_LINK (fp) = dl;		\
+  SCM_VM_FRAME_RETURN_ADDRESS (fp) = ra;	\
 }
 
-#undef VM_FRAME_INIT_LOCAL_VARIABLES
-#if VM_INIT_LOCAL_VARIABLES
-/* This is necessary when creating frame objects for debugging */
-#define VM_FRAME_INIT_LOCAL_VARIABLES(FP,NVARS)		\
+#define FREE_FRAME()						\
+{								\
+  sp = fp + bp->nargs + bp->nlocs;				\
+  ip = SCM_VM_BYTE_ADDRESS (SCM_VM_FRAME_RETURN_ADDRESS (fp));	\
+  fp = SCM_VM_FRAME_ADDRESS (SCM_VM_FRAME_DYNAMIC_LINK (fp));	\
+}
+
+#define INIT_ARGS()				\
+{						\
+  if (bp->nrest)				\
+    {						\
+      int n = nargs - bp->nargs - 1;		\
+      if (n < 0)				\
+	goto vm_error_wrong_num_args;		\
+      POP_LIST (n);				\
+    }						\
+  else						\
+    {						\
+      if (nargs != bp->nargs)			\
+	goto vm_error_wrong_num_args;		\
+    }						\
+}
+
+#define INIT_VARIABLES()				\
 {							\
   int i;						\
-  for (i = 0; i < NVARS; i++)				\
-    SCM_VM_FRAME_VARIABLE (FP, i) = SCM_UNDEFINED;	\
-}
-#else
-#define VM_FRAME_INIT_LOCAL_VARIABLES(FP,NVARS)
-#endif
-
-#define VM_FRAME_INIT_EXTERNAL_VARIABLES(FP,PROG)	\
-{							\
-  int *exts = SCM_PROGRAM_EXTS (PROG);			\
-  if (exts)						\
-    {							\
-      /* Export variables */				\
-      int n = exts[0];					\
-      while (n-- > 0)					\
-	SCM_VM_EXTERNAL_VARIABLE (ext, n)		\
-	  = SCM_VM_FRAME_VARIABLE (FP, exts[n + 1]);	\
-    }							\
+  for (i = 0; i < bp->nlocs; i++)			\
+    SCM_VM_FRAME_VARIABLE (fp, i) = SCM_UNDEFINED;	\
 }
 
-#define VM_NEW_FRAME(FP,PROG,DL,SP,RA)					  \
-{									  \
-  int nvars = SCM_PROGRAM_NVARS (PROG); /* the number of local vars */	  \
-  int nreqs = SCM_PROGRAM_NREQS (PROG); /* the number of required args */ \
-  int restp = SCM_PROGRAM_RESTP (PROG); /* have a rest argument or not */ \
-  int nexts = SCM_PROGRAM_NEXTS (PROG);	/* the number of external vars */ \
-									  \
-  VM_FRAME_INIT_ARGS (PROG, nreqs, restp);				  \
-									  \
-  /* Allocate the new frame */						  \
-  if (sp - nvars - SCM_VM_FRAME_DATA_SIZE < stack_base - 1)		  \
-    SCM_MISC_ERROR ("FIXME: Stack overflow", SCM_EOL);			  \
-  sp -= nvars + SCM_VM_FRAME_DATA_SIZE;					  \
-  FP = sp + SCM_VM_FRAME_DATA_SIZE + 1;					  \
-									  \
-  /* Setup the new external frame */					  \
-  if (!SCM_FALSEP (SCM_PROGRAM_ENV (PROG)))				  \
-    ext = SCM_PROGRAM_ENV (PROG);	/* Use program's environment */	  \
-  if (nexts)								  \
-    {									  \
-      SCM new = SCM_VM_MAKE_EXTERNAL (nexts); /* new external */	  \
-      SCM_VM_EXTERNAL_LINK (new) = ext;					  \
-      ext = new;							  \
-    }									  \
-									  \
-  /* Setup the new frame */						  \
-  SCM_VM_FRAME_SIZE (FP) = SCM_MAKINUM (nvars);				  \
-  SCM_VM_FRAME_PROGRAM (FP) = PROG;					  \
-  SCM_VM_FRAME_DYNAMIC_LINK (FP) = DL;					  \
-  SCM_VM_FRAME_EXTERNAL_LINK (FP) = ext;				  \
-  SCM_VM_FRAME_STACK_POINTER (FP) = SP;					  \
-  SCM_VM_FRAME_RETURN_ADDRESS (FP) = RA;				  \
-  VM_FRAME_INIT_LOCAL_VARIABLES (FP, nvars);				  \
-  VM_FRAME_INIT_EXTERNAL_VARIABLES (FP, PROG);				  \
-}
+#define CACHE_PROGRAM()				\
+  bp = SCM_PROGRAM_DATA (program);		\
+  objects  = SCM_VELTS (bp->objs);		\
+  external = bp->external;
 
-
 /*
- * Goto next
- */
-
-#undef VM_PROGRAM_COUNTER_CHECK
-#if VM_CHECK_PROGRAM_COUNTER
-#define VM_PROGRAM_COUNTER_CHECK()					\
-{									\
-  SCM prog = SCM_VM_FRAME_PROGRAM (fp);					\
-  if (pc < SCM_PROGRAM_BASE (prog)					\
-      || pc >= (SCM_PROGRAM_BASE (prog) + SCM_PROGRAM_SIZE (prog)))	\
-    SCM_MISC_ERROR ("VM accessed invalid program address", SCM_EOL);	\
-} 
-#else
-#define VM_PROGRAM_COUNTER_CHECK()
-#endif
-
-#undef VM_GOTO_NEXT
-#if HAVE_LABELS_AS_VALUES
-#define VM_GOTO_NEXT()		goto *jump_table[SCM_UNPACK (FETCH ())]
-#else /* not HAVE_LABELS_AS_VALUES */
-#define VM_GOTO_NEXT()		goto vm_start
-#endif
-
-#define NEXT					\
-{						\
-  VM_PROGRAM_COUNTER_CHECK ();			\
-  VM_NEXT_HOOK ();				\
-  VM_GOTO_NEXT ();				\
-}
-
-/* Just an abbreviation */
-#define RETURN(X)	{ ac = (X); NEXT; }
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

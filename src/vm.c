@@ -39,13 +39,11 @@
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
 
-#define SCM_DEBUG_TYPING_STRICTNESS 0
-#include "config.h"
+#include <string.h>
+#include "instructions.h"
+#include "programs.h"
+#include "envs.h"
 #include "vm.h"
-
-/* default stack size in the number of SCM */
-#define VM_DEFAULT_STACK_SIZE	(16 * 1024)   /* = 64KB */
-#define VM_MAXIMUM_STACK_SIZE	(1024 * 1024) /* = 4MB */
 
 /* I sometimes use this for debugging. */
 #define vm_puts(OBJ)				\
@@ -56,722 +54,79 @@
 
 
 /*
- * Generic object name
+ * VM Debug frame
  */
 
-static SCM scm_name_property;
-
-SCM_DEFINE (scm_name, "name", 1, 0, 0,
-	    (SCM obj),
-"")
-#define FUNC_NAME s_scm_name
-{
-  return scm_primitive_property_ref (scm_name_property, obj);
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_set_name_x, "set-name!", 2, 0, 0,
-	    (SCM obj, SCM name),
-"")
-#define FUNC_NAME s_scm_set_name_x
-{
-  SCM_VALIDATE_SYMBOL (2, name);
-  return scm_primitive_property_set_x (scm_name_property, obj, name);
-}
-#undef FUNC_NAME
-
-int
-scm_smob_print_with_name (SCM smob, SCM port, scm_print_state *pstate)
-{
-  int n = SCM_SMOBNUM (smob);
-  SCM name = scm_name (smob);
-  scm_puts ("#<", port);
-  scm_puts (SCM_SMOBNAME (n) ? SCM_SMOBNAME (n) : "smob", port);
-  scm_putc (' ', port);
-  if (SCM_FALSEP (name))
-    {
-      scm_puts ("0x", port);
-      scm_intprint (SCM_UNPACK (scm_smobs[n].size ? SCM_CDR (smob) : smob),
-		    16, port);
-    }
-  else
-    {
-      scm_display (name, port);
-    }
-  scm_putc ('>', port);
-  return 1;
-}
-
-static void
-init_name_property ()
-{
-  scm_name_property
-    = scm_permanent_object (scm_primitive_make_property (SCM_BOOL_F));
-}
-
-
-/*
- * Instruction
- */
-
-static long scm_instruction_tag;
-
-static struct scm_instruction scm_instruction_table[] = {
-#define VM_INSTRUCTION_TO_TABLE
-#include "vm_expand.h"
-#include "vm_system.i"
-#include "vm_scheme.i"
-#include "vm_number.i"
-#undef VM_INSTRUCTION_TO_TABLE
-  {op_last}
-};
-
-#define SCM_INSTRUCTION(OP)	&scm_instruction_table[SCM_UNPACK (OP)]
+scm_bits_t scm_tc16_vm_debug_frame;
 
 static SCM
-make_instruction (struct scm_instruction *instp)
+make_vm_debug_frame (SCM *fp)
 {
-  SCM_RETURN_NEWSMOB (scm_instruction_tag, instp);
-}
+  int i, size;
+  struct scm_vm_debug_frame *p;
 
-static int
-print_instruction (SCM obj, SCM port, scm_print_state *pstate)
-{
-  scm_puts ("#<instruction ", port);
-  scm_puts (SCM_INSTRUCTION_DATA (obj)->name, port);
-  scm_putc ('>', port);
-  return 1;
-}
-
-static void
-init_instruction_type ()
-{
-  scm_instruction_tag = scm_make_smob_type ("instruction", 0);
-  scm_set_smob_print (scm_instruction_tag, print_instruction);
-}
-
-/* C interface */
-
-static struct scm_instruction *
-scm_lookup_instruction (const char *name)
-{
-  struct scm_instruction *p;
-  for (p = scm_instruction_table; p->opcode != op_last; p++)
-    if (strcmp (name, p->name) == 0)
-      return p;
-  return 0;
-}
-
-/* Scheme interface */
-
-SCM_DEFINE (scm_instruction_p, "instruction?", 1, 0, 0,
-	    (SCM obj),
-"")
-#define FUNC_NAME s_scm_instruction_p
-{
-  return SCM_BOOL (SCM_INSTRUCTION_P (obj));
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_system_instruction_p, "system-instruction?", 1, 0, 0,
-	    (SCM obj),
-"")
-#define FUNC_NAME s_scm_system_instruction_p
-{
-  return SCM_BOOL (SCM_SYSTEM_INSTRUCTION_P (obj));
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_functional_instruction_p, "functional-instruction?", 1, 0, 0,
-	    (SCM obj),
-"")
-#define FUNC_NAME s_scm_functional_instruction_p
-{
-  return SCM_BOOL (SCM_FUNCTIONAL_INSTRUCTION_P (obj));
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_instruction_name_p, "instruction-name?", 1, 0, 0,
-	    (SCM name),
-"")
-#define FUNC_NAME s_scm_instruction_name_p
-{
-  SCM_VALIDATE_SYMBOL (1, name);
-  return SCM_BOOL (scm_lookup_instruction (SCM_SYMBOL_CHARS (name)));
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_symbol_to_instruction, "symbol->instruction", 1, 0, 0,
-	    (SCM name),
-"")
-#define FUNC_NAME s_scm_symbol_to_instruction
-{
-  struct scm_instruction *p;
-  SCM_VALIDATE_SYMBOL (1, name);
-
-  p = scm_lookup_instruction (SCM_SYMBOL_CHARS (name));
-  if (!p)
-    SCM_MISC_ERROR ("No such instruction: ~S", SCM_LIST1 (name));
-
-  return p->obj;
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_instruction_list, "instruction-list", 0, 0, 0,
-	    (),
-"")
-#define FUNC_NAME s_scm_instruction_list
-{
-  SCM list = SCM_EOL;
-  struct scm_instruction *p;
-  for (p = scm_instruction_table; p->opcode != op_last; p++)
-    list = scm_cons (p->obj, list);
-  return scm_reverse_x (list, SCM_EOL);
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_instruction_opcode, "instruction-opcode", 1, 0, 0,
-	    (SCM inst),
-"")
-#define FUNC_NAME s_scm_instruction_opcode
-{
-  SCM_VALIDATE_INSTRUCTION (1, inst);
-  return SCM_MAKINUM (SCM_INSTRUCTION_DATA (inst)->opcode);
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_instruction_name, "instruction-name", 1, 0, 0,
-	    (SCM inst),
-"")
-#define FUNC_NAME s_scm_instruction_name
-{
-  SCM_VALIDATE_INSTRUCTION (1, inst);
-  return SCM_CAR (scm_intern0 (SCM_INSTRUCTION_DATA (inst)->name));
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_instruction_type, "instruction-type", 1, 0, 0,
-	    (SCM inst),
-"")
-#define FUNC_NAME s_scm_instruction_type
-{
-  SCM_VALIDATE_INSTRUCTION (1, inst);
-  return SCM_MAKINUM (SCM_INSTRUCTION_DATA (inst)->type);
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_instruction_scheme_name, "instruction-scheme-name", 1, 0, 0,
-	    (SCM inst),
-"")
-#define FUNC_NAME s_scm_instruction_scheme_name
-{
-  SCM_VALIDATE_INSTRUCTION (1, inst);
-  if (SCM_FUNCTIONAL_INSTRUCTION_P (inst))
-    return SCM_CAR (scm_intern0 (SCM_INSTRUCTION_DATA (inst)->sname));
-  else
+  if (!fp)
     return SCM_BOOL_F;
-}
-#undef FUNC_NAME
 
-SCM_DEFINE (scm_instruction_arity, "instruction-arity", 1, 0, 0,
-	    (SCM inst),
-"")
-#define FUNC_NAME s_scm_instruction_arity
-{
-  SCM_VALIDATE_INSTRUCTION (1, inst);
-  if (SCM_FUNCTIONAL_INSTRUCTION_P (inst))
-    {
-      struct scm_instruction *p = SCM_INSTRUCTION_DATA (inst);
-      return SCM_LIST2 (SCM_MAKINUM (p->nargs), SCM_BOOL (p->restp));
-    }
-  else
-    return SCM_BOOL_F;
-}
-#undef FUNC_NAME
+  p = scm_must_malloc (sizeof (struct scm_vm_debug_frame), "make_vm_debug_frame");
+  p->program      = SCM_VM_FRAME_PROGRAM (fp);
+  p->dynamic_link = make_vm_debug_frame (SCM_VM_FRAME_ADDRESS
+					 (SCM_VM_FRAME_DYNAMIC_LINK (fp)));
 
-
-/*
- * Bytecode
- */
-
-static long scm_bytecode_tag;
-
-static SCM
-make_bytecode (int size)
-{
-  struct scm_bytecode *p
-    = scm_must_malloc (sizeof (*p) + (size * sizeof (SCM)), "make_bytecode");
-  p->size = size;
-  SCM_RETURN_NEWSMOB (scm_bytecode_tag, p);
-}
-
-static SCM
-mark_bytecode (SCM bytecode)
-{
-  int i;
-  struct scm_instruction *p;
-
-  int size = SCM_BYTECODE_SIZE (bytecode);
-  SCM *base = SCM_BYTECODE_BASE (bytecode);
-
-  for (i = 0; i < size; i++)
-    {
-      p = SCM_INSTRUCTION (base[i]);
-      switch (p->type)
-	{
-	case INST_NONE:
-	  break;
-	case INST_SCM:
-	case INST_TOP:
-	case INST_EXT:
-	case INST_CODE:
-	  scm_gc_mark (base[++i]);
-	  break;
-	case INST_INUM: /* a fixed integer; we don't need to mark it */
-	case INST_ADDR: /* real memory address; we shouldn't mark it! */
-	  i++;
-	}
-    }
-  return SCM_BOOL_F;
-}
-
-static int
-print_bytecode (SCM obj, SCM port, scm_print_state *pstate)
-{
-  scm_puts ("#<bytecode 0x", port);
-  scm_intprint ((long) SCM_BYTECODE_BASE (obj), 16, port);
-  scm_putc ('>', port);
-  return 1;
-}
-
-static scm_sizet
-free_bytecode (SCM bytecode)
-{
-  int size = (sizeof (struct scm_bytecode)
-	      + (SCM_BYTECODE_SIZE (bytecode) * sizeof (SCM)));
-  if (SCM_BYTECODE_EXTS (bytecode))
-    {
-      size += (SCM_BYTECODE_EXTS (bytecode)[0] + 1) * sizeof (int);
-      scm_must_free (SCM_BYTECODE_EXTS (bytecode));
-    }
-  scm_must_free (SCM_BYTECODE_DATA (bytecode));
-  return size;
-}
-
-static void
-init_bytecode_type ()
-{
-  scm_bytecode_tag = scm_make_smob_type ("bytecode", 0);
-  scm_set_smob_mark (scm_bytecode_tag, mark_bytecode);
-  scm_set_smob_print (scm_bytecode_tag, print_bytecode);
-  scm_set_smob_free (scm_bytecode_tag, free_bytecode);
-}
-
-/* Internal functions */
-
-static SCM
-lookup_variable (SCM sym)
-{
-  SCM eclo = scm_standard_eval_closure (scm_selected_module ());
-  SCM var = scm_eval_closure_lookup (eclo, sym, SCM_BOOL_F);
-  if (SCM_FALSEP (var))
-    var = scm_eval_closure_lookup (eclo, sym, SCM_BOOL_T);
-  return var;
-}
-
-/* Scheme interface */
-
-SCM_DEFINE (scm_bytecode_p, "bytecode?", 1, 0, 0,
-	    (SCM obj),
-"")
-#define FUNC_NAME s_scm_bytecode_p
-{
-  return SCM_BOOL (SCM_BYTECODE_P (obj));
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_make_bytecode, "make-bytecode", 1, 0, 0,
-	    (SCM code),
-"")
-#define FUNC_NAME s_scm_make_bytecode
-{
-  int i, size, len, offset;
-  SCM header, body, nreqs, restp, nvars, nexts, exts, bytecode;
-  SCM *old, *new, *address;
-
-  /* Type check */
-  SCM_VALIDATE_VECTOR (1, code);
-  SCM_ASSERT_RANGE (1, code, SCM_LENGTH (code) == 2);
-  header = SCM_VELTS (code)[0];
-  body   = SCM_VELTS (code)[1];
-  SCM_VALIDATE_VECTOR (1, header);
-  SCM_VALIDATE_VECTOR (2, body);
-  SCM_ASSERT_RANGE (1, header, SCM_LENGTH (header) == 5);
-  nreqs = SCM_VELTS (header)[0];
-  restp = SCM_VELTS (header)[1];
-  nvars = SCM_VELTS (header)[2];
-  nexts = SCM_VELTS (header)[3];
-  exts  = SCM_VELTS (header)[4];
-  SCM_VALIDATE_INUM (1, nreqs);
-  SCM_VALIDATE_BOOL (2, restp);
-  SCM_VALIDATE_INUM (3, nvars);
-  SCM_VALIDATE_INUM (4, nexts);
-  SCM_VALIDATE_VECTOR (5, exts);
-
-  /* Create a new bytecode */
-  size     = SCM_LENGTH (body);
-  old      = SCM_VELTS (body);
-  bytecode = make_bytecode (size);
-  new      = SCM_BYTECODE_BASE (bytecode);
-
-  /* Initialize the header */
-  SCM_BYTECODE_NREQS (bytecode) = SCM_INUM (nreqs);
-  SCM_BYTECODE_RESTP (bytecode) = SCM_FALSEP (restp) ? 0 : 1;
-  SCM_BYTECODE_NVARS (bytecode) = SCM_INUM (nvars);
-  SCM_BYTECODE_NEXTS (bytecode) = SCM_INUM (nexts);
-  len = SCM_LENGTH (exts);
-  if (len == 0)
-    {
-      SCM_BYTECODE_EXTS (bytecode) = NULL;
-    }
-  else
-    {
-      SCM_BYTECODE_EXTS (bytecode) =
-	scm_must_malloc ((len + 1) * sizeof (int), FUNC_NAME);
-      SCM_BYTECODE_EXTS (bytecode)[0] = len;
-      for (i = 0; i < len; i++)
-	SCM_BYTECODE_EXTS (bytecode)[i + 1] = SCM_INUM (SCM_VELTS (exts)[i]);
-    }
-
-  /* Initialize the body */
-  for (i = 0; i < size; i++)
-    {
-      struct scm_instruction *p;
-
-      /* Process instruction */
-      if (!SCM_SYMBOLP (old[i])
-	  || !(p = scm_lookup_instruction (SCM_SYMBOL_CHARS (old[i]))))
-	SCM_MISC_ERROR ("Invalid instruction: ~S", SCM_LIST1 (old[i]));
-      new[i] = SCM_PACK (p->opcode);
-
-      /* Process arguments */
-      if (p->type == INST_NONE)
-	continue;
-      if (++i >= size)
-	SCM_MISC_ERROR ("Unexpected end of code", SCM_EOL);
-      switch (p->type)
-	{
-	case INST_NONE:
-	  /* never come here */
-	case INST_INUM:
-	  SCM_VALIDATE_INUM (1, old[i]);
-	  /* fall through */
-	case INST_SCM:
-	  /* just copy */
-	  new[i] = old[i];
-	  break;
-	case INST_TOP:
-	  /* top-level variable */
-	  SCM_VALIDATE_SYMBOL (1, old[i]);
-	  new[i] = lookup_variable (old[i]);
-	  break;
-	case INST_EXT:
-	  /* just copy for now */
-	  SCM_VALIDATE_CONS (1, old[i]);
-	  SCM_VALIDATE_INUM (1, SCM_CAR (old[i]));
-	  SCM_VALIDATE_INUM (1, SCM_CDR (old[i]));
-	  new[i] = old[i];
-	  break;
-	case INST_CODE:
-	  /* another bytecode */
-	  new[i] = scm_make_bytecode (old[i]);
-	  break;
-	case INST_ADDR:
-	  /* real address */
-	  SCM_VALIDATE_INUM (1, old[i]);
-	  /* Without the following intermediate variables, type conversion
-	     fails on my machine.  Casting doesn't work well, why? */
-	  offset  = SCM_INUM (old[i]);
-	  address = new + offset;
-	  new[i] = SCM_VM_MAKE_ADDRESS (address);
-	  break;
-	}
-    }
-  return bytecode;
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_bytecode_decode, "bytecode-decode", 1, 0, 0,
-	    (SCM bytecode),
-"")
-#define FUNC_NAME s_scm_bytecode_decode
-{
-  int i, size, offset;
-  SCM code, *old, *new;
-
-  SCM_VALIDATE_BYTECODE (1, bytecode);
-
-  size = SCM_BYTECODE_SIZE (bytecode);
-  old  = SCM_BYTECODE_BASE (bytecode);
-  code = scm_make_vector (SCM_MAKINUM (size), SCM_BOOL_F);
-  new  = SCM_VELTS (code);
-
-  for (i = 0; i < size; i++)
-    {
-      struct scm_instruction *p;
-
-      /* Process instruction */
-      p = SCM_INSTRUCTION (old[i]);
-      if (!p)
-	{
-	broken:
-	  SCM_MISC_ERROR ("Broken bytecode", SCM_EOL);
-	}
-      new[i] = scm_instruction_name (p->obj);
-
-      /* Process arguments */
-      if (p->type == INST_NONE)
-	continue;
-      if (++i >= size)
-	goto broken;
-      switch (p->type)
-	{
-	case INST_NONE:
-	  /* never come here */
-	case INST_INUM:
-	case INST_SCM:
-	case INST_EXT:
-	  /* just copy */
-	  new[i] = old[i];
-	  break;
-	case INST_TOP:
-	  /* top-level variable */
-	  new[i] = SCM_CAR (old[i]);
-	  break;
-	case INST_CODE:
-	  /* another bytecode */
-	  new[i] = scm_bytecode_decode (old[i]);
-	  break;
-	case INST_ADDR:
-	  /* program address */
-	  offset = SCM_VM_ADDRESS (old[i]) - old;
-	  new[i] = SCM_MAKINUM (offset);
-	  break;
-	}
-    }
-  return code;
-}
-#undef FUNC_NAME
-
-
-/*
- * Program
- */
-
-static long scm_program_tag;
-
-static SCM
-make_program (SCM code, SCM env)
-{
-  SCM_RETURN_NEWSMOB2 (scm_program_tag, SCM_UNPACK (code), SCM_UNPACK (env));
-}
-
-static SCM
-mark_program (SCM program)
-{
-  scm_gc_mark (SCM_PROGRAM_CODE (program));
-  return SCM_PROGRAM_ENV (program);
-}
-
-static SCM scm_vm_apply (SCM vm, SCM program, SCM args);
-static SCM make_vm (int stack_size);
-
-static SCM
-apply_program (SCM program, SCM args)
-{
-  return scm_vm_apply (make_vm (VM_DEFAULT_STACK_SIZE), program, args);
-}
-
-static void
-init_program_type ()
-{
-  scm_program_tag = scm_make_smob_type ("program", 0);
-  scm_set_smob_mark (scm_program_tag, mark_program);
-  scm_set_smob_print (scm_program_tag, scm_smob_print_with_name);
-  scm_set_smob_apply (scm_program_tag, apply_program, 0, 0, 1);
-}
-
-/* Scheme interface */
-
-SCM_DEFINE (scm_program_p, "program?", 1, 0, 0,
-	    (SCM obj),
-"")
-#define FUNC_NAME s_scm_program_p
-{
-  return SCM_BOOL (SCM_PROGRAM_P (obj));
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_make_program, "make-program", 2, 0, 0,
-	    (SCM bytecode, SCM parent),
-"")
-#define FUNC_NAME s_scm_make_program
-{
-  SCM_VALIDATE_BYTECODE (1, bytecode);
-  return make_program (bytecode, parent);
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_program_code, "program-code", 1, 0, 0,
-	    (SCM program),
-"")
-#define FUNC_NAME s_scm_program_code
-{
-  SCM_VALIDATE_PROGRAM (1, program);
-  return SCM_PROGRAM_CODE (program);
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_program_base, "program-base", 1, 0, 0,
-	    (SCM program),
-"")
-#define FUNC_NAME s_scm_program_base
-{
-  SCM_VALIDATE_PROGRAM (1, program);
-  return SCM_VM_MAKE_ADDRESS (SCM_PROGRAM_BASE (program));
-}
-#undef FUNC_NAME
-
-
-/*
- * VM Frame
- */
-
-static long scm_vm_frame_tag;
-
-/* This is used for debugging */
-struct scm_vm_frame {
-  int size;
-  SCM program;
-  SCM variables;
-  SCM dynamic_link;
-  SCM external_link;
-  SCM stack_pointer;
-  SCM return_address;
-};
-
-#define SCM_VM_FRAME_P(OBJ)	SCM_SMOB_PREDICATE (scm_vm_frame_tag, OBJ)
-#define SCM_VM_FRAME_DATA(FR)	((struct scm_vm_frame *) SCM_SMOB_DATA (FR))
-#define SCM_VALIDATE_VM_FRAME(POS,OBJ) SCM_MAKE_VALIDATE (POS, OBJ, VM_FRAME_P)
-
-static SCM
-make_vm_frame (SCM *fp)
-{
-  int i;
-  int size = SCM_INUM (SCM_VM_FRAME_SIZE (fp));
-  struct scm_vm_frame *p = scm_must_malloc (sizeof (*p), "make_vm_frame");
-  p->program        = SCM_VM_FRAME_PROGRAM (fp);
-  p->dynamic_link   = SCM_VM_FRAME_DYNAMIC_LINK (fp);
-  p->external_link  = SCM_VM_FRAME_EXTERNAL_LINK (fp);
-  p->stack_pointer  = SCM_VM_FRAME_STACK_POINTER (fp);
-  p->return_address = SCM_VM_FRAME_RETURN_ADDRESS (fp);
-
-  if (!SCM_FALSEP (p->dynamic_link))
-    p->dynamic_link = make_vm_frame (SCM_VM_ADDRESS (p->dynamic_link));
-
-  size += SCM_PROGRAM_NREQS (p->program) + SCM_PROGRAM_RESTP (p->program);
+  size = SCM_PROGRAM_NARGS (p->program) + SCM_PROGRAM_NLOCS (p->program);
   p->variables = scm_make_vector (SCM_MAKINUM (size), SCM_BOOL_F);
   for (i = 0; i < size; i++)
     SCM_VELTS (p->variables)[i] = SCM_VM_FRAME_VARIABLE (fp, i);
 
-  SCM_RETURN_NEWSMOB (scm_vm_frame_tag, p);
+  SCM_RETURN_NEWSMOB (scm_tc16_vm_debug_frame, p);
 }
 
 static SCM
-mark_vm_frame (SCM frame)
+vm_debug_frame_mark (SCM obj)
 {
-  struct scm_vm_frame *p = SCM_VM_FRAME_DATA (frame);
-  scm_gc_mark (p->program);
-  scm_gc_mark (p->dynamic_link);
-  scm_gc_mark (p->external_link);
-  return p->variables;
-}
-
-static void
-init_vm_frame_type ()
-{
-  scm_vm_frame_tag = scm_make_smob_type ("vm-frame", 0);
-  scm_set_smob_mark (scm_vm_frame_tag, mark_vm_frame);
+  scm_gc_mark (SCM_VM_DEBUG_FRAME_PROGRAM (obj));
+  scm_gc_mark (SCM_VM_DEBUG_FRAME_VARIABLES (obj));
+  return SCM_VM_DEBUG_FRAME_DYNAMIC_LINK (obj);
 }
 
 /* Scheme interface */
 
 SCM_DEFINE (scm_frame_p, "frame?", 1, 0, 0,
 	    (SCM obj),
-"")
+	    "")
 #define FUNC_NAME s_scm_frame_p
 {
-  return SCM_BOOL (SCM_VM_FRAME_P (obj));
+  return SCM_BOOL (SCM_VM_DEBUG_FRAME_P (obj));
 }
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_frame_program, "frame-program", 1, 0, 0,
 	    (SCM frame),
-"")
+	    "")
 #define FUNC_NAME s_scm_frame_program
 {
-  SCM_VALIDATE_VM_FRAME (1, frame);
-  return SCM_VM_FRAME_DATA (frame)->program;
+  SCM_VALIDATE_VM_DEBUG_FRAME (1, frame);
+  return SCM_VM_DEBUG_FRAME_PROGRAM (frame);
 }
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_frame_variables, "frame-variables", 1, 0, 0,
 	    (SCM frame),
-"")
+	    "")
 #define FUNC_NAME s_scm_frame_variables
 {
-  SCM_VALIDATE_VM_FRAME (1, frame);
-  return SCM_VM_FRAME_DATA (frame)->variables;
+  SCM_VALIDATE_VM_DEBUG_FRAME (1, frame);
+  return SCM_VM_DEBUG_FRAME_VARIABLES (frame);
 }
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_frame_dynamic_link, "frame-dynamic-link", 1, 0, 0,
 	    (SCM frame),
-"")
+	    "")
 #define FUNC_NAME s_scm_frame_dynamic_link
 {
-  SCM_VALIDATE_VM_FRAME (1, frame);
-  return SCM_VM_FRAME_DATA (frame)->dynamic_link;
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_frame_external_link, "frame-external-link", 1, 0, 0,
-	    (SCM frame),
-"")
-#define FUNC_NAME s_scm_frame_external_link
-{
-  SCM_VALIDATE_VM_FRAME (1, frame);
-  return SCM_VM_FRAME_DATA (frame)->external_link;
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_frame_stack_pointer, "frame-stack-pointer", 1, 0, 0,
-	    (SCM frame),
-"")
-#define FUNC_NAME s_scm_frame_stack_pointer
-{
-  SCM_VALIDATE_VM_FRAME (1, frame);
-  return SCM_VM_FRAME_DATA (frame)->stack_pointer;
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_frame_return_address, "frame-return-address", 1, 0, 0,
-	    (SCM frame),
-"")
-#define FUNC_NAME s_scm_frame_return_address
-{
-  SCM_VALIDATE_VM_FRAME (1, frame);
-  return SCM_VM_FRAME_DATA (frame)->return_address;
+  SCM_VALIDATE_VM_DEBUG_FRAME (1, frame);
+  return SCM_VM_DEBUG_FRAME_DYNAMIC_LINK (frame);
 }
 #undef FUNC_NAME
 
@@ -780,7 +135,11 @@ SCM_DEFINE (scm_frame_return_address, "frame-return-address", 1, 0, 0,
  * VM Continuation
  */
 
-static long scm_vm_cont_tag;
+scm_bits_t scm_tc16_vm_cont;
+
+
+#define SCM_VM_CONT_P(OBJ)	SCM_SMOB_PREDICATE (scm_tc16_vm_cont, OBJ)
+#define SCM_VM_CONT_VMP(CONT)	((struct scm_vm *) SCM_CELL_WORD_1 (CONT))
 
 static SCM
 capture_vm_cont (struct scm_vm *vmp)
@@ -789,12 +148,12 @@ capture_vm_cont (struct scm_vm *vmp)
   p->stack_size = vmp->stack_limit - vmp->sp;
   p->stack_base = scm_must_malloc (p->stack_size * sizeof (SCM),
 				   "capture_vm_cont");
-  p->stack_limit = p->stack_base + p->stack_size - 1;
-  p->pc = vmp->pc;
+  p->stack_limit = p->stack_base + p->stack_size - 2;
+  p->ip = vmp->ip;
   p->sp = (SCM *) (vmp->stack_limit - vmp->sp);
   p->fp = (SCM *) (vmp->stack_limit - vmp->fp);
   memcpy (p->stack_base, vmp->sp + 1, vmp->stack_size * sizeof (SCM));
-  SCM_RETURN_NEWSMOB (scm_vm_cont_tag, p);
+  SCM_RETURN_NEWSMOB (scm_tc16_vm_cont, p);
 }
 
 static void
@@ -803,20 +162,20 @@ reinstate_vm_cont (struct scm_vm *vmp, SCM cont)
   struct scm_vm *p = SCM_VM_CONT_VMP (cont);
   if (vmp->stack_size < p->stack_size)
     {
-      puts ("FIXME: Need to expand");
+      /* puts ("FIXME: Need to expand"); */
       abort ();
     }
-  vmp->pc = p->pc;
+  vmp->ip = p->ip;
   vmp->sp = vmp->stack_limit - (int) p->sp;
   vmp->fp = vmp->stack_limit - (int) p->fp;
   memcpy (vmp->sp + 1, p->stack_base, p->stack_size * sizeof (SCM));
 }
 
 static SCM
-mark_vm_cont (SCM cont)
+vm_cont_mark (SCM obj)
 {
   SCM *p;
-  struct scm_vm *vmp = SCM_VM_CONT_VMP (cont);
+  struct scm_vm *vmp = SCM_VM_CONT_VMP (obj);
   for (p = vmp->stack_base; p <= vmp->stack_limit; p++)
     if (SCM_NIMP (*p))
       scm_gc_mark (*p);
@@ -824,21 +183,34 @@ mark_vm_cont (SCM cont)
 }
 
 static scm_sizet
-free_vm_cont (SCM cont)
+vm_cont_free (SCM obj)
 {
-  struct scm_vm *p = SCM_VM_CONT_VMP (cont);
+  struct scm_vm *p = SCM_VM_CONT_VMP (obj);
   int size = sizeof (struct scm_vm) + p->stack_size * sizeof (SCM);
   scm_must_free (p->stack_base);
   scm_must_free (p);
   return size;
 }
 
-static void
-init_vm_cont_type ()
+
+/*
+ * VM Internal functions
+ */
+
+SCM_SYMBOL (sym_vm_engine, "vm-engine");
+SCM_SYMBOL (sym_vm_error, "vm-error");
+
+static scm_byte_t *
+vm_fetch_length (scm_byte_t *ip, size_t *lenp)
 {
-  scm_vm_cont_tag = scm_make_smob_type ("vm-cont", 0);
-  scm_set_smob_mark (scm_vm_cont_tag, mark_vm_cont);
-  scm_set_smob_free (scm_vm_cont_tag, free_vm_cont);
+  *lenp = *ip++;
+  if (*lenp < 254)
+    return ip;
+  else if (*lenp == 254)
+    *lenp = (*ip++ << 8) + *ip++;
+  else
+    *lenp = (*ip++ << 24) + (*ip++ << 16) + (*ip++ << 8) + *ip++;
+  return ip;
 }
 
 
@@ -846,61 +218,109 @@ init_vm_cont_type ()
  * VM
  */
 
-static long scm_vm_tag;
+#define VM_DEFAULT_STACK_SIZE	(16 * 1024)
+#define VM_MAXIMUM_STACK_SIZE	(128 * 1024)
+
+#define VM_REGULAR_ENGINE	0
+#define VM_DEBUG_ENGINE		1
+
+#if 0
+#define VM_NAME   vm_regular_engine
+#define VM_ENGINE VM_REGULAR_ENGINE
+#include "vm_engine.c"
+#undef VM_NAME
+#undef VM_ENGINE
+#endif
+
+#define VM_NAME	  vm_debug_engine
+#define VM_ENGINE VM_DEBUG_ENGINE
+#include "vm_engine.c"
+#undef VM_NAME
+#undef VM_ENGINE
+
+scm_bits_t scm_tc16_vm;
 
 static SCM
-make_vm (int stack_size)
+make_vm (void)
+#define FUNC_NAME "make_vm"
 {
-  struct scm_vm *vmp = scm_must_malloc (sizeof (struct scm_vm), "make_vm");
-  vmp->stack_size  = stack_size;
-  vmp->stack_base  = scm_must_malloc (stack_size * sizeof (SCM), "make_vm");
+  int i;
+  struct scm_vm *vmp = SCM_MUST_MALLOC (sizeof (struct scm_vm));
+  vmp->stack_size  = VM_DEFAULT_STACK_SIZE;
+  vmp->stack_base  = SCM_MUST_MALLOC (vmp->stack_size * sizeof (SCM));
   vmp->stack_limit = vmp->stack_base + vmp->stack_size - 1;
+  vmp->ip    	   = NULL;
   vmp->sp    	   = vmp->stack_limit;
-  vmp->ac    	   = SCM_BOOL_F;
-  vmp->pc    	   = NULL;
   vmp->fp    	   = NULL;
+  vmp->cons        = 0;
+  vmp->time        = 0;
+  vmp->clock       = 0;
   vmp->options     = SCM_EOL;
-  vmp->boot_hook   = scm_make_hook (SCM_MAKINUM (1));
-  vmp->halt_hook   = scm_make_hook (SCM_MAKINUM (1));
-  vmp->next_hook   = scm_make_hook (SCM_MAKINUM (1));
-  vmp->call_hook   = scm_make_hook (SCM_MAKINUM (1));
-  vmp->apply_hook  = scm_make_hook (SCM_MAKINUM (1));
-  vmp->return_hook = scm_make_hook (SCM_MAKINUM (1));
-  SCM_RETURN_NEWSMOB (scm_vm_tag, vmp);
+  for (i = 0; i < SCM_VM_NUM_HOOKS; i++)
+    vmp->hooks[i] = SCM_BOOL_F;
+  SCM_RETURN_NEWSMOB (scm_tc16_vm, vmp);
 }
+#undef FUNC_NAME
 
 static SCM
-mark_vm (SCM vm)
+vm_mark (SCM obj)
 {
-  SCM *p;
-  struct scm_vm *vmp = SCM_VM_DATA (vm);
-  for (p = vmp->sp + 1; p <= vmp->stack_limit; p++)
-    if (SCM_NIMP (*p))
-      scm_gc_mark (*p);
+  int i;
+  SCM *sp, *fp;
+  struct scm_vm *vmp = SCM_VM_DATA (obj);
 
-  scm_gc_mark (vmp->ac);
-  scm_gc_mark (vmp->boot_hook);
-  scm_gc_mark (vmp->halt_hook);
-  scm_gc_mark (vmp->next_hook);
-  scm_gc_mark (vmp->call_hook);
-  scm_gc_mark (vmp->apply_hook);
-  scm_gc_mark (vmp->return_hook);
+  /* Mark the stack */
+  sp = vmp->sp;
+  fp = vmp->fp;
+  while (fp)
+    {
+      SCM *upper = SCM_VM_FRAME_UPPER_ADDRESS (fp);
+      SCM *lower = SCM_VM_FRAME_LOWER_ADDRESS (fp);
+      /* Mark intermediate data */
+      for (; sp < lower; sp++)
+	if (SCM_NIMP (*sp))
+	  scm_gc_mark (*sp);
+      /* Mark frame data */
+      scm_gc_mark (SCM_VM_FRAME_PROGRAM (fp));
+      /* Mark frame variables */
+      for (sp = fp; sp < upper; sp++)
+	if (SCM_NIMP (*sp))
+	  scm_gc_mark (*sp);
+      fp = SCM_VM_FRAME_ADDRESS (SCM_VM_FRAME_DYNAMIC_LINK (fp));
+    }
+
+  /* Mark the options */
+  for (i = 0; i < SCM_VM_NUM_HOOKS; i++)
+    scm_gc_mark (vmp->hooks[i]);
   return vmp->options;
 }
 
-static void
-init_vm_type ()
+static scm_sizet
+vm_free (SCM obj)
 {
-  scm_vm_tag = scm_make_smob_type ("vm", sizeof (struct scm_vm));
-  scm_set_smob_mark (scm_vm_tag, mark_vm);
-  scm_set_smob_print (scm_vm_tag, scm_smob_print_with_name);
+  struct scm_vm *vmp = SCM_VM_DATA (obj);
+  int size = (sizeof (struct scm_vm) + vmp->stack_size * sizeof (SCM));
+  scm_must_free (vmp->stack_base);
+  scm_must_free (vmp);
+  return size;
 }
+
+SCM_SYMBOL (sym_debug, "debug");
+
+SCM
+scm_vm_apply (SCM vm, SCM program, SCM args)
+#define FUNC_NAME "scm_vm_apply"
+{
+  SCM_VALIDATE_PROGRAM (1, program);
+  return vm_engine (vm, program, args);
+}
+#undef FUNC_NAME
 
 /* Scheme interface */
 
 SCM_DEFINE (scm_vm_version, "vm-version", 0, 0, 0,
-	    (),
-"")
+	    (void),
+	    "")
 #define FUNC_NAME s_scm_vm_version
 {
   return scm_makfrom0str (VERSION);
@@ -909,7 +329,7 @@ SCM_DEFINE (scm_vm_version, "vm-version", 0, 0, 0,
 
 SCM_DEFINE (scm_vm_p, "vm?", 1, 0, 0,
 	    (SCM obj),
-"")
+	    "")
 #define FUNC_NAME s_scm_vm_p
 {
   return SCM_BOOL (SCM_VM_P (obj));
@@ -917,345 +337,267 @@ SCM_DEFINE (scm_vm_p, "vm?", 1, 0, 0,
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_make_vm, "make-vm", 0, 0, 0,
-	    (),
-"")
-#define FUNC_NAME s_scm_make_vm
+	    (void),
+	    "")
+#define FUNC_NAME s_scm_make_vm,
 {
-  return make_vm (VM_DEFAULT_STACK_SIZE);
+  return make_vm ();
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_vm_ac, "vm:ac", 1, 0, 0,
+SCM_DEFINE (scm_vm_ip, "vm:ip", 1, 0, 0,
 	    (SCM vm),
-"")
-#define FUNC_NAME s_scm_vm_ac
+	    "")
+#define FUNC_NAME s_scm_vm_ip
 {
   SCM_VALIDATE_VM (1, vm);
-  return SCM_VM_DATA (vm)->ac;
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_vm_pc, "vm:pc", 1, 0, 0,
-	    (SCM vm),
-"")
-#define FUNC_NAME s_scm_vm_pc
-{
-  SCM_VALIDATE_VM (1, vm);
-  return SCM_VM_MAKE_ADDRESS (SCM_VM_DATA (vm)->pc);
+  return scm_ulong2num ((unsigned long) SCM_VM_DATA (vm)->ip);
 }
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_vm_sp, "vm:sp", 1, 0, 0,
 	    (SCM vm),
-"")
+	    "")
 #define FUNC_NAME s_scm_vm_sp
 {
   SCM_VALIDATE_VM (1, vm);
-  return SCM_VM_MAKE_ADDRESS (SCM_VM_DATA (vm)->sp);
+  return scm_ulong2num ((unsigned long) SCM_VM_DATA (vm)->sp);
 }
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_vm_fp, "vm:fp", 1, 0, 0,
 	    (SCM vm),
-"")
+	    "")
 #define FUNC_NAME s_scm_vm_fp
 {
   SCM_VALIDATE_VM (1, vm);
-  return SCM_VM_MAKE_ADDRESS (SCM_VM_DATA (vm)->fp);
+  return scm_ulong2num ((unsigned long) SCM_VM_DATA (vm)->fp);
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_vm_current_frame, "vm-current-frame", 1, 0, 0,
+#define VM_DEFINE_HOOK(n)				\
+{							\
+  struct scm_vm *vmp;					\
+  SCM_VALIDATE_VM (1, vm);				\
+  vmp = SCM_VM_DATA (vm);				\
+  if (SCM_FALSEP (vmp->hooks[n]))			\
+    vmp->hooks[n] = scm_make_hook (SCM_MAKINUM (1));	\
+  return vmp->hooks[n];					\
+}
+
+SCM_DEFINE (scm_vm_boot_hook, "vm-boot-hook", 1, 0, 0,
 	    (SCM vm),
-"")
-#define FUNC_NAME s_scm_vm_current_frame
+	    "")
+#define FUNC_NAME s_scm_vm_boot_hook
 {
-  SCM_VALIDATE_VM (1, vm);
-  return make_vm_frame (SCM_VM_DATA (vm)->fp);
+  VM_DEFINE_HOOK (SCM_VM_BOOT_HOOK);
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_vm_fetch_code, "vm-fetch-code", 2, 0, 0,
-	    (SCM vm, SCM addr),
-"")
-#define FUNC_NAME s_scm_vm_fetch_code
-{
-  SCM *p, list;
-  struct scm_instruction *inst;
-
-  SCM_VALIDATE_VM (1, vm);
-  SCM_VALIDATE_INUM (2, addr);
-
-  p = SCM_VM_ADDRESS (addr);
-
-  inst = SCM_INSTRUCTION (*p);
-  if (!inst)
-    SCM_MISC_ERROR ("Broken bytecode", SCM_LIST1 (addr));
-
-  list = SCM_LIST1 (scm_instruction_name (inst->obj));
-  if (inst->type != INST_NONE)
-    {
-      if (inst->type == INST_ADDR)
-	{
-	  p = SCM_CODE_TO_ADDR (p[1]);
-	  SCM_SETCDR (list, SCM_LIST1 (SCM_VM_MAKE_ADDRESS (p)));
-	}
-      else
-	SCM_SETCDR (list, SCM_LIST1 (p[1]));
-    }
-  return list;
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_vm_stack_to_list, "vm-stack->list", 1, 0, 0,
+SCM_DEFINE (scm_vm_halt_hook, "vm-halt-hook", 1, 0, 0,
 	    (SCM vm),
-"")
-#define FUNC_NAME s_scm_vm_stack_to_list
+	    "")
+#define FUNC_NAME s_scm_vm_halt_hook
 {
-  struct scm_vm *vmp;
-  SCM *p, list = SCM_EOL;
+  VM_DEFINE_HOOK (SCM_VM_HALT_HOOK);
+}
+#undef FUNC_NAME
 
-  SCM_VALIDATE_VM (1, vm);
+SCM_DEFINE (scm_vm_next_hook, "vm-next-hook", 1, 0, 0,
+	    (SCM vm),
+	    "")
+#define FUNC_NAME s_scm_vm_next_hook
+{
+  VM_DEFINE_HOOK (SCM_VM_NEXT_HOOK);
+}
+#undef FUNC_NAME
 
-  vmp = SCM_VM_DATA (vm);
-  for (p = vmp->sp + 1; p <= vmp->stack_limit; p++)
-    list = scm_cons (*p, list);
-  return list;
+SCM_DEFINE (scm_vm_enter_hook, "vm-enter-hook", 1, 0, 0,
+	    (SCM vm),
+	    "")
+#define FUNC_NAME s_scm_vm_enter_hook
+{
+  VM_DEFINE_HOOK (SCM_VM_ENTER_HOOK);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_vm_apply_hook, "vm-apply-hook", 1, 0, 0,
+	    (SCM vm),
+	    "")
+#define FUNC_NAME s_scm_vm_apply_hook
+{
+  VM_DEFINE_HOOK (SCM_VM_APPLY_HOOK);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_vm_exit_hook, "vm-exit-hook", 1, 0, 0,
+	    (SCM vm),
+	    "")
+#define FUNC_NAME s_scm_vm_exit_hook
+{
+  VM_DEFINE_HOOK (SCM_VM_EXIT_HOOK);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_vm_return_hook, "vm-return-hook", 1, 0, 0,
+	    (SCM vm),
+	    "")
+#define FUNC_NAME s_scm_vm_return_hook
+{
+  VM_DEFINE_HOOK (SCM_VM_RETURN_HOOK);
 }
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_vm_option, "vm-option", 2, 0, 0,
 	    (SCM vm, SCM key),
-"")
+	    "")
 #define FUNC_NAME s_scm_vm_option
 {
   SCM_VALIDATE_VM (1, vm);
-  SCM_VALIDATE_SYMBOL (2, key);
   return scm_assq_ref (SCM_VM_DATA (vm)->options, key);
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_vm_set_option_x, "vm-set-option!", 3, 0, 0,
+SCM_DEFINE (scm_set_vm_option_x, "set-vm-option!", 3, 0, 0,
 	    (SCM vm, SCM key, SCM val),
-"")
-#define FUNC_NAME s_scm_vm_set_option_x
+	    "")
+#define FUNC_NAME s_scm_set_vm_option_x
 {
   SCM_VALIDATE_VM (1, vm);
-  SCM_VALIDATE_SYMBOL (2, key);
   SCM_VM_DATA (vm)->options
     = scm_assq_set_x (SCM_VM_DATA (vm)->options, key, val);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_vm_boot_hook, "vm-boot-hook", 1, 0, 0,
+SCM_DEFINE (scm_vm_stats, "vm-stats", 1, 0, 0,
 	    (SCM vm),
-"")
-#define FUNC_NAME s_scm_vm_boot_hook
+	    "")
+#define FUNC_NAME s_scm_vm_stats
 {
+  SCM stats;
+
   SCM_VALIDATE_VM (1, vm);
-  return SCM_VM_DATA (vm)->boot_hook;
+
+  stats = scm_c_make_vector (3, SCM_MAKINUM (0));
+  SCM_VELTS (stats)[0] = scm_long2num (SCM_VM_DATA (vm)->cons);
+  SCM_VELTS (stats)[1] = scm_long2num (SCM_VM_DATA (vm)->time);
+  SCM_VELTS (stats)[2] = scm_long2num (SCM_VM_DATA (vm)->clock);
+
+  return stats;
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_vm_halt_hook, "vm-halt-hook", 1, 0, 0,
+#define VM_CHECK_RUNNING(vm) 				\
+  if (!SCM_VM_DATA (vm)->ip)				\
+    SCM_MISC_ERROR ("Not running", SCM_LIST1 (vm))
+
+SCM_DEFINE (scm_vm_current_frame, "vm-current-frame", 1, 0, 0,
 	    (SCM vm),
-"")
-#define FUNC_NAME s_scm_vm_halt_hook
+	    "")
+#define FUNC_NAME s_scm_vm_current_frame
 {
   SCM_VALIDATE_VM (1, vm);
-  return SCM_VM_DATA (vm)->halt_hook;
+  VM_CHECK_RUNNING (vm);
+  return make_vm_debug_frame (SCM_VM_DATA (vm)->fp);
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_vm_next_hook, "vm-next-hook", 1, 0, 0,
+SCM_DEFINE (scm_vm_fetch_code, "vm-fetch-code", 1, 0, 0,
 	    (SCM vm),
-"")
-#define FUNC_NAME s_scm_vm_next_hook
+	    "")
+#define FUNC_NAME s_scm_vm_fetch_code
 {
+  int i;
+  SCM list;
+  scm_byte_t *ip;
+  struct scm_instruction *p;
+
   SCM_VALIDATE_VM (1, vm);
-  return SCM_VM_DATA (vm)->next_hook;
+  VM_CHECK_RUNNING (vm);
+
+  ip = SCM_VM_DATA (vm)->ip;
+  p = SCM_INSTRUCTION (*ip);
+
+  list = SCM_LIST1 (scm_str2symbol (p->name));
+  for (i = 1; i <= p->len; i++)
+    list = scm_cons (SCM_MAKINUM (ip[i]), list);
+  return scm_reverse_x (list, SCM_EOL);
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_vm_call_hook, "vm-call-hook", 1, 0, 0,
+SCM_DEFINE (scm_vm_fetch_stack, "vm-fetch-stack", 1, 0, 0,
 	    (SCM vm),
-"")
-#define FUNC_NAME s_scm_vm_call_hook
+	    "")
+#define FUNC_NAME s_scm_vm_fetch_stack
 {
+  SCM *p;
+  SCM list = SCM_EOL;
+
   SCM_VALIDATE_VM (1, vm);
-  return SCM_VM_DATA (vm)->call_hook;
+  VM_CHECK_RUNNING (vm);
+
+  if (SCM_VM_DATA (vm)->fp)
+    for (p = SCM_VM_FRAME_LOWER_ADDRESS (SCM_VM_DATA (vm)->fp) - 1;
+	 p >= SCM_VM_DATA (vm)->sp;
+	 p--)
+      list = scm_cons (*p, list);
+  return list;
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_vm_apply_hook, "vm-apply-hook", 1, 0, 0,
-	    (SCM vm),
-"")
-#define FUNC_NAME s_scm_vm_apply_hook
+SCM_DEFINE (scm_vm_load, "vm-load", 2, 0, 0,
+	    (SCM vm, SCM bytes),
+	    "")
+#define FUNC_NAME s_scm_vm_load
 {
-  SCM_VALIDATE_VM (1, vm);
-  return SCM_VM_DATA (vm)->apply_hook;
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_vm_return_hook, "vm-return-hook", 1, 0, 0,
-	    (SCM vm),
-"")
-#define FUNC_NAME s_scm_vm_return_hook
-{
-  SCM_VALIDATE_VM (1, vm);
-  return SCM_VM_DATA (vm)->return_hook;
-}
-#undef FUNC_NAME
-
-SCM_SYMBOL (sym_debug, "debug");
-
-static SCM scm_regular_vm (SCM vm, SCM program);
-static SCM scm_debug_vm (SCM vm, SCM program);
-
-#define VM_CODE(name) SCM_PACK (scm_lookup_instruction (name)->opcode)
-
-SCM_DEFINE (scm_vm_run, "vm-run", 2, 0, 0,
-	    (SCM vm, SCM program),
-"")
-#define FUNC_NAME s_scm_vm_run
-{
-  SCM bootcode;
-  static SCM template[5];
+  SCM prog;
 
   SCM_VALIDATE_VM (1, vm);
-  SCM_VALIDATE_PROGRAM (2, program);
+  SCM_VALIDATE_STRING (2, bytes);
 
-  if (SCM_EQ_P (template[0], SCM_PACK (0)))
-    {
-      template[0] = VM_CODE ("%loadc");
-      template[1] = SCM_BOOL_F; /* overwritten */
-      template[2] = VM_CODE ("%call");
-      template[3] = SCM_MAKINUM (0);
-      template[4] = VM_CODE ("%halt");
-    }
-
-  /* Create a boot program */
-  bootcode = make_bytecode (5);
-  memcpy (SCM_BYTECODE_BASE (bootcode), template, sizeof (SCM) * 5);
-  SCM_BYTECODE_BASE (bootcode)[1] = program;
-  SCM_BYTECODE_SIZE (bootcode)    = 5;
-  SCM_BYTECODE_EXTS (bootcode)    = NULL;
-  SCM_BYTECODE_NREQS (bootcode)   = 0;
-  SCM_BYTECODE_RESTP (bootcode)   = 0;
-  SCM_BYTECODE_NVARS (bootcode)   = 0;
-  SCM_BYTECODE_NEXTS (bootcode)   = 0;
-  program = SCM_MAKE_PROGRAM (bootcode, SCM_BOOL_F);
-
-  if (SCM_FALSEP (scm_vm_option (vm, sym_debug)))
-    return scm_regular_vm (vm, program);
-  else
-    return scm_debug_vm (vm, program);
+  prog = scm_c_make_program (SCM_STRING_CHARS (bytes),
+			     SCM_STRING_LENGTH (bytes),
+			     bytes);
+  return scm_vm_apply (vm, prog, SCM_EOL);
 }
 #undef FUNC_NAME
-
-SCM_DEFINE (scm_vm_apply, "vm-apply", 3, 0, 0,
-	    (SCM vm, SCM program, SCM args),
-"")
-#define FUNC_NAME s_scm_vm_apply
-{
-  int len;
-  SCM bootcode;
-  static SCM template[7];
-
-  SCM_VALIDATE_VM (1, vm);
-  SCM_VALIDATE_PROGRAM (2, program);
-  SCM_VALIDATE_LIST_COPYLEN (3, args, len);
-
-  if (SCM_EQ_P (template[0], SCM_PACK (0)))
-    {
-      template[0] = VM_CODE ("%push-list");
-      template[1] = SCM_EOL; /* overwritten */
-      template[2] = VM_CODE ("%loadc");
-      template[3] = SCM_BOOL_F; /* overwritten */
-      template[4] = VM_CODE ("%call");
-      template[5] = SCM_MAKINUM (0); /* overwritten */
-      template[6] = VM_CODE ("%halt");
-    }
-
-  /* Create a boot program */
-  bootcode = make_bytecode (7);
-  memcpy (SCM_BYTECODE_BASE (bootcode), template, sizeof (SCM) * 7);
-  SCM_BYTECODE_BASE (bootcode)[1] = args;
-  SCM_BYTECODE_BASE (bootcode)[3] = program;
-  SCM_BYTECODE_BASE (bootcode)[5] = SCM_MAKINUM (len);
-  SCM_BYTECODE_SIZE (bootcode)    = 7;
-  SCM_BYTECODE_EXTS (bootcode)    = NULL;
-  SCM_BYTECODE_NREQS (bootcode)   = 0;
-  SCM_BYTECODE_RESTP (bootcode)   = 0;
-  SCM_BYTECODE_NVARS (bootcode)   = 0;
-  SCM_BYTECODE_NEXTS (bootcode)   = 0;
-  program = SCM_MAKE_PROGRAM (bootcode, SCM_BOOL_F);
-
-  if (SCM_FALSEP (scm_vm_option (vm, sym_debug)))
-    return scm_regular_vm (vm, program);
-  else
-    return scm_debug_vm (vm, program);
-}
-#undef FUNC_NAME
-
-
-/*
- * The VM engines
- */
-
-/* We don't want to snarf the engines */
-#ifndef SCM_MAGIC_SNARFER
-
-/* the regular engine */
-#define VM_ENGINE SCM_VM_REGULAR_ENGINE
-#include "vm_engine.c"
-#undef VM_ENGINE
-
-/* the debug engine */
-#define VM_ENGINE SCM_VM_DEBUG_ENGINE
-#include "vm_engine.c"
-#undef VM_ENGINE
-
-#endif /* not SCM_MAGIC_SNARFER */
 
 
 /*
  * Initialize
  */
 
-static SCM scm_module_vm;
-
 void
-scm_init_vm ()
+scm_init_vm (void)
 {
-  SCM old_module;
+  SCM mod = scm_resolve_module (scm_read_0str ("(system vm core)"));
+  mod = scm_set_current_module (mod);
 
-  /* Initialize the module */
-  scm_module_vm = scm_make_module (scm_read_0str ("(vm vm)"));
-  old_module = scm_select_module (scm_module_vm);
-  init_name_property ();
-  init_instruction_type ();
-  init_bytecode_type ();
-  init_program_type ();
-  init_vm_frame_type ();
-  init_vm_cont_type ();
-  init_vm_type ();
+  scm_init_instructions ();
+  scm_init_programs ();
+
+  scm_tc16_vm_debug_frame = scm_make_smob_type ("vm_frame", 0);
+  scm_set_smob_mark (scm_tc16_vm_debug_frame, vm_debug_frame_mark);
+
+  scm_tc16_vm_cont = scm_make_smob_type ("vm-cont", 0);
+  scm_set_smob_mark (scm_tc16_vm_cont, vm_cont_mark);
+  scm_set_smob_free (scm_tc16_vm_cont, vm_cont_free);
+
+  scm_tc16_vm = scm_make_smob_type ("vm", 0);
+  scm_set_smob_mark (scm_tc16_vm, vm_mark);
+  scm_set_smob_free (scm_tc16_vm, vm_free);
+  scm_set_smob_apply (scm_tc16_vm, scm_vm_apply, 1, 0, 1);
+
+#ifndef SCM_MAGIC_SNARFER
 #include "vm.x"
-  scm_select_module (old_module);
+#endif
 
-  {
-    struct scm_instruction *p;
-    for (p = scm_instruction_table; p->opcode != op_last; p++)
-      {
-	p->obj = scm_permanent_object (make_instruction (p));
-	if (p->restp) p->type = INST_INUM;
-      }
-  }
+  scm_set_current_module (mod);
 }
 
-void
-scm_init_vm_vm_module ()
-{
-  scm_register_module_xxx ("vm vm", (void *) scm_init_vm);
-}
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/
