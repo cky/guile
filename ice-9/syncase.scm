@@ -1,4 +1,4 @@
-;;;; 	Copyright (C) 1997, 2000, 2001, 2002 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1997, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -71,8 +71,6 @@
       (with-fluids ((expansion-eval-closure (env->eval-closure env)))
         (sc-expand exp)))))
 
-(fluid-set! expansion-eval-closure (env->eval-closure #f))
-
 ;;; Exported variables
 
 (define sc-expand #f)
@@ -87,18 +85,6 @@
 (define generate-temporaries #f)
 (define identifier? #f)
 (define syntax-object->datum #f)
-
-(defmacro define-syntax args `(sc-macro ,@args))
-(defmacro eval-when args `(sc-macro ,@args))
-(defmacro fluid-let-syntax args `(sc-macro ,@args))
-(defmacro identifier-syntax args `(sc-macro ,@args))
-(defmacro let-syntax args `(sc-macro ,@args))
-(defmacro letrec-syntax args `(sc-macro ,@args))
-(defmacro syntax args `(sc-macro ,@args))
-(defmacro syntax-case args `(sc-macro ,@args))
-(defmacro syntax-rules args `(sc-macro ,@args))
-(defmacro with-syntax args `(sc-macro ,@args))
-(defmacro include args `(sc-macro ,@args))
 
 (define primitive-syntax '(quote lambda letrec if set! begin define or
 			   and let let* cond do quasiquote unquote
@@ -140,6 +126,8 @@
 
 (define the-syncase-module (current-module))
 (define the-syncase-eval-closure (module-eval-closure the-syncase-module))
+
+(fluid-set! expansion-eval-closure the-syncase-eval-closure)
 
 (define (putprop symbol key binding)
   (let* ((v ((fluid-ref expansion-eval-closure) symbol #t)))
@@ -248,3 +236,5 @@
      (begin
        ;(eval-case ((load-toplevel) (export-syntax name)))
        (define-syntax name rules ...)))))
+
+(fluid-set! expansion-eval-closure (env->eval-closure #f))
