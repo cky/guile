@@ -1,7 +1,7 @@
 ;;;; streams.scm --- general lazy streams
 ;;;; -*- Scheme -*-
 
-;;;; Copyright (C) 1999, 2001 Free Software Foundation, Inc.
+;;;; Copyright (C) 1999, 2001, 2004 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -190,7 +190,7 @@ If STREAM has infinite length this procedure will not terminate."
   (if (not (or-map stream-null? streams))
       (begin
         (apply f (map stream-car streams))
-        (stream-for-each-one f (map stream-cdr streams)))))
+        (stream-for-each-many f (map stream-cdr streams)))))
 
 (define (stream-map f stream . rest)
   "Returns a newly allocated stream, each element being the result of
