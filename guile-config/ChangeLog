@@ -1,3 +1,7 @@
+2002-07-17  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* qthreads.m4: Added configuration for ARM.
+
 2002-04-26  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* Makefile.am (EXTRA_DIST): Added qthreads.m4.
