@@ -1,3 +1,8 @@
+2004-03-25  Kevin Ryde  <user42@zip.com.au>
+
+	* slib.texi (SLIB): Amend `require' cross reference node name, is
+	called "Require" in slib 3a1.
+
 2004-03-23  Kevin Ryde  <user42@zip.com.au>
 
 	* scheme-data.texi (Reals and Rationals): Typo in `rationalize'.
