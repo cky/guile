@@ -1,3 +1,35 @@
+2004-05-06  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* gc.h (scm_t_cell): Fields are now of type SCM instead of
+	scm_t_bits.  Updated all users.
+	(SCM_GC_CARD_SIZE_MASK): Use SCM_GC_SIZEOF_CARD instead of
+	duplicating the code.
+	(SCM_CELL_OBJECT_LOC): New.
+	(SCM_CARLOC, SCM_CDRLOC): Use it instead of SCM_CELL_WORD_LOC.
+	(SCM_CELL_WORD_LOC): Moved to "deprecated.h".
+
+	* smob.h (SCM_SMOB_DATA_2, SCM_SMOB_DATA_3, SCM_SMOB_FLAGS,
+	SCM_SET_SMOB_DATA_2, SCM_SET_SMOB_DATA_3, SCM_SET_SMOB_FLAGS,
+	SCM_SMOB_OBJECT, SCM_SMOB_OBJECT_2, SCM_SMOB_OBJECT_3,
+	SCM_SET_SMOB_OBJECT, SCM_SET_SMOB_OBJECT_2, SCM_SET_SMOB_OBJECT_3,
+	SCM_SMOB_OBJECT_LOC, SCM_SMOB_OBJECT_2_LOC,
+	SCM_SMOB_OBJECT_3_LOC): New.
+	* smob.c (scm_i_set_smob_flags): New function.
+
+	* dynl.c, dynwind.c, eval.h, fluids.h, futures.h, hashtab.h,
+	hooks.h, keywords.h, macros.h, macros.c, mallocs.c, mallocs.h,
+	random.h, regex-posix.h, root.h, srcprop.h, srcprop.c, threads.h:
+	Use SCM_SMOB_* instead of SCM_CELL_* as appropriate.  Use
+	SCM_SMOB_FLAGS and SCM_SET_SMOB_FLAGS instead of accessing the
+	zeroth word directly.  Use SCM_SMOB_PREDICATE as appropriate.
+
+	* numbers.h (SCM_I_BIG_MPZ): Use SCM_CELL_OBJECT_LOC instead of
+	taking the address of SCM_CELL_WORD_1, the latter being no longer
+	an lvalue.
+
+	* variable.h (SCM_VARIABLE_LOC): Use SCM_CELL_OBJECT_LOC instead
+	of casting SCM_CELL_WORD_LOC.
+
 2004-05-02  Kevin Ryde  <user42@zip.com.au>
 
 	* eval.c (scm_macroexp): Add prototype, since it's not in eval.h under

@@ -584,6 +584,20 @@ starting the week.
 
 * Changes to the C interface
 
+** New macros SCM_SMOB_DATA_2, SM_SMOB_DATA_3, etc.
+
+These macros should be used instead of SCM_CELL_WORD_2/3 to access the
+second and third words of double smobs.  Likewise for
+SCM_SET_SMOB_DATA_2 and SCM_SET_SMOB_DATA_3.
+
+Also, there is SCM_SMOB_FLAGS and SCM_SET_SMOB_FLAGS that should be
+used to get and set the 16 exra bits in the zeroth word of a smob.
+
+And finally, there is SCM_SMOB_OBJECT and SCM_SMOB_SET_OBJECT for
+accesing the first immediate word of a smob as a SCM value, and there
+is SCM_SMOB_OBJECT_LOC for getting a pointer to the first immediate
+smob words.  Like wise for SCM_SMOB_OBJECT_2, etc.
+
 ** New way to deal with non-local exits and reentries.
 
 There is a new set of functions that essentially do what
