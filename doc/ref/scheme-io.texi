@@ -122,8 +122,9 @@ not supplied, the current input port is used.
 
 @deffn {Scheme Procedure} unread-string str port
 @deffnx {C Function} scm_unread_string (str, port)
-Place the string @var{str} in @var{port} so that its characters will be
-read in subsequent read operations.  If called multiple times, the
+Place the string @var{str} in @var{port} so that its characters will
+be read from left-to-right as the next characters from @var{port}
+during subsequent read operations.  If called multiple times, the
 unread characters will be read again in last-in first-out order.  If
 @var{port} is not supplied, the current-input-port is used.
 @end deffn
