@@ -1,5 +1,15 @@
 2003-04-20  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* eval.c, root.h (scm_undefineds, SCM_NUM_PROTECTS, undefineds,
+	scm_init_eval): Made scm_undefineds static in eval.c, renamed it
+	to undefineds and registered the object as a permanent object.
+
+	* eval.c, eval.h (scm_f_apply, scm_init_eval): Made scm_f_apply
+	static in eval.c, renamed it to f_apply and registered the object
+	as a permanent object.
+
+2003-04-20  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* eval.c (SCM_BIT8, SCM_BIT8, unmemocopy, SCM_CEVAL): Renamed
 	file-local macro SCM_BIT8 to SCM_BIT7, which is more appropriate.
 

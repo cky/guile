@@ -399,8 +399,6 @@ SCM_GLOBAL_SYMBOL (scm_sym_else, "else");
 SCM_GLOBAL_SYMBOL (scm_sym_unquote, "unquote");
 SCM_GLOBAL_SYMBOL (scm_sym_uq_splicing, "unquote-splicing");
 
-SCM scm_f_apply;
-
 SCM_GLOBAL_SYMBOL (scm_sym_enter_frame, "enter-frame");
 SCM_GLOBAL_SYMBOL (scm_sym_apply_frame, "apply-frame");
 SCM_GLOBAL_SYMBOL (scm_sym_exit_frame, "exit-frame");
@@ -1247,6 +1245,13 @@ scm_macroexp (SCM x, SCM env)
   goto macro_tail;
 }
 
+#define SCM_BIT7(x) (127 & SCM_UNPACK (x))
+
+/* A function object to implement "apply" for non-closure functions.  */
+static SCM f_apply;
+/* An endless list consisting of #<undefined> objects:  */
+static SCM undefineds;
+
 /* scm_unmemocopy takes a memoized expression together with its
  * environment and rewrites it to its original form.  Thus, it is the
  * inversion of the rewrite rules above.  The procedure is not
@@ -1261,8 +1266,6 @@ scm_macroexp (SCM x, SCM env)
  * However, GOOPS currently relies on this for method compilation.
  * This ought to change.
  */
-
-#define SCM_BIT7(x) (127 & SCM_UNPACK (x))
 
 static SCM
 build_binding_list (SCM names, SCM inits)
@@ -2195,7 +2198,7 @@ dispatch:
 
     case SCM_BIT7 (SCM_IM_LETREC):
       x = SCM_CDR (x);
-      env = EXTEND_ENV (SCM_CAR (x), scm_undefineds, env);
+      env = EXTEND_ENV (SCM_CAR (x), undefineds, env);
       x = SCM_CDR (x);
       {
 	SCM init_forms = SCM_CAR (x);
@@ -2332,7 +2335,7 @@ dispatch:
 	    }
 	  else
 	    {
-	      proc = scm_f_apply;
+	      proc = f_apply;
 	      goto evapply;
 	    }
 
@@ -4477,9 +4480,8 @@ SCM_DEFINE (scm_eval, "eval", 2, 0, 0,
 /* At this point, scm_deval and scm_dapply are generated.
  */
 
-# define DEVAL
-# include "eval.c"
-
+#define DEVAL
+#include "eval.c"
 
 
 void 
@@ -4497,15 +4499,14 @@ scm_init_eval ()
   scm_set_smob_free (scm_tc16_promise, promise_free);
   scm_set_smob_print (scm_tc16_promise, promise_print);
 
-  /* Dirk:Fixme:: make scm_undefineds local to eval.c: it's only used here. */
-  scm_undefineds = scm_list_1 (SCM_UNDEFINED);
-  SCM_SETCDR (scm_undefineds, scm_undefineds);
+  undefineds = scm_list_1 (SCM_UNDEFINED);
+  SCM_SETCDR (undefineds, undefineds);
+  scm_permanent_object (undefineds);
+
   scm_listofnull = scm_list_1 (SCM_EOL);
 
-  scm_f_apply = scm_c_define_subr ("apply", scm_tc7_lsubr_2, scm_apply);
-
-  /* acros */
-  /* end of acros */
+  f_apply = scm_c_define_subr ("apply", scm_tc7_lsubr_2, scm_apply);
+  scm_permanent_object (f_apply);
 
 #include "libguile/eval.x"
   

@@ -163,8 +163,6 @@ SCM_API SCM scm_sym_apply;
 SCM_API SCM scm_sym_set_x;
 SCM_API SCM scm_sym_args;
 
-SCM_API SCM scm_f_apply;
-
 
 
 SCM_API SCM * scm_ilookup (SCM iloc, SCM env);
