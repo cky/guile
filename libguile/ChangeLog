@@ -1,3 +1,13 @@
+2000-05-09  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* numbers.c (IS_INF):  The new test is x == x + 1.  The old test
+	x == x/2 did not work for zero values.  Thanks to Han-Wen Nienhuys
+	and Ivan Toshkov.
+
+	(scm_number_to_string, scm_sum, scm_difference, scm_two_doubles,
+	scm_num2long, scm_num2long_long, scm_num2ulong):  Reordered
+	dispatch sequence.
+
 2000-05-09  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* scmsigs.c (take_signal): Execute SCM_ASYNC_TICK for SIGSEGV,
