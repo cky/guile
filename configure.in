@@ -903,13 +903,14 @@ int main () { return (isnan(0.0) != 0); }],
              [Define to 1 if you have the `isnan' macro or function.])],
   [AC_MSG_RESULT([no])])
 
-# When testing for the presence of alloca, we need to add alloca.o
-# explicitly to LIBOBJS to make sure that it is translated to
-# `alloca.lo' for libtool later on.  This can and should be done more cleanly.
+# We must have a proper stack-using alloca in order for stack-copying
+# continuations to work properly.  If we don't find a native one,
+# abort.
+
 AC_FUNC_ALLOCA
 if test "$ALLOCA" = "alloca.o"
 then
-  AC_LIBOBJ([alloca])
+  AC_ERROR([No native alloca found.])
 fi
 
 AC_CHECK_MEMBERS([struct stat.st_rdev])
