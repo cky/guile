@@ -65,6 +65,7 @@ GUILE_VERSION = @GUILE_VERSION@
 LD = @LD@
 LIBLOBJS = @LIBLOBJS@
 LIBTOOL = @LIBTOOL@
+LN_S = @LN_S@
 MAINT = @MAINT@
 MAKEINFO = @MAKEINFO@
 PACKAGE = @PACKAGE@
@@ -100,7 +101,7 @@ mdate-sh missing mkinstalldirs
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
-TAR = tar
+TAR = gtar
 GZIP = --best
 default: all
 

@@ -65,6 +65,7 @@ GUILE_VERSION = @GUILE_VERSION@
 LD = @LD@
 LIBLOBJS = @LIBLOBJS@
 LIBTOOL = @LIBTOOL@
+LN_S = @LN_S@
 MAINT = @MAINT@
 MAKEINFO = @MAKEINFO@
 PACKAGE = @PACKAGE@
@@ -104,7 +105,7 @@ DIST_COMMON =  COPYING ChangeLog Makefile.am Makefile.in version.scm.in
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
-TAR = tar
+TAR = gtar
 GZIP = --best
 default: all
 
