@@ -1,17 +1,34 @@
-This is release 1.0 of of Guile, a portable, embeddable Scheme
+This is a nightly snapshot of Guile, a portable, embeddable Scheme
 implementation written in C.  Guile provides a machine independent
 execution platform that can be linked in as a library when building
 extensible programs.
 
-This is the first Guile release made by the Free Software Foundation.
-However, Cygnus Support has made earlier releases of Guile, the most
-recent of which is known as `guile-iii'.  The present release
-incorporates many bug fixes and improvements, but has dropped some
-modules that `guile-iii' supported.
-
 Please send bug reports to bug-guile@prep.ai.mit.edu.
 
-Guile is available via anonymous FTP from
+Important Facts About Snapshots ======================================
+
+Please keep in mind that these sources are strictly experimental; they
+will usually not be well-tested, and may not even compile on some
+systems.  They may contain interfaces which will change.  They will
+usually not be of sufficient quality for use by people not comfortable
+hacking the innards of Guile.  Caveat!
+
+However, we're providing them anyway for several reasons.  We'd like
+to encourage people to get involved in developing Guile.  People
+willing to use the bleeding edge of development can get earlier access
+to new, experimental features.  Patches submitted relative to recent
+snapshots will be easier for us to evaluate and install, since the
+patch's original sources will be closer to what we're working with.
+And it allows us to start testing features earlier.
+
+Nightly snapshots of the Guile development sources are available via
+anonymous FTP from ftp.cyclic.com, as /pub/guile/guile-snap.tar.gz.
+
+Via the web, that's:  ftp://ftp.cyclic.com/pub/guile/guile-snap.tar.gz
+For getit, that's:    ftp.cyclic.com:/pub/guile/guile-snap.tar.gz
+
+
+The latest official Guile release is available via anonymous FTP from
 prep.ai.mit.edu, as /pub/gnu/guile-1.0.tar.gz.
 
 Via the web, that's:  ftp://prep.ai.mit.edu/pub/gnu/guile-1.0.tar.gz
@@ -93,26 +110,4 @@ George Carrette wrote SIOD, a stand-alone scheme interpreter.
 Although most of this code as been rewritten or replaced over time,
 the garbage collector from SIOD is still an important part of Guile.
 
-
-Nightly snapshots ====================================================
-
-Nightly snapshots of the Guile development sources are available via
-anonymous FTP from ftp.cyclic.com, as /pub/guile/guile-snap.tar.gz.
-
-Via the web, that's:  ftp://ftp.cyclic.com/pub/guile/guile-snap.tar.gz
-For getit, that's:    ftp.cyclic.com:/pub/guile/guile-snap.tar.gz
-
-Please keep in mind that the snapshots are strictly experimental; they
-will usually not be well-tested, and may not even compile on some
-systems.  They may contain interfaces which will change.  They will
-usually not be of sufficient quality for use by people not comfortable
-hacking the innards of Guile.  Caveat!
-
-However, we're providing them anyway for several reasons.  We'd like
-to encourage people to get involved in developing Guile.  People
-willing to use the bleeding edge of development can get earlier access
-to new, experimental features.  Patches submitted relative to recent
-snapshots will be easier for us to evaluate and install, since the
-patch's original sources will be closer to what we're working with.
-And it allows us to start testing features earlier.
 
