@@ -1,3 +1,9 @@
+2000-08-12  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
+
+	* translate: New directory.
+
+	* translate/langtools.text: New file.
+
 2000-05-30  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* tasks.text: Use outline-mode.  Added section for tasks in need

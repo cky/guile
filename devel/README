@@ -4,6 +4,8 @@ policy		Guile policy documents
 
 build		information related to the build/installation process
 
+translation	information related to language traslation
+
 Files:
 
 tasks.text	Guile project task list
