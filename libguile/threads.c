@@ -975,7 +975,7 @@ scm_threads_mark_stacks (void)
 	  /* Active thread */
 	  /* stack_len is long rather than sizet in order to guarantee
 	     that &stack_len is long aligned */
-#ifdef SCM_STACK_GROWS_UP
+#if SCM_STACK_GROWS_UP
 	  stack_len = ((SCM_STACKITEM *) (&t) -
 		       (SCM_STACKITEM *) thread->base);
 	  
@@ -1022,7 +1022,7 @@ scm_threads_mark_stacks (void)
       else
 	{
 	  /* Suspended thread */
-#ifdef SCM_STACK_GROWS_UP
+#if SCM_STACK_GROWS_UP
 	  long stack_len = t->top - t->base;
 	  scm_mark_locations (t->base, stack_len);
 #else
@@ -1261,8 +1261,8 @@ scm_i_thread_sleep_for_gc ()
 scm_t_mutex scm_i_critical_section_mutex;
 scm_t_rec_mutex scm_i_defer_mutex;
 
-#ifdef SCM_USE_PTHREAD_THREADS
-#include "libguile/pthread-threads.c"
+#if SCM_USE_PTHREAD_THREADS
+# include "libguile/pthread-threads.c"
 #endif
 #include "libguile/threads-plugin.c"
 
@@ -1272,7 +1272,7 @@ void
 scm_threads_prehistory ()
 {
   scm_thread *t;
-#ifdef SCM_USE_PTHREAD_THREADS
+#if SCM_USE_PTHREAD_THREADS
   /* Must be called before any initialization of a mutex. */
   scm_init_pthread_threads ();
 #endif  
