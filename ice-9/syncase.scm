@@ -43,6 +43,7 @@
 
 (define-module (ice-9 syncase)
   :use-module (ice-9 debug)
+  :use-module (ice-9 threads)
   :export-syntax (sc-macro define-syntax eval-when fluid-let-syntax
 		  identifier-syntax let-syntax
 		  letrec-syntax syntax syntax-case  syntax-rules
