@@ -1,0 +1,28 @@
+The Problem
+===========
+
+Certain applications embedding Guile (Scwm, Guppi) have found it
+necessary to include hacked versions of scm_call_with_dynamic_root.
+
+They want to run user callbacks, but don't want the callback to be
+able to longjmp (via exceptions or continuations) randomly in and out,
+since the C code hasn't been written to dynamically wind/unwind local
+state.  This is likely to be a common problem for users of Guile as an
+extension language.
+
+libguile/root.c:scm_call_with_dynamic_root seems to almost do this,
+but it has the apparently undesirable behaviour of unwinding the
+dynamic state when the protected procedure is called.  In addition
+the implementation looks a bit heavy for use in every callback.
+
+scm_call_with_dynamic_root was implemented to support threading, so
+the needs of libguile itself should be considered.  Other
+considerations are how any new interface interacts with error handling
+and reporting; whether a new interface is convenient to use from C;
+whether a new interface should also be available to Scheme code.
+
+Discussion
+==========
+
+Proposal
+========
