@@ -189,6 +189,27 @@ extern char ** environ;
 #endif
 
 
+
+/* Two often used patterns
+ */
+
+#define WITH_STRING(str,cstr,code)             \
+  do {                                         \
+    char *cstr = scm_to_locale_string (str);   \
+    code;                                      \
+    free (cstr);                               \
+  } while (0)
+
+#define STRING_SYSCALL(str,cstr,code)        \
+  do {                                       \
+    int eno;                                 \
+    char *cstr = scm_to_locale_string (str); \
+    SCM_SYSCALL (code);                      \
+    eno = errno; free (cstr); errno = eno;   \
+  } while (0)
+
+
+
 SCM_SYMBOL (sym_read_pipe, "read pipe");
 SCM_SYMBOL (sym_write_pipe, "write pipe");
 
@@ -328,8 +349,8 @@ SCM_DEFINE (scm_getpwuid, "getpw", 0, 1, 0,
     }
   else
     {
-      SCM_VALIDATE_STRING (1, user);
-      entry = getpwnam (SCM_STRING_CHARS (user));
+      WITH_STRING (user, c_user,
+		   entry = getpwnam (c_user));
     }
   if (!entry)
     SCM_MISC_ERROR ("entry not found", SCM_EOL);
@@ -394,10 +415,8 @@ SCM_DEFINE (scm_getgrgid, "getgr", 0, 1, 0,
   else if (scm_is_integer (name))
     SCM_SYSCALL (entry = getgrgid (scm_to_int (name)));
   else
-    {
-      SCM_VALIDATE_STRING (1, name);
-      SCM_SYSCALL (entry = getgrnam (SCM_STRING_CHARS (name)));
-    }
+    STRING_SYSCALL (name, c_name,
+		    entry = getgrnam (c_name));
   if (!entry)
     SCM_SYSERROR;
 
@@ -1117,10 +1136,13 @@ SCM_DEFINE (scm_mkstemp, "mkstemp!", 1, 0, 0,
 #define FUNC_NAME s_scm_mkstemp
 {
   char *c_tmpl;
-  int rv;
+  int rv, eno;
   
-  SCM_VALIDATE_STRING_COPY (1, tmpl, c_tmpl);
+  c_tmpl = scm_to_locale_string (tmpl);
   SCM_SYSCALL (rv = mkstemp (c_tmpl));
+  eno = errno;
+  free (c_tmpl);
+  errno = eno;
   if (rv == -1)
     SCM_SYSERROR;
   return scm_fdes_to_port (rv, "w+", tmpl);
@@ -1144,7 +1166,6 @@ SCM_DEFINE (scm_utime, "utime", 1, 2, 0,
   int rv;
   struct utimbuf utm_tmp;
 
-  SCM_VALIDATE_STRING (1, pathname);
   if (SCM_UNBNDP (actime))
     SCM_SYSCALL (time (&utm_tmp.actime));
   else
@@ -1155,7 +1176,8 @@ SCM_DEFINE (scm_utime, "utime", 1, 2, 0,
   else
     utm_tmp.modtime = SCM_NUM2ULONG (3, modtime);
 
-  SCM_SYSCALL (rv = utime (SCM_STRING_CHARS (pathname), &utm_tmp));
+  STRING_SYSCALL (pathname, c_pathname,
+		  rv = utime (c_pathname, &utm_tmp));
   if (rv != 0)
     SCM_SYSERROR;
   return SCM_UNSPECIFIED;
@@ -1191,8 +1213,8 @@ SCM_DEFINE (scm_access, "access?", 2, 0, 0,
 {
   int rv;
 
-  SCM_VALIDATE_STRING (1, path);
-  rv = access (SCM_STRING_CHARS (path), scm_to_int (how));
+  WITH_STRING (path, c_path,
+	       rv = access (c_path, scm_to_int (how)));
   return scm_from_bool (!rv);
 }
 #undef FUNC_NAME
@@ -1220,42 +1242,35 @@ SCM_DEFINE (scm_putenv, "putenv", 1, 0, 0,
 #define FUNC_NAME s_scm_putenv
 {
   int rv;
-  char *ptr;
+  char *c_str = scm_to_locale_string (str);
+#ifdef __MINGW32__
+  size_t len = strlen (c_str);
+#endif
 
-  SCM_VALIDATE_STRING (1, str);
-
-  if (strchr (SCM_STRING_CHARS (str), '=') == NULL)
+  if (strchr (c_str, '=') == NULL)
     {
 #ifdef HAVE_UNSETENV
       /* No '=' in argument means we should remove the variable from
 	 the environment.  Not all putenvs understand this (for instance
 	 FreeBSD 4.8 doesn't).  To be safe, we do it explicitely using
 	 unsetenv. */
-      unsetenv (SCM_STRING_CHARS (str));
+      unsetenv (c_str);
+      free (c_str);
 #else
       /* On e.g. Win32 hosts putenv() called with 'name=' removes the
 	 environment variable 'name'. */
       int e;
-      ptr = scm_malloc (SCM_STRING_LENGTH (str) + 2);
-      if (ptr == NULL)
-	SCM_MEMORY_ERROR;
-      strncpy (ptr, SCM_STRING_CHARS (str), SCM_STRING_LENGTH (str));
-      ptr[SCM_STRING_LENGTH (str)] = '=';
-      ptr[SCM_STRING_LENGTH (str) + 1] = 0;
+      ptr = scm_malloc (len + 2);
+      strcpy (ptr, c_str);
+      strcpy (ptr+len, "=");
       rv = putenv (ptr);
-      e = errno; free (ptr); errno = e;
+      e = errno; free (ptr); free (c_str); errno = e;
       if (rv < 0)
 	SCM_SYSERROR;
 #endif /* !HAVE_UNSETENV */
     }
   else
     {
-      /* must make a new copy to be left in the environment, safe from gc.  */
-      ptr = scm_malloc (SCM_STRING_LENGTH (str) + 1);
-      if (ptr == NULL)
-	SCM_MEMORY_ERROR;
-      strncpy (ptr, SCM_STRING_CHARS (str), SCM_STRING_LENGTH (str));
-
 #ifdef __MINGW32__
       /* If str is "FOO=", ie. attempting to set an empty string, then
          we need to see if it's been successful.  On MINGW, "FOO="
@@ -1263,35 +1278,32 @@ SCM_DEFINE (scm_putenv, "putenv", 1, 0, 0,
          set "FOO= ", ie. a space, and then modify the string returned
          by getenv.  It's not enough just to modify the string we set,
          because MINGW putenv copies it.  */
-      if (ptr[SCM_STRING_LENGTH (str) - 1] == '=')
+
+      if (c_str[len-1] == '=')
         {
-	  char *alt;
-          SCM name = scm_substring (str, scm_from_int (0),
-                                    scm_from_int (SCM_STRING_LENGTH (str)-1));
-          if (getenv (SCM_STRING_CHARS (name)) == NULL)
-            {
-              alt = scm_malloc (SCM_STRING_LENGTH (str) + 2);
-	      if (alt == NULL)
-		{
-		  free (ptr);
-		  SCM_MEMORY_ERROR;
-		}
-              memcpy (alt, SCM_STRING_CHARS (str), SCM_STRING_LENGTH (str));
-              alt[SCM_STRING_LENGTH (str)] = ' ';
-              alt[SCM_STRING_LENGTH (str) + 1] = '\0';
-              rv = putenv (alt);
-              if (rv < 0)
-		SCM_SYSERROR;
-              free (ptr);   /* don't need the old string we gave to putenv */
+	  char *ptr = scm_malloc (len+2);
+	  strcpy (ptr, c_str);
+	  strcpy (ptr+len, " ");
+	  rv = putenv (ptr);
+	  if (rv < 0)
+	    {
+	      int eno = errno;
+	      free (c_str);
+	      errno = eno;
+	      SCM_SYSERROR;
 	    }
-	  alt = getenv (SCM_STRING_CHARS (name));
-	  alt[0] = '\0';
+	  /* truncate to just the name */
+	  c_str[len-1] = '\0';
+	  ptr = getenv (c_str);
+	  if (ptr)
+	    ptr[0] = '\0';
 	  return SCM_UNSPECIFIED;
         }
 #endif /* __MINGW32__ */
 
-      ptr[SCM_STRING_LENGTH (str)] = 0;
-      rv = putenv (ptr);
+      /* Leave c_str in the environment.  */
+
+      rv = putenv (c_str);
       if (rv < 0)
 	SCM_SYSERROR;
     }
@@ -1316,20 +1328,24 @@ SCM_DEFINE (scm_setlocale, "setlocale", 1, 1, 0,
   char *clocale;
   char *rv;
 
+  scm_frame_begin (0);
+
   if (SCM_UNBNDP (locale))
     {
       clocale = NULL;
     }
   else
     {
-      SCM_VALIDATE_STRING (2, locale);
-      clocale = SCM_STRING_CHARS (locale);
+      clocale = scm_to_locale_string (locale);
+      scm_frame_free (clocale);
     }
 
   rv = setlocale (scm_to_int (category), clocale);
   if (rv == NULL)
     SCM_SYSERROR;
-  return scm_makfrom0str (rv);
+
+  scm_frame_end ();
+  return scm_from_locale_string (rv);
 }
 #undef FUNC_NAME
 #endif /* HAVE_SETLOCALE */
@@ -1379,9 +1395,10 @@ SCM_DEFINE (scm_mknod, "mknod", 4, 0, 0,
   else
     SCM_OUT_OF_RANGE (2, type);
 
-  SCM_SYSCALL (val = mknod (SCM_STRING_CHARS (path),
-			    ctype | scm_to_int (perms),
-			    scm_to_int (dev)));
+  STRING_SYSCALL (path, c_path,
+		  val = mknod (c_path,
+			       ctype | scm_to_int (perms),
+			       scm_to_int (dev)));
   if (val != 0)
     SCM_SYSERROR;
   return SCM_UNSPECIFIED;
@@ -1443,8 +1460,7 @@ SCM_DEFINE (scm_crypt, "crypt", 2, 0, 0,
 #define FUNC_NAME s_scm_crypt
 {
   SCM ret;
-  SCM_VALIDATE_STRING (1, key);
-  SCM_VALIDATE_STRING (2, salt);
+  char *c_key, *c_salt;
 
   scm_frame_begin (0);
   scm_frame_unwind_handler ((void(*)(void*)) scm_mutex_unlock,
@@ -1452,8 +1468,12 @@ SCM_DEFINE (scm_crypt, "crypt", 2, 0, 0,
                             SCM_F_WIND_EXPLICITLY);
   scm_mutex_lock (&scm_i_misc_mutex);
 
-  ret = scm_makfrom0str (crypt (SCM_STRING_CHARS (key),
-                                SCM_STRING_CHARS (salt)));
+  c_key = scm_to_locale_string (key);
+  scm_frame_free (c_key);
+  c_salt = scm_to_locale_string (salt);
+  scm_frame_free (c_key);
+
+  ret = scm_from_locale_string (crypt (c_key, c_salt));
 
   scm_frame_end ();
   return ret;
@@ -1471,9 +1491,11 @@ SCM_DEFINE (scm_chroot, "chroot", 1, 0, 0,
 	    "root directory.")
 #define FUNC_NAME s_scm_chroot
 {
-  SCM_VALIDATE_STRING (1, path);
+  int rv;
 
-  if (chroot (SCM_STRING_CHARS (path)) == -1)
+  WITH_STRING (path, c_path,
+	       rv = chroot (c_path));
+  if (rv == -1)
     SCM_SYSERROR;
   return SCM_UNSPECIFIED;
 }
@@ -1611,8 +1633,9 @@ SCM_DEFINE (scm_getpass, "getpass", 1, 0, 0,
 
   SCM_VALIDATE_STRING (1, prompt);
 
-  p = getpass(SCM_STRING_CHARS (prompt));
-  passwd = scm_makfrom0str (p);
+  WITH_STRING (prompt, c_prompt, 
+	       p = getpass(c_prompt));
+  passwd = scm_from_locale_string (p);
 
   /* Clear out the password in the static buffer.  */
   memset (p, 0, strlen (p));
@@ -1735,9 +1758,11 @@ SCM_DEFINE (scm_sethostname, "sethostname", 1, 0, 0,
 	    "specified.")
 #define FUNC_NAME s_scm_sethostname
 {
-  SCM_VALIDATE_STRING (1, name);
+  int rv;
 
-  if (sethostname (SCM_STRING_CHARS (name), SCM_STRING_LENGTH (name)) == -1)
+  WITH_STRING (name, c_name,
+	       rv = sethostname (c_name, strlen(c_name)));
+  if (rv == -1)
     SCM_SYSERROR;
   return SCM_UNSPECIFIED;
 }
