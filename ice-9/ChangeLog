@@ -1,3 +1,12 @@
+Thu Feb 27 23:25:47 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* boot-9.scm: Removed the enabling of debug evaluator and
+ 	recording of source code positions.  This was placed there for our
+ 	convenience, but it has already sneaked into the distribution
+ 	once... so we'd better add this in our local copies instead when
+ 	we need it.  (These options are normally enabled at the end of
+	boot-9.scm when loading the debug module.)
+
 Thu Feb 27 16:04:45 1997  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* boot-9.scm (module-defined?): New function.

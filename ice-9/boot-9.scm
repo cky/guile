@@ -26,13 +26,6 @@
 ;;;
 
 
-;;; During Guile development, we want to use debugging evaluator and record
-;;; positions of source expressions in boot-9.scm by default.
-
-(debug-options-interface (cons 'debug (debug-options-interface)))
-(read-options-interface (cons 'positions (read-options-interface)))
-
-
 ;;; {Features}
 ;;
 
