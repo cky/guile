@@ -811,8 +811,8 @@
 		 (if (not (eq? (stat:type stats) 'directory))
 		     path)))
 	     (lambda dummy #f))))
-  (let ((path (or (has-init? (getenv "HOME"))
-		  (has-init? (passwd:dir (getpw (getuid)))))))
+  (let ((path (or (has-init? (or (getenv "HOME") "/"))
+                  (has-init? (passwd:dir (getpw (getuid)))))))
     (if path (primitive-load path))))
 
 
