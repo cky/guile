@@ -108,7 +108,7 @@ libguile_la_SOURCES =      alist.c arbiters.c async.c backtrace.c boolean.c char
 BUILT_SOURCES =      cpp_err_symbols.c cpp_sig_symbols.c libpath.h alist.x arbiters.x	    async.x backtrace.x boolean.x chars.x continuations.x debug.x	    dynl.x dynwind.x eq.x error.x eval.x evalext.x feature.x filesys.x	    fluids.x fports.x gc.x gsubr.x					    guardians.x hash.x hashtab.x init.x ioext.x iselect.x keywords.x	    lang.x list.x load.x macros.x mallocs.x modules.x net_db.x		    numbers.x objects.x objprop.x options.x pairs.x ports.x posix.x	    print.x procprop.x procs.x random.x ramap.x read.x regex-posix.x	    root.x scmsigs.x script.x simpos.x smob.x socket.x sort.x		    srcprop.x stackchk.x stacks.x stime.x strings.x strop.x strorder.x	    strports.x struct.x symbols.x tag.x threads.x throw.x unif.x	    variable.x vectors.x version.x vports.x weaks.x
 
 
-EXTRA_libguile_la_SOURCES = _scm.h     strerror.c inet_aton.c putenv.c     threads.c alloca.c     regex-posix.c iselect.c
+EXTRA_libguile_la_SOURCES = _scm.h		    alloca.c inet_aton.c memmove.c putenv.c strerror.c	    threads.c regex-posix.c iselect.c
 
 
 noinst_HEADERS = coop-threads.c coop-threads.h coop.c
@@ -216,10 +216,10 @@ DEP_FILES =  .deps/alist.P .deps/alloca.P .deps/arbiters.P .deps/async.P \
 .deps/hash.P .deps/hashtab.P .deps/inet_aton.P .deps/init.P \
 .deps/ioext.P .deps/iselect.P .deps/keywords.P .deps/lang.P \
 .deps/list.P .deps/load.P .deps/macros.P .deps/mallocs.P \
-.deps/modules.P .deps/net_db.P .deps/numbers.P .deps/objects.P \
-.deps/objprop.P .deps/options.P .deps/pairs.P .deps/ports.P \
-.deps/posix.P .deps/print.P .deps/procprop.P .deps/procs.P \
-.deps/putenv.P .deps/ramap.P .deps/random.P .deps/read.P \
+.deps/memmove.P .deps/modules.P .deps/net_db.P .deps/numbers.P \
+.deps/objects.P .deps/objprop.P .deps/options.P .deps/pairs.P \
+.deps/ports.P .deps/posix.P .deps/print.P .deps/procprop.P \
+.deps/procs.P .deps/putenv.P .deps/ramap.P .deps/random.P .deps/read.P \
 .deps/regex-posix.P .deps/root.P .deps/scmsigs.P .deps/script.P \
 .deps/simpos.P .deps/smob.P .deps/socket.P .deps/sort.P .deps/srcprop.P \
 .deps/stackchk.P .deps/stacks.P .deps/stime.P .deps/strerror.P \

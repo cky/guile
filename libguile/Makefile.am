@@ -62,10 +62,9 @@ BUILT_SOURCES = \
     strports.x struct.x symbols.x tag.x threads.x throw.x unif.x	\
     variable.x vectors.x version.x vports.x weaks.x
 
-EXTRA_libguile_la_SOURCES = _scm.h \
-    strerror.c inet_aton.c putenv.c \
-    threads.c alloca.c \
-    regex-posix.c iselect.c
+EXTRA_libguile_la_SOURCES = _scm.h		\
+    alloca.c inet_aton.c memmove.c putenv.c strerror.c	\
+    threads.c regex-posix.c iselect.c
 
 ## This is kind of nasty... there are ".c" files that we don't want to
 ## compile, since they are #included in threads.c.  So instead we list
