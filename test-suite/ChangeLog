@@ -1,3 +1,7 @@
+1999-08-30  James Blandy  <jimb@mule.m17n.org>
+
+	* tests/strings.test: New test file.
+
 1999-08-29  Gary Houston  <ghouston@easynet.co.uk>
 
 	* tests/ports.test: test unread-char and unread-string.
