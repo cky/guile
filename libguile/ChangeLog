@@ -21,6 +21,38 @@ Sat Dec 21 00:33:03 1996  Gary Houston  <ghouston@actrix.gen.nz>
 	(scm_sendto, scm_socketpair, scm_getsockopt scm_shutdown, 
 	scm_setsockopt, scm_recv, scm_send): take a port not a fd object.
 
+Fri Dec 20 23:06:53 1996  Jim Blandy  <jimb@floss.cyclic.com>
+
+	* throw.c (scm_internal_catch): Make body funcs and handler funcs
+ 	use separate data pointers, to allow them to be designed
+ 	independently and reused.
+	(scm_body_thunk, scm_handle_by_proc, scm_handle_by_message):
+	Renamed from catch_body, catch_handler, and uncaught_throw; made
+	generically useful.
+	(struct scm_catch_body_data): Renamed from catch_body_data; moved
+	to throw.h.
+	(scm_catch): Use the above.
+	(scm_throw): Don't bother printing a message for an uncaught
+	throw; we establish a default handler in init.
+	* throw.h (scm_internal_catch): Prototype updated.
+	(scm_body_thunk, scm_handle_by_proc, scm_handle_by_message): New
+	decls.
+	(struct scm_body_thunk_data): New structure, used as data
+	argument to scm_body_thunk.
+	* init.c (struct main_func_closure): New structure, packaging up
+	the data to pass to the user's main function.
+	(scm_boot_guile): Create one.  Pass it to scm_boot_guile_1.
+	(scm_boot_guile_1): Pass it through to invoke_main_func.  Use
+	scm_internal_catch to establish a catch-all handler, using
+	scm_handle_by_message.  This replaces the special-case code in
+	scm_throw.
+	(invoke_main_func): Body function for scm_internal_catch; invoke
+	the user's main function, using the main_func_closure pointer to
+	decide what to pass it.
+	* root.c (struct cwdr_body_data): Remove handler_proc member.
+	(cwdr): Use scm_handle_by_proc instead of cwdr_handler.
+	(cwdr_handler): Removed.
+
 Thu Dec 19 00:00:26 1996  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* socket.h (SCM_P): update bind prototype.
