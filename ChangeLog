@@ -1,3 +1,8 @@
+2004-03-23  Kevin Ryde  <user42@zip.com.au>
+
+	* configure.in (AC_CHECK_FUNCS): Add sysconf.
+	(AC_CHECK_HEADERS): Add netdb.h and sys/param.h.
+
 2004-03-21  Kevin Ryde  <user42@zip.com.au>
 
 	* configure.in (AC_CHECK_FUNCS): Add gmtime_r.
