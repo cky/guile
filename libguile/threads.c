@@ -1329,6 +1329,10 @@ void
 scm_threads_prehistory ()
 {
   scm_thread *t;
+#ifdef USE_PTHREAD_THREADS
+  /* Must be called before any initialization of a mutex. */
+  scm_init_pthread_threads ();
+#endif  
   scm_i_plugin_mutex_init (&thread_admin_mutex, &scm_i_plugin_mutex);
   scm_i_plugin_rec_mutex_init (&gc_section_mutex, &scm_i_plugin_rec_mutex);
   scm_i_plugin_cond_init (&wake_up_cond, 0);
@@ -1342,9 +1346,6 @@ scm_threads_prehistory ()
   t->base = NULL;
   t->clear_freelists_p = 0;
   scm_setspecific (scm_i_thread_key, t);
-#ifdef USE_PTHREAD_THREADS
-  scm_init_pthread_threads ();
-#endif  
 }
 
 scm_t_bits scm_tc16_thread;

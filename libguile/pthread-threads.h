@@ -78,17 +78,23 @@ extern scm_t_mutexattr scm_i_plugin_mutex; /* The "fast" mutex. */
 #define scm_i_plugin_mutex_trylock	pthread_mutex_trylock 
 #define scm_i_plugin_mutex_unlock	pthread_mutex_unlock 
 
+/* Size is checked in scm_init_pthread_threads */
 #define SCM_REC_MUTEX_MAXSIZE (8 * sizeof (long))
 typedef struct { char _[SCM_REC_MUTEX_MAXSIZE]; } scm_t_rec_mutex;
 
 extern scm_t_mutexattr scm_i_plugin_rec_mutex;
 
-#ifdef PTHREAD_MUTEX_RECURSIVE /* pthreads has recursive mutexes! */
-#define scm_i_plugin_rec_mutex_init	pthread_mutex_init
-#define scm_i_plugin_rec_mutex_destroy	pthread_mutex_destroy
-#define scm_i_plugin_rec_mutex_lock	pthread_mutex_lock 
-#define scm_i_plugin_rec_mutex_trylock	pthread_mutex_trylock 
-#define scm_i_plugin_rec_mutex_unlock	pthread_mutex_unlock
+#ifdef SCM_MUTEX_RECURSIVE /* pthreads has recursive mutexes! */
+#define scm_i_plugin_rec_mutex_init(m,a) \
+  pthread_mutex_init ((pthread_mutex_t *) (m), (a))
+#define scm_i_plugin_rec_mutex_destroy(m) \
+  pthread_mutex_destroy ((pthread_mutex_t *) (m))
+#define scm_i_plugin_rec_mutex_lock(m) \
+  pthread_mutex_lock ((pthread_mutex_t *) (m))
+#define scm_i_plugin_rec_mutex_trylock(m) \
+  pthread_mutex_trylock ((pthread_mutex_t *) (m))
+#define scm_i_plugin_rec_mutex_unlock(m) \
+  pthread_mutex_unlock ((pthread_mutex_t *) (m))
 #else
 int scm_i_plugin_rec_mutex_init	(scm_t_rec_mutex *, const scm_t_mutexattr *);
 #define scm_i_plugin_rec_mutex_destroy(mx) do { (void) (mx); } while (0)
@@ -117,7 +123,7 @@ int scm_i_plugin_rec_mutex_unlock (scm_t_rec_mutex *);
 
 void scm_init_pthread_threads (void);
 
-#endif  /* SCM_THREADS_NULL_H */
+#endif  /* SCM_THREADS_PTHREADS_H */
 
 /*
   Local Variables:

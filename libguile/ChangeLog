@@ -1,3 +1,8 @@
+2002-12-16  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* pthread-threads.c, pthread-threads.h, threads.c: Fixes to
+	pthread "native" recursive mutex support.
+
 2002-12-15  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* __scm.h (SCM_DEFER_INTS, SCM_ALLOW_INTS): New definitions.
