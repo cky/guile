@@ -1,3 +1,8 @@
+2005-01-05  Marius Vollmer  <mvo@zagadka.de>
+
+	* tests/unif.test: Use *unspecified* instead of #f to get an
+	uninitialized array.
+
 2005-01-04  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/ramap.test: New file, test array-map!.

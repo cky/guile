@@ -1,3 +1,22 @@
+2005-01-05  Marius Vollmer  <mvo@zagadka.de>
+
+	Updated bitvector routines to also use scm_t_array_handles.
+	
+	* unif.h (scm_bitvector_elements,
+	scm_bitvector_writable_elements): Use a scm_t_array_handle and
+	deliver offset, length and increment to caller.  Changed all uses.
+	(scm_bitvector_release_elements,
+	scm_frame_bitvector_release_elements,
+	scm_bitvector_release_writable_elements,
+	scm_frame_bitvector_release_writable_elements): Removed.
+	(scm_array_handle_bit_elements,
+	scm_array_handle_bit_writable_elements,
+	scm_array_handle_bit_elements_offset): New.
+	(scm_make_typed_array): The special value for non-initialized
+	arrays is now SCM_UNSPECIFIED.  The old special value SCM_BOOL_F
+	was a valid value to fill bitvectors with, so it can't really be
+	specialed out.
+	
 2005-01-04  Kevin Ryde  <user42@zip.com.au>
 
 	* stime.c (scm_strftime): Free t.tm_zone produced by bdtime2c.
