@@ -522,6 +522,7 @@
 	    (apply consumer (access-values result))
 	    (consumer result))))))
 
+(provide 'values)
 
 
 ;;; {and-map and or-map}
