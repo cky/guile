@@ -22,23 +22,24 @@
 AUTOMAKE_OPTIONS = gnu
 
 # These should be installed and distributed.
-scripts_sources =		\
-	PROGRAM			\
-	autofrisk		\
-	display-commentary	\
-	doc-snarf		\
-	frisk			\
-	generate-autoload	\
-	lint			\
-	punify			\
-	read-scheme-source	\
-	read-text-outline	\
-	use2dot                 \
-	snarf-check-and-output-texi \
-	summarize-guile-TODO	\
-	scan-api		\
-	api-diff		\
-	read-rfc822
+scripts_sources =				\
+	PROGRAM					\
+	autofrisk				\
+	display-commentary			\
+	doc-snarf				\
+	frisk					\
+	generate-autoload			\
+	lint					\
+	punify					\
+	read-scheme-source			\
+	read-text-outline			\
+	use2dot					\
+	snarf-check-and-output-texi		\
+	summarize-guile-TODO			\
+	scan-api				\
+	api-diff				\
+	read-rfc822				\
+	snarf-guile-m4-docs
 
 subpkgdatadir = $(pkgdatadir)/$(GUILE_EFFECTIVE_VERSION)/scripts
 subpkgdata_SCRIPTS = $(scripts_sources)
