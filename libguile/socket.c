@@ -69,6 +69,11 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 
+#if defined (HAVE_UNIX_DOMAIN_SOCKETS) && !defined (SUN_LEN)
+#define SUN_LEN(ptr) ((size_t) (((struct sockaddr_un *) 0)->sun_path) \
+		      + strlen ((ptr)->sun_path))
+#endif
+
 /* we are not currently using socklen_t.  it's not defined on all systems,
    so would need to be checked by configure.  in the meantime, plain
    int is the best alternative.  */
@@ -810,9 +815,8 @@ SCM_DEFINE (scm_recvfrom, "recvfrom!", 2, 3, 0,
   else
     SCM_VALIDATE_ULONG_COPY (3, flags, flg);
 
-  /* recvfrom will not necessarily return an address.  e.g., linux
-     2.4.2 doesn't change addr or addr_size if socket is
-     AF_INET/SOCK_STREAM.  */
+  /* recvfrom will not necessarily return an address.  usually nothing
+     is returned for stream sockets.  */
   addr->sa_family = AF_UNSPEC;
   SCM_SYSCALL (rv = recvfrom (fd, buf + offset,
 			      cend - offset, flg,

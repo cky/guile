@@ -1,3 +1,8 @@
+2001-03-10  Gary Houston  <ghouston@arglist.com>
+
+	* socket.c: add a definition of SUN_LEN (from glibc) for when it's
+	not already defined.
+
 2001-03-09  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
 
 	* coop.c: Inserted #include <stdio.h>.
