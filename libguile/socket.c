@@ -47,6 +47,7 @@
 #endif
 
 #include <errno.h>
+#include <gmp.h> /* is this even remotely right? -- probably not... */
 
 #include "libguile/_scm.h"
 #include "libguile/unif.h"
@@ -268,7 +269,7 @@ SCM_DEFINE (scm_inet_makeaddr, "inet-makeaddr", 2, 0, 0,
   \
   for (i = 0; i < 8; i++)\
     {\
-      char c = (addr)[i];\
+      scm_t_uint8 c = (addr)[i];\
       \
       (addr)[i] = (addr)[15 - i];\
       (addr)[15 - i] = c;\
@@ -276,63 +277,152 @@ SCM_DEFINE (scm_inet_makeaddr, "inet-makeaddr", 2, 0, 0,
 }
 #endif
 
+#ifdef WORDS_BIGENDIAN
+#define FLIPCPY_NET_HOST_128(dest, src) memcpy (dest, src, 16)
+#else
+#define FLIPCPY_NET_HOST_128(dest, src) \
+{ \
+  const scm_t_uint8 *tmp_srcp = (src) + 15; \
+  scm_t_uint8 *tmp_destp = (dest); \
+  \
+  do { \
+    *tmp_destp++ = *tmp_srcp--; \
+  } while (tmp_srcp != (src)); \
+}
+#endif
+
+
+#if (SIZEOF_SCM_T_BITS * 8) > 128
+#error "Assumption that scm_t_bits <= 128 bits has been violated."
+#endif
+
+#if (SIZEOF_UNSIGNED_LONG * 8) > 128
+#error "Assumption that unsigned long <= 128 bits has been violated."
+#endif
+
+#if (SIZEOF_UNSIGNED_LONG_LONG * 8) > 128
+#error "Assumption that unsigned long long <= 128 bits has been violated."
+#endif
+
 /* convert a 128 bit IPv6 address in network order to a host ordered
    SCM integer.  */
-static SCM ipv6_net_to_num (const char *src)
+static SCM ipv6_net_to_num (const scm_t_uint8 *src)
 {
-  int big_digits = 128 / SCM_BITSPERDIG;
-  const int bytes_per_dig = SCM_BITSPERDIG / 8;
-  char addr[16];
-  char *ptr = addr;
-  SCM result;
+  int i = 0;
+  const scm_t_uint8 *ptr = src;
+  int num_zero_bytes = 0;
+  scm_t_uint8 addr[16];
 
-  memcpy (addr, src, 16);
-  /* get rid of leading zeros.  */ 
-  while (big_digits > 0)
+  /* count leading zeros (since we know it's bigendian, they'll be first) */ 
+  while (i < 16)
     {
-      long test = 0;
-
-      memcpy (&test, ptr, bytes_per_dig);
-      if (test != 0)
-	break;
-      ptr += bytes_per_dig;
-      big_digits--;
+      if (*ptr) break;
+      num_zero_bytes++;
+      i++;
     }
-  FLIP_NET_HOST_128 (addr);
-  if (big_digits * bytes_per_dig <= sizeof (unsigned long))
-    {
-      /* this is just so that we use INUM where possible.  */
-      unsigned long l_addr;
 
-      memcpy (&l_addr, addr, sizeof (unsigned long));
-      result = scm_ulong2num (l_addr);
+  if (SCM_SIZEOF_UNSIGNED_LONG_LONG != 0) /* compiler should optimize this */
+    {
+      if ((16 - num_zero_bytes) <= sizeof (unsigned long long))
+        {
+          /* it fits */
+          unsigned long long x;
+          
+          FLIPCPY_NET_HOST_128(addr, src);
+#ifdef WORDS_BIGENDIAN
+          memcpy (&x, addr + (16 - sizeof (x)), sizeof (x));
+#else
+          memcpy (&x, addr, sizeof (x));
+#endif
+          return scm_ulong_long2num (x);
+        }
     }
   else
     {
-      result = scm_i_mkbig (big_digits, 0);
-      memcpy (SCM_BDIGITS (result), addr, big_digits * bytes_per_dig);
+      if ((16 - num_zero_bytes) <= sizeof (unsigned long))
+        {
+          /* this is just so that we use INUM where possible.  */
+          unsigned long x;
+
+          FLIPCPY_NET_HOST_128(addr, src);          
+#ifdef WORDS_BIGENDIAN
+          memcpy (&x, addr + (16 - sizeof (x)), sizeof (x));
+#else
+          memcpy (&x, addr, sizeof (x));
+#endif
+          return scm_ulong2num (x);
+        }
     }
-  return result;
+  /* otherwise get the big hammer */
+  {
+    SCM result = scm_i_mkbig ();
+    
+    mpz_import (SCM_I_BIG_MPZ (result),
+                1, /* chunk */
+                1, /* big-endian chunk ordering */
+                16, /* chunks are 16 bytes long */
+                1, /* big-endian byte ordering */
+                0, /* "nails" -- leading unused bits per chunk */
+                src);
+    return scm_i_normbig (result);
+  }
 }  
 
 /* convert a host ordered SCM integer to a 128 bit IPv6 address in
    network order.  */
-static void ipv6_num_to_net (SCM src, char *dst)
+static void ipv6_num_to_net (SCM src, scm_t_uint8 *dst)
 {
+  /* This code presumes that src has already been checked for range. */
   if (SCM_INUMP (src))
     {
-      scm_t_uint32 addr = htonl (SCM_INUM (src));
-
-      memset (dst, 0, 12);
-      memcpy (dst + 12, &addr, 4);
+      scm_t_signed_bits n = SCM_INUM (src);
+#ifdef WORDS_BIGENDIAN
+      memset (dst, 0, 16 - sizeof (scm_t_signed_bits));
+      memcpy (dst + (16 - sizeof (scm_t_signed_bits)),
+              &n,
+              sizeof (scm_t_signed_bits));
+#else
+      memset (dst + sizeof (scm_t_signed_bits),
+              0,
+              16 - sizeof (scm_t_signed_bits));
+      /* FIXME: this pair of ops is kinda wasteful -- should rewrite as
+         a single loop perhaps, similar to the handling of bignums. */
+      memcpy (dst, &n, sizeof (scm_t_signed_bits));
+      FLIP_NET_HOST_128 (dst);
+#endif
     }
   else
     {
+      /* Presumes src has already been checked for fit -- see above. */
+      size_t count;
       memset (dst, 0, 16);
-      memcpy (dst, SCM_BDIGITS (src),
-	      SCM_NUMDIGS (src) * (SCM_BITSPERDIG / 8));
-      FLIP_NET_HOST_128 (dst);
+      mpz_export (dst,
+                  &count,
+                  1, /* big-endian chunk ordering */
+                  16, /* chunks are 16 bytes long */
+                  1, /* big-endian byte ordering */
+                  0, /* "nails" -- leading unused bits per chunk */
+                  SCM_I_BIG_MPZ (src));
+      scm_remember_upto_here_1 (src);
     }
+}
+
+static int
+bignum_in_ipv6_range_p (SCM address)
+{
+  int result;
+  int sgn = mpz_sgn (SCM_I_BIG_MPZ (address));
+  
+  if (sgn < 0)
+    result = 0;
+  else
+    {
+      int size = mpz_sizeinbase (SCM_I_BIG_MPZ (address), 2);
+      if (size > 128) result = 0;
+      else result = 1;
+    }
+  scm_remember_upto_here_1 (address);
+  return result;
 }
 
 /* check that an SCM variable contains an IPv6 integer address.  */
@@ -342,10 +432,7 @@ static void ipv6_num_to_net (SCM src, char *dst)
    else\
    {\
       SCM_VALIDATE_BIGINT (which_arg, address);\
-      SCM_ASSERT_RANGE (which_arg, address,\
-	                !SCM_BIGSIGN (address)\
-			&& (SCM_BITSPERDIG\
-			    * SCM_NUMDIGS (address) <= 128));\
+      SCM_ASSERT_RANGE (which_arg, address, bignum_in_ipv6_range_p);\
    }
 
 #ifdef HAVE_INET_PTON
