@@ -1,3 +1,9 @@
+2003-05-16  Han-Wen Nienhuys  <hanwen@cs.uu.nl>
+
+	* srcprop.c (scm_finish_srcprop): use
+	scm_gc_register_collectable_memory()
+	(scm_make_srcprops): idem.
+
 2003-05-14  Han-Wen Nienhuys  <hanwen@cs.uu.nl>
 
 	* gc-malloc.c (scm_gc_register_collectable_memory): avoid
