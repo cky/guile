@@ -1,3 +1,8 @@
+2004-03-14  Kevin Ryde  <user42@zip.com.au>
+
+	* configure.in (strptime): Use #define _GNU_SOURCE to get the
+	prototype from glibc, use AC_CHECK_DECLS rather than AC_EGREP_HEADER.
+
 2004-02-29  Kevin Ryde  <user42@zip.com.au>
 
 	* configure.in: Use AC_COPYRIGHT and AH_TOP to get copyright notice

@@ -1,3 +1,8 @@
+2004-03-14  Kevin Ryde  <user42@zip.com.au>
+
+	* stime.c: Define _GNU_SOURCE for strptime prototype from glibc.
+	(strptime): Use	HAVE_DECL_STRPTIME for when to give own prototype.
+
 2004-03-07  Kevin Ryde  <user42@zip.com.au>
 
 	* stime.c (scm_gmtime): Return bd_time->tm_zone when available, rather
