@@ -319,7 +319,7 @@ scm_lookupcar (SCM vloc, SCM genv, int check)
 #endif
 	}
 #ifdef MEMOIZE_LOCALS
-      iloc = (~SCM_IDSTMSK) & (iloc + SCM_IFRINC);
+      iloc = SCM_ASSCM ((~SCM_IDSTMSK) & SCM_ASWORD(iloc + SCM_IFRINC));
 #endif
     }
   {
@@ -409,7 +409,7 @@ scm_unmemocar (SCM form, SCM env)
   if (SCM_IMP (form))
     return form;
   c = SCM_CAR (form);
-  if (1 == (c & 7))
+  if (1 == (SCM_ASWORD (c) & 7))
     SCM_SETCAR (form, SCM_CAR (c - 1));
 #ifdef MEMOIZE_LOCALS
 #ifdef DEBUG_EXTENSIONS
@@ -1262,7 +1262,7 @@ scm_macroexp (SCM x, SCM env)
 
   if (SCM_IMP (proc)
       || scm_tc16_macro != SCM_TYP16 (proc)
-      || (int) (SCM_CAR (proc) >> 16) != 2)
+      || (int) (SCM_CARW (proc) >> 16) != 2)
     return x;
 
   unmemocar (x, env);
@@ -1295,6 +1295,8 @@ scm_macroexp (SCM x, SCM env)
  *  readable style... :)
  */
 
+#define SCM_BIT8(x) (127 & SCM_ASWORD (x))
+
 static SCM
 unmemocopy (SCM x, SCM env)
 {
@@ -1309,28 +1311,28 @@ unmemocopy (SCM x, SCM env)
 #endif
   switch (SCM_TYP7 (x))
     {
-    case (127 & SCM_IM_AND):
+    case SCM_BIT8(SCM_IM_AND):
       ls = z = scm_cons (scm_sym_and, SCM_UNSPECIFIED);
       break;
-    case (127 & SCM_IM_BEGIN):
+    case SCM_BIT8(SCM_IM_BEGIN):
       ls = z = scm_cons (scm_sym_begin, SCM_UNSPECIFIED);
       break;
-    case (127 & SCM_IM_CASE):
+    case SCM_BIT8(SCM_IM_CASE):
       ls = z = scm_cons (scm_sym_case, SCM_UNSPECIFIED);
       break;
-    case (127 & SCM_IM_COND):
+    case SCM_BIT8(SCM_IM_COND):
       ls = z = scm_cons (scm_sym_cond, SCM_UNSPECIFIED);
       break;
-    case (127 & SCM_IM_DO):
+    case SCM_BIT8(SCM_IM_DO):
       ls = scm_cons (scm_sym_do, SCM_UNSPECIFIED);
       goto transform;
-    case (127 & SCM_IM_IF):
+    case SCM_BIT8(SCM_IM_IF):
       ls = z = scm_cons (scm_sym_if, SCM_UNSPECIFIED);
       break;
-    case (127 & SCM_IM_LET):
+    case SCM_BIT8(SCM_IM_LET):
       ls = scm_cons (scm_sym_let, SCM_UNSPECIFIED);
       goto transform;
-    case (127 & SCM_IM_LETREC):
+    case SCM_BIT8(SCM_IM_LETREC):
       {
 	SCM f, v, e, s;
 	ls = scm_cons (scm_sym_letrec, SCM_UNSPECIFIED);
@@ -1378,7 +1380,7 @@ unmemocopy (SCM x, SCM env)
 	  }
 	break;
       }
-    case (127 & SCM_IM_LETSTAR):
+    case SCM_BIT8(SCM_IM_LETSTAR):
       {
 	SCM b, y;
 	x = SCM_CDR (x);
@@ -1417,22 +1419,22 @@ unmemocopy (SCM x, SCM env)
 	ls = scm_cons (scm_sym_letstar, z = scm_cons (y, SCM_UNSPECIFIED));
 	break;
       }
-    case (127 & SCM_IM_OR):
+    case SCM_BIT8(SCM_IM_OR):
       ls = z = scm_cons (scm_sym_or, SCM_UNSPECIFIED);
       break;
-    case (127 & SCM_IM_LAMBDA):
+    case SCM_BIT8(SCM_IM_LAMBDA):
       x = SCM_CDR (x);
       ls = scm_cons (scm_sym_lambda,
 		     z = scm_cons (SCM_CAR (x), SCM_UNSPECIFIED));
       env = EXTEND_ENV (SCM_CAR (x), SCM_EOL, env);
       break;
-    case (127 & SCM_IM_QUOTE):
+    case SCM_BIT8(SCM_IM_QUOTE):
       ls = z = scm_cons (scm_sym_quote, SCM_UNSPECIFIED);
       break;
-    case (127 & SCM_IM_SET_X):
+    case SCM_BIT8(SCM_IM_SET_X):
       ls = z = scm_cons (scm_sym_set_x, SCM_UNSPECIFIED);
       break;
-    case (127 & SCM_IM_DEFINE):
+    case SCM_BIT8(SCM_IM_DEFINE):
       {
 	SCM n;
 	x = SCM_CDR (x);
@@ -1442,7 +1444,7 @@ unmemocopy (SCM x, SCM env)
 	  SCM_SETCAR (SCM_CAR (env), scm_cons (n, SCM_CAR (SCM_CAR (env))));
 	break;
       }
-    case (127 & SCM_MAKISYM (0)):
+    case SCM_BIT8(SCM_MAKISYM (0)):
       z = SCM_CAR (x);
       if (!SCM_ISYMP (z))
 	goto unmemo;
@@ -1916,7 +1918,7 @@ dispatch:
       x = scm_cons (x, SCM_UNDEFINED);
       goto retval;
 
-    case (127 & SCM_IM_AND):
+    case SCM_BIT8(SCM_IM_AND):
       x = SCM_CDR (x);
       t.arg1 = x;
       while (SCM_NNULLP (t.arg1 = SCM_CDR (t.arg1)))
@@ -1929,7 +1931,7 @@ dispatch:
       PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
       goto carloop;
 
-    case (127 & SCM_IM_BEGIN):
+    case SCM_BIT8(SCM_IM_BEGIN):
     cdrxnoap:
       PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
     cdrxbegin:
@@ -1969,7 +1971,7 @@ dispatch:
       goto loop;		/* tail recurse */
 
 
-    case (127 & SCM_IM_CASE):
+    case SCM_BIT8(SCM_IM_CASE):
       x = SCM_CDR (x);
       t.arg1 = EVALCAR (x, env);
       while (SCM_NIMP (x = SCM_CDR (x)))
@@ -1996,7 +1998,7 @@ dispatch:
       RETURN (SCM_UNSPECIFIED)
 
 
-    case (127 & SCM_IM_COND):
+    case SCM_BIT8(SCM_IM_COND):
       while (SCM_NIMP (x = SCM_CDR (x)))
 	{
 	  proc = SCM_CAR (x);
@@ -2024,7 +2026,7 @@ dispatch:
       RETURN (SCM_UNSPECIFIED)
 
 
-    case (127 & SCM_IM_DO):
+    case SCM_BIT8(SCM_IM_DO):
       x = SCM_CDR (x);
       proc = SCM_CAR (SCM_CDR (x)); /* inits */
       t.arg1 = SCM_EOL;		/* values */
@@ -2055,7 +2057,7 @@ dispatch:
       goto begin;
 
 
-    case (127 & SCM_IM_IF):
+    case SCM_BIT8(SCM_IM_IF):
       x = SCM_CDR (x);
       if (SCM_NFALSEP (EVALCAR (x, env)))
 	x = SCM_CDR (x);
@@ -2067,7 +2069,7 @@ dispatch:
       goto carloop;
 
 
-    case (127 & SCM_IM_LET):
+    case SCM_BIT8(SCM_IM_LET):
       x = SCM_CDR (x);
       proc = SCM_CAR (SCM_CDR (x));
       t.arg1 = SCM_EOL;
@@ -2081,7 +2083,7 @@ dispatch:
       goto cdrxnoap;
 
 
-    case (127 & SCM_IM_LETREC):
+    case SCM_BIT8(SCM_IM_LETREC):
       x = SCM_CDR (x);
       env = EXTEND_ENV (SCM_CAR (x), scm_undefineds, env);
       x = SCM_CDR (x);
@@ -2096,7 +2098,7 @@ dispatch:
       goto cdrxnoap;
 
 
-    case (127 & SCM_IM_LETSTAR):
+    case SCM_BIT8(SCM_IM_LETSTAR):
       x = SCM_CDR (x);
       proc = SCM_CAR (x);
       if (SCM_IMP (proc))
@@ -2113,7 +2115,7 @@ dispatch:
       while (SCM_NIMP (proc = SCM_CDR (proc)));
       goto cdrxnoap;
 
-    case (127 & SCM_IM_OR):
+    case SCM_BIT8(SCM_IM_OR):
       x = SCM_CDR (x);
       t.arg1 = x;
       while (SCM_NNULLP (t.arg1 = SCM_CDR (t.arg1)))
@@ -2129,15 +2131,15 @@ dispatch:
       goto carloop;
 
 
-    case (127 & SCM_IM_LAMBDA):
+    case SCM_BIT8(SCM_IM_LAMBDA):
       RETURN (scm_closure (SCM_CDR (x), env));
 
 
-    case (127 & SCM_IM_QUOTE):
+    case SCM_BIT8(SCM_IM_QUOTE):
       RETURN (SCM_CAR (SCM_CDR (x)));
 
 
-    case (127 & SCM_IM_SET_X):
+    case SCM_BIT8(SCM_IM_SET_X):
       x = SCM_CDR (x);
       proc = SCM_CAR (x);
       switch (7 & (int) proc)
@@ -2163,11 +2165,11 @@ dispatch:
 #endif
 
 
-    case (127 & SCM_IM_DEFINE):	/* only for internal defines */
+    case SCM_BIT8(SCM_IM_DEFINE):	/* only for internal defines */
       scm_misc_error (NULL, "Bad define placement", SCM_EOL);
 
       /* new syntactic forms go here. */
-    case (127 & SCM_MAKISYM (0)):
+    case SCM_BIT8(SCM_MAKISYM (0)):
       proc = SCM_CAR (x);
       SCM_ASRTGO (SCM_ISYMP (proc), badfun);
       switch SCM_ISYMNUM (proc)
@@ -2297,8 +2299,8 @@ dispatch:
 		if (SCM_NIMP (t.arg1))
 		  do
 		    {
-		      i += (SCM_STRUCT_DATA (scm_class_of (SCM_CAR (t.arg1)))
-			    [scm_si_hashsets + hashset]);
+		      i += SCM_ASWORD ((SCM_STRUCT_DATA (scm_class_of (SCM_CAR (t.arg1))))
+				       [scm_si_hashsets + hashset]);
 		      t.arg1 = SCM_CDR (t.arg1);
 		    }
 		  while (--j && SCM_NIMP (t.arg1));
@@ -2484,7 +2486,7 @@ dispatch:
       RETURN (x);
 
 #ifdef MEMOIZE_LOCALS
-    case (127 & SCM_ILOC00):
+    case SCM_BIT8(SCM_ILOC00):
       proc = *scm_ilookup (SCM_CAR (x), env);
       SCM_ASRTGO (SCM_NIMP (proc), badfun);
 #ifndef SCM_RECKLESS
@@ -2546,7 +2548,7 @@ dispatch:
 #ifdef DEVAL
 	      SCM_CLEAR_MACROEXP (debug);
 #endif
-	      switch ((int) (SCM_CAR (proc) >> 16))
+	      switch ((int) (SCM_CARW (proc) >> 16))
 		{
 		case 2:
 		  if (scm_ilength (t.arg1) <= 0)
@@ -3709,10 +3711,10 @@ SCM_DEFINE (scm_force, "force", 1, 0, 0,
 #define FUNC_NAME s_scm_force
 {
   SCM_VALIDATE_SMOB (1,x,promise);
-  if (!((1L << 16) & SCM_CAR (x)))
+  if (!((1L << 16) & SCM_CARW (x)))
     {
       SCM ans = scm_apply (SCM_CDR (x), SCM_EOL, SCM_EOL);
-      if (!((1L << 16) & SCM_CAR (x)))
+      if (!((1L << 16) & SCM_CARW (x)))
 	{
 	  SCM_DEFER_INTS;
 	  SCM_SETCDR (x, ans);

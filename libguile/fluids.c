@@ -99,7 +99,7 @@ static int
 print_fluid (SCM exp, SCM port, scm_print_state *pstate)
 {
     scm_puts ("#<fluid ", port);
-    scm_intprint (SCM_FLUID_NUM (exp), 10, port);
+    scm_intprint ((int) SCM_FLUID_NUM (exp), 10, port);
     scm_putc ('>', port);
     return 1;
 }

@@ -56,6 +56,16 @@
 #define SCM_VELTS(x) ((SCM *)SCM_CDR(x))
 #define SCM_SETVELTS SCM_SETCDR
 
+
+
+/*
+  bit vectors
+ */
+#define SCM_BITVEC_REF(a, i) ((SCM_ASWORD(SCM_VELTS(a)[(i)/SCM_LONG_BIT]) & (1L<<((i)%SCM_LONG_BIT))) ? 1 : 0)
+#define SCM_BITVEC_SET(a, i) SCM_ASWORD(SCM_VELTS(a)[(i)/SCM_LONG_BIT]) |= (1L<<((i)%SCM_LONG_BIT))
+#define SCM_BITVEC_CLR(a, i) SCM_ASWORD(SCM_VELTS(a)[(i)/SCM_LONG_BIT]) &= ~(1L<<((i)%SCM_LONG_BIT))
+
+
 
 
 extern SCM scm_vector_set_length_x (SCM vect, SCM len);

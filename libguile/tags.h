@@ -54,10 +54,27 @@
 
 
 
+
 /* In the beginning was the Word:
  */
-typedef long SCM;
+typedef long SCMWORD;
+/*
+  But as external interface, we use void*, which will be checked more strictly for
+  dubious conversions.
+ */
+#define VOIDP_TEST
+#ifndef VOIDP_TEST
+typedef SCMWORD  SCM;
+#define SCM_ASWORD(x) (x)
+#define SCM_ASSCM(x) (x)
+#else
+typedef void * SCM;
+#define SCM_ASWORD(x) ((SCMWORD)(x))
+#define SCM_ASSCM(x) ((SCM)(x))
+#endif
 
+/* SCM_CARW is a convenience for treating the CAR of X as a word */
+#define SCM_CARW(x) SCM_ASWORD (SCM_CAR(x))
 
 
 /* Cray machines have pointers that are incremented once for each word,
@@ -106,7 +123,7 @@ typedef long SCM;
  * (Not always impossible but it is fair to say that many details of tags
  * are mutually dependent).  */
 
-#define SCM_IMP(x) 		(6 & (SCM) (x))
+#define SCM_IMP(x) 		(6 & SCM_ASWORD(x))
 #define SCM_NIMP(x) 		(!SCM_IMP (x))
 
 /* Here is a summary of tagging in SCM values as they might occur in
@@ -264,7 +281,7 @@ typedef long SCM;
  * stored in the SCM_CAR of a non-immediate object have a 1 in bit 1:
  */
 
-#define SCM_SLOPPY_NCONSP(x) (1 & SCM_CAR (x))
+#define SCM_SLOPPY_NCONSP(x) (1 & SCM_CARW (x))
 #define SCM_SLOPPY_CONSP(x)  (!SCM_SLOPPY_NCONSP(x))
 
 #define SCM_NCONSP(x) (SCM_IMP (x) || SCM_SLOPPY_NCONSP(x))
@@ -286,21 +303,21 @@ typedef long SCM;
 
 
 #define SCM_CELLP(x) 	(!SCM_NCELLP (x))
-#define SCM_NCELLP(x) 	((sizeof (scm_cell) - 1) & (SCM) (x))
+#define SCM_NCELLP(x) 	((sizeof (scm_cell) - 1) & (SCMWORD) SCM_ASWORD(x))
 
 /* See numbers.h for macros relating to immediate integers.
  */
 
-#define SCM_ITAG3(x) 		(7 & (SCM) x)
-#define SCM_TYP3(x) 		(7 & SCM_CAR (x))
+#define SCM_ITAG3(x) 		(7 & SCM_ASWORD(x))
+#define SCM_TYP3(x) 		(7 & SCM_CARW (x))
 #define scm_tc3_cons		0
 #define scm_tc3_cons_gloc	1
 #define scm_tc3_int_1		2
-#define scm_tc3_closure		3
-#define scm_tc3_imm24		4
-#define scm_tc3_tc7_1		5
-#define scm_tc3_int_2		6
-#define scm_tc3_tc7_2		7
+#define scm_tc3_closure		 3
+#define scm_tc3_imm24		 4
+#define scm_tc3_tc7_1		 5
+#define scm_tc3_int_2		 6
+#define scm_tc3_tc7_2		 7
 
 
 /*
@@ -308,20 +325,20 @@ typedef long SCM;
  */
 
 
-#define SCM_TYP7(x) 		(SCM_CAR (x) & 0x7f)
-#define SCM_TYP7S(x) 		(SCM_CAR (x) & (0x7f & ~2))
+#define SCM_TYP7(x) 		(0x7f &        SCM_CARW (x))
+#define SCM_TYP7S(x) 		((0x7f & ~2) & SCM_CARW (x))
 
 
-#define SCM_TYP16(x) 		(0xffff & SCM_CAR (x))
-#define SCM_TYP16S(x) 		(0xfeff & SCM_CAR (x))
-#define SCM_GCTYP16(x) 		(0xff7f & SCM_CAR (x))
+#define SCM_TYP16(x) 		(0xffff & SCM_CARW (x))
+#define SCM_TYP16S(x) 		(0xfeff & SCM_CARW (x))
+#define SCM_GCTYP16(x) 		(0xff7f & SCM_CARW (x))
 
 
 
 /* Testing and Changing GC Marks in Various Standard Positions
  */
-#define SCM_GCMARKP(x) 		(1 & SCM_CDR (x))
-#define SCM_GC8MARKP(x) 	(0x80 & SCM_CAR (x))
+#define SCM_GCMARKP(x) 		(1 & SCM_ASWORD (SCM_CDR (x)))
+#define SCM_GC8MARKP(x) 	(0x80 & SCM_CARW (x))
 #define SCM_SETGCMARK(x) 	SCM_SETOR_CDR (x, 1)
 #define SCM_CLRGCMARK(x) 	SCM_SETAND_CDR (x, ~1L)
 #define SCM_SETGC8MARK(x) 	SCM_SETOR_CAR (x, 0x80)
@@ -437,9 +454,9 @@ enum scm_tags
   scm_tc8_iloc = 0xfc
 };
 
-#define SCM_ITAG8(X)		((SCM) (X) & 0xff)
-#define SCM_MAKE_ITAG8(X, TAG)	(((X) << 8) + TAG)
-#define SCM_ITAG8_DATA(X)	((X) >> 8)
+#define SCM_ITAG8(X)		(SCM_ASWORD(X) & 0xff)
+#define SCM_MAKE_ITAG8(X, TAG)	SCM_ASSCM(((X) << 8) + TAG)
+#define SCM_ITAG8_DATA(X)	(SCM_ASWORD(X) >> 8)
 
 
 
@@ -447,15 +464,15 @@ enum scm_tags
  */
 
 /* SCM_ISYMP tests for ISPCSYM and ISYM */
-#define SCM_ISYMP(n) 		((0x187 & (SCM) (n)) == 4)
+#define SCM_ISYMP(n) 		((0x187 & SCM_ASWORD(n)) == 4)
 
 /* SCM_IFLAGP tests for ISPCSYM, ISYM and IFLAG */
-#define SCM_IFLAGP(n) 		((0x87 & (SCM) (n)) == 4)
-#define SCM_ISYMNUM(n) 		((SCM) ((n) >> 9))
+#define SCM_IFLAGP(n) 		((0x87 & SCM_ASWORD(n)) == 4)
+#define SCM_ISYMNUM(n) 		(SCM_ASWORD(n) >> 9)
 #define SCM_ISYMCHARS(n) 	(scm_isymnames[SCM_ISYMNUM (n)])
-#define SCM_MAKSPCSYM(n) 	(((n) << 9) + ((n) << 3) + 4L)
-#define SCM_MAKISYM(n) 		(((n) << 9) + 0x74L)
-#define SCM_MAKIFLAG(n) 	(((n) << 9) + 0x174L)
+#define SCM_MAKSPCSYM(n) 	SCM_ASSCM(((n) << 9) + ((n) << 3) + 4L)
+#define SCM_MAKISYM(n) 		SCM_ASSCM(((n) << 9) + 0x74L)
+#define SCM_MAKIFLAG(n) 	SCM_ASSCM(((n) << 9) + 0x174L)
 
 extern char *scm_isymnames[];   /* defined in print.c */
 

@@ -173,7 +173,7 @@ scm_struct_init (SCM handle, int tail_elts, SCM inits)
 	    {
 	      tailp = 1;
 	      prot = prot == 'R' ? 'r' : prot == 'W' ? 'w' : 'o';
-	      *mem++ = tail_elts;
+	      *mem++ = SCM_ASSCM (tail_elts);
 	      n_fields += tail_elts - 1;
 	      if (n_fields == 0)
 		break;
@@ -324,7 +324,7 @@ scm_alloc_struct (int n_words, int n_extra, char *who)
   SCM *p = block + n_extra;
 
   /* Adjust it even further so it's aligned on an eight-byte boundary.  */
-  p = (SCM *) (((SCM) p + 7) & ~7);
+  p = (SCM *) (((SCMWORD) SCM_ASWORD (p) + 7) & ~7);
 
   /* Initialize a few fields as described above.  */
   p[scm_struct_i_free] = (SCM) scm_struct_free_standard;
@@ -345,13 +345,13 @@ scm_sizet
 scm_struct_free_light (SCM *vtable, SCM *data)
 {
   free (data);
-  return vtable[scm_struct_i_size] & ~SCM_STRUCTF_MASK;
+  return SCM_ASWORD (vtable[scm_struct_i_size]) & ~SCM_STRUCTF_MASK;
 }
 
 scm_sizet
 scm_struct_free_standard (SCM *vtable, SCM *data)
 {
-  size_t n = ((data[scm_struct_i_n_words] + scm_struct_n_extra_words)
+  size_t n = ((SCM_ASWORD (data[scm_struct_i_n_words]) + scm_struct_n_extra_words)
 	      * sizeof (SCM) + 7);
   free ((void *) data[scm_struct_i_ptr]);
   return n;
@@ -360,7 +360,7 @@ scm_struct_free_standard (SCM *vtable, SCM *data)
 scm_sizet
 scm_struct_free_entity (SCM *vtable, SCM *data)
 {
-  size_t n = ((data[scm_struct_i_n_words] + scm_struct_entity_n_extra_words)
+  size_t n = (SCM_ASWORD(data[scm_struct_i_n_words] + scm_struct_entity_n_extra_words)
 	      * sizeof (SCM) + 7);
   free ((void *) data[scm_struct_i_ptr]);
   return n;
@@ -394,7 +394,7 @@ SCM_DEFINE (scm_make_struct, "make-struct", 2, 0, 1,
   tail_elts = SCM_INUM (tail_array_size);
   SCM_NEWCELL (handle);
   SCM_DEFER_INTS;
-  if (SCM_STRUCT_DATA (vtable)[scm_struct_i_flags] & SCM_STRUCTF_ENTITY)
+  if (SCM_ASWORD (SCM_STRUCT_DATA (vtable)[scm_struct_i_flags]) & SCM_STRUCTF_ENTITY)
     {
       data = scm_alloc_struct (basic_size + tail_elts,
 			       scm_struct_entity_n_extra_words,
@@ -520,7 +520,7 @@ SCM_DEFINE (scm_struct_ref, "struct-ref", 2, 0, 0,
   SCM * data;
   SCM layout;
   int p;
-  int n_fields;
+  SCMWORD n_fields;
   unsigned char * fields_desc;
   unsigned char field_type = 0;
   
@@ -697,7 +697,7 @@ scm_struct_ihashq (SCM obj, unsigned int n)
 {
   /* The length of the hash table should be a relative prime it's not
      necessary to shift down the address.  */
-  return obj % n;
+  return SCM_ASWORD (obj) % n;
 }
 
 SCM
@@ -755,9 +755,9 @@ scm_print_struct (SCM exp, SCM port, scm_print_state *pstate)
       else
 	scm_puts ("struct", port);
       scm_putc (' ', port);
-      scm_intprint (vtable, 16, port);
+      scm_intprint ((int) vtable, 16, port);
       scm_putc (':', port);
-      scm_intprint (exp, 16, port);
+      scm_intprint ((int)exp, 16, port);
       scm_putc ('>', port);
     }
 }

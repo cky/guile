@@ -63,11 +63,15 @@
 static long scm_tc16_arbiter;
 
 
+#define SCM_ARB_LOCKED(arb) (((SCMWORD) SCM_CAR(arb)) & (1L << 16))
+#define SCM_LOCK_ARB(arb) SCM_SETCAR (arb, (SCM) (scm_tc16_arbiter | (1L << 16)));
+#define SCM_UNLOCK_ARB(arb) SCM_SETCAR (arb, (SCM) scm_tc16_arbiter);
+
 static int 
 prinarb (SCM exp, SCM port, scm_print_state *pstate)
 {
   scm_puts ("#<arbiter ", port);
-  if (SCM_CAR (exp) & (1L << 16))
+  if (SCM_ARB_LOCKED (exp))
     scm_puts ("locked ", port);
   scm_iprin1 (SCM_CDR (exp), port, pstate);
   scm_putc ('>', port);
@@ -91,11 +95,11 @@ SCM_DEFINE (scm_try_arbiter, "try-arbiter", 1, 0, 0,
 {
   SCM_VALIDATE_SMOB (1,arb,arbiter);
   SCM_DEFER_INTS;
-  if (SCM_CAR (arb) & (1L << 16))
+  if (SCM_ARB_LOCKED(arb))
     arb = SCM_BOOL_F;
   else
     {
-      SCM_SETCAR (arb, scm_tc16_arbiter | (1L << 16));
+      SCM_LOCK_ARB(arb);
       arb = SCM_BOOL_T;
     }
   SCM_ALLOW_INTS;
@@ -110,9 +114,9 @@ SCM_DEFINE (scm_release_arbiter, "release-arbiter", 1, 0, 0,
 #define FUNC_NAME s_scm_release_arbiter
 {
   SCM_VALIDATE_SMOB (1,arb,arbiter);
-  if (!(SCM_CAR (arb) & (1L << 16)))
+  if (! SCM_ARB_LOCKED(arb))
     return SCM_BOOL_F;
-  SCM_SETCAR (arb, scm_tc16_arbiter);
+  SCM_UNLOCK_ARB (arb);
   return SCM_BOOL_T;
 }
 #undef FUNC_NAME

@@ -84,7 +84,7 @@ typedef struct
   SCM documentation;
 } scm_subr_entry;
 
-#define SCM_SUBRNUM(subr) (SCM_CAR (subr) >> 8)
+#define SCM_SUBRNUM(subr) (SCM_CARW (subr) >> 8)
 #define SCM_SET_SUBRNUM(subr, num) \
         SCM_SETCAR (subr, (num >> 8) + SCM_TYP7 (subr))
 #define SCM_SUBR_ENTRY(x) (scm_subr_table[SCM_SUBRNUM (x)])

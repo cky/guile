@@ -96,7 +96,7 @@ typedef struct scm_srcprops_chunk
 } scm_srcprops_chunk;
 
 #define SRCPROPSP(p) (SCM_NIMP(p) && (SCM_TYP16 (p) == scm_tc16_srcprops))
-#define SRCPROPBRK(p) (SCM_BOOL((1L << 16) & SCM_CAR (p)))
+#define SRCPROPBRK(p) (SCM_BOOL((1L << 16) & SCM_CARW (p)))
 #define SRCPROPPOS(p) ((scm_srcprops *) SCM_CDR (p))->pos
 #define SRCPROPLINE(p) (SRCPROPPOS(p) >> 12)
 #define SRCPROPCOL(p) (SRCPROPPOS(p) & 0x0fffL)
@@ -112,7 +112,7 @@ typedef struct scm_srcprops_chunk
 
 #define SRCBRKP(x) (SCM_NIMP (t.arg1 = scm_whash_lookup (scm_source_whash, (x)))\
 		    && SRCPROPSP (t.arg1)\
-		    && (1L << 16) & SCM_CAR (t.arg1))
+		    && ((1L << 16) & SCM_ASWORD (SCM_CAR (t.arg1))))
 
 #define PROCTRACEP(x) SCM_NFALSEP (scm_procedure_property (x, scm_sym_trace))
 

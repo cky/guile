@@ -353,11 +353,11 @@ SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
   int i;
   int n;
   SCM heap_segs;
-  SCM local_scm_mtrigger;
-  SCM local_scm_mallocated;
-  SCM local_scm_heap_size;
-  SCM local_scm_cells_allocated;
-  SCM local_scm_gc_time_taken;
+  long int local_scm_mtrigger;
+  long int local_scm_mallocated;
+  long int local_scm_heap_size;
+  long int local_scm_cells_allocated;
+  long int local_scm_gc_time_taken;
   SCM answer;
 
   SCM_DEFER_INTS;
@@ -373,6 +373,7 @@ SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
     goto retry;
   scm_block_gc = 0;
 
+  /// ? ?? ? 
   local_scm_mtrigger = scm_mtrigger;
   local_scm_mallocated = scm_mallocated;
   local_scm_heap_size = scm_heap_size;
@@ -405,7 +406,7 @@ void
 scm_gc_end ()
 {
   scm_gc_rt = SCM_INUM (scm_get_internal_run_time ()) - scm_gc_rt;
-  scm_gc_time_taken = scm_gc_time_taken + scm_gc_rt;
+  scm_gc_time_taken += scm_gc_rt;
   scm_system_async_mark (scm_gc_async);
 }
 
@@ -667,7 +668,7 @@ gc_mark_nimp:
       {
 	SCM vcell;
 	vcell = SCM_CAR (ptr) - 1L;
-	switch (SCM_CDR (vcell))
+	switch (SCM_ASWORD (SCM_CDR (vcell)))
 	  {
 	  default:
 	    scm_gc_mark (vcell);
@@ -691,7 +692,7 @@ gc_mark_nimp:
                  that it removes the mark */
 	      mem = (SCM *)SCM_GCCDR (ptr);
 	      
-	      if (vtable_data[scm_struct_i_flags] & SCM_STRUCTF_ENTITY)
+	      if (SCM_ASWORD (vtable_data[scm_struct_i_flags]) & SCM_STRUCTF_ENTITY)
 		{
 		  scm_gc_mark (mem[scm_struct_i_procedure]);
 		  scm_gc_mark (mem[scm_struct_i_setter]);
@@ -703,8 +704,9 @@ gc_mark_nimp:
 		      scm_gc_mark (*mem);
 		  if (fields_desc[x] == 'p')
 		    {
+		      int j;
 		      if (SCM_LAYOUT_TAILP (fields_desc[x + 1]))
-			for (x = *mem; x; --x)
+			for (j = (long int) *mem; x; --x)
 			  scm_gc_mark (*++mem);
 		      else
 			scm_gc_mark (*mem);
@@ -922,7 +924,7 @@ scm_mark_locations (SCM_STACKITEM x[], scm_sizet n)
   register SCM_CELLPTR ptr;
 
   while (0 <= --m)
-    if SCM_CELLP (*(SCM **) & x[m])
+    if (SCM_CELLP (*(SCM **) (& x[m])))
       {
 	ptr = (SCM_CELLPTR) SCM2PTR ((*(SCM **) & x[m]));
 	i = 0;
@@ -987,7 +989,7 @@ scm_cellp (SCM value)
   register int i, j;
   register SCM_CELLPTR ptr;
   
-  if SCM_CELLP (*(SCM **) & value)
+  if SCM_CELLP (*(SCM **) (& value))
     {
       ptr = (SCM_CELLPTR) SCM2PTR ((*(SCM **) & value));
       i = 0;
@@ -1138,7 +1140,7 @@ scm_gc_sweep ()
 		SCM vcell;
 		vcell = SCM_CAR (scmptr) - 1L;
 
-		if ((SCM_CDR (vcell) == 0) || (SCM_CDR (vcell) == 1))
+		if ((SCM_CDR (vcell) == 0) || (SCM_ASWORD (SCM_CDR (vcell)) == 1))
 		  {
 		    scm_struct_free_t free
 		      = (scm_struct_free_t) ((SCM*) vcell)[scm_struct_i_free];
@@ -1290,7 +1292,7 @@ scm_gc_sweep ()
 		case scm_tc16_flo:
 		  if SCM_GC8MARKP (scmptr)
 		    goto c8mrkcontinue;
-		  switch ((int) (SCM_CAR (scmptr) >> 16))
+		  switch ((int) (SCM_CARW (scmptr) >> 16))
 		    {
 		    case (SCM_IMAG_PART | SCM_REAL_PART) >> 16:
 		      m += sizeof (double);
@@ -1782,7 +1784,7 @@ SCM_DEFINE (scm_unhash_name, "unhash-name", 1, 0, 0,
 	      --incar;
 	      if (   ((name == SCM_BOOL_T) || (SCM_CAR (incar) == name))
 		  && (SCM_CDR (incar) != 0)
-		  && (SCM_CDR (incar) != 1))
+		  && (SCM_ASWORD (SCM_CDR (incar)) != 1))
 		{
 		  p->car = name;
 		}
@@ -1806,6 +1808,9 @@ scm_remember (SCM *ptr)
 { /* empty */ }
 
 
+/*
+  What the heck is this? --hwn
+ */ 
 SCM
 scm_return_first (SCM elt, ...)
 {
@@ -1827,9 +1832,9 @@ scm_permanent_object (SCM obj)
    even if all other references are dropped, until someone applies
    scm_unprotect_object to it.  This function returns OBJ.
 
-   Calls to scm_protect_object nest.  For every object O, there is a
-   counter which scm_protect_object(O) increments and
-   scm_unprotect_object(O) decrements, if it is greater than zero.  If
+   Calls to scm_protect_object nest.  For every object OBJ, there is a
+   counter which scm_protect_object(OBJ) increments and
+   scm_unprotect_object(OBJ) decrements, if it is greater than zero.  If
    an object's counter is greater than zero, the garbage collector
    will not free it.
 

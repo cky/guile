@@ -83,7 +83,7 @@ stfill_buffer (SCM port)
   if (pt->read_pos >= pt->read_end)
     return EOF;
   else
-    return scm_return_first (*pt->read_pos, port);
+    return scm_return_first (*pt->read_pos, port); /* huh? -- hwn*/
 }
 
 /* change the size of a port's string to new_size.  this doesn't
@@ -207,7 +207,7 @@ st_seek (SCM port, off_t offset, int whence)
   
       if (target >= pt->write_buf_size)
 	{
-	  if (!(SCM_CAR (port) & SCM_WRTNG))
+	  if (!(SCM_CARW (port) & SCM_WRTNG))
 	    {
 	      if (target > pt->write_buf_size)
 		{

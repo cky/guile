@@ -58,7 +58,7 @@ static int
 prin_var (SCM exp,SCM port,scm_print_state *pstate)
 {
   scm_puts ("#<variable ", port);
-  scm_intprint(exp, 16, port);
+  scm_intprint((int) exp, 16, port);
   {
     SCM val_cell;
     val_cell = SCM_CDR(exp);

@@ -54,7 +54,7 @@ static int
 prinmalloc (SCM exp,SCM port,scm_print_state *pstate)
 {
   scm_puts("#<malloc ", port);
-  scm_intprint(SCM_CDR(exp), 16, port);
+  scm_intprint((int) SCM_CDR(exp), 16, port);
   scm_putc('>', port);
   return 1;
 }

@@ -56,7 +56,8 @@
  */
 
 typedef struct scm_info_frame {
-  SCM flags;
+  //SCM flags;
+  SCMWORD flags;
   SCM source;
   SCM proc;
   SCM args;
@@ -107,11 +108,11 @@ extern SCM scm_stack_type;
 #define SCM_FRAMEF_EVAL_ARGS 	(1L << 5)
 #define SCM_FRAMEF_OVERFLOW	(1L << 6)
 
-#define SCM_FRAME_VOID_P(frame) (SCM_FRAME_FLAGS (frame) & SCM_FRAMEF_VOID)
-#define SCM_FRAME_REAL_P(frame) (SCM_FRAME_FLAGS (frame) & SCM_FRAMEF_REAL)
-#define SCM_FRAME_PROC_P(frame) (SCM_FRAME_FLAGS (frame) & SCM_FRAMEF_PROC)
-#define SCM_FRAME_EVAL_ARGS_P(frame) (SCM_FRAME_FLAGS (frame) & SCM_FRAMEF_EVAL_ARGS)
-#define SCM_FRAME_OVERFLOW_P(frame) (SCM_FRAME_FLAGS (frame) & SCM_FRAMEF_OVERFLOW)
+#define SCM_FRAME_VOID_P(frame) (SCM_ASWORD (SCM_FRAME_FLAGS (frame)) & SCM_FRAMEF_VOID)
+#define SCM_FRAME_REAL_P(frame) (SCM_ASWORD (SCM_FRAME_FLAGS (frame)) & SCM_FRAMEF_REAL)
+#define SCM_FRAME_PROC_P(frame) (SCM_ASWORD (SCM_FRAME_FLAGS (frame)) & SCM_FRAMEF_PROC)
+#define SCM_FRAME_EVAL_ARGS_P(frame) (SCM_ASWORD (SCM_FRAME_FLAGS (frame)) & SCM_FRAMEF_EVAL_ARGS)
+#define SCM_FRAME_OVERFLOW_P(frame) (SCM_ASWORD (SCM_FRAME_FLAGS (frame)) & SCM_FRAMEF_OVERFLOW)
 
 
 

@@ -275,7 +275,7 @@ SCM_DEFINE (scm_gloc_p, "gloc?", 1, 0, 0,
 #define FUNC_NAME s_scm_gloc_p
 {
   return SCM_BOOL((SCM_MEMOIZEDP (obj)
-                   && (SCM_MEMOIZED_EXP (obj) & 7) == 1));
+                   && (SCM_ASWORD(SCM_MEMOIZED_EXP (obj)) & 7) == 1));
 }
 #undef FUNC_NAME
 
@@ -559,7 +559,7 @@ static int
 prindebugobj (SCM obj,SCM port,scm_print_state *pstate)
 {
   scm_puts ("#<debug-object ", port);
-  scm_intprint (SCM_DEBUGOBJ_FRAME (obj), 16, port);
+  scm_intprint ((int) SCM_DEBUGOBJ_FRAME (obj), 16, port);
   scm_putc ('>', port);
   return 1;
 }

@@ -55,7 +55,12 @@ typedef struct scm_option
 {
   int type;
   char *name;
+
+  /*
+    schizophrenic use: both SCM and int
+   */
   unsigned long val;
+  // SCM val
   char *doc;
 } scm_option;
 

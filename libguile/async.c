@@ -383,9 +383,14 @@ SCM_DEFINE (scm_set_tick_rate, "set-tick-rate", 1, 0, 0,
 #define FUNC_NAME s_scm_set_tick_rate
 {
   unsigned int old_n;
+
+
   SCM_VALIDATE_INUM (1,n);
+
   old_n = scm_tick_rate;
-  scm_desired_tick_rate = SCM_INUM (n);
+
+
+  scm_desired_tick_rate = SCM_ASWORD (SCM_INUM (n));
   scm_async_rate = 1 + scm_async_rate - scm_async_clock;
   scm_async_clock = 1;
   return SCM_MAKINUM (old_n);
@@ -403,7 +408,7 @@ SCM_DEFINE (scm_set_switch_rate, "set-switch-rate", 1, 0, 0,
   unsigned int old_n;
   SCM_VALIDATE_INUM (1,n);
   old_n = scm_switch_rate;
-  scm_desired_switch_rate = SCM_INUM (n);
+  scm_desired_switch_rate = SCM_ASWORD (SCM_INUM (n));
   scm_async_rate = 1 + scm_async_rate - scm_async_clock;
   scm_async_clock = 1;
   return SCM_MAKINUM (old_n);

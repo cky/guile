@@ -42,6 +42,13 @@
 /* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
    gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
 
+/*
+  This file has code for arrays in lots of variants (double, integer,
+  unsigned etc. ). It suffers from hugely repetitive code because
+  there is similar (but different) code for every variant included. (urg.)
+
+  --hwn
+*/
 
 
 #include <stdio.h>
@@ -280,10 +287,9 @@ SCM_DEFINE (scm_array_p, "array?", 1, 1, 0,
   enclosed = 0;
   if (SCM_IMP (v))
     return SCM_BOOL_F;
-loop:
-  switch (SCM_TYP7 (v))
+
+  while (SCM_TYP7 (v) == scm_tc7_smob)
     {
-    case scm_tc7_smob:
       if (!SCM_ARRAYP (v))
 	return SCM_BOOL_F;
       if (nprot)
@@ -291,45 +297,55 @@ loop:
       if (enclosed++)
 	return SCM_BOOL_F;
       v = SCM_ARRAY_V (v);
-      goto loop;
-    case scm_tc7_bvect:
-      return nprot || SCM_BOOL(SCM_BOOL_T==prot);
-    case scm_tc7_string:
-      return nprot || SCM_BOOL(SCM_CHARP(prot) && (prot != SCM_MAKE_CHAR('\0')));
-    case scm_tc7_byvect:
-      return nprot || SCM_BOOL(prot == SCM_MAKE_CHAR('\0'));
-    case scm_tc7_uvect:
-      return nprot || SCM_BOOL(SCM_INUMP(prot) && SCM_INUM(prot)>0);
-    case scm_tc7_ivect:
-      return nprot || SCM_BOOL(SCM_INUMP(prot) && SCM_INUM(prot)<=0);
-    case scm_tc7_svect:
-      return (   nprot
-	      || (SCM_SYMBOLP (prot)
-		  && (1 == SCM_LENGTH (prot))
-		  && ('s' == SCM_CHARS (prot)[0])));
+     }
+  if (nprot)
+    return SCM_BOOL(nprot);
+  else
+    {
+      int protp = 0;
+      
+      switch (SCM_TYP7 (v))
+ 	{
+ 	case scm_tc7_bvect:
+ 	  protp = (SCM_BOOL_T==prot);
+ 	case scm_tc7_string:
+ 	  protp = SCM_ICHRP(prot) && (prot != SCM_MAKICHR('\0'));
+ 	case scm_tc7_byvect:
+ 	  protp = prot == SCM_MAKICHR('\0');
+ 	case scm_tc7_uvect:
+ 	  protp = SCM_INUMP(prot) && SCM_INUM(prot)>0;
+ 	case scm_tc7_ivect:
+ 	  protp = SCM_INUMP(prot) && SCM_INUM(prot)<=0;
+          
+ 	case scm_tc7_svect:
+ 	  protp = SCM_SYMBOLP (prot)
+ 	    && (1 == SCM_LENGTH (prot))
+ 	    && ('s' == SCM_CHARS (prot)[0]);
 #ifdef HAVE_LONG_LONGS
-    case scm_tc7_llvect:
-      return (   nprot
-	      || (SCM_SYMBOLP (prot)
-		  && (1 == SCM_LENGTH (prot))
-		  && ('s' == SCM_CHARS (prot)[0])));
+ 	case scm_tc7_llvect:
+ 	  protp = SCM_SYMBOLP (prot)
+ 	    && (1 == SCM_LENGTH (prot))
+ 	    && ('s' == SCM_CHARS (prot)[0]);
 #endif
 # ifdef SCM_FLOATS
 #  ifdef SCM_SINGLES
-    case scm_tc7_fvect:
-      return nprot || SCM_BOOL(SCM_SINGP(prot));
+ 	case scm_tc7_fvect:
+ 	  protp = SCM_SINGP(prot);
 #  endif
-    case scm_tc7_dvect:
-      return nprot || SCM_BOOL(SCM_REALP(prot));
-    case scm_tc7_cvect:
-      return nprot || SCM_BOOL(SCM_CPLXP(prot));
+ 	case scm_tc7_dvect:
+ 	  protp = SCM_REALP(prot);
+ 	case scm_tc7_cvect:
+ 	  protp = SCM_CPLXP(prot);
 # endif
-    case scm_tc7_vector:
-    case scm_tc7_wvect:
-      return nprot || SCM_BOOL(SCM_NULLP(prot));
-    default:;
+ 	case scm_tc7_vector:
+ 	case scm_tc7_wvect:
+ 	  protp = SCM_NULLP(prot);
+ 	default:
+ 	  /* no default */
+ 	  ;
+ 	}
+      return SCM_BOOL(protp);
     }
-  return SCM_BOOL_F;
 }
 #undef FUNC_NAME
 
@@ -1079,8 +1095,11 @@ SCM_DEFINE (scm_uniform_vector_ref, "uniform-vector-ref", 2, 0, 0,
     badarg:
       SCM_WTA (1,v);
       abort ();
-    outrng:scm_out_of_range (FUNC_NAME, SCM_MAKINUM (pos));
-    wna: scm_wrong_num_args (SCM_FUNC_NAME);
+
+    outrng:
+      scm_out_of_range (FUNC_NAME, SCM_MAKINUM (pos));
+    wna:
+      scm_wrong_num_args (SCM_FUNC_NAME);
     case scm_tc7_smob:
       {				/* enclosed */
 	int k = SCM_ARRAY_NDIM (v);
@@ -1096,7 +1115,7 @@ SCM_DEFINE (scm_uniform_vector_ref, "uniform-vector-ref", 2, 0, 0,
 	return res;
       }
     case scm_tc7_bvect:
-      if (SCM_VELTS (v)[pos / SCM_LONG_BIT] & (1L << (pos % SCM_LONG_BIT)))
+      if (SCM_BITVEC_REF (v, pos))
 	return SCM_BOOL_T;
       else
 	return SCM_BOOL_F;
@@ -1110,9 +1129,9 @@ SCM_DEFINE (scm_uniform_vector_ref, "uniform-vector-ref", 2, 0, 0,
       return SCM_MAKINUM (SCM_VELTS (v)[pos]);
 # else
   case scm_tc7_uvect:
-    return scm_ulong2num(SCM_VELTS(v)[pos]);
+    return scm_ulong2num((unsigned long ) SCM_VELTS(v)[pos]);
   case scm_tc7_ivect:
-    return scm_long2num(SCM_VELTS(v)[pos]);
+    return scm_long2num((long) SCM_VELTS(v)[pos]);
 # endif    
 
     case scm_tc7_svect:
@@ -1151,7 +1170,7 @@ scm_cvref (SCM v, scm_sizet pos, SCM last)
     default:
       scm_wta (v, (char *) SCM_ARG1, "PROGRAMMING ERROR: scm_cvref");
     case scm_tc7_bvect:
-      if (SCM_VELTS (v)[pos / SCM_LONG_BIT] & (1L << (pos % SCM_LONG_BIT)))
+      if (SCM_BITVEC_REF(v,pos))
 	return SCM_BOOL_T;
       else
 	return SCM_BOOL_F;
@@ -1165,9 +1184,9 @@ scm_cvref (SCM v, scm_sizet pos, SCM last)
       return SCM_MAKINUM (SCM_VELTS (v)[pos]);
 # else
     case scm_tc7_uvect:
-      return scm_ulong2num(SCM_VELTS(v)[pos]);
+      return scm_ulong2num((unsigned long) SCM_VELTS(v)[pos]);
     case scm_tc7_ivect:
-      return scm_long2num(SCM_VELTS(v)[pos]);
+      return scm_long2num((long) SCM_VELTS(v)[pos]);
 # endif    
     case scm_tc7_svect:
       return SCM_MAKINUM (((short *) SCM_CDR (v))[pos]);
@@ -1178,7 +1197,7 @@ scm_cvref (SCM v, scm_sizet pos, SCM last)
 #ifdef SCM_FLOATS
 #ifdef SCM_SINGLES
     case scm_tc7_fvect:
-      if (SCM_NIMP (last) && (last != scm_flo0) && (scm_tc_flo == SCM_CAR (last)))
+      if (SCM_NIMP (last) && (last != scm_flo0) && (scm_tc_flo == SCM_CARW (last)))
 	{
 	  SCM_FLO (last) = ((float *) SCM_CDR (v))[pos];
 	  return last;
@@ -1187,7 +1206,7 @@ scm_cvref (SCM v, scm_sizet pos, SCM last)
 #endif
     case scm_tc7_dvect:
 #ifdef SCM_SINGLES
-      if (SCM_NIMP (last) && scm_tc_dblr == SCM_CAR (last))
+      if (SCM_NIMP (last) && scm_tc_dblr == SCM_CARW (last))
 #else
       if (SCM_NIMP (last) && (last != scm_flo0) && (scm_tc_dblr == SCM_CAR (last)))
 #endif
@@ -1197,7 +1216,7 @@ scm_cvref (SCM v, scm_sizet pos, SCM last)
 	}
       return scm_makdbl (((double *) SCM_CDR (v))[pos], 0.0);
     case scm_tc7_cvect:
-      if (SCM_NIMP (last) && scm_tc_dblc == SCM_CAR (last))
+      if (SCM_NIMP (last) && scm_tc_dblc == SCM_CARW (last))
 	{
 	  SCM_REAL (last) = ((double *) SCM_CDR (v))[2 * pos];
 	  SCM_IMAG (last) = ((double *) SCM_CDR (v))[2 * pos + 1];
@@ -1264,15 +1283,17 @@ SCM_DEFINE (scm_array_set_x, "array-set!", 2, 0, 1,
     default: badarg1:
       SCM_WTA (1,v);
       abort ();
-    outrng:scm_out_of_range (FUNC_NAME, SCM_MAKINUM (pos));
-    wna: scm_wrong_num_args (SCM_FUNC_NAME);
+    outrng:
+      scm_out_of_range (FUNC_NAME, SCM_MAKINUM (pos));
+    wna:
+      scm_wrong_num_args (SCM_FUNC_NAME);
     case scm_tc7_smob:		/* enclosed */
       goto badarg1;
     case scm_tc7_bvect:
       if (SCM_BOOL_F == obj)
-	SCM_VELTS (v)[pos / SCM_LONG_BIT] &= ~(1L << (pos % SCM_LONG_BIT));
+	SCM_BITVEC_CLR(v,pos);
       else if (SCM_BOOL_T == obj)
-	SCM_VELTS (v)[pos / SCM_LONG_BIT] |= (1L << (pos % SCM_LONG_BIT));
+	SCM_BITVEC_SET(v,pos);
       else
       badobj:SCM_WTA (2,obj);
       break;
@@ -1291,12 +1312,15 @@ SCM_DEFINE (scm_array_set_x, "array-set!", 2, 0, 1,
       SCM_ASRTGO (SCM_INUM (obj) >= 0, badobj); 
       /* fall through */
     case scm_tc7_ivect:
-      SCM_ASRTGO(SCM_INUMP(obj), badobj); SCM_VELTS(v)[pos] = SCM_INUM(obj); break;
+      SCM_ASRTGO(SCM_INUMP(obj), badobj); SCM_VELTS(v)[pos] = SCM_INUM(obj);
+      break;
 # else
     case scm_tc7_uvect:
-      SCM_VELTS(v)[pos] = scm_num2ulong(obj, (char *)SCM_ARG2, FUNC_NAME); break;
+      SCM_VELTS(v)[pos] = SCM_ASSCM (scm_num2ulong(obj, (char *)SCM_ARG2, FUNC_NAME));
+      break;
     case scm_tc7_ivect:
-      SCM_VELTS(v)[pos] = scm_num2long(obj, (char *)SCM_ARG2, FUNC_NAME); break;
+      SCM_VELTS(v)[pos] = SCM_ASSCM (scm_num2long(obj, (char *)SCM_ARG2, FUNC_NAME));
+      break;
 # endif
     case scm_tc7_svect:
       SCM_ASRTGO (SCM_INUMP (obj), badobj);
@@ -1727,7 +1751,8 @@ SCM_DEFINE (scm_bit_count, "bit-count", 2, 0, 0,
 #define FUNC_NAME s_scm_bit_count
 {
   long i;
-  register unsigned long cnt = 0, w;
+  register unsigned long cnt = 0;
+  register unsigned long w;
   SCM_VALIDATE_INUM (2,seq);
   switch SCM_TYP7 (seq)
     {
@@ -1737,7 +1762,7 @@ SCM_DEFINE (scm_bit_count, "bit-count", 2, 0, 0,
       if (0 == SCM_LENGTH (seq))
 	return SCM_INUM0;
       i = (SCM_LENGTH (seq) - 1) / SCM_LONG_BIT;
-      w = SCM_VELTS (seq)[i];
+      w = SCM_ASWORD (SCM_VELTS (seq)[i]);
       if (SCM_FALSEP (item))
 	w = ~w;
       w <<= SCM_LONG_BIT - 1 - ((SCM_LENGTH (seq) - 1) % SCM_LONG_BIT);
@@ -1747,7 +1772,7 @@ SCM_DEFINE (scm_bit_count, "bit-count", 2, 0, 0,
 	    cnt += cnt_tab[w & 0x0f];
 	  if (0 == i--)
 	    return SCM_MAKINUM (cnt);
-	  w = SCM_VELTS (seq)[i];
+	  w = SCM_ASWORD (SCM_VELTS (seq)[i]);
 	  if (SCM_FALSEP (item))
 	    w = ~w;
 	}
@@ -1780,7 +1805,7 @@ SCM_DEFINE (scm_bit_position, "bit-position", 3, 0, 0,
 	return SCM_MAKINUM (-1L);
       lenw = (SCM_LENGTH (v) - 1) / SCM_LONG_BIT;	/* watch for part words */
       i = pos / SCM_LONG_BIT;
-      w = SCM_VELTS (v)[i];
+      w = SCM_ASWORD (SCM_VELTS (v)[i]);
       if (SCM_FALSEP (item))
 	w = ~w;
       xbits = (pos % SCM_LONG_BIT);
@@ -1814,7 +1839,7 @@ SCM_DEFINE (scm_bit_position, "bit-position", 3, 0, 0,
 	  if (++i > lenw)
 	    break;
 	  pos += SCM_LONG_BIT;
-	  w = SCM_VELTS (v)[i];
+	  w = SCM_ASWORD (SCM_VELTS (v)[i]);
 	  if (SCM_FALSEP (item))
 	    w = ~w;
 	}
@@ -1846,22 +1871,22 @@ SCM_DEFINE (scm_bit_set_star_x, "bit-set*!", 3, 0, 0,
       switch SCM_TYP7 (v)
 	{
 	default:
-	badarg1:SCM_WTA (1,v);
+	badarg1:  SCM_WTA (1,v);
 	case scm_tc7_bvect:
 	  vlen = SCM_LENGTH (v);
 	  if (SCM_BOOL_F == obj)
 	    for (i = SCM_LENGTH (kv); i;)
 	      {
-		k = SCM_VELTS (kv)[--i];
+		k = SCM_ASWORD (SCM_VELTS (kv)[--i]);
 		SCM_ASSERT ((k < vlen), SCM_MAKINUM (k), SCM_OUTOFRANGE, FUNC_NAME);
-		SCM_VELTS (v)[k / SCM_LONG_BIT] &= ~(1L << (k % SCM_LONG_BIT));
+		SCM_BITVEC_CLR(v,k);
 	      }
 	  else if (SCM_BOOL_T == obj)
 	    for (i = SCM_LENGTH (kv); i;)
 	      {
-		k = SCM_VELTS (kv)[--i];
+		k = SCM_ASWORD (SCM_VELTS (kv)[--i]);
 		SCM_ASSERT ((k < vlen), SCM_MAKINUM (k), SCM_OUTOFRANGE, FUNC_NAME);
-		SCM_VELTS (v)[k / SCM_LONG_BIT] |= (1L << (k % SCM_LONG_BIT));
+		SCM_BITVEC_SET(v,k);
 	      }
 	  else
 	  badarg3:SCM_WTA (3,obj);
@@ -1871,10 +1896,10 @@ SCM_DEFINE (scm_bit_set_star_x, "bit-set*!", 3, 0, 0,
       SCM_ASRTGO (SCM_TYP7 (v) == scm_tc7_bvect && SCM_LENGTH (v) == SCM_LENGTH (kv), badarg1);
       if (SCM_BOOL_F == obj)
 	for (k = (SCM_LENGTH (v) + SCM_LONG_BIT - 1) / SCM_LONG_BIT; k--;)
-	  SCM_VELTS (v)[k] &= ~(SCM_VELTS (kv)[k]);
+	  SCM_ASWORD (SCM_VELTS (v)[k]) &= ~ SCM_ASWORD(SCM_VELTS (kv)[k]);
       else if (SCM_BOOL_T == obj)
 	for (k = (SCM_LENGTH (v) + SCM_LONG_BIT - 1) / SCM_LONG_BIT; k--;)
-	  SCM_VELTS (v)[k] |= SCM_VELTS (kv)[k];
+	  SCM_ASWORD (SCM_VELTS (v)[k]) |= SCM_ASWORD (SCM_VELTS (kv)[k]);
       else
 	goto badarg3;
       break;
@@ -1895,34 +1920,37 @@ SCM_DEFINE (scm_bit_count_star, "bit-count*", 3, 0, 0,
 {
   register long i, vlen, count = 0;
   register unsigned long k;
+  
   SCM_ASRTGO (SCM_NIMP (v), badarg1);
   SCM_ASRTGO (SCM_NIMP (kv), badarg2);
   switch SCM_TYP7 (kv)
     {
     default:
-    badarg2:SCM_WTA (2,kv);
+    badarg2:
+        SCM_WTA (2,kv);
     case scm_tc7_uvect:
       switch SCM_TYP7
 	(v)
 	{
 	default:
-	badarg1:SCM_WTA (1,v);
+	badarg1:
+	  SCM_WTA (1,v);
 	case scm_tc7_bvect:
 	  vlen = SCM_LENGTH (v);
 	  if (SCM_BOOL_F == obj)
 	    for (i = SCM_LENGTH (kv); i;)
 	      {
-		k = SCM_VELTS (kv)[--i];
+		k = SCM_ASWORD (SCM_VELTS (kv)[--i]);
 		SCM_ASSERT ((k < vlen), SCM_MAKINUM (k), SCM_OUTOFRANGE, FUNC_NAME);
-		if (!(SCM_VELTS (v)[k / SCM_LONG_BIT] & (1L << (k % SCM_LONG_BIT))))
+		if (!SCM_BITVEC_REF(v,k))
 		  count++;
 	      }
 	  else if (SCM_BOOL_T == obj)
 	    for (i = SCM_LENGTH (kv); i;)
 	      {
-		k = SCM_VELTS (kv)[--i];
+		k = SCM_ASWORD (SCM_VELTS (kv)[--i]);
 		SCM_ASSERT ((k < vlen), SCM_MAKINUM (k), SCM_OUTOFRANGE, FUNC_NAME);
-		if (SCM_VELTS (v)[k / SCM_LONG_BIT] & (1L << (k % SCM_LONG_BIT)))
+		if (SCM_BITVEC_REF (v,k))
 		  count++;
 	      }
 	  else
@@ -1934,17 +1962,19 @@ SCM_DEFINE (scm_bit_count_star, "bit-count*", 3, 0, 0,
       if (0 == SCM_LENGTH (v))
 	return SCM_INUM0;
       SCM_ASRTGO (SCM_BOOL_T == obj || SCM_BOOL_F == obj, badarg3);
-      obj = (SCM_BOOL_T == obj);
+      obj = (SCM_BOOL_T == obj); /* ugh. */
       i = (SCM_LENGTH (v) - 1) / SCM_LONG_BIT;
-      k = SCM_VELTS (kv)[i] & (obj ? SCM_VELTS (v)[i] : ~SCM_VELTS (v)[i]);
+      k = SCM_ASWORD (SCM_VELTS (kv)[i]) & (obj ? SCM_ASWORD (SCM_VELTS (v)[i]) : ~ SCM_ASWORD (SCM_VELTS (v)[i]));
       k <<= SCM_LONG_BIT - 1 - ((SCM_LENGTH (v) - 1) % SCM_LONG_BIT);
-      while (!0)
+      while (1)
 	{
 	  for (; k; k >>= 4)
 	    count += cnt_tab[k & 0x0f];
 	  if (0 == i--)
 	    return SCM_MAKINUM (count);
-	  k = SCM_VELTS (kv)[i] & (obj ? SCM_VELTS (v)[i] : ~SCM_VELTS (v)[i]);
+
+         /* urg. repetitive (see above.) */
+	  k = SCM_ASWORD (SCM_VELTS (kv)[i]) & (obj ? SCM_ASWORD(SCM_VELTS (v)[i]) : ~SCM_ASWORD (SCM_VELTS (v)[i]));
 	}
     }
   return SCM_MAKINUM (count);
@@ -1965,7 +1995,7 @@ SCM_DEFINE (scm_bit_invert_x, "bit-invert!", 1, 0, 0,
     {
     case scm_tc7_bvect:
       for (k = (k + SCM_LONG_BIT - 1) / SCM_LONG_BIT; k--;)
-	SCM_VELTS (v)[k] = ~SCM_VELTS (v)[k];
+	SCM_ASWORD (SCM_VELTS (v)[k]) = ~SCM_ASWORD(SCM_VELTS (v)[k]);
       break;
     default:
     badarg1:SCM_WTA (1,v);
@@ -2329,11 +2359,11 @@ tail:
       }
     case scm_tc7_ivect:
       if (n-- > 0)
-	scm_intprint (SCM_VELTS (ra)[j], 10, port);
+	scm_intprint ((int)SCM_VELTS (ra)[j], 10, port);
       for (j += inc; n-- > 0; j += inc)
 	{
 	  scm_putc (' ', port);
-	  scm_intprint (SCM_VELTS (ra)[j], 10, port);
+	  scm_intprint ((int)SCM_VELTS (ra)[j], 10, port);
 	}
       break;
 
@@ -2435,7 +2465,7 @@ tail:
 	  scm_putc ('*', port);
 	  for (i = 0; i < (SCM_LENGTH (exp)) / SCM_LONG_BIT; i++)
 	    {
-	      w = SCM_VELTS (exp)[i];
+	      SCMWORD w = SCM_ASWORD (SCM_VELTS (exp)[i]);
 	      for (j = SCM_LONG_BIT; j; j--)
 		{
 		  scm_putc (w & 1 ? '1' : '0', port);
@@ -2445,7 +2475,7 @@ tail:
 	  j = SCM_LENGTH (exp) % SCM_LONG_BIT;
 	  if (j)
 	    {
-	      w = SCM_VELTS (exp)[SCM_LENGTH (exp) / SCM_LONG_BIT];
+	      w = SCM_ASWORD (SCM_VELTS (exp)[SCM_LENGTH (exp) / SCM_LONG_BIT]);
 	      for (; j; j--)
 		{
 		  scm_putc (w & 1 ? '1' : '0', port);

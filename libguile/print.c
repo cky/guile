@@ -404,11 +404,11 @@ taloop:
 		    env = SCM_ENV (SCM_CDR (exp));
 		    scm_puts ("#<", port);
 		  }
-		if (SCM_CAR (exp) & (3L << 16))
+		if (SCM_CARW(exp) & (3L << 16))
 		  scm_puts ("macro", port);
 		else
 		  scm_puts ("syntax", port);
-		if (SCM_CAR (exp) & (2L << 16))
+		if (SCM_CARW (exp) & (2L << 16))
 		  scm_putc ('!', port);
 	      }
 	    else
@@ -768,13 +768,13 @@ scm_ipruk (char *hdr, SCM ptr, SCM port)
   if (SCM_CELLP (ptr))
     {
       scm_puts (" (0x", port);
-      scm_intprint (SCM_CAR (ptr), 16, port);
+      scm_intprint ((int) SCM_CAR (ptr), 16, port);
       scm_puts (" . 0x", port);
-      scm_intprint (SCM_CDR (ptr), 16, port);
+      scm_intprint ((int) SCM_CDR (ptr), 16, port);
       scm_puts (") @", port);
     }
   scm_puts (" 0x", port);
-  scm_intprint (ptr, 16, port);
+  scm_intprint ((int) ptr, 16, port);
   scm_putc ('>', port);
 }
 

@@ -67,9 +67,9 @@
  * certain class or its subclasses when traversal of the inheritance
  * graph would be too costly.
  */
-#define SCM_CLASS_FLAGS(class) (SCM_STRUCT_DATA (class)[scm_struct_i_flags])
+#define SCM_CLASS_FLAGS(class) SCM_ASWORD(SCM_STRUCT_DATA (class)[scm_struct_i_flags])
 #define SCM_OBJ_CLASS_FLAGS(obj)\
-(SCM_STRUCT_VTABLE_DATA (obj)[scm_struct_i_flags])
+	SCM_ASWORD(SCM_STRUCT_VTABLE_DATA (obj)[scm_struct_i_flags])
 #define SCM_SET_CLASS_FLAGS(c, f) (SCM_CLASS_FLAGS (c) |= (f))
 #define SCM_CLEAR_CLASS_FLAGS(c, f) (SCM_CLASS_FLAGS (c) &= ~(f))
 #define SCM_CLASSF_MASK SCM_STRUCTF_MASK
@@ -80,7 +80,7 @@
 #define SCM_CLASSF_OPERATOR	(1L << 29)
 
 #define SCM_I_OPERATORP(obj)\
-((SCM_OBJ_CLASS_FLAGS (obj) & SCM_CLASSF_OPERATOR) != 0)
+	((SCM_OBJ_CLASS_FLAGS (obj) & SCM_CLASSF_OPERATOR) != 0)
 #define SCM_OPERATOR_CLASS(obj)\
 ((struct scm_metaclass_operator *) SCM_STRUCT_DATA (obj))
 #define SCM_OBJ_OPERATOR_CLASS(obj)\
@@ -89,7 +89,7 @@
 #define SCM_OPERATOR_SETTER(obj) (SCM_OBJ_OPERATOR_CLASS (obj)->setter)
 
 #define SCM_I_ENTITYP(obj)\
-((SCM_OBJ_CLASS_FLAGS (obj) & SCM_CLASSF_ENTITY) != 0)
+	((SCM_OBJ_CLASS_FLAGS (obj) & SCM_CLASSF_ENTITY) != 0)
 #define SCM_ENTITY_PROCEDURE(obj) \
         (SCM_STRUCT_DATA (obj)[scm_struct_i_procedure])
 #define SCM_ENTITY_SETTER(obj) (SCM_STRUCT_DATA (obj)[scm_struct_i_setter])

@@ -68,19 +68,20 @@
 /* the jump buffer data structure */
 static int scm_tc16_jmpbuffer;
 
-#define SCM_JMPBUFP(O) (SCM_NIMP(O) && (SCM_TYP16(O) == scm_tc16_jmpbuffer))
-#define JBACTIVE(O) (SCM_CAR (O) & (1L << 16L))
-#define ACTIVATEJB(O)  (SCM_SETOR_CAR (O, (1L << 16L)))
-#define DEACTIVATEJB(O)  (SCM_SETAND_CAR (O, ~(1L << 16L)))
+#define SCM_JMPBUFP(OBJ) (SCM_NIMP(OBJ) && (SCM_TYP16(OBJ) == scm_tc16_jmpbuffer))
+
+#define JBACTIVE(OBJ) (SCM_CARW (OBJ) & (1L << 16L))
+#define ACTIVATEJB(OBJ)  (SCM_SETOR_CAR (OBJ, (1L << 16L)))
+#define DEACTIVATEJB(OBJ)  (SCM_SETAND_CAR (OBJ, ~(1L << 16L)))
 
 #ifndef DEBUG_EXTENSIONS
-#define JBJMPBUF(O) ((jmp_buf*)SCM_CDR (O) )
+#define JBJMPBUF(OBJ) ((jmp_buf*)SCM_CDR (OBJ) )
 #define SETJBJMPBUF SCM_SETCDR
 #else
-#define SCM_JBDFRAME(O) ((scm_debug_frame*)SCM_CAR (SCM_CDR (O)) )
-#define JBJMPBUF(O) ((jmp_buf*)SCM_CDR (SCM_CDR (O)) )
-#define SCM_SETJBDFRAME(O,X) SCM_SETCAR (SCM_CDR (O), (SCM)(X))
-#define SETJBJMPBUF(O,X) SCM_SETCDR(SCM_CDR (O), X)
+#define SCM_JBDFRAME(OBJ) ((scm_debug_frame*)SCM_CAR (SCM_CDR (OBJ)) )
+#define JBJMPBUF(OBJ) ((jmp_buf*)SCM_CDR (SCM_CDR (OBJ)) )
+#define SCM_SETJBDFRAME(OBJ,X) SCM_SETCAR (SCM_CDR (OBJ), (SCM)(X))
+#define SETJBJMPBUF(OBJ,X) SCM_SETCDR(SCM_CDR (OBJ), X)
 
 static scm_sizet
 freejb (SCM jbsmob)
@@ -95,7 +96,8 @@ printjb (SCM exp, SCM port, scm_print_state *pstate)
 {
   scm_puts ("#<jmpbuffer ", port);
   scm_puts (JBACTIVE(exp) ? "(active) " : "(inactive) ", port);
-  scm_intprint((SCM) JBJMPBUF(exp), 16, port);
+  scm_intprint(SCM_ASWORD ( JBJMPBUF(exp) ), 16, port);
+
   scm_putc ('>', port);
   return 1 ;
 }
@@ -274,7 +276,7 @@ make_lazy_catch (struct lazy_catch *c)
 }
 
 #define SCM_LAZY_CATCH_P(obj) \
-  (SCM_NIMP (obj) && (SCM_CAR (obj) == tc16_lazy_catch))
+  (SCM_NIMP (obj) && (SCM_CARW (obj) == tc16_lazy_catch))
 
 
 /* Exactly like scm_internal_catch, except:

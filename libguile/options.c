@@ -186,7 +186,7 @@ scm_options (SCM arg, scm_option options[], int n, const char *s)
 		  goto cont;
 		case SCM_OPTION_SCM:
 		  new_mode = SCM_CDR (new_mode);
-		  flags[i] = SCM_CAR (new_mode);
+		  flags[i] = SCM_CARW (new_mode);
 		  goto cont;
 		}
 #ifndef SCM_RECKLESS
@@ -198,6 +198,7 @@ scm_options (SCM arg, scm_option options[], int n, const char *s)
 	}
       for (i = 0; i < n; ++i)
 	{
+	  // scm_option doesn't know if its a long or an SCM
 	  if (options[i].type == SCM_OPTION_SCM)
 	    SCM_SETCDR (protected_objects,
 			scm_cons (flags[i],

@@ -50,7 +50,7 @@
 #include "libguile/__scm.h"
 
 #define SCM_HOOKP(x) (SCM_NIMP(x) && (SCM_TYP16 (x) == scm_tc16_hook))
-#define SCM_HOOK_ARITY(hook) (SCM_CAR (hook) >> 16)
+#define SCM_HOOK_ARITY(hook) (SCM_CARW (hook) >> 16)
 #define SCM_HOOK_NAME(hook) SCM_CADR (hook)
 #define SCM_HOOK_PROCEDURES(hook) SCM_CDDR (hook)
 #define SCM_SET_HOOK_PROCEDURES(hook, procs) SCM_SETCDR (SCM_CDR (hook), procs)

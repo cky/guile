@@ -142,7 +142,7 @@ print_hook (SCM hook, SCM port, scm_print_state *pstate)
     }
   scm_intprint (SCM_HOOK_ARITY (hook), 10, port);
   scm_putc (' ', port);
-  scm_intprint (hook, 16, port);
+  scm_intprint ((int)hook, 16, port);
   ls = SCM_HOOK_PROCEDURES (hook);
   while (SCM_NIMP (ls))
     {

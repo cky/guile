@@ -89,7 +89,7 @@ SCM
 scm_markstream (SCM ptr)
 {
   int openp;
-  openp = SCM_CAR (ptr) & SCM_OPN;
+  openp = SCM_CARW (ptr) & SCM_OPN;
   if (openp)
     return SCM_STREAM  (ptr);
   else
@@ -568,15 +568,15 @@ SCM_DEFINE (scm_port_mode, "port-mode", 1, 0, 0,
 
   port = SCM_COERCE_OUTPORT (port);
   SCM_VALIDATE_OPPORT (1,port);
-  if (SCM_CAR (port) & SCM_RDNG) {
-    if (SCM_CAR (port) & SCM_WRTNG)
+  if (SCM_CARW (port) & SCM_RDNG) {
+    if (SCM_CARW (port) & SCM_WRTNG)
       strcpy (modes, "r+");
     else
       strcpy (modes, "r");
   }
-  else if (SCM_CAR (port) & SCM_WRTNG)
+  else if (SCM_CARW (port) & SCM_WRTNG)
     strcpy (modes, "w");
-  if (SCM_CAR (port) & SCM_BUF0)
+  if (SCM_CARW (port) & SCM_BUF0)
     strcat (modes, "0");
   return scm_makfromstr (modes, strlen (modes), 0);
 }
@@ -1252,11 +1252,11 @@ scm_print_port_mode (SCM exp, SCM port)
 {
   scm_puts (SCM_CLOSEDP (exp)
 	    ? "closed: "
-	    : (SCM_RDNG & SCM_CAR (exp)
-	       ? (SCM_WRTNG & SCM_CAR (exp)
+	    : (SCM_RDNG & SCM_CARW (exp)
+	       ? (SCM_WRTNG & SCM_CARW (exp)
 		  ? "input-output: "
 		  : "input: ")
-	       : (SCM_WRTNG & SCM_CAR (exp)
+	       : (SCM_WRTNG & SCM_CARW (exp)
 		  ? "output: "
 		  : "bogus: ")),
 	    port);
@@ -1272,7 +1272,7 @@ scm_port_print (SCM exp, SCM port, scm_print_state *pstate)
   scm_print_port_mode (exp, port);
   scm_puts (type, port);
   scm_putc (' ', port);
-  scm_intprint (SCM_CDR (exp), 16, port);
+  scm_intprint ((int) SCM_CDR (exp), 16, port);
   scm_putc ('>', port);
   return 1;
 }
