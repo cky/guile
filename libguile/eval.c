@@ -1028,6 +1028,118 @@ scm_m_cont (xorig, env)
   return scm_cons (SCM_IM_CONT, SCM_CDR (xorig));
 }
 
+#ifdef GUILE_LANG
+/* Multi-language support */
+
+SCM scm_nil;
+SCM scm_t;
+
+SCM_SYNTAX (s_nil_cond, "nil-cond", scm_makmmacro, scm_m_nil_cond);
+
+SCM
+scm_m_nil_cond (SCM xorig, SCM env)
+{
+  int len = scm_ilength (SCM_CDR (xorig));
+  SCM_ASSYNT (len >= 1 && (len & 1) == 1, xorig,
+	      scm_s_expression, "nil-cond");
+  return scm_cons (SCM_IM_NIL_COND, SCM_CDR (xorig));
+}
+
+SCM_SYNTAX (s_nil_ify, "nil-ify", scm_makmmacro, scm_m_nil_ify);
+
+SCM
+scm_m_nil_ify (SCM xorig, SCM env)
+{
+  SCM_ASSYNT (scm_ilength (SCM_CDR (xorig)) == 1,
+	      xorig, scm_s_expression, "nil-ify");
+  return scm_cons (SCM_IM_NIL_IFY, SCM_CDR (xorig));
+}
+
+SCM_SYNTAX (s_t_ify, "t-ify", scm_makmmacro, scm_m_t_ify);
+
+SCM
+scm_m_t_ify (SCM xorig, SCM env)
+{
+  SCM_ASSYNT (scm_ilength (SCM_CDR (xorig)) == 1,
+	      xorig, scm_s_expression, "t-ify");
+  return scm_cons (SCM_IM_T_IFY, SCM_CDR (xorig));
+}
+
+SCM_SYNTAX (s_0_cond, "0-cond", scm_makmmacro, scm_m_0_cond);
+
+SCM
+scm_m_0_cond (SCM xorig, SCM env)
+{
+  int len = scm_ilength (SCM_CDR (xorig));
+  SCM_ASSYNT (len >= 1 && (len & 1) == 1, xorig,
+	      scm_s_expression, "0-cond");
+  return scm_cons (SCM_IM_0_COND, SCM_CDR (xorig));
+}
+
+SCM_SYNTAX (s_0_ify, "0-ify", scm_makmmacro, scm_m_0_ify);
+
+SCM
+scm_m_0_ify (SCM xorig, SCM env)
+{
+  SCM_ASSYNT (scm_ilength (SCM_CDR (xorig)) == 1,
+	      xorig, scm_s_expression, "0-ify");
+  return scm_cons (SCM_IM_0_IFY, SCM_CDR (xorig));
+}
+
+SCM_SYNTAX (s_1_ify, "1-ify", scm_makmmacro, scm_m_1_ify);
+
+SCM
+scm_m_1_ify (SCM xorig, SCM env)
+{
+  SCM_ASSYNT (scm_ilength (SCM_CDR (xorig)) == 1,
+	      xorig, scm_s_expression, "1-ify");
+  return scm_cons (SCM_IM_1_IFY, SCM_CDR (xorig));
+}
+
+SCM_SYNTAX (s_atfop, "@fop", scm_makmmacro, scm_m_atfop);
+
+SCM
+scm_m_atfop (SCM xorig, SCM env)
+{
+  SCM x = SCM_CDR (xorig), vcell;
+  SCM_ASSYNT (scm_ilength (x) >= 1, xorig, scm_s_expression, "@fop");
+  vcell = scm_symbol_fref (SCM_CAR (x));
+  SCM_ASSYNT (SCM_NIMP (vcell) && SCM_CONSP (vcell), x,
+	      "Symbol's function definition is void", NULL);
+  SCM_SETCAR (x, vcell + 1);
+  return x;
+}
+
+SCM_SYNTAX (s_atbind, "@bind", scm_makmmacro, scm_m_atbind);
+
+SCM
+scm_m_atbind (SCM xorig, SCM env)
+{
+  SCM x = SCM_CDR (xorig);
+  SCM_ASSYNT (scm_ilength (x) > 1, xorig, scm_s_expression, "@bind");
+
+  if (SCM_IMP (env))
+    env = SCM_BOOL_F;
+  else
+    {
+      while (SCM_NIMP (SCM_CDR (env)))
+	env = SCM_CDR (env);
+      env = SCM_CAR (env);
+      if (SCM_CONSP (env))
+	env = SCM_BOOL_F;
+    }
+  
+  x = SCM_CAR (x);
+  while (SCM_NIMP (x))
+    {
+      SCM_SETCAR (x, scm_sym2vcell (SCM_CAR (x), env, SCM_BOOL_T) + 1);
+      x = SCM_CDR (x);
+    }
+  return scm_cons (SCM_IM_BIND, SCM_CDR (xorig));
+}
+#endif /* GUILE_LANG */
+
+
 /* scm_unmemocopy takes a memoized expression together with its
  * environment and rewrites it to its original form.  Thus, it is the
  * inversion of the rewrite rules above.  The procedure is not
@@ -2010,7 +2122,102 @@ dispatch:
 	    }
 	    goto find_method;
 	  }
+#ifdef GUILE_LANG
+
+	case (SCM_ISYMNUM (SCM_IM_NIL_COND)):
+	  proc = SCM_CDR (x);
+	  while (SCM_NIMP (x = SCM_CDR (proc)))
+	    {
+	      if (!(SCM_FALSEP (t.arg1 = EVALCAR (proc, env))
+		    || t.arg1 == scm_nil))
+		{
+		  if (SCM_CAR (x) == SCM_UNSPECIFIED)
+		    RETURN (t.arg1);
+		  PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
+		  goto carloop;
+		}
+	      proc = SCM_CDR (x);
+	    }
+	  x = proc;
+	  PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
+	  goto carloop;
+
+	case (SCM_ISYMNUM (SCM_IM_NIL_IFY)):
+	  x = SCM_CDR (x);
+	  RETURN ((SCM_FALSEP (proc = EVALCAR (x, env)) || SCM_NULLP (proc))
+		   ? scm_nil
+		   : proc)
+	    
+	case (SCM_ISYMNUM (SCM_IM_T_IFY)):
+	  x = SCM_CDR (x);
+	  RETURN (SCM_NFALSEP (EVALCAR (x, env)) ? scm_t : scm_nil)
+	    
+	case (SCM_ISYMNUM (SCM_IM_0_COND)):
+	  proc = SCM_CDR (x);
+	  while (SCM_NIMP (x = SCM_CDR (proc)))
+	    {
+	      if (!(SCM_FALSEP (t.arg1 = EVALCAR (proc, env))
+		    || t.arg1 == SCM_INUM0))
+		{
+		  if (SCM_CAR (x) == SCM_UNSPECIFIED)
+		    RETURN (t.arg1);
+		  PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
+		  goto carloop;
+		}
+	      proc = SCM_CDR (x);
+	    }
+	  x = proc;
+	  PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
+	  goto carloop;
+
+	case (SCM_ISYMNUM (SCM_IM_0_IFY)):
+	  x = SCM_CDR (x);
+	  RETURN (SCM_FALSEP (proc = EVALCAR (x, env))
+		  ? SCM_INUM0
+		  : proc)
+	    
+	case (SCM_ISYMNUM (SCM_IM_1_IFY)):
+	  x = SCM_CDR (x);
+	  RETURN (SCM_NFALSEP (EVALCAR (x, env))
+		  ? SCM_MAKINUM (1)
+		  : SCM_INUM0)
+
+	case (SCM_ISYMNUM (SCM_IM_BIND)):
+	  x = SCM_CDR (x);
+
+	  t.arg1 = SCM_CAR (x);
+	  arg2 = SCM_CDAR (env);
+	  while (SCM_NIMP (arg2))
+	    {
+	      proc = SCM_GLOC_VAL (SCM_CAR (t.arg1));
+	      SCM_SETCDR (SCM_CAR (t.arg1) - 1L, SCM_CAR (arg2));
+	      SCM_SETCAR (arg2, proc);
+	      t.arg1 = SCM_CDR (t.arg1);
+	      arg2 = SCM_CDR (arg2);
+	    }
+	  t.arg1 = SCM_CAR (x);
+	  scm_dynwinds = scm_acons (t.arg1, SCM_CDAR (env), scm_dynwinds);
 	  
+	  arg2 = x = SCM_CDR (x);
+	  while (SCM_NNULLP (arg2 = SCM_CDR (arg2)))
+	    {
+	      SIDEVAL (SCM_CAR (x), env);
+	      x = arg2;
+	    }
+	  proc = EVALCAR (x, env);
+	  
+	  scm_dynwinds = SCM_CDR (scm_dynwinds);
+	  arg2 = SCM_CDAR (env);
+	  while (SCM_NIMP (arg2))
+	    {
+	      SCM_SETCDR (SCM_CAR (t.arg1) - 1L, SCM_CAR (arg2));
+	      t.arg1 = SCM_CDR (t.arg1);
+	      arg2 = SCM_CDR (arg2);
+	    }
+
+	  RETURN (proc)
+	  
+#endif /* GUILE_LANG */
 	default:
 	  goto badfun;
 	}
@@ -3430,6 +3637,15 @@ scm_init_eval ()
   scm_i_unquote = SCM_CAR (scm_sysintern ("unquote", SCM_UNDEFINED));
   scm_i_uq_splicing = SCM_CAR (scm_sysintern ("unquote-splicing", SCM_UNDEFINED));
 
+#ifdef GUILE_LANG
+  scm_nil = scm_sysintern ("nil", SCM_UNDEFINED);
+  SCM_SETCDR (scm_nil, SCM_CAR (scm_nil));
+  scm_nil = SCM_CAR (scm_nil);
+  scm_t = scm_sysintern ("t", SCM_UNDEFINED);
+  SCM_SETCDR (scm_t, SCM_CAR (scm_t));
+  scm_t = SCM_CAR (scm_t);
+#endif /* GUILE_LANG */
+  
   /* acros */
   /* end of acros */
 
