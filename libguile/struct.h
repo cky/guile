@@ -51,6 +51,7 @@
 
 /* Number of words with negative index */
 #define scm_struct_n_extra_words 3
+#define scm_struct_entity_n_extra_words 8
 
 /* These are how the initial words of a vtable are allocated. */
 #define scm_struct_i_setter	-8 /* Setter */
@@ -65,6 +66,7 @@
 #define scm_vtable_index_printer 3 /* A printer for this struct type. */
 #define scm_vtable_offset_user   4 /* Where do user fields start? */
 
+#define SCM_STRUCTF_MASK   (0xFF << 24)
 #define SCM_STRUCTF_ENTITY (1L << 30) /* Indicates presence of proc slots */
 #define SCM_STRUCTF_LIGHT  (1L << 31) /* Light representation
 					 (no hidden words) */
@@ -78,6 +80,11 @@
 /* Efficiency is important in the following macro, since it's used in GC */
 #define SCM_LAYOUT_TAILP(X)		(((X) & 32) == 0) /* R, W or O */
 
+#define SCM_STRUCT_TABLE_NAME(X) SCM_CAR (X)
+#define SCM_SET_STRUCT_TABLE_NAME(X, NAME) SCM_SETCAR (X, NAME)
+#define SCM_STRUCT_TABLE_CLASS(X) SCM_CDR (X)
+#define SCM_SET_STRUCT_TABLE_CLASS(X, CLASS) SCM_SETCDR (X, CLASS)
+extern SCM scm_struct_table;
 
 
 
@@ -92,6 +99,10 @@ extern SCM scm_struct_ref SCM_P ((SCM handle, SCM pos));
 extern SCM scm_struct_set_x SCM_P ((SCM handle, SCM pos, SCM val));
 extern SCM scm_struct_vtable SCM_P ((SCM handle));
 extern SCM scm_struct_vtable_tag SCM_P ((SCM handle));
+extern unsigned int scm_struct_ihashq SCM_P ((SCM obj, unsigned int n));
+extern SCM scm_struct_create_handle SCM_P ((SCM obj));
+extern SCM scm_struct_vtable_name SCM_P ((SCM vtable));
+extern SCM scm_set_struct_vtable_name_x SCM_P ((SCM vtable, SCM name));
 extern void scm_print_struct SCM_P ((SCM exp, SCM port, scm_print_state *));
 extern void scm_init_struct SCM_P ((void));
 
