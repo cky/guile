@@ -86,6 +86,7 @@ THREAD_LIBS_LOCAL = @THREAD_LIBS_LOCAL@
 THREAD_PACKAGE = @THREAD_PACKAGE@
 VERSION = @VERSION@
 qtdmdb_s = @qtdmdb_s@
+qthread_asflags = @qthread_asflags@
 qtmd_h = @qtmd_h@
 qtmdc_c = @qtmdc_c@
 qtmds_s = @qtmds_s@
