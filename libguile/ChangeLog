@@ -1,3 +1,8 @@
+2000-04-25  Gary Houston  <ghouston@arglist.com>
+
+	* posix.c (scm_execlp): docstring fix (thanks to Martin
+	Grabmueller).
+
 2000-04-25  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* eval.c (undef_object):  Made into a local static variable
@@ -66,6 +71,7 @@
 
 	* hooks.c, hooks.h: New files.
 
+>>>>>>> 1.924
 	* *.*: Change includes so that they always use the "prefixes"
 	libguile/, qt/, guile-readline/, or libltdl/.
 	(Thanks to Tim Mooney.)
