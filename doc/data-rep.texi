@@ -46,7 +46,7 @@ by the Free Software Foundation.
 @sp 10
 @comment The title is printed in a large font.
 @title Data Representation in Guile
-@subtitle $Id: data-rep.texi,v 1.6 1999-06-19 11:02:18 jimb Exp $
+@subtitle $Id: data-rep.texi,v 1.7 1999-07-07 09:40:28 mdj Exp $
 @subtitle For use with Guile @value{VERSION}
 @author Jim Blandy
 @author Free Software Foundation
@@ -1115,58 +1115,99 @@ datatypes described here.)
 @node Describing a New Type, Creating Instances, Defining New Types (Smobs), Defining New Types (Smobs)
 @subsection Describing a New Type
 
-To define a new type, the programmer must fill in an @code{scm_smobfuns}
-structure with functions to manage instances of the type.  Here is the
-definition of the structure:
-
-@example
-typedef struct scm_smobfuns
-@{
-  SCM       (*mark) (SCM @var{obj});
-  scm_sizet (*free) (SCM @var{obj});
-  int       (*print) (SCM @var{obj},
-                      SCM @var{port},
-                      scm_print_state *@var{pstate});
-  SCM       (*equalp) (SCM @var{a}, SCM @var{b});
-@} scm_smobfuns;
-@end example
+To define a new type, the programmer must write four functions to
+manage instances of the type:
 
 @table @code
 @item mark
 Guile will apply this function to each instance of the new type it
 encounters during garbage collection.  This function is responsible for
 telling the collector about any other non-immediate objects the object
-refers to.  @xref{Garbage Collecting Smobs}, for more details.
+refers to.  The default smob mark function is to not mark any data.
+@xref{Garbage Collecting Smobs}, for more details.
 
 @item free
 Guile will apply this function to each instance of the new type it could
 not find any live pointers to.  The function should release all
-resources held by the object and return.
-@xref{Garbage Collecting Smobs}, for more details.
+resources held by the object and return the number of bytes released.
+This is analagous to the Java finalization method-- it is invoked at
+an unspecified time (when garbage collection occurs) after the object
+is dead.
+The default free function frees the smob data (if the size of the struct
+passed to @code{scm_make_smob_type} or @code{scm_make_smob_type_mfpe} is
+non-zero) using @code{scm_must_free} and returns the size of that
+struct.  @xref{Garbage Collecting Smobs}, for more details.
 
 @item print
+@c GJB:FIXME:: @var{exp} and @var{port} need to refer to a prototype of 
+@c the print function.... where is that, or where should it go?
 Guile will apply this function to each instance of the new type to print
 the value, as for @code{display} or @code{write}.  The function should
 write a printed representation of @var{exp} on @var{port}, in accordance
 with the parameters in @var{pstate}.  (For more information on print
-states, see @ref{Ports}.)
+states, see @ref{Ports}.)  The default print function prints @code{#<NAME ADDRESS>} 
+where @code{NAME} is the first argument passed to @code{scm_make_smob_type} or 
+@code{scm_make_smob_type_mfpe}.
 
 @item equalp
 If Scheme code asks the @code{equal?} function to compare two instances
 of the same smob type, Guile calls this function.  It should return
 @code{SCM_BOOL_T} if @var{a} and @var{b} should be considered
 @code{equal?}, or @code{SCM_BOOL_F} otherwise.  If @code{equalp} is
-zero, @code{equal?} will assume that two instances of this type are
+@code{NULL}, @code{equal?} will assume that two instances of this type are
 never @code{equal?} unless they are @code{eq?}.
 
 @end table
 
-Once you have built a @code{scm_smobfuns} structure, you can call the
-@code{scm_newsmob} function to add the type to the system.
+To actually register the new smob type, you must call either @code{scm_make_smob_type}
+or @code{scm_make_smob_type_mfpe}:
 
-@deftypefun long scm_newsmob (scm_smobfuns *@var{funs})
-This function adds the type described by @var{funs} to the system.  The
-return value is a tag, used in creating instances of the type.
+@deftypefun long scm_make_smob_type (const char *name, scm_sizet size)
+This function adds a new smob type, named @var{name}, with instance size @var{size} to the system.  
+The return value is a tag that is used in creating instances of the type.  If @var{size}
+is 0, then no memory will be allocated when instances of the smob are created, and
+nothing will be freed by the default free function.
+@end deftypefun
+
+Each of the below @code{scm_set_smob_XXX} functions registers a smob
+special function for a given type.  You can instead use
+@code{scm_make_smob_type_mfpe} to register the special smob functions
+when you create the smob type, if you prefer.
+
+@deftypefun void scm_set_smob_mark (long tc, SCM (*mark) (SCM))
+This function sets the smob marking procedure for the smob type specified by
+the tag @var{tc}. @var{tc} is the tag returned by @code{scm_make_smob_type}.
+@end deftypefun
+
+@deftypefun void scm_set_smob_free (long tc, scm_sizet (*free) (SCM))
+This function sets the smob freeing procedure for the smob type specified by
+the tag @var{tc}. @var{tc} is the tag returned by @code{scm_make_smob_type}.
+@end deftypefun
+
+@deftypefun void scm_set_smob_print (long tc, int (*print) (SCM,SCM,scm_print_state*))
+This function sets the smob printing procedure for the smob type specified by
+the tag @var{tc}. @var{tc} is the tag returned by @code{scm_make_smob_type}.
+@end deftypefun
+
+@deftypefun void scm_set_smob_equalp (long tc, SCM (*equalp) (SCM,SCM))
+This function sets the smob equality-testing predicate for the smob type specified by
+the tag @var{tc}. @var{tc} is the tag returned by @code{scm_make_smob_type}.
+@end deftypefun
+
+Instead of using @code{scm_make_smob_type} and calling each of the individual 
+@code{scm_set_smob_XXXX} functions to register each special function 
+independently, you can use @code{scm_make_smob_type_mfpe} to register all
+of the special functions at once as you create the smob type:
+
+@deftypefun long scm_make_smob_type_mfpe(const char *name, scm_sizet size, SCM (*mark) (SCM), scm_sizet (*free) (SCM), int (*print) (SCM, SCM, scm_print_state*), SCM (*equalp) (SCM, SCM))
+This function invokes @code{scm_make_smob_type} on its first two arguments
+to add a new smob type named @var{name}, with instance size @var{size} to the system.  
+It also registers the @var{mark}, @var{free}, @var{print}, @var{equalp} smob
+special functions for that new type.  Any of these parameters can be @code{NULL}
+to have that special function use the default behaviour for guile.
+The return value is a tag that is used in creating instances of the type.  If @var{size}
+is 0, then no memory will be allocated when instances of the smob are created, and
+nothing will be freed by the default free function.
 @end deftypefun
 
 For example, here is how one might declare and register a new type
@@ -1176,14 +1217,11 @@ representing eight-bit grayscale images:
 
 long image_tag;
 
-scm_smobfuns image_funs = @{
-  mark_image, free_image, print_image, 0
-@};
-
 void
 init_image_type ()
 @{
-  image_tag = scm_newsmob (&image_funs);
+  image_tag = scm_make_smob_type_mfpe ("image",sizeof(struct image),
+				       mark_image, free_image, print_image, NULL);
 @}
 @end example
 
@@ -1192,10 +1230,28 @@ init_image_type ()
 @subsection Creating Instances
 
 Like other non-immediate types, smobs start with a cell whose @sc{car}
-contains typing information, and whose @code{cdr} is free for any use.
-To create an instance of a smob type, you must allocate a fresh cell, by
-calling @code{SCM_NEWCELL}, and store the tag returned by
-@code{scm_smobfuns} in its car.
+contains typing information, and whose @code{cdr} is free for any use.  For smobs,
+the @code{cdr} stores a pointer to the internal C structure holding the 
+smob-specific data.
+To create an instance of a smob type following these standards, you should
+use @code{SCM_NEWSMOB}:
+
+@deftypefn Macro void SCM_NEWSMOB(SCM value,long tag,void *data)
+Make @var{value} contain a smob instance of the type with tag @var{tag}
+and smob data @var{data}.  @var{value} must be previously declared
+as C type @code{SCM}.
+@end deftypefn
+
+Since it is often the case (e.g., in smob constructors) that you will
+create a smob instance and return it, there is also a slightly specialized
+macro for this situation:
+
+@deftypefn Macro fn_returns SCM_RETURN_NEWSMOB(long tab, void *data)
+This macro expands to a block of code that creates a smob instance of
+the type with tag @var{tag} and smob data @var{data}, and returns
+that @code{SCM} value.  It should be the last piece of code in 
+a block.
+@end deftypefn
 
 Guile provides the following functions for managing memory, which are
 often helpful when implementing smobs:
@@ -1261,7 +1317,6 @@ SCM
 make_image (SCM name, SCM s_width, SCM s_height)
 @{
   struct image *image;
-  SCM image_smob;
   int width, height;
 
   SCM_ASSERT (SCM_NIMP (name) && SCM_STRINGP (name), name,
@@ -1279,11 +1334,7 @@ make_image (SCM name, SCM s_width, SCM s_height)
   image->name = name;
   image->update_func = SCM_BOOL_F;
 
-  SCM_NEWCELL (image_smob);
-  SCM_SETCDR (image_smob, image);
-  SCM_SETCAR (image_smob, image_tag);
-
-  return image_smob;
+  SCM_RETURN_NEWSMOB (image_tag, image);
 @}
 @end example
 
@@ -1340,6 +1391,7 @@ Note that checking types is a little more complicated during garbage
 collection; see the description of @code{SCM_GCTYP16} in @ref{Garbage
 Collecting Smobs}.
 
+@c GJB:FIXME:: should talk about guile-snarf somewhere!
 
 @node Garbage Collecting Smobs, A Common Mistake In Allocating Smobs, Typechecking, Defining New Types (Smobs)
 @subsection Garbage Collecting Smobs
