@@ -93,7 +93,7 @@ typedef long scm_bits_t;
 
 
 /* SCM_UNPACK_CAR is a convenience for treating the CAR of X as a word */
-#define SCM_UNPACK_CAR(x) SCM_UNPACK (SCM_CAR (x))
+#define SCM_UNPACK_CAR(x) (SCM_CELL_TYPE (x))
 
 
 
@@ -284,18 +284,18 @@ typedef long scm_bits_t;
  * stored in the SCM_CAR of a non-immediate object have a 1 in bit 1:
  */
 
-#define SCM_SLOPPY_NCONSP(x) (1 & SCM_UNPACK_CAR (x))
-#define SCM_SLOPPY_CONSP(x)  (!SCM_SLOPPY_NCONSP (x))
+#define SCM_SLOPPY_CONSP(x)  ((1 & SCM_CELL_TYPE (x)) == 0)
+#define SCM_SLOPPY_NCONSP(x) (!SCM_SLOPPY_CONSP(x))
 
-#define SCM_NCONSP(x) (SCM_IMP (x) || SCM_SLOPPY_NCONSP (x))
-#define SCM_CONSP(x)  (SCM_NIMP (x) && SCM_SLOPPY_CONSP (x))
+#define SCM_CONSP(x)  (!SCM_IMP (x) && SCM_SLOPPY_CONSP (x))
+#define SCM_NCONSP(x) (!SCM_CONSP (x))
 
 
 /* SCM_ECONSP should be used instead of SCM_CONSP at places where GLOCS
  * can be expected to occur.
  */
 #define SCM_ECONSP(x) \
-  (SCM_NIMP (x) \
+  (!SCM_IMP (x) \
    && (SCM_SLOPPY_CONSP (x) \
        || (SCM_TYP3 (x) == 1 \
 	   && (SCM_STRUCT_VTABLE_DATA (x)[scm_vtable_index_vcell] != 0))))
@@ -303,8 +303,8 @@ typedef long scm_bits_t;
 
 
 
-#define SCM_CELLP(x) 	(!SCM_NCELLP (x))
-#define SCM_NCELLP(x) 	((sizeof (scm_cell) - 1) & SCM_UNPACK (x))
+#define SCM_CELLP(x) 	(((sizeof (scm_cell) - 1) & SCM_UNPACK (x)) == 0)
+#define SCM_NCELLP(x) 	(!SCM_CELLP (x))
 
 #define SCM_DOUBLE_CELLP(x)  (((2 * sizeof (scm_cell) - 1) & SCM_UNPACK (x)) == 0)
 
@@ -312,7 +312,7 @@ typedef long scm_bits_t;
  */
 
 #define SCM_ITAG3(x) 		(7 & SCM_UNPACK (x))
-#define SCM_TYP3(x) 		(7 & SCM_UNPACK_CAR (x))
+#define SCM_TYP3(x) 		(7 & SCM_CELL_TYPE (x))
 #define scm_tc3_cons		0
 #define scm_tc3_cons_gloc	1
 #define scm_tc3_int_1		2
@@ -328,13 +328,13 @@ typedef long scm_bits_t;
  */
 
 
-#define SCM_TYP7(x) 		(0x7f &        SCM_UNPACK_CAR (x))
-#define SCM_TYP7S(x) 		((0x7f & ~2) & SCM_UNPACK_CAR (x))
+#define SCM_TYP7(x) 		(0x7f &        SCM_CELL_TYPE (x))
+#define SCM_TYP7S(x) 		((0x7f & ~2) & SCM_CELL_TYPE (x))
 
 
-#define SCM_TYP16(x) 		(0xffff & SCM_UNPACK_CAR (x))
-#define SCM_TYP16S(x) 		(0xfeff & SCM_UNPACK_CAR (x))
-#define SCM_GCTYP16(x) 		(0xff7f & SCM_UNPACK_CAR (x))
+#define SCM_TYP16(x) 		(0xffff & SCM_CELL_TYPE (x))
+#define SCM_TYP16S(x) 		(0xfeff & SCM_CELL_TYPE (x))
+#define SCM_GCTYP16(x) 		(0xff7f & SCM_CELL_TYPE (x))
 
 
 
@@ -342,7 +342,7 @@ typedef long scm_bits_t;
  */
 #define SCM_GCCDR(x)		SCM_PACK(~1L & SCM_UNPACK (SCM_CDR (x)))
 #define SCM_GCMARKP(x) 		(1 & SCM_UNPACK (SCM_CDR (x)))
-#define SCM_GC8MARKP(x) 	(0x80 & SCM_UNPACK_CAR (x))
+#define SCM_GC8MARKP(x) 	(0x80 & SCM_CELL_TYPE (x))
 #define SCM_SETGCMARK(x) 	SCM_SETOR_CDR (x, 1)
 #define SCM_CLRGCMARK(x) 	SCM_SETAND_CDR (x, ~1L)
 #define SCM_SETGC8MARK(x) 	SCM_SETOR_CAR (x, 0x80)

@@ -1,5 +1,15 @@
 2000-05-23  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* eval.c (scm_macroexp, SCM_CEVAL, scm_force), tags.h:  Replace
+	SCM_UNPACK_CAR with SCM_CELL_TYPE or SCM_CELL_WORD_0.
+
+	* eval.c (scm_force):  Add documentation.
+
+	* eval.c (scm_force, scm_cons_source):  Don't access cells via
+	SCM_{SET}?C[AD]R unless they are known to be cons cells.
+
+2000-05-23  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* strings.h (SCM_NSTRINGP, SCM_NRWSTRINGP), tags.h
 	(SCM_NDOUBLE_CELLP), vectors.h (SCM_NVECTORP):  Deprecated.
 

@@ -1250,7 +1250,7 @@ scm_macroexp (SCM x, SCM env)
 
   if (SCM_IMP (proc)
       || scm_tc16_macro != SCM_TYP16 (proc)
-      || (int) (SCM_UNPACK_CAR (proc) >> 16) != 2)
+      || (SCM_CELL_WORD_0 (proc) >> 16) != 2)
     return x;
 
   unmemocar (x, env);
@@ -2539,7 +2539,7 @@ dispatch:
 #ifdef DEVAL
 	      SCM_CLEAR_MACROEXP (debug);
 #endif
-	      switch ((int) (SCM_UNPACK_CAR (proc) >> 16))
+	      switch (SCM_CELL_WORD_0 (proc) >> 16)
 		{
 		case 2:
 		  if (scm_ilength (t.arg1) <= 0)
@@ -3697,24 +3697,26 @@ prinprom (SCM exp,SCM port,scm_print_state *pstate)
 
 SCM_DEFINE (scm_force, "force", 1, 0, 0, 
            (SCM x),
-	    "")
+	    "If the promise X has not been computed yet, compute and return\n"
+	    "X, otherwise just return the previously computed value.")
 #define FUNC_NAME s_scm_force
 {
-  SCM_VALIDATE_SMOB (1,x,promise);
-  if (!((1L << 16) & SCM_UNPACK_CAR (x)))
+  SCM_VALIDATE_SMOB (1, x, promise);
+  if (!((1L << 16) & SCM_CELL_WORD_0 (x)))
     {
-      SCM ans = scm_apply (SCM_CDR (x), SCM_EOL, SCM_EOL);
-      if (!((1L << 16) & SCM_UNPACK_CAR (x)))
+      SCM ans = scm_apply (SCM_CELL_OBJECT_1 (x), SCM_EOL, SCM_EOL);
+      if (!((1L << 16) & SCM_CELL_WORD_0 (x)))
 	{
 	  SCM_DEFER_INTS;
-	  SCM_SETCDR (x, ans);
-	  SCM_SETOR_CAR (x, (1L << 16));
+	  SCM_SET_CELL_OBJECT_1 (x, ans);
+	  SCM_SET_CELL_WORD_0 (x, SCM_CELL_WORD_0 (x) | (1L << 16));
 	  SCM_ALLOW_INTS;
 	}
     }
-  return SCM_CDR (x);
+  return SCM_CELL_OBJECT_1 (x);
 }
 #undef FUNC_NAME
+
 
 SCM_DEFINE (scm_promise_p, "promise?", 1, 0, 0, 
             (SCM x),
@@ -3722,9 +3724,10 @@ SCM_DEFINE (scm_promise_p, "promise?", 1, 0, 0,
 	    "(@pxref{Delayed evaluation,,,r4rs.info,The Revised^4 Report on Scheme}).")
 #define FUNC_NAME s_scm_promise_p
 {
-  return SCM_BOOL(SCM_NIMP (x) && (SCM_TYP16 (x) == scm_tc16_promise));
+  return SCM_BOOL (SCM_SMOB_PREDICATE (scm_tc16_promise, x));
 }
 #undef FUNC_NAME
+
 
 SCM_DEFINE (scm_cons_source, "cons-source", 3, 0, 0, 
             (SCM xorig, SCM x, SCM y),
@@ -3733,15 +3736,16 @@ SCM_DEFINE (scm_cons_source, "cons-source", 3, 0, 0,
 {
   SCM p, z;
   SCM_NEWCELL (z);
-  SCM_SETCAR (z, x);
-  SCM_SETCDR (z, y);
+  SCM_SET_CELL_OBJECT_0 (z, x);
+  SCM_SET_CELL_OBJECT_1 (z, y);
   /* Copy source properties possibly associated with xorig. */
   p = scm_whash_lookup (scm_source_whash, xorig);
-  if (SCM_NIMP (p))
+  if (!SCM_IMP (p))
     scm_whash_insert (scm_source_whash, z, p);
   return z;
 }
 #undef FUNC_NAME
+
 
 SCM_DEFINE (scm_copy_tree, "copy-tree", 1, 0, 0, 
             (SCM obj),
