@@ -108,6 +108,7 @@
 #include "libguile/print.h"
 #include "libguile/procprop.h"
 #include "libguile/procs.h"
+#include "libguile/properties.h"
 #include "libguile/ramap.h"
 #include "libguile/random.h"
 #include "libguile/read.h"
