@@ -1,3 +1,17 @@
+2001-11-18  Rob Browning  <rlb@defaultvalue.org>
+
+	* version.c
+	(s_scm_major_version): use SCM_MAJOR_VERSION.
+	(s_scm_minor_version): use SCM_MINOR_VERSION.
+	(s_scm_micro_version): use SCM_MICRO_VERSION.
+	(s_scm_version): use SCM_MAJOR_VERSION, SCM_MINOR_VERSION, and
+	SCM_MICRO_VERSION.
+
+	* version.h.in
+	(SCM_MAJOR_VERSION): renamed from SCM_GUILE_MAJOR_VERSION.
+	(SCM_MINOR_VERSION): renamed from SCM_GUILE_MINOR_VERSION.
+	(SCM_MICRO_VERSION): renamed from SCM_GUILE_MICRO_VERSION.
+
 2001-11-18  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* vectors.c (scm_vector_move_left_x, scm_vector_move_right_x):

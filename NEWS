@@ -84,6 +84,11 @@ micro version number.
 
 In addition, ./GUILE-VERSION now defines GUILE_MICRO_VERSION.
 
+** New preprocessor definitions are available for checking versions.
+
+version.h now #defines SCM_MAJOR_VERSION, SCM_MINOR_VERSION, and
+SCM_MICRO_VERSION to the appropriate integer values.
+
 ** Guile now actively warns about deprecated features.
 
 The new configure option `--enable-deprecated=LEVEL' and the
