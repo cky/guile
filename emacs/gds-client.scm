@@ -198,7 +198,7 @@ decimal IP address where the UI server is running; default is
   (or (gds-connected?)
       (error "Not connected to UI server."))
   ;; Take over server/UI interaction from the normal UI read thread.
-  (with-mutex ui-read-mutex)
+  (with-mutex ui-read-mutex
     (write-char #\x (cdr ui-read-switch-pipe))
     (force-output (cdr ui-read-switch-pipe))
     (write-note 'char-written)
@@ -220,7 +220,7 @@ decimal IP address where the UI server is running; default is
       (lambda args *unspecified*))
     (write-note 'cond-signal)
     ;; Tell the UI read thread that it can take control again.
-    (signal-condition-variable ui-read-switch))
+    (signal-condition-variable ui-read-switch)))
 
 
 ;;;; {General Output to Server/UI}

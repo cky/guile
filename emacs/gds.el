@@ -68,9 +68,7 @@
   "Shut down the GDS subprocess."
   (interactive)
   ;; Reset variables.
-  (setq gds-buffers nil
-	gds-focus-client nil
-	gds-waiting nil)
+  (setq gds-buffers nil)
   ;; Kill the subprocess.
   (process-kill-without-query gds-process)
   (condition-case nil
@@ -109,11 +107,55 @@
   (process-send-string gds-process (format "(%S %s)\n" client string)))
 
 
-;;;; Multiple application scheduling.
+;;;; Focussing in and out on interaction with a particular client.
 
-;; Here is how we schedule the display of multiple clients that are
-;; competing for user attention.
-;;
+;;;; The slight possible problems here are that popping up a client's
+;;;; interaction windows when that client wants attention might
+;;;; interrupt something else that the Emacs user was working on at
+;;;; the time, and that if multiple clients are being debugged at the
+;;;; same time, their popping up of interaction windows might become
+;;;; confusing.  For this reason, we allow GDS's behavior to be
+;;;; customized via the variables `gds-focus-in-function' and
+;;;; `gds-focus-out-function'.
+;;;;
+;;;; That said, the default policy, which is probably OK for most
+;;;; users most of the time, is very simple: when a client wants
+;;;; attention, its interaction windows are popped up immediately.
+
+(defun gds-request-focus (client)
+  (funcall gds-focus-in-function client))
+
+(defcustom gds-focus-in-function (function gds-focus-in)
+  "Function to call when a GDS client program wants user attention.
+The function is called with one argument, the CLIENT in question."
+  :type 'function
+  :group 'gds)
+
+(defun gds-focus-in (client)
+  (gds-display-buffers client))
+
+(defun gds-quit ()
+  (interactive)
+  (funcall gds-focus-out-function))
+
+(defcustom gds-focus-out-function (function gds-focus-out)
+  "Function to call when user quits interacting with a GDS client."
+  :type 'function
+  :group 'gds)
+
+(defun gds-focus-out ()
+  (if (if (gds-client-blocked)
+	  (y-or-n-p "Client is waiting for input.  Quit anyway? ")
+	t)
+      (bury-buffer (current-buffer))))
+
+
+;;;; Multiple client focus -- an alternative implementation.
+
+;;;; The following code is provided as an alternative example of how a
+;;;; customized GDS could schedule the display of multiple clients
+;;;; that are competing for user attention.
+
 ;; - `gds-waiting' holds a list of clients that want attention but
 ;;   haven't yet got it.  A client is added to this list for two
 ;;   reasons.  (1) When it is blocked waiting for user input.
@@ -127,40 +169,39 @@
 ;;   says that it is no longer blocked, and a small time passes without
 ;;   it becoming blocked again.  (2) If the user explicitly `quits'
 ;;   that client.
-(defvar gds-focus-client nil)
-(defvar gds-waiting nil)
-
-(defun gds-request-focus (client)
-  (cond ((eq client gds-focus-client)
-	 ;; CLIENT already has the focus.  Display its buffer.
-	 (gds-display-buffers))
-	(gds-focus-client
-	 ;; Another client has the focus. Add CLIENT to `gds-waiting'.
-	 (or (memq client gds-waiting)
-	     (setq gds-waiting (append gds-waiting (list client)))))
-	(t
-	 ;; Give focus to CLIENT and display its buffer.
-	 (setq gds-focus-client client)
-	 (gds-display-buffers))))
-
-;; Explicitly give up focus.
-(defun gds-quit ()
-  (interactive)
-  (if (or (car gds-waiting)
-	  (not (gds-client-blocked))
-	  (y-or-n-p
-	   "Client is blocked and no others are waiting.  Still quit? "))
-      (progn
-	(bury-buffer (current-buffer))
-	;; Pass on the focus.
-	(setq gds-focus-client (car gds-waiting)
-	      gds-waiting (cdr gds-waiting))
-	;; If this client is blocked, add it back into the waiting list.
-	(if (gds-client-blocked)
-	    (gds-request-focus gds-client))
-	;; If there is a new focus client, request display for it.
-	(if gds-focus-client
-	    (gds-request-focus gds-focus-client)))))
+;;
+;; (defvar gds-focus-client nil)
+;; (defvar gds-waiting nil)
+;; 
+;; (defun gds-focus-in-alternative (client)
+;;   (cond ((eq client gds-focus-client)
+;;	      ;; CLIENT already has the focus.  Display its buffer.
+;;	      (gds-display-buffers client))
+;;	     (gds-focus-client
+;;	      ;; Another client has the focus. Add CLIENT to `gds-waiting'.
+;;	      (or (memq client gds-waiting)
+;;		  (setq gds-waiting (append gds-waiting (list client)))))
+;;	     (t
+;;	      ;; Give focus to CLIENT and display its buffer.
+;;	      (setq gds-focus-client client)
+;;	      (gds-display-buffers client))))
+;; 
+;; (defun gds-focus-out-alternative ()
+;;   (if (or (car gds-waiting)
+;;	       (not (gds-client-blocked))
+;;	       (y-or-n-p
+;;		"Client is blocked and no others are waiting.  Still quit? "))
+;;	   (progn
+;;	     (bury-buffer (current-buffer))
+;;	     ;; Pass on the focus.
+;;	     (setq gds-focus-client (car gds-waiting)
+;;		   gds-waiting (cdr gds-waiting))
+;;	     ;; If this client is blocked, add it back into the waiting list.
+;;	     (if (gds-client-blocked)
+;;		 (gds-request-focus gds-client))
+;;	     ;; If there is a new focus client, request display for it.
+;;	     (if gds-focus-client
+;;		 (gds-request-focus gds-focus-client)))))
 
 
 ;;;; GDS protocol dispatch.
@@ -180,6 +221,7 @@
       (goto-char (point-max))
       (let ((inhibit-read-only t))
 	(insert (format "rx %S" (cons client (cons proc args))) "\n")))
+
     (cond (;; (name ...) - Client name.
 	   (eq proc 'name)
 	   (setq gds-pid (cadr args))
@@ -233,15 +275,14 @@
 	   (setq gds-status 'closed)
 	   (gds-update-buffers)
 	   (setq gds-buffers
-		 (delq (assq client gds-buffers) gds-buffers))
-	   (if (eq client gds-focus-client)
-	       (gds-quit)))
+		 (delq (assq client gds-buffers) gds-buffers)))
 
 	  (;; (eval-results ...) - Results of evaluation.
 	   (eq proc 'eval-results)
 	   (gds-display-results client (car args) (cdr args)))
 
-	  ((eq proc 'completion-result)
+	  (;; (completion-result ...) - Available completions.
+	   (eq proc 'completion-result)
 	   (setq gds-completion-results (or (car args) t)))
 
 	  (;; (breakpoint-set FILE LINE COLUMN INFO) - Breakpoint set.
@@ -331,8 +372,18 @@
 	(setq gds-buffers (delq existing gds-buffers))
 	(gds-client-buffer client 'name '("(GDS buffer killed)"))))))
 
+;; Get the current buffer's associated client's value of SYM.
+(defun gds-client-ref (sym)
+  (and gds-client
+       (let ((buf (assq gds-client gds-buffers)))
+	 (and buf
+	      (cdr buf)
+	      (buffer-live-p (cdr buf))
+	      (with-current-buffer buf
+		(symbol-value sym))))))
+
 (defun gds-client-blocked ()
-  (eq gds-status 'waiting-for-input))
+  (eq (gds-client-ref 'gds-status) 'waiting-for-input))
 
 (defvar gds-delayed-update-timer nil)
 
@@ -374,26 +425,25 @@
     (setq gds-delayed-update-timer
 	  (run-at-time 0.5 nil (function gds-update-delayed-update-buffers)))))
 
-(defun gds-display-buffers ()
-  (if gds-focus-client
-      (let ((gds-focus-buffer (cdr (assq gds-focus-client gds-buffers))))
-	;; If there's already a window showing the buffer, use it.
-	(let ((window (get-buffer-window gds-focus-buffer t)))
-	  (if window
-	      (progn
-		(make-frame-visible (window-frame window))
-		(select-frame (window-frame window))
-		(select-window window))
-	    ;(select-window (display-buffer gds-focus-buffer))
-	    (display-buffer gds-focus-buffer)))
-	;; If there is an associated source buffer, display it as well.
-	(if (and (eq (car gds-views) 'stack)
-		 gds-frame-source-overlay
-		 (> (overlay-end gds-frame-source-overlay) 0))
-	    (let ((window (display-buffer
-			   (overlay-buffer gds-frame-source-overlay))))
-	      (set-window-point window
-				(overlay-start gds-frame-source-overlay)))))))
+(defun gds-display-buffers (client)
+  (let ((buf (cdr (assq client gds-buffers))))
+    ;; If there's already a window showing the buffer, use it.
+    (let ((window (get-buffer-window buf t)))
+      (if window
+	  (progn
+	    (make-frame-visible (window-frame window))
+	    (select-frame (window-frame window))
+	    (select-window window))
+	;;(select-window (display-buffer buf))
+	(display-buffer buf)))
+    ;; If there is an associated source buffer, display it as well.
+    (if (and (eq (car gds-views) 'stack)
+	     gds-frame-source-overlay
+	     (> (overlay-end gds-frame-source-overlay) 0))
+	(let ((window (display-buffer
+		       (overlay-buffer gds-frame-source-overlay))))
+	  (set-window-point window
+			    (overlay-start gds-frame-source-overlay))))))
 
 
 ;;;; Management of `views'.
@@ -492,7 +542,7 @@ the following symbols.
 
 (defun gds-async-break (w &rest ignore)
   (interactive)
-  (gds-send "async-break" gds-focus-client))
+  (gds-send "async-break" gds-client))
 
 (defun gds-toggle-debug-exceptions (w &rest ignore)
   (interactive)
@@ -560,7 +610,7 @@ the following symbols.
   (let* ((s (widget-value widget))
 	 (ind (memq 'index (text-properties-at 0 s))))
     (gds-send (format "debugger-command frame %d" (cadr ind))
-	      gds-focus-client)))
+	      gds-client)))
 
 ;; Overlay used to highlight the source expression corresponding to
 ;; the selected frame.
@@ -700,7 +750,7 @@ are not readable by Emacs.")
 
 (defun gds-query-modules ()
   (interactive)
-  (gds-send "query-modules" gds-focus-client))
+  (gds-send "query-modules" gds-client))
 
 (defun gds-view-browser ()
   (interactive)
@@ -734,36 +784,36 @@ are not readable by Emacs.")
 
 (defun gds-go ()
   (interactive)
-  (gds-send "debugger-command continue" gds-focus-client))
+  (gds-send "debugger-command continue" gds-client))
 
 (defun gds-next ()
   (interactive)
-  (gds-send "debugger-command next 1" gds-focus-client))
+  (gds-send "debugger-command next 1" gds-client))
 
 (defun gds-evaluate (expr)
   (interactive "sEvaluate (in this stack frame): ")
   (gds-send (format "debugger-command evaluate %s" (prin1-to-string expr))
-	    gds-focus-client))
+	    gds-client))
 
 (defun gds-step-in ()
   (interactive)
-  (gds-send "debugger-command step 1" gds-focus-client))
+  (gds-send "debugger-command step 1" gds-client))
 
 (defun gds-step-out ()
   (interactive)
-  (gds-send "debugger-command finish" gds-focus-client))
+  (gds-send "debugger-command finish" gds-client))
 
 (defun gds-trace-finish ()
   (interactive)
-  (gds-send "debugger-command trace-finish" gds-focus-client))
+  (gds-send "debugger-command trace-finish" gds-client))
 
 (defun gds-frame-info ()
   (interactive)
-  (gds-send "debugger-command info-frame" gds-focus-client))
+  (gds-send "debugger-command info-frame" gds-client))
 
 (defun gds-frame-args ()
   (interactive)
-  (gds-send "debugger-command info-args" gds-focus-client))
+  (gds-send "debugger-command info-args" gds-client))
 
 
 ;;;; Setting breakpoints.
@@ -822,7 +872,7 @@ are not readable by Emacs.")
 			module
 			sym
 			behaviour)
-		gds-focus-client))))
+		gds-client))))
 
 
 ;;;; Scheme source breakpoints.
@@ -961,15 +1011,17 @@ isn't yet known to Guile."
 ;; connection, receive the result and any output generated through the
 ;; same connection, and display the result and output to the user.
 ;;
-;; Where there are multiple Guile applications known to GDS, GDS by
-;; default sends code to the one that holds the debugging focus,
-;; i.e. `gds-focus-client'.  Where no application has the focus,
-;; or the command is invoked with `C-u', GDS asks the user which
-;; application is intended.
+;; For each buffer where evaluations can be requested, GDS uses the
+;; buffer-local variable `gds-client' to track which GDS client
+;; program should receive and handle that buffer's evaluations.  In
+;; the common case where GDS is only managing one client program, a
+;; buffer's value of `gds-client' is set automatically to point to
+;; that program the first time that an evaluation (or help or
+;; completion) is requested.  If there are multiple GDS clients
+;; running at that time, GDS asks the user which one is intended.
 
 (defun gds-read-client ()
-  (let* ((def (if gds-focus-client
-		  (cdr (assq gds-focus-client gds-names))))
+  (let* ((def (and gds-client (cdr (assq gds-client gds-names))))
 	 (prompt (if def
 		     (concat "Application for eval (default "
 			     def
@@ -991,16 +1043,18 @@ isn't yet known to Guile."
 (defun gds-choose-client (client)
   (or ;; If client is an integer, it is the port number of the
       ;; intended client.
-      (if (integerp client) client)
+      (if (integerp client)
+	  client)
       ;; Any other non-nil value indicates invocation with a prefix
       ;; arg, which forces asking the user which application is
       ;; intended.
-      (if client (gds-read-client))
-      ;; If ask not forced, and there is a client with the focus,
-      ;; default to that one.
-      gds-focus-client
-      ;; If there are no clients at this point, and we are allowed to
-      ;; autostart a captive Guile, do so.
+      (if client
+	  (setq gds-client (gds-read-client)))
+      ;; If ask not forced, and current buffer is associated with a
+      ;; client, use that client.
+      gds-client
+      ;; If there are no clients at this point, and we are
+      ;; allowed to autostart a captive Guile, do so.
       (and (null gds-buffers)
 	   gds-autostart-captive
 	   (progn
@@ -1008,13 +1062,13 @@ isn't yet known to Guile."
 	     (while (null gds-buffers)
 	       (accept-process-output (get-buffer-process gds-captive)
 				      0 100000))
-	     (caar gds-buffers)))
+	     (setq gds-client (caar gds-buffers))))
       ;; If there is only one known client, use that one.
       (if (and (car gds-buffers)
 	       (null (cdr gds-buffers)))
-	  (caar gds-buffers))
+	  (setq gds-client (caar gds-buffers)))
       ;; Last resort - ask the user.
-      (gds-read-client)
+      (setq gds-client (gds-read-client))
       ;; Signal an error.
       (error "No application chosen.")))
 
@@ -1358,7 +1412,7 @@ Used for determining the default for the next `gds-load-file'.")
   (define-key gds-menu [view]
     `(menu-item "View" ,gds-view-menu :enable gds-views))
   (define-key gds-menu [debug]
-    `(menu-item "Debug" ,gds-debug-menu :enable (and gds-focus-client
+    `(menu-item "Debug" ,gds-debug-menu :enable (and gds-client
 						     (gds-client-blocked))))
   (define-key gds-menu [breakpoint]
     `(menu-item "Breakpoints" ,gds-breakpoint-menu :enable t))

@@ -1,3 +1,30 @@
+2004-01-26  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* gds.el (gds-request-focus, gds-quit): Simplify.  Old algorithm
+	left in as a big comment.
+	(gds-focus-in-function, gds-focus-in, gds-focus-out-function,
+	gds-focus-out): New.
+
+	* gds-client.scm (ui-read-thread-proc): Fix `with-mutex' syntax
+	error.
+
+2004-01-25  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* gds.el (gds-handle-client-input, gds-async-break,
+	gds-select-stack-frame, gds-query-modules, gds-go, gds-next,
+	gds-evaluate, gds-step-in, gds-step-out, gds-trace-finish,
+	gds-frame-info, gds-frame-args, gds-set-module-breakpoint,
+	gds-read-client, gds-choose-client): Change gds-focus-client to
+	gds-client.
+	(gds-choose-client): Set local value of gds-client to determined
+	client.
+	(gds-menu): Use gds-client rather than gds-focus-client.
+	(gds-client-ref): New.
+	(gds-client-blocked): Rewrite using gds-client-ref.
+	(gds-display-buffers): Take `client' arg instead of global
+	`gds-focus-client'.
+	(gds-request-focus): Call gds-display-buffers with explicit arg.
+
 2004-01-20  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* gds.el: Changes throughout because of (i) change of gds-send
