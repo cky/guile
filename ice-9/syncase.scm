@@ -40,11 +40,12 @@
                     (and (apply f (cons x xr)) (andmap first rest)))))))))
 
 (define (error who format-string why what)
-  (scm-error 'misc-error
-	     who
-	     "%s %S"
-	     (list why what)
-	     '()))
+  (start-stack 'syncase-stack
+	       (scm-error 'misc-error
+			  who
+			  "%s %S"
+			  (list why what)
+			  '())))
 
 (define putprop set-symbol-property!)
 (define getprop symbol-property)
@@ -102,11 +103,9 @@
 
 ;;; *fixme*
 (define-public (eval-enable x)
-  (variable-set! (builtin-variable 'scm:eval-transformer) sc-expand)
-  (debug-disable 'debug))
+  (variable-set! (builtin-variable 'scm:eval-transformer) sc-expand))
 
 (define-public (eval-disable x)
-  (variable-set! (builtin-variable 'scm:eval-transformer) #f)
-  (debug-enable 'debug))
+  (variable-set! (builtin-variable 'scm:eval-transformer) #f))
 
 (eval-enable 'syncase)
