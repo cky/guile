@@ -42,9 +42,9 @@ PACKAGE = @PACKAGE@
 existingdirs = @existingdirs@
 VERSION = @VERSION@
 
-SUBDIRS = @existingdirs@ doc
+SUBDIRS = @existingdirs@ doc newdoc
 
-guile_dirs = @existingdirs@ doc
+guile_dirs = @existingdirs@ doc newdoc
 
 aclocaldir = $(datadir)/aclocal
 aclocal_DATA = guile.m4 threads.m4
@@ -68,7 +68,7 @@ default: all
 
 .SUFFIXES:
 $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL) 
-	cd $(top_srcdir) && automake --foreign Makefile
+	cd $(top_srcdir) && automake --gnu Makefile
 
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status $(BUILT_SOURCES)
 	cd $(top_builddir) \
@@ -164,7 +164,7 @@ distdir: $(DISTFILES)
 	-chmod 755 $(distdir)
 	here=`pwd`; distdir=`cd $(distdir) && pwd` \
 	  && cd $(srcdir) \
-	  && automake --include-deps --build-dir=$$here --srcdir-name=$(srcdir) --output-dir=$$distdir --foreign
+	  && automake --include-deps --build-dir=$$here --srcdir-name=$(srcdir) --output-dir=$$distdir --gnu
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
 	  test -f $(distdir)/$$file \

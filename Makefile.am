@@ -1,8 +1,8 @@
 ## Process this file with automake to produce Makefile.in.
 
-SUBDIRS = @existingdirs@ doc
+SUBDIRS = @existingdirs@ doc newdoc
 
-guile_dirs = @existingdirs@ doc
+guile_dirs = @existingdirs@ doc newdoc
 guile-dist:
 	$(MAKE) SUBDIRS="$(guile_dirs)" dist
 
