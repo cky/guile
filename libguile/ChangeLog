@@ -1,3 +1,8 @@
+2000-06-03  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* dynl.c: Changed #include <ltdl.h> --> #include
+	"libltdl/ltdl.h".  (Thanks to Bill Schottstaedt.)
+
 2000-06-01  Craig Brozefsky  <craig@red-bean.com>
 
 	* Makefile.am: libguile_la_LDFLAGS gets -version-info args
