@@ -336,7 +336,7 @@ scm_ramapc (int (*cproc)(), SCM data, SCM ra0, SCM lra, const char *what)
       }
     else
       {
-	unsigned long length = scm_to_ulong (scm_uniform_vector_length (ra0));
+	size_t length = scm_c_generalized_vector_length (ra0);
 	kmax = 0;
 	SCM_ARRAY_DIMS (vra0)->lbnd = 0;
 	SCM_ARRAY_DIMS (vra0)->ubnd = length - 1;
@@ -732,7 +732,6 @@ ramap (SCM ra0, SCM proc, SCM ras)
     {
       SCM ra1 = SCM_CAR (ras);
       SCM args;
-      SCM const *ve = &ras;
       unsigned long k, i1 = SCM_ARRAY_BASE (ra1);
       long inc1 = SCM_ARRAY_DIMS (ra1)->inc;
       ra1 = SCM_ARRAY_V (ra1);
@@ -740,16 +739,13 @@ ramap (SCM ra0, SCM proc, SCM ras)
       if (scm_is_null(ras))
 	ras = scm_nullvect;
       else
-	{
-	  ras = scm_vector (ras);
-	  ve = SCM_VELTS (ras);
-	}
+	ras = scm_vector (ras);
       
       for (; i <= n; i++, i1 += inc1)
 	{
 	  args = SCM_EOL;
-	  for (k = scm_to_ulong (scm_uniform_vector_length (ras)); k--;)
-	    args = scm_cons (scm_uniform_vector_ref (ve[k], scm_from_long (i)), args);
+	  for (k = scm_c_vector_length (ras); k--;)
+	    args = scm_cons (scm_c_generalized_vector_ref (scm_c_vector_ref (ras, k), i), args);
 	  args = scm_cons (scm_cvref (ra1, i1, SCM_UNDEFINED), args);
 	  scm_array_set_x (ra0, scm_apply_0 (proc, args), scm_from_long (i * inc + base));
 	}
@@ -1032,7 +1028,6 @@ rafe (SCM ra0, SCM proc, SCM ras)
     {
       SCM ra1 = SCM_CAR (ras);
       SCM args;
-      SCM const*ve = &ras;
       unsigned long k, i1 = SCM_ARRAY_BASE (ra1);
       long inc1 = SCM_ARRAY_DIMS (ra1)->inc;
       ra1 = SCM_ARRAY_V (ra1);
@@ -1040,15 +1035,12 @@ rafe (SCM ra0, SCM proc, SCM ras)
       if (scm_is_null(ras))
 	ras = scm_nullvect;
       else
-	{
-	  ras = scm_vector (ras);
-	  ve = SCM_VELTS (ras);
-	}
+	ras = scm_vector (ras);
       for (; i <= n; i++, i0 += inc0, i1 += inc1)
 	{
 	  args = SCM_EOL;
-	  for (k = scm_to_ulong (scm_uniform_vector_length (ras)); k--;)
-	    args = scm_cons (scm_uniform_vector_ref (ve[k], scm_from_long (i)), args);
+	  for (k = scm_c_vector_length (ras); k--;)
+	    args = scm_cons (scm_c_generalized_vector_ref (scm_c_vector_ref (ras, k), i), args);
 	  args = scm_cons2 (scm_cvref (ra0, i0, SCM_UNDEFINED), scm_cvref (ra1, i1, SCM_UNDEFINED), args);
 	  scm_apply_0 (proc, args);
 	}
@@ -1221,7 +1213,7 @@ raeql (SCM ra0, SCM as_equal, SCM ra1)
     {
       s0->inc = 1;
       s0->lbnd = 0;
-      s0->ubnd = scm_to_long (scm_uniform_vector_length (v0)) - 1;
+      s0->ubnd = scm_c_generalized_vector_length (v0) - 1;
       unroll = 0;
     }
   if (SCM_ARRAYP (ra1))
@@ -1241,7 +1233,7 @@ raeql (SCM ra0, SCM as_equal, SCM ra1)
 	return 0;
       s1->inc = 1;
       s1->lbnd = 0;
-      s1->ubnd = scm_to_long (scm_uniform_vector_length (v1)) - 1;
+      s1->ubnd = scm_c_generalized_vector_length (v1) - 1;
       unroll = 0;
     }
   if (SCM_TYP7 (v0) != SCM_TYP7 (v1))
