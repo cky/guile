@@ -79,7 +79,7 @@ inet_aton(const char *cp_arg, struct in_addr *addr)
 	register unsigned long val;
 	register int base, n;
 	register unsigned char c;
-	register unsigned const char *cp = cp_arg;
+	register unsigned const char *cp = (unsigned const char *) cp_arg;
 	unsigned int parts[4];
 	register unsigned int *pp = parts;
 
