@@ -57,8 +57,8 @@ libtool 1.4 --- a system for managing the zillion hairy options needed
 	on various systems to produce shared libraries.  Available in
 	"ftp://ftp.gnu.org/pub/gnu/libtool"
 
-flex 2.5.4 --- a tokenizer generator.  earlier versions will most
-        probably work too.
+flex 2.5.4 (or newer) --- a scanner generator.  earlier versions will
+        most probably work too.
 
 You are lost in a little maze of automatically generated files, all
 different.

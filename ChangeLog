@@ -1,3 +1,10 @@
+2001-06-27  Michael Livshin  <mlivshin@bigfoot.com>
+
+	* autogen.sh: don't run flex here.
+
+	* HACKING: clarify that newer versions of flex should be just
+	fine.
+
 2001-06-26  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* HACKING, ANON-CVS: Removed mentioning of guile-doc CVS module.
