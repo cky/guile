@@ -1,3 +1,25 @@
+2001-07-29  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	Removed vcell slot from structs.
+	
+	* struct.h (scm_vtable_index_vcell): Removed.  Renumbered
+	subsequent indices.
+
+	* struct.c (scm_struct_vtable_p): Do not check vcell slot for
+	zero.  Use scm_vtable_index_layout instead of "0" when accessing
+	said slot.
+	(scm_init_struct): Remove vcell slot layout code from
+	required_vtable_fields.
+
+	* objects.h (scm_si_redefined, scm_si_hashsets): Renumbered.
+
+	* goops.c (build_class_class_slots): Removed vcell slot
+	definition.
+
+	* goops.h: Renumbered slot indices. (SCM_CLASS_CLASS_LAYOUT):
+	Removed vcell slot layout code.
+	(scm_si_vcell): Removed.
+
 2001-07-26  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	"Glocs" have been removed.

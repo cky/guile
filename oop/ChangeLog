@@ -1,3 +1,8 @@
+2001-07-29  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* goops/dispatch.scm (hashset-index): Renumbered, since the vcell
+	slot of structs has been removed.
+
 2001-07-18  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* goops/util.scm: Updated copyright notice.
