@@ -1,5 +1,9 @@
 2004-11-02  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
+	* srfi-4.h, srfi-4.c (scm_frame_uniform_vector_release): New.
+	* unif.c (scm_bit_set_star_x, scm_bit_count_star_x): Use it to get
+	more efficient access to the u32vector.
+	
 	* tags.h (scm_tc7_llvect, scm_tc7_uvect, scm_tc7_fvect,
 	scm_tc7_dvect, scm_tc7_cvect, scm_tc7_svect, scm_tc7_byvect,
 	scm_tc7_ivect): Renamed to scm_tc7_unused_1 to scm_tc7_unused_8.
