@@ -1,5 +1,11 @@
 2003-04-27  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* eval.c: Non functional change: Separated R5RS and non-R5RS
+	macros into different sections of the file and ordered the
+	memoizers alphabetically.
+
+2003-04-27  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* eval.c (scm_ilookup):  Rewritten to improve readability.
 
 2003-04-27  Dirk Herrmann  <D.Herrmann@tu-bs.de>

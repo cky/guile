@@ -452,53 +452,7 @@ scm_m_body (SCM op, SCM xorig, const char *what)
 }
 
 
-SCM_SYNTAX (s_quote, "quote", scm_makmmacro, scm_m_quote);
-SCM_GLOBAL_SYMBOL (scm_sym_quote, s_quote);
-
-SCM
-scm_m_quote (SCM xorig, SCM env SCM_UNUSED)
-{
-  SCM_ASSYNT (scm_ilength (SCM_CDR (xorig)) == 1, scm_s_expression, s_quote);
-  return scm_cons (SCM_IM_QUOTE, SCM_CDR (xorig));
-}
-
-
-SCM_SYNTAX (s_begin, "begin", scm_makmmacro, scm_m_begin);
-SCM_GLOBAL_SYMBOL (scm_sym_begin, s_begin);
-
-SCM
-scm_m_begin (SCM xorig, SCM env SCM_UNUSED)
-{
-  SCM_ASSYNT (scm_ilength (SCM_CDR (xorig)) >= 0, scm_s_expression, s_begin);
-  return scm_cons (SCM_IM_BEGIN, SCM_CDR (xorig));
-}
-
-
-SCM_SYNTAX (s_if, "if", scm_makmmacro, scm_m_if);
-SCM_GLOBAL_SYMBOL (scm_sym_if, s_if);
-
-SCM
-scm_m_if (SCM xorig, SCM env SCM_UNUSED)
-{
-  long len = scm_ilength (SCM_CDR (xorig));
-  SCM_ASSYNT (len >= 2 && len <= 3, scm_s_expression, s_if);
-  return scm_cons (SCM_IM_IF, SCM_CDR (xorig));
-}
-
-
-/* Will go into the RnRS module when Guile is factorized.
-SCM_SYNTAX (s_set_x, "set!", scm_makmmacro, scm_m_set_x); */
-static const char s_set_x[] = "set!";
-SCM_GLOBAL_SYMBOL (scm_sym_set_x, s_set_x);
-
-SCM
-scm_m_set_x (SCM xorig, SCM env SCM_UNUSED)
-{
-  SCM x = SCM_CDR (xorig);
-  SCM_ASSYNT (scm_ilength (x) == 2, scm_s_expression, s_set_x);
-  SCM_ASSYNT (SCM_SYMBOLP (SCM_CAR (x)), scm_s_variable, s_set_x);
-  return scm_cons (SCM_IM_SET_X, x);
-}
+/* Start of the memoizers for the standard R5RS builtin macros.  */
 
 
 SCM_SYNTAX (s_and, "and", scm_makmmacro, scm_m_and);
@@ -516,18 +470,14 @@ scm_m_and (SCM xorig, SCM env SCM_UNUSED)
 }
 
 
-SCM_SYNTAX (s_or, "or", scm_makmmacro, scm_m_or);
-SCM_GLOBAL_SYMBOL (scm_sym_or, s_or);
+SCM_SYNTAX (s_begin, "begin", scm_makmmacro, scm_m_begin);
+SCM_GLOBAL_SYMBOL (scm_sym_begin, s_begin);
 
 SCM
-scm_m_or (SCM xorig, SCM env SCM_UNUSED)
+scm_m_begin (SCM xorig, SCM env SCM_UNUSED)
 {
-  long len = scm_ilength (SCM_CDR (xorig));
-  SCM_ASSYNT (len >= 0, scm_s_test, s_or);
-  if (len >= 1)
-    return scm_cons (SCM_IM_OR, SCM_CDR (xorig));
-  else
-    return SCM_BOOL_F;
+  SCM_ASSYNT (scm_ilength (SCM_CDR (xorig)) >= 0, scm_s_expression, s_begin);
+  return scm_cons (SCM_IM_BEGIN, SCM_CDR (xorig));
 }
 
 
@@ -585,77 +535,80 @@ scm_m_cond (SCM xorig, SCM env SCM_UNUSED)
 }
 
 
-SCM_SYNTAX (s_lambda, "lambda", scm_makmmacro, scm_m_lambda);
-SCM_GLOBAL_SYMBOL (scm_sym_lambda, s_lambda);
+SCM_SYNTAX(s_define, "define", scm_makmmacro, scm_m_define);
+SCM_GLOBAL_SYMBOL(scm_sym_define, s_define);
 
-/* Return true if OBJ is `eq?' to one of the elements of LIST or to the
- * cdr of the last cons.  (Thus, LIST is not required to be a proper
- * list and OBJ can also be found in the improper ending.) */
-static int
-scm_c_improper_memq (SCM obj, SCM list)
+/* Guile provides an extension to R5RS' define syntax to represent function
+ * currying in a compact way.  With this extension, it is allowed to write
+ * (define <nested-variable> <body>), where <nested-variable> has of one of
+ * the forms (<nested-variable> <formals>), (<nested-variable> . <formal>),  
+ * (<variable> <formals>) or (<variable> . <formal>).  As in R5RS, <formals>
+ * should be either a sequence of zero or more variables, or a sequence of one
+ * or more variables followed by a space-delimited period and another
+ * variable.  Each level of argument nesting wraps the <body> within another
+ * lambda expression.  For example, the following forms are allowed, each one
+ * followed by an equivalent, more explicit implementation.
+ * Example 1:
+ *   (define ((a b . c) . d) <body>)  is equivalent to
+ *   (define a (lambda (b . c) (lambda d <body>)))
+ * Example 2:
+ *   (define (((a) b) c . d) <body>)  is equivalent to
+ *   (define a (lambda () (lambda (b) (lambda (c . d) <body>))))
+ */
+/* Dirk:FIXME:: We should provide an implementation for 'define' in the R5RS
+ * module that does not implement this extension.  */
+SCM
+scm_m_define (SCM x, SCM env)
 {
-  for (; SCM_CONSP (list); list = SCM_CDR (list))
+  SCM name;
+  x = SCM_CDR (x);
+  SCM_ASSYNT (scm_ilength (x) >= 2, scm_s_expression, s_define);
+  name = SCM_CAR (x);
+  x = SCM_CDR (x);
+  while (SCM_CONSP (name))
     {
-      if (SCM_EQ_P (SCM_CAR (list), obj))
-	return 1;
+      /* This while loop realizes function currying by variable nesting. */
+      SCM formals = SCM_CDR (name);
+      x = scm_list_1 (scm_cons2 (scm_sym_lambda, formals, x));
+      name = SCM_CAR (name);
     }
-  return SCM_EQ_P (list, obj);
+  SCM_ASSYNT (SCM_SYMBOLP (name), scm_s_variable, s_define);
+  SCM_ASSYNT (scm_ilength (x) == 1, scm_s_expression, s_define);
+  if (SCM_TOP_LEVEL (env))
+    {
+      SCM var;
+      x = scm_eval_car (x, env);
+      if (SCM_REC_PROCNAMES_P)
+	{
+	  SCM tmp = x;
+	  while (SCM_MACROP (tmp))
+	    tmp = SCM_MACRO_CODE (tmp);
+	  if (SCM_CLOSUREP (tmp)
+	      /* Only the first definition determines the name. */
+	      && SCM_FALSEP (scm_procedure_property (tmp, scm_sym_name)))
+	    scm_set_procedure_property_x (tmp, scm_sym_name, name);
+	}
+      var = scm_sym2var (name, scm_env_top_level (env), SCM_BOOL_T);
+      SCM_VARIABLE_SET (var, x);
+      return SCM_UNSPECIFIED;
+    }
+  else
+    return scm_cons2 (SCM_IM_DEFINE, name, x);
 }
 
+
+SCM_SYNTAX (s_delay, "delay", scm_makmmacro, scm_m_delay);
+SCM_GLOBAL_SYMBOL (scm_sym_delay, s_delay);
+
+/* Promises are implemented as closures with an empty parameter list.  Thus,
+ * (delay <expression>) is transformed into (#@delay '() <expression>), where
+ * the empty list represents the empty parameter list.  This representation
+ * allows for easy creation of the closure during evaluation.  */
 SCM
-scm_m_lambda (SCM xorig, SCM env SCM_UNUSED)
+scm_m_delay (SCM xorig, SCM env SCM_UNUSED)
 {
-  SCM formals;
-  SCM x = SCM_CDR (xorig);
-
-  SCM_ASSYNT (SCM_CONSP (x), scm_s_formals, s_lambda);
-
-  formals = SCM_CAR (x);
-  while (SCM_CONSP (formals))
-    {
-      SCM formal = SCM_CAR (formals);
-      SCM_ASSYNT (SCM_SYMBOLP (formal), scm_s_formals, s_lambda);
-      if (scm_c_improper_memq (formal, SCM_CDR (formals)))
-	scm_misc_error (s_lambda, scm_s_duplicate_formals, SCM_EOL);
-      formals = SCM_CDR (formals);
-    }
-  if (!SCM_NULLP (formals) && !SCM_SYMBOLP (formals))
-    scm_misc_error (s_lambda, scm_s_formals, SCM_EOL);
-
-  return scm_cons2 (SCM_IM_LAMBDA, SCM_CAR (x),
-		    scm_m_body (SCM_IM_LAMBDA, SCM_CDR (x), s_lambda));
-}
-
-
-SCM_SYNTAX (s_letstar, "let*", scm_makmmacro, scm_m_letstar);
-SCM_GLOBAL_SYMBOL (scm_sym_letstar, s_letstar);
-
-/* (let* ((v1 i1) (v2 i2) ...) body) with variables v1 .. vk and initializers
- * i1 .. ik is transformed into the form (#@let* (v1 i1 v2 i2 ...) body*).  */
-SCM
-scm_m_letstar (SCM xorig, SCM env SCM_UNUSED)
-{
-  SCM bindings;
-  SCM x = SCM_CDR (xorig);
-  SCM vars = SCM_EOL;
-  SCM *varloc = &vars;
-
-  SCM_ASSYNT (SCM_CONSP (x), scm_s_bindings, s_letstar);
-
-  bindings = SCM_CAR (x);
-  SCM_ASSYNT (scm_ilength (bindings) >= 0, scm_s_bindings, s_letstar);
-  while (!SCM_NULLP (bindings))
-    {
-      SCM binding = SCM_CAR (bindings);
-      SCM_ASSYNT (scm_ilength (binding) == 2, scm_s_bindings, s_letstar);
-      SCM_ASSYNT (SCM_SYMBOLP (SCM_CAR (binding)), scm_s_variable, s_letstar);
-      *varloc = scm_list_2 (SCM_CAR (binding), SCM_CADR (binding));
-      varloc = SCM_CDRLOC (SCM_CDR (*varloc));
-      bindings = SCM_CDR (bindings);
-    }
-
-  return scm_cons2 (SCM_IM_LETSTAR, vars,
-		    scm_m_body (SCM_IM_LETSTAR, SCM_CDR (x), s_letstar));
+  SCM_ASSYNT (scm_ilength (xorig) == 2, scm_s_expression, s_delay);
+  return scm_cons2 (SCM_IM_DELAY, SCM_EOL, SCM_CDR (xorig));
 }
 
 
@@ -717,6 +670,232 @@ scm_m_do (SCM xorig, SCM env SCM_UNUSED)
   x = scm_cons2 (SCM_CAR (x), SCM_CDR (x), steps);
   x = scm_cons2 (vars, inits, x);
   return scm_cons (SCM_IM_DO, x);
+}
+
+
+SCM_SYNTAX (s_if, "if", scm_makmmacro, scm_m_if);
+SCM_GLOBAL_SYMBOL (scm_sym_if, s_if);
+
+SCM
+scm_m_if (SCM xorig, SCM env SCM_UNUSED)
+{
+  long len = scm_ilength (SCM_CDR (xorig));
+  SCM_ASSYNT (len >= 2 && len <= 3, scm_s_expression, s_if);
+  return scm_cons (SCM_IM_IF, SCM_CDR (xorig));
+}
+
+
+SCM_SYNTAX (s_lambda, "lambda", scm_makmmacro, scm_m_lambda);
+SCM_GLOBAL_SYMBOL (scm_sym_lambda, s_lambda);
+
+/* Return true if OBJ is `eq?' to one of the elements of LIST or to the
+ * cdr of the last cons.  (Thus, LIST is not required to be a proper
+ * list and OBJ can also be found in the improper ending.) */
+static int
+scm_c_improper_memq (SCM obj, SCM list)
+{
+  for (; SCM_CONSP (list); list = SCM_CDR (list))
+    {
+      if (SCM_EQ_P (SCM_CAR (list), obj))
+	return 1;
+    }
+  return SCM_EQ_P (list, obj);
+}
+
+SCM
+scm_m_lambda (SCM xorig, SCM env SCM_UNUSED)
+{
+  SCM formals;
+  SCM x = SCM_CDR (xorig);
+
+  SCM_ASSYNT (SCM_CONSP (x), scm_s_formals, s_lambda);
+
+  formals = SCM_CAR (x);
+  while (SCM_CONSP (formals))
+    {
+      SCM formal = SCM_CAR (formals);
+      SCM_ASSYNT (SCM_SYMBOLP (formal), scm_s_formals, s_lambda);
+      if (scm_c_improper_memq (formal, SCM_CDR (formals)))
+	scm_misc_error (s_lambda, scm_s_duplicate_formals, SCM_EOL);
+      formals = SCM_CDR (formals);
+    }
+  if (!SCM_NULLP (formals) && !SCM_SYMBOLP (formals))
+    scm_misc_error (s_lambda, scm_s_formals, SCM_EOL);
+
+  return scm_cons2 (SCM_IM_LAMBDA, SCM_CAR (x),
+		    scm_m_body (SCM_IM_LAMBDA, SCM_CDR (x), s_lambda));
+}
+
+
+/* The bindings ((v1 i1) (v2 i2) ... (vn in)) are transformed to the lists
+ * (vn ... v2 v1) and (i1 i2 ... in).  That is, the list of variables is
+ * reversed here, the list of inits gets reversed during evaluation. */
+static void
+transform_bindings (SCM bindings, SCM *rvarloc, SCM *initloc, const char *what)
+{
+  SCM rvars = SCM_EOL;
+  *rvarloc = SCM_EOL;
+  *initloc = SCM_EOL;
+
+  SCM_ASSYNT (scm_ilength (bindings) >= 1, scm_s_bindings, what);
+
+  do
+    {
+      SCM binding = SCM_CAR (bindings);
+      SCM_ASSYNT (scm_ilength (binding) == 2, scm_s_bindings, what);
+      SCM_ASSYNT (SCM_SYMBOLP (SCM_CAR (binding)), scm_s_variable, what);
+      if (scm_c_improper_memq (SCM_CAR (binding), rvars))
+	scm_misc_error (what, scm_s_duplicate_bindings, SCM_EOL);
+      rvars = scm_cons (SCM_CAR (binding), rvars);
+      *initloc = scm_list_1 (SCM_CADR (binding));
+      initloc = SCM_CDRLOC (*initloc);
+      bindings = SCM_CDR (bindings);
+    }
+  while (!SCM_NULLP (bindings));
+
+  *rvarloc = rvars;
+}
+
+
+SCM_SYNTAX(s_let, "let", scm_makmmacro, scm_m_let);
+SCM_GLOBAL_SYMBOL(scm_sym_let, s_let);
+
+SCM
+scm_m_let (SCM xorig, SCM env)
+{
+  SCM x = SCM_CDR (xorig);
+  SCM temp;
+
+  SCM_ASSYNT (SCM_CONSP (x), scm_s_bindings, s_let);
+  temp = SCM_CAR (x);
+  if (SCM_NULLP (temp) 
+      || (scm_ilength (temp) == 1 && SCM_CONSP (SCM_CAR (temp))))
+    {
+      /* null or single binding, let* is faster */
+      SCM bindings = temp;
+      SCM body = scm_m_body (SCM_IM_LET, SCM_CDR (x), s_let);
+      return scm_m_letstar (scm_cons2 (SCM_CAR (xorig), bindings, body), env);
+    }
+  else if (SCM_CONSP (temp))
+    {
+      /* plain let */
+      SCM bindings = temp;
+      SCM rvars, inits, body;
+      transform_bindings (bindings, &rvars, &inits, "let");
+      body = scm_m_body (SCM_IM_LET, SCM_CDR (x), "let");
+      return scm_cons2 (SCM_IM_LET, rvars, scm_cons (inits, body));
+    }
+  else
+    {
+      /* named let: Transform (let name ((var init) ...) body ...) into
+       * ((letrec ((name (lambda (var ...) body ...))) name) init ...) */
+
+      SCM name = temp;
+      SCM vars = SCM_EOL;
+      SCM *varloc = &vars;
+      SCM inits = SCM_EOL;
+      SCM *initloc = &inits;
+      SCM bindings;
+
+      SCM_ASSYNT (SCM_SYMBOLP (name), scm_s_bindings, s_let);
+      x = SCM_CDR (x);
+      SCM_ASSYNT (SCM_CONSP (x), scm_s_bindings, s_let);
+      bindings = SCM_CAR (x);
+      SCM_ASSYNT (scm_ilength (bindings) >= 0, scm_s_bindings, s_let);
+      while (!SCM_NULLP (bindings))
+	{				/* vars and inits both in order */
+	  SCM binding = SCM_CAR (bindings);
+	  SCM_ASSYNT (scm_ilength (binding) == 2, scm_s_bindings, s_let);
+	  SCM_ASSYNT (SCM_SYMBOLP (SCM_CAR (binding)), scm_s_variable, s_let);
+	  *varloc = scm_list_1 (SCM_CAR (binding));
+	  varloc = SCM_CDRLOC (*varloc);
+	  *initloc = scm_list_1 (SCM_CADR (binding));
+	  initloc = SCM_CDRLOC (*initloc);
+	  bindings = SCM_CDR (bindings);
+	}
+
+      {
+	SCM lambda_body = scm_m_body (SCM_IM_LET, SCM_CDR (x), "let");
+	SCM lambda_form = scm_cons2 (scm_sym_lambda, vars, lambda_body);
+	SCM rvar = scm_list_1 (name);
+	SCM init = scm_list_1 (lambda_form);
+	SCM body = scm_m_body (SCM_IM_LET, scm_list_1 (name), "let");
+	SCM letrec = scm_cons2 (SCM_IM_LETREC, rvar, scm_cons (init, body));
+	return scm_cons (letrec, inits);
+      }
+    }
+}
+
+
+SCM_SYNTAX (s_letstar, "let*", scm_makmmacro, scm_m_letstar);
+SCM_GLOBAL_SYMBOL (scm_sym_letstar, s_letstar);
+
+/* (let* ((v1 i1) (v2 i2) ...) body) with variables v1 .. vk and initializers
+ * i1 .. ik is transformed into the form (#@let* (v1 i1 v2 i2 ...) body*).  */
+SCM
+scm_m_letstar (SCM xorig, SCM env SCM_UNUSED)
+{
+  SCM bindings;
+  SCM x = SCM_CDR (xorig);
+  SCM vars = SCM_EOL;
+  SCM *varloc = &vars;
+
+  SCM_ASSYNT (SCM_CONSP (x), scm_s_bindings, s_letstar);
+
+  bindings = SCM_CAR (x);
+  SCM_ASSYNT (scm_ilength (bindings) >= 0, scm_s_bindings, s_letstar);
+  while (!SCM_NULLP (bindings))
+    {
+      SCM binding = SCM_CAR (bindings);
+      SCM_ASSYNT (scm_ilength (binding) == 2, scm_s_bindings, s_letstar);
+      SCM_ASSYNT (SCM_SYMBOLP (SCM_CAR (binding)), scm_s_variable, s_letstar);
+      *varloc = scm_list_2 (SCM_CAR (binding), SCM_CADR (binding));
+      varloc = SCM_CDRLOC (SCM_CDR (*varloc));
+      bindings = SCM_CDR (bindings);
+    }
+
+  return scm_cons2 (SCM_IM_LETSTAR, vars,
+		    scm_m_body (SCM_IM_LETSTAR, SCM_CDR (x), s_letstar));
+}
+
+
+SCM_SYNTAX(s_letrec, "letrec", scm_makmmacro, scm_m_letrec);
+SCM_GLOBAL_SYMBOL(scm_sym_letrec, s_letrec);
+
+SCM 
+scm_m_letrec (SCM xorig, SCM env)
+{
+  SCM x = SCM_CDR (xorig);
+  SCM_ASSYNT (SCM_CONSP (x), scm_s_bindings, s_letrec);
+  
+  if (SCM_NULLP (SCM_CAR (x)))
+    {
+      /* null binding, let* faster */
+      SCM body = scm_m_body (SCM_IM_LETREC, SCM_CDR (x), s_letrec);
+      return scm_m_letstar (scm_cons2 (SCM_CAR (xorig), SCM_EOL, body), env);
+    }
+  else
+    {
+      SCM rvars, inits, body;
+      transform_bindings (SCM_CAR (x), &rvars, &inits, "letrec");
+      body = scm_m_body (SCM_IM_LETREC, SCM_CDR (x), "letrec");
+      return scm_cons2 (SCM_IM_LETREC, rvars, scm_cons (inits, body));
+    }
+}
+
+
+SCM_SYNTAX (s_or, "or", scm_makmmacro, scm_m_or);
+SCM_GLOBAL_SYMBOL (scm_sym_or, s_or);
+
+SCM
+scm_m_or (SCM xorig, SCM env SCM_UNUSED)
+{
+  long len = scm_ilength (SCM_CDR (xorig));
+  SCM_ASSYNT (len >= 0, scm_s_test, s_or);
+  if (len >= 1)
+    return scm_cons (SCM_IM_OR, SCM_CDR (xorig));
+  else
+    return SCM_BOOL_F;
 }
 
 
@@ -791,240 +970,33 @@ scm_m_quasiquote (SCM xorig, SCM env)
 }
 
 
-SCM_SYNTAX (s_delay, "delay", scm_makmmacro, scm_m_delay);
-SCM_GLOBAL_SYMBOL (scm_sym_delay, s_delay);
+SCM_SYNTAX (s_quote, "quote", scm_makmmacro, scm_m_quote);
+SCM_GLOBAL_SYMBOL (scm_sym_quote, s_quote);
 
-/* Promises are implemented as closures with an empty parameter list.  Thus,
- * (delay <expression>) is transformed into (#@delay '() <expression>), where
- * the empty list represents the empty parameter list.  This representation
- * allows for easy creation of the closure during evaluation.  */
 SCM
-scm_m_delay (SCM xorig, SCM env SCM_UNUSED)
+scm_m_quote (SCM xorig, SCM env SCM_UNUSED)
 {
-  SCM_ASSYNT (scm_ilength (xorig) == 2, scm_s_expression, s_delay);
-  return scm_cons2 (SCM_IM_DELAY, SCM_EOL, SCM_CDR (xorig));
+  SCM_ASSYNT (scm_ilength (SCM_CDR (xorig)) == 1, scm_s_expression, s_quote);
+  return scm_cons (SCM_IM_QUOTE, SCM_CDR (xorig));
 }
 
 
-SCM_SYNTAX (s_gset_x, "set!", scm_makmmacro, scm_m_generalized_set_x);
-SCM_SYMBOL (scm_sym_setter, "setter");
+/* Will go into the RnRS module when Guile is factorized.
+SCM_SYNTAX (s_set_x, "set!", scm_makmmacro, scm_m_set_x); */
+static const char s_set_x[] = "set!";
+SCM_GLOBAL_SYMBOL (scm_sym_set_x, s_set_x);
 
-SCM 
-scm_m_generalized_set_x (SCM xorig, SCM env SCM_UNUSED)
+SCM
+scm_m_set_x (SCM xorig, SCM env SCM_UNUSED)
 {
   SCM x = SCM_CDR (xorig);
-  SCM_ASSYNT (2 == scm_ilength (x), scm_s_expression, s_set_x);
-  if (SCM_SYMBOLP (SCM_CAR (x)))
-    return scm_cons (SCM_IM_SET_X, x);
-  else if (SCM_CONSP (SCM_CAR (x)))
-    return scm_cons (scm_list_2 (scm_sym_setter, SCM_CAAR (x)),
-		     scm_append (scm_list_2 (SCM_CDAR (x), SCM_CDR (x))));
-  else
-    scm_misc_error (s_set_x, scm_s_variable, SCM_EOL);
+  SCM_ASSYNT (scm_ilength (x) == 2, scm_s_expression, s_set_x);
+  SCM_ASSYNT (SCM_SYMBOLP (SCM_CAR (x)), scm_s_variable, s_set_x);
+  return scm_cons (SCM_IM_SET_X, x);
 }
 
 
-SCM_SYNTAX (s_future, "future", scm_makmmacro, scm_m_future);
-SCM_GLOBAL_SYMBOL (scm_sym_future, s_future);
-
-/* Like promises, futures are implemented as closures with an empty
- * parameter list.  Thus, (future <expression>) is transformed into
- * (#@future '() <expression>), where the empty list represents the
- * empty parameter list.  This representation allows for easy creation
- * of the closure during evaluation.  */
-SCM
-scm_m_future (SCM xorig, SCM env SCM_UNUSED)
-{
-  SCM_ASSYNT (scm_ilength (xorig) == 2, scm_s_expression, s_future);
-  return scm_cons2 (SCM_IM_FUTURE, SCM_EOL, SCM_CDR (xorig));
-}
-
-
-SCM_SYNTAX(s_define, "define", scm_makmmacro, scm_m_define);
-SCM_GLOBAL_SYMBOL(scm_sym_define, s_define);
-
-/* Guile provides an extension to R5RS' define syntax to represent function
- * currying in a compact way.  With this extension, it is allowed to write
- * (define <nested-variable> <body>), where <nested-variable> has of one of
- * the forms (<nested-variable> <formals>), (<nested-variable> . <formal>),  
- * (<variable> <formals>) or (<variable> . <formal>).  As in R5RS, <formals>
- * should be either a sequence of zero or more variables, or a sequence of one
- * or more variables followed by a space-delimited period and another
- * variable.  Each level of argument nesting wraps the <body> within another
- * lambda expression.  For example, the following forms are allowed, each one
- * followed by an equivalent, more explicit implementation.
- * Example 1:
- *   (define ((a b . c) . d) <body>)  is equivalent to
- *   (define a (lambda (b . c) (lambda d <body>)))
- * Example 2:
- *   (define (((a) b) c . d) <body>)  is equivalent to
- *   (define a (lambda () (lambda (b) (lambda (c . d) <body>))))
- */
-/* Dirk:FIXME:: We should provide an implementation for 'define' in the R5RS
- * module that does not implement this extension.  */
-SCM
-scm_m_define (SCM x, SCM env)
-{
-  SCM name;
-  x = SCM_CDR (x);
-  SCM_ASSYNT (scm_ilength (x) >= 2, scm_s_expression, s_define);
-  name = SCM_CAR (x);
-  x = SCM_CDR (x);
-  while (SCM_CONSP (name))
-    {
-      /* This while loop realizes function currying by variable nesting. */
-      SCM formals = SCM_CDR (name);
-      x = scm_list_1 (scm_cons2 (scm_sym_lambda, formals, x));
-      name = SCM_CAR (name);
-    }
-  SCM_ASSYNT (SCM_SYMBOLP (name), scm_s_variable, s_define);
-  SCM_ASSYNT (scm_ilength (x) == 1, scm_s_expression, s_define);
-  if (SCM_TOP_LEVEL (env))
-    {
-      SCM var;
-      x = scm_eval_car (x, env);
-      if (SCM_REC_PROCNAMES_P)
-	{
-	  SCM tmp = x;
-	  while (SCM_MACROP (tmp))
-	    tmp = SCM_MACRO_CODE (tmp);
-	  if (SCM_CLOSUREP (tmp)
-	      /* Only the first definition determines the name. */
-	      && SCM_FALSEP (scm_procedure_property (tmp, scm_sym_name)))
-	    scm_set_procedure_property_x (tmp, scm_sym_name, name);
-	}
-      var = scm_sym2var (name, scm_env_top_level (env), SCM_BOOL_T);
-      SCM_VARIABLE_SET (var, x);
-      return SCM_UNSPECIFIED;
-    }
-  else
-    return scm_cons2 (SCM_IM_DEFINE, name, x);
-}
-
-
-/* The bindings ((v1 i1) (v2 i2) ... (vn in)) are transformed to the lists
- * (vn ... v2 v1) and (i1 i2 ... in).  That is, the list of variables is
- * reversed here, the list of inits gets reversed during evaluation. */
-static void
-transform_bindings (SCM bindings, SCM *rvarloc, SCM *initloc, const char *what)
-{
-  SCM rvars = SCM_EOL;
-  *rvarloc = SCM_EOL;
-  *initloc = SCM_EOL;
-
-  SCM_ASSYNT (scm_ilength (bindings) >= 1, scm_s_bindings, what);
-
-  do
-    {
-      SCM binding = SCM_CAR (bindings);
-      SCM_ASSYNT (scm_ilength (binding) == 2, scm_s_bindings, what);
-      SCM_ASSYNT (SCM_SYMBOLP (SCM_CAR (binding)), scm_s_variable, what);
-      if (scm_c_improper_memq (SCM_CAR (binding), rvars))
-	scm_misc_error (what, scm_s_duplicate_bindings, SCM_EOL);
-      rvars = scm_cons (SCM_CAR (binding), rvars);
-      *initloc = scm_list_1 (SCM_CADR (binding));
-      initloc = SCM_CDRLOC (*initloc);
-      bindings = SCM_CDR (bindings);
-    }
-  while (!SCM_NULLP (bindings));
-
-  *rvarloc = rvars;
-}
-
-
-SCM_SYNTAX(s_letrec, "letrec", scm_makmmacro, scm_m_letrec);
-SCM_GLOBAL_SYMBOL(scm_sym_letrec, s_letrec);
-
-SCM 
-scm_m_letrec (SCM xorig, SCM env)
-{
-  SCM x = SCM_CDR (xorig);
-  SCM_ASSYNT (SCM_CONSP (x), scm_s_bindings, s_letrec);
-  
-  if (SCM_NULLP (SCM_CAR (x)))
-    {
-      /* null binding, let* faster */
-      SCM body = scm_m_body (SCM_IM_LETREC, SCM_CDR (x), s_letrec);
-      return scm_m_letstar (scm_cons2 (SCM_CAR (xorig), SCM_EOL, body), env);
-    }
-  else
-    {
-      SCM rvars, inits, body;
-      transform_bindings (SCM_CAR (x), &rvars, &inits, "letrec");
-      body = scm_m_body (SCM_IM_LETREC, SCM_CDR (x), "letrec");
-      return scm_cons2 (SCM_IM_LETREC, rvars, scm_cons (inits, body));
-    }
-}
-
-
-SCM_SYNTAX(s_let, "let", scm_makmmacro, scm_m_let);
-SCM_GLOBAL_SYMBOL(scm_sym_let, s_let);
-
-SCM
-scm_m_let (SCM xorig, SCM env)
-{
-  SCM x = SCM_CDR (xorig);
-  SCM temp;
-
-  SCM_ASSYNT (SCM_CONSP (x), scm_s_bindings, s_let);
-  temp = SCM_CAR (x);
-  if (SCM_NULLP (temp) 
-      || (scm_ilength (temp) == 1 && SCM_CONSP (SCM_CAR (temp))))
-    {
-      /* null or single binding, let* is faster */
-      SCM bindings = temp;
-      SCM body = scm_m_body (SCM_IM_LET, SCM_CDR (x), s_let);
-      return scm_m_letstar (scm_cons2 (SCM_CAR (xorig), bindings, body), env);
-    }
-  else if (SCM_CONSP (temp))
-    {
-      /* plain let */
-      SCM bindings = temp;
-      SCM rvars, inits, body;
-      transform_bindings (bindings, &rvars, &inits, "let");
-      body = scm_m_body (SCM_IM_LET, SCM_CDR (x), "let");
-      return scm_cons2 (SCM_IM_LET, rvars, scm_cons (inits, body));
-    }
-  else
-    {
-      /* named let: Transform (let name ((var init) ...) body ...) into
-       * ((letrec ((name (lambda (var ...) body ...))) name) init ...) */
-
-      SCM name = temp;
-      SCM vars = SCM_EOL;
-      SCM *varloc = &vars;
-      SCM inits = SCM_EOL;
-      SCM *initloc = &inits;
-      SCM bindings;
-
-      SCM_ASSYNT (SCM_SYMBOLP (name), scm_s_bindings, s_let);
-      x = SCM_CDR (x);
-      SCM_ASSYNT (SCM_CONSP (x), scm_s_bindings, s_let);
-      bindings = SCM_CAR (x);
-      SCM_ASSYNT (scm_ilength (bindings) >= 0, scm_s_bindings, s_let);
-      while (!SCM_NULLP (bindings))
-	{				/* vars and inits both in order */
-	  SCM binding = SCM_CAR (bindings);
-	  SCM_ASSYNT (scm_ilength (binding) == 2, scm_s_bindings, s_let);
-	  SCM_ASSYNT (SCM_SYMBOLP (SCM_CAR (binding)), scm_s_variable, s_let);
-	  *varloc = scm_list_1 (SCM_CAR (binding));
-	  varloc = SCM_CDRLOC (*varloc);
-	  *initloc = scm_list_1 (SCM_CADR (binding));
-	  initloc = SCM_CDRLOC (*initloc);
-	  bindings = SCM_CDR (bindings);
-	}
-
-      {
-	SCM lambda_body = scm_m_body (SCM_IM_LET, SCM_CDR (x), "let");
-	SCM lambda_form = scm_cons2 (scm_sym_lambda, vars, lambda_body);
-	SCM rvar = scm_list_1 (name);
-	SCM init = scm_list_1 (lambda_form);
-	SCM body = scm_m_body (SCM_IM_LET, scm_list_1 (name), "let");
-	SCM letrec = scm_cons2 (SCM_IM_LETREC, rvar, scm_cons (init, body));
-	return scm_cons (letrec, inits);
-      }
-    }
-}
+/* Start of the memoizers for non-R5RS builtin macros.  */
 
 
 SCM_SYNTAX (s_atapply, "@apply", scm_makmmacro, scm_m_apply);
@@ -1038,77 +1010,6 @@ scm_m_apply (SCM xorig, SCM env SCM_UNUSED)
   return scm_cons (SCM_IM_APPLY, SCM_CDR (xorig));
 }
 
-
-SCM_SYNTAX(s_atcall_cc, "@call-with-current-continuation", scm_makmmacro, scm_m_cont);
-SCM_GLOBAL_SYMBOL(scm_sym_atcall_cc, s_atcall_cc);
-
-
-SCM 
-scm_m_cont (SCM xorig, SCM env SCM_UNUSED)
-{
-  SCM_ASSYNT (scm_ilength (SCM_CDR (xorig)) == 1,
-	      scm_s_expression, s_atcall_cc);
-  return scm_cons (SCM_IM_CONT, SCM_CDR (xorig));
-}
-
-#if SCM_ENABLE_ELISP
-
-SCM_SYNTAX (s_nil_cond, "nil-cond", scm_makmmacro, scm_m_nil_cond);
-
-SCM
-scm_m_nil_cond (SCM xorig, SCM env SCM_UNUSED)
-{
-  long len = scm_ilength (SCM_CDR (xorig));
-  SCM_ASSYNT (len >= 1 && (len & 1) == 1, scm_s_expression, "nil-cond");
-  return scm_cons (SCM_IM_NIL_COND, SCM_CDR (xorig));
-}
-
-SCM_SYNTAX (s_atfop, "@fop", scm_makmmacro, scm_m_atfop);
-
-SCM
-scm_m_atfop (SCM xorig, SCM env SCM_UNUSED)
-{
-  SCM x = SCM_CDR (xorig), var;
-  SCM_ASSYNT (scm_ilength (x) >= 1, scm_s_expression, "@fop");
-  var = scm_symbol_fref (SCM_CAR (x));
-  /* Passing the symbol name as the `subr' arg here isn't really
-     right, but without it it can be very difficult to work out from
-     the error message which function definition was missing.  In any
-     case, we shouldn't really use SCM_ASSYNT here at all, but instead
-     something equivalent to (signal void-function (list SYM)) in
-     Elisp. */
-  SCM_ASSYNT (SCM_VARIABLEP (var),
-	      "Symbol's function definition is void",
-	      SCM_SYMBOL_CHARS (SCM_CAR (x)));
-  /* Support `defalias'. */
-  while (SCM_SYMBOLP (SCM_VARIABLE_REF (var)))
-    {
-      var = scm_symbol_fref (SCM_VARIABLE_REF (var));
-      SCM_ASSYNT (SCM_VARIABLEP (var),
-		  "Symbol's function definition is void",
-		  SCM_SYMBOL_CHARS (SCM_CAR (x)));
-    }
-  /* Use `var' here rather than `SCM_VARIABLE_REF (var)' because the
-     former allows for automatically picking up redefinitions of the
-     corresponding symbol. */
-  SCM_SETCAR (x, var);
-  /* If the variable contains a procedure, leave the
-     `transformer-macro' in place so that the procedure's arguments
-     get properly transformed, and change the initial @fop to
-     SCM_IM_APPLY. */
-  if (!SCM_MACROP (SCM_VARIABLE_REF (var)))
-    {
-      SCM_SETCAR (xorig, SCM_IM_APPLY);
-      return xorig;
-    }
-  /* Otherwise (the variable contains a macro), the arguments should
-     not be transformed, so cut the `transformer-macro' out and return
-     the resulting expression starting with the variable. */
-  SCM_SETCDR (x, SCM_CDADR (x));
-  return x;
-}
-
-#endif /* SCM_ENABLE_ELISP */
 
 /* (@bind ((var exp) ...) body ...)
 
@@ -1163,32 +1064,30 @@ scm_m_atbind (SCM xorig, SCM env)
 			     SCM_CDDR (xorig)));
 }
 
-SCM_SYNTAX (s_atslot_ref, "@slot-ref", scm_makmmacro, scm_m_atslot_ref);
+
+SCM_SYNTAX(s_atcall_cc, "@call-with-current-continuation", scm_makmmacro, scm_m_cont);
+SCM_GLOBAL_SYMBOL(scm_sym_atcall_cc, s_atcall_cc);
+
+
+SCM 
+scm_m_cont (SCM xorig, SCM env SCM_UNUSED)
+{
+  SCM_ASSYNT (scm_ilength (SCM_CDR (xorig)) == 1,
+	      scm_s_expression, s_atcall_cc);
+  return scm_cons (SCM_IM_CONT, SCM_CDR (xorig));
+}
+
+
+SCM_SYNTAX (s_at_call_with_values, "@call-with-values", scm_makmmacro, scm_m_at_call_with_values);
+SCM_GLOBAL_SYMBOL(scm_sym_at_call_with_values, s_at_call_with_values);
 
 SCM
-scm_m_atslot_ref (SCM xorig, SCM env SCM_UNUSED)
-#define FUNC_NAME s_atslot_ref
+scm_m_at_call_with_values (SCM xorig, SCM env SCM_UNUSED)
 {
-  SCM x = SCM_CDR (xorig);
-  SCM_ASSYNT (scm_ilength (x) == 2, scm_s_expression, FUNC_NAME);
-  SCM_VALIDATE_INUM (SCM_ARG2, SCM_CADR (x));
-  return scm_cons (SCM_IM_SLOT_REF, x);
+  SCM_ASSYNT (scm_ilength (SCM_CDR (xorig)) == 2,
+	      scm_s_expression, s_at_call_with_values);
+  return scm_cons (SCM_IM_CALL_WITH_VALUES, SCM_CDR (xorig));
 }
-#undef FUNC_NAME
-
-
-SCM_SYNTAX (s_atslot_set_x, "@slot-set!", scm_makmmacro, scm_m_atslot_set_x);
-
-SCM
-scm_m_atslot_set_x (SCM xorig, SCM env SCM_UNUSED)
-#define FUNC_NAME s_atslot_set_x
-{
-  SCM x = SCM_CDR (xorig);
-  SCM_ASSYNT (scm_ilength (x) == 3, scm_s_expression, FUNC_NAME);
-  SCM_VALIDATE_INUM (SCM_ARG2, SCM_CADR (x));
-  return scm_cons (SCM_IM_SLOT_SET_X, x);
-}
-#undef FUNC_NAME
 
 
 SCM_SYNTAX (s_atdispatch, "@dispatch", scm_makmmacro, scm_m_atdispatch);
@@ -1219,16 +1118,128 @@ scm_m_atdispatch (SCM xorig, SCM env)
 #undef FUNC_NAME
 
 
-SCM_SYNTAX (s_at_call_with_values, "@call-with-values", scm_makmmacro, scm_m_at_call_with_values);
-SCM_GLOBAL_SYMBOL(scm_sym_at_call_with_values, s_at_call_with_values);
+SCM_SYNTAX (s_future, "future", scm_makmmacro, scm_m_future);
+SCM_GLOBAL_SYMBOL (scm_sym_future, s_future);
+
+/* Like promises, futures are implemented as closures with an empty
+ * parameter list.  Thus, (future <expression>) is transformed into
+ * (#@future '() <expression>), where the empty list represents the
+ * empty parameter list.  This representation allows for easy creation
+ * of the closure during evaluation.  */
+SCM
+scm_m_future (SCM xorig, SCM env SCM_UNUSED)
+{
+  SCM_ASSYNT (scm_ilength (xorig) == 2, scm_s_expression, s_future);
+  return scm_cons2 (SCM_IM_FUTURE, SCM_EOL, SCM_CDR (xorig));
+}
+
+
+SCM_SYNTAX (s_gset_x, "set!", scm_makmmacro, scm_m_generalized_set_x);
+SCM_SYMBOL (scm_sym_setter, "setter");
+
+SCM 
+scm_m_generalized_set_x (SCM xorig, SCM env SCM_UNUSED)
+{
+  SCM x = SCM_CDR (xorig);
+  SCM_ASSYNT (2 == scm_ilength (x), scm_s_expression, s_set_x);
+  if (SCM_SYMBOLP (SCM_CAR (x)))
+    return scm_cons (SCM_IM_SET_X, x);
+  else if (SCM_CONSP (SCM_CAR (x)))
+    return scm_cons (scm_list_2 (scm_sym_setter, SCM_CAAR (x)),
+		     scm_append (scm_list_2 (SCM_CDAR (x), SCM_CDR (x))));
+  else
+    scm_misc_error (s_set_x, scm_s_variable, SCM_EOL);
+}
+
+
+SCM_SYNTAX (s_atslot_ref, "@slot-ref", scm_makmmacro, scm_m_atslot_ref);
 
 SCM
-scm_m_at_call_with_values (SCM xorig, SCM env SCM_UNUSED)
+scm_m_atslot_ref (SCM xorig, SCM env SCM_UNUSED)
+#define FUNC_NAME s_atslot_ref
 {
-  SCM_ASSYNT (scm_ilength (SCM_CDR (xorig)) == 2,
-	      scm_s_expression, s_at_call_with_values);
-  return scm_cons (SCM_IM_CALL_WITH_VALUES, SCM_CDR (xorig));
+  SCM x = SCM_CDR (xorig);
+  SCM_ASSYNT (scm_ilength (x) == 2, scm_s_expression, FUNC_NAME);
+  SCM_VALIDATE_INUM (SCM_ARG2, SCM_CADR (x));
+  return scm_cons (SCM_IM_SLOT_REF, x);
 }
+#undef FUNC_NAME
+
+
+SCM_SYNTAX (s_atslot_set_x, "@slot-set!", scm_makmmacro, scm_m_atslot_set_x);
+
+SCM
+scm_m_atslot_set_x (SCM xorig, SCM env SCM_UNUSED)
+#define FUNC_NAME s_atslot_set_x
+{
+  SCM x = SCM_CDR (xorig);
+  SCM_ASSYNT (scm_ilength (x) == 3, scm_s_expression, FUNC_NAME);
+  SCM_VALIDATE_INUM (SCM_ARG2, SCM_CADR (x));
+  return scm_cons (SCM_IM_SLOT_SET_X, x);
+}
+#undef FUNC_NAME
+
+
+#if SCM_ENABLE_ELISP
+
+SCM_SYNTAX (s_nil_cond, "nil-cond", scm_makmmacro, scm_m_nil_cond);
+
+SCM
+scm_m_nil_cond (SCM xorig, SCM env SCM_UNUSED)
+{
+  long len = scm_ilength (SCM_CDR (xorig));
+  SCM_ASSYNT (len >= 1 && (len & 1) == 1, scm_s_expression, "nil-cond");
+  return scm_cons (SCM_IM_NIL_COND, SCM_CDR (xorig));
+}
+
+
+SCM_SYNTAX (s_atfop, "@fop", scm_makmmacro, scm_m_atfop);
+
+SCM
+scm_m_atfop (SCM xorig, SCM env SCM_UNUSED)
+{
+  SCM x = SCM_CDR (xorig), var;
+  SCM_ASSYNT (scm_ilength (x) >= 1, scm_s_expression, "@fop");
+  var = scm_symbol_fref (SCM_CAR (x));
+  /* Passing the symbol name as the `subr' arg here isn't really
+     right, but without it it can be very difficult to work out from
+     the error message which function definition was missing.  In any
+     case, we shouldn't really use SCM_ASSYNT here at all, but instead
+     something equivalent to (signal void-function (list SYM)) in
+     Elisp. */
+  SCM_ASSYNT (SCM_VARIABLEP (var),
+	      "Symbol's function definition is void",
+	      SCM_SYMBOL_CHARS (SCM_CAR (x)));
+  /* Support `defalias'. */
+  while (SCM_SYMBOLP (SCM_VARIABLE_REF (var)))
+    {
+      var = scm_symbol_fref (SCM_VARIABLE_REF (var));
+      SCM_ASSYNT (SCM_VARIABLEP (var),
+		  "Symbol's function definition is void",
+		  SCM_SYMBOL_CHARS (SCM_CAR (x)));
+    }
+  /* Use `var' here rather than `SCM_VARIABLE_REF (var)' because the
+     former allows for automatically picking up redefinitions of the
+     corresponding symbol. */
+  SCM_SETCAR (x, var);
+  /* If the variable contains a procedure, leave the
+     `transformer-macro' in place so that the procedure's arguments
+     get properly transformed, and change the initial @fop to
+     SCM_IM_APPLY. */
+  if (!SCM_MACROP (SCM_VARIABLE_REF (var)))
+    {
+      SCM_SETCAR (xorig, SCM_IM_APPLY);
+      return xorig;
+    }
+  /* Otherwise (the variable contains a macro), the arguments should
+     not be transformed, so cut the `transformer-macro' out and return
+     the resulting expression starting with the variable. */
+  SCM_SETCDR (x, SCM_CDADR (x));
+  return x;
+}
+
+#endif /* SCM_ENABLE_ELISP */
+
 
 SCM
 scm_m_expand_body (SCM xorig, SCM env)
