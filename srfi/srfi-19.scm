@@ -1,6 +1,6 @@
 ;;; srfi-19.scm --- SRFI-19 procedures for Guile
 ;;;
-;;; 	Copyright (C) 2001 Free Software Foundation, Inc.
+;;; 	Copyright (C) 2001, 2002 Free Software Foundation, Inc.
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License as
@@ -40,9 +40,15 @@
 ;;; If you write modifications of your own for GUILE, it is your choice
 ;;; whether to permit this exception to apply to your modifications.
 ;;; If you do not wish that, delete this exception notice.
-;;;
-;;; Originally from SRFI reference implementation by Will Fitzgerald.
-;;; Ported to Guile by Rob Browning <rlb@cs.utexas.edu>
+
+;;; Commentary:
+
+;; Originally from SRFI reference implementation by Will Fitzgerald.
+;; Ported to Guile by Rob Browning <rlb@cs.utexas.edu>.
+;;
+;; This module is fully documented in the Guile Reference Manual.
+
+;;; Code:
 
 ;; FIXME: I haven't checked a decent amount of this code for potential
 ;; performance improvements, but I suspect that there may be some

@@ -1,6 +1,6 @@
 ;;;; srfi-11.scm --- SRFI-11 procedures for Guile
 
-;;; Copyright (C) 2000, 2001 Free Software Foundation, Inc.
+;;; Copyright (C) 2000, 2001, 2002 Free Software Foundation, Inc.
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License as
@@ -40,6 +40,24 @@
 ;;; If you write modifications of your own for GUILE, it is your choice
 ;;; whether to permit this exception to apply to your modifications.
 ;;; If you do not wish that, delete this exception notice.
+
+;;; Commentary:
+
+;; This module exports two syntax forms: let-values and let*-values.
+;;
+;; Sample usage:
+;;
+;;   (let-values (((x y . z) (foo a b))
+;;                ((p q) (bar c)))
+;;     (baz x y z p q))
+;;
+;; This binds `x' and `y' to the first to values returned by `foo',
+;; `z' to the rest of the values from `foo', and `p' and `q' to the
+;; values returned by `bar'.  All of these are available to `baz'.
+;;
+;; let*-values : let-values :: let* : let
+
+;;; Code:
 
 (define-module (srfi srfi-11)
   :use-module (ice-9 syncase)
@@ -100,7 +118,7 @@
 ;         body ...)
 ;      (lambda lambda-tmps
 ;        (let-values-helper "cwv" lv-bindings final-let-bindings body ...)))
-    
+
 ;     ((_ "consumer" (var-1 var-2 ...) (lambda-tmp ...) final-let-bindings lv-bindings
 ;         body ...)
 ;      (let-values-helper "consumer"
@@ -165,7 +183,7 @@
 ;                                         tmp-vars
 ;                                         ((vars-2 binding-2) ...)
 ;                                         body ...))))))
-;    
+;
 ;     (syntax-rules ()
 ;       ((_ () body ...)
 ;        (begin body ...))
@@ -184,7 +202,7 @@
      ((null? elts) '())
      ((pair? elts) (cons (proc (car elts)) (map-1-dot proc (cdr elts))))
      (else (proc elts))))
-  
+
   (define (undot-list lst)
     ;; produce a non-dotted list from a possibly dotted list.
     (cond
@@ -199,7 +217,7 @@
            (let-vars (map (lambda (sym tmp) (list sym tmp))
                           (undot-list (car var-binding))
                           (undot-list new-tmps))))
-      
+
       (if (null? (cdr vars))
           `(call-with-values (lambda () ,(cadr var-binding))
              (lambda ,new-tmps
@@ -209,7 +227,7 @@
              (lambda ,new-tmps
                ,(let-values-helper (cdr vars) body
                                    (cons let-vars prev-let-vars)))))))
-  
+
   (if (null? vars)
       `(begin ,@body)
       (let-values-helper vars body '())))
@@ -242,7 +260,7 @@
            body ...))))))
 
 ; Alternate define-macro implementation...
-;       
+;
 ; (define-macro (let*-values vars . body)
 ;   (define (let-values-helper vars body)
 ;     (let ((var-binding (car vars)))
@@ -253,7 +271,7 @@
 ;           `(call-with-values (lambda () ,(cadr var-binding))
 ;              (lambda ,(car var-binding)
 ;                ,(let-values-helper (cdr vars) body))))))
-  
+
 ;   (if (null? vars)
 ;       `(begin ,@body)
 ;       (let-values-helper vars body)))
