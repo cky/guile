@@ -1,3 +1,8 @@
+To find out what should go in this file, see "Information For
+Maintainers of GNU Software" (maintain.texi), the section called
+"Recording Changes".
+
+
 George Carrette:
 wrote files present in Siod version 2.3, released in December of 1989.
 
@@ -9,7 +14,10 @@ gsubr.c, sys.c, test.scm, stime.c, and unif.c.
 Gary Houston: changes to many files in libguile.
 wrote: socket.c
 
-Tom Lord: wrote the original versions of all files in the
+Tom Lord: Wrote the original versions of all files in the
 subdirectories ctax, gtcltk-lib, guile, ice-9, lang, and rx.  In doc,
 wrote ctax.texi, gtcltk.texi, in.texi, lang.texi, and major portions
 of guile.texi.
+
+Mikael Djurfeldt: wrote debug.c, debug.h, options.c, options.h,
+srcprop.c, srcprop.h.  Many changes throughout.
