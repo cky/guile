@@ -105,6 +105,17 @@ isinf (double x)
 #endif
 #endif
 
+
+/* mpz_cmp_d only recognises infinities in gmp 4.2 and up.
+   For prior versions use an explicit check here.  */
+#if __GNU_MP_VERSION < 4                                        \
+  || (__GNU_MP_VERSION == 4 && __GNU_MP_VERSION_MINOR < 2)
+#define xmpz_cmp_d(z, d)                                \
+  (xisinf (d) ? (d < 0.0 ? 1 : -1) : mpz_cmp_d (z, d))
+#else
+#define xmpz_cmp_d(z, d)  mpz_cmp_d (z, d)
+#endif
+
 
 
 static SCM abs_most_negative_fixnum;
@@ -2531,14 +2542,14 @@ scm_num_eq_p (SCM x, SCM y)
     } else if (SCM_REALP (y)) {
       int cmp;
       if (xisnan (SCM_REAL_VALUE (y))) return SCM_BOOL_F;
-      cmp = mpz_cmp_d (SCM_I_BIG_MPZ (x), SCM_REAL_VALUE (y));
+      cmp = xmpz_cmp_d (SCM_I_BIG_MPZ (x), SCM_REAL_VALUE (y));
       scm_remember_upto_here_1 (x);
       return SCM_BOOL (0 == cmp);
     } else if (SCM_COMPLEXP (y)) {
       int cmp;
       if (0.0 != SCM_COMPLEX_IMAG (y)) return SCM_BOOL_F;
       if (xisnan (SCM_COMPLEX_REAL (y))) return SCM_BOOL_F;
-      cmp = mpz_cmp_d (SCM_I_BIG_MPZ (x), SCM_COMPLEX_REAL (y));
+      cmp = xmpz_cmp_d (SCM_I_BIG_MPZ (x), SCM_COMPLEX_REAL (y));
       scm_remember_upto_here_1 (x);
       return SCM_BOOL (0 == cmp);
     } else {
@@ -2550,7 +2561,7 @@ scm_num_eq_p (SCM x, SCM y)
     } else if (SCM_BIGP (y)) {
       int cmp;
       if (xisnan (SCM_REAL_VALUE (x))) return SCM_BOOL_F;
-      cmp = mpz_cmp_d (SCM_I_BIG_MPZ (y), SCM_REAL_VALUE (x));
+      cmp = xmpz_cmp_d (SCM_I_BIG_MPZ (y), SCM_REAL_VALUE (x));
       scm_remember_upto_here_1 (y);
       return SCM_BOOL (0 == cmp);
     } else if (SCM_REALP (y)) {
@@ -2569,7 +2580,7 @@ scm_num_eq_p (SCM x, SCM y)
       int cmp;
       if (0.0 != SCM_COMPLEX_IMAG (x)) return SCM_BOOL_F;
       if (xisnan (SCM_COMPLEX_REAL (x))) return SCM_BOOL_F;
-      cmp = mpz_cmp_d (SCM_I_BIG_MPZ (y), SCM_COMPLEX_REAL (x));
+      cmp = xmpz_cmp_d (SCM_I_BIG_MPZ (y), SCM_COMPLEX_REAL (x));
       scm_remember_upto_here_1 (y);
       return SCM_BOOL (0 == cmp);
     } else if (SCM_REALP (y)) {
@@ -2620,7 +2631,7 @@ scm_less_p (SCM x, SCM y)
     } else if (SCM_REALP (y)) {
       int cmp;
       if (xisnan (SCM_REAL_VALUE (y))) return SCM_BOOL_F;
-      cmp = mpz_cmp_d (SCM_I_BIG_MPZ (x), SCM_REAL_VALUE (y));
+      cmp = xmpz_cmp_d (SCM_I_BIG_MPZ (x), SCM_REAL_VALUE (y));
       scm_remember_upto_here_1 (x);
       return SCM_BOOL (cmp < 0);
     } else {
@@ -2632,7 +2643,7 @@ scm_less_p (SCM x, SCM y)
     } else if (SCM_BIGP (y)) {
       int cmp;
       if (xisnan (SCM_REAL_VALUE (x))) return SCM_BOOL_F;
-      cmp = mpz_cmp_d (SCM_I_BIG_MPZ (y), SCM_REAL_VALUE (x));
+      cmp = xmpz_cmp_d (SCM_I_BIG_MPZ (y), SCM_REAL_VALUE (x));
       scm_remember_upto_here_1 (y);
       return SCM_BOOL (cmp > 0);
     } else if (SCM_REALP (y)) {
@@ -2809,7 +2820,7 @@ scm_max (SCM x, SCM y)
       scm_remember_upto_here_2 (x, y);
       return (cmp > 0) ? x : y;
     } else if (SCM_REALP (y)) {
-      int cmp = mpz_cmp_d (SCM_I_BIG_MPZ (x), SCM_REAL_VALUE (y));
+      int cmp = xmpz_cmp_d (SCM_I_BIG_MPZ (x), SCM_REAL_VALUE (y));
       scm_remember_upto_here_1 (x);
       return (cmp > 0) ? x : y;
     } else {
@@ -2820,7 +2831,7 @@ scm_max (SCM x, SCM y)
       double z = SCM_INUM (y);
       return (SCM_REAL_VALUE (x) < z) ? scm_make_real (z) : x;
     } else if (SCM_BIGP (y)) {
-      int cmp = mpz_cmp_d (SCM_I_BIG_MPZ (y), SCM_REAL_VALUE (x));
+      int cmp = xmpz_cmp_d (SCM_I_BIG_MPZ (y), SCM_REAL_VALUE (x));
       scm_remember_upto_here_1 (y);
       return (cmp < 0) ? x : y;
     } else if (SCM_REALP (y)) {
@@ -2875,7 +2886,7 @@ scm_min (SCM x, SCM y)
       scm_remember_upto_here_2 (x, y);
       return (cmp > 0) ? y : x;
     } else if (SCM_REALP (y)) {
-      int cmp = mpz_cmp_d (SCM_I_BIG_MPZ (x), SCM_REAL_VALUE (y));
+      int cmp = xmpz_cmp_d (SCM_I_BIG_MPZ (x), SCM_REAL_VALUE (y));
       scm_remember_upto_here_1 (x);
       return (cmp > 0) ? y : x;
     } else {
@@ -2886,7 +2897,7 @@ scm_min (SCM x, SCM y)
       double z = SCM_INUM (y);
       return (SCM_REAL_VALUE (x) <= z) ? x : scm_make_real (z);
     } else if (SCM_BIGP (y)) {
-      int cmp = mpz_cmp_d (SCM_I_BIG_MPZ (y), SCM_REAL_VALUE (x));
+      int cmp = xmpz_cmp_d (SCM_I_BIG_MPZ (y), SCM_REAL_VALUE (x));
       scm_remember_upto_here_1 (y);
       return (cmp < 0) ? y : x;
     } else if (SCM_REALP (y)) {
