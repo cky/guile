@@ -1,17 +1,17 @@
 ;;; installed-scm-file
 
 ;;;; 	Copyright (C) 2001 Free Software Foundation, Inc.
-;;;; 
+;;;;
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
 ;;;; the Free Software Foundation; either version 2, or (at your option)
 ;;;; any later version.
-;;;; 
+;;;;
 ;;;; This program is distributed in the hope that it will be useful,
 ;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;;;; GNU General Public License for more details.
-;;;; 
+;;;;
 ;;;; You should have received a copy of the GNU General Public License
 ;;;; along with this software; see the file COPYING.  If not, write to
 ;;;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
@@ -40,10 +40,10 @@
 ;;;; If you write modifications of your own for GUILE, it is your choice
 ;;;; whether to permit this exception to apply to your modifications.
 ;;;; If you do not wish that, delete this exception notice.
-;;;; 
+;;;;
 
-(define-module  (ice-9 match)
-  :use-module (ice-9 slib)
+(define-module (ice-9 match)
+  :use-module (ice-9 pretty-print)
   :export (match match-lambda match-lambda* match-define
 		 match-let match-let* match-letrec
 		 define-structure define-const-structure
@@ -52,14 +52,12 @@
 		 match:structure-control match:set-structure-control
 		 match:runtime-structures match:set-runtime-structures))
 
-(define slib:error error)
-
 ;; The original code can be found at the Scheme Repository
-;; 
+;;
 ;;   http://www.cs.indiana.edu/scheme-repository/code.match.html
-;; 
+;;
 ;; or Andrew K. Wright's web page:
-;; 
+;;
 ;;   http://www.star-lab.com/wright/code.html
 
 
@@ -196,10 +194,9 @@
 ;; End of user visible/modifiable stuff.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(require (quote pretty-print))
-(define match:error (lambda (val . args) (for-each pretty-print args) (slib:error "no matching clause for " val)))
+(define match:error (lambda (val . args) (for-each pretty-print args) (error "no matching clause for " val)))
 (define match:andmap (lambda (f l) (if (null? l) (and) (and (f (car l)) (match:andmap f (cdr l))))))
-(define match:syntax-err (lambda (obj msg) (slib:error msg obj)))
+(define match:syntax-err (lambda (obj msg) (error msg obj)))
 (define match:disjoint-structure-tags (quote ()))
 (define match:make-structure-tag (lambda (name) (if (or (eq? match:structure-control (quote disjoint)) match:runtime-structures) (let ((tag (gensym))) (set! match:disjoint-structure-tags (cons tag match:disjoint-structure-tags)) tag) (string->symbol (string-append "<" (symbol->string name) ">")))))
 (define match:structure? (lambda (tag) (memq tag match:disjoint-structure-tags)))
