@@ -1,3 +1,7 @@
+Mon Oct 14 06:05:42 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
+
+	* Makefile.in: Added threads.scm.
+	
 Mon Oct 14 04:21:51 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
 
 	* debug.scm (make-enable, make-disable): Simplified.
