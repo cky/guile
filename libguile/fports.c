@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2004 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -336,7 +336,7 @@ SCM_DEFINE (scm_open_file, "open-file", 2, 0, 0,
       int en = errno;
 
       SCM_SYSERROR_MSG ("~A: ~S",
-			scm_cons (scm_makfrom0str (strerror (en)),
+			scm_cons (scm_strerror (scm_from_int (en)),
 				  scm_cons (filename, SCM_EOL)), en);
     }
   port = scm_fdes_to_port (fdes, md, filename);
