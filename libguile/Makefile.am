@@ -1,6 +1,6 @@
 ## Process this file with Automake to create Makefile.in
 ##
-##  	Copyright (C) 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
+##  	Copyright (C) 1998, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##
@@ -186,7 +186,7 @@ libpath.h: $(srcdir)/Makefile.in  $(top_builddir)/config.status
 	@echo '#define SCM_SITE_DIR "$(pkgdatadir)/site"' >> libpath.tmp
 	@echo '#define SCM_BUILD_INFO { \' >> libpath.tmp
 	@echo '	{ "srcdir", "'"`cd @srcdir@; pwd`"'" }, \' >> libpath.tmp
-	@echo ' { "top_srcdir",    "top_srcdir_absolute@" }, \' >> libpath.tmp
+	@echo ' { "top_srcdir",    "@top_srcdir_absolute@" }, \' >> libpath.tmp
 	@echo '	{ "prefix",	   "@prefix@" }, \' >> libpath.tmp
 	@echo '	{ "exec_prefix",   "@exec_prefix@" }, \' >> libpath.tmp
 	@echo '	{ "bindir",	   "@bindir@" }, \' >> libpath.tmp
