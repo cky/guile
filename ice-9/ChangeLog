@@ -1,5 +1,9 @@
 Mon Jun 23 16:13:38 1997  Jim Blandy  <jimb@floss.red-bean.com>
 
+	Changes to compile under gnu-win32, from Marcus Daniels:
+	* boot-9.scm (load-user-init): If HOME is unset, provide
+	a default of /.
+
 	* boot-9.scm (make-list): Remove the definition of this function
 	from the (ice-9 common-list) module; make the `init' argument
 	optional in the	scm module's definition, to match the deleted
