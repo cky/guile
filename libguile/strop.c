@@ -147,9 +147,19 @@ scm_substring_move_x (SCM str1, SCM start1, SCM end1,
   SCM_ASSERT (len+s2 <= SCM_LENGTH (str2), start2, 
 	      SCM_OUTOFRANGE, s_substring_move_x);
 
+#ifdef HAVE_MEMMOVE
   SCM_SYSCALL(memmove((void *)(&(SCM_CHARS(str2)[s2])),
 		      (void *)(&(SCM_CHARS(str1)[s1])),
 		      len));
+#else
+#ifdef HAVE_BCOPY
+  SCM_SYSCALL(bcopy((void *)(&(SCM_CHARS(str1)[s1])),
+		    (void *)(&(SCM_CHARS(str2)[s2])),
+		    len));
+#else
+#error Need memmove.  Please send a bug report to bug-guile@gnu.org.
+#endif
+#endif
   
   return scm_return_first(SCM_UNSPECIFIED, str1, str2);
 }
