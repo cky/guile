@@ -216,15 +216,48 @@ scm_threads_mark_stacks ()
 
 /* This is the first thread spawning mechanism: threads from Scheme */
 
+typedef struct scheme_launch_data {
+  SCM rootcont;
+  SCM body;
+  SCM handler;
+} scheme_launch_data;
+
+extern SCM scm_apply (SCM, SCM, SCM);
+
+static SCM
+scheme_body_bootstrip (scheme_launch_data* data, SCM jmpbuf)
+{
+  /* First save the new root continuation */
+  data->rootcont = scm_root->rootcont;
+  return scm_apply (data->body, SCM_EOL, SCM_EOL);
+}
+
+static SCM
+scheme_handler_bootstrip (scheme_launch_data* data, SCM tag, SCM throw_args)
+{
+  scm_root->rootcont = data->rootcont;
+  return scm_apply (data->handler, scm_cons (tag, throw_args), SCM_EOL);
+}
+
 static void
 scheme_launch_thread (void *p)
 {
   /* The thread object will be GC protected by being a member of the
      list given as argument to launch_thread.  It will be marked
      during the conservative sweep of the stack. */
-  SCM args = (SCM) p;
-  scm_call_with_dynamic_root (SCM_CADR (args), SCM_CADDR (args));
+  register SCM argl = (SCM) p;
+  SCM thread = SCM_CAR (argl);
+  scheme_launch_data data;
+  data.rootcont = SCM_BOOL_F;
+  data.body = SCM_CADR (argl);
+  data.handler = SCM_CADDR (argl);
+  scm_internal_cwdr ((scm_catch_body_t) scheme_body_bootstrip,
+		     &data,
+		     (scm_catch_handler_t) scheme_handler_bootstrip,
+		     &data,
+		     &thread);
   scm_thread_count--;
+  SCM_DEFER_INTS;
 }
 
 #ifdef __STDC__
@@ -280,6 +313,8 @@ scm_call_with_new_thread (argl)
     SCM_DEFER_INTS;
     SCM_SETCAR (thread, scm_tc16_thread);
     argl = scm_cons (thread, argl);
+    /* Note that we couldn't pass a pointer to argl as data since the
+       argl variable may not exist in memory when the thread starts.  */
     t = coop_create (scheme_launch_thread, (void *) argl);
     t->data = SCM_ROOT_STATE (root);
     SCM_SETCDR (thread, t);
@@ -299,30 +334,48 @@ scm_call_with_new_thread (argl)
 
 /* This is the second thread spawning mechanism: threads from C */
 
-struct thread_args {
-  SCM thread;
+typedef struct c_launch_data {
+  union {
+    SCM thread;
+    SCM rootcont;
+  } u;
   scm_catch_body_t body;
   void *body_data;
   scm_catch_handler_t handler;
   void *handler_data;
-};
+} c_launch_data;
+
+static SCM
+c_body_bootstrip (c_launch_data* data, SCM jmpbuf)
+{
+  /* First save the new root continuation */
+  data->u.rootcont = scm_root->rootcont;
+  return (data->body) (data->body_data, jmpbuf);
+}
+
+static SCM
+c_handler_bootstrip (c_launch_data* data, SCM tag, SCM throw_args)
+{
+  scm_root->rootcont = data->u.rootcont;
+  return (data->handler) (data->handler_data, tag, throw_args);
+}
 
 static void
 c_launch_thread (void *p)
 {
-  struct thread_args *args = (struct thread_args *) p;
+  register c_launch_data *data = (c_launch_data *) p;
   /* The thread object will be GC protected by being on this stack */
-  SCM thread = args->thread;
+  SCM thread = data->u.thread;
   /* We must use the address of `thread', otherwise the compiler will
      optimize it away.  This is OK since the longest SCM_STACKITEM
      also is a long.  */
-  scm_internal_cwdr (args->body,
-		     args->body_data,
-		     args->handler,
-		     args->handler_data,
+  scm_internal_cwdr ((scm_catch_body_t) c_body_bootstrip,
+		     data,
+		     (scm_catch_handler_t) c_handler_bootstrip,
+		     data,
 		     &thread);
   scm_thread_count--;
-  scm_must_free ((char *) args);
+  scm_must_free ((char *) data);
 }
 
 SCM
@@ -332,9 +385,8 @@ scm_spawn_thread (scm_catch_body_t body, void *body_data,
   SCM thread;
   coop_t *t;
   SCM root, old_winds;
-  struct thread_args *args =
-    (struct thread_args *) scm_must_malloc (sizeof (*args),
-					    "scm_spawn_thread");
+  c_launch_data *data = (c_launch_data *) scm_must_malloc (sizeof (*data),
+							   "scm_spawn_thread");
   
   /* Unwind wind chain. */
   old_winds = scm_dynwinds;
@@ -347,13 +399,13 @@ scm_spawn_thread (scm_catch_body_t body, void *body_data,
   SCM_DEFER_INTS;
   SCM_SETCAR (thread, scm_tc16_thread);
 
-  args->thread = thread;
-  args->body = body;
-  args->body_data = body_data;
-  args->handler = handler;
-  args->handler_data = handler_data;
+  data->u.thread = thread;
+  data->body = body;
+  data->body_data = body_data;
+  data->handler = handler;
+  data->handler_data = handler_data;
   
-  t = coop_create (c_launch_thread, (void *) args);
+  t = coop_create (c_launch_thread, (void *) data);
   
   t->data = SCM_ROOT_STATE (root);
   SCM_SETCDR (thread, t);
