@@ -76,7 +76,8 @@ static char *
 duplicate_string (const char * src, unsigned long length)
 {
   char * dst = scm_must_malloc (length + 1, "duplicate_string");
-  memcpy (dst, src, length + 1);
+  memcpy (dst, src, length);
+  dst[length] = 0;
   return dst;
 }
 
