@@ -20,9 +20,15 @@ anonymous FTP from ftp.red-bean.com, as /pub/guile/guile-snap.tar.gz.
 Via the web, that's:  ftp://ftp.red-bean.com/pub/guile/guile-snap.tar.gz
 For getit, that's:    ftp.red-bean.com:/pub/guile/guile-snap.tar.gz
 
+** To run Guile without installing it, the procedure has changed a bit.
+
+If you used a separate build directory to compile Guile, you'll need
+to include the build directory in SCHEME_LOAD_PATH, as well as the
+source directory.  See the `INSTALL' file for examples.
+
 * Changes to the procedure for linking libguile with your programs
 
-** Like Guile 1.1, Guile 1.2 will now use the Rx regular expression
+** Like Guile 1.0, Guile 1.2 will now use the Rx regular expression
 library, if it is installed on your system.  When you are linking
 libguile into your own programs, this means you will have to link
 against -lguile, -lqt (if you configured Guile with thread support),
@@ -42,9 +48,6 @@ AC_CHECK_LIB(guile, scm_shell)
 ** The dynamic linking features of Guile are now enabled by default.
 You can disable them by giving the `--disable-dynamic-linking' option
 to configure.
-
-When dynamic linking is disabled or not supported on your system,
-the following functions throw errors, but they are still available.
 
   (dynamic-link FILENAME)
 
@@ -98,6 +101,9 @@ the following functions throw errors, but they are still available.
     `char *'.  The array is passed in ARGV and its size in ARGC.  The
     return value is converted to a Scheme number and returned from the
     call to `dynamic-args-call'.
+
+When dynamic linking is disabled or not supported on your system,
+the above functions throw errors, but they are still available.
 
 Here is a small example that works on GNU/Linux:
 
@@ -221,6 +227,8 @@ release.
 We no longer distribute the documentation, since it was either out of
 date, or incomplete.  As soon as we have current documentation, we
 will distribute it.
+
+
 
 * Changes to the stand-alone interpreter
 
