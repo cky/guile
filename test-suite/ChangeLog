@@ -1,3 +1,7 @@
+2003-10-10  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* lib.scm (run-test-exception): Handle syntax errors.
+
 2003-10-10  Marius Vollmer  <mvo@zagadka.de>
 
 	* tests/numbers.test (inexact->exact): Use corrent argument order

@@ -60,6 +60,7 @@ char *alloca ();
 #include "libguile/eq.h"
 #include "libguile/continuations.h"
 #include "libguile/futures.h"
+#include "libguile/strings.h"
 #include "libguile/throw.h"
 #include "libguile/smob.h"
 #include "libguile/macros.h"
@@ -82,6 +83,106 @@ char *alloca ();
 #include "libguile/validate.h"
 #include "libguile/eval.h"
 #include "libguile/lang.h"
+
+
+
+/* {Syntax Errors}
+ *
+ * This section defines the message strings for the syntax errors that can be
+ * detected during memoization and the functions and macros that shall be
+ * called by the memoizer code to signal syntax errors.  */
+
+
+/* Syntax errors that can be detected during memoization: */
+
+/* Circular or improper lists do not form valid scheme expressions.  If a
+ * circular list or an improper list is detected in a place where a scheme
+ * expression is expected, a 'Bad expression' error is signalled.  */
+static const char s_bad_expression[] = "Bad expression";
+
+
+/* Signal a syntax error.  We distinguish between the form that caused the
+ * error and the enclosing expression.  The error message will print out as
+ * shown in the following pattern.  The file name and line number are only
+ * given when they can be determined from the erroneous form or from the
+ * enclosing expression.
+ *
+ * <filename>: In procedure memoization:
+ * <filename>: In file <name>, line <nr>: <error-message> in <expression>.  */
+
+SCM_SYMBOL (syntax_error_key, "syntax-error");
+
+/* The prototype is needed to indicate that the function does not return.  */
+static void
+syntax_error (const char* const, const SCM, const SCM) SCM_NORETURN;
+
+static void 
+syntax_error (const char* const msg, const SCM form, const SCM expr)
+{
+  const SCM msg_string = scm_makfrom0str (msg);
+  SCM filename = SCM_BOOL_F;
+  SCM linenr = SCM_BOOL_F;
+  const char *format;
+  SCM args;
+
+  if (SCM_CONSP (form))
+    {
+      filename = scm_source_property (form, scm_sym_filename);
+      linenr = scm_source_property (form, scm_sym_line);
+    }
+
+  if (SCM_FALSEP (filename) && SCM_FALSEP (linenr) && SCM_CONSP (expr))
+    {
+      filename = scm_source_property (expr, scm_sym_filename);
+      linenr = scm_source_property (expr, scm_sym_line);
+    }
+
+  if (!SCM_UNBNDP (expr))
+    {
+      if (!SCM_FALSEP (filename))
+	{
+	  format = "In file ~S, line ~S: ~A ~S in expression ~S.";
+	  args = scm_list_5 (filename, linenr, msg_string, form, expr);
+	}
+      else if (!SCM_FALSEP (linenr))
+	{
+	  format = "In line ~S: ~A ~S in expression ~S.";
+	  args = scm_list_4 (linenr, msg_string, form, expr);
+	}
+      else
+	{
+	  format = "~A ~S in expression ~S.";
+	  args = scm_list_3 (msg_string, form, expr);
+	}
+    }
+  else
+    {
+      if (!SCM_FALSEP (filename))
+	{
+	  format = "In file ~S, line ~S: ~A ~S.";
+	  args = scm_list_4 (filename, linenr, msg_string, form);
+	}
+      else if (!SCM_FALSEP (linenr))
+	{
+	  format = "In line ~S: ~A ~S.";
+	  args = scm_list_3 (linenr, msg_string, form);
+	}
+      else
+	{
+	  format = "~A ~S.";
+	  args = scm_list_2 (msg_string, form);
+	}
+    }
+
+  scm_error (syntax_error_key, "memoization", format, args, SCM_BOOL_F);
+}
+
+
+/* Shortcut macros to simplify syntax error handling. */
+#define ASSERT_SYNTAX(cond, message, form) \
+  { if (!(cond)) syntax_error (message, form, SCM_UNDEFINED); }
+#define ASSERT_SYNTAX_2(cond, message, form, expr) \
+  { if (!(cond)) syntax_error (message, form, expr); }
 
 
 
@@ -528,14 +629,23 @@ SCM_SYNTAX (s_and, "and", scm_i_makbimacro, scm_m_and);
 SCM_GLOBAL_SYMBOL (scm_sym_and, s_and);
 
 SCM
-scm_m_and (SCM xorig, SCM env SCM_UNUSED)
+scm_m_and (SCM expr, SCM env SCM_UNUSED)
 {
-  long len = scm_ilength (SCM_CDR (xorig));
-  SCM_ASSYNT (len >= 0, s_test, s_and);
-  if (len >= 1)
-    return scm_cons (SCM_IM_AND, SCM_CDR (xorig));
+  const SCM cdr_expr = SCM_CDR (expr);
+  const long length = scm_ilength (cdr_expr);
+
+  ASSERT_SYNTAX (length >= 0, s_bad_expression, expr);
+
+  if (length == 0)
+    {
+      /* Special case:  (and) is replaced by #t. */
+      return SCM_BOOL_T;
+    }
   else
-    return SCM_BOOL_T;
+    {
+      SCM_SETCAR (expr, SCM_IM_AND);
+      return expr;
+    }
 }
 
 

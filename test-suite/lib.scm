@@ -323,6 +323,13 @@
                  (string-match (cdr exception)
                                (apply simple-format #f message (car rest))))
             #t)
+           ;; handle syntax errors which use `syntax-error' for key and don't
+           ;; yet format the message and args (we have to do it here).
+           ((and (eq? 'syntax-error (car exception))
+                 (list? rest)
+                 (string-match (cdr exception)
+                               (apply simple-format #f message (car rest))))
+            #t)
            ;; unhandled; throw again
            (else
             (apply throw key proc message rest))))))))
