@@ -29,6 +29,15 @@ To check out a CVS working directory:
    This should create a new directory `guile-core' in your current
    directory, and populate it with the current Guile sources.
 
+The modules available for checkout are:
+  guile-core --- The scheme interpreter itself.
+  guile-doc --- Guile documentation-in-progress.
+  guile-tcltk --- An interface between Guile and Tcl/Tk.
+  guile-scsh --- An incomplete port of SCSH 0.4.4 to Guile.
+  guile-rgx-ctax --- This has been discontinued; use Andrew Archibald's
+	  distribution instead:
+    ftp://ftp.red-bean.com/pub/guile/contrib/misc/guile-lang-allover-0.1.tar.gz
+
 Once you have a working directory, you can bring it up to date easily
 and efficiently:
 
