@@ -131,7 +131,7 @@ modinclude_HEADERS =      __scm.h alist.h arbiters.h async.h backtrace.h boolean
 
 modinclude_DATA = scmconfig.h
 
-bin_SCRIPTS = guile-snarf guile-doc-snarf guile-doc-snarf.awk
+bin_SCRIPTS = guile-snarf guile-doc-snarf guile-snarf.awk
 
 check_ldadd = libguile.la ${THREAD_LIBS_LOCAL}
 check_PROGRAMS = gh_test_c gh_test_repl
@@ -159,7 +159,8 @@ CLEANFILES = libpath.h
 DISTCLEANFILES = *.x
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = scmconfig.h
-CONFIG_CLEAN_FILES =  guile-snarf guile-doc-snarf versiondat.h
+CONFIG_CLEAN_FILES =  guile-snarf guile-doc-snarf guile-snarf.awk \
+versiondat.h
 LTLIBRARIES =  $(lib_LTLIBRARIES)
 
 
@@ -203,7 +204,8 @@ HEADERS =  $(include_HEADERS) $(modinclude_HEADERS) $(noinst_HEADERS) \
 $(pkginclude_HEADERS)
 
 DIST_COMMON =  ./stamp-h.in COPYING ChangeLog Makefile.am Makefile.in \
-guile-doc-snarf.in guile-snarf.in scmconfig.h.in versiondat.h.in
+guile-doc-snarf.in guile-snarf.awk.in guile-snarf.in scmconfig.h.in \
+versiondat.h.in
 
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
@@ -277,6 +279,8 @@ maintainer-clean-hdr:
 guile-snarf: $(top_builddir)/config.status guile-snarf.in
 	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 guile-doc-snarf: $(top_builddir)/config.status guile-doc-snarf.in
+	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+guile-snarf.awk: $(top_builddir)/config.status guile-snarf.awk.in
 	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 versiondat.h: $(top_builddir)/config.status versiondat.h.in
 	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
@@ -719,7 +723,7 @@ libpath.h: $(srcdir)/Makefile.in  $(top_builddir)/config.status
 	@echo '}' >> libpath.tmp
 	@mv libpath.tmp libpath.h
 .c.x:
-	./guile-doc-snarf $< $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< \
+	./guile-doc-snarf $< $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< > $@ \
 	|| { rm $@; false; }
 .c.doc:
 	./guile-doc-snarf $< $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< \
