@@ -447,6 +447,24 @@ scm_eval_0str (const char *expr)
   return scm_eval_string (scm_makfrom0str (expr));
 }
 
+static SCM
+inner_eval_string (void *data)
+{
+  SCM port = (SCM)data;
+  SCM form;
+  SCM ans = SCM_UNSPECIFIED;
+
+  /* Read expressions from that port; ignore the values.  */
+  while (!SCM_EOF_OBJECT_P (form = scm_read (port)))
+    ans = scm_primitive_eval_x (form);
+
+  /* Don't close the port here; if we re-enter this function via a
+     continuation, then the next time we enter it, we'll get an error.
+     It's a string port anyway, so there's no advantage to closing it
+     early.  */
+
+  return ans;
+}
 
 SCM_DEFINE (scm_eval_string, "eval-string", 1, 0, 0, 
             (SCM string),
@@ -458,20 +476,8 @@ SCM_DEFINE (scm_eval_string, "eval-string", 1, 0, 0,
 {
   SCM port = scm_mkstrport (SCM_INUM0, string, SCM_OPN | SCM_RDNG,
 			    "scm_eval_0str");
-  SCM form;
-  SCM ans = SCM_UNSPECIFIED;
-  SCM module = scm_interaction_environment ();
-
-  /* Read expressions from that port; ignore the values.  */
-  while (!SCM_EOF_OBJECT_P (form = scm_read (port)))
-    ans = scm_eval_x (form, module);
-
-  /* Don't close the port here; if we re-enter this function via a
-     continuation, then the next time we enter it, we'll get an error.
-     It's a string port anyway, so there's no advantage to closing it
-     early.  */
-
-  return ans;
+  return scm_c_call_with_current_module (scm_interaction_environment (),
+					 inner_eval_string, (void *)port);
 }
 #undef FUNC_NAME
 
