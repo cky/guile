@@ -44,7 +44,7 @@
  */
 
 
-#include <libguile/__scm.h>
+#include "libguile/__scm.h"
 
 extern scm_ptobfuns scm_stptob;
 

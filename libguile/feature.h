@@ -44,7 +44,7 @@
  */
 
 
-#include <libguile/__scm.h>
+#include "libguile/__scm.h"
 
 
 extern SCM *scm_loc_features;

@@ -44,7 +44,7 @@
  */
 
 
-#include <libguile/__scm.h>
+#include "libguile/__scm.h"
 
 
 #define SCM_FREEP(x) (SCM_CAR(x)==scm_tc_free_cell)

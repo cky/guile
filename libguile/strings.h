@@ -44,7 +44,7 @@
  */
 
 
-#include <libguile/__scm.h>
+#include "libguile/__scm.h"
 
 #ifdef HAVE_STRING_H
 #include <string.h>

@@ -44,7 +44,7 @@
  */
 
 
-#include <libguile/__scm.h>
+#include "libguile/__scm.h"
 
 
 #ifdef __STDC__
