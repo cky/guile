@@ -1,0 +1,183 @@
+@node SRFI Support
+@chapter Various SRFI Support Modules
+
+In addition to the string and character--set libraries --- documented in
+the next chapter --- Guile has support for a number of SRFIs.  This
+chapter gives an overview over the available SRFIs and some usage hints.
+For complete documentation, we advise you to get the relevant SRFI
+documents from the SRFI home page @url{http://srfi.schemers.org}.
+
+@menu
+* SRFI-2::                      and-let*.
+* SRFI-6::                      Basic String Ports.
+* SRFI-8::                      receive.
+* SRFI-9::                      define-record-type.
+* SRFI-10::                     Hash--Comma Reader Extension.
+* SRFI-11::                     let-values and let-values*.
+* SRFI-17::                     Generalized set!
+@end menu
+
+
+@node SRFI-2
+@section SRFI-2 -- and-let*
+
+The syntactic form @code{and-let*} combines the conditional evaluation
+form @code{and} with the binding form @var{let*}.  Each argument
+expression will be evaluated sequentially, bound to a variable (if a
+variable name is given), but only as long as no expression returns
+the false value @code{#f}.
+
+Use @code{(use-modules (srfi srfi-2)} to access this syntax form.
+
+
+@node SRFI-6
+@section SRFI-6 -- Basic String Ports
+
+SRFI-6 defines the procedures @code{open-input-string},
+@code{open-output-string} and @code{get-output-string}.  These
+procedures are included in the Guile core, so using this module does not
+make any difference at the moment.  But it is possible that support for
+SRFI-6 will be factored out of the core library in the future, so using
+this module does not hurt, after all.
+
+@node SRFI-8
+@section SRFI-8 -- receive
+
+@code{receive} is a syntax for making the handling of multiple--value
+procedures easier.  It is documented in @xref{Multiple Values}.
+
+
+@node SRFI-9
+@section SRFI-9 -- define-record-type
+
+This is the SRFI way for defining record types.  The Guile
+implementation is a layer above Guile's normal record construction
+procedures (REFFIXME).  The nice thing about this kind of record
+definition method is that no new names are implicitly created, all
+constructor, accessor and predicates are explicitly given.  This reduces
+the risk of variable capture.
+
+The syntax of a record type definition is:
+
+@example
+<record type definition>
+  -> (define-record-type <type name>
+       (<constructor name> <field tag> ...)
+       <predicate name>
+       <field spec> ...)
+<field spec> -> (<field tag> <accessor name>)
+             -> (<field tag> <accessor name> <modifier name>)
+<field tag>  -> <identifier>
+<... name>   -> <identifier>
+@end example
+
+Usage example:
+
+@example
+guile> (use-modules (srfi srfi-9))
+guile> (define-record-type :foo (make-foo x) foo? 
+                           (x get-x) (y get-y set-y!))
+guile> (define f (make-foo 1))
+guile> f
+#<:foo x: 1 y: #f>
+guile> (get-x f)
+1
+guile> (set-y! f 2)
+2
+guile> (get-y f)
+2
+guile> f
+#<:foo x: 1 y: 2>
+guile> (foo? f)
+#t
+guile> (foo? 1)
+#f
+@end example
+
+
+@node SRFI-10
+@section SRFI-10 -- Hash--Comma Reader Extension
+
+@cindex hash--comma
+@cindex #,()
+The module @code{(srfi srfi-10)} implements the syntax extension
+@code{#,()}, also called hash-comma, which is defined in SRFI-10.
+
+The support for SRFI-10 consists of the procedure
+@code{define-reader-ctor} for defining new reader constructors and the
+read syntax form
+
+@example
+#,(@var{ctor} @var{datum} ...)
+@end example
+
+where @var{ctor} must be a symbol for which a read constructor was
+defined previouly, using @code{define-reader-ctor}.
+
+Example:
+
+@lisp
+(define-reader-ctor 'file open-input-file)
+(define f '#,(file "/etc/passwd"))
+(read-line f)
+@result{}
+"root:x:0:0:root:/root:/bin/bash"
+@end lisp
+
+Please note the quote before the @code{#,(file ...)} expression.  This
+is necessary because ports are not self-evaluating in Guile.
+
+@deffn procedure define-reader-ctor symbol proc
+Define @var{proc} as the reader constructor for hash--comma forms with a
+tag @var{symbol}.  @var{proc} will be applied to the datum(s) following
+the tag in the hash--comma expression after the complete form has been
+read in.  The result of @var{proc} is returned by the Scheme reader.
+@end deffn
+
+
+@node SRFI-11
+@section SRFI-11 -- let-values
+
+This module implements the binding forms for multiple values
+@code{let-values} and @code{let-values*}.  These forms are similar to
+@code{let} and @code{let*} (REFFIXME), but they support binding of the
+values returned by multiple--valued expressions.
+
+Write @code{(use-modules (srfi srfi-11))} to make the bindings
+available.
+
+@lisp
+(let-values (((x y) (values 1 2))
+             ((z f) (values 3 4)))
+   (+ x y z f))
+@result{}
+10
+@end lisp
+
+@code{let-values} performs all bindings simultaneously, which means that
+no expression in the binding clauses may refer to variables bound in the
+same clause list.  @code{let-values*}, on the other hand, performs the
+bindings sequentially, just like @code{let*} does for single--valued
+expressions.
+
+
+@node SRFI-17
+@section SRFI-17 -- Generalized set!
+
+This is an implementation of SRFI-17: Generalized set!
+
+It exports the Guile procedure @code{make-procedure-with-setter} under
+the SRFI name @code{getter-with-setter} and exports the standard
+procedures @code{car}, @code{cdr}, @dots{}, @code{cdddr},
+@code{string-ref} and @code{vector-ref} as procedures with setters, as
+required by the SRFI.
+
+SRFI-17 was heavily criticized during its discussion period but it was
+finalized anyway.  One issue was its concept of globally associating
+setter @dfn{properties} with (procedure) values, which is non-Schemy.
+For this reason, this implementation chooses not to provide a way to set
+the setter of a procedure.  In fact, @code{(set!  (setter @var{proc})
+@var{setter})} signals an error.  The only way to attach a setter to a
+procedure is to create a new object (a @dfn{procedure with setter}) via
+the @code{getter-with-setter} procedure. This procedure is also
+specified in the SRFI.  Using it avoids the described problems.

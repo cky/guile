@@ -1,0 +1,79 @@
+@node Readline Support
+@chapter Readline Support
+
+@c FIXME::martin: Review me!
+
+@cindex readline
+@cindex command line history
+Guile comes with an interface module to the readline library.  This
+makes interactive use much more convenient, because of the command--line
+editing features of readline.  Using @code{(ice-9 readline)}, you can
+navigate through the current input line with the cursor keys, retrieve
+older command lines from the input history and even search through the
+history entries.
+
+The module is not loaded by default and so has to be loaded and
+activated explicitly.  This is done with two simple lines of code:
+
+@lisp
+(use-modules (ice-9 readline))
+(activate-readline)
+@end lisp
+
+The first line will load the necessary code, and the second will
+activate readline's features for the REPL.  If you plan to use this
+module often, you should save these to lines to your @file{.guile}
+personal startup file.
+
+You will notice that the REPL's behaviour changes a bit when you have
+loaded the readline module.  For examle, when you press Enter before
+typing in the closing parentheses of a list, you will see the
+@dfn{continuation} prompt, three dots: @code{...}  This gives you a nice
+visual feedback when trying to match parentheses.  To make this even
+easier, @dfn{bouncing parentheses} are implemented.  That means that
+when you type in a closing parentheses, the cursor will jump to the
+corresponding opening paren for a short time, making it trivial to make
+them match.
+
+Once the readline module is activated, all lines entered interactively
+will be stored in a history and can be recalled later using the
+cursor-up and -down keys.  Readline also understands the Emacs keys for
+navigating through the command line and history.
+
+When you quit your Guile session by evaluating @code{(quit)} or pressing
+Ctrl-D, the history will be saved to the file @file{.guile_history} and
+read in when you start Guile for the next time.  Thus you can start a
+new Guile session and still have the (probably long--winded) definition
+expressions available.
+
+
+@node Value History
+@chapter Value History
+
+@c FIXME::martin: Review me!
+
+@cindex value history
+Another module which makes command line usage more convenient is
+@code{(ice-9 history)}.  This module will change the REPL so that each
+value which is evaluated and printed will be remembered under a name
+constructed from the dollar character (@code{$}) and the number of the
+evaluated expression.
+
+Consider an example session.
+
+@example
+guile> (use-modules (ice-9 history))
+guile> 1
+$1 = 1
+guile> (+ $1 $1)
+$2 = 2
+guile> (* $2 $2)
+$3 = 4
+@end example
+
+After loading the value history module @code{(ice-9 history)}, one
+(trivial) expression is evaluated.  The result is stored into the
+variable @code{$1}.  This fact is indicated by the output @code{$1 = },
+which is also caused by @code{(ice-9 history)}.  In the next line, this
+variable is used two times, to produce the value @code{$2}, which in
+turn is used in the calculation for @code{$3}.

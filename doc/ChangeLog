@@ -1,5 +1,23 @@
 2001-05-02  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
+	* srfi-13-14.texi: Added @bullet to various @itemize lists.
+
+	* srfi-modules.texi (SRFI Support): New file and chapter.
+
+	* Makefile.am (guile_TEXINFOS): Added repl-modules.texi and
+	srfi-modules.texi.
+
+	* guile.texi (Top): New menu entries for the new chapters.
+	(Top): @includes for the new chapters.
+	(Top): New menu entry for `SRFI Support', @include for
+	`srfi-modules.texi'.
+
+	* repl-modules.texi: New file.
+	(Readline Support): New chapter for (ice-9 readline).
+	(Value History): New chapter for (ice-9 history).
+
+2001-05-02  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
 	* scheme-modules.texi (Dynamic Libraries): Renamed from `Dynamic
 	Linking from Marius''.
 	(The Guile module system): Removed obsolete naming convention.
