@@ -1,0 +1,127 @@
+#!@-bindir-@/guile \
+-e main -s
+!#
+;;;; build-guile --- utility for linking programs with Guile
+;;;; Jim Blandy <jim@red-bean.com> --- September 1997
+
+(use-modules (ice-9 regex)
+	     (ice-9 string-fun))
+
+
+;;;; main function, command-line processing
+
+;;; The script's entry point.
+(define (main args)
+  (set-program-name! (car args))
+  (let ((args (cdr args)))
+    (cond
+     ((zero? (length args)) (show-usage))
+     ((string=? (car args) "--help") (show-usage))
+     ((string=? (car args) "--version") (show-version))
+     ((string=? (car args) "link") (build-link (cdr args)))
+     ((string=? (car args) "main") (build-main (cdr args)))
+     (else (show-usage)))))
+
+(define program-name #f)
+(define program-version "@-GUILE_VERSION-@")
+
+;;; Given an executable path PATH, set program-name to something
+;;; appropriate f or use in error messages (i.e., with leading
+;;; directory names stripped).
+(define (set-program-name! path)
+  (set! program-name
+	(cond
+	 ((string-match "/([^/]+)$" path)
+	  => (lambda (match) (match:substring match 1)))
+	 (else path))))
+
+(define (show-usage)
+  (let ((dl display-line))
+    (dl "Usage: ")
+    (dl "  " program-name " link        - print libraries to link with")
+    (dl "  " program-name " main        - generate initialization code")
+    (dl "  " program-name " --help      - show usage info (this message)")
+    (dl "  " program-name " --version   - show running version")))
+
+(define (show-version)
+  (display-line program-name " - Guile version " program-version))
+
+
+;;;; the "link" subcommand
+
+;;; Write a set of linker flags to standard output to include the
+;;; libraries that libguile needs to link against.
+;;;
+;;; In the long run, we want to derive these flags from Guile module
+;;; declarations files that are installed along the load path.  For
+;;; now, we're just going to reach into Guile's configuration info and
+;;; hack it out.
+(define (build-link args)
+  (if (> (length args) 0)
+      (error
+       (string-append program-name
+		      " link: arguments to subcommand not yet implemented")))
+
+  (let* ((flags
+	  (let loop ((libs
+		      ;; Get the string of linker flags we used to build
+		      ;; Guile, and break it up into a list.
+		      (separate-fields-discarding-char #\space
+						       (get-build-info 'LIBS)
+						       list)))
+	    (cond
+	     ((null? libs) '())
+
+	     ;; Turn any "FOO/libBAR.a" elements into "-lBAR".
+	     ((string-match "^.*/lib([^./]+).a$" (car libs))
+	      => (lambda (match)
+		   (cons (string-append "-l" (match:substring match 1))
+			 (loop (cdr libs)))))
+
+	     ;; Remove any empty strings that may have seeped in there.
+	     ((string=? (car libs) "") (loop (cdr libs)))
+	    
+	     (else (cons (car libs) (loop (cdr libs)))))))
+
+	 ;; Don't omit -lguile itself from the list of flags.
+	 (flags (cons "-lguile" flags)))
+
+    ;; Display the flags, separated by spaces.
+    (display-separated flags)
+    (newline)))
+
+(define (get-build-info name)
+  (let ((val (assq name %guile-build-info)))
+    (or val (error "get-build-info: no such build info: " name))
+    (cdr val)))
+   
+
+;;;; The "main" subcommand
+
+(define (build-main args)
+  (display-line-port (current-error-port)
+		     program-name ": `main' subcommand not yet implemented"))
+
+
+;;;; trivial utilities
+
+(define (display-line . args)
+  (apply display-line-port (current-output-port) args))
+
+(define (display-line-port port . args)
+  (for-each (lambda (arg) (display arg port))
+	    args)
+  (newline))
+
+(define (display-separated args)
+  (let loop ((args args))
+    (cond ((null? args))
+	  ((null? (cdr args)) (display (car args)))
+	  (else (display (car args))
+		(display " ")
+		(loop (cdr args))))))
+
+
+;;; Local Variables:
+;;; mode: scheme
+;;; End:
