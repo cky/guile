@@ -595,11 +595,11 @@
 (define (scm-error key subr message args rest)
   (throw key subr message args rest))
 
-;; %%bad-throw is the hook that is called upon a throw to a an unhandled
+;; bad-throw is the hook that is called upon a throw to a an unhandled
 ;; key.  If the key has a default handler (a throw-handler-default property),
 ;; it is applied to the throw.
 ;;
-(define (%%bad-throw key . args)
+(define (bad-throw key . args)
   (let ((default (symbol-property key 'throw-handler-default)))
     (or (and default (apply default key args))
 	(apply error "unhandled-exception:" key args))))
@@ -2095,6 +2095,9 @@
 		       (pk 'quit args)
 		       #f)
 
+		      ((switch-repl)
+		       (apply throw 'switch-repl args))
+
 		      ((abort)
 		       ;; This is one of the closures that require
 		       ;; (set! first #f) above
@@ -2108,7 +2111,7 @@
 		      (else
 		       ;; This is the other cons-leak closure...
 		       (lambda ()
-			 (apply %%bad-throw key args))))))))
+			 (apply bad-throw key args))))))))
       (and next (loop next))))
   (loop (lambda () #t)))
 
