@@ -187,7 +187,7 @@ documentation slots are not yet used.
 
 It is now possible to extend the functionality of some Guile
 primitives by letting them defer a call to a GOOPS generic function on
-argument mismatch.  This menas that there is no loss of efficiency in
+argument mismatch.  This means that there is no loss of efficiency in
 normal evaluation.
 
 Example:
