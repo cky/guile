@@ -1799,7 +1799,7 @@ cannot copy a string on top of itself.
 another string and @code{string-tokenize} splits a string into a list of
 strings, breaking it up at a specified character.
 
-@deffn {Scheme Procedure} string-replace s1 s2 [start1 end1 start2 end2]
+@deffn {Scheme Procedure} string-replace s1 s2 start1 end1 [start2 end2]
 Return the string @var{s1}, but with the characters
 @var{start1} @dots{} @var{end1} replaced by the characters
 @var{start2} @dots{} @var{end2} from @var{s2}.
