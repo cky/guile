@@ -1,3 +1,167 @@
+Mon Sep  9 20:00:15 1996  Jim Blandy  <jimb@floss.cyclic.com>
+
+	* smob.h: Use PROTO instead of #if __STDC__.
+
+	* continuations.c (scm_dynthrow): Use PROTO, not SCM_P. 
+
+	* __scm.h: Doc fixes.
+
+	* __scm.h, libguile.h: Use "quotes" in the #includes, not
+	<angles>; this allows `make depends' to work properly.
+
+	* libguile.h: #include smob.h and pairs.h before the others; they
+	define typedefs used by other headers.
+	
+	C files should #include only the header files they need, not
+	libguile.h (which #includes all the header files); the pointless
+	recompilation was wasting my time.
+	* Makefile.in (all .o dependency lists): Regenerated.
+	* libguile.h: Don't try to get a definition for size_t here...
+	* __scm.h: Do it here.
+	* _scm.h: Since this is the internal libguile header, put things
+ 	here that all (or a majority) of the libguile files will want.
+  	Don't #include <libguile.h> here; that generates dependencies on
+ 	way too much.  Instead, get "__scm.h", "error.h", "pairs.h",
+ 	"list.h", "gc.h", "gsubr.h", "procs.h", "numbers.h", "symbols.h",
+ 	"boolean.h", "strings.h", "vectors.h", "root.h", "ports.h", and
+ 	"async.h".
+	* alist.c: Get "eq.h", "list.h", "alist.h".
+	* append.c: Get "append.h", "list.h".
+	* arbiters.c: Get "arbiters.h", "smob.h".
+	* async.c: Get "async.h", "smob.h", "throw.h", "eval.h".
+	* boolean.c: Get "boolean.h".
+	* chars.c: Get "chars.h".
+	* continuations.c: Get "continuations.h", "dynwind.h", "debug.h",
+	"stackchk.h".
+	* debug.c: Get "debug.h", "feature.h", "read.h", "strports.h",
+	"continuations.h", "alist.h", "srcprop.h", "procprop.h", "smob.h",
+	"genio.h", "throw.h", "eval.h".
+	* dynwind.c: Get "dynwind.h", "alist.h", "eval.h".
+	* eq.c: Get "eq.h", "unif.h", "smob.h", "strorder.h",
+	"stackchk.h".
+	* error.c: Get "error.h", "throw.h", "genio.h", "pairs.h".
+	* eval.c: Get "eval.h", "stackchk.h", "srcprop.h", "debug.h",
+	"hashtab.h", "procprop.h", "markers.h", "smob.h", "throw.h",
+	"continuations.h", "eq.h", "sequences.h", "alist.h", "append.h",
+	"debug.h".
+	* fdsocket.c: Get "fdsocket.h", "unif.h", "filesys.h".
+	* feature.c: Get "feature.h".
+	* files.c: Get "files.h".
+	* filesys.c: Get "filesys.h", "smob.h", "genio.h".
+	* fports.c: Get "fports.h", "markers.h".
+	* gc.c: Get "async.h", "unif.h", "smob.h", "weaks.h",
+	"genio.h", "struct.h", "stackchk.h", "stime.h".
+	* gdbint.c: Get "gdbint.h", "chars.h", "eval.h", "print.h",
+	"read.h", "strports.h", "tag.h".
+	* genio.c: Get "genio.h", "chars.h".
+	* gsubr.c: Get "gsubr.h", "genio.h".
+	* hash.c: Get "hash.h", "chars.h".
+	* hashtab.c: Get "hashtab.h", "eval.h", "hash.h", "alist.h".
+	* init.c: Get everyone who has an scm_init_mumble function:
+	"weaks.h", "vports.h", "version.h", "vectors.h", "variable.h",
+	"unif.h", "throw.h", "tag.h", "symbols.h", "struct.h",
+	"strports.h", "strorder.h", "strop.h", "strings.h", "stime.h",
+	"stackchk.h", "srcprop.h", "socket.h", "simpos.h", "sequences.h",
+	"scmsigs.h", "read.h", "ramap.h", "procs.h", "procprop.h",
+	"print.h", "posix.h", "ports.h", "pairs.h", "options.h",
+	"objprop.h", "numbers.h", "mbstrings.h", "mallocs.h", "load.h",
+	"list.h", "kw.h", "ioext.h", "hashtab.h", "hash.h", "gsubr.h",
+	"gdbint.h", "gc.h", "fports.h", "filesys.h", "files.h",
+	"feature.h", "fdsocket.h", "eval.h", "error.h", "eq.h",
+	"dynwind.h", "debug.h", "continuations.h", "chars.h", "boolean.h",
+	"async.h", "arbiters.h", "append.h", "alist.h".
+	* ioext.c: Get "ioext.h", "fports.h".
+	* kw.c: Get "kw.h", "smob.h", "mbstrings.h", "genio.h".
+	* list.c: Get "list.h", "eq.h".
+	* load.c: Get "load.h", "eval.h", "read.h", "fports.h".
+	* mallocs.c: Get "smob.h", "genio.h".
+	* markers.c: Get "markers.h".
+	* mbstrings.c: Get "mbstrings.h", "read.h", "genio.h", "unif.h",
+	"chars.h".
+	* numbers.c: Get "unif.h", "genio.h".
+	* objprop.c: Get "objprop.h", "weaks.h", "alist.h", "hashtab.h".
+	* options.c: Get "options.h".
+	* ports.c: Get "ports.h", "vports.h", "strports.h", "fports.h",
+	"markers.h", "chars.h", "genio.h".
+	* posix.c: Get "posix.h", "sequences.h", "feature.h", "unif.h",
+	"read.h", "scmsigs.h", "genio.h", "fports.h". 
+	* print.c: Get "print.h",  "unif.h", "weaks.h", "read.h",
+	"procprop.h", "eval.h", "smob.h", "mbstrings.h", "genio.h",
+	"chars.h".
+	* procprop.c: Get "procprop.h", "eval.h", "alist.h".
+	* procs.c: Get "procs.h".
+	* ramap.c: Get "ramap.h", "feature.h", "eval.h", "eq.h",
+	"chars.h", "smob.h", "unif.h".
+	* read.c: Get "alist.h", "kw.h", "mbstrings.h", "unif.h",
+	"eval.h", "genio.h", "chars.h".
+	* root.c: Get "root.h", "stackchk.h".
+	* scmsigs.c: Get "scmsigs.h".
+	* sequences.c: Get "sequences.h".
+	* simpos.c: Get "simpos.h", "scmsigs.h".
+	* smob.c: Get "smob.h".
+	* socket.c: Get "socket.h", "feature.h".
+	* srcprop.c: Get "srcprop.h", "weaks.h", "hashtab.h", "debug.h",
+	"alist.h", "smob.h". 
+	* stackchk.c: Get "stackchk.h", "genio.h".
+	* stime.c: Get "stime.h"."libguile/continuations.h".
+	* strings.c: Get "strings.h", "chars.h".
+	* strop.c: Get "strop.h", "chars.h".
+	* strorder.c: Get "strorder.h", "chars.h".
+	* strports.c: Get "strports.h", "print.h", "eval.h", "unif.h".
+	* struct.c: Get "struct.h", "chars.h".
+	* symbols.c: Get "symbols.h", "mbstrings.h", "alist.h",
+	"variable.h", "eval.h", "chars.h". 
+	* tag.c: Get "tag.h", "struct.h", "chars.h".
+	* throw.c: Get "throw.h", "continuations.h", "debug.h",
+	"dynwind.h", "eval.h", "alist.h", "smob.h", "genio.h".
+	* unif.c: Get "unif.h", "feature.h", "strop.h", "sequences.h",
+	"smob.h", "genio.h", "eval.h", "chars.h".
+	* variable.c: Get "variable.h", "smob.h", "genio.h".
+	* vectors.c: Get "vectors.h", "eq.h".
+	* version.c: Get "version.h".
+	* vports.c: Get "vports.h", "fports.h", "chars.h", "eval.h".
+	* weaks.c: Get "weaks.h".
+
+	* stackchk.h: #include "libguile/debug.h",
+
+	* print.h, read.h: #include "options.h", since everyone who uses
+	either of these files will need that.
+
+	* smob.h: #include "ports.h", "genio.h", and "print.h", since
+	anyone who uses this file will need them to define the smob
+	printing functions.  Also, get markers.h, since people will need
+	to #define the mark functions.
+	
+	* smob.h (scm_ptobfuns, SCM_PTOBNUM): Definitions moved...
+	* ports.h: ... to here.
+
+	* ports.h (scm_port_table_size): Explicitly give type as 'int';
+	don't rely on archaic C default type rules.
+
+	* fports.h: #include "libguile/ports.h", since you need that in
+	order to parse this.
+
+	* genio.h: #include "libguile/print.h", because you need that to
+	parse this; don't bother #including "ports.h", since print.h gets
+	that.
+	
+	* error.h: Don't #include "pairs.h"; _scm.h will do that now.
+	
+	* eval.h (scm_top_level_lookup_thunk_var): Remove declaration for
+	this; it's now a reference to an element of *scm_root.
+
+	* debug.h: Don't #include "options.h"; the compiler won't be able
+	to find that once the headers are installed; instead, #include
+	"libguile/options.h".
+	* gc.h: Same, with marksweep.h.
+	* mbstrings.h: Same, with symbols.h.
+	* scmhob.h: Same, with _scm.h.
+	* smob.h: Same, with params.h.
+	
+	* Makefile.in (depends): Don't nuke scmconfig.h and the generated
+	C files; there's no need for this, and it forces recompilations
+	unnecessarily.
+
 Sat Sep  7 06:57:23 1996  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* error.c (scm_error): declare scm_error_callback.
@@ -18,6 +182,21 @@ Thu Sep  5 22:40:06 1996  Gary Houston  <ghouston@actrix.gen.nz>
 
 Thu Sep  5 11:38:07 1996  Jim Blandy  <jimb@floss.cyclic.com>
 
+	* alist.h, append.h, arbiters.h, async.h, boolean.h, chars.h,
+ 	continuations.h, debug.h, dynwind.h, error.h, eval.h, fdsocket.h,
+ 	feature.h, filesys.h, fports.h, gc.h, gdbint.h, genio.h, gsubr.h,
+ 	hash.h, init.h, ioext.h, kw.h, list.h, markers.h, marksweep.h,
+ 	mbstrings.h, numbers.h, objprop.h, options.h, pairs.h, ports.h,
+ 	posix.h, print.h, procprop.h, procs.h, ramap.h, read.h, root.h,
+ 	sequences.h, smob.h, socket.h, srcprop.h, stackchk.h, stime.h,
+ 	strings.h, strop.h, strorder.h, strports.h, struct.h, symbols.h,
+ 	tag.h, throw.h, unif.h, variable.h, vectors.h, version.h,
+ 	vports.h, weaks.h: #include "libguile/__scm.h", not
+	<libguile/__scm.h>.  This allows 'gcc -MM' to determine which
+	dependencies are within libguile properly.
+
+Thu Sep  5 11:38:07 1996  Jim Blandy  <jimb@floss.cyclic.com>
+
 	* Makefile.in (.c.x): Simplify; there's no need to run this rule
 	when scmconfig.h doesn't exist. 
 
@@ -33,14 +212,14 @@ Thu Sep  5 11:38:07 1996  Jim Blandy  <jimb@floss.cyclic.com>
 	this makes it easier to run Guile without installing it.  See
 	corresponding changes in guile/Makefile.in.
 	* feature.c: Move stuff concerned with the load path to load.c.
-*	(scm_compiled_library_path): Deleted.
+	(scm_compiled_library_path): Deleted.
 	Don't #include libpath.h here.
 	* feature.h: Don't mention scm_compiled_library_path.
 	* load.c: #include "libpath.h" here, as well as <sys/types.h>,
 	<sys/stat.h>, and <unistd.h> (if present).
 	(R_OK): #define if the system hasn't deigned to.
 	(scm_loc_load_path): New variable.
-*	(scm_init_load_path, scm_sys_search_load_path,
+	(scm_init_load_path, scm_sys_search_load_path,
 	scm_sys_try_load_path): New functions.
 	(scm_init_load): Initialize scm_loc_load_path to point to the
 	value cell of the Scheme %load-path variable.
@@ -1028,9 +1207,7 @@ Wed Dec  6 02:40:49 1995  Tom Lord  <lord@beehive>
 
 	Changed the range of integer->char.
 
-	Changed the tyep of SCM_ICHR.
-
-
+	Changed the type of SCM_ICHR.
 
 Tue May 16 17:49:58 1995  Mikael Djurfeldt  <mdj@sanscalc.nada.kth.se>
   

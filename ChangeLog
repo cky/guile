@@ -1,3 +1,8 @@
+Thu Sep  5 17:36:15 1996  Jim Blandy  <jimb@floss.cyclic.com>
+
+	* Makefile.in (tags): New name for `TAGS' target, which will
+	always run the commands.
+
 Thu Sep  5 09:56:50 1996  Jim Blandy  <jimb@totoro.cyclic.com>
 
 	* README: Doc fixes.
