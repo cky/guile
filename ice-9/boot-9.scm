@@ -1350,7 +1350,10 @@
 (define set-module-uses! (record-modifier module-type 'uses))
 (define module-binder (record-accessor module-type 'binder))
 (define set-module-binder! (record-modifier module-type 'binder))
+
+;; NOTE: This binding is used in libguile/modules.c.
 (define module-eval-closure (record-accessor module-type 'eval-closure))
+
 (define set-module-eval-closure! (record-modifier module-type 'eval-closure))
 (define module-transformer (record-accessor module-type 'transformer))
 (define set-module-transformer! (record-modifier module-type 'transformer))
@@ -1660,7 +1663,9 @@
 
 
 ;; the-module
-;; 
+;;
+;; NOTE: This binding is used in libguile/modules.c.
+;;
 (define the-module #f)
 
 ;; scm:eval-transformer
@@ -1670,6 +1675,8 @@
 ;; set-current-module module
 ;;
 ;; set the current module as viewed by the normalizer.
+;;
+;; NOTE: This binding is used in libguile/modules.c.
 ;;
 (define (set-current-module m)
   (set! the-module m)
@@ -1892,6 +1899,8 @@
 	   (not (eq? module the-root-module)))
       (set-module-uses! module (append (module-uses module) (list the-scm-module)))))
 
+;; NOTE: This binding is used in libguile/modules.c.
+;;
 (define (make-modules-in module name)
   (if (null? name)
       module
