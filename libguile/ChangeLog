@@ -1,3 +1,24 @@
+1999-08-17  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* backtrace.c, debug.c, eval.c, eval.h, gsubr.c, procprop.h,
+	read.c, srcprop.c, srcprop.h (scm_i_filename, scm_i_line,
+	scm_i_column, scm_i_copy, scm_i_name, scm_i_lambda, scm_i_source,
+	scm_i_more, scm_i_procname, scm_i_dot, scm_i_arrow, scm_i_else,
+	scm_i_unquote, scm_i_uq_splicing, scm_i_apply, scm_i_enter_frame,
+	scm_i_apply_frame, scm_i_exit_frame, scm_i_trace, scm_i_quote,
+	scm_i_begin, scm_i_if, scm_i_and, scm_i_or, scm_i_case,
+	scm_i_cond, scm_i_letstar, scm_i_do, scm_i_quasiquote,
+	scm_i_define, scm_i_letrec, scm_i_let, scm_i_atapply,
+	scm_i_atcall_cc, scm_i_breakpoint): Renamed: Consequently use
+	scm_sym_ as prefix for symbols.
+
+	* debug.c (scm_i_proc, scm_i_args, scm_i_eval_args): Removed.
+
+	* eval.c, eval.h (scm_sym_begin, scm_sym_if, scm_sym_and,
+	scm_sym_case, scm_sym_cond, scm_sym_letstar, scm_sym_do,
+	scm_sym_define, scm_sym_letrec, scm_sym_atapply,
+	scm_sym_atcall_cc): Made global.
+		
 1999-08-16  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* eval.c (scm_sym_args): Made global.
