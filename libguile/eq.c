@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001,2003 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001,2003, 2004 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -170,24 +170,6 @@ SCM_PRIMITIVE_GENERIC_1 (scm_equal_p, "equal?", scm_tc7_rpsubr,
 	  else
 	    return scm_from_bool (SCM_REALP (y)
 			     && SCM_COMPLEX_REAL (x) == SCM_REAL_VALUE (y)
-			     && SCM_COMPLEX_IMAG (x) == 0.0);
-	}
-
-      /* should we handle fractions here also? */
-      else if ((SCM_FRACTIONP (x)) && (SCM_INEXACTP (y)))
-	{
-	  if (SCM_REALP (y))
-	    return scm_from_bool (scm_i_fraction2double (x) == SCM_REAL_VALUE (y));
-	  else
-	    return scm_from_bool (SCM_COMPLEX_REAL (y) == scm_i_fraction2double (x)
-			     && SCM_COMPLEX_IMAG (y) == 0.0);
-	}
-      else if ((SCM_FRACTIONP (y)) && (SCM_INEXACTP (x)))
-	{
-	  if (SCM_REALP (x))
-	    return scm_from_bool (scm_i_fraction2double (y) == SCM_REAL_VALUE (x));
-	  else
-	    return scm_from_bool (SCM_COMPLEX_REAL (x) == scm_i_fraction2double (y)
 			     && SCM_COMPLEX_IMAG (x) == 0.0);
 	}
 
