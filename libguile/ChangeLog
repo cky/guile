@@ -1,3 +1,15 @@
+Thu May 15 05:21:36 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* posix.c: don't include <sys/select.h> or define macros for
+	select, since they were not used in this file.
+
+*	* filesys.c (scm_select): make the fifth parameter microseconds,
+	not milliseconds.  let the fourth parameter be either a real value
+	or an integer or #f.  The first, second and third arguments can
+	now be vectors: the type of the corresponding return set will be
+	the same.
+	(set_element, get_element): new static procedures.
+
 Wed May 14 12:18:12 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* strports.c (scm_eval_string): New function.

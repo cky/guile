@@ -717,67 +717,97 @@ scm_getcwd ()
 
 
 
-static void fill_select_type SCM_P ((SELECT_TYPE * set, SCM list));
+static void
+set_element (SELECT_TYPE *set, SCM element)
+{
+  if (SCM_NIMP (element) && SCM_TYP16 (element) == scm_tc16_fport
+      && SCM_OPPORTP (element))
+    FD_SET (fileno ((FILE *) SCM_STREAM (element)), set);
+  else if (SCM_INUMP (element))
+    FD_SET (SCM_INUM (element), set);
+}
 
 static void
-fill_select_type (set, list)
-     SELECT_TYPE * set;
-     SCM list;
+fill_select_type (SELECT_TYPE *set, SCM list)
 {
-  while (list != SCM_EOL)
+  if (SCM_NIMP (list) && SCM_VECTORP (list))
     {
-      if (   SCM_NIMP (SCM_CAR (list))
-	  && (scm_tc16_fport == SCM_TYP16 (SCM_CAR (list)))
-	  && SCM_OPPORTP (SCM_CAR (list)))
-	FD_SET (fileno ((FILE *)SCM_STREAM (SCM_CAR (list))), set);
-      else if (SCM_INUMP (SCM_CAR (list)))
-	FD_SET (SCM_INUM (SCM_CAR (list)), set);
-      list = SCM_CDR (list);
+      int len = SCM_LENGTH (list);
+      SCM *ve = SCM_VELTS (list);
+      
+      while (len > 0)
+	{
+	  set_element (set, ve[len - 1]);
+	  len--;
+	}
+    }
+  else
+    {
+      while (list != SCM_EOL)
+	{
+	  set_element (set, SCM_CAR (list));
+	  list = SCM_CDR (list);
+	}
     }
 }
 
-
-static SCM retrieve_select_type SCM_P ((SELECT_TYPE * set, SCM list));
+static SCM
+get_element (SELECT_TYPE *set, SCM element, SCM list)
+{
+  if (SCM_NIMP (element)
+      && (scm_tc16_fport == SCM_TYP16 (element))
+      && SCM_OPPORTP (element))
+    {
+      if (FD_ISSET (fileno ((FILE *)SCM_STREAM (element)), set))
+	list = scm_cons (element, list);
+    }
+  else if (SCM_INUMP (element))
+    {
+      if (FD_ISSET (SCM_INUM (element), set))
+	list = scm_cons (element, list);
+    }
+  return list;
+}
 
 static SCM 
-retrieve_select_type (set, list)
-     SELECT_TYPE * set;
-     SCM list;
+retrieve_select_type (SELECT_TYPE *set, SCM list)
 {
-  SCM answer;
-  answer = SCM_EOL;
-  while (list != SCM_EOL)
+  SCM answer_list = SCM_EOL;
+
+  if (SCM_NIMP (list) && SCM_VECTORP (list))
     {
-      if (   SCM_NIMP (SCM_CAR (list))
-	  && (scm_tc16_fport == SCM_TYP16 (SCM_CAR (list)))
-	  && SCM_OPPORTP (SCM_CAR (list)))
+      int len = SCM_LENGTH (list);
+      SCM *ve = SCM_VELTS (list);
+
+      while (len > 0)
 	{
-	  if (FD_ISSET (fileno ((FILE *)SCM_STREAM (SCM_CAR (list))), set))
-	    answer = scm_cons (SCM_CAR (list), answer);
+	  answer_list = get_element (set, ve[len - 1], answer_list);
+	  len--;
 	}
-      else if (SCM_INUMP (SCM_CAR (list)))
-	{
-	  if (FD_ISSET (SCM_INUM (SCM_CAR (list)), set))
-	    answer = scm_cons (SCM_CAR (list), answer);
-	}
-      list = SCM_CDR (list);
+      return scm_vector (answer_list);
     }
-  return answer;
+  else
+    {
+      /* list is a list.  */
+      while (list != SCM_EOL)
+	{
+	  answer_list = get_element (set, SCM_CAR (list), answer_list);
+	  list = SCM_CDR (list);
+	}
+      return answer_list;
+    }
 }
 
-
-/* {Checking for events}
- */
 
 SCM_PROC (s_select, "select", 3, 2, 0, scm_select);
 
 SCM
-scm_select (reads, writes, excepts, secs, msecs)
+scm_select (reads, writes, excepts, secs, usecs)
      SCM reads;
      SCM writes;
      SCM excepts;
      SCM secs;
-     SCM msecs;
+     SCM usecs;
 {
 #ifdef HAVE_SELECT
   struct timeval timeout;
@@ -787,9 +817,13 @@ scm_select (reads, writes, excepts, secs, msecs)
   SELECT_TYPE except_set;
   int sreturn;
 
-  SCM_ASSERT (-1 < scm_ilength (reads), reads, SCM_ARG1, s_select);
-  SCM_ASSERT (-1 < scm_ilength (writes), reads, SCM_ARG1, s_select);
-  SCM_ASSERT (-1 < scm_ilength (excepts), reads, SCM_ARG1, s_select);
+#define assert_set(x, arg) \
+  SCM_ASSERT (scm_ilength (x) > -1 || (SCM_NIMP (x) && SCM_VECTORP (x)), \
+	      x, arg, s_select)
+  assert_set (reads, SCM_ARG1);
+  assert_set (writes, SCM_ARG2);
+  assert_set (excepts, SCM_ARG3);
+#undef assert_set
 
   FD_ZERO (&read_set);
   FD_ZERO (&write_set);
@@ -799,18 +833,33 @@ scm_select (reads, writes, excepts, secs, msecs)
   fill_select_type (&write_set, writes);
   fill_select_type (&except_set, excepts);
 
-  if (SCM_UNBNDP (secs))
+  if (SCM_UNBNDP (secs) || SCM_FALSEP (secs))
     time_p = 0;
   else
     {
-      SCM_ASSERT (SCM_INUMP (secs), secs, SCM_ARG4, s_select);
-      if (SCM_UNBNDP (msecs))
-	msecs = SCM_INUM0;
+      if (SCM_INUMP (secs))
+	{
+	  timeout.tv_sec = SCM_INUM (secs);
+	  if (SCM_UNBNDP (usecs))
+	    timeout.tv_usec = 0;
+	  else
+	    {
+	      SCM_ASSERT (SCM_INUMP (usecs), usecs, SCM_ARG5, s_select);
+	      
+	      timeout.tv_usec = SCM_INUM (usecs);
+	    }
+	}
       else
-	SCM_ASSERT (SCM_INUMP (msecs), msecs, SCM_ARG5, s_select);
+	{
+	  double fl = scm_num2dbl (secs, s_select);
 
-      timeout.tv_sec = SCM_INUM (secs);
-      timeout.tv_usec = 1000 * SCM_INUM (msecs);
+	  if (!SCM_UNBNDP (usecs))
+	    scm_wrong_type_arg (s_select, 4, secs);
+	  if (fl > LONG_MAX)
+	    scm_out_of_range (s_select, secs);
+	  timeout.tv_sec = (long) fl;
+	  timeout.tv_usec = (long) ((fl - timeout.tv_sec) * 1000000);
+	}
       time_p = &timeout;
     }
 

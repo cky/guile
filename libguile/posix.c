@@ -75,10 +75,6 @@ extern char *ttyname();
 #include <libc.h>
 #endif
 
-#ifdef HAVE_SYS_SELECT_H
-#include <sys/select.h>
-#endif
-
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -96,23 +92,6 @@ extern char *ttyname();
 #endif
 
 #include <signal.h>
-
-#ifdef FD_SET
-
-#define SELECT_TYPE fd_set
-#define SELECT_SET_SIZE FD_SETSIZE
-
-#else /* no FD_SET */
-
-/* Define the macros to access a single-int bitmap of descriptors.  */
-#define SELECT_SET_SIZE 32
-#define SELECT_TYPE int
-#define FD_SET(n, p) (*(p) |= (1 << (n)))
-#define FD_CLR(n, p) (*(p) &= ~(1 << (n)))
-#define FD_ISSET(n, p) (*(p) & (1 << (n)))
-#define FD_ZERO(p) (*(p) = 0)
-
-#endif /* no FD_SET */
 
 extern FILE *popen ();
 extern char ** environ;
