@@ -903,7 +903,7 @@ Fri Jun 25 22:14:32 1999  Greg Badros  <gjb@cs.washington.edu>
 	1999-04-20  Gary Houston  <ghouston@easynet.co.uk>
 
 	* ports.c (scm_newptob): bugfix: set seek member.
-*	* (scm_lseek): new procedure, using code from ioext.c:scm_fseek
+	* (scm_lseek): new procedure, using code from ioext.c:scm_fseek
 	and generalised to all port types.
 
 	1999-04-18  Gary Houston  <ghouston@easynet.co.uk>
