@@ -327,7 +327,7 @@ scm_make_struct (vtable, tail_array_size, init)
 				      + tail_elts);
   data[scm_struct_i_tag] = struct_num++;
   SCM_SETCDR (handle, data);
-  SCM_SETCAR (handle, ((SCM)SCM_STRUCT_DATA (vtable)) + 1);
+  SCM_SETCAR (handle, ((SCM)SCM_STRUCT_DATA (vtable)) + scm_tc3_cons_gloc);
   init_struct (handle, tail_elts, init);
   SCM_ALLOW_INTS;
   return handle;
@@ -377,7 +377,7 @@ scm_make_vtable_vtable (extra_fields, tail_array_size, init)
 				      + tail_elts);
   data[scm_struct_i_tag] = struct_num++;
   SCM_SETCDR (handle, data);
-  SCM_SETCAR (handle, ((SCM)data) + 1);
+  SCM_SETCAR (handle, ((SCM)data) + scm_tc3_cons_gloc);
   SCM_STRUCT_LAYOUT (handle) = layout;
   init_struct (handle, tail_elts, scm_cons (layout, init));
   SCM_ALLOW_INTS;
