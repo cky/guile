@@ -179,9 +179,6 @@
 /* Define if the system headers declare usleep to return void.  */
 #undef USLEEP_RETURNS_VOID
 
-/* Define if your readline library has the rl_getc_function variable.  */
-#undef HAVE_RL_GETC_FUNCTION
-
 /* Define if the compiler supports long longs.  */
 #undef HAVE_LONG_LONGS
 
@@ -286,12 +283,6 @@
 
 /* Define if you have the rename function.  */
 #undef HAVE_RENAME
-
-/* Define if you have the rl_cleanup_after_signal function.  */
-#undef HAVE_RL_CLEANUP_AFTER_SIGNAL
-
-/* Define if you have the rl_clear_signals function.  */
-#undef HAVE_RL_CLEAR_SIGNALS
 
 /* Define if you have the rmdir function.  */
 #undef HAVE_RMDIR
@@ -451,9 +442,6 @@
 
 /* Define if you have the nsl library (-lnsl).  */
 #undef HAVE_LIBNSL
-
-/* Define if you have the readline library (-lreadline).  */
-#undef HAVE_LIBREADLINE
 
 /* Define if you have the rx library (-lrx).  */
 #undef HAVE_LIBRX
