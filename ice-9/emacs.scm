@@ -1,4 +1,4 @@
-;;;; 	Copyright (C) 1996, 1997, 1998, 1999 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1996, 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -170,7 +170,7 @@
 		       (apply throw key args))))))
 
 (define (emacs-eval-request form)
-  (result-to-emacs (eval form)))
+  (result-to-emacs (eval form (interaction-environment))))
 
 ;;*fixme* Not necessary to use flags no-stack and no-source
 (define (get-frame-source frame)
@@ -248,9 +248,9 @@
 
 (define (emacs-symdoc symbol)
   (if (or (not (module-bound? (current-module) symbol))
-	  (not (procedure? (eval symbol))))
+	  (not (procedure? (eval symbol) (interaction-environment))))
       'nil
-      (procedure-documentation (eval symbol))))
+      (procedure-documentation (eval symbol (interaction-environment)))))
 
 ;;; A fix to get the emacs interface to work together with the module system.
 ;;;
