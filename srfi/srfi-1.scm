@@ -733,11 +733,17 @@
 	       (every (lambda (el) (member el f (lambda (x y) (= y x)))) (car r))
 	       (lp (car r) (cdr r)))))))
 
+;; It's not quite clear if duplicates among the `rest' elements are meant to
+;; be cast out.  The spec says `=' is called as (= lstelem restelem),
+;; suggesting perhaps not, but the reference implementation shows the "list"
+;; at each stage as including those elements already added.  The latter
+;; corresponds to what's described for lset-union, so that's what's done.
+;;
 (define (lset-adjoin = list . rest)
   (let lp ((l rest) (acc list))
     (if (null? l)
       acc
-      (if (member (car l) list (lambda (x y) (= y x)))
+      (if (member (car l) acc (lambda (x y) (= y x)))
 	(lp (cdr l) acc)
 	(lp (cdr l) (cons (car l) acc))))))
 
