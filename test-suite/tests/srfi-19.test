@@ -2,17 +2,17 @@
 ;;;; Matthias Koeppe <mkoeppe@mail.math.uni-magdeburg.de> --- June 2001
 ;;;;
 ;;;; 	Copyright (C) 2001 Free Software Foundation, Inc.
-;;;; 
+;;;;
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
 ;;;; the Free Software Foundation; either version 2, or (at your option)
 ;;;; any later version.
-;;;; 
+;;;;
 ;;;; This program is distributed in the hope that it will be useful,
 ;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;;;; GNU General Public License for more details.
-;;;; 
+;;;;
 ;;;; You should have received a copy of the GNU General Public License
 ;;;; along with this software; see the file COPYING.  If not, write to
 ;;;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
@@ -52,7 +52,7 @@ incomplete numerical tower implementation.)"
   (pass-if (format "~A makes integer seconds"
 		   date->time)
 	   (exact? (time-second
-		    (date->time (make-date 0 0 0 12 1 6 2001 0))))))  
+		    (date->time (make-date 0 0 0 12 1 6 2001 0))))))
 
 (define (test-time->date time->date date->time)
   (pass-if (format "~A works"
@@ -80,12 +80,20 @@ incomplete numerical tower implementation.)"
 	      (let ((time (make-time ,a 12345 67890123)))
 		(time=? time (,b->a-sym (,a->b-sym time)))))))
 
+(define (test-time-comparison cmp a b)
+  (pass-if (format #f "~A works" cmp)
+           (cmp a b)))
+
+(define (test-time-arithmetic op a b res)
+  (pass-if (format #f "~A works" op)
+           (time=? (op a b) res)))
+
 (with-test-prefix "SRFI date/time library"
   ;; check for typos and silly errors
   (pass-if "date-zone-offset is defined"
 	   (and (defined? 'date-zone-offset)
 		date-zone-offset
-		#t))	   
+		#t))
   (pass-if "add-duration is defined"
 	   (and (defined? 'add-duration)
 		add-duration
@@ -126,7 +134,23 @@ incomplete numerical tower implementation.)"
 		    (with-tz "CET"
 		      (string->date "2001-06-01@14:00" "~Y-~m-~d@~H:~M")))
 		   (date->time-utc
-		    (make-date 0 0 0 12 1 6 2001 0)))))
+		    (make-date 0 0 0 12 1 6 2001 0))))
+  ;; check time comparison procedures
+  (let* ((time1 (make-time time-monotonic 0 0))
+         (time2 (make-time time-monotonic 0 0))
+         (time3 (make-time time-monotonic 385907 998360432))
+         (time4 (make-time time-monotonic 385907 998360432)))
+    (test-time-comparison time<=? time1 time3)
+    (test-time-comparison time<?  time1 time3)
+    (test-time-comparison time=?  time1 time2)
+    (test-time-comparison time>=? time3 time3)
+    (test-time-comparison time>?  time3 time2))
+  ;; check time arithmetic procedures
+  (let* ((time1 (make-time time-monotonic 0 0))
+         (time2 (make-time time-monotonic 385907 998360432))
+         (diff (time-difference time2 time1)))
+    (test-time-arithmetic add-duration time1 diff time2)
+    (test-time-arithmetic subtract-duration time2 diff time1)))
 
 ;; Local Variables:
 ;; eval: (put 'with-tz 'scheme-indent-function 1)
