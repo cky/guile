@@ -971,7 +971,8 @@
 (define module-type
   (make-record-type 'module
 		    '(obarray uses binder eval-closure transformer name kind
-			      observers weak-observers observer-id)
+		      duplicates-handlers duplicates-interface
+		      observers weak-observers observer-id)
 		    %print-module))
 
 ;; make-module &opt size uses binder
@@ -1005,7 +1006,7 @@
 
 	(let ((module (module-constructor (and (not (zero? size))
 					       (make-hash-table size))
-					  uses binder #f #f #f #f
+					  uses binder #f #f #f #f #f #f
 					  '()
 					  (make-weak-value-hash-table 31)
 					  0)))
@@ -1034,6 +1035,14 @@
 (define set-module-name! (record-modifier module-type 'name))
 (define module-kind (record-accessor module-type 'kind))
 (define set-module-kind! (record-modifier module-type 'kind))
+(define module-duplicates-handlers
+  (record-accessor module-type 'duplicates-handlers))
+(define set-module-duplicates-handlers!
+  (record-modifier module-type 'duplicates-handlers))
+(define module-duplicates-interface
+  (record-accessor module-type 'duplicates-interface))
+(define set-module-duplicates-interface!
+  (record-modifier module-type 'duplicates-interface))
 (define module-observers (record-accessor module-type 'observers))
 (define set-module-observers! (record-modifier module-type 'observers))
 (define module-weak-observers (record-accessor module-type 'weak-observers))
@@ -1485,12 +1494,11 @@
 ;; Same as MODULE-USE! but add multiple interfaces and check for duplicates
 ;;
 (define (module-use-interfaces! module interfaces)
-  (let* ((duplicates-info (module-duplicates-info module))
-	 (duplicates-handlers? (or (car duplicates-info)
+  (let* ((duplicates-handlers? (or (module-duplicates-handlers module)
 				   (default-duplicate-binding-procedures)))
 	 (uses (module-uses module)))
     ;; remove duplicates-interface
-    (set! uses (delq! (cdr duplicates-info) uses))
+    (set! uses (delq! (module-duplicates-interface module) uses))
     ;; remove interfaces to be added
     (for-each (lambda (interface)
 		(set! uses
@@ -1509,8 +1517,9 @@
 		(set-module-uses! module uses))
 	      interfaces)
     ;; add duplicates interface
-    (if (cdr duplicates-info)
-	(set-module-uses! module (cons (cdr duplicates-info) uses)))
+    (if (module-duplicates-interface module)
+	(set-module-uses! module
+			  (cons (module-duplicates-interface module) uses)))
     (module-modified module)))
 
 
@@ -1600,16 +1609,11 @@
   (module-ref m '%module-public-interface #f))
 (define (set-module-public-interface! m i)
   (module-define! m '%module-public-interface i))
-(define (module-duplicates-info m)
-  (or (module-ref m '%module-duplicates-info #f) (cons #f #f)))
-(define (set-module-duplicates-info! m i)
-  (module-define! m '%module-duplicates-info i))
 (define (set-system-module! m s)
   (set-procedure-property! (module-eval-closure m) 'system-module s))
 (define the-root-module (make-root-module))
 (define the-scm-module (make-scm-module))
 (set-module-public-interface! the-root-module the-scm-module)
-(set-module-duplicates-info! the-root-module (cons #f #f))
 (set-module-name! the-root-module '(guile))
 (set-module-name! the-scm-module '(guile))
 (set-module-kind! the-scm-module 'interface)
@@ -1638,8 +1642,7 @@
 	(let ((interface (make-module 31)))
 	  (set-module-name! interface (module-name module))
 	  (set-module-kind! interface 'interface)
-	  (set-module-public-interface! module interface)
-	  (set-module-duplicates-info! module (cons #f #f)))))
+	  (set-module-public-interface! module interface))))
   (if (and (not (memq the-scm-module (module-uses module)))
 	   (not (eq? module the-root-module)))
       (set-module-uses! module
@@ -1853,8 +1856,9 @@
 	    ((#:duplicates)
 	     (if (not (pair? (cdr kws)))
 		 (unrecognized kws))
-	     (set-car! (module-duplicates-info module)
-		       (lookup-duplicates-handlers (cadr kws)))
+	     (set-module-duplicates-handlers!
+	      module
+	      (lookup-duplicates-handlers (cadr kws)))
 	     (loop (cddr kws) reversed-interfaces exports re-exports replacements))
 	    ((#:export #:export-syntax)
 	     (or (pair? (cdr kws))
@@ -1901,7 +1905,7 @@
 		    ;; Replace autoload-interface with interface
 		    (set-car! (memq a (module-uses module)) i)
 		    (module-local-variable i sym))))))
-    (module-constructor #() '() b #f #f name 'autoload
+    (module-constructor #() '() b #f #f name 'autoload #f #f
 			'() (make-weak-value-hash-table 31) 0)))
 
 ;;; {Compiled module}
@@ -2925,10 +2929,9 @@
     m))
 
 (define (process-duplicates module interface)
-  (let* ((duplicates-info (module-duplicates-info module))
-	 (duplicates-handlers (or (car duplicates-info)
+  (let* ((duplicates-handlers (or (module-duplicates-handlers module)
 				  (default-duplicate-binding-procedures)))
-	 (duplicates-interface (cdr duplicates-info)))
+	 (duplicates-interface (module-duplicates-interface module)))
     (module-for-each
      (lambda (name var)
        (cond ((module-import-interface module name)
@@ -2942,7 +2945,9 @@
 			    (begin
 			      (set! duplicates-interface
 				    (make-duplicates-interface))
-			      (set-cdr! duplicates-info duplicates-interface)))
+			      (set-module-duplicates-interface!
+			       module
+			       duplicates-interface)))
 			(let* ((var (module-local-variable duplicates-interface
 							   name))
 			       (val (and var

@@ -9,6 +9,10 @@
 	module-defer-observers-table): New variables.
 	(process-define-module, process-use-modules, export, re-export):
 	Use call-with-deferred-observers.
+	(module-duplicates-info, set-module-duplicates-info!): Removed.
+	(module-duplicates-handlers, module-duplicates-interface): New.
+	(module-type): Added duplicates-handlers and
+	duplicates-interface.
 
 	* syncase.scm (eval): Mark as replacement.
 
