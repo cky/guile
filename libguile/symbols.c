@@ -246,11 +246,11 @@ scm_intern_obarray_soft (const char *name,scm_sizet len,SCM obarray,int softness
 
   if (SCM_FALSEP (obarray))
     {
-      scm_hash = scm_strhash (name, len, 1019);
+      scm_hash = scm_strhash ((unsigned char *) name, len, 1019);
       goto uninterned_symbol;
     }
 
-  scm_hash = scm_strhash (name, len, SCM_LENGTH (obarray));
+  scm_hash = scm_strhash ((unsigned char *) name, len, SCM_LENGTH (obarray));
 
   /* softness == -1 used to mean that it was known that the symbol
      wasn't already in the obarray.  I don't think there are any
@@ -363,7 +363,9 @@ scm_sysintern0_no_module_lookup (const char *name)
     {
       SCM lsym;
       scm_sizet len = strlen (name);
-      scm_sizet scm_hash = scm_strhash (name, len, (unsigned long) scm_symhash_dim);
+      scm_sizet scm_hash = scm_strhash ((unsigned char *) name,
+					len,
+					(unsigned long) scm_symhash_dim);
       SCM_NEWCELL (lsym);
       SCM_SETLENGTH (lsym, (long) len, scm_tc7_ssymbol);
       SCM_SETCHARS (lsym, name);
