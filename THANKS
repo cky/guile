@@ -5,7 +5,16 @@ The Guile core distribution:
 - Tim Pierce, for faster line-oriented I/O (%read-line and friends)
 
 Bug reports and fixes from:
-    Jim Ravan
-Bernard Urban
+        Jim Ravan
+    Bernard Urban
+      Radey Shouman
+     Thomas Morgan
+       Bill Janssen
+      Larry Schwimmer
+       Fred Fish
+Christopher Lee
+       Greg Troxel
+     Marcus Daniels
+     Roland McGrath
 
 Also, thanks to Pat Eyler, for his continuing work on the Guile web pages!
