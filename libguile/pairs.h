@@ -27,7 +27,6 @@
 
 
 #if (SCM_DEBUG_PAIR_ACCESSES == 1)
-# include "libguile/struct.h"
 # define SCM_VALIDATE_PAIR(cell, expr) \
     ((!SCM_CONSP (cell) ? scm_error_pair_access (cell), 0 : 0), (expr))
 #else

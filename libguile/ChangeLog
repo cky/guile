@@ -1,5 +1,9 @@
 2003-04-23  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* sort.c, pairs.h: Removed unnecessary includes.
+
+2003-04-23  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* sort.c: Replaced hand-made trampline code by the new official
 	mechanism from eval.c.  This fixes a segfault in the new test file
 	sort.test.

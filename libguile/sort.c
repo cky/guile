@@ -32,14 +32,11 @@
  * quicksort code.
  */
 
-#include <string.h>
 #include "libguile/_scm.h"
 #include "libguile/eval.h"
 #include "libguile/unif.h"
 #include "libguile/ramap.h"
-#include "libguile/alist.h"
 #include "libguile/feature.h"
-#include "libguile/root.h"
 #include "libguile/vectors.h"
 #include "libguile/lang.h"
 
