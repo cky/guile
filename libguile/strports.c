@@ -44,6 +44,7 @@
 #include "_scm.h"
 #include "unif.h"
 #include "eval.h"
+#include "read.h"
 
 #include "strports.h"
 
@@ -224,6 +225,27 @@ scm_call_with_input_string (str, proc)
 {
   SCM p = scm_mkstrport(SCM_INUM0, str, SCM_OPN | SCM_RDNG, s_call_with_input_string);
   return scm_apply (proc, p, scm_listofnull);
+}
+
+
+
+/* Given a null-terminated string EXPR containing Scheme program text,
+   evaluate it, and discard the result.  */
+void
+scm_eval_0str (expr)
+     char *expr;
+{
+  SCM port = scm_mkstrport (SCM_MAKINUM (0),
+			    scm_makfrom0str (expr),
+			    SCM_OPN | SCM_RDNG,
+			    "scm_eval_0str");
+  SCM form;
+
+  /* Read expressions from that port; ignore the values.  */
+  while ((form = scm_read (port, SCM_BOOL_F, SCM_BOOL_F)) != SCM_EOF_VAL)
+    scm_eval_x (form);
+
+  scm_close_port (port);
 }
 
 

@@ -800,7 +800,7 @@ strports.o: strports.c _scm.h __scm.h scmconfig.h \
  tags.h error.h __scm.h print.h \
  options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
  symbols.h boolean.h strings.h vectors.h root.h ports.h async.h unif.h \
- eval.h strports.h strports.x
+ eval.h read.h strports.h strports.x
 struct.o: struct.c _scm.h __scm.h scmconfig.h \
  tags.h error.h __scm.h print.h \
  options.h pairs.h list.h gc.h gsubr.h procs.h numbers.h \
