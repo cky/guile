@@ -3241,6 +3241,7 @@
     srfi-6   ;; open-input-string etc, in the guile core
     srfi-13  ;; string library
     srfi-14  ;; character sets
+    srfi-55  ;; require-extension
     ))
 
 ;; This table maps module public interfaces to the list of features.
@@ -3332,6 +3333,41 @@
                (mod-i (resolve-interface (list 'srfi srfi))))
           (module-use! (current-module) mod-i)
           (lp (cdr s))))))
+
+
+
+;;; srfi-55: require-extension
+;;;
+
+(define-macro (require-extension extension-spec)
+  ;; This macro only handles the srfi extension, which, at present, is
+  ;; the only one defined by the standard.
+  (if (not (pair? extension-spec))
+      (scm-error 'wrong-type-arg "require-extension"
+                 "Not an extension: ~S" (list extension-spec) #f))
+  (let ((extension (car extension-spec))
+        (extension-args (cdr extension-spec)))
+    (case extension
+      ((srfi)
+       (let ((use-list '()))
+         (for-each
+          (lambda (i)
+            (if (not (integer? i))
+                (scm-error 'wrong-type-arg "require-extension"
+                           "Invalid srfi name: ~S" (list i) #f))
+            (let ((srfi-sym (string->symbol
+                             (string-append "srfi-" (number->string i)))))
+              (if (not (memq srfi-sym %cond-expand-features))
+                  (set! use-list (cons `(use-modules (srfi ,srfi-sym))
+                                       use-list)))))
+          extension-args)
+         (if (pair? use-list)
+             ;; i.e. (begin (use-modules x) (use-modules y) (use-modules z))
+             `(begin ,@(reverse! use-list)))))
+      (else
+       (scm-error
+        'wrong-type-arg "require-extension"
+        "Not a recognized extension type: ~S" (list extension) #f)))))
 
 
 
