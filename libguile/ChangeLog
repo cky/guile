@@ -1,3 +1,18 @@
+2000-08-11  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* macros.c: Remove surplus newlines from end of docstrings.
+
+	* list.c (scm_list_tail): Add @deffnx line to docstring for
+	list-cdr-ref.
+	
+	* keywords.c: Docstring improvements in conjunction with new
+	reference manual doc on keywords.
+
+	* error.c (scm_error_scm): Fix texinfo syntax error in
+	docstring.  (@code(~S) should be @code{~S}.)
+
+	* dynl.c: Remove surplus newlines from end of docstrings.
+
 2000-08-11  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
 
 	* eval.c (scm_eval): Backward incompatible change: Now takes an

@@ -403,9 +403,10 @@ SCM_REGISTER_PROC(s_list_cdr_ref, "list-cdr-ref", 2, 0, 0, scm_list_tail);
 
 SCM_DEFINE (scm_list_tail, "list-tail", 2, 0, 0,
            (SCM lst, SCM k),
+	    "@deffnx primitive list-cdr-ref lst k\n"
 	    "Return the \"tail\" of @var{lst} beginning with its @var{k}th element.\n"
 	    "The first element of the list is considered to be element 0.\n\n"
-	    "@code{list-cdr-ref} and @code{list-tail} are identical.  It may help to\n"
+	    "@code{list-tail} and @code{list-cdr-ref} are identical.  It may help to\n"
 	    "think of @code{list-cdr-ref} as accessing the @var{k}th cdr of the list,\n"
 	    "or returning the results of cdring @var{k} times down @var{lst}.")
 #define FUNC_NAME s_scm_list_tail

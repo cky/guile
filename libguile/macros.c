@@ -69,17 +69,17 @@ SCM_DEFINE (scm_makacro, "procedure->syntax", 1, 0, 0,
 SCM_DEFINE (scm_makmacro, "procedure->macro", 1, 0, 0, 
            (SCM code),
 	    "Returns a @dfn{macro} which, when a symbol defined to this value\n"
-            "appears as the first symbol in an expression, evaluates the result\n"
-            "of applying @var{code} to the expression and the environment.\n"
-            "The value returned from @var{code} which has been passed to\n"
-            "@code{procedure->memoizing-macro} replaces the form passed to\n"
-            "@var{code}.  For example:\n\n"
-            "@example\n"
-            "(define trace\n"
-            "  (procedure->macro\n"
-            "   (lambda (x env) `(set! ,(cadr x) (tracef ,(cadr x) ',(cadr x))))))\n\n"
-            "(trace @i{foo}) @equiv{} (set! @i{foo} (tracef @i{foo} '@i{foo})).\n"
-            "@end example\n")
+	    "appears as the first symbol in an expression, evaluates the result\n"
+	    "of applying @var{code} to the expression and the environment.\n"
+	    "The value returned from @var{code} which has been passed to\n"
+	    "@code{procedure->memoizing-macro} replaces the form passed to\n"
+	    "@var{code}.  For example:\n\n"
+	    "@example\n"
+	    "(define trace\n"
+	    "  (procedure->macro\n"
+	    "   (lambda (x env) `(set! ,(cadr x) (tracef ,(cadr x) ',(cadr x))))))\n\n"
+	    "(trace @i{foo}) @equiv{} (set! @i{foo} (tracef @i{foo} '@i{foo})).\n"
+	    "@end example")
 #define FUNC_NAME s_scm_makmacro
 {
   SCM_VALIDATE_PROC (1,code);
@@ -101,7 +101,7 @@ SCM_DEFINE (scm_makmmacro, "procedure->memoizing-macro", 1, 0, 0,
             "  (procedure->macro\n"
             "   (lambda (x env) `(set! ,(cadr x) (tracef ,(cadr x) ',(cadr x))))))\n\n"
             "(trace @i{foo}) @equiv{} (set! @i{foo} (tracef @i{foo} '@i{foo})).\n"
-            "@end example\n")
+            "@end example")
 #define FUNC_NAME s_scm_makmmacro
 {
   SCM_VALIDATE_PROC (1,code);

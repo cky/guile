@@ -106,7 +106,7 @@ SCM_DEFINE (scm_error_scm, "scm-error", 5, 0, 0,
 	    "is the error message string, possibly containing @code{~S} and @code{~A}\n"
 	    "escapes.  When an error is reported, these are replaced by formating the\n"
 	    "corresponding members of @var{args}: @code{~A} (was @code{%s}) formats using @code{display}\n"
-	    "and @code(~S) (was @code{%S}) formats using @code{write}.  @var{data} is a\n"
+	    "and @code{~S} (was @code{%S}) formats using @code{write}.  @var{data} is a\n"
 	    "list or @code{#f} depending on @var{key}: if @var{key} is\n"
 	    "@code{system-error} then it should be a list\n"
 	    "containing the Unix @code{errno} value;  If @var{key} is @code{signal} then\n"

@@ -380,7 +380,7 @@ SCM_DEFINE (scm_dynamic_unlink, "dynamic-unlink", 1, 0, 0,
 	    "Unlink the indicated object file from the application.  The\n"
 	    "argument @var{dynobj} must have been obtained by a call to\n"
 	    "@code{dynamic-link}.  After @code{dynamic-unlink} has been\n"
-	    "called on @var{dynobj}, its content is no longer accessible.\n")
+	    "called on @var{dynobj}, its content is no longer accessible.")
 #define FUNC_NAME s_scm_dynamic_unlink
 {
   /*fixme* GC-problem */
@@ -411,8 +411,7 @@ SCM_DEFINE (scm_dynamic_func, "dynamic-func", 2, 0, 0,
 	    "Regardless whether your C compiler prepends an underscore @samp{_} to\n"
 	    "the global names in a program, you should @strong{not} include this\n"
 	    "underscore in @var{function}.  Guile knows whether the underscore is\n"
-	    "needed or not and will add it when necessary.\n\n"
-	    "")
+	    "needed or not and will add it when necessary.")
 #define FUNC_NAME s_scm_dynamic_func
 {
   void (*func) ();
@@ -451,8 +450,7 @@ SCM_DEFINE (scm_dynamic_call, "dynamic-call", 2, 0, 0,
 	    "(dynamic-call (dynamic-func @var{function} @var{dynobj} #f))\n"
 	    "@end smallexample\n\n"
 	    "Interrupts are deferred while the C function is executing (with\n"
-	    "@code{SCM_DEFER_INTS}/@code{SCM_ALLOW_INTS}).\n"
-	    "")
+	    "@code{SCM_DEFER_INTS}/@code{SCM_ALLOW_INTS}).")
 #define FUNC_NAME s_scm_dynamic_call
 {
   void (*fptr) ();
@@ -486,8 +484,7 @@ SCM_DEFINE (scm_dynamic_args_call, "dynamic-args-call", 3, 0, 0,
 	    "The parameter @var{args} must be a list of strings and is converted into\n"
 	    "an array of @code{char *}.  The array is passed in @var{argv} and its\n"
 	    "size in @var{argc}.  The return value is converted to a Scheme number\n"
-	    "and returned from the call to @code{dynamic-args-call}.\n\n\n"
-	    "")
+	    "and returned from the call to @code{dynamic-args-call}.")
 #define FUNC_NAME s_scm_dynamic_args_call
 {
   int (*fptr) (int argc, char **argv);
