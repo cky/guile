@@ -1603,11 +1603,6 @@
 	     (eq? (car (last-pair use-list)) the-scm-module))
 	(set-module-uses! module (reverse (cdr (reverse use-list)))))))
 
-(define (resolve-interface name)
-  (let ((module (resolve-module name)))
-    (and module (module-public-interface module))))
-
-
 ;; Return a module interface made from SPEC.
 ;; SPEC can be a list of symbols, in which case it names a module
 ;; whose public interface is found and returned.
@@ -1616,8 +1611,8 @@
 ;;  (MODULE-NAME [:select SELECTION] [:rename RENAMER])
 ;; in which case a partial interface is newly created and returned.
 ;; MODULE-NAME is a list of symbols, as above; SELECTION is a list of
-;; selection-specs to be imported; and RENAMER is a procedure that takes a
-;; symbol and returns its new name.  A selection-spec is either a symbol or a
+;; binding-specs to be imported; and RENAMER is a procedure that takes a
+;; symbol and returns its new name.  A binding-spec is either a symbol or a
 ;; pair of symbols (ORIG . SEEN), where ORIG is the name in the used module
 ;; and SEEN is the name in the using module.  Note that SEEN is also passed
 ;; through RENAMER.
@@ -1649,14 +1644,10 @@
                             (else identity)))
               (custom-i (make-module 31)))
           (set-module-kind! custom-i 'interface)
-          (for-each (lambda (sel-spec)
-                      (let* ((direct? (symbol? sel-spec))
-                             (orig (if direct?
-                                       sel-spec
-                                       (car sel-spec)))
-                             (seen (if direct?
-                                       sel-spec
-                                       (cdr sel-spec))))
+          (for-each (lambda (bspec)
+                      (let* ((direct? (symbol? bspec))
+                             (orig (if direct? bspec (car bspec)))
+                             (seen (if direct? bspec (cdr bspec))))
                         (module-add! custom-i (rename seen)
                                      (or (module-local-variable module orig)
                                          (error
@@ -1672,11 +1663,11 @@
     (symbol-append prefix symbol)))
 
 (define (process-define-module args)
-  (let*  ((module-id (car args))
-	  (module (resolve-module module-id #f))
-	  (kws (cdr args))
-          (unrecognized (lambda ()
-                          (error "unrecognized define-module argument" kws))))
+  (let* ((module-id (car args))
+         (module (resolve-module module-id #f))
+         (kws (cdr args))
+         (unrecognized (lambda (arg)
+                         (error "unrecognized define-module argument" arg))))
     (beautify-user-module! module)
     (let loop ((kws kws)
 	       (reversed-interfaces '())
@@ -1685,7 +1676,7 @@
 	  (begin
 	    (for-each (lambda (interface)
 			(module-use! module interface))
-		      reversed-interfaces)
+		      (reverse reversed-interfaces))
 	    (module-export! module exports))
 	  (let ((keyword (if (keyword? (car kws))
 			     (keyword->symbol (car kws))
@@ -1696,7 +1687,7 @@
 	    (case keyword
 	      ((use-module use-syntax)
 	       (or (pair? (cdr kws))
-		   (unrecognized))
+		   (unrecognized kws))
                (let* ((spec (cadr kws))
                       (interface (resolve-interface spec)))
                  (and (eq? keyword 'use-syntax)
@@ -1712,7 +1703,7 @@
                        exports)))
 	      ((autoload)
 	       (or (and (pair? (cdr kws)) (pair? (cddr kws)))
-                   (unrecognized))
+                   (unrecognized kws))
 	       (loop (cdddr kws)
 		     (cons (make-autoload-interface module
 						    (cadr kws)
@@ -1727,12 +1718,12 @@
 	       (loop (cdr kws) reversed-interfaces exports))
 	      ((export)
 	       (or (pair? (cdr kws))
-                   (unrecognized))
+                   (unrecognized kws))
 	       (loop (cddr kws)
 		     reversed-interfaces
 		     (append (cadr kws) exports)))
 	      (else
-               (unrecognized))))))
+               (unrecognized kws))))))
     (set-current-module module)
     module))
 
@@ -2791,14 +2782,14 @@
 (define (use-srfis srfis)
   (let lp ((s srfis))
     (if (pair? s)
-      (let* ((srfi (string->symbol 
-		   (string-append "srfi-" (number->string (car s)))))
-	     (mod (resolve-interface (list 'srfi srfi))))
-	(module-use! (current-module) mod)
-	(set! cond-expand-features
-	      (append cond-expand-features (list srfi)))
-	(lp (cdr s))))))
-	
+        (let* ((srfi (string->symbol
+                      (string-append "srfi-" (number->string (car s)))))
+               (mod-i (resolve-interface (list 'srfi srfi))))
+          (module-use! (current-module) mod-i)
+          (set! cond-expand-features
+                (append cond-expand-features (list srfi)))
+          (lp (cdr s))))))
+
 
 
 ;;; {Load emacs interface support if emacs option is given.}
