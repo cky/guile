@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995, 1996, 1997, 1998 Free Software Foundation, Inc.
+/*	Copyright (C) 1995, 1996, 1997, 1998, 1999 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -143,7 +143,7 @@ scm_read_delimited_x (delims, buf, gobble, port, start, end)
 static unsigned char *
 scm_do_read_line (SCM port, int *len_p)
 {
-  struct scm_port_table *pt = SCM_PTAB_ENTRY (port);
+  scm_port *pt = SCM_PTAB_ENTRY (port);
   unsigned char *end;
 
   /* I thought reading lines was simple.  Mercy me.  */
@@ -290,6 +290,7 @@ SCM
 scm_read_line (port)
      SCM port;
 {
+  scm_port *pt;
   char *s;
   int slen;
   SCM line, term;
@@ -301,6 +302,10 @@ scm_read_line (port)
       SCM_ASSERT (SCM_NIMP (port) && SCM_OPINPORTP (port),
 		  port, SCM_ARG1, s_read_line);
     }
+
+  pt = SCM_PTAB_ENTRY (port);
+  if (pt->rw_active == SCM_PORT_WRITE)
+    scm_ptobs[SCM_PTOBNUM (port)].fflush (port);
 
   s = scm_do_read_line (port, &slen);
 
@@ -320,8 +325,12 @@ scm_read_line (port)
 	  /* Fix: we should check for eof on the port before assuming this. */
 	  term = SCM_EOF_VAL;
 	  line = scm_take_str (s, slen);
+	  SCM_COL (port) += slen;
 	}	  
     }
+
+  if (pt->rw_random)
+    pt->rw_active = SCM_PORT_READ;
 
   return scm_cons (line, term);
 }
@@ -343,56 +352,7 @@ SCM
 scm_ftell (object)
      SCM object;
 {
-  if (SCM_INUMP (object))
-    {
-      int fdes = SCM_INUM (object);
-      fpos_t pos;
-
-      pos = lseek (fdes, 0, SEEK_CUR);
-      if (pos == -1)
-	scm_syserror (s_ftell);
-      return scm_long2num (pos);
-    }
-  else
-    {
-      struct scm_fport *fp;
-      struct scm_port_table *pt;
-      int fdes;
-      fpos_t pos;
-
-      object = SCM_COERCE_OUTPORT (object);
-      SCM_ASSERT (SCM_NIMP (object) && SCM_OPFPORTP (object),
-		  object, SCM_ARG1, s_ftell);
-      fp = SCM_FSTREAM (object);
-      pt = SCM_PTAB_ENTRY (object);
-      fdes = fp->fdes;
-      pos = lseek (fdes, 0, SEEK_CUR);
-      if (pos == -1)
-	scm_syserror (s_ftell);
-      /* the seek will only have succeeded if fdes is random access,
-	 in which case only one buffer can be filled.  */
-      if (pt->write_pos > pt->write_buf)
-	{
-	  pos += pt->write_pos - pt->write_buf;
-	}
-      else
-	{
-	  pos -= pt->read_end - pt->read_pos;
-	  if (SCM_CRDYP (object))
-	    pos -= SCM_N_READY_CHARS (object);
-	}
-      return scm_long2num (pos);
-    }
-}
-
-/* clear the three buffers in a port.  */
-#define SCM_CLEAR_BUFFERS(port, pt)\
-{\
-   if (pt->write_pos > pt->write_buf)\
-     scm_fflush (port);\
-   pt->read_pos = pt->read_end = pt->read_buf;\
-   pt->write_needs_seek = 0;\
-   SCM_CLRDY (port);\
+  return scm_lseek (object, SCM_INUM0, SCM_MAKINUM (SEEK_CUR));
 }
 
 SCM_PROC (s_fseek, "fseek", 3, 0, 0, scm_fseek);
@@ -403,35 +363,8 @@ scm_fseek (object, offset, whence)
      SCM offset;
      SCM whence;
 {
-  int rv;
-  long loff;
+  scm_lseek (object, offset, whence);
 
-  object = SCM_COERCE_OUTPORT (object);
-
-  loff = scm_num2long (offset, (char *)SCM_ARG2, s_fseek);
-  SCM_ASSERT (SCM_INUMP (whence), whence, SCM_ARG3, s_fseek);
-  if (SCM_NIMP (object) && SCM_OPFPORTP (object))
-    {
-      struct scm_fport *fp = SCM_FSTREAM (object);
-      struct scm_port_table *pt = SCM_PTAB_ENTRY (object);
-
-      /* clear the three buffers.  the write buffer should be flushed
-         before changing the position.  */
-      if (fp->random)
-	{
-	  SCM_CLEAR_BUFFERS (object, pt);
-	}  /* if not random, lseek will fail.  */
-      rv = lseek (fp->fdes, loff, SCM_INUM (whence));
-      if (rv == -1)
-	scm_syserror (s_fseek);
-    }
-  else
-    {
-      SCM_ASSERT (SCM_INUMP (object), object, SCM_ARG1, s_fseek);
-      rv = lseek (SCM_INUM (object), loff, SCM_INUM (whence));
-      if (rv == -1)
-	scm_syserror (s_fseek);
-    }
   return SCM_UNSPECIFIED;
 }
 
@@ -455,18 +388,20 @@ scm_redirect_port (old, new)
   newfd = fp->fdes;
   if (oldfd != newfd)
     {
-      struct scm_port_table *pt = SCM_PTAB_ENTRY (new);
+      scm_port *pt = SCM_PTAB_ENTRY (new);
+      scm_port *old_pt = SCM_PTAB_ENTRY (old);
+      scm_ptobfuns *ptob = &scm_ptobs[SCM_PTOBNUM (new)];
 
-      /* must flush to old fdes.  don't clear all buffers here
-	 in case dup2 fails.  */
-      if (pt->write_pos > pt->write_buf)
-	scm_fflush (new);
+      /* must flush to old fdes.  */
+      if (pt->rw_active == SCM_PORT_WRITE)
+	ptob->fflush (new);
+      else if (pt->rw_active == SCM_PORT_READ)
+	ptob->read_flush (new);
       ans = dup2 (oldfd, newfd);
       if (ans == -1)
 	scm_syserror (s_redirect_port);
-      fp->random = SCM_FDES_RANDOM_P (fp->fdes);
+      pt->rw_random = old_pt->rw_random;
       /* continue using existing buffers, even if inappropriate.  */
-      SCM_CLEAR_BUFFERS (new, pt);
     }
   return SCM_UNSPECIFIED;
 }
@@ -624,11 +559,6 @@ scm_fdes_to_ports (fd)
 void 
 scm_init_ioext ()
 {
-  /* fseek() symbols.  */
-  scm_sysintern ("SEEK_SET", SCM_MAKINUM (SEEK_SET));
-  scm_sysintern ("SEEK_CUR", SCM_MAKINUM (SEEK_CUR));
-  scm_sysintern ("SEEK_END", SCM_MAKINUM (SEEK_END));
-
 #include "ioext.x"
 }
 
