@@ -1,3 +1,7 @@
+2001-09-19  Thien-Thi Nguyen  <ttn@glug.org>
+
+	* guile-tut.texi: Fix improper `@result' usage.
+
 2001-08-27  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* Makefile.am (guile_tut_TEXINFOS): Removed.
