@@ -61,14 +61,6 @@ extern SCM scm_primitive_move_to_fdes (SCM port, SCM fd);
 extern SCM scm_fdes_to_ports (SCM fd);
 extern void scm_init_ioext (void);
 
-
-
-#if (SCM_DEBUG_DEPRECATED == 0)
-
-extern SCM scm_fseek (SCM object, SCM offset, SCM whence);
-
-#endif  /* SCM_DEBUG_DEPRECATED == 0 */
-
 #endif  /* IOEXTH */
 
 /*
