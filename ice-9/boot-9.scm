@@ -829,7 +829,7 @@
 		(left-part (string-append
 			    (with-output-to-string
 			      (lambda ()
-				(map (lambda (x) (display (keyword-symbol x)) (display " "))
+				(map (lambda (x) (display (keyword->symbol x)) (display " "))
 				     opts-proper)))
 			    arg-name))
 		(middle-part (if (and (< (string-length left-part) 30)
