@@ -48,26 +48,26 @@
 
 
 
-typedef SCM (*scm_catch_body_t) (void *data);
-typedef SCM (*scm_catch_handler_t) (void *data,
+typedef SCM (*scm_t_catch_body) (void *data);
+typedef SCM (*scm_t_catch_handler) (void *data,
                                     SCM tag, SCM throw_args);
 
 extern SCM scm_internal_catch (SCM tag,
-                               scm_catch_body_t body,
+                               scm_t_catch_body body,
                                void *body_data,
-                               scm_catch_handler_t handler,
+                               scm_t_catch_handler handler,
                                void *handler_data);
 
 extern SCM scm_internal_lazy_catch (SCM tag,
-                                    scm_catch_body_t body,
+                                    scm_t_catch_body body,
                                     void *body_data,
-                                    scm_catch_handler_t handler,
+                                    scm_t_catch_handler handler,
                                     void *handler_data);
 
 extern SCM scm_internal_stack_catch (SCM tag,
-                                     scm_catch_body_t body,
+                                     scm_t_catch_body body,
                                      void *body_data,
-                                     scm_catch_handler_t handler,
+                                     scm_t_catch_handler handler,
                                      void *handler_data);
 
 /* The first argument to scm_body_thunk should be a pointer to one of

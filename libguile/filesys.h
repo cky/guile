@@ -51,7 +51,7 @@
 
 
 
-extern scm_bits_t scm_tc16_dir;
+extern scm_t_bits scm_tc16_dir;
 
 #define SCM_DIR_FLAG_OPEN (1L << 16)
 

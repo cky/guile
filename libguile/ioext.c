@@ -90,7 +90,7 @@ SCM_DEFINE (scm_redirect_port, "redirect-port", 2, 0, 0,
 #define FUNC_NAME s_scm_redirect_port
 {
   int ans, oldfd, newfd;
-  scm_fport_t *fp;
+  scm_t_fport *fp;
 
   old = SCM_COERCE_OUTPORT (old);
   new = SCM_COERCE_OUTPORT (new);
@@ -102,9 +102,9 @@ SCM_DEFINE (scm_redirect_port, "redirect-port", 2, 0, 0,
   newfd = fp->fdes;
   if (oldfd != newfd)
     {
-      scm_port_t *pt = SCM_PTAB_ENTRY (new);
-      scm_port_t *old_pt = SCM_PTAB_ENTRY (old);
-      scm_ptob_descriptor_t *ptob = &scm_ptobs[SCM_PTOBNUM (new)];
+      scm_t_port *pt = SCM_PTAB_ENTRY (new);
+      scm_t_port *old_pt = SCM_PTAB_ENTRY (old);
+      scm_t_ptob_descriptor *ptob = &scm_ptobs[SCM_PTOBNUM (new)];
 
       /* must flush to old fdes.  */
       if (pt->rw_active == SCM_PORT_WRITE)
@@ -261,7 +261,7 @@ SCM_DEFINE (scm_primitive_move_to_fdes, "primitive-move->fdes", 2, 0, 0,
 	    "required value or @code{#t} if it was moved.")
 #define FUNC_NAME s_scm_primitive_move_to_fdes
 {
-  scm_fport_t *stream;
+  scm_t_fport *stream;
   int old_fd;
   int new_fd;
   int rv;
@@ -301,11 +301,11 @@ SCM_DEFINE (scm_fdes_to_ports, "fdes->ports", 1, 0, 0,
   
   SCM_VALIDATE_INUM_COPY (1,fd,int_fd);
 
-  for (i = 0; i < scm_port_table_size; i++)
+  for (i = 0; i < scm_t_portable_size; i++)
     {
-      if (SCM_OPFPORTP (scm_port_table[i]->port)
-	  && ((scm_fport_t *) scm_port_table[i]->stream)->fdes == int_fd)
-	result = scm_cons (scm_port_table[i]->port, result);
+      if (SCM_OPFPORTP (scm_t_portable[i]->port)
+	  && ((scm_t_fport *) scm_t_portable[i]->stream)->fdes == int_fd)
+	result = scm_cons (scm_t_portable[i]->port, result);
     }
   return result;
 }

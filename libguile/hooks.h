@@ -58,45 +58,45 @@
  * both may want to indicate success/failure and return a result.
  */
 
-typedef enum scm_c_hook_type_t {
+typedef enum scm_t_c_hookype_t {
   SCM_C_HOOK_NORMAL,
   SCM_C_HOOK_OR,
   SCM_C_HOOK_AND
-} scm_c_hook_type_t;
+} scm_t_c_hookype_t;
 
-typedef void  *(*scm_c_hook_function_t) (void *hook_data,
+typedef void  *(*scm_t_c_hook_function) (void *hook_data,
 					 void *func_data,
 					 void *data);
 
-typedef struct scm_c_hook_entry_t {
-  struct scm_c_hook_entry_t *next;
-  scm_c_hook_function_t func;
+typedef struct scm_t_c_hook_entry {
+  struct scm_t_c_hook_entry *next;
+  scm_t_c_hook_function func;
   void *data;
-} scm_c_hook_entry_t;
+} scm_t_c_hook_entry;
 
-typedef struct scm_c_hook_t {
-  scm_c_hook_entry_t *first;
-  scm_c_hook_type_t type;
+typedef struct scm_t_c_hook {
+  scm_t_c_hook_entry *first;
+  scm_t_c_hookype_t type;
   void *data;
-} scm_c_hook_t;
+} scm_t_c_hook;
 
-extern void scm_c_hook_init (scm_c_hook_t *hook,
+extern void scm_c_hook_init (scm_t_c_hook *hook,
 			     void *hook_data,
-			     scm_c_hook_type_t type);
-extern void scm_c_hook_add (scm_c_hook_t *hook,
-			    scm_c_hook_function_t func,
+			     scm_t_c_hookype_t type);
+extern void scm_c_hook_add (scm_t_c_hook *hook,
+			    scm_t_c_hook_function func,
 			    void *func_data, 
 			    int appendp);
-extern void scm_c_hook_remove (scm_c_hook_t *hook,
-			       scm_c_hook_function_t func,
+extern void scm_c_hook_remove (scm_t_c_hook *hook,
+			       scm_t_c_hook_function func,
 			       void *func_data);
-extern void *scm_c_hook_run (scm_c_hook_t *hook, void *data);
+extern void *scm_c_hook_run (scm_t_c_hook *hook, void *data);
 
 /*
  * Scheme level hooks
  */
 
-extern scm_bits_t scm_tc16_hook;
+extern scm_t_bits scm_tc16_hook;
 
 #define SCM_HOOKP(x)			SCM_TYP16_PREDICATE (scm_tc16_hook, x)
 #define SCM_HOOK_ARITY(hook)		(SCM_CELL_WORD_0 (hook) >> 16)

@@ -47,13 +47,13 @@
 
 
 
-typedef void (*scm_guard_t) (void *);
-typedef SCM (*scm_inner_t) (void *);
+typedef void (*scm_t_guard) (void *);
+typedef SCM (*scm_t_inner) (void *);
 
 extern SCM scm_dynamic_wind (SCM thunk1, SCM thunk2, SCM thunk3);
-extern SCM scm_internal_dynamic_wind (scm_guard_t before,
-                                      scm_inner_t inner,
-                                      scm_guard_t after,
+extern SCM scm_internal_dynamic_wind (scm_t_guard before,
+                                      scm_t_inner inner,
+                                      scm_t_guard after,
                                       void *inner_data,
                                       void *guard_data);
 extern void scm_dowinds (SCM to, long delta);

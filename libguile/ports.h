@@ -59,11 +59,11 @@
 #define SCM_INITIAL_PUTBACK_BUF_SIZE 4
 
 /* values for the rw_active flag.  */
-typedef enum scm_port_rw_active_t {
+typedef enum scm_t_port_rw_active {
   SCM_PORT_NEITHER = 0,
   SCM_PORT_READ = 1,
   SCM_PORT_WRITE = 2
-} scm_port_rw_active_t;
+} scm_t_port_rw_active;
 
 /* C representation of a Scheme port.  */
 
@@ -75,7 +75,7 @@ typedef struct
 				 * Revealed ports do not get GC'd.
 				 */
   /* data for the underlying port implementation as a raw C value. */
-  scm_bits_t stream;
+  scm_t_bits stream;
 
   SCM file_name;		/* debugging support.  */
   long line_number;		/* debugging support.  */
@@ -120,7 +120,7 @@ typedef struct
 				   flushed before switching between
 				   reading and writing, seeking, etc.  */
 
-  scm_port_rw_active_t rw_active; /* for random access ports,
+  scm_t_port_rw_active rw_active; /* for random access ports,
                                      indicates which of the buffers
                                      is currently in use.  can be
                                      SCM_PORT_WRITE, SCM_PORT_READ,
@@ -130,10 +130,10 @@ typedef struct
   /* a buffer for un-read chars and strings.  */
   unsigned char *putback_buf;
   size_t putback_buf_size;        /* allocated size of putback_buf.  */
-} scm_port_t;
+} scm_t_port;
 
-extern scm_port_t **scm_port_table;
-extern long scm_port_table_size; /* Number of ports in scm_port_table.  */
+extern scm_t_port **scm_t_portable;
+extern long scm_t_portable_size; /* Number of ports in scm_t_portable.  */
 
 #define SCM_READ_BUFFER_EMPTY_P(c_port) (c_port->read_pos >= c_port->read_end)
 
@@ -167,10 +167,10 @@ extern long scm_port_table_size; /* Number of ports in scm_port_table.  */
 #define SCM_CLR_PORT_OPEN_FLAG(p) \
   SCM_SET_CELL_WORD_0 ((p), SCM_CELL_WORD_0 (p) & ~SCM_OPN)
 
-#define SCM_PTAB_ENTRY(x)         ((scm_port_t *) SCM_CELL_WORD_1 (x))
-#define SCM_SETPTAB_ENTRY(x,ent)  (SCM_SET_CELL_WORD_1 ((x), (scm_bits_t) (ent)))
+#define SCM_PTAB_ENTRY(x)         ((scm_t_port *) SCM_CELL_WORD_1 (x))
+#define SCM_SETPTAB_ENTRY(x,ent)  (SCM_SET_CELL_WORD_1 ((x), (scm_t_bits) (ent)))
 #define SCM_STREAM(x)             (SCM_PTAB_ENTRY(x)->stream)
-#define SCM_SETSTREAM(x,s)        (SCM_PTAB_ENTRY(x)->stream = (scm_bits_t) (s))
+#define SCM_SETSTREAM(x,s)        (SCM_PTAB_ENTRY(x)->stream = (scm_t_bits) (s))
 #define SCM_FILENAME(x)           (SCM_PTAB_ENTRY(x)->file_name)
 #define SCM_SET_FILENAME(x, n)    (SCM_PTAB_ENTRY(x)->file_name = (n))
 #define SCM_LINUM(x)              (SCM_PTAB_ENTRY(x)->line_number)
@@ -185,7 +185,7 @@ extern long scm_port_table_size; /* Number of ports in scm_port_table.  */
 
 
 /* port-type description.  */
-typedef struct scm_ptob_descriptor_t
+typedef struct scm_t_ptob_descriptor
 {
   char *name;
   SCM (*mark) (SCM);
@@ -204,12 +204,12 @@ typedef struct scm_ptob_descriptor_t
   off_t (*seek) (SCM port, off_t OFFSET, int WHENCE);
   void (*truncate) (SCM port, off_t length);
 
-} scm_ptob_descriptor_t;
+} scm_t_ptob_descriptor;
 
 #if (SCM_DEBUG_DEPRECATED == 0)
-# define scm_port scm_port_t
-# define scm_ptob_descriptor scm_ptob_descriptor_t
-# define scm_port_rw_active scm_port_rw_active_t
+# define scm_port scm_t_port
+# define scm_ptob_descriptor scm_t_ptob_descriptor
+# define scm_port_rw_active scm_t_port_rw_active
 #endif
 
 #define SCM_TC2PTOBNUM(x) (0x0ff & ((x) >> 8))
@@ -219,14 +219,14 @@ typedef struct scm_ptob_descriptor_t
 
 
 
-extern scm_ptob_descriptor_t *scm_ptobs;
+extern scm_t_ptob_descriptor *scm_ptobs;
 extern long scm_numptob;
-extern long scm_port_table_room;
+extern long scm_t_portable_room;
 
 
 
 extern SCM scm_markstream (SCM ptr);
-extern scm_bits_t scm_make_port_type (char *name,
+extern scm_t_bits scm_make_port_type (char *name,
 				      int (*fill_input) (SCM port),
 				      void (*write) (SCM port, 
 						     const void *data,
@@ -263,12 +263,12 @@ extern SCM scm_current_load_port (void);
 extern SCM scm_set_current_input_port (SCM port);
 extern SCM scm_set_current_output_port (SCM port);
 extern SCM scm_set_current_error_port (SCM port);
-extern scm_port_t * scm_add_to_port_table (SCM port);
+extern scm_t_port * scm_add_to_port_table (SCM port);
 extern void scm_remove_from_port_table (SCM port);
 extern void scm_grow_port_cbuf (SCM port, size_t requested);
 extern SCM scm_pt_size (void);
 extern SCM scm_pt_member (SCM member);
-extern void scm_port_non_buffer (scm_port_t *pt);
+extern void scm_port_non_buffer (scm_t_port *pt);
 extern int scm_revealed_count (SCM port);
 extern SCM scm_port_revealed (SCM port);
 extern SCM scm_set_port_revealed_x (SCM port, SCM rcount);

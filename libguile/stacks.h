@@ -55,33 +55,33 @@
 /* {Frames and stacks}
  */
 
-typedef struct scm_info_frame_t {
+typedef struct scm_t_info_frame {
   /* SCM flags; */
-  scm_bits_t flags;
+  scm_t_bits flags;
   SCM source;
   SCM proc;
   SCM args;
-} scm_info_frame_t;
-#define SCM_FRAME_N_SLOTS (sizeof (scm_info_frame_t) / sizeof (SCM))
+} scm_t_info_frame;
+#define SCM_FRAME_N_SLOTS (sizeof (scm_t_info_frame) / sizeof (SCM))
 
-#define SCM_STACK(obj) ((scm_stack_t *) SCM_STRUCT_DATA (obj))
+#define SCM_STACK(obj) ((scm_t_stack *) SCM_STRUCT_DATA (obj))
 #define SCM_STACK_LAYOUT "pwuourpW"
-typedef struct scm_stack_t {
+typedef struct scm_t_stack {
   SCM id;			/* Stack id */
-  scm_info_frame_t *frames;	/* Info frames */
+  scm_t_info_frame *frames;	/* Info frames */
   unsigned long length;		/* Stack length */
   unsigned long tail_length;
-  scm_info_frame_t tail[1];
-} scm_stack_t;
+  scm_t_info_frame tail[1];
+} scm_t_stack;
 
 #if (SCM_DEBUG_DEPRECATED == 0)
-# define scm_info_frame scm_info_frame_t
-# define scm_stack scm_stack_t
+# define scm_info_frame scm_t_info_frame
+# define scm_stack scm_t_stack
 #endif
 
-extern SCM scm_stack_type;
+extern SCM scm_t_stackype;
 
-#define SCM_STACKP(obj) (SCM_STRUCTP (obj) && SCM_EQ_P (SCM_STRUCT_VTABLE (obj), scm_stack_type))
+#define SCM_STACKP(obj) (SCM_STRUCTP (obj) && SCM_EQ_P (SCM_STRUCT_VTABLE (obj), scm_t_stackype))
 #define SCM_STACK_LENGTH(stack) (SCM_STACK (stack) -> length)
 
 #define SCM_FRAMEP(obj) (SCM_CONSP (obj) \

@@ -60,7 +60,7 @@
 
 
 
-extern scm_bits_t scm_tc16_strport;
+extern scm_t_bits scm_tc16_strport;
 
 
 

@@ -55,8 +55,8 @@
 
 typedef struct scm_cell
 {
-  scm_bits_t word_0;
-  scm_bits_t word_1;
+  scm_t_bits word_0;
+  scm_t_bits word_1;
 } scm_cell;
 
 
@@ -75,10 +75,10 @@ typedef scm_cell * SCM_CELLPTR;
  */
 #ifdef _UNICOS
 #  define SCM2PTR(x) ((SCM_CELLPTR) (SCM_UNPACK (x) >> 3))
-#  define PTR2SCM(x) (SCM_PACK (((scm_bits_t) (x)) << 3))
+#  define PTR2SCM(x) (SCM_PACK (((scm_t_bits) (x)) << 3))
 #else
 #  define SCM2PTR(x) ((SCM_CELLPTR) (SCM_UNPACK (x)))
-#  define PTR2SCM(x) (SCM_PACK ((scm_bits_t) (x)))
+#  define PTR2SCM(x) (SCM_PACK ((scm_t_bits) (x)))
 #endif /* def _UNICOS */
 
 #define SCM_GC_CARD_N_HEADER_CELLS 1
@@ -93,13 +93,13 @@ typedef scm_cell * SCM_CELLPTR;
 #define SCM_GC_IN_CARD_HEADERP(x) \
     SCM_PTR_LT ((scm_cell *) (x), SCM_GC_CELL_CARD (x) + SCM_GC_CARD_N_HEADER_CELLS)
 
-#define SCM_GC_CARD_BVEC(card)  ((scm_c_bvec_limb_t *) ((card)->word_0))
+#define SCM_GC_CARD_BVEC(card)  ((scm_t_c_bvec_limb *) ((card)->word_0))
 #define SCM_GC_SET_CARD_BVEC(card, bvec) \
-    ((card)->word_0 = (scm_bits_t) (bvec))
+    ((card)->word_0 = (scm_t_bits) (bvec))
 
 #define SCM_GC_GET_CARD_FLAGS(card) ((long) ((card)->word_1))
 #define SCM_GC_SET_CARD_FLAGS(card, flags) \
-    ((card)->word_1 = (scm_bits_t) (flags))
+    ((card)->word_1 = (scm_t_bits) (flags))
 #define SCM_GC_CLR_CARD_FLAGS(card) (SCM_GC_SET_CARD_FLAGS (card, 0L))
 
 #define SCM_GC_GET_CARD_FLAG(card, shift) (SCM_GC_GET_CARD_FLAGS (card) & (1L << (shift)))
@@ -132,7 +132,7 @@ typedef scm_cell * SCM_CELLPTR;
 
 /* low level bit banging aids */
 
-typedef unsigned long scm_c_bvec_limb_t;
+typedef unsigned long scm_t_c_bvec_limb;
 
 #if (SIZEOF_LONG == 8)
 #       define SCM_C_BVEC_LIMB_BITS    64
@@ -153,7 +153,7 @@ typedef unsigned long scm_c_bvec_limb_t;
 #define SCM_C_BVEC_CLR(bvec, pos) (bvec[SCM_C_BVEC_OFFSET (pos)] &= ~(1L << (pos & SCM_C_BVEC_POS_MASK)))
 
 #define SCM_C_BVEC_BITS2BYTES(bits) \
-    (sizeof (scm_c_bvec_limb_t) * ((((bits) & SCM_C_BVEC_POS_MASK) ? 1L : 0L) + SCM_C_BVEC_OFFSET (bits)))
+    (sizeof (scm_t_c_bvec_limb) * ((((bits) & SCM_C_BVEC_POS_MASK) ? 1L : 0L) + SCM_C_BVEC_OFFSET (bits)))
 
 #define SCM_C_BVEC_SET_BYTES(bvec, bytes)   (memset (bvec, 0xff, bytes))
 #define SCM_C_BVEC_SET_ALL_BITS(bvec, bits) SCM_C_BVEC_SET_BYTES (bvec, SCM_C_BVEC_BITS2BYTES (bits))
@@ -177,28 +177,28 @@ typedef unsigned long scm_c_bvec_limb_t;
 #endif
 
 #define SCM_CELL_WORD(x, n) \
-  SCM_VALIDATE_CELL ((x), ((const scm_bits_t *) SCM2PTR (x)) [n])
+  SCM_VALIDATE_CELL ((x), ((const scm_t_bits *) SCM2PTR (x)) [n])
 #define SCM_CELL_WORD_0(x) SCM_CELL_WORD (x, 0)
 #define SCM_CELL_WORD_1(x) SCM_CELL_WORD (x, 1)
 #define SCM_CELL_WORD_2(x) SCM_CELL_WORD (x, 2)
 #define SCM_CELL_WORD_3(x) SCM_CELL_WORD (x, 3)
 
 #define SCM_CELL_OBJECT(x, n) \
-  SCM_VALIDATE_CELL ((x), SCM_PACK (((const scm_bits_t *) SCM2PTR (x)) [n]))
+  SCM_VALIDATE_CELL ((x), SCM_PACK (((const scm_t_bits *) SCM2PTR (x)) [n]))
 #define SCM_CELL_OBJECT_0(x) SCM_CELL_OBJECT (x, 0)
 #define SCM_CELL_OBJECT_1(x) SCM_CELL_OBJECT (x, 1)
 #define SCM_CELL_OBJECT_2(x) SCM_CELL_OBJECT (x, 2)
 #define SCM_CELL_OBJECT_3(x) SCM_CELL_OBJECT (x, 3)
 
 #define SCM_SET_CELL_WORD(x, n, v) \
-  SCM_VALIDATE_CELL ((x), ((scm_bits_t *) SCM2PTR (x)) [n] = (scm_bits_t) (v))
+  SCM_VALIDATE_CELL ((x), ((scm_t_bits *) SCM2PTR (x)) [n] = (scm_t_bits) (v))
 #define SCM_SET_CELL_WORD_0(x, v) SCM_SET_CELL_WORD (x, 0, v)
 #define SCM_SET_CELL_WORD_1(x, v) SCM_SET_CELL_WORD (x, 1, v)
 #define SCM_SET_CELL_WORD_2(x, v) SCM_SET_CELL_WORD (x, 2, v)
 #define SCM_SET_CELL_WORD_3(x, v) SCM_SET_CELL_WORD (x, 3, v)
 
 #define SCM_SET_CELL_OBJECT(x, n, v) \
-  SCM_VALIDATE_CELL ((x), ((scm_bits_t *) SCM2PTR (x)) [n] = SCM_UNPACK (v))
+  SCM_VALIDATE_CELL ((x), ((scm_t_bits *) SCM2PTR (x)) [n] = SCM_UNPACK (v))
 #define SCM_SET_CELL_OBJECT_0(x, v) SCM_SET_CELL_OBJECT (x, 0, v)
 #define SCM_SET_CELL_OBJECT_1(x, v) SCM_SET_CELL_OBJECT (x, 1, v)
 #define SCM_SET_CELL_OBJECT_2(x, v) SCM_SET_CELL_OBJECT (x, 2, v)
@@ -215,10 +215,10 @@ typedef unsigned long scm_c_bvec_limb_t;
  * result in errors when in debug mode.  */
 
 #define SCM_GC_CELL_TYPE(x) \
-  (((const scm_bits_t *) SCM2PTR (x)) [0])
+  (((const scm_t_bits *) SCM2PTR (x)) [0])
 
 
-#define SCM_CELL_WORD_LOC(x, n) ((scm_bits_t *) & SCM_CELL_WORD (x, n))
+#define SCM_CELL_WORD_LOC(x, n) ((scm_t_bits *) & SCM_CELL_WORD (x, n))
 #define SCM_CARLOC(x) ((SCM *) SCM_CELL_WORD_LOC ((x), 0))
 #define SCM_CDRLOC(x) ((SCM *) SCM_CELL_WORD_LOC ((x), 1))
 
@@ -239,16 +239,16 @@ typedef unsigned long scm_c_bvec_limb_t;
  */
 
 #define SCM_FREE_CELL_P(x) \
-  (!SCM_IMP (x) && (* (const scm_bits_t *) SCM2PTR (x) == scm_tc_free_cell))
+  (!SCM_IMP (x) && (* (const scm_t_bits *) SCM2PTR (x) == scm_tc_free_cell))
 #define SCM_FREE_CELL_CDR(x) \
-  (SCM_PACK (((const scm_bits_t *) SCM2PTR (x)) [1]))
+  (SCM_PACK (((const scm_t_bits *) SCM2PTR (x)) [1]))
 #define SCM_SET_FREE_CELL_CDR(x, v) \
-  (((scm_bits_t *) SCM2PTR (x)) [1] = SCM_UNPACK (v))
+  (((scm_t_bits *) SCM2PTR (x)) [1] = SCM_UNPACK (v))
 
 
 #if (SCM_DEBUG_CELL_ACCESSES == 1)
 #  define SCM_GC_SET_ALLOCATED(x) \
-     (((scm_bits_t *) SCM2PTR (x)) [0] = scm_tc16_allocated)
+     (((scm_t_bits *) SCM2PTR (x)) [0] = scm_tc16_allocated)
 #else
 #  define SCM_GC_SET_ALLOCATED(x)
 #endif
@@ -296,11 +296,11 @@ typedef unsigned long scm_c_bvec_limb_t;
 #define SCM_NMARKEDP(x) (!SCM_MARKEDP (x))
 
 #if (SCM_DEBUG_CELL_ACCESSES == 1)
-extern scm_bits_t scm_tc16_allocated;
+extern scm_t_bits scm_tc16_allocated;
 extern unsigned int scm_debug_cell_accesses_p;
 #endif
 
-extern struct scm_heap_seg_data_t *scm_heap_table;
+extern struct scm_t_heap_seg_data *scm_heap_table;
 extern size_t scm_n_heap_segs;
 extern int scm_block_gc;
 extern int scm_gc_heap_lock;
@@ -316,9 +316,9 @@ extern size_t scm_default_max_segment_size;
 extern size_t scm_max_segment_size;
 extern SCM_CELLPTR scm_heap_org;
 extern SCM scm_freelist;
-extern struct scm_freelist_t scm_master_freelist;
+extern struct scm_t_freelist scm_master_freelist;
 extern SCM scm_freelist2;
-extern struct scm_freelist_t scm_master_freelist2;
+extern struct scm_t_freelist scm_master_freelist2;
 extern unsigned long scm_gc_cells_collected;
 extern unsigned long scm_gc_yield;
 extern unsigned long scm_gc_malloc_collected;
@@ -329,11 +329,11 @@ extern unsigned long scm_mtrigger;
 
 extern SCM scm_after_gc_hook;
 
-extern scm_c_hook_t scm_before_gc_c_hook;
-extern scm_c_hook_t scm_before_mark_c_hook;
-extern scm_c_hook_t scm_before_sweep_c_hook;
-extern scm_c_hook_t scm_after_sweep_c_hook;
-extern scm_c_hook_t scm_after_gc_c_hook;
+extern scm_t_c_hook scm_before_gc_c_hook;
+extern scm_t_c_hook scm_before_mark_c_hook;
+extern scm_t_c_hook scm_before_sweep_c_hook;
+extern scm_t_c_hook scm_after_sweep_c_hook;
+extern scm_t_c_hook scm_after_gc_c_hook;
 
 #if defined (GUILE_DEBUG) || defined (GUILE_DEBUG_FREELIST)
 extern SCM scm_map_free_list (void);
@@ -355,10 +355,10 @@ extern SCM scm_object_address (SCM obj);
 extern SCM scm_unhash_name (SCM name);
 extern SCM scm_gc_stats (void);
 extern SCM scm_gc (void);
-extern void scm_gc_for_alloc (struct scm_freelist_t *freelist);
-extern SCM scm_gc_for_newcell (struct scm_freelist_t *master, SCM *freelist);
+extern void scm_gc_for_alloc (struct scm_t_freelist *freelist);
+extern SCM scm_gc_for_newcell (struct scm_t_freelist *master, SCM *freelist);
 #if 0
-extern void scm_alloc_cluster (struct scm_freelist_t *master);
+extern void scm_alloc_cluster (struct scm_t_freelist *master);
 #endif
 extern void scm_igc (const char *what);
 extern void scm_gc_mark (SCM p);

@@ -285,7 +285,7 @@ scm_c_make_vector (unsigned long int k, SCM fill)
 #define FUNC_NAME s_scm_make_vector
 {
   SCM v;
-  scm_bits_t *base;
+  scm_t_bits *base;
 
   if (k > 0) 
     {
@@ -293,7 +293,7 @@ scm_c_make_vector (unsigned long int k, SCM fill)
 
       SCM_ASSERT_RANGE (1, scm_ulong2num (k), k <= SCM_VECTOR_MAX_LENGTH);
 
-      base = scm_must_malloc (k * sizeof (scm_bits_t), FUNC_NAME);
+      base = scm_must_malloc (k * sizeof (scm_t_bits), FUNC_NAME);
       for (j = 0; j != k; ++j)
 	base[j] = SCM_UNPACK (fill);
     }

@@ -55,9 +55,9 @@
 
 
 /* smob tags for the thread datatypes */
-extern scm_bits_t scm_tc16_thread;
-extern scm_bits_t scm_tc16_mutex;
-extern scm_bits_t scm_tc16_condvar;
+extern scm_t_bits scm_tc16_thread;
+extern scm_t_bits scm_tc16_mutex;
+extern scm_t_bits scm_tc16_condvar;
 
 #define SCM_THREADP(x)      SCM_TYP16_PREDICATE (scm_tc16_thread, x)
 #define SCM_THREAD_DATA(x)  ((void *) SCM_CELL_WORD_1 (x))
@@ -79,8 +79,8 @@ SCM scm_threads_lock_mutex (SCM);
 SCM scm_threads_unlock_mutex (SCM);
 SCM scm_threads_monitor (void);
 
-SCM scm_spawn_thread (scm_catch_body_t body, void *body_data,
-		      scm_catch_handler_t handler, void *handler_data);
+SCM scm_spawn_thread (scm_t_catch_body body, void *body_data,
+		      scm_t_catch_handler handler, void *handler_data);
 
 /* These are versions of the ordinary sleep and usleep functions,
    that play nicely with the thread system.  */

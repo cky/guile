@@ -70,11 +70,11 @@ eval_str_wrapper (void *data)
 }
 
 SCM
-gh_eval_str_with_catch (const char *scheme_code, scm_catch_handler_t handler)
+gh_eval_str_with_catch (const char *scheme_code, scm_t_catch_handler handler)
 {
   /* FIXME: not there yet */
-  return gh_catch (SCM_BOOL_T, (scm_catch_body_t) eval_str_wrapper, (void *) scheme_code,
-		   (scm_catch_handler_t) handler, (void *) scheme_code);
+  return gh_catch (SCM_BOOL_T, (scm_t_catch_body) eval_str_wrapper, (void *) scheme_code,
+		   (scm_t_catch_handler) handler, (void *) scheme_code);
 }
 
 SCM
@@ -87,9 +87,9 @@ SCM
 gh_eval_str_with_stack_saving_handler (const char *scheme_code)
 {
   return scm_internal_stack_catch (SCM_BOOL_T,
-				   (scm_catch_body_t) eval_str_wrapper,
+				   (scm_t_catch_body) eval_str_wrapper,
 				   (void *) scheme_code,
-				   (scm_catch_handler_t)
+				   (scm_t_catch_handler)
 				   gh_standard_handler,
 				   (void *) scheme_code);
 }
@@ -104,11 +104,11 @@ eval_file_wrapper (void *data)
 }
 
 SCM
-gh_eval_file_with_catch (const char *scheme_code, scm_catch_handler_t handler)
+gh_eval_file_with_catch (const char *scheme_code, scm_t_catch_handler handler)
 {
   /* FIXME: not there yet */
-  return gh_catch (SCM_BOOL_T, (scm_catch_body_t) eval_file_wrapper,
-		   (void *) scheme_code, (scm_catch_handler_t) handler,
+  return gh_catch (SCM_BOOL_T, (scm_t_catch_body) eval_file_wrapper,
+		   (void *) scheme_code, (scm_t_catch_handler) handler,
 		   (void *) scheme_code);
 }
 

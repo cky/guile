@@ -109,7 +109,7 @@ static unsigned int scm_desired_switch_rate = 0;
 int scm_asyncs_pending_p = 0;
 #endif
 
-static scm_bits_t tc16_async;
+static scm_t_bits tc16_async;
 
 
 

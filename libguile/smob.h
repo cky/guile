@@ -143,14 +143,14 @@ extern int scm_smob_print (SCM exp, SCM port, scm_print_state *pstate);
  * values using `scm_set_smob_xxx'.
  */
 
-extern scm_bits_t scm_make_smob_type (char *name, size_t size);
+extern scm_t_bits scm_make_smob_type (char *name, size_t size);
 
-extern void scm_set_smob_mark (scm_bits_t tc, SCM (*mark) (SCM));
-extern void scm_set_smob_free (scm_bits_t tc, size_t (*free) (SCM));
-extern void scm_set_smob_print (scm_bits_t tc,
+extern void scm_set_smob_mark (scm_t_bits tc, SCM (*mark) (SCM));
+extern void scm_set_smob_free (scm_t_bits tc, size_t (*free) (SCM));
+extern void scm_set_smob_print (scm_t_bits tc,
 				int (*print) (SCM, SCM, scm_print_state*));
-extern void scm_set_smob_equalp (scm_bits_t tc, SCM (*equalp) (SCM, SCM));
-extern void scm_set_smob_apply (scm_bits_t tc,
+extern void scm_set_smob_equalp (scm_t_bits tc, SCM (*equalp) (SCM, SCM));
+extern void scm_set_smob_apply (scm_t_bits tc,
 				SCM (*apply) (),
 				unsigned int req,
 				unsigned int opt,
@@ -158,7 +158,7 @@ extern void scm_set_smob_apply (scm_bits_t tc,
 
 /* Function for creating smobs */
 
-extern SCM scm_make_smob (scm_bits_t tc);
+extern SCM scm_make_smob (scm_t_bits tc);
 extern void scm_smob_prehistory (void);
 
 

@@ -124,7 +124,7 @@ SCM_DEFINE (scm_read_delimited_x, "%read-delimited!", 3, 3, 0,
 static unsigned char *
 scm_do_read_line (SCM port, size_t *len_p)
 {
-  scm_port_t *pt = SCM_PTAB_ENTRY (port);
+  scm_t_port *pt = SCM_PTAB_ENTRY (port);
   unsigned char *end;
 
   /* I thought reading lines was simple.  Mercy me.  */
@@ -223,7 +223,7 @@ SCM_DEFINE (scm_read_line, "%read-line", 0, 1, 0,
 	    "@code{(#<eof> . #<eof>)}.")
 #define FUNC_NAME s_scm_read_line
 {
-  scm_port_t *pt;
+  scm_t_port *pt;
   char *s;
   size_t slen;
   SCM line, term;

@@ -121,7 +121,7 @@ SCM_SYMBOL (scm_no_sym, "no");
 static SCM protected_objects;
 
 SCM
-scm_options (SCM arg, scm_option_t options[], int n, const char *s)
+scm_options (SCM arg, scm_t_option options[], int n, const char *s)
 {
   int i, docp = (!SCM_UNBNDP (arg) && !SCM_NULLP (arg) && !SCM_CONSP (arg));
   /* Let `arg' GC protect the arguments */
@@ -212,7 +212,7 @@ scm_options (SCM arg, scm_option_t options[], int n, const char *s)
 
 
 void
-scm_init_opts (SCM (*func) (SCM), scm_option_t options[], int n)
+scm_init_opts (SCM (*func) (SCM), scm_t_option options[], int n)
 {
   int i;
 

@@ -55,7 +55,7 @@
 #define SCM_MACRO_TYPE(m) (SCM_CELL_WORD_0 (m) >> 16)
 #define SCM_MACRO_CODE(m) SCM_CELL_OBJECT_1 (m)
 
-extern scm_bits_t scm_tc16_macro;
+extern scm_t_bits scm_tc16_macro;
 
 extern SCM scm_makacro (SCM code);
 extern SCM scm_makmacro (SCM code);

@@ -83,9 +83,9 @@ SCM_GLOBAL_SYMBOL (scm_sym_line, "line");
 SCM_GLOBAL_SYMBOL (scm_sym_column, "column");
 SCM_GLOBAL_SYMBOL (scm_sym_breakpoint, "breakpoint");
 
-scm_bits_t scm_tc16_srcprops;
-static scm_srcprops_chunk_t *srcprops_chunklist = 0;
-static scm_srcprops_t *srcprops_freelist = 0;
+scm_t_bits scm_tc16_srcprops;
+static scm_t_srcprops_chunk *srcprops_chunklist = 0;
+static scm_t_srcprops *srcprops_freelist = 0;
 
 
 static SCM
@@ -100,8 +100,8 @@ srcprops_mark (SCM obj)
 static size_t
 srcprops_free (SCM obj)
 {
-  *((scm_srcprops_t **) SCM_CELL_WORD_1 (obj)) = srcprops_freelist;
-  srcprops_freelist = (scm_srcprops_t *) SCM_CELL_WORD_1 (obj);
+  *((scm_t_srcprops **) SCM_CELL_WORD_1 (obj)) = srcprops_freelist;
+  srcprops_freelist = (scm_t_srcprops *) SCM_CELL_WORD_1 (obj);
   return 0; /* srcprops_chunks are not freed until leaving guile */
 }
 
@@ -112,7 +112,7 @@ srcprops_print (SCM obj, SCM port, scm_print_state *pstate)
   int writingp = SCM_WRITINGP (pstate);
   scm_puts ("#<srcprops ", port);
   SCM_SET_WRITINGP (pstate, 1);
-  scm_iprin1 (scm_srcprops_to_plist (obj), port, pstate);
+  scm_iprin1 (scm_t_srcpropso_plist (obj), port, pstate);
   SCM_SET_WRITINGP (pstate, writingp);
   scm_putc ('>', port);
   return 1;
@@ -122,17 +122,17 @@ srcprops_print (SCM obj, SCM port, scm_print_state *pstate)
 SCM
 scm_make_srcprops (long line, int col, SCM filename, SCM copy, SCM plist)
 {
-  register scm_srcprops_t *ptr;
+  register scm_t_srcprops *ptr;
   SCM_DEFER_INTS;
   if ((ptr = srcprops_freelist) != NULL)
-    srcprops_freelist = *(scm_srcprops_t **)ptr;
+    srcprops_freelist = *(scm_t_srcprops **)ptr;
   else
     {
       size_t i;
-      scm_srcprops_chunk_t *mem;
-      size_t n = sizeof (scm_srcprops_chunk_t)
-	            + sizeof (scm_srcprops_t) * (SRCPROPS_CHUNKSIZE - 1);
-      SCM_SYSCALL (mem = (scm_srcprops_chunk_t *) malloc (n));
+      scm_t_srcprops_chunk *mem;
+      size_t n = sizeof (scm_t_srcprops_chunk)
+	            + sizeof (scm_t_srcprops) * (SRCPROPS_CHUNKSIZE - 1);
+      SCM_SYSCALL (mem = (scm_t_srcprops_chunk *) malloc (n));
       if (mem == NULL)
 	scm_memory_error ("srcprops");
       scm_mallocated += n;
@@ -140,9 +140,9 @@ scm_make_srcprops (long line, int col, SCM filename, SCM copy, SCM plist)
       srcprops_chunklist = mem;
       ptr = &mem->srcprops[0];
       for (i = 1; i < SRCPROPS_CHUNKSIZE - 1; ++i)
-	*(scm_srcprops_t **)&ptr[i] = &ptr[i + 1];
-      *(scm_srcprops_t **)&ptr[SRCPROPS_CHUNKSIZE - 1] = 0;
-      srcprops_freelist = (scm_srcprops_t *) &ptr[1];
+	*(scm_t_srcprops **)&ptr[i] = &ptr[i + 1];
+      *(scm_t_srcprops **)&ptr[SRCPROPS_CHUNKSIZE - 1] = 0;
+      srcprops_freelist = (scm_t_srcprops *) &ptr[1];
     }
   ptr->pos = SRCPROPMAKPOS (line, col);
   ptr->fname = filename;
@@ -154,7 +154,7 @@ scm_make_srcprops (long line, int col, SCM filename, SCM copy, SCM plist)
 
 
 SCM
-scm_srcprops_to_plist (SCM obj)
+scm_t_srcpropso_plist (SCM obj)
 {
   SCM plist = SRCPROPPLIST (obj);
   if (!SCM_UNBNDP (SRCPROPCOPY (obj)))
@@ -182,7 +182,7 @@ SCM_DEFINE (scm_source_properties, "source-properties", 1, 0, 0,
 #endif
   p = scm_hashq_ref (scm_source_whash, obj, SCM_BOOL_F);
   if (SRCPROPSP (p))
-    return scm_srcprops_to_plist (p);
+    return scm_t_srcpropso_plist (p);
   return SCM_EOL;
 }
 #undef FUNC_NAME
@@ -344,13 +344,13 @@ scm_init_srcprop ()
 void
 scm_finish_srcprop ()
 {
-  register scm_srcprops_chunk_t *ptr = srcprops_chunklist, *next;
+  register scm_t_srcprops_chunk *ptr = srcprops_chunklist, *next;
   while (ptr)
     {
       next = ptr->next;
       free ((char *) ptr);
-      scm_mallocated -= sizeof (scm_srcprops_chunk_t)
-	                + sizeof (scm_srcprops_t) * (SRCPROPS_CHUNKSIZE - 1);
+      scm_mallocated -= sizeof (scm_t_srcprops_chunk)
+	                + sizeof (scm_t_srcprops) * (SRCPROPS_CHUNKSIZE - 1);
       ptr = next;
     }
 }

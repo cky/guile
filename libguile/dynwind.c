@@ -140,11 +140,11 @@ SCM_DEFINE (scm_dynamic_wind, "dynamic-wind", 3, 0, 0,
  */
 
 #define SCM_GUARDSP(obj) SCM_TYP16_PREDICATE (tc16_guards, obj)
-#define SCM_BEFORE_GUARD(obj) ((scm_guard_t) SCM_CELL_WORD (obj, 1))
-#define SCM_AFTER_GUARD(obj) ((scm_guard_t) SCM_CELL_WORD (obj, 2))
+#define SCM_BEFORE_GUARD(obj) ((scm_t_guard) SCM_CELL_WORD (obj, 1))
+#define SCM_AFTER_GUARD(obj) ((scm_t_guard) SCM_CELL_WORD (obj, 2))
 #define SCM_GUARD_DATA(obj) ((void *) SCM_CELL_WORD (obj, 3))
 
-static scm_bits_t tc16_guards;
+static scm_t_bits tc16_guards;
 
 static int
 guards_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
@@ -156,16 +156,16 @@ guards_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
 }
 
 SCM
-scm_internal_dynamic_wind (scm_guard_t before,
-			   scm_inner_t inner,
-			   scm_guard_t after,
+scm_internal_dynamic_wind (scm_t_guard before,
+			   scm_t_inner inner,
+			   scm_t_guard after,
 			   void *inner_data,
 			   void *guard_data)
 {
   SCM guards, ans;
   before (guard_data);
-  SCM_NEWSMOB3 (guards, tc16_guards, (scm_bits_t) before, 
-		(scm_bits_t) after, (scm_bits_t) guard_data);
+  SCM_NEWSMOB3 (guards, tc16_guards, (scm_t_bits) before, 
+		(scm_t_bits) after, (scm_t_bits) guard_data);
   scm_dynwinds = scm_acons (guards, SCM_BOOL_F, scm_dynwinds);
   ans = inner (inner_data);
   scm_dynwinds = SCM_CDR (scm_dynwinds);

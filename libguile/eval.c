@@ -1044,7 +1044,7 @@ scm_m_cont (SCM xorig, SCM env SCM_UNUSED)
 /* Multi-language support */
 
 SCM_GLOBAL_SYMBOL (scm_lisp_nil, "nil");
-SCM_GLOBAL_SYMBOL (scm_lisp_t, "t");
+SCM_GLOBAL_SYMBOL (scm_t_lisp, "t");
 
 SCM_SYNTAX (s_nil_cond, "nil-cond", scm_makmmacro, scm_m_nil_cond);
 
@@ -1532,7 +1532,7 @@ scm_eval_args (SCM l, SCM env, SCM proc)
 	}
       else if (SCM_TYP3 (l) == scm_tc3_cons_gloc)
 	{
-	  scm_bits_t vcell =
+	  scm_t_bits vcell =
 	    SCM_STRUCT_VTABLE_DATA (l) [scm_vtable_index_vcell];
 	  if (vcell == 0)
 	    res = SCM_CAR (l); /* struct planted in code */
@@ -1659,7 +1659,7 @@ SCM (*scm_ceval_ptr) (SCM x, SCM env);
  */
 
 #ifndef USE_THREADS
-scm_debug_frame_t *scm_last_debug_frame;
+scm_t_debug_frame *scm_last_debug_frame;
 #endif
 
 /* scm_debug_eframe_size is the number of slots available for pseudo
@@ -1672,11 +1672,11 @@ int scm_debug_mode, scm_check_entry_p, scm_check_apply_p, scm_check_exit_p;
 
 long scm_eval_stack;
 
-scm_option_t scm_eval_opts[] = {
+scm_t_option scm_eval_opts[] = {
   { SCM_OPTION_INTEGER, "stack", 22000, "Size of thread stacks (in machine words)." }
 };
 
-scm_option_t scm_debug_opts[] = {
+scm_t_option scm_debug_opts[] = {
   { SCM_OPTION_BOOLEAN, "cheap", 1,
     "*Flyweight representation of the stack at traps." },
   { SCM_OPTION_BOOLEAN, "breakpoints", 0, "*Check for breakpoints." },
@@ -1698,7 +1698,7 @@ scm_option_t scm_debug_opts[] = {
   { SCM_OPTION_SCM, "show-file-name", SCM_BOOL_T, "Show file names and line numbers in backtraces when not `#f'.  A value of `base' displays only base names, while `#t' displays full names."}
 };
 
-scm_option_t scm_evaluator_trap_table[] = {
+scm_t_option scm_evaluator_trap_table[] = {
   { SCM_OPTION_BOOLEAN, "traps", 0, "Enable evaluator traps." },
   { SCM_OPTION_BOOLEAN, "enter-frame", 0, "Trap when eval enters new frame." },
   { SCM_OPTION_BOOLEAN, "apply-frame", 0, "Trap when entering apply." },
@@ -1757,7 +1757,7 @@ scm_deval_args (SCM l, SCM env, SCM proc, SCM *lloc)
 	}
       else if (SCM_TYP3 (l) == scm_tc3_cons_gloc)
 	{
-	  scm_bits_t vcell =
+	  scm_t_bits vcell =
 	    SCM_STRUCT_VTABLE_DATA (l) [scm_vtable_index_vcell];
 	  if (vcell == 0)
 	    res = SCM_CAR (l); /* struct planted in code */
@@ -1832,17 +1832,17 @@ SCM_CEVAL (SCM x, SCM env)
    } t;
   SCM proc, arg2, orig_sym;
 #ifdef DEVAL
-  scm_debug_frame_t debug;
-  scm_debug_info_t *debug_info_end;
+  scm_t_debug_frame debug;
+  scm_t_debug_info *debug_info_end;
   debug.prev = scm_last_debug_frame;
   debug.status = scm_debug_eframe_size;
   /*
-   * The debug.vect contains twice as much scm_debug_info_t frames as the
+   * The debug.vect contains twice as much scm_t_debug_info frames as the
    * user has specified with (debug-set! frames <n>).
    *
    * Even frames are eval frames, odd frames are apply frames.
    */
-  debug.vect = (scm_debug_info_t *) alloca (scm_debug_eframe_size
+  debug.vect = (scm_t_debug_info *) alloca (scm_debug_eframe_size
 					  * sizeof (debug.vect[0]));
   debug.info = debug.vect;
   debug_info_end = debug.vect + scm_debug_eframe_size;
@@ -2419,7 +2419,7 @@ dispatch:
 	    
 	case (SCM_ISYMNUM (SCM_IM_T_IFY)):
 	  x = SCM_CDR (x);
-	  RETURN (SCM_NFALSEP (EVALCAR (x, env)) ? scm_lisp_t : scm_lisp_nil)
+	  RETURN (SCM_NFALSEP (EVALCAR (x, env)) ? scm_t_lisp : scm_lisp_nil)
 	    
 	case (SCM_ISYMNUM (SCM_IM_0_COND)):
 	  proc = SCM_CDR (x);
@@ -2554,7 +2554,7 @@ dispatch:
 
 
     case scm_tcs_cons_gloc: {
-      scm_bits_t vcell = SCM_STRUCT_VTABLE_DATA (x) [scm_vtable_index_vcell];
+      scm_t_bits vcell = SCM_STRUCT_VTABLE_DATA (x) [scm_vtable_index_vcell];
       if (vcell == 0) {
 	/* This is a struct implanted in the code, not a gloc. */
 	RETURN (x);
@@ -2766,7 +2766,7 @@ evapply:
     }
   else if (SCM_TYP3 (x) == scm_tc3_cons_gloc)
     {
-      scm_bits_t vcell = SCM_STRUCT_VTABLE_DATA (x) [scm_vtable_index_vcell];
+      scm_t_bits vcell = SCM_STRUCT_VTABLE_DATA (x) [scm_vtable_index_vcell];
       if (vcell == 0)
 	t.arg1 = SCM_CAR (x); /* struct planted in code */
       else
@@ -2916,7 +2916,7 @@ evapply:
     }
   else if (SCM_TYP3 (x) == scm_tc3_cons_gloc)
     {
-      scm_bits_t vcell = SCM_STRUCT_VTABLE_DATA (x) [scm_vtable_index_vcell];
+      scm_t_bits vcell = SCM_STRUCT_VTABLE_DATA (x) [scm_vtable_index_vcell];
       if (vcell == 0)
 	arg2 = SCM_CAR (x); /* struct planted in code */
       else
@@ -3323,8 +3323,8 @@ SCM_APPLY (SCM proc, SCM arg1, SCM args)
 {
 #ifdef DEBUG_EXTENSIONS
 #ifdef DEVAL
-  scm_debug_frame_t debug;
-  scm_debug_info_t debug_vect_body;
+  scm_t_debug_frame debug;
+  scm_t_debug_info debug_vect_body;
   debug.prev = scm_last_debug_frame;
   debug.status = SCM_APPLYFRAME;
   debug.vect = &debug_vect_body;
@@ -3779,7 +3779,7 @@ scm_closure (SCM code, SCM env)
 }
 
 
-scm_bits_t scm_tc16_promise;
+scm_t_bits scm_tc16_promise;
 
 SCM 
 scm_makprom (SCM code)
@@ -4125,7 +4125,7 @@ scm_init_eval ()
 #endif
 
   scm_c_define ("nil", scm_lisp_nil);
-  scm_c_define ("t", scm_lisp_t);
+  scm_c_define ("t", scm_t_lisp);
   
   scm_add_feature ("delay");
 }

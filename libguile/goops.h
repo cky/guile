@@ -88,13 +88,13 @@
 #define scm_si_environment	 26 /* The environment in which class is built  */
 #define SCM_N_CLASS_SLOTS	 27
 
-typedef struct scm_method_t {
+typedef struct scm_t_method {
   SCM generic_function;
   SCM specializers;
   SCM procedure;
-} scm_method_t;
+} scm_t_method;
 
-#define SCM_METHOD(obj) ((scm_method_t *) SCM_STRUCT_DATA (obj))
+#define SCM_METHOD(obj) ((scm_t_method *) SCM_STRUCT_DATA (obj))
 
 #define SCM_CLASSF_SIMPLE_METHOD    (0x004 << 20)
 #define SCM_CLASSF_ACCESSOR_METHOD  (0x008 << 20)

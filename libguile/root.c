@@ -60,7 +60,7 @@
 
 SCM scm_sys_protects[SCM_NUM_PROTECTS];
 
-scm_bits_t scm_tc16_root;
+scm_t_bits scm_tc16_root;
 
 #ifndef USE_THREADS
 struct scm_root_state *scm_root;
@@ -238,8 +238,8 @@ cwdr_handler (void *data, SCM tag, SCM args)
  * in a messed up state.  */
 
 SCM 
-scm_internal_cwdr (scm_catch_body_t body, void *body_data,
-		   scm_catch_handler_t handler, void *handler_data,
+scm_internal_cwdr (scm_t_catch_body body, void *body_data,
+		   scm_t_catch_handler handler, void *handler_data,
 		   SCM_STACKITEM *stack_start)
 {
   int old_ints_disabled = scm_ints_disabled;
@@ -253,7 +253,7 @@ scm_internal_cwdr (scm_catch_body_t body, void *body_data,
 
     SCM_REDEFER_INTS;
     {
-      scm_contregs_t *contregs = scm_must_malloc (sizeof (scm_contregs_t),
+      scm_t_contregs *contregs = scm_must_malloc (sizeof (scm_t_contregs),
 						"inferior root continuation");
 
       contregs->num_stack_items = 0;

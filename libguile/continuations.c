@@ -66,12 +66,12 @@
 /* {Continuations}
  */
 
-scm_bits_t scm_tc16_continuation;
+scm_t_bits scm_tc16_continuation;
 
 static SCM
 continuation_mark (SCM obj)
 {
-  scm_contregs_t *continuation = SCM_CONTREGS (obj);
+  scm_t_contregs *continuation = SCM_CONTREGS (obj);
 
   scm_gc_mark (continuation->throw_value);
   scm_mark_locations (continuation->stack, continuation->num_stack_items);
@@ -81,12 +81,12 @@ continuation_mark (SCM obj)
 static size_t
 continuation_free (SCM obj)
 {
-  scm_contregs_t *continuation = SCM_CONTREGS (obj);
+  scm_t_contregs *continuation = SCM_CONTREGS (obj);
   /* stack array size is 1 if num_stack_items is 0 (rootcont).  */
   size_t extra_items = (continuation->num_stack_items > 0)
     ? (continuation->num_stack_items - 1)
     : 0;
-  size_t bytes_free = sizeof (scm_contregs_t)
+  size_t bytes_free = sizeof (scm_t_contregs)
     + extra_items * sizeof (SCM_STACKITEM);
   
   scm_must_free (continuation);
@@ -96,7 +96,7 @@ continuation_free (SCM obj)
 static int
 continuation_print (SCM obj, SCM port, scm_print_state *state SCM_UNUSED)
 {
-  scm_contregs_t *continuation = SCM_CONTREGS (obj);
+  scm_t_contregs *continuation = SCM_CONTREGS (obj);
 
   scm_puts ("#<continuation ", port);
   scm_intprint (continuation->num_stack_items, 10, port);
@@ -114,15 +114,15 @@ SCM
 scm_make_continuation (int *first)
 {
   volatile SCM cont;
-  scm_contregs_t *continuation;
-  scm_contregs_t *rootcont = SCM_CONTREGS (scm_rootcont);
+  scm_t_contregs *continuation;
+  scm_t_contregs *rootcont = SCM_CONTREGS (scm_rootcont);
   long stack_size;
   SCM_STACKITEM * src;
 
   SCM_ENTER_A_SECTION;
   SCM_FLUSH_REGISTER_WINDOWS;
   stack_size = scm_stack_size (rootcont->base);
-  continuation = scm_must_malloc (sizeof (scm_contregs_t)
+  continuation = scm_must_malloc (sizeof (scm_t_contregs)
 				  + (stack_size - 1) * sizeof (SCM_STACKITEM),
 				  FUNC_NAME);
   continuation->num_stack_items = stack_size;
@@ -163,14 +163,14 @@ static void scm_dynthrow (SCM, SCM);
  * variable.
  */
 
-scm_bits_t scm_i_dummy;
+scm_t_bits scm_i_dummy;
 
 static void 
 grow_stack (SCM cont, SCM val)
 {
-  scm_bits_t growth[100];
+  scm_t_bits growth[100];
 
-  scm_i_dummy = (scm_bits_t) growth;
+  scm_i_dummy = (scm_t_bits) growth;
   scm_dynthrow (cont, val);
 }
 
@@ -180,7 +180,7 @@ grow_stack (SCM cont, SCM val)
  * own frame are overwritten.  Thus, memcpy can be used for best performance.
  */
 static void
-copy_stack_and_call (scm_contregs_t *continuation, SCM val, 
+copy_stack_and_call (scm_t_contregs *continuation, SCM val, 
 		     SCM_STACKITEM * dst)
 {
   memcpy (dst, continuation->stack,
@@ -202,7 +202,7 @@ copy_stack_and_call (scm_contregs_t *continuation, SCM val,
 static void 
 scm_dynthrow (SCM cont, SCM val)
 {
-  scm_contregs_t *continuation = SCM_CONTREGS (cont);
+  scm_t_contregs *continuation = SCM_CONTREGS (cont);
   SCM_STACKITEM * dst = SCM_BASE (scm_rootcont);
   SCM_STACKITEM stack_top_element;
 
@@ -224,8 +224,8 @@ static SCM
 continuation_apply (SCM cont, SCM args)
 #define FUNC_NAME "continuation_apply"
 {
-  scm_contregs_t *continuation = SCM_CONTREGS (cont);
-  scm_contregs_t *rootcont = SCM_CONTREGS (scm_rootcont);
+  scm_t_contregs *continuation = SCM_CONTREGS (cont);
+  scm_t_contregs *rootcont = SCM_CONTREGS (scm_rootcont);
 
   if (continuation->seq != rootcont->seq
       /* this base comparison isn't needed */

@@ -56,7 +56,7 @@
 #include "libguile/keywords.h"
 
 
-scm_bits_t scm_tc16_keyword;
+scm_t_bits scm_tc16_keyword;
 
 static int
 keyword_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)

@@ -189,7 +189,7 @@ start_stack (void *base)
   /* Create an object to hold the root continuation.
    */
   {
-    scm_contregs_t *contregs = scm_must_malloc (sizeof (scm_contregs_t),
+    scm_t_contregs *contregs = scm_must_malloc (sizeof (scm_t_contregs),
 					      "continuation");
     contregs->num_stack_items = 0;
     contregs->seq = 0;

@@ -62,7 +62,7 @@
 
 int scm_module_system_booted_p = 0;
 
-scm_bits_t scm_module_tag;
+scm_t_bits scm_module_tag;
 
 static SCM the_module;
 
@@ -313,7 +313,7 @@ module_variable (SCM module, SCM sym)
   }
 }
 
-scm_bits_t scm_tc16_eval_closure;
+scm_t_bits scm_tc16_eval_closure;
 
 #define SCM_F_EVAL_CLOSURE_INTERFACE (1<<16)
 #define SCM_EVAL_CLOSURE_INTERFACE_P(e) \

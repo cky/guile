@@ -55,7 +55,7 @@
 #include "libguile/validate.h"
 #include "libguile/macros.h"
 
-scm_bits_t scm_tc16_macro;
+scm_t_bits scm_tc16_macro;
 
 
 static int

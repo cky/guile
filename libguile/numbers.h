@@ -69,7 +69,7 @@
 
 /* SCM_SRS is signed right shift */
 #if (-1 == (((-1) << 2) + 2) >> 2)
-# define SCM_SRS(x, y) ((scm_signed_bits_t)(x) >> (y))
+# define SCM_SRS(x, y) ((scm_t_signed_bits)(x) >> (y))
 #else
 # define SCM_SRS(x, y) ((SCM_UNPACK (x) < 0) ? ~((~SCM_UNPACK (x)) >> (y)) : (SCM_UNPACK (x) >> (y)))
 #endif /* (-1 == (((-1) << 2) + 2) >> 2) */
@@ -78,7 +78,7 @@
 #define SCM_INUMP(x)	(2 & SCM_UNPACK (x))
 #define SCM_NINUMP(x) 	(!SCM_INUMP (x))
 #define SCM_MAKINUM(x)  (SCM_PACK (((x) << 2) + 2L))
-#define SCM_INUM(x)     ((scm_signed_bits_t)(SCM_SRS (SCM_UNPACK (x), 2)))
+#define SCM_INUM(x)     ((scm_t_signed_bits)(SCM_SRS (SCM_UNPACK (x), 2)))
 
 
 /* SCM_FIXABLE is true if its long argument can be encoded in an SCM_INUM. */
@@ -129,8 +129,8 @@
 #define SCM_REALP(x) (SCM_NIMP (x) && SCM_TYP16 (x) == scm_tc16_real)
 #define SCM_COMPLEXP(x) (SCM_NIMP (x) && SCM_TYP16 (x) == scm_tc16_complex)
 
-#define SCM_REAL_VALUE(x) (((scm_double_t *) SCM2PTR (x))->real)
-#define SCM_COMPLEX_MEM(x) ((scm_complex_t *) SCM_CELL_WORD_1 (x))
+#define SCM_REAL_VALUE(x) (((scm_t_double *) SCM2PTR (x))->real)
+#define SCM_COMPLEX_MEM(x) ((scm_t_complex *) SCM_CELL_WORD_1 (x))
 #define SCM_COMPLEX_REAL(x) (SCM_COMPLEX_MEM (x)->real)
 #define SCM_COMPLEX_IMAG(x) (SCM_COMPLEX_MEM (x)->imag)
 
@@ -186,18 +186,18 @@
 
 
 
-typedef struct scm_double_t
+typedef struct scm_t_double
 {
   SCM type;
   SCM pad;
   double real;
-} scm_double_t;
+} scm_t_double;
 
-typedef struct scm_complex_t
+typedef struct scm_t_complex
 {
   double real;
   double imag;
-} scm_complex_t;
+} scm_t_complex;
 
 
 

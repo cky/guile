@@ -69,7 +69,7 @@
 /* scm_debug_opts is  defined in eval.c.
  */
 
-extern scm_option_t scm_debug_opts[];
+extern scm_t_option scm_debug_opts[];
 
 #define SCM_CHEAPTRAPS_P	scm_debug_opts[0].val
 #define SCM_BREAKPOINTS_P	scm_debug_opts[1].val
@@ -109,30 +109,30 @@ do {\
 /* {Evaluator}
  */
 
-typedef union scm_debug_info_t
+typedef union scm_t_debug_info
 {
   struct { SCM exp, env; } e;
   struct { SCM proc, args; } a;
   SCM id;
-} scm_debug_info_t;
+} scm_t_debug_info;
 
 extern long scm_debug_eframe_size;
 
-typedef struct scm_debug_frame_t
+typedef struct scm_t_debug_frame
 {
-  struct scm_debug_frame_t *prev;
+  struct scm_t_debug_frame *prev;
   long status;
-  scm_debug_info_t *vect;
-  scm_debug_info_t *info;
-} scm_debug_frame_t;
+  scm_t_debug_info *vect;
+  scm_t_debug_info *info;
+} scm_t_debug_frame;
 
 #if (SCM_DEBUG_DEPRECATED == 0)
-# define scm_debug_info scm_debug_info_t
-# define scm_debug_frame scm_debug_frame_t
+# define scm_debug_info scm_t_debug_info
+# define scm_debug_frame scm_t_debug_frame
 #endif
 
 #ifndef USE_THREADS
-extern scm_debug_frame_t *scm_last_debug_frame;
+extern scm_t_debug_frame *scm_last_debug_frame;
 #endif
 
 #define SCM_EVALFRAME    (0L << 11)
@@ -170,7 +170,7 @@ extern scm_debug_frame_t *scm_last_debug_frame;
 /* {Debug Objects}
  */
 
-extern scm_bits_t scm_tc16_debugobj;
+extern scm_t_bits scm_tc16_debugobj;
 
 #define SCM_DEBUGOBJP(x)              SCM_TYP16_PREDICATE (scm_tc16_debugobj, x)
 #define SCM_DEBUGOBJ_FRAME(x)         SCM_CELL_WORD_1 (x)
@@ -179,7 +179,7 @@ extern scm_bits_t scm_tc16_debugobj;
 /* {Memoized Source}
  */
 
-extern scm_bits_t scm_tc16_memoized;
+extern scm_t_bits scm_tc16_memoized;
 
 #define SCM_MEMOIZEDP(x)	SCM_TYP16_PREDICATE (scm_tc16_memoized, x)
 #define SCM_MEMOIZED_EXP(x)	SCM_CAR (SCM_CELL_OBJECT_1 (x))
@@ -203,7 +203,7 @@ extern SCM scm_with_traps (SCM thunk);
 extern SCM scm_evaluator_traps (SCM setting);
 extern SCM scm_debug_options (SCM setting);
 extern SCM scm_unmemoize (SCM memoized);
-extern SCM scm_make_debugobj (scm_debug_frame_t *debug);
+extern SCM scm_make_debugobj (scm_t_debug_frame *debug);
 extern void scm_init_debug (void);
 
 #ifdef GUILE_DEBUG

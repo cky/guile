@@ -62,61 +62,61 @@
  * Look how the default generator is "plugged in" in scm_init_random().
  */
 
-typedef struct scm_rstate_t {
+typedef struct scm_t_rstate {
   int reserved0;
   double reserved1;
   /* Custom fields follow here */
-} scm_rstate_t;
+} scm_t_rstate;
 
-typedef struct scm_rng_t {
+typedef struct scm_t_rng {
   size_t rstate_size;				    /* size of random state */
-  unsigned long (*random_bits) (scm_rstate_t *state); /* gives 32 random bits */
-  void (*init_rstate) (scm_rstate_t *state, char *seed, int n);
-  scm_rstate_t *(*copy_rstate) (scm_rstate_t *state);
-} scm_rng_t;
+  unsigned long (*random_bits) (scm_t_rstate *state); /* gives 32 random bits */
+  void (*init_rstate) (scm_t_rstate *state, char *seed, int n);
+  scm_t_rstate *(*copy_rstate) (scm_t_rstate *state);
+} scm_t_rng;
 
-extern scm_rng_t scm_the_rng;
+extern scm_t_rng scm_the_rng;
 
 
 /*
  * Default RNG
  */
-typedef struct scm_i_rstate_t {
-  scm_rstate_t rstate;
+typedef struct scm_t_i_rstate {
+  scm_t_rstate rstate;
   unsigned long w;
   unsigned long c;
-} scm_i_rstate_t;
+} scm_t_i_rstate;
 
 #if (SCM_DEBUG_DEPRECATED == 0)
-# define scm_rstate scm_rstate_t
-# define scm_rng scm_rng_t
-# define scm_i_rstate scm_i_rstate_t
+# define scm_rstate scm_t_rstate
+# define scm_rng scm_t_rng
+# define scm_i_rstate scm_t_i_rstate
 #endif
 
-extern unsigned long scm_i_uniform32 (scm_i_rstate_t *);
-extern void scm_i_init_rstate (scm_i_rstate_t *, char *seed, int n);
-extern scm_i_rstate_t *scm_i_copy_rstate (scm_i_rstate_t *);
+extern unsigned long scm_i_uniform32 (scm_t_i_rstate *);
+extern void scm_i_init_rstate (scm_t_i_rstate *, char *seed, int n);
+extern scm_t_i_rstate *scm_i_copy_rstate (scm_t_i_rstate *);
 
 
 /*
  * Random number library functions
  */
-extern scm_rstate_t *scm_c_make_rstate (char *, int);
-extern scm_rstate_t *scm_c_default_rstate (void);
+extern scm_t_rstate *scm_c_make_rstate (char *, int);
+extern scm_t_rstate *scm_c_default_rstate (void);
 #define scm_c_uniform32(RSTATE) scm_the_rng.random_bits (RSTATE)
-extern double scm_c_uniform01 (scm_rstate_t *);
-extern double scm_c_normal01 (scm_rstate_t *);
-extern double scm_c_exp1 (scm_rstate_t *);
-extern unsigned long scm_c_random (scm_rstate_t *, unsigned long m);
-extern SCM scm_c_random_bignum (scm_rstate_t *, SCM m);
+extern double scm_c_uniform01 (scm_t_rstate *);
+extern double scm_c_normal01 (scm_t_rstate *);
+extern double scm_c_exp1 (scm_t_rstate *);
+extern unsigned long scm_c_random (scm_t_rstate *, unsigned long m);
+extern SCM scm_c_random_bignum (scm_t_rstate *, SCM m);
 
 
 /*
  * Scheme level interface
  */
-extern scm_bits_t scm_tc16_rstate;
+extern scm_t_bits scm_tc16_rstate;
 #define SCM_RSTATEP(obj) SCM_TYP16_PREDICATE (scm_tc16_rstate, obj)
-#define SCM_RSTATE(obj)  ((scm_rstate_t *) SCM_CELL_WORD_1 (obj))
+#define SCM_RSTATE(obj)  ((scm_t_rstate *) SCM_CELL_WORD_1 (obj))
 
 extern unsigned char scm_masktab[256];
 

@@ -130,7 +130,7 @@
 #define SCM_GOOPS_UNBOUNDP(x) ((x) == SCM_GOOPS_UNBOUND)
 
 static int goops_loaded_p = 0;
-static scm_rstate_t *goops_rstate;
+static scm_t_rstate *goops_rstate;
 
 static SCM scm_goops_lookup_closure;
 
@@ -1290,7 +1290,7 @@ wrap_init (SCM class, SCM *m, long n)
   SCM_NEWCELL2 (z);
   SCM_SET_STRUCT_GC_CHAIN (z, 0);
   SCM_SET_CELL_WORD_1 (z, m);
-  SCM_SET_CELL_WORD_0 (z, (scm_bits_t) SCM_STRUCT_DATA (class)
+  SCM_SET_CELL_WORD_0 (z, (scm_t_bits) SCM_STRUCT_DATA (class)
 		          | scm_tc3_cons_gloc);
 
   return z;
@@ -1462,11 +1462,11 @@ SCM_DEFINE (scm_sys_invalidate_class, "%invalidate-class", 1, 0, 0,
  * infinite recursions.
  */
 
-static scm_bits_t **hell;
+static scm_t_bits **hell;
 static long n_hell = 1;		/* one place for the evil one himself */
 static long hell_size = 4;
 #ifdef USE_THREADS
-static scm_mutex_t hell_mutex;
+static scm_t_mutex hell_mutex;
 #endif
 
 static long

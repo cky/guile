@@ -70,7 +70,7 @@ size_t fwrite ();
 #include "libguile/iselect.h"
 
 
-scm_bits_t scm_tc16_fport;
+scm_t_bits scm_tc16_fport;
 
 
 /* default buffer size, used if the O/S won't supply a value.  */
@@ -82,8 +82,8 @@ static void
 scm_fport_buffer_add (SCM port, long read_size, int write_size)
 #define FUNC_NAME "scm_fport_buffer_add"
 {
-  scm_fport_t *fp = SCM_FSTREAM (port);
-  scm_port_t *pt = SCM_PTAB_ENTRY (port);
+  scm_t_fport *fp = SCM_FSTREAM (port);
+  scm_t_port *pt = SCM_PTAB_ENTRY (port);
 
   if (read_size == -1 || write_size == -1)
     {
@@ -150,7 +150,7 @@ SCM_DEFINE (scm_setvbuf, "setvbuf", 2, 1, 0,
 {
   int cmode;
   long csize;
-  scm_port_t *pt;
+  scm_t_port *pt;
 
   port = SCM_COERCE_OUTPORT (port);
 
@@ -205,13 +205,13 @@ scm_evict_ports (int fd)
 {
   long i;
 
-  for (i = 0; i < scm_port_table_size; i++)
+  for (i = 0; i < scm_t_portable_size; i++)
     {
-      SCM port = scm_port_table[i]->port;
+      SCM port = scm_t_portable[i]->port;
 
       if (SCM_FPORTP (port))
 	{
-	  scm_fport_t *fp = SCM_FSTREAM (port);
+	  scm_t_fport *fp = SCM_FSTREAM (port);
 
 	  if (fp->fdes == fd)
 	    {
@@ -362,7 +362,7 @@ scm_fdes_to_port (int fdes, char *mode, SCM name)
 {
   long mode_bits = scm_mode_bits (mode);
   SCM port;
-  scm_port_t *pt;
+  scm_t_port *pt;
   int flags;
 
   /* test that fdes is valid.  */
@@ -384,8 +384,8 @@ scm_fdes_to_port (int fdes, char *mode, SCM name)
   SCM_SET_CELL_TYPE (port, (scm_tc16_fport | mode_bits));
 
   {
-    scm_fport_t *fp
-      = (scm_fport_t *) scm_must_malloc (sizeof (scm_fport_t),
+    scm_t_fport *fp
+      = (scm_t_fport *) scm_must_malloc (sizeof (scm_t_fport),
 					      FUNC_NAME);
 
     fp->fdes = fdes;
@@ -506,8 +506,8 @@ static int
 fport_fill_input (SCM port)
 {
   long count;
-  scm_port_t *pt = SCM_PTAB_ENTRY (port);
-  scm_fport_t *fp = SCM_FSTREAM (port);
+  scm_t_port *pt = SCM_PTAB_ENTRY (port);
+  scm_t_fport *fp = SCM_FSTREAM (port);
 
 #ifdef GUILE_ISELECT
   fport_wait_for_input (port);
@@ -528,8 +528,8 @@ fport_fill_input (SCM port)
 static off_t
 fport_seek (SCM port, off_t offset, int whence)
 {
-  scm_port_t *pt = SCM_PTAB_ENTRY (port);
-  scm_fport_t *fp = SCM_FSTREAM (port);
+  scm_t_port *pt = SCM_PTAB_ENTRY (port);
+  scm_t_fport *fp = SCM_FSTREAM (port);
   off_t rv;
   off_t result;
 
@@ -580,7 +580,7 @@ fport_seek (SCM port, off_t offset, int whence)
 static void
 fport_truncate (SCM port, off_t length)
 {
-  scm_fport_t *fp = SCM_FSTREAM (port);
+  scm_t_fport *fp = SCM_FSTREAM (port);
 
   if (ftruncate (fp->fdes, length) == -1)
     scm_syserror ("ftruncate");
@@ -611,7 +611,7 @@ static void
 fport_write (SCM port, const void *data, size_t size)
 {
   /* this procedure tries to minimize the number of writes/flushes.  */
-  scm_port_t *pt = SCM_PTAB_ENTRY (port);
+  scm_t_port *pt = SCM_PTAB_ENTRY (port);
 
   if (pt->write_buf == &pt->shortbuf
       || (pt->write_pos == pt->write_buf && size >= pt->write_buf_size))
@@ -672,8 +672,8 @@ extern int terminating;
 static void
 fport_flush (SCM port)
 {
-  scm_port_t *pt = SCM_PTAB_ENTRY (port);
-  scm_fport_t *fp = SCM_FSTREAM (port);
+  scm_t_port *pt = SCM_PTAB_ENTRY (port);
+  scm_t_fport *fp = SCM_FSTREAM (port);
   unsigned char *ptr = pt->write_buf;
   long init_size = pt->write_pos - pt->write_buf;
   long remaining = init_size;
@@ -730,8 +730,8 @@ fport_flush (SCM port)
 static void
 fport_end_input (SCM port, int offset)
 {
-  scm_fport_t *fp = SCM_FSTREAM (port);
-  scm_port_t *pt = SCM_PTAB_ENTRY (port);
+  scm_t_fport *fp = SCM_FSTREAM (port);
+  scm_t_port *pt = SCM_PTAB_ENTRY (port);
   
   offset += pt->read_end - pt->read_pos;
 
@@ -749,8 +749,8 @@ fport_end_input (SCM port, int offset)
 static int
 fport_close (SCM port)
 {
-  scm_fport_t *fp = SCM_FSTREAM (port);
-  scm_port_t *pt = SCM_PTAB_ENTRY (port);
+  scm_t_fport *fp = SCM_FSTREAM (port);
+  scm_t_port *pt = SCM_PTAB_ENTRY (port);
   int rv;
 
   fport_flush (port);
@@ -781,10 +781,10 @@ fport_free (SCM port)
   return 0;
 }
 
-static scm_bits_t
+static scm_t_bits
 scm_make_fptob ()
 {
-  scm_bits_t tc = scm_make_port_type ("file", fport_fill_input, fport_write);
+  scm_t_bits tc = scm_make_port_type ("file", fport_fill_input, fport_write);
 
   scm_set_port_free            (tc, fport_free);
   scm_set_port_print           (tc, fport_print);

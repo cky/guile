@@ -57,7 +57,7 @@
 #include "libguile/validate.h"
 
 static volatile long n_fluids;
-scm_bits_t scm_tc16_fluid;
+scm_t_bits scm_tc16_fluid;
 
 SCM
 scm_make_initial_fluids ()

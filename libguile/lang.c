@@ -114,7 +114,7 @@ SCM_DEFINE (scm_null, "null", 1, 0, 0,
 	    "return LISP's nil otherwise.")
 #define FUNC_NAME s_scm_null
 {
-  return (SCM_NILP (x) || SCM_NULLP (x) || SCM_FALSEP (x)) ? scm_lisp_t : scm_lisp_nil;
+  return (SCM_NILP (x) || SCM_NULLP (x) || SCM_FALSEP (x)) ? scm_t_lisp : scm_lisp_nil;
 }
 #undef FUNC_NAME
 
@@ -146,7 +146,7 @@ SCM_DEFINE1 (scm_nil_eq, "nil-eq", scm_tc7_rpsubr,
   return ((SCM_EQ_P (x, y)
 	   || (SCM_NILP (x) && (SCM_NULLP (y) || SCM_FALSEP (y)))
 	   || (SCM_NILP (y) && (SCM_NULLP (x) || SCM_FALSEP (x))))
-	  ? scm_lisp_t
+	  ? scm_t_lisp
 	  : scm_lisp_nil);
 }
 #undef FUNC_NAME

@@ -6,22 +6,22 @@ NUM2INTEGRAL (SCM num, unsigned long int pos, const char *s_caller)
   if (SCM_INUMP (num))
     { /* immediate */
     
-      scm_bits_t n = SCM_INUM (num);
+      scm_t_bits n = SCM_INUM (num);
 
 #ifdef UNSIGNED
       if (n < 0)
         scm_out_of_range (s_caller, num);
 #endif
     
-      if (sizeof (ITYPE) >= sizeof (scm_bits_t))
+      if (sizeof (ITYPE) >= sizeof (scm_t_bits))
         /* can't fit anything too big for this type in an inum
            anyway */
         return (ITYPE) n;
       else
         { /* an inum can be out of range, so check */
-          if (n > (scm_bits_t)MAX_VALUE
+          if (n > (scm_t_bits)MAX_VALUE
 #ifndef UNSIGNED
-              || n < (scm_bits_t)MIN_VALUE
+              || n < (scm_t_bits)MIN_VALUE
 #endif
               )
             scm_out_of_range (s_caller, num);
@@ -84,7 +84,7 @@ NUM2INTEGRAL (SCM num, unsigned long int pos, const char *s_caller)
 SCM
 INTEGRAL2NUM (ITYPE n)
 {
-  if (sizeof (ITYPE) < sizeof (scm_bits_t)
+  if (sizeof (ITYPE) < sizeof (scm_t_bits)
       ||
 #ifndef UNSIGNED  
       SCM_FIXABLE (n)

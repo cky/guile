@@ -70,7 +70,7 @@
 #define scm_vtable_index_printer 3 /* A printer for this struct type. */
 #define scm_vtable_offset_user   4 /* Where do user fields start? */
 
-typedef size_t (*scm_struct_free_t) (scm_bits_t * vtable, scm_bits_t * data);
+typedef size_t (*scm_t_struct_free) (scm_t_bits * vtable, scm_t_bits * data);
 
 #define SCM_STRUCTF_MASK   (0xFFF << 20)
 #define SCM_STRUCTF_ENTITY (1L << 30) /* Indicates presence of proc slots */
@@ -79,8 +79,8 @@ typedef size_t (*scm_struct_free_t) (scm_bits_t * vtable, scm_bits_t * data);
 
 /* Dirk:FIXME:: the SCM_STRUCTP predicate is also fulfilled for glocs */
 #define SCM_STRUCTP(X)  		(SCM_NIMP(X) && (SCM_TYP3(X) == scm_tc3_cons_gloc))
-#define SCM_STRUCT_DATA(X) 		((scm_bits_t *) SCM_CELL_WORD_1 (X))
-#define SCM_STRUCT_VTABLE_DATA(X)       ((scm_bits_t *) (SCM_CELL_WORD_0 (X) - scm_tc3_cons_gloc))
+#define SCM_STRUCT_DATA(X) 		((scm_t_bits *) SCM_CELL_WORD_1 (X))
+#define SCM_STRUCT_VTABLE_DATA(X)       ((scm_t_bits *) (SCM_CELL_WORD_0 (X) - scm_tc3_cons_gloc))
 
 #define SCM_STRUCT_LAYOUT(X) 	        (SCM_PACK (SCM_STRUCT_VTABLE_DATA (X) [scm_vtable_index_layout]))
 #define SCM_SET_STRUCT_LAYOUT(X, v)     (SCM_STRUCT_VTABLE_DATA (X) [scm_vtable_index_layout] = SCM_UNPACK (v))
@@ -91,7 +91,7 @@ typedef size_t (*scm_struct_free_t) (scm_bits_t * vtable, scm_bits_t * data);
 #define SCM_STRUCT_PRINTER(X) 	        (SCM_PACK (SCM_STRUCT_VTABLE_DATA (X) [scm_vtable_index_printer]))
 #define SCM_SET_STRUCT_PRINTER(x, v)\
    (SCM_STRUCT_VTABLE_DATA (x) [scm_vtable_index_printer] = SCM_UNPACK (v))
-#define SCM_SET_VTABLE_DESTRUCTOR(X, D) (SCM_STRUCT_DATA (X) [scm_struct_i_free] = (scm_bits_t) (D))
+#define SCM_SET_VTABLE_DESTRUCTOR(X, D) (SCM_STRUCT_DATA (X) [scm_struct_i_free] = (scm_t_bits) (D))
 /* Efficiency is important in the following macro, since it's used in GC */
 #define SCM_LAYOUT_TAILP(X)		(((X) & 32) == 0) /* R, W or O */
 
@@ -107,11 +107,11 @@ extern SCM scm_structs_to_free;
 
 
 
-extern scm_bits_t * scm_alloc_struct (int n_words, int n_extra, char * who);
-extern size_t scm_struct_free_0 (scm_bits_t * vtable, scm_bits_t * data);
-extern size_t scm_struct_free_light (scm_bits_t * vtable, scm_bits_t * data);
-extern size_t scm_struct_free_standard (scm_bits_t * vtable, scm_bits_t * data);
-extern size_t scm_struct_free_entity (scm_bits_t * vtable, scm_bits_t * data);
+extern scm_t_bits * scm_alloc_struct (int n_words, int n_extra, char * who);
+extern size_t scm_struct_free_0 (scm_t_bits * vtable, scm_t_bits * data);
+extern size_t scm_struct_free_light (scm_t_bits * vtable, scm_t_bits * data);
+extern size_t scm_struct_free_standard (scm_t_bits * vtable, scm_t_bits * data);
+extern size_t scm_struct_free_entity (scm_t_bits * vtable, scm_t_bits * data);
 extern SCM scm_make_struct_layout (SCM fields);
 extern SCM scm_struct_p (SCM x);
 extern SCM scm_struct_vtable_p (SCM x);

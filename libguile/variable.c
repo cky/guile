@@ -54,7 +54,7 @@
 #include "libguile/validate.h"
 #include "libguile/variable.h"
 
-scm_bits_t scm_tc16_variable;
+scm_t_bits scm_tc16_variable;
 
 static int
 variable_print (SCM exp, SCM port, scm_print_state *pstate)

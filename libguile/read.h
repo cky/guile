@@ -67,7 +67,7 @@
 
 #define SCM_WHITE_SPACES  SCM_SINGLE_SPACES: case '\t'
 
-extern scm_option_t scm_read_opts[];
+extern scm_t_option scm_read_opts[];
 
 #define SCM_COPY_SOURCE_P      scm_read_opts[0].val
 #define SCM_RECORD_POSITIONS_P scm_read_opts[1].val

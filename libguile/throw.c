@@ -66,7 +66,7 @@
 
 
 /* the jump buffer data structure */
-static scm_bits_t tc16_jmpbuffer;
+static scm_t_bits tc16_jmpbuffer;
 
 #define SCM_JMPBUFP(OBJ)	SCM_TYP16_PREDICATE (tc16_jmpbuffer, OBJ)
 
@@ -79,7 +79,7 @@ static scm_bits_t tc16_jmpbuffer;
 #define JBJMPBUF(OBJ)           ((jmp_buf *) SCM_CELL_WORD_1 (OBJ))
 #define SETJBJMPBUF(x,v)        (SCM_SET_CELL_WORD_1 ((x), (v)))
 #ifdef DEBUG_EXTENSIONS
-#define SCM_JBDFRAME(x)         ((scm_debug_frame_t *) SCM_CELL_WORD_2 (x))
+#define SCM_JBDFRAME(x)         ((scm_t_debug_frame *) SCM_CELL_WORD_2 (x))
 #define SCM_SETJBDFRAME(x,v)    (SCM_SET_CELL_WORD_2 ((x), (v)))
 #endif
 
@@ -170,7 +170,7 @@ struct jmp_buf_and_retval	/* use only on the stack, in scm_catch */
    will be found.  */
 
 SCM
-scm_internal_catch (SCM tag, scm_catch_body_t body, void *body_data, scm_catch_handler_t handler, void *handler_data)
+scm_internal_catch (SCM tag, scm_t_catch_body body, void *body_data, scm_t_catch_handler handler, void *handler_data)
 {
   struct jmp_buf_and_retval jbr;
   SCM jmpbuf;
@@ -218,7 +218,7 @@ scm_internal_catch (SCM tag, scm_catch_body_t body, void *body_data, scm_catch_h
 /* scm_internal_lazy_catch (the guts of lazy catching) */
 
 /* The smob tag for lazy_catch smobs.  */
-static scm_bits_t tc16_lazy_catch;
+static scm_t_bits tc16_lazy_catch;
 
 /* This is the structure we put on the wind list for a lazy catch.  It
    stores the handler function to call, and the data pointer to pass
@@ -229,7 +229,7 @@ static scm_bits_t tc16_lazy_catch;
    (We don't need anything like this in the "eager" catch code,
    because the same C frame runs both the body and the handler.)  */
 struct lazy_catch {
-  scm_catch_handler_t handler;
+  scm_t_catch_handler handler;
   void *handler_data;
 };
 
@@ -267,7 +267,7 @@ make_lazy_catch (struct lazy_catch *c)
    - It does not unwind the stack (this is the major difference).
    - The handler is not allowed to return.  */
 SCM
-scm_internal_lazy_catch (SCM tag, scm_catch_body_t body, void *body_data, scm_catch_handler_t handler, void *handler_data)
+scm_internal_lazy_catch (SCM tag, scm_t_catch_body body, void *body_data, scm_t_catch_handler handler, void *handler_data)
 {
   SCM lazy_catch, answer;
   struct lazy_catch c;
@@ -307,7 +307,7 @@ ss_handler (void *data SCM_UNUSED, SCM tag, SCM throw_args)
 struct cwss_data
 {
   SCM tag;
-  scm_catch_body_t body;
+  scm_t_catch_body body;
   void *data;
 };
 
@@ -320,9 +320,9 @@ cwss_body (void *data)
 
 SCM
 scm_internal_stack_catch (SCM tag,
-			  scm_catch_body_t body,
+			  scm_t_catch_body body,
 			  void *body_data,
-			  scm_catch_handler_t handler,
+			  scm_t_catch_handler handler,
 			  void *handler_data)
 {
   struct cwss_data d;

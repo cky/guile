@@ -59,7 +59,7 @@
  * SCM_DEFER_INTS). 
  */
 
-static scm_bits_t scm_tc16_arbiter;
+static scm_t_bits scm_tc16_arbiter;
 
 
 #define SCM_ARB_LOCKED(arb)  ((SCM_CELL_WORD_0 (arb)) & (1L << 16))

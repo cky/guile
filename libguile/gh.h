@@ -61,19 +61,19 @@ extern "C" {
 void gh_enter(int argc, char *argv[], void (*c_main_prog)(int, char **));
 #define gh_init () scm_init_guile ()
 void gh_repl(int argc, char *argv[]);
-SCM gh_catch(SCM tag, scm_catch_body_t body, void *body_data,
-	     scm_catch_handler_t handler, void *handler_data);
+SCM gh_catch(SCM tag, scm_t_catch_body body, void *body_data,
+	     scm_t_catch_handler handler, void *handler_data);
 
 SCM gh_standard_handler(void *data, SCM tag, SCM throw_args);
 
 SCM gh_eval_str(const char *scheme_code);
-SCM gh_eval_str_with_catch(const char *scheme_code, scm_catch_handler_t handler);
+SCM gh_eval_str_with_catch(const char *scheme_code, scm_t_catch_handler handler);
 SCM gh_eval_str_with_standard_handler(const char *scheme_code);
 SCM gh_eval_str_with_stack_saving_handler(const char *scheme_code);
 
 SCM gh_eval_file(const char *fname);
 #define gh_load(fname) gh_eval_file(fname)
-SCM gh_eval_file_with_catch(const char *scheme_code, scm_catch_handler_t handler);
+SCM gh_eval_file_with_catch(const char *scheme_code, scm_t_catch_handler handler);
 SCM gh_eval_file_with_standard_handler(const char *scheme_code);
 
 #define gh_defer_ints() SCM_DEFER_INTS

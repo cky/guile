@@ -73,7 +73,7 @@
    implement a more lightweight version of fluids on top of this basic
    mechanism. */
 
-extern scm_bits_t scm_tc16_fluid;
+extern scm_t_bits scm_tc16_fluid;
 
 #define SCM_FLUIDP(x)    (!SCM_IMP (x) && (SCM_CELL_TYPE (x) == scm_tc16_fluid))
 #define SCM_FLUID_NUM(x) (SCM_CELL_WORD_1 (x))

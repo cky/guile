@@ -78,26 +78,26 @@ do { \
 /* {Source properties}
  */
 
-extern scm_bits_t scm_tc16_srcprops;
+extern scm_t_bits scm_tc16_srcprops;
 
-typedef struct scm_srcprops_t
+typedef struct scm_t_srcprops
 {
   unsigned long pos;
   SCM fname;
   SCM copy;
   SCM plist;
-} scm_srcprops_t;
+} scm_t_srcprops;
 
 #define SRCPROPS_CHUNKSIZE 2047 /* Number of srcprops per chunk */
-typedef struct scm_srcprops_chunk_t
+typedef struct scm_t_srcprops_chunk
 {
-  struct scm_srcprops_chunk_t *next;
-  scm_srcprops_t srcprops[1];
-} scm_srcprops_chunk_t;
+  struct scm_t_srcprops_chunk *next;
+  scm_t_srcprops srcprops[1];
+} scm_t_srcprops_chunk;
 
 #if (SCM_DEBUG_DEPRECATED == 0)
-# define scm_srcprops scm_srcprops_t
-# define scm_srcprops_chunk scm_srcprops_chunk_t
+# define scm_srcprops scm_t_srcprops
+# define scm_srcprops_chunk scm_t_srcprops_chunk
 #endif
 
 #define SCM_SOURCE_PROPERTY_FLAG_BREAK (1L << 16)
@@ -105,12 +105,12 @@ typedef struct scm_srcprops_chunk_t
 #define SRCPROPSP(p) (SCM_TYP16_PREDICATE (scm_tc16_srcprops, p))
 #define SRCPROPBRK(p) \
   (SCM_BOOL (SCM_CELL_WORD_0 (p) & SCM_SOURCE_PROPERTY_FLAG_BREAK))
-#define SRCPROPPOS(p) ((scm_srcprops_t *) SCM_CELL_WORD_1 (p))->pos
+#define SRCPROPPOS(p) ((scm_t_srcprops *) SCM_CELL_WORD_1 (p))->pos
 #define SRCPROPLINE(p) (SRCPROPPOS(p) >> 12)
 #define SRCPROPCOL(p) (SRCPROPPOS(p) & 0x0fffL)
-#define SRCPROPFNAME(p) ((scm_srcprops_t *) SCM_CELL_WORD_1 (p))->fname
-#define SRCPROPCOPY(p) ((scm_srcprops_t *) SCM_CELL_WORD_1 (p))->copy
-#define SRCPROPPLIST(p) ((scm_srcprops_t *) SCM_CELL_WORD_1 (p))->plist
+#define SRCPROPFNAME(p) ((scm_t_srcprops *) SCM_CELL_WORD_1 (p))->fname
+#define SRCPROPCOPY(p) ((scm_t_srcprops *) SCM_CELL_WORD_1 (p))->copy
+#define SRCPROPPLIST(p) ((scm_t_srcprops *) SCM_CELL_WORD_1 (p))->plist
 #define SETSRCPROPBRK(p) \
   (SCM_SET_CELL_WORD_0 ((p), SCM_CELL_WORD_0 (p) \
                              | SCM_SOURCE_PROPERTY_FLAG_BREAK))
@@ -137,7 +137,7 @@ extern SCM scm_sym_breakpoint;
 
 
 
-extern SCM scm_srcprops_to_plist (SCM obj);
+extern SCM scm_t_srcpropso_plist (SCM obj);
 extern SCM scm_make_srcprops (long line, int col, SCM fname, SCM copy, SCM plist);
 extern SCM scm_source_property (SCM obj, SCM key);
 extern SCM scm_set_source_property_x (SCM obj, SCM key, SCM datum);

@@ -61,36 +61,36 @@
 /* In the beginning was the Word:
  */
 #ifdef HAVE_UINTPTR_T
-typedef uintptr_t scm_bits_t;
-typedef intptr_t scm_signed_bits_t;
+typedef uintptr_t scm_t_bits;
+typedef intptr_t scm_t_signed_bits;
 #else
-typedef unsigned long scm_bits_t;
-typedef signed long scm_signed_bits_t;
+typedef unsigned long scm_t_bits;
+typedef signed long scm_t_signed_bits;
 #endif
 
 /* But as external interface, we use SCM, which may, according to the desired
  * level of type checking, be defined in several ways:
  */
 #if (SCM_DEBUG_TYPING_STRICTNESS == 2)
-    typedef union { struct { scm_bits_t n; } n; } SCM;
-    static SCM scm_pack(scm_bits_t b) { SCM s; s.n.n = b; return s; }
+    typedef union { struct { scm_t_bits n; } n; } SCM;
+    static SCM scm_pack(scm_t_bits b) { SCM s; s.n.n = b; return s; }
 #   define SCM_UNPACK(x) ((x).n.n)
-#   define SCM_PACK(x) (scm_pack ((scm_bits_t) (x)))
+#   define SCM_PACK(x) (scm_pack ((scm_t_bits) (x)))
 #elif (SCM_DEBUG_TYPING_STRICTNESS == 1)
 /* This is the default, which provides an intermediate level of compile time
  * type checking while still resulting in very efficient code.
  */
     typedef struct scm_unused_struct * SCM;
-#   define SCM_UNPACK(x) ((scm_bits_t) (x))
+#   define SCM_UNPACK(x) ((scm_t_bits) (x))
 #   define SCM_PACK(x) ((SCM) (x))
 #else
 /* This should be used as a fall back solution for machines on which casting
  * to a pointer may lead to loss of bit information, e. g. in the three least
  * significant bits.
  */
-    typedef scm_bits_t SCM;
+    typedef scm_t_bits SCM;
 #   define SCM_UNPACK(x) (x)
-#   define SCM_PACK(x) ((scm_bits_t) (x))
+#   define SCM_PACK(x) ((scm_t_bits) (x))
 #endif
 
 

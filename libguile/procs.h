@@ -63,10 +63,10 @@ typedef struct
 				 * *generic == 0 until first method
 				 */
   SCM properties;		/* procedure properties */
-} scm_subr_entry_t;
+} scm_t_subr_entry;
 
 #if (SCM_DEBUG_DEPRECATED == 0)
-# define scm_subr_entry scm_subr_entry_t
+# define scm_subr_entry scm_t_subr_entry
 #endif
 
 #define SCM_SUBRNUM(subr) (SCM_CELL_WORD_0 (subr) >> 8)
@@ -82,7 +82,7 @@ typedef struct
 
 #define SCM_CCLO_LENGTH(x) (SCM_CELL_WORD_0 (x) >> 8)
 #define SCM_SET_CCLO_LENGTH(x, v) (SCM_SET_CELL_WORD_0 ((x), ((v) << 8) + scm_tc7_cclo))
-#define SCM_CCLO_BASE(x) ((scm_bits_t *) SCM_CELL_WORD_1 (x))
+#define SCM_CCLO_BASE(x) ((scm_t_bits *) SCM_CELL_WORD_1 (x))
 #define SCM_SET_CCLO_BASE(x, v) (SCM_SET_CELL_WORD_1 ((x), (v)))
 
 #define SCM_CCLO_REF(x, i) (SCM_PACK (SCM_CCLO_BASE (x) [i]))
@@ -157,7 +157,7 @@ typedef struct
 #define SCM_PROCEDURE(obj) SCM_CELL_OBJECT_1 (obj)
 #define SCM_SETTER(obj) SCM_CELL_OBJECT_2 (obj)
 
-extern scm_subr_entry_t *scm_subr_table;
+extern scm_t_subr_entry *scm_subr_table;
 extern long scm_subr_table_size;
 extern long scm_subr_table_room;
 

@@ -66,7 +66,7 @@
 
 SCM_SYMBOL (scm_keyword_prefix, "prefix");
 
-scm_option_t scm_read_opts[] = {
+scm_t_option scm_read_opts[] = {
   { SCM_OPTION_BOOLEAN, "copy", 0,
     "Copy source code expressions." },
   { SCM_OPTION_BOOLEAN, "positions", 0,

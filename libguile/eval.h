@@ -53,14 +53,14 @@
 /* {Options}
  */
 
-extern scm_option_t scm_eval_opts[];
+extern scm_t_option scm_eval_opts[];
 
 #define SCM_EVAL_STACK	       scm_eval_opts[0].val
 #define SCM_N_EVAL_OPTIONS 1
 
 extern long scm_eval_stack;
 
-extern scm_option_t scm_evaluator_trap_table[];
+extern scm_t_option scm_evaluator_trap_table[];
 
 extern SCM scm_eval_options_interface (SCM setting);
 

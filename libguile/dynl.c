@@ -330,7 +330,7 @@ sysdep_dynl_func (const char *symbol,
 
 #endif
 
-scm_bits_t scm_tc16_dynamic_obj;
+scm_t_bits scm_tc16_dynamic_obj;
 
 #define DYNL_FILENAME(x)        (SCM_CELL_OBJECT_1 (x))
 #define DYNL_HANDLE(x)          ((void *) SCM_CELL_WORD_2 (x))

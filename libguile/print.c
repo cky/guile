@@ -127,7 +127,7 @@ char *scm_isymnames[] =
   "#<unbound>"
 };
 
-scm_option_t scm_print_opts[] = {
+scm_t_option scm_print_opts[] = {
   { SCM_OPTION_SCM, "closure-hook", SCM_UNPACK (SCM_BOOL_F),
     "Hook for printing closures (should handle macros as well)." },
   { SCM_OPTION_BOOLEAN, "source", 0,
@@ -1050,7 +1050,7 @@ SCM_DEFINE (scm_write_char, "write-char", 1, 1, 0,
  * escaped to Scheme and thus has to be freed by the GC.
  */
 
-scm_bits_t scm_tc16_port_with_ps;
+scm_t_bits scm_tc16_port_with_ps;
 
 /* Print exactly as the port itself would */
 

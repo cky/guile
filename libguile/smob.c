@@ -288,7 +288,7 @@ scm_smob_apply_3_error (SCM smob,
 
 
 
-scm_bits_t 
+scm_t_bits 
 scm_make_smob_type (char *name, size_t size)
 #define FUNC_NAME "scm_make_smob_type"
 {
@@ -320,31 +320,31 @@ scm_make_smob_type (char *name, size_t size)
 
 
 void
-scm_set_smob_mark (scm_bits_t tc, SCM (*mark) (SCM))
+scm_set_smob_mark (scm_t_bits tc, SCM (*mark) (SCM))
 {
   scm_smobs[SCM_TC2SMOBNUM (tc)].mark = mark;
 }
 
 void
-scm_set_smob_free (scm_bits_t tc, size_t (*free) (SCM))
+scm_set_smob_free (scm_t_bits tc, size_t (*free) (SCM))
 {
   scm_smobs[SCM_TC2SMOBNUM (tc)].free = free;
 }
 
 void
-scm_set_smob_print (scm_bits_t tc, int (*print) (SCM, SCM, scm_print_state*))
+scm_set_smob_print (scm_t_bits tc, int (*print) (SCM, SCM, scm_print_state*))
 {
   scm_smobs[SCM_TC2SMOBNUM (tc)].print = print;
 }
 
 void
-scm_set_smob_equalp (scm_bits_t tc, SCM (*equalp) (SCM, SCM))
+scm_set_smob_equalp (scm_t_bits tc, SCM (*equalp) (SCM, SCM))
 {
   scm_smobs[SCM_TC2SMOBNUM (tc)].equalp = equalp;
 }
 
 void
-scm_set_smob_apply (scm_bits_t tc, SCM (*apply) (),
+scm_set_smob_apply (scm_t_bits tc, SCM (*apply) (),
 		    unsigned int req, unsigned int opt, unsigned int rst)
 {
   SCM (*apply_0) (SCM);
@@ -454,7 +454,7 @@ scm_set_smob_apply (scm_bits_t tc, SCM (*apply) (),
 }
 
 SCM
-scm_make_smob (scm_bits_t tc)
+scm_make_smob (scm_t_bits tc)
 {
   long n = SCM_TC2SMOBNUM (tc);
   size_t size = scm_smobs[n].size;
@@ -530,7 +530,7 @@ void
 scm_smob_prehistory ()
 {
   long i;
-  scm_bits_t tc;
+  scm_t_bits tc;
 
   scm_numsmob = 0;
   for (i = 0; i < MAX_SMOB_COUNT; ++i)

@@ -61,7 +61,7 @@
 
 
 
-scm_bits_t scm_tc16_malloc;
+scm_t_bits scm_tc16_malloc;
 
 
 static size_t
@@ -86,7 +86,7 @@ malloc_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
 SCM
 scm_malloc_obj (size_t n)
 {
-  scm_bits_t mem = n ? (scm_bits_t) malloc (n) : 0;
+  scm_t_bits mem = n ? (scm_t_bits) malloc (n) : 0;
   if (n && !mem)
     return SCM_BOOL_F;
   SCM_RETURN_NEWSMOB (scm_tc16_malloc, mem);

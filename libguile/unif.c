@@ -89,7 +89,7 @@
  * long long		llvect
  */
 
-scm_bits_t scm_tc16_array;
+scm_t_bits scm_tc16_array;
 
 /* return the size of an element in a uniform array or 0 if type not
    found.  */
@@ -400,7 +400,7 @@ SCM_DEFINE (scm_array_dimensions, "array-dimensions", 1, 0, 0,
 {
   SCM res = SCM_EOL;
   size_t k;
-  scm_array_dim_t *s;
+  scm_t_array_dim *s;
   if (SCM_IMP (ra))
     return SCM_BOOL_F;
   switch (SCM_TYP7 (ra))
@@ -469,7 +469,7 @@ SCM_DEFINE (scm_shared_array_increments, "shared-array-increments", 1, 0, 0,
 {
   SCM res = SCM_EOL;
   size_t k;
-  scm_array_dim_t *s;
+  scm_t_array_dim *s;
   SCM_ASSERT (SCM_ARRAYP (ra), ra, SCM_ARG1, FUNC_NAME);
   k = SCM_ARRAY_NDIM (ra);
   s = SCM_ARRAY_DIMS (ra);
@@ -491,7 +491,7 @@ scm_aind (SCM ra, SCM args, const char *what)
   register long j;
   register unsigned long pos = SCM_ARRAY_BASE (ra);
   register unsigned long k = SCM_ARRAY_NDIM (ra);
-  scm_array_dim_t *s = SCM_ARRAY_DIMS (ra);
+  scm_t_array_dim *s = SCM_ARRAY_DIMS (ra);
   if (SCM_INUMP (args))
     {
       if (k != 1)
@@ -525,9 +525,9 @@ scm_make_ra (int ndim)
   SCM ra;
   SCM_NEWCELL (ra);
   SCM_DEFER_INTS;
-  SCM_NEWSMOB(ra, ((scm_bits_t) ndim << 17) + scm_tc16_array,
-              scm_must_malloc ((sizeof (scm_array_t) +
-				ndim * sizeof (scm_array_dim_t)),
+  SCM_NEWSMOB(ra, ((scm_t_bits) ndim << 17) + scm_tc16_array,
+              scm_must_malloc ((sizeof (scm_t_array) +
+				ndim * sizeof (scm_t_array_dim)),
 			       "array"));
   SCM_ARRAY_V (ra) = scm_nullvect;
   SCM_ALLOW_INTS;
@@ -541,7 +541,7 @@ static char s_bad_spec[] = "Bad scm_array dimension";
 SCM 
 scm_shap2ra (SCM args, const char *what)
 {
-  scm_array_dim_t *s;
+  scm_t_array_dim *s;
   SCM ra, spec, sp;
   int ndim = scm_ilength (args);
   if (ndim < 0)
@@ -589,7 +589,7 @@ SCM_DEFINE (scm_dimensions_to_uniform_array, "dimensions->uniform-array", 2, 1, 
 {
   size_t k;
   unsigned long rlen = 1;
-  scm_array_dim_t *s;
+  scm_t_array_dim *s;
   SCM ra;
   
   if (SCM_INUMP (dims))
@@ -681,7 +681,7 @@ SCM_DEFINE (scm_make_shared_array, "make-shared-array", 2, 0, 1,
   SCM imap;
   size_t k, i;
   long old_min, new_min, old_max, new_max;
-  scm_array_dim_t *s;
+  scm_t_array_dim *s;
 
   SCM_VALIDATE_REST_ARGUMENT (dims);
   SCM_VALIDATE_ARRAY (1,oldra);
@@ -809,7 +809,7 @@ SCM_DEFINE (scm_transpose_array, "transpose-array", 1, 0, 1,
 #define FUNC_NAME s_scm_transpose_array
 {
   SCM res, vargs, *ve = &vargs;
-  scm_array_dim_t *s, *r;
+  scm_t_array_dim *s, *r;
   int ndim, i, k;
 
   SCM_VALIDATE_REST_ARGUMENT (args);
@@ -918,7 +918,7 @@ SCM_DEFINE (scm_enclose_array, "enclose-array", 1, 0, 1,
 #define FUNC_NAME s_scm_enclose_array
 {
   SCM axv, res, ra_inr;
-  scm_array_dim_t vdim, *s = &vdim;
+  scm_t_array_dim vdim, *s = &vdim;
   int ndim, j, k, ninr, noutr;
 
   SCM_VALIDATE_REST_ARGUMENT (axes);
@@ -1005,7 +1005,7 @@ SCM_DEFINE (scm_array_in_bounds_p, "array-in-bounds?", 1, 0, 1,
   long pos = 0;
   register size_t k;
   register long j;
-  scm_array_dim_t *s;
+  scm_t_array_dim *s;
 
   SCM_VALIDATE_REST_ARGUMENT (args);
   SCM_ASRTGO (SCM_NIMP (v), badarg1);
@@ -1591,7 +1591,7 @@ loop:
 
   if (SCM_NIMP (port_or_fd))
     {
-      scm_port_t *pt = SCM_PTAB_ENTRY (port_or_fd);
+      scm_t_port *pt = SCM_PTAB_ENTRY (port_or_fd);
       int remaining = (cend - offset) * sz;
       char *dest = base + (cstart + offset) * sz;
 
@@ -2083,11 +2083,11 @@ ra2l (SCM ra,unsigned long base,unsigned long k)
 }
 
 
-SCM_DEFINE (scm_array_to_list, "array->list", 1, 0, 0, 
+SCM_DEFINE (scm_t_arrayo_list, "array->list", 1, 0, 0, 
            (SCM v),
 	    "Return a list consisting of all the elements, in order, of\n"
 	    "@var{array}.")
-#define FUNC_NAME s_scm_array_to_list
+#define FUNC_NAME s_scm_t_arrayo_list
 {
   SCM res = SCM_EOL;
   register long k;
@@ -2475,7 +2475,7 @@ tail:
 	  scm_putc ('*', port);
 	  for (i = 0; i < (SCM_BITVECTOR_LENGTH (exp)) / SCM_LONG_BIT; i++)
 	    {
-	      scm_bits_t w = SCM_UNPACK (SCM_VELTS (exp)[i]);
+	      scm_t_bits w = SCM_UNPACK (SCM_VELTS (exp)[i]);
 	      for (j = SCM_LONG_BIT; j; j--)
 		{
 		  scm_putc (w & 1 ? '1' : '0', port);
@@ -2594,8 +2594,8 @@ static size_t
 array_free (SCM ptr)
 {
   scm_must_free (SCM_ARRAY_MEM (ptr));
-  return sizeof (scm_array_t) +
-    SCM_ARRAY_NDIM (ptr) * sizeof (scm_array_dim_t);
+  return sizeof (scm_t_array) +
+    SCM_ARRAY_NDIM (ptr) * sizeof (scm_t_array_dim);
 }
 
 void

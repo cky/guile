@@ -190,9 +190,9 @@ int
 scm_ra_matchp (SCM ra0, SCM ras)
 {
   SCM ra1;
-  scm_array_dim_t dims;
-  scm_array_dim_t *s0 = &dims;
-  scm_array_dim_t *s1;
+  scm_t_array_dim dims;
+  scm_t_array_dim *s0 = &dims;
+  scm_t_array_dim *s1;
   unsigned long bas0 = 0;
   int i, ndim = 1;
   int exact = 2			/* 4 */ ;	/* Don't care about values >2 (yet?) */
@@ -1912,8 +1912,8 @@ static int
 raeql (SCM ra0,SCM as_equal,SCM ra1)
 {
   SCM v0 = ra0, v1 = ra1;
-  scm_array_dim_t dim0, dim1;
-  scm_array_dim_t *s0 = &dim0, *s1 = &dim1;
+  scm_t_array_dim dim0, dim1;
+  scm_t_array_dim *s0 = &dim0, *s1 = &dim1;
   unsigned long bas0 = 0, bas1 = 0;
   int k, unroll = 1, vlen = 1, ndim = 1;
   if (SCM_ARRAYP (ra0))

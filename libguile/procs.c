@@ -60,7 +60,7 @@
 /* {Procedures}
  */
 
-scm_subr_entry_t *scm_subr_table;
+scm_t_subr_entry *scm_subr_table;
 
 /* libguile contained approx. 700 primitive procedures on 24 Aug 1999. */
 
@@ -81,8 +81,8 @@ scm_c_make_subr (const char *name, long type, SCM (*fcn) ())
       long new_size = scm_subr_table_room * 3 / 2;
       void *new_table
 	= scm_must_realloc ((char *) scm_subr_table,
-			    sizeof (scm_subr_entry_t) * scm_subr_table_room,
-			    sizeof (scm_subr_entry_t) * new_size, 
+			    sizeof (scm_t_subr_entry) * scm_subr_table_room,
+			    sizeof (scm_t_subr_entry) * new_size, 
 			    "scm_subr_table");
       scm_subr_table = new_table;
       scm_subr_table_room = new_size;
@@ -160,7 +160,7 @@ scm_mark_subr_table ()
 SCM 
 scm_makcclo (SCM proc, size_t len)
 {
-  scm_bits_t *base = scm_must_malloc (len * sizeof (scm_bits_t), "compiled-closure");
+  scm_t_bits *base = scm_must_malloc (len * sizeof (scm_t_bits), "compiled-closure");
   unsigned long i;
   SCM s;
 
@@ -390,8 +390,8 @@ void
 scm_init_subr_table ()
 {
   scm_subr_table
-    = ((scm_subr_entry_t *)
-       scm_must_malloc (sizeof (scm_subr_entry_t) * scm_subr_table_room,
+    = ((scm_t_subr_entry *)
+       scm_must_malloc (sizeof (scm_t_subr_entry) * scm_subr_table_room,
 			"scm_subr_table"));
 }
 

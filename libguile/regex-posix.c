@@ -91,7 +91,7 @@
 #define REG_BASIC 0
 #endif
 
-scm_bits_t scm_tc16_regex;
+scm_t_bits scm_tc16_regex;
 
 static size_t
 regex_free (SCM obj)

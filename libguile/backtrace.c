@@ -247,8 +247,8 @@ scm_i_display_error (SCM stack, SCM port, SCM subr, SCM message, SCM args, SCM r
   data.mode = "error";
   data.port = port;
   scm_internal_catch (SCM_BOOL_T,
-		      (scm_catch_body_t) display_error_body, &a,
-		      (scm_catch_handler_t) display_error_handler, &data);
+		      (scm_t_catch_body) display_error_body, &a,
+		      (scm_t_catch_handler) display_error_handler, &data);
 }
 
 
@@ -339,7 +339,7 @@ display_frame_expr (char *hdr,SCM exp,char *tlr,int indentation,SCM sport,SCM po
 {
   SCM string;
   int i = 0, n;
-  scm_ptob_descriptor_t *ptob = scm_ptobs + SCM_PTOBNUM (sport);
+  scm_t_ptob_descriptor *ptob = scm_ptobs + SCM_PTOBNUM (sport);
   do
     {
       pstate->length = print_params[i].length;
@@ -720,8 +720,8 @@ SCM_DEFINE (scm_display_backtrace, "display-backtrace", 2, 2, 0,
   data.mode = "backtrace";
   data.port = port;
   scm_internal_catch (SCM_BOOL_T,
-		      (scm_catch_body_t) display_backtrace_body, &a,
-		      (scm_catch_handler_t) display_error_handler, &data);
+		      (scm_t_catch_body) display_backtrace_body, &a,
+		      (scm_t_catch_handler) display_error_handler, &data);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME

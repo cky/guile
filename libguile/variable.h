@@ -54,7 +54,7 @@
 
 /* Variables 
  */
-extern scm_bits_t scm_tc16_variable;
+extern scm_t_bits scm_tc16_variable;
 
 #define SCM_VARIABLEP(X)   	SCM_SMOB_PREDICATE (scm_tc16_variable, X)
 

@@ -209,9 +209,9 @@ scheme_launch_thread (void *p)
   data.rootcont = SCM_BOOL_F;
   data.body = SCM_CADR (argl);
   data.handler = SCM_CADDR (argl);
-  scm_internal_cwdr ((scm_catch_body_t) scheme_body_bootstrip,
+  scm_internal_cwdr ((scm_t_catch_body) scheme_body_bootstrip,
 		     &data,
-		     (scm_catch_handler_t) scheme_handler_bootstrip,
+		     (scm_t_catch_handler) scheme_handler_bootstrip,
 		     &data,
 		     (SCM_STACKITEM *) &thread);
   SCM_SET_CELL_WORD_1 (thread, 0);
@@ -269,7 +269,7 @@ scm_call_with_new_thread (SCM argl)
        argl variable may not exist in memory when the thread starts.  */
     t = coop_create (scheme_launch_thread, (void *) argl);
     t->data = SCM_ROOT_STATE (root);
-    SCM_SET_CELL_WORD_1 (thread, (scm_bits_t) t);
+    SCM_SET_CELL_WORD_1 (thread, (scm_t_bits) t);
     scm_thread_count++;
     /* Note that the following statement also could cause coop_yield.*/
     SCM_ALLOW_INTS;
@@ -293,9 +293,9 @@ typedef struct c_launch_data {
     SCM thread;
     SCM rootcont;
   } u;
-  scm_catch_body_t body;
+  scm_t_catch_body body;
   void *body_data;
-  scm_catch_handler_t handler;
+  scm_t_catch_handler handler;
   void *handler_data;
 } c_launch_data;
 
@@ -323,9 +323,9 @@ c_launch_thread (void *p)
   /* We must use the address of `thread', otherwise the compiler will
      optimize it away.  This is OK since the longest SCM_STACKITEM
      also is a long.  */
-  scm_internal_cwdr ((scm_catch_body_t) c_body_bootstrip,
+  scm_internal_cwdr ((scm_t_catch_body) c_body_bootstrip,
 		     data,
-		     (scm_catch_handler_t) c_handler_bootstrip,
+		     (scm_t_catch_handler) c_handler_bootstrip,
 		     data,
 		     (SCM_STACKITEM *) &thread);
   scm_thread_count--;
@@ -333,8 +333,8 @@ c_launch_thread (void *p)
 }
 
 SCM
-scm_spawn_thread (scm_catch_body_t body, void *body_data,
-		  scm_catch_handler_t handler, void *handler_data)
+scm_spawn_thread (scm_t_catch_body body, void *body_data,
+		  scm_t_catch_handler handler, void *handler_data)
 {
   SCM thread;
   coop_t *t;
@@ -362,7 +362,7 @@ scm_spawn_thread (scm_catch_body_t body, void *body_data,
   t = coop_create (c_launch_thread, (void *) data);
   
   t->data = SCM_ROOT_STATE (root);
-  SCM_SET_CELL_WORD_1 (thread, (scm_bits_t) t);
+  SCM_SET_CELL_WORD_1 (thread, (scm_t_bits) t);
   scm_thread_count++;
   /* Note that the following statement also could cause coop_yield.*/
   SCM_ALLOW_INTS;
@@ -423,7 +423,7 @@ scm_make_mutex (void)
   SCM m;
   coop_m *data = (coop_m *) scm_must_malloc (sizeof (coop_m), "mutex");
 
-  SCM_NEWSMOB (m, scm_tc16_mutex, (scm_bits_t) data);
+  SCM_NEWSMOB (m, scm_tc16_mutex, (scm_t_bits) data);
   coop_mutex_init (data);
   return m;
 }
@@ -454,7 +454,7 @@ scm_make_condition_variable (void)
 {
   SCM c;
   coop_c *data = (coop_c *) scm_must_malloc (sizeof (coop_c), "condvar");
-  SCM_NEWSMOB (c, scm_tc16_condvar, (scm_bits_t) data);
+  SCM_NEWSMOB (c, scm_tc16_condvar, (scm_t_bits) data);
   coop_condition_variable_init (SCM_CONDVAR_DATA (c));
   return c;
 }

@@ -51,7 +51,7 @@
 
 
 
-typedef struct scm_option_t
+typedef struct scm_t_option
 {
   int type;
   char *name;
@@ -62,10 +62,10 @@ typedef struct scm_option_t
   unsigned long val;
   /* SCM val */
   char *doc;
-} scm_option_t;
+} scm_t_option;
 
 #if (SCM_DEBUG_DEPRECATED == 0)
-# define scm_option scm_option_t
+# define scm_option scm_t_option
 #endif
 
 #define SCM_OPTION_BOOLEAN 0
@@ -73,8 +73,8 @@ typedef struct scm_option_t
 #define SCM_OPTION_SCM     2
 
 
-extern SCM scm_options (SCM new_mode, scm_option_t options[], int n, const char *s);
-extern void scm_init_opts (SCM (*func) (SCM), scm_option_t options[], int n);
+extern SCM scm_options (SCM new_mode, scm_t_option options[], int n, const char *s);
+extern void scm_init_opts (SCM (*func) (SCM), scm_t_option options[], int n);
 extern void scm_init_options (void);
 
 #endif /* OPTIONSH */

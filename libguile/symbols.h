@@ -98,7 +98,7 @@ extern void scm_init_symbols (void);
 
 #define SCM_CHARS(x) ((char *) (SCM_CELL_WORD_1 (x)))
 #define SCM_UCHARS(x) ((unsigned char *) (SCM_CELL_WORD_1 (x)))
-#define SCM_SETCHARS(x, v) (SCM_SET_CELL_WORD_1 ((x), (scm_bits_t) (v)))
+#define SCM_SETCHARS(x, v) (SCM_SET_CELL_WORD_1 ((x), (scm_t_bits) (v)))
 #define SCM_SLOPPY_SUBSTRP(x) (SCM_SUBSTRP (x))
 #define SCM_SUBSTR_STR(x) (SCM_CDDR (x))
 #define SCM_SUBSTR_OFFSET(x) (SCM_CADR (x))

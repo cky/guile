@@ -87,8 +87,8 @@ gh_repl (int argc, char *argv[])
    error (or any thrown error if tag is SCM_BOOL_T); see
    ../libguile/throw.c for the comments explaining scm_internal_catch */
 SCM 
-gh_catch (SCM tag, scm_catch_body_t body, void *body_data,
-	  scm_catch_handler_t handler, void *handler_data)
+gh_catch (SCM tag, scm_t_catch_body body, void *body_data,
+	  scm_t_catch_handler handler, void *handler_data)
 {
   return scm_internal_catch (tag, body, body_data, handler, handler_data);
 }

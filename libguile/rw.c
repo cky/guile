@@ -233,7 +233,7 @@ SCM_DEFINE (scm_write_string_partial, "write-string/partial", 1, 3, 0,
   else
     {
       SCM port = SCM_UNBNDP (port_or_fdes) ? scm_cur_outp : port_or_fdes;
-      scm_port_t *pt;
+      scm_t_port *pt;
       off_t space;
 
       SCM_VALIDATE_OPFPORT (2, port);

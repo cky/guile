@@ -143,7 +143,7 @@ typedef struct coop_m {
 
 typedef int coop_mattr;
 
-typedef coop_m scm_mutex_t;
+typedef coop_m scm_t_mutex;
 
 extern int coop_mutex_init (coop_m*);
 extern int coop_new_mutex_init (coop_m*, coop_mattr*);
@@ -153,7 +153,7 @@ extern int coop_mutex_unlock (coop_m*);
 extern int coop_mutex_destroy (coop_m*);
 #define scm_mutex_init coop_mutex_init
 #define scm_mutex_lock coop_mutex_lock
-#define scm_mutex_trylock coop_mutex_lock
+#define scm_t_mutexrylock coop_mutex_lock
 #define scm_mutex_unlock coop_mutex_unlock
 #define scm_mutex_destroy coop_mutex_destroy
 
@@ -166,7 +166,7 @@ typedef struct coop_c {
 
 typedef int coop_cattr;
 
-typedef coop_c scm_cond_t;
+typedef coop_c scm_t_cond;
 
 #ifndef HAVE_STRUCT_TIMESPEC
 /* POSIX.4 structure for a time value.  This is like a `struct timeval' but
@@ -188,14 +188,14 @@ extern int coop_condition_variable_signal (coop_c*);
 extern int coop_condition_variable_destroy (coop_c*);
 #define scm_cond_init coop_new_condition_variable_init
 #define scm_cond_wait coop_condition_variable_wait_mutex
-#define scm_cond_timedwait coop_condition_variable_timed_wait_mutex
+#define scm_t_condimedwait coop_condition_variable_timed_wait_mutex
 #define scm_cond_signal coop_condition_variable_signal
 #define scm_cond_broadcast coop_condition_variable_signal /* yes */
 #define scm_cond_destroy coop_condition_variable_destroy
 
 typedef int coop_k;
 
-typedef coop_k scm_key_t;
+typedef coop_k scm_t_key;
 
 extern int coop_key_create (coop_k *keyp, void (*destruktor) (void *value));
 extern int coop_setspecific (coop_k key, const void *value);

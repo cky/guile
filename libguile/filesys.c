@@ -686,7 +686,7 @@ SCM_DEFINE (scm_rmdir, "rmdir", 1, 0, 0,
 /* {Examining Directories}
  */
 
-scm_bits_t scm_tc16_dir;
+scm_t_bits scm_tc16_dir;
 
 
 SCM_DEFINE (scm_directory_stream_p, "directory-stream?", 1, 0, 0, 
@@ -879,7 +879,7 @@ set_element (SELECT_TYPE *set, SCM *ports_ready, SCM element, int pos)
       if (pos == SCM_ARG1)
 	{
 	  /* check whether port has buffered input.  */
-	  scm_port_t *pt = SCM_PTAB_ENTRY (element);
+	  scm_t_port *pt = SCM_PTAB_ENTRY (element);
       
 	  if (pt->read_pos < pt->read_end)
 	    use_buf = 1;
@@ -887,7 +887,7 @@ set_element (SELECT_TYPE *set, SCM *ports_ready, SCM element, int pos)
       else if (pos == SCM_ARG2)
 	{
 	  /* check whether port's output buffer has room.  */
-	  scm_port_t *pt = SCM_PTAB_ENTRY (element);
+	  scm_t_port *pt = SCM_PTAB_ENTRY (element);
 
 	  /* > 1 since writing the last byte in the buffer causes flush.  */
 	  if (pt->write_end - pt->write_pos > 1)

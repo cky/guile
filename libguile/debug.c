@@ -147,7 +147,7 @@ SCM_SYMBOL (scm_sym_source, "source");
 /* {Memoized Source}
  */
 
-scm_bits_t scm_tc16_memoized;
+scm_t_bits scm_tc16_memoized;
 
 static int
 memoized_print (SCM obj, SCM port, scm_print_state *pstate)
@@ -521,8 +521,8 @@ SCM
 scm_start_stack (SCM id, SCM exp, SCM env)
 {
   SCM answer;
-  scm_debug_frame_t vframe;
-  scm_debug_info_t vframe_vect_body;
+  scm_t_debug_frame vframe;
+  scm_t_debug_info vframe_vect_body;
   vframe.prev = scm_last_debug_frame;
   vframe.status = SCM_VOIDFRAME;
   vframe.vect = &vframe_vect_body;
@@ -554,7 +554,7 @@ scm_m_start_stack (SCM exp, SCM env)
  * The debugging evaluator throws these on frame traps.
  */
 
-scm_bits_t scm_tc16_debugobj;
+scm_t_bits scm_tc16_debugobj;
 
 static int
 debugobj_print (SCM obj, SCM port, scm_print_state *pstate SCM_UNUSED)
@@ -576,7 +576,7 @@ SCM_DEFINE (scm_debug_object_p, "debug-object?", 1, 0, 0,
 
 
 SCM
-scm_make_debugobj (scm_debug_frame_t *frame)
+scm_make_debugobj (scm_t_debug_frame *frame)
 {
   register SCM z;
   SCM_NEWCELL (z);

@@ -66,7 +66,7 @@
  */
 
 void
-scm_c_hook_init (scm_c_hook_t *hook, void *hook_data, scm_c_hook_type_t type)
+scm_c_hook_init (scm_t_c_hook *hook, void *hook_data, scm_t_c_hookype_t type)
 {
   hook->first = 0;
   hook->type = type;
@@ -74,14 +74,14 @@ scm_c_hook_init (scm_c_hook_t *hook, void *hook_data, scm_c_hook_type_t type)
 }
 
 void
-scm_c_hook_add (scm_c_hook_t *hook,
-		scm_c_hook_function_t func,
+scm_c_hook_add (scm_t_c_hook *hook,
+		scm_t_c_hook_function func,
 		void *func_data, 
 		int appendp)
 {
-  scm_c_hook_entry_t *entry = scm_must_malloc (sizeof (scm_c_hook_entry_t),
+  scm_t_c_hook_entry *entry = scm_must_malloc (sizeof (scm_t_c_hook_entry),
 					     "C level hook entry");
-  scm_c_hook_entry_t **loc = &hook->first;
+  scm_t_c_hook_entry **loc = &hook->first;
   if (appendp)
     while (*loc)
       *loc = (*loc)->next;
@@ -92,16 +92,16 @@ scm_c_hook_add (scm_c_hook_t *hook,
 }
 
 void
-scm_c_hook_remove (scm_c_hook_t *hook,
-		   scm_c_hook_function_t func,
+scm_c_hook_remove (scm_t_c_hook *hook,
+		   scm_t_c_hook_function func,
 		   void *func_data)
 {
-  scm_c_hook_entry_t **loc = &hook->first;
+  scm_t_c_hook_entry **loc = &hook->first;
   while (*loc)
     {
       if ((*loc)->func == func && (*loc)->data == func_data)
 	{
-	  scm_c_hook_entry_t *entry = *loc;
+	  scm_t_c_hook_entry *entry = *loc;
 	  *loc = (*loc)->next;
 	  scm_must_free (entry);
 	  return;
@@ -113,10 +113,10 @@ scm_c_hook_remove (scm_c_hook_t *hook,
 }
 
 void *
-scm_c_hook_run (scm_c_hook_t *hook, void *data)
+scm_c_hook_run (scm_t_c_hook *hook, void *data)
 {
-  scm_c_hook_entry_t *entry = hook->first;
-  scm_c_hook_type_t type = hook->type;
+  scm_t_c_hook_entry *entry = hook->first;
+  scm_t_c_hookype_t type = hook->type;
   void *res = 0;
   while (entry)
     {
@@ -147,7 +147,7 @@ scm_c_hook_run (scm_c_hook_t *hook, void *data)
  * programs.
  */
 
-scm_bits_t scm_tc16_hook;
+scm_t_bits scm_tc16_hook;
 
 
 static int

@@ -51,7 +51,7 @@
 
 
 extern int scm_module_system_booted_p;
-extern scm_bits_t scm_module_tag;
+extern scm_t_bits scm_module_tag;
 
 #define SCM_MODULEP(OBJ) \
   (!SCM_IMP (OBJ) && SCM_CELL_TYPE (OBJ) == scm_module_tag)
@@ -79,7 +79,7 @@ extern scm_bits_t scm_module_tag;
 #define SCM_MODULE_TRANSFORMER(module) \
   SCM_PACK (SCM_STRUCT_DATA (module)[scm_module_index_transformer])
 
-extern scm_bits_t scm_tc16_eval_closure;
+extern scm_t_bits scm_tc16_eval_closure;
 
 #define SCM_EVAL_CLOSURE_P(x)	SCM_TYP16_PREDICATE (scm_tc16_eval_closure, x)
 

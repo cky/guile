@@ -48,9 +48,9 @@
 
 
 #if 0
-typedef unsigned int scm_hash_fn_t (SCM obj, unsigned int d, void *closure);
-typedef SCM scm_assoc_fn_t (SCM key, SCM alist, void *closure);
-typedef SCM scm_delete_fn_t (SCM elt, SCM list);
+typedef unsigned int scm_t_hash_fn (SCM obj, unsigned int d, void *closure);
+typedef SCM scm_t_assoc_fn (SCM key, SCM alist, void *closure);
+typedef SCM scm_t_delete_fn (SCM elt, SCM list);
 #endif
 
 extern SCM scm_c_make_hash_table (unsigned long k);

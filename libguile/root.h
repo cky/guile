@@ -80,7 +80,7 @@ extern SCM scm_sys_protects[];
 
 
 
-extern scm_bits_t scm_tc16_root;
+extern scm_t_bits scm_tc16_root;
 
 #define SCM_ROOTP(obj)       SCM_TYP16_PREDICATE (scm_tc16_root, obj)
 #define SCM_ROOT_STATE(root) ((scm_root_state *) SCM_CELL_WORD_1 (root))
@@ -97,7 +97,7 @@ typedef struct scm_root_state
   SCM continuation_stack_ptr;
 #ifdef DEBUG_EXTENSIONS
   /* It is very inefficient to have this variable in the root state. */
-  scm_debug_frame_t *last_debug_frame;
+  scm_t_debug_frame *last_debug_frame;
 #endif
 
   SCM progargs;			/* vestigial */
@@ -149,9 +149,9 @@ extern struct scm_root_state *scm_root;
 
 
 extern SCM scm_make_root (SCM parent);
-extern SCM scm_internal_cwdr (scm_catch_body_t body,
+extern SCM scm_internal_cwdr (scm_t_catch_body body,
                               void *body_data,
-                              scm_catch_handler_t handler,
+                              scm_t_catch_handler handler,
                               void *handler_data,
                               SCM_STACKITEM *stack_start);
 extern SCM scm_call_with_dynamic_root (SCM thunk, SCM handler);

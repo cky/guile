@@ -366,17 +366,17 @@ SCM_DEFINE (scm_hash_remove_x, "hash-remove!", 2, 0, 0,
 
 
 
-typedef struct scm_ihashx_closure_t
+typedef struct scm_t_ihashx_closure
 {
   SCM hash;
   SCM assoc;
   SCM delete;
-} scm_ihashx_closure_t;
+} scm_t_ihashx_closure;
 
 
 
 static unsigned long
-scm_ihashx (SCM obj, unsigned long n, scm_ihashx_closure_t *closure)
+scm_ihashx (SCM obj, unsigned long n, scm_t_ihashx_closure *closure)
 {
   SCM answer;
   SCM_DEFER_INTS;
@@ -390,7 +390,7 @@ scm_ihashx (SCM obj, unsigned long n, scm_ihashx_closure_t *closure)
 
 
 static SCM
-scm_sloppy_assx (SCM obj, SCM alist, scm_ihashx_closure_t *closure)
+scm_sloppy_assx (SCM obj, SCM alist, scm_t_ihashx_closure *closure)
 {
   SCM answer;
   SCM_DEFER_INTS;
@@ -405,7 +405,7 @@ scm_sloppy_assx (SCM obj, SCM alist, scm_ihashx_closure_t *closure)
 
 
 static SCM
-scm_delx_x (SCM obj, SCM alist, scm_ihashx_closure_t *closure)
+scm_delx_x (SCM obj, SCM alist, scm_t_ihashx_closure *closure)
 {
   SCM answer;
   SCM_DEFER_INTS;
@@ -428,7 +428,7 @@ SCM_DEFINE (scm_hashx_get_handle, "hashx-get-handle", 4, 0, 0,
 	    "@code{assoc}, @code{assq} or @code{assv}.")
 #define FUNC_NAME s_scm_hashx_get_handle
 {
-  scm_ihashx_closure_t closure;
+  scm_t_ihashx_closure closure;
   closure.hash = hash;
   closure.assoc = assoc;
   return scm_hash_fn_get_handle (table, key, scm_ihashx, scm_sloppy_assx,
@@ -447,7 +447,7 @@ SCM_DEFINE (scm_hashx_create_handle_x, "hashx-create-handle!", 5, 0, 0,
 	    "@code{assoc}, @code{assq} or @code{assv}.")
 #define FUNC_NAME s_scm_hashx_create_handle_x
 {
-  scm_ihashx_closure_t closure;
+  scm_t_ihashx_closure closure;
   closure.hash = hash;
   closure.assoc = assoc;
   return scm_hash_fn_create_handle_x (table, key, init, scm_ihashx,
@@ -470,7 +470,7 @@ SCM_DEFINE (scm_hashx_ref, "hashx-ref", 4, 1, 0,
 	    "equivalent to @code{hashx-ref hashq assq table key}.")
 #define FUNC_NAME s_scm_hashx_ref
 {
-  scm_ihashx_closure_t closure;
+  scm_t_ihashx_closure closure;
   if (SCM_UNBNDP (dflt))
     dflt = SCM_BOOL_F;
   closure.hash = hash;
@@ -496,7 +496,7 @@ SCM_DEFINE (scm_hashx_set_x, "hashx-set!", 5, 0, 0,
 	    "equivalent to @code{hashx-set!  hashq assq table key}.")
 #define FUNC_NAME s_scm_hashx_set_x
 {
-  scm_ihashx_closure_t closure;
+  scm_t_ihashx_closure closure;
   closure.hash = hash;
   closure.assoc = assoc;
   return scm_hash_fn_set_x (table, key, val, scm_ihashx, scm_sloppy_assx,
@@ -509,7 +509,7 @@ SCM_DEFINE (scm_hashx_set_x, "hashx-set!", 5, 0, 0,
 SCM
 scm_hashx_remove_x (SCM hash, SCM assoc, SCM delete, SCM table, SCM obj)
 {
-  scm_ihashx_closure_t closure;
+  scm_t_ihashx_closure closure;
   closure.hash = hash;
   closure.assoc = assoc;
   closure.delete = delete;

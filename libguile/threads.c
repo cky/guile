@@ -70,9 +70,9 @@
 
 
 
-scm_bits_t scm_tc16_thread;
-scm_bits_t scm_tc16_mutex;
-scm_bits_t scm_tc16_condvar;
+scm_t_bits scm_tc16_thread;
+scm_t_bits scm_tc16_mutex;
+scm_t_bits scm_tc16_condvar;
 
 
 /* Scheme-visible thread functions. */
