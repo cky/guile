@@ -24,6 +24,9 @@
 	* numbers.c (scm_less_p): Don't convert frac to float for compares,
 	can give bad results due to rounding.
 	
+	* stime.c (scm_current_time, scm_gettimeofday): Add a comment about
+	setzone/restorezone protection for DOS.
+
 2003-12-26  Marius Vollmer  <mvo@zagadka.de>
 
 	* gen-scmconfig.h.in, gen-scmconfig.c: Arrange for scm_t_intmax
