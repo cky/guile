@@ -1,3 +1,7 @@
+2003-04-16  Mikael Djurfeldt  <mdj@kvast.blakulla.net>
+
+	* feature.c (scm_init_feature): Always add threads feature.
+
 2003-04-15  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* goops.c (scm_sys_fast_slot_ref): Use SCM_SLOT instead of

@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,1999,2000,2001,2002 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001,2002, 2003 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -96,9 +96,7 @@ scm_init_feature()
 #ifndef CHEAP_CONTINUATIONS
   scm_add_feature ("full-continuation");
 #endif
-#if SCM_USE_NULL_THREADS
   scm_add_feature ("threads");
-#endif
   
   scm_c_define ("char-code-limit", SCM_MAKINUM (SCM_CHAR_CODE_LIMIT));
 
