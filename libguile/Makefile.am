@@ -26,7 +26,8 @@ libguile_la_SOURCES = \
     readline.c root.c scmsigs.c script.c simpos.c smob.c socket.c \
     stackchk.c stime.c strings.c strop.c strorder.c strports.c \
     struct.c symbols.c tag.c throw.c unif.c variable.c vectors.c \
-    version.c vports.c weaks.c fluids.c
+    version.c vports.c weaks.c fluids.c \
+    backtrace.c stacks.c debug.c srcprop.c
 
 BUILT_SOURCES = \
     cpp_err_symbols.c cpp_sig_symbols.c libpath.h versiondat.h \
@@ -46,7 +47,6 @@ BUILT_SOURCES = \
     regex-posix.x iselect.x
 
 EXTRA_libguile_la_SOURCES = _scm.h \
-    backtrace.c stacks.c debug.c srcprop.c \
     strerror.c inet_aton.c putenv.c \
     threads.c alloca.c \
     regex-posix.c iselect.c
