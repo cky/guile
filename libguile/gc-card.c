@@ -99,7 +99,7 @@ scm_i_sweep_card (scm_t_cell *  p, SCM *free_list, scm_t_heap_segment*seg)
    */
   for (p += offset; p < end; p += span, offset += span)
     {
-      SCM scmptr = PTR2SCM(p);
+      SCM scmptr = PTR2SCM (p);
       if (SCM_C_BVEC_GET (bitvec, offset))
         continue;
 
@@ -109,12 +109,12 @@ scm_i_sweep_card (scm_t_cell *  p, SCM *free_list, scm_t_heap_segment*seg)
 	  /* The card can be swept more than once.  Check that it's
 	   * the first time!
 	   */
-	  if (!SCM_STRUCT_GC_CHAIN (p))
+	  if (!SCM_STRUCT_GC_CHAIN (scmptr))
 	    {
 	      /* Structs need to be freed in a special order.
 	       * This is handled by GC C hooks in struct.c.
 	       */
-	      SCM_SET_STRUCT_GC_CHAIN (p, scm_i_structs_to_free);
+	      SCM_SET_STRUCT_GC_CHAIN (scmptr, scm_i_structs_to_free);
 	      scm_i_structs_to_free = scmptr;
 	    }
 	  continue;
@@ -281,9 +281,9 @@ scm_i_sweep_card (scm_t_cell *  p, SCM *free_list, scm_t_heap_segment*seg)
 	}
 
 	  
-      SCM_SET_CELL_TYPE (p, scm_tc_free_cell);
-      SCM_SET_FREE_CELL_CDR (p, PTR2SCM (*free_list));
-      *free_list = PTR2SCM (p);
+      SCM_SET_CELL_TYPE (scmptr, scm_tc_free_cell);
+      SCM_SET_FREE_CELL_CDR (scmptr, PTR2SCM (*free_list));
+      *free_list = scmptr;
       free_count ++;
     }
 
@@ -315,9 +315,10 @@ scm_i_init_card_freelist (scm_t_cell *  card, SCM *free_list,
    */
   for (; p > card;  p -= span)
     {
-      SCM_SET_CELL_TYPE (p, scm_tc_free_cell);
-      SCM_SET_FREE_CELL_CDR (p, PTR2SCM (*free_list));
-      *free_list = PTR2SCM (p);
+      const SCM scmptr = PTR2SCM (p);
+      SCM_SET_CELL_TYPE (scmptr, scm_tc_free_cell);
+      SCM_SET_FREE_CELL_CDR (scmptr, PTR2SCM (*free_list));
+      *free_list = scmptr;
     }
 
   return SCM_GC_CARD_N_CELLS - SCM_MAX(span, SCM_GC_CARD_N_HEADER_CELLS);
