@@ -1,4 +1,4 @@
-;;;; 	Copyright (C) 1996, 1998, 2001 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1996, 1998, 2001, 2002 Free Software Foundation, Inc.
 ;;;;
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -67,7 +67,6 @@
 
 (define (%thread-handler tag . args)
   (fluid-set! the-last-stack #f)
-  (unmask-signals)
   (let ((n (length args))
 	(p (current-error-port)))
     (display "In thread:" p)
