@@ -69,6 +69,8 @@ typedef struct scm_i_thread {
   */
   SCM freelist, freelist2;
   int clear_freelists_p; /* set if GC was done while thread was asleep */
+  int gc_running_p;      /* non-zero while this thread does GC or a
+			    sweep. */
 
   /* Other thread local things.
    */
