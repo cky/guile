@@ -1,3 +1,8 @@
+2002-03-13  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* Makefile.am (snarfcppopts): New var.
+	(.c.x): Use $(snarfcppopts). Rework guile-snarf usage.
+
 2002-02-27  Stefan Jahn  <stefan@lkcc.org>
 
 	* Makefile.am (EXTRA_DIST): Added the `LIBGUILEREADLINE-VERSION'
