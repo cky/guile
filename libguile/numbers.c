@@ -1483,7 +1483,11 @@ SCM_DEFINE (scm_logbit_p, "logbit?", 2, 0, 0,
   iindex = (unsigned long int) SCM_INUM (index);
 
   if (SCM_INUMP (j))
-    return SCM_BOOL ((1L << iindex) & SCM_INUM (j));
+    {
+      /* bits above what's in an inum follow the sign bit */
+      iindex = min (iindex, LONG_BIT-1);
+      return SCM_BOOL ((1L << iindex) & SCM_INUM (j));
+    }
   else if (SCM_BIGP (j))
     {
       int val = mpz_tstbit (SCM_I_BIG_MPZ (j), iindex);
