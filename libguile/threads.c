@@ -341,7 +341,7 @@ really_launch (SCM_STACKITEM *base, launch_data *data)
 		       data,
 		       (scm_t_catch_handler) handler_bootstrip,
 		       data, base);
-  scm_i_plugin_mutex_unlock (&t->heap_mutex); /* release the heap */
+  scm_i_leave_guile (); /* release the heap */
   free (data);
 
   scm_i_plugin_mutex_lock (&thread_admin_mutex);
