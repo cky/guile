@@ -77,17 +77,17 @@ display_header (source, port)
      SCM port;
 {
   SCM fname = (SCM_NIMP (source) && SCM_MEMOIZEDP (source)
-	       ? scm_source_property (source, scm_i_filename)
+	       ? scm_source_property (source, scm_sym_filename)
 	       : SCM_BOOL_F);
   if (SCM_NIMP (fname) && SCM_STRINGP (fname))
     {
       scm_prin1 (fname, port, 0);
       scm_putc (':', port);
-      scm_intprint (SCM_INUM (scm_source_property (source, scm_i_line)) + 1,
+      scm_intprint (SCM_INUM (scm_source_property (source, scm_sym_line)) + 1,
 		    10,
 		    port);
       scm_putc (':', port);
-      scm_intprint (SCM_INUM (scm_source_property (source, scm_i_column)) + 1,
+      scm_intprint (SCM_INUM (scm_source_property (source, scm_sym_column)) + 1,
 		    10,
 		    port);
     }
@@ -400,7 +400,7 @@ display_frame (frame, nfield, indentation, sport, port, pstate)
     {
       SCM source = SCM_FRAME_SOURCE (frame);
       SCM copy = (SCM_NIMP (source) && SCM_CONSP (source) 
-		  ? scm_source_property (source, scm_i_copy)
+		  ? scm_source_property (source, scm_sym_copy)
 		  : SCM_BOOL_F);
       SCM umcopy = (SCM_NIMP (source) && SCM_MEMOIZEDP (source)
 		    ? scm_unmemoize (source)
