@@ -63,7 +63,7 @@
    read_buf/read_end in principle point to the part of the string which
    has been written to, but this is only updated after a flush.
    read_pos and write_pos in principle should be equal, but this is only true
-   when rw_active is 0.
+   when rw_active is SCM_PORT_NEITHER.
 */
 
 static int
@@ -117,7 +117,7 @@ st_flush (SCM port)
       pt->read_end = (unsigned char *) pt->read_pos;
       pt->read_buf_size = pt->read_end - pt->read_buf;
     }
-  pt->rw_active = 0;
+  pt->rw_active = SCM_PORT_NEITHER;
 }
 
 static void
@@ -146,7 +146,7 @@ st_end_input (SCM port, int offset)
   scm_port *pt = SCM_PTAB_ENTRY (port);
 
   pt->write_pos = (unsigned char *) pt->read_pos;
-  pt->rw_active = 0;
+  pt->rw_active = SCM_PORT_NEITHER;
 }
 
 static off_t

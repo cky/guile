@@ -562,7 +562,7 @@ fport_flush (SCM port)
       remaining -= count;
     }
   pt->write_pos = pt->write_buf;
-  pt->rw_active = 0;
+  pt->rw_active = SCM_PORT_NEITHER;
 }
 
 /* clear the read buffer and adjust the file position for unread bytes. */
@@ -582,7 +582,7 @@ fport_end_input (SCM port, int offset)
       if (lseek (fp->fdes, -offset, SEEK_CUR) == -1)
 	scm_syserror ("fport_end_input");
     }
-  pt->rw_active = 0;
+  pt->rw_active = SCM_PORT_NEITHER;
 }
 
 static int

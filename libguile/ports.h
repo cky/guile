@@ -55,6 +55,13 @@
 
 #define SCM_INITIAL_PUTBACK_BUF_SIZE 4
 
+/* values for the rw_active flag.  */
+enum scm_port_rw_active {
+  SCM_PORT_NEITHER = 0,
+  SCM_PORT_READ = 1,
+  SCM_PORT_WRITE = 2
+};
+
 /* C representation of a Scheme port.  */
 
 typedef struct 
@@ -111,19 +118,17 @@ typedef struct
 				   must be flushed before switching between
 				   reading and writing.  */
 
-  int rw_active;                /* for bidirectional random ports, indicates
-				   which of the buffers is currently in use.
-				   can be SCM_PORT_WRITE, SCM_PORT_READ,
+  enum scm_port_rw_active rw_active; /* for bidirectional random
+				   ports, indicates which of the
+				   buffers is currently in use.  can
+				   be SCM_PORT_WRITE, SCM_PORT_READ,
 				   or 0.  */
+
 
   /* a buffer for un-read chars and strings.  */
   unsigned char *putback_buf;
   int putback_buf_size;        /* allocated size of putback_buf.  */
 } scm_port;
-
-/* values for the rw_active flag.  */
-#define SCM_PORT_READ 1
-#define SCM_PORT_WRITE 2
 
 extern scm_port **scm_port_table;
 extern int scm_port_table_size; /* Number of ports in scm_port_table.  */

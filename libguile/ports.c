@@ -388,7 +388,7 @@ scm_add_to_port_table (port)
   entry->column_number = 0;
   entry->putback_buf = 0;
   entry->putback_buf_size = 0;
-  entry->rw_active = 0;
+  entry->rw_active = SCM_PORT_NEITHER;
 
   scm_port_table[scm_port_table_size] = entry;
   scm_port_table_size++;
