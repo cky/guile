@@ -1,3 +1,7 @@
+2004-01-23  Marius Vollmer  <mvo@zagadka.de>
+
+	* Makefile.am (guile_TEXINFOS): Added fdl.texi.
+
 2004-01-21  Marius Vollmer  <mvo@zagadka.de>
 
 	Added copyright notices to all TeXinfo files.
