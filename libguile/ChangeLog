@@ -1,5 +1,7 @@
 2000-08-26  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
 
+	* gdbint.c (gdb_print): Removed superfluous macro definition.
+
 	* objects.c (scm_init_objects), print.c (scm_init_print), struct.c
 	(scm_init_struct): First arg to scm_make_vtable_vtable should be a
 	string, not a symbol.  (`make-vtable-vtable' needs to append this
