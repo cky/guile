@@ -1,3 +1,8 @@
+Wed Jul 23 20:13:04 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* boot-9.scm: If using emacs interface, enable backtraces
+	automatically.
+
 Mon Jul 21 06:45:45 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* boot-9.scm (dup->port, dup->inport, dup->outport, dup->fdes,

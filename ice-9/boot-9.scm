@@ -3909,7 +3909,10 @@
 
 (if (and (module-defined? the-root-module 'use-emacs-interface)
 	 use-emacs-interface)
-    (define-module (guile) :use-module (ice-9 emacs)))
+    (begin
+      (if (memq 'debug-extensions *features*)
+	  (debug-enable 'backtrace))
+      (define-module (guile) :use-module (ice-9 emacs))))
 
 
 ;;; {Load regexp code if regexp primitives are available.}
