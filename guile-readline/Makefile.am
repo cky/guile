@@ -45,10 +45,10 @@ pkginclude_HEADERS = readline.h
 ice9dir = $(datadir)/guile/$(VERSION)/ice-9
 ice9_DATA = readline.scm
 
+snarfcppopts = $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
 SUFFIXES = .x
 .c.x:
-	$(GUILE_SNARF) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< > $@ \
-	|| { rm $@; false; }
+	$(GUILE_SNARF) $< $(snarfcppopts)
 
 EXTRA_DIST = $(ice9_DATA) LIBGUILEREADLINE-VERSION
 ETAGS_ARGS = $(ice9_DATA)
