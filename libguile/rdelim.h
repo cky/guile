@@ -50,6 +50,8 @@ extern SCM scm_read_delimited_x (SCM delims, SCM buf, SCM gobble, SCM port,
 				 SCM offset, SCM length);
 extern SCM scm_read_line (SCM port);
 extern SCM scm_write_line (SCM obj, SCM port);
+extern SCM scm_init_rdelim_builtins (void);
+
 void scm_init_rdelim (void);
 
 #endif

@@ -282,28 +282,32 @@ SCM_DEFINE (scm_write_line, "write-line", 1, 1, 0,
 }
 #undef FUNC_NAME
 
-void 
-scm_init_rdelim (void)
+SCM
+scm_init_rdelim_builtins (void)
 {
-  SCM rdelim_module = scm_make_module (scm_read_0str ("(ice-9 rdelim)"));
-  SCM old_module = scm_set_current_module (rdelim_module);
-
 #ifndef SCM_MAGIC_SNARFER
 #include "libguile/rdelim.x"
 #endif
 
-  scm_set_current_module (old_module);
-
 #if DEBUG_DEPRECATED == 0
   {
+    SCM old_module = scm_current_module ();
     const char expr[] = "\
 (define-module (guile) :use-module (ice-9 rdelim))\
 (define-module (guile-user) :use-module (ice-9 rdelim))";
 
     scm_eval_string (scm_makfromstr (expr, (sizeof expr) - 1, 0));
+    scm_set_current_module (old_module);
   }
-  scm_set_current_module (old_module);
 #endif
+
+  return SCM_UNSPECIFIED;
+}
+
+void
+scm_init_rdelim (void)
+{
+  scm_make_gsubr ("%init-rdelim-builtins", 0, 0, 0, scm_init_rdelim_builtins);
 }
 
 /*
