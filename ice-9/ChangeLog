@@ -1,3 +1,9 @@
+2000-06-12  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* Makefile.am (ice9_sources): Removed getopt-gnu-style.scm.
+
+	* getopt-gnu-style.scm: Removed deprecated module.
+
 2000-06-11  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* boot-9.scm (make-autoload-interface): Set init value for uses to

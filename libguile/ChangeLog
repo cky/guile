@@ -1,3 +1,27 @@
+2000-06-12  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* snarf.h (SCM_SNARF_HERE, SCM_SNARF_INIT, SCM_SNARF_DOCS):
+	Renamed from SCM_HERE, SCM_INIT, SCM_DOCS.
+
+	* smob.h (scm_smobfuns): Removed deprecated type.
+
+	* smob.c, smob.h (scm_newsmob): Removed deprecated function.
+	(Replaced by `scm_make_smob_type'.)
+
+	* keywords.c (scm_tc16_kw): Removed deprecated type.
+	(Replaced by scm_tc16_keyword.)
+
+	* Makefile.am (modinclude_HEADERS): Removed kw.h.
+
+	* kw.h: Removed deprecated header file.
+
+	* evalext.c (serial-map): Removed deprected alias for scm_map.
+	(Has been replaced by `map-in-order'.)
+
+	* ramap.c (serial-array-copy!, serial-array-map!): Removed
+	depracted aliases.  (Replaced by `array-copy-in-order!' and
+	`array-map-in-order'.)
+
 2000-06-11  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* gc.h (SCM_VALIDATE_CELL): Rewritten.

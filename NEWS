@@ -84,12 +84,25 @@ their parent directories.  This essentially creates a "private name
 space" for Guile headers.  This means that the compiler only is given
 -I options for the root build and root source directory.
 
+** Header files kw.h and genio.h have been removed.
+
+** The module (ice-9 getopt-gnu-style) has been removed.
+
 * Changes to the stand-alone interpreter
 
 ** New help facility
 
-Typing (help) prints helpful information.
-Typing (help NAME) gives documentation about NAME.
+Usage: (help NAME) gives documentation about objects named NAME (a symbol)
+       (help REGEXP) ditto for objects with names matching REGEXP (a string)
+       (help ,EXPR) gives documentation for object returned by EXPR
+       (help) gives this text
+
+`help' searches among bindings exported from loaded modules, while
+`apropos' searches among bindings visible from the "current" module.
+
+Examples: (help help)
+          (help cons)
+          (help "output-string")
 
 ** Dynamic linking now uses libltdl from the libtool package.
 
@@ -197,6 +210,8 @@ only characters, for compatibility with R5RS.
 
 ** New procedure: port-closed? PORT
 Returns #t if PORT is closed or #f if it is open.
+
+** Removed deprecated: serial-map, serial-array-copy!, serial-array-map!
 
 * Changes to the gh_ interface
 
@@ -433,6 +448,12 @@ scm_before_gc_c_hook must not allocate new cells.)
 are run when the heap is locked.  These are intended for extension of
 the GC in a modular fashion.  Examples are the weaks and guardians
 modules.
+
+** Removed deprecated type scm_smobfuns
+
+** Removed deprecated function scm_newsmob
+
+** Removed deprecated type tag scm_tc16_kw
 
 * Changes to system call interfaces:
 

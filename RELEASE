@@ -7,14 +7,6 @@ absinthe, etc.  However, the first release containing the module
 system should be called Godot: "This is the one you've been waiting
 for."
 
-In release 1.4:
-- remove names evalext.c: serial-map,
-               ramap.c:   serial-array-copy!, serial-array-map!
-- remove module (ice-9 getopt-gnu-style)
-- remove kw.h, scm_tc16_kw
-- remove genio.h
-- remove deprecated function scm_newsmob.
-
 In release 1.5:
 - remove deprecated macros: SCM_INPORTP, SCM_OUTPORTP, SCM_CRDY, SCM_ICHRP,
   SCM_ICHR, SCM_MAKICHR, SCM_SETJMPBUF, SCM_NSTRINGP, SCM_NRWSTRINGP,
@@ -88,7 +80,7 @@ Spiffing checklist:
   directory.
 * Check for files that have changed a lot, but do not have up-to-date
   copyright notices.  This can be as simple as doing:
-	grep 'Copyright' * | grep -v 1999
+ 	grep 'Copyright' * | grep -v 1999
   and looking for files you know you've worked on a lot.
 * Make sure NEWS, INSTALL and the docs are up to date:
   + Scan the ChangeLogs for user-visible changes, marked with an asterisk
