@@ -1,5 +1,8 @@
 Thu Sep  5 11:38:07 1996  Jim Blandy  <jimb@floss.cyclic.com>
 
+	* Makefile.in (.c.x): Simplify; there's no need to run this rule
+	when scmconfig.h doesn't exist. 
+
 	* load.c (scm_sys_try_load): Correct spelling.
 
 	* feature.c (scm_loc_features): Make this static.
