@@ -481,6 +481,11 @@
     (and (> sl sufl)
 	 (string=? (substring str (- sl sufl) sl) suffix))))
 
+(define (system-error-errno args)
+  (if (eq? (car args) 'system-error)
+      (car (list-ref args 4))
+      #f))
+
 
 ;;; {Error Handling}
 ;;;
