@@ -54,31 +54,36 @@ int scm_tc16_uvec = 0;
 #define SCM_UVEC_S64 	7
 #define SCM_UVEC_F32 	8
 #define SCM_UVEC_F64 	9
+#define SCM_UVEC_C32   10
+#define SCM_UVEC_C64   11
 
 
 /* This array maps type tags to the size of the elements.  */
-static const int uvec_sizes[10] = {
+static const int uvec_sizes[12] = {
   1, 1,
   2, 2,
   4, 4,
   8, 8,
-  sizeof(float), sizeof(double)
+  sizeof(float), sizeof(double),
+  2*sizeof(float), 2*sizeof(double)
 };
 
-static const char *uvec_tags[10] = {
+static const char *uvec_tags[12] = {
   "u8", "s8",
   "u16", "s16",
   "u32", "s32",
   "u64", "s64",
-  "f32", "f64"
+  "f32", "f64",
+  "c32", "c64",
 };
 
-static const char *uvec_names[10] = {
+static const char *uvec_names[12] = {
   "u8vector", "s8vector",
   "u16vector", "s16vector",
   "u32vector", "s32vector",
   "u64vector", "s64vector",
-  "f32vector", "f64vector"
+  "f32vector", "f64vector",
+  "c32vector", "c64vector"
 };
 
 /* ================================================================ */
@@ -123,6 +128,8 @@ uvec_print (SCM uvec, SCM port, scm_print_state *pstate)
 #endif
     case SCM_UVEC_F32: np.f32 = (float *) uptr; break;
     case SCM_UVEC_F64: np.f64 = (double *) uptr; break;
+    case SCM_UVEC_C32: np.f32 = (float *) uptr; break;
+    case SCM_UVEC_C64: np.f64 = (double *) uptr; break;
     default:
       abort ();			/* Sanity check.  */
       break;
@@ -149,6 +156,14 @@ uvec_print (SCM uvec, SCM port, scm_print_state *pstate)
 #endif
 	case SCM_UVEC_F32: scm_i_print_double (*np.f32, port); np.f32++; break;
 	case SCM_UVEC_F64: scm_i_print_double (*np.f64, port); np.f64++; break;
+	case SCM_UVEC_C32:
+	  scm_i_print_complex (np.f32[0], np.f32[1], port);
+	  np.f32 += 2;
+	  break;
+	case SCM_UVEC_C64:
+	  scm_i_print_complex (np.f64[0], np.f64[1], port);
+	  np.f64 += 2;
+	  break;
 	default:
 	  abort ();			/* Sanity check.  */
 	  break;
@@ -261,6 +276,12 @@ uvec_fast_ref (int type, void *base, size_t c_idx)
     return scm_from_double (((float*)base)[c_idx]);
   else if (type == SCM_UVEC_F64)
     return scm_from_double (((double*)base)[c_idx]);
+  else if (type == SCM_UVEC_C32)
+    return scm_c_make_rectangular (((float*)base)[2*c_idx],
+				   ((float*)base)[2*c_idx+1]);
+  else if (type == SCM_UVEC_C64)
+    return scm_c_make_rectangular (((double*)base)[2*c_idx],
+				   ((double*)base)[2*c_idx+1]);
 }
 
 static SCM_C_INLINE void
@@ -288,6 +309,16 @@ uvec_fast_set_x (int type, void *base, size_t c_idx, SCM val)
     (((float*)base)[c_idx]) = scm_to_double (val);
   else if (type == SCM_UVEC_F64)
     (((double*)base)[c_idx]) = scm_to_double (val);
+  else if (type == SCM_UVEC_C32)
+    {
+      (((float*)base)[2*c_idx])   = scm_c_real_part (val);
+      (((float*)base)[2*c_idx+1]) = scm_c_imag_part (val);
+    }
+  else if (type == SCM_UVEC_C64)
+    {
+      (((double*)base)[2*c_idx])   = scm_c_real_part (val);
+      (((double*)base)[2*c_idx+1]) = scm_c_imag_part (val);
+    }
 }
 
 static SCM_C_INLINE SCM
@@ -375,104 +406,25 @@ list_to_uvec (int type, SCM list)
   return uvec;
 }
 
-SCM
-scm_i_read_homogenous_vector (SCM port, char pfx)
-{
-  /* We have read '#f', '#u', or '#s'.  Next must be a decimal integer
-     followed immediately by a list.
-  */
-
-  int c;
-  char tok[80];
-  int n_digs;
-  SCM list;
-
-  n_digs = 0;
-  while ((c = scm_getc (port)) != EOF && '0' <= c && c <= '9' && n_digs < 80)
-    tok[n_digs++] = c;
-  
-  if (c != EOF)
-    scm_ungetc (c, port);
-  
-  if (n_digs == 0 && pfx == 'f')
-      return SCM_BOOL_F;
-
-  if (c != '(')
-    scm_i_input_error (NULL, port,
-		       "#~a~a must be followed immediately by a '('",
-		       scm_list_2 (SCM_MAKE_CHAR (pfx),
-				   scm_from_locale_stringn (tok, n_digs)));
-  
-  list = scm_read (port);
-
-  if (n_digs == 1 && strncmp (tok, "8", n_digs) == 0)
-    {
-      if (pfx == 'u')
-	return scm_list_to_u8vector (list);
-      else if (pfx == 's')
-	return scm_list_to_s8vector (list);
-    }
-  else if (n_digs == 2 && strncmp (tok, "16", n_digs) == 0)
-    {
-      if (pfx == 'u')
-	return scm_list_to_u16vector (list);
-      else if (pfx == 's')
-	return scm_list_to_s16vector (list);
-    }
-  else if (n_digs == 2 && strncmp (tok, "32", n_digs) == 0)
-    {
-      if (pfx == 'u')
-	return scm_list_to_u32vector (list);
-      else if (pfx == 's')
-	return scm_list_to_s32vector (list);
-      else if (pfx == 'f')
-	return scm_list_to_f32vector (list);
-    }
-  else if (n_digs == 2 && strncmp (tok, "64", n_digs) == 0)
-    {
-      if (pfx == 'u')
-	return scm_list_to_u64vector (list);
-      else if (pfx == 's')
-	return scm_list_to_s64vector (list);
-      else if (pfx == 'f')
-	return scm_list_to_f64vector (list);
-    }
-
-  scm_i_input_error (NULL, port,
-		     "unrecognized homogenous vector prefix #~a~a",
-		     scm_list_2 (SCM_MAKE_CHAR (pfx),
-				 scm_from_locale_stringn (tok, n_digs)));
-  return SCM_BOOL_F;
-}
+static SCM *uvec_proc_vars[12] = {
+  &scm_i_proc_make_u8vector,
+  &scm_i_proc_make_s8vector,
+  &scm_i_proc_make_u16vector,
+  &scm_i_proc_make_s16vector,
+  &scm_i_proc_make_u32vector,
+  &scm_i_proc_make_s32vector,
+  &scm_i_proc_make_u64vector,
+  &scm_i_proc_make_s64vector,
+  &scm_i_proc_make_f32vector,
+  &scm_i_proc_make_f64vector,
+  &scm_i_proc_make_c32vector,
+  &scm_i_proc_make_c64vector
+};
 
 SCM
-scm_i_uniform_vector_prototype (SCM uvec)
+scm_i_uniform_vector_creator (SCM uvec)
 {
-  switch (SCM_UVEC_TYPE (uvec))
-    {
-    case SCM_UVEC_U8:
-      return SCM_BOOL_F;
-    case SCM_UVEC_S8:
-      return SCM_MAKE_CHAR ('\0');
-    case SCM_UVEC_U16:
-      return SCM_BOOL_F;
-    case SCM_UVEC_S16:
-      return SCM_BOOL_F;
-    case SCM_UVEC_U32:
-      return SCM_BOOL_F;
-    case SCM_UVEC_S32:
-      return SCM_BOOL_F;
-    case SCM_UVEC_U64:
-      return SCM_BOOL_F;
-    case SCM_UVEC_S64:
-      return SCM_BOOL_F;
-    case SCM_UVEC_F32:
-      return SCM_BOOL_F;
-    case SCM_UVEC_F64:
-      return SCM_BOOL_F;
-    default:
-      return SCM_BOOL_F;
-    }
+  return *(uvec_proc_vars[SCM_UVEC_TYPE(uvec)]);
 }
 
 int
@@ -728,6 +680,28 @@ SCM_DEFINE (scm_uniform_vector_length, "uniform-vector-length", 1, 0, 0,
 #define CTYPE double
 #include "libguile/srfi-4.i.c"
 
+#define TYPE  SCM_UVEC_C32
+#define TAG   c32
+#define CTYPE float
+#include "libguile/srfi-4.i.c"
+
+#define TYPE  SCM_UVEC_C64
+#define TAG   c64
+#define CTYPE double
+#include "libguile/srfi-4.i.c"
+
+SCM scm_i_proc_make_u8vector;
+SCM scm_i_proc_make_s8vector;
+SCM scm_i_proc_make_u16vector;
+SCM scm_i_proc_make_s16vector;
+SCM scm_i_proc_make_u32vector;
+SCM scm_i_proc_make_s32vector;
+SCM scm_i_proc_make_u64vector;
+SCM scm_i_proc_make_s64vector;
+SCM scm_i_proc_make_f32vector;
+SCM scm_i_proc_make_f64vector;
+SCM scm_i_proc_make_c32vector;
+SCM scm_i_proc_make_c64vector;
 
 /* Create the smob type for homogeneous numeric vectors and install
    the primitives.  */
@@ -739,6 +713,23 @@ scm_init_srfi_4 (void)
   scm_set_smob_free (scm_tc16_uvec, uvec_free);
   scm_set_smob_print (scm_tc16_uvec, uvec_print);
 #include "libguile/srfi-4.x"
+
+#define GETPROC(tag) \
+  scm_i_proc_make_##tag##vector = \
+    scm_variable_ref (scm_c_lookup ("make-"#tag"vector"))
+
+  GETPROC (u8);
+  GETPROC (s8);
+  GETPROC (u16);
+  GETPROC (s16);
+  GETPROC (u32);
+  GETPROC (s32);
+  GETPROC (u64);
+  GETPROC (s64);
+  GETPROC (f32);
+  GETPROC (f64);
+  GETPROC (c32);
+  GETPROC (c64);
 }
 
 /* End of srfi-4.c.  */
