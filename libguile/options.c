@@ -187,13 +187,11 @@ change_option_setting (SCM args, scm_t_option options[], unsigned int n, const c
 		  break;
 		case SCM_OPTION_INTEGER:
 		  args = SCM_CDR (args);
-		  SCM_ASSERT (scm_is_pair (args), args, SCM_ARG1, s);
-		  flags[i] = scm_to_size_t (SCM_CAR (args));
+		  flags[i] = scm_to_size_t (scm_car (args));
 		  break;
 		case SCM_OPTION_SCM:
 		  args = SCM_CDR (args);
-		  SCM_ASSERT (scm_is_pair (args), args, SCM_ARG1, s);
-		  flags[i] = SCM_UNPACK (SCM_CAR (args));
+		  flags[i] = SCM_UNPACK (scm_car (args));
 		  break;
 		}
 	      found = 1;
