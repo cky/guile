@@ -231,7 +231,7 @@ static void *sysdep_dynl_link SCM_P ((char *filename, char *subr));
 static void sysdep_dynl_unlink SCM_P ((void *handle, char *subr));
 static void *sysdep_dynl_func SCM_P ((char *symbol, void *handle, char *subr));
 
-#ifdef HAVE_LIBDL
+#if defined (HAVE_LIBDL) || defined (HAVE_DLOPEN)
 #include "dynl-dl.c"
 #else
 #ifdef HAVE_SHL_LOAD
