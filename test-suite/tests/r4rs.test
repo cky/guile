@@ -1018,3 +1018,7 @@
 ;; alternatively execute every test file's code in a module of its own
 (if (defined? 'x) (undefine x))
 (if (defined? 'y) (undefine y))
+
+(delete-file (data-file-name "tmp1"))
+(delete-file (data-file-name "tmp2"))
+(delete-file (data-file-name "tmp3"))

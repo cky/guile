@@ -20,7 +20,7 @@
 
 (use-modules (test-suite lib))
 
-(define temp-dir (tmpnam))
+(define temp-dir (data-file-name "load-test.dir"))
 
 (define (create-tree parent tree)
   (let loop ((parent parent)

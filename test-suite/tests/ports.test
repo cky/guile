@@ -27,7 +27,7 @@
   (newline))
 
 (define (test-file)
-  (tmpnam))
+  (data-file-name "ports-test.tmp"))
 
 
 ;;;; Some general utilities for testing ports.

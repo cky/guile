@@ -1,3 +1,13 @@
+2001-04-26  Gary Houston  <ghouston@arglist.com>
+
+	* tests/r4rs.test: delete files tmp1, tmp2, tmp3 after the tests
+	have run.
+
+	* tests/ports.test (test-file), tests/load.test (temp-dir):
+	redefined using data-file-name instead of tmpnam.  the test files
+	will be created in the build directory instead of /var/tmp or
+	whereever tmpnam puts them.
+
 2001-04-02  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* tests/symbols.c:  Added some tests.
