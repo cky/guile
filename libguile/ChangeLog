@@ -1,4 +1,8 @@
-2000-06-28  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+2000-06-29  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* root.h (scm_first_type):  Removed.
+
+2000-06-29  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* gc.c (MIN_GC_YIELD):  Removed.
 

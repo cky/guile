@@ -65,17 +65,16 @@
 #define scm_weak_symhash scm_sys_protects[6]
 #define scm_symhash_vars scm_sys_protects[7]
 #define scm_keyword_obarray scm_sys_protects[8]
-#define scm_first_type scm_sys_protects[9]
-#define scm_stand_in_procs scm_sys_protects[10]
-#define scm_object_whash scm_sys_protects[11]
-#define scm_permobjs scm_sys_protects[12]
-#define scm_asyncs scm_sys_protects[13]
-#define scm_protects scm_sys_protects[14]
+#define scm_stand_in_procs scm_sys_protects[9]
+#define scm_object_whash scm_sys_protects[10]
+#define scm_permobjs scm_sys_protects[11]
+#define scm_asyncs scm_sys_protects[12]
+#define scm_protects scm_sys_protects[13]
 #ifdef DEBUG_EXTENSIONS
-#define scm_source_whash scm_sys_protects[15]
-#define SCM_NUM_PROTECTS 16
-#else
+#define scm_source_whash scm_sys_protects[14]
 #define SCM_NUM_PROTECTS 15
+#else
+#define SCM_NUM_PROTECTS 14
 #endif
 
 extern SCM scm_sys_protects[];
