@@ -39,3 +39,5 @@ goops_toc.html: goops.texi $(goops_TEXINFOS)
 	$(TEXI2HTML) -split_chapter goops.texi
 
 endif
+
+CLEANFILES = goops.tmp goops.cps
