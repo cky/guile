@@ -3302,6 +3302,7 @@ tail:
       SCM_ASRTGO (SCM_UNBNDP (arg1), wrongnumargs);
       RETURN (SCM_SUBRF (proc) ())
     case scm_tc7_subr_1:
+      SCM_ASRTGO (!SCM_UNBNDP (arg1), wrongnumargs);
     case scm_tc7_subr_1o:
       SCM_ASRTGO (SCM_NULLP (args), wrongnumargs);
       RETURN (SCM_SUBRF (proc) (arg1))
