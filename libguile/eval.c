@@ -3542,9 +3542,23 @@ tail:
 	}
       
       args = EXTEND_ENV (SCM_CAR (SCM_CODE (proc)), args, SCM_ENV (proc));
-      proc = SCM_CODE (proc);
-      while (SCM_NNULLP (proc = SCM_CDR (proc)))
-	arg1 = EVALCAR (proc, args);
+      proc = SCM_CDR (SCM_CODE (proc));
+      do
+	{
+	  if (SCM_IMP (SCM_CAR (proc)))
+	    {
+	      if (SCM_ISYMP (SCM_CAR (proc)))
+		{
+		  proc = scm_m_expand_body (proc, args);
+		  continue;
+		}
+	      arg1 = SCM_CAR (proc);
+	    }
+	  else
+	    arg1 = SCM_CEVAL (SCM_CAR (proc), args);
+	  proc = SCM_CDR (proc);
+	}
+      while (SCM_NNULLP (proc));
       RETURN (arg1);
     case scm_tc7_contin:
       SCM_ASRTGO (SCM_NULLP (args), wrongnumargs);

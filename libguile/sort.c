@@ -354,6 +354,8 @@ closureless (SCM code, const void *a, const void *b)
 			 SCM_ENV (code));
   /* Evaluate the closure body */
   code = SCM_CDR (SCM_CODE (code));
+  while (SCM_IMP (SCM_CAR (code)) && SCM_ISYMP (SCM_CAR (code)))
+    code = scm_m_expand_body (code, env);
   next = code;
   while (SCM_NNULLP (next = SCM_CDR (next)))
     {
