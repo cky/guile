@@ -43,6 +43,7 @@
 #define VM_H
 
 #include <libguile.h>
+#include "config.h"
 
 
 /*
@@ -51,9 +52,12 @@
 
 /* Opcode */
 enum scm_opcode {
-#include "vm_system.opcode"
-#include "vm_scheme.opcode"
-#include "vm_number.opcode"
+#define VM_INSTRUCTION_TO_OPCODE
+#include "vm_expand.h"
+#include "vm_system.i"
+#include "vm_scheme.i"
+#include "vm_number.i"
+#undef VM_INSTRUCTION_TO_OPCODE
   op_last
 };
 

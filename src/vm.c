@@ -117,9 +117,12 @@ init_name_property ()
 static long scm_instruction_tag;
 
 static struct scm_instruction scm_instruction_table[] = {
-#include "vm_system.inst"
-#include "vm_scheme.inst"
-#include "vm_number.inst"
+#define VM_INSTRUCTION_TO_TABLE
+#include "vm_expand.h"
+#include "vm_system.i"
+#include "vm_scheme.i"
+#include "vm_number.i"
+#undef VM_INSTRUCTION_TO_TABLE
   {op_last}
 };
 

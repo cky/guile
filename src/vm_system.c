@@ -41,8 +41,6 @@
 
 /* This file is included in vm_engine.c */
 
-#include "vm-snarf.h"
-
 /*
  * Variable access
  */

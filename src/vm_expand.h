@@ -39,11 +39,9 @@
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
 
-#ifndef VM_SNARF_H
-#define VM_SNARF_H
-
 #include "config.h"
 
+#ifndef VM_LABEL
 #define VM_LABEL(TAG) l_##TAG## 
 #define VM_OPCODE(TAG) op_##TAG## 
 
@@ -54,49 +52,42 @@
 #define VM_TAG(TAG) case VM_OPCODE(TAG):
 #define VM_ADDR(TAG) NULL
 #endif /* not HAVE_LABELS_AS_VALUES */
+#endif /* VM_LABEL */
 
-#ifndef SCM_MAGIC_SNARFER
+#undef SCM_DEFINE_INSTRUCTION
+#undef SCM_DEFINE_VM_FUNCTION
+#ifdef VM_INSTRUCTION_TO_TABLE
+/*
+ * These will go to scm_instruction_table in vm.c
+ */
+#define SCM_DEFINE_INSTRUCTION(TAG,NAME,TYPE) \
+  {VM_OPCODE(TAG), TYPE, NAME, SCM_PACK (0), NULL, 0, 0},
+#define SCM_DEFINE_VM_FUNCTION(TAG,SNAME,NAME,NARGS,RESTP) \
+  {VM_OPCODE(TAG), INST_NONE, NAME, SCM_PACK (0), SNAME, NARGS, RESTP},
 
+#else
+#ifdef VM_INSTRUCTION_TO_LABEL
+/*
+ * These will go to jump_table in vm_engine.c
+ */
+#define SCM_DEFINE_INSTRUCTION(TAG,NAME,TYPE)		   VM_ADDR(TAG),
+#define SCM_DEFINE_VM_FUNCTION(TAG,SNAME,NAME,NARGS,RESTP) VM_ADDR(TAG),
+
+#else
+#ifdef VM_INSTRUCTION_TO_OPCODE
+/*
+ * These will go to scm_opcode in vm.h
+ */
+#define SCM_DEFINE_INSTRUCTION(TAG,NAME,TYPE)		   VM_OPCODE(TAG),
+#define SCM_DEFINE_VM_FUNCTION(TAG,SNAME,NAME,NARGS,RESTP) VM_OPCODE(TAG),
+
+#else /* Otherwise */
 /*
  * These are directly included in vm_engine.c
  */
-#define SCM_DEFINE_INSTRUCTION(TAG,NAME,TYPE) VM_TAG(TAG)
+#define SCM_DEFINE_INSTRUCTION(TAG,NAME,TYPE)		   VM_TAG(TAG)
 #define SCM_DEFINE_VM_FUNCTION(TAG,SNAME,NAME,NARGS,RESTP) VM_TAG(TAG)
 
-#else /* SCM_MAGIC_SNARFER */
-#ifndef SCM_SNARF_OPCODE
-#ifndef SCM_SNARF_LABEL
-
-/*
- * These will go to *.inst
- */
-#define SCM_DEFINE_INSTRUCTION(TAG,NAME,TYPE) \
-  SCM_SNARF_INIT_START {VM_OPCODE(TAG), TYPE, NAME, SCM_BOOL_F, NULL, 0, 0},
-#define SCM_DEFINE_VM_FUNCTION(TAG,SNAME,NAME,NARGS,RESTP) \
-  SCM_SNARF_INIT_START {VM_OPCODE(TAG), INST_NONE, NAME, SCM_BOOL_F, SNAME, NARGS, RESTP},
-
-#else /* SCM_SNARF_LABEL */
-
-/*
- * These will go to *.label
- */
-#define SCM_DEFINE_INSTRUCTION(TAG,NAME,TYPE) \
-  SCM_SNARF_INIT_START VM_ADDR(TAG),
-#define SCM_DEFINE_VM_FUNCTION(TAG,SNAME,NAME,NARGS,RESTP) \
-  SCM_SNARF_INIT_START VM_ADDR(TAG),
-
-#endif /* SCM_SNARF_LABEL */
-#else /* SCM_SNARF_OPCODE */
-
-/*
- * These will go to *.opcode
- */
-#define SCM_DEFINE_INSTRUCTION(TAG,NAME,TYPE) \
-  SCM_SNARF_INIT_START VM_OPCODE(TAG),
-#define SCM_DEFINE_VM_FUNCTION(TAG,SNAME,NAME,NARGS,RESTP) \
-  SCM_SNARF_INIT_START VM_OPCODE(TAG),
-
-#endif /* SCM_SNARF_OPCODE */
-#endif /* SCM_MAGIC_SNARFER */
-
-#endif /* not VM_SNARF_H */
+#endif /* VM_INSTRUCTION_TO_OPCODE */
+#endif /* VM_INSTRUCTION_TO_LABEL */
+#endif /* VM_INSTRUCTION_TO_TABLE */

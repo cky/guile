@@ -41,8 +41,6 @@
 
 /* This file is included in vm_engine.c */
 
-#include "vm-snarf.h"
-
 SCM_DEFINE_VM_FUNCTION (null_p, "null?", "null?", 1, 0)
 {
   VM_SETUP_ARGS1 ();

@@ -78,9 +78,12 @@ VM_NAME (SCM vm, SCM program)
 
   /* Jump talbe */
   static void *jump_table[] = {
-#include "vm_system.label"
-#include "vm_scheme.label"
-#include "vm_number.label"
+#define VM_INSTRUCTION_TO_LABEL
+#include "vm_expand.h"
+#include "vm_system.i"
+#include "vm_scheme.i"
+#include "vm_number.i"
+#undef VM_INSTRUCTION_TO_LABEL
   };
 
   /* Initialize the VM */
@@ -101,6 +104,7 @@ VM_NAME (SCM vm, SCM program)
   vm_start: switch (*pc++) {
 #endif
 
+#include "vm_expand.h"
 #include "vm_system.c"
 #include "vm_scheme.c"
 #include "vm_number.c"
