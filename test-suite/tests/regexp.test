@@ -75,6 +75,7 @@
   (try "xx" "a(x*)b" "_axxb_" 1)
   (try "pre" "a(x*)b" "preaxxbpost" 'pre)
   (try "post" "a(x*)b" "preaxxbpost" 'post)
+  (try "string" "x" "string" 'pre "y" 'post)
   (try "4" "a(x*)b" "_axxb_" (lambda (m)
 				(number->string (match:end m 1))))
 
