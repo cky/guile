@@ -1108,12 +1108,15 @@ AC_CONFIG_FILES([
   oop/goops/Makefile
   scripts/Makefile
   srfi/Makefile
-  test-suite/Makefile])
+  test-suite/Makefile
+  test-suite/standalone/Makefile
+])
 
 AC_CONFIG_FILES([check-guile], [chmod +x check-guile])
 AC_CONFIG_FILES([benchmark-guile], [chmod +x benchmark-guile])
 AC_CONFIG_FILES([guile-tools], [chmod +x guile-tools])
 AC_CONFIG_FILES([pre-inst-guile], [chmod +x pre-inst-guile])
+AC_CONFIG_FILES([pre-inst-guile-env], [chmod +x pre-inst-guile-env])
 AC_CONFIG_FILES([libguile/guile-snarf],
                 [chmod +x libguile/guile-snarf])
 AC_CONFIG_FILES([libguile/guile-doc-snarf],
