@@ -185,6 +185,7 @@ extern int scm_ready_p SCM_P ((void));
 extern void debug_print SCM_P ((SCM obj));
 extern SCM scm_debug_object_p SCM_P ((SCM obj));
 extern SCM scm_local_eval SCM_P ((SCM exp, SCM env));
+extern SCM scm_reverse_lookup SCM_P ((SCM env, SCM data));
 extern SCM scm_start_stack SCM_P ((SCM id, SCM exp, SCM env));
 extern SCM scm_procedure_environment SCM_P ((SCM proc));
 extern SCM scm_procedure_source SCM_P ((SCM proc));
