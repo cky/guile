@@ -42,11 +42,11 @@
  * This implements the same sort interface as slib/sort.scm
  * for lists and vectors where slib defines:
  * sorted?, merge, merge!, sort, sort!
- * For scsh compatibility are also sort-list and sort-list! defined.
+ * For scsh compatibility sort-list and sort-list! are also defined.
  * In cases where a stable-sort is required use stable-sort or
- * stable-sort!.  As additional feature is
+ * stable-sort!.  An additional feature is
  * (restricted-vector-sort! vector less? startpos endpos)
- * added, where startpos and endpos allows you to sort part of a vector.
+ * which allows you to sort part of a vector.
  * Thanks to Aubrey Jaffer for the slib/sort.scm library.
  * Thanks to Richard A. O'Keefe (based on Prolog code by D.H.D.Warren)
  * for the merge sort inspiration.
@@ -92,6 +92,9 @@ char *alloca ();
    The reason to do this instead of using the library function qsort
    was to avoid dependency of the ANSI-C extensions for local functions
    and also to avoid obscure pool based solutions.
+
+   This sorting routine is not much more efficient than the stable
+   version but doesn't consume extra memory.
  */
 
 /* Byte-wise swap two items of size SIZE. */
