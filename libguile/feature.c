@@ -45,29 +45,29 @@
 
 
 #include <stdio.h>
-#include "libguile/_scm.h"
-
-#include "libguile/root.h"
-#include "libguile/smob.h"
-#include "libguile/strings.h"
-
-#include "libguile/validate.h"
-#include "libguile/feature.h"
-
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
+
+#include "libguile/_scm.h"
+#include "libguile/root.h"
+#include "libguile/strings.h"
+#include "libguile/validate.h"
+
+#include "libguile/feature.h"
+
 
 
-static SCM *scm_loc_features;
+static SCM features;
+
 
 void
 scm_add_feature (const char *str)
 {
-  *scm_loc_features = scm_cons (SCM_CAR (scm_intern (str, strlen (str))),
-				*scm_loc_features);
+  SCM old = SCM_CDR (features);
+  SCM new = scm_cons (SCM_CAR (scm_intern (str, strlen (str))), old);
+  SCM_SETCDR (features, new);
 }
-
 
 
 
@@ -100,7 +100,7 @@ scm_set_program_arguments (int argc, char **argv, char *first)
 void
 scm_init_feature()
 {
-  scm_loc_features = SCM_CDRLOC (scm_sysintern ("*features*", SCM_EOL));
+  features = scm_sysintern ("*features*", SCM_EOL);
 #ifdef SCM_RECKLESS
   scm_add_feature("reckless");
 #endif

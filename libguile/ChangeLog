@@ -1,5 +1,15 @@
 2000-05-08  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* feature.c:  No need to include "libguile/smob.h"
+
+	(scm_loc_features, features, scm_add_feature, scm_init_feature):
+	Removed variable 'scm_loc_features' as a pointer to the SCM value
+	holding the features list.  Using variable 'features' instead,
+	which holds the interned pair.  Thus, SCM_SETCDR can be used
+	instead of pointer trickery.
+
+2000-05-08  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* alist.c (scm_acons):  Use SCM{_SET}?_CELL_OBJECT as long as a
 	cell is not known to be a valid pair.
 
