@@ -40,7 +40,7 @@
   :group 'scheme)
 
 
-;;;; Communication with the (ice-9 debugger ui-server) subprocess.
+;;;; Communication with the (emacs gds-server) subprocess.
 
 ;; The subprocess object.
 (defvar gds-process nil)
@@ -63,10 +63,8 @@
 			   "guile"
 			   "-q"
 			   "--debug"
-			   "-e"
-			   "run"
-			   "-s"
-			   "/home/neil/Guile/cvs/guile-core/ice-9/debugger/ui-server.scm"))))
+			   "-c"
+			   "(begin (use-modules (emacs gds-server)) (run-server))"))))
   (setq gds-read-cursor (point-min))
   (set-process-filter gds-process (function gds-filter))
   (set-process-sentinel gds-process (function gds-sentinel))
@@ -76,16 +74,10 @@
 (defun gds-shutdown ()
   "Shut down the GDS subprocess."
   (interactive)
-  ;; Do cleanup for all clients.
-  (while gds-names
-    (gds-client-cleanup (caar gds-names)))
-  ;; Reset any remaining variables.
-  (setq gds-displayed-client nil
+  ;; Reset variables.
+  (setq gds-buffers nil
+	gds-focus-client nil
 	gds-waiting nil)
-  ;; If the timer is running, cancel it.
-  (if gds-timer
-      (cancel-timer gds-timer))
-  (setq gds-timer nil)
   ;; Kill the subprocess.
   (process-kill-without-query gds-process)
   (condition-case nil
@@ -126,269 +118,148 @@
 
 ;;;; Multiple application scheduling.
 
-;; At any moment one Guile application has the focus of the frontend
-;; code.  `gds-displayed-client' holds the port number of that client.
-;; If there are no Guile applications wanting the focus - that is,
-;; ready for instructions - `gds-displayed-client' is nil.
-(defvar gds-displayed-client nil)
-
-;; The list of other Guile applications waiting for focus, referenced
-;; by their port numbers.
+;; Here is how we schedule the display of multiple clients that are
+;; competing for user attention.
+;;
+;; - `gds-waiting' holds a list of clients that want attention but
+;; haven't yet got it.  A client is added to this list for two
+;; reasons.  (1) When it is blocked waiting for user input.  (2) When
+;; it first connects to GDS, even if not blocked.
+;;
+;; - `gds-focus-client' holds the client, if any, that currently has
+;; the user's attention.  A client can be given the focus if
+;; `gds-focus-client' is nil at the time that the client wants
+;; attention, or if another client relinquishes it.  A client can
+;; relinquish the focus in two ways.  (1) If the client application
+;; says that it is no longer blocked, and a small time passes without
+;; it becoming blocked again.  (2) If the user explicitly `quits' that
+;; client.
+(defvar gds-focus-client nil)
 (defvar gds-waiting nil)
 
-;; An idle timer that we use to avoid confusing any user work when
-;; popping up debug buffers.  `gds-timer' is non-nil whenever the
-;; timer is running and nil whenever it is not running.
-(defvar gds-timer nil)
+;; Sometimes we want to display a client buffer immediately even if it
+;; isn't already in the selected window.  To do we this, we bind the
+;; following variable to non-nil.
+(defvar gds-immediate-display nil)
 
-;; Debug the specified client.  If it already has the focus, do so
-;; immediately, but using the idle timer to ensure that it doesn't
-;; confuse any work the user may be doing.  Non-structural work is
-;; delegated to `gds-display-state'.
-(defun gds-debug (&optional client)
-  (dmessage "gds-debug")
-  ;; If `client' is specified, add it to the end of `gds-waiting',
-  ;; unless that client is already the current client or it is already
-  ;; in the waiting list.
-  (if (and client
-	   (not (eq client gds-displayed-client))
-	   (not (memq client gds-waiting)))
-      (setq gds-waiting (append gds-waiting (list client))))
-  ;; Now update `client' to be the next client in the list.
-  (setq client (or gds-displayed-client (car gds-waiting)))
-  ;; If conditions are right, start the idle timer.
-  (if (and client
-	   (or (null gds-displayed-client)
-	       (eq gds-displayed-client client)))
-      (gds-display-state (or gds-displayed-client
-			     (prog1 (car gds-waiting)
-			       (setq gds-waiting
-				     (cdr gds-waiting)))))))
+(defun gds-request-focus (client)
+  (cond ((eq client gds-focus-client)
+	 ;; CLIENT already has the focus.  Display its buffer.
+	 (gds-display-buffers))
+	(gds-focus-client
+	 ;; Another client has the focus. Add CLIENT to `gds-waiting'.
+	 (or (memq client gds-waiting)
+	     (setq gds-waiting (append gds-waiting (list client)))))
+	(t
+	 ;; Give focus to CLIENT and display its buffer.
+	 (setq gds-focus-client client)
+	 (gds-display-buffers))))
 
-;; Give up focus because debugging is done for now.  Display detail in
-;; case of no waiting clients is delegated to `gds-clear-display'.
-(defun gds-focus-done ()
-  (gds-clear-display)
-  (gds-debug))
-
-;; Although debugging of this client isn't done, yield focus to the
-;; next waiting client.
-(defun gds-focus-yield ()
+;; Explicitly give up focus.
+(defun gds-quit ()
   (interactive)
-  (if (and (null gds-waiting)
-	   (y-or-n-p "No other clients waiting - bury *Guile* buffer? "))
-      (bury-buffer)
-    (or (memq gds-displayed-client gds-waiting)
-	(setq gds-waiting (append gds-waiting (list gds-displayed-client))))
-    (gds-focus-done)))
+  (if (or (car gds-waiting)
+	  (not (gds-client-blocked))
+	  (y-or-n-p
+	   "Client is blocked and no others are waiting.  Still quit? "))
+      (let ((gds-immediate-display
+	     (eq (window-buffer (selected-window)) (current-buffer))))
+	(bury-buffer (current-buffer))
+	;; Pass on the focus.
+	(setq gds-focus-client (car gds-waiting)
+	      gds-waiting (cdr gds-waiting))
+	;; If this client is blocked, add it back into the waiting list.
+	(if (gds-client-blocked)
+	    (gds-request-focus gds-client))
+	;; If there is a new focus client, request display for it.
+	(if gds-focus-client
+	    (gds-request-focus gds-focus-client)))))
 
 
-;;;; Per-client state information.
-
-;; Alist mapping client port numbers to application names.  The names
-;; in this list have been uniquified by `gds-uniquify'.
-(defvar gds-names nil)
-
-;; Return unique form of NAME.
-(defun gds-uniquify (name)
-  (let ((count 1)
-	(maybe-unique name))
-    (while (member maybe-unique (mapcar (function cdr) gds-names))
-      (setq count (1+ count)
-	    maybe-unique (concat name "<" (number-to-string count) ">")))
-    maybe-unique))
-
-;; Alist mapping client port numbers to last known status.
-;;
-;; Status is one of the following symbols.
-;;
-;;   `running' - application is running.
-;;
-;;   `waiting-for-input' - application is blocked waiting for
-;;   instruction from the frontend.
-;;
-;;   `ready-for-input' - application is not blocked but can also
-;;   accept asynchronous instructions from the frontend.
-;;
-(defvar gds-statuses nil)
-
-;; Alist mapping client port numbers to last printed outputs.
-(defvar gds-outputs nil)
-
-;; Alist mapping client port numbers to last known stacks.
-(defvar gds-stacks nil)
-
-;; Alist mapping client port numbers to module information.  This
-;; looks like:
-;;
-;; ((4 ((guile) t sym1 sym2 ...) ((guile-user)) ((ice-9 debug) nil sym3 sym4) ...) ...)
-;;
-;; So, for example:
-;;
-;; (assq client gds-modules)
-;; =>
-;; (4 ((guile) t sym1 sym2 ...) ((guile-user)) ((ice-9 debug) nil sym3 sym4) ...)
-;;
-;; The t or nil after the module name indicates whether the module is
-;; displayed in expanded form (that is, showing the bindings in that
-;; module).
-;;
-;; The syms are actually all strings, because some Guile symbols are
-;; not readable by Emacs.
-(defvar gds-modules nil)
-
-
-;;;; Handling debugging instructions.
-
-;; General dispatch function called by the subprocess filter.
-(defun gds-handle-input (form)
-  (dmessage "Form: %S" form)
-  (let ((client (car form)))
-    (cond ((eq client '*))
-	  (t
-	   (let ((proc (cadr form)))
-
-	     (cond ((eq proc 'name)
-		    ;; (name ...) - Application's name.
-		    (setq gds-names
-			  (cons (cons client (gds-uniquify (caddr form)))
-				gds-names)))
-
-		   ((eq proc 'stack)
-		    ;; (stack ...) - Stack at an error or breakpoint.
-		    (gds-set gds-stacks client (cddr form)))
-
-		   ((eq proc 'modules)
-		    ;; (modules ...) - Application's loaded modules.
-		    (gds-set gds-modules client
-			     (mapcar (function list) (cddr form))))
-
-		   ((eq proc 'output)
-		    ;; (output ...) - Last printed output.
-		    (gds-set gds-outputs client (caddr form)))
-
-		   ((eq proc 'status)
-		    ;; (status ...) - Application status indication.
-		    (let ((status (caddr form)))
-		      (gds-set gds-statuses client status)
-		      (cond ((eq status 'waiting-for-input)
-			     (gds-debug client))
-			    ((or (eq status 'running)
-				 (eq status 'ready-for-input))
-			     (if (eq client gds-displayed-client)
-				 (gds-display-state client)))
-			    (t
-			     (error "Unexpected status: %S" status)))))
-
-		   ((eq proc 'module)
-		    ;; (module MODULE ...) - The specified module's bindings.
-		    (let* ((modules (assq client gds-modules))
-			   (minfo (assoc (caddr form) modules)))
-		      (if minfo
-			  (setcdr (cdr minfo) (cdddr form)))))
-
-		   ((eq proc 'closed)
-		    ;; (closed) - Client has gone away.
-		    (gds-client-cleanup client))
-
-		   ((eq proc 'eval-results)
-		    ;; (eval-results ...) - Results of evaluation.
-		    (gds-display-results client (cddr form)))
-
-		   ))))))
-
-;; Store latest status, stack or module list for the specified client.
-(defmacro gds-set (alist client val)
-  `(let ((existing (assq ,client ,alist)))
-     (if existing
-	 (setcdr existing ,val)
-       (setq ,alist
-	     (cons (cons client ,val) ,alist)))))
-
-;; Cleanup processing when CLIENT goes away.
-(defun gds-client-cleanup (client)
-  (if (eq client gds-displayed-client)
-      (gds-focus-done))
-  (setq gds-names
-	(delq (assq client gds-names) gds-names))
-  (setq gds-stacks
-	(delq (assq client gds-stacks) gds-stacks))
-  (setq gds-modules
-	(delq (assq client gds-modules) gds-modules)))
-
-
-;;;; Displaying debugging information.
-
-(defvar gds-client-buffer nil)
+;;;; Per-client buffer state.
 
 (define-derived-mode gds-mode
-  fundamental-mode
-  "Guile"
-  "Major mode for Guile information buffers.")
+  scheme-mode
+  "Guile Interaction"
+  "Major mode for interacting with a Guile client application.")
 
-(defun gds-set-client-buffer (&optional client)
-  (if (and gds-client-buffer
-	   (buffer-live-p gds-client-buffer))
-      (set-buffer gds-client-buffer)
-    (setq gds-client-buffer (get-buffer-create "*Guile*"))
-    (set-buffer gds-client-buffer)
-    (gds-mode))
-  ;; Rename to something we don't want first.  Otherwise, if the
-  ;; buffer is already correctly named, we get a confusing change
-  ;; from, say, `*Guile: REPL*' to `*Guile: REPL*<2>'.
-  (rename-buffer "*Guile Fake Buffer Name*" t)
-  (rename-buffer (if client
-		     (concat "*Guile: "
-			     (cdr (assq client gds-names))
-			     "*")
-		   "*Guile*")
-		 t)			; Rename uniquely if needed,
-					; although it shouldn't be.
-  (force-mode-line-update t))
+(defvar gds-client nil
+  "GDS client's port number.")
+(make-variable-buffer-local 'gds-client)
 
-(defun gds-clear-display ()
-  ;; Clear the client buffer.
-  (gds-set-client-buffer)
-  (let ((inhibit-read-only t))
-    (erase-buffer)
-    (insert "Stack:\nNo clients ready for debugging.\n")
-    (goto-char (point-min)))
-  (setq gds-displayed-stack 'no-clients)
-  (setq gds-displayed-modules nil)
-  (setq gds-displayed-client nil)
-  (bury-buffer))
+(defvar gds-current-module "()"
+  "GDS client's current module.")
+(make-variable-buffer-local 'gds-current-module)
 
-;; Determine whether the client display buffer is visible in the
-;; currently selected frame (i.e. where the user is editing).
-(defun gds-buffer-visible-in-selected-frame-p ()
-  (let ((visible-p nil))
-    (walk-windows (lambda (w)
-		    (if (eq (window-buffer w) gds-client-buffer)
-			(setq visible-p t))))
-    visible-p))
+(defvar gds-stack nil
+  "GDS client's stack when last stopped.")
+(make-variable-buffer-local 'gds-stack)
 
-;; Cached display variables for `gds-display-state'.
-(defvar gds-displayed-stack nil)
+(defvar gds-modules nil
+  "GDS client's module information.
+Alist mapping module names to their symbols and related information.
+This looks like:
+
+ (((guile) t sym1 sym2 ...)
+  ((guile-user))
+  ((ice-9 debug) nil sym3 sym4)
+  ...)
+
+The `t' or `nil' after the module name indicates whether the module is
+displayed in expanded form (that is, showing the bindings in that
+module).  The syms are actually all strings because some Guile symbols
+are not readable by Emacs.")
+(make-variable-buffer-local 'gds-modules)
+
+(defvar gds-output nil
+  "GDS client's recent output (printed).")
+(make-variable-buffer-local 'gds-output)
+
+(defvar gds-status nil
+  "GDS client's latest status, one of the following symbols.
+
+`running' - application is running.
+
+`waiting-for-input' - application is blocked waiting for instruction
+from the frontend.
+
+`ready-for-input' - application is not blocked but can also accept
+asynchronous instructions from the frontend.")
+(make-variable-buffer-local 'gds-status)
+
+(defvar gds-pid nil
+  "GDS client's process ID.")
+(make-variable-buffer-local 'gds-pid)
+
+(defvar gds-debug-exceptions nil
+  "Whether to debug exceptions.")
+(make-variable-buffer-local 'gds-debug-exceptions)
+
+(defvar gds-exception-keys "signal misc-error"
+  "The exception keys for which to debug a GDS client.")
+(make-variable-buffer-local 'gds-exception-keys)
+
+;; Cached display variables for `gds-update-buffers'.
 (defvar gds-displayed-modules nil)
+(make-variable-buffer-local 'gds-displayed-modules)
 
 ;; Types of display areas in the *Guile* buffer.
-(defvar gds-display-types '("Status" "Stack" "Modules"))
+(defvar gds-display-types '("\\`"
+			    "^Modules:"
+			    "^Transcript:"))
 (defvar gds-display-type-regexp
-  (concat "^\\("
+  (concat "\\("
 	  (substring (apply (function concat)
 			    (mapcar (lambda (type)
 				      (concat "\\|" type))
 				    gds-display-types))
 		     2)
-	  "\\):"))
+	  "\\)"))
 
-(defun gds-maybe-delete-region (type)
+(defun gds-maybe-delete-region (regexp)
   (let ((beg (save-excursion
 	       (goto-char (point-min))
-	       (and (re-search-forward (concat "^"
-					       (regexp-quote type)
-					       ":")
-				       nil t)
+	       (and (re-search-forward regexp nil t)
 		    (match-beginning 0)))))
     (if beg
 	(delete-region beg
@@ -400,60 +271,81 @@
 				  (match-beginning 0))
 			     (point-max)))))))
 
-(defun gds-maybe-skip-region (type)
-  (if (looking-at (regexp-quote type))
+(defun gds-maybe-skip-region (regexp)
+  (if (looking-at regexp)
       (if (re-search-forward gds-display-type-regexp nil t 2)
 	  (beginning-of-line)
 	(goto-char (point-max)))))
 
-(defun gds-display-state (client)
-  (dmessage "gds-display-state")
+(defun gds-update-buffers (client)
+  (dmessage "gds-update-buffers")
   ;; Avoid continually popping up the last associated source buffer
   ;; unless it really is still current.
   (setq gds-selected-frame-source-buffer nil)
-  (gds-set-client-buffer client)
-  (let ((stack (cdr (assq client gds-stacks)))
-	(modules (cdr (assq client gds-modules)))
-	(inhibit-read-only t)
-	(p (if (eq client gds-displayed-client)
+  (set-buffer (cdr (assq client gds-buffers)))
+  (force-mode-line-update t)
+  (let ((inhibit-read-only t)
+	(p (if (eq client gds-focus-client)
 	       (point)
 	     (point-min)))
 	stack-changed)
     ;; Start at top of buffer.
     (goto-char (point-min))
     ;; Display status; too simple to be worth caching.
-    (gds-maybe-delete-region "Status")
-    (widget-insert "Status: "
-		   (cdr (assq (cdr (assq client gds-statuses))
+    (gds-maybe-delete-region (concat "\\`" (regexp-quote (buffer-name))))
+    (widget-insert (buffer-name)
+		   ", "
+		   (cdr (assq gds-status
 			      '((running . "running (cannot accept input)")
 				(waiting-for-input . "waiting for input")
-				(ready-for-input . "running"))))
-		   "\n\n")
-    (let ((output (cdr (assq client gds-outputs))))
-      (if (> (length output) 0)
-	  (widget-insert output "\n\n")))
+				(ready-for-input . "running")
+				(closed . "closed"))))
+		   ", in "
+		   gds-current-module
+		   "\n")
+    (widget-create 'push-button
+		   :notify (function gds-sigint)
+		   "SIGINT")
+    (widget-insert " ")
+    (widget-create 'push-button
+		   :notify (function gds-async-break)
+		   "Break")
+    (widget-insert "\n")
+    (widget-create 'checkbox
+		   :notify (function gds-toggle-debug-exceptions)
+		   gds-debug-exceptions)
+    (widget-insert " Debug exception keys: ")
+    (widget-create 'editable-field
+		   :notify (function gds-set-exception-keys)
+		   gds-exception-keys)
+    (widget-insert "\n")
+;     (widget-insert "\n\n")
+;     (if (> (length gds-output) 0)
+; 	(widget-insert gds-output "\n\n"))
     ;; Display stack.
     (dmessage "insert stack")
-    (if (equal stack gds-displayed-stack)
-	(gds-maybe-skip-region "Stack")
-      ;; Note that stack has changed.
-      (if stack (setq stack-changed t))
-      ;; Delete existing stack.
-      (gds-maybe-delete-region "Stack")
-      ;; Insert new stack.		       
-      (if stack (gds-insert-stack stack))
-      ;; Record displayed stack.
-      (setq gds-displayed-stack stack))
+    (let ((stack gds-stack)
+	  (buf (get-buffer-create (concat (buffer-name) " - stack"))))
+      (with-current-buffer buf
+	(if (equal stack gds-stack)
+	    ;; No change needed.
+	    nil
+	  (erase-buffer)
+	  (gds-mode)
+	  ;; Insert new stack.		       
+	  (if stack (gds-insert-stack stack))
+	  ;; Record displayed stack.
+	  (setq gds-stack stack))))      
     ;; Display module list.
     (dmessage "insert modules")
-    (if (equal modules gds-displayed-modules)
-	(gds-maybe-skip-region "Modules")
+    (if (equal gds-modules gds-displayed-modules)
+	(gds-maybe-skip-region "^Modules:")
       ;; Delete existing module list.
-      (gds-maybe-delete-region "Modules")
+      (gds-maybe-delete-region "^Modules:")
       ;; Insert new list.
-      (if modules (gds-insert-modules modules))
+      (if gds-modules (gds-insert-modules gds-modules))
       ;; Record displayed list.
-      (setq gds-displayed-modules (copy-tree modules)))
+      (setq gds-displayed-modules (copy-tree gds-modules)))
     ;; Finish off.
     (dmessage "widget-setup")
     (widget-setup)
@@ -462,48 +354,71 @@
 	;; buffer is visible.
 	(progn
 	  (goto-char (point-min))
-	  (re-search-forward "^Stack:")
-	  (forward-line (+ 1 (cadr stack))))
+	  (forward-line (+ 1 (cadr gds-stack))))
       ;; Restore point from before buffer was redrawn.
-      (goto-char p)))
-  (setq gds-displayed-client client)
-  (dmessage "consider display")
-  (if (eq (window-buffer (selected-window)) gds-client-buffer)
-      ;; *Guile* buffer already selected.
-      (gds-display-buffers)
-    (dmessage "Running GDS timer")
-    (setq gds-timer
-	  (run-with-idle-timer 0.5
-			       nil
-			       (lambda ()
-				 (setq gds-timer nil)
-				 (gds-display-buffers))))))
+      (goto-char p))))
+
+(defun gds-sigint (w &rest ignore)
+  (interactive)
+  (signal-process gds-pid 2))
+
+(defun gds-async-break (w &rest ignore)
+  (interactive)
+  (gds-send (format "(%S async-break)\n" gds-focus-client)))
+
+(defun gds-toggle-debug-exceptions (w &rest ignore)
+  (interactive)
+  (setq gds-debug-exceptions (widget-value w))
+  (gds-eval-expression (concat "(use-modules (ice-9 debugger))"
+			       "(debug-on-error '("
+			       gds-exception-keys
+			       "))")))
+
+(defun gds-set-exception-keys (w &rest ignore)
+  (interactive)
+  (setq gds-exception-keys (widget-value w)))
 
 (defun gds-display-buffers ()
-  ;; If there's already a window showing the *Guile* buffer, use
-  ;; it.
-  (let ((window (get-buffer-window gds-client-buffer t)))
-    (if window
-	(progn
-	  (make-frame-visible (window-frame window))
-	  (raise-frame (window-frame window))
-	  (select-frame (window-frame window))
-	  (select-window window))
-      (switch-to-buffer gds-client-buffer)))
-  ;; If there is an associated source buffer, display it as well.
-  (if gds-selected-frame-source-buffer
-      (let ((window (display-buffer gds-selected-frame-source-buffer)))
-	(set-window-point window
-			  (overlay-start gds-selected-frame-source-overlay))))
-  ;; Force redisplay.
-  (sit-for 0))
+  (if gds-focus-client
+      (let ((gds-focus-buffer (cdr (assq gds-focus-client gds-buffers))))
+	;; If there's already a window showing the buffer, use it.
+	(let ((window (get-buffer-window gds-focus-buffer t)))
+	  (if window
+	      (progn
+		(make-frame-visible (window-frame window))
+		(select-frame (window-frame window))
+		(select-window window))
+	    ;(select-window (display-buffer gds-focus-buffer))
+	    (display-buffer gds-focus-buffer)))
+	;; If there is an associated source buffer, display it as well.
+	(if gds-selected-frame-source-buffer
+	    (let ((window (display-buffer gds-selected-frame-source-buffer)))
+	      (set-window-point window
+				(overlay-start
+				 gds-selected-frame-source-overlay))))
+	;; If there is a stack to display, display it.
+	(if gds-stack
+	    (let ((buf (get-buffer (concat (buffer-name) " - stack"))))
+	      (if (get-buffer-window buf)
+		  nil
+		(split-window)
+		(set-window-buffer (selected-window) buf)))))))
 
 (defun gds-insert-stack (stack)
   (let ((frames (car stack))
 	(index (cadr stack))
 	(flags (caddr stack))
 	frame items)
-    (widget-insert "Stack: " (prin1-to-string flags) "\n")
+    (cond ((memq 'application flags)
+	   (widget-insert "Calling procedure:\n"))
+	  ((memq 'evaluation flags)
+	   (widget-insert "Evaluating expression:\n"))
+	  ((memq 'return flags)
+	   (widget-insert "Return value: "
+			  (cadr (memq 'return flags))
+			  "\n"))
+	  (t
+	   (widget-insert "Stack: " (prin1-to-string flags) "\n")))
     (let ((i -1))
       (gds-show-selected-frame (caddr (nth index frames)))
       (while frames
@@ -527,7 +442,7 @@
   (let* ((s (widget-value widget))
 	 (ind (memq 'index (text-properties-at 0 s))))
     (gds-send (format "(%S debugger-command frame %d)\n"
-		      gds-displayed-client
+		      gds-focus-client
 		      (cadr ind)))))
 
 ;; Overlay used to highlight the source expression corresponding to
@@ -612,23 +527,128 @@ not of primary interest when debugging application code."
 		  (while syms
 		    (widget-insert " > " (car syms) "\n")
 		    (setq syms (cdr syms))))))))
-    (setq modules (cdr modules))))
+    (setq modules (cdr modules)))
+  (insert "\n"))
 
 (defun gds-module-notify (w &rest ignore)
   (let* ((module (widget-get w :module))
 	 (client (car module))
 	 (name (cdr module))
-	 (modules (assq client gds-modules))
-	 (minfo (assoc name modules)))
+	 (minfo (assoc name gds-modules)))
     (if (cdr minfo)
 	;; Just toggle expansion state.
 	(progn
 	  (setcar (cdr minfo) (not (cadr minfo)))
-	  (gds-display-state client))
+	  (gds-update-buffers client))
       ;; Set flag to indicate module expanded.
       (setcdr minfo (list t))
       ;; Get symlist from Guile.
       (gds-send (format "(%S query-module %S)\n" client name)))))
+
+(defun gds-query-modules ()
+  (interactive)
+  (gds-send (format "(%S query-modules)\n" gds-focus-client)))
+
+
+;;;; Handling debugging instructions.
+
+;; Alist mapping each client port number to corresponding buffer.
+(defvar gds-buffers nil)
+
+;; Return client buffer for specified client and protocol input.
+(defun gds-client-buffer (client proc args)
+  (if (eq proc 'name)
+      ;; Introduction from client - create a new buffer.
+      (with-current-buffer (generate-new-buffer (car args))
+	(gds-mode)
+	(insert "Transcript:\n")
+	(setq gds-buffers
+	      (cons (cons client (current-buffer))
+		    gds-buffers))
+	(current-buffer))
+    ;; Otherwise there should be an existing buffer that we can
+    ;; return.
+    (let ((existing (assq client gds-buffers)))
+      (if (buffer-live-p (cdr existing))
+	  (cdr existing)
+	(setq gds-buffers (delq existing gds-buffers))
+	(gds-client-buffer client 'name '("(GDS buffer killed)"))))))
+
+;; General dispatch function called by the subprocess filter.
+(defun gds-handle-input (form)
+  (dmessage "Form: %S" form)
+  (let ((client (car form)))
+    (or (eq client '*)
+	(let* ((proc (cadr form))
+	       (args (cddr form))
+	       (buf (gds-client-buffer client proc args)))
+	  (if buf (gds-handle-client-input buf client proc args))))))
+
+(defun gds-handle-client-input (buf client proc args)
+  (with-current-buffer buf
+    (save-excursion
+      (goto-char (point-max))
+      (let ((inhibit-read-only t))
+	(insert (format "<%S %S %S>" client proc args) "\n")))
+    (dmessage "Buffer: %S" (current-buffer))
+    (cond (;; (name ...) - Client name.
+	   (eq proc 'name)
+	   (setq gds-pid (cadr args))
+	   (gds-request-focus client))
+
+	  (;; (current-module ...) - Current module.
+	   (eq proc 'current-module)
+	   (setq gds-current-module (car args))
+	   (dmessage "Current module: %S" gds-current-module))
+
+	  (;; (stack ...) - Stack at an error or breakpoint.
+	   (eq proc 'stack)
+	   (setq gds-stack args))
+
+	  (;; (modules ...) - Application's loaded modules.
+	   (eq proc 'modules)
+	   (while args
+	     (or (assoc (car args) gds-modules)
+		 (setq gds-modules (cons (list (car args)) gds-modules)))
+	     (setq args (cdr args))))
+
+	  (;; (output ...) - Last printed output.
+	   (eq proc 'output)
+	   (setq gds-output (car args)))
+
+	  (;; (status ...) - Application status indication.
+	   (eq proc 'status)
+	   (setq gds-status (car args))
+	   (or (eq gds-status 'waiting-for-input)
+	       (setq gds-stack nil))
+	   (gds-update-buffers client)
+	   (if (eq gds-status 'waiting-for-input)
+	       (gds-request-focus client)
+	     (setq gds-stack nil)))
+
+	  (;; (module MODULE ...) - The specified module's bindings.
+	   (eq proc 'module)
+	   (let ((minfo (assoc (car args) gds-modules)))
+	     (if minfo
+		 (setcdr (cdr minfo) (cdr args)))))
+
+	  (;; (closed) - Client has gone away.
+	   (eq proc 'closed)
+	   (setq gds-status 'closed)
+	   (gds-update-buffers client)
+	   (setq gds-buffers
+		 (delq (assq client gds-buffers) gds-buffers))
+	   (if (eq client gds-focus-client)
+	       (gds-quit)))
+
+	  (;; (eval-results ...) - Results of evaluation.
+	   (eq proc 'eval-results)
+	   (gds-display-results client args))
+
+	  ((eq proc 'completion-result)
+	   (setq gds-completion-results (or (car args) t)))
+
+	  )))
 
 
 ;;;; Guile Debugging keymap.
@@ -637,55 +657,52 @@ not of primary interest when debugging application code."
 (define-key gds-mode-map "g" (function gds-go))
 (define-key gds-mode-map "b" (function gds-set-breakpoint))
 (define-key gds-mode-map "q" (function gds-quit))
-(define-key gds-mode-map "y" (function gds-yield))
 (define-key gds-mode-map " " (function gds-next))
 (define-key gds-mode-map "e" (function gds-evaluate))
 (define-key gds-mode-map "i" (function gds-step-in))
 (define-key gds-mode-map "o" (function gds-step-out))
 (define-key gds-mode-map "t" (function gds-trace-finish))
+(define-key gds-mode-map "I" (function gds-frame-info))
+(define-key gds-mode-map "A" (function gds-frame-args))
+(define-key gds-mode-map "M" (function gds-query-modules))
 
-(defun gds-client-waiting ()
-  (eq (cdr (assq gds-displayed-client gds-statuses)) 'waiting-for-input))
+(defun gds-client-blocked ()
+  (eq gds-status 'waiting-for-input))
 
 (defun gds-go ()
   (interactive)
-  (gds-send (format "(%S debugger-command continue)\n" gds-displayed-client)))
-
-(defun gds-quit ()
-  (interactive)
-  (if (gds-client-waiting)
-      (if (y-or-n-p "Client is waiting for instruction - tell it to continue? ")
-	  (gds-go)))
-  (gds-yield))
-
-(defun gds-yield ()
-  (interactive)
-  (if (gds-client-waiting)
-      (gds-focus-yield)
-    (gds-focus-done)))
+  (gds-send (format "(%S debugger-command continue)\n" gds-focus-client)))
 
 (defun gds-next ()
   (interactive)
-  (gds-send (format "(%S debugger-command next 1)\n" gds-displayed-client)))
+  (gds-send (format "(%S debugger-command next 1)\n" gds-focus-client)))
 
 (defun gds-evaluate (expr)
   (interactive "sEvaluate (in this stack frame): ")
   (gds-send (format "(%S debugger-command evaluate %s)\n"
-		    gds-displayed-client
+		    gds-focus-client
 		    (prin1-to-string expr))))
 
 (defun gds-step-in ()
   (interactive)
-  (gds-send (format "(%S debugger-command step 1)\n" gds-displayed-client)))
+  (gds-send (format "(%S debugger-command step 1)\n" gds-focus-client)))
 
 (defun gds-step-out ()
   (interactive)
-  (gds-send (format "(%S debugger-command finish)\n" gds-displayed-client)))
+  (gds-send (format "(%S debugger-command finish)\n" gds-focus-client)))
 
 (defun gds-trace-finish ()
   (interactive)
   (gds-send (format "(%S debugger-command trace-finish)\n"
-		    gds-displayed-client)))
+		    gds-focus-client)))
+
+(defun gds-frame-info ()
+  (interactive)
+  (gds-send (format "(%S debugger-command info-frame)\n" gds-focus-client)))
+
+(defun gds-frame-args ()
+  (interactive)
+  (gds-send (format "(%S debugger-command info-args)\n" gds-focus-client)))
 
 (defun gds-set-breakpoint ()
   (interactive)
@@ -704,16 +721,14 @@ not of primary interest when debugging application code."
   nil)
 
 (defun gds-in-stack ()
-  (and (eq (current-buffer) gds-client-buffer)
-       (save-excursion
-	 (and (re-search-backward "^\\(Stack\\|Modules\\):" nil t)
-	      (looking-at "Stack")))))
+  (save-excursion
+    (and (re-search-backward "^\\(Stack\\|Modules\\):" nil t)
+	 (looking-at "Stack"))))
 
 (defun gds-in-modules ()
-  (and (eq (current-buffer) gds-client-buffer)
-       (save-excursion
-	 (and (re-search-backward "^\\(Stack\\|Modules\\):" nil t)
-	      (looking-at "Modules")))))
+  (save-excursion
+    (and (re-search-backward "^\\(Stack\\|Modules\\):" nil t)
+	 (looking-at "Modules"))))
 
 (defun gds-set-module-breakpoint ()
   (let ((sym (save-excursion
@@ -740,7 +755,7 @@ not of primary interest when debugging application code."
 	    nil
 	    "debug-here")))
       (gds-send (format "(%S set-breakpoint %s %s %s)\n"
-			gds-displayed-client
+			gds-focus-client
 			module
 			sym
 			behaviour)))))
@@ -754,13 +769,13 @@ not of primary interest when debugging application code."
 ;;
 ;; Where there are multiple Guile applications known to GDS, GDS by
 ;; default sends code to the one that holds the debugging focus,
-;; i.e. `gds-displayed-client'.  Where no application has the focus,
+;; i.e. `gds-focus-client'.  Where no application has the focus,
 ;; or the command is invoked with `C-u', GDS asks the user which
 ;; application is intended.
 
 (defun gds-read-client ()
-  (let* ((def (if gds-displayed-client
-		  (cdr (assq gds-displayed-client gds-names))))
+  (let* ((def (if gds-focus-client
+		  (cdr (assq gds-focus-client gds-names))))
 	 (prompt (if def
 		     (concat "Application for eval (default "
 			     def
@@ -789,21 +804,21 @@ not of primary interest when debugging application code."
       (if client (gds-read-client))
       ;; If ask not forced, and there is a client with the focus,
       ;; default to that one.
-      gds-displayed-client
+      gds-focus-client
       ;; If there are no clients at this point, and we are allowed to
       ;; autostart a captive Guile, do so.
-      (and (null gds-names)
+      (and (null gds-buffers)
 	   gds-autostart-captive
 	   (progn
 	     (gds-start-captive t)
-	     (while (null gds-names)
+	     (while (null gds-buffers)
 	       (accept-process-output (get-buffer-process gds-captive)
 				      0 100000))
-	     (caar gds-names)))
+	     (caar gds-buffers)))
       ;; If there is only one known client, use that one.
-      (if (and (car gds-names)
-	       (null (cdr gds-names)))
-	  (caar gds-names))
+      (if (and (car gds-buffers)
+	       (null (cdr gds-buffers)))
+	  (caar gds-buffers))
       ;; Last resort - ask the user.
       (gds-read-client)
       ;; Signal an error.
@@ -884,19 +899,72 @@ region's code."
 
 (defun gds-help-symbol (sym &optional client)
   "Get help for SYM (a Scheme symbol)."
-  (interactive "SHelp for symbol: \nP")
-  (gds-eval-expression (format "(begin (help %S) '%S)" sym gds-help-symbol)
+  (interactive
+   (let ((sym (thing-at-point 'symbol))
+	 (enable-recursive-minibuffers t)
+	 val)
+     (setq val (read-from-minibuffer
+		(if sym
+		    (format "Describe Guile symbol (default %s): " sym)
+		  "Describe Guile symbol: ")))
+     (list (if (zerop (length val)) sym val)
+	   current-prefix-arg)))
+  (gds-eval-expression (format "(begin (help %s) '%S)" sym gds-help-symbol)
 		       client))
-
-(defun gds-help-symbol-here (&optional client)
-  (interactive "P")
-  (gds-help-symbol (thing-at-point 'symbol) client))
 
 (defun gds-apropos (regex &optional client)
   "List Guile symbols matching REGEX."
-  (interactive "sApropos Guile regex: \nP")
+  (interactive
+   (let ((sym (thing-at-point 'symbol))
+	 (enable-recursive-minibuffers t)
+	 val)
+     (setq val (read-from-minibuffer
+		(if sym
+		    (format "Guile apropos (regexp, default \"%s\"): " sym)
+		  "Guile apropos (regexp): ")))
+     (list (if (zerop (length val)) sym val)
+	   current-prefix-arg)))
   (gds-eval-expression (format "(begin (apropos %S) '%S)" regex gds-help-symbol)
 		       client))
+
+(defvar gds-completion-results nil)
+
+(defun gds-complete-symbol (&optional client)
+  "Complete the Guile symbol before point.  Returns `t' if anything
+interesting happened, `nil' if not."
+  (interactive "P")
+  (let* ((chars (- (point) (save-excursion
+			     (while (let ((syntax (char-syntax (char-before (point)))))
+				      (or (eq syntax ?w) (eq syntax ?_)))
+			       (forward-char -1))
+			     (point)))))
+    (if (zerop chars)
+	nil
+      (setq client (gds-choose-client client))
+      (setq gds-completion-results nil)
+      (gds-send (format "(%S complete %s)\n" client
+			(prin1-to-string
+			 (buffer-substring-no-properties (- (point) chars)
+							 (point)))))
+      (while (null gds-completion-results)
+	(accept-process-output gds-process 0 200))
+      (cond ((eq gds-completion-results t)
+	     nil)
+	    ((stringp gds-completion-results)
+	     (if (<= (length gds-completion-results) chars)
+		 nil
+	       (insert (substring gds-completion-results chars))
+	       (message "Sole completion")
+	       t))
+	    ((= (length gds-completion-results) 1)
+	     (if (<= (length (car gds-completion-results)) chars)
+		 nil
+	       (insert (substring (car gds-completion-results) chars))
+	       t))
+	    (t
+	     (with-output-to-temp-buffer "*Completions*"
+	       (display-completion-list gds-completion-results))
+	     t)))))
 
 
 ;;;; Display of evaluation and help results.
@@ -912,6 +980,7 @@ region's code."
       (save-excursion
 	(set-buffer buf)
 	(erase-buffer)
+	(scheme-mode)
 	(while results
 	  (insert (car results))
 	  (if helpp
@@ -959,9 +1028,12 @@ Used for determining the default for the next `gds-load-file'.")
 ;; Install the process communication commands in the scheme-mode keymap.
 (define-key scheme-mode-map "\M-\C-x" 'gds-eval-defun);gnu convention
 (define-key scheme-mode-map "\C-x\C-e" 'gds-eval-last-sexp);gnu convention
-(define-key scheme-mode-map "\C-c\C-e" 'gds-eval-defun)
+(define-key scheme-mode-map "\C-c\C-e" 'gds-eval-expression)
 (define-key scheme-mode-map "\C-c\C-r" 'gds-eval-region)
 (define-key scheme-mode-map "\C-c\C-l" 'gds-load-file)
+(define-key scheme-mode-map "\C-hg" 'gds-help-symbol)
+(define-key scheme-mode-map "\C-h\C-g" 'gds-apropos)
+(define-key scheme-mode-map "\e\t" 'gds-complete-symbol)
 
 
 ;;;; Menu bar entries.
@@ -1007,8 +1079,6 @@ Used for determining the default for the next `gds-load-file'.")
   (setq gds-help-menu (make-sparse-keymap "Help"))
   (define-key gds-help-menu [apropos]
     '(menu-item "Apropos..." gds-apropos))
-  (define-key gds-help-menu [sym-here]
-    '(menu-item "Symbol At Point" gds-help-symbol-here))
   (define-key gds-help-menu [sym]
     '(menu-item "Symbol..." gds-help-symbol)))
 
@@ -1037,17 +1107,17 @@ Used for determining the default for the next `gds-load-file'.")
   (define-key gds-menu [separator-1]
     '("--"))
   (define-key gds-menu [debug]
-    `(menu-item "Debug" ,gds-debug-menu :enable (and gds-displayed-client
-						     (gds-client-waiting))))
+    `(menu-item "Debug" ,gds-debug-menu :enable (and gds-focus-client
+						     (gds-client-blocked))))
   (define-key gds-menu [eval]
-    `(menu-item "Evaluate" ,gds-eval-menu :enable (or gds-names
+    `(menu-item "Evaluate" ,gds-eval-menu :enable (or gds-buffers
 						      gds-autostart-captive)))
   (define-key gds-menu [help]
-    `(menu-item "Help" ,gds-help-menu :enable (or gds-names
+    `(menu-item "Help" ,gds-help-menu :enable (or gds-buffers
 						  gds-autostart-captive)))
   (setq menu-bar-final-items
 	(cons 'guile menu-bar-final-items))
-  (define-key global-map [menu-bar guile]
+  (define-key scheme-mode-map [menu-bar guile]
     (cons "Guile" gds-menu)))
 
 
@@ -1089,8 +1159,8 @@ Used for determining the default for the next `gds-load-file'.")
     (let ((proc (get-buffer-process gds-captive)))
       (comint-send-string proc "(set! %load-path (cons \"/home/neil/Guile/cvs/guile-core\" %load-path))\n")
       (comint-send-string proc "(debug-enable 'backtrace)\n")
-      (comint-send-string proc "(use-modules (ice-9 debugger ui-client))\n")
-      (comint-send-string proc "(ui-connect \"Captive Guile\" #f)\n"))))
+      (comint-send-string proc "(use-modules (emacs gds-client))\n")
+      (comint-send-string proc "(gds-connect \"Captive Guile\" #f)\n"))))
 
 (defun gds-kill-captive ()
   (if gds-captive
@@ -1098,7 +1168,7 @@ Used for determining the default for the next `gds-load-file'.")
 	(process-kill-without-query proc)
 	(condition-case nil
 	    (progn
-	      (kill-process gds-process)
+	      (kill-process proc)
 	      (accept-process-output gds-process 0 200))
 	  (error)))))
 

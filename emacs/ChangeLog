@@ -1,5 +1,7 @@
 2003-11-11  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* gds.el: New.  (Or rather, first mention in this ChangeLog.)
+
 	* Makefile.am, README.GDS: New.
 
 	* gds-client.scm, gds-server.scm: New (moved here from
