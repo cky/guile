@@ -1,3 +1,8 @@
+2001-06-14  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* common-list.scm (remove-if, remove-if-not): Fix typo: use
+	`pred', not `pred?', in the body.
+
 2001-06-13  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
 	* match.scm:

@@ -1,3 +1,7 @@
+2001-06-14  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* srfi-13.scm: Prevent `export' from re-exporting core bindings.
+
 2001-06-07  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* srfi-14.c (charset_print): Mark unused parameters with

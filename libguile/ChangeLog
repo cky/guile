@@ -1,5 +1,10 @@
 2001-06-14  Marius Vollmer  <mvo@zagadka.ping.de>
 
+	* unif.h (SCM_ARRAY_NDIM): Shift then cast so that the no sign
+	extension takes place.
+	* strings.h (SCM_STRING_LENGTH): Likewise.
+	(SCM_STRING_MAX_LENGTH): Use unsigned numbers.
+	
 	* __scm.h (ptrdiff_t): Typedef to long when configure didn't find
 	it.
 
