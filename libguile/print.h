@@ -70,10 +70,12 @@ extern scm_option scm_print_opts[];
 #define SCM_WRITINGP(pstate) ((pstate)->writingp)
 #define SCM_SET_WRITINGP(pstate, x) { (pstate)->writingp = (x); }
 
-#define SCM_COERCE_OUTPORT(p) ((SCM_NIMP (p) \
-				&& SCM_CONSP (p) \
-				&& SCM_PRINT_STATE_P (SCM_CDR (p))) \
-			       ? SCM_CAR (p) \
+#define SCM_PORT_WITH_PS_P(p) (SCM_TYP16 (p) == scm_tc16_port_with_ps)
+#define SCM_PORT_WITH_PS_PORT(p) SCM_CADR (p)
+#define SCM_PORT_WITH_PS_PS(p) SCM_CDDR (p)
+
+#define SCM_COERCE_OUTPORT(p) (SCM_NIMP (p) && SCM_PORT_WITH_PS_P (p) \
+			       ? SCM_PORT_WITH_PS_PORT (p) \
 			       : p)
 
 #define SCM_PRINT_STATE_LAYOUT "sruwuwuwuwuwpwuwuwuruopr"
@@ -95,6 +97,8 @@ typedef struct scm_print_state {
 
 extern SCM scm_print_state_vtable;
 
+extern SCM scm_tc16_port_with_ps;
+
 extern SCM scm_print_options SCM_P ((SCM setting));
 SCM scm_make_print_state SCM_P ((void));
 void scm_free_print_state SCM_P ((SCM print_state));
@@ -109,6 +113,8 @@ extern SCM scm_newline SCM_P ((SCM port));
 extern SCM scm_write_char SCM_P ((SCM chr, SCM port));
 extern SCM scm_printer_apply SCM_P ((SCM proc, SCM exp, SCM port,
 				     scm_print_state *));
+extern SCM scm_port_with_print_state (SCM port, SCM pstate);
+extern SCM scm_get_print_state (SCM port);
 extern int scm_valid_oport_value_p SCM_P ((SCM val));
 extern void scm_init_print SCM_P ((void));
 
