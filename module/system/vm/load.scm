@@ -21,7 +21,6 @@
 
 (define-module (system vm load)
   :use-module (system vm core)
-  :autoload (system base module) (global-ref)
   :autoload (system base language) (compile-file-in lookup-language)
   :use-module (ice-9 regex)
   :export (load/compile))
@@ -33,7 +32,7 @@
 	 (compiled (object-file-name file)))
     (if (or (not (file-exists? compiled))
 	    (> (stat:mtime (stat file)) (stat:mtime (stat compiled))))
-	(compile-file-in file (global-ref 'user) (lookup-language 'r5rs)))
+	(compile-file-in file #f (lookup-language 'r5rs)))
     (let ((bytes (make-uniform-vector (stat:size (stat compiled)) #\a)))
       (call-with-input-file compiled
 	(lambda (p) (uniform-vector-read! bytes p)))

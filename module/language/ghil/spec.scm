@@ -19,7 +19,6 @@
 
 (define-module (language ghil spec)
   :use-module (system base language)
-  :use-module (system base module)
   :export (ghil))
 
 (define-language ghil
@@ -27,5 +26,5 @@
   :version	"0.3"
   :reader	read
   :printer	write
-  :environment	(make-vmodule)
+;;  :environment	(make-vmodule)
   )

@@ -21,7 +21,6 @@
 
 (define-module (system repl repl)
   :use-syntax (system base syntax)
-  :use-module (system base module)
   :use-module (system repl common)
   :use-module (system repl command)
   :use-module (system vm frame)
@@ -30,8 +29,8 @@
 
 (define (start-repl lang)
   (let ((repl (make-repl lang)))
-    (set-current-vmodule! repl.module)
-    (set-current-evaluator! repl.vm)
+;;    (set-current-vmodule! repl.module)
+;;    (set-current-evaluator! repl.vm)
     (repl-welcome repl)
     (let prompt-loop ()
       (repl-prompt repl)

@@ -22,7 +22,6 @@
 (define-module (system repl common)
   :use-module (oop goops)
   :use-syntax (system base syntax)
-  :use-module (system base module)
   :use-module (system base language)
   :use-module (system vm core)
   :export (make-repl repl-welcome repl-prompt repl-read repl-compile
@@ -41,7 +40,7 @@
     (make <repl>
 	  :vm vm
 	  :language (lookup-language lang)
-	  :module (global-ref 'user)
+	  :module #f ;; (global-ref 'user)
 	  :value-count 0
 ;	  :value-history (make-vmodule)
 	  :tm-stats (times)
@@ -55,7 +54,8 @@
   (display "Enter `,help' for help.\n"))
 
 (define (repl-prompt repl)
-  (format #t "~A@~A> " repl.language.name (env-identifier repl.module))
+  (format #t "~A@~A> " repl.language.name 'guile)
+  ;; (env-identifier repl.module))
   (force-output))
 
 (define (repl-read repl . args)

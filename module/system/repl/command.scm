@@ -22,7 +22,6 @@
 (define-module (system repl command)
   :use-module (oop goops)
   :use-syntax (system base syntax)
-  :use-module (system base module)
   :use-module (system base language)
   :use-module (system repl common)
   :use-module (system il glil)

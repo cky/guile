@@ -194,9 +194,9 @@
 (export current-vmodule set-current-vmodule!
 	current-evaluator set-current-evaluator!)
 
-(define *current-module* #f)
-(define (current-vmodule) *current-module*)
-(define (set-current-vmodule! m) (set! *current-module* m))
+(define *current-vmodule* #f)
+(define (current-vmodule) *current-vmodule*)
+(define (set-current-vmodule! m) (set! *current-vmodule* m))
 
 (define *current-evaluator* #f)
 (define (current-evaluator) *current-evaluator*)
