@@ -609,7 +609,7 @@ taloop:
 	    if (proc == scm_f_gsubr_apply)
 	      {
 		/* Print gsubrs as primitives */
-		SCM name = scm_procedure_property (exp, scm_i_name);
+		SCM name = scm_procedure_name (exp);
 		scm_puts ("#<primitive-procedure", port);
 		if (SCM_NFALSEP (name))
 		  {
@@ -626,6 +626,18 @@ taloop:
 	  }
 	  break;
 #endif
+	case scm_tc7_pws:
+	  scm_puts ("#<procedure-with-setter", port);
+	  {
+	    SCM name = scm_procedure_name (exp);
+	    if (SCM_NFALSEP (name))
+	      {
+		scm_putc (' ', port);
+		scm_puts (SCM_ROCHARS (name), port);
+	      }
+	  }
+	  scm_putc ('>', port);
+	  break;
 	case scm_tc7_contin:
 	  scm_puts ("#<continuation ", port);
 	  scm_intprint (SCM_LENGTH (exp), 10, port);
