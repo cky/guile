@@ -175,7 +175,7 @@
    (fcntl r F_SETFL O_NONBLOCK)
    (pass-if "non-blocking-I/O"
 	    (catch 'system-error
-		   (lambda () (read-char r))
+		   (lambda () (read-char r) #f)
 		   (lambda (key . args)
 		     (and (eq? key 'system-error)
 			  (= (car (list-ref args 3)) EAGAIN)))))))
