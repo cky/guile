@@ -62,6 +62,9 @@
  case '5':case '6':case '7':case '8':case '9'
 
 
+#define SCM_SWAP(x,y) do { SCM __t = x; x = y; y = __t; } while (0)
+
+
 /* IS_INF tests its floating point number for infiniteness
  */
 #ifndef IS_INF
@@ -304,30 +307,16 @@ scm_modulo (SCM x, SCM y)
 #endif
 	return SCM_MAKINUM (((yy < 0) ? (z > 0) : (z < 0)) ? z + yy : z);
       }
-    } else {
 #ifdef SCM_BIGDIG
-      if (!SCM_BIGP (y)) {
-	SCM_WTA_DISPATCH_2 (g_modulo, x, y, SCM_ARG2, s_modulo);
-      } else {
-	return (SCM_BIGSIGN (y) ? (xx > 0) : (xx < 0)) ? scm_sum (x, y) : x;
-      }
-#else
-      SCM_WTA_DISPATCH_2 (g_modulo, x, y, SCM_ARG2, s_modulo);
+    } else if (SCM_BIGP (y)) {
+      return (SCM_BIGSIGN (y) ? (xx > 0) : (xx < 0)) ? scm_sum (x, y) : x;
 #endif
-    }
-  } else {
-#ifdef SCM_BIGDIG
-    SCM_GASSERT2 (SCM_BIGP (x), g_modulo, x, y, SCM_ARG1, s_modulo);
-    if (SCM_NINUMP (y)) {
-      if (!SCM_BIGP (y)) {
-	SCM_WTA_DISPATCH_2 (g_modulo, x, y, SCM_ARG2, s_modulo);
-      } else {
-	return scm_divbigbig (SCM_BDIGITS (x), SCM_NUMDIGS (x),
-			      SCM_BDIGITS (y), SCM_NUMDIGS (y),
-			      SCM_BIGSIGN (y),
-			      (SCM_BIGSIGN (x) ^ SCM_BIGSIGN (y)) ? 1 : 0);
-      }
     } else {
+      SCM_WTA_DISPATCH_2 (g_modulo, x, y, SCM_ARG2, s_modulo);
+    }
+#ifdef SCM_BIGDIG
+  } else if (SCM_BIGP (x)) {
+    if (SCM_INUMP (y)) {
       long yy = SCM_INUM (y);
       if (yy == 0) {
 	scm_num_overflow (s_modulo);
@@ -335,145 +324,170 @@ scm_modulo (SCM x, SCM y)
 	return scm_divbigint (x, yy, yy < 0,
 			      (SCM_BIGSIGN (x) ? (yy > 0) : (yy < 0)) ? 1 : 0);
       }
+    } else if (SCM_BIGP (y)) {
+      return scm_divbigbig (SCM_BDIGITS (x), SCM_NUMDIGS (x),
+			    SCM_BDIGITS (y), SCM_NUMDIGS (y),
+			    SCM_BIGSIGN (y),
+			    (SCM_BIGSIGN (x) ^ SCM_BIGSIGN (y)) ? 1 : 0);
+    } else {
+      SCM_WTA_DISPATCH_2 (g_modulo, x, y, SCM_ARG2, s_modulo);
     }
-#else
-    SCM_WTA_DISPATCH_2 (g_modulo, x, y, SCM_ARG2, s_modulo);
 #endif
+  } else {
+    SCM_WTA_DISPATCH_2 (g_modulo, x, y, SCM_ARG1, s_modulo);
   }
 }
+
 
 SCM_GPROC1 (s_gcd, "gcd", scm_tc7_asubr, scm_gcd, g_gcd);
 
 SCM
 scm_gcd (SCM x, SCM y)
 {
-  long u, v, k, t;
-  if (SCM_UNBNDP (y))
-    return SCM_UNBNDP (x) ? SCM_INUM0 : x;
+  if (SCM_UNBNDP (y)) {
+    if (SCM_UNBNDP (x)) {
+      return SCM_INUM0;
+    } else {
+      return x;
+    }
+  }
  tailrec:
-#ifdef SCM_BIGDIG
-  if (SCM_NINUMP (x))
-    {
-    big_gcd:
-      SCM_GASSERT2 (SCM_BIGP (x),
-		    g_gcd, x, y, SCM_ARG1, s_gcd);
-      if (SCM_BIGSIGN (x))
-	x = scm_copybig (x, 0);
-    newy:
-      if (SCM_NINUMP (y))
-	{
-	  SCM_GASSERT2 (SCM_BIGP (y),
-			g_gcd, x, y, SCM_ARGn, s_gcd);
-	  if (SCM_BIGSIGN (y))
-	    y = scm_copybig (y, 0);
-	  switch (scm_bigcomp (x, y))
-	    {
-	    case -1:
-	    swaprec:
-	    {
-	      SCM t = scm_remainder (x, y);
-	      x = y;
-	      y = t;
-	    }
-	    goto tailrec;
-	    case 0:
-	      return x;
-	    case 1:
-	      y = scm_remainder (y, x);
-	      goto newy;
-	    }
-	  /* instead of the switch, we could just
-	     return scm_gcd (y, scm_modulo (x, y)); */
+  if (SCM_INUMP (x)) {
+    if (SCM_INUMP (y)) {
+      long xx = SCM_INUM (x);
+      long yy = SCM_INUM (y);
+      long u = xx < 0 ? -xx : xx;
+      long v = yy < 0 ? -yy : yy;
+      long result;
+
+      if (xx == 0) {
+	result = v;
+      } else if (yy == 0) {
+	result = u;
+      } else {
+	int k = 1;
+	long t;
+
+	/* Determine a common factor 2^k */
+	while (!(1 & (u | v))) {
+	  k <<= 1;
+	  u >>= 1;
+	  v >>= 1;
 	}
-      if (SCM_EQ_P (y, SCM_INUM0))
-	return x;
-      goto swaprec;
-    }
-  if (SCM_NINUMP (y))
-    {
-      SCM t = x;
-      x = y;
-      y = t;
-      goto big_gcd;
-    }
-#else
-  SCM_GASSERT2 (SCM_INUMP (x), g_gcd, x, y, SCM_ARG1, s_gcd);
-  SCM_GASSERT2 (SCM_INUMP (y), g_gcd, x, y, SCM_ARGn, s_gcd);
-#endif
-  u = SCM_INUM (x);
-  if (u < 0)
-    u = -u;
-  v = SCM_INUM (y);
-  if (v < 0)
-    v = -v;
-  else if (0 == v)
-    goto getout;
-  if (0 == u)
-    {
-      u = v;
-      goto getout;
-    }
-  for (k = 1; !(1 & ((int) u | (int) v)); k <<= 1, u >>= 1, v >>= 1);
-  if (1 & (int) u)
-    t = -v;
-  else
-    {
-      t = u;
-    b3:
-      t = SCM_SRS (t, 1);
-    }
-  if (!(1 & (int) t))
-    goto b3;
-  if (t > 0)
-    u = t;
-  else
-    v = -t;
-  if ((t = u - v))
-    goto b3;
-  u = u * k;
- getout:
-  if (!SCM_POSFIXABLE (u))
+
+	/* Now, any factor 2^n can be eliminated */
+	if (u & 1) {
+	  t = -v;
+	} else {
+	  t = u;
+	b3:
+	  t = SCM_SRS (t, 1);
+	}
+	if (!(1 & t))
+	  goto b3;
+	if (t > 0)
+	  u = t;
+	else
+	  v = -t;
+	t = u - v;
+	if (t != 0)
+	  goto b3;
+
+	result = u * k;
+      }
+      if (SCM_POSFIXABLE (result)) {
+	return SCM_MAKINUM (result);
+      } else {
 #ifdef SCM_BIGDIG
-    return scm_long2big (u);
+	return scm_long2big (result);
 #else
-  scm_num_overflow (s_gcd);
+	scm_num_overflow (s_gcd);
 #endif
-  return SCM_MAKINUM (u);
+      }
+#ifdef SCM_BIGDIG
+    } else if (SCM_BIGP (y)) {
+      SCM_SWAP (x, y);
+      goto big_gcd;
+#endif
+    } else {
+      SCM_WTA_DISPATCH_2 (g_gcd, x, y, SCM_ARG2, s_gcd);
+    }
+#ifdef SCM_BIGDIG
+  } else if (SCM_BIGP (x)) {
+  big_gcd:
+    if (SCM_BIGSIGN (x))
+      x = scm_copybig (x, 0);
+  newy:
+    if (SCM_INUMP (y)) {
+      if (SCM_EQ_P (y, SCM_INUM0)) {
+	return x;
+      } else {
+	goto swaprec;
+      }
+    } else if (SCM_BIGP (y)) {
+      if (SCM_BIGSIGN (y))
+	y = scm_copybig (y, 0);
+      switch (scm_bigcomp (x, y))
+	{
+	case -1:  /* x > y */
+	swaprec:
+	{
+	  SCM t = scm_remainder (x, y);
+	  x = y;
+	  y = t;
+	}
+	goto tailrec;
+	case 1:  /* x < y */
+	  y = scm_remainder (y, x);
+	  goto newy;
+	default:  /* x == y */
+	  return x;
+	}
+      /* instead of the switch, we could just
+	 return scm_gcd (y, scm_modulo (x, y)); */
+    } else {
+      SCM_WTA_DISPATCH_2 (g_gcd, x, y, SCM_ARG2, s_gcd);
+    }
+#endif
+  } else {
+    SCM_WTA_DISPATCH_2 (g_gcd, x, y, SCM_ARG1, s_gcd);
+  }
 }
+
 
 SCM_GPROC1 (s_lcm, "lcm", scm_tc7_asubr, scm_lcm, g_lcm);
 
 SCM
 scm_lcm (SCM n1, SCM n2)
 {
-  SCM d;
+  if (SCM_UNBNDP (n2)) {
+    if (SCM_UNBNDP (n1)) {
+      return SCM_MAKINUM (1L);
+    } else {
+      n2 = SCM_MAKINUM (1L);
+    }
+  };
+
 #ifndef SCM_BIGDIG
-  SCM_GASSERT2 (SCM_INUMP (n1) || SCM_UNBNDP (n1),
-		g_lcm, n1, n2, SCM_ARG1, s_lcm);
-  SCM_GASSERT2 (SCM_INUMP (n2) || SCM_UNBNDP (n2),
-		g_lcm, n1, n2, SCM_ARGn, s_lcm);
+  SCM_GASSERT2 (SCM_INUMP (n1), g_lcm, n1, n2, SCM_ARG1, s_lcm);
+  SCM_GASSERT2 (SCM_INUMP (n2), g_lcm, n1, n2, SCM_ARGn, s_lcm);
 #else
-  SCM_GASSERT2 (SCM_INUMP (n1)
-		|| SCM_UNBNDP (n1)
-		|| (SCM_BIGP (n1)),
+  SCM_GASSERT2 (SCM_INUMP (n1) || SCM_BIGP (n1),
 		g_lcm, n1, n2, SCM_ARG1, s_lcm);
-  SCM_GASSERT2 (SCM_INUMP (n2)
-		|| SCM_UNBNDP (n2)
-		|| (SCM_BIGP (n2)),
+  SCM_GASSERT2 (SCM_INUMP (n2) || SCM_BIGP (n2),
 		g_lcm, n1, n2, SCM_ARGn, s_lcm);
 #endif
-  if (SCM_UNBNDP (n2))
-    {
-      n2 = SCM_MAKINUM (1L);
-      if (SCM_UNBNDP (n1))
-	return n2;
+
+  {
+    SCM d = scm_gcd (n1, n2);
+    if (SCM_EQ_P (d, SCM_INUM0)) {
+      return d;
+    } else {
+      return scm_abs (scm_product (n1, scm_quotient (n2, d)));
     }
-  
-  d = scm_gcd (n1, n2);
-  if (SCM_EQ_P (d, SCM_INUM0))
-    return d;
-  return scm_abs (scm_product (n1, scm_quotient (n2, d)));
+  }
 }
+
 
 #ifndef scm_long2num
 #define SCM_LOGOP_RETURN(x) scm_ulong2num(x)
@@ -703,6 +717,7 @@ SCM scm_big_test(SCM_BIGDIG *x, scm_sizet nx, int xsgn, SCM bigy)
 
 #endif
 
+
 SCM_DEFINE1 (scm_logand, "logand", scm_tc7_asubr,
              (SCM n1, SCM n2),
 	     "Returns the integer which is the bit-wise AND of the two integer\n"
@@ -713,60 +728,82 @@ SCM_DEFINE1 (scm_logand, "logand", scm_tc7_asubr,
 	     "   @result{} \"1000\"")
 #define FUNC_NAME s_scm_logand
 {
-  if (SCM_UNBNDP (n2))
-    {
-      if (SCM_UNBNDP (n1))
-	return SCM_MAKINUM (-1);
+  if (SCM_UNBNDP (n2)) {
+    if (SCM_UNBNDP (n1)) {
+      return SCM_MAKINUM (-1);
+    } else if (!SCM_NUMBERP (n1)) {
+      SCM_WRONG_TYPE_ARG (SCM_ARG1, n1);
 #ifndef SCM_RECKLESS
-      if (!(SCM_NUMBERP (n1)))
-	  badx: SCM_WTA (SCM_ARG1, n1);
-#endif
+    } else if (SCM_NUMBERP (n1)) {
       return n1;
+    } else {
+      SCM_WRONG_TYPE_ARG (SCM_ARG1, n1);
+#else
+    } else {
+      return n1;
+#endif
+    }
+  }
+
+  if (SCM_INUMP (n1)) {
+    long nn1 = SCM_INUM (n1);
+    if (SCM_INUMP (n2)) {
+      long nn2 = SCM_INUM (n2);
+      return SCM_MAKINUM (nn1 & nn2);
+#ifdef SCM_BIGDIG
+    } else if SCM_BIGP (n2) {
+    intbig: 
+      {
+# ifndef SCM_DIGSTOOBIG
+	long z = scm_pseudolong (nn1);
+	if ((nn1 < 0) && SCM_BIGSIGN (n2)) {
+	  return scm_big_ior ((SCM_BIGDIG *) & z, SCM_DIGSPERLONG, 
+			      SCM_BIGSIGNFLAG, n2);
+	} else {
+	  return scm_big_and ((SCM_BIGDIG *) & z, SCM_DIGSPERLONG, 
+			      (nn1 < 0) ? SCM_BIGSIGNFLAG : 0, n2, 0);
+	}
+# else
+	SCM_BIGDIG zdigs [SCM_DIGSPERLONG];
+	scm_longdigs (nn1, zdigs);
+	if ((nn1 < 0) && SCM_BIGSIGN (n2)) {
+	  return scm_big_ior (zdigs, SCM_DIGSPERLONG, SCM_BIGSIGNFLAG, n2);
+	} else {
+	  return scm_big_and (zdigs, SCM_DIGSPERLONG, 
+			      (nn1 < 0) ? SCM_BIGSIGNFLAG : 0, n2, 0);
+	}
+# endif
+      }
+# endif
+    } else {
+      SCM_WRONG_TYPE_ARG (SCM_ARG2, n2);
     }
 #ifdef SCM_BIGDIG
-  if SCM_NINUMP(n1) {
-    SCM t;
-    SCM_ASRTGO(SCM_NIMP(n1) && SCM_BIGP(n1), badx);
-    if SCM_INUMP(n2) {t = n1; n1 = n2; n2 = t; goto intbig;}
-    SCM_ASRTGO(SCM_NIMP(n2) && SCM_BIGP(n2), bady);
-    if (SCM_NUMDIGS(n1) > SCM_NUMDIGS(n2)) {t = n1; n1 = n2; n2 = t;}
-    if ((SCM_BIGSIGN(n1)) && SCM_BIGSIGN(n2))
-      return scm_big_ior (SCM_BDIGITS(n1),
-			  SCM_NUMDIGS(n1),
-			  SCM_BIGSIGNFLAG,
-			  n2);
-    return scm_big_and (SCM_BDIGITS(n1),
-			SCM_NUMDIGS(n1),
-			SCM_BIGSIGN(n1),
-			n2,
-			0);
+  } else if (SCM_BIGP (n1)) {
+    if (SCM_INUMP (n2)) {
+      SCM_SWAP (n1, n2);
+      goto intbig;
+    } else if (SCM_BIGP (n2)) {
+      if (SCM_NUMDIGS (n1) > SCM_NUMDIGS (n2)) {
+	SCM_SWAP (n1, n2);
+      };
+      if ((SCM_BIGSIGN (n1)) && SCM_BIGSIGN (n2)) {
+	return scm_big_ior (SCM_BDIGITS (n1), SCM_NUMDIGS (n1),
+			    SCM_BIGSIGNFLAG, n2);
+      } else {
+	return scm_big_and (SCM_BDIGITS (n1), SCM_NUMDIGS (n1),
+			    SCM_BIGSIGN (n1), n2, 0);
+      }
+    } else {
+      SCM_WRONG_TYPE_ARG (SCM_ARG2, n2);
+    }
+# endif
+  } else {
+    SCM_WRONG_TYPE_ARG (SCM_ARG1, n1);
   }
-  if SCM_NINUMP(n2) {
-# ifndef SCM_RECKLESS
-      if (!(SCM_NIMP(n2) && SCM_BIGP(n2)))
-	  bady: SCM_WTA (SCM_ARG2, n2);
-# endif
-  intbig: {
-# ifndef SCM_DIGSTOOBIG
-    long z = scm_pseudolong(SCM_INUM(n1));
-    if ((n1 < 0) && SCM_BIGSIGN(n2))
-      return scm_big_ior((SCM_BIGDIG *)&z, SCM_DIGSPERLONG, SCM_BIGSIGNFLAG, n2);
-    return scm_big_and((SCM_BIGDIG *)&z, SCM_DIGSPERLONG, (n1 < 0) ? SCM_BIGSIGNFLAG : 0, n2, 0);
-# else
-    SCM_BIGDIG zdigs[SCM_DIGSPERLONG];
-    scm_longdigs(SCM_INUM(n1), zdigs);
-    if ((n1 < 0) && SCM_BIGSIGN(n2))
-      return scm_big_ior(zdigs, SCM_DIGSPERLONG, SCM_BIGSIGNFLAG, n2);
-    return scm_big_and(zdigs, SCM_DIGSPERLONG, (n1 < 0) ? SCM_BIGSIGNFLAG : 0, n2, 0);
-# endif
-  }}
-#else
-  SCM_ASRTGO(SCM_INUMP(n1), badx);
-  SCM_ASSERT(SCM_INUMP(n2), n2, SCM_ARG2, FUNC_NAME);
-#endif
-  return SCM_MAKINUM(SCM_INUM(n1) & SCM_INUM(n2));
 }
 #undef FUNC_NAME
+
 
 SCM_DEFINE1 (scm_logior, "logior", scm_tc7_asubr,
              (SCM n1, SCM n2),
@@ -779,53 +816,81 @@ SCM_DEFINE1 (scm_logior, "logior", scm_tc7_asubr,
 	     "@end lisp")
 #define FUNC_NAME s_scm_logior
 {
-  if (SCM_UNBNDP (n2))
-    {
-      if (SCM_UNBNDP (n1))
-	return SCM_INUM0;
+  if (SCM_UNBNDP (n2)) {
+    if (SCM_UNBNDP (n1)) {
+      return SCM_INUM0;
 #ifndef SCM_RECKLESS
-    if (!(SCM_NUMBERP(n1)))
-    badx: SCM_WTA(SCM_ARG1, n1);
-#endif
+    } else if (SCM_NUMBERP (n1)) {
       return n1;
+    } else {
+      SCM_WRONG_TYPE_ARG (SCM_ARG1, n1);
+#else
+    } else {
+      return n1;
+#endif
+    }
+  }
+
+  if (SCM_INUMP (n1)) {
+    long nn1 = SCM_INUM (n1);
+    if (SCM_INUMP (n2)) {
+      long nn2 = SCM_INUM (n2);
+      return SCM_MAKINUM (nn1 | nn2);
+#ifdef SCM_BIGDIG
+    } else if (SCM_BIGP (n2)) {
+    intbig:
+      {
+# ifndef SCM_DIGSTOOBIG
+	long z = scm_pseudolong (nn1);
+	if ((!(nn1 < 0)) && !SCM_BIGSIGN (n2)) {
+	  return scm_big_ior ((SCM_BIGDIG *) & z, SCM_DIGSPERLONG, 
+			      (nn1 < 0) ? SCM_BIGSIGNFLAG : 0, n2);
+	} else {
+	  return scm_big_and ((SCM_BIGDIG *) & z, SCM_DIGSPERLONG, 
+			      (nn1 < 0) ? SCM_BIGSIGNFLAG : 0, n2, SCM_BIGSIGNFLAG);
+	}
+# else
+	BIGDIG zdigs [DIGSPERLONG];
+	scm_longdigs (nn1, zdigs);
+	if ((!(nn1 < 0)) && !SCM_BIGSIGN (n2)) {
+	  return scm_big_ior (zdigs, SCM_DIGSPERLONG, 
+			      (nn1 < 0) ? SCM_BIGSIGNFLAG : 0, n2);
+	} else {
+	  return scm_big_and (zdigs, SCM_DIGSPERLONG, 
+			      (nn1 < 0) ? SCM_BIGSIGNFLAG : 0, n2, SCM_BIGSIGNFLAG);
+	}
+# endif
+      }
+#endif
+    } else {
+      SCM_WRONG_TYPE_ARG (SCM_ARG2, n2);
     }
 #ifdef SCM_BIGDIG
-  if SCM_NINUMP(n1) {
-    SCM t;
-    SCM_ASRTGO(SCM_NIMP(n1) && SCM_BIGP(n1), badx);
-    if SCM_INUMP(n2) {t = n1; n1 = n2; n2 = t; goto intbig;}
-    SCM_ASRTGO(SCM_NIMP(n2) && SCM_BIGP(n2), bady);
-    if (SCM_NUMDIGS(n1) > SCM_NUMDIGS(n2)) {t = n1; n1 = n2; n2 = t;}
-    if ((!SCM_BIGSIGN(n1)) && !SCM_BIGSIGN(n2))
-      return scm_big_ior(SCM_BDIGITS(n1), SCM_NUMDIGS(n1), SCM_BIGSIGN(n1), n2);
-    return scm_big_and(SCM_BDIGITS(n1), SCM_NUMDIGS(n1), SCM_BIGSIGN(n1), n2, SCM_BIGSIGNFLAG);
-  }
-  if SCM_NINUMP(n2) {
-# ifndef SCM_RECKLESS
-    if (!(SCM_NIMP(n2) && SCM_BIGP(n2)))
-    bady: SCM_WTA(SCM_ARG2, n2);
-# endif
-  intbig: {
-# ifndef SCM_DIGSTOOBIG
-    long z = scm_pseudolong(SCM_INUM(n1));
-    if ((!(n1 < 0)) && !SCM_BIGSIGN(n2))
-      return scm_big_ior((SCM_BIGDIG *)&z, SCM_DIGSPERLONG, (n1 < 0) ? SCM_BIGSIGNFLAG : 0, n2);
-    return scm_big_and((SCM_BIGDIG *)&z, SCM_DIGSPERLONG, (n1 < 0) ? SCM_BIGSIGNFLAG : 0, n2, SCM_BIGSIGNFLAG);
-# else
-    BIGDIG zdigs[DIGSPERLONG];
-    scm_longdigs(SCM_INUM(n1), zdigs);
-    if ((!(n1 < 0)) && !SCM_BIGSIGN(n2))
-      return scm_big_ior(zdigs, SCM_DIGSPERLONG, (n1 < 0) ? SCM_BIGSIGNFLAG : 0, n2);
-    return scm_big_and(zdigs, SCM_DIGSPERLONG, (n1 < 0) ? SCM_BIGSIGNFLAG : 0, n2, SCM_BIGSIGNFLAG);
-# endif
-  }}
-#else
-  SCM_ASRTGO(SCM_INUMP(n1), badx);
-  SCM_ASSERT(SCM_INUMP(n2), n2, SCM_ARG2, FUNC_NAME);
+  } else if (SCM_BIGP (n1)) {
+    if (SCM_INUMP (n2)) {
+      SCM_SWAP (n1, n2); 
+      goto intbig;
+    } else if (SCM_BIGP (n2)) {
+      if (SCM_NUMDIGS (n1) > SCM_NUMDIGS (n2)) {
+	SCM_SWAP (n1, n2);
+      };
+      if ((!SCM_BIGSIGN (n1)) && !SCM_BIGSIGN (n2)) {
+	return scm_big_ior (SCM_BDIGITS (n1), SCM_NUMDIGS (n1), 
+			    SCM_BIGSIGN (n1), n2);
+      } else {
+	return scm_big_and (SCM_BDIGITS (n1), SCM_NUMDIGS (n1), 
+			    SCM_BIGSIGN (n1), n2, SCM_BIGSIGNFLAG);
+      }
+    } else {
+      SCM_WRONG_TYPE_ARG (SCM_ARG2, n2);
+    }
 #endif
-  return SCM_MAKINUM(SCM_INUM(n1) | SCM_INUM(n2));
+  } else {
+    SCM_WRONG_TYPE_ARG (SCM_ARG1, n1);
+  }
 }
 #undef FUNC_NAME
+
 
 SCM_DEFINE1 (scm_logxor, "logxor", scm_tc7_asubr,
              (SCM n1, SCM n2),
@@ -838,60 +903,66 @@ SCM_DEFINE1 (scm_logxor, "logxor", scm_tc7_asubr,
 	     "@end lisp")
 #define FUNC_NAME s_scm_logxor
 {
-  if (SCM_UNBNDP (n2))
-    {
-      if (SCM_UNBNDP (n1))
-	return SCM_INUM0;
+  if (SCM_UNBNDP (n2)) {
+    if (SCM_UNBNDP (n1)) {
+      return SCM_INUM0;
 #ifndef SCM_RECKLESS
-      if (!(SCM_NUMBERP(n1)))
-	  badx: SCM_WTA(SCM_ARG1, n1);
-#endif
+    } else if (SCM_NUMBERP (n1)) {
       return n1;
+    } else {
+      SCM_WRONG_TYPE_ARG (SCM_ARG1, n1);
+#else
+    } else {
+      return n1;
+#endif
     }
-#ifdef SCM_BIGDIG
-  if SCM_NINUMP(n1) {
-      SCM t;
-      SCM_ASRTGO(SCM_NIMP(n1) && SCM_BIGP(n1), badx);
-      if SCM_INUMP(n2)
-	  {
-	      t = n1;
-	      n1 = n2;
-	      n2 = t;
-	      goto intbig;
-	  }
-      SCM_ASRTGO(SCM_NIMP(n2) && SCM_BIGP(n2), bady);
-      if (SCM_NUMDIGS(n1) > SCM_NUMDIGS(n2))
-          {
-	      t = n1;
-	      n1 = n2;
-	      n2 = t;
-	  }
-      return scm_big_xor(SCM_BDIGITS(n1), SCM_NUMDIGS(n1), SCM_BIGSIGN(n1), n2);
   }
-  if SCM_NINUMP(n2) {
-# ifndef SCM_RECKLESS
-  if (!(SCM_NIMP(n2) && SCM_BIGP(n2)))
-  bady: SCM_WTA (SCM_ARG2, n2);
-# endif
-  intbig: 
+
+  if (SCM_INUMP (n1)) {
+    long nn1 = SCM_INUM (n1);
+    if (SCM_INUMP (n2)) {
+      long nn2 = SCM_INUM (n2);
+      return SCM_MAKINUM (nn1 ^ nn2);
+#ifdef SCM_BIGDIG
+    } else if (SCM_BIGP (n2)) {
+    intbig: 
       {
 # ifndef SCM_DIGSTOOBIG
-	  long z = scm_pseudolong(SCM_INUM(n1));
-	  return scm_big_xor((SCM_BIGDIG *)&z, SCM_DIGSPERLONG, (n1 < 0) ? SCM_BIGSIGNFLAG : 0, n2);
+	long z = scm_pseudolong (nn1);
+	return scm_big_xor ((SCM_BIGDIG *) & z, SCM_DIGSPERLONG, 
+			    (nn1 < 0) ? SCM_BIGSIGNFLAG : 0, n2);
 # else
-	  SCM_BIGDIG zdigs[SCM_DIGSPERLONG];
-	  scm_longdigs(SCM_INUM(n1), zdigs);
-	  return scm_big_xor(zdigs, SCM_DIGSPERLONG, (n1 < 0) ? SCM_BIGSIGNFLAG : 0, n2);
+	SCM_BIGDIG zdigs [SCM_DIGSPERLONG];
+	scm_longdigs (nn1, zdigs);
+	return scm_big_xor (zdigs, SCM_DIGSPERLONG, 
+			    (nn1 < 0) ? SCM_BIGSIGNFLAG : 0, n2);
 # endif
       }
-  }
-#else
-  SCM_ASRTGO(INUMP(n1), badx);
-  SCM_ASSERT(INUMP(n2), n2, SCM_ARG2, FUNC_NAME);
 #endif
-  return SCM_MAKINUM(SCM_INUM(n1) ^ SCM_INUM(n2));
+    } else {
+      SCM_WRONG_TYPE_ARG (SCM_ARG2, n2);
+    }
+#ifdef SCM_BIGDIG
+  } else if (SCM_BIGP (n1)) {
+    if (SCM_INUMP (n2)) {
+      SCM_SWAP (n1, n2);
+      goto intbig;
+    } else if (SCM_BIGP (n2)) {
+      if (SCM_NUMDIGS(n1) > SCM_NUMDIGS(n2)) {
+	SCM_SWAP (n1, n2);
+      }
+      return scm_big_xor (SCM_BDIGITS (n1), SCM_NUMDIGS (n1), 
+			  SCM_BIGSIGN (n1), n2);
+    } else {
+      SCM_WRONG_TYPE_ARG (SCM_ARG2, n2);
+    }
+# endif
+  } else {
+    SCM_WRONG_TYPE_ARG (SCM_ARG1, n1);
+  }
 }
 #undef FUNC_NAME
+
 
 SCM_DEFINE (scm_logtest, "logtest", 2, 0, 0,
             (SCM n1, SCM n2),
@@ -909,15 +980,15 @@ SCM_DEFINE (scm_logtest, "logtest", 2, 0, 0,
 #ifdef SCM_BIGDIG
   if SCM_NINUMP(n1) {
     SCM t;
-    SCM_ASRTGO(SCM_NIMP(n1) && SCM_BIGP(n1), badx);
+    SCM_ASRTGO(SCM_BIGP (n1), badx);
     if SCM_INUMP(n2) {t = n1; n1 = n2; n2 = t; goto intbig;}
-    SCM_ASRTGO(SCM_NIMP(n2) && SCM_BIGP(n2), bady);
+    SCM_ASRTGO(SCM_BIGP (n2), bady);
     if (SCM_NUMDIGS(n1) > SCM_NUMDIGS(n2)) {t = n1; n1 = n2; n2 = t;}
     return scm_big_test(SCM_BDIGITS(n1), SCM_NUMDIGS(n1), SCM_BIGSIGN(n1), n2);
   }
   if SCM_NINUMP(n2) {
 # ifndef SCM_RECKLESS
-    if (!(SCM_NIMP(n2) && SCM_BIGP(n2)))
+    if (!SCM_BIGP (n2))
     bady: SCM_WTA(SCM_ARG2, n2);
 # endif
   intbig: {
@@ -954,7 +1025,7 @@ SCM_DEFINE (scm_logbit_p, "logbit?", 2, 0, 0,
   SCM_ASSERT(SCM_INUMP(index) && SCM_INUM(index) >= 0, index, SCM_ARG1, FUNC_NAME);
 #ifdef SCM_BIGDIG
   if SCM_NINUMP(j) {
-    SCM_ASSERT(SCM_NIMP(j) && SCM_BIGP(j), j, SCM_ARG2, FUNC_NAME);
+    SCM_ASSERT(SCM_BIGP (j), j, SCM_ARG2, FUNC_NAME);
     if (SCM_NUMDIGS(j) * SCM_BITSPERDIG < SCM_INUM(index)) return SCM_BOOL_F;
     else if SCM_BIGSIGN(j) {
       long num = -1;
@@ -3230,10 +3301,6 @@ scm_max (SCM x, SCM y)
     }
   return ((long) x < (long) y) ? y : x;
 }
-
-
-#define SCM_SWAP(x,y) do { SCM t = x; x = y; y = t; } while (0)
-
 
 
 SCM_GPROC1 (s_min, "min", scm_tc7_asubr, scm_min, g_min);

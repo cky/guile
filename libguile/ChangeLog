@@ -1,5 +1,17 @@
 2000-04-28  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* numbers.c (SCM_SWAP):  Moved to the top of the file to allow for
+	a wider use.
+
+	* numbers.c (scm_modulo, scm_gcd, scm_lcm, scm_logand, scm_logior,
+	scm_logxor):  Reordered dispatch sequence, thereby fixing some
+	comparisons of SCM values with integer constants.
+
+	* number.c (scm_logtest):  Removed some redundant SCM_{N}?IMP
+	tests. 
+
+2000-04-28  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* numbers.c (scm_quotient, scm_remainder):  Removed code that was
 	conditionally compiled based on BADIVSGNS.  BADIVSGNS does not
 	occur anywhere else throughout guile.
