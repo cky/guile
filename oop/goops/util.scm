@@ -80,9 +80,10 @@
     (else 			(find-duplicate (cdr l)))))
 
 (define (top-level-env)
-  (if *top-level-lookup-closure*
-      (list *top-level-lookup-closure*)
-      '()))
+  (let ((mod (current-module)))
+    (if mod
+	(module-eval-closure mod)
+	'())))
 
 (define (top-level-env? env)
   (or (null? env)
