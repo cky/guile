@@ -1,3 +1,7 @@
+2004-08-15  Marius Vollmer  <mvo@zagadka.de>
+
+	* tests/srfi-39.test: New, from Jose A Ortega Ruiz.  Thanks!
+
 2004-08-14  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/srfi-13.test (string-any, string-every): Exercise char and

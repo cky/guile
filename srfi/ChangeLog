@@ -1,3 +1,7 @@
+2004-08-15  Marius Vollmer  <mvo@zagadka.de>
+
+	* srfi-39.scm: New, from Jose A Ortega Ruiz.  Thanks!
+
 2004-08-14  Kevin Ryde  <user42@zip.com.au>
 
 	* srfi-13.c (scm_string_any, scm_string_every): Add support for char
