@@ -1,3 +1,7 @@
+2005-01-16  Marius Vollmer  <mvo@zagadka.de>
+
+	* script.c (scm_compile_shell_switches): Removed debugging output.
+
 2005-01-15  Kevin Ryde  <user42@zip.com.au>
 
 	* numbers.c (scm_logtest, scm_logbit_p, scm_integer_expt): Update
