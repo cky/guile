@@ -1,3 +1,9 @@
+2002-03-31  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* Makefile.am: Update copyright.
+	(dist-hook): Add, including related am/maintainers-dirs,
+	surrounded by "if MAINTAINER_MODE".
+
 2002-03-06  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* guile-tools.in: Handle "--source" option.
