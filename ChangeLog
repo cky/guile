@@ -1,3 +1,8 @@
+2004-08-25  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* libguile.h: Include srfi-13.h and srfi-14.h, do not include
+	strop.h.
+
 2004-08-02  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* README: Document the new --disable-discouraged option.
