@@ -1,3 +1,7 @@
+2001-07-21  Gary Houston  <ghouston@arglist.com>
+
+	* scmsigs.c: include sys/time.h for itimer stuff.
+
 2001-07-19  Rob Browning  <rlb@defaultvalue.org>
 
 	* gc_os_dep.c (GC_noop1): ifdef out (unused) to quiet warning.

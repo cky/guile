@@ -59,6 +59,10 @@
 #include <unistd.h>
 #endif
 
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#endif
+
 /* The thread system has its own sleep and usleep functions.  */
 #ifndef USE_THREADS
 
