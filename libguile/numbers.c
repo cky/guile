@@ -2315,6 +2315,13 @@ scm_print_real (SCM sexp, SCM port, scm_print_state *pstate SCM_UNUSED)
   return !0;
 }
 
+void
+scm_i_print_double (double val, SCM port)
+{
+  char num_buf[FLOBUFLEN];
+  scm_lfwrite (num_buf, idbl2str (val, num_buf, 10), port);
+}
+
 int
 scm_print_complex (SCM sexp, SCM port, scm_print_state *pstate SCM_UNUSED)
 

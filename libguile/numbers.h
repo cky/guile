@@ -282,6 +282,9 @@ SCM_API double scm_i_fraction2double (SCM z);
 SCM_API SCM scm_i_fraction_equalp (SCM x, SCM y);
 SCM_API int scm_i_print_fraction (SCM sexp, SCM port, scm_print_state *pstate);
 
+/* general internal functions */
+SCM_API void scm_i_print_double (double val, SCM port);
+
 /* conversion functions for integers */
 
 SCM_API int scm_is_integer (SCM val);
