@@ -1,3 +1,11 @@
+2001-06-04  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	Added exception notice to all files.
+	
+	* boot-9.scm (module-export!): Revert 2001-06-02 change.  It
+	caused more problems than it solved by accidentally re-exporting
+	importing bindings once in a while.
+
 2001-06-03  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* boot-9.scm (try-load-module): Bracket calls to try-module-linked
@@ -9,6 +17,8 @@
 	try-using-sharlib-name, link-dynamic-module, try-module-linked,
 	try-module-dynamic-link): Deprecated.  Activate deprecation
 	message.
+	(define-public): Define binding before exporting it.  This is to
+	avoid accidentally re-exporting a imported binding.
 
 2001-06-02  Marius Vollmer  <mvo@zagadka.ping.de>
 
