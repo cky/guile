@@ -1076,7 +1076,6 @@ scm_is_true (scm_exact_p (@var{obj}))
 
 @item @code{gh_eq_p}
 Use @code{scm_is_eq} instead.
-@end example
 
 @item @code{gh_eqv_p}
 Replace @code{gh_eqv_p (@var{x}, @var{y})} by
