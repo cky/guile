@@ -779,8 +779,15 @@
 
 (read-hash-extend #\' (lambda (c port)
 			(read port)))
-(read-hash-extend #\. (lambda (c port)
-			(eval (read port) (interaction-environment))))
+
+(define read-eval? (make-fluid))
+(fluid-set! read-eval? #f)
+(read-hash-extend #\.
+                  (lambda (c port)
+                    (if (fluid-ref read-eval?)
+                        (eval (read port) (interaction-environment))
+                        (error
+                         "#. read expansion found and read-eval? is not #f."))))
 
 
 ;;; {Command Line Options}
