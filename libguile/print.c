@@ -218,29 +218,6 @@ scm_make_print_state ()
   return answer ? answer : make_print_state ();
 }
 
-static char s_print_state_printer[] = "print-state-printer";
-static SCM
-print_state_printer (obj, port)
-     SCM obj;
-     SCM port;
-{
-  /* This function can be made visible by means of struct-ref, so
-     we need to make sure that it gets what it wants. */
-  SCM_ASSERT (SCM_NIMP (obj) && SCM_PRINT_STATE_P (obj),
-	      obj,
-	      SCM_ARG1,
-	      s_print_state_printer);
-  SCM_ASSERT (scm_valid_oport_value_p (port),
-	      port,
-	      SCM_ARG2,
-	      s_print_state_printer);
-  port = SCM_COERCE_OUTPORT (port);
-  scm_puts ("#<print-state ", port);
-  scm_intprint (obj, 16, port);
-  scm_putc ('>', port);
-  return SCM_UNSPECIFIED;
-}
-
 void
 scm_free_print_state (print_state)
      SCM print_state;
@@ -909,11 +886,8 @@ scm_valid_oport_value_p	(SCM val)
 {
   return (SCM_NIMP (val)
 	  && (SCM_OPOUTPORTP (val)
-	      || (SCM_CONSP (val)
-		  && SCM_NIMP (SCM_CAR (val))
-		  && SCM_OPOUTPORTP (SCM_CAR (val))
-		  && SCM_NIMP (SCM_CDR (val))
-		  && SCM_PRINT_STATE_P (SCM_CDR (val)))));
+	      || (SCM_PORT_WITH_PS_P (val)
+		  && SCM_OPOUTPORTP (SCM_PORT_WITH_PS_PORT (val)))));
 }
 
 SCM_PROC(s_write, "write", 1, 1, 0, scm_write);
@@ -1002,20 +976,64 @@ scm_write_char (chr, port)
 
 
 /* Call back to Scheme code to do the printing of special objects
-(like structs).  SCM_PRINTER_APPLY applies PROC to EXP and a pair
-containing PORT and PSTATE.  This pair can be used as the port for
-display/write etc to continue the current print chain.  The REVEALED
-field of PSTATE is set to true to indicate that the print state has
-escaped to Scheme and thus has to be freed by the GC. */
+ * (like structs).  SCM_PRINTER_APPLY applies PROC to EXP and a smob
+ * containing PORT and PSTATE.  This object can be used as the port for
+ * display/write etc to continue the current print chain.  The REVEALED
+ * field of PSTATE is set to true to indicate that the print state has
+ * escaped to Scheme and thus has to be freed by the GC.
+ */
+
+long scm_tc16_port_with_ps;
+
+/* Print exactly as the port itself would */
+
+static int
+print_port_with_ps (SCM obj, SCM port, scm_print_state *pstate)
+{
+  obj = SCM_PORT_WITH_PS_PORT (obj);
+  return scm_ptobs[SCM_PTOBNUM (obj)].print (obj, port, pstate);
+}
 
 SCM
 scm_printer_apply (proc, exp, port, pstate)
      SCM proc, exp, port;
      scm_print_state *pstate;
 {
+  SCM pwps;
   SCM pair = scm_cons (port, pstate->handle);
+  SCM_NEWSMOB (pwps, scm_tc16_port_with_ps, pair);
   pstate->revealed = 1;
-  return scm_apply (proc, exp, scm_cons (pair, scm_listofnull));
+  return scm_apply (proc, exp, scm_cons (pwps, scm_listofnull));
+}
+
+SCM_PROC (s_port_with_print_state, "port-with-print-state", 2, 0, 0, scm_port_with_print_state);
+
+SCM
+scm_port_with_print_state (SCM port, SCM pstate)
+{
+  SCM pwps;
+  SCM_ASSERT (scm_valid_oport_value_p (port),
+	      port, SCM_ARG1, s_port_with_print_state);
+  SCM_ASSERT (SCM_NIMP (pstate) && SCM_PRINT_STATE_P (pstate),
+	      pstate, SCM_ARG2, s_port_with_print_state);
+  port = SCM_COERCE_OUTPORT (port);
+  SCM_NEWSMOB (pwps, scm_tc16_port_with_ps, scm_cons (port, pstate));
+  return pwps;
+}
+
+SCM_PROC (s_get_print_state, "get-print-state", 1, 0, 0, scm_get_print_state);
+
+SCM
+scm_get_print_state (SCM port)
+{
+  if (SCM_NIMP (port))
+    {
+      if (SCM_PORT_WITH_PS_P (port))
+	return SCM_PORT_WITH_PS_PS (port);
+      if (SCM_OUTPORTP (port))
+	return SCM_BOOL_F;
+    }
+  return scm_wta (port, (char *) SCM_ARG1, s_get_print_state);
 }
 
 
@@ -1023,22 +1041,23 @@ scm_printer_apply (proc, exp, port, pstate)
 void
 scm_init_print ()
 {
-  SCM vtable, layout, printer, type;
+  SCM vtable, layout, type;
   
   scm_init_opts (scm_print_options, scm_print_opts, SCM_N_PRINT_OPTIONS);
   vtable = scm_make_vtable_vtable (scm_make_struct_layout (scm_nullstr),
 				   SCM_INUM0,
 				   SCM_EOL);
   layout = scm_make_struct_layout (scm_makfrom0str (SCM_PRINT_STATE_LAYOUT));
-  printer = scm_make_subr_opt (s_print_state_printer,
-			       scm_tc7_subr_2,
-			       (SCM (*) ()) print_state_printer,
-			       0 /* Don't bind the name. */);
-  type = scm_make_struct (vtable, SCM_INUM0, SCM_LIST2 (layout, printer));
+  type = scm_make_struct (vtable, SCM_INUM0, SCM_LIST1 (layout));
   scm_set_struct_vtable_name_x (type, SCM_CAR (scm_intern0 ("print-state")));
   print_state_pool = scm_permanent_object (scm_cons (type, SCM_EOL));
 
   scm_print_state_vtable = type;
 
+  /* Don't want to bind a wrapper class in GOOPS, so pass 0 as arg1. */
+  scm_tc16_port_with_ps = scm_make_smob_type (0, 0);
+  scm_set_smob_mark (scm_tc16_port_with_ps, scm_markcdr);
+  scm_set_smob_print (scm_tc16_port_with_ps, print_port_with_ps);
+  
 #include "print.x"
 }
