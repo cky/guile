@@ -2582,7 +2582,7 @@
 	   `((set-module-transformer! (current-module) ,spec)))
      (fluid-set! scm:eval-transformer (module-transformer (current-module))))
     (else
-     (error "use-modules can only be used at the top level"))))
+     (error "use-syntax can only be used at the top level"))))
 
 (define define-private define)
 
