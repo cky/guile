@@ -3,7 +3,7 @@
  * Copyright (c) 1991-1995 by Xerox Corporation.  All rights reserved.
  * Copyright (c) 1996-1999 by Silicon Graphics.  All rights reserved.
  * Copyright (c) 1999 by Hewlett-Packard Company.  All rights reserved.
- * Copyright (c) 2000, 2001 Free Software Foundation
+ * Copyright (c) 2000, 2001, 2002 Free Software Foundation
  *
  * THIS MATERIAL IS PROVIDED AS IS, WITH ABSOLUTELY NO WARRANTY EXPRESSED
  * OR IMPLIED.  ANY USE IS AT YOUR OWN RISK.
@@ -23,6 +23,19 @@
 
 #include <ctype.h>
 #include "libguile/gc.h"
+#include "libguile/scmconfig.h"
+
+#ifdef HAVE_LIBC_STACK_END
+
+extern void *__libc_stack_end;
+
+void *
+scm_get_stack_base ()
+{
+  return __libc_stack_end;
+}
+
+#else
 
 #define ABORT(msg) abort ()
 
@@ -1882,3 +1895,5 @@ void *scm_get_stack_base()
 # endif /* ! AMIGA */
 # endif /* ! OS2 */
 # endif /* ! MSWIN32 */
+
+#endif /* ! HAVE_LIBC_STACK_END */
