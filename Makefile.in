@@ -79,7 +79,8 @@ SUBDIRS = ice-9 qt libguile
 aclocaldir = $(datadir)/aclocal
 aclocal_DATA = guile.m4 threads.m4
 
-EXTRA_DIST = $(aclocal_DATA) ltconfig ltmain.sh HACKING GUILE-VERSION
+EXTRA_DIST = $(aclocal_DATA) ltconfig ltmain.sh acconfig.h \
+	HACKING GUILE-VERSION
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = ./libguile/scmconfig.h
