@@ -1,3 +1,10 @@
+2003-07-08  Matthias Koeppe <mkoeppe@merkur.math.uni-magdeburg.de>
+
+	* tags.h (scm_t_bits, scm_t_signed_bits, etc): Avoid solaris empty
+	defines of INTPTR_MAX and UINTPTR_MAX, combine conditionals for
+	scm_t_bits and scm_t_signed_bits to avoid any chance of one and not
+	the other using intptr_t.
+
 2003-07-08  Kevin Ryde  <user42@zip.com.au>
 
 	* numbers.c (s_scm_make_polar): Use sincos, when available.
