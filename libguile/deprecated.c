@@ -46,6 +46,17 @@
 
 #if (SCM_ENABLE_DEPRECATED == 1)
 
+/* From eval.c: Error messages of the evaluator.  These were deprecated in
+ * guile 1.7.0 on 2003-06-02.  */
+const char scm_s_expression[] = "missing or extra expression";
+const char scm_s_test[] = "bad test";
+const char scm_s_body[] = "bad body";
+const char scm_s_bindings[] = "bad bindings";
+const char scm_s_variable[] = "bad variable";
+const char scm_s_clauses[] = "bad or missing clauses";
+const char scm_s_formals[] = "bad formals";
+
+
 SCM_REGISTER_PROC(s_substring_move_left_x, "substring-move-left!", 5, 0, 0, scm_substring_move_x);
 
 SCM_REGISTER_PROC(s_substring_move_right_x, "substring-move-right!", 5, 0, 0, scm_substring_move_x);

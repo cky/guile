@@ -94,25 +94,7 @@ SCM_API scm_t_bits scm_tc16_promise;
 
 
 /* {Evaluator}
- *
- * For an explanation of symbols containing "EVAL", see beginning of eval.c.
  */
-#define SCM_EVALIM2(x) \
-  ((SCM_EQ_P ((x), SCM_EOL) \
-    ? scm_misc_error (NULL, scm_s_expression, SCM_EOL), 0 \
-    : 0), \
-   (x))
-#define SCM_EVALIM(x, env) (SCM_ILOCP (x) \
-                            ? *scm_ilookup ((x), env) \
-			    : SCM_EVALIM2(x))
-#define SCM_XEVAL(x, env) (SCM_IMP (x) \
-			   ? SCM_EVALIM2(x) \
-			   : (*scm_ceval_ptr) ((x), (env)))
-#define SCM_XEVALCAR(x, env) (SCM_IMP (SCM_CAR (x)) \
-			      ? SCM_EVALIM (SCM_CAR (x), env) \
-			      : (SCM_SYMBOLP (SCM_CAR (x)) \
-			         ? *scm_lookupcar (x, env, 1) \
-			         : (*scm_ceval_ptr) (SCM_CAR (x), env)))
 
 typedef SCM (*scm_t_trampoline_0) (SCM proc);
 typedef SCM (*scm_t_trampoline_1) (SCM proc, SCM arg1);
@@ -127,14 +109,6 @@ typedef SCM (*scm_t_trampoline_2) (SCM proc, SCM arg1, SCM arg2);
 #define SCM_TOP_LEVEL_LOOKUP_CLOSURE (scm_current_module_lookup_closure())
 
 
-
-SCM_API const char scm_s_expression[];
-SCM_API const char scm_s_test[];
-SCM_API const char scm_s_body[];
-SCM_API const char scm_s_bindings[];
-SCM_API const char scm_s_variable[];
-SCM_API const char scm_s_clauses[];
-SCM_API const char scm_s_formals[];
 
 SCM_API SCM scm_sym_and;
 SCM_API SCM scm_sym_begin;

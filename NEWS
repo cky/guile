@@ -855,6 +855,18 @@ always defined, and GUILE_ISELECT with it.
 This function is like scm_port_for_each but takes a pointer to a C
 function as the callback instead of a SCM value.
 
+** Deprecated definitions of error strings: scm_s_expression, scm_s_test,
+scm_s_body, scm_s_bindings, scm_s_variable, scm_s_clauses, scm_s_formals
+
+These error message strings were used to issue syntax error messages by
+guile's evaluator.  It's unlikely that they have been used by user code.
+
+** Deprecated helper macros for evaluation and application: SCM_EVALIM2,
+SCM_EVALIM, SCM_XEVAL, SCM_XEVALCAR
+
+These macros were used in the implementation of the evaluator.  It's unlikely
+that they have been used by user code.
+
 ** Removed definitions: scm_lisp_nil, scm_lisp_t, s_nil_ify,
 scm_m_nil_ify, s_t_ify, scm_m_t_ify, s_0_cond, scm_m_0_cond, s_0_ify,
 scm_m_0_ify, s_1_ify, scm_m_1_ify, scm_debug_newcell,

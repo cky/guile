@@ -27,6 +27,37 @@
 
 #if (SCM_ENABLE_DEPRECATED == 1)
 
+/* From eval.h: Error messages of the evaluator.  These were deprecated in
+ * guile 1.7.0 on 2003-06-02.  */
+SCM_API const char scm_s_expression[];
+SCM_API const char scm_s_test[];
+SCM_API const char scm_s_body[];
+SCM_API const char scm_s_bindings[];
+SCM_API const char scm_s_variable[];
+SCM_API const char scm_s_clauses[];
+SCM_API const char scm_s_formals[];
+
+
+/* From eval.h: Helper macros for evaluation and application.  These were
+ * deprecated in guile 1.7.0 on 2003-06-02.  */
+#define SCM_EVALIM2(x) \
+  ((SCM_EQ_P ((x), SCM_EOL) \
+    ? scm_misc_error (NULL, scm_s_expression, SCM_EOL), 0 \
+    : 0), \
+   (x))
+#define SCM_EVALIM(x, env) (SCM_ILOCP (x) \
+                            ? *scm_ilookup ((x), env) \
+			    : SCM_EVALIM2(x))
+#define SCM_XEVAL(x, env) (SCM_IMP (x) \
+			   ? SCM_EVALIM2(x) \
+			   : (*scm_ceval_ptr) ((x), (env)))
+#define SCM_XEVALCAR(x, env) (SCM_IMP (SCM_CAR (x)) \
+			      ? SCM_EVALIM (SCM_CAR (x), env) \
+			      : (SCM_SYMBOLP (SCM_CAR (x)) \
+			         ? *scm_lookupcar (x, env, 1) \
+			         : (*scm_ceval_ptr) (SCM_CAR (x), env)))
+
+
 #define scm_substring_move_left_x scm_substring_move_x
 #define scm_substring_move_right_x scm_substring_move_x
 

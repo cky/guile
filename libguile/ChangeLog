@@ -1,3 +1,19 @@
+2003-06-02  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* deprecated.c, deprecated.h, eval.c, eval.h: Deprecated
+	scm_s_expression, scm_s_test, scm_s_body, scm_s_bindings,
+	scm_s_variable, scm_s_clauses, scm_s_formals.  In eval.c the
+	definitions are make static and renamed from scm_s_xxx to s_xxx.
+	In deprecated.c the original definitions are copied.
+
+	* deprecated.h, eval.c, eval: Deprecated SCM_EVALIM2, SCM_EVALIM,
+	SCM_XEVAL and SCM_XEVALCAR.  The macro definitions are moved from
+	eval.h into eval.c and a copy (slightly modified to work in user
+	code) is placed into deprecated.h.
+
+	* eval.c: Use the local static s_xxx definitions instead of the
+	scm_s_xxx definitions throughout.
+
 2003-06-01  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	This set of patches separates the representation of the cxr family
