@@ -25,6 +25,8 @@ guile-doc-snarf
 guile-func-name-check
 guile-procedures.txt
 guile-snarf
+guile-snarf-docs
+guile-snarf-docs-texi
 guile-snarf.awk
 guile.texi
 libpath.h
