@@ -308,8 +308,14 @@
 /* Define if you have the setpgid function.  */
 #undef HAVE_SETPGID
 
+/* Define if you have the setprotoent function.  */
+#undef HAVE_SETPROTOENT
+
 /* Define if you have the setpwent function.  */
 #undef HAVE_SETPWENT
+
+/* Define if you have the setservent function.  */
+#undef HAVE_SETSERVENT
 
 /* Define if you have the setsid function.  */
 #undef HAVE_SETSID
