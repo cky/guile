@@ -1,0 +1,127 @@
+;;;; slib.test --- Test suite for Guile's SLIB glue. -*- scheme -*-
+;;;;
+;;;; Copyright 2003, 2004 Free Software Foundation, Inc.
+;;;;
+;;;; This program is free software; you can redistribute it and/or modify
+;;;; it under the terms of the GNU General Public License as published by
+;;;; the Free Software Foundation; either version 2, or (at your option)
+;;;; any later version.
+;;;;
+;;;; This program is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;;;; GNU General Public License for more details.
+;;;;
+;;;; You should have received a copy of the GNU General Public License
+;;;; along with this software; see the file COPYING.  If not, write to
+;;;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+;;;; Boston, MA 02111-1307 USA
+
+;; These tests are run only if slib is available.  slib will need to be
+;; installed (or linked) under the configured guile $prefix.
+;;
+(if (catch #t
+      (lambda () (resolve-module '(ice-9 slib)))
+      (lambda args #f))
+    (begin
+
+      (define-module (test-suite test-ice-9-slib)
+	#:duplicates (last)  ;; avoid warnings about various replacements
+	#:use-module (test-suite lib)
+	#:use-module (ice-9 slib))
+
+      ;;
+      ;; delete-file
+      ;;
+
+      ;; in guile 1.6.4 and earlier delete-file didn't match the slib spec
+      (with-test-prefix "delete-file"
+	(pass-if "non existant file"
+	  (eq? #f (delete-file "nosuchfile")))
+	(pass-if "existing file"
+	  (call-with-output-file "slibtest.tmp" noop)
+	  (eq? #t (delete-file "slibtest.tmp"))))
+
+      ;;
+      ;; browse-url
+      ;;
+
+      (with-test-prefix "browse-url"
+	(pass-if (procedure? browse-url)))
+
+      ;;
+      ;; call-with-open-ports
+      ;;
+
+      (with-test-prefix "call-with-open-ports"
+	(pass-if (procedure? call-with-open-ports))
+	
+	(pass-if "close on return"
+	  (let ((port (open-input-file "/dev/null")))
+	    (call-with-open-ports port (lambda (port) #f))
+	    (port-closed? port))))
+
+      ;;
+      ;; nil
+      ;;
+
+      ;; in guile 1.6.4 and earlier this was missing
+      (with-test-prefix "nil"
+	(pass-if (eq? #f nil)))
+
+      ;;
+      ;; open-file
+      ;;
+
+      ;; this style open-file is only a requirement in slib 3a1 and up, but
+      ;; we provide it always
+      (with-test-prefix "open-file"
+	(pass-if (port? (open-file "/dev/null" 'r)))
+	(pass-if (port? (open-file "/dev/null" 'rb)))
+	(pass-if (port? (open-file "/dev/null" 'w)))
+	(pass-if (port? (open-file "/dev/null" 'wb))))
+
+      ;;
+      ;; rev2-procedures
+      ;;
+
+      ;; in guile 1.6.4 the 'rev2-procedures feature we defined claimed
+      ;; these existed, but they didn't
+      (with-test-prefix "rev2-procedures"
+	(require 'rev2-procedures)
+	(pass-if (procedure? -1+))
+	(pass-if (procedure? <?))
+	(pass-if (procedure? <=?))
+	(pass-if (procedure? =?))
+	(pass-if (procedure? >?))
+	(pass-if (procedure? >=?)))
+
+      ;;
+      ;; system
+      ;;
+
+      ;; in guile 1.6.4 and earlier system didn't match the slib spec
+      (with-test-prefix "system"
+	(pass-if (= 0 (system "exit 0")))
+	(pass-if (= 1 (system "exit 1")))
+	(pass-if (= 99 (system "exit 99"))))
+
+      ;;
+      ;; t
+      ;;
+
+      ;; in guile 1.6.4 and earlier this was missing
+      (with-test-prefix "t"
+	(pass-if (eq? #t t)))
+
+      (require 'array)
+      (with-test-prefix "array"
+
+	;;
+	;; create-array
+	;;
+
+	;; create-array isn't in old slib, but when it exists it should work
+	(if (defined? 'create-array)
+	    (with-test-prefix "create-array"
+	      (pass-if (array? (create-array (As32 0) '(0 1)))))))))
