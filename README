@@ -1,0 +1,110 @@
+Installation
+------------
+
+  % ./autogen.sh
+  % configure
+  % make
+  % su
+  # make install
+  # ln -s module/{system,language} /usr/local/share/guile/site/
+
+Add the following lines to your ~/.guile:
+
+  (if (string=? (car (command-line)) "guile-vm")
+      (begin
+	(use-modules (system repl repl))
+	(start-repl 'r5rs)
+	(quit)))
+
+Example Session
+---------------
+
+  % guile-vm
+  Standard Scheme (R5RS + syntax-case) interpreter 0.3 on Guile 1.4.1
+  Copyright (C) 2001 Free Software Foundation, Inc.
+
+  Enter `,help' for help.
+  r5rs@guile> (+ 1 2)
+  $1 = 3
+  r5rs@guile> ,c -c (+ 1 2)		;; Compile into GLIL
+  (@asm (0 0 0 0)
+    (const 1)
+    (const 2)
+    (add)
+    (return))
+  r5rs@guile> ,c -l (+ 1 2)		;; Compile into loadable code
+     0    make-int8:0             ;; 0
+     1    load-program #0
+     8    return
+
+  Bytecode #0:
+
+     0    make-int8:1             ;; 1
+     1    make-int8 2             ;; 2
+     3    add
+     4    return
+
+  r5rs@guile> ,c (+ 1 2)		;; Compile and disassemble
+  Disassembly of #<program 0x810f75b>:
+
+  args = 0  rest = 0  locals = 0
+
+  Bytecode:
+
+     0    make-int8:1             ;; 1
+     1    make-int8 2             ;; 2
+     3    add
+     4    return
+
+  r5rs@guile> (define (add x y) (+ x y))
+  r5rs@guile> (add 1 2)
+  $2 = 3
+  r5rs@guile> ,x add			;; Disassemble
+  Disassembly of #<program 0x8125f70>:
+
+  args = 2  rest = 0  locals = 0
+
+  Bytecode:
+
+     0    local-ref 1
+     2    local-ref:0
+     3    add
+     4    return
+
+  r5rs@guile> 
+
+Write Modules
+-------------
+
+  ---- fib.scm ---------------------------
+  (define-module (fib)
+    :use-module (system vm load)
+    :export (fib))
+
+  (load/compile "fib.gsm")
+  ----------------------------------------
+
+  ---- fib.gsm ---------------------------
+  (define (fib n)
+    (if (< n 2)
+	1
+	(+ (fib (- n 1)) (fib (- n 2)))))
+  ----------------------------------------
+
+Now, expressions in fib.gsm are automatically compiled and
+executed by the Guile VM:
+
+  % guile
+  guile> (use-modules (fib))
+  guile> (time (fib 30))
+  clock utime stime cutime cstime gctime
+   2.89  2.88  0.00   0.00   0.00   0.00
+  $1 = 1346269
+  guile> (define (fib n) (if (< n 2) 1 (+ (fib (- n 1)) (fib (- n 2)))))
+  guile> (time (fib 30))
+  clock utime stime cutime cstime gctime
+  26.05 25.01  0.17   0.00   0.00  14.33
+  $2 = 1346269
+
+If you don't want to compile your code (e.g., for debugging purpose),
+just change `load/compile' to `load'.
