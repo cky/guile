@@ -273,6 +273,10 @@ scm_wta (arg, pos, s_subr)
 	  scm_wrong_type_arg (s_subr, 4, arg);
 	case SCM_ARG5:
 	  scm_wrong_type_arg (s_subr, 5, arg);
+	case SCM_ARG6:
+	  scm_wrong_type_arg (s_subr, 6, arg);
+	case SCM_ARG7:
+	  scm_wrong_type_arg (s_subr, 7, arg);
 	case SCM_WNA:
 	  scm_wrong_num_args (arg);
 	case SCM_OUTOFRANGE:
