@@ -1,21 +1,3 @@
-Mon Jun 23 20:34:48 1997  Jim Blandy  <jimb@floss.red-bean.com>
-
-	Changes to compile under gnu-win32, from Marcus Daniels:
-	* configure.in: When sys/un.h exists, define HAVE_UNIX_DOMAIN_SOCKETS
-	to indicate that Unix domain sockets will work.
-	Check for socketpair, getgroups, setwent, pause, and tzset
-	(cygwin currently lacks these them).
-	Check for sethostent endhostent getnetent setnetent endnetent
-	getprotoent endprotoent getservent endservent getnetbyaddr
-	getnetbyname inet_lnaof inet_makeaddr inet_netof (cygwin currently
-	lacks them).  In the case of cygwin, temporarily prefix these
-	functions with "cygwin32_", the way that netdb.h does.
-	Don't define HAVE_REGCOMP unless both regcomp and regex.h are
-	available (cygwin b18 came distributed without a working regex.h
-	file).
-	* acconfig.h (HAVE_UNIX_DOMAIN_SOCKETS): Add this.
-	* configure: Regenerated.
-
 Sun Jun 22 15:43:07 1997  Jim Blandy  <jimb@floss.red-bean.com>
 
 	Try to detect when people are using one version of libguile and a

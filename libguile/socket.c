@@ -57,9 +57,7 @@
 #endif
 #include <sys/types.h>
 #include <sys/socket.h>
-#ifdef UNIX_DOMAIN_SOCKETS
 #include <sys/un.h>
-#endif
 #include <netinet/in.h>
 #include <netdb.h>
 #include <arpa/inet.h>
@@ -119,7 +117,6 @@ scm_socket (family, style, proto)
 
 
 
-#ifdef HAVE_SOCKETPAIR
 SCM_PROC (s_socketpair, "socketpair", 3, 0, 0, scm_socketpair);
 
 SCM 
@@ -148,7 +145,7 @@ scm_socketpair (family, style, proto)
   SCM_ALLOW_INTS;
   return scm_cons (a, b);
 }
-#endif
+
 
 SCM_PROC (s_getsockopt, "getsockopt", 3, 0, 0, scm_getsockopt);
 
@@ -352,7 +349,6 @@ scm_fill_sockaddr (fam, address, args, which_arg, proc, size)
 	*size = sizeof (struct sockaddr_in);
 	return (struct sockaddr *) soka;
       }
-#ifdef UNIX_DOMAIN_SOCKETS
     case AF_UNIX:
       {
 	struct sockaddr_un *soka;
@@ -367,7 +363,6 @@ scm_fill_sockaddr (fam, address, args, which_arg, proc, size)
 	*size = sizeof (struct sockaddr_un);
 	return (struct sockaddr *) soka;
       }
-#endif
     default:
       scm_out_of_range (proc, SCM_MAKINUM (fam));
     }
@@ -451,7 +446,6 @@ scm_addr_vector (address, proc)
   short int fam = address->sa_family;
   SCM result;
   SCM *ve;
-#ifdef UNIX_DOMAIN_SOCKETS
   if (fam == AF_UNIX)
     {
       struct sockaddr_un *nad = (struct sockaddr_un *) address;
@@ -461,9 +455,7 @@ scm_addr_vector (address, proc)
       ve[1] = scm_makfromstr (nad->sun_path,
 			      (scm_sizet) strlen (nad->sun_path), 0);
     }
-  else 
-#endif
-  if (fam == AF_INET)
+  else if (fam == AF_INET)
     {
       struct sockaddr_in *nad = (struct sockaddr_in *) address;
       result = scm_make_vector (SCM_MAKINUM (3), SCM_UNSPECIFIED, SCM_BOOL_F);
@@ -488,13 +480,7 @@ static void scm_init_addr_buffer SCM_P ((void));
 static void
 scm_init_addr_buffer ()
 {
-  scm_addr_buffer_size =
-#ifdef UNIX_DOMAIN_SOCKETS
-  (int) sizeof (struct sockaddr_un)
-#else
-  0
-#endif
-  ;
+  scm_addr_buffer_size = (int) sizeof (struct sockaddr_un);
   if (sizeof (struct sockaddr_in) > scm_addr_buffer_size)
     scm_addr_buffer_size = (int) sizeof (struct sockaddr_in);
   scm_addr_buffer = scm_must_malloc (scm_addr_buffer_size, "address buffer");

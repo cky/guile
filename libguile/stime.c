@@ -160,10 +160,6 @@ scm_get_internal_real_time()
 }
 #endif
 
-#ifndef HAVE_TZSET
-/* GNU-WIN32's cygwin.dll doesn't have this. */
-#define tzset()
-#endif
 
 
 static long scm_my_base = 0;
@@ -319,7 +315,7 @@ scm_localtime (SCM time, SCM zone)
       strcpy (zname, ptr);
 # else
       scm_misc_error (s_localtime, "Not fully implemented on this platform",
-		      SCM_EOL);
+		      SCM_EOF);
 # endif
 #endif
     }
@@ -430,7 +426,7 @@ scm_mktime (SCM sbd_time, SCM zone)
       strcpy (zname, ptr);
 # else
       scm_misc_error (s_localtime, "Not fully implemented on this platform",
-		      SCM_EOL);
+		      SCM_EOF);
 # endif
 #endif
     }
