@@ -1,3 +1,9 @@
+1999-09-11  Jim Blandy  <jimb@savonarola.red-bean.com>
+
+	* time/Makefile.in: Regenerated.
+	* md/Makefile.in: Regenerated.
+	* Makefile.in: Regenerated.
+
 1999-04-17  Jim Blandy  <jimb@savonarola.red-bean.com>
 
 	* Makefile.in, time/Makefile.in: Regenerated.
