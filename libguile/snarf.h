@@ -84,6 +84,21 @@
 %%%	C_NAME = scm_permanent_object (SCM_CAR (scm_intern0 (SCHEME_NAME)))
 #endif
 
+#ifndef SCM_MAGIC_SNARFER
+#define SCM_KEYWORD(c_name, scheme_name) \
+	static SCM c_name = SCM_BOOL_F
+#else
+#define SCM_KEYWORD(C_NAME, SCHEME_NAME) \
+%%%	C_NAME = scm_permanent_object (scm_c_make_keyword (SCHEME_NAME))
+#endif
+
+#ifndef SCM_MAGIC_SNARFER
+#define SCM_GLOBAL_KEYWORD(c_name, scheme_name) \
+	SCM c_name = SCM_BOOL_F
+#else
+#define SCM_GLOBAL_KEYWORD(C_NAME, SCHEME_NAME) \
+%%%	C_NAME = scm_permanent_object (scm_makekey (SCHEME_NAME))
+#endif
 
 #ifndef SCM_MAGIC_SNARFER
 #define SCM_VCELL(c_name, scheme_name) \
