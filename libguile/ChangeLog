@@ -1,5 +1,8 @@
 2002-12-09  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
+	* threads.c (scm_mutex_lock, scm_cond_wait, scm_cond_timedwait):
+	Removed accidental #if 0 around these functions.
+
 	These changes are the start of support for preemptive
 	multithreading.  Marius and I have agreed that I commit this code
 	into the repository although it isn't thoroughly tested and surely

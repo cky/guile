@@ -1051,7 +1051,6 @@ scm_spawn_thread (scm_t_catch_body body, void *body_data,
   return create_thread (body, body_data, handler, handler_data, SCM_BOOL_F);
 }
 
-#if 0
 int
 scm_mutex_lock (scm_t_mutex *m)
 {
@@ -1078,7 +1077,6 @@ scm_cond_timedwait (scm_t_cond *c, scm_t_mutex *m)
   scm_i_enter_guile (t);
   return res;
 }
-#endif
 
 void
 scm_enter_guile ()
