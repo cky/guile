@@ -22,7 +22,7 @@
 
 (define-module (ice-9 readline)
   :use-module (ice-9 session)
-  :use-module (ice-9 regexp))
+  :use-module (ice-9 regex))
 
 ;;; MDJ 980513 <djurfeldt@nada.kth.se>:
 ;;; There should probably be low-level support instead of this code.
