@@ -133,12 +133,14 @@ scm_asyncs_pending ()
   return 0;
 }
 
+#if 0
 static SCM
 scm_sys_tick_async_thunk (void)
 {
   scm_deliver_signal (SCM_TICK_SIGNAL);
   return SCM_BOOL_F;
 }
+#endif
 
 void
 scm_async_click ()
@@ -364,8 +366,9 @@ SCM_DEFINE (scm_run_asyncs, "run-asyncs", 1, 0, 0,
 #ifdef GUILE_OLD_ASYNC_CLICK
   if (scm_mask_ints)
     return SCM_BOOL_F;
-#endif
+#else
   scm_asyncs_pending_p = 0;
+#endif
   while (list_of_a != SCM_EOL)
     {
       SCM a;
