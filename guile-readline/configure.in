@@ -22,6 +22,9 @@ fi
 
 AC_CHECK_FUNCS(siginterrupt rl_clear_signals rl_cleanup_after_signal)
 
+dnl Check for modern readline naming
+AC_CHECK_FUNCS(rl_filename_completion_function)
+
 dnl Check for rl_pre_input_hook.  This is more complicated because on
 dnl some systems (HP/UX), the linker wont let us treat
 dnl rl_pre_input_hook as a function when it really is a function

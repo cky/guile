@@ -380,7 +380,11 @@ SCM_DEFINE (scm_filename_completion_function, "filename-completion-function", 2,
   SCM ans;
   SCM_VALIDATE_STRING (1,text);
   SCM_STRING_COERCE_0TERMINATION_X (text);
+#ifdef HAVE_RL_FILENAME_COMPLETION_FUNCTION
+  s = rl_filename_completion_function (SCM_STRING_CHARS (text), SCM_NFALSEP (continuep));
+#else
   s = filename_completion_function (SCM_STRING_CHARS (text), SCM_NFALSEP (continuep));
+#endif
   ans = scm_makfrom0str (s);
   free (s);
   return ans;
@@ -545,7 +549,11 @@ scm_init_readline ()
     = scm_c_define ("*readline-completion-function*", SCM_BOOL_F);
   rl_getc_function = current_input_getc;
   rl_redisplay_function = redisplay;
+#if defined (_RL_FUNCTION_TYPEDEF)
+  rl_completion_entry_function = (rl_compentry_func_t*) completion_function;
+#else  
   rl_completion_entry_function = (Function*) completion_function;
+#endif
   rl_basic_word_break_characters = "\t\n\"'`;()";
   rl_readline_name = "Guile";
 #if defined (HAVE_RL_PRE_INPUT_HOOK) && defined (GUILE_SIGWINCH_SA_RESTART_CLEARED)
