@@ -737,7 +737,7 @@
   (let lp ((l rest) (acc list))
     (if (null? l)
       acc
-      (if (member (car l) acc)
+      (if (member (car l) list (lambda (x y) (= y x)))
 	(lp (cdr l) acc)
 	(lp (cdr l) (cons (car l) acc))))))
 
