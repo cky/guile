@@ -102,6 +102,17 @@ scm_primitive_load (filename, case_insensitive_p, sharp)
 }
 
 
+/* Builtin path to scheme library files. */
+#ifdef SCM_PKGDATA_DIR
+SCM_PROC (s_sys_package_data_dir, "%package-data-dir", 0, 0, 0, scm_sys_package_data_dir);
+SCM
+scm_sys_package_data_dir ()
+{
+  return scm_makfrom0str (SCM_PKGDATA_DIR);
+}
+#endif /* SCM_PKGDATA_DIR */
+
+
 /* Initializing the load path, and searching it.  */
 
 /* List of names of directories we search for files to load.  */
@@ -111,16 +122,18 @@ static SCM *scm_loc_load_path;
 static SCM *scm_loc_load_extensions;
 
 /* Initialize the global variable %load-path, given the value of the
-   LIBRARY_PATH preprocessor symbol and the SCHEME_LOAD_PATH
-   environment variable.  */
+   SCM_SITE_DIR and SCM_LIBRARY_DIR preprocessor symbols and the
+   SCHEME_LOAD_PATH environment variable.  */
 void
 scm_init_load_path ()
 {
   SCM path = SCM_EOL;
 
-#ifdef LIBRARY_PATH
-  path = scm_cons (scm_makfrom0str (LIBRARY_PATH), path);
-#endif /* LIBRARY_PATH */
+#ifdef SCM_LIBRARY_DIR
+  path = scm_cons2 (scm_makfrom0str (SCM_SITE_DIR),
+		    scm_makfrom0str (SCM_LIBRARY_DIR),
+		    path);
+#endif /* SCM_LIBRARY_DIR */
   
   {
     char *path_string = getenv ("SCHEME_LOAD_PATH");
