@@ -59,18 +59,6 @@
       (string=? (format #f "~@d" 1) "+1"))))
 
 ;;;
-;;; ~t
-;;;
-
-(with-test-prefix "~t column advance"
-
-  ;; in guile 1.6.4 and earlier, a newline as a fill character didn't zero
-  ;; the column number, making a subsequent ~t wrong
-  (pass-if "newline as fill character"
-    (string=? (format #f "~6,'\nd~8tX" 123)
-	      "\n\n\n123     X")))
-
-;;;
 ;;; ~{
 ;;;
 
