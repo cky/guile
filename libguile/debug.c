@@ -385,6 +385,8 @@ scm_make_debugobj (frame)
 
 
 
+/* Undocumented debugging procedure */
+#ifdef GUILE_DEBUG
 SCM_PROC (s_debug_hang, "debug-hang", 0, 1, 0, scm_debug_hang);
 
 SCM
@@ -395,6 +397,7 @@ scm_debug_hang (obj)
   while (!go) ;
   return SCM_UNSPECIFIED;
 }
+#endif
 
 
 
