@@ -1158,15 +1158,33 @@ Return an object representing the broken down components of
 
 @deffn {Scheme Procedure} mktime sbd-time [zone]
 @deffnx {C Function} scm_mktime (sbd_time, zone)
-@var{sbd-time} is an object representing broken down time and
-@code{zone} is an optional time zone specifier (otherwise the @env{TZ}
-environment variable or the system default is used).
+For a broken down time object @var{sbd-time}, return a pair the
+@code{car} of which is an integer time like @code{current-time}, and
+the @code{cdr} of which is a new broken down time with normalized
+fields.
 
-Returns a pair: the @acronym{CAR} is a corresponding integer time
-value like that returned by @code{current-time}; the @acronym{CDR} is
-a broken down time object, similar to @var{sbd-time} but with
-normalized values; i.e.@: with corrected @code{tm:wday} and
-@code{tm:yday} fields.
+@var{zone} is a timezone string, or the default is the @env{TZ}
+environment variable or the system default (@pxref{TZ Variable,,
+Specifying the Time Zone with @env{TZ}, libc, GNU C Library Reference
+Manual}).  @var{sbd-time} is taken to be in that @var{zone}.
+
+The following fields of @var{sbd-time} are used: @code{tm:year},
+@code{tm:mon}, @code{tm:mday}, @code{tm:hour}, @code{tm:min},
+@code{tm:sec}, @code{tm:isdst}.  The values can be outside their usual
+ranges.  For example @code{tm:hour} normally goes up to 23, but a
+value say 33 would mean 9 the following day.
+
+@code{tm:isdst} in @var{sbd-time} says whether the time given is with
+daylight savings or not.  This is ignored if @var{zone} doesn't have
+any daylight savings adjustment amount.
+
+The broken down time in the return normalizes the values of
+@var{sbd-time} by bringing them into their usual ranges, and using the
+actual daylight savings rule for that time in @var{zone} (which may
+differ from what @var{sbd-time} had).  The easiest way to think of
+this is that @var{sbd-time} plus @var{zone} converts to the integer
+UTC time, then a @code{localtime} is applied to get the normal
+presentation of that time, in @var{zone}.
 @end deffn
 
 @deffn {Scheme Procedure} tzset
