@@ -3570,23 +3570,23 @@ tail:
       
       args = EXTEND_ENV (SCM_CAR (SCM_CODE (proc)), args, SCM_ENV (proc));
       proc = SCM_CDR (SCM_CODE (proc));
-      do
+    again:
+      arg1 = proc;
+      while (SCM_NNULLP (arg1 = SCM_CDR (arg1)))
 	{
 	  if (SCM_IMP (SCM_CAR (proc)))
 	    {
 	      if (SCM_ISYMP (SCM_CAR (proc)))
 		{
 		  proc = scm_m_expand_body (proc, args);
-		  continue;
+		  goto again;
 		}
-	      arg1 = SCM_CAR (proc);
 	    }
 	  else
-	    arg1 = SCM_CEVAL (SCM_CAR (proc), args);
-	  proc = SCM_CDR (proc);
+	    SCM_CEVAL (SCM_CAR (proc), args);
+	  proc = arg1;
 	}
-      while (SCM_NNULLP (proc));
-      RETURN (arg1);
+      RETURN (EVALCAR (proc, args));
     case scm_tc7_contin:
       SCM_ASRTGO (SCM_NULLP (args), wrongnumargs);
       scm_call_continuation (proc, arg1);
