@@ -1,4 +1,7 @@
-Fri Feb 28 22:12:25 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+Sat Mar  1 00:09:15 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* symbols.c (msymbolize): Bugfix: Must initialize property list to
+ 	SCM_EOL.
 
 	* procs.c: Introduce the existent C function scm_thunk_p at the
 	Scheme level as well.

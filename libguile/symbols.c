@@ -691,6 +691,7 @@ msymbolize (s)
   SCM_SYMBOL_MULTI_BYTE_STRINGP (s) = SCM_BOOL_F;
   SCM_SETCDR (string, SCM_EOL);
   SCM_SETCAR (string, SCM_EOL);
+  SCM_SYMBOL_PROPS (s) = SCM_EOL;
 }
 
 
