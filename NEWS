@@ -516,7 +516,7 @@ interned or not.
 
 The function pretty-print from the (ice-9 pretty-print) module can now
 also be invoked with keyword arguments that control things like
-maximum output width.  See its online documentation.
+maximum output width.  See the manual for details.
 
 ** Variables have no longer a special behavior for `equal?'.
 
