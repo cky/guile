@@ -1,3 +1,36 @@
+2004-08-02  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* gen-scmconfig.h.in (SCM_I_GSC_ENABLE_DISCOURAGED): New.
+	* gen-scmconfig.c (SCM_ENABLE_DISCOURAGED): Emit based on above.
+
+	* eval.c (SCM_EVALIM, SCM_EVALIM2, SCM_XEVAL, SCM_XEVALCAR):
+	Renamed to SCM_I_* in order to avoid collisions with the versions
+	defined in deprecated.h.
+
+	* discouraged.h, discouraged.c: New files.
+
+	* deprecated.h (SCM_FALSEP, SCM_NFALSEP, SCM_BOOLP, SCM_EQ_P,
+	SCM_NEGATE_BOOL, SCM_BOOL, SCM_BOOT_NOT): Promoted from being
+	deprecated to being discouraged by moving to discouraged.h.
+
+	* numbers.h, numbers.c, discouraged.h, discouraged.c
+	(scm_short2num, scm_ushort2num, scm_int2num, scm_uint2num,
+	scm_long2num, scm_ulong2num, scm_size2num, scm_ptrdiff2num,
+	scm_num2short, scm_num2ushort, scm_num2int, scm_num2uint,
+	scm_num2long, scm_num2ulong, scm_num2size, scm_num2ptrdiff,
+	scm_long_long2num, scm_ulong_long2num, scm_num2long_long,
+	scm_num2ulong_long): Discouraged by moving to discouraged.h and
+	discouraged.c and reimplementing in terms of scm_from_* and
+	scm_to_*.  Changed all uses to the new scm_from_* and scm_to_*
+	functions.
+
+	* numbers.h, numbers.c: Removed GUILE_DEBUG code.
+	(scm_i_short2big, scm_i_ushort2big, scm_i_int2big, scm_i_uint2big,
+	scm_i_size2big, scm_i_ptrdiff2big): Removed.
+	(scm_i_long2big, scm_i_ulong2big): New, explicit definitions.  
+	* conv-integer.i.c, conv-uinteger.i.c: Use them instead of
+	explicit code.
+
 2004-08-02  Kevin Ryde  <user42@zip.com.au>
 
 	* __scm.h (SCM_DEFER_INTS, SCM_ALLOW_INTS): Add comments about past
