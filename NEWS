@@ -18,7 +18,8 @@ Changes in Guile 1.2:
 token of the form #:NAME, where NAME has the same syntax as a Scheme
 symbol, is the external representation of the keyword named NAME.
 Keyword objects print using this syntax as well, so values containing
-keyword objects can be read back into Guile.
+keyword objects can be read back into Guile.  When used in an
+expression, keywords are self-quoting objects.
 
 Guile suports this read syntax, and uses this print syntax, regardless
 of the current setting of the `keyword' read option.  The `keyword'
