@@ -3,8 +3,8 @@
   #:use-module (lang elisp internals signal)
   #:use-module (lang elisp internals format)
   #:use-module (lang elisp internals evaluation)
-  #:export (load-path
-	    load))
+  #:replace (load)
+  #:export (load-path))
 
 (define load-path '("/usr/share/emacs/20.7/lisp/"
 		    "/usr/share/emacs/20.7/lisp/emacs-lisp/"))

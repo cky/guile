@@ -4,8 +4,8 @@
   #:use-module ((ice-9 format) #:select ((format . scheme:format)))
   #:use-module (lang elisp internals fset)
   #:use-module (lang elisp internals signal)
-  #:export (format
-	    message))
+  #:replace (format)
+  #:export (message))
 
 (define (format control-string . args)
 

@@ -1,7 +1,7 @@
 (define-module (lang elisp internals signal)
   #:use-module (lang elisp internals format)
+  #:replace (error)
   #:export (signal
-	    error
 	    wta))
 
 (define (signal error-symbol data)
