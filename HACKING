@@ -85,6 +85,15 @@ When you've written a NEWS entry and updated the documentation, go
 ahead and remove the asterisk.  I will use the asterisks to find and
 document changes that haven't been dealt with before a release.
 
+- Please write log entries for functions written in C under the
+functions' C names, and write log entries for functions written in
+Scheme under the functions' Scheme names.  Please don't do this:
+
+	* procs.c, procs.h (procedure-documentation): Moved from eval.c.
+
+Entries like this make it harder to search the ChangeLogs, because you
+can never tell which name the entry will refer to.
+
 - There's no need to keep a change log for documentation files.  This
 is because documentation is not susceptible to bugs that are hard to
 fix.  Documentation does not consist of parts that must interact in a
