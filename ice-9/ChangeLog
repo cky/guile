@@ -1,3 +1,7 @@
+Tue Apr 29 06:54:46 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* boot-9.scm: don't define timer-thunk or gc-thunk.
+
 Sun Apr 27 17:56:09 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* aclocal.m4: Removed; unnecessary, given changes of Apr 24.

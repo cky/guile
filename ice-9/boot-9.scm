@@ -598,8 +598,6 @@
 ;    (21 TICK_SIGNAL "tick")))
 
 
-(define (timer-thunk) #t)
-(define (gc-thunk) #t)
 (define (alarm-thunk) #t)
 
 (define (signal-handler n)
