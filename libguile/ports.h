@@ -198,6 +198,6 @@ extern void scm_init_ports SCM_P ((void));
 #ifdef GUILE_DEBUG
 extern SCM scm_pt_size SCM_P ((void));
 extern SCM scm_pt_member SCM_P ((SCM member));
-#endif GUILE_DEBUG
+#endif /* GUILE_DEBUG */
 
 #endif  /* PORTSH */
