@@ -1,3 +1,11 @@
+Thu Sep 19 15:33:51 1996  Mikael Djurfeldt  <mdj@kenneth>
+
+	* read.c (scm_init_read): Removed #ifdef READER_EXTENSIONS
+
+	* print.c, print.h: Closures now print like #<procedure foo (x)>.
+	People who whish to see the source can do `(print-enable 'source)'.
+	Removed #ifdef DEBUG_EXTENSIONS.
+	
 Thu Sep 19 00:00:29 1996  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* filesys.c (scsm_sys_stat): don't SIGSEGV if argument is an
