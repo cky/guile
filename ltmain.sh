@@ -28,7 +28,7 @@ progname=`echo "$0" | sed 's%^.*/%%'`
 # Constants.
 PROGRAM=ltmain.sh
 PACKAGE=libtool
-VERSION=0.9d
+VERSION=0.9e
 
 default_mode=NONE
 help="Try \`$progname --help' for more information."
@@ -263,11 +263,11 @@ if test -z "$show_help"; then
       exit 1
     fi
 
-    # Symlink or copy the object file into library object, if no PIC.
+    # Create an invalid object file if no PIC, so that we don't accidentally
+    # link it.
     if test "$build_libtool_libs" != yes; then
-      $show "$ln_s $obj $libobj"
-      $run $ln_s $obj $libobj || $run $cp_p $obj $libobj
-      exit $?
+      $show "echo timestamp > $libobj"
+      eval "$run echo timestamp > $libobj" || exit $?
     fi
 
     exit 0
@@ -471,9 +471,8 @@ if test -z "$show_help"; then
 	  dir="$dir/$objdir"
 	fi
 
-	link_against_libtool_libs="$link_against_libtool_libs $arg"
-
-	if test "$build_libtool_libs" = yes; then
+	if test "$build_libtool_libs" = yes && test -n "$library_names"; then
+	  link_against_libtool_libs="$link_against_libtool_libs $arg"
 	  if test -n "$shlibpath_var"; then
 	    # Make sure the rpath contains only unique directories.
 	    case "$temp_rpath " in
@@ -1375,7 +1374,7 @@ EOF
 	    fi
 	  done
 
-	  if test "$hardcode_direct" != no && test "$hardcode_minus_L" != no && test "$hardcode_shlibpath_var" != no; then
+	  if test "$hardcode_action" = relink; then
 	    if test "$finalize" = no; then
 	      echo "$progname: warning: cannot relink \`$file' on behalf of your buggy system linker" 1>&2
 	    else

@@ -33,7 +33,7 @@ progname=`echo "$0" | sed 's%^.*/%%'`
 # Constants:
 PROGRAM=ltconfig
 PACKAGE=libtool
-VERSION=0.9d
+VERSION=0.9e
 ac_compile='${CC-cc} -c $CFLAGS $CPPFLAGS conftest.c 1>&5'
 rm="rm -f"
 
@@ -242,12 +242,6 @@ if test "$verify_host" = yes; then
   esac
   host=`$ac_config_sub $host_alias`
   echo "$ac_t""$host" 1>&6
-
-  # Transform *-*-linux* to *-*-linux-gnu*, to support old configure scripts.
-  case "$host" in
-  *-*-linux-gnu*) ;;
-  *-*-linux*) host=`echo $host | sed 's/^\(.*-.*-linux\)\(.*\)$/\1-gnu\2/'`
-  esac
 
 elif test "$host" = NONE; then
   echo "$progname: you must specify a host type if you use \`--no-verify'" 1>&2
@@ -489,7 +483,7 @@ with_gnu_ld=no
 set dummy $LD
 linker="$2"
 echo $ac_n "checking if $LD is GNU ld... $ac_c" 1>&6
-if $LD --version 2>&1 | egrep '(GNU ld|with BFD)' > /dev/null; then
+if $LD -v 2>&1 | egrep '(GNU ld|with BFD)' > /dev/null; then
   with_gnu_ld=yes
   linker="GNU ld"
 fi
@@ -543,6 +537,7 @@ else
 
   *-*-aix4*)
     archive_cmds='/bin/nm -B$libobjs | egrep \" [BD] \" | sed \"s/^.* //\" > $lib.exp;$cc -o $objdir/$soname$libobjs ${wl}-bE:$lib.exp ${wl}-bM:SRE ${wl}-bnoentry$deplibs;$AR cru $lib $objdir/$soname'
+    hardcode_direct=yes
     hardcode_minus_L=yes
     ;;
 
@@ -622,20 +617,20 @@ if test -n "$hardcode_libdir_flag_spec"; then
      test "$hardcode_minus_L" != no &&
      test "$hardcode_shlibpath_var" != no; then
 
-    # Can't link without hardcoding.
+    # Linking always hardcodes the temporary library directory.
     hardcode_action=relink
   else
+    # We can link without hardcoding, and we can hardcode nonexisting dirs.
     hardcode_action=immediate
   fi
-elif test "$hardcode_direct" = yes ||
-     test "$hardcode_minus_L" = yes ||
-     test "$hardcode_shlibpath_var" = yes; then
-
-  # We can't hardcode non-existant directories, but we can existing ones.
-  hardcode_action=immediate
-else
+elif test "$hardcode_direct" != yes &&
+     test "$hardcode_minus_L" != yes &&
+     test "$hardcode_shlibpath_var" != yes; then
   # We can't hardcode anything.
   hardcode_action=unsupported
+else
+  # We can only hardcode existing directories.
+  hardcode_action=relink
 fi
 echo $ac_t "$hardcode_action" 1>&6
 test "$hardcode_action" = unsupported && can_build_shared=no
