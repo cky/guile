@@ -1562,6 +1562,13 @@ gc_sweep_freelist_finish (scm_freelist_t *freelist)
     }
   scm_gc_cells_collected += freelist->collected;
 
+  /* Although freelist->gc_trigger is used to test freelist->collected
+   * (which is the local GC yield for freelist), it is adjusted so
+   * that *total* yield is freelist->gc_trigger_fraction of total heap
+   * size.  This means that a too low yield is compensated by more
+   * heap on the list which is currently doing most work, which is
+   * just what we want.
+   */
   freelist->grow_heap_p = (freelist->collected < freelist->gc_trigger);
 }
 #endif
