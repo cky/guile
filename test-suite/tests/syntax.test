@@ -550,3 +550,171 @@
       exception:missing/extra-expr
       (eval '(quote a b)
 	    (interaction-environment)))))
+
+(with-test-prefix "while"
+  
+  (define (unreachable)
+    (error "unreachable code has been reached!"))
+  
+  ;; an environment with no bindings at all
+  (define empty-environment
+    (make-module 1))
+  
+  ;; Return a new procedure COND which when called (COND) will return #t the
+  ;; first N times, then #f, then any further call is an error.  N=0 is
+  ;; allowed, in which case #f is returned by the first call.
+  (define (make-iterations-cond n)
+    (lambda ()
+      (cond ((not n)
+	     (error "oops, condition re-tested after giving false"))
+	    ((= 0 n)
+	     (set! n #f)
+	     #f)
+	    (else
+	     (set! n (1- n))
+	     #t))))
+  
+
+  (pass-if-exception "too few args" exception:wrong-num-args
+    (while))
+  
+  (with-test-prefix "empty body"
+    (do ((n 0 (1+ n)))
+	((> n 5))
+      (pass-if n
+	(let ((cond (make-iterations-cond n)))
+	  (while (cond)))
+	#t)))
+  
+  (pass-if "initially false"
+    (while #f
+      (unreachable))
+    #t)
+  
+  (with-test-prefix "in empty environment"
+    
+    (pass-if "empty body"
+      (eval `(,while #f)
+	    empty-environment)
+      #t)
+    
+    (pass-if "initially false"
+      (eval `(,while #f
+	       #f)
+	    empty-environment)
+      #t)
+    
+    (pass-if "iterating"
+      (let ((cond (make-iterations-cond 3)))
+	(eval `(,while (,cond)
+		 123 456)
+	      empty-environment))
+      #t))
+  
+  (with-test-prefix "iterations"
+    (do ((n 0 (1+ n)))
+	((> n 5))
+      (pass-if n
+	(let ((cond (make-iterations-cond n))
+	      (i    0))
+	  (while (cond)
+	    (set! i (1+ i)))
+	  (= i n)))))
+  
+  (with-test-prefix "break"
+    
+    (pass-if-exception "too many args" exception:wrong-num-args
+      (while #t
+	(break 1)))
+    
+    (with-test-prefix "from cond"
+      (pass-if "first"
+	(while (begin
+		 (break)
+		 (unreachable))
+	  (unreachable))
+	#t)
+      
+      (do ((n 0 (1+ n)))
+	  ((> n 5))
+	(pass-if n
+	  (let ((cond (make-iterations-cond n))
+		(i    0))
+	    (while (if (cond)
+		       #t
+		       (begin
+			 (break)
+			 (unreachable)))
+	      (set! i (1+ i)))
+	    (= i n)))))
+    
+    (with-test-prefix "from body"
+      (pass-if "first"
+	(while #t
+	  (break)
+	  (unreachable))
+	#t)
+      
+      (do ((n 0 (1+ n)))
+	  ((> n 5))
+	(pass-if n
+	  (let ((cond (make-iterations-cond n))
+		(i    0))
+	    (while #t
+	      (if (not (cond))
+		  (begin
+		    (break)
+		    (unreachable)))
+	      (set! i (1+ i)))
+	    (= i n)))))
+    
+    (pass-if "from nested"
+      (while #t
+	(let ((outer-break break))
+	  (while #t
+	    (outer-break)
+	    (unreachable)))
+	(unreachable))
+      #t))
+  
+  (with-test-prefix "continue"
+    
+    (pass-if-exception "too many args" exception:wrong-num-args
+      (while #t
+	(continue 1)))
+    
+    (with-test-prefix "from cond"
+      (do ((n 0 (1+ n)))
+	  ((> n 5))
+	(pass-if n
+	  (let ((cond (make-iterations-cond n))
+		(i    0))
+	    (while (if (cond)
+		       (begin
+			 (set! i (1+ i))
+			 (continue)
+			 (unreachable))
+		       #f)
+	      (unreachable))
+	    (= i n)))))
+    
+    (with-test-prefix "from body"
+      (do ((n 0 (1+ n)))
+	  ((> n 5))
+	(pass-if n
+	  (let ((cond (make-iterations-cond n))
+		(i    0))
+	    (while (cond)
+	      (set! i (1+ i))
+	      (continue)
+	      (unreachable))
+	    (= i n)))))
+    
+    (pass-if "from nested"
+      (let ((cond (make-iterations-cond 3)))
+	(while (cond)
+	  (let ((outer-continue continue))
+	    (while #t
+	      (outer-continue)
+	      (unreachable)))))
+      #t)))
