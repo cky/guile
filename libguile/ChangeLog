@@ -1,5 +1,10 @@
 2004-09-21  Marius Vollmer  <mvo@zagadka.de>
 
+	* numbers.h, numbers.c: Include <gmp.h> in numbers.h, not in
+	numbers.c.
+	(scm_to_mpz, scm_from_mpz): New.
+	Thanks to Andreas Vögele!
+	
 	* read.c (skip_scsh_block_comment): Recognize "!#" everywhere, not
 	just on a line of its own.
 
