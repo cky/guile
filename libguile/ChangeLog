@@ -1,13 +1,17 @@
 Tue Jun 24 00:29:07 1997  Jim Blandy  <jimb@floss.red-bean.com>
 
+	* Makefile.am (libguile_la_LDFLAGS): Bump library version.
+	* Makefile.in: Regenerated.
+
 	* regex-posix.c (scm_init_regex_posix): Delete the regexp/nosub
 	flag; I don't think we support it.
+	(scm_make_regexp): Make sure the user doesn't pass the
+	regexp/nosub flag.
 
 	* regex-posix.c (scm_make_regexp, scm_regexp_exec): Add optional
 	FLAGS arguments.
 	(scm_init_regex_posix): Define constants for the REG_mumble flags;
 	name them according to the SCSH convention: regexp/mumble.
-
 
 	* regex-posix.h (scm_make_regexp, scm_regexp_exec): Update prototypes.
 
