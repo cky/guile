@@ -1062,7 +1062,7 @@
 
 (with-test-prefix "string->number"
 
-  (pass-if "string->number"
+  (pass-if "documented?"
     (documented? string->number))
 
   (pass-if "non number strings"
