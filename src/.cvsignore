@@ -1,0 +1,15 @@
+.cvsignore
+.libs
+.deps
+guile-vm
+stamp-h
+config.h
+config.h.in
+stamp-h.in
+Makefile
+Makefile.in
+*.x
+*.vi
+*.op
+*.lo
+*.la
