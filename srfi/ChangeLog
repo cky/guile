@@ -7,6 +7,10 @@
 	* srfi-1.c (scm_srfi1_filter_map): Have 2-arg case share finalization
 	code of 1-arg case.
 
+	* srfi-1.scm (alist-cons): Define just as acons, not a call to acons.
+
+	* srfi-1.scm, srfi-1.c, srfi-1.h (alist-copy): Rewrite in C.
+
 	* srfi-1.scm (lset-union): Rewrite to accumulate result by consing in
 	the order specified by the SRFI.
 
