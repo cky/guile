@@ -125,6 +125,7 @@ extern SCM scm_lookup_closure_module (SCM proc);
 extern SCM scm_env_top_level (SCM env);
 extern SCM scm_env_module (SCM env);
 extern SCM scm_top_level_env (SCM thunk);
+extern SCM scm_system_module_env_p (SCM env);
 
 extern void scm_modules_prehistory (void);
 extern void scm_init_modules (void);
@@ -135,7 +136,6 @@ extern SCM scm_the_root_module (void);
 extern SCM scm_make_module (SCM name);
 extern SCM scm_ensure_user_module (SCM name);
 extern SCM scm_load_scheme_module (SCM name);
-extern SCM scm_system_module_env_p (SCM env);
 
 #endif
 
