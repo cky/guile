@@ -1,3 +1,8 @@
+2005-03-13  Kevin Ryde  <user42@zip.com.au>
+
+	* srfi-60.scm, srfi-60.c, srfi-60.h: New files.
+	* Makefile.am: Add them.
+
 2005-03-02  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* srfi-1.c: Use scm_is_pair instead of SCM_CONSP; use scm_is_null

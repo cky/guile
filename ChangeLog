@@ -1,3 +1,7 @@
+2005-03-13  Kevin Ryde  <user42@zip.com.au>
+
+	* configure.in, GUILE-VERSION (LIBGUILE_SRFI_SRFI_60): New defines.
+
 2005-03-09  Marius Vollmer  <mvo@zagadka.de>
 
 	Guile 1.7.2 has been released.
