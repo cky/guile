@@ -135,7 +135,7 @@ print_deprecation_summary (void)
     }
 }
 
-#endif
+#endif /* SCM_ENABLE_DEPRECATED == 1 */
 
 SCM_DEFINE(scm_include_deprecated_features,
 	   "include-deprecated-features", 0, 0, 0,
