@@ -457,43 +457,144 @@ one list must be non-circular.
 
 @c FIXME::martin: Review me!
 
-@deffn {Scheme Procedure} fold kons knil lst1 lst2 @dots{}
-Fold the procedure @var{kons} across all elements of @var{lst1},
-@var{lst2}, @dots{}.  Produce the result of
+@deffn {Scheme Procedure} fold proc init lst1 @dots{} lstN
+@deffnx {Scheme Procedure} fold-right proc init lst1 @dots{} lstN
+Apply @var{proc} to the elements of @var{lst1} @dots{} @var{lstN} to
+build a result, and return that result.
 
-@code{(@var{kons} @var{en1} @var{en2} @dots{} (@var{kons} @var{e21}
-@var{e22} (@var{kons} @var{e11} @var{e12} @var{knil})))},
+Each @var{proc} call is @code{(@var{proc} @var{elem1} @dots{}
+@var{elemN} @var{previous})}, where @var{elem1} is from @var{lst1},
+through @var{elemN} from @var{lstN}.  @var{previous} is the return
+from the previous call to @var{proc}, or the given @var{init} for the
+first call.  If any list is empty, just @var{init} is returned.
 
-if @var{enm} are the elements of the lists @var{lst1}, @var{lst2},
-@dots{}.
+@code{fold} works through the list elements from first to last.  The
+following shows a list reversal and the calls it makes,
+
+@example
+(fold cons '() '(1 2 3))
+
+(cons 1 '())
+(cons 2 '(1))
+(cons 3 '(2 1)
+@result{} (3 2 1)
+@end example
+
+@code{fold-right} works through the list elements from last to first,
+ie.@: from the right.  So for example the following finds the longest
+string, and the last among equal longest,
+
+@example
+(fold-right (lambda (str prev)
+              (if (> (string-length str) (string-length prev))
+                  str
+                  prev))
+            ""
+            '("x" "abc" "xyz" "jk"))
+@result{} "xyz"
+@end example
+
+If @var{lst1} through @var{lstN} have different lengths, @code{fold}
+stops when the end of the shortest is reached; @code{fold-right}
+commences at the last element of the shortest.  Ie.@: elements past
+the length of the shortest are ignored in the other @var{lst}s.  At
+least one @var{lst} must be non-circular.
+
+@code{fold} should be preferred over @code{fold-right} if the order of
+processing doesn't matter, or can be arranged either way, since
+@code{fold} is a little more efficient.
+
+The way @code{fold} builds a result from iterating is quite general,
+it can do more than other iterations like say @code{map} or
+@code{filter}.  The following for example removes adjacent duplicate
+elements from a list,
+
+@example
+(define (delete-adjacent-duplicates lst)
+  (fold-right (lambda (elem ret)
+                (if (equal? elem (first ret))
+                    ret
+                    (cons elem ret)))
+              (list (last lst))
+              lst))
+(delete-adjacent-duplicates '(1 2 3 3 4 4 4 5))
+@result{} (1 2 3 4 5)
+@end example
+
+Clearly the same sort of thing can be done with a @code{for-each} and
+a variable in which build the result, but a self-contained @var{proc}
+can be re-used in multiple contexts, where a @code{for-each} would
+have to be written out each time.
 @end deffn
 
-@deffn {Scheme Procedure} fold-right kons knil lst1 lst2 @dots{}
-Similar to @code{fold}, but applies @var{kons} in right-to-left order
-to the list elements, that is:
-
-@code{(@var{kons} @var{e11} @var{e12}(@var{kons} @var{e21}
-@var{e22}  @dots{} (@var{kons} @var{en1} @var{en2} @var{knil})))},
+@deffn {Scheme Procedure} pair-fold proc init lst1 @dots{} lstN
+@deffnx {Scheme Procedure} pair-fold-right proc init lst1 @dots{} lstN
+The same as @code{fold} and @code{fold-right}, but apply @var{proc} to
+the pairs of the lists instead of the list elements.
 @end deffn
 
-@deffn {Scheme Procedure} pair-fold kons knil lst1 lst2 @dots{}
-Like @code{fold}, but apply @var{kons} to the pairs of the list
-instead of the list elements.
-@end deffn
+@deffn {Scheme Procedure} reduce proc identity lst
+@deffnx {Scheme Procedure} reduce-right proc identity lst
+@code{reduce} is a variant of @code{fold} (see above), designed for
+cases where the initial value is an ``identity'', so that @var{proc}
+can start directly from the first element of @var{lst}.
 
-@deffn {Scheme Procedure} pair-fold-right kons knil lst1 lst2 @dots{}
-Like @code{fold-right}, but apply @var{kons} to the pairs of the list
-instead of the list elements.
-@end deffn
+Consider folding with @code{+} and initial value 0, calls would be for
+instance
 
-@deffn {Scheme Procedure} reduce f ridentity lst
-@code{reduce} is a variant of @code{fold}.  If @var{lst} is
-@code{()}, @var{ridentity} is returned.  Otherwise, @code{(fold f (car
-@var{lst}) (cdr @var{lst}))} is returned.
-@end deffn
+@example
+(fold + 0 '(4 5 6))
+@result{}
+(+ 4 0)
+(+ 5 4)
+(+ 6 9)
+@end example
 
-@deffn {Scheme Procedure} reduce-right f ridentity lst
-This is the @code{fold-right} variant of @code{reduce}.
+The first call @code{(+ 4 0)} is unnecessary, adding 0 to 4 doesn't
+change that value.  The first element @code{4} may as well be the
+initial ``previous'' value argument to @var{proc}.  This is what
+@code{reduce} does.
+
+@example
+(reduce + 0 '(4 5 6))
+@result{}
+(+ 5 4)
+(+ 6 9)
+@end example
+
+The @var{identity} parameter is the return when @var{lst} is empty,
+that's the only time @var{identity} is used.  If @var{lst} has just
+one element, that's the return with no calls to @var{proc}.
+
+@code{reduce-right} is a similar variation on @code{fold-right},
+working from the end (ie.@: the right) of @var{lst}.  Calls in this
+case become
+
+@example
+(reduce-right + 0 '(4 5 6))
+@result{}
+(+ 5 6)
+(+ 4 11)
+@end example
+
+@code{reduce} should be preferred over @code{reduce-right} if the
+order of processing doesn't matter, or can be arranged either way,
+since @code{reduce} is a little more efficient.
+
+In the above examples of course @code{+} takes any number of
+arguments, so it can be used on a list just with @code{apply}.  An
+example where that's not the case would be SRFI-19 @code{add-duration}
+(@pxref{SRFI-19 Time}) on a list of durations,
+
+@example
+(use-modules (srfi srfi-19))
+(reduce add-duration
+        (make-time time-duration 0 0)
+        (list (make-time time-duration 0 4)
+              (make-time time-duration 0 5)
+              (make-time time-duration 0 6)))
+@result{} #<time duration 15 seconds>
+@end example
 @end deffn
 
 @deffn {Scheme Procedure} unfold p f g seed [tail-gen]
