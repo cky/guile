@@ -158,18 +158,16 @@ Indicates that the debugger should display an introductory message.
 
 ;;; {Debug on Error}
 
-(define default-default-lazy-handler default-lazy-handler)
-
 (define (debug-on-error syms)
   "Enable or disable debug on error."
-  (set! default-lazy-handler
+  (set! lazy-handler-dispatch
 	(if syms
 	    (lambda (key . args)
 	      (or (memq key syms)
 		  (debug-stack (make-stack #t lazy-handler-dispatch)
 			       #:with-introduction
 			       #:continuable))
-	      (apply default-default-lazy-handler key args))
-	    default-default-lazy-handler)))
+	      (apply default-lazy-handler key args))
+	    default-lazy-handler)))
 
 ;;; (ice-9 debugger) ends here.

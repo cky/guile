@@ -1,3 +1,13 @@
+2003-10-16  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* debugger/ui-client.scm (ui-connect): Add arg to say whether to
+	debug immediately on connection.
+	(ui-eval): Handle exceptions during read and evaluation.
+
+	* debugger.scm (debug-on-error, default-default-lazy-handler):
+	Remove an unnecessary level of indirection in calling lazy
+	handler.
+
 2003-10-12  Marius Vollmer  <mvo@zagadka.de>
 
 	* ftw.scm (directory-files): Close dir-stream when done.  Thanks

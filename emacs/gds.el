@@ -297,20 +297,6 @@
 
 		   ))))))
 
-(defun gds-display-results (client results)
-  (let ((buf (get-buffer-create "*Guile Results*")))
-    (save-excursion
-      (set-buffer buf)
-      (erase-buffer)
-      (while results
-	(insert (car results))
-	(mapcar (function (lambda (value)
-			    (insert " => " value "\n")))
-		(cadr results))
-	(insert "\n")
-	(setq results (cddr results))))
-    (pop-to-buffer buf)))
-
 ;; Store latest status, stack or module list for the specified client.
 (defmacro gds-set (alist client val)
   `(let ((existing (assq ,client ,alist)))
@@ -511,17 +497,6 @@
 			  (overlay-start gds-selected-frame-source-overlay))))
   ;; Force redisplay.
   (sit-for 0))
-
-(defun old-stuff ()
-  (if (gds-buffer-visible-in-selected-frame-p)
-      ;; Buffer already visible enough.
-      nil
-    ;; Delete any views of the buffer in other frames - we don't want
-    ;; views all over the place.
-    (delete-windows-on gds-client-buffer)
-    ;; Run idle timer to display the buffer as soon as user isn't in
-    ;; the middle of something else.
-    ))
 
 (defun gds-insert-stack (stack)
   (let ((frames (car stack))
@@ -780,7 +755,7 @@ not of primary interest when debugging application code."
 ;; Where there are multiple Guile applications known to GDS, GDS by
 ;; default sends code to the one that holds the debugging focus,
 ;; i.e. `gds-displayed-client'.  Where no application has the focus,
-;; or the command is invoked `C-u', GDS asks the user which
+;; or the command is invoked with `C-u', GDS asks the user which
 ;; application is intended.
 
 (defun gds-read-client ()
@@ -793,14 +768,16 @@ not of primary interest when debugging application code."
 		   "Application for eval: "))
 	 (name
 	  (completing-read prompt
-			   (mapcar (function cdr) gds-names)
+			   (mapcar (function list)
+				   (mapcar (function cdr) gds-names))
 			   nil t nil nil
 			   def)))
     (let (client (names gds-names))
       (while (and names (not client))
-	(if (string-equal (cadar names) name)
+	(if (string-equal (cdar names) name)
 	    (setq client (caar names)))
-	(setq names (cdr names))))))
+	(setq names (cdr names)))
+      client)))
 
 (defun gds-choose-client (client)
   (or ;; If client is an integer, it is the port number of the
@@ -813,17 +790,24 @@ not of primary interest when debugging application code."
       ;; If ask not forced, and there is a client with the focus,
       ;; default to that one.
       gds-displayed-client
+      ;; If there are no clients at this point, and we are allowed to
+      ;; autostart a captive Guile, do so.
+      (and (null gds-names)
+	   gds-autostart-captive
+	   (progn
+	     (gds-start-captive t)
+	     (while (null gds-names)
+	       (accept-process-output (get-buffer-process gds-captive)
+				      0 100000))
+	     (caar gds-names)))
+      ;; If there is only one known client, use that one.
+      (if (and (car gds-names)
+	       (null (cdr gds-names)))
+	  (caar gds-names))
       ;; Last resort - ask the user.
       (gds-read-client)
       ;; Signal an error.
       (error "No application chosen.")))
-
-(defcustom gds-default-module-name '(guile-user)
-  "Name of the default module for GDS code evaluation, as list of symbols.
-This module is used when there is no `define-module' form in the
-buffer preceding the code to be evaluated."
-  :type 'sexp
-  :group 'gds)
 
 (defun gds-module-name (start end)
   "Determine and return the name of the module that governs the
@@ -886,6 +870,66 @@ region's code."
   "Evaluate the sexp before point."
   (interactive "P")
   (gds-eval-region (save-excursion (backward-sexp) (point)) (point) client))
+
+
+;;;; Help.
+
+;; Help is implemented as a special case of evaluation, where we
+;; arrange for the evaluation result to be a known symbol that is
+;; unlikely to crop up otherwise.  When the evaluation result is this
+;; symbol, we only display the output from the evaluation.
+
+(defvar gds-help-symbol '%-gds-help-%
+  "Symbol used by GDS to identify an evaluation response as help.")
+
+(defun gds-help-symbol (sym &optional client)
+  "Get help for SYM (a Scheme symbol)."
+  (interactive "SHelp for symbol: \nP")
+  (gds-eval-expression (format "(begin (help %S) '%S)" sym gds-help-symbol)
+		       client))
+
+(defun gds-help-symbol-here (&optional client)
+  (interactive "P")
+  (gds-help-symbol (thing-at-point 'symbol) client))
+
+(defun gds-apropos (regex &optional client)
+  "List Guile symbols matching REGEX."
+  (interactive "sApropos Guile regex: \nP")
+  (gds-eval-expression (format "(begin (apropos %S) '%S)" regex gds-help-symbol)
+		       client))
+
+
+;;;; Display of evaluation and help results.
+
+(defun gds-display-results (client results)
+  (let ((helpp (and (= (length results) 2)
+		    (= (length (cadr results)) 1)
+		    (string-equal (caadr results)
+				  (prin1-to-string gds-help-symbol)))))
+    (let ((buf (get-buffer-create (if helpp
+				      "*Guile Help*"
+				    "*Guile Results*"))))
+      (save-excursion
+	(set-buffer buf)
+	(erase-buffer)
+	(while results
+	  (insert (car results))
+	  (if helpp
+	      nil
+	    (mapcar (function (lambda (value)
+				(insert " => " value "\n")))
+		    (cadr results))
+	    (insert "\n"))
+	  (setq results (cddr results)))
+	(goto-char (point-min))
+	(if (and helpp (looking-at "Evaluating in "))
+	    (delete-region (point) (progn (forward-line 1) (point)))))
+      (pop-to-buffer buf)
+      (run-hooks 'temp-buffer-show-hook)
+      (other-window 1))))
+
+
+;;;; Loading (evaluating) a whole Scheme file.
 
 (defcustom gds-source-modes '(scheme-mode)
   "*Used to determine if a buffer contains Scheme source code.
@@ -973,6 +1017,9 @@ Used for determining the default for the next `gds-load-file'.")
 (if gds-advanced-menu
     nil
   (setq gds-advanced-menu (make-sparse-keymap "Advanced"))
+  (define-key gds-advanced-menu [run-captive]
+    '(menu-item "Run Captive Guile" gds-start-captive
+		:enable (not (comint-check-proc gds-captive))))
   (define-key gds-advanced-menu [restart-gds]
     '(menu-item "Restart IDE" gds-start :enable gds-process))
   (define-key gds-advanced-menu [kill-gds]
@@ -989,17 +1036,20 @@ Used for determining the default for the next `gds-load-file'.")
     (cons "Advanced" gds-advanced-menu))
   (define-key gds-menu [separator-1]
     '("--"))
-  (define-key gds-menu [help]
-    `(menu-item "Help" ,gds-help-menu :enable gds-names))
-  (define-key gds-menu [eval]
-    `(menu-item "Evaluate" ,gds-eval-menu :enable gds-names))
   (define-key gds-menu [debug]
     `(menu-item "Debug" ,gds-debug-menu :enable (and gds-displayed-client
 						     (gds-client-waiting))))
+  (define-key gds-menu [eval]
+    `(menu-item "Evaluate" ,gds-eval-menu :enable (or gds-names
+						      gds-autostart-captive)))
+  (define-key gds-menu [help]
+    `(menu-item "Help" ,gds-help-menu :enable (or gds-names
+						  gds-autostart-captive)))
   (setq menu-bar-final-items
 	(cons 'guile menu-bar-final-items))
   (define-key global-map [menu-bar guile]
     (cons "Guile" gds-menu)))
+
 
 ;;;; Autostarting the GDS server.
 
@@ -1011,6 +1061,49 @@ Used for determining the default for the next `gds-load-file'.")
 (if (and gds-autostart-server
 	 (not gds-process))
     (gds-start))
+
+
+;;;; `Captive' Guile - a Guile process that is started when needed to
+;;;; provide help, completion, evaluations etc.
+
+(defcustom gds-autostart-captive t
+  "Whether to automatically start a `captive' Guile process when needed."
+  :type 'boolean
+  :group 'gds)
+
+(defvar gds-captive nil
+  "Buffer of captive Guile.")
+
+(defun gds-start-captive (&optional restart)
+  (interactive)
+  (if (and restart
+	   (comint-check-proc gds-captive))
+      (gds-kill-captive))
+  (if (comint-check-proc gds-captive)
+      nil
+    (let ((process-connection-type nil))
+      (setq gds-captive (make-comint "captive-guile"
+				     "guile"
+				     nil
+				     "-q")))
+    (let ((proc (get-buffer-process gds-captive)))
+      (comint-send-string proc "(set! %load-path (cons \"/home/neil/Guile/cvs/guile-core\" %load-path))\n")
+      (comint-send-string proc "(debug-enable 'backtrace)\n")
+      (comint-send-string proc "(use-modules (ice-9 debugger ui-client))\n")
+      (comint-send-string proc "(ui-connect \"Captive Guile\" #f)\n"))))
+
+(defun gds-kill-captive ()
+  (if gds-captive
+      (let ((proc (get-buffer-process gds-captive)))
+	(process-kill-without-query proc)
+	(condition-case nil
+	    (progn
+	      (kill-process gds-process)
+	      (accept-process-output gds-process 0 200))
+	  (error)))))
+
+
+;;;; The end!
 
 (provide 'gds)
 
