@@ -3,6 +3,10 @@
 	* boot-9.scm (false-if-exception): Unquote catch and lambda, so as not
 	to depend on expansion environment.
 
+	* slib.scm (-1+, <?, <=?, =?, >?, >=?): Define as aliases for 1-, <,
+	<=, =, >, >= respectively, required by slib 'rev2-procedures but no
+	longer in the guile core.
+
 2003-11-19  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* boot-9.scm (error-catching-loop): Defer lookup of
