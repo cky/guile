@@ -1,4 +1,4 @@
-# Makefile.in generated automatically by automake 1.1n from Makefile.am
+# Makefile.in generated automatically by automake 1.1p from Makefile.am
 
 # Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
@@ -51,11 +51,17 @@ PRE_UNINSTALL = true
 POST_UNINSTALL = true
 host_alias = @host_alias@
 host_triplet = @host@
+ACLOCAL = @ACLOCAL@
+AUTOCONF = @AUTOCONF@
+AUTOHEADER = @AUTOHEADER@
+AUTOMAKE = @AUTOMAKE@
 AWK = @AWK@
 CC = @CC@
+CPP = @CPP@
 LIBLOBJS = @LIBLOBJS@
 LIBTOOL = @LIBTOOL@
 MAINT = @MAINT@
+MAKEINFO = @MAKEINFO@
 PACKAGE = @PACKAGE@
 RANLIB = @RANLIB@
 VERSION = @VERSION@
@@ -144,8 +150,6 @@ MKDEP = gcc -M -MG $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
 
 CLEANFILES=cpp_err_symbols_here cpp_err_symbols_diff cpp_err_symbols_new \
 	cpp_sig_symbols_here cpp_sig_symbols_diff cpp_sig_symbols_new
-CONFIG_HEADER_IN = scmconfig.h.in
-CONFIG_HEADER_FULL = libguile/scmconfig.h
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = scmconfig.h
 CONFIG_CLEAN_FILES =  guile-snarf
@@ -184,7 +188,7 @@ SCRIPTS =  $(bin_SCRIPTS)
 CFLAGS = @CFLAGS@
 COMPILE = $(CC) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
-LINK = $(LIBTOOL) --mode=link $(CC) $(LDFLAGS) -o $@
+LINK = $(LIBTOOL) --mode=link $(CC) $(CFLAGS) $(LDFLAGS) -o $@
 DATA =  $(modinclude_DATA)
 
 HEADERS =  $(include_HEADERS) $(modinclude_HEADERS) $(noinst_HEADERS) \
@@ -225,7 +229,7 @@ OBJECTS = $(libguile_la_OBJECTS) $(guile_OBJECTS) $(gh_test_c_OBJECTS) $(gh_test
 default: all
 
 .SUFFIXES:
-.SUFFIXES: .c .o .lo .x
+.SUFFIXES: .c .lo .o .x
 $(srcdir)/Makefile.in: @MAINT@ Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
 	cd $(top_srcdir) && $(AUTOMAKE) --foreign libguile/Makefile
 
@@ -234,13 +238,13 @@ Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status $(BUILT_SOURCES)
 	  && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
 
-$(CONFIG_HEADER): stamp-h
-stamp-h: $(CONFIG_HEADER_IN) $(top_builddir)/config.status
+scmconfig.h: stamp-h
+stamp-h: $(srcdir)/scmconfig.h.in $(top_builddir)/config.status
 	cd $(top_builddir) \
-	  && CONFIG_FILES= CONFIG_HEADERS=$(CONFIG_HEADER_FULL) \
+	  && CONFIG_FILES= CONFIG_HEADERS=libguile/scmconfig.h \
 	     $(SHELL) ./config.status
 	@echo timestamp > stamp-h
-$(srcdir)/$(CONFIG_HEADER_IN): @MAINT@stamp-h.in
+$(srcdir)/scmconfig.h.in: @MAINT@$(srcdir)/stamp-h.in
 $(srcdir)/stamp-h.in: $(top_srcdir)/configure.in $(ACLOCAL_M4) 
 	cd $(top_srcdir) && $(AUTOHEADER)
 	echo timestamp > $(srcdir)/stamp-h.in
@@ -250,7 +254,7 @@ mostlyclean-hdr:
 clean-hdr:
 
 distclean-hdr:
-	rm -f $(CONFIG_HEADER)
+	rm -f scmconfig.h
 
 maintainer-clean-hdr:
 guile-snarf: $(top_builddir)/config.status guile-snarf.in
@@ -444,9 +448,6 @@ ID: $(HEADERS) $(SOURCES)
 TAGS:  $(HEADERS) $(SOURCES) scmconfig.h.in $(TAGS_DEPENDENCIES)
 	tags=; \
 	here=`pwd`; \
-	list='$(SUBDIRS)'; for subdir in $$list; do \
-	  test -f $$subdir/TAGS && tags="$$tags -i $$here/$$subdir/TAGS"; \
-	done; \
 	test -z "$(ETAGS_ARGS)scmconfig.h.in$(SOURCES)$(HEADERS)$$tags" \
 	  || (cd $(srcdir) && etags $(ETAGS_ARGS) $$tags scmconfig.h.in $(SOURCES) $(HEADERS) -o $$here/TAGS)
 
@@ -462,7 +463,12 @@ maintainer-clean-tags:
 distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
 
 subdir = libguile
+
 distdir: $(DISTFILES)
+	here=`cd $(top_builddir) && pwd`; \
+	top_distdir=`cd $(top_distdir) && pwd`; \
+	cd $(top_srcdir) \
+	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --foreign libguile/Makefile
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
 	  test -f $(distdir)/$$file \
@@ -485,10 +491,10 @@ distclean-depend:
 maintainer-clean-depend:
 	rm -rf .deps
 
-.deps/%.P: $(srcdir)/%.c
+.deps/%.P: %.c
 	@echo "Computing dependencies for $<..."
-	@o='o';				\
-	test -n "$o" && o='$$o';	\
+	@o='o'; \
+	test -n "$o" && o='$$o'; \
 	$(MKDEP) $< | sed "s,^\(.*\)\.o:,\1.$$o \1.l$$o $@:," > $@
 info:
 dvi:
@@ -506,7 +512,7 @@ install: install-exec install-data all
 
 uninstall: uninstall-libLTLIBRARIES uninstall-binPROGRAMS uninstall-binSCRIPTS uninstall-modincludeDATA uninstall-includeHEADERS uninstall-modincludeHEADERS uninstall-pkgincludeHEADERS
 
-all: $(LTLIBRARIES) $(PROGRAMS) $(SCRIPTS) $(DATA) $(HEADERS) Makefile scmconfig.h
+all: Makefile $(LTLIBRARIES) $(PROGRAMS) $(SCRIPTS) $(DATA) $(HEADERS) scmconfig.h
 
 install-strip:
 	$(MAKE) INSTALL_PROGRAM='$(INSTALL_PROGRAM) -s' install
@@ -523,7 +529,7 @@ clean-generic:
 
 distclean-generic:
 	rm -f Makefile $(DISTCLEANFILES)
-	rm -f config.cache config.log stamp-h
+	rm -f config.cache config.log stamp-h stamp-h[0-9]*
 	test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
 
 maintainer-clean-generic:
