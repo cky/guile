@@ -562,17 +562,72 @@ scm_expr_stack (obj)
 /* {Support for debugging with gdb}
  *
  * Gdb's support for debugging with Guile is written by Per Bothner at
- * Cygnus Support.
+ * Cygnus Support with modifications by Mikael Djurfeldt.
+ *
+ * Gdb wants to see the functions:
+ *
+ * scm_lookup_cstr, scm_evstr, and, scm_ready_p.
  */
+
+/* Avoid calling Guile when this macro is false.
+   scm_gc_heap_lock is set during gc.
+ */
+#define SCM_READY_P (!scm_gc_heap_lock)
+
+/* Macros that encapsulate blocks of code which can be called by the
+ * debugger.
+ */
+#define SCM_BEGIN_FOREIGN_BLOCK \
+{ \
+  ++scm_ints_disabled; \
+  ++scm_block_gc; \
+} \
+
+
+#define SCM_END_FOREIGN_BLOCK \
+{ \
+  --scm_block_gc; \
+  --scm_ints_disabled; \
+} \
+
 
 /* debug_print is a handy function for calling from a debugger.
  * Given an SCM object, o, it executes (write o) to stdout.
  */
 
-void debug_print (SCM o)
+#ifdef __STDC__
+void
+debug_print (SCM obj)
+#else
+void
+debug_print (obj)
+     SCM obj;
+#endif
 {
-  scm_write(o, scm_def_outp);
+  if (!SCM_READY_P)
+    {
+      fputs ("debug_print called when Guile not ready", stderr);
+      return;
+    }
+  SCM_BEGIN_FOREIGN_BLOCK;
+  scm_write(obj, scm_def_outp);
+  SCM_END_FOREIGN_BLOCK;
   fflush(NULL);
+}
+
+/* Gdb uses the following function to determine whether Guile is
+ * prepared to run.
+ */
+
+#ifdef __STDC__
+int
+scm_ready_p (void)
+#else
+int
+scm_ready_p ()
+#endif
+{
+  return SCM_READY_P;
 }
 
 SCM_PROC (s_eval_string, "eval-string", 1, 0, 0, scm_eval_string);
@@ -599,27 +654,105 @@ scm_evstr (str)
      char *str;
 #endif
 {
-  SCM lsym;
-  SCM_NEWCELL(lsym);
-  SCM_SETLENGTH (lsym, strlen(str)+0L, scm_tc7_ssymbol);
-  SCM_SETCHARS (lsym, str);
-  return scm_eval_string (lsym);
+  SCM ans;
+  if (!SCM_READY_P)
+    {
+      fputs ("scm_evstr called when Guile not ready", stderr);
+      return SCM_UNDEFINED;
+    }
+  SCM_BEGIN_FOREIGN_BLOCK;
+  SCM_NEWCELL(ans);
+  SCM_SETLENGTH (ans, strlen(str)+0L, scm_tc7_ssymbol);
+  SCM_SETCHARS (ans, str);
+  ans = scm_eval_string (ans);
+  SCM_END_FOREIGN_BLOCK;
+  return ans;
+}
+
+/* Lookup a symbol var in the environment genv.
+ * Return a pointer to the storage location if symbol is found.
+ * Return NULL otherwise.
+ */
+#ifdef __STDC__
+SCM *
+scm_lookup_soft (SCM var, SCM genv)
+#else
+SCM *
+scm_lookup_soft (var, genv)
+     SCM vloc;
+     SCM genv;
+#endif
+{
+  SCM env = genv;
+  register SCM *al, fl;
+  for (; SCM_NIMP (env); env = SCM_CDR (env))
+    {
+      if (SCM_BOOL_T == scm_procedure_p (SCM_CAR (env)))
+	break;
+      al = &SCM_CAR (env);
+      for (fl = SCM_CAR (*al); SCM_NIMP (fl); fl = SCM_CDR (fl))
+	{
+	  if (SCM_NCONSP (fl))
+	      if (fl == var)
+		return &SCM_CDR (*al);
+	    else
+	      break;
+	  al = &SCM_CDR (*al);
+	  if (SCM_CAR (fl) == var)
+	    return &SCM_CAR (*al);
+	}
+    }
+  {
+    SCM top_thunk, vcell;
+    if (SCM_NIMP(env))
+      {
+	top_thunk = SCM_CAR(env);	/* env now refers to a top level env thunk */
+	env = SCM_CDR (env);
+      }
+    else
+      top_thunk = SCM_BOOL_F;
+    vcell = scm_sym2vcell (var, top_thunk, SCM_BOOL_F);
+    if (vcell == SCM_BOOL_F)
+      goto errout;
+    else
+      var = vcell;
+  }
+#ifndef RECKLESS
+  if (SCM_NNULLP (env) || SCM_UNBNDP (SCM_CDR (var)))
+    {
+      var = SCM_CAR (var);
+    errout:
+      return NULL;
+    }
+#endif
+  return &SCM_CDR (var);
 }
 
 #ifdef __STDC__
-SCM
+SCM *
 scm_lookup_cstr (char *str, int len, SCM env)
 #else
-SCM
+SCM *
 scm_lookup_cstr (str, len, env)
      char *str;
      int len;
      SCM env;
 #endif
 {
-  SCM sym = scm_intern (str, len);
-  SCM cell = scm_cons (sym, SCM_UNDEFINED);
-  return (*scm_lookupcar (cell, env));
+  SCM *ans;
+  if (!SCM_READY_P)
+    {
+      fputs ("scm_lookup_cstr called when Guile not ready", stderr);
+      return NULL;
+    }
+  fprintf (stderr, "env = 0x%lx\n", env);
+  SCM_BEGIN_FOREIGN_BLOCK;
+  /* Ignore env until gdb is fixed. */
+  ans = scm_lookup_soft (SCM_CAR (scm_intern (str, len)),
+			 scm_top_level_env (SCM_CDR
+					    (scm_top_level_lookup_thunk_var)));
+  SCM_END_FOREIGN_BLOCK;
+  return ans;
 }
 
 
