@@ -137,7 +137,7 @@ scm_init_deprecation ()
 #if SCM_DEBUG_DEPRECATED == 0
   const char *level = getenv ("GUILE_WARN_DEPRECATED");
   if (level == NULL)
-    level = GUILE_WARN_DEPRECATED_DEFAULT;
+    level = SCM_WARN_DEPRECATED_DEFAULT;
   if (!strcmp (level, "detailed"))
     issued_msgs = scm_permanent_object (scm_c_make_hash_table (17));
   else if (!strcmp (level, "no"))

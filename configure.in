@@ -110,7 +110,7 @@ else
     warn_default=$enable_deprecated
   fi
   AC_DEFINE(SCM_DEBUG_DEPRECATED, 0)
-  AC_DEFINE_UNQUOTED(GUILE_WARN_DEPRECATED_DEFAULT, "$warn_default")
+  AC_DEFINE_UNQUOTED(SCM_WARN_DEPRECATED_DEFAULT, "$warn_default")
 fi
 
 dnl The --disable-debug used to control these two.  But now they are

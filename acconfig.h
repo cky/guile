@@ -48,7 +48,7 @@
 #undef SCM_DEBUG_DEPRECATED
 
 /* Define this to control the default warning level for deprecated features */
-#undef GUILE_WARN_DEPRECATED_DEFAULT
+#undef SCM_WARN_DEPRECATED_DEFAULT
 
 /* Define these two if you want support for debugging of Scheme
    programs.  */

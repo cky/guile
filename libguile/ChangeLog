@@ -1,3 +1,8 @@
+2001-05-16  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* deprecation.c (scm_init_deprecation):  Renamed
+	GUILE_WARN_DEPRECATED_DEFAULT to SCM_WARN_DEPRECATED_DEFAULT.
+
 2001-05-16  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* Makefile.am (cpp_sig_symbols.c, cpp_err_symbols.c): Make
@@ -12,17 +17,17 @@
 2001-05-10  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	Merged from mvo-vcell-cleanup-1-branch.
-	
+
 	The concept of vcells has been removed from Guile.  With it,
 	explicit obarrays and associated operations are gone.  Use
 	hashtables instead of obarrays.
-	
+
 	Throughout: use scm_sym2var instead of scm_sym2vcell and treat
 	result as variable instead of vcell.  Glocs no longer point to a
 	vcell but to a variable.  Use scm_c_define instead of
 	scm_sysintern and treat the result as a variable (which it is),
 	not a vcell.
-	
+
 	* variable.c, variable.h (SCM_VARVCELL, SCM_UDVARIABLEP,
 	SCM_DEFVARIABLEP): Deprecated.
 	(SCM_VARIABLE_REF, SCM_VARIABLE_SET, SCM_VARIABLE_LOC): New.
@@ -50,12 +55,12 @@
 	* symbols-deprecated.c: New file.
 	* Makefile.am: Added symbols-deprecated.c and related files in all
 	the right places.
-	
+
 	* snarf.h (SCM_VCELL, SCM_GLOBAL_VCELL, SCM_VCELL_INIT,
 	SCM_GLOBAL_VCELL_INIT): Deprecated.
 	(SCM_VARIABLE, SCM_GLOBAL_VARIABLE, SCM_VARIABLE_INIT,
 	SCM_GLOBAL_VARIABLE_INIT): New, as replacement.  Changed all uses.
-	
+
 	* print.c (scm_iprin1): Use scm_module_reverse_lookup instead of
 	SCM_GLOC_SYM.
 
@@ -95,7 +100,7 @@
 	scm_modules_prehistory): New.
 	(scm_post_boot_init_modules): Use scm_c_define and scm_c_lookup
 	instead of scm_intern0.
-	
+
 	* macros.c (scm_make_synt): Return SCM_UNSPECIFIED instead of the
 	symbol.
 
@@ -128,7 +133,7 @@
 	(SCM_GLOC_SYM): Removed.
 	(SCM_GLOC_VAR, SCM_GLOC_SET_VAL): New.
 	(SCM_GLOC_VAL, SCM_GLOC_LOC): Reimplemented in terms of variables.
-	
+
 	* eval.c (scm_lookupcar, scm_lookupcar1): Deal with variables
 	instead of with vcells.  Do not overwrite `var' with the result of
 	the lookup, use the new `real_var' instead.  Remove `var2' in
@@ -174,7 +179,7 @@
 
 	* root.h (scm_symhash, scm_symhash_vars): Removed.
 	* gc.c (scm_init_storage): Do not initialize them.
-	
+
 2001-05-15  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* eval.c (scm_init_eval):  Initialize scm_undefineds and
