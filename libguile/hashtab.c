@@ -58,7 +58,7 @@ scm_hash_fn_get_handle (table, obj, hash_fn, assoc_fn, closure)
      SCM (*assoc_fn)();
      void * closure;
 {
-  int k;
+  unsigned int k;
   SCM h;
 
   SCM_ASSERT (SCM_NIMP (table) && SCM_VECTORP (table), table, SCM_ARG1, "hash_fn_get_handle");
@@ -66,7 +66,7 @@ scm_hash_fn_get_handle (table, obj, hash_fn, assoc_fn, closure)
     return SCM_EOL;
   k = hash_fn (obj, SCM_LENGTH (table), closure);
   SCM_ASSERT ((0 <= k) && (k < SCM_LENGTH (table)),
-	      SCM_MAKINUM (k),
+	      scm_ulong2num (k),
 	      SCM_OUTOFRANGE,
 	      "hash_fn_get_handle");
   h = assoc_fn (obj, SCM_VELTS (table)[k], closure);
@@ -84,7 +84,7 @@ scm_hash_fn_create_handle_x (table, obj, init, hash_fn, assoc_fn, closure)
      SCM (*assoc_fn)();
      void * closure;
 {
-  int k;
+  unsigned int k;
   SCM it;
 
   SCM_ASSERT (SCM_NIMP (table) && SCM_VECTORP (table), table, SCM_ARG1, "hash_fn_create_handle_x");
@@ -92,7 +92,7 @@ scm_hash_fn_create_handle_x (table, obj, init, hash_fn, assoc_fn, closure)
     return SCM_EOL;
   k = hash_fn (obj, SCM_LENGTH (table), closure);
   SCM_ASSERT ((0 <= k) && (k < SCM_LENGTH (table)),
-	      SCM_MAKINUM (k),
+	      scm_ulong2num (k),
 	      SCM_OUTOFRANGE,
 	      "hash_fn_create_handle_x");
   SCM_REDEFER_INTS;
@@ -165,7 +165,7 @@ scm_hash_fn_remove_x (table, obj, hash_fn, assoc_fn, delete_fn, closure)
      SCM (*delete_fn)();
      void * closure;
 {
-  int k;
+  unsigned int k;
   SCM h;
 
   SCM_ASSERT (SCM_NIMP (table) && SCM_VECTORP (table), table, SCM_ARG1, "hash_fn_remove_x");
@@ -173,7 +173,7 @@ scm_hash_fn_remove_x (table, obj, hash_fn, assoc_fn, delete_fn, closure)
     return SCM_EOL;
   k = hash_fn (obj, SCM_LENGTH (table), closure);
   SCM_ASSERT ((0 <= k) && (k < SCM_LENGTH (table)),
-	      SCM_MAKINUM (k),
+	      scm_ulong2num (k),
 	      SCM_OUTOFRANGE,
 	      "hash_fn_remove_x");
   h = assoc_fn (obj, SCM_VELTS (table)[k], closure);
