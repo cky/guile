@@ -28,6 +28,7 @@
 #include <errno.h>
 
 #include "libguile/_scm.h"
+#include "libguile/dynwind.h"
 #include "libguile/fports.h"
 #include "libguile/scmsigs.h"
 #include "libguile/feature.h"
@@ -1748,58 +1749,89 @@ SCM_DEFINE (scm_sethostname, "sethostname", 1, 0, 0,
 #undef FUNC_NAME
 #endif /* HAVE_SETHOSTNAME */
 
+
 #if HAVE_GETHOSTNAME
 SCM_DEFINE (scm_gethostname, "gethostname", 0, 0, 0, 
             (void),
 	    "Return the host name of the current processor.")
 #define FUNC_NAME s_scm_gethostname
 {
-  int len, res, save_errno;
-  char *p = scm_malloc (len);
-  SCM name;
-
-  /* Default 256 is for Solaris, under Linux ENAMETOOLONG is returned if not
-     large enough.  SUSv2 specifies 255 maximum too, apparently.  */
-  len = 256;
+#ifdef MAXHOSTNAMELEN
 
   /* Various systems define MAXHOSTNAMELEN (including Solaris in fact).
-     On GNU/Linux this doesn't include the terminating '\0', hence "+ 1".  */
-#ifdef MAXHOSTNAMELEN
-  len = MAXHOSTNAMELEN + 1;
-#endif
+   * On GNU/Linux this doesn't include the terminating '\0', hence "+ 1".  */
+  const int len = MAXHOSTNAMELEN + 1;
+  char *const p = scm_malloc (len);
+  const int res = gethostname (p, len);
+
+  scm_frame_begin (0);
+  scm_frame_unwind_handler (free, p, 0);
+
+#else
+
+  /* Default 256 is for Solaris, under Linux ENAMETOOLONG is returned if not
+   * large enough.  SUSv2 specifies 255 maximum too, apparently.  */
+  int len = 256;
+  int res;
+  char *p;
+
+#  if HAVE_SYSCONF && defined (_SC_HOST_NAME_MAX)
 
   /* POSIX specifies the HOST_NAME_MAX system parameter for the max size,
-     which may reflect a particular kernel configuration.
-     Must watch out for this existing but giving -1, as happens for instance
-     in gnu/linux glibc 2.3.2.  */
-#if HAVE_SYSCONF && defined (_SC_HOST_NAME_MAX)
+   * which may reflect a particular kernel configuration.
+   * Must watch out for this existing but giving -1, as happens for instance
+   * in gnu/linux glibc 2.3.2.  */
   {
-    long n = sysconf (_SC_HOST_NAME_MAX);
+    const long int n = sysconf (_SC_HOST_NAME_MAX);
     if (n != -1L)
       len = n;
   }
-#endif
+
+#  endif
+
+  p = scm_malloc (len);
+
+  scm_frame_begin (0);
+  scm_frame_unwind_handler (free, p, 0);
 
   res = gethostname (p, len);
   while (res == -1 && errno == ENAMETOOLONG)
     {
-      p = scm_realloc (p, len * 2);
       len *= 2;
+
+      /* scm_realloc may throw an exception.  */
+      p = scm_realloc (p, len);
       res = gethostname (p, len);
     }
+
+#endif
+
   if (res == -1)
     {
-      save_errno = errno;
+      const int save_errno = errno;
+
+      // No guile exceptions can occur before we have freed p's memory.
+      scm_frame_end ();
       free (p);
+
       errno = save_errno;
       SCM_SYSERROR;
     }
-  name = scm_makfrom0str (p);
-  free (p);
-  return name;
+  else
+    {
+      /* scm_makfrom0str may throw an exception.  */
+      const SCM name = scm_makfrom0str (p);
+
+      // No guile exceptions can occur before we have freed p's memory.
+      scm_frame_end ();
+      free (p);
+
+      return name;
+    }
 }
 #undef FUNC_NAME
 #endif /* HAVE_GETHOSTNAME */
+
 
 void 
 scm_init_posix ()

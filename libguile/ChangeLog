@@ -1,3 +1,9 @@
+2003-04-24  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
+
+	* posix.c (scm_gethostname): Make sure len is initialised before
+	it is used.  Restructured to (hopefully) represent possible
+	configurations more clearly in the code.  Added unwind handler.
+
 2004-03-23  Kevin Ryde  <user42@zip.com.au>
 
 	* posix.c (scm_gethostname): Use sysconf(_SC_HOST_NAME_MAX) and/or
