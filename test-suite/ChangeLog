@@ -1,3 +1,8 @@
+2005-01-04  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/ramap.test: New file, test array-map!.
+	* Makefile.am (SCM_TESTS): Add it.
+
 2005-01-02  Marius Vollmer  <mvo@zagadka.de>
 
 	* tests/unif.test: Rewritten for new 'typed' approach to uniform
