@@ -74,7 +74,7 @@ SCM_DEFINE (scm_string_every, "string-every", 2, 2, 0,
   SCM_VALIDATE_SUBSTRING_SPEC_COPY (2, s, cstr,
 				    3, start, cstart,
 				    4, end, cend);
-  res = SCM_BOOL_F;
+  res = SCM_BOOL_T;
   cstr += cstart;
   while (cstart < cend)
     {
