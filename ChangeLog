@@ -1,3 +1,7 @@
+1999-12-14  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* configure.in: Create guile-doc-snarf.awk.
+
 1999-12-12  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* configure.in: Create guile-doc-snarf, chmod +x that script after 
