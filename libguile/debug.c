@@ -64,6 +64,7 @@
 #include "dynwind.h"
 #include "modules.h"
 #include "ports.h"
+#include "root.h"
 
 #include "validate.h"
 #include "debug.h"
