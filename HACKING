@@ -292,13 +292,14 @@ the list of years in the copyright notice at the top of the file.
 them in THANKS.
 
 
-- Naming conventions.  We use certain naming conventions to structure
-  the considerable number of global identifiers.  All identifiers
-  should be either all lower case or all upper case.  Syllables are
-  separated by underscaores `_'.  All non-static identifiers should
-  start with scm_ or SCM_.  Then might follow zero or more one letter
-  syllables giving the category of the identifier.  The currently used
-  category identifiers are
+Naming conventions =================================================
+
+We use certain naming conventions to structure the considerable number
+of global identifiers.  All identifiers should be either all lower
+case or all upper case.  Syllables are separated by underscores `_'.
+All non-static identifiers should start with scm_ or SCM_.  Then might
+follow zero or more syllables giving the category of the identifier.
+The currently used category identifiers are
 
     t   - type name
 
@@ -319,6 +320,20 @@ them in THANKS.
 
     s   - a constant C string
 
+    k   - a SCM variable pointing to a keyword.
+
+  sym   - a SCM variable pointing to a symbol.
+
+  var   - a SCM variable pointing to a variable object.
+
+The follwing syllables also have a technical meaning:
+
+  str   - this denotes a zero terminated C string
+
+  mem   - a C string with an explicit count
+
+
+See also the file `devel/names.text'.
 
 
 Helpful hints ========================================================
