@@ -1,3 +1,8 @@
+Mon Apr 14 20:15:29 1997  Jim Blandy  <jimb@totoro.cyclic.com>
+
+	* stime.c (scm_mktime): #ifndef HAVE_TM_ZONE, Use lt.tm_zone, not
+	lt->tm_zone.
+
 Mon Apr 14 01:32:57 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* gh_init.c (gh_standard_handler): Return SCM_BOOL_F, not garbage.

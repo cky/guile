@@ -1,3 +1,9 @@
+Mon Apr 14 18:51:25 1997  Jim Blandy  <jimb@floss.cyclic.com>
+
+	* threads.m4 (CY_AC_WITH_THREADS): When using coop threads, no
+	need to link against libthreads; the files it used to contain
+	are now a part of libguile.
+
 Sun Apr 13 22:14:10 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* guile.m4: Revert change of Mar 15, and use the new 'no-define'
