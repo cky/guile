@@ -1,3 +1,10 @@
+2001-04-04  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* scheme-data.texi (Alphabetic Case Mapping),
+	(String Comparison): Rearranged function order.
+	(Vectors): Reorganized, new introductory text, docs about read
+	syntax.
+
 2001-04-03  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* scheme-options.texi, scheme-procedures.texi,

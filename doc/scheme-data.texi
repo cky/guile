@@ -1641,60 +1641,6 @@ predicates (REFFIXME), but are defined on character sequences.  They all
 return @code{#t} on success and @code{#f} on failure.  The predicates
 ending in @code{-ci} ignore the character case when comparing strings.
 
-@r5index string<=?
-@c docstring begin (texi-doc-string "guile" "string-ci<=?")
-@deffn primitive string-ci<=? s1 s2
-Case insensitive lexicographic ordering predicate; return
-@code{#t} if @var{s1} is lexicographically less than or equal
-to @var{s2} regardless of case.
-@end deffn
-
-@r5index string-ci<
-@c docstring begin (texi-doc-string "guile" "string-ci<?")
-@deffn primitive string-ci<? s1 s2
-Case insensitive lexicographic ordering predicate; return
-@code{#t} if @var{s1} is lexicographically less than @var{s2}
-regardless of case.
-@end deffn
-
-@r5index string-ci=?
-@c docstring begin (texi-doc-string "guile" "string-ci=?")
-@deffn primitive string-ci=? s1 s2
-Case-insensitive string equality predicate; return @code{#t} if
-the two strings are the same length and their component
-characters match (ignoring case) at each position; otherwise
-return @code{#f}.
-@end deffn
-
-@r5index string-ci>=?
-@c docstring begin (texi-doc-string "guile" "string-ci>=?")
-@deffn primitive string-ci>=? s1 s2
-Case insensitive lexicographic ordering predicate; return
-@code{#t} if @var{s1} is lexicographically greater than or
-equal to @var{s2} regardless of case.
-@end deffn
-
-@r5index string-ci>?
-@c docstring begin (texi-doc-string "guile" "string-ci>?")
-@deffn primitive string-ci>? s1 s2
-Case insensitive lexicographic ordering predicate; return
-@code{#t} if @var{s1} is lexicographically greater than
-@var{s2} regardless of case.
-@end deffn
-
-@r5index string<=?
-@c docstring begin (texi-doc-string "guile" "string<=?")
-@deffn primitive string<=? s1 s2
-Lexicographic ordering predicate; return @code{#t} if @var{s1}
-is lexicographically less than or equal to @var{s2}.
-@end deffn
-
-@r5index string<?
-@c docstring begin (texi-doc-string "guile" "string<?")
-@deffn primitive string<? s1 s2
-Lexicographic ordering predicate; return @code{#t} if @var{s1}
-is lexicographically less than @var{s2}.
-@end deffn
 
 @r5index string=?
 @c docstring begin (texi-doc-string "guile" "string=?")
@@ -1708,11 +1654,18 @@ letters as though they were the same character, but
 characters.
 @end deffn
 
-@r5index string>=?
-@c docstring begin (texi-doc-string "guile" "string>=?")
-@deffn primitive string>=? s1 s2
+@r5index string<?
+@c docstring begin (texi-doc-string "guile" "string<?")
+@deffn primitive string<? s1 s2
 Lexicographic ordering predicate; return @code{#t} if @var{s1}
-is lexicographically greater than or equal to @var{s2}.
+is lexicographically less than @var{s2}.
+@end deffn
+
+@r5index string<=?
+@c docstring begin (texi-doc-string "guile" "string<=?")
+@deffn primitive string<=? s1 s2
+Lexicographic ordering predicate; return @code{#t} if @var{s1}
+is lexicographically less than or equal to @var{s2}.
 @end deffn
 
 @r5index string>?
@@ -1721,6 +1674,55 @@ is lexicographically greater than or equal to @var{s2}.
 Lexicographic ordering predicate; return @code{#t} if @var{s1}
 is lexicographically greater than @var{s2}.
 @end deffn
+
+@r5index string>=?
+@c docstring begin (texi-doc-string "guile" "string>=?")
+@deffn primitive string>=? s1 s2
+Lexicographic ordering predicate; return @code{#t} if @var{s1}
+is lexicographically greater than or equal to @var{s2}.
+@end deffn
+
+@r5index string-ci=?
+@c docstring begin (texi-doc-string "guile" "string-ci=?")
+@deffn primitive string-ci=? s1 s2
+Case-insensitive string equality predicate; return @code{#t} if
+the two strings are the same length and their component
+characters match (ignoring case) at each position; otherwise
+return @code{#f}.
+@end deffn
+
+@r5index string-ci<
+@c docstring begin (texi-doc-string "guile" "string-ci<?")
+@deffn primitive string-ci<? s1 s2
+Case insensitive lexicographic ordering predicate; return
+@code{#t} if @var{s1} is lexicographically less than @var{s2}
+regardless of case.
+@end deffn
+
+@r5index string<=?
+@c docstring begin (texi-doc-string "guile" "string-ci<=?")
+@deffn primitive string-ci<=? s1 s2
+Case insensitive lexicographic ordering predicate; return
+@code{#t} if @var{s1} is lexicographically less than or equal
+to @var{s2} regardless of case.
+@end deffn
+
+@r5index string-ci>?
+@c docstring begin (texi-doc-string "guile" "string-ci>?")
+@deffn primitive string-ci>? s1 s2
+Case insensitive lexicographic ordering predicate; return
+@code{#t} if @var{s1} is lexicographically greater than
+@var{s2} regardless of case.
+@end deffn
+
+@r5index string-ci>=?
+@c docstring begin (texi-doc-string "guile" "string-ci>=?")
+@deffn primitive string-ci>=? s1 s2
+Case insensitive lexicographic ordering predicate; return
+@code{#t} if @var{s1} is lexicographically greater than or
+equal to @var{s2} regardless of case.
+@end deffn
+
 
 @node String Searching
 @subsection String Searching
@@ -1771,6 +1773,12 @@ the C library.
 These are procedures for mapping strings to their upper-- or lower--case
 equivalents, respectively, or for capitalizing strings.
 
+@c docstring begin (texi-doc-string "guile" "string-upcase")
+@deffn primitive string-upcase str
+Return a freshly allocated string containing the characters of
+@var{str} in upper case.
+@end deffn
+
 @c docstring begin (texi-doc-string "guile" "string-upcase!")
 @deffn primitive string-upcase! str
 Destructively upcase every character in @var{str} and return
@@ -1782,10 +1790,10 @@ y                  @result{} "ARRDEFG"
 @end lisp
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "string-upcase")
-@deffn primitive string-upcase str
-Return a freshly allocated string containing the characters of
-@var{str} in upper case.
+@c docstring begin (texi-doc-string "guile" "string-downcase")
+@deffn primitive string-downcase str
+Return a freshly allocation string containing the characters in
+@var{str} in lower case.
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "string-downcase!")
@@ -1799,10 +1807,11 @@ y                     @result{} "arrdefg"
 @end lisp
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "string-downcase")
-@deffn primitive string-downcase str
-Return a freshly allocation string containing the characters in
-@var{str} in lower case.
+@c docstring begin (texi-doc-string "guile" "string-capitalize")
+@deffn primitive string-capitalize str
+Return a freshly allocated string with the characters in
+@var{str}, where the first character of every word is
+capitalized.
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "string-capitalize!")
@@ -1816,12 +1825,6 @@ y                      @result{} "Hello World"
 @end lisp
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "string-capitalize")
-@deffn primitive string-capitalize str
-Return a freshly allocated string with the characters in
-@var{str}, where the first character of every word is
-capitalized.
-@end deffn
 
 @node Appending Strings
 @subsection Appending Strings
@@ -1841,20 +1844,6 @@ concatenation of the given strings, @var{args}.
 @subsection String Miscellanea
 
 This section contains several remaining string procedures.
-
-@c FIXME::martin: Should go into vector section.
-
-@c docstring begin (texi-doc-string "guile" "vector-move-left!")
-@deffn primitive vector-move-left! vec1 start1 end1 vec2 start2
-Vector version of @code{substring-move-left!}.
-@end deffn
-
-@c FIXME::martin: Should go into vector section.
-
-@c docstring begin (texi-doc-string "guile" "vector-move-right!")
-@deffn primitive vector-move-right! vec1 start1 end1 vec2 start2
-Vector version of @code{substring-move-right!}.
-@end deffn
 
 @c docstring begin (texi-doc-string "guile" "string-ci->symbol")
 @deffn primitive string-ci->symbol str
@@ -2946,19 +2935,9 @@ by @code{set-cdr!} is unspecified.
 
 @node Lists
 @section Lists
-@r5index null?
-@r5index list?
+
+
 @r5index list
-@r5index length
-@r5index append
-@r5index reverse
-@r5index list-tail
-@r5index list-ref
-@r5index memq
-@r5index memv
-@r5index member
-
-
 @c docstring begin (texi-doc-string "guile" "list")
 @deffn primitive list . objs
 Return a list containing @var{objs}, the arguments to
@@ -2975,21 +2954,25 @@ result.  This function is called @code{list*} in some other
 Schemes and in Common LISP.
 @end deffn
 
+@r5index list?
 @c docstring begin (texi-doc-string "guile" "list?")
 @deffn primitive list? x
 Return @code{#t} iff @var{x} is a proper list, else @code{#f}.
 @end deffn
 
+@r5index null?
 @c docstring begin (texi-doc-string "guile" "null?")
 @deffn primitive null? x
 Return @code{#t} iff @var{x} is the empty list, else @code{#f}.
 @end deffn
 
+@r5index length
 @c docstring begin (texi-doc-string "guile" "length")
 @deffn primitive length lst
 Return the number of elements in list @var{lst}.
 @end deffn
 
+@r5index append
 @c docstring begin (texi-doc-string "guile" "append")
 @deffn primitive append . args
 Return a list consisting of the elements the lists passed as
@@ -3024,6 +3007,7 @@ Return a pointer to the last pair in @var{lst}, signalling an error if
 @var{lst} is circular.
 @end deffn
 
+@r5index reverse
 @c docstring begin (texi-doc-string "guile" "reverse")
 @deffn primitive reverse lst
 Return a new list that contains the elements of @var{lst} but
@@ -3046,6 +3030,7 @@ of the modified list is not lost, it is wise to save the return value of
 @code{reverse!}
 @end deffn
 
+@r5index list-ref
 @c docstring begin (texi-doc-string "guile" "list-ref")
 @deffn primitive list-ref list k
 Return the @var{k}th element from @var{list}.
@@ -3056,6 +3041,7 @@ Return the @var{k}th element from @var{list}.
 Set the @var{k}th element of @var{list} to @var{val}.
 @end deffn
 
+@r5index list-tail
 @c docstring begin (texi-doc-string "guile" "list-tail")
 @c docstring begin (texi-doc-string "guile" "list-cdr-ref")
 @deffn primitive list-tail lst k
@@ -3084,6 +3070,7 @@ return it.
 Return a (newly-created) copy of @var{lst}.
 @end deffn
 
+@r5index memq
 @c docstring begin (texi-doc-string "guile" "memq")
 @deffn primitive memq x lst
 Return the first sublist of @var{lst} whose car is @code{eq?}
@@ -3094,6 +3081,7 @@ occur in @var{lst}, then @code{#f} (not the empty list) is
 returned.
 @end deffn
 
+@r5index memv
 @c docstring begin (texi-doc-string "guile" "memv")
 @deffn primitive memv x lst
 Return the first sublist of @var{lst} whose car is @code{eqv?}
@@ -3104,6 +3092,7 @@ occur in @var{lst}, then @code{#f} (not the empty list) is
 returned.
 @end deffn
 
+@r5index member
 @c docstring begin (texi-doc-string "guile" "member")
 @deffn primitive member x lst
 Return the first sublist of @var{lst} whose car is
@@ -4818,6 +4807,45 @@ table into an a-list of key-value pairs.
 @node Vectors
 @section Vectors
 
+@c FIXME::martin: This node should come before the non-standard data types.
+
+Vectors are sequences of Scheme objects.  Unlike lists, the length of a
+vector, once the vector is created, cannot be changed.  The advantage of
+vectors over lists is that the time required to access one element of a
+vector is constant, whereas lists have an access time linear to the
+index of the accessed element in the list.
+
+Note that the vectors documented in this section can contain any kind of
+Scheme object, it is even possible to have different types of objects in
+the same vector.
+
+@subsection Vector Read Syntax
+
+Vectors can literally be entered in source code, just like strings,
+characters or some of the other data types.  The read syntax for vectors
+is as follows: A sharp sign (@code{#}), followed by an opening
+parentheses, all elements of the vector in their respective read syntax,
+and finally a closing parentheses.  The following are examples of the
+read syntax for vectors; where the first vector only contains numbers
+and the second three different object types: a string, a symbol and a
+number in hexidecimal notation.
+
+@lisp
+#(1 2 3)
+#("Hello" foo #xdeadbeef)
+@end lisp
+
+@subsection Vector Predicates
+
+@r5index vector?
+@c docstring begin (texi-doc-string "guile" "vector?")
+@deffn primitive vector? obj
+Return @code{#t} if @var{obj} is a vector, otherwise return
+@code{#f}.
+@end deffn
+
+@subsection Vector Constructors
+
 @r5index make-vector
 @c docstring begin (texi-doc-string "guile" "make-vector")
 @deffn primitive make-vector k [fill]
@@ -4851,6 +4879,28 @@ elements of @var{vector}.
 @end lisp
 @end deffn
 
+@subsection Vector Modification
+
+A vector created by any of the vector constructor procedures (REFFIXME)
+documented above can be modified using the following procedures.
+
+According to R5RS, using any of these procedures on literally entered
+vectors is an error, because these vectors are considered to be
+constant, although Guile currently does not detect this error.
+
+@r5index vector-set!
+@deffn primitive vector-set! vector k obj
+@var{k} must be a valid index of @var{vector}.
+@code{Vector-set!} stores @var{obj} in element @var{k} of @var{vector}.
+The value returned by @samp{vector-set!} is unspecified.
+@lisp
+(let ((vec (vector 0 '(2 2 2 2) "Anna")))
+  (vector-set! vec 1 '("Sue" "Sue"))
+  vec) @result{}  #(0 ("Sue" "Sue") "Anna")
+(vector-set! '#(0 1 2) 1 "doe") @result{} @emph{error} ; constant vector
+@end lisp
+@end deffn
+
 @r5index vector-fill!
 @c docstring begin (texi-doc-string "guile" "vector-fill!")
 @deffn primitive vector-fill! v fill
@@ -4858,12 +4908,20 @@ Store @var{fill} in every element of @var{vector}.  The value
 returned by @code{vector-fill!} is unspecified.
 @end deffn
 
-@r5index vector?
-@c docstring begin (texi-doc-string "guile" "vector?")
-@deffn primitive vector? obj
-Return @code{#t} if @var{obj} is a vector, otherwise return
-@code{#f}.
+@c docstring begin (texi-doc-string "guile" "vector-move-left!")
+@deffn primitive vector-move-left! vec1 start1 end1 vec2 start2
+Vector version of @code{substring-move-left!}.
 @end deffn
+
+@c docstring begin (texi-doc-string "guile" "vector-move-right!")
+@deffn primitive vector-move-right! vec1 start1 end1 vec2 start2
+Vector version of @code{substring-move-right!}.
+@end deffn
+
+@subsection Vector Selection
+
+These procedures return information about a given vector, such as the
+size or what elements are contained in the vector.
 
 @r5index vector-length
 @deffn primitive vector-length vector
@@ -4882,19 +4940,6 @@ Returns the number of elements in @var{vector} as an exact integer.
       (if (inexact? i)
         (inexact->exact i)
            i))) @result{} 13
-@end lisp
-@end deffn
-
-@r5index vector-set!
-@deffn primitive vector-set! vector k obj
-@var{k} must be a valid index of @var{vector}.
-@code{Vector-set!} stores @var{obj} in element @var{k} of @var{vector}.
-The value returned by @samp{vector-set!} is unspecified.
-@lisp
-(let ((vec (vector 0 '(2 2 2 2) "Anna")))
-  (vector-set! vec 1 '("Sue" "Sue"))
-  vec) @result{}  #(0 ("Sue" "Sue") "Anna")
-(vector-set! '#(0 1 2) 1 "doe") @result{} @emph{error} ; constant vector
 @end lisp
 @end deffn
 
