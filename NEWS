@@ -174,6 +174,8 @@ array creation has been deprecated.  See the manual for more details.
 Some non-compatible changes have been made: 
  - characters can no longer be stored into byte arrays.
  - strings and bit vectors are no longer considered to be uniform vectors.
+ - array-rank throws an error for non-arrays instead of returning zero.
+ - array-ref does no longer accept non-arrays when no indices are given.
 
 There is the new notion of 'generalized vectors' and corresponding
 procedures like 'generalized-vector-ref'.  Generalized vectors include
@@ -827,16 +829,19 @@ Use scm_is_keyword and scm_keyword_to_symbol instead, but note that
 the latter returns the true name of the keyword, not the 'dash name',
 as SCM_KEYWORDSYM used to do.
 
-** The old uniform vector implementation has been unceremoniously
-   removed.
+** The old uniform vector and bitvector implementations have been
+   unceremoniously removed.
 
 This implementation exposed the detailes of the tagging system of
 Guile.  Use the new C API explained in the manual in node "Uniform
-Vectors".
+Numeric Vectors" and "Bit Vector", respectively.
 
 The following macros are gone: SCM_UVECTOR_BASE, SCM_SET_UVECTOR_BASE,
 SCM_UVECTOR_MAXLENGTH, SCM_UVECTOR_LENGTH, SCM_MAKE_UVECTOR_TAG,
-SCM_SET_UVECTOR_LENGTH.
+SCM_SET_UVECTOR_LENGTH, SCM_BITVECTOR_P, SCM_BITVECTOR_BASE,
+SCM_SET_BITVECTOR_BASE, SCM_BITVECTOR_MAX_LENGTH,
+SCM_BITVECTOR_LENGTH, SCM_MAKE_BITVECTOR_TAG,
+SCM_SET_BITVECTOR_LENGTH.
 
 ** SCM_CELL_WORD_LOC has been deprecated.
 

@@ -1,3 +1,19 @@
+2004-12-22  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* boot-9.scm (module-make-local-var!): When creating a new
+	variable, initialize it to the value of any imported variable with
+	the given name.  This allows code like (define round round) to
+	work as expected.
+
+        From Antoine Mathys <tonigonenstein@users.sourceforge.net>:
+
+	* popen.scm: Support bidirectional communication by making
+	open-pipe support OPEN_BOTH as second argument and in that case
+	return a soft input-output port which uses two pipes internally.
+	Provide open-pipe* to execute programs without using the shell
+	(and actually base open-pipe on it) and the obvious
+	open-input-output-pipe.
+
 2004-12-14  Kevin Ryde  <user42@zip.com.au>
 
 	* boot-9.scm: (string-any, string-every): Use a scheme wrapper around
