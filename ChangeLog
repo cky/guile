@@ -3,6 +3,8 @@
 	* configure.in (--with-guile-for-build): Remove this option, it's not
 	normal style for --with.
 	(GUILE_FOR_BUILD): Use AC_ARG_VAR.
+	* README (Cross building Guile): Describe GUILE_FOR_BUILD rather than
+	--with-guile-for-build.
 
 2003-11-11  Neil Jerram  <neil@ossau.uklinux.net>
 
