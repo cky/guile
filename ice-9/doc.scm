@@ -1,4 +1,4 @@
-;;; $Id: doc.scm,v 1.3 1999-12-15 16:35:07 gjb Exp $
+;;; $Id: doc.scm,v 1.4 2000-06-06 16:21:45 gjb Exp $
 ;;;; 	Copyright (C) 1999 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
@@ -19,7 +19,6 @@
 ;;;; Written by Sam Steingold, Greg J. Badros, and Maciej Stachowiak
 ;;;; Ported from Scwm by Greg J. Badros
 ;;;;
-;;;; Hopefully this will just be temporary... --12/12/99 gjb
 
 (define-module (ice-9 doc)
   :use-module (ice-9 regex)
@@ -27,22 +26,18 @@
 
 
 
+(define-public documentation-debug #f)
+
+;; doc-files is the list of all places to look for documentation
+(define-public doc-files
+  (map (lambda (x) (string-append (x) "/guile-procedures.txt"))
+       (list %library-dir %package-data-dir %site-dir (lambda () "."))))
 
 (define-public (write-all port . lst)
   "Write all arguments into the port. #t means `current-output-port'."
   (if (eq? port #t) (set! port (current-output-port)))
   (do ((zz lst (cdr zz))) ((null? zz))
     (if (string? (car zz)) (display (car zz) port) (write (car zz) port))))
-
-(define-public doc-files
-  (map (lambda (x) (string-append (x) "/guile-procedures.txt"))
-       (list %library-dir %package-data-dir %site-dir (lambda () "."))))
-
-(define-public (hook-documentation hook)
-  "Return the docstring for HOOK."
-  (object-property hook 'doc))
-
-(define-public documentation-debug #f)
 
 (define*-public (documentation func #&optional (port (current-output-port)))
   "Print the documentation for the string or symbol.
@@ -80,43 +75,11 @@ Returns #t if any documentation was found, #f otherwise."
                      ((set! ln (read-line fd))))))
             (documentation-debug (display "file not found\n" port))))))
 
-(define*-public (help obj #&optional (port (current-output-port)))
-  "Print all possible documentation for string or symbol."
-  (display " *** documentation for `" port)
-  (display obj port)
-  (display "':\n\n" port)
-  (documentation obj port)
-  (let ((bb (symbol-binding #f (if (string? obj) (string->symbol obj) obj))))
-    (cond ((procedure? bb)
-           (display "\n *** procedure-documentation for `" port)
-           (display obj port) (display "':\n\n" port)
-           (with-output-to-port port
-             (lambda () (procedure-documentation bb))))))
-  (display "\n\n" port))
+(define-public (hook-documentation hook)
+  "Return the docstring for HOOK."
+  (object-property hook 'doc))
 
-(define-public (object-documentation sym)
-  "Return documentation attached to SYM or to (eval SYM)."
-  (let ((evalsym (catch #t
-			(lambda () (eval sym))
-			(lambda (key . args)
-			  #f))))
-    (cond
-     ((procedure? evalsym) 
-      (procedure-documentation evalsym))
-     ((hook? evalsym)
-      (hook-documentation evalsym))
-     (else (scwm-option-documentation sym)))))
-      
-
-;; (proc-doc get-window)
-;; (procedure-name get-window)
-;; (procedure-properties get-window)
-;; (procedure-property get-window 'documentation)
-;; (procedure-property window-frame-size 'documentation)
-;; (proc-doc get-window)
-;; (proc-doc window-frame-size)
-;; (set-procedure-property! get-window 'documentation "foo")
-(define-public (proc-doc proc)
+(define-public (proc-documentation proc)
   "Return documentation for PROC."
   (or (procedure-documentation proc)
       (procedure-property proc 'documentation)
@@ -128,10 +91,3 @@ Returns #t if any documentation was found, #f otherwise."
 	(set! docstring (substring docstring 0 (- len 1)))
 	(set-procedure-property! proc 'documentation docstring)
 	docstring)))
-
-
-;; For testing...
-;; (documentation "window-position")
-;; (documentation "make-cl-constraint")
-;; (apropos-internal "")
-;; (substring (proc-doc get-window) 0 (- (string-length (proc-doc get-window)) 2))
