@@ -137,6 +137,48 @@ extern "C" {
 #include "libguile/threads.h"
 #endif
 
+/* Deprecated type names.  Don't use them for new code. */
+
+#if SCM_DEBUG_DEPRECATED == 0
+
+typedef scm_t_array_dim scm_array_dim_t;
+typedef scm_t_array scm_array_t;
+typedef scm_t_bits scm_bits_t;
+typedef scm_t_c_bvec_limb scm_c_bvec_limb_t;
+typedef scm_t_c_hook_entry scm_c_hook_entry_t;
+typedef scm_t_c_hook_function scm_c_hook_function_t;
+typedef scm_t_c_hook scm_c_hook_t;
+typedef scm_t_catch_body scm_catch_body_t;
+typedef scm_t_catch_handler scm_catch_handler_t;
+typedef scm_t_complex scm_complex_t;
+typedef scm_t_cond scm_cond_t;
+typedef scm_t_contregs scm_contregs_t;
+typedef scm_t_debug_frame scm_debug_frame_t;
+typedef scm_t_debug_info scm_debug_info_t;
+typedef scm_t_double scm_double_t;
+typedef scm_t_fport scm_fport_t;
+typedef scm_t_guard scm_guard_t;
+typedef scm_t_i_rstate scm_i_rstate_t;
+typedef scm_t_info_frame scm_info_frame_t;
+typedef scm_t_inner scm_inner_t;
+typedef scm_t_key scm_key_t;
+typedef scm_t_method scm_method_t;
+typedef scm_t_mutex scm_mutex_t;
+typedef scm_t_option scm_option_t;
+typedef scm_t_port_rw_active scm_port_rw_active_t;
+typedef scm_t_port scm_port_t;
+typedef scm_t_ptob_descriptor scm_ptob_descriptor_t;
+typedef scm_t_rng scm_rng_t;
+typedef scm_t_rstate scm_rstate_t;
+typedef scm_t_signed_bits scm_signed_bits_t;
+typedef scm_t_srcprops_chunk scm_srcprops_chunk_t;
+typedef scm_t_srcprops scm_srcprops_t;
+typedef scm_t_stack scm_stack_t;
+typedef scm_t_struct_free scm_struct_free_t;
+typedef scm_t_subr_entry scm_subr_entry_t;
+
+#endif /* !SCM_DEBUG_DEPRECATED */
+
 #ifdef __cplusplus
 }
 #endif
