@@ -1,0 +1,75 @@
+People:
+
+neil	Neil Jerram <neil@ossau.uklinux.net>
+gjb	Greg J. Badros <gjb@cs.washington.edu>
+thi	thi <ttn@revel.glug.org>
+peter	Peter C. Norton <spacey@lenin.nu>
+mdj	Mikael Djurfeldt <djurfeldt@nada.kth.se>
+livshin	Michael Livshin <mlivshin@bigfoot.com>
+greg	Greg Harvey <Greg.Harvey@thezone.net>
+niibe	NIIBE Yutaka <gniibe@chroot.org>
+dirk	Dirk Herrmann <dirk@ida.ing.tu-bs.de>
+
+Assigned core tasks:
+
+(? = has shown interest, but has not yet taken on the task)
+
+* reference manual
+
+neil?
+
+* docstrings
+
+gjb
+
+* Guile FAQ
+
+thi
+
+* Guile WWW pages at GNU
+
+peter
+
+* Guile project list
+
+thi
+
+* integration of Jost's environments
+
+gjb
+
+* generational garbage collection
+
+greg
+livshin
+
+* POSIX thread support
+
+niibe
+
+** factorizing thread support out of libguile
+
+niibe
+dirk?
+
+* GOOPS
+
+** integration into libguile
+
+mdj
+
+** developing better representation for GOOPS objects
+
+livshin
+
+** rewrite method cache management in C
+
+thi
+
+** rewrite core macros (define-class et al) in C
+
+thi
+
+** Orbit CORBA interface
+
+dirk?
