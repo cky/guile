@@ -1,5 +1,11 @@
 1998-07-29  Jim Blandy  <jimb@zwingli.cygnus.com>
 
+	* configure.in: Request more warnings.
+	* configure: Regenerated.
+	* HACKING: Ask people not to make changes that introduce those
+	warnings.  Now I have to go through the code and actually bring it
+	up to standards... :(
+
 	* Makefile.in, aclocal.m4, configure: Regenerated using the last
  	public version of automake, not the hacked Cygnus version.
 	* config.guess, config.sub, ltconfig, ltmain.sh: New versions from
