@@ -1,3 +1,17 @@
+2002-12-11  Mikael Djurfeldt  <mdj@kvast.blakulla.net>
+
+	* gc.c (scm_igc): Don't call scm_i_thread_invalidate_freelists.
+
+	* gc.c (scm_gc_sweep): Call it here instead, which is a more
+	logical place.
+
+	* threads.c (create_thread): Remember root object until the handle
+	of the new thread is on all_threads list.
+
+	* root.c (scm_make_root): Moved copying of fluids until after
+	creation of root handle so that the fluids are GC protected.  Also
+	removed the critical section.
+
 2002-12-10  Mikael Djurfeldt  <mdj@kvast.blakulla.net>
 
 	* gc-malloc.c, gc.h (scm_gc_malloc_prehistory): New function.

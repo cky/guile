@@ -570,8 +570,6 @@ scm_igc (const char *what)
 
   ++scm_gc_heap_lock;
 
-  scm_i_thread_invalidate_freelists ();
-  
   /*
     Let's finish the sweep. The conservative GC might point into the
     garbage, and marking that would create a mess.
@@ -1024,6 +1022,9 @@ scm_gc_sweep (void)
      be GC-protected instead. */
   *SCM_FREELIST_LOC (scm_i_freelist) = SCM_EOL;
   *SCM_FREELIST_LOC (scm_i_freelist2) = SCM_EOL;
+
+  /* Invalidate the freelists of other threads. */
+  scm_i_thread_invalidate_freelists ();
 }
 
 #undef FUNC_NAME

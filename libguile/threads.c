@@ -411,6 +411,9 @@ create_thread (scm_t_catch_body body, void *body_data,
       all_threads = new_threads;
       thread_count++;
       scm_i_plugin_mutex_unlock (&thread_admin_mutex);
+
+      scm_remember_upto_here_1 (root);
+      
       scm_i_enter_guile (parent);
     }
     

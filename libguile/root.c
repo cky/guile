@@ -105,7 +105,6 @@ scm_make_root (SCM parent)
   if (SCM_ROOTP (parent))
     {
       memcpy (root_state, SCM_ROOT_STATE (parent), sizeof (scm_root_state));
-      scm_copy_fluids (root_state);
       root_state->parent = parent;
     }
   else
@@ -132,10 +131,13 @@ scm_make_root (SCM parent)
   root_state->block_asyncs = 0;
   root_state->pending_asyncs = 1;
 
-  SCM_REDEFER_INTS;
   SCM_NEWSMOB (root, scm_tc16_root, root_state);
   root_state->handle = root;
-  SCM_REALLOW_INTS;
+  
+  if (SCM_ROOTP (parent))
+    /* Must be done here so that fluids are GC protected */
+    scm_copy_fluids (root_state);
+  
   return root;
 }
 
