@@ -1428,17 +1428,12 @@ scm_gc_sweep ()
  * The limit scm_mtrigger may be raised by this allocation.
  */
 char *
-scm_must_malloc (len, what)
-     scm_sizet len;
-     const char *what;
+scm_must_malloc (scm_sizet size, const char *what)
 {
   char *ptr;
-  scm_sizet size = len;
   unsigned long nm = scm_mallocated + size;
-  if (len != size)
-  malerr:
-    scm_wta (SCM_MAKINUM (len), (char *) SCM_NALLOC, what);
-  if ((nm <= scm_mtrigger))
+
+  if (nm <= scm_mtrigger)
     {
       SCM_SYSCALL (ptr = (char *) malloc (size));
       if (NULL != ptr)
@@ -1449,6 +1444,7 @@ scm_must_malloc (len, what)
     }
 
   scm_igc (what);
+
   nm = scm_mallocated + size;
   SCM_SYSCALL (ptr = (char *) malloc (size));
   if (NULL != ptr)
@@ -1462,7 +1458,9 @@ scm_must_malloc (len, what)
       }
       return ptr;
     }
-  goto malerr;
+
+  scm_wta (SCM_MAKINUM (size), (char *) SCM_NALLOC, what);
+  return 0; /* never reached */
 }
 
 
@@ -1471,17 +1469,14 @@ scm_must_malloc (len, what)
  */
 char *
 scm_must_realloc (char *where,
-		  scm_sizet olen,
-		  scm_sizet len,
+		  scm_sizet old_size,
+		  scm_sizet size,
 		  const char *what)
 {
   char *ptr;
-  scm_sizet size = len;
-  scm_sizet nm = scm_mallocated + size - olen;
-  if (len != size)
-  ralerr:
-    scm_wta (SCM_MAKINUM (len), (char *) SCM_NALLOC, what);
-  if ((nm <= scm_mtrigger))
+  scm_sizet nm = scm_mallocated + size - old_size;
+
+  if (nm <= scm_mtrigger)
     {
       SCM_SYSCALL (ptr = (char *) realloc (where, size));
       if (NULL != ptr)
@@ -1490,8 +1485,10 @@ scm_must_realloc (char *where,
 	  return ptr;
 	}
     }
+
   scm_igc (what);
-  nm = scm_mallocated + size - olen;
+
+  nm = scm_mallocated + size - old_size;
   SCM_SYSCALL (ptr = (char *) realloc (where, size));
   if (NULL != ptr)
     {
@@ -1504,7 +1501,9 @@ scm_must_realloc (char *where,
       }
       return ptr;
     }
-  goto ralerr;
+
+  scm_wta (SCM_MAKINUM (size), (char *) SCM_NALLOC, what);
+  return 0; /* never reached */
 }
 
 void 
