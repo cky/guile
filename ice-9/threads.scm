@@ -63,6 +63,7 @@
   :export-syntax (make-thread
 		  begin-thread
 		  parallel
+		  letpar
 		  with-mutex
 		  monitor))
 
@@ -187,6 +188,13 @@
 		     forms)
 	      (wait-condition-variable ,c ,m)
 	      (values ,@vars))))))
+
+(defmacro letpar (bindings . body)
+  `(call-with-values
+       (lambda ()
+	 (parallel ,@(map cadr bindings)))
+     (lambda ,(map car bindings)
+       ,@body)))
 
 (defmacro with-mutex (m . body)
   `(dynamic-wind

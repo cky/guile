@@ -1,3 +1,7 @@
+2002-12-09  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* threads.scm (letpar): New macro.
+
 2002-12-08  Rob Browning  <rlb@defaultvalue.org>
 
 	* debugger/breakpoints/Makefile.am (subpkgdatadir): VERSION ->
@@ -10,7 +14,8 @@
 
 2002-12-04  Mikael Djurfeldt  <mdj@linnaeus>
 
-	* threads.scm (par-map, par-for-each, parallel): 
+	* threads.scm (parallel): New macro.
+	 (par-map, par-for-each): New procedures.
 
 	* documentation.scm (object-documentation): Added support for
 	defmacros.
