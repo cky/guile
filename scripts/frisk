@@ -65,7 +65,7 @@ exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
 ;;  (frisk . args)
 ;;  (make-frisker . options)    => (lambda (files) ...) [see below]
 ;;  (mod-up-ls module)          => upstream edges
-;;  (mod-dn-ls module)          => downstream edges
+;;  (mod-down-ls module)        => downstream edges
 ;;  (mod-int? module)           => is the module internal?
 ;;  (edge-type edge)            => symbol: {regular,autoload,computed}
 ;;  (edge-up edge)              => upstream module
