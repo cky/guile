@@ -1,3 +1,17 @@
+2004-10-26  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* numbers.h, numbers.c (scm_i_print_double): New.
+
+	* srfi-4.c, srfi-4.h, srfi-4.i.c: New files, initially from
+	../srfi/ but heavily modified.
+	* Makefile.am: Add them in all the right places.
+	* init.c (scm_init_guile_1): Call scm_init_srfi_4.
+	* read.c (scm_lreadr): Call scm_i_read_homogenous_vector for '#f',
+	'#u', and '#s'.
+
+	* read.h, read.c (scm_i_input_error): Renamed from scm_input_error
+	and made non-static.  Changed all uses.
+
 2004-10-22  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* variable.c, threads.c, struct.c, stackchk.c, smob.c, root.c,

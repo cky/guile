@@ -1,3 +1,8 @@
+2004-10-26  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* srfi-4.scm, srfi-4.h, srfi-4.c: Moved content into core; only
+	the skeletons remains.
+
 2004-10-22  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* srfi-4.c (print_int64, print_uint64): Removed.

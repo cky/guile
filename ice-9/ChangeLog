@@ -1,3 +1,7 @@
+2004-10-26  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* boot-9.scm: Added srfi-4 to cond-expand features.
+
 2004-10-18  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* format.scm (format:obj->str): Simplified considerably by using
