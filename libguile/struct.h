@@ -97,6 +97,10 @@ typedef scm_sizet (*scm_struct_free_t) (scm_bits_t * vtable, scm_bits_t * data);
 #define SCM_SET_STRUCT_TABLE_CLASS(X, CLASS) SCM_SETCDR (X, CLASS)
 extern SCM scm_struct_table;
 
+#define SCM_STRUCT_GC_CHAIN(X) SCM_CELL_OBJECT_3 (X)
+#define SCM_SET_STRUCT_GC_CHAIN(X, Y) SCM_SET_CELL_OBJECT_3 (X, Y)
+extern SCM scm_structs_to_free;
+
 
 
 extern scm_bits_t * scm_alloc_struct (int n_words, int n_extra, char * who);
@@ -118,6 +122,7 @@ extern SCM scm_struct_create_handle (SCM obj);
 extern SCM scm_struct_vtable_name (SCM vtable);
 extern SCM scm_set_struct_vtable_name_x (SCM vtable, SCM name);
 extern void scm_print_struct (SCM exp, SCM port, scm_print_state *);
+extern void scm_struct_prehistory (void);
 extern void scm_init_struct (void);
 
 #endif  /* STRUCTH */
