@@ -1652,8 +1652,8 @@ indices of this element is the empty list.
 Arrays contain zero elements when one of their dimensions has a zero
 length.  These empty arrays maintain information about their shape: a
 matrix with zero columns and 3 rows is different from a matrix with 3
-columns and zero row, which again is different from a vector of zero
-length.
+columns and zero rows, which again is different from a vector of
+length zero.
 
 Generalized vectors, such as strings, uniform numeric vectors, bit
 vectors and ordinary vectors, are the special case of one dimensional
@@ -1985,9 +1985,12 @@ For example,
 
 @deffn {Scheme Procedure} array-rank obj
 @deffnx {C Function} scm_array_rank (obj)
-Return the number of dimensions of an array @var{obj}, or if @var{obj}
-is not an array then return 0.
+Return the rank of @var{array}.
 @end deffn
+
+@deftypefn {C Function} scm_c_array_rank (SCM array)
+Return the rank of @var{array} as a @code{size_t}.
+@end deftypefn
 
 @deffn {Scheme Procedure} array->list array
 @deffnx {C Function} scm_array_to_list (array)
