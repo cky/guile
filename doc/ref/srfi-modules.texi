@@ -1803,6 +1803,9 @@ strings, breaking it up at a specified character.
 Return the string @var{s1}, but with the characters
 @var{start1} @dots{} @var{end1} replaced by the characters
 @var{start2} @dots{} @var{end2} from @var{s2}.
+
+For reference, note that SRFI-13 specifies @var{start1} and @var{end1}
+as mandatory, but in Guile they are optional.
 @end deffn
 
 @deffn {Scheme Procedure} string-tokenize s [token-set start end]
