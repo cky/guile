@@ -253,7 +253,8 @@ SCM_DEFINE (scm_setgroups, "setgroups", 1, 0, 0,
     }
 
   size = ngroups * sizeof (GETGROUPS_T);
-  /* XXX - if (size / sizeof (GETGROUPS_T) != ngroups) out-of-range */
+  if (size / sizeof (GETGROUPS_T) != ngroups)
+    SCM_OUT_OF_RANGE (SCM_ARG1, SCM_MAKINUM (ngroups));
   groups = scm_malloc (size);
   for(i = 0; i < ngroups; i++)
     groups [i] = SCM_NUM2ULONG (1, SCM_VECTOR_REF (group_vec, i));
