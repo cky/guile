@@ -1547,13 +1547,15 @@ prototype           type                       printing character
 'l             signed long long (integer)              l
 1.0            float (single precision)                s
 1/3            double (double precision float)         i
-[FIXME: This (1/3) no longer works due to the
- new support for rational numbers.]
 0+i            complex (double precision)              c
 ()             conventional vector
 @end example
 
-@noindent
+Note that with the introduction of exact fractions in Guile 1.8,
+@samp{1/3} here is now a fraction, where previously such an expression
+was a double @samp{0.333@dots{}}.  For most normal usages this should
+be source code compatible.
+
 Unshared uniform arrays of characters with a single zero-based dimension
 are identical to strings:
 
