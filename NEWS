@@ -24,6 +24,17 @@ occur during read or write.
 Command line history length is now controlled by the readline option
 `history-length'.  Default is 200 lines.
 
+* Changes to Scheme functions and syntax
+
+** The range of logand, logior, logxor, logtest, and logbit? have changed.
+
+These functions now operate on numbers in the range of a C unsigned
+long.
+
+These functions used to operate on numbers in the range of a C signed
+long; however, this seems inappropriate, because Guile integers don't
+overflow.
+
 ** All builtins now print as primitives.
 Previously builtin procedures not belonging to the fundamental subr
 types printed as #<compiled closure #<primitive-procedure gsubr-apply>>.

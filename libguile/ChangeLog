@@ -1,3 +1,13 @@
+1998-11-23  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	* numbers.c (scm_logand, scm_logior, scm_logxor, scm_logtest,
+ 	scm_logbit_p): Do the computation in ulongs.  This is not as nice
+ 	as doing it in bignums, but at least it's good enough for
+	manipulating flags in 32-bit words.  (Thanks to Jim Wilson.)
+	
+	* regex-posix.c (scm_regexp_exec): Reliably mark unmatched
+	subexpressions.  (Thanks to Charbel Jacquin.)
+
 1998-11-23  Mikael Djurfeldt  <mdj@kenneth>
 
 	* feature.c, feature.h (scm_make_hook, scm_add_hook_x,
@@ -181,11 +191,11 @@
 
 1998-11-01  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
-	* read.c, read.h (history-length, history-file): New read options.
+	* read.c, read.h (scm_read_opts): New read options
+	"history-length" and "history-file".
 	(scm_read_options): Stifle history to history length.
 
-	* readline.c (scm_read_history, scm_write_history): New
-	procedures.
+	* readline.c (scm_read_history, scm_write_history): New procedures.
 
 1998-10-31  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
@@ -217,8 +227,7 @@
 	scm_macro_name, scm_macro_transformer): Moved from eval.c
 	(scm_make_synt): Moved from eval.c
 
-	* procs.c, procs.h (scm_procedure_documentation): Moved from
-	eval.c.
+	* procs.c, procs.h (scm_procedure_documentation): Moved from eval.c.
 
 	* init.c (scm_boot_guile_1): Added calls to scm_init_macros and
 	scm_init_evalext.
