@@ -162,9 +162,9 @@ installed_h_files= __scm.h \
 		extchrs.h \
 		fdsocket.h \
 		feature.h \
-		fports.h \
 		files.h \
 		filesys.h \
+		fports.h \
 		gc.h \
 		genio.h \
 		gsubr.h \
@@ -173,49 +173,47 @@ installed_h_files= __scm.h \
 		init.h \
 		ioext.h \
 		kw.h \
+		libguile.h \
 		list.h \
 		load.h \
-		libguile.h \
 		mallocs.h \
 		markers.h \
 		marksweep.h \
-		markers.h \
 		mbstrings.h \
 		numbers.h \
 		objprop.h \
 		pairs.h \
+		params.h \
 		ports.h \
 		posix.h \
-		params.h \
 		print.h \
-		procs.h \
 		procprop.h \
+		procs.h \
 		ramap.h \
 		read.h \
 		root.h \
+		scmhob.h \
 		scmsigs.h \
 		sequences.h \
 		simpos.h \
 		smob.h \
 		socket.h \
 		stackchk.h \
+		stime.h \
+		strings.h \
+		strop.h \
+		strorder.h \
 		strports.h \
 		struct.h \
 		symbols.h \
 		tag.h \
-		stime.h \
 		tags.h \
+		throw.h \
+		unif.h \
 		variable.h \
 		vectors.h \
 		vports.h \
-		weaks.h \
-		unif.h \
-		scmhob.h \
-		strings.h \
-		strop.h \
-		strorder.h \
-		throw.h \
-		unif.h
+		weaks.h
 
 h_files=$(uninstalled_h_files) $(installed_h_files)
 
@@ -249,7 +247,6 @@ c_files=	alist.c \
 		list.c \
 		load.c \
 		mallocs.c \
-		markers.c \
 		markers.c \
 		marksweep.c \
 		mbstrings.c \
@@ -350,36 +347,22 @@ gen_c_files=	alist.x \
 
 
 
-ancillery =	gscm.c \
+ancillary =	gscm.c \
 		gscm.h \
 		COPYING \
 		ChangeLog \
 		ChangeLog.scm \
 		Makefile.in \
-		PLUGIN \
 		acconfig-1.5.h \
 		configure \
 		configure.in \
 		def.sed \
 		scmconfig.h.in \
-		fd.h.in \
-		../doc/guile.texi \
-		../doc/guile.ps \
-		../doc/guile.info \
-		../doc/guile.info-1 \
-		../doc/guile.info-2 \
-		../doc/guile.info-3 \
-		../doc/guile.info-4 \
-		../doc/guile.info-5 \
-		../doc/in.texi \
-		../doc/in.info \
-		../doc/in.ps \
-		../doc/agenda \
-		../doc/texinfo.tex
+		fd.h.in
 
 
 c_sources = $(c_files) $(h_files)
-manifest = $(ancillery) $(c_sources)
+manifest = $(ancillary) $(c_sources)
 
 
 .SUFFIXES:
@@ -413,6 +396,20 @@ manifest = $(ancillery) $(c_sources)
 
 .PHONY: all
 all: libguile.a
+
+# The `dist' target in the top-level Makefile uses this `dist-dir'
+# target to select the appropriate files for distribution from the
+# directory containing this Makefile.
+.PHONY: dist-dir
+dist-dir:
+	mkdir ${DISTDIR}
+	for f in ${manifest}; do \
+	  ln ${srcdir}/$$f ${DISTDIR}; \
+	done
+	mkdir ${DISTDIR}/PLUGIN
+	for f in REQ greet guile.config guile.libs; do \
+	  ln ${srcdir}/PLUGIN/$$f ${DISTDIR}/PLUGIN; \
+	done
 
 SUBDIR=.
 manifest:
