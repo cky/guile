@@ -1,74 +1,75 @@
-;;;; srfi-16.scm --- `case-lambda' for Guile
+;;; srfi-16.scm --- case-lambda
 
-;;; Copyright (C) 2001 Free Software Foundation, Inc.
-;;;
-;;; This program is free software; you can redistribute it and/or
-;;; modify it under the terms of the GNU General Public License as
-;;; published by the Free Software Foundation; either version 2, or
-;;; (at your option) any later version.
-;;;
-;;; This program is distributed in the hope that it will be useful,
-;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-;;; General Public License for more details.
-;;;
-;;; You should have received a copy of the GNU General Public License
-;;; along with this software; see the file COPYING.  If not, write to
-;;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
-;;; Boston, MA 02111-1307 USA
-;;;
-;;; As a special exception, the Free Software Foundation gives permission
-;;; for additional uses of the text contained in its release of GUILE.
-;;;
-;;; The exception is that, if you link the GUILE library with other files
-;;; to produce an executable, this does not by itself cause the
-;;; resulting executable to be covered by the GNU General Public License.
-;;; Your use of that executable is in no way restricted on account of
-;;; linking the GUILE library code into it.
-;;;
-;;; This exception does not however invalidate any other reasons why
-;;; the executable file might be covered by the GNU General Public License.
-;;;
-;;; This exception applies only to the code released by the
-;;; Free Software Foundation under the name GUILE.  If you copy
-;;; code from other Free Software Foundation releases into a copy of
-;;; GUILE, as the General Public License permits, the exception does
-;;; not apply to the code that you add in this way.  To avoid misleading
-;;; anyone as to the status of such modified files, you must delete
-;;; this exception notice from them.
-;;;
-;;; If you write modifications of your own for GUILE, it is your choice
-;;; whether to permit this exception to apply to your modifications.
-;;; If you do not wish that, delete this exception notice.
-
-;;; Commentary:
-
-;;; Implementation of SRFI-16.  `case-lambda' is a syntactic form
-;;; which permits writing functions acting different according to the
-;;; number of arguments passed.
-;;;
-;;; The syntax of the `case-lambda' form is defined in the following
-;;; EBNF grammar.
-;;;
-;;; <case-lambda>
-;;;    --> (case-lambda <case-lambda-clause>)
-;;; <case-lambda-clause>
-;;;    --> (<signature> <definition-or-command>*)
-;;; <signature>
-;;;    --> (<identifier>*)
-;;;      | (<identifier>* . <identifier>)
-;;;      | <identifier>
-;;;
-;;; The value returned by a `case-lambda' form is a procedure which
-;;; matches the number of actual arguments against the signatures in
-;;; the various clauses, in order.  The first matching clause is
-;;; selected, the corresponding values from the actual parameter list
-;;; are bound to the variable names in the clauses and the body of the
-;;; clause is evaluated.
+;; Copyright (C) 2001, 2002 Free Software Foundation, Inc.
+;;
+;; This program is free software; you can redistribute it and/or
+;; modify it under the terms of the GNU General Public License as
+;; published by the Free Software Foundation; either version 2, or
+;; (at your option) any later version.
+;;
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;; General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with this software; see the file COPYING.  If not, write to
+;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+;; Boston, MA 02111-1307 USA
+;;
+;; As a special exception, the Free Software Foundation gives permission
+;; for additional uses of the text contained in its release of GUILE.
+;;
+;; The exception is that, if you link the GUILE library with other files
+;; to produce an executable, this does not by itself cause the
+;; resulting executable to be covered by the GNU General Public License.
+;; Your use of that executable is in no way restricted on account of
+;; linking the GUILE library code into it.
+;;
+;; This exception does not however invalidate any other reasons why
+;; the executable file might be covered by the GNU General Public License.
+;;
+;; This exception applies only to the code released by the
+;; Free Software Foundation under the name GUILE.  If you copy
+;; code from other Free Software Foundation releases into a copy of
+;; GUILE, as the General Public License permits, the exception does
+;; not apply to the code that you add in this way.  To avoid misleading
+;; anyone as to the status of such modified files, you must delete
+;; this exception notice from them.
+;;
+;; If you write modifications of your own for GUILE, it is your choice
+;; whether to permit this exception to apply to your modifications.
+;; If you do not wish that, delete this exception notice.
 
 ;;; Author: Martin Grabmueller
 
+;;; Commentary:
+
+;; Implementation of SRFI-16.  `case-lambda' is a syntactic form
+;; which permits writing functions acting different according to the
+;; number of arguments passed.
+;;
+;; The syntax of the `case-lambda' form is defined in the following
+;; EBNF grammar.
+;;
+;; <case-lambda>
+;;    --> (case-lambda <case-lambda-clause>)
+;; <case-lambda-clause>
+;;    --> (<signature> <definition-or-command>*)
+;; <signature>
+;;    --> (<identifier>*)
+;;      | (<identifier>* . <identifier>)
+;;      | <identifier>
+;;
+;; The value returned by a `case-lambda' form is a procedure which
+;; matches the number of actual arguments against the signatures in
+;; the various clauses, in order.  The first matching clause is
+;; selected, the corresponding values from the actual parameter list
+;; are bound to the variable names in the clauses and the body of the
+;; clause is evaluated.
+
 ;;; Code:
+
 (define-module (srfi srfi-16)
   :export-syntax (case-lambda))
 
@@ -120,7 +121,7 @@
   (define (gen-temps vars args-name)
     (let lp ((v vars) (i 0))
       (cond ((null? v) '())
-	    ((pair? v) 
+	    ((pair? v)
 	     (cons `(,(car v) ,(accessor args-name i #f))
 		   (lp (cdr v) (+ i 1))))
 	    (else `((,v ,(accessor args-name i #t)))))))
@@ -146,3 +147,5 @@
 	      (let ((,length-name (length ,args-name)))
 		(cond ,@(gen-clauses clauses length-name args-name))))))
       proc)))
+
+;;; srfi-16.scm ends here
