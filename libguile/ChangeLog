@@ -1,3 +1,8 @@
+Mon Mar  3 09:07:56 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* ports.c (scm_char_ready_p): bug fix: in SCM_PROC char-ready's
+ 	argument wasn't declared to be optional.
+
 Sun Mar  2 16:34:40 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* stime.c (scm_init_stime): Add feature "current-time".

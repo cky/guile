@@ -135,7 +135,7 @@ scm_fflush (port)
 
 
 
-SCM_PROC(s_char_ready_p, "char-ready?", 1, 0, 0, scm_char_ready_p);
+SCM_PROC(s_char_ready_p, "char-ready?", 0, 1, 0, scm_char_ready_p);
 
 SCM 
 scm_char_ready_p (port)
