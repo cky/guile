@@ -91,7 +91,7 @@
 /* FLOBUFLEN is the maximum number of characters neccessary for the
  * printed or scm_string representation of an inexact number.
  */
-#define FLOBUFLEN (10+2*(sizeof(double)/sizeof(char)*SCM_CHAR_BIT*3+9)/10)
+#define FLOBUFLEN (40+2*(sizeof(double)/sizeof(char)*SCM_CHAR_BIT*3+9)/10)
 
 #if defined (SCO)
 #if ! defined (HAVE_ISNAN)
@@ -1973,19 +1973,71 @@ SCM_DEFINE (scm_integer_length, "integer-length", 1, 0, 0,
 #undef FUNC_NAME
 
 /*** NUMBERS -> STRINGS ***/
-int scm_dblprec;
-static const double fx[] =
-{  0.0,  5e-1,  5e-2,  5e-3,   5e-4, 5e-5,
-  5e-6,  5e-7,  5e-8,  5e-9,  5e-10,
- 5e-11, 5e-12, 5e-13, 5e-14,  5e-15,
- 5e-16, 5e-17, 5e-18, 5e-19,  5e-20};
+#define SCM_MAX_DBL_PREC  60
+#define SCM_MAX_DBL_RADIX 36
+
+/* this is an array starting with radix 2, and ending with radix SCM_MAX_DBL_RADIX */
+static int scm_dblprec[SCM_MAX_DBL_RADIX - 1];
+static double fx_per_radix[SCM_MAX_DBL_RADIX - 1][SCM_MAX_DBL_PREC];
+
+static
+void init_dblprec(int *prec, int radix) {
+   /* determine floating point precision by adding successively
+      smaller increments to 1.0 until it is considered == 1.0 */
+   double f = ((double)1.0)/radix;
+   double fsum = 1.0 + f;
+
+   *prec = 0;
+   while (fsum != 1.0)
+   {
+      if (++(*prec) > SCM_MAX_DBL_PREC)
+         fsum = 1.0;
+      else
+      {
+         f /= radix;
+         fsum = f + 1.0;
+      }
+   }
+   (*prec) -= 1;
+}
+
+static
+void init_fx_radix(double *fx_list, int radix)
+{
+  /* initialize a per-radix list of tolerances.  When added
+     to a number < 1.0, we can determine if we should raund
+     up and quit converting a number to a string. */
+   int i;
+   fx_list[0] = 0.0;
+   fx_list[1] = 0.5;
+   for( i = 2 ; i < SCM_MAX_DBL_PREC; ++i ) 
+     fx_list[i] = (fx_list[i-1] / radix);
+}
+
+/* use this array as a way to generate a single digit */
+static const char*number_chars="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 static size_t
-idbl2str (double f, char *a)
+idbl2str (double f, char *a, int radix)
 {
-  int efmt, dpt, d, i, wp = scm_dblprec;
-  size_t ch = 0;
-  int exp = 0;
+   int efmt, dpt, d, i, wp;
+   double *fx;
+#ifdef DBL_MIN_10_EXP
+   double f_cpy;
+   int exp_cpy;
+#endif /* DBL_MIN_10_EXP */
+   size_t ch = 0;
+   int exp = 0;
+
+   if(radix < 2 || 
+      radix > SCM_MAX_DBL_RADIX)
+   {
+      /* revert to existing behavior */
+      radix = 10;
+   }
+
+   wp = scm_dblprec[radix-2];
+   fx = fx_per_radix[radix-2];
 
   if (f == 0.0)
     {
@@ -1995,7 +2047,6 @@ idbl2str (double f, char *a)
       if (sgn < 0.0)
 	a[ch++] = '-';
 #endif
-
       goto zero;	/*{a[0]='0'; a[1]='.'; a[2]='0'; return 3;} */
     }
 
@@ -2021,10 +2072,15 @@ idbl2str (double f, char *a)
 
 #ifdef DBL_MIN_10_EXP  /* Prevent unnormalized values, as from 
 			  make-uniform-vector, from causing infinite loops. */
-  while (f < 1.0)
+  /* just do the checking...if it passes, we do the conversion for our
+     radix again below */
+  f_cpy = f;
+  exp_cpy = exp;
+
+  while (f_cpy < 1.0)
     {
-      f *= 10.0;
-      if (exp-- < DBL_MIN_10_EXP)
+      f_cpy *= 10.0;
+      if (exp_cpy-- < DBL_MIN_10_EXP)
 	{
 	  a[ch++] = '#';
 	  a[ch++] = '.';
@@ -2032,36 +2088,38 @@ idbl2str (double f, char *a)
 	  return ch;
 	}
     }
-  while (f > 10.0)
+  while (f_cpy > 10.0)
     {
-      f *= 0.10;
-      if (exp++ > DBL_MAX_10_EXP)
+      f_cpy *= 0.10;
+      if (exp_cpy++ > DBL_MAX_10_EXP)
 	{
 	  a[ch++] = '#';
 	  a[ch++] = '.';
 	  a[ch++] = '#';
 	  return ch;
 	}
-    }
-#else
-  while (f < 1.0)
-    {
-      f *= 10.0;
-      exp--;
-    }
-  while (f > 10.0)
-    {
-      f /= 10.0;
-      exp++;
     }
 #endif
-  if (f + fx[wp] >= 10.0)
+
+  while (f < 1.0)
+    {
+      f *= radix;
+      exp--;
+    }
+  while (f > radix)
+    {
+      f /= radix;
+      exp++;
+    }
+
+  if (f + fx[wp] >= radix)
     {
       f = 1.0;
       exp++;
     }
  zero:
-#ifdef ENGNOT
+#ifdef ENGNOT 
+  /* adding 9999 makes this equivalent to abs(x) % 3 */
   dpt = (exp + 9999) % 3;
   exp -= dpt++;
   efmt = 1;
@@ -2088,15 +2146,15 @@ idbl2str (double f, char *a)
     {
       d = f;
       f -= d;
-      a[ch++] = d + '0';
+      a[ch++] = number_chars[d];
       if (f < fx[wp])
 	break;
       if (f + fx[wp] >= 1.0)
 	{
-	  a[ch - 1]++;
+          a[ch - 1] = number_chars[d+1]; 
 	  break;
 	}
-      f *= 10.0;
+      f *= radix;
       if (!(--dpt))
 	a[ch++] = '.';
     }
@@ -2131,26 +2189,25 @@ idbl2str (double f, char *a)
 	  exp = -exp;
 	  a[ch++] = '-';
 	}
-      for (i = 10; i <= exp; i *= 10);
-      for (i /= 10; i; i /= 10)
+      for (i = radix; i <= exp; i *= radix);
+      for (i /= radix; i; i /= radix)
 	{
-	  a[ch++] = exp / i + '0';
+          a[ch++] = number_chars[exp / i];
 	  exp %= i;
 	}
     }
   return ch;
 }
 
-
 static size_t
-iflo2str (SCM flt, char *str)
+iflo2str (SCM flt, char *str, int radix)
 {
   size_t i;
   if (SCM_REALP (flt))
-    i = idbl2str (SCM_REAL_VALUE (flt), str);
+    i = idbl2str (SCM_REAL_VALUE (flt), str, radix);
   else
     {
-      i = idbl2str (SCM_COMPLEX_REAL (flt), str);
+      i = idbl2str (SCM_COMPLEX_REAL (flt), str, radix);
       if (SCM_COMPLEX_IMAG (flt) != 0.0)
 	{
 	  double imag = SCM_COMPLEX_IMAG (flt);
@@ -2158,7 +2215,7 @@ iflo2str (SCM flt, char *str)
 	     NaN.  They will provide their own sign. */
 	  if (0 <= imag && !xisinf (imag) && !xisnan (imag))
 	    str[i++] = '+';
-	  i += idbl2str (imag, &str[i]);
+	  i += idbl2str (imag, &str[i], radix);
 	  str[i++] = 'i';
 	}
     }
@@ -2239,7 +2296,7 @@ SCM_DEFINE (scm_number_to_string, "number->string", 1, 1, 0,
   else if (SCM_INEXACTP (n))
     {
       char num_buf [FLOBUFLEN];
-      return scm_mem2string (num_buf, iflo2str (n, num_buf));
+       return scm_mem2string (num_buf, iflo2str (n, num_buf, base));
     }
   else
     SCM_WRONG_TYPE_ARG (1, n);
@@ -2254,7 +2311,7 @@ int
 scm_print_real (SCM sexp, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
   char num_buf[FLOBUFLEN];
-  scm_lfwrite (num_buf, iflo2str (sexp, num_buf), port);
+  scm_lfwrite (num_buf, iflo2str (sexp, num_buf, 10), port);
   return !0;
 }
 
@@ -2263,7 +2320,7 @@ scm_print_complex (SCM sexp, SCM port, scm_print_state *pstate SCM_UNUSED)
 
 {
   char num_buf[FLOBUFLEN];
-  scm_lfwrite (num_buf, iflo2str (sexp, num_buf), port);
+  scm_lfwrite (num_buf, iflo2str (sexp, num_buf, 10), port);
   return !0;
 }
 
@@ -5710,6 +5767,8 @@ SCM_DEFINE (scm_sys_check_number_conversions, "%check-number-conversions", 0, 0,
 void
 scm_init_numbers ()
 {
+  int i;
+
   mpz_init_set_si (z_negative_one, -1);
 
   /* It may be possible to tune the performance of some algorithms by using
@@ -5724,25 +5783,17 @@ scm_init_numbers ()
   scm_add_feature ("complex");
   scm_add_feature ("inexact");
   scm_flo0 = scm_make_real (0.0);
+
+  /* determine floating point precision */
+  for(i=2; i <= SCM_MAX_DBL_RADIX; ++i)
+    {
+      init_dblprec(&scm_dblprec[i-2],i);
+      init_fx_radix(fx_per_radix[i-2],i);
+    }
 #ifdef DBL_DIG
-  scm_dblprec = (DBL_DIG > 20) ? 20 : DBL_DIG;
-#else
-  {				/* determine floating point precision */
-    double f = 0.1;
-    double fsum = 1.0 + f;
-    while (fsum != 1.0)
-      {
-	if (++scm_dblprec > 20)
-	  fsum = 1.0;
-	else
-	  {
-	    f /= 10.0;
-	    fsum = f + 1.0;
-	  }
-      }
-    scm_dblprec = scm_dblprec - 1;
-  }
-#endif /* DBL_DIG */
+  /* hard code precision for base 10 if the preprocessor tells us to... */
+      scm_dblprec[10-2] = (DBL_DIG > 20) ? 20 : DBL_DIG;
+#endif
 
 #ifdef GUILE_DEBUG
   check_sanity ();
