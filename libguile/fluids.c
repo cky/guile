@@ -66,7 +66,7 @@ scm_make_initial_fluids ()
 }
 
 static void
-grow_fluids (scm_root_state *root_state,int new_length)
+grow_fluids (scm_root_state *root_state, int new_length)
 {
   SCM old_fluids, new_fluids;
   int old_length, i;
@@ -98,14 +98,14 @@ scm_copy_fluids (scm_root_state *root_state)
 static int
 print_fluid (SCM exp, SCM port, scm_print_state *pstate)
 {
-    scm_puts ("#<fluid ", port);
-    scm_intprint ((int) SCM_FLUID_NUM (exp), 10, port);
-    scm_putc ('>', port);
-    return 1;
+  scm_puts ("#<fluid ", port);
+  scm_intprint ((int) SCM_FLUID_NUM (exp), 10, port);
+  scm_putc ('>', port);
+  return 1;
 }
 
-static
-int next_fluid_num ()
+static int
+next_fluid_num ()
 {
   int n;
 #ifdef USE_THREADS
@@ -119,8 +119,14 @@ int next_fluid_num ()
 }
 
 SCM_DEFINE (scm_make_fluid, "make-fluid", 0, 0, 0, 
-            (),
-"")
+	    (),
+	    "Return a newly created fluid.\n"
+	    "Fluids are objects of a certain type (a smob) that can hold one SCM\n"
+	    "value per dynamic root.  That is, modifications to this value are\n"
+	    "only visible to code that executes within the same dynamic root as\n"
+	    "the modifying code.  When a new dynamic root is constructed, it\n"
+	    "inherits the values from its parent.  Because each thread executes\n"
+	    "in its own dynamic root, you can use fluids for thread local storage.")
 #define FUNC_NAME s_scm_make_fluid
 {
   int n;
@@ -132,24 +138,25 @@ SCM_DEFINE (scm_make_fluid, "make-fluid", 0, 0, 0,
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_fluid_p, "fluid?", 1, 0, 0, 
-            (SCM fl),
-"")
+	    (SCM obj),
+	    "Return #t iff @var{obj} is a fluid; otherwise, return #f.")
 #define FUNC_NAME s_scm_fluid_p
 {
-  return SCM_BOOL(SCM_FLUIDP (fl));
+  return SCM_BOOL(SCM_FLUIDP (obj));
 }
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_fluid_ref, "fluid-ref", 1, 0, 0, 
-            (SCM fl),
-"")
+	    (SCM fluid),
+	    "Return the value associated with @var{fluid} in the current dynamic root.\n"
+	    "If @var{fluid} has not been set, then this returns #f.")
 #define FUNC_NAME s_scm_fluid_ref
 {
   int n;
 
-  SCM_VALIDATE_FLUID (1,fl);
+  SCM_VALIDATE_FLUID (1, fluid);
 
-  n = SCM_FLUID_NUM (fl);
+  n = SCM_FLUID_NUM (fluid);
 
   if (SCM_LENGTH (scm_root->fluids) <= n)
     grow_fluids (scm_root, n+1);
@@ -158,19 +165,19 @@ SCM_DEFINE (scm_fluid_ref, "fluid-ref", 1, 0, 0,
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_fluid_set_x, "fluid-set!", 2, 0, 0,
-            (SCM fl, SCM val),
-"")
+	    (SCM fluid, SCM value),
+	    "Set the value associated with @var{fluid} in the current dynamic root.")
 #define FUNC_NAME s_scm_fluid_set_x
 {
   int n;
 
-  SCM_VALIDATE_FLUID (1,fl);
-  n = SCM_FLUID_NUM (fl);
+  SCM_VALIDATE_FLUID (1, fluid);
+  n = SCM_FLUID_NUM (fluid);
 
   if (SCM_LENGTH (scm_root->fluids) <= n)
     grow_fluids (scm_root, n+1);
-  SCM_VELTS(scm_root->fluids)[n] = val;
-  return val;
+  SCM_VELTS(scm_root->fluids)[n] = value;
+  return value;
 }
 #undef FUNC_NAME
 
@@ -214,31 +221,34 @@ apply_thunk (void *thunk)
 }
 
 SCM_DEFINE (scm_with_fluids, "with-fluids*", 3, 0, 0, 
-            (SCM fluids, SCM vals, SCM thunk),
-"")
+	    (SCM fluids, SCM values, SCM thunk),
+	    "Set @var{fluids} to @var{values} temporary, and call @var{thunk}.\n"
+	    "@var{fluids} must be a list of fluids and @var{values} must be the same\n"
+	    "number of their values to be applied.  Each substitution is done\n"
+	    "one after another.  @var{thunk} must be a procedure with no argument.")
 #define FUNC_NAME s_scm_with_fluids
 {
-  return scm_internal_with_fluids (fluids, vals, apply_thunk, (void *)thunk);
+  return scm_internal_with_fluids (fluids, values, apply_thunk, (void *)thunk);
 }
 #undef FUNC_NAME
 
 SCM
-scm_internal_with_fluids (SCM fluids, SCM vals, SCM (*cproc) (), void *cdata)
+scm_internal_with_fluids (SCM fluids, SCM values, SCM (*cproc) (), void *cdata)
 #define FUNC_NAME "scm_internal_with_fluids"
 {
   SCM ans;
   int flen, vlen;
 
   SCM_VALIDATE_LIST_COPYLEN (1, fluids, flen);
-  SCM_VALIDATE_LIST_COPYLEN (2, vals, vlen);
+  SCM_VALIDATE_LIST_COPYLEN (2, values, vlen);
   if (flen != vlen)
-    scm_out_of_range (s_scm_with_fluids, vals);
+    scm_out_of_range (s_scm_with_fluids, values);
 
-  scm_swap_fluids (fluids, vals);
-  scm_dynwinds = scm_acons (fluids, vals, scm_dynwinds);
+  scm_swap_fluids (fluids, values);
+  scm_dynwinds = scm_acons (fluids, values, scm_dynwinds);
   ans = cproc (cdata);
   scm_dynwinds = SCM_CDR (scm_dynwinds);
-  scm_swap_fluids_reverse (fluids, vals);
+  scm_swap_fluids_reverse (fluids, values);
   return ans;
 }
 #undef FUNC_NAME
