@@ -1,3 +1,10 @@
+1999-08-16  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* eval.c (scm_sym_args): Made global.
+
+	* objects.c (scm_set_object_procedure_x): Disallow setting of
+	procedures for pure generic functions.
+
 1999-08-12  Gary Houston  <ghouston@easynet.co.uk>
 
 	* ports.c (scm_seek): one more: was scm_lseek.  Also changed the
@@ -45,6 +52,7 @@
 	* ports.c, fports.c, strports, vports.c, ioext.c, unif.c, filesys.c:
 	change callers.
 
+>>>>>>> 1.602
 1999-08-06  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* eval.c (SCM_IM_DISPATCH): Rewrote dispatch protocol.  Dispatch
