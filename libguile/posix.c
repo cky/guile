@@ -44,6 +44,9 @@
 
 
 
+/* Make GNU/Linux libc declare everything it has. */
+#define _GNU_SOURCE
+
 #include <stdio.h>
 #include "libguile/_scm.h"
 #include "libguile/fports.h"
@@ -71,8 +74,6 @@
 #endif
 
 #ifdef HAVE_UNISTD_H
-/* GNU/Linux libc requires __USE_XOPEN or cuserid() is not defined.  */
-#define __USE_XOPEN
 #include <unistd.h>
 #else
 #ifndef ttyname
