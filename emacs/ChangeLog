@@ -1,3 +1,9 @@
+2001-03-13  Keisuke Nishida  <kxn30@po.cwru.edu>
+
+	* guile-c.el (guile-c-window-configuration): New variable.
+	(guile-c-edit-docstring, guile-c-edit-finish):
+	Save/restore window-configuration.
+
 2001-03-12  Keisuke Nishida  <kxn30@po.cwru.edu>
 
 	* guile-c.el (guile-c-deprecate-region): New command.

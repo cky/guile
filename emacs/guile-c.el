@@ -98,12 +98,15 @@
 ;;; Edit docstrings
 ;;;
 
+(defvar guile-c-window-configuration nil)
+
 (defun guile-c-edit-docstring ()
   (interactive)
   (let* ((region (guile-c-find-docstring))
 	 (doc (if region (buffer-substring (car region) (cdr region)))))
     (if (not doc)
 	(error "No docstring!")
+      (setq guile-c-window-configuration (current-window-configuration))
       (with-current-buffer (get-buffer-create "*Guile Docstring*")
 	(erase-buffer)
 	(insert doc)
@@ -140,7 +143,7 @@
       (forward-line 1)))
   (let ((doc (buffer-string)))
     (kill-buffer (current-buffer))
-    (delete-window (selected-window))
+    (set-window-configuration guile-c-window-configuration)
     (let ((region (guile-c-find-docstring)))
       (goto-char (car region))
       (delete-region (car region) (cdr region)))
