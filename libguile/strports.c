@@ -333,7 +333,7 @@ SCM_DEFINE (scm_call_with_output_string, "call-with-output-string", 1, 0, 0,
                      FUNC_NAME);
   scm_call_1 (proc, p);
 
-  return scm_strport_to_string (p);
+  return scm_get_output_string (p);
 }
 #undef FUNC_NAME
 
