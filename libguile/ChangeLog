@@ -1,3 +1,16 @@
+2002-11-03  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* _scm.h (HAVE_RESTARTABLE_SYSCALLS): Do define even when
+	SCM_COPT_THREADS is defined.
+	(SCM_SYSCALL): Use EINTR-expection version when SCM_COPT_THREADS
+	is defined.
+	
+	* coop-pthreads.c: Some harmless renamings of internal stuff.
+	(create_thread): New, generalized version of
+	scm_call_with_new_thread.
+	(scm_call_with_new_thread): Use it.
+	(scm_spawn_thread): New, use create_thread.
+	
 2002-11-02  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* coop-pthreads.c, coop-pthreads.h: Redone completely, you might
