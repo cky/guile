@@ -1,3 +1,23 @@
+2001-04-19  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* scheme-control.texi (while do): Added documentation for named
+	let.
+
+	* scheme-binding.texi (Internal Definitions): New explanation of
+	`Internal Definitions'.
+	(Top Level): Documented behaviour of top level definitions.
+	(Binding Constructs): New introductory text.
+	(Local Bindings): Explain concept of local bindings.  Document
+	let, let* and letrec.
+
+2001-04-18  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* scheme-modules.texi (Modules): Added menu descriptions.
+	(Scheme and modules, The Guile module system): Some whitespace
+	cleanup
+	(The Guile module system): Layout fixes, docstring fix for
+	`define-module'.
+
 2001-04-17  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* scheme-control.texi (Multiple Values): Documented concept of

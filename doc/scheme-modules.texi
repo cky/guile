@@ -36,8 +36,8 @@ clutter the global name space.
 @cindex name space - private
 
 @menu
-* Scheme and modules::
-* The Guile module system::
+* Scheme and modules::          How modules are handled in standard Scheme.
+* The Guile module system::     How Guile does it.
 * Dynamic Libraries::		Loading libraries of compiled code at run time.
 * Dynamic Linking from Marius::
 @end menu
@@ -55,13 +55,17 @@ Library files in SLIB @emph{provide} a feature, and when user programs
 
 For example, the file @file{random.scm} in the SLIB package contains the
 line
+
 @smalllisp
 (provide 'random)
 @end smalllisp
+
 so to use its procedures, a user would type
+
 @smalllisp
 (require 'random)
 @end smalllisp
+
 and they would magically become available, @emph{but still have the same
 names!}  So this method is nice, but not as good as a full-featured
 module system.
@@ -84,13 +88,17 @@ is called @code{ice-9}.
 
 So for example, the SLIB interface, contained in
 @file{$srcdir/ice-9/slib.scm}, starts out with
+
 @smalllisp
 (define-module (ice-9 slib))
 @end smalllisp
+
 and a user program can use
+
 @smalllisp
 (use-modules (ice-9 slib))
 @end smalllisp
+
 to have access to all procedures and variables defined within the slib
 module with @code{(define-public ...)}.
 
@@ -99,11 +107,13 @@ So here are the functions involved:
 @deffn syntax define-module module-specification
 @var{module-specification} is of the form @code{(hierarchy file)}.  One
 example of this is
+
 @smalllisp
-(use-modules (ice-9 slib))
+(define-module (ice-9 slib))
 @end smalllisp
-define-module makes this module available to Guile programs under the
-given @var{module-specification}.
+
+@code{define-module} makes this module available to Guile programs under
+the given @var{module-specification}.
 @end deffn
 @c end
 
@@ -118,11 +128,13 @@ module.
 @deffn syntax use-modules module-specification
 @var{module-specification} is of the form @code{(hierarchy file)}.  One
 example of this is
+
 @smalllisp
 (use-modules (ice-9 slib))
 @end smalllisp
-use-modules allows the current Guile program to use all publicly defined
-procedures and variables in the module denoted by
+
+@code{use-modules} allows the current Guile program to use all publicly
+defined procedures and variables in the module denoted by
 @var{module-specification}.
 @end deffn
 @c end
@@ -150,6 +162,8 @@ Guile's support for multi threaded execution (@pxref{Scheduling}).
 @item (ice-9 slib)
 This module contains hooks for using Aubrey Jaffer's portable Scheme
 library SLIB from Guile (@pxref{SLIB}).
+@c FIXME::martin: This module is not in the distribution.  Remove it
+@c from here?
 @item (ice-9 jacal)
 This module contains hooks for using Aubrey Jaffer's symbolic math
 packge Jacal from Guile (@pxref{JACAL}).
