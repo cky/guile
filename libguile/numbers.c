@@ -383,7 +383,7 @@ scm_gcd (SCM x, SCM y)
       } else if (yy == 0) {
 	result = u;
       } else {
-	int k = 1;
+	long k = 1;
 	long t;
 
 	/* Determine a common factor 2^k */
