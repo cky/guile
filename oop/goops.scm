@@ -35,7 +35,7 @@
 ;; Then load the rest of GOOPS
 (use-modules (oop goops util)
 	     (oop goops dispatch)
-	     (oop goops compile)
+	     (oop goops compile))
 
 (export			  ; Define the exported symbols of this file
     goops-version is-a?
