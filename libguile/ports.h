@@ -150,7 +150,7 @@ typedef struct scm_ptobfuns
   int (*fclose) SCM_P ((SCM stream));
 } scm_ptobfuns;
 
-#define SCM_PTOBNUM(x) (0x0ff & (SCM_CAR(x)>>8));
+#define SCM_PTOBNUM(x) (0x0ff & (SCM_CAR(x)>>8))
 
 
 
