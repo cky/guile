@@ -1,3 +1,9 @@
+2004-08-23  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* docstring.el: Replaced all "@c module" markers with "@c
+	module-for-docstring", making it less likely to collide with a
+	real commentary.
+
 2002-10-19  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* guile.texi: Replaced by regenerated libguile version.
