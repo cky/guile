@@ -107,7 +107,7 @@
 		(copy (source-property source 'copy)))
 	   (if (pair? copy)
 	       copy
-	       (unmemoize source)))))
+	       (unmemoize-expr source)))))
 
 (define (write-state-long state)
   (let ((index (state-index state)))
@@ -156,7 +156,7 @@
     (cond ((source-position source)
 	   => (lambda (p) (display-position p) (display ":\n"))))
     (display "  ")
-    (write (or copy (unmemoize source)))))
+    (write (or copy (unmemoize-expr source)))))
 
 (define (source-position source)
   (let ((fname (source-property source 'filename))
