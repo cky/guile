@@ -299,7 +299,7 @@ scm_mcache_lookup_cmethod (SCM cache, SCM args)
 	  }
 	while (--j && SCM_NIMP (ls));
       /* Fewer arguments than specifiers => CAR != ENV */
-      if (!SCM_CONSP (SCM_CAR (z)))
+      if (!(SCM_IMP (SCM_CAR (z)) || SCM_CONSP (SCM_CAR (z))))
 	goto next_method;
       return z;
     next_method:
@@ -307,8 +307,6 @@ scm_mcache_lookup_cmethod (SCM cache, SCM args)
     } while (i != end);
   return SCM_BOOL_F;
 }
-
-SCM (*scm_memoize_method) (SCM, SCM);
 
 SCM
 scm_mcache_compute_cmethod (SCM cache, SCM args)
