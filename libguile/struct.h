@@ -53,6 +53,7 @@
 #define scm_struct_n_extra_words 3
 
 /* These are how the initial words of a vtable are allocated. */
+#define scm_struct_i_setter	-8 /* Setter */
 #define scm_struct_i_proc	-7 /* Optional procedure slots */
 #define scm_struct_i_ptr	-3 /* start of block (see alloc_struct) */
 #define scm_struct_i_n_words	-2 /* How many words allocated to this struct? */
@@ -65,6 +66,8 @@
 #define scm_vtable_offset_user   4 /* Where do user fields start? */
 
 #define SCM_STRUCTF_ENTITY (1L << 30) /* Indicates presence of proc slots */
+#define SCM_STRUCTF_LIGHT  (1L << 31) /* Light representation
+					 (no hidden words) */
 
 #define SCM_STRUCTP(X)  		(SCM_TYP3(X) == scm_tc3_cons_gloc)
 #define SCM_STRUCT_DATA(X) 		((SCM*)(SCM_CDR(X)))
