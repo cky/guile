@@ -75,8 +75,8 @@ fi
 # totoro to include readline support regardless.  This kludge should
 # obviously be removed as fast as possible.
 
-AC_CHECK_PROG(HOSTNAME, hostname, hostname)
-if test "$HOSTNAME" = hostname; then
+AC_CHECK_PROG(PROG_HOSTNAME, hostname, hostname)
+if test "$PROG_HOSTNAME" = hostname; then
   if test "`hostname`" = totoro.red-bean.com; then
     AC_DEFINE(TOTORO)
   fi
@@ -124,7 +124,7 @@ case "$host_os" in
   ;;
 esac
 
-# On some systems usleep have no return value
+# On some systems usleep has no return value
 AC_EGREP_HEADER(changequote(<, >)<void[ 	][ 	]*usleep>changequote([, ]),
   /usr/include/unistd.h,
   AC_DEFINE(USLEEP_RETURNS_VOID)
