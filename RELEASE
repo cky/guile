@@ -103,9 +103,10 @@ Spiffing checklist:
 * Build a test distribution.
   + BEFORE doing 'make dist', configure the source tree for build
     in the same tree with configuration option --with-threads.
-    Make sure that readline was enabled correctly.
-    If this is not done, there will be missing dependencies in two
-    Makefile.in.
+  + Make sure that readline was enabled correctly.
+  + Build the tree.
+    (If the above steps are not done, the dependencies won't be properly
+    included in the generated Makefile.in files.)
   + Then do 'make dist'.
 * Give the test disty to various people to try.  Here's what you should do:
   + Unset GUILE_LOAD_PATH.

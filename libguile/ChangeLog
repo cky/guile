@@ -1,3 +1,10 @@
+1999-09-20  Jim Blandy  <jimb@savonarola.red-bean.com>
+
+	* read.c (scm_read): Don't assume that scm_cur_inp is always open.
+	* ports.c (scm_read_char): Same.
+	* ioext.c (scm_read_line): Same.
+	(Thanks to Bernard Urban.)
+
 1999-09-21  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* vectors.c (scm_vector_move_right_x): Bugfix: Remove side effect
