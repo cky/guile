@@ -75,7 +75,7 @@ subpkgdatadir = $(pkgdatadir)/$(VERSION)/@module@
 subpkgdata_DATA = boot-9.scm debug.scm expect.scm hcons.scm lineio.scm \
 mapping.scm poe.scm slib.scm tags.scm threads.scm r4rs.scm
 
-EXTRA_DIST = PLUGIN/REQ $(subpkgdata_DATA) test.scm
+EXTRA_DIST = $(subpkgdata_DATA) test.scm
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = ../libguile/scmconfig.h
 CONFIG_CLEAN_FILES = 
@@ -125,7 +125,6 @@ distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
 
 subdir = ice-9
 distdir: $(DISTFILES)
-	$(mkinstalldirs) $(distdir)/PLUGIN
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
 	  test -f $(distdir)/$$file \
