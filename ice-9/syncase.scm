@@ -49,7 +49,9 @@
 			  (list why what)
 			  '())))
 
-(define putprop set-symbol-property!)
+(define (putprop s p v)
+  (builtin-variable s)
+  (set-symbol-property! s p v))
 (define getprop symbol-property)
 
 (define-public sc-expand #f)

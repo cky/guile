@@ -1,3 +1,9 @@
+Thu Sep  4 14:57:04 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* syncase.scm (putprop): Temporary fix which publishes new syntax
+	globally (the old behaviour was complex and connected to the inner
+	workings of the current module system).
+
 Wed Sep  3 21:29:13 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* psyntax.ss: Updated.
