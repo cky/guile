@@ -127,7 +127,9 @@ typedef struct scm_debug_frame
   scm_debug_info vect[1];
 } scm_debug_frame;
 
-extern scm_debug_frame *last_debug_info_frame;
+#ifndef USE_THREADS
+extern scm_debug_frame *scm_last_debug_frame;
+#endif
 
 #define SCM_TAILREC     (1L << 10)
 #define SCM_TRACED_FRAME (1L << 9)

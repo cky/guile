@@ -1324,14 +1324,16 @@ SCM (*scm_ceval_ptr) (SCM exp, SCM env);
 SCM (*scm_ceval_ptr) ();
 #endif
 
-/* last_debug_info_frame contains a pointer to the last debugging
+/* scm_last_debug_frame contains a pointer to the last debugging
  * information stack frame.  It is accessed very often from the
  * debugging evaluator, so it should probably not be indirectly
  * addressed.  Better to save and restore it from the current root at
  * any stack swaps.
  */
 
-scm_debug_frame *last_debug_info_frame;
+#ifndef USE_THREADS
+scm_debug_frame *scm_last_debug_frame;
+#endif
 
 /* scm_debug_eframe_size is the number of slots available for pseudo
  * stack frames at each real stack frame.
@@ -1447,10 +1449,10 @@ SCM_CEVAL (x, env)
     scm_debug_info vect[scm_debug_eframe_size];
     scm_debug_info *info;
   } debug;
-  debug.prev = last_debug_info_frame;
+  debug.prev = scm_last_debug_frame;
   debug.status = scm_debug_eframe_size;
   debug.info = &debug.vect[0];
-  last_debug_info_frame = (scm_debug_frame *) &debug;
+  scm_last_debug_frame = (scm_debug_frame *) &debug;
 #endif
 #ifdef EVAL_STACK_CHECKING
   if (SCM_STACK_OVERFLOW_P ((SCM_STACKITEM *) &proc)
@@ -2305,7 +2307,7 @@ exit:
 	scm_ithrow (scm_i_exit_frame, scm_cons2 (t.arg1, proc, SCM_EOL), 0);
       }
 ret:
-  last_debug_info_frame = debug.prev;
+  scm_last_debug_frame = debug.prev;
   return proc;
 #endif
 }
@@ -2427,11 +2429,11 @@ SCM_APPLY (proc, arg1, args)
 #ifdef DEBUG_EXTENSIONS
 #ifdef DEVAL
   scm_debug_frame debug;
-  debug.prev = last_debug_info_frame;
+  debug.prev = scm_last_debug_frame;
   debug.status = SCM_APPLYFRAME;
   debug.vect[0].a.proc = proc;
   debug.vect[0].a.args = SCM_EOL;
-  last_debug_info_frame = &debug;
+  scm_last_debug_frame = &debug;
 #else
   if (SCM_DEBUGGINGP)
     return scm_dapply (proc, arg1, args);
@@ -2622,7 +2624,7 @@ exit:
 	scm_ithrow (scm_i_exit_frame, scm_cons2 (arg1, proc, SCM_EOL), 0);
       }
 ret:
-  last_debug_info_frame = debug.prev;
+  scm_last_debug_frame = debug.prev;
   return proc;
 #endif
 }

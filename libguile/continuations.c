@@ -118,7 +118,7 @@ scm_make_cont (answer)
     *dst++ = *src++;
 #endif /* def CHEAP_CONTINUATIONS */
 #ifdef DEBUG_EXTENSIONS
-  SCM_DFRAME (cont) = last_debug_info_frame;
+  SCM_DFRAME (cont) = scm_last_debug_frame;
 #endif
   return cont;
 }
@@ -185,7 +185,7 @@ scm_dynthrow (a)
 #endif
 #endif /* ndef CHEAP_CONTINUATIONS */
 #ifdef DEBUG_EXTENSIONS
-  last_debug_info_frame = SCM_DFRAME (cont);
+  scm_last_debug_frame = SCM_DFRAME (cont);
 #endif
   SCM_THROW_VALUE(cont) = val;
   longjmp (SCM_JMPBUF (cont), 1);

@@ -529,7 +529,7 @@ scm_expr_stack (obj)
   scm_debug_frame *frame;
   long offset = 0;
   if (SCM_UNBNDP (obj))
-    frame = last_debug_info_frame;
+    frame = scm_last_debug_frame;
   else
     {
       SCM_ASSERT (SCM_NIMP (obj), obj, SCM_ARG1, s_expr_stack);

@@ -221,7 +221,7 @@ _eval_port (answer, toplvl, port, printp)
    */
   SCM_BASE (scm_rootcont) = (SCM_STACKITEM *) & i;
 #ifdef DEBUG_EXTENSIONS
-  SCM_DFRAME (scm_rootcont) = last_debug_info_frame = 0;
+  SCM_DFRAME (scm_rootcont) = scm_last_debug_frame = 0;
 #endif
   saved_inp = scm_cur_inp;
   i = setjmp (SCM_JMPBUF (scm_rootcont));
