@@ -100,8 +100,6 @@
 
 	* numbers.h (struct scm_dbl): changed to represent a double cell,
  	with the number in the second half.
-	(struct scm_cplx): new, represents a complex number as a triple
- 	cell.
 
 	* dynwind.c: changed the wind-guards representation to double
  	cell.
@@ -110,8 +108,6 @@
 	to double cell.
 
 	* async.c, async.h: made async representation a double cell.
-
-	* guardians.c: made guardian representation a triple cell.
 
 	* dynl.c: made dynamic_obj representation a double cell.
 	
