@@ -1157,7 +1157,7 @@ SCM_DEFINE (scm_putenv, "putenv", 1, 0, 0,
 	    "The return value is unspecified.")
 #define FUNC_NAME s_scm_putenv
 {
-  int rv, e;
+  int rv;
   char *ptr;
 
   SCM_VALIDATE_STRING (1, str);
@@ -1172,6 +1172,7 @@ SCM_DEFINE (scm_putenv, "putenv", 1, 0, 0,
 #else
       /* On e.g. Win32 hosts putenv() called with 'name=' removes the
 	 environment variable 'name'. */
+      int e;
       ptr = scm_malloc (SCM_STRING_LENGTH (str) + 2);
       strncpy (ptr, SCM_STRING_CHARS (str), SCM_STRING_LENGTH (str));
       ptr[SCM_STRING_LENGTH (str)] = '=';
