@@ -1,7 +1,17 @@
 2001-06-13  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
+	* match.scm:
+	No longer use module `(ice-9 slib)'.
+	Use module `(ice-9 pretty-print)'.
+	No longer require `pretty-print'.
+
+	(slib:error): Delete.
+	(match:error, match:syntax-err): Rewrite.
+
+	Thanks to Dale P. Smith.
+
 	* README: New file.
-	
+
 	* common-list.scm:
 	Clean up some docstrings; nfc.
 	Add Commentary.
