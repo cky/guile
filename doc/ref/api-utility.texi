@@ -420,7 +420,8 @@ This is a stable sort.
 @deffn {Scheme Procedure} restricted-vector-sort! vec less startpos endpos
 @deffnx {C Function} scm_restricted_vector_sort_x (vec, less, startpos, endpos)
 Sort the vector @var{vec}, using @var{less} for comparing
-the vector elements.  @var{startpos} and @var{endpos} delimit
+the vector elements.  @var{startpos} (inclusively) and
+@var{endpos} (exclusively) delimit
 the range of the vector which gets sorted.  The return value
 is not specified.
 @end deffn

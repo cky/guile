@@ -950,7 +950,7 @@ from separate @code{and} and @code{let*}, or from @code{cond} with
 @cindex SRFI-4
 
 The SRFI-4 procedures and data types are always available, @xref{Uniform
-Vectors}.
+Numeric Vectors}.
 
 @node SRFI-6
 @subsection SRFI-6 - Basic String Ports

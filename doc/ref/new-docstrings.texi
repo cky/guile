@@ -11,3 +11,47 @@ or @samp{-inf.0}, @code{#f} otherwise.
 
 
 
+
+
+
+@deffn {Scheme Procedure} uniform-vector? obj
+@deffnx {C Function} scm_uniform_vector_p (obj)
+Return @code{#t} if @var{obj} is a uniform vector.
+@end deffn
+
+@deffn {Scheme Procedure} uniform-vector-set! v idx val
+@deffnx {C Function} scm_uniform_vector_set_x (v, idx, val)
+Set the element at index @var{idx} of the
+homogenous numeric vector @var{v} to @var{val}.
+@end deffn
+
+@deffn {Scheme Procedure} uniform-vector->list uvec
+@deffnx {C Function} scm_uniform_vector_to_list (uvec)
+Convert the homogeneous numeric vector @var{uvec} to a list.
+@end deffn
+
+@deffn {Scheme Procedure} make-u8vector len [fill]
+@deffnx {C Function} scm_make_u8vector (len, fill)
+Return a newly allocated homogeneous numeric vector which can
+hold @var{len} elements.  If @var{fill} is given, it is used to
+initialize the elements, otherwise the contents of the vector
+is unspecified.
+@end deffn
+
+@deffn {Scheme Procedure} u8vector . l
+@deffnx {C Function} scm_u8vector (l)
+Return a newly allocated homogeneous numeric vector containing
+all argument values.
+@end deffn
+
+@deffn {Scheme Procedure} list->u8vector l
+@deffnx {C Function} scm_list_to_u8vector (l)
+Convert the list @var{l} to a numeric homogeneous vector.
+@end deffn
+
+@deffn {Scheme Procedure} any->u8vector obj
+@deffnx {C Function} scm_any_to_u8vector (obj)
+Convert @var{obj}, which can be a list, vector, or
+homogenous vector, to a numeric homogenous vector of
+type u8.
+@end deffn
