@@ -704,10 +704,8 @@ gh_uniform_vector_ref (SCM v, SCM ilist)
    `vec' argument.
 
    The return value is the Scheme object to which SNAME is bound, or
-   SCM_UNDEFINED if SNAME is not bound in the given context. [FIXME:
-   should this be SCM_UNSPECIFIED?  Can a symbol ever legitimately be
-   bound to SCM_UNDEFINED or SCM_UNSPECIFIED?  What is the difference?
-   -twp] */
+   SCM_UNDEFINED if SNAME is not bound in the given context.
+ */
 
 SCM
 gh_lookup (const char *sname)
