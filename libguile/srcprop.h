@@ -51,8 +51,6 @@
 
 
 
-SCM scm_i_copy;
-
 /* {The old whash table interface}
  * *fixme* This is a temporary solution until weak hash table access
  * has been optimized for speed (which is quite necessary, if they are
@@ -114,6 +112,12 @@ typedef struct scm_srcprops_chunk
 		    && (1L << 16) & SCM_CAR (t.arg1))
 
 #define PROCTRACEP(x) SCM_NFALSEP (scm_procedure_property (x, scm_i_trace))
+
+extern SCM scm_i_filename;
+extern SCM scm_i_copy;
+extern SCM scm_i_line;
+extern SCM scm_i_column;
+extern SCM scm_i_breakpoint;
 
 
 
