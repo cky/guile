@@ -1,3 +1,7 @@
+2001-07-10  Thien-Thi Nguyen  <ttn@revel.glug.org>
+
+	* scripts/hello (display-version, display-help): Fix comment; nfc.
+
 2001-07-09  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* box-dynamic/README: Corrected sample session.
@@ -27,7 +31,7 @@
 	procedures from the library.
 
 	Thanks to Thomas Wawrzinek for the idea and example code!
-	
+
 	* box-dynamic-module/box-module.scm: Add comments, export
 	make-box, box-ref, box-set!.
 
@@ -44,7 +48,7 @@
 	shared library and places the definitions in a C-only module.
 
 	Thanks to Thomas Wawrzinek for this, too!
-	
+
 	* box-dynamic/box.c, box/box.c, box-dynamic-module/box.c,
 	box-module/box.c (mark_box): Fixed typo in comment.
 
@@ -59,7 +63,7 @@
 	library (aka extension)
 
 	Thanks to Thomas Wawrzinek for patching box.c into an extension!
-	
+
 2001-05-30  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* box-module: New directory, similar to box, but defines the
