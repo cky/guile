@@ -230,10 +230,13 @@ SCM_DEFINE (scm_system_async_mark_for_thread, "system-async-mark", 1, 1, 0,
 #define FUNC_NAME s_scm_system_async_mark_for_thread
 {
 #ifdef USE_THREADS
+  if (SCM_UNBNDP (thread))
+    thread = scm_current_thread ();
+  else
+    SCM_VALIDATE_THREAD (2, thread);
+      
   scm_i_queue_async_cell (scm_cons (proc, SCM_BOOL_F),
-			  (SCM_UNBNDP (thread)
-			   ? scm_root
-			   : scm_i_thread_root (thread)));
+			  scm_i_thread_root (thread));
 #else
   scm_i_queue_async_cell (scm_cons (proc, SCM_BOOL_F), scm_root);
 #endif
