@@ -375,21 +375,13 @@ SCM_DEFINE (scm_string_upcase_x, "string-upcase!", 1, 0, 0,
 	    "@end example")
 #define FUNC_NAME s_scm_string_upcase_x
 {
-  register long k;
-  register unsigned char *cs;
-  SCM_ASRTGO (SCM_NIMP (v), badarg1);
-  k = SCM_LENGTH (v);
-  switch SCM_TYP7
-    (v)
-    {
-    case scm_tc7_string:
-      cs = SCM_UCHARS (v);
-      while (k--)
-	cs[k] = scm_upcase(cs[k]);
-      break;
-    default:
-    badarg1:SCM_WTA (1,v);
-    }
+  unsigned long k;
+
+  SCM_VALIDATE_STRING (1, v);
+
+  for (k = 0; k < SCM_LENGTH (v); ++k)
+    SCM_STRING_UCHARS (v) [k] = scm_upcase (SCM_STRING_UCHARS (v) [k]);
+
   return v;
 }
 #undef FUNC_NAME
@@ -417,20 +409,13 @@ SCM_DEFINE (scm_string_downcase_x, "string-downcase!", 1, 0, 0,
 	    "@end example")
 #define FUNC_NAME s_scm_string_downcase_x
 {
-  register long k;
-  register unsigned char *cs;
-  SCM_ASRTGO (SCM_NIMP (v), badarg1);
-  k = SCM_LENGTH (v);
-  switch (SCM_TYP7(v))
-    {
-      case scm_tc7_string:
-        cs = SCM_UCHARS (v);
-        while (k--)
-          cs[k] = scm_downcase(cs[k]);
-        break;
-      default:
-    badarg1:SCM_WTA (1,v);
-    }
+  unsigned long k;
+
+  SCM_VALIDATE_STRING (1, v);
+
+  for (k = 0; k < SCM_LENGTH (v); ++k)
+    SCM_STRING_UCHARS (v) [k] = scm_downcase (SCM_STRING_UCHARS (v) [k]);
+
   return v;
 }
 #undef FUNC_NAME

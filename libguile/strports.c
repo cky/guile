@@ -106,7 +106,7 @@ st_resize_port (scm_port *pt, off_t new_size)
 
   /* reset buffer in case reallocation moved the string. */
   {
-    pt->read_buf = pt->write_buf = SCM_UCHARS (stream);
+    pt->read_buf = pt->write_buf = SCM_STRING_UCHARS (stream);
     pt->read_pos = pt->write_pos = pt->write_buf + index;
     pt->write_end = pt->write_buf + pt->write_buf_size;
     pt->read_end = pt->read_buf + pt->read_buf_size;

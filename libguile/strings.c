@@ -109,7 +109,7 @@ SCM_DEFINE (scm_string, "string", 0, 0, 1,
   }
 
   {
-    unsigned char *data = SCM_UCHARS (result);
+    unsigned char *data = SCM_STRING_UCHARS (result);
 
     while (SCM_NNULLP (chrs))
       {
@@ -226,7 +226,7 @@ SCM_DEFINE (scm_make_string, "make-string", 1, 1, 0,
     {
       SCM_VALIDATE_CHAR (2,chr);
       {
-	unsigned char *dst = SCM_UCHARS (res);
+	unsigned char *dst = SCM_STRING_UCHARS (res);
 	char c = SCM_CHAR (chr);
 	
 	memset (dst, c, i);
@@ -270,7 +270,7 @@ SCM_DEFINE (scm_string_set_x, "string-set!", 3, 0, 0,
   SCM_VALIDATE_RWSTRING (1,str);
   SCM_VALIDATE_INUM_RANGE (2,k,0,SCM_LENGTH(str));
   SCM_VALIDATE_CHAR (3,chr);
-  SCM_UCHARS (str)[SCM_INUM (k)] = SCM_CHAR (chr);
+  SCM_STRING_UCHARS (str)[SCM_INUM (k)] = SCM_CHAR (chr);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -320,7 +320,7 @@ SCM_DEFINE (scm_string_append, "string-append", 0, 0, 1,
     i += SCM_ROLENGTH (s);
   }
   res = scm_makstr (i, 0);
-  data = SCM_UCHARS (res);
+  data = SCM_STRING_UCHARS (res);
   for (l = args;SCM_NIMP (l);l = SCM_CDR (l)) {
     s = SCM_CAR (l);
     for (i = 0;i<SCM_ROLENGTH (s);i++) *data++ = SCM_ROUCHARS (s)[i];

@@ -144,7 +144,7 @@ scm_sym2vcell (SCM sym, SCM thunk, SCM definep)
       SCM * lsymp;
       SCM z;
       scm_sizet hash
-	= scm_string_hash (SCM_UCHARS (sym), SCM_LENGTH (sym)) % scm_symhash_dim;
+	= scm_string_hash (SCM_SYMBOL_UCHARS (sym), SCM_LENGTH (sym)) % scm_symhash_dim;
 
       SCM_DEFER_INTS;
       for (lsym = SCM_VELTS (scm_symhash)[hash]; SCM_NIMP (lsym); lsym = SCM_CDR (lsym))
@@ -189,7 +189,7 @@ scm_sym2ovcell_soft (SCM sym, SCM obarray)
 {
   SCM lsym, z;
   scm_sizet hash 
-    = scm_string_hash (SCM_UCHARS (sym), SCM_LENGTH (sym)) % SCM_LENGTH (obarray);
+    = scm_string_hash (SCM_SYMBOL_UCHARS (sym), SCM_LENGTH (sym)) % SCM_LENGTH (obarray);
   SCM_REDEFER_INTS;
   for (lsym = SCM_VELTS (obarray)[hash];
        SCM_NIMP (lsym);
@@ -264,7 +264,7 @@ scm_intern_obarray_soft (const char *name,scm_sizet len,SCM obarray,unsigned int
       scm_sizet i;
       SCM a = SCM_CAR (lsym);
       SCM z = SCM_CAR (a);
-      unsigned char *tmp = SCM_UCHARS (z);
+      unsigned char *tmp = SCM_SYMBOL_UCHARS (z);
       if (SCM_LENGTH (z) != len)
 	goto trynext;
       for (i = len; i--;)
@@ -557,7 +557,7 @@ SCM_DEFINE (scm_intern_symbol, "intern-symbol", 2, 0, 0,
   if (SCM_FALSEP (o))
     o = scm_symhash;
   SCM_VALIDATE_VECTOR (1,o);
-  hval = scm_string_hash (SCM_UCHARS (s), SCM_LENGTH (s)) % SCM_LENGTH (o);
+  hval = scm_string_hash (SCM_SYMBOL_UCHARS (s), SCM_LENGTH (s)) % SCM_LENGTH (o);
   /* If the symbol is already interned, simply return. */
   SCM_REDEFER_INTS;
   {
@@ -594,7 +594,7 @@ SCM_DEFINE (scm_unintern_symbol, "unintern-symbol", 2, 0, 0,
   if (SCM_FALSEP (o))
     o = scm_symhash;
   SCM_VALIDATE_VECTOR (1,o);
-  hval = scm_string_hash (SCM_UCHARS (s), SCM_LENGTH (s)) % SCM_LENGTH (o);
+  hval = scm_string_hash (SCM_SYMBOL_UCHARS (s), SCM_LENGTH (s)) % SCM_LENGTH (o);
   SCM_DEFER_INTS;
   {
     SCM lsym_follow;
