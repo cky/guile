@@ -1,3 +1,7 @@
+2001-09-19  Thien-Thi Nguyen  <ttn@glug.org>
+
+	* boot-9.scm (process-use-modules): Fix typo.
+
 2001-09-18  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* Makefile.am (psyntax.pp): Reference compile-psyntax.scm in
