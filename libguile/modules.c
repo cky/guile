@@ -188,9 +188,9 @@ scm_system_module_env_p (SCM env)
  * The code will be replaced by the low-level environments in next release.
  */
 
-#define OBARRAY(module) (SCM_STRUCT_DATA (module) [0])
-#define USES(module) (SCM_STRUCT_DATA (module) [1])
-#define BINDER(module) (SCM_STRUCT_DATA (module) [2])
+#define OBARRAY(module) (SCM_PACK (SCM_STRUCT_DATA (module) [0]))
+#define USES(module) (SCM_PACK (SCM_STRUCT_DATA (module) [1]))
+#define BINDER(module) (SCM_PACK (SCM_STRUCT_DATA (module) [2]))
 
 static SCM module_make_local_var_x;
 
@@ -246,7 +246,7 @@ SCM_DEFINE (scm_standard_eval_closure, "standard-eval-closure", 1, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_standard_eval_closure
 {
-  SCM cclo = scm_makcclo (f_eval_closure, SCM_MAKINUM (2));
+  SCM cclo = scm_makcclo (f_eval_closure, 2);
   SCM_VELTS (cclo) [1] = module;
   return cclo;
 }

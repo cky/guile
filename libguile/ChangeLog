@@ -1,5 +1,14 @@
 2000-07-18  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* gc.h (SCM_FREE_CELL_CDR, SCM_SET_FREE_CELL_CDR), hooks.c
+	(make_hook), modules.c (OBARRAY, USES, BINDER):  Pack and unpack
+	SCM values appropriately.
+
+	* modules.c (scm_standard_eval_closure):  Don't pass an inum to
+	scm_makcclo, but rather a long value.
+
+2000-07-18  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	read.c (scm_lreadrecparen), srcprop.c (scm_set_source_property_x):
 	SCM_SETCDR and SCM_WHASHSET macros don't deliver a return value.
 	Thanks to Han-Wen Nienhuys for the bug report.

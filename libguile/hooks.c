@@ -167,7 +167,7 @@ make_hook (SCM n_args, const char *subr)
       if (n < 0 || n > 16)
 	scm_out_of_range (subr, n_args);
     }
-  SCM_RETURN_NEWSMOB (scm_tc16_hook + (n << 16), SCM_EOL);
+  SCM_RETURN_NEWSMOB (scm_tc16_hook + (n << 16), SCM_UNPACK (SCM_EOL));
 }
 
 

@@ -154,11 +154,11 @@ typedef scm_cell * SCM_CELLPTR;
 #define SCM_FREE_CELL_P(x) \
   (!SCM_IMP (x) && (* (const scm_bits_t *) SCM2PTR (x) == scm_tc_free_cell))
 #define SCM_FREE_CELL_CDR(x) \
-  (((const scm_bits_t *) SCM2PTR (x)) [1])
+  (SCM_PACK (((const scm_bits_t *) SCM2PTR (x)) [1]))
 #define SCM_SET_FREE_CELL_TYPE(x, v) \
   (((scm_bits_t *) SCM2PTR (x)) [0] = (v))
 #define SCM_SET_FREE_CELL_CDR(x, v) \
-  (((scm_bits_t *) SCM2PTR (x)) [1] = (v))
+  (((scm_bits_t *) SCM2PTR (x)) [1] = SCM_UNPACK (v))
 
 /* the allocated thing:  The car of new cells is set to
    scm_tc16_allocated to avoid the fragile state of newcells wrt the
