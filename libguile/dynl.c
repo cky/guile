@@ -75,7 +75,7 @@ maybe_drag_in_eprintf ()
 #include "libguile/lang.h"
 #include "libguile/validate.h"
 
-#include "libltdl/ltdl.h"
+#include "guile-ltdl.h"
 
 /*
   From the libtool manual: "Note that libltdl is not threadsafe,
@@ -90,7 +90,7 @@ maybe_drag_in_eprintf ()
 static void *
 sysdep_dynl_link (const char *fname, const char *subr)
 {
-  lt_dlhandle handle;
+  scm_lt_dlhandle handle;
   handle = scm_lt_dlopenext (fname);
   if (NULL == handle)
     {
@@ -107,7 +107,7 @@ sysdep_dynl_link (const char *fname, const char *subr)
 static void
 sysdep_dynl_unlink (void *handle, const char *subr)
 {
-  if (scm_lt_dlclose ((lt_dlhandle) handle))
+  if (scm_lt_dlclose ((scm_lt_dlhandle) handle))
     {
       scm_misc_error (subr, (char *) scm_lt_dlerror (), SCM_EOL);
     }
@@ -118,7 +118,7 @@ sysdep_dynl_func (const char *symb, void *handle, const char *subr)
 {
   void *fptr;
 
-  fptr = scm_lt_dlsym ((lt_dlhandle) handle, symb);
+  fptr = scm_lt_dlsym ((scm_lt_dlhandle) handle, symb);
   if (!fptr)
     {
       scm_misc_error (subr, (char *) scm_lt_dlerror (), SCM_EOL);
