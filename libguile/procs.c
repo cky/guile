@@ -43,6 +43,8 @@
 #include <stdio.h>
 #include "_scm.h"
 
+#include "objects.h"
+
 #include "procs.h"
 
 
@@ -128,6 +130,9 @@ scm_procedure_p (obj)
   if (SCM_NIMP (obj))
     switch (SCM_TYP7 (obj))
       {
+      case scm_tcs_cons_gloc:
+	if (!SCM_I_OPERATORP (obj))
+	  break;
       case scm_tcs_closures:
       case scm_tc7_contin:
       case scm_tcs_subrs:
