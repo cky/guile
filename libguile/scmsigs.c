@@ -525,3 +525,9 @@ scm_init_scmsigs ()
 #include "scmsigs.x"
 }
 
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

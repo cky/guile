@@ -351,3 +351,9 @@ scm_finish_srcprop ()
       ptr = next;
     }
 }
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

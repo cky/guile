@@ -44,3 +44,9 @@ void rl_free_line_state ();
 #endif
 
 #endif
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

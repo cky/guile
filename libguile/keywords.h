@@ -65,3 +65,9 @@ extern SCM scm_keyword_dash_symbol (SCM keyword);
 extern void scm_init_keywords (void);
 
 #endif  /* KEYWORDSH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

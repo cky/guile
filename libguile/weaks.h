@@ -73,3 +73,9 @@ extern SCM scm_doubly_weak_hash_table_p (SCM x);
 extern void scm_init_weaks (void);
 
 #endif  /* WEAKSH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

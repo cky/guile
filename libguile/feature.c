@@ -350,3 +350,9 @@ scm_init_feature()
 
 #include "feature.x"
 }
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

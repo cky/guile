@@ -61,3 +61,9 @@ extern SCM scm_strptime (SCM format, SCM string);
 extern void scm_init_stime (void);
 
 #endif  /* STIMEH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

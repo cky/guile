@@ -139,3 +139,9 @@
 
 #endif  /* _SCMH */
 
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

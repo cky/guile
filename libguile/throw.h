@@ -101,3 +101,9 @@ extern SCM scm_ithrow (SCM key, SCM args, int noreturn);
 extern SCM scm_throw (SCM key, SCM args);
 extern void scm_init_throw (void);
 #endif  /* THROWH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

@@ -60,3 +60,9 @@ extern SCM scm_regexp_exec (SCM rx, SCM str, SCM start, SCM flags);
 extern void scm_init_regex_posix (void);
 
 #endif
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

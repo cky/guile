@@ -67,3 +67,9 @@ extern void scm_init_sort (void);
 
 
 
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

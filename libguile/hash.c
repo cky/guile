@@ -247,3 +247,9 @@ scm_init_hash ()
 #include "hash.x"
 }
 
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

@@ -778,3 +778,9 @@ scm_init_struct ()
   scm_sysintern ("vtable-offset-user", SCM_MAKINUM (scm_vtable_offset_user));
 #include "struct.x"
 }
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

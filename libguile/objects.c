@@ -492,3 +492,9 @@ scm_init_objects ()
 
 #include "objects.x"
 }
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

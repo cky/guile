@@ -70,3 +70,9 @@ extern SCM scm_sendto (SCM sockfd, SCM message, SCM fam, SCM address, SCM args_a
 extern void scm_init_socket (void);
 
 #endif  /* SOCKETH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

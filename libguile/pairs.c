@@ -167,3 +167,9 @@ scm_init_pairs ()
 #include "pairs.x"
 }
 
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

@@ -90,3 +90,9 @@ extern void scm_stack_report (void);
 extern void scm_init_stackchk (void);
 
 #endif  /* STACKCHKH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

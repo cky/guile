@@ -326,3 +326,9 @@ scm_init_gdbint ()
 
   tok_buf = scm_permanent_object (scm_makstr (30L, 0));
 }
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

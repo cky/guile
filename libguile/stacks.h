@@ -139,3 +139,9 @@ SCM scm_frame_overflow_p (SCM frame);
 void scm_init_stacks (void);
 
 #endif /* STACKSH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

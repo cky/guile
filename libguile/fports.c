@@ -735,3 +735,9 @@ scm_init_fports ()
   scm_sysintern ("_IOLBF", SCM_MAKINUM (_IOLBF));
   scm_sysintern ("_IONBF", SCM_MAKINUM (_IONBF));
 }
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

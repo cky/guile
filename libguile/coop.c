@@ -40,7 +40,7 @@
  * If you do not wish that, delete this exception notice.  */
 
 
-/* $Id: coop.c,v 1.18 2000-03-12 01:48:04 mdj Exp $ */
+/* $Id: coop.c,v 1.19 2000-03-19 19:01:10 cmm Exp $ */
 
 /* Cooperative thread library, based on QuickThreads */
 
@@ -739,3 +739,9 @@ scm_thread_usleep (unsigned long usec)
 }
 
 #endif /* GUILE_ISELECT */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

@@ -394,3 +394,9 @@ scm_init_procs ()
 {
 #include "procs.x"
 }
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

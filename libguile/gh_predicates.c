@@ -135,3 +135,9 @@ gh_null_p(SCM l)
 {
   return (SCM_NFALSEP(scm_null_p(l)));
 }
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

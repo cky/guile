@@ -119,3 +119,9 @@ gh_eval_file_with_standard_handler (const char *scheme_code)
 {
   return gh_eval_file_with_catch (scheme_code, gh_standard_handler);
 }
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

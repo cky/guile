@@ -122,3 +122,9 @@ extern coop_q_t coop_global_allq;	/* A queue of all threads. */
 extern coop_t *coop_global_curr;       	/* Currently-executing thread. */
 
 #endif /* COOP_THREADSH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

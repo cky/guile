@@ -127,3 +127,9 @@ extern void scm_init_print (void);
 extern SCM scm_current_pstate (void);
 #endif 
 #endif  /* PRINTH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

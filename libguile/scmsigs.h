@@ -57,3 +57,9 @@ extern SCM scm_raise (SCM sig);
 extern void scm_init_scmsigs (void);
 
 #endif  /* SCMSIGSH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

@@ -1,3 +1,8 @@
+2000-03-19  Michael Livshin  <mlivshin@bigfoot.com>
+
+	* *.[hc]: add Emacs magic at the end of file, to ensure GNU
+ 	indentation style.
+
 2000-03-12  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* readline.c (current_input_getc): Don't pass int values through

@@ -63,3 +63,9 @@ extern void scm_init_modules (void);
 extern void scm_post_boot_init_modules (void);
 
 #endif  /* MODULESH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

@@ -72,3 +72,9 @@ extern SCM scm_variable_bound_p (SCM var);
 extern void scm_init_variable (void);
 
 #endif  /* VARIABLEH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

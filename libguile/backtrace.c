@@ -642,3 +642,9 @@ scm_init_backtrace ()
 
 #include "backtrace.x"
 }
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

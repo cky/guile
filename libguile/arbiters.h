@@ -54,3 +54,9 @@ extern SCM scm_release_arbiter (SCM arb);
 extern void scm_init_arbiters (void);
 
 #endif  /* ARBITERSH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

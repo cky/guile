@@ -53,3 +53,9 @@ extern SCM scm_primitive_exit (SCM status);
 extern void scm_init_simpos (void);
 
 #endif  /* SIMPOSH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

@@ -54,3 +54,9 @@ extern SCM scm_m_undefine (SCM x, SCM env);
 extern void scm_init_evalext (void);
 
 #endif  /* EVALEXTH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

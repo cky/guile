@@ -979,3 +979,9 @@ scm_init_socket ()
 #include "socket.x"
 }
 
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

@@ -213,3 +213,9 @@ scm_init_vports ()
 {
 #include "vports.x"
 }
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

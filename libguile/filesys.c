@@ -1464,3 +1464,9 @@ scm_sysintern ("FD_CLOEXEC", scm_long2num (FD_CLOEXEC));
 
 #include "filesys.x"
 }
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

@@ -510,3 +510,9 @@ scm_init_load ()
 
 #include "load.x"
 }
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

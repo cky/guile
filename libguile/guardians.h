@@ -59,3 +59,9 @@ SCM scm_get_one_zombie (SCM guardian);
 void scm_init_guardian (void);
 
 #endif /* !SCM_GUARDIANH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

@@ -1,4 +1,4 @@
-/* $Id: validate.h,v 1.1 2000-03-03 00:11:46 gjb Exp $ */
+/* $Id: validate.h,v 1.2 2000-03-19 19:01:14 cmm Exp $ */
 /*	Copyright (C) 1999 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
@@ -289,3 +289,9 @@
   do { SCM_ASSERT (SCM_VECTORP (v) && len == SCM_LENGTH(v), v, pos, FUNC_NAME); } while (0)
 
 #endif
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

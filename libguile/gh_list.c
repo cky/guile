@@ -187,3 +187,9 @@ gh_set_cdr_x(SCM pair, SCM value)
 {
   return scm_set_cdr_x(pair, value);
 }
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

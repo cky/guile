@@ -160,3 +160,9 @@ inet_aton(const char *cp_arg, struct in_addr *addr)
 		addr->s_addr = htonl(val);
 	return (1);
 }
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

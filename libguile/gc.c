@@ -2600,3 +2600,9 @@ scm_init_gc ()
 {
 #include "gc.x"
 }
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

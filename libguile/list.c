@@ -784,3 +784,9 @@ scm_init_list ()
 {
 #include "list.x"
 }
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

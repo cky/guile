@@ -155,3 +155,9 @@ scm_init_threads (SCM_STACKITEM *i)
   /* Initialize implementation specific details of the threads support */
   scm_threads_init (i);
 }
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

@@ -389,3 +389,9 @@ extern unsigned long scm_num2ulong (SCM num, char *pos,
 extern void scm_init_numbers (void);
 
 #endif  /* NUMBERSH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

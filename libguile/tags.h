@@ -582,3 +582,9 @@ extern char *scm_isymnames[];   /* defined in print.c */
 #define scm_tcs_symbols scm_tc7_ssymbol:case scm_tc7_msymbol
 
 #endif  /* TAGSH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

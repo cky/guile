@@ -3894,3 +3894,9 @@ scm_init_eval ()
 }
 
 #endif /* !DEVAL */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

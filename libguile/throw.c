@@ -734,3 +734,9 @@ scm_init_throw ()
 					     NULL);
 #include "throw.x"
 }
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

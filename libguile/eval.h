@@ -227,3 +227,9 @@ extern SCM scm_eval_x (SCM obj);
 extern void scm_init_eval (void);
 
 #endif  /* EVALH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

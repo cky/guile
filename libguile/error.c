@@ -319,3 +319,9 @@ scm_init_error ()
 #include "error.x"
 }
 
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

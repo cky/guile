@@ -73,3 +73,9 @@ extern SCM scm_boolean_p (SCM obj);
 extern void scm_init_boolean (void);
 
 #endif  /* BOOLEANH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

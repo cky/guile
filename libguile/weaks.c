@@ -216,3 +216,9 @@ scm_init_weaks ()
 #include "weaks.x"
 }
 
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

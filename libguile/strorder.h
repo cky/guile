@@ -66,3 +66,9 @@ extern SCM scm_string_ci_geq_p (SCM s1, SCM s2);
 extern void scm_init_strorder (void);
 
 #endif  /* STRORDERH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

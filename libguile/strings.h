@@ -82,3 +82,9 @@ extern SCM scm_make_shared_substring (SCM str, SCM frm, SCM to);
 extern void scm_init_strings (void);
 
 #endif  /* STRINGSH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

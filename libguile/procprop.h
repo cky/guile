@@ -62,3 +62,9 @@ extern SCM scm_set_procedure_property_x (SCM p, SCM k, SCM v);
 extern void scm_init_procprop (void);
 
 #endif  /* PROCPROPH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

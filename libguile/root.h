@@ -170,3 +170,9 @@ extern SCM scm_call_catching_errors (SCM (*thunk)(), SCM (*err_filter)(), void *
 extern void scm_init_root (void);
 
 #endif  /* ROOTH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

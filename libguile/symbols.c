@@ -896,3 +896,9 @@ scm_init_symbols ()
   gensym_prefix = scm_permanent_object (scm_makfrom0str ("%%gensym"));
 #include "symbols.x"
 }
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

@@ -654,3 +654,9 @@ scm_init_stime()
 #include "stime.x"
 }
 
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

@@ -63,3 +63,9 @@ extern SCM scm_fdes_to_ports (SCM fd);
 extern void scm_init_ioext (void);
 
 #endif  /* IOEXTH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

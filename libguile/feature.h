@@ -76,3 +76,9 @@ extern SCM scm_hook_to_list (SCM hook);
 extern void scm_init_feature (void);
 
 #endif  /* FEATUREH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

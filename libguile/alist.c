@@ -394,3 +394,9 @@ scm_init_alist ()
 #include "alist.x"
 }
 
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

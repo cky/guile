@@ -116,3 +116,9 @@ extern SCM scm_signal_condition_variable (SCM cond);
 #endif
 
 #endif  /* THREADSH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

@@ -1325,3 +1325,9 @@ scm_sysintern ("PIPE_BUF", scm_long2num (PIPE_BUF));
 #include "cpp_sig_symbols.c"
 #include "posix.x"
 }
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

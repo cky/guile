@@ -22,3 +22,9 @@ memmove (PTR s1, CPTR s2, size_t n)
   bcopy (s2, s1, n);
   return s1;
 }
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

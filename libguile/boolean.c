@@ -79,3 +79,9 @@ scm_init_boolean ()
 #include "boolean.x"
 }
 
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

@@ -56,3 +56,9 @@ extern int scm_print_carefully_p;
 extern void scm_init_gdbint (void);
 
 #endif /* GDBINTH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

@@ -492,3 +492,9 @@ i00afunc (long address)
 
 #endif /* no alloca */
 #endif /* not GCC version 2 */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

@@ -112,3 +112,9 @@ putenv (const char *string)
 
   return 0;
 }
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

@@ -72,3 +72,9 @@ extern SCM scm_array_equal_p (SCM ra0, SCM ra1);
 extern void scm_init_ramap (void);
 
 #endif  /* RAMAPH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

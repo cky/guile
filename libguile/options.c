@@ -237,3 +237,9 @@ scm_init_options ()
   protected_objects = scm_permanent_object (scm_cons (SCM_UNDEFINED, SCM_EOL));
 #include "options.x"
 }
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

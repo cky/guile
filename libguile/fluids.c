@@ -262,3 +262,9 @@ scm_init_fluids ()
                                            NULL, NULL, print_fluid, NULL);
 #include "fluids.x"
 }
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

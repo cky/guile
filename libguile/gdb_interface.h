@@ -124,3 +124,9 @@ extern int gdb_print (GDB_TYPE value);
 extern int gdb_binding (GDB_TYPE name, GDB_TYPE value);
 
 #endif /* GDB_INTERFACE_H */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

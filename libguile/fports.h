@@ -79,3 +79,9 @@ extern SCM scm_fdes_to_port (int fdes, char *mode, SCM name);
 extern void scm_init_fports (void);
 
 #endif  /* FPORTSH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

@@ -212,3 +212,9 @@ scm_init_gsubr()
   scm_make_gsubr("gsubr-2-1-l", 2, 1, 1, gsubr_21l); /* example */
 #endif
 }
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

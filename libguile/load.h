@@ -60,3 +60,9 @@ extern SCM scm_read_and_eval_x (SCM port);
 extern void scm_init_load (void);
 
 #endif  /* LOADH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

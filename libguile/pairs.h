@@ -245,3 +245,9 @@ extern SCM scm_set_cdr_x (SCM pair, SCM value);
 extern void scm_init_pairs (void);
 
 #endif  /* PAIRSH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

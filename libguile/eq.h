@@ -53,3 +53,9 @@ extern SCM scm_equal_p (SCM x, SCM y);
 extern void scm_init_eq (void);
 
 #endif  /* EQH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

@@ -98,3 +98,9 @@ extern SCM scm_sync (void);
 extern void scm_init_posix (void);
 
 #endif  /* POSIXH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

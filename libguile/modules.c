@@ -198,3 +198,9 @@ scm_post_boot_init_modules ()
   resolve_module = scm_intern0 ("resolve-module");
   try_module_autoload = scm_intern0 ("try-module-autoload");
 }
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

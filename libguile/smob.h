@@ -174,3 +174,9 @@ extern void scm_smob_prehistory (void);
 extern long scm_newsmob (const scm_smobfuns *smob);
 
 #endif  /* SMOBH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

@@ -474,3 +474,9 @@ scm_init_async ()
 
 #include "async.x"
 }
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

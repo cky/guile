@@ -82,3 +82,9 @@ extern SCM scm_mask_signals (void);
 extern void scm_init_async (void);
 
 #endif  /* ASYNCH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

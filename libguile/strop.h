@@ -70,3 +70,9 @@ extern SCM scm_string_ci_to_symbol (SCM v);
 #define scm_substring_move_right_x scm_substring_move_x
 
 #endif  /* STROPH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

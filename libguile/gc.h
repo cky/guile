@@ -139,3 +139,9 @@ extern int scm_init_storage (scm_sizet init_heap_size,
 #endif
 extern void scm_init_gc (void);
 #endif  /* GCH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

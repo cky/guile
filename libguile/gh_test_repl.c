@@ -163,3 +163,9 @@ c_vector_test (SCM s_length)
 
   return xvec;
 }
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

@@ -71,3 +71,9 @@ extern SCM scm_gsubr_apply (SCM args);
 extern void scm_init_gsubr (void);
 
 #endif  /* GSUBRH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

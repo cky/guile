@@ -87,3 +87,9 @@ extern SCM scm_wta (SCM arg, const char *pos, const char *s_subr);
 extern void scm_init_error (void);
 
 #endif  /* ERRORH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

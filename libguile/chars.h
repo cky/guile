@@ -92,3 +92,9 @@ extern int scm_downcase (unsigned int c);
 extern void scm_init_chars (void);
 
 #endif  /* SCM_CHARSH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

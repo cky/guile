@@ -533,3 +533,9 @@ scm_init_ioext ()
 #include "ioext.x"
 }
 
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

@@ -276,3 +276,9 @@ scm_init_guardian()
 
 #include "guardians.x"
 }
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

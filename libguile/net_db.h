@@ -67,3 +67,9 @@ extern SCM scm_setserv (SCM arg);
 extern void scm_init_net_db (void);
 
 #endif  /* NETDBH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

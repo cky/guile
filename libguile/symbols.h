@@ -144,3 +144,9 @@ extern void scm_init_symbols (void);
 extern int scm_can_use_top_level_lookup_closure_var;
 
 #endif  /* SYMBOLSH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

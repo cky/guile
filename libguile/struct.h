@@ -120,3 +120,9 @@ extern void scm_print_struct (SCM exp, SCM port, scm_print_state *);
 extern void scm_init_struct (void);
 
 #endif  /* STRUCTH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

@@ -182,3 +182,9 @@ SCM_VCELL_INIT(c_name, scheme_name, scm_long2num(value))
 
 #endif /* LIBGUILE_SNARF_H */
 
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

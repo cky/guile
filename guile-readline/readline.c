@@ -523,3 +523,9 @@ scm_init_readline ()
 }
 
 #endif 
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

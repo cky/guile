@@ -4629,3 +4629,9 @@ scm_init_numbers ()
 #endif /* DBL_DIG */
 #include "numbers.x"
 }
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

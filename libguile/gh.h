@@ -246,3 +246,9 @@ void gh_newline (void);
 #endif
 
 #endif /* __GH_H */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

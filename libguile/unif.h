@@ -130,3 +130,9 @@ extern SCM scm_array_prototype (SCM ra);
 extern void scm_init_unif (void);
 
 #endif  /* UNIFH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

@@ -58,3 +58,9 @@ extern SCM scm_malloc_obj (scm_sizet n);
 extern void scm_init_mallocs (void);
 
 #endif  /* MALLOCSH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

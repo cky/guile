@@ -89,3 +89,9 @@ extern SCM scm_basename (SCM filename, SCM suffix);
 extern void scm_init_filesys (void);
 
 #endif  /* FILESYSH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

@@ -953,3 +953,9 @@ scm_init_sort ()
 
   scm_add_feature ("sort");
 }
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

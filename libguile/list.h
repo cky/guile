@@ -102,3 +102,9 @@ extern SCM scm_delete1_x (SCM item, SCM lst);
 extern void scm_init_list (void);
 
 #endif  /* LISTH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

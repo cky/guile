@@ -60,3 +60,9 @@ extern char *scm_usage_name;
 extern void scm_init_script (void);
 
 #endif  /* SCRIPTH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

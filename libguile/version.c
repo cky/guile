@@ -102,3 +102,9 @@ scm_init_version ()
 {
 #include "version.x"
 }
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

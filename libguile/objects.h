@@ -240,3 +240,9 @@ extern SCM scm_i_make_class_object (SCM metaclass, SCM layout_string,
 extern void scm_init_objects (void);
 
 #endif /* OBJECTSH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

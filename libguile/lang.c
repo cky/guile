@@ -153,3 +153,9 @@ scm_init_lang ()
 #include "lang.x"
   scm_make_synt ("nil-while", scm_makacro, scm_m_while);
 }
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

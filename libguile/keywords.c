@@ -141,3 +141,9 @@ scm_init_keywords ()
 #include "keywords.x"
 }
 
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

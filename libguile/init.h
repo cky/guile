@@ -56,3 +56,9 @@ extern void scm_boot_guile (int argc, char **argv,
 extern void scm_load_startup_files (void);
 
 #endif  /* INITH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

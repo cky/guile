@@ -69,3 +69,9 @@ extern SCM scm_nil_eq (SCM x, SCM y);
 extern void scm_init_lang (void);
 
 #endif  /* PAIRSH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

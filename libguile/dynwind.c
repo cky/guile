@@ -273,3 +273,9 @@ scm_init_dynwind ()
                                          NULL, scm_free0, printguards, NULL);
 #include "dynwind.x"
 }
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

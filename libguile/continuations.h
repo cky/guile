@@ -76,3 +76,9 @@ extern SCM scm_call_continuation (SCM cont, SCM val);
 extern void scm_init_continuations (void);
 
 #endif  /* CONTINUATIONSH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

@@ -1376,3 +1376,9 @@ scm_init_ports ()
 					   write_void_port);
 #include "ports.x"
 }
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

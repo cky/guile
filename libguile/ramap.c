@@ -1997,3 +1997,9 @@ scm_init_ramap ()
 #include "ramap.x"
   scm_add_feature (s_scm_array_for_each);
 }
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

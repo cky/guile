@@ -242,3 +242,9 @@ scm_init_procprop ()
 #include "procprop.x"
 }
 
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

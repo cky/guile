@@ -386,3 +386,9 @@ scm_init_vectors ()
     scm_make_subr (s_resizuve, scm_tc7_subr_2, scm_vector_set_length_x); */
 }
 
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

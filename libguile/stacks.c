@@ -755,3 +755,9 @@ scm_init_stacks ()
 				SCM_CAR (scm_intern0 ("stack")));
 #include "stacks.x"
 }
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

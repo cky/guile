@@ -63,3 +63,9 @@ SCM scm_set_print_params_x (SCM params);
 void scm_init_backtrace (void);
 
 #endif /* BACKTRACEH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

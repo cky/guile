@@ -644,3 +644,9 @@ scm_init_script ()
 {
 #include "script.x"
 }
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

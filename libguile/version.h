@@ -54,3 +54,9 @@ extern SCM scm_version (void);
 extern void scm_init_version (void);
 
 #endif  /* VERSIONH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

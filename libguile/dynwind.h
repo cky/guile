@@ -64,3 +64,9 @@ extern SCM scm_wind_chain (void);
 #endif /*GUILE_DEBUG*/
 
 #endif  /* DYNWINDH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

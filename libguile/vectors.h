@@ -86,3 +86,9 @@ extern SCM scm_vector_move_right_x (SCM vec1, SCM start1, SCM end1,
 extern void scm_init_vectors (void);
 
 #endif  /* VECTORSH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

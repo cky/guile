@@ -61,3 +61,9 @@ SCM scm_dynamic_args_call (SCM symb, SCM dobj, SCM args);
 void scm_init_dynamic_linking (void);
 
 #endif  /* LIBGUILE_DYNL_H */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

@@ -296,3 +296,9 @@ scm_init_regex_posix ()
 
   scm_add_feature ("regex");
 }
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

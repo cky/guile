@@ -446,3 +446,9 @@ scm_init_root ()
                                           
 #include "root.x"
 }
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

@@ -106,3 +106,9 @@ scm_init_stackchk ()
 {
 #include "stackchk.x"
 }
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

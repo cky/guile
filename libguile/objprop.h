@@ -60,3 +60,9 @@ extern SCM scm_set_object_property_x (SCM obj, SCM key, SCM val);
 extern void scm_init_objprop (void);
 
 #endif  /* OBJPROPH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

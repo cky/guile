@@ -100,3 +100,9 @@ extern void scm_init_iselect (void);
 #endif /* GUILE_ISELECT */
 
 #endif
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

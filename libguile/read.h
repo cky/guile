@@ -90,3 +90,9 @@ extern SCM scm_read_hash_extend (SCM chr, SCM proc);
 extern void scm_init_read (void);
 
 #endif  /* READH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

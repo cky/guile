@@ -642,3 +642,9 @@ scm_init_debug ()
 
 #include "debug.x"
 }
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

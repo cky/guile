@@ -302,3 +302,9 @@ extern SCM scm_pt_member (SCM member);
 #endif /* GUILE_DEBUG */
 
 #endif  /* PORTSH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

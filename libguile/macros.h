@@ -65,3 +65,9 @@ extern SCM scm_make_synt (const char *name,
 extern void scm_init_macros (void);
 
 #endif /* MACROSH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

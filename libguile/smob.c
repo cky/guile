@@ -278,3 +278,9 @@ scm_smob_prehistory ()
 
   scm_make_smob_type ("allocated", 0);
 }
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

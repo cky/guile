@@ -283,3 +283,9 @@ do { \
 #define SCM_SET_THREAD_LOCAL_DATA(ptr) (coop_global_curr->data = (ptr))
 
 #endif /* COOP_DEFSH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

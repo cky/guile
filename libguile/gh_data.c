@@ -692,3 +692,9 @@ gh_module_lookup (SCM vec, char *sname)
   else
     return SCM_UNDEFINED;
 }
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

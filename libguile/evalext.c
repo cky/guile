@@ -160,3 +160,9 @@ scm_init_evalext ()
   scm_make_synt (scm_s_set_x, scm_makmmacro, scm_m_generalized_set_x);
 #include "evalext.x"
 }
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

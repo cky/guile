@@ -1121,3 +1121,9 @@ scm_init_print ()
   
 #include "print.x"
 }
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

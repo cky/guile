@@ -31,3 +31,9 @@ strerror (int errnum)
     return sys_errlist[errnum];
   return (char *) "Unknown error";
 }
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

@@ -127,3 +127,9 @@ extern SCM scm_random_exp (SCM state);
 extern void scm_init_random (void);
 
 #endif  /* RANDOMH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

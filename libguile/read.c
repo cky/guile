@@ -787,3 +787,9 @@ scm_init_read ()
   scm_init_opts (scm_read_options, scm_read_opts, SCM_N_READ_OPTIONS);
 #include "read.x"
 }
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

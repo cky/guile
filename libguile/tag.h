@@ -56,3 +56,9 @@ extern SCM scm_tag (SCM x);
 extern void scm_init_tag (void);
 
 #endif  /* TAGH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

@@ -547,3 +547,9 @@ extern struct errdesc scm_errmsgs[];
 
 
 #endif  /* __SCMH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

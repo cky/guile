@@ -61,3 +61,9 @@ gh_newline ()
 {
   scm_newline (scm_current_output_port ());
 }
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

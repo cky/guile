@@ -103,3 +103,9 @@ gh_standard_handler (void *data, SCM tag, SCM throw_args)
 
   return SCM_BOOL_F;
 }
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

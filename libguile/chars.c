@@ -400,3 +400,9 @@ scm_init_chars ()
 #include "chars.x"
 }
 
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

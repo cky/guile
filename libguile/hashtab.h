@@ -84,3 +84,9 @@ extern SCM scm_hash_fold (SCM proc, SCM init, SCM hash);
 extern void scm_init_hashtab (void);
 
 #endif  /* HASHTABH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

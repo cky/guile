@@ -67,3 +67,9 @@ extern SCM scm_assoc_remove_x (SCM alist, SCM key);
 extern void scm_init_alist (void);
 
 #endif  /* ALISTH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

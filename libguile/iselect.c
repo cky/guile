@@ -693,3 +693,9 @@ scm_internal_select (int nfds,
   return coop_global_curr->retval;
 #endif /* GUILE_ISELECT */
 }
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

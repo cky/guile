@@ -570,3 +570,9 @@ scm_init_net_db ()
   scm_add_feature ("net-db");
 #include "net_db.x"
 }
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

@@ -218,3 +218,9 @@ scm_init_tag ()
 #include "tag.x"
 }
 
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

@@ -467,3 +467,9 @@ scm_signal_condition_variable (SCM c)
   coop_condition_variable_signal (SCM_CONDVAR_DATA (c));
   return SCM_BOOL_T;
 }
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

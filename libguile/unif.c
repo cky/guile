@@ -2522,3 +2522,9 @@ scm_init_unif ()
   scm_add_feature ("array");
 #include "unif.x"
 }
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

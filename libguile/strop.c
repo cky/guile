@@ -494,3 +494,9 @@ scm_init_strop ()
 {
 #include "strop.x"
 }
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

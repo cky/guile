@@ -59,3 +59,9 @@ extern SCM scm_eval_string (SCM string);
 extern void scm_init_strports (void);
 
 #endif  /* STRPORTSH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

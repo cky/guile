@@ -208,3 +208,9 @@ scm_init_continuations ()
 #include "continuations.x"
 }
 
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

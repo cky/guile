@@ -216,3 +216,9 @@ extern SCM scm_debug_hang (SCM obj);
 #endif /*GUILE_DEBUG*/
 
 #endif /* DEBUGH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

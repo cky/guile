@@ -620,3 +620,9 @@ invoke_main_func (void *body_data)
   /* never reached */
   return SCM_UNDEFINED;
 }
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

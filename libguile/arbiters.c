@@ -130,3 +130,9 @@ scm_init_arbiters ()
                                               scm_markcdr, NULL, prinarb, NULL);
 #include "arbiters.x"
 }
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

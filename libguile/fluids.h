@@ -107,3 +107,9 @@ void scm_swap_fluids_reverse (SCM fluids, SCM vals);
 void scm_init_fluids (void);
 
 #endif /* !FLUIDSH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

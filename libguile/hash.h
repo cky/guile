@@ -58,3 +58,9 @@ extern SCM scm_hash (SCM obj, SCM n);
 extern void scm_init_hash (void);
 
 #endif  /* HASHH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

@@ -561,3 +561,9 @@ scm_init_dynamic_linking ()
 #include "dynl.x"
   kw_global = scm_make_keyword_from_dash_symbol (sym_global);
 }
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

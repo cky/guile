@@ -183,3 +183,9 @@ scm_init_macros ()
                                            scm_markcdr, NULL, NULL, NULL);
 #include "macros.x"
 }
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

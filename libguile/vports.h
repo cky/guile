@@ -52,3 +52,9 @@ extern SCM scm_make_soft_port (SCM pv, SCM modes);
 extern void scm_init_vports (void);
 
 #endif  /* VPORTSH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

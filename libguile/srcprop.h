@@ -135,3 +135,9 @@ extern void scm_finish_srcprop (void);
 extern void scm_init_srcprop (void);
 
 #endif /* SRCPROPH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

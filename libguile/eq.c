@@ -207,3 +207,9 @@ scm_init_eq ()
 #include "eq.x"
 }
 
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

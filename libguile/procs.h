@@ -199,3 +199,9 @@ extern SCM scm_make_cclo (SCM proc, SCM len);
 
 
 #endif  /* PROCSH */
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/

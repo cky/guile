@@ -380,3 +380,9 @@ scm_init_strings ()
 #include "strings.x"
 }
 
+
+/*
+  Local Variables:
+  c-file-style: "gnu"
+  End:
+*/
