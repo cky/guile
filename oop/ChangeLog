@@ -1,3 +1,8 @@
+2000-12-15  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* goops/save.scm (load-objects):  eval-in-module is deprecated.
+	Use eval instead.
+
 2000-11-24  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* goops.scm:  Don't export removed %logand any more.

@@ -869,7 +869,7 @@
        (let loop ((sexp (read file)))
 	 (if (not (eof-object? sexp))
 	     (begin
-	       (eval-in-module sexp m)
+	       (eval sexp m)
 	       (loop (read file)))))))
     (module-map (lambda (name var)
 		  (cons name (variable-ref var)))
