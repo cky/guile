@@ -40,7 +40,7 @@ loading and evaluating Scheme code at run time.
 
 An expression to be evaluated takes one of the following forms.
 
-@deffn syntax <symbol>
+@deffn syntax <symbol> {}
 A symbol is evaluated by dereferencing.  A binding of that symbol is
 sought and the value there used.  For example,
 
@@ -50,7 +50,7 @@ x @result{} 123
 @end example
 @end deffn
 
-@deffn syntax (proc [args @dots{}])
+@deffn {syntax} {} (proc [args @dots{}])
 A parenthesised expression is a function call.  @var{proc} and each
 argument are evaluated, then the function (which @var{proc} evaluated
 to) is called with those arguments.
