@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2003 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001,2003 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -80,15 +80,15 @@ SCM_PRIMITIVE_GENERIC_1 (scm_eqv_p, "eqv?", scm_tc7_rpsubr,
   if (SCM_CELL_TYPE (x) != SCM_CELL_TYPE (y))
     {
       /* treat mixes of real and complex types specially */
-      if (SCM_SLOPPY_INEXACTP (x))
+      if (SCM_INEXACTP (x))
 	{
-	  if (SCM_SLOPPY_REALP (x))
-	    return SCM_BOOL (SCM_SLOPPY_COMPLEXP (y)
+	  if (SCM_REALP (x))
+	    return SCM_BOOL (SCM_COMPLEXP (y)
 			     && real_eqv (SCM_REAL_VALUE (x),
 					  SCM_COMPLEX_REAL (y))
-			     && 0.0 == SCM_COMPLEX_IMAG (y));
+			     && SCM_COMPLEX_IMAG (y) == 0.0);
 	  else
-	    return SCM_BOOL (SCM_SLOPPY_REALP (y)
+	    return SCM_BOOL (SCM_REALP (y)
 			     && real_eqv (SCM_COMPLEX_REAL (x),
 					  SCM_REAL_VALUE (y))
 			     && SCM_COMPLEX_IMAG (x) == 0.0);
@@ -98,8 +98,8 @@ SCM_PRIMITIVE_GENERIC_1 (scm_eqv_p, "eqv?", scm_tc7_rpsubr,
   if (SCM_NUMP (x))
     {
       if (SCM_BIGP (x)) {
-	return SCM_BOOL (0 == scm_i_bigcmp (x, y));
-      } else if (SCM_SLOPPY_REALP (x)) {
+	return SCM_BOOL (scm_i_bigcmp (x, y) == 0);
+      } else if (SCM_REALP (x)) {
 	return SCM_BOOL (real_eqv (SCM_REAL_VALUE (x), SCM_REAL_VALUE (y)));
       } else { /* complex */
 	return SCM_BOOL (real_eqv (SCM_COMPLEX_REAL (x),
@@ -149,14 +149,14 @@ SCM_PRIMITIVE_GENERIC_1 (scm_equal_p, "equal?", scm_tc7_rpsubr,
   if (SCM_CELL_TYPE (x) != SCM_CELL_TYPE (y))
     {
       /* treat mixes of real and complex types specially */
-      if (SCM_SLOPPY_INEXACTP (x))
+      if (SCM_INEXACTP (x))
 	{
-	  if (SCM_SLOPPY_REALP (x))
-	    return SCM_BOOL (SCM_SLOPPY_COMPLEXP (y)
+	  if (SCM_REALP (x))
+	    return SCM_BOOL (SCM_COMPLEXP (y)
 			     && SCM_REAL_VALUE (x) == SCM_COMPLEX_REAL (y)
-			     && 0.0 == SCM_COMPLEX_IMAG (y));
+			     && SCM_COMPLEX_IMAG (y) == 0.0);
 	  else
-	    return SCM_BOOL (SCM_SLOPPY_REALP (y)
+	    return SCM_BOOL (SCM_REALP (y)
 			     && SCM_COMPLEX_REAL (x) == SCM_REAL_VALUE (y)
 			     && SCM_COMPLEX_IMAG (x) == 0.0);
 	}

@@ -1,3 +1,17 @@
+2003-09-06  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* eq.c (scm_eqv_p, scm_equal_p): Removed uses of
+	SCM_SLOPPY_INEXACTP, SCM_SLOPPY_REALP and SCM_SLOPPY_COMPLEXP.
+
+	* eq.c (scm_eqv_p, scm_equal_p): Reordered comparisons from
+	0.0==some_expression to some_expression==0.0.  The latter is
+	better readable.  The former is preferred by some people, since it
+	leads to a compiler error when confusing == with =.  However, when
+	using gcc, a warning will be issued if in an if-statement an
+	assigment appears.  Since many Guile developers are using gcc,
+	such errors will not remain unnoticed anyway.  We can therefore
+	focus on better readability.
+
 2003-09-04  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* tags.h: Added description of Guile's type system.  Removed some
