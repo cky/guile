@@ -42,9 +42,11 @@ host_triplet = @host@
 RANLIB = @RANLIB@
 qtmd_h = @qtmd_h@
 CC = @CC@
+qtmds_o = @qtmds_o@
+qtmdc_o = @qtmdc_o@
 target_libs = @target_libs@
-qtmdc_c = @qtmdc_c@
 qtmds_s = @qtmds_s@
+qtmdc_c = @qtmdc_c@
 qtmdb_s = @qtmdb_s@
 
 AUTOMAKE_OPTIONS = foreign
