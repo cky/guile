@@ -3,7 +3,7 @@
 #ifndef SCM_STRINGS_H
 #define SCM_STRINGS_H
 
-/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2004 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2004, 2005 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -156,7 +156,7 @@ SCM_API size_t scm_i_deprecated_string_length (SCM str);
 #define SCM_STRINGP(x)       scm_i_deprecated_stringp(x)
 #define SCM_STRING_CHARS(x)  scm_i_deprecated_string_chars(x)
 #define SCM_STRING_LENGTH(x) scm_i_deprecated_string_length(x)
-#define SCM_STRING_UCHARS    ((unsigned char *)SCM_STRING_CHARS (str))
+#define SCM_STRING_UCHARS(str) ((unsigned char *)SCM_STRING_CHARS (str))
 
 #endif
 
