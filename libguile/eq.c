@@ -211,7 +211,6 @@ SCM_PRIMITIVE_GENERIC_1 (scm_equal_p, "equal?", scm_tc7_rpsubr,
 #if SCM_SIZEOF_LONG_LONG != 0
     case scm_tc7_llvect:
 #endif
-    case scm_tc7_byvect:
       if (scm_tc16_array && scm_smobs[SCM_TC2SMOBNUM (scm_tc16_array)].equalp)
 	return scm_array_equal_p (x, y);
 #endif

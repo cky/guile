@@ -39,7 +39,7 @@
 #include "libguile/validate.h"
 #include "libguile/deprecation.h"
 #include "libguile/gc.h"
-
+#include "libguile/srfi-4.h"
 
 #include "libguile/private-gc.h"
 
@@ -157,7 +157,6 @@ scm_i_sweep_card (scm_t_cell *  p, SCM *free_list, scm_t_heap_segment*seg)
 	      }
 	  }
 	  break;
-	case scm_tc7_byvect:
 	case scm_tc7_ivect:
 	case scm_tc7_uvect:
 	case scm_tc7_svect:

@@ -102,7 +102,6 @@ SCM_DEFINE (scm_self_evaluating_p, "self-evaluating?", 1, 0, 0,
 	case scm_tc7_wvect:
 #if SCM_HAVE_ARRAYS
 	case scm_tc7_bvect:
-	case scm_tc7_byvect:
 	case scm_tc7_svect:
 	case scm_tc7_ivect:
 	case scm_tc7_uvect:
