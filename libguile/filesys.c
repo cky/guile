@@ -427,24 +427,25 @@ scm_stat (object)
   struct stat stat_temp;
 
   SCM_DEFER_INTS;
-  if (SCM_INUMP (object) || (SCM_NIMP (object) && SCM_OPFPORTP (object)))
-    {
-      if (SCM_INUMP (object))
-	fdes = SCM_INUM (object);
-      else
-	{
-	  fdes = fileno ((FILE *) SCM_STREAM (SCM_COERCE_OUTPORT (object)));
-	  if (fdes == -1)
-	    scm_syserror (s_stat);
-	}
-      SCM_SYSCALL (rv = fstat (fdes, &stat_temp));
-    }
+  if (SCM_INUMP (object))
+    SCM_SYSCALL (rv = fstat (SCM_INUM (object), &stat_temp));
   else
     {
-      SCM_ASSERT (SCM_NIMP (object) && SCM_ROSTRINGP (object),
-		  object, SCM_ARG1, s_stat);
-      SCM_COERCE_SUBSTR (object);
-      SCM_SYSCALL (rv = stat (SCM_ROCHARS (object), &stat_temp));
+      SCM_ASSERT (SCM_NIMP (object), object, SCM_ARG1, s_stat);
+      if (SCM_ROSTRINGP (object))
+	{
+	  SCM_COERCE_SUBSTR (object);
+	  SCM_SYSCALL (rv = stat (SCM_ROCHARS (object), &stat_temp));
+	}
+      else
+	{
+	  object = SCM_COERCE_OUTPORT (object);
+	  SCM_ASSERT (SCM_OPFPORTP (object), object, SCM_ARG1, s_stat);
+	  fdes = fileno ((FILE *) SCM_STREAM (object));
+	  if (fdes == -1)
+	    scm_syserror (s_stat);
+	  SCM_SYSCALL (rv = fstat (fdes, &stat_temp));
+	}
     }
   if (rv == -1)
     {

@@ -1,10 +1,9 @@
 1997-12-04  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* print.h (SCM_COERCE_OUTPORT): Check that the object is a pair
-	before taking the CDR.
+	before taking the CDR. (Thanks to Harald Meland.)
 
-	* filesys.c (scm_stat): Coerce output port only if argument *is*
-	an output port!  (Thanks to Harald Meland.)
+	* filesys.c (scm_stat): Slightly optimized.
 
 Wed Dec  3 12:23:06 1997  Jim Blandy  <jimb@totoro.red-bean.com>
 
