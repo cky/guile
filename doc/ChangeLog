@@ -1,5 +1,12 @@
 2001-04-09  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* deprecated.texi (Shared And Read Only Strings): New section for
+	deprecated string stuff.  I've also updated the text a bit to
+	reflect current usage of "read only" strings.
+
+	* scheme-data.texi (Shared Substrings, Read Only Strings): Moved
+	to deprecated.texi.
+
 	* deprecated.texi, posix.texi, scheme-binding.texi,
 	scheme-control.texi, scheme-data.texi, scheme-debug.texi,
 	scheme-evaluation.texi, scheme-io.texi, scheme-memory.texi,

@@ -1,3 +1,8 @@
+2001-04-09  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* strings.c (scm_read_only_string_p): Update docstring to reflect
+	current (non-)usage of "read only" strings.
+
 2001-04-06  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* hooks.c (scm_make_hook, scm_make_hook_with_name),

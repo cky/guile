@@ -169,38 +169,38 @@ add it to the system's list of active async objects.
 @end deffn
 
 async-mark
-@c snarfed from async.c:317
+@c snarfed from async.c:311
 @deffn primitive async-mark a
 Mark the async @var{a} for future execution.
 @end deffn
 
 system-async-mark
-@c snarfed from async.c:333
+@c snarfed from async.c:327
 @deffn primitive system-async-mark a
 Mark the async @var{a} for future execution.
 @end deffn
 
 run-asyncs
-@c snarfed from async.c:353
+@c snarfed from async.c:347
 @deffn primitive run-asyncs list_of_a
 Execute all thunks from the asyncs of the list @var{list_of_a}.
 @end deffn
 
 noop
-@c snarfed from async.c:387
+@c snarfed from async.c:381
 @deffn primitive noop . args
 Do nothing.  When called without arguments, return @code{#f},
 otherwise return the first argument.
 @end deffn
 
 unmask-signals
-@c snarfed from async.c:439
+@c snarfed from async.c:433
 @deffn primitive unmask-signals
 Unmask signals. The returned value is not specified.
 @end deffn
 
 mask-signals
-@c snarfed from async.c:450
+@c snarfed from async.c:444
 @deffn primitive mask-signals
 Mask signals. The returned value is not specified.
 @end deffn
@@ -226,7 +226,7 @@ output.
 @end deffn
 
 display-backtrace
-@c snarfed from backtrace.c:617
+@c snarfed from backtrace.c:619
 @deffn primitive display-backtrace stack port [first [depth]]
 Display a backtrace to the output port @var{port}. @var{stack}
 is the stack to take the backtrace from, @var{first} specifies
@@ -236,7 +236,7 @@ which means that default values will be used.
 @end deffn
 
 backtrace
-@c snarfed from backtrace.c:640
+@c snarfed from backtrace.c:642
 @deffn primitive backtrace
 Display a backtrace of the stack saved by the last error
 to the current output port.
@@ -457,7 +457,7 @@ is implicit).
 @end deffn
 
 debug-object?
-@c snarfed from debug.c:576
+@c snarfed from debug.c:575
 @deffn primitive debug-object? obj
 Return @code{#t} if @var{obj} is a debug object.
 @end deffn
@@ -483,7 +483,7 @@ only by module bookkeeping operations.
 @end deffn
 
 dynamic-link
-@c snarfed from dynl.c:356
+@c snarfed from dynl.c:357
 @deffn primitive dynamic-link filename
 Open the dynamic library called @var{filename}.  A library
 handle representing the opened library is returned; this handle
@@ -492,14 +492,14 @@ functions.
 @end deffn
 
 dynamic-object?
-@c snarfed from dynl.c:372
+@c snarfed from dynl.c:373
 @deffn primitive dynamic-object? obj
 Return @code{#t} if @var{obj} is a dynamic library handle, or @code{#f}
 otherwise.
 @end deffn
 
 dynamic-unlink
-@c snarfed from dynl.c:388
+@c snarfed from dynl.c:386
 @deffn primitive dynamic-unlink dobj
 Unlink the indicated object file from the application.  The
 argument @var{dobj} must have been obtained by a call to
@@ -508,7 +508,7 @@ called on @var{dobj}, its content is no longer accessible.
 @end deffn
 
 dynamic-func
-@c snarfed from dynl.c:415
+@c snarfed from dynl.c:413
 @deffn primitive dynamic-func name dobj
 Search the dynamic object @var{dobj} for the C function
 indicated by the string @var{name} and return some Scheme
@@ -522,7 +522,7 @@ needed or not and will add it when necessary.
 @end deffn
 
 dynamic-call
-@c snarfed from dynl.c:460
+@c snarfed from dynl.c:453
 @deffn primitive dynamic-call func dobj
 Call the C function indicated by @var{func} and @var{dobj}.
 The function is passed no arguments and its return value is
@@ -539,7 +539,7 @@ Interrupts are deferred while the C function is executing (with
 @end deffn
 
 dynamic-args-call
-@c snarfed from dynl.c:494
+@c snarfed from dynl.c:481
 @deffn primitive dynamic-args-call func dobj args
 Call the C function indicated by @var{func} and @var{dobj},
 just like @code{dynamic-call}, but pass it some arguments and
@@ -557,7 +557,7 @@ converted to a Scheme number and returned from the call to
 @end deffn
 
 dynamic-wind
-@c snarfed from dynwind.c:115
+@c snarfed from dynwind.c:121
 @deffn primitive dynamic-wind in_guard thunk out_guard
 All three arguments must be 0-argument procedures.
 @var{in_guard} is called, then @var{thunk}, then
@@ -981,7 +981,7 @@ terminate if its arguments are circular data structures.
 @end deffn
 
 scm-error
-@c snarfed from error.c:112
+@c snarfed from error.c:114
 @deffn primitive scm-error key subr message args data
 Raise an error with key @var{key}.  @var{subr} can be a string
 naming the procedure associated with the error, or @code{#f}.
@@ -999,14 +999,14 @@ it will usually be @code{#f}.
 @end deffn
 
 strerror
-@c snarfed from error.c:153
+@c snarfed from error.c:156
 @deffn primitive strerror err
 Return the Unix error message corresponding to @var{err}, which
 must be an integer value.
 @end deffn
 
 apply:nconc2last
-@c snarfed from eval.c:3221
+@c snarfed from eval.c:3256
 @deffn primitive apply:nconc2last lst
 Given a list (@var{arg1} @dots{} @var{args}), this function
 conses the @var{arg1} @dots{} arguments onto the front of
@@ -1018,7 +1018,7 @@ destroys its argument, so use with care.
 @end deffn
 
 force
-@c snarfed from eval.c:3754
+@c snarfed from eval.c:3789
 @deffn primitive force x
 If the promise @var{x} has not been computed yet, compute and
 return @var{x}, otherwise just return the previously computed
@@ -1026,14 +1026,14 @@ value.
 @end deffn
 
 promise?
-@c snarfed from eval.c:3777
+@c snarfed from eval.c:3812
 @deffn primitive promise? obj
 Return true if @var{obj} is a promise, i.e. a delayed computation
 (@pxref{Delayed evaluation,,,r4rs.info,The Revised^4 Report on Scheme}).
 @end deffn
 
 cons-source
-@c snarfed from eval.c:3789
+@c snarfed from eval.c:3824
 @deffn primitive cons-source xorig x y
 Create and return a new pair whose car and cdr are @var{x} and @var{y}.
 Any source properties associated with @var{xorig} are also associated
@@ -1041,7 +1041,7 @@ with the new pair.
 @end deffn
 
 copy-tree
-@c snarfed from eval.c:3811
+@c snarfed from eval.c:3846
 @deffn primitive copy-tree obj
 Recursively copy the data tree that is bound to @var{obj}, and return a
 pointer to the new data structure.  @code{copy-tree} recurses down the
@@ -1051,14 +1051,14 @@ any other object.
 @end deffn
 
 primitive-eval
-@c snarfed from eval.c:3912
+@c snarfed from eval.c:3940
 @deffn primitive primitive-eval exp
 Evaluate @var{exp} in the top-level environment specified by
 the current module.
 @end deffn
 
 eval
-@c snarfed from eval.c:3977
+@c snarfed from eval.c:4009
 @deffn primitive eval exp module
 Evaluate @var{exp}, a list representing a Scheme expression,
 in the top-level environment specified by @var{module}.
@@ -1068,7 +1068,7 @@ is reset to its previous value when @var{eval} returns.
 @end deffn
 
 eval2
-@c snarfed from eval.c:4020
+@c snarfed from eval.c:4052
 @deffn primitive eval2 obj env_thunk
 Evaluate @var{exp}, a Scheme expression, in the environment
 designated by @var{lookup}, a symbol-lookup function."
@@ -1078,7 +1078,7 @@ with the module system.  Use @code{eval} or
 @end deffn
 
 eval-options-interface
-@c snarfed from eval.c:1685
+@c snarfed from eval.c:1697
 @deffn primitive eval-options-interface [setting]
 Option interface for the evaluation options. Instead of using
 this procedure directly, use the procedures @code{eval-enable},
@@ -1086,7 +1086,7 @@ this procedure directly, use the procedures @code{eval-enable},
 @end deffn
 
 evaluator-traps-interface
-@c snarfed from eval.c:1702
+@c snarfed from eval.c:1714
 @deffn primitive evaluator-traps-interface [setting]
 Option interface for the evaluator trap options.
 @end deffn
@@ -1212,7 +1212,7 @@ The return value is unspecified.
 @end deffn
 
 stat
-@c snarfed from filesys.c:518
+@c snarfed from filesys.c:524
 @deffn primitive stat object
 Return an object containing various information about the file
 determined by @var{obj}.  @var{obj} can be a string containing
@@ -1269,7 +1269,7 @@ An integer representing the access permission bits.
 @end deffn
 
 link
-@c snarfed from filesys.c:564
+@c snarfed from filesys.c:570
 @deffn primitive link oldpath newpath
 Creates a new name @var{newpath} in the file system for the
 file named by @var{oldpath}.  If @var{oldpath} is a symbolic
@@ -1278,20 +1278,20 @@ system.
 @end deffn
 
 rename-file
-@c snarfed from filesys.c:586
+@c snarfed from filesys.c:592
 @deffn primitive rename-file oldname newname
 Renames the file specified by @var{oldname} to @var{newname}.
 The return value is unspecified.
 @end deffn
 
 delete-file
-@c snarfed from filesys.c:615
+@c snarfed from filesys.c:621
 @deffn primitive delete-file str
 Deletes (or "unlinks") the file specified by @var{path}.
 @end deffn
 
 mkdir
-@c snarfed from filesys.c:634
+@c snarfed from filesys.c:640
 @deffn primitive mkdir path [mode]
 Create a new directory named by @var{path}.  If @var{mode} is omitted
 then the permissions of the directory file are set using the current
@@ -1300,28 +1300,28 @@ umask.  Otherwise they are set to the decimal value specified with
 @end deffn
 
 rmdir
-@c snarfed from filesys.c:663
+@c snarfed from filesys.c:669
 @deffn primitive rmdir path
 Remove the existing directory named by @var{path}.  The directory must
 be empty for this to succeed.  The return value is unspecified.
 @end deffn
 
 directory-stream?
-@c snarfed from filesys.c:689
+@c snarfed from filesys.c:695
 @deffn primitive directory-stream? obj
 Return a boolean indicating whether @var{object} is a directory
 stream as returned by @code{opendir}.
 @end deffn
 
 opendir
-@c snarfed from filesys.c:700
+@c snarfed from filesys.c:706
 @deffn primitive opendir dirname
 Open the directory specified by @var{path} and return a directory
 stream.
 @end deffn
 
 readdir
-@c snarfed from filesys.c:718
+@c snarfed from filesys.c:724
 @deffn primitive readdir port
 Return (as a string) the next directory entry from the directory stream
 @var{stream}.  If there is no remaining entry to be read then the
@@ -1329,34 +1329,34 @@ end of file object is returned.
 @end deffn
 
 rewinddir
-@c snarfed from filesys.c:741
+@c snarfed from filesys.c:747
 @deffn primitive rewinddir port
 Reset the directory port @var{stream} so that the next call to
 @code{readdir} will return the first directory entry.
 @end deffn
 
 closedir
-@c snarfed from filesys.c:758
+@c snarfed from filesys.c:764
 @deffn primitive closedir port
 Close the directory stream @var{stream}.
 The return value is unspecified.
 @end deffn
 
 chdir
-@c snarfed from filesys.c:808
+@c snarfed from filesys.c:814
 @deffn primitive chdir str
 Change the current working directory to @var{path}.
 The return value is unspecified.
 @end deffn
 
 getcwd
-@c snarfed from filesys.c:825
+@c snarfed from filesys.c:831
 @deffn primitive getcwd
 Return the name of the current working directory.
 @end deffn
 
 select
-@c snarfed from filesys.c:1022
+@c snarfed from filesys.c:1028
 @deffn primitive select reads writes excepts [secs [usecs]]
 This procedure has a variety of uses: waiting for the ability
 to provide input, accept output, or the existance of
@@ -1390,7 +1390,7 @@ An additional @code{select!} interface is provided.
 @end deffn
 
 fcntl
-@c snarfed from filesys.c:1167
+@c snarfed from filesys.c:1173
 @deffn primitive fcntl object cmd [value]
 Apply @var{command} to the specified file descriptor or the underlying
 file descriptor of the specified port.  @var{value} is an optional
@@ -1420,7 +1420,7 @@ The value used to indicate the "close on exec" flag with @code{F_GETFL} or
 @end deffn
 
 fsync
-@c snarfed from filesys.c:1203
+@c snarfed from filesys.c:1209
 @deffn primitive fsync object
 Copies any unwritten data for the specified output file descriptor to disk.
 If @var{port/fd} is a port, its buffer is flushed before the underlying
@@ -1429,21 +1429,21 @@ The return value is unspecified.
 @end deffn
 
 symlink
-@c snarfed from filesys.c:1230
+@c snarfed from filesys.c:1236
 @deffn primitive symlink oldpath newpath
 Create a symbolic link named @var{path-to} with the value (i.e., pointing to)
 @var{path-from}.  The return value is unspecified.
 @end deffn
 
 readlink
-@c snarfed from filesys.c:1252
+@c snarfed from filesys.c:1257
 @deffn primitive readlink path
 Return the value of the symbolic link named by @var{path} (a
 string), i.e., the file that the link points to.
 @end deffn
 
 lstat
-@c snarfed from filesys.c:1282
+@c snarfed from filesys.c:1287
 @deffn primitive lstat str
 Similar to @code{stat}, but does not follow symbolic links, i.e.,
 it will return information about a symbolic link itself, not the
@@ -1451,14 +1451,14 @@ file it points to.  @var{path} must be a string.
 @end deffn
 
 copy-file
-@c snarfed from filesys.c:1307
+@c snarfed from filesys.c:1312
 @deffn primitive copy-file oldfile newfile
 Copy the file specified by @var{path-from} to @var{path-to}.
 The return value is unspecified.
 @end deffn
 
 dirname
-@c snarfed from filesys.c:1354
+@c snarfed from filesys.c:1359
 @deffn primitive dirname filename
 Return the directory name component of the file name
 @var{filename}. If @var{filename} does not contain a directory
@@ -1466,7 +1466,7 @@ component, @code{.} is returned.
 @end deffn
 
 basename
-@c snarfed from filesys.c:1387
+@c snarfed from filesys.c:1392
 @deffn primitive basename filename [suffix]
 Return the base name of the file name @var{filename}. The
 base name is the file name without any directory components.
@@ -1487,14 +1487,14 @@ in its own dynamic root, you can use fluids for thread local storage.
 @end deffn
 
 fluid?
-@c snarfed from fluids.c:141
+@c snarfed from fluids.c:142
 @deffn primitive fluid? obj
 Return @code{#t} iff @var{obj} is a fluid; otherwise, return
 @code{#f}.
 @end deffn
 
 fluid-ref
-@c snarfed from fluids.c:151
+@c snarfed from fluids.c:153
 @deffn primitive fluid-ref fluid
 Return the value associated with @var{fluid} in the current
 dynamic root.  If @var{fluid} has not been set, then return
@@ -1502,13 +1502,13 @@ dynamic root.  If @var{fluid} has not been set, then return
 @end deffn
 
 fluid-set!
-@c snarfed from fluids.c:168
+@c snarfed from fluids.c:170
 @deffn primitive fluid-set! fluid value
 Set the value associated with @var{fluid} in the current dynamic root.
 @end deffn
 
 with-fluids*
-@c snarfed from fluids.c:227
+@c snarfed from fluids.c:229
 @deffn primitive with-fluids* fluids values thunk
 Set @var{fluids} to @var{values} temporary, and call @var{thunk}.
 @var{fluids} must be a list of fluids and @var{values} must be the same
@@ -1538,7 +1538,7 @@ Determine whether @var{obj} is a port that is related to a file.
 @end deffn
 
 open-file
-@c snarfed from fports.c:282
+@c snarfed from fports.c:283
 @deffn primitive open-file filename mode
 Open the file whose name is @var{filename}, and return a port
 representing that file.  The attributes of the port are
@@ -1580,28 +1580,28 @@ requested, @code{open-file} throws an exception.
 @end deffn
 
 gc-stats
-@c snarfed from gc.c:742
+@c snarfed from gc.c:749
 @deffn primitive gc-stats
 Return an association list of statistics about Guile's current
 use of storage.
 @end deffn
 
 object-address
-@c snarfed from gc.c:839
+@c snarfed from gc.c:846
 @deffn primitive object-address obj
 Return an integer that for the lifetime of @var{obj} is uniquely
 returned by this function for @var{obj}
 @end deffn
 
 gc
-@c snarfed from gc.c:850
+@c snarfed from gc.c:857
 @deffn primitive gc
 Scans all of SCM objects and reclaims for further use those that are
 no longer accessible.
 @end deffn
 
 unhash-name
-@c snarfed from gc.c:2291
+@c snarfed from gc.c:2303
 @deffn primitive unhash-name name
 Flushes the glocs for @var{name}, or all glocs if @var{name}
 is @code{#t}.
@@ -1985,7 +1985,7 @@ integer in the range 0 to @var{size} - 1.
 @end deffn
 
 hashq-get-handle
-@c snarfed from hashtab.c:174
+@c snarfed from hashtab.c:173
 @deffn primitive hashq-get-handle table key
 This procedure returns the @code{(key . value)} pair from the
 hash table @var{table}.  If @var{table} does not hold an
@@ -1994,7 +1994,7 @@ Uses @code{eq?} for equality testing.
 @end deffn
 
 hashq-create-handle!
-@c snarfed from hashtab.c:186
+@c snarfed from hashtab.c:185
 @deffn primitive hashq-create-handle! table key init
 This function looks up @var{key} in @var{table} and returns its handle.
 If @var{key} is not already present, a new handle is created which
@@ -2002,7 +2002,7 @@ associates @var{key} with @var{init}.
 @end deffn
 
 hashq-ref
-@c snarfed from hashtab.c:199
+@c snarfed from hashtab.c:198
 @deffn primitive hashq-ref table key [dflt]
 Look up @var{key} in the hash table @var{table}, and return the
 value (if any) associated with it.  If @var{key} is not found,
@@ -2011,21 +2011,21 @@ is supplied).  Uses @code{eq?} for equality testing.
 @end deffn
 
 hashq-set!
-@c snarfed from hashtab.c:213
+@c snarfed from hashtab.c:212
 @deffn primitive hashq-set! table key val
 Find the entry in @var{table} associated with @var{key}, and
 store @var{value} there. Uses @code{eq?} for equality testing.
 @end deffn
 
 hashq-remove!
-@c snarfed from hashtab.c:225
+@c snarfed from hashtab.c:224
 @deffn primitive hashq-remove! table key
 Remove @var{key} (and any value associated with it) from
 @var{table}.  Uses @code{eq?} for equality tests.
 @end deffn
 
 hashv-get-handle
-@c snarfed from hashtab.c:242
+@c snarfed from hashtab.c:240
 @deffn primitive hashv-get-handle table key
 This procedure returns the @code{(key . value)} pair from the
 hash table @var{table}.  If @var{table} does not hold an
@@ -2034,7 +2034,7 @@ Uses @code{eqv?} for equality testing.
 @end deffn
 
 hashv-create-handle!
-@c snarfed from hashtab.c:254
+@c snarfed from hashtab.c:252
 @deffn primitive hashv-create-handle! table key init
 This function looks up @var{key} in @var{table} and returns its handle.
 If @var{key} is not already present, a new handle is created which
@@ -2042,7 +2042,7 @@ associates @var{key} with @var{init}.
 @end deffn
 
 hashv-ref
-@c snarfed from hashtab.c:267
+@c snarfed from hashtab.c:266
 @deffn primitive hashv-ref table key [dflt]
 Look up @var{key} in the hash table @var{table}, and return the
 value (if any) associated with it.  If @var{key} is not found,
@@ -2051,21 +2051,21 @@ is supplied).  Uses @code{eqv?} for equality testing.
 @end deffn
 
 hashv-set!
-@c snarfed from hashtab.c:281
+@c snarfed from hashtab.c:280
 @deffn primitive hashv-set! table key val
 Find the entry in @var{table} associated with @var{key}, and
 store @var{value} there. Uses @code{eqv?} for equality testing.
 @end deffn
 
 hashv-remove!
-@c snarfed from hashtab.c:292
+@c snarfed from hashtab.c:291
 @deffn primitive hashv-remove! table key
 Remove @var{key} (and any value associated with it) from
 @var{table}.  Uses @code{eqv?} for equality tests.
 @end deffn
 
 hash-get-handle
-@c snarfed from hashtab.c:308
+@c snarfed from hashtab.c:306
 @deffn primitive hash-get-handle table key
 This procedure returns the @code{(key . value)} pair from the
 hash table @var{table}.  If @var{table} does not hold an
@@ -2074,7 +2074,7 @@ Uses @code{equal?} for equality testing.
 @end deffn
 
 hash-create-handle!
-@c snarfed from hashtab.c:320
+@c snarfed from hashtab.c:318
 @deffn primitive hash-create-handle! table key init
 This function looks up @var{key} in @var{table} and returns its handle.
 If @var{key} is not already present, a new handle is created which
@@ -2082,7 +2082,7 @@ associates @var{key} with @var{init}.
 @end deffn
 
 hash-ref
-@c snarfed from hashtab.c:333
+@c snarfed from hashtab.c:331
 @deffn primitive hash-ref table key [dflt]
 Look up @var{key} in the hash table @var{table}, and return the
 value (if any) associated with it.  If @var{key} is not found,
@@ -2091,7 +2091,7 @@ is supplied).  Uses @code{equal?} for equality testing.
 @end deffn
 
 hash-set!
-@c snarfed from hashtab.c:348
+@c snarfed from hashtab.c:346
 @deffn primitive hash-set! table key val
 Find the entry in @var{table} associated with @var{key}, and
 store @var{value} there. Uses @code{equal?} for equality
@@ -2099,14 +2099,14 @@ testing.
 @end deffn
 
 hash-remove!
-@c snarfed from hashtab.c:360
+@c snarfed from hashtab.c:358
 @deffn primitive hash-remove! table key
 Remove @var{key} (and any value associated with it) from
 @var{table}.  Uses @code{equal?} for equality tests.
 @end deffn
 
 hashx-get-handle
-@c snarfed from hashtab.c:429
+@c snarfed from hashtab.c:428
 @deffn primitive hashx-get-handle hash assoc table key
 This behaves the same way as the corresponding
 @code{-get-handle} function, but uses @var{hash} as a hash
@@ -2128,7 +2128,7 @@ table size.  @code{assoc} must be an associator function, like
 @end deffn
 
 hashx-ref
-@c snarfed from hashtab.c:468
+@c snarfed from hashtab.c:470
 @deffn primitive hashx-ref hash assoc table key [dflt]
 This behaves the same way as the corresponding @code{ref}
 function, but uses @var{hash} as a hash function and
@@ -2141,7 +2141,7 @@ equivalent to @code{hashx-ref hashq assq table key}.
 @end deffn
 
 hashx-set!
-@c snarfed from hashtab.c:492
+@c snarfed from hashtab.c:496
 @deffn primitive hashx-set! hash assoc table key val
 This behaves the same way as the corresponding @code{set!}
 function, but uses @var{hash} as a hash function and
@@ -2154,7 +2154,7 @@ equivalent to @code{hashx-set!  hashq assq table key}.
 @end deffn
 
 hash-fold
-@c snarfed from hashtab.c:529
+@c snarfed from hashtab.c:534
 @deffn primitive hash-fold proc init table
 An iterator over hash-table elements.
 Accumulates and returns a result by applying PROC successively.
@@ -2167,7 +2167,7 @@ table into an a-list of key-value pairs.
 @end deffn
 
 make-hook-with-name
-@c snarfed from hooks.c:216
+@c snarfed from hooks.c:217
 @deffn primitive make-hook-with-name name [n_args]
 Create a named hook with the name @var{name} for storing
 procedures of arity @var{n_args}.  @var{n_args} defaults to
@@ -2175,27 +2175,27 @@ zero.
 @end deffn
 
 make-hook
-@c snarfed from hooks.c:230
+@c snarfed from hooks.c:232
 @deffn primitive make-hook [n_args]
 Create a hook for storing procedure of arity
 @var{n_args}.  @var{n_args} defaults to zero.
 @end deffn
 
 hook?
-@c snarfed from hooks.c:240
+@c snarfed from hooks.c:242
 @deffn primitive hook? x
 Return @code{#t} if @var{x} is a hook, @code{#f} otherwise.
 @end deffn
 
 hook-empty?
-@c snarfed from hooks.c:250
+@c snarfed from hooks.c:253
 @deffn primitive hook-empty? hook
 Return @code{#t} if @var{hook} is an empty hook, @code{#f}
 otherwise.
 @end deffn
 
 add-hook!
-@c snarfed from hooks.c:263
+@c snarfed from hooks.c:266
 @deffn primitive add-hook! hook proc [append_p]
 Add the procedure @var{proc} to the hook @var{hook}. The
 procedure is added to the end if @var{append_p} is true,
@@ -2203,19 +2203,19 @@ otherwise it is added to the front.
 @end deffn
 
 remove-hook!
-@c snarfed from hooks.c:289
+@c snarfed from hooks.c:292
 @deffn primitive remove-hook! hook proc
 Remove the procedure @var{proc} from the hook @var{hook}.
 @end deffn
 
 reset-hook!
-@c snarfed from hooks.c:302
+@c snarfed from hooks.c:305
 @deffn primitive reset-hook! hook
 Remove all procedures from the hook @var{hook}.
 @end deffn
 
 run-hook
-@c snarfed from hooks.c:315
+@c snarfed from hooks.c:319
 @deffn primitive run-hook hook . args
 Apply all procedures from the hook @var{hook} to the arguments
 @var{args}.  The order of the procedure application is first to
@@ -2223,7 +2223,7 @@ last.
 @end deffn
 
 hook->list
-@c snarfed from hooks.c:342
+@c snarfed from hooks.c:346
 @deffn primitive hook->list hook
 Convert the procedure list of @var{hook} to a list.
 @end deffn
@@ -2265,7 +2265,7 @@ end-of-file check
 @end deffn
 
 ftell
-@c snarfed from ioext.c:173
+@c snarfed from ioext.c:174
 @deffn primitive ftell fd_port
 Return an integer representing the current position of
 @var{fd/port}, measured from the beginning.  Equivalent to:
@@ -2275,14 +2275,14 @@ Return an integer representing the current position of
 @end deffn
 
 fseek
-@c snarfed from ioext.c:186
+@c snarfed from ioext.c:187
 @deffn primitive fseek fd_port offset whence
 Obsolete.  Almost the same as @code{seek}, but the return value
 is unspecified.
 @end deffn
 
 redirect-port
-@c snarfed from ioext.c:208
+@c snarfed from ioext.c:209
 @deffn primitive redirect-port old new
 This procedure takes two ports and duplicates the underlying file
 descriptor from @var{old-port} into @var{new-port}.  The
@@ -2300,7 +2300,7 @@ revealed counts.
 @end deffn
 
 dup->fdes
-@c snarfed from ioext.c:245
+@c snarfed from ioext.c:248
 @deffn primitive dup->fdes fd_or_port [fd]
 Return a new integer file descriptor referring to the open file
 designated by @var{fd_or_port}, which must be either an open
@@ -2308,7 +2308,7 @@ file port or a file descriptor.
 @end deffn
 
 dup2
-@c snarfed from ioext.c:292
+@c snarfed from ioext.c:295
 @deffn primitive dup2 oldfd newfd
 A simple wrapper for the @code{dup2} system call.
 Copies the file descriptor @var{oldfd} to descriptor
@@ -2321,21 +2321,21 @@ The return value is unspecified.
 @end deffn
 
 fileno
-@c snarfed from ioext.c:311
+@c snarfed from ioext.c:314
 @deffn primitive fileno port
 Return the integer file descriptor underlying @var{port}.  Does
 not change its revealed count.
 @end deffn
 
 isatty?
-@c snarfed from ioext.c:327
+@c snarfed from ioext.c:330
 @deffn primitive isatty? port
 Return @code{#t} if @var{port} is using a serial non--file
 device, otherwise @code{#f}.
 @end deffn
 
 fdopen
-@c snarfed from ioext.c:349
+@c snarfed from ioext.c:352
 @deffn primitive fdopen fdes modes
 Return a new port based on the file descriptor @var{fdes}.
 Modes are given by the string @var{modes}.  The revealed count
@@ -2344,7 +2344,7 @@ same as that accepted by @ref{File Ports, open-file}.
 @end deffn
 
 primitive-move->fdes
-@c snarfed from ioext.c:374
+@c snarfed from ioext.c:377
 @deffn primitive primitive-move->fdes port fd
 Moves the underlying file descriptor for @var{port} to the integer
 value @var{fdes} without changing the revealed count of @var{port}.
@@ -2355,7 +2355,7 @@ required value or @code{#t} if it was moved.
 @end deffn
 
 fdes->ports
-@c snarfed from ioext.c:407
+@c snarfed from ioext.c:411
 @deffn primitive fdes->ports fd
 Return a list of existing ports which have @var{fdes} as an
 underlying file descriptor, without changing their revealed
@@ -2369,14 +2369,14 @@ Make a keyword object from a @var{symbol} that starts with a dash.
 @end deffn
 
 keyword?
-@c snarfed from keywords.c:112
+@c snarfed from keywords.c:113
 @deffn primitive keyword? obj
 Return @code{#t} if the argument @var{obj} is a keyword, else
 @code{#f}.
 @end deffn
 
 keyword-dash-symbol
-@c snarfed from keywords.c:123
+@c snarfed from keywords.c:124
 @deffn primitive keyword-dash-symbol keyword
 Return the dash symbol for @var{keyword}.
 This is the inverse of @code{make-keyword-from-dash-symbol}.
@@ -2481,7 +2481,7 @@ if the last argument is not a proper list.
 @end deffn
 
 append!
-@c snarfed from list.c:242
+@c snarfed from list.c:243
 @deffn primitive append! . lists
 A destructive version of @code{append} (@pxref{Pairs and
 Lists,,,r4rs, The Revised^4 Report on Scheme}).  The cdr field
@@ -2491,21 +2491,21 @@ the mutated list.
 @end deffn
 
 last-pair
-@c snarfed from list.c:268
+@c snarfed from list.c:269
 @deffn primitive last-pair lst
 Return a pointer to the last pair in @var{lst}, signalling an error if
 @var{lst} is circular.
 @end deffn
 
 reverse
-@c snarfed from list.c:298
+@c snarfed from list.c:299
 @deffn primitive reverse lst
 Return a new list that contains the elements of @var{lst} but
 in reverse order.
 @end deffn
 
 reverse!
-@c snarfed from list.c:332
+@c snarfed from list.c:333
 @deffn primitive reverse! lst [new_tail]
 A destructive version of @code{reverse} (@pxref{Pairs and Lists,,,r4rs,
 The Revised^4 Report on Scheme}).  The cdr of each cell in @var{lst} is
@@ -2521,25 +2521,25 @@ of the modified list is not lost, it is wise to save the return value of
 @end deffn
 
 list-ref
-@c snarfed from list.c:358
+@c snarfed from list.c:359
 @deffn primitive list-ref list k
 Return the @var{k}th element from @var{list}.
 @end deffn
 
 list-set!
-@c snarfed from list.c:382
+@c snarfed from list.c:383
 @deffn primitive list-set! list k val
 Set the @var{k}th element of @var{list} to @var{val}.
 @end deffn
 
 list-cdr-ref
-@c snarfed from list.c:405
+@c snarfed from list.c:406
 @deffn primitive list-cdr-ref
 scm_list_tail
 @end deffn
 
 list-tail
-@c snarfed from list.c:414
+@c snarfed from list.c:415
 @deffn primitive list-tail lst k
 @deffnx primitive list-cdr-ref lst k
 Return the "tail" of @var{lst} beginning with its @var{k}th element.
@@ -2551,26 +2551,26 @@ or returning the results of cdring @var{k} times down @var{lst}.
 @end deffn
 
 list-cdr-set!
-@c snarfed from list.c:430
+@c snarfed from list.c:431
 @deffn primitive list-cdr-set! list k val
 Set the @var{k}th cdr of @var{list} to @var{val}.
 @end deffn
 
 list-head
-@c snarfed from list.c:459
+@c snarfed from list.c:460
 @deffn primitive list-head lst k
 Copy the first @var{k} elements from @var{lst} into a new list, and
 return it.
 @end deffn
 
 list-copy
-@c snarfed from list.c:483
+@c snarfed from list.c:484
 @deffn primitive list-copy lst
 Return a (newly-created) copy of @var{lst}.
 @end deffn
 
 sloppy-memq
-@c snarfed from list.c:517
+@c snarfed from list.c:518
 @deffn primitive sloppy-memq x lst
 This procedure behaves like @code{memq}, but does no type or error checking.
 Its use is recommended only in writing Guile internals,
@@ -2578,7 +2578,7 @@ not for high-level Scheme programs.
 @end deffn
 
 sloppy-memv
-@c snarfed from list.c:534
+@c snarfed from list.c:535
 @deffn primitive sloppy-memv x lst
 This procedure behaves like @code{memv}, but does no type or error checking.
 Its use is recommended only in writing Guile internals,
@@ -2586,7 +2586,7 @@ not for high-level Scheme programs.
 @end deffn
 
 sloppy-member
-@c snarfed from list.c:551
+@c snarfed from list.c:552
 @deffn primitive sloppy-member x lst
 This procedure behaves like @code{member}, but does no type or error checking.
 Its use is recommended only in writing Guile internals,
@@ -2594,7 +2594,7 @@ not for high-level Scheme programs.
 @end deffn
 
 memq
-@c snarfed from list.c:591
+@c snarfed from list.c:592
 @deffn primitive memq x lst
 Return the first sublist of @var{lst} whose car is @code{eq?}
 to @var{x} where the sublists of @var{lst} are the non-empty
@@ -2605,7 +2605,7 @@ returned.
 @end deffn
 
 memv
-@c snarfed from list.c:608
+@c snarfed from list.c:609
 @deffn primitive memv x lst
 Return the first sublist of @var{lst} whose car is @code{eqv?}
 to @var{x} where the sublists of @var{lst} are the non-empty
@@ -2616,7 +2616,7 @@ returned.
 @end deffn
 
 member
-@c snarfed from list.c:629
+@c snarfed from list.c:630
 @deffn primitive member x lst
 Return the first sublist of @var{lst} whose car is
 @code{equal?} to @var{x} where the sublists of @var{lst} are
@@ -2627,7 +2627,7 @@ empty list) is returned.
 @end deffn
 
 delq!
-@c snarfed from list.c:655
+@c snarfed from list.c:656
 @deffn primitive delq! item lst
 @deffnx primitive delv! item lst
 @deffnx primitive delete! item lst
@@ -2640,21 +2640,21 @@ destructive list functions, these functions cannot modify the binding of
 @end deffn
 
 delv!
-@c snarfed from list.c:679
+@c snarfed from list.c:680
 @deffn primitive delv! item lst
 Destructively remove all elements from @var{lst} that are
 @code{eqv?} to @var{item}.
 @end deffn
 
 delete!
-@c snarfed from list.c:704
+@c snarfed from list.c:705
 @deffn primitive delete! item lst
 Destructively remove all elements from @var{lst} that are
 @code{equal?} to @var{item}.
 @end deffn
 
 delq
-@c snarfed from list.c:733
+@c snarfed from list.c:734
 @deffn primitive delq item lst
 Return a newly-created copy of @var{lst} with elements
 @code{eq?} to @var{item} removed.  This procedure mirrors
@@ -2663,7 +2663,7 @@ Return a newly-created copy of @var{lst} with elements
 @end deffn
 
 delv
-@c snarfed from list.c:746
+@c snarfed from list.c:747
 @deffn primitive delv item lst
 Return a newly-created copy of @var{lst} with elements
 @code{eqv?}  to @var{item} removed.  This procedure mirrors
@@ -2672,7 +2672,7 @@ Return a newly-created copy of @var{lst} with elements
 @end deffn
 
 delete
-@c snarfed from list.c:759
+@c snarfed from list.c:760
 @deffn primitive delete item lst
 Return a newly-created copy of @var{lst} with elements
 @code{equal?}  to @var{item} removed.  This procedure mirrors
@@ -2681,7 +2681,7 @@ against @var{item} with @code{equal?}.
 @end deffn
 
 delq1!
-@c snarfed from list.c:772
+@c snarfed from list.c:773
 @deffn primitive delq1! item lst
 Like @code{delq!}, but only deletes the first occurrence of
 @var{item} from @var{lst}.  Tests for equality using
@@ -2689,7 +2689,7 @@ Like @code{delq!}, but only deletes the first occurrence of
 @end deffn
 
 delv1!
-@c snarfed from list.c:800
+@c snarfed from list.c:801
 @deffn primitive delv1! item lst
 Like @code{delv!}, but only deletes the first occurrence of
 @var{item} from @var{lst}.  Tests for equality using
@@ -2697,7 +2697,7 @@ Like @code{delv!}, but only deletes the first occurrence of
 @end deffn
 
 delete1!
-@c snarfed from list.c:828
+@c snarfed from list.c:829
 @deffn primitive delete1! item lst
 Like @code{delete!}, but only deletes the first occurrence of
 @var{item} from @var{lst}.  Tests for equality using
@@ -2790,7 +2790,7 @@ signalled.
 @end deffn
 
 procedure->syntax
-@c snarfed from macros.c:60
+@c snarfed from macros.c:61
 @deffn primitive procedure->syntax code
 Return a @dfn{macro} which, when a symbol defined to this value
 appears as the first symbol in an expression, returns the
@@ -2799,7 +2799,7 @@ environment.
 @end deffn
 
 procedure->macro
-@c snarfed from macros.c:82
+@c snarfed from macros.c:84
 @deffn primitive procedure->macro code
 Return a @dfn{macro} which, when a symbol defined to this value
 appears as the first symbol in an expression, evaluates the
@@ -2817,7 +2817,7 @@ passed to @var{code}.  For example:
 @end deffn
 
 procedure->memoizing-macro
-@c snarfed from macros.c:104
+@c snarfed from macros.c:107
 @deffn primitive procedure->memoizing-macro code
 Return a @dfn{macro} which, when a symbol defined to this value
 appears as the first symbol in an expression, evaluates the
@@ -2835,14 +2835,14 @@ passed to @var{proc}.  For example:
 @end deffn
 
 macro?
-@c snarfed from macros.c:116
+@c snarfed from macros.c:119
 @deffn primitive macro? obj
 Return @code{#t} if @var{obj} is a regular macro, a memoizing macro or a
 syntax transformer.
 @end deffn
 
 macro-type
-@c snarfed from macros.c:133
+@c snarfed from macros.c:137
 @deffn primitive macro-type m
 Return one of the symbols @code{syntax}, @code{macro} or
 @code{macro!}, depending on whether @var{m} is a syntax
@@ -2852,13 +2852,13 @@ returned.
 @end deffn
 
 macro-name
-@c snarfed from macros.c:151
+@c snarfed from macros.c:155
 @deffn primitive macro-name m
 Return the name of the macro @var{m}.
 @end deffn
 
 macro-transformer
-@c snarfed from macros.c:162
+@c snarfed from macros.c:166
 @deffn primitive macro-transformer m
 Return the transformer of the macro @var{m}.
 @end deffn
@@ -2900,7 +2900,7 @@ the traditional dotted decimal representation.
 @end deffn
 
 inet-netof
-@c snarfed from net_db.c:135
+@c snarfed from net_db.c:136
 @deffn primitive inet-netof address
 Return the network number part of the given integer Internet
 address.
@@ -2910,7 +2910,7 @@ address.
 @end deffn
 
 inet-lnaof
-@c snarfed from net_db.c:152
+@c snarfed from net_db.c:153
 @deffn primitive inet-lnaof address
 Return the local-address-with-network part of the given
 Internet address.
@@ -2920,7 +2920,7 @@ Internet address.
 @end deffn
 
 inet-makeaddr
-@c snarfed from net_db.c:169
+@c snarfed from net_db.c:171
 @deffn primitive inet-makeaddr net lna
 Makes an Internet host address by combining the network number
 @var{net} with the local-address-within-network number
@@ -2931,7 +2931,7 @@ Makes an Internet host address by combining the network number
 @end deffn
 
 gethost
-@c snarfed from net_db.c:254
+@c snarfed from net_db.c:256
 @deffn primitive gethost [host]
 @deffnx procedure gethostbyname hostname
 @deffnx procedure gethostbyaddr address
@@ -2947,7 +2947,7 @@ Unusual conditions may result in errors thrown to the
 @end deffn
 
 getnet
-@c snarfed from net_db.c:335
+@c snarfed from net_db.c:337
 @deffn primitive getnet [net]
 @deffnx procedure getnetbyname net-name
 @deffnx procedure getnetbyaddr net-number
@@ -2959,7 +2959,7 @@ given.
 @end deffn
 
 getproto
-@c snarfed from net_db.c:385
+@c snarfed from net_db.c:387
 @deffn primitive getproto [protocol]
 @deffnx procedure getprotobyname name
 @deffnx procedure getprotobynumber number
@@ -2970,7 +2970,7 @@ argument.  @code{getproto} will accept either type, behaving like
 @end deffn
 
 getserv
-@c snarfed from net_db.c:452
+@c snarfed from net_db.c:454
 @deffn primitive getserv [name [protocol]]
 @deffnx procedure getservbyname name protocol
 @deffnx procedure getservbyport port protocol
@@ -2985,28 +2985,28 @@ as its first argument; if given no arguments, it behaves like
 @end deffn
 
 sethost
-@c snarfed from net_db.c:491
+@c snarfed from net_db.c:493
 @deffn primitive sethost [stayopen]
 If @var{stayopen} is omitted, this is equivalent to @code{endhostent}.
 Otherwise it is equivalent to @code{sethostent stayopen}.
 @end deffn
 
 setnet
-@c snarfed from net_db.c:507
+@c snarfed from net_db.c:509
 @deffn primitive setnet [stayopen]
 If @var{stayopen} is omitted, this is equivalent to @code{endnetent}.
 Otherwise it is equivalent to @code{setnetent stayopen}.
 @end deffn
 
 setproto
-@c snarfed from net_db.c:523
+@c snarfed from net_db.c:525
 @deffn primitive setproto [stayopen]
 If @var{stayopen} is omitted, this is equivalent to @code{endprotoent}.
 Otherwise it is equivalent to @code{setprotoent stayopen}.
 @end deffn
 
 setserv
-@c snarfed from net_db.c:539
+@c snarfed from net_db.c:541
 @deffn primitive setserv [stayopen]
 If @var{stayopen} is omitted, this is equivalent to @code{endservent}.
 Otherwise it is equivalent to @code{setservent stayopen}.
@@ -3092,7 +3092,7 @@ arguments.
 @end deffn
 
 lognot
-@c snarfed from numbers.c:1102
+@c snarfed from numbers.c:1103
 @deffn primitive lognot n
 Return the integer which is the 2s-complement of the integer
 argument.
@@ -3105,7 +3105,7 @@ argument.
 @end deffn
 
 integer-expt
-@c snarfed from numbers.c:1118
+@c snarfed from numbers.c:1120
 @deffn primitive integer-expt n k
 Return @var{n} raised to the non-negative integer exponent
 @var{k}.
@@ -3118,7 +3118,7 @@ Return @var{n} raised to the non-negative integer exponent
 @end deffn
 
 ash
-@c snarfed from numbers.c:1166
+@c snarfed from numbers.c:1167
 @deffn primitive ash n cnt
 The function ash performs an arithmetic shift left by @var{cnt}
 bits (or shift right, if @var{cnt} is negative).  'Arithmetic'
@@ -3136,7 +3136,7 @@ Formally, the function returns an integer equivalent to
 @end deffn
 
 bit-extract
-@c snarfed from numbers.c:1219
+@c snarfed from numbers.c:1220
 @deffn primitive bit-extract n start end
 Return the integer composed of the @var{start} (inclusive)
 through @var{end} (exclusive) bits of @var{n}.  The
@@ -3150,7 +3150,7 @@ through @var{end} (exclusive) bits of @var{n}.  The
 @end deffn
 
 logcount
-@c snarfed from numbers.c:1291
+@c snarfed from numbers.c:1292
 @deffn primitive logcount n
 Return the number of bits in integer @var{n}.  If integer is
 positive, the 1-bits in its binary representation are counted.
@@ -3167,7 +3167,7 @@ representation are counted.  If 0, 0 is returned.
 @end deffn
 
 integer-length
-@c snarfed from numbers.c:1342
+@c snarfed from numbers.c:1343
 @deffn primitive integer-length n
 Return the number of bits neccessary to represent @var{n}.
 @lisp
@@ -3181,7 +3181,7 @@ Return the number of bits neccessary to represent @var{n}.
 @end deffn
 
 number->string
-@c snarfed from numbers.c:2288
+@c snarfed from numbers.c:2289
 @deffn primitive number->string n [radix]
 Return a string holding the external representation of the
 number @var{n} in the given @var{radix}.  If @var{n} is
@@ -3189,7 +3189,7 @@ inexact, a radix of 10 will be used.
 @end deffn
 
 string->number
-@c snarfed from numbers.c:2873
+@c snarfed from numbers.c:2874
 @deffn primitive string->number string [radix]
 Return a number of the maximally precise representation
 expressed by the given @var{string}. @var{radix} must be an
@@ -3202,13 +3202,13 @@ syntactically valid notation for a number, then
 @end deffn
 
 number?
-@c snarfed from numbers.c:2940
+@c snarfed from numbers.c:2941
 @deffn primitive number?
 scm_number_p
 @end deffn
 
 complex?
-@c snarfed from numbers.c:2952
+@c snarfed from numbers.c:2953
 @deffn primitive complex? x
 Return @code{#t} if @var{x} is a complex number, @code{#f}
 else.  Note that the sets of real, rational and integer
@@ -3218,13 +3218,13 @@ rational or integer number.
 @end deffn
 
 real?
-@c snarfed from numbers.c:2960
+@c snarfed from numbers.c:2961
 @deffn primitive real?
 scm_real_p
 @end deffn
 
 rational?
-@c snarfed from numbers.c:2973
+@c snarfed from numbers.c:2974
 @deffn primitive rational? x
 Return @code{#t} if @var{x} is a rational number, @code{#f}
 else.  Note that the set of integer values forms a subset of
@@ -3235,28 +3235,28 @@ precision.
 @end deffn
 
 integer?
-@c snarfed from numbers.c:2994
+@c snarfed from numbers.c:2995
 @deffn primitive integer? x
 Return @code{#t} if @var{x} is an integer number, @code{#f}
 else.
 @end deffn
 
 inexact?
-@c snarfed from numbers.c:3019
+@c snarfed from numbers.c:3020
 @deffn primitive inexact? x
 Return @code{#t} if @var{x} is an inexact number, @code{#f}
 else.
 @end deffn
 
 $expt
-@c snarfed from numbers.c:4071
+@c snarfed from numbers.c:4072
 @deffn primitive $expt x y
 Return @var{x} raised to the power of @var{y}. This
 procedure does not accept complex arguments.
 @end deffn
 
 $atan2
-@c snarfed from numbers.c:4087
+@c snarfed from numbers.c:4088
 @deffn primitive $atan2 x y
 Return the arc tangent of the two arguments @var{x} and
 @var{y}. This is similar to calculating the arc tangent of
@@ -3266,20 +3266,20 @@ procedure does not accept complex arguments.
 @end deffn
 
 make-rectangular
-@c snarfed from numbers.c:4100
+@c snarfed from numbers.c:4101
 @deffn primitive make-rectangular real imaginary
 Return a complex number constructed of the given @var{real} and
 @var{imaginary} parts.
 @end deffn
 
 make-polar
-@c snarfed from numbers.c:4113
+@c snarfed from numbers.c:4114
 @deffn primitive make-polar x y
 Return the complex number @var{x} * e^(i * @var{y}).
 @end deffn
 
 inexact->exact
-@c snarfed from numbers.c:4231
+@c snarfed from numbers.c:4232
 @deffn primitive inexact->exact z
 Return an exact number that is numerically closest to @var{z}.
 @end deffn
@@ -3361,21 +3361,21 @@ sense of @code{eq?}) from every previously existing object.
 @end deffn
 
 pair?
-@c snarfed from pairs.c:93
+@c snarfed from pairs.c:94
 @deffn primitive pair? x
 Return @code{#t} if @var{x} is a pair; otherwise return
 @code{#f}.
 @end deffn
 
 set-car!
-@c snarfed from pairs.c:104
+@c snarfed from pairs.c:105
 @deffn primitive set-car! pair value
 Stores @var{value} in the car field of @var{pair}.  The value returned
 by @code{set-car!} is unspecified.
 @end deffn
 
 set-cdr!
-@c snarfed from pairs.c:117
+@c snarfed from pairs.c:118
 @deffn primitive set-cdr! pair value
 Stores @var{value} in the cdr field of @var{pair}.  The value returned
 by @code{set-cdr!} is unspecified.
@@ -3561,21 +3561,21 @@ Equivalent to @code{(or (input-port? @var{x}) (output-port?
 @end deffn
 
 port-closed?
-@c snarfed from ports.c:828
+@c snarfed from ports.c:829
 @deffn primitive port-closed? port
 Return @code{#t} if @var{port} is closed or @code{#f} if it is
 open.
 @end deffn
 
 eof-object?
-@c snarfed from ports.c:839
+@c snarfed from ports.c:840
 @deffn primitive eof-object? x
 Return @code{#t} if @var{x} is an end-of-file object; otherwise
 return @code{#f}.
 @end deffn
 
 force-output
-@c snarfed from ports.c:853
+@c snarfed from ports.c:854
 @deffn primitive force-output [port]
 Flush the specified output port, or the current output port if @var{port}
 is omitted.  The current output buffer contents are passed to the
@@ -3587,14 +3587,14 @@ The return value is unspecified.
 @end deffn
 
 flush-all-ports
-@c snarfed from ports.c:871
+@c snarfed from ports.c:872
 @deffn primitive flush-all-ports
 Equivalent to calling @code{force-output} on
 all open output ports.  The return value is unspecified.
 @end deffn
 
 read-char
-@c snarfed from ports.c:889
+@c snarfed from ports.c:890
 @deffn primitive read-char [port]
 Return the next character available from @var{port}, updating
 @var{port} to point to the following character.  If no more
@@ -3602,7 +3602,7 @@ characters are available, the end-of-file object is returned.
 @end deffn
 
 peek-char
-@c snarfed from ports.c:1205
+@c snarfed from ports.c:1207
 @deffn primitive peek-char [port]
 Return the next character available from @var{port},
 @emph{without} updating @var{port} to point to the following
@@ -3619,7 +3619,7 @@ to @code{read-char} would have hung.}
 @end deffn
 
 unread-char
-@c snarfed from ports.c:1226
+@c snarfed from ports.c:1228
 @deffn primitive unread-char cobj [port]
 Place @var{char} in @var{port} so that it will be read by the
 next read operation.  If called multiple times, the unread characters
@@ -3628,7 +3628,7 @@ not supplied, the current input port is used.
 @end deffn
 
 unread-string
-@c snarfed from ports.c:1249
+@c snarfed from ports.c:1251
 @deffn primitive unread-string str port
 Place the string @var{str} in @var{port} so that its characters will be
 read in subsequent read operations.  If called multiple times, the
@@ -3637,7 +3637,7 @@ unread characters will be read again in last-in first-out order.  If
 @end deffn
 
 seek
-@c snarfed from ports.c:1285
+@c snarfed from ports.c:1290
 @deffn primitive seek fd_port offset whence
 Sets the current position of @var{fd/port} to the integer
 @var{offset}, which is interpreted according to the value of
@@ -3663,7 +3663,7 @@ that the current position of a port can be obtained using:
 @end deffn
 
 truncate-file
-@c snarfed from ports.c:1326
+@c snarfed from ports.c:1331
 @deffn primitive truncate-file object [length]
 Truncates the object referred to by @var{object} to at most
 @var{length} bytes.  @var{object} can be a string containing a
@@ -3674,19 +3674,19 @@ position.  The return value is unspecified.
 @end deffn
 
 port-line
-@c snarfed from ports.c:1380
+@c snarfed from ports.c:1385
 @deffn primitive port-line port
 Return the current line number for @var{port}.
 @end deffn
 
 set-port-line!
-@c snarfed from ports.c:1391
+@c snarfed from ports.c:1396
 @deffn primitive set-port-line! port line
 Set the current line number for @var{port} to @var{line}.
 @end deffn
 
 port-column
-@c snarfed from ports.c:1412
+@c snarfed from ports.c:1417
 @deffn primitive port-column port
 @deffnx primitive port-line port
 Return the current column number or line number of @var{port},
@@ -3700,7 +3700,7 @@ what non-programmers will find most natural.)
 @end deffn
 
 set-port-column!
-@c snarfed from ports.c:1425
+@c snarfed from ports.c:1430
 @deffn primitive set-port-column! port column
 @deffnx primitive set-port-line! port line
 Set the current column or line number of @var{port}, using the
@@ -3708,7 +3708,7 @@ current input port if none is specified.
 @end deffn
 
 port-filename
-@c snarfed from ports.c:1440
+@c snarfed from ports.c:1445
 @deffn primitive port-filename port
 Return the filename associated with @var{port}.  This function returns
 the strings "standard input", "standard output" and "standard error"
@@ -3716,7 +3716,7 @@ when called on the current input, output and error ports respectively.
 @end deffn
 
 set-port-filename!
-@c snarfed from ports.c:1454
+@c snarfed from ports.c:1459
 @deffn primitive set-port-filename! port filename
 Change the filename associated with @var{port}, using the current input
 port if none is specified.  Note that this does not change the port's
@@ -3725,7 +3725,7 @@ source of data, but only the value that is returned by
 @end deffn
 
 %make-void-port
-@c snarfed from ports.c:1546
+@c snarfed from ports.c:1551
 @deffn primitive %make-void-port mode
 Create and return a new void port.  A void port acts like
 /dev/null.  The @var{mode} argument
@@ -3751,14 +3751,14 @@ from the input port.
 @end deffn
 
 getgroups
-@c snarfed from posix.c:221
+@c snarfed from posix.c:222
 @deffn primitive getgroups
 Return a vector of integers representing the current
 supplimentary group IDs.
 @end deffn
 
 getpw
-@c snarfed from posix.c:254
+@c snarfed from posix.c:255
 @deffn primitive getpw [user]
 Look up an entry in the user database.  @var{obj} can be an integer,
 a string, or omitted, giving the behaviour of getpwuid, getpwnam
@@ -3766,7 +3766,7 @@ or getpwent respectively.
 @end deffn
 
 setpw
-@c snarfed from posix.c:307
+@c snarfed from posix.c:308
 @deffn primitive setpw [arg]
 If called with a true argument, initialize or reset the password data
 stream.  Otherwise, close the stream.  The @code{setpwent} and
@@ -3774,7 +3774,7 @@ stream.  Otherwise, close the stream.  The @code{setpwent} and
 @end deffn
 
 getgr
-@c snarfed from posix.c:326
+@c snarfed from posix.c:327
 @deffn primitive getgr [name]
 Look up an entry in the group database.  @var{obj} can be an integer,
 a string, or omitted, giving the behaviour of getgrgid, getgrnam
@@ -3782,7 +3782,7 @@ or getgrent respectively.
 @end deffn
 
 setgr
-@c snarfed from posix.c:367
+@c snarfed from posix.c:368
 @deffn primitive setgr [arg]
 If called with a true argument, initialize or reset the group data
 stream.  Otherwise, close the stream.  The @code{setgrent} and
@@ -3790,7 +3790,7 @@ stream.  Otherwise, close the stream.  The @code{setgrent} and
 @end deffn
 
 kill
-@c snarfed from posix.c:403
+@c snarfed from posix.c:404
 @deffn primitive kill pid sig
 Sends a signal to the specified process or group of processes.
 
@@ -3822,7 +3822,7 @@ Interrupt signal.
 @end deffn
 
 waitpid
-@c snarfed from posix.c:451
+@c snarfed from posix.c:452
 @deffn primitive waitpid pid [options]
 This procedure collects status information from a child process which
 has terminated or (optionally) stopped.  Normally it will
@@ -3868,7 +3868,7 @@ The integer status value.
 @end deffn
 
 status:exit-val
-@c snarfed from posix.c:478
+@c snarfed from posix.c:479
 @deffn primitive status:exit-val status
 Return the exit status value, as would be set if a process
 ended normally through a call to @code{exit} or @code{_exit},
@@ -3876,40 +3876,40 @@ if any, otherwise @code{#f}.
 @end deffn
 
 status:term-sig
-@c snarfed from posix.c:498
+@c snarfed from posix.c:499
 @deffn primitive status:term-sig status
 Return the signal number which terminated the process, if any,
 otherwise @code{#f}.
 @end deffn
 
 status:stop-sig
-@c snarfed from posix.c:516
+@c snarfed from posix.c:517
 @deffn primitive status:stop-sig status
 Return the signal number which stopped the process, if any,
 otherwise @code{#f}.
 @end deffn
 
 getppid
-@c snarfed from posix.c:533
+@c snarfed from posix.c:535
 @deffn primitive getppid
 Return an integer representing the process ID of the parent
 process.
 @end deffn
 
 getuid
-@c snarfed from posix.c:544
+@c snarfed from posix.c:546
 @deffn primitive getuid
 Return an integer representing the current real user ID.
 @end deffn
 
 getgid
-@c snarfed from posix.c:555
+@c snarfed from posix.c:557
 @deffn primitive getgid
 Return an integer representing the current real group ID.
 @end deffn
 
 geteuid
-@c snarfed from posix.c:569
+@c snarfed from posix.c:571
 @deffn primitive geteuid
 Return an integer representing the current effective user ID.
 If the system does not support effective IDs, then the real ID
@@ -3918,7 +3918,7 @@ system supports effective IDs.
 @end deffn
 
 getegid
-@c snarfed from posix.c:587
+@c snarfed from posix.c:589
 @deffn primitive getegid
 Return an integer representing the current effective group ID.
 If the system does not support effective IDs, then the real ID
@@ -3927,7 +3927,7 @@ system supports effective IDs.
 @end deffn
 
 setuid
-@c snarfed from posix.c:603
+@c snarfed from posix.c:605
 @deffn primitive setuid id
 Sets both the real and effective user IDs to the integer @var{id}, provided
 the process has appropriate privileges.
@@ -3935,7 +3935,7 @@ The return value is unspecified.
 @end deffn
 
 setgid
-@c snarfed from posix.c:617
+@c snarfed from posix.c:619
 @deffn primitive setgid id
 Sets both the real and effective group IDs to the integer @var{id}, provided
 the process has appropriate privileges.
@@ -3943,7 +3943,7 @@ The return value is unspecified.
 @end deffn
 
 seteuid
-@c snarfed from posix.c:633
+@c snarfed from posix.c:635
 @deffn primitive seteuid id
 Sets the effective user ID to the integer @var{id}, provided the process
 has appropriate privileges.  If effective IDs are not supported, the
@@ -3953,7 +3953,7 @@ The return value is unspecified.
 @end deffn
 
 setegid
-@c snarfed from posix.c:657
+@c snarfed from posix.c:659
 @deffn primitive setegid id
 Sets the effective group ID to the integer @var{id}, provided the process
 has appropriate privileges.  If effective IDs are not supported, the
@@ -3963,14 +3963,14 @@ The return value is unspecified.
 @end deffn
 
 getpgrp
-@c snarfed from posix.c:679
+@c snarfed from posix.c:681
 @deffn primitive getpgrp
 Return an integer representing the current process group ID.
 This is the POSIX definition, not BSD.
 @end deffn
 
 setpgid
-@c snarfed from posix.c:695
+@c snarfed from posix.c:697
 @deffn primitive setpgid pid pgid
 Move the process @var{pid} into the process group @var{pgid}.  @var{pid} or
 @var{pgid} must be integers: they can be zero to indicate the ID of the
@@ -3980,7 +3980,7 @@ The return value is unspecified.
 @end deffn
 
 setsid
-@c snarfed from posix.c:714
+@c snarfed from posix.c:716
 @deffn primitive setsid
 Creates a new session.  The current process becomes the session leader
 and is put in a new process group.  The process will be detached
@@ -3989,21 +3989,21 @@ The return value is an integer representing the new process group ID.
 @end deffn
 
 ttyname
-@c snarfed from posix.c:728
+@c snarfed from posix.c:730
 @deffn primitive ttyname port
 Return a string with the name of the serial terminal device
 underlying @var{port}.
 @end deffn
 
 ctermid
-@c snarfed from posix.c:751
+@c snarfed from posix.c:753
 @deffn primitive ctermid
 Return a string containing the file name of the controlling
 terminal for the current process.
 @end deffn
 
 tcgetpgrp
-@c snarfed from posix.c:773
+@c snarfed from posix.c:776
 @deffn primitive tcgetpgrp port
 Return the process group ID of the foreground process group
 associated with the terminal open on the file descriptor
@@ -4017,7 +4017,7 @@ foreground.
 @end deffn
 
 tcsetpgrp
-@c snarfed from posix.c:797
+@c snarfed from posix.c:800
 @deffn primitive tcsetpgrp port pgid
 Set the foreground process group ID for the terminal used by the file
 descriptor underlying @var{port} to the integer @var{pgid}.
@@ -4027,7 +4027,7 @@ controlling terminal.  The return value is unspecified.
 @end deffn
 
 execl
-@c snarfed from posix.c:857
+@c snarfed from posix.c:860
 @deffn primitive execl filename . args
 Executes the file named by @var{path} as a new process image.
 The remaining arguments are supplied to the process; from a C program
@@ -4043,7 +4043,7 @@ call, but we call it @code{execl} because of its Scheme calling interface.
 @end deffn
 
 execlp
-@c snarfed from posix.c:878
+@c snarfed from posix.c:881
 @deffn primitive execlp filename . args
 Similar to @code{execl}, however if
 @var{filename} does not contain a slash
@@ -4055,7 +4055,7 @@ call, but we call it @code{execlp} because of its Scheme calling interface.
 @end deffn
 
 execle
-@c snarfed from posix.c:929
+@c snarfed from posix.c:932
 @deffn primitive execle filename env . args
 Similar to @code{execl}, but the environment of the new process is
 specified by @var{env}, which must be a list of strings as returned by the
@@ -4066,7 +4066,7 @@ call, but we call it @code{execle} because of its Scheme calling interface.
 @end deffn
 
 primitive-fork
-@c snarfed from posix.c:953
+@c snarfed from posix.c:956
 @deffn primitive primitive-fork
 Creates a new "child" process by duplicating the current "parent" process.
 In the child the return value is 0.  In the parent the return value is
@@ -4077,14 +4077,14 @@ with the scsh fork.
 @end deffn
 
 uname
-@c snarfed from posix.c:968
+@c snarfed from posix.c:971
 @deffn primitive uname
 Return an object with some information about the computer
 system the program is running on.
 @end deffn
 
 environ
-@c snarfed from posix.c:997
+@c snarfed from posix.c:1001
 @deffn primitive environ [env]
 If @var{env} is omitted, return the current environment (in the
 Unix sense) as a list of strings.  Otherwise set the current
@@ -4096,7 +4096,7 @@ then the return value is unspecified.
 @end deffn
 
 tmpnam
-@c snarfed from posix.c:1035
+@c snarfed from posix.c:1039
 @deffn primitive tmpnam
 Return a name in the file system that does not match any
 existing file.  However there is no guarantee that another
@@ -4106,7 +4106,7 @@ Care should be taken if opening the file, e.g., use the
 @end deffn
 
 mkstemp!
-@c snarfed from posix.c:1058
+@c snarfed from posix.c:1061
 @deffn primitive mkstemp! tmpl
 Create a new unique file in the file system and returns a new
 buffered port open for reading and writing to the file.
@@ -4116,7 +4116,7 @@ place to return the name of the temporary file.
 @end deffn
 
 utime
-@c snarfed from posix.c:1086
+@c snarfed from posix.c:1087
 @deffn primitive utime pathname [actime [modtime]]
 @code{utime} sets the access and modification times for the
 file named by @var{path}.  If @var{actime} or @var{modtime} is
@@ -4131,7 +4131,7 @@ modification time to the current time.
 @end deffn
 
 access?
-@c snarfed from posix.c:1135
+@c snarfed from posix.c:1136
 @deffn primitive access? path how
 Return @code{#t} if @var{path} corresponds to an existing file
 and the current process has the type of access specified by
@@ -4157,13 +4157,13 @@ test for existence of the file.
 @end deffn
 
 getpid
-@c snarfed from posix.c:1150
+@c snarfed from posix.c:1151
 @deffn primitive getpid
 Return an integer representing the current process ID.
 @end deffn
 
 putenv
-@c snarfed from posix.c:1167
+@c snarfed from posix.c:1168
 @deffn primitive putenv str
 Modifies the environment of the current process, which is
 also the default environment inherited by child processes.
@@ -4179,7 +4179,7 @@ The return value is unspecified.
 @end deffn
 
 setlocale
-@c snarfed from posix.c:1198
+@c snarfed from posix.c:1199
 @deffn primitive setlocale category [locale]
 If @var{locale} is omitted, return the current value of the
 specified locale category as a system-dependent string.
@@ -4192,7 +4192,7 @@ the locale will be set using envirionment variables.
 @end deffn
 
 mknod
-@c snarfed from posix.c:1239
+@c snarfed from posix.c:1240
 @deffn primitive mknod path type perms dev
 Creates a new special file, such as a file corresponding to a device.
 @var{path} specifies the name of the file.  @var{type} should
@@ -4212,7 +4212,7 @@ The return value is unspecified.
 @end deffn
 
 nice
-@c snarfed from posix.c:1286
+@c snarfed from posix.c:1287
 @deffn primitive nice incr
 Increment the priority of the current process by @var{incr}.  A higher
 priority value means that the process runs less often.
@@ -4220,21 +4220,21 @@ The return value is unspecified.
 @end deffn
 
 sync
-@c snarfed from posix.c:1301
+@c snarfed from posix.c:1302
 @deffn primitive sync
 Flush the operating system disk buffers.
 The return value is unspecified.
 @end deffn
 
 crypt
-@c snarfed from posix.c:1314
+@c snarfed from posix.c:1315
 @deffn primitive crypt key salt
 Encrypt @var{key} using @var{salt} as the salt value to the
 crypt(3) library call
 @end deffn
 
 chroot
-@c snarfed from posix.c:1337
+@c snarfed from posix.c:1338
 @deffn primitive chroot path
 Change the root directory to that specified in @var{path}.
 This directory will be used for path names beginning with
@@ -4244,7 +4244,7 @@ root directory.
 @end deffn
 
 getlogin
-@c snarfed from posix.c:1355
+@c snarfed from posix.c:1356
 @deffn primitive getlogin
 Return a string containing the name of the user logged in on
 the controlling terminal of the process, or @code{#f} if this
@@ -4252,7 +4252,7 @@ information cannot be obtained.
 @end deffn
 
 cuserid
-@c snarfed from posix.c:1373
+@c snarfed from posix.c:1374
 @deffn primitive cuserid
 Return a string containing a user name associated with the
 effective user id of the process.  Return @code{#f} if this
@@ -4260,7 +4260,7 @@ information cannot be obtained.
 @end deffn
 
 getpriority
-@c snarfed from posix.c:1398
+@c snarfed from posix.c:1399
 @deffn primitive getpriority which who
 Return the scheduling priority of the process, process group
 or user, as indicated by @var{which} and @var{who}. @var{which}
@@ -4275,7 +4275,7 @@ specified processes.
 @end deffn
 
 setpriority
-@c snarfed from posix.c:1432
+@c snarfed from posix.c:1433
 @deffn primitive setpriority which who prio
 Set the scheduling priority of the process, process group
 or user, as indicated by @var{which} and @var{who}. @var{which}
@@ -4293,7 +4293,7 @@ The return value is not specified.
 @end deffn
 
 getpass
-@c snarfed from posix.c:1457
+@c snarfed from posix.c:1458
 @deffn primitive getpass prompt
 Display @var{prompt} to the standard error output and read
 a password from @file{/dev/tty}.  If this file is not
@@ -4305,7 +4305,7 @@ characters is disabled.
 @end deffn
 
 flock
-@c snarfed from posix.c:1496
+@c snarfed from posix.c:1497
 @deffn primitive flock file operation
 Apply or remove an advisory lock on an open file.
 @var{operation} specifies the action to be done:
@@ -4327,7 +4327,7 @@ file descriptor or an open file descriptior port.
 @end deffn
 
 sethostname
-@c snarfed from posix.c:1522
+@c snarfed from posix.c:1523
 @deffn primitive sethostname name
 Set the host name of the current processor to @var{name}. May
 only be used by the superuser.  The return value is not
@@ -4335,7 +4335,7 @@ specified.
 @end deffn
 
 gethostname
-@c snarfed from posix.c:1538
+@c snarfed from posix.c:1539
 @deffn primitive gethostname
 Return the host name of the current processor.
 @end deffn
@@ -4350,7 +4350,7 @@ and @code{print-options}.
 @end deffn
 
 simple-format
-@c snarfed from print.c:980
+@c snarfed from print.c:976
 @deffn primitive simple-format destination message . args
 Write @var{message} to @var{destination}, defaulting to
 the current output port.
@@ -4366,26 +4366,26 @@ containing the formatted text. Does not add a trailing newline.
 @end deffn
 
 newline
-@c snarfed from print.c:1045
+@c snarfed from print.c:1041
 @deffn primitive newline [port]
 Send a newline to @var{port}.
 @end deffn
 
 write-char
-@c snarfed from print.c:1060
+@c snarfed from print.c:1056
 @deffn primitive write-char chr [port]
 Send character @var{chr} to @var{port}.
 @end deffn
 
 port-with-print-state
-@c snarfed from print.c:1114
+@c snarfed from print.c:1110
 @deffn primitive port-with-print-state port pstate
 Create a new port which behaves like @var{port}, but with an
 included print state @var{pstate}.
 @end deffn
 
 get-print-state
-@c snarfed from print.c:1129
+@c snarfed from print.c:1125
 @deffn primitive get-print-state port
 Return the print state of the port @var{port}. If @var{port}
 has no associated print state, @code{#f} is returned.
@@ -4474,7 +4474,7 @@ See @code{primitive-property-ref} for the significance of
 @end deffn
 
 primitive-property-ref
-@c snarfed from properties.c:83
+@c snarfed from properties.c:84
 @deffn primitive primitive-property-ref prop obj
 Return the property @var{prop} of @var{obj}.  When no value
 has yet been associated with @var{prop} and @var{obj}, call
@@ -4486,13 +4486,13 @@ default value of @var{prop}.
 @end deffn
 
 primitive-property-set!
-@c snarfed from properties.c:111
+@c snarfed from properties.c:115
 @deffn primitive primitive-property-set! prop obj val
 Associate @var{code} with @var{prop} and @var{obj}.
 @end deffn
 
 primitive-property-del!
-@c snarfed from properties.c:131
+@c snarfed from properties.c:136
 @deffn primitive primitive-property-del! prop obj
 Remove any value associated with @var{prop} and @var{obj}.
 @end deffn
@@ -4596,14 +4596,14 @@ Return a new random state using @var{seed}.
 @end deffn
 
 random:uniform
-@c snarfed from random.c:418
+@c snarfed from random.c:419
 @deffn primitive random:uniform [state]
 Return a uniformly distributed inexact real random number in
 [0,1).
 @end deffn
 
 random:normal
-@c snarfed from random.c:433
+@c snarfed from random.c:434
 @deffn primitive random:normal [state]
 Return an inexact real in a normal distribution.  The
 distribution used has mean 0 and standard deviation 1.  For a
@@ -4612,7 +4612,7 @@ normal distribution with mean m and standard deviation d use
 @end deffn
 
 random:solid-sphere!
-@c snarfed from random.c:489
+@c snarfed from random.c:490
 @deffn primitive random:solid-sphere! v [state]
 Fills vect with inexact real random numbers
 the sum of whose squares is less than 1.0.
@@ -4623,7 +4623,7 @@ The sum of the squares of the numbers is returned.
 @end deffn
 
 random:hollow-sphere!
-@c snarfed from random.c:512
+@c snarfed from random.c:513
 @deffn primitive random:hollow-sphere! v [state]
 Fills vect with inexact real random numbers
 the sum of whose squares is equal to 1.0.
@@ -4634,7 +4634,7 @@ unit n-shere.
 @end deffn
 
 random:normal-vector!
-@c snarfed from random.c:530
+@c snarfed from random.c:531
 @deffn primitive random:normal-vector! v [state]
 Fills vect with inexact real random numbers that are
 independent and standard normally distributed
@@ -4642,7 +4642,7 @@ independent and standard normally distributed
 @end deffn
 
 random:exp
-@c snarfed from random.c:554
+@c snarfed from random.c:556
 @deffn primitive random:exp [state]
 Return an inexact real in an exponential distribution with mean
 1.  For an exponential distribution with mean u use (* u
@@ -4725,7 +4725,7 @@ or @code{#f} otherwise.
 @end deffn
 
 make-regexp
-@c snarfed from regex-posix.c:179
+@c snarfed from regex-posix.c:184
 @deffn primitive make-regexp pat . flags
 Compile the regular expression described by @var{pat}, and
 return the compiled regexp structure.  If @var{pat} does not
@@ -4765,7 +4765,7 @@ one which comes last will override the earlier one.
 @end deffn
 
 regexp-exec
-@c snarfed from regex-posix.c:226
+@c snarfed from regex-posix.c:232
 @deffn primitive regexp-exec rx str [start [flags]]
 Match the compiled regular expression @var{rx} against
 @code{str}.  If the optional integer @var{start} argument is
@@ -4914,7 +4914,7 @@ Sends a specified signal @var{sig} to the current process, where
 @end deffn
 
 system
-@c snarfed from simpos.c:76
+@c snarfed from simpos.c:78
 @deffn primitive system [cmd]
 Execute @var{cmd} using the operating system's "command
 processor".  Under Unix this is usually the default shell
@@ -4926,7 +4926,7 @@ indicating whether the command processor is available.
 @end deffn
 
 getenv
-@c snarfed from simpos.c:104
+@c snarfed from simpos.c:106
 @deffn primitive getenv nam
 Looks up the string @var{name} in the current environment.  The return
 value is @code{#f} unless a string of the form @code{NAME=VALUE} is
@@ -4934,7 +4934,7 @@ found, in which case the string @code{VALUE} is returned.
 @end deffn
 
 primitive-exit
-@c snarfed from simpos.c:120
+@c snarfed from simpos.c:122
 @deffn primitive primitive-exit [status]
 Terminate the current process without unwinding the Scheme stack.
 This is would typically be useful after a fork.  The exit status
@@ -4974,7 +4974,7 @@ a C unsigned long integer.
 @end deffn
 
 socket
-@c snarfed from socket.c:158
+@c snarfed from socket.c:161
 @deffn primitive socket family style proto
 Return a new socket port of the type specified by @var{family},
 @var{style} and @var{protocol}.  All three parameters are
@@ -4990,7 +4990,7 @@ has been connected to another socket.
 @end deffn
 
 socketpair
-@c snarfed from socket.c:180
+@c snarfed from socket.c:183
 @deffn primitive socketpair family style proto
 Return a pair of connected (but unnamed) socket ports of the
 type specified by @var{family}, @var{style} and @var{protocol}.
@@ -5000,7 +5000,7 @@ family.  Zero is likely to be the only meaningful value for
 @end deffn
 
 getsockopt
-@c snarfed from socket.c:209
+@c snarfed from socket.c:213
 @deffn primitive getsockopt sock level optname
 Return the value of a particular socket option for the socket
 port @var{socket}.  @var{level} is an integer code for type of
@@ -5013,7 +5013,7 @@ returns a pair of integers.
 @end deffn
 
 setsockopt
-@c snarfed from socket.c:277
+@c snarfed from socket.c:281
 @deffn primitive setsockopt sock level optname value
 Sets the value of a particular socket option for the socket
 port @var{socket}.  @var{level} is an integer code for type of option
@@ -5029,7 +5029,7 @@ The return value is unspecified.
 @end deffn
 
 shutdown
-@c snarfed from socket.c:381
+@c snarfed from socket.c:385
 @deffn primitive shutdown sock how
 Sockets can be closed simply by using @code{close-port}. The
 @code{shutdown} procedure allows reception or tranmission on a
@@ -5051,7 +5051,7 @@ The return value is unspecified.
 @end deffn
 
 connect
-@c snarfed from socket.c:474
+@c snarfed from socket.c:478
 @deffn primitive connect sock fam address . args
 Initiates a connection from @var{socket} to the address
 specified by @var{address} and possibly @var{arg @dots{}}.  The format
@@ -5070,7 +5070,7 @@ The return value is unspecified.
 @end deffn
 
 bind
-@c snarfed from socket.c:528
+@c snarfed from socket.c:532
 @deffn primitive bind sock fam address . args
 Assigns an address to the socket port @var{socket}.
 Generally this only needs to be done for server sockets,
@@ -5111,7 +5111,7 @@ The return value is unspecified.
 @end deffn
 
 listen
-@c snarfed from socket.c:561
+@c snarfed from socket.c:565
 @deffn primitive listen sock backlog
 This procedure enables @var{socket} to accept connection
 requests.  @var{backlog} is an integer specifying
@@ -5123,7 +5123,7 @@ The return value is unspecified.
 @end deffn
 
 accept
-@c snarfed from socket.c:637
+@c snarfed from socket.c:641
 @deffn primitive accept sock
 Accepts a connection on a bound, listening socket @var{socket}.  If there
 are no pending connections in the queue, it waits until
@@ -5142,7 +5142,7 @@ connection and will continue to accept new requests.
 @end deffn
 
 getsockname
-@c snarfed from socket.c:668
+@c snarfed from socket.c:672
 @deffn primitive getsockname sock
 Return the address of @var{socket}, in the same form as the
 object returned by @code{accept}.  On many systems the address
@@ -5150,7 +5150,7 @@ of a socket in the @code{AF_FILE} namespace cannot be read.
 @end deffn
 
 getpeername
-@c snarfed from socket.c:695
+@c snarfed from socket.c:699
 @deffn primitive getpeername sock
 Return the address of the socket that the socket @var{socket}
 is connected to, in the same form as the object returned by
@@ -5159,7 +5159,7 @@ is connected to, in the same form as the object returned by
 @end deffn
 
 recv!
-@c snarfed from socket.c:730
+@c snarfed from socket.c:734
 @deffn primitive recv! sock buf [flags]
 Receives data from the socket port @var{socket}.  @var{socket} must already
 be bound to the address from which data is to be received.
@@ -5179,7 +5179,7 @@ any unread buffered port data is ignored.
 @end deffn
 
 send
-@c snarfed from socket.c:759
+@c snarfed from socket.c:763
 @deffn primitive send sock message [flags]
 Transmits the string @var{message} on the socket port @var{socket}.
 @var{socket} must already be bound to a destination address.  The
@@ -5193,7 +5193,7 @@ any unflushed buffered port data is ignored.
 @end deffn
 
 recvfrom!
-@c snarfed from socket.c:797
+@c snarfed from socket.c:805
 @deffn primitive recvfrom! sock str [flags [start [end]]]
 Return data from the socket port @var{socket} and also
 information about where the data was received from.
@@ -5215,7 +5215,7 @@ descriptor: any unread buffered port data is ignored.
 @end deffn
 
 sendto
-@c snarfed from socket.c:848
+@c snarfed from socket.c:856
 @deffn primitive sendto sock message fam address . args_and_flags
 Transmits the string @var{message} on the socket port @var{socket}.  The
 destination address is specified using the @var{family}, @var{address} and
@@ -5462,14 +5462,14 @@ Return @code{#t} if @var{frame} is an overflow frame.
 @end deffn
 
 get-internal-real-time
-@c snarfed from stime.c:141
+@c snarfed from stime.c:142
 @deffn primitive get-internal-real-time
 Return the number of time units since the interpreter was
 started.
 @end deffn
 
 times
-@c snarfed from stime.c:183
+@c snarfed from stime.c:187
 @deffn primitive times
 Return an object with information about real and processor
 time.  The following procedures accept such an object as an
@@ -5494,7 +5494,7 @@ terminated child processes.
 @end deffn
 
 get-internal-run-time
-@c snarfed from stime.c:214
+@c snarfed from stime.c:219
 @deffn primitive get-internal-run-time
 Return the number of time units of processor time used by the
 interpreter.  Both @emph{system} and @emph{user} time are
@@ -5502,14 +5502,14 @@ included but subprocesses are not.
 @end deffn
 
 current-time
-@c snarfed from stime.c:224
+@c snarfed from stime.c:229
 @deffn primitive current-time
 Return the number of seconds since 1970-01-01 00:00:00 UTC,
 excluding leap seconds.
 @end deffn
 
 gettimeofday
-@c snarfed from stime.c:241
+@c snarfed from stime.c:247
 @deffn primitive gettimeofday
 Return a pair containing the number of seconds and microseconds
 since 1970-01-01 00:00:00 UTC, excluding leap seconds.  Note:
@@ -5518,7 +5518,7 @@ operating system.
 @end deffn
 
 localtime
-@c snarfed from stime.c:341
+@c snarfed from stime.c:347
 @deffn primitive localtime time [zone]
 Return an object representing the broken down components of
 @var{time}, an integer like the one returned by
@@ -5528,7 +5528,7 @@ optionally specified by @var{zone} (a string), otherwise the
 @end deffn
 
 gmtime
-@c snarfed from stime.c:413
+@c snarfed from stime.c:419
 @deffn primitive gmtime time
 Return an object representing the broken down components of
 @var{time}, an integer like the one returned by
@@ -5536,7 +5536,7 @@ Return an object representing the broken down components of
 @end deffn
 
 mktime
-@c snarfed from stime.c:475
+@c snarfed from stime.c:481
 @deffn primitive mktime sbd_time [zone]
 @var{bd-time} is an object representing broken down time and @code{zone}
 is an optional time zone specifier (otherwise the TZ environment variable
@@ -5549,7 +5549,7 @@ as @var{bd-time} but with normalized values.
 @end deffn
 
 tzset
-@c snarfed from stime.c:548
+@c snarfed from stime.c:554
 @deffn primitive tzset
 Initialize the timezone from the TZ environment variable
 or the system default.  It's not usually necessary to call this procedure
@@ -5558,7 +5558,7 @@ timezone.
 @end deffn
 
 strftime
-@c snarfed from stime.c:565
+@c snarfed from stime.c:571
 @deffn primitive strftime format stime
 Formats a time specification @var{time} using @var{template}.  @var{time}
 is an object with time components in the form returned by @code{localtime}
@@ -5570,7 +5570,7 @@ is the formatted string.
 @end deffn
 
 strptime
-@c snarfed from stime.c:663
+@c snarfed from stime.c:669
 @deffn primitive strptime format string
 Performs the reverse action to @code{strftime}, parsing
 @var{string} according to the specification supplied in
@@ -5592,30 +5592,20 @@ Return @code{#t} iff @var{obj} is a string, else returns
 @end deffn
 
 read-only-string?
-@c snarfed from strings.c:85
+@c snarfed from strings.c:78
 @deffn primitive read-only-string? obj
-Return true if @var{obj} can be read as a string,
-
-This illustrates the difference between @code{string?} and
-@code{read-only-string?}:
-
-@lisp
-(string? "a string") @result{} #t
-(string? 'a-symbol) @result{} #f
-
-(read-only-string? "a string") @result{} #t
-(read-only-string? 'a-symbol) @result{} #t
-@end lisp
+Return @code{#t} if @var{obj} is either a string or a symbol,
+otherwise return @code{#f}.
 @end deffn
 
 list->string
-@c snarfed from strings.c:94
+@c snarfed from strings.c:87
 @deffn primitive list->string
 scm_string
 @end deffn
 
 string
-@c snarfed from strings.c:100
+@c snarfed from strings.c:93
 @deffn primitive string . chrs
 @deffnx primitive list->string chrs
 Return a newly allocated string composed of the arguments,
@@ -5623,7 +5613,7 @@ Return a newly allocated string composed of the arguments,
 @end deffn
 
 make-string
-@c snarfed from strings.c:253
+@c snarfed from strings.c:246
 @deffn primitive make-string k [chr]
 Return a newly allocated string of
 length @var{k}.  If @var{chr} is given, then all elements of
@@ -5632,20 +5622,20 @@ of the @var{string} are unspecified.
 @end deffn
 
 string-length
-@c snarfed from strings.c:286
+@c snarfed from strings.c:279
 @deffn primitive string-length string
 Return the number of characters in @var{string}.
 @end deffn
 
 string-ref
-@c snarfed from strings.c:297
+@c snarfed from strings.c:290
 @deffn primitive string-ref str k
 Return character @var{k} of @var{str} using zero-origin
 indexing. @var{k} must be a valid index of @var{str}.
 @end deffn
 
 string-set!
-@c snarfed from strings.c:314
+@c snarfed from strings.c:307
 @deffn primitive string-set! str k chr
 Store @var{chr} in element @var{k} of @var{str} and return
 an unspecified value. @var{k} must be a valid index of
@@ -5653,7 +5643,7 @@ an unspecified value. @var{k} must be a valid index of
 @end deffn
 
 substring
-@c snarfed from strings.c:337
+@c snarfed from strings.c:330
 @deffn primitive substring str start [end]
 Return a newly allocated string formed from the characters
 of @var{str} beginning with index @var{start} (inclusive) and
@@ -5665,14 +5655,14 @@ exact integers satisfying:
 @end deffn
 
 string-append
-@c snarfed from strings.c:360
+@c snarfed from strings.c:353
 @deffn primitive string-append . args
 Return a newly allocated string whose characters form the
 concatenation of the given strings, @var{args}.
 @end deffn
 
 make-shared-substring
-@c snarfed from strings.c:400
+@c snarfed from strings.c:393
 @deffn primitive make-shared-substring str [start [end]]
 Return a shared substring of @var{str}.  The semantics are the
 same as for the @code{substring} function: the shared substring
@@ -5684,7 +5674,7 @@ occupies the same storage space as @var{str}.
 @end deffn
 
 string-index
-@c snarfed from strop.c:121
+@c snarfed from strop.c:116
 @deffn primitive string-index str chr [frm [to]]
 Return the index of the first occurrence of @var{chr} in
 @var{str}.  The optional integer arguments @var{frm} and
@@ -5704,7 +5694,7 @@ procedure essentially implements the @code{index} or
 @end deffn
 
 string-rindex
-@c snarfed from strop.c:152
+@c snarfed from strop.c:146
 @deffn primitive string-rindex str chr [frm [to]]
 Like @code{string-index}, but search from the right of the
 string rather than from the left.  This procedure essentially
@@ -5723,19 +5713,19 @@ the C library.
 @end deffn
 
 substring-move-left!
-@c snarfed from strop.c:169
+@c snarfed from strop.c:163
 @deffn primitive substring-move-left!
 scm_substring_move_x
 @end deffn
 
 substring-move-right!
-@c snarfed from strop.c:170
+@c snarfed from strop.c:164
 @deffn primitive substring-move-right!
 scm_substring_move_x
 @end deffn
 
 substring-move!
-@c snarfed from strop.c:244
+@c snarfed from strop.c:238
 @deffn primitive substring-move! str1 start1 end1 str2 start2
 @deffnx primitive substring-move-left! str1 start1 end1 str2 start2
 @deffnx primitive substring-move-right! str1 start1 end1 str2 start2
@@ -5758,7 +5748,7 @@ are different strings, it does not matter which function you use.
 @end deffn
 
 substring-fill!
-@c snarfed from strop.c:280
+@c snarfed from strop.c:274
 @deffn primitive substring-fill! str start end fill
 Change every character in @var{str} between @var{start} and
 @var{end} to @var{fill}.
@@ -5771,7 +5761,7 @@ y
 @end deffn
 
 string-null?
-@c snarfed from strop.c:307
+@c snarfed from strop.c:299
 @deffn primitive string-null? str
 Return @code{#t} if @var{str}'s length is nonzero, and
 @code{#f} otherwise.
@@ -5783,7 +5773,7 @@ y                    @result{} "foo"
 @end deffn
 
 string->list
-@c snarfed from strop.c:323
+@c snarfed from strop.c:313
 @deffn primitive string->list str
 Return a newly allocated list of the characters that make up
 the given string @var{str}. @code{string->list} and
@@ -5792,20 +5782,20 @@ concerned.
 @end deffn
 
 string-copy
-@c snarfed from strop.c:348
+@c snarfed from strop.c:338
 @deffn primitive string-copy str
 Return a newly allocated copy of the given @var{string}.
 @end deffn
 
 string-fill!
-@c snarfed from strop.c:361
+@c snarfed from strop.c:351
 @deffn primitive string-fill! str chr
 Store @var{char} in every element of the given @var{string} and
 return an unspecified value.
 @end deffn
 
 string-upcase!
-@c snarfed from strop.c:397
+@c snarfed from strop.c:386
 @deffn primitive string-upcase! str
 Destructively upcase every character in @var{str} and return
 @var{str}.
@@ -5817,14 +5807,14 @@ y                  @result{} "ARRDEFG"
 @end deffn
 
 string-upcase
-@c snarfed from strop.c:409
+@c snarfed from strop.c:399
 @deffn primitive string-upcase str
 Return a freshly allocated string containing the characters of
 @var{str} in upper case.
 @end deffn
 
 string-downcase!
-@c snarfed from strop.c:444
+@c snarfed from strop.c:431
 @deffn primitive string-downcase! str
 Destructively downcase every character in @var{str} and return
 @var{str}.
@@ -5836,14 +5826,14 @@ y                     @result{} "arrdefg"
 @end deffn
 
 string-downcase
-@c snarfed from strop.c:456
+@c snarfed from strop.c:444
 @deffn primitive string-downcase str
 Return a freshly allocation string containing the characters in
 @var{str} in lower case.
 @end deffn
 
 string-capitalize!
-@c snarfed from strop.c:493
+@c snarfed from strop.c:488
 @deffn primitive string-capitalize! str
 Upcase the first character of every word in @var{str}
 destructively and return @var{str}.
@@ -5855,7 +5845,7 @@ y                      @result{} "Hello World"
 @end deffn
 
 string-capitalize
-@c snarfed from strop.c:505
+@c snarfed from strop.c:502
 @deffn primitive string-capitalize str
 Return a freshly allocated string with the characters in
 @var{str}, where the first character of every word is
@@ -5863,7 +5853,7 @@ capitalized.
 @end deffn
 
 string-ci->symbol
-@c snarfed from strop.c:517
+@c snarfed from strop.c:516
 @deffn primitive string-ci->symbol str
 Return the symbol whose name is @var{str}.  @var{str} is
 converted to lowercase before the conversion is done, if Guile
@@ -5899,28 +5889,28 @@ is lexicographically less than @var{s2}.
 @end deffn
 
 string<=?
-@c snarfed from strorder.c:171
+@c snarfed from strorder.c:170
 @deffn primitive string<=? s1 s2
 Lexicographic ordering predicate; return @code{#t} if @var{s1}
 is lexicographically less than or equal to @var{s2}.
 @end deffn
 
 string>?
-@c snarfed from strorder.c:185
+@c snarfed from strorder.c:184
 @deffn primitive string>? s1 s2
 Lexicographic ordering predicate; return @code{#t} if @var{s1}
 is lexicographically greater than @var{s2}.
 @end deffn
 
 string>=?
-@c snarfed from strorder.c:200
+@c snarfed from strorder.c:198
 @deffn primitive string>=? s1 s2
 Lexicographic ordering predicate; return @code{#t} if @var{s1}
 is lexicographically greater than or equal to @var{s2}.
 @end deffn
 
 string-ci<?
-@c snarfed from strorder.c:239
+@c snarfed from strorder.c:237
 @deffn primitive string-ci<? s1 s2
 Case insensitive lexicographic ordering predicate; return
 @code{#t} if @var{s1} is lexicographically less than @var{s2}
@@ -5928,7 +5918,7 @@ regardless of case.
 @end deffn
 
 string-ci<=?
-@c snarfed from strorder.c:254
+@c snarfed from strorder.c:252
 @deffn primitive string-ci<=? s1 s2
 Case insensitive lexicographic ordering predicate; return
 @code{#t} if @var{s1} is lexicographically less than or equal
@@ -5936,7 +5926,7 @@ to @var{s2} regardless of case.
 @end deffn
 
 string-ci>?
-@c snarfed from strorder.c:269
+@c snarfed from strorder.c:267
 @deffn primitive string-ci>? s1 s2
 Case insensitive lexicographic ordering predicate; return
 @code{#t} if @var{s1} is lexicographically greater than
@@ -5944,7 +5934,7 @@ Case insensitive lexicographic ordering predicate; return
 @end deffn
 
 string-ci>=?
-@c snarfed from strorder.c:284
+@c snarfed from strorder.c:282
 @deffn primitive string-ci>=? s1 s2
 Case insensitive lexicographic ordering predicate; return
 @code{#t} if @var{s1} is lexicographically greater than or
@@ -6182,7 +6172,7 @@ Return @code{#t} if @var{obj} is a symbol, otherwise return
 @end deffn
 
 symbol->string
-@c snarfed from symbols.c:451
+@c snarfed from symbols.c:453
 @deffn primitive symbol->string s
 Return the name of @var{symbol} as a string.  If the symbol was
 part of an object returned as the value of a literal expression
@@ -6208,7 +6198,7 @@ standard case is lower case:
 @end deffn
 
 string->symbol
-@c snarfed from symbols.c:478
+@c snarfed from symbols.c:483
 @deffn primitive string->symbol string
 Return the symbol whose name is @var{string}. This procedure
 can create symbols with names containing special characters or
@@ -6231,7 +6221,7 @@ standard case is lower case:
 @end deffn
 
 string->obarray-symbol
-@c snarfed from symbols.c:499
+@c snarfed from symbols.c:505
 @deffn primitive string->obarray-symbol o s [softp]
 Intern a new symbol in @var{obarray}, a symbol table, with name
 @var{string}.
@@ -6249,7 +6239,7 @@ table; instead, simply return @code{#f}.
 @end deffn
 
 intern-symbol
-@c snarfed from symbols.c:531
+@c snarfed from symbols.c:537
 @deffn primitive intern-symbol o s
 Add a new symbol to @var{obarray} with name @var{string}, bound to an
 unspecified initial value.  The symbol table is not modified if a symbol
@@ -6257,7 +6247,7 @@ with this name is already present.
 @end deffn
 
 unintern-symbol
-@c snarfed from symbols.c:568
+@c snarfed from symbols.c:574
 @deffn primitive unintern-symbol o s
 Remove the symbol with name @var{string} from @var{obarray}.  This
 function returns @code{#t} if the symbol was present and @code{#f}
@@ -6265,7 +6255,7 @@ otherwise.
 @end deffn
 
 symbol-binding
-@c snarfed from symbols.c:609
+@c snarfed from symbols.c:615
 @deffn primitive symbol-binding o s
 Look up in @var{obarray} the symbol whose name is @var{string}, and
 return the value to which it is bound.  If @var{obarray} is @code{#f},
@@ -6274,14 +6264,14 @@ use the global symbol table.  If @var{string} is not interned in
 @end deffn
 
 symbol-interned?
-@c snarfed from symbols.c:626
+@c snarfed from symbols.c:632
 @deffn primitive symbol-interned? o s
 Return @code{#t} if @var{obarray} contains a symbol with name
 @var{string}, and @code{#f} otherwise.
 @end deffn
 
 symbol-bound?
-@c snarfed from symbols.c:649
+@c snarfed from symbols.c:655
 @deffn primitive symbol-bound? o s
 Return @code{#t} if @var{obarray} contains a symbol with name
 @var{string} bound to a defined value.  This differs from
@@ -6292,7 +6282,7 @@ value.
 @end deffn
 
 symbol-set!
-@c snarfed from symbols.c:667
+@c snarfed from symbols.c:673
 @deffn primitive symbol-set! o s v
 Find the symbol in @var{obarray} whose name is @var{string}, and rebind
 it to @var{value}.  An error is signalled if @var{string} is not present
@@ -6300,44 +6290,44 @@ in @var{obarray}.
 @end deffn
 
 symbol-fref
-@c snarfed from symbols.c:684
+@c snarfed from symbols.c:690
 @deffn primitive symbol-fref s
 Return the contents of @var{symbol}'s @dfn{function slot}.
 @end deffn
 
 symbol-pref
-@c snarfed from symbols.c:695
+@c snarfed from symbols.c:701
 @deffn primitive symbol-pref s
 Return the @dfn{property list} currently associated with @var{symbol}.
 @end deffn
 
 symbol-fset!
-@c snarfed from symbols.c:706
+@c snarfed from symbols.c:712
 @deffn primitive symbol-fset! s val
 Change the binding of @var{symbol}'s function slot.
 @end deffn
 
 symbol-pset!
-@c snarfed from symbols.c:718
+@c snarfed from symbols.c:724
 @deffn primitive symbol-pset! s val
 Change the binding of @var{symbol}'s property slot.
 @end deffn
 
 symbol-hash
-@c snarfed from symbols.c:732
+@c snarfed from symbols.c:738
 @deffn primitive symbol-hash symbol
 Return a hash value for @var{symbol}.
 @end deffn
 
 builtin-bindings
-@c snarfed from symbols.c:769
+@c snarfed from symbols.c:775
 @deffn primitive builtin-bindings
 Create and return a copy of the global symbol table, removing all
 unbound symbols.
 @end deffn
 
 gensym
-@c snarfed from symbols.c:790
+@c snarfed from symbols.c:796
 @deffn primitive gensym [prefix]
 Create a new symbol with a name constructed from a prefix and
 a counter value. The string @var{prefix} can be specified as
@@ -6347,7 +6337,7 @@ resetting the counter.
 @end deffn
 
 gentemp
-@c snarfed from symbols.c:829
+@c snarfed from symbols.c:835
 @deffn primitive gentemp [prefix [obarray]]
 Create a new symbol with a name unique in an obarray.
 The name is constructed from an optional string @var{prefix}
@@ -6365,7 +6355,7 @@ Return an integer corresponding to the type of X.  Deprecated.
 @end deffn
 
 catch
-@c snarfed from throw.c:529
+@c snarfed from throw.c:535
 @deffn primitive catch key thunk handler
 Invoke @var{thunk} in the dynamic context of @var{handler} for
 exceptions matching @var{key}.  If thunk throws to the symbol
@@ -6384,7 +6374,7 @@ match this call to @code{catch}.
 @end deffn
 
 lazy-catch
-@c snarfed from throw.c:556
+@c snarfed from throw.c:562
 @deffn primitive lazy-catch key thunk handler
 This behaves exactly like @code{catch}, except that it does
 not unwind the stack (this is the major difference), and if
@@ -6392,7 +6382,7 @@ handler returns, its value is returned from the throw.
 @end deffn
 
 throw
-@c snarfed from throw.c:589
+@c snarfed from throw.c:595
 @deffn primitive throw key . args
 Invoke the catch form matching @var{key}, passing @var{args} to the
 @var{handler}.  
@@ -6483,7 +6473,7 @@ it can be otherwise arbitrary.  A simple example:
 @end deffn
 
 transpose-array
-@c snarfed from unif.c:802
+@c snarfed from unif.c:804
 @deffn primitive transpose-array ra . args
 Return an array sharing contents with @var{array}, but with
 dimensions arranged in a different order.  There must be one
@@ -6505,7 +6495,7 @@ have smaller rank than @var{array}.
 @end deffn
 
 enclose-array
-@c snarfed from unif.c:911
+@c snarfed from unif.c:913
 @deffn primitive enclose-array ra . axes
 @var{dim0}, @var{dim1} @dots{} should be nonnegative integers less than
 the rank of @var{array}.  @var{enclose-array} returns an array
@@ -6531,20 +6521,20 @@ examples:
 @end deffn
 
 array-in-bounds?
-@c snarfed from unif.c:994
+@c snarfed from unif.c:997
 @deffn primitive array-in-bounds? v . args
 Return @code{#t} if its arguments would be acceptable to
 @code{array-ref}.
 @end deffn
 
 array-ref
-@c snarfed from unif.c:1073
+@c snarfed from unif.c:1076
 @deffn primitive array-ref
 scm_uniform_vector_ref
 @end deffn
 
 uniform-vector-ref
-@c snarfed from unif.c:1079
+@c snarfed from unif.c:1083
 @deffn primitive uniform-vector-ref v args
 @deffnx primitive array-ref v . args
 Return the element at the @code{(index1, index2)} element in
@@ -6552,13 +6542,13 @@ Return the element at the @code{(index1, index2)} element in
 @end deffn
 
 uniform-array-set1!
-@c snarfed from unif.c:1248
+@c snarfed from unif.c:1252
 @deffn primitive uniform-array-set1!
 scm_array_set_x
 @end deffn
 
 array-set!
-@c snarfed from unif.c:1257
+@c snarfed from unif.c:1261
 @deffn primitive array-set! v obj . args
 @deffnx primitive uniform-array-set1! v obj args
 Sets the element at the @code{(index1, index2)} element in @var{array} to
@@ -6566,7 +6556,7 @@ Sets the element at the @code{(index1, index2)} element in @var{array} to
 @end deffn
 
 array-contents
-@c snarfed from unif.c:1372
+@c snarfed from unif.c:1376
 @deffn primitive array-contents ra [strict]
 @deffnx primitive array-contents array strict
 If @var{array} may be @dfn{unrolled} into a one dimensional shared array
@@ -6582,7 +6572,7 @@ memory.
 @end deffn
 
 uniform-array-read!
-@c snarfed from unif.c:1486
+@c snarfed from unif.c:1490
 @deffn primitive uniform-array-read! ra [port_or_fd [start [end]]]
 @deffnx primitive uniform-vector-read! uve [port-or-fdes] [start] [end]
 Attempts to read all elements of @var{ura}, in lexicographic order, as
@@ -6602,7 +6592,7 @@ returned by @code{(current-input-port)}.
 @end deffn
 
 uniform-array-write
-@c snarfed from unif.c:1649
+@c snarfed from unif.c:1653
 @deffn primitive uniform-array-write v [port_or_fd [start [end]]]
 @deffnx primitive uniform-vector-write uve [port-or-fdes] [start] [end]
 Writes all elements of @var{ura} as binary objects to
@@ -6619,14 +6609,14 @@ omitted, in which case it defaults to the value returned by
 @end deffn
 
 bit-count
-@c snarfed from unif.c:1774
+@c snarfed from unif.c:1778
 @deffn primitive bit-count b bitvector
 Return the number of occurrences of the boolean @var{b} in
 @var{bitvector}.
 @end deffn
 
 bit-position
-@c snarfed from unif.c:1813
+@c snarfed from unif.c:1817
 @deffn primitive bit-position item v k
 Return the minimum index of an occurrence of @var{bool} in
 @var{bv} which is at least @var{k}.  If no @var{bool} occurs
@@ -6634,7 +6624,7 @@ within the specified range @code{#f} is returned.
 @end deffn
 
 bit-set*!
-@c snarfed from unif.c:1881
+@c snarfed from unif.c:1885
 @deffn primitive bit-set*! v kv obj
 If uve is a bit-vector @var{bv} and uve must be of the same
 length.  If @var{bool} is @code{#t}, uve is OR'ed into
@@ -6648,7 +6638,7 @@ of @var{bv} corresponding to the indexes in uve are set to
 @end deffn
 
 bit-count*
-@c snarfed from unif.c:1935
+@c snarfed from unif.c:1939
 @deffn primitive bit-count* v kv obj
 Return
 @lisp
@@ -6658,20 +6648,20 @@ Return
 @end deffn
 
 bit-invert!
-@c snarfed from unif.c:1999
+@c snarfed from unif.c:2003
 @deffn primitive bit-invert! v
 Modifies @var{bv} by replacing each element with its negation.
 @end deffn
 
 array->list
-@c snarfed from unif.c:2077
+@c snarfed from unif.c:2082
 @deffn primitive array->list v
 Return a list consisting of all the elements, in order, of
 @var{array}.
 @end deffn
 
 list->uniform-array
-@c snarfed from unif.c:2169
+@c snarfed from unif.c:2175
 @deffn primitive list->uniform-array ndim prot lst
 @deffnx procedure list->uniform-vector prot lst
 Return a uniform array of the type indicated by prototype
@@ -6681,7 +6671,7 @@ done.
 @end deffn
 
 array-prototype
-@c snarfed from unif.c:2520
+@c snarfed from unif.c:2526
 @deffn primitive array-prototype ra
 Return an object that would produce an array of the same type
 as @var{array}, if used as the @var{prototype} for
@@ -6689,7 +6679,7 @@ as @var{array}, if used as the @var{prototype} for
 @end deffn
 
 values
-@c snarfed from values.c:83
+@c snarfed from values.c:80
 @deffn primitive values . args
 Delivers all of its arguments to its continuation.  Except for
 continuations created by the @code{call-with-values} procedure,
@@ -6698,28 +6688,8 @@ passing no value or more than one value to continuations that
 were not created by @code{call-with-values} is unspecified.
 @end deffn
 
-call-with-values
-@c snarfed from values.c:116
-@deffn primitive call-with-values producer consumer
-Calls its @var{producer} argument with no values and a
-continuation that, when passed some values, calls the
-@var{consumer} procedure with those values as arguments.  The
-continuation for the call to @var{consumer} is the continuation
-of the call to @code{call-with-values}.
-
-@example
-(call-with-values (lambda () (values 4 5))
-                  (lambda (a b) b))
-                                             ==>  5
-
-@end example
-@example
-(call-with-values * -)                             ==>  -1
-@end example
-@end deffn
-
 make-variable
-@c snarfed from variable.c:100
+@c snarfed from variable.c:99
 @deffn primitive make-variable init [name_hint]
 Return a variable object initialized to value @var{init}.
 If given, uses @var{name-hint} as its internal (debugging)
@@ -6729,7 +6699,7 @@ variable may exist, so @var{name-hint} is just that---a hint.
 @end deffn
 
 make-undefined-variable
-@c snarfed from variable.c:124
+@c snarfed from variable.c:119
 @deffn primitive make-undefined-variable [name_hint]
 Return a variable object initialized to an undefined value.
 If given, uses @var{name-hint} as its internal (debugging)
@@ -6739,14 +6709,14 @@ variable may exist, so @var{name-hint} is just that---a hint.
 @end deffn
 
 variable?
-@c snarfed from variable.c:145
+@c snarfed from variable.c:136
 @deffn primitive variable? obj
 Return @code{#t} iff @var{obj} is a variable object, else
 return @code{#f}
 @end deffn
 
 variable-ref
-@c snarfed from variable.c:157
+@c snarfed from variable.c:148
 @deffn primitive variable-ref var
 Dereference @var{var} and return its value.
 @var{var} must be a variable object; see @code{make-variable}
@@ -6754,7 +6724,7 @@ and @code{make-undefined-variable}.
 @end deffn
 
 variable-set!
-@c snarfed from variable.c:171
+@c snarfed from variable.c:162
 @deffn primitive variable-set! var val
 Set the value of the variable @var{var} to @var{val}.
 @var{var} must be a variable object, @var{val} can be any
@@ -6762,7 +6732,7 @@ value. Return an unspecified value.
 @end deffn
 
 builtin-variable
-@c snarfed from variable.c:185
+@c snarfed from variable.c:176
 @deffn primitive builtin-variable name
 Return the built-in variable with the name @var{name}.
 @var{name} must be a symbol (not a string).
@@ -6770,7 +6740,7 @@ Then use @code{variable-ref} to access its value.
 @end deffn
 
 variable-bound?
-@c snarfed from variable.c:213
+@c snarfed from variable.c:204
 @deffn primitive variable-bound? var
 Return @code{#t} iff @var{var} is bound to a value.
 Throws an error if @var{var} is not a variable object.
@@ -6790,7 +6760,7 @@ scm_vector
 @end deffn
 
 vector
-@c snarfed from vectors.c:177
+@c snarfed from vectors.c:178
 @deffn primitive vector . l
 @deffnx primitive list->vector l
 Return a newly allocated vector whose elements contain the
@@ -6801,7 +6771,7 @@ given arguments.  Analogous to @code{list}.
 @end deffn
 
 make-vector
-@c snarfed from vectors.c:255
+@c snarfed from vectors.c:264
 @deffn primitive make-vector k [fill]
 Return a newly allocated vector of @var{k} elements.  If a
 second argument is given, then each element is initialized to
@@ -6810,7 +6780,7 @@ unspecified.
 @end deffn
 
 vector->list
-@c snarfed from vectors.c:311
+@c snarfed from vectors.c:321
 @deffn primitive vector->list v
 Return a newly allocated list of the objects contained in the
 elements of @var{vector}.
@@ -6821,20 +6791,20 @@ elements of @var{vector}.
 @end deffn
 
 vector-fill!
-@c snarfed from vectors.c:328
+@c snarfed from vectors.c:338
 @deffn primitive vector-fill! v fill
 Store @var{fill} in every element of @var{vector}.  The value
 returned by @code{vector-fill!} is unspecified.
 @end deffn
 
 vector-move-left!
-@c snarfed from vectors.c:355
+@c snarfed from vectors.c:365
 @deffn primitive vector-move-left! vec1 start1 end1 vec2 start2
 Vector version of @code{substring-move-left!}.
 @end deffn
 
 vector-move-right!
-@c snarfed from vectors.c:378
+@c snarfed from vectors.c:388
 @deffn primitive vector-move-right! vec1 start1 end1 vec2 start2
 Vector version of @code{substring-move-right!}.
 @end deffn
@@ -6869,7 +6839,7 @@ version numbers, respectively.
 @end deffn
 
 make-soft-port
-@c snarfed from vports.c:184
+@c snarfed from vports.c:190
 @deffn primitive make-soft-port pv modes
 Return a port capable of receiving or delivering characters as
 specified by the @var{modes} string (@pxref{File Ports,
@@ -6910,7 +6880,7 @@ For example:
 @end deffn
 
 make-weak-vector
-@c snarfed from weaks.c:62
+@c snarfed from weaks.c:63
 @deffn primitive make-weak-vector size [fill]
 Return a weak vector with @var{size} elements. If the optional
 argument @var{fill} is given, all entries in the vector will be
@@ -6919,13 +6889,13 @@ empty list.
 @end deffn
 
 list->weak-vector
-@c snarfed from weaks.c:79
+@c snarfed from weaks.c:80
 @deffn primitive list->weak-vector
 scm_weak_vector
 @end deffn
 
 weak-vector
-@c snarfed from weaks.c:87
+@c snarfed from weaks.c:88
 @deffn primitive weak-vector . l
 @deffnx primitive list->weak-vector l
 Construct a weak vector from a list: @code{weak-vector} uses
@@ -6935,14 +6905,14 @@ the same way @code{list->vector} would.
 @end deffn
 
 weak-vector?
-@c snarfed from weaks.c:110
+@c snarfed from weaks.c:116
 @deffn primitive weak-vector? obj
 Return @code{#t} if @var{obj} is a weak vector. Note that all
 weak hashes are also weak vectors.
 @end deffn
 
 make-weak-key-hash-table
-@c snarfed from weaks.c:130
+@c snarfed from weaks.c:138
 @deffn primitive make-weak-key-hash-table size
 @deffnx primitive make-weak-value-hash-table size
 @deffnx primitive make-doubly-weak-hash-table size
@@ -6954,21 +6924,21 @@ would modify regular hash tables. (@pxref{Hash Tables})
 @end deffn
 
 make-weak-value-hash-table
-@c snarfed from weaks.c:147
-@deffn primitive make-weak-value-hash-table k
+@c snarfed from weaks.c:155
+@deffn primitive make-weak-value-hash-table size
 Return a hash table with weak values with @var{size} buckets.
 (@pxref{Hash Tables})
 @end deffn
 
 make-doubly-weak-hash-table
-@c snarfed from weaks.c:165
-@deffn primitive make-doubly-weak-hash-table k
+@c snarfed from weaks.c:173
+@deffn primitive make-doubly-weak-hash-table size
 Return a hash table with weak keys and values with @var{size}
 buckets.  (@pxref{Hash Tables})
 @end deffn
 
 weak-key-hash-table?
-@c snarfed from weaks.c:184
+@c snarfed from weaks.c:192
 @deffn primitive weak-key-hash-table? obj
 @deffnx primitive weak-value-hash-table? obj
 @deffnx primitive doubly-weak-hash-table? obj
@@ -6978,13 +6948,13 @@ nor a weak value hash table.
 @end deffn
 
 weak-value-hash-table?
-@c snarfed from weaks.c:194
-@deffn primitive weak-value-hash-table? x
-Return @code{#t} if @var{x} is a weak value hash table.
+@c snarfed from weaks.c:202
+@deffn primitive weak-value-hash-table? obj
+Return @code{#t} if @var{obj} is a weak value hash table.
 @end deffn
 
 doubly-weak-hash-table?
-@c snarfed from weaks.c:204
-@deffn primitive doubly-weak-hash-table? x
-Return @code{#t} if @var{x} is a doubly weak hash table.
+@c snarfed from weaks.c:212
+@deffn primitive doubly-weak-hash-table? obj
+Return @code{#t} if @var{obj} is a doubly weak hash table.
 @end deffn

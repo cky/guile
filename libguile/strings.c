@@ -74,15 +74,8 @@ SCM_DEFINE (scm_string_p, "string?", 1, 0, 0,
 
 SCM_DEFINE (scm_read_only_string_p, "read-only-string?", 1, 0, 0, 
 	    (SCM obj),
-	    "Return true if @var{obj} can be read as a string,\n\n"
-	    "This illustrates the difference between @code{string?} and\n"
-	    "@code{read-only-string?}:\n\n"
-	    "@lisp\n"
-	    "(string? \"a string\") @result{} #t\n"
-	    "(string? 'a-symbol) @result{} #f\n\n"
-	    "(read-only-string? \"a string\") @result{} #t\n"
-	    "(read-only-string? 'a-symbol) @result{} #t\n"
-	    "@end lisp")
+	    "Return @code{#t} if @var{obj} is either a string or a symbol,\n"
+            "otherwise return @code{#f}.")
 #define FUNC_NAME s_scm_read_only_string_p
 {
   return SCM_BOOL(SCM_ROSTRINGP (obj));
