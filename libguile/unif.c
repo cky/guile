@@ -1795,9 +1795,15 @@ SCM_DEFINE (scm_bit_count, "bit-count", 2, 0, 0,
 
 SCM_DEFINE (scm_bit_position, "bit-position", 3, 0, 0,
            (SCM item, SCM v, SCM k),
-	    "Return the minimum index of an occurrence of @var{bool} in\n"
-	    "@var{bv} which is at least @var{k}.  If no @var{bool} occurs\n"
-	    "within the specified range @code{#f} is returned.")
+	    "Return the index of the first occurrance of @var{item} in bit\n"
+	    "vector @var{v}, starting from @var{k}.  If there is no\n"
+	    "@var{item} entry between @var{k} and the end of\n"
+	    "@var{bitvector}, then return @code{#f}.  For example,\n"
+	    "\n"
+	    "@example\n"
+	    "(bit-position #t #*000101 0)  @result{} 3\n"
+	    "(bit-position #f #*0001111 3) @result{} #f\n"
+	    "@end example")
 #define FUNC_NAME s_scm_bit_position
 {
   long i, lenw, xbits, pos;
@@ -1858,14 +1864,32 @@ SCM_DEFINE (scm_bit_position, "bit-position", 3, 0, 0,
 
 SCM_DEFINE (scm_bit_set_star_x, "bit-set*!", 3, 0, 0,
 	    (SCM v, SCM kv, SCM obj),
-	    "If uve is a bit-vector @var{bv} and uve must be of the same\n"
-	    "length.  If @var{bool} is @code{#t}, uve is OR'ed into\n"
-	    "@var{bv}; If @var{bool} is @code{#f}, the inversion of uve is\n"
-	    "AND'ed into @var{bv}.\n\n"
-	    "If uve is a unsigned long integer vector all the elements of uve\n"
-	    "must be between 0 and the @code{length} of @var{bv}.  The bits\n"
-	    "of @var{bv} corresponding to the indexes in uve are set to\n"
-	    "@var{bool}.  The return value is unspecified.")
+	    "Set entries of bit vector @var{v} to @var{obj}, with @var{kv}\n"
+	    "selecting the entries to change.  The return value is\n"
+	    "unspecified.\n"
+	    "\n"
+	    "If @var{kv} is a bit vector, then those entries where it has\n"
+	    "@code{#t} are the ones in @var{v} which are set to @var{obj}.\n"
+	    "@var{kv} and @var{v} must be the same length.  When @var{obj}\n"
+	    "is @code{#t} it's like @var{kv} is OR'ed into @var{v}.  Or when\n"
+	    "@var{obj} is @code{#f} it can be seen as an ANDNOT.\n"
+	    "\n"
+	    "@example\n"
+	    "(define bv #*01000010)\n"
+	    "(bit-set*! bv #*10010001 #t)\n"
+	    "bv\n"
+	    "@result{} #*11010011\n"
+	    "@end example\n"
+	    "\n"
+	    "If @var{kv} is a uniform vector of unsigned long integers, then\n"
+	    "they're indexes into @var{v} which are set to @var{obj}.\n"
+	    "\n"
+	    "@example\n"
+	    "(define bv #*01000010)\n"
+	    "(bit-set*! bv #u(5 2 7) #t)\n"
+	    "bv\n"
+	    "@result{} #*01100111\n"
+	    "@end example")
 #define FUNC_NAME s_scm_bit_set_star_x
 {
   register long i, k, vlen;
@@ -1915,11 +1939,23 @@ SCM_DEFINE (scm_bit_set_star_x, "bit-set*!", 3, 0, 0,
 
 SCM_DEFINE (scm_bit_count_star, "bit-count*", 3, 0, 0,
            (SCM v, SCM kv, SCM obj),
-	    "Return\n"
-	    "@lisp\n"
-	    "(bit-count (bit-set*! (if bool bv (bit-invert! bv)) uve #t) #t).\n"
-	    "@end lisp\n"
-	    "@var{bv} is not modified.")
+	    "Return a count of how many entries in bit vector @var{v} are\n"
+	    "equal to @var{obj}, with @var{kv} selecting the entries to\n"
+	    "consider.\n"
+	    "\n"
+	    "If @var{kv} is a bit vector, then those entries where it has\n"
+	    "@code{#t} are the ones in @var{v} which are considered.\n"
+	    "@var{kv} and @var{v} must be the same length.\n"
+	    "\n"
+	    "If @var{kv} is a uniform vector of unsigned long integers, then\n"
+	    "it's the indexes in @var{v} to consider.\n"
+	    "\n"
+	    "For example,\n"
+	    "\n"
+	    "@example\n"
+	    "(bit-count* #*01110111 #*11001101 #t) @result{} 3\n"
+	    "(bit-count* #*01110111 #u(7 0 4) #f)  @result{} 2\n"
+	    "@end example")
 #define FUNC_NAME s_scm_bit_count_star
 {
   register long i, vlen, count = 0;
@@ -1983,7 +2019,8 @@ SCM_DEFINE (scm_bit_count_star, "bit-count*", 3, 0, 0,
 
 SCM_DEFINE (scm_bit_invert_x, "bit-invert!", 1, 0, 0, 
            (SCM v),
-	    "Modify @var{bv} by replacing each element with its negation.")
+	    "Modify the bit vector @var{v} by replacing each element with\n"
+	    "its negation.")
 #define FUNC_NAME s_scm_bit_invert_x
 {
   long int k;
