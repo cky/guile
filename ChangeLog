@@ -1,3 +1,8 @@
+1998-05-06  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* configure.in: Replaced some AC_CHECK_FUNC --> AC_CHECK_FUNCS so
+	that suitable HAVE_<function name> symbols get defined.
+
 1998-04-25  Mikael Djurfeldt  <mdj@kenneth>
 
 	* configure.in: Define USLEEP_RETURNS_VOID on some systems.

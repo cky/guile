@@ -182,8 +182,14 @@
 /* Define if you have the bzero function.  */
 #undef HAVE_BZERO
 
+/* Define if you have the connect function.  */
+#undef HAVE_CONNECT
+
 /* Define if you have the ctermid function.  */
 #undef HAVE_CTERMID
+
+/* Define if you have the dlopen function.  */
+#undef HAVE_DLOPEN
 
 /* Define if you have the endhostent function.  */
 #undef HAVE_ENDHOSTENT
@@ -208,6 +214,9 @@
 
 /* Define if you have the getgroups function.  */
 #undef HAVE_GETGROUPS
+
+/* Define if you have the gethostbyname function.  */
+#undef HAVE_GETHOSTBYNAME
 
 /* Define if you have the gethostent function.  */
 #undef HAVE_GETHOSTENT
@@ -295,6 +304,9 @@
 
 /* Define if you have the setsid function.  */
 #undef HAVE_SETSID
+
+/* Define if you have the shl_load function.  */
+#undef HAVE_SHL_LOAD
 
 /* Define if you have the sigaction function.  */
 #undef HAVE_SIGACTION
