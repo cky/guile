@@ -178,23 +178,6 @@ SCM_DEFINE (scm_ftell, "ftell", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-
-#if (SCM_DEBUG_DEPRECATED == 0)
-
-SCM_DEFINE (scm_fseek, "fseek", 3, 0, 0,
-            (SCM fd_port, SCM offset, SCM whence),
-	    "Obsolete.  Almost the same as @code{seek}, but the return value\n"
-	    "is unspecified.")
-#define FUNC_NAME s_scm_fseek
-{
-  scm_seek (fd_port, offset, whence);
-  return SCM_UNSPECIFIED;
-}
-#undef FUNC_NAME
-
-#endif  /* SCM_DEBUG_DEPRECATED == 0 */
-
-
 SCM_DEFINE (scm_redirect_port, "redirect-port", 2, 0, 0,
             (SCM old, SCM new),
 	    "This procedure takes two ports and duplicates the underlying file\n"
