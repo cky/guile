@@ -1,5 +1,8 @@
 1999-09-20  Jim Blandy  <jimb@savonarola.red-bean.com>
 
+	* tests/ports.test: Check that our input functions cope when
+	current-input-port is closed.
+
 	* tests/regexp.test: Check regexp-substitute/global when there are
 	no matches.  (Duh.)
 
