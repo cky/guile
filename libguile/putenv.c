@@ -40,9 +40,11 @@
    If you do not wish that, delete this exception notice.  */
 
 
-#ifdef HAVE_CONFIG_H
-#include "libguile/scmconfig.h"
+#if HAVE_CONFIG_H
+#  include <config.h>
 #endif
+
+#include "libguile/scmconfig.h"
 
 #include <sys/types.h>
 #include <errno.h>
