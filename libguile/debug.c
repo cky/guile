@@ -87,7 +87,7 @@ SCM_DEFINE (scm_debug_options, "debug-options-interface", 0, 1, 0,
   if (!(1 <= SCM_N_FRAMES && SCM_N_FRAMES <= SCM_MAX_FRAME_SIZE))
     {
       scm_options (ans, scm_debug_opts, SCM_N_DEBUG_OPTIONS, FUNC_NAME);
-      scm_out_of_range (FUNC_NAME, setting);
+      SCM_OUT_OF_RANGE (1, setting);
     }
 #endif
   SCM_RESET_DEBUG_MODE;

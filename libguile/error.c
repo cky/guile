@@ -185,6 +185,17 @@ scm_out_of_range (const char *subr, SCM bad_value)
 	     SCM_BOOL_F);
 }
 
+void
+scm_out_of_range_pos (const char *subr, SCM bad_value, SCM pos)
+{
+  scm_error (scm_out_of_range_key,
+	     subr,
+	     "Argument %S out of range: %S",
+	     scm_listify (pos, bad_value, SCM_UNDEFINED),
+	     SCM_BOOL_F);
+}
+
+
 SCM_SYMBOL (scm_args_number_key, "wrong-number-of-args");
 void
 scm_wrong_num_args (SCM proc)

@@ -1,4 +1,4 @@
-/* $Id: scm_validate.h,v 1.12 2000-01-06 18:04:14 gjb Exp $ */
+/* $Id: scm_validate.h,v 1.13 2000-01-07 23:53:20 gjb Exp $ */
 /*	Copyright (C) 1999 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
@@ -75,7 +75,7 @@
 
 #define SCM_NUM2LONG_LONG(pos,arg) (scm_num2long_long(arg, (char *) pos, FUNC_NAME))
 
-#define SCM_OUT_OF_RANGE(pos,arg) do { scm_out_of_range(FUNC_NAME,arg); } while (0)
+#define SCM_OUT_OF_RANGE(pos,arg) do { scm_out_of_range_pos(FUNC_NAME,arg,scm_long2num(pos)); } while (0)
 
 #define SCM_ASSERT_RANGE(pos,arg,f) do { SCM_ASSERT(f,arg,SCM_OUTOFRANGE,FUNC_NAME); } while (0)
 

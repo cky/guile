@@ -71,6 +71,8 @@ extern void scm_sysmissing SCM_P ((const char *subr)) SCM_NORETURN;
 extern void scm_num_overflow SCM_P ((const char *subr)) SCM_NORETURN;
 extern void scm_out_of_range SCM_P ((const char *subr, SCM bad_value))
      SCM_NORETURN;
+extern void scm_out_of_range_pos SCM_P ((const char *subr, SCM bad_value, SCM pos))
+     SCM_NORETURN;
 extern void scm_wrong_num_args SCM_P ((SCM proc)) SCM_NORETURN;
 extern void scm_wrong_type_arg SCM_P ((const char *subr, int pos,
 				       SCM bad_value)) SCM_NORETURN;
