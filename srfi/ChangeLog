@@ -1,5 +1,10 @@
 2001-07-16  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
+	(scm_char_set_map): Bug-fix: char-set-map was modifying the
+	argument instead of the return value.
+
+2001-07-16  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
 	* srfi-14.c: Allocate correct memory size for charsets (32 bytes),
 	use this value for initializing and comparing charsets.
 	(scm_char_set_hash): Use ``better'' hash algorithm which produces

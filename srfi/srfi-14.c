@@ -429,7 +429,7 @@ SCM_DEFINE (scm_char_set_map, "char-set-map", 2, 0, 0,
 	SCM ch = scm_call_1 (proc, SCM_MAKE_CHAR (k));
 	if (!SCM_CHARP (ch))
 	  SCM_MISC_ERROR ("procedure ~S returned non-char", scm_list_1 (proc));
-	SCM_CHARSET_SET (cs, SCM_CHAR (ch));
+	SCM_CHARSET_SET (result, SCM_CHAR (ch));
       }
   return result;
 }
