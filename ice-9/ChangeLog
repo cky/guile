@@ -1,6 +1,7 @@
 2001-04-25  Keisuke Nishida  <kxn30@po.cwru.edu>
 
 	* channel.scm: New file.
+	* Makefile.am (ice9_sources): Include channel.scm.
 
 2001-04-19  Keisuke Nishida  <kxn30@po.cwru.edu>
 
