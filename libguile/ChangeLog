@@ -1,5 +1,10 @@
 2001-04-19  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* debug.c (scm_procedure_source):  Use SCM_CLOSURE_FORMALS more
+	consistently.
+
+2001-04-19  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* procs.h (SCM_CLOSURE_FORMALS):  New macro.
 
 	* debug.c (scm_procedure_source), eval.c (scm_badformalsp,

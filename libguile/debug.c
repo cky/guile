@@ -426,16 +426,15 @@ SCM_DEFINE (scm_procedure_source, "procedure-source", 1, 0, 0,
   switch (SCM_TYP7 (proc)) {
   case scm_tcs_closures:
     {
-      SCM src;
-      src = scm_source_property (SCM_CDR (SCM_CODE (proc)), scm_sym_copy);
-      if (! SCM_FALSEP (src))
-	return scm_cons2 (scm_sym_lambda, SCM_CLOSURE_FORMALS (proc), src);
-      src = SCM_CODE (proc);
+      SCM formals = SCM_CLOSURE_FORMALS (proc);
+      SCM src = scm_source_property (SCM_CDR (SCM_CODE (proc)), scm_sym_copy);
+      if (!SCM_FALSEP (src))
+	return scm_cons2 (scm_sym_lambda, formals, src);
       return scm_cons (scm_sym_lambda,
-		       scm_unmemocopy (src,
-				       SCM_EXTEND_ENV (SCM_CAR (src),
-							   SCM_EOL,
-							   SCM_ENV (proc))));
+		       scm_unmemocopy (SCM_CODE (proc),
+				       SCM_EXTEND_ENV (formals,
+						       SCM_EOL,
+						       SCM_ENV (proc))));
     }
   case scm_tcs_subrs:
 #ifdef CCLO
