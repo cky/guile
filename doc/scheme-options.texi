@@ -278,13 +278,15 @@ Guile's configuration at run time.
 @deffn primitive version
 @deffnx primitive major-version
 @deffnx primitive minor-version
+@deffnx primitive micro-version
 Return a string describing Guile's version number, or its major or minor
 version numbers, respectively.
 
 @lisp
-(version) @result{} "1.3a"
+(version) @result{} "1.6.5"
 (major-version) @result{} "1"
-(minor-version) @result{} "3a"
+(minor-version) @result{} "6"
+(micro-version) @result{} "5"
 @end lisp
 @end deffn
 
