@@ -55,7 +55,7 @@ In release 1.6:
     gc.c: scm_remember
     string.c: scm_makstr
 - remove deprecated procedures:
-    boot-9.scm:eval-in-module
+    boot-9.scm: eval-in-module, id
 - remove deprecated macros: SCM_OUTOFRANGE, SCM_NALLOC, SCM_HUP_SIGNAL, 
   SCM_INT_SIGNAL, SCM_FPE_SIGNAL, SCM_BUS_SIGNAL, SCM_SEGV_SIGNAL, 
   SCM_ALRM_SIGNAL, SCM_GC_SIGNAL, SCM_TICK_SIGNAL, SCM_SIG_ORD, 

@@ -288,6 +288,21 @@ objects are usually permanent.
 ** Escape procedures created by call-with-current-continuation now
 accept any number of arguments, as required by R5RS.
 
+** New function `call-with-deprecation'
+
+Call a thunk, displaying a deprecation message at the first call:
+
+  (define (id x)
+    (call-with-deprecation "`id' is deprecated.  Use `identity' instead."
+      (lambda ()
+	(identity x))))
+
+  guile> (id 1)
+  ;; `id' is deprecated.  Use `identity' instead.
+  1
+  guile> (id 1)
+  1
+
 ** New function `make-object-property'
 
 This function returns a new `procedure with setter' P that can be used
@@ -486,6 +501,14 @@ The data can then be retrieved by `get-output-string'.
 ** New function: get-output-string
 
 Return the contents of an output string port.
+
+** New function: identity
+
+Return the argument.
+
+** Deprecated: id
+
+Use `identity' instead.
 
 ** Deprecated: close-all-ports-except.
 
