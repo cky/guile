@@ -305,11 +305,95 @@ print_circref (SCM port,scm_print_state *pstate,SCM ref)
   scm_putc ('#', port);
 }
 
+/* Print the name of a symbol. */
+
+void
+scm_print_symbol_name (const char *str, size_t len, SCM port)
+{
+  size_t pos;
+  size_t end;
+  int weird;
+  int maybe_weird;
+  size_t mw_pos = 0;
+  
+  pos = 0;
+  weird = 0;
+  maybe_weird = 0;
+  
+  /* XXX - Lots of weird symbol names are missed, such as "12" or
+     "'a". */
+
+  if (len == 0)
+    scm_lfwrite ("#{}#", 4, port);
+  else if (str[0] == '#' || str[0] == ':' || str[len-1] == ':')
+    {
+      scm_lfwrite ("#{", 2, port);
+      weird = 1;
+    }
+  
+  for (end = pos; end < len; ++end)
+    switch (str[end])
+      {
+#ifdef BRACKETS_AS_PARENS
+      case '[':
+      case ']':
+#endif
+      case '(':
+      case ')':
+      case '"':
+      case ';':
+      case SCM_WHITE_SPACES:
+      case SCM_LINE_INCREMENTORS:
+      weird_handler:
+	if (maybe_weird)
+	  {
+	    end = mw_pos;
+	    maybe_weird = 0;
+	  }
+	if (!weird)
+	  {
+	    scm_lfwrite ("#{", 2, port);
+	    weird = 1;
+	  }
+	if (pos < end)
+	  {
+	    scm_lfwrite (str + pos, end - pos, port);
+	  }
+	{
+	  char buf[2];
+	  buf[0] = '\\';
+	  buf[1] = str[end];
+	  scm_lfwrite (buf, 2, port);
+	}
+	pos = end + 1;
+	break;
+      case '\\':
+	if (weird)
+	  goto weird_handler;
+	if (!maybe_weird)
+	  {
+	    maybe_weird = 1;
+	    mw_pos = pos;
+	  }
+	break;
+      case '}':
+      case '#':
+	if (weird)
+	  goto weird_handler;
+	break;
+      default:
+	break;
+      }
+  if (pos < end)
+    scm_lfwrite (str + pos, end - pos, port);
+  if (weird)
+    scm_lfwrite ("}#", 2, port);
+}
+
 /* Print generally.  Handles both write and display according to PSTATE.
  */
 SCM_GPROC(s_write, "write", 1, 1, 0, scm_write, g_write);
 SCM_GPROC(s_display, "display", 1, 1, 0, scm_display, g_display);
-
 
 void 
 scm_iprin1 (SCM exp, SCM port, scm_print_state *pstate)
@@ -457,84 +541,11 @@ taloop:
 	    scm_lfwrite (SCM_STRING_CHARS (exp), SCM_STRING_LENGTH (exp), port);
 	  break;
 	case scm_tc7_symbol:
-	    {
-	      size_t pos;
-	      size_t end;
-	      size_t len;
-	      char * str;
-	      int weird;
-	      int maybe_weird;
-	      size_t mw_pos = 0;
-
-	      len = SCM_SYMBOL_LENGTH (exp);
-	      str = SCM_SYMBOL_CHARS (exp);
-	      pos = 0;
-	      weird = 0;
-	      maybe_weird = 0;
-
-	      if (len == 0)
-		scm_lfwrite ("#{}#", 4, port);
-
-	      for (end = pos; end < len; ++end)
-		switch (str[end])
-		  {
-#ifdef BRACKETS_AS_PARENS
-		  case '[':
-		  case ']':
-#endif
-		  case '(':
-		  case ')':
-		  case '"':
-		  case ';':
-		  case SCM_WHITE_SPACES:
-		  case SCM_LINE_INCREMENTORS:
-		  weird_handler:
-		    if (maybe_weird)
-		      {
-			end = mw_pos;
-			maybe_weird = 0;
-		      }
-		    if (!weird)
-		      {
-			scm_lfwrite ("#{", 2, port);
-			weird = 1;
-		      }
-		    if (pos < end)
-		      {
-			scm_lfwrite (str + pos, end - pos, port);
-		      }
-		    {
-		      char buf[2];
-		      buf[0] = '\\';
-		      buf[1] = str[end];
-		      scm_lfwrite (buf, 2, port);
-		    }
-		    pos = end + 1;
-		    break;
-		  case '\\':
-		    if (weird)
-		      goto weird_handler;
-		    if (!maybe_weird)
-		      {
-			maybe_weird = 1;
-			mw_pos = pos;
-		      }
-		    break;
-		  case '}':
-		  case '#':
-		    if (weird)
-		      goto weird_handler;
-		    break;
-		  default:
-		    break;
-		  }
-	      if (pos < end)
-		scm_lfwrite (str + pos, end - pos, port);
-	      scm_remember_upto_here_1 (exp);
-	      if (weird)
-		scm_lfwrite ("}#", 2, port);
-	      break;
-	    }
+	  scm_print_symbol_name (SCM_SYMBOL_CHARS (exp),
+				 SCM_SYMBOL_LENGTH (exp),
+				 port);
+	  scm_remember_upto_here_1 (exp);
+	  break;
 	case scm_tc7_wvect:
 	  ENTER_NESTED_DATA (pstate, exp, circref);
 	  if (SCM_IS_WHVEC (exp))
@@ -942,25 +953,47 @@ SCM_DEFINE (scm_simple_format, "simple-format", 2, 0, 1,
   for (p = start; p != end; ++p)
     if (*p == '~')
       {
-	if (!SCM_CONSP (args))
-	  continue;
-	
 	if (++p == end)
-	  continue;
-	
-	if (*p == 'A' || *p == 'a')
-	  writingp = 0;
-	else if (*p == 'S' || *p == 's')
-	  writingp = 1;
-	else
-	  continue;
+	  break;
 
+	switch (*p) 
+	  {
+	  case 'A': case 'a':
+	    writingp = 0;
+	    break;
+	  case 'S': case 's':
+	    writingp = 1;
+	    break;
+	  case '~':
+	    scm_lfwrite (start, p - start, destination);
+	    start = p + 1;
+	    continue;
+	  case '%':
+	    scm_newline (destination);
+	    start = p + 1;
+	    continue;
+	  default:
+	    scm_misc_error (s_scm_simple_format, 
+		"FORMAT: Unsupported format option ~~~A - use (ice-9 format) instead",
+		SCM_LIST1 (SCM_MAKE_CHAR (*p)));
+	    
+	  }
+
+
+	if (!SCM_CONSP (args))
+	  scm_misc_error (s_scm_simple_format, "FORMAT: Missing argument for ~~~A",
+			  SCM_LIST1 (SCM_MAKE_CHAR (*p)));
+			  		
 	scm_lfwrite (start, p - start - 1, destination);
 	scm_prin1 (SCM_CAR (args), destination, writingp);
 	args = SCM_CDR (args);
 	start = p + 1;
       }
+
   scm_lfwrite (start, p - start, destination);
+  if (args != SCM_EOL)
+    scm_misc_error (s_scm_simple_format, 
+		    "FORMAT: ~A superfluous arguments", SCM_LIST1 (scm_length (args)));
 
   if (fReturnString)
     answer = scm_strport_to_string (destination);

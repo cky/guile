@@ -107,6 +107,7 @@ void scm_free_print_state (SCM print_state);
 extern void scm_intprint (long n, int radix, SCM port);
 extern void scm_ipruk (char *hdr, SCM ptr, SCM port);
 extern void scm_iprlist (char *hdr, SCM exp, int tlr, SCM port, scm_print_state *pstate);
+extern void scm_print_symbol_name (const char *str, size_t len, SCM port);
 extern void scm_prin1 (SCM exp, SCM port, int writingp);
 extern void scm_iprin1 (SCM exp, SCM port, scm_print_state *pstate);
 extern SCM scm_write (SCM obj, SCM port);
