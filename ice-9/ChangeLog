@@ -1,3 +1,9 @@
+2004-11-05  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* boot-9.scm: Do not add "." to %load-path. 'load' will still be
+	able to load files in the current directory, but 'use-modules' etc
+	will not.
+
 2004-10-29  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* arrays.scm: Do not install read-hash procedure for reading

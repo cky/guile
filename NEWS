@@ -159,6 +159,13 @@ be used with '-e'.  For example, you can now write a script like
 
 * Changes to Scheme functions and syntax
 
+** The default load path no longer includes "." at the end.
+
+Automatically loading modules from the current directory should not
+happen by default.  If you want to allow it in a more controlled
+manner, set the environment variable GUILE_LOAD_PATH or the Scheme
+variable %load-path.
+
 ** The uniform vector and array support has been overhauled.
 
 It now complies with SRFI-4 and the weird prototype based uniform
@@ -684,7 +691,7 @@ alternatives.
   C value.  For example, you can use scm_to_int to safely convert from
   a SCM to an int.
 
-  - SCM scm_from_<type>) (<type> val, ...)
+  - SCM scm_from_<type> (<type> val, ...)
 
   These functions convert from a C type to a SCM value; for example,
   scm_from_int for ints.
