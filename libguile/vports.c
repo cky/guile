@@ -87,8 +87,8 @@ sf_write (SCM port, void *data, size_t size)
 {
   SCM p = SCM_STREAM (port);
 
-  scm_apply (SCM_VELTS (p)[1], scm_cons (scm_makfrom0str ((char *) data),
-					 SCM_EOL),
+  scm_apply (SCM_VELTS (p)[1], 
+	     scm_cons (scm_makfromstr ((char *) data, size, 0), SCM_EOL),
 	     SCM_EOL);
 }
 

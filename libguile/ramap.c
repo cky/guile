@@ -253,10 +253,10 @@ scm_ra_matchp (ra0, ras)
   return exact;
 }
 
-/* array mapper: apply cproc to each dimension of the given arrays. */
+/* array mapper: apply cproc to each dimension of the given arrays?. */
 int 
 scm_ramapc (cproc, data, ra0, lra, what)
-     int (*cproc) ();   /* procedure to call on normalised arrays:
+     int (*cproc) ();   /* procedure to call on unrolled arrays?
 			   cproc (dest, source list) or
 			   cproc (dest, data, source list).  */
      SCM data;          /* data to give to cproc or unbound.  */

@@ -1,3 +1,12 @@
+1999-11-30  Gary Houston  <ghouston@freewire.co.uk>
+
+	* unif.h: added some comments, removed the SCM_P macros.
+
+1999-11-29  Gary Houston  <ghouston@freewire.co.uk>
+
+	* vports.c (sf_write): use scm_makfromstr, not scm_makfrom0str
+	(thanks to Daniel Skarda).
+
 1999-11-22  Jim Blandy  <jimb@savonarola.red-bean.com>
 
 	* gscm.c, gscm.h: Deleted.  They were unused.

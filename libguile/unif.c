@@ -1290,14 +1290,15 @@ scm_array_set_x (v, obj, args)
   return SCM_UNSPECIFIED;
 }
 
-/* extract an array from "ra" (regularised?), which may be an smob type.
-   returns #f on failure.  */
+/* attempts to unroll an array into a one-dimensional array.
+   returns the unrolled array or #f if it can't be done.  */
 SCM_PROC(s_array_contents, "array-contents", 1, 1, 0, scm_array_contents);
 
 SCM 
 scm_array_contents (ra, strict)
      SCM ra;
-     SCM strict;  /* more checks if not SCM_UNDEFINED.  */
+     SCM strict;  /* if not SCM_UNDEFINED, return #f if returned array
+		     wouldn't have contiguous elements.  */
 {
   SCM sra;
   if (SCM_IMP (ra))
