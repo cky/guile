@@ -495,8 +495,8 @@ gc_mark_nimp:
 	      SCM * vtable_data;
 	      int len;
 	      char * fields_desc;
-	      SCM * mem;
-	      int x;
+	      register SCM * mem;
+	      register int x;
 
 	      vtable_data = (SCM *)vcell;
 	      layout = vtable_data[scm_struct_i_layout];
@@ -504,9 +504,20 @@ gc_mark_nimp:
 	      fields_desc = SCM_CHARS (layout);
 	      mem = (SCM *)SCM_GCCDR (ptr); /* like struct_data but removes mark */
 	      
-	      for (x = 0; x < len; x += 2)
-		if (fields_desc[x] == 'p')
-		  scm_gc_mark (mem[x / 2]);
+	      if (len)
+		{
+		  for (x = 0; x < len - 2; x += 2, ++mem)
+		    if (fields_desc[x] == 'p')
+		      scm_gc_mark (*mem);
+		  if (fields_desc[x] == 'p')
+		    {
+		      if (SCM_LAYOUT_TAILP (fields_desc[x + 1]))
+			for (x = *mem; x; --x)
+			  scm_gc_mark (*++mem);
+		      else
+			scm_gc_mark (*mem);
+		    }
+		}
 	      if (!SCM_CDR (vcell))
 		{
 		  SCM_SETGCMARK (vcell);
@@ -941,8 +952,8 @@ scm_gc_sweep ()
 		    SCM * mem;
 		    SCM amt;
 		    mem = (SCM *)SCM_CDR (scmptr);
-		    amt = mem[-2];
-		    free (mem - 2);
+		    amt = mem[- scm_struct_n_extra_words];
+		    free (mem - scm_struct_n_extra_words);
  		    m += amt * sizeof (SCM);
 		  }
 	      }
