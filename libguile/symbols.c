@@ -139,7 +139,6 @@ scm_mem2symbol (const char *name, size_t len)
   }
 }
 
-
 SCM
 scm_str2symbol (const char *str)
 {
@@ -216,9 +215,12 @@ SCM_DEFINE (scm_string_to_symbol, "string->symbol", 1, 0, 0,
 	    "@end lisp")
 #define FUNC_NAME s_scm_string_to_symbol
 {
+  SCM sym;
   SCM_VALIDATE_STRING (1, string);
-  return scm_mem2symbol (SCM_STRING_CHARS (string),
-			 SCM_STRING_LENGTH (string));
+  sym = scm_mem2symbol (SCM_STRING_CHARS (string),
+			SCM_STRING_LENGTH (string));
+  scm_remember_upto_here_1 (string);
+  return sym;
 }
 #undef FUNC_NAME
 
@@ -230,7 +232,7 @@ SCM_DEFINE (scm_gensym, "gensym", 0, 1, 0,
             (SCM prefix),
 	    "Create a new symbol with a name constructed from a prefix and\n"
 	    "a counter value. The string @var{prefix} can be specified as\n"
-	    "an optional argument. Default prefix is @code{g}.  The counter\n"
+	    "an optional argument. Default prefix is @code{ g}.  The counter\n"
 	    "is increased by 1 at each call. There is no provision for\n"
 	    "resetting the counter.")
 #define FUNC_NAME s_scm_gensym
@@ -240,8 +242,9 @@ SCM_DEFINE (scm_gensym, "gensym", 0, 1, 0,
   size_t len;
   if (SCM_UNBNDP (prefix))
     {
-      name[0] = 'g';
-      len = 1;
+      name[0] = ' ';
+      name[1] = 'g';
+      len = 2;
     }
   else
     {
