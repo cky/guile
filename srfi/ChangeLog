@@ -1,6 +1,11 @@
+2001-11-06  Thien-Thi Nguyen  <ttn@glug.org>
+
+	* srfi-19.scm (time-monotonic->time-monotonic): Spurious;
+	remove from exports.
+
 2001-11-04  Stefan Jahn  <stefan@lkcc.org>
 
-	* srfi-13.h, srfi-14.h, srfi-4.h: Follow-up patch.  Renamed 
+	* srfi-13.h, srfi-14.h, srfi-4.h: Follow-up patch.  Renamed
 	__FOO__	macros into FOO.
 
 2001-11-03  Marius Vollmer  <mvo@zagadka.ping.de>
@@ -12,14 +17,14 @@
 2001-11-02  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	Support for native Win32.  Thanks to Stefan Jahn!
-	
-        * Makefile.am:  Put `-no-undefined' into LDFLAGS to support linkers 
+
+        * Makefile.am:  Put `-no-undefined' into LDFLAGS to support linkers
         which do not allow unresolved symbols inside shared libraries.
 
-        * srfi-13.h, srfi-14.h: Defined SCM_SRFI1314_API.  Prefixed each 
+        * srfi-13.h, srfi-14.h: Defined SCM_SRFI1314_API.  Prefixed each
         exported symbol with SCM_SRFI1314_API.
 
-        * srfi-4.h: Defined SCM_SRFI4_API.  Prefixed each exported 
+        * srfi-4.h: Defined SCM_SRFI4_API.  Prefixed each exported
         symbol with SCM_SRFI4_API.
 
 2001-10-21  Mikael Djurfeldt  <mdj@linnaeus>
