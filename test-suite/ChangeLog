@@ -1,5 +1,7 @@
 1999-06-15  Jim Blandy  <jimb@savonarola.red-bean.com>
 
+	* tests/time.test: New test file.
+
 	* tests/r4rs.test: New set of tests, taken from Guile's test
 	script, taken from SCM.
 
