@@ -53,9 +53,9 @@ mirror site; the canonical location is "ftp://prep.ai.mit.edu/pub/gnu".
 
 * Changes to the procedure for linking libguile with your programs
 
-** You can now use the 'build-guile' utility to link against Guile.
+** You can now use the `guile-config' utility to link against Guile.
 
-Guile now includes a command-line utility called 'build-guile', which
+Guile now includes a command-line utility called `guile-config', which
 writes to its standard output a list of flags which you must pass to
 the linker to link against the Guile library.  The flags include
 '-lguile' itself, and any other libraries the Guile library depends
@@ -65,12 +65,17 @@ For example, here is a Makefile rule that builds a program named 'foo'
 from the object files ${FOO_OBJECTS}, and links them against Guile:
 
   foo: ${FOO_OBJECTS}
-	  ${CC} ${CFLAGS} ${FOO_OBJECTS} `build-guile link` -o foo
+	  ${CC} ${CFLAGS} ${FOO_OBJECTS} `guile-config link` -o foo
 
 Previous Guile releases recommended that you use autoconf to detect
 which of a predefined set of libraries were present on your system.
-It is more robust to use build-guile, since it records exactly which
+It is more robust to use `guile-config', since it records exactly which
 libraries the installed Guile library requires.
+
+This was originally called `build-guile', but was renamed to
+`guile-config' before Guile 1.3 was released, to be consistent with
+the analogous script for the GTK+ GUI toolkit, which is called
+`gtk-config'.
 
 
 * Changes to Scheme functions and syntax

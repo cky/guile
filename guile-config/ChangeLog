@@ -1,0 +1,44 @@
+1998-10-03  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	* Directory renamed to guile-config from build.
+	* guile-config.in: Renamed from build-guile.in, for consistency
+ 	with the analogous script for GTK, called gtk-config.
+	* Makefile.am, .cvsignore: References to `build-guile' replaced
+	with `guile-config'.
+
+1998-07-29  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	* Makefile.in: Regenerated using the last public version of
+	automake, not the hacked Cygnus version.
+
+1998-07-28  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	* Makefile.in: Regenerated, after removing Totoro kludge.
+
+1998-07-26  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	* Makefile.in: Rebuilt, for config changes in parent dir.
+
+1998-01-05  Tim Pierce  <twp@skepsis.com>
+
+	* .cvsignore: New file.
+
+Mon Oct  6 11:45:59 1997  Jim Blandy  <jimb@totoro.red-bean.com>
+
+	* build-guile.in: Try to return an appropriate exit status.
+
+	* build-guile.in: Rearranged to use a table of subcommands, and
+ 	include per-subcommand help.
+
+	* build-guile.in: New "info" subcommand, for easy access to Guile
+ 	build variables.
+
+Mon Sep 29 23:53:14 1997  Jim Blandy  <jimb@totoro.red-bean.com>
+
+	* Makefile.in: Regenerated with automake 1.2c.
+
+Sat Sep 27 23:15:26 1997  Jim Blandy  <jimb@totoro.red-bean.com>
+
+	* New directory --- the build-guile command, intended to help
+	people build Guile-based applications.
+	* Makefile.am, Makefile.in, build-guile.in: New files.

@@ -1,3 +1,12 @@
+1998-10-03  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	* guile-config: Renamed from `build'.
+	* Makefile.am (SUBDIRS): Mention `guile-config', not `build'.
+	* configure.in: Create `guile-config/Makefile.in', not
+	`build/Makefile.in'.  Doc fix, too.
+	* qthreads.m4: Doc fix.
+	* Makefile.in, aclocal.m4, configure: Regeneranegerederadea.
+
 1998-10-03    <jimb@savonarola.red-bean.com>
 
 	* configure.in: Check for a missing `sleep' declaration.
