@@ -206,7 +206,25 @@ value for NAME.
 
 * Changes to the gh_ interface
 
+** Function: void gh_write (SCM x)
+
+Write the printed representation of the scheme object x to the current
+output port.  Corresponds to the scheme level `write'.
+
 * Changes to the scm_ interface
+
+** Function: SCM scm_internal_stack_catch (SCM tag,
+					   scm_catch_body_t body,
+					   void *body_data,
+					   scm_catch_handler_t handler,
+					   void *handler_data)
+
+A new sibling to the other two C level `catch' functions
+scm_internal_catch and scm_internal_lazy_catch.  Use it if you want
+the stack to be saved automatically into the variable `the-last-stack'
+(scm_the_last_stack_var) on error.  This is necessary if you want to
+use advanced error reporting, such as calling scm_display_error and
+scm_display_backtrace.  (They both take a stack object as argument.)
 
 ** The hook scm_error_callback has been removed.  It was originally
 intended as a way for the user to install his own error handler.  But
