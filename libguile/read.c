@@ -298,7 +298,7 @@ skip_scsh_block_comment (SCM port)
 
 
 static SCM scm_get_hash_procedure(int c);
-static SCM scm_lreadparen1 (SCM *, SCM, char *, SCM *, char);
+static SCM scm_i_lreadparen (SCM *, SCM, char *, SCM *, char);
 
 static char s_list[]="list";
 static char s_vector[]="vector";
@@ -322,7 +322,7 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
     case '(':
       return SCM_RECORD_POSITIONS_P
 	? scm_lreadrecparen (tok_buf, port, s_list, copy)
-	: scm_lreadparen1 (tok_buf, port, s_list, copy, ')');
+	: scm_i_lreadparen (tok_buf, port, s_list, copy, ')');
     case ')':
       scm_input_error (FUNC_NAME, port,"unexpected \")\"", SCM_EOL);
       goto tryagain;
@@ -331,7 +331,7 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
     case '[':
       if (SCM_ELISP_VECTORS_P)
 	{
-	  p = scm_lreadparen1 (tok_buf, port, s_vector, copy, ']');
+	  p = scm_i_lreadparen (tok_buf, port, s_vector, copy, ']');
 	  return SCM_NULLP (p) ? scm_nullvect : scm_vector (p);
 	}
       goto read_token;
@@ -395,7 +395,7 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
       switch (c)
 	{
 	case '(':
-	  p = scm_lreadparen1 (tok_buf, port, s_vector, copy, ')');
+	  p = scm_i_lreadparen (tok_buf, port, s_vector, copy, ')');
 	  return SCM_NULLP (p) ? scm_nullvect : scm_vector (p);
 
 	case 't':
@@ -723,15 +723,9 @@ scm_read_token (int ic, SCM *tok_buf, SCM port, int weird)
 _Pragma ("opt");		/* # pragma _CRI opt */
 #endif
 
-SCM 
-scm_lreadparen (SCM *tok_buf, SCM port, char *name, SCM *copy)
-{
-  return scm_lreadparen1 (tok_buf, port, name, copy, ')');
-}
-
 static SCM 
-scm_lreadparen1 (SCM *tok_buf, SCM port, char *name, SCM *copy, char term_char)
-#define FUNC_NAME "scm_lreadparen"
+scm_i_lreadparen (SCM *tok_buf, SCM port, char *name, SCM *copy, char term_char)
+#define FUNC_NAME "scm_i_lreadparen"
 {
   SCM tmp;
   SCM tl;
