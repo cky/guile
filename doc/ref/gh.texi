@@ -609,7 +609,7 @@ the given name (which is a C string).  Returns the new object.
 @deftypefunx SCM gh_list (SCM l0, SCM l1, ... , SCM_UNDEFINED)
 These correspond to the Scheme @code{(cons a b)} and @code{(list l0 l1
 ...)} procedures.  Note that @code{gh_list()} is a C macro that invokes
-@code{scm_listify()}.
+@code{scm_list_n()}.
 @end deftypefun
 
 @deftypefun SCM gh_car (SCM @var{obj})
@@ -1118,7 +1118,7 @@ Use the @code{SCM_CAR} and @code{SCM_CDR} macros instead.
 Use @code{scm_set_car_x} and @code{scm_set_cdr_x} instead.
 
 @item @code{gh_list}
-Use @code{scm_listify} instead.
+Use @code{scm_list_n} instead.
 
 @item @code{gh_length}
 Replace @code{gh_length (@var{lst})} by
@@ -1133,7 +1133,7 @@ Use @code{scm_append} instead.
 @item @code{gh_append2}, @code{gh_append3}, @code{gh_append4}
 Replace @code{gh_append@var{N} (@var{l1}, @dots{}, @var{lN})} by
 @example
-scm_append (scm_listify (@var{l1}, @dots{}, @var{lN}, SCM_UNDEFINED))
+scm_append (scm_list_n (@var{l1}, @dots{}, @var{lN}, SCM_UNDEFINED))
 @end example
 
 @item @code{gh_reverse}
@@ -1161,7 +1161,6 @@ Use @code{scm_vector_ref} and @code{scm_vector_set_x} instead.
 Use the @code{SCM_VECTOR_LENGTH} macro instead.
 
 @item @code{gh_apply}
-Use @code{scm_apply} instead, but note that @code{scm_apply} takes an
-additional third argument that you should set to @code{SCM_EOL}.
+Use @code{scm_apply_0} instead.
 
 @end table
