@@ -113,11 +113,23 @@ exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
                               (old-count (and old (length old)))
                               (new-count (and new (length new)))
                               (delta (and old new (- new-count old-count))))
-                         (format #t " ~5@A  ~5@A  ~5@A      ~A\n"
+                         (format #t " ~5@A  ~5@A  :  "
                                  (or old-count "-")
-                                 (or new-count "-")
-                                 (or delta "-")
-                                 group)))
+                                 (or new-count "-"))
+                         (cond ((and old new)
+                                (let ((add-count 0) (sub-count 0))
+                                  (diff+note!
+                                   old new
+                                   (lambda (subs)
+                                     (set! sub-count (length subs)))
+                                   (lambda (adds)
+                                     (set! add-count (length adds)))
+                                   (lambda () #t))
+                                  (format #t "~5@D ~5@D : ~5@D"
+                                          add-count (- sub-count) delta)))
+                               (else
+                                (format #t "~5@A ~5@A : ~5@A" "-" "-" "-")))
+                         (format #t "     ~A\n" group)))
                      (sort (union g-old-names g-new-names)
                            (lambda (a b)
                              (string<? (symbol->string a)
