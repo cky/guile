@@ -99,7 +99,7 @@ scm_mem2symbol (const char *name, scm_sizet len)
 
     for (l = SCM_VELTS (symbols) [hash]; !SCM_NULLP (l); l = SCM_CDR (l))
       {
-	SCM sym = SCM_CAR (l);
+	SCM sym = SCM_CAAR (l);
 	if (SCM_SYMBOL_HASH (sym) == raw_hash
 	    && SCM_SYMBOL_LENGTH (sym) == len)
 	  {
@@ -124,6 +124,7 @@ scm_mem2symbol (const char *name, scm_sizet len)
     /* The symbol was not found - create it. */
 
     SCM symbol;
+    SCM cell;
     SCM slot;
 
     SCM_NEWCELL2 (symbol);
@@ -133,7 +134,8 @@ scm_mem2symbol (const char *name, scm_sizet len)
     SCM_SET_SYMBOL_LENGTH (symbol, (long) len);
 
     slot = SCM_VELTS (symbols) [hash];
-    SCM_VELTS (symbols) [hash] = scm_cons (symbol, slot);
+    cell = scm_cons (symbol, SCM_UNDEFINED);
+    SCM_VELTS (symbols) [hash] = scm_cons (cell, slot);
 
     return symbol;
   }
