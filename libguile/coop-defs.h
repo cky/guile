@@ -153,7 +153,7 @@ extern int coop_mutex_lock (coop_m*);
 extern int coop_mutex_trylock (coop_m*);
 extern int coop_mutex_unlock (coop_m*);
 extern int coop_mutex_destroy (coop_m*);
-#define scm_mutex_init coop_new_mutex_init
+#define scm_mutex_init coop_mutex_init
 #define scm_mutex_lock coop_mutex_lock
 #define scm_mutex_trylock coop_mutex_lock
 #define scm_mutex_unlock coop_mutex_unlock

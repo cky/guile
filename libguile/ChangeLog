@@ -20,7 +20,6 @@
 	coop_mutex_trylock.
 	(scm_cond_init): Changed definition to
 	coop_new_condition_variable_init.
-        (scm_mutex_init): Changed definition to	coop_new_mutex_init.
 	
 	* coop.c: #include <errno.h>
 	(coop_timeout_qinsert): Moved here from iselect.c
