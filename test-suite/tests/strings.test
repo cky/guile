@@ -1,7 +1,7 @@
 ;;;; strings.test --- test suite for Guile's string functions    -*- scheme -*-
 ;;;; Jim Blandy <jimb@red-bean.com> --- August 1999
 ;;;;
-;;;; Copyright (C) 1999, 2001 Free Software Foundation, Inc.
+;;;; Copyright (C) 1999, 2001, 2004 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -18,6 +18,7 @@
 ;;;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
 ;;;; Boston, MA 02111-1307 USA
 
+(use-modules (test-suite lib))
 
 ;; FIXME:  As soon as guile supports immutable strings, this has to be
 ;; replaced with the appropriate error type and message.
@@ -86,3 +87,17 @@
   (pass-if-exception "substring-move! checks start and end correctly"
     exception:out-of-range
     (substring-move! "sample" 3 0 "test" 3)))
+
+(with-test-prefix "substring/shared"
+
+  (pass-if "modify indirectly"
+    (let ((str (string-copy "foofoofoo")))
+      (string-upcase! (substring/shared str 3 6))
+      (string=? str "fooFOOfoo")))
+
+  (pass-if "modify cow indirectly"
+    (let* ((str1 (string-copy "foofoofoo"))
+	   (str2 (string-copy str1)))
+      (string-upcase! (substring/shared str2 3 6))
+      (and (string=? str1 "foofoofoo")
+	   (string=? str2 "fooFOOfoo")))))
