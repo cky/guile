@@ -377,6 +377,11 @@ vector-related gh_ functions have been implemented.
 Implemented several of the R4RS pair and list functions that were
 missing.
 
+** gh_scm2doubles, gh_doubles2scm, gh_doubles2dvect
+
+New function.  Converts double arrays back and forth between Scheme
+and C.
+
 * Changes to the scm_ interface
 
 ** Function: int scm_internal_select (int fds,
