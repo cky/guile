@@ -55,13 +55,9 @@
  *
  * Inums are exact integer data that fits within an SCM word.  */
 
-#define SCM_I_FIXNUM_BIT \
-  (SCM_LONG_BIT - 2)
-#define SCM_MOST_POSITIVE_FIXNUM \
-  ((((scm_t_signed_bits) 1) << (SCM_I_FIXNUM_BIT - 1)) - 1)
-#define SCM_MOST_NEGATIVE_FIXNUM \
-  (-((scm_t_signed_bits) SCM_MOST_POSITIVE_FIXNUM) - 1)
-
+#define SCM_I_FIXNUM_BIT         (SCM_LONG_BIT - 2)
+#define SCM_MOST_POSITIVE_FIXNUM (SCM_T_SIGNED_BITS_MAX/8-1)
+#define SCM_MOST_NEGATIVE_FIXNUM (-SCM_MOST_POSITIVE_FIXNUM-1)
 
 /* SCM_SRS is signed right shift */
 #if (-1 == (((-1) << 2) + 2) >> 2)

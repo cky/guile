@@ -65,9 +65,15 @@
 #ifdef HAVE_UINTPTR_T
 typedef uintptr_t scm_t_bits;
 typedef intptr_t scm_t_signed_bits;
+#define SCM_T_BITS_MAX UINTPTR_MAX
+#define SCM_T_SIGNED_BITS_MAX INTPTR_MAX
+#define SCM_T_SIGNED_BITS_MIN INTPTR_MIN
 #else
 typedef unsigned long scm_t_bits;
 typedef signed long scm_t_signed_bits;
+#define SCM_T_BITS_MAX ULONG_MAX
+#define SCM_T_SIGNED_BITS_MAX LONG_MAX
+#define SCM_T_SIGNED_BITS_MIN LONG_MIN
 #endif
 
 /* But as external interface, we use SCM, which may, according to the desired
