@@ -50,10 +50,10 @@
 
 #include "libguile/hooks.h"
 
-#ifdef SCM_USE_PTHREAD_THREADS
-#include "libguile/pthread-threads.h"
+#if SCM_USE_PTHREAD_THREADS
+# include "libguile/pthread-threads.h"
 #else
-#include "libguile/null-threads.h"
+# include "libguile/null-threads.h"
 #endif
 
 
