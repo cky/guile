@@ -416,18 +416,6 @@ When deprecating a definition, always follow this procedure:
    to do at each release.  Add a reminder about the removal of the
    deprecated defintion at the appropriate release.
 
-- When you make a user-visible change (i.e. one that should be
-documented, and appear in NEWS, put an asterisk in column zero of the
-start of the ChangeLog entry, like so:
-
-Sat Aug  3 01:27:14 1996  Gary Houston  <ghouston@actrix.gen.nz>
-
-*	* fports.c (scm_open_file): don't return #f, throw error.
-
-When you've written a NEWS entry and updated the documentation, go
-ahead and remove the asterisk.  The asterisks are used to find and
-document changes that haven't been dealt with before a release.
-
 - Please write log entries for functions written in C under the
 functions' C names, and write log entries for functions written in
 Scheme under the functions' Scheme names.  Please don't do this:
