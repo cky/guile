@@ -297,6 +297,23 @@
 	    (drop '(a b . c) 2))))
 
 ;;
+;; length+
+;;
+
+(with-test-prefix "length+"
+  (pass-if-exception "too few args" exception:wrong-num-args
+    (length+))
+  (pass-if-exception "too many args" exception:wrong-num-args
+    (length+ 123 456))
+  (pass-if (= 0 (length+ '())))
+  (pass-if (= 1 (length+ '(x))))
+  (pass-if (= 2 (length+ '(x y))))
+  (pass-if (= 3 (length+ '(x y z))))
+  (pass-if (not (length+ (circular-list 1))))
+  (pass-if (not (length+ (circular-list 1 2))))
+  (pass-if (not (length+ (circular-list 1 2 3)))))
+
+;;
 ;; take
 ;;
 
