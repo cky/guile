@@ -1,3 +1,23 @@
+Tue Jan 11 13:44:07 2000  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* guile-func-name-check.in: Added this script to statically check
+	#define FUNC_NAME, #undef FUNC_NAME in the source.
+
+	* sort.c, posix.c: Fix #undef FUNC_NAME lines to not have trailing
+	redundant comment, semicolon; caught by new guile-func-name-check
+	script.
+
+	* debug.c: Fix mistaken #define FUNC_NAME for scm_make_iloc.
+	Caught by new guile-func-name-check-script.
+
+	* Makefile.am: Added guile-func-name-check to bin_SCRIPTS
+
+	* ramap.c: Fix #if 0'd out code to be syntactically acceptable to
+	guile-func-name-check.
+
+	* guile-doc-snarf.in: Run guile-func-name-check on the file before 
+	doing the snarf.
+
 Tue Jan 11 11:31:10 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* fports.c, ports.c, ports.h, strports.c, vports.c: Make write

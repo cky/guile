@@ -1,3 +1,10 @@
+Tue Jan 11 13:42:35 2000  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* autogen.sh: Added messages as we run autogen in subdirectories.
+
+	* configure.in: Output libugile/guile-func-name-check script, and
+	chmod +x it. 
+
 2000-01-11  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* libltdl/autogen.sh: New file.
