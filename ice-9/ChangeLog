@@ -1,3 +1,8 @@
+2001-04-26  Rob Browning  <rlb@cs.utexas.edu>
+
+	* srfi-8.scm: removed in favor of srfi/srfi-8.scm - (wasn't ever
+	in a production release).
+
 2001-04-25  Keisuke Nishida  <kxn30@po.cwru.edu>
 
 	* channel.scm: New file.
