@@ -75,9 +75,9 @@ main_prog (int argc, char *argv[])
   gh_eval_str ("(display (pair? s))");
 
   /* now define some new primitives in C */
-  cf = gh_new_procedure1_0 ("c_factorial", c_factorial);
-  gh_new_procedure1_0 ("c_sin", c_sin);
-  gh_new_procedure1_0 ("c_vector_test", c_vector_test);
+  cf = gh_new_procedure1_0 ("c-factorial", c_factorial);
+  gh_new_procedure1_0 ("c-sin", c_sin);
+  gh_new_procedure1_0 ("c-vector-test", c_vector_test);
 
   /* now try some (eval ...) action from C */
   {
@@ -99,6 +99,7 @@ main_prog (int argc, char *argv[])
   printf ("testing the predicates for procedure? and vector?\n");
   printf ("gh_procedure_p(c_factorial) is %d, gh_vector_p(c_factorial) is %d\n",
 	  gh_procedure_p (cf), gh_vector_p (cf));
+  gh_eval_str("(c-vector-test 200)");
 
   gh_repl ();
 }
@@ -145,12 +146,20 @@ c_vector_test (SCM s_length)
   unsigned long c_length;
 
   c_length = gh_scm2ulong (s_length);
-  printf ("requested length for vector: %ld\n", c_length);
+  printf ("VECTOR test -- requested length for vector: %ld", c_length);
 
   /* create a vector filled witth 0.0 entries */
-  xvec = gh_vector (c_length, gh_double2scm (0.0));
+  xvec = gh_make_vector (s_length, gh_double2scm (0.0));
   /* set the second element in it to some floating point value */
-  gh_vset (xvec, 2, gh_double2scm (1.9));
+  gh_vector_set (xvec, gh_int2scm(2), gh_double2scm (1.9));
+
+  /* I think I can use == because Scheme's doubles should be the same
+     as C doubles, with no operations in between */
+  if (gh_scm2double(gh_vector_ref (xvec, gh_int2scm(2))) == 1.9) {
+    printf("... PASS\n");
+  } else {
+    printf("... FAIL\n");
+  }
 
   return xvec;
 }

@@ -76,6 +76,7 @@ SCM gh_eval_str_with_standard_handler(char *scheme_code);
 SCM gh_eval_str_with_stack_saving_handler(char *scheme_code);
 
 SCM gh_eval_file(char *fname);
+#define gh_load(fname) gh_eval_file(fname)
 SCM gh_eval_file_with_catch(char *scheme_code, scm_catch_handler_t handler);
 SCM gh_eval_file_with_standard_handler(char *scheme_code);
 
@@ -143,10 +144,20 @@ int gh_equal_p(SCM x, SCM y);
 
 SCM gh_define(char *name, SCM val);
 
-SCM gh_vector(SCM length, SCM val);
+/* vector manipulation routines */
+/* note that gh_vector() does not behave quite like the Scheme (vector
+   obj1 obj2 ...), because the interpreter engine does not pass the
+   data element by element, but rather as a list.  thus, gh_vector()
+   ends up being identical to gh_list_to_vector() */
+#define gh_vector(ls) scm_vector(ls)
+SCM gh_make_vector(SCM length, SCM val);
 SCM gh_vset(SCM vec, SCM pos, SCM val);
 SCM gh_vref(SCM vec, SCM pos);
+SCM gh_vector_set(SCM vec, SCM pos, SCM val);
+SCM gh_vector_ref(SCM vec, SCM pos);
 unsigned long gh_vector_length(SCM v);
+#define gh_list_to_vector(ls) scm_vector(ls)
+#define gh_vector_to_list(v) scm_vector_to_list(ls)
 
 SCM gh_lookup (char *sname);
 SCM gh_module_lookup (SCM vector, char *sname);

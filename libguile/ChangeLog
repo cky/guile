@@ -1,3 +1,27 @@
+1997-10-12  Mark Galassi  <rosalia@cygnus.com>
+
+	* gh_test_repl.c (c_vector_test): same as gh_test_c.c
+
+	* gh_test_c.c (c_vector_test): some improvements on the vector
+	routines test.
+
+	* gh.h (gh_vector): this used to exist but do the wrong thing.
+	Now it (almost) does the right thing, though it takes a list
+	instead of the individual arguments.  I need to see how it could
+	be done right.
+	(gh_list_to_vector): added this function as a macro.  Corresponds
+	to Scheme's (list->vector ...).
+	(gh_vector_to_list): added this function as a macro.  Corresponds
+	to Scheme's (vector->list ...).
+
+	* gh_data.c (gh_vector_ref): renamed from gh_vref to
+	gh_vector_ref, so that it resembles the Scheme routines more.
+	(gh_vector_set): renamed from gh_vset to gh_vector_set, so that it
+	resembles the Scheme routines more.
+	(gh_make_vector): this used to be (stupidly) called gh_vector().
+	This is the right name, since it does the same thing as the Scheme
+	(make-vector ...) procedure.
+
 Sun Oct 12 14:41:39 1997  Mikael Djurfeldt  <mdj@kenneth>
 
 	* ports.h: #include "libguile/print.h"

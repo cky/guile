@@ -265,22 +265,25 @@ gh_symbol2newstr (SCM sym, int *lenp)
 
 /* create a new vector of the given length, all initialized to the
    given value */
-SCM 
-gh_vector (SCM length, SCM val)
+SCM
+gh_make_vector (SCM len, SCM fill)
 {
-  return scm_make_vector (length, val, SCM_UNDEFINED);
+  /* scm_make_vector() takes a third boolean argument which should be
+     set to SCM_BOOL_T when you are dealing with multi-dimensional
+     arrays; gh_make_vector() does not do multi-dimensional arrays */
+  return scm_make_vector(len, fill, SCM_BOOL_F);
 }
 
 /* set the given element of the given vector to the given value */
 SCM 
-gh_vset (SCM vec, SCM pos, SCM val)
+gh_vector_set (SCM vec, SCM pos, SCM val)
 {
   return scm_vector_set_x (vec, pos, val);
 }
 
 /* retrieve the given element of the given vector */
 SCM 
-gh_vref (SCM vec, SCM pos)
+gh_vector_ref (SCM vec, SCM pos)
 {
   return scm_vector_ref (vec, pos);
 }
