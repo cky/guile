@@ -157,7 +157,9 @@ SCM_API scm_t_mutex scm_i_port_table_mutex;
 #define SCM_SETREVEALED(x, s)      (SCM_PTAB_ENTRY(x)->revealed = (s))
 
 #define SCM_INCLINE(port)  	{SCM_LINUM (port) += 1; SCM_COL (port) = 0;}
+#define SCM_ZEROCOL(port)  	{SCM_COL (port) = 0;}
 #define SCM_INCCOL(port)  	{SCM_COL (port) += 1;}
+#define SCM_DECCOL(port)  	{if (SCM_COL (port) > 0) SCM_COL (port) -= 1;}
 #define SCM_TABCOL(port)  	{SCM_COL (port) += 8 - SCM_COL (port) % 8;}
 
 
