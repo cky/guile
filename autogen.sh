@@ -6,9 +6,9 @@
 }
 
 aclocal -I .
+libtoolize --copy --automake --ltdl
 autoheader
 autoconf
-automake
+automake --add-missing
 
 ( echo "guile-readline..."; cd guile-readline; ./autogen.sh )
-( echo "libltdl..."; cd libltdl; ./autogen.sh )
