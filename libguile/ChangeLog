@@ -1,5 +1,20 @@
 Sun Jun 22 19:12:58 1997  Jim Blandy  <jimb@floss.red-bean.com>
 
+	* root.c: Establish a reliable catch-all handler for the new root.
+	After all the Scheme handler function might signal an error too,
+	and we don't want to lose that.
+	(cwdr_inner_body): Renamed from cwdr_body.
+	(cwdr_outer_body): New function, to establish the user's handler,
+	and pass control to cwdr_inner_body.
+	(cwdr): Establish the reliable catch-all handler here, and pass
+	control to cwdr_outer_body.
+	(struct cwdr_body_data): New field, handler, to allow cwdr to pass
+	the user's handler through to cwdr_outer_body.
+	* throw.c (scm_handle_by_message): Move guts into....
+	(handler_message): New static function.
+	(scm_handle_by_message_noexit): New function.
+	* throw.h (scm_handle_by_message_noexit): New prototype.
+
 	* __scm.h: (SCM_FENCE): New macro: optimizer will not move code
 	across this.  Only works on GCC.  Otherwise, we hope for the best.
 	(SCM_DEFER_INTS, SCM_ALLOW_INTS): Use FENCE appropriately.  I have
