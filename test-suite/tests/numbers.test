@@ -1387,41 +1387,36 @@
       exception:numerical-overflow
       (/ 0))
 
-    (pass-if-exception "(/ 0.0)"
-      exception:numerical-overflow
-      (/ 0.0))
+    (pass-if "(/ 0.0)"
+      (= +inf.0 (/ 0.0)))
 
     (pass-if-exception "(/ 1 0)"
       exception:numerical-overflow
       (/ 1 0))
 
-    (pass-if-exception "(/ 1 0.0)"
-      exception:numerical-overflow
-      (/ 1 0.0))
+    (pass-if "(/ 1 0.0)"
+      (= +inf.0 (/ 1 0.0)))
 
     (pass-if-exception "(/ bignum 0)"
       exception:numerical-overflow
       (/ (+ fixnum-max 1) 0))
 
-    (pass-if-exception "(/ bignum 0.0)"
-      exception:numerical-overflow
-      (/ (+ fixnum-max 1) 0.0))
+    (pass-if "(/ bignum 0.0)"
+      (= +inf.0 (/ (+ fixnum-max 1) 0.0)))
 
     (pass-if-exception "(/ 1.0 0)"
       exception:numerical-overflow
       (/ 1.0 0))
 
-    (pass-if-exception "(/ 1.0 0.0)"
-      exception:numerical-overflow
-      (/ 1.0 0.0))
+    (pass-if "(/ 1.0 0.0)"
+      (= +inf.0 (/ 1.0 0.0)))
 
     (pass-if-exception "(/ +i 0)"
       exception:numerical-overflow
       (/ +i 0))
 
-    (pass-if-exception "(/ +i 0.0)"
-      exception:numerical-overflow
-      (/ +i 0.0)))
+    (pass-if "(/ +i 0.0)"
+      (= +inf.0 (imag-part (/ +i 0.0)))))
 
   (with-test-prefix "complex division"
 
