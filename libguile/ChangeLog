@@ -9,6 +9,8 @@
 	(PSTATE_STACK_REF, PSTATE_STACK_SET): New, for accessing the stack
 	of a print state.  Use them everywhere instead of ref_stack.
 	
+	* srfi-4.h (scm_uniform_element_size): Deprecated for real.
+	
 	* srfi-4.c: Include deprecation.h.
 
 	* vectors.h, vectors.c, unif.h, unif.c, deprecated.h,
