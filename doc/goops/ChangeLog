@@ -1,3 +1,7 @@
+2001-12-03  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* goops.texi: Grammar fix.
+
 2001-08-27  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* Makefile.am (goops_TEXINFOS): Remove ../AUTHORS.
