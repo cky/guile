@@ -319,6 +319,10 @@ int scm_block_gc = 1;
  */
 SCM scm_weak_vectors;
 
+/* During collection, this accumulates structures which are to be freed.
+ */
+SCM scm_structs_to_free;
+
 /* GC Statistics Keeping
  */
 unsigned long scm_cells_allocated = 0;
@@ -1038,55 +1042,48 @@ gc_mark_nimp:
 	 */
 	scm_bits_t word0 = SCM_CELL_WORD_0 (ptr) - scm_tc3_cons_gloc;
 	scm_bits_t * vtable_data = (scm_bits_t *) word0; /* access as struct */
-	switch (vtable_data [scm_vtable_index_vcell])
+	if (vtable_data [scm_vtable_index_vcell] != 0)
 	  {
-	  default:
-	    {
-	      /* ptr is a gloc */
-	      SCM gloc_car = SCM_PACK (word0);
-	      scm_gc_mark (gloc_car);
-	      ptr = SCM_GCCDR (ptr);
-	      goto gc_mark_loop;
-	    }
-	  case 1:		/* ! */
-	  case 0:		/* ! */
-	    {
-	      /* ptr is a struct */
-	      SCM layout = SCM_PACK (vtable_data [scm_vtable_index_layout]);
-	      int len = SCM_LENGTH (layout);
-	      char * fields_desc = SCM_CHARS (layout);
-	      /* We're using SCM_GCCDR here like STRUCT_DATA, except
-                 that it removes the mark */
-	      scm_bits_t * struct_data = (scm_bits_t *) SCM_UNPACK (SCM_GCCDR (ptr));
+	    /* ptr is a gloc */
+	    SCM gloc_car = SCM_PACK (word0);
+	    scm_gc_mark (gloc_car);
+	    ptr = SCM_GCCDR (ptr);
+	    goto gc_mark_loop;
+	  }
+	else
+	  {
+	    /* ptr is a struct */
+	    SCM layout = SCM_PACK (vtable_data [scm_vtable_index_layout]);
+	    int len = SCM_LENGTH (layout);
+	    char * fields_desc = SCM_CHARS (layout);
+	    /* We're using SCM_GCCDR here like STRUCT_DATA, except
+	       that it removes the mark */
+	    scm_bits_t * struct_data = (scm_bits_t *) SCM_UNPACK (SCM_GCCDR (ptr));
 
-	      if (vtable_data[scm_struct_i_flags] & SCM_STRUCTF_ENTITY)
-		{
-		  scm_gc_mark (SCM_PACK (struct_data[scm_struct_i_procedure]));
-		  scm_gc_mark (SCM_PACK (struct_data[scm_struct_i_setter]));
-		}
-	      if (len)
-		{
-		  int x;
+	    if (vtable_data[scm_struct_i_flags] & SCM_STRUCTF_ENTITY)
+	      {
+		scm_gc_mark (SCM_PACK (struct_data[scm_struct_i_procedure]));
+		scm_gc_mark (SCM_PACK (struct_data[scm_struct_i_setter]));
+	      }
+	    if (len)
+	      {
+		int x;
 
-		  for (x = 0; x < len - 2; x += 2, ++struct_data)
-		    if (fields_desc[x] == 'p')
-		      scm_gc_mark (SCM_PACK (*struct_data));
+		for (x = 0; x < len - 2; x += 2, ++struct_data)
 		  if (fields_desc[x] == 'p')
-		    {
-		      if (SCM_LAYOUT_TAILP (fields_desc[x + 1]))
-			for (x = *struct_data; x; --x)
-			  scm_gc_mark (SCM_PACK (*++struct_data));
-		      else
-			scm_gc_mark (SCM_PACK (*struct_data));
-		    }
-		}
-	      if (vtable_data [scm_vtable_index_vcell] == 0)
-		{
-		  vtable_data [scm_vtable_index_vcell] = 1;
-		  ptr = SCM_PACK (vtable_data [scm_vtable_index_vtable]);
-		  goto gc_mark_loop;
-		}
-	    }
+		    scm_gc_mark (SCM_PACK (*struct_data));
+		if (fields_desc[x] == 'p')
+		  {
+		    if (SCM_LAYOUT_TAILP (fields_desc[x + 1]))
+		      for (x = *struct_data; x; --x)
+			scm_gc_mark (SCM_PACK (*++struct_data));
+		    else
+		      scm_gc_mark (SCM_PACK (*struct_data));
+		  }
+	      }
+	    /* mark vtable */
+	    ptr = SCM_PACK (vtable_data [scm_vtable_index_vtable]);
+	    goto gc_mark_loop;
 	  }
       }
       break;
@@ -1467,24 +1464,22 @@ scm_gc_sweep ()
 		 * struct or a gloc.  See the corresponding comment in
 		 * scm_gc_mark.
 		 */
-		scm_bits_t word0 = SCM_CELL_WORD_0 (scmptr) - scm_tc3_cons_gloc;
-		scm_bits_t * vtable_data = (scm_bits_t *) word0; /* access as struct */
+		scm_bits_t word0 = (SCM_CELL_WORD_0 (scmptr)
+				    - scm_tc3_cons_gloc);
+		/* access as struct */
+		scm_bits_t * vtable_data = (scm_bits_t *) word0;
 		if (SCM_GCMARKP (scmptr))
+		  goto cmrkcontinue;
+		else if (vtable_data[scm_vtable_index_vcell] == 0)
 		  {
-		    if (vtable_data [scm_vtable_index_vcell] == 1)
-		      vtable_data [scm_vtable_index_vcell] = 0;
+		    /* Structs need to be freed in a special order.
+		     * This is handled by GC C hooks in struct.c.
+		     */
+		    SCM_SET_STRUCT_GC_CHAIN (scmptr, scm_structs_to_free);
+		    scm_structs_to_free = scmptr;
 		    goto cmrkcontinue;
 		  }
-		else
-		  {
-		    if (vtable_data [scm_vtable_index_vcell] == 0
-			|| vtable_data [scm_vtable_index_vcell] == 1)
-		      {
-			scm_struct_free_t free_struct_data
-			  = (scm_struct_free_t) vtable_data[scm_struct_i_free];
-			m += free_struct_data (vtable_data, (scm_bits_t *) SCM_UNPACK (SCM_GCCDR (scmptr)));
-		      }
-		  }
+		/* fall through so that scmptr gets collected */
 	      }
 	      break;
 	    case scm_tcs_cons_imcar:
