@@ -1,5 +1,16 @@
 2000-03-22  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
+	* tags.h (SCM_ECONSP, SCM_NECONSP): More corrections of
+	pointer-arithmetic induced by the SCM_PACK/UNPACK change.
+
+	* print.c (scm_iprin1): SCM_PACK/UNPACK corrections.
+
+	* gc.c (scm_gc_sweep): SCM_PACK/UNPACK corrections.
+
+	* eval.c (SCM_CEVAL, scm_unmemocar): SCM_PACK/UNPACK corrections.
+
+	* dynwind.c (scm_swap_bindings): SCM_PACK/UNPACK corrections.
+
 	* async.c, __scm.h: Removed lots of the old async click logic.  It
 	is possible to reinsert it by defining GUILE_OLD_ASYNC_CLICK in
 	__scm.h.  Let's try this out and dump the old code after the
