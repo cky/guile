@@ -667,6 +667,10 @@ predicate will also be fulfilled if @var{x} is a real,
 rational or integer number.
 @end deffn
 
+@deftypefn {C Function} int scm_is_complex (SCM val)
+Equivalent to @code{scm_is_true (scm_complex_p (val))}.
+@end deftypefn
+
 @node Exactness
 @subsubsection Exact and Inexact Numbers
 @tpindex Exact numbers
@@ -2256,75 +2260,92 @@ character sets.
 In order to make the use of the character set data type and procedures
 useful, several predefined character set variables exist.
 
-@defvar char-set:lower-case
+@defvr {Scheme Variable} char-set:lower-case
+@defvrx {C Variable} scm_char_set_lower_case
 All lower-case characters.
-@end defvar
+@end defvr
 
-@defvar char-set:upper-case
+@defvr {Scheme Variable} char-set:upper-case
+@defvrx {C Variable} scm_char_set_upper_case
 All upper-case characters.
-@end defvar
+@end defvr
 
-@defvar char-set:title-case
+@defvr {Scheme Variable} char-set:title-case
+@defvrx {C Variable} scm_char_set_title_case
 This is empty, because ASCII has no titlecase characters.
-@end defvar
+@end defvr
 
-@defvar char-set:letter
+@defvr {Scheme Variable} char-set:letter
+@defvrx {C Variable} scm_char_set_letter
 All letters, e.g. the union of @code{char-set:lower-case} and
 @code{char-set:upper-case}.
-@end defvar
+@end defvr
 
-@defvar char-set:digit
+@defvr {Scheme Variable} char-set:digit
+@defvrx {C Variable} scm_char_set_digit
 All digits.
-@end defvar
+@end defvr
 
-@defvar char-set:letter+digit
+@defvr {Scheme Variable} char-set:letter+digit
+@defvrx {C Variable} scm_char_set_letter_and_digit
 The union of @code{char-set:letter} and @code{char-set:digit}.
-@end defvar
+@end defvr
 
-@defvar char-set:graphic
+@defvr {Scheme Variable} char-set:graphic
+@defvrx {C Variable} scm_char_set_graphic
 All characters which would put ink on the paper.
-@end defvar
+@end defvr
 
-@defvar char-set:printing
+@defvr {Scheme Variable} char-set:printing
+@defvrx {C Variable} scm_char_set_printing
 The union of @code{char-set:graphic} and @code{char-set:whitespace}.
-@end defvar
+@end defvr
 
-@defvar char-set:whitespace
+@defvr {Scheme Variable} char-set:whitespace
+@defvrx {C Variable} scm_char_set_whitespace
 All whitespace characters.
-@end defvar
+@end defvr
 
-@defvar char-set:blank
+@defvr {Scheme Variable} char-set:blank
+@defvrx {C Variable} scm_char_set_blank
 All horizontal whitespace characters, that is @code{#\space} and
 @code{#\tab}.
-@end defvar
+@end defvr
 
-@defvar char-set:iso-control
+@defvr {Scheme Variable} char-set:iso-control
+@defvrx {C Variable} scm_char_set_iso_control
 The ISO control characters with the codes 0--31 and 127.
-@end defvar
+@end defvr
 
-@defvar char-set:punctuation
+@defvr {Scheme Variable} char-set:punctuation
+@defvrx {C Variable} scm_char_set_punctuation
 The characters @code{!"#%&'()*,-./:;?@@[\\]_@{@}}
-@end defvar
+@end defvr
 
-@defvar char-set:symbol
+@defvr {Scheme Variable} char-set:symbol
+@defvrx {C Variable} scm_char_set_symbol
 The characters @code{$+<=>^`|~}.
-@end defvar
+@end defvr
 
-@defvar char-set:hex-digit
+@defvr {Scheme Variable} char-set:hex-digit
+@defvrx {C Variable} scm_char_set_hex_digit
 The hexadecimal digits @code{0123456789abcdefABCDEF}.
-@end defvar
+@end defvr
 
-@defvar char-set:ascii
+@defvr {Scheme Variable} char-set:ascii
+@defvrx {C Variable} scm_char_set_ascii
 All ASCII characters.
-@end defvar
+@end defvr
 
-@defvar char-set:empty
+@defvr {Scheme Variable} char-set:empty
+@defvrx {C Variable} scm_char_set_empty
 The empty character set.
-@end defvar
+@end defvr
 
-@defvar char-set:full
+@defvr {Scheme Variable} char-set:full
+@defvrx {C Variable} scm_char_set_full
 This character set contains all possible characters.
-@end defvar
+@end defvr
 
 @node Strings
 @subsection Strings
@@ -2372,6 +2393,8 @@ string show up in the other, you can use @code{substring/shared}.  The
 strings created by this procedure are called @dfn{mutation sharing
 substrings} since the substring and the original string share
 modifications to each other.
+
+Guile provides all procedures of SRFI-13 and a few more.
 
 @menu
 * String Syntax::                   Read syntax for strings.
@@ -4300,6 +4323,10 @@ the @code{symbol?} primitive:
 Return @code{#t} if @var{obj} is a symbol, otherwise return
 @code{#f}.
 @end deffn
+
+@deftypefn {C Function} int scm_is_symbol (SCM val)
+Equivalent to @code{scm_is_true (scm_symbol_p (val))}.
+@end deftypefn
 
 Once you know that you have a symbol, you can obtain its name as a
 string by calling @code{symbol->string}.  Note that Guile differs by
