@@ -1,3 +1,7 @@
+2004-10-29  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* api-compound.texi (Uniform Vectors): Added c32 and c64 docs.
+
 2004-10-27  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* srfi-modules.texi, api-compound.texi: Moved SRFI-4 docs into
