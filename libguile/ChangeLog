@@ -1,5 +1,8 @@
 1999-09-06  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
+	* numbers.c: Converted comparison operations to dispatch on
+	generic if args don't match.
+
 	* Makefile.am (ETAGS_ARGS): Added support for GPROC and GPROC1.
 
 1999-09-06  James Blandy  <jimb@mule.m17n.org>
