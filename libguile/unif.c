@@ -1695,7 +1695,7 @@ loop:
       scm_port *pt = SCM_PTAB_ENTRY (port_or_fd);
       int remaining = (cend - offset) * sz;
       char *source = SCM_CHARS (v) + (cstart + offset) * sz;
-      scm_ptobfuns *ptob = &scm_ptobs[SCM_PTOBNUM (port_or_fd)];
+      scm_ptob_descriptor *ptob = &scm_ptobs[SCM_PTOBNUM (port_or_fd)];
 
       ans = cend - offset;
       if (pt->rw_active == SCM_PORT_READ)

@@ -66,8 +66,6 @@ struct scm_fport {
 /* test whether fdes supports random access.  */
 #define SCM_FDES_RANDOM_P(fdes) ((lseek (fdes, 0, SEEK_CUR) == -1) ? 0 : 1)
 
-extern scm_ptobfuns scm_fptob;
-
 
 extern SCM scm_setbuf0 (SCM port);
 extern SCM scm_setvbuf (SCM port, SCM mode, SCM size);

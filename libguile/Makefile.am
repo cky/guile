@@ -38,7 +38,7 @@ libguile_la_SOURCES = \
     alist.c arbiters.c async.c backtrace.c boolean.c chars.c		\
     continuations.c debug.c dynl.c dynwind.c eq.c error.c eval.c	\
     evalext.c feature.c filesys.c fluids.c fports.c gc.c gdbint.c	\
-    genio.c gh_data.c gh_eval.c gh_funcs.c gh_init.c gh_io.c gh_list.c	\
+    gh_data.c gh_eval.c gh_funcs.c gh_init.c gh_io.c gh_list.c		\
     gh_predicates.c gsubr.c guardians.c hash.c hashtab.c init.c		\
     ioext.c keywords.c list.c load.c macros.c mallocs.c			\
     modules.c net_db.c numbers.c objects.c objprop.c options.c pairs.c	\
@@ -52,7 +52,7 @@ BUILT_SOURCES = \
     cpp_err_symbols.c cpp_sig_symbols.c libpath.h alist.x arbiters.x	\
     async.x backtrace.x boolean.x chars.x continuations.x debug.x	\
     dynl.x dynwind.x eq.x error.x eval.x evalext.x feature.x filesys.x	\
-    fluids.x fports.x gc.x gdbint.x genio.x gh_data.x gh_eval.x		\
+    fluids.x fports.x gc.x gdbint.x gh_data.x gh_eval.x			\
     gh_funcs.x gh_init.x gh_io.x gh_list.x gh_predicates.x gsubr.x	\
     guardians.x hash.x hashtab.x init.x ioext.x iselect.x keywords.x	\
     list.x load.x macros.x mallocs.x modules.x net_db.x			\

@@ -1,3 +1,51 @@
+1999-07-24  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* ports.c, ports.h (scm_make_port_type): New interface for
+	creation of port types (replaces scm_newptob).  Just as for the
+	smobs, we need to separate the internal representation of smob
+	types from the interface, so that we easily can add new fields and
+	rearrange things without caring about backward compatibility.
+	This change was forced by the need in GOOPS to create classes
+	representing port types.
+	(scm_set_ptob_mark, scm_set_ptob_free, scm_set_ptob_print,
+	scm_set_ptob_equalp, scm_set_ptob_flush_input, scm_set_ptob_close,
+	scm_set_ptob_seek, scm_set_ptob_truncate,
+	scm_set_ptob_input_waiting_p): New setters.
+	(scm_newptob): Rewritten to use scm_make_port_type.  For backward
+	compatibility.
+	(scm_ptobs): Changed type scm_ptobfuns --> scm_ptob_descriptor.
+	(scm_prinport): Removed.
+	(scm_port_print): Added.
+	(scm_print_port_mode): Added.
+	(void_port_ptob, print_void_port, close_void_port, noop0):
+	Removed.  Removed #include "genio.h" Added #include "objects.h",
+	#include "smobs.h"
+
+	* fports.c (prinfport): Moved code from ports.c.
+	(local_free): Added.
+	(scm_fptob): Removed.  Instead use new interface.
+	(scm_make_fptob): Added.  (Need to create basic ports in a
+	specific order in ports.c.)
+	
+	* strports.c (scm_stptob, prinstpt, noop0): Removed
+	(scm_make_stptob): Added.
+
+	* vports.c (scm_sfport, prinsfpt, sf_read_flush, noop0): Removed.
+	(scm_make_sfport): Added.
+	
+	* filesys.c (scm_dir_print): Don't use the port printing code.
+	Instead provide specific directory printer.
+	
+	* gc.c (scm_gc_sweep): Use value returned from scm_ptobs[].free.
+
+	* ioext.c (scm_redirect_port): Replaced scm_ptobfuns -->
+	scm_ptob_descriptor.
+
+	* smob.c (scm_smob_print): Handle non-existing type name nicely.
+	Removed #include "genio.h"
+
+	* objects.c (scm_make_port_classes): New function ptr.
+
 1999-07-24  Gary Houston  <ghouston@easynet.co.uk>
 
 	* gdbint.c (gdb_print, gdb_read): call scm_truncate_file.
@@ -16,6 +64,11 @@
 	(scm_class_of): Look up port class in scm_port_class.
 	(SCM_IN_PCLASS_INDEX, SCM_OUT_PCLASS_INDEX,
 	SCM_INOUT_PCLASS_INDEX): Added.
+
+	
+	* Makefile.am: Removed genio.c, genio.x.
+
+	* genio.c: Removed.
 
 1999-07-23  Mikael Djurfeldt  <mdj@mdj-pc.nada.kth.se>
 
