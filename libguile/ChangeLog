@@ -3,6 +3,9 @@
 	* numbers.c (s_bignum): Remove, not used since gmp bignums.
 	Reported by Richard Todd.
 
+	* threads-plugin.h (SCM_MUTEX_MAXSIZE): Increase to 12*sizeof(long),
+	for the benefit of powerpc-apple-darwin5.5.  Reported by Richard Todd.
+
 	* unif.c (scm_aind): Test SCM_CONSP rather than !SCM_NULLP while
 	traversing the args list, fixes segv if an improper list is given.
 	Reported by Rouben Rostamian.
