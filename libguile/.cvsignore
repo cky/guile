@@ -36,3 +36,4 @@ scmconfig.h
 scmconfig.h.in
 stamp-h
 versiondat.h
+c-tokenize.c
