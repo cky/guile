@@ -1,3 +1,19 @@
+2003-11-19  Marius Vollmer  <mvo@zagadka.de>
+
+	* numbers.c (mem2decimal_from_point): use scm_divide instead of
+	scm_divide2real when forming the fractional part.  This allows
+	"#e1.2" to yield 6/5.
+
+	* numbers.c (scm_i_fraction_equalp): Do not treat the return value
+	of scm_equal_p as a C boolean, use SCM_FALSEP.  Previously, all
+	fractions were equal to each other regardless of value.  Ooops.
+
+	* numbers.c (scm_rationalize): Return an inexact result when given
+	inexact arguments.
+
+	* numbers.c (scm_exact_p, scm_inexact_p): Throw error for
+	non-numbers.
+
 2003-11-18  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	Support for exact fractions from Bill Schottstaedt!  Thanks!
