@@ -63,6 +63,7 @@
 #define scm_module_index_uses		1
 #define scm_module_index_binder		2
 #define scm_module_index_eval_closure	3
+#define scm_module_index_transformer	4
 
 #define SCM_MODULE_OBARRAY(module) \
   SCM_PACK (SCM_STRUCT_DATA (module) [scm_module_index_obarray])
@@ -72,6 +73,8 @@
   SCM_PACK (SCM_STRUCT_DATA (module) [scm_module_index_binder])
 #define SCM_MODULE_EVAL_CLOSURE(module) \
   SCM_PACK (SCM_STRUCT_DATA (module)[scm_module_index_eval_closure])
+#define SCM_MODULE_TRANSFORMER(module) \
+  SCM_PACK (SCM_STRUCT_DATA (module)[scm_module_index_transformer])
 
 extern scm_bits_t scm_tc16_eval_closure;
 
@@ -85,11 +88,13 @@ extern SCM scm_module_tag;
 extern SCM scm_the_root_module (void);
 extern SCM scm_current_module (void);
 extern SCM scm_current_module_lookup_closure (void);
+extern SCM scm_current_module_transformer (void);
 extern SCM scm_interaction_environment (void);
 extern SCM scm_set_current_module (SCM module);
 extern SCM scm_make_module (SCM name);
 extern SCM scm_ensure_user_module (SCM name);
 extern SCM scm_module_lookup_closure (SCM module);
+extern SCM scm_module_transformer (SCM module);
 extern SCM scm_resolve_module (SCM name);
 extern SCM scm_load_scheme_module (SCM name);
 extern SCM scm_env_top_level (SCM env);

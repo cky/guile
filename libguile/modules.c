@@ -60,6 +60,7 @@
 SCM scm_module_system_booted_p = 0;
 
 SCM scm_module_tag;
+SCM scm_module_type;
 
 static SCM the_root_module;
 static SCM root_module_lookup_closure;
@@ -72,26 +73,51 @@ scm_the_root_module ()
 
 static SCM the_module;
 
-SCM
-scm_current_module ()
+SCM_DEFINE (scm_current_module, "current-module", 0, 0, 0,
+	    (),
+	    "Return the current module.")
+#define FUNC_NAME s_scm_current_module
 {
-  return scm_fluid_ref (SCM_CDR (the_module));
+  return scm_fluid_ref (the_module);
 }
+#undef FUNC_NAME
 
-static SCM set_current_module;
+#define SCM_VALIDATE_STRUCT_TYPE(pos, v, type) \
+  do { \
+    SCM_ASSERT (SCM_NIMP (v) && SCM_NFALSEP (SCM_STRUCTP (v)) \
+		&& SCM_STRUCT_VTABLE (v) == (type), \
+                v, pos, FUNC_NAME); \
+  } while (0)
 
-/* This is the module selected during loading of code.  Currently,
- * this is the same as (interaction-environment), but need not be in
- * the future.
- */
-
-SCM
-scm_set_current_module (SCM module)
+SCM_DEFINE (scm_set_current_module, "set-current-module", 1, 0, 0,
+	    (SCM module),
+	    "Set the current module to @var{module} and return"
+	    "the previous current module.")
+#define FUNC_NAME s_scm_set_current_module
 {
-  SCM old = scm_current_module ();
-  scm_apply (SCM_CDR (set_current_module), SCM_LIST1 (module), SCM_EOL);
+  SCM old;
+
+  /* XXX - we can not validate our argument when the module system
+           hasn't been booted yet since we don't know the type.  This
+           should be fixed when we have a cleaner way of booting
+           Guile. 
+  */
+  if (scm_module_system_booted_p)
+    SCM_VALIDATE_STRUCT_TYPE (SCM_ARG1, module, scm_module_type);
+
+  old = scm_current_module ();
+  scm_fluid_set_x (the_module, module);
+
+#if SCM_DEBUG_DEPRECATED == 0
+  scm_fluid_set_x (SCM_CDR (scm_top_level_lookup_closure_var),
+		   scm_current_module_lookup_closure ());
+  scm_fluid_set_x (SCM_CDR (scm_system_transformer),
+		   scm_current_module_transformer ());
+#endif
+
   return old;
 }
+#undef FUNC_NAME
 
 SCM_DEFINE (scm_interaction_environment, "interaction-environment", 0, 0, 0,
 	    (),
@@ -149,6 +175,21 @@ scm_current_module_lookup_closure ()
 {
   if (scm_module_system_booted_p)
     return scm_module_lookup_closure (scm_current_module ());
+  else
+    return SCM_BOOL_F;
+}
+
+SCM
+scm_module_transformer (SCM module)
+{
+  return SCM_MODULE_TRANSFORMER (module);
+}
+
+SCM
+scm_current_module_transformer ()
+{
+  if (scm_module_system_booted_p)
+    return scm_module_transformer (scm_current_module ());
   else
     return SCM_BOOL_F;
 }
@@ -286,20 +327,21 @@ scm_init_modules ()
   scm_tc16_eval_closure = scm_make_smob_type ("eval-closure", 0);
   scm_set_smob_mark (scm_tc16_eval_closure, scm_markcdr);
   scm_set_smob_apply (scm_tc16_eval_closure, scm_eval_closure_lookup, 2, 0, 0);
+
+  the_module = scm_permanent_object (scm_make_fluid ());
 }
 
 void
 scm_post_boot_init_modules ()
 {
-  scm_module_tag = (SCM_CELL_WORD_1 (SCM_CDR (scm_intern0 ("module-type")))
-		    + scm_tc3_cons_gloc);
-  the_root_module = scm_intern0 ("the-root-module");
-  the_module = scm_intern0 ("the-module");
-  set_current_module = scm_intern0 ("set-current-module");
+  scm_module_type =
+    scm_permanent_object (SCM_CDR (scm_intern0 ("module-type")));
+  scm_module_tag = (SCM_CELL_WORD_1 (scm_module_type) + scm_tc3_cons_gloc);
   module_prefix = scm_permanent_object (SCM_LIST2 (scm_sym_app,
 						   scm_sym_modules));
   make_modules_in = scm_intern0 ("make-modules-in");
   beautify_user_module_x = scm_intern0 ("beautify-user-module!");
+  the_root_module = scm_intern0 ("the-root-module");
   root_module_lookup_closure = scm_permanent_object
     (scm_module_lookup_closure (SCM_CDR (the_root_module)));
   resolve_module = scm_intern0 ("resolve-module");
