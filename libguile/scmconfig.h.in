@@ -119,6 +119,9 @@
    the Guile library itself.  */
 #undef GUILE_DEBUG
 
+/* Define this to include experimental multilanguage support.  */
+#undef GUILE_LANG
+
 /* Define to implement scm_internal_select */
 #undef GUILE_ISELECT
 
