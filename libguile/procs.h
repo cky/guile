@@ -2,7 +2,7 @@
 
 #ifndef PROCSH
 #define PROCSH
-/*	Copyright (C) 1995, 1996, 1998, 1999 Free Software Foundation, Inc.
+/*	Copyright (C) 1995, 1996, 1998, 1999, 2000 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -100,12 +100,13 @@ typedef struct
 /* Closures
  */
 
-#define SCM_CLOSUREP(x) (SCM_NIMP(x) && (SCM_TYP3(x)==scm_tc3_closure))
-#define SCM_CLOSCAR(x) (SCM_CAR(x)-scm_tc3_closure)
-#define SCM_CODE(x) SCM_CAR(SCM_CLOSCAR (x))
-#define SCM_PROCPROPS(x) SCM_CDR(SCM_CLOSCAR (x))
-#define SCM_SETPROCPROPS(x, p) SCM_SETCDR(SCM_CLOSCAR (x), p)
-#define SCM_SETCODE(x, e) (SCM_SETCAR (x, scm_cons ((e), SCM_EOL) + scm_tc3_closure))
+#define SCM_CLOSUREP(x) (SCM_NIMP(x) && (SCM_TYP3 (x) == scm_tc3_closure))
+#define SCM_CLOSCAR(x) SCM_ASSCM (SCM_CARW (x) - scm_tc3_closure)
+#define SCM_CODE(x) SCM_CAR (SCM_CLOSCAR (x))
+#define SCM_PROCPROPS(x) SCM_CDR (SCM_CLOSCAR (x))
+#define SCM_SETPROCPROPS(x, p) SCM_SETCDR (SCM_CLOSCAR (x), p)
+#define SCM_SETCODE(x, e) (SCM_SETCAR (x, scm_cons ((e), SCM_EOL)\
+                           + scm_tc3_closure))
 #define SCM_ENV(x) SCM_CDR(x)
 #define SCM_SETENV(x, e) SCM_SETCDR (x, e)
 #define SCM_TOP_LEVEL(SCM_ENV)  (SCM_NULLP(SCM_ENV) || (SCM_BOOL_T == scm_procedure_p (SCM_CAR (SCM_ENV))))

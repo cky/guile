@@ -2,7 +2,7 @@
 
 #ifndef STRUCTH
 #define STRUCTH
-/*	Copyright (C) 1995, 1997, 1999 Free Software Foundation, Inc.
+/*	Copyright (C) 1995, 1997, 1999, 2000 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -79,7 +79,7 @@ typedef scm_sizet (*scm_struct_free_t) (SCM *vtable, SCM *data);
 
 #define SCM_STRUCTP(X)  		(SCM_NIMP(X) && (SCM_TYP3(X) == scm_tc3_cons_gloc))
 #define SCM_STRUCT_DATA(X) 		((SCM*)(SCM_CDR(X)))
-#define SCM_STRUCT_VTABLE_DATA(X) 	((SCM *)(SCM_CAR(X) - 1))
+#define SCM_STRUCT_VTABLE_DATA(X) 	((SCM *)(SCM_ASWORD (SCM_CAR(X)) - 1))
 #define SCM_STRUCT_LAYOUT(X) 		(SCM_STRUCT_VTABLE_DATA(X)[scm_vtable_index_layout])
 #define SCM_STRUCT_VTABLE(X) 		(SCM_STRUCT_VTABLE_DATA(X)[scm_vtable_index_vtable])
 #define SCM_STRUCT_PRINTER(X) 		(SCM_STRUCT_VTABLE_DATA(X)[scm_vtable_index_printer])
