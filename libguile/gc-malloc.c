@@ -307,6 +307,8 @@ scm_gc_calloc (size_t size, const char *what)
 void *
 scm_gc_realloc (void *mem, size_t old_size, size_t new_size, const char *what)
 {
+  void *ptr;
+
   /* XXX - see scm_gc_malloc. */
 
 
@@ -320,7 +322,7 @@ scm_gc_realloc (void *mem, size_t old_size, size_t new_size, const char *what)
   decrease_mtrigger (old_size, what);
   increase_mtrigger (new_size, what);
 
-  void *ptr = scm_realloc (mem, new_size);
+  ptr = scm_realloc (mem, new_size);
 
 #ifdef GUILE_DEBUG_MALLOC
   if (mem)
