@@ -589,3 +589,31 @@ of course put suitable synchronization mechanisms in place.  As you can
 see, Guile itself is again only concerned about robustness, not about
 correctness: without proper synchronization, your program will likely
 not be correct, but the worst consequence is an error message.
+
+Real thread-safeness often requires that a critical section of code is
+executed in a certain restricted manner.  A common requirement is that
+the code section is not entered a second time when it is already being
+executed.  Locking a mutex while in that section ensures that no other
+thread will start executing it, blocking asyncs ensures that no
+asynchronous code enters the section again from the current thread,
+and the error checking of Guile mutexes guarantees that an error is
+signalled when the current thread accidentally reenters the critical
+section via recursive function calls.
+
+Guile provides two mechanisms to support critical sections as outlined
+above.  You can either use the macros
+@code{SCM_CRITICAL_SECTION_START} and @code{SCM_CRITICAL_SECTION_END}
+for very simple sections; or use a frame together with a call to
+@code{scm_frame_critical_section}.
+
+The macros only work reliably for critical sections that are
+guaranteed to not cause a non-local exit.  They also do not detect an
+accidental reentry by the current thread.  Thus, you should probably
+only use them to delimit critical sections that do not contain calls
+to libguile functions or to other external functions that might do
+complicated things.
+
+The function @code{scm_frame_critical_section}, on the other hand,
+will correctly deal with non-local exits because it requires a frame.
+Also, by using a separate mutex for each critical section, it can
+detect accidental reentries.
