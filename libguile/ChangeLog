@@ -1,3 +1,8 @@
+2002-12-10  Mikael Djurfeldt  <mdj@kvast.blakulla.net>
+
+	* Makefile.am (c-tokenize.$(OBJEXT)): Don't look for c-tokenize.c
+	in srcdir.
+
 2002-12-10  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	These changes remove scm_ints_disabled (which hasn't has any

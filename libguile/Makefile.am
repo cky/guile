@@ -41,9 +41,9 @@ guile_filter_doc_snarfage_SOURCES = c-tokenize.c
 ## For some reason, OBJEXT does not include the dot
 c-tokenize.$(OBJEXT): c-tokenize.c
 	if [ "$(cross_compiling)" = "yes" ]; then \
-		$(CC_FOR_BUILD) -c -o $@ $(srcdir)/c-tokenize.c; \
+		$(CC_FOR_BUILD) -c -o $@ c-tokenize.c; \
 	else \
-		$(COMPILE) -c -o $@ $(srcdir)/c-tokenize.c; \
+		$(COMPILE) -c -o $@ c-tokenize.c; \
 	fi
 
 ## Override default rule; this should run on BUILD host.
