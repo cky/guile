@@ -1,3 +1,22 @@
+Mon Oct 28 06:28:28 1996  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* configure.in: add tests for figuring out whether buffered data
+ 	is available in a FILE structure, which is needed by char-ready.
+	
+	* acconfig.h: define FILE_CNT_FIELD, FILE_CNT_GPTR and 
+	FILE_CNT_READPTR.
+
+	* simpos.c (scm_getenv): renamed from scm_sys_getenv.  Throw
+	exceptions using misc_error instead of syserror.  It seems a bit
+	odd to throw an exception if a string can't be found in the
+	environment, but it's consistent with open-file, stat etc.
+	(simpos.h): remove sys_ from getenv.
+
+	* posix.c (scm_putenv): renamed from scm_sys_putenv.  If an error
+	occurs, throw an error instead of returning errno.  Return value
+	is now unspecified.
+	(numerous in posix.c and posix.h): removed superfluous sys_ from names.
+
 Sun Oct 27 01:22:04 1996  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* filesys.c (scm_stat2scm): derive file type and permissions from

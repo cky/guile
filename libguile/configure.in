@@ -117,6 +117,54 @@ dnl
 test "x$FD_SETTER" != x && AC_DEFINE(HAVE_FD_SETTER)
 
 #--------------------------------------------------------------------
+# How to find out whether a FILE structure contains buffered data.
+# From Tk we have the following list:
+#		_cnt:		Most UNIX systems
+#		__cnt:		HPUX
+#		_r:		BSD
+#		readCount:	Sprite
+#	Or, in GNU libc there are two fields, _gptr and _egptr, which
+#	have to be compared.
+#	These can also be known as _IO_read_ptr and _IO_read_end.
+#--------------------------------------------------------------------
+
+AC_MSG_CHECKING(how to get buffer char count from FILE structure)
+AC_CACHE_VAL(scm_cv_struct_file_count,
+	AC_TRY_COMPILE([#include <stdio.h>],
+			[FILE *f = stdin; f->_cnt = 0],
+			scm_cv_struct_file_count="_cnt",
+	AC_TRY_COMPILE([#include <stdio.h>],
+			[FILE *f = stdin; f->_r = 0],
+			scm_cv_struct_file_count="_r",
+	AC_TRY_COMPILE([#include <stdio.h>],
+			[FILE *f = stdin; f->readCount = 0],
+			scm_cv_struct_file_count="readCount",
+	scm_cv_struct_file_count=""))))
+if test "$scm_cv_struct_file_count"; then
+	AC_MSG_RESULT($scm_cv_struct_file_count)
+	AC_DEFINE_UNQUOTED(FILE_CNT_FIELD, $scm_cv_struct_file_count)
+else
+AC_CACHE_VAL(scm_cv_struct_file_gptr,
+	AC_TRY_COMPILE([#include <stdio.h>],
+			[FILE *f = stdin; f->_gptr = f->egptr;],
+			scm_cv_struct_file_gptr=1,
+	scm_cv_struct_file_gptr=""))
+if test "$scm_cv_struct_gptr"; then
+	AC_MSG_RESULT(gptr)
+	AC_DEFINE_UNQUOTED(FILE_CNT_GPTR, $scm_cv_struct_file_gptr)
+else
+AC_CACHE_VAL(scm_cv_struct_file_readptr,
+	AC_TRY_COMPILE([#include <stdio.h>],
+			[FILE *f = stdin; f->_IO_read_ptr = f->_IO_read_end;],
+			scm_cv_struct_file_readptr=1))
+if test "$scm_cv_struct_file_readptr"; then
+	AC_MSG_RESULT(read_ptr)
+	AC_DEFINE_UNQUOTED(FILE_CNT_READPTR, $scm_cv_struct_file_readptr)
+fi
+fi
+fi
+
+#--------------------------------------------------------------------
 #
 # Flags for thread support
 #

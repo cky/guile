@@ -12,6 +12,26 @@
    configure.in for more details.  */
 #undef HAVE_FD_SETTER
 
+/* Define this if your system has a way to set a stdio stream's file
+   descriptor.  You should also copy fd.h.in to fd.h, and give the
+   macro SET_FILE_FD_FIELD an appropriate definition.  See
+   configure.in for more details.  */
+#undef HAVE_FD_SETTER
+
+/* Set this to the name of a field in FILE which contains the number
+   of buffered characters waiting to be read.  */
+#undef FILE_CNT_FIELD
+
+/* Define this if your stdio has _gptr and _egptr fields which can
+   be compared to give the number of buffered characters waiting to
+   be read.  */
+#undef FILE_CNT_GPTR
+
+/* Define this if your stdio has _IO_read_ptr and _IO_read_end fields
+   which can be compared to give the number of buffered characters
+   waiting to be read.  */
+#undef FILE_CNT_READPTR
+
 /* Define this if your system defines struct linger, for use with the
    getsockopt and setsockopt system calls.  */
 #undef HAVE_STRUCT_LINGER

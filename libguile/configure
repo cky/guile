@@ -1972,6 +1972,143 @@ EOF
 
 
 #--------------------------------------------------------------------
+# How to find out whether a FILE structure contains buffered data.
+# From Tk we have the following list:
+#		_cnt:		Most UNIX systems
+#		__cnt:		HPUX
+#		_r:		BSD
+#		readCount:	Sprite
+#	Or, in GNU libc there are two fields, _gptr and _egptr, which
+#	have to be compared.
+#	These can also be known as _IO_read_ptr and _IO_read_end.
+#--------------------------------------------------------------------
+
+echo $ac_n "checking how to get buffer char count from FILE structure""... $ac_c" 1>&6
+if eval "test \"`echo '$''{'scm_cv_struct_file_count'+set}'`\" = set"; then
+  echo $ac_n "(cached) $ac_c" 1>&6
+else
+  cat > conftest.$ac_ext <<EOF
+#line 1992 "configure"
+#include "confdefs.h"
+#include <stdio.h>
+int main() { return 0; }
+int t() {
+FILE *f = stdin; f->_cnt = 0
+; return 0; }
+EOF
+if { (eval echo configure:2000: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+  rm -rf conftest*
+  scm_cv_struct_file_count="_cnt"
+else
+  rm -rf conftest*
+  cat > conftest.$ac_ext <<EOF
+#line 2006 "configure"
+#include "confdefs.h"
+#include <stdio.h>
+int main() { return 0; }
+int t() {
+FILE *f = stdin; f->_r = 0
+; return 0; }
+EOF
+if { (eval echo configure:2014: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+  rm -rf conftest*
+  scm_cv_struct_file_count="_r"
+else
+  rm -rf conftest*
+  cat > conftest.$ac_ext <<EOF
+#line 2020 "configure"
+#include "confdefs.h"
+#include <stdio.h>
+int main() { return 0; }
+int t() {
+FILE *f = stdin; f->readCount = 0
+; return 0; }
+EOF
+if { (eval echo configure:2028: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+  rm -rf conftest*
+  scm_cv_struct_file_count="readCount"
+else
+  rm -rf conftest*
+  scm_cv_struct_file_count=""
+fi
+rm -f conftest*
+
+fi
+rm -f conftest*
+
+fi
+rm -f conftest*
+
+fi
+
+if test "$scm_cv_struct_file_count"; then
+	echo "$ac_t""$scm_cv_struct_file_count" 1>&6
+	cat >> confdefs.h <<EOF
+#define FILE_CNT_FIELD $scm_cv_struct_file_count
+EOF
+
+else
+if eval "test \"`echo '$''{'scm_cv_struct_file_gptr'+set}'`\" = set"; then
+  echo $ac_n "(cached) $ac_c" 1>&6
+else
+  cat > conftest.$ac_ext <<EOF
+#line 2056 "configure"
+#include "confdefs.h"
+#include <stdio.h>
+int main() { return 0; }
+int t() {
+FILE *f = stdin; f->_gptr = f->egptr;
+; return 0; }
+EOF
+if { (eval echo configure:2064: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+  rm -rf conftest*
+  scm_cv_struct_file_gptr=1
+else
+  rm -rf conftest*
+  scm_cv_struct_file_gptr=""
+fi
+rm -f conftest*
+
+fi
+
+if test "$scm_cv_struct_gptr"; then
+	echo "$ac_t""gptr" 1>&6
+	cat >> confdefs.h <<EOF
+#define FILE_CNT_GPTR $scm_cv_struct_file_gptr
+EOF
+
+else
+if eval "test \"`echo '$''{'scm_cv_struct_file_readptr'+set}'`\" = set"; then
+  echo $ac_n "(cached) $ac_c" 1>&6
+else
+  cat > conftest.$ac_ext <<EOF
+#line 2086 "configure"
+#include "confdefs.h"
+#include <stdio.h>
+int main() { return 0; }
+int t() {
+FILE *f = stdin; f->_IO_read_ptr = f->_IO_read_end;
+; return 0; }
+EOF
+if { (eval echo configure:2094: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+  rm -rf conftest*
+  scm_cv_struct_file_readptr=1
+fi
+rm -f conftest*
+
+fi
+
+if test "$scm_cv_struct_file_readptr"; then
+	echo "$ac_t""read_ptr" 1>&6
+	cat >> confdefs.h <<EOF
+#define FILE_CNT_READPTR $scm_cv_struct_file_readptr
+EOF
+
+fi
+fi
+fi
+
+#--------------------------------------------------------------------
 #
 # Flags for thread support
 #

@@ -187,10 +187,10 @@ char *strptime ();
 
 
 
-SCM_PROC (s_sys_pipe, "pipe", 0, 0, 0, scm_sys_pipe);
+SCM_PROC (s_pipe, "pipe", 0, 0, 0, scm_pipe);
 
 SCM 
-scm_sys_pipe ()
+scm_pipe ()
 {
   int fd[2], rv;
   FILE *f_rd, *f_wt;
@@ -202,13 +202,13 @@ scm_sys_pipe ()
   SCM_NEWCELL (p_wt);
   rv = pipe (fd);
   if (rv)
-    scm_syserror (s_sys_pipe);
+    scm_syserror (s_pipe);
   f_rd = fdopen (fd[0], "r");
   if (!f_rd)
     {
       SCM_SYSCALL (close (fd[0]));
       SCM_SYSCALL (close (fd[1]));
-      scm_syserror (s_sys_pipe);
+      scm_syserror (s_pipe);
     }
   f_wt = fdopen (fd[1], "w");
   if (!f_wt)
@@ -218,7 +218,7 @@ scm_sys_pipe ()
       fclose (f_rd);
       SCM_SYSCALL (close (fd[1]));
       errno = en;
-      scm_syserror (s_sys_pipe);
+      scm_syserror (s_pipe);
     }
   ptr = scm_add_to_port_table (p_rd);
   ptw = scm_add_to_port_table (p_wt);
@@ -235,15 +235,15 @@ scm_sys_pipe ()
 
 
 
-SCM_PROC (s_sys_getgroups, "getgroups", 0, 0, 0, scm_sys_getgroups);
+SCM_PROC (s_getgroups, "getgroups", 0, 0, 0, scm_getgroups);
 
 SCM
-scm_sys_getgroups()
+scm_getgroups()
 {
   SCM grps, ans;
   int ngroups = getgroups (0, NULL);
   if (!ngroups)
-    scm_syserror (s_sys_getgroups);
+    scm_syserror (s_getgroups);
   SCM_NEWCELL(grps);
   SCM_DEFER_INTS;
   {
@@ -251,12 +251,12 @@ scm_sys_getgroups()
     int val;
 
     groups = (GETGROUPS_T *) scm_must_malloc(ngroups * sizeof(GETGROUPS_T),
-					     s_sys_getgroups);
+					     s_getgroups);
     val = getgroups(ngroups, groups);
     if (val < 0)
       {
 	scm_must_free((char *)groups);
-	scm_syserror (s_sys_getgroups);
+	scm_syserror (s_getgroups);
       }
     SCM_SETCHARS(grps, groups);	/* set up grps as a GC protect */
     SCM_SETLENGTH(grps, 0L + ngroups * sizeof(GETGROUPS_T), scm_tc7_string);
@@ -270,10 +270,10 @@ scm_sys_getgroups()
 
 
 
-SCM_PROC (s_sys_getpwuid, "getpw", 0, 1, 0, scm_sys_getpwuid);
+SCM_PROC (s_getpwuid, "getpw", 0, 1, 0, scm_getpwuid);
 
 SCM 
-scm_sys_getpwuid (user)
+scm_getpwuid (user)
      SCM user;
 {
   SCM result;
@@ -294,14 +294,14 @@ scm_sys_getpwuid (user)
     }
   else
     {
-      SCM_ASSERT (SCM_NIMP (user) && SCM_ROSTRINGP (user), user, SCM_ARG1, s_sys_getpwuid);
+      SCM_ASSERT (SCM_NIMP (user) && SCM_ROSTRINGP (user), user, SCM_ARG1, s_getpwuid);
       if (SCM_SUBSTRP (user))
 	user = scm_makfromstr (SCM_ROCHARS (user), SCM_ROLENGTH (user), 0);
       SCM_DEFER_INTS;
       entry = getpwnam (SCM_ROCHARS (user));
     }
   if (!entry)
-    scm_syserror (s_sys_getpwuid);
+    scm_syserror (s_getpwuid);
 
   ve[0] = scm_makfrom0str (entry->pw_name);
   ve[1] = scm_makfrom0str (entry->pw_passwd);
@@ -338,10 +338,10 @@ scm_setpwent (arg)
 
 
 /* Combines getgrgid and getgrnam.  */
-SCM_PROC (s_sys_getgrgid, "getgr", 0, 1, 0, scm_sys_getgrgid);
+SCM_PROC (s_getgrgid, "getgr", 0, 1, 0, scm_getgrgid);
 
 SCM 
-scm_sys_getgrgid (name)
+scm_getgrgid (name)
      SCM name;
 {
   SCM result;
@@ -356,13 +356,13 @@ scm_sys_getgrgid (name)
     SCM_SYSCALL (entry = getgrgid (SCM_INUM (name)));
   else
     {
-      SCM_ASSERT (SCM_NIMP (name) && SCM_STRINGP (name), name, SCM_ARG1, s_sys_getgrgid);
+      SCM_ASSERT (SCM_NIMP (name) && SCM_STRINGP (name), name, SCM_ARG1, s_getgrgid);
       if (SCM_SUBSTRP (name))
 	name = scm_makfromstr (SCM_ROCHARS (name), SCM_ROLENGTH (name), 0);
       SCM_SYSCALL (entry = getgrnam (SCM_CHARS (name)));
     }
   if (!entry)
-    scm_syserror (s_sys_getgrgid);
+    scm_syserror (s_getgrgid);
 
   ve[0] = scm_makfrom0str (entry->gr_name);
   ve[1] = scm_makfrom0str (entry->gr_passwd);
@@ -389,27 +389,27 @@ scm_setgrent (arg)
 
 
 
-SCM_PROC (s_sys_kill, "kill", 2, 0, 0, scm_sys_kill);
+SCM_PROC (s_kill, "kill", 2, 0, 0, scm_kill);
 
 SCM 
-scm_sys_kill (pid, sig)
+scm_kill (pid, sig)
      SCM pid;
      SCM sig;
 {
-  SCM_ASSERT (SCM_INUMP (pid), pid, SCM_ARG1, s_sys_kill);
-  SCM_ASSERT (SCM_INUMP (sig), sig, SCM_ARG2, s_sys_kill);
+  SCM_ASSERT (SCM_INUMP (pid), pid, SCM_ARG1, s_kill);
+  SCM_ASSERT (SCM_INUMP (sig), sig, SCM_ARG2, s_kill);
   /* Signal values are interned in scm_init_posix().  */
   if (kill ((int) SCM_INUM (pid), (int) SCM_INUM (sig)) != 0)
-    scm_syserror (s_sys_kill);
+    scm_syserror (s_kill);
   return SCM_UNSPECIFIED;
 }
 
 
 
-SCM_PROC (s_sys_waitpid, "waitpid", 1, 1, 0, scm_sys_waitpid);
+SCM_PROC (s_waitpid, "waitpid", 1, 1, 0, scm_waitpid);
 
 SCM 
-scm_sys_waitpid (pid, options)
+scm_waitpid (pid, options)
      SCM pid;
      SCM options;
 {
@@ -417,21 +417,21 @@ scm_sys_waitpid (pid, options)
   int i;
   int status;
   int ioptions;
-  SCM_ASSERT (SCM_INUMP (pid), pid, SCM_ARG1, s_sys_waitpid);
+  SCM_ASSERT (SCM_INUMP (pid), pid, SCM_ARG1, s_waitpid);
   if (SCM_UNBNDP (options))
     ioptions = 0;
   else
     {
-      SCM_ASSERT (SCM_INUMP (options), options, SCM_ARG2, s_sys_waitpid);
+      SCM_ASSERT (SCM_INUMP (options), options, SCM_ARG2, s_waitpid);
       /* Flags are interned in scm_init_posix.  */
       ioptions = SCM_INUM (options);
     }
   SCM_SYSCALL (i = waitpid (SCM_INUM (pid), &status, ioptions));
   if (i == -1)
-    scm_syserror (s_sys_waitpid);
+    scm_syserror (s_waitpid);
   return scm_cons (SCM_MAKINUM (0L + i), SCM_MAKINUM (0L + status));
 #else
-  scm_sysmissing (s_sys_waitpid);
+  scm_sysmissing (s_waitpid);
   /* not reached.  */
   return SCM_BOOL_F;
 #endif
@@ -496,65 +496,65 @@ scm_getegid ()
 }
 
 
-SCM_PROC (s_sys_setuid, "setuid", 1, 0, 0, scm_sys_setuid);
+SCM_PROC (s_setuid, "setuid", 1, 0, 0, scm_setuid);
 
 SCM 
-scm_sys_setuid (id)
+scm_setuid (id)
      SCM id;
 {
-  SCM_ASSERT (SCM_INUMP (id), id, SCM_ARG1, s_sys_setuid);
+  SCM_ASSERT (SCM_INUMP (id), id, SCM_ARG1, s_setuid);
   if (setuid (SCM_INUM (id)) != 0)
-    scm_syserror (s_sys_setuid);
+    scm_syserror (s_setuid);
   return SCM_UNSPECIFIED;
 }
 
-SCM_PROC (s_sys_setgid, "setgid", 1, 0, 0, scm_sys_setgid);
+SCM_PROC (s_setgid, "setgid", 1, 0, 0, scm_setgid);
 
 SCM 
-scm_sys_setgid (id)
+scm_setgid (id)
      SCM id;
 {
-  SCM_ASSERT (SCM_INUMP (id), id, SCM_ARG1, s_sys_setgid);
+  SCM_ASSERT (SCM_INUMP (id), id, SCM_ARG1, s_setgid);
   if (setgid (SCM_INUM (id)) != 0)
-    scm_syserror (s_sys_setgid);
+    scm_syserror (s_setgid);
   return SCM_UNSPECIFIED;
 }
 
-SCM_PROC (s_sys_seteuid, "seteuid", 1, 0, 0, scm_sys_seteuid);
+SCM_PROC (s_seteuid, "seteuid", 1, 0, 0, scm_seteuid);
 
 SCM 
-scm_sys_seteuid (id)
+scm_seteuid (id)
      SCM id;
 {
   int rv;
 
-  SCM_ASSERT (SCM_INUMP (id), id, SCM_ARG1, s_sys_seteuid);
+  SCM_ASSERT (SCM_INUMP (id), id, SCM_ARG1, s_seteuid);
 #ifdef HAVE_SETEUID
   rv = seteuid (SCM_INUM (id));
 #else
   rv = setuid (SCM_INUM (id));
 #endif
   if (rv != 0)
-    scm_syserror (s_sys_seteuid);
+    scm_syserror (s_seteuid);
   return SCM_UNSPECIFIED;
 }
 
-SCM_PROC (s_sys_setegid, "setegid", 1, 0, 0, scm_sys_setegid);
+SCM_PROC (s_setegid, "setegid", 1, 0, 0, scm_setegid);
 
 SCM 
-scm_sys_setegid (id)
+scm_setegid (id)
      SCM id;
 {
   int rv;
 
-  SCM_ASSERT (SCM_INUMP (id), id, SCM_ARG1, s_sys_setegid);
+  SCM_ASSERT (SCM_INUMP (id), id, SCM_ARG1, s_setegid);
 #ifdef HAVE_SETEUID
   rv = setegid (SCM_INUM (id));
 #else
   rv = setgid (SCM_INUM (id));
 #endif
   if (rv != 0)
-    scm_syserror (s_sys_setegid);
+    scm_syserror (s_setegid);
   return SCM_UNSPECIFIED;
     
 }
@@ -568,36 +568,36 @@ scm_getpgrp ()
   return SCM_MAKINUM (fn (0));
 }
 
-SCM_PROC (s_sys_setpgid, "setpgid", 2, 0, 0, scm_setpgid);
+SCM_PROC (s_setpgid, "setpgid", 2, 0, 0, scm_setpgid);
 SCM 
 scm_setpgid (pid, pgid)
      SCM pid, pgid;
 {
 #ifdef HAVE_SETPGID
-  SCM_ASSERT (SCM_INUMP (pid), pid, SCM_ARG1, s_sys_setpgid);
-  SCM_ASSERT (SCM_INUMP (pgid), pgid, SCM_ARG2, s_sys_setpgid);
+  SCM_ASSERT (SCM_INUMP (pid), pid, SCM_ARG1, s_setpgid);
+  SCM_ASSERT (SCM_INUMP (pgid), pgid, SCM_ARG2, s_setpgid);
   /* FIXME(?): may be known as setpgrp.  */
   if (setpgid (SCM_INUM (pid), SCM_INUM (pgid)) != 0)
-    scm_syserror (s_sys_setpgid);
+    scm_syserror (s_setpgid);
   return SCM_UNSPECIFIED;
 #else
-  scm_sysmissing (s_sys_setpgid);
+  scm_sysmissing (s_setpgid);
   /* not reached.  */
   return SCM_BOOL_F;
 #endif
 }
 
-SCM_PROC (s_sys_setsid, "setsid", 0, 0, 0, scm_setsid);
+SCM_PROC (s_setsid, "setsid", 0, 0, 0, scm_setsid);
 SCM 
 scm_setsid ()
 {
 #ifdef HAVE_SETSID
   pid_t sid = setsid ();
   if (sid == -1)
-    scm_syserror (s_sys_setsid);
+    scm_syserror (s_setsid);
   return SCM_UNSPECIFIED;
 #else
-  scm_sysmissing (s_sys_setsid);
+  scm_sysmissing (s_setsid);
   /* not reached.  */
   return SCM_BOOL_F;
 #endif
@@ -625,23 +625,23 @@ scm_ttyname (port)
 }
 
 
-SCM_PROC (s_sys_ctermid, "ctermid", 0, 0, 0, scm_ctermid);
+SCM_PROC (s_ctermid, "ctermid", 0, 0, 0, scm_ctermid);
 SCM 
 scm_ctermid ()
 {
 #ifdef HAVE_CTERMID
   char *result = ctermid (NULL);
   if (*result == '\0')
-    scm_syserror (s_sys_ctermid);
+    scm_syserror (s_ctermid);
   return scm_makfrom0str (result);
 #else
-  scm_sysmissing (s_sys_ctermid);
+  scm_sysmissing (s_ctermid);
   /* not reached.  */
   return SCM_BOOL_F;
 #endif
 }
 
-SCM_PROC (s_sys_tcgetpgrp, "tcgetpgrp", 1, 0, 0, scm_tcgetpgrp);
+SCM_PROC (s_tcgetpgrp, "tcgetpgrp", 1, 0, 0, scm_tcgetpgrp);
 SCM 
 scm_tcgetpgrp (port)
      SCM port;
@@ -649,33 +649,33 @@ scm_tcgetpgrp (port)
 #ifdef HAVE_TCGETPGRP
   int fd;
   pid_t pgid;
-  SCM_ASSERT (SCM_NIMP (port) && SCM_OPFPORTP (port), port, SCM_ARG1, s_sys_tcgetpgrp);
+  SCM_ASSERT (SCM_NIMP (port) && SCM_OPFPORTP (port), port, SCM_ARG1, s_tcgetpgrp);
   fd = fileno ((FILE *)SCM_STREAM (port));
   if (fd == -1 || (pgid = tcgetpgrp (fd)) == -1)
-    scm_syserror (s_sys_tcgetpgrp);
+    scm_syserror (s_tcgetpgrp);
   return SCM_MAKINUM (pgid);
 #else
-  scm_sysmissing (s_sys_tcgetpgrp);
+  scm_sysmissing (s_tcgetpgrp);
   /* not reached.  */
   return SCM_BOOL_F;
 #endif
 }    
 
-SCM_PROC (s_sys_tcsetpgrp, "tcsetpgrp", 2, 0, 0, scm_tcsetpgrp);
+SCM_PROC (s_tcsetpgrp, "tcsetpgrp", 2, 0, 0, scm_tcsetpgrp);
 SCM 
 scm_tcsetpgrp (port, pgid)
      SCM port, pgid;
 {
 #ifdef HAVE_TCSETPGRP
   int fd;
-  SCM_ASSERT (SCM_NIMP (port) && SCM_OPFPORTP (port), port, SCM_ARG1, s_sys_tcsetpgrp);
-  SCM_ASSERT (SCM_INUMP (pgid), pgid, SCM_ARG2, s_sys_tcsetpgrp);
+  SCM_ASSERT (SCM_NIMP (port) && SCM_OPFPORTP (port), port, SCM_ARG1, s_tcsetpgrp);
+  SCM_ASSERT (SCM_INUMP (pgid), pgid, SCM_ARG2, s_tcsetpgrp);
   fd = fileno ((FILE *)SCM_STREAM (port));
   if (fd == -1 || tcsetpgrp (fd, SCM_INUM (pgid)) == -1)
-    scm_syserror (s_sys_tcsetpgrp);
+    scm_syserror (s_tcsetpgrp);
   return SCM_UNSPECIFIED;
 #else
-  scm_sysmissing (s_sys_tcsetpgrp);
+  scm_sysmissing (s_tcsetpgrp);
   /* not reached.  */
   return SCM_BOOL_F;
 #endif
@@ -715,62 +715,62 @@ scm_convert_exec_args (args)
   return execargv;
 }
 
-SCM_PROC (s_sys_execl, "execl", 0, 0, 1, scm_sys_execl);
+SCM_PROC (s_execl, "execl", 0, 0, 1, scm_execl);
 
 SCM
-scm_sys_execl (args)
+scm_execl (args)
      SCM args;
 {
   char **execargv;
   SCM filename = SCM_CAR (args);
-  SCM_ASSERT (SCM_NIMP (filename) && SCM_ROSTRINGP (filename), filename, SCM_ARG1, s_sys_execl);
+  SCM_ASSERT (SCM_NIMP (filename) && SCM_ROSTRINGP (filename), filename, SCM_ARG1, s_execl);
   if (SCM_SUBSTRP (filename))
     filename = scm_makfromstr (SCM_ROCHARS (filename), SCM_ROLENGTH (filename), 0);
   args = SCM_CDR (args);
   execargv = scm_convert_exec_args (args);
   execv (SCM_ROCHARS (filename), execargv);
-  scm_syserror (s_sys_execl);
+  scm_syserror (s_execl);
   /* not reached.  */
   return SCM_BOOL_F;
 }
 
-SCM_PROC (s_sys_execlp, "execlp", 0, 0, 1, scm_sys_execlp);
+SCM_PROC (s_execlp, "execlp", 0, 0, 1, scm_execlp);
 
 SCM
-scm_sys_execlp (args)
+scm_execlp (args)
      SCM args;
 {
   char **execargv;
   SCM filename = SCM_CAR (args);
-  SCM_ASSERT (SCM_NIMP (filename) && SCM_ROSTRINGP (filename), filename, SCM_ARG1, s_sys_execlp);
+  SCM_ASSERT (SCM_NIMP (filename) && SCM_ROSTRINGP (filename), filename, SCM_ARG1, s_execlp);
   if (SCM_SUBSTRP (filename))
     filename = scm_makfromstr (SCM_ROCHARS (filename), SCM_ROLENGTH (filename), 0);
   args = SCM_CDR (args);
   execargv = scm_convert_exec_args (args);
   execvp (SCM_ROCHARS (filename), execargv);
-  scm_syserror (s_sys_execlp);
+  scm_syserror (s_execlp);
   /* not reached.  */
   return SCM_BOOL_F;
 }
 
 /* Flushing streams etc., is not done here.  */
-SCM_PROC (s_sys_fork, "fork", 0, 0, 0, scm_sys_fork);
+SCM_PROC (s_fork, "fork", 0, 0, 0, scm_fork);
 
 SCM
-scm_sys_fork()
+scm_fork()
 {
   int pid;
   pid = fork ();
   if (pid == -1)
-    scm_syserror (s_sys_fork);
+    scm_syserror (s_fork);
   return SCM_MAKINUM (0L+pid);
 }
 
 
-SCM_PROC (s_sys_uname, "uname", 0, 0, 0, scm_sys_uname);
+SCM_PROC (s_uname, "uname", 0, 0, 0, scm_uname);
 
 SCM 
-scm_sys_uname ()
+scm_uname ()
 {
 #ifdef HAVE_UNAME
   struct utsname buf;
@@ -789,7 +789,7 @@ scm_sys_uname ()
 */
   return ans;
 #else
-  scm_sysmissing (s_sys_uname);
+  scm_sysmissing (s_uname);
   /* not reached.  */
   return SCM_BOOL_F;
 #endif
@@ -902,10 +902,10 @@ scm_open_output_pipe(pipestr)
 }
 
 
-SCM_PROC (s_sys_utime, "utime", 1, 2, 0, scm_sys_utime);
+SCM_PROC (s_utime, "utime", 1, 2, 0, scm_utime);
 
 SCM 
-scm_sys_utime (pathname, actime, modtime)
+scm_utime (pathname, actime, modtime)
      SCM pathname;
      SCM actime;
      SCM modtime;
@@ -913,37 +913,37 @@ scm_sys_utime (pathname, actime, modtime)
   int rv;
   struct utimbuf utm_tmp;
 
-  SCM_ASSERT (SCM_NIMP (pathname) && SCM_STRINGP (pathname), pathname, SCM_ARG1, s_sys_utime);
+  SCM_ASSERT (SCM_NIMP (pathname) && SCM_STRINGP (pathname), pathname, SCM_ARG1, s_utime);
 
   if (SCM_UNBNDP (actime))
     SCM_SYSCALL (time (&utm_tmp.actime));
   else
-    utm_tmp.actime = scm_num2ulong (actime, (char *) SCM_ARG2, s_sys_utime);
+    utm_tmp.actime = scm_num2ulong (actime, (char *) SCM_ARG2, s_utime);
 
   if (SCM_UNBNDP (modtime))
     SCM_SYSCALL (time (&utm_tmp.modtime));
   else
-    utm_tmp.modtime = scm_num2ulong (modtime, (char *) SCM_ARG3, s_sys_utime);
+    utm_tmp.modtime = scm_num2ulong (modtime, (char *) SCM_ARG3, s_utime);
 
   SCM_SYSCALL (rv = utime (SCM_CHARS (pathname), &utm_tmp));
   if (rv != 0)
-    scm_syserror (s_sys_utime);
+    scm_syserror (s_utime);
   return SCM_UNSPECIFIED;
 }
 
-SCM_PROC (s_sys_access, "access?", 2, 0, 0, scm_sys_access);
+SCM_PROC (s_access, "access?", 2, 0, 0, scm_access);
 
 SCM 
-scm_sys_access (path, how)
+scm_access (path, how)
      SCM path;
      SCM how;
 {
   int rv;
 
-  SCM_ASSERT (SCM_NIMP (path) && SCM_ROSTRINGP (path), path, SCM_ARG1, s_sys_access);
+  SCM_ASSERT (SCM_NIMP (path) && SCM_ROSTRINGP (path), path, SCM_ARG1, s_access);
   if (SCM_SUBSTRP (path))
     path = scm_makfromstr (SCM_ROCHARS (path), SCM_ROLENGTH (path), 0);
-  SCM_ASSERT (SCM_INUMP (how), how, SCM_ARG2, s_sys_access);
+  SCM_ASSERT (SCM_INUMP (how), how, SCM_ARG2, s_access);
   rv = access (SCM_ROCHARS (path), SCM_INUM (how));
   return rv ? SCM_BOOL_F : SCM_BOOL_T;
 }
@@ -956,17 +956,22 @@ scm_getpid ()
   return SCM_MAKINUM ((unsigned long) getpid ());
 }
 
-SCM_PROC (s_sys_putenv, "putenv", 1, 0, 0, scm_sys_putenv);
+SCM_PROC (s_putenv, "putenv", 1, 0, 0, scm_putenv);
 
 SCM
-scm_sys_putenv (str)
+scm_putenv (str)
      SCM str;
 {
 #ifdef HAVE_PUTENV
-  SCM_ASSERT (SCM_NIMP (str) && SCM_STRINGP (str), str, SCM_ARG1, s_sys_putenv);
-  return putenv (SCM_CHARS (str)) ? SCM_MAKINUM (errno) : SCM_BOOL_T;
+  int rv;
+
+  SCM_ASSERT (SCM_NIMP (str) && SCM_STRINGP (str), str, SCM_ARG1, s_putenv);
+  rv = putenv (SCM_CHARS (str));
+  if (rv < 0)
+    scm_syserror (s_putenv);
+  return SCM_UNSPECIFIED;
 #else
-  scm_sysmissing (s_sys_putenv);
+  scm_sysmissing (s_putenv);
   /* not reached.  */
   return SCM_BOOL_F;
 #endif
@@ -1163,10 +1168,10 @@ scm_strftime (format, stime)
   return scm_makfromstr (tbuf, len, 0);
 }
 
-SCM_PROC (s_sys_strptime, "strptime", 2, 0, 0, scm_sys_strptime);
+SCM_PROC (s_strptime, "strptime", 2, 0, 0, scm_strptime);
 
 SCM
-scm_sys_strptime (format, string)
+scm_strptime (format, string)
      SCM format;
      SCM string;
 {
@@ -1177,10 +1182,10 @@ scm_sys_strptime (format, string)
   char *fmt, *str, *rest;
   int n;
 
-  SCM_ASSERT (SCM_NIMP (format) && SCM_ROSTRINGP (format), format, SCM_ARG1, s_sys_strptime);
+  SCM_ASSERT (SCM_NIMP (format) && SCM_ROSTRINGP (format), format, SCM_ARG1, s_strptime);
   if (SCM_SUBSTRP (format))
     format =  scm_makfromstr (SCM_ROCHARS (format), SCM_ROLENGTH (format), 0);
-  SCM_ASSERT (SCM_NIMP (string) && SCM_ROSTRINGP (string), string, SCM_ARG2, s_sys_strptime);
+  SCM_ASSERT (SCM_NIMP (string) && SCM_ROSTRINGP (string), string, SCM_ARG2, s_strptime);
   if (SCM_SUBSTRP (string))
     string =  scm_makfromstr (SCM_ROCHARS (string), SCM_ROLENGTH (string), 0);
 
@@ -1205,7 +1210,7 @@ scm_sys_strptime (format, string)
   SCM_ALLOW_INTS;
 
   if (rest == NULL)
-    scm_syserror (s_sys_strptime);
+    scm_syserror (s_strptime);
 
   stime = scm_make_vector (SCM_MAKINUM (9), scm_long2num (0), SCM_UNDEFINED);
 
@@ -1224,50 +1229,50 @@ scm_sys_strptime (format, string)
 
   return scm_cons (stime, scm_makfrom0str (rest));
 #else
-  scm_sysmissing (s_sys_strptime);
+  scm_sysmissing (s_strptime);
   /* not reached.  */
   return SCM_BOOL_F;
 #endif
 }
 
-SCM_PROC (s_sys_mknod, "mknod", 3, 0, 0, scm_sys_mknod);
+SCM_PROC (s_mknod, "mknod", 3, 0, 0, scm_mknod);
 
 SCM
-scm_sys_mknod(path, mode, dev)
+scm_mknod(path, mode, dev)
      SCM path;
      SCM mode;
      SCM dev;
 {
 #ifdef HAVE_MKNOD
   int val;
-  SCM_ASSERT(SCM_NIMP(path) && SCM_STRINGP(path), path, SCM_ARG1, s_sys_mknod);
-  SCM_ASSERT(SCM_INUMP(mode), mode, SCM_ARG2, s_sys_mknod);
-  SCM_ASSERT(SCM_INUMP(dev), dev, SCM_ARG3, s_sys_mknod);
+  SCM_ASSERT(SCM_NIMP(path) && SCM_STRINGP(path), path, SCM_ARG1, s_mknod);
+  SCM_ASSERT(SCM_INUMP(mode), mode, SCM_ARG2, s_mknod);
+  SCM_ASSERT(SCM_INUMP(dev), dev, SCM_ARG3, s_mknod);
   SCM_SYSCALL(val = mknod(SCM_CHARS(path), SCM_INUM(mode), SCM_INUM(dev)));
   if (val != 0)
-    scm_syserror (s_sys_mknod);
+    scm_syserror (s_mknod);
   return SCM_UNSPECIFIED;
 #else
-  scm_sysmissing (s_sys_mknod);
+  scm_sysmissing (s_mknod);
   /* not reached.  */
   return SCM_BOOL_F;
 #endif
 }
 
 
-SCM_PROC (s_sys_nice, "nice", 1, 0, 0, scm_sys_nice);
+SCM_PROC (s_nice, "nice", 1, 0, 0, scm_nice);
 
 SCM
-scm_sys_nice(incr)
+scm_nice(incr)
      SCM incr;
 {
 #ifdef HAVE_NICE
-  SCM_ASSERT(SCM_INUMP(incr), incr, SCM_ARG1, s_sys_nice);
+  SCM_ASSERT(SCM_INUMP(incr), incr, SCM_ARG1, s_nice);
   if (nice(SCM_INUM(incr)) != 0)
-    scm_syserror (s_sys_nice);
+    scm_syserror (s_nice);
   return SCM_UNSPECIFIED;
 #else
-  scm_sysmissing (s_sys_nice);
+  scm_sysmissing (s_nice);
   /* not reached.  */
   return SCM_BOOL_F;
 #endif
