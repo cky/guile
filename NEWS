@@ -187,6 +187,8 @@ manuals.
 
 See the README file in the `doc' directory for more details.
 
+** There are a couple of examples in the examples/ directory now.
+
 * Changes to the stand-alone interpreter
 
 ** New command line option `--use-srfi'
@@ -208,6 +210,12 @@ guile> (receive (x z) (values 1 2) (+ 1 2))
 guile> (string-pad "bla" 20)
 "                 bla"
 
+** Guile now always starts up in the `(guile-user)' module.
+
+Previously, script executed via the `-s' option would run in the
+`(guile)' module and the repl would run in the `(guile-user)' module.
+Now every user action takes place in the `(guile-user)' module by
+default.
 
 * Changes to Scheme functions and syntax
 
