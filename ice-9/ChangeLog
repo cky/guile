@@ -1,3 +1,13 @@
+1998-06-07  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* boot-9.scm (use-syntax): Turned into a macro inorder to be
+	similar in use to `use-modules'.
+	Example: (use-syntax (ice-9 syncase)) will 1. load the module
+	(ice-9 syncase), and, 2. install the procedure `syncase' as eval
+	transformer.
+	(internal-use-syntax): New procedure.
+	(process-define-module): Use `internal-use-syntax'.
+
 1998-05-19  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* Makefile.am (ice9_sources): Add emacs.scm.
