@@ -40,6 +40,24 @@
  * If you do not wish that, delete this exception notice.  */
 
 
+/* This file does some pretty hairy #inclusion.  It probably seemed
+   like a good idea at the time, but it doesn't now.  Here's the
+   structure, edited for relevance (!), last I checked:
+
+      threads.c:
+	threads.h
+	  coop-defs.h
+	    iselect.h
+	mit-pthreads.c
+	coop-threads.c
+	  coop-threads.h
+	    coop-defs.h*
+	    ../qt/qt.h
+	  coop.c
+	    <qt.h>
+
+*/
+
 #include <stdio.h>
 #include "_scm.h"
 #include "dynwind.h"
