@@ -86,16 +86,16 @@ scm_input_error (char const *function,
   SCM string_port = scm_open_output_string ();
   SCM string = SCM_EOL;
   scm_simple_format (string_port,
-		     scm_makfrom0str ("~A:~S:~S: ~A"),
+		     scm_from_locale_string ("~A:~S:~S: ~A"),
 		     scm_list_4 (fn,
 				 scm_from_int (SCM_LINUM (port) + 1),
 				 scm_from_int (SCM_COL (port) + 1),
-				 scm_makfrom0str (message)));
+				 scm_from_locale_string (message)));
     
   string = scm_get_output_string (string_port);
   scm_close_output_port (string_port);
-  scm_error_scm (scm_str2symbol ("read-error"),
-		 scm_makfrom0str (function),
+  scm_error_scm (scm_from_locale_symbol ("read-error"),
+		 scm_from_locale_string (function),
 		 string,
 		 arg,
 		 SCM_BOOL_F);
@@ -141,7 +141,7 @@ SCM_DEFINE (scm_read, "read", 0, 1, 0,
     return SCM_EOF_VAL;
   scm_ungetc (c, port);
 
-  tok_buf = scm_allocate_string (30);
+  tok_buf = scm_c_make_string (30, SCM_UNDEFINED);
   return scm_lreadr (&tok_buf, port, &copy);
 }
 #undef FUNC_NAME
@@ -151,15 +151,17 @@ SCM_DEFINE (scm_read, "read", 0, 1, 0,
 char *
 scm_grow_tok_buf (SCM *tok_buf)
 {
-  size_t oldlen = SCM_I_STRING_LENGTH (*tok_buf);
-  SCM newstr = scm_allocate_string (2 * oldlen);
+  size_t oldlen = scm_i_string_length (*tok_buf);
+  const char *olddata = scm_i_string_chars (*tok_buf);
+  char *newdata;
+  SCM newstr = scm_i_make_string (2 * oldlen, &newdata);
   size_t i;
 
   for (i = 0; i != oldlen; ++i)
-    SCM_I_STRING_CHARS (newstr) [i] = SCM_I_STRING_CHARS (*tok_buf) [i];
+    newdata[i] = olddata[i];
 
   *tok_buf = newstr;
-  return SCM_I_STRING_CHARS (newstr);
+  return newdata;
 }
 
 
@@ -218,6 +220,20 @@ scm_casei_streq (char *s1, char *s2)
   return !(*s1 || *s2);
 }
 
+static int
+scm_i_casei_streq (const char *s1, const char *s2, size_t len2)
+{
+  while (*s1 && len2 > 0)
+    if (scm_c_downcase((int)*s1) != scm_c_downcase((int)*s2))
+      return 0;
+    else
+      {
+	++s1;
+	++s2;
+	--len2;
+      }
+  return !(*s1 || len2 > 0);
+}
 
 /* recsexpr is used when recording expressions
  * constructed by read:sharp.
@@ -437,7 +453,7 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
 #if SCM_HAVE_ARRAYS
 	case '*':
 	  j = scm_read_token (c, tok_buf, port, 0);
-	  p = scm_istr2bve (SCM_I_STRING_CHARS (*tok_buf) + 1, (long) (j - 1));
+	  p = scm_istr2bve (scm_c_substring_shared (*tok_buf, 1, j-1));
 	  if (scm_is_true (p))
 	    return p;
 	  else
@@ -446,7 +462,7 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
 
 	case '{':
 	  j = scm_read_token (c, tok_buf, port, 1);
-	  return scm_mem2symbol (SCM_I_STRING_CHARS (*tok_buf), j);
+	  return scm_string_to_symbol (scm_c_substring_copy (*tok_buf, 0, j));
 
 	case '\\':
 	  c = scm_getc (port);
@@ -460,20 +476,22 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
 	       * does only consist of octal digits.  Finally, it should be
 	       * checked whether the resulting fixnum is in the range of
 	       * characters.  */
-	      p = scm_i_mem2number (SCM_I_STRING_CHARS (*tok_buf), j, 8);
+	      p = scm_i_mem2number (scm_i_string_chars (*tok_buf), j, 8);
 	      if (SCM_I_INUMP (p))
 		return SCM_MAKE_CHAR (SCM_I_INUM (p));
 	    }
 	  for (c = 0; c < scm_n_charnames; c++)
 	    if (scm_charnames[c]
-		&& (scm_casei_streq (scm_charnames[c], SCM_I_STRING_CHARS (*tok_buf))))
+		&& (scm_i_casei_streq (scm_charnames[c],
+				       scm_i_string_chars (*tok_buf), j)))
 	      return SCM_MAKE_CHAR (scm_charnums[c]);
-	  scm_input_error (FUNC_NAME, port, "unknown # object", SCM_EOL);
+	  scm_input_error (FUNC_NAME, port, "unknown character name ~a",
+			   scm_list_1 (scm_c_substring (*tok_buf, 0, j)));
 
 	  /* #:SYMBOL is a syntax for keywords supported in all contexts.  */
 	case ':':
 	  j = scm_read_token ('-', tok_buf, port, 0);
-	  p = scm_mem2symbol (SCM_I_STRING_CHARS (*tok_buf), j);
+	  p = scm_string_to_symbol (scm_c_substring_copy (*tok_buf, 0, j));
 	  return scm_make_keyword_from_dash_symbol (p);
 
 	default:
@@ -509,7 +527,7 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
 	  if (c == EOF)
 	    str_eof: scm_input_error (FUNC_NAME, port, "end of file in string constant", SCM_EOL);
 
-	  while (j + 2 >= SCM_I_STRING_LENGTH (*tok_buf))
+	  while (j + 2 >= scm_i_string_length (*tok_buf))
 	    scm_grow_tok_buf (tok_buf);
 
 	  if (c == '\\')
@@ -574,13 +592,12 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
 				"illegal character in escape sequence: ~S",
 				scm_list_1 (SCM_MAKE_CHAR (c)));
 	      }
-	  SCM_I_STRING_CHARS (*tok_buf)[j] = c;
+	  scm_c_string_set_x (*tok_buf, j, SCM_MAKE_CHAR (c));
 	  ++j;
 	}
       if (j == 0)
 	return scm_nullstr;
-      SCM_I_STRING_CHARS (*tok_buf)[j] = 0;
-      return scm_mem2string (SCM_I_STRING_CHARS (*tok_buf), j);
+      return scm_c_substring_copy (*tok_buf, 0, j);
 
     case '0': case '1': case '2': case '3': case '4':
     case '5': case '6': case '7': case '8': case '9':
@@ -593,7 +610,7 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
 	/* Shortcut:  Detected symbol '+ or '- */
 	goto tok;
 
-      p = scm_i_mem2number (SCM_I_STRING_CHARS (*tok_buf), j, 10);
+      p = scm_i_mem2number (scm_i_string_chars (*tok_buf), j, 10);
       if (scm_is_true (p))
 	return p;
       if (c == '#')
@@ -601,7 +618,7 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
 	  if ((j == 2) && (scm_getc (port) == '('))
 	    {
 	      scm_ungetc ('(', port);
-	      c = SCM_I_STRING_CHARS (*tok_buf)[1];
+	      c = scm_i_string_chars (*tok_buf)[1];
 	      goto callshrp;
 	    }
 	  scm_input_error (FUNC_NAME, port, "unknown # object", SCM_EOL);
@@ -612,7 +629,7 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
       if (scm_is_eq (SCM_PACK (SCM_KEYWORD_STYLE), scm_keyword_prefix))
 	{
 	  j = scm_read_token ('-', tok_buf, port, 0);
-	  p = scm_mem2symbol (SCM_I_STRING_CHARS (*tok_buf), j);
+	  p = scm_string_to_symbol (scm_c_substring (*tok_buf, 0, j));
 	  return scm_make_keyword_from_dash_symbol (p);
 	}
       /* fallthrough */
@@ -624,7 +641,7 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
       /* fallthrough */
 
     tok:
-      return scm_mem2symbol (SCM_I_STRING_CHARS (*tok_buf), j);
+      return scm_string_to_symbol (scm_c_substring (*tok_buf, 0, j));
     }
 }
 #undef FUNC_NAME
@@ -637,28 +654,26 @@ _Pragma ("noopt");		/* # pragma _CRI noopt */
 size_t 
 scm_read_token (int ic, SCM *tok_buf, SCM port, int weird)
 {
-  register size_t j;
-  register int c;
-  register char *p;
+  size_t j;
+  int c;
 
   c = (SCM_CASE_INSENSITIVE_P ? scm_c_downcase(ic) : ic);
-  p = SCM_I_STRING_CHARS (*tok_buf);
-
+					    
   if (weird)
     j = 0;
   else
     {
       j = 0;
-      while (j + 2 >= SCM_I_STRING_LENGTH (*tok_buf))
-	p = scm_grow_tok_buf (tok_buf);
-      p[j] = c;
+      while (j + 2 >= scm_i_string_length (*tok_buf))
+	scm_grow_tok_buf (tok_buf);
+      scm_c_string_set_x (*tok_buf, j, SCM_MAKE_CHAR (c));
       ++j;
     }
 
   while (1)
     {
-      while (j + 2 >= SCM_I_STRING_LENGTH (*tok_buf))
-	p = scm_grow_tok_buf (tok_buf);
+      while (j + 2 >= scm_i_string_length (*tok_buf))
+	scm_grow_tok_buf (tok_buf);
       c = scm_getc (port);
       switch (c)
 	{
@@ -682,7 +697,6 @@ scm_read_token (int ic, SCM *tok_buf, SCM port, int weird)
 	  scm_ungetc (c, port);
 	case EOF:
 	eof_case:
-	  p[j] = 0;
 	  return j;
 	case '\\':
 	  if (!weird)
@@ -702,7 +716,6 @@ scm_read_token (int ic, SCM *tok_buf, SCM port, int weird)
 	  c = scm_getc (port);
 	  if (c == '#')
 	    {
-	      p[j] = 0;
 	      return j;
 	    }
 	  else
@@ -716,7 +729,7 @@ scm_read_token (int ic, SCM *tok_buf, SCM port, int weird)
 	default_case:
 	  {
 	    c = (SCM_CASE_INSENSITIVE_P ? scm_c_downcase(c) : c);
-	    p[j] = c;
+            scm_c_string_set_x (*tok_buf, j, SCM_MAKE_CHAR (c));
 	    ++j;
 	  }
 
