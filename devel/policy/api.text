@@ -1,4 +1,4 @@
-* Intro / Index (last modified: $Date: 2001-12-08 12:50:37 $)
+* Intro / Index (last modified: $Date: 2002-02-28 05:09:19 $)
 
 This working document explains the design of the libguile API,
 specifically the interface to the C programming language.
@@ -40,6 +40,17 @@ implementations, and the gh_ interface was deprecated starting in guile-1.5.x.
 Starting w/ guile-1.7.x, in concurrence w/ an effort to make libguile
 available to usloth windows platforms, the naked library was once again
 dressed w/ the "SCM_API interface".
+
+Here is a table of versions (! means planned):
+
+  guile  libguile  readline  qthreads  srfi-4  -13-14
+  ---------------------------------------------------
+  1.3.4     6.0.0     0.0.0     0.0.0       -       -
+  1.4       9.0.0     0.0.0     0.0.0       -       -
+  1.4.1    10.0.0       TBD    15.0.0       -       -	!
+  1.6.x    15.0.0    10.0.0    15.0.0   1.0.0   1.0.0	!
+
+  Note: These are libtool-style versions: CURRENT:REVISION:AGE
 
 
 * Decisions
@@ -86,19 +97,19 @@ strings into that table you would have to store a pointer to the
 corresponding version of 'free' with every string?  We should demand such
 coding from all guile users?
 
-The proposal itself read: For a clean memory interface of a client program 
+The proposal itself read: For a clean memory interface of a client program
 to libguile we use the following functions from libguile:
 
- * scm_c_malloc  -- should be used to allocate memory returned by some 
+ * scm_c_malloc  -- should be used to allocate memory returned by some
                     of the SCM to C converter functions in libguile if the
                     client program does not supply memory
  * scm_c_free    -- must be used by the client program to free the memory
-                    returned by the SCM to C converter functions in 
+                    returned by the SCM to C converter functions in
                     libguile if the client program did not supply a buffer
  * scm_c_realloc -- to be complete, do not know a real purpose yet
 
 
-Yet another proposal regarding this problem reads as follows: We could make 
+Yet another proposal regarding this problem reads as follows: We could make
 life easier, if we supplied the following:
 
 [in gc.h]
@@ -115,8 +126,8 @@ SCM_API scm_t_free_func scm_c_free;
 }
 
 Then the SCM to C converters allocating memory to store their results use
-scm_c_malloc() instead of simply malloc().  This way all libguile/Unix users 
-can stick to the previous free() policy, saying that you need to free() 
+scm_c_malloc() instead of simply malloc().  This way all libguile/Unix users
+can stick to the previous free() policy, saying that you need to free()
 pointers delivered by libguile.  On the other hand M$-Windows users can pass
 their own malloc()-function-pointer to the library and use their own free()
 then.  Basically this can be achieved in the following order:
@@ -129,7 +140,7 @@ then.  Basically this can be achieved in the following order:
   free (str);
 }
 
-This policy is still discussed:  
+This policy is still discussed:
 If there is one global variable scm_c_malloc, then setting it within one
 thread may interfere with another thread that expects scm_c_malloc to be
 set differently.  In other words, you would have to introduce some locking
