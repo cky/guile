@@ -1,3 +1,8 @@
+1999-12-18  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* eval.c (SCM_CEVAL): Removed check for unbound slot in
+	SCM_IM_SLOT_REF.  (This is now handled in a smarter way in GOOPS.)
+
 1999-12-17  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* tags.h (SCM_SLOPPY_NCONSP, SCM_SLOPPY_CONSP): New macros.
