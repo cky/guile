@@ -1,6 +1,12 @@
 (define-module (readline-activator))
 
 (define-public (activate-readline)
+  (if (not (provided? 'readline))
+      (scm-error 'misc-error
+		 'activate-readline
+		 "readline is not provided in this Guile installation"
+		 '()
+		 '()))
   (save-module-excursion
    (lambda ()
      (define-module (guile))
