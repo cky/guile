@@ -426,7 +426,7 @@ extern SCM scm_call_generic_0 (SCM gf);
           ? scm_call_generic_0 ((gf)) \
           : scm_wta ((arg), (char *) (pos), (subr)))
 #define SCM_GASSERT0(cond, gf, arg, pos, subr) \
-  if (!(cond)) SCM_WTA_DISPATCH_1((gf), (arg), (pos), (subr))
+  if (!(cond)) SCM_WTA_DISPATCH_0((gf), (arg), (pos), (subr))
 
 extern SCM scm_call_generic_1 (SCM gf, SCM a1);
 
