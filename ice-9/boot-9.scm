@@ -1280,17 +1280,14 @@
 	  (module-modified m)
 	  answer))))
 
-;; module-ensure-variable! module symbol
+;; module-ensure-local-variable! module symbol
 ;;
-;; ensure that there is a variable in MODULE for SYMBOL.  If there is
-;; no binding for SYMBOL, create a new undefined variable.  Return
-;; that variable.
+;; Ensure that there is a local variable in MODULE for SYMBOL.  If
+;; there is no binding for SYMBOL, create a new uninitialized
+;; variable.  Return the local variable.
 ;;
-;; (This is not a really clean thing to do, we should evetually get
-;; rid of the need for `module-ensure-variable!')
-;;
-(define (module-ensure-variable! module symbol)
-  (or (module-variable module symbol)
+(define (module-ensure-local-variable! module symbol)
+  (or (module-local-variable module symbol)
       (let ((var (make-undefined-variable)))
 	(variable-set-name-hint! var symbol)
 	(module-add! module symbol var)
@@ -2780,13 +2777,38 @@
 	 (eval-case ((load-toplevel) (export ,name)))
 	 (defmacro ,@args))))))
 
+;; Export a local variable
+;;
 (define (module-export! m names)
   (let ((public-i (module-public-interface m)))
     (for-each (lambda (name)
-		;; Make sure there is a local variable:
-		(module-define! m name (module-ref m name #f))
-		;; Make sure that local is exported:
-		(module-add! public-i name (module-variable m name)))
+		(begin-deprecated
+		 (if (not (module-local-variable m name))
+		     (let ((v (module-variable m name)))
+		       (cond 
+			(v
+			 (issue-deprecation-warning
+			  "Using `export' to re-export imported bindings is deprecated.  Use `re-export' instead.")
+			 (issue-deprecation-warning
+			  (simple-format #f "(You just re-exported `~a' from `~a'.)"
+					 name (module-name m)))
+			 (module-define! m name (variable-ref v)))))))
+		(let ((var (module-ensure-local-variable! m name)))
+		  (module-add! public-i name var)))
+	      names)))
+
+;; Re-export a imported variable
+;;
+(define (module-re-export! m names)
+  (let ((public-i (module-public-interface m)))
+    (for-each (lambda (name)
+		(let ((var (module-variable m name)))
+		  (cond ((not var)
+			 (error "Undefined variable:" name))
+			((eq? var (module-local-variable m name))
+			 (error "re-exporting local variable:" name))
+			(else
+			 (module-add! public-i name var)))))
 	      names)))
 
 (defmacro export names
@@ -2795,6 +2817,13 @@
      (module-export! (current-module) ',names))
     (else
      (error "export can only be used at the top level"))))
+
+(defmacro re-export names
+  `(eval-case
+    ((load-toplevel)
+     (module-re-export! (current-module) ',names))
+    (else
+     (error "re-export can only be used at the top level"))))
 
 (define export-syntax export)
 
@@ -2933,7 +2962,7 @@
 ;;; {Load emacs interface support if emacs option is given.}
 
 (define (named-module-use! user usee)
-  (module-use! (resolve-module user) (resolve-module usee)))
+  (module-use! (resolve-module user) (resolve-interface usee)))
 
 (define (load-emacs-interface)
   (and (provided? 'debug-extensions)
@@ -2959,17 +2988,17 @@
     ;; Use some convenient modules (in reverse order)
     
     (if (provided? 'regex)
-	(module-use! guile-user-module (resolve-module '(ice-9 regex))))
+	(module-use! guile-user-module (resolve-interface '(ice-9 regex))))
     (if (provided? 'threads)
-	(module-use! guile-user-module (resolve-module '(ice-9 threads))))
+	(module-use! guile-user-module (resolve-interface '(ice-9 threads))))
     ;; load debugger on demand
     (module-use! guile-user-module 
 		 (make-autoload-interface guile-user-module
 					  '(ice-9 debugger) '(debug)))
-    (module-use! guile-user-module (resolve-module '(ice-9 session)))
-    (module-use! guile-user-module (resolve-module '(ice-9 debug)))
+    (module-use! guile-user-module (resolve-interface '(ice-9 session)))
+    (module-use! guile-user-module (resolve-interface '(ice-9 debug)))
     ;; so that builtin bindings will be checked first
-    (module-use! guile-user-module (resolve-module '(guile))) 
+    (module-use! guile-user-module (resolve-interface '(guile)))
 
     (set-current-module guile-user-module)
 
