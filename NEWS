@@ -681,6 +681,12 @@ code.
 Use scm_is_eq for new code, which fits better into the naming
 conventions.
 
+** The functions scm_round and scm_truncate have been deprecated and
+   are now available as scm_c_round and scm_c_truncate, respectively.
+
+These functions occupy the names that scm_round_number and
+scm_truncate_number should have.
+
 ** SCM_CELL_WORD_LOC has been deprecated.
 
 Use the new macro SCM_CELL_OBJECT_LOC instead, which return a pointer

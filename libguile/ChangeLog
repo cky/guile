@@ -1,3 +1,10 @@
+2004-08-10  Marius Vollmer  <mvo@zagadka.de>
+
+	* numbers.h, number.c, deprecated.h, deprecated.c (scm_round,
+	scm_truncate): Renamed to scm_c_round and scm_c_truncate;
+	deprecated versions installed in deprecated.h and deprecated.c.
+	Changed all uses.
+	
 2004-08-06  Rob Browning  <rlb@defaultvalue.org>
 
 	* net_db.c (scm_resolv_error): don't cause an exception while
