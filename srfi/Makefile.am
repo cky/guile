@@ -33,26 +33,24 @@ srfiincludedir = $(pkgincludedir)/srfi
 # These headers are visible as <guile/srfi/mumble.h>
 srfiinclude_HEADERS = srfi-1.h srfi-4.h srfi-13.h srfi-14.h
 
-lib_LTLIBRARIES = libguile-srfi-srfi-1.la \
-		  libguile-srfi-srfi-4.la \
-		  libguile-srfi-srfi-13-14.la
+lib_LTLIBRARIES = \
+  libguile-srfi-srfi-1-v-@LIBGUILE_SRFI_SRFI_1_MAJOR@.la \
+  libguile-srfi-srfi-4-v-@LIBGUILE_SRFI_SRFI_4_MAJOR@.la \
+  libguile-srfi-srfi-13-14-v-@LIBGUILE_SRFI_SRFI_13_14_MAJOR@.la
 
 BUILT_SOURCES = srfi-1.x srfi-4.x srfi-13.x srfi-14.x
 
-libguile_srfi_srfi_1_la_SOURCES = srfi-1.x srfi-1.c
-libguile_srfi_srfi_1_la_LIBADD = ../libguile/libguile.la
-libguile_srfi_srfi_1_la_LDFLAGS = -no-undefined -export-dynamic \
-  -version-info @LIBGUILE_SRFI_SRFI_1_INTERFACE@
+libguile_srfi_srfi_1_v_@LIBGUILE_SRFI_SRFI_1_MAJOR@_la_SOURCES = srfi-1.x srfi-1.c
+libguile_srfi_srfi_1_v_@LIBGUILE_SRFI_SRFI_1_MAJOR@_la_LIBADD = ../libguile/libguile.la
+libguile_srfi_srfi_1_v_@LIBGUILE_SRFI_SRFI_1_MAJOR@_la_LDFLAGS = -no-undefined -export-dynamic -version-info @LIBGUILE_SRFI_SRFI_1_INTERFACE@
 
-libguile_srfi_srfi_4_la_SOURCES = srfi-4.x srfi-4.c
-libguile_srfi_srfi_4_la_LIBADD = ../libguile/libguile.la
-libguile_srfi_srfi_4_la_LDFLAGS = -no-undefined -export-dynamic \
-  -version-info @LIBGUILE_SRFI_SRFI_4_INTERFACE@
+libguile_srfi_srfi_4_v_@LIBGUILE_SRFI_SRFI_4_MAJOR@_la_SOURCES = srfi-4.x srfi-4.c
+libguile_srfi_srfi_4_v_@LIBGUILE_SRFI_SRFI_4_MAJOR@_la_LIBADD = ../libguile/libguile.la
+libguile_srfi_srfi_4_v_@LIBGUILE_SRFI_SRFI_4_MAJOR@_la_LDFLAGS = -no-undefined -export-dynamic -version-info @LIBGUILE_SRFI_SRFI_4_INTERFACE@
 
-libguile_srfi_srfi_13_14_la_SOURCES = srfi-13.x srfi-13.c srfi-14.x srfi-14.c
-libguile_srfi_srfi_13_14_la_LIBADD = ../libguile/libguile.la
-libguile_srfi_srfi_13_14_la_LDFLAGS = -no-undefined -export-dynamic \
-  -version-info @LIBGUILE_SRFI_SRFI_13_14_INTERFACE@
+libguile_srfi_srfi_13_14_v_@LIBGUILE_SRFI_SRFI_13_14_MAJOR@_la_SOURCES = srfi-13.x srfi-13.c srfi-14.x srfi-14.c
+libguile_srfi_srfi_13_14_v_@LIBGUILE_SRFI_SRFI_13_14_MAJOR@_la_LIBADD = ../libguile/libguile.la
+libguile_srfi_srfi_13_14_v_@LIBGUILE_SRFI_SRFI_13_14_MAJOR@_la_LDFLAGS = -no-undefined -export-dynamic -version-info @LIBGUILE_SRFI_SRFI_13_14_INTERFACE@
 
 srfidir = $(datadir)/guile/$(GUILE_EFFECTIVE_VERSION)/srfi
 srfi_DATA = srfi-1.scm \
