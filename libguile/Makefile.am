@@ -195,7 +195,7 @@ snarfcppopts = $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
 
 SUFFIXES = .x .doc
 .c.x:
-	./guile-snarf $< $(snarfcppopts)
+	./guile-snarf -o $@ $< $(snarfcppopts)
 .c.doc:
 	-(test -n "${AWK+set}" || AWK="@AWK@"; ${AWK} -f ./guile-func-name-check $<)
 	(./guile-snarf-docs $(snarfcppopts) $< | \

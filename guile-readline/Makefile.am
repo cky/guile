@@ -48,7 +48,7 @@ ice9_DATA = readline.scm
 snarfcppopts = $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
 SUFFIXES = .x
 .c.x:
-	$(GUILE_SNARF) $< $(snarfcppopts)
+	$(GUILE_SNARF) -o $@ $< $(snarfcppopts)
 
 EXTRA_DIST = $(ice9_DATA) LIBGUILEREADLINE-VERSION
 ETAGS_ARGS = $(ice9_DATA)
