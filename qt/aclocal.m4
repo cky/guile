@@ -1,4 +1,4 @@
-dnl aclocal.m4 generated automatically by aclocal 1.1l
+dnl aclocal.m4 generated automatically by aclocal 1.1k
 
 
 dnl Usage: AM_INIT_GUILE_MODULE(module-name)

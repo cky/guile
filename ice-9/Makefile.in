@@ -1,4 +1,4 @@
-# Makefile.in generated automatically by automake 1.1l from Makefile.am
+# Makefile.in generated automatically by automake 1.1k from Makefile.am
 
 # Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
@@ -37,10 +37,6 @@ INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 transform = @program_transform_name@
-INSTALL_SCRIPT = @INSTALL_SCRIPT@
-PACKAGE = @PACKAGE@
-VERSION = @VERSION@
-module = @module@
 
 AUTOMAKE_OPTIONS = foreign
 
@@ -58,6 +54,9 @@ DIST_COMMON =  COPYING ChangeLog Makefile.am Makefile.in aclocal.m4 \
 configure configure.in
 
 
+PACKAGE = @PACKAGE@
+VERSION = @VERSION@
+
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) \
 	$(TEXINFOS) $(MANS) $(EXTRA_DIST)
 
@@ -65,7 +64,7 @@ TAR = tar
 default: all
 
 .SUFFIXES:
-$(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL) 
+$(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in 
 	cd $(top_srcdir) && automake --foreign Makefile
 
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status $(BUILT_SOURCES)
@@ -83,12 +82,10 @@ $(srcdir)/configure: configure.in $(ACLOCAL) $(CONFIGURE_DEPENDENCIES)
 install-subpkgdataDATA: $(subpkgdata_DATA)
 	$(NORMAL_INSTALL)
 	$(mkinstalldirs) $(subpkgdatadir)
-	@list="$(subpkgdata_DATA)"; for p in $$list; do \
+	list="$(subpkgdata_DATA)"; for p in $$list; do \
 	  if test -f $(srcdir)/$$p; then \
-	    echo "$(INSTALL_DATA) $(srcdir)/$$p $(subpkgdatadir)/$$p"; \
 	    $(INSTALL_DATA) $(srcdir)/$$p $(subpkgdatadir)/$$p; \
 	  else if test -f $$p; then \
-	    echo "$(INSTALL_DATA) $$p $(subpkgdatadir)/$$p"; \
 	    $(INSTALL_DATA) $$p $(subpkgdatadir)/$$p; \
 	  fi; fi; \
 	done

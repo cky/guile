@@ -1,4 +1,4 @@
-# Makefile.in generated automatically by automake 1.1l from Makefile.am
+# Makefile.in generated automatically by automake 1.1k from Makefile.am
 
 # Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
@@ -40,17 +40,13 @@ transform = @program_transform_name@
 host_triplet = @host@
 host_alias = @host_alias@
 target_libs = @target_libs@
-VERSION = @VERSION@
-module = @module@
 CC = @CC@
 qtmds_o = @qtmds_o@
 qtmdc_o = @qtmdc_o@
 RANLIB = @RANLIB@
 qtmdb_s = @qtmdb_s@
-INSTALL_SCRIPT = @INSTALL_SCRIPT@
 qtmdc_c = @qtmdc_c@
 qtmds_s = @qtmds_s@
-PACKAGE = @PACKAGE@
 qtmd_h = @qtmd_h@
 
 AUTOMAKE_OPTIONS = foreign
@@ -85,6 +81,9 @@ DIST_COMMON =  README ChangeLog INSTALL Makefile.am Makefile.in README \
 aclocal.m4 configure configure.in qt.h.in
 
 
+PACKAGE = @PACKAGE@
+VERSION = @VERSION@
+
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) \
 	$(TEXINFOS) $(MANS) $(EXTRA_DIST)
 
@@ -97,7 +96,7 @@ default: all
 
 .SUFFIXES:
 .SUFFIXES: .c .o
-$(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL) 
+$(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in 
 	cd $(top_srcdir) && automake --foreign Makefile
 
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status $(BUILT_SOURCES)
@@ -128,14 +127,12 @@ install-libLIBRARIES: $(lib_LIBRARIES)
 	$(mkinstalldirs) $(libdir)
 	list="$(lib_LIBRARIES)"; for p in $$list; do \
 	  if test -f $$p; then \
-	    echo "$(INSTALL_DATA) $$p $(libdir)/$$p"; \
 	    $(INSTALL_DATA) $$p $(libdir)/$$p; \
 	  else :; fi; \
 	done
 	$(POST_INSTALL)
-	@list="$(lib_LIBRARIES)"; for p in $$list; do \
+	list="$(lib_LIBRARIES)"; for p in $$list; do \
 	  if test -f $$p; then \
-	    echo "$(RANLIB) $(libdir)/$$p"; \
 	    $(RANLIB) $(libdir)/$$p; \
 	  else :; fi; \
 	done
@@ -177,10 +174,9 @@ installdirs-recursive install-recursive uninstall-recursive  \
 check-recursive installcheck-recursive info-recursive dvi-recursive \
 mostlyclean-recursive clean-recursive distclean-recursive \
 maintainer-clean-recursive:
-	@for subdir in $(SUBDIRS); do \
+	for subdir in $(SUBDIRS); do		\
 	  target=`echo $@ | sed s/-recursive//`; \
-	  echo "Making $$target in $$subdir"; \
-	  (cd $$subdir && $(MAKE) $$target) \
+	  (cd $$subdir && $(MAKE) $$target)	\
 	   || case "$(MFLAGS)" in *k*) fail=yes;; *) exit 1;; esac; \
 	done && test -z "$$fail"
 tags-recursive:
@@ -283,11 +279,11 @@ distclean-depend:
 maintainer-clean-depend:
 	rm -rf .deps
 
-.deps/%.P: $(srcdir)/%.c
+.deps/%.P: $(srcdir)/%@EXT@
 	@echo "Computing dependencies for $<..."
 	@o='o';				\
-	test -n "$o" && o='$$o';	\
-	$(MKDEP) $< | sed "s/^\(.*\)\.o:/\1.$$o \1.l$$o:/" > $@
+ONLYC	test -n "$o" && o='$$o';	\
+	$(@MKDEP@) $< | sed "s/^\(.*\)\.o:/\1.$$o \1.l$$o:/" > $@
 info: info-recursive
 dvi: dvi-recursive
 check: all-am
