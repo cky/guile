@@ -1,3 +1,7 @@
+2001-09-25  Thien-Thi Nguyen  <ttn@glug.org>
+
+	* TODO: Add bugfix item to "Eventually".
+
 2001-09-20  Rob Browning  <rlb@defaultvalue.org>
 
 	* configure.in (AC_CONFIG_FILES): add libguile/version.h.
