@@ -422,6 +422,24 @@ scm_sysintern0 (name)
     return scm_sysintern0_no_module_lookup (name);
 }
 
+/* Lookup the value of the symbol named by the nul-terminated string
+   NAME in the current module.  */
+SCM
+scm_symbol_value0 (name)
+     char *name;
+{
+  /* This looks silly - we look up the symbol twice.  But it is in
+     fact necessary given the current module system because the module
+     lookup closures are written in scheme which needs real symbols. */
+  SCM symbol = scm_intern_obarray_soft (name, strlen (name), scm_symhash, 0);
+  SCM vcell = scm_sym2vcell (SCM_CAR (symbol),
+			     SCM_CDR (scm_top_level_lookup_closure_var),
+			     SCM_BOOL_F);
+  if (SCM_FALSEP (vcell))
+    return SCM_UNDEFINED;
+  return SCM_CDR (vcell);
+}
+
 SCM_PROC(s_symbol_p, "symbol?", 1, 0, 0, scm_symbol_p);
 
 SCM
