@@ -57,17 +57,21 @@
 
 ;;; Code:
 
-(defvar docstring-manual-directory (expand-file-name "~/Guile/cvs/guile-core/doc/ref")
+(defvar guile-core-dir (or (getenv "GUILE_MAINTAINER_GUILE_CORE_DIR")
+                           "~/Guile/cvs/guile-core"))
+
+(defvar docstring-manual-directory (expand-file-name "doc/ref" guile-core-dir)
   "*The directory containing the Texinfo source for the Guile reference manual.")
 
-(defvar docstring-tracking-root (expand-file-name "~/Guile/cvs/guile-core/doc/maint")
+(defvar docstring-tracking-root (expand-file-name "doc/maint" guile-core-dir)
   "*Root directory for docstring tracking files.  The tracking file
 for module (a b c) is expected to be in the file
 <docstring-tracking-root>/a/b/c.texi.")
 
-(defvar docstring-snarfed-roots (list (expand-file-name "~/Guile/cvs/guile-core/libguile")
-                                      (expand-file-name "~/Guile/cvs/guile-core/ice-9")
-                                      (expand-file-name "~/Guile/cvs/guile-core/oop"))
+(defvar docstring-snarfed-roots (mapcar
+                                 #'(lambda (frag)
+                                     (expand-file-name frag guile-core-dir))
+                                 '("libguile" "ice-9" "oop"))
   "*List of possible root directories for snarfed docstring files.
 For each entry in this list, the snarfed docstring file for module (a
 b c) is looked for in the file <entry>/a/b/c.texi.")
@@ -255,7 +259,7 @@ to which new docstrings should be added.")
            (setq action nil
                  issue (if manual-location
                            'consider-removal
-                         nil)))                 
+                         nil)))
 
           ((null manual-location)
            (setq action 'add-to-manual issue nil))
@@ -493,7 +497,7 @@ new snarfed docstring file.\n\n")
       (docstring-narrow-to-location manual-location)
 
       (add-hook 'ediff-quit-hook 'docstring-widen-ediff-buffers)
-    
+
     (ediff-buffers3 (nth 0 docstring-ediff-buffers)
 		    (nth 1 docstring-ediff-buffers)
 		    (nth 2 docstring-ediff-buffers)))))
@@ -532,3 +536,5 @@ new snarfed docstring file.\n\n")
 ;(find-snarfed-docstring '(guile) "primitive sloppy-assq")
 
 (provide 'docstring)
+
+;;; docstring.el ends here
