@@ -6,6 +6,25 @@ Please send Guile bug reports to bug-guile@gnu.org.
 
 Changes since Guile 1.3.4:
 
+* New primitive: `simple-format', affects `scm-error', scm_display_error, & scm_error message strings
+
+(ice-9 boot) makes `format' an alias for `simple-format' until possibly
+extended by the more sophisticated version in (ice-9 format)
+
+(simple-format port message . args)
+Write MESSAGE to DESTINATION, defaulting to `current-output-port'.
+MESSAGE can contain ~A (was %s) and ~S (was %S) escapes.  When printed,
+the escapes are replaced with corresponding members of ARGS:
+~A formats using `display' and ~S formats using `write'.
+If DESTINATION is #t, then use the `current-output-port',
+if DESTINATION is #f, then return a string containing the formatted text.
+Does not add a trailing newline."
+
+The two C procedures: scm_display_error and scm_error, as well as the
+primitive `scm-error', now use scm_format to do their work.  This means
+that the message strings of all code must be updated to use ~A where %s
+was used before, and ~S where %S was used before.
+
 * Massive software engineering face-lift by Greg J. Badros <gjb@cs.washington.edu>
 
 Now Guile primitives are defined using the GUILE_PROC/GUILE_PROC1 macros

@@ -1,3 +1,8 @@
+Tue Jan 11 11:31:10 2000  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* fports.c, ports.c, ports.h, strports.c, vports.c: Make write
+ 	port function take const void*, not void*.
+
 Tue Jan 11 11:18:07 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* scm_validate.h, chars.c, ports.c, print.c, read.c, strings.c,
