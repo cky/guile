@@ -214,7 +214,6 @@ SCM_API double scm_atanh (double x);
 SCM_API double scm_truncate (double x);
 SCM_API double scm_round (double x);
 SCM_API SCM scm_sys_expt (SCM z1, SCM z2);
-SCM_API SCM scm_sqrt (SCM x);
 SCM_API SCM scm_sys_atan2 (SCM z1, SCM z2);
 SCM_API SCM scm_make_rectangular (SCM z1, SCM z2);
 SCM_API SCM scm_make_polar (SCM z1, SCM z2);
