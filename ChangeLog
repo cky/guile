@@ -1,3 +1,11 @@
+2001-11-25  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* acconfig.h (HAVE_INLINE): Added template. 
+	* configure.in (HAVE_INLINE): Define it when the compiler supports
+	inline functions.
+
+	* libguile.h: Include "libguile/inline.h". 
+
 2001-11-22  Gary Houston  <ghouston@arglist.com>
 
 	* HACKING: Modified the Hacking It Yourself section.  Removed the
