@@ -1,3 +1,10 @@
+Mon Jun 23 16:13:38 1997  Jim Blandy  <jimb@floss.red-bean.com>
+
+	* boot-9.scm (make-list): Remove the definition of this function
+	from the (ice-9 common-list) module; make the `init' argument
+	optional in the	scm module's definition, to match the deleted
+	definition.  Harmony reigneth?  (Thanks to Bernard URBAN.)
+
 Sun Jun 22 18:33:17 1997  Jim Blandy  <jimb@floss.red-bean.com>
 
 	Try to detect when people are using one version of libguile and a
