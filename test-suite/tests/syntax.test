@@ -509,6 +509,9 @@
 
 (with-test-prefix "case"
 
+  (pass-if "clause with empty labels list"
+    (case 1 (() #f) (else #t)))
+
   (with-test-prefix "case is hygienic"
 
     (pass-if-exception "bound 'else is handled correctly"
@@ -557,11 +560,6 @@
       exception:bad-case-labels
       (eval '(case 1 ("foo" "bar"))
 	    (interaction-environment)))
-
-    ;; According to R5RS, the following one is syntactically correct.
-    ;; (pass-if-exception "(case 1 (() \"bar\"))"
-    ;;   exception:bad/missing-clauses
-    ;;   (case 1 (() "bar")))
 
     (pass-if-exception "(case 1 ((2) \"bar\") . \"foo\")"
       exception:bad-expression

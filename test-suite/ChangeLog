@@ -1,5 +1,10 @@
 2003-10-11  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* tests/syntax.test: Fixed and activated test of empty case label
+	support.
+
+2003-10-11  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* tests/syntax.test (exception:bad-expression,
 	exception:missing-clauses, exception:bad-case-clause,
 	exception:extra-case-clause, exception:bad-case-labels): New.

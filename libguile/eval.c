@@ -741,6 +741,13 @@ scm_m_case (SCM expr, SCM env)
                            s_bad_case_labels, labels, expr);
           all_labels = scm_append_x (scm_list_2 (labels, all_labels));
         }
+      else if (SCM_NULLP (labels))
+        {
+          /* The list of labels is empty.  According to R5RS this is allowed.
+           * It means that the sequence of expressions will never be executed.
+           * Therefore, as an optimization, we could remove the whole
+           * clause.  */
+        }
       else
         {
           ASSERT_SYNTAX_2 (SCM_EQ_P (labels, scm_sym_else) && else_literal_p,
