@@ -77,10 +77,21 @@
 ;;; isn't reentrant.
 (define the-readline-port #f)
 
-(define-public (readline-port)
-  (if (not the-readline-port)
-      (set! the-readline-port (make-readline-port)))
-  the-readline-port)
+(define history-variable "GUILE_HISTORY")
+(define history-file (string-append (getenv "HOME") "/.guile_history"))
+
+(define-public readline-port
+  (let ((do (lambda (r/w)
+	      (if (memq 'history-file (read-options-interface))
+		  (r/w (or (getenv history-variable)
+			   history-file))))))
+    (lambda ()
+      (if (not the-readline-port)
+	  (begin
+	    (do read-history) 
+	    (set! the-readline-port (make-readline-port))
+	    (add-hook! exit-hook (lambda () (do write-history)))))
+      the-readline-port)))
 
 ;;; The user might try to use readline in his programs.  It then
 ;;; becomes very uncomfortable that the current-input-port is the
