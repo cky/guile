@@ -30,7 +30,7 @@ include_HEADERS = libguile.h
 # automake sometimes forgets to distribute acconfig.h,
 # apparently depending on the phase of the moon.
 EXTRA_DIST = qthreads.m4 HACKING GUILE-VERSION ANON-CVS SNAPSHOTS TODO \
-	     $(ACLOCAL) acconfig.h BUGS
+	     $(ACLOCAL) acconfig.h BUGS pre-inst-guile pre-inst-guile.am
 
 TESTS = check-guile
 
