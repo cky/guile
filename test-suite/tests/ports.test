@@ -422,6 +422,123 @@
 		"no newline here")
  15)
 
+(with-test-prefix "port-column"
+
+  (with-test-prefix "output"
+
+    (pass-if "x"
+      (let ((port (open-output-string)))
+	(display "x" port)
+	(= 1 (port-column port))))
+
+    (pass-if "\\a"
+      (let ((port (open-output-string)))
+	(display "\a" port)
+	(= 0 (port-column port))))
+
+    (pass-if "x\\a"
+      (let ((port (open-output-string)))
+	(display "x\a" port)
+	(= 1 (port-column port))))
+
+    (pass-if "\\x08 backspace"
+      (let ((port (open-output-string)))
+	(display "\x08" port)
+	(= 0 (port-column port))))
+
+    (pass-if "x\\x08 backspace"
+      (let ((port (open-output-string)))
+	(display "x\x08" port)
+	(= 0 (port-column port))))
+
+    (pass-if "\\n"
+      (let ((port (open-output-string)))
+	(display "\n" port)
+	(= 0 (port-column port))))
+
+    (pass-if "x\\n"
+      (let ((port (open-output-string)))
+	(display "x\n" port)
+	(= 0 (port-column port))))
+
+    (pass-if "\\r"
+      (let ((port (open-output-string)))
+	(display "\r" port)
+	(= 0 (port-column port))))
+
+    (pass-if "x\\r"
+      (let ((port (open-output-string)))
+	(display "x\r" port)
+	(= 0 (port-column port))))
+
+    (pass-if "\\t"
+      (let ((port (open-output-string)))
+	(display "\t" port)
+	(= 8 (port-column port))))
+
+    (pass-if "x\\t"
+      (let ((port (open-output-string)))
+	(display "x\t" port)
+	(= 8 (port-column port)))))
+
+  (with-test-prefix "input"
+
+    (pass-if "x"
+      (let ((port (open-input-string "x")))
+	(while (not (eof-object? (read-char port))))
+	(= 1 (port-column port))))
+
+    (pass-if "\\a"
+      (let ((port (open-input-string "\a")))
+	(while (not (eof-object? (read-char port))))
+	(= 0 (port-column port))))
+
+    (pass-if "x\\a"
+      (let ((port (open-input-string "x\a")))
+	(while (not (eof-object? (read-char port))))
+	(= 1 (port-column port))))
+
+    (pass-if "\\x08 backspace"
+      (let ((port (open-input-string "\x08")))
+	(while (not (eof-object? (read-char port))))
+	(= 0 (port-column port))))
+
+    (pass-if "x\\x08 backspace"
+      (let ((port (open-input-string "x\x08")))
+	(while (not (eof-object? (read-char port))))
+	(= 0 (port-column port))))
+
+    (pass-if "\\n"
+      (let ((port (open-input-string "\n")))
+	(while (not (eof-object? (read-char port))))
+	(= 0 (port-column port))))
+
+    (pass-if "x\\n"
+      (let ((port (open-input-string "x\n")))
+	(while (not (eof-object? (read-char port))))
+	(= 0 (port-column port))))
+
+    (pass-if "\\r"
+      (let ((port (open-input-string "\r")))
+	(while (not (eof-object? (read-char port))))
+	(= 0 (port-column port))))
+
+    (pass-if "x\\r"
+      (let ((port (open-input-string "x\r")))
+	(while (not (eof-object? (read-char port))))
+	(= 0 (port-column port))))
+
+    (pass-if "\\t"
+      (let ((port (open-input-string "\t")))
+	(while (not (eof-object? (read-char port))))
+	(= 8 (port-column port))))
+
+    (pass-if "x\\t"
+      (let ((port (open-input-string "x\t")))
+	(while (not (eof-object? (read-char port))))
+	(= 8 (port-column port))))))
+
+
 ;;;; testing read-delimited and friends
 
 (with-test-prefix "read-delimited!"
