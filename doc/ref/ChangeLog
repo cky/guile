@@ -1,3 +1,10 @@
+2004-10-04  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* api-data.texi: Removed primitive keyword section, updated
+	keyword docs.
+
+	* api-undocumented.texi: Moved keyword dash-symbol docs here.
+
 2004-09-26  Kevin Ryde  <user42@zip.com.au>
 
 	* api-data.texi (Conversion to/from C): Braces {} around char* return.
