@@ -55,7 +55,7 @@ scm_string_equal_p (s1, s2)
      SCM s2;
 {
   register scm_sizet i;
-  register char *c1, *c2;
+  register unsigned char *c1, *c2;
   SCM_ASSERT (SCM_NIMP (s1) && SCM_ROSTRINGP (s1), s1, SCM_ARG1, s_string_equal_p);
   SCM_ASSERT (SCM_NIMP (s2) && SCM_ROSTRINGP (s2), s2, SCM_ARG2, s_string_equal_p);
 
@@ -64,8 +64,8 @@ scm_string_equal_p (s1, s2)
     {
       return SCM_BOOL_F;
     }
-  c1 = SCM_ROCHARS (s1);
-  c2 = SCM_ROCHARS (s2);
+  c1 = SCM_ROUCHARS (s1);
+  c2 = SCM_ROUCHARS (s2);
   while (0 != i--)
     if (*c1++ != *c2++)
       return SCM_BOOL_F;
