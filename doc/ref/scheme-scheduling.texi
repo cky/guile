@@ -11,7 +11,7 @@ reviewed and largely reorganized.]
 * Asyncs::              Asynchronous procedure invocation.
 * Dynamic Roots::       Root frames of execution.
 * Threads::             Multiple threads of execution.
-* Fluids::              Dynamically scoped variables.
+* Fluids::              Thread-local variables.
 @end menu
 
 
@@ -392,16 +392,17 @@ fluid are only visible in the same dynamic root.  Since threads are
 executed in separate dynamic roots, fluids can be used for thread local
 storage (@pxref{Threads}).
 
-Fluids can be used to simulate dynamically scoped variables.  These are
-used in several (especially in older) dialects of lisp, such as in Emacs
-Lisp, and they work a bit like global variables in that they can be
-modified by the caller of a procedure, and the called procedure will see
-the changes.  With lexically scoped variables---which are normally used
-in Scheme---this cannot happen.  See the description of
-@code{with-fluids*} below for details.
+Fluids can be used to simulate the desirable effects of dynamically
+scoped variables.  Dynamically scoped variables are useful when you
+want to set a variable to a value during some dynamic extent in the
+execution of your program and have them revert to their original value
+when the control flow is outside of this dynamic extent.  See the
+description of @code{with-fluids} below for details.
 
-New fluids are created with @code{make-fluid} and @code{fluid?} is used
-for testing whether an object is actually a fluid.
+New fluids are created with @code{make-fluid} and @code{fluid?} is
+used for testing whether an object is actually a fluid.  The values
+stored in a fluid can be accessed with @code{fluid-ref} and
+@code{fluid-set!}.
 
 @deffn {Scheme Procedure} make-fluid
 @deffnx {C Function} scm_make_fluid ()
@@ -419,9 +420,6 @@ in its own dynamic root, you can use fluids for thread local storage.
 Return @code{#t} iff @var{obj} is a fluid; otherwise, return
 @code{#f}.
 @end deffn
-
-The values stored in a fluid can be accessed with @code{fluid-ref} and
-@code{fluid-set!}.
 
 @deffn {Scheme Procedure} fluid-ref fluid
 @deffnx {C Function} scm_fluid_ref (fluid)
@@ -442,11 +440,21 @@ given values.  After the procedure returns, the old values are restored.
 @deffn {Scheme Procedure} with-fluids* fluids values thunk
 @deffnx {C Function} scm_with_fluids (fluids, values, thunk)
 Set @var{fluids} to @var{values} temporary, and call @var{thunk}.
-@var{fluids} must be a list of fluids and @var{values} must be the same
-number of their values to be applied.  Each substitution is done
-one after another.  @var{thunk} must be a procedure with no argument.
+@var{fluids} must be a list of fluids and @var{values} must be the
+same number of their values to be applied.  Each substitution is done
+in the order given.  @var{thunk} must be a procedure with no argument.
+it is called inside a @code{dynamic-wind} and the fluids are
+set/restored when control enter or leaves the established dynamic
+extent.
 @end deffn
 
+@deffn {Scheme Macro} with-fluids ((fluid value) ...) body...
+Execute @var{body...} while each @var{fluid} is set to the
+corresponding @var{value}.  Both @var{fluid} and @var{value} are
+evaluated and @var{fluid} must yield a fluid.  @var{body...} is
+executed inside a @code{dynamic-wind} and the fluids are set/restored
+when control enter or leaves the established dynamic extent.
+@end deffn
 
 @c Local Variables:
 @c TeX-master: "guile.texi"
