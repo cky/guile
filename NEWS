@@ -47,6 +47,8 @@ using a module.
 
 (srfi srfi-2) exports and-let*.
 
+(srfi srfi-4) implements homogeneous numeric vector datatypes.
+
 (srfi srfi-6) is a dummy module for now, since guile already provides
   all of the srfi-6 procedures by default: open-input-string,
   open-output-string, get-output-string.
