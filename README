@@ -30,10 +30,10 @@ For getit, that's:    ftp.red-bean.com:/pub/guile/guile-snap.tar.gz
 
 
 The latest official Guile release is available via anonymous FTP from
-prep.ai.mit.edu, as /pub/gnu/guile-1.1.tar.gz.
+prep.ai.mit.edu, as /pub/gnu/guile-1.2.tar.gz.
 
-Via the web, that's:  ftp://prep.ai.mit.edu/pub/gnu/guile-1.1.tar.gz
-For getit, that's:    prep.ai.mit.edu:/pub/gnu/guile-1.1.tar.gz
+Via the web, that's:  ftp://prep.ai.mit.edu/pub/gnu/guile-1.2.tar.gz
+For getit, that's:    prep.ai.mit.edu:/pub/gnu/guile-1.2.tar.gz
 
 The mailing list `guile@cygnus.com' carries discussions, questions,
 and often answers, about Guile.  To subscribe, send mail to
