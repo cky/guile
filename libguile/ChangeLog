@@ -1,3 +1,8 @@
+2003-09-15  Marius Vollmer  <mvo@zagadka.de>
+
+	* posix.c (scm_setgroups): Check that the gid list is not too
+	long.  Thanks to Paul Jarc!
+
 2003-09-14  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* tags.h: Reduced the number of short instructions from 14 to 13.
