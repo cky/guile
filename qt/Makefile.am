@@ -5,19 +5,20 @@ AUTOMAKE_OPTIONS = foreign
 ## subdirs are for making distributions only.
 SUBDIRS = md time
 
-lib_LIBRARIES = @target_libs@
-EXTRA_LIBRARIES = libqthreads.a
+lib_LTLIBRARIES = @QTHREAD_LTLIBS@
+EXTRA_LTLIBRARIES = libqthreads.la
 
-libqthreads_a_SOURCES = qt.c copyright.h
-libqthreads_a_LIBADD = qtmds.o qtmdc.o
+libqthreads_la_SOURCES = qt.c copyright.h
+libqthreads_la_LIBADD = qtmds.lo qtmdc.lo
+libqthreads_la_DEPENDENCIES = qtmds.lo qtmdc.lo
+libqthreads_la_LDFLAGS = -rpath $(libdir)
 
-qtmds.o: @qtmds_s@ 
-	$(COMPILE) -c @qtmds_s@
-	mv @qtmds_o@ qtmds.o
-
-qtmdc.o: @qtmdc_c@ @qtmd_h@
-	$(COMPILE) -c @qtmdc_c@
-	mv @qtmdc_o@ qtmdc.o
+qtmds.s:
+	${LN_S} ${srcdir}/${qtmds_s} qtmds.s
+qtmdc.c:
+	${LN_S} ${srcdir}/${qtmdc_c} qtmdc.c
+qtdmdb.s:
+	${LN_S} ${srcdir}/${qtdmdb_s} qtdmdb.s
 
 EXTRA_DIST = CHANGES README.MISC README.PORT b.h meas.c stp.c stp.h \
-Makefile.base config
+	Makefile.base config

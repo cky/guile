@@ -11,7 +11,7 @@
 # PARTICULAR PURPOSE.
 
 
-SHELL = /bin/sh
+SHELL = @SHELL@
 
 srcdir = @srcdir@
 top_srcdir = @top_srcdir@
@@ -59,9 +59,11 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 host_alias = @host_alias@
 host_triplet = @host@
+AS = @AS@
 AWK = @AWK@
 CC = @CC@
 CPP = @CPP@
+DLLTOOL = @DLLTOOL@
 GUILE_LIBS = @GUILE_LIBS@
 GUILE_MAJOR_VERSION = @GUILE_MAJOR_VERSION@
 GUILE_MINOR_VERSION = @GUILE_MINOR_VERSION@
@@ -76,42 +78,43 @@ MAKEINFO = @MAKEINFO@
 NM = @NM@
 PACKAGE = @PACKAGE@
 PROG_HOSTNAME = @PROG_HOSTNAME@
+QTHREAD_LTLIBS = @QTHREAD_LTLIBS@
 RANLIB = @RANLIB@
-THREAD_LIBS = @THREAD_LIBS@
+THREAD_CPPFLAGS = @THREAD_CPPFLAGS@
+THREAD_LIBS_INSTALLED = @THREAD_LIBS_INSTALLED@
+THREAD_LIBS_LOCAL = @THREAD_LIBS_LOCAL@
+THREAD_PACKAGE = @THREAD_PACKAGE@
 VERSION = @VERSION@
+qtdmdb_s = @qtdmdb_s@
 qtmd_h = @qtmd_h@
-qtmdb_s = @qtmdb_s@
 qtmdc_c = @qtmdc_c@
-qtmdc_o = @qtmdc_o@
-qtmds_o = @qtmds_o@
 qtmds_s = @qtmds_s@
-target_libs = @target_libs@
 
 AUTOMAKE_OPTIONS = foreign
 
 SUBDIRS = md time
 
-lib_LIBRARIES = @target_libs@
-EXTRA_LIBRARIES = libqthreads.a
+lib_LTLIBRARIES = @QTHREAD_LTLIBS@
+EXTRA_LTLIBRARIES = libqthreads.la
 
-libqthreads_a_SOURCES = qt.c copyright.h
-libqthreads_a_LIBADD = qtmds.o qtmdc.o
+libqthreads_la_SOURCES = qt.c copyright.h
+libqthreads_la_LIBADD = qtmds.lo qtmdc.lo
+libqthreads_la_DEPENDENCIES = qtmds.lo qtmdc.lo
+libqthreads_la_LDFLAGS = -rpath $(libdir)
 
 EXTRA_DIST = CHANGES README.MISC README.PORT b.h meas.c stp.c stp.h \
-Makefile.base config
+	Makefile.base config
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = ../libguile/scmconfig.h
 CONFIG_CLEAN_FILES =  qt.h
-LIBRARIES =  $(lib_LIBRARIES)
+LTLIBRARIES =  $(lib_LTLIBRARIES)
 
 
 DEFS = @DEFS@ -I. -I$(srcdir) -I../libguile
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
-libqthreads_a_DEPENDENCIES =  qtmds.o qtmdc.o
-libqthreads_a_OBJECTS =  qt.o
-AR = ar
+libqthreads_la_OBJECTS =  qt.lo
 CFLAGS = @CFLAGS@
 COMPILE = $(CC) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
@@ -124,8 +127,8 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 TAR = tar
 GZIP = --best
 DEP_FILES =  .deps/qt.P
-SOURCES = $(libqthreads_a_SOURCES)
-OBJECTS = $(libqthreads_a_OBJECTS)
+SOURCES = $(libqthreads_la_SOURCES)
+OBJECTS = $(libqthreads_la_OBJECTS)
 
 all: all-recursive all-am
 
@@ -139,38 +142,31 @@ Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)
 	  && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
 qt.h: $(top_builddir)/config.status qt.h.in
-	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= ./config.status
+	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
-mostlyclean-libLIBRARIES:
+mostlyclean-libLTLIBRARIES:
 
-clean-libLIBRARIES:
-	-test -z "$(lib_LIBRARIES)" || rm -f $(lib_LIBRARIES)
+clean-libLTLIBRARIES:
+	-test -z "$(lib_LTLIBRARIES)" || rm -f $(lib_LTLIBRARIES)
 
-distclean-libLIBRARIES:
+distclean-libLTLIBRARIES:
 
-maintainer-clean-libLIBRARIES:
+maintainer-clean-libLTLIBRARIES:
 
-install-libLIBRARIES: $(lib_LIBRARIES)
+install-libLTLIBRARIES: $(lib_LTLIBRARIES)
 	@$(NORMAL_INSTALL)
 	$(mkinstalldirs) $(DESTDIR)$(libdir)
-	list='$(lib_LIBRARIES)'; for p in $$list; do \
+	@list='$(lib_LTLIBRARIES)'; for p in $$list; do \
 	  if test -f $$p; then \
-	    echo " $(INSTALL_DATA) $$p $(DESTDIR)$(libdir)/$$p"; \
-	    $(INSTALL_DATA) $$p $(DESTDIR)$(libdir)/$$p; \
-	  else :; fi; \
-	done
-	@$(POST_INSTALL)
-	@list='$(lib_LIBRARIES)'; for p in $$list; do \
-	  if test -f $$p; then \
-	    echo " $(RANLIB) $(DESTDIR)$(libdir)/$$p"; \
-	    $(RANLIB) $(DESTDIR)$(libdir)/$$p; \
+	    echo "$(LIBTOOL)  --mode=install $(INSTALL_DATA) $$p $(DESTDIR)$(libdir)/$$p"; \
+	    $(LIBTOOL)  --mode=install $(INSTALL_DATA) $$p $(DESTDIR)$(libdir)/$$p; \
 	  else :; fi; \
 	done
 
-uninstall-libLIBRARIES:
+uninstall-libLTLIBRARIES:
 	@$(NORMAL_UNINSTALL)
-	list='$(lib_LIBRARIES)'; for p in $$list; do \
-	  rm -f $(DESTDIR)$(libdir)/$$p; \
+	list='$(lib_LTLIBRARIES)'; for p in $$list; do \
+	  $(LIBTOOL)  --mode=uninstall rm -f $(DESTDIR)$(libdir)/$$p; \
 	done
 
 .s.o:
@@ -205,10 +201,8 @@ distclean-libtool:
 
 maintainer-clean-libtool:
 
-libqthreads.a: $(libqthreads_a_OBJECTS) $(libqthreads_a_DEPENDENCIES)
-	-rm -f libqthreads.a
-	$(AR) cru libqthreads.a $(libqthreads_a_OBJECTS) $(libqthreads_a_LIBADD)
-	$(RANLIB) libqthreads.a
+libqthreads.la: $(libqthreads_la_OBJECTS) $(libqthreads_la_DEPENDENCIES)
+	$(LINK)  $(libqthreads_la_LDFLAGS) $(libqthreads_la_OBJECTS) $(libqthreads_la_LIBADD) $(LIBS)
 
 # This directory's subdirectories are mostly independent; you can cd
 # into them and run `make' without going through this Makefile.
@@ -328,11 +322,11 @@ dvi: dvi-recursive
 check: all-am
 	$(MAKE) check-recursive
 installcheck: installcheck-recursive
-all-am: Makefile $(LIBRARIES)
+all-am: Makefile $(LTLIBRARIES)
 
-install-exec-am: install-libLIBRARIES
+install-exec-am: install-libLTLIBRARIES
 
-uninstall-am: uninstall-libLIBRARIES
+uninstall-am: uninstall-libLTLIBRARIES
 
 install-exec: install-exec-recursive install-exec-am
 	@$(NORMAL_INSTALL)
@@ -365,18 +359,18 @@ distclean-generic:
 maintainer-clean-generic:
 	-test -z "$(MAINTAINERCLEANFILES)" || rm -f $(MAINTAINERCLEANFILES)
 	-test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
-mostlyclean-am:  mostlyclean-libLIBRARIES mostlyclean-compile \
+mostlyclean-am:  mostlyclean-libLTLIBRARIES mostlyclean-compile \
 		mostlyclean-libtool mostlyclean-tags mostlyclean-depend \
 		mostlyclean-generic
 
-clean-am:  clean-libLIBRARIES clean-compile clean-libtool clean-tags \
+clean-am:  clean-libLTLIBRARIES clean-compile clean-libtool clean-tags \
 		clean-depend clean-generic mostlyclean-am
 
-distclean-am:  distclean-libLIBRARIES distclean-compile \
+distclean-am:  distclean-libLTLIBRARIES distclean-compile \
 		distclean-libtool distclean-tags distclean-depend \
 		distclean-generic clean-am
 
-maintainer-clean-am:  maintainer-clean-libLIBRARIES \
+maintainer-clean-am:  maintainer-clean-libLTLIBRARIES \
 		maintainer-clean-compile maintainer-clean-libtool \
 		maintainer-clean-tags maintainer-clean-depend \
 		maintainer-clean-generic distclean-am
@@ -393,12 +387,13 @@ maintainer-clean:  maintainer-clean-recursive maintainer-clean-am
 	@echo "This command is intended for maintainers to use;"
 	@echo "it deletes files that may require special tools to rebuild."
 
-.PHONY: mostlyclean-libLIBRARIES distclean-libLIBRARIES \
-clean-libLIBRARIES maintainer-clean-libLIBRARIES uninstall-libLIBRARIES \
-install-libLIBRARIES mostlyclean-compile distclean-compile \
-clean-compile maintainer-clean-compile mostlyclean-libtool \
-distclean-libtool clean-libtool maintainer-clean-libtool \
-install-data-recursive uninstall-data-recursive install-exec-recursive \
+.PHONY: mostlyclean-libLTLIBRARIES distclean-libLTLIBRARIES \
+clean-libLTLIBRARIES maintainer-clean-libLTLIBRARIES \
+uninstall-libLTLIBRARIES install-libLTLIBRARIES mostlyclean-compile \
+distclean-compile clean-compile maintainer-clean-compile \
+mostlyclean-libtool distclean-libtool clean-libtool \
+maintainer-clean-libtool install-data-recursive \
+uninstall-data-recursive install-exec-recursive \
 uninstall-exec-recursive installdirs-recursive uninstalldirs-recursive \
 all-recursive check-recursive installcheck-recursive info-recursive \
 dvi-recursive mostlyclean-recursive distclean-recursive clean-recursive \
@@ -411,13 +406,12 @@ installdirs mostlyclean-generic distclean-generic clean-generic \
 maintainer-clean-generic clean mostlyclean distclean maintainer-clean
 
 
-qtmds.o: @qtmds_s@ 
-	$(COMPILE) -c @qtmds_s@
-	mv @qtmds_o@ qtmds.o
-
-qtmdc.o: @qtmdc_c@ @qtmd_h@
-	$(COMPILE) -c @qtmdc_c@
-	mv @qtmdc_o@ qtmdc.o
+qtmds.s:
+	${LN_S} ${srcdir}/${qtmds_s} qtmds.s
+qtmdc.c:
+	${LN_S} ${srcdir}/${qtmdc_c} qtmdc.c
+qtdmdb.s:
+	${LN_S} ${srcdir}/${qtdmdb_s} qtdmdb.s
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
