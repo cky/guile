@@ -1,7 +1,7 @@
 ;;;; regexp.test --- test Guile's regular expression functions -*- scheme -*-
 ;;;; Jim Blandy <jimb@red-bean.com> --- September 1999
 ;;;;
-;;;; 	Copyright (C) 1999 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1999, 2004 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -38,6 +38,29 @@
   (call-with-output-string
    (lambda (port)
      (write obj port))))
+
+;;;
+;;; make-regexp
+;;;
+
+(with-test-prefix "make-regexp"
+
+  (pass-if-exception "no args" exception:wrong-num-args
+    (make-regexp))
+
+  (pass-if-exception "bad pat arg" exception:wrong-type-arg
+    (make-regexp 'blah))
+
+  ;; in guile prior to 1.6.5 make-regex didn't validate its flags args
+  (pass-if-exception "bad arg 2" exception:wrong-type-arg
+    (make-regexp "xyz" 'abc))
+
+  (pass-if-exception "bad arg 3" exception:wrong-type-arg
+    (make-regexp "xyz" regexp/icase 'abc)))
+
+;;;
+;;; regexp-substitute
+;;;
 
 (with-test-prefix "regexp-substitute"
   (let ((match
