@@ -54,14 +54,21 @@ the three kinds of @dfn{sameness} defined above.
 
 @rnindex eq?
 @deffn {Scheme Procedure} eq? x y
+@deffnx {C Function} scm_eq_p (x, y)
 Return @code{#t} iff @var{x} references the same object as @var{y}.
 @code{eq?} is similar to @code{eqv?} except that in some cases it is
 capable of discerning distinctions finer than those detectable by
 @code{eqv?}.
 @end deffn
 
+@deftypefn {C Function} int scm_is_eq (SCM x, SCM y)
+Return @code{1} when @var{x} and @var{y} are equal in the sense of
+@code{eq?}, else return @code{0}.
+@end deftypefn
+
 @rnindex eqv?
 @deffn {Scheme Procedure} eqv? x y
+@deffnx {C Function} scm_eqv_p (x, y)
 The @code{eqv?} procedure defines a useful equivalence relation on objects.
 Briefly, it returns @code{#t} if @var{x} and @var{y} should normally be
 regarded as the same object.  This relation is left slightly open to
@@ -71,8 +78,9 @@ and inexact numbers.
 
 @rnindex equal?
 @deffn {Scheme Procedure} equal? x y
-Return @code{#t} iff @var{x} and @var{y} are recursively @code{eqv?} equivalent.
-@code{equal?} recursively compares the contents of pairs,
+@deffnx {C Function} scm_equal_p (x, y)
+Return @code{#t} iff @var{x} and @var{y} are recursively @code{eqv?}
+equivalent.  @code{equal?} recursively compares the contents of pairs,
 vectors, and strings, applying @code{eqv?} on other objects such as
 numbers and symbols.  A rule of thumb is that objects are generally
 @code{equal?}  if they print the same.  @code{equal?} may fail to
