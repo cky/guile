@@ -63,7 +63,7 @@
 (define (getpwuid uid) (getpw uid))
 
 (define (getgrent) (getgr))
-(define (setgrent) (setgr #f))
+(define (setgrent) (setgr #t))
 (define (endgrent) (setgr))
 
 (define (getgrnam name) (getgr name))
