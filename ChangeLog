@@ -1,8 +1,13 @@
 1998-10-14  Jim Blandy  <jimb@zwingli.cygnus.com>
 
+	* configure.in: Allow tabs and whitespace between `void' and
+	`usleep'.  (Thanks to Harvey J. Stein.)
+	* configure: Regenerated.
+
 	Don't redefine sleep/usleep.
 	* configure.in: Remove tests for usleep's argument type; we only
 	need that if we're going to replace it.
+
 	* acconfig.h (USLEEP_ARG_TYPE): Delete.  All the other SLEEP
 	garbage is needed just to use usleep and sleep without compiler
 	warnings.
