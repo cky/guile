@@ -1,8 +1,9 @@
 #! /bin/sh
 
 # ltconfig - Create a system-specific libtool.
+# When updating this script, search for LINENUM and fix line number refs.
 # Generated automatically from ltconfig.in by configure.
-# Copyright (C) 1996, Free Software Foundation, Inc.
+# Copyright (C) 1996, 1997, Free Software Foundation, Inc.
 # Gordon Matzigkeit <gord@gnu.ai.mit.edu>, 1996
 #
 # This file is free software; you can redistribute it and/or modify it
@@ -32,13 +33,14 @@ progname=`echo "$0" | sed 's%^.*/%%'`
 # Constants:
 PROGRAM=ltconfig
 PACKAGE=libtool
-VERSION=0.7
+VERSION=0.9
 ac_compile='${CC-cc} -c $CFLAGS $CPPFLAGS conftest.c 1>&5'
 rm="rm -f"
 
 help="Try \`$progname --help' for more information."
 
 # Global variables:
+can_build_shared=yes
 enable_shared=yes
 # All known linkers require a `.a' archive for static linking.
 enable_static=yes
@@ -242,7 +244,7 @@ elif test "$host" = NONE; then
   echo "$progname: you must specify a host type if you use \`--no-verify'" 1>&2
   echo "$help" 1>&2
   exit 1
-else   
+else
   host_alias=$host
 fi
 
@@ -279,69 +281,6 @@ if test -n "$RANLIB"; then
   old_archive_cmds="$old_archive_cmds;\$RANLIB \$oldlib"
   old_postinstall_cmds="$old_postinstall_cmds;\$RANLIB \$oldlib"
 fi
-
-# FIXME: this is simplistic, and doesn't allow for cross-compiling.
-echo $ac_n "checking for library strip program... $ac_c" 1>&6
-striplib=
-if strip -x /dev/null 2>&1 | grep '/dev/null' >/dev/null 2>&1; then
-  # strip: /dev/null: Inappropriate file type or format
-  striplib="strip -x"
-fi
-
-if test -n "$striplib"; then
-  echo $ac_t "$striplib" 1>&6
-else
-  echo $ac_t none 1>&6
-fi
-
-
-# Check if old-style libraries may be stripped.
-old_striplib=
-if test -n "$striplib"; then
-  echo $ac_n "checking if $striplib works for static archives... $ac_c" 1>&6
-  old_striplib="$striplib"
-  trap 'rm -rf conftest*; exit 1' 1 2 15
-  cat > conftest.c <<EOF
-#line 305 "$progname"
-int external_func() { return 1; }
-static int hidden_func() { return 2; }
-EOF
-  if { (eval echo $progname:308: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
-    oldlib=conftest.a
-    oldobjs=' conftest.o'
-
-    # Do each of the archive commands.
-    cmds=`eval echo \"$old_archive_cmds\"`
-    IFS="${IFS= 	}"; save_ifs="$IFS"; IFS=';'
-    for cmd in $cmds; do
-      IFS="$save_ifs"
-      if { (echo $progname:317: \"$cmd\") 1>&5; ($cmd) 2>&5; }; then :
-      else
-	old_striplib=
-	break
-      fi
-    done
-    IFS="$save_ifs"
-
-    if test -n "$old_striplib"; then
-      if { (echo $progname:326: \"$old_striplib conftest.a\") 1>&5; ($old_striplib conftest.a) 2>&5; }; then :
-      else
-	old_striplib=
-      fi
-    fi
-  else
-    old_striplib=
-  fi
-  rm -rf conftest*
-  trap '' 1 2 15
-
-  if test -n "$old_striplib"; then
-    echo "$ac_t""yes" 1>&6
-  else
-    echo "$ac_t""no" 1>&6
-  fi
-fi
-
 
 # Check to see if we are using GCC.
 if test "$with_gcc" = no; then
@@ -421,7 +360,8 @@ if test "$with_gcc" = no; then
   yes;
 #endif
 EOF
-  if eval "$CC -E conftest.c" | egrep yes >/dev/null 2>&1; then :
+  # LINENUM
+  if { ac_try='${CC-cc} -E conftest.c'; { (eval echo $progname:364: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }; } | egrep yes >/dev/null 2>&1; then
     with_gcc=yes
   fi
   $rm conftest.c
@@ -435,6 +375,7 @@ compiler="$2"
 echo $ac_n "checking for $compiler option to produce PIC... $ac_c" 1>&6
 pic_flag=
 profile_flag_pattern=
+special_shlib_compile_flags=
 wl=
 link_static_flag=
 
@@ -448,16 +389,34 @@ else
   case "$host" in
   *-*-aix3* | *-*-aix4*)
     # FIXME All rs/6000 code is PIC, but is there any non-rs/6000 AIX platform?
+    pic_flag=
     link_static_flag='-bnso -bI:/lib/syscalls.exp'
     ;;
 
-  *-*-hpux10*)
-    # FIXME link_static_flag?
+  *-*-hpux9* | *-*-hpux10*)
+    # FIXME is there a better link_static_flag that works with the bundled CC?
+    wl='-Wl,'
+    link_static_flag='${wl}-a ${wl}archive'
     pic_flag='+Z'
     ;;
 
+  *-*-irix5* | *-*-irix6*)
+    wl='-Wl,'
+    link_static_flag='-non_shared'
+    # PIC (with -KPIC) is the default.
+    pic_flag=
+    ;;
+
   *-*-osf3*)
-    # FIXME - pic_flag, link_static_flag?
+    # FIXME - pic_flag is probably required for hppa*-osf* and i860-osf*
+    wl='-Wl,'
+    link_static_flag='-non_shared'
+    ;;
+
+  *-*-sco3.2v5*)
+    pic_flag='-Kpic'
+    link_static_flag='-dn'
+    special_shlib_compile_flags='-belf'
     ;;
 
   *-*-solaris2*)
@@ -478,8 +437,8 @@ else
 fi
 
 case "$host" in
-rs6000-*-*)
-  # Yippee! All rs/6000 code is position-independent.
+rs6000-*-* | powerpc-*-* | powerpcle-*-*)
+  # Yippee! All RS/6000 and PowerPC code is position-independent.
   pic_flag=
   ;;
 esac
@@ -489,6 +448,16 @@ if test -n "$pic_flag"; then
   pic_flag=" $pic_flag"
 else
   echo $ac_t none 1>&6
+fi
+
+# Check for any special shared library compilation flags.
+if test -n "$special_shlib_compile_flags"; then
+  echo "$progname: warning: \`$CC' requires \`$special_shlib_compile_flags' to build shared libraries" 1>&2
+  if echo "$old_CC $old_CFLAGS " | egrep -e "[ 	]$special_shlib_compile_flags[ 	]" >/dev/null; then :
+  else
+    echo "$progname: add \`$special_shlib_compile_flags' to the CC or CFLAGS env variable and reconfigure" 1>&2
+    can_build_shared=no
+  fi
 fi
 
 echo $ac_n "checking for $compiler option to statically link programs... $ac_c" 1>&6
@@ -515,9 +484,10 @@ echo $ac_t "$with_gnu_ld" 1>&6
 echo $ac_n "checking if $linker supports shared libraries... $ac_c" 1>&6
 
 archive_cmds=
-link_rpath_flag=
+hardcode_libdir_flag=
+hardcode_direct=no
 hardcode_minus_L=no
-hardcode_shlibpath_var=no
+hardcode_shlibpath_var=unsupported
 
 ld_shlibs=yes
 if test "$with_gnu_ld" = yes; then
@@ -526,6 +496,8 @@ if test "$with_gnu_ld" = yes; then
   case "$host" in
   *-*-sunos4*)
     ld_shlibs=yes
+    hardcode_direct=yes
+    hardcode_shlibpath_var=no
     ;;
 
   *)
@@ -539,55 +511,79 @@ if test "$with_gnu_ld" = yes; then
 
   if test "$ld_shlibs" = yes; then
     archive_cmds='$cc -shared ${wl}-soname $wl$soname -o $lib$libobjs$deplibs'
-    link_rpath_flag='${wl}-rpath $wl$libdir'
+    hardcode_libdir_flag='${wl}-rpath $wl$libdir'
   fi
 else
   # PORTME fill in a description of your system's linker (not GNU ld)
   case "$host" in
   *-*-aix3*)
-    archive_cmds='$rm $lib.exp;/ucb/nm$libobjs | egrep \" D \" | sed \"s/^.* //\" > $lib.exp;$LD -o $objdir/$soname$libobjs -bE:$lib.exp -T512 -H512 -bM:SRE -lc$deplibs;ar cru $lib $objdir/$soname'
-    hardcode_shlibpath_var=yes
+    archive_cmds='/usr/ucb/nm$libobjs | egrep \" D \" | sed \"s/^.* //\" > $lib.exp;$LD -o $objdir/$soname$libobjs -bE:$lib.exp -T512 -H512 -bM:SRE -lc$deplibs;ar cru $lib $objdir/$soname'
+    test "$with_gcc" != yes && hardcode_direct=yes
     hardcode_minus_L=yes
     ;;
 
   *-*-aix4*)
-    archive_cmds='$rm $lib.exp;/bin/nm -B$libobjs | egrep \" D \" | sed \"s/^.* //\" > $lib.exp;$cc -o $objdir/$soname$libobjs ${wl}-bE:$lib.exp ${wl}-bM:SRE ${wl}-bnoentry$deplibs;ar cru $lib $objdir/$soname'
-    hardcode_shlibpath_var=yes
+    archive_cmds='/bin/nm -B$libobjs | egrep \" D \" | sed \"s/^.* //\" > $lib.exp;$cc -o $objdir/$soname$libobjs ${wl}-bE:$lib.exp ${wl}-bM:SRE ${wl}-bnoentry$deplibs;ar cru $lib $objdir/$soname'
+    test "$with_gcc" != yes && hardcode_direct=yes
     hardcode_minus_L=yes
     ;;
 
   *-*-freebsd*)
     archive_cmds='$LD -Bshareable -o $lib$libobjs$deplibs'
+    hardcode_direct=yes
+    hardcode_minus_L=yes
+    hardcode_shlibpath_var=no
+    ;;
+
+  *-*-hpux9*)
+    archive_cmds='$rm $objdir/$soname;$LD -b +s +b $install_libdir -o $objdir/$soname$libobjs$deplibs;mv $objdir/$soname $lib'
+    hardcode_libdir_flag='${wl}+b ${wl}$libdir'
+    hardcode_direct=yes
     hardcode_minus_L=yes
     ;;
 
   *-*-hpux10*)
     archive_cmds='$LD -b +h $soname +s +b $install_libdir -o $lib$libobjs$deplibs'
-    link_rpath_flag='${wl}+b ${wl}$libdir'
+    hardcode_libdir_flag='${wl}+b ${wl}$libdir'
+    hardcode_direct=yes
     hardcode_minus_L=yes
-    hardcode_shlibpath_var=yes
+    ;;
+
+  *-*-irix5* | *-*-irix6*)
+    archive_cmds='$LD -shared -o $lib -soname $soname -set_version $verstring$libobjs -lc$deplibs'
+    hardcode_libdir_flag='${wl}-rpath ${wl}$libdir'
     ;;
 
   *-*-netbsd*)
     # Tested with NetBSD 1.2 ld
     archive_cmds='$LD -Bshareable -o $lib$libobjs$deplibs'
-    link_rpath_flag='-R$libdir'
+    hardcode_libdir_flag='-R$libdir'
+    hardcode_direct=yes
+    hardcode_shlibpath_var=no
     ;;
 
   *-*-osf3*)
-    archive_cmds='$LD -shared -o $lib -rpath $install_libdir -soname $soname -set_version $verstring$libobjs -lc$deplibs'
-    link_rpath_flag='${wl}-rpath ${wl}$libdir'
+    archive_cmds='$LD -shared -o $lib -soname $soname -set_version $verstring$libobjs -lc$deplibs'
+    hardcode_libdir_flag='${wl}-rpath ${wl}$libdir'
+    ;;
+
+  *-*-sco3.2v5*)
+    archive_cmds='$LD -G -o $lib$libobjs$deplibs'
+    hardcode_direct=yes
     ;;
 
   *-*-solaris2*)
     archive_cmds='$LD -G -z text -h $soname -o $lib$libobjs$deplibs'
-    link_rpath_flag='-R$libdir'
+    hardcode_libdir_flag='-R$libdir'
+    hardcode_shlibpath_var=no
     ;;
 
   *-*-sunos4*)
-    archive_cmds='$LD -assert pure-text -Bstatic -o $lib$libobjs$deplibs'
-    link_rpath_flag='-L$libdir'
+    archive_cmds='$LD -assert pure-text -Bstatic -o $lib$libobjs'
+    hardcode_libdir_flag='-L$libdir'
+    hardcode_direct=yes
     hardcode_minus_L=yes
+    hardcode_shlibpath_var=no
     ;;
 
   *)
@@ -598,10 +594,33 @@ else
 fi
 echo $ac_t "$ld_shlibs" 1>&6
 
-if test "$hardcode_shlibpath_var" = yes && test "$hardcode_minus_L" = yes; then
-  echo "$progname: warning: $LD needlessly hardcodes library paths into binaries" 1>&2
-  echo "$PACKAGE will compensate by relinking binaries at install time." 1>&2
+# Check hardcoding attributes.
+echo $ac_n "checking how to hardcode library paths into programs... $ac_c" 1>&6
+hardcode_action=
+if test -n "$hardcode_libdir_flag"; then
+  # We can hardcode non-existant directories.
+  if test "$hardcode_direct" != no &&
+     test "$hardcode_minus_L" != no &&
+     test "$hardcode_shlibpath_var" != no; then
+
+    # Can't link without hardcoding.
+    hardcode_action=relink
+  else
+    hardcode_action=rpath
+  fi
+elif test "$hardcode_direct" = yes ||
+     test "$hardcode_minus_L" = yes ||
+     test "$hardcode_shlibpath_var" = yes; then
+
+  # We can't hardcode non-existant directories, but we can existing ones.
+  hardcode_action=relink
+else
+  # We can't hardcode anything.
+  hardcode_action=unsupported
 fi
+echo $ac_t "$hardcode_action" 1>&6
+test "$hardcode_action" = unsupported && can_build_shared=no
+
 
 reload_flag=
 reload_cmds='$LD$reload_flag -o $output$reload_objs'
@@ -612,7 +631,6 @@ echo $ac_t "$reload_flag"
 test -n "$reload_flag" && reload_flag=" $reload_flag"
 
 # PORTME Fill in your ld.so characteristics
-can_build_shared=yes
 lib_names=
 soname_spec=
 postinstall_cmds=
@@ -648,7 +666,7 @@ case "$host" in
   shlibpath_var=LD_LIBRARY_PATH
   ;;
 
-*-*-hpux10*)
+*-*-hpux9* | *-*-hpux10*)
   # Give a soname corresponding to the major version so that dld.sl refuses to
   # link against other versions.
   dynamic_linker="$host_os dld.sl"
@@ -658,6 +676,13 @@ case "$host" in
   soname_spec='$libname.sl.$major'
   # HP-UX runs *really* slowly unless shared libraries are mode 555.
   postinstall_cmds='chmod 555 $lib'
+  ;;
+
+*-*-irix5* | *-*-irix6*)
+  version_type=osf
+  soname_spec='$libname.so'
+  lib_names='$libname.so.$versuffix $libname.so'
+  shlibpath_var=LD_LIBRARY_PATH
   ;;
 
 # No shared lib support for linuxoldld or linuxaout.
@@ -688,6 +713,13 @@ case "$host" in
   shlibpath_var=LD_LIBRARY_PATH
   ;;
 
+*-*-sco3.2v5*)
+  version_type=osf
+  soname_spec='$libname.so.$major'
+  lib_names='$libname.so.$versuffix $libname.so.$major $libname.so'
+  shlibpath_var=LD_LIBRARY_PATH
+  ;;
+
 *-*-solaris2*)
   version_type=linux
   lib_names='$libname.so.$versuffix $libname.so.$major $libname.so'
@@ -709,6 +741,29 @@ case "$host" in
 esac
 echo "$ac_t""$dynamic_linker"
 
+
+# FIXME need to add library stripping features
+# strip -x works for most platforms, though not for static libraries on NetBSD
+# HP-UX requires "-r" for library stripping
+striplib=
+old_striplib=
+
+#echo $ac_n "checking for static library strip program... $ac_c" 1>&6
+#if test -n "$old_striplib"; then
+#  echo $ac_t "$old_striplib" 1>&6
+#else
+#  echo $ac_t none 1>&6
+#fi
+
+#if test "$can_build_shared" = yes; then
+#  echo $ac_n "checking for shared library strip program... $ac_c" 1>&6
+#
+#  if test -n "$striplib"; then
+#    echo $ac_t "$striplib" 1>&6
+#  else
+#    echo $ac_t none 1>&6
+#  fi
+#fi
 
 # Report the consequences.
 echo "checking if libtool supports shared libraries... $can_build_shared" 1>&6
@@ -787,6 +842,7 @@ profile_flag_pattern='$profile_flag_pattern'
 version_type=$version_type
 
 # List of archive names.  First name is the real one, the rest are links.
+# The last name is the one that the linker finds with -lNAME.
 lib_names='$lib_names'
 
 # The coded name of the library, if different from the real name.
@@ -804,9 +860,6 @@ postinstall_cmds='$postinstall_cmds'
 # Commands used to finish a libtool library installation in a directory.
 finish_cmds='$finish_cmds'
 
-# The flag that specifies a runtime search path when linking.
-link_rpath_flag='$link_rpath_flag'
-
 # How to strip a library file.
 striplib='$striplib'
 old_striplib='$old_striplib'
@@ -814,13 +867,24 @@ old_striplib='$old_striplib'
 # This is the shared library path variable.
 shlibpath_var=$shlibpath_var
 
-# Set to yes if using SHLIBPATH_VAR=DIR during linking hardcodes DIR into the
-# the resulting binary.
-hardcode_shlibpath_var=$hardcode_shlibpath_var
+# How to hardcode a shared library path into an executable.
+hardcode_action=$hardcode_action
+
+# Flag to hardcode \$libdir into a binary during linking.
+# This must work even if \$libdir does not exist.
+hardcode_libdir_flag='$hardcode_libdir_flag'
+
+# Set to yes if using DIR/libNAME.so during linking hardcodes DIR into the
+# resulting binary.
+hardcode_direct=$hardcode_direct
 
 # Set to yes if using the -LDIR flag during linking hardcodes DIR into the
 # resulting binary.
 hardcode_minus_L=$hardcode_minus_L
+
+# Set to yes if using SHLIBPATH_VAR=DIR during linking hardcodes DIR into the
+# the resulting binary.
+hardcode_shlibpath_var=$hardcode_shlibpath_var
 
 EOF
 
