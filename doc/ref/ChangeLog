@@ -2,6 +2,12 @@
 
 	* Makefile.am (guile_toc.html): Look for guile.texi in $(srcdir).
 
+	* tools.texi (How guile-snarf works): Mention "--compat=1.4", and
+	new processing steps.  Update usage example, makefile frag.
+
+	(guile-1.4 guile-snarf): New subsubsection under
+	"Init Snarfing with guile-snarf".
+
 2002-03-12  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* scheme-compound.texi, scheme-data.texi, new-docstrings.texi:

@@ -1,3 +1,15 @@
+2002-03-13  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* guile-snarf.in: Update copyright.
+	Rewrite to internalize error handling.
+	Add "--compat=1.4" handling.
+	Add commentary.
+
+	* Makefile.am (libpath.h): Use @top_srcdir_absolute@.
+	(snarfcppopts): New var.
+	(.c.x): Use $(snarfcppopts). Rework guile-snarf usage.
+	(.c.doc): Use $(snarfcppopts).
+
 2002-03-13  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* eval.c (SCM_CEVAL): Got rid of the last reference to t.lloc.
