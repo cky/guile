@@ -58,10 +58,13 @@ When you configure "--with-threads=pthreads" or "--with-threads=yes",
 you will get threads that are implemented with the portable POSIX
 threads.  These threads can run concurrently (unlike the previous
 "coop" thread implementation), but need to cooperate for things like
-the GC.  See the manual for details. [XXX - write this.]
+the GC.
 
 The default is "pthreads", unless your platform doesn't have pthreads,
 in which case "null" threads are used.
+
+See the manual for details, nodes "Initialization", "Multi-Threading"
+and "Blocking".
 
 ** There is the new notion of 'discouraged' features.
 
@@ -192,6 +195,21 @@ be used with '-e'.  For example, you can now write a script like
 
 * Changes to Scheme functions and syntax
 
+** The concept of dynamic roots has been factored into continuation
+   barriers and dynamic states.
+
+Each thread has a current dynamic state that carries the values of the
+fluids.  You can create and copy dynamic states and use them as the
+second argument for 'eval'.  See "Fluids and Dynamic States" in the
+manual.
+
+To restrict the influence that captured continuations can have on the
+control flow, you can errect continuation barriers.  See "Continuation
+Barriers" in the manual.
+
+The function call-with-dynamic-root now essentially temporarily
+installs a new dynamic state and errects a continuation barrier.
+
 ** The default load path no longer includes "." at the end.
 
 Automatically loading modules from the current directory should not
@@ -214,9 +232,10 @@ There is the new notion of 'generalized vectors' and corresponding
 procedures like 'generalized-vector-ref'.  Generalized vectors include
 strings, bitvectors, ordinary vectors, and uniform numeric vectors.
 
-Arrays use generalized vectors their storage, so that you still have
-arrays of characters, bits, etc.  However, uniform-array-read! and
-uniform-array-write can no longer read/write strings and bitvectors.
+Arrays use generalized vectors as their storage, so that you still
+have arrays of characters, bits, etc.  However, uniform-array-read!
+and uniform-array-write can no longer read/write strings and
+bitvectors.
 
 ** There is now support for copy-on-write substrings, mutation-sharing
    substrings and read-only strings.
@@ -473,27 +492,6 @@ thread.  See the "Futures" section in the reference manual.
 These are convenient ways to run calculations in parallel in new
 threads.  See "Parallel forms" in the manual for details.
 
-** Fair mutexes and condition variables
-
-Fair mutexes and condition variables have been added.  The fairness
-means that scheduling is arranged to give as equal time shares as
-possible and that threads are awakened in a first-in-first-out
-manner.  This is not guaranteed with standard mutexes and condition
-variables.
-
-In addition, fair mutexes are recursive.  Locking a fair mutex that
-you have already locked will succeed.  Every call to lock-mutex must
-be matched with a call to unlock-mutex.  Only the last call to
-unlock-mutex will actually unlock the mutex.
-
-A fair condition variable must be used together with a fair mutex,
-just as a standard condition variable must be used together with a
-standard mutex.
-
-*** New functions: make-fair-mutex, make-fair-condition-variable'
-
-Make a new fair mutex and a new fair condition variable respectively.
-
 ** New function 'try-mutex'.
 
 This function will attempt to lock a mutex but will return immediately
@@ -523,6 +521,11 @@ omitted, the async will run in the thread that called
 
 C code can use the new functions scm_sigaction_for_thread and
 scm_system_async_mark_for_thread to pass the new thread argument.
+
+When a thread blocks on a mutex, a condition variable or is waiting
+for IO to be possible, it will still execute system asyncs.  This can
+be used to interrupt such a thread by making it execute a 'throw', for
+example.
 
 ** The function 'system-async' is deprecated.
 
@@ -857,7 +860,7 @@ See the manual, node "Accessing Arrays From C".
 ** The old uniform vector and bitvector implementations have been
    unceremoniously removed.
 
-This implementation exposed the detailes of the tagging system of
+This implementation exposed the details of the tagging system of
 Guile.  Use the new C API explained in the manual in node "Uniform
 Numeric Vectors" and "Bit Vectors", respectively.
 
@@ -970,6 +973,14 @@ simply scm_frame_free (mem).
 In addition to scm_c_call_with_blocked_asyncs you can now also use
 scm_frame_block_asyncs in a 'frame' (see above).  Likewise for
 scm_c_call_with_unblocked_asyncs and scm_frame_unblock_asyncs.
+
+** The macros SCM_DEFER_INTS, SCM_ALLOW_INTS, SCM_REDEFER_INTS,
+   SCM_REALLOW_INTS have been deprecated.
+
+They do no longer fulfill their original role of blocking signal
+delivery.  Depending on what you want to achieve, replace a pair of
+SCM_DEFER_INTS and SCM_ALLOW_INTS with a frame that locks a mutex,
+blocks asyncs, or both.
 
 ** New way to temporarily set the current input, output or error ports
 
