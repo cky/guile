@@ -1,7 +1,5 @@
 SCM_TESTS = tests/alist.test			\
-	    tests/asmobs			\
 	    tests/bit-operations.test		\
-	    tests/c-api				\
 	    tests/c-api.test			\
 	    tests/chars.test			\
 	    tests/common-list.test		\
@@ -40,4 +38,15 @@ SCM_TESTS = tests/alist.test			\
 	    tests/version.test			\
 	    tests/weaks.test
 
+SCM_TESTS_DIRS = tests/asmobs \
+                 tests/c-api
+
 EXTRA_DIST = guile-test lib.scm $(SCM_TESTS)
+
+## Automake should be able to handle the distribution of tests/asmobs
+## etc without any help, but not all version can handle 'deep'
+## directories.  So we do it on our own.
+dist-hook:
+	for d in $(SCM_TESTS_DIRS); do \
+	  cp -pR $(srcdir)/$$d $(distdir)/$$d; \
+        done
