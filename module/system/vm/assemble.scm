@@ -264,9 +264,7 @@
 	 ;; dump bytecode
 	 (push-code! `(load-program ,bytes)))))
      ((vlink? x)
-      ;; (push-code! `(local-ref ,(object-index (vlink-module x))))
-      ;; FIXME: Temporary hack
-      (push-code! (object->code #f))
+      (dump! (vlink-module x))
       (dump! (vlink-name x))
       (push-code! `(link)))
      ((vmod? x)
