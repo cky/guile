@@ -46,7 +46,7 @@
 @c essay @sp 10
 @c essay @comment The title is printed in a large font.
 @c essay @title Data Representation in Guile
-@c essay @subtitle $Id: data-rep.texi,v 1.3 2002-01-08 08:29:00 ttn Exp $
+@c essay @subtitle $Id: data-rep.texi,v 1.4 2002-02-28 20:58:50 mvo Exp $
 @c essay @subtitle For use with Guile @value{VERSION}
 @c essay @author Jim Blandy
 @c essay @author Free Software Foundation
@@ -1410,15 +1410,15 @@ refers to.  The default smob mark function is to not mark any data.
 @xref{Garbage Collecting Smobs}, for more details.
 
 @item free
-Guile will apply this function to each instance of the new type it could
-not find any live pointers to.  The function should release all
+Guile will apply this function to each instance of the new type it
+could not find any live pointers to.  The function should release all
 resources held by the object and return the number of bytes released.
-This is analogous to the Java finalization method-- it is invoked at an
-unspecified time (when garbage collection occurs) after the object is
-dead.  The default free function frees the smob data (if the size of the
-struct passed to @code{scm_make_smob_type} is non-zero) using
-@code{scm_must_free} and returns the size of that struct.  @xref{Garbage
-Collecting Smobs}, for more details.
+This is analogous to the Java finalization method-- it is invoked at
+an unspecified time (when garbage collection occurs) after the object
+is dead.  The default free function frees the smob data (if the size
+of the struct passed to @code{scm_make_smob_type} is non-zero) using
+@code{scm_gc_free}.  @xref{Garbage Collecting Smobs}, for more
+details.
 
 @item print
 @c GJB:FIXME:: @var{exp} and @var{port} need to refer to a prototype of 
@@ -1557,49 +1557,13 @@ macro for this situation:
 @deftypefnx Macro fn_returns SCM_RETURN_NEWSMOB3(scm_t_bits tag, void *data1, void *data2, void *data3)
 This macro expands to a block of code that creates a smob instance of
 the type with tag @var{tag} and smob data @var{data} (or @var{data1},
-@var{data2}, and @var{data3}), and returns that @code{SCM} value.  It
-should be the last piece of code in a block.
+@var{data2}, and @var{data3}), and causes the surrounding function to
+return that @code{SCM} value.  It should be the last piece of code in
+a block.
 @end deftypefn
 
-Guile provides the following functions for managing memory, which are
-often helpful when implementing smobs:
-
-@deftypefun {char *} scm_must_malloc (size_t @var{len}, char *@var{what})
-Allocate @var{len} bytes of memory, using @code{malloc}, and return a
-pointer to them.
-
-If there is not enough memory available, invoke the garbage collector,
-and try once more.  If there is still not enough, signal an error,
-reporting that we could not allocate @var{what}.
-
-This function also helps maintain statistics about the size of the heap.
-@end deftypefun
-
-@deftypefun {char *} scm_must_realloc (char *@var{addr}, size_t @var{olen}, size_t @var{len}, char *@var{what})
-Resize (and possibly relocate) the block of memory at @var{addr}, to
-have a size of @var{len} bytes, by calling @code{realloc}.  Return a
-pointer to the new block.
-
-If there is not enough memory available, invoke the garbage collector,
-and try once more.  If there is still not enough, signal an error,
-reporting that we could not allocate @var{what}.
-
-The value @var{olen} should be the old size of the block of memory at
-@var{addr}; it is only used for keeping statistics on the size of the
-heap.
-@end deftypefun
-
-@deftypefun void scm_must_free (char *@var{addr})
-Free the block of memory at @var{addr}, using @code{free}.  If
-@var{addr} is zero, signal an error, complaining of an attempt to free
-something that is already free.
-
-This does no record-keeping; instead, the smob's @code{free} function
-must take care of that.
-
-This function isn't usually sufficiently different from the usual
-@code{free} function to be worth using.
-@end deftypefun
+Guile provides some functions for managing memory, which are often
+helpful when implementing smobs.  @xref{Memory Blocks}.
 
 
 Continuing the above example, if the global variable @code{image_tag}
@@ -1634,17 +1598,16 @@ make_image (SCM name, SCM s_width, SCM s_height)
   width = SCM_INUM (s_width);
   height = SCM_INUM (s_height);
   
-  image = (struct image *) scm_must_malloc (sizeof (struct image), "image");
+  image = (struct image *) scm_gc_malloc (sizeof (struct image), "image");
   image->width = width;
   image->height = height;
-  image->pixels = scm_must_malloc (width * height, "image pixels");
+  image->pixels = scm_gc_malloc (width * height, "image pixels");
   image->name = name;
   image->update_func = SCM_BOOL_F;
 
   SCM_RETURN_NEWSMOB (image_tag, image);
 @}
 @end example
-
 
 @node Type checking
 @subsection Type checking
@@ -1794,10 +1757,9 @@ as its only argument.
 
 The @code{free} function must release any resources used by the smob.
 However, it need not free objects managed by the collector; the
-collector will take care of them.  The return type of the @code{free}
-function should be @code{size_t}, an unsigned integral type; the
-@code{free} function should return the number of bytes released, to help
-the collector maintain statistics on the size of the heap.
+collector will take care of them.  For historical reasons, the return
+type of the @code{free} function should be @code{size_t}, an unsigned
+integral type; the @code{free} function should always return zero.
 
 Here is how we might write the @code{free} function for the image smob
 type:
@@ -1806,12 +1768,11 @@ size_t
 free_image (SCM image_smob)
 @{
   struct image *image = (struct image *) SCM_SMOB_DATA (image_smob);
-  size_t size = image->width * image->height + sizeof (*image);
 
-  free (image->pixels);
-  free (image);
+  scm_gc_free (image->pixels, image->width * image->height, "image pixels");
+  scm_gc_free (image, sizeof (struct image), "image");
 
-  return size;
+  return 0;
 @}
 @end example
 
@@ -1850,10 +1811,10 @@ make_image (SCM name, SCM s_width, SCM s_height)
   width = SCM_INUM (s_width);
   height = SCM_INUM (s_height);
   
-  image = (struct image *) scm_must_malloc (sizeof (struct image), "image");
+  image = (struct image *) scm_gc_malloc (sizeof (struct image), "image");
   image->width = width;
   image->height = height;
-  image->pixels = scm_must_malloc (width * height, "image pixels");
+  image->pixels = scm_gc_malloc (width * height, "image pixels");
 
   /* THESE TWO LINES HAVE CHANGED: */
   image->name = scm_string_copy (name);
@@ -1981,10 +1942,10 @@ make_image (SCM name, SCM s_width, SCM s_height)
   width = SCM_INUM (s_width);
   height = SCM_INUM (s_height);
   
-  image = (struct image *) scm_must_malloc (sizeof (struct image), "image");
+  image = (struct image *) scm_gc_malloc (sizeof (struct image), "image");
   image->width = width;
   image->height = height;
-  image->pixels = scm_must_malloc (width * height, "image pixels");
+  image->pixels = scm_gc_malloc (width * height, "image pixels");
   image->name = name;
   image->update_func = SCM_BOOL_F;
 
@@ -2025,12 +1986,11 @@ static size_t
 free_image (SCM image_smob)
 @{
   struct image *image = (struct image *) SCM_SMOB_DATA (image_smob);
-  size_t size = image->width * image->height + sizeof (struct image);
 
-  free (image->pixels);
-  free (image);
+  scm_gc_free (image->pixels, image->width * image->height, "image pixels");
+  scm_gc_free (image, sizeof (struct image), "image");
 
-  return size;
+  return 0;
 @}
 
 static int
