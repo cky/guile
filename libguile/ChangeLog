@@ -1,3 +1,9 @@
+2000-07-30  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* alist.c (scm_assq_remove_x, scm_assv_remove_x,
+	scm_assoc_remove_x): Use scm_delq1_x instead of scm_delq_x, since
+	using the latter is pointless.
+
 2000-07-26  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* gc.c (scm_gc_sweep):  Renamed local variable from 'free' to
