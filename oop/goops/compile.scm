@@ -114,7 +114,9 @@
 
 (define (compile-method methods types)
   (let* ((proc (method-procedure (car methods)))
-	 (src (procedure-source proc))
+	 ;; XXX - procedure-source can not be guaranteed to be
+	 ;;       reliable or efficient
+	 (src (procedure-source proc)) 
 	 (formals (source-formals src))
 	 (body (source-body src)))
     (if (next-method? body)

@@ -109,7 +109,8 @@
 
 ;;; A fix to get the error handling working together with the module system.
 ;;;
-(variable-set! (builtin-variable 'debug-options) debug-options)
+;;; XXX - Still needed?
+(module-set! the-root-module 'debug-options debug-options)
 
 
 

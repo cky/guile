@@ -1250,7 +1250,8 @@
       (and (module-binder m)
 	   ((module-binder m) m v #t))
       (begin
-	(let ((answer (make-undefined-variable v)))
+	(let ((answer (make-undefined-variable)))
+	  (variable-set-name-hint! answer v)
 	  (module-obarray-set! (module-obarray m) v answer)
 	  (module-modified m)
 	  answer))))
@@ -1313,43 +1314,28 @@
 
 ;; make-root-module
 
-;; A root module uses the symhash table (the system's privileged
-;; obarray).  Being inside a root module is like using SCM without
-;; any module system.
+;; A root module uses the pre-modules-obarray as its obarray.  This
+;; special obarray accumulates all bindings that have been established
+;; before the module system is fully booted.
 ;;
-
-
-(define (root-module-closure m s define?)
-  (let ((bi (builtin-variable s)))
-    (and bi
-	 (or define? (variable-bound? bi))
-	 (begin
-	   (module-add! m s bi)
-	   bi))))
+;; (The obarray continues to be used by code that has been closed over
+;;  before the module system has been booted.)
 
 (define (make-root-module)
-  (make-module 1019 '() root-module-closure))
+  (let ((m (make-module 0)))
+    (set-module-obarray! m (%get-pre-modules-obarray))
+    m))
 
+;; make-scm-module 
 
-;; make-scm-module
-
-;; An scm module is a module into which the lazy binder copies
-;; variable bindings from the system symhash table.  The mapping is
-;; one way only; newly introduced bindings in an scm module are not
-;; copied back into the system symhash table (and can be used to override
-;; bindings from the symhash table).
-;;
-
-(define (scm-module-closure m s define?)
-  (let ((bi (builtin-variable s)))
-    (and bi
-	 (variable-bound? bi)
-	 (begin
-	   (module-add! m s bi)
-	   bi))))
+;; The root interface is a module that uses the same obarray as the
+;; root module.  It does not allow new definitions, tho.
 
 (define (make-scm-module)
-  (make-module 1019 '() scm-module-closure))
+  (let ((m (make-module 0)))
+    (set-module-obarray! m (%get-pre-modules-obarray))
+    (set-module-eval-closure! m (standard-interface-eval-closure m))
+    m))
 
 
 
@@ -1422,7 +1408,9 @@
 	(begin
 	  (variable-set! variable value)
 	  (module-modified module))
-	(module-add! module name (make-variable value name)))))
+	(let ((variable (make-variable value)))
+	  (variable-set-name-hint! variable name)
+	  (module-add! module name variable)))))
 
 ;; MODULE-DEFINED? -- exported
 ;;
@@ -1539,18 +1527,33 @@
 (set-module-kind! the-scm-module 'interface)
 (for-each set-system-module! (list the-root-module the-scm-module) '(#t #t))
 
-(set-current-module the-root-module)
+;; NOTE: This binding is used in libguile/modules.c.
+;;
+(define (make-modules-in module name)
+  (if (null? name)
+      module
+      (cond
+       ((module-ref module (car name) #f)
+	=> (lambda (m) (make-modules-in m (cdr name))))
+       (else	(let ((m (make-module 31)))
+		  (set-module-kind! m 'directory)
+		  (set-module-name! m (append (or (module-name module)
+						  '())
+					      (list (car name))))
+		  (module-define! module (car name) m)
+		  (make-modules-in m (cdr name)))))))
 
-(define app (make-module 31))
-(local-define '(app modules) (make-module 31))
-(local-define '(app modules guile) the-root-module)
-
-;; (define-special-value '(app modules new-ws) (lambda () (make-scm-module)))
-
-(define (try-load-module name)
-  (or (try-module-linked name)
-      (try-module-autoload name)
-      (try-module-dynamic-link name)))
+(define (beautify-user-module! module)
+  (let ((interface (module-public-interface module)))
+    (if (or (not interface)
+	    (eq? interface module))
+	(let ((interface (make-module 31)))
+	  (set-module-name! interface (module-name module))
+	  (set-module-kind! interface 'interface)
+	  (set-module-public-interface! module interface))))
+  (if (and (not (memq the-scm-module (module-uses module)))
+	   (not (eq? module the-root-module)))
+      (set-module-uses! module (append (module-uses module) (list the-scm-module)))))
 
 ;; NOTE: This binding is used in libguile/modules.c.
 ;;
@@ -1574,18 +1577,24 @@
 	    ;; Get/create it.
 	    (make-modules-in (current-module) full-name))))))
 
-(define (beautify-user-module! module)
-  (let ((interface (module-public-interface module)))
-    (if (or (not interface)
-	    (eq? interface module))
-	(let ((interface (make-module 31)))
-	  (set-module-name! interface (module-name module))
-	  (set-module-kind! interface 'interface)
-	  (set-module-public-interface! module interface))))
-  (if (and (not (memq the-scm-module (module-uses module)))
-	   (not (eq? module the-root-module)))
-      (set-module-uses! module (append (module-uses module)
-                                       (list the-scm-module)))))
+;; Cheat.
+(define try-module-autoload #f)
+
+;; This boots the module system.  All bindings needed by modules.c
+;; must have been defined by now.
+;;
+(set-current-module the-root-module)
+
+(define app (make-module 31))
+(local-define '(app modules) (make-module 31))
+(local-define '(app modules guile) the-root-module)
+
+;; (define-special-value '(app modules new-ws) (lambda () (make-scm-module)))
+
+(define (try-load-module name)
+  (or (try-module-linked name)
+      (try-module-autoload name)
+      (try-module-dynamic-link name)))
 
 (define (purify-module! module)
   "Removes bindings in MODULE which are inherited from the (guile) module."
@@ -1594,21 +1603,10 @@
 	     (eq? (car (last-pair use-list)) the-scm-module))
 	(set-module-uses! module (reverse (cdr (reverse use-list)))))))
 
-;; NOTE: This binding is used in libguile/modules.c.
-;;
-(define (make-modules-in module name)
-  (if (null? name)
-      module
-      (cond
-       ((module-ref module (car name) #f)
-	=> (lambda (m) (make-modules-in m (cdr name))))
-       (else	(let ((m (make-module 31)))
-		  (set-module-kind! m 'directory)
-		  (set-module-name! m (append (or (module-name module)
-						  '())
-					      (list (car name))))
-		  (module-define! module (car name) m)
-		  (make-modules-in m (cdr name)))))))
+(define (resolve-interface name)
+  (let ((module (resolve-module name)))
+    (and module (module-public-interface module))))
+
 
 ;; Return a module interface made from SPEC.
 ;; SPEC can be a list of symbols, in which case it names a module

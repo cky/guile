@@ -31,7 +31,6 @@
 ;;; a convenient and attractive syntax.
 ;;;
 ;;; exported macros are:
-;;;   bound?
 ;;;   let-optional
 ;;;   let-optional*
 ;;;   let-keywords
@@ -61,36 +60,19 @@
 
 (define-module (ice-9 optargs))
 
-;; bound? var
-;;   Checks if a variable is bound in the current environment.
-;;
-;; defined? doesn't quite cut it as it stands, since it only
-;; checks bindings in the top-level environment, not those in
-;; local scope only.
-;;
-
-(defmacro-public bound? (var)
-  `(catch 'misc-error
-	  (lambda ()
-	    ,var
-	    (not (eq? ,var ,(variable-ref
-			    (make-undefined-variable)))))
-	  (lambda args #f)))
-
-
 ;; let-optional rest-arg (binding ...) . body
 ;; let-optional* rest-arg (binding ...) . body
 ;;   macros used to bind optional arguments
 ;;
-;; These two macros give you an optional argument interface that
-;; is very "Schemey" and introduces no fancy syntax. They are
-;; compatible with the scsh macros of the same name, but are slightly
+;; These two macros give you an optional argument interface that is
+;; very "Schemey" and introduces no fancy syntax. They are compatible
+;; with the scsh macros of the same name, but are slightly
 ;; extended. Each of binding may be of one of the forms <var> or
 ;; (<var> <default-value>). rest-arg should be the rest-argument of
 ;; the procedures these are used from. The items in rest-arg are
 ;; sequentially bound to the variable namess are given. When rest-arg
 ;; runs out, the remaining vars are bound either to the default values
-;; or left unbound if no default value was specified. rest-arg remains
+;; or to `#f' if no default value was specified. rest-arg remains
 ;; bound to whatever may have been left of rest-arg.
 ;;
 
@@ -130,8 +112,7 @@
   (let ((bindings (map (lambda (x)
 			 (if (list? x)
 			     x
-			     (list x (variable-ref
-				      (make-undefined-variable)))))
+			     (list x #f)))
 		       BINDINGS)))
     `(,let-type ,(map proc bindings) ,@BODY)))
 
@@ -219,8 +200,7 @@
 ;;   (lambda* (a b #:optional c d . e) '())
 ;; creates a procedure with fixed arguments a and b, optional arguments c
 ;; and d, and rest argument e. If the optional arguments are omitted
-;; in a call, the variables for them are unbound in the procedure. This
-;; can be checked with the bound? macro.
+;; in a call, the variables for them are bound to `#f'.
 ;;
 ;; lambda* can also take keyword arguments. For example, a procedure
 ;; defined like this:

@@ -1704,7 +1704,7 @@
 
 (define format format:format)
 ;; Thanks to Shuji Narazaki
-(variable-set! (builtin-variable 'format) format)
+(module-set! the-root-module 'format format)
 
 ;; If this is not possible then a continuation is used to recover
 ;; properly from a format error. In this case format returns #f.

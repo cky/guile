@@ -220,15 +220,9 @@ where OPTIONSET is one of debug, read, eval, print
 	       (set! value #t)))
 	(for-each
 	 (lambda (module)
-	   (let* ((builtin (or (eq? module the-scm-module)
-			       (eq? module the-root-module)))
-		  (name (module-name module))
-		  (obarray (if builtin
-			       (builtin-bindings)
-			       (module-obarray module)))
-		  (get-ref (if builtin
-			       identity
-			       variable-ref)))
+	   (let* ((name (module-name module))
+		  (obarray (module-obarray module)))
+	     ;; XXX - should use hash-fold here
 	     (array-for-each
 	      (lambda (oblist)
 		(for-each
@@ -237,20 +231,19 @@ where OPTIONSET is one of debug, read, eval, print
 			  (display name)
 			  (display ": ")
 			  (display (car x))
-			  (cond ((procedure? (get-ref (cdr x)))
+			  (cond ((procedure? (variable-ref (cdr x)))
 				 (display separator)
-				 (display (get-ref (cdr x))))
+				 (display (variable-ref (cdr x))))
 				(value
 				 (display separator)
-				 (display (get-ref (cdr x)))))
+				 (display (variable-ref (cdr x)))))
 			  (if (and shadow
 				   (not (eq? (module-ref module
 							 (car x))
 					     (module-ref (current-module)
 							 (car x)))))
 			      (display " shadowed"))
-			  (newline)
-			  )))
+			  (newline))))
 		 oblist))
 	      obarray)))
 	 modules))))
@@ -295,12 +288,7 @@ Fourth arg FOLDER is one of
 		    (module-filter
 		     (lambda (name var data)
 		       (obarray-filter name (variable-ref var) data))))
-	       (cond ((or (eq? module the-scm-module)
-			  (eq? module the-root-module))
-		      (hash-fold obarray-filter
-				 data
-				 (builtin-bindings)))
-		     (module (hash-fold module-filter
+	       (cond (module (hash-fold module-filter
 					data
 					(module-obarray module)))
 		     (else data))))))
