@@ -349,7 +349,7 @@ really_launch (SCM_STACKITEM *base, launch_data *data)
   t->exited = 1;
   thread_count--;
   scm_i_plugin_mutex_unlock (&thread_admin_mutex);
-  /* We're leaving with heap_mutex still locked. */
+
   scm_thread_detach (t->thread);
 }
 
