@@ -2369,12 +2369,12 @@ scm_nconc2last (lst)
   SCM *lloc;
   if (SCM_EOL == lst)
     return lst;
-  SCM_ASSERT (SCM_NIMP (lst) && SCM_CONSP (lst), lst, SCM_ARG1, s_nconc2last);
+  SCM_ASSERT (scm_ilength(lst) >= 0, lst, SCM_WNA, s_nconc2last);
   lloc = &lst;
   while (SCM_NNULLP (SCM_CDR (*lloc)))
     {
       lloc = &SCM_CDR (*lloc);
-      SCM_ASSERT (SCM_NIMP (*lloc) && SCM_CONSP (*lloc), lst, SCM_ARG1, s_nconc2last);
+      SCM_ASSERT (scm_ilength(SCM_CAR(*lloc)) >= 0, lst, SCM_ARGn, s_nconc2last);
     }
   *lloc = SCM_CAR (*lloc);
   return lst;
