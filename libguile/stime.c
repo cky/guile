@@ -80,8 +80,6 @@
 extern char *tzname[]; /* RS6000 and others reject char **tzname.  */
 #endif
 
-char *strptime ();
-
 /* This should be figured out by autoconf.  */
 #ifdef CLK_TCK
 # define CLKTCK CLK_TCK
