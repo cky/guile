@@ -1,3 +1,10 @@
+2002-04-10  Rob Browning  <rlb@defaultvalue.org>
+
+	* configure.in: add definitions to AC_DEFINE calls for new
+	autoconf.
+
+	* .cvsignore: add autom4te.cache and *.c.clean.c.
+
 2002-03-24  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* Makefile.am (.c.x): Pass "-o $@" to guile-snarf.

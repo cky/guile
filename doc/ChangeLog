@@ -1,3 +1,8 @@
+2002-04-10  Rob Browning  <rlb@defaultvalue.org>
+
+	* .cvsignore: add version-tutorial.texi, version.texi, and
+	stamp-vti1.
+
 2002-03-01  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* guile-api.alist: Update.

@@ -1,3 +1,17 @@
+2002-04-10  Rob Browning  <rlb@defaultvalue.org>
+
+	* configure.in: updates for new autoconf -- add definitions to
+	AC_DEFINE calls, and convert occurences of LIBOBJS to AC_LIBOBJ
+	calls.
+
+	* acinclude.m4: add definitions to AC_DEFINE calls for new
+	autoconf.
+
+	* acconfig.h: removed -- newer autoconf doesn't like it, and now
+	we don't need it.
+
+	* .cvsignore: add autom4te.cache and pre-inst-guile.
+
 2002-04-03  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* RELEASE: bye bye

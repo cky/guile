@@ -1,3 +1,7 @@
+2002-04-10  Rob Browning  <rlb@defaultvalue.org>
+
+	* .cvsignore: add versiondat.h and *.c.clean.c.
+
 2002-03-26  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* srcprop.[ch] (scm_c_source_property_breakpoint_p):  New

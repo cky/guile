@@ -1,3 +1,7 @@
+2002-04-10  Rob Browning  <rlb@defaultvalue.org>
+
+	* .cvsignore: add *.c.clean.c.
+
 2002-03-27  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* srfi-1.scm, srfi-13.scm, srfi-17.scm, srfi-4.scm, srfi-9.scm,
