@@ -20,6 +20,7 @@ type system more compatible with Emacs Lisp's.  However, the change
 caused too much trouble for Scheme programmers, and we found another
 way to reconcile Emacs Lisp with Scheme that didn't require this.
 
+
 * You can now use Guile as a shell script interpreter.
 
 To paraphrase the SCSH manual:
@@ -78,6 +79,7 @@ exec /really/long/path/to/guile -s "$0" ${1+"$@"}
 
 Note that some very old Unix systems don't support the `#!' syntax.
 
+
 * You can now run Guile without installing it.
 
 Previous versions of the interactive Guile interpreter (`guile')
@@ -96,6 +98,7 @@ you might say
 
 	export SCHEME_LOAD_PATH=/home/jimb/my-scheme:/home/jimb/guile-1.0b3
 
+
 * Guile's header files should no longer conflict with your system's
 header files.
 
@@ -110,7 +113,19 @@ refer to all Guile's other header files as <libguile/mumble.h>.
 Guile's installation procedure puts libguile.h in $(includedir), and
 the rest in $(includedir)/libguile.
 
+* Guile's delq, delv, delete functions, and their destructive
+counterparts, delq!, delv!, and delete!, now remove all matching
+elements from the list, not just the first.  This matches the behavior
+of the corresponding Emacs Lisp functions, and (I believe) the Maclisp
+functions which inspired them.
+
+I recognize that this change may break code in subtle ways, but it
+seems best to make the change before the FSF's first Guile release,
+rather than after.
+
+
 * The compiled-library-path function has been deleted from libguile.
+
 
 * A variable and two new functions have been added to libguile:
 
