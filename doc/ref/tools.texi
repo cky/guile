@@ -165,7 +165,7 @@ consider using a fragment like the following in your Makefile:
 snarfcppopts = $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
 .SUFFIXES: .x
 .c.x:
-	guile-snarf -o $@ $< $(snarfcppopts)
+	guile-snarf -o $@@ $< $(snarfcppopts)
 @end example
 
 This tells make to run @code{guile-snarf} to produce each needed
