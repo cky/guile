@@ -1,3 +1,7 @@
+2001-11-06  Thien-Thi Nguyen  <ttn@glug.org>
+
+	* TODO (sync srfi-modules.texi): New, done.
+
 2001-11-04  Stefan Jahn  <stefan@lkcc.org>
 
 	* NEWS: Corrected remarks about SCM_API.
@@ -10,13 +14,13 @@
 2001-11-02  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	Support for native Win32.  Thanks to Stefan Jahn!
-	
+
         * check-guile.in: Replaced `ln -s' by `@LN_S@' to supports
         build systems which do not have symbolic links.
         * configure.in: Define AC_LIBTOOL_WIN32_DLL to build clean dlls
         on Win32 platforms.
-        Checking for `ws2_32.dll', `winsock2.h', add `win32-uname.o' 
-	and `win32-dirent.o' and define extra compiler flags necessary 
+        Checking for `ws2_32.dll', `winsock2.h', add `win32-uname.o'
+	and `win32-dirent.o' and define extra compiler flags necessary
 	to build clean dlls.
         Check for `regcomp()' inside `-lregex'.
 

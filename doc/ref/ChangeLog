@@ -6,6 +6,7 @@
 	procedures, SRFI-19 Date object and accessors, SRFI-19
 	Time/Date/Julian Day/Modified Julian Day converters, SRFI-19 Date
 	to string/string to date converters): New nodes.
+	(SRFI Support): Add "SRFI-19" to menu.
 
 2001-11-06  Marius Vollmer  <mvo@zagadka.ping.de>
 
