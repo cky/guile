@@ -1,3 +1,8 @@
+2002-02-04  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* autoconf.texi (Autofrisk, Using Autofrisk): New sections.
+	(Autoconf Support): Add new sections to menu.
+
 2002-02-04  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* scheme-data.texi (Symbol Uninterned): Added node.
