@@ -27,7 +27,7 @@ test -n "${CPP+set}" || CPP="@CPP@"
 ## We must use a temporary file here, instead of a pipe, because we
 ## need to know if CPP exits with a non-zero status.
 ${CPP} -DSCM_MAGIC_SNARF_INITS "$@" > ${temp} || exit $?
-< ${temp} grep "^ *\^\^" | sed -e "s/^ *\^\^//"
+< ${temp} grep "^ *\^ *\^" | sed -e "s/^ *\^ *\^//"
 
 ## Apparently, AIX's preprocessor is unhappy if you try to #include an
 ## empty file.

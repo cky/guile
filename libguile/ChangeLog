@@ -1,3 +1,8 @@
+2001-06-08  Michael Livshin  <mlivshin@bigfoot.com>
+
+	* filter-doc-snarfage.c, guile-snarf.in: try to cope with spaces
+	inside cookies.  thanks to Matthias Köppe!
+
 2001-06-08  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* keywords.c (keyword_print):  Don't use SCM_C[AD]R to access
@@ -200,9 +205,8 @@
 
 	* snarf.h: make the output both texttools- and `read'-friendly.
 
-	* guile-doc-snarf.in (bindir): reimplement in terms of guile-snarf
-	and guile-snarf-docs.  (should also deprecate, I guess.  maybe
-	not).
+	* guile-doc-snarf.in: reimplement in terms of guile-snarf and
+	guile-snarf-docs.  (should also deprecate, I guess.  maybe not).
 
 2001-05-31  Marius Vollmer  <mvo@zagadka.ping.de>
 

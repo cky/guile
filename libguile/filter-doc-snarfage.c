@@ -55,7 +55,7 @@ process ()
           want_cookie = 0;
         } else
           want_cookie = 1;
-      } else
+      } else if (c != ' ')
         want_cookie = 0;
       break;
     case SKIP_COOKIE:
@@ -82,7 +82,8 @@ process ()
         } else
           want_cookie = 1;
       } else {
-        want_cookie = 0;
+        if (c != ' ')
+          want_cookie = 0;
         putc (c, stdout);
       }
       break;
