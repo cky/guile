@@ -5,6 +5,8 @@ it in the distribution.
 In release 1.3:
 - make #/ generate a warning.
 - make SCHEME_LOAD_PATH generate a warning.
+- Perry Metzger <perry@piermont.com> is willing to do beta-testing
+  for NetBSD.
 
 In release 1.4:
 - remove #/ syntax
@@ -55,9 +57,10 @@ HP/UX (gcc, HP cc) --- nutrimat.gnu.ai.mit.edu
     "Nightly Snapshots."  If I remember correctly, the moderator will
     delay it until the tar file appears on prep.  The announcement
     text should be mostly taken from Guile's README file.
-13) Tweak the version numbers in GUILE-VERSION, and README to indicate that 
+13) Notify freshmeat.net, although they're probably watching anyway.
+14) Tweak the version numbers in GUILE-VERSION, and README to indicate that 
     the sources are snapshot again.  Snapshots should have version numbers 
     of the form "N.Ma", where the "a" means "alpha".
-14) Start a new section of the NEWS file.
-15) Send mail to majordomo-owner@cygnus.com updating the message you get
+15) Start a new section of the NEWS file.
+16) Send mail to majordomo-owner@cygnus.com updating the message you get
     when you ask majordomo for "info guile".
