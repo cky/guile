@@ -1,3 +1,19 @@
+2001-05-23  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* guile.texi: Commented out menu entry and inclusion of Tcl/Tk
+	stuff.
+
+	* indices.texi: Users are advised to look under C and Scheme
+	names, xref to transformation rules added.
+
+	* intro.texi, scheme-modules.texi, scheme-ideas.texi,
+	scheme-evaluation.texi, scheme-data.texi, scheme-procedures.texi:
+	Fixed most REFFIXMEs.
+
+	* srfi-modules.texi (About SRFI Usage): New node.
+	(SRFI-0): Extended.
+	Fixed all REFFIXMEs.
+
 2001-05-19  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* posix.texi (Networking): Split existing material into new nodes

@@ -1,6 +1,6 @@
 @page
 @node SRFI Support
-@chapter Various SRFI Support Modules
+@chapter SRFI Support Modules
 
 SRFI is an acronym for Scheme Request For Implementation.  The SRFI
 documents define a lot of syntactic and procedure extensions to standard
@@ -13,6 +13,7 @@ get the relevant SRFI documents from the SRFI home page
 @url{http://srfi.schemers.org}.
 
 @menu
+* About SRFI Usage::            What to know about Guile's SRFI support.
 * SRFI-0::                      cond-expand
 * SRFI-2::                      and-let*.
 * SRFI-6::                      Basic String Ports.
@@ -25,6 +26,40 @@ get the relevant SRFI documents from the SRFI home page
 * SRFI-16::                     case-lambda
 * SRFI-17::                     Generalized set!
 @end menu
+
+
+@node About SRFI Usage
+@section About SRFI Usage
+
+@c FIXME::martin: Review me!
+
+SRFI support in Guile is currently implemented partly in the core
+library, and partly as add-on modules.  That means that some SRFIs are
+automatically available when the interpreter is started, whereas the
+other SRFIs require you to use the appropriate support module
+explicitly.  
+
+There are several reasons for this inconsistency.  First, the feature
+checking syntactic form @code{cond-expand} (@pxref{SRFI-0}) must be
+available immediately, because it must be there when the user wants to
+check for the Scheme implementation, that is, before she can know that
+it is safe to use @code{use-modules} to load SRFI support modules.  The
+second reason is that some features defined in SRFIs had been
+implemented in Guile before the developers started to add SRFI
+implementations as modules (for example SRFI-6 (@pxref{SRFI-6})).  In
+the future, it is possible that SRFIs in the core library might be
+factored out into separate modules, requiring explicit module loading
+when they are needed.  So you should be prepared to have to use
+@code{use-modules} someday in the future to access SRFI-6 bindings.  If
+you want, you can do that already.  We have included the module
+@code{(srfi srfi-6)} in the distribution, which currently does nothing,
+but ensures that you can write future-safe code.
+
+Generally, support for a specific SRFI is made available by using
+modules named @code{(srfi srfi-@var{number})}, where @var{number} is the
+number of the SRFI needed.  Another possibility is to use the command
+line option @code{--use-srfi}, which will load the necessary modules
+automatically (@pxref{Invoking Guile}).
 
 
 @node SRFI-0
@@ -78,6 +113,8 @@ If the feature requirement is the keyword @code{else} and it is the last
 clause, it is satisfied if no prior clause matched.
 @end itemize
 
+If no clause is satisfied, an error is signalled.
+
 Since @code{cond-expand} is needed to tell what a Scheme implementation
 provides, it must be accessible without using any
 implementation-dependant operations, such as @code{use-modules} in
@@ -85,11 +122,13 @@ Guile.  Thus, it is not necessary to use any module to get access to
 this form.
 
 Currently, the feature identifiers @code{guile}, @code{r5rs} and
-@code{srfi-0} are supported.  The other SRFIs are not in that list,
-because the SRFI modules must be explicitly used before their exported
-bindings can be used.  So if a Scheme program wishes to detect whether
-SRFI-8 is supported in the running implementation, code similar to this
-may be needed:
+@code{srfi-0} are supported.  The other SRFIs are not in that list by
+default, because the SRFI modules must be explicitly used before their
+exported bindings can be used.  
+
+So if a Scheme program wishes to use SRFI-8, it has two possibilities:
+First, it can check whether the running Scheme implementation is Guile,
+and if it is, it can use the appropriate module:
 
 @lisp
 (cond-expand
@@ -98,6 +137,23 @@ may be needed:
   (srfi-8
     #t))
   ;; otherwise fail.
+@end lisp
+
+The other possibility is to use the @code{--use-srfi} command line
+option when invoking Guile (@pxref{Invoking Guile}).  When you do that,
+the specified SRFI support modules will be loaded and add their feature
+identifier to the list of symbols checked by @code{cond-expand}.
+
+So, if you invoke Guile like this:
+
+@example
+$ guile --use-srfi=8
+@end example
+
+the following snippet will expand to @code{'hooray}.
+
+@lisp
+(cond-expand (srfi-8 'hooray))
 @end lisp
 
 
@@ -154,7 +210,7 @@ procedures easier.  It is documented in @xref{Multiple Values}.
 
 This is the SRFI way for defining record types.  The Guile
 implementation is a layer above Guile's normal record construction
-procedures (REFFIXME).  The nice thing about this kind of record
+procedures (@pxref{Records}).  The nice thing about this kind of record
 definition method is that no new names are implicitly created, all
 constructor, accessor and predicates are explicitly given.  This reduces
 the risk of variable capture.
@@ -242,8 +298,8 @@ read in.  The result of @var{proc} is returned by the Scheme reader.
 
 This module implements the binding forms for multiple values
 @code{let-values} and @code{let-values*}.  These forms are similar to
-@code{let} and @code{let*} (REFFIXME), but they support binding of the
-values returned by multiple-valued expressions.
+@code{let} and @code{let*} (@pxref{Local Bindings}), but they support
+binding of the values returned by multiple-valued expressions.
 
 Write @code{(use-modules (srfi srfi-11))} to make the bindings
 available.
@@ -272,7 +328,8 @@ In this section, we will describe all procedures defined in SRFI-13
 Note that only the procedures from SRFI-13 are documented here which are
 not already contained in Guile.  For procedures not documented here
 please refer to the relevant chapters in the Guile Reference Manual, for
-example the documentation of strings and string procedures (REFFIXME).
+example the documentation of strings and string procedures
+(@pxref{Strings}).
 
 All of the procedures defined in SRFI-13, which are not already included
 in the Guile core library, are implemented in the module @code{(srfi
@@ -387,7 +444,8 @@ produce the corresponding string element.  The order in which
 The procedure @code{string->list} is extended by SRFI-13, that is why it
 is included in @code{(srfi srfi-13)}.  The other procedures are new.
 The Guile core already contains the procedure @code{list->string} for
-converting a list of characters into a string (REFFIXME).
+converting a list of characters into a string (@pxref{List/String
+Conversion}).
 
 @deffn primitive string->list str [start end]
 Convert the string @var{str} into a list of characters.
@@ -436,7 +494,8 @@ These procedures are called @dfn{selectors}, because they access
 information about the string or select pieces of a given string.
 
 Additional selector procedures are documented in the Strings section
-(REFFIXME), like @code{string-length} or @code{string-ref}.
+(@pxref{String Selection}), like @code{string-length} or
+@code{string-ref}.
 
 @code{string-copy} is also available in core Guile, but this version
 accepts additional start/end indices.
@@ -512,7 +571,8 @@ trimmed.
 The procedure @code{string-fill!} is extended from R5RS because it
 accepts optional start/end indices.  This bindings shadows the procedure
 of the same name in the Guile core.  The second modification procedure
-@code{string-set!} is documented in the Strings section (REFFIXME).
+@code{string-set!} is documented in the Strings section (@pxref{String
+Modification}).
 
 @deffn primitive string-fill! str chr [start end]
 Stores @var{chr} in every element of the given @var{str} and
@@ -943,9 +1003,10 @@ guile>
 @node SRFI-14 Character Set Data Type
 @subsection Character Set Data Type
 
-The data type @dfn{charset} implements sets of characters (REFFIXME).
-Because the internal representation of character sets is not visible to
-the user, a lot of procedures for handling them are provided.
+The data type @dfn{charset} implements sets of characters
+(@pxref{Characters}).  Because the internal representation of character
+sets is not visible to the user, a lot of procedures for handling them
+are provided.
 
 Character sets can be created, extended, tested for the membership of a
 characters and be compared to other character sets.
@@ -1327,8 +1388,8 @@ EBNF grammar.
 The value returned by a @code{case-lambda} form is a procedure which
 matches the number of actual arguments against the formals in the
 various clauses, in order.  @dfn{Formals} means a formal argument list
-just like with @code{lambda} (REFFIXME). The first matching clause is
-selected, the corresponding values from the actual parameter list are
+just like with @code{lambda} (@pxref{Lambda}). The first matching clause
+is selected, the corresponding values from the actual parameter list are
 bound to the variable names in the clauses and the body of the clause is
 evaluated.  If no clause matches, an error is signalled.
 
@@ -1382,3 +1443,4 @@ the setter of a procedure.  In fact, @code{(set!  (setter @var{proc})
 procedure is to create a new object (a @dfn{procedure with setter}) via
 the @code{getter-with-setter} procedure. This procedure is also
 specified in the SRFI.  Using it avoids the described problems.
+

@@ -1614,9 +1614,10 @@ y
 @subsection String Comparison
 
 The procedures in this section are similar to the character ordering
-predicates (REFFIXME), but are defined on character sequences.  They all
-return @code{#t} on success and @code{#f} on failure.  The predicates
-ending in @code{-ci} ignore the character case when comparing strings.
+predicates (@pxref{Characters}), but are defined on character sequences.
+They all return @code{#t} on success and @code{#f} on failure.  The
+predicates ending in @code{-ci} ignore the character case when comparing
+strings.
 
 
 @rnindex string=?
@@ -2536,7 +2537,7 @@ one of the constructor procedures @code{make-variable} or
 @code{make-undefined-variable} or retrieved by @code{builtin-variable}.
 
 First-class variables are especially useful for interacting with the
-current module system (REFFIXME).
+current module system (@pxref{The Guile module system}).
 
 @deffn primitive builtin-variable name
 Return the built-in variable with the name @var{name}.
@@ -2967,7 +2968,7 @@ up a list.  An example will clear that up:
 
 This example also shows that lists have to be quoted (REFFIXME) when
 written, because they would otherwise be mistakingly taken as procedure
-applications (REFFIXME).
+applications (@pxref{Simple Invocation}).
 
 
 @node List Predicates
@@ -3028,7 +3029,7 @@ that modifying the elements of the new list also modyfies the elements
 of the old list.  On the other hand, applying procedures like
 @code{set-cdr!} or @code{delv!} to the new list will not alter the old
 list.  If you also need to copy the list elements (making a deep copy),
-use the procedure @code{copy-tree} (REFFIXME).
+use the procedure @code{copy-tree} (@pxref{Copying}).
 
 @node List Selection
 @subsection List Selection
@@ -4896,8 +4897,9 @@ elements of @var{vector}.
 
 @subsection Vector Modification
 
-A vector created by any of the vector constructor procedures (REFFIXME)
-documented above can be modified using the following procedures.
+A vector created by any of the vector constructor procedures
+(@pxref{Vectors}) documented above can be modified using the
+following procedures.
 
 According to R5RS, using any of these procedures on literally entered
 vectors is an error, because these vectors are considered to be

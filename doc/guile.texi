@@ -80,7 +80,7 @@ by the Free Software Foundation.
 @sp 10
 @comment The title is printed in a large font.
 @title Guile Reference Manual
-@subtitle $Id: guile.texi,v 1.9 2001-05-14 21:37:51 mgrabmue Exp $
+@subtitle $Id: guile.texi,v 1.10 2001-05-23 17:24:49 mgrabmue Exp $
 @subtitle For use with Guile @value{VERSION}
 @include AUTHORS
 
@@ -177,7 +177,7 @@ Part III: Guile Modules
 	add-on, so maybe it shouldn't be documented here
 	(though it is nice to have a link from here to the
 	Guile-scsh manual, if one exists).
-* Tcl/Tk Interface::
+@c * Tcl/Tk Interface::
 
 Part IV: Guile Scripting
 
@@ -255,7 +255,7 @@ Indices
 @include repl-modules.texi
 @include expect.texi
 @include scsh.texi
-@include tcltk.texi
+@c @include tcltk.texi
 
 @c Guile as an scripting language
 @iftex

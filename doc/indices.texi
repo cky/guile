@@ -1,22 +1,40 @@
 @node Concept Index
 @unnumbered Concept Index
+
+This index contains concepts, keywords and non-Schemey names for several
+features, to make it easier to locate the desired sections.
+
 @printindex cp
 
 
 @node Procedure Index
 @unnumbered Procedure Index
+
+@c FIXME::martin: Review me!
+
 This is an alphabetical list of all the procedures and macros in Guile.
-[[Remind people to look for functions under their Scheme names as well
-as their C names.]]
+
+When looking for a particular procedure, please look under its Scheme
+name as well as under its C name.  The C name can be constructed from
+the Scheme names by a simple transformation described in the section
+@xref{Transforming Scheme name to C name}.
+
 @printindex fn
 
 
 @node Variable Index
 @unnumbered Variable Index
+
+@c FIXME::martin: Review me!
+
 This is an alphabetical list of all the important variables and
 constants in Guile.
-[[Remind people to look for variables under their Scheme names as well
-as their C names.]]
+
+When looking for a particular variable or constant, please look under
+its Scheme name as well as under its C name.  The C name can be
+constructed from the Scheme names by a simple transformation described
+in the section @xref{Transforming Scheme name to C name}.
+
 @printindex vr
 
 
@@ -25,7 +43,9 @@ as their C names.]]
 @c spurious makeinfo errors.
 @node Type Index
 @unnumbered Type Index
+
 This is an alphabetical list of all the important data types defined in
 the Guile Programmers Manual.
+
 @printindex tp
 

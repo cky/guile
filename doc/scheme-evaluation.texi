@@ -72,10 +72,10 @@ another comment type for multiline comments, called @dfn{block
 comments}.  This type of comment begins with the character sequence
 @code{#!} and ends with the characters @code{!#}, which must appear on a
 line of their own.  These comments are compatible with the block
-comments in the Scheme Shell @file{scsh} (REFFIXME).  The characters
-@code{#!} were chosen because they are the magic characters used in
-shell scripts for indicating that the name of the program for executing
-the script follows on the same line.
+comments in the Scheme Shell @file{scsh} (@pxref{The Scheme shell
+(scsh)}).  The characters @code{#!} were chosen because they are the
+magic characters used in shell scripts for indicating that the name of
+the program for executing the script follows on the same line.
 
 Thus a Guile script often starts like this.
 
@@ -85,7 +85,7 @@ Thus a Guile script often starts like this.
 @end lisp
 
 More details on Guile scripting can be found in the scripting section
-(REFFIXME).
+(@pxref{Guile Scripting}).
 
 
 @node Case Sensitivity
@@ -105,7 +105,7 @@ are the same in R5RS Scheme, but are different in Guile.
 
 It is possible to turn off case sensitivity in Guile by setting the
 reader option @code{case-insensitive}.  More on reader options can be
-found at (REFFIXME).
+found at (@pxref{Reader options}).
 
 @lisp
 (read-enable 'case-insensitive)

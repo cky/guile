@@ -1,4 +1,4 @@
-@c $Id: intro.texi,v 1.9 2001-05-16 18:08:12 mgrabmue Exp $
+@c $Id: intro.texi,v 1.10 2001-05-23 17:24:49 mgrabmue Exp $
 
 @page
 @node What is Guile?
@@ -686,7 +686,7 @@ usual for your operating system, and it will additionally look into the
 directories listed in the @code{LTDL_LIBRRAY_PATH} environment variable.
 
 To see how these Guile extensions via shared libraries relate to the
-module system, see below REFFIXME.
+module system, see below @xref{Intro to Modules and Extensions}.
 
 @node Guile Modules
 @section Guile Modules

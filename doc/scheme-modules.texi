@@ -394,38 +394,38 @@ Mikael Djurfeldt's source-level debugging support for Guile
 Guile's support for multi threaded execution (@pxref{Scheduling}).
 
 @item (ice-9 rdelim)
-Line- and character-delimited input (REFFIXME).
+Line- and character-delimited input (@pxref{Line/Delimited}).
 
 @item (ice-9 documentation)
 Online documentation (REFFIXME).
 
 @item (srfi srfi-2)
-Support for @code{and-let*} (REFFIXME).
+Support for @code{and-let*} (@pxref{SRFI-2}).
 
 @item (srfi srfi-6)
-Support for some additional string port procedures (REFFIXME).
+Support for some additional string port procedures (@pxref{SRFI-6}).
 
 @item (srfi srfi-8)
-Multiple-value handling with @code{receive} (REFFIXME).
+Multiple-value handling with @code{receive} (@pxref{SRFI-8}).
 
 @item (srfi srfi-9)
-Record definition with @code{define-record-type} (REFFIXME).
+Record definition with @code{define-record-type} (@pxref{SRFI-9}).
 
 @item (srfi srfi-10)
-Read hash extension @code{#,()} (REFFIXME).
+Read hash extension @code{#,()} (@pxref{SRFI-10}).
 
 @item (srfi srfi-11)
 Multiple-value handling with @code{let-values} and @code{let-values*}
-(REFFIXME).
+(@pxref{SRFI-11}).
 
 @item (srfi srfi-13)
-String library (REFFIXME).
+String library (@pxref{SRFI-13}).
 
 @item (srfi srfi-14)
-Character-set library (REFFIXME).
+Character-set library (@pxref{SRFI-14}).
 
 @item (srfi srfi-17)
-Getter-with-setter support (REFFIXME).
+Getter-with-setter support (@pxref{SRFI-17}).
 
 @item (ice-9 slib)
 This module contains hooks for using Aubrey Jaffer's portable Scheme
