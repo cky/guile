@@ -125,33 +125,34 @@ typedef struct scm_debug_frame
 extern scm_debug_frame *scm_last_debug_frame;
 #endif
 
-#define SCM_EVALFRAME    (0L << 10)
-#define SCM_APPLYFRAME   (1L << 10)
-#define SCM_MACROFRAME   (2L << 10)
-#define SCM_VOIDFRAME    (3L << 10)
+#define SCM_EVALFRAME    (0L << 11)
+#define SCM_APPLYFRAME   (1L << 11)
+#define SCM_VOIDFRAME    (3L << 11)
+#define SCM_MACROEXPF    (1L << 10)
 #define SCM_TAILREC      (1L << 9)
 #define SCM_TRACED_FRAME (1L << 8)
 #define SCM_ARGS_READY   (1L << 7)
 #define SCM_DOVERFLOW    (1L << 6)
 #define SCM_MAX_FRAME_SIZE 63 /* also used as a mask for the size field */
 
-#define SCM_FRAMETYPE    (3L << 10)
+#define SCM_FRAMETYPE    (3L << 11)
 
-#define SCM_EVALFRAMEP(x) (((x).status & SCM_APPLYFRAME) == 0)
+#define SCM_EVALFRAMEP(x) (((x).status & SCM_FRAMETYPE) == SCM_EVALFRAME)
 #define SCM_APPLYFRAMEP(x) (((x).status & SCM_FRAMETYPE) == SCM_APPLYFRAME)
-#define SCM_MACROFRAMEP(x) (((x).status & SCM_FRAMETYPE) == SCM_MACROFRAME)
 #define SCM_VOIDFRAMEP(x) (((x).status & SCM_FRAMETYPE) == SCM_VOIDFRAME)
 #define SCM_OVERFLOWP(x) (((x).status & SCM_DOVERFLOW) != 0)
 #define SCM_ARGS_READY_P(x) (((x).status & SCM_ARGS_READY) != 0)
 #define SCM_TRACED_FRAME_P(x) (((x).status & SCM_TRACED_FRAME) != 0)
 #define SCM_TAILRECP(x) (((x).status & SCM_TAILREC) != 0)
+#define SCM_MACROEXPP(x) (((x).status & SCM_MACROEXPF) != 0)
 #define SCM_SET_OVERFLOW(x) ((x).status |= SCM_DOVERFLOW)
 #define SCM_SET_ARGSREADY(x) ((x).status |= SCM_ARGS_READY)
 #define SCM_CLEAR_ARGSREADY(x) ((x).status &= ~SCM_ARGS_READY)
 #define SCM_SET_TRACED_FRAME(x) ((x).status |= SCM_TRACED_FRAME)
 #define SCM_CLEAR_TRACED_FRAME(x) ((x).status &= ~SCM_TRACED_FRAME)
 #define SCM_SET_TAILREC(x) ((x).status |= SCM_TAILREC)
-#define SCM_SET_MACROFRAME(x) ((x).status |= SCM_MACROFRAME)
+#define SCM_SET_MACROEXP(x) ((x).status |= SCM_MACROEXPF)
+#define SCM_CLEAR_MACROEXP(x) ((x).status &= ~SCM_MACROEXPF)
 
 #define SCM_DEBUGGINGP scm_debug_mode
 #define SCM_DSIDEVAL(x, env) if NIMP(x) scm_deval((x), (env))
