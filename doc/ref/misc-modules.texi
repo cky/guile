@@ -1318,7 +1318,7 @@ use @code{throw} or similar to escape.
 
 @node Queues
 @section Queues
-@cindex Queues
+@cindex queues
 @tindex Queues
 
 @noindent
