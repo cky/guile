@@ -1,3 +1,9 @@
+2001-05-15  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* boot-9.scm (cond-expand-features): Made the feature list public,
+	so it can be manipulated by `use-srfis'.
+	(use-srfis): New procedure.
+
 2001-05-15  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
 	* boot-9.scm (resolve-interface): Signal error now also if

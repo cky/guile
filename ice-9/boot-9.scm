@@ -2721,15 +2721,15 @@
 ;;;
 ;;; Currently, the following feature identifiers are supported:
 ;;;
-;;;   guile r5rs srfi-0 srfi-6
+;;;   guile r5rs srfi-0
 ;;;
 ;;; Remember to update the features list when adding more SRFIs.
 
-(define-macro (cond-expand clause . clauses)
+(define cond-expand-features
+  ;; Adjust the above comment when changing this.
+  '(guile r5rs srfi-0))
 
-  (define features
-    ;; Adjust the above comment when changing this.
-    '(guile r5rs srfi-0 srfi-6))
+(define-macro (cond-expand clause . clauses)
 
   (let ((clauses (cons clause clauses))
 	(syntax-error (lambda (cl)
@@ -2739,7 +2739,7 @@
 	  (lambda (clause)
 	    (cond
 	      ((symbol? clause)
-	       (memq clause features))
+	       (memq clause cond-expand-features))
 	      ((pair? clause)
 	       (cond
 		 ((eq? 'and (car clause))
@@ -2785,6 +2785,20 @@
 	  (else
 	   (lp (cdr c))))))))
 
+;; This procedure gets called from the startup code with a list of
+;; numbers, which are the numbers of the SRFIs to be loaded on startup.
+;;
+(define (use-srfis srfis)
+  (let lp ((s srfis))
+    (if (pair? s)
+      (let* ((srfi (string->symbol 
+		   (string-append "srfi-" (number->string (car s)))))
+	     (mod (resolve-interface (list 'srfi srfi))))
+	(module-use! (current-module) mod)
+	(set! cond-expand-features
+	      (append cond-expand-features (list srfi)))
+	(lp (cdr s))))))
+	
 
 
 ;;; {Load emacs interface support if emacs option is given.}
