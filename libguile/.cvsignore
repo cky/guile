@@ -10,6 +10,7 @@ libpath.h
 guile-snarf
 *.lo
 libtool
+*.la
 .libs
 errnos.list
 cpp_err_symbols.c
