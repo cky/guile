@@ -448,6 +448,18 @@ scm_igc (what)
 
   /* fprintf (stderr, "gc: %s\n", what); */
 
+  if (scm_mallocated > ((unsigned long) 0 - (1 << 24)))
+    {
+      /* It is extremely unlikely that you have allocated all but 16 Mb
+	 (one sixteenth of 2^32) of your address space.  It is much more
+	 likely that you have forgotten to report the sizes of objects
+	 you have allocated via scm_done_malloc, or some such.  When the
+	 GC freed them, it subtracted their size from scm_mallocated,
+	 which underflowed.  Since it's unsigned, this looks like a
+	 really big number, so we start GC'ing all the time.  */
+      abort ();
+    }
+
   scm_gc_start (what);
   if (!scm_stack_base || scm_block_gc)
     {
@@ -1866,6 +1878,14 @@ scm_unprotect_object (obj)
   return obj;
 }
 
+int terminating;
+
+/* called on process termination.  */
+static void cleanup (void)
+{
+  terminating = 1;
+  scm_flush_all_ports ();
+}
 
 
 int
@@ -1907,6 +1927,7 @@ scm_init_storage (scm_sizet init_heap_size)
   if (!scm_port_table)
     return 1;
 
+  atexit (cleanup);
 
   scm_undefineds = scm_cons (SCM_UNDEFINED, SCM_EOL);
   SCM_SETCDR (scm_undefineds, scm_undefineds);
