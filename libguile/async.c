@@ -51,7 +51,7 @@
 #include "throw.h"
 #include "smob.h"
 
-#include "scm_validate.h"
+#include "validate.h"
 #include "async.h"
 
 #ifdef HAVE_STRING_H

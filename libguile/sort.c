@@ -86,7 +86,7 @@ char *alloca ();
 #include "alist.h"
 #include "feature.h"
 
-#include "scm_validate.h"
+#include "validate.h"
 #include "sort.h"
 
 /* The routine quicksort was extracted from the GNU C Library qsort.c

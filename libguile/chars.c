@@ -47,7 +47,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include "_scm.h"
-#include "scm_validate.h"
+#include "validate.h"
 
 #include "chars.h"
 

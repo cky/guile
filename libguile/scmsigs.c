@@ -51,7 +51,7 @@
 #include "async.h"
 #include "eval.h"
 
-#include "scm_validate.h"
+#include "validate.h"
 #include "scmsigs.h"
 
 #ifdef HAVE_UNISTD_H

@@ -56,7 +56,7 @@
 #include "eval.h"
 #include "feature.h"
 
-#include "scm_validate.h"
+#include "validate.h"
 #include "ramap.h"
 
 

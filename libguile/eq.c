@@ -51,7 +51,7 @@
 #include "smob.h"
 #include "unif.h"
 
-#include "scm_validate.h"
+#include "validate.h"
 #include "eq.h"
 
 SCM_DEFINE1 (scm_eq_p, "eq?", scm_tc7_rpsubr,

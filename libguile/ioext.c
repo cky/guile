@@ -54,7 +54,7 @@
 #include "chars.h"
 #include "feature.h"
 
-#include "scm_validate.h"
+#include "validate.h"
 #include "ioext.h"
 
 #include <fcntl.h>

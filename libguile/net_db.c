@@ -55,7 +55,7 @@
 #include "_scm.h"
 #include "feature.h"
 
-#include "scm_validate.h"
+#include "validate.h"
 #include "net_db.h"
 
 #ifdef HAVE_STRING_H

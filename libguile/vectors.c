@@ -48,7 +48,7 @@
 #include "_scm.h"
 #include "eq.h"
 
-#include "scm_validate.h"
+#include "validate.h"
 #include "vectors.h"
 #include "unif.h"
 

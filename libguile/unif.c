@@ -53,7 +53,7 @@
 #include "strop.h"
 #include "feature.h"
 
-#include "scm_validate.h"
+#include "validate.h"
 #include "unif.h"
 #include "ramap.h"
 

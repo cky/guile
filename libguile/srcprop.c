@@ -57,7 +57,7 @@
 #include "hash.h"
 #include "weaks.h"
 
-#include "scm_validate.h"
+#include "validate.h"
 #include "srcprop.h"
 
 /* {Source Properties}

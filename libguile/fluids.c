@@ -53,7 +53,7 @@
 #include "eval.h"
 
 #define INITIAL_FLUIDS 10
-#include "scm_validate.h"
+#include "validate.h"
 
 static volatile int n_fluids;
 long scm_tc16_fluid;

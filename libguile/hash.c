@@ -48,7 +48,7 @@
 #include "_scm.h"
 #include "chars.h"
 
-#include "scm_validate.h"
+#include "validate.h"
 #include "hash.h"
 
 

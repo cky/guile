@@ -56,7 +56,7 @@
 #include "hashtab.h"
 #include "hash.h"
 
-#include "scm_validate.h"
+#include "validate.h"
 #include "read.h"
 
 

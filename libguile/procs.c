@@ -49,7 +49,7 @@
 
 #include "objects.h"
 
-#include "scm_validate.h"
+#include "validate.h"
 #include "procs.h"
 
 

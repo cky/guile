@@ -64,7 +64,7 @@
 #include "throw.h"
 #include "fluids.h"
 
-#include "scm_validate.h"
+#include "validate.h"
 #include "backtrace.h"
 
 /* {Error reporting and backtraces}

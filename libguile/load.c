@@ -54,7 +54,7 @@
 #include "alist.h"
 #include "dynwind.h"
 
-#include "scm_validate.h"
+#include "validate.h"
 #include "load.h"
 
 #include <sys/types.h>

@@ -83,7 +83,7 @@
 #include "ports.h"
 #include "feature.h"
 
-#include "scm_validate.h"
+#include "validate.h"
 #include "regex-posix.h"
 
 /* This is defined by some regex libraries and omitted by others. */

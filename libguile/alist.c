@@ -48,7 +48,7 @@
 #include "eq.h"
 #include "list.h"
 
-#include "scm_validate.h"
+#include "validate.h"
 #include "alist.h"
 
 

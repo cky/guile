@@ -49,7 +49,7 @@
 #include "eval.h"
 #include "macros.h"
 
-#include "scm_validate.h"
+#include "validate.h"
 #include "lang.h"
 
 

@@ -49,7 +49,7 @@
 #include "chars.h"
 
 #include "strings.h"
-#include "scm_validate.h"
+#include "validate.h"
 
 
 /* {Strings}

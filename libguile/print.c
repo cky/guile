@@ -60,7 +60,7 @@
 #include "objects.h"
 #include "strports.h"
 
-#include "scm_validate.h"
+#include "validate.h"
 #include "print.h"
 
 

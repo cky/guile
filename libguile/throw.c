@@ -61,7 +61,7 @@
 #include "stacks.h"
 #include "fluids.h"
 
-#include "scm_validate.h"
+#include "validate.h"
 #include "throw.h"
 
 

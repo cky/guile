@@ -51,7 +51,7 @@
 #include "feature.h"
 #include "fports.h"
 
-#include "scm_validate.h"
+#include "validate.h"
 #include "socket.h"
 
 #ifdef HAVE_STRING_H

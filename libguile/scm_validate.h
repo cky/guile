@@ -1,4 +1,4 @@
-/* $Id: scm_validate.h,v 1.20 2000-03-02 20:54:43 gjb Exp $ */
+/* $Id: scm_validate.h,v 1.21 2000-03-03 00:09:53 gjb Exp $ */
 /*	Copyright (C) 1999 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify

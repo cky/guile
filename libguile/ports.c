@@ -53,7 +53,7 @@
 
 #include "keywords.h"
 
-#include "scm_validate.h"
+#include "validate.h"
 #include "ports.h"
 
 #ifdef HAVE_STRING_H

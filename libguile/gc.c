@@ -55,7 +55,7 @@
 #include "unif.h"
 #include "async.h"
 
-#include "scm_validate.h"
+#include "validate.h"
 #include "gc.h"
 
 #ifdef HAVE_MALLOC_H

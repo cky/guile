@@ -390,11 +390,15 @@ do { \
 
 #ifdef SCM_RECKLESS
 #define SCM_ASSERT(_cond, _arg, _pos, _subr)
+#define SCM_ASSERT_TYPE(_cond, _arg, _pos, _subr)
 #define SCM_ASRTGO(_cond, _label)
 #else
 #define SCM_ASSERT(_cond, _arg, _pos, _subr) \
 	if (!(_cond)) \
           scm_wta(_arg, (char *)(_pos), _subr)
+#define SCM_ASSERT_TYPE(_cond, _arg, _pos, _subr, _msg) \
+	if (!(_cond)) \
+          scm_wrong_type_arg_msg(_subr, _pos, _arg, _msg)
 #define SCM_ASRTGO(_cond, _label) \
         if (!(_cond)) \
           goto _label

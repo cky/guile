@@ -78,6 +78,8 @@ extern void scm_out_of_range_pos (const char *subr, SCM bad_value, SCM pos)
 extern void scm_wrong_num_args (SCM proc) SCM_NORETURN;
 extern void scm_wrong_type_arg (const char *subr, int pos,
                                 SCM bad_value) SCM_NORETURN;
+extern void scm_wrong_type_arg_msg (const char *subr, int pos,
+                                    SCM bad_value, const char *sz) SCM_NORETURN;
 extern void scm_memory_error (const char *subr) SCM_NORETURN;
 extern void scm_misc_error (const char *subr, const char *message,
                             SCM args) SCM_NORETURN;

@@ -50,7 +50,7 @@
 #include "hash.h"
 #include "eval.h"
 
-#include "scm_validate.h"
+#include "validate.h"
 #include "hashtab.h"
 
 

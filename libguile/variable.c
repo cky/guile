@@ -50,7 +50,7 @@
 #include "genio.h"
 #include "smob.h"
 
-#include "scm_validate.h"
+#include "validate.h"
 #include "variable.h"
 
 

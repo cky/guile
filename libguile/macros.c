@@ -47,7 +47,7 @@
 #include "_scm.h"
 #include "smob.h"
 
-#include "scm_validate.h"
+#include "validate.h"
 #include "macros.h"
 
 long scm_tc16_macro;

@@ -49,7 +49,7 @@
 
 #include "scmsigs.h"
 
-#include "scm_validate.h"
+#include "validate.h"
 #include "simpos.h"
 
 #ifdef HAVE_STRING_H

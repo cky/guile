@@ -49,7 +49,7 @@
 #include "smob.h"
 #include "genio.h"
 
-#include "scm_validate.h"
+#include "validate.h"
 #include "arbiters.h"
 
 

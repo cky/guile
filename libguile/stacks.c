@@ -58,7 +58,7 @@
 #include "procprop.h"
 #include "modules.h"
 
-#include "scm_validate.h"
+#include "validate.h"
 #include "stacks.h"
 
 

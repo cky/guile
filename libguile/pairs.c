@@ -47,7 +47,7 @@
 #include "_scm.h"
 
 
-#include "scm_validate.h"
+#include "validate.h"
 
 
 

@@ -53,7 +53,7 @@
 #include "numbers.h"
 #include "feature.h"
 
-#include "scm_validate.h"
+#include "validate.h"
 #include "random.h"
 
 

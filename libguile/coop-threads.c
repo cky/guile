@@ -44,7 +44,7 @@
 
 
 
-#include "scm_validate.h"
+#include "validate.h"
 #include "coop-threads.h"
 
 /* A counter of the current number of threads */

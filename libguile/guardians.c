@@ -62,7 +62,7 @@
 #include "smob.h"
 #include "genio.h"
 
-#include "scm_validate.h"
+#include "validate.h"
 #include "guardians.h"
 
 static long scm_tc16_guardian;

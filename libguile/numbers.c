@@ -52,7 +52,7 @@
 #include "feature.h"
 #include "smob.h"
 
-#include "scm_validate.h"
+#include "validate.h"
 #include "numbers.h"
 
 #define DIGITS '0':case '1':case '2':case '3':case '4':\

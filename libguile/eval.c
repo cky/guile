@@ -96,7 +96,7 @@ char *alloca ();
 #include "feature.h"
 #include "modules.h"
 
-#include "scm_validate.h"
+#include "validate.h"
 #include "eval.h"
 
 SCM (*scm_memoize_method) (SCM, SCM);

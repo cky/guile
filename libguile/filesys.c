@@ -51,7 +51,7 @@
 #include "fports.h"
 #include "iselect.h"
 
-#include "scm_validate.h"
+#include "validate.h"
 #include "filesys.h"
 
 

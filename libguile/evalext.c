@@ -49,7 +49,7 @@
 #include "macros.h"
 #include "modules.h"
 
-#include "scm_validate.h"
+#include "validate.h"
 #include "evalext.h"
 
 SCM_SYMBOL (scm_sym_setter, "setter");

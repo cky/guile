@@ -59,7 +59,7 @@
 #include "eval.h"
 #include "alist.h"
 
-#include "scm_validate.h"
+#include "validate.h"
 #include "objects.h"
 
 

@@ -48,7 +48,7 @@
 #include "_scm.h"
 #include "feature.h"
 
-#include "scm_validate.h"
+#include "validate.h"
 #include "stime.h"
 
 #ifdef HAVE_UNISTD_H

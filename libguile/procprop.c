@@ -53,7 +53,7 @@
 #include "gsubr.h"
 #include "objects.h"
 
-#include "scm_validate.h"
+#include "validate.h"
 #include "procprop.h"
 
 

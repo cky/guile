@@ -53,7 +53,7 @@
 #include "weaks.h"
 #include "hashtab.h"
 
-#include "scm_validate.h"
+#include "validate.h"
 #include "struct.h"
 
 #ifdef HAVE_STRING_H

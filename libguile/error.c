@@ -51,7 +51,7 @@
 #include "genio.h"
 #include "throw.h"
 
-#include "scm_validate.h"
+#include "validate.h"
 #include "error.h"
 
 #ifdef HAVE_STRING_H
@@ -188,7 +188,7 @@ scm_out_of_range (const char *subr, SCM bad_value)
   scm_error (scm_out_of_range_key,
 	     subr,
 	     "Argument out of range: ~S",
-	     scm_cons (bad_value, SCM_EOL),
+             SCM_LIST1(bad_value),
 	     SCM_BOOL_F);
 }
 
@@ -198,7 +198,7 @@ scm_out_of_range_pos (const char *subr, SCM bad_value, SCM pos)
   scm_error (scm_out_of_range_key,
 	     subr,
 	     "Argument ~S out of range: ~S",
-	     scm_listify (pos, bad_value, SCM_UNDEFINED),
+             SCM_LIST2(pos,bad_value),
 	     SCM_BOOL_F);
 }
 
@@ -210,7 +210,7 @@ scm_wrong_num_args (SCM proc)
   scm_error (scm_args_number_key,
 	     NULL,
 	     "Wrong number of arguments to ~A",
-	     scm_cons (proc, SCM_EOL),
+	     SCM_LIST1(proc),
 	     SCM_BOOL_F);
 }
 
@@ -222,10 +222,29 @@ scm_wrong_type_arg (const char *subr, int pos, SCM bad_value)
 	     subr,
 	     (pos == 0) ? "Wrong type argument: ~S"
 	     : "Wrong type argument in position ~A: ~S",
-	     (pos == 0) ? scm_cons (bad_value, SCM_EOL)
-	     : scm_cons (SCM_MAKINUM (pos), scm_cons (bad_value, SCM_EOL)),
+	     (pos == 0) ? SCM_LIST1(bad_value)
+	     : SCM_LIST2(SCM_MAKINUM(pos), bad_value),
 	     SCM_BOOL_F);
 }
+
+void
+scm_wrong_type_arg_msg (const char *subr, int pos, SCM bad_value, const char *szMessage)
+{
+  SCM msg = scm_makfrom0str(szMessage);
+  if (pos == 0) {
+    scm_error (scm_arg_type_key,
+               subr, "Wrong type argument (expecting ~A): ~S",
+               SCM_LIST2(msg,bad_value),
+               SCM_BOOL_F);
+  } else {
+    scm_error (scm_arg_type_key,
+               subr,
+               "Wrong type argument in position ~A (expecting ~A): ~S",
+               SCM_LIST3(SCM_MAKINUM(pos),msg,bad_value),
+               SCM_BOOL_F);
+  }
+}
+
 
 SCM_SYMBOL (scm_memory_alloc_key, "memory-allocation-error");
 void

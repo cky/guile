@@ -71,7 +71,7 @@ maybe_drag_in_eprintf ()
 #include "smob.h"
 #include "keywords.h"
 
-#include "scm_validate.h"
+#include "validate.h"
 
 /* Converting a list of SCM strings into a argv-style array.  You must
    have ints disabled for the whole lifetime of the created argv (from
