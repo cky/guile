@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996, 2000 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -102,7 +102,7 @@ SCM_DEFINE (scm_set_object_property_x, "set-object-property!", 3, 0, 0,
   SCM assoc;
   h = scm_hashq_create_handle_x (scm_object_whash, obj, SCM_EOL);
   SCM_DEFER_INTS;
-  assoc = scm_assoc (key, SCM_CDR (h));
+  assoc = scm_assq (key, SCM_CDR (h));
   if (SCM_NIMP (assoc))
     SCM_SETCDR (assoc, val);
   else
