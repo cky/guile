@@ -850,6 +850,25 @@
 ;;; string->number
 ;;;
 
+(with-test-prefix "string->number"
+
+  (pass-if "string->number"
+    (documented? string->number))
+
+  (pass-if "non number strings"
+    (for-each (lambda (x) (if (string->number x) (throw 'fail)))
+	      '("" "q" "1q" "6+7iq" "8+9q" "10+11" "13+" "18@19 " "20@q" "23@"
+		"+25iq" "26i" "-q" "-iq" "i" "5#.0" "8/" "10#11" ".#" "."
+		"#o.2" "3.4q" "15.16e17q" "18.19e+q" ".a" ".17#18" "10q" "#b2"
+		"#b3" "#b4" "#b5" "#b6" "#b7" "#b8" "#b9" "#ba" "#bb" "#bc"
+		"#bd" "#be" "#bf" "#q" "#b#b1" "#o#o1" "#d#d1" "#x#x1" "#e#e1"
+		"#i#i1" "12@12+0i"))
+    #t)
+
+  (pass-if-exception "exponent too big"
+    exception:out-of-range
+    (string->number "12.13e141414")))
+
 ;;;
 ;;; number?
 ;;;
