@@ -1,5 +1,8 @@
 2004-07-24  Kevin Ryde  <user42@zip.com.au>
 
+	* guile.texi (@nicode): Use @alias instead of @macro, for correct
+	handling of backslashes.
+
 	* scheme-control.texi (Frames): Add @vindex for SCM_F_WIND_EXPLICITLY.
 
 	* scheme-data.texi (String Syntax): Add all backslash forms accepted.
