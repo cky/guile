@@ -125,11 +125,12 @@ typedef struct scm_method_t {
  (SCM_UNPACK (SCM_STRUCT_DATA (x)[scm_struct_i_n_words]) \
   - scm_struct_n_extra_words) \
 
-#define SCM_INSTANCEP(x)       (SCM_STRUCTP (x) \
-			       && (SCM_INST_TYPE (x) & SCM_CLASSF_GOOPS))
+#define SCM_INSTANCEP(x) \
+  (SCM_STRUCTP (x) && (SCM_INST_TYPE (x) & SCM_CLASSF_GOOPS))
 #define SCM_VALIDATE_INSTANCE(pos, x) SCM_MAKE_VALIDATE (pos, x, INSTANCEP)
 
-#define SCM_PUREGENERICP(x)    (SCM_INST_TYPE(x) & SCM_CLASSF_PURE_GENERIC)
+#define SCM_PUREGENERICP(x) \
+  (SCM_STRUCTP (x) && (SCM_INST_TYPE(x) & SCM_CLASSF_PURE_GENERIC))
 #define SCM_SIMPLEMETHODP(x)   (SCM_INST_TYPE(x) & SCM_CLASSF_SIMPLE_METHOD)
 #define SCM_ACCESSORP(x)       (SCM_INST_TYPE(x) & SCM_CLASSF_ACCESSOR_METHOD)
 #define SCM_VALIDATE_ACCESSOR(pos, x) SCM_MAKE_VALIDATE (pos, x, ACCESSORP)

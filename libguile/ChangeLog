@@ -1,3 +1,10 @@
+2000-12-21  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* goops.h (SCM_PUREGENERICP):  Include the SCM_STRUCTP test.
+
+	* goops.c (scm_sys_invalidate_method_cache_x, scm_m_atdispatch,
+	scm_pure_generic_p):  The SCM_STRUCTP test is implied.
+
 2000-12-20  Gary Houston  <ghouston@arglist.com>
 
 	* continuations.c (continuation_apply): subtract the length of

@@ -1555,8 +1555,7 @@ SCM_DEFINE (scm_sys_invalidate_method_cache_x, "%invalidate-method-cache!", 1, 0
 #define FUNC_NAME s_scm_sys_invalidate_method_cache_x
 {
   SCM used_by;
-  SCM_ASSERT (SCM_STRUCTP (gf) && SCM_PUREGENERICP (gf),
-	      gf, SCM_ARG1, FUNC_NAME);
+  SCM_ASSERT (SCM_PUREGENERICP (gf), gf, SCM_ARG1, FUNC_NAME);
   used_by = SCM_SLOT (gf, scm_si_used_by);
   if (SCM_NFALSEP (used_by))
     {
@@ -1891,8 +1890,7 @@ scm_m_atdispatch (SCM xorig, SCM env)
   SCM_ASSYNT (SCM_VECTORP (v), v, SCM_ARG3, s_atdispatch);
   x = SCM_CDR (x);
   gf = SCM_XEVALCAR (x, env);
-  SCM_ASSYNT (SCM_STRUCTP (gf) && SCM_PUREGENERICP (gf),
-	      gf, SCM_ARG4, s_atdispatch);
+  SCM_ASSYNT (SCM_PUREGENERICP (gf), gf, SCM_ARG4, s_atdispatch);
   return SCM_LIST5 (SCM_IM_DISPATCH, args, n, v, gf);
 }
 #undef FUNC_NAME
@@ -2601,7 +2599,7 @@ SCM_DEFINE (scm_pure_generic_p, "pure-generic?", 1, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_pure_generic_p
 {
-  return SCM_BOOL (SCM_STRUCTP (obj) && SCM_PUREGENERICP (obj));
+  return SCM_BOOL (SCM_PUREGENERICP (obj));
 }
 #undef FUNC_NAME
 
