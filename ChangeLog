@@ -2,6 +2,8 @@
 
 	* TODO (sync srfi-modules.texi): New, done.
 
+	* BUGS (9): New.
+
 2001-11-04  Stefan Jahn  <stefan@lkcc.org>
 
 	* NEWS: Corrected remarks about SCM_API.
