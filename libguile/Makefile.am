@@ -19,7 +19,9 @@ read.c root.c scmsigs.c sequences.c simpos.c smob.c socket.c \
 stackchk.c stime.c strings.c strop.c strorder.c \
 strports.c struct.c symbols.c tag.c throw.c unif.c variable.c \
 vectors.c version.c vports.c weaks.c _scm.h
-libguile_la_DEPENDENCIES = @LIBOBJS@
+EXTRA_libguile_la_SOURCES = backtrace.c stacks.c debug.c srcprop.c \
+strerror.c inet_aton.c
+libguile_la_DEPENDENCIES = @LIBLOBJS@
 libguile_la_LDADD = @LIBLOBJS@
 libguile_la_LDFLAGS = -version-info 0:0 -rpath $(libdir)
 
@@ -61,11 +63,6 @@ libpath.h: Makefile
 SUFFIXES = .x
 .c.x:
 	./guile-snarf $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< > $@
-
-## When dynamic linking is disabled, this dependency is not
-## automatically detected.
-
-dynl.o dynl.lo: dynl.x
 
 ## Add -MG to make the .x magic work with auto-dep code.
 MKDEP = gcc -M -MG $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)

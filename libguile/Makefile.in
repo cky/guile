@@ -68,7 +68,9 @@ read.c root.c scmsigs.c sequences.c simpos.c smob.c socket.c \
 stackchk.c stime.c strings.c strop.c strorder.c \
 strports.c struct.c symbols.c tag.c throw.c unif.c variable.c \
 vectors.c version.c vports.c weaks.c _scm.h
-libguile_la_DEPENDENCIES = @LIBOBJS@
+EXTRA_libguile_la_SOURCES = backtrace.c stacks.c debug.c srcprop.c \
+strerror.c inet_aton.c
+libguile_la_DEPENDENCIES = @LIBLOBJS@
 libguile_la_LDADD = @LIBLOBJS@
 libguile_la_LDFLAGS = -version-info 0:0 -rpath $(libdir)
 
@@ -142,21 +144,23 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) \
 
 TAR = tar
 DEP_FILES =  .deps/alist.P .deps/append.P .deps/appinit.P \
-.deps/arbiters.P .deps/async.P .deps/boolean.P .deps/chars.P \
-.deps/continuations.P .deps/dynl.P .deps/dynwind.P .deps/eq.P \
-.deps/error.P .deps/eval.P .deps/extchrs.P .deps/feature.P \
-.deps/filesys.P .deps/fports.P .deps/gc.P .deps/gdbint.P .deps/genio.P \
-.deps/gsubr.P .deps/hash.P .deps/hashtab.P .deps/init.P .deps/ioext.P \
-.deps/kw.P .deps/list.P .deps/load.P .deps/mallocs.P .deps/markers.P \
-.deps/mbstrings.P .deps/net_db.P .deps/numbers.P .deps/objprop.P \
-.deps/options.P .deps/pairs.P .deps/ports.P .deps/posix.P .deps/print.P \
+.deps/arbiters.P .deps/async.P .deps/backtrace.P .deps/boolean.P \
+.deps/chars.P .deps/continuations.P .deps/debug.P .deps/dynl.P \
+.deps/dynwind.P .deps/eq.P .deps/error.P .deps/eval.P .deps/extchrs.P \
+.deps/feature.P .deps/filesys.P .deps/fports.P .deps/gc.P \
+.deps/gdbint.P .deps/genio.P .deps/gsubr.P .deps/hash.P .deps/hashtab.P \
+.deps/inet_aton.P .deps/init.P .deps/ioext.P .deps/kw.P .deps/list.P \
+.deps/load.P .deps/mallocs.P .deps/markers.P .deps/mbstrings.P \
+.deps/net_db.P .deps/numbers.P .deps/objprop.P .deps/options.P \
+.deps/pairs.P .deps/ports.P .deps/posix.P .deps/print.P \
 .deps/procprop.P .deps/procs.P .deps/ramap.P .deps/read.P .deps/root.P \
 .deps/scmsigs.P .deps/sequences.P .deps/simpos.P .deps/smob.P \
-.deps/socket.P .deps/stackchk.P .deps/stime.P .deps/strings.P \
-.deps/strop.P .deps/strorder.P .deps/strports.P .deps/struct.P \
-.deps/symbols.P .deps/tag.P .deps/throw.P .deps/unif.P .deps/variable.P \
-.deps/vectors.P .deps/version.P .deps/vports.P .deps/weaks.P
-SOURCES = $(libguile_la_SOURCES)
+.deps/socket.P .deps/srcprop.P .deps/stackchk.P .deps/stacks.P \
+.deps/stime.P .deps/strerror.P .deps/strings.P .deps/strop.P \
+.deps/strorder.P .deps/strports.P .deps/struct.P .deps/symbols.P \
+.deps/tag.P .deps/throw.P .deps/unif.P .deps/variable.P .deps/vectors.P \
+.deps/version.P .deps/vports.P .deps/weaks.P
+SOURCES = $(libguile_la_SOURCES) $(EXTRA_libguile_la_SOURCES)
 OBJECTS = $(libguile_la_OBJECTS)
 
 default: all
@@ -490,8 +494,6 @@ libpath.h: Makefile
 	echo '#define SCM_SITE_DIR "$(pkgdatadir)/site"' >> libpath.h
 .c.x:
 	./guile-snarf $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< > $@
-
-dynl.o dynl.lo: dynl.x
 
 errnos.list: $(srcdir)/errnos.default
 	$(ERRNO_EXTRACT)
