@@ -448,12 +448,10 @@ alias for scm_map that guarantees the order in which we process list
 elements, but we're not changing scm_map at all --- it's appropriate
 to use the Scheme name in the log entry.
 
-- There's no need to keep a change log for documentation files.  This
-is because documentation is not susceptible to bugs that are hard to
-fix.  Documentation does not consist of parts that must interact in a
-precisely engineered fashion; to correct an error, you need not know
-the history of the erroneous passage.  (This is copied from the GNU
-coding standards.)
+- There's no need to keep a change log for a ChangeLog file.  For any
+other kind of file (including documentation, since our documentation
+is indeed precisely engineered -- we surpass GNU standards here), add
+an appropriate ChangeLog entry when you change it.  Simple!
 
 - Make sure you have papers from people before integrating their
 changes or contributions.  This is very frustrating, but very
