@@ -1,0 +1,665 @@
+***
+*** These notes about the design of a new type of Scheme interpreter
+*** "Ior" are cut out from various emails from early spring 2000.
+***
+*** MDJ 000817 <djurfeldt@nada.kth.se>
+***
+
+Generally, we should try to make a design which is clean and
+minimalistic in as many respects as possible.  For example, even if we
+need more primitives than those in R5RS internally, I don't think
+these should be made available to the user in the core, but rather be
+made available *through* libraries (implementation in core,
+publication via library).
+
+The suggested working name for this project is "Ior" (Swedish name for
+the donkey in "Winnie the Pooh" :).  If, against the odds, we really
+would succeed in producing an Ior, and we find it suitable, we could
+turn it into a Guile 2.0 (or whatever).  (The architecture still
+allows for support of the gh interface and uses conservative GC (Hans
+Bˆhm's, in fact).)
+
+ Beware now that I'm just sending over my original letter, which is
+ just a sketch of the more detailed, but cryptic, design notes I made
+ originally, which are, in turn, not as detailed as the design has
+ become now. :)
+
+ Please also excuse the lack of structure.  I shouldn't work on this at
+ all right now.  Choose for yourselves if you want to read this
+ unstructured information or if you want to wait until I've structured
+ it after end of January.
+
+But then I actually have to blurt out the basic idea of my
+architecture already now.  (I had hoped to present you with a proper
+and fairly detailed spec, but I won't be able to complete such a spec
+quickly.)
+
+
+The basic idea is this:
+
+* Don't waste time on non-computation!
+
+Why waste a lot of time on type-checks, unboxing and boxing of data?
+Neither of these actions do any computations!
+
+I'd like both interpreter and compiled code to work directly with data
+in raw, native form (integers represented as 32bit longs, inexact
+numbers as doubles, short strings as bytes in a word, longer strings
+as a normal pointer to malloced memory, bignums are just pointers to a
+gmp (GNU MultiPrecision library) object, etc.)
+
+* Don't we need to dispatch on type to know what to do?
+
+But don't we need to dispatch on the type in order to know how to
+compute with the data?  E.g., `display' does entirely different
+computations on a <fixnum> and a <string>.  (<fixnum> is an integer
+between -2^31 and 2^31-1.)
+
+The answer is *no*, not in 95% of all cases.  The main reason is that
+the interpreter does type analysis while converting closures to
+bytecode, and knows already when _calling_ `display' what type it's
+arguments has.  This means that the bytecode compiler can choose a
+suitable _version_ of `display' which handles that particular type.
+
+
+
+This type analysis is greatly simplified by the fact that just as the
+type analysis _results_ in the type of the argument in the call to
+`display', and, thus, we can select the correct _version_ of
+`display', the closure byte-code itself will only be one _version_ of
+the closure with the types of its arguments fixed at the start of the
+analysis.
+
+As you already have understood by now, the basic architecture is that
+all procedures are generic functions, and the "versions" I'm speaking
+about is a kind of methods.  Let's call them "branches" by now.
+
+For example:
+
+(define foo
+  (lambda (x)
+    ...
+    (display x)
+    ...)
+
+may result in the following two branches:
+
+1. [<fixnum>-foo] =
+     (branch ((x <fixnum>))
+       ...
+       ([<fixnum>-display] x)
+       ...)
+
+2. [<string>-foo] =
+     (branch ((x <string>))
+       ...
+       ([<string>-display] x)
+       ...)
+
+and a new closure
+
+(define bar
+  (lambda (x y)
+    ...
+    (foo x)
+    ...))
+
+results in
+
+[<fixnum>-<fixnum>-bar] =
+  (branch ((x <fixnum>) (y <fixnum>))
+    ...
+    ([<fixnum>-foo] x)
+    ...)
+
+Note how all type dispatch is eliminated in these examples.
+
+As a further reinforcement to the type analysis, branches will not
+only have typed parameters but also have return types.  This means
+that the type of a branch will look like
+
+  <type 1> x ... x <type n> --> <type r>
+
+In essence, the entire system will be very ML-like internally, and we
+can benefit from the research done on ML-compilation.
+
+However, we now get three major problems to confront:
+
+1. In the Scheme language not all situations can be completely type
+   analyzed.
+
+2. In particular, for some operations, even if the types of the
+   parameters are well defined, we can't determine the return type
+   generically.  For example, [<fixnum>-<fixnum>-+] may have return
+   type <fixnum> _or_ <bignum>.
+
+3. Even if we can do a complete analysis, some closures will generate
+   a combinatoric explosion of branches.
+
+
+Problem 1: Incomplete analysis
+
+We introduce a new type <boxed>.  This data type has type <boxed> and
+contents
+
+struct ior_boxed_t {
+  ior_type *type; /* pointer to class struct */
+  void *data;     /* generic field, may also contain immediate objects
+	           */
+}
+
+For example, a boxed fixnum 4711 has type <boxed> and contents
+{ <fixnum>, 4711 }.  The boxed type essentially corresponds to Guile's
+SCM type.  It's just that the 1 or 3 or 7 or 16-bit type tag has been
+replaced with a 32-bit type tag (the pointer to the class structure
+describing the type of the object).
+
+This is more inefficient than the SCM type system, but it's no problem
+since it won't be used in 95% of all cases.  The big advantage
+compared to SCM's type system is that it is so simple and uniform.
+
+I should note here that while SCM and Guile are centered around the
+cell representation and all objects either _are_ cells or have a cell
+handle, objects in ior will more look like mallocs.  This is the
+reason why I planned to start with BÅÅˆhm's GC which has C pointers as
+object handles.  But it is of course still possible to use a heap, or,
+preferably several heaps for different kinds of objects.  (BÅÅˆhm's GC
+has multiple heaps for different sizes of objects.)  If we write a
+custom GC, we can increase speed further.
+
+
+Problem 3 (yes, I skipped :) Combinatoric explosion
+
+We simply don't generate all possible branches.  In the interpreter we
+generate branches "just-too-late" (well, it's normally called "lazy
+compilation" or "just-in-time", but if it was "in-time", the procedure
+would already be compiled when it was needed, right? :) as when Guile
+memoizes or when a Java machine turns byte-codes into machine code, or
+as when GOOPS turns methods into cmethods for that matter.
+
+Have noticed that branches (although still without return type
+information) already exist in GOOPS?  They are currently called
+"cmethods" and are generated on demand from the method code and put
+into the GF cache during evaluation of GOOPS code.  :-)  (I have not
+utilized this fully yet.  I plan to soon use this method compilation
+(into branches) to eliminate almost all type dispatch in calls to
+accessors.)
+
+For the compiler, we use profiling information, just as the modern GCC
+scheduler, or else relies on some type analysis (if a procedure says
+(+ x y), x is not normally a <string> but rather some subclass of
+<number>) and some common sense (it's usually more important to
+generate <fixnum> branches than <foobar> branches).
+
+The rest of the cases can be handled by <boxed>-branches.  We can, for
+example, have a:
+
+[<boxed>-<boxed>-bar] =
+  (branch ((x <boxed>) (y <boxed>))
+    ...
+    ([<boxed>-foo] x)
+    ...)
+
+[<boxed>-foo] will use an efficient type dispatch mechanism (for
+example akin to the GOOPS one) to select the right branch of
+`display'.
+
+
+Problem 2: Ambiguous return type
+
+If the return type of a branch is ambiguous, we simply define the
+return type as <boxed>, and box data at the point in the branch where
+it can be decided which type of data we will return.  This is how
+things can be handled in the general case.  However, we might be able
+to handle things in a more neat way, at least in some cases:
+
+During compilation to byte code, we'll probably use an intermediate
+representation in continuation passing style.  We might even use a
+subtype of branches reprented as continuations (not a heavy
+representation, as in Guile and SCM, but probably not much more than a
+function pointer).  This is, for example, one way of handling tail
+recursion, especially mutual tail recursion.
+
+One case where we would like to try really hard not to box data is
+when fixnums "overflow into" bignums.
+
+Let's say that the branch [<fixnum>-<fixnum>-bar] contains a form
+
+  (+ x y)
+
+where the type analyzer knows that x and y are fixnums.  We then split
+the branch right after the form and let it fork into two possible
+continuation branches bar1 and bar2:
+
+[The following is only pseudo code.  It can be made efficient on the C
+ level.  We can also use the asm compiler directive in conditional
+ compilation for GCC on i386.  We could even let autoconf/automake
+ substitute an architecture specific solution for multiple
+ architectures, but still support a C level default case.]
+
+    (if (sum-over/underflow? x y)
+	(bar1 (fixnum->bignum x) (fixnum->bignum y) ...)
+        (bar2 x y ...))
+
+bar1 begins with the evaluation of the form
+
+  ([<bignum>-<bignum>-+] x y)
+
+while bar 2 begins with
+
+  ([<fixnum>-<fixnum>-+] x y)
+
+Note that the return type of each of these forms is unambiguous.
+
+
+Now some random points from the design:
+
+* The basic concept in Ior is the class.  A type is a concrete class.
+  Classes which are subclasses of <object> are concrete, otherwise they
+  are abstract.
+
+* A procedure is a collection of methods. Each method can have
+  arbitrary number of parameters of arbitrary class (not type).
+
+* The type of a method is the tuple of it's argument classes.
+
+* The type of a procedure is the set of it's method types.
+
+But the most important new concept is the branch.
+Regard the procedure:
+
+(define (half x)
+  (quotient x 2))
+
+The procedure half will have the single method
+
+  (method ((x <top>))
+    (quotient x 2))
+
+When `(half 128)' is called the Ior evaluator will create a new branch
+during the actual evaluation.  I'm now going to extend the branch
+syntax by adding a second list of formals: the continuations of the
+branch.
+
+* The type of a branch is namely the tuple of the tuple of it's
+  argument types (not classes!) and the tuple of it's continuation
+  argument types.  The branch generated above will be:
+
+  (branch ((x <fixnum>) ((c <fixnum>))
+    (c (quotient x 2)))
+
+  If the method
+
+  (method ((x <top>) (y <top>))
+    (quotient (+ x 1) y))
+
+  is called with arguments 1 and 2 it results in the branch
+
+  (branch ((x <fixnum>) (y <fixnum>)) ((c1 <fixnum>) (c2 <bignum>))
+    (quotient (+ x 1 c3) 2))
+
+  where c3 is:
+
+  (branch ((x <fixnum>) (y <fixnum>)) ((c <bignum>))
+    (quotient (+ (fixnum->bignum x) 1) 2)
+
+The generated branches are stored in a cache in the procedure object.
+
+
+But wait a minute!  What about variables and data structures?
+
+In essence, what we do is that we fork up all data paths so that they
+can be typed: We put the type tags on the _data paths_ instead of on
+the data itself.  You can look upon the "branches" as tubes of
+information where the type tag is attached to the tube instead of on
+what passes through it.
+
+Variables and data structures are part of the "tubes", so they need to
+be typed.  For example, the generic pair looks like:
+
+(define-class <pair> ()
+  car-type
+  car
+  cdr-type
+  cdr)
+
+But note that since car and cdr are generic procedures, we can let
+more efficient pairs exist in parallel, like
+
+(define-class <immutable-fixnum-list> ()
+  (car (class <fixnum>))
+  (cdr (class <immutable-fixnum-list>))) 
+
+Note that instances of this last type only takes two words of memory!
+They are easy to use too.  We can't use `cons' or `list' to create
+them, since these procedures can't assume immutability, but we don't
+need to specify the type <fixnum> in our program.  Something like
+
+  (const-cons 1 x)
+
+where x is in the data flow path tagged as <immutable-fixnum-list>, or
+
+  (const-list 1 2 3)
+
+
+Some further notes:
+
+* The concepts module and instance are the same thing.  Using other
+  modules means 1. creating a new module class which inherits the
+  classes of the used modules and 2. instantiating it.
+
+* Module definitions and class definitions are equivalent but
+  different syntactic sugar adapted for each kind of use.
+
+* (define x 1) means: create an instance variable which is itself a
+  subclass of <boxed> with initial value 1 (which is an instance of
+  <fixnum>).
+
+
+The interpreter is a mixture between a stack machine and a register
+machine.  The evaluator looks like this...  :)
+
+  /* the interpreter! */
+  if (!setjmp (ior_context->exit_buf))
+#ifndef i386_GCC
+    while (1)
+#endif
+      (*ior_continue) (IOR_MICRO_OP_ARGS);
+
+The branches are represented as an array of pointers to micro
+operations.  In essence, the evaluator doesn't exist in itself, but is
+folded out over the entire implementation.  This allows for an extreme
+form of modularity!
+
+The i386_GCC is a machine specific optimization which avoids all
+unnecessary popping and pushing of the CPU stack (which is different
+from the Ior data stack).
+
+The execution environment consists of
+
+* a continue register similar to the program counter in the CPU
+* a data stack (where micro operation arguments and results are stored)
+* a linked chain of environment frames (but look at exception below!)
+* a dynamic context
+
+I've written a small baby Ior which uses Guile's infrastructure.
+Here's the context from that baby Ior:
+
+typedef struct ior_context_t {
+  ior_data_t *env;		/* rest of environment frames */
+  ior_cont_t save_continue;	/* saves or represents continuation */
+  ior_data_t *save_env;		/* saves or represents environment */
+  ior_data_t *fluids;		/* array of fluids (use GC_malloc!) */
+  int n_fluids;
+  int fluids_size;
+  /* dynwind chain is stored directly in the environment, not in context */
+  jmp_buf exit_buf;
+  IOR_SCM guile_protected;	/* temporary */
+} ior_context_t;
+
+There's an important exception regarding the lowest environment
+frame.  That frame isn't stored in a separate block on the heap, but
+on Ior's data stack.  Frames are copied out onto the heap when
+necessary (for example when closures "escape").
+
+
+Now a concrete example:
+
+Look at:
+
+(define sum
+  (lambda (from to res)
+    (if (= from to)
+	res
+	(sum (+ 1 from) to (+ from res)))))
+
+This can be rewritten into CPS (which captures a lot of what happens
+during flow analysis):
+
+(define sum
+  (lambda (from to res c1)
+    (let ((c2 (lambda (limit?)
+		(let ((c3 (lambda ()
+			    (c1 res)))
+		      (c4 (lambda ()
+			    (let ((c5 (lambda (from+1)
+					(let ((c6 (lambda (from+res)
+						    (sum from+1 to from+res c1))))
+					  (_+ from res c6)))))
+			      (_+ 1 from c5)))))
+		  (_if limit? c3 c4)))))
+      (_= from to c2))))
+
+Finally, after branch expansion, some optimization, code generation,
+and some optimization again, we end up with the byte code for the two
+branches (here marked by labels `sum' and `sumbig'):
+
+ c5
+ (ref -3)
+ (shift -1)
+ (+ <fixnum> <fixnum> c4big)
+ ;; c4
+ (shift -2)
+ (+ <fixnum> 1 sumbig)
+ ;; c6
+ sum
+ (shift 3)
+ (ref2 -3)
+ ;; c2
+ (if!= <fixnum> <fixnum> c5)
+ ;; c3
+ (ref -1)
+ ;; c1
+ (end)
+
+ c5big
+ (ref -3)
+ (shift -1)
+ (+ <bignum> <bignum>)
+ c4big
+ (shift -2)
+ (+ <bignum> 1)
+ ;; c6
+ sumbig
+ (shift 3)
+ (ref2 -3)
+ ;; c2
+ (= <bignum> <bignum>)
+ (if! c5big)
+ ;; c3
+ (ref -1)
+ ;; c1
+ (end)
+
+Let's take a closer look upon the (+ <fixnum> 1 sumbig) micro
+operation.  The generated assembler from the Ior C source + machine
+specific optimizations for i386_GCC looks like this (with some rubbish
+deleted):
+
+ior_int_int_sum_intbig:
+	movl 4(%ebx),%eax	; fetch arg 2
+	addl (%ebx),%eax        ; fetch arg 1 and do the work!
+	jo ior_big_sum_int_int  ; dispatch to other branch on overflow
+	movl %eax,(%ebx)	; store result in first environment frame
+	addl $8,%esi		; increment program counter
+	jmp (%esi)		; execute next opcode
+
+ior_big_sum_int_int:
+
+To clearify: This is output from the C compiler.  I added the comments
+afterwards.
+
+The source currently looks like this:
+
+IOR_MICRO_BRANCH_2_2 ("+", int, big, sum, int, int, 1, 0)
+{
+  int res = IOR_ARG (int, 0) + IOR_ARG (int, 1);
+  IOR_JUMP_OVERFLOW (res, ior_big_sum_int_int);
+  IOR_NEXT2 (z);
+}
+
+where the macros allow for different definitions depending on if we
+want to play pure ANSI or optimize for a certain machine/compiler.
+
+The plan is actually to write all source in the Ior language and write
+Ior code to translate the core code into bootstrapping C code.
+
+Please note that if i386_GCC isn't defined, we run plain portable ANSI C.
+
+
+Just one further note:
+
+In Ior, there are three modes of evaluation
+
+1. evaluating and type analyzing (these go in parallel)
+2. code generation
+3. executing byte codes
+
+It is mode 3 which is really fast in Ior.
+
+You can look upon your program as a web of branch segments where one
+branch segment can be generated from fragments of many closures.  Mode
+switches doesn't occur at the procedure borders, but at "growth
+points".  I don't have time to define them here, but they are based
+upon the idea that the continuation together with the type signature
+of the data flow path is unique.
+
+We normally run in mode 3.  When we come to a source growth point
+(essentially an apply instruction) for uncompiled code we "dive out"
+of mode 3 into mode 1 which starts to eval/analyze code until we come
+to a "sink".  When we reach the "sink", we have enough information
+about the data path to do code generation, so we backtrack to the
+source growth point and grow the branch between source and sink.
+Finally, we "dive into" mode 3!
+
+So, code generation doesn't respect procedure borders.  We instead get
+a very neat kind of inlining, which, e.g., means that it is OK to use
+closures instead of macros in many cases.
+----------------------------------------------------------------------
+Ior and module system
+=====================
+
+How, exactly, should the module system of Ior look like?
+
+There is this general issue of whether to have a single-dispatch or
+multi-dispatch system.  Personally, I see that Scheme already use
+multi-dispatch.  Compare (+ 1.0 2) and (+ 1 2.0).
+
+As you've seen if you've read the notes about Ior design, efficiency
+is not an issue here, since almost all dispatch will be eliminated
+anyway.
+
+Also, note an interesting thing: GOOPS actually has a special,
+implicit, argument to all of it's methods: the lexical environment.
+It would be very ugly to add a second, special, argument to this.
+
+Of course, the theoreticians have already recognised this, and in many
+systems, the implicit argument (the object) and the environment for
+the method is the same thing.
+
+I think we should especially take impressions from Matthias Blume's
+module/object system.
+
+The idea, now, for Ior (remember that everything about Ior is
+negotiable between us) is that a module is a type, as well as an
+instance of that type.  The idea is that we basically keep the GOOPS
+style of methods, with the implicit argument being the module object
+(or some other lexical environment, in a chain with the module as
+root).
+
+Let's say now that module C uses modules A and B.  Modules A and B
+both exports the procedure `foo'.  But A:foo and B:foo as different
+sets of methods.
+
+What does this mean?  Well, it obviously means that the procedure
+`foo' in module C is a subtype of A:foo and B:foo.  Note how this is
+similar in structure to slot inheritance: When class C is created with
+superclasses A and B, the properties of a slot in C are created
+through slot inheritance.  One way of interpreting variable foo in
+module A is as a slot with init value foo.  Through the MOP, we can
+specify that procedure slot inheritance in a module class implies
+creation of new init values through inheritance.
+
+This may look like a kludge, and perhaps it is, and, sure, we are not
+going to accept any kludges in Ior.  But, it might actually not be a
+kludge...
+
+I think it is commonly accepted by computer scientists that a module,
+and/or at least a module interface is a type.  Again, this type can be
+seen as the set of types of the functions in the interface.  The types
+of our procedures are the set of branch types the provide.  It is then
+natural that a module using two other modules create new procedure
+types by folding.
+
+This thing would become less cloudy (yes, this is a cloudy part of my
+reasoning; I meant previously that the interpreter itself is now
+clear) if module interfaces were required to be explicitly types.
+
+Actually, this would fit much better together with the rest of Ior's
+design.  On one hand, we might be free to introduce such a restriction
+(compiler writers would applaud it), since R5RS hasn't specified any
+module system.  On the other hand, it might be strange to require
+explicit typing when Scheme is fundamentally implicitly types...
+
+We also have to consider that a module has an "inward" face, which is
+one type, and possibly many "outward" faces, which are different
+types.  (Compare the idea of "interfaces" in Scheme48.)
+
+It thus, seems that, while a module can truly be an Ior class, the
+reverse should probably not hold in the general case...
+
+Unless
+
+  instance		<-> module proper
+  class of the instance <-> "inward interface"
+  superclasses		<-> "outward interfaces + inward uses"
+
+...hmm, is this possible to reconcile with Rees' object system?
+
+Please think about these issues.  We should try to end up with a
+beautiful and consistent object/module system.
+
+----------------------------------------------------------------------
+
+Here's a difficult problem in Ior's design:
+
+Let's say that we have a mutable data structure, like an ordinary
+list.  Since, in Ior, the type tag (which is really a pointer to a
+class structure) is stored separately from the data, it is thinkable
+that another thread modifies the location in the list between when our
+thread reads the type tag and when it reads the data.
+
+The reading of type and data must be made atomic in some way.
+Probably, some kind of locking of the heap is required.  It's just
+that it may cause a lot of overhead to look the heap at every *read*
+from a mutable data structure.
+
+Look how much trouble those set!-operations cause!  Not only does it
+force us to store type tags for each car and cdr in the list, but it
+also forces a lot of explicit dispatch to be done, and causes troubles
+in a threaded system...
+
+----------------------------------------------------------------------
+
+Jim Blandy <jimb@red-bean.com> writes:
+
+> We also should try to make less work for the GC, by avoiding consing
+> up local environments until they're closed over.
+
+Did the texts which I sent to you talk about Ior's solution?
+
+It basically is: Use *two* environment "arguments" to the evaluator
+(in Ior, they aren't arguments but registers):
+
+* One argument is a pointer to the "top" of an environment stack.
+  This is used in the "inner loop" for very efficient access to
+  in-between results.  The "top" segment of the environment stack is
+  also regarded as the first environment frame in the lexical
+  environment.  ("top" is bottom on a stack which grows downwards)
+
+* The other argument points to a structure holding the evaluation
+  context.  In this context, there is a pointer to the chain of the
+  rest of the environment frames.  Note that since frames are just
+  blocks of SCM values, you can very efficiently "release" a frame
+  into the heap by block copying it (remember that Ior uses Boehms GC;
+  this is how we allocate the block).
