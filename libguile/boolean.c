@@ -42,6 +42,8 @@
 
 #include <stdio.h>
 #include "_scm.h"
+
+#include "boolean.h"
 
 
 

@@ -42,7 +42,10 @@
 
 #include <stdio.h>
 #include "_scm.h"
+#include "alist.h"
+#include "eval.h"
 
+#include "procprop.h"
 
 
 static SCM

@@ -46,7 +46,12 @@
 #include "extchrs.h"
 #include <stdio.h>
 #include "_scm.h"
+#include "chars.h"
+#include "unif.h"
+#include "genio.h"
+#include "read.h"
 
+#include "mbstrings.h"
 
 
 SCM_PROC(s_multi_byte_string_p, "multi-byte-string?", 1, 0, 0, scm_multi_byte_string_p);

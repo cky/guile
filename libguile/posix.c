@@ -42,7 +42,15 @@
 
 #include <stdio.h>
 #include "_scm.h"
+#include "fports.h"
+#include "genio.h"
+#include "scmsigs.h"
+#include "read.h"
+#include "unif.h"
+#include "feature.h"
+#include "sequences.h"
 
+#include "posix.h"
 
 
 #ifdef HAVE_STRING_H

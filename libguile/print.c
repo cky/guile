@@ -42,9 +42,17 @@
 
 #include <stdio.h>
 #include "_scm.h"
+#include "chars.h"
+#include "genio.h"
+#include "mbstrings.h"
+#include "smob.h"
+#include "eval.h"
+#include "procprop.h"
+#include "read.h"
+#include "weaks.h"
+#include "unif.h"
 
-
-
+#include "print.h"
 
 
 /* {Names of immediate symbols}

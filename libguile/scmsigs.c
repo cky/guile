@@ -44,6 +44,8 @@
 #include <signal.h>
 #include "_scm.h"
 
+#include "scmsigs.h"
+
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif

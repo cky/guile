@@ -46,6 +46,7 @@
 #include <stdio.h>
 #include "_scm.h"
 
+#include "options.h"
 
 
 /* {Run-time options}

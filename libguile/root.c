@@ -42,7 +42,9 @@
 
 #include <stdio.h>
 #include "_scm.h"
+#include "stackchk.h"
 
+#include "root.h"
 
 
 SCM scm_sys_protects[SCM_NUM_PROTECTS];

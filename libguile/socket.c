@@ -48,6 +48,9 @@
 
 #include <stdio.h>
 #include "_scm.h"
+#include "feature.h"
+
+#include "socket.h"
 
 #ifdef HAVE_STRING_H
 #include <string.h>

@@ -43,6 +43,9 @@
 #include <stdio.h>
 #include "_scm.h"
 
+#include "scmsigs.h"
+#include "simpos.h"
+
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif

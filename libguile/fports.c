@@ -42,6 +42,9 @@
 
 #include <stdio.h>
 #include "_scm.h"
+#include "markers.h"
+
+#include "fports.h"
 
 #ifdef HAVE_STRING_H
 #include <string.h>

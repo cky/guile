@@ -42,6 +42,7 @@
 #include <stdio.h>
 #include "_scm.h"
 
+#include "weaks.h"
 
 
 

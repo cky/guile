@@ -43,6 +43,7 @@
 #include <stdio.h>
 #include "_scm.h"
 
+#include "markers.h"
 
 
 /* {GC marking}

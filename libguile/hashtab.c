@@ -42,7 +42,11 @@
 
 #include <stdio.h>
 #include "_scm.h"
+#include "alist.h"
+#include "hash.h"
+#include "eval.h"
 
+#include "hashtab.h"
 
 
 #ifdef __STDC__

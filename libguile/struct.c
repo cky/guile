@@ -42,6 +42,9 @@
 
 #include <stdio.h>
 #include "_scm.h"
+#include "chars.h"
+
+#include "struct.h"
 
 #ifdef HAVE_STRING_H
 #include <string.h>

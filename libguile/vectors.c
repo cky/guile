@@ -42,7 +42,9 @@
 
 #include <stdio.h>
 #include "_scm.h"
+#include "eq.h"
 
+#include "vectors.h"
 
 
 

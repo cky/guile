@@ -56,7 +56,26 @@
 
 #include <stdio.h>
 #include "_scm.h"
+#include "debug.h"
+#include "append.h"
+#include "alist.h"
+#include "sequences.h"
+#include "eq.h"
+#include "continuations.h"
+#include "throw.h"
+#include "smob.h"
+#include "markers.h"
+#include "procprop.h"
+#include "hashtab.h"
 
+#ifdef DEBUG_EXTENSIONS
+#include "debug.h"
+#endif /* DEBUG_EXTENSIONS */
+
+#include "srcprop.h"
+#include "stackchk.h"
+
+#include "eval.h"
 
 
 /* The evaluator contains a plethora of EVAL symbols.

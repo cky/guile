@@ -44,6 +44,7 @@
 #include <ctype.h>
 #include "_scm.h"
 
+#include "chars.h"
 
 
 

@@ -42,7 +42,9 @@
 
 #include <stdio.h>
 #include "_scm.h"
+#include "chars.h"
 
+#include "strorder.h"
 
 
 SCM_PROC1 (s_string_equal_p, "string=?", scm_tc7_rpsubr, scm_string_equal_p);

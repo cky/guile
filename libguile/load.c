@@ -43,6 +43,11 @@
 #include <stdio.h>
 #include "_scm.h"
 #include "libpath.h"
+#include "fports.h"
+#include "read.h"
+#include "eval.h"
+
+#include "load.h"
 
 #include <sys/types.h>
 #include <sys/stat.h>

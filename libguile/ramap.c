@@ -45,7 +45,14 @@
 
 #include <stdio.h>
 #include "_scm.h"
+#include "unif.h"
+#include "smob.h"
+#include "chars.h"
+#include "eq.h"
+#include "eval.h"
+#include "feature.h"
 
+#include "ramap.h"
 
 
 #ifdef ARRAYS

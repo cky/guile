@@ -42,7 +42,9 @@
 
 #include <stdio.h>
 #include "_scm.h"
+#include "chars.h"
 
+#include "hash.h"
 
 
 #ifndef floor

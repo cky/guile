@@ -41,6 +41,14 @@
 
 #include <stdio.h>
 #include "_scm.h"
+#include "stime.h"
+#include "stackchk.h"
+#include "struct.h"
+#include "genio.h"
+#include "weaks.h"
+#include "smob.h"
+#include "unif.h"
+#include "async.h"
 
 #ifdef HAVE_MALLOC_H
 #include <malloc.h>

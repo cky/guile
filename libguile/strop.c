@@ -20,7 +20,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include <stdio.h>
 #include "_scm.h"
+#include "chars.h"
 
+#include "strop.h"
 
 
 #ifdef __STDC__

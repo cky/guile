@@ -45,7 +45,14 @@
 
 #include <stdio.h>
 #include "_scm.h"
+#include "tag.h"
+#include "strports.h"
+#include "read.h"
+#include "print.h"
+#include "eval.h"
+#include "chars.h"
 
+#include "gdbint.h"
 
 /* {Support for debugging with gdb}
  *

@@ -44,6 +44,9 @@
 #include <stdio.h>
 #include "fd.h"
 #include "_scm.h"
+#include "fports.h"
+
+#include "ioext.h"
 
 #ifdef HAVE_STRING_H
 #include <string.h>

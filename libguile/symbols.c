@@ -42,6 +42,13 @@
 
 #include <stdio.h>
 #include "_scm.h"
+#include "chars.h"
+#include "eval.h"
+#include "variable.h"
+#include "alist.h"
+#include "mbstrings.h"
+
+#include "symbols.h"
 
 #ifdef HAVE_STRING_H
 #include <string.h>

@@ -42,6 +42,11 @@
 
 #include <stdio.h>
 #include "_scm.h"
+#include "unif.h"
+#include "eval.h"
+#include "print.h"
+
+#include "strports.h"
 
 #ifdef HAVE_STRING_H
 #include <string.h>

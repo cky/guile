@@ -43,6 +43,14 @@
 #include "extchrs.h"
 #include <stdio.h>
 #include "_scm.h"
+#include "chars.h"
+#include "genio.h"
+#include "eval.h"
+#include "unif.h"
+#include "mbstrings.h"
+#include "kw.h"
+#include "alist.h"
+
 #include "read.h"
 
 

@@ -40,7 +40,10 @@
  */
 
 #include "_scm.h"
+#include "genio.h"
+#include "smob.h"
 
+#include "filesys.h"
 
 #ifdef TIME_WITH_SYS_TIME
 # include <sys/time.h>

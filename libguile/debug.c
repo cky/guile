@@ -21,7 +21,19 @@
 
 #include <stdio.h>
 #include "_scm.h"
+#include "eval.h"
+#include "throw.h"
+#include "genio.h"
+#include "smob.h"
+#include "procprop.h"
+#include "srcprop.h"
+#include "alist.h"
+#include "continuations.h"
+#include "strports.h"
+#include "read.h"
+#include "feature.h"
 
+#include "debug.h"
 
 
 /* {Run time control of the debugging evaluator}

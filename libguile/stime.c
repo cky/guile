@@ -42,6 +42,9 @@
 
 #include <stdio.h>
 #include "_scm.h"
+
+#include "stime.h"
+
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif

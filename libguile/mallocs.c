@@ -21,7 +21,11 @@
 
 #include <stdio.h>
 #include "_scm.h"
+#include "genio.h"
+#include "smob.h"
+
 #include "mallocs.h"
+
 #ifdef HAVE_MALLOC_H
 #include <malloc.h>
 #endif

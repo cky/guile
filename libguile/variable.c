@@ -42,7 +42,10 @@
 
 #include <stdio.h>
 #include "_scm.h"
+#include "genio.h"
+#include "smob.h"
 
+#include "variable.h"
 
 #ifdef __STDC__
 static scm_sizet

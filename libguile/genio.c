@@ -42,6 +42,9 @@
 #include "extchrs.h"
 #include <stdio.h>
 #include "_scm.h"
+#include "chars.h"
+
+#include "genio.h"
 
 #ifdef HAVE_STRING_H
 #include <string.h>

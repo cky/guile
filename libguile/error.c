@@ -42,6 +42,11 @@
 
 #include <stdio.h>
 #include "_scm.h"
+#include "pairs.h"
+#include "genio.h"
+#include "throw.h"
+
+#include "error.h"
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>

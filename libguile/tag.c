@@ -41,7 +41,10 @@
 
 #include <stdio.h>
 #include "_scm.h"
+#include "chars.h"
+#include "struct.h"
 
+#include "tag.h"
 
 
 SCM_CONST_LONG (scm_utag_immediate_integer, "utag_immediate_integer", 0);

@@ -43,6 +43,11 @@
 #include <stdio.h>
 #include <signal.h>
 #include "_scm.h"
+#include "eval.h"
+#include "throw.h"
+#include "smob.h"
+
+#include "async.h"
 
 #ifdef HAVE_STRING_H
 #include <string.h>

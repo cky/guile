@@ -42,6 +42,15 @@
 
 #include <stdio.h>
 #include "_scm.h"
+#include "chars.h"
+#include "eval.h"
+#include "genio.h"
+#include "smob.h"
+#include "sequences.h"
+#include "strop.h"
+#include "feature.h"
+
+#include "unif.h"
 #include "ramap.h"
 
 

@@ -42,7 +42,11 @@
 
 #include <stdio.h>
 #include "_scm.h"
+#include "hashtab.h"
+#include "alist.h"
+#include "weaks.h"
 
+#include "objprop.h"
 
 
 /* {Object Properties}

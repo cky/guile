@@ -42,6 +42,7 @@
 
 #include "_scm.h"
 
+#include "version.h"
 
 
 /* Return a Scheme string containing Guile's major version number.  */

@@ -42,6 +42,9 @@
 
 #include <stdio.h>
 #include "_scm.h"
+
+#include "smob.h"
+
 #ifdef HAVE_MALLOC_H
 #include <malloc.h>
 #endif

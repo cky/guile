@@ -42,6 +42,9 @@
 
 #include <stdio.h>
 #include "_scm.h"
+#include "smob.h"
+
+#include "arbiters.h"
 
 
 /* {Arbiters}

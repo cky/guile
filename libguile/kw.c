@@ -42,7 +42,11 @@
 
 #include <stdio.h>
 #include "_scm.h"
+#include "genio.h"
+#include "mbstrings.h"
+#include "smob.h"
 
+#include "kw.h"
 
 
 #ifdef __STDC__

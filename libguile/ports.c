@@ -41,7 +41,15 @@
 
 #include <stdio.h>
 #include "_scm.h"
+#include "genio.h"
+#include "chars.h"
 
+#include "markers.h"
+#include "fports.h"
+#include "strports.h"
+#include "vports.h"
+
+#include "ports.h"
 
 #ifdef HAVE_MALLOC_H
 #include <malloc.h>

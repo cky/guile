@@ -43,6 +43,8 @@
 #include <stdio.h>
 #include "_scm.h"
 
+#include "feature.h"
+
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif

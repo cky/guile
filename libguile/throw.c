@@ -42,7 +42,17 @@
 
 #include <stdio.h>
 #include "_scm.h"
+#include "genio.h"
+#include "smob.h"
+#include "alist.h"
+#include "eval.h"
+#include "dynwind.h"
+#ifdef DEBUG_EXTENSIONS
+#include "debug.h"
+#endif
+#include "continuations.h"
 
+#include "throw.h"
 
 
 

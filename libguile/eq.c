@@ -41,7 +41,12 @@
 
 #include <stdio.h>
 #include "_scm.h"
+#include "stackchk.h"
+#include "strorder.h"
+#include "smob.h"
+#include "unif.h"
 
+#include "eq.h"
 
 SCM_PROC1 (s_eq_p, "eq?", scm_tc7_rpsubr, scm_eq_p);
 #ifdef __STDC__

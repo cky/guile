@@ -41,6 +41,9 @@
 
 #include <stdio.h>
 #include "_scm.h"
+#include "eq.h"
+
+#include "list.h"
 
 #ifdef __STDC__
 #include <stdarg.h>
