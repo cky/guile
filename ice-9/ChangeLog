@@ -1,3 +1,11 @@
+Tue May 13 16:40:06 1997  Jim Blandy  <jimb@floss.cyclic.com>
+
+	* Makefile.in: Regenerated, using automake-1.1p.
+
+Tue May 13 16:40:06 1997  Jim Blandy  <jimb@floss.cyclic.com>
+
+	* Makefile.in: Regenerated, using automake-1.1p.
+
 Tue May 13 02:48:49 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* boot-9.scm (error-catching-loop): don't read a line from
