@@ -2,7 +2,8 @@ Here are some guidelines for working on the Guile source tree at GNU.
 
 - As for any part of Project GNU, changes to Guile should follow the
 GNU coding standards.  The standards are available via anonymous FTP
-from prep.ai.mit.edu; does anyone remember what the filename is?
+from prep.ai.mit.edu, as /pub/gnu/standards/standards.texi and
+make-stds.texi.
 
 - Make sure your changes compile and work, at least on your own
 machine, before checking them into the main branch of the Guile
