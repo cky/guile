@@ -1,3 +1,10 @@
+2003-11-08  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* tests/syntax.test (exception:missing-body-expr): New.
+
+	Renamed section 'define' to 'top-level define' and added a new
+	section 'internal define' with some tests.
+
 2003-11-01  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* tests/syntax.test (exception:missing/extra-expr-misc): Removed.

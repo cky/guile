@@ -28,6 +28,8 @@
   (cons 'syntax-error "Missing or extra expression"))
 (define exception:missing-expr
   (cons 'syntax-error "Missing expression"))
+(define exception:missing-body-expr
+  (cons 'syntax-error "Missing body expression"))
 (define exception:extra-expr
   (cons 'syntax-error "Extra expression"))
 (define exception:illegal-empty-combination
@@ -588,13 +590,15 @@
       (eval '(case 1 (else #f) ((1) #t))
 	    (interaction-environment)))))
 
-(with-test-prefix "define"
+(with-test-prefix "top-level define"
 
   (with-test-prefix "currying"
 
     (pass-if "(define ((foo)) #f)"
-      (define ((foo)) #t)
-      ((foo))))
+      (eval '(begin
+               (define ((foo)) #t)
+               ((foo)))
+            (interaction-environment))))
 
   (with-test-prefix "missing or extra expressions"
 
@@ -602,6 +606,47 @@
       exception:missing-expr
       (eval '(define)
 	    (interaction-environment)))))
+
+(with-test-prefix "internal define"
+
+  (pass-if "internal defines become letrec"
+    (eval '(let ((a identity) (b identity) (c identity))
+             (define (a x) (if (= x 0) 'a (b (- x 1))))
+             (define (b x) (if (= x 0) 'b (c (- x 1))))
+             (define (c x) (if (= x 0) 'c (a (- x 1))))
+             (and (eq? 'a (a 0) (a 3))
+                  (eq? 'b (a 1) (a 4))
+                  (eq? 'c (a 2) (a 5))))
+          (interaction-environment)))
+
+  (expect-fail "internal defines with begin"
+    (false-if-exception
+     (eval '(let ((a identity) (b identity) (c identity))
+              (define (a x) (if (= x 0) 'a (b (- x 1))))
+              (begin
+                (define (b x) (if (= x 0) 'b (c (- x 1)))))
+              (define (c x) (if (= x 0) 'c (a (- x 1))))
+              (and (eq? 'a (a 0) (a 3))
+                   (eq? 'b (a 1) (a 4))
+                   (eq? 'c (a 2) (a 5))))
+           (interaction-environment))))
+
+  (expect-fail "internal defines with empty begin"
+    (false-if-exception
+     (eval '(let ((a identity) (b identity) (c identity))
+              (define (a x) (if (= x 0) 'a (b (- x 1))))
+              (begin)
+              (define (b x) (if (= x 0) 'b (c (- x 1))))
+              (define (c x) (if (= x 0) 'c (a (- x 1))))
+              (and (eq? 'a (a 0) (a 3))
+                   (eq? 'b (a 1) (a 4))
+                   (eq? 'c (a 2) (a 5))))
+           (interaction-environment))))
+
+  (pass-if-exception "missing body expression"
+    exception:missing-body-expr
+    (eval '(let () (define x #t))
+          (interaction-environment))))
 
 (with-test-prefix "set!"
 

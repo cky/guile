@@ -114,6 +114,12 @@ static const char s_expression[] = "Missing or extra expression in";
  * context, a 'Missing expression' error is signalled.  */
 static const char s_missing_expression[] = "Missing expression in";
 
+/* A body may hold an arbitrary number of internal defines, followed by a
+ * non-empty sequence of expressions.  If a body with an empty sequence of
+ * expressions is detected, a 'Missing body expression' error is signalled.
+ */
+static const char s_missing_body_expression[] = "Missing body expression in";
+
 /* If a form is detected that holds more expressions than are allowed in that
  * context, an 'Extra expression' error is signalled.  */
 static const char s_extra_expression[] = "Extra expression in";
@@ -408,7 +414,6 @@ SCM_REC_MUTEX (source_mutex);
 
 
 static const char s_test[] = "bad test";
-static const char s_body[] = "bad body";
 static const char s_bindings[] = "bad bindings";
 static const char s_duplicate_bindings[] = "duplicate bindings";
 static const char s_variable[] = "bad variable";
@@ -1826,7 +1831,6 @@ SCM
 scm_m_expand_body (SCM xorig, SCM env)
 {
   SCM x = SCM_CDR (xorig), defs = SCM_EOL;
-  char *what = SCM_ISYMCHARS (SCM_CAR (xorig)) + 2;
 
   while (SCM_NIMP (x))
     {
@@ -1861,6 +1865,10 @@ scm_m_expand_body (SCM xorig, SCM env)
 	}
     }
 
+  /* FIXME: xorig is already partially memoized and does not hold information
+   * about the file location.  */
+  ASSERT_SYNTAX (SCM_CONSP (x), s_missing_body_expression, xorig);
+
   if (!SCM_NULLP (defs))
     {
       SCM rvars, inits, body, letrec;
@@ -1873,7 +1881,6 @@ scm_m_expand_body (SCM xorig, SCM env)
     }
   else
     {
-      SCM_ASSYNT (SCM_CONSP (x), s_body, what);
       SCM_SETCAR (xorig, SCM_CAR (x));
       SCM_SETCDR (xorig, SCM_CDR (x));
     }

@@ -1,3 +1,13 @@
+2003-11-08  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* eval.c (s_missing_body_expression): New static identifier.
+
+	(s_body): Removed.
+
+	(scm_m_expand_body): Fixed core dump when passing a body with
+	defines, but without expressions (see additions to syntax.test).
+	Use ASSERT_SYNTAX to signal syntax errors.
+
 2003-11-02  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* eval.c (canonicalize_define): New static helper function.
