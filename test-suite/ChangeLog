@@ -1,5 +1,7 @@
 2005-04-02  Kevin Ryde  <user42@zip.com.au>
 
+	* tests/numbers.test (round): Add some fraction cases.
+
 	* tests/srfi-1.test (lset-union): More tests.
 
 2005-03-26  Kevin Ryde  <user42@zip.com.au>
