@@ -124,11 +124,15 @@ scm_gsubr_apply(args)
   SCM v[10];			/* must agree with greatest supported arity */
   int typ = SCM_INUM(GSUBR_TYPE(self));
   int i, n = GSUBR_REQ(typ) + GSUBR_OPT(typ) + GSUBR_REST(typ);
+#if 0
+  SCM_ASSERT(n <= sizeof(v)/sizeof(SCM),
+	     self, "internal programming error", s_gsubr_apply);
+#endif
   args = SCM_CDR(args);
   for (i = 0; i < GSUBR_REQ(typ); i++) {
 #ifndef RECKLESS
     if (SCM_IMP(args))
-      scm_wrong_num_args (SCM_SNAME(GSUBR_PROC(self)));
+      wnargs: scm_wrong_num_args (SCM_SNAME(GSUBR_PROC(self)));
 #endif
     v[i] = SCM_CAR(args);
     args = SCM_CDR(args);
@@ -143,8 +147,9 @@ scm_gsubr_apply(args)
   }
   if (GSUBR_REST(typ))
     v[i] = args;
+  else
+    SCM_ASRTGO(SCM_NULLP(args), wnargs);
   switch (n) {
-  default: scm_wta(self, "internal programming error", s_gsubr_apply);
   case 2: return (*fcn)(v[0], v[1]);
   case 3: return (*fcn)(v[0], v[1], v[2]);
   case 4: return (*fcn)(v[0], v[1], v[2], v[3]);
