@@ -1,3 +1,8 @@
+2001-11-12  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* srfi-4.c: Use HAVE_LONG_LONG instead of HAVE_LONG_LONGS and test
+	it with `#ifdef' instead of `#if'.
+
 2001-11-07  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* srfi-13.c (scm_string_unfold, scm_string_unfold_right),

@@ -1,3 +1,26 @@
+2001-11-12  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* numbers.c: Document macros to define when including
+	num2integral.i.c.  MAX_VALUE and MIN_VALU are no longer used, we
+	now rely on SIZEOF_ macros that have been figured out at
+	configure time.
+
+	* num2integral.i.c: Adapt to new interface.
+	(NUM2INTEGRAL): Test whether a fixnum can be represented in the
+	target type by casting it and checking whether it is still the
+	same.  Do not try to handle bignums for integral types that are
+	smaller than fixnums.  When handling bignums, collect the
+	magnituse first into a unsigned type, and correctly check for
+	overflow.
+	(INTEGRAL2BIG): Do not use MIN_VALUE explicitely by observing that
+	only -MIN_VALUE can still be negative of all negative numbers (in
+	twos-complement).
+
+	* tags.h (SIZEOF_SCM_T_BITS): Define it appropriately. 
+
+	* __scm.h: Define HAVE_UINTPTR_T, HAVE_PTRDIFF_T and
+	HAVE_LONG_LONG depending on whether their size is non-zero.
+
 2001-11-11  Thien-Thi Nguyen  <ttn@glug.org>
 
 	* strop.c (scm_string_null_p): Docfix; nfc.
