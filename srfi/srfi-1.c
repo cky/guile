@@ -97,12 +97,39 @@ SCM_DEFINE (scm_srfi1_alist_copy, "alist-copy", 1, 0, 0,
 #undef FUNC_NAME
 
 
-/* scm_append and scm_append_x don't modify their list argument (only the
-   lists within that list in the case of scm_append_x), hence making them
-   suitable for direct use for concatentate.  */
+SCM_DEFINE (scm_srfi1_concatenate, "concatenate", 1, 0, 0,
+            (SCM lstlst),
+	    "Construct a list by appending all lists in @var{lstlst}.\n"
+	    "\n"
+	    "@code{concatenate} is the same as @code{(apply append\n"
+	    "@var{lstlst})}.  It exists because some Scheme implementations\n"
+	    "have a limit on the number of arguments a function takes, which\n"
+	    "the @code{apply} might exceed.  In Guile there is no such\n"
+	    "limit.")
+#define FUNC_NAME s_scm_srfi1_concatenate
+{
+  SCM_VALIDATE_LIST (SCM_ARG1, lstlst);
+  return scm_append (lstlst);
+}
+#undef FUNC_NAME
 
-SCM_REGISTER_PROC (s_srfi1_concatenate,   "concatenate",  1, 0, 0, scm_append);
-SCM_REGISTER_PROC (s_srfi1_concatenate_x, "concatenate!", 1, 0, 0, scm_append_x);
+
+SCM_DEFINE (scm_srfi1_concatenate_x, "concatenate!", 1, 0, 0,
+            (SCM lstlst),
+	    "Construct a list by appending all lists in @var{lstlst}.  Those\n"
+	    "lists may be modified to produce the result.\n"
+	    "\n"
+	    "@code{concatenate!} is the same as @code{(apply append!\n"
+	    "@var{lstlst})}.  It exists because some Scheme implementations\n"
+	    "have a limit on the number of arguments a function takes, which\n"
+	    "the @code{apply} might exceed.  In Guile there is no such\n"
+	    "limit.")
+#define FUNC_NAME s_scm_srfi1_concatenate
+{
+  SCM_VALIDATE_LIST (SCM_ARG1, lstlst);
+  return scm_append_x (lstlst);
+}
+#undef FUNC_NAME
 
 
 SCM_DEFINE (scm_srfi1_count, "count", 2, 0, 1,
