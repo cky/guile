@@ -143,7 +143,8 @@ scm_i_clonebig (SCM src_big, int same_sign_p)
   /* Copy src_big's value, negate it if same_sign_p is false, and return. */
   SCM z = scm_double_cell (scm_tc16_big, 0, 0, 0);
   mpz_init_set (SCM_I_BIG_MPZ (z), SCM_I_BIG_MPZ (src_big));
-  if (!same_sign_p) mpz_neg (SCM_I_BIG_MPZ (z), SCM_I_BIG_MPZ (z));
+  if (!same_sign_p)
+    mpz_neg (SCM_I_BIG_MPZ (z), SCM_I_BIG_MPZ (z));
   return z;
 }
 
@@ -194,8 +195,10 @@ SCM_DEFINE (scm_exact_p, "exact?", 1, 0, 0,
 	    "otherwise.")
 #define FUNC_NAME s_scm_exact_p
 {
-  if (SCM_INUMP (x)) return SCM_BOOL_T;
-  if (SCM_BIGP (x)) return SCM_BOOL_T;
+  if (SCM_INUMP (x))
+    return SCM_BOOL_T;
+  if (SCM_BIGP (x))
+    return SCM_BOOL_T;
   return SCM_BOOL_F;
 }
 #undef FUNC_NAME
@@ -207,18 +210,21 @@ SCM_DEFINE (scm_odd_p, "odd?", 1, 0, 0,
 	    "otherwise.")
 #define FUNC_NAME s_scm_odd_p
 {
-  if (SCM_INUMP (n)) {
-    long val = SCM_INUM (n);
-    return SCM_BOOL ((val & 1L) != 0);
-  } else if (SCM_BIGP (n)) {
-    int odd_p = mpz_odd_p (SCM_I_BIG_MPZ (n));
-    scm_remember_upto_here_1 (n);
-    return SCM_BOOL (odd_p);
-  } else if (scm_inf_p (n)) {
+  if (SCM_INUMP (n))
+    {
+      long val = SCM_INUM (n);
+      return SCM_BOOL ((val & 1L) != 0);
+    }
+  else if (SCM_BIGP (n))
+    {
+      int odd_p = mpz_odd_p (SCM_I_BIG_MPZ (n));
+      scm_remember_upto_here_1 (n);
+      return SCM_BOOL (odd_p);
+    }
+  else if (!SCM_FALSEP (scm_inf_p (n)))
     return SCM_BOOL_T;
-  } else {
+  else
     SCM_WRONG_TYPE_ARG (1, n);
-  }
 }
 #undef FUNC_NAME
 
@@ -229,18 +235,21 @@ SCM_DEFINE (scm_even_p, "even?", 1, 0, 0,
 	    "otherwise.")
 #define FUNC_NAME s_scm_even_p
 {
-  if (SCM_INUMP (n)) {
-    long val = SCM_INUM (n);
-    return SCM_BOOL ((val & 1L) == 0);
-  } else if (SCM_BIGP (n)) {
-    int even_p = mpz_even_p (SCM_I_BIG_MPZ (n));
-    scm_remember_upto_here_1 (n);
-    return SCM_BOOL (even_p);
-  } else if (scm_inf_p (n)) {
+  if (SCM_INUMP (n))
+    {
+      long val = SCM_INUM (n);
+      return SCM_BOOL ((val & 1L) == 0);
+    }
+  else if (SCM_BIGP (n))
+    {
+      int even_p = mpz_even_p (SCM_I_BIG_MPZ (n));
+      scm_remember_upto_here_1 (n);
+      return SCM_BOOL (even_p);
+    }
+  else if (!SCM_FALSEP (scm_inf_p (n)))
     return SCM_BOOL_T;
-  } else {
+  else
     SCM_WRONG_TYPE_ARG (1, n);
-  }
 }
 #undef FUNC_NAME
 
@@ -272,14 +281,13 @@ SCM_DEFINE (scm_inf_p, "inf?", 1, 0, 0,
 	    "otherwise.")
 #define FUNC_NAME s_scm_inf_p
 {
-  if (SCM_REALP (n)) {
+  if (SCM_REALP (n))
     return SCM_BOOL (xisinf (SCM_REAL_VALUE (n)));
-  } else if (SCM_COMPLEXP (n)) {
+  else if (SCM_COMPLEXP (n))
     return SCM_BOOL (xisinf (SCM_COMPLEX_REAL (n))
 		     || xisinf (SCM_COMPLEX_IMAG (n)));
-  } else {
+  else
     return SCM_BOOL_F;
-  }
 }
 #undef FUNC_NAME
 
@@ -289,14 +297,13 @@ SCM_DEFINE (scm_nan_p, "nan?", 1, 0, 0,
 	    "otherwise.")
 #define FUNC_NAME s_scm_nan_p
 {
-  if (SCM_REALP (n)) {
+  if (SCM_REALP (n))
     return SCM_BOOL (xisnan (SCM_REAL_VALUE (n)));
-  } else if (SCM_COMPLEXP (n)) {
+  else if (SCM_COMPLEXP (n))
     return SCM_BOOL (xisnan (SCM_COMPLEX_REAL (n))
 		     || xisnan (SCM_COMPLEX_IMAG (n)));
-  } else {
+  else
     return SCM_BOOL_F;
-  }
 }
 #undef FUNC_NAME
 
@@ -367,7 +374,7 @@ SCM_DEFINE (scm_nan, "nan", 0, 0, 0,
 #define FUNC_NAME s_scm_nan
 {
   static int initialized = 0;
-  if (! initialized)
+  if (!initialized)
     {
       guile_ieee_init ();
       initialized = 1;
@@ -382,27 +389,28 @@ SCM_PRIMITIVE_GENERIC (scm_abs, "abs", 1, 0, 0,
 		       "Return the absolute value of @var{x}.")
 #define FUNC_NAME
 {
-  if (SCM_INUMP (x)) {
-    long int xx = SCM_INUM (x);
-    if (xx >= 0) {
-      return x;
-    } else if (SCM_POSFIXABLE (-xx)) {
-      return SCM_MAKINUM (-xx);
-    } else {
-      return scm_i_long2big (-xx);
+  if (SCM_INUMP (x))
+    {
+      long int xx = SCM_INUM (x);
+      if (xx >= 0)
+	return x;
+      else if (SCM_POSFIXABLE (-xx))
+	return SCM_MAKINUM (-xx);
+      else
+	return scm_i_long2big (-xx);
     }
-  } else if (SCM_BIGP (x)) {
-    const int sgn = mpz_sgn (SCM_I_BIG_MPZ (x));
-    if (sgn < 0) {
-      return scm_i_clonebig (x, 0);
-    } else {
-      return x;
+  else if (SCM_BIGP (x))
+    {
+      const int sgn = mpz_sgn (SCM_I_BIG_MPZ (x));
+      if (sgn < 0)
+	return scm_i_clonebig (x, 0);
+      else
+	return x;
     }
-  } else if (SCM_REALP (x)) {
+  else if (SCM_REALP (x))
     return scm_make_real (fabs (SCM_REAL_VALUE (x)));
-  } else {
+  else
     SCM_WTA_DISPATCH_1 (g_scm_abs, x, 1, s_scm_abs);
-  }
 }
 #undef FUNC_NAME
 
@@ -413,63 +421,74 @@ SCM_GPROC (s_quotient, "quotient", 2, 0, 0, scm_quotient, g_quotient);
 SCM
 scm_quotient (SCM x, SCM y)
 {
-  if (SCM_INUMP (x)) {
-    long xx = SCM_INUM (x);
-    if (SCM_INUMP (y)) {
-      long yy = SCM_INUM (y);
-      if (yy == 0) {
-	scm_num_overflow (s_quotient);
-      } else {
-	long z = xx / yy;
-	if (SCM_FIXABLE (z)) {
-	  return SCM_MAKINUM (z);
-	} else {
-	  return scm_i_long2big (z);
-	}
-      }
-    } else if (SCM_BIGP (y)) {
-      if ((SCM_INUM (x) == SCM_MOST_NEGATIVE_FIXNUM)
-	  && (scm_i_bigcmp (abs_most_negative_fixnum, y) == 0))
+  if (SCM_INUMP (x))
+    {
+      long xx = SCM_INUM (x);
+      if (SCM_INUMP (y))
 	{
-	  /* Special case:  x == fixnum-min && y == abs (fixnum-min) */
-	  return SCM_MAKINUM (-1);
+	  long yy = SCM_INUM (y);
+	  if (yy == 0)
+	    scm_num_overflow (s_quotient);
+	  else
+	    {
+	      long z = xx / yy;
+	      if (SCM_FIXABLE (z))
+		return SCM_MAKINUM (z);
+	      else
+		return scm_i_long2big (z);
+	    }
+	}
+      else if (SCM_BIGP (y))
+	{
+	  if ((SCM_INUM (x) == SCM_MOST_NEGATIVE_FIXNUM)
+	      && (scm_i_bigcmp (abs_most_negative_fixnum, y) == 0))
+	    /* Special case:  x == fixnum-min && y == abs (fixnum-min) */
+	    return SCM_MAKINUM (-1);
+	  else
+	    return SCM_MAKINUM (0);
 	}
       else
-	return SCM_MAKINUM (0);
-    } else {
-      SCM_WTA_DISPATCH_2 (g_quotient, x, y, SCM_ARG2, s_quotient);
+	SCM_WTA_DISPATCH_2 (g_quotient, x, y, SCM_ARG2, s_quotient);
     }
-  } else if (SCM_BIGP (x)) {
-    if (SCM_INUMP (y)) {
-      long yy = SCM_INUM (y);
-      if (yy == 0) {
-	scm_num_overflow (s_quotient);
-      } else if (yy == 1) {
-	return x;
-      } else {
-        SCM result = scm_i_mkbig ();
-        if (yy < 0) {
-          mpz_tdiv_q_ui (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (x), - yy);
-          mpz_neg(SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (result));
-        } else {
-          mpz_tdiv_q_ui (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (x), yy);
-        }
-        scm_remember_upto_here_1 (x);
-        return scm_i_normbig (result);
-      }
-    } else if (SCM_BIGP (y)) {
-      SCM result = scm_i_mkbig ();
-      mpz_tdiv_q(SCM_I_BIG_MPZ (result),
-                 SCM_I_BIG_MPZ (x),
-                 SCM_I_BIG_MPZ (y));
-      scm_remember_upto_here_2 (x, y);
-      return scm_i_normbig (result);
-    } else {
-      SCM_WTA_DISPATCH_2 (g_quotient, x, y, SCM_ARG2, s_quotient);
+  else if (SCM_BIGP (x))
+    {
+      if (SCM_INUMP (y))
+	{
+	  long yy = SCM_INUM (y);
+	  if (yy == 0)
+	    scm_num_overflow (s_quotient);
+	  else if (yy == 1)
+	    return x;
+	  else
+	    {
+	      SCM result = scm_i_mkbig ();
+	      if (yy < 0)
+		{
+		  mpz_tdiv_q_ui (SCM_I_BIG_MPZ (result),
+				 SCM_I_BIG_MPZ (x),
+				 - yy);
+		  mpz_neg (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (result));
+		}
+	      else
+		mpz_tdiv_q_ui (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (x), yy);
+	      scm_remember_upto_here_1 (x);
+	      return scm_i_normbig (result);
+	    }
+	}
+      else if (SCM_BIGP (y))
+	{
+	  SCM result = scm_i_mkbig ();
+	  mpz_tdiv_q (SCM_I_BIG_MPZ (result),
+		      SCM_I_BIG_MPZ (x),
+		      SCM_I_BIG_MPZ (y));
+	  scm_remember_upto_here_2 (x, y);
+	  return scm_i_normbig (result);
+	}
+      else
+	SCM_WTA_DISPATCH_2 (g_quotient, x, y, SCM_ARG2, s_quotient);
     }
-  } else {
+  else
     SCM_WTA_DISPATCH_2 (g_quotient, x, y, SCM_ARG1, s_quotient);
-  }
 }
 
 SCM_GPROC (s_remainder, "remainder", 2, 0, 0, scm_remainder, g_remainder);
@@ -482,52 +501,62 @@ SCM_GPROC (s_remainder, "remainder", 2, 0, 0, scm_remainder, g_remainder);
 SCM
 scm_remainder (SCM x, SCM y)
 {
-  if (SCM_INUMP (x)) {
-    if (SCM_INUMP (y)) {
-      long yy = SCM_INUM (y);
-      if (yy == 0) {
-	scm_num_overflow (s_remainder);
-      } else {
-	long z = SCM_INUM (x) % yy;
-	return SCM_MAKINUM (z);
-      }
-    } else if (SCM_BIGP (y)) {
-      if ((SCM_INUM (x) == SCM_MOST_NEGATIVE_FIXNUM)
-	  && (scm_i_bigcmp (abs_most_negative_fixnum, y) == 0))
+  if (SCM_INUMP (x))
+    {
+      if (SCM_INUMP (y))
 	{
-	  /* Special case:  x == fixnum-min && y == abs (fixnum-min) */
-	  return SCM_MAKINUM (0);
+	  long yy = SCM_INUM (y);
+	  if (yy == 0)
+	    scm_num_overflow (s_remainder);
+	  else
+	    {
+	      long z = SCM_INUM (x) % yy;
+	      return SCM_MAKINUM (z);
+	    }
+	}
+      else if (SCM_BIGP (y))
+	{
+	  if ((SCM_INUM (x) == SCM_MOST_NEGATIVE_FIXNUM)
+	      && (scm_i_bigcmp (abs_most_negative_fixnum, y) == 0))
+	    /* Special case:  x == fixnum-min && y == abs (fixnum-min) */
+	    return SCM_MAKINUM (0);
+	  else
+	    return x;
 	}
       else
-	return x;
-    } else {
-      SCM_WTA_DISPATCH_2 (g_remainder, x, y, SCM_ARG2, s_remainder);
+	SCM_WTA_DISPATCH_2 (g_remainder, x, y, SCM_ARG2, s_remainder);
     }
-  } else if (SCM_BIGP (x)) {
-    if (SCM_INUMP (y)) {
-      long yy = SCM_INUM (y);
-      if (yy == 0) {
-	scm_num_overflow (s_remainder);
-      } else {
-        SCM result = scm_i_mkbig ();
-        if (yy < 0) yy = - yy;
-        mpz_tdiv_r_ui(SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ(x), yy);
-        scm_remember_upto_here_1(x);
-        return scm_i_normbig (result);
-      }
-    } else if (SCM_BIGP (y)) {
-      SCM result = scm_i_mkbig ();
-      mpz_tdiv_r (SCM_I_BIG_MPZ (result),
-                  SCM_I_BIG_MPZ (x),
-                  SCM_I_BIG_MPZ (y));
-      scm_remember_upto_here_2(x, y);
-      return scm_i_normbig (result);
-    } else {
-      SCM_WTA_DISPATCH_2 (g_remainder, x, y, SCM_ARG2, s_remainder);
+  else if (SCM_BIGP (x))
+    {
+      if (SCM_INUMP (y))
+	{
+	  long yy = SCM_INUM (y);
+	  if (yy == 0)
+	    scm_num_overflow (s_remainder);
+	  else
+	    {
+	      SCM result = scm_i_mkbig ();
+	      if (yy < 0)
+		yy = - yy;
+	      mpz_tdiv_r_ui (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ(x), yy);
+	      scm_remember_upto_here_1 (x);
+	      return scm_i_normbig (result);
+	    }
+	}
+      else if (SCM_BIGP (y))
+	{
+	  SCM result = scm_i_mkbig ();
+	  mpz_tdiv_r (SCM_I_BIG_MPZ (result),
+		      SCM_I_BIG_MPZ (x),
+		      SCM_I_BIG_MPZ (y));
+	  scm_remember_upto_here_2 (x, y);
+	  return scm_i_normbig (result);
+	}
+      else
+	SCM_WTA_DISPATCH_2 (g_remainder, x, y, SCM_ARG2, s_remainder);
     }
-  } else {
+  else
     SCM_WTA_DISPATCH_2 (g_remainder, x, y, SCM_ARG1, s_remainder);
-  }
 }
 
 
@@ -541,109 +570,133 @@ SCM_GPROC (s_modulo, "modulo", 2, 0, 0, scm_modulo, g_modulo);
 SCM
 scm_modulo (SCM x, SCM y)
 {
-  if (SCM_INUMP (x)) {
-    long xx = SCM_INUM (x);
-    if (SCM_INUMP (y)) {
-      long yy = SCM_INUM (y);
-      if (yy == 0) {
-	scm_num_overflow (s_modulo);
-      } else {
-        /* FIXME: I think this may be a bug on some arches -- results
-           of % with negative second arg are undefined... */
-	long z = xx % yy;
-        long result;
+  if (SCM_INUMP (x))
+    {
+      long xx = SCM_INUM (x);
+      if (SCM_INUMP (y))
+	{
+	  long yy = SCM_INUM (y);
+	  if (yy == 0)
+	    scm_num_overflow (s_modulo);
+	  else
+	    {
+	      /* FIXME: I think this may be a bug on some arches -- results
+		 of % with negative second arg are undefined... */
+	      long z = xx % yy;
+	      long result;
 
-        if (yy < 0) {
-          if (z > 0) result = z + yy;
-          else result = z;
-        } else {
-          if (z < 0) result = z + yy;
-          else result = z;
-        }
-        return SCM_MAKINUM (result);
-      }
-    } else if (SCM_BIGP (y)) {
-      int sgn_y = mpz_sgn (SCM_I_BIG_MPZ (y));
+	      if (yy < 0)
+		{
+		  if (z > 0)
+		    result = z + yy;
+		  else
+		    result = z;
+		}
+	      else
+		{
+		  if (z < 0)
+		    result = z + yy;
+		  else
+		    result = z;
+		}
+	      return SCM_MAKINUM (result);
+	    }
+	}
+      else if (SCM_BIGP (y))
+	{
+	  int sgn_y = mpz_sgn (SCM_I_BIG_MPZ (y));
 
-      if (sgn_y == 0) {
-	scm_num_overflow (s_modulo);
-      } else {
-        mpz_t z_x;
-        SCM result;
+	  if (sgn_y == 0)
+	    scm_num_overflow (s_modulo);
+	  else
+	    {
+	      mpz_t z_x;
+	      SCM result;
 
-        if (sgn_y < 0) {
-          SCM pos_y = scm_i_clonebig (y, 0);
-          /* do this after the last scm_op */
-          mpz_init_set_si (z_x, xx);
-          result = pos_y; /* re-use this bignum */
-          mpz_mod (SCM_I_BIG_MPZ (result), z_x, SCM_I_BIG_MPZ (pos_y));        
-          scm_remember_upto_here_1 (pos_y);
-        } else {
-          result = scm_i_mkbig ();
-          /* do this after the last scm_op */
-          mpz_init_set_si (z_x, xx);
-          mpz_mod (SCM_I_BIG_MPZ (result), z_x, SCM_I_BIG_MPZ (y));        
-          scm_remember_upto_here_1 (y);
-        }
+	      if (sgn_y < 0)
+		{
+		  SCM pos_y = scm_i_clonebig (y, 0);
+		  /* do this after the last scm_op */
+		  mpz_init_set_si (z_x, xx);
+		  result = pos_y; /* re-use this bignum */
+		  mpz_mod (SCM_I_BIG_MPZ (result),
+			   z_x,
+			   SCM_I_BIG_MPZ (pos_y));        
+		  scm_remember_upto_here_1 (pos_y);
+		}
+	      else
+		{
+		  result = scm_i_mkbig ();
+		  /* do this after the last scm_op */
+		  mpz_init_set_si (z_x, xx);
+		  mpz_mod (SCM_I_BIG_MPZ (result),
+			   z_x,
+			   SCM_I_BIG_MPZ (y));        
+		  scm_remember_upto_here_1 (y);
+		}
         
-        if ((sgn_y < 0) && mpz_sgn (SCM_I_BIG_MPZ (result)) != 0) {
-          mpz_add (SCM_I_BIG_MPZ (result),
-                   SCM_I_BIG_MPZ (y),
-                   SCM_I_BIG_MPZ (result));
-        }
-        scm_remember_upto_here_1 (y);
-        /* and do this before the next one */
-        mpz_clear (z_x);
-        return scm_i_normbig (result);
-      }
-    } else {
-      SCM_WTA_DISPATCH_2 (g_modulo, x, y, SCM_ARG2, s_modulo);
+	      if ((sgn_y < 0) && mpz_sgn (SCM_I_BIG_MPZ (result)) != 0)
+		mpz_add (SCM_I_BIG_MPZ (result),
+			 SCM_I_BIG_MPZ (y),
+			 SCM_I_BIG_MPZ (result));
+	      scm_remember_upto_here_1 (y);
+	      /* and do this before the next one */
+	      mpz_clear (z_x);
+	      return scm_i_normbig (result);
+	    }
+	}
+      else
+	SCM_WTA_DISPATCH_2 (g_modulo, x, y, SCM_ARG2, s_modulo);
     }
-  } else if (SCM_BIGP (x)) {
-    if (SCM_INUMP (y)) {
-      long yy = SCM_INUM (y);
-      if (yy == 0) {
-	scm_num_overflow (s_modulo);
-      } else {
-        SCM result = scm_i_mkbig ();
-        mpz_mod_ui (SCM_I_BIG_MPZ (result),
-                    SCM_I_BIG_MPZ (x),
-                    (yy < 0) ? - yy : yy);
-        scm_remember_upto_here_1 (x);
-        if ((yy < 0) && (mpz_sgn (SCM_I_BIG_MPZ (result)) != 0)) {
-          mpz_sub_ui (SCM_I_BIG_MPZ (result),
-                      SCM_I_BIG_MPZ (result),
-                      - yy);
-        }
-        return scm_i_normbig (result);
-      }
-    } else if (SCM_BIGP (y)) {
-      int sgn_y = mpz_sgn (SCM_I_BIG_MPZ (y));
-      if (sgn_y == 0) {
-	scm_num_overflow (s_modulo);
-      } else {
-        SCM result = scm_i_mkbig ();
-        int y_sgn = mpz_sgn (SCM_I_BIG_MPZ (y));
-        SCM pos_y = scm_i_clonebig (y, y_sgn >= 0);
-        mpz_mod (SCM_I_BIG_MPZ (result),
-                 SCM_I_BIG_MPZ (x),
-                 SCM_I_BIG_MPZ (pos_y));
+  else if (SCM_BIGP (x))
+    {
+      if (SCM_INUMP (y))
+	{
+	  long yy = SCM_INUM (y);
+	  if (yy == 0)
+	    scm_num_overflow (s_modulo);
+	  else
+	    {
+	      SCM result = scm_i_mkbig ();
+	      mpz_mod_ui (SCM_I_BIG_MPZ (result),
+			  SCM_I_BIG_MPZ (x),
+			  (yy < 0) ? - yy : yy);
+	      scm_remember_upto_here_1 (x);
+	      if ((yy < 0) && (mpz_sgn (SCM_I_BIG_MPZ (result)) != 0))
+		mpz_sub_ui (SCM_I_BIG_MPZ (result),
+			    SCM_I_BIG_MPZ (result),
+			    - yy);
+	      return scm_i_normbig (result);
+	    }
+	}
+      else if (SCM_BIGP (y))
+	{
+	  int sgn_y = mpz_sgn (SCM_I_BIG_MPZ (y));
+	  if (sgn_y == 0)
+	    scm_num_overflow (s_modulo);
+	  else
+	    {
+	      SCM result = scm_i_mkbig ();
+	      int y_sgn = mpz_sgn (SCM_I_BIG_MPZ (y));
+	      SCM pos_y = scm_i_clonebig (y, y_sgn >= 0);
+	      mpz_mod (SCM_I_BIG_MPZ (result),
+		       SCM_I_BIG_MPZ (x),
+		       SCM_I_BIG_MPZ (pos_y));
         
-        scm_remember_upto_here_1 (x);
-        if ((y_sgn < 0) && (mpz_sgn (SCM_I_BIG_MPZ (result)) != 0)) {
-          mpz_add (SCM_I_BIG_MPZ (result),
-                   SCM_I_BIG_MPZ (y),
-                   SCM_I_BIG_MPZ (result));
-        }
-        scm_remember_upto_here_2 (y, pos_y);
-        return scm_i_normbig (result);
-      }
-    } else {
-      SCM_WTA_DISPATCH_2 (g_modulo, x, y, SCM_ARG2, s_modulo);
+	      scm_remember_upto_here_1 (x);
+	      if ((y_sgn < 0) && (mpz_sgn (SCM_I_BIG_MPZ (result)) != 0))
+		mpz_add (SCM_I_BIG_MPZ (result),
+			 SCM_I_BIG_MPZ (y),
+			 SCM_I_BIG_MPZ (result));
+	      scm_remember_upto_here_2 (y, pos_y);
+	      return scm_i_normbig (result);
+	    }
+	}
+      else
+	SCM_WTA_DISPATCH_2 (g_modulo, x, y, SCM_ARG2, s_modulo);
     }
-  } else {
+  else
     SCM_WTA_DISPATCH_2 (g_modulo, x, y, SCM_ARG1, s_modulo);
-  }
 }
 
 SCM_GPROC1 (s_gcd, "gcd", scm_tc7_asubr, scm_gcd, g_gcd);
@@ -654,7 +707,7 @@ SCM
 scm_gcd (SCM x, SCM y)
 {
   if (SCM_UNBNDP (y))
-    return (SCM_UNBNDP (x)) ? SCM_INUM0 : x;
+    return SCM_UNBNDP (x) ? SCM_INUM0 : x;
   
   if (SCM_INUMP (x))
     {
@@ -665,51 +718,55 @@ scm_gcd (SCM x, SCM y)
           long u = xx < 0 ? -xx : xx;
           long v = yy < 0 ? -yy : yy;
           long result;
-          if (xx == 0) {
-            result = v;
-          } else if (yy == 0) {
-            result = u;
-          } else {
-            long k = 1;
-            long t;
-            /* Determine a common factor 2^k */
-            while (!(1 & (u | v)))
-              {
-                k <<= 1;
-                u >>= 1;
-                v >>= 1;
-              }
-            /* Now, any factor 2^n can be eliminated */
-            if (u & 1)
-              t = -v;
-            else
-              {
-                t = u;
-              b3:
-                t = SCM_SRS (t, 1);
-              }
-            if (!(1 & t))
-              goto b3;
-            if (t > 0)
-              u = t;
-            else
-              v = -t;
-            t = u - v;
-            if (t != 0)
-              goto b3;
-            result = u * k;
-          }
-          return SCM_POSFIXABLE (result) \
-            ? SCM_MAKINUM (result) : scm_i_long2big (result);
+          if (xx == 0)
+	    result = v;
+	  else if (yy == 0)
+	    result = u;
+	  else
+	    {
+	      long k = 1;
+	      long t;
+	      /* Determine a common factor 2^k */
+	      while (!(1 & (u | v)))
+		{
+		  k <<= 1;
+		  u >>= 1;
+		  v >>= 1;
+		}
+	      /* Now, any factor 2^n can be eliminated */
+	      if (u & 1)
+		t = -v;
+	      else
+		{
+		  t = u;
+		b3:
+		  t = SCM_SRS (t, 1);
+		}
+	      if (!(1 & t))
+		goto b3;
+	      if (t > 0)
+		u = t;
+	      else
+		v = -t;
+	      t = u - v;
+	      if (t != 0)
+		goto b3;
+	      result = u * k;
+	    }
+          return (SCM_POSFIXABLE (result)
+		  ? SCM_MAKINUM (result)
+		  : scm_i_long2big (result));
         }
       else if (SCM_BIGP (y))
         {
           SCM result = scm_i_mkbig ();
           SCM mx = scm_i_mkbig ();
-          mpz_set_si(SCM_I_BIG_MPZ (mx), SCM_INUM (x));
+          mpz_set_si (SCM_I_BIG_MPZ (mx), SCM_INUM (x));
           scm_remember_upto_here_1 (x);
-          mpz_gcd(SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (mx), SCM_I_BIG_MPZ (y));
-          scm_remember_upto_here_2(mx, y);
+          mpz_gcd (SCM_I_BIG_MPZ (result),
+		   SCM_I_BIG_MPZ (mx),
+		   SCM_I_BIG_MPZ (y));
+          scm_remember_upto_here_2 (mx, y);
           return scm_i_normbig (result);
         }
       else
@@ -723,19 +780,21 @@ scm_gcd (SCM x, SCM y)
           long yy = SCM_INUM (y);
           if (yy == 0)
             return scm_abs (x);
-          if (yy < 0) yy = -yy;
+          if (yy < 0)
+	    yy = -yy;
           result = mpz_gcd_ui (NULL, SCM_I_BIG_MPZ (x), yy);
           scm_remember_upto_here_1 (x);
-          return SCM_POSFIXABLE (result) \
-            ? SCM_MAKINUM (result) : scm_ulong2num (result); 
+          return (SCM_POSFIXABLE (result) 
+		  ? SCM_MAKINUM (result)
+		  : scm_ulong2num (result));
         }
       else if (SCM_BIGP (y))
         {
           SCM result = scm_i_mkbig ();
-          mpz_gcd(SCM_I_BIG_MPZ (result),
-                  SCM_I_BIG_MPZ (x),
-                  SCM_I_BIG_MPZ (y));
-          scm_remember_upto_here_2(x, y);
+          mpz_gcd (SCM_I_BIG_MPZ (result),
+		   SCM_I_BIG_MPZ (x),
+		   SCM_I_BIG_MPZ (y));
+          scm_remember_upto_here_2 (x, y);
           return scm_i_normbig (result);
         }
       else
@@ -864,56 +923,66 @@ SCM_DEFINE1 (scm_logand, "logand", scm_tc7_asubr,
 {
   long int nn1;
 
-  if (SCM_UNBNDP (n2)) {
-    if (SCM_UNBNDP (n1)) {
-      return SCM_MAKINUM (-1);
-    } else if (!SCM_NUMBERP (n1)) {
-      SCM_WRONG_TYPE_ARG (SCM_ARG1, n1);
-    } else if (SCM_NUMBERP (n1)) {
-      return n1;
-    } else {
-      SCM_WRONG_TYPE_ARG (SCM_ARG1, n1);
+  if (SCM_UNBNDP (n2))
+    {
+      if (SCM_UNBNDP (n1))
+	return SCM_MAKINUM (-1);
+      else if (!SCM_NUMBERP (n1))
+	SCM_WRONG_TYPE_ARG (SCM_ARG1, n1);
+      else if (SCM_NUMBERP (n1))
+	return n1;
+      else
+	SCM_WRONG_TYPE_ARG (SCM_ARG1, n1);
     }
-  }
 
-  if (SCM_INUMP (n1)) {
-    nn1 = SCM_INUM (n1);
-    if (SCM_INUMP (n2)) {
-      long nn2 = SCM_INUM (n2);
-      return SCM_MAKINUM (nn1 & nn2);
-    } else if SCM_BIGP (n2) {
-    intbig: 
-      if (n1 == 0) return SCM_INUM0;
-      {
-        SCM result_z = scm_i_mkbig ();
-        mpz_t nn1_z;
-        mpz_init_set_si (nn1_z, nn1);
-        mpz_and (SCM_I_BIG_MPZ (result_z), nn1_z, SCM_I_BIG_MPZ (n2));
-        scm_remember_upto_here_1 (n2);
-        mpz_clear (nn1_z);
-        return scm_i_normbig (result_z);
-      }
-    } else {
-      SCM_WRONG_TYPE_ARG (SCM_ARG2, n2);
-    }
-  } else if (SCM_BIGP (n1)) {
-    if (SCM_INUMP (n2)) {
-      SCM_SWAP (n1, n2);
+  if (SCM_INUMP (n1))
+    {
       nn1 = SCM_INUM (n1);
-      goto intbig;
-    } else if (SCM_BIGP (n2)) {
-      SCM result_z = scm_i_mkbig ();
-      mpz_and (SCM_I_BIG_MPZ (result_z),
-               SCM_I_BIG_MPZ (n1),
-               SCM_I_BIG_MPZ (n2));
-      scm_remember_upto_here_2 (n1, n2);
-      return scm_i_normbig (result_z);
-    } else {
-      SCM_WRONG_TYPE_ARG (SCM_ARG2, n2);
+      if (SCM_INUMP (n2))
+	{
+	  long nn2 = SCM_INUM (n2);
+	  return SCM_MAKINUM (nn1 & nn2);
+	}
+      else if SCM_BIGP (n2)
+	{
+	intbig: 
+	  if (n1 == 0)
+	    return SCM_INUM0;
+	  {
+	    SCM result_z = scm_i_mkbig ();
+	    mpz_t nn1_z;
+	    mpz_init_set_si (nn1_z, nn1);
+	    mpz_and (SCM_I_BIG_MPZ (result_z), nn1_z, SCM_I_BIG_MPZ (n2));
+	    scm_remember_upto_here_1 (n2);
+	    mpz_clear (nn1_z);
+	    return scm_i_normbig (result_z);
+	  }
+	}
+      else
+	SCM_WRONG_TYPE_ARG (SCM_ARG2, n2);
     }
-  } else {
+  else if (SCM_BIGP (n1))
+    {
+      if (SCM_INUMP (n2))
+	{
+	  SCM_SWAP (n1, n2);
+	  nn1 = SCM_INUM (n1);
+	  goto intbig;
+	}
+      else if (SCM_BIGP (n2))
+	{
+	  SCM result_z = scm_i_mkbig ();
+	  mpz_and (SCM_I_BIG_MPZ (result_z),
+		   SCM_I_BIG_MPZ (n1),
+		   SCM_I_BIG_MPZ (n2));
+	  scm_remember_upto_here_2 (n1, n2);
+	  return scm_i_normbig (result_z);
+	}
+      else
+	SCM_WRONG_TYPE_ARG (SCM_ARG2, n2);
+    }
+  else
     SCM_WRONG_TYPE_ARG (SCM_ARG1, n1);
-  }
 }
 #undef FUNC_NAME
 
@@ -930,54 +999,64 @@ SCM_DEFINE1 (scm_logior, "logior", scm_tc7_asubr,
 {
   long int nn1;
 
-  if (SCM_UNBNDP (n2)) {
-    if (SCM_UNBNDP (n1)) {
-      return SCM_INUM0;
-    } else if (SCM_NUMBERP (n1)) {
-      return n1;
-    } else {
-      SCM_WRONG_TYPE_ARG (SCM_ARG1, n1);
+  if (SCM_UNBNDP (n2))
+    {
+      if (SCM_UNBNDP (n1))
+	return SCM_INUM0;
+      else if (SCM_NUMBERP (n1))
+	return n1;
+      else
+	SCM_WRONG_TYPE_ARG (SCM_ARG1, n1);
     }
-  }
 
-  if (SCM_INUMP (n1)) {
-    nn1 = SCM_INUM (n1);
-    if (SCM_INUMP (n2)) {
-      long nn2 = SCM_INUM (n2);
-      return SCM_MAKINUM (nn1 | nn2);
-    } else if (SCM_BIGP (n2)) {
-    intbig:
-      if (nn1 == 0) return n2;
-      {
-        SCM result_z = scm_i_mkbig ();
-        mpz_t nn1_z;
-        mpz_init_set_si (nn1_z, nn1);
-        mpz_ior (SCM_I_BIG_MPZ (result_z), nn1_z, SCM_I_BIG_MPZ (n2));
-        scm_remember_upto_here_1 (n2);
-        mpz_clear (nn1_z);
-        return result_z;
-      }
-    } else {
-      SCM_WRONG_TYPE_ARG (SCM_ARG2, n2);
-    }
-  } else if (SCM_BIGP (n1)) {
-    if (SCM_INUMP (n2)) {
-      SCM_SWAP (n1, n2); 
+  if (SCM_INUMP (n1))
+    {
       nn1 = SCM_INUM (n1);
-      goto intbig;
-    } else if (SCM_BIGP (n2)) {
-      SCM result_z = scm_i_mkbig ();
-      mpz_ior (SCM_I_BIG_MPZ (result_z),
-               SCM_I_BIG_MPZ (n1),
-               SCM_I_BIG_MPZ (n2));
-      scm_remember_upto_here_2 (n1, n2);
-      return result_z;
-    } else {
-      SCM_WRONG_TYPE_ARG (SCM_ARG2, n2);
+      if (SCM_INUMP (n2))
+	{
+	  long nn2 = SCM_INUM (n2);
+	  return SCM_MAKINUM (nn1 | nn2);
+	}
+      else if (SCM_BIGP (n2))
+	{
+	intbig:
+	  if (nn1 == 0)
+	    return n2;
+	  {
+	    SCM result_z = scm_i_mkbig ();
+	    mpz_t nn1_z;
+	    mpz_init_set_si (nn1_z, nn1);
+	    mpz_ior (SCM_I_BIG_MPZ (result_z), nn1_z, SCM_I_BIG_MPZ (n2));
+	    scm_remember_upto_here_1 (n2);
+	    mpz_clear (nn1_z);
+	    return result_z;
+	  }
+	}
+      else
+	SCM_WRONG_TYPE_ARG (SCM_ARG2, n2);
     }
-  } else {
+  else if (SCM_BIGP (n1))
+    {
+      if (SCM_INUMP (n2))
+	{
+	  SCM_SWAP (n1, n2); 
+	  nn1 = SCM_INUM (n1);
+	  goto intbig;
+	}
+      else if (SCM_BIGP (n2))
+	{
+	  SCM result_z = scm_i_mkbig ();
+	  mpz_ior (SCM_I_BIG_MPZ (result_z),
+		   SCM_I_BIG_MPZ (n1),
+		   SCM_I_BIG_MPZ (n2));
+	  scm_remember_upto_here_2 (n1, n2);
+	  return result_z;
+	}
+      else
+	SCM_WRONG_TYPE_ARG (SCM_ARG2, n2);
+    }
+  else
     SCM_WRONG_TYPE_ARG (SCM_ARG1, n1);
-  }
 }
 #undef FUNC_NAME
 
@@ -996,53 +1075,62 @@ SCM_DEFINE1 (scm_logxor, "logxor", scm_tc7_asubr,
 {
   long int nn1;
 
-  if (SCM_UNBNDP (n2)) {
-    if (SCM_UNBNDP (n1)) {
-      return SCM_INUM0;
-    } else if (SCM_NUMBERP (n1)) {
-      return n1;
-    } else {
-      SCM_WRONG_TYPE_ARG (SCM_ARG1, n1);
+  if (SCM_UNBNDP (n2))
+    {
+      if (SCM_UNBNDP (n1))
+	return SCM_INUM0;
+      else if (SCM_NUMBERP (n1))
+	return n1;
+      else
+	SCM_WRONG_TYPE_ARG (SCM_ARG1, n1);
     }
-  }
 
-  if (SCM_INUMP (n1)) {
-    nn1 = SCM_INUM (n1);
-    if (SCM_INUMP (n2)) {
-      long nn2 = SCM_INUM (n2);
-      return SCM_MAKINUM (nn1 ^ nn2);
-    } else if (SCM_BIGP (n2)) {
-    intbig:
-      {
-        SCM result_z = scm_i_mkbig ();
-        mpz_t nn1_z;
-        mpz_init_set_si (nn1_z, nn1);
-        mpz_xor (SCM_I_BIG_MPZ (result_z), nn1_z, SCM_I_BIG_MPZ (n2));
-        scm_remember_upto_here_1 (n2);
-        mpz_clear (nn1_z);
-        return scm_i_normbig (result_z);
-      }
-    } else {
-      SCM_WRONG_TYPE_ARG (SCM_ARG2, n2);
-    }
-  } else if (SCM_BIGP (n1)) {
-    if (SCM_INUMP (n2)) {
-      SCM_SWAP (n1, n2);
+  if (SCM_INUMP (n1))
+    {
       nn1 = SCM_INUM (n1);
-      goto intbig;
-    } else if (SCM_BIGP (n2)) {
-      SCM result_z = scm_i_mkbig ();
-      mpz_xor (SCM_I_BIG_MPZ (result_z),
-               SCM_I_BIG_MPZ (n1),
-               SCM_I_BIG_MPZ (n2));
-      scm_remember_upto_here_2 (n1, n2);
-      return scm_i_normbig (result_z);
-    } else {
-      SCM_WRONG_TYPE_ARG (SCM_ARG2, n2);
+      if (SCM_INUMP (n2))
+	{
+	  long nn2 = SCM_INUM (n2);
+	  return SCM_MAKINUM (nn1 ^ nn2);
+	}
+      else if (SCM_BIGP (n2))
+	{
+	intbig:
+	  {
+	    SCM result_z = scm_i_mkbig ();
+	    mpz_t nn1_z;
+	    mpz_init_set_si (nn1_z, nn1);
+	    mpz_xor (SCM_I_BIG_MPZ (result_z), nn1_z, SCM_I_BIG_MPZ (n2));
+	    scm_remember_upto_here_1 (n2);
+	    mpz_clear (nn1_z);
+	    return scm_i_normbig (result_z);
+	  }
+	}
+      else
+	SCM_WRONG_TYPE_ARG (SCM_ARG2, n2);
     }
-  } else {
+  else if (SCM_BIGP (n1))
+    {
+      if (SCM_INUMP (n2))
+	{
+	  SCM_SWAP (n1, n2);
+	  nn1 = SCM_INUM (n1);
+	  goto intbig;
+	}
+      else if (SCM_BIGP (n2))
+	{
+	  SCM result_z = scm_i_mkbig ();
+	  mpz_xor (SCM_I_BIG_MPZ (result_z),
+		   SCM_I_BIG_MPZ (n1),
+		   SCM_I_BIG_MPZ (n2));
+	  scm_remember_upto_here_2 (n1, n2);
+	  return scm_i_normbig (result_z);
+	}
+      else
+	SCM_WRONG_TYPE_ARG (SCM_ARG2, n2);
+    }
+  else
     SCM_WRONG_TYPE_ARG (SCM_ARG1, n1);
-  }
 }
 #undef FUNC_NAME
 
@@ -1058,49 +1146,59 @@ SCM_DEFINE (scm_logtest, "logtest", 2, 0, 0,
 {
   long int nj;
 
-  if (SCM_INUMP (j)) {
-    nj = SCM_INUM (j);
-    if (SCM_INUMP (k)) {
-      long nk = SCM_INUM (k);
-      return SCM_BOOL (nj & nk);
-    } else if (SCM_BIGP (k)) {
-    intbig: 
-      if (nj == 0) return SCM_BOOL_F;
-      {
-        SCM result;
-        mpz_t nj_z;
-        mpz_init_set_si (nj_z, nj);
-        mpz_and (nj_z, nj_z, SCM_I_BIG_MPZ (k));
-        scm_remember_upto_here_1 (k);
-        result = SCM_BOOL (mpz_sgn (nj_z) != 0);
-        mpz_clear (nj_z);
-        return result;
-      }
-    } else {
-      SCM_WRONG_TYPE_ARG (SCM_ARG2, k);
-    }
-  } else if (SCM_BIGP (j)) {
-    if (SCM_INUMP (k)) {
-      SCM_SWAP (j, k);
+  if (SCM_INUMP (j))
+    {
       nj = SCM_INUM (j);
-      goto intbig;
-    } else if (SCM_BIGP (k)) {
-      SCM result;
-      mpz_t result_z;
-      mpz_init (result_z);
-      mpz_and (result_z,
-               SCM_I_BIG_MPZ (j),
-               SCM_I_BIG_MPZ (k));
-      scm_remember_upto_here_2 (j, k);
-      result = SCM_BOOL (mpz_sgn (result_z) != 0);
-      mpz_clear (result_z);
-      return result;
-    } else {
-      SCM_WRONG_TYPE_ARG (SCM_ARG2, k);
+      if (SCM_INUMP (k))
+	{
+	  long nk = SCM_INUM (k);
+	  return SCM_BOOL (nj & nk);
+	}
+      else if (SCM_BIGP (k))
+	{
+	intbig: 
+	  if (nj == 0)
+	    return SCM_BOOL_F;
+	  {
+	    SCM result;
+	    mpz_t nj_z;
+	    mpz_init_set_si (nj_z, nj);
+	    mpz_and (nj_z, nj_z, SCM_I_BIG_MPZ (k));
+	    scm_remember_upto_here_1 (k);
+	    result = SCM_BOOL (mpz_sgn (nj_z) != 0);
+	    mpz_clear (nj_z);
+	    return result;
+	  }
+	}
+      else
+	SCM_WRONG_TYPE_ARG (SCM_ARG2, k);
     }
-  } else {
+  else if (SCM_BIGP (j))
+    {
+      if (SCM_INUMP (k))
+	{
+	  SCM_SWAP (j, k);
+	  nj = SCM_INUM (j);
+	  goto intbig;
+	}
+      else if (SCM_BIGP (k))
+	{
+	  SCM result;
+	  mpz_t result_z;
+	  mpz_init (result_z);
+	  mpz_and (result_z,
+		   SCM_I_BIG_MPZ (j),
+		   SCM_I_BIG_MPZ (k));
+	  scm_remember_upto_here_2 (j, k);
+	  result = SCM_BOOL (mpz_sgn (result_z) != 0);
+	  mpz_clear (result_z);
+	  return result;
+	}
+      else
+	SCM_WRONG_TYPE_ARG (SCM_ARG2, k);
+    }
+  else
     SCM_WRONG_TYPE_ARG (SCM_ARG1, j);
-  }
 }
 #undef FUNC_NAME
 
@@ -1122,15 +1220,16 @@ SCM_DEFINE (scm_logbit_p, "logbit?", 2, 0, 0,
   SCM_VALIDATE_INUM_MIN (SCM_ARG1, index, 0);
   iindex = (unsigned long int) SCM_INUM (index);
 
-  if (SCM_INUMP (j)) {
+  if (SCM_INUMP (j))
     return SCM_BOOL ((1L << iindex) & SCM_INUM (j));
-  } else if (SCM_BIGP (j)) {
-    int val = mpz_tstbit (SCM_I_BIG_MPZ (j), iindex);
-    scm_remember_upto_here_1 (j);
-    return SCM_BOOL (val);
-  } else {
+  else if (SCM_BIGP (j))
+    {
+      int val = mpz_tstbit (SCM_I_BIG_MPZ (j), iindex);
+      scm_remember_upto_here_1 (j);
+      return SCM_BOOL (val);
+    }
+  else
     SCM_WRONG_TYPE_ARG (SCM_ARG2, j);
-  }
 }
 #undef FUNC_NAME
 
@@ -1316,48 +1415,48 @@ SCM_DEFINE (scm_bit_extract, "bit-extract", 3, 0, 0,
   SCM_VALIDATE_INUM_MIN_COPY (3, end, 0, iend);
   SCM_ASSERT_RANGE (3, end, (iend >= istart));
 
-  if (SCM_INUMP (n)) {
-    long int in = SCM_INUM (n);
-    unsigned long int bits = iend - istart;
-
-    if (in < 0 && bits >= SCM_I_FIXNUM_BIT)
-      {
-	/* Since we emulate two's complement encoded numbers, this special
-	 * case requires us to produce a result that has more bits than can be
-	 * stored in a fixnum.  Thus, we fall back to the more general
-	 * algorithm that is used for bignums.  
-	 */
-	goto generalcase;
-      }
-
-    if (istart < SCM_I_FIXNUM_BIT)
-      {
-	in = in >> istart;
-	if (bits < SCM_I_FIXNUM_BIT)
-	  return SCM_MAKINUM (in & ((1L << bits) - 1));
-	else /* we know: in >= 0 */
-	  return SCM_MAKINUM (in);
-      }
-    else if (in < 0)
-      {
-	return SCM_MAKINUM (-1L & ((1L << bits) - 1));
-      }
-    else
-      {
-	return SCM_MAKINUM (0);
-      }
-  } else if (SCM_BIGP (n)) {
-  generalcase:
+  if (SCM_INUMP (n))
     {
-      SCM num1 = SCM_MAKINUM (1L);
-      SCM num2 = SCM_MAKINUM (2L);
-      SCM bits = SCM_MAKINUM (iend - istart);
-      SCM mask  = scm_difference (scm_integer_expt (num2, bits), num1);
-      return scm_logand (mask, scm_ash (n, SCM_MAKINUM (-istart)));
+      long int in = SCM_INUM (n);
+      unsigned long int bits = iend - istart;
+
+      if (in < 0 && bits >= SCM_I_FIXNUM_BIT)
+	{
+	  /* Since we emulate two's complement encoded numbers, this
+	   * special case requires us to produce a result that has
+	   * more bits than can be stored in a fixnum.  Thus, we fall
+	   * back to the more general algorithm that is used for
+	   * bignums.
+	   */
+	  goto generalcase;
+	}
+
+      if (istart < SCM_I_FIXNUM_BIT)
+	{
+	  in = in >> istart;
+	  if (bits < SCM_I_FIXNUM_BIT)
+	    return SCM_MAKINUM (in & ((1L << bits) - 1));
+	  else /* we know: in >= 0 */
+	    return SCM_MAKINUM (in);
+	}
+      else if (in < 0)
+	return SCM_MAKINUM (-1L & ((1L << bits) - 1));
+      else
+	return SCM_MAKINUM (0);
     }
-  } else {
+  else if (SCM_BIGP (n))
+    {
+    generalcase:
+      {
+	SCM num1 = SCM_MAKINUM (1L);
+	SCM num2 = SCM_MAKINUM (2L);
+	SCM bits = SCM_MAKINUM (iend - istart);
+	SCM mask  = scm_difference (scm_integer_expt (num2, bits), num1);
+	return scm_logand (mask, scm_ash (n, SCM_MAKINUM (-istart)));
+      }
+    }
+  else
     SCM_WRONG_TYPE_ARG (SCM_ARG1, n);
-  }
 }
 #undef FUNC_NAME
 
@@ -1430,33 +1529,36 @@ SCM_DEFINE (scm_integer_length, "integer-length", 1, 0, 0,
 	    "@end lisp")
 #define FUNC_NAME s_scm_integer_length
 {
-  if (SCM_INUMP (n)) {
-    unsigned long int c = 0;
-    unsigned int l = 4;
-    long int nn = SCM_INUM (n);
-    if (nn < 0) {
-      nn = -1 - nn;
-    };
-    while (nn) {
-      c += 4;
-      l = scm_ilentab [15 & nn];
-      nn >>= 4;
-    };
-    return SCM_MAKINUM (c - 4 + l);
-  } else if (SCM_BIGP (n)) {
-    /* mpz_sizeinbase looks at the absolute value of negatives, whereas we
-       want a ones-complement.  If n is ...111100..00 then mpz_sizeinbase is
-       1 too big, so check for that and adjust.  */
-    size_t size = mpz_sizeinbase (SCM_I_BIG_MPZ (n), 2);
-    if (mpz_sgn (SCM_I_BIG_MPZ (n)) < 0
-        && mpz_scan0 (SCM_I_BIG_MPZ (n),  /* no 0 bits above the lowest 1 */
-                      mpz_scan1 (SCM_I_BIG_MPZ (n), 0)) == ULONG_MAX)
-      size--;
-    scm_remember_upto_here_1 (n);
-    return SCM_MAKINUM (size);
-  } else {
+  if (SCM_INUMP (n))
+    {
+      unsigned long int c = 0;
+      unsigned int l = 4;
+      long int nn = SCM_INUM (n);
+      if (nn < 0)
+	nn = -1 - nn;
+      while (nn)
+	{
+	  c += 4;
+	  l = scm_ilentab [15 & nn];
+	  nn >>= 4;
+	}
+      return SCM_MAKINUM (c - 4 + l);
+    }
+  else if (SCM_BIGP (n))
+    {
+      /* mpz_sizeinbase looks at the absolute value of negatives, whereas we
+	 want a ones-complement.  If n is ...111100..00 then mpz_sizeinbase is
+	 1 too big, so check for that and adjust.  */
+      size_t size = mpz_sizeinbase (SCM_I_BIG_MPZ (n), 2);
+      if (mpz_sgn (SCM_I_BIG_MPZ (n)) < 0
+	  && mpz_scan0 (SCM_I_BIG_MPZ (n),  /* no 0 bits above the lowest 1 */
+			mpz_scan1 (SCM_I_BIG_MPZ (n), 0)) == ULONG_MAX)
+	size--;
+      scm_remember_upto_here_1 (n);
+      return SCM_MAKINUM (size);
+    }
+  else
     SCM_WRONG_TYPE_ARG (SCM_ARG1, n);
-  }
 }
 #undef FUNC_NAME
 
@@ -1696,29 +1798,35 @@ SCM_DEFINE (scm_number_to_string, "number->string", 1, 1, 0,
 {
   int base;
 
-  if (SCM_UNBNDP (radix)) {
+  if (SCM_UNBNDP (radix))
     base = 10;
-  } else {
-    SCM_VALIDATE_INUM (2, radix);
-    base = SCM_INUM (radix);
-    /* FIXME: ask if range limit was OK, and if so, document */
-    SCM_ASSERT_RANGE (2, radix, (base >= 2) && (base <= 36));
-  }
+  else
+    {
+      SCM_VALIDATE_INUM (2, radix);
+      base = SCM_INUM (radix);
+      /* FIXME: ask if range limit was OK, and if so, document */
+      SCM_ASSERT_RANGE (2, radix, (base >= 2) && (base <= 36));
+    }
 
-  if (SCM_INUMP (n)) {
-    char num_buf [SCM_INTBUFLEN];
-    size_t length = scm_iint2str (SCM_INUM (n), base, num_buf);
-    return scm_mem2string (num_buf, length);
-  } else if (SCM_BIGP (n)) {
-    char *str = mpz_get_str (NULL, base, SCM_I_BIG_MPZ (n));
-    scm_remember_upto_here_1 (n);
-    return scm_take0str (str);
-  } else if (SCM_INEXACTP (n)) {
-    char num_buf [FLOBUFLEN];
-    return scm_mem2string (num_buf, iflo2str (n, num_buf));
-  } else {
+  if (SCM_INUMP (n))
+    {
+      char num_buf [SCM_INTBUFLEN];
+      size_t length = scm_iint2str (SCM_INUM (n), base, num_buf);
+      return scm_mem2string (num_buf, length);
+    }
+  else if (SCM_BIGP (n))
+    {
+      char *str = mpz_get_str (NULL, base, SCM_I_BIG_MPZ (n));
+      scm_remember_upto_here_1 (n);
+      return scm_take0str (str);
+    }
+  else if (SCM_INEXACTP (n))
+    {
+      char num_buf [FLOBUFLEN];
+      return scm_mem2string (num_buf, iflo2str (n, num_buf));
+    }
+  else
     SCM_WRONG_TYPE_ARG (1, n);
-  }
 }
 #undef FUNC_NAME
 
@@ -2382,16 +2490,17 @@ scm_make_real (double x)
 SCM
 scm_make_complex (double x, double y)
 {
-  if (y == 0.0) {
+  if (y == 0.0)
     return scm_make_real (x);
-  } else {
-    SCM z;
-    SCM_NEWSMOB (z, scm_tc16_complex, scm_gc_malloc (2*sizeof (double),
-						     "complex"));
-    SCM_COMPLEX_REAL (z) = x;
-    SCM_COMPLEX_IMAG (z) = y;
-    return z;
-  }
+  else
+    {
+      SCM z;
+      SCM_NEWSMOB (z, scm_tc16_complex, scm_gc_malloc (2*sizeof (double),
+						       "complex"));
+      SCM_COMPLEX_REAL (z) = x;
+      SCM_COMPLEX_IMAG (z) = y;
+      return z;
+    }
 }
 
 
@@ -2454,17 +2563,16 @@ SCM_DEFINE (scm_real_p, "rational?", 1, 0, 0,
 	    "precision.")
 #define FUNC_NAME s_scm_real_p
 {
-  if (SCM_INUMP (x)) {
+  if (SCM_INUMP (x))
     return SCM_BOOL_T;
-  } else if (SCM_IMP (x)) {
+  else if (SCM_IMP (x))
     return SCM_BOOL_F;
-  } else if (SCM_REALP (x)) {
+  else if (SCM_REALP (x))
     return SCM_BOOL_T;
-  } else if (SCM_BIGP (x)) {
+  else if (SCM_BIGP (x))
     return SCM_BOOL_T;
-  } else {
+  else
     return SCM_BOOL_F;
-  }
 }
 #undef FUNC_NAME
 
@@ -2510,84 +2618,105 @@ SCM_GPROC1 (s_eq_p, "=", scm_tc7_rpsubr, scm_num_eq_p, g_eq_p);
 SCM
 scm_num_eq_p (SCM x, SCM y)
 {
-  if (SCM_INUMP (x)) {
-    long xx = SCM_INUM (x);
-    if (SCM_INUMP (y)) {
-      long yy = SCM_INUM (y);
-      return SCM_BOOL (xx == yy);
-    } else if (SCM_BIGP (y)) {
-      return SCM_BOOL_F;
-    } else if (SCM_REALP (y)) {
-      return SCM_BOOL ((double) xx == SCM_REAL_VALUE (y));
-    } else if (SCM_COMPLEXP (y)) {
-      return SCM_BOOL (((double) xx == SCM_COMPLEX_REAL (y))
-		       && (0.0 == SCM_COMPLEX_IMAG (y)));
-    } else {
-      SCM_WTA_DISPATCH_2 (g_eq_p, x, y, SCM_ARGn, s_eq_p);
+  if (SCM_INUMP (x))
+    {
+      long xx = SCM_INUM (x);
+      if (SCM_INUMP (y))
+	{
+	  long yy = SCM_INUM (y);
+	  return SCM_BOOL (xx == yy);
+	}
+      else if (SCM_BIGP (y))
+	return SCM_BOOL_F;
+      else if (SCM_REALP (y))
+	return SCM_BOOL ((double) xx == SCM_REAL_VALUE (y));
+      else if (SCM_COMPLEXP (y))
+	return SCM_BOOL (((double) xx == SCM_COMPLEX_REAL (y))
+			 && (0.0 == SCM_COMPLEX_IMAG (y)));
+      else
+	SCM_WTA_DISPATCH_2 (g_eq_p, x, y, SCM_ARGn, s_eq_p);
     }
-  } else if (SCM_BIGP (x)) {
-    if (SCM_INUMP (y)) {
-      return SCM_BOOL_F;
-    } else if (SCM_BIGP (y)) {
-      int cmp = mpz_cmp (SCM_I_BIG_MPZ (x), SCM_I_BIG_MPZ (y));
-      scm_remember_upto_here_2 (x, y);
-      return SCM_BOOL (0 == cmp);
-    } else if (SCM_REALP (y)) {
-      int cmp;
-      if (xisnan (SCM_REAL_VALUE (y))) return SCM_BOOL_F;
-      cmp = xmpz_cmp_d (SCM_I_BIG_MPZ (x), SCM_REAL_VALUE (y));
-      scm_remember_upto_here_1 (x);
-      return SCM_BOOL (0 == cmp);
-    } else if (SCM_COMPLEXP (y)) {
-      int cmp;
-      if (0.0 != SCM_COMPLEX_IMAG (y)) return SCM_BOOL_F;
-      if (xisnan (SCM_COMPLEX_REAL (y))) return SCM_BOOL_F;
-      cmp = xmpz_cmp_d (SCM_I_BIG_MPZ (x), SCM_COMPLEX_REAL (y));
-      scm_remember_upto_here_1 (x);
-      return SCM_BOOL (0 == cmp);
-    } else {
-      SCM_WTA_DISPATCH_2 (g_eq_p, x, y, SCM_ARGn, s_eq_p);
+  else if (SCM_BIGP (x))
+    {
+      if (SCM_INUMP (y))
+	return SCM_BOOL_F;
+      else if (SCM_BIGP (y))
+	{
+	  int cmp = mpz_cmp (SCM_I_BIG_MPZ (x), SCM_I_BIG_MPZ (y));
+	  scm_remember_upto_here_2 (x, y);
+	  return SCM_BOOL (0 == cmp);
+	}
+      else if (SCM_REALP (y))
+	{
+	  int cmp;
+	  if (xisnan (SCM_REAL_VALUE (y)))
+	    return SCM_BOOL_F;
+	  cmp = xmpz_cmp_d (SCM_I_BIG_MPZ (x), SCM_REAL_VALUE (y));
+	  scm_remember_upto_here_1 (x);
+	  return SCM_BOOL (0 == cmp);
+	}
+      else if (SCM_COMPLEXP (y))
+	{
+	  int cmp;
+	  if (0.0 != SCM_COMPLEX_IMAG (y))
+	    return SCM_BOOL_F;
+	  if (xisnan (SCM_COMPLEX_REAL (y)))
+	    return SCM_BOOL_F;
+	  cmp = xmpz_cmp_d (SCM_I_BIG_MPZ (x), SCM_COMPLEX_REAL (y));
+	  scm_remember_upto_here_1 (x);
+	  return SCM_BOOL (0 == cmp);
+	}
+      else
+	SCM_WTA_DISPATCH_2 (g_eq_p, x, y, SCM_ARGn, s_eq_p);
     }
-  } else if (SCM_REALP (x)) {
-    if (SCM_INUMP (y)) {
-      return SCM_BOOL (SCM_REAL_VALUE (x) == (double) SCM_INUM (y));
-    } else if (SCM_BIGP (y)) {
-      int cmp;
-      if (xisnan (SCM_REAL_VALUE (x))) return SCM_BOOL_F;
-      cmp = xmpz_cmp_d (SCM_I_BIG_MPZ (y), SCM_REAL_VALUE (x));
-      scm_remember_upto_here_1 (y);
-      return SCM_BOOL (0 == cmp);
-    } else if (SCM_REALP (y)) {
-      return SCM_BOOL (SCM_REAL_VALUE (x) == SCM_REAL_VALUE (y));
-    } else if (SCM_COMPLEXP (y)) {
-      return SCM_BOOL ((SCM_REAL_VALUE (x) == SCM_COMPLEX_REAL (y))
-		       && (0.0 == SCM_COMPLEX_IMAG (y)));
-    } else {
-      SCM_WTA_DISPATCH_2 (g_eq_p, x, y, SCM_ARGn, s_eq_p);
+  else if (SCM_REALP (x))
+    {
+      if (SCM_INUMP (y))
+	return SCM_BOOL (SCM_REAL_VALUE (x) == (double) SCM_INUM (y));
+      else if (SCM_BIGP (y))
+	{
+	  int cmp;
+	  if (xisnan (SCM_REAL_VALUE (x)))
+	    return SCM_BOOL_F;
+	  cmp = xmpz_cmp_d (SCM_I_BIG_MPZ (y), SCM_REAL_VALUE (x));
+	  scm_remember_upto_here_1 (y);
+	  return SCM_BOOL (0 == cmp);
+	}
+      else if (SCM_REALP (y))
+	return SCM_BOOL (SCM_REAL_VALUE (x) == SCM_REAL_VALUE (y));
+      else if (SCM_COMPLEXP (y))
+	return SCM_BOOL ((SCM_REAL_VALUE (x) == SCM_COMPLEX_REAL (y))
+			 && (0.0 == SCM_COMPLEX_IMAG (y)));
+      else
+	SCM_WTA_DISPATCH_2 (g_eq_p, x, y, SCM_ARGn, s_eq_p);
     }
-  } else if (SCM_COMPLEXP (x)) {
-    if (SCM_INUMP (y)) {
-      return SCM_BOOL ((SCM_COMPLEX_REAL (x) == (double) SCM_INUM (y))
-		       && (SCM_COMPLEX_IMAG (x) == 0.0));
-    } else if (SCM_BIGP (y)) {
-      int cmp;
-      if (0.0 != SCM_COMPLEX_IMAG (x)) return SCM_BOOL_F;
-      if (xisnan (SCM_COMPLEX_REAL (x))) return SCM_BOOL_F;
-      cmp = xmpz_cmp_d (SCM_I_BIG_MPZ (y), SCM_COMPLEX_REAL (x));
-      scm_remember_upto_here_1 (y);
-      return SCM_BOOL (0 == cmp);
-    } else if (SCM_REALP (y)) {
-      return SCM_BOOL ((SCM_COMPLEX_REAL (x) == SCM_REAL_VALUE (y))
-		       && (SCM_COMPLEX_IMAG (x) == 0.0));
-    } else if (SCM_COMPLEXP (y)) {
-      return SCM_BOOL ((SCM_COMPLEX_REAL (x) == SCM_COMPLEX_REAL (y))
-		       && (SCM_COMPLEX_IMAG (x) == SCM_COMPLEX_IMAG (y)));
-    } else {
-      SCM_WTA_DISPATCH_2 (g_eq_p, x, y, SCM_ARGn, s_eq_p);
+  else if (SCM_COMPLEXP (x))
+    {
+      if (SCM_INUMP (y))
+	return SCM_BOOL ((SCM_COMPLEX_REAL (x) == (double) SCM_INUM (y))
+			 && (SCM_COMPLEX_IMAG (x) == 0.0));
+      else if (SCM_BIGP (y))
+	{
+	  int cmp;
+	  if (0.0 != SCM_COMPLEX_IMAG (x))
+	    return SCM_BOOL_F;
+	  if (xisnan (SCM_COMPLEX_REAL (x)))
+	    return SCM_BOOL_F;
+	  cmp = xmpz_cmp_d (SCM_I_BIG_MPZ (y), SCM_COMPLEX_REAL (x));
+	  scm_remember_upto_here_1 (y);
+	  return SCM_BOOL (0 == cmp);
+	}
+      else if (SCM_REALP (y))
+	return SCM_BOOL ((SCM_COMPLEX_REAL (x) == SCM_REAL_VALUE (y))
+			 && (SCM_COMPLEX_IMAG (x) == 0.0));
+      else if (SCM_COMPLEXP (y))
+	return SCM_BOOL ((SCM_COMPLEX_REAL (x) == SCM_COMPLEX_REAL (y))
+			 && (SCM_COMPLEX_IMAG (x) == SCM_COMPLEX_IMAG (y)));
+      else
+	SCM_WTA_DISPATCH_2 (g_eq_p, x, y, SCM_ARGn, s_eq_p);
     }
-  } else {
+  else
     SCM_WTA_DISPATCH_2 (g_eq_p, x, y, SCM_ARG1, s_eq_p);
-  }
 }
 
 
@@ -2598,55 +2727,71 @@ SCM_GPROC1 (s_less_p, "<", scm_tc7_rpsubr, scm_less_p, g_less_p);
 SCM
 scm_less_p (SCM x, SCM y)
 {
-  if (SCM_INUMP (x)) {
-    long xx = SCM_INUM (x);
-    if (SCM_INUMP (y)) {
-      long yy = SCM_INUM (y);
-      return SCM_BOOL (xx < yy);
-    } else if (SCM_BIGP (y)) {
-      int sgn = mpz_sgn (SCM_I_BIG_MPZ (y));
-      scm_remember_upto_here_1 (y);
-      return SCM_BOOL (sgn > 0);
-    } else if (SCM_REALP (y)) {
-      return SCM_BOOL ((double) xx < SCM_REAL_VALUE (y));
-    } else {
-      SCM_WTA_DISPATCH_2 (g_less_p, x, y, SCM_ARGn, s_less_p);
+  if (SCM_INUMP (x))
+    {
+      long xx = SCM_INUM (x);
+      if (SCM_INUMP (y))
+	{
+	  long yy = SCM_INUM (y);
+	  return SCM_BOOL (xx < yy);
+	}
+      else if (SCM_BIGP (y))
+	{
+	  int sgn = mpz_sgn (SCM_I_BIG_MPZ (y));
+	  scm_remember_upto_here_1 (y);
+	  return SCM_BOOL (sgn > 0);
+	}
+      else if (SCM_REALP (y))
+	return SCM_BOOL ((double) xx < SCM_REAL_VALUE (y));
+      else
+	SCM_WTA_DISPATCH_2 (g_less_p, x, y, SCM_ARGn, s_less_p);
     }
-  } else if (SCM_BIGP (x)) {
-    if (SCM_INUMP (y)) {
-      int sgn = mpz_sgn (SCM_I_BIG_MPZ (x));
-      scm_remember_upto_here_1 (x);
-      return SCM_BOOL (sgn < 0);
-    } else if (SCM_BIGP (y)) {
-      int cmp = mpz_cmp (SCM_I_BIG_MPZ (x), SCM_I_BIG_MPZ (y));
-      scm_remember_upto_here_2 (x, y);
-      return SCM_BOOL (cmp < 0);
-    } else if (SCM_REALP (y)) {
-      int cmp;
-      if (xisnan (SCM_REAL_VALUE (y))) return SCM_BOOL_F;
-      cmp = xmpz_cmp_d (SCM_I_BIG_MPZ (x), SCM_REAL_VALUE (y));
-      scm_remember_upto_here_1 (x);
-      return SCM_BOOL (cmp < 0);
-    } else {
-      SCM_WTA_DISPATCH_2 (g_less_p, x, y, SCM_ARGn, s_less_p);
+  else if (SCM_BIGP (x))
+    {
+      if (SCM_INUMP (y))
+	{
+	  int sgn = mpz_sgn (SCM_I_BIG_MPZ (x));
+	  scm_remember_upto_here_1 (x);
+	  return SCM_BOOL (sgn < 0);
+	}
+      else if (SCM_BIGP (y))
+	{
+	  int cmp = mpz_cmp (SCM_I_BIG_MPZ (x), SCM_I_BIG_MPZ (y));
+	  scm_remember_upto_here_2 (x, y);
+	  return SCM_BOOL (cmp < 0);
+	}
+      else if (SCM_REALP (y))
+	{
+	  int cmp;
+	  if (xisnan (SCM_REAL_VALUE (y)))
+	    return SCM_BOOL_F;
+	  cmp = xmpz_cmp_d (SCM_I_BIG_MPZ (x), SCM_REAL_VALUE (y));
+	  scm_remember_upto_here_1 (x);
+	  return SCM_BOOL (cmp < 0);
+	}
+      else
+	SCM_WTA_DISPATCH_2 (g_less_p, x, y, SCM_ARGn, s_less_p);
     }
-  } else if (SCM_REALP (x)) {
-    if (SCM_INUMP (y)) {
-      return SCM_BOOL (SCM_REAL_VALUE (x) < (double) SCM_INUM (y));
-    } else if (SCM_BIGP (y)) {
-      int cmp;
-      if (xisnan (SCM_REAL_VALUE (x))) return SCM_BOOL_F;
-      cmp = xmpz_cmp_d (SCM_I_BIG_MPZ (y), SCM_REAL_VALUE (x));
-      scm_remember_upto_here_1 (y);
-      return SCM_BOOL (cmp > 0);
-    } else if (SCM_REALP (y)) {
-      return SCM_BOOL (SCM_REAL_VALUE (x) < SCM_REAL_VALUE (y));
-    } else {
-      SCM_WTA_DISPATCH_2 (g_less_p, x, y, SCM_ARGn, s_less_p);
+  else if (SCM_REALP (x))
+    {
+      if (SCM_INUMP (y))
+	return SCM_BOOL (SCM_REAL_VALUE (x) < (double) SCM_INUM (y));
+      else if (SCM_BIGP (y))
+	{
+	  int cmp;
+	  if (xisnan (SCM_REAL_VALUE (x)))
+	    return SCM_BOOL_F;
+	  cmp = xmpz_cmp_d (SCM_I_BIG_MPZ (y), SCM_REAL_VALUE (x));
+	  scm_remember_upto_here_1 (y);
+	  return SCM_BOOL (cmp > 0);
+	}
+      else if (SCM_REALP (y))
+	return SCM_BOOL (SCM_REAL_VALUE (x) < SCM_REAL_VALUE (y));
+      else
+	SCM_WTA_DISPATCH_2 (g_less_p, x, y, SCM_ARGn, s_less_p);
     }
-  } else {
+  else
     SCM_WTA_DISPATCH_2 (g_less_p, x, y, SCM_ARG1, s_less_p);
-  }
 }
 
 
@@ -2715,18 +2860,17 @@ SCM_GPROC (s_zero_p, "zero?", 1, 0, 0, scm_zero_p, g_zero_p);
 SCM
 scm_zero_p (SCM z)
 {
-  if (SCM_INUMP (z)) {
+  if (SCM_INUMP (z))
     return SCM_BOOL (SCM_EQ_P (z, SCM_INUM0));
-  } else if (SCM_BIGP (z)) {
+  else if (SCM_BIGP (z))
     return SCM_BOOL_F;
-  } else if (SCM_REALP (z)) {
+  else if (SCM_REALP (z))
     return SCM_BOOL (SCM_REAL_VALUE (z) == 0.0);
-  } else if (SCM_COMPLEXP (z)) {
+  else if (SCM_COMPLEXP (z))
     return SCM_BOOL (SCM_COMPLEX_REAL (z) == 0.0
 		     && SCM_COMPLEX_IMAG (z) == 0.0);
-  } else {
+  else
     SCM_WTA_DISPATCH_1 (g_zero_p, z, SCM_ARG1, s_zero_p);
-  }
 }
 
 
@@ -2737,17 +2881,18 @@ SCM_GPROC (s_positive_p, "positive?", 1, 0, 0, scm_positive_p, g_positive_p);
 SCM
 scm_positive_p (SCM x)
 {
-  if (SCM_INUMP (x)) {
+  if (SCM_INUMP (x))
     return SCM_BOOL (SCM_INUM (x) > 0);
-  } else if (SCM_BIGP (x)) {
-    int sgn = mpz_sgn (SCM_I_BIG_MPZ (x));
-    scm_remember_upto_here_1 (x);
-    return SCM_BOOL (sgn > 0);
-  } else if (SCM_REALP (x)) {
+  else if (SCM_BIGP (x))
+    {
+      int sgn = mpz_sgn (SCM_I_BIG_MPZ (x));
+      scm_remember_upto_here_1 (x);
+      return SCM_BOOL (sgn > 0);
+    }
+  else if (SCM_REALP (x))
     return SCM_BOOL(SCM_REAL_VALUE (x) > 0.0);
-  } else {
+  else
     SCM_WTA_DISPATCH_1 (g_positive_p, x, SCM_ARG1, s_positive_p);
-  }
 }
 
 
@@ -2758,17 +2903,18 @@ SCM_GPROC (s_negative_p, "negative?", 1, 0, 0, scm_negative_p, g_negative_p);
 SCM
 scm_negative_p (SCM x)
 {
-  if (SCM_INUMP (x)) {
+  if (SCM_INUMP (x))
     return SCM_BOOL (SCM_INUM (x) < 0);
-  } else if (SCM_BIGP (x)) {
-    int sgn = mpz_sgn (SCM_I_BIG_MPZ (x));
-    scm_remember_upto_here_1 (x);
-    return SCM_BOOL (sgn < 0);
-  } else if (SCM_REALP (x)) {
+  else if (SCM_BIGP (x))
+    {
+      int sgn = mpz_sgn (SCM_I_BIG_MPZ (x));
+      scm_remember_upto_here_1 (x);
+      return SCM_BOOL (sgn < 0);
+    }
+  else if (SCM_REALP (x))
     return SCM_BOOL(SCM_REAL_VALUE (x) < 0.0);
-  } else {
+  else
     SCM_WTA_DISPATCH_1 (g_negative_p, x, SCM_ARG1, s_negative_p);
-  }
 }
 
 
@@ -2778,78 +2924,98 @@ SCM_GPROC1 (s_max, "max", scm_tc7_asubr, scm_max, g_max);
 SCM
 scm_max (SCM x, SCM y)
 {
-  if (SCM_UNBNDP (y)) {
-    if (SCM_UNBNDP (x)) {
-      SCM_WTA_DISPATCH_0 (g_max, s_max);
-    } else if (SCM_NUMBERP (x)) {
-      return x;
-    } else {
-      SCM_WTA_DISPATCH_1 (g_max, x, SCM_ARG1, s_max);
+  if (SCM_UNBNDP (y))
+    {
+      if (SCM_UNBNDP (x))
+	SCM_WTA_DISPATCH_0 (g_max, s_max);
+      else if (SCM_NUMBERP (x))
+	return x;
+      else
+	SCM_WTA_DISPATCH_1 (g_max, x, SCM_ARG1, s_max);
     }
-  }
   
-  if (SCM_INUMP (x)) {
-    long xx = SCM_INUM (x);
-    if (SCM_INUMP (y)) {
-      long yy = SCM_INUM (y);
-      return (xx < yy) ? y : x;
-    } else if (SCM_BIGP (y)) {
-      int sgn = mpz_sgn (SCM_I_BIG_MPZ (y));
-      scm_remember_upto_here_1 (y);
-      return (sgn < 0) ? x : y;
-    } else if (SCM_REALP (y)) {
-      double z = xx;
-      /* if y==NaN then ">" is false and we return NaN */
-      return (z > SCM_REAL_VALUE (y)) ? scm_make_real (z) : y;
-    } else {
-      SCM_WTA_DISPATCH_2 (g_max, x, y, SCM_ARGn, s_max);
+  if (SCM_INUMP (x))
+    {
+      long xx = SCM_INUM (x);
+      if (SCM_INUMP (y))
+	{
+	  long yy = SCM_INUM (y);
+	  return (xx < yy) ? y : x;
+	}
+      else if (SCM_BIGP (y))
+	{
+	  int sgn = mpz_sgn (SCM_I_BIG_MPZ (y));
+	  scm_remember_upto_here_1 (y);
+	  return (sgn < 0) ? x : y;
+	}
+      else if (SCM_REALP (y))
+	{
+	  double z = xx;
+	  /* if y==NaN then ">" is false and we return NaN */
+	  return (z > SCM_REAL_VALUE (y)) ? scm_make_real (z) : y;
+	}
+      else
+	SCM_WTA_DISPATCH_2 (g_max, x, y, SCM_ARGn, s_max);
     }
-  } else if (SCM_BIGP (x)) {
-    if (SCM_INUMP (y)) {
-      int sgn = mpz_sgn (SCM_I_BIG_MPZ (x));
-      scm_remember_upto_here_1 (x);
-      return (sgn < 0) ? y : x;
-    } else if (SCM_BIGP (y)) {
-      int cmp = mpz_cmp (SCM_I_BIG_MPZ (x), SCM_I_BIG_MPZ (y));
-      scm_remember_upto_here_2 (x, y);
-      return (cmp > 0) ? x : y;
-    } else if (SCM_REALP (y)) {
-      double yy = SCM_REAL_VALUE (y);
-      int cmp;
-      if (xisnan (yy))
-        return y;
-      cmp = xmpz_cmp_d (SCM_I_BIG_MPZ (x), yy);
-      scm_remember_upto_here_1 (x);
-      return (cmp > 0) ? x : y;
-    } else {
-      SCM_WTA_DISPATCH_2 (g_max, x, y, SCM_ARGn, s_max);
+  else if (SCM_BIGP (x))
+    {
+      if (SCM_INUMP (y))
+	{
+	  int sgn = mpz_sgn (SCM_I_BIG_MPZ (x));
+	  scm_remember_upto_here_1 (x);
+	  return (sgn < 0) ? y : x;
+	}
+      else if (SCM_BIGP (y))
+	{
+	  int cmp = mpz_cmp (SCM_I_BIG_MPZ (x), SCM_I_BIG_MPZ (y));
+	  scm_remember_upto_here_2 (x, y);
+	  return (cmp > 0) ? x : y;
+	}
+      else if (SCM_REALP (y))
+	{
+	  double yy = SCM_REAL_VALUE (y);
+	  int cmp;
+	  if (xisnan (yy))
+	    return y;
+	  cmp = xmpz_cmp_d (SCM_I_BIG_MPZ (x), yy);
+	  scm_remember_upto_here_1 (x);
+	  return (cmp > 0) ? x : y;
+	}
+      else
+	SCM_WTA_DISPATCH_2 (g_max, x, y, SCM_ARGn, s_max);
     }
-  } else if (SCM_REALP (x)) {
-    if (SCM_INUMP (y)) {
-      double z = SCM_INUM (y);
-      /* if x==NaN then "<" is false and we return NaN */
-      return (SCM_REAL_VALUE (x) < z) ? scm_make_real (z) : x;
-    } else if (SCM_BIGP (y)) {
-      double xx = SCM_REAL_VALUE (x);
-      int cmp;
-      if (xisnan (xx))
-        return x;
-      cmp = xmpz_cmp_d (SCM_I_BIG_MPZ (y), xx);
-      scm_remember_upto_here_1 (y);
-      return (cmp < 0) ? x : y;
-    } else if (SCM_REALP (y)) {
-      /* if x==NaN then our explicit check means we return NaN
-         if y==NaN then ">" is false and we return NaN
-         calling isnan is unavoidable, since it's the only way to know
-         which of x or y causes any compares to be false */
-      double xx = SCM_REAL_VALUE (x);
-      return (xisnan (xx) || xx > SCM_REAL_VALUE (y)) ? x : y;
-    } else {
-      SCM_WTA_DISPATCH_2 (g_max, x, y, SCM_ARGn, s_max);
+  else if (SCM_REALP (x))
+    {
+      if (SCM_INUMP (y))
+	{
+	  double z = SCM_INUM (y);
+	  /* if x==NaN then "<" is false and we return NaN */
+	  return (SCM_REAL_VALUE (x) < z) ? scm_make_real (z) : x;
+	}
+      else if (SCM_BIGP (y))
+	{
+	  double xx = SCM_REAL_VALUE (x);
+	  int cmp;
+	  if (xisnan (xx))
+	    return x;
+	  cmp = xmpz_cmp_d (SCM_I_BIG_MPZ (y), xx);
+	  scm_remember_upto_here_1 (y);
+	  return (cmp < 0) ? x : y;
+	}
+      else if (SCM_REALP (y))
+	{
+	  /* if x==NaN then our explicit check means we return NaN
+	     if y==NaN then ">" is false and we return NaN
+	     calling isnan is unavoidable, since it's the only way to know
+	     which of x or y causes any compares to be false */
+	  double xx = SCM_REAL_VALUE (x);
+	  return (xisnan (xx) || xx > SCM_REAL_VALUE (y)) ? x : y;
+	}
+      else
+	SCM_WTA_DISPATCH_2 (g_max, x, y, SCM_ARGn, s_max);
     }
-  } else {
+  else
     SCM_WTA_DISPATCH_2 (g_max, x, y, SCM_ARG1, s_max);
-  }
 }
 
 
@@ -2859,78 +3025,98 @@ SCM_GPROC1 (s_min, "min", scm_tc7_asubr, scm_min, g_min);
 SCM
 scm_min (SCM x, SCM y)
 {
-  if (SCM_UNBNDP (y)) {
-    if (SCM_UNBNDP (x)) {
-      SCM_WTA_DISPATCH_0 (g_min, s_min);
-    } else if (SCM_NUMBERP (x)) {
-      return x;
-    } else {
-      SCM_WTA_DISPATCH_1 (g_min, x, SCM_ARG1, s_min);
+  if (SCM_UNBNDP (y))
+    {
+      if (SCM_UNBNDP (x))
+	SCM_WTA_DISPATCH_0 (g_min, s_min);
+      else if (SCM_NUMBERP (x))
+	return x;
+      else
+	SCM_WTA_DISPATCH_1 (g_min, x, SCM_ARG1, s_min);
     }
-  }
   
-  if (SCM_INUMP (x)) {
-    long xx = SCM_INUM (x);
-    if (SCM_INUMP (y)) {
-      long yy = SCM_INUM (y);
-      return (xx < yy) ? x : y;
-    } else if (SCM_BIGP (y)) {
-      int sgn = mpz_sgn (SCM_I_BIG_MPZ (y));
-      scm_remember_upto_here_1 (y);
-      return (sgn < 0) ? y : x;
-    } else if (SCM_REALP (y)) {
-      double z = xx;
-      /* if y==NaN then "<" is false and we return NaN */
-      return (z < SCM_REAL_VALUE (y)) ? scm_make_real (z) : y;
-    } else {
-      SCM_WTA_DISPATCH_2 (g_min, x, y, SCM_ARGn, s_min);
+  if (SCM_INUMP (x))
+    {
+      long xx = SCM_INUM (x);
+      if (SCM_INUMP (y))
+	{
+	  long yy = SCM_INUM (y);
+	  return (xx < yy) ? x : y;
+	}
+      else if (SCM_BIGP (y))
+	{
+	  int sgn = mpz_sgn (SCM_I_BIG_MPZ (y));
+	  scm_remember_upto_here_1 (y);
+	  return (sgn < 0) ? y : x;
+	}
+      else if (SCM_REALP (y))
+	{
+	  double z = xx;
+	  /* if y==NaN then "<" is false and we return NaN */
+	  return (z < SCM_REAL_VALUE (y)) ? scm_make_real (z) : y;
+	}
+      else
+	SCM_WTA_DISPATCH_2 (g_min, x, y, SCM_ARGn, s_min);
     }
-  } else if (SCM_BIGP (x)) {
-    if (SCM_INUMP (y)) {
-      int sgn = mpz_sgn (SCM_I_BIG_MPZ (x));
-      scm_remember_upto_here_1 (x);
-      return (sgn < 0) ? x : y;
-    } else if (SCM_BIGP (y)) {
-      int cmp = mpz_cmp (SCM_I_BIG_MPZ (x), SCM_I_BIG_MPZ (y));
-      scm_remember_upto_here_2 (x, y);
-      return (cmp > 0) ? y : x;
-    } else if (SCM_REALP (y)) {
-      double yy = SCM_REAL_VALUE (y);
-      int cmp;
-      if (xisnan (yy))
-        return y;
-      cmp = xmpz_cmp_d (SCM_I_BIG_MPZ (x), yy);
-      scm_remember_upto_here_1 (x);
-      return (cmp > 0) ? y : x;
-    } else {
-      SCM_WTA_DISPATCH_2 (g_min, x, y, SCM_ARGn, s_min);
+  else if (SCM_BIGP (x))
+    {
+      if (SCM_INUMP (y))
+	{
+	  int sgn = mpz_sgn (SCM_I_BIG_MPZ (x));
+	  scm_remember_upto_here_1 (x);
+	  return (sgn < 0) ? x : y;
+	}
+      else if (SCM_BIGP (y))
+	{
+	  int cmp = mpz_cmp (SCM_I_BIG_MPZ (x), SCM_I_BIG_MPZ (y));
+	  scm_remember_upto_here_2 (x, y);
+	  return (cmp > 0) ? y : x;
+	}
+      else if (SCM_REALP (y))
+	{
+	  double yy = SCM_REAL_VALUE (y);
+	  int cmp;
+	  if (xisnan (yy))
+	    return y;
+	  cmp = xmpz_cmp_d (SCM_I_BIG_MPZ (x), yy);
+	  scm_remember_upto_here_1 (x);
+	  return (cmp > 0) ? y : x;
+	}
+      else
+	SCM_WTA_DISPATCH_2 (g_min, x, y, SCM_ARGn, s_min);
     }
-  } else if (SCM_REALP (x)) {
-    if (SCM_INUMP (y)) {
-      double z = SCM_INUM (y);
-      /* if x==NaN then "<" is false and we return NaN */
-      return (z < SCM_REAL_VALUE (x)) ? scm_make_real (z) : x;
-    } else if (SCM_BIGP (y)) {
-      double xx = SCM_REAL_VALUE (x);
-      int cmp;
-      if (xisnan (xx))
-        return x;
-      cmp = xmpz_cmp_d (SCM_I_BIG_MPZ (y), xx);
-      scm_remember_upto_here_1 (y);
-      return (cmp < 0) ? y : x;
-    } else if (SCM_REALP (y)) {
-      /* if x==NaN then our explicit check means we return NaN
-         if y==NaN then "<" is false and we return NaN
-         calling isnan is unavoidable, since it's the only way to know
-         which of x or y causes any compares to be false */
-      double xx = SCM_REAL_VALUE (x);
-      return (xisnan (xx) || xx < SCM_REAL_VALUE (y)) ? x : y;
-    } else {
-      SCM_WTA_DISPATCH_2 (g_min, x, y, SCM_ARGn, s_min);
+  else if (SCM_REALP (x))
+    {
+      if (SCM_INUMP (y))
+	{
+	  double z = SCM_INUM (y);
+	  /* if x==NaN then "<" is false and we return NaN */
+	  return (z < SCM_REAL_VALUE (x)) ? scm_make_real (z) : x;
+	}
+      else if (SCM_BIGP (y))
+	{
+	  double xx = SCM_REAL_VALUE (x);
+	  int cmp;
+	  if (xisnan (xx))
+	    return x;
+	  cmp = xmpz_cmp_d (SCM_I_BIG_MPZ (y), xx);
+	  scm_remember_upto_here_1 (y);
+	  return (cmp < 0) ? y : x;
+	}
+      else if (SCM_REALP (y))
+	{
+	  /* if x==NaN then our explicit check means we return NaN
+	     if y==NaN then "<" is false and we return NaN
+	     calling isnan is unavoidable, since it's the only way to know
+	     which of x or y causes any compares to be false */
+	  double xx = SCM_REAL_VALUE (x);
+	  return (xisnan (xx) || xx < SCM_REAL_VALUE (y)) ? x : y;
+	}
+      else
+	SCM_WTA_DISPATCH_2 (g_min, x, y, SCM_ARGn, s_min);
     }
-  } else {
+  else
     SCM_WTA_DISPATCH_2 (g_min, x, y, SCM_ARG1, s_min);
-  }
 }
 
 
@@ -2975,87 +3161,109 @@ scm_sum (SCM x, SCM y)
         }
       else
         SCM_WTA_DISPATCH_2 (g_sum, x, y, SCM_ARGn, s_sum);
-    } else if (SCM_BIGP (x)) {
-    if (SCM_INUMP (y)) {
-      long int inum;
-      int bigsgn;
-    add_big_inum:
-      inum = SCM_INUM (y);      
-      if (inum == 0) return x;
-      bigsgn = mpz_sgn (SCM_I_BIG_MPZ (x));
-      if (inum < 0) {
-        SCM result = scm_i_mkbig ();
-        mpz_sub_ui (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (x), - inum);
-        scm_remember_upto_here_1 (x);
-        /* we know the result will have to be a bignum */
-        if (bigsgn == -1) return result;
-        return scm_i_normbig (result);
-      } else {
-        SCM result = scm_i_mkbig ();
-        mpz_add_ui (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (x), inum);
-        scm_remember_upto_here_1 (x);
-        /* we know the result will have to be a bignum */
-        if (bigsgn == 1) return result;
-        return result;
-        return scm_i_normbig (result);        
+    } else if (SCM_BIGP (x))
+      {
+	if (SCM_INUMP (y))
+	  {
+	    long int inum;
+	    int bigsgn;
+	  add_big_inum:
+	    inum = SCM_INUM (y);      
+	    if (inum == 0)
+	      return x;
+	    bigsgn = mpz_sgn (SCM_I_BIG_MPZ (x));
+	    if (inum < 0)
+	      {
+		SCM result = scm_i_mkbig ();
+		mpz_sub_ui (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (x), - inum);
+		scm_remember_upto_here_1 (x);
+		/* we know the result will have to be a bignum */
+		if (bigsgn == -1)
+		  return result;
+		return scm_i_normbig (result);
+	      }
+	    else
+	      {
+		SCM result = scm_i_mkbig ();
+		mpz_add_ui (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (x), inum);
+		scm_remember_upto_here_1 (x);
+		/* we know the result will have to be a bignum */
+		if (bigsgn == 1)
+		  return result;
+		return scm_i_normbig (result);        
+	      }
+	  }
+	else if (SCM_BIGP (y))
+	  {
+	    SCM result = scm_i_mkbig ();
+	    int sgn_x = mpz_sgn (SCM_I_BIG_MPZ (x)); 
+	    int sgn_y = mpz_sgn (SCM_I_BIG_MPZ (y)); 
+	    mpz_add (SCM_I_BIG_MPZ (result),
+		     SCM_I_BIG_MPZ (x),
+		     SCM_I_BIG_MPZ (y));
+	    scm_remember_upto_here_2 (x, y);
+	    /* we know the result will have to be a bignum */
+	    if (sgn_x == sgn_y)
+	      return result;
+	    return scm_i_normbig (result);
+	  }
+	else if (SCM_REALP (y))
+	  {
+	    double result = mpz_get_d (SCM_I_BIG_MPZ (x)) + SCM_REAL_VALUE (y);
+	    scm_remember_upto_here_1 (x);
+	    return scm_make_real (result);
+	  }
+	else if (SCM_COMPLEXP (y))
+	  {
+	    double real_part = (mpz_get_d (SCM_I_BIG_MPZ (x))
+				+ SCM_COMPLEX_REAL (y));
+	    scm_remember_upto_here_1 (x);
+	    return scm_make_complex (real_part, SCM_COMPLEX_IMAG (y));
+	  }
+	else
+	  SCM_WTA_DISPATCH_2 (g_sum, x, y, SCM_ARGn, s_sum);
       }
+  else if (SCM_REALP (x))
+    {
+      if (SCM_INUMP (y))
+	return scm_make_real (SCM_REAL_VALUE (x) + SCM_INUM (y));
+      else if (SCM_BIGP (y))
+	{
+	  double result = mpz_get_d (SCM_I_BIG_MPZ (y)) + SCM_REAL_VALUE (x);
+	  scm_remember_upto_here_1 (y);
+	  return scm_make_real (result);
+	}
+      else if (SCM_REALP (y))
+	return scm_make_real (SCM_REAL_VALUE (x) + SCM_REAL_VALUE (y));
+      else if (SCM_COMPLEXP (y))
+	return scm_make_complex (SCM_REAL_VALUE (x) + SCM_COMPLEX_REAL (y),
+				 SCM_COMPLEX_IMAG (y));
+      else
+	SCM_WTA_DISPATCH_2 (g_sum, x, y, SCM_ARGn, s_sum);
     }
-    else if (SCM_BIGP (y)) {
-      SCM result = scm_i_mkbig ();
-      int sgn_x = mpz_sgn (SCM_I_BIG_MPZ (x)); 
-      int sgn_y = mpz_sgn (SCM_I_BIG_MPZ (y)); 
-      mpz_add (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (x), SCM_I_BIG_MPZ (y));
-      scm_remember_upto_here_2 (x, y);
-      /* we know the result will have to be a bignum */
-      if (sgn_x == sgn_y) return result;
-      return scm_i_normbig (result);
+  else if (SCM_COMPLEXP (x))
+    {
+      if (SCM_INUMP (y))
+	return scm_make_complex (SCM_COMPLEX_REAL (x) + SCM_INUM (y),
+				 SCM_COMPLEX_IMAG (x));
+      else if (SCM_BIGP (y))
+	{
+	  double real_part = (mpz_get_d (SCM_I_BIG_MPZ (y))
+			      + SCM_COMPLEX_REAL (x));
+	  scm_remember_upto_here_1 (y);
+	  return scm_make_complex (real_part, SCM_COMPLEX_IMAG (x));
+	}
+      else if (SCM_REALP (y))
+	return scm_make_complex (SCM_COMPLEX_REAL (x) + SCM_REAL_VALUE (y),
+				 SCM_COMPLEX_IMAG (x));
+      else if (SCM_COMPLEXP (y))
+	return scm_make_complex (SCM_COMPLEX_REAL (x) + SCM_COMPLEX_REAL (y),
+				 SCM_COMPLEX_IMAG (x) + SCM_COMPLEX_IMAG (y));
+      else
+	SCM_WTA_DISPATCH_2 (g_sum, x, y, SCM_ARGn, s_sum);
     }
-    else if (SCM_REALP (y)) {
-      double result = mpz_get_d (SCM_I_BIG_MPZ (x)) + SCM_REAL_VALUE (y);
-      scm_remember_upto_here_1 (x);
-      return scm_make_real (result);
-    }
-    else if (SCM_COMPLEXP (y)) {
-      double real_part = mpz_get_d (SCM_I_BIG_MPZ (x)) + SCM_COMPLEX_REAL (y);
-      scm_remember_upto_here_1 (x);
-      return scm_make_complex (real_part, SCM_COMPLEX_IMAG (y));
-    }
-    else SCM_WTA_DISPATCH_2 (g_sum, x, y, SCM_ARGn, s_sum);
-  } else if (SCM_REALP (x)) {
-    if (SCM_INUMP (y)) {
-      return scm_make_real (SCM_REAL_VALUE (x) + SCM_INUM (y));
-    } else if (SCM_BIGP (y)) {
-      double result = mpz_get_d (SCM_I_BIG_MPZ (y)) + SCM_REAL_VALUE (x);
-      scm_remember_upto_here_1 (y);
-      return scm_make_real (result);
-    } else if (SCM_REALP (y)) {
-      return scm_make_real (SCM_REAL_VALUE (x) + SCM_REAL_VALUE (y));
-    } else if (SCM_COMPLEXP (y)) {
-      return scm_make_complex (SCM_REAL_VALUE (x) + SCM_COMPLEX_REAL (y),
-			       SCM_COMPLEX_IMAG (y));
-    } else {
-      SCM_WTA_DISPATCH_2 (g_sum, x, y, SCM_ARGn, s_sum);
-    }
-  } else if (SCM_COMPLEXP (x)) {
-    if (SCM_INUMP (y)) {
-      return scm_make_complex (SCM_COMPLEX_REAL (x) + SCM_INUM (y),
-			       SCM_COMPLEX_IMAG (x));
-    } else if (SCM_BIGP (y)) {
-      double real_part = mpz_get_d (SCM_I_BIG_MPZ (y)) + SCM_COMPLEX_REAL (x);
-      scm_remember_upto_here_1 (y);
-      return scm_make_complex (real_part, SCM_COMPLEX_IMAG (x));
-    } else if (SCM_REALP (y)) {
-      return scm_make_complex (SCM_COMPLEX_REAL (x) + SCM_REAL_VALUE (y),
-			       SCM_COMPLEX_IMAG (x));
-    } else if (SCM_COMPLEXP (y)) {
-      return scm_make_complex (SCM_COMPLEX_REAL (x) + SCM_COMPLEX_REAL (y),
-			       SCM_COMPLEX_IMAG (x) + SCM_COMPLEX_IMAG (y));
-    } else {
-      SCM_WTA_DISPATCH_2 (g_sum, x, y, SCM_ARGn, s_sum);
-    }
-  } else {
+  else
     SCM_WTA_DISPATCH_2 (g_sum, x, y, SCM_ARG1, s_sum);
-  }
 }
 
 
@@ -3092,134 +3300,158 @@ scm_difference (SCM x, SCM y)
           SCM_WTA_DISPATCH_1 (g_difference, x, SCM_ARG1, s_difference);
     }
   
-  if (SCM_INUMP (x)) {
-    if (SCM_INUMP (y)) {
-      long int xx = SCM_INUM (x);
-      long int yy = SCM_INUM (y);
-      long int z = xx - yy;
-      if (SCM_FIXABLE (z)) {
-	return SCM_MAKINUM (z);
-      } else {
-	return scm_i_long2big (z);
-      }
-    } else if (SCM_BIGP (y)) {      
-      /* inum-x - big-y */
-      long xx = SCM_INUM (x);
+  if (SCM_INUMP (x))
+    {
+      if (SCM_INUMP (y))
+	{
+	  long int xx = SCM_INUM (x);
+	  long int yy = SCM_INUM (y);
+	  long int z = xx - yy;
+	  if (SCM_FIXABLE (z))
+	    return SCM_MAKINUM (z);
+	  else
+	    return scm_i_long2big (z);
+	}
+      else if (SCM_BIGP (y))
+	{
+	  /* inum-x - big-y */
+	  long xx = SCM_INUM (x);
 
-      if (xx == 0)
-        return scm_i_clonebig (y, 0);
+	  if (xx == 0)
+	    return scm_i_clonebig (y, 0);
+	  else
+	    {
+	      int sgn_y = mpz_sgn (SCM_I_BIG_MPZ (y));
+	      SCM result = scm_i_mkbig ();
+
+	      if (xx >= 0)
+		mpz_ui_sub (SCM_I_BIG_MPZ (result), xx, SCM_I_BIG_MPZ (y));
+	      else
+		{
+		  /* x - y == -(y + -x) */
+		  mpz_add_ui (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (y), -xx);
+		  mpz_neg (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (result));
+		}
+	      scm_remember_upto_here_1 (y);
+
+	      if ((xx < 0 && (sgn_y > 0)) || ((xx > 0) && sgn_y < 0))
+		/* we know the result will have to be a bignum */
+		return result;
+	      else
+		return scm_i_normbig (result);
+	    }
+	}
+      else if (SCM_REALP (y))
+	{
+	  long int xx = SCM_INUM (x);
+	  return scm_make_real (xx - SCM_REAL_VALUE (y));
+	}
+      else if (SCM_COMPLEXP (y))
+	{
+	  long int xx = SCM_INUM (x);
+	  return scm_make_complex (xx - SCM_COMPLEX_REAL (y),
+				   - SCM_COMPLEX_IMAG (y));
+	}
       else
-        {
-          int sgn_y = mpz_sgn (SCM_I_BIG_MPZ (y));
-          SCM result = scm_i_mkbig ();
-
-          if (xx >= 0)
-            mpz_ui_sub (SCM_I_BIG_MPZ (result), xx, SCM_I_BIG_MPZ (y));
-          else
-            {
-              /* x - y == -(y + -x) */
-              mpz_add_ui (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (y), -xx);
-              mpz_neg (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (result));
-            }
-          scm_remember_upto_here_1 (y);
-
-          if ((xx < 0 && (sgn_y > 0)) || ((xx > 0) && sgn_y < 0))
-            /* we know the result will have to be a bignum */
-            return result;
-          else
-            return scm_i_normbig (result);
-        }
-    } else if (SCM_REALP (y)) {
-      long int xx = SCM_INUM (x);
-      return scm_make_real (xx - SCM_REAL_VALUE (y));
-    } else if (SCM_COMPLEXP (y)) {
-      long int xx = SCM_INUM (x);
-      return scm_make_complex (xx - SCM_COMPLEX_REAL (y),
-			       -SCM_COMPLEX_IMAG (y));
-    } else {
-      SCM_WTA_DISPATCH_2 (g_difference, x, y, SCM_ARGn, s_difference);
+	SCM_WTA_DISPATCH_2 (g_difference, x, y, SCM_ARGn, s_difference);
     }
-  } else if (SCM_BIGP (x)) {
-    if (SCM_INUMP (y)) {
-      /* big-x - inum-y */
-      long yy = SCM_INUM (y);
-      int sgn_x = mpz_sgn (SCM_I_BIG_MPZ (x));
+  else if (SCM_BIGP (x))
+    {
+      if (SCM_INUMP (y))
+	{
+	  /* big-x - inum-y */
+	  long yy = SCM_INUM (y);
+	  int sgn_x = mpz_sgn (SCM_I_BIG_MPZ (x));
 
-      scm_remember_upto_here_1 (x);
-      if (sgn_x == 0)
-        return SCM_FIXABLE (-yy) ? SCM_MAKINUM (-yy) : scm_long2num (-yy);
+	  scm_remember_upto_here_1 (x);
+	  if (sgn_x == 0)
+	    return SCM_FIXABLE (-yy) ? SCM_MAKINUM (-yy) : scm_long2num (-yy);
+	  else
+	    {
+	      SCM result = scm_i_mkbig ();
+
+	      mpz_sub_ui (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (x), yy);
+	      scm_remember_upto_here_1 (x);
+
+	      if ((sgn_x < 0 && (yy > 0)) || ((sgn_x > 0) && yy < 0))
+		/* we know the result will have to be a bignum */
+		return result;
+	      else
+		return scm_i_normbig (result);
+	    }
+	}
+      else if (SCM_BIGP (y))
+	{
+	  int sgn_x = mpz_sgn (SCM_I_BIG_MPZ (x)); 
+	  int sgn_y = mpz_sgn (SCM_I_BIG_MPZ (y)); 
+	  SCM result = scm_i_mkbig ();
+	  mpz_sub (SCM_I_BIG_MPZ (result),
+		   SCM_I_BIG_MPZ (x),
+		   SCM_I_BIG_MPZ (y));
+	  scm_remember_upto_here_2 (x, y);
+	  /* we know the result will have to be a bignum */
+	  if ((sgn_x == 1) && (sgn_y == -1))
+	    return result;
+	  if ((sgn_x == -1) && (sgn_y == 1))
+	    return result;
+	  return scm_i_normbig (result);
+	}
+      else if (SCM_REALP (y))
+	{
+	  double result = mpz_get_d (SCM_I_BIG_MPZ (x)) - SCM_REAL_VALUE (y);
+	  scm_remember_upto_here_1 (x);
+	  return scm_make_real (result);
+	}
+      else if (SCM_COMPLEXP (y))
+	{
+	  double real_part = (mpz_get_d (SCM_I_BIG_MPZ (x))
+			      - SCM_COMPLEX_REAL (y));
+	  scm_remember_upto_here_1 (x);
+	  return scm_make_complex (real_part, - SCM_COMPLEX_IMAG (y));      
+	}
+      else SCM_WTA_DISPATCH_2 (g_difference, x, y, SCM_ARGn, s_difference);
+    }
+  else if (SCM_REALP (x))
+    {
+      if (SCM_INUMP (y))
+	return scm_make_real (SCM_REAL_VALUE (x) - SCM_INUM (y));
+      else if (SCM_BIGP (y))
+	{
+	  double result = SCM_REAL_VALUE (x) - mpz_get_d (SCM_I_BIG_MPZ (y));
+	  scm_remember_upto_here_1 (x);
+	  return scm_make_real (result);      
+	}
+      else if (SCM_REALP (y))
+	return scm_make_real (SCM_REAL_VALUE (x) - SCM_REAL_VALUE (y));
+      else if (SCM_COMPLEXP (y))
+	return scm_make_complex (SCM_REAL_VALUE (x) - SCM_COMPLEX_REAL (y),
+				 -SCM_COMPLEX_IMAG (y));
       else
-        {
-          SCM result = scm_i_mkbig ();
-
-          mpz_sub_ui (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (x), yy);
-          scm_remember_upto_here_1 (x);
-
-          if ((sgn_x < 0 && (yy > 0)) || ((sgn_x > 0) && yy < 0))
-            /* we know the result will have to be a bignum */
-            return result;
-          else
-            return scm_i_normbig (result);
-        }
+	SCM_WTA_DISPATCH_2 (g_difference, x, y, SCM_ARGn, s_difference);
     }
-    else if (SCM_BIGP (y))
-      {
-        int sgn_x = mpz_sgn (SCM_I_BIG_MPZ (x)); 
-        int sgn_y = mpz_sgn (SCM_I_BIG_MPZ (y)); 
-        SCM result = scm_i_mkbig ();
-        mpz_sub (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (x), SCM_I_BIG_MPZ (y));
-        scm_remember_upto_here_2 (x, y);
-        /* we know the result will have to be a bignum */
-        if ((sgn_x == 1) && (sgn_y == -1)) return result;
-        if ((sgn_x == -1) && (sgn_y == 1)) return result;
-        return scm_i_normbig (result);
-      }
-    else if (SCM_REALP (y)) {
-      double result = mpz_get_d (SCM_I_BIG_MPZ (x)) - SCM_REAL_VALUE (y);
-      scm_remember_upto_here_1 (x);
-      return scm_make_real (result);
+  else if (SCM_COMPLEXP (x))
+    {
+      if (SCM_INUMP (y))
+	return scm_make_complex (SCM_COMPLEX_REAL (x) - SCM_INUM (y),
+				 SCM_COMPLEX_IMAG (x));
+      else if (SCM_BIGP (y))
+	{
+	  double real_part = (SCM_COMPLEX_REAL (x)
+			      - mpz_get_d (SCM_I_BIG_MPZ (y)));
+	  scm_remember_upto_here_1 (x);
+	  return scm_make_complex (real_part, SCM_COMPLEX_IMAG (y));      
+	}
+      else if (SCM_REALP (y))
+	return scm_make_complex (SCM_COMPLEX_REAL (x) - SCM_REAL_VALUE (y),
+				 SCM_COMPLEX_IMAG (x));
+      else if (SCM_COMPLEXP (y))
+	return scm_make_complex (SCM_COMPLEX_REAL (x) - SCM_COMPLEX_REAL (y),
+				 SCM_COMPLEX_IMAG (x) - SCM_COMPLEX_IMAG (y));
+      else
+	SCM_WTA_DISPATCH_2 (g_difference, x, y, SCM_ARGn, s_difference);
     }
-    else if (SCM_COMPLEXP (y)) {
-      double real_part = mpz_get_d (SCM_I_BIG_MPZ (x)) - SCM_COMPLEX_REAL (y);
-      scm_remember_upto_here_1 (x);
-      return scm_make_complex (real_part, - SCM_COMPLEX_IMAG (y));      
-    }
-    else SCM_WTA_DISPATCH_2 (g_difference, x, y, SCM_ARGn, s_difference);
-  } else if (SCM_REALP (x)) {
-    if (SCM_INUMP (y)) {
-      return scm_make_real (SCM_REAL_VALUE (x) - SCM_INUM (y));
-    } else if (SCM_BIGP (y)) {
-      double result = SCM_REAL_VALUE (x) - mpz_get_d (SCM_I_BIG_MPZ (y));
-      scm_remember_upto_here_1 (x);
-      return scm_make_real (result);      
-    } else if (SCM_REALP (y)) {
-      return scm_make_real (SCM_REAL_VALUE (x) - SCM_REAL_VALUE (y));
-    } else if (SCM_COMPLEXP (y)) {
-      return scm_make_complex (SCM_REAL_VALUE (x) - SCM_COMPLEX_REAL (y),
-			       -SCM_COMPLEX_IMAG (y));
-    } else {
-      SCM_WTA_DISPATCH_2 (g_difference, x, y, SCM_ARGn, s_difference);
-    }
-  } else if (SCM_COMPLEXP (x)) {
-    if (SCM_INUMP (y)) {
-      return scm_make_complex (SCM_COMPLEX_REAL (x) - SCM_INUM (y),
-			       SCM_COMPLEX_IMAG (x));
-    } else if (SCM_BIGP (y)) {
-      double real_part = SCM_COMPLEX_REAL (x) - mpz_get_d (SCM_I_BIG_MPZ (y));
-      scm_remember_upto_here_1 (x);
-      return scm_make_complex (real_part, SCM_COMPLEX_IMAG (y));      
-    } else if (SCM_REALP (y)) {
-      return scm_make_complex (SCM_COMPLEX_REAL (x) - SCM_REAL_VALUE (y),
-			       SCM_COMPLEX_IMAG (x));
-    } else if (SCM_COMPLEXP (y)) {
-      return scm_make_complex (SCM_COMPLEX_REAL (x) - SCM_COMPLEX_REAL (y),
-			       SCM_COMPLEX_IMAG (x) - SCM_COMPLEX_IMAG (y));
-    } else {
-      SCM_WTA_DISPATCH_2 (g_difference, x, y, SCM_ARGn, s_difference);
-    }
-  } else {
+  else
     SCM_WTA_DISPATCH_2 (g_difference, x, y, SCM_ARG1, s_difference);
-  }
 }
 #undef FUNC_NAME
 
@@ -3231,128 +3463,153 @@ SCM_GPROC1 (s_product, "*", scm_tc7_asubr, scm_product, g_product);
 SCM
 scm_product (SCM x, SCM y)
 {
-  if (SCM_UNBNDP (y)) {
-    if (SCM_UNBNDP (x)) {
-      return SCM_MAKINUM (1L);
-    } else if (SCM_NUMBERP (x)) {
-      return x;
-    } else {
-      SCM_WTA_DISPATCH_1 (g_product, x, SCM_ARG1, s_product);
+  if (SCM_UNBNDP (y))
+    {
+      if (SCM_UNBNDP (x))
+	return SCM_MAKINUM (1L);
+      else if (SCM_NUMBERP (x))
+	return x;
+      else
+	SCM_WTA_DISPATCH_1 (g_product, x, SCM_ARG1, s_product);
     }
-  }
   
-  if (SCM_INUMP (x)) {
-    long xx;
+  if (SCM_INUMP (x))
+    {
+      long xx;
 
-  intbig:
-    xx = SCM_INUM (x);
+    intbig:
+      xx = SCM_INUM (x);
 
-    switch (xx)
-      {
+      switch (xx)
+	{
         case 0: return x; break;
         case 1: return y; break;
-      }
+	}
 
-    if (SCM_INUMP (y)) {
-      long yy = SCM_INUM (y);
-      long kk = xx * yy;
-      SCM k = SCM_MAKINUM (kk);
-      if ((kk == SCM_INUM (k)) && (kk / xx == yy)) {
-        return k;
-      } else {
-        SCM result = scm_i_long2big (xx);
-        mpz_mul_si (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (result), yy);
-        return scm_i_normbig (result);
-      }
-    } else if (SCM_BIGP (y)) {
-      SCM result = scm_i_mkbig ();
-      mpz_mul_si (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (y), xx);
-      scm_remember_upto_here_1 (y);
-      return result;
-    } else if (SCM_REALP (y)) {
-      return scm_make_real (xx * SCM_REAL_VALUE (y));
-    } else if (SCM_COMPLEXP (y)) {
-      return scm_make_complex (xx * SCM_COMPLEX_REAL (y),
-			       xx * SCM_COMPLEX_IMAG (y));
-    } else {
-      SCM_WTA_DISPATCH_2 (g_product, x, y, SCM_ARGn, s_product);
+      if (SCM_INUMP (y))
+	{
+	  long yy = SCM_INUM (y);
+	  long kk = xx * yy;
+	  SCM k = SCM_MAKINUM (kk);
+	  if ((kk == SCM_INUM (k)) && (kk / xx == yy))
+	    return k;
+	  else
+	    {
+	      SCM result = scm_i_long2big (xx);
+	      mpz_mul_si (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (result), yy);
+	      return scm_i_normbig (result);
+	    }
+	}
+      else if (SCM_BIGP (y))
+	{
+	  SCM result = scm_i_mkbig ();
+	  mpz_mul_si (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (y), xx);
+	  scm_remember_upto_here_1 (y);
+	  return result;
+	}
+      else if (SCM_REALP (y))
+	return scm_make_real (xx * SCM_REAL_VALUE (y));
+      else if (SCM_COMPLEXP (y))
+	return scm_make_complex (xx * SCM_COMPLEX_REAL (y),
+				 xx * SCM_COMPLEX_IMAG (y));
+      else
+	SCM_WTA_DISPATCH_2 (g_product, x, y, SCM_ARGn, s_product);
     }
-  } else if (SCM_BIGP (x)) {
-    if (SCM_INUMP (y)) {
-      SCM_SWAP (x, y);
-      goto intbig;
-    } else if (SCM_BIGP (y)) {
-      SCM result = scm_i_mkbig ();
-      mpz_mul (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (x), SCM_I_BIG_MPZ (y));
-      scm_remember_upto_here_2 (x, y);
-      return result;
-    } else if (SCM_REALP (y)) {
-      double result = mpz_get_d (SCM_I_BIG_MPZ (x)) * SCM_REAL_VALUE (y);
-      scm_remember_upto_here_1 (x);
-      return scm_make_real (result);
-    } else if (SCM_COMPLEXP (y)) {
-      double z = mpz_get_d (SCM_I_BIG_MPZ (x));
-      scm_remember_upto_here_1 (x);
-      return scm_make_complex (z * SCM_COMPLEX_REAL (y),
-			       z * SCM_COMPLEX_IMAG (y));
-    } else {
-      SCM_WTA_DISPATCH_2 (g_product, x, y, SCM_ARGn, s_product);
+  else if (SCM_BIGP (x))
+    {
+      if (SCM_INUMP (y))
+	{
+	  SCM_SWAP (x, y);
+	  goto intbig;
+	}
+      else if (SCM_BIGP (y))
+	{
+	  SCM result = scm_i_mkbig ();
+	  mpz_mul (SCM_I_BIG_MPZ (result),
+		   SCM_I_BIG_MPZ (x),
+		   SCM_I_BIG_MPZ (y));
+	  scm_remember_upto_here_2 (x, y);
+	  return result;
+	}
+      else if (SCM_REALP (y))
+	{
+	  double result = mpz_get_d (SCM_I_BIG_MPZ (x)) * SCM_REAL_VALUE (y);
+	  scm_remember_upto_here_1 (x);
+	  return scm_make_real (result);
+	}
+      else if (SCM_COMPLEXP (y))
+	{
+	  double z = mpz_get_d (SCM_I_BIG_MPZ (x));
+	  scm_remember_upto_here_1 (x);
+	  return scm_make_complex (z * SCM_COMPLEX_REAL (y),
+				   z * SCM_COMPLEX_IMAG (y));
+	}
+      else
+	SCM_WTA_DISPATCH_2 (g_product, x, y, SCM_ARGn, s_product);
     }
-  } else if (SCM_REALP (x)) {
-    if (SCM_INUMP (y)) {
-      return scm_make_real (SCM_INUM (y) * SCM_REAL_VALUE (x));
-    } else if (SCM_BIGP (y)) {
-      double result = mpz_get_d (SCM_I_BIG_MPZ (y)) * SCM_REAL_VALUE (x);
-      scm_remember_upto_here_1 (y);
-      return scm_make_real (result);
-    } else if (SCM_REALP (y)) {
-      return scm_make_real (SCM_REAL_VALUE (x) * SCM_REAL_VALUE (y));
-    } else if (SCM_COMPLEXP (y)) {
-      return scm_make_complex (SCM_REAL_VALUE (x) * SCM_COMPLEX_REAL (y),
-			       SCM_REAL_VALUE (x) * SCM_COMPLEX_IMAG (y));
-    } else {
-      SCM_WTA_DISPATCH_2 (g_product, x, y, SCM_ARGn, s_product);
+  else if (SCM_REALP (x))
+    {
+      if (SCM_INUMP (y))
+	return scm_make_real (SCM_INUM (y) * SCM_REAL_VALUE (x));
+      else if (SCM_BIGP (y))
+	{
+	  double result = mpz_get_d (SCM_I_BIG_MPZ (y)) * SCM_REAL_VALUE (x);
+	  scm_remember_upto_here_1 (y);
+	  return scm_make_real (result);
+	}
+      else if (SCM_REALP (y))
+	return scm_make_real (SCM_REAL_VALUE (x) * SCM_REAL_VALUE (y));
+      else if (SCM_COMPLEXP (y))
+	return scm_make_complex (SCM_REAL_VALUE (x) * SCM_COMPLEX_REAL (y),
+				 SCM_REAL_VALUE (x) * SCM_COMPLEX_IMAG (y));
+      else
+	SCM_WTA_DISPATCH_2 (g_product, x, y, SCM_ARGn, s_product);
     }
-  } else if (SCM_COMPLEXP (x)) {
-    if (SCM_INUMP (y)) {
-      return scm_make_complex (SCM_INUM (y) * SCM_COMPLEX_REAL (x),
-			       SCM_INUM (y) * SCM_COMPLEX_IMAG (x));
-    } else if (SCM_BIGP (y)) {
-      double z = mpz_get_d (SCM_I_BIG_MPZ (y));
-      scm_remember_upto_here_1 (y);
-      return scm_make_complex (z * SCM_COMPLEX_REAL (y),
-			       z * SCM_COMPLEX_IMAG (y));
-    } else if (SCM_REALP (y)) {
-      return scm_make_complex (SCM_REAL_VALUE (y) * SCM_COMPLEX_REAL (x),
-			       SCM_REAL_VALUE (y) * SCM_COMPLEX_IMAG (x));
-    } else if (SCM_COMPLEXP (y)) {
-      return scm_make_complex (SCM_COMPLEX_REAL (x) * SCM_COMPLEX_REAL (y)
-			       - SCM_COMPLEX_IMAG (x) * SCM_COMPLEX_IMAG (y),
-			       SCM_COMPLEX_REAL (x) * SCM_COMPLEX_IMAG (y)
-			       + SCM_COMPLEX_IMAG (x) * SCM_COMPLEX_REAL (y));
-    } else {
-      SCM_WTA_DISPATCH_2 (g_product, x, y, SCM_ARGn, s_product);
+  else if (SCM_COMPLEXP (x))
+    {
+      if (SCM_INUMP (y))
+	return scm_make_complex (SCM_INUM (y) * SCM_COMPLEX_REAL (x),
+				 SCM_INUM (y) * SCM_COMPLEX_IMAG (x));
+      else if (SCM_BIGP (y))
+	{
+	  double z = mpz_get_d (SCM_I_BIG_MPZ (y));
+	  scm_remember_upto_here_1 (y);
+	  return scm_make_complex (z * SCM_COMPLEX_REAL (y),
+				   z * SCM_COMPLEX_IMAG (y));
+	}
+      else if (SCM_REALP (y))
+	return scm_make_complex (SCM_REAL_VALUE (y) * SCM_COMPLEX_REAL (x),
+				 SCM_REAL_VALUE (y) * SCM_COMPLEX_IMAG (x));
+      else if (SCM_COMPLEXP (y))
+	{
+	  return scm_make_complex (SCM_COMPLEX_REAL (x) * SCM_COMPLEX_REAL (y)
+				   - SCM_COMPLEX_IMAG (x) * SCM_COMPLEX_IMAG (y),
+				   SCM_COMPLEX_REAL (x) * SCM_COMPLEX_IMAG (y)
+				   + SCM_COMPLEX_IMAG (x) * SCM_COMPLEX_REAL (y));
+	}
+      else
+	SCM_WTA_DISPATCH_2 (g_product, x, y, SCM_ARGn, s_product);
     }
-  } else {
+  else
     SCM_WTA_DISPATCH_2 (g_product, x, y, SCM_ARG1, s_product);
-  }
 }
 
 double
 scm_num2dbl (SCM a, const char *why)
 #define FUNC_NAME why
 {
-  if (SCM_INUMP (a)) {
+  if (SCM_INUMP (a))
     return (double) SCM_INUM (a);
-  } else if (SCM_BIGP (a)) {
-    double result = mpz_get_d (SCM_I_BIG_MPZ (a));
-    scm_remember_upto_here_1 (a);
-    return result;
-  } else if (SCM_REALP (a)) {
+  else if (SCM_BIGP (a))
+    {
+      double result = mpz_get_d (SCM_I_BIG_MPZ (a));
+      scm_remember_upto_here_1 (a);
+      return result;
+    }
+  else if (SCM_REALP (a))
     return (SCM_REAL_VALUE (a));
-  } else {
+  else
     SCM_WRONG_TYPE_ARG (SCM_ARGn, a);
-  }
 }
 #undef FUNC_NAME
 
@@ -3399,248 +3656,305 @@ scm_divide (SCM x, SCM y)
 {
   double a;
 
-  if (SCM_UNBNDP (y)) {
-    if (SCM_UNBNDP (x)) {
-      SCM_WTA_DISPATCH_0 (g_divide, s_divide);
-    } else if (SCM_INUMP (x)) {
+  if (SCM_UNBNDP (y))
+    {
+      if (SCM_UNBNDP (x))
+	SCM_WTA_DISPATCH_0 (g_divide, s_divide);
+      else if (SCM_INUMP (x))
+	{
+	  long xx = SCM_INUM (x);
+	  if (xx == 1 || xx == -1)
+	    return x;
+#ifndef ALLOW_DIVIDE_BY_EXACT_ZERO
+	  else if (xx == 0)
+	    scm_num_overflow (s_divide);
+#endif
+	  else
+	    return scm_make_real (1.0 / (double) xx);
+	}
+      else if (SCM_BIGP (x))
+	return scm_make_real (1.0 / scm_i_big2dbl (x));
+      else if (SCM_REALP (x))
+	{
+	  double xx = SCM_REAL_VALUE (x);
+#ifndef ALLOW_DIVIDE_BY_ZERO
+	  if (xx == 0.0)
+	    scm_num_overflow (s_divide);
+	  else
+#endif
+	    return scm_make_real (1.0 / xx);
+	}
+      else if (SCM_COMPLEXP (x))
+	{
+	  double r = SCM_COMPLEX_REAL (x);
+	  double i = SCM_COMPLEX_IMAG (x);
+	  if (r <= i)
+	    {
+	      double t = r / i;
+	      double d = i * (1.0 + t * t);
+	      return scm_make_complex (t / d, -1.0 / d);
+	    }
+	  else
+	    {
+	      double t = i / r;
+	      double d = r * (1.0 + t * t);
+	      return scm_make_complex (1.0 / d, -t / d);
+	    }
+	}
+      else
+	SCM_WTA_DISPATCH_1 (g_divide, x, SCM_ARG1, s_divide);
+    }
+
+  if (SCM_INUMP (x))
+    {
       long xx = SCM_INUM (x);
-      if (xx == 1 || xx == -1) {
-	return x;
+      if (SCM_INUMP (y))
+	{
+	  long yy = SCM_INUM (y);
+	  if (yy == 0)
+	    {
 #ifndef ALLOW_DIVIDE_BY_EXACT_ZERO
-      } else if (xx == 0) {
-	scm_num_overflow (s_divide);
-#endif
-      } else {
-	return scm_make_real (1.0 / (double) xx);
-      }
-    } else if (SCM_BIGP (x)) {
-      return scm_make_real (1.0 / scm_i_big2dbl (x));
-    } else if (SCM_REALP (x)) {
-      double xx = SCM_REAL_VALUE (x);
-#ifndef ALLOW_DIVIDE_BY_ZERO
-      if (xx == 0.0)
-	scm_num_overflow (s_divide);
-      else
-#endif
-	return scm_make_real (1.0 / xx);
-    } else if (SCM_COMPLEXP (x)) {
-      double r = SCM_COMPLEX_REAL (x);
-      double i = SCM_COMPLEX_IMAG (x);
-      if (r <= i) {
-	double t = r / i;
-	double d = i * (1.0 + t * t);
-	return scm_make_complex (t / d, -1.0 / d);
-      } else {
-	double t = i / r;
-	double d = r * (1.0 + t * t);
-	return scm_make_complex (1.0 / d, -t / d);
-      }
-    } else {
-      SCM_WTA_DISPATCH_1 (g_divide, x, SCM_ARG1, s_divide);
-    }
-  }
-
-  if (SCM_INUMP (x)) {
-    long xx = SCM_INUM (x);
-    if (SCM_INUMP (y)) {
-      long yy = SCM_INUM (y);
-      if (yy == 0) {
-#ifndef ALLOW_DIVIDE_BY_EXACT_ZERO
-	scm_num_overflow (s_divide);
+	      scm_num_overflow (s_divide);
 #else
-	return scm_make_real ((double) xx / (double) yy);
+	      return scm_make_real ((double) xx / (double) yy);
 #endif
-      } else if (xx % yy != 0) {
-	return scm_make_real ((double) xx / (double) yy);
-      } else {
-	long z = xx / yy;
-	if (SCM_FIXABLE (z)) {
-	  return SCM_MAKINUM (z);
-	} else {
-	  return scm_i_long2big (z);
+	    }
+	  else if (xx % yy != 0)
+	    return scm_make_real ((double) xx / (double) yy);
+	  else
+	    {
+	      long z = xx / yy;
+	      if (SCM_FIXABLE (z))
+		return SCM_MAKINUM (z);
+	      else
+		return scm_i_long2big (z);
+	    }
 	}
-      }
-    } else if (SCM_BIGP (y)) {
-      return scm_make_real ((double) xx / scm_i_big2dbl (y));
-    } else if (SCM_REALP (y)) {
-      double yy = SCM_REAL_VALUE (y);
+      else if (SCM_BIGP (y))
+	return scm_make_real ((double) xx / scm_i_big2dbl (y));
+      else if (SCM_REALP (y))
+	{
+	  double yy = SCM_REAL_VALUE (y);
 #ifndef ALLOW_DIVIDE_BY_ZERO
-      if (yy == 0.0)
-	scm_num_overflow (s_divide);
-      else
+	  if (yy == 0.0)
+	    scm_num_overflow (s_divide);
+	  else
 #endif
-	return scm_make_real ((double) xx / yy);
-    } else if (SCM_COMPLEXP (y)) {
-      a = xx;
-    complex_div: /* y _must_ be a complex number */
-      {
-	double r = SCM_COMPLEX_REAL (y);
-	double i = SCM_COMPLEX_IMAG (y);
-	if (r <= i) {
-	  double t = r / i;
-	  double d = i * (1.0 + t * t);
-	  return scm_make_complex ((a * t) / d,  -a / d);
-	} else {
-	  double t = i / r;
-	  double d = r * (1.0 + t * t);
-	  return scm_make_complex (a / d,  -(a * t) / d);
+	    return scm_make_real ((double) xx / yy);
 	}
-      }
-    } else {
-      SCM_WTA_DISPATCH_2 (g_divide, x, y, SCM_ARGn, s_divide);
+      else if (SCM_COMPLEXP (y))
+	{
+	  a = xx;
+	complex_div: /* y _must_ be a complex number */
+	  {
+	    double r = SCM_COMPLEX_REAL (y);
+	    double i = SCM_COMPLEX_IMAG (y);
+	    if (r <= i)
+	      {
+		double t = r / i;
+		double d = i * (1.0 + t * t);
+		return scm_make_complex ((a * t) / d,  -a / d);
+	      }
+	    else
+	      {
+		double t = i / r;
+		double d = r * (1.0 + t * t);
+		return scm_make_complex (a / d,  -(a * t) / d);
+	      }
+	  }
+	}
+      else
+	SCM_WTA_DISPATCH_2 (g_divide, x, y, SCM_ARGn, s_divide);
     }
-  } else if (SCM_BIGP (x)) {
-    if (SCM_INUMP (y)) {
-      long int yy = SCM_INUM (y);
-      if (yy == 0) {
+  else if (SCM_BIGP (x))
+    {
+      if (SCM_INUMP (y))
+	{
+	  long int yy = SCM_INUM (y);
+	  if (yy == 0)
+	    {
 #ifndef ALLOW_DIVIDE_BY_EXACT_ZERO
-	scm_num_overflow (s_divide);
+	      scm_num_overflow (s_divide);
 #else
-        int sgn = mpz_sgn (SCM_I_BIG_MPZ (x));
-        scm_remember_upto_here_1 (x);
-	return (sgn == 0) ? scm_nan () : scm_inf ();
+	      int sgn = mpz_sgn (SCM_I_BIG_MPZ (x));
+	      scm_remember_upto_here_1 (x);
+	      return (sgn == 0) ? scm_nan () : scm_inf ();
 #endif
-      } else if (yy == 1) {
-	return x;
-      } else {
-        /* FIXME: HMM, what are the relative performance issues here?
-           We need to test.  Is it faster on average to test
-           divisible_p, then perform whichever operation, or is it
-           faster to perform the integer div opportunistically and
-           switch to real if there's a remainder?  For now we take the
-           middle ground: test, then if divisible, use the faster div
-           func. */
+	    }
+	  else if (yy == 1)
+	    return x;
+	  else
+	    {
+	      /* FIXME: HMM, what are the relative performance issues here?
+		 We need to test.  Is it faster on average to test
+		 divisible_p, then perform whichever operation, or is it
+		 faster to perform the integer div opportunistically and
+		 switch to real if there's a remainder?  For now we take the
+		 middle ground: test, then if divisible, use the faster div
+		 func. */
 
-	long abs_yy = yy < 0 ? -yy : yy;
-        int divisible_p = mpz_divisible_ui_p (SCM_I_BIG_MPZ (x), abs_yy);
+	      long abs_yy = yy < 0 ? -yy : yy;
+	      int divisible_p = mpz_divisible_ui_p (SCM_I_BIG_MPZ (x), abs_yy);
 
-        if (divisible_p) {
-          SCM result = scm_i_mkbig ();
-          mpz_divexact_ui (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (x), abs_yy);
-          scm_remember_upto_here_1 (x);
-          if (yy < 0)
-            mpz_neg (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (result));
-          return scm_i_normbig (result);
-        }
-        else {
-          return scm_make_real (scm_i_big2dbl (x) / (double) yy);
-        }
-      }
-    } else if (SCM_BIGP (y)) {
-      int y_is_zero = (mpz_sgn (SCM_I_BIG_MPZ (y)) == 0);
-      if (y_is_zero) {
+	      if (divisible_p)
+		{
+		  SCM result = scm_i_mkbig ();
+		  mpz_divexact_ui (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (x), abs_yy);
+		  scm_remember_upto_here_1 (x);
+		  if (yy < 0)
+		    mpz_neg (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (result));
+		  return scm_i_normbig (result);
+		}
+	      else
+		return scm_make_real (scm_i_big2dbl (x) / (double) yy);
+	    }
+	}
+      else if (SCM_BIGP (y))
+	{
+	  int y_is_zero = (mpz_sgn (SCM_I_BIG_MPZ (y)) == 0);
+	  if (y_is_zero)
+	    {
 #ifndef ALLOW_DIVIDE_BY_EXACT_ZERO
-	scm_num_overflow (s_divide);
+	      scm_num_overflow (s_divide);
 #else
-        int sgn = mpz_sgn (SCM_I_BIG_MPZ (x));
-        scm_remember_upto_here_1 (x);
-	return (sgn == 0) ? scm_nan () : scm_inf ();
+	      int sgn = mpz_sgn (SCM_I_BIG_MPZ (x));
+	      scm_remember_upto_here_1 (x);
+	      return (sgn == 0) ? scm_nan () : scm_inf ();
 #endif
-      } else {
-        /* big_x / big_y */
-        int divisible_p = mpz_divisible_p (SCM_I_BIG_MPZ (x),
-                                           SCM_I_BIG_MPZ (y));
-        if (divisible_p) {
-          SCM result = scm_i_mkbig ();
-          mpz_divexact (SCM_I_BIG_MPZ (result),
-                        SCM_I_BIG_MPZ (x),
-                        SCM_I_BIG_MPZ (y));
-          scm_remember_upto_here_2 (x, y);
-          return scm_i_normbig (result);
-        }
-        else {
-          double dbx = mpz_get_d (SCM_I_BIG_MPZ (x));
-          double dby = mpz_get_d (SCM_I_BIG_MPZ (y));
-          scm_remember_upto_here_2 (x, y);
-          return scm_make_real (dbx / dby);
-        }
-      }
-    } else if (SCM_REALP (y)) {
-      double yy = SCM_REAL_VALUE (y);
+	    }
+	  else
+	    {
+	      /* big_x / big_y */
+	      int divisible_p = mpz_divisible_p (SCM_I_BIG_MPZ (x),
+						 SCM_I_BIG_MPZ (y));
+	      if (divisible_p)
+		{
+		  SCM result = scm_i_mkbig ();
+		  mpz_divexact (SCM_I_BIG_MPZ (result),
+				SCM_I_BIG_MPZ (x),
+				SCM_I_BIG_MPZ (y));
+		  scm_remember_upto_here_2 (x, y);
+		  return scm_i_normbig (result);
+		}
+	      else
+		{
+		  double dbx = mpz_get_d (SCM_I_BIG_MPZ (x));
+		  double dby = mpz_get_d (SCM_I_BIG_MPZ (y));
+		  scm_remember_upto_here_2 (x, y);
+		  return scm_make_real (dbx / dby);
+		}
+	    }
+	}
+      else if (SCM_REALP (y))
+	{
+	  double yy = SCM_REAL_VALUE (y);
 #ifndef ALLOW_DIVIDE_BY_ZERO
-      if (yy == 0.0)
-	scm_num_overflow (s_divide);
-      else
+	  if (yy == 0.0)
+	    scm_num_overflow (s_divide);
+	  else
 #endif
-	return scm_make_real (scm_i_big2dbl (x) / yy);
-    } else if (SCM_COMPLEXP (y)) {
-      a = scm_i_big2dbl (x);
-      goto complex_div;
-    } else {
-      SCM_WTA_DISPATCH_2 (g_divide, x, y, SCM_ARGn, s_divide);
+	    return scm_make_real (scm_i_big2dbl (x) / yy);
+	}
+      else if (SCM_COMPLEXP (y))
+	{
+	  a = scm_i_big2dbl (x);
+	  goto complex_div;
+	}
+      else
+	SCM_WTA_DISPATCH_2 (g_divide, x, y, SCM_ARGn, s_divide);
     }
-  } else if (SCM_REALP (x)) {
-    double rx = SCM_REAL_VALUE (x);
-    if (SCM_INUMP (y)) {
-      long int yy = SCM_INUM (y);
+  else if (SCM_REALP (x))
+    {
+      double rx = SCM_REAL_VALUE (x);
+      if (SCM_INUMP (y))
+	{
+	  long int yy = SCM_INUM (y);
 #ifndef ALLOW_DIVIDE_BY_EXACT_ZERO
-      if (yy == 0)
-	scm_num_overflow (s_divide);
-      else
+	  if (yy == 0)
+	    scm_num_overflow (s_divide);
+	  else
 #endif
-	return scm_make_real (rx / (double) yy);
-    } else if (SCM_BIGP (y)) {
-      double dby = mpz_get_d (SCM_I_BIG_MPZ (y));
-      scm_remember_upto_here_1 (y);
-      return scm_make_real (rx / dby);
-    } else if (SCM_REALP (y)) {
-      double yy = SCM_REAL_VALUE (y);
+	    return scm_make_real (rx / (double) yy);
+	}
+      else if (SCM_BIGP (y))
+	{
+	  double dby = mpz_get_d (SCM_I_BIG_MPZ (y));
+	  scm_remember_upto_here_1 (y);
+	  return scm_make_real (rx / dby);
+	}
+      else if (SCM_REALP (y))
+	{
+	  double yy = SCM_REAL_VALUE (y);
 #ifndef ALLOW_DIVIDE_BY_ZERO
-      if (yy == 0.0)
-	scm_num_overflow (s_divide);
-      else
+	  if (yy == 0.0)
+	    scm_num_overflow (s_divide);
+	  else
 #endif
-	return scm_make_real (rx / yy);
-    } else if (SCM_COMPLEXP (y)) {
-      a = rx;
-      goto complex_div;
-    } else {
-      SCM_WTA_DISPATCH_2 (g_divide, x, y, SCM_ARGn, s_divide);
+	    return scm_make_real (rx / yy);
+	}
+      else if (SCM_COMPLEXP (y))
+	{
+	  a = rx;
+	  goto complex_div;
+	}
+      else
+	SCM_WTA_DISPATCH_2 (g_divide, x, y, SCM_ARGn, s_divide);
     }
-  } else if (SCM_COMPLEXP (x)) {
-    double rx = SCM_COMPLEX_REAL (x);
-    double ix = SCM_COMPLEX_IMAG (x);
-    if (SCM_INUMP (y)) {
-      long int yy = SCM_INUM (y);
+  else if (SCM_COMPLEXP (x))
+    {
+      double rx = SCM_COMPLEX_REAL (x);
+      double ix = SCM_COMPLEX_IMAG (x);
+      if (SCM_INUMP (y))
+	{
+	  long int yy = SCM_INUM (y);
 #ifndef ALLOW_DIVIDE_BY_EXACT_ZERO
-      if (yy == 0)
-	scm_num_overflow (s_divide);
-      else
+	  if (yy == 0)
+	    scm_num_overflow (s_divide);
+	  else
 #endif
-      {
-	double d = yy;
-	return scm_make_complex (rx / d, ix / d);
-      }
-    } else if (SCM_BIGP (y)) {
-      double dby = mpz_get_d (SCM_I_BIG_MPZ (y));
-      scm_remember_upto_here_1 (y);
-      return scm_make_complex (rx / dby, ix / dby);
-    } else if (SCM_REALP (y)) {
-      double yy = SCM_REAL_VALUE (y);
+	    {
+	      double d = yy;
+	      return scm_make_complex (rx / d, ix / d);
+	    }
+	}
+      else if (SCM_BIGP (y))
+	{
+	  double dby = mpz_get_d (SCM_I_BIG_MPZ (y));
+	  scm_remember_upto_here_1 (y);
+	  return scm_make_complex (rx / dby, ix / dby);
+	}
+      else if (SCM_REALP (y))
+	{
+	  double yy = SCM_REAL_VALUE (y);
 #ifndef ALLOW_DIVIDE_BY_ZERO
-      if (yy == 0.0)
-	scm_num_overflow (s_divide);
-      else
+	  if (yy == 0.0)
+	    scm_num_overflow (s_divide);
+	  else
 #endif
-	return scm_make_complex (rx / yy, ix / yy);
-    } else if (SCM_COMPLEXP (y)) {
-      double ry = SCM_COMPLEX_REAL (y);
-      double iy = SCM_COMPLEX_IMAG (y);
-      if (ry <= iy) {
-	double t = ry / iy;
-	double d = iy * (1.0 + t * t);
-	return scm_make_complex ((rx * t + ix) / d, (ix * t - rx) / d);
-      } else {
-	double t = iy / ry;
-	double d = ry * (1.0 + t * t);
-	return scm_make_complex ((rx + ix * t) / d, (ix - rx * t) / d);
-      }
-    } else {
-      SCM_WTA_DISPATCH_2 (g_divide, x, y, SCM_ARGn, s_divide);
+	    return scm_make_complex (rx / yy, ix / yy);
+	}
+      else if (SCM_COMPLEXP (y))
+	{
+	  double ry = SCM_COMPLEX_REAL (y);
+	  double iy = SCM_COMPLEX_IMAG (y);
+	  if (ry <= iy)
+	    {
+	      double t = ry / iy;
+	      double d = iy * (1.0 + t * t);
+	      return scm_make_complex ((rx * t + ix) / d, (ix * t - rx) / d);
+	    }
+	  else
+	    {
+	      double t = iy / ry;
+	      double d = ry * (1.0 + t * t);
+	      return scm_make_complex ((rx + ix * t) / d, (ix - rx * t) / d);
+	    }
+	}
+      else
+	SCM_WTA_DISPATCH_2 (g_divide, x, y, SCM_ARGn, s_divide);
     }
-  } else {
+  else
     SCM_WTA_DISPATCH_2 (g_divide, x, y, SCM_ARG1, s_divide);
-  }
 }
 #undef FUNC_NAME
 
@@ -3717,8 +4031,9 @@ scm_round (double x)
   double plus_half = x + 0.5;
   double result = floor (plus_half);
   /* Adjust so that the scm_round is towards even.  */
-  return (plus_half == result && plus_half / 2 != floor (plus_half / 2))
-    ? result - 1 : result;
+  return ((plus_half == result && plus_half / 2 != floor (plus_half / 2))
+	  ? result - 1
+	  : result);
 }
 
 
@@ -3781,25 +4096,23 @@ static void scm_two_doubles (SCM x,
 static void
 scm_two_doubles (SCM x, SCM y, const char *sstring, struct dpair *xy)
 {
-  if (SCM_INUMP (x)) {
+  if (SCM_INUMP (x))
     xy->x = SCM_INUM (x);
-  } else if (SCM_BIGP (x)) {
+  else if (SCM_BIGP (x))
     xy->x = scm_i_big2dbl (x);
-  } else if (SCM_REALP (x)) {
+  else if (SCM_REALP (x))
     xy->x = SCM_REAL_VALUE (x);
-  } else {
+  else
     scm_wrong_type_arg (sstring, SCM_ARG1, x);
-  }
 
-  if (SCM_INUMP (y)) {
+  if (SCM_INUMP (y))
     xy->y = SCM_INUM (y);
-  } else if (SCM_BIGP (y)) {
+  else if (SCM_BIGP (y))
     xy->y = scm_i_big2dbl (y);
-  } else if (SCM_REALP (y)) {
+  else if (SCM_REALP (y))
     xy->y = SCM_REAL_VALUE (y);
-  } else {
+  else
     scm_wrong_type_arg (sstring, SCM_ARG2, y);
-  }
 }
 
 
@@ -3871,17 +4184,16 @@ SCM_GPROC (s_real_part, "real-part", 1, 0, 0, scm_real_part, g_real_part);
 SCM
 scm_real_part (SCM z)
 {
-  if (SCM_INUMP (z)) {
+  if (SCM_INUMP (z))
     return z;
-  } else if (SCM_BIGP (z)) {
+  else if (SCM_BIGP (z))
     return z;
-  } else if (SCM_REALP (z)) {
+  else if (SCM_REALP (z))
     return z;
-  } else if (SCM_COMPLEXP (z)) {
+  else if (SCM_COMPLEXP (z))
     return scm_make_real (SCM_COMPLEX_REAL (z));
-  } else {
+  else
     SCM_WTA_DISPATCH_1 (g_real_part, z, SCM_ARG1, s_real_part);
-  }
 }
 
 
@@ -3891,17 +4203,16 @@ SCM_GPROC (s_imag_part, "imag-part", 1, 0, 0, scm_imag_part, g_imag_part);
 SCM
 scm_imag_part (SCM z)
 {
-  if (SCM_INUMP (z)) {
+  if (SCM_INUMP (z))
     return SCM_INUM0;
-  } else if (SCM_BIGP (z)) {
+  else if (SCM_BIGP (z))
     return SCM_INUM0;
-  } else if (SCM_REALP (z)) {
+  else if (SCM_REALP (z))
     return scm_flo0;
-  } else if (SCM_COMPLEXP (z)) {
+  else if (SCM_COMPLEXP (z))
     return scm_make_real (SCM_COMPLEX_IMAG (z));
-  } else {
+  else
     SCM_WTA_DISPATCH_1 (g_imag_part, z, SCM_ARG1, s_imag_part);
-  }
 }
 
 
@@ -3912,30 +4223,31 @@ SCM_GPROC (s_magnitude, "magnitude", 1, 0, 0, scm_magnitude, g_magnitude);
 SCM
 scm_magnitude (SCM z)
 {
-  if (SCM_INUMP (z)) {
-    long int zz = SCM_INUM (z);
-    if (zz >= 0) {
-      return z;
-    } else if (SCM_POSFIXABLE (-zz)) {
-      return SCM_MAKINUM (-zz);
-    } else {
-      return scm_i_long2big (-zz);
+  if (SCM_INUMP (z))
+    {
+      long int zz = SCM_INUM (z);
+      if (zz >= 0)
+	return z;
+      else if (SCM_POSFIXABLE (-zz))
+	return SCM_MAKINUM (-zz);
+      else
+	return scm_i_long2big (-zz);
     }
-  } else if (SCM_BIGP (z)) {
-    int sgn = mpz_sgn (SCM_I_BIG_MPZ (z));
-    scm_remember_upto_here_1 (z);
-    if (sgn < 0) {
-      return scm_i_clonebig (z, 0);
-    } else {
-      return z;
+  else if (SCM_BIGP (z))
+    {
+      int sgn = mpz_sgn (SCM_I_BIG_MPZ (z));
+      scm_remember_upto_here_1 (z);
+      if (sgn < 0)
+	return scm_i_clonebig (z, 0);
+      else
+	return z;
     }
-  } else if (SCM_REALP (z)) {
+  else if (SCM_REALP (z))
     return scm_make_real (fabs (SCM_REAL_VALUE (z)));
-  } else if (SCM_COMPLEXP (z)) {
+  else if (SCM_COMPLEXP (z))
     return scm_make_real (hypot (SCM_COMPLEX_REAL (z), SCM_COMPLEX_IMAG (z)));
-  } else {
+  else
     SCM_WTA_DISPATCH_1 (g_magnitude, z, SCM_ARG1, s_magnitude);
-  }
 }
 
 
@@ -3945,27 +4257,28 @@ SCM_GPROC (s_angle, "angle", 1, 0, 0, scm_angle, g_angle);
 SCM
 scm_angle (SCM z)
 {
-  if (SCM_INUMP (z)) {
-    if (SCM_INUM (z) >= 0) {
-      return scm_make_real (atan2 (0.0, 1.0));
-    } else {
-      return scm_make_real (atan2 (0.0, -1.0));
+  if (SCM_INUMP (z))
+    {
+      if (SCM_INUM (z) >= 0)
+	return scm_make_real (atan2 (0.0, 1.0));
+      else
+	return scm_make_real (atan2 (0.0, -1.0));
     }
-  } else if (SCM_BIGP (z)) {
-    int sgn = mpz_sgn (SCM_I_BIG_MPZ (z));
-    scm_remember_upto_here_1 (z);
-    if (sgn < 0) {
-      return scm_make_real (atan2 (0.0, -1.0));
-    } else {
-      return scm_make_real (atan2 (0.0, 1.0));
+  else if (SCM_BIGP (z))
+    {
+      int sgn = mpz_sgn (SCM_I_BIG_MPZ (z));
+      scm_remember_upto_here_1 (z);
+      if (sgn < 0)
+	return scm_make_real (atan2 (0.0, -1.0));
+      else
+	return scm_make_real (atan2 (0.0, 1.0));
     }
-  } else if (SCM_REALP (z)) {
+  else if (SCM_REALP (z))
     return scm_make_real (atan2 (0.0, SCM_REAL_VALUE (z)));
-  } else if (SCM_COMPLEXP (z)) {
+  else if (SCM_COMPLEXP (z))
     return scm_make_real (atan2 (SCM_COMPLEX_IMAG (z), SCM_COMPLEX_REAL (z)));
-  } else {
+  else
     SCM_WTA_DISPATCH_1 (g_angle, z, SCM_ARG1, s_angle);
-  }
 }
 
 
@@ -3991,23 +4304,23 @@ SCM_DEFINE (scm_inexact_to_exact, "inexact->exact", 1, 0, 0,
 	    "Return an exact number that is numerically closest to @var{z}.")
 #define FUNC_NAME s_scm_inexact_to_exact
 {
-  if (SCM_INUMP (z)) {
+  if (SCM_INUMP (z))
     return z;
-  } else if (SCM_BIGP (z)) {
+  else if (SCM_BIGP (z))
     return z;
-  } else if (SCM_REALP (z)) {
-    double u = floor (SCM_REAL_VALUE (z) + 0.5);
-    long lu = (long) u;
-    if (SCM_FIXABLE (lu)) {
-      return SCM_MAKINUM (lu);
-    } else if (!xisinf (u) && !xisnan (u)) {
-      return scm_i_dbl2big (u);
-    } else {
-      scm_num_overflow (s_scm_inexact_to_exact);
+  else if (SCM_REALP (z))
+    {
+      double u = floor (SCM_REAL_VALUE (z) + 0.5);
+      long lu = (long) u;
+      if (SCM_FIXABLE (lu))
+	return SCM_MAKINUM (lu);
+      else if (!xisinf (u) && !xisnan (u))
+	return scm_i_dbl2big (u);
+      else
+	scm_num_overflow (s_scm_inexact_to_exact);
     }
-  } else {
+  else
     SCM_WRONG_TYPE_ARG (1, z);
-  }
 }
 #undef FUNC_NAME
 
@@ -4166,11 +4479,13 @@ SCM_DEFINE (scm_inexact_to_exact, "inexact->exact", 1, 0, 0,
 #define PTRDIFF_MAX (~ PTRDIFF_MIN)
 #endif
 
-#define CHECK(type, v) \
-  do { \
-    if ((v) != scm_num2##type (scm_##type##2num (v), 1, "check_sanity")) \
-      abort (); \
-  } while (0);
+#define CHECK(type, v)							   \
+  do									   \
+    {									   \
+      if ((v) != scm_num2##type (scm_##type##2num (v), 1, "check_sanity")) \
+	abort ();							   \
+    }									   \
+  while (0)
 
 static void
 check_sanity ()
@@ -4286,14 +4601,16 @@ scm_init_numbers ()
   {				/* determine floating point precision */
     double f = 0.1;
     double fsum = 1.0 + f;
-    while (fsum != 1.0) {
-      if (++scm_dblprec > 20) {
-	fsum = 1.0;
-      } else {
-	f /= 10.0;
-	fsum = f + 1.0;
+    while (fsum != 1.0)
+      {
+	if (++scm_dblprec > 20)
+	  fsum = 1.0;
+	else
+	  {
+	    f /= 10.0;
+	    fsum = f + 1.0;
+	  }
       }
-    }
     scm_dblprec = scm_dblprec - 1;
   }
 #endif /* DBL_DIG */

@@ -1,3 +1,11 @@
+2003-07-13  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* numbers.c (scm_odd_p, scm_even_p): Bugfix: Treat result of
+	scm_inf_p test as Scheme values.
+	(scm_sum): Bugfix: Normalize bignum created from a negative bignum
+	and a positive inum.
+	Use GNU indentation style.
+
 2003-07-12  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* values.c (scm_values): Build lists of length 1 by using
@@ -19,7 +27,7 @@
 
 2003-07-08  Kevin Ryde  <user42@zip.com.au>
 
-	* numbers.c (s_scm_make_polar): Use sincos, when available.
+	* numbers.c (scm_make_polar): Use sincos, when available.
 	(scm_magnitude): Use hypot.
 
 	* ports.c (scm_char_ready_p, scm_peek_char): In docstrings, don't use
