@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996, 1997, 2000, 2001 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996, 1997, 2000, 2001, 2004 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -26,12 +26,14 @@
 #include "libguile/arbiters.h"
 
 
-/* {Arbiters}
- *
- * These procedures implement synchronization primitives.  Processors
- * with an atomic test-and-set instruction can use it here (and not
- * SCM_DEFER_INTS). 
- */
+/* ENHANCE-ME: If the cpu has an atomic test-and-set instruction it could be
+   used instead of a mutex in try-arbiter and release-arbiter.
+
+   For the i386 family, cmpxchg would suit but it's only available on 80486
+   and higher so that would have to be checked, perhaps at run-time when
+   setting up the definitions of the scheme procedures, or at compile time
+   if we interpret a host cpu type like "i686" to mean not less than that
+   chip.  */
 
 static scm_t_bits scm_tc16_arbiter;
 
@@ -62,6 +64,12 @@ SCM_DEFINE (scm_make_arbiter, "make-arbiter", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+
+/* The mutex here is so two threads can't both see the arbiter unlocked and
+   both proceed to lock and return #t.  The arbiter itself wouldn't be
+   corrupted by this, but two threads both getting #t would be entirely
+   contrary to the intended semantics.  */
+
 SCM_DEFINE (scm_try_arbiter, "try-arbiter", 1, 0, 0, 
 	    (SCM arb),
 	    "Return @code{#t} and lock the arbiter @var{arb} if the arbiter\n"
@@ -69,7 +77,8 @@ SCM_DEFINE (scm_try_arbiter, "try-arbiter", 1, 0, 0,
 #define FUNC_NAME s_scm_try_arbiter
 {
   SCM_VALIDATE_SMOB (1, arb, arbiter);
-  SCM_DEFER_INTS;
+
+  scm_mutex_lock (&scm_i_misc_mutex);
   if (SCM_ARB_LOCKED(arb))
     arb = SCM_BOOL_F;
   else
@@ -77,23 +86,38 @@ SCM_DEFINE (scm_try_arbiter, "try-arbiter", 1, 0, 0,
       SCM_LOCK_ARB(arb);
       arb = SCM_BOOL_T;
     }
-  SCM_ALLOW_INTS;
+  scm_mutex_unlock (&scm_i_misc_mutex);
   return arb;
 }
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_release_arbiter, "release-arbiter", 1, 0, 0, 
+/* The mutex here is so two threads can't both see the arbiter locked and
+   both proceed to unlock and return #t.  The arbiter itself wouldn't be
+   corrupted by this, but we don't want two threads both thinking they were
+   the unlocker.  The intended usage is for the code which locked to be
+   responsible for unlocking, but we guarantee the return value even if
+   multiple threads compete.  */
+
+SCM_DEFINE (scm_release_arbiter, "release-arbiter", 1, 0, 0,
 	    (SCM arb),
 	    "Return @code{#t} and unlock the arbiter @var{arb} if the\n"
 	    "arbiter was locked. Otherwise, return @code{#f}.")
 #define FUNC_NAME s_scm_release_arbiter
 {
+  SCM ret;
   SCM_VALIDATE_SMOB (1, arb, arbiter);
+
+  scm_mutex_lock (&scm_i_misc_mutex);
   if (!SCM_ARB_LOCKED(arb))
-    return SCM_BOOL_F;
-  SCM_UNLOCK_ARB (arb);
-  return SCM_BOOL_T;
+    ret = SCM_BOOL_F;
+  else
+    {
+      SCM_UNLOCK_ARB (arb);
+      ret = SCM_BOOL_T;
+    }
+  scm_mutex_unlock (&scm_i_misc_mutex);
+  return ret;
 }
 #undef FUNC_NAME
 
