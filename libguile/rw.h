@@ -48,6 +48,7 @@
 
 extern SCM scm_read_string_x_partial (SCM str, SCM port_or_fdes, SCM start,
 				      SCM end);
+SCM scm_init_rw_builtins (void);
 void scm_init_rw (void);
 
 #endif
