@@ -363,8 +363,7 @@ SCM_DEFINE (scm_random, "random", 1, 1, 0,
             "`seed->random-state'. It defaults to the value of the variable\n"
             "*random-state*. This object is used to maintain the state of\n"
             "the pseudo-random-number generator and is altered as a side\n"
-            "effect of the random operation.\n"
-            "")
+            "effect of the random operation.")
 #define FUNC_NAME s_scm_random
 {
   if (SCM_UNBNDP (state))
@@ -427,8 +426,7 @@ SCM_DEFINE (scm_random_normal, "random:normal", 0, 1, 0,
             "Returns an inexact real in a normal distribution.\n"
             "The distribution used has mean 0 and standard deviation 1.\n"
             "For a normal distribution with mean m and standard deviation\n"
-            "d use @code{(+ m (* d (random:normal)))}.\n"
-            "")
+            "d use @code{(+ m (* d (random:normal)))}.")
 #define FUNC_NAME s_scm_random_normal
 {
   if (SCM_UNBNDP (state))
@@ -484,8 +482,7 @@ SCM_DEFINE (scm_random_solid_sphere_x, "random:solid-sphere!", 1, 1, 0,
             "Thinking of vect as coordinates in space of \n"
             "dimension n = (vector-length vect), the coordinates \n"
             "are uniformly distributed within the unit n-shere.\n"
-            "The sum of the squares of the numbers is returned.\n"
-            "")
+            "The sum of the squares of the numbers is returned.")
 #define FUNC_NAME s_scm_random_solid_sphere_x
 {
   SCM_VALIDATE_VECTOR_OR_DVECTOR (1,v);
@@ -508,8 +505,7 @@ SCM_DEFINE (scm_random_hollow_sphere_x, "random:hollow-sphere!", 1, 1, 0,
             "Thinking of vect as coordinates in space of \n"
             "dimension n = (vector-length vect), the coordinates\n"
             "are uniformly distributed over the surface of the \n"
-            "unit n-shere.\n"
-            "")
+            "unit n-shere.")
 #define FUNC_NAME s_scm_random_hollow_sphere_x
 {
   SCM_VALIDATE_VECTOR_OR_DVECTOR (1,v);
@@ -527,8 +523,7 @@ SCM_DEFINE (scm_random_normal_vector_x, "random:normal-vector!", 1, 1, 0,
             (SCM v, SCM state),
             "Fills vect with inexact real random numbers that are\n"
             "independent and standard normally distributed\n"
-            "(i.e., with mean 0 and variance 1).\n"
-            "")
+            "(i.e., with mean 0 and variance 1).")
 #define FUNC_NAME s_scm_random_normal_vector_x
 {
   int n;
@@ -552,8 +547,7 @@ SCM_DEFINE (scm_random_normal_vector_x, "random:normal-vector!", 1, 1, 0,
 SCM_DEFINE (scm_random_exp, "random:exp", 0, 1, 0, 
             (SCM state),
             "Returns an inexact real in an exponential distribution with mean 1.\n"
-            "For an exponential distribution with mean u use (* u (random:exp)).\n"
-            "")
+            "For an exponential distribution with mean u use (* u (random:exp)).")
 #define FUNC_NAME s_scm_random_exp
 {
   if (SCM_UNBNDP (state))
