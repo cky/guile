@@ -330,6 +330,21 @@
   (struct-ref (struct-vtable s) vtable-index-layout))
 
 
+
+;;; Environments
+
+(define the-environment
+  (procedure->syntax
+   (lambda (x e)
+     e)))
+
+(define the-root-environment (the-environment))
+
+(define (environment-module env)
+  (let ((closure (and (pair? env) (car (last-pair env)))))
+    (and closure (procedure-property closure 'module))))
+
+
 ;;; {Records}
 ;;;
 
@@ -405,12 +420,13 @@
 
 (define (record-constructor rtd . opt)
   (let ((field-names (if (pair? opt) (car opt) (record-type-fields rtd))))
-    (eval `(lambda ,field-names
-	     (make-struct ',rtd 0 ,@(map (lambda (f)
-					  (if (memq f field-names)
-					      f
-					      #f))
-					(record-type-fields rtd)))))))
+    (local-eval `(lambda ,field-names
+		   (make-struct ',rtd 0 ,@(map (lambda (f)
+						 (if (memq f field-names)
+						     f
+						     #f))
+					       (record-type-fields rtd))))
+		the-root-environment)))
 
 (define (record-predicate rtd)
   (lambda (obj) (and (struct? obj) (eq? rtd (struct-vtable obj)))))
@@ -419,17 +435,19 @@
   (let* ((pos (list-index (record-type-fields rtd) field-name)))
     (if (not pos)
 	(error 'no-such-field field-name))
-    (eval `(lambda (obj)
-	     (and (eq? ',rtd (record-type-descriptor obj))
-		  (struct-ref obj ,pos))))))
+    (local-eval `(lambda (obj)
+		   (and (eq? ',rtd (record-type-descriptor obj))
+			(struct-ref obj ,pos)))
+		the-root-environment)))
 
 (define (record-modifier rtd field-name)
   (let* ((pos (list-index (record-type-fields rtd) field-name)))
     (if (not pos)
 	(error 'no-such-field field-name))
-    (eval `(lambda (obj val)
-	     (and (eq? ',rtd (record-type-descriptor obj))
-		  (struct-set! obj ,pos val))))))
+    (local-eval `(lambda (obj val)
+		   (and (eq? ',rtd (record-type-descriptor obj))
+			(struct-set! obj ,pos val)))
+		the-root-environment)))
 
 
 (define (record? obj)
@@ -883,7 +901,7 @@
 (read-hash-extend #\' (lambda (c port)
 			(read port)))
 (read-hash-extend #\. (lambda (c port)
-			(eval (read port))))
+			(eval (read port) (interaction-environment))))
 
 
 ;;; {Command Line Options}
@@ -1067,6 +1085,8 @@
 ;; is a (CLOSURE module symbol) which, as a last resort, can provide
 ;; bindings that would otherwise not be found locally in the module.
 ;;
+;; NOTE: If you change here, you also need to change libguile/modules.h.
+;;
 (define module-type
   (make-record-type 'module
 		    '(obarray uses binder eval-closure transformer name kind
@@ -1148,8 +1168,9 @@
       ;; to maximally one module.
       (set-procedure-property! closure 'module module))))
 
-(define (eval-in-module exp module)
-  (eval2 exp (module-eval-closure module)))
+;;; This procedure is depreated
+;;;
+(define eval-in-module eval)
 
 
 ;;; {Observer protocol}
@@ -1502,6 +1523,7 @@
   (fluid-set! the-module m)
   (if m
       (begin
+	;; *top-level-lookup-closure* is now deprecated
 	(fluid-set! *top-level-lookup-closure*
 		    (module-eval-closure (fluid-ref the-module)))
 	(fluid-set! scm:eval-transformer (module-transformer (fluid-ref the-module))))
@@ -2553,7 +2575,8 @@
 
 	   (-eval (lambda (sourc)
 		    (repl-report-start-timing)
-		    (start-stack 'repl-stack (eval sourc))))
+		    (start-stack 'repl-stack
+				 (eval sourc (interaction-environment)))))
 
 	   (-print (let ((maybe-print (lambda (result)
 					(if (or scm-repl-print-unspecified
@@ -2636,17 +2659,6 @@
 (defmacro with-fluids (bindings . body)
   `(with-fluids* (list ,@(map car bindings)) (list ,@(map cadr bindings))
 		 (lambda () ,@body)))
-
-;;; Environments
-
-(define the-environment
-  (procedure->syntax
-   (lambda (x e)
-     e)))
-
-(define (environment-module env)
-  (let ((closure (and (pair? env) (car (last-pair env)))))
-    (and closure (procedure-property closure 'module))))
 
 
 
@@ -2737,7 +2749,7 @@
 	    ;; suggests we use eval here to accomodate Hobbit; it lets
 	    ;; the interpreter handle the define-private form, which
 	    ;; Hobbit can't digest.
-	    (eval '(define-private ,@ args)))))))
+	    (eval '(define-private ,@ args) (interaction-environment)))))))
 
 
 
