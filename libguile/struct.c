@@ -414,7 +414,7 @@ SCM_DEFINE (scm_make_struct, "make-struct", 2, 0, 1,
 	    "@var{tail-elts} must be a non-negative integer.  If the layout\n"
 	    "specification indicated by @var{type} includes a tail-array,\n"
 	    "this is the number of elements allocated to that array.\n\n"
-	    "The @var{init1}, @dots are optional arguments describing how\n"
+	    "The @var{init1}, @dots{} are optional arguments describing how\n"
 	    "successive fields of the structure should be initialized.  Only fields\n"
 	    "with protection 'r' or 'w' can be initialized, except for fields of\n"
 	    "type 's', which are automatically initialized to point to the new\n"
@@ -427,8 +427,7 @@ SCM_DEFINE (scm_make_struct, "make-struct", 2, 0, 1,
 	    "structures in Guile.  The plan is to eventually replace them with a\n"
 	    "new representation which will at the same time be easier to use and\n"
 	    "more powerful.\n\n"
-	    "For more information, see the documentation for @code{make-vtable-vtable}.\n"
-	    "")
+	    "For more information, see the documentation for @code{make-vtable-vtable}.")
 #define FUNC_NAME s_scm_make_struct
 {
   SCM layout;
@@ -477,7 +476,7 @@ SCM_DEFINE (scm_make_vtable_vtable, "make-vtable-vtable", 2, 0, 1,
 	    "(see @code{make-struct-layout}).\n\n"
 	    "@var{tail-size} specifies the size of the tail-array (if any) of\n"
 	    "this vtable.\n\n"
-	    "@var{init1}, @dots are the optional initializers for the fields of\n"
+	    "@var{init1}, @dots{} are the optional initializers for the fields of\n"
 	    "the vtable.\n\n"
 	    "Vtables have one initializable system field---the struct printer.\n"
 	    "This field comes before the user fields in the initializers passed\n"
