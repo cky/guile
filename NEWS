@@ -109,6 +109,8 @@ This module includes Andrew K. Wright's pattern matcher:
 See ice-9/match.scm for brief description or
 http://www.star-lab.com/wright/code.html for complete documentation.
 
+This module requires SLIB to be installed and available from Guile.
+
 * Changes to the stand-alone interpreter
 
 ** It's now possible to create modules with controlled environments
