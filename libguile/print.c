@@ -348,7 +348,7 @@ taloop:
 	      || SCM_FALSEP (scm_printer_apply (SCM_PRINT_CLOSURE,
 						exp, port, pstate)));
 	  {
-	    SCM name, code;
+	    SCM name, code, env;
 	    if (SCM_TYP16 (exp) == scm_tc16_macro)
 	      {
 		/* Printing a macro. */
@@ -363,6 +363,7 @@ taloop:
 		else
 		  {
 		    code = SCM_CODE (SCM_CDR (exp));
+		    env = SCM_ENV (SCM_CDR (exp));
 		    scm_gen_puts (scm_regular_string, "#<", port);
 		  }
 		if (SCM_CAR (exp) & (3L << 16))
@@ -377,6 +378,7 @@ taloop:
 		/* Printing a closure. */
 		name = scm_procedure_name (exp);
 		code = SCM_CODE (exp);
+		env = SCM_ENV (exp);
 		scm_gen_puts (scm_regular_string, "#<procedure",
 			      port);
 	      }
@@ -387,18 +389,25 @@ taloop:
 	      }
 	    if (code)
 	      {
-		scm_gen_putc (' ', port);
-		scm_iprin1 (SCM_CAR (code), port, pstate);
-	      }
-	    if (code && SCM_PRINT_SOURCE_P)
-	      {
-		code = scm_unmemocopy (SCM_CDR (code),
-				       SCM_EXTEND_ENV (SCM_CAR (code),
-						       SCM_EOL,
-						       SCM_ENV (exp)));
-		ENTER_NESTED_DATA (pstate, exp, circref);
-		scm_iprlist (" ", code, '>', port, pstate);
-		EXIT_NESTED_DATA (pstate);
+		if (SCM_PRINT_SOURCE_P)
+		  {
+		    code = scm_unmemocopy (code,
+					   SCM_EXTEND_ENV (SCM_CAR (code),
+							   SCM_EOL,
+							   env));
+		    ENTER_NESTED_DATA (pstate, exp, circref);
+		    scm_iprlist (" ", code, '>', port, pstate);
+		    EXIT_NESTED_DATA (pstate);
+		  }
+		else
+		  {
+		    if (SCM_TYP16 (exp) != scm_tc16_macro)
+		      {
+			scm_gen_putc (' ', port);
+			scm_iprin1 (SCM_CAR (code), port, pstate);
+		      }
+		    scm_gen_putc ('>', port);
+		  }
 	      }
 	    else
 	      scm_gen_putc ('>', port);

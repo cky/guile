@@ -1,3 +1,9 @@
+Thu Oct  2 19:33:38 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* print.c (scm_iprin1): Don't print arguments of macro
+ 	transformers.  (They are always: exp env.); Bugfix: Unmemoize
+ 	transformer source with correct environment.
+
 1997-10-02  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	Streamlining of call-with-dynamic-root:
