@@ -3392,14 +3392,6 @@ scm_copy_tree (obj)
   SCM ans, tl;
   if SCM_IMP
     (obj) return obj;
-  if (SCM_VECTORP (obj))
-    {
-      scm_sizet i = SCM_LENGTH (obj);
-      ans = scm_make_vector (SCM_MAKINUM (i), SCM_UNSPECIFIED);
-      while (i--)
-	SCM_VELTS (ans)[i] = scm_copy_tree (SCM_VELTS (obj)[i]);
-      return ans;
-    }
   if SCM_NCONSP (obj)
     return obj;
 /*  return scm_cons(scm_copy_tree(SCM_CAR(obj)), scm_copy_tree(SCM_CDR(obj))); */

@@ -1,3 +1,15 @@
+1998-07-17  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+
+	* eval.c (scm_copy_tree): Removed ability to copy vectors.
+
+	* gh_data.c, gh.h (gh_ints2scm, gh_longs2ivect,
+	gh_ulongs2uvect): New procedures.  (Complements gh_doubles2scm and
+	gh_doubles2dvect.)
+
+	* unif.c: Say that ivect and uvect are of type signed and unsigned
+	long instead of int in commentary so that it correctly describes
+	the implementation.
+
 1998-07-12  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
 	* stime.c: Removed declaration of strptime.  (It should be
