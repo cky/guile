@@ -1,3 +1,8 @@
+2004-07-05  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* boolean.h, boolean.c (scm_is_true, scm_is_false, scm_from_bool,
+	scm_to_bool): New.
+
 2004-06-27  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
 
 	* backtrace.c (display_expression, display_frame): Call
