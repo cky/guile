@@ -1,7 +1,10 @@
-2004-02-16  Kevin Ryde  <user42@zip.com.au>
+2004-02-16  Kevin Ryde  <kevin@swox.se>
 
 	* num2float.i.c (NUM2FLOAT): Expand isfinite to !xisinf, as per
 	previous change to numbers.c.
+
+	* script.c (scm_shell_usage): Print bug-guile email address, as per
+	GNU standard.  Reported by Han-Wen Nienhuys.
 
 2004-02-13  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
