@@ -51,6 +51,7 @@
 #include "libguile/throw.h"
 #include "libguile/root.h"
 #include "libguile/smob.h"
+#include "libguile/gc.h"
 
 #include "libguile/validate.h"
 #include "libguile/async.h"
@@ -453,6 +454,8 @@ static SCM scm_gc_vcell;
 static SCM
 scm_sys_gc_async_thunk (void)
 {
+  scm_c_run_hook (scm_after_gc_hook, SCM_EOL);
+  /* The following code will be removed in Guile 1.5.  */
   if (SCM_NFALSEP (scm_gc_vcell))
     {
       SCM proc = SCM_CDR (scm_gc_vcell);
