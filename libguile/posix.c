@@ -848,6 +848,17 @@ scm_environ (env)
     }
 }
 
+#ifdef L_tmpnam
+
+SCM_PROC (s_tmpnam, "tmpnam", 0, 0, 0, scm_tmpnam);
+
+SCM scm_tmpnam()
+{
+  char name[L_tmpnam];
+  SCM_SYSCALL (tmpnam (name););
+  return scm_makfrom0str (name);
+}
+#endif
 
 SCM_PROC (s_open_pipe, "open-pipe", 2, 0, 0, scm_open_pipe);
 
