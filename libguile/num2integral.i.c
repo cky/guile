@@ -88,19 +88,44 @@ NUM2INTEGRAL (SCM num, unsigned long int pos, const char *s_caller)
             }
           else
             {
+              size_t itype_bits = sizeof (ITYPE) * SCM_CHAR_BIT;
+              int sgn = mpz_sgn (SCM_I_BIG_MPZ (num));
               size_t numbits;
+
               if (UNSIGNED)
                 {
-                  int sgn = mpz_sgn (SCM_I_BIG_MPZ (num));
-                  scm_remember_upto_here_1 (num);
                   if (sgn < 0)
                     scm_out_of_range (s_caller, num);
                 }
-              
+
               numbits = mpz_sizeinbase (SCM_I_BIG_MPZ (num), 2);
-              scm_remember_upto_here_1 (num);
-              if (numbits > (sizeof (ITYPE) * SCM_CHAR_BIT))
-                scm_out_of_range (s_caller, num);
+
+              if (UNSIGNED)
+                {
+                  if (numbits > itype_bits)
+                    scm_out_of_range (s_caller, num);
+                }
+              else
+                {
+                  if (sgn >= 0)
+                    {
+                      /* positive, require num < 2^(itype_bits-1) */
+                      if (numbits > itype_bits-1)
+                        scm_out_of_range (s_caller, num);
+                    }
+                  else
+                    {
+                      /* negative, require abs(num) < 2^(itype_bits-1), but
+                         also allow num == -2^(itype_bits-1), the latter
+                         detected by numbits==itype_bits plus the lowest
+                         (and only) 1 bit at position itype_bits-1 */
+                      if (numbits > itype_bits
+                          || (numbits == itype_bits
+                              && (mpz_scan1 (SCM_I_BIG_MPZ (num), 0)
+                                  != itype_bits - 1)))
+                        scm_out_of_range (s_caller, num);
+                    }
+                }
             }
           
           if (UNSIGNED && (SIZEOF_ITYPE <= SIZEOF_UNSIGNED_LONG))
