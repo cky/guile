@@ -112,7 +112,8 @@
 	(let ((format-string (cadr format-args)))
 	  (if (not (zero? format:arg-pos))
 	      (set! format:arg-pos (- format:arg-pos 1)))
-	  (format port "~%FORMAT: error with call: (format ~a \"~a<===~a\" ~
+	  (format:format
+	          port "~%FORMAT: error with call: (format ~a \"~a<===~a\" ~
                                   ~{~a ~}===>~{~a ~})~%        "
 		  (car format:args)
 		  (substring format-string 0 format:pos)
@@ -120,10 +121,10 @@
 			     (string-length format-string))
 		  (list-head (cddr format:args) format:arg-pos)
 		  (list-tail (cddr format:args) format:arg-pos)))
-	(format port 
-		"~%FORMAT: error with call: (format~{ ~a~})~%        "
-		format:args))
-    (apply format port args)
+	(format:format port 
+		       "~%FORMAT: error with call: (format~{ ~a~})~%        "
+		       format:args))
+    (apply format:format port args)
     (newline port)
     (set! format:error format:error-save)
     (set! format:error-continuation error-continuation)
@@ -737,6 +738,7 @@
 	       (set! param-value-found #t)
 	       (tilde-dispatch))
 	      ((#\#)			; Parameter is number of remaining args
+	       (if param-value-found (format:error "misplaced '#'"))
 	       (if modifier (format:error "misplaced modifier"))
 	       (set! params (append params (list (length (rest-args)))))
 	       (set! param-value-found #t)
