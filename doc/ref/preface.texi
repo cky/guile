@@ -20,7 +20,8 @@ corresponds to Guile version @value{VERSION}.
 @chapter The Guile License
 @end ifnottex
 
-The license of Guile is the GNU Lesser General Public License.
+The license of Guile is the GNU Lesser General Public License.  See
+the file @file{COPYING.LIB}.
 
 @iftex
 @section Layout of this Manual
