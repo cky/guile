@@ -1,3 +1,8 @@
+2000-08-02  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
+
+	* print.c (scm_simple_format): Bugfix: Coerce port before using
+	it.
+
 2000-07-31  Gary Houston  <ghouston@arglist.com>
 
 	* net_db.c: declare h_errno only if HAVE_H_ERRNO is not defined
