@@ -53,6 +53,7 @@
 				     input-port
 				     output-port
 				     read-hook))
+		    (set! prompt "... ")
 		    (set! string-index 0)
 		    (if (not (eof-object? read-string))
 			(begin
