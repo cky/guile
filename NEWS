@@ -16,6 +16,11 @@ Changes since the stable branch:
 
 * Changes to the distribution
 
+** Guile now requires GNU MP (http://swox.com/gmp).
+
+Guile now uses the GNU MP library for arbitrary precision arithmetic.
+At the moment it is being used to handle Guile's bignums.
+
 ** Guile now has separate private and public configuration headers.
 
 Guile now has config.h and libguile/scmconfig.h.  The former is not

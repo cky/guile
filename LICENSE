@@ -1,3 +1,13 @@
+
+
+****************************NOTE************************************
+Guile is now covered under the terms of the GNU LGPL.  However we're
+still in the process of updating all of our files.  Please bear with
+us.
+****************************NOTE************************************
+
+
+[THIS IS NO LONGER ACCURATE -- see above]
 Guile License ==================================================
 
 The license of Guile consists of the GNU GPL plus a special statement
