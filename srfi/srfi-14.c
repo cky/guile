@@ -178,20 +178,26 @@ SCM_DEFINE (scm_char_set_leq, "char-set<=", 0, 0, 1,
 SCM_DEFINE (scm_char_set_hash, "char-set-hash", 1, 1, 0,
 	    (SCM cs, SCM bound),
 	    "Compute a hash value for the character set @var{cs}.  If\n"
-	    "@var{bound} is given and not @code{#f}, it restricts the\n"
+	    "@var{bound} is given and non-zero, it restricts the\n"
 	    "returned value to the range 0 @dots{} @var{bound - 1}.")
 #define FUNC_NAME s_scm_char_set_hash
 {
+  const int default_bnd = 871;
   int bnd;
   long * p;
   unsigned val = 0;
   int k;
 
   SCM_VALIDATE_SMOB (1, cs, charset);
-  if (SCM_UNBNDP (bound) || SCM_FALSEP (bound))
-    bnd = 871;
+  
+  if (SCM_UNBNDP (bound))
+    bnd = default_bnd;
   else
-    SCM_VALIDATE_INUM_COPY (2, bound, bnd);
+    {
+      SCM_VALIDATE_INUM_MIN_COPY (2, bound, 0, bnd);
+      if (bnd == 0)
+	bnd = default_bnd;
+    }
 
   p = (long *) SCM_SMOB_DATA (cs);
   for (k = 0; k < SCM_CHARSET_SIZE - 1; k++)
