@@ -1,3 +1,7 @@
+2002-03-03  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* guile.m4 (GUILE_PROGS): In docstring, change `are' to `is'.
+
 2002-01-02  Thien-Thi Nguyen  <ttn@glug.org>
 
 	* guile.m4: Rewrite comments in texi.

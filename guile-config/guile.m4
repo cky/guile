@@ -67,7 +67,7 @@
 # This macro looks for programs @code{guile}, @code{guile-config} and
 # @code{guile-tools}, and sets variables @var{GUILE}, @var{GUILE_CONFIG} and
 # @var{GUILE_TOOLS}, to their paths, respectively.  If either of the first two
-# are not found, signal error.
+# is not found, signal error.
 #
 # The variables are marked for substitution, as by @code{AC_SUBST}.
 #
