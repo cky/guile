@@ -94,6 +94,7 @@ scm_list_n (SCM elt, ...)
       pos = SCM_CDRLOC (*pos);
       elt = va_arg (foo, SCM);
     }
+  va_end (foo);
   return answer;
 }
 
