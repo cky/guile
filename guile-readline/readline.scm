@@ -83,8 +83,8 @@
 		    (set! string-index (+ 1 string-index))
 		    res))))))	      
       (make-soft-port
-       (vector write-char display #f get-character #f)
-       "rw"))))
+       (vector #f #f #f get-character #f)
+       "r"))))
 
 ;;; We only create one readline port.  There's no point in having
 ;;; more, since they would all share the tty and history ---

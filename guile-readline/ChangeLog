@@ -1,3 +1,8 @@
+2001-01-18  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* readline.scm (make-readline-port): Make readline port
+	input-only.
+
 2000-12-12  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* readline.scm (activate-readline):  Lookup 'use-emacs-interface
