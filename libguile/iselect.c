@@ -71,15 +71,17 @@ extern void bzero (void *, size_t);
 
 /* These macros count the number of bits in a word.  */
 #define SCM_BITS_PER_LONG (8 * sizeof (unsigned long))
-#if ULONG_MAX >> 16 == 0
+/* Use LONG_MAX instead of ULONG_MAX here since not all systems define
+   ULONG_MAX */
+#if LONG_MAX >> 16 == 0
 #define SCM_NLONGBITS(p) (bc[((unsigned char *)(p))[0]]\
 			  + bc[((unsigned char *)(p))[1]])
-#elif ULONG_MAX >> 32 == 0
+#elif LONG_MAX >> 32 == 0
 #define SCM_NLONGBITS(p) (bc[((unsigned char *)(p))[0]]\
 			  + bc[((unsigned char *)(p))[1]]\
 			  + bc[((unsigned char *)(p))[2]]\
 			  + bc[((unsigned char *)(p))[3]])
-#elif ULONG_MAX >> 64 == 0
+#elif LONG_MAX >> 64 == 0
 #define SCM_NLONGBITS(p) (bc[((unsigned char *)(p))[0]]\
 			  + bc[((unsigned char *)(p))[1]]\
 			  + bc[((unsigned char *)(p))[2]]\
@@ -351,6 +353,7 @@ finalize_fd_sets (coop_t *t)
 	  n_ones += SCM_NLONGBITS (&((ulongptr) t->exceptfds)[i]);
 	}
     cont_except:
+      ;
     }
   t->retval = n_ones;
 }
