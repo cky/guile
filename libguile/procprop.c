@@ -84,8 +84,10 @@ scm_i_procedure_arity (SCM proc)
     case scm_tc7_rpsubr:
     case scm_tc7_lsubr:
       r = 1;
+      break;
     case scm_tc7_lsubr_2:
       a += 2;
+      r = 1;
       break;
 #ifdef CCLO
     case scm_tc7_cclo:
