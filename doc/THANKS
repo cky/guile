@@ -2,15 +2,17 @@ The Guile reference manual:
 - Mark Galassi, for general stewardship
 - Tim Pierce, for writing sections on script interpreter triggers, alists,
   function tracing, and splitting the manual into its own module.
-Proofreading and bug fixes from:
-Marcus Daniels
-   Lee Thomas
-  Joel Weber
- Keith Wright
- Chris Bitmead
+
+Proofreading, bug reports and bug fixes from:
+   Marcus Daniels
+      Lee Thomas
+     Joel Weber
+    Keith Wright
+    Chris Bitmead
+  Dale P. Smith
 
 New entries from:
-   Per Bothner
+      Per Bothner
 
 Build patches from:
- Steve Tell
+    Steve Tell
