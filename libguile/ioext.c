@@ -48,6 +48,7 @@
 #include "fports.h"
 #include "unif.h"
 #include "chars.h"
+#include "feature.h"
 
 #include "ioext.h"
 
