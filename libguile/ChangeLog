@@ -20,7 +20,8 @@
 	SCM_I_MAKINUM and changed all uses.
 	* deprecated.h, deprecated.c (SCM_MAKINUM): Newly deprecated.
 
-	* gen-scmconfig.c: Instead of hard-coding the numbers, compute
+	* gen-scmconfig.c (SCM_I_LLONG_MIN, SCM_I_LLONG_MAX,
+	SCM_I_ULLONG_MAX): Instead of hard-coding the numbers, compute
 	them by assuming twos-complement.
 
 2004-07-07  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
