@@ -1931,7 +1931,7 @@ For example,
 Return the rank of @var{array}.
 @end deffn
 
-@deftypefn {C Function} scm_c_array_rank (SCM array)
+@deftypefn {C Function} size_t scm_c_array_rank (SCM array)
 Return the rank of @var{array} as a @code{size_t}.
 @end deftypefn
 
