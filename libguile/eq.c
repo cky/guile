@@ -41,10 +41,44 @@
 
 SCM_DEFINE1 (scm_eq_p, "eq?", scm_tc7_rpsubr,
              (SCM x, SCM y),
-	     "Return @code{#t} iff @var{x} references the same object as @var{y}.\n"
-	     "@code{eq?} is similar to @code{eqv?} except that in some cases it is\n"
-	     "capable of discerning distinctions finer than those detectable by\n"
-	     "@code{eqv?}.")
+	    "Return @code{#t} if @var{x} and @var{y} are the same object,\n"
+	    "except for numbers and characters.  For example,\n"
+	    "\n"
+	    "@example\n"
+	    "(define x (vector 1 2 3))\n"
+	    "(define y (vector 1 2 3))\n"
+	    "\n"
+	    "(eq? x x)  @result{} #t\n"
+	    "(eq? x y)  @result{} #f\n"
+	    "@end example\n"
+	    "\n"
+	    "Numbers and characters are not equal to any other object, but\n"
+	    "the problem is they're not necessarily @code{eq?} to themselves\n"
+	    "either.  This is even so when the number comes directly from a\n"
+	    "variable,\n"
+	    "\n"
+	    "@example\n"
+	    "(let ((n (+ 2 3)))\n"
+	    "  (eq? n n))       @result{} *unspecified*\n"
+	    "@end example\n"
+	    "\n"
+	    "Generally @code{eqv?} should be used when comparing numbers or\n"
+	    "characters.  @code{=} or @code{char=?} can be used too.\n"
+	    "\n"
+	    "It's worth noting that end-of-list @code{()}, @code{#t}, @code{#f}, a\n"
+	    "symbol of a given name, and a keyword of a given name, are unique\n"
+	    "objects.  There's just one of each, so for instance no matter how\n"
+	    "@code{()} arises in a program, it's the same object and can be\n"
+	    "compared with @code{eq?},\n"
+	    "\n"
+	    "@example\n"
+	    "(define x (cdr '(123)))\n"
+	    "(define y (cdr '(456)))\n"
+	    "(eq? x y) @result{} #t\n"
+	    "\n"
+	    "(define x (string->symbol "foo"))\n"
+	    "(eq? x 'foo) @result{} #t\n"
+	    "@end example")
 #define FUNC_NAME s_scm_eq_p
 {
   return scm_from_bool (scm_is_eq (x, y));
@@ -64,11 +98,22 @@ real_eqv (double x, double y)
 #include <stdio.h>
 SCM_PRIMITIVE_GENERIC_1 (scm_eqv_p, "eqv?", scm_tc7_rpsubr,
              (SCM x, SCM y),
-	     "The @code{eqv?} procedure defines a useful equivalence relation on objects.\n"
-	     "Briefly, it returns @code{#t} if @var{x} and @var{y} should normally be\n"
-	     "regarded as the same object.  This relation is left slightly open to\n"
-	     "interpretation, but works for comparing immediate integers, characters,\n"
-	     "and inexact numbers.")
+	    "Return @code{#t} if @var{x} and @var{y} are the same object, or\n"
+	    "for characters and numbers the same value.\n"
+	    "\n"
+	    "On objects except characters and numbers, @code{eqv?} is the\n"
+	    "same as @code{eq?}, it's true if @var{x} and @var{y} are the\n"
+	    "same object.\n"
+	    "\n"
+	    "If @var{x} and @var{y} are numbers or characters, @code{eqv?}\n"
+	    "compares their type and value.  An exact number is not\n"
+	    "@code{eqv?} to an inexact number (even if their value is the\n"
+	    "same).\n"
+	    "\n"
+	    "@example\n"
+	    "(eqv? 3 (+ 1 2)) @result{} #t\n"
+	    "(eqv? 1 1.0)     @result{} #f\n"
+	    "@end example")
 #define FUNC_NAME s_scm_eqv_p
 {
   if (scm_is_eq (x, y))
@@ -130,12 +175,41 @@ SCM_PRIMITIVE_GENERIC_1 (scm_eqv_p, "eqv?", scm_tc7_rpsubr,
 
 SCM_PRIMITIVE_GENERIC_1 (scm_equal_p, "equal?", scm_tc7_rpsubr,
 			 (SCM x, SCM y),
- "Return @code{#t} iff @var{x} and @var{y} are recursively @code{eqv?} equivalent.\n"
- "@code{equal?} recursively compares the contents of pairs,\n"
- "vectors, and strings, applying @code{eqv?} on other objects such as\n"
- "numbers and symbols.  A rule of thumb is that objects are generally\n"
- "@code{equal?}  if they print the same.  @code{equal?} may fail to\n"
- "terminate if its arguments are circular data structures.")
+	    "Return @code{#t} if @var{x} and @var{y} are the same type, and\n"
+	    "their contents or value are equal.\n"
+	    "\n"
+	    "For a pair, string, vector or array, @code{equal?} compares the\n"
+	    "contents, and does so using using the same @code{equal?}\n"
+	    "recursively, so a deep structure can be traversed.\n"
+	    "\n"
+	    "@example\n"
+	    "(equal? (list 1 2 3) (list 1 2 3))   @result{} #t\n"
+	    "(equal? (list 1 2 3) (vector 1 2 3)) @result{} #f\n"
+	    "@end example\n"
+	    "\n"
+	    "For other objects, @code{equal?} compares as per @code{eqv?},\n"
+	    "which means characters and numbers are compared by type and\n"
+	    "value (and like @code{eqv?}, exact and inexact numbers are not\n"
+	    "@code{equal?}, even if their value is the same).\n"
+	    "\n"
+	    "@example\n"
+	    "(equal? 3 (+ 1 2)) @result{} #t\n"
+	    "(equal? 1 1.0)     @result{} #f\n"
+	    "@end example\n"
+	    "\n"
+	    "Hash tables are currently only compared as per @code{eq?}, so\n"
+	    "two different tables are not @code{equal?}, even if their\n"
+	    "contents are the same.\n"
+	    "\n"
+	    "@code{equal?} does not support circular data structures, it may\n"
+	    "go into an infinite loop if asked to compare two circular lists\n"
+	    "or similar.\n"
+	    "\n"
+	    "New application-defined object types (Smobs) have an\n"
+	    "@code{equalp} handler which is called by @code{equal?}.  This\n"
+	    "lets an application traverse the contents or control what is\n"
+	    "considered @code{equal?} for two such objects.  If there's no\n"
+	    "handler, the default is to just compare as per @code{eq?}.")
 #define FUNC_NAME s_scm_equal_p
 {
   SCM_CHECK_STACK;
