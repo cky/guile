@@ -81,7 +81,7 @@ gscm_portprint_obj (port, obj)
      SCM obj;
 #endif
 {
-  scm_iprin1 (obj, port, 1);
+  scm_prin1 (obj, port, 1);
   return GSCM_OK;
 }
 
