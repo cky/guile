@@ -1859,10 +1859,38 @@ entered at the @acronym{REPL} or in Scheme source files.
 Strings always carry the information about how many characters they are
 composed of with them, so there is no special end-of-string character,
 like in C.  That means that Scheme strings can contain any character,
-even the @samp{NUL} character @samp{\0}.  But note: Since most operating
-system calls dealing with strings (such as for file operations) expect
-strings to be zero-terminated, they might do unexpected things when
-called with string containing unusual characters.
+even the @samp{#\nul} character @samp{\0}.
+
+To use strings efficiently, you need to know a bit about how Guile
+implements them.  In Guile, a string consists of two parts, a head and
+the actual memory where the characters are stored.  When a string (or
+a substring of it) is copied, only a new head gets created, the memory
+is usually not copied.  The two heads start out pointing to the same
+memory.
+
+When one of these two strings is modified, as with @code{string-set!},
+their common memory does get copied so that each string has its own
+memory and modifying one does not accidently modify the other as well.
+Thus, Guile's strings are `copy on write'; the actual copying of their
+memory is delayed until one string is written to.
+
+This implementation makes functions like @code{substring} very
+efficient in the common case that no modifications are done to the
+involved strings.
+
+If you do know that your strings are getting modified right away, you
+can use @code{substring/copy} instead of @code{substring}.  This
+function performs the copy immediately at the time of creation.  This
+is more efficient, especially in a multi-threaded program.  Also,
+@code{substring/copy} can avoid the problem that a short substring
+holds on to the memory of a very large original string that could
+otherwise be recycled.
+
+If you want to avoid the copy altogether, so that modifications of one
+string show up in the other, you can use @code{substring/shared}.  The
+strings created by this procedure are called @dfn{mutation sharing
+substrings} since the substring and the original string share
+modifications to each other.
 
 @menu
 * String Syntax::               Read syntax for strings.
@@ -1887,9 +1915,7 @@ called with string containing unusual characters.
 @c  special in a string (they're not).
 
 The read syntax for strings is an arbitrarily long sequence of
-characters enclosed in double quotes (@nicode{"}). @footnote{Actually,
-the current implementation restricts strings to a length of
-@math{2^24}, or 16,777,216, characters.  Sorry.}
+characters enclosed in double quotes (@nicode{"}).
 
 Backslash is an escape character and can be used to insert the
 following special characters.  @nicode{\"} and @nicode{\\} are R5RS
@@ -1972,7 +1998,9 @@ y                    @result{} "foo"
 @subsubsection String Constructors
 
 The string constructor procedures create new string objects, possibly
-initializing them with some specified character data.
+initializing them with some specified character data.  See also
+@xref{String Selection}, for ways to create strings from existing
+strings.
 
 @c FIXME::martin: list->string belongs into `List/String Conversion'
 
@@ -1993,6 +2021,11 @@ length @var{k}.  If @var{chr} is given, then all elements of
 the string are initialized to @var{chr}, otherwise the contents
 of the @var{string} are unspecified.
 @end deffn
+
+@deftypefn {C Function} SCM scm_c_make_string (size_t len, SCM chr)
+Like @code{scm_make_string}, but expects the length as a
+@code{size_t}.
+@end deftypefn
 
 @node List/String Conversion
 @subsubsection List/String conversion
@@ -2047,6 +2080,10 @@ Portions of strings can be extracted by these procedures.
 Return the number of characters in @var{string}.
 @end deffn
 
+@deftypefn {C Function} size_t scm_c_string_length (SCM str)
+Return the number of characters in @var{str} as a @code{size_t}.
+@end deftypefn
+
 @rnindex string-ref
 @deffn {Scheme Procedure} string-ref str k
 @deffnx {C Function} scm_string_ref (str, k)
@@ -2054,23 +2091,53 @@ Return character @var{k} of @var{str} using zero-origin
 indexing. @var{k} must be a valid index of @var{str}.
 @end deffn
 
+@deftypefn {C Function} SCM scm_c_string_ref (SCM str, size_t k)
+Return character @var{k} of @var{str} using zero-origin
+indexing. @var{k} must be a valid index of @var{str}.
+@end deftypefn
+
 @rnindex string-copy
 @deffn {Scheme Procedure} string-copy str
 @deffnx {C Function} scm_string_copy (str)
-Return a newly allocated copy of the given @var{string}.
+Return a copy of the given @var{string}.
+
+The returned string shares storage with @var{str} initially, but it is
+copied as soon as one of the two strings is modified.
 @end deffn
 
 @rnindex substring
 @deffn {Scheme Procedure} substring str start [end]
 @deffnx {C Function} scm_substring (str, start, end)
-Return a newly allocated string formed from the characters
+Return a new string formed from the characters
 of @var{str} beginning with index @var{start} (inclusive) and
 ending with index @var{end} (exclusive).
 @var{str} must be a string, @var{start} and @var{end} must be
 exact integers satisfying:
 
 0 <= @var{start} <= @var{end} <= @code{(string-length @var{str})}.
+
+The returned string shares storage with @var{str} initially, but it is
+copied as soon as one of the two strings is modified.
 @end deffn
+
+@deffn {Scheme Procedure} substring/shared str start [end]
+@deffnx {C Function} scm_substring_shared (str, start, end)
+Like @code{substring}, but the strings continue to share their storage
+even if they are modified.  Thus, modifications to @var{str} show up
+in the new string, and vice versa.
+@end deffn
+
+@deffn {Scheme Procedure} substring/copy str start [end]
+@deffnx {C Function} scm_substring_copy (str, start, end)
+Like @code{substring}, but the storage for the new string is copied
+immediately.
+@end deffn
+
+@deftypefn  {C Function} SCM scm_c_substring (SCM str, size_t start, size_t end)
+@deftypefnx {C Function} SCM scm_c_substring_shared (SCM str, size_t start, size_t end)
+@deftypefnx {C Function} SCM scm_c_substring_copy (SCM str, size_t start, size_t end)
+Like @code{scm_substring}, etc. but the bounds are given as a @code{size_t}.
+@end deftypefn
 
 @node String Modification
 @subsubsection String Modification
@@ -2086,6 +2153,10 @@ Store @var{chr} in element @var{k} of @var{str} and return
 an unspecified value. @var{k} must be a valid index of
 @var{str}.
 @end deffn
+
+@deftypefn {C Function} void scm_c_string_set_x (SCM str, size_t k, SCM chr)
+Like @code{scm_string_set_x}, but the index is given as a @code{size_t}.
+@end deftypefn
 
 @rnindex string-fill!
 @deffn {Scheme Procedure} string-fill! str chr
@@ -2338,9 +2409,9 @@ the bytes, only the characters.
 Well, ideally, anyway.  Right now, Guile simply equates Scheme
 characters and bytes, ignoring the possibility of multi-byte encodings
 completely.  This will change in the future, where Guile will use
-Unicode codepoints as its characters and UTF-8 (or maybe UCS-4) as its
-internal encoding.  When you exclusively use the functions listed in
-this section, you are `future-proof'.
+Unicode codepoints as its characters and UTF-8 or some other encoding
+as its internal encoding.  When you exclusively use the functions
+listed in this section, you are `future-proof'.
 
 Converting a Scheme string to a C string will often allocate fresh
 memory to hold the result.  You must take care that this memory is
@@ -3194,14 +3265,17 @@ the case-sensitivity of symbols:
 @end lisp
 
 From C, there are lower level functions that construct a Scheme symbol
-from a null terminated C string or from a sequence of bytes whose length
-is specified explicitly.
+from a C string in the current locale encoding.
 
-@deffn {C Function} scm_str2symbol (const char * name)
-@deffnx {C Function} scm_mem2symbol (const char * name, size_t len)
+When you want to do more from C, you should convert between symbols
+and strings using @code{scm_symbol_to_string} and
+@code{scm_string_to_symbol} and work with the strings.
+
+@deffn {C Function} scm_from_locale_symbol (const char *name)
+@deffnx {C Function} scm_from_locale_symboln (const char *name, size_t len)
 Construct and return a Scheme symbol whose name is specified by
-@var{name}.  For @code{scm_str2symbol} @var{name} must be null
-terminated; For @code{scm_mem2symbol} the length of @var{name} is
+@var{name}.  For @code{scm_from_locale_symbol}, @var{name} must be null
+terminated; for @code{scm_from_locale_symboln} the length of @var{name} is
 specified explicitly by @var{len}.
 @end deffn
 
