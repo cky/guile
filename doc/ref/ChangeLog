@@ -1,3 +1,8 @@
+2003-05-22  Kevin Ryde  <user42@zip.com.au>
+
+	* srfi-modules.texi (SRFI-2): Rewrite and-let*, describing plain
+	expression clauses and improving the examples.
+
 2003-05-17  Marius Vollmer  <mvo@zagadka.de>
 
 	* posix.texi (socket): Use PF_ instead of AF_ prefix.
