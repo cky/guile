@@ -5,6 +5,7 @@
 
 	* configure.in: Added test if readline clears SA_RESTART flag for
 	SIGWINCH.  (Thanks to Dale P. Smith.)
+	Check for siginterrupt and rl_pre_input_hook.
 
 2000-06-14  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
