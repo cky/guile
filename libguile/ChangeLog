@@ -1,3 +1,11 @@
+2000-03-28  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* symbols.h (SCM_LENGTH, SCM_SETLENGTH):  Access the length field
+	of strings and symbols by using SCM_{SET_}?CELL_WORD_0.
+
+	(SCM_CHARS, SCM_UCHARS, SCM_SETCHARS):  Use SCM_{SET_}?CELL_WORD_1
+	to access the char * field of strings and symbols.
+
 2000-03-27  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* gc.h (SCM_NEWCELL, SCM_NEWCELL2):  Use SCM_SET_CELL_TYPE to set
@@ -14,7 +22,7 @@
 	with strict type checking enabled these macros will only work if
 	given valid SCM parameters.
 
-	* (SCM_GCCDR):  Moved to tags.h.
+	(SCM_GCCDR):  Moved to tags.h.
 
 	* tags.h (SCM_GCCDR):  Moved here from pairs.h.
 
@@ -186,7 +194,7 @@
 	* numbers.h (SCM_MAKINUM):  The parameter to SCM_MAKINUM should
 	already be a C value.  No need to unpack it.
 
-	* numbers.h (scm_long_long2num):  Cast the parameter to scm_bits_t
+	* numbers.c (scm_long_long2num):  Cast the parameter to scm_bits_t
 	if we know it fits into an inum.
 
 	* ramap.c (ramap_rp):  An scm_tc7_[ui]vect object does point to a

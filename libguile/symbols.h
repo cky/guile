@@ -76,18 +76,22 @@ extern int scm_symhash_dim;
    the slots?  That's a good question; ask the author.  I think it was
    the cognac.  */
 
-#define SCM_SYMBOLP(x) (SCM_NIMP(x) && (SCM_TYP7S(x)==scm_tc7_ssymbol))
-#define SCM_LENGTH(x) (((unsigned long)SCM_CAR(x))>>8)
-#define SCM_LENGTH_MAX (0xffffffL)
-#define SCM_SETLENGTH(x, v, t) SCM_SETCAR((x), ((v)<<8)+(t))
-#define SCM_SETCHARS(x, v) SCM_SETCDR (x, (SCM) v)
-#define SCM_CHARS(x) ((char *)(SCM_CDR(x)))
-#define SCM_UCHARS(x) ((unsigned char *)(SCM_CDR(x)))
-#define SCM_SLOTS(x) ((SCM *) (* ((SCM *)SCM_CHARS(x) - 1)))
-#define SCM_SYMBOL_SLOTS 4
-#define SCM_SYMBOL_FUNC(X) (SCM_SLOTS(X)[0])
-#define SCM_SYMBOL_PROPS(X) (SCM_SLOTS(X)[1])
-#define SCM_SYMBOL_HASH(X) (*(unsigned long*)(&SCM_SLOTS(X)[2]))
+#define SCM_SYMBOLP(x)		(SCM_NIMP (x) \
+				 && (SCM_TYP7S (x) == scm_tc7_ssymbol))
+
+#define SCM_LENGTH_MAX		(0xffffffL)
+#define SCM_LENGTH(x)		(((unsigned long) SCM_CELL_WORD_0 (x)) >> 8)
+#define SCM_SETLENGTH(x, v, t)	(SCM_SET_CELL_WORD_0 ((x), ((v) << 8) + (t)))
+
+#define SCM_CHARS(x)		((char *) (SCM_CELL_WORD_1 (x)))
+#define SCM_UCHARS(x)		((unsigned char *) (SCM_CELL_WORD_1 (x)))
+#define SCM_SETCHARS(x, v)	(SCM_SET_CELL_WORD_1 ((x), (scm_bits_t) (v)))
+
+#define SCM_SYMBOL_SLOTS	4
+#define SCM_SLOTS(x)		((SCM *) (* ((SCM *) SCM_CHARS (x) - 1)))
+#define SCM_SYMBOL_FUNC(X)	(SCM_SLOTS (X)[0])
+#define SCM_SYMBOL_PROPS(X)	(SCM_SLOTS (X)[1])
+#define SCM_SYMBOL_HASH(X)	(*(unsigned long*) (&SCM_SLOTS (X)[2]))
 
 #define SCM_ROSTRINGP(x) (SCM_NIMP(x) && ((SCM_TYP7S(x)==scm_tc7_string) \
 			  || (SCM_TYP7S(x) == scm_tc7_ssymbol)))
