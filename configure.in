@@ -599,10 +599,11 @@ AC_CHECK_HEADERS([assert.h crt_externs.h])
 #   DQNAN - OSF specific
 #       (DINFINITY and DQNAN are actually global variables, not functions)
 #   gmtime_r - recent posix, not on old systems
+#   readdir_r - recent posix, not on old systems
 #   sysconf - not on old systems
 #   _NSGetEnviron - Darwin specific
 #
-AC_CHECK_FUNCS([DINFINITY DQNAN ctermid ftime fchown getcwd geteuid gettimeofday gmtime_r lstat mkdir mknod nice readlink rename rmdir select setegid seteuid setlocale setpgid setsid sigaction siginterrupt strftime strptime symlink sync sysconf tcgetpgrp tcsetpgrp times uname waitpid strdup system usleep atexit on_exit chown link fcntl ttyname getpwent getgrent kill getppid getpgrp fork setitimer getitimer strchr strcmp index bcopy memcpy rindex unsetenv _NSGetEnviron])
+AC_CHECK_FUNCS([DINFINITY DQNAN ctermid ftime fchown getcwd geteuid gettimeofday gmtime_r lstat mkdir mknod nice readdir_r readlink rename rmdir select setegid seteuid setlocale setpgid setsid sigaction siginterrupt strftime strptime symlink sync sysconf tcgetpgrp tcsetpgrp times uname waitpid strdup system usleep atexit on_exit chown link fcntl ttyname getpwent getgrent kill getppid getpgrp fork setitimer getitimer strchr strcmp index bcopy memcpy rindex unsetenv _NSGetEnviron])
 
 # Reasons for testing:
 #   netdb.h - not in mingw
