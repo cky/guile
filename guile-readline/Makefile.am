@@ -1,6 +1,6 @@
 ## Process this file with Automake to create Makefile.in
 ##
-##  	Copyright (C) 1998, 1999 Free Software Foundation, Inc.
+##  	Copyright (C) 1998, 1999, 2000 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##   
@@ -49,3 +49,11 @@ SUFFIXES = .x
 EXTRA_DIST = readline.scm
 
 DISTCLEANFILES = *.x
+
+dist-hook:
+	(temp="/tmp/mangle-deps.$$$$"; \
+	 trap "rm -f $$temp" 0 1 2 15; \
+	 sed -e 's|\([ 	]\)\(\.\./\(\|libguile/\|guile-readline/\)[a-z_-]*\.h\)|\1$$(srcdir)/\2|g' $(distdir)/Makefile.in \
+	 | sed -e 's|\$$(srcdir)/\(\.\./libguile/\(libpath\|scmconfig\|versiondat\)\)|\1|g' \
+	 | sed -e 's|\.\./guile-readline/\([a-z_-]*\.x\)|\1|g' > $$temp \
+	 && cp -p $$temp $(distdir)/Makefile.in)
