@@ -54,6 +54,10 @@
 #include <stdint.h>
 #endif
 
+#ifdef HAVE_INTTYPES_H
+#include <inttypes.h>
+#endif
+
 
 
 /* In the beginning was the Word:
@@ -487,7 +491,7 @@ extern char *scm_isymnames[];   /* defined in print.c */
  * used instead.  It is not ideal to let this kind of unique and
  * strange values loose on the Scheme level.
  */
-#define SCM_UNBOUND		SCM_MAKIFLAG (33)
+#define SCM_UNBOUND		SCM_MAKIFLAG (34)
 
 #define SCM_UNBNDP(x)		(SCM_EQ_P ((x), SCM_UNDEFINED))
 
