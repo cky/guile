@@ -31,4 +31,5 @@
    ((list? arg-form)
     `(letrec ((,(car arg-form) (lambda ,(cdr arg-form) ,@body)))
        ,(car arg-form)))
-   (else "syntax error in rec form" `(rec ,arg-form ,@body))))
+   (else
+    (error "syntax error in rec form" `(rec ,arg-form ,@body)))))
