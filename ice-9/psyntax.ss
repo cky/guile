@@ -399,7 +399,7 @@
 
 (define-syntax build-lexical-var
   (syntax-rules ()
-    ((_ src id) (gensym id generated-symbols))))
+    ((_ src id) (gentemp (symbol->string id) generated-symbols))))
 
 (define-syntax self-evaluating?
   (syntax-rules ()
