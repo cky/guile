@@ -247,12 +247,12 @@ if HAVE_MAKEINFO
 
 guile-procedures.txt: guile-procedures.texi
 	rm -f $@
-	makeinfo --force -o $@ $(srcdir)/guile-procedures.texi || test -f $@
+	makeinfo --force -o $@ guile-procedures.texi || test -f $@
 
 else
 
 guile-procedures.txt: guile-procedures.texi
-	cp $(srcdir)/guile-procedures.texi $@
+	cp guile-procedures.texi $@
 
 endif
 
