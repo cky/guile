@@ -1,3 +1,9 @@
+Fri Sep 20 00:24:27 1996  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* boot-9.scm (file-exists?, file-is-directory): catch only
+	system-error, not every kind of error.
+	(scm-error): new procedure.
+
 Thu Sep 19 16:02:46 1996  Jim Blandy  <jimb@totoro.cyclic.com>
 
 	* boot-9.scm: Formatting tweaks.

@@ -553,14 +553,15 @@
 
 (define (file-exists? str)
   ;; we don't have false-if-exception (or defmacro) yet.
-  (let ((port (catch #t (lambda () (open-file str OPEN_READ))
+  (let ((port (catch 'system-error (lambda () (open-file str OPEN_READ))
 		     (lambda args #f))))
     (if port (begin (close-port port) #t)
 	#f)))
 
 (define (file-is-directory? str)
-  (let ((port (catch #t (lambda () (open-file (string-append str "/.")
-					      OPEN_READ))
+  (let ((port (catch 'system-error
+		     (lambda () (open-file (string-append str "/.")
+					   OPEN_READ))
 		     (lambda args #f))))
     (if port (begin (close-port port) #t)
 	#f)))
@@ -585,7 +586,10 @@
 	(if (not (null? rest))
 	    (loop (string-append msg " %S")
 		  (cdr rest))
-	    (throw 'error #f msg args #f)))))
+	    (scm-error 'error #f msg args #f)))))
+
+(define (scm-error key subr message args rest)
+  (throw key subr message args rest))
 
 ;; %%bad-throw is the hook that is called upon a throw to a an unhandled
 ;; key.  If the key has a default handler (a throw-handler-default property),
@@ -634,7 +638,7 @@
 (define (signal-handler n)
   (let* (
 	 ;; these numbers are set in libguile, not the same as those 
-	 ;; interned in posix.c.
+	 ;; interned in posix.c for SIGSEGV etc.
 	 ;;
 	 (signal-messages `((14 . "hang-up")
 			    (15 . "user interrupt")
