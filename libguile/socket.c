@@ -746,12 +746,12 @@ SCM_DEFINE (scm_send, "send", 2, 1, 0,
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_recvfrom, "recvfrom!", 2, 3, 0,
-            (SCM sock, SCM buf, SCM flags, SCM start, SCM end),
+            (SCM sock, SCM str, SCM flags, SCM start, SCM end),
 	    "Returns data from the socket port @var{socket} and also information about\n"
 	    "where the data was received from.  @var{socket} must already\n"
 	    "be bound to the address from which data is to be received.\n"
-	    "@code{buf}, is a string into which\n"
-	    "the data will be written.  The size of @var{buf} limits the amount of\n"
+	    "@code{str}, is a string into which\n"
+	    "the data will be written.  The size of @var{str} limits the amount of\n"
 	    "data which can be received: in the case of packet\n"
 	    "protocols, if a packet larger than this limit is encountered then some data\n"
 	    "will be irrevocably lost.\n\n"
@@ -760,7 +760,7 @@ SCM_DEFINE (scm_recvfrom, "recvfrom!", 2, 3, 0,
 	    "The value returned is a pair: the CAR is the number of bytes read from\n"
 	    "the socket and the CDR an address object in the same form as returned by\n"
 	    "@code{accept}.\n\n"
-	    "The @var{start} and @var{end} arguments specify a substring of @var{buf}\n"
+	    "The @var{start} and @var{end} arguments specify a substring of @var{str}\n"
 	    "to which the data should be written.\n\n"
 	    "Note that the data is read directly from the socket file descriptor:\n"
 	    "any unread buffered port data is ignored.")
@@ -769,44 +769,23 @@ SCM_DEFINE (scm_recvfrom, "recvfrom!", 2, 3, 0,
   int rv;
   int fd;
   int flg;
-  int offset = 0;
+  char *buf;
+  int offset;
   int cend;
   size_t tmp_size;
   SCM address;
 
   SCM_VALIDATE_OPFPORT (1,sock);
-  SCM_VALIDATE_STRING (2,buf);
-  cend = SCM_STRING_LENGTH (buf);
-  
+  fd = SCM_FPORT_FDES (sock);
+  SCM_VALIDATE_SUBSTRING_SPEC_COPY (2, str, buf, 4, start, offset,
+				    5, end, cend);
   if (SCM_UNBNDP (flags))
     flg = 0;
   else
-    {
-      flg = SCM_NUM2ULONG (3,flags);
-
-      if (!SCM_UNBNDP (start))
-	{
-	  offset = (int) SCM_NUM2LONG (4,start);
-	  
-	  if (offset < 0 || offset >= cend)
-	    SCM_OUT_OF_RANGE (4, start);
-
-	  if (!SCM_UNBNDP (end))
-	    {
-	      int tend = (int) SCM_NUM2LONG (5,end);
-      
-	      if (tend <= offset || tend > cend)
-		SCM_OUT_OF_RANGE (5, end);
-
-	      cend = tend;
-	    }
-	}
-    }
-
-  fd = SCM_FPORT_FDES (sock);
+    SCM_VALIDATE_ULONG_COPY (3, flags, flg);
 
   tmp_size = scm_addr_buffer_size;
-  SCM_SYSCALL (rv = recvfrom (fd, SCM_STRING_CHARS (buf) + offset,
+  SCM_SYSCALL (rv = recvfrom (fd, buf + offset,
 			      cend - offset, flg,
 			      (struct sockaddr *) scm_addr_buffer,
 			      &tmp_size));

@@ -1,4 +1,4 @@
-/* $Id: validate.h,v 1.23 2001-01-06 18:46:48 mvo Exp $ */
+/* $Id: validate.h,v 1.24 2001-01-08 23:10:06 ghouston Exp $ */
 /*	Copyright (C) 1999, 2000 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -133,6 +133,22 @@
   do { \
     SCM_ASSERT (SCM_STRINGP (str), str, pos, FUNC_NAME); \
     cvar = SCM_STRING_CHARS(str); \
+  } while (0)
+
+/* validate a string and optional start/end arguments which default to
+   0/string-len.  this is unrelated to the old shared substring
+   support, so please do not deprecate it :) */
+#define SCM_VALIDATE_SUBSTRING_SPEC_COPY(pos_str, str, c_str, \
+                                         pos_start, start, c_start,\
+                                         pos_end, end, c_end) \
+  do {\
+    SCM_VALIDATE_STRING_COPY (pos_str, str, c_str);\
+    SCM_VALIDATE_INUM_DEF_COPY (pos_start, start, 0, c_start);\
+    SCM_VALIDATE_INUM_DEF_COPY (pos_end, end, SCM_STRING_LENGTH (str), c_end);\
+    SCM_ASSERT_RANGE (pos_start, start,\
+                      0 <= c_start && c_start <= SCM_STRING_LENGTH (str));\
+    SCM_ASSERT_RANGE (pos_end, end,\
+		      c_start <= c_end && c_end <= SCM_STRING_LENGTH (str));\
   } while (0)
 
 #define SCM_VALIDATE_REAL(pos, z) SCM_MAKE_VALIDATE (pos, z, REALP)

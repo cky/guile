@@ -105,51 +105,38 @@ SCM_DEFINE (scm_read_string_x_partial, "read-string!/partial", 1, 3, 0,
   char *dest;
   long read_len;
   long chars_read = 0;
-  int fdes = -1;
-  SCM port = SCM_BOOL_F;
-
-  SCM_VALIDATE_STRING_COPY (1, str, dest);
-  if (SCM_UNBNDP (port_or_fdes))
-    port = scm_cur_inp;
-  else if (SCM_INUMP (port_or_fdes))
-    fdes = SCM_INUM (port_or_fdes);
-  else
-    {
-      SCM_VALIDATE_OPFPORT (2, port_or_fdes);
-      SCM_VALIDATE_INPUT_PORT (2, port_or_fdes);
-      port = port_or_fdes;
-    }
+  int fdes;
 
   {
-    long string_len = SCM_STRING_LENGTH (str);
-    long offset = SCM_NUM2LONG_DEF (3, start, 0);
-    long last = SCM_NUM2LONG_DEF (4, end, string_len);
+    long offset;
+    long last;
 
-    if (offset < 0 || offset > string_len)
-      SCM_OUT_OF_RANGE (3, start);
-    if (last < offset || last > string_len)
-      SCM_OUT_OF_RANGE (4, end);
-
+    SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, str, dest, 3, start, offset,
+				      4, end, last);
     dest += offset;
     read_len = last - offset;
   }
 
-  if (fdes == -1)
+  if (SCM_INUMP (port_or_fdes))
+    fdes = SCM_INUM (port_or_fdes);
+  else
     {
-      /* if there's anything in the port buffers, use it.  but if
-	 something is read from the buffers, don't touch the file
-	 descriptor.  otherwise the "return immediately if something
-	 is available" rule may be violated.  */
-      chars_read = scm_take_from_input_buffers (port, dest, read_len);
+      SCM port = SCM_UNBNDP (port_or_fdes) ? scm_cur_inp : port_or_fdes;
 
+      SCM_VALIDATE_OPFPORT (2, port);
+      SCM_VALIDATE_INPUT_PORT (2, port);
+
+      /* if there's anything in the port buffers, use it, but then
+	 don't touch the file descriptor.  otherwise the
+	 "return immediately if something is available" rule may
+	 be violated.  */
+      chars_read = scm_take_from_input_buffers (port, dest, read_len);
+      fdes = SCM_FPORT_FDES (port);
     }
 
   if (chars_read == 0 && read_len > 0) /* don't confuse read_len == 0 with
 					  EOF.  */
     {
-      if (fdes == -1)
-	fdes = SCM_FPORT_FDES (port);
-      
       SCM_SYSCALL (chars_read = read (fdes, dest, read_len));
       if (chars_read == -1)
 	{
@@ -174,45 +161,38 @@ SCM_DEFINE (scm_read_string_x_partial, "read-string!/partial", 1, 3, 0,
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_read_delimited_x, "%read-delimited!", 3, 3, 0,
-            (SCM delims, SCM buf, SCM gobble, SCM port, SCM start, SCM end),
-	    "Read characters from @var{port} into @var{buf} until one of the\n"
-	    "characters in the @var{delims} string is encountered.  If @var{gobble?}\n"
-	    "is true, store the delimiter character in @var{buf} as well; otherwise,\n"
-	    "discard it.  If @var{port} is not specified, use the value of\n"
+            (SCM delims, SCM str, SCM gobble, SCM port, SCM start, SCM end),
+	    "Read characters from @var{port} into @var{str} until one of the\n"
+	    "characters in the @var{delims} string is encountered.  If @var{gobble}\n"
+	    "is true, discard the delimiter character; otherwise, leave it\n"
+	    "in the input stream for the next read.\n"
+	    "If @var{port} is not specified, use the value of\n"
 	    "@code{(current-input-port)}.  If @var{start} or @var{end} are specified,\n"
-	    "store data only into the substring of @var{buf} bounded by @var{start}\n"
-	    "and @var{end} (which default to the beginning and end of the buffer,\n"
+	    "store data only into the substring of @var{str} bounded by @var{start}\n"
+	    "and @var{end} (which default to the beginning and end of the string,\n"
 	    "respectively).\n\n"
 	    "Return a pair consisting of the delimiter that terminated the string and\n"
 	    "the number of characters read.  If reading stopped at the end of file,\n"
-	    "the delimiter returned is the @var{eof-object}; if the buffer was filled\n"
+	    "the delimiter returned is the @var{eof-object}; if the string was filled\n"
 	    "without encountering a delimiter, this value is @var{#f}.")
 #define FUNC_NAME s_scm_read_delimited_x
 {
   long j;
-  char *cbuf;
+  char *buf;
   long cstart;
-  long cend, tend;
+  long cend;
   int c;
   char *cdelims;
   int num_delims;
 
   SCM_VALIDATE_STRING_COPY (1, delims, cdelims);
   num_delims = SCM_STRING_LENGTH (delims);
-  SCM_VALIDATE_STRING_COPY (2,buf,cbuf);
-  cend = SCM_STRING_LENGTH (buf);
+  SCM_VALIDATE_SUBSTRING_SPEC_COPY (2, str, buf, 5, start, cstart,
+				    6, end, cend);
   if (SCM_UNBNDP (port))
     port = scm_cur_inp;
   else
     SCM_VALIDATE_OPINPORT (4,port);
-
-  SCM_VALIDATE_INUM_DEF_COPY (5,start,0,cstart);
-  SCM_ASSERT_RANGE(5, start, cstart >= 0 && cstart < cend);
-
-  SCM_VALIDATE_INUM_DEF_COPY (6,end,cend,tend);
-  SCM_ASSERT_RANGE(6, end, tend > cstart && tend <= cend);
-
-  cend = tend;
 
   for (j = cstart; j < cend; j++)
     {  
@@ -234,7 +214,7 @@ SCM_DEFINE (scm_read_delimited_x, "%read-delimited!", 3, 3, 0,
 	return scm_cons (SCM_EOF_VAL, 
 			 scm_long2num (j - cstart));
 
-      cbuf[j] = c;
+      buf[j] = c;
     }
   return scm_cons (SCM_BOOL_F, scm_long2num (j - cstart));
 }
