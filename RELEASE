@@ -29,7 +29,7 @@ Solaris (gcc and SUN cc) --- saturn.ai.mit.edu
 NetBSD (gcc) --- repo-man.ai.mit.edu (use /home/repo/jimb)
 HP/UX (gcc, HP cc) --- nutrimat.gnu.ai.mit.edu
 
-These gentlemen has kindly offered to do pre-release testing:
+These gentlemen have kindly offered to do pre-release testing:
 
 Tom Tromey <tromey@cygnus.com>:
 
