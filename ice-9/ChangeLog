@@ -1,3 +1,8 @@
+Thu Mar  9 08:05:08 2000  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* slib.scm: Back-out change to software-type -- renamed
+	slib:software-type to software-type, and leave it non-public.
+
 Thu Mar  2 12:20:52 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* boot-9.scm: Drop unused definition of sfx function -- thanks
