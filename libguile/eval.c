@@ -5932,7 +5932,8 @@ SCM_DEFINE (scm_eval, "eval", 2, 0, 0,
             "in the top-level environment specified by @var{module}.\n"
             "While @var{exp} is evaluated (using @code{primitive-eval}),\n"
             "@var{module} is made the current module.  The current module\n"
-            "is reset to its previous value when @var{eval} returns.")
+            "is reset to its previous value when @var{eval} returns.\n"
+	    "Example: (eval '(+ 1 2) (interaction-environment))")
 #define FUNC_NAME s_scm_eval
 {
   SCM_VALIDATE_MODULE (2, module);
