@@ -442,7 +442,9 @@ SCM_DEFINE (scm_exact_p, "exact?", 1, 0, 0,
     return SCM_BOOL_T;
   if (SCM_FRACTIONP (x))
     return SCM_BOOL_T;
-  return SCM_BOOL_F;
+  if (SCM_NUMBERP (x))
+    return SCM_BOOL_F;
+  SCM_WRONG_TYPE_ARG (1, x);
 }
 #undef FUNC_NAME
 
@@ -2912,7 +2914,11 @@ SCM_DEFINE (scm_inexact_p, "inexact?", 1, 0, 0,
 	    "else.")
 #define FUNC_NAME s_scm_inexact_p
 {
-  return SCM_BOOL (SCM_INEXACTP (x));
+  if (SCM_INEXACTP (x))
+    return SCM_BOOL_T;
+  if (SCM_NUMBERP (x))
+    return SCM_BOOL_F;
+  SCM_WRONG_TYPE_ARG (1, x);
 }
 #undef FUNC_NAME
 
