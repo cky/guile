@@ -1,3 +1,12 @@
+2000-06-08  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* guile-snarf.awk.in, guile-snarf.in: Made to work also for
+	preprocessors which interpret $$$ and other markers as three
+	separate tokens and puts spaces in between.  NOTE: We could
+	replace %%% etc with real identifiers.  However, before the 1.4
+	release, we instead make minimal changes to the existing
+	system. (Thanks to Bernard Urban.)
+
 2000-06-06  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* modules.c (scm_system_module_env_p): Fixed detection of system
