@@ -160,6 +160,122 @@
 	(symbol-pset! sym (delq! pair (symbol-pref sym))))))
 
 
+
+;;; {Line and Delimited I/O}
+
+;;; corresponds to SCM_LINE_INCREMENTORS in libguile.
+(define scm-line-incrementors "\n")
+
+(define (read-line! string . maybe-port)
+  (let* ((port (if (pair? maybe-port)
+		   (car maybe-port)
+		   (current-input-port))))
+    (let* ((rv (%read-delimited! scm-line-incrementors
+				 string
+				 #t
+				 port))
+	   (terminator (car rv))
+	   (nchars (cdr rv)))
+      (cond ((and (= nchars 0)
+		  (eof-object? terminator))
+	     terminator)
+	    ((not terminator) #f)
+	    (else nchars)))))
+
+(define (read-delimited! delims buf . args)
+  (let* ((num-args (length args))
+	 (port (if (> num-args 0)
+		   (car args)
+		   (current-input-port)))
+	 (handle-delim (if (> num-args 1)
+			   (cadr args)
+			   'trim))
+	 (start (if (> num-args 2)
+		    (caddr args)
+		    0))
+	 (end (if (> num-args 3)
+		  (cadddr args)
+		  (string-length buf))))
+    (let* ((rv (%read-delimited! delims
+				 buf
+				 (not (eq? handle-delim 'peek))
+				 port
+				 start
+				 end))
+	   (terminator (car rv))
+	   (nchars (cdr rv)))
+      (cond ((or (not terminator)	; buffer filled
+		 (eof-object? terminator))
+	     (if (zero? nchars)
+		 (if (eq? handle-delim 'split)
+		     (cons terminator terminator)
+		     terminator)
+		 (if (eq? handle-delim 'split)
+		     (cons nchars terminator)
+		     nchars)))
+	    (else
+	     (case handle-delim
+	       ((trim peek) nchars)
+	       ((concat) (string-set! buf nchars terminator)
+			 (+ nchars 1))
+	       ((split) (cons nchars terminator))
+	       (else (error "unexpected handle-delim value: " 
+			    handle-delim))))))))
+  
+(define (read-delimited delims . args)
+  (let* ((port (if (pair? args)
+		   (let ((pt (car args)))
+		     (set! args (cdr args))
+		     pt)
+		   (current-input-port)))
+	 (handle-delim (if (pair? args)
+			   (car args)
+			   'trim)))
+    (let loop ((substrings ())
+	       (total-chars 0)
+	       (buf-size 100))		; doubled each time through.
+      (let* ((buf (make-string buf-size))
+	     (rv (%read-delimited! delims
+				   buf
+				   (not (eq? handle-delim 'peek))
+				   port))
+	     (terminator (car rv))
+	     (nchars (cdr rv))
+	     (join-substrings
+	      (lambda ()
+		(apply string-append
+		       (reverse
+			(cons (if (and (eq? handle-delim 'concat)
+				       (not (eof-object? terminator)))
+				  (string terminator)
+				  "")
+			      (cons (make-shared-substring buf 0 nchars)
+				    substrings))))))
+	     (new-total (+ total-chars nchars)))
+	(cond ((not terminator)
+	       ;; buffer filled.
+	       (loop (cons (substring buf 0 nchars) substrings)
+		     new-total
+		     (* buf-size 2)))
+	      ((eof-object? terminator)
+	       (if (zero? new-total)
+		   (if (eq? handle-delim 'split)
+		       (cons terminator terminator)
+		       terminator)
+		   (if (eq? handle-delim 'split)
+		       (cons (join-substrings) terminator)
+		       (join-substrings))))
+	      (else
+	       (case handle-delim
+		   ((trim peek concat) (join-substrings))
+		   ((split) (cons (join-substrings) terminator))
+		   (else (error "unexpected handle-delim value: "
+				handle-delim)))))))))
+    
+(define (read-line . args)
+  (apply read-delimited scm-line-incrementors args))
+
+
 ;;; {Arrays}
 ;;;
 

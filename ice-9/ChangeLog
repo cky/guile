@@ -1,3 +1,8 @@
+Fri Jan 24 06:05:36 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* boot-9.scm (read-line!, read-delimited!, read-delimited,
+	read-line): new	procedures, see libguile/ChangeLog.
+
 Thu Jan 16 17:07:03 1997  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	Added dynamic linking of modules. See libguile/DYNAMIC-LINKING.
