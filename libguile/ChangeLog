@@ -1,3 +1,11 @@
+2000-11-13  Gary Houston  <ghouston@arglist.com>
+
+	* fports.c: include gc.h.
+	(fport_flush, fport_close): silently ignore I/O errors when
+	closing a port during gc.  it's better than aborting in scm_error.
+
+	* throw.c (scm_handle_by_message): remove obsolete comment.
+
 2000-11-12  Gary Houston  <ghouston@arglist.com>
 
 	* fports.c (scm_open_file): fix the 'b' option.  Thanks

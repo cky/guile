@@ -485,9 +485,6 @@ scm_handle_by_message (void *handler_data, SCM tag, SCM args)
     }
 
   handler_message (handler_data, tag, args);
-  /* try to flush the error message first before the rest of the
-     ports: if any throw error, it currently causes a bus
-     exception.  */
   exit (2);
 }
 

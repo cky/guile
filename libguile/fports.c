@@ -48,8 +48,9 @@
 #include <fcntl.h>
 #include "libguile/_scm.h"
 #include "libguile/strings.h"
-
 #include "libguile/validate.h"
+#include "libguile/gc.h"
+
 #include "libguile/fports.h"
 
 #ifdef HAVE_STRING_H
@@ -643,9 +644,7 @@ fport_flush (SCM port)
 		}
 	      pt->write_pos = pt->write_buf + remaining;
 	    }
-	  if (!terminating)
-	    scm_syserror ("fport_flush");
-	  else
+	  if (terminating)
 	    {
 	      const char *msg = "Error: could not flush file-descriptor ";
 	      char buf[11];
@@ -656,6 +655,14 @@ fport_flush (SCM port)
 
 	      count = remaining;
 	    }
+	  else if (scm_gc_running_p)
+	    {
+	      /* silently ignore the error.  scm_error would abort if we
+		 called it now.  */
+	      count = remaining;
+	    }
+	  else
+	    scm_syserror ("fport_flush");
 	}
       ptr += count;
       remaining -= count;
@@ -694,7 +701,14 @@ fport_close (SCM port)
   fport_flush (port);
   SCM_SYSCALL (rv = close (fp->fdes));
   if (rv == -1 && errno != EBADF)
-    scm_syserror ("fport_close");
+    {
+      if (scm_gc_running_p)
+	/* silently ignore the error.  scm_error would abort if we
+	   called it now.  */
+	;
+      else
+	scm_syserror ("fport_close");
+    }
   if (pt->read_buf == pt->putback_buf)
     pt->read_buf = pt->saved_read_buf;
   if (pt->read_buf != &pt->shortbuf)
