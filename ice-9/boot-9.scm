@@ -2741,67 +2741,69 @@
 		     (append (hashq-ref %cond-expand-table mod '())
 			     features)))))
 
-(define-macro (cond-expand clause . clauses)
-
-  (let ((clauses (cons clause clauses))
-	(syntax-error (lambda (cl)
-			(error "invalid clause in `cond-expand'" cl))))
-    (letrec
-	((test-clause
-	  (lambda (clause)
-	    (cond
-	      ((symbol? clause)
-	       (or (memq clause %cond-expand-features)
-		   (let lp ((uses (module-uses (current-module))))
-		     (if (pair? uses)
-		       (or (memq clause
-				 (hashq-ref %cond-expand-table (car uses) '()))
-			   (lp (cdr uses)))
-		       #f))))
-	      ((pair? clause)
+(define cond-expand
+  (procedure->memoizing-macro
+   (lambda (exp env)
+     (let ((clauses (cdr exp))
+	   (syntax-error (lambda (cl)
+			   (error "invalid clause in `cond-expand'" cl))))
+       (letrec
+	   ((test-clause
+	     (lambda (clause)
 	       (cond
-		 ((eq? 'and (car clause))
-		  (let lp ((l (cdr clause)))
-		    (cond ((null? l)
-			   #t)
-			  ((pair? l)
-			   (and (test-clause (car l)) (lp (cdr l))))
-			  (else
-			   (syntax-error clause)))))
-		 ((eq? 'or (car clause))
-		  (let lp ((l (cdr clause)))
-		    (cond ((null? l)
-			   #f)
-			  ((pair? l)
-			   (or (test-clause (car l)) (lp (cdr l))))
-			  (else
-			   (syntax-error clause)))))
-		 ((eq? 'not (car clause))
-		  (cond ((not (pair? (cdr clause)))
-			 (syntax-error clause))
-			((pair? (cddr clause))
-			 ((syntax-error clause))))
-		  (not (test-clause (cadr clause))))
-		 (else
-		  (syntax-error clause))))
-	      (else
-	       (syntax-error clause))))))
-      (let lp ((c clauses))
-	(cond
-	  ((null? c)
-	   (error "Unfulfilled `cond-expand'"))
-	  ((not (pair? c))
-	   (syntax-error c))
-	  ((not (pair? (car c)))
-	   (syntax-error (car c)))
-	  ((test-clause (caar c))
-	   `(begin ,@(cdar c)))
-	  ((eq? (caar c) 'else)
-	   (if (pair? (cdr c))
+		((symbol? clause)
+		 (or (memq clause %cond-expand-features)
+		     (let lp ((uses (module-uses (env-module env))))
+		       (if (pair? uses)
+			   (or (memq clause
+				     (hashq-ref %cond-expand-table
+						(car uses) '()))
+			       (lp (cdr uses)))
+			   #f))))
+		((pair? clause)
+		 (cond
+		  ((eq? 'and (car clause))
+		   (let lp ((l (cdr clause)))
+		     (cond ((null? l)
+			    #t)
+			   ((pair? l)
+			    (and (test-clause (car l)) (lp (cdr l))))
+			   (else
+			    (syntax-error clause)))))
+		  ((eq? 'or (car clause))
+		   (let lp ((l (cdr clause)))
+		     (cond ((null? l)
+			    #f)
+			   ((pair? l)
+			    (or (test-clause (car l)) (lp (cdr l))))
+			   (else
+			    (syntax-error clause)))))
+		  ((eq? 'not (car clause))
+		   (cond ((not (pair? (cdr clause)))
+			  (syntax-error clause))
+			 ((pair? (cddr clause))
+			  ((syntax-error clause))))
+		   (not (test-clause (cadr clause))))
+		  (else
+		   (syntax-error clause))))
+		(else
+		 (syntax-error clause))))))
+	 (let lp ((c clauses))
+	   (cond
+	    ((null? c)
+	     (error "Unfulfilled `cond-expand'"))
+	    ((not (pair? c))
 	     (syntax-error c))
-	   `(begin ,@(cdar c)))
-	  (else
-	   (lp (cdr c))))))))
+	    ((not (pair? (car c)))
+	     (syntax-error (car c)))
+	    ((test-clause (caar c))
+	     `(begin ,@(cdar c)))
+	    ((eq? (caar c) 'else)
+	     (if (pair? (cdr c))
+		 (syntax-error c))
+	     `(begin ,@(cdar c)))
+	    (else
+	     (lp (cdr c))))))))))
 
 ;; This procedure gets called from the startup code with a list of
 ;; numbers, which are the numbers of the SRFIs to be loaded on startup.
