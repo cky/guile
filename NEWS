@@ -238,32 +238,6 @@ coop_condition_variable_init.  They will change.
 
 Use scm_mutex_init and scm_cond_init instead.
 
-** scm_mutex_init now takes a second argument
-
-scm_mutex_init has changed: It now takes a second, attribute,
-argument.  For now, pass NULL as second arg.
-
-If your application uses mutecis and you want to be compatible with
-both older and newer Guile's, put:
-
-  AC_CACHE_CHECK(for two argument scm_mutex_init,
-  ac_cv_func_scm_mutex_init_two_args,
-  AC_TRY_COMPILE([#include <libguile.h>],[scm_mutex_init (NULL, NULL);],
-  ac_cv_func_scm_mutex_init_two_args=yes,
-  ac_cv_func_scm_mutex_init_two_args=no))
-  if test "$ac_cv_func_scm_mutex_init_two_args" = "yes"; then
-    AC_DEFINE(SCM_MUTEX_INIT_TWO_ARGS, 1,
-	      [define if scm_mutex_init takes two arguments])
-  fi
-
-in your configure.in and call scm_mutex_init like this:
-
-  #ifdef SCM_MUTEX_INIT_TWO_ARGS
-    scm_mutex_init (&my_mutex, NULL);
-  #else
-    scm_mutex_init (&my_mutex);
-  #endif
-
 ** New function: int scm_cond_timedwait (scm_cond_t *COND, scm_mutex_t *MUTEX, const struct timespec *ABSTIME)
      `scm_cond_timedwait' atomically unlocks MUTEX and waits on
      COND, as `scm_cond_wait' does, but it also bounds the duration
