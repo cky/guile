@@ -44,6 +44,10 @@ libqt.a --- an object library containing the QuickThreads primitives.
         will need to link your code against this too.
 <libguile.h>, <libguile/*.h> --- header files for libguile.a, usually
 	installed in /usr/local/include.
+ice-9, ice-9/*.scm --- run-time support for Guile: the module
+	system, read-eval-print loop, some R4RS code and other
+	infrastructure.  Usually installed in
+	/usr/local/share/guile/<version>.
 
 
 Interesting files include:
