@@ -1,3 +1,7 @@
+2003-03-12  Mikael Djurfeldt  <mdj@kvast.blakulla.net>
+
+	* slib.scm (identity): Removed.  (Provided by core.)
+
 2003-03-11  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* debugger/command-loop.scm: Prefix all commands imported from
