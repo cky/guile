@@ -52,6 +52,7 @@
 
 
 #ifdef __STDC__
+extern SCM scm_list_head (SCM lst, SCM k);
 extern SCM scm_listify (SCM elt, ...);
 extern SCM scm_list(SCM objs);
 extern SCM scm_null_p(SCM x);
@@ -84,6 +85,7 @@ extern SCM scm_delete (SCM item, SCM lst);
 extern void scm_init_list (void);
 
 #else /* STDC */
+extern SCM scm_list_head ();
 extern SCM scm_listify ();
 extern SCM scm_list();
 extern SCM scm_null_p();
