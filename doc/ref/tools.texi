@@ -91,7 +91,7 @@ Optional arg "--compat=1.4" means emulate guile-1.4 guile-snarf.
 This option is not fully tested (@pxref{guile-1.4 guile-snarf}).
 
 If env var CPP is set, use its value instead of the C pre-processor
-determined at Guile configure-time: "@CPP@".
+determined at Guile configure-time.
 
 @xref{Macros guile-snarf recognizes}, for a list of the special (some would
 say magic) cpp macros you can use.
