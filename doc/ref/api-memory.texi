@@ -120,12 +120,12 @@ be freed by a garbage collection.  The memory can be freed with
 @code{free}.
 
 There is also @code{scm_gc_realloc} and @code{scm_realloc}, to be used
-in place of @code{realloc} when appropriate, @code{scm_gc_calloc} and
-@code{scm_calloc}, to be used in place of @code{calloc} when
+in place of @code{realloc} when appropriate, and @code{scm_gc_calloc}
+and @code{scm_calloc}, to be used in place of @code{calloc} when
 appropriate.
 
-There function @code{scm_frame_free} can be useful when memory should
-be freed when a frame is left, @xref{Frames}.
+The function @code{scm_frame_free} can be useful when memory should be
+freed when a frame is left, @xref{Frames}.
 
 For really specialized needs, take at look at
 @code{scm_gc_register_collectable_memory} and
