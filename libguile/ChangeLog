@@ -1,3 +1,8 @@
+1999-08-20  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* sort.c (quicksort): Added condition to protect the algorithm
+	from crashing the interpreter if the less predicate is buggy.
+
 1999-08-19  Gary Houston  <ghouston@easynet.co.uk>
 
 	* fports.c (fport_write): fix line-buffering mode again.
