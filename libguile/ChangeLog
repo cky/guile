@@ -1,3 +1,8 @@
+2004-03-18  Han-Wen Nienhuys   <hanwen@xs4all.nl>
+
+	* gc-card.c (sweep_card): use SCM_GC_SET_CELL_WORD for setting
+	free cells.
+
 2004-03-14  Kevin Ryde  <user42@zip.com.au>
 
 	* stime.c: Define _GNU_SOURCE for strptime prototype from glibc.

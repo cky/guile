@@ -291,8 +291,7 @@ scm_i_sweep_card (scm_t_cell *  p, SCM *free_list, scm_t_heap_segment*seg)
 	  abort();
 	}
 
-	  
-      SCM_SET_CELL_TYPE (scmptr, scm_tc_free_cell);
+      SCM_GC_SET_CELL_WORD (scmptr, 0, scm_tc_free_cell);	  
       SCM_SET_FREE_CELL_CDR (scmptr, PTR2SCM (*free_list));
       *free_list = scmptr;
       free_count ++;
@@ -327,7 +326,7 @@ scm_i_init_card_freelist (scm_t_cell *  card, SCM *free_list,
   for (; p > card;  p -= span)
     {
       const SCM scmptr = PTR2SCM (p);
-      SCM_SET_CELL_TYPE (scmptr, scm_tc_free_cell);
+      SCM_GC_SET_CELL_WORD (scmptr, 0, scm_tc_free_cell);
       SCM_SET_FREE_CELL_CDR (scmptr, PTR2SCM (*free_list));
       *free_list = scmptr;
     }
