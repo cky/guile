@@ -280,4 +280,67 @@ mvo sez:
 > parser.
 
 
+bug 12 -- goops class redefinition not signalling "no such accessor" error
+reported-by: wawrzin@cs.tu-berlin.de / 2001-12-04
+fixed: not-yet
+
+Thomas Wawrzinek sez:
+> Running the following script produces some guile output which confueses me:
+>
+> ;;; script.scm
+> (use-modules (oop goops))
+>
+> (define-class <root> ())
+>
+> (define-class <foo> (<root>)
+>   (a #:init-value #f #:accessor a-value #:init-keyword #:a-value)
+>   (b #:init-value #f #:accessor b-value #:init-keyword #:b-value))
+>
+> (define-class <bar> (<foo>))
+>
+> (define-method (initialize (o <bar>) . args)
+>   (set! (a-value o) "BAR")
+>   (next-method))
+>
+> (define-generic print)
+>
+> (define-method (print (o <bar>))
+>   (display (a-value o)) (newline)
+>   (display (b-value o)) (newline))
+>
+> ;;; OK, this is very *wrong*!
+> (define-class <bar> (<root>))
+>
+> (define baz (make <bar> #:b-value "BAZ"))
+>
+> (print baz)
+>
+> $ guile -s script.scm
+> BAR
+> #<unknown-immediate 0x69746163>
+> $ guile -v
+> Guile 1.5.4
+> Copyright (c) 1995, 1996, 1997, 2000, 2001 Free Software Foundation
+> Guile may be distributed under the terms of the GNU General Public Licence;
+> certain other uses are permitted as well.  For details, see the file
+> `COPYING', which is included in the Guile distribution.
+> There is no warranty, to the extent permitted by law.
+>
+> I'm running on a SuSE Linux 7.2 box ...
+>
+> I expected that because of the second (define-class <bar> ...) I would get
+> some sensible error message (at least about the usage of (a-value ...) in
+> the (print ...) generic function call).
+>
+> Maybe I'm mistaken here, I know that GOOPS has a class redefinition
+> protocol, but does it go with the define-class macro?
+>
+> I accidently had such a second (define-class ...) with an already
+> used class-name. In a much more complex program than the above, this
+> resulted in a segmentation fault (backtrace told me it was GC related).
+>
+> To avoid such behavior, would it be sensible to have guile indicate
+> a wrong usage error or something?
+
+
 [BUGS ends here]
