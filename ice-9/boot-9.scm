@@ -2904,7 +2904,7 @@
   (make-mutable-parameter #f))
 
 (define default-duplicate-binding-handler
-  (make-mutable-parameter '(replace warn last)
+  (make-mutable-parameter '(replace warn-override-core warn last)
 			  (lambda (handler-names)
 			    (default-duplicate-binding-procedures
 			      (lookup-duplicates-handlers handler-names))

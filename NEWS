@@ -79,7 +79,7 @@ The new default behavior of the module system when a name collision
 has been detected is to
 
  1. Give priority to bindings marked as a replacement.
- 2. Issue a warning.
+ 2. Issue a warning (different warning if overriding core binding).
  3. Give priority to the last encountered binding (this corresponds to
      the old behavior).
 
@@ -116,7 +116,7 @@ These two are provided by the (oop goops) module:
 
 The default duplicates handler is:
 
-  (replace warn last)
+  (replace warn-override-core warn last)
 
 A recommended handler (which is likely to correspond to future Guile
 behavior) can be installed with:
