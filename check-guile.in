@@ -11,9 +11,12 @@
 #
 # Dependencies: dirname sed
 
-TEST_SUITE_DIR=@srcdir@/test-suite
-parent=@srcdir@
 build_dir=`pwd`
+srcdir=@srcdir@
+if [ x"$srcdir" = x. ]; then
+    srcdir=$build_dir
+fi
+TEST_SUITE_DIR=$srcdir/test-suite
 
 if [ x"$1" = x-i ] ; then
     guile=$2
@@ -22,14 +25,14 @@ if [ x"$1" = x-i ] ; then
     glp=
 else
     guile=$build_dir/libguile/guile
-    glp=$parent
+    glp=$srcdir
 fi
 
 if [ -f "$guile" -a -x "$guile" ] ; then
     echo Testing $guile ... "$@"
     if [ x"$glp" = x ] ; then
         glp=`$guile -c "(for-each write-line %load-path)"`
-        glp=`echo $glp | sed 's/ /:/g'`:$parent
+        glp=`echo $glp | sed 's/ /:/g'`:$srcdir
     fi
     GUILE_LOAD_PATH=$glp
     export GUILE_LOAD_PATH
