@@ -915,10 +915,10 @@ scm_m_cont (xorig, env)
  * environment and rewrites it to its original form.  Thus, it is the
  * inversion of the rewrite rules above.  The procedure is not
  * optimized for speed.  It's used in scm_iprin1 when printing the
- * code of a closure, in scm_procedure_source and in scm_expr_stack
- * when generating the source for a stackframe.
+ * code of a closure, in scm_procedure_source, in display_frame when
+ * generating the source for a stackframe in a backtrace, and in
+ * display_expression.
  */
-
 
 static SCM unmemocopy SCM_P ((SCM x, SCM env));
 
