@@ -4408,6 +4408,10 @@ scm_num2long (SCM num, char *pos, const char *s_caller)
 
 #ifdef HAVE_LONG_LONGS
 
+#ifndef ULONG_LONG_MAX
+#define ULONG_LONG_MAX (~0ULL)
+#endif
+
 long_long
 scm_num2long_long (SCM num, char *pos, const char *s_caller)
 {
@@ -4417,17 +4421,12 @@ scm_num2long_long (SCM num, char *pos, const char *s_caller)
     long long res;
     /* can't use res directly in case num is -2^63.  */
     unsigned long long int pos_res = 0;
-    unsigned long long int old_res = 0;
     scm_sizet l;
 
     for (l = SCM_NUMDIGS (num); l--;) {
-      pos_res = SCM_LONGLONGBIGUP (pos_res) + SCM_BDIGITS (num)[l];
-      if (pos_res >= old_res) {
-	old_res = pos_res;
-      } else {
-	/* overflow. */
+      if (pos_res > SCM_BIGDN(ULONG_LONG_MAX))
 	scm_out_of_range (s_caller, num);
-      }
+      pos_res = SCM_LONGLONGBIGUP (pos_res) + SCM_BDIGITS (num)[l];
     }
     if (SCM_BIGSIGN (num)) {
       res = -pos_res;
@@ -4455,6 +4454,45 @@ scm_num2long_long (SCM num, char *pos, const char *s_caller)
   } else {
     scm_wrong_type_arg (s_caller, (int) pos, num);
   }
+}
+
+ulong_long
+scm_num2ulong_long (SCM num, char *pos, const char *s_caller)
+{
+  if (SCM_INUMP (num)) 
+    {
+      long long nnum = SCM_INUM (num);
+      if (nnum >= 0)
+	return nnum;
+      else
+	scm_out_of_range (s_caller, num);
+    }
+  else if (SCM_BIGP (num)) 
+    {
+      unsigned long long res = 0;
+      scm_sizet l;
+
+      if (SCM_BIGSIGN (num))
+	scm_out_of_range (s_caller, num);
+
+      for (l = SCM_NUMDIGS (num); l--;) {
+	if (res > SCM_BIGDN(ULONG_LONG_MAX))
+	  scm_out_of_range (s_caller, num);
+	res = SCM_LONGLONGBIGUP (res) + SCM_BDIGITS (num)[l];
+      }
+      return res;
+    }
+  else if (SCM_REALP (num)) 
+    {
+      double u = SCM_REAL_VALUE (num);
+      unsigned long long int res = u;
+      if ((double) res == u)
+	return res;
+      else
+	scm_out_of_range (s_caller, num);
+    }
+  else
+    scm_wrong_type_arg (s_caller, (int) pos, num);
 }
 
 #endif /* HAVE_LONG_LONGS */

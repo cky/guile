@@ -295,6 +295,8 @@ extern long scm_num2long (SCM num, char *pos, const char *s_caller);
 extern SCM scm_long_long2num (long_long sl);
 extern long_long scm_num2long_long (SCM num, char *pos,
                                     const char *s_caller);
+extern ulong_long scm_num2ulong_long (SCM num, char *pos,
+				      const char *s_caller);
 #endif
 extern unsigned long scm_num2ulong (SCM num, char *pos,
                                     const char *s_caller);
