@@ -687,7 +687,7 @@ guile> i
 guile> (clear-image i)
 guile> (clear-image 4)
 ERROR: In procedure clear-image in expression (clear-image 4):
-ERROR: Wrong type argument in position 1: 4
+ERROR: Wrong type (expecting image): 4
 ABORT: (wrong-type-arg)
  
 Type "(backtrace)" to get more information.
