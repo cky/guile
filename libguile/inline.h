@@ -69,11 +69,6 @@ scm_cell (scm_t_bits car, scm_t_bits cdr)
   SCM z;
   SCM *freelist = SCM_FREELIST_LOC (scm_i_freelist);
 
-  if (scm_gc_running_p)
-    {
-      abort();
-    }
-  
   if (scm_is_null (*freelist))
     z = scm_gc_for_newcell (&scm_i_master_freelist, freelist);
   else
@@ -150,11 +145,6 @@ scm_double_cell (scm_t_bits car, scm_t_bits cbr,
 {
   SCM z;
   SCM *freelist = SCM_FREELIST_LOC (scm_i_freelist2);
-
-  if (scm_gc_running_p)
-    {
-      abort();
-    }
 
   if (scm_is_null (*freelist))
     z = scm_gc_for_newcell (&scm_i_master_freelist2, freelist);
