@@ -15,6 +15,8 @@ Their voluminous output is not shown.
 	$ make					# compile Guile
         $ make install				# install in the usual places
 
+(Note: under SunOS 4.1, you may need to say ./configure --disable-shared;
+Guile's shared library support for that systems seems to be confused.)
 
 What You Get ==============================================================
 
