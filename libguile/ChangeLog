@@ -4,7 +4,7 @@
 	(Thanks to Valdis Kletnieks.)
 
 	Fixes for EMX from Mikael Ståldal.
-
+	
 	* filesys.c: #include <io.h>, if we have it.
 	* scmconfig.h.in: Regenerated.
 
@@ -14,6 +14,7 @@
 	Cleanups from John Bley.
 
 	* gdbint.c: Don't include <stdio.h> and "_scm.h" twice.
+
 	* gsubr.c: Don't include "gsubr.h" twice.
 
 	Cleanups for compilation on Irix 6, from David Kaelbling.
