@@ -1,6 +1,6 @@
 ;;; installed-scm-file
 
-;;;; 	Copyright (C) 1995, 1996, 1998, 2001 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1995, 1996, 1998, 2001, 2003 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -48,7 +48,7 @@
 	   (hashq-cons-assoc key (cdr l)))))
 
 (define (hashq-cons-get-handle table key)
-  (hashx-get-handle hashq-cons-hash hashq-cons-assoc table key #f))
+  (hashx-get-handle hashq-cons-hash hashq-cons-assoc table key))
 
 (define (hashq-cons-create-handle! table key init)
   (hashx-create-handle! hashq-cons-hash hashq-cons-assoc table key init))
