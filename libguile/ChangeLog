@@ -1,3 +1,9 @@
+2003-07-27  Marius Vollmer  <mvo@zagadka.de>
+
+	* __scm.h (SCM_C_INLINE_KEYWORD): New.
+	* numbers.c: Use it in place of SCM_C_INLINE so that the code
+	compiles when SCM_C_INLINE is undefined.
+
 2003-07-24  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* __scm.h: Reformulated the architecture and compiler properties
