@@ -638,13 +638,13 @@ AC_TRY_LINK([#include <gmp.h>],
   [AC_MSG_ERROR([At least GNU MP 4.1 is required, see http://swox.com/gmp])])
 
 dnl i18n tests
-AC_CHECK_HEADERS([libintl.h])
-AC_CHECK_FUNCS(gettext)
-if test $ac_cv_func_gettext = no; then
-   AC_CHECK_LIB(intl, gettext)
-fi
-AC_CHECK_FUNCS([bindtextdomain textdomain])
-#AM_GNU_GETTEXT([external], [need-ngettext])
+#AC_CHECK_HEADERS([libintl.h])
+#AC_CHECK_FUNCS(gettext)
+#if test $ac_cv_func_gettext = no; then
+#   AC_CHECK_LIB(intl, gettext)
+#fi
+#AC_CHECK_FUNCS([bindtextdomain textdomain])
+AM_GNU_GETTEXT([external], [need-ngettext])
 
 ### Some systems don't declare some functions.  On such systems, we
 ### need to at least provide our own K&R-style declarations.
