@@ -59,9 +59,12 @@ libguile.a.  That is, you should pass the switches -lguile -qt to your
 linker.  Coop threads are not yet thoroughly tested; once they are,
 they will be enabled by default.
 
---enable-dynamic-linking --- Build a Guile executable and library that
-supports dynamic linking, on systems that support it.  This feature is
-not yet thoroughly tested; once it is, it will be enabled by default.
+--enable-dynamic-linking --- Build a Guile executable and library
+providing Scheme functions which can load a shared library and
+initialize it, perhaps thereby adding new functions to Guile.  This
+feature is not yet thoroughly tested; once it is, it will be enabled
+by default.  This option has no effect on systems that do not support
+shared libraries.
 
 --disable-shared --- Do not build shared libraries.  Normally, Guile
 will build shared libraries if your system supports them.  Guile
