@@ -72,7 +72,8 @@ Spiffing checklist:
     documented.
   + Check for any [[incomplete]] sections of NEWS.
   + Fact-check INSTALL.
-  + Make sure AUTHORS and THANKS are up-to-date.
+  + Make sure AUTHORS and THANKS are up-to-date (see also TODO).
+  + Remove finished items from TODO (those marked w/ "+").
 * Make sure the downloading addresses and filenames in README are
   current.  (But don't bump the version number yet.  We do that below.)
 * Check that the versions of aclocal, automake, autoconf, and autoheader
