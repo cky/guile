@@ -42,7 +42,7 @@
 #include "libguile/validate.h"
 #include "guile-readline/readline.h"
 
-scm_option_t scm_readline_opts[] = {
+scm_t_option scm_readline_opts[] = {
   { SCM_OPTION_BOOLEAN, "history-file", 1,
     "Use history file." },
   { SCM_OPTION_INTEGER, "history-length", 200,
@@ -147,7 +147,7 @@ redisplay ()
 
 static int in_readline = 0;
 #ifdef USE_THREADS
-static scm_mutex_t reentry_barrier_mutex;
+static scm_t_mutex reentry_barrier_mutex;
 #endif
 
 static SCM internal_readline (SCM text);
@@ -207,7 +207,7 @@ SCM_DEFINE (scm_readline, "%readline", 0, 4, 0,
   scm_readline_init_ports (inp, outp);
 
   ans = scm_internal_catch (SCM_BOOL_T,
-			    (scm_catch_body_t) internal_readline,
+			    (scm_t_catch_body) internal_readline,
 			    (void *) SCM_UNPACK (text),
 			    handle_error, 0);
 
@@ -225,7 +225,7 @@ reentry_barrier ()
 {
   int reentryp = 0;
 #ifdef USE_THREADS
-  /* We should rather use scm_mutex_try_lock when it becomes available */
+  /* We should rather use scm_t_mutexry_lock when it becomes available */
   scm_mutex_lock (&reentry_barrier_mutex);
 #endif
   if (in_readline)
@@ -277,7 +277,7 @@ stream_from_fport (SCM port, char *mode, const char *subr)
   int fd;
   FILE *f;
 
-  fd = dup (((struct scm_fport_t *) SCM_STREAM (port))->fdes);
+  fd = dup (((struct scm_t_fport *) SCM_STREAM (port))->fdes);
   if (fd == -1)
     {
       --in_readline;
