@@ -182,6 +182,8 @@ guardian_print (SCM g, SCM port, scm_print_state *pstate)
   scm_puts ("#<", port);
   if (GUARDIAN_GREEDY_P (g))
     scm_puts ("greedy ", port);
+  else
+    scm_puts ("sharing ", port);
   scm_puts ("guardian (reachable: ", port);
   scm_display (scm_length (SCM_CDR (GUARDIAN_LIVE (g).head)), port);
   scm_puts (" unreachable: ", port);
@@ -216,24 +218,30 @@ scm_guard (SCM guardian, SCM obj)
     {
       SCM z;
 
+      SCM_NEWCELL (z);
+      
+      /* This critical section barrier will be replaced by a mutex. */
+      SCM_DEFER_INTS;
+
       if (GUARDIAN_GREEDY_P (guardian))
         {
           if (SCM_NFALSEP (scm_hashq_get_handle
                            (greedily_guarded_whash, obj)))
-            scm_misc_error ("guard",
-                            "object is already greedily guarded", obj);
+            {
+              SCM_ALLOW_INTS;
+              scm_misc_error ("guard",
+                              "object       is already greedily guarded", obj);
+            }
           else
             scm_hashq_create_handle_x (greedily_guarded_whash,
                                        obj, guardian);
         }
 
-      SCM_NEWCELL (z);
-      
-      /* This critical section barrier will be replaced by a mutex. */
-      SCM_DEFER_INTS;
       TCONC_IN (GUARDIAN_LIVE (guardian), obj, z);
+
       SCM_ALLOW_INTS;
     }
+
 }
 
 
@@ -244,15 +252,17 @@ scm_get_one_zombie (SCM guardian)
 
   /* This critical section barrier will be replaced by a mutex. */
   SCM_DEFER_INTS;
+
   if (!TCONC_EMPTYP (GUARDIAN_ZOMBIES (guardian)))
     TCONC_OUT (GUARDIAN_ZOMBIES (guardian), res);
-  SCM_ALLOW_INTS;
 
   if (SCM_NFALSEP (res)
       && GUARDIAN_GREEDY_P (guardian)
       && SCM_NFALSEP (scm_hashq_get_handle
                       (greedily_guarded_whash, res)))
     scm_hashq_remove_x (greedily_guarded_whash, res);
+
+  SCM_ALLOW_INTS;
   
   return res;
 }

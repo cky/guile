@@ -1,5 +1,10 @@
 2000-12-30  Michael Livshin  <mlivshin@bigfoot.com>
 
+	* guardians.c (guardian_print): for sharing guardians, print that
+	they are sharing.
+	(scm_guard, scm_get_one_zombie): place the critical section
+	barriers more correctly.
+
 	* weaks.c (scm_scan_weak_vectors): move the calculation of the
 	`weak_keys' and `weak_values' flags out of the inner loop.
 
