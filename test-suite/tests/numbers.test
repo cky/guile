@@ -2298,7 +2298,97 @@
   (pass-if (=  0 (round  0.0)))
   (pass-if (=  0 (round -0.5)))
   (pass-if (= -1 (round -1.25)))
-  (pass-if (= -2 (round -1.5))))
+  (pass-if (= -2 (round -1.5)))
+
+  (with-test-prefix "inum"
+    (pass-if "0"
+      (and (= 0    (round 0))
+	   (exact? (round 0))))
+
+    (pass-if "1"
+      (and (= 1    (round 1))
+	   (exact? (round 1))))
+
+    (pass-if "-1"
+      (and (= -1   (round -1))
+	   (exact? (round -1)))))
+
+  (with-test-prefix "bignum"
+    (let ((x (1+ most-positive-fixnum)))
+      (pass-if "(1+ most-positive-fixnum)"
+	(and (= x    (round x))
+	     (exact? (round x)))))
+
+    (let ((x (1- most-negative-fixnum)))
+      (pass-if "(1- most-negative-fixnum)"
+	(and (= x    (round x))
+	     (exact? (round x))))))
+
+  (with-test-prefix "real"
+    (pass-if "0.0"
+      (and (= 0.0    (round 0.0))
+	   (inexact? (round 0.0))))
+
+    (pass-if "1.0"
+      (and (= 1.0    (round 1.0))
+	   (inexact? (round 1.0))))
+
+    (pass-if "-1.0"
+      (and (= -1.0   (round -1.0))
+	   (inexact? (round -1.0))))
+
+    (pass-if "-3.1"
+      (and (= -3.0   (round -3.1))
+	   (inexact? (round -3.1))))
+
+    (pass-if "3.1"
+      (and (= 3.0    (round 3.1))
+	   (inexact? (round 3.1))))
+
+    (pass-if "3.9"
+      (and (= 4.0    (round 3.9))
+	   (inexact? (round 3.9))))
+
+    (pass-if "-3.9"
+      (and (= -4.0   (round -3.9))
+	   (inexact? (round -3.9))))
+
+    (pass-if "1.5"
+      (and (= 2.0    (round 1.5))
+	   (inexact? (round 1.5))))
+
+    (pass-if "2.5"
+      (and (= 2.0    (round 2.5))
+	   (inexact? (round 2.5))))
+
+    (pass-if "3.5"
+      (and (= 4.0    (round 3.5))
+	   (inexact? (round 3.5))))
+
+    (pass-if "-1.5"
+      (and (= -2.0   (round -1.5))
+	   (inexact? (round -1.5))))
+
+    (pass-if "-2.5"
+      (and (= -2.0   (round -2.5))
+	   (inexact? (round -2.5))))
+
+    (pass-if "-3.5"
+      (and (= -4.0   (round -3.5))
+	   (inexact? (round -3.5))))
+
+    ;; prior to guile 1.6.5, on an IEEE system an inexact 2^53-1 (ie. a
+    ;; float with mantissa all ones) came out as 2^53 from `round' (except
+    ;; on i386 and m68k systems using the coprocessor and optimizing, where
+    ;; extra precision hid the problem)
+    (pass-if "2^53-1"
+      (let ((x (exact->inexact (1- (ash 1 53)))))
+	(and (= x      (round x))
+	     (inexact? (round x)))))
+    (pass-if "-(2^53-1)"
+      (let ((x (exact->inexact (- (1- (ash 1 53))))))
+	(and (= x      (round x))
+	     (inexact? (round x)))))))
 
 ;;;
 ;;; exact->inexact
@@ -2535,6 +2625,41 @@
 	((> i 256))
       (pass-if n
 	(= i (integer-length n))))))
+
+;;;
+;;; logbit?
+;;;
+
+(with-test-prefix "logbit?"
+  (pass-if (eq? #f (logbit?  0 0)))
+  (pass-if (eq? #f (logbit?  1 0)))
+  (pass-if (eq? #f (logbit? 31 0)))
+  (pass-if (eq? #f (logbit? 32 0)))
+  (pass-if (eq? #f (logbit? 33 0)))
+  (pass-if (eq? #f (logbit? 63 0)))
+  (pass-if (eq? #f (logbit? 64 0)))
+  (pass-if (eq? #f (logbit? 65 0)))
+
+  ;; prior to guile 1.6.5, testing bit 32, 64 etc of value 1 would wrap
+  ;; around and return #t where it ought to be #f
+  (pass-if (eq? #t (logbit?  0 1)))
+  (pass-if (eq? #f (logbit?  1 1)))
+  (pass-if (eq? #f (logbit? 31 1)))
+  (pass-if (eq? #f (logbit? 32 1)))
+  (pass-if (eq? #f (logbit? 33 1)))
+  (pass-if (eq? #f (logbit? 63 1)))
+  (pass-if (eq? #f (logbit? 64 1)))
+  (pass-if (eq? #f (logbit? 65 1)))
+  (pass-if (eq? #f (logbit? 128 1)))
+
+  (pass-if (eq? #t (logbit?  0 -1)))
+  (pass-if (eq? #t (logbit?  1 -1)))
+  (pass-if (eq? #t (logbit? 31 -1)))
+  (pass-if (eq? #t (logbit? 32 -1)))
+  (pass-if (eq? #t (logbit? 33 -1)))
+  (pass-if (eq? #t (logbit? 63 -1)))
+  (pass-if (eq? #t (logbit? 64 -1)))
+  (pass-if (eq? #t (logbit? 65 -1))))
 
 ;;;
 ;;; logcount
