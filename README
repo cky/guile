@@ -34,8 +34,25 @@ prep.ai.mit.edu, as /pub/gnu/guile-1.0.tar.gz.
 Via the web, that's:  ftp://prep.ai.mit.edu/pub/gnu/guile-1.0.tar.gz
 For getit, that's:    prep.ai.mit.edu:/pub/gnu/guile-1.0.tar.gz
 
+The mailing list `guile@cygnus.com' carries discussions, questions,
+and often answers, about Guile.  To subscribe, send mail to
+guile-request@cygnus.com.  Of course, please send bug reports (and
+fixes!) to bug-guile@prep.ai.mit.edu.
 
-Contents Of This Distribution ========================================
+
+About This Distribution ==============================================
+
+Building and installing this distribution gives you:
+guile --- a stand-alone interpreter for Guile, usually installed in
+	/usr/local/bin.  With no arguments, this is a simple
+	interactive Scheme interpreter.  It can also be used as an
+	interpreter for script files; see the NEWS file for details.
+libguile.a --- an object library containing the Guile interpreter,
+	usually installed in /usr/local/lib.  You can use Guile in
+	your own programs by linking against this.
+<libguile.h>, <libguile/*.h> --- header files for libguile.a, usually
+	installed in /usr/local/include.
+
 
 Interesting files include:
 - INSTALL, which contains instructions on building and installing Guile.
@@ -67,12 +84,6 @@ threads: Glue code for using various threads packages from Guile, including
 This distribution also includes `qt', a cooperative threads package
 from Washington University, which Guile can use.  Qt is under a
 separate copyright; see `qt/README' for more details.
-
-The mailing list `guile@cygnus.com' carries discussions, questions,
-and often answers, about Guile.  To subscribe, send mail to
-guile-request@cygnus.com.  Of course, please send bug reports (and
-fixes!) to bug-guile@prep.ai.mit.edu.
-
 
 Hacking It Yourself ==================================================
 
