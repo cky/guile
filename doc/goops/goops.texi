@@ -40,7 +40,22 @@ are preserved on all copies.
 @titlepage
 @title Goops Manual
 @subtitle For use with GOOPS @value{VERSION}
-@include ../AUTHORS
+
+@c AUTHORS
+
+@c The GOOPS tutorial was written by Christian Lynbech and Mikael
+@c Djurfeldt, who also wrote GOOPS itself.  The GOOPS reference manual
+@c and MOP documentation were written by Neil Jerram and reviewed by
+@c Mikael Djurfeldt.
+
+@author Christian Lynbech
+@author @email{chl@@tbit.dk}
+@author
+@author Mikael Djurfeldt
+@author @email{djurfeldt@@nada.kth.se}
+@author
+@author Neil Jerram
+@author @email{neil@@ossau.uklinux.net}
 
 @c  The following two commands
 @c  start the copyright page.

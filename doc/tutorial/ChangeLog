@@ -1,0 +1,14 @@
+2001-08-27  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* Makefile.am (guile_tut_TEXINFOS): Removed.
+	(TEXINFO_TEX): Added; avoids shipping multiple copies of
+	texinfo.tex in a single distribution.
+
+	* guile-tut.texi: Incorporate text previously in separate AUTHORS
+	file.
+
+2001-08-27  Neil Jerram  <neil@ossau.uklinux.net>
+
+	The change log for files in this directory continues backwards
+	from 2001-08-27 in ../ChangeLog, as all the Guile documentation
+	prior to this date was contained in a single directory.

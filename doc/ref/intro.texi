@@ -1,4 +1,4 @@
-@c $Id: intro.texi,v 1.1 2001-08-24 09:40:29 ossau Exp $
+@c $Id: intro.texi,v 1.2 2001-08-27 21:25:44 ossau Exp $
 
 @page
 @node What is Guile?
@@ -359,7 +359,7 @@ manual.  Once you've compiled your source files, you need to link them
 against the Guile object code library, @code{libguile}.
 
 On most systems, you should not need to do tell the compiler and linker
-explicitely where they can find @file{libguile.h} and @file{libguile}.
+explicitly where they can find @file{libguile.h} and @file{libguile}.
 When Guile has been installed in a peculiar way, or when you are on a
 peculiar system, things might not be so easy and you might need to pass
 additional @code{-I} or @code{-L} options to the compiler.  Guile
@@ -410,7 +410,7 @@ Why must the caller do all the real work from @var{main_func}?  Guile's
 garbage collector scans the stack to find all local variables that
 reference Scheme objects.  To do this, it needs to know the bounds of
 the stack that might contain such references.  Because there is no
-protable way in C to find the base of the stack, @code{scm_boot_guile}
+portable way in C to find the base of the stack, @code{scm_boot_guile}
 assumes that all references are above its own stack frame.  If you try
 to manipulate Scheme objects after this function returns, it's the luck
 of the draw whether Guile's storage manager will be able to find the
@@ -632,7 +632,7 @@ available to Scheme.  First we need to write the appropriate glue code
 to convert the arguments and return values of the functions from Scheme
 to C and back.  Additionally, we need a function that will add them to
 the set of Guile primitives.  Because this is just an example, we will
-only implement this for the @code{j0} function, tho.
+only implement this for the @code{j0} function.
 
 Consider the following file @file{bessel.c}.
 
@@ -729,7 +729,7 @@ guile -c '(write %load-path) (newline)'
 Suppose you want to use the procedures and variables exported by the
 module @code{(ice-9 popen)}, which provides the means for communicating
 with other processes over pipes.  Add the following line to your
-currently running Guile REPL or the top of you script file.
+currently running Guile REPL or the top of your script file.
 
 @lisp
 (use-modules (ice-9 popen))
@@ -840,7 +840,7 @@ is the current one.  Thus, the call to @code{scm_c_define_gsubr} will
 put the new definition for @code{j0} into it, just as we want it.
 
 The definitions made in the C code are not automatically exported from
-a module.  You need to explicitely list the ones you want to export in
+a module.  You need to explicitly list the ones you want to export in
 @code{export} statements or with the @code{:export} option of
 @code{define-module}.
 
@@ -961,7 +961,7 @@ Of course, if the bug is that Guile gets a fatal signal, then one can't
 miss it.  But if the bug is incorrect results, the maintainer might fail
 to notice what is wrong.  Why leave it to chance?
 
-If the manifestation of the bug is an Guile error message, it is
+If the manifestation of the bug is a Guile error message, it is
 important to report the precise text of the error message, and a
 backtrace showing how the Scheme program arrived at the error.
 
@@ -978,7 +978,7 @@ programs that you must load into Guile in order to cause the problem to
 occur.
 
 @item
-If the problem does depend on an init file or other Lisp programs that
+If the problem does depend on an init file or other Scheme programs that
 are not part of the standard Guile distribution, then you should make
 sure it is not a bug in those programs by complaining to their
 maintainers first.  After they verify that they are using Guile in a way
@@ -988,7 +988,7 @@ that is supposed to work, they should report the bug.
 If you wish to mention something in the Guile source, show the line of
 code with a few lines of context.  Don't just give a line number.
 
-The line numbers in the development sources don't match those in your
+The line numbers in the development sources might not match those in your
 sources.  It would take extra work for the maintainers to determine what
 code is in your version at a given line number, and we could not be
 certain.
@@ -1001,8 +1001,7 @@ very long, and using GDB is easy.  You can find the GDB distribution,
 including the GDB manual in online form, in most of the same places you
 can find the Guile distribution.  To run Guile under GDB, you should
 switch to the @file{libguile} subdirectory in which Guile was compiled, then
-do @code{gdb .libs/guile}.
-@c fixme: libguile/.libs is for libtool-enabled systems -- what about rest?
+do @code{gdb guile} or @code{gdb .libs/guile} (if using GNU Libtool).
 
 However, you need to think when you collect the additional information
 if you want it to show what causes the bug.

@@ -27,7 +27,10 @@
 @title Guile Tutorial
 @subtitle For use with Guile @value{VERSION}
 @subtitle Last updated @value{UPDATED}
-@include ../AUTHORS
+
+@author Mark Galassi
+@author Cygnus Solutions and Los Alamos National Laboratory
+@author @email{rosalia@@nis.lanl.gov}
 
 @page
 @vskip 0pt plus 1filll

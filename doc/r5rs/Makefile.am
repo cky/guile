@@ -22,3 +22,5 @@
 AUTOMAKE_OPTIONS = gnu
 
 info_TEXINFOS = r5rs.texi
+
+TEXINFO_TEX = ../ref/texinfo.tex

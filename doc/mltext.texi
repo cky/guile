@@ -53,7 +53,7 @@ Return non-zero iff @var{c} is a whitespace character.
 @end deftypefn
 
 @deftypefn {Libguile Function} int scm_mb_isxdigit (scm_mb_char_t @var{c})
-Return non-zero iff @var{c} is a hexidecimal digit.
+Return non-zero iff @var{c} is a hexadecimal digit.
 @end deftypefn
 
 @deftypefn {Libguile Function} int scm_mb_isdefined (scm_mb_char_t @var{c})
@@ -69,7 +69,7 @@ unchanged.
 @end deftypefn
 
 @deftypefn {Libguile Function} in scm_mb_digit_value (scm_mb_char_t @var{c})
-If @var{c} is a hexidecimal digit (according to
+If @var{c} is a hexadecimal digit (according to
 @code{scm_mb_isxdigit}), then return its numeric value.  Otherwise
 return -1.
 @end deftypefn

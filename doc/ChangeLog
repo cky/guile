@@ -1,3 +1,11 @@
+2001-08-27  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* mltext.texi (Guile Character Properties): Fix `hexidecimal'
+	spelling errors (merge from stable branch).
+
+	* AUTHORS: Removed.  Authorship information for each manual is now
+	in the top-level Texinfo file for that manual.
+
 2001-08-24  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* Makefile.am: Split documentation into per-manual subdirectories.

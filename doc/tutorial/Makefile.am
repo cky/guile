@@ -23,7 +23,7 @@ AUTOMAKE_OPTIONS = gnu
 
 info_TEXINFOS = guile-tut.texi
 
-guile_tut_TEXINFOS = ../AUTHORS
+TEXINFO_TEX = ../ref/texinfo.tex
 
 # Optionally support building an HTML version of the reference manual.
 

@@ -32,8 +32,7 @@ guile_TEXINFOS = preface.texi intro.texi scheme-intro.texi \
 	scheme-reading.texi scheme-indices.texi slib.texi posix.texi \
 	expect.texi scsh.texi tcltk.texi scripts.texi gh.texi scm.texi \
 	appendices.texi indices.texi script-getopt.texi data-rep.texi \
-	extend.texi repl-modules.texi srfi-modules.texi misc-modules.texi \
-	../AUTHORS
+	extend.texi repl-modules.texi srfi-modules.texi misc-modules.texi
 
 # Optionally support building an HTML version of the reference manual.
 

@@ -23,7 +23,9 @@ AUTOMAKE_OPTIONS = gnu
 
 info_TEXINFOS = goops.texi
 
-goops_TEXINFOS = goops-tutorial.texi hierarchy.eps hierarchy.txt ../AUTHORS
+goops_TEXINFOS = goops-tutorial.texi hierarchy.eps hierarchy.txt
+
+TEXINFO_TEX = ../ref/texinfo.tex
 
 # Optionally support building an HTML version of the manual.
 
