@@ -1,7 +1,7 @@
 dnl   configuration script for Guile
 dnl   Process this file with autoconf to produce configure.
 dnl
-dnl  Copyright (C) 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
+dnl  Copyright (C) 1998, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 dnl
 dnl  This file is part of GUILE
 dnl
@@ -367,6 +367,18 @@ AC_CHECK_FUNCS(sethostent   gethostent   endhostent   dnl
                getnetbyaddr getnetbyname dnl
 	       inet_lnaof inet_makeaddr inet_netof hstrerror dnl
 	       inet_pton inet_ntop)
+
+AC_MSG_CHECKING(for __libc_stack_end)
+AC_TRY_LINK([extern char *__libc_stack_end;],
+            [char *p = __libc_stack_end;],
+            have_libc_stack_end=yes,
+            have_libc_stack_end=no)
+AC_MSG_RESULT($have_libc_stack_end)
+
+if test $have_libc_stack_end = yes; then
+  AC_DEFINE(HAVE_LIBC_STACK_END, 1,
+           [Define if you have the __libc_stack_end variable.])
+fi
 
 dnl Some systems do not declare this.  Some systems do declare it, as a
 dnl macro.  With cygwin it may be in a DLL.
