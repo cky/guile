@@ -2,6 +2,7 @@
 .libs
 .deps
 guile-vm
+guile-compile
 stamp-h
 config.h
 config.h.in
