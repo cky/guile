@@ -1,3 +1,9 @@
+2000-06-02  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* NOTES: Removed.
+
+	* TODO: Moved to devel/.
+
 2000-06-01  Craig Brozefsky  <craig@red-bean.com>
 
 	* GUILE-VERSION: added defnitions for LIBGUILE_MAJOR_VERSION,

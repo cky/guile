@@ -1,4 +1,9 @@
-The Guile maintainer is Maciej Stachowiak.
+The Guile maintainer committee consists of
+
+	Jim Blandy
+     Maciej Stachowiak
+     Marius Vollmer
+     Mikael Djurfeldt
 
 Contributors since the last release:
 
