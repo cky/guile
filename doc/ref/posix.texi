@@ -2778,7 +2778,7 @@ no other easy or unambiguous way of detecting such features.
 Get or set the current locale, used for various internationalizations.
 Locales are strings, such as @samp{sv_SE}.
 
-If @var{locale} is given then the locale for the given category is set
+If @var{locale} is given then the locale for the given @var{category} is set
 and the new value returned.  If @var{locale} is not given then the
 current value is returned.  @var{category} should be one of the
 following values
