@@ -1,11 +1,16 @@
 2000-06-12  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
+	* gdbint.c (SEND_STRING): Cast argument to char pointer.
+
+	* fports.c (fport_flush): Declare `ptr' as unsigned char (was
+	char).
+
 	* Makefile.am (DOT_DOC_FILES): List doc-files explicitly.  (We
 	shouldn't use Make rules which aren't supported by most Make
 	programs.)
-	(OMIT_DEPENDENCIES): Defined to ltdl.h.  (We don't want this
-	dependency recorded, since it will become a relative path which
-	doesn't work when using a separate built directory.)
+	(OMIT_DEPENDENCIES): Defined to "libguile.h ltdl.h".  (We don't
+	want these dependencies recorded, since they would get bogus
+	relative paths; libguile.h is only used in gh.h and guile.c.)
 	(EXTRA_DOT_X_FILES, EXTRA_DOT_DOC_FILES): New variables.
 	(guile-procedures.txt): Depend on EXTRA_DOT_DOC_FILES.
 	(modinclude_HEADERS): Removed kw.h.
