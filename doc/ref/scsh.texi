@@ -1,6 +1,8 @@
 @page
 @node The Scheme shell (scsh)
 @chapter The Scheme shell (scsh)
+@cindex SCSH
+@cindex Scheme Shell
 
 An incomplete port of the Scheme shell (scsh) is available for Guile
 as a separate package.  The current status of guile-scsh can be found at
