@@ -29,4 +29,50 @@
 
   (pass-if "cond-expand srfi-2"
     (cond-expand (srfi-2 #t)
-		 (else   #f))))
+		 (else   #f)))
+
+  (with-test-prefix "no bindings"
+
+    (pass-if "no result expression (gives #t)"
+      (and-let* ()))
+
+    (pass-if "result expression"
+      (and-let* ()
+	#t))
+
+    (pass-if "two result expressions"
+      (and-let* ()
+	#f
+	#t)))
+
+  (with-test-prefix "one binding"
+
+    (pass-if "no result expression (gives #t)"
+      (and-let* ((x 123))))
+
+    (pass-if "result expression"
+      (and-let* ((x 123))
+	#t))
+
+    (pass-if "result variable"
+      (and-let* ((x #t))
+	x))
+
+    (pass-if "two result expressions"
+      (and-let* ((x 123))
+	#f
+	#t)))
+
+  (with-test-prefix "one test"
+
+    (pass-if "no result expression (gives #t)"
+      (and-let* (( 123))))
+
+    (pass-if "result expression"
+      (and-let* (( 123))
+	#t))
+
+    (pass-if "two result expressions"
+      (and-let* (( 123))
+	#f
+	#t))))
