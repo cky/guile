@@ -1205,7 +1205,12 @@
 
   (pass-if-exception "exponent too big"
     exception:out-of-range
-    (string->number "12.13e141414")))
+    (string->number "12.13e141414"))
+
+  ;; in guile 1.6.7 and earlier, bad polar forms (where the conversion of
+  ;; the angle gave #f) caused a segv
+  (pass-if "1@a"
+    (eq? #f (string->number "1@a"))))
 
 ;;;
 ;;; number?
