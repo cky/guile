@@ -1,3 +1,14 @@
+Thu Jan  6 11:22:53 2000  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* Makefile.am (ETAGS_ARGS): Switch to SCM_DEFINE, SCM_DEFINE1
+	instead of GUILE_PROC.
+
+Thu Jan  6 11:21:49 2000  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* alist.c: Do not report mismatch errors on some uses of `tmp' (do 
+	this by using SCM_ARG2 instead of `2' in the SCM_VALIDATE_CONS
+	macro call.
+
 Thu Jan  6 09:54:33 2000  Dirk Herrmann <dirk@ida.ing.tu-bs.de> --gjb applied
 
 	* scm_validate.h: Remove some redundant NIMP tests.

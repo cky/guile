@@ -1,3 +1,8 @@
+Wed Jan  5 11:18:01 2000  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* readline.c: Whitespace changes -- added space after
+	SCM_VALIDATE_* macros to match GNU coding standards.
+
 Wed Jan  5 11:02:40 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* readline.c: Rename GUILE_PROC to SCM_DEFINE.
