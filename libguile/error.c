@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996,1997,1998 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996,1997,1998, 2000 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -74,6 +74,14 @@ void
 scm_error (SCM key, const char *subr, const char *message, SCM args, SCM rest)
 {
   SCM arg_list;
+  if (scm_gc_heap_lock)
+    {
+      /* The error occured during GC --- abort */
+      fprintf (stderr, "Error in %s during GC: %s\n",
+	       subr ? subr : "unknown function",
+	       message ? message : "<empty message>");
+      abort ();
+    }
   arg_list = scm_listify (subr ? scm_makfrom0str (subr) : SCM_BOOL_F,
 			  message ? scm_makfrom0str (message) : SCM_BOOL_F,
 			  args,
