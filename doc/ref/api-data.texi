@@ -42,8 +42,9 @@ For the documentation of such @dfn{compound} data types, see
 @menu
 * Booleans::                    True/false values.
 * Numbers::                     Numerical data types.
-* Characters::                  New character names.
-* Strings::                     Special things about strings.
+* Characters::                  Single characters.
+* Character Sets::              Sets of characters.
+* Strings::                     Sequences of characters.
 * Regular Expressions::         Pattern matching and substitution.
 * Symbols::                     Symbols.
 * Keywords::                    Self-quoting, customizable display keywords.
@@ -1667,14 +1668,16 @@ The global random state used by the above functions when the
 @subsection Characters
 @tpindex Characters
 
-@noindent
-[@strong{FIXME}: how do you specify regular (non-control) characters?]
+In Scheme, a character literal is written as @code{#\@var{name}} where
+@var{name} is the name of the character that you want.  Printable
+characters have their usual single character name; for example,
+@code{#\a} is a lower case @code{a}.
 
 Most of the ``control characters'' (those below codepoint 32) in the
 @acronym{ASCII} character set, as well as the space, may be referred
-to by name: for example, @code{#\tab}, @code{#\esc}, @code{#\stx}, and
-so on.  The following table describes the @acronym{ASCII} names for
-each character.
+to by longer names: for example, @code{#\tab}, @code{#\esc},
+@code{#\stx}, and so on.  The following table describes the
+@acronym{ASCII} names for each character.
 
 @multitable @columnfractions .25 .25 .25 .25
 @item 0 = @code{#\nul}
@@ -1860,10 +1863,474 @@ Return the uppercase character version of @var{chr}.
 Return the lowercase character version of @var{chr}.
 @end deffn
 
-@xref{Classification of Characters,,,libc,GNU C Library Reference
-Manual}, for information about the @code{is*} Standard C functions
-mentioned above.
+@node Character Sets
+@subsection Character Sets
 
+The features described in this section correspond directly to SRFI-14.
+
+The data type @dfn{charset} implements sets of characters
+(@pxref{Characters}).  Because the internal representation of
+character sets is not visible to the user, a lot of procedures for
+handling them are provided.
+
+Character sets can be created, extended, tested for the membership of a
+characters and be compared to other character sets.
+
+The Guile implementation of character sets currently deals only with
+8-bit characters.  In the future, when Guile gets support for
+international character sets, this will change, but the functions
+provided here will always then be able to efficiently cope with very
+large character sets.
+
+@menu
+* Character Set Predicates/Comparison::
+* Iterating Over Character Sets::  Enumerate charset elements.
+* Creating Character Sets::        Making new charsets.
+* Querying Character Sets::        Test charsets for membership etc.
+* Character-Set Algebra::          Calculating new charsets.
+* Standard Character Sets::        Variables containing predefined charsets.
+@end menu
+
+@node Character Set Predicates/Comparison
+@subsubsection Character Set Predicates/Comparison
+
+Use these procedures for testing whether an object is a character set,
+or whether several character sets are equal or subsets of each other.
+@code{char-set-hash} can be used for calculating a hash value, maybe for
+usage in fast lookup procedures.
+
+@deffn {Scheme Procedure} char-set? obj
+@deffnx {C Function} scm_char_set_p (obj)
+Return @code{#t} if @var{obj} is a character set, @code{#f}
+otherwise.
+@end deffn
+
+@deffn {Scheme Procedure} char-set= . char_sets
+@deffnx {C Function} scm_char_set_eq (char_sets)
+Return @code{#t} if all given character sets are equal.
+@end deffn
+
+@deffn {Scheme Procedure} char-set<= . char_sets
+@deffnx {C Function} scm_char_set_leq (char_sets)
+Return @code{#t} if every character set @var{cs}i is a subset
+of character set @var{cs}i+1.
+@end deffn
+
+@deffn {Scheme Procedure} char-set-hash cs [bound]
+@deffnx {C Function} scm_char_set_hash (cs, bound)
+Compute a hash value for the character set @var{cs}.  If
+@var{bound} is given and non-zero, it restricts the
+returned value to the range 0 @dots{} @var{bound - 1}.
+@end deffn
+
+@c ===================================================================
+
+@node Iterating Over Character Sets
+@subsubsection Iterating Over Character Sets
+
+Character set cursors are a means for iterating over the members of a
+character sets.  After creating a character set cursor with
+@code{char-set-cursor}, a cursor can be dereferenced with
+@code{char-set-ref}, advanced to the next member with
+@code{char-set-cursor-next}.  Whether a cursor has passed past the last
+element of the set can be checked with @code{end-of-char-set?}.
+
+Additionally, mapping and (un-)folding procedures for character sets are
+provided.
+
+@deffn {Scheme Procedure} char-set-cursor cs
+@deffnx {C Function} scm_char_set_cursor (cs)
+Return a cursor into the character set @var{cs}.
+@end deffn
+
+@deffn {Scheme Procedure} char-set-ref cs cursor
+@deffnx {C Function} scm_char_set_ref (cs, cursor)
+Return the character at the current cursor position
+@var{cursor} in the character set @var{cs}.  It is an error to
+pass a cursor for which @code{end-of-char-set?} returns true.
+@end deffn
+
+@deffn {Scheme Procedure} char-set-cursor-next cs cursor
+@deffnx {C Function} scm_char_set_cursor_next (cs, cursor)
+Advance the character set cursor @var{cursor} to the next
+character in the character set @var{cs}.  It is an error if the
+cursor given satisfies @code{end-of-char-set?}.
+@end deffn
+
+@deffn {Scheme Procedure} end-of-char-set? cursor
+@deffnx {C Function} scm_end_of_char_set_p (cursor)
+Return @code{#t} if @var{cursor} has reached the end of a
+character set, @code{#f} otherwise.
+@end deffn
+
+@deffn {Scheme Procedure} char-set-fold kons knil cs
+@deffnx {C Function} scm_char_set_fold (kons, knil, cs)
+Fold the procedure @var{kons} over the character set @var{cs},
+initializing it with @var{knil}.
+@end deffn
+
+@deffn {Scheme Procedure} char-set-unfold p f g seed [base_cs]
+@deffnx {C Function} scm_char_set_unfold (p, f, g, seed, base_cs)
+This is a fundamental constructor for character sets.
+@itemize @bullet
+@item @var{g} is used to generate a series of ``seed'' values
+from the initial seed: @var{seed}, (@var{g} @var{seed}),
+(@var{g}^2 @var{seed}), (@var{g}^3 @var{seed}), @dots{}
+@item @var{p} tells us when to stop -- when it returns true
+when applied to one of the seed values.
+@item @var{f} maps each seed value to a character. These
+characters are added to the base character set @var{base_cs} to
+form the result; @var{base_cs} defaults to the empty set.
+@end itemize
+@end deffn
+
+@deffn {Scheme Procedure} char-set-unfold! p f g seed base_cs
+@deffnx {C Function} scm_char_set_unfold_x (p, f, g, seed, base_cs)
+This is a fundamental constructor for character sets.
+@itemize @bullet
+@item @var{g} is used to generate a series of ``seed'' values
+from the initial seed: @var{seed}, (@var{g} @var{seed}),
+(@var{g}^2 @var{seed}), (@var{g}^3 @var{seed}), @dots{}
+@item @var{p} tells us when to stop -- when it returns true
+when applied to one of the seed values.
+@item @var{f} maps each seed value to a character. These
+characters are added to the base character set @var{base_cs} to
+form the result; @var{base_cs} defaults to the empty set.
+@end itemize
+@end deffn
+
+@deffn {Scheme Procedure} char-set-for-each proc cs
+@deffnx {C Function} scm_char_set_for_each (proc, cs)
+Apply @var{proc} to every character in the character set
+@var{cs}.  The return value is not specified.
+@end deffn
+
+@deffn {Scheme Procedure} char-set-map proc cs
+@deffnx {C Function} scm_char_set_map (proc, cs)
+Map the procedure @var{proc} over every character in @var{cs}.
+@var{proc} must be a character -> character procedure.
+@end deffn
+
+@c ===================================================================
+
+@node Creating Character Sets
+@subsubsection Creating Character Sets
+
+New character sets are produced with these procedures.
+
+@deffn {Scheme Procedure} char-set-copy cs
+@deffnx {C Function} scm_char_set_copy (cs)
+Return a newly allocated character set containing all
+characters in @var{cs}.
+@end deffn
+
+@deffn {Scheme Procedure} char-set . rest
+@deffnx {C Function} scm_char_set (rest)
+Return a character set containing all given characters.
+@end deffn
+
+@deffn {Scheme Procedure} list->char-set list [base_cs]
+@deffnx {C Function} scm_list_to_char_set (list, base_cs)
+Convert the character list @var{list} to a character set.  If
+the character set @var{base_cs} is given, the character in this
+set are also included in the result.
+@end deffn
+
+@deffn {Scheme Procedure} list->char-set! list base_cs
+@deffnx {C Function} scm_list_to_char_set_x (list, base_cs)
+Convert the character list @var{list} to a character set.  The
+characters are added to @var{base_cs} and @var{base_cs} is
+returned.
+@end deffn
+
+@deffn {Scheme Procedure} string->char-set str [base_cs]
+@deffnx {C Function} scm_string_to_char_set (str, base_cs)
+Convert the string @var{str} to a character set.  If the
+character set @var{base_cs} is given, the characters in this
+set are also included in the result.
+@end deffn
+
+@deffn {Scheme Procedure} string->char-set! str base_cs
+@deffnx {C Function} scm_string_to_char_set_x (str, base_cs)
+Convert the string @var{str} to a character set.  The
+characters from the string are added to @var{base_cs}, and
+@var{base_cs} is returned.
+@end deffn
+
+@deffn {Scheme Procedure} char-set-filter pred cs [base_cs]
+@deffnx {C Function} scm_char_set_filter (pred, cs, base_cs)
+Return a character set containing every character from @var{cs}
+so that it satisfies @var{pred}.  If provided, the characters
+from @var{base_cs} are added to the result.
+@end deffn
+
+@deffn {Scheme Procedure} char-set-filter! pred cs base_cs
+@deffnx {C Function} scm_char_set_filter_x (pred, cs, base_cs)
+Return a character set containing every character from @var{cs}
+so that it satisfies @var{pred}.  The characters are added to
+@var{base_cs} and @var{base_cs} is returned.
+@end deffn
+
+@deffn {Scheme Procedure} ucs-range->char-set lower upper [error [base_cs]]
+@deffnx {C Function} scm_ucs_range_to_char_set (lower, upper, error, base_cs)
+Return a character set containing all characters whose
+character codes lie in the half-open range
+[@var{lower},@var{upper}).
+
+If @var{error} is a true value, an error is signalled if the
+specified range contains characters which are not contained in
+the implemented character range.  If @var{error} is @code{#f},
+these characters are silently left out of the resultung
+character set.
+
+The characters in @var{base_cs} are added to the result, if
+given.
+@end deffn
+
+@deffn {Scheme Procedure} ucs-range->char-set! lower upper error base_cs
+@deffnx {C Function} scm_ucs_range_to_char_set_x (lower, upper, error, base_cs)
+Return a character set containing all characters whose
+character codes lie in the half-open range
+[@var{lower},@var{upper}).
+
+If @var{error} is a true value, an error is signalled if the
+specified range contains characters which are not contained in
+the implemented character range.  If @var{error} is @code{#f},
+these characters are silently left out of the resultung
+character set.
+
+The characters are added to @var{base_cs} and @var{base_cs} is
+returned.
+@end deffn
+
+@deffn {Scheme Procedure} ->char-set x
+@deffnx {C Function} scm_to_char_set (x)
+Coerces x into a char-set. @var{x} may be a string, character or char-set. A string is converted to the set of its constituent characters; a character is converted to a singleton set; a char-set is returned as-is.
+@end deffn
+
+@c ===================================================================
+
+@node Querying Character Sets
+@subsubsection Querying Character Sets
+
+Access the elements and other information of a character set with these
+procedures.
+
+@deffn {Scheme Procedure} char-set-size cs
+@deffnx {C Function} scm_char_set_size (cs)
+Return the number of elements in character set @var{cs}.
+@end deffn
+
+@deffn {Scheme Procedure} char-set-count pred cs
+@deffnx {C Function} scm_char_set_count (pred, cs)
+Return the number of the elements int the character set
+@var{cs} which satisfy the predicate @var{pred}.
+@end deffn
+
+@deffn {Scheme Procedure} char-set->list cs
+@deffnx {C Function} scm_char_set_to_list (cs)
+Return a list containing the elements of the character set
+@var{cs}.
+@end deffn
+
+@deffn {Scheme Procedure} char-set->string cs
+@deffnx {C Function} scm_char_set_to_string (cs)
+Return a string containing the elements of the character set
+@var{cs}.  The order in which the characters are placed in the
+string is not defined.
+@end deffn
+
+@deffn {Scheme Procedure} char-set-contains? cs ch
+@deffnx {C Function} scm_char_set_contains_p (cs, ch)
+Return @code{#t} iff the character @var{ch} is contained in the
+character set @var{cs}.
+@end deffn
+
+@deffn {Scheme Procedure} char-set-every pred cs
+@deffnx {C Function} scm_char_set_every (pred, cs)
+Return a true value if every character in the character set
+@var{cs} satisfies the predicate @var{pred}.
+@end deffn
+
+@deffn {Scheme Procedure} char-set-any pred cs
+@deffnx {C Function} scm_char_set_any (pred, cs)
+Return a true value if any character in the character set
+@var{cs} satisfies the predicate @var{pred}.
+@end deffn
+
+@c ===================================================================
+
+@node Character-Set Algebra
+@subsubsection Character-Set Algebra
+
+Character sets can be manipulated with the common set algebra operation,
+such as union, complement, intersection etc.  All of these procedures
+provide side-effecting variants, which modify their character set
+argument(s).
+
+@deffn {Scheme Procedure} char-set-adjoin cs . rest
+@deffnx {C Function} scm_char_set_adjoin (cs, rest)
+Add all character arguments to the first argument, which must
+be a character set.
+@end deffn
+
+@deffn {Scheme Procedure} char-set-delete cs . rest
+@deffnx {C Function} scm_char_set_delete (cs, rest)
+Delete all character arguments from the first argument, which
+must be a character set.
+@end deffn
+
+@deffn {Scheme Procedure} char-set-adjoin! cs . rest
+@deffnx {C Function} scm_char_set_adjoin_x (cs, rest)
+Add all character arguments to the first argument, which must
+be a character set.
+@end deffn
+
+@deffn {Scheme Procedure} char-set-delete! cs . rest
+@deffnx {C Function} scm_char_set_delete_x (cs, rest)
+Delete all character arguments from the first argument, which
+must be a character set.
+@end deffn
+
+@deffn {Scheme Procedure} char-set-complement cs
+@deffnx {C Function} scm_char_set_complement (cs)
+Return the complement of the character set @var{cs}.
+@end deffn
+
+@deffn {Scheme Procedure} char-set-union . rest
+@deffnx {C Function} scm_char_set_union (rest)
+Return the union of all argument character sets.
+@end deffn
+
+@deffn {Scheme Procedure} char-set-intersection . rest
+@deffnx {C Function} scm_char_set_intersection (rest)
+Return the intersection of all argument character sets.
+@end deffn
+
+@deffn {Scheme Procedure} char-set-difference cs1 . rest
+@deffnx {C Function} scm_char_set_difference (cs1, rest)
+Return the difference of all argument character sets.
+@end deffn
+
+@deffn {Scheme Procedure} char-set-xor . rest
+@deffnx {C Function} scm_char_set_xor (rest)
+Return the exclusive-or of all argument character sets.
+@end deffn
+
+@deffn {Scheme Procedure} char-set-diff+intersection cs1 . rest
+@deffnx {C Function} scm_char_set_diff_plus_intersection (cs1, rest)
+Return the difference and the intersection of all argument
+character sets.
+@end deffn
+
+@deffn {Scheme Procedure} char-set-complement! cs
+@deffnx {C Function} scm_char_set_complement_x (cs)
+Return the complement of the character set @var{cs}.
+@end deffn
+
+@deffn {Scheme Procedure} char-set-union! cs1 . rest
+@deffnx {C Function} scm_char_set_union_x (cs1, rest)
+Return the union of all argument character sets.
+@end deffn
+
+@deffn {Scheme Procedure} char-set-intersection! cs1 . rest
+@deffnx {C Function} scm_char_set_intersection_x (cs1, rest)
+Return the intersection of all argument character sets.
+@end deffn
+
+@deffn {Scheme Procedure} char-set-difference! cs1 . rest
+@deffnx {C Function} scm_char_set_difference_x (cs1, rest)
+Return the difference of all argument character sets.
+@end deffn
+
+@deffn {Scheme Procedure} char-set-xor! cs1 . rest
+@deffnx {C Function} scm_char_set_xor_x (cs1, rest)
+Return the exclusive-or of all argument character sets.
+@end deffn
+
+@deffn {Scheme Procedure} char-set-diff+intersection! cs1 cs2 . rest
+@deffnx {C Function} scm_char_set_diff_plus_intersection_x (cs1, cs2, rest)
+Return the difference and the intersection of all argument
+character sets.
+@end deffn
+
+@c ===================================================================
+
+@node Standard Character Sets
+@subsubsection Standard Character Sets
+
+In order to make the use of the character set data type and procedures
+useful, several predefined character set variables exist.
+
+@defvar char-set:lower-case
+All lower-case characters.
+@end defvar
+
+@defvar char-set:upper-case
+All upper-case characters.
+@end defvar
+
+@defvar char-set:title-case
+This is empty, because ASCII has no titlecase characters.
+@end defvar
+
+@defvar char-set:letter
+All letters, e.g. the union of @code{char-set:lower-case} and
+@code{char-set:upper-case}.
+@end defvar
+
+@defvar char-set:digit
+All digits.
+@end defvar
+
+@defvar char-set:letter+digit
+The union of @code{char-set:letter} and @code{char-set:digit}.
+@end defvar
+
+@defvar char-set:graphic
+All characters which would put ink on the paper.
+@end defvar
+
+@defvar char-set:printing
+The union of @code{char-set:graphic} and @code{char-set:whitespace}.
+@end defvar
+
+@defvar char-set:whitespace
+All whitespace characters.
+@end defvar
+
+@defvar char-set:blank
+All horizontal whitespace characters, that is @code{#\space} and
+@code{#\tab}.
+@end defvar
+
+@defvar char-set:iso-control
+The ISO control characters with the codes 0--31 and 127.
+@end defvar
+
+@defvar char-set:punctuation
+The characters @code{!"#%&'()*,-./:;?@@[\\]_@{@}}
+@end defvar
+
+@defvar char-set:symbol
+The characters @code{$+<=>^`|~}.
+@end defvar
+
+@defvar char-set:hex-digit
+The hexadecimal digits @code{0123456789abcdefABCDEF}.
+@end defvar
+
+@defvar char-set:ascii
+All ASCII characters.
+@end defvar
+
+@defvar char-set:empty
+The empty character set.
+@end defvar
+
+@defvar char-set:full
+This character set contains all possible characters.
+@end defvar
 
 @node Strings
 @subsection Strings
