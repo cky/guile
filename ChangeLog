@@ -1,3 +1,10 @@
+2002-10-21  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* configure.in: Changed logic in thread support configuration such
+	that --with-threads=no is equivalent to --with-threads=null.  On
+	platforms that are not supported by QuickThreads, we also use the
+	null-threads.  Thus, USE_THREADS is always defined now.
+
 2002-10-16  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* configure.in: Shuffled around and extended the thread
