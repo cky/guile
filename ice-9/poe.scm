@@ -45,7 +45,7 @@
 ;;;
 
 
-(define funcq-memo (make-weak-hash-table 523)) ; !!! randomly selected values
+(define funcq-memo (make-weak-key-hash-table 523)) ; !!! randomly selected values
 (define funcq-buffer (make-gc-buffer 256))
 
 (define (funcq-hash arg-list n)
