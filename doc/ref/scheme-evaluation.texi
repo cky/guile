@@ -215,22 +215,45 @@ While the code is evaluated, the given module is made the current one.
 The current module is restored when this procedure returns.
 @end deffn
 
-@deffn {Scheme Procedure} apply:nconc2last lst
-@deffnx {C Function} scm_nconc2last (lst)
-Given a list (@var{arg1} @dots{} @var{args}), this function
-conses the @var{arg1} @dots{} arguments onto the front of
-@var{args}, and returns the resulting list. Note that
-@var{args} is a list; thus, the argument to this function is
-a list whose last element is a list.
-Note: Rather than do new consing, @code{apply:nconc2last}
-destroys its argument, so use with care.
+@deffn {Scheme Procedure} apply proc arg1 @dots{} argN arglst
+@deffnx {C Function} scm_apply_0 (proc, arglst)
+@deffnx {C Function} scm_apply_1 (proc, arg1, arglst)
+@deffnx {C Function} scm_apply_2 (proc, arg1, arg2, arglst)
+@deffnx {C Function} scm_apply_3 (proc, arg1, arg2, arg3, arglst)
+@deffnx {C Function} scm_apply (proc, arg, rest)
+@rnindex apply
+Call @var{proc} with arguments @var{arg1} @dots{} @var{argN} plus the
+elements of the @var{arglst} list.
+
+@code{scm_apply} takes parameters corresponding to a Scheme level
+@code{(lambda (proc arg . rest) ...)}.  So @var{arg} and all but the
+last element of the @var{rest} list make up
+@var{arg1}@dots{}@var{argN} and the last element of @var{rest} is the
+@var{arglst} list.  Or if @var{rest} is the empty list @code{SCM_EOL}
+then there's no @var{arg1}@dots{}@var{argN} and @var{arg} is the
+@var{arglst}.
+
+@var{arglst} is not modified, but the @var{rest} list passed to
+@code{scm_apply} is modified.
 @end deffn
 
-@rnindex apply
-@deffn {Scheme Procedure} apply proc arg1 @dots{} args
-@var{proc} must be a procedure and @var{args} must be a list.  Call
-@var{proc} with the elements of the list @code{(append (list @var{arg1}
-@dots{}) @var{args})} as the actual arguments.
+@deffn {C Function} scm_call_0 (proc)
+@deffnx {C Function} scm_call_1 (proc, arg1)
+@deffnx {C Function} scm_call_2 (proc, arg1, arg2)
+@deffnx {C Function} scm_call_3 (proc, arg1, arg2, arg3)
+Call @var{proc} with the given arguments.
+@end deffn
+
+@deffn {Scheme Procedure} apply:nconc2last lst
+@deffnx {C Function} scm_nconc2last (lst)
+@var{lst} should be a list (@var{arg1} @dots{} @var{argN}
+@var{arglst}), with @var{arglst} being a list.  This function returns
+a list comprising @var{arg1} to @var{argN} plus the elements of
+@var{arglst}.  @var{lst} is modified to form the return.  @var{arglst}
+is not modified, though the return does share structure with it.
+
+This operation collects up the arguments from a list which is
+@code{apply} style parameters.
 @end deffn
 
 @deffn {Scheme Procedure} primitive-eval exp
