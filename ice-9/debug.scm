@@ -167,8 +167,7 @@
 	    (set! trace-level (+ trace-level 1)))
 	(let indent ((n trace-level))
 	  (cond ((> n 1) (display "|  " cep) (indent (- n 1)))))
-	(display-application frame cep)
-	(newline cep)))
+	(display-application frame cep)))
   (debug-enable 'trace)
   ;; It's not necessary to call the continuation since
   ;; execution will continue if the handler returns
@@ -184,17 +183,6 @@
 	(write retval cep)
 	(newline cep)))
   (debug-enable 'trace))
-
-(define (display-application frame port)
-  (display #\[ port)
-  (display (car (unmemoize (frame-source frame))) port)
-  (let loop ((args (frame-arguments frame)))
-    (if (not (null? args))
-	(begin
-	  (display #\space port)
-	  (write (car args) port)
-	  (loop (cdr args)))))
-  (display #\] port))
 
 
 ;;; A fix to get the error handling working together with the module system.
