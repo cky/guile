@@ -13,6 +13,11 @@
 	from `AC_CONFIG_FILES' and `AC_CONFIG_COMMANDS'.
 
 	* check-guile.in (top_builddir): Fix bug: Use cwd.
+	(TEST_SUITE_DIR): Fix bug: Use `top_srcdir'.
+	(GUILE_LOAD_PATH): No longer include $top_srcdir.
+
+	* pre-inst-guile: Fix bug: Use ":" in `case' pattern to prevent
+	prefix aliasing.
 
 2002-01-31  Stefan Jahn  <stefan@lkcc.org>
 
