@@ -1,3 +1,7 @@
+2001-11-14  Thien-Thi Nguyen  <ttn@glug.org>
+
+	* scheme-procedures.texi: Spell "library" correctly.
+
 2001-11-13  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* new-docstrings.texi, scheme-data.texi: Merge recent doc
@@ -53,7 +57,7 @@
 
 	* Makefile.am (guile_TEXINFOS): Removed appendices.texi, added
 	debugging.texi.
-	
+
 	* appendices.texi: Removed.
 
 	* debugging.texi (Debugger User Interface): New file, same as the
