@@ -1,3 +1,12 @@
+2004-10-20  Marius Vollmer  <mvo@zagadka.de>
+
+	* sort.c (quicksort): Copy pivot out of the array while
+	constructing the partitions; it could get overwritten otherwise.
+	Because of the ultimate insertion sort, this bug did not cause
+	quicksort to fail, it just put all the burdon on the insertion
+	sort and was thus very slow.  Thanks to Rolan Orre for reporting
+	the slowness!
+	
 2004-10-19  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* numbers.c (scm_i_range_error): New.
