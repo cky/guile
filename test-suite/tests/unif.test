@@ -23,6 +23,9 @@
 ;;; array?
 ;;;
 
+(define exception:wrong-num-indices
+  (cons 'misc-error "^wrong number of indices.*"))
+
 (with-test-prefix "array?"
 
   (let ((bool     (make-typed-array 'b    #t  '(5 6)))
@@ -385,9 +388,9 @@
 	(array-set! a 'y 2 7))
       (pass-if-exception "end i+1" exception:out-of-range
 	(array-set! a 'y 6 9))
-      (pass-if-exception "one index" exception:wrong-num-args
+      (pass-if-exception "one index" exception:wrong-num-indices
 	(array-set! a 'y 4))
-      (pass-if-exception "three indexes" exception:wrong-num-args
+      (pass-if-exception "three indexes" exception:wrong-num-indices
 	(array-set! a 'y 4 8 0)))))
 
 ;;;
