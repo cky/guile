@@ -437,7 +437,7 @@ instead of the list elements.
 @end deffn
 
 @deffn {Scheme Procedure} reduce-right f ridentity lst
-This is the @code{fold-right} variant of @var{reduce}.
+This is the @code{fold-right} variant of @code{reduce}.
 @end deffn
 
 @deffn {Scheme Procedure} unfold p f g seed [tail-gen]
