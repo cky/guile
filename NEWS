@@ -1,5 +1,5 @@
 Guile NEWS --- history of user-visible changes.
-Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
 See the end for copying conditions.
 
 Please send Guile bug reports to bug-guile@gnu.org.
@@ -60,6 +60,80 @@ Previously, the normal evaluator would have been used.  Using the
 debugging evaluator gives better error messages.
 
 * Changes to Scheme functions and syntax
+
+** Checking for duplicate bindings in module system
+
+The module system now can check for duplicate imported bindings.
+The syntax to enable this feature is:
+
+(define-module (foo)
+  :use-module (bar)
+  :use-module (baz)
+  :duplicates check)
+
+This will report an error if both (bar) and (baz) exports a binding
+with the same name.
+
+The syntax for the :duplicates option is:
+
+  :duplicates HANDLER-NAME | (HANDLER1-NAME HANDLER2-NAME ...)
+
+Specifying multiple handlers is useful since some handlers (such as
+merge-generics) can defer conflict resolution to others.
+
+Currently available duplicates handlers are:
+
+  check		  report an error for bindings with a common name
+  first		  select the first encountered binding (override)
+  last		  select the last encountered binding (override)
+  merge-generics  merge generic functions with a common name
+		  into an <extended-generic>
+
+** Merging generic functions
+
+It is sometimes tempting to use GOOPS accessors with short names.
+For example, it is tempting to use the name `x' for the x-coordinate
+in vector packages.
+
+Assume that we work with a graphical package which needs to use two
+independent vector packages for 2D and 3D vectors respectively.  If
+both packages export `x' we will encounter a name collision.
+
+This can now be resolved with the duplicates handler `merge-generics'
+which merges all generic functions with a common name:
+
+(define-module (math 2D-vectors)
+  :use-module (oop goops)
+  :export (x y ...))
+		  
+(define-module (math 3D-vectors)
+  :use-module (oop goops)
+  :export (x y z ...))
+
+(define-module (my-module)
+  :use-module (math 2D-vectors)
+  :use-module (math 3D-vectors)
+  :duplicates merge-generics)
+
+x in (my-module) will now share methods with x in both imported
+modules.
+
+The detailed rule for method visibility is this:
+
+Let's call the imported generic functions the "ancestor functions".
+x in (my-module) is, in turn, a "descendant function" of the imported
+functions.  For any generic function gf, the applicable methods are
+selected from the union of the methods of the descendant functions,
+the methods of gf and the methods of the ancestor functions.
+
+This implies that x in (math 2D-vectors) can see the methods of x in
+(my-module) and vice versa, while x in (math 2D-vectors) doesn't see
+the methods of x in (math 3D-vectors), thus preserving modularity.
+
+If duplicates checking is desired in the above example, the following
+form of the :duplicates option can be used instead:
+
+  :duplicates (merge-generics check)
 
 ** New function: effective-version
 

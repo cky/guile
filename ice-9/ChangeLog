@@ -1,3 +1,12 @@
+2003-03-07  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	These changes enables checking for duplicate imported bindings.
+
+	* boot-9.scm (process-define-module): Handle #:duplicates.
+	(module-use-interfaces! process-duplicates): New functions.
+	(duplicate-handlers): Dictionary of duplicate handlers.
+	(module-symbol-local-binding, module-symbol-binding): Bugfix.
+
 2003-03-04  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* session.scm (apropos): Use hash-for-each instead of

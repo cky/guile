@@ -1233,7 +1233,7 @@
 ;;
 (define (module-symbol-local-binding m v . opt-val)
   (let ((var (module-local-variable m v)))
-    (if var
+    (if (and var (variable-bound? var))
 	(variable-ref var)
 	(if (not (null? opt-val))
 	    (car opt-val)
@@ -1248,7 +1248,7 @@
 ;;
 (define (module-symbol-binding m v . opt-val)
   (let ((var (module-variable m v)))
-    (if var
+    (if (and var (variable-bound? var))
 	(variable-ref var)
 	(if (not (null? opt-val))
 	    (car opt-val)
@@ -1447,6 +1447,34 @@
 		    (cons interface (delq! interface (module-uses module))))
   (module-modified module))
 
+;; MODULE-USE-INTERFACES! module interfaces
+;;
+;; Same as MODULE-USE! but add multiple interfaces and check for duplicates
+;;
+(define (module-use-interfaces! module interfaces)
+  (let* ((duplicates-info (module-duplicates-info module))
+	 (duplicates-handlers? (car duplicates-info))
+	 (uses (module-uses module)))
+    ;; remove duplicates-interface
+    (set! uses (delq! (cdr duplicates-info) uses))
+    ;; remove interfaces to be added
+    (for-each (lambda (interface)
+		(set! uses (delq! interface uses)))
+	      interfaces)
+    ;; add interfaces to use list
+    (set-module-uses! module uses)
+    (for-each (lambda (interface)
+		(and duplicates-handlers?
+		     ;; perform duplicate checking
+		     (process-duplicates module interface))
+		(set! uses (cons interface uses))
+		(set-module-uses! module uses))
+	      interfaces)
+    ;; add duplicates interface
+    (if (cdr duplicates-info)
+	(set-module-uses! module (cons (cdr duplicates-info) uses)))
+    (module-modified module)))
+
 
 ;;; {Recursive Namespaces}
 ;;;
@@ -1534,11 +1562,16 @@
   (module-ref m '%module-public-interface #f))
 (define (set-module-public-interface! m i)
   (module-define! m '%module-public-interface i))
+(define (module-duplicates-info m)
+  (or (module-ref m '%module-duplicates-info #f) (cons #f #f)))
+(define (set-module-duplicates-info! m i)
+  (module-define! m '%module-duplicates-info i))
 (define (set-system-module! m s)
   (set-procedure-property! (module-eval-closure m) 'system-module s))
 (define the-root-module (make-root-module))
 (define the-scm-module (make-scm-module))
 (set-module-public-interface! the-root-module the-scm-module)
+(set-module-duplicates-info! the-root-module (cons #f #f))
 (set-module-name! the-root-module '(guile))
 (set-module-name! the-scm-module '(guile))
 (set-module-kind! the-scm-module 'interface)
@@ -1567,10 +1600,12 @@
 	(let ((interface (make-module 31)))
 	  (set-module-name! interface (module-name module))
 	  (set-module-kind! interface 'interface)
-	  (set-module-public-interface! module interface))))
+	  (set-module-public-interface! module interface)
+	  (set-module-duplicates-info! module (cons #f #f)))))
   (if (and (not (memq the-scm-module (module-uses module)))
 	   (not (eq? module the-root-module)))
-      (set-module-uses! module (append (module-uses module) (list the-scm-module)))))
+      (set-module-uses! module
+			(append (module-uses module) (list the-scm-module)))))
 
 ;; NOTE: This binding is used in libguile/modules.c.
 ;;
@@ -1708,9 +1743,7 @@
 	       (re-exports '()))
       (if (null? kws)
 	  (begin
-	    (for-each (lambda (interface)
-			(module-use! module interface))
-		      (reverse reversed-interfaces))
+	    (module-use-interfaces! module (reverse reversed-interfaces))
 	    (module-export! module exports)
 	    (module-re-export! module re-exports))
 	  (case (car kws)
@@ -1748,6 +1781,19 @@
 	    ((#:pure)
 	     (purify-module! module)
 	     (loop (cdr kws) reversed-interfaces exports re-exports))
+	    ((#:duplicates)
+	     (if (not (pair? (cdr kws)))
+		 (unrecognized kws))
+	     (set-car! (module-duplicates-info module)
+		       (map (lambda (handler-name)
+			      (or (module-symbol-local-binding
+				   duplicate-handlers handler-name #f)
+				  (error "invalid duplicate handler name:"
+					 handler-name)))
+			    (if (list? (cadr kws))
+				(cadr kws)
+				(list (cadr kws)))))
+	     (loop (cddr kws) reversed-interfaces exports re-exports))
 	    ((#:export #:export-syntax)
 	     (or (pair? (cdr kws))
 		 (unrecognized kws))
@@ -2549,12 +2595,11 @@
 ;; to change scm_c_use_module as well.
 
 (define (process-use-modules module-interface-args)
-  (for-each (lambda (mif-args)
-	      (let ((mod-iface (apply resolve-interface mif-args)))
-		(or mod-iface
-		    (error "no such module" mif-args))
-		(module-use! (current-module) mod-iface)))
-	    module-interface-args))
+  (module-use-interfaces! (current-module)
+			  (map (lambda (mif-args)
+				 (or (apply resolve-interface mif-args)
+				     (error "no such module" mif-args)))
+			       module-interface-args)))
 
 (defmacro use-modules modules
   `(eval-case
@@ -2562,7 +2607,8 @@
      (process-use-modules
       (list ,@(map (lambda (m)
 		     `(list ,@(compile-interface-spec m)))
-		   modules))))
+		   modules)))
+     *unspecified*)
     (else
      (error "use-modules can only be used at the top level"))))
 
@@ -2663,6 +2709,98 @@
   `(re-export ,@names))
 
 (define load load-module)
+
+
+;;; {Handling of duplicate imported bindings}
+;;;
+
+;; Duplicate handlers take the following arguments:
+;;
+;; module  importing module
+;; name	   conflicting name
+;; int1	   old interface where name occurs
+;; val1	   value of binding in old interface
+;; int2	   new interface where name occurs
+;; val2	   value of binding in new interface
+;; var	   previous resolution or #f
+;; val	   value of previous resolution
+;;
+;; A duplicate handler can take three alternative actions:
+;;
+;; 1. return #f => leave responsibility to next handler
+;; 2. exit with an error
+;; 3. return a variable resolving the conflict
+;;
+
+(define duplicate-handlers
+  (let ((m (make-module 7)))
+    (set-module-name! m 'duplicate-handlers)
+    (set-module-kind! m 'interface)
+    (module-define! m 'check
+     (lambda (module name int1 val1 int2 val2 var val)
+       (scm-error 'misc-error
+		  #f
+		  "module ~A: duplicate binding ~A imported from ~A and ~A"
+		  (list (module-name module)
+			name
+			(module-name int1)
+			(module-name int2))
+		  #f)))
+    (module-define! m 'first
+     (lambda (module name int1 val1 int2 val2 var val)
+       (or var (module-local-variable int1 name))))
+    (module-define! m 'last
+     (lambda (module name int1 val1 int2 val2 var val)
+       (module-local-variable int2 name)))
+    m))
+
+(define (make-duplicates-interface)
+  (let ((m (make-module)))
+    (set-module-kind! m 'interface)
+    (set-module-name! m 'duplicates)
+    m))
+
+(define (module-symbol-interface module sym)
+  (or-map (lambda (interface)
+	    (module-search (lambda (interface sym)
+			     (and (module-local-variable interface sym)
+				  interface))
+			   interface
+			   sym))
+	  (module-uses module)))
+
+(define (process-duplicates module interface)
+  (let* ((duplicates-info (module-duplicates-info module))
+	 (handlers (car duplicates-info))
+	 (d-interface (cdr duplicates-info)))
+    (module-for-each
+     (lambda (name var)
+       (let ((prev-interface (module-symbol-interface module name)))
+	 (if prev-interface
+	     (begin
+	       (if (not d-interface)
+		   (begin
+		     (set! d-interface (make-duplicates-interface))
+		     (set-cdr! duplicates-info d-interface)))
+	       (let* ((var (module-local-variable d-interface name))
+		      (val (and var (variable-bound? var) (variable-ref var))))
+		 (let loop ((handlers handlers))
+		   (cond ((null? handlers))
+			 (((car handlers)
+			   module
+			   name
+			   prev-interface
+			   (module-symbol-local-binding prev-interface name #f)
+			   interface
+			   (module-symbol-local-binding interface name #f)
+			   var
+			   val)
+			  =>
+			  (lambda (var)
+			    (module-add! d-interface name var)))
+			 (else
+			  (loop (cdr handlers))))))))))
+     interface)))
 
 
 

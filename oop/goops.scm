@@ -820,6 +820,48 @@
   (write-object o file))
 
 ;;;
+;;; Handling of duplicate bindings in the module system
+;;;
+
+(define-method (merge-generics (module <module>)
+			       (name <symbol>)
+			       (int1 <module>)
+			       (val1 <top>)
+			       (int2 <module>)
+			       (val2 <top>)
+			       (var <top>)
+			       (val <top>))
+  #f)
+
+(define-method (merge-generics (module <module>)
+			       (name <symbol>)
+			       (int1 <module>)
+			       (val1 <generic>)
+			       (int2 <module>)
+			       (val2 <generic>)
+			       (var <top>)
+			       (val <boolean>))
+  (make-variable (make-extended-generic (list val2 val1) name)))
+
+(define-method (merge-generics (module <module>)
+			       (name <symbol>)
+			       (int1 <module>)
+			       (val1 <generic>)
+			       (int2 <module>)
+			       (val2 <generic>)
+			       (var <top>)
+			       (gf <extended-generic>))
+  (slot-set! gf
+	     'extends
+	     (cons val2 (delq! val2 (slot-ref gf 'extends))))
+  (slot-set! val2
+	     'extended-by
+	     (cons gf (delq! gf (slot-ref val2 'extended-by))))
+  var)
+
+(module-define! duplicate-handlers 'merge-generics merge-generics)
+
+;;;
 ;;; slot access
 ;;;
 

@@ -1,6 +1,8 @@
-2003-03-06  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+2003-03-07  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* goops.scm (equal?): Define default method.
+	(merge-generics): Provide for merging of generic functions
+	imported into a module under the same name.
 
 2003-01-18  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
