@@ -1,3 +1,16 @@
+2001-07-24  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* syncase.scm (psyncomp): Removed, it is now in
+	compile-psyntax.scm.
+
+2001-07-23  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* Makefile.am (psyntax.pp): Enable rule for psyntax.pp only in
+	maintainer mode.  Use compile-psyntax.scm for actual compilation.
+	Make sure the uninstalled guile is used.
+	(EXTRA_DIST): Distribute compile-psyntax.scm
+	* compile-psyntax.scm: New file.
+
 2001-07-18  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* and-let-star.scm, debug.scm, debugger.scm, history.scm,
