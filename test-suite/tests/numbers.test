@@ -1147,6 +1147,61 @@
   (pass-if (not (inexact? (current-input-port)))))
 
 ;;;
+;;; equal?
+;;;
+
+(with-test-prefix "equal?"
+  (pass-if (documented? equal?))
+  (pass-if (equal? 0 0))
+  (pass-if (equal? 7 7))
+  (pass-if (equal? -7 -7))
+  (pass-if (equal? (+ 1 fixnum-max) (+ 1 fixnum-max)))
+  (pass-if (equal? (- fixnum-min 1) (- fixnum-min 1)))
+  (pass-if (not (equal? 0 1)))
+  (pass-if (not (equal? fixnum-max (+ 1 fixnum-max))))
+  (pass-if (not (equal? (+ 1 fixnum-max) fixnum-max)))
+  (pass-if (not (equal? (+ 1 fixnum-max) (+ 2 fixnum-max))))
+  (pass-if (not (equal? fixnum-min (- fixnum-min 1))))
+  (pass-if (not (equal? (- fixnum-min 1) fixnum-min)))
+  (pass-if (not (equal? (- fixnum-min 1) (- fixnum-min 2))))
+  (pass-if (not (equal? (+ fixnum-max 1) (- fixnum-min 1))))
+
+  (pass-if (not (equal? (ash 1 256) +inf.0)))
+  (pass-if (not (equal? +inf.0 (ash 1 256))))
+  (pass-if (not (equal? (ash 1 256) -inf.0)))
+  (pass-if (not (equal? -inf.0 (ash 1 256))))
+
+  ;; in gmp prior to 4.2, mpz_cmp_d ended up treating Inf as 2^1024, make
+  ;; sure we've avoided that
+  (pass-if (not (equal? (ash 1 1024) +inf.0)))
+  (pass-if (not (equal? +inf.0 (ash 1 1024))))
+  (pass-if (not (equal? (- (ash 1 1024)) -inf.0)))
+  (pass-if (not (equal? -inf.0 (- (ash 1 1024)))))
+
+  (pass-if (not (equal? +nan.0 +nan.0)))
+  (pass-if (not (equal? 0 +nan.0)))
+  (pass-if (not (equal? +nan.0 0)))
+  (pass-if (not (equal? 1 +nan.0)))
+  (pass-if (not (equal? +nan.0 1)))
+  (pass-if (not (equal? -1 +nan.0)))
+  (pass-if (not (equal? +nan.0 -1)))
+
+  (pass-if (not (equal? (ash 1 256) +nan.0)))
+  (pass-if (not (equal? +nan.0 (ash 1 256))))
+  (pass-if (not (equal? (- (ash 1 256)) +nan.0)))
+  (pass-if (not (equal? +nan.0 (- (ash 1 256)))))
+
+  (pass-if (not (equal? (ash 1 8192) +nan.0)))
+  (pass-if (not (equal? +nan.0 (ash 1 8192))))
+  (pass-if (not (equal? (- (ash 1 8192)) +nan.0)))
+  (pass-if (not (equal? +nan.0 (- (ash 1 8192)))))
+
+  ;; in gmp prior to 4.2, mpz_cmp_d ended up treating NaN as 3*2^1023, make
+  ;; sure we've avoided that
+  (pass-if (not (equal? (ash 3 1023) +nan.0)))
+  (pass-if (not (equal? +nan.0 (ash 3 1023)))))
+
+;;;
 ;;; =
 ;;;
 
@@ -1156,12 +1211,14 @@
   (pass-if (= 7 7))
   (pass-if (= -7 -7))
   (pass-if (= (+ 1 fixnum-max) (+ 1 fixnum-max)))
-  (pass-if (= (- 1 fixnum-min) (- 1 fixnum-min)))
+  (pass-if (= (- fixnum-min 1) (- fixnum-min 1)))
   (pass-if (not (= 0 1)))
   (pass-if (not (= fixnum-max (+ 1 fixnum-max))))
   (pass-if (not (= (+ 1 fixnum-max) fixnum-max)))
+  (pass-if (not (= (+ 1 fixnum-max) (+ 2 fixnum-max))))
   (pass-if (not (= fixnum-min (- fixnum-min 1))))
   (pass-if (not (= (- fixnum-min 1) fixnum-min)))
+  (pass-if (not (= (- fixnum-min 1) (- fixnum-min 2))))
   (pass-if (not (= (+ fixnum-max 1) (- fixnum-min 1))))
 
   (pass-if (not (= (ash 1 256) +inf.0)))

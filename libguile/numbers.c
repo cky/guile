@@ -2522,7 +2522,7 @@ scm_make_complex (double x, double y)
 SCM
 scm_bigequal (SCM x, SCM y)
 {
-  int result = mpz_cmp (SCM_I_BIG_MPZ (x), SCM_I_BIG_MPZ (x));
+  int result = mpz_cmp (SCM_I_BIG_MPZ (x), SCM_I_BIG_MPZ (y));
   scm_remember_upto_here_2 (x, y);
   return SCM_BOOL (0 == result);
 }
