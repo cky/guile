@@ -561,6 +561,7 @@ AC_OUTPUT([Makefile
 	   ice-9/Makefile
 	   oop/Makefile
 	   oop/goops/Makefile
+	   scripts/Makefile
 	   srfi/Makefile
 	   qt/Makefile
 	   qt/qt.h
