@@ -494,57 +494,280 @@ test_from_unsigned_integer ()
 }
 
 static void
+test_7s (SCM n, scm_t_intmax c_n, const char *result, const char *func)
+{
+  SCM r = scm_c_eval_string (result);
+
+  if (scm_is_false (scm_equal_p (n, r)))
+    {
+      fprintf (stderr, "fail: %s (%Ld) == %s\n", func, c_n, result);
+      exit (1);
+    }
+}
+
+#define TEST_7S(func,arg,res) test_7s (func(arg), arg, res, #func)
+
+static void
+test_7u (SCM n, scm_t_uintmax c_n, const char *result, const char *func)
+{
+  SCM r = scm_c_eval_string (result);
+
+  if (scm_is_false (scm_equal_p (n, r)))
+    {
+      fprintf (stderr, "fail: %s (%Lu) == %s\n", func, c_n, result);
+      exit (1);
+    }
+}
+
+#define TEST_7U(func,arg,res) test_7u (func(arg), arg, res, #func)
+
+typedef struct {
+  SCM val;
+  scm_t_intmax (*func) (SCM);
+  scm_t_intmax result;
+} to_signed_func_data;
+
+static SCM
+to_signed_func_body (void *data)
+{
+  to_signed_func_data *d = (to_signed_func_data *)data;
+  d->result = d->func (d->val);
+  return SCM_BOOL_F;
+}
+
+static void
+test_8s (const char *str, scm_t_intmax (*func) (SCM), const char *func_name,
+	 scm_t_intmax result, int range_error, int type_error)
+{
+  to_signed_func_data data;
+  data.val = scm_c_eval_string (str);
+  data.func = func;
+  
+  if (range_error)
+    {
+      if (scm_is_false (scm_internal_catch (SCM_BOOL_T,
+					    to_signed_func_body, &data,
+					    out_of_range_handler, NULL)))
+	{
+	  fprintf (stderr,
+		   "fail: %s (%s) -> out of range\n", func_name, str);
+	  exit (1);
+	}
+    }
+  else if (type_error)
+    {
+      if (scm_is_false (scm_internal_catch (SCM_BOOL_T,
+					    to_signed_func_body, &data,
+					    wrong_type_handler, NULL)))
+	{
+	  fprintf (stderr,
+		   "fail: %s (%s) -> wrong type\n", func_name, str);
+	  exit (1);
+	}
+    }
+  else
+    {
+      if (scm_is_true (scm_internal_catch (SCM_BOOL_T,
+					   to_signed_func_body, &data,
+					   any_handler, NULL))
+	  || data.result != result)
+	{
+	  fprintf (stderr,
+		   "fail: %s (%s) = %Ld\n", func_name, str, result);
+	  exit (1);
+	}
+    }
+}
+
+typedef struct {
+  SCM val;
+  scm_t_uintmax (*func) (SCM);
+  scm_t_uintmax result;
+} to_unsigned_func_data;
+
+static SCM
+to_unsigned_func_body (void *data)
+{
+  to_unsigned_func_data *d = (to_unsigned_func_data *)data;
+  d->result = d->func (d->val);
+  return SCM_BOOL_F;
+}
+
+static void
+test_8u (const char *str, scm_t_uintmax (*func) (SCM), const char *func_name,
+	 scm_t_uintmax result, int range_error, int type_error)
+{
+  to_unsigned_func_data data;
+  data.val = scm_c_eval_string (str);
+  data.func = func;
+  
+  if (range_error)
+    {
+      if (scm_is_false (scm_internal_catch (SCM_BOOL_T,
+					    to_unsigned_func_body, &data,
+					    out_of_range_handler, NULL)))
+	{
+	  fprintf (stderr,
+		   "fail: %s (%s) -> out of range\n", func_name, str);
+	  exit (1);
+	}
+    }
+  else if (type_error)
+    {
+      if (scm_is_false (scm_internal_catch (SCM_BOOL_T,
+					    to_unsigned_func_body, &data,
+					    wrong_type_handler, NULL)))
+	{
+	  fprintf (stderr,
+		   "fail: %s (%s) -> wrong type\n", func_name, str);
+	  exit (1);
+	}
+    }
+  else
+    {
+      if (scm_is_true (scm_internal_catch (SCM_BOOL_T,
+					   to_unsigned_func_body, &data,
+					   any_handler, NULL))
+	  || data.result != result)
+	{
+	  fprintf (stderr,
+		   "fail: %s (%s) = %Ld\n", func_name, str, result);
+	  exit (1);
+	}
+    }
+}
+
+/* We can't rely on the scm_to functions being proper functions but we
+   want to pass them to test_8s and test_8u, so we wrap'em.  Also, we
+   need to give them a common return type.
+*/
+
+#define DEFSTST(f) static scm_t_intmax  tst_##f (SCM x) { return f(x); }
+#define DEFUTST(f) static scm_t_uintmax tst_##f (SCM x) { return f(x); }
+
+DEFSTST (scm_to_schar);
+DEFUTST (scm_to_uchar);
+DEFSTST (scm_to_char);
+DEFSTST (scm_to_short);
+DEFUTST (scm_to_ushort);
+DEFSTST (scm_to_int);
+DEFUTST (scm_to_uint);
+DEFSTST (scm_to_long);
+DEFUTST (scm_to_ulong);
+#if SCM_SIZEOF_LONG_LONG != 0
+DEFSTST (scm_to_long_long);
+DEFUTST (scm_to_ulong_long);
+#endif
+DEFSTST (scm_to_ssize_t);
+DEFUTST (scm_to_size_t);
+
+DEFSTST (scm_to_int8);
+DEFUTST (scm_to_uint8);
+DEFSTST (scm_to_int16);
+DEFUTST (scm_to_uint16);
+DEFSTST (scm_to_int32);
+DEFUTST (scm_to_uint32);
+#ifdef SCM_HAVE_T_INT64
+DEFSTST (scm_to_int64);
+DEFUTST (scm_to_uint64);
+#endif
+
+#define TEST_8S(v,f,r,re,te) test_8s (v, tst_##f, #f, r, re, te)
+#define TEST_8U(v,f,r,re,te) test_8u (v, tst_##f, #f, r, re, te)
+
+
+static void
 test_int_sizes ()
 {
-  SCM n = scm_from_int (91);
-
-  /* Just list them here to check whether the macros expand to correct
-     code. */
-     
-  scm_from_schar (91);
-  scm_from_uchar (91);
-  scm_from_char (91);
-  scm_from_short (91);
-  scm_from_int (91);
-  scm_from_long (91);
+  TEST_7U (scm_from_uchar,  91, "91");
+  TEST_7S (scm_from_schar,  91, "91");
+  TEST_7S (scm_from_char,   91, "91");
+  TEST_7S (scm_from_short, -911, "-911");
+  TEST_7U (scm_from_ushort, 911, "911");
+  TEST_7S (scm_from_int,    911, "911");
+  TEST_7U (scm_from_uint,   911, "911");
+  TEST_7S (scm_from_long,   911, "911");
+  TEST_7U (scm_from_ulong,  911, "911");
 #if SCM_SIZEOF_LONG_LONG != 0
-  scm_from_long_long (91);
-  scm_from_ulong_long (91);
+  TEST_7S (scm_from_long_long,   911, "911");
+  TEST_7U (scm_from_ulong_long,  911, "911");
 #endif
-  scm_from_size_t (91);
-  scm_from_ssize_t (91);
-  scm_from_int8 (91);
-  scm_from_uint8 (91);
-  scm_from_int16 (91);
-  scm_from_uint16 (91);
-  scm_from_int32 (91);
-  scm_from_uint32 (91);
+  TEST_7U (scm_from_size_t,  911, "911");
+  TEST_7S (scm_from_ssize_t, 911, "911");
+
+  TEST_7S (scm_from_int8, -128, "-128");
+  TEST_7S (scm_from_int8,  127,  "127");
+  TEST_7S (scm_from_int8,  128, "-128");
+  TEST_7U (scm_from_uint8, 255,  "255");
+
+  TEST_7S (scm_from_int16, -32768, "-32768");
+  TEST_7S (scm_from_int16,  32767,  "32767");
+  TEST_7S (scm_from_int16,  32768, "-32768");
+  TEST_7U (scm_from_uint16, 65535,  "65535");
+
+  TEST_7S (scm_from_int32,  SCM_T_INT32_MIN,     "-2147483648");
+  TEST_7S (scm_from_int32,  SCM_T_INT32_MAX,      "2147483647");
+  TEST_7S (scm_from_int32,  SCM_T_INT32_MAX+1LL, "-2147483648");
+  TEST_7U (scm_from_uint32, SCM_T_UINT32_MAX,     "4294967295");
+
 #if SCM_HAVE_T_INT64
-  scm_from_int64 (91);
-  scm_from_uint64 (91);
+  TEST_7S (scm_from_int64,  SCM_T_INT64_MIN,  "-9223372036854775808");
+  TEST_7S (scm_from_int64,  SCM_T_INT64_MAX,   "9223372036854775807");
+  TEST_7U (scm_from_uint64, SCM_T_UINT64_MAX, "18446744073709551615");
 #endif
 
-  scm_to_schar (n);
-  scm_to_uchar (n);
-  scm_to_char (n);
-  scm_to_short (n);
-  scm_to_int (n);
-  scm_to_long (n);
+  TEST_8S ("91",   scm_to_schar,   91, 0, 0);
+  TEST_8U ("91",   scm_to_uchar,   91, 0, 0);
+  TEST_8S ("91",   scm_to_char,    91, 0, 0);
+  TEST_8S ("-911", scm_to_short, -911, 0, 0);
+  TEST_8U ("911",  scm_to_ushort, 911, 0, 0);
+  TEST_8S ("-911", scm_to_int,   -911, 0, 0);
+  TEST_8U ("911",  scm_to_uint,   911, 0, 0);
+  TEST_8S ("-911", scm_to_long,  -911, 0, 0);
+  TEST_8U ("911",  scm_to_ulong,  911, 0, 0);
 #if SCM_SIZEOF_LONG_LONG != 0
-  scm_to_long_long (n);
-  scm_to_ulong_long (n);
+  TEST_8S ("-911", scm_to_long_long, -911, 0, 0);
+  TEST_8U ("911",  scm_to_ulong_long, 911, 0, 0);
 #endif
-  scm_to_size_t (n);
-  scm_to_ssize_t (n);
-  scm_to_int8 (n);
-  scm_to_uint8 (n);
-  scm_to_int16 (n);
-  scm_to_uint16 (n);
-  scm_to_int32 (n);
-  scm_to_uint32 (n);
+  TEST_8U ("911",  scm_to_size_t,   911, 0, 0);
+  TEST_8S ("911",  scm_to_ssize_t,  911, 0, 0);
+
+  TEST_8S ("-128", scm_to_int8,   SCM_T_INT8_MIN, 0, 0);
+  TEST_8S ("127",  scm_to_int8,   SCM_T_INT8_MAX, 0, 0);
+  TEST_8S ("128",  scm_to_int8,                0, 1, 0);
+  TEST_8S ("#f",   scm_to_int8,                0, 0, 1);
+  TEST_8U ("255",  scm_to_uint8, SCM_T_UINT8_MAX, 0, 0);
+  TEST_8U ("256",  scm_to_uint8,               0, 1, 0);
+  TEST_8U ("-1",   scm_to_uint8,               0, 1, 0);
+  TEST_8U ("#f",   scm_to_uint8,               0, 0, 1);
+
+  TEST_8S ("-32768", scm_to_int16,   SCM_T_INT16_MIN, 0, 0);
+  TEST_8S ("32767",  scm_to_int16,   SCM_T_INT16_MAX, 0, 0);
+  TEST_8S ("32768",  scm_to_int16,                 0, 1, 0);
+  TEST_8S ("#f",     scm_to_int16,                 0, 0, 1);
+  TEST_8U ("65535",  scm_to_uint16, SCM_T_UINT16_MAX, 0, 0);
+  TEST_8U ("65536",  scm_to_uint16,                0, 1, 0);
+  TEST_8U ("-1",     scm_to_uint16,                0, 1, 0);
+  TEST_8U ("#f",     scm_to_uint16,                0, 0, 1);
+
+  TEST_8S ("-2147483648", scm_to_int32,   SCM_T_INT32_MIN, 0, 0);
+  TEST_8S ("2147483647",  scm_to_int32,   SCM_T_INT32_MAX, 0, 0);
+  TEST_8S ("2147483648",  scm_to_int32,                 0, 1, 0);
+  TEST_8S ("#f",          scm_to_int32,                 0, 0, 1);
+  TEST_8U ("4294967295",  scm_to_uint32, SCM_T_UINT32_MAX, 0, 0);
+  TEST_8U ("4294967296",  scm_to_uint32,                0, 1, 0);
+  TEST_8U ("-1",          scm_to_uint32,                0, 1, 0);
+  TEST_8U ("#f",          scm_to_uint32,                0, 0, 1);
+
 #if SCM_HAVE_T_INT64
-  scm_to_int64 (n);
-  scm_to_uint64 (n);
+  TEST_8S ("-9223372036854775808", scm_to_int64,   SCM_T_INT64_MIN, 0, 0);
+  TEST_8S ("9223372036854775807",  scm_to_int64,   SCM_T_INT64_MAX, 0, 0);
+  TEST_8S ("9223372036854775808",  scm_to_int64,                 0, 1, 0);
+  TEST_8S ("#f",                   scm_to_int64,                 0, 0, 1);
+  TEST_8U ("18446744073709551615", scm_to_uint64, SCM_T_UINT64_MAX, 0, 0);
+  TEST_8U ("18446744073709551616", scm_to_uint64,                0, 1, 0);
+  TEST_8U ("-1",                   scm_to_uint64,                0, 1, 0);
+  TEST_8U ("#f",                   scm_to_uint64,                0, 0, 1);
 #endif
 
 }
