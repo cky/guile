@@ -1,5 +1,5 @@
 ;;;; weaks.test --- tests guile's weaks     -*- scheme -*-
-;;;; Copyright (C) 1999, 2001 Free Software Foundation, Inc.
+;;;; Copyright (C) 1999, 2001, 2003 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -58,6 +58,8 @@
 ;;; other reasons why they might not work as tested here, so if you
 ;;; haven't done anything to weaks, don't sweat it :)
 
+(use-modules (ice-9 weak-vector))
+
 ;;; Creation functions 
 
 
@@ -86,28 +88,28 @@
 		     exception:wrong-type-arg
 		     (list->weak-vector 32)))
 
- (with-test-prefix "make-weak-key-hash-table"
+ (with-test-prefix "make-weak-key-alist-vector"
 		   (pass-if "create"
-		     (make-weak-key-hash-table 17)
+		     (make-weak-key-alist-vector 17)
 		     #t)
 		   (pass-if-exception "bad-args"
 		     exception:wrong-type-arg
-		     (make-weak-key-hash-table '(bad arg))))
- (with-test-prefix "make-weak-value-hash-table"
+		     (make-weak-key-alist-vector '(bad arg))))
+ (with-test-prefix "make-weak-value-alist-vector"
 		   (pass-if "create"
-		     (make-weak-value-hash-table 17)
+		     (make-weak-value-alist-vector 17)
 		     #t)
 		   (pass-if-exception "bad-args"
 		     exception:wrong-type-arg
-		     (make-weak-value-hash-table '(bad arg))))
+		     (make-weak-value-alist-vector '(bad arg))))
 
- (with-test-prefix "make-doubly-weak-hash-table"
+ (with-test-prefix "make-doubly-weak-alist-vector"
 		   (pass-if "create"
-		     (make-doubly-weak-hash-table 17)
+		     (make-doubly-weak-alist-vector 17)
 		     #t)
 		   (pass-if-exception "bad-args"
 		     exception:wrong-type-arg
-		     (make-doubly-weak-hash-table '(bad arg)))))
+		     (make-doubly-weak-alist-vector '(bad arg)))))
 
 
 
@@ -143,9 +145,9 @@
 		  (not (vector-ref global-weak 3))
 		  (not (vector-ref global-weak 4)))))))
 
- (let ((x (make-weak-key-hash-table 17))
-      (y (make-weak-value-hash-table 17))
-      (z (make-doubly-weak-hash-table 17))
+ (let ((x (make-weak-key-alist-vector 17))
+      (y (make-weak-value-alist-vector 17))
+      (z (make-doubly-weak-alist-vector 17))
       (test-key "foo")
       (test-value "bar"))
   (with-test-prefix

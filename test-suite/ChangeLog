@@ -1,3 +1,9 @@
+2003-02-19  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* tests/elisp.test: Use module (ice-9 weak-vector).
+
+	* tests/weaks.test: Use module (ice-9 weak-vector).
+
 2002-12-08  Rob Browning  <rlb@defaultvalue.org>
 
 	* tests/version.test: test (effective-version).
