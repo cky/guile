@@ -76,11 +76,16 @@
        (define (push-code! code)
 	 (set! stack (optimizing-push code stack)))
        (define (push-object! x)
-	 (let ((index (or ((if (vlink? x) assoc-ref assq-ref) object-alist x)
-			  (let ((index (length object-alist)))
-			    (set! object-alist (acons x index object-alist))
-			    index))))
-	   (push-code! `(object-ref ,index))))
+	 (cond (toplevel (dump-object! push-code! x))
+	       ((object->code x) => push-code!)
+	       (else
+		(let ((index (or (if (vlink? x)
+				     (assoc-ref object-alist x)
+				     (assq-ref object-alist x))
+				 (let ((i (length object-alist)))
+				   (set! object-alist (acons x i object-alist))
+				   i))))
+		  (push-code! `(object-ref ,index))))))
        (define (label-ref key)
 	 (assq-ref label-alist key))
        (define (label-set key)
@@ -89,41 +94,39 @@
        (define (generate-code x)
 	 (match x
 	   (($ <vm-asm> venv)
-	    (let ((spec (codegen x #f)))
-	      (if toplevel
-		  (dump-object! spec push-code!)
-		  (push-object! spec)))
+	    (push-object! (codegen x #f))
 	    (if (venv-closure? venv) (push-code! `(make-closure))))
 
 	   (($ <glil-void>)
 	    (push-code! `(void)))
 
 	   (($ <glil-const> x)
-	    (if toplevel
-		(dump-object! x push-code!)
-		(cond ((object->code x) => push-code!)
-		      (else (push-object! x)))))
+	    (push-object! x))
 
 	   (($ <glil-argument> op index)
-	    (push-code! `(,(symbol-append 'local- op) ,index)))
+	    (if (eq? op 'ref)
+		(push-code! `(local-ref ,index)))
+		(push-code! `(local-set ,index)))
 
 	   (($ <glil-local> op index)
-	    (push-code! `(,(symbol-append 'local- op) ,(+ nargs index))))
+	    (if (eq? op 'ref)
+		(push-code! `(local-ref ,(+ nargs index)))
+		(push-code! `(local-set ,(+ nargs index)))))
 
 	   (($ <glil-external> op depth index)
 	    (do ((e venv (venv-parent e))
 		 (d depth (1- d))
 		 (n 0 (+ n (venv-nexts e))))
 		((= d 0)
-		 (push-code! `(,(symbol-append 'external- op) ,(+ n index))))))
+		 (if (eq? op 'ref)
+		     (push-code! `(external-ref ,(+ n index)))
+		     (push-code! `(external-set ,(+ n index)))))))
 
 	   (($ <glil-module> op module name)
-	    ;; (let ((vlink (make-vlink (make-vmod module) name)))
-	    (let ((vlink (make-vlink #f name)))
-	      (if toplevel
-		  (dump-object! vlink push-code!)
-		  (push-object! vlink)))
-	    (push-code! (list (symbol-append 'variable- op))))
+	    (push-object! (make-vlink #f name))  ;; FIXME: (make-vmod module)
+	    (if (eq? op 'ref)
+		(push-code! '(variable-ref))
+		(push-code! '(variable-set))))
 
 	   (($ <glil-label> label)
 	    (label-set label))
@@ -200,7 +203,7 @@
 
 ;; NOTE: undumpped in vm_load.c.
 
-(define (dump-object! x push-code!)
+(define (dump-object! push-code! x)
   (let dump! ((x x))
     (cond
      ((object->code x) => push-code!)
