@@ -1,3 +1,12 @@
+2004-07-24  Kevin Ryde  <user42@zip.com.au>
+
+	* scheme-data.texi (String Syntax): Add all backslash forms accepted.
+	(Regexp Functions): Use @defvar for regexp/icase etc, to emphasise
+	that they're variables not symbols etc.
+
+	* srfi-modules.texi (SRFI-0): Revise for clarity, drop BNF in favour
+	of plain description, emphasise this is just for portable programs.
+
 2004-07-10  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* scheme-data.texi (Integers): Talk more about inexact and exact
