@@ -1,3 +1,15 @@
+2005-04-04  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* hashtab.h, hashtab.c (scm_t_hashtable): Removed 'closure' field.  The
+	closure can not be stored since it is no longer valid at GC time.
+	(make_hash_table): Initialize 'hash_fn' field.
+	(scm_i_rehash): Only store hash_fn in hash table when closre is
+	NULL.
+	(rehash_after_gc): Only call scm_i_rehash when 'hash_fn' is
+	non-NULL.  Always use a NULL closure.
+	(scm_hash_fn_create_handle_x): Also rehash when table contains too
+	few entries.
+	
 2005-03-29  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* hashtab.h, hashtab.c (scm_hash_fx_remove_x): Removed delete_fn
