@@ -337,7 +337,7 @@ extern SCM scm_istring2number (char *str, long len, long radix);
 extern SCM scm_string_to_number (SCM str, SCM radix);
 extern SCM scm_make_real (double x);
 extern SCM scm_make_complex (double x, double y);
-extern SCM scm_makdbl (double x, double y);
+extern SCM scm_makdbl (double x, double y); /* Deprecated */
 extern SCM scm_bigequal (SCM x, SCM y);
 extern SCM scm_real_equalp (SCM x, SCM y);
 extern SCM scm_complex_equalp (SCM x, SCM y);

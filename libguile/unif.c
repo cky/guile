@@ -2119,14 +2119,14 @@ SCM_DEFINE (scm_array_to_list, "array->list", 1, 0, 0,
       {
 	double *data = (double *) SCM_VELTS (v);
 	for (k = SCM_LENGTH (v) - 1; k >= 0; k--)
-	  res = scm_cons (scm_makdbl (data[k], 0.0), res);
+	  res = scm_cons (scm_make_real (data[k]), res);
 	return res;
       }
     case scm_tc7_cvect:
       {
 	double (*data)[2] = (double (*)[2]) SCM_VELTS (v);
 	for (k = SCM_LENGTH (v) - 1; k >= 0; k--)
-	  res = scm_cons (scm_makdbl (data[k][0], data[k][1]), res);
+	  res = scm_cons (scm_make_complex (data[k][0], data[k][1]), res);
 	return res;
       }
     }

@@ -2751,18 +2751,17 @@ evapply:
 	    {
 	      if (SCM_INUMP (t.arg1))
 		{
-		  RETURN (scm_makdbl (SCM_DSUBRF (proc) ((double) SCM_INUM (t.arg1)),
-				      0.0));
+		  RETURN (scm_make_real (SCM_DSUBRF (proc) ((double) SCM_INUM (t.arg1))));
 		}
 	      SCM_ASRTGO (SCM_NIMP (t.arg1), floerr);
 	      if (SCM_REALP (t.arg1))
 		{
-		  RETURN (scm_makdbl (SCM_DSUBRF (proc) (SCM_REALPART (t.arg1)), 0.0));
+		  RETURN (scm_make_real (SCM_DSUBRF (proc) (SCM_REALPART (t.arg1))));
 		}
 #ifdef SCM_BIGDIG
 	      if (SCM_BIGP (t.arg1))
 		{
-		  RETURN (scm_makdbl (SCM_DSUBRF (proc) (scm_big2dbl (t.arg1)), 0.0));
+		  RETURN (scm_make_real (SCM_DSUBRF (proc) (scm_big2dbl (t.arg1))));
 		}
 #endif
 	    floerr:
@@ -3348,16 +3347,16 @@ tail:
 	{
 	  if (SCM_INUMP (arg1))
 	    {
-	      RETURN (scm_makdbl (SCM_DSUBRF (proc) ((double) SCM_INUM (arg1)), 0.0));
+	      RETURN (scm_make_real (SCM_DSUBRF (proc) ((double) SCM_INUM (arg1))));
 	    }
 	  SCM_ASRTGO (SCM_NIMP (arg1), floerr);
 	  if (SCM_REALP (arg1))
 	    {
-	      RETURN (scm_makdbl (SCM_DSUBRF (proc) (SCM_REALPART (arg1)), 0.0));
+	      RETURN (scm_make_real (SCM_DSUBRF (proc) (SCM_REALPART (arg1))));
 	    }
 #ifdef SCM_BIGDIG
 	  if (SCM_BIGP (arg1))
-	      RETURN (scm_makdbl (SCM_DSUBRF (proc) (scm_big2dbl (arg1)), 0.0))
+	      RETURN (scm_make_real (SCM_DSUBRF (proc) (scm_big2dbl (arg1))))
 #endif
 	floerr:
 	  SCM_WTA_DISPATCH_1 (*SCM_SUBR_GENERIC (proc), arg1,

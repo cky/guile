@@ -561,7 +561,7 @@ SCM_DEFINE (scm_struct_ref, "struct-ref", 2, 0, 0,
       break;
 
     case 'd':
-      answer = scm_makdbl (*((double *)&(data[p])), 0.0);
+      answer = scm_make_real (*((double *)&(data[p])));
       break;
 #endif
 

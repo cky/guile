@@ -351,6 +351,7 @@ scm_gcd (SCM x, SCM y)
       return x;
     }
   }
+
  tailrec:
   if (SCM_INUMP (x)) {
     if (SCM_INUMP (y)) {
@@ -973,39 +974,48 @@ SCM_DEFINE (scm_logtest, "logtest", 2, 0, 0,
 	    "@end example")
 #define FUNC_NAME s_scm_logtest
 {
-#ifndef SCM_RECKLESS
-    if (!(SCM_NUMBERP(n1)))
-    badx: SCM_WTA(SCM_ARG1, n1);
-#endif
+  if (SCM_INUMP (n1)) {
+    long nn1 = SCM_INUM (n1);
+    if (SCM_INUMP (n2)) {
+      long nn2 = SCM_INUM (n2);
+      return SCM_BOOL (nn1 & nn2);
 #ifdef SCM_BIGDIG
-  if SCM_NINUMP(n1) {
-    SCM t;
-    SCM_ASRTGO(SCM_BIGP (n1), badx);
-    if SCM_INUMP(n2) {t = n1; n1 = n2; n2 = t; goto intbig;}
-    SCM_ASRTGO(SCM_BIGP (n2), bady);
-    if (SCM_NUMDIGS(n1) > SCM_NUMDIGS(n2)) {t = n1; n1 = n2; n2 = t;}
-    return scm_big_test(SCM_BDIGITS(n1), SCM_NUMDIGS(n1), SCM_BIGSIGN(n1), n2);
-  }
-  if SCM_NINUMP(n2) {
-# ifndef SCM_RECKLESS
-    if (!SCM_BIGP (n2))
-    bady: SCM_WTA(SCM_ARG2, n2);
-# endif
-  intbig: {
+    } else if (SCM_BIGP (n2)) {
+    intbig: 
+      {
 # ifndef SCM_DIGSTOOBIG
-    long z = scm_pseudolong(SCM_INUM(n1));
-    return scm_big_test((SCM_BIGDIG *)&z, SCM_DIGSPERLONG, (n1 < 0) ? SCM_BIGSIGNFLAG : 0, n2);
+	long z = scm_pseudolong (nn1);
+	return scm_big_test ((SCM_BIGDIG *)&z, SCM_DIGSPERLONG, 
+			     (nn1 < 0) ? SCM_BIGSIGNFLAG : 0, n2);
 # else
-    SCM_BIGDIG zdigs[SCM_DIGSPERLONG];
-    scm_longdigs(SCM_INUM(n1), zdigs);
-    return scm_big_test(zdigs, SCM_DIGSPERLONG, (n1 < 0) ? SCM_BIGSIGNFLAG : 0, n2);
+	SCM_BIGDIG zdigs [SCM_DIGSPERLONG];
+	scm_longdigs (nn1, zdigs);
+	return scm_big_test (zdigs, SCM_DIGSPERLONG, 
+			     (nn1 < 0) ? SCM_BIGSIGNFLAG : 0, n2);
 # endif
-  }}
-#else
-  SCM_ASRTGO(SCM_INUMP(n1), badx);
-  SCM_ASSERT(SCM_INUMP(n2), n2, SCM_ARG2, FUNC_NAME);
+      }
 #endif
-  return (SCM_INUM(n1) & SCM_INUM(n2)) ? SCM_BOOL_T : SCM_BOOL_F;
+    } else {
+      SCM_WRONG_TYPE_ARG (SCM_ARG2, n2);
+    }
+#ifdef SCM_BIGDIG
+  } else if (SCM_BIGP (n1)) {
+    if (SCM_INUMP (n2)) {
+      SCM_SWAP (n1, n2);
+      goto intbig;
+    } else if (SCM_BIGP (n2)) {
+      if (SCM_NUMDIGS (n1) > SCM_NUMDIGS (n2)) {
+	SCM_SWAP (n1, n2);
+      }
+      return scm_big_test (SCM_BDIGITS (n1), SCM_NUMDIGS (n1), 
+			   SCM_BIGSIGN (n1), n2);
+    } else {
+      SCM_WRONG_TYPE_ARG (SCM_ARG2, n2);
+    }
+#endif
+  } else {
+    SCM_WRONG_TYPE_ARG (SCM_ARG1, n1);
+  }
 }
 #undef FUNC_NAME
 
@@ -2475,7 +2485,7 @@ scm_istr2flo (char *str, long len, long radix)
 	return SCM_BOOL_F;	/* must have leading sign */
       if (++i < len)
 	return SCM_BOOL_F;	/* `i' not last character */
-      return scm_makdbl (0.0, lead_sgn);
+      return scm_make_complex (0.0, lead_sgn);
     }
   do
     {				/* check initial digits */
@@ -2674,7 +2684,7 @@ scm_istr2flo (char *str, long len, long radix)
   if (lead_sgn == -1.0)
     res = -res;
   if (i == len)
-    return scm_makdbl (res, 0.0);
+    return scm_make_real (res);
 
   if (str[i] == 'i' || str[i] == 'I')
     {				/* pure imaginary number  */
@@ -2682,7 +2692,7 @@ scm_istr2flo (char *str, long len, long radix)
 	return SCM_BOOL_F;	/* must have leading sign */
       if (++i < len)
 	return SCM_BOOL_F;	/* `i' not last character */
-      return scm_makdbl (0.0, res);
+      return scm_make_complex (0.0, res);
     }
 
   switch (str[i++])
@@ -2702,7 +2712,7 @@ scm_istr2flo (char *str, long len, long radix)
 	if (SCM_SLOPPY_COMPLEXP (second))
 	  return SCM_BOOL_F;	/* not `real' */
 	tmp = SCM_REALPART (second);
-	return scm_makdbl (res * cos (tmp), res * sin (tmp));
+	return scm_make_complex (res * cos (tmp), res * sin (tmp));
       }
     default:
       return SCM_BOOL_F;
@@ -2713,7 +2723,7 @@ scm_istr2flo (char *str, long len, long radix)
     return SCM_BOOL_F;
   /* handles `x+i' and `x-i' */
   if (i == (len - 1))
-    return scm_makdbl (res, lead_sgn);
+    return scm_make_complex (res, lead_sgn);
   /* get a `ureal' for complex part */
   second = scm_istr2flo (&str[i], (long) ((len - i) - 1), radix);
   if (!SCM_INEXACTP (second))
@@ -2723,7 +2733,7 @@ scm_istr2flo (char *str, long len, long radix)
   tmp = SCM_REALPART (second);
   if (tmp < 0.0)
     return SCM_BOOL_F;		/* not `ureal' */
-  return scm_makdbl (res, (lead_sgn * tmp));
+  return scm_make_complex (res, (lead_sgn * tmp));
 }
 
 
@@ -3254,7 +3264,7 @@ scm_max (SCM x, SCM y)
 	    return (1 == scm_bigcomp (x, y)) ? y : x;
 	  SCM_ASRTGO (SCM_SLOPPY_REALP (y), bady);
 	  z = scm_big2dbl (x);
-	  return (z < SCM_REALPART (y)) ? y : scm_makdbl (z, 0.0);
+	  return (z < SCM_REALPART (y)) ? y : scm_make_real (z);
 	}
       SCM_ASRTGO (SCM_SLOPPY_REALP (x), badx2);
 #else
@@ -3263,13 +3273,13 @@ scm_max (SCM x, SCM y)
 #endif
       if (SCM_INUMP (y))
 	return ((SCM_REALPART (x) < (z = SCM_INUM (y)))
-		? scm_makdbl (z, 0.0)
+		? scm_make_real (z)
 		: x);
 #ifdef SCM_BIGDIG
       SCM_ASRTGO (SCM_NIMP (y), bady);
       if (SCM_BIGP (y))
 	return ((SCM_REALPART (x) < (z = scm_big2dbl (y)))
-		? scm_makdbl (z, 0.0)
+		? scm_make_real (z)
 		: x);
       SCM_ASRTGO (SCM_SLOPPY_REALP (y), bady);
 #else
@@ -3297,7 +3307,7 @@ scm_max (SCM x, SCM y)
 #endif
       return (((z = SCM_INUM (x)) < SCM_REALPART (y))
 	      ? y
-	      : scm_makdbl (z, 0.0));
+	      : scm_make_real (z));
     }
   return ((long) x < (long) y) ? y : x;
 }
@@ -3333,7 +3343,7 @@ scm_min (SCM x, SCM y)
 	    return (-1 == scm_bigcomp (x, y)) ? y : x;
 	  SCM_ASRTGO (SCM_SLOPPY_REALP (y), bady);
 	  z = scm_big2dbl (x);
-	  return (z > SCM_REALPART (y)) ? y : scm_makdbl (z, 0.0);
+	  return (z > SCM_REALPART (y)) ? y : scm_make_real (z);
 	}
       SCM_ASRTGO (SCM_SLOPPY_REALP (x), badx2);
 #else
@@ -3342,13 +3352,13 @@ scm_min (SCM x, SCM y)
 #endif
       if (SCM_INUMP (y))
 	return ((SCM_REALPART (x) > (z = SCM_INUM (y)))
-		? scm_makdbl (z, 0.0)
+		? scm_make_real (z)
 		: x);
 #ifdef SCM_BIGDIG
       SCM_ASRTGO (SCM_NIMP (y), bady);
       if (SCM_BIGP (y))
 	return ((SCM_REALPART (x) > (z = scm_big2dbl (y)))
-		? scm_makdbl (z, 0.0)
+		? scm_make_real (z)
 		: x);
       SCM_ASRTGO (SCM_SLOPPY_REALP (y), bady);
 #else
@@ -3376,7 +3386,7 @@ scm_min (SCM x, SCM y)
 #endif
       return (((z = SCM_INUM (x)) > SCM_REALPART (y))
 	      ? y
-	      : scm_makdbl (z, 0.0));
+	      : scm_make_real (z));
     }
   return ((long) x > (long) y) ? y : x;
 }
@@ -3467,7 +3477,7 @@ scm_sum (SCM x, SCM y)
 	  i = SCM_COMPLEX_IMAG (x);
 	if (SCM_SLOPPY_COMPLEXP (y))
 	  i += SCM_COMPLEX_IMAG (y);
-	return scm_makdbl (SCM_REALPART (x) + SCM_REALPART (y), i);
+	return scm_make_complex (SCM_REALPART (x) + SCM_REALPART (y), i);
       }
     }
   if (SCM_NINUMP (y))
@@ -3509,7 +3519,7 @@ scm_sum (SCM x, SCM y)
 #ifdef SCM_BIGDIG
     return scm_long2big (i);
 #else  /* SCM_BIGDIG */
-    return scm_makdbl ((double) i, 0.0);
+    return scm_make_real ((double) i);
 #endif /* SCM_BIGDIG */ 
   } /* end scope */
 }
@@ -3658,8 +3668,12 @@ scm_difference (SCM x, SCM y)
 	  SCM_WTA_DISPATCH_2 (g_difference, x, y, SCM_ARGn, s_difference);
 	}
 #endif
-      return scm_makdbl (SCM_INUM (x) - SCM_REALPART (y),
-			 SCM_SLOPPY_COMPLEXP (y) ? -SCM_IMAG (y) : 0.0);
+      if (SCM_SLOPPY_COMPLEXP (y)) {
+	return scm_make_complex (SCM_INUM (x) - SCM_COMPLEX_REAL (y), 
+				 -SCM_COMPLEX_IMAG (y));
+      } else {
+	return scm_make_real (SCM_INUM (x) - SCM_REAL_VALUE (y));
+      }
     }
   cx = SCM_INUM (x) - SCM_INUM (y);
  checkx:
@@ -3668,7 +3682,7 @@ scm_difference (SCM x, SCM y)
 #ifdef SCM_BIGDIG
   return scm_long2big (cx);
 #else
-  return scm_makdbl ((double) cx, 0.0);
+  return scm_make_real ((double) cx);
 #endif
 }
 
@@ -3714,8 +3728,12 @@ scm_product (SCM x, SCM y)
 	bigreal:
 	  {
 	    double bg = scm_big2dbl (x);
-	    return scm_makdbl (bg * SCM_REALPART (y),
-			       SCM_SLOPPY_COMPLEXP (y) ? bg * SCM_IMAG (y) : 0.0);
+	    if (SCM_SLOPPY_COMPLEXP (y)) {
+	      return scm_make_complex (bg * SCM_COMPLEX_REAL (y),
+				       bg * SCM_COMPLEX_IMAG (y));
+	    } else {
+	      return scm_make_real (bg * SCM_REAL_VALUE (y));
+	    }
 	  }
 	}
       SCM_ASRTGO (SCM_SLOPPY_INEXACTP (x), badx2);
@@ -3750,21 +3768,21 @@ scm_product (SCM x, SCM y)
 	  SCM_WTA_DISPATCH_2 (g_product, x, y, SCM_ARGn, s_product);
 	}
 #endif
-      if (SCM_SLOPPY_COMPLEXP (x))
-	{
-	  if (SCM_SLOPPY_COMPLEXP (y))
-	    return scm_makdbl (SCM_REAL (x) * SCM_REAL (y)
-			       - SCM_IMAG (x) * SCM_IMAG (y),
-			       SCM_REAL (x) * SCM_IMAG (y)
-			       + SCM_IMAG (x) * SCM_REAL (y));
-	  else
-	    return scm_makdbl (SCM_REAL (x) * SCM_REALPART (y),
-			       SCM_IMAG (x) * SCM_REALPART (y));
-	}
-      return scm_makdbl (SCM_REALPART (x) * SCM_REALPART (y),
-			 SCM_SLOPPY_COMPLEXP (y)
-			 ? SCM_REALPART (x) * SCM_IMAG (y)
-			 : 0.0);
+      if (SCM_SLOPPY_COMPLEXP (x)) {
+	if (SCM_SLOPPY_COMPLEXP (y))
+	  return scm_make_complex (SCM_REAL (x) * SCM_REAL (y)
+				   - SCM_IMAG (x) * SCM_IMAG (y),
+				   SCM_REAL (x) * SCM_IMAG (y)
+				   + SCM_IMAG (x) * SCM_REAL (y));
+	else
+	  return scm_make_complex (SCM_REAL (x) * SCM_REALPART (y),
+				   SCM_IMAG (x) * SCM_REALPART (y));
+      } else if (SCM_SLOPPY_COMPLEXP (y)) {
+	return scm_make_complex (SCM_REALPART (x) * SCM_REALPART (y),
+				 SCM_REALPART (x) * SCM_IMAG (y));
+      } else {
+	return scm_make_real (SCM_REALPART (x) * SCM_REALPART (y));
+      }
     }
   if (SCM_NINUMP (y))
     {
@@ -3797,8 +3815,12 @@ scm_product (SCM x, SCM y)
       SCM_ASRTGO (SCM_SLOPPY_INEXACTP (y), bady);
 #endif
     intreal:
-      return scm_makdbl (SCM_INUM (x) * SCM_REALPART (y),
-			 SCM_SLOPPY_COMPLEXP (y) ? SCM_INUM (x) * SCM_IMAG (y) : 0.0);
+      if (SCM_SLOPPY_COMPLEXP (y)) {
+	return scm_make_complex (SCM_INUM (x) * SCM_REALPART (y),
+				 SCM_INUM (x) * SCM_IMAG (y));
+      } else {
+	return scm_make_real (SCM_INUM (x) * SCM_REALPART (y));
+      }
     }
   {
     long i, j, k;
@@ -3828,7 +3850,7 @@ scm_product (SCM x, SCM y)
 #endif
       }
 #else
-    return scm_makdbl (((double) i) * ((double) j), 0.0);
+    return scm_make_real (((double) i) * ((double) j));
 #endif
     return y;
   }
@@ -3861,175 +3883,165 @@ SCM_GPROC1 (s_divide, "/", scm_tc7_asubr, scm_divide, g_divide);
 SCM
 scm_divide (SCM x, SCM y)
 {
-  double d, r, i, a;
-  if (SCM_NINUMP (x))
-    {
-      if (!(SCM_NIMP (x)))
-	{
-	  if (SCM_UNBNDP (y))
-	    {
-	      SCM_GASSERT0 (!SCM_UNBNDP (x),
-			    g_divide, scm_makfrom0str (s_divide), SCM_WNA, 0);
-	    badx:
-	      SCM_WTA_DISPATCH_1 (g_divide, x, SCM_ARG1, s_divide);
-	    }
-	  else
-	    {
-	    badx2:
-	      SCM_WTA_DISPATCH_2 (g_divide, x, y, SCM_ARG1, s_divide);
-	    }
-	}
-      if (SCM_UNBNDP (y))
-	{
-#ifdef SCM_BIGDIG
-	  if (SCM_BIGP (x))
-	    return scm_makdbl (1.0 / scm_big2dbl (x), 0.0);
-#endif
-	  SCM_ASRTGO (SCM_SLOPPY_INEXACTP (x), badx);
-	  if (SCM_SLOPPY_REALP (x))
-	    return scm_makdbl (1.0 / SCM_REALPART (x), 0.0);
-	  r = SCM_REAL (x);
-	  i = SCM_IMAG (x);
-	  d = r * r + i * i;
-	  return scm_makdbl (r / d, -i / d);
-	}
-#ifdef SCM_BIGDIG
-      if (SCM_BIGP (x))
-	{
-	  if (SCM_INUMP (y))
-	    {
-	      long int z = SCM_INUM (y);
-#ifndef SCM_RECKLESS
-	      if (!z)
-		scm_num_overflow (s_divide);
-#endif
-	      if (1 == z)
-		return x;
-	      if (z < 0)
-		z = -z;
-	      if (z < SCM_BIGRAD)
-		{
-		  SCM w = scm_copybig (x, SCM_BIGSIGN (x) ? (y > 0) : (y < 0));
-		  return (scm_divbigdig (SCM_BDIGITS (w), SCM_NUMDIGS (w),
-					 (SCM_BIGDIG) z)
-			  ? scm_makdbl (scm_big2dbl (x) / SCM_INUM (y), 0.0)
-			  : scm_normbig (w));
-		}
-#ifndef SCM_DIGSTOOBIG
-	      /*ugh! Does anyone know what this is supposed to do?*/
-	      z = scm_pseudolong (z);
-	      z = SCM_INUM(scm_divbigbig (SCM_BDIGITS (x), SCM_NUMDIGS (x),
-                                          (SCM_BIGDIG *) & z, SCM_DIGSPERLONG,
-                                          SCM_BIGSIGN (x) ? (y > 0) : (y < 0), 3));
-#else
-	      {
-		SCM_BIGDIG zdigs[SCM_DIGSPERLONG];
-		scm_longdigs (z, zdigs);
-		z = scm_divbigbig (SCM_BDIGITS (x), SCM_NUMDIGS (x),
-				   zdigs, SCM_DIGSPERLONG,
-				   SCM_BIGSIGN (x) ? (y > 0) : (y < 0), 3);
-	      }
-#endif
-	      return z ? SCM_PACK (z) : scm_makdbl (scm_big2dbl (x) / SCM_INUM (y), 0.0);
-	    }
-	  SCM_ASRTGO (SCM_NIMP (y), bady);
-	  if (SCM_BIGP (y))
-	    {
-	      SCM z = scm_divbigbig (SCM_BDIGITS (x), SCM_NUMDIGS (x),
-				 SCM_BDIGITS (y), SCM_NUMDIGS (y),
-				 SCM_BIGSIGN (x) ^ SCM_BIGSIGN (y), 3);
-	      return z ? z : scm_makdbl (scm_big2dbl (x) / scm_big2dbl (y),
-					 0.0);
-	    }
-	  SCM_ASRTGO (SCM_SLOPPY_INEXACTP (y), bady);
-	  if (SCM_SLOPPY_REALP (y))
-	    return scm_makdbl (scm_big2dbl (x) / SCM_REALPART (y), 0.0);
-	  a = scm_big2dbl (x);
-	  goto complex_div;
-	}
-#endif
-      SCM_ASRTGO (SCM_SLOPPY_INEXACTP (x), badx2);
-      if (SCM_INUMP (y))
-	{
-	  d = SCM_INUM (y);
-	  goto basic_div;
-	}
-#ifdef SCM_BIGDIG
-      SCM_ASRTGO (SCM_NIMP (y), bady);
-      if (SCM_BIGP (y))
-	{
-	  d = scm_big2dbl (y);
-	  goto basic_div;
-	}
-      SCM_ASRTGO (SCM_SLOPPY_INEXACTP (y), bady);
-#else
-      SCM_ASRTGO (SCM_SLOPPY_INEXACTP (y), bady);
-#endif
-      if (SCM_SLOPPY_REALP (y))
-	{
-	  d = SCM_REALPART (y);
-	basic_div:
-	  return scm_makdbl (SCM_REALPART (x) / d,
-			     SCM_SLOPPY_COMPLEXP (x) ? SCM_IMAG (x) / d : 0.0);
-	}
-      a = SCM_REALPART (x);
-      if (SCM_SLOPPY_REALP (x))
-	goto complex_div;
-      r = SCM_REAL (y);
-      i = SCM_IMAG (y);
-      d = r * r + i * i;
-      return scm_makdbl ((a * r + SCM_IMAG (x) * i) / d,
-			 (SCM_IMAG (x) * r - a * i) / d);
-    }
-  if (SCM_UNBNDP (y))
-    {
-      if (SCM_EQ_P (x, SCM_MAKINUM (1L)) || SCM_EQ_P (x, SCM_MAKINUM (-1L)))
+  double a;
+
+  if (SCM_UNBNDP (y)) {
+    if (SCM_UNBNDP (x)) {
+      SCM_WTA_DISPATCH_0 (g_divide, x, SCM_ARG1, s_divide);
+    } else if (SCM_INUMP (x)) {
+      if (SCM_EQ_P (x, SCM_MAKINUM (1L)) || SCM_EQ_P (x, SCM_MAKINUM (-1L))) {
 	return x;
-      return scm_makdbl (1.0 / ((double) SCM_INUM (x)), 0.0);
-    }
-  if (SCM_NINUMP (y))
-    {
+      } else {
+	return scm_make_real (1.0 / (double) SCM_INUM (x));
+      }
 #ifdef SCM_BIGDIG
-      SCM_ASRTGO (SCM_NIMP (y), bady);
-      if (SCM_BIGP (y))
-	return scm_makdbl (SCM_INUM (x) / scm_big2dbl (y), 0.0);
-      if (!(SCM_SLOPPY_INEXACTP (y)))
-	{
-	bady:
-	  SCM_WTA_DISPATCH_2 (g_divide, x, y, SCM_ARGn, s_divide);
-	}
+    } else if (SCM_BIGP (x)) {
+      return scm_make_real (1.0 / scm_big2dbl (x));
+#endif
+    } else if (SCM_REALP (x)) {
+      return scm_make_real (1.0 / SCM_REAL_VALUE (x));
+    } else if (SCM_COMPLEXP (x)) {
+      double r = SCM_COMPLEX_REAL (x);
+      double i = SCM_COMPLEX_IMAG (x);
+      double d = r * r + i * i;
+      return scm_make_complex (r / d, -i / d);
+    } else {
+      SCM_WTA_DISPATCH_1 (g_divide, x, SCM_ARG1, s_divide);
+    }
+  }
+
+  if (SCM_INUMP (x)) {
+    long xx = SCM_INUM (x);
+    if (SCM_INUMP (y)) {
+      long yy = SCM_INUM (y);
+      if (yy == 0) {
+	/* Dirk:FIXME:: Shouldn't we report an error here? */
+	return scm_make_real ((double) xx / 0.0);
+	/* scm_num_overflow (s_divide); */
+      } else if (xx % yy != 0) {
+	return scm_make_real ((double) xx / (double) yy);
+      } else {
+	long z = xx / yy;
+	if (SCM_FIXABLE (z)) {
+	  return SCM_MAKINUM (z);
+	} else {
+#ifdef SCM_BIGDIG
+	  return scm_long2big (z);
 #else
-      if (!SCM_SLOPPY_INEXACTP (y))
-	{
-	bady:
-	  SCM_WTA_DISPATCH_2 (g_divide, x, y, SCM_ARGn, s_divide);
+	  return scm_make_real ((double) xx / (double) yy);
+#endif
 	}
-#endif
-      if (SCM_SLOPPY_REALP (y))
-	return scm_makdbl (SCM_INUM (x) / SCM_REALPART (y), 0.0);
-      a = SCM_INUM (x);
-    complex_div:
-      r = SCM_REAL (y);
-      i = SCM_IMAG (y);
-      d = r * r + i * i;
-      return scm_makdbl ((a * r) / d, (-a * i) / d);
-    }
-  {
-    long z = SCM_INUM (y);
-    if ((0 == z) || SCM_INUM (x) % z)
-      goto ov;
-    z = SCM_INUM (x) / z;
-    if (SCM_FIXABLE (z))
-      return SCM_MAKINUM (z);
+      }
 #ifdef SCM_BIGDIG
-    return scm_long2big (z);
+    } else if (SCM_BIGP (y)) {
+      return scm_make_real ((double) xx / scm_big2dbl (y));
 #endif
-  ov:
-    return scm_makdbl (((double) SCM_INUM (x)) / ((double) SCM_INUM (y)), 0.0);
+    } else if (SCM_REALP (y)) {
+      return scm_make_real ((double) xx / SCM_REAL_VALUE (y));
+    } else if (SCM_COMPLEXP (y)) {
+      a = xx;
+    complex_div: /* y _must_ be a complex number */
+      {
+	double r = SCM_COMPLEX_REAL (y);
+	double i = SCM_COMPLEX_IMAG (y);
+	double d = r * r + i * i;
+	return scm_make_complex ((a * r) / d, (-a * i) / d);
+      }
+    } else {
+      SCM_WTA_DISPATCH_2 (g_divide, x, y, SCM_ARGn, s_divide);
+    }
+#ifdef SCM_BIGDIG
+  } else if (SCM_BIGP (x)) {
+    if (SCM_INUMP (y)) {
+      long int yy = SCM_INUM (y);
+      if (yy == 0) {
+	scm_num_overflow (s_divide);
+      } else if (yy == 1) {
+	return x;
+      } else {
+	long z = yy < 0 ? -yy : yy;
+	if (z < SCM_BIGRAD) {
+	  SCM w = scm_copybig (x, SCM_BIGSIGN (x) ? (yy > 0) : (yy < 0));
+	  return scm_divbigdig (SCM_BDIGITS (w), SCM_NUMDIGS (w),
+				(SCM_BIGDIG) z)
+	    ? scm_make_real (scm_big2dbl (x) / (double) yy)
+	    : scm_normbig (w);
+	} else {
+	  SCM w;
+#ifndef SCM_DIGSTOOBIG
+	  z = scm_pseudolong (z);
+	  w = scm_divbigbig (SCM_BDIGITS (x), SCM_NUMDIGS (x),
+			     (SCM_BIGDIG *) & z, SCM_DIGSPERLONG,
+			     SCM_BIGSIGN (x) ? (yy > 0) : (yy < 0), 3);
+#else
+	  SCM_BIGDIG zdigs[SCM_DIGSPERLONG];
+	  scm_longdigs (z, zdigs);
+	  w = scm_divbigbig (SCM_BDIGITS (x), SCM_NUMDIGS (x),
+			     zdigs, SCM_DIGSPERLONG,
+			     SCM_BIGSIGN (x) ? (yy > 0) : (yy < 0), 3);
+#endif
+	  /* Dirk:FIXME:: divbigbig shouldn't return '0' */
+	  return w ? w : scm_make_real (scm_big2dbl (x) / (double) yy);
+	}
+      }
+    } else if (SCM_BIGP (y)) {
+      SCM w = scm_divbigbig (SCM_BDIGITS (x), SCM_NUMDIGS (x),
+			     SCM_BDIGITS (y), SCM_NUMDIGS (y),
+			     SCM_BIGSIGN (x) ^ SCM_BIGSIGN (y), 3);
+      /* Dirk:FIXME:: divbigbig shouldn't return '0' */
+      return w ? w : scm_make_real (scm_big2dbl (x) / scm_big2dbl (y));
+    } else if (SCM_REALP (y)) {
+      return scm_make_real (scm_big2dbl (x) / SCM_REAL_VALUE (y));
+    } else if (SCM_COMPLEXP (y)) {
+      a = scm_big2dbl (x);
+      goto complex_div;
+    } else {
+      SCM_WTA_DISPATCH_2 (g_divide, x, y, SCM_ARGn, s_divide);
+    }
+#endif
+  } else if (SCM_REALP (x)) {
+    double rx = SCM_REAL_VALUE (x);
+    if (SCM_INUMP (y)) {
+      return scm_make_real (rx / (double) SCM_INUM (y));
+#ifdef SCM_BIGDIG
+    } else if (SCM_BIGP (y)) {
+      return scm_make_real (rx / scm_big2dbl (y));
+#endif
+    } else if (SCM_REALP (y)) {
+      return scm_make_real (rx / SCM_REAL_VALUE (y));
+    } else if (SCM_COMPLEXP (y)) {
+      a = rx;
+      goto complex_div;
+    } else {
+      SCM_WTA_DISPATCH_2 (g_divide, x, y, SCM_ARGn, s_divide);
+    }
+  } else if (SCM_COMPLEXP (x)) {
+    double rx = SCM_COMPLEX_REAL (x);
+    double ix = SCM_COMPLEX_IMAG (x);
+    if (SCM_INUMP (y)) {
+      double d = SCM_INUM (y);
+      return scm_make_complex (rx / d, ix / d);
+#ifdef SCM_BIGDIG
+    } else if (SCM_BIGP (y)) {
+      double d = scm_big2dbl (y);
+      return scm_make_complex (rx / d, ix / d);
+#endif
+    } else if (SCM_REALP (y)) {
+      double d = SCM_REAL_VALUE (y);
+      return scm_make_complex (rx / d, ix / d);
+    } else if (SCM_COMPLEXP (y)) {
+      double ry = SCM_COMPLEX_REAL (y);
+      double iy = SCM_COMPLEX_IMAG (y);
+      double d = ry * ry + iy * iy;
+      return scm_make_complex ((rx * ry + ix * iy) / d, 
+			       (ix * ry - rx * iy) / d);
+    } else {
+      SCM_WTA_DISPATCH_2 (g_divide, x, y, SCM_ARGn, s_divide);
+    }
+  } else {
+    SCM_WTA_DISPATCH_2 (g_divide, x, y, SCM_ARG1, s_divide);
   }
 }
-
-
 
 
 SCM_GPROC1 (s_asinh, "$asinh", scm_tc7_cxr, (SCM (*)()) scm_asinh, g_asinh);
@@ -4187,7 +4199,7 @@ SCM_DEFINE (scm_sys_expt, "$expt", 2, 0, 0,
 {
   struct dpair xy;
   scm_two_doubles (z1, z2, FUNC_NAME, &xy);
-  return scm_makdbl (pow (xy.x, xy.y), 0.0);
+  return scm_make_real (pow (xy.x, xy.y));
 }
 #undef FUNC_NAME
 
@@ -4200,7 +4212,7 @@ SCM_DEFINE (scm_sys_atan2, "$atan2", 2, 0, 0,
 {
   struct dpair xy;
   scm_two_doubles (z1, z2, FUNC_NAME, &xy);
-  return scm_makdbl (atan2 (xy.x, xy.y), 0.0);
+  return scm_make_real (atan2 (xy.x, xy.y));
 }
 #undef FUNC_NAME
 
@@ -4213,7 +4225,7 @@ SCM_DEFINE (scm_make_rectangular, "make-rectangular", 2, 0, 0,
 {
   struct dpair xy;
   scm_two_doubles (z1, z2, FUNC_NAME, &xy);
-  return scm_makdbl (xy.x, xy.y);
+  return scm_make_complex (xy.x, xy.y);
 }
 #undef FUNC_NAME
 
@@ -4226,7 +4238,7 @@ SCM_DEFINE (scm_make_polar, "make-polar", 2, 0, 0,
 {
   struct dpair xy;
   scm_two_doubles (z1, z2, FUNC_NAME, &xy);
-  return scm_makdbl (xy.x * cos (xy.y), xy.x * sin (xy.y));
+  return scm_make_complex (xy.x * cos (xy.y), xy.x * sin (xy.y));
 }
 #undef FUNC_NAME
 
@@ -4254,7 +4266,7 @@ scm_real_part (SCM z)
 		    g_real_part, z, SCM_ARG1, s_real_part);
 #endif
       if (SCM_SLOPPY_COMPLEXP (z))
-	return scm_makdbl (SCM_REAL (z), 0.0);
+	return scm_make_real (SCM_REAL (z));
     }
   return z;
 }
@@ -4282,7 +4294,7 @@ scm_imag_part (SCM z)
 		g_imag_part, z, SCM_ARG1, s_imag_part);
 #endif
   if (SCM_SLOPPY_COMPLEXP (z))
-    return scm_makdbl (SCM_IMAG (z), 0.0);
+    return scm_make_real (SCM_IMAG (z));
   return scm_flo0;
 }
 
@@ -4311,9 +4323,9 @@ scm_magnitude (SCM z)
   if (SCM_SLOPPY_COMPLEXP (z))
     {
       double i = SCM_IMAG (z), r = SCM_REAL (z);
-      return scm_makdbl (sqrt (i * i + r * r), 0.0);
+      return scm_make_real (sqrt (i * i + r * r));
     }
-  return scm_makdbl (fabs (SCM_REALPART (z)), 0.0);
+  return scm_make_real (fabs (SCM_REALPART (z)));
 }
 
 
@@ -4353,7 +4365,7 @@ scm_angle (SCM z)
   x = SCM_REAL (z);
   y = SCM_IMAG (z);
  do_angle:
-  return scm_makdbl (atan2 (y, x), 0.0);
+  return scm_make_real (atan2 (y, x));
 }
 
 
@@ -4456,7 +4468,7 @@ scm_long2num (long sl)
 #ifdef SCM_BIGDIG
       return scm_long2big (sl);
 #else
-      return scm_makdbl ((double) sl, 0.0);
+      return scm_make_real ((double) sl);
 #endif
     }
   return SCM_MAKINUM (sl);
@@ -4473,7 +4485,7 @@ scm_long_long2num (long_long sl)
 #ifdef SCM_BIGDIG
       return scm_long_long2big (sl);
 #else
-      return scm_makdbl ((double) sl, 0.0);
+      return scm_make_real ((double) sl);
 #endif
     }
   else
@@ -4494,7 +4506,7 @@ scm_ulong2num (unsigned long sl)
 #ifdef SCM_BIGDIG
       return scm_ulong2big (sl);
 #else
-      return scm_makdbl ((double) sl, 0.0);
+      return scm_make_real ((double) sl);
 #endif
     }
   return SCM_MAKINUM (sl);

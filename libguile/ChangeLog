@@ -1,3 +1,25 @@
+2000-05-02  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* numbers.c (scm_logtest, scm_division):  Reordered dispatch
+	sequence, thereby fixing some comparisons of SCM values with
+	integer constants.
+
+	* numbers.h (scm_makdbl):  Mark as deprecated at the point of
+	declaration.
+
+	* eval.c (SCM_CEVAL, SCM_APPLY), gh_data.c (gh_double2scm,
+	gh_doubles2scm), numbers.c (scm_istr2flo, scm_max, scm_min,
+	scm_sum, scm_difference, scm_product, scm_divide, scm_sys_expt,
+	scm_sys_atan2, scm_make_rectangular, scm_make_polar,
+	scm_real_part, scm_imag_part, scm_magnitude, scm_angle,
+	scm_long2num, scm_long_long2num, scm_ulong2num), ramap.c
+	(ramap_rp, scm_array_map_x), random.c (scm_random,
+	scm_random_uniform, scm_random_normal_vector_x, scm_random_exp),
+	struct.c (scm_struct_ref), unif.c (scm_array_to_list):  Replace
+	call to scm_makdbl with a call to scm_make_real or
+	scm_make_complex, depending on whether the imaginary part is known
+	to be zero.
+
 2000-05-01  Gary Houston  <ghouston@arglist.com>
 
 	* scmsigs.c: fix the definition of orig_handlers for the case

@@ -1360,7 +1360,8 @@ ramap_rp (SCM ra0,SCM proc,SCM ras)
       }
     case scm_tc7_dvect:
       {
-	SCM a1 = scm_makdbl (1.0 / 3.0, 0.0), a2 = scm_makdbl (1.0 / 3.0, 0.0);
+	SCM a1 = scm_make_real (1.0 / 3.0);
+	SCM a2 = scm_make_real (1.0 / 3.0);
 	for (; n-- > 0; i0 += inc0, i1 += inc1, i2 += inc2)
 	  if (SCM_BITVEC_REF (ra0, i0))
 	    {
@@ -1373,7 +1374,8 @@ ramap_rp (SCM ra0,SCM proc,SCM ras)
       }
     case scm_tc7_cvect:
       {
-	SCM a1 = scm_makdbl (1.0, 1.0), a2 = scm_makdbl (1.0, 1.0);
+	SCM a1 = scm_make_complex (1.0, 1.0);
+	SCM a2 = scm_make_complex (1.0, 1.0);
 	for (; n-- > 0; i0 += inc0, i1 += inc1, i2 += inc2)
 	  if (SCM_BITVEC_REF (ra0, i0))
 	    {
@@ -1549,7 +1551,7 @@ SCM_DEFINE (scm_array_map_x, "array-map!", 2, 0, 1,
 	    {
 	      prot = scm_array_prototype (ra0);
 	      if (SCM_INEXP (prot))
-		fill = scm_makdbl ((double) SCM_INUM (fill), 0.0);
+		fill = scm_make_real ((double) SCM_INUM (fill));
 	    }
 
 	  scm_array_fill_x (ra0, fill);

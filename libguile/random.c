@@ -379,8 +379,8 @@ SCM_DEFINE (scm_random, "random", 1, 1, 0,
     }
   SCM_VALIDATE_NIM (1,n);
   if (SCM_REALP (n))
-    return scm_makdbl (SCM_REALPART (n) * scm_c_uniform01 (SCM_RSTATE (state)),
-		       0.0);
+    return scm_make_real (SCM_REAL_VALUE (n)
+			  * scm_c_uniform01 (SCM_RSTATE (state)));
   SCM_VALIDATE_SMOB (1, n, big);
   return scm_c_random_bignum (SCM_RSTATE (state), n);
 }
@@ -419,7 +419,7 @@ SCM_DEFINE (scm_random_uniform, "random:uniform", 0, 1, 0,
   if (SCM_UNBNDP (state))
     state = SCM_CDR (scm_var_random_state);
   SCM_VALIDATE_RSTATE (1,state);
-  return scm_makdbl (scm_c_uniform01 (SCM_RSTATE (state)), 0.0);
+  return scm_make_real (scm_c_uniform01 (SCM_RSTATE (state)));
 }
 #undef FUNC_NAME
 
@@ -435,7 +435,7 @@ SCM_DEFINE (scm_random_normal, "random:normal", 0, 1, 0,
   if (SCM_UNBNDP (state))
     state = SCM_CDR (scm_var_random_state);
   SCM_VALIDATE_RSTATE (1,state);
-  return scm_makdbl (scm_c_normal01 (SCM_RSTATE (state)), 0.0);
+  return scm_make_real (scm_c_normal01 (SCM_RSTATE (state)));
 }
 #undef FUNC_NAME
 
@@ -540,7 +540,7 @@ SCM_DEFINE (scm_random_normal_vector_x, "random:normal-vector!", 1, 1, 0,
   n = SCM_LENGTH (v);
   if (SCM_VECTORP (v))
     while (--n >= 0)
-      SCM_VELTS (v)[n] = scm_makdbl (scm_c_normal01 (SCM_RSTATE (state)), 0.0);
+      SCM_VELTS (v)[n] = scm_make_real (scm_c_normal01 (SCM_RSTATE (state)));
   else
     while (--n >= 0)
       ((double *) SCM_VELTS (v))[n] = scm_c_normal01 (SCM_RSTATE (state));
@@ -560,7 +560,7 @@ SCM_DEFINE (scm_random_exp, "random:exp", 0, 1, 0,
   if (SCM_UNBNDP (state))
     state = SCM_CDR (scm_var_random_state);
   SCM_VALIDATE_RSTATE (1,state);
-  return scm_makdbl (scm_c_exp1 (SCM_RSTATE (state)), 0.0);
+  return scm_make_real (scm_c_exp1 (SCM_RSTATE (state)));
 }
 #undef FUNC_NAME
 

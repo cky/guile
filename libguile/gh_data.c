@@ -77,7 +77,7 @@ gh_long2scm (long x)
 SCM 
 gh_double2scm (double x)
 {
-  return scm_makdbl (x, 0.0);
+  return scm_make_real (x);
 }
 SCM 
 gh_char2scm (char c)
@@ -151,7 +151,7 @@ gh_doubles2scm (double *d, int n)
   SCM *velts = SCM_VELTS(v);
 
   for(i = 0; i < n; i++) 
-    velts[i] = scm_makdbl(d[i], 0.0);
+    velts[i] = scm_make_real (d[i]);
   return v;
 }
 
