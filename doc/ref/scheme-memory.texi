@@ -4,6 +4,7 @@
 
 @menu
 * Garbage Collection::
+* Memory Blocks::
 * Weak References::
 * Guardians::
 @end menu
@@ -12,13 +13,11 @@
 @node Garbage Collection
 @section Garbage Collection
 
-[FIXME: this is pasted in from Tom Lord's original guile.texi and should
-be reviewed]
-
 @deffn {Scheme Procedure} gc
 @deffnx {C Function} scm_gc ()
 Scans all of SCM objects and reclaims for further use those that are
-no longer accessible.
+no longer accessible.  You normally don't need to call this function
+explicitely.  It is called automatically when appropriate.
 @end deffn
 
 @deffn {Scheme Procedure} gc-stats
@@ -27,18 +26,113 @@ Return an association list of statistics about Guile's current
 use of storage.
 @end deffn
 
-@deffn {Scheme Procedure} object-address obj
-@deffnx {C Function} scm_object_address (obj)
-Return an integer that for the lifetime of @var{obj} is uniquely
-returned by this function for @var{obj}
-@end deffn
+@node Memory Blocks
+@section Memory Blocks
+
+In C programs, dynamic management of memory blocks is normally done
+with the functions malloc, realloc, and free.  Guile has additional
+functions for dynamic memory allocation that are integrated into the
+garbage collector and the error reporting system.
+
+Memory blocks that are associated with Scheme objects (for example a
+smob) should be allocated and freed with @code{scm_gc_malloc} and
+@code{scm_gc_free}.  The function @code{scm_gc_malloc} will either
+return a valid pointer or signal an error.  It will also assume that
+the new memory can be freed by a garbage collection.  The garbage
+collector uses this information to decide when to try to actually
+collect some garbage.  Memory blocks allocated with
+@code{scm_gc_malloc} must be freed with @code{scm_gc_free}.
+
+For memory that is not associated with a Scheme object, you can use
+@code{scm_malloc} instead of @code{malloc}.  Like
+@code{scm_gc_malloc}, it will either return a valid pointer or signal
+an error.  However, it will not assume that the new memory block can
+be freed by a garbage collection.  The memory can be freed with
+@code{free}.
+
+There is also @code{scm_gc_realloc} and @code{scm_realloc}, to be used
+in place of @code{realloc} when appropriate.
+
+For really specialized needs, take at look at
+@code{scm_gc_register_collectable_memory} and
+@code{scm_gc_unregister_collectable_memory}.
+
+@deftypefn {C Function} void *scm_malloc (size_t @var{size})
+Allocate @var{size} bytes of memory and return a pointer to it.  When
+@var{size} is 0, return @code{NULL}.  When not enough memory is
+available, signal an error.  This function runs the GC to free up some
+memory when it deems it appropriate.
+
+The memory is allocated by the libc @code{malloc} function and can be
+freed with @code{free}.  There is no @code{scm_free} function to go
+with @code{scm_malloc} to make it easier to pass memory back and forth
+between different modules.
+@end deftypefn
+
+@deftypefn {C Function} void *scm_realloc (void *@var{mem}, size_t @var{new_size})
+Change the size of the memory block at @var{mem} to @var{new_size} and
+return its new location.  When @var{new_size} is 0, this is the same
+as calling @code{free} on @var{mem} and @code{NULL} is returned.  When
+@var{mem} is @code{NULL}, this function behaves like @code{scm_malloc}
+and allocates a new block of size @var{new_size}.
+
+When not enough memory is available, signal an error.  This function
+runs the GC to free up some memory when it deems it appropriate.
+@end deftypefn
+
+
+@deftypefn {C Function} void scm_gc_register_collectable_memory (void *@var{mem}, size_t @var{size}, const char *@var{what})
+Informs the GC that the memory at @var{mem} of size @var{size} can
+potentially be freed during a GC.  That is, announce that @var{mem} is
+part of a GC controlled object and when the GC happens to free that
+object, @var{size} bytes will be freed along with it.  The GC will
+@strong{not} free the memory itself, it will just know that so-and-so
+much bytes of memory are associated with GC controlled objects and the
+memory system figures this into its decisions when to run a GC.
+
+@var{mem} does not need to come from @code{scm_malloc}.  You can only
+call this function once for every memory block.
+
+The @var{what} argument is used for statistical purposes.  It should
+describe the type of object that the memory will be used for so that
+users can identify just what strange objects are eating up their
+memory.
+@end deftypefn
+
+@deftypefn {C Function} void scm_gc_unregister_collectable_memory (void *@var{mem}, size_t @var{size})
+Informs the GC that the memory at @var{mem} of size @var{size} is no
+longer associated with a GC controlled object.  You must take care to
+match up every call to @code{scm_gc_register_collectable_memory} with
+a call to @code{scm_gc_unregister_collectable_memory}.  If you don't do
+this, the GC might have a wrong impression of what is going on and run
+much less efficiently than it could.
+@end deftypefn
+
+
+@deftypefn {C Function} void *scm_gc_malloc (size_t @var{size}, const char *@var{what})
+@deftypefnx {C Function} void *scm_gc_realloc (void *@var{mem}, size_t @var{old_size}, size_t @var{new_size}, const char *@var{what});
+Like @code{scm_malloc} or @code{scm_realloc}, but also call
+@code{scm_gc_register_collectable_memory}.  Note that you need to pass
+the old size of a reallocated memory block as well.  See below for a
+motivation.
+@end deftypefn
+
+@deftypefn {C Function} void scm_gc_free (void *@var{mem}, size_t @var{size}, const char *@var{what})
+Like @code{free}, but also call @code{scm_gc_unregister_collectable_memory}.
+
+Note that you need to explicitely pass the @var{size} parameter.  This
+is done since it should normally be easy to provide this parameter
+(for memory that is associated with GC controlled objects) and this
+frees us from tracking this value in the GC itself, which will keep
+the memory management overhead very low.
+@end deftypefn
 
 
 @node Weak References
 @section Weak References
 
-[FIXME: This chapter is based on Mikael Djurfeldt's answer to a question
-by Michael Livshin. Any mistakes are not theirs, of course. ]
+[FIXME: This chapter is based on Mikael Djurfeldt's answer to a
+question by Michael Livshin. Any mistakes are not theirs, of course. ]
 
 Weak references let you attach bookkeeping information to data so that
 the additional information automatically disappears when the original
