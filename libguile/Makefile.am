@@ -52,7 +52,7 @@ libguile_la_SOURCES =							\
     tag.c throw.c variable.c vectors.c version.c vports.c weaks.c
 
 DOT_X_FILES =								\
-    cpp_err_symbols.c cpp_sig_symbols.c libpath.h alist.x arbiters.x	\
+    alist.x arbiters.x							\
     async.x backtrace.x boolean.x chars.x continuations.x debug.x	\
     dynl.x dynwind.x eq.x error.x eval.x evalext.x feature.x		\
     fluids.x fports.x gc.x gsubr.x guardians.x hash.x hashtab.x		\
@@ -68,17 +68,32 @@ DOT_X_FILES =								\
 EXTRA_DOT_X_FILES = debug-malloc.x filesys.x net_db.x posix.x ramap.x	\
                     regex-posix.x socket.x threads.x unif.x
 
+DOT_DOC_FILES =								   \
+    alist.doc arbiters.doc async.doc backtrace.doc boolean.doc		   \
+    chars.doc continuations.doc debug.doc dynl.doc dynwind.doc eq.doc	   \
+    error.doc eval.doc evalext.doc feature.doc fluids.doc fports.doc	   \
+    gc.doc gsubr.doc guardians.doc hash.doc hashtab.doc hooks.doc init.doc \
+    ioext.doc iselect.doc keywords.doc lang.doc list.doc load.doc	   \
+    macros.doc mallocs.doc modules.doc net_db.doc numbers.doc objects.doc  \
+    objprop.doc options.doc pairs.doc ports.doc posix.doc print.doc	   \
+    procprop.doc procs.doc random.doc read.doc root.doc scmsigs.doc	   \
+    script.doc simpos.doc smob.doc socket.doc sort.doc srcprop.doc	   \
+    stackchk.doc stacks.doc stime.doc strings.doc strop.doc strorder.doc   \
+    strports.doc struct.doc symbols.doc tag.doc throw.doc variable.doc	   \
+    vectors.doc version.doc vports.doc weaks.doc
+
 EXTRA_DOT_DOC_FILES = @EXTRA_DOT_DOC_FILES@
 
-DOT_DOC_FILES = $(DOT_X_FILES:.x=.doc)
-
-BUILT_SOURCES = $(DOT_X_FILES) $(EXTRA_DOT_X_FILES) $(DOT_DOC_FILES)
+BUILT_SOURCES = cpp_err_symbols.c cpp_sig_symbols.c libpath.h \
+    $(DOT_X_FILES) $(EXTRA_DOT_X_FILES) $(DOT_DOC_FILES)
 
 EXTRA_libguile_la_SOURCES = _scm.h		\
     alloca.c inet_aton.c memmove.c putenv.c strerror.c	\
     threads.c regex-posix.c \
     filesys.c posix.c net_db.c socket.c \
     ramap.c unif.c debug-malloc.c
+
+OMIT_DEPENDENCIES = ltdl.h
 
 ## This is kind of nasty... there are ".c" files that we don't want to
 ## compile, since they are #included in threads.c.  So instead we list
