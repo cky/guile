@@ -315,12 +315,10 @@ SCM_DEFINE (scm_string_null_p, "string-null?", 1, 0, 0,
 
 SCM_DEFINE (scm_string_to_list, "string->list", 1, 0, 0, 
            (SCM str),
-	    "@samp{String->list} returns a newly allocated list of the\n"
-	    "characters that make up the given string.  @samp{List->string}\n"
-	    "returns a newly allocated string formed from the characters in the list\n"
-	    "@var{list}, which must be a list of characters. @samp{String->list}\n"
-	    "and @samp{list->string} are\n"
-	    "inverses so far as @samp{equal?} is concerned.  (r5rs)")
+	    "Return a newly allocated list of the characters that make up\n"
+	    "the given string @var{str}. @code{string->list} and\n"
+	    "@code{list->string} are inverses as far as @samp{equal?} is\n"
+	    "concerned.")
 #define FUNC_NAME s_scm_string_to_list
 {
   long i;
@@ -387,14 +385,13 @@ string_upcase_x (SCM v)
 
 SCM_DEFINE (scm_string_upcase_x, "string-upcase!", 1, 0, 0, 
 	    (SCM str),
-	    "Destructively upcase every character in @code{str}.\n\n"
-	    "(qdocs:) Converts each element in @var{str} to upper case.\n\n"
-	    "@example\n"
-	    "(string-upcase! y)\n"
-	    "@result{} \"ARRDEFG\"\n\n"
-	    "y\n"
-	    "@result{} \"ARRDEFG\"\n"
-	    "@end example")
+	    "Destructively upcase every character in @var{str} and return\n"
+	    "@var{str}.\n"
+	    "@lisp\n"
+	    "y                  @result{} \"arrdefg\"\n"
+	    "(string-upcase! y) @result{} \"ARRDEFG\"\n"
+	    "y                  @result{} \"ARRDEFG\"\n"
+	    "@end lisp")
 #define FUNC_NAME s_scm_string_upcase_x
 {
   SCM_VALIDATE_STRING (1, str);
@@ -406,7 +403,8 @@ SCM_DEFINE (scm_string_upcase_x, "string-upcase!", 1, 0, 0,
 
 SCM_DEFINE (scm_string_upcase, "string-upcase", 1, 0, 0, 
 	    (SCM str),
-	    "Upcase every character in @code{str}.")
+	    "Return a freshly allocated string containing the characters of\n"
+	    "@var{str} in upper case.")
 #define FUNC_NAME s_scm_string_upcase
 {
   SCM_VALIDATE_STRING (1, str);
@@ -432,16 +430,13 @@ string_downcase_x (SCM v)
 
 SCM_DEFINE (scm_string_downcase_x, "string-downcase!", 1, 0, 0, 
 	    (SCM str),
-	    "Destructively downcase every character in @code{str}.\n\n"
-	    "(qdocs:) Converts each element in @var{str} to lower case.\n\n"
-	    "@example\n"
-	    "y\n"
-	    "@result{} \"ARRDEFG\"\n\n"
-	    "(string-downcase! y)\n"
-	    "@result{} \"arrdefg\"\n\n"
-	    "y\n"
-	    "@result{} \"arrdefg\"\n"
-	    "@end example")
+	    "Destructively downcase every character in @var{str} and return\n"
+	    "@var{str}.\n"
+	    "@lisp\n"
+	    "y                     @result{} \"ARRDEFG\"\n"
+	    "(string-downcase! y)  @result{} \"arrdefg\"\n"
+	    "y                     @result{} \"arrdefg\"\n"
+	    "@end lisp")
 #define FUNC_NAME s_scm_string_downcase_x
 {
   SCM_VALIDATE_STRING (1, str);
@@ -453,7 +448,8 @@ SCM_DEFINE (scm_string_downcase_x, "string-downcase!", 1, 0, 0,
 
 SCM_DEFINE (scm_string_downcase, "string-downcase", 1, 0, 0, 
 	    (SCM str),
-	    "Downcase every character in @code{str}.")
+	    "Return a freshly allocation string containing the characters in\n"
+	    "@var{str} in lower case.")
 #define FUNC_NAME s_scm_string_downcase
 {
   SCM_VALIDATE_STRING (1, str);
@@ -490,7 +486,14 @@ string_capitalize_x (SCM str)
 
 SCM_DEFINE (scm_string_capitalize_x, "string-capitalize!", 1, 0, 0, 
 	    (SCM str),
-	    "Destructively capitalize every character in @code{str}.")
+	    "Upcase the first character of every word in @var{str}\n"
+	    "destructively and return @var{str}.\n"
+	    "\n"
+	    "@lisp\n"
+	    "y                      @result{} "hello world"\n"
+	    "(string-capitalize! y) @result{} "Hello World"\n"
+	    "y                      @result{} "Hello World"\n"
+	    "@end lisp")
 #define FUNC_NAME s_scm_string_capitalize_x
 {
   SCM_VALIDATE_STRING (1, str);
@@ -502,7 +505,9 @@ SCM_DEFINE (scm_string_capitalize_x, "string-capitalize!", 1, 0, 0,
 
 SCM_DEFINE (scm_string_capitalize, "string-capitalize", 1, 0, 0, 
 	    (SCM str),
-	    "Capitalize every character in @code{str}.")
+	    "Return a freshly allocated string with the characters in\n"
+	    "@var{str}, where the first character of every word is\n"
+	    "capitalized.")
 #define FUNC_NAME s_scm_string_capitalize
 {
   SCM_VALIDATE_STRING (1, str);
@@ -513,8 +518,10 @@ SCM_DEFINE (scm_string_capitalize, "string-capitalize", 1, 0, 0,
 
 
 SCM_DEFINE (scm_string_ci_to_symbol, "string-ci->symbol", 1, 0, 0, 
-           (SCM str),
-	    "Return the symbol whose name is @var{str}, downcased in necessary(???).")
+	    (SCM str),
+	    "Return the symbol whose name is @var{str}.  @var{str} is\n"
+	    "converted to lowercase before the conversion is done, if Guile\n"
+	    "is currently reading symbols case--insensitively.")
 #define FUNC_NAME s_scm_string_ci_to_symbol
 {
   return scm_string_to_symbol (SCM_CASE_INSENSITIVE_P

@@ -1,3 +1,11 @@
+2001-03-27  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* strop.c (scm_string_to_list): Fixed docstring markup.
+	(scm_string_upcase_x, scm_string_upcase, scm_string_downcase_x),
+	(scm_string_downcase, scm_string_capitalize_x),
+	(scm_string_capitalize): Rewrote and corrected docstrings.
+	(scm_string_ci_to_symbol): Made docstring more explicit.
+
 2001-03-27  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* values.h (scm_values_vtable, SCM_VALUESP): Moved here so that
