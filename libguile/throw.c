@@ -20,6 +20,7 @@
 
 #include <stdio.h>
 #include "libguile/_scm.h"
+#include "libguile/async.h"
 #include "libguile/smob.h"
 #include "libguile/alist.h"
 #include "libguile/eval.h"
@@ -585,6 +586,12 @@ scm_ithrow (SCM key, SCM args, int noreturn SCM_UNUSED)
 
   SCM dynpair = SCM_UNDEFINED;
   SCM winds;
+
+  if (scm_i_critical_section_level)
+    {
+      fprintf (stderr, "throw from within critical section.\n");
+      abort ();
+    }
 
   /* Search the wind list for an appropriate catch.
      "Waiter, please bring us the wind list." */
