@@ -1,3 +1,7 @@
+2001-07-31  Keisuke Nishida  <knishida@nurs.or.jp>
+
+	* boot-9.scm (process-define-module): Bug fixed.
+
 2001-07-24  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* syncase.scm (psyncomp): Removed, it is now in

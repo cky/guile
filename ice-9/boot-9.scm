@@ -1747,14 +1747,14 @@
 		 (unrecognized kws))
 	     (let* ((interface-args (cadr kws))
 		    (interface (apply resolve-interface interface-args)))
-	       (and (eq? (car kws) 'use-syntax)
-		    (or (symbol? (car spec))
+	       (and (eq? (car kws) #:use-syntax)
+		    (or (symbol? (caar interface-args))
 			(error "invalid module name for use-syntax"
-			       spec))
+			       (car interface-args)))
 		    (set-module-transformer!
 		     module
-		     (module-ref interface (car 
-					    (last-pair (car interface-args)))
+		     (module-ref interface
+				 (car (last-pair (car interface-args)))
 				 #f)))
 	       (loop (cddr kws)
 		     (cons interface reversed-interfaces)
