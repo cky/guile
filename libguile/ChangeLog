@@ -1,5 +1,12 @@
 2001-03-17  Gary Houston  <ghouston@arglist.com>
 
+	* sort.c (scm_sort): move sortvec variable to avoid a compiler
+	warning	when HAVE_ARRAYS is not defined.  move len too.
+
+	* Makefile.am (DOT_X_FILES): remove net_db.x, posix.x, socket.x.
+	(EXTRA_DOT_X_FILES): let configure set the value.
+	(DOT_DOC_FILES): remove net_db.doc, posix.doc, socket.doc.
+
 	* gc.c (scm_must_malloc): changed the comment explaining when
 	scm_must variants of malloc/free etc., should be used, based on
 	explanation from Dirk Herrmann.

@@ -471,7 +471,6 @@ if test "${THREAD_PACKAGE}" != "" ; then
 
   ## Include the Guile thread interface in the library...
   LIBOBJS="$LIBOBJS threads.o"
-  EXTRA_DOT_DOC_FILES="$EXTRA_DOT_DOC_FILES threads.doc"
 
   ## ... and tell it which package to talk to.
   case "${THREAD_PACKAGE}" in
@@ -514,8 +513,9 @@ AC_PROG_AWK
 ## given in LIBOBJS.  We'll call it LIBLOBJS.
 LIBLOBJS="`echo ${LIBOBJS} | sed 's/\.o/.lo/g'`"
 
-## We also need to create corresponding .doc files
+## We also need to create corresponding .doc and .x files
 EXTRA_DOT_DOC_FILES="`echo ${LIBOBJS} | sed 's/\.o/.doc/g'`"
+EXTRA_DOT_X_FILES="`echo ${LIBOBJS} | sed 's/\.o/.x/g'`"
 
 AC_SUBST(GUILE_MAJOR_VERSION)
 AC_SUBST(GUILE_MINOR_VERSION)
@@ -532,6 +532,7 @@ AC_SUBST(GUILE_LIBS)
 AC_SUBST(AWK)
 AC_SUBST(LIBLOBJS)
 AC_SUBST(EXTRA_DOT_DOC_FILES)
+AC_SUBST(EXTRA_DOT_X_FILES)
 
 # Support for "make check"
 test_suite_dir="`(cd $srcdir ; pwd)`/test-suite"

@@ -751,14 +751,14 @@ SCM_DEFINE (scm_sort, "sort", 2, 0, 0,
 	    "elements.  This is not a stable sort.")
 #define FUNC_NAME s_scm_sort
 {
-  SCM sortvec;			/* the vector we actually sort */
-  long len;			/* list/vector length */
   if (SCM_NULLP(items))
     return SCM_EOL;
 
   SCM_VALIDATE_NIM (2,less);
   if (SCM_CONSP (items))
     {
+      long len;
+  
       SCM_VALIDATE_LIST_COPYLEN (1,items,len);
       items = scm_list_copy (items);
       return scm_merge_list_step (&items, scm_cmp_function (less), less, len);
@@ -767,8 +767,9 @@ SCM_DEFINE (scm_sort, "sort", 2, 0, 0,
   /* support ordinary vectors even if arrays not available?  */
   else if (SCM_VECTORP (items))
     {
-      len = SCM_VECTOR_LENGTH (items);
-      sortvec = scm_make_uve (len, scm_array_prototype (items));
+      long len = SCM_VECTOR_LENGTH (items);
+      SCM sortvec = scm_make_uve (len, scm_array_prototype (items));
+
       scm_array_copy_x (items, sortvec);
       scm_restricted_vector_sort_x (sortvec,
 				    less,

@@ -55,16 +55,15 @@ DOT_X_FILES = alist.x arbiters.x async.x backtrace.x boolean.x chars.x	    \
     continuations.x debug.x dynl.x dynwind.x environments.x eq.x	    \
     error.x eval.x evalext.x feature.x fluids.x fports.x gc.x goops.x	    \
     gsubr.x guardians.x hash.x hashtab.x hooks.x init.x ioext.x iselect.x   \
-    keywords.x lang.x list.x load.x macros.x mallocs.x modules.x net_db.x   \
-    numbers.x objects.x objprop.x options.x pairs.x ports.x posix.x print.x \
+    keywords.x lang.x list.x load.x macros.x mallocs.x modules.x \
+    numbers.x objects.x objprop.x options.x pairs.x ports.x print.x \
     procprop.x procs.x properties.x random.x rdelim.x read.x root.x	    \
-    scmsigs.x script.x simpos.x smob.x socket.x sort.x srcprop.x	    \
+    scmsigs.x script.x simpos.x smob.x sort.x srcprop.x	    \
     stackchk.x stacks.x stime.x strings.x strop.x strorder.x strports.x	    \
     struct.x symbols.x tag.x throw.x values.x variable.x vectors.x	    \
     version.x vports.x weaks.x
 
-EXTRA_DOT_X_FILES = debug-malloc.x filesys.x net_db.x posix.x ramap.x	\
-                    regex-posix.x socket.x threads.x unif.x
+EXTRA_DOT_X_FILES = @EXTRA_DOT_X_FILES@
 
 DOT_DOC_FILES = alist.doc arbiters.doc async.doc backtrace.doc		   \
     boolean.doc chars.doc continuations.doc debug.doc dynl.doc		   \
@@ -72,10 +71,10 @@ DOT_DOC_FILES = alist.doc arbiters.doc async.doc backtrace.doc		   \
     feature.doc fluids.doc fports.doc gc.doc goops.doc gsubr.doc	   \
     guardians.doc hash.doc hashtab.doc hooks.doc init.doc ioext.doc	   \
     iselect.doc keywords.doc lang.doc list.doc load.doc macros.doc	   \
-    mallocs.doc modules.doc net_db.doc numbers.doc objects.doc objprop.doc \
-    options.doc pairs.doc ports.doc posix.doc print.doc procprop.doc	   \
+    mallocs.doc modules.doc numbers.doc objects.doc objprop.doc \
+    options.doc pairs.doc ports.doc print.doc procprop.doc	   \
     procs.doc properties.doc random.doc rdelim.doc read.doc root.doc	   \
-    scmsigs.doc script.doc simpos.doc smob.doc socket.doc sort.doc	   \
+    scmsigs.doc script.doc simpos.doc smob.doc sort.doc	   \
     srcprop.doc stackchk.doc stacks.doc stime.doc strings.doc strop.doc	   \
     strorder.doc strports.doc struct.doc symbols.doc tag.doc throw.doc	   \
     values.doc variable.doc vectors.doc version.doc vports.doc weaks.doc

@@ -1,3 +1,9 @@
+2001-03-17  Gary Houston  <ghouston@arglist.com>
+
+	* configure.in: don't append threads.doc to EXTRA_DOT_DOC_FILES,
+	since EXTRA_DOT_DOC_FILES is redefined later.  define
+	EXTRA_DOT_X_FILES and hand it to AC_SUBST.
+
 2001-03-09  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* configure.in: Added header checks for crypt.h, sys/resource.h
