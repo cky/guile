@@ -115,6 +115,28 @@
 	    (char=? (read-char port) #\s))
    (delete-file filename)))
 
+;;; Buffered output-only and input-only ports with seeking.
+(catch-test-errors
+ (let* ((filename (test-file))
+	(port (open-output-file filename)))
+   (display "J'Accuse" port)
+   (pass-if "file: out tell"
+	    (= (seek port 0 SEEK_CUR) 8))
+   (seek port -1 SEEK_CUR)
+   (write-char #\x port)
+   (close-port port)
+   (let ((iport (open-input-file filename)))
+     (pass-if "file: in tell 0"
+	      (= (seek iport 0 SEEK_CUR) 0))
+     (read-char iport)
+     (pass-if "file: in tell 1"
+	      (= (seek iport 0 SEEK_CUR) 1))
+     (seek iport 7 SEEK_SET)
+     (pass-if "file: in last char"
+	      (char=? (read-char iport) #\x))
+     (close-port iport))
+   (delete-file filename)))
+
 ;;; unusual characters.
 (catch-test-errors
  (let* ((filename (test-file))
