@@ -39,6 +39,11 @@ $mscripts/render-bugs > BUGS
 
 autoreconf -i
 
+# XXX - Do it twice since the required files do not seem to be generated in
+#       the right order.
+
+autoreconf -i
+
 echo "guile-readline..."
 (cd guile-readline && ./autogen.sh)
 
