@@ -1,3 +1,8 @@
+2002-07-16  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scheme-options.texi (Debugger options): New subsection
+	describing stack overflow and what to do about it.
+
 2002-07-10  Gary Houston  <ghouston@arglist.com>
 
 	* scheme-modules.texi (Compiled Code Modules): Removed description

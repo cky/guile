@@ -251,6 +251,40 @@ breakpoints     no      *Check for breakpoints.
 cheap           yes     *Flyweight representation of the stack at traps.
 @end smallexample
 
+@subsection Stack overflow
+
+@cindex overflow, stack
+@cindex stack overflow
+Stack overflow errors are caused by a computation trying to use more
+stack space than has been enabled by the @code{stack} option.  They are
+reported like this:
+
+@lisp
+(non-tail-recursive-factorial 500)
+@print{}
+ERROR: Stack overflow
+ABORT: (stack-overflow)
+@end lisp
+
+If you get an error like this, you can either try rewriting your code to
+use less stack space, or increase the maximum stack size.  To increase
+the maximum stack size, use @code{debug-set!}, for example:
+
+@lisp
+(debug-set! stack 200000)
+@result{}
+(show-file-name #t stack 200000 debug backtrace depth 20 maxdepth 1000 frames 3 indent 10 width 79 procnames cheap)
+
+(non-tail-recursive-factorial 500)
+@result{}
+122013682599111006870123878542304692625357434@dots{}
+@end lisp
+
+If you prefer to try rewriting your code, you may be able to save stack
+space by making some of your procedures @dfn{tail recursive}.  For a
+description of what this means, see @ref{Proper tail
+recursion,,,r5rs,The Revised^5 Report on Scheme}.
+
 
 @node Examples of option use
 @section Examples of option use
