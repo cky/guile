@@ -320,11 +320,15 @@ scm_load_startup_files ()
 
   /* Load Ice-9.  */
   if (!scm_ice_9_already_loaded)
-    scm_primitive_load_path (scm_makfrom0str ("ice-9/boot-9.scm"));
+    {
+      scm_primitive_load_path (scm_makfrom0str ("ice-9/boot-9.scm"));
 
-  /* Load the init.scm file.  */
-  if (SCM_NFALSEP (init_path))
-    scm_primitive_load (init_path);
+      /* Load the init.scm file.  */
+      if (SCM_NFALSEP (init_path))
+	scm_primitive_load (init_path);
+  
+      scm_post_boot_init_modules ();
+    }
 }
 
 
@@ -562,8 +566,6 @@ invoke_main_func (body_data)
   struct main_func_closure *closure = (struct main_func_closure *) body_data;
 
   scm_load_startup_files ();
-
-  scm_post_boot_init_modules ();
 
   (*closure->main_func) (closure->closure, closure->argc, closure->argv);
 
