@@ -8,6 +8,9 @@ Changes since Guile 1.2:
 
 * Changes to the distribution
 
+** libguile/append.h, libguile/append.c, libguile/sequences.h,
+libguile/sequences.c removed.
+
 * Changes to the stand-alone interpreter
 
 * Changes to the procedure for linking libguile with your programs
@@ -56,6 +59,10 @@ Macro: with-fluids ((FLUID VALUE) ...) FORM ...
     just like `let', but both FLUID and VALUE are evaluated.  Remember,
     fluids are not special variables but ordinary objects.  FLUID
     should evaluate to a fluid.
+
+** Removed procedures:
+
+list-length, list-append, list-append!, list-reverse, list-reverse!
 
 * Changes to system call interfaces:
 
@@ -211,6 +218,8 @@ value for NAME.
 Write the printed representation of the scheme object x to the current
 output port.  Corresponds to the scheme level `write'.
 
+** gh_list_length renamed to gh_length.
+
 * Changes to the scm_ interface
 
 ** Function: SCM scm_internal_stack_catch (SCM tag,
@@ -232,6 +241,16 @@ that method works badly since it intervenes between throw and catch,
 thereby changing the semantics of expressions like (catch #t ...).
 The correct way to do it is to use one of the C level catch functions
 in throw.c: scm_internal_catch/lazy_catch/stack_catch.
+
+** Removed functions:
+
+scm_obj_length, scm_list_length, scm_list_append, scm_list_append_x,
+scm_list_reverse, scm_list_reverse_x
+
+** New macros: SCM_LISTn where n is one of the integers 0-9.
+
+These can be used for pretty list creation from C.  The idea is taken
+from Erick Gallesio's STk.
 
 
 Changes in Guile 1.2 (released Tuesday, June 24 1997):
