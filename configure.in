@@ -669,16 +669,6 @@ case "${with_threads}" in
    ;;
 esac
 
-## We always provide the thread API now and thus, USE_THREADS is
-## always defined and threads.o is always included.
-
-AC_DEFINE(USE_THREADS, 1, [Define if providing the thread API.])
-AC_LIBOBJ([threads])
-
-## Also, we always provide scm_internal_select.
-
-AC_DEFINE(GUILE_ISELECT, 1, [Define to implement scm_internal_select.])
-
 case "${THREAD_PACKAGE}" in
   "QT" )
     AC_DEFINE(USE_COOP_THREADS, 1,
