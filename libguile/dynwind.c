@@ -121,11 +121,11 @@ scm_internal_dynamic_wind (scm_t_guard before,
 {
   SCM ans;
 
-  scm_begin_frame (SCM_F_FRAME_REWINDABLE);
-  scm_on_rewind (before, guard_data, SCM_F_WIND_EXPLICITLY);
-  scm_on_unwind (after, guard_data, SCM_F_WIND_EXPLICITLY);
+  scm_frame_begin (SCM_F_FRAME_REWINDABLE);
+  scm_frame_rewind (before, guard_data, SCM_F_WIND_EXPLICITLY);
+  scm_frame_unwind (after, guard_data, SCM_F_WIND_EXPLICITLY);
   ans = inner (inner_data);
-  scm_end_frame ();
+  scm_frame_end ();
   return ans;
 }
 
@@ -150,7 +150,7 @@ static scm_t_bits tc16_winder;
 #define WINDER_MARK_P(w)     (SCM_CELL_WORD_0(w) & WINDER_F_MARK)
 
 void
-scm_begin_frame (scm_t_frame_flags flags)
+scm_frame_begin (scm_t_frame_flags flags)
 {
   SCM f;
   scm_t_bits fl = ((flags&SCM_F_FRAME_REWINDABLE)? FRAME_F_REWINDABLE : 0);
@@ -159,23 +159,23 @@ scm_begin_frame (scm_t_frame_flags flags)
 }
 
 void
-scm_end_frame (void)
+scm_frame_end (void)
 {
-  long delta;
-  SCM to;
-  
-  /* Unwind upto and including the next frame entry.
+  /* Unwind upto and including the next frame entry.  We can only
+     encounter #<winder> entries on the way.
    */
 
-  for (to = scm_dynwinds, delta = 1;
-       SCM_CONSP (to);
-       to = SCM_CDR (to), delta++)
+  while (SCM_CONSP (scm_dynwinds))
     {
-      if (FRAME_P (SCM_CAR (to)))
-	{
-	  scm_i_dowinds (SCM_CDR (to), delta, 1, NULL, NULL);
-	  return;
-	}
+      SCM entry = SCM_CAR (scm_dynwinds);
+      scm_dynwinds = SCM_CDR (scm_dynwinds);
+
+      if (FRAME_P (entry))
+	return;
+
+      assert (WINDER_P (entry));
+      if (!WINDER_REWIND_P (entry) && WINDER_EXPLICIT_P (entry))
+	WINDER_PROC(entry) (WINDER_DATA (entry));
     }
 
   assert (0);
@@ -190,8 +190,8 @@ winder_mark (SCM w)
 }
 
 void
-scm_on_unwind (void (*proc) (void *), void *data,
-	       scm_t_wind_flags flags)
+scm_frame_unwind (void (*proc) (void *), void *data,
+		  scm_t_wind_flags flags)
 {
   SCM w;
   scm_t_bits fl = ((flags&SCM_F_WIND_EXPLICITLY)? WINDER_F_EXPLICIT : 0);
@@ -201,8 +201,8 @@ scm_on_unwind (void (*proc) (void *), void *data,
 }
 
 void
-scm_on_rewind (void (*proc) (void *), void *data,
-	       scm_t_wind_flags flags)
+scm_frame_rewind (void (*proc) (void *), void *data,
+		  scm_t_wind_flags flags)
 {
   SCM w;
   SCM_NEWSMOB2 (w, tc16_winder | WINDER_F_REWIND,
@@ -213,8 +213,8 @@ scm_on_rewind (void (*proc) (void *), void *data,
 }
 
 void
-scm_on_unwind_with_scm (void (*proc) (SCM), SCM data,
-			scm_t_wind_flags flags)
+scm_frame_unwind_with_scm (void (*proc) (SCM), SCM data,
+			   scm_t_wind_flags flags)
 {
   SCM w;
   scm_t_bits fl = ((flags&SCM_F_WIND_EXPLICITLY)? WINDER_F_EXPLICIT : 0);
@@ -224,8 +224,8 @@ scm_on_unwind_with_scm (void (*proc) (SCM), SCM data,
 }
 
 void
-scm_on_rewind_with_scm (void (*proc) (SCM), SCM data,
-			scm_t_wind_flags flags)
+scm_frame_rewind_with_scm (void (*proc) (SCM), SCM data,
+			   scm_t_wind_flags flags)
 {
   SCM w;
   SCM_NEWSMOB2 (w, tc16_winder | WINDER_F_REWIND | WINDER_F_MARK,

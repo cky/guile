@@ -50,18 +50,18 @@ typedef enum {
   SCM_F_WIND_EXPLICITLY = (1 << 0)
 } scm_t_wind_flags;
 
-SCM_API void scm_begin_frame (scm_t_frame_flags);
-SCM_API void scm_end_frame (void);
+SCM_API void scm_frame_begin (scm_t_frame_flags);
+SCM_API void scm_frame_end (void);
 
-SCM_API void scm_on_unwind (void (*func) (void *), void *data,
-			    scm_t_wind_flags);
-SCM_API void scm_on_rewind (void (*func) (void *), void *data,
-			    scm_t_wind_flags);
+SCM_API void scm_frame_unwind (void (*func) (void *), void *data,
+			       scm_t_wind_flags);
+SCM_API void scm_frame_rewind (void (*func) (void *), void *data,
+			       scm_t_wind_flags);
 
-SCM_API void scm_on_unwind_with_scm (void (*func) (SCM), SCM data,
-				     scm_t_wind_flags);
-SCM_API void scm_on_rewind_with_scm (void (*func) (SCM), SCM data,
-				     scm_t_wind_flags);
+SCM_API void scm_frame_unwind_with_scm (void (*func) (SCM), SCM data,
+					scm_t_wind_flags);
+SCM_API void scm_frame_rewind_with_scm (void (*func) (SCM), SCM data,
+					scm_t_wind_flags);
 
 #ifdef GUILE_DEBUG
 SCM_API SCM scm_wind_chain (void);
