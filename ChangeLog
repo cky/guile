@@ -1,3 +1,11 @@
+1999-10-05  Jim Blandy  <jimb@savonarola.red-bean.com>
+
+	Don't store generated files in the repository any more.  Instead,
+	require people to run autogen.sh on trees from snapshots and CVS.
+	* Makefile.in, acconfig.h, aclocal.m4, configure: Deleted.
+	* autogen.sh: New file.
+	* ANON-CVS, SNAPSHOTS: Updated instructions.
+
 1999-10-02  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	* acconfig.h (HAVE_POSIX, HAVE_NETWORKING): Add comments.

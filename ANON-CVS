@@ -17,7 +17,8 @@ And it allows us to start testing features earlier.
 
 Since the CVS tree is arranged for the convenience of the developers,
 it requires GCC and GNU Make, which together support automatic
-dependency management.
+dependency management.  You will also need to install autoconf,
+automake, and libtool; the recommended versions are listed in README.
 
 To check out a CVS working directory:
 
@@ -31,6 +32,9 @@ To check out a CVS working directory:
      $ cvs -z 9 -d :pserver:anoncvs@anoncvs.cygnus.com:/cvs/guile checkout guile-core
    This should create a new directory `guile-core' in your current
    directory, and populate it with the current Guile sources.
+4) In the top directory of the source tree, run the command `./autogen.sh'.
+   This builds the configure script, Makefile.in, and other derived files
+   used by the build system.
 
 The modules available for checkout are:
   guile-core --- The scheme interpreter itself.

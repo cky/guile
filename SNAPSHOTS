@@ -27,3 +27,12 @@ For getit, that's:
 The snapshot FTP site is mirrored at the following locations:
   Austria:              ftp://ftp.aec.at/pub/guile
   Japan:                ftp://ftp.jaist.ac.jp/pub/lang/scheme/guile
+
+
+To build the snapshot, you will need to have autoconf, automake, and
+libtool installed on your system; the recommended versions are listed
+in README.
+
+After you have unpacked the tar file, run the command `./autogen.sh'.
+This builds the configure script, Makefile.in, and other derived files
+used by the build system.
