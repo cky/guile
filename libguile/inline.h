@@ -195,7 +195,7 @@ scm_double_cell (scm_t_bits car, scm_t_bits cbr,
      reordering.
    */
 #ifdef __GNUC__
-  asm volatile ("" : : : "memory");
+  __asm__ volatile ("" : : : "memory");
 #else
   /* portable version, just in case any other compiler does the same
      thing.  */

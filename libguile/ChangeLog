@@ -1,3 +1,8 @@
+2005-03-28  Han-Wen Nienhuys  <hanwen@xs4all.nl>
+
+	* inline.h (scm_double_cell): use __asm__ iso. asm, to maintain
+	compatibility with gcc -std=c99.
+
 2005-03-24  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* async.h (scm_mask_ints): Removed left over reference to
