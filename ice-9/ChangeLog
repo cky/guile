@@ -1,3 +1,8 @@
+Wed Mar  1 12:21:02 2000  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* streams.scm: Doc patch from Richard Kim, using MIT Scheme as
+	source of the numerous very short changes.
+
 Sun Feb 13 18:03:19 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* slib.scm: Rename software-type to slib:software-type and make it 
