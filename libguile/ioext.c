@@ -260,47 +260,6 @@ scm_fseek (object, offset, whence)
   return SCM_UNSPECIFIED;
 }
 
-SCM_PROC (s_freopen, "freopen", 3, 0, 0, scm_freopen);
-
-SCM 
-scm_freopen (filename, modes, port)
-     SCM filename;
-     SCM modes;
-     SCM port;
-{
-  FILE *f;
-  SCM_ASSERT (SCM_NIMP (filename) && SCM_ROSTRINGP (filename), filename,
-	      SCM_ARG1, s_freopen);
-  SCM_ASSERT (SCM_NIMP (modes) && SCM_ROSTRINGP (modes), modes, SCM_ARG2,
-	      s_freopen);
-
-  SCM_COERCE_SUBSTR (filename);
-  SCM_COERCE_SUBSTR (modes);
-  port = SCM_COERCE_OUTPORT (port);
-  SCM_DEFER_INTS;
-  SCM_ASSERT (SCM_NIMP (port) && SCM_FPORTP (port), port, SCM_ARG3, s_freopen);
-  SCM_SYSCALL (f = freopen (SCM_ROCHARS (filename), SCM_ROCHARS (modes),
-			    (FILE *)SCM_STREAM (port)));
-  if (!f)
-    {
-      SCM p;
-      p = port;
-      port = SCM_MAKINUM (errno);
-      SCM_SETAND_CAR (p, ~SCM_OPN);
-      scm_remove_from_port_table (p);
-    }
-  else
-    {
-      SCM_SETCAR (port, scm_tc16_fport | scm_mode_bits (SCM_ROCHARS (modes)));
-      SCM_SETSTREAM (port, (SCM)f);
-      SCM_SETCAR (port, scm_tc16_fport | scm_mode_bits (SCM_ROCHARS (modes)));
-      if (SCM_BUF0 & SCM_CAR (port))
-	scm_setbuf0 (port);
-    }
-  SCM_ALLOW_INTS;
-  return port;
-}
-
 SCM_PROC (s_redirect_port, "redirect-port", 2, 0, 0, scm_redirect_port);
 
 SCM 
@@ -419,23 +378,16 @@ scm_fdopen (fdes, modes)
 {
   FILE *f;
   SCM port;
-  struct scm_port_table * pt;
 
   SCM_ASSERT (SCM_INUMP (fdes), fdes, SCM_ARG1, s_fdopen);
   SCM_ASSERT (SCM_NIMP (modes) && SCM_ROSTRINGP (modes), modes, SCM_ARG2,
 	      s_fdopen);
   SCM_COERCE_SUBSTR (modes);
-  SCM_NEWCELL (port);
   SCM_DEFER_INTS;
   f = fdopen (SCM_INUM (fdes), SCM_ROCHARS (modes));
   if (f == NULL)
     scm_syserror (s_fdopen);
-  pt = scm_add_to_port_table (port);
-  SCM_SETPTAB_ENTRY (port, pt);
-  SCM_SETCAR (port, scm_tc16_fport | scm_mode_bits (SCM_ROCHARS (modes)));
-  SCM_SETSTREAM (port, (SCM)f);
-  if (SCM_BUF0 & SCM_CAR (port))
-    scm_setbuf0 (port);
+  port = scm_stdio_to_port (f, SCM_ROCHARS (modes), SCM_BOOL_F);
   SCM_ALLOW_INTS;
   return port;
 }

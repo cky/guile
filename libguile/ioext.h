@@ -53,7 +53,6 @@ extern SCM scm_read_line (SCM port);
 extern SCM scm_write_line SCM_P ((SCM obj, SCM port));
 extern SCM scm_ftell SCM_P ((SCM object));
 extern SCM scm_fseek SCM_P ((SCM object, SCM offset, SCM whence));
-extern SCM scm_freopen SCM_P ((SCM filename, SCM modes, SCM port));
 extern SCM scm_redirect_port SCM_P ((SCM into_pt, SCM from_pt));
 extern SCM scm_dup_to_fdes (SCM fd_or_port, SCM newfd);
 extern SCM scm_fileno SCM_P ((SCM port));

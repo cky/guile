@@ -66,6 +66,7 @@
 
 
 
+SCM_SYMBOL (sym_socket, "socket");
 static SCM scm_sock_fd_to_port SCM_P ((int fd, char *proc));
 
 static SCM
@@ -84,14 +85,7 @@ scm_sock_fd_to_port (fd, proc)
       SCM_SYSCALL (close (fd));
       scm_syserror (proc);
     }
-  SCM_NEWCELL (result);
-  {
-    struct scm_port_table *pt = scm_add_to_port_table (result);
-
-    SCM_SETPTAB_ENTRY (result, pt);
-  }
-  SCM_SETCAR (result, scm_tc16_fport | scm_mode_bits ("r+0"));
-  SCM_SETSTREAM (result, (SCM)f);
+  result = scm_stdio_to_port (f, "r+0", sym_socket);
   scm_setbuf0 (result);
   return result;
 }

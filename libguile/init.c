@@ -264,11 +264,12 @@ scm_init_standard_ports ()
      and scsh, read stdin unbuffered.  Applications that can tolerate
      buffered input on stdin can reset \ex{(current-input-port)} to
      block buffering for higher performance.  */
-  scm_def_inp = scm_stdio_to_port (stdin, 
+  scm_def_inp
+    = scm_standard_stream_to_port (stdin, 
 				   (isatty (fileno (stdin)) ? "r0" : "r"),
 				   "standard input");
-  scm_def_outp = scm_stdio_to_port (stdout, "w", "standard output");
-  scm_def_errp = scm_stdio_to_port (stderr, "w", "standard error");
+  scm_def_outp = scm_standard_stream_to_port (stdout, "w", "standard output");
+  scm_def_errp = scm_standard_stream_to_port (stderr, "w", "standard error");
 
   scm_cur_inp = scm_def_inp;
   scm_cur_outp = scm_def_outp;

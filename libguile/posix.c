@@ -158,7 +158,8 @@ extern char ** environ;
    encourage header files to do strange things.  */
 
 
-
+SCM_SYMBOL (sym_read_pipe, "read pipe");
+SCM_SYMBOL (sym_write_pipe, "write pipe");
 
 SCM_PROC (s_pipe, "pipe", 0, 0, 0, scm_pipe);
 
@@ -168,11 +169,7 @@ scm_pipe ()
   int fd[2], rv;
   FILE *f_rd, *f_wt;
   SCM p_rd, p_wt;
-  struct scm_port_table * ptr;
-  struct scm_port_table * ptw;
 
-  SCM_NEWCELL (p_rd);
-  SCM_NEWCELL (p_wt);
   rv = pipe (fd);
   if (rv)
     scm_syserror (s_pipe);
@@ -193,14 +190,9 @@ scm_pipe ()
       errno = en;
       scm_syserror (s_pipe);
     }
-  ptr = scm_add_to_port_table (p_rd);
-  ptw = scm_add_to_port_table (p_wt);
-  SCM_SETPTAB_ENTRY (p_rd, ptr);
-  SCM_SETPTAB_ENTRY (p_wt, ptw);
-  SCM_SETCAR (p_rd, scm_tc16_fport | scm_mode_bits ("r"));
-  SCM_SETCAR (p_wt, scm_tc16_fport | scm_mode_bits ("w"));
-  SCM_SETSTREAM (p_rd, (SCM)f_rd);
-  SCM_SETSTREAM (p_wt, (SCM)f_wt);
+
+  p_rd = scm_stdio_to_port (f_rd, "r", sym_read_pipe);
+  p_wt = scm_stdio_to_port (f_wt, "w", sym_write_pipe);
 
   SCM_ALLOW_INTS;
   return scm_cons (p_rd, p_wt);
