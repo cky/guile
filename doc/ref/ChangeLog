@@ -1,7 +1,15 @@
 2003-11-09  Kevin Ryde  <user42@zip.com.au>
 
+	* misc-modules.texi (Pretty Printing): Add new keyword options, break
+	example to avoid long line.
+
 	* scheme-data.texi (Random): In random, use @code for *random-state*.
 	Reported by Stephen Compall.
+
+	* srfi-modules.texi (SRFI-1 Filtering and Partitioning): Move filter
+	and filter! ...
+	* scheme-compound.texi (List Modification): ... to here, now that
+	they're implemented in the core.
 
 2003-11-03  Kevin Ryde  <user42@zip.com.au>
 
