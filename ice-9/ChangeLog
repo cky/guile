@@ -3,6 +3,9 @@
 	* streams.scm (stream-for-each-many): Correction, should recurse into
 	itself, not stream-for-each-one.
 
+	* time.scm (time-proc): Make result inexact, since format ~f doesn't
+	support fractions currently.
+
 2004-09-08  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* boot-9.scm (expt): Only call integer-expt for an exact integer
