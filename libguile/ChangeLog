@@ -1,5 +1,25 @@
 2004-09-29  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
+	* read.c (scm_lreadr): Revert change from 2004-09-22: string
+	literals are now read-write again (until SCM_STRING_CHARS is
+	removed).
+
+	* strings.c (SCM_STRING_CHARS): Explicitely reject read-only
+	strings with an error message that blames SCM_STRING_CHARS.
+
+	* options.c (change_option_setting): Use scm_car instead of
+	explicit type check plus SCM_CAR.
+
+	* print.h, print.c (SCM_PRINT_HIGHLIGHT_PREFIX,
+	SCM_PRINT_HIGHLIGHT_SUFFIX): New printer options.
+	(scm_iprin1): Use them instead of the previoulsy hardcoded
+	strings.
+	(scm_init_print): Initialize them.
+
+	* backtrace.c (display_frame_expr): Do not remove control
+	characters from the final string.  Print it directly using
+	scm_display.
+
 	* ramap.c (scm_array_equal_p): Include scm_tc7_svect in switch.
 	Thanks to Roland Orre!
 
