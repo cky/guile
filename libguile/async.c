@@ -49,6 +49,7 @@
 #include "_scm.h"
 #include "eval.h"
 #include "throw.h"
+#include "root.h"
 #include "smob.h"
 
 #include "validate.h"

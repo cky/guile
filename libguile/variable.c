@@ -48,6 +48,7 @@
 #include "_scm.h"
 #include "eq.h"
 #include "ports.h"
+#include "root.h"
 #include "smob.h"
 
 #include "validate.h"

@@ -1,3 +1,13 @@
+2000-03-18  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* _scm.h:  Don't include root.h everywhere...
+
+	* async.c continuations.c eq.c eval.c evalext.c feature.c gc.c
+	gdbint.c gsubr.c ioext.c keywords.c lang.c load.c macros.c
+	numbers.c objprop.c ports.c print.c procprop.c ramap.c read.c
+	srcprop.c stackchk.c stacks.c strports.c symbols.c unif.c
+	variable.c vectors.c vports.c: ... only include it here.
+
 2000-03-17  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* _scm.h:  Don't include strings.h everywhere...

@@ -54,6 +54,7 @@
 #include "unif.h"
 #include "async.h"
 #include "ports.h"
+#include "root.h"
 #include "strings.h"
 #include "vectors.h"
 

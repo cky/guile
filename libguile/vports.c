@@ -49,6 +49,7 @@
 #include "eval.h"
 #include "chars.h"
 #include "fports.h"
+#include "root.h"
 #include "strings.h"
 #include "vectors.h"
 

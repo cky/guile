@@ -47,6 +47,7 @@
 #include <stdio.h>
 #include "_scm.h"
 #include "ports.h"
+#include "root.h"
 #include "smob.h"
 #include "vectors.h"
 

@@ -47,6 +47,7 @@
 #include <stdio.h>
 #include "_scm.h"
 #include "eq.h"
+#include "root.h"
 #include "strings.h"
 
 #include "validate.h"

@@ -48,6 +48,7 @@
 #include "ramap.h"
 #include "stackchk.h"
 #include "strorder.h"
+#include "root.h"
 #include "smob.h"
 #include "unif.h"
 #include "vectors.h"

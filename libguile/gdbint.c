@@ -61,6 +61,7 @@
 #include "chars.h"
 #include "modules.h"
 #include "ports.h"
+#include "root.h"
 #include "strings.h"
 
 #include "gdbint.h"

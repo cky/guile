@@ -52,6 +52,7 @@
 #include "chars.h"
 
 #include "keywords.h"
+#include "root.h"
 #include "strings.h"
 
 #include "validate.h"

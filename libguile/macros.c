@@ -45,6 +45,7 @@
 
 
 #include "_scm.h"
+#include "root.h"
 #include "smob.h"
 
 #include "validate.h"

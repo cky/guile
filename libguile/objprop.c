@@ -48,6 +48,7 @@
 #include "_scm.h"
 #include "hashtab.h"
 #include "alist.h"
+#include "root.h"
 #include "weaks.h"
 
 #include "objprop.h"

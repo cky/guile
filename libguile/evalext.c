@@ -48,6 +48,7 @@
 #include "eval.h"
 #include "macros.h"
 #include "modules.h"
+#include "root.h"
 
 #include "validate.h"
 #include "evalext.h"

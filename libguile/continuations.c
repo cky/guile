@@ -46,6 +46,7 @@
 
 #include <stdio.h>
 #include "_scm.h"
+#include "root.h"
 #include "stackchk.h"
 #ifdef DEBUG_EXTENSIONS
 #include "debug.h"

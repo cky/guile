@@ -57,6 +57,7 @@
 #include "macros.h"
 #include "procprop.h"
 #include "modules.h"
+#include "root.h"
 #include "strings.h"
 
 #include "validate.h"

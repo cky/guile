@@ -50,6 +50,7 @@
 #include "eval.h"
 #include "ports.h"
 #include "procprop.h"
+#include "root.h"
 #include "smob.h"
 #include "strings.h"
 

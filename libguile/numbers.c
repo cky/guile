@@ -50,6 +50,7 @@
 #include "unif.h"
 #include "feature.h"
 #include "ports.h"
+#include "root.h"
 #include "smob.h"
 #include "strings.h"
 #include "vectors.h"
