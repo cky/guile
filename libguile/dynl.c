@@ -53,7 +53,7 @@ maybe_drag_in_eprintf ()
 #include "libguile/validate.h"
 #include "libguile/dynwind.h"
 
-#include "guile-ltdl.h"
+#include <ltdl.h>
 
 /*
   From the libtool manual: "Note that libltdl is not threadsafe,
@@ -68,15 +68,15 @@ maybe_drag_in_eprintf ()
 static void *
 sysdep_dynl_link (const char *fname, const char *subr)
 {
-  scm_lt_dlhandle handle;
-  handle = scm_lt_dlopenext (fname);
+  lt_dlhandle handle;
+  handle = lt_dlopenext (fname);
   if (NULL == handle)
     {
       SCM fn;
       SCM msg;
 
       fn = scm_from_locale_string (fname);
-      msg = scm_from_locale_string (scm_lt_dlerror ());
+      msg = scm_from_locale_string (lt_dlerror ());
       scm_misc_error (subr, "file: ~S, message: ~S", scm_list_2 (fn, msg));
     }
   return (void *) handle;
@@ -85,9 +85,9 @@ sysdep_dynl_link (const char *fname, const char *subr)
 static void
 sysdep_dynl_unlink (void *handle, const char *subr)
 {
-  if (scm_lt_dlclose ((scm_lt_dlhandle) handle))
+  if (lt_dlclose ((lt_dlhandle) handle))
     {
-      scm_misc_error (subr, (char *) scm_lt_dlerror (), SCM_EOL);
+      scm_misc_error (subr, (char *) lt_dlerror (), SCM_EOL);
     }
 }
    
@@ -96,10 +96,10 @@ sysdep_dynl_func (const char *symb, void *handle, const char *subr)
 {
   void *fptr;
 
-  fptr = scm_lt_dlsym ((scm_lt_dlhandle) handle, symb);
+  fptr = lt_dlsym ((lt_dlhandle) handle, symb);
   if (!fptr)
     {
-      scm_misc_error (subr, (char *) scm_lt_dlerror (), SCM_EOL);
+      scm_misc_error (subr, (char *) lt_dlerror (), SCM_EOL);
     }
   return fptr;
 }
@@ -107,7 +107,7 @@ sysdep_dynl_func (const char *symb, void *handle, const char *subr)
 static void
 sysdep_dynl_init ()
 {
-  scm_lt_dlinit ();
+  lt_dlinit ();
 }
 
 scm_t_bits scm_tc16_dynamic_obj;
