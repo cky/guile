@@ -754,7 +754,7 @@
       (let lp1 ((ll (car l)) (acc acc))
 	(if (null? ll)
 	  (lp0 (cdr l) acc)
-	  (if (member (car ll) acc =)
+	  (if (member (car ll) acc (lambda (x y) (= y x)))
 	    (lp1 (cdr ll) acc)
 	    (lp1 (cdr ll) (cons (car ll) acc))))))))
 
