@@ -174,6 +174,7 @@ scm_gethost (name)
     }
   else if (SCM_NIMP (name) && SCM_ROSTRINGP (name))
     {
+      SCM_COERCE_SUBSTR (name);
       SCM_DEFER_INTS;
       entry = gethostbyname (SCM_ROCHARS (name));
     }
@@ -225,6 +226,7 @@ scm_getnet (name)
     }
   else if (SCM_NIMP (name) && SCM_ROSTRINGP (name))
     {
+      SCM_COERCE_SUBSTR (name);
       SCM_DEFER_INTS;
       entry = getnetbyname (SCM_ROCHARS (name));
     }
@@ -264,6 +266,7 @@ scm_getproto (name)
     }
   else if (SCM_NIMP (name) && SCM_ROSTRINGP (name))
     {
+      SCM_COERCE_SUBSTR (name);
       SCM_DEFER_INTS;
       entry = getprotobyname (SCM_ROCHARS (name));
     }
@@ -321,8 +324,10 @@ scm_getserv (name, proto)
       return scm_return_entry (entry);
     }
   SCM_ASSERT (SCM_NIMP (proto) && SCM_ROSTRINGP (proto), proto, SCM_ARG2, s_getserv);
+  SCM_COERCE_SUBSTR (proto);
   if (SCM_NIMP (name) && SCM_ROSTRINGP (name))
     {
+      SCM_COERCE_SUBSTR (name);
       SCM_DEFER_INTS;
       entry = getservbyname (SCM_ROCHARS (name), SCM_ROCHARS (proto));
     }

@@ -84,7 +84,8 @@ scm_error (key, subr, message, args, rest)
   
   /* No return, but just in case: */
 
-  write (2, "unhandled system error", sizeof ("unhandled system error") - 1);
+  write (2, "unhandled system error\n",
+	 sizeof ("unhandled system error\n") - 1);
   exit (1);
 }
 
@@ -104,6 +105,8 @@ scm_error_scm (key, subr, message, args, rest)
   SCM_ASSERT (SCM_FALSEP (message)
 	      || (SCM_NIMP (message) && SCM_ROSTRINGP (message)),
 	      message, SCM_ARG3, s_error_scm);
+
+  SCM_COERCE_SUBSTR (message);
 
   scm_error (key,
 	     (SCM_FALSEP (subr)) ? NULL : SCM_ROCHARS (subr),

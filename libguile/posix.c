@@ -352,6 +352,7 @@ scm_getgrgid (name)
     {
       SCM_ASSERT (SCM_NIMP (name) && SCM_ROSTRINGP (name), name, SCM_ARG1,
 		  s_getgrgid);
+      SCM_COERCE_SUBSTR (name);
       SCM_SYSCALL (entry = getgrnam (SCM_ROCHARS (name)));
     }
   if (!entry)
@@ -972,9 +973,10 @@ scm_utime (pathname, actime, modtime)
   int rv;
   struct utimbuf utm_tmp;
 
-  SCM_ASSERT (SCM_NIMP (pathname) && SCM_STRINGP (pathname), pathname,
+  SCM_ASSERT (SCM_NIMP (pathname) && SCM_ROSTRINGP (pathname), pathname,
 	      SCM_ARG1, s_utime);
 
+  SCM_COERCE_SUBSTR (pathname);
   if (SCM_UNBNDP (actime))
     SCM_SYSCALL (time (&utm_tmp.actime));
   else
@@ -985,7 +987,7 @@ scm_utime (pathname, actime, modtime)
   else
     utm_tmp.modtime = scm_num2ulong (modtime, (char *) SCM_ARG3, s_utime);
 
-  SCM_SYSCALL (rv = utime (SCM_CHARS (pathname), &utm_tmp));
+  SCM_SYSCALL (rv = utime (SCM_ROCHARS (pathname), &utm_tmp));
   if (rv != 0)
     scm_syserror (s_utime);
   return SCM_UNSPECIFIED;
@@ -1026,12 +1028,13 @@ scm_putenv (str)
   int rv;
   char *ptr;
 
-  SCM_ASSERT (SCM_NIMP (str) && SCM_STRINGP (str), str, SCM_ARG1, s_putenv);
+  SCM_ASSERT (SCM_NIMP (str) && SCM_ROSTRINGP (str), str, SCM_ARG1, s_putenv);
   /* must make a new copy to be left in the environment, safe from gc.  */
   ptr = malloc (SCM_LENGTH (str) + 1);
   if (ptr == NULL)
     scm_memory_error (s_putenv);
-  strcpy (ptr, SCM_CHARS (str));
+  strncpy (ptr, SCM_ROCHARS (str), SCM_LENGTH (str));
+  ptr[SCM_LENGTH(str)] = 0;
   rv = putenv (ptr);
   if (rv < 0)
     scm_syserror (s_putenv);
@@ -1056,9 +1059,10 @@ scm_setlocale (category, locale)
     }
   else
     {
-      SCM_ASSERT (SCM_NIMP (locale) && SCM_STRINGP (locale), locale,
+      SCM_ASSERT (SCM_NIMP (locale) && SCM_ROSTRINGP (locale), locale,
 		  SCM_ARG2, s_setlocale);
-      clocale = SCM_CHARS (locale);
+      SCM_COERCE_SUBSTR (locale);
+      clocale = SCM_ROCHARS (locale);
     }
 
   rv = setlocale (SCM_INUM (category), clocale);
@@ -1090,6 +1094,7 @@ scm_mknod(path, type, perms, dev)
   SCM_ASSERT (SCM_NIMP(type) && SCM_SYMBOLP (type), type, SCM_ARG2, s_mknod);
   SCM_ASSERT (SCM_INUMP (perms), perms, SCM_ARG3, s_mknod);
   SCM_ASSERT (SCM_INUMP(dev), dev, SCM_ARG4, s_mknod);
+  SCM_COERCE_SUBSTR (path);
 
   p = SCM_CHARS (type);
   if (strcmp (p, "regular") == 0)

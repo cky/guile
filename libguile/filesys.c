@@ -139,10 +139,10 @@ scm_chown (path, owner, group)
   int val;
 
   SCM_ASSERT (SCM_NIMP (path) && SCM_ROSTRINGP (path), path, SCM_ARG1, s_chown);
-  if (SCM_SUBSTRP (path))
-    path = scm_makfromstr (SCM_ROCHARS (path), SCM_ROLENGTH (path), 0);
   SCM_ASSERT (SCM_INUMP (owner), owner, SCM_ARG2, s_chown);
   SCM_ASSERT (SCM_INUMP (group), group, SCM_ARG3, s_chown);
+
+  SCM_COERCE_SUBSTR (path);
   SCM_SYSCALL (val = chown (SCM_ROCHARS (path),
 			    SCM_INUM (owner), SCM_INUM (group)));
   if (val != 0)
@@ -161,8 +161,11 @@ scm_chmod (port_or_path, mode)
   int rv;
   SCM_ASSERT (SCM_INUMP (mode), mode, SCM_ARG2, s_chmod);
   SCM_ASSERT (SCM_NIMP (port_or_path), port_or_path, SCM_ARG1, s_chmod);
-  if (SCM_STRINGP (port_or_path))
-    SCM_SYSCALL (rv = chmod (SCM_CHARS (port_or_path), SCM_INUM (mode)));
+  if (SCM_ROSTRINGP (port_or_path))
+    {
+      SCM_COERCE_SUBSTR (port_or_path);
+      SCM_SYSCALL (rv = chmod (SCM_ROCHARS (port_or_path), SCM_INUM (mode)));
+    }
   else
     {
       SCM_ASSERT (SCM_OPFPORTP (port_or_path), port_or_path, SCM_ARG1, s_chmod);
@@ -438,22 +441,26 @@ scm_rename (oldname, newname)
      SCM newname;
 {
   int rv;
-  SCM_ASSERT (SCM_NIMP (oldname) && SCM_STRINGP (oldname), oldname, SCM_ARG1, s_rename);
-  SCM_ASSERT (SCM_NIMP (newname) && SCM_STRINGP (newname), newname, SCM_ARG2, s_rename);
+  SCM_ASSERT (SCM_NIMP (oldname) && SCM_ROSTRINGP (oldname), oldname, SCM_ARG1,
+	      s_rename);
+  SCM_ASSERT (SCM_NIMP (newname) && SCM_ROSTRINGP (newname), newname, SCM_ARG2,
+	      s_rename);
+  SCM_COERCE_SUBSTR (oldname);
+  SCM_COERCE_SUBSTR (newname);
 #ifdef HAVE_RENAME
-  SCM_SYSCALL (rv = rename (SCM_CHARS (oldname), SCM_CHARS (newname)));
+  SCM_SYSCALL (rv = rename (SCM_ROCHARS (oldname), SCM_ROCHARS (newname)));
   if (rv != 0)
     scm_syserror (s_rename);
   return SCM_UNSPECIFIED;
 #else
   SCM_DEFER_INTS;
-  SCM_SYSCALL (rv = link (SCM_CHARS (oldname), SCM_CHARS (newname)));
+  SCM_SYSCALL (rv = link (SCM_ROCHARS (oldname), SCM_ROCHARS (newname)));
   if (rv == 0)
     {
-      SCM_SYSCALL (rv = unlink (SCM_CHARS (oldname)));;
+      SCM_SYSCALL (rv = unlink (SCM_ROCHARS (oldname)));;
       if (rv != 0)
 	/* unlink failed.  remove new name */
-	SCM_SYSCALL (unlink (SCM_CHARS (newname))); 
+	SCM_SYSCALL (unlink (SCM_ROCHARS (newname))); 
     }
   SCM_ALLOW_INTS;
   if (rv != 0)
@@ -470,8 +477,9 @@ scm_delete_file (str)
      SCM str;
 {
   int ans;
-  SCM_ASSERT (SCM_NIMP (str) && SCM_STRINGP (str), str, SCM_ARG1, s_delete_file);
-  SCM_SYSCALL (ans = unlink (SCM_CHARS (str)));
+  SCM_ASSERT (SCM_NIMP (str) && SCM_ROSTRINGP (str), str, SCM_ARG1, s_delete_file);
+  SCM_COERCE_SUBSTR (str);
+  SCM_SYSCALL (ans = unlink (SCM_ROCHARS (str)));
   if (ans != 0)
     scm_syserror (s_delete_file);
   return SCM_UNSPECIFIED;
@@ -488,17 +496,19 @@ scm_mkdir (path, mode)
 #ifdef HAVE_MKDIR
   int rv;
   mode_t mask;
-  SCM_ASSERT (SCM_NIMP (path) && SCM_STRINGP (path), path, SCM_ARG1, s_mkdir);
+  SCM_ASSERT (SCM_NIMP (path) && SCM_ROSTRINGP (path), path, SCM_ARG1,
+	      s_mkdir);
+  SCM_COERCE_SUBSTR (path);
   if (SCM_UNBNDP (mode))
     {
       mask = umask (0);
       umask (mask);
-      SCM_SYSCALL (rv = mkdir (SCM_CHARS (path), 0777 ^ mask));
+      SCM_SYSCALL (rv = mkdir (SCM_ROCHARS (path), 0777 ^ mask));
     }
   else
     {
       SCM_ASSERT (SCM_INUMP (mode), mode, SCM_ARG2, s_mkdir);
-      SCM_SYSCALL (rv = mkdir (SCM_CHARS (path), SCM_INUM (mode)));
+      SCM_SYSCALL (rv = mkdir (SCM_ROCHARS (path), SCM_INUM (mode)));
     }
   if (rv != 0)
     scm_syserror (s_mkdir);
@@ -520,8 +530,10 @@ scm_rmdir (path)
 #ifdef HAVE_RMDIR
   int val;
 
-  SCM_ASSERT (SCM_NIMP (path) && SCM_STRINGP (path), path, SCM_ARG1, s_rmdir);
-  SCM_SYSCALL (val = rmdir (SCM_CHARS (path)));
+  SCM_ASSERT (SCM_NIMP (path) && SCM_ROSTRINGP (path), path, SCM_ARG1,
+	      s_rmdir);
+  SCM_COERCE_SUBSTR (path);
+  SCM_SYSCALL (val = rmdir (SCM_ROCHARS (path)));
   if (val != 0)
     scm_syserror (s_rmdir);
   return SCM_UNSPECIFIED;
@@ -546,10 +558,12 @@ scm_opendir (dirname)
 {
   DIR *ds;
   SCM dir;
-  SCM_ASSERT (SCM_NIMP (dirname) && SCM_STRINGP (dirname), dirname, SCM_ARG1, s_opendir);
+  SCM_ASSERT (SCM_NIMP (dirname) && SCM_ROSTRINGP (dirname), dirname, SCM_ARG1,
+	      s_opendir);
+  SCM_COERCE_SUBSTR (dirname);
   SCM_NEWCELL (dir);
   SCM_DEFER_INTS;
-  SCM_SYSCALL (ds = opendir (SCM_CHARS (dirname)));
+  SCM_SYSCALL (ds = opendir (SCM_ROCHARS (dirname)));
   if (ds == NULL)
     scm_syserror (s_opendir);
   SCM_SETCAR (dir, scm_tc16_dir | SCM_OPN);
@@ -657,8 +671,9 @@ scm_chdir (str)
 {
   int ans;
 
-  SCM_ASSERT (SCM_NIMP (str) && SCM_STRINGP (str), str, SCM_ARG1, s_chdir);
-  SCM_SYSCALL (ans = chdir (SCM_CHARS (str)));
+  SCM_ASSERT (SCM_NIMP (str) && SCM_ROSTRINGP (str), str, SCM_ARG1, s_chdir);
+  SCM_COERCE_SUBSTR (str);
+  SCM_SYSCALL (ans = chdir (SCM_ROCHARS (str)));
   if (ans != 0)
     scm_syserror (s_chdir);
   return SCM_UNSPECIFIED;
@@ -965,9 +980,13 @@ scm_symlink(oldpath, newpath)
 #ifdef HAVE_SYMLINK
   int val;
 
-  SCM_ASSERT(SCM_NIMP(oldpath) && SCM_STRINGP(oldpath), oldpath, SCM_ARG1, s_symlink);
-  SCM_ASSERT(SCM_NIMP(newpath) && SCM_STRINGP(newpath), newpath, SCM_ARG2, s_symlink);
-  SCM_SYSCALL (val = symlink(SCM_CHARS(oldpath), SCM_CHARS(newpath)));
+  SCM_ASSERT (SCM_NIMP (oldpath) && SCM_ROSTRINGP (oldpath), oldpath, SCM_ARG1,
+	      s_symlink);
+  SCM_ASSERT (SCM_NIMP (newpath) && SCM_ROSTRINGP (newpath), newpath, SCM_ARG2,
+	      s_symlink);
+  SCM_COERCE_SUBSTR (oldpath);
+  SCM_COERCE_SUBSTR (newpath);
+  SCM_SYSCALL (val = symlink(SCM_ROCHARS(oldpath), SCM_ROCHARS(newpath)));
   if (val != 0)
     scm_syserror (s_symlink);
   return SCM_UNSPECIFIED;
@@ -990,10 +1009,12 @@ scm_readlink(path)
   scm_sizet size = 100;
   char *buf;
   SCM result;
-  SCM_ASSERT (SCM_NIMP (path) && SCM_STRINGP (path),  path, (char *) SCM_ARG1, s_readlink);
+  SCM_ASSERT (SCM_NIMP (path) && SCM_ROSTRINGP (path), path, (char *) SCM_ARG1,
+	      s_readlink);
+  SCM_COERCE_SUBSTR (path);
   SCM_DEFER_INTS;
   buf = scm_must_malloc (size, s_readlink);
-  while ((rv = readlink (SCM_CHARS (path), buf, (scm_sizet) size)) == size)
+  while ((rv = readlink (SCM_ROCHARS (path), buf, (scm_sizet) size)) == size)
     {
       scm_must_free (buf);
       size *= 2;
@@ -1023,8 +1044,10 @@ scm_lstat(str)
   int rv;
   struct stat stat_temp;
 
-  SCM_ASSERT(SCM_NIMP(str) && SCM_STRINGP(str), str, (char *)SCM_ARG1, s_lstat);
-  SCM_SYSCALL(rv = lstat(SCM_CHARS(str), &stat_temp));
+  SCM_ASSERT (SCM_NIMP (str) && SCM_ROSTRINGP (str), str, (char *) SCM_ARG1,
+	      s_lstat);
+  SCM_COERCE_SUBSTR (str);
+  SCM_SYSCALL(rv = lstat(SCM_ROCHARS(str), &stat_temp));
   if (rv != 0)
     {
       int en = errno;

@@ -206,6 +206,9 @@ scm_freopen (filename, modes, port)
 	      SCM_ARG1, s_freopen);
   SCM_ASSERT (SCM_NIMP (modes) && SCM_ROSTRINGP (modes), modes, SCM_ARG2,
 	      s_freopen);
+
+  SCM_COERCE_SUBSTR (filename);
+  SCM_COERCE_SUBSTR (modes);
   SCM_DEFER_INTS;
   SCM_ASSERT (SCM_NIMP (port) && SCM_FPORTP (port), port, SCM_ARG3, s_freopen);
   SCM_SYSCALL (f = freopen (SCM_ROCHARS (filename), SCM_ROCHARS (modes),
@@ -247,6 +250,8 @@ scm_duplicate_port (oldpt, modes)
 	      s_duplicate_port);
   SCM_ASSERT (SCM_NIMP (modes) && SCM_ROSTRINGP (modes), modes, SCM_ARG2,
 	      s_duplicate_port);
+
+  SCM_COERCE_SUBSTR (modes);
   SCM_NEWCELL (newpt);
   SCM_DEFER_INTS;
   oldfd = fileno ((FILE *)SCM_STREAM (oldpt));
@@ -346,6 +351,7 @@ scm_fdopen (fdes, modes)
   SCM_ASSERT (SCM_INUMP (fdes), fdes, SCM_ARG1, s_fdopen);
   SCM_ASSERT (SCM_NIMP (modes) && SCM_ROSTRINGP (modes), modes, SCM_ARG2,
 	      s_fdopen);
+  SCM_COERCE_SUBSTR (modes);
   SCM_NEWCELL (port);
   SCM_DEFER_INTS;
   f = fdopen (SCM_INUM (fdes), SCM_ROCHARS (modes));

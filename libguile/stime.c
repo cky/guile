@@ -245,14 +245,15 @@ setzone (SCM zone, int pos, char *subr)
       char *buf;
 
       /* if zone was supplied, set the environment variable TZ temporarily.  */
-      SCM_ASSERT (SCM_NIMP (zone) && SCM_STRINGP (zone), zone, pos, subr);
+      SCM_ASSERT (SCM_NIMP (zone) && SCM_ROSTRINGP (zone), zone, pos, subr);
+      SCM_COERCE_SUBSTR (zone);
       buf = malloc (SCM_LENGTH (zone) + 4);
       if (buf == 0)
 	scm_memory_error (subr);
       oldtz = getenv ("TZ");
       if (oldtz != NULL)
 	oldtz = oldtz - 3;
-      sprintf (buf, "TZ=%s", SCM_CHARS (zone));
+      sprintf (buf, "TZ=%s", SCM_ROCHARS (zone));
       if (putenv (buf) < 0)
 	scm_syserror (subr);
       tzset();
@@ -474,10 +475,11 @@ scm_strftime (format, stime)
   char *fmt;
   int len;
 
-  SCM_ASSERT (SCM_NIMP (format) && SCM_STRINGP (format), format, SCM_ARG1,
+  SCM_ASSERT (SCM_NIMP (format) && SCM_ROSTRINGP (format), format, SCM_ARG1,
 	      s_strftime);
   bdtime2c (stime, &t, SCM_ARG2, s_strftime);
 
+  SCM_COERCE_SUBSTR (format);
   fmt = SCM_ROCHARS (format);
   len = SCM_ROLENGTH (format);
 
@@ -507,6 +509,8 @@ scm_strptime (format, string)
   SCM_ASSERT (SCM_NIMP (string) && SCM_ROSTRINGP (string), string, SCM_ARG2,
 	      s_strptime);
 
+  SCM_COERCE_SUBSTR (format);
+  SCM_COERCE_SUBSTR (string);
   fmt = SCM_ROCHARS (format);
   str = SCM_ROCHARS (string);
 

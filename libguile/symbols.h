@@ -100,6 +100,9 @@ extern int scm_symhash_dim;
 #define SCM_SUBSTR_STR(x) (SCM_CDDR (x))
 #define SCM_SUBSTR_OFFSET(x) (SCM_CADR (x))
 
+#define SCM_COERCE_SUBSTR(x) { if (SCM_SUBSTRP (x)) \
+				 x = scm_makfromstr (SCM_ROCHARS (x), \
+						     SCM_ROLENGTH (x), 0); }
 
 
 

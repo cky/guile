@@ -180,11 +180,12 @@ scm_make_soft_port (pv, modes)
   struct scm_port_table * pt;
   SCM z;
   SCM_ASSERT (SCM_NIMP (pv) && SCM_VECTORP (pv) && 5 == SCM_LENGTH (pv), pv, SCM_ARG1, s_make_soft_port);
-  SCM_ASSERT (SCM_NIMP (modes) && SCM_STRINGP (modes), modes, SCM_ARG2, s_make_soft_port);
+  SCM_ASSERT (SCM_NIMP (modes) && SCM_ROSTRINGP (modes), modes, SCM_ARG2, s_make_soft_port);
+  SCM_COERCE_SUBSTR (modes);
   SCM_NEWCELL (z);
   SCM_DEFER_INTS;
   pt = scm_add_to_port_table (z);
-  SCM_SETCAR (z, scm_tc16_sfport | scm_mode_bits (SCM_CHARS (modes)));
+  SCM_SETCAR (z, scm_tc16_sfport | scm_mode_bits (SCM_ROCHARS (modes)));
   SCM_SETPTAB_ENTRY (z, pt);
   SCM_SETSTREAM (z, pv);
   SCM_ALLOW_INTS;

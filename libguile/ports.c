@@ -815,9 +815,10 @@ SCM
 scm_sys_make_void_port (mode)
      SCM mode;
 {
-  SCM_ASSERT (SCM_NIMP (mode) && SCM_STRINGP (mode), mode,
+  SCM_ASSERT (SCM_NIMP (mode) && SCM_ROSTRINGP (mode), mode,
 	      SCM_ARG1, s_sys_make_void_port);
 
+  SCM_COERCE_SUBSTR (mode);
   return scm_void_port (SCM_ROCHARS (mode));
 }
 

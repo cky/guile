@@ -99,7 +99,7 @@ scm_display_error_message (message, args, port)
   char *start;
   char *p;
   
-  if (SCM_IMP (message) || !SCM_STRINGP (message) || SCM_IMP (args)
+  if (SCM_IMP (message) || !SCM_ROSTRINGP (message) || SCM_IMP (args)
       || !scm_list_p (args))
     {
       scm_prin1 (message, port, 0);
@@ -107,7 +107,8 @@ scm_display_error_message (message, args, port)
       return;
     }
 
-  start = SCM_CHARS (message);
+  SCM_COERCE_SUBSTR (message);
+  start = SCM_ROCHARS (message);
   for (p = start; *p != '\0'; ++p)
     if (*p == '%')
       {
