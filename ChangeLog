@@ -1,3 +1,8 @@
+Tue May 27 22:47:52 1997  Tim Pierce  <twp@twp.tezcat.com>
+
+	* configure.in: Check for presence of regcomp.
+	* configure: Regenerated.
+
 Mon May 26 12:14:20 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* COPYING: New address for FSF.

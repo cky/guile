@@ -1,3 +1,20 @@
+Tue May 27 22:47:31 1997  Tim Pierce  <twp@twp.tezcat.com>
+
+	Add support for POSIX regular expressions.
+	
+	* regex-posix.c, regex-posix.h: New files. (Some code
+	is taken liberally from rx/rgx.c in the old Guile dist.)
+
+	* init.c: Include regex-posix.h.
+	(scm_boot_guile_1): Call scm_init_regex_posix.
+	
+	* Makefile.am (EXTRA_libguile_la_SOURCES, modinclude_HEADERS):
+	Add regex-posix.[ch] sources.
+	* Makefile.in: Regenerated.
+	
+	* scmconfig.h.in: Add HAVE_REGCOMP macro.  (automake is supposed
+	to do this automatically?  It didn't for me, bleh.)
+	
 Mon May 26 18:51:29 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* fports.c (print_pipe_port): New function.

@@ -1,3 +1,9 @@
+Tue May 27 22:48:14 1997  Tim Pierce  <twp@twp.tezcat.com>
+
+	* regex.scm: New file.
+	* Makefile.am (subpkgdata_DATA): Add regex.scm.
+	* Makefile.in: Regenerated.
+
 Mon May 26 17:24:48 1997  Jim Blandy  <jimb@totoro.cyclic.com>
 
 	* COPYING, boot-9.scm, debug.scm, emacs.scm, expect.scm, gtcl.scm,

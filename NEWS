@@ -4,8 +4,28 @@ See the end for copying conditions.
 
 Please send Guile bug reports to bug-guile@prep.ai.mit.edu.
 
-Changes since Guile 1.1:
+Changes in Guile 1.2:
 
+[[trim out any sections we don't need]]
+
+* Changes to the distribution
+
+* Changes to the procedure for linking libguile with your programs
+
+* Changes to Scheme functions
+
+** Guile has regular expression support again.  Guile 1.0 included
+functions for matching regular expressions, based on the Rx library.
+In Guile 1.1, the Guile/Rx interface was removed to simplify the
+distribution, and thus Guile had no regular expression support.  Guile
+1.2 now adds back the most commonly used functions, and supports all
+of SCSH's regular expression functions.  They are:
+
+*** [[get docs from Tim?]]
+
+* Changes to the gh_ interface
+
+* Changes to the scm_ interface
 
 
 Changes in Guile 1.1 (Fri May 16 1997):
