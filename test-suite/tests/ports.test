@@ -195,18 +195,20 @@
 				    (string=? (read-line) "moon")))))
 
 ;;; non-blocking mode on a port.  create a pipe and set O_NONBLOCK on
-;;; the reading end.  try to read a byte: should get EAGAIN error.
+;;; the reading end.  try to read a byte: should get EAGAIN or
+;;; EWOULDBLOCK error.
 (catch-test-errors
  (let* ((p (pipe))
 	(r (car p)))
-   (fcntl r F_SETFL O_NONBLOCK)
+   (fcntl r F_SETFL (logior (fcntl r F_GETFL) O_NONBLOCK))
    (pass-if "non-blocking-I/O"
 	    (catch 'system-error
 		   (lambda () (read-char r) #f)
 		   (lambda (key . args)
 		     (and (eq? key 'system-error)
-			  (= (car (list-ref args 3)) EAGAIN)))))))
-
+			  (let ((errno (car (list-ref args 3))))
+			    (or (= errno EAGAIN)
+				(= errno EWOULDBLOCK)))))))))
 
 ;;;; Pipe (popen) ports.
 
