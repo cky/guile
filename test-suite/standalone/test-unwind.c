@@ -1,6 +1,7 @@
 #include <libguile.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 
 void set_flag (void *data);
 void func1 (void);
@@ -12,6 +13,9 @@ SCM check_flag1_body (void *data);
 SCM return_tag (void *data, SCM tag, SCM args);
 void check_cont (int rewindable);
 SCM check_cont_body (void *data);
+void close_port (SCM port);
+void delete_file (void *data);
+void check_ports (void);
 
 int flag1, flag2, flag3;
 
@@ -42,7 +46,7 @@ func2 ()
 {
   scm_begin_frame (0);
   flag1 = 0;
-  scm_on_unwind (set_flag, &flag1, SCM_F_WIND_EXPLICITELY);
+  scm_on_unwind (set_flag, &flag1, SCM_F_WIND_EXPLICITLY);
   scm_end_frame ();
 }
 
@@ -67,7 +71,7 @@ func4 ()
 {
   scm_begin_frame (0);
   flag1 = 0;
-  scm_on_unwind (set_flag, &flag1, SCM_F_WIND_EXPLICITELY);
+  scm_on_unwind (set_flag, &flag1, SCM_F_WIND_EXPLICITLY);
   scm_misc_error ("func4", "gratuitous error", SCM_EOL);
   scm_end_frame ();
 }
@@ -149,6 +153,56 @@ check_cont (int rewindable)
       exit (1);
     }
 }
+
+void
+close_port (SCM port)
+{
+  scm_close_port (port);
+}
+
+void
+delete_file (void *data)
+{
+  unlink ((char *)data);
+}
+
+void
+check_ports ()
+{
+  char filename[] = "/tmp/check-ports.XXXXXX";
+
+  if (mktemp (filename) == NULL)
+    exit (1);
+
+  scm_begin_frame (0);
+  {
+    SCM port = scm_open_file (scm_str2string (filename),
+			      scm_str2string ("w"));
+    scm_on_unwind_with_scm (close_port, port, SCM_F_WIND_EXPLICITLY);
+
+    scm_with_current_output_port (port);
+    scm_write (scm_version (), SCM_UNDEFINED);
+  }
+  scm_end_frame ();
+
+  scm_begin_frame (0);
+  {
+    SCM port = scm_open_file (scm_str2string (filename),
+			      scm_str2string ("r"));
+    SCM res;
+    scm_on_unwind_with_scm (close_port, port, SCM_F_WIND_EXPLICITLY);
+    scm_on_unwind (delete_file, filename, SCM_F_WIND_EXPLICITLY);
+
+    scm_with_current_input_port (port);
+    res = scm_read (SCM_UNDEFINED);
+    if (SCM_FALSEP (scm_equal_p (res, scm_version ())))
+      {
+	printf ("ports didn't work\n");
+	exit (1);
+      }
+  }
+  scm_end_frame ();
+}
   
 static void
 inner_main (void *data, int argc, char **argv)
@@ -160,6 +214,8 @@ inner_main (void *data, int argc, char **argv)
 
   check_cont (0);
   check_cont (1);
+
+  check_ports ();
 
   exit (0);
 }
