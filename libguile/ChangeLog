@@ -1,3 +1,8 @@
+1998-12-19  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+
+	* macros.c (scm_makacro, scm_makmacro, scm_makmmacro): Added
+	argument checking.
+
 1998-12-15  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
 	Move the procedure slots of entities to invisible slots (so that
