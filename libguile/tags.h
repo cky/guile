@@ -97,7 +97,7 @@ typedef long SCM;
  *
  * Immediates and non-immediates are distinguished by bits two and four.
  * Immediate values must have a 1 in at least one of those bits.  Does
- * this (or any other detail of tagging) seem arbitrary?  Try chaning it!
+ * this (or any other detail of tagging) seem arbitrary?  Try changing it!
  * (Not always impossible but it is fair to say that many details of tags
  * are mutually dependent).
  */
