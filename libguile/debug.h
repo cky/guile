@@ -58,7 +58,8 @@ SCM_API scm_t_option scm_debug_opts[];
 #define SCM_DEVAL_P		scm_debug_opts[11].val
 #define SCM_STACK_LIMIT		scm_debug_opts[12].val
 #define SCM_SHOW_FILE_NAME	scm_debug_opts[13].val
-#define SCM_N_DEBUG_OPTIONS 14
+#define SCM_WARN_DEPRECATED	scm_debug_opts[14].val
+#define SCM_N_DEBUG_OPTIONS 15
 
 SCM_API int scm_debug_mode_p;
 SCM_API int scm_check_entry_p;

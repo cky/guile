@@ -46,13 +46,13 @@ struct issued_warning {
 };
 
 static struct issued_warning *issued_warnings;
-static enum { detailed, summary, summary_print } mode;
+static int print_summary = 0;
 
 void
 scm_c_issue_deprecation_warning (const char *msg)
 {
-  if (mode != detailed)
-    mode = summary_print;
+  if (!SCM_WARN_DEPRECATED)
+    print_summary = 1;
   else
     {
       struct issued_warning *iw;
@@ -99,8 +99,8 @@ SCM_DEFINE(scm_issue_deprecation_warning,
 	   "they are printed in turn, each one followed by a newline.")
 #define FUNC_NAME s_scm_issue_deprecation_warning
 {
-  if (mode != detailed)
-    mode = summary_print;
+  if (!SCM_WARN_DEPRECATED)
+    print_summary = 1;
   else
     {
       SCM nl = scm_from_locale_string ("\n");
@@ -125,7 +125,7 @@ SCM_DEFINE(scm_issue_deprecation_warning,
 static void
 print_deprecation_summary (void)
 {
-  if (mode == summary_print)
+  if (print_summary)
     {
       fputs ("\n"
 	     "Some deprecated features have been used.  Set the environment\n"
@@ -159,12 +159,12 @@ scm_init_deprecation ()
   if (level == NULL)
     level = SCM_WARN_DEPRECATED_DEFAULT;
   if (!strcmp (level, "detailed"))
-    mode = detailed;
+    SCM_WARN_DEPRECATED = 1;
   else if (!strcmp (level, "no"))
-    mode = summary;
+    SCM_WARN_DEPRECATED = 0;
   else
     {
-      mode = summary;
+      SCM_WARN_DEPRECATED = 0;
       atexit (print_deprecation_summary);
     }
 #endif
