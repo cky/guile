@@ -1,3 +1,10 @@
+Sun Nov 10 17:40:47 1996  Jim Blandy  <jimb@floss.cyclic.com>
+
+	* configure.in, Makefile.in: The 'install' and 'uninstall'
+ 	Makefile targets should be affected by whether or not we have a
+ 	port to the current target architecture too, not just the 'all'
+ 	target.
+
 Wed Oct  9 19:40:13 1996  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* configure.in: If we don't have a port to the current machine,
