@@ -1,3 +1,16 @@
+2004-04-06  Kevin Ryde  <user42@zip.com.au>
+
+	* numbers.c (scm_quotient, scm_remainder): In inum/big, use mpz_cmp_ui
+	for big == abs(most-negative-fixnum) special case.
+	(abs_most_negative_fixnum): Remove, no longer used.
+
+	* scmsigs.c (scm_sigaction_for_thread): Correction to signum range
+	test, avoids SCM_VECTOR_REF outside bounds of signal_handlers on
+	calling (sigaction NSIG).
+
+	* simpos.c (scm_system_star): Fix execargv memory leak, merge parent
+	and fork error cases to do this.
+
 2004-04-03  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
 
 	* eval.c (CEVAL): Don't distinguish between short and long
