@@ -1,7 +1,7 @@
 dnl   Autoconf macros for configuring the QuickThreads package
 dnl   Jim Blandy <jimb@red-bean.com> --- July 1998
 dnl
-dnl  	Copyright (C) 1998 Free Software Foundation, Inc.
+dnl  	Copyright (C) 1998, 1999 Free Software Foundation, Inc.
 dnl
 dnl   This file is part of GUILE.
 dnl   
@@ -125,7 +125,7 @@ AC_DEFUN([QTHREADS_CONFIGURE],[
       qtmdc_c=md/null.c
       qtdmdb_s=md/sparc_b.s 
       ;;
-    alpha-*-*)
+    alpha*-*-*)
       port_name=alpha
       qtmd_h=md/axp.h
       qtmds_s=md/axp.s
