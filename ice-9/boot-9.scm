@@ -2239,7 +2239,7 @@
 			   (cond ((null? args) (,interface))
 				 ((pair? (car args))
 				  (,interface (car args)) (,interface))
-				 (else (for-each print-option
+				 (else (for-each ,print-option
 						 (,interface #t)))))))
 
 	(make-enable (lambda (interface)

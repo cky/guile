@@ -1,3 +1,9 @@
+Mon Sep 29 03:21:24 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* boot-9.scm: Bugfix: Hard-solder the print-option procedure into
+ 	the make-options macro so that we needn't refer to a global
+	symbol.
+
 Sun Sep 28 21:40:24 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* debug.scm: Moved options interface procedures to boot-9.scm.
