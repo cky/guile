@@ -1,3 +1,7 @@
+2004-03-31  Kevin Ryde  <user42@zip.com.au>
+
+	* simpos.c: Include <signal.h> for SIG_IGN and friends.
+
 2004-03-29  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
 
 	Introduce scm_debug_mode_p as a replacement for scm_debug_mode and
