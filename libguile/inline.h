@@ -3,7 +3,7 @@
 #ifndef SCM_INLINE_H
 #define SCM_INLINE_H
 
-/* Copyright (C) 2001, 2002 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2002, 2003 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -53,7 +53,12 @@ extern unsigned scm_newcell_count;
 
 #if defined SCM_C_INLINE && ! defined SCM_INLINE_C_INCLUDING_INLINE_H
 /* definitely inlining */
-extern SCM_C_INLINE
+#ifdef __GNUC__
+extern
+#else
+static
+#endif
+SCM_C_INLINE
 #endif
 SCM
 scm_cell (scm_t_bits car, scm_t_bits cdr)
@@ -145,7 +150,12 @@ scm_cell (scm_t_bits car, scm_t_bits cdr)
 
 #if defined SCM_C_INLINE && ! defined SCM_INLINE_C_INCLUDING_INLINE_H
 /* definitely inlining */
-extern SCM_C_INLINE
+#ifdef __GNUC__
+extern
+#else
+static
+#endif
+SCM_C_INLINE
 #endif
 SCM
 scm_double_cell (scm_t_bits car, scm_t_bits cbr,
