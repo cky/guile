@@ -34,7 +34,7 @@
   (not (not (object-documentation object))))
 
 (define fixnum-bit
-  (inexact->exact (+ (/ (log (+ most-positive-fixnum 1)) (log 2)) 1)))
+  (inexact->exact (round (+ (/ (log (+ most-positive-fixnum 1)) (log 2)) 1))))
 
 (define fixnum-min most-negative-fixnum)
 (define fixnum-max most-positive-fixnum)

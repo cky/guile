@@ -997,8 +997,9 @@
     (for-each (lambda (couple)
                 (apply
                  (lambda (x y)
-                   (let ((x (string->number x)))
-                     (if (or (eq? x #f) (not (eqv? x y))) (throw 'fail))))
+                   (let ((xx (string->number x)))
+                     (if (or (eq? xx #f) (not (eqv? xx y)))
+			 (throw 'fail))))
                  couple))
               `(;; Radix:
                 ("#b0" 0) ("#B0" 0) ("#b1" 1) ("#B1" 1) ("#o0" 0) ("#O0" 0)
@@ -1016,14 +1017,15 @@
                 ("#d1234567890" 1234567890)
                 ("#x1234567890abcdef" 1311768467294899695)
                 ;; Exactness:
-                ("#e1" 1) ("#e1.2" 1) ("#i1.1" 1.1) ("#i1" 1.0)
+                ("#e1" 1) ("#e1.2" ,(inexact->exact 1.2))
+		("#i1.1" 1.1) ("#i1" 1.0)
                 ;; Integers:
                 ("1" ,(1+ 0)) ("23" ,(+ 9 9 5)) ("-1" ,(- 0 1)) 
                 ("-45" ,(- 0 45)) ("2#" 20.0) ("2##" 200.0) ("12##" 1200.0)
                 ("#b#i100" 4.0)
-                ;; Rationals:
-                ("1/1" 1) ("1/2" 0.5) ("-1/2" -0.5) ("1#/1" 10.0)
-                ("10/1#" 1.0) ("1#/1#" 1.0) ("#e9/10" 1) ("#e10/1#" 1)
+                ;; Fractions:
+                ("1/1" 1) ("1/2" 1/2) ("-1/2" -1/2) ("1#/1" 10.0)
+                ("10/1#" 1.0) ("1#/1#" 1.0) ("#e9/10" 9/10) ("#e10/1#" 1)
                 ("#i6/8" 0.75) ("#i1/1" 1.0)
                 ;; Decimal numbers:
                 ;; * <uinteger 10> <suffix>
@@ -2186,13 +2188,13 @@
 
 (with-test-prefix "inexact->exact"
   
-  (pass-if-exception "+inf" exception:numerical-overflow
+  (pass-if-exception "+inf" exception:out-of-range
     (inexact->exact +inf.0))
   
-  (pass-if-exception "-inf" exception:numerical-overflow
+  (pass-if-exception "-inf" exception:out-of-range
     (inexact->exact -inf.0))
   
-  (pass-if-exception "nan" exception:numerical-overflow
+  (pass-if-exception "nan" exception:out-of-range
     (inexact->exact +nan.0))
   
   (with-test-prefix "2.0**i to exact and back"
