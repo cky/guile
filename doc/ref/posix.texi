@@ -1517,7 +1517,7 @@ or user, as indicated by @var{which} and @var{who}. @var{which}
 is one of the variables @code{PRIO_PROCESS}, @code{PRIO_PGRP}
 or @code{PRIO_USER}, and @var{who} is interpreted relative to
 @var{which} (a process identifier for @code{PRIO_PROCESS},
-hhhhprocess group identifier for @code{PRIO_PGRP}, and a user
+process group identifier for @code{PRIO_PGRP}, and a user
 identifier for @code{PRIO_USER}.  A zero value of @var{who}
 denotes the current process, process group, or user.
 @var{prio} is a value in the range [@minus{}20,20].  The default
