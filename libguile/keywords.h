@@ -55,9 +55,10 @@ extern int scm_tc16_keyword;
 
 
 
-extern SCM scm_make_keyword_from_dash_symbol SCM_P ((SCM symbol));
-extern SCM scm_keyword_p SCM_P ((SCM obj));
-extern SCM scm_keyword_dash_symbol SCM_P ((SCM keyword));
-extern void scm_init_keywords SCM_P ((void));
+extern SCM scm_make_keyword_from_dash_symbol (SCM symbol);
+extern SCM scm_c_make_keyword (char *s);
+extern SCM scm_keyword_p (SCM obj);
+extern SCM scm_keyword_dash_symbol (SCM keyword);
+extern void scm_init_keywords (void);
 
 #endif  /* KEYWORDSH */

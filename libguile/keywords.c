@@ -112,6 +112,18 @@ scm_make_keyword_from_dash_symbol (symbol)
   return SCM_CDR (vcell);
 }
 
+SCM
+scm_c_make_keyword (char *s)
+{
+  SCM vcell;
+  char *buf = scm_must_malloc (strlen (s) + 2, "keyword");
+  buf[0] = '-';
+  strcpy (buf + 1, s);
+  vcell = scm_sysintern0 (buf);
+  scm_must_free (buf);
+  return scm_make_keyword_from_dash_symbol (SCM_CAR (vcell));
+}
+
 SCM_PROC(s_keyword_p, "keyword?", 1, 0, 0, scm_keyword_p);
 
 SCM
