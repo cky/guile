@@ -1,3 +1,15 @@
+Thu Mar 13 18:31:33 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* unif.c (scm_array_set_x): Cast ICHR (obj) to char if storing in
+	a scm_tc7_byvect.
+
+	* ramap.c (scm_ra_matchp, scm_ra_matchp, scm_array_fill_int, racp,
+ 	scm_array_index_map_x, raeql_1, scm_array_equal_p): Completed
+ 	support for byte vectors.
+
+	* print.c (scm_iprin1): Limit number of vector elements printed
+	according to pstate->length.
+
 Thu Mar 13 00:12:35 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* backtrace.c (scm_display_error_message): don't segv if message
