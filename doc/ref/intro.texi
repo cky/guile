@@ -878,29 +878,34 @@ packages and documentation you might need or find interesting.
 @section The Basic Guile Package
 
 Guile can be obtained from the main GNU archive site
-@url{ftp://prep.ai.mit.edu/pub/gnu} or any of its mirrors.  The file
+@url{ftp://ftp.gnu.org} or any of its mirrors.  The file
 will be named guile-version.tar.gz.  The current version is
 @value{VERSION}, so the file you should grab is:
 
-@url{ftp://prep.ai.mit.edu/pub/gnu/guile-@value{VERSION}.tar.gz}
+@url{ftp://ftp.gnu.org/pub/gnu/guile-@value{VERSION}.tar.gz}
 
 To unbundle Guile use the instruction
+
 @example
 zcat guile-@value{VERSION}.tar.gz | tar xvf -
 @end example
+
 which will create a directory called @file{guile-@value{VERSION}} with
 all the sources.  You can look at the file @file{INSTALL} for detailed
 instructions on how to build and install Guile, but you should be able
 to just do
+
 @example
 cd guile-@value{VERSION}
 ./configure
+make
 make install
 @end example
 
 This will install the Guile executable @file{guile}, the Guile library
-@file{libguile.a} and various associated header files and support
-libraries. It will also install the Guile tutorial and reference manual.
+@file{-lguile} and various associated header files and support
+libraries. It will also install the Guile tutorial and reference
+manual.
 
 @c [[include instructions for getting R5RS]]
 
