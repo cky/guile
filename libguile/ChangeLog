@@ -1,3 +1,25 @@
+2001-10-13  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* numbers.c: Set NO_PREPRO_MAGIC when defining our version of
+	PTRDIFF_MIN.  Thanks to Ken Raeburn.
+
+2001-10-07  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* Makefile.am (EXTRA_libguile_la_SOURCES): Added "mkstemp.c".
+
+	* eval.c (scm_m_atbind): First try to find the variable without
+	defining it locally; when it has not been found, define it
+	locally.
+
+	* modules.c (module_variable): Pass over variables that exist but
+	are unbound.
+
+2001-10-06  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* backtrace.c (display_backtrace_file_and_line): Only use
+	scm_basename when POSIX support is compiled in.  Thanks to Chris
+	Cramer.
+
 2001-10-13  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* numbers.c (mem2uinteger):  Return number read so far when coming
