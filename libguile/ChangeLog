@@ -1,3 +1,8 @@
+2001-09-25  Thien-Thi Nguyen  <ttn@glug.org>
+
+	* chars.h (SCM_MAKE_CHAR): Use `scm_t_bits' instead of `intptr_t'.
+	Thanks to Golubev I. N.
+
 2001-09-25  Gary Houston  <ghouston@arglist.com>
 
 	* ports.c (scm_drain_input): extended the docstring.  thanks to
@@ -87,7 +92,7 @@
 
 	* gc.c (allocated_mark, MARK, heap_segment,
 	scm_gc_mark_cell_conservatively, scm_init_storage), gc.h
-	(scm_gc_mark_cell_conservatively):  Remove function 
+	(scm_gc_mark_cell_conservatively):  Remove function
 	scm_gc_mark_cell_conservatively and update the corresponding
 	comments and uses accordingly.  Thanks to Christopher Cramer for
 	the patch.  (Minor corrections by me.)
@@ -150,7 +155,7 @@
 
 	* num2integral.i.c (NUM2INTEGRAL): when converting a bignum to
 	unsigned, ensure that it's positive.  thanks to Martin Baulig!
-	
+
 2001-08-31  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* __scm.h: Added new section about compile time selectable
@@ -222,7 +227,7 @@
 	beautify_user_module_x_var, try_module_autoload_var,
 	scm_module_full_name), modules.[ch] (scm_the_root_module,
 	scm_make_module, scm_ensure_user_module, scm_load_scheme_module),
-	ports.h (scm_port, scm_ptob_descriptor, scm_port_rw_active), 
+	ports.h (scm_port, scm_ptob_descriptor, scm_port_rw_active),
 	ports.[ch] (scm_close_all_ports_except), random.h (scm_rstate,
 	scm_rng, scm_i_rstate), strings.h (SCM_SLOPPY_STRINGP,
 	SCM_RWSTRINGP, SCM_STRING_UCHARS, SCM_STRING_CHARS), strings.[ch]
