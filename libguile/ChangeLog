@@ -1,3 +1,17 @@
+2004-08-20  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* eval.c (scm_lookupcar1): Report an "Undefined variable" insetad
+	of an "Unbound" one for variables that are found but still contain
+	SCM_UNDEFINED.
+
+	* posix.c (scm_mkstemp): Correction to the correction, mkstemp
+	expects a null-terminated string in the locale encoding, but
+	scm_i_string_writable_chars doesn't give that.  Fixed by letting
+	mkstemp modify a locale version of the tmpl argument and copying
+	the result back into tmpl.
+ 
+	* strop.c (scm_substring_move_x): Store into str2, not str1.
+
 2004-08-20  Kevin Ryde  <user42@zip.com.au>
 
 	* posix.c (scm_mkstemp): Correction to new locale_string stuff, need
