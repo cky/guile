@@ -273,12 +273,24 @@
   (set! run-test local-run-test))
 
 ;;; A short form for tests that are expected to pass, taken from Greg.
-(defmacro pass-if (name body . rest)
-  `(run-test ,name #t (lambda () ,body ,@rest)))
+(defmacro pass-if (name . rest)
+  (if (and (null? rest) (pair? name))
+      ;; presume this is a simple test, i.e. (pass-if (even? 2))
+      ;; where the body should also be the name.
+      `(run-test ,(with-output-to-string (lambda () (display name)))
+                 #t
+                 (lambda () ,name))
+      `(run-test ,name #t (lambda () ,@rest))))
 
 ;;; A short form for tests that are expected to fail, taken from Greg.
-(defmacro expect-fail (name body . rest)
-  `(run-test ,name #f (lambda () ,body ,@rest)))
+(defmacro expect-fail (name . rest)
+  (if (and (null? rest) (pair? name))
+      ;; presume this is a simple test, i.e. (expect-fail (even? 2))
+      ;; where the body should also be the name.
+      `(run-test ,(with-output-to-string (lambda () (display name)))
+                 #f
+                 (lambda () ,name))
+      `(run-test ,name #f (lambda () ,@rest))))
 
 ;;; A helper function to implement the macros that test for exceptions.
 (define (run-test-exception name exception expect-pass thunk)
