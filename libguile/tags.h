@@ -330,7 +330,7 @@ typedef unsigned long scm_t_bits;
  */
 #define scm_tc7_pws		31
 
-#ifdef SCM_HAVE_ARRAYS
+#if SCM_HAVE_ARRAYS
 #define scm_tc7_llvect          29
 #define scm_tc7_uvect		37
 /* free                         39 */
