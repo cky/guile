@@ -45,7 +45,7 @@
 
 
 #include "libguile/__scm.h"
-#include "ports.h"
+#include "libguile/print.h"
 
 
 #ifdef __STDC__
