@@ -1,3 +1,11 @@
+Wed Jan 26 17:33:52 2000  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* throw.c: Factor out an #ifdef/#else/#endif choice more finely
+	for maintainability.
+
+	* strop.c: Documentation added by Gregg A. Reynolds.   Pasted in
+	from qdocs, RnRs.
+
 Wed Jan 26 10:02:11 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* tag.c:  Added doc for `tag', but mark as deprecated since Mikael 
