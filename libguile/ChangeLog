@@ -1,3 +1,79 @@
+2001-11-02  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	Support for native Win32.  Thanks to Stefan Jahn!
+	
+        * Makefile.am: Add win32-uname.c, win32-uname.h, win32-dirent.c
+	and win32-dirent.h to extra source and header files.  These
+	include the uname() and the POSIX dirent interface implementation
+	for M$-Windows.  Put `-no-undefined' into LDFLAGS to support
+	linkers which do not allow unresolved symbols inside shared
+	libraries.  Corrected `guile_filter_doc_snarfage$(EXEEXT)'
+	dependency.
+
+        * __scm.h: Defined SCM_API.  This macro gets prepended to all 
+        function and data definitions which should be exported or imported 
+        in the resulting dynamic link library in the Win32 port.
+
+        * __scm.h, alist.h, arbiters.h, async.h, backtrace.h, boolean.h,
+        chars.h, continuations.h, coop-defs.h, coop-threads.h, 
+        debug-malloc.h, debug.h, deprecation.h, dynl.h, dynwind.h,
+        environments.h, eq.h, error.h, eval.h, evalext.h, extensions.h,
+        feature.h, filesys.h, fluids.h, fports.h, gc.h, gdb_interface.h,
+        gdbint.h, gh.h, goops.h, gsubr.h, guardians.h, hash.h, hashtab.h,
+        hooks.h, init.h, ioext.h, iselect.h, keywords.h, lang.h, list.h,
+        load.h, macros.h, mallocs.h, modules.h, net_db.h, numbers.h, 
+        objects.h, objprop.h, options.h, pairs.h, ports.h, posix.h, print.h,
+        procprop.h, procs.h, properties.h, ramap.h, random.h, rdelim.h,
+        read.h, regex-posix.h, root.h, rw.h, scmsigs.h, script.h, simpos.h,
+        smob.h, socket.h, sort.h, srcprop.h, stackchk.h, stacks.h, stime.h,
+        strings.h, strop.h, strorder.h, strports.h, struct.h, symbols.h,
+        tags.h, threads.h, throw.h, unif.h, values.h, variable.h, vectors.h,
+        vports.h, weaks.h:
+        Prefixed each each exported symbol with SCM_API.
+
+        * continuations.c: Added comment about the use of the extern 
+        declarations of {get,set}context() functions used in the ia64 port.
+
+        * continuations.h, gc.c: `__libc_ia64_register_backing_store_base'
+        is meant to be a `unsigned long *'.
+
+        * filesys.c: Include `direct.h' if possible.  Use local
+	`win32-dirent.h' for the native M$-Windows port.  Define S_IS*()
+	macros for M$-Windows.  Implementation of `fstat_Win32()' which is
+	able to differentiate between sockets and other file descriptors.
+	Use this function as wrapper in `scm_fstat()'.  Fixed typo in
+	`scm_dirname()'.
+
+        * fports.c: Include `io.h' is possible.  Put `*fp' into referring
+        statement block in `scm_fport_buffer_add()'.
+        Some corrections in `getflags()'.
+        
+        * gdb_interface.h (GDB_INTERFACE): Also support __CYGWIN__.
+
+        * guile.c: Make sure to define __SCM_IMPORT__ for shared library
+        build on Win32.  Disable preloaded symbols on Win2 platforms.
+
+        * ioext.c, ports.c: Include `io.h' is possible.
+
+        * mkstemp.c: Include `process.h' is possible.
+
+        * net_db.c: Disable extern declaration of `h_errno' for __CYGWIN__,
+        too.
+        Put `scm_return_entry()' into HAVE_GETSERVENT conditional.
+
+        * posix.c: Remove unnecessary dirent includes and defines. Include
+	local `win32-uname.h' for MinGW.  Extern declaration of
+	`mkstemp()' for systems where it does not exists.  Make
+	`getlogin()' available on M$-Windows.
+
+        * scmsigs.c: Made `usleep()' avalable on MinGW.
+
+        * stime.c: On M$-Windows `tzname[]' is known to be `_tzname[]'.
+
+	* win32-dirent.c: Include "win32-dirent.h", not "dirent.h".
+
+	* win32-uname.c: Include "win32-uname.h", not "uname.h".
+
 2001-10-28  Mikael Djurfeldt  <mdj@linnaeus>
 
 	* unif.c (scm_uniform_array_read_x, scm_uniform_array_write):

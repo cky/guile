@@ -1,3 +1,16 @@
+2001-11-02  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	Support for native Win32.  Thanks to Stefan Jahn!
+	
+        * Makefile.am:  Put `-no-undefined' into LDFLAGS to support linkers 
+        which do not allow unresolved symbols inside shared libraries.
+
+        * srfi-13.h, srfi-14.h: Defined SCM_SRFI1314_API.  Prefixed each 
+        exported symbol with SCM_SRFI1314_API.
+
+        * srfi-4.h: Defined SCM_SRFI4_API.  Prefixed each exported 
+        symbol with SCM_SRFI4_API.
+
 2001-10-21  Mikael Djurfeldt  <mdj@linnaeus>
 
 	* srfi-2.scm, srfi-4.scm, srfi-8.scm, srfi-9.scm, srfi-10.scm,
