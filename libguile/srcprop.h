@@ -61,18 +61,23 @@ SCM scm_i_copy;
 
 #define scm_whash_handle SCM
 
-#define scm_whash_get_handle(whash, key) scm_hashq_get_handle (whash, key)
+#define scm_whash_get_handle(whash, key) scm_hash_fn_get_handle (whash, key, scm_ihashq, scm_sloppy_assq, 0)
 #define SCM_WHASHFOUNDP(h) ((h) != SCM_BOOL_F)
 #define SCM_WHASHREF(whash, handle) SCM_CDR (handle)
 #define SCM_WHASHSET(whash, handle, obj) SCM_SETCDR (handle, obj)
-#define scm_whash_create_handle(whash, key) scm_hashq_create_handle_x (whash, key, SCM_UNSPECIFIED)
-#define scm_whash_insert(whash, key, obj) scm_hashq_set_x (whash, key, obj)
-#define scm_whash_lookup(whash, obj) scm_hashq_ref (whash, obj, SCM_BOOL_F)
+#define scm_whash_create_handle(whash, key) scm_hash_fn_create_handle_x (whash, key, SCM_UNSPECIFIED, scm_ihashq, scm_sloppy_assq, 0)
+#define scm_whash_lookup(whash, obj) scm_hash_fn_ref (whash, obj, SCM_BOOL_F, scm_ihashq, scm_sloppy_assq, 0)
+#define scm_whash_insert(whash, key, obj) \
+{ \
+  register SCM w = (whash); \
+  SCM_WHASHSET (w, scm_whash_create_handle (w, key), obj); \
+} \
+
 
 /* {Source properties}
  */
 
-extern long tc16_srcprops;
+extern long scm_tc16_srcprops;
 
 typedef struct scm_srcprops
 {
@@ -89,7 +94,7 @@ typedef struct scm_srcprops_chunk
   scm_srcprops srcprops[1];
 } scm_srcprops_chunk;
 
-#define SRCPROPSP(p) (SCM_TYP16 (p) == tc16_srcprops)
+#define SRCPROPSP(p) (SCM_TYP16 (p) == scm_tc16_srcprops)
 #define SRCPROPBRK(p) ((1L << 16) & SCM_CAR (p) ? SCM_BOOL_T : SCM_BOOL_F)
 #define SRCPROPPOS(p) ((scm_srcprops *) SCM_CDR (p))->pos
 #define SRCPROPLINE(p) (SRCPROPPOS(p) >> 12)
@@ -114,7 +119,7 @@ typedef struct scm_srcprops_chunk
 
 #ifdef __STDC__
 extern SCM scm_srcprops_to_plist (SCM obj);
-extern SCM _scm_make_srcprops (int line, int col, SCM fname, SCM copy, SCM plist);
+extern SCM scm_make_srcprops (int line, int col, SCM fname, SCM copy, SCM plist);
 extern SCM scm_source_property (SCM obj, SCM key);
 extern SCM scm_set_source_property_x (SCM obj, SCM key, SCM datum);
 extern SCM scm_source_properties (SCM obj);
@@ -123,7 +128,7 @@ extern void scm_finish_srcprop (void);
 extern void scm_init_srcprop (void);
 #else
 extern SCM scm_srcprops_to_plist ();
-extern SCM _scm_make_srcprops ();
+extern SCM scm_make_srcprops ();
 extern SCM scm_source_property ();
 extern SCM scm_set_source_property_x ();
 extern SCM scm_source_properties ();
