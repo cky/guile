@@ -183,7 +183,10 @@ scm_display_error (stack, port, subr, message, args, rest)
   SCM current_frame = SCM_BOOL_F;
   SCM source = SCM_BOOL_F;
   SCM pname = SCM_BOOL_F;
-  if (SCM_DEBUGGINGP && SCM_NIMP (stack) && SCM_STACKP (stack))
+  if (SCM_DEBUGGINGP
+      && SCM_NIMP (stack)
+      && SCM_STACKP (stack)
+      && SCM_STACK_LENGTH (stack) > 0)
     {
       current_frame = scm_stack_ref (stack, SCM_INUM0);
       source = SCM_FRAME_SOURCE (current_frame);
