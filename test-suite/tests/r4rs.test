@@ -15,6 +15,10 @@
 ;;;; License along with this library; if not, write to the Free Software
 ;;;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
+(define-module (test-suite test-r4rs)
+  :use-module (test-suite lib)
+  :use-module (test-suite guile-test))
+
 
 ;;;; ============= NOTE =============
 
@@ -62,7 +66,15 @@
 ;;; send corrections or additions to jaffer@ai.mit.edu or
 ;;; Aubrey Jaffer, 84 Pleasant St., Wakefield MA 01880, USA
 
+;; Note: The following two expressions are being read as part of the tests in
+;; section (6 10 2).  Those tests expect that above the following two
+;; expressions there should be only one arbitrary s-expression (which is the
+;; define-module expression).  Further, the two expressions should be written
+;; on one single line without a blank between them.  If you change this, you
+;; will also have to change the corresponding tests in section (6 10 2).
+
 (define cur-section '())(define errs '())
+
 (define SECTION (lambda args
 		  (set! cur-section args) #t))
 (define record-error (lambda (e) (set! errs (cons (list cur-section e) errs))))
@@ -916,6 +928,7 @@
 (SECTION 6 10 2)
 (test #\; peek-char this-file)
 (test #\; read-char this-file)
+(read this-file) ;; skip define-module expression
 (test '(define cur-section '()) read this-file)
 (test #\( peek-char this-file)
 (test '(define errs '()) read this-file)
@@ -987,12 +1000,6 @@
 (test-sc4)
 (test-delay)
 "last item in file"
-
-
-;; FIXME:  We shouldn't create any global bindings in the test files or
-;; alternatively execute every test file's code in a module of its own
-(if (defined? 'x) (undefine x))
-(if (defined? 'y) (undefine y))
 
 (delete-file (data-file-name "tmp1"))
 (delete-file (data-file-name "tmp2"))

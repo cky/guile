@@ -1,3 +1,23 @@
+2003-09-22  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* guile-test: Wrapped in module (test-suite guile-test).
+
+	(main data-file-name test-file-name): Exported.
+
+	((guile-user)::main): New function, wrapper for function
+	(test-suite guile-test)::main.
+
+	* tests/load.test: Wrapped in module (test-suite test-load).
+
+	* tests/ports.test: Wrapped in module (test-suite test-ports).
+
+	* tests/r4rs.test: Wrapped in module (test-suite test-r4rs).
+	Added comments about the required structure of the file itself,
+	since it is subject to some tests.  Removed some now unnecessary
+	undefine operations.
+
+	* tests/syntax.test: Wrapped in module (test-suite test-syntax)
+
 2003-09-19  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/popen.test: New file.

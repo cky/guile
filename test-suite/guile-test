@@ -76,16 +76,21 @@
 ;;;; change which Guile interpreter you're testing, you need to edit
 ;;;; the #! line at the top of this file, which is stupid.
 
+(define (main . args)
+  (let ((module (resolve-module '(test-suite guile-test))))
+    (apply (module-ref module 'main) args)))
+
+(define-module (test-suite guile-test)
+  :use-module (test-suite lib)
+  :use-module (ice-9 getopt-long)
+  :use-module (ice-9 and-let-star)
+  :use-module (ice-9 rdelim)
+  :export (main data-file-name test-file-name))
+
 
 ;;; User configurable settings:
 (define default-test-suite
   (string-append (getenv "HOME") "/bogus-path/test-suite"))
-
-
-(use-modules (test-suite lib)
-	     (ice-9 getopt-long)
-	     (ice-9 and-let-star)
-	     (ice-9 rdelim))
 
 
 ;;; Variables that will receive their actual values later.
