@@ -1,3 +1,8 @@
+2004-07-10  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* standalone/test-conversion.c (test_is_signed_integer,
+	test_is_unsigned_integer): Expect inexact integers to fail.
+
 2004-07-10  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/hash.test: New file.
