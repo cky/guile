@@ -111,33 +111,28 @@ SCM_DEFINE (scm_char_set_p, "char-set?", 1, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_char_set_eq, "char-set=", 1, 0, 1,
-	    (SCM cs1, SCM csr),
+SCM_DEFINE (scm_char_set_eq, "char-set=", 0, 0, 1,
+	    (SCM char_sets),
 	    "Return @code{#t} if all given character sets are equal.")
 #define FUNC_NAME s_scm_char_set_eq
 {
-  int argnum = 2;
+  int argnum = 1;
+  long *cs1_data = NULL;
 
-  SCM_VALIDATE_SMOB (1, cs1, charset);
-  SCM_VALIDATE_REST_ARGUMENT (csr);
+  SCM_VALIDATE_REST_ARGUMENT (char_sets);
 
-  while (!SCM_NULLP (csr))
+  while (!SCM_NULLP (char_sets))
     {
-      long * p1, * p2;
-      SCM cs2 = SCM_CAR (csr);
-      int k;
+      SCM csn = SCM_CAR (char_sets);
+      long *csn_data;
 
-      SCM_VALIDATE_SMOB (argnum++, cs2, charset);
-      p1 = (long *) SCM_SMOB_DATA (cs1);
-      p2 = (long *) SCM_SMOB_DATA (cs2);
-      for (k = 0; k < SCM_CHARSET_SIZE / sizeof (long); k++)
-	{
-	  if (p1[k] != p2[k])
-	    return SCM_BOOL_F;
-	}
-
-      csr = SCM_CDR (csr);
-      cs1 = cs2;
+      SCM_VALIDATE_SMOB (argnum++, csn, charset);
+      csn_data = (long *) SCM_SMOB_DATA (csn);
+      if (cs1_data == NULL)
+	cs1_data = csn_data;
+      else if (memcmp (cs1_data, csn_data, SCM_CHARSET_SIZE) != 0)
+	return SCM_BOOL_F;
+      char_sets = SCM_CDR (char_sets);
     }
   return SCM_BOOL_T;
 }

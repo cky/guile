@@ -1,3 +1,11 @@
+2001-07-11  Gary Houston  <ghouston@arglist.com>
+
+	* srfi-14.c (s_scm_char_set_eq): bug fix: (char-set=) should
+	return #t instead of giving wrong-number-of-arguments . take a
+	single "rest" argument.  use memcmp instead of a loop to compare
+	the values.
+	srfi-14.h: update the declaration.
+
 2001-07-09  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* README: Cleanup.

@@ -60,7 +60,7 @@ void scm_c_init_srfi_14 (void);
 void scm_init_srfi_14 (void);
 
 SCM scm_char_set_p (SCM obj);
-SCM scm_char_set_eq (SCM cs1, SCM csr);
+SCM scm_char_set_eq (SCM char_sets);
 SCM scm_char_set_leq (SCM cs1, SCM csr);
 SCM scm_char_set_hash (SCM cs, SCM bound);
 SCM scm_char_set_cursor (SCM cs);
