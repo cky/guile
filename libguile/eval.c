@@ -3822,15 +3822,73 @@ SCM_DEFINE (scm_copy_tree, "copy-tree", 1, 0, 0,
 #undef FUNC_NAME
 
 
+SCM scm_system_transformer;
+
 SCM 
-scm_eval_3 (SCM obj, int copyp, SCM env)
+scm_i_eval_x (SCM exp, SCM env)
 {
   SCM transformer = scm_fluid_ref (SCM_CDR (scm_system_transformer));
   if (SCM_NIMP (transformer))
-    obj = scm_apply (transformer, obj, scm_listofnull);
-  else if (copyp)
-    obj = scm_copy_tree (obj);
-  return SCM_XEVAL (obj, env);
+    exp = scm_apply (transformer, exp, scm_listofnull);
+  return SCM_XEVAL (exp, env);
+}
+
+SCM 
+scm_i_eval (SCM exp, SCM env)
+{
+  SCM transformer = scm_fluid_ref (SCM_CDR (scm_system_transformer));
+  if (SCM_NIMP (transformer))
+    exp = scm_apply (transformer, exp, scm_listofnull);
+  return SCM_XEVAL (scm_copy_tree (exp), env);
+}
+
+SCM
+scm_eval_x (SCM exp, SCM module)
+{
+  return scm_i_eval_x (exp,
+		       scm_top_level_env (SCM_MODULE_EVAL_CLOSURE (module)));
+}
+
+/* Eval does not take the second arg optionally.  This is intentional
+ * in order to be R5RS compatible, and to prepare for the new module
+ * system, where we would like to make the choice of evaluation
+ * environment explicit.
+ */
+
+SCM_DEFINE (scm_eval, "eval", 2, 0, 0, 
+           (SCM exp, SCM environment),
+	    "Evaluate @var{exp}, a list representing a Scheme expression, in the\n"
+	    "environment given by @var{environment specifier}.")
+#define FUNC_NAME s_scm_eval
+{
+  SCM_VALIDATE_MODULE (2, environment);
+  return scm_i_eval (scm_copy_tree (exp),
+		     scm_top_level_env (SCM_MODULE_EVAL_CLOSURE (environment)));
+}
+#undef FUNC_NAME
+
+#if (SCM_DEBUG_DEPRECATED == 0)
+
+/* Use scm_selected_module () or scm_interaction_environment ()
+ * instead.  The former is the module selected during loading of code.
+ * The latter is the module in which the user of this thread currently
+ * types expressions.
+ */
+
+SCM scm_top_level_lookup_closure_var;
+
+/* Avoid using this functionality altogether (except for implementing
+ * libguile, where you can use scm_i_eval or scm_i_eval_x).
+ *
+ * Applications should use either C level scm_eval_x or Scheme scm_eval.  */
+
+SCM 
+scm_eval_3 (SCM obj, int copyp, SCM env)
+{
+  if (copyp)
+    return scm_i_eval (obj, env);
+  else
+    return scm_i_eval_x (obj, env);
 }
 
 SCM_DEFINE (scm_eval2, "eval2", 2, 0, 0,
@@ -3840,36 +3898,11 @@ SCM_DEFINE (scm_eval2, "eval2", 2, 0, 0,
 	    "equivalent to @code{(eval2 exp *top-level-lookup-closure*)}.")
 #define FUNC_NAME s_scm_eval2
 {
-  return scm_eval_3 (obj, 1, scm_top_level_env (env_thunk));
+  return scm_i_eval (obj, scm_top_level_env (env_thunk));
 }
 #undef FUNC_NAME
 
-SCM scm_system_transformer;
-SCM scm_top_level_lookup_closure_var;
-
-SCM_DEFINE (scm_eval, "eval", 1, 0, 0, 
-           (SCM obj),
-	    "Evaluate @var{exp}, a list representing a Scheme expression, in the\n"
-	    "top-level environment.")
-#define FUNC_NAME s_scm_eval
-{
-  return scm_eval_3 (obj,
-		     1,
-		     scm_top_level_env (SCM_TOP_LEVEL_LOOKUP_CLOSURE));
-}
-#undef FUNC_NAME
-
-/* 
-SCM_REGISTER_PROC(s_eval_x, "eval!", 1, 0, 0, scm_eval_x);
-*/
-
-SCM
-scm_eval_x (SCM obj)
-{
-  return scm_eval_3 (obj,
-		     0,
-		     scm_top_level_env (SCM_TOP_LEVEL_LOOKUP_CLOSURE));
-}
+#endif /* DEPRECATED */
 
 
 /* At this point, scm_deval and scm_dapply are generated.
@@ -3915,9 +3948,10 @@ scm_init_eval ()
   /* acros */
   /* end of acros */
 
+#if SCM_DEBUG_DEPRECATED == 0
   scm_top_level_lookup_closure_var =
     scm_sysintern ("*top-level-lookup-closure*", scm_make_fluid ());
-  scm_can_use_top_level_lookup_closure_var = 1;
+#endif
 
 #ifdef DEBUG_EXTENSIONS
   scm_sym_enter_frame = SCM_CAR (scm_sysintern ("enter-frame", SCM_UNDEFINED));
