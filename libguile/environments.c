@@ -2294,7 +2294,7 @@ scm_environments_prehistory ()
 void
 scm_init_environments ()
 {
-#include "environments.x"
+#include "libguile/environments.x"
 }
 
 
