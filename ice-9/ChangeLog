@@ -1,3 +1,8 @@
+2000-12-13  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* session.scm (apropos):  Completed the last patch, which did only
+	half the job.  Thanks to Dale P. Smith.
+
 2000-12-12  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* session.scm (apropos, apropos-fold):  There are no weak bindings

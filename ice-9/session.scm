@@ -198,40 +198,36 @@ where OPTIONSET is one of debug, read, eval, print
 	   (let* ((builtin (or (eq? module the-scm-module)
 			       (eq? module the-root-module)))
 		  (name (module-name module))
-		  (obarrays (if builtin
-				(list (builtin-bindings))
-				(list (module-obarray module))))
-		  (get-refs (if builtin
-				(list id id)
-				(list variable-ref)))
-		  )
-	     (for-each
-	      (lambda (obarray get-ref)
-		(array-for-each
-		 (lambda (oblist)
-		   (for-each
-		    (lambda (x)
-		      (cond ((regexp-exec match (symbol->string (car x)))
-			     (display name)
-			     (display ": ")
-			     (display (car x))
-			     (cond ((procedure? (get-ref (cdr x)))
-				    (display separator)
-				    (display (get-ref (cdr x))))
-				   (value
-				    (display separator)
-				    (display (get-ref (cdr x)))))
-			     (if (and shadow
-				      (not (eq? (module-ref module
-							    (car x))
-						(module-ref (current-module)
-							    (car x)))))
-				 (display " shadowed"))
-			     (newline)
-			     )))
-		    oblist))
-		 obarray))
-	      obarrays get-refs)))
+		  (obarray (if builtin
+			       (builtin-bindings)
+			       (module-obarray module)))
+		  (get-ref (if builtin
+			       id
+			       variable-ref)))
+	     (array-for-each
+	      (lambda (oblist)
+		(for-each
+		 (lambda (x)
+		   (cond ((regexp-exec match (symbol->string (car x)))
+			  (display name)
+			  (display ": ")
+			  (display (car x))
+			  (cond ((procedure? (get-ref (cdr x)))
+				 (display separator)
+				 (display (get-ref (cdr x))))
+				(value
+				 (display separator)
+				 (display (get-ref (cdr x)))))
+			  (if (and shadow
+				   (not (eq? (module-ref module
+							 (car x))
+					     (module-ref (current-module)
+							 (car x)))))
+			      (display " shadowed"))
+			  (newline)
+			  )))
+		 oblist))
+	      obarray)))
 	 modules))))
 
 (define-public (apropos-internal rgx)
