@@ -1,3 +1,12 @@
+2004-07-24  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/common-list.test: Use define-module, to as not to import
+	common-list into subsequent tests (eg. srfi-1 where `every' provokes a
+	warning).
+
+	* tests/srfi-19.test, tests/srfi-34.test: Use #:duplicates (last) to
+	suppress warnings about current-time and raise replacing core bindings.
+
 2004-05-25  Matthias Koeppe  <mkoeppe@mail.math.uni-magdeburg.de>
 
 	* tests/format.test (~{): Test no arbitrary iteration limit.
