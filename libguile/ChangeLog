@@ -17,7 +17,7 @@
 
 2000-05-03  Marius Vollmer  <mvo@zagadka.ping.de>
 
-	* scmsigs.c (orig_handlers) [HAVE_SIGACTION]: Fix declaration to
+	* scmsigs.c (orig_handlers) [!HAVE_SIGACTION]: Fix declaration to
 	be an array of function pointers instead of being a pointer to an
 	array returning function.  Thanks to Kalle Olavi Niemitalo!
 
