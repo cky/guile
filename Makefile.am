@@ -30,13 +30,11 @@ include_HEADERS = libguile.h
 
 # automake sometimes forgets to distribute acconfig.h,
 # apparently depending on the phase of the moon.
-EXTRA_DIST = HACKING GUILE-VERSION ANON-CVS SNAPSHOTS \
-	     $(ACLOCAL) BUGS
+EXTRA_DIST = HACKING GUILE-VERSION ANON-CVS SNAPSHOTS BUGS
 
 TESTS = check-guile
 
-# The rule will cd to $(top_srcdir).
-ACLOCAL = ./guile-aclocal.sh
+ACLOCAL_AMFLAGS = -I guile-config
 
 DISTCLEANFILES = check-guile.log
 
