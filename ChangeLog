@@ -1,3 +1,8 @@
+2001-11-21  Gary Houston  <ghouston@arglist.com>
+
+	* HACKING: Removed reference to no longer practiced * in ChangeLog
+	convention.
+
 2001-11-19  Thien-Thi Nguyen  <ttn@glug.org>
 
 	* BUGS (11): Set "fixed: no-need".
