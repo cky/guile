@@ -131,7 +131,6 @@ scm_sep_init_try (path, sep, initname)
 #define X_OK 1
 #endif /* ndef X_OK */
 
-#ifdef unix
 char *
 scm_find_executable (const char *name)
 {
@@ -163,23 +162,6 @@ scm_find_executable (const char *name)
   fclose (f);
   return scm_cat_path (0L, name, 0L);
 }
-#endif /* unix */
-
-#ifdef MSDOS
-
-#define DEFAULT_PATH "C:\\DOS"
-#define PATH_DELIMITER ';'
-#define ABSOLUTE_FILENAME_P(fname) ((fname[0] == '\\') \
-				     || (fname[0] && (fname[1] == ':')))
-
-char *
-dld_find_executable (file)
-     const char *file;
-{
-  /* fprintf(stderr, "dld_find_executable %s -> %s\n", file, scm_cat_path(0L, file, 0L)); fflush(stderr); */
-  return scm_cat_path (0L, file, 0L);
-}
-#endif /* def MSDOS */
 
 
 /* Read a \nnn-style escape.  We've just read the backslash.  */
