@@ -26,8 +26,7 @@
 ;;;
 
 
-
-;; {Simple Debugging Tools}
+;;; {Simple Debugging Tools}
 ;;
 
 
@@ -66,7 +65,8 @@
 ;;;
 
 (set! apply (lambda (fun . args) (@apply fun (apply:nconc2last args))))
-(define (call-with-current-continuation proc) (@call-with-current-continuation proc))
+(define (call-with-current-continuation proc)
+  (@call-with-current-continuation proc))
 
 
 
@@ -286,7 +286,6 @@
     (and rem (pair? (cdr rem)) (cadr rem))))
 
 
-
 ;;; {Print}
 ;;; MDJ 960919 <djurfeldt@nada.kth.se>: This code will probably be
 ;;; removed before the first release of Guile.  Later releases may
@@ -713,6 +712,8 @@
 	   (loop (cdr keys))))))
 
 
+;;; {Non-polymorphic versions of POSIX functions}
+
 (define (getgrnam name) (getgr name))
 (define (getgrgid id) (getgr id))
 (define (gethostbyaddr addr) (gethost addr))
@@ -1238,8 +1239,8 @@
 ;;;
 
 
-;; This is how modules are printed.
-;; You can re-define it.
+;;; {Printing Modules}
+;; This is how modules are printed.  You can re-define it.
 ;;
 (define (%print-module mod port depth length style table)
   (display "#<" port)
@@ -1676,8 +1677,7 @@
 
 
 
-
-;; MODULE-REF -- exported
+;;; {MODULE-REF -- exported}
 ;;
 ;; Returns the value of a variable called NAME in MODULE or any of its
 ;; used modules.  If there is no such variable, then if the optional third
@@ -1723,9 +1723,6 @@
 		    (cons interface (delq! interface (module-uses module)))))
 
 
-
-
-;;;;
 ;;; {Recursive Namespaces}
 ;;;
 ;;;
@@ -1798,9 +1795,7 @@
 
 
 
-
-;;;;
-;;; #/app
+;;; {#/app}
 ;;;
 ;;; The root of conventionally named objects not directly in the top level.
 ;;;
@@ -1889,6 +1884,7 @@
 	     (else	(error "unrecognized defmodule argument" kws)))))
     module))
 
+;;; {Autoloading modules}
 
 (define autoloads-in-progress '())
 
@@ -2196,7 +2192,7 @@
 
 
 
-
+;;; {IOTA functions: generating lists of numbers}
 
 (define (reverse-iota n) (if (> n 0) (cons (1- n) (reverse-iota (1- n))) '()))
 (define (iota n) (list-reverse! (reverse-iota n)))
@@ -2320,6 +2316,7 @@
 
 
 
+;;; {I/O functions for Tcl channels (disabled)}
 
 ;; (define in-ch (get-standard-channel TCL_STDIN))
 ;; (define out-ch (get-standard-channel TCL_STDOUT))
@@ -2361,10 +2358,10 @@
 	  (lambda args #f)))
 
 
+;;; {Calling Conventions}
 (define-module (ice-9 calling))
 
 ;;;;
-;;; {Calling Conventions}
 ;;;
 ;;; This file contains a number of macros that support 
 ;;; common calling conventions.
@@ -2662,6 +2659,8 @@
 
 
 
+;;; {Implementation of COMMON LISP list functions for Scheme}
+
 (define-module (ice-9 common-list))
 
 ;;"comlist.scm" Implementation of COMMON LISP list functions for Scheme
@@ -2682,9 +2681,6 @@
 ;material, there shall be no use of my name in any advertising,
 ;promotional, or sales literature without prior written consent in
 ;each case.
-
-
-
 
 ;;;From: hugh@ear.mit.edu (Hugh Secker-Walker)
 (define-public (make-list k . init)
@@ -2844,10 +2840,10 @@
 	    (cons (car l) u)))))
 
 
+;;; {Functions for browsing modules}
+
 (define-module (ice-9 ls)
   :use-module (ice-9 common-list))
-
-
 
 ;;;;
 ;;;	local-definitions-in root name
@@ -2912,6 +2908,8 @@
     (and parent (make-modules-in (current-module) parent))
     (local-define name value)))
 
+;;; {Queues}
+
 (define-module (ice-9 q))
 
 ;;;; 	Copyright (C) 1995 Free Software Foundation, Inc.
@@ -2931,7 +2929,6 @@
 ;;;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 ;;;; 
 
-
 ;;;;
 ;;; Q: Based on the interface to 
 ;;;
@@ -2939,7 +2936,6 @@
 ;;;  Written by Andrew Wilcox (awilcox@astro.psu.edu) on April 1, 1992.
 ;;;
 
-
 ;;;;
 ;;; {Q}
 ;;;
@@ -3051,11 +3047,10 @@
 
 
 
-;;; installed-scm-file
+;;; {The runq data structure}
+
 (define-module (ice-9 runq)
   :use-module (ice-9 q))
-
-
 
 ;;;; 	Copyright (C) 1996 Free Software Foundation, Inc.
 ;;;; 
@@ -3074,10 +3069,7 @@
 ;;;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 ;;;; 
 
-
-
 ;;;;
-;;; {The runq data structure}
 ;;; 
 ;;; One way to schedule parallel computations in a serial environment is
 ;;; to explicitly divide each task up into small, finite execution time,
@@ -3295,21 +3287,17 @@
     st))
 
 
+;;; {String Fun}
 
-;;; installed-scm-file
-
 (define-module (ice-9 string-fun))
 
-
 ;;;;
-;;; {String Fun}
 ;;;
 ;;; Various string funcitons, particularly those that take
 ;;; advantage of the "shared substring" capability.
 ;;;
 
-;;;;
-;;; {Dividing Strings Into Fields}
+;;; {String Fun: Dividing Strings Into Fields}
 ;;; 
 ;;; The names of these functions are very regular.
 ;;; Here is a grammar of a call to one of these:
@@ -3461,8 +3449,7 @@
      (else (ret (cons str fields))))))
 
 
-;;;;
-;;; {String Prefix Predicates}
+;;; {String Fun: String Prefix Predicates}
 ;;;
 ;;; Very simple:
 ;;;
@@ -3480,8 +3467,7 @@
 (define-public string-prefix=? (string-prefix-predicate string=?))
 
 
-;;;;
-;;; {Strippers}
+;;; {String Fun: Strippers}
 ;;;
 ;;; <stripper> = sans-<removable-part>
 ;;;
@@ -3534,8 +3520,7 @@
 
    (else str)))
 
-;;;;
-;;; {has-trailing-newline?}
+;;; {String Fun: has-trailing-newline?}
 ;;;
 
 (define-public (has-trailing-newline? str)
@@ -3544,7 +3529,7 @@
 
 
 
-
+;;; {String Fun: with-regexp-parts}
 
 (define-public (with-regexp-parts regexp fields str return fail)
   (let ((parts (regexec regexp str fields)))
@@ -3553,7 +3538,6 @@
 	(apply return parts))))
 
 
-
 ;;; {Load debug extension code if debug extensions present.}
 ;;;
 ;;; *fixme* This is a temporary solution.
@@ -3563,7 +3547,6 @@
     (define-module (guile) :use-module (ice-9 debug)))
 
 
-
 ;;; {Load thread code if threads are present.}
 ;;;
 ;;; *fixme* This is a temporary solution.
