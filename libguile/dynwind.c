@@ -82,6 +82,17 @@ scm_dynamic_wind (thunk1, thunk2, thunk3)
 }
 
 
+#ifdef GUILE_DEBUG
+SCM_PROC (s_wind_chain, "wind-chain", 0, 0, 0, scm_wind_chain);
+
+SCM
+scm_wind_chain ()
+{
+  return scm_dynwinds;
+}
+#endif
+
+
 void 
 scm_dowinds (to, delta)
      SCM to;
