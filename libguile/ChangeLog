@@ -1,3 +1,11 @@
+1998-10-17  Jim Blandy  <jimb@savonarola.red-bean.com>
+
+	Don't use local_fgets on sockets; ftell doesn't work on sockets.
+	(Thanks to Jorgen "forcer" Schaefer.)
+	* ports.h (SCM_NOFTELL): New flag.
+	* fports.c (local_fgets): If it's set, use the generic fgets.
+	* socket.c (scm_socket): Set SCM_NOFTELL on the ports we produce.
+
 1998-10-17  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
 	* script.c (scm_compile_shell_switches): Add handling of -q switch
@@ -313,7 +321,7 @@
 	* init.c (scm_load_startup_files): Prototype for new function.
 	* gh_init.c (gh_enter): Doc fix.
 
-1998-10-03    <jimb@savonarola.red-bean.com>
+1998-10-03  Jim Blandy  <jimb@savonarola.red-bean.com>
 
 	Some anti-warning changes from Greg Harvey.
 	* gh_data.c (gh_scm2doubles): Initialize m, to avoid compiler
@@ -327,7 +335,7 @@
  	own message, instead of using scm_syserror --- the getpwMUMBLE
  	functions don't set `errno' to anything interesting.
 
-1998-10-03    <jimb@savonarola.red-bean.com>
+1998-10-03  Jim Blandy  <jimb@savonarola.red-bean.com>
 
 	Get rid of warnings from the cooperative threading system.
 	* threads.h (scm_single_thread_p, scm_yield,
@@ -362,7 +370,7 @@
  	arguments to the <ctype.h> macros are all unsigned characters, not
  	signed characters.
 
-1998-10-03    <jimb@savonarola.red-bean.com>
+1998-10-03  Jim Blandy  <jimb@savonarola.red-bean.com>
 
 	Getting rid of more warnings...
 	* iselect.c: Test for MISSING_BZERO_DECL, not DECLARE_BZERO; see
@@ -381,7 +389,7 @@
 	* readline.c (scm_filename_completion_function): Use SCM_PROC to
 	declare this, instead of calling scm_make_subr manually.
 
-1998-10-02    <jimb@savonarola.red-bean.com>
+1998-10-02  Jim Blandy  <jimb@savonarola.red-bean.com>
 
 	* readline.h (scm_init_readline): Add prototype for this.
 	(scm_init_readline): Make this a real prototype.
