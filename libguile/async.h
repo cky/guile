@@ -3,7 +3,7 @@
 #ifndef SCM_ASYNC_H
 #define SCM_ASYNC_H
 
-/* Copyright (C) 1995,1996,1997,1998,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2002 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -61,6 +61,7 @@ SCM_API SCM scm_async (SCM thunk);
 SCM_API SCM scm_system_async (SCM thunk);
 SCM_API SCM scm_async_mark (SCM a);
 SCM_API SCM scm_system_async_mark (SCM a);
+SCM_API SCM scm_system_async_mark_for_thread (SCM a, SCM thread);
 SCM_API void scm_system_async_mark_from_signal_handler (SCM a);
 SCM_API SCM scm_run_asyncs (SCM list_of_a);
 SCM_API SCM scm_noop (SCM args);
