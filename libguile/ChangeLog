@@ -1,3 +1,8 @@
+2005-01-04  Kevin Ryde  <user42@zip.com.au>
+
+	* stime.c (scm_strftime): Free t.tm_zone produced by bdtime2c.
+	Reported by Bill Schottstaedt.
+
 2005-01-02  Marius Vollmer  <mvo@zagadka.de>
 
 	* sort.c (quicksort): Added INC parameter for non-contigous
