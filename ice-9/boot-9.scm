@@ -1262,65 +1262,53 @@
 ;; bindings that would otherwise not be found locally in the module.
 ;;
 (define module-type
-  (make-record-type 'module '(obarray uses binder eval-thunk name kind) %print-module))
+  (make-record-type 'module '(obarray uses binder eval-thunk name kind)
+		    %print-module))
 
-;; make-module &opt size uses
+;; make-module &opt size uses binder
 ;;
-;; Create a new module, perhaps with a particular size of obarray
-;; or initial uses list.
+;; Create a new module, perhaps with a particular size of obarray,
+;; initial uses list, or binding procedure.
 ;;
-(define module-constructor (record-constructor module-type))
-
 (define make-module
     (lambda args
-      (let* ((size 1021)
-	     (uses '())
-	     (binder #f)
-	     (answer #f)
-	     (eval-thunk
-	      (lambda (symbol define?)
-		(if define?
-		    (module-make-local-var! answer symbol)
-		    (module-variable answer symbol)))))
 
-	(if (> (length args) 0)
-	    (begin
-	      (set! size (or (car args) size))
-	      (set! args (cdr args))))
+      (define (parse-arg index default)
+	(if (> (length args) index)
+	    (list-ref args index)
+	    default))
 
-	(if (> (length args) 0)
-	    (begin
-	      (set! uses (or (car args) uses))
-	      (set! args (cdr args))))
+      (if (> (length args) 3)
+	  (error "Too many args to make-module." args))
 
-	(if (> (length args) 0)
-	    (begin
-	      (set! binder (or (car args) binder))
-	      (set! args (cdr args))))
-
-	(if (not (null? args))
-	    (error "Too many args to make-module." args))
+      (let ((size (parse-arg 0 1021))
+	    (uses (parse-arg 1 '()))
+	    (binder (parse-arg 2 #f)))
 
 	(if (not (integer? size))
 	    (error "Illegal size to make-module." size))
-
-	(and (list? uses)
-	     (or (and-map module? uses)
-		 (error "Incorrect use list." uses)))
-
+	(if (not (and (list? uses)
+		      (and-map module? uses)))
+	    (error "Incorrect use list." uses))
 	(if (and binder (not (procedure? binder)))
 	    (error
 	     "Lazy-binder expected to be a procedure or #f." binder))
 
-	(set! answer
-	      (module-constructor (make-vector size '())
-				  uses
-				  binder
-				  eval-thunk
-				  #f
-				  #f))
-	answer)))
+	(let ((module (module-constructor (make-vector size '())
+					  uses binder #f #f #f)))
 
+	  ;; We can't pass this as an argument to module-constructor,
+	  ;; because we need it to close over a pointer to the module
+	  ;; itself.
+	  (set-module-eval-thunk! module
+				  (lambda (symbol define?)
+				    (if define?
+					(module-make-local-var! module symbol)
+					(module-variable module symbol))))
+
+	  module))))
+
+(define module-constructor (record-constructor module-type))
 (define module-obarray  (record-accessor module-type 'obarray))
 (define set-module-obarray! (record-modifier module-type 'obarray))
 (define module-uses  (record-accessor module-type 'uses))
@@ -1334,6 +1322,7 @@
 (define module-kind (record-accessor module-type 'kind))
 (define set-module-kind! (record-modifier module-type 'kind))
 (define module? (record-predicate module-type))
+
 
 (define (eval-in-module exp module)
   (eval2 exp (module-eval-thunk module)))
@@ -1607,7 +1596,7 @@
 	   bi))))
 
 (define (make-root-module)
-  (make-module 1019 #f root-module-thunk))
+  (make-module 1019 '() root-module-thunk))
 
 
 ;; make-scm-module 
@@ -1620,7 +1609,7 @@
 ;;
 
 (define (make-scm-module)
-  (make-module 1019 #f
+  (make-module 1019 '()
 	       (lambda (m s define?)
 		 (let ((bi (and (symbol-interned? #f s)
 				(builtin-variable s))))
@@ -2862,21 +2851,24 @@
 
 ;;;;
 ;;;	local-definitions-in root name
-;;;		Returns a list of names defined locally in the named subdirectory of root.
+;;;		Returns a list of names defined locally in the named
+;;;		subdirectory of root.
 ;;;	definitions-in root name
-;;;		Returns a list of all names defined in the named subdirectory of root.
-;;;		The list includes alll locally defined names as well as all names inherited
-;;;		from a member of a use-list.
+;;;		Returns a list of all names defined in the named
+;;;		subdirectory of root.  The list includes alll locally
+;;;		defined names as well as all names inherited from a
+;;;		member of a use-list.
 ;;;
 ;;; A convenient interface for examining the nature of things:
 ;;;
 ;;;	ls . various-names
 ;;;
-;;;		With just one argument, interpret that argument as the name of a subdirectory
-;;;		of the current module and return a list of names defined there.
+;;;		With just one argument, interpret that argument as the
+;;;		name of a subdirectory of the current module and
+;;;		return a list of names defined there.
 ;;;
-;;;		With more than one argument, still compute subdirectory lists, but
-;;;		return a list:
+;;;		With more than one argument, still compute
+;;;		subdirectory lists, but return a list:
 ;;;			((<subdir-name> . <names-defined-there>)
 ;;;			 (<subdir-name> . <names-defined-there>)
 ;;;			 ...)
@@ -2896,7 +2888,8 @@
 	m
 	(reduce union
 		(cons (local-definitions-in m  '())
-		      (map (lambda (m2) (definitions-in m2 '())) (module-uses m)))))))
+		      (map (lambda (m2) (definitions-in m2 '()))
+			   (module-uses m)))))))
 
 (define-public (ls . various-refs)
   (and various-refs
