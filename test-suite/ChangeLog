@@ -1,7 +1,7 @@
 2004-02-29  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/posix.test (execl, execlp, execle): Exercise errors where
-	program not found.
+	program not found.  [But disabled, due to problems with threading.]
 
 2004-02-22  Kevin Ryde  <user42@zip.com.au>
 
