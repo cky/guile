@@ -1,6 +1,10 @@
 2004-12-06  Kevin Ryde  <user42@zip.com.au>
 
-	* srfi-1.scm (alist-copy): Change to a tail-recursive form.
+	* srfi-1.scm (alist-copy, alist-delete, break, span): Change to
+	tail-recursive forms.
+
+	* srfi-1.scm (alist-delete): Correction to equality proc call argument
+	order, spec is for given KEY param first.
 
 2004-12-05  Kevin Ryde  <user42@zip.com.au>
 
