@@ -1,3 +1,16 @@
+Wed Mar 15 08:27:04 2000  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* fluids.c: Docstring patch from Keisuke Nishida.  Some
+	reindentation, too, and a couple formals renamed.  Should
+	fluid-set! return UNSPECIFIED instead of a value?
+
+Wed Mar 15 08:24:58 2000  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* Makefile.am: Separate out DOT_X_FILES and DOT_DOC_FILES, and
+	generate the latter from the concrete listing of the former.  Then 
+	make guile-procedures.txt depend on DOT_DOC_FILES instead of
+	*.doc, so that rebuilding it works.
+
 Wed Mar 15 08:12:14 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* libguile.h: Include libguile/validate.h.  Thanks Keisuke Nishida!
