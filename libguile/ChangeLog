@@ -1,4 +1,15 @@
-Mon May 26 17:24:38 1997  Jim Blandy  <jimb@totoro.cyclic.com>
+Mon May 26 18:51:29 1997  Jim Blandy  <jimb@floss.cyclic.com>
+
+	* gh_init.c (gh_enter): Cast c_main_prog to a void * before
+ 	passing it as the closure argument to scm_boot_guile.  (Bill
+ 	Janssen)
+	
+	* ports.c (print_void_port, putc_void_port, puts_void_port,
+	write_void_port, flush_void_port, getc_void_port, close_void_port,
+	noop0): Use ANSI prototypes instead of K&R declarations, so the
+	initialization of void_port_ptob gets aggressively type-checked.
+	Fix arguments of print_void_port and write_void_port.  (Bill
+	Janssen)
 
 	* COPYING, __scm.h, _scm.h, alist.c, alist.h, append.c, append.h,
  	appinit.c, arbiters.c, arbiters.h, async.c, async.h, backtrace.c,
