@@ -160,17 +160,36 @@
 ;;
 (define gensym
   (let ((counter 0))
+
+    (define next-id
+      (if (provided? 'threads)
+          (let ((symlock (make-mutex)))
+            (lambda ()
+              (let ((result #f))
+                (with-mutex symlock
+                  (set! result counter)
+                  (set! counter (+ counter 1)))
+                result)))
+          ;; faster, non-threaded case.
+          (lambda ()
+            (let ((result counter))
+              (set! counter (+ counter 1))
+              result))))
+    
+    ;; actual gensym body code.
     (lambda (. rest)
-      (let ((val (number->string counter)))
-        (set! counter (+ counter 1))
-        (cond
-         ((null? rest)
-          (string->symbol (string-append "syntmp-" val)))
-         ((null? (cdr rest))
-          (string->symbol (string-append "syntmp-" (car rest) "-" val)))
-         (else
-          (error
-           "syncase's gensym called with the wrong number of arguments")))))))
+      (let* ((next-val (next-id))
+             (valstr (number->string next-val)))
+          (cond
+           ((null? rest)
+            (string->symbol (string-append "syntmp-" valstr)))
+           ((null? (cdr rest))
+            (string->symbol (string-append "syntmp-" (car rest) "-" valstr)))
+           (else
+            (error
+             (string-append
+              "syncase's gensym expected 0 or 1 arguments, got "
+              (length rest)))))))))
 
 ;;; Load the preprocessed code
 
