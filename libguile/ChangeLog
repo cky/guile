@@ -1,3 +1,8 @@
+1998-01-23  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* coop-threads.c, threads.h (scm_spawn_thread): New function.
+	Can spawn a thread from application C code.
+
 1998-01-20  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* gh.h, gh_data.c (gh_doubles2scm, gh_doubles2dvect,

@@ -410,6 +410,15 @@ the stack to be saved automatically into the variable `the-last-stack'
 use advanced error reporting, such as calling scm_display_error and
 scm_display_backtrace.  (They both take a stack object as argument.)
 
+** Function: SCM scm_spawn_thread (scm_catch_body_t body,
+				   void *body_data,
+				   scm_catch_handler_t handler,
+				   void *handler_data)
+
+Spawns a new thread.  It does a job similar to
+scm_call_with_new_thread but takes arguments more suitable when
+spawning threads from application C code.
+
 ** The hook scm_error_callback has been removed.  It was originally
 intended as a way for the user to install his own error handler.  But
 that method works badly since it intervenes between throw and catch,

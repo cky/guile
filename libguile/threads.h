@@ -73,6 +73,9 @@ SCM scm_threads_lock_mutex SCM_P ((SCM));
 SCM scm_threads_unlock_mutex SCM_P ((SCM));
 SCM scm_threads_monitor SCM_P ((void));
 
+SCM scm_spawn_thread (scm_catch_body_t body, void *body_data,
+		      scm_catch_handler_t handler, void *handler_data);
+
 #if 0
 /* These don't work any more.  */ 
 #ifdef USE_MIT_PTHREADS

@@ -204,14 +204,20 @@ scm_threads_mark_stacks ()
     }
 }
 
-#ifdef __STDC__
-void
-launch_thread (void *p)
-#else
-void
-launch_thread (p)
-     void *p;
-#endif
+/* NOTE: There are TWO mechanisms for starting a thread: The first one
+   is used when spawning a thread from Scheme, while the second one is
+   used from C.
+
+   It might be argued that the first should be implemented in terms of
+   the second.  The reason it isn't is that that would require an
+   extra unnecessary malloc (the thread_args structure).  By providing
+   one pair of extra functions (c_launch_thread, scm_spawn_thread) the
+   Scheme threads are started more efficiently.  */
+
+/* This is the first thread spawning mechanism: threads from Scheme */
+
+static void
+scheme_launch_thread (void *p)
 {
   /* The thread object will be GC protected by being a member of the
      list given as argument to launch_thread.  It will be marked
@@ -274,7 +280,7 @@ scm_call_with_new_thread (argl)
     SCM_DEFER_INTS;
     SCM_SETCAR (thread, scm_tc16_thread);
     argl = scm_cons (thread, argl);
-    t = coop_create (launch_thread, (void *) argl);
+    t = coop_create (scheme_launch_thread, (void *) argl);
     t->data = SCM_ROOT_STATE (root);
     SCM_SETCDR (thread, t);
     scm_thread_count++;
@@ -287,6 +293,79 @@ scm_call_with_new_thread (argl)
     /* Return to old dynamic context. */
     scm_dowinds (old_winds, - scm_ilength (old_winds));
   }
+  
+  return thread;
+}
+
+/* This is the second thread spawning mechanism: threads from C */
+
+struct thread_args {
+  SCM thread;
+  scm_catch_body_t body;
+  void *body_data;
+  scm_catch_handler_t handler;
+  void *handler_data;
+};
+
+static void
+c_launch_thread (void *p)
+{
+  struct thread_args *args = (struct thread_args *) p;
+  /* The thread object will be GC protected by being on this stack */
+  SCM thread = args->thread;
+  /* We must use the address of `thread', otherwise the compiler will
+     optimize it away.  This is OK since the longest SCM_STACKITEM
+     also is a long.  */
+  scm_internal_cwdr (args->body,
+		     args->body_data,
+		     args->handler,
+		     args->handler_data,
+		     &thread);
+  scm_thread_count--;
+  scm_must_free ((char *) args);
+}
+
+SCM
+scm_spawn_thread (scm_catch_body_t body, void *body_data,
+		  scm_catch_handler_t handler, void *handler_data)
+{
+  SCM thread;
+  coop_t *t;
+  SCM root, old_winds;
+  struct thread_args *args =
+    (struct thread_args *) scm_must_malloc (sizeof (*args),
+					    "scm_spawn_thread");
+  
+  /* Unwind wind chain. */
+  old_winds = scm_dynwinds;
+  scm_dowinds (SCM_EOL, scm_ilength (scm_root->dynwinds));
+
+  /* Allocate thread locals. */
+  root = scm_make_root (scm_root->handle);
+  /* Make thread. */
+  SCM_NEWCELL (thread);
+  SCM_DEFER_INTS;
+  SCM_SETCAR (thread, scm_tc16_thread);
+
+  args->thread = thread;
+  args->body = body;
+  args->body_data = body_data;
+  args->handler = handler;
+  args->handler_data = handler_data;
+  
+  t = coop_create (c_launch_thread, (void *) args);
+  
+  t->data = SCM_ROOT_STATE (root);
+  SCM_SETCDR (thread, t);
+  scm_thread_count++;
+  /* Note that the following statement also could cause coop_yield.*/
+  SCM_ALLOW_INTS;
+
+  /* We're now ready for the thread to begin. */
+  coop_yield();
+
+  /* Return to old dynamic context. */
+  scm_dowinds (old_winds, - scm_ilength (old_winds));
   
   return thread;
 }
