@@ -62,14 +62,17 @@
 
 scm_t_bits scm_tc16_hashtable;
 
-#define HASHTABLE_SIZE_N 25
-
 static unsigned long hashtable_size[] = {
   31, 61, 113, 223, 443, 883, 1759, 3517, 7027, 14051, 28099, 56197, 112363,
-  224717, 449419, 898823, 1797641, 3595271, 7190537, 14381041, 28762081,
-  57524111, 115048217, 230096423, 460192829 /* larger values can't be
-					       represented as INUMs */
+  224717, 449419, 898823, 1797641, 3595271, 7190537, 14381041
+#if 0
+  /* vectors are currently restricted to 2^24-1 = 16777215 elements. */
+  28762081, 57524111, 115048217, 230096423, 460192829
+  /* larger values can't be represented as INUMs */
+#endif
 };
+
+#define HASHTABLE_SIZE_N (sizeof(hashtable_size)/sizeof(unsigned long))
 
 /* Turn an empty vector hash table into an opaque resizable one. */
 
