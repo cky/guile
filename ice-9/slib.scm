@@ -167,13 +167,13 @@
 
 (define-public (implementation-vicinity)
   (string-append slib-parent-dir "/"))
-(define (library-vicinity)
+(define-public (library-vicinity)
   (string-append (implementation-vicinity) "slib/"))
-(define home-vicinity
+(define-public home-vicinity
   (let ((home-path (getenv "HOME")))
     (lambda () home-path)))
-(define (scheme-implementation-type) 'guile)
-(define (scheme-implementation-version) "")
+(define-public (scheme-implementation-type) 'guile)
+(define-public (scheme-implementation-version) "")
 
 (define (output-port-width . arg) 80)
 (define (output-port-height . arg) 24)

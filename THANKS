@@ -1,4 +1,4 @@
-The Guile maintainer is Maciej Stachow.
+The Guile maintainer is Maciej Stachowiak.
 
 Contributors since the last release:
 
@@ -12,9 +12,12 @@ Bug reports and fixes:
      Lauri Alanko
       Mark Galassi
       Greg Harvey
+      Dirk Hermann
+      Eric Moore
     Roland Orre
   Bertrand Petit
     Jorgen Schaefer
     Daniel Skarda
    Bernard Urban
       Lynn Winebarger
+      Ryan Yeske
