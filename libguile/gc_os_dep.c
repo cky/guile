@@ -116,6 +116,11 @@ typedef int GC_bool;
 #    define NETBSD
 #    define mach_type_known
 # endif
+# if defined(__NetBSD__) && defined(__sparc__)
+#    define SPARC
+#    define NETBSD
+#    define mach_type_known
+# endif
 # if defined(vax)
 #    define VAX
 #    ifdef ultrix
