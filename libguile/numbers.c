@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004 Free Software Foundation, Inc.
  *
  * Portions Copyright 1990, 1991, 1992, 1993 by AT&T Bell Laboratories
  * and Bellcore.  See scm_divide.
@@ -152,8 +152,6 @@ static SCM abs_most_negative_fixnum;
 static mpz_t z_negative_one;
 
 
-
-static const char s_bignum[] = "bignum";
 
 SCM_C_INLINE_KEYWORD SCM
 scm_i_mkbig ()
