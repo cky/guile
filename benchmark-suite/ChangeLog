@@ -1,3 +1,8 @@
+2004-01-06  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* lib.scm (print-result, print-user-result): Handle exact
+	fractions.
+
 2003-05-27  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* lib.scm: Fix some typos in the documentation.
