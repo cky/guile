@@ -1,3 +1,7 @@
+2002-03-24  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* Makefile.am (.c.x): Pass "-o $@" to guile-snarf.
+
 2002-03-13  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* srfi-13.c, srfi-14.c, srfi-4.c:

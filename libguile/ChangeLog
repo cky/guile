@@ -1,3 +1,13 @@
+2002-03-24  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* guile-snarf.in: When the output filename is "-", write to
+	stdout.  When no "-o" option is given, use "-" as the output
+	filename (i.e., stdout).  Only 'clean' the inputfile or remove the
+	output file on error when the output file name is not "-".  Define
+	the preprocessor macro SCM_MAGIC_SNARFER while snarfing.
+
+	* Makefile.am (.c.x): Pass "-o $@" to guile-snarf.
+
 2002-03-23  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* eval.c (SCM_CEVAL, SCM_APPLY): Eliminated labels wrongnumargs
