@@ -1,3 +1,10 @@
+2000-04-04  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* format.scm (format:obj->str): Handle circular references.  Also,
+	print improper lists with (x y . z) syntax rather than as
+	individual pairs.  (This code should probably be integrated into C
+	level facilities.  It is currently terribly slow.)
+
 2000-04-03  Michael Livshin  <mlivshin@bigfoot.com>
 
 	* streams.scm (stream-fold, stream-for-each): don't use named let, 
