@@ -1,3 +1,37 @@
+2001-03-02  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* vectors.c (s_scm_vector_p, list->vector, scm_vector)
+	(scm_vector_ref, scm_vector_set_x, scm_vector_to_list)
+	(scm_vector_fill_x), strorder.c (scm_string_equal_p)
+	(scm_string_ci_equal_p, scm_string_less_p, scm_string_leq_p)
+	(scm_string_gr_p, scm_string_geq_p, scm_string_ci_less_p)
+	(scm_string_ci_geq_p), symbols.c (scm_symbol_p)
+	(scm_symbol_to_string, scm_string_to_symbol): Changed use of @t{}
+	to @code{} as the texinfo manual recommends, converted the
+	examples to use a @lisp{}-environment.
+
+	* strports.c (scm_eval_string): Cleaned up the docstring.
+
+	* struct.c (scm_struct_p, scm_struct_vtable_p): Added texinfo
+	markup.
+
+	* numbers.c (scm_exact_p, scm_odd_p, scm_even_p)
+	(scm_number_to_string, scm_string_to_number, scm_number_p)
+	(scm_real_p, scm_integer_p, scm_inexact_p, scm_make_rectangular)
+	(scm_make_polar, scm_inexact_to_exact): Added texinfo markup.
+	(scm_ash): Added texinfo markup and removed obsolete @refill.
+	(scm_gr_p): Corrected comment.
+	(scm_gr_p, scm_leq_p, scm_geq_p): Added texinfo markup to (future
+	docstring) comments.
+	(scm_positive_p, scm_less_p, scm_num_eq_p, scm_real_p)
+	(scm_number_p, scm_negative_p, scm_max, scm_min, scm_sum)
+	(scm_difference, scm_product, scm_divide, scm_asinh, scm_acosh)
+	(scm_atanh, scm_truncate, scm_round, scm_exact_to_inexact)
+	(floor, ceiling, $sqrt, $abs, $exp, $log, $sin, $cos, $tan, $asin)
+	($acos, $atan, $sinh, $cosh, $tanh, scm_real_part, scm_imag_part)
+	(scm_magnitude, scm_angle, scm_abs, scm_quotient, scm_remainder)
+	(scm_modulo, scm_gcd, scm_lcm): Added (future docstring) comments.
+
 2001-02-28  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* __scm.h (SCM_ASSERT_TYPE):  Add missing macro parameter.
