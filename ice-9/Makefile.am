@@ -47,7 +47,7 @@ if MAINTAINER_MODE
 # on ice-9/syncase.scm, which does `(load-from-path "ice-9/psyntax.pp")'.
 # In other words, to bootstrap this file, you need to do something like:
 #    GUILE_LOAD_PATH=/usr/local/share/guile/1.5.4 make psyntax.pp
-include $(top_srcdir)/pre-inst-guile.am
+include $(top_srcdir)/am/pre-inst-guile
 psyntax.pp: psyntax.ss
 	$(preinstguile) -s $(srcdir)/compile-psyntax.scm \
 		$(srcdir)/psyntax.ss $(srcdir)/psyntax.pp

@@ -37,7 +37,7 @@ guile_TEXINFOS = preface.texi intro.texi program.texi scheme-intro.texi \
 
 ETAGS_ARGS = $(info_TEXINFOS) $(guile_TEXINFOS)
 
-include $(top_srcdir)/pre-inst-guile.am
+include $(top_srcdir)/am/pre-inst-guile
 
 # Automated snarfing
 

@@ -208,7 +208,7 @@ error.x: cpp_err_symbols.c
 posix.x: cpp_sig_symbols.c
 load.x: libpath.h
 
-include $(top_srcdir)/pre-inst-guile.am
+include $(top_srcdir)/am/pre-inst-guile
 
 alldotdocfiles    = $(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES)
 snarf2checkedtexi = $(preinstguiletool)/snarf-check-and-output-texi

@@ -42,7 +42,7 @@ EXTRA_DIST = $(scripts_sources)
 list:
 	@echo $(scripts_sources)
 
-include $(top_srcdir)/pre-inst-guile.am
+include $(top_srcdir)/am/pre-inst-guile
 
 overview: $(scripts_sources)
 	@echo '----------------------------'
