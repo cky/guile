@@ -154,41 +154,10 @@ cwdr (SCM proc, SCM a1, SCM args, SCM handler, SCM_STACKITEM *stack_start)
 
 SCM_DEFINE (scm_call_with_dynamic_root, "call-with-dynamic-root", 2, 0, 0,
            (SCM thunk, SCM handler),
-	    "Evaluate @code{(thunk)} in a new dynamic context, returning its value.\n\n"
-	    "If an error occurs during evaluation, apply @var{handler} to the\n"
-	    "arguments to the throw, just as @code{throw} would.  If this happens,\n"
-	    "@var{handler} is called outside the scope of the new root -- it is\n"
-	    "called in the same dynamic context in which\n"
-	    "@code{call-with-dynamic-root} was evaluated.\n\n"
-	    "If @var{thunk} captures a continuation, the continuation is rooted at\n"
-	    "the call to @var{thunk}.  In particular, the call to\n"
-	    "@code{call-with-dynamic-root} is not captured.  Therefore,\n"
-	    "@code{call-with-dynamic-root} always returns at most one time.\n\n"
-	    "Before calling @var{thunk}, the dynamic-wind chain is un-wound back to\n"
-	    "the root and a new chain started for @var{thunk}.  Therefore, this call\n"
-	    "may not do what you expect:\n\n"
-	    "@lisp\n"
-	    ";; Almost certainly a bug:\n"
-	    "(with-output-to-port\n"
-	    " some-port\n\n"
-	    " (lambda ()\n"
-	    "   (call-with-dynamic-root\n"
-	    "    (lambda ()\n"
-	    "      (display 'fnord)\n"
-	    "      (newline))\n"
-	    "    (lambda (errcode) errcode))))\n"
-	    "@end lisp\n\n"
-	    "The problem is, on what port will @samp{fnord} be displayed?  You\n"
-	    "might expect that because of the @code{with-output-to-port} that\n"
-	    "it will be displayed on the port bound to @code{some-port}.  But it\n"
-	    "probably won't -- before evaluating the thunk, dynamic winds are\n"
-	    "unwound, including those created by @code{with-output-to-port}.\n"
-	    "So, the standard output port will have been re-set to its default value\n"
-	    "before @code{display} is evaluated.\n\n"
-	    "(This function was added to Guile mostly to help calls to functions in C\n"
-	    "libraries that can not tolerate non-local exits or calls that return\n"
-	    "multiple times.  If such functions call back to the interpreter, it should\n"
-	    "be under a new dynamic root.)")
+	    "Call @var{thunk} with a new dynamic state and within"
+	    "a continuation barrier.  The @var{handler} catches all"
+	    "otherwise uncaught throws and executes within the same"
+	    "dynamic context as @var{thunk}.")
 #define FUNC_NAME s_scm_call_with_dynamic_root
 {
   SCM_STACKITEM stack_place;
