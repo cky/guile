@@ -8,6 +8,18 @@ Changes since Guile 1.4:
 
 * Changes to the distribution
 
+** New module (srfi srfi-13)
+
+Implements SRFI-13 (string library).
+
+** New module (srfi srfi-14)
+
+Implements SRFI-14 (character-set library).
+
+** New module (srfi srfi-9)
+
+This module exports define-record-type.
+
 ** New module (srfi srfi-11):
 
 This module exports let-values and let*-values.

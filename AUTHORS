@@ -98,3 +98,11 @@ In the subdirectory srfi, wrote the initial files for:
     srfi-6.scm
     srfi-8.scm
     srfi-11.scm
+
+Martin Grabmueller:
+In the subdirectory srfi, wrote:
+    srfi-9.scm
+    srfi-13.scm
+    srfi-14.scm
+    srfi-13.c
+    srfi-14.c
