@@ -150,7 +150,7 @@ SCM_DEFINE (scm_assq, "assq", 2, 0, 0,
   for (; SCM_CONSP (alist); alist = SCM_CDR (alist)) 
     {
       SCM tmp = SCM_CAR (alist);
-      SCM_VALIDATE_CONS (SCM_ARG2, tmp);
+      SCM_VALIDATE_CONS (SCM_ARG2, alist);
       if (SCM_EQ_P (SCM_CAR (tmp), key))
 	return tmp;
     }
@@ -168,7 +168,7 @@ SCM_DEFINE (scm_assv, "assv", 2, 0, 0,
   for(; SCM_CONSP (alist); alist = SCM_CDR (alist)) 
     {
       SCM tmp = SCM_CAR (alist);
-      SCM_VALIDATE_CONS (SCM_ARG2, tmp);
+      SCM_VALIDATE_CONS (SCM_ARG2, alist);
       if (SCM_NFALSEP (scm_eqv_p (SCM_CAR (tmp), key)))
 	return tmp;
     }
@@ -186,7 +186,7 @@ SCM_DEFINE (scm_assoc, "assoc", 2, 0, 0,
   for(; SCM_CONSP (alist); alist = SCM_CDR (alist)) 
     {
       SCM tmp = SCM_CAR (alist);
-      SCM_VALIDATE_CONS (SCM_ARG2, tmp);
+      SCM_VALIDATE_CONS (SCM_ARG2, alist);
       if (SCM_NFALSEP (scm_equal_p (SCM_CAR (tmp), key)))
 	return tmp;
     }
