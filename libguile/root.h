@@ -109,6 +109,7 @@ typedef struct scm_root_state
   SCM def_inp;
   SCM def_outp;
   SCM def_errp;
+  SCM cur_loadp;
 
   SCM fluids;
 
@@ -138,6 +139,7 @@ typedef struct scm_root_state
 #define scm_def_inp			(scm_root->def_inp)
 #define scm_def_outp			(scm_root->def_outp)
 #define scm_def_errp			(scm_root->def_errp)
+#define scm_cur_loadp			(scm_root->cur_loadp)
 #define scm_top_level_lookup_closure_var \
                                        (scm_root->top_level_lookup_closure_var)
 #define scm_system_transformer		(scm_root->system_transformer)

@@ -90,6 +90,7 @@ mark_root (root)
   scm_gc_mark (s->def_inp);
   scm_gc_mark (s->def_outp);
   scm_gc_mark (s->def_errp);
+  /* No need to gc mark def_loadp */
   scm_gc_mark (s->fluids);
   scm_gc_mark (s->top_level_lookup_closure_var);
   scm_gc_mark (s->system_transformer);
