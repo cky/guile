@@ -47,24 +47,10 @@
 #include "libguile/__scm.h"
 
 
-
-enum scm_boot_status
-{
-  scm_boot_ok = 0,
-  scm_boot_error,
-  scm_boot_emem,
-  scm_boot_ereenter
-};
-
-
-
-extern void scm_start_stack SCM_P ((void *base,
-				    FILE *in, FILE *out, FILE *err));
-extern void scm_restart_stack SCM_P ((void * base));
-extern int scm_boot_guile SCM_P ((char **result,
-				  int argc, char **argv,
-				  FILE *in, FILE *out, FILE *err,
-				  void (*init_func) (),
-				  char *boot_cmd));
+extern void scm_boot_guile SCM_P ((int argc, char **argv,
+				   void (*main_func) (void *closure,
+						      int argc,
+						      char **argv),
+				   void *closure));
 
 #endif  /* INITH */
