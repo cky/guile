@@ -1,3 +1,8 @@
+2004-09-26  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/optargs.test (let-keywords, let-keywords*, let-optional,
+	let-optional*): Add tests of internal defines when no bindings.
+
 2004-09-25  Marius Vollmer  <mvo@zagadka.de>
 
 	* standalone/Makefile.am (AM_LDFLAGS, LD_FLAGS): Use AM_LDFLAGS
