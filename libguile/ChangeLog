@@ -2,7 +2,8 @@ Sun Nov 10 13:35:05 1996  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* gc.c (struct scm_heap_seg_data): Doc fixes.
 
-	* gc.c (scm_gc_sweep): Prepend each segment's free cells to its
+	* gc.c (scm_gc_sweep): Empty all segments' freelists before
+	sweeping.  Then, prepend each segment's free cells to its
 	freelist, rather than wiping out the old value.  (Thanks to Marius
 	Vollmer.)
 
