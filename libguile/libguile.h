@@ -124,6 +124,7 @@ extern "C" {
 #include "libguile/tags.h"
 #include "libguile/throw.h"
 #include "libguile/unif.h"
+#include "libguile/validate.h"
 #include "libguile/variable.h"
 #include "libguile/vectors.h"
 #include "libguile/version.h"
