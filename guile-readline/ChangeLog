@@ -1,3 +1,18 @@
+1999-07-24  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* readline.c (handle_error): Put a cosmetic newline on
+	rl_outstream on error before closing it.
+
+	* configure.in: Changed AC_MSG_ERROR into AC_MSG_WARN in case
+	readline doesn't exist on the system, so that configuration can
+	proceed normally without readline.
+
+	* readline.c: #include "libguile/_scm.h" (so that we get the
+	configuration information) and fix other includes so that they'll
+	work on a system where guile is not yet installed.
+
+	* Makefile.am (BUILT_SOURCES): Added.
+
 1999-07-23  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* Checked everything into CVS.

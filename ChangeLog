@@ -1,3 +1,8 @@
+1999-07-24  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* README, config.guess, config.sub, liconfig, ltmain.sh: Switched
+	to libtool-1.3.3.
+
 1999-07-22  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	Added guile-readline subdirectory with the removed readline
