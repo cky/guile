@@ -1,3 +1,8 @@
+2002-01-14  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* Makefile.am (autoconf-macros.texi):  Also set GUILE_LOAD_PATH
+	when invoking the uninstalled guile executable.
+
 2002-01-09  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* Makefile.am (autoconf-macros.texi): Fix build bug:
