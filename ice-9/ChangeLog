@@ -1,3 +1,7 @@
+2001-09-24  Mikael Djurfeldt  <mdj@linnaeus>
+
+	* boot-9.scm (process-define-module): Added :re-export.
+
 2001-09-19  Thien-Thi Nguyen  <ttn@glug.org>
 
 	* expect.scm: Commentary fix; nfc.
