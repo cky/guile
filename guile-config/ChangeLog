@@ -1,3 +1,11 @@
+2001-12-28  Thien-Thi Nguyen  <ttn@glug.org>
+
+	* Update copyright.
+	Add index in header comments.
+
+	(AC_GUILE_MODULE_CHECK, AC_GUILE_MODULE_AVAILABLE,
+	AC_GUILE_MODULE_REQUIRED): New macros.
+
 2001-07-18  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* guile-config.in, Makefile.am: Updated copyright notice.
