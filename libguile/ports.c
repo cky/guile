@@ -250,11 +250,16 @@ scm_add_to_port_table (port)
 					 scm_must_malloc (sizeof (struct scm_port_table),
 							  "system port table"));
   scm_port_table[scm_port_table_size]->port = port;
+  scm_port_table[scm_port_table_size]->entry = scm_port_table_size;
   scm_port_table[scm_port_table_size]->revealed = 0;
   scm_port_table[scm_port_table_size]->stream = 0;
   scm_port_table[scm_port_table_size]->file_name = SCM_BOOL_F;
   scm_port_table[scm_port_table_size]->line_number = 0;
   scm_port_table[scm_port_table_size]->column_number = 0;
+  scm_port_table[scm_port_table_size]->cp
+    = scm_port_table[scm_port_table_size]->cbuf;
+  scm_port_table[scm_port_table_size]->cbufend
+    = &scm_port_table[scm_port_table_size]->cbuf[SCM_INITIAL_CBUF_SIZE];
   return scm_port_table[scm_port_table_size++];
 }
 
@@ -264,21 +269,41 @@ void
 scm_remove_from_port_table (port)
      SCM port;
 {
-  int i = 0;
-  while (scm_port_table[i]->port != port)
+  struct scm_port_table *p = SCM_PTAB_ENTRY (port);
+  int i = p->entry;
+  /* Error if not found: too violent?  May occur in GC.  */
+  if (i >= scm_port_table_size)
+    scm_wta (port, "Port not in table", "scm_remove_from_port_table");
+  scm_mallocated -= (sizeof (*p)
+		     + (p->cbufend - p->cbuf)
+		     - SCM_INITIAL_CBUF_SIZE);
+  scm_must_free ((char *)p);
+  /* Since we have just freed slot i we can shrink the table by moving
+     the last entry to that slot... */
+  if (i < scm_port_table_size - 1)
     {
-      i++;
-      /* Error if not found: too violent?  May occur in GC.  */
-      if (i >= scm_port_table_size)
-	scm_wta (port, "Port not in table", "scm_remove_from_port_table");
+      scm_port_table[i] = scm_port_table[scm_port_table_size - 1];
+      scm_port_table[i]->entry = i;
     }
-  scm_must_free ((char *)scm_port_table[i]);
-  scm_mallocated -= sizeof (*scm_port_table[i]);
-  scm_port_table[i] = scm_port_table[scm_port_table_size - 1];
   SCM_SETPTAB_ENTRY (port, 0);
   scm_port_table_size--;
 }
 
+void
+scm_grow_port_cbuf (port, requested)
+  SCM port;
+  size_t requested;
+{
+  struct scm_port_table *p = SCM_PTAB_ENTRY (port);
+  int size = p->cbufend - p->cbuf;
+  int new_size = size * 3 / 2;
+  if (new_size < requested)
+    new_size = requested;
+  p = realloc (p, sizeof (*p) - SCM_INITIAL_CBUF_SIZE + new_size);
+  scm_port_table[p->entry] = p;
+  SCM_SETPTAB_ENTRY (port, p);
+}
+ 
 #ifdef GUILE_DEBUG
 /* Undocumented functions for debugging.  */
 /* Return the number of ports in the table.  */
@@ -618,11 +643,11 @@ scm_generic_fgets (port, len)
 
   /* If a char has been pushed onto the port with scm_ungetc,
      read that first. */
-  if (SCM_CRDYP (port))
+  while (SCM_CRDYP (port))
     {
       buf[*len] = SCM_CGETUN (port);
-      SCM_CLRDY (port);
-      if (buf[(*len)++] == '\n')
+      SCM_TRY_CLRDY (port);
+      if (buf[(*len)++] == '\n' || *len == limit - 1)
 	{
 	  buf[*len] = '\0';
 	  return buf;
@@ -674,6 +699,27 @@ scm_unread_char (cobj, port)
 
   scm_ungetc (c, port);
   return cobj;
+}
+
+SCM_PROC (s_unread_string, "unread-string", 2, 0, 0, scm_unread_string);
+
+SCM 
+scm_unread_string (str, port)
+     SCM str;
+     SCM port;
+{
+  SCM_ASSERT (SCM_NIMP (str) && SCM_ROSTRINGP (str),
+	      str, SCM_ARG1, s_unread_string);
+
+  if (SCM_UNBNDP (port))
+    port = scm_cur_inp;
+  else
+    SCM_ASSERT (SCM_NIMP (port) && SCM_OPINPORTP (port),
+		port, SCM_ARG2, s_unread_string);
+
+  scm_ungets (SCM_UCHARS (str), SCM_LENGTH (str), port);
+  
+  return str;
 }
 
 SCM_PROC (s_port_line, "port-line", 1, 0, 0, scm_port_line);
