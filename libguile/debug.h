@@ -73,12 +73,14 @@ extern scm_option scm_debug_opts[];
 #define SCM_TRACE_P		scm_debug_opts[2].val
 #define SCM_REC_PROCNAMES_P	scm_debug_opts[3].val
 #define SCM_BACKWARDS_P		scm_debug_opts[4].val
-#define SCM_N_FRAMES		scm_debug_opts[5].val
-#define SCM_BACKTRACE_DEPTH	scm_debug_opts[6].val
-#define SCM_BACKTRACE_P		scm_debug_opts[7].val
-#define SCM_DEVAL_P		scm_debug_opts[8].val
-#define SCM_STACK_LIMIT		scm_debug_opts[9].val
-#define SCM_N_DEBUG_OPTIONS 10
+#define SCM_BACKTRACE_INDENT   	scm_debug_opts[5].val
+#define SCM_N_FRAMES		scm_debug_opts[6].val
+#define SCM_BACKTRACE_MAXDEPTH	scm_debug_opts[7].val
+#define SCM_BACKTRACE_DEPTH	scm_debug_opts[8].val
+#define SCM_BACKTRACE_P		scm_debug_opts[9].val
+#define SCM_DEVAL_P		scm_debug_opts[10].val
+#define SCM_STACK_LIMIT		scm_debug_opts[11].val
+#define SCM_N_DEBUG_OPTIONS 12
 
 extern scm_option scm_evaluator_trap_table[];
 
@@ -128,15 +130,19 @@ typedef struct scm_debug_frame
 extern scm_debug_frame *scm_last_debug_frame;
 #endif
 
-#define SCM_TAILREC     (1L << 10)
-#define SCM_TRACED_FRAME (1L << 9)
-#define SCM_APPLYFRAME  (1L << 8)
+#define SCM_EVALFRAME    (0L << 10)
+#define SCM_APPLYFRAME   (1L << 10)
+#define SCM_TAILREC      (1L << 9)
+#define SCM_TRACED_FRAME (1L << 8)
 #define SCM_ARGS_READY   (1L << 7)
-#define SCM_DOVERFLOW   (1L << 6)
+#define SCM_DOVERFLOW    (1L << 6)
 #define SCM_MAX_FRAME_SIZE 63 /* also used as a mask for the size field */
 
-#define SCM_EVALFRAMEP(x) (((x).status & SCM_APPLYFRAME) == 0)
-#define SCM_APPLYFRAMEP(x) (((x).status & SCM_APPLYFRAME) != 0)
+#define SCM_FRAMETYPE    (1L << 10)
+
+#define SCM_EVALFRAMEP(x) (((x).status & SCM_FRAMETYPE) == SCM_EVALFRAME)
+#define SCM_APPLYFRAMEP(x) (((x).status & SCM_FRAMETYPE) == SCM_APPLYFRAME)
+#define SCM_STARTFRAMEP(x) (((x).status & SCM_FRAMETYPE) == SCM_STARTFRAME)
 #define SCM_OVERFLOWP(x) (((x).status & SCM_DOVERFLOW) != 0)
 #define SCM_ARGS_READY_P(x) (((x).status & SCM_ARGS_READY) != 0)
 #define SCM_TRACED_FRAME_P(x) (((x).status & SCM_TRACED_FRAME) != 0)
@@ -151,14 +157,22 @@ extern scm_debug_frame *scm_last_debug_frame;
 #define SCM_DEBUGGINGP scm_debug_mode
 #define SCM_DSIDEVAL(x, env) if NIMP(x) scm_deval((x), (env))
 
+/* {Debug Objects}
+ */
+
+extern long scm_tc16_debugobj;
+
+#define SCM_DEBUGOBJP(x) (scm_tc16_debugobj == SCM_TYP16 (x))
+#define SCM_DEBUGOBJ_FRAME(x) SCM_CDR (x)
+
 /* {Memoized Source}
  */
 
 extern long scm_tc16_memoized;
 
 #define SCM_MEMOIZEDP(x) (scm_tc16_memoized == SCM_TYP16 (x))
-#define SCM_MEMOEXP(x) SCM_CAR (SCM_CDR (x))
-#define SCM_MEMOENV(x) SCM_CDR (SCM_CDR (x))
+#define SCM_MEMOIZED_EXP(x) SCM_CAR (SCM_CDR (x))
+#define SCM_MEMOIZED_ENV(x) SCM_CDR (SCM_CDR (x))
 
 
 
@@ -168,8 +182,6 @@ extern SCM scm_evstr SCM_P ((char *str));
 extern SCM scm_eval_string SCM_P ((SCM str));
 extern int scm_ready_p SCM_P ((void));
 extern void debug_print SCM_P ((SCM obj));
-extern SCM scm_expr_stack SCM_P ((SCM obj));
-extern SCM scm_last_stack_frame SCM_P ((SCM obj));
 extern SCM scm_debug_object_p SCM_P ((SCM obj));
 extern SCM scm_local_eval SCM_P ((SCM exp, SCM env));
 extern SCM scm_procedure_environment SCM_P ((SCM proc));
