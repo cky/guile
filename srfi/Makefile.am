@@ -39,7 +39,12 @@ libguile_srfi_srfi_13_14_la_SOURCES = srfi-13.x srfi-13.c srfi-14.x srfi-14.c\
 libguile_srfi_srfi_13_14_la_LDFLAGS = -version-info 0:0 -export-dynamic
 
 srfidir = $(datadir)/guile/$(VERSION)/srfi
-srfi_DATA = srfi-13.scm srfi-14.scm
+srfi_DATA = srfi-2.scm \
+            srfi-6.scm \
+            srfi-8.scm \
+            srfi-11.scm \
+            srfi-13.scm \
+            srfi-14.scm
 
 EXTRA_DIST = $(srfi_DATA)
 
