@@ -384,6 +384,9 @@ scm_shell_usage (int fatal, char *message)
            "                 command line arguments\n"
            "  -ds            do -s script at this point\n"
            "  --debug        start with debugging evaluator and backtraces\n"
+           "  --no-debug     start with normal evaluator\n"
+           "                 Default is to enable debugging for interactive\n"
+           "                 use, but not for `-s' and `-c'.\n"
 	   "  -q             inhibit loading of user init file\n"
            "  --emacs        enable Emacs protocol (experimental)\n"
 	   "  --use-srfi=LS  load SRFI modules for the SRFIs in LS,\n"
@@ -403,6 +406,7 @@ SCM_SYMBOL (sym_load, "load");
 SCM_SYMBOL (sym_eval_string, "eval-string");
 SCM_SYMBOL (sym_command_line, "command-line");
 SCM_SYMBOL (sym_begin, "begin");
+SCM_SYMBOL (sym_turn_on_debugging, "turn-on-debugging");
 SCM_SYMBOL (sym_load_user_init, "load-user-init");
 SCM_SYMBOL (sym_top_repl, "top-repl");
 SCM_SYMBOL (sym_quit, "quit");
@@ -433,6 +437,9 @@ scm_compile_shell_switches (int argc, char **argv)
   int interactive = 1;		/* Should we go interactive when done? */
   int inhibit_user_init = 0;	/* Don't load user init file */
   int use_emacs_interface = 0;
+  int turn_on_debugging = 0;
+  int dont_turn_on_debugging = 0;
+
   int i;
   char *argv0 = guile;
 
@@ -524,12 +531,16 @@ scm_compile_shell_switches (int argc, char **argv)
 			   tail);
 	}
 
-      else if (! strcmp (argv[i], "--debug")) /* debug eval + backtraces */
+      else if (! strcmp (argv[i], "--debug"))
 	{
-	  SCM_DEVAL_P = 1;
-	  SCM_BACKTRACE_P = 1;
-	  SCM_RECORD_POSITIONS_P = 1;
-	  SCM_RESET_DEBUG_MODE;
+	  turn_on_debugging = 1;
+	  dont_turn_on_debugging = 0;
+	}
+
+      else if (! strcmp (argv[i], "--no-debug"))
+	{
+	  dont_turn_on_debugging = 1;
+	  turn_on_debugging = 0;
 	}
 
       else if (! strcmp (argv[i], "--emacs")) /* use emacs protocol */ 
@@ -644,10 +655,17 @@ scm_compile_shell_switches (int argc, char **argv)
       tail = scm_cons (scm_cons (sym_load_user_init, SCM_EOL), tail);
     }
 
+  /* If debugging was requested, or we are interactive and debugging
+     was not explicitely turned off, turn on debugging. */
+  if (turn_on_debugging || (interactive  && !dont_turn_on_debugging))
+    {
+      tail = scm_cons (scm_cons (sym_turn_on_debugging, SCM_EOL), tail);
+    }
+
   {
     SCM val = scm_cons (sym_begin, tail);
 
-#if 0
+#if 1
     scm_write (val, SCM_UNDEFINED);
     scm_newline (SCM_UNDEFINED);
 #endif
