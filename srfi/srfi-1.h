@@ -2,7 +2,7 @@
 #define SCM_SRFI_1_H
 /* srfi-1.h --- SRFI-1 procedures for Guile
  *
- * 	Copyright (C) 2002, 2003 Free Software Foundation, Inc.
+ * 	Copyright (C) 2002, 2003, 2005 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -44,6 +44,7 @@ SCM_SRFI1_API SCM scm_srfi1_for_each (SCM proc, SCM arg1, SCM args);
 SCM_SRFI1_API SCM scm_srfi1_member (SCM obj, SCM ls, SCM pred);
 SCM_SRFI1_API SCM scm_srfi1_assoc (SCM key, SCM alist, SCM pred);
 SCM_SRFI1_API SCM scm_srfi1_partition (SCM pred, SCM list);
+SCM_SRFI1_API SCM scm_srfi1_remove (SCM pred, SCM list);
 
 SCM_SRFI1_API void scm_init_srfi_1 (void);
 

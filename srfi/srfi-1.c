@@ -821,6 +821,37 @@ SCM_DEFINE (scm_srfi1_partition, "partition", 2, 0, 0,
 }
 #undef FUNC_NAME
 
+SCM_DEFINE (scm_srfi1_remove, "remove", 2, 0, 0,
+	    (SCM pred, SCM list),
+	    "Return a list containing all elements from @var{lst} which do\n"
+	    "not satisfy the predicate @var{pred}.  The elements in the\n"
+	    "result list have the same order as in @var{lst}.  The order in\n"
+	    "which @var{pred} is applied to the list elements is not\n"
+	    "specified.")
+#define FUNC_NAME s_scm_srfi1_remove
+{
+  scm_t_trampoline_1 call = scm_trampoline_1 (pred);
+  SCM walk;
+  SCM *prev;
+  SCM res = SCM_EOL;
+  SCM_ASSERT (call, pred, 1, FUNC_NAME);
+  SCM_VALIDATE_LIST (2, list);
+  
+  for (prev = &res, walk = list;
+       scm_is_pair (walk);
+       walk = SCM_CDR (walk))
+    {
+      if (scm_is_false (call (pred, SCM_CAR (walk))))
+	{
+	  *prev = scm_cons (SCM_CAR (walk), SCM_EOL);
+	  prev = SCM_CDRLOC (*prev);
+	}
+    }
+
+  return res;
+}
+#undef FUNC_NAME
+
 void
 scm_init_srfi_1 (void)
 {
