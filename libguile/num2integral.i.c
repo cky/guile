@@ -96,7 +96,6 @@ NUM2INTEGRAL (SCM num, unsigned long int pos, const char *s_caller)
                 }
               
               numbits = mpz_sizeinbase (SCM_I_BIG_MPZ (num), 2);
-              if (UNSIGNED) numbits++;
               scm_remember_upto_here_1 (num);
               if (numbits > (sizeof (ITYPE) * 8))
                 scm_out_of_range (s_caller, num);
