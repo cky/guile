@@ -13,6 +13,7 @@ reviewed and largely reorganized.]
 * Threads::                     Multiple threads of execution.
 * Fluids::                      Thread-local variables.
 * Futures::                     Delayed execution in new threads.
+* Parallel Forms::              Parallel execution of forms.
 @end menu
 
 
@@ -684,6 +685,98 @@ return a ``future'' object representing the calculation.
 @deffnx {C Function} scm_future_ref (f)
 Return the value computed by the future @var{f}.  If @var{f} has not
 yet finished executing then wait for it to do so.
+@end deffn
+
+
+@node Parallel Forms
+@section Parallel Forms
+
+The functions described in this section are available from
+
+@example
+(use-modules (ice-9 threads))
+@end example
+
+@deffn syntax parallel expr1 @dots{} exprN
+Evaluate each @var{expr} expression in parallel, each in a new thread.
+Return the results as a set of @var{N} multiple values
+(@pxref{Multiple Values}).
+@end deffn
+
+@deffn syntax letpar ((var1 expr1) @dots{} (varN exprN)) body@dots{}
+Evaluate each @var{expr} in parallel, each in a new thread, then bind
+the results to the corresponding @var{var} variables and evaluate
+@var{body}.
+
+@code{letpar} is like @code{let} (@pxref{Local Bindings}), but all the
+expressions for the bindings are evaluated in parallel.
+@end deffn
+
+@deffn {Scheme Procedure} par-map proc lst1 @dots{} lstN
+@deffnx {Scheme Procedure} par-for-each proc lst1 @dots{} lstN
+Call @var{proc} on the elements of the given lists.  @code{par-map}
+returns a list comprising the return values from @var{proc}.
+@code{par-for-each} returns an unspecified value, but waits for all
+calls to complete.
+
+The @var{proc} calls are @code{(@var{proc} @var{elem1} @dots{}
+@var{elemN})}, where each @var{elem} is from the corresponding
+@var{lst}.  Each @var{lst} must be the same length.  The calls are
+made in parallel, each in a new thread.
+
+These functions are like @code{map} and @code{for-each} (@pxref{List
+Mapping}), but make their @var{proc} calls in parallel.
+@end deffn
+
+@deffn {Scheme Procedure} n-par-map n proc lst1 @dots{} lstN
+@deffnx {Scheme Procedure} n-par-for-each n proc lst1 @dots{} lstN
+Call @var{proc} on the elements of the given lists, in the same way as
+@code{par-map} and @code{par-for-each} above, but use no more than
+@var{n} new threads at any one time.  The order in which calls are
+initiated within that threads limit is unspecified.
+
+These functions are good for controlling resource consumption if
+@var{proc} calls might be costly, or if there are many to be made.  On
+a dual-CPU system for instance @math{@var{n}=4} might be enough to
+keep the CPUs utilized, and not consume too much memory.
+@end deffn
+
+@deffn {Scheme Procedure} n-for-each-par-map n sproc pproc lst1 @dots{} lstN
+Apply @var{pproc} to the elements of the given lists, and apply
+@var{sproc} to each result returned by @var{pproc}.  The final return
+value is unspecified, but all calls will have been completed before
+returning.
+
+The calls made are @code{(@var{sproc} (@var{pproc} @var{elem1} @dots{}
+@var{elemN}))}, where each @var{elem} is from the corresponding
+@var{lst}.  Each @var{lst} must have the same number of elements.
+
+The @var{pproc} calls are made in parallel, in new threads.  No more
+than @var{n} new threads are used at any one time.  The order in which
+@var{pproc} calls are initiated within that limit is unspecified.
+
+The @var{sproc} calls are made serially, in list element order, one at
+a time.  @var{pproc} calls on later elements may execute in parallel
+with the @var{sproc} calls.  Exactly which thread makes each
+@var{sproc} call is unspecified.
+
+This function is designed for individual calculations that can be done
+in parallel, but with results needing to be handled serially, for
+instance to write them to a file.  The @var{n} limit on threads
+controls system resource usage when there are many calculations or
+when they might be costly.
+
+It will be seen that @code{n-for-each-par-map} is like a combination
+of @code{n-par-map} and @code{for-each},
+
+@example
+(for-each sproc (n-par-map pproc lst1 ... lstN))
+@end example
+
+@noindent
+But the actual implementation is more efficient since each @var{sproc}
+call, in turn, can be initiated once the relevant @var{pproc} call has
+completed, it doesn't need to wait for all to finish.
 @end deffn
 
 
