@@ -1800,21 +1800,22 @@ scm_permanent_object (obj)
    even if all other references are dropped, until someone applies
    scm_unprotect_object to it.  This function returns OBJ.
 
-   Note that calls to scm_protect_object do not nest.  You can call
-   scm_protect_object any number of times on a given object, and the
-   next call to scm_unprotect_object will unprotect it completely.
+   Calls to scm_protect_object nest.  For every object O, there is a
+   counter which scm_protect_object(O) increments and
+   scm_unprotect_object(O) decrements, if it is greater than zero.  If
+   an object's counter is greater than zero, the garbage collector
+   will not free it.
 
-   Basically, scm_protect_object and scm_unprotect_object just
-   maintain a list of references to things.  Since the GC knows about
-   this list, all objects it mentions stay alive.  scm_protect_object
-   adds its argument to the list; scm_unprotect_object remove its
-   argument from the list.  */
+   Of course, that's not how it's implemented.  scm_protect_object and
+   scm_unprotect_object just maintain a list of references to things.
+   Since the GC knows about this list, all objects it mentions stay
+   alive.  scm_protect_object adds its argument to the list;
+   scm_unprotect_object removes the first occurrence of its argument
+   to the list.  */
 SCM
 scm_protect_object (obj)
      SCM obj;
 {
-  /* This function really should use address hashing tables, but I
-     don't know how to use them yet.  For now we just use a list.  */
   scm_protects = scm_cons (obj, scm_protects);
 
   return obj;
@@ -1822,14 +1823,23 @@ scm_protect_object (obj)
 
 
 /* Remove any protection for OBJ established by a prior call to
-   scm_protect_obj.  This function returns OBJ.
+   scm_protect_object.  This function returns OBJ.
 
-   See scm_protect_obj for more information.  */
+   See scm_protect_object for more information.  */
 SCM
 scm_unprotect_object (obj)
      SCM obj;
 {
-  scm_protects = scm_delq_x (obj, scm_protects);
+  SCM *tail_ptr = &scm_protects;
+
+  while (SCM_NIMP (*tail_ptr) && SCM_CONSP (*tail_ptr))
+    if (SCM_CAR (*tail_ptr) == obj)
+      {
+	*tail_ptr = SCM_CDR (*tail_ptr);
+	break;
+      }
+    else
+      tail_ptr = SCM_CDRLOC (*tail_ptr);
 
   return obj;
 }
