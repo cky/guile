@@ -1,3 +1,9 @@
+2001-02-11  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* boot-9.scm (scm-style-repl): Use `primitive-eval' instead of
+	`eval'.
+	(define-public): Do not use `eval'.
+
 2001-02-08  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* and-let-star-compat.scm: Display the warning to the

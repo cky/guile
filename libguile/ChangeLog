@@ -1,3 +1,29 @@
+2001-02-11  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	Fix evaluator so that top-level expressions are correctly
+	evaluated with respect to the module system.
+	
+	* modules.h. modules.c (scm_current_module_lookup_closure): New
+	function.
+
+	* eval.h (scm_primitive_eval, scm_primitive_eval_x): New
+	prototypes.
+	(scm_i_eval, scm_i_eval_x, scm_eval, scm_eval_x): Changed argument
+	names to better reflect their meaning.
+
+	* eval.c (scm_ceval, scm_deval): Recognize when `begin' is being
+	evaluated at top-level and synronize lookup closure before
+	executing every subform.
+	(scm_primitve_eval_x, scm_primitive_eval): New functions.
+	(scm_eval_x, scm_eval): Reimplement in terms of
+	scm_primitive_eval_x and scm_primitive_eval, respectively.
+	
+2001-02-09  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* macros.c (scm_macro_name, scm_macro_transformer): Use
+	SCM_SMOB_DATA instead of SCM_CDR.  Provided by Martin Grabmueller.
+	Thanks!
+
 2001-02-10  Keisuke Nishida  <kxn30@po.cwru.edu>
 
 	* dump.c (scm_store_bytes): Store data size before data.
