@@ -1,3 +1,9 @@
+2001-05-14  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* Makefile.am (srfi_DATA): Added srfi-16.scm.
+
+	* srfi-16.scm: New file.
+
 2001-05-10  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* srfi-13.c (scm_string_delete): Logic was inversed for charset.
