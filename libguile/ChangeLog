@@ -1,5 +1,9 @@
 2004-09-22  Marius Vollmer  <mvo@zagadka.de>
 
+	* srfi-13.c (scm_string_contains, scm_string_contains_ci):
+	Reworded logic a bit so that #f is returned immediately when s1 is
+	too short to contain s2.
+
 	* regex-posix.c (scm_regexp_exec): Convert string to
 	zero-temrinated locale string before matching against it.
 
