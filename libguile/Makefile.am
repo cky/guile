@@ -39,7 +39,7 @@ guile_LDADD = libguile.la ${THREAD_LIBS_LOCAL}
 guile_LDFLAGS = @DLPREOPEN@
 
 libguile_la_SOURCES = alist.c arbiters.c async.c backtrace.c boolean.c	     \
-    chars.c continuations.c debug.c dynl.c dynwind.c			     \
+    chars.c continuations.c debug.c deprecation.c dynl.c dynwind.c	     \
     environments.c eq.c error.c eval.c evalext.c feature.c fluids.c fports.c \
     gc.c gc_os_dep.c gdbint.c gh_data.c gh_eval.c gh_funcs.c gh_init.c	     \
     gh_io.c gh_list.c gh_predicates.c goops.c gsubr.c guardians.c hash.c     \
@@ -51,16 +51,17 @@ libguile_la_SOURCES = alist.c arbiters.c async.c backtrace.c boolean.c	     \
     strorder.c strports.c struct.c symbols.c tag.c throw.c values.c	     \
     variable.c vectors.c version.c vports.c weaks.c
 
-DOT_X_FILES = alist.x arbiters.x async.x backtrace.x boolean.x chars.x	    \
-    continuations.x debug.x dynl.x dynwind.x environments.x eq.x	    \
-    error.x eval.x evalext.x feature.x fluids.x fports.x gc.x goops.x	    \
-    gsubr.x guardians.x hash.x hashtab.x hooks.x init.x ioext.x iselect.x   \
-    keywords.x lang.x list.x load.x macros.x mallocs.x modules.x \
-    numbers.x objects.x objprop.x options.x pairs.x ports.x print.x \
-    procprop.x procs.x properties.x random.x rdelim.x read.x root.x rw.x \
-    scmsigs.x script.x simpos.x smob.x sort.x srcprop.x	    \
-    stackchk.x stacks.x stime.x strings.x strop.x strorder.x strports.x	    \
-    struct.x symbols.x tag.x throw.x values.x variable.x vectors.x	    \
+DOT_X_FILES = alist.x arbiters.x async.x backtrace.x boolean.x chars.x	  \
+    continuations.x debug.x deprecation.x dynl.x dynwind.x		  \
+    environments.x eq.x							  \
+    error.x eval.x evalext.x feature.x fluids.x fports.x gc.x goops.x	  \
+    gsubr.x guardians.x hash.x hashtab.x hooks.x init.x ioext.x iselect.x \
+    keywords.x lang.x list.x load.x macros.x mallocs.x modules.x	  \
+    numbers.x objects.x objprop.x options.x pairs.x ports.x print.x	  \
+    procprop.x procs.x properties.x random.x rdelim.x read.x root.x rw.x  \
+    scmsigs.x script.x simpos.x smob.x sort.x srcprop.x			  \
+    stackchk.x stacks.x stime.x strings.x strop.x strorder.x strports.x	  \
+    struct.x symbols.x tag.x throw.x values.x variable.x vectors.x	  \
     version.x vports.x weaks.x
 
 EXTRA_DOT_X_FILES = @EXTRA_DOT_X_FILES@
@@ -111,7 +112,7 @@ pkginclude_HEADERS = gh.h
 # These are headers visible as <libguile/mumble.h>.
 modincludedir = $(includedir)/libguile
 modinclude_HEADERS = __scm.h alist.h arbiters.h async.h backtrace.h boolean.h \
-    chars.h continuations.h coop-defs.h debug.h debug-malloc.h		      \
+    chars.h continuations.h coop-defs.h debug.h debug-malloc.h deprecation.h  \
     dynl.h dynwind.h environments.h eq.h error.h eval.h evalext.h	      \
     feature.h filesys.h fluids.h fports.h gc.h gdb_interface.h gdbint.h	      \
     goops.h gsubr.h guardians.h hash.h hashtab.h hooks.h init.h ioext.h	      \
