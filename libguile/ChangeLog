@@ -1,5 +1,9 @@
 2001-07-25  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
+	* variable.c (scm_i_variable_print): Use "value" instead of
+	"binding" since a binding is the mapping between symbols and
+	variables, not between variables and their values.
+
 	* tags.h (scm_tc7_variable): New.
 	* gc.c (scm_gc_mark): Handle scm_tc7_variable objects.
 	* print.c (scm_iprin1): Likewise.
