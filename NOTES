@@ -15,6 +15,19 @@ snapshots or distributions, but is a strictly internal document.
 CONVENTIONS: ChangeLog format. (Reverse chronological order.)
 ----------------------------------------------------------------------
 
+Wed Mar  5 22:56:19 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* libguile/struct.c, libguile/struct.h, libguile/gc.c: Structs
+	need reimplementation.  Both user interface and representation
+	need to be improved.  E. g., the struct part of scm_gc_mark need
+	to be a lot more efficient.  We should probably do this redesign
+	when designing(/porting) the object system.
+
+	* libguile/symbols.c (SCM_SYMBOL_HASH): This is slot is currently
+ 	not used for anything (except that it is used by symbol-hash).  I
+ 	suppose it was originally intended to avoid doing multiple hashing
+ 	steps when handling symbols.
+
 Mon Mar  3 21:36:58 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* libguile/procprop.c: The current implementation of procedure
