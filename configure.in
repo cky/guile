@@ -130,7 +130,7 @@ fi
 
 GUILE_DLSYM_USCORE
 
-AC_CHECK_FUNCS(ctermid ftime getcwd geteuid gettimeofday lstat mkdir mknod nice readlink rename rmdir select setegid seteuid setlocale setpgid setsid sigaction strftime strptime symlink sync tcgetpgrp tcsetpgrp times uname waitpid bzero strdup system usleep atexit on_exit)
+AC_CHECK_FUNCS(ctermid ftime getcwd geteuid gettimeofday lstat mkdir mknod nice readlink rename rmdir select setegid seteuid setlocale setpgid setsid sigaction siginterrupt strftime strptime symlink sync tcgetpgrp tcsetpgrp times uname waitpid bzero strdup system usleep atexit on_exit)
 
 ### Some systems don't declare some functions.  On such systems, we
 ### need to at least provide our own K&R-style declarations.
@@ -207,6 +207,16 @@ AC_CHECK_FUNCS(sethostent   gethostent   endhostent   dnl
                getnetbyaddr getnetbyname inet_lnaof inet_makeaddr inet_netof)
 
 dnl </GNU-WIN32 hacks>
+
+dnl Test whether system calls are restartable by default on the
+dnl current system.  If they are not, we put a loop around every system
+dnl call to check for EINTR (see SCM_SYSCALL) and do not attempt to
+dnl change from the default behaviour.  On the other hand, if signals
+dnl are restartable then the loop is not installed and when libguile
+dnl initialises it also resets the behaviour of each signal to cause a
+dnl restart (in case a different runtime had a different default
+dnl behaviour for some reason: e.g., different versions of linux seem
+dnl to behave differently.)
 
 AC_SYS_RESTARTABLE_SYSCALLS
 

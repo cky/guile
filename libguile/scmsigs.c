@@ -192,9 +192,11 @@ scm_sigaction (SCM signum, SCM handler, SCM flags)
 
   SCM_ASSERT (SCM_INUMP (signum), signum, SCM_ARG1, s_sigaction);
   csig = SCM_INUM (signum);
-#ifdef HAVE_SIGACTION
-  /* always use restartable system calls if available.  */
-#ifdef SA_RESTART
+#if defined(HAVE_SIGACTION)
+#if defined(SA_RESTART) && defined(HAVE_RESTARTABLE_SYSCALLS)
+  /* don't allow SA_RESTART to be omitted if HAVE_RESTARTABLE_SYSCALLS
+     is defined, since libguile would be likely to produce spurious
+     EINTR errors.  */
   action.sa_flags = SA_RESTART;
 #else
   action.sa_flags = 0;
@@ -210,12 +212,12 @@ scm_sigaction (SCM signum, SCM handler, SCM flags)
   old_handler = scheme_handlers[csig];
   if (SCM_UNBNDP (handler))
     query_only = 1;
-  else if (SCM_INUMP (handler))
+  else if (scm_integer_p (handler) == SCM_BOOL_T)
     {
-      /* It's really ugly to assume that SIG_DFL can be nicely cast to
-	 a fixnum.  This has got to go.  */
-      if (SCM_INUM (handler) == (SCM) SIG_DFL
-	  || SCM_INUM (handler) == (SCM) SIG_IGN)
+      if (scm_num2long (handler, (char *) SCM_ARG2, s_sigaction)
+	  == (long) SIG_DFL
+	  || scm_num2long (handler, (char *) SCM_ARG2, s_sigaction) 
+	  == (long) SIG_IGN)
 	{
 #ifdef HAVE_SIGACTION
 	  action.sa_handler = (SIGRETTYPE (*) (int)) SCM_INUM (handler);
@@ -278,7 +280,7 @@ scm_sigaction (SCM signum, SCM handler, SCM flags)
 	orig_handlers[csig] = old_action;
     }
   if (old_action.sa_handler == SIG_DFL || old_action.sa_handler == SIG_IGN)
-    old_handler = SCM_MAKINUM ((SCM) old_action.sa_handler);
+    old_handler = scm_long2num ((long) old_action.sa_handler);
   SCM_ALLOW_INTS;
   return scm_cons (old_handler, SCM_MAKINUM (old_action.sa_flags));
 #else
@@ -297,7 +299,7 @@ scm_sigaction (SCM signum, SCM handler, SCM flags)
 	orig_handlers[csig] = old_chandler;
     }
   if (old_chandler == SIG_DFL || old_chandler == SIG_IGN)
-    old_handler = SCM_MAKINUM ((int) old_chandler);
+    old_handler = scm_long2num (old_chandler);
   SCM_ALLOW_INTS;
   return scm_cons (old_handler, SCM_MAKINUM (0));
 #endif
@@ -442,9 +444,13 @@ scm_init_scmsigs ()
 #endif
 
 #ifdef HAVE_RESTARTABLE_SYSCALLS
-      /* ensure that system calls will be restarted for all signals.  */
-      /* sigintterupt would be simpler, but it seems better to avoid
-	 dependency on another system call.  */
+      /* If HAVE_RESTARTABLE_SYSCALLS is defined, it's important that
+	 signals really are restartable.  don't rely on the same 
+	 run-time that configure got: reset the default for every signal.
+      */
+#ifdef HAVE_SIGINTERRUPT
+      siginterrupt (i, 0);
+#elif defined SA_RESTART
       {
 	struct sigaction action;
 
@@ -455,6 +461,9 @@ scm_init_scmsigs ()
 	    sigaction (i, &action, NULL);
 	  }
       }
+#endif
+      /* if neither siginterrupt nor SA_RESTART are available we may
+	 as well assume that signals are always restartable.  */
 #endif
     }
 

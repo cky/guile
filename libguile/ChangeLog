@@ -1,3 +1,14 @@
+1999-09-20  Gary Houston  <ghouston@freewire.co.uk>
+
+	* scmsigs.c (scm_sigaction): add SA_RESTART to flags only if
+	HAVE_RESTARTABLE_SYSCALLS.
+	(scm_init_scmsigs): use siginterrupt if it's available.  not
+	everyone who has restartable syscalls has SA_RESTART it seems.
+
+	(scm_sigaction): use scm_num2long/scm_long2num when converting
+	SIG_DFL/SIG_IGN, in case it doesn't fit in an INUM.  use
+	scm_integer_p to test the type.
+
 1999-09-18  Gary Houston  <ghouston@freewire.co.uk>
 
 	* _scm.h, scmsigs.c: replace HAVE_RESTARTS with
