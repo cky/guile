@@ -1,3 +1,20 @@
+Mon Dec 13 16:29:13 1999  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* guile-doc-snarf.awk: Use sub instead of gsub in ^ anchored
+	replacement for docstrings.  Fixes problem Ryan Yeske observed
+	with using mawk on his system.  Thanks Ryan!
+
+Mon Dec 13 13:30:06 1999  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* guile-doc-snarf.in: Do not echo to stdout since the output now
+	gets stuck directly in the files instead of redirected from
+	stdout. 
+
+	* guile-doc-snarf.awk: Escape a literal ) -- thanks Ryan
+	Yeske. Use print instead of printf to prime the .x file since
+	AIX's cpp has problems with #include-ing empty files (according to 
+	the old guile-snarf.in file).
+	
 Sun Dec 12 19:39:00 1999  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* Makefile.am: Fix ETAGS_ARGS to recognize GUILE_PROC,
