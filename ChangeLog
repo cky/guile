@@ -1,3 +1,9 @@
+1999-09-06  James Blandy  <jimb@mule.m17n.org>
+
+	Propagate the changes of 2 Sept the rest of the way through.
+	* configure: Regenerated.
+	* Makefile.in: Regenerated.  Not sure why this diff is so big.
+
 1999-09-02  Jim Blandy  <jimb@savonarola.red-bean.com>
 
 	* acinclude.m4 (GUILE_HEADER_LIBC_WITH_UNISTD): Fix typo in
