@@ -184,7 +184,6 @@ SCM_API SCM scm_unmemocopy (SCM form, SCM env);
 SCM_API SCM scm_eval_car (SCM pair, SCM env);
 SCM_API SCM scm_eval_body (SCM code, SCM env);
 SCM_API SCM scm_eval_args (SCM i, SCM env, SCM proc);
-SCM_API SCM scm_deval_args (SCM l, SCM env, SCM proc, SCM *lloc);
 SCM_API SCM scm_m_quote (SCM xorig, SCM env);
 SCM_API SCM scm_m_begin (SCM xorig, SCM env);
 SCM_API SCM scm_m_if (SCM xorig, SCM env);

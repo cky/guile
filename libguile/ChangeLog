@@ -1,5 +1,17 @@
 2002-01-10  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* eval.[ch] (scm_deval_args):  Made static.
+
+	* srcprop.c (scm_source_property):  Remove redundant SCM_IMP
+	test.
+
+	* strings.c (scm_c_string2str):  Clarified comment.  Replaced
+	THINKME by FIXME for uniformness.  Removed question about whether
+	arguments need to be protected from garbage collection:  Arguments
+	must be protected as any other variable.
+
+2002-01-10  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* procs.h (SCM_CLOSURE_BODY):  New Macro.
 
 	* debug.c (scm_procedure_name, scm_procedure_source), eval.c

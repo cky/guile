@@ -1825,7 +1825,7 @@ SCM_DEFINE (scm_evaluator_traps, "evaluator-traps-interface", 0, 1, 0,
 }
 #undef FUNC_NAME
 
-SCM
+static SCM
 scm_deval_args (SCM l, SCM env, SCM proc, SCM *lloc)
 {
   SCM *results = lloc, res;

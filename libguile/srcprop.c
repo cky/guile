@@ -222,7 +222,7 @@ SCM_DEFINE (scm_source_property, "source-property", 2, 0, 0,
     SCM_WRONG_TYPE_ARG (1, obj);
 #endif
   p = scm_hashq_ref (scm_source_whash, obj, SCM_EOL);
-  if (SCM_IMP (p) || !SRCPROPSP (p))
+  if (!SRCPROPSP (p))
     goto plist;
   if      (SCM_EQ_P (scm_sym_breakpoint, key)) p = SRCPROPBRK (p);
   else if (SCM_EQ_P (scm_sym_line,       key)) p = SCM_MAKINUM (SRCPROPLINE (p));
