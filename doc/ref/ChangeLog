@@ -1,3 +1,7 @@
+2002-03-24  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* tools.texi: Updated to reflect changes to the guile-snarf tool.
+
 2002-03-16  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* scheme-utility.texi (Hooks): Further updates.  New material on
