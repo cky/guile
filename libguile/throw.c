@@ -174,7 +174,7 @@ struct jmp_buf_and_retval	/* use only on the stack, in scm_catch */
          TAG, but it could be something else if TAG was #t (i.e., a
          catch-all), or the user threw to a jmpbuf.
       THROW_ARGS is the list of arguments the user passed to the THROW
-         function.
+         function, after the tag.
 
    BODY_DATA is just a pointer we pass through to BODY.  HANDLER_DATA
    is just a pointer we pass through to HANDLER.  We don't actually
@@ -408,8 +408,8 @@ scm_body_thunk (body_data, jmpbuf)
 
 
 /* This is a handler function you can pass to scm_internal_catch if
-   you want the handler to act like Scheme's catch --- call a
-   procedure with the tag and the throw arguments.  
+   you want the handler to act like Scheme's catch: (throw TAG ARGS ...)
+   applies a handler procedure to (TAG ARGS ...).
 
    If the user does a throw to this catch, this function runs a
    handler procedure written in Scheme.  HANDLER_DATA is a pointer to
