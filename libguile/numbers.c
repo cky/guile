@@ -1180,7 +1180,7 @@ SCM_DEFINE (scm_ash, "ash", 2, 0, 0,
 }
 #undef FUNC_NAME
 
-/* GJB:FIXME: do not use SCMs as integers! */
+
 SCM_DEFINE (scm_bit_extract, "bit-extract", 3, 0, 0,
             (SCM n, SCM start, SCM end),
 	    "Returns the integer composed of the @var{start} (inclusive) through\n"
@@ -1214,6 +1214,7 @@ SCM_DEFINE (scm_bit_extract, "bit-extract", 3, 0, 0,
 }
 #undef FUNC_NAME
 
+
 static const char scm_logtab[] = {
   0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4
 };
@@ -1235,30 +1236,35 @@ SCM_DEFINE (scm_logcount, "logcount", 1, 0, 0,
 	    "@end lisp")
 #define FUNC_NAME s_scm_logcount
 {
-  register unsigned long c = 0;
-  register long nn;
-#ifdef SCM_BIGDIG
-  if (SCM_NINUMP (n))
-    {
-      scm_sizet i;
-      SCM_BIGDIG *ds, d;
-      SCM_VALIDATE_BIGINT (1,n);
-      if (SCM_BIGSIGN (n))
-	return scm_logcount (scm_difference (SCM_MAKINUM (-1L), n));
-      ds = SCM_BDIGITS (n);
-      for (i = SCM_NUMDIGS (n); i--;)
-	for (d = ds[i]; d; d >>= 4)
+  if (SCM_INUMP (n)) {
+    unsigned long int c = 0;
+    long int nn = SCM_INUM (n);
+    if (nn < 0) {
+      nn = -1 - nn;
+    };
+    while (nn) {
+      c += scm_logtab[15 & nn];
+      nn >>= 4;
+    };
+    return SCM_MAKINUM (c);
+  } else if (SCM_BIGP (n)) {
+    if (SCM_BIGSIGN (n)) {
+      return scm_logcount (scm_difference (SCM_MAKINUM (-1L), n));
+    } else {
+      unsigned long int c = 0;
+      scm_sizet i = SCM_NUMDIGS (n);
+      SCM_BIGDIG * ds = SCM_BDIGITS (n);
+      while (i--) {
+	SCM_BIGDIG d;
+	for (d = ds[i]; d; d >>= 4) {
 	  c += scm_logtab[15 & d];
+	}
+      }
       return SCM_MAKINUM (c);
     }
-#else
-  SCM_VALIDATE_INUM (1,n);
-#endif
-  if ((nn = SCM_INUM (n)) < 0)
-    nn = -1 - nn;
-  for (; nn; nn >>= 4)
-    c += scm_logtab[15 & nn];
-  return SCM_MAKINUM (c);
+  } else {
+    SCM_WRONG_TYPE_ARG (SCM_ARG1, n);
+  }
 }
 #undef FUNC_NAME
 
@@ -1281,36 +1287,38 @@ SCM_DEFINE (scm_integer_length, "integer-length", 1, 0, 0,
 	    "@end lisp")
 #define FUNC_NAME s_scm_integer_length
 {
-  register unsigned long c = 0;
-  register long nn;
-  unsigned int l = 4;
-#ifdef SCM_BIGDIG
-  if (SCM_NINUMP (n))
-    {
-      SCM_BIGDIG *ds, d;
-      SCM_VALIDATE_BIGINT (1,n);
-      if (SCM_BIGSIGN (n))
-	return scm_integer_length (scm_difference (SCM_MAKINUM (-1L), n));
-      ds = SCM_BDIGITS (n);
-      d = ds[c = SCM_NUMDIGS (n) - 1];
-      for (c *= SCM_BITSPERDIG; d; d >>= 4)
-	{
-	  c += 4;
-	  l = scm_ilentab[15 & d];
-	}
+  if (SCM_INUMP (n)) {
+    unsigned long int c = 0;
+    unsigned int l = 4;
+    long int nn = SCM_INUM (n);
+    if (nn < 0) {
+      nn = -1 - nn;
+    };
+    while (nn) {
+      c += 4;
+      l = scm_ilentab [15 & nn];
+      nn >>= 4;
+    };
+    return SCM_MAKINUM (c - 4 + l);
+  } else if (SCM_BIGP (n)) {
+    if (SCM_BIGSIGN (n)) {
+      return scm_integer_length (scm_difference (SCM_MAKINUM (-1L), n));
+    } else {
+      unsigned long int digs = SCM_NUMDIGS (n) - 1;
+      unsigned long int c = digs * SCM_BITSPERDIG;
+      unsigned int l = 4;
+      SCM_BIGDIG * ds = SCM_BDIGITS (n);
+      SCM_BIGDIG d = ds [digs];
+      while (d) {
+	c += 4;
+	l = scm_ilentab [15 & d];
+	d >>= 4;
+      };
       return SCM_MAKINUM (c - 4 + l);
     }
-#else
-  SCM_VALIDATE_INUM (1,n);
-#endif
-  if ((nn = SCM_INUM (n)) < 0)
-    nn = -1 - nn;
-  for (; nn; nn >>= 4)
-    {
-      c += 4;
-      l = scm_ilentab[15 & nn];
-    }
-  return SCM_MAKINUM (c - 4 + l);
+  } else {
+    SCM_WRONG_TYPE_ARG (SCM_ARG1, n);
+  }
 }
 #undef FUNC_NAME
 

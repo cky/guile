@@ -1,3 +1,8 @@
+2000-05-16  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* numbers.c (scm_logcount, scm_integer_length):  Reordered
+	dispatch sequence.
+
 2000-05-15  Gary Houston  <ghouston@arglist.com>
 
         * stime.c (scm_strftime): don't reset TZ if zone is an empty
