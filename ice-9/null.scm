@@ -45,18 +45,17 @@
 (define-module (ice-9 null)
   :use-module (ice-9 syncase))
 
-(export define quote lambda if set!
+(re-export define quote lambda if set!
 	
-	cond case and or
-	
-	let let* letrec
-	
-	begin do
-	
-	delay
-	
-	quasiquote unquote unquote-splicing
-
-	define-syntax
-	let-syntax letrec-syntax
-	)
+	   cond case and or
+	   
+	   let let* letrec
+	   
+	   begin do
+	   
+	   delay
+	   
+	   quasiquote
+	   
+	   define-syntax
+	   let-syntax letrec-syntax)
