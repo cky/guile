@@ -1,4 +1,4 @@
-/* Copyright (C) 1994, 1995, 1996, 1997, 1998, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
+/* Copyright (C) 1994, 1995, 1996, 1997, 1998, 2000, 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -345,10 +345,12 @@ char *scm_usage_name = 0;
 void
 scm_shell_usage (int fatal, char *message)
 {
-  if (message)
-    fprintf (stderr, "%s\n", message);
+  FILE  *fp = (fatal ? stderr : stdout);
 
-  fprintf (stderr, 
+  if (message)
+    fprintf (fp, "%s\n", message);
+
+  fprintf (fp, 
            "Usage: %s OPTION ...\n"
            "Evaluate Scheme code, interactively or from a script.\n"
            "\n"
