@@ -92,9 +92,9 @@ The GOOPS tutorial
 
 * Tutorial::
 
-* Index::                       
-* Concept Index::               
-* Function and Variable Index::  
+* Index::
+* Concept Index::
+* Function and Variable Index::
 @end menu
 
 @iftex
@@ -136,7 +136,7 @@ info (goops.info) and texinfo format.
 
 @node Running GOOPS, Methods, Getting Started, Getting Started
 @subsection Running GOOPS
- 
+
 @enumerate
 @item
 Type
@@ -277,7 +277,7 @@ concerned with internals and customization.
 
 In general, this reference manual assumes familiarity with standard
 object oriented concepts and terminology.  However, some of the terms
-used in GOOPS is less well known, so the Terminology subsection
+used in GOOPS are less well known, so the Terminology subsection
 provides definitions for these terms.
 
 @menu
@@ -1121,7 +1121,7 @@ allocation to do this.
   (c #:allocation #:batched)
   ...
   #:metaclass <batched-allocation-metaclass>)
-@end example       
+@end example
 
 The usage of @code{compute-getter-method} and @code{compute-setter-method}
 is described in @ref{MOP Specification}.
@@ -2687,7 +2687,7 @@ Actually it sometimes calls @code{change-class} and sometimes
 @code{change-object-class}, and I don't understand why. ]
 
 The default @code{change-class} method copies slot values from the old
-to the modified instance, and initializes new slots, as described in 
+to the modified instance, and initializes new slots, as described in
 @ref{Changing the Class of an Instance}.  After doing so, it makes a
 generic function invocation that can be used to customize the instance
 update algorithm.
