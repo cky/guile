@@ -241,10 +241,13 @@ extern SCM scm_copy_tree (SCM obj);
 extern SCM scm_eval_3 (SCM obj, int copyp, SCM env);
 extern SCM scm_eval2 (SCM obj, SCM env_thunk);
 #endif
-extern SCM scm_i_eval_x (SCM obj, SCM env);
-extern SCM scm_i_eval (SCM obj, SCM env);
-extern SCM scm_eval (SCM obj, SCM environment);
-extern SCM scm_eval_x (SCM obj, SCM environment);
+extern SCM scm_i_eval_x (SCM exp, SCM env);
+extern SCM scm_i_eval (SCM exp, SCM env);
+extern SCM scm_primitive_eval (SCM exp);
+extern SCM scm_primitive_eval_x (SCM exp);
+extern SCM scm_eval (SCM exp, SCM module);
+extern SCM scm_eval_x (SCM exp, SCM module);
+
 extern void scm_init_eval (void);
 
 #endif  /* EVALH */
