@@ -1,3 +1,7 @@
+2002-04-23  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* guile-api.alist: Update.
+
 2002-04-16  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* Makefile.am (dist-hook): Simplified to not use "cd"; now it
