@@ -88,8 +88,53 @@ typedef struct scm_dsubr
 #define SCM_SETENV(x, e) SCM_SETCDR (x, e)
 #define SCM_TOP_LEVEL(SCM_ENV)  (SCM_NULLP(SCM_ENV) || (SCM_BOOL_T == scm_procedure_p (SCM_CAR (SCM_ENV))))
 
-/* Prcoedure-with-setter
- */
+/* Procedure-with-setter
+
+   Four representations for procedure-with-setters were
+   considered before selecting this one:
+
+   1. A closure where the CODE and ENV slots are used to represent
+   the getter and a new SETTER slot is used for the setter.  The
+   original getter is stored as a `getter' procedure property.  For
+   closure getters, the CODE and ENV slots contains a copy of the
+   getter's CODE and ENV slots.  For subr getters, the CODE contains
+   a call to the subr.
+
+   2. A compiled closure with a call to the getter in the cclo
+   procedure.  The getter and setter are stored in slots 1 and 2.
+
+   3. An entity (i.e. a struct with an associated procedure) with a
+   call to the getter in the entity procedure and the setter stored
+   in slot 0.  The original getter is stored in slot 1.
+
+   4. A new primitive procedure type supported in the evaluator.  The
+   getter and setter are stored in a GETTER and SETTER slot.  A call
+   to this procedure type results in a retrieval of the getter and a
+   jump back to the correct eval dispatcher.
+
+   Representation 4 was selected because of efficiency and
+   simplicity.
+
+   Rep 1 has the advantage that there is zero penalty for closure
+   getters, but primitive getters will get considerable overhead
+   because the procedure-with-getter will be a closure which calls
+   the getter.
+
+   Rep 3 has the advantage that a GOOPS accessor can be a subclass of
+   <procedure-with-setter>, but together with rep 2 it suffers from a
+   three level dispatch for non-GOOPS getters:
+
+     cclo/struct --> dispatch proc --> getter
+
+   This is because the dispatch procedure must take an extra initial
+   argument (cclo for rep 2, struct for rep 3).
+
+   Rep 4 has the single disadvantage that it uses up one tc7 type
+   code, but the plan for uniform vectors will very likely free tc7
+   codes, so this is probably no big problem.  Also note that the
+   GETTER and SETTER slots can live directly on the heap, using the
+   new four-word cells.  */
+
 #define SCM_PROCEDURE_WITH_SETTER_P(obj) (SCM_TYP7 (obj) == scm_tc7_pws)
 #define SCM_PROCEDURE(obj) SCM_CADR (obj)
 #define SCM_SETTER(obj) SCM_CDDR (obj)
