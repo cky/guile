@@ -6,15 +6,16 @@
 
 This chapter contains information about procedures which are not cleanly
 tied to a specific data type.  Because of their wide range of
-applications, they are collected in a @dfn{utlity} chapter.
+applications, they are collected in a @dfn{utility} chapter.
 
 @menu
 * Equality::                    When are two values `the same'?
 * Property Lists::              Managing metainformation about Scheme objects.
-* Primitive Properties::        A modern low-level interface to object properties.
+* Primitive Properties::        A modern interface to object properties.
 * Sorting::                     Sort utility procedures.
 * Copying::                     Copying deep structures.
 * General Conversion::          Converting objects to strings.
+* Hooks::                       User-customizable event lists.
 @end menu
 
 
@@ -305,6 +306,148 @@ procedure.
 Return a Scheme string obtained by printing @var{obj}.
 Printing function can be specified by the optional second
 argument @var{printer} (default: @code{write}).
+@end deffn
+
+
+@node Hooks
+@section Hooks
+@tpindex Hooks
+
+@c FIXME::martin: Review me!
+
+A hook is basically a list of procedures to be called at well defined
+points in time.  Hooks are used internally for several debugging
+facilities, but they can be used in user code, too.
+
+Hooks are created with @code{make-hook}, then procedures can be added to
+a hook with @code{add-hook!} or removed with @code{remove-hook!} or
+@code{reset-hook!}.  The procedures stored in a hook can be invoked with
+@code{run-hook}.
+
+@menu
+* Hook Examples::               Hook usage by example.
+* Hook Reference::              Reference of all hook procedures.
+@end menu
+
+@node Hook Examples
+@subsection Hook Examples
+
+Hook usage is shown by some examples in this section.  First, we will
+define a hook of arity 2 --- that is, the procedures stored in the hook
+will have to accept two arguments.
+
+@lisp
+(define hook (make-hook 2))
+hook
+@result{} #<hook 2 40286c90>
+@end lisp
+
+Now we are ready to add some procedures to the newly created hook with
+@code{add-hook!}.  In the following example, two procedures are added,
+which print different messages and do different things with their
+arguments.  When the procedures have been added, we can invoke them
+using @code{run-hook}.
+
+@lisp
+(add-hook! hook (lambda (x y) 
+                    (display "Foo: ") 
+                    (display (+ x y)) 
+                    (newline)))
+(add-hook! hook (lambda (x y) 
+                    (display "Bar: ") 
+                    (display (* x y)) 
+                    (newline)))
+(run-hook hook 3 4)
+@print{} Bar: 12
+@print{} Foo: 7
+@end lisp
+
+Note that the procedures are called in reverse order than they were
+added.  This can be changed by providing the optional third argument
+on the second call to @code{add-hook!}.
+
+@lisp
+(add-hook! hook (lambda (x y) 
+                    (display "Foo: ") 
+                    (display (+ x y)) 
+                    (newline)))
+(add-hook! hook (lambda (x y) 
+                    (display "Bar: ") 
+                    (display (* x y)) 
+                    (newline)) 
+                    #t)   ; @r{<- Change here!}
+(run-hook hook 3 4)
+@print{} Foo: 7
+@print{} Bar: 12
+@end lisp
+
+@node Hook Reference
+@subsection Hook Reference
+
+When a hook is created with @code{make-hook}, you can supply the arity
+of the procedures which can be added to the hook.  The arity defaults to
+zero.  All procedures of a hook must have the same arity, and when the
+procedures are invoked using @code{run-hook}, the number of arguments
+must match the arity of the procedures.
+
+The order in which procedures are added to a hook matters.  If the third
+parameter to @var{add-hook!} is omitted or is equal to @code{#f}, the
+procedure is added in front of the procedures which might already be on
+that hook, otherwise the procedure is added at the end.  The procedures
+are always called from first to last when they are invoked via
+@code{run-hook}.
+
+When calling @code{hook->list}, the procedures in the resulting list are
+in the same order as they would have been called by @code{run-hook}.
+
+@deffn {Scheme Procedure} make-hook [n_args]
+@deffnx {C Function} scm_make_hook (n_args)
+Create a hook for storing procedure of arity @var{n_args}.
+@var{n_args} defaults to zero.  The returned value is a hook
+object to be used with the other hook procedures.
+@end deffn
+
+@deffn {Scheme Procedure} hook? x
+@deffnx {C Function} scm_hook_p (x)
+Return @code{#t} if @var{x} is a hook, @code{#f} otherwise.
+@end deffn
+
+@deffn {Scheme Procedure} hook-empty? hook
+@deffnx {C Function} scm_hook_empty_p (hook)
+Return @code{#t} if @var{hook} is an empty hook, @code{#f}
+otherwise.
+@end deffn
+
+@deffn {Scheme Procedure} add-hook! hook proc [append_p]
+@deffnx {C Function} scm_add_hook_x (hook, proc, append_p)
+Add the procedure @var{proc} to the hook @var{hook}. The
+procedure is added to the end if @var{append_p} is true,
+otherwise it is added to the front.  The return value of this
+procedure is not specified.
+@end deffn
+
+@deffn {Scheme Procedure} remove-hook! hook proc
+@deffnx {C Function} scm_remove_hook_x (hook, proc)
+Remove the procedure @var{proc} from the hook @var{hook}.  The
+return value of this procedure is not specified.
+@end deffn
+
+@deffn {Scheme Procedure} reset-hook! hook
+@deffnx {C Function} scm_reset_hook_x (hook)
+Remove all procedures from the hook @var{hook}.  The return
+value of this procedure is not specified.
+@end deffn
+
+@deffn {Scheme Procedure} run-hook hook . args
+@deffnx {C Function} scm_run_hook (hook, args)
+Apply all procedures from the hook @var{hook} to the arguments
+@var{args}.  The order of the procedure application is first to
+last.  The return value of this procedure is not specified.
+@end deffn
+
+@deffn {Scheme Procedure} hook->list hook
+@deffnx {C Function} scm_hook_to_list (hook)
+Convert the procedure list of @var{hook} to a list.
 @end deffn
 
 

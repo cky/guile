@@ -32,7 +32,8 @@ guile_TEXINFOS = preface.texi intro.texi program.texi scheme-intro.texi \
 	scheme-reading.texi scheme-indices.texi slib.texi posix.texi \
 	expect.texi scsh.texi tcltk.texi scripts.texi gh.texi scm.texi \
 	debugging.texi indices.texi script-getopt.texi data-rep.texi \
-	extend.texi repl-modules.texi srfi-modules.texi misc-modules.texi
+	extend.texi repl-modules.texi srfi-modules.texi misc-modules.texi \
+	scheme-compound.texi
 
 ETAGS_ARGS = $(info_TEXINFOS) $(guile_TEXINFOS)
 

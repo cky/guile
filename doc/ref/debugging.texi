@@ -105,11 +105,13 @@ Since the tail call is effectively optimized to a @code{goto} statement,
 there is no need for Guile to create a new stack frame for each
 iteration.  Using @code{trace} here helps us see why this is so.
  
+
 @node Backtrace
-@appendixsec Backtrace
+@section Backtrace
+
 
 @node Stacks and Frames
-@appendixsec Stacks and Frames
+@section Stacks and Frames
 
 When a running program is interrupted, usually upon reaching an error or
 breakpoint, its state is represented by a @dfn{stack} of suspended
