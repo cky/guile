@@ -1,3 +1,14 @@
+2000-08-10  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
+
+	* Makefile.am (ice9_sources): Added receive.scm, srfi-8.scm.
+
+	* receive.scm, srfi-8.scm: New files.
+
+	* boot-9.scm (scm-style-repl): Print multiple values on successive
+	lines.
+	(process-define-module): Bugfix: Make sure that exports are done
+	*after* all used interfaces has been added.
+
 2000-07-24  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* common-list.scm (uniq): Made tail-recursive.  Thanks to thi!
