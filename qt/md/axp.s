@@ -15,7 +15,7 @@
 
 	.text
 	.align 4
-	.file 2 "axp.s"
+	.file "axp.s"
 
 	.globl qt_block
 	.globl qt_blocki
@@ -117,7 +117,7 @@ qt_vstart:
 	jsr $26,($27),0		# Call `cleanup'.
 
 	jsr $26,qt_error	# Cleanup erroniously returned.
-	.end qt_start
+	.end qt_vstart
 
 
 	#
