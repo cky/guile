@@ -1,3 +1,7 @@
+1998-04-15  Mikael Djurfeldt  <mdj@nada.kth.se>
+
+	* qt.h.in: Declare return type of qt_abort as void.
+
 1997-12-02  Tim Pierce  <twp@skepsis.com>
 
 	* md/axp.s (qt_vstart): Typo fixes, thanks to Alexander Jolk.
