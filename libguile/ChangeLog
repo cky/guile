@@ -1,3 +1,8 @@
+2000-09-10  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
+
+	* symbols.c (scm_gensym): Bugfixed my previous bugfix.  (Thanks to
+	Dale P. Smith.)
+
 2000-09-10  Keisuke Nishida  <kxn30@po.cwru.edu>
 
 	* eval.c (SCM_APPLY): Fixed bugs in the applicable-smob calls.
@@ -18,7 +23,7 @@
 2000-09-05  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
 
 	* symbols.c (scm_gensym): Check that argument is a symbol, not a
-	string.  (Thanks to rm@mamma.varadinet.de.)
+	string.  (Thanks to Ralf Mattes.)
 
 2000-09-05  Marius Vollmer  <mvo@zagadka.ping.de>
 
