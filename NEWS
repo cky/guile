@@ -8,9 +8,24 @@ Changes since Guile 1.2:
 
 * Changes to the distribution
 
-** libguile/append.h, libguile/append.c, libguile/extchrs.h,
-libguile/extchrs.c, libguile/mbstrings.h libguile/mbstrings.c,
-libguile/sequences.h, libguile/sequences.c removed.
+** We renamed the SCHEME_LOAD_PATH environment variable to GUILE_LOAD_PATH.
+To avoid conflicts, programs should name environment variables after
+themselves, except when there's a common practice establishing some
+other convention.
+
+For now, Guile supports both GUILE_LOAD_PATH and SCHEME_LOAD_PATH,
+giving the former precedence, and printing a warning message if the
+latter is set.  Guile 1.4 will not recognize SCHEME_LOAD_PATH at all.
+
+** The header files related to multi-byte characters have been removed.
+They were: libguile/extchrs.h and libguile/mbstrings.h.  Any C code
+which referred to these explicitly will probably need to be rewritten,
+since the support for the variant string types has been removed; see
+below.
+
+** The header files append.h and sequences.h have been removed.  These
+files implemented non-R4RS operations which would encourage
+non-portable programming style and less easy-to-read code.
 
 * Changes to the stand-alone interpreter
 
@@ -41,15 +56,8 @@ mirror site; the canonical location is "ftp://prep.ai.mit.edu/pub/gnu".
 Guile now includes a command-line utility called 'build-guile', which
 writes to its standard output a list of flags which you must pass to
 the linker to link against the Guile library.  The flags include
-'-lguile' itself.
-
-This is necessary because the Guile library may depend on other
-libraries for networking functions, thread support, and so on.  To
-link your program against libguile, you must link against these
-libraries as well.  The exact set of libraries depends on the type of
-system you are running, and what you have installed on it.  The
-'build-guile' command uses information recorded in libguile itself to
-determine which libraries you must link against.
+'-lguile' itself, and any other libraries the Guile library depends
+upon.
 
 For example, here is a Makefile rule that builds a program named 'foo'
 from the object files ${FOO_OBJECTS}, and links them against Guile:
@@ -57,11 +65,17 @@ from the object files ${FOO_OBJECTS}, and links them against Guile:
   foo: ${FOO_OBJECTS}
 	  ${CC} ${CFLAGS} ${FOO_OBJECTS} `build-guile link` -o foo
 
+Previous Guile releases recommended that you use autoconf to detect
+which of a predefined set of libraries were present on your system.
+It is more robust to use build-guile, since it records exactly which
+libraries the installed Guile library requires.
+
 
 * Changes to Scheme functions and syntax
 
 ** Multi-byte strings have been removed, as have multi-byte and wide
-ports.
+ports.  We felt that these were the wrong approach to
+internationalization support.
 
 ** New function: readline [PROMPT]
 Read a line from the terminal, and allow the user to edit it,
@@ -169,55 +183,47 @@ Macro: with-fluids ((FLUID VALUE) ...) FORM ...
     fluids are not special variables but ordinary objects.  FLUID
     should evaluate to a fluid.
 
-** Removed procedures:
+** Changes to system call interfaces:
 
-list-length, list-append, list-append!, list-reverse, list-reverse!
-
-** array-map renamed to array-map!
-
-** serial-array-map renamed to serial-array-map!
-
-* Changes to system call interfaces:
-
-** close-port, close-input-port and close-output-port now return a
+*** close-port, close-input-port and close-output-port now return a
 boolean instead of an `unspecified' object.  #t means that the port
 was successfully closed, while #f means it was already closed.  It is
 also now possible for these procedures to raise an exception if an
 error occurs (some errors from write can be delayed until close.)
 
-** the first argument to chmod, fcntl, ftell and fseek can now be a
+*** the first argument to chmod, fcntl, ftell and fseek can now be a
 file descriptor.
 
-** the third argument to fcntl is now optional.
+*** the third argument to fcntl is now optional.
 
-** the first argument to chown can now be a file descriptor or a port.
+*** the first argument to chown can now be a file descriptor or a port.
 
-** the argument to stat can now be a port.
+*** the argument to stat can now be a port.
 
-** The following new procedures have been added (most use scsh
+*** The following new procedures have been added (most use scsh
 interfaces):
 
-** procedure: close PORT/FD
+*** procedure: close PORT/FD
      Similar to close-port (*note close-port: Closing Ports.), but also
      works on file descriptors.  A side effect of closing a file
      descriptor is that any ports using that file descriptor are moved
      to a different file descriptor and have their revealed counts set
      to zero.
 
-** procedure: port->fdes PORT
+*** procedure: port->fdes PORT
      Returns the integer file descriptor underlying PORT.  As a side
      effect the revealed count of PORT is incremented.
 
-** procedure: fdes->ports FDES
+*** procedure: fdes->ports FDES
      Returns a list of existing ports which have FDES as an underlying
      file descriptor, without changing their revealed counts.
 
-** procedure: fdes->inport FDES
+*** procedure: fdes->inport FDES
      Returns an existing input port which has FDES as its underlying
      file descriptor, if one exists, and increments its revealed count.
      Otherwise, returns a new input port with a revealed count of 1.
 
-** procedure: fdes->outport FDES
+*** procedure: fdes->outport FDES
      Returns an existing output port which has FDES as its underlying
      file descriptor, if one exists, and increments its revealed count.
      Otherwise, returns a new output port with a revealed count of 1.
@@ -231,24 +237,24 @@ type of value returned varies depending on which procedure is used.
 any ports using NEWFD are moved to a different file descriptor and have
 their revealed counts set to zero.
 
-** procedure: dup->fdes PORT/FD [NEWFD]
+*** procedure: dup->fdes PORT/FD [NEWFD]
      Returns an integer file descriptor.
 
-** procedure: dup->inport PORT/FD [NEWFD]
+*** procedure: dup->inport PORT/FD [NEWFD]
      Returns a new input port using the new file descriptor.
 
-** procedure: dup->outport PORT/FD [NEWFD]
+*** procedure: dup->outport PORT/FD [NEWFD]
      Returns a new output port using the new file descriptor.
 
-** procedure: dup PORT/FD [NEWFD]
+*** procedure: dup PORT/FD [NEWFD]
      Returns a new port if PORT/FD is a port, with the same mode as the
      supplied port, otherwise returns an integer file descriptor.
 
-** procedure: dup->port PORT/FD MODE [NEWFD]
+*** procedure: dup->port PORT/FD MODE [NEWFD]
      Returns a new port using the new file descriptor.  MODE supplies a
      mode string for the port (*note open-file: File Ports.).
 
-** procedure: setenv NAME VALUE
+*** procedure: setenv NAME VALUE
      Modifies the environment of the current process, which is also the
      default environment inherited by child processes.
 
@@ -258,7 +264,7 @@ their revealed counts set to zero.
 
      The return value is unspecified.
 
-** procedure: truncate-file OBJ SIZE
+*** procedure: truncate-file OBJ SIZE
      Truncates the file referred to by OBJ to at most SIZE bytes.  OBJ
      can be a string containing a file name or an integer file
      descriptor or port open for output on the file.  The underlying
@@ -266,7 +272,7 @@ their revealed counts set to zero.
 
      The return value is unspecified.
 
-** procedure: setvbuf PORT MODE [SIZE]
+*** procedure: setvbuf PORT MODE [SIZE]
      Set the buffering mode for PORT.  MODE can be:
     `_IONBF'
           non-buffered
@@ -286,16 +292,16 @@ their revealed counts set to zero.
      size.  Procedures e.g., *Note open-file: File Ports, which accept a
      mode string allow `0' to be added to request an unbuffered port.
 
-** procedure: fsync PORT/FD
+*** procedure: fsync PORT/FD
      Copies any unwritten data for the specified output file descriptor
      to disk.  If PORT/FD is a port, its buffer is flushed before the
      underlying file descriptor is fsync'd.  The return value is
      unspecified.
 
-** procedure: open-fdes PATH FLAGS [MODES]
+*** procedure: open-fdes PATH FLAGS [MODES]
      Similar to `open' but returns a file descriptor instead of a port.
 
-** procedure: execle PATH ENV [ARG] ...
+*** procedure: execle PATH ENV [ARG] ...
      Similar to `execl', but the environment of the new process is
      specified by ENV, which must be a list of strings as returned by
      the `environ' procedure.
@@ -304,15 +310,15 @@ their revealed counts set to zero.
      call, but we call it `execle' because of its Scheme calling
      interface.
 
-** procedure: strerror ERRNO
+*** procedure: strerror ERRNO
      Returns the Unix error message corresponding to ERRNO, an integer.
 
-** procedure: primitive-exit [STATUS]
+*** procedure: primitive-exit [STATUS]
      Terminate the current process without unwinding the Scheme stack.
      This is would typically be useful after a fork.  The exit status
      is STATUS if supplied, otherwise zero.
 
-** procedure: times
+*** procedure: times
      Returns an object with information about real and processor time.
      The following procedures accept such an object as an argument and
      return a selected component:
@@ -336,6 +342,14 @@ their revealed counts set to zero.
     `tms:cstime'
           Similarly, the CPU times units used by the system on behalf of
           terminated child processes.
+
+** Removed: list-length
+** Removed: list-append, list-append!
+** Removed: list-reverse, list-reverse!
+
+** array-map renamed to array-map!
+
+** serial-array-map renamed to serial-array-map!
 
 * Changes to the gh_ interface
 
