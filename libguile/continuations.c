@@ -394,7 +394,16 @@ scm_handler (void *d, SCM tag, SCM args)
 
 SCM_DEFINE (scm_with_continuation_barrier, "with-continuation-barrier", 1,0,0,
 	    (SCM proc),
-	    "Call @var{proc} and return the returned value but do not allow the invocation of continuations that would exit or reenter the dynamic extent of the call to @var{proc}.  When a uncaught throw happens during the call to @var{proc}, a message is printed to the current error port and @code{#f} is returned.")
+"Call @var{proc} and return its result.  Do not allow the invocation of\n"
+"continuations that would leave or enter the dynamic extent of the call\n"
+"to @code{with-continuation-barrier}.  Such an attempt causes an error\n"
+"to be signaled.\n"
+"\n"
+"Throws (such as errors) that are not caught from within @var{proc} are\n"
+"caught by @code{with-continuation-barrier}.  In that case, a short\n"
+"message is printed to the current error port and @code{#f} is returned.\n"
+"\n"
+"Thus, @code{with-continuation-barrier} returns exactly once.\n")
 #define FUNC_NAME s_scm_with_continuation_barrier
 {
   struct scm_data scm_data;

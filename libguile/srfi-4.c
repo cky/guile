@@ -1,4 +1,4 @@
-/* srfi-4.c --- Homogeneous numeric vector datatypes.
+/* srfi-4.c --- Uniform numeric vector datatypes.
  *
  * 	Copyright (C) 2001, 2004 Free Software Foundation, Inc.
  *
@@ -47,12 +47,12 @@
 #include <io.h>
 #endif
 
-/* Smob type code for homogeneous numeric vectors.  */
+/* Smob type code for uniform numeric vectors.  */
 int scm_tc16_uvec = 0;
 
 #define SCM_IS_UVEC(obj) SCM_SMOB_PREDICATE (scm_tc16_uvec, (obj))
 
-/* Accessor macros for the three components of a homogeneous numeric
+/* Accessor macros for the three components of a uniform numeric
    vector:
    - The type tag (one of the symbolic constants below).
    - The vector's length (counted in elements).
@@ -63,7 +63,7 @@ int scm_tc16_uvec = 0;
 #define SCM_UVEC_BASE(u)   ((void *)SCM_CELL_WORD_3(u))
 
 
-/* Symbolic constants encoding the various types of homogeneous
+/* Symbolic constants encoding the various types of uniform
    numeric vectors.  */
 #define SCM_UVEC_U8  	0
 #define SCM_UVEC_S8  	1
@@ -116,7 +116,7 @@ static const char *uvec_names[12] = {
 /* ================================================================ */
 
 
-/* Smob print hook for homogeneous vectors.  */
+/* Smob print hook for uniform vectors.  */
 static int
 uvec_print (SCM uvec, SCM port, scm_print_state *pstate)
 {
@@ -262,7 +262,7 @@ uvec_mark (SCM uvec)
 }
 #endif
 
-/* Smob free hook for homogeneous numeric vectors. */
+/* Smob free hook for uniform numeric vectors. */
 static size_t
 uvec_free (SCM uvec)
 {
@@ -309,7 +309,7 @@ take_uvec (int type, const void *base, size_t len)
   SCM_RETURN_NEWSMOB3 (scm_tc16_uvec, type, len, (scm_t_bits) base);
 }
   
-/* Create a new, uninitialized homogeneous numeric vector of type TYPE
+/* Create a new, uninitialized uniform numeric vector of type TYPE
    with space for LEN elements.  */
 static SCM
 alloc_uvec (int type, size_t len)
@@ -734,7 +734,7 @@ SCM_DEFINE (scm_uniform_vector_set_x, "uniform-vector-set!", 3, 0, 0,
 
 SCM_DEFINE (scm_uniform_vector_to_list, "uniform-vector->list", 1, 0, 0,
             (SCM uvec),
-	    "Convert the homogeneous numeric vector @var{uvec} to a list.")
+	    "Convert the uniform numeric vector @var{uvec} to a list.")
 #define FUNC_NAME s_scm_uniform_vector_to_list
 {
   return uvec_to_list (-1, uvec);

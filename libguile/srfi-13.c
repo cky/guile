@@ -77,17 +77,21 @@ race_error ()
 
 SCM_DEFINE (scm_string_any, "string-any-c-code", 2, 2, 0,
             (SCM char_pred, SCM s, SCM start, SCM end),
-	    "Check if the predicate @var{pred} is true for any character in\n"
-	    "the string @var{s}.\n"
-	    "\n"
-	    "Calls to @var{pred} are made from left to right across @var{s}.\n"
-	    "When it returns true (ie.@: non-@code{#f}), that return value\n"
-	    "is the return from @code{string-any}.\n"
-	    "\n"
-	    "The SRFI-13 specification requires that the call to @var{pred}\n"
-	    "on the last character of @var{s} (assuming that point is\n"
-	    "reached) be a tail call, but currently in Guile this is not the\n"
-	    "case.")
+"Check if @var{char_pred} is true for any character in string @var{s}.\n"
+"\n"
+"@var{char_pred} can be a character to check for any equal to that, or\n"
+"a character set (@pxref{Character Sets}) to check for any in that set,\n"
+"or a predicate procedure to call.\n"
+"\n"
+"For a procedure, calls @code{(@var{char_pred} c)} are made\n"
+"successively on the characters from @var{start} to @var{end}.  If\n"
+"@var{char_pred} returns true (ie.@: non-@code{#f}), @code{string-any}\n"
+"stops and that return value is the return from @code{string-any}.  The\n"
+"call on the last character (ie.@: at @math{@var{end}-1}), if that\n"
+"point is reached, is a tail call.\n"
+"\n"
+"If there are no characters in @var{s} (ie.@: @var{start} equals\n"
+"@var{end}) then the return is @code{#f}.\n")
 #define FUNC_NAME s_scm_string_any
 {
   const char *cstr;
@@ -136,21 +140,22 @@ SCM_DEFINE (scm_string_any, "string-any-c-code", 2, 2, 0,
 
 SCM_DEFINE (scm_string_every, "string-every-c-code", 2, 2, 0,
             (SCM char_pred, SCM s, SCM start, SCM end),
-	    "Check if the predicate @var{pred} is true for every character\n"
-	    "in the string @var{s}.\n"
-	    "\n"
-	    "Calls to @var{pred} are made from left to right across @var{s}.\n"
-	    "If the predicate is true for every character then the return\n"
-	    "value from the last @var{pred} call is the return from\n"
-	    "@code{string-every}.\n"
-	    "\n"
-	    "If there are no characters in @var{s} (ie.@: @var{start} equals\n"
-	    "@var{end}) then the return is @code{#t}.\n"
-	    "\n"
-	    "The SRFI-13 specification requires that the call to @var{pred}\n"
-	    "on the last character of @var{s} (assuming that point is\n"
-	    "reached) be a tail call, but currently in Guile this is not the\n"
-	    "case.")
+"Check if @var{char_pred} is true for every character in string\n"
+"@var{s}.\n"
+"\n"
+"@var{char_pred} can be a character to check for every character equal\n"
+"to that, or a character set (@pxref{Character Sets}) to check for\n"
+"every character being in that set, or a predicate procedure to call.\n"
+"\n"
+"For a procedure, calls @code{(@var{char_pred} c)} are made\n"
+"successively on the characters from @var{start} to @var{end}.  If\n"
+"@var{char_pred} returns @code{#f}, @code{string-every} stops and\n"
+"returns @code{#f}.  The call on the last character (ie.@: at\n"
+"@math{@var{end}-1}), if that point is reached, is a tail call and the\n"
+"return from that call is the return from @code{string-every}.\n"
+"\n"
+"If there are no characters in @var{s} (ie.@: @var{start} equals\n"
+"@var{end}) then the return is @code{#t}.\n")
 #define FUNC_NAME s_scm_string_every
 {
   const char *cstr;
