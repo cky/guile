@@ -1,3 +1,30 @@
+2000-09-03  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* Makefile.am (.x.doc): Pretend to create .doc files from .x files
+	and give explicit dependencies for .x files that depend on
+	generated files.  This allows parallel builds.  Thanks to Matthias
+	Koeppe!
+
+2000-08-27  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* Makefile.am: Added gc_os_dep.c, properties.c, properties.x,
+	properties.h and properties.doc in the suitable places.
+
+	* init.h (scm_init_guile): New prototype. 
+	
+	* init.c (scm_init_guile, scm_init_guile_1): New interface for
+	initializing Guile that does return to the caller.
+	(scm_boot_guile_1): Use scm_init_guile_1 to initialize Guile.
+	Do not establish a catch-all, this is no longer needed.
+
+	* root.h (scm_properties_whash): New `sys_protect', used in
+	properties.c.
+
+	* throw.c (scm_ithrow): Perform catch-all handling here when no
+	suitable handler has been found.  That way, we don't have to rely
+	on the user establishing a catch-all, which might be difficult for
+	him if he is using scm_init_guile instead of scm_boot_guile.
+	
 2000-09-03  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* vectors.c (scm_vector): Docstring: add @deffnx line for
