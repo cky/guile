@@ -580,13 +580,13 @@ unmemoize_exprs (const SCM exprs, const SCM env)
   SCM result = SCM_EOL;
   SCM expr_idx;
 
-  for (expr_idx = exprs; !SCM_NULLP (expr_idx); expr_idx = SCM_CDR (expr_idx))
+  for (expr_idx = exprs; SCM_CONSP (expr_idx); expr_idx = SCM_CDR (expr_idx))
     {
       const SCM expr = SCM_CAR (expr_idx);
       const SCM um_expr = unmemoize_expression (expr, env);
       result = scm_cons (um_expr, result);
     }
-
+  
   return scm_reverse_x (result, SCM_UNDEFINED);
 }
 

@@ -1,3 +1,7 @@
+2004-06-13  Han-Wen Nienhuys   <hanwen@xs4all.nl>
+
+	* eval.c (unmemoize_exprs): use SCM_CONSP for the loop condition.
+
 2004-06-06  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
 
 	* list.[ch] (scm_i_finite_list_copy): New internal function to
