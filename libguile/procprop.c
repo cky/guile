@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,2000,2001, 2003 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,2000,2001,2003,2004 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -28,6 +28,7 @@
 #include "libguile/smob.h"
 #include "libguile/root.h"
 #include "libguile/vectors.h"
+#include "libguile/hashtab.h"
 
 #include "libguile/validate.h"
 #include "libguile/procprop.h"
@@ -136,15 +137,15 @@ scm_i_procedure_arity (SCM proc)
 static SCM
 scm_stand_in_scm_proc(SCM proc)
 {
-  SCM answer;
-  answer = scm_assq (proc, scm_stand_in_procs);
-  if (scm_is_false (answer))
+  SCM handle, answer;
+  handle = scm_hashq_get_handle (scm_stand_in_procs, proc);
+  if (scm_is_false (handle))
     {
       answer = scm_closure (scm_list_2 (SCM_EOL, SCM_BOOL_F), SCM_EOL);
-      scm_stand_in_procs = scm_acons (proc, answer, scm_stand_in_procs);
+      scm_hashq_set_x (scm_stand_in_procs, proc, answer);
     }
   else
-    answer = SCM_CDR (answer);
+    answer = SCM_CDR (handle);
   return answer;
 }
 

@@ -917,7 +917,7 @@ scm_init_storage ()
 #endif
 #endif
 
-  scm_stand_in_procs = SCM_EOL;
+  scm_stand_in_procs = scm_c_make_hash_table (257);
   scm_permobjs = SCM_EOL;
   scm_protects = scm_c_make_hash_table (31);
   scm_gc_registered_roots = scm_c_make_hash_table (31);
