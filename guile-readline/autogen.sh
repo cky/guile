@@ -5,8 +5,7 @@
   exit 1
 }
 
-(cd .. && guile-aclocal.sh)
-
+aclocal
 libtoolize --copy --automake
 autoconf
 automake --add-missing
