@@ -1,6 +1,9 @@
 2000-08-17  Michael Livshin  <mlivshin@bigfoot.com>
 
 	this changes the Guile GC to use cards (aka "chunklets").
+	(most of the ideas and some of the code are by Greg Harvey, though 
+	the code is probably unrecognizable now.  the original chunklet
+	proposal, way back, is by Dale Jordan).
 
 	* tags.h: (SCM_GCTYPE16, SCM_GCCDR, SCM_GC[8]MARKP,
 	SCM_SETGC[8]MARK, SCM_CLRGC[8]MARK): moved from here into gc.h.
