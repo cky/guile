@@ -1,3 +1,11 @@
+Tue Jan 11 11:18:07 2000  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* scm_validate.h, chars.c, ports.c, print.c, read.c, strings.c,
+ 	strop.c: Use SCM_VALIDATE_ICHR, SCM_VALIDATE_ICHR_COPY instead of
+ 	SCM_VALIDATE_CHAR, SCM_VALIDATE_CHAR_COPY.  Change made for
+ 	consistency with the other macros dealing with immediate
+ 	characters.  (Similar to INT -> INUM change a week or so ago).
+
 Tue Jan 11 10:41:46 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* dynl.c, error.c, eval.c, feature.c, filesys.c, fports.c, list.c, load.c,
