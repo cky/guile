@@ -33,7 +33,7 @@ progname=`echo "$0" | sed 's%^.*/%%'`
 # Constants:
 PROGRAM=ltconfig
 PACKAGE=libtool
-VERSION=0.9
+VERSION=0.9d
 ac_compile='${CC-cc} -c $CFLAGS $CPPFLAGS conftest.c 1>&5'
 rm="rm -f"
 
@@ -54,11 +54,14 @@ nonopt=NONE
 verify_host=yes
 with_gcc=no
 
+old_AR="$AR"
 old_CC="$CC"
 old_CFLAGS="$CFLAGS"
 old_CPPFLAGS="$CPPFLAGS"
 old_LD="$LD"
 old_RANLIB="$RANLIB"
+
+test -z "$AR" && AR=ar
 
 # Parse the command line options.
 args=
@@ -240,6 +243,12 @@ if test "$verify_host" = yes; then
   host=`$ac_config_sub $host_alias`
   echo "$ac_t""$host" 1>&6
 
+  # Transform *-*-linux* to *-*-linux-gnu*, to support old configure scripts.
+  case "$host" in
+  *-*-linux-gnu*) ;;
+  *-*-linux*) host=`echo $host | sed 's/^\(.*-.*-linux\)\(.*\)$/\1-gnu\2/'`
+  esac
+
 elif test "$host" = NONE; then
   echo "$progname: you must specify a host type if you use \`--no-verify'" 1>&2
   echo "$help" 1>&2
@@ -248,12 +257,18 @@ else
   host_alias=$host
 fi
 
+# Transform *-*-linux* to *-*-linux-gnu*, to support old configure scripts.
+case "$host" in
+*-*-linux-gnu*) ;;
+*-*-linux*) host=`echo $host | sed 's/^\(.*-.*-linux\)\(.*\)$/\1-gnu\2/'`
+esac
+
 host_cpu=`echo $host | sed 's/^\(.*\)-\(.*\)-\(.*\)$/\1/'`
 host_vendor=`echo $host | sed 's/^\(.*\)-\(.*\)-\(.*\)$/\2/'`
 host_os=`echo $host | sed 's/^\(.*\)-\(.*\)-\(.*\)$/\3/'`
 
 # Determine commands to create old-style static archives.
-old_archive_cmds='ar cru $oldlib$oldobjs'
+old_archive_cmds='$AR cru $oldlib$oldobjs'
 old_postinstall_cmds='chmod 644 $oldlib'
 
 # If RANLIB is not set, then run the test.
@@ -407,7 +422,7 @@ else
     pic_flag=
     ;;
 
-  *-*-osf3*)
+  *-*-osf3* | *-*-osf4*)
     # FIXME - pic_flag is probably required for hppa*-osf* and i860-osf*
     wl='-Wl,'
     link_static_flag='-non_shared'
@@ -474,7 +489,7 @@ with_gnu_ld=no
 set dummy $LD
 linker="$2"
 echo $ac_n "checking if $LD is GNU ld... $ac_c" 1>&6
-if $LD --version 2>&1 | egrep 'with BFD' > /dev/null; then
+if $LD --version 2>&1 | egrep '(GNU ld|with BFD)' > /dev/null; then
   with_gnu_ld=yes
   linker="GNU ld"
 fi
@@ -484,7 +499,9 @@ echo $ac_t "$with_gnu_ld" 1>&6
 echo $ac_n "checking if $linker supports shared libraries... $ac_c" 1>&6
 
 archive_cmds=
-hardcode_libdir_flag=
+export_dynamic_flag=
+hardcode_libdir_flag_spec=
+hardcode_libdir_separator=
 hardcode_direct=no
 hardcode_minus_L=no
 hardcode_shlibpath_var=unsupported
@@ -511,20 +528,21 @@ if test "$with_gnu_ld" = yes; then
 
   if test "$ld_shlibs" = yes; then
     archive_cmds='$cc -shared ${wl}-soname $wl$soname -o $lib$libobjs$deplibs'
-    hardcode_libdir_flag='${wl}-rpath $wl$libdir'
+    hardcode_libdir_flag_spec='${wl}-rpath $wl$libdir'
+    export_dynamic_flag='${wl}-export-dynamic'
   fi
 else
   # PORTME fill in a description of your system's linker (not GNU ld)
   case "$host" in
   *-*-aix3*)
-    archive_cmds='/usr/ucb/nm$libobjs | egrep \" D \" | sed \"s/^.* //\" > $lib.exp;$LD -o $objdir/$soname$libobjs -bE:$lib.exp -T512 -H512 -bM:SRE -lc$deplibs;ar cru $lib $objdir/$soname'
-    test "$with_gcc" != yes && hardcode_direct=yes
+    archive_cmds='/usr/ucb/nm$libobjs | egrep \" [BD] \" | sed \"s/^.* //\" > $lib.exp;$LD -o $objdir/$soname$libobjs -bE:$lib.exp -T512 -H512 -bM:SRE -lc$deplibs;$AR cru $lib $objdir/$soname'
+    # Note: this linker hardcodes the directories in LIBPATH if there
+    # are no directories specified by -L.
     hardcode_minus_L=yes
     ;;
 
   *-*-aix4*)
-    archive_cmds='/bin/nm -B$libobjs | egrep \" D \" | sed \"s/^.* //\" > $lib.exp;$cc -o $objdir/$soname$libobjs ${wl}-bE:$lib.exp ${wl}-bM:SRE ${wl}-bnoentry$deplibs;ar cru $lib $objdir/$soname'
-    test "$with_gcc" != yes && hardcode_direct=yes
+    archive_cmds='/bin/nm -B$libobjs | egrep \" [BD] \" | sed \"s/^.* //\" > $lib.exp;$cc -o $objdir/$soname$libobjs ${wl}-bE:$lib.exp ${wl}-bM:SRE ${wl}-bnoentry$deplibs;$AR cru $lib $objdir/$soname'
     hardcode_minus_L=yes
     ;;
 
@@ -537,34 +555,35 @@ else
 
   *-*-hpux9*)
     archive_cmds='$rm $objdir/$soname;$LD -b +s +b $install_libdir -o $objdir/$soname$libobjs$deplibs;mv $objdir/$soname $lib'
-    hardcode_libdir_flag='${wl}+b ${wl}$libdir'
+    hardcode_libdir_flag_spec='${wl}+b ${wl}$libdir'
     hardcode_direct=yes
     hardcode_minus_L=yes
     ;;
 
   *-*-hpux10*)
     archive_cmds='$LD -b +h $soname +s +b $install_libdir -o $lib$libobjs$deplibs'
-    hardcode_libdir_flag='${wl}+b ${wl}$libdir'
+    hardcode_libdir_flag_spec='${wl}+b ${wl}$libdir'
     hardcode_direct=yes
     hardcode_minus_L=yes
     ;;
 
   *-*-irix5* | *-*-irix6*)
     archive_cmds='$LD -shared -o $lib -soname $soname -set_version $verstring$libobjs -lc$deplibs'
-    hardcode_libdir_flag='${wl}-rpath ${wl}$libdir'
+    hardcode_libdir_flag_spec='${wl}-rpath ${wl}$libdir'
     ;;
 
   *-*-netbsd*)
     # Tested with NetBSD 1.2 ld
     archive_cmds='$LD -Bshareable -o $lib$libobjs$deplibs'
-    hardcode_libdir_flag='-R$libdir'
+    hardcode_libdir_flag_spec='-R$libdir'
     hardcode_direct=yes
     hardcode_shlibpath_var=no
     ;;
 
-  *-*-osf3*)
+  *-*-osf3* | *-*-osf4*)
     archive_cmds='$LD -shared -o $lib -soname $soname -set_version $verstring$libobjs -lc$deplibs'
-    hardcode_libdir_flag='${wl}-rpath ${wl}$libdir'
+    hardcode_libdir_flag_spec='${wl}-rpath ${wl}$libdir'
+    hardcode_libdir_separator=:
     ;;
 
   *-*-sco3.2v5*)
@@ -574,13 +593,13 @@ else
 
   *-*-solaris2*)
     archive_cmds='$LD -G -z text -h $soname -o $lib$libobjs$deplibs'
-    hardcode_libdir_flag='-R$libdir'
+    hardcode_libdir_flag_spec='-R$libdir'
     hardcode_shlibpath_var=no
     ;;
 
   *-*-sunos4*)
     archive_cmds='$LD -assert pure-text -Bstatic -o $lib$libobjs'
-    hardcode_libdir_flag='-L$libdir'
+    hardcode_libdir_flag_spec='-L$libdir'
     hardcode_direct=yes
     hardcode_minus_L=yes
     hardcode_shlibpath_var=no
@@ -597,7 +616,7 @@ echo $ac_t "$ld_shlibs" 1>&6
 # Check hardcoding attributes.
 echo $ac_n "checking how to hardcode library paths into programs... $ac_c" 1>&6
 hardcode_action=
-if test -n "$hardcode_libdir_flag"; then
+if test -n "$hardcode_libdir_flag_spec"; then
   # We can hardcode non-existant directories.
   if test "$hardcode_direct" != no &&
      test "$hardcode_minus_L" != no &&
@@ -606,14 +625,14 @@ if test -n "$hardcode_libdir_flag"; then
     # Can't link without hardcoding.
     hardcode_action=relink
   else
-    hardcode_action=rpath
+    hardcode_action=immediate
   fi
 elif test "$hardcode_direct" = yes ||
      test "$hardcode_minus_L" = yes ||
      test "$hardcode_shlibpath_var" = yes; then
 
   # We can't hardcode non-existant directories, but we can existing ones.
-  hardcode_action=relink
+  hardcode_action=immediate
 else
   # We can't hardcode anything.
   hardcode_action=unsupported
@@ -631,7 +650,7 @@ echo $ac_t "$reload_flag"
 test -n "$reload_flag" && reload_flag=" $reload_flag"
 
 # PORTME Fill in your ld.so characteristics
-lib_names=
+library_names_spec=
 soname_spec=
 postinstall_cmds=
 finish_cmds=
@@ -642,11 +661,8 @@ dynamic_linker="$host_os ld.so"
 echo $ac_n "checking dynamic linker characteristics... $ac_c" 1>&6
 case "$host" in
 *-*-aix3* | *-*-aix4*)
-  # Shared libraries and static libraries currently use the same namespace.
-  test "$enable_shared" = no || enable_static=no
-
   version_type=linux
-  lib_names='$libname.so.$versuffix $libname.a'
+  library_names_spec='$libname.so.$versuffix $libname.a'
   shlibpath_var=LIBPATH
 
   # AIX has no versioning support, so we append a major version to the name.
@@ -655,16 +671,12 @@ case "$host" in
 
 *-*-freebsd*)
   version_type=sunos
-  lib_names='$libname.so.$versuffix $libname.so'
+  library_names_spec='$libname.so.$versuffix $libname.so'
   finish_cmds='ldconfig -m $libdir'
   shlibpath_var=LD_LIBRARY_PATH
   ;;
 
-*-*-gnu*)
-  version_type=sunos
-  lib_names='$libname.so.$versuffix'
-  shlibpath_var=LD_LIBRARY_PATH
-  ;;
+# *-*-gnu* needs to come after *-*-linux-gnu*.
 
 *-*-hpux9* | *-*-hpux10*)
   # Give a soname corresponding to the major version so that dld.sl refuses to
@@ -672,7 +684,7 @@ case "$host" in
   dynamic_linker="$host_os dld.sl"
   version_type=sunos
   shlibpath_var=SHLIB_PATH
-  lib_names='$libname.sl.$versuffix $libname.sl.$major $libname.sl'
+  library_names_spec='$libname.sl.$versuffix $libname.sl.$major $libname.sl'
   soname_spec='$libname.sl.$major'
   # HP-UX runs *really* slowly unless shared libraries are mode 555.
   postinstall_cmds='chmod 555 $lib'
@@ -681,55 +693,62 @@ case "$host" in
 *-*-irix5* | *-*-irix6*)
   version_type=osf
   soname_spec='$libname.so'
-  lib_names='$libname.so.$versuffix $libname.so'
+  library_names_spec='$libname.so.$versuffix $libname.so'
   shlibpath_var=LD_LIBRARY_PATH
   ;;
 
-# No shared lib support for linuxoldld or linuxaout.
-*-*-linuxoldld* | *-*-linuxaout*)
+# No shared lib support for Linux oldld, aout, or coff.
+*-*-linux-gnuoldld* | *-*-linux-gnuaout* | *-*-linux-gnucoff*)
   dynamic_linker=no
   can_build_shared=no
   ;;
 
-*-*-linux*)
+# This must be Linux ELF.
+*-*-linux-gnu*)
   version_type=linux
-  lib_names='$libname.so.$versuffix $libname.so.$major $libname.so'
+  library_names_spec='$libname.so.$versuffix $libname.so.$major $libname.so'
   soname_spec='$libname.so.$major'
   finish_cmds='ldconfig -n $libdir'
   shlibpath_var=LD_LIBRARY_PATH
   ;;
 
+*-*-gnu*)
+  version_type=sunos
+  library_names_spec='$libname.so.$versuffix'
+  shlibpath_var=LD_LIBRARY_PATH
+  ;;
+
 *-*-netbsd*)
   version_type=sunos
-  lib_names='$libname.so.$versuffix'
+  library_names_spec='$libname.so.$versuffix'
   finish_cmds='ldconfig -m $libdir'
   shlibpath_var=LD_LIBRARY_PATH
   ;;
 
-*-*-osf3*)
+*-*-osf3* | *-*-osf4*)
   version_type=osf
   soname_spec='$libname.so'
-  lib_names='$libname.so.$versuffix $libname.so'
+  library_names_spec='$libname.so.$versuffix $libname.so'
   shlibpath_var=LD_LIBRARY_PATH
   ;;
 
 *-*-sco3.2v5*)
   version_type=osf
   soname_spec='$libname.so.$major'
-  lib_names='$libname.so.$versuffix $libname.so.$major $libname.so'
+  library_names_spec='$libname.so.$versuffix $libname.so.$major $libname.so'
   shlibpath_var=LD_LIBRARY_PATH
   ;;
 
 *-*-solaris2*)
   version_type=linux
-  lib_names='$libname.so.$versuffix $libname.so.$major $libname.so'
+  library_names_spec='$libname.so.$versuffix $libname.so.$major $libname.so'
   soname_spec='$libname.so.$major'
   shlibpath_var=LD_LIBRARY_PATH
   ;;
 
 *-*-sunos4*)
   version_type=sunos
-  lib_names='$libname.so.$versuffix'
+  library_names_spec='$libname.so.$versuffix'
   finish_cmds='ldconfig $libdir'
   shlibpath_var=LD_LIBRARY_PATH
   ;;
@@ -771,21 +790,21 @@ echo "checking if libtool supports shared libraries... $can_build_shared" 1>&6
 echo $ac_n "checking whether to build shared libraries... $ac_c" 1>&6
 test "$can_build_shared" = "no" && enable_shared=no
 
-if test "$enable_shared" = yes; then
-  # On AIX, we do not build both static and shared libraries.
-  case "$host_os" in
-  aix*)
-    test "$enable_static" = yes && enable_static=no
-    if test -n "$RANLIB"; then
-      archive_cmds="$archive_cmds;\$RANLIB \$lib"
-      postinstall_cmds='$RANLIB $lib'
-    fi
-    ;;
-  esac
-fi
+# On AIX, shared libraries and static libraries use the same namespace.
+case "$host_os" in
+aix*)
+  test "$enable_shared" = yes && enable_static=no
+  if test -n "$RANLIB"; then
+    archive_cmds="$archive_cmds;\$RANLIB \$lib"
+    postinstall_cmds='$RANLIB $lib'
+  fi
+  ;;
+esac
 
 echo "$ac_t""$enable_shared" 1>&6
 
+# Make sure either enable_shared or enable_static is yes.
+test "$enable_shared" = yes || enable_static=yes
 
 ofile=libtool
 trap "$rm $ofile; exit 1" 1 2 15
@@ -819,6 +838,9 @@ build_old_libs=$enable_static
 host_alias="$host_alias"
 host="$host"
 
+# The archiver.
+AR='$AR'
+
 # The linker used to build libraries.
 LD='$LD'
 
@@ -835,6 +857,9 @@ pic_flag='$pic_flag'
 # Compiler flag to prevent dynamic linking.
 link_static_flag='$link_static_flag'
 
+# Compiler flag to allow reflexive dlopens.
+export_dynamic_flag='$export_dynamic_flag'
+
 # Pattern to match compiler flags for creating libNAME_p libraries:
 profile_flag_pattern='$profile_flag_pattern'
 
@@ -843,7 +868,7 @@ version_type=$version_type
 
 # List of archive names.  First name is the real one, the rest are links.
 # The last name is the one that the linker finds with -lNAME.
-lib_names='$lib_names'
+library_names_spec='$library_names_spec'
 
 # The coded name of the library, if different from the real name.
 soname_spec='$soname_spec'
@@ -872,7 +897,10 @@ hardcode_action=$hardcode_action
 
 # Flag to hardcode \$libdir into a binary during linking.
 # This must work even if \$libdir does not exist.
-hardcode_libdir_flag='$hardcode_libdir_flag'
+hardcode_libdir_flag_spec='$hardcode_libdir_flag_spec'
+
+# Whether we need a single -rpath flag with a separated argument.
+hardcode_libdir_separator='$hardcode_libdir_separator'
 
 # Set to yes if using DIR/libNAME.so during linking hardcodes DIR into the
 # resulting binary.
