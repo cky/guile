@@ -1383,9 +1383,9 @@ scm_mark_locations (SCM_STACKITEM x[], scm_sizet n)
   register SCM_CELLPTR ptr;
 
   while (0 <= --m)
-    if (SCM_CELLP (*(SCM **) (& x[m])))
+    if (SCM_CELLP (* (SCM *) &x[m]))
       {
-	ptr = (SCM_CELLPTR) SCM2PTR ((*(SCM **) & x[m]));
+	ptr = (SCM_CELLPTR) SCM2PTR (* (SCM *) &x[m]);
 	i = 0;
 	j = scm_n_heap_segs - 1;
 	if (   SCM_PTR_LE (scm_heap_table[i].bounds[0], ptr)
@@ -1425,12 +1425,12 @@ scm_mark_locations (SCM_STACKITEM x[], scm_sizet n)
 			  break;
 		      }
 		  }
-		if (   !scm_heap_table[seg_id].valid
+		if (!scm_heap_table[seg_id].valid
 		    || scm_heap_table[seg_id].valid (ptr,
 						     &scm_heap_table[seg_id]))
-                  if (   scm_heap_table[seg_id].span == 1
-                      || SCM_DOUBLE_CELLP (*(SCM **) (& x[m])))
-                    scm_gc_mark (*(SCM *) & x[m]);
+                  if (scm_heap_table[seg_id].span == 1
+		      || SCM_DOUBLE_CELLP (* (SCM *) &x[m]))
+                    scm_gc_mark (* (SCM *) &x[m]);
 		break;
 	      }
 
@@ -1450,9 +1450,9 @@ scm_cellp (SCM value)
   register int i, j;
   register SCM_CELLPTR ptr;
 
-  if SCM_CELLP (*(SCM **) (& value))
+  if (SCM_CELLP (value))
     {
-      ptr = (SCM_CELLPTR) SCM2PTR ((*(SCM **) & value));
+      ptr = (SCM_CELLPTR) SCM2PTR (value);
       i = 0;
       j = scm_n_heap_segs - 1;
       if (   SCM_PTR_LE (scm_heap_table[i].bounds[0], ptr)
@@ -1492,10 +1492,12 @@ scm_cellp (SCM value)
 			break;
 		    }
 		}
-	      if (   !scm_heap_table[seg_id].valid
+	      if (!scm_heap_table[seg_id].valid
 		     || scm_heap_table[seg_id].valid (ptr,
 						      &scm_heap_table[seg_id]))
-		return 1;
+		if (scm_heap_table[seg_id].span == 1
+		    || SCM_DOUBLE_CELLP (value))
+		  scm_gc_mark (value);
 	      break;
 	    }
 
