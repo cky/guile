@@ -249,7 +249,7 @@ scm_wta (arg, pos, s_subr)
   if ((~0x1fL) & (long) pos)
     {
       /* error string supplied.  */
-      scm_misc_error (s_subr, pos, SCM_BOOL_F);
+      scm_misc_error (s_subr, pos, SCM_EOL);
     }
   else
     {
@@ -278,7 +278,7 @@ scm_wta (arg, pos, s_subr)
 	  scm_memory_error (s_subr);
 	default:
 	  /* this shouldn't happen.  */
-	  scm_misc_error (s_subr, "Unknown error", SCM_BOOL_F);
+	  scm_misc_error (s_subr, "Unknown error", SCM_EOL);
 	}
     }
   return SCM_UNSPECIFIED;
