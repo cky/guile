@@ -1,3 +1,8 @@
+Wed Jul 23 20:32:42 1997  Mikael Djurfeldt  <djurf@zafir.e.kth.se>
+
+	* md/axp.s, md/axp_b.s: Changed comments from C-style to # to
+	please the alpha assembler.
+
 Sun Jun 22 18:44:11 1997  Jim Blandy  <jimb@floss.red-bean.com>
 
 	* Makefile.in, md/Makefile.in, time/Makefile.in: Regenerated after
