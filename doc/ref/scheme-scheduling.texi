@@ -289,6 +289,7 @@ executed in a new dynamic root.
 @menu
 * Low level thread primitives::  
 * Higher level thread procedures::  
+* C level thread interface::
 @end menu
 
 
@@ -303,12 +304,11 @@ executed in a new dynamic root.
 Evaluate @code{(thunk)} in a new thread, and new dynamic context,
 returning a new thread object representing the thread.
 
-If an error occurs during evaluation, call error-handler, passing it an
-error code describing the condition.  [Error codes are currently
-meaningless integers.  In the future, real values will be specified.]
-If this happens, the error-handler is called outside the scope of the new
-root -- it is called in the same dynamic context in which
-with-new-thread was evaluated, but not in the caller's thread.
+If an error occurs during evaluation, call error-handler, passing it
+an error code.  If this happens, the error-handler is called outside
+the scope of the new root -- it is called in the same dynamic context
+in which with-new-thread was evaluated, but not in the caller's
+thread.
 
 All the evaluation rules for dynamic roots apply to threads.
 @end deffn
@@ -337,6 +337,10 @@ blocks until the mutex becomes available. The function returns when
 the calling thread owns the lock on @var{mutex}.  Locking a mutex that
 a thread already owns will succeed right away and will not block the
 thread.  That is, Guile's mutexes are @emph{recursive}.
+
+When a system async is activated for a thread that is blocked in a
+call to @code{lock-mutex}, the waiting is interrupted and the async is
+executed.  When the async returns, the waiting is resumed.
 @end deffn
 
 @deffn {Scheme Procedure} try-mutex mutex
@@ -357,6 +361,7 @@ with a call to @code{unlock-mutex}.  Only the last call to
 
 @c begin (texi-doc-string "guile" "make-condition-variable")
 @deffn {Scheme Procedure} make-condition-variable
+Make a new condition variable.
 @end deffn
 
 @c begin (texi-doc-string "guile" "wait-condition-variable")
@@ -366,18 +371,25 @@ Wait until @var{cond-var} has been signalled.  While waiting,
 is locked again when this function returns.  When @var{time} is given,
 it specifies a point in time where the waiting should be aborted.  It
 can be either a integer as returned by @code{current-time} or a pair
-as returned by @code{gettimeofday}.  When the waiting is aborted the
-mutex is locked and @code{#f} is returned.  When the condition
-variable is in fact signalled, the mutex is also locked and @code{#t}
-is returned.
+as returned by @code{gettimeofday}.  When the waiting is aborted,
+@code{#f} is returned.  When the condition variable has in fact been
+signalled, @code{#t} is returned.  The mutex is re-locked in any case
+before @code{wait-condition-variable} returns.
+
+When a system async is activated for a thread that is blocked in a
+call to @code{wait-condition-variable}, the waiting is interrupted,
+the mutex is locked, and the async is executed.  When the async
+returns, the mutex is unlocked again and the waiting is resumed.
 @end deffn
 
 @c begin (texi-doc-string "guile" "signal-condition-variable")
 @deffn {Scheme Procedure} signal-condition-variable cond-var
+Wake up one thread that is waiting for @var{cv}.
 @end deffn
 
 @c begin (texi-doc-string "guile" "broadcast-condition-variable")
 @deffn {Scheme Procedure} signal-condition-variable cond-var
+Wake up all threads that are waiting for @var{cv}.
 @end deffn
 
 @node Higher level thread procedures
@@ -389,30 +401,16 @@ Higher level thread procedures are available by loading the
 @code{(ice-9 threads)} module.  These provide standardized
 thread creation and mutex interaction.
 
-@deffn {Scheme Procedure} %thread-handler tag args@dots{}
-
-This procedure is specified as the standard error-handler for
-@code{make-thread} and @code{begin-thread}.  If the number of @var{args}
-is three or more, use @code{display-error}, otherwise display a message
-"uncaught throw to @var{tag}".  All output is sent to the port specified
-by @code{current-error-port}.
-
-Before display, global var @code{the-last-stack} is set to @code{#f}
-and signals are unmasked with @code{unmask-signals}.
-
-[FIXME: Why distinguish based on number of args?!  Cue voodoo music here.]
-@end deffn
-
 @deffn macro make-thread proc [args@dots{}]
 Apply @var{proc} to @var{args} in a new thread formed by
-@code{call-with-new-thread} using @code{%thread-handler} as the error
-handler.
+@code{call-with-new-thread} using a default error handler that display
+the error to the current error port.
 @end deffn
 
 @deffn macro begin-thread first [rest@dots{}]
 Evaluate forms @var{first} and @var{rest} in a new thread formed by
-@code{call-with-new-thread} using @code{%thread-handler} as the error
-handler.
+@code{call-with-new-thread} using a default error handler that display
+the error to the current error port.
 @end deffn
 
 @deffn macro with-mutex m [body@dots{}]
@@ -423,10 +421,153 @@ These sub-operations form the branches of a @code{dynamic-wind}.
 @deffn macro monitor first [rest@dots{}]
 Evaluate forms @var{first} and @var{rest} under a newly created
 anonymous mutex, using @code{with-mutex}.
-
-[FIXME: Is there any way to access the mutex?]
 @end deffn
 
+@node C level thread interface
+@subsection C level thread interface
+
+You can create and manage threads, mutexes, and condition variables
+with the C versions of the primitives above.  For example, you can
+create a mutex with @code{scm_make_mutex} and lock it with
+@code{scm_lock_mutex}.  In addition to these primitives there is also
+a second set of primitives for threading related things.  These
+functions and data types are only available from C and can not be
+mixed with the first set from above.  However, they might be more
+efficient and can be used in situations where Scheme data types are
+not allowed or are inconvenient to use.
+
+Furthermore, they are the primitives that Guile relies on for its own
+higher level threads.  By reimplementing them, you can adapt Guile to
+different low-level thread implementations.
+
+@deftp {C Data Type} scm_t_thread
+This data type represents a thread, to be used with scm_thread_create,
+etc.
+@end deftp
+
+@deftypefun {C Function} int scm_thread_create (scm_t_thread *t, void (*proc)(void *), void *data)
+Create a new thread that will start by calling @var{proc}, passing it
+@var{data}.  A handle for the new thread is stored in @var{t}, which
+must be non-NULL.  The thread terminated when @var{proc} returns.
+When the thread has not been detached, its handle remains valid after
+is has terminated so that it can be used with @var{scm_thread_join},
+for example.  When it has been detached, the handle becomes invalid as
+soon as the thread terminates.
+@end deftypefun
+
+@deftypefun {C Function} void scm_thread_detach (scm_t_thread t)
+Detach the thread @var{t}.  See @code{scm_thread_create}.
+@end deftypefun
+
+@deftypefun {C Function} void scm_thread_join (scm_t_thread t)
+Wait for thread @var{t} to terminate.  The thread must not have been
+detached at the time that @code{scm_thread_join} is called, but it
+might have been detached by the time it terminates.
+@end deftypefun
+
+@deftypefun {C Function} scm_t_thread scm_thread_self ()
+Return the handle of the calling thread.
+@end deftypefun
+
+@deftp {C Data Type} scm_t_mutex
+This data type represents a mutex, to be used with scm_mutex_init,
+etc.
+@end deftp
+
+@deftypefun {C Function} void scm_mutex_init (scm_t_mutex *m)
+Initialize the mutex structure pointed to by @var{m}.
+@end deftypefun
+
+@deftypefun {C Function} void scm_mutex_destroy (scm_t_mutex *m)
+Deallocate all resources associated with @var{m}.
+@end deftypefun
+
+@deftypefun {C Function} void scm_mutex_lock (scm_t_mutex *m)
+Lock the mutex @var{m}.  When it is already locked by a different
+thread, wait until it becomes available.  Locking a mutex that is
+already locked by the current threads is not allowd and results in
+undefined behavior.  The mutices are not guaranteed to be fair.  That
+is, a thread that attempts a lock after yourself might be granted it
+before you.
+@end deftypefun
+
+@deftypefun {C Function} int scm_mutex_trylock (scm_t_mutex *m)
+Lock @var{m} as with @code{scm_mutex_lock} but don't wait when this
+does succeed immediately.  Returns non-zero when the mutex could in
+fact be locked , and zero when it is already locked by some other
+thread.
+@end deftypefun
+
+@deftypefun {C Function} void scm_mutex_unlock (scm_t_mutex *m)
+Unlock the mutex @var{m}.  The mutex must have been locked by the
+current thread, else the behavior is undefined.
+@end deftypefun
+
+@deftp {C Data Type} scm_t_cond
+This data type represents a condition variable, to be used with
+scm_cond_init, etc.
+@end deftp
+
+@deftypefun {C Function} void scm_cond_init (scm_t_cond *c)
+Initialize the mutex structure pointed to by @var{c}.
+@end deftypefun
+
+@deftypefun {C Function} void scm_cond_destroy (scm_t_cond *c)
+Deallocate all resources associated with @var{c}.
+@end deftypefun
+
+@deftypefun {C Function} void scm_cond_wait (scm_t_cond *c, scm_t_mutex *m)
+Wait for @var{c} to be signalled.  While waiting @var{m} is unlocked
+and locked again before @code{scm_cond_wait} returns.
+@end deftypefun
+
+@deftypefun {C Function} void scm_cond_timedwait (scm_t_cond *c, scm_t_mutex *m, timespec *abstime)
+Wait for @var{c} to be signalled as with @code{scm_cond_wait} but
+don't wait longer than the point in time specified by @var{abstime}.
+when the waiting is aborted, zero is returned; non-zero else.
+@end deftypefun
+
+@deftypefun {C Function} void scm_cond_signal (scm_t_cond *c)
+Signal the condition variable @var{c}.  When one or more threads are
+waiting for it to be signalled, select one arbitrarily and let its
+wait succeed.
+@end deftypefun
+
+@deftypefun {C Function} void scm_cond_broadcast (scm_t_cond *c)
+Signal the condition variable @var{c}.  When there are threads waiting
+for it to be signalled, wake them all up and make all their waits
+succeed.
+@end deftypefun
+
+@deftp {C Type} scm_t_key
+This type represents a key for a thread-specific value.
+@end deftp
+
+@deftypefun {C Function} void scm_key_create (scm_t_key *keyp)
+Create a new key for a thread-specific value.  Each thread has its own
+value associated to such a handle.  The new handle is stored into
+@var{keyp}, which must be non-NULL.
+@end deftypefun
+
+@deftypefun {C Function} void scm_key_delete (scm_t_key key)
+This function makes @var{key} invalid as a key for thread-specific data.
+@end deftypefun
+
+@deftypefun {C Function} void scm_key_setspecific (scm_t_key key, const void *value)
+Associate @var{value} with @var{key} in the calling thread.
+@end deftypefun
+
+@deftypefun {C Function} int scm_key_getspecific (scm_t_key key)
+Return the value currently associated with @var{key} in the calling
+thread.  When @code{scm_key_setspecific} has not yet been called in
+this thread with this key, @code{NULL} is returned.
+@end deftypefun
+
+@deftypefun {C Function} int scm_thread_select (...)
+This function does the same thing as the system's @code{select}
+function, but in a way that is friendly to the thread implementation.
+You should call it in preference to the system @code{select}.
+@end deftypefun
 
 @node Fluids
 @section Fluids
@@ -435,12 +576,12 @@ anonymous mutex, using @code{with-mutex}.
 
 @c FIXME::martin: Review me!
 
-Fluids are objects to store values in.  They have a few properties which
-make them useful in certain situations: Fluids can have one value per
-dynamic root (@pxref{Dynamic Roots}), so that changes to the value in a
-fluid are only visible in the same dynamic root.  Since threads are
-executed in separate dynamic roots, fluids can be used for thread local
-storage (@pxref{Threads}).
+Fluids are objects to store values in.  They have a few properties
+which make them useful in certain situations: Fluids can have one
+value per dynamic root (@pxref{Dynamic Roots}), so that changes to the
+value in a fluid are only visible in the same dynamic root.  Since
+threads are executed in separate dynamic roots, fluids can be used for
+thread local storage (@pxref{Threads}).
 
 Fluids can be used to simulate the desirable effects of dynamically
 scoped variables.  Dynamically scoped variables are useful when you
