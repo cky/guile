@@ -1,8 +1,12 @@
+2002-04-27  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* Makefile.am (EXTRA_DIST): Remove qthreads.m4.
+
 2002-04-26  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* guile-aclocal.sh: Replaced with a simple invocation of "aclocal
 	-I guile-config".  This works as of automake 1.5.
-	* qthreads.m4: Moved to guile-config/. 
+	* qthreads.m4: Moved to guile-config/.
 
 2002-04-18  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
