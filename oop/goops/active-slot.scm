@@ -1,6 +1,6 @@
 ;;; installed-scm-file
 
-;;;; 	Copyright (C) 1999 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1999, 2001 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@
 
 (define-class <active-class> (<class>))
 
-(define-method compute-get-n-set ((class <active-class>) slot)
+(define-method (compute-get-n-set (class <active-class>) slot)
   (if (eq? (slot-definition-allocation slot) #:active)
       (let* ((index 	  (slot-ref class 'nfields))
 	     (name	  (car slot))

@@ -1,6 +1,6 @@
 ;;; installed-scm-file
 
-;;;; 	Copyright (C) 1998, 1999 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1998, 1999, 2001 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -36,7 +36,7 @@
 ;;;
 ;;; describe for simple objects
 ;;;
-(define-method describe ((x <top>))
+(define-method (describe (x <top>))
   (format #t "~s is " x)
   (cond
      ((integer? x)      (format #t "an integer"))
@@ -62,7 +62,7 @@
   (format #t ".~%")
   *unspecified*)
 
-(define-method describe ((x <procedure>))
+(define-method (describe (x <procedure>))
   (let ((name (procedure-name x)))
     (if name
 	(format #t "`~s'" name)
@@ -84,7 +84,7 @@
       (class-name class)
       class))
 
-(define-method describe ((x <object>))
+(define-method (describe (x <object>))
   (format #t "~S is an instance of class ~A~%"
 	  x (safe-class-name (class-of x)))
 
@@ -103,7 +103,7 @@
 ;;;
 ;;; Describe for classes
 ;;;
-(define-method describe ((x <class>))
+(define-method (describe (x <class>))
   (format #t "~S is a class. It's an instance of ~A~%" 
 	  (safe-class-name x) (safe-class-name (class-of x)))
   
@@ -156,7 +156,7 @@
 ;;;
 ;;; Describe for generic functions
 ;;;
-(define-method describe ((x <generic>))
+(define-method (describe (x <generic>))
   (let ((name    (generic-function-name x))
 	(methods (generic-function-methods x)))
     ;; Title
@@ -172,7 +172,7 @@
 ;;;
 ;;; Describe for methods
 ;;;
-(define-method describe ((x <method>) . omit-generic)
+(define-method (describe (x <method>) . omit-generic)
   (letrec ((print-args (lambda (args)
 			 ;; take care of dotted arg lists
 			 (cond ((null? args) (newline))

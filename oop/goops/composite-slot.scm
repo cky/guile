@@ -1,6 +1,6 @@
 ;;; installed-scm-file
 
-;;;; 	Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -50,7 +50,7 @@
 
 (define-class <composite-class> (<class>))
 
-(define-method compute-get-n-set ((class <composite-class>) slot)
+(define-method (compute-get-n-set (class <composite-class>) slot)
   (if (eq? (slot-definition-allocation slot) #:propagated)
       (compute-propagated-get-n-set slot)
       (next-method)))

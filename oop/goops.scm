@@ -425,40 +425,53 @@
 (define define-method
   (procedure->memoizing-macro
     (lambda (exp env)
-      (let ((name (cadr exp)))
-	(if (and (pair? name)
-		 (eq? (car name) 'setter)
-		 (pair? (cdr name))
-		 (symbol? (cadr name))
-		 (null? (cddr name)))
-	    (let ((name (cadr name)))
-	      (cond ((not (symbol? name))
-		     (goops-error "bad method name: ~S" name))
-		    ((defined? name env)
+      (let ((head (cadr exp)))
+	(if (not (pair? head))
+	    (goops-error "bad method head: ~S" head)
+	    (let ((gf (car head)))
+	      (cond ((and (pair? gf)
+			  (eq? (car gf) 'setter)
+			  (pair? (cdr gf))
+			  (symbol? (cadr gf))
+			  (null? (cddr gf)))
+		     ;; named setter method
+		     (let ((name (cadr gf)))
+		       (cond ((not (symbol? name))
+			      `(add-method! (setter ,name)
+					    (method ,(cdadr exp)
+						    ,@(cddr exp))))
+			     ((defined? name env)
+			      `(begin
+				 ;; *fixme* Temporary hack for the current
+				 ;;         module system
+				 (if (not ,name)
+				     (define-accessor ,name))
+				 (add-method! (setter ,name)
+					      (method ,(cdadr exp)
+						      ,@(cddr exp)))))
+			     (else
+			      `(begin
+				 (define-accessor ,name)
+				 (add-method! (setter ,name)
+					      (method ,(cdadr exp)
+						      ,@(cddr exp))))))))
+		    ((not (symbol? gf))
+		     `(add-method! ,gf (method ,(cdadr exp) ,@(cddr exp))))
+		    ((defined? gf env)
 		     `(begin
-			;; *fixme* Temporary hack for the current module system
-			(if (not ,name)
-			    (define-generic ,name))
-			(add-method! (setter ,name) (method ,@(cddr exp)))))
+			;; *fixme* Temporary hack for the current
+			;;         module system
+			(if (not ,gf)
+			    (define-generic ,gf))
+			(add-method! ,gf
+				     (method ,(cdadr exp)
+					     ,@(cddr exp)))))
 		    (else
 		     `(begin
-			(define-accessor ,name)
-			(add-method! (setter ,name) (method ,@(cddr exp)))))))
-	    (cond ((pair? name)
-		   ;; Convert new syntax to old
-		   `(define-method ,(car name) ,(cdr name) ,@(cddr exp)))
-		  ((not (symbol? name))
-		   (goops-error "bad method name: ~S" name))
-		  ((defined? name env)
-		   `(begin
-		      ;; *fixme* Temporary hack for the current module system
-		      (if (not ,name)
-			  (define-generic ,name))
-		      (add-method! ,name (method ,@(cddr exp)))))
-		  (else
-		   `(begin
-		      (define-generic ,name)
-		      (add-method! ,name (method ,@(cddr exp)))))))))))
+			(define-generic ,gf)
+			(add-method! ,gf
+				     (method ,(cdadr exp)
+					     ,@(cddr exp))))))))))))
 
 (define (make-method specializers procedure)
   (make <method>
@@ -543,17 +556,17 @@
 			#:specializers (list <generic> <method>)
 			#:procedure internal-add-method!))
 
-(define-method add-method! ((proc <procedure>) (m <method>))
+(define-method (add-method! (proc <procedure>) (m <method>))
   (if (generic-capability? proc)
       (begin
 	(enable-primitive-generic! proc)
 	(add-method! proc m))
       (next-method)))
 
-(define-method add-method! ((pg <primitive-generic>) (m <method>))
+(define-method (add-method! (pg <primitive-generic>) (m <method>))
   (add-method! (primitive-generic-generic pg) m))
 
-(define-method add-method! (obj (m <method>))
+(define-method (add-method! obj (m <method>))
   (goops-error "~S is not a valid generic function" obj))
 
 ;;;
@@ -563,7 +576,7 @@
 ;;;
 ;;; Methods
 ;;;
-(define-method method-source ((m <method>))
+(define-method (method-source (m <method>))
   (let* ((spec (map* class-name (slot-ref m 'specializers)))
 	 (proc (procedure-source (slot-ref m 'procedure)))
 	 (args (cadr proc))
@@ -618,8 +631,8 @@
 ;;; Methods to compare objects
 ;;;
 
-(define-method object-eqv? (x y)    #f)
-(define-method object-equal? (x y)  (eqv? x y))
+(define-method (object-eqv? x y)    #f)
+(define-method (object-equal? x y)  (eqv? x y))
 
 ;;;
 ;;; methods to display/write an object
@@ -633,14 +646,14 @@
 (define (display-address o file)
   (display (number->string (object-address o) 16) file))
 
-(define-method write (o file)
+(define-method (write o file)
   (display "#<instance " file)
   (display-address o file)
   (display #\> file))
 
 (define write-object (primitive-generic-generic write))
 
-(define-method write ((o <object>) file)
+(define-method (write (o <object>) file)
   (let ((class (class-of o)))
     (if (slot-bound? class 'name)
 	(begin
@@ -651,7 +664,7 @@
 	  (display #\> file))
 	(next-method))))
 
-(define-method write ((o <foreign-object>) file)
+(define-method (write (o <foreign-object>) file)
   (let ((class (class-of o)))
     (if (slot-bound? class 'name)
 	(begin
@@ -662,7 +675,7 @@
 	  (display #\> file))
 	(next-method))))
 
-(define-method write ((class <class>) file)
+(define-method (write (class <class>) file)
   (let ((meta (class-of class)))
     (if (and (slot-bound? class 'name)
 	     (slot-bound? meta 'name))
@@ -676,7 +689,7 @@
 	  (display #\> file))
 	(next-method))))
 
-(define-method write ((gf <generic>) file)
+(define-method (write (gf <generic>) file)
   (let ((meta (class-of gf)))
     (if (and (slot-bound? meta 'name)
 	     (slot-bound? gf 'methods))
@@ -693,7 +706,7 @@
 	  (display ")>" file))
 	(next-method))))
 
-(define-method write ((o <method>) file)
+(define-method (write (o <method>) file)
   (let ((meta (class-of o)))
     (if (and (slot-bound? meta 'name)
 	     (slot-bound? o 'specializers))
@@ -713,7 +726,7 @@
 	(next-method))))
 
 ;; Display (do the same thing as write by default)
-(define-method display (o file) 
+(define-method (display o file) 
   (write-object o file))
 
 ;;;
@@ -738,42 +751,42 @@
 (define (class-slot-set! class slot value)
   ((cadr (class-slot-g-n-s class slot)) #f value))
 
-(define-method slot-unbound ((c <class>) (o <object>) s)
+(define-method (slot-unbound (c <class>) (o <object>) s)
   (goops-error "Slot `~S' is unbound in object ~S" s o))
 
-(define-method slot-unbound ((c <class>) s)
+(define-method (slot-unbound (c <class>) s)
   (goops-error "Slot `~S' is unbound in class ~S" s c))
 
-(define-method slot-unbound ((o <object>))
+(define-method (slot-unbound (o <object>))
   (goops-error "Unbound slot in object ~S" o))
 
-(define-method slot-missing ((c <class>) (o <object>) s)
+(define-method (slot-missing (c <class>) (o <object>) s)
   (goops-error "No slot with name `~S' in object ~S" s o))
   
-(define-method slot-missing ((c <class>) s)
+(define-method (slot-missing (c <class>) s)
   (goops-error "No class slot with name `~S' in class ~S" s c))
   
 
-(define-method slot-missing ((c <class>) (o <object>) s value)
+(define-method (slot-missing (c <class>) (o <object>) s value)
   (slot-missing c o s))
 
 ;;; Methods for the possible error we can encounter when calling a gf
 
-(define-method no-next-method ((gf <generic>) args)
+(define-method (no-next-method (gf <generic>) args)
   (goops-error "No next method when calling ~S\nwith arguments ~S" gf args))
 
-(define-method no-applicable-method ((gf <generic>) args)
+(define-method (no-applicable-method (gf <generic>) args)
   (goops-error "No applicable method for ~S in call ~S"
 	       gf (cons (generic-function-name gf) args)))
 
-(define-method no-method ((gf <generic>) args)
+(define-method (no-method (gf <generic>) args)
   (goops-error "No method defined for ~S"  gf))
 
 ;;;
 ;;; {Cloning functions (from rdeline@CS.CMU.EDU)}
 ;;;
 
-(define-method shallow-clone ((self <object>))
+(define-method (shallow-clone (self <object>))
   (let ((clone (%allocate-instance (class-of self) '()))
 	(slots (map slot-definition-name
 		    (class-slots (class-of self)))))
@@ -783,7 +796,7 @@
 	      slots)
     clone))
 
-(define-method deep-clone  ((self <object>))
+(define-method (deep-clone  (self <object>))
   (let ((clone (%allocate-instance (class-of self) '()))
 	(slots (map slot-definition-name
 		    (class-slots (class-of self)))))
@@ -816,7 +829,7 @@
 ;;; 2. Old class header exists on old super classes direct-subclass lists
 ;;; 3. New class header exists on new super classes direct-subclass lists
 
-(define-method class-redefinition ((old <class>) (new <class>))
+(define-method (class-redefinition (old <class>) (new <class>))
   ;; Work on direct methods:
   ;;		1. Remove accessor methods from the old class 
   ;;		2. Patch the occurences of new in the specializers by old
@@ -866,7 +879,7 @@
 ;;; remove-class-accessors!
 ;;;
 
-(define-method remove-class-accessors! ((c <class>))
+(define-method (remove-class-accessors! (c <class>))
   (for-each (lambda (m)
 	      (if (is-a? m <accessor-method>)
 		  (remove-method-in-classes! m)))
@@ -876,7 +889,7 @@
 ;;; update-direct-method!
 ;;;
 
-(define-method update-direct-method! ((m  <method>)
+(define-method (update-direct-method! (m  <method>)
 				      (old <class>)
 				      (new <class>))
   (let loop ((l (method-specializers m)))
@@ -892,7 +905,7 @@
 ;;; update-direct-subclass!
 ;;;
 
-(define-method update-direct-subclass! ((c <class>)
+(define-method (update-direct-subclass! (c <class>)
 					(old <class>)
 					(new <class>))
   (class-redefinition c
@@ -929,7 +942,7 @@
 			     (compute-setter-method class g-n-s))))))
       slots (slot-ref class 'getters-n-setters)))
 
-(define-method compute-getter-method ((class <class>) slotdef)
+(define-method (compute-getter-method (class <class>) slotdef)
   (let ((init-thunk (cadr slotdef))
 	(g-n-s (cddr slotdef)))
     (make <accessor-method>
@@ -945,7 +958,7 @@
 			     (bound-check-get g-n-s)))
 	  #:slot-definition slotdef)))
 
-(define-method compute-setter-method ((class <class>) slotdef)
+(define-method (compute-setter-method (class <class>) slotdef)
   (let ((g-n-s (cddr slotdef)))
     (make <accessor-method>
           #:specializers (list class <top>)
@@ -1047,7 +1060,7 @@
 ;;; => cpl (a) = a b d c e f object top
 ;;;
 
-(define-method compute-cpl ((class <class>))
+(define-method (compute-cpl (class <class>))
   (compute-std-cpl class class-direct-supers))
 
 ;; Support
@@ -1174,7 +1187,7 @@
 
 ;;; compute-get-n-set
 ;;;
-(define-method compute-get-n-set ((class <class>) s)
+(define-method (compute-get-n-set (class <class>) s)
   (case (slot-definition-allocation s)
     ((#:instance) ;; Instance slot
      ;; get-n-set is just its offset
@@ -1217,20 +1230,20 @@
     (list (lambda (o) shared-variable)
 	  (lambda (o v) (set! shared-variable v)))))
 
-(define-method compute-get-n-set ((o <object>) s)
+(define-method (compute-get-n-set (o <object>) s)
   (goops-error "Allocation \"~S\" is unknown" (slot-definition-allocation s)))
 
-(define-method compute-slots ((class <class>))
+(define-method (compute-slots (class <class>))
   (%compute-slots class))
 
 ;;;
 ;;; {Initialize}
 ;;;
 
-(define-method initialize ((object <object>) initargs)
+(define-method (initialize (object <object>) initargs)
   (%initialize-object object initargs))
 
-(define-method initialize ((class <class>) initargs)
+(define-method (initialize (class <class>) initargs)
   (next-method)
   (let ((dslots (get-keyword #:slots initargs '()))
 	(supers (get-keyword #:dsupers	  initargs '()))
@@ -1282,23 +1295,23 @@
 	   (set-object-procedure! object
 				  (lambda args (apply proc args)))))))
 
-(define-method initialize ((class <operator-class>) initargs)
+(define-method (initialize (class <operator-class>) initargs)
   (next-method)
   (initialize-object-procedure class initargs))
 
-(define-method initialize ((owsc <operator-with-setter-class>) initargs)
+(define-method (initialize (owsc <operator-with-setter-class>) initargs)
   (next-method)
   (%set-object-setter! owsc (get-keyword #:setter initargs #f)))
 
-(define-method initialize ((entity <entity>) initargs)
+(define-method (initialize (entity <entity>) initargs)
   (next-method)
   (initialize-object-procedure entity initargs))
 
-(define-method initialize ((ews <entity-with-setter>) initargs)
+(define-method (initialize (ews <entity-with-setter>) initargs)
   (next-method)
   (%set-object-setter! ews (get-keyword #:setter initargs #f)))
 
-(define-method initialize ((generic <generic>) initargs)
+(define-method (initialize (generic <generic>) initargs)
   (let ((previous-definition (get-keyword #:default initargs #f))
 	(name (get-keyword #:name initargs #f)))
     (next-method)
@@ -1316,7 +1329,7 @@
 
 (define dummy-procedure (lambda args *unspecified*))
 
-(define-method initialize ((method <method>) initargs)
+(define-method (initialize (method <method>) initargs)
   (next-method)
   (slot-set! method 'generic-function (get-keyword #:generic-function initargs #f))
   (slot-set! method 'specializers (get-keyword #:specializers initargs '()))
@@ -1324,7 +1337,7 @@
 	     (get-keyword #:procedure initargs dummy-procedure))
   (slot-set! method 'code-table '()))
 
-(define-method initialize ((obj <foreign-object>) initargs))
+(define-method (initialize (obj <foreign-object>) initargs))
 
 ;;;
 ;;; {Change-class}
@@ -1361,13 +1374,13 @@
     old-instance))
 
 
-(define-method update-instance-for-different-class ((old-instance <object>)
+(define-method (update-instance-for-different-class (old-instance <object>)
 						    (new-instance
 						     <object>))
   ;;not really important what we do, we just need a default method
   new-instance)
 
-(define-method change-class ((old-instance <object>) (new-class <class>))
+(define-method (change-class (old-instance <object>) (new-class <class>))
   (change-object-class old-instance (class-of old-instance) new-class))
 
 ;;;
@@ -1376,10 +1389,10 @@
 ;;; A new definition which overwrites the previous one which was built-in
 ;;;
 
-(define-method allocate-instance ((class <class>) initargs)
+(define-method (allocate-instance (class <class>) initargs)
   (%allocate-instance class initargs))
 
-(define-method make-instance ((class <class>) . initargs)
+(define-method (make-instance (class <class>) . initargs)
   (let ((instance (allocate-instance class initargs)))
     (initialize instance initargs)
     instance))
@@ -1400,7 +1413,7 @@
 ;;;   - the currified protocol would be imho inefficient in C.
 ;;;
 
-(define-method apply-generic ((gf <generic>) args)
+(define-method (apply-generic (gf <generic>) args)
   (if (null? (slot-ref gf 'methods))
       (no-method gf args))
   (let ((methods (compute-applicable-methods gf args)))
@@ -1413,24 +1426,24 @@
 (define %%compute-applicable-methods
   (make <generic> #:name 'compute-applicable-methods))
 
-(define-method %%compute-applicable-methods ((gf <generic>) args)
+(define-method (%%compute-applicable-methods (gf <generic>) args)
   (%compute-applicable-methods gf args))
 
 (set! compute-applicable-methods %%compute-applicable-methods)
 
-(define-method sort-applicable-methods ((gf <generic>) methods args)
+(define-method (sort-applicable-methods (gf <generic>) methods args)
   (let ((targs (map class-of args)))
     (sort methods (lambda (m1 m2) (method-more-specific? m1 m2 targs)))))
 
-(define-method method-more-specific? ((m1 <method>) (m2 <method>) targs)
+(define-method (method-more-specific? (m1 <method>) (m2 <method>) targs)
   (%method-more-specific? m1 m2 targs))
 
-(define-method apply-method ((gf <generic>) methods build-next args)
+(define-method (apply-method (gf <generic>) methods build-next args)
   (apply (method-procedure (car methods))
 	 (build-next (cdr methods) args)
 	 args))
 
-(define-method apply-methods ((gf <generic>) (l <list>) args)
+(define-method (apply-methods (gf <generic>) (l <list>) args)
   (letrec ((next (lambda (procs args)
 		   (lambda new-args
 		     (let ((a (if (null? new-args) args new-args)))

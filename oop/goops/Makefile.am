@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in.
 ##
-##  	Copyright (C) 2000 Free Software Foundation, Inc.
+##  	Copyright (C) 2000, 2001 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##   
@@ -24,7 +24,8 @@ AUTOMAKE_OPTIONS = foreign
 # These should be installed and distributed.
 goops_sources =							\
     active-slot.scm compile.scm composite-slot.scm describe.scm	\
-    dispatch.scm internal.scm save.scm stklos.scm util.scm
+    dispatch.scm internal.scm save.scm stklos.scm util.scm      \
+    old-define-method.scm
 
 subpkgdatadir = $(pkgdatadir)/$(VERSION)/oop/goops
 subpkgdata_DATA = $(goops_sources)

@@ -1,6 +1,6 @@
 ;;; installed-scm-file
 
-;;;; 	Copyright (C) 2000 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2000, 2001 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -88,22 +88,22 @@
 ;;; literal? COMPONENT ENV
 ;;;
 
-(define-method immediate? ((o <top>)) #f)
+(define-method (immediate? (o <top>)) #f)
 
-(define-method immediate? ((o <null>)) #t)
-(define-method immediate? ((o <number>)) #t)
-(define-method immediate? ((o <boolean>)) #t)
-(define-method immediate? ((o <symbol>)) #t)
-(define-method immediate? ((o <char>)) #t)
-(define-method immediate? ((o <keyword>)) #t)
+(define-method (immediate? (o <null>)) #t)
+(define-method (immediate? (o <number>)) #t)
+(define-method (immediate? (o <boolean>)) #t)
+(define-method (immediate? (o <symbol>)) #t)
+(define-method (immediate? (o <char>)) #t)
+(define-method (immediate? (o <keyword>)) #t)
 
 ;;; enumerate! OBJECT ENVIRONMENT
 ;;;
 ;;; Return #t if object is a literal.
 ;;;
-(define-method enumerate! ((o <top>) env) #t)
+(define-method (enumerate! (o <top>) env) #t)
 
-(define-method write-readably ((o <top>) file env)
+(define-method (write-readably (o <top>) file env)
   ;;(goops-error "No read-syntax defined for object `~S'" o)
   (write o file) ;doesn't catch bugs, but is much more flexible
   )
@@ -135,13 +135,13 @@
 ;;; Strings
 ;;;
 
-(define-method enumerate! ((o <string>) env) #f)
+(define-method (enumerate! (o <string>) env) #f)
 
 ;;;
 ;;; Vectors
 ;;;
 
-(define-method enumerate! ((o <vector>) env)
+(define-method (enumerate! (o <vector>) env)
   (or (not (vector? o))
       (let ((literal? #t))
 	(array-for-each (lambda (o)
@@ -150,7 +150,7 @@
 			o)
 	literal?)))
 
-(define-method write-readably ((o <vector>) file env)
+(define-method (write-readably (o <vector>) file env)
   (if (not (vector? o))
       (write o file)
       (let ((n (vector-length o)))
@@ -185,7 +185,7 @@
 ;;; Arrays
 ;;;
 
-(define-method enumerate! ((o <array>) env)
+(define-method (enumerate! (o <array>) env)
   (enumerate-component! (shared-array-root o) env))
 
 (define (make-mapper array)
@@ -249,7 +249,7 @@
 		 (display #\) file))))))
     (display #\) file)))
 
-(define-method write-readably ((o <array>) file env)
+(define-method (write-readably (o <array>) file env)
   (let ((root (shared-array-root o)))
     (cond ((literal? o env)
 	   (if (not (vector? root))
@@ -288,12 +288,12 @@
 ;;; `write-component'.
 ;;;
 
-(define-method enumerate! ((o <pair>) env)
+(define-method (enumerate! (o <pair>) env)
   (let ((literal? (enumerate-component! (car o) env)))
     (and (enumerate-component! (cdr o) env)
 	 literal?)))
 
-(define-method write-readably ((o <pair>) file env)
+(define-method (write-readably (o <pair>) file env)
   (let ((proper? (let loop ((ls o))
 		   (or (null? ls)
 		       (and (pair? ls)
@@ -390,7 +390,7 @@
 		   (list ,@(cdddr exp)))
 	 o))))
 
-(define-method enumerate! ((o <object>) env)
+(define-method (enumerate! (o <object>) env)
   (get-set-for-each (lambda (get set)
 		      (let ((val (get o)))
 			(if (not (unbound? val))
@@ -398,7 +398,7 @@
 		    (class-of o))
   #f)
 
-(define-method write-readably ((o <object>) file env)
+(define-method (write-readably (o <object>) file env)
   (let ((class (class-of o)))
     (display "(restore " file)
     (display (class-name class) file)
@@ -444,9 +444,9 @@
 ;;; Currently, we don't support reading in class objects
 ;;;
 
-(define-method enumerate! ((o <class>) env) #f)
+(define-method (enumerate! (o <class>) env) #f)
 
-(define-method write-readably ((o <class>) file env)
+(define-method (write-readably (o <class>) file env)
   (display (class-name o) file))
 
 ;;;
@@ -456,9 +456,9 @@
 ;;; Currently, we don't support reading in generic functions
 ;;;
 
-(define-method enumerate! ((o <generic>) env) #f)
+(define-method (enumerate! (o <generic>) env) #f)
 
-(define-method write-readably ((o <generic>) file env)
+(define-method (write-readably (o <generic>) file env)
   (display (generic-function-name o) file))
 
 ;;;
@@ -468,9 +468,9 @@
 ;;; Currently, we don't support reading in methods
 ;;;
 
-(define-method enumerate! ((o <method>) env) #f)
+(define-method (enumerate! (o <method>) env) #f)
 
-(define-method write-readably ((o <method>) file env)
+(define-method (write-readably (o <method>) file env)
   (goops-error "No read-syntax for <method> defined"))
 
 ;;;
@@ -820,13 +820,13 @@
 					    written)))))
 	      alist)))
 
-(define-method save-objects ((alist <pair>) (file <string>) . rest)
+(define-method (save-objects (alist <pair>) (file <string>) . rest)
   (let ((port (open-output-file file)))
     (apply save-objects alist port rest)
     (close-port port)
     *unspecified*))
 
-(define-method save-objects ((alist <pair>) (file <output-port>) . rest)
+(define-method (save-objects (alist <pair>) (file <output-port>) . rest)
   (let ((excluded (if (>= (length rest) 1) (car rest) '()))
 	(uses     (if (>= (length rest) 2) (cadr rest) '())))
     (let ((env (make <environment> #:excluded excluded)))
@@ -853,13 +853,13 @@
       (write-readables! alist file env)
       (write-rebindings! "(define " (reverse (multiple-bound env)) file env))))
 
-(define-method load-objects ((file <string>))
+(define-method (load-objects (file <string>))
   (let* ((port (open-input-file file))
 	 (objects (load-objects port)))
     (close-port port)
     objects))
 
-(define-method load-objects ((file <input-port>))
+(define-method (load-objects (file <input-port>))
   (let ((m (make-module)))
     (module-use! m the-scm-module)
     (module-use! m %module-public-interface)
