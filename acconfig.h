@@ -89,6 +89,9 @@
 /* Define to implement scm_internal_select */
 #undef GUILE_ISELECT
 
+/* Define to enable workaround for COOP-linuxthreads compatibility */
+#undef GUILE_PTHREAD_COMPAT
+
 /* Define if using cooperative multithreading.  */
 #undef USE_COOP_THREADS
 
