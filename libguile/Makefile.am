@@ -93,7 +93,7 @@ EXTRA_libguile_la_SOURCES = _scm.h		\
     filesys.c posix.c net_db.c socket.c \
     ramap.c unif.c debug-malloc.c
 
-OMIT_DEPENDENCIES = ltdl.h
+OMIT_DEPENDENCIES = libguile.h ltdl.h
 
 ## This is kind of nasty... there are ".c" files that we don't want to
 ## compile, since they are #included in threads.c.  So instead we list
