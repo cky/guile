@@ -19,6 +19,7 @@
 
 (define slib:exit quit)
 (define slib:error error)
+(define slib:warn warn)
 (define slib:eval eval)
 (define defmacro:eval eval)
 (define logical:logand logand)
