@@ -191,12 +191,10 @@ scm_flush_ws (SCM port, const char *eoferr)
       goteof:
 	if (eoferr)
 	  {
-	    if (!SCM_FALSEP (SCM_FILENAME (port)))
-	      scm_misc_error (eoferr,
-			      "end of file in ~A",
-			      scm_list_1 (SCM_FILENAME (port)));
-	    else
-	      scm_misc_error (eoferr, "end of file", SCM_EOL);
+	    scm_input_error (eoferr,
+			     port,
+			     "end of file",
+			     SCM_EOL);
 	  }
 	return c;
       case ';':
