@@ -701,7 +701,7 @@ gh_module_lookup (SCM module, const char *sname)
 
   SCM_VALIDATE_MODULE (SCM_ARG1, module);
 
-  sym = gh_symbol2scm (sname);
+  sym = scm_str2symbol (sname);
   var = scm_sym2var (sym, scm_module_lookup_closure (module), SCM_BOOL_F);
   if (var != SCM_BOOL_F)
     return SCM_VARIABLE_REF (var);
