@@ -102,7 +102,12 @@ In the subdirectory srfi, wrote the initial files for:
 Martin Grabmueller:
 In the subdirectory srfi, wrote:
     srfi-9.scm
+    srfi-10.scm
     srfi-13.scm
     srfi-14.scm
     srfi-13.c
     srfi-14.c
+In the subdirectory doc, wrote:
+    srfi-modules.texi
+    srfi-13-14.texi
+    repl-modules.texi
