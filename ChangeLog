@@ -1,3 +1,8 @@
+2001-03-25  Thien-Thi Nguyen  <ttn@revel.glug.org>
+
+	* check-guile.in: Fix sh standard conformance bug: Replace
+	"test -e" with "test -f".  Thanks to Alexander Klimov.
+
 2001-03-19  Gary Houston  <ghouston@arglist.com>
 
 	* check-guile.in: rename $parent to $srcdir.  if it's equal to "."
@@ -131,11 +136,11 @@
 
 	* configure.in: added AC_SUBST lines for the new LIBGUILE version
 	variables.
-	
+
 2000-06-01  Michael Livshin  <mlivshin@bigfoot.com>
 
 	* autogen.sh: call ./guile-aclocal.sh instead of aclocal.
-	
+
 	* guile-aclocal.sh: new file, works around aclocal problems.
 
 2000-05-30  Dirk Herrmann  <D.Herrmann@tu-bs.de>
@@ -234,7 +239,7 @@ Tue Jan 11 13:42:35 2000  Greg J. Badros  <gjb@cs.washington.edu>
 	* autogen.sh: Added messages as we run autogen in subdirectories.
 
 	* configure.in: Output libugile/guile-func-name-check script, and
-	chmod +x it. 
+	chmod +x it.
 
 2000-01-11  Marius Vollmer  <mvo@zagadka.ping.de>
 
@@ -249,7 +254,7 @@ Tue Jan 11 13:42:35 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* configure.in: Make "--with-modules=yes" the default.  Do not
 	clear INCLTDL, LIBLTDL prior to processing "--with-modules".
-	
+
     1999-07-25  Thomas Tanner  <tanner@ffii.org>
 
 	    * Makefile.am: add libltdl to SUBDIRS, automake automatically
@@ -282,7 +287,7 @@ Tue Dec 14 09:12:22 1999  Greg J. Badros  <gjb@cs.washington.edu>
 
 1999-12-12  Greg J. Badros  <gjb@cs.washington.edu>
 
-	* configure.in: Create guile-doc-snarf, chmod +x that script after 
+	* configure.in: Create guile-doc-snarf, chmod +x that script after
 	AC_OUTPUTted.
 
 1999-12-10  Greg J. Badros  <gjb@cs.washington.edu>
@@ -312,7 +317,7 @@ Tue Dec 14 09:12:22 1999  Greg J. Badros  <gjb@cs.washington.edu>
 	guile-readline's autogen.sh script.
 
 	Straighten up the situation regarding guile.m4 and qthreads.m4.
-	
+
 	We can't have .m4 files which are installed where aclocal can
 	see them, but also used by guile's own configure.in, because
 	aclocal will read both copies, complain about duplicate macro
@@ -393,7 +398,7 @@ Tue Dec 14 09:12:22 1999  Greg J. Badros  <gjb@cs.washington.edu>
 	* configure.in (GUILE_STAMP): Don't set this variable, or
 	substitute it into anything.  Full explanation in ice-9/ChangeLog.
 	* configure, Makefile.in: Regenerated.
-	
+
 1999-09-06  James Blandy  <jimb@mule.m17n.org>
 
 	Propagate the changes of 2 Sept the rest of the way through.
@@ -453,7 +458,7 @@ Tue Dec 14 09:12:22 1999  Greg J. Badros  <gjb@cs.washington.edu>
 	* Makefile.am: Likewise for make.
 	* NEWS: Explain how to activate the readline support.
 	* configure, Makefile.in: Regenerated.
-	
+
 1999-07-19  Jim Blandy  <jimb@savonarola.red-bean.com>
 
 	Fixes for EMX from Mikael Ståldal.
@@ -493,7 +498,7 @@ Tue Dec 14 09:12:22 1999  Greg J. Badros  <gjb@cs.washington.edu>
 	1.4, libtool 1.2f (1.385 1999/03/15 17:24:54).  I've upgraded to
 	all the right tools, according to README, but I'm still getting
 	different results than Mikael is.  Hmm.
-	
+
 1999-03-22  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
 	* New libtool: 1.2f
@@ -612,7 +617,7 @@ Tue Dec 14 09:12:22 1999  Greg J. Badros  <gjb@cs.washington.edu>
 1998-10-12  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	* configure: Regenerated.
-	
+
 	* configure.in (GUILE_FUNC_DECLARED): Name the cache variables
 	starting with guile_cv_; ac_cv_ is autoconf's namespace.
 
@@ -637,11 +642,11 @@ Tue Dec 14 09:12:22 1999  Greg J. Badros  <gjb@cs.washington.edu>
  	regression from 1.3a, but everyone knows that the next release is
  	1.3, I want to switch to a more coherent version numbering system,
  	and now is the time.
-	
+
 1998-10-09  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	* configure.in: Call AC_C_INLINE, so we can use inline happily in
-	libguile. 
+	libguile.
 	* configure: Regenerated.
 
 1998-10-07  Jim Blandy  <jimb@zwingli.cygnus.com>
@@ -672,7 +677,7 @@ Tue Dec 14 09:12:22 1999  Greg J. Badros  <gjb@cs.washington.edu>
 	* configure.in (FD_SETTER, FILE_CNT_GPTR): New cases for SCO's
 	stdio implementation.  (Thanks to David Tillman.)
 	* configure: Rebuilt.
-	
+
 	* guile-config: Renamed from `build'.
 	* Makefile.am (SUBDIRS): Mention `guile-config', not `build'.
 	* configure.in: Create `guile-config/Makefile.in', not
@@ -726,11 +731,11 @@ Tue Dec 14 09:12:22 1999  Greg J. Badros  <gjb@cs.washington.edu>
  	public version of automake, not the hacked Cygnus version.
 	* config.guess, config.sub, ltconfig, ltmain.sh: New versions from
  	libtool.
-	
+
 	* configure.in, qthreads.m4: Display a message about how the
  	threads configuration went.
 	* aclocal.m4, configure: Regenerated.
-	
+
 1998-07-28  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	Remove the TOTORO kludge.  We're not doing snapshots any more, so
@@ -860,7 +865,7 @@ Sun Dec  7 06:11:24 1997  Gary Houston  <ghouston@actrix.gen.nz>
 	* configure.in: Use it.
 	* configure: Regenerated.
 	* acconfig.h (DLSYM_ADDS_USCORE): New #define.
-	
+
 1997-10-26  Mikael Djurfeldt  <mdj@nada.kth.se>
 
 	* README (libtool): Tell people to use version 1.0e.
@@ -987,7 +992,7 @@ Sat Jun 28 16:13:43 1997  Tim Pierce  <twp@twp.tezcat.com>
 Thu Jun 26 20:43:31 1997  Jim Blandy  <jimb@floss.red-bean.com>
 
 	* Guile 1.2 released.
-	
+
 	* configure.in: Check for librx after libm; fundamentals need to
 	come first.
 	* configure: Regenerated.
@@ -1005,7 +1010,7 @@ Sun Jun 22 15:43:07 1997  Jim Blandy  <jimb@floss.red-bean.com>
 	sending in bug reports.
 	* configure.in: Provide libguile its version information through a
  	separate header file generated by the Makefile, not through
- 	scmconfig.h.  
+ 	scmconfig.h.
 	(GUILE_MAJOR_VERSION, GUILE_MINOR_VERSION, GUILE_VERSION):
 	AC_SUBST these, instead of AC_DEFINE'ing them.
 	(GUILE_STAMP): New AC_SUBST: the time we configured the tree.
@@ -1114,7 +1119,7 @@ Mon May 12 18:29:45 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 Thu May  8 11:48:40 1997  Anthony Green  <green@hoser.cygnus.com>
 
-	* aclocal.m4: Fixes for building with coop threads in a 
+	* aclocal.m4: Fixes for building with coop threads in a
 	seperate compilation directory.
 	* configure: Rebuilt.
 
@@ -1127,7 +1132,7 @@ Fri May  2 16:24:15 1997  Jim Blandy  <jimb@floss.cyclic.com>
 	* configure.in: When configuring qt, sunos needs the underscore
 	files; Solaris and Linux both need the normal files.
 	* configure: Reebilt.
-	
+
 Thu May  1 15:35:49 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* configure.in: Get the paths for qt's md files right, so it can
@@ -1175,7 +1180,7 @@ Fri Apr 11 15:43:07 1997  Jim Blandy  <jimb@totoro.cyclic.com>
 
 	* ltconfig, ltmain.sh: Upgraded libtool files to 0.9d.
 	* README: Say where to find libtool 0.9d.
-	
+
 Wed Apr  9 17:51:13 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 	Changes to work with automake-1.1n, which has better libtool
@@ -1202,7 +1207,7 @@ Sat Mar 15 01:11:44 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 Mon Feb 24 21:43:26 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* ltconfig, ltmain.sh: New versions from libtool-0.9.
-	
+
 	* configure.in: Added AM_MAINTAINER_MODE
 
 Fri Feb  7 17:57:46 1997  Jim Blandy  <jimb@floss.cyclic.com>
@@ -1230,7 +1235,7 @@ Sun Jan  5 16:57:10 1997  Jim Blandy  <jimb@floss.cyclic.com>
 	* Guile 1.0 released.  This is the first release by the Free
 	Software Foundation; Cygnus has also released earlier versions of
 	Guile.
-	
+
 	* GUILE-VERSION: Updated version number.
 	* NEWS: Added comments for all the user-visible changes marked in
 	the ChangeLogs.
@@ -1261,7 +1266,7 @@ Wed Oct 16 07:32:14 1996  Mark Galassi  <rosalia@sarastro.lanl.gov>
 
 Thu Oct 10 14:37:43 1996  Jim Blandy  <jimb@floss.cyclic.com>
 
-	* Makefile.in (TAGS tags): Find the source files in $srcdir. 
+	* Makefile.in (TAGS tags): Find the source files in $srcdir.
 
 Wed Oct  9 19:37:14 1996  Jim Blandy  <jimb@floss.cyclic.com>
 
@@ -1274,7 +1279,7 @@ Tue Oct  1 00:13:55 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
 
 	* aclocal.m4: New file.  For now used for thread support
  	configuration.
-	
+
 Fri Sep 13 14:39:30 1996  Mark Galassi  <rosalia@sarastro.lanl.gov>
 
 	* Makefile.in (DISTFILES): added mkinstalldirs to the DISTFILES
