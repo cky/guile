@@ -17,6 +17,9 @@ IMPORTANT FACTS ABOUT SNAPSHOTS:
     patch's original sources will be closer to what we're working with.
     And it allows us to start testing features earlier.
 
+The Guile snapshots are available via anonymous FTP from
+alpha.gnu.ai.mit.edu, as /gnu/guile-snap.tar.gz.
+
 Guile is a portable, embeddable Scheme implementation written in C.
 Guile provides a machine independent execution platform that can be
 linked in as a library when building extensible programs.
