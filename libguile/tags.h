@@ -384,7 +384,7 @@ typedef unsigned long scm_t_bits;
 
 /* Checking if a SCM variable holds an immediate integer: See numbers.h for
  * the definition of the following macros: SCM_I_FIXNUM_BIT,
- * SCM_MOST_POSITIVE_FIXNUM, SCM_INUMP, SCM_I_MAKINUM, SCM_INUM.  */
+ * SCM_MOST_POSITIVE_FIXNUM, SCM_I_INUMP, SCM_I_MAKINUM, SCM_I_INUM.  */
 
 /* Checking if a SCM variable holds a pair (for historical reasons, in Guile
  * also known as a cons-cell): This is done by first checking that the SCM

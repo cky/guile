@@ -124,10 +124,10 @@ SCM_DEFINE (scm_get_internal_real_time, "get-internal-real-time", 0, 0, 0,
   time_buffer.time -= scm_your_base.time;
   tmp = scm_long2num (time_buffer.millitm - scm_your_base.millitm);
   tmp = scm_sum (tmp,
-		 scm_product (SCM_I_MAKINUM (1000),
-			      SCM_I_MAKINUM (time_buffer.time)));
+		 scm_product (scm_from_int (1000),
+			      scm_from_int (time_buffer.time)));
   return scm_quotient (scm_product (tmp, SCM_I_MAKINUM (SCM_TIME_UNITS_PER_SECOND)),
-		       SCM_I_MAKINUM (1000));
+		       scm_from_int (1000));
 #else
   return scm_long2num((time((timet*)0) - scm_your_base) * (int)SCM_TIME_UNITS_PER_SECOND);
 #endif /* HAVE_FTIME */
@@ -243,7 +243,7 @@ SCM_DEFINE (scm_gettimeofday, "gettimeofday", 0, 0, 0,
 
   ftime(&time);
   return scm_cons (scm_long2num ((long) time.time),
-		   SCM_I_MAKINUM (time.millitm * 1000));
+		   scm_from_int (time.millitm * 1000));
 # else
   timet timv;
 
@@ -251,7 +251,7 @@ SCM_DEFINE (scm_gettimeofday, "gettimeofday", 0, 0, 0,
   if ((timv = time (0)) == -1)
     SCM_SYSERROR;
   SCM_ALLOW_INTS;
-  return scm_cons (scm_long2num (timv), SCM_I_MAKINUM (0));
+  return scm_cons (scm_long2num (timv), scm_from_int (0));
 # endif
 #endif
 }
@@ -262,16 +262,16 @@ filltime (struct tm *bd_time, int zoff, const char *zname)
 {
   SCM result = scm_c_make_vector (11, SCM_UNDEFINED);
 
-  SCM_VECTOR_SET (result,0, SCM_I_MAKINUM (bd_time->tm_sec));
-  SCM_VECTOR_SET (result,1, SCM_I_MAKINUM (bd_time->tm_min));
-  SCM_VECTOR_SET (result,2, SCM_I_MAKINUM (bd_time->tm_hour));
-  SCM_VECTOR_SET (result,3, SCM_I_MAKINUM (bd_time->tm_mday));
-  SCM_VECTOR_SET (result,4, SCM_I_MAKINUM (bd_time->tm_mon));
-  SCM_VECTOR_SET (result,5, SCM_I_MAKINUM (bd_time->tm_year));
-  SCM_VECTOR_SET (result,6, SCM_I_MAKINUM (bd_time->tm_wday));
-  SCM_VECTOR_SET (result,7, SCM_I_MAKINUM (bd_time->tm_yday));
-  SCM_VECTOR_SET (result,8, SCM_I_MAKINUM (bd_time->tm_isdst));
-  SCM_VECTOR_SET (result,9, SCM_I_MAKINUM (zoff));
+  SCM_VECTOR_SET (result,0, scm_from_int (bd_time->tm_sec));
+  SCM_VECTOR_SET (result,1, scm_from_int (bd_time->tm_min));
+  SCM_VECTOR_SET (result,2, scm_from_int (bd_time->tm_hour));
+  SCM_VECTOR_SET (result,3, scm_from_int (bd_time->tm_mday));
+  SCM_VECTOR_SET (result,4, scm_from_int (bd_time->tm_mon));
+  SCM_VECTOR_SET (result,5, scm_from_int (bd_time->tm_year));
+  SCM_VECTOR_SET (result,6, scm_from_int (bd_time->tm_wday));
+  SCM_VECTOR_SET (result,7, scm_from_int (bd_time->tm_yday));
+  SCM_VECTOR_SET (result,8, scm_from_int (bd_time->tm_isdst));
+  SCM_VECTOR_SET (result,9, scm_from_int (zoff));
   SCM_VECTOR_SET (result,10, zname ? scm_makfrom0str (zname) : SCM_BOOL_F);
   return result;
 }
@@ -455,22 +455,22 @@ bdtime2c (SCM sbd_time, struct tm *lt, int pos, const char *subr)
   velts = SCM_VELTS (sbd_time);
   for (i = 0; i < 10; i++)
     {
-      SCM_ASSERT (SCM_INUMP (velts[i]), sbd_time, pos, subr);
+      SCM_ASSERT (scm_is_integer (velts[i]), sbd_time, pos, subr);
     }
   SCM_ASSERT (scm_is_false (velts[10]) || SCM_STRINGP (velts[10]),
 	      sbd_time, pos, subr);
 
-  lt->tm_sec = SCM_INUM (velts[0]);
-  lt->tm_min = SCM_INUM (velts[1]);
-  lt->tm_hour = SCM_INUM (velts[2]);
-  lt->tm_mday = SCM_INUM (velts[3]);
-  lt->tm_mon = SCM_INUM (velts[4]);
-  lt->tm_year = SCM_INUM (velts[5]);
-  lt->tm_wday = SCM_INUM (velts[6]);
-  lt->tm_yday = SCM_INUM (velts[7]);
-  lt->tm_isdst = SCM_INUM (velts[8]);
+  lt->tm_sec = scm_to_int (velts[0]);
+  lt->tm_min = scm_to_int (velts[1]);
+  lt->tm_hour = scm_to_int (velts[2]);
+  lt->tm_mday = scm_to_int (velts[3]);
+  lt->tm_mon = scm_to_int (velts[4]);
+  lt->tm_year = scm_to_int (velts[5]);
+  lt->tm_wday = scm_to_int (velts[6]);
+  lt->tm_yday = scm_to_int (velts[7]);
+  lt->tm_isdst = scm_to_int (velts[8]);
 #ifdef HAVE_TM_ZONE
-  lt->tm_gmtoff = SCM_INUM (velts[9]);
+  lt->tm_gmtoff = scm_to_int (velts[9]);
   if (scm_is_false (velts[10]))
     lt->tm_zone = NULL;
   else
@@ -717,7 +717,8 @@ SCM_DEFINE (scm_strptime, "strptime", 2, 0, 0,
     }
 
   SCM_ALLOW_INTS;
-  return scm_cons (filltime (&t, 0, NULL),  SCM_I_MAKINUM (rest - str));
+  return scm_cons (filltime (&t, 0, NULL),
+		   scm_from_signed_integer (rest - str));
 }
 #undef FUNC_NAME
 #endif /* HAVE_STRPTIME */

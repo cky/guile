@@ -240,7 +240,7 @@ scm_wrong_type_arg (const char *subr, int pos, SCM bad_value)
 	     (pos == 0) ? "Wrong type argument: ~S"
 	     : "Wrong type argument in position ~A: ~S",
 	     (pos == 0) ? scm_list_1 (bad_value)
-	     : scm_list_2 (SCM_I_MAKINUM (pos), bad_value),
+	     : scm_list_2 (scm_from_int (pos), bad_value),
 	     SCM_BOOL_F);
 }
 
@@ -257,7 +257,7 @@ scm_wrong_type_arg_msg (const char *subr, int pos, SCM bad_value, const char *sz
     scm_error (scm_arg_type_key,
                subr,
                "Wrong type argument in position ~A (expecting ~A): ~S",
-               scm_list_3 (SCM_I_MAKINUM (pos), msg, bad_value),
+               scm_list_3 (scm_from_int (pos), msg, bad_value),
                SCM_BOOL_F);
   }
 }

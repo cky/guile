@@ -314,7 +314,7 @@ SCM_DEFINE (scm_dynamic_args_call, "dynamic-args-call", 3, 0, 0,
   result = (*fptr) (argc, argv);
   free (argv);
 
-  return SCM_I_MAKINUM (0L + result);
+  return scm_from_int (result);
 }
 #undef FUNC_NAME
 

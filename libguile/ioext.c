@@ -53,7 +53,7 @@ SCM_DEFINE (scm_ftell, "ftell", 1, 0, 0,
 	    "@end lisp")
 #define FUNC_NAME s_scm_ftell
 {
-  return scm_seek (fd_port, SCM_INUM0, SCM_I_MAKINUM (SEEK_CUR));
+  return scm_seek (fd_port, SCM_INUM0, scm_from_int (SEEK_CUR));
 }
 #undef FUNC_NAME
 
@@ -114,8 +114,8 @@ SCM_DEFINE (scm_dup_to_fdes, "dup->fdes", 1, 1, 0,
 
   fd_or_port = SCM_COERCE_OUTPORT (fd_or_port);
 
-  if (SCM_INUMP (fd_or_port))
-    oldfd = SCM_INUM (fd_or_port);
+  if (scm_is_integer (fd_or_port))
+    oldfd = scm_to_int (fd_or_port);
   else
     {
       SCM_VALIDATE_OPFPORT (1, fd_or_port);
@@ -178,7 +178,7 @@ SCM_DEFINE (scm_fileno, "fileno", 1, 0, 0,
 {
   port = SCM_COERCE_OUTPORT (port);
   SCM_VALIDATE_OPFPORT (1, port);
-  return SCM_I_MAKINUM (SCM_FPORT_FDES (port));
+  return scm_from_int (SCM_FPORT_FDES (port));
 }
 #undef FUNC_NAME
 

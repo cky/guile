@@ -87,7 +87,7 @@ scm_i_procedure_arity (SCM proc)
     case scm_tc7_cclo:
       if (SCM_EQ_P (SCM_CCLO_SUBR (proc), scm_f_gsubr_apply))
 	{
-	  int type = SCM_INUM (SCM_GSUBR_TYPE (proc));
+	  int type = scm_to_int (SCM_GSUBR_TYPE (proc));
 	  a += SCM_GSUBR_REQ (type);
 	  o = SCM_GSUBR_OPT (type);
 	  r = SCM_GSUBR_REST (type);
@@ -130,7 +130,7 @@ scm_i_procedure_arity (SCM proc)
     default:
       return SCM_BOOL_F;
     }
-  return scm_list_3 (SCM_I_MAKINUM (a), SCM_I_MAKINUM (o), scm_from_bool(r));
+  return scm_list_3 (scm_from_int (a), scm_from_int (o), scm_from_bool(r));
 }
 
 static SCM

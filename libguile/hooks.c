@@ -202,9 +202,9 @@ SCM_DEFINE (scm_add_hook_x, "add-hook!", 2, 1, 0,
   SCM_ASSERT (scm_is_true (arity = scm_i_procedure_arity (proc)),
 	      proc, SCM_ARG2, FUNC_NAME);
   n_args = SCM_HOOK_ARITY (hook);
-  if (SCM_INUM (SCM_CAR (arity)) > n_args
+  if (scm_to_int (SCM_CAR (arity)) > n_args
       || (scm_is_false (SCM_CADDR (arity))
-	  && (SCM_INUM (SCM_CAR (arity)) + SCM_INUM (SCM_CADR (arity))
+	  && (scm_to_int (SCM_CAR (arity)) + scm_to_int (SCM_CADR (arity))
 	      < n_args)))
     scm_wrong_type_arg (FUNC_NAME, 2, proc);
   rest = scm_delq_x (proc, SCM_HOOK_PROCEDURES (hook));
@@ -254,7 +254,7 @@ SCM_DEFINE (scm_run_hook, "run-hook", 1, 0, 1,
   SCM_VALIDATE_HOOK (1, hook);
   if (scm_ilength (args) != SCM_HOOK_ARITY (hook))
     SCM_MISC_ERROR ("Hook ~S requires ~A arguments",
-		    scm_list_2 (hook, SCM_I_MAKINUM (SCM_HOOK_ARITY (hook))));
+		    scm_list_2 (hook, scm_from_int (SCM_HOOK_ARITY (hook))));
   scm_c_run_hook (hook, args);
   return SCM_UNSPECIFIED;
 }

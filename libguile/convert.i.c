@@ -23,9 +23,9 @@ SCM2CTYPES (SCM obj, CTYPE *data)
 	  val = SCM_CAR (list);
 #if SIZEOF_CTYPE && SIZEOF_CTYPE < SIZEOF_SCM_T_BITS
 	  /* check integer ranges */
-          if (SCM_INUMP (val))
+          if (SCM_I_INUMP (val))
             {
-              scm_t_signed_bits v = SCM_INUM (val);
+              scm_t_signed_bits v = SCM_I_INUM (val);
 	      CTYPE c = (CTYPE) v;
 	      SCM_ASSERT_RANGE (SCM_ARG1, val, v != (scm_t_signed_bits) c);
             }
@@ -41,9 +41,9 @@ SCM2CTYPES (SCM obj, CTYPE *data)
 #elif defined (FLOATTYPE)
 	  /* real values, big numbers and immediate values are valid 
 	     for float conversions */
-	  if (!SCM_REALP (val) && !SCM_BIGP (val) && !SCM_INUMP (val))
+	  if (!SCM_REALP (val) && !SCM_BIGP (val) && !SCM_I_INUMP (val))
 #else
-	  if (!SCM_BIGP (val) && !SCM_INUMP (val))
+	  if (!SCM_BIGP (val) && !SCM_I_INUMP (val))
 #endif /* FLOATTYPE */
 	    SCM_WRONG_TYPE_ARG (SCM_ARG1, val);
         }
@@ -58,8 +58,8 @@ SCM2CTYPES (SCM obj, CTYPE *data)
       for (i = 0; scm_is_true (scm_pair_p (list)); list = SCM_CDR (list), i++)
 	{
           val = SCM_CAR (list);
-	  if (SCM_INUMP (val))
-            data[i] = (CTYPE) SCM_INUM (val);
+	  if (SCM_I_INUMP (val))
+            data[i] = (CTYPE) SCM_I_INUM (val);
           else if (SCM_BIGP (val))
 	    data[i] = (CTYPE) scm_num2long (val, SCM_ARG1, FUNC_NAME);
 #if defined (FLOATTYPE)
@@ -83,9 +83,9 @@ SCM2CTYPES (SCM obj, CTYPE *data)
           val = SCM_VELTS (obj)[i];
 #if SIZEOF_CTYPE && SIZEOF_CTYPE < SIZEOF_SCM_T_BITS
 	  /* check integer ranges */
-          if (SCM_INUMP (val))
+          if (SCM_I_INUMP (val))
             {
-              scm_t_signed_bits v = SCM_INUM (val);
+              scm_t_signed_bits v = SCM_I_INUM (val);
 	      CTYPE c = (CTYPE) v;
 	      SCM_ASSERT_RANGE (SCM_ARG1, val, v != (scm_t_signed_bits) c);
             }
@@ -101,9 +101,9 @@ SCM2CTYPES (SCM obj, CTYPE *data)
 #elif defined (FLOATTYPE)
 	  /* real values, big numbers and immediate values are valid 
 	     for float conversions */
-	  if (!SCM_REALP (val) && !SCM_BIGP (val) && !SCM_INUMP (val))
+	  if (!SCM_REALP (val) && !SCM_BIGP (val) && !SCM_I_INUMP (val))
 #else
-	  if (!SCM_BIGP (val) && !SCM_INUMP (val))
+	  if (!SCM_BIGP (val) && !SCM_I_INUMP (val))
 #endif /* FLOATTYPE */
 	    SCM_WRONG_TYPE_ARG (SCM_ARG1, val);
         }
@@ -117,8 +117,8 @@ SCM2CTYPES (SCM obj, CTYPE *data)
       for (i = 0; i < n; i++)
 	{
           val = SCM_VELTS (obj)[i];
-	  if (SCM_INUMP (val))
-            data[i] = (CTYPE) SCM_INUM (val);
+	  if (SCM_I_INUMP (val))
+            data[i] = (CTYPE) SCM_I_INUM (val);
           else if (SCM_BIGP (val))
 	    data[i] = (CTYPE) scm_num2long (val, SCM_ARG1, FUNC_NAME);
 #if defined (FLOATTYPE)

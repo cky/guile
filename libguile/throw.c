@@ -372,8 +372,8 @@ scm_exit_status (SCM args)
     {
       SCM cqa = SCM_CAR (args);
       
-      if (SCM_INUMP (cqa))
-	return (SCM_INUM (cqa));
+      if (scm_is_integer (cqa))
+	return (scm_to_int (cqa));
       else if (scm_is_false (cqa))
 	return 1;
     }

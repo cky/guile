@@ -75,46 +75,37 @@ SCM
 scm_i_allocate_weak_vector (scm_t_bits type, SCM size, SCM fill, const char* caller)
 #define FUNC_NAME caller
 {
-  if (SCM_INUMP (size))
+  size_t c_size;
+  SCM v;
+
+  c_size = scm_to_unsigned_integer (size, 0, SCM_VECTOR_MAX_LENGTH);
+
+  if (c_size > 0)
     {
-      size_t c_size;
-      SCM v;
-
-      SCM_ASSERT_RANGE (1, size, SCM_INUM (size) >= 0);
-      c_size = SCM_INUM (size);
-
-      if (c_size > 0)
-	{
-	  scm_t_bits *base;
-	  size_t j;
-
-	  if (SCM_UNBNDP (fill))
-	    fill = SCM_UNSPECIFIED;
-
-	  SCM_ASSERT_RANGE (1, size, c_size <= SCM_VECTOR_MAX_LENGTH);
-	  base = scm_gc_malloc (c_size * sizeof (scm_t_bits), "weak vector");
-	  for (j = 0; j != c_size; ++j)
-	    base[j] = SCM_UNPACK (fill);
-	  v = scm_double_cell (SCM_MAKE_VECTOR_TAG (c_size, scm_tc7_wvect),
-			       (scm_t_bits) base,
-			       type,
-			       SCM_UNPACK (SCM_EOL));
-	  scm_remember_upto_here_1 (fill);
-	}
-      else
-	{
-	  v = scm_double_cell (SCM_MAKE_VECTOR_TAG (0, scm_tc7_wvect),
-			       (scm_t_bits) NULL,
-			       type,
-			       SCM_UNPACK (SCM_EOL));
-	}
-
-      return v;
+      scm_t_bits *base;
+      size_t j;
+      
+      if (SCM_UNBNDP (fill))
+	fill = SCM_UNSPECIFIED;
+      
+      base = scm_gc_malloc (c_size * sizeof (scm_t_bits), "weak vector");
+      for (j = 0; j != c_size; ++j)
+	base[j] = SCM_UNPACK (fill);
+      v = scm_double_cell (SCM_MAKE_VECTOR_TAG (c_size, scm_tc7_wvect),
+			   (scm_t_bits) base,
+			   type,
+			   SCM_UNPACK (SCM_EOL));
+      scm_remember_upto_here_1 (fill);
     }
-  else if (SCM_BIGP (size))
-    SCM_OUT_OF_RANGE (1, size);
   else
-    SCM_WRONG_TYPE_ARG (1, size);
+    {
+      v = scm_double_cell (SCM_MAKE_VECTOR_TAG (0, scm_tc7_wvect),
+			   (scm_t_bits) NULL,
+			   type,
+			   SCM_UNPACK (SCM_EOL));
+    }
+
+  return v;
 }
 #undef FUNC_NAME
 
@@ -150,7 +141,7 @@ SCM_DEFINE (scm_weak_vector, "weak-vector", 0, 0, 1,
      while the vector is being created. */
   i = scm_ilength (l);
   SCM_ASSERT (i >= 0, l, SCM_ARG1, FUNC_NAME);
-  res = scm_make_weak_vector (SCM_I_MAKINUM (i), SCM_UNSPECIFIED);
+  res = scm_make_weak_vector (scm_from_int (i), SCM_UNSPECIFIED);
 
   /*
     no alloc, so  this loop is safe.
@@ -192,7 +183,7 @@ SCM_DEFINE (scm_make_weak_key_alist_vector, "make-weak-key-alist-vector", 0, 1, 
 #define FUNC_NAME s_scm_make_weak_key_alist_vector
 {
   return scm_i_allocate_weak_vector
-    (1, SCM_UNBNDP (size) ? SCM_I_MAKINUM (31) : size, SCM_EOL, FUNC_NAME);
+    (1, SCM_UNBNDP (size) ? scm_from_int (31) : size, SCM_EOL, FUNC_NAME);
 }
 #undef FUNC_NAME
 
@@ -204,7 +195,7 @@ SCM_DEFINE (scm_make_weak_value_alist_vector, "make-weak-value-alist-vector", 0,
 #define FUNC_NAME s_scm_make_weak_value_alist_vector
 {
   return scm_i_allocate_weak_vector
-    (2, SCM_UNBNDP (size) ? SCM_I_MAKINUM (31) : size, SCM_EOL, FUNC_NAME);
+    (2, SCM_UNBNDP (size) ? scm_from_int (31) : size, SCM_EOL, FUNC_NAME);
 }
 #undef FUNC_NAME
 
@@ -216,7 +207,7 @@ SCM_DEFINE (scm_make_doubly_weak_alist_vector, "make-doubly-weak-alist-vector", 
 #define FUNC_NAME s_scm_make_doubly_weak_alist_vector
 {
   return scm_i_allocate_weak_vector
-    (3, SCM_UNBNDP (size) ? SCM_I_MAKINUM (31) : size, SCM_EOL, FUNC_NAME);
+    (3, SCM_UNBNDP (size) ? scm_from_int (31) : size, SCM_EOL, FUNC_NAME);
 }
 #undef FUNC_NAME
 

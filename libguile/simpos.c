@@ -75,7 +75,7 @@ SCM_DEFINE (scm_system, "system", 0, 1, 0,
   rv = system (SCM_STRING_CHARS (cmd));
   if (rv == -1 || (rv == 127 && errno != 0))
     SCM_SYSERROR;
-  return SCM_I_MAKINUM (rv);
+  return scm_from_int (rv);
 }
 #undef FUNC_NAME
 #endif /* HAVE_SYSTEM */
@@ -183,7 +183,7 @@ SCM_DEFINE (scm_system_star, "system*", 0, 0, 1,
           scm_sigaction (sigint, SCM_CAR (oldint), SCM_CDR (oldint));
           scm_sigaction (sigquit, SCM_CAR (oldquit), SCM_CDR (oldquit));
           scm_remember_upto_here_2 (oldint, oldquit);
-          return SCM_I_MAKINUM (0L + status);
+          return scm_from_int (status);
         }
     }
   else

@@ -183,30 +183,20 @@ SCM_DEFINE (scm_make_string, "make-string", 1, 1, 0,
 	    "of the @var{string} are unspecified.")
 #define FUNC_NAME s_scm_make_string
 {
-  if (SCM_INUMP (k))
+  size_t i = scm_to_unsigned_integer (k, 0, SCM_STRING_MAX_LENGTH);
+  SCM res = scm_allocate_string (i);
+
+  if (!SCM_UNBNDP (chr))
     {
-      long int i = SCM_INUM (k);
-      SCM res;
-
-      SCM_ASSERT_RANGE (1, k, i >= 0);
-
-      res = scm_allocate_string (i);
-      if (!SCM_UNBNDP (chr))
-	{
-	  unsigned char *dst;
-
-	  SCM_VALIDATE_CHAR (2, chr);
-
-	  dst = SCM_STRING_UCHARS (res);
-	  memset (dst, SCM_CHAR (chr), i);
-	}
-
-      return res;
+      unsigned char *dst;
+      
+      SCM_VALIDATE_CHAR (2, chr);
+      
+      dst = SCM_STRING_UCHARS (res);
+      memset (dst, SCM_CHAR (chr), i);
     }
-  else if (SCM_BIGP (k))
-    SCM_OUT_OF_RANGE (1, k);
-  else
-    SCM_WRONG_TYPE_ARG (1, k);
+
+  return res;
 }
 #undef FUNC_NAME
 
@@ -217,7 +207,7 @@ SCM_DEFINE (scm_string_length, "string-length", 1, 0, 0,
 #define FUNC_NAME s_scm_string_length
 {
   SCM_VALIDATE_STRING (1, string);
-  return SCM_I_MAKINUM (SCM_STRING_LENGTH (string));
+  return scm_from_size_t (SCM_STRING_LENGTH (string));
 }
 #undef FUNC_NAME
 

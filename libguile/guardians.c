@@ -604,7 +604,7 @@ scm_init_guardians ()
                   whine_about_self_centered_zombies, 0, 0);
 
   greedily_guarded_whash =
-    scm_permanent_object (scm_make_doubly_weak_hash_table (SCM_I_MAKINUM (31)));
+    scm_permanent_object (scm_make_doubly_weak_hash_table (scm_from_int (31)));
 
 #include "libguile/guardians.x"
 }

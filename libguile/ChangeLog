@@ -1,7 +1,20 @@
+2004-07-23  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* deprecated.h, deprecated.c, numbers.h (SCM_INUMP, SCM_NINUMP,
+	SCM_INUM): Deprecated by reenaming them to SCM_I_INUMP,
+	SCM_I_NINUMP and SCM_I_INUM, respectively and adding deprecated
+	versions to deprecated.h and deprecated.c.  Changed all uses to
+	either use the SCM_I_ variants or scm_is_*, scm_to_*, or
+	scm_from_*, as appropriate.
+
+	* dynwind.c (scm_i_dowinds): Removed unused code that would call
+	the unexisting scm_cross_dynwind_binding_scope for inums on the
+	windlist.
+	
 2004-07-10  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* socket.c (ipv6_net_to_num, scm_from_ipv6): Renamed
-	ipv6_net_to_num to scm_from_ipv6, for converting from an IPv&
+	ipv6_net_to_num to scm_from_ipv6, for converting from an IPv6
 	byte-wise address to a SCM integer.  Changed all uses.
 	(ipv6_num_to_net, scm_to_ipv6): Renamed ipv6_num_to_net to
 	scm_to_ipv6 and added type and range checking, for converting from

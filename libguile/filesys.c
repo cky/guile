@@ -299,7 +299,7 @@ SCM_DEFINE (scm_open_fdes, "open-fdes", 2, 1, 0,
   SCM_SYSCALL (fd = open (SCM_STRING_CHARS (path), iflags, imode));
   if (fd == -1)
     SCM_SYSERROR;
-  return SCM_I_MAKINUM (fd);
+  return scm_from_int (fd);
 }
 #undef FUNC_NAME
 
@@ -336,7 +336,7 @@ SCM_DEFINE (scm_open, "open", 2, 1, 0,
   int fd;
   int iflags;
 
-  fd = SCM_INUM (scm_open_fdes (path, flags, mode));
+  fd = scm_to_int (scm_open_fdes (path, flags, mode));
   iflags = SCM_NUM2INT (2, flags);
   if (iflags & O_RDWR)
     {
@@ -476,7 +476,7 @@ scm_stat2scm (struct stat *stat_temp)
     else
       SCM_VECTOR_SET(ans, 13, scm_sym_unknown);
 
-    SCM_VECTOR_SET(ans, 14, SCM_I_MAKINUM ((~S_IFMT) & mode));
+    SCM_VECTOR_SET(ans, 14, scm_from_int ((~S_IFMT) & mode));
 
     /* the layout of the bits in ve[14] is intended to be portable.
        If there are systems that don't follow the usual convention,
@@ -505,7 +505,7 @@ scm_stat2scm (struct stat *stat_temp)
        tmp <<= 1;
        if (S_IXOTH & mode) tmp += 1; 
 
-       SCM_VECTOR_SET(ans, 14, SCM_I_MAKINUM (tmp));
+       SCM_VECTOR_SET(ans, 14, scm_from_int (tmp));
        
        */
   }  
@@ -602,12 +602,12 @@ SCM_DEFINE (scm_stat, "stat", 1, 0, 0,
   int fdes;
   struct stat stat_temp;
 
-  if (SCM_INUMP (object))
+  if (scm_is_integer (object))
     {
 #ifdef __MINGW32__
-      SCM_SYSCALL (rv = fstat_Win32 (SCM_INUM (object), &stat_temp));
+      SCM_SYSCALL (rv = fstat_Win32 (scm_to_int (object), &stat_temp));
 #else
-      SCM_SYSCALL (rv = fstat (SCM_INUM (object), &stat_temp));
+      SCM_SYSCALL (rv = fstat (scm_to_int (object), &stat_temp));
 #endif
     }
   else if (SCM_STRINGP (object))
@@ -974,9 +974,9 @@ set_element (SELECT_TYPE *set, SCM *ports_ready, SCM element, int pos)
 {
   int fd;
 
-  if (SCM_INUMP (element))
+  if (scm_is_integer (element))
     {
-      fd = SCM_INUM (element);
+      fd = scm_to_int (element);
     }
   else
     {
@@ -1055,9 +1055,9 @@ get_element (SELECT_TYPE *set, SCM element, SCM list)
 {
   int fd;
 
-  if (SCM_INUMP (element))
+  if (scm_is_integer (element))
     {
-      fd = SCM_INUM (element);
+      fd = scm_to_int (element);
     }
   else
     {
@@ -1478,12 +1478,12 @@ SCM_DEFINE (scm_dirname, "dirname", 1, 0, 0,
 #else
       if (len > 0 && s[0] == '/')
 #endif /* ndef __MINGW32__ */
-	return scm_substring (filename, SCM_INUM0, SCM_I_MAKINUM (1));
+	return scm_substring (filename, SCM_INUM0, scm_from_int (1));
       else
 	return scm_dot_string;
     }
   else
-    return scm_substring (filename, SCM_INUM0, SCM_I_MAKINUM (i + 1));
+    return scm_substring (filename, SCM_INUM0, scm_from_int (i + 1));
 }
 #undef FUNC_NAME
 
@@ -1532,12 +1532,12 @@ SCM_DEFINE (scm_basename, "basename", 1, 1, 0,
 #else
       if (len > 0 && f[0] == '/')
 #endif /* ndef __MINGW32__ */
-	return scm_substring (filename, SCM_INUM0, SCM_I_MAKINUM (1));
+	return scm_substring (filename, SCM_INUM0, scm_from_int (1));
       else
 	return scm_dot_string;
     }
   else
-    return scm_substring (filename, SCM_I_MAKINUM (i + 1), SCM_I_MAKINUM (end + 1));
+    return scm_substring (filename, scm_from_int (i+1), scm_from_int (end+1));
 }
 #undef FUNC_NAME
 

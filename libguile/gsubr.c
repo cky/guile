@@ -86,7 +86,7 @@ create_gsubr (int define, const char *name,
 	  }
 	SCM_SET_GSUBR_PROC (cclo, subr);
 	SCM_SET_GSUBR_TYPE (cclo,
-			    SCM_I_MAKINUM (SCM_GSUBR_MAKTYPE (req, opt, rst)));
+			    scm_from_int (SCM_GSUBR_MAKTYPE (req, opt, rst)));
 	if (SCM_REC_PROCNAMES_P)
 	  scm_set_procedure_property_x (cclo, scm_sym_name, sym);
 	if (define)
@@ -187,13 +187,13 @@ scm_gsubr_apply (SCM args)
   SCM self = SCM_CAR (args);
   SCM (*fcn)() = SCM_SUBRF (SCM_GSUBR_PROC (self));
   SCM v[SCM_GSUBR_MAX];
-  long typ = SCM_INUM (SCM_GSUBR_TYPE (self));
+  int typ = scm_to_int (SCM_GSUBR_TYPE (self));
   long i, n = SCM_GSUBR_REQ (typ) + SCM_GSUBR_OPT (typ) + SCM_GSUBR_REST (typ);
 #if 0
   if (n > SCM_GSUBR_MAX)
     scm_misc_error (FUNC_NAME,
 		    "Function ~S has illegal arity ~S.",
-		    scm_list_2 (self, SCM_I_MAKINUM (n)));
+		    scm_list_2 (self, scm_from_int (n)));
 #endif
   args = SCM_CDR (args);
   for (i = 0; i < SCM_GSUBR_REQ (typ); i++) {

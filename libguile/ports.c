@@ -587,7 +587,7 @@ SCM_DEFINE (scm_pt_size, "pt-size", 0, 0, 0,
 	    "is only included in @code{--enable-guile-debug} builds.")
 #define FUNC_NAME s_scm_pt_size
 {
-  return SCM_I_MAKINUM (scm_i_port_table_size);
+  return scm_from_int (scm_i_port_table_size);
 }
 #undef FUNC_NAME
 
@@ -640,7 +640,7 @@ SCM_DEFINE (scm_port_revealed, "port-revealed", 1, 0, 0,
 {
   port = SCM_COERCE_OUTPORT (port);
   SCM_VALIDATE_OPENPORT (1, port);
-  return SCM_I_MAKINUM (scm_revealed_count (port));
+  return scm_from_int (scm_revealed_count (port));
 }
 #undef FUNC_NAME
 
@@ -1412,16 +1412,16 @@ SCM_DEFINE (scm_truncate_file, "truncate-file", 1, 1, 0,
       if (SCM_STRINGP (object))
         SCM_MISC_ERROR("must supply length if OBJECT is a filename", SCM_EOL);
       
-      length = scm_seek (object, SCM_INUM0, SCM_I_MAKINUM (SEEK_CUR));
+      length = scm_seek (object, SCM_INUM0, scm_from_int (SEEK_CUR));
     }
   c_length = SCM_NUM2LONG (2, length);
   if (c_length < 0)
     SCM_MISC_ERROR ("negative offset", SCM_EOL);
 
   object = SCM_COERCE_OUTPORT (object);
-  if (SCM_INUMP (object))
+  if (scm_is_integer (object))
     {
-      SCM_SYSCALL (rv = ftruncate (SCM_INUM (object), c_length));
+      SCM_SYSCALL (rv = ftruncate (scm_to_int (object), c_length));
     }
   else if (SCM_OPOUTPORTP (object))
     {
@@ -1461,7 +1461,7 @@ SCM_DEFINE (scm_port_line, "port-line", 1, 0, 0,
 {
   port = SCM_COERCE_OUTPORT (port);
   SCM_VALIDATE_OPENPORT (1, port);
-  return SCM_I_MAKINUM (SCM_LINUM (port));
+  return scm_from_int (SCM_LINUM (port));
 }
 #undef FUNC_NAME
 
@@ -1492,7 +1492,7 @@ SCM_DEFINE (scm_port_column, "port-column", 1, 0, 0,
 {
   port = SCM_COERCE_OUTPORT (port);
   SCM_VALIDATE_OPENPORT (1, port);
-  return SCM_I_MAKINUM (SCM_COL (port));
+  return scm_from_int (SCM_COL (port));
 }
 #undef FUNC_NAME
 
@@ -1635,9 +1635,9 @@ void
 scm_init_ports ()
 {
   /* lseek() symbols.  */
-  scm_c_define ("SEEK_SET", SCM_I_MAKINUM (SEEK_SET));
-  scm_c_define ("SEEK_CUR", SCM_I_MAKINUM (SEEK_CUR));
-  scm_c_define ("SEEK_END", SCM_I_MAKINUM (SEEK_END));
+  scm_c_define ("SEEK_SET", scm_from_int (SEEK_SET));
+  scm_c_define ("SEEK_CUR", scm_from_int (SEEK_CUR));
+  scm_c_define ("SEEK_END", scm_from_int (SEEK_END));
 
   scm_tc16_void_port = scm_make_port_type ("void", fill_input_void_port, 
 					   write_void_port);

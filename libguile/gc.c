@@ -191,18 +191,11 @@ SCM_DEFINE (scm_set_debug_cell_accesses_x, "set-debug-cell-accesses!", 1, 0, 0,
       scm_debug_cell_accesses_p = 1;
       scm_expensive_debug_cell_accesses_p = 0;
     }
-  else if (SCM_INUMP (flag))
-    {
-      long int f = SCM_INUM (flag);
-      if (f <= 0)
-	SCM_OUT_OF_RANGE (1, flag);
-      scm_debug_cells_gc_interval = f;
-      scm_debug_cell_accesses_p = 1;
-      scm_expensive_debug_cell_accesses_p = 1;
-    }
   else
     {
-      SCM_WRONG_TYPE_ARG (1, flag);
+      scm_debug_cells_gc_interval = scm_to_signed_integer (flag, 0, INT_MAX);
+      scm_debug_cell_accesses_p = 1;
+      scm_expensive_debug_cell_accesses_p = 1;
     }
   return SCM_UNSPECIFIED;
 }
@@ -720,8 +713,8 @@ scm_gc_protect_object (SCM obj)
   /* This critical section barrier will be replaced by a mutex. */
   SCM_REDEFER_INTS;
 
-  handle = scm_hashq_create_handle_x (scm_protects, obj, SCM_I_MAKINUM (0));
-  SCM_SETCDR (handle, scm_sum (SCM_CDR (handle), SCM_I_MAKINUM (1)));
+  handle = scm_hashq_create_handle_x (scm_protects, obj, scm_from_int (0));
+  SCM_SETCDR (handle, scm_sum (SCM_CDR (handle), scm_from_int (1)));
 
   protected_obj_count ++;
   
@@ -752,8 +745,8 @@ scm_gc_unprotect_object (SCM obj)
     }
   else
     {
-      SCM count = scm_difference (SCM_CDR (handle), SCM_I_MAKINUM (1));
-      if (SCM_EQ_P (count, SCM_I_MAKINUM (0)))
+      SCM count = scm_difference (SCM_CDR (handle), scm_from_int (1));
+      if (SCM_EQ_P (count, scm_from_int (0)))
 	scm_hashq_remove_x (scm_protects, obj);
       else
 	SCM_SETCDR (handle, count);
@@ -774,8 +767,9 @@ scm_gc_register_root (SCM *p)
   /* This critical section barrier will be replaced by a mutex. */
   SCM_REDEFER_INTS;
 
-  handle = scm_hashv_create_handle_x (scm_gc_registered_roots, key, SCM_I_MAKINUM (0));
-  SCM_SETCDR (handle, scm_sum (SCM_CDR (handle), SCM_I_MAKINUM (1)));
+  handle = scm_hashv_create_handle_x (scm_gc_registered_roots, key,
+				      scm_from_int (0));
+  SCM_SETCDR (handle, scm_sum (SCM_CDR (handle), scm_from_int (1)));
 
   SCM_REALLOW_INTS;
 }
@@ -798,8 +792,8 @@ scm_gc_unregister_root (SCM *p)
     }
   else
     {
-      SCM count = scm_difference (SCM_CDR (handle), SCM_I_MAKINUM (1));
-      if (SCM_EQ_P (count, SCM_I_MAKINUM (0)))
+      SCM count = scm_difference (SCM_CDR (handle), scm_from_int (1));
+      if (SCM_EQ_P (count, scm_from_int (0)))
 	scm_hashv_remove_x (scm_gc_registered_roots, key);
       else
 	SCM_SETCDR (handle, count);

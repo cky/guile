@@ -98,12 +98,12 @@ scm_regexp_error_msg (int regerrno, regex_t *rx)
      never returns, we would never have the opportunity to free it.  Creating
      it as a SCM object means that the system will GC it at some point. */
 
-  errmsg = scm_make_string (SCM_I_MAKINUM (80), SCM_UNDEFINED);
+  errmsg = scm_make_string (scm_from_int (80), SCM_UNDEFINED);
   SCM_DEFER_INTS;
   l = regerror (regerrno, rx, SCM_STRING_CHARS (errmsg), 80);
   if (l > 80)
     {
-      errmsg = scm_make_string (SCM_I_MAKINUM (l), SCM_UNDEFINED);
+      errmsg = scm_make_string (scm_from_int (l), SCM_UNDEFINED);
       regerror (regerrno, rx, SCM_STRING_CHARS (errmsg), l);
     }
   SCM_ALLOW_INTS;
@@ -174,10 +174,10 @@ SCM_DEFINE (scm_make_regexp, "make-regexp", 1, 0, 1,
   flag = flags;
   while (!SCM_NULLP (flag))
     {
-      if (SCM_INUM (SCM_CAR (flag)) == REG_BASIC)
+      if (scm_to_int (SCM_CAR (flag)) == REG_BASIC)
 	cflags &= ~REG_EXTENDED;
       else
-	cflags |= SCM_INUM (SCM_CAR (flag));
+	cflags |= scm_to_int (SCM_CAR (flag));
       flag = SCM_CDR (flag);
     }
 
@@ -257,7 +257,7 @@ SCM_DEFINE (scm_regexp_exec, "regexp-exec", 2, 2, 0,
       SCM_VECTOR_SET(mvec,0, str);
       for (i = 0; i < nmatches; ++i)
 	if (matches[i].rm_so == -1)
-	  SCM_VECTOR_SET(mvec,i+1, scm_cons (SCM_I_MAKINUM (-1), SCM_I_MAKINUM (-1)));
+	  SCM_VECTOR_SET(mvec,i+1, scm_cons (scm_from_int (-1), scm_from_int (-1)));
 	else
 	  SCM_VECTOR_SET(mvec,i+1,scm_cons (scm_long2num (matches[i].rm_so + offset),
 				       scm_long2num (matches[i].rm_eo + offset)));

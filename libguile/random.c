@@ -349,11 +349,11 @@ SCM_DEFINE (scm_random, "random", 1, 1, 0,
   if (SCM_UNBNDP (state))
     state = SCM_VARIABLE_REF (scm_var_random_state);
   SCM_VALIDATE_RSTATE (2, state);
-  if (SCM_INUMP (n))
+  if (SCM_I_INUMP (n))
     {
-      unsigned long m = SCM_INUM (n);
+      unsigned long m = SCM_I_INUM (n);
       SCM_ASSERT_RANGE (1, n, m > 0);
-      return SCM_I_MAKINUM (scm_c_random (SCM_RSTATE (state), m));
+      return scm_from_ulong (scm_c_random (SCM_RSTATE (state), m));
     }
   SCM_VALIDATE_NIM (1, n);
   if (SCM_REALP (n))
@@ -424,7 +424,7 @@ SCM_DEFINE (scm_random_normal, "random:normal", 0, 1, 0,
 static void
 vector_scale (SCM v, double c)
 {
-  int n = SCM_INUM (scm_uniform_vector_length (v));
+  int n = scm_to_int (scm_uniform_vector_length (v));
   if (SCM_VECTORP (v))
     while (--n >= 0)
       SCM_REAL_VALUE (SCM_VELTS (v)[n]) *= c;
@@ -437,7 +437,7 @@ static double
 vector_sum_squares (SCM v)
 {
   double x, sum = 0.0;
-  int n = SCM_INUM (scm_uniform_vector_length (v));
+  int n = scm_to_int (scm_uniform_vector_length (v));
   if (SCM_VECTORP (v))
     while (--n >= 0)
       {
@@ -475,7 +475,7 @@ SCM_DEFINE (scm_random_solid_sphere_x, "random:solid-sphere!", 1, 1, 0,
   scm_random_normal_vector_x (v, state);
   vector_scale (v,
 		pow (scm_c_uniform01 (SCM_RSTATE (state)),
-		     1.0 / SCM_INUM (scm_uniform_vector_length (v)))
+		     1.0 / scm_to_int (scm_uniform_vector_length (v)))
 		/ sqrt (vector_sum_squares (v)));
   return SCM_UNSPECIFIED;
 }
@@ -514,7 +514,7 @@ SCM_DEFINE (scm_random_normal_vector_x, "random:normal-vector!", 1, 1, 0,
   if (SCM_UNBNDP (state))
     state = SCM_VARIABLE_REF (scm_var_random_state);
   SCM_VALIDATE_RSTATE (2, state);
-  n = SCM_INUM (scm_uniform_vector_length (v));
+  n = scm_to_int (scm_uniform_vector_length (v));
   if (SCM_VECTORP (v))
     while (--n >= 0)
       SCM_VECTOR_SET (v, n, scm_make_real (scm_c_normal01 (SCM_RSTATE (state))));

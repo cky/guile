@@ -116,8 +116,8 @@ SCM_DEFINE (scm_read_string_x_partial, "read-string!/partial", 1, 3, 0,
     read_len = last - offset;
   }
 
-  if (SCM_INUMP (port_or_fdes))
-    fdes = SCM_INUM (port_or_fdes);
+  if (scm_is_integer (port_or_fdes))
+    fdes = scm_to_int (port_or_fdes);
   else
     {
       SCM port = SCM_UNBNDP (port_or_fdes) ? scm_cur_inp : port_or_fdes;
@@ -212,8 +212,8 @@ SCM_DEFINE (scm_write_string_partial, "write-string/partial", 1, 3, 0,
   if (write_len == 0)
     return SCM_INUM0;
 
-  if (SCM_INUMP (port_or_fdes))
-    fdes = SCM_INUM (port_or_fdes);
+  if (scm_is_integer (port_or_fdes))
+    fdes = scm_to_int (port_or_fdes);
   else
     {
       SCM port = SCM_UNBNDP (port_or_fdes) ? scm_cur_outp : port_or_fdes;

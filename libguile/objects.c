@@ -234,18 +234,25 @@ SCM_DEFINE (scm_class_of, "class-of", 1, 0, 0,
 SCM
 scm_mcache_lookup_cmethod (SCM cache, SCM args)
 {
-  long i, n, end, mask;
+  unsigned long i, mask, n, end;
   SCM ls, methods, z = SCM_CDDR (cache);
-  n = SCM_INUM (SCM_CAR (z)); /* maximum number of specializers */
+  n = scm_to_ulong (SCM_CAR (z)); /* maximum number of specializers */
   methods = SCM_CADR (z);
 
-  if (SCM_INUMP (methods))
+  if (SCM_VECTORP (methods))
+    {
+      /* cache format #1: prepare for linear search */
+      mask = -1;
+      i = 0;
+      end = SCM_VECTOR_LENGTH (methods);
+    }
+  else
     {
       /* cache format #2: compute a hash value */
-      long hashset = SCM_INUM (methods);
+      unsigned long hashset = scm_to_ulong (methods);
       long j = n;
       z = SCM_CDDR (z);
-      mask = SCM_INUM (SCM_CAR (z));
+      mask = scm_to_ulong (SCM_CAR (z));
       methods = SCM_CADR (z);
       i = 0;
       ls = args;
@@ -259,13 +266,6 @@ scm_mcache_lookup_cmethod (SCM cache, SCM args)
 	while (j-- && !SCM_NULLP (ls));
       i &= mask;
       end = i;
-    }
-  else /* SCM_VECTORP (methods) */
-    {
-      /* cache format #1: prepare for linear search */
-      mask = -1;
-      i = 0;
-      end = SCM_VECTOR_LENGTH (methods);
     }
 
   /* Search for match  */

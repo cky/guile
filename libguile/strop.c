@@ -61,27 +61,21 @@ scm_i_index (SCM *str, SCM chr, int direction, SCM sub_start,
   SCM_ASSERT (SCM_CHARP (chr), chr, SCM_ARG2, why);
 
   if (scm_is_false (sub_start))
-    sub_start = SCM_I_MAKINUM (0);
-
-  SCM_ASSERT (SCM_INUMP (sub_start), sub_start, SCM_ARG3, why);
-  lower = SCM_INUM (sub_start);
-  if (lower < 0 || lower > SCM_STRING_LENGTH (*str))
-    scm_out_of_range (why, sub_start);
+    lower = 0;
+  else
+    lower = scm_to_signed_integer (sub_start, 0, SCM_STRING_LENGTH(*str));
 
   if (scm_is_false (sub_end))
-    sub_end = SCM_I_MAKINUM (SCM_STRING_LENGTH (*str));
-
-  SCM_ASSERT (SCM_INUMP (sub_end), sub_end, SCM_ARG4, why);
-  upper = SCM_INUM (sub_end);
-  if (upper < SCM_INUM (sub_start) || upper > SCM_STRING_LENGTH (*str))
-    scm_out_of_range (why, sub_end);
+    upper = SCM_STRING_LENGTH (*str);
+  else
+    upper = scm_to_signed_integer (sub_end, lower, SCM_STRING_LENGTH(*str));
 
   if (direction > 0)
     {
       p = SCM_STRING_UCHARS (*str) + lower;
       ch = SCM_CHAR (chr);
 
-      for (x = SCM_INUM (sub_start); x < upper; ++x, ++p)
+      for (x = lower; x < upper; ++x, ++p)
 	if (*p == ch)
 	  return x;
     }
@@ -124,7 +118,7 @@ SCM_DEFINE (scm_string_index, "string-index", 2, 2, 0,
   pos = scm_i_index (&str, chr, 1, frm, to, FUNC_NAME);
   return (pos < 0
 	  ? SCM_BOOL_F
-	  : SCM_I_MAKINUM (pos));
+	  : scm_from_long (pos));
 }
 #undef FUNC_NAME
 
@@ -154,7 +148,7 @@ SCM_DEFINE (scm_string_rindex, "string-rindex", 2, 2, 0,
   pos = scm_i_index (&str, chr, -1, frm, to, FUNC_NAME);
   return (pos < 0
 	  ? SCM_BOOL_F
-	  : SCM_I_MAKINUM (pos));
+	  : scm_from_long (pos));
 }
 #undef FUNC_NAME
 

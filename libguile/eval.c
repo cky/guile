@@ -2179,7 +2179,7 @@ scm_m_atslot_ref (SCM expr, SCM env SCM_UNUSED)
   ASSERT_SYNTAX (scm_ilength (cdr_expr) >= 0, s_bad_expression, expr);
   ASSERT_SYNTAX (scm_ilength (cdr_expr) == 2, s_expression, expr);
   slot_nr = SCM_CADR (cdr_expr);
-  ASSERT_SYNTAX_2 (SCM_INUMP (slot_nr), s_bad_slot_number, slot_nr, expr);
+  ASSERT_SYNTAX_2 (SCM_I_INUMP (slot_nr), s_bad_slot_number, slot_nr, expr);
 
   SCM_SETCAR (expr, SCM_IM_SLOT_REF);
   SCM_SETCDR (cdr_expr, slot_nr);
@@ -2212,7 +2212,7 @@ scm_m_atslot_set_x (SCM expr, SCM env SCM_UNUSED)
   ASSERT_SYNTAX (scm_ilength (cdr_expr) >= 0, s_bad_expression, expr);
   ASSERT_SYNTAX (scm_ilength (cdr_expr) == 3, s_expression, expr);
   slot_nr = SCM_CADR (cdr_expr);
-  ASSERT_SYNTAX_2 (SCM_INUMP (slot_nr), s_bad_slot_number, slot_nr, expr);
+  ASSERT_SYNTAX_2 (SCM_I_INUMP (slot_nr), s_bad_slot_number, slot_nr, expr);
 
   SCM_SETCAR (expr, SCM_IM_SLOT_SET_X);
   return expr;
@@ -3729,14 +3729,24 @@ dispatch:
 	    {
 	      SCM z = SCM_CDDR (x);
 	      SCM tmp = SCM_CADR (z);
-	      specializers = SCM_INUM (SCM_CAR (z));
+	      specializers = scm_to_ulong (SCM_CAR (z));
 
 	      /* Compute a hash value for searching the method cache.  There
 	       * are two variants for computing the hash value, a (rather)
 	       * complicated one, and a simple one.  For the complicated one
 	       * explained below, tmp holds a number that is used in the
 	       * computation.  */
-	      if (SCM_INUMP (tmp))
+	      if (SCM_VECTORP (tmp))
+		{
+		  /* This method of determining the hash value is much
+		   * simpler:  Set the hash value to zero and just perform a
+		   * linear search through the method cache.  */
+		  method_cache = tmp;
+		  mask = (unsigned long int) ((long) -1);
+		  hash_value = 0;
+		  cache_end_pos = SCM_VECTOR_LENGTH (method_cache);
+		}
+	      else
 		{
 		  /* Use the signature of the actual arguments to determine
 		   * the hash value.  This is done as follows:  Each class has
@@ -3753,7 +3763,7 @@ dispatch:
 		   * where dispatch is called, such that hopefully the hash
 		   * value that is computed will directly point to the right
 		   * method in the method cache.  */
-		  unsigned long int hashset = SCM_INUM (tmp);
+		  unsigned long int hashset = scm_to_ulong (tmp);
 		  unsigned long int counter = specializers + 1;
 		  SCM tmp_arg = arg1;
 		  hash_value = 0;
@@ -3766,19 +3776,9 @@ dispatch:
 		    }
 		  z = SCM_CDDR (z);
 		  method_cache = SCM_CADR (z);
-		  mask = SCM_INUM (SCM_CAR (z));
+		  mask = scm_to_ulong (SCM_CAR (z));
 		  hash_value &= mask;
 		  cache_end_pos = hash_value;
-		}
-	      else
-		{
-		  /* This method of determining the hash value is much
-		   * simpler:  Set the hash value to zero and just perform a
-		   * linear search through the method cache.  */
-		  method_cache = tmp;
-		  mask = (unsigned long int) ((long) -1);
-		  hash_value = 0;
-		  cache_end_pos = SCM_VECTOR_LENGTH (method_cache);
 		}
 	    }
 
@@ -3830,7 +3830,7 @@ dispatch:
 	  x = SCM_CDR (x);
 	  {
 	    SCM instance = EVALCAR (x, env);
-	    unsigned long int slot = SCM_INUM (SCM_CDR (x));
+	    unsigned long int slot = SCM_I_INUM (SCM_CDR (x));
 	    RETURN (SCM_PACK (SCM_STRUCT_DATA (instance) [slot]));
 	  }
 
@@ -3839,7 +3839,7 @@ dispatch:
 	  x = SCM_CDR (x);
 	  {
 	    SCM instance = EVALCAR (x, env);
-	    unsigned long int slot = SCM_INUM (SCM_CADR (x));
+	    unsigned long int slot = SCM_I_INUM (SCM_CADR (x));
 	    SCM value = EVALCAR (SCM_CDDR (x), env);
 	    SCM_STRUCT_DATA (instance) [slot] = SCM_UNPACK (value);
 	    RETURN (SCM_UNSPECIFIED);
@@ -4142,9 +4142,9 @@ dispatch:
 	  case scm_tc7_subr_1o:
 	    RETURN (SCM_SUBRF (proc) (arg1));
 	  case scm_tc7_dsubr:
-            if (SCM_INUMP (arg1))
+            if (SCM_I_INUMP (arg1))
               {
-                RETURN (scm_make_real (SCM_DSUBRF (proc) ((double) SCM_INUM (arg1))));
+                RETURN (scm_make_real (SCM_DSUBRF (proc) ((double) SCM_I_INUM (arg1))));
               }
             else if (SCM_REALP (arg1))
               {
@@ -4829,9 +4829,9 @@ tail:
     case scm_tc7_dsubr:
       if (SCM_UNBNDP (arg1) || !SCM_NULLP (args))
 	scm_wrong_num_args (proc);
-      if (SCM_INUMP (arg1))
+      if (SCM_I_INUMP (arg1))
         {
-          RETURN (scm_make_real (SCM_DSUBRF (proc) ((double) SCM_INUM (arg1))));
+          RETURN (scm_make_real (SCM_DSUBRF (proc) ((double) SCM_I_INUM (arg1))));
         }
       else if (SCM_REALP (arg1))
         {
@@ -5181,9 +5181,9 @@ call_lsubr_1 (SCM proc, SCM arg1)
 static SCM
 call_dsubr_1 (SCM proc, SCM arg1)
 {
-  if (SCM_INUMP (arg1))
+  if (SCM_I_INUMP (arg1))
     {
-      RETURN (scm_make_real (SCM_DSUBRF (proc) ((double) SCM_INUM (arg1))));
+      RETURN (scm_make_real (SCM_DSUBRF (proc) ((double) SCM_I_INUM (arg1))));
     }
   else if (SCM_REALP (arg1))
     {
@@ -5417,7 +5417,7 @@ check_map_args (SCM argv,
 	}
 
       if (elt_len != len)
-	scm_out_of_range_pos (who, ve[i], SCM_I_MAKINUM (i + 2));
+	scm_out_of_range_pos (who, ve[i], scm_from_long (i + 2));
     }
 
   scm_remember_upto_here_1 (argv);

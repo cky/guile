@@ -462,8 +462,8 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
 	       * checked whether the resulting fixnum is in the range of
 	       * characters.  */
 	      p = scm_i_mem2number (SCM_STRING_CHARS (*tok_buf), j, 8);
-	      if (SCM_INUMP (p))
-		return SCM_MAKE_CHAR (SCM_INUM (p));
+	      if (SCM_I_INUMP (p))
+		return SCM_MAKE_CHAR (SCM_I_INUM (p));
 	    }
 	  for (c = 0; c < scm_n_charnames; c++)
 	    if (scm_charnames[c]

@@ -57,7 +57,7 @@ scm_hasher(SCM obj, unsigned long n, size_t d)
   switch (SCM_ITAG3 (obj)) {
   case scm_tc3_int_1: 
   case scm_tc3_int_2:
-    return SCM_INUM(obj) % n;   /* SCM_INUMP(obj) */
+    return SCM_I_INUM(obj) % n;   /* SCM_INUMP(obj) */
   case scm_tc3_imm24:
     if (SCM_CHARP(obj))
       return (unsigned)(scm_c_downcase(SCM_CHAR(obj))) % n;
@@ -91,20 +91,20 @@ scm_hasher(SCM obj, unsigned long n, size_t d)
     case scm_tc7_number:
       switch SCM_TYP16 (obj) {
       case scm_tc16_big:
-        return SCM_INUM (scm_modulo (obj, SCM_I_MAKINUM (n)));
+        return scm_to_ulong (scm_modulo (obj, scm_from_ulong (n)));
       case scm_tc16_real:
 	{
 	  double r = SCM_REAL_VALUE (obj);
-	  if (floor (r) == r) {
-	    obj = scm_inexact_to_exact (obj);
-	    if SCM_IMP (obj) return SCM_INUM (obj) % n;
-	    return SCM_INUM (scm_modulo (obj, SCM_I_MAKINUM (n)));
-	  }
+	  if (floor (r) == r) 
+	    {
+	      obj = scm_inexact_to_exact (obj);
+	      return scm_to_ulong (scm_modulo (obj, scm_from_ulong (n)));
+	    }
 	}
         /* Fall through */
       case scm_tc16_complex:
       case scm_tc16_fraction:
-	obj = scm_number_to_string (obj, SCM_I_MAKINUM (10));
+	obj = scm_number_to_string (obj, scm_from_int (10));
         /* Fall through */
       }
       /* Fall through */

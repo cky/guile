@@ -92,9 +92,8 @@ SCM_SYMBOL (scm_no_sym, "no");
 
 static SCM protected_objects = SCM_EOL;
 
-
-/* Return a list of the current option setting.  The format of an option
- * setting is described in the above documentation.  */
+/* Return a list of the current option setting.  The format of an
+ * option setting is described in the above documentation.  */
 static SCM
 get_option_setting (const scm_t_option options[], unsigned int n)
 {
@@ -109,7 +108,7 @@ get_option_setting (const scm_t_option options[], unsigned int n)
 	    ls = scm_cons (SCM_PACK (options[i].name), ls);
 	  break;
 	case SCM_OPTION_INTEGER:
-	  ls = scm_cons (SCM_I_MAKINUM (options[i].val), ls);
+	  ls = scm_cons (scm_from_unsigned_integer (options[i].val), ls);
 	  ls = scm_cons (SCM_PACK (options[i].name), ls);
 	  break;
 	case SCM_OPTION_SCM:
@@ -138,7 +137,7 @@ get_documented_option_setting (const scm_t_option options[], unsigned int n)
 	  ls = scm_cons (options[i].val ? scm_yes_sym : scm_no_sym, ls);
 	  break;
 	case SCM_OPTION_INTEGER:
-	  ls = scm_cons (SCM_I_MAKINUM (options[i].val), ls);
+	  ls = scm_cons (scm_from_unsigned_integer (options[i].val), ls);
 	  break;
 	case SCM_OPTION_SCM:
 	  ls = scm_cons (SCM_PACK (options[i].val), ls);
@@ -189,8 +188,7 @@ change_option_setting (SCM args, scm_t_option options[], unsigned int n, const c
 		case SCM_OPTION_INTEGER:
 		  args = SCM_CDR (args);
 		  SCM_ASSERT (SCM_CONSP (args), args, SCM_ARG1, s);
-		  SCM_ASSERT (SCM_INUMP (SCM_CAR (args)), args, SCM_ARG1, s);
-		  flags[i] = SCM_INUM (SCM_CAR (args));
+		  flags[i] = scm_to_size_t (SCM_CAR (args));
 		  break;
 		case SCM_OPTION_SCM:
 		  args = SCM_CDR (args);

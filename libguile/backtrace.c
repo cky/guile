@@ -92,9 +92,9 @@ display_header (SCM source, SCM port)
       if (scm_is_true (line) && scm_is_true (col))
 	{
 	  scm_putc (':', port);
-	  scm_intprint (SCM_INUM (line) + 1, 10, port);
+	  scm_intprint (scm_to_long (line) + 1, 10, port);
 	  scm_putc (':', port);
-	  scm_intprint (SCM_INUM (col) + 1, 10, port);
+	  scm_intprint (scm_to_long (col) + 1, 10, port);
 	}
     }
   else
@@ -339,10 +339,8 @@ SCM_DEFINE (scm_set_print_params_x, "set-print-params!", 1, 0, 0,
   SCM_VALIDATE_NONEMPTYLIST_COPYLEN (2, params, n);
   for (ls = params; !SCM_NULL_OR_NIL_P (ls); ls = SCM_CDR (ls))
     SCM_ASSERT (scm_ilength (SCM_CAR (params)) == 2
-		&& SCM_INUMP (SCM_CAAR (ls))
-		&& SCM_INUM (SCM_CAAR (ls)) >= 0
-		&& SCM_INUMP (SCM_CADAR (ls))
-		&& SCM_INUM (SCM_CADAR (ls)) >= 0,
+		&& scm_is_unsigned_integer (SCM_CAAR (ls), 0, INT_MAX)
+		&& scm_is_unsigned_integer (SCM_CADAR (ls), 0, INT_MAX),
 		params,
 		SCM_ARG2,
 		s_scm_set_print_params_x);
@@ -352,8 +350,8 @@ SCM_DEFINE (scm_set_print_params_x, "set-print-params!", 1, 0, 0,
   print_params = new_params;
   for (i = 0; i < n; ++i)
     {
-      print_params[i].level = SCM_INUM (SCM_CAAR (params));
-      print_params[i].length = SCM_INUM (SCM_CADAR (params));
+      print_params[i].level = scm_to_int (SCM_CAAR (params));
+      print_params[i].length = scm_to_int (SCM_CADAR (params));
       params = SCM_CDR (params);
     }
   n_print_params = n;
@@ -545,7 +543,7 @@ display_backtrace_file_and_line (SCM frame, SCM port, scm_print_state *pstate)
   else if (scm_is_true (line))
     {
       int i, j=0;
-      for (i = SCM_INUM (line)+1; i > 0; i = i/10, j++)
+      for (i = scm_to_int (line)+1; i > 0; i = i/10, j++)
 	;
       indent (4-j, port);
     }
@@ -553,7 +551,7 @@ display_backtrace_file_and_line (SCM frame, SCM port, scm_print_state *pstate)
   if (scm_is_false (line))
     scm_puts ("   ?", port);
   else
-    scm_intprint (SCM_INUM (line) + 1, 10, port);
+    scm_intprint (scm_to_int (line) + 1, 10, port);
   scm_puts (": ", port);
 }
 
@@ -642,11 +640,11 @@ display_backtrace_body (struct display_backtrace_args *a)
   /* Argument checking and extraction. */
   SCM_VALIDATE_STACK (1, a->stack);
   SCM_VALIDATE_OPOUTPORT (2, a->port);
-  n_frames = SCM_INUM (scm_stack_length (a->stack));
-  n = SCM_INUMP (a->depth) ? SCM_INUM (a->depth) : SCM_BACKTRACE_DEPTH;
+  n_frames = scm_to_int (scm_stack_length (a->stack));
+  n = scm_is_integer (a->depth) ? scm_to_int (a->depth) : SCM_BACKTRACE_DEPTH;
   if (SCM_BACKWARDS_P)
     {
-      beg = SCM_INUMP (a->first) ? SCM_INUM (a->first) : 0;
+      beg = scm_is_integer (a->first) ? scm_to_int (a->first) : 0;
       end = beg + n - 1;
       if (end >= n_frames)
 	end = n_frames - 1;
@@ -654,9 +652,9 @@ display_backtrace_body (struct display_backtrace_args *a)
     }
   else
     {
-      if (SCM_INUMP (a->first))
+      if (scm_is_integer (a->first))
 	{
-	  beg = SCM_INUM (a->first);
+	  beg = scm_to_int (a->first);
 	  end = beg - n + 1;
 	  if (end < 0)
 	    end = 0;

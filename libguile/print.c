@@ -366,7 +366,7 @@ scm_iprin1 (SCM exp, SCM port, scm_print_state *pstate)
       break;
     case scm_tc3_int_1:
     case scm_tc3_int_2:
-      scm_intprint (SCM_INUM (exp), 10, port);
+      scm_intprint (SCM_I_INUM (exp), 10, port);
       break;
     case scm_tc3_imm24:
       if (SCM_CHARP (exp))

@@ -53,18 +53,17 @@ SCM_API SCM scm_stack_type;
 
 #define SCM_FRAMEP(obj) \
   (SCM_CONSP (obj) && SCM_STACKP (SCM_CAR (obj)) \
-   && SCM_INUMP (SCM_CDR (obj)) && SCM_INUM (SCM_CDR (obj)) >= 0 \
-   && ((unsigned long int) SCM_INUM (SCM_CDR (obj)) \
-       < SCM_STACK_LENGTH (SCM_CAR (obj))))
+   && scm_is_unsigned_integer (SCM_CDR (obj), \
+                               0, SCM_STACK_LENGTH (SCM_CAR (obj))-1))
 
 #define SCM_FRAME_REF(frame, slot) \
-(SCM_STACK (SCM_CAR (frame)) -> frames[SCM_INUM (SCM_CDR (frame))].slot) \
+(SCM_STACK (SCM_CAR (frame)) -> frames[scm_to_size_t (SCM_CDR (frame))].slot)
 
 #define SCM_FRAME_NUMBER(frame) \
 (SCM_BACKWARDS_P \
- ? SCM_INUM (SCM_CDR (frame)) \
+ ? scm_to_size_t (SCM_CDR (frame)) \
  : (SCM_STACK_LENGTH (SCM_CAR (frame)) \
-    - SCM_INUM (SCM_CDR (frame)) \
+    - scm_to_size_t (SCM_CDR (frame)) \
     - 1)) \
 
 #define SCM_FRAME_FLAGS(frame) SCM_FRAME_REF (frame, flags)

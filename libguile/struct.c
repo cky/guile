@@ -114,7 +114,7 @@ SCM_DEFINE (scm_make_struct_layout, "make-struct-layout", 1, 0, 0,
 	  {
 	    if (field_desc[x + 2] != '-')
 	      SCM_MISC_ERROR ("missing dash field at position ~A",
-			      scm_list_1 (SCM_I_MAKINUM (x / 2)));
+			      scm_list_1 (scm_from_int (x / 2)));
 	    x += 2;
 	    goto recheck_ref;
 	  }
@@ -789,14 +789,14 @@ void
 scm_init_struct ()
 {
   scm_struct_table
-    = scm_permanent_object (scm_make_weak_key_hash_table (SCM_I_MAKINUM (31)));
+    = scm_permanent_object (scm_make_weak_key_hash_table (scm_from_int (31)));
   required_vtable_fields = scm_makfrom0str ("prsrpw");
   scm_permanent_object (required_vtable_fields);
-  scm_c_define ("vtable-index-layout", SCM_I_MAKINUM (scm_vtable_index_layout));
-  scm_c_define ("vtable-index-vtable", SCM_I_MAKINUM (scm_vtable_index_vtable));
+  scm_c_define ("vtable-index-layout", scm_from_int (scm_vtable_index_layout));
+  scm_c_define ("vtable-index-vtable", scm_from_int (scm_vtable_index_vtable));
   scm_c_define ("vtable-index-printer",
-		SCM_I_MAKINUM (scm_vtable_index_printer));
-  scm_c_define ("vtable-offset-user", SCM_I_MAKINUM (scm_vtable_offset_user));
+		scm_from_int (scm_vtable_index_printer));
+  scm_c_define ("vtable-offset-user", scm_from_int (scm_vtable_offset_user));
 #include "libguile/struct.x"
 }
 

@@ -46,7 +46,7 @@ scm_vector_length (SCM v)
 {
   SCM_GASSERT1 (SCM_VECTORP(v),
 		g_vector_length, v, SCM_ARG1, s_vector_length);
-  return SCM_I_MAKINUM (SCM_VECTOR_LENGTH (v));
+  return scm_from_size_t (SCM_VECTOR_LENGTH (v));
 }
 
 SCM_REGISTER_PROC (s_list_to_vector, "list->vector", 1, 0, 0, scm_vector);
@@ -114,10 +114,12 @@ scm_vector_ref (SCM v, SCM k)
 {
   SCM_GASSERT2 (SCM_VECTORP (v),
 		g_vector_ref, v, k, SCM_ARG1, s_vector_ref);
-  SCM_GASSERT2 (SCM_INUMP (k),
+  SCM_GASSERT2 (SCM_I_INUMP (k),
 		g_vector_ref, v, k, SCM_ARG2, s_vector_ref);
-  SCM_ASSERT_RANGE (2, k, SCM_INUM (k) < SCM_VECTOR_LENGTH (v) && SCM_INUM (k) >= 0);
-  return SCM_VELTS (v)[(long) SCM_INUM (k)];
+  SCM_ASSERT_RANGE (2, k,
+		    SCM_I_INUM (k) < SCM_VECTOR_LENGTH (v)
+		    && SCM_I_INUM (k) >= 0);
+  return SCM_VELTS (v)[(long) SCM_I_INUM (k)];
 }
 #undef FUNC_NAME
 
@@ -141,11 +143,13 @@ scm_vector_set_x (SCM v, SCM k, SCM obj)
   SCM_GASSERTn (SCM_VECTORP (v),
 		g_vector_set_x, scm_list_3 (v, k, obj),
 		SCM_ARG1, s_vector_set_x);
-  SCM_GASSERTn (SCM_INUMP (k),
+  SCM_GASSERTn (SCM_I_INUMP (k),
 		g_vector_set_x, scm_list_3 (v, k, obj),
 		SCM_ARG2, s_vector_set_x);
-  SCM_ASSERT_RANGE (2, k, SCM_INUM (k) < SCM_VECTOR_LENGTH (v) && SCM_INUM (k) >= 0);
-  SCM_VECTOR_SET (v, (long) SCM_INUM(k), obj);
+  SCM_ASSERT_RANGE (2, k,
+		    SCM_I_INUM (k) < SCM_VECTOR_LENGTH (v)
+		    && SCM_I_INUM (k) >= 0);
+  SCM_VECTOR_SET (v, (long) SCM_I_INUM(k), obj);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -159,18 +163,12 @@ SCM_DEFINE (scm_make_vector, "make-vector", 1, 1, 0,
 	    "unspecified.")
 #define FUNC_NAME s_scm_make_vector
 {
+  size_t l = scm_to_unsigned_integer (k, 0, SCM_VECTOR_MAX_LENGTH);
+
   if (SCM_UNBNDP (fill))
     fill = SCM_UNSPECIFIED;
-
-  if (SCM_INUMP (k))
-    {
-      SCM_ASSERT_RANGE (1, k, SCM_INUM (k) >= 0);
-      return scm_c_make_vector (SCM_INUM (k), fill);
-    }
-  else if (SCM_BIGP (k))
-    SCM_OUT_OF_RANGE (1, k);
-  else
-    SCM_WRONG_TYPE_ARG (1, k);
+  
+  return scm_c_make_vector (l, fill);
 }
 #undef FUNC_NAME
 

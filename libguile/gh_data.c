@@ -103,7 +103,7 @@ gh_ints2scm (const int *d, long n)
   long i;
   SCM v = scm_c_make_vector (n, SCM_UNSPECIFIED);
   for (i = 0; i < n; ++i)
-    SCM_VECTOR_SET (v, i, (SCM_FIXABLE (d[i]) ? SCM_I_MAKINUM (d[i]) : scm_i_long2big (d[i])));
+    SCM_VECTOR_SET (v, i, scm_from_int (d[i]));
 
   return v;
 }
@@ -232,9 +232,9 @@ gh_scm2chars (SCM obj, char *m)
       for (i = 0; i < n; ++i)
 	{
 	  val = SCM_VELTS (obj)[i];
-	  if (SCM_INUMP (val))
+	  if (SCM_I_INUMP (val))
 	    {
-	      v = SCM_INUM (val);
+	      v = SCM_I_INUM (val);
 	      if (v < -128 || v > 255)
 		scm_out_of_range (0, obj);
 	    }
@@ -246,7 +246,7 @@ gh_scm2chars (SCM obj, char *m)
       if (m == NULL)
 	return NULL;
       for (i = 0; i < n; ++i)
-	m[i] = SCM_INUM (SCM_VELTS (obj)[i]);
+	m[i] = SCM_I_INUM (SCM_VELTS (obj)[i]);
       break;
 #if SCM_HAVE_ARRAYS
     case scm_tc7_byvect:
@@ -291,9 +291,9 @@ gh_scm2shorts (SCM obj, short *m)
       for (i = 0; i < n; ++i)
 	{
 	  val = SCM_VELTS (obj)[i];
-	  if (SCM_INUMP (val))
+	  if (SCM_I_INUMP (val))
 	    {
-	      v = SCM_INUM (val);
+	      v = SCM_I_INUM (val);
 	      if (v < -32768 || v > 65535)
 		scm_out_of_range (0, obj);
 	    }
@@ -305,7 +305,7 @@ gh_scm2shorts (SCM obj, short *m)
       if (m == NULL)
 	return NULL;
       for (i = 0; i < n; ++i)
-	m[i] = SCM_INUM (SCM_VELTS (obj)[i]);
+	m[i] = SCM_I_INUM (SCM_VELTS (obj)[i]);
       break;
 #if SCM_HAVE_ARRAYS
     case scm_tc7_svect:
@@ -341,7 +341,7 @@ gh_scm2longs (SCM obj, long *m)
       for (i = 0; i < n; ++i)
 	{
 	  val = SCM_VELTS (obj)[i];
-	  if (!SCM_INUMP (val) && !SCM_BIGP (val))
+	  if (!SCM_I_INUMP (val) && !SCM_BIGP (val))
 	    scm_wrong_type_arg (0, 0, obj);
 	}
       if (m == 0)
@@ -351,8 +351,8 @@ gh_scm2longs (SCM obj, long *m)
       for (i = 0; i < n; ++i)
 	{
 	  val = SCM_VELTS (obj)[i];
-	  m[i] = SCM_INUMP (val) 
-	    ? SCM_INUM (val) 
+	  m[i] = SCM_I_INUMP (val) 
+	    ? SCM_I_INUM (val) 
 	    : scm_num2long (val, 0, NULL);
 	}
       break;
@@ -391,7 +391,7 @@ gh_scm2floats (SCM obj, float *m)
       for (i = 0; i < n; ++i)
 	{
 	  val = SCM_VELTS (obj)[i];
-	  if (!SCM_INUMP (val)
+	  if (!SCM_I_INUMP (val)
 	      && !(SCM_BIGP (val) || SCM_REALP (val)))
 	    scm_wrong_type_arg (0, 0, val);
 	}
@@ -402,8 +402,8 @@ gh_scm2floats (SCM obj, float *m)
       for (i = 0; i < n; ++i)
 	{
 	  val = SCM_VELTS (obj)[i];
-	  if (SCM_INUMP (val))
-	    m[i] = SCM_INUM (val);
+	  if (SCM_I_INUMP (val))
+	    m[i] = SCM_I_INUM (val);
 	  else if (SCM_BIGP (val))
 	    m[i] = scm_num2long (val, 0, NULL);
 	  else
@@ -454,7 +454,7 @@ gh_scm2doubles (SCM obj, double *m)
       for (i = 0; i < n; ++i)
 	{
 	  val = SCM_VELTS (obj)[i];
-	  if (!SCM_INUMP (val)
+	  if (!SCM_I_INUMP (val)
 	      && !(SCM_BIGP (val) || SCM_REALP (val)))
 	    scm_wrong_type_arg (0, 0, val);
 	}
@@ -465,8 +465,8 @@ gh_scm2doubles (SCM obj, double *m)
       for (i = 0; i < n; ++i)
 	{
 	  val = SCM_VELTS (obj)[i];
-	  if (SCM_INUMP (val))
-	    m[i] = SCM_INUM (val);
+	  if (SCM_I_INUMP (val))
+	    m[i] = SCM_I_INUM (val);
 	  else if (SCM_BIGP (val))
 	    m[i] = scm_num2long (val, 0, NULL);
 	  else

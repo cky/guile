@@ -196,7 +196,7 @@ SCM_DEFINE (scm_length, "length", 1, 0, 0,
 {
   long i;
   SCM_VALIDATE_LIST_COPYLEN (1, lst, i);
-  return SCM_I_MAKINUM (i);
+  return scm_from_long (i);
 }
 #undef FUNC_NAME
 

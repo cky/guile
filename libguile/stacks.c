@@ -457,7 +457,7 @@ SCM_DEFINE (scm_make_stack, "make-stack", 1, 0, 1,
   size = n * SCM_FRAME_N_SLOTS;
 
   /* Make the stack object. */
-  stack = scm_make_struct (scm_stack_type, SCM_I_MAKINUM (size), SCM_EOL);
+  stack = scm_make_struct (scm_stack_type, scm_from_long (size), SCM_EOL);
   SCM_STACK (stack) -> id = id;
   iframe = &SCM_STACK (stack) -> tail[0];
   SCM_STACK (stack) -> frames = iframe;
@@ -483,10 +483,10 @@ SCM_DEFINE (scm_make_stack, "make-stack", 1, 0, 1,
 	}
       
       narrow_stack (stack,
-		    SCM_INUMP (inner_cut) ? SCM_INUM (inner_cut) : n,
-		    SCM_INUMP (inner_cut) ? 0 : inner_cut,
-		    SCM_INUMP (outer_cut) ? SCM_INUM (outer_cut) : n,
-		    SCM_INUMP (outer_cut) ? 0 : outer_cut);
+		    scm_is_integer (inner_cut) ? scm_to_int (inner_cut) : n,
+		    scm_is_integer (inner_cut) ? 0 : inner_cut,
+		    scm_is_integer (outer_cut) ? scm_to_int (outer_cut) : n,
+		    scm_is_integer (outer_cut) ? 0 : outer_cut);
 
       n = SCM_STACK (stack) -> length;
     }
@@ -562,7 +562,7 @@ SCM_DEFINE (scm_stack_length, "stack-length", 1, 0, 0,
 #define FUNC_NAME s_scm_stack_length
 {
   SCM_VALIDATE_STACK (1, stack);
-  return SCM_I_MAKINUM (SCM_STACK_LENGTH (stack));
+  return scm_from_int (SCM_STACK_LENGTH (stack));
 }
 #undef FUNC_NAME
 
@@ -611,7 +611,7 @@ SCM_DEFINE (scm_last_stack_frame, "last-stack-frame", 1, 0, 0,
   if (!dframe || SCM_VOIDFRAMEP (*dframe))
     return SCM_BOOL_F;
 
-  stack = scm_make_struct (scm_stack_type, SCM_I_MAKINUM (SCM_FRAME_N_SLOTS),
+  stack = scm_make_struct (scm_stack_type, scm_from_int (SCM_FRAME_N_SLOTS),
 			   SCM_EOL);
   SCM_STACK (stack) -> length = 1;
   SCM_STACK (stack) -> frames = &SCM_STACK (stack) -> tail[0];
@@ -628,7 +628,7 @@ SCM_DEFINE (scm_frame_number, "frame-number", 1, 0, 0,
 #define FUNC_NAME s_scm_frame_number
 {
   SCM_VALIDATE_FRAME (1, frame);
-  return SCM_I_MAKINUM (SCM_FRAME_NUMBER (frame));
+  return scm_from_int (SCM_FRAME_NUMBER (frame));
 }
 #undef FUNC_NAME
 
@@ -673,11 +673,11 @@ SCM_DEFINE (scm_frame_previous, "frame-previous", 1, 0, 0,
 {
   unsigned long int n;
   SCM_VALIDATE_FRAME (1, frame);
-  n = SCM_INUM (SCM_CDR (frame)) + 1;
+  n = scm_to_ulong (SCM_CDR (frame)) + 1;
   if (n >= SCM_STACK_LENGTH (SCM_CAR (frame)))
     return SCM_BOOL_F;
   else
-    return scm_cons (SCM_CAR (frame), SCM_I_MAKINUM (n));
+    return scm_cons (SCM_CAR (frame), scm_from_ulong (n));
 }
 #undef FUNC_NAME
 
@@ -689,11 +689,11 @@ SCM_DEFINE (scm_frame_next, "frame-next", 1, 0, 0,
 {
   unsigned long int n;
   SCM_VALIDATE_FRAME (1, frame);
-  n = SCM_INUM (SCM_CDR (frame));
+  n = scm_to_ulong (SCM_CDR (frame));
   if (n == 0)
     return SCM_BOOL_F;
   else
-    return scm_cons (SCM_CAR (frame), SCM_I_MAKINUM (n - 1));
+    return scm_cons (SCM_CAR (frame), scm_from_ulong (n - 1));
 }
 #undef FUNC_NAME
 

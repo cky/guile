@@ -283,7 +283,7 @@ SCM_DEFINE (scm_setgroups, "setgroups", 1, 0, 0,
 
   size = ngroups * sizeof (GETGROUPS_T);
   if (size / sizeof (GETGROUPS_T) != ngroups)
-    SCM_OUT_OF_RANGE (SCM_ARG1, SCM_I_MAKINUM (ngroups));
+    SCM_OUT_OF_RANGE (SCM_ARG1, scm_from_int (ngroups));
   groups = scm_malloc (size);
   for(i = 0; i < ngroups; i++)
     groups [i] = SCM_NUM2ULONG (1, SCM_VECTOR_REF (group_vec, i));
@@ -318,9 +318,9 @@ SCM_DEFINE (scm_getpwuid, "getpw", 0, 1, 0,
 	  return SCM_BOOL_F;
 	}
     }
-  else if (SCM_INUMP (user))
+  else if (scm_is_integer (user))
     {
-      entry = getpwuid (SCM_INUM (user));
+      entry = getpwuid (scm_to_int (user));
     }
   else
     {
@@ -387,8 +387,8 @@ SCM_DEFINE (scm_getgrgid, "getgr", 0, 1, 0,
 	  return SCM_BOOL_F;
 	}
     }
-  else if (SCM_INUMP (name))
-    SCM_SYSCALL (entry = getgrgid (SCM_INUM (name)));
+  else if (scm_is_integer (name))
+    SCM_SYSCALL (entry = getgrgid (scm_to_int (name)));
   else
     {
       SCM_VALIDATE_STRING (1, name);
@@ -530,7 +530,7 @@ SCM_DEFINE (scm_status_exit_val, "status:exit-val", 1, 0, 0,
   int lstatus;
 
   /* On Ultrix, the WIF... macros assume their argument is an lvalue;
-     go figure.  SCM_INUM does not yield an lvalue.  */
+     go figure.  */
   lstatus = scm_to_int (status);
   if (WIFEXITED (lstatus))
     return (scm_from_int (WEXITSTATUS (lstatus)));
@@ -579,7 +579,7 @@ SCM_DEFINE (scm_getppid, "getppid", 0, 0, 0,
 	    "process.")
 #define FUNC_NAME s_scm_getppid
 {
-  return SCM_I_MAKINUM (0L + getppid ());
+  return scm_from_int (getppid ());
 }
 #undef FUNC_NAME
 #endif /* HAVE_GETPPID */
@@ -591,7 +591,7 @@ SCM_DEFINE (scm_getuid, "getuid", 0, 0, 0,
 	    "Return an integer representing the current real user ID.")
 #define FUNC_NAME s_scm_getuid
 {
-  return SCM_I_MAKINUM (0L + getuid ());
+  return scm_from_int (getuid ());
 }
 #undef FUNC_NAME
 
@@ -602,7 +602,7 @@ SCM_DEFINE (scm_getgid, "getgid", 0, 0, 0,
 	    "Return an integer representing the current real group ID.")
 #define FUNC_NAME s_scm_getgid
 {
-  return SCM_I_MAKINUM (0L + getgid ());
+  return scm_from_int (getgid ());
 }
 #undef FUNC_NAME
 
@@ -617,9 +617,9 @@ SCM_DEFINE (scm_geteuid, "geteuid", 0, 0, 0,
 #define FUNC_NAME s_scm_geteuid
 {
 #ifdef HAVE_GETEUID
-  return SCM_I_MAKINUM (0L + geteuid ());
+  return scm_from_int (geteuid ());
 #else
-  return SCM_I_MAKINUM (0L + getuid ());
+  return scm_from_int (getuid ());
 #endif
 }
 #undef FUNC_NAME
@@ -634,9 +634,9 @@ SCM_DEFINE (scm_getegid, "getegid", 0, 0, 0,
 #define FUNC_NAME s_scm_getegid
 {
 #ifdef HAVE_GETEUID
-  return SCM_I_MAKINUM (0L + getegid ());
+  return scm_from_int (getegid ());
 #else
-  return SCM_I_MAKINUM (0L + getgid ());
+  return scm_from_int (getgid ());
 #endif
 }
 #undef FUNC_NAME
@@ -727,7 +727,7 @@ SCM_DEFINE (scm_getpgrp, "getpgrp", 0, 0, 0,
 {
   int (*fn)();
   fn = (int (*) ()) getpgrp;
-  return SCM_I_MAKINUM (fn (0));
+  return scm_from_int (fn (0));
 }
 #undef FUNC_NAME
 #endif /* HAVE_GETPGRP */
@@ -831,7 +831,7 @@ SCM_DEFINE (scm_tcgetpgrp, "tcgetpgrp", 1, 0, 0,
   fd = SCM_FPORT_FDES (port);
   if ((pgid = tcgetpgrp (fd)) == -1)
     SCM_SYSERROR;
-  return SCM_I_MAKINUM (pgid);
+  return scm_from_int (pgid);
 }
 #undef FUNC_NAME    
 #endif /* HAVE_TCGETPGRP */
@@ -1016,7 +1016,7 @@ SCM_DEFINE (scm_fork, "primitive-fork", 0, 0, 0,
   pid = fork ();
   if (pid == -1)
     SCM_SYSERROR;
-  return SCM_I_MAKINUM (0L+pid);
+  return scm_from_int (pid);
 }
 #undef FUNC_NAME
 #endif /* HAVE_FORK */
@@ -1211,7 +1211,7 @@ SCM_DEFINE (scm_getpid, "getpid", 0, 0, 0,
 	    "Return an integer representing the current process ID.")
 #define FUNC_NAME s_scm_getpid
 {
-  return SCM_I_MAKINUM ((unsigned long) getpid ());
+  return scm_from_ulong (getpid ());
 }
 #undef FUNC_NAME
 
@@ -1275,8 +1275,8 @@ SCM_DEFINE (scm_putenv, "putenv", 1, 0, 0,
       if (ptr[SCM_STRING_LENGTH (str) - 1] == '=')
         {
 	  char *alt;
-          SCM name = scm_substring (str, SCM_I_MAKINUM (0),
-                                    SCM_I_MAKINUM (SCM_STRING_LENGTH (str) - 1));
+          SCM name = scm_substring (str, scm_from_int (0),
+                                    scm_from_int (SCM_STRING_LENGTH (str)-1));
           if (getenv (SCM_STRING_CHARS (name)) == NULL)
             {
               alt = scm_malloc (SCM_STRING_LENGTH (str) + 2);
@@ -1819,70 +1819,70 @@ scm_init_posix ()
   scm_add_feature ("EIDs");
 #endif
 #ifdef WAIT_ANY
-  scm_c_define ("WAIT_ANY", SCM_I_MAKINUM (WAIT_ANY));
+  scm_c_define ("WAIT_ANY", scm_from_int (WAIT_ANY));
 #endif
 #ifdef WAIT_MYPGRP
-  scm_c_define ("WAIT_MYPGRP", SCM_I_MAKINUM (WAIT_MYPGRP));
+  scm_c_define ("WAIT_MYPGRP", scm_from_int (WAIT_MYPGRP));
 #endif
 #ifdef WNOHANG
-  scm_c_define ("WNOHANG", SCM_I_MAKINUM (WNOHANG));
+  scm_c_define ("WNOHANG", scm_from_int (WNOHANG));
 #endif
 #ifdef WUNTRACED
-  scm_c_define ("WUNTRACED", SCM_I_MAKINUM (WUNTRACED));
+  scm_c_define ("WUNTRACED", scm_from_int (WUNTRACED));
 #endif
 
   /* access() symbols.  */
-  scm_c_define ("R_OK", SCM_I_MAKINUM (R_OK));
-  scm_c_define ("W_OK", SCM_I_MAKINUM (W_OK));
-  scm_c_define ("X_OK", SCM_I_MAKINUM (X_OK));
-  scm_c_define ("F_OK", SCM_I_MAKINUM (F_OK));
+  scm_c_define ("R_OK", scm_from_int (R_OK));
+  scm_c_define ("W_OK", scm_from_int (W_OK));
+  scm_c_define ("X_OK", scm_from_int (X_OK));
+  scm_c_define ("F_OK", scm_from_int (F_OK));
 
 #ifdef LC_COLLATE
-  scm_c_define ("LC_COLLATE", SCM_I_MAKINUM (LC_COLLATE));
+  scm_c_define ("LC_COLLATE", scm_from_int (LC_COLLATE));
 #endif
 #ifdef LC_CTYPE
-  scm_c_define ("LC_CTYPE", SCM_I_MAKINUM (LC_CTYPE));
+  scm_c_define ("LC_CTYPE", scm_from_int (LC_CTYPE));
 #endif
 #ifdef LC_MONETARY
-  scm_c_define ("LC_MONETARY", SCM_I_MAKINUM (LC_MONETARY));
+  scm_c_define ("LC_MONETARY", scm_from_int (LC_MONETARY));
 #endif
 #ifdef LC_NUMERIC
-  scm_c_define ("LC_NUMERIC", SCM_I_MAKINUM (LC_NUMERIC));
+  scm_c_define ("LC_NUMERIC", scm_from_int (LC_NUMERIC));
 #endif
 #ifdef LC_TIME
-  scm_c_define ("LC_TIME", SCM_I_MAKINUM (LC_TIME));
+  scm_c_define ("LC_TIME", scm_from_int (LC_TIME));
 #endif
 #ifdef LC_MESSAGES
-  scm_c_define ("LC_MESSAGES", SCM_I_MAKINUM (LC_MESSAGES));
+  scm_c_define ("LC_MESSAGES", scm_from_int (LC_MESSAGES));
 #endif
 #ifdef LC_ALL
-  scm_c_define ("LC_ALL", SCM_I_MAKINUM (LC_ALL));
+  scm_c_define ("LC_ALL", scm_from_int (LC_ALL));
 #endif
 #ifdef PIPE_BUF
   scm_c_define ("PIPE_BUF", scm_long2num (PIPE_BUF));
 #endif
 
 #ifdef PRIO_PROCESS
-  scm_c_define ("PRIO_PROCESS", SCM_I_MAKINUM (PRIO_PROCESS));
+  scm_c_define ("PRIO_PROCESS", scm_from_int (PRIO_PROCESS));
 #endif
 #ifdef PRIO_PGRP
-  scm_c_define ("PRIO_PGRP", SCM_I_MAKINUM (PRIO_PGRP));
+  scm_c_define ("PRIO_PGRP", scm_from_int (PRIO_PGRP));
 #endif
 #ifdef PRIO_USER
-  scm_c_define ("PRIO_USER", SCM_I_MAKINUM (PRIO_USER));
+  scm_c_define ("PRIO_USER", scm_from_int (PRIO_USER));
 #endif
 
 #ifdef LOCK_SH
-  scm_c_define ("LOCK_SH", SCM_I_MAKINUM (LOCK_SH));
+  scm_c_define ("LOCK_SH", scm_from_int (LOCK_SH));
 #endif
 #ifdef LOCK_EX
-  scm_c_define ("LOCK_EX", SCM_I_MAKINUM (LOCK_EX));
+  scm_c_define ("LOCK_EX", scm_from_int (LOCK_EX));
 #endif
 #ifdef LOCK_UN
-  scm_c_define ("LOCK_UN", SCM_I_MAKINUM (LOCK_UN));
+  scm_c_define ("LOCK_UN", scm_from_int (LOCK_UN));
 #endif
 #ifdef LOCK_NB
-  scm_c_define ("LOCK_NB", SCM_I_MAKINUM (LOCK_NB));
+  scm_c_define ("LOCK_NB", scm_from_int (LOCK_NB));
 #endif
 
 #include "libguile/cpp_sig_symbols.c"

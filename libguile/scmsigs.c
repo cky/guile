@@ -327,15 +327,15 @@ SCM_DEFINE (scm_sigaction_for_thread, "sigaction", 1, 3, 0,
   old_handler = SCM_VECTOR_REF(*signal_handlers, csig);
   if (SCM_UNBNDP (handler))
     query_only = 1;
-  else if (SCM_EQ_P (scm_integer_p (handler), SCM_BOOL_T))
+  else if (scm_is_integer (handler))
     {
       if (SCM_NUM2LONG (2, handler) == (long) SIG_DFL
 	  || SCM_NUM2LONG (2, handler) == (long) SIG_IGN)
 	{
 #ifdef HAVE_SIGACTION
-	  action.sa_handler = (SIGRETTYPE (*) (int)) SCM_INUM (handler);
+	  action.sa_handler = (SIGRETTYPE (*) (int)) scm_to_int (handler);
 #else
-	  chandler = (SIGRETTYPE (*) (int)) SCM_INUM (handler);
+	  chandler = (SIGRETTYPE (*) (int)) scm_to_int (handler);
 #endif
 	  install_handler (csig, SCM_BOOL_F, SCM_BOOL_F);
 	}
@@ -426,7 +426,7 @@ SCM_DEFINE (scm_sigaction_for_thread, "sigaction", 1, 3, 0,
   if (old_action.sa_handler == SIG_DFL || old_action.sa_handler == SIG_IGN)
     old_handler = scm_long2num ((long) old_action.sa_handler);
   SCM_ALLOW_INTS;
-  return scm_cons (old_handler, SCM_I_MAKINUM (old_action.sa_flags));
+  return scm_cons (old_handler, scm_from_int (old_action.sa_flags));
 #else
   if (query_only)
     {
@@ -445,7 +445,7 @@ SCM_DEFINE (scm_sigaction_for_thread, "sigaction", 1, 3, 0,
   if (old_chandler == SIG_DFL || old_chandler == SIG_IGN)
     old_handler = scm_long2num ((long) old_chandler);
   SCM_ALLOW_INTS;
-  return scm_cons (old_handler, SCM_I_MAKINUM (0));
+  return scm_cons (old_handler, scm_from_int (0));
 #endif
 }
 #undef FUNC_NAME
@@ -688,9 +688,9 @@ scm_init_scmsigs ()
 
 #if defined(HAVE_SETITIMER) || defined(HAVE_GETITIMER)
   /* Stuff needed by setitimer and getitimer. */
-  scm_c_define ("ITIMER_REAL", SCM_I_MAKINUM (ITIMER_REAL));
-  scm_c_define ("ITIMER_VIRTUAL", SCM_I_MAKINUM (ITIMER_VIRTUAL));
-  scm_c_define ("ITIMER_PROF", SCM_I_MAKINUM (ITIMER_PROF));
+  scm_c_define ("ITIMER_REAL", scm_from_int (ITIMER_REAL));
+  scm_c_define ("ITIMER_VIRTUAL", scm_from_int (ITIMER_VIRTUAL));
+  scm_c_define ("ITIMER_PROF", scm_from_int (ITIMER_PROF));
 #endif /* defined(HAVE_SETITIMER) || defined(HAVE_GETITIMER) */
 
 #include "libguile/scmsigs.x"

@@ -149,7 +149,7 @@ SCM_DEFINE (scm_make_cclo, "make-cclo", 2, 0, 0,
 	    "@var{len} objects for its usage.")
 #define FUNC_NAME s_scm_make_cclo
 {
-  return scm_makcclo (proc, SCM_INUM (len));
+  return scm_makcclo (proc, scm_to_size_t (len));
 }
 #undef FUNC_NAME
 #endif
