@@ -2070,15 +2070,16 @@
   (register-modules #f)
   (or-map (lambda (modinfo)
 	    (if (equal? (car modinfo) modname)
-		(set! registered-modules (delq! modinfo registered-modules))
-		(let ((mod (resolve-module modname #f)))
-		  (save-module-excursion
-		   (lambda ()
-		     (set-current-module mod)
-		     (set-module-public-interface! mod mod)
-		     (dynamic-call (cadr modinfo) (caddr modinfo))
-		     ))
-		  #t)
+		(begin
+		  (set! registered-modules (delq! modinfo registered-modules))
+		  (let ((mod (resolve-module modname #f)))
+		    (save-module-excursion
+		     (lambda ()
+		       (set-current-module mod)
+		       (set-module-public-interface! mod mod)
+		       (dynamic-call (cadr modinfo) (caddr modinfo))
+		       ))
+		    #t))
 		#f))
 	  registered-modules))
 
