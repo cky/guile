@@ -124,10 +124,7 @@
                                        ((#\newline) "newline")
                                        (else        (make-string 1 obj)))
                                      (out "#\\" col))))
-          ((input-port? obj)  (out "#[input-port]" col))
-          ((output-port? obj) (out "#[output-port]" col))
-          ((eof-object? obj)  (out "#[eof-object]" col))
-          (else               (out "#[unknown]" col))))
+	  (else               (out (object->string obj) col))))
 
   (define (pp obj col)
 
