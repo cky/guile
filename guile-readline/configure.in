@@ -12,7 +12,7 @@ done
 
 AC_CHECK_LIB(readline, main)
 if test $ac_cv_lib_readline_main = no; then
-  AC_MSG_ERROR([libreadline was not found on your system.])
+  AC_MSG_WARN([libreadline was not found on your system.])
 fi
 
 AC_CHECK_FUNCS(rl_clear_signals rl_cleanup_after_signal)
