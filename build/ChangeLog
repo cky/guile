@@ -1,3 +1,7 @@
+Mon Sep 29 23:53:14 1997  Jim Blandy  <jimb@totoro.red-bean.com>
+
+	* Makefile.in: Regenerated with automake 1.2c.
+
 Sat Sep 27 23:15:26 1997  Jim Blandy  <jimb@totoro.red-bean.com>
 
 	* New directory --- the build-guile command, intended to help
