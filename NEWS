@@ -95,6 +95,12 @@ objects.
 
 * Changes to the stand-alone interpreter
 
+** New command line option --debug
+
+Start Guile with debugging evaluator and backtraces enabled.
+
+This is useful when debugging your .guile init file or scripts.
+
 ** New help facility
 
 Usage: (help NAME) gives documentation about objects named NAME (a symbol)
@@ -245,6 +251,23 @@ GUILE_INIT_SEGMENT_SIZE_2, GUILE_MIN_YIELD_2
 
 (See entry "Way for application to customize GC parameters" under
  section "Changes to the scm_ interface" below.)
+
+** Guile now implements reals using 4-word cells
+
+This speeds up computation with reals.  (They were earlier allocated
+with `malloc'.)  There is still some room for optimizations, however.
+
+** Some further steps toward POSIX thread support have been taken
+
+*** Guile's critical sections (SCM_DEFER/ALLOW_INTS)
+don't have much effect any longer, and many of them will be removed in
+next release.
+
+*** Signals
+are only handled at the top of the evaluator loop, immediately after
+I/O, and in scm_equalp.
+
+*** The GC can allocate thread private pools of pairs.
 
 * Changes to Scheme functions and syntax
 
@@ -572,6 +595,18 @@ respectively before callong scm_boot_guile.
 
 ** scm_protect_object/scm_unprotect_object now nest
 
+This means that you can call scm_protect_object multiple times on an
+object and count on the object being protected until
+scm_unprotect_object has been call the same number of times.
+
+The functions also have better time complexity.
+
+Still, it is usually possible to structure the application in a way
+that you don't need to use these functions.  For example, if you use a
+protected standard Guile list to keep track of live objects rather
+than some custom data type, objects will die a natural death when they
+are no longer needed.
+
 ** Deprecated type tags:  scm_tc16_flo, scm_tc_flo, scm_tc_dblr, scm_tc_dblc
 
 Guile does not provide the float representation for inexact real numbers any
@@ -596,6 +631,8 @@ until this issue has been settled.
 
 (This was introduced already in release 1.3.4 but was not documented
  until now.)
+
+** gdb_print now prints "*** Guile not initialized ***" until Guile initialized
 
 * Changes to system call interfaces:
 
