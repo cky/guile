@@ -42,6 +42,8 @@
 
 
 
+#include "libguile/_scm.h" /* config.h, _scm.h, __scm.h should be first */
+
 #include <unistd.h>
 #include <stdio.h>
 #include <assert.h>
@@ -336,7 +338,7 @@ fair_cond_wait (pthread_cond_t *c, fair_mutex *m)
 
 /* Return 1 when the mutex was signalled and 0 when not. */
 static int
-fair_cond_timedwait (pthread_cond_t *c, fair_mutex *m, struct timespec *at)
+fair_cond_timedwait (pthread_cond_t *c, fair_mutex *m, scm_t_timespec *at)
 {
   int res;
   scm_copt_thread *t = m->owner;
@@ -436,7 +438,7 @@ block ()
    reached.  Return 1 when it has been unblocked; 0 otherwise.
  */
 static int
-timed_block (struct timespec *at)
+timed_block (scm_t_timespec *at)
 {
   int res;
   scm_copt_thread *t = suspend ();
@@ -747,7 +749,7 @@ scm_timed_wait_condition_variable (SCM cv, SCM mx, SCM t)
 #define FUNC_NAME s_wait_condition_variable
 {
   scm_copt_cond *c;
-  struct timespec waittime;
+  scm_t_timespec waittime;
   int res;
 
   SCM_ASSERT (SCM_CONDVARP (cv),
@@ -893,7 +895,7 @@ scm_threads_mark_stacks (void)
 	  /* Active thread */
 	  /* stack_len is long rather than sizet in order to guarantee
 	     that &stack_len is long aligned */
-#ifdef STACK_GROWS_UP
+#ifdef SCM_STACK_GROWS_UP
 	  long stack_len = ((SCM_STACKITEM *) (&t) -
 			    (SCM_STACKITEM *) thread->base);
 	  
@@ -940,7 +942,7 @@ scm_threads_mark_stacks (void)
       else
 	{
 	  /* Suspended thread */
-#ifdef STACK_GROWS_UP
+#ifdef SCM_STACK_GROWS_UP
 	  long stack_len = t->top - t->base;
 	  scm_mark_locations (t->base, stack_len);
 #else
