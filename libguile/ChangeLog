@@ -1,3 +1,8 @@
+2003-03-19  Marius Vollmer  <mvo@zagadka.de>
+
+	* gc_os_dep.c: Added defines for sparc-unknown-netbsdelf1.5 from
+	Adrian Bunk.  Thanks!
+
 2003-03-19  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* goops.c (make_class_from_template): New fourth arg:
