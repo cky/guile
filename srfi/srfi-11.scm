@@ -25,14 +25,14 @@
 ;;
 ;; Current approach is to translate
 ;;
-;;   (let-values (((x y z) (foo a b))
+;;   (let-values (((x y . z) (foo a b))
 ;;                ((p q) (bar c)))
 ;;     (baz x y z p q))
 ;;
 ;; into
 ;;
 ;;   (call-with-values (lambda () (foo a b))
-;;     (lambda (<tmp-x> <tmp-y> <tmp-z>)
+;;     (lambda (<tmp-x> <tmp-y> . <tmp-z>)
 ;;       (call-with-values (lambda () (bar c))
 ;;         (lambda (<tmp-p> <tmp-q>)
 ;;           (let ((x <tmp-x>)
@@ -149,19 +149,39 @@
 ;; broken -- right now (as of 1.4.1, it doesn't generate unique
 ;; symbols)
 (define-macro (let-values vars . body)
-  (define (let-values-helper vars body prev-tmps)
+
+  (define (map-1-dot proc elts)
+    ;; map over one optionally dotted (a b c . d) list, producing an
+    ;; optionally dotted result.
+    (cond
+     ((null? elts) '())
+     ((pair? elts) (cons (proc (car elts)) (map-1-dot proc (cdr elts))))
+     (else (proc elts))))
+  
+  (define (undot-list lst)
+    ;; produce a non-dotted list from a possibly dotted list.
+    (cond
+     ((null? lst) '())
+     ((pair? lst) (cons (car lst) (undot-list (cdr lst))))
+     (else (list lst))))
+
+  (define (let-values-helper vars body prev-let-vars)
     (let* ((var-binding (car vars))
-           (new-tmps (map (lambda (sym) (list sym (gentemp)))
-                          (car var-binding)))
-           (tmps (append new-tmps prev-tmps)))
+           (new-tmps (map-1-dot (lambda (sym) (gentemp))
+                                (car var-binding)))
+           (let-vars (map (lambda (sym tmp) (list sym tmp))
+                          (undot-list (car var-binding))
+                          (undot-list new-tmps))))
+      
       (if (null? (cdr vars))
           `(call-with-values (lambda () ,(cadr var-binding))
-             (lambda ,(map cadr new-tmps)
-               (let ,tmps
+             (lambda ,new-tmps
+               (let ,(apply append let-vars prev-let-vars)
                  ,@body)))
           `(call-with-values (lambda () ,(cadr var-binding))
-             (lambda ,(map cadr new-tmps)
-               ,(let-values-helper (cdr vars) body tmps))))))
+             (lambda ,new-tmps
+               ,(let-values-helper (cdr vars) body
+                                   (cons let-vars prev-let-vars)))))))
   
   (if (null? vars)
       `(begin ,@body)
