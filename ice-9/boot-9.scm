@@ -2076,7 +2076,7 @@
 	  (newline cep)
 	  (and after-backtrace-hook (after-backtrace-hook))))
     (and before-error-hook (before-error-hook))
-    (apply display-error the-last-stack cep arg-list)
+    (apply display-error the-last-stack cep args)
     (and after-error-hook (after-error-hook))
     (force-output cep)
     (throw 'abort key)))
