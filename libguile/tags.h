@@ -137,7 +137,6 @@ typedef unsigned long scm_t_bits;
  * macro instead, which is the equivalent of the scheme predicate 'eq?'.
  */
 #define scm_is_eq(x, y) (SCM_UNPACK (x) == SCM_UNPACK (y))
-#define SCM_EQ_P scm_is_eq
 
 
 
@@ -532,7 +531,7 @@ enum scm_tc8_tags
 #define SCM_ELISP_NIL		SCM_MAKIFLAG (7)
 
 
-#define SCM_UNBNDP(x)		(SCM_EQ_P ((x), SCM_UNDEFINED))
+#define SCM_UNBNDP(x)		(scm_is_eq ((x), SCM_UNDEFINED))
 
 
 
