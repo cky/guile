@@ -1,3 +1,9 @@
+2002-10-15  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* Makefile.am: Replaced "$<" in non-pattern rules with its value.
+	This is to support makes that know about "$<" only in pattern
+	rules, like Sun's make.
+
 2002-10-13  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* Makefile.am (libpath.h): Fixed typo in top_srcdir_absolute
