@@ -215,7 +215,13 @@
     (let ((a (make-uniform-vector 1 #\nul)))
       (pass-if "0"    (array-fill! a 0)    #t)
       (pass-if "127" (array-fill! a 127)   #t)
-      (pass-if "-128" (array-fill! a -128) #t)))
+      (pass-if "-128" (array-fill! a -128) #t)
+      (pass-if-exception "128" exception:out-of-range
+	(array-fill! a 128))
+      (pass-if-exception "-129" exception:out-of-range
+	(array-fill! a -129))
+      (pass-if-exception "symbol" exception:wrong-type-arg
+	(array-fill! a 'symbol))))
 
   (with-test-prefix "short"
     (let ((a (make-uniform-vector 1 's)))
