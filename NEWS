@@ -748,6 +748,10 @@ objects.
 
 Provides a macro `time', which displays execution time of a given form.
 
+** New module (ice-9 history)
+
+Loading this module enables value history in the repl.
+
 * Changes to the stand-alone interpreter
 
 ** New command line option --debug
