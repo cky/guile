@@ -129,10 +129,8 @@ scm_make_gsubr_with_generic (const char *name,
 }
 
 
-SCM_DEFINE (scm_gsubr_apply, "gsubr-apply", 0, 0, 1, 
-           (SCM args),
-"")
-#define FUNC_NAME s_scm_gsubr_apply
+SCM
+scm_gsubr_apply (SCM args)
 {
   SCM self = SCM_CAR(args);
   SCM (*fcn)() = SCM_SUBRF(SCM_GSUBR_PROC(self));
@@ -177,7 +175,6 @@ SCM_DEFINE (scm_gsubr_apply, "gsubr-apply", 0, 0, 1,
   }
   return 0; /* Never reached. */
 }
-#undef FUNC_NAME
 
 
 #ifdef GSUBR_TEST
@@ -205,8 +202,9 @@ gsubr_21l(SCM req1, SCM req2, SCM opt, SCM rst)
 void
 scm_init_gsubr()
 {
-  /* GJB:FIXME:: why is this file not including the .x file? */
-  scm_f_gsubr_apply = scm_make_subr(s_scm_gsubr_apply, scm_tc7_lsubr, scm_gsubr_apply);
+  /* GJB:FIXME:MD: Use scm_make_subr_opt instead -- gsubr-apply should not be a
+     published primitive available at the Scheme level */
+  scm_f_gsubr_apply = scm_make_subr_opt("gsubr-apply", scm_tc7_lsubr, scm_gsubr_apply, 0);
   scm_sym_name = SCM_CAR (scm_sysintern ("name", SCM_UNDEFINED));
   scm_permanent_object (scm_sym_name);
 #ifdef GSUBR_TEST

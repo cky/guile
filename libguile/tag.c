@@ -91,7 +91,7 @@ SCM_CONST_LONG (scm_utag_struct_base, "utag_struct_base", 255);
 
 SCM_DEFINE (scm_tag, "tag", 1, 0, 0, 
             (SCM x),
-"")
+            "Return an integer corresponding to the type of X.  Deprecated.")
 #define FUNC_NAME s_scm_tag
 {
   switch (SCM_ITAG3 (x))

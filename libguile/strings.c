@@ -56,13 +56,13 @@
  */
 
 SCM_DEFINE (scm_string_p, "string?", 1, 0, 0, 
-           (SCM x),
-	    "")
+           (SCM obj),
+	    "Returns #t iff OBJ is a string, else returns #f.")
 #define FUNC_NAME s_scm_string_p
 {
-  if (SCM_IMP (x))
+  if (SCM_IMP (obj))
     return SCM_BOOL_F;
-  return SCM_BOOL(SCM_STRINGP (x));
+  return SCM_BOOL(SCM_STRINGP (obj));
 }
 #undef FUNC_NAME
 
@@ -89,8 +89,8 @@ SCM_REGISTER_PROC(s_list_to_string, "list->string", 1, 0, 0, scm_string);
 
 
 SCM_DEFINE (scm_string, "string", 0, 0, 1, 
-           (SCM chrs),
-	    "")
+            (SCM chrs),
+	    "Returns a newly allocated string composed of the arguments, CHRS.")
 #define FUNC_NAME s_scm_string
 {
   SCM res;
@@ -245,8 +245,12 @@ scm_makfrom0str_opt (const char *src)
 
 
 SCM_DEFINE (scm_make_string, "make-string", 1, 1, 0,
-           (SCM k, SCM chr),
-	    "")
+            (SCM k, SCM chr),
+	    "Returns a newly allocated string of\n"
+            "length K.  If CHR is given, then all elements of the string\n"
+            "are initialized to CHR, otherwise the contents of the\n"
+            "STRING are unspecified.\n"
+            "")
 #define FUNC_NAME s_scm_make_string
 {
   SCM res;
@@ -268,18 +272,19 @@ SCM_DEFINE (scm_make_string, "make-string", 1, 1, 0,
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_string_length, "string-length", 1, 0, 0, 
-           (SCM str),
-	    "")
+           (SCM string),
+	    "Returns the number of characters in STRING")
 #define FUNC_NAME s_scm_string_length
 {
-  SCM_VALIDATE_ROSTRING (1,str);
-  return SCM_MAKINUM (SCM_ROLENGTH (str));
+  SCM_VALIDATE_ROSTRING (1,string);
+  return SCM_MAKINUM (SCM_ROLENGTH (string));
 }
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_string_ref, "string-ref", 1, 1, 0,
-           (SCM str, SCM k),
-	    "")
+            (SCM str, SCM k),
+	    "Returns character K of STR using zero-origin indexing.\n"
+            "K must be a valid index of STR.")
 #define FUNC_NAME s_scm_string_ref
 {
   SCM_VALIDATE_ROSTRING (1,str);
@@ -290,8 +295,9 @@ SCM_DEFINE (scm_string_ref, "string-ref", 1, 1, 0,
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_string_set_x, "string-set!", 3, 0, 0,
-           (SCM str, SCM k, SCM chr),
-	    "")
+            (SCM str, SCM k, SCM chr),
+	    "Stores CHR in element K of STRING and returns an unspecified value.\n"
+            "K must be a valid index of STR.")
 #define FUNC_NAME s_scm_string_set_x
 {
   SCM_VALIDATE_RWSTRING (1,str);
@@ -306,7 +312,11 @@ SCM_DEFINE (scm_string_set_x, "string-set!", 3, 0, 0,
 
 SCM_DEFINE (scm_substring, "substring", 2, 1, 0,
            (SCM str, SCM start, SCM end),
-	    "")
+	    "Returns a newly allocated string formed from the characters\n"
+            "of STR beginning with index START (inclusive) and ending with\n"
+            "index END (exclusive).\n"
+            "STR must be a string, START and END must be exact integers satisfying:\n\n"
+            "0 <= START <= END <= (string-length STR).")
 #define FUNC_NAME s_scm_substring
 {
   long l;
@@ -322,8 +332,9 @@ SCM_DEFINE (scm_substring, "substring", 2, 1, 0,
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_string_append, "string-append", 0, 0, 1, 
-           (SCM args),
-	    "")
+            (SCM args),
+	    "Returns a newly allocated string whose characters form the\n"
+            "concatenation of the given strings, ARGS.")
 #define FUNC_NAME s_scm_string_append
 {
   SCM res;
