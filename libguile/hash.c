@@ -98,17 +98,17 @@ scm_hasher(SCM obj, unsigned long n, size_t d)
       return (unsigned)(scm_downcase(SCM_CHAR(obj))) % n;
     switch (SCM_UNPACK (obj)) {
 #ifndef SICP
-    case SCM_EOL: 
+    case SCM_UNPACK(SCM_EOL):
       d = 256; 
       break;
 #endif
-    case SCM_BOOL_T: 
+    case SCM_UNPACK(SCM_BOOL_T):
       d = 257; 
       break;
-    case SCM_BOOL_F: 
+    case SCM_UNPACK(SCM_BOOL_F):
       d = 258; 
       break;
-    case SCM_EOF_VAL: 
+    case SCM_UNPACK(SCM_EOF_VAL):
       d = 259; 
       break;
     default: 
