@@ -1,5 +1,4 @@
-/*      Copyright (C) 1995,1996,1997,1998 Free Software Foundation, Inc.
-
+/* Copyright (C) 1995,1996,1997,1998, 1999 Free Software Foundation, Inc.
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2, or (at your option)
@@ -126,6 +125,36 @@ gh_symbol2scm (char *symbol_str)
   return SCM_CAR (scm_intern (symbol_str, strlen (symbol_str)));
 }
 
+SCM
+gh_ints2scm (int *d, int n)
+{
+  int i;
+  SCM v = scm_make_vector(SCM_MAKINUM(n), SCM_UNSPECIFIED);
+  SCM *velts = SCM_VELTS(v);
+
+  for (i = 0; i < n; ++i)
+    velts[i] = (d[i] >= SCM_MOST_NEGATIVE_FIXNUM
+		&& d[i] <= SCM_MOST_POSITIVE_FIXNUM
+		? SCM_MAKINUM (d[i])
+		: scm_long2big (d[i]));
+  return v;
+}
+
+SCM
+gh_doubles2scm (double *d, int n)
+{
+  int i;
+  SCM v = scm_make_vector(SCM_MAKINUM(n), SCM_UNSPECIFIED);
+  SCM *velts = SCM_VELTS(v);
+
+  for(i = 0; i < n; i++) 
+    velts[i] = scm_makdbl(d[i], 0.0);
+  return v;
+}
+
+/* Do not use this function for building normal Scheme vectors, unless
+   you arrange for the elements to be protected from GC while you
+   initialize the vector.  */
 static SCM
 makvect (char* m, int len, int type)
 {
@@ -136,30 +165,6 @@ makvect (char* m, int len, int type)
   SCM_SETLENGTH (ans, len, type);
   SCM_ALLOW_INTS;
   return ans;
-}
-
-SCM
-gh_ints2scm (int *d, int n)
-{
-  SCM *m;
-  int i;
-  m = (SCM*) scm_must_malloc (n * sizeof (SCM), "vector");
-  for (i = 0; i < n; ++i)
-    m[i] = (d[i] >= SCM_MOST_NEGATIVE_FIXNUM
-	    && d[i] <= SCM_MOST_POSITIVE_FIXNUM
-	    ? SCM_MAKINUM (d[i])
-	    : scm_long2big (d[i]));
-  return makvect ((char *) m, n, scm_tc7_vector);
-}
-
-SCM
-gh_doubles2scm (double *d, int n)
-{
-  SCM *m = (SCM*) scm_must_malloc (n * sizeof (SCM), "vector");
-  int i;
-  for (i = 0; i < n; ++i)
-    m[i] = scm_makdbl (d[i], 0.0);
-  return makvect ((char *) m, n, scm_tc7_vector);
 }
 
 SCM
