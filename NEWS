@@ -509,6 +509,11 @@ chapter in the reference manual.
 
 There is no replacement for undefine.
 
+** SRFI-1 delete equality argument order fixed.
+
+In the srfi-1 module delete and delete!, the order of the arguments to
+the "=" procedure now matches the SRFI-1 specification.
+
 * Changes to the C interface
 
 ** Many public #defines with generic names have been made private.
