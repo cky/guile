@@ -1,3 +1,8 @@
+Fri Oct 11 03:58:25 1996  Jim Blandy  <jimb@floss.cyclic.com>
+
+	* eval.c (scm_nconc2last): Revert last change; there seems to be
+	other stuff going on here.
+
 Fri Oct 11 02:43:59 1996  Jim Blandy  <jimb@totoro.cyclic.com>
 
 	* eval.c (scm_nconc2last): Make sure that each element of lst
