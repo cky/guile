@@ -1,5 +1,10 @@
 Sat Oct  5 18:54:03 1996  Mikael Djurfeldt  <mdj@kenneth>
 
+	* boot-9.scm: Added conditional loading of threads.scm.
+
+	* threads.scm: New file.  Modified from the Cygnus-r0.3
+	distribution.
+
 	* boot-9.scm (error-catching-loop): Added handling of key
 	`switch-repl'.
 
