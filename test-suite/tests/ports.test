@@ -1,4 +1,4 @@
-;;;; ports.test --- test suite for Guile I/O ports
+;;;; ports.test --- test suite for Guile I/O ports     -*- scheme -*-
 ;;;; Jim Blandy <jimb@red-bean.com> --- October 1998
 ;;;;
 ;;;; 	Copyright (C) 1999 Free Software Foundation, Inc.
@@ -48,50 +48,54 @@
 ;;;; Normal file ports.
 
 ;;; Write out an s-expression, and read it back.
-(let ((string '("From fairest creatures we desire increase,"
-		"That thereby beauty's rose might never die,"))
-      (filename (test-file)))
-  (let ((port (open-output-file filename)))
-    (write string port)
-    (close-port port))
-  (let ((port (open-input-file filename)))
-    (let ((in-string (read port)))
-      (pass-if "file: write and read back list of strings" 
-	       (equal? string in-string)))
-    (close-port port))
-  (delete-file filename))
+(catch-test-errors
+ (let ((string '("From fairest creatures we desire increase,"
+		 "That thereby beauty's rose might never die,"))
+       (filename (test-file)))
+   (let ((port (open-output-file filename)))
+     (write string port)
+     (close-port port))
+   (let ((port (open-input-file filename)))
+     (let ((in-string (read port)))
+       (pass-if "file: write and read back list of strings" 
+		(equal? string in-string)))
+     (close-port port))
+   (delete-file filename)))
 	  
 ;;; Write out a string, and read it back a character at a time.
-(let ((string "This is a test string\nwith no newline at the end")
-      (filename (test-file)))
-  (let ((port (open-output-file filename)))
-    (display string port)
-    (close-port port))
-  (let ((in-string (read-file filename)))
-    (pass-if "file: write and read back characters"
-	     (equal? string in-string)))
-  (delete-file filename))
+(catch-test-errors
+ (let ((string "This is a test string\nwith no newline at the end")
+       (filename (test-file)))
+   (let ((port (open-output-file filename)))
+     (display string port)
+     (close-port port))
+   (let ((in-string (read-file filename)))
+     (pass-if "file: write and read back characters"
+	      (equal? string in-string)))
+   (delete-file filename)))
 
 
 ;;;; Pipe ports.
 
 ;;; Run a command, and read its output.
-(let* ((pipe (open-pipe "echo 'Howdy there, partner!'" "r"))
-       (in-string (read-all pipe)))
-  (close-port pipe)
-  (pass-if "pipe: read"
-	   (equal? in-string "Howdy there, partner!\n")))
+(catch-test-errors
+ (let* ((pipe (open-pipe "echo 'Howdy there, partner!'" "r"))
+	(in-string (read-all pipe)))
+   (close-port pipe)
+   (pass-if "pipe: read"
+	    (equal? in-string "Howdy there, partner!\n"))))
 
 ;;; Run a command, send some output to it, and see if it worked.
-(let* ((filename (test-file))
-       (pipe (open-pipe (string-append "grep Mommy > " filename) "w")))
-  (display "Now Jimmy lives on a mushroom cloud\n" pipe)
-  (display "Mommy, why does everybody have a bomb?\n" pipe)
-  (close-port pipe)
-  (let ((in-string (read-file filename)))
-    (pass-if "pipe: write"
-	     (equal? in-string "Mommy, why does everybody have a bomb?\n")))
-  (delete-file filename))
+(catch-test-errors
+ (let* ((filename (test-file))
+	(pipe (open-pipe (string-append "grep Mommy > " filename) "w")))
+   (display "Now Jimmy lives on a mushroom cloud\n" pipe)
+   (display "Mommy, why does everybody have a bomb?\n" pipe)
+   (close-port pipe)
+   (let ((in-string (read-file filename)))
+     (pass-if "pipe: write"
+	      (equal? in-string "Mommy, why does everybody have a bomb?\n")))
+   (delete-file filename)))
 
 
 ;;;; Void ports.  These are so trivial we don't test them.
@@ -100,23 +104,25 @@
 ;;;; String ports.
 
 ;;; Write text to a string port.
-(let* ((string "Howdy there, partner!")
-       (in-string (call-with-output-string
-		   (lambda (port)
-		     (display string port)
-		     (newline port)))))
-  (pass-if "output string: display text"
-	   (equal? in-string (string-append string "\n"))))
+(catch-test-errors
+ (let* ((string "Howdy there, partner!")
+	(in-string (call-with-output-string
+		    (lambda (port)
+		      (display string port)
+		      (newline port)))))
+   (pass-if "output string: display text"
+	    (equal? in-string (string-append string "\n")))))
 		   
 ;;; Write an s-expression to a string port.
-(let* ((sexpr '("more utterly random text" 1729 #(a vector) 3.1415926))
-       (in-sexpr 
-	(call-with-input-string (call-with-output-string
-				 (lambda (port)
-				   (write sexpr port)))
-				read)))
-  (pass-if "input and output string: write/read sexpr"
-	   (equal? in-sexpr sexpr)))
+(catch-test-errors
+ (let* ((sexpr '("more utterly random text" 1729 #(a vector) 3.1415926))
+	(in-sexpr 
+	 (call-with-input-string (call-with-output-string
+				  (lambda (port)
+				    (write sexpr port)))
+				 read)))
+   (pass-if "input and output string: write/read sexpr"
+	    (equal? in-sexpr sexpr))))
 
 
 ;;;; Soft ports.  No tests implemented yet.
@@ -173,21 +179,23 @@
 	(for-each close-port ports)
 	(delete-file port-loop-temp))))
 
-  (with-test-prefix "newline"
-    (test-line-counter
-     (string-append "x\n"
-		    "He who receives an idea from me, receives instruction\n"
-		    "himself without lessening mine; as he who lights his\n"
-		    "taper at mine, receives light without darkening me.\n"
-		    "  --- Thomas Jefferson\n")
-     "He who receives an idea from me, receives instruction"))
+  (catch-test-errors
+   (with-test-prefix "newline"
+     (test-line-counter
+      (string-append "x\n"
+		     "He who receives an idea from me, receives instruction\n"
+		     "himself without lessening mine; as he who lights his\n"
+		     "taper at mine, receives light without darkening me.\n"
+		     "  --- Thomas Jefferson\n")
+      "He who receives an idea from me, receives instruction")))
 
-  (with-test-prefix "no newline"
-    (test-line-counter
-     (string-append "x\n"
-		    "He who receives an idea from me, receives instruction\n"
-		    "himself without lessening mine; as he who lights his\n"
-		    "taper at mine, receives light without darkening me.\n"
-		    "  --- Thomas Jefferson\n"
-		    "no newline here")
-     "He who receives an idea from me, receives instruction")))
+  (catch-test-errors
+   (with-test-prefix "no newline"
+     (test-line-counter
+      (string-append "x\n"
+		     "He who receives an idea from me, receives instruction\n"
+		     "himself without lessening mine; as he who lights his\n"
+		     "taper at mine, receives light without darkening me.\n"
+		     "  --- Thomas Jefferson\n"
+		     "no newline here")
+      "He who receives an idea from me, receives instruction"))))
