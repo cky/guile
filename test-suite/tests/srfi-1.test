@@ -925,14 +925,12 @@
 		   '(1) 2)
       good))
 
-  (pass-if "called against arg list only"
-    (let ((good #t))
-      (lset-adjoin (lambda (x y)
-		     (set! good (and good
-				     (= x 1)
-				     (or (= y 2) (= y 3)))))
-		   '(1) 2 3)
-      good)))
+  (pass-if "(1 1) 1 1"
+    (equal? '(1 1) (lset-adjoin = '(1 1) 1 1)))
+
+  ;; duplicates among args are cast out
+  (pass-if "(2) 1 1"
+    (equal? '(1 2) (lset-adjoin = '(2) 1 1))))
 
 ;;
 ;; member
