@@ -4829,6 +4829,7 @@ add1 (f, fsum)
 void
 scm_init_numbers ()
 {
+  scm_add_feature("complex");
 #ifdef SCM_FLOATS
   scm_add_feature("inexact");
 #ifdef SCM_SINGLES
