@@ -1,3 +1,8 @@
+2001-07-17  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* goops/save.scm: Use `re-export' instead of `export' when
+	re-exporting `make-unbound'.
+
 2001-06-05  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* goops.scm: Use `re-export' instead of `export' when re-exporting

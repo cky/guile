@@ -48,7 +48,9 @@
   :use-module (oop goops util)
   )
 
-(export save-objects load-objects restore make-unbound
+(re-export make-unbound)
+
+(export save-objects load-objects restore
 	enumerate! enumerate-component!
 	write-readably write-component write-component-procedure
 	literal? readable make-readable)
