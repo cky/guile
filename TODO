@@ -1,4 +1,4 @@
-[ID: $Id: TODO,v 1.17 2001-06-29 08:10:00 kei Exp $]
+[ID: $Id: TODO,v 1.18 2001-07-07 06:31:26 ttn Exp $]
 
 These TODO items are grouped by target release version.  The first group is
 the "Eventually" group, which is not associated w/ any particular version.
@@ -43,6 +43,24 @@ See also file HACKING.
 - write Orbit CORBA interface
 - [after new module system] factor out modules sort.c and random.c should be
   factored out into separate modules
+- include malloc debugging code in an optional file in libguile
+- fix looking up procedure names in environment in backtraces
+- implement srcprops using double cells
+- use "real" procprops
+- add facilities for easily debugging Scheme programs from Emacs
+- write good interface to Tk
+- write translators for additional languages
+  - Perl
+  - Python
+  - TCL
+  - Emacs Lisp
+  - Rexx
+- make GDB work with Guile
+- use the SCM trick of tagging environments with immediates (see m_letrec1)
+  to convert source correctly in unmemocopy
+- eliminate argument checking for closures
+- Implement a thread-safe alternative to SCM's environment caches
+
 
 === In release 1.6.0:
 
