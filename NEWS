@@ -22,6 +22,19 @@ Example:
 
 * Changes to Scheme functions and syntax
 
+** Backward incompatible change: eval EXP ENVIRONMENT-SPECIFIER
+
+`eval' is now R5RS, that is it takes two arguments.
+The second argument is an environment specifier, i.e. either
+
+  (scheme-report-environment 5)
+  (null-environment 5)
+  (interaction-environment)
+
+or
+
+  any module.
+
 ** New define-module option: pure
 
 Tells the module system not to include any bindings from the root
