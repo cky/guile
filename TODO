@@ -4,15 +4,6 @@ Needed before release
 
 Mikael Djurfeldt <mdj@nada.kth.se> is working on this.
 
-* Modify the gscm functions as planned by Tom Lord.
-
-I think Mark Galassi <rosalia@nis.lanl.gov> is working on this.
-
-* Merge in the Cygnus threads package.
-
-Anthony Green <green@cygnus.com> is working on this,
-but he lacks time, so perhaps he could use help.
-
 Desired later on
 
 * Add a convenient facility for running a pipeline of processes
