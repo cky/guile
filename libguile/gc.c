@@ -330,6 +330,7 @@ SCM_DEFINE (scm_map_free_list, "map-free-list", 0, 0, 0,
 }
 #undef FUNC_NAME
 
+#ifdef GUILE_NEW_GC_SCHEME
 static int
 free_list_length (char *title, int i, SCM freelist)
 {
@@ -370,13 +371,12 @@ SCM_DEFINE (scm_free_list_length, "free-list-length", 0, 0, 0,
             "`free-list-length' is only included in --enable-guile-debug builds of Guile.")
 #define FUNC_NAME s_scm_free_list_length
 {
-#ifdef GUILE_NEW_GC_SCHEME
   free_list_lengths ("1-words", &scm_master_freelist, scm_freelist);
   free_list_lengths ("2-words", &scm_master_freelist2, scm_freelist2);
-#endif
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
+#endif
 
 #endif
 
