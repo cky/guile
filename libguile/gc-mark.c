@@ -63,22 +63,6 @@ extern unsigned long * __libc_ia64_register_backing_store_base;
 #include <unistd.h>
 #endif
 
-#ifdef __ia64__
-# define SCM_MARK_BACKING_STORE() do {                                \
-    ucontext_t ctx;                                                   \
-    SCM_STACKITEM * top, * bot;                                       \
-    getcontext (&ctx);                                                \
-    scm_mark_locations ((SCM_STACKITEM *) &ctx.uc_mcontext,           \
-      ((size_t) (sizeof (SCM_STACKITEM) - 1 + sizeof ctx.uc_mcontext) \
-       / sizeof (SCM_STACKITEM)));                                    \
-    bot = (SCM_STACKITEM *) __libc_ia64_register_backing_store_base;  \
-    top = (SCM_STACKITEM *) ctx.uc_mcontext.sc_ar_bsp;                \
-    scm_mark_locations (bot, top - bot); } while (0)
-#else
-# define SCM_MARK_BACKING_STORE()
-#endif
-
-
 /*
   Entry point for this file.
  */
