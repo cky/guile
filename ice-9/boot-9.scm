@@ -846,10 +846,14 @@
 
 (define (in-vicinity vicinity file)
   (let ((tail (let ((len (string-length vicinity)))
-		(if (zero? len) #f
+		(if (zero? len)
+		    #f
 		    (string-ref vicinity (- len 1))))))
     (string-append vicinity
-		   (if (eq? tail #\/) "" "/")
+		   (if (or (not tail)
+			   (eq? tail #\/))
+		       ""
+		       "/")
 		   file)))
 
 
@@ -2190,6 +2194,7 @@
 (define (gentemp)
   (gensym "scm:G"))
 
+(provide 'defmacro)
 
 
 

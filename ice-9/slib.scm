@@ -117,7 +117,7 @@
 ;;; changing catalog:get in slib/require.scm, and I don't expect
 ;;; Aubrey will integrate such a change.  So I'm just going to punt
 ;;; for the time being.
-(define (slib:load name)
+(define-public (slib:load name)
   (save-module-excursion
    (lambda ()
      (set-current-module slib-module)

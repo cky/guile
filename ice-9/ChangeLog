@@ -1,3 +1,11 @@
+Sat Sep 20 14:23:53 1997  Mikael Djurfeldt  <mdj@kenneth>
+
+	* slib.scm (slib:load): Export.
+
+	* boot-9.scm (in-vicinity): Bugfix: Don't add "/" to an empty
+	vicinity;
+	Provide defmacro.
+
 Thu Sep 18 01:24:31 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* r4rs.scm (apply): Set name property to 'apply.
