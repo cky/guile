@@ -525,8 +525,10 @@
 (define (tms:cutime obj) (vector-ref obj 3))
 (define (tms:cstime obj) (vector-ref obj 4))
 
-(define (file-position . args) (apply ftell args))
-(define (file-set-position . args) (apply seek args))
+(define file-position ftell)
+(define (file-set-position port offset . whence)
+  (let ((whence (if (eq? whence '()) SEEK_SET (car whence))))
+    (seek port offset whence)))
 
 (define (move->fdes fd/port fd)
   (cond ((integer? fd/port)
