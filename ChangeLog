@@ -1,3 +1,8 @@
+1999-05-02  Jim Blandy  <jimb@savonarola.red-bean.com>
+
+	* configure.in (AC_CHECK_FUNCS): Fill in list of functions that
+	libguile/net_db.h wants to use.  (Add setprotoent, setservent.)
+
 1999-04-17  Jim Blandy  <jimb@savonarola.red-bean.com>
 
 	Remove all automatic readline support, to avoid copyright
