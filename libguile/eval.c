@@ -338,7 +338,6 @@ scm_lookupcar (SCM vloc, SCM genv, int check)
     if (!SCM_NULLP (env) || SCM_UNBNDP (SCM_VARIABLE_REF (real_var)))
       {
       errout:
-	/* scm_everr (vloc, genv,...) */
 	if (check)
 	  {
 	    if (SCM_NULLP (env))
@@ -1598,6 +1597,7 @@ scm_badargsp (SCM formals, SCM args)
     }
   return !SCM_NULLP (args) ? 1 : 0;
 }
+
 #endif
 
 static int 
@@ -1826,7 +1826,7 @@ SCM_DEFINE (scm_evaluator_traps, "evaluator-traps-interface", 0, 1, 0,
 #undef FUNC_NAME
 
 static SCM
-scm_deval_args (SCM l, SCM env, SCM proc, SCM *lloc)
+deval_args (SCM l, SCM env, SCM proc, SCM *lloc)
 {
   SCM *results = lloc, res;
   while (SCM_CONSP (l))
@@ -1847,12 +1847,12 @@ scm_deval_args (SCM l, SCM env, SCM proc, SCM *lloc)
 #endif /* !DEVAL */
 
 
-/* SECTION: Some local definitions for the evaluator.
+/* SECTION: This code is compiled twice.
  */
 
+
 /* Update the toplevel environment frame ENV so that it refers to the
-   current module.
-*/
+ * current module.  */
 #define UPDATE_TOPLEVEL_ENV(env) \
   do { \
     SCM p = scm_current_module_lookup_closure (); \
@@ -1864,20 +1864,41 @@ scm_deval_args (SCM l, SCM env, SCM proc, SCM *lloc)
 #define CHECK_EQVISH(A,B) 	(SCM_EQ_P ((A), (B)) || (!SCM_FALSEP (scm_eqv_p ((A), (B)))))
 #endif /* DEVAL */
 
-#define BUILTIN_RPASUBR /* Handle rpsubrs and asubrs without calling apply */
-
-/* SECTION: This is the evaluator.  Like any real monster, it has
- * three heads.  This code is compiled twice.
- */
+/* This is the evaluator.  Like any real monster, it has three heads:
+ *
+ * scm_ceval is the non-debugging evaluator, scm_deval is the debugging
+ * version.  Both are implemented using a common code base, using the
+ * following mechanism:  SCM_CEVAL is a macro, which is either defined to
+ * scm_ceval or scm_deval.  Thus, there is no function SCM_CEVAL, but the code
+ * for SCM_CEVAL actually compiles to either scm_ceval or scm_deval.  When
+ * SCM_CEVAL is defined to scm_ceval, it is known that the macro DEVAL is not
+ * defined.  When SCM_CEVAL is defined to scm_deval, then the macro DEVAL is
+ * known to be defined.  Thus, in SCM_CEVAL parts for the debugging evaluator
+ * are enclosed within #ifdef DEVAL ... #endif.
+ *
+ * All three (scm_ceval, scm_deval and their common implementation SCM_CEVAL)
+ * take two input parameters, x and env:  x is a single expression to be
+ * evalutated.  env is the environment in which bindings are searched.
+ *
+ * x is known to be a cell (i. e. a pair or any other non-immediate).  Since x
+ * is a single expression, it is necessarily in a tail position.  If x is just
+ * a call to another function like in the expression (foo exp1 exp2 ...), the
+ * realization of that call therefore _must_not_ increase stack usage (the
+ * evaluation of exp1, exp2 etc., however, may do so).  This is realized by
+ * making extensive use of 'goto' statements within the evaluator:  The gotos
+ * replace recursive calls to SCM_CEVAL, thus re-using the same stack frame
+ * that SCM_CEVAL was already using.  If, however, x represents some form that
+ * requires to evaluate a sequence of expressions like (begin exp1 exp2 ...),
+ * then recursive calls to SCM_CEVAL are performed for all but the last
+ * expression of that sequence. */
 
 #if 0
-
 SCM 
 scm_ceval (SCM x, SCM env)
 {}
 #endif
-#if 0
 
+#if 0
 SCM 
 scm_deval (SCM x, SCM env)
 {}
@@ -1904,7 +1925,7 @@ SCM_CEVAL (SCM x, SCM env)
    * Even frames are eval frames, odd frames are apply frames.
    */
   debug.vect = (scm_t_debug_info *) alloca (scm_debug_eframe_size
-					  * sizeof (debug.vect[0]));
+					    * sizeof (scm_t_debug_info));
   debug.info = debug.vect;
   debug_info_end = debug.vect + scm_debug_eframe_size;
   scm_last_debug_frame = &debug;
@@ -1989,8 +2010,7 @@ dispatch:
   switch (SCM_TYP7 (x))
     {
     case scm_tc7_symbol:
-      /* Only happens when called at top level.
-       */
+      /* Only happens when called at top level.  */
       x = scm_cons (x, SCM_UNDEFINED);
       RETURN (*scm_lookupcar (x, env, 1));
 
@@ -2279,7 +2299,7 @@ dispatch:
     case SCM_BIT8(SCM_MAKISYM (0)):
       proc = SCM_CAR (x);
       SCM_ASRTGO (SCM_ISYMP (proc), badfun);
-      switch SCM_ISYMNUM (proc)
+      switch (SCM_ISYMNUM (proc))
 	{
 	case (SCM_ISYMNUM (SCM_IM_APPLY)):
 	  proc = SCM_CDR (x);
@@ -2575,7 +2595,6 @@ dispatch:
     default:
       proc = x;
     badfun:
-      /* scm_everr (x, env,...) */
       scm_misc_error (NULL, "Wrong type to apply: ~S", scm_list_1 (proc));
     case scm_tc7_vector:
     case scm_tc7_wvect:
@@ -2790,7 +2809,6 @@ evapply:
       umwrongnumargs:
 	unmemocar (x, env);
       wrongnumargs:
-	/* scm_everr (x, env,...)  */
 	scm_wrong_num_args (proc);
       default:
 	/* handle macros here */
@@ -3069,8 +3087,7 @@ evapply:
 #endif
 #ifdef DEVAL
     debug.info->a.args = scm_cons2 (t.arg1, arg2,
-      scm_deval_args (x, env, proc,
-		      SCM_CDRLOC (SCM_CDR (debug.info->a.args))));
+      deval_args (x, env, proc, SCM_CDRLOC (SCM_CDR (debug.info->a.args))));
 #endif
     ENTER_APPLY;
   evap3:
@@ -3387,14 +3404,12 @@ SCM_DEFINE (scm_nconc2last, "apply:nconc2last", 1, 0, 0,
  */
 
 #if 0
-
 SCM 
 scm_apply (SCM proc, SCM arg1, SCM args)
 {}
 #endif
 
 #if 0
-
 SCM 
 scm_dapply (SCM proc, SCM arg1, SCM args)
 { /* empty */ }

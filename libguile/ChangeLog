@@ -1,5 +1,19 @@
 2002-01-10  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* eval.c:  Removed outdated references to "everr".  Improved some
+	comments.
+
+	(scm_deval_args, deval_args):  Renamed scm_deval_args to
+	deval_args, since it is not part of the interface.
+
+	(SCM_CEVAL):  Added (maybe somewhat verbose) comment.  Avoid to
+	use references to debug.vect[0] before it exists.  Add parentheses
+	to switch statement.
+
+	* goops.h:  Added local emacs variables.
+
+2002-01-10  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* eval.[ch] (scm_deval_args):  Made static.
 
 	* srcprop.c (scm_source_property):  Remove redundant SCM_IMP
