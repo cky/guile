@@ -1,3 +1,9 @@
+2003-06-07  Kevin Ryde  <user42@zip.com.au>
+
+	* srfi-6.scm: #:re-export open-input-string, open-output-string and
+	get-output-string, for the benefit of applications wanting to use
+	#:select on the module.
+
 2003-05-29  Stefan Jahn  <stefan@lkcc.org>
 
 	* Makefile.am (libguile_srfi_srfi_1_la_LDFLAGS, 

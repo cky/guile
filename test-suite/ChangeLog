@@ -1,3 +1,7 @@
+2003-06-07  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/srfi-6.test: New file.
+
 2003-06-05  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* tests/chars.test: Fixed test comment.  The bug that this test

@@ -1,3 +1,8 @@
+2003-06-07  Kevin Ryde  <user42@zip.com.au>
+
+	* tags.h: Use inttypes.h and stdint.h when available, for INTPTR_MAX
+	and friends required by scm_t_bits setups.
+
 2003-06-06  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* tags.h (scm_tc2_int): Added.
