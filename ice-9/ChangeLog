@@ -1,3 +1,9 @@
+Wed Dec 15 08:32:09 1999  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* doc.scm: Use `%library-dir' and the other system directories,
+ 	not the quickly defuncted `library-dir' that I added before
+ 	realizing the former existed.  Thanks Brad Knotwell!
+
 Sun Dec 12 19:18:52 1999  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* Makefile.am, doc.scm: Added doc.scm.
