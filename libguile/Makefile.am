@@ -41,8 +41,8 @@ guile_LDFLAGS = @DLPREOPEN@
 guile_filter_doc_snarfage_SOURCES = c-tokenize.c
 
 libguile_la_SOURCES = alist.c arbiters.c async.c backtrace.c boolean.c	    \
-    chars.c continuations.c debug.c deprecation.c dynl.c dynwind.c	    \
-    environments.c eq.c error.c eval.c evalext.c extensions.c		    \
+    chars.c continuations.c convert.c debug.c deprecation.c dynl.c 	    \
+    dynwind.c environments.c eq.c error.c eval.c evalext.c extensions.c     \
     feature.c fluids.c fports.c						    \
     gc.c gc_os_dep.c gdbint.c gh_data.c gh_eval.c gh_funcs.c gh_init.c	    \
     gh_io.c gh_list.c gh_predicates.c goops.c gsubr.c guardians.c hash.c    \
@@ -117,7 +117,7 @@ install-exec-hook:
 ## Perhaps we can deal with them normally once the merge seems to be
 ## working.
 noinst_HEADERS = coop-threads.c coop-threads.h coop.c \
-    num2integral.i.c num2float.i.c                    \
+    num2integral.i.c num2float.i.c convert.i.c        \
     win32-uname.h win32-dirent.h win32-socket.h
 
 libguile_la_DEPENDENCIES = @LIBLOBJS@
@@ -130,9 +130,9 @@ pkginclude_HEADERS = gh.h
 # These are headers visible as <libguile/mumble.h>.
 modincludedir = $(includedir)/libguile
 modinclude_HEADERS = __scm.h alist.h arbiters.h async.h backtrace.h boolean.h \
-    chars.h continuations.h coop-defs.h debug.h debug-malloc.h deprecation.h  \
-    dynl.h dynwind.h environments.h eq.h error.h eval.h evalext.h	      \
-    extensions.h feature.h filesys.h fluids.h fports.h gc.h		      \
+    chars.h continuations.h convert.h coop-defs.h debug.h debug-malloc.h      \
+    deprecation.h dynl.h dynwind.h environments.h eq.h error.h eval.h         \
+    evalext.h extensions.h feature.h filesys.h fluids.h fports.h gc.h	      \
     gdb_interface.h gdbint.h						      \
     goops.h gsubr.h guardians.h hash.h hashtab.h hooks.h init.h		      \
     inline.h ioext.h							      \

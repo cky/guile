@@ -251,6 +251,9 @@ if test "$MINGW32" = "yes" ; then
       AC_DEFINE(USE_DLL_IMPORT, 1,
         [Define if you need additional CPP macros on Win32 platforms.])
     fi
+    if test x"$enable_ltdl_install" = x"yes" ; then
+      INCLTDL="-DLIBLTDL_DLL_IMPORT $INCLTDL"
+    fi
 fi
 AC_SUBST(EXTRA_DEFS)
 
@@ -273,6 +276,7 @@ if test "$use_modules" != no; then
     done
   fi
 fi
+
 AC_SUBST(INCLTDL)
 AC_SUBST(LIBLTDL)
 AC_SUBST(DLPREOPEN)
