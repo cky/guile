@@ -373,14 +373,10 @@ create_thread (scm_t_catch_body body, void *body_data,
 
   {
     scm_t_thread th;
-    SCM root, old_winds;
+    SCM root;
     launch_data *data;
     scm_thread *t;
     int err;
-
-    /* Unwind wind chain. */
-    old_winds = scm_dynwinds;
-    scm_dowinds (SCM_EOL, scm_ilength (scm_root->dynwinds));
 
     /* Allocate thread locals. */
     root = scm_make_root (scm_root->handle);
@@ -399,6 +395,8 @@ create_thread (scm_t_catch_body body, void *body_data,
     t->root = SCM_ROOT_STATE (root);
     /* disconnect from parent, to prevent remembering dead threads */
     t->root->parent = SCM_BOOL_F;
+    /* start with an empty dynwind chain */
+    t->root->dynwinds = SCM_EOL;
     
     /* In order to avoid the need of synchronization between parent
        and child thread, we need to insert the child into all_threads
@@ -426,9 +424,6 @@ create_thread (scm_t_catch_body body, void *body_data,
 	thread_count--;
 	scm_i_plugin_mutex_unlock (&thread_admin_mutex);
       }
-
-    /* Return to old dynamic context. */
-    scm_dowinds (old_winds, - scm_ilength (old_winds));
 
     if (err)
       {

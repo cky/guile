@@ -1,3 +1,9 @@
+2003-01-22  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* threads.c (create_thread): Don't unwind dynwind chain of parent
+	thread before creation.  Just start the new thread with an empty
+	dynwind chain.
+
 2003-01-20  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* evalext.c, evalext.h (scm_self_evaluating_p): New function.
