@@ -509,6 +509,55 @@ SCM_DEFINE (scm_string_capitalize, "string-capitalize", 1, 0, 0,
 #undef FUNC_NAME
 
 
+SCM_DEFINE (scm_string_split, "string-split", 2, 0, 0, 
+	    (SCM str, SCM chr),
+	    "Split the string @var{str} into the a list of the substrings delimited\n"
+	    "by appearances of the character @var{chr}.  Note that an empty substring\n"
+	    "between separator characters will result in an empty string in the\n"
+	    "result list.\n"
+	    "\n"
+	    "@lisp\n"
+	    "(string-split \"root:x:0:0:root:/root:/bin/bash\" #\:)\n"
+	    "@result{}\n"
+	    "(\"root\" \"x\" \"0\" \"0\" \"root\" \"/root\" \"/bin/bash\")\n"
+	    "\n"
+	    "(string-split \"::\" #\:)\n"
+	    "@result{}\n"
+	    "(\"\" \"\" \"\")\n"
+	    "\n"
+	    "(string-split \"\" #\:)\n"
+	    "@result{}\n"
+	    "(\"\")\n"
+	    "@end lisp")
+#define FUNC_NAME s_scm_string_split
+{
+  int idx, last_idx;
+  char * p;
+  int ch;
+  SCM res = SCM_EOL;
+
+  SCM_VALIDATE_STRING (1, str);
+  SCM_VALIDATE_CHAR (2, chr);
+
+  idx = SCM_STRING_LENGTH (str);
+  p = SCM_STRING_CHARS (str);
+  ch = SCM_CHAR (chr);
+  while (idx >= 0)
+    {
+      last_idx = idx;
+      while (idx > 0 && p[idx - 1] != ch)
+	idx--;
+      if (idx >= 0)
+	{
+	  res = scm_cons (scm_makfromstr (p + idx, last_idx - idx, 0), res);
+	  idx--;
+	}
+    }
+  return res;
+}
+#undef FUNC_NAME
+
+
 SCM_DEFINE (scm_string_ci_to_symbol, "string-ci->symbol", 1, 0, 0, 
 	    (SCM str),
 	    "Return the symbol whose name is @var{str}.  @var{str} is\n"

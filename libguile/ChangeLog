@@ -1,3 +1,9 @@
+2001-05-04  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* strop.c (scm_string_split): New procedure.
+
+	* strop.h (scm_string_split): Added prototype.
+
 2001-05-04  Gary Houston  <ghouston@arglist.com>
 
 	* socket.c: define uint32_t if netdb.h doesn't.  thanks to
