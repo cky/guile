@@ -187,6 +187,21 @@
 (set! *features* (delq 'array          *features*))
 (set! *features* (delq 'array-for-each *features*))
 
+;; The random module in slib 3a1 provides a `random:chunk' which is used by
+;; the random-inexact module.  Guile doesn't provide random:chunk so we must
+;; remove 'random from `*features*' to use the slib code.
+;;
+;; ENHANCE-ME: Maybe Guile could provide a `random:chunk', the rest of the
+;; random module is already the same as Guile.
+;;
+;; FIXME: As per the array bits above, *features* is shared by slib and the
+;; guile core, so removing 'random has the unhappy effect of making it look
+;; like this isn't in the core.  Let's assume random numbers have been
+;; present unconditionally long enough that no guile-specific code will
+;; bother to test.
+;;
+(set! *features* (delq 'random *features*))
+
 
 ;;; FIXME: Because uers want require to search the path, this uses
 ;;; load-from-path, which probably isn't a hot idea.  slib
