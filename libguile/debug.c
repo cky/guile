@@ -284,8 +284,8 @@ GUILE_PROC (scm_make_iloc, "make-iloc", 3, 0, 0,
 "")
 #define FUNC_NAME s_scm_make_iloc
 {
-  SCM_VALIDATE_INT(1,frame);
-  SCM_VALIDATE_INT(2,binding);
+  SCM_VALIDATE_INUM(1,frame);
+  SCM_VALIDATE_INUM(2,binding);
   return (SCM_ILOC00
 	  + SCM_IFRINC * SCM_INUM (frame)
 	  + (SCM_NFALSEP (cdrp) ? SCM_ICDR : 0)

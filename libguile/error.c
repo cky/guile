@@ -119,7 +119,7 @@ GUILE_PROC (scm_strerror, "strerror", 1, 0, 0,
 "Returns the Unix error message corresponding to @var{errno}, an integer.")
 #define FUNC_NAME s_scm_strerror
 {
-  SCM_VALIDATE_INT(1,err);
+  SCM_VALIDATE_INUM(1,err);
   return scm_makfrom0str (strerror (SCM_INUM (err)));
 }
 #undef FUNC_NAME

@@ -101,11 +101,11 @@ without encountering a delimiter, this value is @var{#f}.")
   else
     SCM_VALIDATE_OPINPORT(4,port);
 
-  SCM_VALIDATE_INT_DEF_COPY(5,start,0,cstart);
+  SCM_VALIDATE_INUM_DEF_COPY(5,start,0,cstart);
   if (cstart < 0 || cstart >= cend)
     scm_out_of_range (FUNC_NAME, start);
 
-  SCM_VALIDATE_INT_DEF_COPY(6,end,cend,tend);
+  SCM_VALIDATE_INUM_DEF_COPY(6,end,cend,tend);
   if (tend <= cstart || tend > cend)
     scm_out_of_range (FUNC_NAME, end);
   cend = tend;
@@ -457,7 +457,7 @@ by @ref{File Ports, open-file}.")
 {
   SCM port;
 
-  SCM_VALIDATE_INT(1,fdes);
+  SCM_VALIDATE_INUM(1,fdes);
   SCM_VALIDATE_ROSTRING(2,modes);
   SCM_COERCE_SUBSTR (modes);
   port = scm_fdes_to_port (SCM_INUM (fdes), SCM_ROCHARS (modes), SCM_BOOL_F);
@@ -490,7 +490,7 @@ required value or @code{#t} if it was moved.")
   port = SCM_COERCE_OUTPORT (port);
 
   SCM_VALIDATE_OPFPORT(1,port);
-  SCM_VALIDATE_INT(2,fd);
+  SCM_VALIDATE_INUM(2,fd);
   stream = SCM_FSTREAM (port);
   old_fd = stream->fdes;
   new_fd = SCM_INUM (fd);
@@ -519,7 +519,7 @@ underlying file descriptor, without changing their revealed counts.")
   int int_fd;
   int i;
   
-  SCM_VALIDATE_INT_COPY(1,fd,int_fd);
+  SCM_VALIDATE_INUM_COPY(1,fd,int_fd);
 
   for (i = 0; i < scm_port_table_size; i++)
     {

@@ -155,10 +155,10 @@ are different strings, it does not matter which function you use.")
   long s1, s2, e, len;
 
   SCM_VALIDATE_STRING(1,str1);
-  SCM_VALIDATE_INT_COPY(2,start1,s1);
-  SCM_VALIDATE_INT_COPY(3,end1,e);
+  SCM_VALIDATE_INUM_COPY(2,start1,s1);
+  SCM_VALIDATE_INUM_COPY(3,end1,e);
   SCM_VALIDATE_STRING(4,str2);
-  SCM_VALIDATE_INT_COPY(5,start2,s2);
+  SCM_VALIDATE_INUM_COPY(5,start2,s2);
   len = e - s1;
   SCM_ASSERT_RANGE (3,end1,len >= 0);
   SCM_ASSERT_RANGE (2,start1,s1 <= SCM_LENGTH (str1) && s1 >= 0);
@@ -184,8 +184,8 @@ GUILE_PROC(scm_substring_fill_x, "substring-fill!", 4, 0, 0,
   long i, e;
   char c;
   SCM_VALIDATE_STRING(1,str);
-  SCM_VALIDATE_INT_COPY(2,start,i);
-  SCM_VALIDATE_INT_COPY(3,end,e);
+  SCM_VALIDATE_INUM_COPY(2,start,i);
+  SCM_VALIDATE_INUM_COPY(3,end,e);
   SCM_VALIDATE_CHAR_COPY(4,fill,c);
   SCM_ASSERT_RANGE (2,start,i <= SCM_LENGTH (str) && i >= 0);
   SCM_ASSERT_RANGE (3,end,e <= SCM_LENGTH (str) && e >= 0);

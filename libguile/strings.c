@@ -254,7 +254,7 @@ GUILE_PROC(scm_make_string, "make-string", 1, 1, 0,
 {
   SCM res;
   register long i;
-  SCM_VALIDATE_INT_MIN_COPY(1,k,0,i);
+  SCM_VALIDATE_INUM_MIN_COPY(1,k,0,i);
   res = scm_makstr (i, 0);
   if (!SCM_UNBNDP (chr))
     {
@@ -286,7 +286,7 @@ GUILE_PROC(scm_string_ref, "string-ref", 1, 1, 0,
 #define FUNC_NAME s_scm_string_ref
 {
   SCM_VALIDATE_ROSTRING(1,str);
-  SCM_VALIDATE_INT_DEF(2,k,0);
+  SCM_VALIDATE_INUM_DEF(2,k,0);
   SCM_ASSERT_RANGE (2,k,SCM_INUM (k) < SCM_ROLENGTH (str) && SCM_INUM (k) >= 0);
   return SCM_MAKICHR (SCM_ROUCHARS (str)[SCM_INUM (k)]);
 }
@@ -298,7 +298,7 @@ GUILE_PROC(scm_string_set_x, "string-set!", 3, 0, 0,
 #define FUNC_NAME s_scm_string_set_x
 {
   SCM_VALIDATE_RWSTRING(1,str);
-  SCM_VALIDATE_INT_RANGE(2,k,0,SCM_LENGTH(str));
+  SCM_VALIDATE_INUM_RANGE(2,k,0,SCM_LENGTH(str));
   SCM_VALIDATE_CHAR(3,chr);
   SCM_UCHARS (str)[SCM_INUM (k)] = SCM_ICHR (chr);
   return SCM_UNSPECIFIED;
@@ -314,8 +314,8 @@ GUILE_PROC(scm_substring, "substring", 2, 1, 0,
 {
   long l;
   SCM_VALIDATE_ROSTRING(1,str);
-  SCM_VALIDATE_INT(2,start);
-  SCM_VALIDATE_INT_DEF(3,end,SCM_ROLENGTH(str));
+  SCM_VALIDATE_INUM(2,start);
+  SCM_VALIDATE_INUM_DEF(3,end,SCM_ROLENGTH(str));
   SCM_ASSERT_RANGE (2,start,SCM_INUM (start) <= SCM_ROLENGTH (str));
   SCM_ASSERT_RANGE (2,end,SCM_INUM (end) <= SCM_ROLENGTH (str));
   l = SCM_INUM (end)-SCM_INUM (start);
@@ -367,8 +367,8 @@ defaults to the end of @var{str}.  The shared substring returned by
   SCM len_str;
 
   SCM_VALIDATE_ROSTRING(1,str);
-  SCM_VALIDATE_INT_DEF_COPY(2,frm,0,f);
-  SCM_VALIDATE_INT_DEF_COPY(3,to,SCM_ROLENGTH(str),t);
+  SCM_VALIDATE_INUM_DEF_COPY(2,frm,0,f);
+  SCM_VALIDATE_INUM_DEF_COPY(3,to,SCM_ROLENGTH(str),t);
 
   SCM_ASSERT_RANGE (2,frm,(f >= 0));
   SCM_ASSERT_RANGE (3,to, (f <= t) && (t <= SCM_ROLENGTH (str)));

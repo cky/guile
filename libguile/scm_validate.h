@@ -1,4 +1,4 @@
-/* $Id: scm_validate.h,v 1.9 2000-01-05 16:16:57 gjb Exp $ */
+/* $Id: scm_validate.h,v 1.10 2000-01-05 19:00:02 gjb Exp $ */
 /*	Copyright (C) 1999 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
@@ -130,39 +130,39 @@
 
 #define SCM_VALIDATE_REAL(pos,z) SCM_MAKE_VALIDATE(pos,z,REALP)
 
-#define SCM_VALIDATE_INT(pos,k) SCM_MAKE_VALIDATE(pos,k,INUMP)
+#define SCM_VALIDATE_INUM(pos,k) SCM_MAKE_VALIDATE(pos,k,INUMP)
 
-#define SCM_VALIDATE_INT_COPY(pos,k,cvar) \
+#define SCM_VALIDATE_INUM_COPY(pos,k,cvar) \
   do { SCM_ASSERT(SCM_INUMP(k), k, pos, FUNC_NAME); \
        cvar = SCM_INUM(k); } while (0)
 
 #define SCM_VALIDATE_BIGINT(pos,k) SCM_MAKE_VALIDATE(pos,k,BIGP)
 
-#define SCM_VALIDATE_INT_MIN(pos,k,min) \
+#define SCM_VALIDATE_INUM_MIN(pos,k,min) \
   do { SCM_ASSERT(SCM_INUMP(k), k, pos, FUNC_NAME); \
        SCM_ASSERT_RANGE(pos,k,(SCM_INUM(k) >= min)); } while (0)
 
-#define SCM_VALIDATE_INT_MIN_COPY(pos,k,min,cvar) \
+#define SCM_VALIDATE_INUM_MIN_COPY(pos,k,min,cvar) \
   do { SCM_ASSERT(SCM_INUMP(k), k, pos, FUNC_NAME); \
        cvar = SCM_INUM(k); \
        SCM_ASSERT_RANGE(pos,k,(cvar >= min)); } while (0)
 
-#define SCM_VALIDATE_INT_MIN_DEF_COPY(pos,k,min,default,cvar) \
+#define SCM_VALIDATE_INUM_MIN_DEF_COPY(pos,k,min,default,cvar) \
   do { if (SCM_UNBNDP(k)) k = SCM_MAKINUM(default); \
        SCM_ASSERT(SCM_INUMP(k), k, pos, FUNC_NAME); \
        cvar = SCM_INUM(k); \
        SCM_ASSERT_RANGE(pos,k,(cvar >= min)); } while (0)
 
-#define SCM_VALIDATE_INT_DEF(pos,k,default) \
+#define SCM_VALIDATE_INUM_DEF(pos,k,default) \
   do { if (SCM_UNDEFINED==k) k = SCM_MAKINUM(default); \
        else SCM_ASSERT(SCM_INUMP(k), k, pos, FUNC_NAME); } while (0)
 
-#define SCM_VALIDATE_INT_DEF_COPY(pos,k,default,cvar) \
+#define SCM_VALIDATE_INUM_DEF_COPY(pos,k,default,cvar) \
   do { if (SCM_UNDEFINED==k) { k = SCM_MAKINUM(default); cvar=default; } \
        else { SCM_ASSERT(SCM_INUMP(k), k, pos, FUNC_NAME); cvar = SCM_INUM(k); } } while (0)
 
 /* [low,high) */
-#define SCM_VALIDATE_INT_RANGE(pos,k,low,high) \
+#define SCM_VALIDATE_INUM_RANGE(pos,k,low,high) \
   do { SCM_ASSERT(SCM_INUMP(k), k, pos, FUNC_NAME); \
        SCM_ASSERT_RANGE(pos,k,(SCM_INUM (k) >= low && ((unsigned) SCM_INUM (k)) < high)); \
      } while (0)

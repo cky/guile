@@ -332,7 +332,7 @@ GUILE_PROC(scm_list_ref, "list-ref", 2, 0, 0,
 #define FUNC_NAME s_scm_list_ref
 {
   register long i;
-  SCM_VALIDATE_INT_MIN_COPY(2,k,0,i);
+  SCM_VALIDATE_INUM_MIN_COPY(2,k,0,i);
   while (i-- > 0) {
     SCM_ASRTGO(SCM_CONSP(lst), erout);
     lst = SCM_CDR(lst);
@@ -350,7 +350,7 @@ GUILE_PROC(scm_list_set_x, "list-set!", 3, 0, 0,
 #define FUNC_NAME s_scm_list_set_x
 {
   register long i;
-  SCM_VALIDATE_INT_MIN_COPY(2,k,0,i);
+  SCM_VALIDATE_INUM_MIN_COPY(2,k,0,i);
   while (i-- > 0) {
     SCM_ASRTGO(SCM_CONSP(lst), erout);
     lst = SCM_CDR(lst);
@@ -377,7 +377,7 @@ or returning the results of cdring @var{k} times down @var{lst}.")
 #define FUNC_NAME s_scm_list_tail
 {
   register long i;
-  SCM_VALIDATE_INT_MIN_COPY(2,k,0,i);
+  SCM_VALIDATE_INUM_MIN_COPY(2,k,0,i);
   while (i-- > 0) {
     SCM_VALIDATE_CONS(1,lst);
     lst = SCM_CDR(lst);
@@ -393,7 +393,7 @@ GUILE_PROC(scm_list_cdr_set_x, "list-cdr-set!", 3, 0, 0,
 #define FUNC_NAME s_scm_list_cdr_set_x
 {
   register long i;
-  SCM_VALIDATE_INT_MIN_COPY(2,k,0,i);
+  SCM_VALIDATE_INUM_MIN_COPY(2,k,0,i);
   while (i-- > 0) {
     SCM_ASRTGO(SCM_CONSP(lst), erout);
     lst = SCM_CDR(lst);
@@ -420,7 +420,7 @@ return it.")
   SCM * pos;
   register long i;
 
-  SCM_VALIDATE_INT_MIN_COPY(2,k,0,i);
+  SCM_VALIDATE_INUM_MIN_COPY(2,k,0,i);
   answer = SCM_EOL;
   pos = &answer;
   while (i-- > 0)

@@ -237,11 +237,11 @@ the results of the match, or @code{#f} if no match could be found.")
 
   SCM_VALIDATE_RGXP(1,rx);
   SCM_VALIDATE_ROSTRING(2,str);
-  SCM_VALIDATE_INT_DEF_COPY(3,start,0,offset);
+  SCM_VALIDATE_INUM_DEF_COPY(3,start,0,offset);
   SCM_ASSERT_RANGE (3,start,offset >= 0 && (unsigned) offset <= SCM_LENGTH (str));
   if (SCM_UNBNDP (flags))
     flags = SCM_INUM0;
-  SCM_VALIDATE_INT(4,flags);
+  SCM_VALIDATE_INUM(4,flags);
   SCM_COERCE_SUBSTR (str);
 
   /* re_nsub doesn't account for the `subexpression' representing the

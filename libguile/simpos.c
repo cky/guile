@@ -130,7 +130,7 @@ is @var{status} if supplied, otherwise zero.")
   int cstatus = 0;
   if (!SCM_UNBNDP (status))
     {
-      SCM_VALIDATE_INT(1,status);
+      SCM_VALIDATE_INUM(1,status);
       cstatus = SCM_INUM (status);
     }
   exit (cstatus);

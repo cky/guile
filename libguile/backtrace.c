@@ -398,7 +398,7 @@ GUILE_PROC(scm_display_application, "display-application", 1, 2, 0,
   if (SCM_UNBNDP (indent))
     indent = SCM_INUM0;
   else
-    SCM_VALIDATE_INT(3,indent);
+    SCM_VALIDATE_INUM(3,indent);
   
   if (SCM_FRAME_PROC_P (frame))
     /* Display an application. */

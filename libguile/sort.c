@@ -441,9 +441,9 @@ GUILE_PROC (scm_restricted_vector_sort_x, "restricted-vector-sort!", 4, 0, 0,
   vp = SCM_VELTS (vec);		/* vector pointer */
   vlen = SCM_LENGTH (vec);
 
-  SCM_VALIDATE_INT_COPY(3,startpos,spos);
+  SCM_VALIDATE_INUM_COPY(3,startpos,spos);
   SCM_ASSERT_RANGE (3,startpos,(spos >= 0) && (spos <= vlen));
-  SCM_VALIDATE_INT_RANGE(4,endpos,0,vlen+1);
+  SCM_VALIDATE_INUM_RANGE(4,endpos,0,vlen+1);
   len = SCM_INUM (endpos) - spos;
 
   quicksort (&vp[spos], len, size, scm_cmp_function (less), less);

@@ -154,7 +154,7 @@ table.  Each function returns an integer in the range 0 to
 @var{size}-1.")
 #define FUNC_NAME s_scm_hashq
 {
-  SCM_VALIDATE_INT_MIN(2,n,0);
+  SCM_VALIDATE_INUM_MIN(2,n,0);
   return SCM_MAKINUM(scm_ihashq (obj, SCM_INUM (n)));
 }
 #undef FUNC_NAME
@@ -181,7 +181,7 @@ GUILE_PROC(scm_hashv, "hashv", 2, 0, 0,
 "")
 #define FUNC_NAME s_scm_hashv
 {
-  SCM_VALIDATE_INT_MIN(2,n,0);
+  SCM_VALIDATE_INUM_MIN(2,n,0);
   return SCM_MAKINUM(scm_ihashv (obj, SCM_INUM (n)));
 }
 #undef FUNC_NAME
@@ -201,7 +201,7 @@ GUILE_PROC(scm_hash, "hash", 2, 0, 0,
 "")
 #define FUNC_NAME s_scm_hash
 {
-  SCM_VALIDATE_INT_MIN(2,n,0);
+  SCM_VALIDATE_INUM_MIN(2,n,0);
   return SCM_MAKINUM(scm_ihash(obj, SCM_INUM(n)));
 }
 #undef FUNC_NAME

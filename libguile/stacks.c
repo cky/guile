@@ -552,7 +552,7 @@ GUILE_PROC (scm_stack_ref, "stack-ref", 2, 0, 0,
 #define FUNC_NAME s_scm_stack_ref
 {
   SCM_VALIDATE_STACK(1,stack);
-  SCM_VALIDATE_INT(2,i);
+  SCM_VALIDATE_INUM(2,i);
   SCM_ASSERT_RANGE (1,i,
                     SCM_INUM (i) >= 0 && 
                     SCM_INUM (i) < SCM_STACK_LENGTH (stack));

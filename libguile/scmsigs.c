@@ -222,7 +222,7 @@ structures.")
   SCM *scheme_handlers = SCM_VELTS (*signal_handlers);
   SCM old_handler;
 
-  SCM_VALIDATE_INT_COPY(1,signum,csig);
+  SCM_VALIDATE_INUM_COPY(1,signum,csig);
 #if defined(HAVE_SIGACTION)
 #if defined(SA_RESTART) && defined(HAVE_RESTARTABLE_SYSCALLS)
   /* don't allow SA_RESTART to be omitted if HAVE_RESTARTABLE_SYSCALLS
@@ -234,7 +234,7 @@ structures.")
 #endif
   if (!SCM_UNBNDP (flags))
     {
-      SCM_VALIDATE_INT(3,flags);
+      SCM_VALIDATE_INUM(3,flags);
       action.sa_flags |= SCM_INUM (flags);
     }
   sigemptyset (&action.sa_mask);
@@ -382,7 +382,7 @@ no previous alarm, the return value is zero.")
 #define FUNC_NAME s_scm_alarm
 {
   unsigned int j;
-  SCM_VALIDATE_INT(1,i);
+  SCM_VALIDATE_INUM(1,i);
   j = alarm (SCM_INUM (i));
   return SCM_MAKINUM (j);
 }
@@ -410,7 +410,7 @@ of seconds remaining otherwise.")
 #define FUNC_NAME s_scm_sleep
 {
   unsigned long j;
-  SCM_VALIDATE_INT_MIN(1,i,0);
+  SCM_VALIDATE_INUM_MIN(1,i,0);
 #ifdef USE_THREADS
   j = scm_thread_sleep (SCM_INUM(i));
 #else
@@ -426,7 +426,7 @@ GUILE_PROC(scm_usleep, "usleep", 1, 0, 0,
 "")
 #define FUNC_NAME s_scm_usleep
 {
-  SCM_VALIDATE_INT_MIN(1,i,0);
+  SCM_VALIDATE_INUM_MIN(1,i,0);
 
 #ifdef USE_THREADS
   /* If we have threads, we use the thread system's sleep function.  */
@@ -456,7 +456,7 @@ Sends a specified signal @var{sig} to the current process, where
 @var{sig} is as described for the kill procedure.")
 #define FUNC_NAME s_scm_raise
 {
-  SCM_VALIDATE_INT(1,sig);
+  SCM_VALIDATE_INUM(1,sig);
   SCM_DEFER_INTS;
   if (kill (getpid (), (int) SCM_INUM (sig)) != 0)
     SCM_SYSERROR;

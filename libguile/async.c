@@ -386,7 +386,7 @@ GUILE_PROC(scm_set_tick_rate, "set-tick-rate", 1, 0, 0,
 #define FUNC_NAME s_scm_set_tick_rate
 {
   unsigned int old_n;
-  SCM_VALIDATE_INT(1,n);
+  SCM_VALIDATE_INUM(1,n);
   old_n = scm_tick_rate;
   scm_desired_tick_rate = SCM_INUM (n);
   scm_async_rate = 1 + scm_async_rate - scm_async_clock;
@@ -404,7 +404,7 @@ GUILE_PROC(scm_set_switch_rate, "set-switch-rate", 1, 0, 0,
 #define FUNC_NAME s_scm_set_switch_rate
 {
   unsigned int old_n;
-  SCM_VALIDATE_INT(1,n);
+  SCM_VALIDATE_INUM(1,n);
   old_n = scm_switch_rate;
   scm_desired_switch_rate = SCM_INUM (n);
   scm_async_rate = 1 + scm_async_rate - scm_async_clock;

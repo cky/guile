@@ -391,7 +391,7 @@ can not be initialized by Scheme programs.")
   SCM handle;
 
   SCM_VALIDATE_VTABLE(1,vtable);
-  SCM_VALIDATE_INT(2,tail_array_size);
+  SCM_VALIDATE_INUM(2,tail_array_size);
 
   layout = SCM_STRUCT_DATA (vtable)[scm_vtable_index_layout];
   basic_size = SCM_LENGTH (layout) / 2;
@@ -497,7 +497,7 @@ provided, it will be interpreted as a print call-back function.
   SCM handle;
 
   SCM_VALIDATE_ROSTRING(1,extra_fields);
-  SCM_VALIDATE_INT(2,tail_array_size);
+  SCM_VALIDATE_INUM(2,tail_array_size);
 
   fields = scm_string_append (scm_listify (required_vtable_fields,
 					   extra_fields,
@@ -543,7 +543,7 @@ integer value small enough to fit in one machine word.")
   
 
   SCM_VALIDATE_STRUCT(1,handle);
-  SCM_VALIDATE_INT(2,pos);
+  SCM_VALIDATE_INUM(2,pos);
 
   layout = SCM_STRUCT_LAYOUT (handle);
   data = SCM_STRUCT_DATA (handle);
@@ -620,7 +620,7 @@ GUILE_PROC (scm_struct_set_x, "struct-set!", 3, 0, 0,
   unsigned char field_type = 0;
 
   SCM_VALIDATE_STRUCT(1,handle);
-  SCM_VALIDATE_INT(2,pos);
+  SCM_VALIDATE_INUM(2,pos);
 
   layout = SCM_STRUCT_LAYOUT (handle);
   data = SCM_STRUCT_DATA (handle);

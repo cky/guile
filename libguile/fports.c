@@ -178,7 +178,7 @@ The value used to indicate the "close on exec" flag with @code{F_GETFL} or
   port = SCM_COERCE_OUTPORT (port);
 
   SCM_VALIDATE_OPFPORT(1,port);
-  SCM_VALIDATE_INT_COPY(2,mode,cmode);
+  SCM_VALIDATE_INUM_COPY(2,mode,cmode);
   if (cmode != _IONBF && cmode != _IOFBF && cmode != _IOLBF)
     scm_out_of_range (FUNC_NAME, mode);
 
@@ -201,7 +201,7 @@ The value used to indicate the "close on exec" flag with @code{F_GETFL} or
     }
   else
     {
-      SCM_VALIDATE_INT_COPY(3,size,csize);
+      SCM_VALIDATE_INUM_COPY(3,size,csize);
       if (csize < 0 || (cmode == _IONBF && csize > 0))
 	scm_out_of_range (FUNC_NAME, size);
     }

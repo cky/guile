@@ -391,8 +391,8 @@ Interrupt signal.
 @end defvar")
 #define FUNC_NAME s_scm_kill
 {
-  SCM_VALIDATE_INT(1,pid);
-  SCM_VALIDATE_INT(2,sig);
+  SCM_VALIDATE_INUM(1,pid);
+  SCM_VALIDATE_INUM(2,sig);
   /* Signal values are interned in scm_init_posix().  */
   if (kill ((int) SCM_INUM (pid), (int) SCM_INUM (sig)) != 0)
     SCM_SYSERROR;
@@ -449,12 +449,12 @@ The integer status value.
   int i;
   int status;
   int ioptions;
-  SCM_VALIDATE_INT(1,pid);
+  SCM_VALIDATE_INUM(1,pid);
   if (SCM_UNBNDP (options))
     ioptions = 0;
   else
     {
-      SCM_VALIDATE_INT(2,options);
+      SCM_VALIDATE_INUM(2,options);
       /* Flags are interned in scm_init_posix.  */
       ioptions = SCM_INUM (options);
     }
@@ -475,7 +475,7 @@ call to @code{exit} or @code{_exit}, if any, otherwise @code{#f}.")
 {
   int lstatus;
 
-  SCM_VALIDATE_INT(1,status);
+  SCM_VALIDATE_INUM(1,status);
 
   /* On Ultrix, the WIF... macros assume their argument is an lvalue;
      go figure.  SCM_INUM does not yield an lvalue.  */
@@ -495,7 +495,7 @@ process, if any, otherwise @code{#f}.")
 {
   int lstatus;
 
-  SCM_VALIDATE_INT(1,status);
+  SCM_VALIDATE_INUM(1,status);
 
   lstatus = SCM_INUM (status);
   if (WIFSIGNALED (lstatus))
@@ -513,7 +513,7 @@ process, if any, otherwise @code{#f}.")
 {
   int lstatus;
 
-  SCM_VALIDATE_INT(1,status);
+  SCM_VALIDATE_INUM(1,status);
 
   lstatus = SCM_INUM (status);
   if (WIFSTOPPED (lstatus))
@@ -598,7 +598,7 @@ the process has appropriate privileges.
 The return value is unspecified.")
 #define FUNC_NAME s_scm_setuid
 {
-  SCM_VALIDATE_INT(1,id);
+  SCM_VALIDATE_INUM(1,id);
   if (setuid (SCM_INUM (id)) != 0)
     SCM_SYSERROR;
   return SCM_UNSPECIFIED;
@@ -612,7 +612,7 @@ the process has appropriate privileges.
 The return value is unspecified.")
 #define FUNC_NAME s_scm_setgid
 {
-  SCM_VALIDATE_INT(1,id);
+  SCM_VALIDATE_INUM(1,id);
   if (setgid (SCM_INUM (id)) != 0)
     SCM_SYSERROR;
   return SCM_UNSPECIFIED;
@@ -630,7 +630,7 @@ The return value is unspecified.")
 {
   int rv;
 
-  SCM_VALIDATE_INT(1,id);
+  SCM_VALIDATE_INUM(1,id);
 #ifdef HAVE_SETEUID
   rv = seteuid (SCM_INUM (id));
 #else
@@ -654,7 +654,7 @@ The return value is unspecified.")
 {
   int rv;
 
-  SCM_VALIDATE_INT(1,id);
+  SCM_VALIDATE_INUM(1,id);
 #ifdef HAVE_SETEUID
   rv = setegid (SCM_INUM (id));
 #else
@@ -690,8 +690,8 @@ The return value is unspecified.")
 #define FUNC_NAME s_scm_setpgid
 {
 #ifdef HAVE_SETPGID
-  SCM_VALIDATE_INT(1,pid);
-  SCM_VALIDATE_INT(2,pgid);
+  SCM_VALIDATE_INUM(1,pid);
+  SCM_VALIDATE_INUM(2,pgid);
   /* FIXME(?): may be known as setpgrp.  */
   if (setpgid (SCM_INUM (pid), SCM_INUM (pgid)) != 0)
     SCM_SYSERROR;
@@ -815,7 +815,7 @@ controlling terminal.  The return value is unspecified.")
   port = SCM_COERCE_OUTPORT (port);
 
   SCM_VALIDATE_OPFPORT(1,port);
-  SCM_VALIDATE_INT(2,pgid);
+  SCM_VALIDATE_INUM(2,pgid);
   fd = SCM_FPORT_FDES (port);
   if (tcsetpgrp (fd, SCM_INUM (pgid)) == -1)
     SCM_SYSERROR;
@@ -1147,7 +1147,7 @@ test for existence of the file.
   SCM_VALIDATE_ROSTRING(1,path);
   if (SCM_SUBSTRP (path))
     path = scm_makfromstr (SCM_ROCHARS (path), SCM_ROLENGTH (path), 0);
-  SCM_VALIDATE_INT(2,how);
+  SCM_VALIDATE_INUM(2,how);
   rv = access (SCM_ROCHARS (path), SCM_INUM (how));
   return SCM_NEGATE_BOOL(rv);
 }
@@ -1212,7 +1212,7 @@ is an empty string, the locale will be set using envirionment variables.")
   char *clocale;
   char *rv;
 
-  SCM_VALIDATE_INT(1,category);
+  SCM_VALIDATE_INUM(1,category);
   if (SCM_UNBNDP (locale))
     {
       clocale = NULL;
@@ -1262,8 +1262,8 @@ The return value is unspecified.")
 
   SCM_VALIDATE_ROSTRING(1,path);
   SCM_VALIDATE_SYMBOL(2,type);
-  SCM_VALIDATE_INT(3,perms);
-  SCM_VALIDATE_INT(4,dev);
+  SCM_VALIDATE_INUM(3,perms);
+  SCM_VALIDATE_INUM(4,dev);
   SCM_COERCE_SUBSTR (path);
 
   p = SCM_CHARS (type);
@@ -1306,7 +1306,7 @@ The return value is unspecified.")
 #define FUNC_NAME s_scm_nice
 {
 #ifdef HAVE_NICE
-  SCM_VALIDATE_INT(1,incr);
+  SCM_VALIDATE_INUM(1,incr);
   if (nice(SCM_INUM(incr)) != 0)
     SCM_SYSERROR;
   return SCM_UNSPECIFIED;

@@ -204,7 +204,7 @@ GUILE_PROC (scm_make_vector, "make-vector", 1, 1, 0,
   register long j;
   register SCM *velts;
 
-  SCM_VALIDATE_INT_MIN(1,k,0);
+  SCM_VALIDATE_INUM_MIN(1,k,0);
   if (SCM_UNBNDP(fill))
     fill = SCM_UNSPECIFIED;
   i = SCM_INUM(k);
@@ -275,10 +275,10 @@ GUILE_PROC (scm_vector_move_left_x, "vector-move-left!", 5, 0, 0,
   long e;
   
   SCM_VALIDATE_VECTOR(1,vec1);
-  SCM_VALIDATE_INT_COPY(2,start1,i);
-  SCM_VALIDATE_INT_COPY(3,end1,e);
+  SCM_VALIDATE_INUM_COPY(2,start1,i);
+  SCM_VALIDATE_INUM_COPY(3,end1,e);
   SCM_VALIDATE_VECTOR(4,vec2);
-  SCM_VALIDATE_INT_COPY(5,start2,j);
+  SCM_VALIDATE_INUM_COPY(5,start2,j);
   SCM_ASSERT (i <= SCM_LENGTH (vec1) && i >= 0, start1, SCM_OUTOFRANGE, FUNC_NAME);
   SCM_ASSERT (j <= SCM_LENGTH (vec2) && j >= 0, start2, SCM_OUTOFRANGE, FUNC_NAME);
   SCM_ASSERT (e <= SCM_LENGTH (vec1) && e >= 0, end1, SCM_OUTOFRANGE, FUNC_NAME);
@@ -298,10 +298,10 @@ GUILE_PROC (scm_vector_move_right_x, "vector-move-right!", 5, 0, 0,
   long e;
 
   SCM_VALIDATE_VECTOR(1,vec1);
-  SCM_VALIDATE_INT_COPY(2,start1,i);
-  SCM_VALIDATE_INT_COPY(3,end1,e);
+  SCM_VALIDATE_INUM_COPY(2,start1,i);
+  SCM_VALIDATE_INUM_COPY(3,end1,e);
   SCM_VALIDATE_VECTOR(4,vec2);
-  SCM_VALIDATE_INT_COPY(5,start2,j);
+  SCM_VALIDATE_INUM_COPY(5,start2,j);
   SCM_ASSERT (i <= SCM_LENGTH (vec1) && i >= 0, start1, SCM_OUTOFRANGE, FUNC_NAME);
   SCM_ASSERT (j <= SCM_LENGTH (vec2) && j >= 0, start2, SCM_OUTOFRANGE, FUNC_NAME);
   SCM_ASSERT (e <= SCM_LENGTH (vec1) && e >= 0, end1, SCM_OUTOFRANGE, FUNC_NAME);

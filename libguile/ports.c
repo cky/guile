@@ -454,7 +454,7 @@ GUILE_PROC(scm_pt_member, "pt-member", 1, 0, 0,
 #define FUNC_NAME s_scm_pt_member
 {
   int i;
-  SCM_VALIDATE_INT_COPY (1,member,i);
+  SCM_VALIDATE_INUM_COPY (1,member,i);
   if (i < 0 || i >= scm_port_table_size)
     return SCM_BOOL_F;
   else
@@ -501,7 +501,7 @@ The return value is unspecified.")
 {
   port = SCM_COERCE_OUTPORT (port);
   SCM_VALIDATE_PORT(1,port);
-  SCM_VALIDATE_INT(2,rcount);
+  SCM_VALIDATE_INUM(2,rcount);
   SCM_REVEALED (port) = SCM_INUM (rcount);
   return SCM_UNSPECIFIED;
 }
@@ -1040,7 +1040,7 @@ the current position of a port can be obtained using:
   object = SCM_COERCE_OUTPORT (object);
 
   off = SCM_NUM2LONG (2,offset);
-  SCM_VALIDATE_INT_COPY(3,whence,how);
+  SCM_VALIDATE_INUM_COPY(3,whence,how);
   if (how != SEEK_SET && how != SEEK_CUR && how != SEEK_END)
     SCM_OUT_OF_RANGE (3, whence);
   if (SCM_OPPORTP (object))
@@ -1055,7 +1055,7 @@ the current position of a port can be obtained using:
     }
   else /* file descriptor?.  */
     {
-      SCM_VALIDATE_INT(1,object);
+      SCM_VALIDATE_INUM(1,object);
       rv = lseek (SCM_INUM (object), off, how);
       if (rv == -1)
 	SCM_SYSERROR;
@@ -1142,7 +1142,7 @@ GUILE_PROC (scm_set_port_line_x, "set-port-line!", 2, 0, 0,
 {
   port = SCM_COERCE_OUTPORT (port);
   SCM_VALIDATE_OPENPORT(1,port);
-  SCM_VALIDATE_INT(2,line);
+  SCM_VALIDATE_INUM(2,line);
   return SCM_PTAB_ENTRY (port)->line_number = SCM_INUM (line);
 }
 #undef FUNC_NAME
@@ -1175,7 +1175,7 @@ current input port if none is specified.")
 {
   port = SCM_COERCE_OUTPORT (port);
   SCM_VALIDATE_OPENPORT(1,port);
-  SCM_VALIDATE_INT(2,column);
+  SCM_VALIDATE_INUM(2,column);
   return SCM_PTAB_ENTRY (port)->column_number = SCM_INUM (column);
 }
 #undef FUNC_NAME

@@ -1071,7 +1071,7 @@ GUILE_PROC(scm_uniform_vector_ref, "uniform-vector-ref", 2, 0, 0,
 	}
       else
 	{
-          SCM_VALIDATE_INT(2,args);
+          SCM_VALIDATE_INUM(2,args);
 	  pos = SCM_INUM (args);
 	}
       SCM_ASRTGO (pos >= 0 && pos < SCM_LENGTH (v), outrng);
@@ -1261,7 +1261,7 @@ GUILE_PROC(scm_array_set_x, "array-set!", 2, 0, 1,
 	}
       else
 	{
-          SCM_VALIDATE_INT_COPY(3,args,pos);
+          SCM_VALIDATE_INUM_COPY(3,args,pos);
 	}
       SCM_ASRTGO (pos >= 0 && pos < SCM_LENGTH (v), outrng);
     }
@@ -1741,7 +1741,7 @@ GUILE_PROC(scm_bit_count, "bit-count", 2, 0, 0,
 {
   long i;
   register unsigned long cnt = 0, w;
-  SCM_VALIDATE_INT(2,seq);
+  SCM_VALIDATE_INUM(2,seq);
   switch SCM_TYP7 (seq)
     {
     default:
@@ -1779,7 +1779,7 @@ range @code{#f} is returned.")
   long i, lenw, xbits, pos;
   register unsigned long w;
   SCM_VALIDATE_NIM (2,v);
-  SCM_VALIDATE_INT_COPY(3,k,pos);
+  SCM_VALIDATE_INUM_COPY(3,k,pos);
   SCM_ASSERT ((pos <= SCM_LENGTH (v)) && (pos >= 0),
 	  k, SCM_OUTOFRANGE, FUNC_NAME);
   if (pos == SCM_LENGTH (v))
@@ -2170,7 +2170,7 @@ appropriate type, no coercions are done.")
   SCM ra;
   scm_sizet k;
   long n;
-  SCM_VALIDATE_INT_COPY(1,ndim,k);
+  SCM_VALIDATE_INUM_COPY(1,ndim,k);
   while (k--)
     {
       n = scm_ilength (row);

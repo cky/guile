@@ -131,7 +131,7 @@ regular hash tables. (@pxref{Hash Tables})")
 #define FUNC_NAME s_scm_make_weak_key_hash_table
 {
   SCM v;
-  SCM_VALIDATE_INT(1,k);
+  SCM_VALIDATE_INUM(1,k);
   v = scm_make_weak_vector (k, SCM_EOL);
   SCM_ALLOW_INTS;
   SCM_VELTS (v)[-1] = 1;
@@ -147,7 +147,7 @@ GUILE_PROC (scm_make_weak_value_hash_table, "make-weak-value-hash-table", 1, 0, 
 #define FUNC_NAME s_scm_make_weak_value_hash_table
 {
   SCM v;
-  SCM_VALIDATE_INT(1,k);
+  SCM_VALIDATE_INUM(1,k);
   v = scm_make_weak_vector (k, SCM_EOL);
   SCM_ALLOW_INTS;
   SCM_VELTS (v)[-1] = 2;
@@ -164,7 +164,7 @@ GUILE_PROC (scm_make_doubly_weak_hash_table, "make-doubly-weak-hash-table", 1, 0
 #define FUNC_NAME s_scm_make_doubly_weak_hash_table
 {
   SCM v;
-  SCM_VALIDATE_INT(1,k);
+  SCM_VALIDATE_INUM(1,k);
   v = scm_make_weak_vector (k, SCM_EOL);
   SCM_ALLOW_INTS;
   SCM_VELTS (v)[-1] = 3;

@@ -143,8 +143,8 @@ as @code{-1}, then that ID is not changed.")
 
   object = SCM_COERCE_OUTPORT (object);
 
-  SCM_VALIDATE_INT(2,owner);
-  SCM_VALIDATE_INT(3,group);
+  SCM_VALIDATE_INUM(2,owner);
+  SCM_VALIDATE_INUM(3,group);
   if (SCM_INUMP (object) || (SCM_OPFPORTP (object)))
     {
       if (SCM_INUMP (object))
@@ -184,7 +184,7 @@ The return value is unspecified.")
 
   object = SCM_COERCE_OUTPORT (object);
 
-  SCM_VALIDATE_INT(2,mode);
+  SCM_VALIDATE_INUM(2,mode);
   if (SCM_INUMP (object) || SCM_OPFPORTP (object))
     {
       if (SCM_INUMP (object))
@@ -222,7 +222,7 @@ E.g., @code{(umask #o022)} sets the mask to octal 22, decimal 18.")
     }
   else
     {
-      SCM_VALIDATE_INT(1,mode);
+      SCM_VALIDATE_INUM(1,mode);
       mask = umask (SCM_INUM (mode));
     }
   return SCM_MAKINUM (mask);
@@ -243,8 +243,8 @@ port.")
 
   SCM_VALIDATE_ROSTRING(1,path);
   SCM_COERCE_SUBSTR (path);
-  SCM_VALIDATE_INT_COPY(2,flags,iflags);
-  SCM_VALIDATE_INT_DEF_COPY(3,mode,0666,imode);
+  SCM_VALIDATE_INUM_COPY(2,flags,iflags);
+  SCM_VALIDATE_INUM_DEF_COPY(3,mode,0666,imode);
   SCM_SYSCALL (fd = open (SCM_ROCHARS (path), iflags, imode));
   if (fd == -1)
     SCM_SYSERROR;
@@ -289,7 +289,7 @@ for additional flags.")
   int iflags;
 
   fd = SCM_INUM (scm_open_fdes (path, flags, mode));
-  SCM_VALIDATE_INT_COPY(2,flags,iflags);
+  SCM_VALIDATE_INUM_COPY(2,flags,iflags);
   if (iflags & O_RDWR)
     {
       if (iflags & O_APPEND)
@@ -328,7 +328,7 @@ their revealed counts set to zero.")
 
   if (SCM_PORTP (fd_or_port))
     return scm_close_port (fd_or_port);
-  SCM_VALIDATE_INT(1,fd_or_port);
+  SCM_VALIDATE_INUM(1,fd_or_port);
   fd = SCM_INUM (fd_or_port);
   scm_evict_ports (fd);		/* see scsh manual.  */
   SCM_SYSCALL (rv = close (fd));
@@ -635,7 +635,7 @@ umask.  Otherwise they are set to the decimal value specified with
     }
   else
     {
-      SCM_VALIDATE_INT(2,mode);
+      SCM_VALIDATE_INUM(2,mode);
       SCM_SYSCALL (rv = mkdir (SCM_ROCHARS (path), SCM_INUM (mode)));
     }
   if (rv != 0)
@@ -1003,7 +1003,7 @@ values instead of a list and has an additional select! interface.
 	    timeout.tv_usec = 0;
 	  else
 	    {
-              SCM_VALIDATE_INT(5,usecs);
+              SCM_VALIDATE_INUM(5,usecs);
 	      timeout.tv_usec = SCM_INUM (usecs);
 	    }
 	}
@@ -1079,12 +1079,12 @@ The value used to indicate the "close on exec" flag with @code{F_GETFL} or
 
   object = SCM_COERCE_OUTPORT (object);
 
-  SCM_VALIDATE_INT(2,cmd);
+  SCM_VALIDATE_INUM(2,cmd);
   if (SCM_OPFPORTP (object))
     fdes = SCM_FPORT_FDES (object);
   else
     {
-      SCM_VALIDATE_INT(1,object);
+      SCM_VALIDATE_INUM(1,object);
       fdes = SCM_INUM (object);
     }
   if (SCM_NULLP (value))
@@ -1120,7 +1120,7 @@ The return value is unspecified.")
     }
   else
     {
-      SCM_VALIDATE_INT(1,object);
+      SCM_VALIDATE_INUM(1,object);
       fdes = SCM_INUM (object);
     }
   if (fsync (fdes) == -1)
