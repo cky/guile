@@ -1150,6 +1150,9 @@ SCM_DEFINE (scm_integer_expt, "integer-expt", 2, 0, 0,
 	    "@end lisp")
 #define FUNC_NAME s_scm_integer_expt
 {
+  long i2 = 0;
+  SCM z_i2 = SCM_BOOL_F;
+  int i2_is_big = 0;
   SCM acc = SCM_MAKINUM (1L);
 
   /* 0^0 == 1 according to R5RS */
@@ -1158,10 +1161,6 @@ SCM_DEFINE (scm_integer_expt, "integer-expt", 2, 0, 0,
   else if (SCM_EQ_P (n, SCM_MAKINUM (-1L)))
     return SCM_FALSEP (scm_even_p (k)) ? n : acc;
 
-  long i2 = 0;
-  SCM z_i2 = SCM_BOOL_F;
-  int i2_is_big = 0;
-  
   if (SCM_INUMP (k))
     i2 = SCM_INUM (k);
   else if (SCM_BIGP (k))
