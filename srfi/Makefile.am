@@ -69,6 +69,7 @@ srfi_DATA = srfi-1.scm \
             srfi-17.scm \
             srfi-19.scm \
             srfi-26.scm \
+            srfi-31.scm \
             srfi-34.scm
 
 EXTRA_DIST = $(srfi_DATA) 
