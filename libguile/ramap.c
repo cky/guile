@@ -64,8 +64,32 @@ typedef struct
   int (*vproc) ();
 } ra_iproc;
 
-static ra_iproc ra_rpsubrs[];
-static ra_iproc ra_asubrs[];
+
+/* These tables are a kluge that will not scale well when more
+ * vectorized subrs are added.  It is tempting to steal some bits from
+ * the SCM_CAR of all subrs (like those selected by SCM_SMOBNUM) to hold an
+ * offset into a table of vectorized subrs.  
+ */
+
+static ra_iproc ra_rpsubrs[] =
+{
+  {"=", SCM_UNDEFINED, scm_ra_eqp},
+  {"<", SCM_UNDEFINED, scm_ra_lessp},
+  {"<=", SCM_UNDEFINED, scm_ra_leqp},
+  {">", SCM_UNDEFINED, scm_ra_grp},
+  {">=", SCM_UNDEFINED, scm_ra_greqp},
+  {0, 0, 0}
+};
+
+static ra_iproc ra_asubrs[] =
+{
+  {"+", SCM_UNDEFINED, scm_ra_sum},
+  {"-", SCM_UNDEFINED, scm_ra_difference},
+  {"*", SCM_UNDEFINED, scm_ra_product},
+  {"/", SCM_UNDEFINED, scm_ra_divide},
+  {0, 0, 0}
+};
+
 
 #define BVE_REF(a, i) ((SCM_VELTS(a)[(i)/SCM_LONG_BIT] & (1L<<((i)%SCM_LONG_BIT))) ? 1 : 0)
 #define BVE_SET(a, i) (SCM_VELTS(a)[(i)/SCM_LONG_BIT] |= (1L<<((i)%SCM_LONG_BIT)))
@@ -373,7 +397,17 @@ scm_ramapc (cproc, data, ra0, lra, what)
 }
 
 
-static char s_array_fill_x[];
+SCM_PROC(s_array_fill_x, "array-fill!", 2, 0, 0, scm_array_fill_x);
+
+SCM 
+scm_array_fill_x (ra, fill)
+     SCM ra;
+     SCM fill;
+{
+  scm_ramapc (scm_array_fill_int, fill, ra, SCM_EOL, s_array_fill_x);
+  return SCM_UNSPECIFIED;
+}
+
 
 int 
 scm_array_fill_int (ra, fill, ignore)
@@ -489,17 +523,6 @@ scm_array_fill_int (ra, fill, ignore)
 #endif /* SCM_FLOATS */
       }
   return 1;
-}
-
-SCM_PROC(s_array_fill_x, "array-fill!", 2, 0, 0, scm_array_fill_x);
-
-SCM 
-scm_array_fill_x (ra, fill)
-     SCM ra;
-     SCM fill;
-{
-  scm_ramapc (scm_array_fill_int, fill, ra, SCM_EOL, s_array_fill_x);
-  return SCM_UNSPECIFIED;
 }
 
 
@@ -2077,32 +2100,6 @@ scm_array_equal_p (ra0, ra1)
 }
 
 
-
-
-/* These tables are a kluge that will not scale well when more
- * vectorized subrs are added.  It is tempting to steal some bits from
- * the SCM_CAR of all subrs (like those selected by SCM_SMOBNUM) to hold an
- * offset into a table of vectorized subrs.  
- */
-
-static ra_iproc ra_rpsubrs[] =
-{
-  {"=", SCM_UNDEFINED, scm_ra_eqp},
-  {"<", SCM_UNDEFINED, scm_ra_lessp},
-  {"<=", SCM_UNDEFINED, scm_ra_leqp},
-  {">", SCM_UNDEFINED, scm_ra_grp},
-  {">=", SCM_UNDEFINED, scm_ra_greqp},
-  {0, 0, 0}
-};
-
-static ra_iproc ra_asubrs[] =
-{
-  {"+", SCM_UNDEFINED, scm_ra_sum},
-  {"-", SCM_UNDEFINED, scm_ra_difference},
-  {"*", SCM_UNDEFINED, scm_ra_product},
-  {"/", SCM_UNDEFINED, scm_ra_divide},
-  {0, 0, 0}
-};
 
 static void
 init_raprocs (subra)

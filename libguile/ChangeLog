@@ -1,3 +1,17 @@
+Thu Jan 30 20:14:09 1997  Mikael Djurfeldt  <mdj@syk-0606.pdc.kth.se>
+
+	The following two changes (ramap.c, throw.c) are motivated by the
+	apparent unportability of forward declarations of static arrays of
+	the form `static foo bar[];'.
+	
+	* ramap.c (scm_array_fill_x): Moved above scm_array_fill_int.
+	(ra_rpsubrs, ra_asubrs): Moved to the top of array code.
+
+	* throw.c (scm_throw): Moved above scm_ithrow.
+
+	* options.h: Removed the extern declarations of scm_yes_sym and
+	scm_no_sym since these are static.
+
 Fri Jan 24 06:16:32 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* ports.c: add SCM_PROC declarations for pt-size and pt-member.

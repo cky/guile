@@ -63,8 +63,6 @@ typedef struct scm_option
 #define SCM_OPTION_INTEGER 1
 #define SCM_OPTION_SCM     2
 
-extern SCM scm_yes_sym, scm_no_sym;
-
 
 extern SCM scm_options SCM_P ((SCM new_mode, scm_option options[], int n, char *s));
 extern void scm_init_opts SCM_P ((SCM (*func) (SCM), scm_option options[], int n));

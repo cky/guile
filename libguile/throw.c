@@ -367,6 +367,17 @@ scm_handle_by_message (handler_data, tag, args)
 }
 
 
+SCM_PROC(s_throw, "throw", 1, 0, 1, scm_throw);
+SCM
+scm_throw (key, args)
+     SCM key;
+     SCM args;
+{
+  /* May return if handled by lazy catch. */
+  return scm_ithrow (key, args, 1);
+}
+
+
 static char s_throw[];
 SCM
 scm_ithrow (key, args, noreturn)
@@ -478,17 +489,6 @@ scm_ithrow (key, args, noreturn)
   scm_last_debug_frame = SCM_JBDFRAME (jmpbuf);
 #endif
   longjmp (*JBJMPBUF (jmpbuf), 1);
-}
-
-
-SCM_PROC(s_throw, "throw", 1, 0, 1, scm_throw);
-SCM
-scm_throw (key, args)
-     SCM key;
-     SCM args;
-{
-  /* May return if handled by lazy catch. */
-  return scm_ithrow (key, args, 1);
 }
 
 
