@@ -246,19 +246,19 @@ scm_make_string (k, chr)
      SCM chr;
 {
   SCM res;
-  register unsigned char *dst;
   register long i;
   SCM_ASSERT (SCM_INUMP (k) && (k >= 0), k, SCM_ARG1, s_make_string);
   i = SCM_INUM (k);
   res = scm_makstr (i, 0);
-  dst = SCM_UCHARS (res);
-  if SCM_ICHRP (chr)
+  if (!SCM_UNBNDP (chr))
     {
-      char c = SCM_ICHR (chr);
-      for (i--;i >= 0;i--)
-	{
-	  dst[i] = c;
-	}
+      SCM_ASSERT (SCM_ICHRP (chr), chr, SCM_ARG2, s_make_string);
+      {
+	unsigned char *dst = SCM_UCHARS (res);
+	char c = SCM_ICHR (chr);
+	
+	memset (dst, c, i);
+      }
     }
   return res;
 }

@@ -148,44 +148,8 @@ scm_do_read_line (SCM port, int *len_p)
 
   /* I thought reading lines was simple.  Mercy me.  */
 
-  /* If there are any pushed-back characters, read the line character
-     by character.  */
-  if (SCM_CRDYP (port))
-    {
-      int buf_size = 60;
-      /* Invariant: buf always has buf_size + 1 characters allocated;
-	 the `+ 1' is for the final '\0'.  */
-      unsigned char *buf = malloc (buf_size + 1);
-      int buf_len = 0;
-      int c;
-
-      while ((c = scm_getc (port)) != EOF)
-	{
-	  if (buf_len >= buf_size)
-	    {
-	      buf = realloc (buf, buf_size * 2 + 1);
-	      buf_size *= 2;
-	    }
-	  
-	  buf[buf_len++] = c;
-
-	  if (c == '\n')
-	    break;
-	}
-
-      /* Since SCM_CRDYP returned true, we ought to have gotten at
-         least one character.  */
-      if (buf_len == 0)
-	abort ();
-
-      buf[buf_len] = '\0';
-
-      *len_p = buf_len;
-      return buf;
-    }
-
-  /* The common case: no unread characters, and the buffer contains
-     a complete line.  This needs to be fast.  */
+  /* The common case: the buffer contains a complete line. 
+     This needs to be fast.  */
   if ((end = memchr (pt->read_pos, '\n', (pt->read_end - pt->read_pos)))
 	   != 0)
     {
@@ -202,7 +166,7 @@ scm_do_read_line (SCM port, int *len_p)
       return buf;
     }
 
-  /* There are no unread characters, and the buffer contains no newlines.  */
+  /* The buffer contains no newlines.  */
   {
     /* When live, len is always the number of characters in the
        current buffer that are part of the current line.  */
@@ -234,7 +198,7 @@ scm_do_read_line (SCM port, int *len_p)
 
 	/* Get more characters.  I think having fill_buffer return a
            character is not terribly graceful...  */
-	c = (scm_ptobs[SCM_PTOBNUM (port)].fill_buffer) (port);
+	c = scm_fill_buffer (port, pt);
 	if (c == EOF)
 	  {
 	    /* If we're missing a final newline in the file, return

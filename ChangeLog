@@ -1,3 +1,7 @@
+1999-07-04  Gary Houston  <ghouston@easynet.co.uk>
+
+	* configure.in: don't check for ways to violate stdio abstraction.
+
 1999-05-02  Jim Blandy  <jimb@savonarola.red-bean.com>
 
 	* configure.in (AC_CHECK_FUNCS): Fill in list of functions that

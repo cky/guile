@@ -514,10 +514,13 @@ local_read_flush (SCM port)
   scm_port *pt = SCM_PTAB_ENTRY (port);
   int offset = pt->read_end - pt->read_pos;
 
-  if (SCM_CRDYP (port))
+  if (pt->read_buf == pt->putback_buf)
     {
-      offset += SCM_N_READY_CHARS (port);
-      SCM_CLRDY (port);
+      pt->read_buf = pt->saved_read_buf;
+      pt->read_pos = pt->saved_read_pos;
+      pt->read_end = pt->saved_read_end;
+      pt->read_buf_size = pt->saved_read_buf_size;
+      offset += pt->read_end - pt->read_pos;
     }
   if (offset > 0)
     {
@@ -541,6 +544,8 @@ local_fclose (SCM port)
   SCM_SYSCALL (rv = close (fp->fdes));
   if (rv == -1 && errno != EBADF)
     scm_syserror ("local_fclose");
+  if (pt->read_buf == pt->putback_buf)
+    pt->read_buf = pt->saved_read_buf;
   if (pt->read_buf != &pt->shortbuf)
     free (pt->read_buf);
   if (pt->write_buf != &pt->shortbuf)

@@ -1469,7 +1469,7 @@ scm_uniform_array_read_x (ra, port_or_fd, start, end)
     port_or_fd = scm_cur_inp;
   else
     SCM_ASSERT (SCM_INUMP (port_or_fd)
-		|| (SCM_NIMP (port_or_fd) && SCM_OPINFPORTP (port_or_fd)),
+		|| (SCM_NIMP (port_or_fd) && SCM_OPINPORTP (port_or_fd)),
 		port_or_fd, SCM_ARG2, s_uniform_array_read_x);
   vlen = SCM_LENGTH (v);
 
@@ -1542,18 +1542,49 @@ loop:
 
   if (SCM_NIMP (port_or_fd))
     {
-      /* if we have stored a character from the port in our own buffer,
-	 push it back onto the stream.  */
-      /* An ungetc before an fread will not work on some systems if
-	 setbuf(0).  do #define NOSETBUF in scmfig.h to fix this. */
-      if (SCM_CRDYP (port_or_fd))
+      scm_port *pt = SCM_PTAB_ENTRY (port_or_fd);
+      int remaining = (cend - offset) * sz;
+      char *dest = SCM_CHARS (v) + (cstart + offset) * sz;
+
+      if (pt->rw_active == SCM_PORT_WRITE)
+	scm_fflush (port_or_fd);
+
+      ans = cend - offset;
+      while (remaining > 0)
 	{
-	  ungetc (SCM_CGETUN (port_or_fd), (FILE *)SCM_STREAM (port_or_fd));
-	  SCM_CLRDY (port_or_fd); /* Clear ungetted char */
+	  if (pt->read_pos < pt->read_end)
+	    {
+	      int to_copy = min (pt->read_end - pt->read_pos,
+				 remaining);
+
+	      memcpy (dest, pt->read_pos, to_copy);
+	      pt->read_pos += to_copy;
+	      remaining -= to_copy;
+	      dest += to_copy;
+	    }
+	  else
+	    {
+	      int ch = scm_fill_buffer (port_or_fd, pt);
+	      
+	      if (ch == EOF)
+		{
+		  if (remaining % sz != 0)
+		    {
+		      scm_misc_error (s_uniform_array_read_x,
+				      "unexpected EOF",
+				      SCM_EOL);
+		    }
+		  ans -= remaining / sz;
+		  break;
+		}
+
+	      *dest++ = ch;
+	      remaining--;
+	    }
 	}
-      SCM_SYSCALL (ans = fread (SCM_CHARS (v) + (cstart + offset) * sz,
-			       (scm_sizet) sz, (scm_sizet) (cend - offset),
-				(FILE *)SCM_STREAM (port_or_fd)));
+      
+      if (pt->rw_random)
+	pt->rw_active = SCM_PORT_READ;
     }
   else /* file descriptor.  */
     {
@@ -1593,7 +1624,7 @@ scm_uniform_array_write (v, port_or_fd, start, end)
     port_or_fd = scm_cur_outp;
   else
     SCM_ASSERT (SCM_INUMP (port_or_fd)
-		|| (SCM_NIMP (port_or_fd) && SCM_OPOUTFPORTP (port_or_fd)),
+		|| (SCM_NIMP (port_or_fd) && SCM_OPOUTPORTP (port_or_fd)),
 		port_or_fd, SCM_ARG2, s_uniform_array_write);
   vlen = SCM_LENGTH (v);
 
@@ -1666,9 +1697,31 @@ loop:
 
   if (SCM_NIMP (port_or_fd))
     {
-      SCM_SYSCALL (ans = fwrite (SCM_CHARS (v) + (cstart + offset) * sz,
-				 (scm_sizet) sz, (scm_sizet) (cend - offset),
-				 (FILE *)SCM_STREAM (port_or_fd)));
+      scm_port *pt = SCM_PTAB_ENTRY (port_or_fd);
+      int remaining = (cend - offset) * sz;
+      char *source = SCM_CHARS (v) + (cstart + offset) * sz;
+      scm_ptobfuns *ptob = &scm_ptobs[SCM_PTOBNUM (port_or_fd)];
+
+      ans = cend - offset;
+      if (pt->rw_active == SCM_PORT_READ)
+	ptob->read_flush (port_or_fd);
+
+      while (remaining > 0)
+	{
+	  int to_copy = min (pt->write_end - pt->write_pos, remaining);
+
+	  memcpy (pt->write_pos, source, to_copy);
+	  pt->write_pos += to_copy;
+	  source += to_copy;
+	  remaining -= to_copy;
+	  if (pt->write_pos == pt->write_end)
+	    ptob->fflush (port_or_fd);
+	}
+      
+      if (pt->rw_random)
+	{
+	  pt->rw_active = SCM_PORT_WRITE;
+	}
     }
   else /* file descriptor.  */
     {

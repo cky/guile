@@ -247,7 +247,7 @@ scm_strprint_obj (obj)
   port = scm_mkstrport (SCM_MAKINUM (0), str, SCM_OPN | SCM_WRTNG, "scm_strprint_obj");
   scm_prin1 (obj, port, 1);
   {
-    scm_port *pt = SCM_PTAB_ENTRY (obj);
+    scm_port *pt = SCM_PTAB_ENTRY (port);
     SCM answer;
 
     answer = scm_makfromstr (SCM_CHARS (SCM_STREAM (port)),

@@ -299,25 +299,25 @@ fi
 #
 #--------------------------------------------------------------------
 
-AC_MSG_CHECKING(how to set a stream file descriptor)
-AC_CACHE_VAL(scm_cv_fd_setter,
-	AC_TRY_COMPILE([#include <stdio.h>],
-			[stdout->_file = 1],
-			scm_cv_fd_setter="_file",
-	AC_TRY_COMPILE([#include <stdio.h>],
-			[stdout->__file = 1],
-			scm_cv_fd_setter="__file",
-	AC_TRY_COMPILE([#include <stdio.h>],
-			[stdout->_fileno = 1],
-			scm_cv_fd_setter="_fileno",
-			scm_cv_fd_setter=""))))
+dnl  AC_MSG_CHECKING(how to set a stream file descriptor)
+dnl  AC_CACHE_VAL(scm_cv_fd_setter,
+dnl  	AC_TRY_COMPILE([#include <stdio.h>],
+dnl  			[stdout->_file = 1],
+dnl  			scm_cv_fd_setter="_file",
+dnl  	AC_TRY_COMPILE([#include <stdio.h>],
+dnl  			[stdout->__file = 1],
+dnl  			scm_cv_fd_setter="__file",
+dnl  	AC_TRY_COMPILE([#include <stdio.h>],
+dnl  			[stdout->_fileno = 1],
+dnl  			scm_cv_fd_setter="_fileno",
+dnl  			scm_cv_fd_setter=""))))
 
-if test "$scm_cv_fd_setter"; then
-	AC_MSG_RESULT($scm_cv_fd_setter)
-	AC_DEFINE_UNQUOTED(FD_SETTER, $scm_cv_fd_setter)
-else
-	AC_MSG_RESULT(we couldn't do it!)
-fi
+dnl  if test "$scm_cv_fd_setter"; then
+dnl  	AC_MSG_RESULT($scm_cv_fd_setter)
+dnl  	AC_DEFINE_UNQUOTED(FD_SETTER, $scm_cv_fd_setter)
+dnl  else
+dnl  	AC_MSG_RESULT(we couldn't do it!)
+dnl  fi
 
 #--------------------------------------------------------------------
 # How to find out whether a FILE structure contains buffered data.
@@ -331,46 +331,46 @@ fi
 #	These can also be known as _IO_read_ptr and _IO_read_end.
 #--------------------------------------------------------------------
 
-AC_MSG_CHECKING(how to get buffer char count from FILE structure)
-AC_CACHE_VAL(scm_cv_struct_file_count,
-	AC_TRY_COMPILE([#include <stdio.h>],
-			[FILE *f = stdin; f->_cnt = 0],
-			scm_cv_struct_file_count="_cnt",
-	AC_TRY_COMPILE([#include <stdio.h>],
-			[FILE *f = stdin; f->__cnt = 0],
-			scm_cv_struct_file_count="__cnt",
-	AC_TRY_COMPILE([#include <stdio.h>],
-			[FILE *f = stdin; f->_r = 0],
-			scm_cv_struct_file_count="_r",
-	AC_TRY_COMPILE([#include <stdio.h>],
-			[FILE *f = stdin; f->readCount = 0],
-			scm_cv_struct_file_count="readCount",
-	scm_cv_struct_file_count="")))))
-if test "$scm_cv_struct_file_count"; then
-	AC_MSG_RESULT($scm_cv_struct_file_count)
-	AC_DEFINE_UNQUOTED(FILE_CNT_FIELD, $scm_cv_struct_file_count)
-else
-AC_CACHE_VAL(scm_cv_struct_file_gptr,
-	AC_TRY_COMPILE([#include <stdio.h>],
-			[FILE *f = stdin; f->_gptr = f->egptr;],
-			scm_cv_struct_file_gptr=1,
-	scm_cv_struct_file_gptr=""))
-if test "$scm_cv_struct_gptr"; then
-	AC_MSG_RESULT(gptr)
-	AC_DEFINE_UNQUOTED(FILE_CNT_GPTR, $scm_cv_struct_file_gptr)
-else
-AC_CACHE_VAL(scm_cv_struct_file_readptr,
-	AC_TRY_COMPILE([#include <stdio.h>],
-			[FILE *f = stdin; f->_IO_read_ptr = f->_IO_read_end;],
-			scm_cv_struct_file_readptr=1))
-if test "$scm_cv_struct_file_readptr"; then
-	AC_MSG_RESULT(read_ptr)
-	AC_DEFINE_UNQUOTED(FILE_CNT_READPTR, $scm_cv_struct_file_readptr)
-else
-	AC_MSG_RESULT(we couldn't do it!)
-fi
-fi
-fi
+dnl  AC_MSG_CHECKING(how to get buffer char count from FILE structure)
+dnl  AC_CACHE_VAL(scm_cv_struct_file_count,
+dnl  	AC_TRY_COMPILE([#include <stdio.h>],
+dnl  			[FILE *f = stdin; f->_cnt = 0],
+dnl  			scm_cv_struct_file_count="_cnt",
+dnl  	AC_TRY_COMPILE([#include <stdio.h>],
+dnl  			[FILE *f = stdin; f->__cnt = 0],
+dnl  			scm_cv_struct_file_count="__cnt",
+dnl  	AC_TRY_COMPILE([#include <stdio.h>],
+dnl  			[FILE *f = stdin; f->_r = 0],
+dnl  			scm_cv_struct_file_count="_r",
+dnl  	AC_TRY_COMPILE([#include <stdio.h>],
+dnl  			[FILE *f = stdin; f->readCount = 0],
+dnl  			scm_cv_struct_file_count="readCount",
+dnl  	scm_cv_struct_file_count="")))))
+dnl  if test "$scm_cv_struct_file_count"; then
+dnl  	AC_MSG_RESULT($scm_cv_struct_file_count)
+dnl  	AC_DEFINE_UNQUOTED(FILE_CNT_FIELD, $scm_cv_struct_file_count)
+dnl  else
+dnl  AC_CACHE_VAL(scm_cv_struct_file_gptr,
+dnl  	AC_TRY_COMPILE([#include <stdio.h>],
+dnl  			[FILE *f = stdin; f->_gptr = f->egptr;],
+dnl  			scm_cv_struct_file_gptr=1,
+dnl  	scm_cv_struct_file_gptr=""))
+dnl  if test "$scm_cv_struct_gptr"; then
+dnl  	AC_MSG_RESULT(gptr)
+dnl  	AC_DEFINE_UNQUOTED(FILE_CNT_GPTR, $scm_cv_struct_file_gptr)
+dnl  else
+dnl  AC_CACHE_VAL(scm_cv_struct_file_readptr,
+dnl  	AC_TRY_COMPILE([#include <stdio.h>],
+dnl  			[FILE *f = stdin; f->_IO_read_ptr = f->_IO_read_end;],
+dnl  			scm_cv_struct_file_readptr=1))
+dnl  if test "$scm_cv_struct_file_readptr"; then
+dnl  	AC_MSG_RESULT(read_ptr)
+dnl  	AC_DEFINE_UNQUOTED(FILE_CNT_READPTR, $scm_cv_struct_file_readptr)
+dnl  else
+dnl  	AC_MSG_RESULT(we couldn't do it!)
+dnl  fi
+dnl  fi
+dnl  fi
 
 #--------------------------------------------------------------------
 #

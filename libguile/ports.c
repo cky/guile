@@ -128,62 +128,61 @@ SCM
 scm_char_ready_p (port)
      SCM port;
 {
+  scm_port *pt = SCM_PTAB_ENTRY (port);
+
   if (SCM_UNBNDP (port))
     port = scm_cur_inp;
   else
     SCM_ASSERT (SCM_NIMP (port) && SCM_OPINPORTP (port), port, SCM_ARG1,
 		s_char_ready_p);
 
-  if (SCM_CRDYP (port))
+  /* if the current read buffer is filled, or the
+     last pushed-back char has been read and the saved buffer is
+     filled, result is true.  */
+  if (pt->read_pos < pt->read_end 
+      || (pt->read_buf == pt->putback_buf
+	  && pt->saved_read_pos < pt->saved_read_end))
     return SCM_BOOL_T;
   else
     {
-      scm_port *pt = SCM_PTAB_ENTRY (port);
+      scm_ptobfuns *ptob = &scm_ptobs[SCM_PTOBNUM (port)];
       
-      if (pt->read_pos < pt->read_end)
-	return SCM_BOOL_T;
+      if (ptob->input_waiting_p)
+	return (ptob->input_waiting_p (port)) ? SCM_BOOL_T : SCM_BOOL_F;
       else
-	{
-	  scm_ptobfuns *ptob = &scm_ptobs[SCM_PTOBNUM (port)];
-
-	  if (ptob->input_waiting_p)
-	    return (ptob->input_waiting_p (port)) ? SCM_BOOL_T : SCM_BOOL_F;
-	  else
-	    return SCM_BOOL_T;
-	}
+	return SCM_BOOL_T;
     }
 }
 
-/* Clear a port's read buffer, returning the contents.  */
+/* Clear a port's read buffers, returning the contents.  */
 SCM_PROC (s_drain_input, "drain-input", 1, 0, 0, scm_drain_input);
 SCM
 scm_drain_input (SCM port)
 {
   SCM result;
   scm_port *pt = SCM_PTAB_ENTRY (port);
-  int p_count;
+  int count;
   char *dst;
-  char *p_buf;
 
   SCM_ASSERT (SCM_NIMP (port) && SCM_OPINPORTP (port), port, SCM_ARG1,
 	      s_drain_input);
 
-  p_count = (SCM_CRDYP (port)) ? SCM_N_READY_CHARS (port) : 0;
-  result = scm_makstr (p_count + pt->read_end - pt->read_pos, 0);
-  dst = SCM_CHARS (result);
-  p_buf = SCM_PTAB_ENTRY (port)->cp;
+  count = pt->read_end - pt->read_pos;
+  if (pt->read_buf == pt->putback_buf)
+    count += pt->saved_read_end - pt->saved_read_pos;
 
-  while (p_count > 0)
-    {
-      *dst++ = *p_buf--;
-      p_count--;
-    }
-  SCM_CLRDY (port);
+  result = scm_makstr (count, 0);
+  dst = SCM_CHARS (result);
 
   while (pt->read_pos < pt->read_end)
+    *dst++ = *(pt->read_pos++);
+  
+  if (pt->read_buf == pt->putback_buf)
     {
-      *dst++ = *(pt->read_pos++);
+      while (pt->saved_read_pos < pt->saved_read_end)
+	*dst++ = *(pt->saved_read_pos++);
     }
+
   return result;
 }
 
@@ -299,10 +298,8 @@ scm_add_to_port_table (port)
   entry->file_name = SCM_BOOL_F;
   entry->line_number = 0;
   entry->column_number = 0;
-  entry->cp
-    = entry->cbuf;
-  entry->cbufend
-    = &entry->cbuf[SCM_INITIAL_CBUF_SIZE];
+  entry->putback_buf = 0;
+  entry->putback_buf_size = 0;
   entry->rw_active = 0;
 
   scm_port_table[scm_port_table_size] = entry;
@@ -311,7 +308,7 @@ scm_add_to_port_table (port)
   return entry;
 }
 
-/* Remove a port from the table.  */
+/* Remove a port from the table and destroy it.  */
 
 void
 scm_remove_from_port_table (port)
@@ -319,9 +316,11 @@ scm_remove_from_port_table (port)
 {
   scm_port *p = SCM_PTAB_ENTRY (port);
   int i = p->entry;
-  /* Error if not found: too violent?  May occur in GC.  */
+
   if (i >= scm_port_table_size)
     scm_wta (port, "Port not in table", "scm_remove_from_port_table");
+  if (p->putback_buf)
+    free (p->putback_buf);
   free (p);
   /* Since we have just freed slot i we can shrink the table by moving
      the last entry to that slot... */
@@ -334,6 +333,7 @@ scm_remove_from_port_table (port)
   scm_port_table_size--;
 }
 
+#if 0
 void
 scm_grow_port_cbuf (port, requested)
   SCM port;
@@ -342,12 +342,17 @@ scm_grow_port_cbuf (port, requested)
   scm_port *p = SCM_PTAB_ENTRY (port);
   int size = p->cbufend - p->cbuf;
   int new_size = size * 3 / 2;
+  int count = p->cp - p->cbuf;
+
   if (new_size < requested)
     new_size = requested;
   p = realloc (p, sizeof (*p) - SCM_INITIAL_CBUF_SIZE + new_size);
+  p->cp = p->cbuf + count;
+  p->bufend = p->cbuf + new_size;
   scm_port_table[p->entry] = p;
   SCM_SETPTAB_ENTRY (port, p);
 }
+#endif
  
 #ifdef GUILE_DEBUG
 /* Undocumented functions for debugging.  */
@@ -623,33 +628,43 @@ scm_read_char (port)
   return SCM_MAKICHR (c);
 }
 
+int
+scm_fill_buffer (SCM port, scm_port *pt)
+     /* port and pt refer to the same port.  */
+{
+  if (pt->read_buf == pt->putback_buf)
+    {
+      /* finished reading put-back chars.  */
+      pt->read_buf = pt->saved_read_buf;
+      pt->read_pos = pt->saved_read_pos;
+      pt->read_end = pt->saved_read_end;
+      pt->read_buf_size = pt->saved_read_buf_size;
+      if (pt->read_pos < pt->read_end)
+	return *(pt->read_pos++);
+    }
+  return scm_ptobs[SCM_PTOBNUM (port)].fill_buffer (port);
+}
+
 int 
 scm_getc (port)
      SCM port;
 {
   int c;
   scm_port *pt = SCM_PTAB_ENTRY (port);
-  scm_ptobfuns *ptob = &scm_ptobs[SCM_PTOBNUM (port)];
 
   if (pt->rw_active == SCM_PORT_WRITE)
     {
-      ptob->fflush (port);
+      /* may be marginally faster than calling scm_fflush.  */
+      scm_ptobs[SCM_PTOBNUM (port)].fflush (port);
     }
-  if (SCM_CRDYP (port))
+  
+  if (pt->read_pos < pt->read_end)
     {
-      c = SCM_CGETUN (port);
-      SCM_TRY_CLRDY (port);         /* Clear ungetted char */
+      c = *(pt->read_pos++);
     }
   else
     {
-      if (pt->read_pos < pt->read_end)
-	{
-	  c = *(pt->read_pos++);
-	}
-      else
-	{
-	  c = ptob->fill_buffer (port);
-	}
+      c = scm_fill_buffer (port, pt);
     }
 
   if (pt->rw_random)
@@ -681,7 +696,9 @@ scm_putc (c, port)
 
   if (pt->rw_active == SCM_PORT_READ)
     ptob->read_flush (port);
+
   *(pt->write_pos++) = (char) c;
+
   if (pt->write_pos == pt->write_end)
     ptob->fflush (port);
   
@@ -765,7 +782,59 @@ scm_ungetc (c, port)
 {
   scm_port *pt = SCM_PTAB_ENTRY (port);
 
-  SCM_CUNGET (c, port);
+  if (pt->read_buf == pt->putback_buf)
+    /* already using the put-back buffer.  */
+    {
+      /* enlarge putback_buf if necessary.  */
+      if (pt->read_end == pt->read_buf + pt->read_buf_size
+	  && pt->read_buf == pt->read_pos)
+	{
+	  int new_size = pt->read_buf_size * 2;
+	  unsigned char *tmp = 
+	    (unsigned char *) realloc (pt->putback_buf, new_size);
+
+	  if (tmp == NULL)
+	    scm_memory_error ("scm_ungetc");
+	  pt->read_pos = pt->read_buf = pt->putback_buf = tmp;
+	  pt->read_end = pt->read_buf + pt->read_buf_size;
+	  pt->read_buf_size = pt->putback_buf_size = new_size;
+	}
+
+      /* shift any existing bytes to buffer + 1.  */
+      if (pt->read_pos == pt->read_end)
+	pt->read_end = pt->read_buf + 1;
+      else if (pt->read_pos != pt->read_buf + 1)
+	{
+	  int count = pt->read_end - pt->read_pos;
+
+	  memmove (pt->read_buf + 1, pt->read_pos, count);
+	  pt->read_end = pt->read_buf + 1 + count;
+	}
+
+      pt->read_pos = pt->read_buf;
+    }
+  else
+    /* switch to the put-back buffer.  */
+    {
+      if (pt->putback_buf == NULL)
+	{
+	  pt->putback_buf = (char *) malloc (pt->putback_buf_size);
+	  if (pt->putback_buf == NULL)
+	    scm_memory_error ("scm_ungetc");
+	  pt->putback_buf_size = SCM_INITIAL_PUTBACK_BUF_SIZE;
+	}
+
+      pt->saved_read_buf = pt->read_buf;
+      pt->saved_read_pos = pt->read_pos;
+      pt->saved_read_end = pt->read_end;
+      pt->saved_read_buf_size = pt->read_buf_size;
+
+      pt->read_pos = pt->read_buf = pt->putback_buf;
+      pt->read_end = pt->read_buf + 1;
+      pt->read_buf_size = pt->putback_buf_size;
+    }
+
+  *pt->read_buf = c;
 
   if (pt->rw_random)
     pt->rw_active = SCM_PORT_READ;

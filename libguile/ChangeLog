@@ -1,3 +1,60 @@
+1999-07-04  Gary Houston  <ghouston@easynet.co.uk>
+
+	* strports.c (scm_strprint_obj): bug fix: get pt from the port,
+	not from the parameter obj.  (Thanks to Eric Moore.)
+
+	* ports.h: SCM_CRDY, SCM_CUC, SCM_CRDYP, SCM_SETRDY, SCM_CUNGET,
+	SCM_CGETUN, SCM_CLRDY, SCM_TRY_CLRDY, SCM_N_READY_CHARS: deleted.
+
+	* strings.c (scm_make_string): throw error if 2nd arg isn't
+	a char.
+
+	* unif.c (scm_uniform_array_read_x): fix reading from a port.
+	allow non-fports.
+	(scm_uniform_array_write): likewise.
+
+1999-06-29  Gary Houston  <ghouston@easynet.co.uk>
+
+	* ports.c (scm_drain_input): rewritten.
+
+	* fports.c (local_fclose): check putback_buf.
+	(local_read_flush): likewise.
+
+	* ports.c (scm_remove_from_port_table): maybe free putback_buf.
+
+	* ports.h (scm_port): replace cbuf/cbufend/cp with putback_buf/
+	putback_buf_size.
+	(SCM_INITIAL_PUTBACK_BUF_SIZE): renamed from SCM_INITIAL_CBUF_SIZE.
+
+	* ports.c (scm_grow_port_cbuf): deleted.
+	(scm_add_to_port_table): initialise putback_buf to 0.  remove cbuf
+	stuff.
+	(scm_char_ready_p): check putback_buf
+	(scm_fill_buffer): likewise.
+	(scm_ungetc): rewritten.
+
+1999-06-27  Gary Houston  <ghouston@easynet.co.uk>
+
+	* fports.c (local_fclose): account for push-back buffer.
+
+	* ports.c (scm_char_ready_p): check the push-back buffer in
+	a new way.
+
+	* ioext.c (scm_do_read_line): remove the extra code to handle
+	the push-back buffer.
+
+	* ports.c (scm_getc): don't use SCM_CRDYP etc.
+
+	* ioext.c (scm_do_read_line): call scm_fill_buffer.
+
+	* ports.c (scm_ungetc): don't call SCM_CUNGET.  reset the
+	read buffer pointers.
+	scm_fill_buffer: new procedure.
+	(scm_getc): call scm_fill_buffer.
+
+	* ports.h (struct scm_port): saved_read_buf, saved_read_pos,
+	saved_read_end: new fields.
+
 1999-06-24  Mikael Djurfeldt  <mdj@orjan.nada.kth.se>
 
 	* dynl-dl.c (sysdep_dynl_link): Added parenthesis around the
