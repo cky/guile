@@ -1,3 +1,8 @@
+2000-06-13  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* tests/numbers.test, tests/list.test: Updated for new
+	documentation module.
+
 2000-05-26  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* tests/hooks.test:  make-hook-with-name is deprecated.
