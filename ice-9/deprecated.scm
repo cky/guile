@@ -161,3 +161,7 @@
 (define (try-module-dynamic-link module-name)
   (and (find-and-link-dynamic-module module-name)
        (init-dynamic-module module-name)))
+
+(define (list* . args)
+  (issue-deprecation-warning "'list*' is deprecated.  Use 'cons*' instead.")
+  (apply cons* args))
