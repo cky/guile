@@ -179,6 +179,9 @@ without the soft port blocking.
 
 ** New debugging feature: breakpoints.
 
+Guile now has breakpoints.  For details see the `Debugging Features'
+chapter in the reference manual.
+
 * Changes to the C interface
 
 ** The value 'scm_mask_ints' is no longer writable.
