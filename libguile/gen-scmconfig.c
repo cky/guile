@@ -277,22 +277,17 @@ main (int argc, char *argv[])
   pf ("#define SCM_SIZEOF_LONG_LONG %d\n", SIZEOF_LONG_LONG);
   pf ("#define SCM_SIZEOF_UNSIGNED_LONG_LONG %d\n", SIZEOF_UNSIGNED_LONG_LONG);
 
-  if (SIZEOF_LONG_LONG == 8)
+  if (SIZEOF_LONG_LONG != 0)
     {
       pf ("\n");
       pf ("/* The limits of long long are not readily available without\n");
       pf ("   defining _GNU_SOURCE (which we can't do in a header) or\n");
       pf ("   being on a C99 system (which we can't rely on yet).  Thus,\n");
-      pf ("   we hardcode the limits here.\n");
+      pf ("   we define the limits on our own, assuming twos-complement.\n");
       pf ("*/\n");
-      pf ("#define SCM_I_LLONG_MAX   9223372036854775807LL\n");
-      pf ("#define SCM_I_LLONG_MIN   (-SCM_I_LLONG_MAX-1LL)\n");
-      pf ("#define SCM_I_ULLONG_MAX  18446744073709551615ULL\n");
-    }
-  else if (SIZEOF_LONG_LONG != 0)
-    {
-      fprintf (stderr, "gen-scmconfig: long long is not 64 bits, FIX ME.\n");
-      return 1;
+      pf ("#define SCM_I_LLONG_MAX   ((long long) (SCM_I_ULLONG_MAX >> 1))\n");
+      pf ("#define SCM_I_LLONG_MIN   (~SCM_I_LLONG_MAX)\n");
+      pf ("#define SCM_I_ULLONG_MAX  ((unsigned long long) (-1))\n");
     }
 
   pf("\n");
