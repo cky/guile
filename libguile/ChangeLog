@@ -1,3 +1,8 @@
+2004-02-21  Kevin Ryde  <user42@zip.com.au>
+
+	* posix.c (scm_crypt): Use new HAVE_CRYPT.
+	(<crypt.h>): Remove HAVE_LIBCRYPT condition.
+
 2004-02-20  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* list.c (scm_list_n): Add #if SCM_DEBUG_CELL_ACCESSES_P around
