@@ -309,7 +309,7 @@ SCM_DEFINE (scm_mem_to_proc, "mem->proc", 1, 0, 0,
   SCM_VALIDATE_MEMOIZED (1,obj);
   env = SCM_MEMOIZED_ENV (obj);
   obj = SCM_MEMOIZED_EXP (obj);
-  if (!SCM_CONSP (obj) || !SCM_EQ_P (CAR (obj), SCM_IM_LAMBDA))
+  if (!SCM_CONSP (obj) || !SCM_EQ_P (SCM_CAR (obj), SCM_IM_LAMBDA))
     SCM_MISC_ERROR ("expected lambda expression", scm_list_1 (obj));
   return scm_closure (SCM_CDR (obj), env);
 }
