@@ -1,3 +1,7 @@
+2002-02-08  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* tests/elisp.test: Add tests of Elisp expression evaluation.
+
 2002-01-25  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* tests/load.test: New test; for search-path with Elisp
