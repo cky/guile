@@ -1,3 +1,9 @@
+Tue Jun 17 13:49:56 1997  Tim Pierce  <twpierce@bio-5.bsd.uchicago.edu>
+
+*	* load.c (scm_init_load_path): Append $(datadir)/guile to
+	%load-path, so modules do not have to be installed in Guile's
+	current version directory.
+
 Mon Jun 16 17:20:55 1997  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* dynl.c (scm_dynamic_call, scm_dynamic_args_call): Wrap dynamic

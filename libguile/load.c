@@ -129,9 +129,10 @@ scm_init_load_path ()
   SCM path = SCM_EOL;
 
 #ifdef SCM_LIBRARY_DIR
-  path = scm_cons2 (scm_makfrom0str (SCM_SITE_DIR),
-		    scm_makfrom0str (SCM_LIBRARY_DIR),
-		    path);
+  path = scm_listify (scm_makfrom0str (SCM_SITE_DIR),
+		      scm_makfrom0str (SCM_LIBRARY_DIR),
+		      scm_makfrom0str (SCM_PKGDATA_DIR),
+		      SCM_UNDEFINED);
 #endif /* SCM_LIBRARY_DIR */
   
   {
