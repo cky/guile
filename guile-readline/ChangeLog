@@ -1,3 +1,8 @@
+2000-06-13  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* Makefile.am (dist-hook): Added kludge to fix automake generated
+	dependencies in the distribution archive Makefile.
+
 2000-06-12  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* readline.scm (apropos-completion-function): Don't define and
