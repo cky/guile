@@ -45,6 +45,7 @@
    Author: Aubrey Jaffer
    Modified for libguile by Marius Vollmer */
 
+#if 0 /* Disabled until we know for sure that it isn't needed */
 /* XXX - This is only here to drag in a definition of __eprintf. This
    is needed for proper operation of dynamic linking. The real
    solution would probably be a shared libgcc. */
@@ -57,6 +58,7 @@ maybe_drag_in_eprintf ()
 {
   assert (!maybe_drag_in_eprintf);
 }
+#endif
 
 #include <stdio.h>
 #include "_scm.h"

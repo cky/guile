@@ -39,8 +39,6 @@
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
 
-#include <assert.h>
-
 #include "_scm.h"
 #include "print.h"
 #include "smob.h"
@@ -71,9 +69,7 @@ grow_fluids (root_state, new_length)
   int old_length, i;
 
   old_fluids = root_state->fluids;
-  assert (SCM_NIMP (old_fluids) && SCM_VECTORP (old_fluids));
   old_length = SCM_LENGTH (old_fluids);
-  assert (old_length <= new_length);
   new_fluids = scm_make_vector (SCM_MAKINUM (new_length),
 				SCM_BOOL_F, SCM_BOOL_F);
   i = 0;
@@ -169,7 +165,6 @@ scm_fluid_ref (fl)
   SCM_ASSERT (SCM_NIMP (fl) && SCM_FLUIDP (fl), fl, SCM_ARG1, s_fluid_ref);
 
   n = SCM_FLUID_NUM (fl);
-  assert (n >= 0 && n < n_fluids);
 
   if (SCM_LENGTH (scm_root->fluids) <= n)
     grow_fluids (scm_root, n+1);
@@ -188,7 +183,6 @@ scm_fluid_set_x (fl, val)
   SCM_ASSERT (SCM_NIMP (fl) && SCM_FLUIDP (fl), fl, SCM_ARG1, s_fluid_set_x);
 
   n = SCM_FLUID_NUM (fl);
-  assert (n >= 0 && n < n_fluids);
 
   if (SCM_LENGTH (scm_root->fluids) <= n)
     grow_fluids (scm_root, n+1);

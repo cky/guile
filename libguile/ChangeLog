@@ -1,5 +1,12 @@
 1998-05-02  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
+	* fluids.c: Removed use of assert.h (in order to avoid
+	__eprintf).
+
+	* Makefile.am (libguile_la_LDFLAGS): Added -export-dynamic.
+
+	* dynl.c (maybe_drag_in_eprintf): Disabled through #ifdef 0.
+
 	* eval.c (SCM_CEVAL): Do more thorough argument checking.  This
 	change makes the evaluator safer at the cost of evaluation speed.
 	It handles the case when the user has added a non-immediate
