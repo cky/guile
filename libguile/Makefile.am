@@ -262,3 +262,5 @@ MOSTLYCLEANFILES = \
 	cpp_sig_symbols_here cpp_sig_symbols_diff cpp_sig_symbols_new
 
 CLEANFILES = libpath.h *.x *.doc guile-procedures.txt guile.texi
+
+MAINTAINERCLEANFILES = c-tokenize.c
