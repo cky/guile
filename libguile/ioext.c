@@ -69,6 +69,22 @@
 #endif
 
 
+#if defined (EAGAIN)
+#define SCM_MAYBE_EAGAIN || errno == EAGAIN
+#else
+#define SCM_MAYBE_EAGAIN
+#endif
+
+#if defined (EWOULDBLOCK)
+#define SCM_MAYBE_EWOULDBLOCK || errno == EWOULDBLOCK
+#else
+#define SCM_MAYBE_EWOULDBLOCK
+#endif
+
+/* MAYBE there is EAGAIN way of defining this macro but now I EWOULDBLOCK.  */
+#define SCM_EBLOCK(errno) \
+   (0 SCM_MAYBE_EAGAIN SCM_MAYBE_EWOULDBLOCK)
+
 SCM_DEFINE (scm_read_string_x_partial, "read-string!/partial", 1, 3, 0,
 	    (SCM str, SCM port_or_fdes, SCM start, SCM end),
 	    "Read characters from an fport or file descriptor into a\n"
@@ -140,17 +156,9 @@ SCM_DEFINE (scm_read_string_x_partial, "read-string!/partial", 1, 3, 0,
       SCM_SYSCALL (chars_read = read (fdes, dest, read_len));
       if (chars_read == -1)
 	{
-#if defined (EWOULDBLOCK) || defined (EAGAIN)
-	  if (
-#if defined (EWOULDBLOCK)
-	      errno == EWOULDBLOCK
-#else
-	      errno == EAGAIN
-#endif
-	      )
+	  if (SCM_EBLOCK (errno))
 	    chars_read = 0;
 	  else
-#endif
 	    SCM_SYSERROR;
         }
       else if (chars_read == 0)

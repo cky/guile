@@ -1,3 +1,8 @@
+2001-01-18  Gary Houston  <ghouston@arglist.com>
+
+	* ioext.c: further simplify scm_read_string_x_partial by defining
+	a macro	SCM_EBLOCK.
+
 2001-01-18  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* gh_data.c (gh_ints2scm):  Simplified using SCM_FIXABLE.
