@@ -90,6 +90,9 @@
 #ifndef tzname /* For SGI.  */
 extern char *tzname[]; /* RS6000 and others reject char **tzname.  */
 #endif
+#if defined (__MINGW32__)
+# define tzname _tzname
+#endif
 
 #ifdef MISSING_STRPTIME_DECL
 extern char *strptime ();
