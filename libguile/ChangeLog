@@ -1,3 +1,24 @@
+2003-04-07  Rob Browning  <rlb@defaultvalue.org>
+
+	* num2integral.i.c (NUM2INTEGRAL): fix bug pointed out by Mikael
+	and add regression test to standalone/.
+
+2003-04-06  Rob Browning  <rlb@defaultvalue.org>
+
+	* strings.c (scm_mem2string): use memcpy rather than by-hand loop.
+	Thanks to Dale P. Smith.
+
+	* random.c: #include gmp.h.
+	(scm_c_random_bignum): normalize result on return.
+
+	* init.c: #include gmp.h.
+
+	* numbers.h: remove the gmp.h #include (not needed now).
+
+	* posix.h: change occurences of "id" to something else so we don't
+	cause trouble when included via objective-c (can't hurt, might
+	help).  Still have usage in debug.h, though.
+
 2003-04-06  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* random.c (scm_c_random_bignum): Don't generate a random number

@@ -1,5 +1,8 @@
 2003-04-07  Rob Browning  <rlb@defaultvalue.org>
 
+	* pre-inst-guile-env.in: new script -- can be used to run commands
+	in an envt set up using the development libs, Guile, etc.
+
 	* configure.in: handle pre-inst-guile-env and add
 	test-suite/standalone/Makefile.
 

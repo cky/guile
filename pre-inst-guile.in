@@ -19,6 +19,13 @@
 #   to the Free Software Foundation, Inc., 59 Temple Place, Suite
 #   330, Boston, MA 02111-1307 USA
 
+# NOTE: at some point we might consider invoking this under
+# pre-inst-guile-env.  If this will work, then most of the code below
+# can be removed.
+
+# NOTE: If you update this file, please update pre-inst-guile-env.in
+# as well, if appropriate.
+
 # Commentary:
 
 # Usage: pre-inst-guile [ARGS]
