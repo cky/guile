@@ -2,6 +2,13 @@
 
 	* numbers.c (scm_num_eq_p, scm_less_p): Don't pass NaN to mpz_cmp_d.
 
+	* numbers.c (scm_integer_length): On negative bignums, adjust
+	mpz_sizeinbase to account for it looking at absolute value where we
+	want ones-complement.
+
+	* numbers.c (scm_gcd): In bignum/inum, don't pass yy==0 to mpz_gcd_ui
+	since we're only using the ulong return value, and x might not fit.
+
 2003-05-06  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* eval.c, eval.h, read.c, read.h (scm_sym_dot): Moved from eval to

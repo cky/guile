@@ -1,8 +1,19 @@
 2003-05-10  Kevin Ryde  <user42@zip.com.au>
 
+	* scheme-data.texi (Reals and Rationals): Fix typo @result{#f}, and
+	put @result outside @code.
+
+	* scheme-data.texi (Bitwise Operations): Note negatives are treated as
+	infinite precision twos complement.  Revise `ash' to emphasise this
+	for right shifts of negatives.  Describe integer-length behaviour on
+	negatives.  Add `...' to logand, logior, logxor since they take
+	multiple parameters.
+
 	* scheme-control.texi (Handling Errors): Revise C support section to
 	get index entries, and clarify parameters.  Remove scm_regex_error, no
 	longer exists and wasn't available to applications.
+
+	* scheme-control.texi (Handling Errors): Index entries for error keys.
 
 2003-05-08  Kevin Ryde  <user42@zip.com.au>
 
