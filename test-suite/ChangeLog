@@ -1,3 +1,10 @@
+2004-05-30  Kevin Ryde  <user42@zip.com.au>
+
+	* lib.scm (exception:numerical-overflow): New define.
+	* tests/numbers.test (modulo-expt): Use it and
+	exception:wrong-type-arg, avoiding empty "" regexp which is invalid on
+	BSD.  Reported by Andreas Vögele.
+
 2004-05-29  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
 
 	* standalone/test-asmobs-lib.c: Fixed include statement.
