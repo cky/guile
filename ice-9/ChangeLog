@@ -1,3 +1,13 @@
+1998-07-16  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+
+	* boot-9.scm (export, export-syntax): New special forms: Export
+	bindings from a module.  `(export name1 name2 ...)' can be used at
+	the top of a module (after `define-module') to specify which names
+	should be exported.  It can be used as an alternative to
+	`define-public'.  `export-syntax' works equivalently to `export'
+	but is intended for export of syntactic keywords.
+	(Thanks to Thien-Thi Nguyen.)
+
 1998-07-15  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
 	* boot-9.scm: Renamed module `(guile-repl)' --> `(guile-user)'.

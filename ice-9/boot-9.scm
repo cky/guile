@@ -2798,6 +2798,19 @@
 			     (defmacro ,@ args))))))
 
 
+(defmacro export names
+  `(let* ((m (current-module))
+	  (public-i (module-public-interface m)))
+     (for-each (lambda (name)
+		 ;; Make sure there is a local variable:
+		 (module-define! m name (module-ref m name #f))
+		 ;; Make sure that local is exported:
+		 (module-add! public-i name (module-variable m name)))
+	       ',names)))
+
+(define export-syntax export)
+
+
 
 
 (define load load-module)
