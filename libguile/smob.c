@@ -43,13 +43,14 @@
 #include <stdio.h>
 #include "_scm.h"
 
-#include "smob.h"
-
 #include "objects.h"
+#include "genio.h"
 
 #ifdef HAVE_MALLOC_H
 #include <malloc.h>
 #endif
+
+#include "smob.h"
 
 
 
@@ -59,35 +60,155 @@
  * tags for smobjects (if you know a tag you can get an index and conversely).
  */
 int scm_numsmob;
-scm_smobfuns *scm_smobs;
+scm_smob_descriptor *scm_smobs;
 
+/* {Mark}
+ */
+
+/* This function is vestigial.  It used to be the mark function's
+   responsibility to set the mark bit on the smob or port, but now the
+   generic marking routine in gc.c takes care of that, and a zero
+   pointer for a mark function means "don't bother".  So you never
+   need scm_mark0.
+
+   However, we leave it here because it's harmless to call it, and
+   people out there have smob code that uses it, and there's no reason
+   to make their links fail.  */
+
+SCM 
+scm_mark0 (ptr)
+     SCM ptr;
+{
+  return SCM_BOOL_F;
+}
+
+SCM 
+scm_markcdr (ptr)
+     SCM ptr;
+{
+  return SCM_CDR (ptr);
+}
+
+/* {Free}
+ */
+
+scm_sizet 
+scm_free0 (ptr)
+     SCM ptr;
+{
+  return 0;
+}
+
+scm_sizet
+scm_smob_free (SCM obj)
+{
+  scm_must_free ((char *) SCM_CDR (obj));
+  return scm_smobs[SCM_SMOBNUM (obj)].size;
+}
+
+/* {Print}
+ */
+
+int
+scm_smob_print (SCM exp, SCM port, scm_print_state *pstate)
+{
+  int n = SCM_SMOBNUM (exp);
+  scm_puts ("#<", port);
+  scm_puts (SCM_SMOBNAME (n), port);
+  scm_putc (' ', port);
+  scm_intprint (scm_smobs[n].size ? SCM_CDR (exp) : exp, 16, port);
+  scm_putc ('>', port);
+  return 1;
+}
 
 long 
-scm_newsmob (smob)
-     const scm_smobfuns *smob;
+scm_make_smob_type (char *name, scm_sizet size)
 {
   char *tmp;
   if (255 <= scm_numsmob)
     goto smoberr;
   SCM_DEFER_INTS;
-  SCM_SYSCALL (tmp = (char *) realloc ((char *) scm_smobs, (1 + scm_numsmob) * sizeof (scm_smobfuns)));
+  SCM_SYSCALL (tmp = (char *) realloc ((char *) scm_smobs,
+				       (1 + scm_numsmob)
+				       * sizeof (scm_smob_descriptor)));
   if (tmp)
     {
-      scm_smobs = (scm_smobfuns *) tmp;
-      scm_smobs[scm_numsmob].mark = smob->mark;
-      scm_smobs[scm_numsmob].free = smob->free;
-      scm_smobs[scm_numsmob].print = smob->print;
-      scm_smobs[scm_numsmob].equalp = smob->equalp;
+      scm_smobs = (scm_smob_descriptor *) tmp;
+      scm_smobs[scm_numsmob].name = name;
+      scm_smobs[scm_numsmob].size = size;
+      scm_smobs[scm_numsmob].mark = 0;
+      scm_smobs[scm_numsmob].free = (size == 0 ? scm_free0 : scm_smob_free);
+      scm_smobs[scm_numsmob].print = scm_smob_print;
+      scm_smobs[scm_numsmob].equalp = 0;
       scm_numsmob++;
     }
   SCM_ALLOW_INTS;
   if (!tmp)
-  smoberr:scm_wta (SCM_MAKINUM ((long) scm_numsmob), (char *) SCM_NALLOC, "newsmob");
+  smoberr:scm_wta (SCM_MAKINUM ((long) scm_numsmob),
+		   (char *) SCM_NALLOC, "scm_make_smob_type");
   /* Make a class object if Goops is present. */
   if (scm_smob_class)
     scm_smob_class[scm_numsmob - 1]
       = scm_make_extended_class (SCM_SMOBNAME (scm_numsmob - 1));
   return scm_tc7_smob + (scm_numsmob - 1) * 256;
+}
+
+void
+scm_set_smob_mark (long tc, SCM (*mark) (SCM))
+{
+  scm_smobs[SCM_TC2SMOBNUM (tc)].mark = mark;
+}
+
+void
+scm_set_smob_free (long tc, scm_sizet (*free) (SCM))
+{
+  scm_smobs[SCM_TC2SMOBNUM (tc)].free = free;
+}
+
+void
+scm_set_smob_print (long tc, int (*print) (SCM, SCM, scm_print_state*))
+{
+  scm_smobs[SCM_TC2SMOBNUM (tc)].print = print;
+}
+
+void
+scm_set_smob_equalp (long tc, SCM (*equalp) (SCM, SCM))
+{
+  scm_smobs[SCM_TC2SMOBNUM (tc)].equalp = equalp;
+}
+
+/* Deprecated function - use scm_make_smob_type instead. */
+long 
+scm_newsmob (const scm_smobfuns *smob)
+{
+  long tc = scm_make_smob_type (0, 0);
+  scm_set_smob_mark (tc, smob->mark);
+  scm_set_smob_free (tc, smob->free);
+  scm_set_smob_print (tc, smob->print);
+  scm_set_smob_equalp (tc, smob->equalp);
+  return tc;
+}
+
+
+SCM
+scm_make_smob (long tc)
+{
+  int n = SCM_TC2SMOBNUM (tc);
+  scm_sizet size = scm_smobs[n].size;
+  SCM z;
+  SCM_NEWCELL (z);
+  if (size != 0)
+    {
+#if 0
+      SCM_ASSERT (scm_smobs[n].mark == 0,
+		  0,
+		  "forbidden operation for smobs with GC data, use SCM_NEWSMOB",
+		  SCM_SMOBNAME (n));
+#endif
+      SCM_SET_SMOB_DATA (z, scm_must_malloc (size, SCM_SMOBNAME (n)));
+    }
+  SCM_SETCAR (z, tc);
+  return z;
 }
 
 
@@ -108,43 +229,24 @@ freeprint (SCM exp,
 }
 
 
-static const scm_smobfuns freecell =
-{
-  0,
-  scm_free0,
-  freeprint,
-  0
-};
-
-static const scm_smobfuns flob =
-{
-  0,
-  /*flofree*/ 0,
-  scm_floprint,
-  scm_floequal
-};
-
-static const scm_smobfuns bigob =
-{
-  0,
-  /*bigfree*/ 0,
-  scm_bigprint,
-  scm_bigequal
-};
-
-
-
-
 void
 scm_smob_prehistory ()
 {
+  long tc;
   scm_numsmob = 0;
-  scm_smobs = (scm_smobfuns *) malloc (7 * sizeof (scm_smobfuns));
+  scm_smobs = ((scm_smob_descriptor *)
+	       malloc (7 * sizeof (scm_smob_descriptor)));
 
-  /* WARNING: These scm_newsmob calls must be done in this order */
-  scm_newsmob (&freecell);
-  scm_newsmob (&flob);
-  scm_newsmob (&bigob);
-  scm_newsmob (&bigob);		/* n.b.: two smobs, one smobfuns */
+  /* WARNING: These scm_make_smob_type calls must be done in this order */
+  tc = scm_make_smob_type ("free", 0);
+  scm_set_smob_print (tc, freeprint);
+  tc = scm_make_smob_type ("flo", 0); /* freed in gc */
+  scm_set_smob_print (tc, scm_floprint);
+  scm_set_smob_equalp (tc, scm_floequal);
+  tc = scm_make_smob_type ("bigpos", 0); /* freed in gc */
+  scm_set_smob_print (tc, scm_bigprint);
+  scm_set_smob_equalp (tc, scm_bigequal);
+  tc = scm_make_smob_type ("bigneg", 0);
+  scm_set_smob_print (tc, scm_bigprint);
+  scm_set_smob_equalp (tc, scm_bigequal);
 }
-

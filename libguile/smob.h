@@ -47,6 +47,20 @@
 #include "libguile/print.h"
 
 
+/* This is the internal representation of a smob type */
+
+typedef struct scm_smob_descriptor
+{
+  char *name;
+  scm_sizet size;
+  SCM (*mark) SCM_P ((SCM));
+  scm_sizet (*free) SCM_P ((SCM));
+  int (*print) SCM_P ((SCM exp, SCM port, scm_print_state *pstate));
+  SCM (*equalp) SCM_P ((SCM, SCM));
+} scm_smob_descriptor;
+
+/* scm_smobfuns is the argument type for the obsolete function scm_newsmob */
+
 typedef struct scm_smobfuns
 {
   SCM (*mark) SCM_P ((SCM));
@@ -57,24 +71,40 @@ typedef struct scm_smobfuns
 
 
 
+#define SCM_NEWSMOB(z, tc, data) \
+{ \
+  SCM_NEWCELL (z); \
+  SCM_SETCDR (z, data); \
+  SCM_SETCAR (z, tc); \
+} \
+
+#define SCM_SMOB_DATA(x) SCM_CDR (x)
+#define SCM_SET_SMOB_DATA(x, data) SCM_SETCDR (x, data)
 #define SCM_TC2SMOBNUM(x) (0x0ff & ((x) >> 8))
 #define SCM_SMOBNUM(x) (SCM_TC2SMOBNUM (SCM_CAR (x)))
-#define SCM_SMOBNAME(smobnum) 0 /* Smobs don't have names yet. */
+#define SCM_SMOBNAME(smobnum) scm_smobs[smobnum].name
 
 extern int scm_numsmob;
-extern scm_smobfuns *scm_smobs;
+extern scm_smob_descriptor *scm_smobs;
 
 
 
-/* Everyone who uses smobs needs to print.  */
-#include "libguile/ports.h"
-#include "libguile/genio.h"
+extern SCM scm_mark0 SCM_P ((SCM ptr));
+extern SCM scm_markcdr SCM_P ((SCM ptr));
+extern scm_sizet scm_free0 SCM_P ((SCM ptr));
+extern scm_sizet scm_smob_free (SCM obj);
+extern int scm_smob_print (SCM exp, SCM port, scm_print_state *pstate);
+extern long scm_make_smob_type (char *name, scm_sizet size);
+extern void scm_set_smob_mark (long tc, SCM (*mark) (SCM));
+extern void scm_set_smob_free (long tc, scm_sizet (*free) (SCM));
+extern void scm_set_smob_print (long tc, int (*print) (SCM,
+						       SCM,
+						       scm_print_state*));
+extern void scm_set_smob_equalp (long tc, SCM (*equalp) (SCM, SCM));
+extern SCM scm_make_smob (long tc);
+extern void scm_smob_prehistory (void);
 
-/* ... and they all need to GC.  */
-#include "libguile/markers.h"
-
-
-extern long scm_newsmob SCM_P ((const scm_smobfuns *smob));
-extern void scm_smob_prehistory SCM_P ((void));
+/* Deprecated function */
+extern long scm_newsmob (const scm_smobfuns *smob);
 
 #endif  /* SMOBH */
