@@ -1,3 +1,10 @@
+2000-06-01  Craig Brozefsky  <craig@red-bean.com>
+
+	* Makefile.am: libguile_la_LDFLAGS gets -version-info args
+	from GUILE-VERSION definition of LIBGUILE version.  Added to
+	libpath.h definitions for guileversion and libguileversion which
+	both get their values from GUILE-VERSION definition.
+
 2000-05-30  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* numbers.h (SCM_BIGP):  Don't use SCM_SMOB_PREDICATE in header
