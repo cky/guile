@@ -153,7 +153,6 @@ scm_wind_chain ()
 }
 #endif
 
-#ifdef GUILE_LANG
 static void
 scm_swap_bindings (SCM glocs, SCM vals)
 {
@@ -167,7 +166,6 @@ scm_swap_bindings (SCM glocs, SCM vals)
       vals = SCM_CDR (vals);
     }
 }
-#endif
 
 void 
 scm_dowinds (to, delta)
@@ -195,17 +193,14 @@ scm_dowinds (to, delta)
 	  /* key = #t | symbol | thunk | list of glocs | list of fluids */
 	  if (SCM_NIMP (wind_key))
 	    {
-#ifdef GUILE_LANG
 	      if (SCM_TYP3 (wind_key) == scm_tc3_cons_gloc)
 		scm_swap_bindings (wind_key, SCM_CDR (wind_elt));
-	      else
-#endif
-		if (SCM_TYP3 (wind_key) == scm_tc3_cons)
-		  scm_swap_fluids (wind_key, SCM_CDR (wind_elt));
-		else if (SCM_GUARDSP (wind_key))
-		  SCM_BEFORE_GUARD (wind_key) (SCM_GUARD_DATA (wind_key));
-		else if (SCM_TYP3 (wind_key) == scm_tc3_closure)
-		  scm_apply (wind_key, SCM_EOL, SCM_EOL);
+	      else if (SCM_TYP3 (wind_key) == scm_tc3_cons)
+		scm_swap_fluids (wind_key, SCM_CDR (wind_elt));
+	      else if (SCM_GUARDSP (wind_key))
+		SCM_BEFORE_GUARD (wind_key) (SCM_GUARD_DATA (wind_key));
+	      else if (SCM_TYP3 (wind_key) == scm_tc3_closure)
+		scm_apply (wind_key, SCM_EOL, SCM_EOL);
 	    }
 	}
       scm_dynwinds = to;
@@ -230,17 +225,14 @@ scm_dowinds (to, delta)
 	  wind_key = SCM_CAR (wind_elt);
 	  if (SCM_NIMP (wind_key))
 	    {
-#ifdef GUILE_LANG
 	      if (SCM_TYP3 (wind_key) == scm_tc3_cons_gloc)
 		scm_swap_bindings (wind_key, from);
-	      else
-#endif
-		if (SCM_TYP3 (wind_key) == scm_tc3_cons)
-		  scm_swap_fluids_reverse (wind_key, from);
-		else if (SCM_GUARDSP (wind_key))
-		  SCM_AFTER_GUARD (wind_key) (SCM_GUARD_DATA (wind_key));
-		else if (SCM_TYP3 (wind_key) == scm_tc3_closure)
-		  scm_apply (from, SCM_EOL, SCM_EOL);
+	      else if (SCM_TYP3 (wind_key) == scm_tc3_cons)
+		scm_swap_fluids_reverse (wind_key, from);
+	      else if (SCM_GUARDSP (wind_key))
+		SCM_AFTER_GUARD (wind_key) (SCM_GUARD_DATA (wind_key));
+	      else if (SCM_TYP3 (wind_key) == scm_tc3_closure)
+		scm_apply (from, SCM_EOL, SCM_EOL);
 	    }
 	}
       delta--;

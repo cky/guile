@@ -99,7 +99,6 @@ char *scm_isymnames[] =
   "#@dispatch",
   "#@hash-dispatch",
 
-#ifdef GUILE_LANG
   /* Multi-language support */
   
   "#@nil-cond",
@@ -109,7 +108,6 @@ char *scm_isymnames[] =
   "#@0-ify",
   "#@1-ify",
   "#@bind"
-#endif /* GUILE_LANG */
 };
 
 scm_option scm_print_opts[] = {

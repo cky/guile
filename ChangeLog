@@ -1,9 +1,3 @@
-1999-07-27  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
-
-	* acconfig.h (GUILE_LANG): New configuration variable.
-
-	* configure.in: Added option --enable-lang.
-
 1999-07-24  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* README, config.guess, config.sub, liconfig, ltmain.sh: Switched

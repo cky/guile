@@ -40,7 +40,7 @@ libguile_la_SOURCES = \
     evalext.c feature.c filesys.c fluids.c fports.c gc.c gdbint.c	\
     gh_data.c gh_eval.c gh_funcs.c gh_init.c gh_io.c gh_list.c		\
     gh_predicates.c gsubr.c guardians.c hash.c hashtab.c init.c		\
-    ioext.c keywords.c list.c load.c macros.c mallocs.c			\
+    ioext.c keywords.c lang.c list.c load.c macros.c mallocs.c		\
     modules.c net_db.c numbers.c objects.c objprop.c options.c pairs.c	\
     ports.c posix.c print.c procprop.c procs.c ramap.c random.c read.c	\
     root.c scmsigs.c script.c simpos.c smob.c socket.c sort.c		\
@@ -65,7 +65,7 @@ BUILT_SOURCES = \
 
 EXTRA_libguile_la_SOURCES = _scm.h \
     strerror.c inet_aton.c putenv.c \
-    threads.c alloca.c lang.c \
+    threads.c alloca.c \
     regex-posix.c iselect.c
 
 ## This is kind of nasty... there are ".c" files that we don't want to
@@ -98,7 +98,7 @@ modinclude_HEADERS = \
     strorder.h strports.h struct.h symbols.h tag.h tags.h throw.h	\
     unif.h variable.h vectors.h version.h vports.h weaks.h snarf.h	\
     threads.h coop-defs.h fluids.h iselect.h
-    
+
 ## This file is generated at configure time.  That is why it is DATA
 ## and not a header -- headers are included in the distribution.
 modinclude_DATA = scmconfig.h

@@ -1028,7 +1028,6 @@ scm_m_cont (xorig, env)
   return scm_cons (SCM_IM_CONT, SCM_CDR (xorig));
 }
 
-#ifdef GUILE_LANG
 /* Multi-language support */
 
 SCM scm_nil;
@@ -1137,7 +1136,6 @@ scm_m_atbind (SCM xorig, SCM env)
     }
   return scm_cons (SCM_IM_BIND, SCM_CDR (xorig));
 }
-#endif /* GUILE_LANG */
 
 
 /* scm_unmemocopy takes a memoized expression together with its
@@ -2122,7 +2120,6 @@ dispatch:
 	    }
 	    goto find_method;
 	  }
-#ifdef GUILE_LANG
 
 	case (SCM_ISYMNUM (SCM_IM_NIL_COND)):
 	  proc = SCM_CDR (x);
@@ -2217,7 +2214,6 @@ dispatch:
 
 	  RETURN (proc)
 	  
-#endif /* GUILE_LANG */
 	default:
 	  goto badfun;
 	}
@@ -3637,14 +3633,12 @@ scm_init_eval ()
   scm_i_unquote = SCM_CAR (scm_sysintern ("unquote", SCM_UNDEFINED));
   scm_i_uq_splicing = SCM_CAR (scm_sysintern ("unquote-splicing", SCM_UNDEFINED));
 
-#ifdef GUILE_LANG
   scm_nil = scm_sysintern ("nil", SCM_UNDEFINED);
   SCM_SETCDR (scm_nil, SCM_CAR (scm_nil));
   scm_nil = SCM_CAR (scm_nil);
   scm_t = scm_sysintern ("t", SCM_UNDEFINED);
   SCM_SETCDR (scm_t, SCM_CAR (scm_t));
   scm_t = SCM_CAR (scm_t);
-#endif /* GUILE_LANG */
   
   /* acros */
   /* end of acros */

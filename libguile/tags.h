@@ -472,7 +472,6 @@ enum scm_tags
 #define SCM_IM_DISPATCH		SCM_MAKISYM(22)
 #define SCM_IM_HASH_DISPATCH	SCM_MAKISYM(23)
 
-#ifdef GUILE_LANG
 /* Multi-language support */
 
 #define SCM_IM_NIL_COND		SCM_MAKISYM(24)
@@ -482,7 +481,6 @@ enum scm_tags
 #define SCM_IM_0_IFY		SCM_MAKISYM(28)
 #define SCM_IM_1_IFY		SCM_MAKISYM(29)
 #define SCM_IM_BIND		SCM_MAKISYM(30)
-#endif
 
 
 #define SCM_UNBNDP(x) 	(SCM_UNDEFINED==(x))
