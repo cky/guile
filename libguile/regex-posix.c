@@ -252,8 +252,12 @@ scm_regexp_exec (SCM rx, SCM str, SCM start, SCM flags)
       mvec = scm_make_vector (SCM_MAKINUM (nmatches + 1), SCM_UNSPECIFIED);
       SCM_VELTS(mvec)[0] = str;
       for (i = 0; i < nmatches; ++i)
-	SCM_VELTS(mvec)[i+1] = scm_cons(SCM_MAKINUM(matches[i].rm_so + offset),
-					SCM_MAKINUM(matches[i].rm_eo + offset));
+	if (matches[i].rm_so == -1)
+	  SCM_VELTS(mvec)[i+1] = scm_cons (SCM_MAKINUM (-1), SCM_MAKINUM (-1));
+	else
+	  SCM_VELTS(mvec)[i+1]
+	    = scm_cons(SCM_MAKINUM(matches[i].rm_so + offset),
+		       SCM_MAKINUM(matches[i].rm_eo + offset));
     }
   scm_must_free ((char *) matches);
   SCM_ALLOW_INTS;
