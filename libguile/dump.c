@@ -246,6 +246,28 @@ scm_store_pad (SCM dstate)
 }
 
 void
+scm_store_word (const scm_bits_t word, SCM dstate)
+{
+  struct scm_dstate *p = SCM_DSTATE_DATA (dstate);
+  while (p->image_index + sizeof (scm_bits_t) >= p->image_size)
+    dstate_extend (p);
+  memcpy (p->image_base + p->image_index, &word, sizeof (scm_bits_t));
+  p->image_index += sizeof (scm_bits_t);
+}
+
+void
+scm_store_bytes (const void *addr, scm_sizet size, SCM dstate)
+{
+  struct scm_dstate *p = SCM_DSTATE_DATA (dstate);
+  scm_store_word (size, dstate);
+  while (p->image_index + size + sizeof (scm_bits_t) >= p->image_size)
+    dstate_extend (p);
+  memcpy (p->image_base + p->image_index, addr, size);
+  p->image_index += size;
+  scm_store_pad (dstate);
+}
+
+void
 scm_store_string (const char *addr, scm_sizet size, SCM dstate)
 {
   struct scm_dstate *p = SCM_DSTATE_DATA (dstate);
@@ -255,23 +277,6 @@ scm_store_string (const char *addr, scm_sizet size, SCM dstate)
   memcpy (p->image_base + p->image_index + size, "\0", 1);
   p->image_index += size + 1;
   scm_store_pad (dstate);
-}
-
-void
-scm_store_bytes (const void *addr, scm_sizet size, SCM dstate)
-{
-  struct scm_dstate *p = SCM_DSTATE_DATA (dstate);
-  while (p->image_index + size >= p->image_size)
-    dstate_extend (p);
-  memcpy (p->image_base + p->image_index, addr, size);
-  p->image_index += size;
-  scm_store_pad (dstate);
-}
-
-void
-scm_store_word (const scm_bits_t word, SCM dstate)
-{
-  scm_store_bytes (&word, sizeof (scm_bits_t), dstate);
 }
 
 void
@@ -302,30 +307,37 @@ scm_restore_pad (struct scm_dstate *p)
 }
 
 void
-scm_restore_string (const char **pp, scm_sizet *sizep, SCM dstate)
+scm_restore_word (scm_bits_t *wordp, SCM dstate)
 {
   struct scm_dstate *p = SCM_DSTATE_DATA (dstate);
-  *pp = p->image_base + p->image_index;
-  *sizep = strlen (*pp);
-  p->image_index += *sizep + 1;
-  scm_restore_pad (p);
+  *wordp = *(scm_bits_t *) (p->image_base + p->image_index);
+  p->image_index += sizeof (scm_bits_t);
 }
 
 void
-scm_restore_bytes (const void **pp, scm_sizet size, SCM dstate)
+scm_restore_bytes (const void **pp, scm_sizet *sizep, SCM dstate)
 {
+  scm_bits_t size;
   struct scm_dstate *p = SCM_DSTATE_DATA (dstate);
+  scm_restore_word (&size, dstate);
+  if (sizep)
+    *sizep = size;
   *pp = p->image_base + p->image_index;
   p->image_index += size;
   scm_restore_pad (p);
 }
 
 void
-scm_restore_word (scm_bits_t *wordp, SCM dstate)
+scm_restore_string (const char **pp, scm_sizet *sizep, SCM dstate)
 {
+  int len;
   struct scm_dstate *p = SCM_DSTATE_DATA (dstate);
-  *wordp = *(scm_bits_t *) (p->image_base + p->image_index);
-  p->image_index += sizeof (scm_bits_t);
+  *pp = p->image_base + p->image_index;
+  len = strlen (*pp);
+  if (sizep)
+    *sizep = len;
+  p->image_index += len + 1;
+  scm_restore_pad (p);
 }
 
 void

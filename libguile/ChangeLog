@@ -1,3 +1,9 @@
+2001-02-10  Keisuke Nishida  <kxn30@po.cwru.edu>
+
+	* dump.c (scm_store_bytes): Store data size before data.
+	(scm_restore_bytes): Restore data size.  Takes a pointer to size.
+	* dump.h (scm_restore_bytes): Updated.
+
 2001-02-09  Keisuke Nishida  <kxn30@po.cwru.edu>
 
 	* dump.c: Use double cells for update schedule.
