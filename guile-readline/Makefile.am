@@ -1,6 +1,6 @@
 ## Process this file with Automake to create Makefile.in
 ##
-##  	Copyright (C) 1998 Free Software Foundation, Inc.
+##  	Copyright (C) 1998, 1999 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##   
@@ -44,3 +44,5 @@ SUFFIXES = .x
 	$(GUILE_SNARF) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< > $@
 
 EXTRA_DIST = readline.scm
+
+DISTCLEANFILES = *.x
