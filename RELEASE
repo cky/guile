@@ -51,6 +51,9 @@ After signal handling and threading have been fixed:
 - remove deprecated variables:
     scm_top_level_lookup_closure_var
     scm_scm_system_transformer
+    Remove all code that still sets them:
+     `use-syntax', scm_set_current_module, ...
+
 - remove deprecated functions:
     eval.c: scm_eval2, scm_eval_3
     load.c: scm_read_and_eval_x
