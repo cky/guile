@@ -1,3 +1,10 @@
+2001-11-12  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* configure.in: Check for sizes of short, size_t, uintptr_t, and
+	ptrdiff_t.  Checking for a size also checks automatically for the
+	existence of the type, so we don't check for the existence of
+	uintptr_t, ptrdiff_t and long long ourselves.
+
 2001-11-10  Thien-Thi Nguyen  <ttn@glug.org>
 
 	* BUGS (11): New.
