@@ -101,7 +101,7 @@ scm_cdr (SCM pair)
 }
 
 SCM
-scm_i_chase_pairs (SCM tree, scm_t_bits pattern)
+scm_i_chase_pairs (SCM tree, scm_t_uint32 pattern)
 {
   do
     {
