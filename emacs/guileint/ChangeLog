@@ -1,0 +1,235 @@
+2003-08-20  Neil Jerram  <neil@ossau.uklinux.net>
+
+	Import of Mikael's guileint-1.5.2.tgz into Guile CVS ...
+	
+	* defmenu.el, fcreate.el, guile-init.el, guile.el, guileint.el,
+	inda-scheme.el: Imported unchanged.
+
+	* cmuscheme.el.diff, comint.el.diff, scheme.el.diff,
+	xscheme.el.diff: Created by diffing Mikael's versions against the
+	nearest revisions I could find in Emacs CVS, so as to show the
+	changes made.
+
+	* README.mdj: Renamed from Mikael's `README'.
+
+	* README: New.
+	
+1999-08-23  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* guile.el (guile-frame-eval): Made interactive.
+	(guile-error-map): Added guile-frame-eval under "e".
+
+1999-03-17  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* guile.el (guile-file-readable-p, guile-find-file-noselect): New
+	functions.  Sets buffer to scheme-buffer before doing there
+	action.
+	(guile-display-scheme-sexp): Use the above functions.
+
+1999-03-16  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* guile.el (guile-buffer-file-name): Version of buffer-file-name
+	which uses file-truename;
+	Use guile-buffer-file-name throughout.
+
+1999-03-15  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* guileint.el: Add conditional in order not to load the interface
+	multiple times.
+
+	* guile.el (scheme-virtual-file-list-find): New function.  Finds
+	an finfo entry using a file name.  Uses `file-truename';
+	Replaced all assoc calls with scheme-vertual-file-list-find
+	everywhere.
+	(guile-real-safe-backward-sexp): New function.  Can skip backwards
+	over special scheme hash-syntax.
+	(guile-send-input): Use `guile-real-safe-backward-sexp'.
+
+1999-03-01  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+
+	* inda-scheme.el (scheme-electric-open-paren),
+	guile.el (guile-indent-or-complete): Use indent-for-tab-command
+	instead of scheme-indent-line.
+
+	* scheme.el: Merge changes from Emacs-20.3.
+	
+1998-06-18  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* guile.el (guile-send-region): Bugfix: Calculate new value for
+	start if overlays have been skipped.
+	(guile-send-overlay): Send define-module overlay to define the
+	module before sending any other overlay belonging to that module.
+	(guile-reparse-buffer): Detect define-module expressions.
+
+1998-06-14  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* guile.el (guile-select-stackframe): Increment line number.
+
+1998-06-10  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* guile.el: Removed calls to the former debugging function `cb'.
+
+1998-05-21  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* guile.el: Added nil nil t arguments in calls to make-overlay in
+	order to make the overlays rear-sticky.  (This is an adaption to
+	Emacs-20.)
+
+1997-10-22  Mikael Djurfeldt  <mdj@nada.kth.se>
+
+	* guile.el (guile-stack-frame-map): Need to be fset in Emacs-20.
+
+Wed Oct  1 22:02:19 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* inda-scheme.el (inda-inferior-initializations): Disable
+ 	font-lock-mode in inferior-scheme buffers.  (For some strange
+ 	reason, the inda-read-only-overlay modification hook gets called
+ 	when a character is inserted after the prompt if font-lock mode
+	has been activated.)
+
+Fri Aug 29 01:34:34 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* guile.el (guile-display-name): Bugfix: filler -->
+ 	guile-define-filler.
+	(guile-send-overlay): Bugfix: Don't print "DEFINED" if start /=
+ 	overlay-start.
+	Added (require 'cl).
+	(guile-insert-before-prompt): Use guile-last-output-end
+
+Wed Aug 27 17:24:28 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* guile.el (guile-complete-symbol): Bugfix: Don't do anything if
+ 	word is nil.
+	(guile-backtrace-in-source-window): New customization option.
+	(guile-display-error): Don't place backtrace in source window if
+ 	guile-backtrace-in-source-window is nil.
+	(guile-prep-backtrace): Set syntax-table to
+ 	scheme-mode-syntax-table.
+
+Tue Aug 26 00:01:01 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* guile.el (guile-insert-before-prompt): Move the recenter code
+	here.
+	(guile-display-name): Use guile-insert-before-prompt.
+
+Mon Aug 25 22:46:23 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* guile.el (guile-display-name): Recenter display if prompt
+	started at the beginning of the buffer, so that the first text
+	inserted before prompt will be visible.
+
+Mon Aug 25 19:36:50 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* guile.el: New variable: guile-frame-overlay.
+	(guile-inferior-initialize): Initialize guile-frame-overlay to
+ 	nil.
+	(guile-place-frame-overlay, guile-turn-off-frame-overlay,
+ 	guile-unselect-stackframe): New functions.
+	(guile-unselect-stackframe): Turn off overlay and set
+ 	guile-selected-frame to nil.
+	(guile-stack-frame): New overlay category.
+	(guile-selected-frame): defun --> defvar
+	(guile-exit-debug): Turn off frame overlay.
+	(guile-prep-backtrace): Call `guile-unselect-stackframe'.
+	(guile-turn-off-sexp-overlay, guile-turn-off-frame-overlay): Check
+	(car args) before applying `delete-overlay'.
+	(guile-error-map): Bind S-mouse-2 to guile-frame-eval-at-click.
+
+	* inda-scheme.el (inda-scheme-mode-initializations): Bind
+	S-mouse-2 to guile-frame-eval-at-click;  Bind M-TAB to
+	guile-complete-symbol.
+
+	* guile.el (guile-complete-symbol): Made a command.
+	(guile-frame-eval-at-click, guile-frame-eval): New functions.
+  	Enables clicking on expressions in the source buffer to show their
+ 	values.
+	(guile-complete-symbol, guile-list-completions): Bugfix: Use
+ 	`buffer-name' instead of `current-buffer' in order to obtain the
+ 	buffer name.
+	(guile-select-frame): Always set guile-selected-frame.
+
+Mon Aug 25 16:21:18 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* guile.el (guile-eval): Must wait for scheme-ready-p so that the
+	filter functions don't get called.
+	(guile-describe-variable): Put `guile-force-splittable' around
+	call to `with-output-to-temp-buffer' so that documentation can be
+	displayed also in *scheme* window even if it is dedicated.
+
+Sun Aug 24 22:19:16 1997  Mikael Djurfeldt  <mdj@kenneth>
+
+	* *** Transferred code to guile-emacs. ***
+	
+	* inda-scheme.el (inda-inferior-initializations): Removed
+ 	assignment to scheme-pop-to-buffer.
+
+Thu Aug 21 01:47:31 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* guile.el (guile-eval-result, guile-receive-result, guile-eval):
+ 	guile-eval-result now contains the printed representation as a
+ 	string instead of an elisp object.
+	(guile-eval-output): New variable.
+	(guile-receive-result): Set guile-eval-output to
+ 	guile-unallowed-output.
+	(guile-define-startcol, guile-define-filler,
+ 	 guile-define-fillcol): New variables.  Buffer-local.
+	(guile-define-header-emitted-p): New variable.
+	(scheme-send-region): Print result of last sent overlay or show
+	message "Defined." if definitions have been made.
+	(guile-insert-before-prompt): Don't use guile-pre-prompt-marker.
+	(guile-pre-prompt-marker): New name: guile-define-name-marker.
+	(guile-send-region): Moved printing of defined names to
+	guile-display-name.
+	(guile-send-overlay): New parameters; Zeros guile-eval-output;
+	Adapted to new format of %%emacs-load; Can now send sub-parts of
+	an overlay; Use guile-display-name.
+	(guile-display-name): New function.
+	(guile-receive-result): Reset guile-unallowed-output after having
+	stored its value in guile-eval-output.
+
+Sat Aug 16 02:53:00 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* guile.el (guile-display-error): Limit height of *Scheme Error*
+	window to half of guile-backtrace-max-height.
+
+Thu Jul 24 18:41:56 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* guile.el (guile-normal-edit): Don't set
+	scheme-buffer-modified-p.  This will be done by
+	guile-scheme-buffer-modified next time the buffer is modified.
+	(guile-scheme-buffer-modified): New function.
+	(guile-inferior-initialize): Make first-change-hook buffer-local,
+	add guile-scheme-modified; Pass t for initialp to
+	guile-enhanced-edit if the scheme-buffer seems untouched.
+	
+	* guile.el (guile-normal-edit): Unlink overlays and buffer.
+	
+	* inda-scheme.el (inda-send-definition, inda-mark-sexp): Make it
+	possible to send expressions to scheme just by clicking on them.
+
+	* guileint.el: Removed statements that doesn't have anything to do
+	with the Guile interface per se (transient-mark-mode, iso-syntax
+	etc)
+
+Wed Jul 23 19:11:15 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* inda-scheme.el: Changed inda menu --> interpret.
+
+Thu Jul 17 10:43:58 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* inda96.el (devel-binary): Changed to unstable.
+
+	* guile.el (guile-display-buffers): Check for window system before
+	deleting windows on buffer1.
+	(guile-get-create-error-window): Treat non-window system
+	differently.
+	(scheme-send-region): Don't check for (scheme-ready-p) here.  This
+	is checked in guile-send-region.
+	(guile-send-region): Check for (scheme-ready-p) here instead.
+	Go to end-of-buffer before determining proper place for "DEFINED
+	%s (".
+	
+Tue Oct 15 16:56:18 1996  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* Start of revision history for misc elisp files.
+
