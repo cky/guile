@@ -49,7 +49,7 @@
 #include "libguile/__scm.h"
 #include "libguile/iselect.h"
 
-#ifdef SCM_HAVE_WINSOCK2_H
+#if SCM_HAVE_WINSOCK2_H
 # include <winsock2.h>
 #endif
 
