@@ -1858,7 +1858,17 @@ scm_unprotect_object (obj)
 int terminating;
 
 /* called on process termination.  */
-static void cleanup (void)
+#ifdef HAVE_ATEXIT
+static void
+cleanup (void)
+#else
+#ifdef HAVE_ON_EXIT
+static void
+cleanup (int status, void *arg)
+#else
+#error Dont know how to setup a cleanup handler on your system.
+#endif
+#endif
 {
   terminating = 1;
   scm_flush_all_ports ();
@@ -1905,6 +1915,10 @@ scm_init_storage (scm_sizet init_heap_size)
 
 #ifdef HAVE_ATEXIT
   atexit (cleanup);
+#else
+#ifdef HAVE_ON_EXIT
+  on_exit (cleanup, 0);
+#endif
 #endif
 
   scm_undefineds = scm_cons (SCM_UNDEFINED, SCM_EOL);
