@@ -1,3 +1,7 @@
+2001-06-20  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* libguile.h: Removed inclusion of libguile/tag.h.
+
 2001-06-16  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* libguile.h (scm_cond_t, scm_key_t, scm_mutex_t): Only define

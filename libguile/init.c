@@ -132,7 +132,6 @@
 #include "libguile/strports.h"
 #include "libguile/struct.h"
 #include "libguile/symbols.h"
-#include "libguile/tag.h"
 #include "libguile/throw.h"
 #include "libguile/unif.h"
 #include "libguile/values.h"
@@ -548,7 +547,6 @@ scm_init_guile_1 (SCM_STACKITEM *base)
   scm_init_struct ();   /* Requires strings */
   scm_init_stacks ();   /* Requires strings, struct */
   scm_init_symbols ();
-  scm_init_tag ();
   scm_init_values ();   /* Requires struct */
   scm_init_load ();     /* Requires strings */
   scm_init_objects ();	/* Requires struct */

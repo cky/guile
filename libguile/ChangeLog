@@ -1,3 +1,13 @@
+2001-06-20  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* init.c (scm_init_guile_1): Removed initialization of tag.c.
+
+	* gdbint.c, init.c: Removed inclusion of tag.h.
+
+	* tag.h, tag.c: Removed files.
+
+	* Makefile.am: Removed tag.{h,c,doc,x} in various places.
+
 2001-06-20  Gary Houston  <ghouston@arglist.com>
 
 	* deprecation.c, extensions.c, rw.c: include string.h.

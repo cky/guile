@@ -55,7 +55,6 @@
 #include <unistd.h>
 #endif
 
-#include "libguile/tag.h"
 #include "libguile/strports.h"
 #include "libguile/read.h"
 #include "libguile/eval.h"

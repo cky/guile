@@ -51,7 +51,7 @@ libguile_la_SOURCES = alist.c arbiters.c async.c backtrace.c boolean.c	    \
     options.c pairs.c ports.c print.c procprop.c procs.c properties.c	    \
     random.c rdelim.c read.c root.c rw.c scmsigs.c script.c simpos.c smob.c \
     sort.c srcprop.c stackchk.c stacks.c stime.c strings.c strop.c	    \
-    strorder.c strports.c struct.c symbols.c tag.c throw.c values.c	    \
+    strorder.c strports.c struct.c symbols.c throw.c values.c 		    \
     variable.c vectors.c version.c vports.c weaks.c symbols-deprecated.c
 
 DOT_X_FILES = alist.x arbiters.x async.x backtrace.x boolean.x chars.x	  \
@@ -65,7 +65,7 @@ DOT_X_FILES = alist.x arbiters.x async.x backtrace.x boolean.x chars.x	  \
     procprop.x procs.x properties.x random.x rdelim.x read.x root.x rw.x  \
     scmsigs.x script.x simpos.x smob.x sort.x srcprop.x			  \
     stackchk.x stacks.x stime.x strings.x strop.x strorder.x strports.x	  \
-    struct.x symbols.x tag.x throw.x values.x variable.x vectors.x	  \
+    struct.x symbols.x throw.x values.x variable.x vectors.x		  \
     version.x vports.x weaks.x symbols-deprecated.x
 
 EXTRA_DOT_X_FILES = @EXTRA_DOT_X_FILES@
@@ -82,7 +82,7 @@ DOT_DOC_FILES = alist.doc arbiters.doc async.doc backtrace.doc		    \
     procs.doc properties.doc random.doc rdelim.doc read.doc root.doc rw.doc \
     scmsigs.doc script.doc simpos.doc smob.doc sort.doc			    \
     srcprop.doc stackchk.doc stacks.doc stime.doc strings.doc strop.doc	    \
-    strorder.doc strports.doc struct.doc symbols.doc tag.doc throw.doc	    \
+    strorder.doc strports.doc struct.doc symbols.doc throw.doc		    \
     values.doc variable.doc vectors.doc version.doc vports.doc weaks.doc    \
     symbols-deprecated.doc
 
@@ -134,7 +134,7 @@ modinclude_HEADERS = __scm.h alist.h arbiters.h async.h backtrace.h boolean.h \
     regex-posix.h print.h procprop.h procs.h properties.h random.h ramap.h    \
     rdelim.h read.h root.h rw.h scmsigs.h validate.h script.h simpos.h smob.h \
     snarf.h socket.h sort.h srcprop.h stackchk.h stacks.h stime.h strings.h   \
-    strop.h strorder.h strports.h struct.h symbols.h tag.h tags.h threads.h   \
+    strop.h strorder.h strports.h struct.h symbols.h tags.h threads.h	      \
     throw.h unif.h values.h variable.h vectors.h version.h vports.h weaks.h
 
 ## This file is generated at configure time.  That is why it is DATA
