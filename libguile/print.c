@@ -527,10 +527,23 @@ scm_iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 	    scm_lfwrite (SCM_STRING_CHARS (exp), SCM_STRING_LENGTH (exp), port);
 	  break;
 	case scm_tc7_symbol:
-	  scm_print_symbol_name (SCM_SYMBOL_CHARS (exp),
-				 SCM_SYMBOL_LENGTH (exp),
-				 port);
-	  scm_remember_upto_here_1 (exp);
+	  if (SCM_SYMBOL_INTERNED_P (exp))
+	    {
+	      scm_print_symbol_name (SCM_SYMBOL_CHARS (exp),
+				     SCM_SYMBOL_LENGTH (exp),
+				     port);
+	      scm_remember_upto_here_1 (exp);
+	    }
+	  else
+	    {
+	      scm_puts ("#<uninterned-symbol ", port);
+	      scm_print_symbol_name (SCM_SYMBOL_CHARS (exp),
+				     SCM_SYMBOL_LENGTH (exp),
+				     port);
+	      scm_putc (' ', port);
+	      scm_intprint ((long)exp, 16, port);
+	      scm_putc ('>', port);
+	    }
 	  break;
 	case scm_tc7_variable:
 	  scm_i_variable_print (exp, port, pstate);
