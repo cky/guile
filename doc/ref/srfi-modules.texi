@@ -599,14 +599,20 @@ Guile core, @xref{List Modification}.
 
 @deffn {Scheme Procedure} partition pred lst
 @deffnx {Scheme Procedure} partition! pred lst
-Return two lists, one containing all elements from @var{lst} which
-satisfy the predicate @var{pred}, and one list containing the elements
-which do not satisfy the predicated.  The elements in the result lists
-have the same order as in @var{lst}.  The order in which @var{pred} is
-applied to the list elements is not specified.
+Split @var{lst} into those elements which do and don't satisfy the
+predicate @var{pred}.
 
-@code{partition!} is allowed, but not required to modify the structure of
-the input list.
+The return is two values (@pxref{Multiple Values}), the first being a
+list of all elements from @var{lst} which satisfy @var{pred}, the
+second a list of those which do not.
+
+The elements in the result lists are in the same order as in @var{lst}
+but the order in which the calls @code{(@var{pred} elem)} are made on
+the list elements is unspecified.
+
+@code{partition} does not change @var{lst}, but one of the returned
+lists may share a tail with it.  @code{partition!} may modify
+@var{lst} to construct its return.
 @end deffn
 
 @deffn {Scheme Procedure} remove pred lst
@@ -2922,3 +2928,7 @@ change in the future.
 
 
 @c srfi-modules.texi ends here
+
+@c Local Variables:
+@c TeX-master: "guile.texi"
+@c End:
