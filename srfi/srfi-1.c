@@ -496,6 +496,118 @@ SCM_DEFINE (scm_srfi1_drop_right, "drop-right", 2, 0, 0,
 #undef FUNC_NAME
 
 
+SCM_DEFINE (scm_srfi1_filter_map, "filter-map", 2, 0, 1,
+            (SCM proc, SCM list1, SCM rest),
+	    "Apply @var{proc} to to the elements of @var{list1} @dots{} and\n"
+	    "return a list of the results as per SRFI-1 @code{map}, except\n"
+	    "that any @code{#f} results are omitted from the list returned.")
+#define FUNC_NAME s_scm_srfi1_filter_map
+{
+  SCM  ret, *loc, elem, newcell, lst;
+  int  argnum;
+
+  SCM_VALIDATE_REST_ARGUMENT (rest);
+
+  ret = SCM_EOL;
+  loc = &ret;
+
+  if (SCM_NULLP (rest))
+    {
+      /* one list */
+      scm_t_trampoline_1 proc_tramp = scm_trampoline_1 (proc);
+      SCM_ASSERT (proc_tramp, proc, SCM_ARG1, FUNC_NAME);
+
+      for ( ; scm_is_pair (list1); list1 = SCM_CDR (list1))
+        {
+          elem = proc_tramp (proc, SCM_CAR (list1));
+          if (scm_is_true (elem))
+            {
+              newcell = scm_cons (elem, SCM_EOL);
+              *loc = newcell;
+              loc = SCM_CDRLOC (newcell);
+            }
+        }
+
+      /* check below that list1 is a proper list, and done */
+      lst = list1;
+      argnum = 2;
+    }
+  else if (SCM_NULLP (SCM_CDR (rest)))
+    {
+      /* two lists */
+      scm_t_trampoline_2 proc_tramp = scm_trampoline_2 (proc);
+      SCM list2 = SCM_CAR (rest);
+      SCM_ASSERT (proc_tramp, proc, SCM_ARG1, FUNC_NAME);
+
+      for (;;)
+        {
+          if (! scm_is_pair (list1))
+            {
+              lst = list1;
+              argnum = 2;
+              goto check_lst_and_done;
+            }
+          if (! scm_is_pair (list2))
+            {
+              lst = list2;
+              argnum = 3;
+              goto check_lst_and_done;
+            }
+          elem = proc_tramp (proc, SCM_CAR (list1), SCM_CAR (list2));
+          if (scm_is_true (elem))
+            {
+              newcell = scm_cons (elem, SCM_EOL);
+              *loc = newcell;
+              loc = SCM_CDRLOC (newcell);
+            }
+          list1 = SCM_CDR (list1);
+          list2 = SCM_CDR (list2);
+        }
+    }
+  else
+    {
+      /* three or more lists */
+      SCM  lstlst, args, l, a;
+
+      /* lstlst is a list of the list arguments */
+      lstlst = scm_cons (list1, rest);
+
+      /* args is the argument list to pass to proc, same length as lstlst,
+         re-used for each call */
+      args = scm_list_copy (lstlst);
+
+      for (;;)
+        {
+          /* first elem of each list in lstlst into args, and step those
+             lstlst entries onto their next element */
+          for (l = lstlst, a = args, argnum = 2;
+               scm_is_pair (l);
+               l = SCM_CDR (l), a = SCM_CDR (a), argnum++)
+            {
+              lst = SCM_CAR (l);  /* list argument */
+              if (! scm_is_pair (lst))
+                goto check_lst_and_done;
+              SCM_SETCAR (a, SCM_CAR (lst));  /* arg for proc */
+              SCM_SETCAR (l, SCM_CDR (lst));  /* keep rest of lst */
+            }
+
+          elem = scm_apply (proc, args, SCM_EOL);
+          if (scm_is_true (elem))
+            {
+              newcell = scm_cons (elem, SCM_EOL);
+              *loc = newcell;
+              loc = SCM_CDRLOC (newcell);
+            }
+        }
+    }
+
+ check_lst_and_done:
+  SCM_ASSERT_TYPE (SCM_NULL_OR_NIL_P (lst), lst, argnum, FUNC_NAME, "list");
+  return ret;
+}
+#undef FUNC_NAME
+
+
 SCM_DEFINE (scm_srfi1_find, "find", 2, 0, 0,
             (SCM pred, SCM lst),
 	    "Return the first element of @var{lst} which satisfies the\n"

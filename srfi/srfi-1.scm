@@ -515,25 +515,6 @@
 	  (apply f l)
 	  (lp (map1 cdr l)))))))
 
-(define (filter-map f clist1 . rest)
-  (if (null? rest)
-    (let lp ((l clist1)
-	     (rl '()))
-      (if (null? l)
-	(reverse! rl)
-	(let ((res (f (car l))))
-	  (if res
-	    (lp (cdr l) (cons res rl))
-	    (lp (cdr l) rl)))))
-    (let lp ((l (cons clist1 rest))
-	     (rl '()))
-      (if (any1 null? l)
-	(reverse! rl)
-	(let ((res (apply f (map1 car l))))
-	  (if res
-	    (lp (map1 cdr l) (cons res rl))
-	    (lp (map1 cdr l) rl)))))))
-
 ;;; Searching
 
 (define (take-while pred ls)
