@@ -64,8 +64,6 @@ static int scm_tc16_jmpbuffer;
 #define JBACTIVE(O) (SCM_CAR (O) & (1L << 16L))
 #define ACTIVATEJB(O)  (SCM_CAR (O) |= (1L << 16L))
 #define DEACTIVATEJB(O)  (SCM_CAR (O) &= ~(1L << 16L))
-#define JBLAZY (1L << 17L)
-#define JBLAZYP(O) (SCM_CAR (O) & JBLAZY)
 
 #ifndef DEBUG_EXTENSIONS
 #define JBJMPBUF(O) ((jmp_buf*)SCM_CDR (O) )
@@ -95,10 +93,7 @@ printjb (exp, port, pstate)
      scm_print_state *pstate;
 {
   scm_gen_puts (scm_regular_string, "#<jmpbuffer ", port);
-  scm_gen_puts (scm_regular_string, JBACTIVE (exp) ? "(active" : "(inactive", port);
-  if (JBLAZYP (exp))
-    scm_gen_puts (scm_regular_string, ", lazy", port);
-  scm_gen_puts (scm_regular_string, ") ", port);
+  scm_gen_puts (scm_regular_string, JBACTIVE(exp) ? "(active) " : "(inactive) ", port);
   scm_intprint((SCM) JBJMPBUF(exp), 16, port);
   scm_gen_putc ('>', port);
   return 1 ;
@@ -115,9 +110,9 @@ static scm_smobfuns jbsmob = {
   0
 };
 
-static SCM make_jmpbuf SCM_P ((int lazyp));
+static SCM make_jmpbuf SCM_P ((void));
 static SCM
-make_jmpbuf (int lazyp)
+make_jmpbuf ()
 {
   SCM answer;
   SCM_NEWCELL (answer);
@@ -127,9 +122,9 @@ make_jmpbuf (int lazyp)
     char *mem = scm_must_malloc (sizeof (scm_cell), "jb");
     SCM_SETCDR (answer, (SCM) mem);
 #endif
-    SCM_CAR (answer) = scm_tc16_jmpbuffer | (lazyp ? JBLAZY : 0);
-    SETJBJMPBUF (answer, (jmp_buf *) 0);
-    DEACTIVATEJB (answer);
+    SCM_CAR(answer) = scm_tc16_jmpbuffer;
+    SETJBJMPBUF(answer, (jmp_buf *)0);
+    DEACTIVATEJB(answer);
   }
   SCM_REALLOW_INTS;
   return answer;
@@ -143,19 +138,18 @@ struct jmp_buf_and_retval	/* use only on the stack, in scm_catch */
 };
 
 SCM
-scm_catch_apply (tag, proc, a1, args, handler, lazyp)
+scm_catch_apply (tag, proc, a1, args, handler)
      SCM tag;
      SCM proc;
      SCM a1;
      SCM args;
      SCM handler;
-     int lazyp;
 {
   struct jmp_buf_and_retval jbr;
   SCM jmpbuf;
   SCM answer;
 
-  jmpbuf = make_jmpbuf (lazyp);
+  jmpbuf = make_jmpbuf ();
   answer = SCM_EOL;
   scm_dynwinds = scm_acons (tag, jmpbuf, scm_dynwinds);
   SETJBJMPBUF(jmpbuf, &jbr.buf);
@@ -210,7 +204,7 @@ scm_catch (tag, thunk, handler)
 	      || (SCM_NIMP(tag) && SCM_SYMBOLP(tag))
 	      || (tag == SCM_BOOL_T),
 	      tag, SCM_ARG1, s_catch);
-  return scm_catch_apply (tag, thunk, SCM_EOL, SCM_EOL, handler, 0);
+  return scm_catch_apply (tag, thunk, SCM_EOL, SCM_EOL, handler);
 }
 
 SCM_PROC(s_lazy_catch, "lazy-catch", 3, 0, 0, scm_lazy_catch);
@@ -220,11 +214,11 @@ scm_lazy_catch (tag, thunk, handler)
      SCM thunk;
      SCM handler;
 {
-  SCM_ASSERT ((tag == SCM_BOOL_F)
-	      || (SCM_NIMP(tag) && SCM_SYMBOLP(tag))
+  SCM_ASSERT ((SCM_NIMP(tag) && SCM_SYMBOLP(tag))
 	      || (tag == SCM_BOOL_T),
 	      tag, SCM_ARG1, s_lazy_catch);
-  return scm_catch_apply (tag, thunk, SCM_EOL, SCM_EOL, handler, 1);
+  scm_dynwinds = scm_acons (tag, handler, scm_dynwinds);
+  return scm_apply (thunk, SCM_EOL, SCM_EOL);
 }
 
 /* The user has thrown to an uncaught key --- print a message and die. 
@@ -332,13 +326,21 @@ scm_ithrow (key, args, noreturn)
        SCM_CDAR (wind_goal) != jmpbuf;
        wind_goal = SCM_CDR (wind_goal))
     ;
-  {
-    struct jmp_buf_and_retval * jbr;
-    jbr = (struct jmp_buf_and_retval *)JBJMPBUF (jmpbuf);
-    jbr->throw_tag = key;
-    jbr->retval = args;
-  }
   scm_dowinds (wind_goal, scm_ilength (scm_dynwinds) - scm_ilength (wind_goal));
+  if (!SCM_JMPBUFP (jmpbuf))
+    {
+      SCM_REDEFER_INTS;
+      scm_dynwinds = SCM_CDR (scm_dynwinds);
+      SCM_REALLOW_INTS;
+      return scm_apply (jmpbuf, scm_cons (key, args), SCM_EOL);
+    }
+  else
+    {
+      struct jmp_buf_and_retval * jbr;
+      jbr = (struct jmp_buf_and_retval *)JBJMPBUF (jmpbuf);
+      jbr->throw_tag = key;
+      jbr->retval = args;
+    }
 #ifdef DEBUG_EXTENSIONS
   scm_last_debug_frame = SCM_JBDFRAME (jmpbuf);
 #endif
@@ -352,8 +354,8 @@ scm_throw (key, args)
      SCM key;
      SCM args;
 {
-  scm_ithrow (key, args, 1);
-  return SCM_BOOL_F;  /* never really returns */
+  /* May return if handled by lazy catch. */
+  return scm_ithrow (key, args, 1);
 }
 
 
