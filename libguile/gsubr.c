@@ -43,6 +43,7 @@
 #include <stdio.h>
 #include "_scm.h"
 #include "genio.h"
+#include "procprop.h"
 
 #include "gsubr.h"
 
@@ -65,6 +66,7 @@
 #define GSUBR_TYPE(cclo) (SCM_VELTS(cclo)[1])
 #define GSUBR_PROC(cclo) (SCM_VELTS(cclo)[2])
 
+SCM scm_i_name;
 static SCM f_gsubr_apply;
 
 SCM
@@ -101,6 +103,10 @@ scm_make_gsubr(name, req, opt, rst, fcn)
       GSUBR_PROC(cclo) = z;
       GSUBR_TYPE(cclo) = SCM_MAKINUM(GSUBR_MAKTYPE(req, opt, rst));
       SCM_CDR(symcell) = cclo;
+#ifdef DEBUG_EXTENSIONS
+      if (SCM_REC_PROCNAMES_P)
+	scm_set_procedure_property_x (cclo, scm_i_name, SCM_CAR (symcell));
+#endif
       return cclo;
     }
   }
@@ -179,6 +185,8 @@ void
 scm_init_gsubr()
 {
   f_gsubr_apply = scm_make_subr(s_gsubr_apply, scm_tc7_lsubr, scm_gsubr_apply);
+  scm_i_name = SCM_CAR (scm_sysintern ("name", SCM_UNDEFINED));
+  scm_permanent_object (scm_i_name);
 #ifdef GSUBR_TEST
   scm_make_gsubr("gsubr-2-1-l", 2, 1, 1, gsubr_21l); /* example */
 #endif
