@@ -1,3 +1,7 @@
+2003-05-30  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/numbers.test (max, min): Add tests involving NaNs.
+
 2003-05-29  Stefan Jahn  <stefan@lkcc.org>
 
 	* standalone/Makefile.am: Setup to build on mingw32.

@@ -1,3 +1,9 @@
+2003-05-30  Kevin Ryde  <user42@zip.com.au>
+
+	* numbers.c (z_negative_one): New variable.
+	(scm_init_numbers): Initialize it.
+	(scm_logcount): Use it and mpz_hamdist to count zeros for negatives.
+
 2003-05-29  Stefan Jahn  <stefan@lkcc.org>
 
 	* win32-dirent.c: Use malloc() instead of scm_malloc().

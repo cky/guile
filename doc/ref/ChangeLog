@@ -1,3 +1,10 @@
+2003-05-30  Kevin Ryde  <user42@zip.com.au>
+
+	* deprecated.texi: Add substring-move-left! and substring-move-right!.
+
+	* scheme-io.texi (Default Ports): Remove duplicate descriptions of
+	set-current-output-port and set-current-error-port.
+
 2003-05-27  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* scheme-compound.texi: Clarified that vectors need to be quoted.
