@@ -352,7 +352,7 @@ ancillary =	gscm.c \
 		ChangeLog \
 		ChangeLog.scm \
 		Makefile.in \
-		acconfig-1.5.h \
+		acconfig.h \
 		configure \
 		configure.in \
 		def.sed \
