@@ -1,5 +1,10 @@
 Tue Feb  4 16:57:40 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
+	* eval.c (safe_setjmp): New function: trivial wrapper for setjmp.
+	(SCM_CEVAL, SCM_APPLY): Call it, instead of setjmp, to make sure
+	that values of automatic variables are preserved.  See comments
+	for safe_setjmp for details.
+
 	Change from Thomas Morgan:
         * variable.c: Include eq.h.
         (var_equal): New function.
