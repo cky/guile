@@ -711,6 +711,8 @@ SCM_DEFINE1 (scm_logand, "logand", scm_tc7_asubr,
 	     "   @result{} \"1000\"")
 #define FUNC_NAME s_scm_logand
 {
+  long int nn1;
+
   if (SCM_UNBNDP (n2)) {
     if (SCM_UNBNDP (n1)) {
       return SCM_MAKINUM (-1);
@@ -729,7 +731,7 @@ SCM_DEFINE1 (scm_logand, "logand", scm_tc7_asubr,
   }
 
   if (SCM_INUMP (n1)) {
-    long nn1 = SCM_INUM (n1);
+    nn1 = SCM_INUM (n1);
     if (SCM_INUMP (n2)) {
       long nn2 = SCM_INUM (n2);
       return SCM_MAKINUM (nn1 & nn2);
@@ -762,6 +764,7 @@ SCM_DEFINE1 (scm_logand, "logand", scm_tc7_asubr,
   } else if (SCM_BIGP (n1)) {
     if (SCM_INUMP (n2)) {
       SCM_SWAP (n1, n2);
+      nn1 = SCM_INUM (n1);
       goto intbig;
     } else if (SCM_BIGP (n2)) {
       if (SCM_NUMDIGS (n1) > SCM_NUMDIGS (n2)) {
@@ -795,6 +798,8 @@ SCM_DEFINE1 (scm_logior, "logior", scm_tc7_asubr,
 	     "@end lisp")
 #define FUNC_NAME s_scm_logior
 {
+  long int nn1;
+
   if (SCM_UNBNDP (n2)) {
     if (SCM_UNBNDP (n1)) {
       return SCM_INUM0;
@@ -811,7 +816,7 @@ SCM_DEFINE1 (scm_logior, "logior", scm_tc7_asubr,
   }
 
   if (SCM_INUMP (n1)) {
-    long nn1 = SCM_INUM (n1);
+    nn1 = SCM_INUM (n1);
     if (SCM_INUMP (n2)) {
       long nn2 = SCM_INUM (n2);
       return SCM_MAKINUM (nn1 | nn2);
@@ -845,6 +850,7 @@ SCM_DEFINE1 (scm_logior, "logior", scm_tc7_asubr,
   } else if (SCM_BIGP (n1)) {
     if (SCM_INUMP (n2)) {
       SCM_SWAP (n1, n2); 
+      nn1 = SCM_INUM (n1);
       goto intbig;
     } else if (SCM_BIGP (n2)) {
       if (SCM_NUMDIGS (n1) > SCM_NUMDIGS (n2)) {
@@ -878,6 +884,8 @@ SCM_DEFINE1 (scm_logxor, "logxor", scm_tc7_asubr,
 	     "@end lisp")
 #define FUNC_NAME s_scm_logxor
 {
+  long int nn1;
+
   if (SCM_UNBNDP (n2)) {
     if (SCM_UNBNDP (n1)) {
       return SCM_INUM0;
@@ -894,7 +902,7 @@ SCM_DEFINE1 (scm_logxor, "logxor", scm_tc7_asubr,
   }
 
   if (SCM_INUMP (n1)) {
-    long nn1 = SCM_INUM (n1);
+    nn1 = SCM_INUM (n1);
     if (SCM_INUMP (n2)) {
       long nn2 = SCM_INUM (n2);
       return SCM_MAKINUM (nn1 ^ nn2);
@@ -918,6 +926,7 @@ SCM_DEFINE1 (scm_logxor, "logxor", scm_tc7_asubr,
   } else if (SCM_BIGP (n1)) {
     if (SCM_INUMP (n2)) {
       SCM_SWAP (n1, n2);
+      nn1 = SCM_INUM (n1);
       goto intbig;
     } else if (SCM_BIGP (n2)) {
       if (SCM_NUMDIGS(n1) > SCM_NUMDIGS(n2)) {
@@ -944,8 +953,10 @@ SCM_DEFINE (scm_logtest, "logtest", 2, 0, 0,
 	    "@end example")
 #define FUNC_NAME s_scm_logtest
 {
+  long int nn1;
+
   if (SCM_INUMP (n1)) {
-    long nn1 = SCM_INUM (n1);
+    nn1 = SCM_INUM (n1);
     if (SCM_INUMP (n2)) {
       long nn2 = SCM_INUM (n2);
       return SCM_BOOL (nn1 & nn2);
@@ -969,6 +980,7 @@ SCM_DEFINE (scm_logtest, "logtest", 2, 0, 0,
   } else if (SCM_BIGP (n1)) {
     if (SCM_INUMP (n2)) {
       SCM_SWAP (n1, n2);
+      nn1 = SCM_INUM (n1);
       goto intbig;
     } else if (SCM_BIGP (n2)) {
       if (SCM_NUMDIGS (n1) > SCM_NUMDIGS (n2)) {

@@ -1,3 +1,8 @@
+2000-05-05  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* numbers.c (scm_logand, scm_logior, scm_logxor, scm_logtest):
+	Fixed some goto-related initialization bugs (introduced by me).
+
 2000-05-04  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* numbers.h (SCM_INUM0):  Uses SCM_MAKINUM instead of SCM_PACK.
