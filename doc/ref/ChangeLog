@@ -1,3 +1,8 @@
+2003-10-09  Kevin Ryde  <user42@zip.com.au>
+
+	* scheme-compound.texi (Hash Table Reference): Decribe rehashing, note
+	no hashx-remove!, describe make-hash-table size parameter.
+
 2003-10-06  Marius Vollmer  <mvo@zagadka.de>
 
 	* scheme-memory.texi: Added a short explanation of the GC and the
