@@ -17,11 +17,12 @@ reviewed and largely reorganized.]
 * Asyncs::                      Asynchronous procedure invocation.
 * Continuation Barriers::       Protection from non-local control flow.
 * Threads::                     Multiple threads of execution.
+* Mutexes and Condition Variables:: Synchronization primitives.
 * Blocking::                    How to block properly in guile mode.
+* Critical Sections::           Avoiding concurrency and reentries.
 * Fluids and Dynamic States::   Thread-local variables, etc.
 * Futures::                     Delayed execution in new threads.
 * Parallel Forms::              Parallel execution of forms.
-* Mutexes and Condition Variables:: Synchronization primitives.
 @end menu
 
 
@@ -302,6 +303,147 @@ Evaluate forms @var{first} and @var{rest} in a new thread formed by
 the error to the current error port.
 @end deffn
 
+@node Mutexes and Condition Variables
+@subsection Mutexes and Condition Variables
+@cindex mutex
+@cindex condition variable
+
+A mutex is a thread synchronization object, it can be used by threads
+to control access to a shared resource.  A mutex can be locked to
+indicate a resource is in use, and other threads can then block on the
+mutex to wait for the resource (or can just test and do something else
+if not available).  ``Mutex'' is short for ``mutual exclusion''.
+
+There are two types of mutexes in Guile, ``standard'' and
+``recursive''.  They're created by @code{make-mutex} and
+@code{make-recursive-mutex} respectively, the operation functions are
+then common to both.
+
+Note that for both types of mutex there's no protection against a
+``deadly embrace''.  For instance if one thread has locked mutex A and
+is waiting on mutex B, but another thread owns B and is waiting on A,
+then an endless wait will occur (in the current implementation).
+Acquiring requisite mutexes in a fixed order (like always A before B)
+in all threads is one way to avoid such problems.
+
+@sp 1
+@deffn {Scheme Procedure} make-mutex
+@deffnx {C Function} scm_make_mutex ()
+Return a new standard mutex.  It is initially unlocked.
+@end deffn
+
+@deffn {Scheme Procedure} make-recursive-mutex
+@deffnx {C Function} scm_make_recursive_mutex ()
+Create a new recursive mutex.  It is initialloy unlocked.
+@end deffn
+
+@deffn {Scheme Procedure} lock-mutex mutex
+@deffnx {C Function} scm_lock_mutex (mutex)
+Lock @var{mutex}.  If the mutex is already locked by another thread
+then block and return only when @var{mutex} has been acquired.
+
+For standard mutexes (@code{make-mutex}), and error is signalled if
+the thread has itself already locked @var{mutex}.
+
+For a recursive mutex (@code{make-recursive-mutex}), if the thread has
+itself already locked @var{mutex}, then a further @code{lock-mutex}
+call increments the lock count.  An additional @code{unlock-mutex}
+will be required to finally release.
+
+When a system async (@pxref{System asyncs}) is activated for a thread
+blocked in @code{lock-mutex}, the wait is interrupted and the async is
+executed.  When the async returns, the wait resumes.
+@end deffn
+
+@deftypefn {C Function} void scm_frame_lock_mutex (SCM mutex)
+Arrange for @var{mutex} to be locked whenever the current frame is
+entered and to be unlocked when it is exited.
+@end deftypefn
+
+@deffn {Scheme Procedure} try-mutex mx
+@deffnx {C Function} scm_try_mutex (mx)
+Try to lock @var{mutex} as per @code{lock-mutex}.  If @var{mutex} can
+be acquired immediately then this is done and the return is @code{#t}.
+If @var{mutex} is locked by some other thread then nothing is done and
+the return is @code{#f}.
+@end deffn
+
+@deffn {Scheme Procedure} unlock-mutex mutex
+@deffnx {C Function} scm_unlock_mutex (mutex)
+Unlock @var{mutex}.  An error is signalled if @var{mutex} is not
+locked by the calling thread.
+@end deffn
+
+@deffn {Scheme Procedure} make-condition-variable
+@deffnx {C Function} scm_make_condition_variable ()
+Return a new condition variable.
+@end deffn
+
+@deffn {Scheme Procedure} wait-condition-variable condvar mutex [time]
+@deffnx {C Function} scm_wait_condition_variable (condvar, mutex, time)
+Wait until @var{condvar} has been signalled.  While waiting,
+@var{mutex} is atomically unlocked (as with @code{unlock-mutex}) and
+is locked again when this function returns.  When @var{time} is given,
+it specifies a point in time where the waiting should be aborted.  It
+can be either a integer as returned by @code{current-time} or a pair
+as returned by @code{gettimeofday}.  When the waiting is aborted,
+@code{#f} is returned.  When the condition variable has in fact been
+signalled, @code{#t} is returned.  The mutex is re-locked in any case
+before @code{wait-condition-variable} returns.
+
+When a system async is activated for a thread that is blocked in a
+call to @code{wait-condition-variable}, the waiting is interrupted,
+the mutex is locked, and the async is executed.  When the async
+returns, the mutex is unlocked again and the waiting is resumed.  When
+the thread block while re-acquiring the mutex, execution of asyncs is
+blocked.
+@end deffn
+
+@deffn {Scheme Procedure} signal-condition-variable condvar
+@deffnx {C Function} scm_signal_condition_variable (condvar)
+Wake up one thread that is waiting for @var{condvar}.
+@end deffn
+
+@deffn {Scheme Procedure} broadcast-condition-variable condvar
+@deffnx {C Function} scm_broadcast_condition_variable (condvar)
+Wake up all threads that are waiting for @var{condvar}.
+@end deffn
+
+@sp 1
+The following are higher level operations on mutexes.  These are
+available from
+
+@example
+(use-modules (ice-9 threads))
+@end example
+
+@deffn macro with-mutex mutex [body@dots{}]
+Lock @var{mutex}, evaluate the @var{body} forms, then unlock
+@var{mutex}.  The return value is the return from the last @var{body}
+form.
+
+The lock, body and unlock form the branches of a @code{dynamic-wind}
+(@pxref{Dynamic Wind}), so @var{mutex} is automatically unlocked if an
+error or new continuation exits @var{body}, and is re-locked if
+@var{body} is re-entered by a captured continuation.
+@end deffn
+
+@deffn macro monitor body@dots{}
+Evaluate the @var{body} forms, with a mutex locked so only one thread
+can execute that code at any one time.  The return value is the return
+from the last @var{body} form.
+
+Each @code{monitor} form has its own private mutex and the locking and
+evaluation is as per @code{with-mutex} above.  A standard mutex
+(@code{make-mutex}) is used, which means @var{body} must not
+recursively re-enter the @code{monitor} form.
+
+The term ``monitor'' comes from operating system theory, where it
+means a particular bit of code managing access to some resource and
+which only ever executes on behalf of one process at any one time.
+@end deffn
+
+
 @node Blocking
 @subsection Blocking in Guile Mode
 
@@ -361,6 +503,51 @@ delivery of a system async causes this function to be interrupted.
 @deftypefn {C Function} {unsigned long} scm_std_usleep ({unsigned long} usecs)
 Like @code{usleep}, but leaves guile mode while sleeping.  Also, the
 delivery of a system async causes this function to be interrupted.
+@end deftypefn
+
+
+@node Critical Sections
+@subsection Critical Sections
+
+@deffn  {C Macro} SCM_CRITICAL_SECTION_START
+@deffnx {C Macro} SCM_CRITICAL_SECTION_END
+These two macros can be used to delimit a critical section.
+Syntactically, they are both statements and need to be followed
+immediately by a semicolon.
+
+Executing @code{SCM_CRITICAL_SECTION_START} will lock a recursive
+mutex and block the executing of system asyncs.  Executing
+@code{SCM_CRITICAL_SECTION_END} will unblock the execution of system
+asyncs and unlock the mutex.  Thus, the code that executes between
+these two macros can only be executed in one thread at any one time
+and no system asyncs will run.  However, because the mutex is a
+recursive one, the code might still be reentered by the same thread.
+You must either allow for this or avoid it, both by careful coding.
+
+On the other hand, critical sections delimited with these macros can
+be nested since the mutex is recursive.
+
+You must make sure that for each @code{SCM_CRITICAL_SECTION_START},
+the corresponding @code{SCM_CRITICAL_SECTION_END} is always executed.
+This means that no non-local exit (such as a signalled error) might
+happen, for example.
+@end deffn
+
+@deftypefn {C Function} void scm_frame_critical_section (SCM mutex)
+Call @code{scm_frame_lock_mutex} on @var{mutex} and call
+@code{scm_frame_block_asyncs}.  When @var{mutex} is false, a recursive
+mutex provided by Guile is used instead.
+
+The effect of a call to @code{scm_frame_critical_section} is that the
+current frame (@pxref{Frames}) turns into a critical section.  Because
+of the locked mutex, no second thread can enter it concurrently and
+because of the blocked asyncs, no system async can reenter it from the
+current thread.
+
+When the current thread reenters the critical section anyway, the kind
+of @var{mutex} determines what happens: When @var{mutex} is recursive,
+the reentry is allowed.  When it is a normal mutex, an error is
+signalled.
 @end deftypefn
 
 
@@ -633,141 +820,6 @@ call, in turn, can be initiated once the relevant @var{pproc} call has
 completed, it doesn't need to wait for all to finish.
 @end deffn
 
-
-@node Mutexes and Condition Variables
-@subsection Mutexes and Condition Variables
-@cindex mutex
-@cindex condition variable
-
-A mutex is a thread synchronization object, it can be used by threads
-to control access to a shared resource.  A mutex can be locked to
-indicate a resource is in use, and other threads can then block on the
-mutex to wait for the resource (or can just test and do something else
-if not available).  ``Mutex'' is short for ``mutual exclusion''.
-
-There are two types of mutexes in Guile, ``standard'' and
-``recursive''.  They're created by @code{make-mutex} and
-@code{make-recursive-mutex} respectively, the operation functions are
-then common to both.
-
-Note that for both types of mutex there's no protection against a
-``deadly embrace''.  For instance if one thread has locked mutex A and
-is waiting on mutex B, but another thread owns B and is waiting on A,
-then an endless wait will occur (in the current implementation).
-Acquiring requisite mutexes in a fixed order (like always A before B)
-in all threads is one way to avoid such problems.
-
-@sp 1
-@deffn {Scheme Procedure} make-mutex
-@deffnx {C Function} scm_make_mutex ()
-Return a new standard mutex.  It is initially unlocked.
-@end deffn
-
-@deffn {Scheme Procedure} make-recursive-mutex
-@deffnx {C Function} scm_make_recursive_mutex ()
-Create a new recursive mutex.  It is initialloy unlocked.
-@end deffn
-
-@deffn {Scheme Procedure} lock-mutex mutex
-@deffnx {C Function} scm_lock_mutex (mutex)
-Lock @var{mutex}.  If the mutex is already locked by another thread
-then block and return only when @var{mutex} has been acquired.
-
-For standard mutexes (@code{make-mutex}), and error is signalled if
-the thread has itself already locked @var{mutex}.
-
-For a recursive mutex (@code{make-recursive-mutex}), if the thread has
-itself already locked @var{mutex}, then a further @code{lock-mutex}
-call increments the lock count.  An additional @code{unlock-mutex}
-will be required to finally release.
-
-When a system async (@pxref{System asyncs}) is activated for a thread
-blocked in @code{lock-mutex}, the wait is interrupted and the async is
-executed.  When the async returns, the wait resumes.
-@end deffn
-
-@deffn {Scheme Procedure} try-mutex mx
-@deffnx {C Function} scm_try_mutex (mx)
-Try to lock @var{mutex} as per @code{lock-mutex}.  If @var{mutex} can
-be acquired immediately then this is done and the return is @code{#t}.
-If @var{mutex} is locked by some other thread then nothing is done and
-the return is @code{#f}.
-@end deffn
-
-@deffn {Scheme Procedure} unlock-mutex mutex
-@deffnx {C Function} scm_unlock_mutex (mutex)
-Unlock @var{mutex}.  An error is signalled if @var{mutex} is not
-locked by the calling thread.
-@end deffn
-
-@deffn {Scheme Procedure} make-condition-variable
-@deffnx {C Function} scm_make_condition_variable ()
-Return a new condition variable.
-@end deffn
-
-@deffn {Scheme Procedure} wait-condition-variable condvar mutex [time]
-@deffnx {C Function} scm_wait_condition_variable (condvar, mutex, time)
-Wait until @var{condvar} has been signalled.  While waiting,
-@var{mutex} is atomically unlocked (as with @code{unlock-mutex}) and
-is locked again when this function returns.  When @var{time} is given,
-it specifies a point in time where the waiting should be aborted.  It
-can be either a integer as returned by @code{current-time} or a pair
-as returned by @code{gettimeofday}.  When the waiting is aborted,
-@code{#f} is returned.  When the condition variable has in fact been
-signalled, @code{#t} is returned.  The mutex is re-locked in any case
-before @code{wait-condition-variable} returns.
-
-When a system async is activated for a thread that is blocked in a
-call to @code{wait-condition-variable}, the waiting is interrupted,
-the mutex is locked, and the async is executed.  When the async
-returns, the mutex is unlocked again and the waiting is resumed.  When
-the thread block while re-acquiring the mutex, execution of asyncs is
-blocked.
-@end deffn
-
-@deffn {Scheme Procedure} signal-condition-variable condvar
-@deffnx {C Function} scm_signal_condition_variable (condvar)
-Wake up one thread that is waiting for @var{condvar}.
-@end deffn
-
-@deffn {Scheme Procedure} broadcast-condition-variable condvar
-@deffnx {C Function} scm_broadcast_condition_variable (condvar)
-Wake up all threads that are waiting for @var{condvar}.
-@end deffn
-
-@sp 1
-The following are higher level operations on mutexes.  These are
-available from
-
-@example
-(use-modules (ice-9 threads))
-@end example
-
-@deffn macro with-mutex mutex [body@dots{}]
-Lock @var{mutex}, evaluate the @var{body} forms, then unlock
-@var{mutex}.  The return value is the return from the last @var{body}
-form.
-
-The lock, body and unlock form the branches of a @code{dynamic-wind}
-(@pxref{Dynamic Wind}), so @var{mutex} is automatically unlocked if an
-error or new continuation exits @var{body}, and is re-locked if
-@var{body} is re-entered by a captured continuation.
-@end deffn
-
-@deffn macro monitor body@dots{}
-Evaluate the @var{body} forms, with a mutex locked so only one thread
-can execute that code at any one time.  The return value is the return
-from the last @var{body} form.
-
-Each @code{monitor} form has its own private mutex and the locking and
-evaluation is as per @code{with-mutex} above.  A standard mutex
-(@code{make-mutex}) is used, which means @var{body} must not
-recursively re-enter the @code{monitor} form.
-
-The term ``monitor'' comes from operating system theory, where it
-means a particular bit of code managing access to some resource and
-which only ever executes on behalf of one process at any one time.
-@end deffn
 
 
 @c Local Variables:
