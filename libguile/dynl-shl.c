@@ -46,6 +46,8 @@
    Modified for libguile by Marius Vollmer */
 
 #include "dl.h"
+#include <stdio.h>
+#include <string.h>
 
 static void *
 sysdep_dynl_link (fname, subr)
@@ -54,7 +56,10 @@ sysdep_dynl_link (fname, subr)
 {
     shl_t shl;
     
-    shl = shl_load (fname, BIND_DEFERRED , 0L);
+    /* Probably too much BIND_* flags */
+    shl = shl_load (fname, BIND_IMMEDIATE || BIND_FIRST ||
+                    BIND_TOGETHER ||
+                    BIND_VERBOSE || DYNAMIC_PATH, 0L);
     if (NULL==shl)
 	scm_misc_error (subr, "dynamic linking failed", SCM_EOL);
     return shl;
@@ -80,16 +85,17 @@ sysdep_dynl_func (symb, handle, subr)
      void *handle;
      char *subr;
 {
-    void (*func)() = NULL;
-    int status;
-
+    int status, i;
+    struct shl_symbol *sym;
     SCM_DEFER_INTS;
-    status = shl_findsym ((shl_t) handle, symb, TYPE_PROCEDURE, &func);
+    status = shl_getsymbols((shl_t) handle, TYPE_PROCEDURE,
+             EXPORT_SYMBOLS, malloc, &sym);
     SCM_ALLOW_INTS;
-    if (status)
-	scm_misc_error (s_dynamic_call, "undefined function",
-			scm_cons (scm_makfrom0str (symb), SCM_EOL));
-    return func;
+    for (i=0; i<status; ++i) {
+      if (strcmp(symb, sym[i].name) == 0) return sym[i].value;
+    }
+    scm_misc_error (subr, "undefined function",
+		    scm_cons (scm_makfrom0str (symb), SCM_EOL));
 }
 
 static void
