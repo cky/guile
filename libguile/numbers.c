@@ -1081,8 +1081,7 @@ SCM_DEFINE (scm_lognot, "lognot", 1, 0, 0,
 	    "   @result{} \"-10000001\"\n"
 	    "(number->string (lognot #b0) 2)\n"
 	    "   @result{} \"-1\"\n"
-	    "@end lisp\n"
-	    "")
+	    "@end lisp\n")
 #define FUNC_NAME s_scm_lognot
 {
   return scm_difference (SCM_MAKINUM (-1L), n);
@@ -3980,7 +3979,8 @@ scm_two_doubles (SCM z1, SCM z2, const char *sstring, struct dpair *xy)
 
 SCM_DEFINE (scm_sys_expt, "$expt", 2, 0, 0,
             (SCM z1, SCM z2),
-	    "") 
+	    "Return @var{z1} raised to the power or @var{z2}. This\n"
+	    "procedure does not accept complex arguments.") 
 #define FUNC_NAME s_scm_sys_expt
 {
   struct dpair xy;
@@ -3992,7 +3992,11 @@ SCM_DEFINE (scm_sys_expt, "$expt", 2, 0, 0,
 
 SCM_DEFINE (scm_sys_atan2, "$atan2", 2, 0, 0,
             (SCM z1, SCM z2),
-	    "")
+	    "Return the arc tangent of the two arguments @var{z1} and\n"
+	    "@var{z2}. This is similar to calculating the arc tangent of\n"
+	    "@var{z1} / @var{z2}, except that the signs of both arguments\n"
+	    "are used to determine the quadrant of the result. This\n"
+	    "procedure does not accept complex arguments.")
 #define FUNC_NAME s_scm_sys_atan2
 {
   struct dpair xy;
