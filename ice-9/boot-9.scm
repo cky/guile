@@ -26,6 +26,21 @@
 ;;;
 
 
+;;; During Guile development, we want to use debugging evaluator and record
+;;; positions of source expressions in boot-9.scm by default.
+
+(debug-options-interface (cons 'debug (debug-options-interface)))
+(read-options-interface (cons 'positions (read-options-interface)))
+
+
+;;; {Features}
+;;
+
+(define (provide sym)
+  (if (not (memq sym *features*))
+      (set! *features* (cons sym *features*))))
+
+
 ;;; {R4RS compliance}
 
 (primitive-load-path "ice-9/r4rs.scm")
@@ -363,6 +378,8 @@
       (struct-vtable obj)
       (error 'not-a-record obj)))
 
+(provide 'record)
+
 
 ;;; {Booleans}
 ;;;
@@ -524,6 +541,7 @@
 ;;;
 
 (define (error . args)
+  (save-stack)
   (if (null? args)
       (scm-error 'misc-error #f "?" #f #f)
       (let loop ((msg "%s")
@@ -605,7 +623,9 @@
 					     %segv-thunk)
 				       (- n 14))
 			     1))
-	   (if (not (eq? (stack-id the-last-stack) 'repl-stack))
+	   (set! stack-saved? #t)
+	   (if (not (and (memq 'debug (debug-options-interface))
+			 (eq? (stack-id the-last-stack) 'repl-stack)))
 	       (set! the-last-stack #f))
 	   (unmask-signals)
 	   (let ((sig-pair (assoc n signal-messages)))
@@ -815,7 +835,7 @@
 ;;;
 
 (define (parse-path-symbol s)
-  (define (seperate-fields-discarding-char ch str ret)
+  (define (separate-fields-discarding-char ch str ret)
     (let loop ((fields '())
 	       (str str))
       (cond
@@ -823,7 +843,7 @@
 	=> (lambda (pos) (loop (cons (make-shared-substring str (+ 1 pos)) fields)
 			       (make-shared-substring str 0 pos))))
        (else (ret (cons str fields))))))
-  (seperate-fields-discarding-char #\/
+  (separate-fields-discarding-char #\/
 				   s
 				   (lambda (fields)
 				     (map string->symbol fields))))
@@ -1400,7 +1420,7 @@
 
 ;; make-root-module 
 
-:; A root module uses the symhash table (the system's privileged 
+;; A root module uses the symhash table (the system's privileged 
 ;; obarray).  Being inside a root module is like using SCM without
 ;; any module system.
 ;;
@@ -1847,6 +1867,12 @@
 (define scm-repl-silent #f)
 (define (assert-repl-silence v) (set! scm-repl-silent v))
 
+(define *unspecified* (if #f #f))
+(define (unspecified? v) (eq? v *unspecified*))
+
+(define scm-repl-print-unspecified #f)
+(define (assert-repl-print-unspecified v) (set! scm-repl-print-unspecified v))
+
 (define scm-repl-verbose #f)
 (define (assert-repl-verbosity v) (set! scm-repl-verbose v))
 
@@ -1876,7 +1902,9 @@
 		      #f)
 		    (lambda () (mask-signals))))
 
-		 save-stack))
+		 (lambda args
+		   (save-stack 1)
+		   (apply throw args))))
 	     
 	     (lambda (key . args)
 	       (case key
@@ -1893,9 +1921,18 @@
 		  ;;
 		  (lambda ()
 		    (force-output)
-		    (display  "ABORT: "  (current-error-port))
+		    (display "ABORT: "  (current-error-port))
 		    (write args (current-error-port))
-		    (newline (current-error-port))))
+		    (newline (current-error-port))
+		    (if (and (not has-shown-debugger-hint?)
+			     (not (memq 'backtrace (debug-options-interface)))
+			     (stack? the-last-stack))
+			(begin
+			  (newline (current-error-port))
+			  (display "Type \"(backtrace)\" to get more information,
+or type \"$\" to enter the debugger.\n" (current-error-port))
+			  (set! has-shown-debugger-hint? #t)))
+		    (set! stack-saved? #f)))
 
 		 (else
 		  ;; This is the other cons-leak closure...
@@ -1908,42 +1945,70 @@
   (loop (lambda () #t)))
 
 (define the-last-stack #f)
+(define stack-saved? #f)
 
-(define (save-stack key . args)
-  (cond ((not (or (memq 'deval (debug-options))
-		  (memq 'backtrace (debug-options))))
-	 (set! the-last-stack #f))
-	((memq key '(quit switch-repl abort error-signal)))
-	((eq? (stack-id #t) 'repl-stack)
-	 (set! the-last-stack (make-stack #t save-stack eval)))
-	((eq? (stack-id #t) 'load-stack)
-	 (set! the-last-stack (make-stack #t save-stack gsubr-apply)))
-	(else (set! the-last-stack #f)))
-  (apply throw key args))
+(define (save-stack . narrowing)
+  (cond (stack-saved?)
+	((not (memq 'debug (debug-options-interface)))
+	 (set! the-last-stack #f)
+	 (set! stack-saved? #t))
+	(else
+	 (set! the-last-stack
+	       (case (stack-id #t)
+		 ((repl-stack)
+		  (apply make-stack #t save-stack eval narrowing))
+		 ((load-stack)
+		  (apply make-stack #t save-stack gsubr-apply narrowing))
+		 ((tk-stack)
+		  (apply make-stack #t save-stack tk-stack-mark narrowing))
+		 ((#t)
+		  (apply make-stack #t save-stack narrowing))
+		 (else (let ((id (stack-id #t)))
+			 (and (procedure? id)
+			      (apply make-stack #t save-stack id narrowing))))))
+	 (set! stack-saved? #t))))
 
 (define before-error-hook #f)
 (define after-error-hook #f)
 (define before-backtrace-hook #f)
 (define after-backtrace-hook #f)
 
+(define has-shown-debugger-hint? #f)
+
 (define (handle-system-error key . args)
   (let ((cep (current-error-port)))
-    (if (and (memq 'backtrace (debug-options))
-	     (stack? the-last-stack))
-	(begin
-	  (and before-backtrace-hook (before-backtrace-hook))
-	  (newline cep)
-	  (display-backtrace the-last-stack cep)
-	  (newline cep)
-	  (and after-backtrace-hook (after-backtrace-hook))))
+    (cond ((not (stack? the-last-stack)))
+	  ((memq 'backtrace (debug-options-interface))
+	   (and before-backtrace-hook (before-backtrace-hook))
+	   (newline cep)
+	   (display-backtrace the-last-stack cep)
+	   (newline cep)
+	   (and after-backtrace-hook (after-backtrace-hook))))
     (and before-error-hook (before-error-hook))
     (apply display-error the-last-stack cep args)
     (and after-error-hook (after-error-hook))
     (force-output cep)
     (throw 'abort key)))
-  
+
 (define (quit . args)
   (apply throw 'quit args))
+
+(define has-shown-backtrace-hint? #f)
+
+(define (backtrace)
+  (if the-last-stack
+      (begin
+	(newline)
+	(display-backtrace the-last-stack (current-output-port))
+	(newline)
+	(if (and (not has-shown-backtrace-hint?)
+		 (not (memq 'backtrace (debug-options-interface))))
+	    (begin
+	      (display
+"Type \"(debug-enable 'backtrace)\" if you would like a backtrace
+automatically if an error occurs in the future.\n")
+	      (set! has-shown-backtrace-hint? #t))))
+      (display "No backtrace available.\n")))
 
 (define (error-catching-repl r e p)
   (error-catching-loop (lambda () (p (e (r))))))
@@ -1951,6 +2016,7 @@
 (define (gc-run-time)
   (cdr (assq 'gc-time-taken (gc-stats))))
 
+(define before-read-hook #f)
 (define after-read-hook #f)
 
 (define (scm-style-repl)
@@ -1977,6 +2043,7 @@
 			  (display the-prompt-string)
 			  (force-output)
 			  (repl-report-reset)))
+		    (and before-read-hook (before-read-hook))
 		    (let ((val (read (current-input-port) #t read-sharp)))
 		      (and after-read-hook (after-read-hook))
 		      (if (eof-object? val)
@@ -1996,8 +2063,11 @@
 	   (-print (lambda (result)
 		     (if (not scm-repl-silent)
 			 (begin
-			   (write result)
-			   (newline)
+			   (if (or scm-repl-print-unspecified
+				   (not (unspecified? result)))
+			       (begin
+				 (write result)
+				 (newline)))
 			   (if scm-repl-verbose
 			       (repl-report))
 			   (force-output)))))
@@ -3258,7 +3328,7 @@
      (else				(ret (make-shared-substring str 0 n)
 					     (make-shared-substring str (1+ n)))))))
 
-(define-public (seperate-fields-discarding-char ch str ret)
+(define-public (separate-fields-discarding-char ch str ret)
   (let loop ((fields '())
 	     (str str))
     (cond
@@ -3267,7 +3337,7 @@
 			     (make-shared-substring str 0 w))))
      (else (ret (cons str fields))))))
 
-(define-public (seperate-fields-after-char ch str ret)
+(define-public (separate-fields-after-char ch str ret)
   (let loop ((fields '())
 	     (str str))
     (cond
@@ -3276,7 +3346,7 @@
 			     (make-shared-substring str 0 (+ 1 w)))))
      (else (ret (cons str fields))))))
 
-(define-public (seperate-fields-before-char ch str ret)
+(define-public (separate-fields-before-char ch str ret)
   (let loop ((fields '())
 	     (str str))
     (cond
@@ -3290,7 +3360,7 @@
 ;;;
 ;;; Very simple:
 ;;;
-:;; (define-public ((string-prefix-predicate pred?) prefix str)
+;;; (define-public ((string-prefix-predicate pred?) prefix str)
 ;;;  (and (<= (length prefix) (length str))
 ;;;	  (pred? prefix (make-shared-substring str 0 (length prefix)))))
 ;;;
@@ -3391,6 +3461,18 @@
 
 (if (memq 'threads *features*)
     (define-module (guile) :use-module (ice-9 threads)))
+
+
+;;; {Load emacs interface support if emacs option is given.}
+;;;
+;;; *fixme* This is a temporary solution.
+;;;
+
+(if (or (member "-e" (cdr (program-arguments)))
+	(member "--emacs" (cdr (program-arguments))))
+    (define-module (guile) :use-module (ice-9 emacs)))
+
+
 
 (define-module (guile))
 
