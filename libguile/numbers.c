@@ -1387,7 +1387,7 @@ SCM_DEFINE (scm_logcount, "logcount", 1, 0, 0,
         {
           mpz_t z_n;
           mpz_init (z_n);
-          mpz_neg (z_n, SCM_I_BIG_MPZ (n));
+          mpz_com (z_n, SCM_I_BIG_MPZ (n));
           scm_remember_upto_here_1 (n);
           count = mpz_popcount (z_n);
           mpz_clear (z_n);
