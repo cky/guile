@@ -1,3 +1,13 @@
+2001-07-25  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* eval.c: Allow variables in memoized code (in addition to glocs).
+	(scm_lookupcar): Handle variables in lost races.  Replace symbol
+	with variable directly, do not make a gloc.
+	(scm_unmemocar): Rewrite variables using a reverse lookup, just
+	like glocs.
+	(scm_ceval, scm_deval): Deal with variables in SCM_IM_SET and in
+	the main switch.
+
 2001-07-25  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* variable.c (scm_i_variable_print): Use "value" instead of
