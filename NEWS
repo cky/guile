@@ -144,10 +144,13 @@ instead.
 
 Use scm_c_source_property_breakpoint_p instead.
 
-** Removed from scm_root_state: def_inp, def_outp, def_errp.  These were
-unused copies of the standard ports when Guile was initialised.  The
-corresponding macros scm_def_inp, scm_def_outp and scm_def_errp were also
-removed.
+** Removed from scm_root_state: def_inp, def_outp, def_errp, together
+with corresponding macros scm_def_inp, scm_def_outp and scm_def_errp.
+These were undocumented and unused copies of the standard ports at the
+time that Guile was initialised.  Normally the current ports should be
+used instead, obtained from scm_current_input_port () etc.  If an
+application needs to retain earlier ports, it should save them in a
+gc-protected location.
 
 ** Removed definitions:  scm_lisp_nil, scm_lisp_t, s_nil_ify, scm_m_nil_ify,
 s_t_ify, scm_m_t_ify, s_0_cond, scm_m_0_cond, s_0_ify, scm_m_0_ify, s_1_ify,
