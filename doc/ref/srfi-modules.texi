@@ -695,6 +695,9 @@ Return the first sublist of @var{lst} whose @sc{car} is equal to
 @var{x}.  If @var{x} does no appear in @var{lst}, return @code{#f}.
 Equality is determined by the equality predicate @var{=}, or
 @code{equal?} if @var{=} is not given.
+
+This function extends the core @code{member} by accepting an equality
+predicate.  (@pxref{List Searching})
 @end deffn
 
 
@@ -720,6 +723,9 @@ deleted with @code{(delete 5 lst <)}.
 @code{delete} does not modify @var{lst}, but the return might share a
 common tail with @var{lst}.  @code{delete!} may modify the structure
 of @var{lst} to construct its return.
+
+These functions extend the core @code{delete} and @code{delete!} in
+accepting an equality predicate.  (@pxref{List Modification})
 @end deffn
 
 @deffn {Scheme Procedure} delete-duplicates lst [=]
@@ -761,6 +767,9 @@ for dealing with association lists defined by SRFI-1.
 Return the pair from @var{alist} which matches @var{key}.  Equality is
 determined by @var{=}, which defaults to @code{equal?} if not given.
 @var{alist} must be an association lists---a list of pairs.
+
+This function extends the core @code{assoc} by accepting an equality
+predicate.  (@pxref{Association Lists})
 @end deffn
 
 @deffn {Scheme Procedure} alist-cons key datum alist
