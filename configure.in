@@ -5,6 +5,19 @@ AC_INIT(Makefile.in)
 all_subdirs=`cat $srcdir/*/PLUGIN/REQ $srcdir/*/PLUGIN/OPT /dev/null | tsort | xargs echo`
 req_subdirs=`cat $srcdir/*/PLUGIN/REQ /dev/null | tsort | xargs echo`
 opt_subdirs=`cat $srcdir/*/PLUGIN/OPT /dev/null | tsort | xargs echo`
+
+AC_PROG_CC
+
+### Use gtcltk-lib only if we seem to have Tcl installed on the
+### system.  This way of doing this doesn't really fit into the PLUGIN
+### approach, but I'm not sure how to do it more gracefully within
+### that approach.
+AC_CHECK_LIB(tcl7.5, Tcl_CreateInterp, have_tcl=true, have_tcl=false, -lm)
+if $have_tcl; then :; else
+  all_subdirs="`echo $all_subdirs | sed s:gtcltk-lib::`"
+  req_subdirs="`echo $req_subdirs | sed s:gtcltk-lib::`"
+fi  
+
 AC_CONFIG_SUBDIRS($all_subdirs)
 existingdirs=
 for d in $all_subdirs; do
