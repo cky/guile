@@ -100,4 +100,17 @@
 	   (str2 (string-copy str1)))
       (string-upcase! (substring/shared str2 3 6))
       (and (string=? str1 "foofoofoo")
-	   (string=? str2 "fooFOOfoo")))))
+	   (string=? str2 "fooFOOfoo"))))
+
+  (pass-if "modify double indirectly"
+    (let* ((str1 "foofoofoo")
+	   (str2 (substring/shared str1 2 7)))
+      (string-upcase! (substring/shared str2 1 4))
+      (string=? str1 "fooFOOfoo")))
+
+  (pass-if "modify cow double indirectly"
+    (let* ((str1 "foofoofoo")
+	   (str2 (substring str1 2 7)))
+      (string-upcase! (substring/shared str2 1 4))
+      (and (string=? str1 "foofoofoo")
+	   (string=? str2 "oFOOf")))))
