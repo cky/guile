@@ -324,7 +324,17 @@
       (eqv? 1 (quotient fixnum-min fixnum-min)))
 
     (pass-if "n = fixnum-min - 1"
-      (eqv? 0 (quotient fixnum-min (- fixnum-min 1)))))
+      (eqv? 0 (quotient fixnum-min (- fixnum-min 1))))
+
+    (pass-if "n = - fixnum-min - 1"
+      (eqv? -1 (quotient fixnum-min (1- (- fixnum-min)))))
+
+    ;; special case, normally inum/big is zero
+    (pass-if "n = - fixnum-min"
+      (eqv? -1 (quotient fixnum-min (- fixnum-min))))
+
+    (pass-if "n = - fixnum-min + 1"
+      (eqv? 0 (quotient fixnum-min (1+ (- fixnum-min))))))
 
   (with-test-prefix "(fixnum-min - 1) / n"
 
@@ -512,7 +522,17 @@
       (eqv? 0 (remainder fixnum-min fixnum-min)))
 
     (pass-if "n = fixnum-min - 1"
-      (eqv? fixnum-min (remainder fixnum-min (- fixnum-min 1)))))
+      (eqv? fixnum-min (remainder fixnum-min (- fixnum-min 1))))
+
+    (pass-if "n = - fixnum-min - 1"
+      (eqv? -1 (remainder fixnum-min (1- (- fixnum-min)))))
+
+    ;; special case, normally inum%big is the inum
+    (pass-if "n = - fixnum-min"
+      (eqv? 0 (remainder fixnum-min (- fixnum-min))))
+
+    (pass-if "n = - fixnum-min + 1"
+      (eqv? fixnum-min (remainder fixnum-min (1+ (- fixnum-min))))))
 
   (with-test-prefix "(fixnum-min - 1) / n"
 
