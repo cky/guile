@@ -1,3 +1,20 @@
+2000-05-04  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* numbers.h (SCM_INUM0):  Uses SCM_MAKINUM instead of SCM_PACK.
+
+	* dynl.c (dynl_obj, DYNL_OBJ, get_dynl_obj):  Removed.
+
+	(DYNL_FILENAME, DYNL_HANDLE):  Use SCM_CELL... macros instead of
+	pointer trickery.
+
+	(SET_DYNL_HANDLE):  Added.
+
+	(scm_dynamic_object_p):  Simplified.
+
+	(scm_dynamic_unlink, scm_dynamic_func):  Changed comment.  Deliver
+	better error message when accessing unlinked dynamic objects.
+	Eliminated call to get_dynl_obj.
+
 2000-05-03  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* scmsigs.c (orig_handlers) [HAVE_SIGACTION]: Fix declaration to

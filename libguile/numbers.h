@@ -98,7 +98,7 @@
 
 /* A name for 0.
  */
-#define SCM_INUM0 (SCM_PACK (2))
+#define SCM_INUM0 (SCM_MAKINUM (0))
 
 
 /* SCM_MAXEXP is the maximum double precision expontent

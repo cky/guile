@@ -326,15 +326,10 @@ sysdep_dynl_func (const char *symbol,
 
 int scm_tc16_dynamic_obj;
 
-struct dynl_obj {
-  SCM filename;
-  void *handle;
-};
+#define DYNL_FILENAME(x)        (SCM_CELL_OBJECT_1 (x))
+#define DYNL_HANDLE(x)          ((void *) SCM_CELL_WORD_2 (x))
+#define SET_DYNL_HANDLE(x, v)   (SCM_SET_CELL_WORD_2 ((x), (v)))
 
-#define DYNL_OBJ(x)      ((struct dynl_obj *) &SCM_CDR (x))
-
-#define DYNL_FILENAME(x) (DYNL_OBJ (x)->filename)
-#define DYNL_HANDLE(x)   (DYNL_OBJ (x)->handle)
 
 static SCM
 mark_dynl_obj (SCM ptr)
@@ -398,16 +393,6 @@ SCM_DEFINE (scm_dynamic_link, "dynamic-link", 1, 0, 1,
 }
 #undef FUNC_NAME
 
-static struct dynl_obj *
-get_dynl_obj (SCM dobj, const char *subr, int argn)
-{
-  struct dynl_obj *d;
-  SCM_ASSERT (SCM_NIMP (dobj) && SCM_UNPACK_CAR (dobj) == scm_tc16_dynamic_obj,
-	      dobj, argn, subr);
-  d = DYNL_OBJ (dobj);
-  SCM_ASSERT (d->handle != NULL, dobj, argn, subr);
-  return d;
-}
 
 SCM_DEFINE (scm_dynamic_object_p, "dynamic-object?", 1, 0, 0, 
             (SCM obj),
@@ -415,33 +400,36 @@ SCM_DEFINE (scm_dynamic_object_p, "dynamic-object?", 1, 0, 0,
 	    "otherwise.")
 #define FUNC_NAME s_scm_dynamic_object_p
 {
-    return SCM_BOOL (SCM_NIMP (obj)
-		     && SCM_UNPACK_CAR (obj) == scm_tc16_dynamic_obj);
+  return SCM_BOOL (SCM_SMOB_PREDICATE (scm_tc16_dynamic_obj, obj));
 }
 #undef FUNC_NAME
 
+
 SCM_DEFINE (scm_dynamic_unlink, "dynamic-unlink", 1, 0, 0, 
             (SCM dobj),
-	    "Unlink the library represented by @var{library-handle}, and remove any\n"
-	    "imported symbols from the address space.\n"
+	    "Unlink the library represented by @var{library-handle},\n"
+	    "and remove any imported symbols from the address space.\n"
 	    "GJB:FIXME:DOC: 2nd version below:\n"
-	    "Unlink the indicated object file from the application.  The argument\n"
-	    "@var{dynobj} should be one of the values returned by\n"
-	    "@code{dynamic-link}.  When @code{dynamic-unlink} has been called on\n"
-	    "@var{dynobj}, it is no longer usable as an argument to the functions\n"
-	    "below and you will get type mismatch errors when you try to.\n"
-	    "")
+	    "Unlink the indicated object file from the application.  The\n"
+	    "argument @var{dynobj} must have been obtained by a call to\n"
+	    "@code{dynamic-link}.  After @code{dynamic-unlink} has been\n"
+	    "called on @var{dynobj}, its content is no longer accessible.\n")
 #define FUNC_NAME s_scm_dynamic_unlink
 {
   /*fixme* GC-problem */
-  struct dynl_obj *d = get_dynl_obj (dobj, FUNC_NAME, SCM_ARG1);
-  SCM_DEFER_INTS;
-  sysdep_dynl_unlink (d->handle, FUNC_NAME);
-  d->handle = NULL;
-  SCM_ALLOW_INTS;
-  return SCM_UNSPECIFIED;
+  SCM_VALIDATE_SMOB (SCM_ARG1, dobj, dynamic_obj);
+  if (DYNL_HANDLE (dobj) == NULL) {
+    SCM_MISC_ERROR ("Already unlinked: ~S", dobj);
+  } else {
+    SCM_DEFER_INTS;
+    sysdep_dynl_unlink (DYNL_HANDLE (dobj), FUNC_NAME);
+    SET_DYNL_HANDLE (dobj, NULL);
+    SCM_ALLOW_INTS;
+    return SCM_UNSPECIFIED;
+  }
 }
 #undef FUNC_NAME
+
 
 SCM_DEFINE (scm_dynamic_func, "dynamic-func", 2, 0, 0, 
             (SCM symb, SCM dobj),
@@ -460,22 +448,24 @@ SCM_DEFINE (scm_dynamic_func, "dynamic-func", 2, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_dynamic_func
 {
-  struct dynl_obj *d;
   void (*func) ();
 
   SCM_COERCE_ROSTRING (1, symb);
   /*fixme* GC-problem */
-  d = get_dynl_obj (dobj, FUNC_NAME, SCM_ARG2);
-
-  SCM_DEFER_INTS;
-  func = (void (*) ()) sysdep_dynl_func (SCM_CHARS (symb),
-					 d->handle,
-					 FUNC_NAME);
-  SCM_ALLOW_INTS;
-
-  return scm_ulong2num ((unsigned long) func);
+  SCM_VALIDATE_SMOB (SCM_ARG2, dobj, dynamic_obj);
+  if (DYNL_HANDLE (dobj) == NULL) {
+    SCM_MISC_ERROR ("Already unlinked: ~S", dobj);
+  } else {
+    SCM_DEFER_INTS;
+    func = (void (*) ()) sysdep_dynl_func (SCM_CHARS (symb),
+					   DYNL_HANDLE (dobj),
+					   FUNC_NAME);
+    SCM_ALLOW_INTS;
+    return scm_ulong2num ((unsigned long) func);
+  }
 }
 #undef FUNC_NAME
+
 
 SCM_DEFINE (scm_dynamic_call, "dynamic-call", 2, 0, 0, 
             (SCM func, SCM dobj),
