@@ -56,7 +56,7 @@
  */
 
 typedef struct scm_info_frame {
-  //SCM flags;
+  /* SCM flags; */
   scm_bits_t flags;
   SCM source;
   SCM proc;

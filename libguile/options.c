@@ -199,7 +199,7 @@ scm_options (SCM arg, scm_option options[], int n, const char *s)
 	}
       for (i = 0; i < n; ++i)
 	{
-	  // scm_option doesn't know if its a long or an SCM
+	  /* scm_option doesn't know if its a long or an SCM */
 	  if (options[i].type == SCM_OPTION_SCM)
 	    SCM_SETCDR (protected_objects,
 			scm_cons (SCM_PACK(flags[i]),

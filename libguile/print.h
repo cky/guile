@@ -100,7 +100,7 @@ typedef struct scm_print_state {
 
 extern SCM scm_print_state_vtable;
 
-// ? scm or long?  print.h and print.c disagree
+/* ? scm or long?  print.h and print.c disagree */
 extern long scm_tc16_port_with_ps;
 
 extern SCM scm_print_options (SCM setting);

@@ -701,7 +701,9 @@ SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
     goto retry;
   scm_block_gc = 0;
 
-  /// ? ?? ?
+  /* Below, we cons to produce the resulting list.  We want a snapshot of
+   * the heap situation before consing.
+   */
   local_scm_mtrigger = scm_mtrigger;
   local_scm_mallocated = scm_mallocated;
   local_scm_heap_size = SCM_HEAP_SIZE;
