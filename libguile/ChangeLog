@@ -1808,7 +1808,7 @@ Thu Sep 11 00:59:17 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 Wed Sep 10 20:52:18 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
-*	* eval.c (macro?, macro-type, macro-name, macro-transfomer): New
+	* eval.c (macro?, macro-type, macro-name, macro-transformer): New
  	procedures;
 	(prinmacro): Removed.  The code has been moved/merged into print.c
  	in order to decrease code redundancy.  We want macros to print in
@@ -1820,7 +1820,7 @@ Wed Sep 10 20:52:18 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
  	scm_macro_transformer): New prototypes.
 	(scm_tc16_macro): Declared.
 
-*	* print.c (scm_iprin1): Added code for printing of macros.  Macros
+	* print.c (scm_iprin1): Added code for printing of macros.  Macros
 	are now printed in a way equivalent to procedures.
 
 Sat Sep  6 12:20:42 1997  Mikael Djurfeldt  <mdj@kenneth>

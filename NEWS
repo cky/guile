@@ -126,6 +126,19 @@ file.
 
 * Changes to Scheme functions and syntax
 
+** Syntax-case, present in the snapshots, is absent from this release.
+
+syntax-case is a powerful hygenic macro-expansion facility designed
+and implemented by R. Kent Dybvig, Oscar Waddell, Bob Hieb, Carl
+Bruggeman at Indiana University.  Some Guile snapshots included this
+macro expander as a Guile module, but we cannot distribute it, because
+the authors have not assigned the code's copyright to the Free
+Software Foundation.
+
+However, it would be fine to distribute this as a separate package,
+which users can download and install separately.  I hope someone
+produces such a package.
+
 ** Multi-byte strings have been removed, as have multi-byte and wide
 ports.  We felt that these were the wrong approach to
 internationalization support.
@@ -142,8 +155,10 @@ READLINE; you need to package up your prompt as a string, pass it to
 the function, and let READLINE print the prompt itself.  This is
 because READLINE needs to know the prompt's screen width.
 
-For Guile to provide this function, you must have the readline library
-installed on your system.
+For Guile to provide this function, you must have the readline
+library, version 2.1 or later, installed on your system.  Readline is
+available via anonymous FTP from prep.ai.mit.edu in pub/gnu, or from
+any GNU mirror site.
 
 See also ADD-HISTORY function.
 
@@ -151,6 +166,17 @@ See also ADD-HISTORY function.
 Add STRING as the most recent line in the history used by the READLINE
 command.  READLINE does not add lines to the history itself; you must
 call ADD-HISTORY to make previous input available to the user.
+
+** The behavior of the read-line function has changed.
+
+This function now uses standard C library functions to read the line,
+for speed.  This means that it doesn not respect the value of
+scm-line-incrementors; it assumes that lines are delimited with
+#\newline.
+
+(Note that this is read-line, the function that reads a line of text
+from a port, not readline, the function that reads a line from a
+terminal, providing full editing capabilities.)
 
 ** New module (ice-9 getopt-gnu-style): Parse command-line arguments.
 
@@ -180,7 +206,89 @@ Function: getopt-gnu-style ARG-LS
     This function does not parse normal single-character switches.
     You will need to parse them out of the `rest' list yourself.
 
-** macro-eval! is removed.  Use local-eval instead.
+** The read syntax for byte vectors and short vectors has changed.
+
+Instead of #bytes(...), write #y(...).
+
+Instead of #short(...), write #h(...).
+
+This may seem nutty, but, like the other uniform vectors, byte vectors
+and short vectors want to have the same print and read syntax (and,
+more basic, want to have read syntax!).  Changing the read syntax to
+use multiple characters after the hash sign breaks with the
+conventions used in R5RS and the conventions used for the other
+uniform vectors.  It also introduces complexity in the current reader,
+both on the C and Scheme levels.  (The Right solution is probably to
+change the syntax and prototypes for uniform vectors entirely.)
+
+
+** The new module (ice-9 session) provides useful interactive functions.
+
+*** New procedure: (apropos REGEXP OPTION ...)
+
+Display a list of top-level variables whose names match REGEXP, and
+the modules they are imported from.  Each OPTION should be one of the
+following symbols:
+
+  value  --- Show the value of each matching variable.
+  shadow --- Show bindings shadowed by subsequently imported modules.
+  full   --- Same as both `shadow' and `value'.
+
+For example:
+
+    guile> (apropos "trace" 'full)
+    debug: trace    #<procedure trace args>
+    debug: untrace  #<procedure untrace args>
+    the-scm-module: display-backtrace       #<compiled-closure #<primitive-procedure gsubr-apply>>
+    the-scm-module: before-backtrace-hook   ()
+    the-scm-module: backtrace       #<primitive-procedure backtrace>
+    the-scm-module: after-backtrace-hook    ()
+    the-scm-module: has-shown-backtrace-hint?       #f
+    guile> 
+
+** There are new functions and syntax for working with macros.
+
+Guile implements macros as a special object type.  Any variable whose
+top-level binding is a macro object acts as a macro.  The macro object
+specifies how the expression should be transformed before evaluation.
+
+*** Macro objects now print in a reasonable way, resembling procedures.
+
+*** New function: (macro? OBJ)
+True iff OBJ is a macro object.
+
+*** New function: (primitive-macro? OBJ)
+Like (macro? OBJ), but true only if OBJ is one of the Guile primitive
+macro transformers, implemented in eval.c rather than Scheme code.
+
+*** New function: (macro-type OBJ)
+Return a value indicating what kind of macro OBJ is.  Possible return
+values are:
+
+    The symbol `syntax' --- a macro created by procedure->syntax.
+    The symbol `macro' --- a macro created by procedure->macro.
+    The symbol `macro!' --- a macro created by procedure->memoizing-macro.
+    The boolean #f --- if OBJ is not a macro object.  
+
+*** New function: (macro-name MACRO)
+Return the name of the macro object MACRO's procedure, as returned by
+procedure-name.
+
+*** New function: (macro-transformer MACRO)
+Return the transformer procedure for MACRO.
+
+*** New syntax: (use-syntax MODULE ... TRANSFORMER)
+
+Specify a new macro expander to use in the current module.  Each
+MODULE is a module name, with the same meaning as in the `use-modules'
+form; each named module's exported bindings are added to the current
+top-level environment.  TRANSFORMER is an expression evaluated in the
+resulting environment which must yield a procedure to use as the
+module's eval transformer: every expression evaluated in this module
+is passed to this function, and the result passed to the Guile
+interpreter. 
+
+*** macro-eval! is removed.  Use local-eval instead.
 
 ** Some magic has been added to the printer to better handle user
 written printing routines (like record printers, closure printers).
@@ -192,7 +300,7 @@ passed to the builtin printing routines (display, write, etc) to
 properly continue the print chain.
 
 We didn't want to change all existing print code so that it
-explicitely passes thru a print state in addition to a port.  Instead,
+explicitly passes thru a print state in addition to a port.  Instead,
 we extented the possible values that the builtin printing routines
 accept as a `port'.  In addition to a normal port, they now also take
 a pair of a normal port and a print-state.  Printing will go to the
@@ -450,6 +558,9 @@ This syntax will be removed from Guile in the near future.
 To disable the warning message, set the GUILE_HUSH environment
 variable to any non-empty value.
 
+** The newline character now prints as `#\newline', following the
+normal Scheme notation, not `#\nl'.
+
 * Changes to the gh_ interface
 
 ** The gh_enter function now takes care of loading the Guile startup files.
@@ -629,16 +740,24 @@ from Erick Gallesio's STk.
 This means that the type codes scm_tc7_mb_string and
 scm_tc7_mb_substring has been removed.
 
+** scm_gen_putc, scm_gen_puts, scm_gen_write, and scm_gen_getc have changed.
+
+Since we no longer support multi-byte strings, these I/O functions
+have been simplified, and renamed.  Here are their old names, and
+their new names and arguments:
+
+scm_gen_putc   ->   void scm_putc (int c, SCM port);
+scm_gen_puts   ->   void scm_puts (char *s, SCM port);
+scm_gen_write  ->   void scm_lfwrite (char *ptr, scm_sizet size, SCM port);
+scm_gen_getc   ->   void scm_getc (SCM port);
+
+
 ** The macros SCM_TYP7D and SCM_TYP7SD has been removed.
 
 ** The macro SCM_TYP7S has taken the role of the old SCM_TYP7D
 
 SCM_TYP7S now masks away the bit which distinguishes substrings from
 strings.
-
-** All genio functions changed names and interfaces; new functions are
-scm_putc, scm_puts, scm_lfwrite, scm_getc, scm_ungetc, and
-scm_do_read_line.
 
 ** scm_catch_body_t: Backward incompatible change!
 
