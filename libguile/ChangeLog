@@ -1,3 +1,8 @@
+2002-03-25  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* debug.h, eval.c: Deprecated CHECK_ENTRY, CHECK_APPLY and
+	CHECK_EXIT and removed all references to them.
+
 2002-03-24  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* debug.h (scm_ready_p, debug_print): Removed declarations.

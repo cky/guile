@@ -3,7 +3,7 @@
 #ifndef SCM_DEBUG_H
 #define SCM_DEBUG_H
 
-/* Copyright (C) 1995,1996,1998,1999,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001,2002 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -93,19 +93,16 @@ SCM_API int scm_check_entry_p;
 SCM_API int scm_check_apply_p;
 SCM_API int scm_check_exit_p;
 
-#define CHECK_ENTRY      scm_check_entry_p
-#define CHECK_APPLY	 scm_check_apply_p
-#define CHECK_EXIT       scm_check_exit_p
-
 #define SCM_RESET_DEBUG_MODE \
 do {\
-  CHECK_ENTRY = (SCM_ENTER_FRAME_P || SCM_BREAKPOINTS_P)\
+  scm_check_entry_p = (SCM_ENTER_FRAME_P || SCM_BREAKPOINTS_P)\
     && !SCM_FALSEP (SCM_ENTER_FRAME_HDLR);\
-  CHECK_APPLY = (SCM_APPLY_FRAME_P || SCM_TRACE_P)\
+  scm_check_apply_p = (SCM_APPLY_FRAME_P || SCM_TRACE_P)\
     && !SCM_FALSEP (SCM_APPLY_FRAME_HDLR);\
-  CHECK_EXIT = (SCM_EXIT_FRAME_P || SCM_TRACE_P)\
+  scm_check_exit_p = (SCM_EXIT_FRAME_P || SCM_TRACE_P)\
     && !SCM_FALSEP (SCM_EXIT_FRAME_HDLR);\
-  scm_debug_mode = SCM_DEVAL_P || CHECK_ENTRY || CHECK_APPLY || CHECK_EXIT;\
+  scm_debug_mode = SCM_DEVAL_P\
+    || scm_check_entry_p || scm_check_apply_p || scm_check_exit_p;\
   scm_ceval_ptr = scm_debug_mode ? scm_deval : scm_ceval;\
 } while (0)
 
@@ -211,6 +208,12 @@ SCM_API SCM scm_mem_to_proc (SCM obj);
 SCM_API SCM scm_proc_to_mem (SCM obj);
 SCM_API SCM scm_debug_hang (SCM obj);
 #endif /*GUILE_DEBUG*/
+
+#if SCM_ENABLE_DEPRECATED == 1
+#define CHECK_ENTRY      scm_check_entry_p
+#define CHECK_APPLY	 scm_check_apply_p
+#define CHECK_EXIT       scm_check_exit_p
+#endif
 
 #endif  /* SCM_DEBUG_H */
 

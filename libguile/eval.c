@@ -1670,7 +1670,7 @@ scm_eval_body (SCM code, SCM env)
 #define ENTER_APPLY \
 do { \
   SCM_SET_ARGSREADY (debug);\
-  if (CHECK_APPLY && SCM_TRAPS_P)\
+  if (scm_check_apply_p && SCM_TRAPS_P)\
     if (SCM_APPLY_FRAME_P || (SCM_TRACE_P && PROCTRACEP (proc)))\
       {\
 	SCM tmp, tail = SCM_BOOL(SCM_TRACED_FRAME_P (debug)); \
@@ -1937,39 +1937,41 @@ loop:
 start:
   debug.info->e.exp = x;
   debug.info->e.env = env;
-  if (CHECK_ENTRY && SCM_TRAPS_P)
-    if (SCM_ENTER_FRAME_P || (SCM_BREAKPOINTS_P && SRCBRKP (x)))
-      {
-	SCM tail = SCM_BOOL(SCM_TAILRECP (debug));
-	SCM_SET_TAILREC (debug);
-	if (SCM_CHEAPTRAPS_P)
-	  arg1 = scm_make_debugobj (&debug);
-	else
-	  {
-	    int first;
-	    SCM val = scm_make_continuation (&first);
-	    
-	    if (first)
-	      arg1 = val;
-	    else
-	      {
-		x = val;
-		if (SCM_IMP (x))
-		  RETURN (x);
-		else
-		  /* This gives the possibility for the debugger to
-		     modify the source expression before evaluation. */
-		  goto dispatch;
-	      }
-	  }
-	SCM_TRAPS_P = 0;
-	scm_call_4 (SCM_ENTER_FRAME_HDLR,
-		    scm_sym_enter_frame,
-		    arg1,
-		    tail,
-		    scm_unmemocopy (x, env));
-	SCM_TRAPS_P = 1;
-      }
+  if (scm_check_entry_p && SCM_TRAPS_P)
+    {
+      if (SCM_ENTER_FRAME_P || (SCM_BREAKPOINTS_P && SRCBRKP (x)))
+	{
+	  SCM tail = SCM_BOOL(SCM_TAILRECP (debug));
+	  SCM_SET_TAILREC (debug);
+	  if (SCM_CHEAPTRAPS_P)
+	    arg1 = scm_make_debugobj (&debug);
+	  else
+	    {
+	      int first;
+	      SCM val = scm_make_continuation (&first);
+
+	      if (first)
+		arg1 = val;
+	      else
+		{
+		  x = val;
+		  if (SCM_IMP (x))
+		    RETURN (x);
+		  else
+		    /* This gives the possibility for the debugger to
+		       modify the source expression before evaluation. */
+		    goto dispatch;
+		}
+	    }
+	  SCM_TRAPS_P = 0;
+	  scm_call_4 (SCM_ENTER_FRAME_HDLR,
+		      scm_sym_enter_frame,
+		      arg1,
+		      tail,
+		      scm_unmemocopy (x, env));
+	  SCM_TRAPS_P = 1;
+	}
+    }
 #endif
 #if defined (USE_THREADS) || defined (DEVAL)
 dispatch:
@@ -3327,7 +3329,7 @@ evapply: /* inputs: x, proc */
   }
 #ifdef DEVAL
 exit:
-  if (CHECK_EXIT && SCM_TRAPS_P)
+  if (scm_check_exit_p && SCM_TRAPS_P)
     if (SCM_EXIT_FRAME_P || (SCM_TRACE_P && SCM_TRACED_FRAME_P (debug)))
       {
 	SCM_CLEAR_TRACED_FRAME (debug);
@@ -3789,7 +3791,7 @@ tail:
     }
 #ifdef DEVAL
 exit:
-  if (CHECK_EXIT && SCM_TRAPS_P)
+  if (scm_check_exit_p && SCM_TRAPS_P)
     if (SCM_EXIT_FRAME_P || (SCM_TRACE_P && SCM_TRACED_FRAME_P (debug)))
       {
 	SCM_CLEAR_TRACED_FRAME (debug);
