@@ -88,7 +88,7 @@ vm_run (SCM vm, SCM program, SCM args)
 
     /* Boot program */
     scm_byte_t bytes[3] = {scm_op_call, 0, scm_op_halt};
-    bytes[1] = scm_ilength (args);
+    bytes[1] = scm_ilength (args); /* FIXME: argument overflow */
     program = scm_c_make_program (bytes, 3, SCM_BOOL_T);
 
     /* Initial frame */
@@ -167,10 +167,8 @@ vm_run (SCM vm, SCM program, SCM args)
 
   vm_error:
     SYNC_ALL ();
-    scm_ithrow (sym_vm_error,
-		SCM_LIST4 (sym_vm_run, err_msg, err_args,
-			   scm_vm_current_frame (vm)),
-		1);
+    vp->last_frame = scm_vm_current_frame (vm);
+    scm_ithrow (sym_vm_error, SCM_LIST3 (sym_vm_run, err_msg, err_args), 1);
   }
 
   abort (); /* never reached */

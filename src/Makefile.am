@@ -5,14 +5,14 @@ guile_vm_LDADD = libguilevm.la
 guile_vm_LDFLAGS = $(GUILE_LDFLAGS)
 
 lib_LTLIBRARIES = libguilevm.la
-libguilevm_la_SOURCES =						\
-	envs.c instructions.c objcodes.c programs.c vm.c	\
-	envs.h instructions.h objcodes.h programs.h vm.h	\
+libguilevm_la_SOURCES =							\
+	envs.c frames.c instructions.c objcodes.c programs.c vm.c	\
+	envs.h frames.h instructions.h objcodes.h programs.h vm.h	\
 	vm_engine.h vm_expand.h
 libguilevm_la_LDFLAGS = -version-info 0:0:0 -export-dynamic
 EXTRA_DIST = vm_engine.c vm_system.c vm_scheme.c vm_loader.c
 BUILT_SOURCES = vm_system.i vm_scheme.i vm_loader.i \
-	envs.x instructions.x objcodes.x programs.x vm.x
+	envs.x frames.x instructions.x objcodes.x programs.x vm.x
 
 INCLUDES = $(GUILE_CFLAGS)
 DISTCLEANFILES = $(BUILT_SOURCES)

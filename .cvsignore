@@ -1,7 +1,7 @@
-misc
 libtool
 config.*
 configure
 Makefile
 Makefile.in
 aclocal.m4
+misc

@@ -32,15 +32,19 @@
     (repl-welcome repl)
     (let prompt-loop ()
       (repl-prompt repl)
-      (call-with-error-handlers
-       (lambda ()
-	 (if (eq? (next-char #t) #\,)
-	     ;; meta command
-	     (begin (read-char) (meta-command repl (read-line)))
-	     ;; evaluation
-	     (let rep-loop ()
-	       (repl-print repl (repl-eval repl (repl-read repl)))
-	       (if (next-char #f) (rep-loop))))))
+      (catch 'vm-error
+	(lambda ()
+	  (if (eq? (next-char #t) #\,)
+	    ;; meta command
+	    (begin (read-char) (meta-command repl (read-line)))
+	    ;; evaluation
+	    (let rep-loop ()
+	      (repl-print repl (repl-eval repl (repl-read repl)))
+	      (if (next-char #f) (rep-loop)))))
+	(lambda (key fun msg args)
+	  (display "ERROR: ")
+	  (apply format #t msg args)
+	  (newline)))
       (prompt-loop))))
 
 (define (next-char wait)
@@ -50,21 +54,3 @@
 	      ((char-whitespace? ch) (read-char) (next-char wait))
 	      (else ch)))
       #f))
-
-;;;
-;;; Error handler
-;;;
-
-(define (call-with-error-handlers thunk)
-  (catch 'vm-error
-    (lambda () (catch 'user-error thunk error-handler))
-    error-handler))
-
-(define (error-handler key . args)
-  (case key
-    ((vm-error)
-     (write (frame->call (cadddr args)))
-     (newline)))
-  (display "ERROR: ")
-  (apply format #t (cadr args) (caddr args))
-  (newline))

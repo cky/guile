@@ -35,36 +35,21 @@
 
 
 ;;;
-;;; Loader
+;;; High-level procedures
 ;;;
+
+(define-public (program-bindings prog)
+  (cond ((program-meta prog) => car)
+	(else '())))
+
+(define-public (program-sources prog)
+  (cond ((program-meta prog) => cdr)
+	(else '())))
+
+(define-public (vms:time stat) (vector-ref stat 0))
+(define-public (vms:clock stat) (vector-ref stat 1))
 
 (define-public (vm-load vm objcode)
   (vm (objcode->program objcode)))
 
 (set! load-compiled (lambda (file) (vm-load (the-vm) (load-objcode file))))
-
-
-;;;
-;;; Frame interface
-;;;
-
-(define-public (frame->call frame)
-  (let* ((prog (frame-program frame))
-	 (nargs (car (program-arity prog))))
-    (do ((i 0 (1+ i))
-	 (l (vector->list (frame-variables frame)) (cdr l))
-	 (r '() (cons (car l) r)))
-	((= i nargs) (cons (program-name prog) (reverse! r))))))
-
-(define (program-name x)
-  (or (object-property x 'name)
-      (hash-fold (lambda (s v d) (if (eq? x (variable-ref v)) s d)) x
-		 (module-obarray (current-module)))))
-
-
-;;;
-;;; Statistics interface
-;;;
-
-(define-public (vms:time stat) (vector-ref stat 0))
-(define-public (vms:clock stat) (vector-ref stat 1))

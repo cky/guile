@@ -1,3 +1,5 @@
+SUBDIRS = system
+
 DISTDIRS = $(srcdir)/system $(srcdir)/language $(srcdir)/guile $(srcdir)/slib
 EXCLUDES = --exclude=CVS --exclude=*.go --exclude=*~
 

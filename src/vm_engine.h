@@ -286,7 +286,7 @@ do {						\
     }						\
 }
 
-/* See vm.h for the layout of stack frames */
+/* See frames.h for the layout of stack frames */
 
 #define NEW_FRAME()				\
 {						\

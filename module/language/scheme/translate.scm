@@ -29,7 +29,7 @@
 (define (translate x e)
   (call-with-ghil-environment (make-ghil-mod e) '()
     (lambda (env vars)
-      (make-<ghil-lambda> env #f vars 0 (trans env #f x)))))
+      (<ghil-lambda> env #f vars #f (trans env #f x)))))
 
 
 ;;;
@@ -43,28 +43,28 @@
   (cond ((pair? x)
 	 (let ((y (macroexpand x)))
 	   (if (eq? x y)
-	       (trans-pair e (or (location x) l) (car x) (cdr x))
-	       (trans e l y))))
+	     (trans-pair e (or (location x) l) (car x) (cdr x))
+	     (trans e l y))))
 	((symbol? x)
-	 (let ((y (expand-symbol x)))
-	   (if (eq? x y)
-	       (make-<ghil-ref> e l (ghil-lookup e x))
-	       (trans e l y))))
-	(else (make-<ghil-quote> e l x))))
+	 (let ((y (symbol-expand x)))
+	   (if (symbol? y)
+	     (<ghil-ref> e l (ghil-lookup e y))
+	     (trans e l y))))
+	(else (<ghil-quote> e l x))))
 
-(define (expand-symbol x)
+(define (symbol-expand x)
   (let loop ((s (symbol->string x)))
     (let ((i (string-rindex s #\.)))
       (if i
-	  `(slot ,(loop (substring s 0 i))
-		 (quote ,(string->symbol (substring s (1+ i)))))
-	  (string->symbol s)))))
+	(let ((sym (string->symbol (substring s (1+ i)))))
+	  `(slot ,(loop (substring s 0 i)) (quote ,sym)))
+	(string->symbol s)))))
 
 (define (trans-pair e l head tail)
   (define (trans:x x) (trans e l x))
   (define (trans:pair x) (trans-pair e l (car x) (cdr x)))
   (define (trans:body body) (trans-body e l body))
-  (define (make:void) (make-<ghil-void> e l))
+  (define (make:void) (<ghil-void> e l))
   (define (bad-syntax)
     (syntax-error l (format #f "bad ~A" head) (cons head tail)))
   (case head
@@ -77,26 +77,26 @@
     ;; (quote OBJ)
     ((quote)
      (match tail
-       ((obj) (make-<ghil-quote> e l obj))
+       ((obj) (<ghil-quote> e l obj))
        (else (bad-syntax))))
 
     ;; (quasiquote OBJ)
     ((quasiquote)
      (match tail
-       ((obj) (make-<ghil-quasiquote> e l (trans-quasiquote e l obj)))
+       ((obj) (<ghil-quasiquote> e l (trans-quasiquote e l obj)))
        (else (bad-syntax))))
 
     ((define define-private)
      (match tail
        ;; (define NAME VAL)
        (((? symbol? name) val)
-	(make-<ghil-define> e l (ghil-lookup e name) (trans:x val)))
+	(<ghil-define> e l (ghil-lookup e name) (trans:x val)))
 
        ;; (define (NAME FORMALS...) BODY...)
        ((((? symbol? name) . formals) . body)
 	;; -> (define NAME (lambda FORMALS BODY...))
 	(let ((val (trans:x `(lambda ,formals ,@body))))
-	  (make-<ghil-define> e l (ghil-lookup e name) val)))
+	  (<ghil-define> e l (ghil-lookup e name) val)))
 
        (else (bad-syntax))))
 
@@ -104,7 +104,7 @@
      (match tail
        ;; (set! NAME VAL)
        (((? symbol? name) val)
-	(make-<ghil-set> e l (ghil-lookup e name) (trans:x val)))
+	(<ghil-set> e l (ghil-lookup e name) (trans:x val)))
 
        ;; (set! (NAME ARGS...) VAL)
        ((((? symbol? name) . args) val)
@@ -117,22 +117,22 @@
     ((if)
      (match tail
        ((test then)
-	(make-<ghil-if> e l (trans:x test) (trans:x then) (make:void)))
+	(<ghil-if> e l (trans:x test) (trans:x then) (make:void)))
        ((test then else)
-	(make-<ghil-if> e l (trans:x test) (trans:x then) (trans:x else)))
+	(<ghil-if> e l (trans:x test) (trans:x then) (trans:x else)))
        (else (bad-syntax))))
 
     ;; (and EXPS...)
     ((and)
-     (make-<ghil-and> e l (map trans:x tail)))
+     (<ghil-and> e l (map trans:x tail)))
 
     ;; (or EXPS...)
     ((or)
-     (make-<ghil-or> e l (map trans:x tail)))
+     (<ghil-or> e l (map trans:x tail)))
 
     ;; (begin EXPS...)
     ((begin)
-     (make-<ghil-begin> e l (map trans:x tail)))
+     (<ghil-begin> e l (map trans:x tail)))
 
     ((let)
      (match tail
@@ -144,14 +144,14 @@
        ;; (let () BODY...)
        ((() body ...)
 	;; NOTE: This differs from `begin'
-	(make-<ghil-begin> e l (list (trans:body body))))
+	(<ghil-begin> e l (list (trans:body body))))
 
        ;; (let ((SYM VAL) ...) BODY...)
        (((((? symbol? sym) val) ...) body ...)
 	(let ((vals (map trans:x val)))
 	  (call-with-ghil-bindings e sym
 	    (lambda (vars)
-	      (make-<ghil-bind> e l vars vals (trans:body body))))))
+	      (<ghil-bind> e l vars vals (trans:body body))))))
 
        (else (bad-syntax))))
 
@@ -171,7 +171,7 @@
 	(call-with-ghil-bindings e sym
 	  (lambda (vars)
 	    (let ((vals (map trans:x val)))
-	      (make-<ghil-bind> e l vars vals (trans:body body))))))
+	      (<ghil-bind> e l vars vals (trans:body body))))))
        (else (bad-syntax))))
 
     ;; (cond (CLAUSE BODY...) ...)
@@ -222,7 +222,7 @@
 	(receive (syms rest) (parse-formals formals)
 	  (call-with-ghil-environment e syms
 	    (lambda (env vars)
-	      (make-<ghil-lambda> env l vars rest (trans-body env l body))))))
+	      (<ghil-lambda> env l vars rest (trans-body env l body))))))
        (else (bad-syntax))))
 
     ((eval-case)
@@ -240,8 +240,8 @@
 
     (else
      (if (memq head scheme-primitives)
-	 (make-<ghil-inline> e l head (map trans:x tail))
-	 (make-<ghil-call> e l (trans:x head) (map trans:x tail))))))
+       (<ghil-inline> e l head (map trans:x tail))
+       (<ghil-call> e l (trans:x head) (map trans:x tail))))))
 
 (define (trans-quasiquote e l x)
   (cond ((not (pair? x)) x)
@@ -250,8 +250,8 @@
 	   (match (cdr x)
 	     ((obj)
 	      (if (eq? (car x) 'unquote)
-		  (make-<ghil-unquote> e l (trans e l obj))
-		  (make-<ghil-unquote-splicing> e l (trans e l obj))))
+		  (<ghil-unquote> e l (trans e l obj))
+		  (<ghil-unquote-splicing> e l (trans e l obj))))
 	     (else (syntax-error l (format #f "bad ~A" (car x)) x)))))
 	(else (cons (trans-quasiquote e l (car x))
 		    (trans-quasiquote e l (cdr x))))))

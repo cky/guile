@@ -1,4 +1,4 @@
-;;; Multi-language support
+;;; Guile VM backtrace
 
 ;; Copyright (C) 2001 Free Software Foundation, Inc.
 
@@ -19,27 +19,15 @@
 
 ;;; Code:
 
-(define-module (system base language)
+(define-module (system vm backtrace)
   :use-syntax (system base syntax)
-  :export (define-language lookup-language))
+  :use-module (system vm core)
+  :use-module (system vm frame)
+  :use-module (ice-9 format)
+  :export (vm-backtrace))
 
-
-;;;
-;;; Language class
-;;;
-
-(define-record (<language> name title version reader printer read-file
-			   (expander (lambda (x e) x))
-			   (translator (lambda (x e) x))
-			   (evaluator #f)
-			   (environment #f)
-			   ))
-
-(define-macro (define-language name . spec)
-  `(define ,name (,<language> :name ',name ,@spec)))
-
-(define (lookup-language name)
-  (let ((m (resolve-module `(language ,name spec))))
-    (if (module-bound? m name)
-	(module-ref m name)
-	(error "No such language:" name))))
+(define (vm-backtrace vm)
+  (let ((stack (vm-last-frame-stack vm)))
+    (if (null? stack)
+      (display "No backtrace available\n")
+      (for-each print-frame (reverse! stack)))))

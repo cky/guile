@@ -59,6 +59,7 @@ scm_c_make_program (void *addr, size_t size, SCM holder)
   p->nrest    = 0;
   p->nlocs    = 0;
   p->nexts    = 0;
+  p->meta     = SCM_BOOL_F;
   p->objs     = zero_vector;
   p->external = SCM_EOL;
   p->holder   = holder;
@@ -78,7 +79,7 @@ scm_c_make_closure (SCM program, SCM external)
 {
   SCM prog = scm_c_make_program (0, 0, program);
   *SCM_PROGRAM_DATA (prog) = *SCM_PROGRAM_DATA (program);
-  SCM_PROGRAM_EXTERNAL (prog) = external;
+  SCM_PROGRAM_DATA (prog)->external = external;
   return prog;
 }
 
@@ -86,6 +87,7 @@ static SCM
 program_mark (SCM obj)
 {
   struct scm_program *p = SCM_PROGRAM_DATA (obj);
+  scm_gc_mark (p->meta);
   scm_gc_mark (p->objs);
   scm_gc_mark (p->external);
   return p->holder;
@@ -103,19 +105,6 @@ program_free (SCM obj)
     }
   scm_must_free (p);
   return size;
-}
-
-static int
-program_print (SCM obj, SCM port, scm_print_state *pstate)
-{
-  SCM name = scm_object_property (obj, scm_sym_name);
-  scm_puts ("#<program ", port);
-  if (SCM_FALSEP (name))
-    scm_intprint ((long) SCM_PROGRAM_BASE (obj), 16, port);
-  else
-    scm_display (name, port);
-  scm_putc ('>', port);
-  return 1;
 }
 
 static SCM
@@ -138,16 +127,41 @@ SCM_DEFINE (scm_program_p, "program?", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+SCM_DEFINE (scm_program_base, "program-base", 1, 0, 0,
+	    (SCM program),
+	    "")
+#define FUNC_NAME s_scm_program_base
+{
+  SCM_VALIDATE_PROGRAM (1, program);
+
+  return scm_long2num ((long) SCM_PROGRAM_DATA (program)->base);
+}
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_program_arity, "program-arity", 1, 0, 0,
 	    (SCM program),
 	    "")
 #define FUNC_NAME s_scm_program_arity
 {
+  struct scm_program *p;
+
   SCM_VALIDATE_PROGRAM (1, program);
-  return SCM_LIST4 (SCM_MAKINUM (SCM_PROGRAM_NARGS (program)),
-		    SCM_MAKINUM (SCM_PROGRAM_NREST (program)),
-		    SCM_MAKINUM (SCM_PROGRAM_NLOCS (program)),
-		    SCM_MAKINUM (SCM_PROGRAM_NEXTS (program)));
+
+  p = SCM_PROGRAM_DATA (program);
+  return SCM_LIST4 (SCM_MAKINUM (p->nargs),
+		    SCM_MAKINUM (p->nrest),
+		    SCM_MAKINUM (p->nlocs),
+		    SCM_MAKINUM (p->nexts));
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_program_meta, "program-meta", 1, 0, 0,
+	    (SCM program),
+	    "")
+#define FUNC_NAME s_scm_program_meta
+{
+  SCM_VALIDATE_PROGRAM (1, program);
+  return SCM_PROGRAM_DATA (program)->meta;
 }
 #undef FUNC_NAME
 
@@ -157,7 +171,7 @@ SCM_DEFINE (scm_program_objects, "program-objects", 1, 0, 0,
 #define FUNC_NAME s_scm_program_objects
 {
   SCM_VALIDATE_PROGRAM (1, program);
-  return SCM_PROGRAM_OBJS (program);
+  return SCM_PROGRAM_DATA (program)->objs;
 }
 #undef FUNC_NAME
 
@@ -167,7 +181,7 @@ SCM_DEFINE (scm_program_external, "program-external", 1, 0, 0,
 #define FUNC_NAME s_scm_program_external
 {
   SCM_VALIDATE_PROGRAM (1, program);
-  return SCM_PROGRAM_EXTERNAL (program);
+  return SCM_PROGRAM_DATA (program)->external;
 }
 #undef FUNC_NAME
 
@@ -177,8 +191,8 @@ SCM_DEFINE (scm_program_bytecode, "program-bytecode", 1, 0, 0,
 #define FUNC_NAME s_scm_program_bytecode
 {
   SCM_VALIDATE_PROGRAM (1, program);
-  return scm_makfromstr (SCM_PROGRAM_BASE (program),
-			 SCM_PROGRAM_SIZE (program), 0);
+  return scm_makfromstr (SCM_PROGRAM_DATA (program)->base,
+			 SCM_PROGRAM_DATA (program)->size, 0);
 }
 #undef FUNC_NAME
 
@@ -191,7 +205,6 @@ scm_init_programs (void)
   scm_tc16_program = scm_make_smob_type ("program", 0);
   scm_set_smob_mark (scm_tc16_program, program_mark);
   scm_set_smob_free (scm_tc16_program, program_free);
-  scm_set_smob_print (scm_tc16_program, program_print);
   scm_set_smob_apply (scm_tc16_program, program_apply, 0, 0, 1);
 
 #ifndef SCM_MAGIC_SNARFER

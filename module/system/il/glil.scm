@@ -20,53 +20,58 @@
 ;;; Code:
 
 (define-module (system il glil)
+  :use-syntax (system base syntax)
   :use-module (ice-9 match)
   :export
   (pprint-glil
-   make-<glil-asm> <glil-asm>?
+   <glil-vars>
+   <glil-asm> <glil-asm>?
    <glil-asm>-1 <glil-asm>-2 <glil-asm>-3 <glil-asm>-4 <glil-asm>-5
-   make-<glil-vars> <glil-vars>? <glil-vars>-1 <glil-vars>-2
+   <glil-bind> <glil-bind>? <glil-bind>-1
+   <glil-unbind> <glil-unbind>?
+   <glil-source> <glil-source>? <glil-source>-1 <glil-source>-2
 
-   make-<glil-void> <glil-void>?
-   make-<glil-const> <glil-const>? <glil-const>-1
+   <glil-void> <glil-void>?
+   <glil-const> <glil-const>? <glil-const>-1
 
-   make-<glil-argument> <glil-argument>? <glil-argument>-1 <glil-argument>-2
-   make-<glil-local> <glil-local>? <glil-local>-1 <glil-local>-2
-   make-<glil-external> <glil-external>?
+   <glil-argument> <glil-argument>? <glil-argument>-1 <glil-argument>-2
+   <glil-local> <glil-local>? <glil-local>-1 <glil-local>-2
+   <glil-external> <glil-external>?
    <glil-external>-1 <glil-external>-2 <glil-external>-3
-   make-<glil-module> <glil-module>?
+   <glil-module> <glil-module>?
    <glil-module>-1 <glil-module>-2 <glil-module>-3
 
-   make-<glil-label> <glil-label>? <glil-label>-1
-   make-<glil-branch> <glil-branch>? <glil-branch>-1 <glil-branch>-2
-   make-<glil-call> <glil-call>? <glil-call>-1 <glil-call>-2
+   <glil-label> <glil-label>? <glil-label>-1
+   <glil-branch> <glil-branch>? <glil-branch>-1 <glil-branch>-2
+   <glil-call> <glil-call>? <glil-call>-1 <glil-call>-2
    ))
 
-;; Meta operations
-(define-structure (<glil-asm> nargs nrest nlocs nexts body))
-(define-structure (<glil-vars> type syms))
+(define-record (<glil-vars> nargs nrest nlocs nexts))
 
-;; Constants
-(define-structure (<glil-void>))
-(define-structure (<glil-const> obj))
-
-;; Variables
-(define-structure (<glil-argument> op index))
-(define-structure (<glil-local> op index))
-(define-structure (<glil-external> op depth index))
-(define-structure (<glil-module> op module name))
-
-;; Controls
-(define-structure (<glil-label> label))
-(define-structure (<glil-branch> inst label))
-(define-structure (<glil-call> inst nargs))
+(define-type <glil>
+  (|
+   ;; Meta operations
+   (<glil-asm> vars body)
+   (<glil-bind> vars)
+   (<glil-unbind>)
+   (<glil-source> loc)
+   ;; Objects
+   (<glil-void>)
+   (<glil-const> obj)
+   ;; Variables
+   (<glil-argument> op index)
+   (<glil-local> op index)
+   (<glil-external> op depth index)
+   (<glil-module> op module name)
+   ;; Controls
+   (<glil-label> label)
+   (<glil-branch> inst label)
+   (<glil-call> inst nargs)))
 
 
 ;;;
 ;;; Parser
 ;;;
-
-;; FIXME: This is not working now
 
 ;;; (define (parse-glil x)
 ;;;   (match x
@@ -140,9 +145,12 @@
 (define (unparse glil)
   (match glil
     ;; meta
-    (($ <glil-asm> nargs nrest nlocs nexts body)
-     `(@asm (,nargs ,nrest ,nlocs ,nexts) ,@(map unparse body)))
-    (($ <glil-vars> type syms) `(,type ,@syms))
+    (($ <glil-asm> vars body)
+     `(@asm (,vars.nargs ,vars.nrest ,vars.nlocs ,vars.nexts)
+	    ,@(map unparse body)))
+    (($ <glil-bind> vars) `(@bind ,@vars))
+    (($ <glil-unbind>) `(@unbind))
+    (($ <glil-source> loc) `(@source ,(car loc) ,(cdr loc)))
     ;; constants
     (($ <glil-void>) `(void))
     (($ <glil-const> obj) `(const ,obj))
@@ -165,16 +173,17 @@
 ;;; Printer
 ;;;
 
-(define (pprint-glil glil)
-  (let print ((code (unparse glil)) (column 0))
-    (display (make-string column #\space))
-    (cond ((and (pair? code) (eq? (car code) '@asm))
-	   (format #t "(@asm ~A\n" (cadr code))
-	   (let ((col (+ column 2)))
-	     (let loop ((l (cddr code)))
-	       (print (car l) col)
-	       (if (null? (cdr l))
-		   (display ")")
-		   (begin (newline) (loop (cdr l)))))))
-	  (else (write code))))
-  (newline))
+(define (pprint-glil glil . port)
+  (let ((port (if (pair? port) (car port) (current-output-port))))
+    (let print ((code (unparse glil)) (column 0))
+      (display (make-string column #\space) port)
+      (cond ((and (pair? code) (eq? (car code) '@asm))
+	     (format port "(@asm ~A\n" (cadr code))
+	     (let ((col (+ column 2)))
+	       (let loop ((l (cddr code)))
+		 (print (car l) col)
+		 (if (null? (cdr l))
+		   (display ")" port)
+		   (begin (newline port) (loop (cdr l)))))))
+	    (else (write code port))))
+    (newline port)))

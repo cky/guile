@@ -194,14 +194,16 @@ SCM_DEFINE (scm_objcode_to_program, "objcode->program", 1, 0, 0,
   SCM prog;
   size_t size;
   char *base;
+  struct scm_program *p;
 
   SCM_VALIDATE_OBJCODE (1, objcode);
 
   base = SCM_OBJCODE_BASE (objcode);
   size = SCM_OBJCODE_SIZE (objcode);
   prog = scm_c_make_program (base + 10, size - 10, objcode);
-  SCM_PROGRAM_NLOCS (prog) = base[8];
-  SCM_PROGRAM_NEXTS (prog) = base[9];
+  p = SCM_PROGRAM_DATA (prog);
+  p->nlocs = base[8];
+  p->nexts = base[9];
   return prog;
 }
 #undef FUNC_NAME

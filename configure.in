@@ -12,4 +12,15 @@ AC_PROG_LN_S
 AM_PROG_LIBTOOL
 AC_C_LABELS_AS_VALUES
 
-AC_OUTPUT(Makefile src/Makefile doc/Makefile module/Makefile)
+guiledir="\$(datadir)/guile"
+AC_SUBST(guiledir)
+
+GUILEC="GUILE_LOAD_PATH=\$(top_srcdir)/module \
+  LD_LIBRARY_PATH=\$(top_srcdir)/src/.libs \
+  guile -s \$(top_srcdir)/src/guilec"
+AC_SUBST(GUILEC)
+
+AC_OUTPUT(Makefile src/Makefile doc/Makefile module/Makefile
+  module/system/Makefile module/system/base/Makefile
+  module/system/vm/Makefile module/system/il/Makefile
+  module/system/repl/Makefile)

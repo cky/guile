@@ -109,18 +109,27 @@ VM_DEFINE_LOADER (load_program, "load-program")
 {
   size_t len;
   SCM prog, x;
+  struct scm_program *p;
 
   FETCH_LENGTH (len);
   prog = scm_c_make_program (ip, len, program);
+  p = SCM_PROGRAM_DATA (prog);
   ip += len;
 
+  POP (x);
+
+  /* init meta data */
+  if (SCM_CONSP (x))
+    {
+      p->meta = x;
+      POP (x);
+    }
+
   /* init object table */
-  x = *sp;
   if (SCM_VECTORP (x))
     {
-      SCM_PROGRAM_OBJS (prog) = x;
-      DROP ();
-      x = *sp;
+      p->objs = x;
+      POP (x);
     }
 
   /* init parameters */
@@ -131,31 +140,31 @@ VM_DEFINE_LOADER (load_program, "load-program")
       if (-128 <= i && i <= 127)
 	{
 	  /* 8-bit representation */
-	  SCM_PROGRAM_NARGS (prog) = (i >> 6) & 0x03;	/* 7-6 bits */
-	  SCM_PROGRAM_NREST (prog) = (i >> 5) & 0x01;	/*   5 bit  */
-	  SCM_PROGRAM_NLOCS (prog) = (i >> 2) & 0x07;	/* 4-2 bits */
-	  SCM_PROGRAM_NEXTS (prog) = i & 0x03;		/* 1-0 bits */
+	  p->nargs = (i >> 6) & 0x03;	/* 7-6 bits */
+	  p->nrest = (i >> 5) & 0x01;	/*   5 bit  */
+	  p->nlocs = (i >> 2) & 0x07;	/* 4-2 bits */
+	  p->nexts = i & 0x03;		/* 1-0 bits */
 	}
       else
 	{
 	  /* 16-bit representation */
-	  SCM_PROGRAM_NARGS (prog) = (i >> 12) & 0x07;	/* 15-12 bits */
-	  SCM_PROGRAM_NREST (prog) = (i >> 11) & 0x01;	/*    11 bit  */
-	  SCM_PROGRAM_NLOCS (prog) = (i >> 4)  & 0x7f;	/* 10-04 bits */
-	  SCM_PROGRAM_NEXTS (prog) = i & 0x0f;		/* 03-00 bits */
+	  p->nargs = (i >> 12) & 0x07;	/* 15-12 bits */
+	  p->nrest = (i >> 11) & 0x01;	/*    11 bit  */
+	  p->nlocs = (i >> 4)  & 0x7f;	/* 10-04 bits */
+	  p->nexts = i & 0x0f;		/* 03-00 bits */
 	}
     }
   else
     {
       /* Other cases */
       sp -= 4;
-      SCM_PROGRAM_NARGS (prog) = SCM_INUM (sp[1]);
-      SCM_PROGRAM_NREST (prog) = SCM_INUM (sp[2]);
-      SCM_PROGRAM_NLOCS (prog) = SCM_INUM (sp[3]);
-      SCM_PROGRAM_NEXTS (prog) = SCM_INUM (sp[4]);
+      p->nargs = SCM_INUM (sp[0]);
+      p->nrest = SCM_INUM (sp[1]);
+      p->nlocs = SCM_INUM (sp[2]);
+      p->nexts = SCM_INUM (sp[3]);
     }
 
-  *sp = prog;
+  PUSH (prog);
   NEXT;
 }
 

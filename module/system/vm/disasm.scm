@@ -127,8 +127,7 @@
 	       (else #f)))))))
 
 (define (list->info list)
-  (let ((str (object->string list)))
-    (substring str 1 (1- (string-length str)))))
+  (object->string list))
 
 (define (print-info addr info extra)
   (if extra

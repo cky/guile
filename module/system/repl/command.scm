@@ -24,10 +24,13 @@
   :use-module (system base compile)
   :use-module (system repl common)
   :use-module (system vm core)
+  :autoload (system base language) (lookup-language)
   :autoload (system il glil) (pprint-glil)
   :autoload (system vm disasm) (disassemble-program disassemble-objcode)
   :autoload (system vm trace) (vm-trace vm-trace-on vm-trace-off)
   :autoload (system vm profile) (vm-profile)
+  :autoload (system vm debugger) (vm-debugger)
+  :autoload (system vm backtrace) (vm-backtrace)
   :use-module (ice-9 format)
   :use-module (ice-9 session)
   :use-module (ice-9 documentation))
@@ -44,7 +47,7 @@
     (compile  (compile c) (compile-file cc)
 	      (disassemble x) (disassemble-file xx))
     (profile  (time t) (profile pr))
-    (debug    (backtrace bt) (debugger db) (trace r) (step st))
+    (debug    (backtrace bt) (debugger db) (trace tr) (step st))
     (system   (gc) (statistics stat))))
 
 (define (group-name g) (car g))
@@ -332,16 +335,15 @@ Profile execution."
 ;;; Debug commands
 ;;;
 
-(define guile:backtrace backtrace)
 (define (backtrace repl)
   "backtrace
-Show backtrace (if any)."
-  (guile:backtrace))
+Display backtrace."
+  (vm-backtrace repl.env.vm))
 
 (define (debugger repl)
   "debugger
 Start debugger."
-  (debug))
+  (vm-debugger repl.env.vm))
 
 (define (trace repl form . opts)
   "trace FORM

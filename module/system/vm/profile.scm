@@ -34,7 +34,7 @@
 	  (add-hook! (vm-enter-hook vm) profile-enter)
 	  (add-hook! (vm-exit-hook vm) profile-exit))
 	(lambda ()
-	  (let ((val (vm (objcode->program objcode))))
+	  (let ((val (vm-load vm objcode)))
 	    (display-result vm)
 	    val))
 	(lambda ()

@@ -20,10 +20,10 @@
 ;;; Code:
 
 (define-module (system base compile)
-  :use-module (oop goops)
   :use-syntax (system base syntax)
   :use-module (system base language)
   :use-module (system il compile)
+  :use-module (system il glil)
   :use-module (system vm core)
   :use-module (system vm assemble)
   :use-module (ice-9 regex))
@@ -32,20 +32,18 @@
 ;;; Compiler environment
 ;;;
 
-(define-vm-class <cenv> ()
-  vm language module optimize)
+(define-record (<cenv> vm language module))
 
 (define-public (make-cenv . rest)
-  (apply make <cenv> rest))
+  (apply <cenv> rest))
 
 (define-public (syntax-error loc msg exp)
   (throw 'syntax-error loc msg exp))
 
 (define-public (call-with-compile-error-catch thunk)
-  (catch 'syntax-error
-    thunk
-    (lambda (key loc msg exp)
-      (format #t "~A:~A: ~A: ~A" (car loc) (cdr loc) msg exp))))
+  (try (thunk)
+    ((syntax-error loc msg exp)
+     (format #t "~A:~A: ~A: ~A" (car loc) (cdr loc) msg exp))))
 
 
 ;;;
@@ -65,7 +63,9 @@
 	       (let* ((source (read-file-in file scheme))
 		      (objcode (apply compile-in source (current-module)
 				      scheme opts)))
-		 (uniform-array-write (objcode->string objcode) port))))
+		 (if (memq :c opts)
+		   (pprint-glil objcode port)
+		   (uniform-array-write (objcode->string objcode) port)))))
 	   (format #t "Wrote ~A\n" comp))))
       (lambda (key . args)
 	(format #t "ERROR: During compiling ~A:\n" file)

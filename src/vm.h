@@ -44,76 +44,6 @@
 
 #include <libguile.h>
 #include "config.h"
-#include "programs.h"
-
-/*
- * VM Address
- */
-
-#define SCM_VM_MAKE_STACK_ADDRESS(ptr)	SCM_PACK (ptr)
-#define SCM_VM_STACK_ADDRESS(addr)	((SCM *) SCM_UNPACK (addr))
-
-#define SCM_VM_MAKE_BYTE_ADDRESS(ptr)	SCM_PACK (ptr)
-#define SCM_VM_BYTE_ADDRESS(addr)	((scm_byte_t *) SCM_UNPACK (addr))
-
-/*
- * VM Stack frame
- */
-
-/*
-   |                  | <- fp + bp->nargs + bp->nlocs + 3
-   +------------------+    = SCM_VM_FRAME_UPPER_ADDRESS (fp)
-   | Return address   |
-   | Dynamic link     |
-   | External link    | <- fp + bp->nargs + bp->nlocs
-   | Local varialbe 1 |    = SCM_VM_FRAME_DATA_ADDRESS (fp)
-   | Local variable 0 | <- fp + bp->nargs
-   | Argument 1       |
-   | Argument 0       | <- fp
-   | Program          | <- fp - 1
-   +------------------+    = SCM_VM_FRAME_LOWER_ADDRESS (fp)
-   |                  |
-*/
-
-#define SCM_VM_FRAME_DATA_ADDRESS(fp)			\
-  (fp + SCM_PROGRAM_NARGS (SCM_VM_FRAME_PROGRAM (fp))	\
-      + SCM_PROGRAM_NLOCS (SCM_VM_FRAME_PROGRAM (fp)))
-#define SCM_VM_FRAME_UPPER_ADDRESS(fp)			\
-  (SCM_VM_FRAME_DATA_ADDRESS (fp) + 3)
-#define SCM_VM_FRAME_LOWER_ADDRESS(fp)	(fp - 1)
-
-#define SCM_VM_FRAME_RETURN_ADDRESS(fp)	SCM_VM_FRAME_DATA_ADDRESS (fp)[2]
-#define SCM_VM_FRAME_DYNAMIC_LINK(fp)	SCM_VM_FRAME_DATA_ADDRESS (fp)[1]
-#define SCM_VM_FRAME_EXTERNAL_LINK(fp)	SCM_VM_FRAME_DATA_ADDRESS (fp)[0]
-#define SCM_VM_FRAME_VARIABLE(fp,i)	fp[i]
-#define SCM_VM_FRAME_PROGRAM(fp)	fp[-1]
-
-/*
- * VM Heap frame
- */
-
-struct scm_vm_heap_frame {
-  SCM *fp;
-  SCM program;
-  SCM variables;
-  SCM dynamic_link;
-  SCM external_link;
-};
-
-extern scm_bits_t scm_tc16_vm_heap_frame;
-
-#define SCM_VM_HEAP_FRAME_P(x)	SCM_SMOB_PREDICATE (scm_tc16_vm_heap_frame, x)
-#define SCM_VM_HEAP_FRAME_DATA(f) ((struct scm_vm_heap_frame *) SCM_SMOB_DATA (f))
-#define SCM_VALIDATE_VM_HEAP_FRAME(p,x)	SCM_MAKE_VALIDATE (p, x, VM_HEAP_FRAME_P)
-
-#define SCM_VM_HEAP_FRAME_PROGRAM(f)	SCM_VM_HEAP_FRAME_DATA (f)->program
-#define SCM_VM_HEAP_FRAME_VARIABLES(f)	SCM_VM_HEAP_FRAME_DATA (f)->variables
-#define SCM_VM_HEAP_FRAME_DYNAMIC_LINK(f) SCM_VM_HEAP_FRAME_DATA (f)->dynamic_link
-#define SCM_VM_HEAP_FRAME_EXTERNAL_LINK(f) SCM_VM_HEAP_FRAME_DATA (f)->external_link
-
-/*
- * VM
- */
 
 #define SCM_VM_BOOT_HOOK	0
 #define SCM_VM_HALT_HOOK	1
@@ -133,6 +63,7 @@ struct scm_vm {
   SCM *stack_limit;		/* stack limit address */
   SCM hooks[SCM_VM_NUM_HOOKS];	/* hooks */
   SCM options;			/* options */
+  SCM last_frame;		/* last frame */
   unsigned long time;		/* time spent */
   unsigned long clock;		/* bogos clock */
 };

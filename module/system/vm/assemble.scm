@@ -20,6 +20,7 @@
 ;;; Code:
 
 (define-module (system vm assemble)
+  :use-syntax (system base syntax)
   :use-module (system il glil)
   :use-module (system vm core)
   :use-module (system vm conv)
@@ -36,11 +37,11 @@
 ;;; Types
 ;;;
 
-(define-structure (<vm-asm> venv glil body))
-(define-structure (venv parent nexts closure?))
-(define-structure (vmod id))
-(define-structure (vlink module name))
-(define-structure (bytespec nargs nrest nlocs nexts bytes objs closure?))
+(define-record (<vm-asm> venv glil body))
+(define-record (<venv> parent nexts closure?))
+(define-record (<vmod> id))
+(define-record (<vlink> module name))
+(define-record (<bytespec> vars bytes meta objs closure?))
 
 
 ;;;
@@ -49,15 +50,15 @@
 
 (define (preprocess x e)
   (match x
-    (($ <glil-asm> nargs nrest nlocs nexts body)
-     (let* ((venv (make-venv e nexts #f))
+    (($ <glil-asm> vars body)
+     (let* ((venv (<venv> :parent e :nexts vars.nexts :closure? #f))
 	    (body (map (lambda (x) (preprocess x venv)) body)))
-       (make-<vm-asm> venv x body)))
+       (<vm-asm> :venv venv :glil x :body body)))
     (($ <glil-external> op depth index)
      (do ((d depth (1- d))
-	  (e e (venv-parent e)))
+	  (e e e.parent))
 	 ((= d 0))
-       (set-venv-closure?! e #t))
+       (set! e.closure? #t))
      x)
     (else x)))
 
@@ -68,8 +69,10 @@
 
 (define (codegen glil toplevel)
   (match glil
-    (($ <vm-asm> venv ($ <glil-asm> nargs nrest nlocs nexts _) body)
+    (($ <vm-asm> venv ($ <glil-asm> vars _) body)
      (let ((stack '())
+	   (bind-alist '())
+	   (source-alist '())
 	   (label-alist '())
 	   (object-alist '()))
        (define (push-code! code)
@@ -84,11 +87,32 @@
 				  (set! object-alist (acons x i object-alist))
 				  i)))))
 		  (push-code! `(object-ref ,i))))))
+       (define (current-address)
+	 (define (byte-length x)
+	   (cond ((string? x) (string-length x))
+		 (else 3)))
+	 (apply + (map byte-length stack)))
        (define (generate-code x)
 	 (match x
 	   (($ <vm-asm> venv)
 	    (push-object! (codegen x #f))
-	    (if (venv-closure? venv) (push-code! `(make-closure))))
+	    (if venv.closure? (push-code! `(make-closure))))
+
+	   (($ <glil-bind> binds)
+	    (let ((binds (map (lambda (v)
+				(case (cadr v)
+				  ((argument) (list (car v) #f (caddr v)))
+				  ((local) (list (car v) #f
+						 (+ vars.nargs (caddr v))))
+				  ((external) (list (car v) #t (caddr v)))))
+			      binds)))
+	      (set! bind-alist (acons (current-address) binds bind-alist))))
+
+	   (($ <glil-unbind>)
+	    (set! bind-alist (acons (current-address) #f bind-alist)))
+
+	   (($ <glil-source> loc)
+	    (set! source-alist (acons (current-address) loc source-alist)))
 
 	   (($ <glil-void>)
 	    (push-code! '(void)))
@@ -103,30 +127,26 @@
 
 	   (($ <glil-local> op index)
 	    (if (eq? op 'ref)
-		(push-code! `(local-ref ,(+ nargs index)))
-		(push-code! `(local-set ,(+ nargs index)))))
+		(push-code! `(local-ref ,(+ vars.nargs index)))
+		(push-code! `(local-set ,(+ vars.nargs index)))))
 
 	   (($ <glil-external> op depth index)
-	    (do ((e venv (venv-parent e))
+	    (do ((e venv e.parent)
 		 (d depth (1- d))
-		 (n 0 (+ n (venv-nexts e))))
+		 (n 0 (+ n e.nexts)))
 		((= d 0)
 		 (if (eq? op 'ref)
 		     (push-code! `(external-ref ,(+ n index)))
 		     (push-code! `(external-set ,(+ n index)))))))
 
 	   (($ <glil-module> op module name)
-	    (push-object! (make-vlink #f name))	;; FIXME: (make-vmod module)
+	    (push-object! (<vlink> :module #f :name name))
 	    (if (eq? op 'ref)
 		(push-code! '(variable-ref))
 		(push-code! '(variable-set))))
 
 	   (($ <glil-label> label)
-	    (define (byte-length x)
-	      (cond ((string? x) (string-length x))
-		    (else 3)))
-	    (let ((addr (apply + (map byte-length stack))))
-	      (set! label-alist (assq-set! label-alist label addr))))
+	    (set! label-alist (assq-set! label-alist label (current-address))))
 
 	   (($ <glil-branch> inst label)
 	    (set! stack (cons (list inst label) stack)))
@@ -146,13 +166,21 @@
        (for-each generate-code body)
        (let ((bytes (stack->bytes (reverse! stack) label-alist)))
 	 (if toplevel
-	     (bytecode->objcode bytes nlocs nexts)
-	     (let ((objs (map car (reverse! object-alist))))
-	       (make-bytespec nargs nrest nlocs nexts bytes objs
-			      (venv-closure? venv)))))))))
+	     (bytecode->objcode bytes vars.nlocs vars.nexts)
+	     (<bytespec> :vars vars :bytes bytes
+			 :meta (if (and (null? bind-alist)
+					(null? source-alist))
+				 #f
+				 (cons (reverse! bind-alist)
+				       (reverse! source-alist)))
+			 :objs (let ((objs (map car (reverse! object-alist))))
+				 (if (null? objs) #f (list->vector objs)))
+			 :closure? venv.closure?)))))))
 
 (define (object-assoc x alist)
-  (if (vlink? x) (assoc x alist) (assq x alist)))
+  (match x
+    (($ <vlink>) (assoc x alist))
+    (else        (assq x alist))))
 
 (define (stack->bytes stack label-alist)
   (let loop ((result '()) (stack stack) (addr 0))
@@ -181,60 +209,63 @@
   (let dump! ((x x))
     (cond
      ((object->code x) => push-code!)
-     ((bytespec? x)
-      (match x
-	(($ bytespec nargs nrest nlocs nexts bytes objs closure?)
-	 ;; dump parameters
-	 (cond
-	  ((and (< nargs 4) (< nlocs 8) (< nexts 4))
-	   ;; 8-bit representation
-	   (let ((x (+ (* nargs 64) (* nrest 32) (* nlocs 4) nexts)))
-	     (push-code! `(make-int8 ,x))))
-	  ((and (< nargs 16) (< nlocs 128) (< nexts 16))
-	   ;; 16-bit representation
-	   (let ((x (+ (* nargs 4096) (* nrest 2048) (* nlocs 16) nexts)))
-	     (push-code! `(make-int16 ,(quotient x 256) ,(modulo x 256)))))
-	  (else
-	   ;; Other cases
-	   (push-code! (object->code nargs))
-	   (push-code! (object->code nrest))
-	   (push-code! (object->code nlocs))
-	   (push-code! (object->code nexts))
-	   (push-code! (object->code #f))))
-	 ;; dump object table
-	 (cond ((not (null? objs))
-		(for-each dump! objs)
-		(push-code! `(vector ,(length objs)))))
-	 ;; dump bytecode
-	 (push-code! `(load-program ,bytes)))))
-     ((vlink? x)
-      ;;; (dump! (vlink-module x))  ;; FIXME: no module support now
-      (push-code! `(link ,(symbol->string (vlink-name x)))))
-     ((vmod? x)
-      (push-code! `(load-module ,(vmod-id x))))
-     ((and (integer? x) (exact? x))
-      (let ((str (do ((n x (quotient n 256))
-		      (l '() (cons (modulo n 256) l)))
-		     ((= n 0)
-		      (list->string (map integer->char l))))))
-	(push-code! `(load-integer ,str))))
-     ((number? x)
-      (push-code! `(load-number ,(number->string x))))
-     ((string? x)
-      (push-code! `(load-string ,x)))
-     ((symbol? x)
-      (push-code! `(load-symbol ,(symbol->string x))))
-     ((keyword? x)
-      (push-code! `(load-keyword ,(symbol->string (keyword-dash-symbol x)))))
-     ((list? x)
-      (for-each dump! x)
-      (push-code! `(list ,(length x))))
-     ((pair? x)
-      (dump! (car x))
-      (dump! (cdr x))
-      (push-code! `(cons)))
-     ((vector? x)
-      (for-each dump! (vector->list x))
-      (push-code! `(vector ,(vector-length x))))
      (else
-      (error "Cannot dump:" x)))))
+      (match x
+	(($ <bytespec> vars bytes meta objs closure?)
+	 ;; dump parameters
+	 (let ((nargs vars.nargs) (nrest vars.nrest)
+	       (nlocs vars.nlocs) (nexts vars.nexts))
+	   (cond
+	     ((and (< nargs 4) (< nlocs 8) (< nexts 4))
+	      ;; 8-bit representation
+	      (let ((x (+ (* nargs 64) (* nrest 32) (* nlocs 4) nexts)))
+		(push-code! `(make-int8 ,x))))
+	     ((and (< nargs 16) (< nlocs 128) (< nexts 16))
+	      ;; 16-bit representation
+	      (let ((x (+ (* nargs 4096) (* nrest 2048) (* nlocs 16) nexts)))
+		(push-code! `(make-int16 ,(quotient x 256) ,(modulo x 256)))))
+	     (else
+	      ;; Other cases
+	      (push-code! (object->code nargs))
+	      (push-code! (object->code nrest))
+	      (push-code! (object->code nlocs))
+	      (push-code! (object->code nexts))
+	      (push-code! (object->code #f)))))
+	 ;; dump object table
+	 (if objs (dump! objs))
+	 ;; dump meta data
+	 (if meta (dump! meta))
+	 ;; dump bytecode
+	 (push-code! `(load-program ,bytes)))
+	(($ <vlink> module name)
+	 ;; FIXME: dump module
+	 (push-code! `(link ,(symbol->string name))))
+	(($ <vmod> id)
+	 (push-code! `(load-module ,id)))
+	((and ($ integer) ($ exact))
+	 (let ((str (do ((n x (quotient n 256))
+			 (l '() (cons (modulo n 256) l)))
+			((= n 0)
+			 (list->string (map integer->char l))))))
+	   (push-code! `(load-integer ,str))))
+	(($ number)
+	 (push-code! `(load-number ,(number->string x))))
+	(($ string)
+	 (push-code! `(load-string ,x)))
+	(($ symbol)
+	 (push-code! `(load-symbol ,(symbol->string x))))
+	(($ keyword)
+	 (push-code! `(load-keyword
+		       ,(symbol->string (keyword-dash-symbol x)))))
+	(($ list)
+	 (for-each dump! x)
+	 (push-code! `(list ,(length x))))
+	(($ pair)
+	 (dump! (car x))
+	 (dump! (cdr x))
+	 (push-code! `(cons)))
+	(($ vector)
+	 (for-each dump! (vector->list x))
+	 (push-code! `(vector ,(vector-length x))))
+	(else
+	 (error "Cannot dump:" x)))))))

@@ -40,10 +40,11 @@
  * If you do not wish that, delete this exception notice.  */
 
 #include <string.h>
-#include "instructions.h"
-#include "programs.h"
-#include "objcodes.h"
 #include "envs.h"
+#include "frames.h"
+#include "instructions.h"
+#include "objcodes.h"
+#include "programs.h"
 #include "vm.h"
 
 /* I sometimes use this for debugging. */
@@ -52,119 +53,6 @@
   scm_display (OBJ, scm_def_errp);		\
   scm_newline (scm_def_errp);			\
 }
-
-
-/*
- * VM Heap frame
- */
-
-scm_bits_t scm_tc16_vm_heap_frame;
-
-static SCM
-make_vm_heap_frame (SCM *fp)
-{
-  struct scm_vm_heap_frame *p =
-    scm_must_malloc (sizeof (struct scm_vm_heap_frame), "make_vm_heap_frame");
-  p->fp            = fp;
-  p->program       = SCM_UNDEFINED;
-  p->variables     = SCM_UNDEFINED;
-  p->dynamic_link  = SCM_UNDEFINED;
-  p->external_link = SCM_UNDEFINED;
-  SCM_RETURN_NEWSMOB (scm_tc16_vm_heap_frame, p);
-}
-
-static SCM
-vm_heap_frame_mark (SCM obj)
-{
-  struct scm_vm_heap_frame *p = SCM_VM_HEAP_FRAME_DATA (obj);
-  scm_gc_mark (p->program);
-  scm_gc_mark (p->variables);
-  scm_gc_mark (p->dynamic_link);
-  return p->external_link;
-}
-
-/* Scheme interface */
-
-SCM_DEFINE (scm_frame_p, "frame?", 1, 0, 0,
-	    (SCM obj),
-	    "")
-#define FUNC_NAME s_scm_frame_p
-{
-  return SCM_BOOL (SCM_VM_HEAP_FRAME_P (obj));
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_frame_program, "frame-program", 1, 0, 0,
-	    (SCM frame),
-	    "")
-#define FUNC_NAME s_scm_frame_program
-{
-  SCM_VALIDATE_VM_HEAP_FRAME (1, frame);
-  return SCM_VM_FRAME_PROGRAM (SCM_VM_HEAP_FRAME_DATA (frame)->fp);
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_frame_variables, "frame-variables", 1, 0, 0,
-	    (SCM frame),
-	    "")
-#define FUNC_NAME s_scm_frame_variables
-{
-  struct scm_vm_heap_frame *p;
-
-  SCM_VALIDATE_VM_HEAP_FRAME (1, frame);
-  p = SCM_VM_HEAP_FRAME_DATA (frame);
-
-  if (SCM_UNBNDP (p->variables))
-    {
-      SCM prog = scm_frame_program (frame);
-      int i, size = SCM_PROGRAM_NARGS (prog) + SCM_PROGRAM_NLOCS (prog);
-      p->variables = scm_make_vector (SCM_MAKINUM (size), SCM_BOOL_F);
-      for (i = 0; i < size; i++)
-	SCM_VELTS (p->variables)[i] = SCM_VM_FRAME_VARIABLE (p->fp, i);
-    }
-  return p->variables;
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_frame_dynamic_link, "frame-dynamic-link", 1, 0, 0,
-	    (SCM frame),
-	    "")
-#define FUNC_NAME s_scm_frame_dynamic_link
-{
-  struct scm_vm_heap_frame *p;
-
-  SCM_VALIDATE_VM_HEAP_FRAME (1, frame);
-  p = SCM_VM_HEAP_FRAME_DATA (frame);
-
-  if (SCM_UNBNDP (p->dynamic_link))
-    {
-      SCM *fp = SCM_VM_STACK_ADDRESS (SCM_VM_FRAME_DYNAMIC_LINK (p->fp));
-      if (fp)
-	p->dynamic_link = make_vm_heap_frame (fp);
-      else
-	p->dynamic_link = SCM_BOOL_F;
-    }
-
-  return p->dynamic_link;
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_frame_external_link, "frame-external-link", 1, 0, 0,
-	    (SCM frame),
-	    "")
-#define FUNC_NAME s_scm_frame_external_link
-{
-  struct scm_vm_heap_frame *p;
-
-  SCM_VALIDATE_VM_HEAP_FRAME (1, frame);
-  p = SCM_VM_HEAP_FRAME_DATA (frame);
-
-  if (SCM_UNBNDP (p->external_link))
-    p->external_link = SCM_VM_FRAME_EXTERNAL_LINK (p->fp);
-
-  return p->external_link;
-}
-#undef FUNC_NAME
 
 
 /*
@@ -303,6 +191,7 @@ make_vm (void)
   vp->time        = 0;
   vp->clock       = 0;
   vp->options     = SCM_EOL;
+  vp->last_frame  = SCM_BOOL_F;
   for (i = 0; i < SCM_VM_NUM_HOOKS; i++)
     vp->hooks[i] = SCM_BOOL_F;
   SCM_RETURN_NEWSMOB (scm_tc16_vm, vp);
@@ -321,8 +210,8 @@ vm_mark (SCM obj)
   fp = vp->fp;
   while (fp)
     {
-      SCM *upper = SCM_VM_FRAME_UPPER_ADDRESS (fp);
-      SCM *lower = SCM_VM_FRAME_LOWER_ADDRESS (fp);
+      SCM *upper = SCM_STACK_FRAME_UPPER_ADDRESS (fp);
+      SCM *lower = SCM_STACK_FRAME_LOWER_ADDRESS (fp);
       /* Mark intermediate data */
       for (; sp >= upper; sp--)
 	if (SCM_NIMP (*sp))
@@ -337,6 +226,7 @@ vm_mark (SCM obj)
   /* Mark the options */
   for (i = 0; i < SCM_VM_NUM_HOOKS; i++)
     scm_gc_mark (vp->hooks[i]);
+  scm_gc_mark (vp->last_frame);
   return vp->options;
 }
 
@@ -553,7 +443,17 @@ SCM_DEFINE (scm_vm_current_frame, "vm-current-frame", 1, 0, 0,
 {
   SCM_VALIDATE_VM (1, vm);
   VM_CHECK_RUNNING (vm);
-  return make_vm_heap_frame (SCM_VM_DATA (vm)->fp);
+  return scm_c_make_heap_frame (SCM_VM_DATA (vm)->fp);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_vm_last_frame, "vm-last-frame", 1, 0, 0,
+	    (SCM vm),
+	    "")
+#define FUNC_NAME s_scm_vm_last_frame
+{
+  SCM_VALIDATE_VM (1, vm);
+  return SCM_VM_DATA (vm)->last_frame;
 }
 #undef FUNC_NAME
 
@@ -593,7 +493,7 @@ SCM_DEFINE (scm_vm_fetch_stack, "vm-fetch-stack", 1, 0, 0,
   VM_CHECK_RUNNING (vm);
 
   vp = SCM_VM_DATA (vm);
-  for (sp = SCM_VM_FRAME_UPPER_ADDRESS (vp->fp); sp <= vp->sp; sp++)
+  for (sp = SCM_STACK_FRAME_UPPER_ADDRESS (vp->fp); sp <= vp->sp; sp++)
     ls = scm_cons (*sp, ls);
   return ls;
 }
@@ -607,12 +507,10 @@ SCM_DEFINE (scm_vm_fetch_stack, "vm-fetch-stack", 1, 0, 0,
 void
 scm_init_vm (void)
 {
+  scm_init_frames ();
   scm_init_instructions ();
-  scm_init_programs ();
   scm_init_objcodes ();
-
-  scm_tc16_vm_heap_frame = scm_make_smob_type ("vm_frame", 0);
-  scm_set_smob_mark (scm_tc16_vm_heap_frame, vm_heap_frame_mark);
+  scm_init_programs ();
 
   scm_tc16_vm_cont = scm_make_smob_type ("vm-cont", 0);
   scm_set_smob_mark (scm_tc16_vm_cont, vm_cont_mark);

@@ -58,6 +58,7 @@ struct scm_program {
   unsigned char nlocs;		/* the number of local variables */
   unsigned char nexts;		/* the number of external variables */
   scm_byte_t *base;		/* program base address */
+  SCM meta;			/* meta data */
   SCM objs;			/* constant objects */
   SCM external;			/* external environment */
   SCM holder;			/* the owner of bytecode */
@@ -68,18 +69,6 @@ extern scm_bits_t scm_tc16_program;
 #define SCM_PROGRAM_P(x)	(SCM_SMOB_PREDICATE (scm_tc16_program, x))
 #define SCM_PROGRAM_DATA(x)	((struct scm_program *) SCM_SMOB_DATA (x))
 #define SCM_VALIDATE_PROGRAM(p,x) SCM_MAKE_VALIDATE (p, x, PROGRAM_P)
-
-#define SCM_PROGRAM_SIZE(x)	(SCM_PROGRAM_DATA (x)->size)
-#define SCM_PROGRAM_NARGS(x)	(SCM_PROGRAM_DATA (x)->nargs)
-#define SCM_PROGRAM_NREST(x)	(SCM_PROGRAM_DATA (x)->nrest)
-#define SCM_PROGRAM_NLOCS(x)	(SCM_PROGRAM_DATA (x)->nlocs)
-#define SCM_PROGRAM_NEXTS(x)	(SCM_PROGRAM_DATA (x)->nexts)
-#define SCM_PROGRAM_BASE(x)	(SCM_PROGRAM_DATA (x)->base)
-#define SCM_PROGRAM_META(x)	(SCM_PROGRAM_DATA (x)->meta)
-#define SCM_PROGRAM_OBJS(x)	(SCM_PROGRAM_DATA (x)->objs)
-#define SCM_PROGRAM_LINKS(x)	(SCM_PROGRAM_DATA (x)->links)
-#define SCM_PROGRAM_EXTERNAL(x)	(SCM_PROGRAM_DATA (x)->external)
-#define SCM_PROGRAM_HOLDER(x)	(SCM_PROGRAM_DATA (x)->holder)
 
 extern SCM scm_c_make_program (void *addr, size_t size, SCM holder);
 extern SCM scm_c_make_closure (SCM program, SCM external);

@@ -20,19 +20,17 @@
 ;;; Code:
 
 (define-module (system repl common)
-  :use-module (oop goops)
   :use-syntax (system base syntax)
   :use-module (system base compile)
   :use-module (system base language)
-  :use-module (system vm core)
-  :use-module (system vm trace))
+  :use-module (system vm core))
 
 
 ;;;
 ;;; Repl type
 ;;;
 
-(define-vm-class <repl> () env options tm-stats gc-stats vm-stats)
+(define-record (<repl> env options tm-stats gc-stats vm-stats))
 
 (define repl-default-options
   '((trace . #f)))
@@ -41,12 +39,11 @@
   (let ((cenv (make-cenv :vm (the-vm)
 			 :language (lookup-language lang)
 			 :module (current-module))))
-    (make <repl>
-	  :env cenv
-	  :options repl-default-options
-	  :tm-stats (times)
-	  :gc-stats (gc-stats)
-	  :vm-stats (vm-stats cenv.vm))))
+    (<repl> :env cenv
+	    :options repl-default-options
+	    :tm-stats (times)
+	    :gc-stats (gc-stats)
+	    :vm-stats (vm-stats cenv.vm))))
 
 (define-public (repl-welcome repl)
   (format #t "~A interpreter ~A on Guile ~A\n"
