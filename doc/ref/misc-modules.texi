@@ -21,7 +21,8 @@ how @code{pretty-print} will format the output, see the following:
 
 @lisp
 (pretty-print '(define (foo) (lambda (x)
-(cond ((zero? x) #t) ((negative? x) -x) (else (if (= x 1) 2 (* x x x)))))))
+(cond ((zero? x) #t) ((negative? x) -x) (else
+(if (= x 1) 2 (* x x x)))))))
 @print{}
 (define (foo)
   (lambda (x)
@@ -30,10 +31,26 @@ how @code{pretty-print} will format the output, see the following:
           (else (if (= x 1) 2 (* x x x))))))
 @end lisp
 
-@deffn {Scheme Procedure} pretty-print obj [port]
+@deffn {Scheme Procedure} pretty-print obj [port] [keyword-options]
 Print the textual representation of the Scheme object @var{obj} to
 @var{port}.  @var{port} defaults to the current output port, if not
 given.
+
+The further @var{keyword-options} are keywords and parameters as
+follows,
+
+@table @asis
+@item @nicode{#:display?} @var{flag}
+If @var{flag} is true then print using @code{display}.  The default is
+@code{#f} which means use @code{write} style.  (@pxref{Writing})
+
+@item @nicode{#:per-line-prefix} @var{string}
+Print the given @var{string} as a prefix on each line.  The default is
+no prefix.
+
+@item @nicode{#:width} @var{columns}
+Print within the given @var{columns}.  The default is 79.
+@end table
 @end deffn
 
 Beware: Since @code{pretty-print} uses it's own write procedure, it's
