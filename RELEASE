@@ -28,6 +28,7 @@ HP/UX (gcc, HP cc) --- nutrimat.gnu.ai.mit.edu
    b) Update NEWS and the Texinfo documentation as appropriate.
    c) Remove the user-visible markers from the log entries once they're
       documented.
+   d) Check for any [[incomplete]] sections of NEWS.
 3) Scan output from `cvs log' to find files that have changed a lot, but
    do not have up-to-date copyright notices.
 4) Update the version numbers in GUILE-VERSION, and README, to remove the

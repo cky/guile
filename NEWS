@@ -164,6 +164,9 @@ distribution, and thus Guile had no regular expression support.  Guile
 1.2 now adds back the most commonly used functions, and supports all
 of SCSH's regular expression functions.  They are:
 
+*** [[get stuff from Tim's documentation]]
+*** [[mention the regexp/mumble flags]]
+
 ** Guile now provides information on how it was built, via the new
 global variable, %guile-build-info.  This variable records the values
 of the standard GNU makefile directory variables as an assocation
@@ -173,8 +176,6 @@ installed, you can say:
 
 guile -c "(display (assq-ref %guile-build-info 'libdir)) (newline)"
 
-
-*** [[get docs from Tim?]]
 
 * Changes to the gh_ interface
 
