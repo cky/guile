@@ -257,6 +257,10 @@ For example:
 @result{} #t
 @end lisp
 
+@deftypefn {C Function} int scm_is_number (SCM obj)
+This is equivalent to @code{scm_is_true (scm_number_p (obj))}.
+@end deftypefn
+
 The next few subsections document each of Guile's numerical data types
 in detail.
 
@@ -643,15 +647,14 @@ complex number have the same properties of inexactness and limited
 precision as single inexact rational numbers.  Guile can not represent
 exact complex numbers with non-zero imaginary parts.
 
-@deffn {Scheme Procedure} complex? x
-@deffnx {C Function} scm_number_p (x)
+@deffn {Scheme Procedure} complex? z
+@deffnx {C Function} scm_complex_p (z)
 Return @code{#t} if @var{x} is a complex number, @code{#f}
 otherwise.  Note that the sets of real, rational and integer
 values form subsets of the set of complex numbers, i. e. the
 predicate will also be fulfilled if @var{x} is a real,
 rational or integer number.
 @end deffn
-
 
 @node Exactness
 @subsubsection Exact and Inexact Numbers
@@ -1024,6 +1027,23 @@ Return the magnitude of the number @var{z}. This is the same as
 @deffnx {C Function} scm_angle (z)
 Return the angle of the complex number @var{z}.
 @end deffn
+
+@deftypefn  {C Function} SCM scm_c_make_rectangular (double re, double im)
+@deftypefnx {C Function} SCM scm_c_make_polar (double x, double y)
+Like @code{scm_make_rectangular} or @code{scm_make_polar},
+respectively, but these functions take @code{double}s as their
+arguments.
+@end deftypefn
+
+@deftypefn  {C Function} double scm_c_real_part (z)
+@deftypefnx {C Function} double scm_c_imag_part (z)
+Returns the real or imaginary part of @var{z} as a @code{double}.
+@end deftypefn
+
+@deftypefn  {C Function} double scm_c_magnitude (z)
+@deftypefnx {C Function} double scm_c_angle (z)
+Returns the magnitude or angle of @var{z} as a @code{double}.
+@end deftypefn
 
 
 @node Arithmetic
