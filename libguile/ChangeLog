@@ -1,3 +1,11 @@
+2003-07-24  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* __scm.h: Reformulated the architecture and compiler properties
+	in terms of properties of scm_t_bits and SCM variables rather than
+	in terms of c standard types.  This is since it is not known which
+	of the standard types scm_t_bits and SCM variables will be defined
+	to.
+
 2003-07-24  Kevin Ryde  <user42@zip.com.au>
 
 	* numbers.c (scm_angle): Use scm_flo0 for non-negative inum, bignum

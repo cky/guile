@@ -3,7 +3,7 @@
 #ifndef SCM___SCM_H
 #define SCM___SCM_H
 
-/* Copyright (C) 1995,1996,1998,1999,2000,2001,2002, 2003 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001,2002,2003 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -306,17 +306,32 @@
  *
  * Guile as of today can only work on systems which fulfill at least the
  * following requirements:
- * - long ints have at least 32 bits.
+ *
+ * - scm_t_bits and SCM variables have at least 32 bits.
  *   Guile's type system is based on this assumption.
- * - long ints consist of at least four characters.
- *   It is assumed that cells, i. e. pairs of long ints, are eight character
- *   aligned, because three bits of a cell pointer are used for type data.
- * - sizeof (void*) == sizeof (long int)
- *   Pointers are stored in SCM objects, and sometimes SCM objects are passed
- *   as void*.  Thus, there has to be a one-to-one correspondence.
+ *
+ * - sizeof (scm_t_bits) >= sizeof (void*) and sizeof (SCM) >= sizeof (void*)
+ *   Guile's type system is based on this assumption, since it must be
+ *   possible to store pointers to cells on the heap in scm_t_bits and SCM
+ *   variables.
+ *
+ * - sizeof (scm_t_bits) >= 4 and sizeof (scm_t_bits) is a power of 2.
+ *   Guile's type system is based on this assumption.  In particular, it is
+ *   assumed that cells, i. e. pairs of scm_t_bits variables, are eight
+ *   character aligned.  This is because three bits of a scm_t_bits variable
+ *   that is holding a pointer to a cell on the heap must be available for
+ *   storing type data.
+ *
+ * - sizeof (scm_t_bits) <= sizeof (void*) and sizeof (SCM) <= sizeof (void*)
+ *   In some parts of guile, scm_t_bits and SCM variables are passed to
+ *   functions as void* arguments.  Together with the requirement above, this
+ *   requires a one-to-one correspondence between the size of a void* and the
+ *   sizes of scm_t_bits and SCM variables.
+ *
  * - numbers are encoded using two's complement.
  *   The implementation of the bitwise scheme level operations is based on
  *   this assumption.
+ *
  * - ... add more
  */
 
