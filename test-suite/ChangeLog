@@ -2,6 +2,10 @@
 
 	* Makefile.am (SCM_TESTS): Added test/fractions.test.
 
+2004-02-12  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/unif.test (array?, array-fill!, array-prototype): Add tests.
+
 2004-01-23  Marius Vollmer  <mvo@zagadka.de>
 
 	* tests/r5rs_pitfall.scm: Removed again.  I was confused.  The
