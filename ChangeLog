@@ -1,3 +1,8 @@
+2001-04-25  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* configure.in: Don't treat srfi directory specially, just create
+	the Makefile there (thanks to Neil Jerram for the patch).
+
 2001-04-23  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* Makefile.am (SUBDIRS): Added `srfi'.

@@ -1,5 +1,7 @@
 2001-04-25  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
+	* configure.in, autogen.sh: Removed.
+
 	* srfi-13.c (scm_string_replace): Take sizeof (char) into account
 	when using memmove().
 
