@@ -262,8 +262,30 @@ SCM_DEFINE (scm_array_p, "array?", 1, 1, 0,
 	return SCM_BOOL_F;
       v = SCM_ARRAY_V (v);
      }
+
   if (nprot)
-    return scm_from_bool(nprot);
+    {
+      switch (SCM_TYP7 (v))
+ 	{
+ 	case scm_tc7_bvect:
+ 	case scm_tc7_string:
+ 	case scm_tc7_byvect:
+ 	case scm_tc7_uvect:
+ 	case scm_tc7_ivect:
+ 	case scm_tc7_svect:
+#if SCM_SIZEOF_LONG_LONG != 0
+ 	case scm_tc7_llvect:
+#endif
+ 	case scm_tc7_fvect:
+ 	case scm_tc7_dvect:
+ 	case scm_tc7_cvect:
+ 	case scm_tc7_vector:
+ 	case scm_tc7_wvect:
+	  return SCM_BOOL_T;
+ 	default:
+	  return SCM_BOOL_F;
+	}
+    }
   else
     {
       int protp = 0;
