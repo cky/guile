@@ -1,5 +1,12 @@
 2001-05-18  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
+	* boot-9.scm: (resolve-interface, use-srfis): Small
+	cleanup; nfc.
+	(process-define-module): Internal proc `unrecognized'
+	now accepts arg; update callers.
+	Reverse order of interfaces added to module to be
+	consistent with that specified in `define-module' form.
+
 	* session.scm: (help): Use `provided?' instead of `feature?'.
 	Factor "TYPE not found for X" output into internal proc.
 	Support `(quote SYMBOL)'; call `search-documentation-files'.
