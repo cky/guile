@@ -118,7 +118,7 @@ scm_list_p(x)
 
 
 /* Return the length of SX, or -1 if it's not a proper list.
-   This uses the "tortise and hare" algorithm to detect "infinitely
+   This uses the "tortoise and hare" algorithm to detect "infinitely
    long" lists (i.e. lists with cycles in their cdrs), and returns -1
    if it does find one.  */
 long
@@ -126,7 +126,7 @@ scm_ilength(sx)
      SCM sx;
 {
   register long i = 0;
-  register SCM tortise = sx;
+  register SCM tortoise = sx;
   register SCM hare = sx;
 
   do {
@@ -138,12 +138,12 @@ scm_ilength(sx)
     if SCM_NCONSP(hare) return -1;
     hare = SCM_CDR(hare);
     i++;
-    /* For every two steps the hare takes, the tortise takes one.  */
-    tortise = SCM_CDR(tortise);
+    /* For every two steps the hare takes, the tortoise takes one.  */
+    tortoise = SCM_CDR(tortoise);
   }
-  while (hare != tortise);
+  while (hare != tortoise);
 
-  /* If the tortise ever catches the hare, then the list must contain
+  /* If the tortoise ever catches the hare, then the list must contain
      a cycle.  */
   return -1;
 }
