@@ -1,6 +1,6 @@
 ;;;; srfi-1.test --- Test suite for Guile's SRFI-1 functions. -*- scheme -*-
 ;;;;
-;;;; Copyright 2003 Free Software Foundation, Inc.
+;;;; Copyright 2003, 2004 Free Software Foundation, Inc.
 ;;;;
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -42,6 +42,52 @@
 	  (set! keep (cons elem keep))
 	  (set! lst  (ref-delete elem lst proc))))))
 
+
+;;
+;; alist-copy
+;;
+
+(with-test-prefix "alist-copy"
+
+  ;; return a list which is the pairs making up alist A, the spine and cells
+  (define (alist-pairs a)
+    (let more ((a a)
+	       (result a))
+      (if (pair? a)
+	  (more (cdr a) (cons a result))
+	  result)))
+
+  ;; return a list of the elements common to lists X and Y, compared with eq?
+  (define (common-elements x y)
+    (if (null? x)
+	'()
+	(if (memq (car x) y)
+	    (cons (car x) (common-elements (cdr x) y))
+	    (common-elements (cdr x) y))))
+
+  ;; validate an alist-copy of OLD to NEW
+  ;; lists must be equal, and must comprise new pairs
+  (define (valid-alist-copy? old new)
+    (and (equal? old new)
+	 (null? (common-elements old new))))
+
+  (pass-if-exception "too few args" exception:wrong-num-args
+    (alist-copy))
+    
+  (pass-if-exception "too many args" exception:wrong-num-args
+    (alist-copy '() '()))
+    
+  (let ((old '()))
+    (pass-if old (valid-alist-copy? old (alist-copy old))))
+
+  (let ((old '((1 . 2))))
+    (pass-if old (valid-alist-copy? old (alist-copy old))))
+
+  (let ((old '((1 . 2) (3 . 4))))
+    (pass-if old (valid-alist-copy? old (alist-copy old))))
+
+  (let ((old '((1 . 2) (3 . 4) (5 . 6))))
+    (pass-if old (valid-alist-copy? old (alist-copy old)))))
 
 ;;
 ;; append-map
