@@ -1,3 +1,8 @@
+2000-01-14    <mstachow@alum.mit.edu>
+
+	* Makefile.am: Augment path when running guile-doc-snarf so
+	guile-func-name-check is found.
+
 Wed Jan 12 00:06:53 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* net_db.c (s_scm_inet_makeaddr): Use SCM_NUM2ULONG since that's

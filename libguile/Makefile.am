@@ -161,10 +161,10 @@ libpath.h: $(srcdir)/Makefile.in  $(top_builddir)/config.status
 
 SUFFIXES = .x .doc
 .c.x:
-	./guile-doc-snarf $< $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< > $@ \
+	PATH=.:${PATH} ./guile-doc-snarf $< $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< > $@ \
 	|| { rm $@; false; }
 .c.doc:
-	./guile-doc-snarf $< $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< \
+	PATH=.:${PATH} ./guile-doc-snarf $< $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< \
         || { rm $@; false; }
 
 ## GJB:FIXME:: this is ugly;  generate the *.doc files from the *.x file list, above
