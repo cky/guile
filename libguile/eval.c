@@ -242,8 +242,13 @@ scm_ilookup (iloc, env)
 
 #endif /* USE_THREADS */
 
+#ifdef USE_THREADS
 static SCM *
 scm_lookupcar1 (SCM vloc, SCM genv)
+#else
+SCM *
+scm_lookupcar (SCM vloc, SCM genv)
+#endif
 {
   SCM env = genv;
   register SCM *al, fl, var = SCM_CAR (vloc);
@@ -371,8 +376,6 @@ scm_lookupcar (vloc, genv)
     abort ();
   return loc;
 }
-#else /* not USE_THREADS */
-#define scm_lookupcar scm_lookupcar1
 #endif
 
 #define unmemocar scm_unmemocar

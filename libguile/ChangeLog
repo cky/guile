@@ -1,3 +1,8 @@
+1998-11-01  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* eval.c: Don't #define scm_lookupcar to scm_lookupcar1.  Instead
+	make sure that there always is a "real" scm_lookupcar.
+
 1998-11-01  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
 	* read.c, read.h (history-length, history-file): New read options.
