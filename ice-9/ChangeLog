@@ -1,5 +1,13 @@
 2001-03-17  Keisuke Nishida  <kxn30@po.cwru.edu>
 
+	* boot-9.scm (before-eval-hook, after-eval-hook,
+	before-print-hook, after-print-hook): New hooks.
+	(scm-style-repl): Call these hooks.
+
+	* history.scm: New file.
+
+2001-03-17  Keisuke Nishida  <kxn30@po.cwru.edu>
+
 	* time.scm: New file.
 
 2001-03-17  Dirk Herrmann  <D.Herrmann@tu-bs.de>

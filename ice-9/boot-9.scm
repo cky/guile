@@ -2326,6 +2326,10 @@
 
 (define before-read-hook (make-hook))
 (define after-read-hook (make-hook))
+(define before-eval-hook (make-hook 1))
+(define after-eval-hook (make-hook 1))
+(define before-print-hook (make-hook 1))
+(define after-print-hook (make-hook 1))
 
 ;;; The default repl-reader function.  We may override this if we've
 ;;; the readline library.
@@ -2402,13 +2406,17 @@
 
 	   (-eval (lambda (sourc)
 		    (repl-report-start-timing)
-		    (start-stack 'repl-stack
-				 ;; If you change this procedure
-				 ;; (primitive-eval), please also
-				 ;; modify the repl-stack case in
-				 ;; save-stack so that stack cutting
-				 ;; continues to work.
-				 (primitive-eval sourc))))
+		    (run-hook before-eval-hook sourc)
+		    (let ((val (start-stack 'repl-stack
+					    ;; If you change this procedure
+					    ;; (primitive-eval), please also
+					    ;; modify the repl-stack case in
+					    ;; save-stack so that stack cutting
+					    ;; continues to work.
+					    (primitive-eval sourc))))
+		      (run-hook after-eval-hook sourc)
+		      val)))
+		      
 
 	   (-print (let ((maybe-print (lambda (result)
 					(if (or scm-repl-print-unspecified
@@ -2419,7 +2427,9 @@
 		     (lambda (result)
 		       (if (not scm-repl-silent)
 			   (begin
+			     (run-hook before-print-hook result)
 			     (maybe-print result)
+			     (run-hook after-print-hook result)
 			     (if scm-repl-verbose
 				 (repl-report))
 			     (force-output))))))
