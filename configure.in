@@ -196,6 +196,7 @@ GUILE_FUNC_DECLARED(strptime, time.h)
 GUILE_FUNC_DECLARED(bzero, string.h)
 GUILE_FUNC_DECLARED(sleep, unistd.h)
 GUILE_FUNC_DECLARED(usleep, unistd.h)
+GUILE_FUNC_DECLARED(inet_aton, arpa/inet.h)
 
 ### On some systems usleep has no return value.  If it does have one,
 ### we'd like to return it; otherwise, we'll fake it.

@@ -1,3 +1,8 @@
+2000-10-01  Gary Houston  <ghouston@arglist.com>
+
+	* configure.in: check whether inet_aton is declared.
+	* acconfig.h: added MISSING_INET_ATON_DECL.
+
 2000-09-20  Keisuke Nishida  <kxn30@po.cwru.edu>
 
 	* libguile.h: #include "libguile/properties.h".
