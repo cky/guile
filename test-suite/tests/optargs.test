@@ -30,3 +30,89 @@
                #t)
              (false-if-exception (test-1)))
           (interaction-environment))))
+
+;;;
+;;; let-keywords
+;;;
+
+(with-test-prefix "let-keywords"
+
+  ;; in guile 1.6.4 and earlier, an empty binding list only used `begin',
+  ;; which caused apparently internal defines to "leak" out into the
+  ;; encompasing environment
+  (pass-if-exception "empty bindings internal defines leaking out"
+      exception:unbound-var
+    (let ((rest '()))
+      (let-keywords rest #f ()
+	(define localvar #f)
+	#f)
+      localvar))
+
+  (pass-if "one key"
+    (let-keywords '(#:foo 123) #f (foo)
+      (= foo 123))))
+
+;;;
+;;; let-keywords*
+;;;
+
+(with-test-prefix "let-keywords*"
+
+  ;; in guile 1.6.4 and earlier, an empty binding list only used `begin',
+  ;; which caused apparently internal defines to "leak" out into the
+  ;; encompasing environment
+  (pass-if-exception "empty bindings internal defines leaking out"
+      exception:unbound-var
+    (let ((rest '()))
+      (let-keywords* rest #f ()
+	(define localvar #f)
+	#f)
+      localvar))
+
+  (pass-if "one key"
+    (let-keywords* '(#:foo 123) #f (foo)
+      (= foo 123))))
+
+;;;
+;;; let-optional
+;;;
+
+(with-test-prefix "let-optional"
+
+  ;; in guile 1.6.4 and earlier, an empty binding list only used `begin',
+  ;; which caused apparently internal defines to "leak" out into the
+  ;; encompasing environment
+  (pass-if-exception "empty bindings internal defines leaking out"
+      exception:unbound-var
+    (let ((rest '()))
+      (let-optional rest ()
+	(define localvar #f)
+	#f)
+      localvar))
+
+  (pass-if "one var"
+    (let ((rest '(123)))
+      (let-optional rest ((foo 999))
+	(= foo 123)))))
+
+;;;
+;;; let-optional*
+;;;
+
+(with-test-prefix "let-optional*"
+
+  ;; in guile 1.6.4 and earlier, an empty binding list only used `begin',
+  ;; which caused apparently internal defines to "leak" out into the
+  ;; encompasing environment
+  (pass-if-exception "empty bindings internal defines leaking out"
+      exception:unbound-var
+    (let ((rest '()))
+      (let-optional* rest ()
+	(define localvar #f)
+	#f)
+      localvar))
+
+  (pass-if "one var"
+    (let ((rest '(123)))
+      (let-optional* rest ((foo 999))
+	(= foo 123)))))
