@@ -284,6 +284,7 @@ SCM_API int scm_i_print_fraction (SCM sexp, SCM port, scm_print_state *pstate);
 
 /* general internal functions */
 SCM_API void scm_i_print_double (double val, SCM port);
+SCM_API void scm_i_print_complex (double real, double imag, SCM port);
 
 /* conversion functions for integers */
 

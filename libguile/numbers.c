@@ -2195,6 +2195,25 @@ idbl2str (double f, char *a, int radix)
   return ch;
 }
 
+
+static size_t
+icmplx2str (double real, double imag, char *str, int radix)
+{
+  size_t i;
+  
+  i = idbl2str (real, str, radix);
+  if (imag != 0.0)
+    {
+      /* Don't output a '+' for negative numbers or for Inf and
+	 NaN.  They will provide their own sign. */
+      if (0 <= imag && !xisinf (imag) && !xisnan (imag))
+	str[i++] = '+';
+      i += idbl2str (imag, &str[i], radix);
+      str[i++] = 'i';
+    }
+  return i;
+}
+
 static size_t
 iflo2str (SCM flt, char *str, int radix)
 {
@@ -2202,19 +2221,8 @@ iflo2str (SCM flt, char *str, int radix)
   if (SCM_REALP (flt))
     i = idbl2str (SCM_REAL_VALUE (flt), str, radix);
   else
-    {
-      i = idbl2str (SCM_COMPLEX_REAL (flt), str, radix);
-      if (SCM_COMPLEX_IMAG (flt) != 0.0)
-	{
-	  double imag = SCM_COMPLEX_IMAG (flt);
-	  /* Don't output a '+' for negative numbers or for Inf and
-	     NaN.  They will provide their own sign. */
-	  if (0 <= imag && !xisinf (imag) && !xisnan (imag))
-	    str[i++] = '+';
-	  i += idbl2str (imag, &str[i], radix);
-	  str[i++] = 'i';
-	}
-    }
+    i = icmplx2str (SCM_COMPLEX_REAL (flt), SCM_COMPLEX_IMAG (flt),
+		    str, radix);
   return i;
 }
 
@@ -2329,6 +2337,13 @@ scm_print_complex (SCM sexp, SCM port, scm_print_state *pstate SCM_UNUSED)
   char num_buf[FLOBUFLEN];
   scm_lfwrite (num_buf, iflo2str (sexp, num_buf, 10), port);
   return !0;
+}
+
+void
+scm_i_print_complex (double real, double imag, SCM port)
+{
+  char num_buf[FLOBUFLEN];
+  scm_lfwrite (num_buf, icmplx2str (real, imag, num_buf, 10), port);
 }
 
 int
@@ -5746,7 +5761,7 @@ scm_to_double (SCM val)
   else if (SCM_REALP (val))
     return SCM_REAL_VALUE (val);
   else
-    scm_wrong_type_arg (NULL, 0, val);
+    scm_wrong_type_arg_msg (NULL, 0, val, "real number");
 }
 
 SCM
