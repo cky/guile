@@ -39,6 +39,7 @@ explicitly.  It is called automatically when appropriate.
 @deffnx {C Function} scm_gc_stats ()
 Return an association list of statistics about Guile's current
 use of storage.
+
 @end deffn
 
 

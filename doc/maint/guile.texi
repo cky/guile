@@ -516,7 +516,7 @@ Return @code{#t} if @var{obj} is a debug object.
 @end deffn
 
 dynamic-link
-@c snarfed from /home/ghouston/guile/guile-core/libguile/dynl.c:212
+@c snarfed from /home/ghouston/guile/guile-core/libguile/dynl.c:171
 @deffn {Scheme Procedure} dynamic-link filename
 @deffnx {C Function} scm_dynamic_link (filename)
 Find the shared object (shared library) denoted by
@@ -532,7 +532,7 @@ such as @file{/usr/lib} and @file{/usr/local/lib}.
 @end deffn
 
 dynamic-object?
-@c snarfed from /home/ghouston/guile/guile-core/libguile/dynl.c:227
+@c snarfed from /home/ghouston/guile/guile-core/libguile/dynl.c:186
 @deffn {Scheme Procedure} dynamic-object? obj
 @deffnx {C Function} scm_dynamic_object_p (obj)
 Return @code{#t} if @var{obj} is a dynamic object handle,
@@ -540,7 +540,7 @@ or @code{#f} otherwise.
 @end deffn
 
 dynamic-unlink
-@c snarfed from /home/ghouston/guile/guile-core/libguile/dynl.c:241
+@c snarfed from /home/ghouston/guile/guile-core/libguile/dynl.c:200
 @deffn {Scheme Procedure} dynamic-unlink dobj
 @deffnx {C Function} scm_dynamic_unlink (dobj)
 Unlink a dynamic object from the application, if possible.  The
@@ -551,7 +551,7 @@ object.
 @end deffn
 
 dynamic-func
-@c snarfed from /home/ghouston/guile/guile-core/libguile/dynl.c:266
+@c snarfed from /home/ghouston/guile/guile-core/libguile/dynl.c:225
 @deffn {Scheme Procedure} dynamic-func name dobj
 @deffnx {C Function} scm_dynamic_func (name, dobj)
 Return a ``handle'' for the function @var{name} in the
@@ -566,7 +566,7 @@ since it will be added automatically when necessary.
 @end deffn
 
 dynamic-call
-@c snarfed from /home/ghouston/guile/guile-core/libguile/dynl.c:308
+@c snarfed from /home/ghouston/guile/guile-core/libguile/dynl.c:267
 @deffn {Scheme Procedure} dynamic-call func dobj
 @deffnx {C Function} scm_dynamic_call (func, dobj)
 Call a C function in a dynamic object.  Two styles of
@@ -591,7 +591,7 @@ and its return value is ignored.
 @end deffn
 
 dynamic-args-call
-@c snarfed from /home/ghouston/guile/guile-core/libguile/dynl.c:363
+@c snarfed from /home/ghouston/guile/guile-core/libguile/dynl.c:322
 @deffn {Scheme Procedure} dynamic-args-call func dobj args
 @deffnx {C Function} scm_dynamic_args_call (func, dobj, args)
 Call the C function indicated by @var{func} and @var{dobj},
@@ -664,7 +664,7 @@ a-cont
 @end deffn
 
 environment?
-@c snarfed from /home/ghouston/guile/guile-core/libguile/environments.c:129
+@c snarfed from /home/ghouston/guile/guile-core/libguile/environments.c:130
 @deffn {Scheme Procedure} environment? obj
 @deffnx {C Function} scm_environment_p (obj)
 Return @code{#t} if @var{obj} is an environment, or @code{#f}
@@ -672,7 +672,7 @@ otherwise.
 @end deffn
 
 environment-bound?
-@c snarfed from /home/ghouston/guile/guile-core/libguile/environments.c:140
+@c snarfed from /home/ghouston/guile/guile-core/libguile/environments.c:141
 @deffn {Scheme Procedure} environment-bound? env sym
 @deffnx {C Function} scm_environment_bound_p (env, sym)
 Return @code{#t} if @var{sym} is bound in @var{env}, or
@@ -680,7 +680,7 @@ Return @code{#t} if @var{sym} is bound in @var{env}, or
 @end deffn
 
 environment-ref
-@c snarfed from /home/ghouston/guile/guile-core/libguile/environments.c:155
+@c snarfed from /home/ghouston/guile/guile-core/libguile/environments.c:156
 @deffn {Scheme Procedure} environment-ref env sym
 @deffnx {C Function} scm_environment_ref (env, sym)
 Return the value of the location bound to @var{sym} in
@@ -689,7 +689,7 @@ Return the value of the location bound to @var{sym} in
 @end deffn
 
 environment-fold
-@c snarfed from /home/ghouston/guile/guile-core/libguile/environments.c:225
+@c snarfed from /home/ghouston/guile/guile-core/libguile/environments.c:226
 @deffn {Scheme Procedure} environment-fold env proc init
 @deffnx {C Function} scm_environment_fold (env, proc, init)
 Iterate over all the bindings in @var{env}, accumulating some
@@ -726,7 +726,7 @@ using environment-fold:
 @end deffn
 
 environment-define
-@c snarfed from /home/ghouston/guile/guile-core/libguile/environments.c:260
+@c snarfed from /home/ghouston/guile/guile-core/libguile/environments.c:261
 @deffn {Scheme Procedure} environment-define env sym val
 @deffnx {C Function} scm_environment_define (env, sym, val)
 Bind @var{sym} to a new location containing @var{val} in
@@ -739,7 +739,7 @@ immutable, signal an @code{environment:immutable-binding} error.
 @end deffn
 
 environment-undefine
-@c snarfed from /home/ghouston/guile/guile-core/libguile/environments.c:286
+@c snarfed from /home/ghouston/guile/guile-core/libguile/environments.c:287
 @deffn {Scheme Procedure} environment-undefine env sym
 @deffnx {C Function} scm_environment_undefine (env, sym)
 Remove any binding for @var{sym} from @var{env}. If @var{sym}
@@ -750,7 +750,7 @@ immutable, signal an @code{environment:immutable-binding} error.
 @end deffn
 
 environment-set!
-@c snarfed from /home/ghouston/guile/guile-core/libguile/environments.c:314
+@c snarfed from /home/ghouston/guile/guile-core/libguile/environments.c:315
 @deffn {Scheme Procedure} environment-set! env sym val
 @deffnx {C Function} scm_environment_set_x (env, sym, val)
 If @var{env} binds @var{sym} to some location, change that
@@ -763,7 +763,7 @@ to an immutable location, signal an
 @end deffn
 
 environment-cell
-@c snarfed from /home/ghouston/guile/guile-core/libguile/environments.c:349
+@c snarfed from /home/ghouston/guile/guile-core/libguile/environments.c:350
 @deffn {Scheme Procedure} environment-cell env sym for_write
 @deffnx {C Function} scm_environment_cell (env, sym, for_write)
 Return the value cell which @var{env} binds to @var{sym}, or
@@ -781,7 +781,7 @@ re-bound to a new value cell, or becomes undefined.
 @end deffn
 
 environment-observe
-@c snarfed from /home/ghouston/guile/guile-core/libguile/environments.c:401
+@c snarfed from /home/ghouston/guile/guile-core/libguile/environments.c:402
 @deffn {Scheme Procedure} environment-observe env proc
 @deffnx {C Function} scm_environment_observe (env, proc)
 Whenever @var{env}'s bindings change, apply @var{proc} to
@@ -793,7 +793,7 @@ token is unspecified.
 @end deffn
 
 environment-observe-weak
-@c snarfed from /home/ghouston/guile/guile-core/libguile/environments.c:418
+@c snarfed from /home/ghouston/guile/guile-core/libguile/environments.c:419
 @deffn {Scheme Procedure} environment-observe-weak env proc
 @deffnx {C Function} scm_environment_observe_weak (env, proc)
 This function is the same as environment-observe, except that
@@ -805,7 +805,7 @@ list of observing procedures.
 @end deffn
 
 environment-unobserve
-@c snarfed from /home/ghouston/guile/guile-core/libguile/environments.c:454
+@c snarfed from /home/ghouston/guile/guile-core/libguile/environments.c:455
 @deffn {Scheme Procedure} environment-unobserve token
 @deffnx {C Function} scm_environment_unobserve (token)
 Cancel the observation request which returned the value
@@ -817,7 +817,7 @@ bindings change.
 @end deffn
 
 make-leaf-environment
-@c snarfed from /home/ghouston/guile/guile-core/libguile/environments.c:1031
+@c snarfed from /home/ghouston/guile/guile-core/libguile/environments.c:1026
 @deffn {Scheme Procedure} make-leaf-environment
 @deffnx {C Function} scm_make_leaf_environment ()
 Create a new leaf environment, containing no bindings.
@@ -826,7 +826,7 @@ will be mutable.
 @end deffn
 
 leaf-environment?
-@c snarfed from /home/ghouston/guile/guile-core/libguile/environments.c:1054
+@c snarfed from /home/ghouston/guile/guile-core/libguile/environments.c:1049
 @deffn {Scheme Procedure} leaf-environment? object
 @deffnx {C Function} scm_leaf_environment_p (object)
 Return @code{#t} if object is a leaf environment, or @code{#f}
@@ -834,7 +834,7 @@ otherwise.
 @end deffn
 
 make-eval-environment
-@c snarfed from /home/ghouston/guile/guile-core/libguile/environments.c:1419
+@c snarfed from /home/ghouston/guile/guile-core/libguile/environments.c:1414
 @deffn {Scheme Procedure} make-eval-environment local imported
 @deffnx {C Function} scm_make_eval_environment (local, imported)
 Return a new environment object eval whose bindings are the
@@ -861,7 +861,7 @@ In typical use, @var{local} will be a finite environment, and
 @end deffn
 
 eval-environment?
-@c snarfed from /home/ghouston/guile/guile-core/libguile/environments.c:1456
+@c snarfed from /home/ghouston/guile/guile-core/libguile/environments.c:1451
 @deffn {Scheme Procedure} eval-environment? object
 @deffnx {C Function} scm_eval_environment_p (object)
 Return @code{#t} if object is an eval environment, or @code{#f}
@@ -869,35 +869,35 @@ otherwise.
 @end deffn
 
 eval-environment-local
-@c snarfed from /home/ghouston/guile/guile-core/libguile/environments.c:1466
+@c snarfed from /home/ghouston/guile/guile-core/libguile/environments.c:1461
 @deffn {Scheme Procedure} eval-environment-local env
 @deffnx {C Function} scm_eval_environment_local (env)
 Return the local environment of eval environment @var{env}.
 @end deffn
 
 eval-environment-set-local!
-@c snarfed from /home/ghouston/guile/guile-core/libguile/environments.c:1478
+@c snarfed from /home/ghouston/guile/guile-core/libguile/environments.c:1473
 @deffn {Scheme Procedure} eval-environment-set-local! env local
 @deffnx {C Function} scm_eval_environment_set_local_x (env, local)
 Change @var{env}'s local environment to @var{local}.
 @end deffn
 
 eval-environment-imported
-@c snarfed from /home/ghouston/guile/guile-core/libguile/environments.c:1504
+@c snarfed from /home/ghouston/guile/guile-core/libguile/environments.c:1499
 @deffn {Scheme Procedure} eval-environment-imported env
 @deffnx {C Function} scm_eval_environment_imported (env)
 Return the imported environment of eval environment @var{env}.
 @end deffn
 
 eval-environment-set-imported!
-@c snarfed from /home/ghouston/guile/guile-core/libguile/environments.c:1516
+@c snarfed from /home/ghouston/guile/guile-core/libguile/environments.c:1511
 @deffn {Scheme Procedure} eval-environment-set-imported! env imported
 @deffnx {C Function} scm_eval_environment_set_imported_x (env, imported)
 Change @var{env}'s imported environment to @var{imported}.
 @end deffn
 
 make-import-environment
-@c snarfed from /home/ghouston/guile/guile-core/libguile/environments.c:1839
+@c snarfed from /home/ghouston/guile/guile-core/libguile/environments.c:1834
 @deffn {Scheme Procedure} make-import-environment imports conflict_proc
 @deffnx {C Function} scm_make_import_environment (imports, conflict_proc)
 Return a new environment @var{imp} whose bindings are the union
@@ -928,7 +928,7 @@ if one of its imported environments changes.
 @end deffn
 
 import-environment?
-@c snarfed from /home/ghouston/guile/guile-core/libguile/environments.c:1868
+@c snarfed from /home/ghouston/guile/guile-core/libguile/environments.c:1863
 @deffn {Scheme Procedure} import-environment? object
 @deffnx {C Function} scm_import_environment_p (object)
 Return @code{#t} if object is an import environment, or
@@ -936,7 +936,7 @@ Return @code{#t} if object is an import environment, or
 @end deffn
 
 import-environment-imports
-@c snarfed from /home/ghouston/guile/guile-core/libguile/environments.c:1879
+@c snarfed from /home/ghouston/guile/guile-core/libguile/environments.c:1874
 @deffn {Scheme Procedure} import-environment-imports env
 @deffnx {C Function} scm_import_environment_imports (env)
 Return the list of environments imported by the import
@@ -944,7 +944,7 @@ environment @var{env}.
 @end deffn
 
 import-environment-set-imports!
-@c snarfed from /home/ghouston/guile/guile-core/libguile/environments.c:1892
+@c snarfed from /home/ghouston/guile/guile-core/libguile/environments.c:1887
 @deffn {Scheme Procedure} import-environment-set-imports! env imports
 @deffnx {C Function} scm_import_environment_set_imports_x (env, imports)
 Change @var{env}'s list of imported environments to
@@ -952,7 +952,7 @@ Change @var{env}'s list of imported environments to
 @end deffn
 
 make-export-environment
-@c snarfed from /home/ghouston/guile/guile-core/libguile/environments.c:2159
+@c snarfed from /home/ghouston/guile/guile-core/libguile/environments.c:2154
 @deffn {Scheme Procedure} make-export-environment private signature
 @deffnx {C Function} scm_make_export_environment (private, signature)
 Return a new environment @var{exp} containing only those
@@ -1002,7 +1002,7 @@ if the bindings in private change.
 @end deffn
 
 export-environment?
-@c snarfed from /home/ghouston/guile/guile-core/libguile/environments.c:2194
+@c snarfed from /home/ghouston/guile/guile-core/libguile/environments.c:2189
 @deffn {Scheme Procedure} export-environment? object
 @deffnx {C Function} scm_export_environment_p (object)
 Return @code{#t} if object is an export environment, or
@@ -1010,35 +1010,35 @@ Return @code{#t} if object is an export environment, or
 @end deffn
 
 export-environment-private
-@c snarfed from /home/ghouston/guile/guile-core/libguile/environments.c:2204
+@c snarfed from /home/ghouston/guile/guile-core/libguile/environments.c:2199
 @deffn {Scheme Procedure} export-environment-private env
 @deffnx {C Function} scm_export_environment_private (env)
 Return the private environment of export environment @var{env}.
 @end deffn
 
 export-environment-set-private!
-@c snarfed from /home/ghouston/guile/guile-core/libguile/environments.c:2216
+@c snarfed from /home/ghouston/guile/guile-core/libguile/environments.c:2211
 @deffn {Scheme Procedure} export-environment-set-private! env private
 @deffnx {C Function} scm_export_environment_set_private_x (env, private)
 Change the private environment of export environment @var{env}.
 @end deffn
 
 export-environment-signature
-@c snarfed from /home/ghouston/guile/guile-core/libguile/environments.c:2238
+@c snarfed from /home/ghouston/guile/guile-core/libguile/environments.c:2233
 @deffn {Scheme Procedure} export-environment-signature env
 @deffnx {C Function} scm_export_environment_signature (env)
 Return the signature of export environment @var{env}.
 @end deffn
 
 export-environment-set-signature!
-@c snarfed from /home/ghouston/guile/guile-core/libguile/environments.c:2312
+@c snarfed from /home/ghouston/guile/guile-core/libguile/environments.c:2307
 @deffn {Scheme Procedure} export-environment-set-signature! env signature
 @deffnx {C Function} scm_export_environment_set_signature_x (env, signature)
 Change the signature of export environment @var{env}.
 @end deffn
 
 eq?
-@c snarfed from /home/ghouston/guile/guile-core/libguile/eq.c:62
+@c snarfed from /home/ghouston/guile/guile-core/libguile/eq.c:68
 @deffn {Scheme Procedure} eq? x y
 Return @code{#t} iff @var{x} references the same object as @var{y}.
 @code{eq?} is similar to @code{eqv?} except that in some cases it is
@@ -1047,7 +1047,7 @@ capable of discerning distinctions finer than those detectable by
 @end deffn
 
 eqv?
-@c snarfed from /home/ghouston/guile/guile-core/libguile/eq.c:85
+@c snarfed from /home/ghouston/guile/guile-core/libguile/eq.c:91
 @deffn {Scheme Procedure} eqv? x y
 The @code{eqv?} procedure defines a useful equivalence relation on objects.
 Briefly, it returns @code{#t} if @var{x} and @var{y} should normally be
@@ -1057,7 +1057,7 @@ and inexact numbers.
 @end deffn
 
 equal?
-@c snarfed from /home/ghouston/guile/guile-core/libguile/eq.c:138
+@c snarfed from /home/ghouston/guile/guile-core/libguile/eq.c:144
 @deffn {Scheme Procedure} equal? x y
 Return @code{#t} iff @var{x} and @var{y} are recursively @code{eqv?} equivalent.
 @code{equal?} recursively compares the contents of pairs,
@@ -1095,7 +1095,7 @@ must be an integer value.
 @end deffn
 
 apply:nconc2last
-@c snarfed from /home/ghouston/guile/guile-core/libguile/eval.c:3409
+@c snarfed from /home/ghouston/guile/guile-core/libguile/eval.c:3412
 @deffn {Scheme Procedure} apply:nconc2last lst
 @deffnx {C Function} scm_nconc2last (lst)
 Given a list (@var{arg1} @dots{} @var{args}), this function
@@ -1108,7 +1108,7 @@ destroys its argument, so use with care.
 @end deffn
 
 force
-@c snarfed from /home/ghouston/guile/guile-core/libguile/eval.c:3945
+@c snarfed from /home/ghouston/guile/guile-core/libguile/eval.c:3948
 @deffn {Scheme Procedure} force x
 @deffnx {C Function} scm_force (x)
 If the promise @var{x} has not been computed yet, compute and
@@ -1117,7 +1117,7 @@ value.
 @end deffn
 
 promise?
-@c snarfed from /home/ghouston/guile/guile-core/libguile/eval.c:3968
+@c snarfed from /home/ghouston/guile/guile-core/libguile/eval.c:3971
 @deffn {Scheme Procedure} promise? obj
 @deffnx {C Function} scm_promise_p (obj)
 Return true if @var{obj} is a promise, i.e. a delayed computation
@@ -1125,7 +1125,7 @@ Return true if @var{obj} is a promise, i.e. a delayed computation
 @end deffn
 
 cons-source
-@c snarfed from /home/ghouston/guile/guile-core/libguile/eval.c:3980
+@c snarfed from /home/ghouston/guile/guile-core/libguile/eval.c:3983
 @deffn {Scheme Procedure} cons-source xorig x y
 @deffnx {C Function} scm_cons_source (xorig, x, y)
 Create and return a new pair whose car and cdr are @var{x} and @var{y}.
@@ -1134,7 +1134,7 @@ with the new pair.
 @end deffn
 
 copy-tree
-@c snarfed from /home/ghouston/guile/guile-core/libguile/eval.c:4000
+@c snarfed from /home/ghouston/guile/guile-core/libguile/eval.c:4003
 @deffn {Scheme Procedure} copy-tree obj
 @deffnx {C Function} scm_copy_tree (obj)
 Recursively copy the data tree that is bound to @var{obj}, and return a
@@ -1145,7 +1145,7 @@ any other object.
 @end deffn
 
 primitive-eval
-@c snarfed from /home/ghouston/guile/guile-core/libguile/eval.c:4093
+@c snarfed from /home/ghouston/guile/guile-core/libguile/eval.c:4096
 @deffn {Scheme Procedure} primitive-eval exp
 @deffnx {C Function} scm_primitive_eval (exp)
 Evaluate @var{exp} in the top-level environment specified by
@@ -1153,7 +1153,7 @@ the current module.
 @end deffn
 
 eval
-@c snarfed from /home/ghouston/guile/guile-core/libguile/eval.c:4162
+@c snarfed from /home/ghouston/guile/guile-core/libguile/eval.c:4165
 @deffn {Scheme Procedure} eval exp module
 @deffnx {C Function} scm_eval (exp, module)
 Evaluate @var{exp}, a list representing a Scheme expression,
@@ -1164,7 +1164,7 @@ is reset to its previous value when @var{eval} returns.
 @end deffn
 
 eval-options-interface
-@c snarfed from /home/ghouston/guile/guile-core/libguile/eval.c:1747
+@c snarfed from /home/ghouston/guile/guile-core/libguile/eval.c:1749
 @deffn {Scheme Procedure} eval-options-interface [setting]
 @deffnx {C Function} scm_eval_options_interface (setting)
 Option interface for the evaluation options. Instead of using
@@ -1173,7 +1173,7 @@ this procedure directly, use the procedures @code{eval-enable},
 @end deffn
 
 evaluator-traps-interface
-@c snarfed from /home/ghouston/guile/guile-core/libguile/eval.c:1764
+@c snarfed from /home/ghouston/guile/guile-core/libguile/eval.c:1766
 @deffn {Scheme Procedure} evaluator-traps-interface [setting]
 @deffnx {C Function} scm_evaluator_traps (setting)
 Option interface for the evaluator trap options.
@@ -1193,7 +1193,7 @@ implemented by the C function "scm_map"
 @end deffn
 
 load-extension
-@c snarfed from /home/ghouston/guile/guile-core/libguile/extensions.c:152
+@c snarfed from /home/ghouston/guile/guile-core/libguile/extensions.c:154
 @deffn {Scheme Procedure} load-extension lib init
 @deffnx {C Function} scm_load_extension (lib, init)
 Load and initialize the extension designated by LIB and INIT.
@@ -1356,16 +1356,25 @@ current interfaces.  If a file cannot be opened with the access
 requested, @code{open-file} throws an exception.
 @end deffn
 
+set-debug-cell-accesses!
+@c snarfed from /home/ghouston/guile/guile-core/libguile/gc.c:210
+@deffn {Scheme Procedure} set-debug-cell-accesses! flag
+@deffnx {C Function} scm_set_debug_cell_accesses_x (flag)
+This function is used to turn on checking for a debug version of GUILE. This version does not support this functionality
+
+@end deffn
+
 gc-stats
-@c snarfed from /home/ghouston/guile/guile-core/libguile/gc.c:735
+@c snarfed from /home/ghouston/guile/guile-core/libguile/gc.c:303
 @deffn {Scheme Procedure} gc-stats
 @deffnx {C Function} scm_gc_stats ()
 Return an association list of statistics about Guile's current
 use of storage.
+
 @end deffn
 
 object-address
-@c snarfed from /home/ghouston/guile/guile-core/libguile/gc.c:832
+@c snarfed from /home/ghouston/guile/guile-core/libguile/gc.c:424
 @deffn {Scheme Procedure} object-address obj
 @deffnx {C Function} scm_object_address (obj)
 Return an integer that for the lifetime of @var{obj} is uniquely
@@ -1373,7 +1382,7 @@ returned by this function for @var{obj}
 @end deffn
 
 gc
-@c snarfed from /home/ghouston/guile/guile-core/libguile/gc.c:843
+@c snarfed from /home/ghouston/guile/guile-core/libguile/gc.c:435
 @deffn {Scheme Procedure} gc
 @deffnx {C Function} scm_gc ()
 Scans all of SCM objects and reclaims for further use those that are
@@ -1703,7 +1712,7 @@ from the arguments @var{initargs}.
 @end deffn
 
 make
-@c snarfed from /home/ghouston/guile/guile-core/libguile/goops.c:2010
+@c snarfed from /home/ghouston/guile/guile-core/libguile/goops.c:2026
 @deffn {Scheme Procedure} make . args
 @deffnx {C Function} scm_make (args)
 Make a new object.  @var{args} must contain the class and
@@ -1711,21 +1720,21 @@ all necessary initialization information.
 @end deffn
 
 find-method
-@c snarfed from /home/ghouston/guile/guile-core/libguile/goops.c:2103
+@c snarfed from /home/ghouston/guile/guile-core/libguile/goops.c:2119
 @deffn {Scheme Procedure} find-method . l
 @deffnx {C Function} scm_find_method (l)
 
 @end deffn
 
 %method-more-specific?
-@c snarfed from /home/ghouston/guile/guile-core/libguile/goops.c:2123
+@c snarfed from /home/ghouston/guile/guile-core/libguile/goops.c:2139
 @deffn {Scheme Procedure} %method-more-specific? m1 m2 targs
 @deffnx {C Function} scm_sys_method_more_specific_p (m1, m2, targs)
 
 @end deffn
 
 %goops-loaded
-@c snarfed from /home/ghouston/guile/guile-core/libguile/goops.c:2648
+@c snarfed from /home/ghouston/guile/guile-core/libguile/goops.c:2664
 @deffn {Scheme Procedure} %goops-loaded
 @deffnx {C Function} scm_sys_goops_loaded ()
 Announce that GOOPS is loaded and perform initialization
@@ -2591,7 +2600,7 @@ an error is signalled.
 @end deffn
 
 procedure->syntax
-@c snarfed from /home/ghouston/guile/guile-core/libguile/macros.c:104
+@c snarfed from /home/ghouston/guile/guile-core/libguile/macros.c:107
 @deffn {Scheme Procedure} procedure->syntax code
 @deffnx {C Function} scm_makacro (code)
 Return a @dfn{macro} which, when a symbol defined to this value
@@ -2601,7 +2610,7 @@ environment.
 @end deffn
 
 procedure->macro
-@c snarfed from /home/ghouston/guile/guile-core/libguile/macros.c:125
+@c snarfed from /home/ghouston/guile/guile-core/libguile/macros.c:130
 @deffn {Scheme Procedure} procedure->macro code
 @deffnx {C Function} scm_makmacro (code)
 Return a @dfn{macro} which, when a symbol defined to this value
@@ -2619,7 +2628,7 @@ environment.  For example:
 @end deffn
 
 procedure->memoizing-macro
-@c snarfed from /home/ghouston/guile/guile-core/libguile/macros.c:143
+@c snarfed from /home/ghouston/guile/guile-core/libguile/macros.c:155
 @deffn {Scheme Procedure} procedure->memoizing-macro code
 @deffnx {C Function} scm_makmmacro (code)
 Return a @dfn{macro} which, when a symbol defined to this value
@@ -2634,7 +2643,7 @@ form of the containing code.
 @end deffn
 
 macro?
-@c snarfed from /home/ghouston/guile/guile-core/libguile/macros.c:155
+@c snarfed from /home/ghouston/guile/guile-core/libguile/macros.c:167
 @deffn {Scheme Procedure} macro? obj
 @deffnx {C Function} scm_macro_p (obj)
 Return @code{#t} if @var{obj} is a regular macro, a memoizing macro or a
@@ -2642,7 +2651,7 @@ syntax transformer.
 @end deffn
 
 macro-type
-@c snarfed from /home/ghouston/guile/guile-core/libguile/macros.c:173
+@c snarfed from /home/ghouston/guile/guile-core/libguile/macros.c:187
 @deffn {Scheme Procedure} macro-type m
 @deffnx {C Function} scm_macro_type (m)
 Return one of the symbols @code{syntax}, @code{macro} or
@@ -2653,14 +2662,14 @@ returned.
 @end deffn
 
 macro-name
-@c snarfed from /home/ghouston/guile/guile-core/libguile/macros.c:191
+@c snarfed from /home/ghouston/guile/guile-core/libguile/macros.c:207
 @deffn {Scheme Procedure} macro-name m
 @deffnx {C Function} scm_macro_name (m)
 Return the name of the macro @var{m}.
 @end deffn
 
 macro-transformer
-@c snarfed from /home/ghouston/guile/guile-core/libguile/macros.c:202
+@c snarfed from /home/ghouston/guile/guile-core/libguile/macros.c:218
 @deffn {Scheme Procedure} macro-transformer m
 @deffnx {C Function} scm_macro_transformer (m)
 Return the transformer of the macro @var{m}.
@@ -2941,7 +2950,7 @@ Return the number of bits necessary to represent @var{n}.
 @end deffn
 
 number->string
-@c snarfed from /home/ghouston/guile/guile-core/libguile/numbers.c:2330
+@c snarfed from /home/ghouston/guile/guile-core/libguile/numbers.c:2336
 @deffn {Scheme Procedure} number->string n [radix]
 @deffnx {C Function} scm_number_to_string (n, radix)
 Return a string holding the external representation of the
@@ -2950,7 +2959,7 @@ inexact, a radix of 10 will be used.
 @end deffn
 
 string->number
-@c snarfed from /home/ghouston/guile/guile-core/libguile/numbers.c:2989
+@c snarfed from /home/ghouston/guile/guile-core/libguile/numbers.c:2995
 @deffn {Scheme Procedure} string->number string [radix]
 @deffnx {C Function} scm_string_to_number (string, radix)
 Return a number of the maximally precise representation
@@ -2964,13 +2973,13 @@ syntactically valid notation for a number, then
 @end deffn
 
 number?
-@c snarfed from /home/ghouston/guile/guile-core/libguile/numbers.c:3058
+@c snarfed from /home/ghouston/guile/guile-core/libguile/numbers.c:3064
 @deffn {Scheme Procedure} number?
 implemented by the C function "scm_number_p"
 @end deffn
 
 complex?
-@c snarfed from /home/ghouston/guile/guile-core/libguile/numbers.c:3070
+@c snarfed from /home/ghouston/guile/guile-core/libguile/numbers.c:3076
 @deffn {Scheme Procedure} complex? x
 @deffnx {C Function} scm_number_p (x)
 Return @code{#t} if @var{x} is a complex number, @code{#f}
@@ -2981,13 +2990,13 @@ rational or integer number.
 @end deffn
 
 real?
-@c snarfed from /home/ghouston/guile/guile-core/libguile/numbers.c:3078
+@c snarfed from /home/ghouston/guile/guile-core/libguile/numbers.c:3084
 @deffn {Scheme Procedure} real?
 implemented by the C function "scm_real_p"
 @end deffn
 
 rational?
-@c snarfed from /home/ghouston/guile/guile-core/libguile/numbers.c:3091
+@c snarfed from /home/ghouston/guile/guile-core/libguile/numbers.c:3097
 @deffn {Scheme Procedure} rational? x
 @deffnx {C Function} scm_real_p (x)
 Return @code{#t} if @var{x} is a rational number, @code{#f}
@@ -2999,7 +3008,7 @@ precision.
 @end deffn
 
 integer?
-@c snarfed from /home/ghouston/guile/guile-core/libguile/numbers.c:3112
+@c snarfed from /home/ghouston/guile/guile-core/libguile/numbers.c:3118
 @deffn {Scheme Procedure} integer? x
 @deffnx {C Function} scm_integer_p (x)
 Return @code{#t} if @var{x} is an integer number, @code{#f}
@@ -3007,7 +3016,7 @@ else.
 @end deffn
 
 inexact?
-@c snarfed from /home/ghouston/guile/guile-core/libguile/numbers.c:3137
+@c snarfed from /home/ghouston/guile/guile-core/libguile/numbers.c:3143
 @deffn {Scheme Procedure} inexact? x
 @deffnx {C Function} scm_inexact_p (x)
 Return @code{#t} if @var{x} is an inexact number, @code{#f}
@@ -3015,7 +3024,7 @@ else.
 @end deffn
 
 $expt
-@c snarfed from /home/ghouston/guile/guile-core/libguile/numbers.c:4297
+@c snarfed from /home/ghouston/guile/guile-core/libguile/numbers.c:4303
 @deffn {Scheme Procedure} $expt x y
 @deffnx {C Function} scm_sys_expt (x, y)
 Return @var{x} raised to the power of @var{y}. This
@@ -3023,7 +3032,7 @@ procedure does not accept complex arguments.
 @end deffn
 
 $atan2
-@c snarfed from /home/ghouston/guile/guile-core/libguile/numbers.c:4313
+@c snarfed from /home/ghouston/guile/guile-core/libguile/numbers.c:4319
 @deffn {Scheme Procedure} $atan2 x y
 @deffnx {C Function} scm_sys_atan2 (x, y)
 Return the arc tangent of the two arguments @var{x} and
@@ -3034,7 +3043,7 @@ procedure does not accept complex arguments.
 @end deffn
 
 make-rectangular
-@c snarfed from /home/ghouston/guile/guile-core/libguile/numbers.c:4326
+@c snarfed from /home/ghouston/guile/guile-core/libguile/numbers.c:4332
 @deffn {Scheme Procedure} make-rectangular real imaginary
 @deffnx {C Function} scm_make_rectangular (real, imaginary)
 Return a complex number constructed of the given @var{real} and
@@ -3042,14 +3051,14 @@ Return a complex number constructed of the given @var{real} and
 @end deffn
 
 make-polar
-@c snarfed from /home/ghouston/guile/guile-core/libguile/numbers.c:4339
+@c snarfed from /home/ghouston/guile/guile-core/libguile/numbers.c:4345
 @deffn {Scheme Procedure} make-polar x y
 @deffnx {C Function} scm_make_polar (x, y)
 Return the complex number @var{x} * e^(i * @var{y}).
 @end deffn
 
 inexact->exact
-@c snarfed from /home/ghouston/guile/guile-core/libguile/numbers.c:4474
+@c snarfed from /home/ghouston/guile/guile-core/libguile/numbers.c:4480
 @deffn {Scheme Procedure} inexact->exact z
 @deffnx {C Function} scm_inexact_to_exact (z)
 Return an exact number that is numerically closest to @var{z}.
@@ -3269,14 +3278,14 @@ Set the current default error port to @var{port}.
 @end deffn
 
 port-revealed
-@c snarfed from /home/ghouston/guile/guile-core/libguile/ports.c:578
+@c snarfed from /home/ghouston/guile/guile-core/libguile/ports.c:571
 @deffn {Scheme Procedure} port-revealed port
 @deffnx {C Function} scm_port_revealed (port)
 Return the revealed count for @var{port}.
 @end deffn
 
 set-port-revealed!
-@c snarfed from /home/ghouston/guile/guile-core/libguile/ports.c:591
+@c snarfed from /home/ghouston/guile/guile-core/libguile/ports.c:584
 @deffn {Scheme Procedure} set-port-revealed! port rcount
 @deffnx {C Function} scm_set_port_revealed_x (port, rcount)
 Sets the revealed count for a port to a given value.
@@ -3284,7 +3293,7 @@ The return value is unspecified.
 @end deffn
 
 port-mode
-@c snarfed from /home/ghouston/guile/guile-core/libguile/ports.c:634
+@c snarfed from /home/ghouston/guile/guile-core/libguile/ports.c:627
 @deffn {Scheme Procedure} port-mode port
 @deffnx {C Function} scm_port_mode (port)
 Return the port modes associated with the open port @var{port}.
@@ -3294,7 +3303,7 @@ used only during port creation are not retained.
 @end deffn
 
 close-port
-@c snarfed from /home/ghouston/guile/guile-core/libguile/ports.c:671
+@c snarfed from /home/ghouston/guile/guile-core/libguile/ports.c:664
 @deffn {Scheme Procedure} close-port port
 @deffnx {C Function} scm_close_port (port)
 Close the specified port object.  Return @code{#t} if it
@@ -3306,7 +3315,7 @@ descriptors.
 @end deffn
 
 close-input-port
-@c snarfed from /home/ghouston/guile/guile-core/libguile/ports.c:699
+@c snarfed from /home/ghouston/guile/guile-core/libguile/ports.c:692
 @deffn {Scheme Procedure} close-input-port port
 @deffnx {C Function} scm_close_input_port (port)
 Close the specified input port object.  The routine has no effect if
@@ -3318,7 +3327,7 @@ which can close file descriptors.
 @end deffn
 
 close-output-port
-@c snarfed from /home/ghouston/guile/guile-core/libguile/ports.c:714
+@c snarfed from /home/ghouston/guile/guile-core/libguile/ports.c:707
 @deffn {Scheme Procedure} close-output-port port
 @deffnx {C Function} scm_close_output_port (port)
 Close the specified output port object.  The routine has no effect if
@@ -3330,7 +3339,7 @@ which can close file descriptors.
 @end deffn
 
 port-for-each
-@c snarfed from /home/ghouston/guile/guile-core/libguile/ports.c:731
+@c snarfed from /home/ghouston/guile/guile-core/libguile/ports.c:724
 @deffn {Scheme Procedure} port-for-each proc
 @deffnx {C Function} scm_port_for_each (proc)
 Apply @var{proc} to each port in the Guile port table
@@ -3342,7 +3351,7 @@ have no effect as far as @var{port-for-each} is concerned.
 @end deffn
 
 input-port?
-@c snarfed from /home/ghouston/guile/guile-core/libguile/ports.c:772
+@c snarfed from /home/ghouston/guile/guile-core/libguile/ports.c:765
 @deffn {Scheme Procedure} input-port? x
 @deffnx {C Function} scm_input_port_p (x)
 Return @code{#t} if @var{x} is an input port, otherwise return
@@ -3351,7 +3360,7 @@ Return @code{#t} if @var{x} is an input port, otherwise return
 @end deffn
 
 output-port?
-@c snarfed from /home/ghouston/guile/guile-core/libguile/ports.c:783
+@c snarfed from /home/ghouston/guile/guile-core/libguile/ports.c:776
 @deffn {Scheme Procedure} output-port? x
 @deffnx {C Function} scm_output_port_p (x)
 Return @code{#t} if @var{x} is an output port, otherwise return
@@ -3360,7 +3369,7 @@ Return @code{#t} if @var{x} is an output port, otherwise return
 @end deffn
 
 port?
-@c snarfed from /home/ghouston/guile/guile-core/libguile/ports.c:795
+@c snarfed from /home/ghouston/guile/guile-core/libguile/ports.c:788
 @deffn {Scheme Procedure} port? x
 @deffnx {C Function} scm_port_p (x)
 Return a boolean indicating whether @var{x} is a port.
@@ -3369,7 +3378,7 @@ Equivalent to @code{(or (input-port? @var{x}) (output-port?
 @end deffn
 
 port-closed?
-@c snarfed from /home/ghouston/guile/guile-core/libguile/ports.c:805
+@c snarfed from /home/ghouston/guile/guile-core/libguile/ports.c:798
 @deffn {Scheme Procedure} port-closed? port
 @deffnx {C Function} scm_port_closed_p (port)
 Return @code{#t} if @var{port} is closed or @code{#f} if it is
@@ -3377,7 +3386,7 @@ open.
 @end deffn
 
 eof-object?
-@c snarfed from /home/ghouston/guile/guile-core/libguile/ports.c:816
+@c snarfed from /home/ghouston/guile/guile-core/libguile/ports.c:809
 @deffn {Scheme Procedure} eof-object? x
 @deffnx {C Function} scm_eof_object_p (x)
 Return @code{#t} if @var{x} is an end-of-file object; otherwise
@@ -3385,7 +3394,7 @@ return @code{#f}.
 @end deffn
 
 force-output
-@c snarfed from /home/ghouston/guile/guile-core/libguile/ports.c:830
+@c snarfed from /home/ghouston/guile/guile-core/libguile/ports.c:823
 @deffn {Scheme Procedure} force-output [port]
 @deffnx {C Function} scm_force_output (port)
 Flush the specified output port, or the current output port if @var{port}
@@ -3398,7 +3407,7 @@ The return value is unspecified.
 @end deffn
 
 flush-all-ports
-@c snarfed from /home/ghouston/guile/guile-core/libguile/ports.c:848
+@c snarfed from /home/ghouston/guile/guile-core/libguile/ports.c:841
 @deffn {Scheme Procedure} flush-all-ports
 @deffnx {C Function} scm_flush_all_ports ()
 Equivalent to calling @code{force-output} on
@@ -3406,7 +3415,7 @@ all open output ports.  The return value is unspecified.
 @end deffn
 
 read-char
-@c snarfed from /home/ghouston/guile/guile-core/libguile/ports.c:866
+@c snarfed from /home/ghouston/guile/guile-core/libguile/ports.c:859
 @deffn {Scheme Procedure} read-char [port]
 @deffnx {C Function} scm_read_char (port)
 Return the next character available from @var{port}, updating
@@ -3415,7 +3424,7 @@ characters are available, the end-of-file object is returned.
 @end deffn
 
 peek-char
-@c snarfed from /home/ghouston/guile/guile-core/libguile/ports.c:1192
+@c snarfed from /home/ghouston/guile/guile-core/libguile/ports.c:1185
 @deffn {Scheme Procedure} peek-char [port]
 @deffnx {C Function} scm_peek_char (port)
 Return the next character available from @var{port},
@@ -3433,7 +3442,7 @@ to @code{read-char} would have hung.}
 @end deffn
 
 unread-char
-@c snarfed from /home/ghouston/guile/guile-core/libguile/ports.c:1213
+@c snarfed from /home/ghouston/guile/guile-core/libguile/ports.c:1206
 @deffn {Scheme Procedure} unread-char cobj [port]
 @deffnx {C Function} scm_unread_char (cobj, port)
 Place @var{char} in @var{port} so that it will be read by the
@@ -3443,7 +3452,7 @@ not supplied, the current input port is used.
 @end deffn
 
 unread-string
-@c snarfed from /home/ghouston/guile/guile-core/libguile/ports.c:1236
+@c snarfed from /home/ghouston/guile/guile-core/libguile/ports.c:1229
 @deffn {Scheme Procedure} unread-string str port
 @deffnx {C Function} scm_unread_string (str, port)
 Place the string @var{str} in @var{port} so that its characters will be
@@ -3453,7 +3462,7 @@ unread characters will be read again in last-in first-out order.  If
 @end deffn
 
 seek
-@c snarfed from /home/ghouston/guile/guile-core/libguile/ports.c:1275
+@c snarfed from /home/ghouston/guile/guile-core/libguile/ports.c:1268
 @deffn {Scheme Procedure} seek fd_port offset whence
 @deffnx {C Function} scm_seek (fd_port, offset, whence)
 Sets the current position of @var{fd/port} to the integer
@@ -3482,7 +3491,7 @@ that the current position of a port can be obtained using:
 @end deffn
 
 truncate-file
-@c snarfed from /home/ghouston/guile/guile-core/libguile/ports.c:1330
+@c snarfed from /home/ghouston/guile/guile-core/libguile/ports.c:1323
 @deffn {Scheme Procedure} truncate-file object [length]
 @deffnx {C Function} scm_truncate_file (object, length)
 Truncates the object referred to by @var{object} to at most
@@ -3494,21 +3503,21 @@ position.  The return value is unspecified.
 @end deffn
 
 port-line
-@c snarfed from /home/ghouston/guile/guile-core/libguile/ports.c:1383
+@c snarfed from /home/ghouston/guile/guile-core/libguile/ports.c:1376
 @deffn {Scheme Procedure} port-line port
 @deffnx {C Function} scm_port_line (port)
 Return the current line number for @var{port}.
 @end deffn
 
 set-port-line!
-@c snarfed from /home/ghouston/guile/guile-core/libguile/ports.c:1394
+@c snarfed from /home/ghouston/guile/guile-core/libguile/ports.c:1387
 @deffn {Scheme Procedure} set-port-line! port line
 @deffnx {C Function} scm_set_port_line_x (port, line)
 Set the current line number for @var{port} to @var{line}.
 @end deffn
 
 port-column
-@c snarfed from /home/ghouston/guile/guile-core/libguile/ports.c:1415
+@c snarfed from /home/ghouston/guile/guile-core/libguile/ports.c:1408
 @deffn {Scheme Procedure} port-column port
 @deffnx {Scheme Procedure} port-line port
 @deffnx {C Function} scm_port_column (port)
@@ -3523,7 +3532,7 @@ what non-programmers will find most natural.)
 @end deffn
 
 set-port-column!
-@c snarfed from /home/ghouston/guile/guile-core/libguile/ports.c:1428
+@c snarfed from /home/ghouston/guile/guile-core/libguile/ports.c:1421
 @deffn {Scheme Procedure} set-port-column! port column
 @deffnx {Scheme Procedure} set-port-line! port line
 @deffnx {C Function} scm_set_port_column_x (port, column)
@@ -3532,7 +3541,7 @@ current input port if none is specified.
 @end deffn
 
 port-filename
-@c snarfed from /home/ghouston/guile/guile-core/libguile/ports.c:1443
+@c snarfed from /home/ghouston/guile/guile-core/libguile/ports.c:1436
 @deffn {Scheme Procedure} port-filename port
 @deffnx {C Function} scm_port_filename (port)
 Return the filename associated with @var{port}.  This function returns
@@ -3541,7 +3550,7 @@ when called on the current input, output and error ports respectively.
 @end deffn
 
 set-port-filename!
-@c snarfed from /home/ghouston/guile/guile-core/libguile/ports.c:1457
+@c snarfed from /home/ghouston/guile/guile-core/libguile/ports.c:1450
 @deffn {Scheme Procedure} set-port-filename! port filename
 @deffnx {C Function} scm_set_port_filename_x (port, filename)
 Change the filename associated with @var{port}, using the current input
@@ -3551,7 +3560,7 @@ source of data, but only the value that is returned by
 @end deffn
 
 %make-void-port
-@c snarfed from /home/ghouston/guile/guile-core/libguile/ports.c:1551
+@c snarfed from /home/ghouston/guile/guile-core/libguile/ports.c:1546
 @deffn {Scheme Procedure} %make-void-port mode
 @deffnx {C Function} scm_sys_make_void_port (mode)
 Create and return a new void port.  A void port acts like
@@ -3571,7 +3580,7 @@ and @code{print-options}.
 @end deffn
 
 simple-format
-@c snarfed from /home/ghouston/guile/guile-core/libguile/print.c:921
+@c snarfed from /home/ghouston/guile/guile-core/libguile/print.c:920
 @deffn {Scheme Procedure} simple-format destination message . args
 @deffnx {C Function} scm_simple_format (destination, message, args)
 Write @var{message} to @var{destination}, defaulting to
@@ -3588,7 +3597,7 @@ containing the formatted text. Does not add a trailing newline.
 @end deffn
 
 newline
-@c snarfed from /home/ghouston/guile/guile-core/libguile/print.c:1009
+@c snarfed from /home/ghouston/guile/guile-core/libguile/print.c:1008
 @deffn {Scheme Procedure} newline [port]
 @deffnx {C Function} scm_newline (port)
 Send a newline to @var{port}.
@@ -3596,14 +3605,14 @@ If @var{port} is omitted, send to the current output port.
 @end deffn
 
 write-char
-@c snarfed from /home/ghouston/guile/guile-core/libguile/print.c:1024
+@c snarfed from /home/ghouston/guile/guile-core/libguile/print.c:1023
 @deffn {Scheme Procedure} write-char chr [port]
 @deffnx {C Function} scm_write_char (chr, port)
 Send character @var{chr} to @var{port}.
 @end deffn
 
 port-with-print-state
-@c snarfed from /home/ghouston/guile/guile-core/libguile/print.c:1078
+@c snarfed from /home/ghouston/guile/guile-core/libguile/print.c:1077
 @deffn {Scheme Procedure} port-with-print-state port pstate
 @deffnx {C Function} scm_port_with_print_state (port, pstate)
 Create a new port which behaves like @var{port}, but with an
@@ -3611,7 +3620,7 @@ included print state @var{pstate}.
 @end deffn
 
 get-print-state
-@c snarfed from /home/ghouston/guile/guile-core/libguile/print.c:1093
+@c snarfed from /home/ghouston/guile/guile-core/libguile/print.c:1092
 @deffn {Scheme Procedure} get-print-state port
 @deffnx {C Function} scm_get_print_state (port)
 Return the print state of the port @var{port}. If @var{port}
@@ -3743,7 +3752,7 @@ Remove any value associated with @var{prop} and @var{obj}.
 @c snarfed from /home/ghouston/guile/guile-core/libguile/random.c:376
 @deffn {Scheme Procedure} random n [state]
 @deffnx {C Function} scm_random (n, state)
-Return a number in [0,N).
+Return a number in [0, N).
 
 Accepts a positive integer or real n and returns a
 number of the same type between zero (inclusive) and
@@ -4088,7 +4097,7 @@ structures.
 @end deffn
 
 restore-signals
-@c snarfed from /home/ghouston/guile/guile-core/libguile/scmsigs.c:345
+@c snarfed from /home/ghouston/guile/guile-core/libguile/scmsigs.c:346
 @deffn {Scheme Procedure} restore-signals
 @deffnx {C Function} scm_restore_signals ()
 Return all signal handlers to the values they had before any call to
@@ -4096,7 +4105,7 @@ Return all signal handlers to the values they had before any call to
 @end deffn
 
 alarm
-@c snarfed from /home/ghouston/guile/guile-core/libguile/scmsigs.c:384
+@c snarfed from /home/ghouston/guile/guile-core/libguile/scmsigs.c:383
 @deffn {Scheme Procedure} alarm i
 @deffnx {C Function} scm_alarm (i)
 Set a timer to raise a @code{SIGALRM} signal after the specified
@@ -4111,7 +4120,7 @@ no previous alarm, the return value is zero.
 @end deffn
 
 setitimer
-@c snarfed from /home/ghouston/guile/guile-core/libguile/scmsigs.c:414
+@c snarfed from /home/ghouston/guile/guile-core/libguile/scmsigs.c:413
 @deffn {Scheme Procedure} setitimer which_timer interval_seconds interval_microseconds value_seconds value_microseconds
 @deffnx {C Function} scm_setitimer (which_timer, interval_seconds, interval_microseconds, value_seconds, value_microseconds)
 Set the timer specified by @var{which_timer} according to the given
@@ -4132,7 +4141,7 @@ the seconds and microseconds of the timer @code{it_value}.
 @end deffn
 
 getitimer
-@c snarfed from /home/ghouston/guile/guile-core/libguile/scmsigs.c:455
+@c snarfed from /home/ghouston/guile/guile-core/libguile/scmsigs.c:454
 @deffn {Scheme Procedure} getitimer which_timer
 @deffnx {C Function} scm_getitimer (which_timer)
 Return information about the timer specified by @var{which_timer}
@@ -4149,7 +4158,7 @@ the seconds and microseconds of the timer @code{it_value}.
 @end deffn
 
 pause
-@c snarfed from /home/ghouston/guile/guile-core/libguile/scmsigs.c:482
+@c snarfed from /home/ghouston/guile/guile-core/libguile/scmsigs.c:481
 @deffn {Scheme Procedure} pause
 @deffnx {C Function} scm_pause ()
 Pause the current process (thread?) until a signal arrives whose
@@ -4158,7 +4167,7 @@ handler procedure.  The return value is unspecified.
 @end deffn
 
 sleep
-@c snarfed from /home/ghouston/guile/guile-core/libguile/scmsigs.c:495
+@c snarfed from /home/ghouston/guile/guile-core/libguile/scmsigs.c:494
 @deffn {Scheme Procedure} sleep i
 @deffnx {C Function} scm_sleep (i)
 Wait for the given number of seconds (an integer) or until a signal
@@ -4167,7 +4176,7 @@ of seconds remaining otherwise.
 @end deffn
 
 usleep
-@c snarfed from /home/ghouston/guile/guile-core/libguile/scmsigs.c:513
+@c snarfed from /home/ghouston/guile/guile-core/libguile/scmsigs.c:512
 @deffn {Scheme Procedure} usleep i
 @deffnx {C Function} scm_usleep (i)
 Sleep for I microseconds.  @code{usleep} is not available on
@@ -4175,7 +4184,7 @@ all platforms.
 @end deffn
 
 raise
-@c snarfed from /home/ghouston/guile/guile-core/libguile/scmsigs.c:542
+@c snarfed from /home/ghouston/guile/guile-core/libguile/scmsigs.c:541
 @deffn {Scheme Procedure} raise sig
 @deffnx {C Function} scm_raise (sig)
 Sends a specified signal @var{sig} to the current process, where
@@ -4225,7 +4234,7 @@ is not specified.
 @end deffn
 
 sorted?
-@c snarfed from /home/ghouston/guile/guile-core/libguile/sort.c:453
+@c snarfed from /home/ghouston/guile/guile-core/libguile/sort.c:454
 @deffn {Scheme Procedure} sorted? items less
 @deffnx {C Function} scm_sorted_p (items, less)
 Return @code{#t} iff @var{items} is a list or a vector such that
@@ -4234,7 +4243,7 @@ applied to all elements i - 1 and i
 @end deffn
 
 merge
-@c snarfed from /home/ghouston/guile/guile-core/libguile/sort.c:526
+@c snarfed from /home/ghouston/guile/guile-core/libguile/sort.c:527
 @deffn {Scheme Procedure} merge alist blist less
 @deffnx {C Function} scm_merge (alist, blist, less)
 Merge two already sorted lists into one.
@@ -4247,7 +4256,7 @@ Note:  this does _not_ accept vectors.
 @end deffn
 
 merge!
-@c snarfed from /home/ghouston/guile/guile-core/libguile/sort.c:639
+@c snarfed from /home/ghouston/guile/guile-core/libguile/sort.c:640
 @deffn {Scheme Procedure} merge! alist blist less
 @deffnx {C Function} scm_merge_x (alist, blist, less)
 Takes two lists @var{alist} and @var{blist} such that
@@ -4260,7 +4269,7 @@ Note:  this does _not_ accept vectors.
 @end deffn
 
 sort!
-@c snarfed from /home/ghouston/guile/guile-core/libguile/sort.c:715
+@c snarfed from /home/ghouston/guile/guile-core/libguile/sort.c:716
 @deffn {Scheme Procedure} sort! items less
 @deffnx {C Function} scm_sort_x (items, less)
 Sort the sequence @var{items}, which may be a list or a
@@ -4271,7 +4280,7 @@ This is not a stable sort.
 @end deffn
 
 sort
-@c snarfed from /home/ghouston/guile/guile-core/libguile/sort.c:749
+@c snarfed from /home/ghouston/guile/guile-core/libguile/sort.c:750
 @deffn {Scheme Procedure} sort items less
 @deffnx {C Function} scm_sort (items, less)
 Sort the sequence @var{items}, which may be a list or a
@@ -4280,7 +4289,7 @@ elements.  This is not a stable sort.
 @end deffn
 
 stable-sort!
-@c snarfed from /home/ghouston/guile/guile-core/libguile/sort.c:845
+@c snarfed from /home/ghouston/guile/guile-core/libguile/sort.c:858
 @deffn {Scheme Procedure} stable-sort! items less
 @deffnx {C Function} scm_stable_sort_x (items, less)
 Sort the sequence @var{items}, which may be a list or a
@@ -4291,7 +4300,7 @@ This is a stable sort.
 @end deffn
 
 stable-sort
-@c snarfed from /home/ghouston/guile/guile-core/libguile/sort.c:885
+@c snarfed from /home/ghouston/guile/guile-core/libguile/sort.c:902
 @deffn {Scheme Procedure} stable-sort items less
 @deffnx {C Function} scm_stable_sort (items, less)
 Sort the sequence @var{items}, which may be a list or a
@@ -4300,7 +4309,7 @@ This is a stable sort.
 @end deffn
 
 sort-list!
-@c snarfed from /home/ghouston/guile/guile-core/libguile/sort.c:931
+@c snarfed from /home/ghouston/guile/guile-core/libguile/sort.c:947
 @deffn {Scheme Procedure} sort-list! items less
 @deffnx {C Function} scm_sort_list_x (items, less)
 Sort the list @var{items}, using @var{less} for comparing the
@@ -4310,7 +4319,7 @@ This is a stable sort.
 @end deffn
 
 sort-list
-@c snarfed from /home/ghouston/guile/guile-core/libguile/sort.c:945
+@c snarfed from /home/ghouston/guile/guile-core/libguile/sort.c:961
 @deffn {Scheme Procedure} sort-list items less
 @deffnx {C Function} scm_sort_list (items, less)
 Sort the list @var{items}, using @var{less} for comparing the
@@ -4997,7 +5006,7 @@ equal to @var{s2} regardless of case.
 @end deffn
 
 object->string
-@c snarfed from /home/ghouston/guile/guile-core/libguile/strports.c:321
+@c snarfed from /home/ghouston/guile/guile-core/libguile/strports.c:325
 @deffn {Scheme Procedure} object->string obj [printer]
 @deffnx {C Function} scm_object_to_string (obj, printer)
 Return a Scheme string obtained by printing @var{obj}.
@@ -5006,7 +5015,7 @@ argument @var{printer} (default: @code{write}).
 @end deffn
 
 call-with-output-string
-@c snarfed from /home/ghouston/guile/guile-core/libguile/strports.c:345
+@c snarfed from /home/ghouston/guile/guile-core/libguile/strports.c:349
 @deffn {Scheme Procedure} call-with-output-string proc
 @deffnx {C Function} scm_call_with_output_string (proc)
 Calls the one-argument procedure @var{proc} with a newly created output
@@ -5015,7 +5024,7 @@ written into the port is returned.
 @end deffn
 
 call-with-input-string
-@c snarfed from /home/ghouston/guile/guile-core/libguile/strports.c:364
+@c snarfed from /home/ghouston/guile/guile-core/libguile/strports.c:368
 @deffn {Scheme Procedure} call-with-input-string string proc
 @deffnx {C Function} scm_call_with_input_string (string, proc)
 Calls the one-argument procedure @var{proc} with a newly
@@ -5024,7 +5033,7 @@ read.  The value yielded by the @var{proc} is returned.
 @end deffn
 
 open-input-string
-@c snarfed from /home/ghouston/guile/guile-core/libguile/strports.c:377
+@c snarfed from /home/ghouston/guile/guile-core/libguile/strports.c:381
 @deffn {Scheme Procedure} open-input-string str
 @deffnx {C Function} scm_open_input_string (str)
 Take a string and return an input port that delivers characters
@@ -5034,7 +5043,7 @@ by the garbage collector if it becomes inaccessible.
 @end deffn
 
 open-output-string
-@c snarfed from /home/ghouston/guile/guile-core/libguile/strports.c:391
+@c snarfed from /home/ghouston/guile/guile-core/libguile/strports.c:395
 @deffn {Scheme Procedure} open-output-string
 @deffnx {C Function} scm_open_output_string ()
 Return an output port that will accumulate characters for
@@ -5045,7 +5054,7 @@ inaccessible.
 @end deffn
 
 get-output-string
-@c snarfed from /home/ghouston/guile/guile-core/libguile/strports.c:408
+@c snarfed from /home/ghouston/guile/guile-core/libguile/strports.c:412
 @deffn {Scheme Procedure} get-output-string port
 @deffnx {C Function} scm_get_output_string (port)
 Given an output port created by @code{open-output-string},
@@ -5054,7 +5063,7 @@ output to the port so far.
 @end deffn
 
 eval-string
-@c snarfed from /home/ghouston/guile/guile-core/libguile/strports.c:467
+@c snarfed from /home/ghouston/guile/guile-core/libguile/strports.c:471
 @deffn {Scheme Procedure} eval-string string
 @deffnx {C Function} scm_eval_string (string)
 Evaluate @var{string} as the text representation of a Scheme
@@ -5238,7 +5247,7 @@ Set the name of the vtable @var{vtable} to @var{name}.
 @end deffn
 
 symbol?
-@c snarfed from /home/ghouston/guile/guile-core/libguile/symbols.c:164
+@c snarfed from /home/ghouston/guile/guile-core/libguile/symbols.c:159
 @deffn {Scheme Procedure} symbol? obj
 @deffnx {C Function} scm_symbol_p (obj)
 Return @code{#t} if @var{obj} is a symbol, otherwise return
@@ -5246,7 +5255,7 @@ Return @code{#t} if @var{obj} is a symbol, otherwise return
 @end deffn
 
 symbol-interned?
-@c snarfed from /home/ghouston/guile/guile-core/libguile/symbols.c:174
+@c snarfed from /home/ghouston/guile/guile-core/libguile/symbols.c:169
 @deffn {Scheme Procedure} symbol-interned? symbol
 @deffnx {C Function} scm_symbol_interned_p (symbol)
 Return @code{#t} if @var{symbol} is interned, otherwise return
@@ -5254,14 +5263,14 @@ Return @code{#t} if @var{symbol} is interned, otherwise return
 @end deffn
 
 make-symbol
-@c snarfed from /home/ghouston/guile/guile-core/libguile/symbols.c:186
+@c snarfed from /home/ghouston/guile/guile-core/libguile/symbols.c:181
 @deffn {Scheme Procedure} make-symbol name
 @deffnx {C Function} scm_make_symbol (name)
 Return a new uninterned symbol with the name @var{name}.  The returned symbol is guaranteed to be unique and future calls to @code{string->symbol} will not return it.
 @end deffn
 
 symbol->string
-@c snarfed from /home/ghouston/guile/guile-core/libguile/symbols.c:222
+@c snarfed from /home/ghouston/guile/guile-core/libguile/symbols.c:217
 @deffn {Scheme Procedure} symbol->string s
 @deffnx {C Function} scm_symbol_to_string (s)
 Return the name of @var{symbol} as a string.  If the symbol was
@@ -5290,7 +5299,7 @@ standard case is lower case:
 @end deffn
 
 string->symbol
-@c snarfed from /home/ghouston/guile/guile-core/libguile/symbols.c:255
+@c snarfed from /home/ghouston/guile/guile-core/libguile/symbols.c:250
 @deffn {Scheme Procedure} string->symbol string
 @deffnx {C Function} scm_string_to_symbol (string)
 Return the symbol whose name is @var{string}. This procedure
@@ -5316,7 +5325,7 @@ standard case is lower case:
 @end deffn
 
 gensym
-@c snarfed from /home/ghouston/guile/guile-core/libguile/symbols.c:277
+@c snarfed from /home/ghouston/guile/guile-core/libguile/symbols.c:272
 @deffn {Scheme Procedure} gensym [prefix]
 @deffnx {C Function} scm_gensym (prefix)
 Create a new symbol with a name constructed from a prefix and
@@ -5327,35 +5336,35 @@ resetting the counter.
 @end deffn
 
 symbol-hash
-@c snarfed from /home/ghouston/guile/guile-core/libguile/symbols.c:309
+@c snarfed from /home/ghouston/guile/guile-core/libguile/symbols.c:304
 @deffn {Scheme Procedure} symbol-hash symbol
 @deffnx {C Function} scm_symbol_hash (symbol)
 Return a hash value for @var{symbol}.
 @end deffn
 
 symbol-fref
-@c snarfed from /home/ghouston/guile/guile-core/libguile/symbols.c:319
+@c snarfed from /home/ghouston/guile/guile-core/libguile/symbols.c:314
 @deffn {Scheme Procedure} symbol-fref s
 @deffnx {C Function} scm_symbol_fref (s)
 Return the contents of @var{symbol}'s @dfn{function slot}.
 @end deffn
 
 symbol-pref
-@c snarfed from /home/ghouston/guile/guile-core/libguile/symbols.c:330
+@c snarfed from /home/ghouston/guile/guile-core/libguile/symbols.c:325
 @deffn {Scheme Procedure} symbol-pref s
 @deffnx {C Function} scm_symbol_pref (s)
 Return the @dfn{property list} currently associated with @var{symbol}.
 @end deffn
 
 symbol-fset!
-@c snarfed from /home/ghouston/guile/guile-core/libguile/symbols.c:341
+@c snarfed from /home/ghouston/guile/guile-core/libguile/symbols.c:336
 @deffn {Scheme Procedure} symbol-fset! s val
 @deffnx {C Function} scm_symbol_fset_x (s, val)
 Change the binding of @var{symbol}'s function slot.
 @end deffn
 
 symbol-pset!
-@c snarfed from /home/ghouston/guile/guile-core/libguile/symbols.c:353
+@c snarfed from /home/ghouston/guile/guile-core/libguile/symbols.c:348
 @deffn {Scheme Procedure} symbol-pset! s val
 @deffnx {C Function} scm_symbol_pset_x (s, val)
 Change the binding of @var{symbol}'s property slot.
@@ -5495,7 +5504,7 @@ given arguments.  Analogous to @code{list}.
 @end deffn
 
 make-vector
-@c snarfed from /home/ghouston/guile/guile-core/libguile/vectors.c:179
+@c snarfed from /home/ghouston/guile/guile-core/libguile/vectors.c:183
 @deffn {Scheme Procedure} make-vector k [fill]
 @deffnx {C Function} scm_make_vector (k, fill)
 Return a newly allocated vector of @var{k} elements.  If a
@@ -5505,7 +5514,7 @@ unspecified.
 @end deffn
 
 vector->list
-@c snarfed from /home/ghouston/guile/guile-core/libguile/vectors.c:233
+@c snarfed from /home/ghouston/guile/guile-core/libguile/vectors.c:237
 @deffn {Scheme Procedure} vector->list v
 @deffnx {C Function} scm_vector_to_list (v)
 Return a newly allocated list composed of the elements of @var{v}.
@@ -5517,7 +5526,7 @@ Return a newly allocated list composed of the elements of @var{v}.
 @end deffn
 
 vector-fill!
-@c snarfed from /home/ghouston/guile/guile-core/libguile/vectors.c:250
+@c snarfed from /home/ghouston/guile/guile-core/libguile/vectors.c:254
 @deffn {Scheme Procedure} vector-fill! v fill
 @deffnx {C Function} scm_vector_fill_x (v, fill)
 Store @var{fill} in every position of @var{vector}.  The value
@@ -5525,7 +5534,7 @@ returned by @code{vector-fill!} is unspecified.
 @end deffn
 
 vector-move-left!
-@c snarfed from /home/ghouston/guile/guile-core/libguile/vectors.c:283
+@c snarfed from /home/ghouston/guile/guile-core/libguile/vectors.c:286
 @deffn {Scheme Procedure} vector-move-left! vec1 start1 end1 vec2 start2
 @deffnx {C Function} scm_vector_move_left_x (vec1, start1, end1, vec2, start2)
 Copy elements from @var{vec1}, positions @var{start1} to @var{end1},
@@ -5539,7 +5548,7 @@ same vector, @code{vector-move-left!} is usually appropriate when
 @end deffn
 
 vector-move-right!
-@c snarfed from /home/ghouston/guile/guile-core/libguile/vectors.c:312
+@c snarfed from /home/ghouston/guile/guile-core/libguile/vectors.c:322
 @deffn {Scheme Procedure} vector-move-right! vec1 start1 end1 vec2 start2
 @deffnx {C Function} scm_vector_move_right_x (vec1, start1, end1, vec2, start2)
 Copy elements from @var{vec1}, positions @var{start1} to @var{end1},
@@ -5669,7 +5678,7 @@ the same way @code{list->vector} would.
 @end deffn
 
 weak-vector?
-@c snarfed from /home/ghouston/guile/guile-core/libguile/weaks.c:160
+@c snarfed from /home/ghouston/guile/guile-core/libguile/weaks.c:163
 @deffn {Scheme Procedure} weak-vector? obj
 @deffnx {C Function} scm_weak_vector_p (obj)
 Return @code{#t} if @var{obj} is a weak vector. Note that all
@@ -5677,7 +5686,7 @@ weak hashes are also weak vectors.
 @end deffn
 
 make-weak-key-hash-table
-@c snarfed from /home/ghouston/guile/guile-core/libguile/weaks.c:178
+@c snarfed from /home/ghouston/guile/guile-core/libguile/weaks.c:181
 @deffn {Scheme Procedure} make-weak-key-hash-table size
 @deffnx {Scheme Procedure} make-weak-value-hash-table size
 @deffnx {Scheme Procedure} make-doubly-weak-hash-table size
@@ -5691,7 +5700,7 @@ would modify regular hash tables. (@pxref{Hash Tables})
 @end deffn
 
 make-weak-value-hash-table
-@c snarfed from /home/ghouston/guile/guile-core/libguile/weaks.c:189
+@c snarfed from /home/ghouston/guile/guile-core/libguile/weaks.c:192
 @deffn {Scheme Procedure} make-weak-value-hash-table size
 @deffnx {C Function} scm_make_weak_value_hash_table (size)
 Return a hash table with weak values with @var{size} buckets.
@@ -5699,7 +5708,7 @@ Return a hash table with weak values with @var{size} buckets.
 @end deffn
 
 make-doubly-weak-hash-table
-@c snarfed from /home/ghouston/guile/guile-core/libguile/weaks.c:200
+@c snarfed from /home/ghouston/guile/guile-core/libguile/weaks.c:203
 @deffn {Scheme Procedure} make-doubly-weak-hash-table size
 @deffnx {C Function} scm_make_doubly_weak_hash_table (size)
 Return a hash table with weak keys and values with @var{size}
@@ -5707,7 +5716,7 @@ buckets.  (@pxref{Hash Tables})
 @end deffn
 
 weak-key-hash-table?
-@c snarfed from /home/ghouston/guile/guile-core/libguile/weaks.c:214
+@c snarfed from /home/ghouston/guile/guile-core/libguile/weaks.c:217
 @deffn {Scheme Procedure} weak-key-hash-table? obj
 @deffnx {Scheme Procedure} weak-value-hash-table? obj
 @deffnx {Scheme Procedure} doubly-weak-hash-table? obj
@@ -5718,17 +5727,111 @@ nor a weak value hash table.
 @end deffn
 
 weak-value-hash-table?
-@c snarfed from /home/ghouston/guile/guile-core/libguile/weaks.c:224
+@c snarfed from /home/ghouston/guile/guile-core/libguile/weaks.c:227
 @deffn {Scheme Procedure} weak-value-hash-table? obj
 @deffnx {C Function} scm_weak_value_hash_table_p (obj)
 Return @code{#t} if @var{obj} is a weak value hash table.
 @end deffn
 
 doubly-weak-hash-table?
-@c snarfed from /home/ghouston/guile/guile-core/libguile/weaks.c:234
+@c snarfed from /home/ghouston/guile/guile-core/libguile/weaks.c:237
 @deffn {Scheme Procedure} doubly-weak-hash-table? obj
 @deffnx {C Function} scm_doubly_weak_hash_table_p (obj)
 Return @code{#t} if @var{obj} is a doubly weak hash table.
+@end deffn
+
+dynamic-link
+@c snarfed from /home/ghouston/guile/guile-core/libguile/dynl.c:171
+@deffn {Scheme Procedure} dynamic-link filename
+@deffnx {C Function} scm_dynamic_link (filename)
+Find the shared object (shared library) denoted by
+@var{filename} and link it into the running Guile
+application.  The returned
+scheme object is a ``handle'' for the library which can
+be passed to @code{dynamic-func}, @code{dynamic-call} etc.
+
+Searching for object files is system dependent.  Normally,
+if @var{filename} does have an explicit directory it will
+be searched for in locations
+such as @file{/usr/lib} and @file{/usr/local/lib}.
+@end deffn
+
+dynamic-object?
+@c snarfed from /home/ghouston/guile/guile-core/libguile/dynl.c:186
+@deffn {Scheme Procedure} dynamic-object? obj
+@deffnx {C Function} scm_dynamic_object_p (obj)
+Return @code{#t} if @var{obj} is a dynamic object handle,
+or @code{#f} otherwise.
+@end deffn
+
+dynamic-unlink
+@c snarfed from /home/ghouston/guile/guile-core/libguile/dynl.c:200
+@deffn {Scheme Procedure} dynamic-unlink dobj
+@deffnx {C Function} scm_dynamic_unlink (dobj)
+Unlink a dynamic object from the application, if possible.  The
+object must have been linked by @code{dynamic-link}, with 
+@var{dobj} the corresponding handle.  After this procedure
+is called, the handle can no longer be used to access the
+object.
+@end deffn
+
+dynamic-func
+@c snarfed from /home/ghouston/guile/guile-core/libguile/dynl.c:225
+@deffn {Scheme Procedure} dynamic-func name dobj
+@deffnx {C Function} scm_dynamic_func (name, dobj)
+Return a ``handle'' for the function @var{name} in the
+shared object referred to by @var{dobj}.  The handle
+can be passed to @code{dynamic-call} to actually
+call the function.
+
+Regardless whether your C compiler prepends an underscore
+@samp{_} to the global names in a program, you should
+@strong{not} include this underscore in @var{name}
+since it will be added automatically when necessary.
+@end deffn
+
+dynamic-call
+@c snarfed from /home/ghouston/guile/guile-core/libguile/dynl.c:267
+@deffn {Scheme Procedure} dynamic-call func dobj
+@deffnx {C Function} scm_dynamic_call (func, dobj)
+Call a C function in a dynamic object.  Two styles of
+invocation are supported:
+
+@itemize @bullet
+@item @var{func} can be a function handle returned by
+@code{dynamic-func}.  In this case @var{dobj} is
+ignored
+@item @var{func} can be a string with the name of the
+function to call, with @var{dobj} the handle of the
+dynamic object in which to find the function.
+This is equivalent to
+@smallexample
+
+(dynamic-call (dynamic-func @var{func} @var{dobj}) #f)
+@end smallexample
+@end itemize
+
+In either case, the function is passed no arguments
+and its return value is ignored.
+@end deffn
+
+dynamic-args-call
+@c snarfed from /home/ghouston/guile/guile-core/libguile/dynl.c:322
+@deffn {Scheme Procedure} dynamic-args-call func dobj args
+@deffnx {C Function} scm_dynamic_args_call (func, dobj, args)
+Call the C function indicated by @var{func} and @var{dobj},
+just like @code{dynamic-call}, but pass it some arguments and
+return its return value.  The C function is expected to take
+two arguments and return an @code{int}, just like @code{main}:
+@smallexample
+int c_func (int argc, char **argv);
+@end smallexample
+
+The parameter @var{args} must be a list of strings and is
+converted into an array of @code{char *}.  The array is passed
+in @var{argv} and its size in @var{argc}.  The return value is
+converted to a Scheme number and returned from the call to
+@code{dynamic-args-call}.
 @end deffn
 
 array-fill!
@@ -5757,13 +5860,13 @@ dimension.  The order is unspecified.
 @end deffn
 
 array-map-in-order!
-@c snarfed from /home/ghouston/guile/guile-core/libguile/ramap.c:1510
+@c snarfed from /home/ghouston/guile/guile-core/libguile/ramap.c:1512
 @deffn {Scheme Procedure} array-map-in-order!
 implemented by the C function "scm_array_map_x"
 @end deffn
 
 array-map!
-@c snarfed from /home/ghouston/guile/guile-core/libguile/ramap.c:1521
+@c snarfed from /home/ghouston/guile/guile-core/libguile/ramap.c:1523
 @deffn {Scheme Procedure} array-map! ra0 proc . lra
 @deffnx {Scheme Procedure} array-map-in-order! ra0 proc . lra
 @deffnx {C Function} scm_array_map_x (ra0, proc, lra)
@@ -5776,7 +5879,7 @@ unspecified.  The order of application is unspecified.
 @end deffn
 
 array-for-each
-@c snarfed from /home/ghouston/guile/guile-core/libguile/ramap.c:1668
+@c snarfed from /home/ghouston/guile/guile-core/libguile/ramap.c:1671
 @deffn {Scheme Procedure} array-for-each proc ra0 . lra
 @deffnx {C Function} scm_array_for_each (proc, ra0, lra)
 Apply @var{proc} to each tuple of elements of @var{array0} @dots{}
@@ -5784,7 +5887,7 @@ in row-major order.  The value returned is unspecified.
 @end deffn
 
 array-index-map!
-@c snarfed from /home/ghouston/guile/guile-core/libguile/ramap.c:1696
+@c snarfed from /home/ghouston/guile/guile-core/libguile/ramap.c:1699
 @deffn {Scheme Procedure} array-index-map! ra proc
 @deffnx {C Function} scm_array_index_map_x (ra, proc)
 Apply @var{proc} to the indices of each element of @var{array} in
@@ -5921,7 +6024,7 @@ have smaller rank than @var{array}.
 @end deffn
 
 enclose-array
-@c snarfed from /home/ghouston/guile/guile-core/libguile/unif.c:911
+@c snarfed from /home/ghouston/guile/guile-core/libguile/unif.c:912
 @deffn {Scheme Procedure} enclose-array ra . axes
 @deffnx {C Function} scm_enclose_array (ra, axes)
 @var{dim0}, @var{dim1} @dots{} should be nonnegative integers less than
@@ -5948,7 +6051,7 @@ examples:
 @end deffn
 
 array-in-bounds?
-@c snarfed from /home/ghouston/guile/guile-core/libguile/unif.c:995
+@c snarfed from /home/ghouston/guile/guile-core/libguile/unif.c:996
 @deffn {Scheme Procedure} array-in-bounds? v . args
 @deffnx {C Function} scm_array_in_bounds_p (v, args)
 Return @code{#t} if its arguments would be acceptable to
@@ -5956,13 +6059,13 @@ Return @code{#t} if its arguments would be acceptable to
 @end deffn
 
 array-ref
-@c snarfed from /home/ghouston/guile/guile-core/libguile/unif.c:1074
+@c snarfed from /home/ghouston/guile/guile-core/libguile/unif.c:1075
 @deffn {Scheme Procedure} array-ref
 implemented by the C function "scm_uniform_vector_ref"
 @end deffn
 
 uniform-vector-ref
-@c snarfed from /home/ghouston/guile/guile-core/libguile/unif.c:1081
+@c snarfed from /home/ghouston/guile/guile-core/libguile/unif.c:1082
 @deffn {Scheme Procedure} uniform-vector-ref v args
 @deffnx {Scheme Procedure} array-ref v . args
 @deffnx {C Function} scm_uniform_vector_ref (v, args)
@@ -5971,13 +6074,13 @@ Return the element at the @code{(index1, index2)} element in
 @end deffn
 
 uniform-array-set1!
-@c snarfed from /home/ghouston/guile/guile-core/libguile/unif.c:1250
+@c snarfed from /home/ghouston/guile/guile-core/libguile/unif.c:1251
 @deffn {Scheme Procedure} uniform-array-set1!
 implemented by the C function "scm_array_set_x"
 @end deffn
 
 array-set!
-@c snarfed from /home/ghouston/guile/guile-core/libguile/unif.c:1259
+@c snarfed from /home/ghouston/guile/guile-core/libguile/unif.c:1260
 @deffn {Scheme Procedure} array-set! v obj . args
 @deffnx {Scheme Procedure} uniform-array-set1! v obj args
 @deffnx {C Function} scm_array_set_x (v, obj, args)
@@ -5986,7 +6089,7 @@ Set the element at the @code{(index1, index2)} element in @var{array} to
 @end deffn
 
 array-contents
-@c snarfed from /home/ghouston/guile/guile-core/libguile/unif.c:1374
+@c snarfed from /home/ghouston/guile/guile-core/libguile/unif.c:1375
 @deffn {Scheme Procedure} array-contents ra [strict]
 @deffnx {C Function} scm_array_contents (ra, strict)
 If @var{array} may be @dfn{unrolled} into a one dimensional shared array
@@ -6002,7 +6105,7 @@ memory.
 @end deffn
 
 uniform-array-read!
-@c snarfed from /home/ghouston/guile/guile-core/libguile/unif.c:1488
+@c snarfed from /home/ghouston/guile/guile-core/libguile/unif.c:1489
 @deffn {Scheme Procedure} uniform-array-read! ra [port_or_fd [start [end]]]
 @deffnx {Scheme Procedure} uniform-vector-read! uve [port-or-fdes] [start] [end]
 @deffnx {C Function} scm_uniform_array_read_x (ra, port_or_fd, start, end)
@@ -6023,7 +6126,7 @@ returned by @code{(current-input-port)}.
 @end deffn
 
 uniform-array-write
-@c snarfed from /home/ghouston/guile/guile-core/libguile/unif.c:1653
+@c snarfed from /home/ghouston/guile/guile-core/libguile/unif.c:1654
 @deffn {Scheme Procedure} uniform-array-write v [port_or_fd [start [end]]]
 @deffnx {Scheme Procedure} uniform-vector-write uve [port-or-fdes] [start] [end]
 @deffnx {C Function} scm_uniform_array_write (v, port_or_fd, start, end)
@@ -6041,7 +6144,7 @@ omitted, in which case it defaults to the value returned by
 @end deffn
 
 bit-count
-@c snarfed from /home/ghouston/guile/guile-core/libguile/unif.c:1780
+@c snarfed from /home/ghouston/guile/guile-core/libguile/unif.c:1781
 @deffn {Scheme Procedure} bit-count b bitvector
 @deffnx {C Function} scm_bit_count (b, bitvector)
 Return the number of occurrences of the boolean @var{b} in
@@ -6049,7 +6152,7 @@ Return the number of occurrences of the boolean @var{b} in
 @end deffn
 
 bit-position
-@c snarfed from /home/ghouston/guile/guile-core/libguile/unif.c:1819
+@c snarfed from /home/ghouston/guile/guile-core/libguile/unif.c:1820
 @deffn {Scheme Procedure} bit-position item v k
 @deffnx {C Function} scm_bit_position (item, v, k)
 Return the minimum index of an occurrence of @var{bool} in
@@ -6058,7 +6161,7 @@ within the specified range @code{#f} is returned.
 @end deffn
 
 bit-set*!
-@c snarfed from /home/ghouston/guile/guile-core/libguile/unif.c:1887
+@c snarfed from /home/ghouston/guile/guile-core/libguile/unif.c:1888
 @deffn {Scheme Procedure} bit-set*! v kv obj
 @deffnx {C Function} scm_bit_set_star_x (v, kv, obj)
 If uve is a bit-vector @var{bv} and uve must be of the same
@@ -6073,7 +6176,7 @@ of @var{bv} corresponding to the indexes in uve are set to
 @end deffn
 
 bit-count*
-@c snarfed from /home/ghouston/guile/guile-core/libguile/unif.c:1941
+@c snarfed from /home/ghouston/guile/guile-core/libguile/unif.c:1942
 @deffn {Scheme Procedure} bit-count* v kv obj
 @deffnx {C Function} scm_bit_count_star (v, kv, obj)
 Return
@@ -6084,14 +6187,14 @@ Return
 @end deffn
 
 bit-invert!
-@c snarfed from /home/ghouston/guile/guile-core/libguile/unif.c:2005
+@c snarfed from /home/ghouston/guile/guile-core/libguile/unif.c:2006
 @deffn {Scheme Procedure} bit-invert! v
 @deffnx {C Function} scm_bit_invert_x (v)
 Modify @var{bv} by replacing each element with its negation.
 @end deffn
 
 array->list
-@c snarfed from /home/ghouston/guile/guile-core/libguile/unif.c:2084
+@c snarfed from /home/ghouston/guile/guile-core/libguile/unif.c:2085
 @deffn {Scheme Procedure} array->list v
 @deffnx {C Function} scm_array_to_list (v)
 Return a list consisting of all the elements, in order, of
@@ -6099,7 +6202,7 @@ Return a list consisting of all the elements, in order, of
 @end deffn
 
 list->uniform-array
-@c snarfed from /home/ghouston/guile/guile-core/libguile/unif.c:2185
+@c snarfed from /home/ghouston/guile/guile-core/libguile/unif.c:2186
 @deffn {Scheme Procedure} list->uniform-array ndim prot lst
 @deffnx {Scheme Procedure} list->uniform-vector prot lst
 @deffnx {C Function} scm_list_to_uniform_array (ndim, prot, lst)
@@ -6110,7 +6213,7 @@ done.
 @end deffn
 
 array-prototype
-@c snarfed from /home/ghouston/guile/guile-core/libguile/unif.c:2536
+@c snarfed from /home/ghouston/guile/guile-core/libguile/unif.c:2537
 @deffn {Scheme Procedure} array-prototype ra
 @deffnx {C Function} scm_array_prototype (ra)
 Return an object that would produce an array of the same type
@@ -6224,7 +6327,7 @@ The return value is unspecified.
 @end deffn
 
 stat
-@c snarfed from /home/ghouston/guile/guile-core/libguile/filesys.c:621
+@c snarfed from /home/ghouston/guile/guile-core/libguile/filesys.c:620
 @deffn {Scheme Procedure} stat object
 @deffnx {C Function} scm_stat (object)
 Return an object containing various information about the file
@@ -6286,7 +6389,7 @@ An integer representing the access permission bits.
 @end deffn
 
 link
-@c snarfed from /home/ghouston/guile/guile-core/libguile/filesys.c:684
+@c snarfed from /home/ghouston/guile/guile-core/libguile/filesys.c:683
 @deffn {Scheme Procedure} link oldpath newpath
 @deffnx {C Function} scm_link (oldpath, newpath)
 Creates a new name @var{newpath} in the file system for the
@@ -6296,7 +6399,7 @@ system.
 @end deffn
 
 rename-file
-@c snarfed from /home/ghouston/guile/guile-core/libguile/filesys.c:705
+@c snarfed from /home/ghouston/guile/guile-core/libguile/filesys.c:704
 @deffn {Scheme Procedure} rename-file oldname newname
 @deffnx {C Function} scm_rename (oldname, newname)
 Renames the file specified by @var{oldname} to @var{newname}.
@@ -6304,14 +6407,14 @@ The return value is unspecified.
 @end deffn
 
 delete-file
-@c snarfed from /home/ghouston/guile/guile-core/libguile/filesys.c:732
+@c snarfed from /home/ghouston/guile/guile-core/libguile/filesys.c:731
 @deffn {Scheme Procedure} delete-file str
 @deffnx {C Function} scm_delete_file (str)
 Deletes (or "unlinks") the file specified by @var{path}.
 @end deffn
 
 mkdir
-@c snarfed from /home/ghouston/guile/guile-core/libguile/filesys.c:750
+@c snarfed from /home/ghouston/guile/guile-core/libguile/filesys.c:749
 @deffn {Scheme Procedure} mkdir path [mode]
 @deffnx {C Function} scm_mkdir (path, mode)
 Create a new directory named by @var{path}.  If @var{mode} is omitted
@@ -6321,7 +6424,7 @@ umask.  Otherwise they are set to the decimal value specified with
 @end deffn
 
 rmdir
-@c snarfed from /home/ghouston/guile/guile-core/libguile/filesys.c:778
+@c snarfed from /home/ghouston/guile/guile-core/libguile/filesys.c:777
 @deffn {Scheme Procedure} rmdir path
 @deffnx {C Function} scm_rmdir (path)
 Remove the existing directory named by @var{path}.  The directory must
@@ -6329,7 +6432,7 @@ be empty for this to succeed.  The return value is unspecified.
 @end deffn
 
 directory-stream?
-@c snarfed from /home/ghouston/guile/guile-core/libguile/filesys.c:803
+@c snarfed from /home/ghouston/guile/guile-core/libguile/filesys.c:802
 @deffn {Scheme Procedure} directory-stream? obj
 @deffnx {C Function} scm_directory_stream_p (obj)
 Return a boolean indicating whether @var{object} is a directory
@@ -6337,7 +6440,7 @@ stream as returned by @code{opendir}.
 @end deffn
 
 opendir
-@c snarfed from /home/ghouston/guile/guile-core/libguile/filesys.c:814
+@c snarfed from /home/ghouston/guile/guile-core/libguile/filesys.c:813
 @deffn {Scheme Procedure} opendir dirname
 @deffnx {C Function} scm_opendir (dirname)
 Open the directory specified by @var{path} and return a directory
@@ -6345,7 +6448,7 @@ stream.
 @end deffn
 
 readdir
-@c snarfed from /home/ghouston/guile/guile-core/libguile/filesys.c:831
+@c snarfed from /home/ghouston/guile/guile-core/libguile/filesys.c:830
 @deffn {Scheme Procedure} readdir port
 @deffnx {C Function} scm_readdir (port)
 Return (as a string) the next directory entry from the directory stream
@@ -6354,7 +6457,7 @@ end of file object is returned.
 @end deffn
 
 rewinddir
-@c snarfed from /home/ghouston/guile/guile-core/libguile/filesys.c:854
+@c snarfed from /home/ghouston/guile/guile-core/libguile/filesys.c:853
 @deffn {Scheme Procedure} rewinddir port
 @deffnx {C Function} scm_rewinddir (port)
 Reset the directory port @var{stream} so that the next call to
@@ -6362,7 +6465,7 @@ Reset the directory port @var{stream} so that the next call to
 @end deffn
 
 closedir
-@c snarfed from /home/ghouston/guile/guile-core/libguile/filesys.c:871
+@c snarfed from /home/ghouston/guile/guile-core/libguile/filesys.c:870
 @deffn {Scheme Procedure} closedir port
 @deffnx {C Function} scm_closedir (port)
 Close the directory stream @var{stream}.
@@ -6370,7 +6473,7 @@ The return value is unspecified.
 @end deffn
 
 chdir
-@c snarfed from /home/ghouston/guile/guile-core/libguile/filesys.c:921
+@c snarfed from /home/ghouston/guile/guile-core/libguile/filesys.c:920
 @deffn {Scheme Procedure} chdir str
 @deffnx {C Function} scm_chdir (str)
 Change the current working directory to @var{path}.
@@ -6378,14 +6481,14 @@ The return value is unspecified.
 @end deffn
 
 getcwd
-@c snarfed from /home/ghouston/guile/guile-core/libguile/filesys.c:937
+@c snarfed from /home/ghouston/guile/guile-core/libguile/filesys.c:936
 @deffn {Scheme Procedure} getcwd
 @deffnx {C Function} scm_getcwd ()
 Return the name of the current working directory.
 @end deffn
 
 select
-@c snarfed from /home/ghouston/guile/guile-core/libguile/filesys.c:1133
+@c snarfed from /home/ghouston/guile/guile-core/libguile/filesys.c:1132
 @deffn {Scheme Procedure} select reads writes excepts [secs [usecs]]
 @deffnx {C Function} scm_select (reads, writes, excepts, secs, usecs)
 This procedure has a variety of uses: waiting for the ability
@@ -6420,7 +6523,7 @@ An additional @code{select!} interface is provided.
 @end deffn
 
 fcntl
-@c snarfed from /home/ghouston/guile/guile-core/libguile/filesys.c:1279
+@c snarfed from /home/ghouston/guile/guile-core/libguile/filesys.c:1278
 @deffn {Scheme Procedure} fcntl object cmd [value]
 @deffnx {C Function} scm_fcntl (object, cmd, value)
 Apply @var{command} to the specified file descriptor or the underlying
@@ -6451,7 +6554,7 @@ The value used to indicate the "close on exec" flag with @code{F_GETFL} or
 @end deffn
 
 fsync
-@c snarfed from /home/ghouston/guile/guile-core/libguile/filesys.c:1316
+@c snarfed from /home/ghouston/guile/guile-core/libguile/filesys.c:1315
 @deffn {Scheme Procedure} fsync object
 @deffnx {C Function} scm_fsync (object)
 Copies any unwritten data for the specified output file descriptor to disk.
@@ -6461,7 +6564,7 @@ The return value is unspecified.
 @end deffn
 
 symlink
-@c snarfed from /home/ghouston/guile/guile-core/libguile/filesys.c:1343
+@c snarfed from /home/ghouston/guile/guile-core/libguile/filesys.c:1342
 @deffn {Scheme Procedure} symlink oldpath newpath
 @deffnx {C Function} scm_symlink (oldpath, newpath)
 Create a symbolic link named @var{path-to} with the value (i.e., pointing to)
@@ -6469,7 +6572,7 @@ Create a symbolic link named @var{path-to} with the value (i.e., pointing to)
 @end deffn
 
 readlink
-@c snarfed from /home/ghouston/guile/guile-core/libguile/filesys.c:1362
+@c snarfed from /home/ghouston/guile/guile-core/libguile/filesys.c:1361
 @deffn {Scheme Procedure} readlink path
 @deffnx {C Function} scm_readlink (path)
 Return the value of the symbolic link named by @var{path} (a
@@ -6477,7 +6580,7 @@ string), i.e., the file that the link points to.
 @end deffn
 
 lstat
-@c snarfed from /home/ghouston/guile/guile-core/libguile/filesys.c:1391
+@c snarfed from /home/ghouston/guile/guile-core/libguile/filesys.c:1390
 @deffn {Scheme Procedure} lstat str
 @deffnx {C Function} scm_lstat (str)
 Similar to @code{stat}, but does not follow symbolic links, i.e.,
@@ -6486,7 +6589,7 @@ file it points to.  @var{path} must be a string.
 @end deffn
 
 copy-file
-@c snarfed from /home/ghouston/guile/guile-core/libguile/filesys.c:1415
+@c snarfed from /home/ghouston/guile/guile-core/libguile/filesys.c:1414
 @deffn {Scheme Procedure} copy-file oldfile newfile
 @deffnx {C Function} scm_copy_file (oldfile, newfile)
 Copy the file specified by @var{path-from} to @var{path-to}.
@@ -6494,7 +6597,7 @@ The return value is unspecified.
 @end deffn
 
 dirname
-@c snarfed from /home/ghouston/guile/guile-core/libguile/filesys.c:1460
+@c snarfed from /home/ghouston/guile/guile-core/libguile/filesys.c:1459
 @deffn {Scheme Procedure} dirname filename
 @deffnx {C Function} scm_dirname (filename)
 Return the directory name component of the file name
@@ -6503,7 +6606,7 @@ component, @code{.} is returned.
 @end deffn
 
 basename
-@c snarfed from /home/ghouston/guile/guile-core/libguile/filesys.c:1503
+@c snarfed from /home/ghouston/guile/guile-core/libguile/filesys.c:1502
 @deffn {Scheme Procedure} basename filename [suffix]
 @deffnx {C Function} scm_basename (filename, suffix)
 Return the base name of the file name @var{filename}. The
@@ -6513,7 +6616,7 @@ If @var{suffix} is provided, and is equal to the end of
 @end deffn
 
 pipe
-@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:202
+@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:201
 @deffn {Scheme Procedure} pipe
 @deffnx {C Function} scm_pipe ()
 Return a newly created pipe: a pair of ports which are linked
@@ -6532,7 +6635,7 @@ from the input port.
 @end deffn
 
 getgroups
-@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:223
+@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:222
 @deffn {Scheme Procedure} getgroups
 @deffnx {C Function} scm_getgroups ()
 Return a vector of integers representing the current
@@ -6540,7 +6643,7 @@ supplementary group IDs.
 @end deffn
 
 getpw
-@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:254
+@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:257
 @deffn {Scheme Procedure} getpw [user]
 @deffnx {C Function} scm_getpwuid (user)
 Look up an entry in the user database.  @var{obj} can be an integer,
@@ -6567,7 +6670,7 @@ or getgrent respectively.
 @end deffn
 
 setgr
-@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:366
+@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:364
 @deffn {Scheme Procedure} setgr [arg]
 @deffnx {C Function} scm_setgrent (arg)
 If called with a true argument, initialize or reset the group data
@@ -6576,7 +6679,7 @@ stream.  Otherwise, close the stream.  The @code{setgrent} and
 @end deffn
 
 kill
-@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:402
+@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:400
 @deffn {Scheme Procedure} kill pid sig
 @deffnx {C Function} scm_kill (pid, sig)
 Sends a signal to the specified process or group of processes.
@@ -6609,7 +6712,7 @@ Interrupt signal.
 @end deffn
 
 waitpid
-@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:455
+@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:453
 @deffn {Scheme Procedure} waitpid pid [options]
 @deffnx {C Function} scm_waitpid (pid, options)
 This procedure collects status information from a child process which
@@ -6656,7 +6759,7 @@ The integer status value.
 @end deffn
 
 status:exit-val
-@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:483
+@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:481
 @deffn {Scheme Procedure} status:exit-val status
 @deffnx {C Function} scm_status_exit_val (status)
 Return the exit status value, as would be set if a process
@@ -6665,7 +6768,7 @@ if any, otherwise @code{#f}.
 @end deffn
 
 status:term-sig
-@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:503
+@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:501
 @deffn {Scheme Procedure} status:term-sig status
 @deffnx {C Function} scm_status_term_sig (status)
 Return the signal number which terminated the process, if any,
@@ -6673,7 +6776,7 @@ otherwise @code{#f}.
 @end deffn
 
 status:stop-sig
-@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:521
+@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:519
 @deffn {Scheme Procedure} status:stop-sig status
 @deffnx {C Function} scm_status_stop_sig (status)
 Return the signal number which stopped the process, if any,
@@ -6681,7 +6784,7 @@ otherwise @code{#f}.
 @end deffn
 
 getppid
-@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:541
+@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:539
 @deffn {Scheme Procedure} getppid
 @deffnx {C Function} scm_getppid ()
 Return an integer representing the process ID of the parent
@@ -6689,21 +6792,21 @@ process.
 @end deffn
 
 getuid
-@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:553
+@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:551
 @deffn {Scheme Procedure} getuid
 @deffnx {C Function} scm_getuid ()
 Return an integer representing the current real user ID.
 @end deffn
 
 getgid
-@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:564
+@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:562
 @deffn {Scheme Procedure} getgid
 @deffnx {C Function} scm_getgid ()
 Return an integer representing the current real group ID.
 @end deffn
 
 geteuid
-@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:578
+@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:576
 @deffn {Scheme Procedure} geteuid
 @deffnx {C Function} scm_geteuid ()
 Return an integer representing the current effective user ID.
@@ -6713,7 +6816,7 @@ system supports effective IDs.
 @end deffn
 
 getegid
-@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:595
+@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:593
 @deffn {Scheme Procedure} getegid
 @deffnx {C Function} scm_getegid ()
 Return an integer representing the current effective group ID.
@@ -6723,7 +6826,7 @@ system supports effective IDs.
 @end deffn
 
 setuid
-@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:611
+@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:609
 @deffn {Scheme Procedure} setuid id
 @deffnx {C Function} scm_setuid (id)
 Sets both the real and effective user IDs to the integer @var{id}, provided
@@ -6732,7 +6835,7 @@ The return value is unspecified.
 @end deffn
 
 setgid
-@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:625
+@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:623
 @deffn {Scheme Procedure} setgid id
 @deffnx {C Function} scm_setgid (id)
 Sets both the real and effective group IDs to the integer @var{id}, provided
@@ -6741,7 +6844,7 @@ The return value is unspecified.
 @end deffn
 
 seteuid
-@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:641
+@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:639
 @deffn {Scheme Procedure} seteuid id
 @deffnx {C Function} scm_seteuid (id)
 Sets the effective user ID to the integer @var{id}, provided the process
@@ -6752,7 +6855,7 @@ The return value is unspecified.
 @end deffn
 
 setegid
-@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:667
+@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:665
 @deffn {Scheme Procedure} setegid id
 @deffnx {C Function} scm_setegid (id)
 Sets the effective group ID to the integer @var{id}, provided the process
@@ -6763,7 +6866,7 @@ The return value is unspecified.
 @end deffn
 
 getpgrp
-@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:691
+@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:689
 @deffn {Scheme Procedure} getpgrp
 @deffnx {C Function} scm_getpgrp ()
 Return an integer representing the current process group ID.
@@ -6771,7 +6874,7 @@ This is the POSIX definition, not BSD.
 @end deffn
 
 setpgid
-@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:709
+@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:707
 @deffn {Scheme Procedure} setpgid pid pgid
 @deffnx {C Function} scm_setpgid (pid, pgid)
 Move the process @var{pid} into the process group @var{pgid}.  @var{pid} or
@@ -6782,7 +6885,7 @@ The return value is unspecified.
 @end deffn
 
 setsid
-@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:728
+@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:726
 @deffn {Scheme Procedure} setsid
 @deffnx {C Function} scm_setsid ()
 Creates a new session.  The current process becomes the session leader
@@ -6792,7 +6895,7 @@ The return value is an integer representing the new process group ID.
 @end deffn
 
 ttyname
-@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:743
+@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:741
 @deffn {Scheme Procedure} ttyname port
 @deffnx {C Function} scm_ttyname (port)
 Return a string with the name of the serial terminal device
@@ -6800,7 +6903,7 @@ underlying @var{port}.
 @end deffn
 
 ctermid
-@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:767
+@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:765
 @deffn {Scheme Procedure} ctermid
 @deffnx {C Function} scm_ctermid ()
 Return a string containing the file name of the controlling
@@ -6808,7 +6911,7 @@ terminal for the current process.
 @end deffn
 
 tcgetpgrp
-@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:790
+@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:788
 @deffn {Scheme Procedure} tcgetpgrp port
 @deffnx {C Function} scm_tcgetpgrp (port)
 Return the process group ID of the foreground process group
@@ -6824,7 +6927,7 @@ foreground.
 @end deffn
 
 tcsetpgrp
-@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:814
+@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:812
 @deffn {Scheme Procedure} tcsetpgrp port pgid
 @deffnx {C Function} scm_tcsetpgrp (port, pgid)
 Set the foreground process group ID for the terminal used by the file
@@ -6835,7 +6938,7 @@ controlling terminal.  The return value is unspecified.
 @end deffn
 
 execl
-@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:869
+@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:867
 @deffn {Scheme Procedure} execl filename . args
 @deffnx {C Function} scm_execl (filename, args)
 Executes the file named by @var{path} as a new process image.
@@ -6852,7 +6955,7 @@ call, but we call it @code{execl} because of its Scheme calling interface.
 @end deffn
 
 execlp
-@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:889
+@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:887
 @deffn {Scheme Procedure} execlp filename . args
 @deffnx {C Function} scm_execlp (filename, args)
 Similar to @code{execl}, however if
@@ -6865,7 +6968,7 @@ call, but we call it @code{execlp} because of its Scheme calling interface.
 @end deffn
 
 execle
-@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:939
+@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:937
 @deffn {Scheme Procedure} execle filename env . args
 @deffnx {C Function} scm_execle (filename, env, args)
 Similar to @code{execl}, but the environment of the new process is
@@ -6877,7 +6980,7 @@ call, but we call it @code{execle} because of its Scheme calling interface.
 @end deffn
 
 primitive-fork
-@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:963
+@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:961
 @deffn {Scheme Procedure} primitive-fork
 @deffnx {C Function} scm_fork ()
 Creates a new "child" process by duplicating the current "parent" process.
@@ -6889,7 +6992,7 @@ with the scsh fork.
 @end deffn
 
 uname
-@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:983
+@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:981
 @deffn {Scheme Procedure} uname
 @deffnx {C Function} scm_uname ()
 Return an object with some information about the computer
@@ -6897,7 +7000,7 @@ system the program is running on.
 @end deffn
 
 environ
-@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:1013
+@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:1010
 @deffn {Scheme Procedure} environ [env]
 @deffnx {C Function} scm_environ (env)
 If @var{env} is omitted, return the current environment (in the
@@ -6910,7 +7013,7 @@ then the return value is unspecified.
 @end deffn
 
 tmpnam
-@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:1051
+@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:1048
 @deffn {Scheme Procedure} tmpnam
 @deffnx {C Function} scm_tmpnam ()
 Return a name in the file system that does not match any
@@ -6921,7 +7024,7 @@ Care should be taken if opening the file, e.g., use the
 @end deffn
 
 mkstemp!
-@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:1077
+@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:1074
 @deffn {Scheme Procedure} mkstemp! tmpl
 @deffnx {C Function} scm_mkstemp (tmpl)
 Create a new unique file in the file system and returns a new
@@ -6932,7 +7035,7 @@ place to return the name of the temporary file.
 @end deffn
 
 utime
-@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:1102
+@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:1099
 @deffn {Scheme Procedure} utime pathname [actime [modtime]]
 @deffnx {C Function} scm_utime (pathname, actime, modtime)
 @code{utime} sets the access and modification times for the
@@ -6948,7 +7051,7 @@ modification time to the current time.
 @end deffn
 
 access?
-@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:1150
+@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:1147
 @deffn {Scheme Procedure} access? path how
 @deffnx {C Function} scm_access (path, how)
 Return @code{#t} if @var{path} corresponds to an existing file
@@ -6977,14 +7080,14 @@ test for existence of the file.
 @end deffn
 
 getpid
-@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:1164
+@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:1161
 @deffn {Scheme Procedure} getpid
 @deffnx {C Function} scm_getpid ()
 Return an integer representing the current process ID.
 @end deffn
 
 putenv
-@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:1181
+@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:1178
 @deffn {Scheme Procedure} putenv str
 @deffnx {C Function} scm_putenv (str)
 Modifies the environment of the current process, which is
@@ -7001,7 +7104,7 @@ The return value is unspecified.
 @end deffn
 
 setlocale
-@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:1223
+@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:1220
 @deffn {Scheme Procedure} setlocale category [locale]
 @deffnx {C Function} scm_setlocale (category, locale)
 If @var{locale} is omitted, return the current value of the
@@ -7016,7 +7119,7 @@ the locale will be set using environment variables.
 @end deffn
 
 mknod
-@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:1263
+@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:1260
 @deffn {Scheme Procedure} mknod path type perms dev
 @deffnx {C Function} scm_mknod (path, type, perms, dev)
 Creates a new special file, such as a file corresponding to a device.
@@ -7037,7 +7140,7 @@ The return value is unspecified.
 @end deffn
 
 nice
-@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:1309
+@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:1306
 @deffn {Scheme Procedure} nice incr
 @deffnx {C Function} scm_nice (incr)
 Increment the priority of the current process by @var{incr}.  A higher
@@ -7046,7 +7149,7 @@ The return value is unspecified.
 @end deffn
 
 sync
-@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:1324
+@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:1321
 @deffn {Scheme Procedure} sync
 @deffnx {C Function} scm_sync ()
 Flush the operating system disk buffers.
@@ -7054,7 +7157,7 @@ The return value is unspecified.
 @end deffn
 
 crypt
-@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:1337
+@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:1334
 @deffn {Scheme Procedure} crypt key salt
 @deffnx {C Function} scm_crypt (key, salt)
 Encrypt @var{key} using @var{salt} as the salt value to the
@@ -7062,7 +7165,7 @@ crypt(3) library call.
 @end deffn
 
 chroot
-@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:1358
+@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:1355
 @deffn {Scheme Procedure} chroot path
 @deffnx {C Function} scm_chroot (path)
 Change the root directory to that specified in @var{path}.
@@ -7073,7 +7176,7 @@ root directory.
 @end deffn
 
 getlogin
-@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:1390
+@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:1387
 @deffn {Scheme Procedure} getlogin
 @deffnx {C Function} scm_getlogin ()
 Return a string containing the name of the user logged in on
@@ -7082,7 +7185,7 @@ information cannot be obtained.
 @end deffn
 
 cuserid
-@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:1408
+@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:1405
 @deffn {Scheme Procedure} cuserid
 @deffnx {C Function} scm_cuserid ()
 Return a string containing a user name associated with the
@@ -7091,7 +7194,7 @@ information cannot be obtained.
 @end deffn
 
 getpriority
-@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:1433
+@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:1430
 @deffn {Scheme Procedure} getpriority which who
 @deffnx {C Function} scm_getpriority (which, who)
 Return the scheduling priority of the process, process group
@@ -7107,7 +7210,7 @@ specified processes.
 @end deffn
 
 setpriority
-@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:1467
+@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:1464
 @deffn {Scheme Procedure} setpriority which who prio
 @deffnx {C Function} scm_setpriority (which, who, prio)
 Set the scheduling priority of the process, process group
@@ -7126,7 +7229,7 @@ The return value is not specified.
 @end deffn
 
 getpass
-@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:1492
+@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:1489
 @deffn {Scheme Procedure} getpass prompt
 @deffnx {C Function} scm_getpass (prompt)
 Display @var{prompt} to the standard error output and read
@@ -7139,7 +7242,7 @@ characters is disabled.
 @end deffn
 
 flock
-@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:1596
+@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:1593
 @deffn {Scheme Procedure} flock file operation
 @deffnx {C Function} scm_flock (file, operation)
 Apply or remove an advisory lock on an open file.
@@ -7162,7 +7265,7 @@ file descriptor or an open file descriptor port.
 @end deffn
 
 sethostname
-@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:1622
+@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:1619
 @deffn {Scheme Procedure} sethostname name
 @deffnx {C Function} scm_sethostname (name)
 Set the host name of the current processor to @var{name}. May
@@ -7171,14 +7274,14 @@ specified.
 @end deffn
 
 gethostname
-@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:1637
+@c snarfed from /home/ghouston/guile/guile-core/libguile/posix.c:1634
 @deffn {Scheme Procedure} gethostname
 @deffnx {C Function} scm_gethostname ()
 Return the host name of the current processor.
 @end deffn
 
 gethost
-@c snarfed from /home/ghouston/guile/guile-core/libguile/net_db.c:154
+@c snarfed from /home/ghouston/guile/guile-core/libguile/net_db.c:153
 @deffn {Scheme Procedure} gethost [host]
 @deffnx {Scheme Procedure} gethostbyname hostname
 @deffnx {Scheme Procedure} gethostbyaddr address
@@ -7195,7 +7298,7 @@ Unusual conditions may result in errors thrown to the
 @end deffn
 
 getnet
-@c snarfed from /home/ghouston/guile/guile-core/libguile/net_db.c:233
+@c snarfed from /home/ghouston/guile/guile-core/libguile/net_db.c:231
 @deffn {Scheme Procedure} getnet [net]
 @deffnx {Scheme Procedure} getnetbyname net-name
 @deffnx {Scheme Procedure} getnetbyaddr net-number
@@ -7208,7 +7311,7 @@ given.
 @end deffn
 
 getproto
-@c snarfed from /home/ghouston/guile/guile-core/libguile/net_db.c:282
+@c snarfed from /home/ghouston/guile/guile-core/libguile/net_db.c:277
 @deffn {Scheme Procedure} getproto [protocol]
 @deffnx {Scheme Procedure} getprotobyname name
 @deffnx {Scheme Procedure} getprotobynumber number
@@ -7220,7 +7323,7 @@ argument.  @code{getproto} will accept either type, behaving like
 @end deffn
 
 getserv
-@c snarfed from /home/ghouston/guile/guile-core/libguile/net_db.c:348
+@c snarfed from /home/ghouston/guile/guile-core/libguile/net_db.c:337
 @deffn {Scheme Procedure} getserv [name [protocol]]
 @deffnx {Scheme Procedure} getservbyname name protocol
 @deffnx {Scheme Procedure} getservbyport port protocol
@@ -7236,7 +7339,7 @@ as its first argument; if given no arguments, it behaves like
 @end deffn
 
 sethost
-@c snarfed from /home/ghouston/guile/guile-core/libguile/net_db.c:385
+@c snarfed from /home/ghouston/guile/guile-core/libguile/net_db.c:374
 @deffn {Scheme Procedure} sethost [stayopen]
 @deffnx {C Function} scm_sethost (stayopen)
 If @var{stayopen} is omitted, this is equivalent to @code{endhostent}.
@@ -7244,7 +7347,7 @@ Otherwise it is equivalent to @code{sethostent stayopen}.
 @end deffn
 
 setnet
-@c snarfed from /home/ghouston/guile/guile-core/libguile/net_db.c:401
+@c snarfed from /home/ghouston/guile/guile-core/libguile/net_db.c:390
 @deffn {Scheme Procedure} setnet [stayopen]
 @deffnx {C Function} scm_setnet (stayopen)
 If @var{stayopen} is omitted, this is equivalent to @code{endnetent}.
@@ -7252,7 +7355,7 @@ Otherwise it is equivalent to @code{setnetent stayopen}.
 @end deffn
 
 setproto
-@c snarfed from /home/ghouston/guile/guile-core/libguile/net_db.c:417
+@c snarfed from /home/ghouston/guile/guile-core/libguile/net_db.c:406
 @deffn {Scheme Procedure} setproto [stayopen]
 @deffnx {C Function} scm_setproto (stayopen)
 If @var{stayopen} is omitted, this is equivalent to @code{endprotoent}.
@@ -7260,7 +7363,7 @@ Otherwise it is equivalent to @code{setprotoent stayopen}.
 @end deffn
 
 setserv
-@c snarfed from /home/ghouston/guile/guile-core/libguile/net_db.c:433
+@c snarfed from /home/ghouston/guile/guile-core/libguile/net_db.c:422
 @deffn {Scheme Procedure} setserv [stayopen]
 @deffnx {C Function} scm_setserv (stayopen)
 If @var{stayopen} is omitted, this is equivalent to @code{endservent}.
@@ -7268,7 +7371,7 @@ Otherwise it is equivalent to @code{setservent stayopen}.
 @end deffn
 
 htons
-@c snarfed from /home/ghouston/guile/guile-core/libguile/socket.c:109
+@c snarfed from /home/ghouston/guile/guile-core/libguile/socket.c:108
 @deffn {Scheme Procedure} htons value
 @deffnx {C Function} scm_htons (value)
 Convert a 16 bit quantity from host to network byte ordering.
@@ -7277,7 +7380,7 @@ and returned as a new integer.
 @end deffn
 
 ntohs
-@c snarfed from /home/ghouston/guile/guile-core/libguile/socket.c:126
+@c snarfed from /home/ghouston/guile/guile-core/libguile/socket.c:125
 @deffn {Scheme Procedure} ntohs value
 @deffnx {C Function} scm_ntohs (value)
 Convert a 16 bit quantity from network to host byte ordering.
@@ -7286,7 +7389,7 @@ and returned as a new integer.
 @end deffn
 
 htonl
-@c snarfed from /home/ghouston/guile/guile-core/libguile/socket.c:143
+@c snarfed from /home/ghouston/guile/guile-core/libguile/socket.c:142
 @deffn {Scheme Procedure} htonl value
 @deffnx {C Function} scm_htonl (value)
 Convert a 32 bit quantity from host to network byte ordering.
@@ -7295,7 +7398,7 @@ and returned as a new integer.
 @end deffn
 
 ntohl
-@c snarfed from /home/ghouston/guile/guile-core/libguile/socket.c:156
+@c snarfed from /home/ghouston/guile/guile-core/libguile/socket.c:155
 @deffn {Scheme Procedure} ntohl value
 @deffnx {C Function} scm_ntohl (value)
 Convert a 32 bit quantity from network to host byte ordering.
@@ -7304,7 +7407,7 @@ and returned as a new integer.
 @end deffn
 
 inet-aton
-@c snarfed from /home/ghouston/guile/guile-core/libguile/socket.c:176
+@c snarfed from /home/ghouston/guile/guile-core/libguile/socket.c:175
 @deffn {Scheme Procedure} inet-aton address
 @deffnx {C Function} scm_inet_aton (address)
 Convert an IPv4 Internet address from printable string
@@ -7316,7 +7419,7 @@ Convert an IPv4 Internet address from printable string
 @end deffn
 
 inet-ntoa
-@c snarfed from /home/ghouston/guile/guile-core/libguile/socket.c:195
+@c snarfed from /home/ghouston/guile/guile-core/libguile/socket.c:194
 @deffn {Scheme Procedure} inet-ntoa inetid
 @deffnx {C Function} scm_inet_ntoa (inetid)
 Convert an IPv4 Internet address to a printable
@@ -7328,7 +7431,7 @@ Convert an IPv4 Internet address to a printable
 @end deffn
 
 inet-netof
-@c snarfed from /home/ghouston/guile/guile-core/libguile/socket.c:215
+@c snarfed from /home/ghouston/guile/guile-core/libguile/socket.c:214
 @deffn {Scheme Procedure} inet-netof address
 @deffnx {C Function} scm_inet_netof (address)
 Return the network number part of the given IPv4
@@ -7340,7 +7443,7 @@ Internet address.  E.g.,
 @end deffn
 
 inet-lnaof
-@c snarfed from /home/ghouston/guile/guile-core/libguile/socket.c:233
+@c snarfed from /home/ghouston/guile/guile-core/libguile/socket.c:232
 @deffn {Scheme Procedure} inet-lnaof address
 @deffnx {C Function} scm_lnaof (address)
 Return the local-address-with-network part of the given
@@ -7353,7 +7456,7 @@ E.g.,
 @end deffn
 
 inet-makeaddr
-@c snarfed from /home/ghouston/guile/guile-core/libguile/socket.c:251
+@c snarfed from /home/ghouston/guile/guile-core/libguile/socket.c:250
 @deffn {Scheme Procedure} inet-makeaddr net lna
 @deffnx {C Function} scm_inet_makeaddr (net, lna)
 Make an IPv4 Internet address by combining the network number
@@ -7366,7 +7469,7 @@ Make an IPv4 Internet address by combining the network number
 @end deffn
 
 inet-pton
-@c snarfed from /home/ghouston/guile/guile-core/libguile/socket.c:369
+@c snarfed from /home/ghouston/guile/guile-core/libguile/socket.c:368
 @deffn {Scheme Procedure} inet-pton family address
 @deffnx {C Function} scm_inet_pton (family, address)
 Convert a string containing a printable network address to
@@ -7382,7 +7485,7 @@ the result is an integer with normal host byte ordering.
 @end deffn
 
 inet-ntop
-@c snarfed from /home/ghouston/guile/guile-core/libguile/socket.c:404
+@c snarfed from /home/ghouston/guile/guile-core/libguile/socket.c:403
 @deffn {Scheme Procedure} inet-ntop family address
 @deffnx {C Function} scm_inet_ntop (family, address)
 Convert a network address into a printable string.
@@ -7398,7 +7501,7 @@ ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff
 @end deffn
 
 socket
-@c snarfed from /home/ghouston/guile/guile-core/libguile/socket.c:449
+@c snarfed from /home/ghouston/guile/guile-core/libguile/socket.c:448
 @deffn {Scheme Procedure} socket family style proto
 @deffnx {C Function} scm_socket (family, style, proto)
 Return a new socket port of the type specified by @var{family},
@@ -7417,7 +7520,7 @@ has been connected to another socket.
 @end deffn
 
 socketpair
-@c snarfed from /home/ghouston/guile/guile-core/libguile/socket.c:471
+@c snarfed from /home/ghouston/guile/guile-core/libguile/socket.c:470
 @deffn {Scheme Procedure} socketpair family style proto
 @deffnx {C Function} scm_socketpair (family, style, proto)
 Return a pair of connected (but unnamed) socket ports of the
@@ -7428,7 +7531,7 @@ family.  Zero is likely to be the only meaningful value for
 @end deffn
 
 getsockopt
-@c snarfed from /home/ghouston/guile/guile-core/libguile/socket.c:500
+@c snarfed from /home/ghouston/guile/guile-core/libguile/socket.c:499
 @deffn {Scheme Procedure} getsockopt sock level optname
 @deffnx {C Function} scm_getsockopt (sock, level, optname)
 Return the value of a particular socket option for the socket
@@ -7443,7 +7546,7 @@ returns a pair of integers.
 @end deffn
 
 setsockopt
-@c snarfed from /home/ghouston/guile/guile-core/libguile/socket.c:568
+@c snarfed from /home/ghouston/guile/guile-core/libguile/socket.c:567
 @deffn {Scheme Procedure} setsockopt sock level optname value
 @deffnx {C Function} scm_setsockopt (sock, level, optname, value)
 Set the value of a particular socket option for the socket
@@ -7460,7 +7563,7 @@ The return value is unspecified.
 @end deffn
 
 shutdown
-@c snarfed from /home/ghouston/guile/guile-core/libguile/socket.c:672
+@c snarfed from /home/ghouston/guile/guile-core/libguile/socket.c:671
 @deffn {Scheme Procedure} shutdown sock how
 @deffnx {C Function} scm_shutdown (sock, how)
 Sockets can be closed simply by using @code{close-port}. The
@@ -7483,7 +7586,7 @@ The return value is unspecified.
 @end deffn
 
 connect
-@c snarfed from /home/ghouston/guile/guile-core/libguile/socket.c:816
+@c snarfed from /home/ghouston/guile/guile-core/libguile/socket.c:815
 @deffn {Scheme Procedure} connect sock fam address . args
 @deffnx {C Function} scm_connect (sock, fam, address, args)
 Initiate a connection from a socket using a specified address
@@ -7510,7 +7613,7 @@ The return value is unspecified.
 @end deffn
 
 bind
-@c snarfed from /home/ghouston/guile/guile-core/libguile/socket.c:876
+@c snarfed from /home/ghouston/guile/guile-core/libguile/socket.c:875
 @deffn {Scheme Procedure} bind sock fam address . args
 @deffnx {C Function} scm_bind (sock, fam, address, args)
 Assign an address to the socket port @var{sock}.
@@ -7559,7 +7662,7 @@ The return value is unspecified.
 @end deffn
 
 listen
-@c snarfed from /home/ghouston/guile/guile-core/libguile/socket.c:910
+@c snarfed from /home/ghouston/guile/guile-core/libguile/socket.c:909
 @deffn {Scheme Procedure} listen sock backlog
 @deffnx {C Function} scm_listen (sock, backlog)
 Enable @var{sock} to accept connection
@@ -7573,7 +7676,7 @@ The return value is unspecified.
 @end deffn
 
 accept
-@c snarfed from /home/ghouston/guile/guile-core/libguile/socket.c:1015
+@c snarfed from /home/ghouston/guile/guile-core/libguile/socket.c:1013
 @deffn {Scheme Procedure} accept sock
 @deffnx {C Function} scm_accept (sock)
 Accept a connection on a bound, listening socket.
@@ -7593,7 +7696,7 @@ connection and will continue to accept new requests.
 @end deffn
 
 getsockname
-@c snarfed from /home/ghouston/guile/guile-core/libguile/socket.c:1042
+@c snarfed from /home/ghouston/guile/guile-core/libguile/socket.c:1040
 @deffn {Scheme Procedure} getsockname sock
 @deffnx {C Function} scm_getsockname (sock)
 Return the address of @var{sock}, in the same form as the
@@ -7602,7 +7705,7 @@ of a socket in the @code{AF_FILE} namespace cannot be read.
 @end deffn
 
 getpeername
-@c snarfed from /home/ghouston/guile/guile-core/libguile/socket.c:1064
+@c snarfed from /home/ghouston/guile/guile-core/libguile/socket.c:1062
 @deffn {Scheme Procedure} getpeername sock
 @deffnx {C Function} scm_getpeername (sock)
 Return the address that @var{sock}
@@ -7612,7 +7715,7 @@ is connected to, in the same form as the object returned by
 @end deffn
 
 recv!
-@c snarfed from /home/ghouston/guile/guile-core/libguile/socket.c:1099
+@c snarfed from /home/ghouston/guile/guile-core/libguile/socket.c:1097
 @deffn {Scheme Procedure} recv! sock buf [flags]
 @deffnx {C Function} scm_recv (sock, buf, flags)
 Receive data from a socket port.
@@ -7638,7 +7741,7 @@ any unread buffered port data is ignored.
 @end deffn
 
 send
-@c snarfed from /home/ghouston/guile/guile-core/libguile/socket.c:1132
+@c snarfed from /home/ghouston/guile/guile-core/libguile/socket.c:1130
 @deffn {Scheme Procedure} send sock message [flags]
 @deffnx {C Function} scm_send (sock, message, flags)
 Transmit the string @var{message} on a socket port @var{sock}.
@@ -7657,7 +7760,7 @@ any unflushed buffered port data is ignored.
 @end deffn
 
 recvfrom!
-@c snarfed from /home/ghouston/guile/guile-core/libguile/socket.c:1172
+@c snarfed from /home/ghouston/guile/guile-core/libguile/socket.c:1170
 @deffn {Scheme Procedure} recvfrom! sock str [flags [start [end]]]
 @deffnx {C Function} scm_recvfrom (sock, str, flags, start, end)
 Return data from the socket port @var{sock} and also
@@ -7686,7 +7789,7 @@ descriptor: any unread buffered port data is ignored.
 @end deffn
 
 sendto
-@c snarfed from /home/ghouston/guile/guile-core/libguile/socket.c:1230
+@c snarfed from /home/ghouston/guile/guile-core/libguile/socket.c:1228
 @deffn {Scheme Procedure} sendto sock message fam address . args_and_flags
 @deffnx {C Function} scm_sendto (sock, message, fam, address, args_and_flags)
 Transmit the string @var{message} on the socket port

@@ -4,6 +4,7 @@
 
 @menu
 * Lambda::                      Basic procedure creation using lambda.
+* Primitive Procedures::        Procedures defined in C.
 * Optional Arguments::          Handling keyword, optional and rest arguments.
 * Procedure Properties::        Procedure properties and meta-information.
 * Procedures with Setters::     Procedures with setters.
@@ -80,6 +81,42 @@ empty list is stored into the location of the last formal argument.
 order when the procedure is invoked.
 @end deffn
 
+@node Primitive Procedures
+@section Primitive Procedures
+@cindex primitives
+@cindex primitive procedures
+
+Procedures written in C can be registered for use from Scheme,
+provided they take only arguments of type @code{SCM} and return
+@code{SCM} values.  @code{scm_c_define_gsubr} is likely to be the most
+useful mechanism, combining the process of registration
+(@code{scm_c_make_gsubr}) and definition (@code{scm_define}).
+
+@deftypefun SCM scm_c_make_gsubr (const char *name, int req, int opt, int rst, fcn)
+Register a C procedure @var{FCN} as a ``subr'' --- a primitive
+subroutine that can be called from Scheme.  It will be associated with
+the given @var{name} but no environment binding will be created.  The
+arguments @var{req}, @var{opt} and @var{rst} specify the number of
+required, optional and ``rest'' arguments respectively.  The total
+number of these arguments should match the actual number of arguments
+to @var{fcn}.  The number of rest arguments should be 0 or 1.
+@code{scm_c_make_gsubr} returns a value of type @code{SCM} which is a
+``handle'' for the procedure.
+@end deftypefun
+
+@deftypefun SCM scm_c_define_gsubr (const char *name, int req, int opt, int rst, fcn)
+Register a C procedure @var{FCN}, as for @code{scm_c_make_gsubr}
+above, and additionally create a top-level Scheme binding for the
+procedure in the ``current environment'' using @code{scm_define}.
+@code{scm_c_define_gsubr} returns a handle for the procedure in the
+same way as @code{scm_c_make_gsubr}, which is usually not further
+required.
+@end deftypefun
+
+@code{scm_c_make_gsubr} and @code{scm_c_define_gsubr} automatically
+use @code{scm_c_make_subr} and also @code{scm_makcclo} if necessary.
+It is advisable to use the gsubr variants since they provide a
+slightly higher-level abstraction of the Guile implementation.
 
 @node Optional Arguments
 @section Optional Arguments

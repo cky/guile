@@ -699,3 +699,9 @@ Return NaN.
 @deffnx {C Function} scm_inf ()
 Return Inf.
 @end deffn
+
+@deffn {Scheme Procedure} set-debug-cell-accesses! flag
+@deffnx {C Function} scm_set_debug_cell_accesses_x (flag)
+This function is used to turn on checking for a debug version of GUILE. This version does not support this functionality
+
+@end deffn

@@ -1212,7 +1212,7 @@ Return a copy of the random state @var{state}.
 
 @deffn {Scheme Procedure} random n [state]
 @deffnx {C Function} scm_random (n, state)
-Return a number in [0,N).
+Return a number in [0, N).
 
 Accepts a positive integer or real n and returns a
 number of the same type between zero (inclusive) and
