@@ -60,6 +60,8 @@
     * second #inclusion
 */
 
+#include <errno.h>
+
 #include "libguile/_scm.h"
 #include "libguile/dynwind.h"
 #include "libguile/smob.h"
@@ -109,6 +111,15 @@ SCM_REGISTER_PROC(s_join_thread, "join-thread", 1, 0, 0, scm_join_thread);
 terminates, unless the target @var{thread} has already terminated.
 */
 
+SCM_DEFINE (scm_thread_exited_p, "thread-exited?", 1, 0, 0,
+	    (SCM thread),
+	    "Return @code{#t} iff @var{thread} has exited.\n")
+#define FUNC_NAME s_scm_thread_exited_p
+{
+  return SCM_BOOL (scm_c_thread_exited_p (thread));
+}
+#undef FUNC_NAME
+
 SCM_REGISTER_PROC(s_make_mutex, "make-mutex", 0, 0, 0, scm_make_mutex);
 /* Create a new mutex object. */
 
@@ -116,6 +127,10 @@ SCM_REGISTER_PROC(s_lock_mutex, "lock-mutex", 1, 0, 0, scm_lock_mutex);
 /* Lock @var{mutex}. If the mutex is already locked, the calling thread
 blocks until the mutex becomes available. The function returns when
 the calling thread owns the lock on @var{mutex}. */
+
+SCM_REGISTER_PROC(s_try_mutex, "try-mutex", 1, 0, 0, scm_try_mutex);
+/* Try to lock @var{mutex}. If the mutex is already locked by someone
+else, return @code{#f}.  Else lock the mutex and return @code{#t}. */
 
 SCM_REGISTER_PROC(s_unlock_mutex, "unlock-mutex", 1, 0, 0, scm_unlock_mutex);
 /* Unlocks @var{mutex} if the calling thread owns the lock on @var{mutex}.
@@ -125,16 +140,105 @@ blocked on @var{mutex} is awakened and grabs the mutex lock. */
 
 SCM_REGISTER_PROC(s_make_condition_variable, "make-condition-variable", 0, 0, 0, scm_make_condition_variable);
 
-SCM_REGISTER_PROC(s_wait_condition_variable, "wait-condition-variable", 2, 0, 0, scm_wait_condition_variable);
+SCM_REGISTER_PROC(s_wait_condition_variable, "wait-condition-variable", 2, 1, 0, scm_timed_wait_condition_variable);
 
 SCM_REGISTER_PROC(s_signal_condition_variable, "signal-condition-variable", 1, 0, 0, scm_signal_condition_variable);
+
+SCM_REGISTER_PROC(s_broadcast_condition_variable, "broadcast-condition-variable", 1, 0, 0, scm_broadcast_condition_variable);
+
+SCM
+scm_wait_condition_variable (SCM c, SCM m)
+{
+  return scm_timed_wait_condition_variable (c, m, SCM_UNDEFINED);
+}
 
 
 
 #ifdef USE_COOP_THREADS
 #include "libguile/coop-threads.c"
 #else
+#ifdef USE_COPT_THREADS
+#include "libguile/coop-pthreads.c"
+#else
 #include "libguile/null-threads.c"
+#endif
+#endif
+
+
+
+#if (SCM_ENABLE_DEPRECATED == 1)
+
+SCM_API int
+scm_mutex_init (scm_t_mutex *m)
+{
+  scm_gc_protect_object (m->m = scm_make_mutex ());
+  return 0;
+}
+
+SCM_API int
+scm_mutex_lock (scm_t_mutex *m)
+{
+  scm_lock_mutex (m->m);
+  return 0;
+}
+
+SCM_API int
+scm_mutex_trylock (scm_t_mutex *m)
+{
+  return SCM_FALSEP (scm_try_mutex (m->m))? EBUSY : 0;
+}
+
+SCM_API int
+scm_mutex_unlock (scm_t_mutex *m)
+{
+  scm_unlock_mutex (m->m);
+  return 0;
+}
+
+SCM_API int
+scm_mutex_destroy (scm_t_mutex *m)
+{
+  scm_gc_unprotect_object (m->m);
+  return 0;
+}
+
+SCM_API int
+scm_cond_init (scm_t_cond *c)
+{
+  scm_gc_protect_object (c->c = scm_make_condition_variable ());
+  return 0;
+}
+
+SCM_API int
+scm_cond_wait (scm_t_cond *c, scm_t_mutex *m)
+{
+  scm_wait_condition_variable (c->c, m->m);
+  return 0;
+}
+
+SCM_API int
+scm_cond_timedwait (scm_t_cond *c, scm_t_mutex *m,
+		    const struct timespec *t)
+{
+  return !SCM_FALSEP (scm_timed_wait_condition_variable (
+    c->c, m->m, scm_cons (scm_long2num (t->tv_sec),
+			  scm_long2num (t->tv_nsec/1000))));
+}
+
+SCM_API int
+scm_cond_signal (scm_t_cond *c)
+{
+  scm_signal_condition_variable (c->c);
+  return 0;
+}
+
+SCM_API int
+scm_cond_destroy (scm_t_cond *c)
+{
+  scm_gc_unprotect_object (c->c);
+  return 0;
+}
+
 #endif
 
 
@@ -142,14 +246,14 @@ SCM_REGISTER_PROC(s_signal_condition_variable, "signal-condition-variable", 1, 0
 void
 scm_init_threads (SCM_STACKITEM *i)
 {
-  scm_tc16_thread = scm_make_smob_type ("thread", 0);
-  scm_tc16_mutex = scm_make_smob_type ("mutex", sizeof (scm_t_mutex));
-  scm_tc16_condvar = scm_make_smob_type ("condition-variable",
-					 sizeof (scm_t_cond));
-                                        
-#include "libguile/threads.x"
   /* Initialize implementation specific details of the threads support */
   scm_threads_init (i);
+}
+
+void
+scm_init_thread_procs ()
+{
+#include "libguile/threads.x"
 }
 
 /*

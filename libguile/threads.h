@@ -71,12 +71,7 @@ SCM_API scm_t_bits scm_tc16_condvar;
 SCM_API void scm_threads_init (SCM_STACKITEM *);
 SCM_API void scm_threads_mark_stacks (void);
 SCM_API void scm_init_threads (SCM_STACKITEM *);
-
-/* */
-SCM_API SCM scm_threads_make_mutex (void);
-SCM_API SCM scm_threads_lock_mutex (SCM);
-SCM_API SCM scm_threads_unlock_mutex (SCM);
-SCM_API SCM scm_threads_monitor (void);
+SCM_API void scm_init_thread_procs (void);
 
 SCM_API SCM scm_spawn_thread (scm_t_catch_body body, void *body_data,
 			      scm_t_catch_handler handler, void *handler_data);
@@ -96,21 +91,68 @@ SCM_API SCM scm_call_with_new_thread (SCM argl);
 SCM_API SCM scm_join_thread (SCM t);
 SCM_API SCM scm_make_mutex (void);
 SCM_API SCM scm_lock_mutex (SCM m);
+SCM_API SCM scm_try_mutex (SCM m);
 SCM_API SCM scm_unlock_mutex (SCM m);
 SCM_API SCM scm_make_condition_variable (void);
 SCM_API SCM scm_wait_condition_variable (SCM cond, SCM mutex);
+SCM_API SCM scm_timed_wait_condition_variable (SCM cond, SCM mutex,
+					       SCM abstime);
 SCM_API SCM scm_signal_condition_variable (SCM cond);
+SCM_API SCM scm_broadcast_condition_variable (SCM cond);
 
 SCM_API SCM scm_current_thread (void);
 SCM_API SCM scm_all_threads (void);
 
+SCM_API int scm_c_thread_exited_p (SCM thread);
+SCM_API SCM scm_thread_exited_p (SCM thread);
+
 SCM_API scm_root_state *scm_i_thread_root (SCM thread);
+
+#ifndef HAVE_STRUCT_TIMESPEC
+/* POSIX.4 structure for a time value.  This is like a `struct timeval' but
+   has nanoseconds instead of microseconds.  */
+struct timespec
+{
+  long int tv_sec;		/* Seconds.  */
+  long int tv_nsec;		/* Nanoseconds.  */
+};
+#endif
 
 #ifdef USE_COOP_THREADS
 #include "libguile/coop-defs.h"
 #else
+#ifdef USE_COPT_THREADS
+#include "libguile/coop-pthreads.h"
+#else
 #include "libguile/null-threads.h"
 #endif
+#endif
+
+#if (SCM_ENABLE_DEPRECATED == 1)
+
+typedef struct {
+  SCM m;
+} scm_t_mutex;
+
+SCM_API int scm_mutex_init (scm_t_mutex *m);
+SCM_API int scm_mutex_lock (scm_t_mutex *m);
+SCM_API int scm_mutex_trylock (scm_t_mutex *m);
+SCM_API int scm_mutex_unlock (scm_t_mutex *m);
+SCM_API int scm_mutex_destroy (scm_t_mutex *m);
+
+typedef struct {
+  SCM c;
+} scm_t_cond;
+
+SCM_API int scm_cond_init (scm_t_cond *c);
+SCM_API int scm_cond_wait (scm_t_cond *c, scm_t_mutex *m);
+SCM_API int scm_cond_timedwait (scm_t_cond *c, scm_t_mutex *m,
+				const struct timespec *abstime);
+SCM_API int scm_cond_signal (scm_t_cond *c);
+SCM_API int scm_cond_broadcast (scm_t_cond *c);
+SCM_API int scm_cond_destroy (scm_t_cond *c);
+
+#endif /* SCM_ENABLE_DEPRECATED == 1 */
 
 #endif  /* SCM_THREADS_H */
 
