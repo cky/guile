@@ -226,7 +226,7 @@ typedef long SCM;
  *		for example:
  *						        S
  *			scm_tc7_string    	= G0010101
- *			scm_tc7_substring	= G0011101
+ *			scm_tc7_substring	= G0010111
  *
  *		TYP7S turns all string tags into tc7_string; thus,
  *		testing TYP7S against tc7_string is a quick way to
@@ -331,7 +331,7 @@ typedef long SCM;
 
 /* a quad, two couples, two trists */
 #define scm_tc7_string		21
-#define scm_tc7_substring	29
+#define scm_tc7_substring	23
 
 /* Many of the following should be turned
  * into structs or smobs.  We need back some

@@ -332,6 +332,18 @@ from Erick Gallesio's STk.
 
 ** scm_array_map renamed to scm_array_map_x
 
+** mbstrings are now removed
+
+This means that the type codes scm_tc7_mb_string and
+scm_tc7_mb_substring has been removed.
+
+** The macros SCM_TYP7D and SCM_TYP7SD has been removed.
+
+** The macro SCM_TYP7S has taken the role of the old SCM_TYP7D
+
+SCM_TYP7S now masks away the bit which distinguishes substrings from
+strings.
+
 
 Changes in Guile 1.2 (released Tuesday, June 24 1997):
 

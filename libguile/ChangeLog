@@ -1,3 +1,9 @@
+Sat Oct 18 01:52:51 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* tags.h (scm_tc7_substring): Changed the comment and code to
+	conform with the changes below.  Folks!  We have suddenly two new
+	free tc7 codes!!!  Jummy, jummy!
+
 Tue Oct 14 22:03:06 1997  Tom Tromey  <tromey@cygnus.com>
 
 	* Makefile.in: Rebuilt.
