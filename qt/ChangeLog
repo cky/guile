@@ -1,0 +1,15 @@
+Tue Oct  1 02:06:19 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
+
+	* configure.in: Solaris 2 should use sparc.s.
+	*Older* systems use _sparc.s
+
+Fri Mar 29 11:50:20 1996  Anthony Green  <green@snuffle.cygnus.com>
+
+	* configure: Rebuilt
+	* Makefile.in, configure.in: Fixed installation.
+
+Fri Mar 22 16:20:27 1996  Anthony Green  (green@gerbil.cygnus.com)
+
+	* all files: installed qt-002 package. Autoconfiscated.
+
+

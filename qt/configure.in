@@ -1,0 +1,65 @@
+AC_INIT(qt.c)
+
+dnl Checks for programs.
+AC_PROG_CC
+AC_PROG_CPP
+AC_PROG_INSTALL
+AC_PROG_RANLIB
+
+# Tell configure where to find config.guess
+AC_CONFIG_AUX_DIR(..) #`cd $srcdir; pwd`/..)
+
+builtin(sinclude, ../aclocal.m4)
+CY_AC_WITH_THREADS
+
+target_all=
+if test "$cy_cv_threads_package" = COOP; then
+	target_all=libqt.a
+fi
+
+# Determine the host we are working on
+AC_CANONICAL_HOST
+
+case "$host" in
+i386-*-*|i486-*-*|i586-*-*)
+	qtmds_s=$srcdir/md/i386.s
+	qtmd_h=$srcdir/md/i386.h
+	qtmdc_c=$srcdir/md/null.c 
+	;;
+mips-sgi-irix5*)
+	qtmds_s=$srcdir/md/mips-irix5.s
+	qtmd_h=$srcdir/md/mips.h
+	qtmdc_c=$srcdir/md/null.c
+	qtdmdb_s=$srcdir/md/mips_b.s 
+	;;
+mips-*-*)
+	qtmds_s=$srcdir/md/mips.s
+	qtmd_h=$srcdir/md/mips.h
+	qtmdc_c=$srcdir/md/null.c
+	qtdmdb_s=$srcdir/md/mips_b.s 
+	;;
+sparc-sun-solaris2.*)
+	qtmd_h=$srcdir/md/sparc.h
+	qtmdc_c=$srcdir/md/null.c
+	qtmds_s=$srcdir/md/sparc.s
+	qtdmdb_s=$srcdir/md/sparc_b.s 
+	;;
+sparc-*-*)
+	qtmd_h=$srcdir/md/sparc.h
+	qtmdc_c=$srcdir/md/null.c
+	qtmds_s=$srcdir/md/_sparc.s
+	qtdmdb_s=$srcdir/md/_sparc_b.s 
+	;;
+*)
+	echo "Unknown configuration"
+	exit 1
+	;;
+esac
+
+AC_SUBST(target_all)
+AC_SUBST(qtmd_h)
+AC_SUBST(qtmdc_c)
+AC_SUBST(qtmds_s)
+AC_SUBST(qtmdb_s)
+
+AC_OUTPUT(Makefile qt.h)
