@@ -96,7 +96,7 @@
   (testeqv (expt 1/2 2) 1/4)
   (testeqv (expt 2.0 1/2) (sqrt 2))
   (testeqv (expt 1/2 2.0) 1/4)
-  (testeqv (real-part 3/4) .75)
+  (testeqv (real-part 3/4) 3/4)
   (testeqv (imag-part 3/4) 0)
   (testeqv (numerator 3/4) 3)
   (testeqv (denominator 3/4) 4)
