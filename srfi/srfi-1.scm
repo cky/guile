@@ -511,10 +511,14 @@
 	  (uf (g seed) (cons (f seed) lis))))))
 
 (define (reduce f ridentity lst)
-  (fold f ridentity lst))
+  (if (null? lst)
+      ridentity
+      (fold f (car lst) (cdr lst))))
 
 (define (reduce-right f ridentity lst)
-  (fold-right f ridentity lst))
+  (if (null? lst)
+      ridentity
+      (fold-right f (last lst) (drop-right lst 1))))
 
 
 ;; Internal helper procedure.  Map `f' over the single list `ls'.
