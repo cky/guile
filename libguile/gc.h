@@ -245,57 +245,10 @@ typedef unsigned long scm_t_c_bvec_limb;
   (((scm_t_bits *) SCM2PTR (x)) [1] = SCM_UNPACK (v))
 
 
-#if (SCM_DEBUG_CELL_ACCESSES == 1)
-#  define SCM_GC_SET_ALLOCATED(x) \
-     (((scm_t_bits *) SCM2PTR (x)) [0] = scm_tc16_allocated)
-#else
-#  define SCM_GC_SET_ALLOCATED(x)
-#endif
-
-#ifdef GUILE_DEBUG_FREELIST
-#define SCM_NEWCELL(_into) do { _into = scm_debug_newcell (); } while (0)
-#define SCM_NEWCELL2(_into) do { _into = scm_debug_newcell2 (); } while (0)
-#else
-/* When we introduce POSIX threads support, every thread will have
-   a freelist of its own.  */
-#define SCM_NEWCELL(_into) \
-        do { \
-          if (SCM_NULLP (scm_freelist)) \
-            { \
-             _into = scm_gc_for_newcell (&scm_master_freelist, \
-                                         &scm_freelist); \
-             SCM_GC_SET_ALLOCATED (_into); \
-            } \
-          else \
-            { \
-               _into = scm_freelist; \
-               scm_freelist = SCM_FREE_CELL_CDR (scm_freelist); \
-               SCM_GC_SET_ALLOCATED (_into); \
-            } \
-        } while(0)
-#define SCM_NEWCELL2(_into) \
-        do { \
-          if (SCM_NULLP (scm_freelist2)) \
-            { \
-             _into = scm_gc_for_newcell (&scm_master_freelist2, \
-                                         &scm_freelist2); \
-             SCM_GC_SET_ALLOCATED (_into); \
-            } \
-          else \
-            { \
-               _into = scm_freelist2; \
-               scm_freelist2 = SCM_FREE_CELL_CDR (scm_freelist2); \
-               SCM_GC_SET_ALLOCATED (_into); \
-            } \
-        } while(0)
-#endif
-
-
 #define SCM_MARKEDP    SCM_GCMARKP
 #define SCM_NMARKEDP(x) (!SCM_MARKEDP (x))
 
 #if (SCM_DEBUG_CELL_ACCESSES == 1)
-SCM_API scm_t_bits scm_tc16_allocated;
 SCM_API unsigned int scm_debug_cell_accesses_p;
 #endif
 
@@ -339,8 +292,6 @@ SCM_API SCM scm_map_free_list (void);
 SCM_API SCM scm_free_list_length (void);
 #endif
 #ifdef GUILE_DEBUG_FREELIST
-SCM_API SCM scm_debug_newcell (void);
-SCM_API SCM scm_debug_newcell2 (void);
 SCM_API SCM scm_gc_set_debug_check_freelist_x (SCM flag);
 #endif
 
@@ -388,6 +339,18 @@ SCM_API void scm_gc_unregister_roots (SCM *b, unsigned long n);
 SCM_API int scm_init_storage (void);
 SCM_API void *scm_get_stack_base (void);
 SCM_API void scm_init_gc (void);
+
+#if SCM_ENABLE_DEPRECATED == 1
+
+SCM_API SCM scm_deprecated_newcell (void);
+SCM_API SCM scm_deprecated_newcell2 (void);
+
+#define SCM_NEWCELL(_into) \
+  do { _into = scm_deprecated_newcell (); } while (0)
+#define SCM_NEWCELL2(_into) \
+  do { _into = scm_deprecated_newcell2 (); } while (0)
+
+#endif
 
 #endif  /* SCM_GC_H */
 

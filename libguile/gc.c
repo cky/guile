@@ -107,8 +107,6 @@ unsigned int scm_gc_running_p = 0;
 
 #if (SCM_DEBUG_CELL_ACCESSES == 1)
 
-scm_t_bits scm_tc16_allocated;
-
 /* Set this to != 0 if every cell that is accessed shall be checked:
  */
 unsigned int scm_debug_cell_accesses_p = 1;
@@ -694,65 +692,6 @@ SCM_DEFINE (scm_gc_set_debug_check_freelist_x, "gc-set-debug-check-freelist!", 1
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
-
-
-SCM
-scm_debug_newcell (void)
-{
-  SCM new;
-
-  scm_newcell_count++;
-  if (scm_debug_check_freelist)
-    {
-      scm_check_freelist (scm_freelist);
-      scm_gc();
-    }
-
-  /* The rest of this is supposed to be identical to the SCM_NEWCELL
-     macro.  */
-  if (SCM_NULLP (scm_freelist))
-    {
-      new = scm_gc_for_newcell (&scm_master_freelist, &scm_freelist);
-      SCM_GC_SET_ALLOCATED (new);
-    }
-  else
-    {
-      new = scm_freelist;
-      scm_freelist = SCM_FREE_CELL_CDR (scm_freelist);
-      SCM_GC_SET_ALLOCATED (new);
-    }
-
-  return new;
-}
-
-SCM
-scm_debug_newcell2 (void)
-{
-  SCM new;
-
-  scm_newcell2_count++;
-  if (scm_debug_check_freelist)
-    {
-      scm_check_freelist (scm_freelist2);
-      scm_gc ();
-    }
-
-  /* The rest of this is supposed to be identical to the SCM_NEWCELL
-     macro.  */
-  if (SCM_NULLP (scm_freelist2))
-    {
-      new = scm_gc_for_newcell (&scm_master_freelist2, &scm_freelist2);
-      SCM_GC_SET_ALLOCATED (new);
-    }
-  else
-    {
-      new = scm_freelist2;
-      scm_freelist2 = SCM_FREE_CELL_CDR (scm_freelist2);
-      SCM_GC_SET_ALLOCATED (new);
-    }
-
-  return new;
-}
 
 #endif /* GUILE_DEBUG_FREELIST */
 
@@ -2703,10 +2642,6 @@ scm_init_storage ()
   size_t init_heap_size_2;
   size_t j;
 
-#if (SCM_DEBUG_CELL_ACCESSES == 1)
-  scm_tc16_allocated = scm_make_smob_type ("allocated cell", 0);
-#endif  /* SCM_DEBUG_CELL_ACCESSES == 1 */
-
   j = SCM_NUM_PROTECTS;
   while (j)
     scm_sys_protects[--j] = SCM_BOOL_F;
@@ -2829,11 +2764,63 @@ mark_gc_async (void * hook_data SCM_UNUSED,
   return NULL;
 }
 
+#if SCM_ENABLE_DEPRECATED == 1
+
+/* If an allocated cell is detected during garbage collection, this
+ * means that some code has just obtained the object but was preempted
+ * before the initialization of the object was completed.  This meanst
+ * that some entries of the allocated cell may already contain SCM
+ * objects.  Therefore, allocated cells are scanned conservatively.
+ */
+
+scm_t_bits scm_tc16_allocated;
+
+static SCM
+allocated_mark (SCM cell)
+{
+  unsigned long int cell_segment = heap_segment (cell);
+  unsigned int span = scm_heap_table[cell_segment].span;
+  unsigned int i;
+
+  for (i = 1; i != span * 2; ++i)
+    {
+      SCM obj = SCM_CELL_OBJECT (cell, i);
+      long int obj_segment = heap_segment (obj);
+      if (obj_segment >= 0)
+	scm_gc_mark (obj);
+    }
+  return SCM_BOOL_F;
+}
+
+SCM
+scm_deprecated_newcell (void)
+{
+  scm_c_issue_deprecation_warning 
+    ("SCM_NEWCELL is deprecated.  Use `scm_alloc_cell' instead.\n");
+
+  return scm_alloc_cell (scm_tc16_allocated, 0);
+}
+
+SCM
+scm_deprecated_newcell2 (void)
+{
+  scm_c_issue_deprecation_warning 
+    ("SCM_NEWCELL2 is deprecated.  Use `scm_alloc_double_cell' instead.\n");
+
+  return scm_alloc_double_cell (scm_tc16_allocated, 0, 0, 0);
+}
+
+#endif /* SCM_ENABLE_DEPRECATED == 1 */
 
 void
 scm_init_gc ()
 {
   SCM after_gc_thunk;
+
+#if SCM_ENABLE_DEPRECATED == 1
+  scm_tc16_allocated = scm_make_smob_type ("allocated cell", 0);
+  scm_set_smob_mark (scm_tc16_allocated, allocated_mark);
+#endif
 
   scm_after_gc_hook = scm_permanent_object (scm_make_hook (SCM_INUM0));
   scm_c_define ("after-gc-hook", scm_after_gc_hook);
