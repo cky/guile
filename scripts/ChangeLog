@@ -1,3 +1,7 @@
+2002-10-04  Rob Browning  <rlb@defaultvalue.org>
+
+	* summarize-guile-TODO (as-leaf): make #\: a char-set.
+
 2002-05-18  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* api-diff (group-diff): Also output +N and -N adds and subs

@@ -1,3 +1,8 @@
+2002-10-04  Rob Browning  <rlb@defaultvalue.org>
+
+	* boot-9.scm (expt): switch if sense and use negative? rather than
+	>= 0.
+
 2002-10-04  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* boot-9.scm (top-repl): Use "1" instead of "%deliver-signals" to
