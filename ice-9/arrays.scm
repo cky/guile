@@ -18,13 +18,8 @@
 ;;;; Boston, MA 02111-1307 USA
 ;;;; 
 
-(define uniform-vector? array?)
 (define make-uniform-vector dimensions->uniform-array)
 
-;;  (define uniform-vector-ref array-ref)
-
-(define (uniform-vector-set! u i o)
-  (uniform-array-set1! u o i))
 (define uniform-vector-fill! array-fill!)
 (define uniform-vector-read! uniform-array-read!)
 (define uniform-vector-write uniform-array-write)
