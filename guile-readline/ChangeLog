@@ -1,3 +1,10 @@
+2002-04-30  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* autogen.sh: Invoke plain aclocal instead of guile-aclocal.sh.
+	We don't need the Guile m4 macros and the previous invocation of
+	guile-aclocal.sh created the aclocal.m4 file in the wrong
+	directory (see change from 2002-04-26).
+
 2002-04-26  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* autogen.sh: Change to parent dir before invoking
