@@ -1912,7 +1912,7 @@ dispatch:
 	  while (SCM_NNULLP (t.arg1 = SCM_CDR (t.arg1)))
 	    {
 	      SCM_SETCAR (env, scm_current_module_lookup_closure ());
-	      SCM_CEVAL (SCM_CAR (x), env);
+	      SIDEVAL (SCM_CAR(x), env);
 	      x = t.arg1;
 	    }
 	  /* once more, for the last form */
