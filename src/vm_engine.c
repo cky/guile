@@ -94,9 +94,6 @@ VM_NAME (SCM vm, SCM program)
       return SCM_UNSPECIFIED;
     }
 
-  SCM_VALIDATE_VM (1, vm);
-  SCM_VALIDATE_PROGRAM (2, program);
-
   /* Initialize the VM */
   vmp     = SCM_VM_DATA (vm);
   vmp->pc = SCM_PROGRAM_BASE (program);

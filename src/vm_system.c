@@ -94,6 +94,14 @@ SCM_DEFINE_INSTRUCTION (push, "%push", INST_NONE)
   NEXT;
 }
 
+SCM_DEFINE_INSTRUCTION (push_list, "%push-list", INST_SCM)
+{
+  SCM list;
+  for (list = FETCH (); SCM_NIMP (list); list = SCM_CDR (list))
+    PUSH (SCM_CAR (list));
+  NEXT;
+}
+
 SCM_DEFINE_INSTRUCTION (pushc, "%pushc", INST_SCM)
 {
   PUSH (FETCH ());

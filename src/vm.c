@@ -339,10 +339,10 @@ init_bytecode_type ()
 static SCM
 lookup_variable (SCM sym)
 {
-  SCM closure = scm_standard_eval_closure (scm_selected_module ());
-  SCM var = scm_apply (closure, SCM_LIST2 (sym, SCM_BOOL_F), SCM_EOL);
+  SCM eclo = scm_standard_eval_closure (scm_selected_module ());
+  SCM var = scm_eval_closure_lookup (eclo, sym, SCM_BOOL_F);
   if (SCM_FALSEP (var))
-    var = scm_apply (closure, SCM_LIST2 (sym, SCM_BOOL_T), SCM_EOL);
+    var = scm_eval_closure_lookup (eclo, sym, SCM_BOOL_T);
   return var;
 }
 
@@ -570,12 +570,22 @@ print_program (SCM obj, SCM port, scm_print_state *pstate)
   return 1;
 }
 
+static SCM scm_vm_apply (SCM vm, SCM program, SCM args);
+static SCM make_vm (int stack_size);
+
+static SCM
+apply_program (SCM program, SCM args)
+{
+  return scm_vm_apply (make_vm (VM_DEFAULT_STACK_SIZE), program, args);
+}
+
 static void
 init_program_type ()
 {
   scm_program_tag = scm_make_smob_type ("program", 0);
   scm_set_smob_mark (scm_program_tag, mark_program);
   scm_set_smob_print (scm_program_tag, print_program);
+  scm_set_smob_apply (scm_program_tag, apply_program, 0, 0, 1);
 }
 
 /* Scheme interface */
@@ -1115,7 +1125,7 @@ SCM_DEFINE (scm_vm_run, "vm-run", 2, 0, 0,
   if (SCM_EQ_P (template[0], SCM_PACK (0)))
     {
       template[0] = VM_CODE ("%loadc");
-      template[1] = SCM_BOOL_F;
+      template[1] = SCM_BOOL_F; /* overwritten */
       template[2] = VM_CODE ("%call");
       template[3] = SCM_MAKINUM (0);
       template[4] = VM_CODE ("%halt");
@@ -1126,6 +1136,51 @@ SCM_DEFINE (scm_vm_run, "vm-run", 2, 0, 0,
   memcpy (SCM_BYTECODE_BASE (bootcode), template, sizeof (SCM) * 5);
   SCM_BYTECODE_BASE (bootcode)[1] = program;
   SCM_BYTECODE_SIZE (bootcode)    = 5;
+  SCM_BYTECODE_EXTS (bootcode)    = NULL;
+  SCM_BYTECODE_NREQS (bootcode)   = 0;
+  SCM_BYTECODE_RESTP (bootcode)   = 0;
+  SCM_BYTECODE_NVARS (bootcode)   = 0;
+  SCM_BYTECODE_NEXTS (bootcode)   = 0;
+  program = SCM_MAKE_PROGRAM (bootcode, SCM_BOOL_F);
+
+  if (SCM_FALSEP (scm_vm_option (vm, sym_debug)))
+    return scm_regular_vm (vm, program);
+  else
+    return scm_debug_vm (vm, program);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_vm_apply, "vm-apply", 3, 0, 0,
+	    (SCM vm, SCM program, SCM args),
+"")
+#define FUNC_NAME s_scm_vm_apply
+{
+  int len;
+  SCM bootcode;
+  static SCM template[7];
+
+  SCM_VALIDATE_VM (1, vm);
+  SCM_VALIDATE_PROGRAM (2, program);
+  SCM_VALIDATE_LIST_COPYLEN (3, args, len);
+
+  if (SCM_EQ_P (template[0], SCM_PACK (0)))
+    {
+      template[0] = VM_CODE ("%push-list");
+      template[1] = SCM_EOL; /* overwritten */
+      template[2] = VM_CODE ("%loadc");
+      template[3] = SCM_BOOL_F; /* overwritten */
+      template[4] = VM_CODE ("%call");
+      template[5] = SCM_MAKINUM (0); /* overwritten */
+      template[6] = VM_CODE ("%halt");
+    }
+
+  /* Create a boot program */
+  bootcode = make_bytecode (7);
+  memcpy (SCM_BYTECODE_BASE (bootcode), template, sizeof (SCM) * 7);
+  SCM_BYTECODE_BASE (bootcode)[1] = args;
+  SCM_BYTECODE_BASE (bootcode)[3] = program;
+  SCM_BYTECODE_BASE (bootcode)[5] = SCM_MAKINUM (len);
+  SCM_BYTECODE_SIZE (bootcode)    = 7;
   SCM_BYTECODE_EXTS (bootcode)    = NULL;
   SCM_BYTECODE_NREQS (bootcode)   = 0;
   SCM_BYTECODE_RESTP (bootcode)   = 0;
