@@ -132,11 +132,16 @@
 	      (lambda ()
 		(let loop ((endp (flush-whitespace %%load-port)))
 		  (if (not endp)
-		      (let ((result
-			     (start-stack read-and-eval!
-					  (read-and-eval! %%load-port))))
-			(if interactivep
-			    (result-to-emacs result))
+		      (begin
+			(save-module-excursion
+			 (lambda ()
+			   (if module
+			       (set-current-module (resolve-module module #f)))
+			   (let ((result
+				  (start-stack read-and-eval!
+					       (read-and-eval! %%load-port))))
+			     (if interactivep
+				 (result-to-emacs result)))))
 			(loop (flush-whitespace %%load-port)))
 		      (begin
 			(load-acknowledge))))

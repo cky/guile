@@ -1,3 +1,7 @@
+1998-06-15  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* emacs.scm (emacs-load): New feature: Eval in specified module.
+
 1998-06-14  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* readline.scm: Typo in regex module name.
