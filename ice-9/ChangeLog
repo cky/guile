@@ -1,3 +1,29 @@
+Fri Jun 13 00:32:04 1997  Jim Blandy  <jimb@floss.red-bean.com>
+
+	* boot-9.scm (struct-printer): Fix off-by-one error in range
+	check.  Correctly check for struct printer tag.
+
+	* expect.scm: Turn this into a module, (ice-9 expect).
+	(expect-port, expect-timeout, expect-timeout-proc,
+ 	expect-eof-proc, expect-char-proc, expect, expect-strings,
+ 	expect-select): Make these public definitions.
+	(expect-strings): Use make-regexp and regexp-exec, instead of
+	regcomp and regexec.  We've omitted the REG_NEWLINE flag; hope
+	that's okay.
+
+	* boot-9.scm (with-regexp-parts): Comment this out.  It has no
+ 	users in the core, and relies on mildly hairy details of the old
+ 	regexp interface.
+
+	* test.scm: Re-enable tests asserting that '() is true, and not a
+	boolean.  This stuff has been true for a while.
+
+	* boot-9.scm (ipow-by-squaring, butlast): Fix uses of outdated
+ 	function names.
+
+	* boot-9.scm (with-excursion-getter-and-setter, q-rear): Doc
+	fixes.
+
 Wed Jun 11 00:31:40 1997  Jim Blandy  <jimb@floss.red-bean.com>
 
 	* Makefile.in: Regenerated after xtra_PLUGIN_guile_libs change in
