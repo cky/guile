@@ -1,4 +1,4 @@
-This is a nightly snapshot of Guile, a portable, embeddable Scheme
+This release 1.1 of Guile, a portable, embeddable Scheme
 implementation written in C.  Guile provides a machine independent
 execution platform that can be linked in as a library when building
 extensible programs.
@@ -6,7 +6,60 @@ extensible programs.
 Please send bug reports to bug-guile@prep.ai.mit.edu.
 
 
-Important Facts About Snapshots ======================================
+About This Distribution ==============================================
+
+The latest official Guile release is available via anonymous FTP from
+prep.ai.mit.edu, as /pub/gnu/guile-core-1.1.tar.gz.
+
+Via the web, that's:  ftp://prep.ai.mit.edu/pub/gnu/guile-core-1.1.tar.gz
+For getit, that's:    prep.ai.mit.edu:/pub/gnu/guile-core-1.1.tar.gz
+
+The mailing list `guile@cygnus.com' carries discussions, questions,
+and often answers, about Guile.  To subscribe, send mail to
+guile-request@cygnus.com.  Of course, please send bug reports (and
+fixes!) to bug-guile@prep.ai.mit.edu.
+
+Building and installing this distribution gives you:
+guile --- a stand-alone interpreter for Guile, usually installed in
+        /usr/local/bin.  With no arguments, this is a simple
+        interactive Scheme interpreter.  It can also be used as an
+        interpreter for script files; see the NEWS file for details.
+libguile.a --- an object library containing the Guile interpreter,
+        usually installed in /usr/local/lib.  You can use Guile in
+        your own programs by linking against this.
+libqt.a --- an object library containing the QuickThreads primitives.
+        If you enabled thread support when you configured Guile, you
+        will need to link your code against this too.
+<libguile.h>, <libguile/*.h> --- header files for libguile.a, usually
+        installed in /usr/local/include.
+
+
+Interesting files include:
+- INSTALL, which contains instructions on building and installing Guile.
+- NEWS, which describes user-visible changes since the last release of Guile.
+- COPYING, which describes the terms under which you may redistribute
+  Guile, and explains that there is no warranty.
+
+The Guile source tree is laid out as follows:
+
+libguile:
+        The Guile Scheme interpreter --- both the object library
+        for you to link with your programs, and the executable you can run.
+ice-9:  Guile's module system, initialization code, and other infrastructure.
+
+qt:     A cooperative threads package from Washington University,
+        which Guile can use.  If you configure Guile with the
+        --with-threads flag, you will need to link against the -lqt
+        library, found in this directory.  Qt is under a separate
+        copyright; see `qt/README' for more details.
+
+(The present release doesn't include any documentation; the Guile
+manual is incomplete, and is currently being revised.)
+
+Nightly Snapshots ====================================================
+
+We make nightly snapshots of the Guile development sources available
+via anonymous FTP.
 
 Please keep in mind that these sources are strictly experimental; they
 will usually not be well-tested, and may not even compile on some
@@ -23,58 +76,10 @@ patch's original sources will be closer to what we're working with.
 And it allows us to start testing features earlier.
 
 Nightly snapshots of the Guile development sources are available via
-anonymous FTP from ftp.cyclic.com, as /pub/guile/guile-snap.tar.gz.
+anonymous FTP from ftp.cyclic.com, as /pub/guile/guile-core-snap.tar.gz.
 
-Via the web, that's:  ftp://ftp.cyclic.com/pub/guile/guile-snap.tar.gz
-For getit, that's:    ftp.cyclic.com:/pub/guile/guile-snap.tar.gz
-
-
-The latest official Guile release is available via anonymous FTP from
-prep.ai.mit.edu, as /pub/gnu/guile-1.0.tar.gz.
-
-Via the web, that's:  ftp://prep.ai.mit.edu/pub/gnu/guile-1.0.tar.gz
-For getit, that's:    prep.ai.mit.edu:/pub/gnu/guile-1.0.tar.gz
-
-The mailing list `guile@cygnus.com' carries discussions, questions,
-and often answers, about Guile.  To subscribe, send mail to
-guile-request@cygnus.com.  Of course, please send bug reports (and
-fixes!) to bug-guile@prep.ai.mit.edu.
-
-
-About This Distribution ==============================================
-
-Building and installing this distribution gives you:
-guile --- a stand-alone interpreter for Guile, usually installed in
-	/usr/local/bin.  With no arguments, this is a simple
-	interactive Scheme interpreter.  It can also be used as an
-	interpreter for script files; see the NEWS file for details.
-libguile.a --- an object library containing the Guile interpreter,
-	usually installed in /usr/local/lib.  You can use Guile in
-	your own programs by linking against this.
-<libguile.h>, <libguile/*.h> --- header files for libguile.a, usually
-	installed in /usr/local/include.
-
-
-Interesting files include:
-- INSTALL, which contains instructions on building and installing Guile.
-- NEWS, which describes user-visible changes since the last release of Guile.
-- COPYING, which describes the terms under which you may redistribute
-  Guile, and explains that there is no warranty.
-
-The Guile source tree is laid out as follows:
-
-doc:	Documentation for Guile, in Texinfo form.  (At the moment, these
-	manuals are incomplete and are currently being revised.)
-libguile:
-	The Guile Scheme interpreter --- both the object library
-	for you to link with your programs, and the executable you can run.
-ice-9:  Guile's module system, initialization code, and other infrastructure.
-
-qt: 	A cooperative threads package from Washington University,
-	which Guile can use.  If you configure Guile with the
-        --with-threads flag, you will need to link against the -lqt
-        library, found in this directory.  Qt is under a separate
-        copyright; see `qt/README' for more details.
+Via the web, that's:  ftp://ftp.cyclic.com/pub/guile/guile-core-snap.tar.gz
+For getit, that's:    ftp.cyclic.com:/pub/guile/guile-core-snap.tar.gz
 
 
 Hacking It Yourself ==================================================
@@ -87,24 +92,24 @@ find it helpful to have the tools we use to develop Guile.  They
 are the following:
 
 Autoconf 2.12 --- a system for automatically generating `configure'
-	scripts from templates which list the non-portable features a
-	program would like to use.  Available in
-	"ftp://prep.ai.mit.edu/pub/gnu".
+        scripts from templates which list the non-portable features a
+        program would like to use.  Available in
+        "ftp://prep.ai.mit.edu/pub/gnu".
 
 Automake 1.1p --- a system for automatically generating Makefiles that
-	conform to the (rather Byzantine) GNU coding standards.  The
-	nice thing is that it takes care of hairy targets like 'make
-	dist' and 'make distclean', and automatically generates
-	Makefile dependencies.  Available in
-	"ftp://ftp.cygnus.com/pub/tromey".
+        conform to the (rather Byzantine) GNU coding standards.  The
+        nice thing is that it takes care of hairy targets like 'make
+        dist' and 'make distclean', and automatically generates
+        Makefile dependencies.  Available in
+        "ftp://ftp.cygnus.com/pub/tromey".
 
 libtool 0.9d --- a system for managing the zillion hairy options needed
-	on various systems to produce shared libraries.  Available in
-	"ftp://alpha.gnu.ai.mit.edu/gnu".
+        on various systems to produce shared libraries.  Available in
+        "ftp://alpha.gnu.ai.mit.edu/gnu".
 
 You are lost in a little maze of automatically generated files, all
 different.
-> 
+>
 
 
 Authors And Contributors =============================================
