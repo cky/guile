@@ -140,8 +140,6 @@ SCM_DEFINE (scm_vector_p, "vector?", 1, 0, 0,
 	    "@code{#f}.")
 #define FUNC_NAME s_scm_vector_p
 {
-  if (SCM_IMP (obj))
-    return SCM_BOOL_F;
   return SCM_BOOL (SCM_VECTORP (obj));
 }
 #undef FUNC_NAME

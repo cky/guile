@@ -92,7 +92,7 @@ INTEGRAL2NUM (ITYPE n)
       SCM_POSFIXABLE (n)
 #endif 
       )
-    return SCM_MAKINUM ((long) n);
+    return SCM_MAKINUM ((scm_t_signed_bits) n);
 
 #ifdef SCM_BIGDIG
   return INTEGRAL2BIG (n);
@@ -108,7 +108,7 @@ INTEGRAL2BIG (ITYPE n)
 {
   SCM res;
   int neg_p;
-  int n_digits;
+  unsigned int n_digits;
   size_t i;
   SCM_BIGDIG *digits;
       

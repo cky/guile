@@ -1,3 +1,13 @@
+2001-07-16  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* fports.c (fport_print):  Don't use SCM_C[AD]R for non pairs.
+
+	* num2integral.i.c (INTEGRAL2NUM, INTEGRAL2BIG):  Fix signedness.
+
+	* symbols-deprecated.c (scm_gentemp):  Simplify vector test.
+
+	* vectors.c (scm_vector_p):  Eliminate redundant IMP test.
+
 2001-07-12  Michael Livshin  <mlivshin@bigfoot.com>
 
 	* strings.c (s_scm_string): fix arg position in assert.
