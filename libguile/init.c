@@ -120,6 +120,7 @@
 #include "libguile/weaks.h"
 #include "libguile/guardians.h"
 #include "libguile/extensions.h"
+#include "libguile/srfi-4.h"
 #include "libguile/discouraged.h"
 #include "libguile/deprecated.h"
 
@@ -540,6 +541,7 @@ scm_init_guile_1 (SCM_STACKITEM *base)
   scm_init_lang ();
 #endif /* SCM_ENABLE_ELISP */
   scm_init_script ();
+  scm_init_srfi_4 ();
 
   scm_init_goops ();
 
