@@ -39,8 +39,8 @@ libguile_la_SOURCES = \
     continuations.c debug.c dynl.c dynwind.c eq.c error.c eval.c evalext.c \
     feature.c filesys.c fluids.c fports.c gc.c gdbint.c genio.c \
     gh_data.c gh_eval.c gh_funcs.c gh_init.c gh_io.c gh_list.c \
-    gh_predicates.c gsubr.c guardians.c hash.c hashtab.c init.c ioext.c kw.c \
-    list.c load.c macros.c mallocs.c markers.c modules.c net_db.c \
+    gh_predicates.c gsubr.c guardians.c hash.c hashtab.c init.c ioext.c \
+    keywords.c list.c load.c macros.c mallocs.c markers.c modules.c net_db.c \
     numbers.c objects.c \
     objprop.c options.c pairs.c ports.c posix.c print.c procprop.c \
     procs.c ramap.c random.c read.c readline.c root.c scmsigs.c script.c \
@@ -55,7 +55,7 @@ BUILT_SOURCES = \
     feature.x filesys.x fluids.x fports.x gc.x gdbint.x genio.x \
     gh_data.x gh_eval.x gh_funcs.x gh_init.x gh_io.x gh_list.x \
     gh_predicates.x gsubr.x guardians.x hash.x hashtab.x init.x ioext.x \
-    iselect.x kw.x list.x load.x macros.x mallocs.x markers.x modules.x \
+    iselect.x keywords.x list.x load.x macros.x mallocs.x markers.x modules.x \
     net_db.x numbers.x \
     objects.x objprop.x options.x pairs.x ports.x posix.x print.x \
     procprop.x procs.x random.x ramap.x read.x readline.x regex-posix.x \
@@ -90,8 +90,8 @@ modinclude_HEADERS = \
     __scm.h alist.h arbiters.h async.h backtrace.h boolean.h chars.h \
     continuations.h debug.h dynl.h dynwind.h eq.h error.h eval.h evalext.h \
     feature.h filesys.h fports.h gc.h gdb_interface.h gdbint.h genio.h \
-    gsubr.h guardians.h hash.h hashtab.h init.h ioext.h kw.h list.h load.h \
-    macros.h mallocs.h markers.h modules.h net_db.h numbers.h \
+    gsubr.h guardians.h hash.h hashtab.h init.h ioext.h keywords.h list.h \
+    load.h macros.h mallocs.h markers.h modules.h net_db.h numbers.h \
     objects.h objprop.h \
     options.h pairs.h ports.h posix.h regex-posix.h print.h procprop.h \
     procs.h random.h ramap.h read.h readline.h root.h scmsigs.h script.h \

@@ -61,7 +61,7 @@
 #define scm_symhash scm_sys_protects[5]
 #define scm_weak_symhash scm_sys_protects[6]
 #define scm_symhash_vars scm_sys_protects[7]
-#define scm_kw_obarray scm_sys_protects[8]
+#define scm_keyword_obarray scm_sys_protects[8]
 #define scm_type_obj_list scm_sys_protects[9]
 #define scm_first_type scm_sys_protects[10]
 #define scm_stand_in_procs scm_sys_protects[11]

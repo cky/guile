@@ -75,7 +75,7 @@
 #include "iselect.h"
 #endif
 #include "ioext.h"
-#include "kw.h"
+#include "keywords.h"
 #include "list.h"
 #include "load.h"
 #include "macros.h"
@@ -448,7 +448,7 @@ scm_boot_guile_1 (base, closure)
       scm_init_iselect ();
 #endif
       scm_init_ioext ();
-      scm_init_kw ();
+      scm_init_keywords ();
       scm_init_list ();
       scm_init_macros ();
       scm_init_mallocs ();
