@@ -1,5 +1,9 @@
 1998-10-07  Jim Blandy  <jimb@zwingli.cygnus.com>
 
+	* gc.c (scm_unprotect_object): Change this so that calls to
+	scm_protect_object and scm_unprotect_object nest properly.
+	(scm_protect_object): Doc fixes.
+
 	* strings.c (scm_string_set_x): Require the argument to be a
 	writable string, not a substring or a symbol.
 	* strings.h (SCM_RWSTRINGP, SCM_NRWSTRINGP): New predicates.

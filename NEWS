@@ -526,7 +526,6 @@ are now incorrect, since they will return early, and fail to mark any
 other objects the smob refers to.  Some code in the Guile library used
 to work this way.
 
-
 ** Function: int scm_internal_select (int fds,
 				      SELECT_TYPE *rfds,
 				      SELECT_TYPE *wfds,
@@ -602,6 +601,26 @@ scm_do_read_line.
 Body functions to scm_internal_catch and friends do not any longer
 take a second argument.  This is because it is no longer possible to
 pass a #f arg to catch.
+
+** Calls to scm_protect_object and scm_unprotect now nest properly.
+
+The function scm_protect_object protects its argument from being freed
+by the garbage collector.  scm_unprotect_object removes that
+protection.
+
+These functions now nest properly.  That is, for every object O, there
+is a counter which scm_protect_object(O) increments and
+scm_unprotect_object(O) decrements, if the counter is greater than
+zero.  Every object's counter is zero when it is first created.  If an
+object's counter is greater than zero, the garbage collector will not
+reclaim its storage.
+
+This allows you to use scm_protect_object in your code without
+worrying that some other function you call will call
+scm_unprotect_object, and allow it to be freed.  Assuming that the
+functions you call are well-behaved, and unprotect only those objects
+they protect, you can follow the same rule and have confidence that
+objects will be freed only at appropriate times.
 
 
 Changes in Guile 1.2 (released Tuesday, June 24 1997):
