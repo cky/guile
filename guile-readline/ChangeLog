@@ -1,3 +1,11 @@
+2004-08-26  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* LIBGUILEREADLINE-VERSION: Bumped versions for the 1.7.1 release.
+	Added LIBGUILEREADLINE_MAJOR variable for inclusion in the name of
+	the shared library.
+	* configure.in: AC_SUBST it.
+	* Makefile.am: Substitute it into name of library.
+
 2004-08-19  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* readline.c: Avoid the use of discouraged or

@@ -1,3 +1,12 @@
+2004-08-26  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* GUILE-VERSION: Bumped all versions for the 1.7.1 release.  Added
+	LIBGUILE_*_MAJOR variables for inclusion in the names of shared
+	libraries such as "libguile-srfi-srfi-1-v-MAJOR.la".  Removed
+	LIBQTHREADS_*.
+	* configure.in: Updated for the new set of variables defined in
+	GUILE-VERSION.
+	
 2004-08-25  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* libguile.h: Include srfi-13.h and srfi-14.h, do not include
