@@ -466,7 +466,7 @@ scm_addr_vector (address, proc)
     }
   else
     scm_misc_error (proc, "Unrecognised socket address type: %s",
-		    scm_listify (SCM_MAKINUM (fam)));
+		    scm_listify (SCM_MAKINUM (fam), SCM_UNSPECIFIED));
 
   return result;
 }

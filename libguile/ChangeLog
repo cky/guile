@@ -1,3 +1,7 @@
+Sat Dec 28 19:14:01 1996  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* socket.c (scm_addr_vector): fix faulty scm_listify.
+
 Fri Dec 27 13:44:23 1996  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* PLUGIN/guile.libs.in: New file.
@@ -54,7 +58,7 @@ Sat Dec 21 00:33:03 1996  Gary Houston  <ghouston@actrix.gen.nz>
 	(scm_fill_sockaddr): throw an error if fam is not recognised.
 	(scm_bind): use scm_fill_sockaddr.
 	(scm_listen): take a port, not a fd object.
-	(scm_accept): take and return a port.  return CDR in the car if
+	(scm_accept): take and return a port.  return #f in the car if
 	address can't be got
 	(scm_sock_fd_to_port): new procedure.
 	(scm_socket): use scm_sock_fd_to_port.
