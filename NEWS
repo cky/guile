@@ -166,6 +166,30 @@ Three new procedures are related to this: substring/shared,
 substring/copy, and substring/read-only.  See the manual for more
 information.
 
+** Backtraces will now highlight the value that caused the error.
+
+By default, these values are enclosed in "{...}", such as in this
+example:
+
+    guile> (car 'a)
+
+    Backtrace:
+    In current input:
+       1: 0* [car {a}]
+
+    <unnamed port>:1:1: In procedure car in expression (car (quote a)):
+    <unnamed port>:1:1: Wrong type (expecting pair): a
+    ABORT: (wrong-type-arg)
+
+The prefix and suffix used for highlighting can be set via the two new
+printer options 'highlight-prefix' and 'highlight-suffix'.  For
+example, putting this into ~/.guile will output the bad value in bold
+on an ANSI terminal:
+
+    (print-set! highlight-prefix "\x1b[1m")
+    (print-set! highlight-suffix "\x1b[22m")
+
+
 ** 'gettext' support for internationalization has been added.
 
 See the manual for details.
