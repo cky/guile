@@ -1,5 +1,5 @@
 /* Debugging extensions for Guile
- * Copyright (C) 1995, 1996 Mikael Djurfeldt
+ * Copyright (C) 1995, 1996 Free Software Foundation
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

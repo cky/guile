@@ -1,5 +1,5 @@
 /* Simple interpreter interface for GDB, the GNU debugger.
-   Copyright (C) 1996 Mikael Djurfeldt.
+   Copyright (C) 1996 Free Software Foundation
 
 This file is part of GDB.
 
