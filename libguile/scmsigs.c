@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -102,18 +102,19 @@ int usleep ();
 
 
 /* take_signal is installed as the C signal handler whenever a Scheme
-   handler is set.  when a signal arrives, take_signal marks the corresponding
-   element of got_signal and marks signal_async.  the thunk in signal_async
-   (sys_deliver_signals) will be run at the next opportunity, outside a
-   critical section. sys_deliver_signals runs each Scheme handler for
-   which got_signal is set.  */
+   handler is set.  when a signal arrives, take_signal will queue the
+   Scheme handler procedure for its thread.  */
 
-static SCM signal_async;
 
-static char got_signal[NSIG];
-
-/* a Scheme vector of handler procedures.  */
+/* Scheme vectors with information about a signal.  signal_handlers
+   contains the handler procedure or #f, signal_handler_cells contains
+   preallocated cells for queuing the handler in take_signal since we
+   can't allocate during signal delivery, signal_handler_threads
+   points to the thread that a signal should be delivered to.
+*/
 static SCM *signal_handlers;
+static SCM signal_handler_cells;
+static SCM signal_handler_threads;
 
 /* saves the original C handlers, when a new handler is installed.
    set to SIG_ERR if the original handler is installed.  */
@@ -126,52 +127,51 @@ static SIGRETTYPE (*orig_handlers[NSIG])(int);
 static SIGRETTYPE
 take_signal (int signum)
 {
-  got_signal[signum] = 1;
-  scm_system_async_mark_from_signal_handler (signal_async);
+  if (signum >= 0 && signum < NSIG)
+    {
+      SCM thread = SCM_VECTOR_REF (signal_handler_threads, signum);
+      scm_i_queue_async_cell (SCM_VECTOR_REF(signal_handler_cells, signum),
+			      scm_i_thread_root (thread));
+    }
+#ifndef HAVE_SIGACTION
+  signal (signum, take_signal);
+#endif
+}
+
+SCM
+scm_sigaction (SCM signum, SCM handler, SCM flags)
+{
+  return scm_sigaction_for_thread (signum, handler, flags, SCM_UNDEFINED);
 }
 
 static SCM
-sys_deliver_signals (void)
+close_1 (SCM proc, SCM arg)
 {
-  int i;
-
-  for (i = 0; i < NSIG; i++)
-    {
-      if (got_signal[i])
-	{
-	  /* The flag is reset before calling the handler in case the
-	     handler doesn't return.  If the handler doesn't return
-	     but leaves other signals flagged, they their handlers
-	     will be applied some time later when the async is checked
-	     again.  It would probably be better to reset the flags
-	     after doing a longjmp.  */
-	  got_signal[i] = 0;
-#ifndef HAVE_SIGACTION
-	  signal (i, take_signal);
-#endif
-	  scm_call_1 (SCM_VELTS (*signal_handlers)[i], SCM_MAKINUM (i));
-	}
-    }
-  return SCM_UNSPECIFIED;
+  return scm_primitive_eval_x (scm_list_3 (scm_sym_lambda, SCM_EOL,
+					   scm_list_2 (proc, arg)));
 }
 
 /* user interface for installation of signal handlers.  */
-SCM_DEFINE (scm_sigaction, "sigaction", 1, 2, 0,
-           (SCM signum, SCM handler, SCM flags),
+SCM_DEFINE (scm_sigaction_for_thread, "sigaction", 1, 3, 0,
+           (SCM signum, SCM handler, SCM flags, SCM thread),
 	    "Install or report the signal handler for a specified signal.\n\n"
 	    "@var{signum} is the signal number, which can be specified using the value\n"
 	    "of variables such as @code{SIGINT}.\n\n"
-	    "If @var{action} is omitted, @code{sigaction} returns a pair: the\n"
+	    "If @var{handler} is omitted, @code{sigaction} returns a pair: the\n"
 	    "CAR is the current\n"
 	    "signal hander, which will be either an integer with the value @code{SIG_DFL}\n"
 	    "(default action) or @code{SIG_IGN} (ignore), or the Scheme procedure which\n"
 	    "handles the signal, or @code{#f} if a non-Scheme procedure handles the\n"
 	    "signal.  The CDR contains the current @code{sigaction} flags for the handler.\n\n"
-	    "If @var{action} is provided, it is installed as the new handler for\n"
-	    "@var{signum}.  @var{action} can be a Scheme procedure taking one\n"
+	    "If @var{handler} is provided, it is installed as the new handler for\n"
+	    "@var{signum}.  @var{handler} can be a Scheme procedure taking one\n"
 	    "argument, or the value of @code{SIG_DFL} (default action) or\n"
 	    "@code{SIG_IGN} (ignore), or @code{#f} to restore whatever signal handler\n"
-	    "was installed before @code{sigaction} was first used.  Flags can\n"
+	    "was installed before @code{sigaction} was first used.  When\n"
+	    "a scheme procedure has been specified, that procedure will run\n"
+	    "in the given @var{thread}.   When no thread has been given, the\n"
+	    "thread that made this call to @code{sigaction} is used.\n"
+	    "Flags can "
 	    "optionally be specified for the new handler (@code{SA_RESTART} will\n"
 	    "always be added if it's available and the system is using restartable\n"
 	    "system calls.)  The return value is a pair with information about the\n"
@@ -180,7 +180,7 @@ SCM_DEFINE (scm_sigaction, "sigaction", 1, 2, 0,
 	    "facility.  Maybe this is not needed, since the thread support may\n"
 	    "provide solutions to the problem of consistent access to data\n"
 	    "structures.")
-#define FUNC_NAME s_scm_sigaction
+#define FUNC_NAME s_scm_sigaction_for_thread
 {
   int csig;
 #ifdef HAVE_SIGACTION
@@ -196,6 +196,8 @@ SCM_DEFINE (scm_sigaction, "sigaction", 1, 2, 0,
   SCM old_handler;
 
   SCM_VALIDATE_INUM_COPY (1, signum, csig);
+  if (csig < 0 || csig > NSIG)
+    SCM_OUT_OF_RANGE (1, signum);
 #if defined(HAVE_SIGACTION)
 #if defined(SA_RESTART) && defined(HAVE_RESTARTABLE_SYSCALLS)
   /* don't allow SA_RESTART to be omitted if HAVE_RESTARTABLE_SYSCALLS
@@ -211,9 +213,13 @@ SCM_DEFINE (scm_sigaction, "sigaction", 1, 2, 0,
       action.sa_flags |= SCM_INUM (flags);
     }
   sigemptyset (&action.sa_mask);
+  if (SCM_UNBNDP (thread))
+    thread = scm_current_thread ();
+  else
+    SCM_VALIDATE_THREAD (4, thread);
 #endif
   SCM_DEFER_INTS;
-  old_handler = SCM_VELTS(*signal_handlers)[csig];
+  old_handler = SCM_VECTOR_REF(*signal_handlers, csig);
   if (SCM_UNBNDP (handler))
     query_only = 1;
   else if (SCM_EQ_P (scm_integer_p (handler), SCM_BOOL_T))
@@ -267,7 +273,11 @@ SCM_DEFINE (scm_sigaction, "sigaction", 1, 2, 0,
       if (orig_handlers[csig] == SIG_ERR)
 	save_handler = 1;
 #endif
+      handler = close_1 (handler, signum);
       SCM_VECTOR_SET (*signal_handlers, csig, handler);
+      SCM_VECTOR_SET (signal_handler_cells, csig,
+		      scm_cons (handler, SCM_EOL));
+      SCM_VECTOR_SET (signal_handler_threads, csig, thread);
     }
 
   /* XXX - Silently ignore setting handlers for `program error signals'
@@ -555,20 +565,18 @@ SCM_DEFINE (scm_raise, "raise", 1, 0, 0,
 void
 scm_init_scmsigs ()
 {
-  SCM thunk;
   int i;
 
   signal_handlers =
     SCM_VARIABLE_LOC (scm_c_define ("signal-handlers",
 				  scm_c_make_vector (NSIG, SCM_BOOL_F)));
-  /* XXX - use scm_c_make_gsubr here instead of `define'? */
-  thunk = scm_c_define_gsubr ("%deliver-signals", 0, 0, 0,
-			      sys_deliver_signals);
-  signal_async = scm_system_async (thunk);
+  signal_handler_cells =
+    scm_permanent_object (scm_c_make_vector (NSIG, SCM_BOOL_F));
+  signal_handler_threads =
+    scm_permanent_object (scm_c_make_vector (NSIG, SCM_BOOL_F));
 
   for (i = 0; i < NSIG; i++)
     {
-      got_signal[i] = 0;
 #ifdef HAVE_SIGACTION
       orig_handlers[i].sa_handler = SIG_ERR;
 

@@ -3,7 +3,7 @@
 #ifndef SCM_SCMSIGS_H
 #define SCM_SCMSIGS_H
 
-/* Copyright (C) 1995,1996,1997,1998,2000 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000, 2002 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -51,6 +51,8 @@
 
 
 SCM_API SCM scm_sigaction (SCM signum, SCM handler, SCM flags);
+SCM_API SCM scm_sigaction_for_thread (SCM signum, SCM handler, SCM flags,
+				      SCM thread);
 SCM_API SCM scm_restore_signals (void);
 SCM_API SCM scm_alarm (SCM i);
 SCM_API SCM scm_setitimer (SCM which_timer,
