@@ -1,3 +1,7 @@
+2001-04-05  Keisuke Nishida  <kxn30@po.cwru.edu>
+
+	* Makefile.am (ice9_sources): Add history.scm.
+
 2001-03-29  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* boot-9.scm (init-dynamic-module): Fix typo in call to
