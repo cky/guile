@@ -176,6 +176,7 @@ typedef struct scm_ptob_descriptor
   scm_sizet (*free) (SCM);
   int (*print) (SCM exp, SCM port, scm_print_state *pstate);
   SCM (*equalp) (SCM, SCM);
+  void (*write) (SCM port, void *data, size_t size);
   void (*fflush) (SCM port);
   void (*read_flush) (SCM port, int offset);
   int (*fclose) (SCM port);
@@ -209,6 +210,10 @@ extern void scm_set_port_print (long tc,
 					      SCM port,
 					      scm_print_state *pstate));
 extern void scm_set_port_equalp (long tc, SCM (*equalp) (SCM, SCM));
+extern void scm_set_port_write (long tc, 
+				void (*write_proc) (SCM port, 
+						    void *data,
+						    size_t size));
 extern void scm_set_port_flush_input (long tc,
 				      void (*flush_input) (SCM port,
 							   int offset));

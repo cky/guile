@@ -82,7 +82,15 @@ sfflush (SCM port)
     }
 }
 
-/* string output proc (element 1) is no longer called.  */
+static void
+sf_write (SCM port, void *data, size_t size)
+{
+  SCM p = SCM_STREAM (port);
+
+  scm_apply (SCM_VELTS (p)[1], scm_cons (scm_makfrom0str ((char *) data),
+					 SCM_EOL),
+	     SCM_EOL);
+}
 
 /* calling the flush proc (element 2) is in case old code needs it,
    but perhaps softports could the use port buffer in the same way as
@@ -159,6 +167,7 @@ scm_make_sfptob ()
 {
   long tc = scm_make_port_type ("soft", sf_fill_buffer, sfflush);
   scm_set_port_mark (tc, scm_markstream);
+  scm_set_port_write (tc, sf_write);
   scm_set_port_close (tc, sfclose);
 }
 

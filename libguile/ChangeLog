@@ -1,3 +1,21 @@
+1999-08-03  Gary Houston  <ghouston@easynet.co.uk>
+
+	* ports.h (scm_ptob_descriptor): include a write procedure again.
+	it's more efficient for unbuffered fports (e.g., sockets.)
+
+	* ports.c (scm_puts): use ptob->write.
+	* vports.c (scm_make_sfptob): set write proc in ptob.
+	* strports.c (scm_make_stptob): set write proc in ptob.
+	* ports.c (write_void_port): new procedure.
+	* vports.c (sf_write): new procedure.
+	* ports.c (scm_lfwrite): use ptob->write.
+	* strports.c (st_write): new procedure.
+	* fports.c (fport_write): new procedure.
+	(scm_make_fptob): set write in ptob to fport_write.
+	* ports.h: prototype for scm_set_port_write.
+	* ports.c (scm_make_port_type): initialise ptob write procedure.
+	(scm_set_port_write): new proc.
+
 1999-08-01  Jim Blandy  <jimb@savonarola.red-bean.com>
 
 	* ports.c (scm_char_ready_p): Don't try to find PORT's ptab entry

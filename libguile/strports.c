@@ -121,6 +121,26 @@ st_flush (SCM port)
 }
 
 static void
+st_write (SCM port, void *data, size_t size)
+{
+  scm_port *pt = SCM_PTAB_ENTRY (port);
+  const char *input = (char *) data;
+
+  while (size > 0)
+    {
+      int space = pt->write_end - pt->write_pos;
+      int write_len = (size > space) ? space : size;
+      
+      strncpy (pt->write_pos, input, write_len);
+      pt->write_pos += write_len;
+      size -= write_len;
+      input += write_len;
+      if (write_len == space)
+	st_flush (port);
+    }
+}
+
+static void
 st_read_flush (SCM port, int offset)
 {
   scm_port *pt = SCM_PTAB_ENTRY (port);
@@ -359,6 +379,7 @@ scm_make_stptob ()
   long tc = scm_make_port_type ("string", stfill_buffer, st_flush);
   scm_set_port_mark        (tc, scm_markstream);
   scm_set_port_flush_input (tc, st_read_flush);
+  scm_set_port_write       (tc, st_write);
   scm_set_port_seek        (tc, st_seek);
   scm_set_port_truncate    (tc, st_ftruncate);
 }

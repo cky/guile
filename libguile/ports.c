@@ -109,6 +109,7 @@ scm_markstream (ptr)
 
 static void flush_void_port (SCM port);
 static void read_flush_void_port (SCM port, int offset);
+static void write_void_port (SCM port, void *data, size_t size);
 
 long 
 scm_make_port_type (char *name,
@@ -130,6 +131,7 @@ scm_make_port_type (char *name,
       scm_ptobs[scm_numptob].free = scm_free0;
       scm_ptobs[scm_numptob].print = scm_port_print;
       scm_ptobs[scm_numptob].equalp = 0;
+      scm_ptobs[scm_numptob].write = write_void_port;
       scm_ptobs[scm_numptob].fflush = (write_flush
 				       ? write_flush
 				       : flush_void_port);
@@ -174,6 +176,13 @@ void
 scm_set_port_equalp (long tc, SCM (*equalp) (SCM, SCM))
 {
   scm_ptobs[SCM_TC2PTOBNUM (tc)].equalp = equalp;
+}
+
+void
+scm_set_port_write (long tc, void (*write_proc) (SCM port, void *data,
+						 size_t size))
+{
+   scm_ptobs[SCM_TC2PTOBNUM (tc)].write = write_proc;
 }
 
 void
@@ -796,16 +805,7 @@ scm_puts (s, port)
   if (pt->rw_active == SCM_PORT_READ)
     scm_read_flush (port);
 
-  while (*s != 0)
-    {
-      *pt->write_pos++ = *s++;
-      if (pt->write_pos == pt->write_end)
-	ptob->fflush (port);
-    }
-  /* If the port is line-buffered, flush it.  */
-  if ((SCM_CAR (port) & SCM_BUFLINE)
-      && memchr (pt->write_buf, '\n', pt->write_pos - pt->write_buf))
-    ptob->fflush (port);
+  ptob->write (port, s, strlen (s));
 
   if (pt->rw_random)
     pt->rw_active = SCM_PORT_WRITE;
@@ -823,22 +823,7 @@ scm_lfwrite (ptr, size, port)
   if (pt->rw_active == SCM_PORT_READ)
     scm_read_flush (port);
 
-  while (size > 0)
-    {
-      int space = pt->write_end - pt->write_pos;
-      int write_len = (size > space) ? space : size;
-      
-      strncpy (pt->write_pos, ptr, write_len);
-      pt->write_pos += write_len;
-      size -= write_len;
-      ptr += write_len;
-      if (write_len == space)
-	ptob->fflush (port);
-    }
-  /* If the port is line-buffered, flush it.  */
-  if ((SCM_CAR (port) & SCM_BUFLINE)
-      && memchr (pt->write_buf, '\n', pt->write_pos - pt->write_buf))
-    (ptob->fflush) (port);
+  ptob->write (port, ptr, size);
 
   if (pt->rw_random)
     pt->rw_active = SCM_PORT_WRITE;
@@ -1285,6 +1270,11 @@ flush_void_port (SCM port)
 
 static void
 read_flush_void_port (SCM port, int offset)
+{
+}
+
+static void
+write_void_port (SCM port, void *data, size_t size)
 {
 }
 

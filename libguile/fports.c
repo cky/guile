@@ -460,7 +460,43 @@ local_ftruncate (SCM port, off_t length)
     scm_syserror ("ftruncate");
 }
 
-/* becomes 1 when process is exiting: exception handling is disabled. */
+static void
+fport_write (SCM port, void *data, size_t size)
+{
+  scm_port *pt = SCM_PTAB_ENTRY (port);
+
+  if (pt->write_buf == &pt->shortbuf)
+    {
+      /* "unbuffered" port.  */
+      int fdes = SCM_FSTREAM (port)->fdes;
+
+      if (write (fdes, data, size) == -1)
+	scm_syserror ("fport_write");
+    }
+  else 
+    {
+      const char *input = (char *) data;
+      while (size > 0)
+	{
+	  int space = pt->write_end - pt->write_pos;
+	  int write_len = (size > space) ? space : size;
+
+	  strncpy (pt->write_pos, input, write_len);
+	  pt->write_pos += write_len;
+	  size -= write_len;
+	  input += write_len;
+	  if (write_len == space)
+	    local_fflush (port);
+	}
+
+      /* handle line buffering.  */
+      if ((SCM_CAR (port) & SCM_BUFLINE) && memchr (data, '\n', size))
+	local_fflush (port);
+    }
+}
+
+/* becomes 1 when process is exiting: normal exception handling won't
+   work by this time.  */
 extern int terminating; 
 
 static void
@@ -570,6 +606,7 @@ scm_make_fptob ()
   long tc = scm_make_port_type ("file", fport_fill_buffer, local_fflush);
   scm_set_port_free            (tc, local_free);
   scm_set_port_print           (tc, prinfport);
+  scm_set_port_write           (tc, fport_write);
   scm_set_port_flush_input     (tc, local_read_flush);
   scm_set_port_close           (tc, local_fclose);
   scm_set_port_seek            (tc, local_seek);
