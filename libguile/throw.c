@@ -165,13 +165,13 @@ struct jmp_buf_and_retval	/* use only on the stack, in scm_catch */
 
    HANDLER is a pointer to a C function to deal with a throw to TAG,
    should one occur.  We call it like this:
-      HANDLER (HANDLER_DATA, TAG, THROW_ARGS)
+      HANDLER (HANDLER_DATA, THROWN_TAG, THROW_ARGS)
    where
       HANDLER_DATA is the HANDLER_DATA argument we recevied; it's the
          same idea as BODY_DATA above.
-      TAG is the tag that the user threw to; usually this is TAG, but
-         it could be something else if TAG was #t (i.e., a catch-all),
-         or the user threw to a jmpbuf.
+      THROWN_TAG is the tag that the user threw to; usually this is
+         TAG, but it could be something else if TAG was #t (i.e., a
+         catch-all), or the user threw to a jmpbuf.
       THROW_ARGS is the list of arguments the user passed to the THROW
          function.
 
