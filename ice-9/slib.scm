@@ -269,14 +269,12 @@
 (define offset-time +)
 
 
-(define %system-define define)
-
 (define define
   (procedure->memoizing-macro
    (lambda (exp env)
      (if (= (length env) 1)
 	 `(define-public ,@(cdr exp))
-	 `(%system-define ,@(cdr exp))))))
+	 `(define-private ,@(cdr exp))))))
 
 ;;; Hack to make syncase macros work in the slib module
 (if (nested-ref the-root-module '(app modules ice-9 syncase))

@@ -2591,8 +2591,9 @@
     (else
      (error "use-syntax can only be used at the top level"))))
 
-(defmacro define-private args
-  `(define ,@args))
+;; Dirk:FIXME:: This incorrect (according to R5RS) syntax needs to be changed
+;; as soon as guile supports hygienic macros.
+(define define-private define)
 
 (defmacro define-public args
   (define (syntax)

@@ -1,3 +1,16 @@
+2002-11-24  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	Thanks to Mikael Djurfeldt for a bugreport which led to the
+	following changes:
+
+	* slib.scm (%system-define): Removed.
+
+	(define): Changed to use define-private instead of
+	%system-define.
+
+	* boot-9.scm (define-private): Undid my changes from 2002-11-16
+	until Guile supports hygienic macros.
+
 2002-11-17  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* emacs.scm (emacs-load): Locally define `read-and-eval!', as it
