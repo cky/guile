@@ -706,13 +706,13 @@ scm_unread_char (cobj, port)
 
 
 
-SCM_PROC (s_line_number, "line-number", 0, 1, 0, scm_line_number);
+SCM_PROC (s_port_line, "port-line", 0, 1, 0, scm_port_line);
 #ifdef __STDC__
 SCM 
-scm_line_number (SCM port)
+scm_port_line (SCM port)
 #else
 SCM 
-scm_line_number (port)
+scm_port_line (port)
      SCM port;
 #endif
 {
@@ -726,13 +726,13 @@ scm_line_number (port)
     return SCM_MAKINUM (SCM_LINUM (p));
 }
 
-SCM_PROC (s_column_number, "column-number", 0, 1, 0, scm_column_number);
+SCM_PROC (s_port_column, "port-column", 0, 1, 0, scm_port_column);
 #ifdef __STDC__
 SCM
-scm_column_number (SCM port)
+scm_port_column (SCM port)
 #else
 SCM
-scm_column_number  (port)
+scm_port_column  (port)
      SCM port;
 #endif
 {
@@ -746,13 +746,13 @@ scm_column_number  (port)
     return SCM_MAKINUM (SCM_COL (p));
 }
 
-SCM_PROC (s_port_file_name, "port-file-name", 0, 1, 0, scm_port_file_name);
+SCM_PROC (s_port_filename, "port-filename", 0, 1, 0, scm_port_filename);
 #ifdef __STDC__
 SCM 
-scm_port_file_name (SCM port)
+scm_port_filename (SCM port)
 #else
 SCM 
-scm_port_file_name (port)
+scm_port_filename (port)
      SCM port;
 #endif
 {
@@ -764,6 +764,30 @@ scm_port_file_name (port)
     return SCM_BOOL_F;
   else
     return SCM_PTAB_ENTRY (p)->file_name;
+}
+
+SCM_PROC (s_set_port_filename_x, "set-port-filename!", 1, 1, 0, scm_set_port_filename_x);
+#ifdef __STDC__
+SCM 
+scm_set_port_filename_x (SCM port, SCM filename)
+#else
+SCM 
+scm_set_port_filename_x (port, filename)
+     SCM port;
+     SCM filename;
+#endif
+{
+  if (filename == SCM_UNDEFINED)
+    {
+      filename = port;
+      port = scm_cur_inp;
+    }
+  else
+    SCM_ASSERT (SCM_NIMP (port) && SCM_PORTP (port) && SCM_OPENP (port),
+		port,
+		SCM_ARG1,
+		s_set_port_filename_x);
+  return SCM_PTAB_ENTRY (port)->file_name = filename;
 }
 
 #ifndef ttyname

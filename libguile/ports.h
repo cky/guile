@@ -115,6 +115,7 @@ extern int scm_port_table_size; /* Number of ports in scm_port_table.  */
 #define SCM_SETPTAB_ENTRY(x,ent) SCM_SETCDR ((x), (SCM)(ent))
 #define SCM_STREAM(x) SCM_PTAB_ENTRY(x)->stream
 #define SCM_SETSTREAM(x,s) (SCM_PTAB_ENTRY(x)->stream = s)
+#define SCM_FILENAME(x) SCM_PTAB_ENTRY(x)->file_name
 #define SCM_LINUM(x) SCM_PTAB_ENTRY(x)->line_number
 #define SCM_COL(x) SCM_PTAB_ENTRY(x)->column_number
 #define SCM_REVEALED(x) SCM_PTAB_ENTRY(x)->revealed
@@ -129,7 +130,7 @@ extern int scm_port_table_size; /* Number of ports in scm_port_table.  */
 
 #define SCM_INCLINE(port)  	{SCM_LINUM (port) += 1; SCM_COL (port) = 0;}
 #define SCM_INCCOL(port)  	{SCM_COL (port) += 1;}
-#define SCM_TABCOL(port)  	{SCM_COL (port) += (SCM_COL (port) + 1) % 8;}
+#define SCM_TABCOL(port)  	{SCM_COL (port) += 8 - SCM_COL (port) % 8;}
 
 
 
@@ -186,9 +187,10 @@ extern SCM scm_force_output (SCM port);
 extern SCM scm_read_char (SCM port);
 extern SCM scm_peek_char (SCM port);
 extern SCM scm_unread_char (SCM cobj, SCM port);
-extern SCM scm_line_number (SCM port);
-extern SCM scm_column_number (SCM port);
-/* extern SCM scm_port_file_name (SCM port); */
+extern SCM scm_port_line (SCM port);
+extern SCM scm_port_column (SCM port);
+extern SCM scm_port_filename (SCM port);
+extern SCM scm_set_port_filename_x (SCM port, SCM filename);
 extern void scm_prinport (SCM exp, SCM port, char *type);
 extern void scm_ports_prehistory (void);
 extern SCM scm_void_port (char * mode_str);
@@ -223,9 +225,10 @@ extern SCM scm_force_output ();
 extern SCM scm_read_char ();
 extern SCM scm_peek_char ();
 extern SCM scm_unread_char ();
-extern SCM scm_line_number ();
-extern SCM scm_column_number ();
-/* extern SCM scm_port_file_name ();*/
+extern SCM scm_port_line ();
+extern SCM scm_port_column ();
+extern SCM scm_port_filename ();
+extern SCM scm_set_port_filename_x ();
 extern void scm_prinport ();
 extern void scm_ports_prehistory ();
 extern SCM scm_void_port ();
