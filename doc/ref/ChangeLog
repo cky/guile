@@ -1,3 +1,9 @@
+2004-09-23  Marius Vollmer  <mvo@zagadka.de>
+
+	* api-i18n.texi: New file.
+	* Makefile.am (guile_TEXINFOS): Added it.
+	* guile.texi: Include it.
+	
 2004-09-16  Kevin Ryde  <user42@zip.com.au>
 
 	* api-utility.texi (Equality): Revise for clarity.
