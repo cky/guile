@@ -1528,6 +1528,120 @@ SCM_DEFINE (scm_lognot, "lognot", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+/* returns 0 if IN is not an integer.  OUT must already be
+   initialized. */
+static int
+coerce_to_big (SCM in, mpz_t out)
+{
+  if (SCM_BIGP (in))
+    mpz_set (out, SCM_I_BIG_MPZ (in));
+  else if (SCM_INUMP (in))
+    mpz_set_si (out, SCM_INUM (in));
+  else
+    return 0;
+
+  return 1;
+}
+
+SCM_DEFINE (scm_modular_expt, "modulo-expt", 3, 0, 0,
+            (SCM n, SCM k, SCM m),
+            "Return @var{n} raised to the integer exponent\n"
+	    "@var{k}, modulo @var{m}.\n"
+	    "\n"
+	    "@lisp\n"
+	    "(modulo-expt 2 3 5)\n"
+	    "   @result{} 3\n"
+	    "@end lisp")
+#define FUNC_NAME s_scm_modular_expt
+{
+  mpz_t n_tmp; 
+  mpz_t k_tmp; 
+  mpz_t m_tmp; 
+    
+  /* There are two classes of error we might encounter --
+     1) Math errors, which we'll report by calling scm_num_overflow,
+     and
+     2) wrong-type errors, which of course we'll report by calling
+     SCM_WRONG_TYPE_ARG.
+     We don't report those errors immediately, however; instead we do
+     some cleanup first.  These variables tell us which error (if
+     any) we should report after cleaning up.  
+  */
+  int report_overflow = 0;
+
+  int position_of_wrong_type = 0;
+  SCM value_of_wrong_type = SCM_INUM0;
+
+  SCM result = SCM_UNDEFINED;
+
+  mpz_init (n_tmp);
+  mpz_init (k_tmp);
+  mpz_init (m_tmp);
+    
+  if (SCM_EQ_P (m, SCM_INUM0))
+    {
+      report_overflow = 1;
+      goto cleanup;
+    }
+  
+  if (!coerce_to_big (n, n_tmp))
+    {
+      value_of_wrong_type = n;
+      position_of_wrong_type = 1;
+      goto cleanup;
+    }
+
+  if (!coerce_to_big (k, k_tmp))
+    {
+      value_of_wrong_type = k;
+      position_of_wrong_type = 2;
+      goto cleanup;
+    }
+
+  if (!coerce_to_big (m, m_tmp))
+    {
+      value_of_wrong_type = m;
+      position_of_wrong_type = 3;
+      goto cleanup;
+    }
+
+  /* if the exponent K is negative, and we simply call mpz_powm, we
+     will get a divide-by-zero exception when an inverse 1/n mod m
+     doesn't exist (or is not unique).  Since exceptions are hard to
+     handle, we'll attempt the inversion "by hand" -- that way, we get
+     a simple failure code, which is easy to handle. */
+  
+  if (-1 == mpz_sgn (k_tmp))
+    {
+      if (!mpz_invert (n_tmp, n_tmp, m_tmp))
+        {
+          report_overflow = 1;
+          goto cleanup;
+        }
+      mpz_neg (k_tmp, k_tmp);
+    }
+
+  result = scm_i_mkbig ();
+  mpz_powm (SCM_I_BIG_MPZ (result),
+            n_tmp,
+            k_tmp,
+            m_tmp);
+ cleanup:
+  mpz_clear (m_tmp);
+  mpz_clear (k_tmp);
+  mpz_clear (n_tmp);
+
+  if (report_overflow)
+    scm_num_overflow (FUNC_NAME);
+
+  if (position_of_wrong_type)
+    SCM_WRONG_TYPE_ARG (position_of_wrong_type,
+                        value_of_wrong_type);
+  
+  return scm_i_normbig (result);
+}
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_integer_expt, "integer-expt", 2, 0, 0,
             (SCM n, SCM k),
 	    "Return @var{n} raised to the non-negative integer exponent\n"
