@@ -44,7 +44,7 @@
  */
 
 #include "libguile/__scm.h"
-#include "params.h"
+#include "libguile/params.h"
 
 
 
@@ -58,24 +58,6 @@ typedef struct scm_smobfuns
   SCM (*equalp) SCM_P ((SCM, SCM));
 } scm_smobfuns;
 
-typedef struct scm_ptobfuns
-{
-  SCM (*mark) ();
-  int (*free) ();
-  int (*print) ();
-  SCM (*equalp) ();
-  int (*fputc) ();
-  int (*fputs) ();
-  scm_sizet (*fwrite) ();
-  int (*fflush) ();
-  int (*fgetc) ();
-  int (*fclose) ();
-
-  
-  
-} scm_ptobfuns;
-
-
 
 
 #define SCM_SMOBNUM(x) (0x0ff & (SCM_CAR(x)>>8));
@@ -85,19 +67,17 @@ extern scm_sizet scm_numsmob;
 extern scm_smobfuns *scm_smobs;
 
 
-#ifdef __STDC__
-extern long scm_newsmob (scm_smobfuns *smob);
-extern void scm_smob_prehistory (void);
 
-#else /* STDC */
-extern long scm_newsmob ();
-extern void scm_smob_prehistory ();
+/* Everyone who uses smobs needs to print.  */
+#include "libguile/ports.h"
+#include "libguile/genio.h"
+#include "libguile/print.h"
 
-#endif /* STDC */
+/* ... and they all need to GC.  */
+#include "libguile/markers.h"
 
-
-
-
-
+
+extern long scm_newsmob PROTO ((scm_smobfuns *smob));
+extern void scm_smob_prehistory PROTO ((void));
 
 #endif  /* SMOBH */
