@@ -506,7 +506,7 @@ SCM_DEFINE (scm_random_solid_sphere_x, "random:solid-sphere!", 1, 1, 0,
   scm_random_normal_vector_x (v, state);
   vector_scale_x (v,
 		  pow (scm_c_uniform01 (SCM_RSTATE (state)),
-		       1.0 / scm_to_int (scm_uniform_vector_length (v)))
+		       1.0 / scm_c_generalized_vector_length (v))
 		  / sqrt (vector_sum_squares (v)));
   return SCM_UNSPECIFIED;
 }
