@@ -2071,7 +2071,7 @@ SCM_DEFINE (scm_unhash_name, "unhash-name", 1, 0, 0,
 	      scm_bits_t word0 = SCM_CELL_WORD_0 (cell) - scm_tc3_cons_gloc;
 	      SCM gloc_car = SCM_PACK (word0); /* access as gloc */
 	      SCM vcell = SCM_CELL_OBJECT_1 (gloc_car);
-	      if ((SCM_TRUE_P (name) || SCM_EQ_P (SCM_CAR (gloc_car), name))
+	      if ((SCM_EQ_P (name, SCM_BOOL_T) || SCM_EQ_P (SCM_CAR (gloc_car), name))
 		  && (SCM_UNPACK (vcell) != 0) && (SCM_UNPACK (vcell) != 1))
 		{
 		  SCM_SET_CELL_OBJECT_0 (cell, name);

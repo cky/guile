@@ -271,8 +271,9 @@ SCM_DEFINE (scm_procedure_documentation, "procedure-documentation", 1, 0, 0,
 #define FUNC_NAME s_scm_procedure_documentation
 {
   SCM code;
-  SCM_ASSERT (SCM_TRUE_P (scm_procedure_p (proc)) && SCM_NIMP (proc) && SCM_TYP7 (proc) != scm_tc7_contin,
-	  proc, SCM_ARG1, FUNC_NAME);
+  SCM_ASSERT (SCM_EQ_P (scm_procedure_p (proc), SCM_BOOL_T)
+	      && SCM_NIMP (proc) && SCM_TYP7 (proc) != scm_tc7_contin,
+	      proc, SCM_ARG1, FUNC_NAME);
   switch (SCM_TYP7 (proc))
     {
     case scm_tcs_closures:

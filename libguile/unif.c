@@ -156,7 +156,7 @@ scm_make_uve (long k, SCM prot)
 {
   SCM v;
   long i, type;
-  if (SCM_TRUE_P (prot))
+  if (SCM_EQ_P (prot, SCM_BOOL_T))
     {
       i = sizeof (long) * ((k + SCM_LONG_BIT - 1) / SCM_LONG_BIT);
       type = scm_tc7_bvect;
@@ -293,7 +293,7 @@ SCM_DEFINE (scm_array_p, "array?", 1, 1, 0,
       switch (SCM_TYP7 (v))
  	{
  	case scm_tc7_bvect:
- 	  protp = (SCM_TRUE_P (prot));
+ 	  protp = (SCM_EQ_P (prot, SCM_BOOL_T));
  	case scm_tc7_string:
  	  protp = SCM_CHARP(prot) && (SCM_CHAR (prot) != '\0');
  	case scm_tc7_byvect:
@@ -1284,7 +1284,7 @@ SCM_DEFINE (scm_array_set_x, "array-set!", 2, 0, 1,
     case scm_tc7_bvect:
       if (SCM_FALSEP (obj))
 	SCM_BITVEC_CLR(v,pos);
-      else if (SCM_TRUE_P (obj))
+      else if (SCM_EQ_P (obj, SCM_BOOL_T))
 	SCM_BITVEC_SET(v,pos);
       else
       badobj:SCM_WTA (2,obj);
@@ -1859,7 +1859,7 @@ SCM_DEFINE (scm_bit_set_star_x, "bit-set*!", 3, 0, 0,
 		SCM_ASSERT ((k < vlen), SCM_MAKINUM (k), SCM_OUTOFRANGE, FUNC_NAME);
 		SCM_BITVEC_CLR(v,k);
 	      }
-	  else if (SCM_TRUE_P (obj))
+	  else if (SCM_EQ_P (obj, SCM_BOOL_T))
 	    for (i = SCM_LENGTH (kv); i;)
 	      {
 		k = SCM_UNPACK (SCM_VELTS (kv)[--i]);
@@ -1875,7 +1875,7 @@ SCM_DEFINE (scm_bit_set_star_x, "bit-set*!", 3, 0, 0,
       if (SCM_FALSEP (obj))
 	for (k = (SCM_LENGTH (v) + SCM_LONG_BIT - 1) / SCM_LONG_BIT; k--;)
 	  SCM_UNPACK (SCM_VELTS (v)[k]) &= ~ SCM_UNPACK(SCM_VELTS (kv)[k]);
-      else if (SCM_TRUE_P (obj))
+      else if (SCM_EQ_P (obj, SCM_BOOL_T))
 	for (k = (SCM_LENGTH (v) + SCM_LONG_BIT - 1) / SCM_LONG_BIT; k--;)
 	  SCM_UNPACK (SCM_VELTS (v)[k]) |= SCM_UNPACK (SCM_VELTS (kv)[k]);
       else
@@ -1924,7 +1924,7 @@ SCM_DEFINE (scm_bit_count_star, "bit-count*", 3, 0, 0,
 		if (!SCM_BITVEC_REF(v,k))
 		  count++;
 	      }
-	  else if (SCM_TRUE_P (obj))
+	  else if (SCM_EQ_P (obj, SCM_BOOL_T))
 	    for (i = SCM_LENGTH (kv); i;)
 	      {
 		k = SCM_UNPACK (SCM_VELTS (kv)[--i]);
@@ -1941,7 +1941,7 @@ SCM_DEFINE (scm_bit_count_star, "bit-count*", 3, 0, 0,
       if (0 == SCM_LENGTH (v))
 	return SCM_INUM0;
       SCM_ASRTGO (SCM_BOOLP (obj), badarg3);
-      fObj = SCM_TRUE_P (obj);
+      fObj = SCM_EQ_P (obj, SCM_BOOL_T);
       i = (SCM_LENGTH (v) - 1) / SCM_LONG_BIT;
       k = SCM_UNPACK (SCM_VELTS (kv)[i]) & (fObj ? SCM_UNPACK (SCM_VELTS (v)[i]) : ~ SCM_UNPACK (SCM_VELTS (v)[i]));
       k <<= SCM_LONG_BIT - 1 - ((SCM_LENGTH (v) - 1) % SCM_LONG_BIT);

@@ -532,7 +532,7 @@ SCM_DEFINE (scm_catch, "catch", 3, 0, 0,
 {
   struct scm_body_thunk_data c;
 
-  SCM_ASSERT (SCM_SYMBOLP(tag) || SCM_TRUE_P (tag),
+  SCM_ASSERT (SCM_SYMBOLP (tag) || SCM_EQ_P (tag, SCM_BOOL_T),
 	      tag, SCM_ARG1, FUNC_NAME);
 
   c.tag = tag;
@@ -557,7 +557,7 @@ SCM_DEFINE (scm_lazy_catch, "lazy-catch", 3, 0, 0,
 {
   struct scm_body_thunk_data c;
 
-  SCM_ASSERT (SCM_SYMBOLP(tag) || SCM_TRUE_P (tag),
+  SCM_ASSERT (SCM_SYMBOLP (tag) || SCM_EQ_P (tag, SCM_BOOL_T),
 	      tag, SCM_ARG1, FUNC_NAME);
 
   c.tag = tag;
@@ -615,7 +615,7 @@ scm_ithrow (SCM key, SCM args, int noreturn)
 	{
 	  SCM this_key = SCM_CAR (dynpair);
 
-	  if (SCM_TRUE_P (this_key) || SCM_EQ_P (this_key, key))
+	  if (SCM_EQ_P (this_key, SCM_BOOL_T) || SCM_EQ_P (this_key, key))
 	    break;
 	}
     }

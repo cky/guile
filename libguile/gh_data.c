@@ -693,7 +693,7 @@ SCM
 gh_module_lookup (SCM vec, const char *sname)
 {
   SCM sym = gh_symbol2scm (sname);
-  if (SCM_TRUE_P (scm_symbol_bound_p (vec, sym)))
+  if (SCM_EQ_P (scm_symbol_bound_p (vec, sym), SCM_BOOL_T))
     return scm_symbol_binding (vec, sym);
   else
     return SCM_UNDEFINED;

@@ -1,4 +1,4 @@
-/* $Id: validate.h,v 1.11 2000-05-18 08:47:52 dirk Exp $ */
+/* $Id: validate.h,v 1.12 2000-06-05 11:39:46 dirk Exp $ */
 /*	Copyright (C) 1999, 2000 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -116,7 +116,7 @@
 #define SCM_VALIDATE_BOOL_COPY(pos, flag, cvar) \
   do { \
     SCM_ASSERT (SCM_BOOLP (flag), flag, pos, FUNC_NAME); \
-    cvar = SCM_TRUE_P (flag) ? 1 : 0; \
+    cvar = SCM_EQ_P (flag, SCM_BOOL_T) ? 1 : 0; \
   } while (0)
 
 #define SCM_VALIDATE_CHAR(pos, scm) SCM_MAKE_VALIDATE (pos, scm, CHARP)
@@ -330,7 +330,7 @@
 
 #define SCM_VALIDATE_PROC(pos, proc) \
   do { \
-    SCM_ASSERT (SCM_TRUE_P (scm_procedure_p (proc)), proc, pos, FUNC_NAME); \
+    SCM_ASSERT (SCM_EQ_P (scm_procedure_p (proc), SCM_BOOL_T), proc, pos, FUNC_NAME); \
   } while (0)
 
 #define SCM_VALIDATE_NULLORCONS(pos, env) \

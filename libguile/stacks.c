@@ -353,7 +353,7 @@ narrow_stack (SCM stack,int inner,SCM inner_key,int outer,SCM outer_key)
   int n = s->length;
   
   /* Cut inner part. */
-  if (SCM_TRUE_P (inner_key))
+  if (SCM_EQ_P (inner_key, SCM_BOOL_T))
     /* Cut all frames up to user module code */
     {
       for (i = 0; inner; ++i, --inner)
@@ -428,7 +428,7 @@ SCM_DEFINE (scm_make_stack, "make-stack", 1, 0, 1,
      scm_make_stack was given.  */
   /* just use dframe == scm_last_debug_frame 
      (from initialization of dframe, above) if obj is #t */
-  if (!SCM_TRUE_P (obj))
+  if (!SCM_EQ_P (obj, SCM_BOOL_T))
     {
       SCM_ASSERT (SCM_NIMP (obj), obj, SCM_ARG1, FUNC_NAME);
       if (SCM_DEBUGOBJP (obj))
@@ -510,7 +510,7 @@ SCM_DEFINE (scm_stack_id, "stack-id", 1, 0, 0,
 {
   scm_debug_frame *dframe;
   long offset = 0;
-  if (SCM_TRUE_P (stack))
+  if (SCM_EQ_P (stack, SCM_BOOL_T))
     dframe = scm_last_debug_frame;
   else
     {

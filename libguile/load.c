@@ -111,7 +111,7 @@ SCM_DEFINE (scm_primitive_load, "primitive-load", 1, 0, 0,
 {
   SCM hook = *scm_loc_load_hook;
   SCM_VALIDATE_ROSTRING (1,filename);
-  SCM_ASSERT (SCM_FALSEP (hook) || (SCM_TRUE_P (scm_procedure_p (hook))),
+  SCM_ASSERT (SCM_FALSEP (hook) || (SCM_EQ_P (scm_procedure_p (hook), SCM_BOOL_T)),
 	      hook, "value of %load-hook is neither a procedure nor #f",
 	      FUNC_NAME);
 

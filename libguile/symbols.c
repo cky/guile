@@ -533,7 +533,7 @@ SCM_DEFINE (scm_string_to_obarray_symbol, "string->obarray-symbol", 2, 1, 0,
   /* iron out some screwy calling conventions */
   if (SCM_FALSEP (o))
     o = scm_symhash;
-  else if (SCM_TRUE_P (o))
+  else if (SCM_EQ_P (o, SCM_BOOL_T))
     o = SCM_BOOL_F;
     
   vcell = scm_intern_obarray_soft (SCM_ROCHARS(s),

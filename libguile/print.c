@@ -957,7 +957,7 @@ SCM_DEFINE (scm_simple_format, "simple-format", 2, 0, 1,
   char *start;
   char *p;
 
-  if (SCM_TRUE_P (destination)) {
+  if (SCM_EQ_P (destination, SCM_BOOL_T)) {
     destination = scm_cur_outp;
   } else if (SCM_FALSEP (destination)) {
     fReturnString = 1;

@@ -50,11 +50,10 @@
 /* Boolean Values 
  *
  */ 
-#define SCM_TRUE_P(x)		(SCM_EQ_P ((x), SCM_BOOL_T))
 #define SCM_FALSEP(x)		(SCM_EQ_P ((x), SCM_BOOL_F))
 #define SCM_NFALSEP(x)		(!SCM_FALSEP (x))
 
-#define SCM_BOOLP(x)		(SCM_TRUE_P (x) || SCM_FALSEP (x))
+#define SCM_BOOLP(x)		(SCM_EQ_P ((x), SCM_BOOL_F) || SCM_EQ_P ((x), SCM_BOOL_T))
 
 /* Convert from a C boolean to a SCM boolean value */
 #define SCM_BOOL(f)		((f) ? SCM_BOOL_T : SCM_BOOL_F)

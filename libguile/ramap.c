@@ -515,7 +515,7 @@ scm_array_fill_int (SCM ra, SCM fill, SCM ignore)
 		if ((base + n) % SCM_LONG_BIT) /* trailing partial word */
 		  ve[i] &= (~0L << ((base + n) % SCM_LONG_BIT));
 	      }
-	    else if (SCM_TRUE_P (fill))
+	    else if (SCM_EQ_P (fill, SCM_BOOL_T))
 	      {
 		if (base % SCM_LONG_BIT)
 		  ve[i++] |= ~0L << (base % SCM_LONG_BIT);
@@ -532,7 +532,7 @@ scm_array_fill_int (SCM ra, SCM fill, SCM ignore)
 	    if (SCM_FALSEP (fill))
 	      for (i = base; n--; i += inc)
 		ve[i / SCM_LONG_BIT] &= ~(1L << (i % SCM_LONG_BIT));
-	    else if (SCM_TRUE_P (fill))
+	    else if (SCM_EQ_P (fill, SCM_BOOL_T))
 	      for (i = base; n--; i += inc)
 		ve[i / SCM_LONG_BIT] |= (1L << (i % SCM_LONG_BIT));
 	    else

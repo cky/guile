@@ -183,7 +183,7 @@ display_error_body (struct display_error_args *a)
       if (!SCM_MEMOIZEDP (source) && !SCM_FALSEP (prev_frame))
 	source = SCM_FRAME_SOURCE (prev_frame);
       if (SCM_FRAME_PROC_P (current_frame)
-	  && SCM_TRUE_P (scm_procedure_p (SCM_FRAME_PROC (current_frame))))
+	  && SCM_EQ_P (scm_procedure_p (SCM_FRAME_PROC (current_frame)), SCM_BOOL_T))
 	pname = scm_procedure_name (SCM_FRAME_PROC (current_frame));
     }
   if (!SCM_ROSTRINGP (pname))
