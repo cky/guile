@@ -46,7 +46,7 @@
 @c essay @sp 10
 @c essay @comment The title is printed in a large font.
 @c essay @title Data Representation in Guile
-@c essay @subtitle $Id: data-rep.texi,v 1.10 2003-05-03 22:21:59 kryde Exp $
+@c essay @subtitle $Id: data-rep.texi,v 1.11 2003-06-11 23:07:53 kryde Exp $
 @c essay @subtitle For use with Guile @value{VERSION}
 @c essay @author Jim Blandy
 @c essay @author Free Software Foundation
@@ -1393,6 +1393,7 @@ datatypes described here.)
 * Garbage Collecting Smobs::    
 * A Common Mistake In Allocating Smobs::  
 * Garbage Collecting Simple Smobs::  
+* Remembering During Operations::  
 * A Complete Example::          
 @end menu
 
@@ -1859,7 +1860,7 @@ traverse @code{image}, so any objects @code{image} points to will be
 preserved.
 
 
-@node Garbage Collecting Simple Smobs, A Complete Example, A Common Mistake In Allocating Smobs, Defining New Types (Smobs)
+@node Garbage Collecting Simple Smobs
 @subsection Garbage Collecting Simple Smobs
 
 It is often useful to define very simple smob types --- smobs which have
@@ -1891,6 +1892,80 @@ other than the smob's header cell.
 This function should not be needed anymore, because simply passing
 @code{NULL} as the free function does the same.
 @end deftypefun
+
+
+@node Remembering During Operations
+@subsection Remembering During Operations
+@cindex Remembering
+
+It's important that a smob is visible to the garbage collector
+whenever its contents are being accessed.  Otherwise it could be freed
+while code is still using it.
+
+@c  NOTE: The varargs scm_remember_upto_here is deliberately not
+@c  documented, because we don't think it can be implemented as a nice
+@c  inline compiler directive or asm block.  New _3, _4 or whatever
+@c  forms could certainly be added though, if needed.
+
+@deftypefn {C Macro} void scm_remember_upto_here_1 (SCM obj)
+@deftypefnx {C Macro} void scm_remember_upto_here_2 (SCM obj1, SCM obj2)
+Create a reference to the given object or objects, so they're certain
+to be present on the stack or in a register and hence will not be
+freed by the garbage collector before this point.
+@end deftypefn
+
+For example, consider a procedure to convert image data to a list of
+pixel values.
+
+@example
+SCM
+image_to_list (SCM image_smob)
+@{
+  struct image *image;
+  SCM lst;
+  int i;
+  SCM_ASSERT (SCM_SMOB_PREDICATE (image_tag, image_smob),
+              image_smob, SCM_ARG1, "image->list");
+
+  image = (struct image *) SCM_SMOB_DATA (image_smob);
+  lst = SCM_EOL;
+  for (i = image->width * image->height - 1; i >= 0; i--)
+    lst = scm_cons (SCM_MAKINUM (image->pixels[i]), lst);
+
+  scm_remember_upto_here_1 (image_smob);
+  return lst;
+@}
+@end example
+
+In the loop, only the @code{image} pointer is used and the C compiler
+has no reason to keep the @code{image_smob} value anywhere.  If
+@code{scm_cons} results in a garbage collect, @code{image_smob} might
+not be on the stack or anywhere else and could be freed, leaving the
+loop accessing freed data.  The use of @code{scm_remember_upto_here_1}
+prevents this, by creating a reference to @code{image_smob} after all
+data accesses.
+
+There's no need to do the same for @code{lst}, since that's the return
+value and the compiler will certainly keep it in a register or
+somewhere throughout the routine.
+
+The @code{clear_image} example previously shown (@pxref{Type
+checking}) did not use @code{scm_remember_upto_here_1}.  This is
+because it didn't do anything that could result in a garbage collect.
+
+It's only in quite rare circumstances that a missing
+@code{scm_remember_upto_here_1} will bite, but when it happens the
+consequences are serious.  Fortunately the rule is simple: whenever
+allocating memory or doing something that might, ensure the @code{SCM}
+of a smob is referenced past all accesses to its insides.  Do this by
+adding an @code{scm_remember_upto_here_1} if there are no other
+references.
+
+In a multi-threaded program, the rule is the same.  As far as a given
+thread is concerned, a garbage collect still only occurs within a
+memory allocation function, not at an arbitrary time.  (Guile waits
+for all threads to reach a memory function, and holds them there while
+the collector runs.)
 
 
 @node A Complete Example
