@@ -1,3 +1,7 @@
+1999-03-22  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* pairs.c (scm_set_car_x, scm_set_cdr_x): Return SCM_UNSPECIFIED.
+
 1999-03-21  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* print.c (scm_isymnames): Added #@dispatch and #@hash-dispatch.
