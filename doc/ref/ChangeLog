@@ -1,3 +1,16 @@
+2001-12-07  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scm.texi (Guile API): Renamed from `Scheme Primitives' and
+	broadened so that this chapter discusses the Guile API as a whole.
+
+	* program.texi (Available Functionality): Revise so that text
+	reads better.
+
+	* guile.texi (Programming Intro): New introductory text.
+
+	* scheme-ideas.texi (Definition): Reorder reference bullets in
+	ascending page number order.
+
 2001-12-04  Martin Grabmueller  <mg@glug.org>
 
 	* scheme-procedures.texi (Optional Arguments): Typo fix: wither ->

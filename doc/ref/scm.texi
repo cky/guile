@@ -1,8 +1,58 @@
 @page
-@node Scheme Primitives
+@node Guile API
+@chapter Overview of the Guile API
+
+Guile's application programming interface (@dfn{API}) makes
+functionality available that an application developer can use in either
+C or Scheme programming.  The interface consists of @dfn{elements} that
+may be macros, functions or variables in C, and procedures, variables,
+syntax or other types of object in Scheme.  Broadly speaking, the
+interface as a whole can be divided into three groups.
+
+@enumerate
+@item
+Elements that are available equivalently as C functions or Scheme
+procedures.
+
+@item
+Elements that are only available as macros, functions or variables for C
+programming.
+
+@item
+Elements that are only available as procedures or other objects in
+Scheme.
+@end enumerate
+
+Functions/procedures in the first group are often known as
+@dfn{primitives}, @dfn{subrs} or @dfn{builtins}.  An example is the
+@code{assq} Scheme procedure, which is also available as @code{scm_assq}
+in C.
+
+Elements in the second and third groups exist because they provide
+additional language-specific benefits in either Scheme or C.  Examples
+are the C macro @code{SCM_CONSP}, which is faster and more convenient in
+C programming than the primitive @code{scm_pair_p}, and the
+procedure-with-setter @code{make-object-property}, which provides a
+more convenient property handling interface in Scheme than the
+primitives on which it is based.
+
+@menu
+* Primitives::                  Identical function for Scheme and C.
+* C Only::                      Elements only available in C.
+* Scheme Only::                 Elements only available in Scheme.
+@end menu
+
+
+@node Primitives
+@section Identical Function in both Scheme and C
+
+They form the majority of the API, and allow both C and Scheme
+programmers to perform identical operations.
+
+@c @node Scheme Primitives
 @c @chapter Writing Scheme primitives in C
 @c - according to the menu in guile.texi - NJ 2001/1/26
-@chapter Relationship between Scheme and C functions
+@c @chapter Relationship between Scheme and C functions
 
 @c Chapter contents contributed by Thien-Thi Nguyen <ttn@gnu.org>.
 
@@ -19,8 +69,9 @@ the convention for passing non-required arguments to this function.
 @c * Exceptions to the regularity::
 @end menu
 
+
 @node Transforming Scheme name to C name
-@section Transforming Scheme name to C name
+@subsection Transforming Scheme name to C name
 
 Normally, the name of a C function can be derived given its Scheme name,
 using some simple textual transformations:
@@ -93,11 +144,23 @@ Prefix arg non-nil means use \"gh_\" prefix, otherwise use \"scm_\" prefix."
   (insert (if use-gh "gh_" "scm_") name))
 @end example
 
+
 @node Structuring argument lists for C functions
-@section Structuring argument lists for C functions
+@subsection Structuring argument lists for C functions
 
 The C function's arguments will be all of the Scheme procedure's
 argumements, both required and optional; if the Scheme procedure takes a
 ``rest'' argument, that will be a final argument to the C function.  The
 C function's arguments, as well as its return type, will be @code{SCM}.
 
+
+@node C Only
+@section Elements Available Only in C
+
+For C this is usually a matter of better performance (e.g. the
+@code{SCM_CONSP} macro) or of accepting C language types rather than the
+generic @code{SCM}.
+
+
+@node Scheme Only
+@section Elements Available Only in Scheme

@@ -178,12 +178,6 @@ references.
 
 @itemize @bullet
 @item
-@xref{Internal Definitions}, to read about using @code{define} other
-than at top level in a Scheme program, including a discussion of when it
-works to use @code{define} rather than @code{set!} to change the value
-of an existing variable.
-
-@item
 @ref{Lambda Alternatives}, to read about an alternative form of the
 @code{define} syntax that can be used when defining new procedures.
 
@@ -191,6 +185,12 @@ of an existing variable.
 @ref{Procedures with Setters}, to read about an alternative form of the
 @code{set!} syntax that helps with changing a single value in the depths
 of a compound data structure.)
+
+@item
+@xref{Internal Definitions}, to read about using @code{define} other
+than at top level in a Scheme program, including a discussion of when it
+works to use @code{define} rather than @code{set!} to change the value
+of an existing variable.
 @end itemize
 
 
@@ -384,7 +384,7 @@ this:
 @end lisp
 
 @noindent
-This is a valid procedure invocation expression, whose result is the
+This is a valid procedure invocation expression, and its result is the
 string @code{"Name=FSF:Address=Cambridge"}.
 
 It it more common, though, to store the procedure value in a variable ---
@@ -756,9 +756,9 @@ answers yes.
 
 If the outermost @code{(if @dots{})} expression here was a procedure
 invocation expression, the expression @code{(delete-file file)}, whose
-effect is to actually delete a file, would already have been executed
-before the @code{if} procedure even got invoked!  Clearly this is no use
---- the whole point of an @code{if} expression is that the
+side effect is to actually delete a file, would already have been
+evaluated before the @code{if} procedure even got invoked!  Clearly this
+is no use --- the whole point of an @code{if} expression is that the
 @dfn{consequent} expression is only evaluated if the condition of the
 @code{if} expression is ``true''.
 
@@ -815,20 +815,13 @@ expressions, simply so that you will recognize common special syntax
 when you see it.  For a full description of each of these syntaxes,
 follow the appropriate reference.
 
-@code{if} and @code{cond} (@pxref{if cond case}) provide conditional
-evaluation of argument expressions depending on whether one or more
-conditions evaluate to ``true'' or ``false''.
-
-@code{case} (@pxref{if cond case}) provides conditional evaluation of
-argument expressions depending on whether a variable has one of a
-specified group of values.
-
-@code{define} (REFFIXME) is used to create a new variable and set its
-initial value.
-
-@code{set!} (REFFIXME) is used to modify an existing variable's value.
-
 @code{lambda} (@pxref{Lambda}) is used to construct procedure objects.
+
+@code{define} (@pxref{Top Level}) is used to create a new variable and
+set its initial value.
+
+@code{set!} (@pxref{Top Level}) is used to modify an existing variable's
+value.
 
 @code{let}, @code{let*} and @code{letrec} (@pxref{Local Bindings})
 create an inner lexical environment for the evaluation of a sequence of
@@ -841,6 +834,14 @@ and returns the value of the last expression.  Note that this is not the
 same as a procedure which returns its last argument, because the
 evaluation of a procedure invocation expression does not guarantee to
 evaluate the arguments in order.
+
+@code{if} and @code{cond} (@pxref{if cond case}) provide conditional
+evaluation of argument expressions depending on whether one or more
+conditions evaluate to ``true'' or ``false''.
+
+@code{case} (@pxref{if cond case}) provides conditional evaluation of
+argument expressions depending on whether a variable has one of a
+specified group of values.
 
 @code{and} (@pxref{and or}) executes a sequence of expressions in order
 until either there are no expressions left, or one of them evaluates to
@@ -1312,12 +1313,12 @@ It can only be accessed indirectly via @code{get-balance} or
 -25
 @end lisp
 
-A detail here is that the @code{get-balance} and @code{deposit}
-variables must be set up by @code{define}ing them at top level and then
-@code{set!}ing their values inside the @code{let} body.  Using
-@code{define} within the @code{let} body would not work: this would
-create variable bindings within the local @code{let} environment that
-would not be accessible at top level.
+An important detail here is that the @code{get-balance} and
+@code{deposit} variables must be set up by @code{define}ing them at top
+level and then @code{set!}ing their values inside the @code{let} body.
+Using @code{define} within the @code{let} body would not work: this
+would create variable bindings within the local @code{let} environment
+that would not be accessible at top level.
 
 
 @node Callback Closure

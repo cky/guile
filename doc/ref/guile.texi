@@ -94,7 +94,7 @@ by the Free Software Foundation.
 @sp 10
 @comment The title is printed in a large font.
 @title Guile Reference Manual
-@subtitle $Id: guile.texi,v 1.8 2001-12-01 21:48:30 ossau Exp $
+@subtitle $Id: guile.texi,v 1.9 2001-12-07 17:08:19 ossau Exp $
 @subtitle For use with Guile @value{VERSION}
 
 @c AUTHORS
@@ -216,7 +216,7 @@ Part II: Programming with Guile
 * Guile Scripting::             How to write Guile scripts.
 * Command Line Handling::       Command line options and arguments.
 * Libguile Intro::              Using Guile as an extension language.
-* Scheme Primitives::           Writing Scheme primitives in C.
+* Guile API::                   Overview of the Guile API.
 * Data Representation::         Data representation in Guile.
 * GH::                          The deprecated GH interface.
 * Debugger User Interface::
@@ -285,7 +285,7 @@ guidelines and tips for @emph{how} to program in Guile, and to document
 the tools that are available to help you with your programming.  For
 detailed reference information on the variables, functions etc. that
 make up Guile's application programming interface (API), please refer to
-Part III (@pxref{Reference Intro,,Part III: Programming with Guile}).
+Part III (@pxref{Reference Intro,,Part III --- Guile API Reference}).
 
 We begin in the first chapter of this part by looking at the programming
 options available.
@@ -305,6 +305,11 @@ options available.
 @page
 @node Reference Intro
 @unnumbered Part III: Guile API Reference
+
+Guile provides an application programming interface (@dfn{API}) to
+developers in two core languages: Scheme and C.  This part of the manual
+contains reference documentation for all of the functionality that is
+available through both Scheme and C interfaces.
 
 @include scheme-data.texi
 @include scheme-compound.texi

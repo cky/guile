@@ -83,24 +83,18 @@ is growing quickly and already includes such useful examples as
 Scheme, and @code{(database postgres)}, which provides SQL access to a
 Postgres database.
 
-In practice, therefore, it is quite feasible that your application can
-be implemented by combining together a selection of pre-existing modules
-with new application code written in Scheme, and approach may
-suffice for the application that you want to write.
+Given the growing collection of pre-existing modules, it is quite
+feasible that your application could be implemented by combining a
+selection of these modules together with new application code written in
+Scheme.
 
-If it does not suffice, because the functionality that your application
-needs is not already available in this form (and assuming that it's
-impossible or unacceptable for performance reasons to write the new
-functionality in Scheme), you will need to write some C code.
-
-@itemize @bullet
-@item
-If the required function is already written (e.g. in a library), you
-only need a little glue to connect it to the world of Guile.
-
-@item
-If not, you need to write the basic code as well.
-@end itemize
+If this approach is not enough, because the functionality that your
+application needs is not already available in this form, or because it
+is impossible or unacceptable (e.g. for performance reasons) to write
+the new functionality in Scheme, you will need to write some C code.  If
+the required function is already available in C (e.g. in a library), all
+you need is a little glue to connect it to the world of Guile.  If not,
+you need both to write the basic code and to plumb it into Guile.
 
 In either case, two general considerations are important.  Firstly, what
 is the interface by which the functionality is presented to the Scheme

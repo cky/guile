@@ -1,4 +1,4 @@
-@c $Id: intro.texi,v 1.4 2001-11-16 15:04:16 ossau Exp $
+@c $Id: intro.texi,v 1.5 2001-12-07 17:08:19 ossau Exp $
 
 
 @page
@@ -352,7 +352,7 @@ with Guile on a typical POSIX system.
 
 Parts III and IV of this manual describe the C functions Guile provides.
 Furthermore, any Scheme function described in this manual as a
-``Primitive'' is also callable from C; see @ref{Scheme Primitives}.
+``Primitive'' is also callable from C; see @ref{Primitives}.
 
 The header file @code{<libguile.h>} provides declarations for all of
 Guile's functions and constants.  You should @code{#include} it at the
