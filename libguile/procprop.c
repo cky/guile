@@ -44,9 +44,76 @@
 #include "_scm.h"
 #include "alist.h"
 #include "eval.h"
+#include "procs.h"
+#include "gsubr.h"
 
 #include "procprop.h"
 
+
+SCM_GLOBAL_SYMBOL (scm_sym_arity, "arity");
+
+SCM
+scm_i_procedure_arity (proc)
+{
+  int a = 0, o = 0, r = 0;
+ loop:
+  switch (SCM_TYP7 (proc))
+    {
+    case scm_tc7_subr_1o:
+      o = 1;
+    case scm_tc7_subr_0:
+      break;
+    case scm_tc7_subr_2o:
+      o = 1;
+    case scm_tc7_subr_1:
+    case scm_tc7_cxr:
+    case scm_tc7_contin:
+      a += 1;
+      break;
+    case scm_tc7_subr_2:
+      a += 2;
+      break;
+    case scm_tc7_subr_3:
+      a += 3;
+      break;
+    case scm_tc7_asubr:
+    case scm_tc7_rpsubr:
+    case scm_tc7_lsubr:
+      r = 1;
+    case scm_tc7_lsubr_2:
+      a += 2;
+      break;
+#ifdef CCLO
+    case scm_tc7_cclo:
+      if (SCM_CCLO_SUBR (proc) == scm_f_gsubr_apply)
+	{
+	  int type = SCM_INUM (SCM_GSUBR_TYPE (proc));
+	  a = SCM_GSUBR_REQ (type);
+	  o = SCM_GSUBR_OPT (type);
+	  r = SCM_GSUBR_REST (type);
+	  break;
+	}
+      proc = SCM_CCLO_SUBR (proc);
+      a -= 1;
+      goto loop;
+#endif
+    case scm_tcs_closures:
+      proc = SCM_CAR (SCM_CODE (proc));
+      if (SCM_IMP (proc))
+	break;
+      while (SCM_NIMP (proc) && SCM_CONSP (proc))
+	{
+	  ++a;
+	  proc = SCM_CDR (proc);
+	}
+      if (SCM_NIMP (proc))
+	r = 1;
+      break;
+    }
+  return SCM_LIST3 (SCM_MAKINUM (a),
+		    SCM_MAKINUM (o),
+		    r ? SCM_BOOL_T : SCM_BOOL_F);
+}
 
 static SCM
 scm_stand_in_scm_proc(proc)
@@ -74,9 +141,10 @@ scm_procedure_properties (proc)
 {
   SCM_ASSERT (SCM_NFALSEP (scm_procedure_p (proc)),
 	      proc, SCM_ARG1, s_procedure_properties);
-  if (!(SCM_NIMP (proc) && SCM_CLOSUREP (proc)))
-    proc = scm_stand_in_scm_proc(proc);
-  return SCM_PROCPROPS (proc);
+  return scm_acons (scm_sym_arity, scm_i_procedure_arity (proc),
+		    SCM_PROCPROPS (SCM_NIMP (proc) && SCM_CLOSUREP (proc)
+				   ? proc
+				   : scm_stand_in_scm_proc (proc)));
 }
 
 SCM_PROC(s_set_procedure_properties_x, "set-procedure-properties!", 2, 0, 0, scm_set_procedure_properties_x);
@@ -101,11 +169,14 @@ scm_procedure_property (p, k)
      SCM k;
 {
   SCM assoc;
-  if (!(SCM_NIMP (p) && SCM_CLOSUREP (p)))
-    p = scm_stand_in_scm_proc(p);
   SCM_ASSERT (SCM_NFALSEP (scm_procedure_p (p)),
 	      p, SCM_ARG1, s_procedure_property);
-  assoc = scm_sloppy_assq (k, SCM_PROCPROPS (p));
+  if (k == scm_sym_arity)
+    return scm_i_procedure_arity (p);
+  assoc = scm_sloppy_assq (k,
+			   SCM_PROCPROPS (SCM_NIMP (p) && SCM_CLOSUREP (p)
+					  ? p
+					  : scm_stand_in_scm_proc (p)));
   return (SCM_NIMP (assoc) ? SCM_CDR (assoc) : SCM_BOOL_F);
 }
 
@@ -121,6 +192,10 @@ scm_set_procedure_property_x (p, k, v)
   if (!(SCM_NIMP (p) && SCM_CLOSUREP (p)))
     p = scm_stand_in_scm_proc(p);
   SCM_ASSERT (SCM_NIMP (p) && SCM_CLOSUREP (p), p, SCM_ARG1, s_set_procedure_property_x);
+  if (k == scm_sym_arity)
+    scm_misc_error (s_set_procedure_property_x,
+		    "arity is a read-only property",
+		    SCM_EOL);
   assoc = scm_sloppy_assq (k, SCM_PROCPROPS (p));
   if (SCM_NIMP (assoc))
     SCM_SETCDR (assoc, v);
