@@ -83,7 +83,7 @@ variable_equalp (SCM var1, SCM var2)
 }
 
 
-static SCM anonymous_variable_sym;
+SCM_SYMBOL (anonymous_variable_sym, "anonymous-variable");
 
 
 static SCM
@@ -229,7 +229,6 @@ scm_init_variable ()
   scm_set_smob_print (scm_tc16_variable, variable_print);
   scm_set_smob_equalp (scm_tc16_variable, variable_equalp);
 
-  anonymous_variable_sym = SCM_CAR (scm_sysintern ("anonymous-variable", SCM_UNDEFINED));
 #ifndef SCM_MAGIC_SNARFER
 #include "libguile/variable.x"
 #endif

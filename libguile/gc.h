@@ -354,9 +354,7 @@ extern int scm_return_first_int (int x, ...);
 extern SCM scm_permanent_object (SCM obj);
 extern SCM scm_protect_object (SCM obj);
 extern SCM scm_unprotect_object (SCM obj);
-extern int scm_init_storage (scm_sizet init_heap_size, int trig,
-                             scm_sizet init_heap2_size, int trig2,
-			     scm_sizet max_segment_size);
+extern int scm_init_storage (void);
 extern void *scm_get_stack_base (void);
 extern void scm_init_gc (void);
 

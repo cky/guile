@@ -1,3 +1,30 @@
+2000-12-11  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* debug.c (scm_sym_procname, scm_sym_dots, scm_sym_source,
+	scm_init_debug), eval.c (scm_sym_dot, scm_sym_arrow, scm_sym_else,
+	scm_sym_unquote, scm_sym_uq_splicing, scm_sym_enter_frame,
+	scm_sym_apply_frame, scm_sym_exit_frame, scm_sym_trace,
+	scm_init_eval), gsubr.c (scm_sym_name, scm_init_gsubr), srcprop.c
+	(scm_sym_filename, scm_sym_copy, scm_sym_line, scm_sym_column,
+	scm_sym_breakpoint), variable.c (anonymous_variable_sym):
+	Initialize symbols by using SCM_(GLOBAL_)?SYMBOL.
+
+	* gc.c (scm_i_getenv_int):  Moved here from init.c.
+
+	* gc.[ch] (scm_init_storage):  Read gc configuration environment
+	variables here, not in init.c.
+
+	* init.c (scm_i_getenv_int):  Moved to gc.c.
+
+	(scm_init_guile_1):  Move configuration code to scm_init_storage.
+	Make sure procprops get initialized early.
+
+	* keywords.c (scm_c_make_keyword):  Report amount of memory freed
+	by scm_must_free.  Use scm_str2symbol instead of scm_sysintern0.
+
+	* options.c (scm_init_opts):  Use scm_str2symbol instead of
+	scm_sysintern0.
+
 2000-12-10  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
 
 	* threads.h (SCM_MUTEXP): Typo: removed extra parenthesis.

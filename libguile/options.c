@@ -218,9 +218,15 @@ scm_init_opts (SCM (*func) (SCM), scm_option options[], int n)
 
   for (i = 0; i < n; ++i)
     {
-      options[i].name =	(char *) SCM_CAR (scm_sysintern0 (options[i].name));
-      options[i].doc = (char *) scm_permanent_object (scm_take0str
-						      (options[i].doc));
+      SCM name;
+      SCM doc;
+
+      name = scm_str2symbol (options[i].name);
+      options[i].name =	(char *) name;
+      scm_permanent_object (name);
+      doc = scm_take0str (options[i].doc);
+      options[i].doc = (char *) doc;
+      scm_permanent_object (doc);
       if (options[i].type == SCM_OPTION_SCM)
 	SCM_SETCDR (protected_objects,
 		    scm_cons (SCM_PACK(options[i].val), SCM_CDR (protected_objects)));

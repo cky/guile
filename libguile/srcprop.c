@@ -76,11 +76,11 @@
  *
  */
 
-SCM scm_sym_filename;
-SCM scm_sym_copy;
-SCM scm_sym_line;
-SCM scm_sym_column;
-SCM scm_sym_breakpoint;
+SCM_GLOBAL_SYMBOL (scm_sym_filename, "filename");
+SCM_GLOBAL_SYMBOL (scm_sym_copy, "copy");
+SCM_GLOBAL_SYMBOL (scm_sym_line, "line");
+SCM_GLOBAL_SYMBOL (scm_sym_column, "column");
+SCM_GLOBAL_SYMBOL (scm_sym_breakpoint, "breakpoint");
 
 scm_bits_t scm_tc16_srcprops;
 static scm_srcprops_chunk *srcprops_chunklist = 0;
@@ -329,14 +329,8 @@ scm_init_srcprop ()
   scm_set_smob_print (scm_tc16_srcprops, srcprops_print);
 
   scm_source_whash = scm_make_weak_key_hash_table (SCM_MAKINUM (2047));
-
-  scm_sym_filename = SCM_CAR (scm_sysintern ("filename", SCM_UNDEFINED));
-  scm_sym_copy = SCM_CAR (scm_sysintern ("copy", SCM_UNDEFINED));
-  scm_sym_line = SCM_CAR (scm_sysintern ("line", SCM_UNDEFINED));
-  scm_sym_column = SCM_CAR (scm_sysintern ("column", SCM_UNDEFINED));
-  scm_sym_breakpoint = SCM_CAR (scm_sysintern ("breakpoint", SCM_UNDEFINED));
-
   scm_sysintern ("source-whash", scm_source_whash);
+
 #ifndef SCM_MAGIC_SNARFER
 #include "libguile/srcprop.x"
 #endif

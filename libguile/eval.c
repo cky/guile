@@ -448,14 +448,19 @@ const char scm_s_variable[] = "bad variable";
 const char scm_s_clauses[] = "bad or missing clauses";
 const char scm_s_formals[] = "bad formals";
 
-SCM scm_sym_dot, scm_sym_arrow, scm_sym_else;
-SCM scm_sym_unquote, scm_sym_uq_splicing, scm_sym_apply;
+SCM_GLOBAL_SYMBOL (scm_sym_dot, ".");
+SCM_GLOBAL_SYMBOL (scm_sym_arrow, "=>");
+SCM_GLOBAL_SYMBOL (scm_sym_else, "else");
+SCM_GLOBAL_SYMBOL (scm_sym_unquote, "unquote");
+SCM_GLOBAL_SYMBOL (scm_sym_uq_splicing, "unquote-splicing");
 
 SCM scm_f_apply;
 
 #ifdef DEBUG_EXTENSIONS
-SCM scm_sym_enter_frame, scm_sym_apply_frame, scm_sym_exit_frame;
-SCM scm_sym_trace;
+SCM_GLOBAL_SYMBOL (scm_sym_enter_frame, "enter-frame");
+SCM_GLOBAL_SYMBOL (scm_sym_apply_frame, "apply-frame");
+SCM_GLOBAL_SYMBOL (scm_sym_exit_frame, "exit-frame");
+SCM_GLOBAL_SYMBOL (scm_sym_trace, "trace");
 #endif
 
 
@@ -3880,11 +3885,6 @@ scm_init_eval ()
   scm_f_apply = scm_make_subr ("apply", scm_tc7_lsubr_2, scm_apply);
   scm_system_transformer = scm_sysintern ("scm:eval-transformer",
 					  scm_make_fluid ());
-  scm_sym_dot = SCM_CAR (scm_sysintern (".", SCM_UNDEFINED));
-  scm_sym_arrow = SCM_CAR (scm_sysintern ("=>", SCM_UNDEFINED));
-  scm_sym_else = SCM_CAR (scm_sysintern ("else", SCM_UNDEFINED));
-  scm_sym_unquote = SCM_CAR (scm_sysintern ("unquote", SCM_UNDEFINED));
-  scm_sym_uq_splicing = SCM_CAR (scm_sysintern ("unquote-splicing", SCM_UNDEFINED));
 
   scm_lisp_nil = scm_sysintern ("nil", SCM_UNDEFINED);
   SCM_SETCDR (scm_lisp_nil, SCM_CAR (scm_lisp_nil));
@@ -3899,13 +3899,6 @@ scm_init_eval ()
 #if SCM_DEBUG_DEPRECATED == 0
   scm_top_level_lookup_closure_var =
     scm_sysintern ("*top-level-lookup-closure*", scm_make_fluid ());
-#endif
-
-#ifdef DEBUG_EXTENSIONS
-  scm_sym_enter_frame = SCM_CAR (scm_sysintern ("enter-frame", SCM_UNDEFINED));
-  scm_sym_apply_frame = SCM_CAR (scm_sysintern ("apply-frame", SCM_UNDEFINED));
-  scm_sym_exit_frame = SCM_CAR (scm_sysintern ("exit-frame", SCM_UNDEFINED));
-  scm_sym_trace = SCM_CAR (scm_sysintern ("trace", SCM_UNDEFINED));
 #endif
 
 #ifndef SCM_MAGIC_SNARFER

@@ -59,7 +59,8 @@
 
 /* #define GSUBR_TEST */
 
-SCM scm_sym_name;
+SCM_GLOBAL_SYMBOL (scm_sym_name, "name");
+
 SCM scm_f_gsubr_apply;
 
 SCM
@@ -207,10 +208,13 @@ void
 scm_init_gsubr()
 {
   scm_f_gsubr_apply = scm_make_subr_opt("gsubr-apply", scm_tc7_lsubr, scm_gsubr_apply, 0);
-  scm_sym_name = SCM_CAR (scm_sysintern ("name", SCM_UNDEFINED));
-  scm_permanent_object (scm_sym_name);
+
 #ifdef GSUBR_TEST
   scm_make_gsubr("gsubr-2-1-l", 2, 1, 1, gsubr_21l); /* example */
+#endif
+
+#ifndef SCM_MAGIC_SNARFER
+#include "libguile/gsubr.x"
 #endif
 }
 

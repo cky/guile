@@ -368,20 +368,6 @@ scm_load_startup_files ()
     }
 }
 
-/* Get an integer from an environment variable.  */
-static int
-scm_i_getenv_int (const char *var, int def)
-{
-  char *end, *val = getenv (var);
-  long res;
-  if (!val)
-    return def;
-  res = strtol (val, &end, 10);
-  if (end == val)
-    return def;
-  return res;
-}
-
 
 /* The main init code.  */
 
@@ -482,11 +468,7 @@ scm_init_guile_1 (SCM_STACKITEM *base)
 #ifdef GUILE_DEBUG_MALLOC
   scm_debug_malloc_prehistory ();
 #endif
-  scm_init_storage (scm_i_getenv_int ("GUILE_INIT_SEGMENT_SIZE_1", 0),
-		    scm_i_getenv_int ("GUILE_MIN_YIELD_1", 0),
-		    scm_i_getenv_int ("GUILE_INIT_SEGMENT_SIZE_2", 0),
-		    scm_i_getenv_int ("GUILE_MIN_YIELD_2", 0),
-		    scm_i_getenv_int ("GUILE_MAX_SEGMENT_SIZE", 0));
+  scm_init_storage ();
   scm_struct_prehistory ();	/* Must come after scm_init_storage */
   scm_weaks_prehistory ();	/* Must come after scm_init_storage */
   scm_init_subr_table ();
@@ -498,6 +480,7 @@ scm_init_guile_1 (SCM_STACKITEM *base)
 #endif
   start_stack (base);
   scm_init_gsubr ();
+  scm_init_procprop ();
   scm_init_environments ();
   scm_init_feature ();
   scm_init_alist ();
@@ -542,7 +525,6 @@ scm_init_guile_1 (SCM_STACKITEM *base)
   scm_init_regex_posix ();
 #endif
   scm_init_procs ();
-  scm_init_procprop ();
   scm_init_scmsigs ();
 #ifdef HAVE_NETWORKING
   scm_init_net_db ();

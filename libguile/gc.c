@@ -2435,17 +2435,30 @@ init_freelist (scm_freelist_t *freelist,
   freelist->heap_size = 0;
 }
 
-int
-scm_init_storage (scm_sizet init_heap_size_1, int gc_trigger_1,
-		  scm_sizet init_heap_size_2, int gc_trigger_2,
-		  scm_sizet max_segment_size)
-{
-  scm_sizet j;
 
-  if (!init_heap_size_1)
-    init_heap_size_1 = scm_default_init_heap_size_1;
-  if (!init_heap_size_2)
-    init_heap_size_2 = scm_default_init_heap_size_2;
+/* Get an integer from an environment variable.  */
+static int
+scm_i_getenv_int (const char *var, int def)
+{
+  char *end, *val = getenv (var);
+  long res;
+  if (!val)
+    return def;
+  res = strtol (val, &end, 10);
+  if (end == val)
+    return def;
+  return res;
+}
+
+
+int
+scm_init_storage ()
+{
+  scm_sizet gc_trigger_1;
+  scm_sizet gc_trigger_2;
+  scm_sizet init_heap_size_1;
+  scm_sizet init_heap_size_2;
+  scm_sizet j;
 
   j = SCM_NUM_PROTECTS;
   while (j)
@@ -2454,14 +2467,11 @@ scm_init_storage (scm_sizet init_heap_size_1, int gc_trigger_1,
 
   scm_freelist = SCM_EOL;
   scm_freelist2 = SCM_EOL;
-  init_freelist (&scm_master_freelist,
-		 1, SCM_CLUSTER_SIZE_1,
-		 gc_trigger_1 ? gc_trigger_1 : scm_default_min_yield_1);
-  init_freelist (&scm_master_freelist2,
-		 2, SCM_CLUSTER_SIZE_2,
-		 gc_trigger_2 ? gc_trigger_2 : scm_default_min_yield_2);
-  scm_max_segment_size
-    = max_segment_size ? max_segment_size : scm_default_max_segment_size;
+  gc_trigger_1 = scm_i_getenv_int ("GUILE_MIN_YIELD_1", scm_default_min_yield_1);
+  init_freelist (&scm_master_freelist, 1, SCM_CLUSTER_SIZE_1, gc_trigger_1);
+  gc_trigger_2 = scm_i_getenv_int ("GUILE_MIN_YIELD_2", scm_default_min_yield_2);
+  init_freelist (&scm_master_freelist2, 2, SCM_CLUSTER_SIZE_2, gc_trigger_2);
+  scm_max_segment_size = scm_i_getenv_int ("GUILE_MAX_SEGMENT_SIZE", scm_default_max_segment_size);
 
   scm_expmem = 0;
 
@@ -2473,6 +2483,8 @@ scm_init_storage (scm_sizet init_heap_size_1, int gc_trigger_1,
 
   mark_space_ptr = &mark_space_head;
 
+  init_heap_size_1 = scm_i_getenv_int ("GUILE_INIT_SEGMENT_SIZE_1", scm_default_init_heap_size_1);
+  init_heap_size_2 = scm_i_getenv_int ("GUILE_INIT_SEGMENT_SIZE_2", scm_default_init_heap_size_2);
   if (make_initial_segment (init_heap_size_1, &scm_master_freelist) ||
       make_initial_segment (init_heap_size_2, &scm_master_freelist2))
     return 1;

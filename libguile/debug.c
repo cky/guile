@@ -138,8 +138,10 @@ SCM_DEFINE (scm_with_traps, "with-traps", 1, 0, 0,
 #undef FUNC_NAME
 
 
-static SCM scm_sym_source, scm_sym_dots;
-static SCM scm_sym_procname;
+
+SCM_SYMBOL (scm_sym_procname, "procname");
+SCM_SYMBOL (scm_sym_dots, "...");
+SCM_SYMBOL (scm_sym_source, "source");
 
 /* {Memoized Source}
  */
@@ -614,10 +616,6 @@ scm_init_debug ()
 
   scm_tc16_debugobj = scm_make_smob_type ("debug-object", 0);
   scm_set_smob_print (scm_tc16_debugobj, debugobj_print);
-
-  scm_sym_procname = SCM_CAR (scm_sysintern ("procname", SCM_UNDEFINED));
-  scm_sym_dots = SCM_CAR (scm_sysintern ("...", SCM_UNDEFINED));
-  scm_sym_source = SCM_CAR (scm_sysintern ("source", SCM_UNDEFINED));
 
 #ifdef GUILE_DEBUG
   scm_sysintern ("SCM_IM_AND", SCM_IM_AND);
