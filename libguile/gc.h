@@ -48,7 +48,177 @@
 
 
 #include "libguile/__scm.h"
+
 
+
+typedef struct scm_cell
+{
+  SCM car;
+  SCM cdr;
+} scm_cell;
+
+
+/* SCM_CELLPTR is a pointer to a cons cell which may be compared or
+ * differenced.
+ */
+#if !defined (__TURBOC__) || defined (__TOS__) || defined (PROT386)
+    typedef scm_cell * SCM_CELLPTR;
+#else
+    typedef scm_cell huge * SCM_CELLPTR;
+#endif
+
+
+/* Cray machines have pointers that are incremented once for each word,
+ * rather than each byte, the 3 most significant bits encode the byte
+ * within the word.  The following macros deal with this by storing the
+ * native Cray pointers like the ones that looks like scm expects.  This
+ * is done for any pointers that might appear in the car of a scm_cell,
+ *  pointers to scm_vector elts, functions, &c are not munged.
+ */
+#ifdef _UNICOS
+    #define SCM2PTR(x) ((SCM_CELLPTR) (SCM_UNPACK (x) >> 3))
+    #define PTR2SCM(x) (SCM_PACK (((scm_bits_t) (x)) << 3))
+#else
+    #define SCM2PTR(x) ((SCM_CELLPTR) (SCM_UNPACK (x)))
+    #define PTR2SCM(x) (SCM_PACK ((scm_bits_t) (x)))
+#endif /* def _UNICOS */
+
+
+/* Low level cell data accessing macros:
+ */
+
+#define SCM_CELL_WORD(x, n) (SCM_UNPACK (((SCM *) SCM2PTR (x))[n]))
+#define SCM_CELL_WORD_0(x) SCM_CELL_WORD (x, 0)
+#define SCM_CELL_WORD_1(x) SCM_CELL_WORD (x, 1)
+#define SCM_CELL_WORD_2(x) SCM_CELL_WORD (x, 2)
+#define SCM_CELL_WORD_3(x) SCM_CELL_WORD (x, 3)
+
+#define SCM_CELL_OBJECT(x, n) (((SCM *) SCM2PTR (x))[n])
+#define SCM_CELL_OBJECT_0(x) SCM_CELL_OBJECT (x, 0)
+#define SCM_CELL_OBJECT_1(x) SCM_CELL_OBJECT (x, 1)
+#define SCM_CELL_OBJECT_2(x) SCM_CELL_OBJECT (x, 2)
+#define SCM_CELL_OBJECT_3(x) SCM_CELL_OBJECT (x, 3)
+
+#define SCM_SET_CELL_WORD(x, n, v) ((((SCM *) SCM2PTR (x))[n]) = SCM_PACK (v))
+#define SCM_SET_CELL_WORD_0(x, v) SCM_SET_CELL_WORD (x, 0, v)
+#define SCM_SET_CELL_WORD_1(x, v) SCM_SET_CELL_WORD (x, 1, v)
+#define SCM_SET_CELL_WORD_2(x, v) SCM_SET_CELL_WORD (x, 2, v)
+#define SCM_SET_CELL_WORD_3(x, v) SCM_SET_CELL_WORD (x, 3, v)
+
+#define SCM_SET_CELL_OBJECT(x, n, v) ((((SCM *) SCM2PTR (x))[n]) = v)
+#define SCM_SET_CELL_OBJECT_0(x, v) SCM_SET_CELL_OBJECT (x, 0, v)
+#define SCM_SET_CELL_OBJECT_1(x, v) SCM_SET_CELL_OBJECT (x, 1, v)
+#define SCM_SET_CELL_OBJECT_2(x, v) SCM_SET_CELL_OBJECT (x, 2, v)
+#define SCM_SET_CELL_OBJECT_3(x, v) SCM_SET_CELL_OBJECT (x, 3, v)
+
+#define SCM_CELL_TYPE(x) SCM_CELL_WORD_0 (x)
+#define SCM_SET_CELL_TYPE(x, t) SCM_SET_CELL_WORD_0 (x, t)
+
+#define SCM_SETAND_CAR(x, y)\
+  (SCM_CAR (x) = SCM_PACK (SCM_UNPACK (SCM_CAR (x)) & (y)))
+#define SCM_SETAND_CDR(x, y)\
+  (SCM_CDR (x) = SCM_PACK (SCM_UNPACK (SCM_CDR (x)) & (y)))
+#define SCM_SETOR_CAR(x, y)\
+  (SCM_CAR (x) = SCM_PACK (SCM_UNPACK (SCM_CAR (x)) | (y)))
+#define SCM_SETOR_CDR(x, y)\
+  (SCM_CDR (x) = SCM_PACK (SCM_UNPACK (SCM_CDR (x)) | (y)))
+
+#define SCM_CELL_WORD_LOC(x, n) (&SCM_CELL_WORD (x, n))
+#define SCM_CARLOC(x) (&SCM_CAR (x))
+#define SCM_CDRLOC(x) (&SCM_CDR (x))
+
+
+/* SCM_PTR_LT defines how to compare two SCM_CELLPTRs (which may not be in the
+ * same scm_array).
+ */
+
+#if !defined(__TURBOC__) || defined(__TOS__)
+    #ifdef nosve
+        #define SCM_PTR_MASK 0xffffffffffff
+        #define SCM_PTR_LT(x, y)\
+                    (((int) (x) & SCM_PTR_MASK) < ((int) (y) & SCM_PTR_MASK))
+    #else
+        #define SCM_PTR_LT(x, y) ((x) < (y))
+    #endif /* def nosve */
+#else /* defined(__TURBOC__) && !defined(__TOS__) */
+    #ifdef PROT386
+        #define SCM_PTR_LT(x, y) (((long) (x)) < ((long) (y)))
+    #else
+        #define SCM_PTR_LT(x, y) ((x) < (y))
+    #endif /* def PROT386 */
+#endif /*  defined(__TURBOC__) && !defined(__TOS__) */
+
+#define SCM_PTR_GT(x, y) SCM_PTR_LT (y, x)
+#define SCM_PTR_LE(x, y) (!SCM_PTR_GT (x, y))
+#define SCM_PTR_GE(x, y) (!SCM_PTR_LT (x, y))
+
+
+/* the allocated thing: The car of newcells are set to
+   scm_tc16_allocated to avoid the fragile state of newcells wrt the
+   gc. If it stays as a freecell, any allocation afterwards could
+   cause the cell to go back on the freelist, which will bite you
+   sometime afterwards */
+
+#ifdef GUILE_DEBUG_FREELIST
+#define SCM_NEWCELL(_into) do { _into = scm_debug_newcell (); } while (0)
+#define SCM_NEWCELL2(_into) do { _into = scm_debug_newcell2 (); } while (0)
+#else
+#ifdef GUILE_NEW_GC_SCHEME
+/* When we introduce POSIX threads support, every thread will have
+   a freelist of its own.  Then it won't any longer be necessary to
+   initialize cells with scm_tc16_allocated.  */
+#define SCM_NEWCELL(_into) \
+        do { \
+          if (SCM_IMP (scm_freelist)) \
+             _into = scm_gc_for_newcell (&scm_master_freelist, \
+                                         &scm_freelist); \
+          else \
+            { \
+               _into = scm_freelist; \
+               scm_freelist = SCM_CDR (scm_freelist);\
+               SCM_SETCAR (_into, scm_tc16_allocated); \
+            } \
+        } while(0)
+#define SCM_NEWCELL2(_into) \
+        do { \
+          if (SCM_IMP (scm_freelist2)) \
+             _into = scm_gc_for_newcell (&scm_master_freelist2, \
+                                         &scm_freelist2); \
+          else \
+            { \
+               _into = scm_freelist2; \
+               scm_freelist2 = SCM_CDR (scm_freelist2);\
+               SCM_SETCAR (_into, scm_tc16_allocated); \
+            } \
+        } while(0)
+#else /* GUILE_NEW_GC_SCHEME */
+#define SCM_NEWCELL(_into) \
+        do { \
+          if (SCM_IMP (scm_freelist.cells)) \
+             _into = scm_gc_for_newcell (&scm_freelist);\
+          else \
+            { \
+               _into = scm_freelist.cells; \
+               scm_freelist.cells = SCM_CDR (scm_freelist.cells);\
+               SCM_SETCAR (_into, scm_tc16_allocated); \
+               ++scm_cells_allocated; \
+            } \
+        } while(0)
+#define SCM_NEWCELL2(_into) \
+        do { \
+          if (SCM_IMP (scm_freelist2.cells)) \
+             _into = scm_gc_for_newcell (&scm_freelist2);\
+          else \
+            { \
+               _into = scm_freelist2.cells; \
+               scm_freelist2.cells = SCM_CDR (scm_freelist2.cells);\
+               SCM_SETCAR (_into, scm_tc16_allocated); \
+               scm_cells_allocated += 2; \
+            } \
+        } while(0)
+#endif /* GUILE_NEW_GC_SCHEME */
+#endif
+
 
 #define SCM_FREEP(x) (SCM_NIMP(x) && SCM_UNPACK_CAR (x)==scm_tc_free_cell)
 #define SCM_NFREEP(x) (!SCM_FREEP(x))

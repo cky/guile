@@ -101,23 +101,8 @@ typedef long scm_bits_t;
 /* SCM_UNPACK_CAR is a convenience for treating the CAR of X as a word */
 #define SCM_UNPACK_CAR(x) SCM_UNPACK (SCM_CAR (x))
 
-
-/* Cray machines have pointers that are incremented once for each word,
- * rather than each byte, the 3 most significant bits encode the byte
- * within the word.  The following macros deal with this by storing the
- * native Cray pointers like the ones that looks like scm expects.  This
- * is done for any pointers that might appear in the car of a scm_cell,
- * pointers to scm_vector elts, functions, &c are not munged.
- */
-#ifdef _UNICOS
-# define SCM2PTR(x) ((void *) (SCM_UNPACK (x) >> 3))
-# define PTR2SCM(x) (SCM_PACK (((scm_bits_t) (x)) << 3))
-#else
-# define SCM2PTR(x) ((void *) (SCM_UNPACK (x)))
-# define PTR2SCM(x) (SCM_PACK ((scm_bits_t) (x)))
-#endif /* def _UNICOS */
-
 
+
 /* SCM variables can contain:
  *
  * Non-objects -- meaning that the tag-related macros don't apply to them
