@@ -405,8 +405,12 @@ of the obsoleted things.
 
 The file @file{README} contains instructions on how to control the
 inclusion or removal of the deprecated and/or discouraged features
-from the public API of Guile, and the how to control the warning
-messages for deprecated features.
+from the public API of Guile, and how to control the warning messages
+for deprecated features.
+
+The idea behind those mechanisms is that normally all deprecated and
+discouraged features are available, but that you can omit them on
+purpose to check whether your code still relies on them.
 
 @node Reporting Bugs
 @section Reporting Bugs
