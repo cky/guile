@@ -1376,6 +1376,90 @@
   (pass-if (equal? '(2 4 6) (remove! odd? (list 2 4 6)))))
 
 ;;
+;; split-at
+;;
+
+(with-test-prefix "split-at"
+
+  (define (equal-values? lst thunk)
+    (call-with-values thunk
+      (lambda got
+	(equal? lst got))))
+
+  (pass-if-exception "() -1" exception:out-of-range
+    (split-at '() -1))
+  (pass-if (equal-values? '(() ())
+			  (lambda () (split-at '() 0))))
+  (pass-if-exception "() 1" exception:wrong-type-arg
+    (split-at '() 1))
+
+  (pass-if-exception "(1) -1" exception:out-of-range
+    (split-at '(1) -1))
+  (pass-if (equal-values? '(() (1)) (lambda () (split-at '(1) 0))))
+  (pass-if (equal-values? '((1) ()) (lambda () (split-at '(1) 1))))
+  (pass-if-exception "(1) 2" exception:wrong-type-arg
+    (split-at '(1) 2))
+
+  (pass-if-exception "(4 5) -1" exception:out-of-range
+    (split-at '(4 5) -1))
+  (pass-if (equal-values? '(() (4 5)) (lambda () (split-at '(4 5) 0))))
+  (pass-if (equal-values? '((4) (5)) (lambda () (split-at '(4 5) 1))))
+  (pass-if (equal-values? '((4 5) ()) (lambda () (split-at '(4 5) 2))))
+  (pass-if-exception "(4 5) 3" exception:wrong-type-arg
+    (split-at '(4 5) 3))
+
+  (pass-if-exception "(4 5 6) -1" exception:out-of-range
+    (split-at '(4 5 6) -1))
+  (pass-if (equal-values? '(() (4 5 6)) (lambda () (split-at '(4 5 6) 0))))
+  (pass-if (equal-values? '((4) (5 6)) (lambda () (split-at '(4 5 6) 1))))
+  (pass-if (equal-values? '((4 5) (6)) (lambda () (split-at '(4 5 6) 2))))
+  (pass-if (equal-values? '((4 5 6) ()) (lambda () (split-at '(4 5 6) 3))))
+  (pass-if-exception "(4 5 6) 4" exception:wrong-type-arg
+    (split-at '(4 5 6) 4)))
+
+;;
+;; split-at!
+;;
+
+(with-test-prefix "split-at!"
+
+  (define (equal-values? lst thunk)
+    (call-with-values thunk
+      (lambda got
+	(equal? lst got))))
+
+  (pass-if-exception "() -1" exception:out-of-range
+    (split-at! '() -1))
+  (pass-if (equal-values? '(() ())
+			  (lambda () (split-at! '() 0))))
+  (pass-if-exception "() 1" exception:wrong-type-arg
+    (split-at! '() 1))
+
+  (pass-if-exception "(1) -1" exception:out-of-range
+    (split-at! (list 1) -1))
+  (pass-if (equal-values? '(() (1)) (lambda () (split-at! (list 1) 0))))
+  (pass-if (equal-values? '((1) ()) (lambda () (split-at! (list 1) 1))))
+  (pass-if-exception "(1) 2" exception:wrong-type-arg
+    (split-at! (list 1) 2))
+
+  (pass-if-exception "(4 5) -1" exception:out-of-range
+    (split-at! (list 4 5) -1))
+  (pass-if (equal-values? '(() (4 5)) (lambda () (split-at! (list 4 5) 0))))
+  (pass-if (equal-values? '((4) (5))  (lambda () (split-at! (list 4 5) 1))))
+  (pass-if (equal-values? '((4 5) ()) (lambda () (split-at! (list 4 5) 2))))
+  (pass-if-exception "(4 5) 3" exception:wrong-type-arg
+    (split-at! (list 4 5) 3))
+
+  (pass-if-exception "(4 5 6) -1" exception:out-of-range
+    (split-at! (list 4 5 6) -1))
+  (pass-if (equal-values? '(() (4 5 6)) (lambda () (split-at! (list 4 5 6) 0))))
+  (pass-if (equal-values? '((4) (5 6))  (lambda () (split-at! (list 4 5 6) 1))))
+  (pass-if (equal-values? '((4 5) (6))  (lambda () (split-at! (list 4 5 6) 2))))
+  (pass-if (equal-values? '((4 5 6) ()) (lambda () (split-at! (list 4 5 6) 3))))
+  (pass-if-exception "(4 5 6) 4" exception:wrong-type-arg
+    (split-at! (list 4 5 6) 4)))
+
+;;
 ;; span
 ;;
 
