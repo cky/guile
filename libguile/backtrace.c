@@ -1,5 +1,5 @@
 /* Printing of backtraces and error messages
- * Copyright (C) 1996,1997,1998,1999,2000,2001, 2003 Free Software Foundation
+ * Copyright (C) 1996,1997,1998,1999,2000,2001, 2003, 2004 Free Software Foundation
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -400,7 +400,7 @@ display_frame_expr (char *hdr, SCM exp, char *tlr, int indentation, SCM sport, S
   string = scm_strport_to_string (sport);
   /* Remove control characters */
   for (i = 0; i < n; ++i)
-    if (iscntrl (SCM_STRING_CHARS (string)[i]))
+    if (iscntrl ((int) (unsigned char) SCM_STRING_CHARS (string)[i]))
       SCM_STRING_CHARS (string)[i] = ' ';
   /* Truncate */
   if (indentation + n > SCM_BACKTRACE_WIDTH)
