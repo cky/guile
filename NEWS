@@ -6,6 +6,34 @@ Please send Guile bug reports to bug-guile@gnu.org.
 
 Changes since Guile 1.3:
 
+* Changes to the distribution
+
+** The configure script now accepts a --with-readline flag.
+
+By default, Guile includes support for the readline line-editing
+library, if a sufficiently recent version of the library is installed
+on your system.
+
+If you do not want readline included in Guile, pass the following flag
+to the configure script:
+
+  --with-readline=no
+
+You may not want to configure Guile to use readline if you are unable
+to release your program under the GNU General Public License; the
+readline library is released under the GPL, so anything linked with it
+must also be distributed under the GPL.
+
+Enabling readline support does not significantly increase the size of
+the Guile library.  Readline itself is a shared library on most
+systems, and the readline interface code in Guile is less than 3
+kilobytes long.
+
+In future releases of Guile, we hope to have the readline support
+linked into Guile dynamically, if and when you use it.  This would
+make this configuration option unnecessary; the same Guile library
+could be used both with and without the readline library.
+
 * Changes to the stand-alone interpreter
 
 ** Command-line editing is enhanced.
