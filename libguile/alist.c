@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995, 1996, 1998 Free Software Foundation, Inc.
+/*	Copyright (C) 1995-2000 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -86,8 +86,8 @@ Recommended only for use in Guile internals.")
 {
   for (; SCM_CONSP (alist); alist = SCM_CDR (alist))
     {
-      SCM tmp = SCM_CAR(alist);
-      if (SCM_CONSP (tmp) && (SCM_CAR (tmp)==key))
+      SCM tmp = SCM_CAR (alist);
+      if (SCM_CONSP (tmp) && SCM_CAR (tmp) == key)
 	return tmp;
     }
   return SCM_BOOL_F;
@@ -104,7 +104,7 @@ Recommended only for use in Guile internals.")
 {
   for (; SCM_CONSP (alist); alist = SCM_CDR (alist))
     {
-      SCM tmp = SCM_CAR(alist);
+      SCM tmp = SCM_CAR (alist);
       if (SCM_CONSP (tmp)
 	  && SCM_NFALSEP (scm_eqv_p (SCM_CAR (tmp), key)))
 	return tmp;
@@ -122,7 +122,7 @@ Recommended only for use in Guile internals.")
 {
   for (; SCM_CONSP (alist); alist = SCM_CDR (alist))
     {
-      SCM tmp = SCM_CAR(alist);
+      SCM tmp = SCM_CAR (alist);
       if (SCM_CONSP (tmp)
 	  && SCM_NFALSEP (scm_equal_p (SCM_CAR (tmp), key)))
 	return tmp;
@@ -147,14 +147,14 @@ predicate is in use), then @code{#f} is returned.  These functions
 return the entire alist entry found (i.e. both the key and the value).")
 #define FUNC_NAME s_scm_assq
 {
-  for (; SCM_CONSP(alist); alist = SCM_CDR(alist)) 
+  for (; SCM_CONSP (alist); alist = SCM_CDR (alist)) 
     {
-      SCM tmp = SCM_CAR(alist);
-      SCM_VALIDATE_CONS(SCM_ARG2, tmp);
-      if (SCM_CAR(tmp) == key) 
-       return tmp;
+      SCM tmp = SCM_CAR (alist);
+      SCM_VALIDATE_CONS (SCM_ARG2, tmp);
+      if (SCM_CAR (tmp) == key) 
+	return tmp;
     }
-  SCM_VALIDATE_NULL(2, alist);
+  SCM_VALIDATE_NULL (2, alist);
   return SCM_BOOL_F;
 }
 #undef FUNC_NAME
@@ -165,14 +165,14 @@ SCM_DEFINE (scm_assv, "assv", 2, 0, 0,
 "Behaves like @code{assq} but uses @code{eqv?} for key comparison.")
 #define FUNC_NAME s_scm_assv
 {
-  for(; SCM_CONSP(alist); alist = SCM_CDR(alist)) 
+  for(; SCM_CONSP (alist); alist = SCM_CDR (alist)) 
     {
-      SCM tmp = SCM_CAR(alist);
-      SCM_VALIDATE_CONS(SCM_ARG2, tmp);
-      if SCM_NFALSEP(scm_eqv_p(SCM_CAR(tmp), key))
-       return tmp;
+      SCM tmp = SCM_CAR (alist);
+      SCM_VALIDATE_CONS (SCM_ARG2, tmp);
+      if (SCM_NFALSEP (scm_eqv_p (SCM_CAR (tmp), key)))
+	return tmp;
     }
-  SCM_VALIDATE_NULL(2, alist);
+  SCM_VALIDATE_NULL (2, alist);
   return SCM_BOOL_F;
 }
 #undef FUNC_NAME
@@ -183,14 +183,14 @@ SCM_DEFINE (scm_assoc, "assoc", 2, 0, 0,
 "Behaves like @code{assq} but uses @code{equal?} for key comparison.")
 #define FUNC_NAME s_scm_assoc
 {
-  for(; SCM_CONSP(alist); alist = SCM_CDR(alist)) 
+  for(; SCM_CONSP (alist); alist = SCM_CDR (alist)) 
     {
-      SCM tmp = SCM_CAR(alist);
-      SCM_VALIDATE_CONS(SCM_ARG2, tmp);
-      if SCM_NFALSEP(scm_equal_p(SCM_CAR(tmp), key)) 
-       return tmp;
+      SCM tmp = SCM_CAR (alist);
+      SCM_VALIDATE_CONS (SCM_ARG2, tmp);
+      if (SCM_NFALSEP (scm_equal_p (SCM_CAR (tmp), key)))
+	return tmp;
     }
-  SCM_VALIDATE_NULL(2, alist);
+  SCM_VALIDATE_NULL (2, alist);
   return SCM_BOOL_F;
 }
 #undef FUNC_NAME
