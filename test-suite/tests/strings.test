@@ -21,7 +21,7 @@
 (use-modules (test-suite lib))
 
 
-(expect-fail "string=? does not accept symbols"
+(pass-if "string=? does not accept symbols"
   (catch 'wrong-type-arg
     (lambda ()
       (string=? 'a 'b)
