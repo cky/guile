@@ -1,3 +1,16 @@
+2001-11-14  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* policy/api.text: Initial revision.
+
+2001-11-12  mvo  <mvo@giblet.glug.org>
+
+	* translation/lisp-and-scheme.text:
+	*** empty log message ***
+
+2001-07-07  mvo  <mvo@giblet.glug.org>
+
+	* policy/goals.text: Sneak in the translators...
+
 2001-06-27  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
 	* README: Remove tasks.text.
