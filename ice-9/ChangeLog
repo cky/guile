@@ -1,3 +1,8 @@
+1999-12-12 18:54:06 1999  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* popen.scm, slib.scm: Added some docstrings for procedures that
+	were primitives that I encountered in posix.texi.
+	
 1999-11-19  Gary Houston  <ghouston@freewire.co.uk>
 
 	* Makefile.am (ice9_sources): add arrays.scm.
