@@ -180,9 +180,8 @@
 ;; "#&optional" instead of "#:optional"
 
 (read-hash-extend #\& (lambda (c port)
-			(display
-			 "WARNING: `#&' is deprecated, use `#:' instead\n"
-			 (current-error-port))
+			(issue-deprecation-warning 
+			 "`#&' is deprecated, use `#:' instead.")
 			(case (read port)
 			  ((optional) #:optional)
 			  ((key) #:key)
