@@ -1,3 +1,10 @@
+2001-07-03  Gary Houston  <ghouston@arglist.com>
+
+	* srfi-1.scm (iota, map, for-each, list-index, member, delete,
+	delete!, assoc): don't export until the new bindings have been
+	created.  otherwise "export" thinks they are being re-exported and
+	a deprecation warning is produced.
+
 2001-07-03  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* srfi-1.scm (list-tabulate): Do not go into infinite loop for
