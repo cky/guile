@@ -1,3 +1,16 @@
+1998-08-21  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* options.c (scm_options): Bugfix: Allow empty list of options!
+
+	* debug.c, debug.h (scm_single_step): Removed.
+	(scm_with_traps): New procedure.  This procedure could easily be
+	written in Scheme but needs to be highly optimized.
+
+	* eval.h, eval.c: New evaluator trap flag: SCM_TRAPS_P.
+
+	* eval.c (SCM_CEVAL, SCM_APPLY): Removed resetting of trap flags.
+	Check SCM_TRAPS_P before trapping.
+
 1998-07-30  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	Changes to avoid signed/unsigned comparison warnings.
