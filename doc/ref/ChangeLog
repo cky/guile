@@ -1,3 +1,17 @@
+2004-02-15  Kevin Ryde  <user42@zip.com.au>
+
+	* scheme-compound.texi (Hash Table Reference): In scm_hash_ref etc,
+	remove note that dflt must be given, it can be SCM_UNSPECIFIED.
+
+	* scheme-control.texi (while do): Expand and clarify `do', in
+	particular note iteration binds fresh locations, rather than values
+	"stored".
+ 
+	* srfi-modules.texi (SRFI-4): Revise for clarity, give each function
+	explicitly rather than showing TAG so Emacs info-look can find them,
+	merge "SRFI-4 - Read Syntax" and "SRFI-4 - Procedures" into just one
+	node.
+
 2004-02-12  Kevin Ryde  <user42@zip.com.au>
 
 	* scheme-compound.texi (Conventional Arrays): Revise for clarity.
