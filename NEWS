@@ -23,6 +23,10 @@ Command line history length is now controlled by the read option
 
 * Changes to Scheme functions and syntax
 
+** New functions: delq1!, delv1!, delete1!
+These procedures behave similar to delq! and friends but delete only
+one object if at all.
+
 ** New function: unread-string STRING PORT
 Unread STRING to PORT, that is, push it back onto the port so that
 next read operation will work on the pushed back characters.
