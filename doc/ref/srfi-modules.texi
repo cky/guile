@@ -1355,30 +1355,60 @@ In addition to the primitives @code{string?} and @code{string-null?},
 which are already in the Guile core, the string predicates
 @code{string-any} and @code{string-every} are defined by SRFI-13.
 
-@deffn {Scheme Procedure} string-any pred s [start end]
-Check if the predicate @var{pred} is true for any character in
-the string @var{s}.
+@deffn {Scheme Procedure} string-any char_pred s [start end]
+Return true if @code{char_pred} is satisfied for any character in the
+string @var{s}.  @var{char_pred} can be
 
-Calls to @var{pred} are made from left to right across @var{s}.  When
-it returns true (ie.@: non-@code{#f}), that return value is the return
-from @code{string-any}.
+@itemize @bullet
+@item
+A character, to to test for any in @var{s} equal to that.
+@item
+A character set (@pxref{SRFI-14}), to test for any character in
+@var{s} in that character set.
+@item
+A predicate function, called as @code{(@var{char_pred} c)} for each
+character in @var{s}, from left to right, to test for any on which
+@var{char_pred} returns true.
+
+When @var{char_pred} does return true (ie.@: non-@code{#f}), that
+value is the value returned by @code{string-any}.
+@end itemize
+
+If there are no characters in @var{s} (ie.@: @var{start} equals
+@var{end}) then the return is @code{#f}.
+
+SRFI-13 specifies that when @var{char_pred} is a predicate function,
+the call on the last character of @var{s} (assuming that point is
+reached) is a tail call, but currently in Guile this is not the case.
 @end deffn
 
-@deffn {Scheme Procedure} string-every pred s [start end]
-Check if the predicate @var{pred} is true for every character
-in the string @var{s}.
+@deffn {Scheme Procedure} string-every char_pred s [start end]
+Return true if @var{char_pred} is satisifed for every character in the
+string @var{s}.  @var{char_pred} can be 
 
-Calls to @var{pred} are made from left to right across @var{s}.  If
-the predicate is true for every character then the return value from
-the last @var{pred} call is the return from @code{string-every}.
+@itemize @bullet
+@item
+A character, to to test for every character in @var{s} equal to that.
+@item
+A character set (@pxref{SRFI-14}), to test for every character in
+@var{s} being in that character set.
+@item
+A predicate function, called as @code{(@var{char_pred} c)} for each
+character in @var{s}, from left to right, to test that it returns true
+for every character in @var{s}.
+
+When @var{char_pred} does return true (ie.@: non-@code{#f}) for every
+character, the return from the last call is the value returned by
+@code{string-any}.
+@end itemize
 
 If there are no characters in @var{s} (ie.@: @var{start} equals
 @var{end}) then the return is @code{#t}.
-@end deffn
 
-The SRFI-13 specification requires that the call to @var{pred} on the
-last character of @var{s} (assuming that point is reached) be a tail
-call, but currently in Guile this is not the case.
+SRFI-13 specifies that when @var{char_pred} is a predicate function,
+the call on the last character of @var{s} (assuming that point is
+reached) is a tail call, but currently in Guile this is not the case.
+@end deffn
 
 @c ===================================================================
 
