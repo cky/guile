@@ -1,3 +1,9 @@
+2000-07-31  Gary Houston  <ghouston@arglist.com>
+
+	* acconfig.h: added HAVE_H_ERRNO
+	* configure.in: removed some dnl'd & obsolete cygwin stuff.
+	added a test for h_errno.
+
 2000-06-21  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* Guile 1.4 released.
