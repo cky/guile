@@ -65,6 +65,7 @@ maybe_drag_in_eprintf ()
 #include "dynl.h"
 #include "genio.h"
 #include "smob.h"
+#include "keywords.h"
 
 /* Converting a list of SCM strings into a argv-style array.  You must
    have ints disabled for the whole lifetime of the created argv (from
@@ -228,8 +229,11 @@ scm_clear_registered_modules ()
  * is executed, SCM_DEFER_INTS and SCM_ALLOW_INTS do not nest).
  */
 
+#define DYNL_GLOBAL 0x0001
+
 static void sysdep_dynl_init SCM_P ((void));
-static void *sysdep_dynl_link SCM_P ((const char *filename, const char *subr));
+static void *sysdep_dynl_link SCM_P ((const char *filename, int flags,
+				      const char *subr));
 static void sysdep_dynl_unlink SCM_P ((void *handle, const char *subr));
 static void *sysdep_dynl_func SCM_P ((const char *symbol, void *handle,
 				      const char *subr));
@@ -259,7 +263,8 @@ no_dynl_error (const char *subr)
 }
     
 static void *
-sysdep_dynl_link (const char *filename, 
+sysdep_dynl_link (const char *filename,
+		  int flags,
 		  const char *subr)
 {
     no_dynl_error (subr);
@@ -332,21 +337,50 @@ static scm_smobfuns dynl_obj_smob = {
     free_dynl_obj,
     print_dynl_obj
 };
-  
-SCM_PROC (s_dynamic_link, "dynamic-link", 1, 0, 0, scm_dynamic_link);
+
+static SCM kw_global;
+SCM_SYMBOL (sym_global, "-global");
+
+SCM_PROC (s_dynamic_link, "dynamic-link", 1, 0, 1, scm_dynamic_link);
 
 SCM
-scm_dynamic_link (fname)
+scm_dynamic_link (fname, rest)
      SCM fname;
+     SCM rest;
 {
     SCM z;
     void *handle;
     struct dynl_obj *d;
+    int flags = DYNL_GLOBAL;
 
     fname = scm_coerce_rostring (fname, s_dynamic_link, SCM_ARG1);
 
+    /* collect flags */
+    while (SCM_NIMP (rest) && SCM_CONSP (rest))
+      {
+	SCM kw, val;
+
+	kw = SCM_CAR (rest);
+	rest = SCM_CDR (rest);
+	
+	if (!(SCM_NIMP (rest) && SCM_CONSP (rest)))
+	  scm_misc_error (s_dynamic_link, "keyword without value", SCM_EOL);
+	
+	val = SCM_CAR (rest);
+	rest = SCM_CDR (rest);
+
+	if (kw == kw_global)
+	  {
+	    if (SCM_FALSEP (val))
+	      flags &= ~DYNL_GLOBAL;
+	  }
+	else
+	  scm_misc_error (s_dynamic_link, "unknown keyword argument: %s",
+			  scm_cons (kw, SCM_EOL));
+      }
+
     SCM_DEFER_INTS;
-    handle = sysdep_dynl_link (SCM_CHARS (fname), s_dynamic_link);
+    handle = sysdep_dynl_link (SCM_CHARS (fname), flags, s_dynamic_link);
 
     d = (struct dynl_obj *)scm_must_malloc (sizeof (struct dynl_obj),
 					    s_dynamic_link);
@@ -465,4 +499,5 @@ scm_init_dynamic_linking ()
     scm_tc16_dynamic_obj = scm_newsmob (&dynl_obj_smob);
     sysdep_dynl_init ();
 #include "dynl.x"
+    kw_global = scm_make_keyword_from_dash_symbol (sym_global);
 }
