@@ -5,7 +5,7 @@ exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
 !#
 ;;; snarf-check-and-output-texi --- called by the doc snarfer.
 
-;; 	Copyright (C) 2001 Free Software Foundation, Inc.
+;; 	Copyright (C) 2001, 2002 Free Software Foundation, Inc.
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -154,7 +154,7 @@ exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
     (if (and (not (eqv? *snarf-type* 'register))
              (not (= (length *args*) all)))
       (error (format #f "~A:~A: ~A's C implementation takes ~A args (should take ~A)"
-             *file* *line* name (length *args*) all)))
+             *file* *line* *function-name* (length *args*) all)))
     (let ((nice-sig
             (if (eq? *snarf-type* 'register)
               *function-name*
