@@ -176,8 +176,8 @@ for further input.
 @deffnx {Scheme Procedure} port-line port
 @deffnx {C Function} scm_port_column (port)
 @deffnx {C Function} scm_port_line (port)
-Return the current column number or line number of @var{port},
-using the current input port if none is specified.  If the number is
+Return the current column number or line number of @var{port}.
+If the number is
 unknown, the result is #f.  Otherwise, the result is a 0-origin integer
 - i.e.@: the first character of the first line is line 0, column 0.
 (However, when you display a file position, for example in an error
@@ -190,8 +190,7 @@ what non-programmers will find most natural.)
 @deffnx {Scheme Procedure} set-port-line! port line
 @deffnx {C Function} scm_set_port_column_x (port, column)
 @deffnx {C Function} scm_set_port_line_x (port, line)
-Set the current column or line number of @var{port}, using the
-current input port if none is specified.
+Set the current column or line number of @var{port}.
 @end deffn
 
 @node Writing
