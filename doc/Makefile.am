@@ -67,6 +67,9 @@ dist-hook:
 
 # This rule overrides automake's rule for version.texi.  It causes
 # version.texi to be created even in non-maintainer-mode.
-#
 $(srcdir)/version.texi: stamp-vti
+	@:
+
+# And the same for version-tutorial.texi.
+$(srcdir)/version-tutorial.texi: stamp-vti1
 	@:

@@ -1,3 +1,11 @@
+2001-04-24  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* guile-tut.texi: Include version-tutorial.texi rather than
+	version.texi.
+
+	* Makefile.am ($(srcdir)/version-tutorial.texi): New target, to
+	avoid having two files both include version.texi.
+
 2001-04-24  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* Makefile.am (guile_TEXINFOS): Added srfi-13-14.texi.

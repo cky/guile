@@ -3,7 +3,7 @@
 @setfilename guile-tut.info
 @settitle Guile Tutorial
 
-@include version.texi
+@include version-tutorial.texi
 
 @dircategory The Algorithmic Language Scheme
 @direntry
