@@ -798,7 +798,7 @@ file port facilities:
 @deffnx {C Function} scm_call_with_output_string (proc)
 Calls the one-argument procedure @var{proc} with a newly created output
 port.  When the function returns, the string composed of the characters
-written into the port is returned.
+written into the port is returned.  @var{proc} should not close the port.
 @end deffn
 
 @deffn {Scheme Procedure} call-with-input-string string proc
@@ -842,6 +842,9 @@ inaccessible.
 Given an output port created by @code{open-output-string},
 return a string consisting of the characters that have been
 output to the port so far.
+
+@code{get-output-string} must be used before closing @var{port}, once
+closed the string cannot be obtained.
 @end deffn
 
 A string port can be used in many procedures which accept a port
