@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -74,6 +74,7 @@ appear.  Upon reaching the end of the file, Guile exits.
 
 @node Invoking Guile
 @subsection Invoking Guile
+@cindex invocation
 
 Here we describe Guile's command-line processing in detail.  Guile
 processes its arguments from left to right, recognizing the switches
@@ -513,3 +514,7 @@ $ choose 50 100
 100891344545564193334812497256
 @end example
 
+
+@c Local Variables:
+@c TeX-master: "guile.texi"
+@c End:
