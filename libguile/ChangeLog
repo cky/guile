@@ -1,3 +1,8 @@
+2004-09-22  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* pairs.h (scm_car, scm_cdr, scm_i_chase_pairs, SCM_I_A_PAT,
+	SCM_I_D_PAT, etc, scm_caar, scm_cadr, etc): New.
+
 2004-09-22  Marius Vollmer  <mvo@zagadka.de>
 
 	* srfi-13.c (scm_string_contains, scm_string_contains_ci):
