@@ -1667,7 +1667,7 @@ Fills @var{vect} with inexact real random numbers the sum of whose
 squares is less than 1.0.  Thinking of @var{vect} as coordinates in
 space of dimension @var{n} @math{=} @code{(vector-length @var{vect})},
 the coordinates are uniformly distributed within the unit
-@var{n}-sphere.  The sum of the squares of the numbers is returned.
+@var{n}-sphere.
 @c FIXME: What does this mean, particularly the n-sphere part?
 @end deffn
 
