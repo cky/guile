@@ -503,6 +503,10 @@ fi
 
 AC_REPLACE_FUNCS(inet_aton putenv strerror memmove mkstemp)
 
+AC_CHECK_HEADERS(floatingpoint.h ieeefp.h nan.h)
+
+AC_CHECK_FUNCS(finite isinf isnan)
+
 # When testing for the presence of alloca, we need to add alloca.o
 # explicitly to LIBOBJS to make sure that it is translated to
 # `alloca.lo' for libtool later on.  This can and should be done more cleanly.
