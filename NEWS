@@ -113,6 +113,11 @@ This module requires SLIB to be installed and available from Guile.
 
 * Changes to the stand-alone interpreter
 
+** Evaluation of "()", the empty list, is now an error.
+
+Previously, you could for example write (cons 1 ()); now you need to
+be more explicit and write (cons 1 '()).
+
 ** It's now possible to create modules with controlled environments
 
 Example:
