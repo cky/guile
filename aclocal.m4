@@ -1,4 +1,14 @@
-dnl aclocal.m4 generated automatically by aclocal 1.1p
+dnl aclocal.m4 generated automatically by aclocal 1.2a
+
+dnl Copyright (C) 1994, 1995, 1996, 1997 Free Software Foundation, Inc.
+dnl This Makefile.in is free software; the Free Software Foundation
+dnl gives unlimited permission to copy and/or distribute it,
+dnl with or without modifications, as long as this notice is preserved.
+
+dnl This program is distributed in the hope that it will be useful,
+dnl but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+dnl even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+dnl PARTICULAR PURPOSE.
 
 dnl  On the NeXT, #including <utime.h> doesn't give you a definition for
 dnl  struct utime, unless you #define _POSIX_SOURCE.

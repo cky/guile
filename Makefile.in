@@ -1,8 +1,14 @@
-# Makefile.in generated automatically by automake 1.1p from Makefile.am
+# Makefile.in generated automatically by automake 1.2a from Makefile.am
 
-# Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
+# Copyright (C) 1994, 1995, 1996, 1997 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
-# gives unlimited permission to copy, distribute and modify it.
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
 
 
 SHELL = /bin/sh
@@ -51,10 +57,6 @@ PRE_UNINSTALL = true
 POST_UNINSTALL = true
 host_alias = @host_alias@
 host_triplet = @host@
-ACLOCAL = @ACLOCAL@
-AUTOCONF = @AUTOCONF@
-AUTOHEADER = @AUTOHEADER@
-AUTOMAKE = @AUTOMAKE@
 AWK = @AWK@
 CC = @CC@
 CPP = @CPP@
@@ -81,7 +83,7 @@ qtmds_o = @qtmds_o@
 qtmds_s = @qtmds_s@
 target_libs = @target_libs@
 
-SUBDIRS = ice-9 qt libguile
+SUBDIRS = ice-9 qt libguile build
 
 aclocaldir = $(datadir)/aclocal
 aclocal_DATA = guile.m4 threads.m4
@@ -164,7 +166,7 @@ check-recursive installcheck-recursive info-recursive dvi-recursive:
 mostlyclean-recursive clean-recursive distclean-recursive \
 maintainer-clean-recursive:
 	@set fnord $(MAKEFLAGS); amf=$$2; \
-	rev=''; for subdir in $(SUBDIRS); do rev="$$rev $$subdir"; done; \
+	rev=''; for subdir in $(SUBDIRS); do rev="$$subdir $$rev"; done; \
 	for subdir in $$rev; do \
 	  target=`echo $@ | sed s/-recursive//`; \
 	  echo "Making $$target in $$subdir"; \
@@ -278,7 +280,7 @@ uninstall: uninstall-recursive uninstall-am
 all: all-recursive all-am
 
 install-strip:
-	$(MAKE) INSTALL_PROGRAM='$(INSTALL_PROGRAM) -s' install
+	$(MAKE) INSTALL_PROGRAM='$(INSTALL_PROGRAM) -s' INSTALL_SCRIPT='$(INSTALL_PROGRAM)' install
 installdirs: installdirs-recursive
 	$(mkinstalldirs)  $(aclocaldir)
 

@@ -1,3 +1,11 @@
+Sat Sep 27 23:01:58 1997  Jim Blandy  <jimb@totoro.red-bean.com>
+
+	* Makefile.am: Add new `build' subdirectory to SUBDIRS.
+	* configure.in: Add build/Makefile to AC_OUTPUT clause.
+	* Makefile.in, configure: Regenerated.
+
+	* Makefile.in, aclocal.m4: Regenerated with automake 1.2a.
+
 Tue Sep 16 00:19:46 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* README, ltconfig, ltmain.sh: New libtool: 1.0c.
