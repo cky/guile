@@ -1,3 +1,10 @@
+2000-06-14  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* readline.c (scm_readline): Added parenthesis around && within
+	||.
+	Fixed up prototype for `reentry_barrier'.
+	Conditionally #include <unistd.h>.  (Needed for `dup'.)
+
 2000-06-13  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* Makefile.am (dist-hook): Added kludge to fix automake generated

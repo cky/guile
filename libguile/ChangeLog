@@ -1,3 +1,10 @@
+2000-06-14  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* gc.c (scm_protect_object): Avoid looking up the object handle
+	twice.
+	(scm_unprotect_object): Abort if scm_unprotect_object is called on
+	an unprotected object.
+
 2000-06-14  Michael Livshin  <mlivshin@bigfoot.com>
 
 	* gc.c (scm_unprotect_object): fix a nasty typo bug (thanks to
