@@ -341,7 +341,7 @@ On platforms that follow @acronym{IEEE} 754 for their floating point
 arithmetic, the @samp{+inf.0}, @samp{-inf.0}, and @samp{+nan.0} values
 are implemented using the corresponding @acronym{IEEE} 754 values.
 They behave in arithmetic operations like @acronym{IEEE} 754 describes
-it, i.e., @code{(= +nan.0 +nan.0) @result{#f}}.
+it, i.e., @code{(= +nan.0 +nan.0)} @result{} @code{#f}.
 
 The infinities are inexact integers and are considered to be both even
 and odd.  While @samp{+nan.0} is not @code{=} to itself, it is
