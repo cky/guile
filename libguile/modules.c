@@ -568,6 +568,9 @@ scm_module_reverse_lookup (SCM module, SCM variable)
       obarray = SCM_MODULE_OBARRAY (module);
     }
 
+  if (!SCM_HASHTABLE_P (obarray))
+      return SCM_BOOL_F;
+
   /* XXX - We do not use scm_hash_fold here to avoid searching the
      whole obarray.  We should have a scm_hash_find procedure. */
 
