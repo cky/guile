@@ -67,15 +67,6 @@ SCM
 scm_cell (scm_t_bits car, scm_t_bits cdr)
 {
   SCM z;
-  /* We retrieve the SCM pointer only once since the call to
-     SCM_FREELIST_LOC will be slightly expensive when we support
-     preemptive multithreading.  SCM_FREELIST_LOC will then retrieve
-     the thread specific freelist.
-   
-     Until then, SCM_FREELIST_DOC expands to (&scm_i_freelist) and the
-     following code will compile to the same as if we had worked
-     directly on the scm_i_freelist variable.
-   */
   SCM *freelist = SCM_FREELIST_LOC (scm_i_freelist);
 
   if (scm_gc_running_p)
