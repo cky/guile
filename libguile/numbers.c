@@ -45,6 +45,10 @@
 
 
 
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
 #include <math.h>
 #include <ctype.h>
 #include <string.h>
@@ -4549,7 +4553,7 @@ scm_i_big2dbl (SCM b)
 
 #endif
 
-#ifdef HAVE_LONG_LONGS
+#if SCM_SIZEOF_LONG_LONG != 0
 # ifndef LLONG_MAX
 #  define ULLONG_MAX ((unsigned long long) (-1))
 #  define LLONG_MAX ((long long) (ULLONG_MAX >> 1))
@@ -4641,9 +4645,9 @@ scm_i_big2dbl (SCM b)
 #define NUM2INTEGRAL scm_num2ptrdiff
 #define INTEGRAL2NUM scm_ptrdiff2num
 #define INTEGRAL2BIG scm_i_ptrdiff2big
-#define ITYPE ptrdiff_t
+#define ITYPE scm_t_ptrdiff
 #define UNSIGNED_ITYPE size_t
-#define SIZEOF_ITYPE SIZEOF_PTRDIFF_T
+#define SIZEOF_ITYPE SCM_SIZEOF_SCM_T_PTRDIFF
 #include "libguile/num2integral.i.c"
 
 #define NUM2INTEGRAL scm_num2size
@@ -4654,7 +4658,7 @@ scm_i_big2dbl (SCM b)
 #define SIZEOF_ITYPE SIZEOF_SIZE_T
 #include "libguile/num2integral.i.c"
 
-#ifdef HAVE_LONG_LONGS
+#if SCM_SIZEOF_LONG_LONG != 0
 
 #ifndef ULONG_LONG_MAX
 #define ULONG_LONG_MAX (~0ULL)
@@ -4675,7 +4679,7 @@ scm_i_big2dbl (SCM b)
 #define SIZEOF_ITYPE SIZEOF_LONG_LONG
 #include "libguile/num2integral.i.c"
 
-#endif /* HAVE_LONG_LONGS */
+#endif /* SCM_SIZEOF_LONG_LONG != 0 */
 
 #define NUM2FLOAT scm_num2float
 #define FLOAT2NUM scm_float2num
@@ -4694,7 +4698,7 @@ scm_i_big2dbl (SCM b)
 #endif
 #ifndef PTRDIFF_MIN
 #define PTRDIFF_MIN \
- ((ptrdiff_t) ((ptrdiff_t) 1 << (sizeof (ptrdiff_t) * 8 - 1)))
+ ((scm_t_ptrdiff) ((scm_t_ptrdiff) 1 << (sizeof (scm_t_ptrdiff) * 8 - 1)))
 #endif
 #ifndef PTRDIFF_MAX
 #define PTRDIFF_MAX (~ PTRDIFF_MIN)
@@ -4736,7 +4740,7 @@ check_sanity ()
   CHECK (ptrdiff, PTRDIFF_MAX);
   CHECK (ptrdiff, PTRDIFF_MIN);
 
-#ifdef HAVE_LONG_LONGS
+#if SCM_SIZEOF_LONG_LONG != 0
   CHECK (long_long, 0LL);
   CHECK (ulong_long, 0ULL);
   CHECK (long_long, -1LL);
