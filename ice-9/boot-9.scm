@@ -31,6 +31,20 @@
 ;;; Code:
 
 
+;;; {Deprecation}
+;;;
+
+;; We don't have macros here, but we do want to define
+;; `begin-deprecated' early.
+
+(define begin-deprecated
+  (procedure->memoizing-macro
+   (lambda (exp env)
+     (if (include-deprecated-features)
+	 `(begin ,@(cdr exp))
+	 `#f))))
+
+
 ;;; {Features}
 ;;
 
@@ -99,6 +113,11 @@
 (define (and=> value procedure) (and value (procedure value)))
 (define (make-hash-table k) (make-vector k '()))
 
+(begin-deprecated
+ (define (id x)
+   (issue-deprecation-warning "`id' is deprecated.  Use `identity' instead.")
+   (identity x)))
+
 ;;; apply-to-args is functionally redunant with apply and, worse,
 ;;; is less general than apply since it only takes two arguments.
 ;;;
@@ -114,25 +133,7 @@
 (define (apply-to-args args fn) (apply fn args))
 
 
-;;; {Deprecation}
-;;;
 
-(define call-with-deprecation
-  (let ((issued-warnings (make-hash-table 13)))
-    (lambda (msg thunk)
-      (cond ((not (hashv-ref issued-warnings msg #f))
-	     (display ";;; " (current-error-port))
-	     (display msg (current-error-port))
-	     (newline (current-error-port))
-	     (hashv-set! issued-warnings msg #t)))
-      (thunk))))
-
-(define (id x)
-  (call-with-deprecation "`id' is deprecated.  Use `identity' instead."
-    (lambda ()
-      (identity x))))
-
-
 ;;; {Integer Math}
 ;;;
 
@@ -1017,9 +1018,11 @@
       ;; to maximally one module.
       (set-procedure-property! closure 'module module))))
 
-;;; This procedure is deprecated
-;;;
-(define eval-in-module eval)
+(begin-deprecated
+ (define (eval-in-module exp mod)
+   (issue-deprecation-warning
+    "`eval-in-module' is deprecated.  Use `eval' instead.")
+   (eval exp mod)))
 
 
 ;;; {Observer protocol}
@@ -1738,48 +1741,12 @@
 
 ;;; Dynamic linking of modules
 
-;; Initializing a module that is written in C is a two step process.
-;; First the module's `module init' function is called.  This function
-;; is expected to call `scm_register_module_xxx' to register the `real
-;; init' function.  Later, when the module is referenced for the first
-;; time, this real init function is called in the right context.  See
-;; gtcltk-lib/gtcltk-module.c for an example.
-;;
-;; The code for the module can be in a regular shared library (so that
-;; the `module init' function will be called when libguile is
-;; initialized).  Or it can be dynamically linked.
-;;
-;; You can safely call `scm_register_module_xxx' before libguile
-;; itself is initialized.  You could call it from an C++ constructor
-;; of a static object, for example.
-;;
-;; To make your Guile extension into a dynamic linkable module, follow
-;; these easy steps:
-;;
-;; - Find a name for your module, like (ice-9 gtcltk)
-;; - Write a function with a name like
-;;
-;;     scm_init_ice_9_gtcltk_module
-;;
-;;   This is your `module init' function.  It should call
-;;
-;;     scm_register_module_xxx ("ice-9 gtcltk", scm_init_gtcltk);
-;;
-;;   "ice-9 gtcltk" is the C version of the module name. Slashes are
-;;   replaced by spaces, the rest is untouched. `scm_init_gtcltk' is
-;;   the real init function that executes the usual initializations
-;;   like making new smobs, etc.
-;;
-;; - Make a shared library with your code and a name like
-;;
-;;     ice-9/libgtcltk.so
-;;
-;;   and put it somewhere in %load-path.
-;;
-;; - Then you can simply write `:use-module (ice-9 gtcltk)' and it
-;;   will be linked automatically.
-;;
-;; This is all very experimental.
+;; This method of dynamically linking Guile Extensions is deprecated.
+;; Use `dynamic-link' and `dynamic-call' explicitely from Scheme code
+;; instead.
+
+;; XXX - We can not offer the removal of this code thru the
+;; deprecation mechanism since we have no complete replacement yet.
 
 (define (split-c-module-name str)
   (let loop ((rev '())
@@ -1812,17 +1779,14 @@
 		 registered-modules)))
 
 (define (warn-autoload-deprecation modname)
-  (display
-   ";;; Autoloading of compiled code modules is deprecated.\n"
-   (current-error-port))
-  (display
-   ";;; Write a Scheme file instead that uses `dynamic-link' directly.\n"
-   (current-error-port))
-  (format (current-error-port)
-	  ";;; (You just tried to autoload module ~S.)\n" modname))
-
+  ;; Do nothing here until we can deprecate the code for real.
+  (if #f
+      (issue-deprecation-warning
+       "Autoloading of compiled code modules is deprecated."
+       "Write a Scheme file instead that uses `dynamic-link' directly.")))
+   
 (define (init-dynamic-module modname)
-  ;; Register any linked modules which has been registered on the C level
+  ;; Register any linked modules which have been registered on the C level
   (register-modules #f)
   (or-map (lambda (modinfo)
 	    (if (equal? (car modinfo) modname)
