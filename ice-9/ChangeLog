@@ -1,3 +1,15 @@
+2001-06-03  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* boot-9.scm (try-load-module): Bracket calls to try-module-linked
+	and try-module-dynamic-link with `begin-deprecated'.
+	(split-c-module-name, convert-c-registered-modules,
+	registered-modules, register-modules, warn-autoload-deprecation,
+	init-dynamic-module, dynamic-maybe-call, dynamic-maybe-link,
+	find-and-link-dynamic-module, try-using-libtool-name,
+	try-using-sharlib-name, link-dynamic-module, try-module-linked,
+	try-module-dynamic-link): Deprecated.  Activate deprecation
+	message.
+
 2001-06-02  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* Makefile.am (psyntax.pp): Make it dependent on psyntax.ss and

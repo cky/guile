@@ -1,3 +1,8 @@
+2001-06-03  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* configure.in (AC_CONFIG_FILES, AC_CONFIG_COMMANDS): Add
+	guile-snarf.
+
 2001-06-02  Rob Browning  <rlb@cs.utexas.edu>
 
 	* configure.in: changes for autoconf 2.50.

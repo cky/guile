@@ -37,12 +37,12 @@ you want to make changes to the system (which we encourage!) you will
 find it helpful to have the tools we use to develop Guile.  They
 are the following:
 
-Autoconf 2.13 --- a system for automatically generating `configure'
+Autoconf 2.50 --- a system for automatically generating `configure'
 	scripts from templates which list the non-portable features a
 	program would like to use.  Available in
 	"ftp://ftp.gnu.org/pub/gnu/autoconf"
 
-Automake 1.4 --- a system for automatically generating Makefiles that
+Automake 1.4-p2 --- a system for automatically generating Makefiles that
 	conform to the (rather Byzantine) GNU coding standards.  The
 	nice thing is that it takes care of hairy targets like 'make
 	dist' and 'make distclean', and automatically generates
@@ -53,7 +53,7 @@ Automake 1.4 --- a system for automatically generating Makefiles that
 	`guile.m4' from the top directory of the Guile core disty to
 	`/usr/local/share/aclocal.
 
-libtool 1.3.5 --- a system for managing the zillion hairy options needed
+libtool 1.4 --- a system for managing the zillion hairy options needed
 	on various systems to produce shared libraries.  Available in
 	"ftp://ftp.gnu.org/pub/gnu/libtool"
 

@@ -1,3 +1,8 @@
+2001-06-03  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* dynl.c (scm_register_module_xxx, scm_registered_modules,
+	scm_clear_registered_modules): Deprecated.
+
 2001-06-02  Rob Browning  <rlb@cs.utexas.edu>
 
 	* .cvsignore: add guile_filter_doc_snarfage guile-snarf-docs

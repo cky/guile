@@ -47,7 +47,9 @@ After signal handling and threading have been fixed:
     try-module-dynamic-link
     init-dynamic-module
     scm_register_module_xxx
-    etc.
+    scm_registered_modules
+    scm_clear_registered_modules
+
 - remove deprecated variables:
     scm_top_level_lookup_closure_var
     scm_scm_system_transformer

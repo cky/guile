@@ -78,8 +78,8 @@ In the subdirectory doc, wrote:
 
 Marius Vollmer: Many changes throughout.
 In the subdirectory libguile, wrote:
-    fluids.c        fluids.h
-    deprecation.h   deprecation.c
+    fluids.c        fluids.h       extensions.h
+    deprecation.h   deprecation.c  extensions.c
 In the subdirectory libguile, rewrote:
     dynl.c	dynl-dl.c	dynl-shl.c
     dynl.h	dynl-dld.c
