@@ -77,7 +77,12 @@ extern SCM scm_sys_protects[];
 
 
 
-struct scm_root_state
+extern long scm_tc16_root;
+
+#define SCM_ROOTP(obj) (scm_tc16_root == SCM_TYP16 (obj))
+#define SCM_ROOT_STATE(root) ((scm_root_state *) SCM_CDR (root))
+
+typedef struct scm_root_state
 {
   SCM_STACKITEM * stack_base;
   jmp_buf save_regs_gc_mark;
@@ -100,7 +105,10 @@ struct scm_root_state
 
   SCM system_transformer;
   SCM top_level_lookup_thunk_var;
-};
+
+  SCM handle;			/* The root object for this root state */
+  SCM parent;			/* The parent root object */
+} scm_root_state;
 
 #define scm_stack_base			(scm_root->stack_base)
 #define scm_save_regs_gc_mark		(scm_root->save_regs_gc_mark)
@@ -121,23 +129,35 @@ struct scm_root_state
 #define scm_top_level_lookup_thunk_var	(scm_root->top_level_lookup_thunk_var)
 #define scm_system_transformer		(scm_root->system_transformer)
 
+#ifdef USE_THREADS
 
-extern struct scm_root_state * scm_root;
+#ifdef USE_MIT_PTHREADS
+#define scm_root ((scm_root_state *) pthread_self()->attr.arg_attr)
+#define scm_set_root(new_root) (pthread_self()->attr.arg_attr = (new_root))
+#endif
+
+#ifdef USE_COOP_THREADS
+#define scm_root ((scm_root_state *) coop_global_curr->data)
+#define scm_set_root(new_root) (coop_global_curr->data = (new_root))
+#endif
+
+#ifdef USE_FSU_PTHREADS
+#define scm_root ((scm_root_state *) pthread_self()->prots)
+#define scm_set_root(new_root) (pthread_self()->prots = (new_root))
+#endif
+
+#else /* USE_THREADS */
+
+extern struct scm_root_state *scm_root;
+#define scm_set_root(new_root) (scm_root = (new_root))
+
+#endif /* USE_THREADS */
 
 
 
-
-#ifdef __STDC__
-extern SCM scm_call_catching_errors (SCM (*thunk)(), SCM (*err_filter)(), void * closure);
-
-#else /* STDC */
-extern SCM scm_call_catching_errors ();
-
-#endif /* STDC */
-
-
-
-
-
+extern SCM scm_make_root SCM_P ((SCM parent));
+extern SCM scm_call_with_new_root SCM_P ((SCM thunk, SCM handler));
+extern SCM scm_call_catching_errors SCM_P ((SCM (*thunk)(), SCM (*err_filter)(), void * closure));
+extern void scm_init_root SCM_P ((void));
 
 #endif  /* ROOTH */
