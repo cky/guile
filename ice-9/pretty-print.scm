@@ -53,53 +53,12 @@
     (and col (output str) (+ col (string-length str))))
 
   (define (wr obj col)
-
-    (define (wr-expr expr col)
-      (if (read-macro? expr)
-        (wr (read-macro-body expr) (out (read-macro-prefix expr) col))
-        (wr-lst expr col)))
-
-    (define (wr-lst l col)
-      (if (pair? l)
-	  (let loop ((l (cdr l))
-		     (col (and col (wr (car l) (out "(" col)))))
-	    (cond ((not col) col)
-		  ((pair? l)
-		   (loop (cdr l) (wr (car l) (out " " col))))
-		  ((null? l) (out ")" col))
-		  (else      (out ")" (wr l (out " . " col))))))
-	  (out "()" col)))
-
-    (cond ((pair? obj)        (wr-expr obj col))
-          ((null? obj)        (wr-lst obj col))
-          ((vector? obj)      (wr-lst (vector->list obj) (out "#" col)))
-          ((boolean? obj)     (out (if obj "#t" "#f") col))
-          ((number? obj)      (out (number->string obj) col))
-          ((symbol? obj)      (out (symbol->string obj) col))
-          ((procedure? obj)   (out "#[procedure]" col))
-          ((string? obj)      (if display?
-                                (out obj col)
-                                (let loop ((i 0) (j 0) (col (out "\"" col)))
-                                  (if (and col (< j (string-length obj)))
-                                    (let ((c (string-ref obj j)))
-                                      (if (or (char=? c #\\)
-                                              (char=? c #\"))
-                                        (loop j
-                                              (+ j 1)
-                                              (out "\\"
-                                                   (out (substring obj i j)
-                                                        col)))
-                                        (loop i (+ j 1) col)))
-                                    (out "\""
-                                         (out (substring obj i j) col))))))
-          ((char? obj)        (if display?
-                                (out (make-string 1 obj) col)
-                                (out (case obj
-                                       ((#\space)   "space")
-                                       ((#\newline) "newline")
-                                       (else        (make-string 1 obj)))
-                                     (out "#\\" col))))
-	  (else               (out (object->string obj) col))))
+    (cond ((and (pair? obj)
+		(read-macro? obj))
+	   (wr (read-macro-body obj)
+	       (out (read-macro-prefix obj) col)))
+	  (else
+	   (out (object->string obj (if display? display write)) col))))
 
   (define (pp obj col)
 
