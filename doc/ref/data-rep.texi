@@ -46,7 +46,7 @@
 @c essay @sp 10
 @c essay @comment The title is printed in a large font.
 @c essay @title Data Representation in Guile
-@c essay @subtitle $Id: data-rep.texi,v 1.11 2003-06-11 23:07:53 kryde Exp $
+@c essay @subtitle $Id: data-rep.texi,v 1.12 2003-06-13 23:32:33 kryde Exp $
 @c essay @subtitle For use with Guile @value{VERSION}
 @c essay @author Jim Blandy
 @c essay @author Free Software Foundation
@@ -874,6 +874,12 @@ if @var{x} is not a symbol or string, respectively.
 
 There are also a few magic values stuffed into memory before a symbol's
 characters, but you don't want to know about those.  What cruft!
+
+Note that @code{SCM_VECTOR_BASE}, @code{SCM_STRING_CHARS} and
+@code{SCM_SYMBOL_CHARS} return pointers to data within the respective
+object.  Care must be taken that the object is not garbage collected
+while that data is still being accessed.  This is the same as for a
+smob, @xref{Remembering During Operations}.
 
 
 @node Procedures
