@@ -460,7 +460,7 @@ scm_read_0str (char *expr)
   scm_c_issue_deprecation_warning 
     ("scm_read_0str is deprecated.  Use scm_c_read_string instead.");
 
-  return scm_read_0str (expr);
+  return scm_c_read_string (expr);
 }
 
 SCM
@@ -469,7 +469,7 @@ scm_eval_0str (const char *expr)
   scm_c_issue_deprecation_warning 
     ("scm_eval_0str is deprecated.  Use scm_c_eval_string instead.");
 
-  return scm_eval_0str (expr);
+  return scm_c_eval_string (expr);
 }
 
 #endif
