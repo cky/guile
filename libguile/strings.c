@@ -276,7 +276,7 @@ GUILE_PROC(scm_string_ref, "string-ref", 1, 1, 0,
 {
   SCM_VALIDATE_ROSTRING(1,str);
   SCM_VALIDATE_INT_DEF(2,k,0);
-  SCM_ASSERT (SCM_INUM (k) < SCM_ROLENGTH (str) && SCM_INUM (k) >= 0, k, SCM_OUTOFRANGE, FUNC_NAME);
+  SCM_ASSERT_RANGE (2,k,SCM_INUM (k) < SCM_ROLENGTH (str) && SCM_INUM (k) >= 0);
   return SCM_MAKICHR (SCM_ROUCHARS (str)[SCM_INUM (k)]);
 }
 #undef FUNC_NAME
@@ -305,8 +305,8 @@ GUILE_PROC(scm_substring, "substring", 2, 1, 0,
   SCM_VALIDATE_ROSTRING(1,str);
   SCM_VALIDATE_INT(2,start);
   SCM_VALIDATE_INT_DEF(3,end,SCM_ROLENGTH(str));
-  SCM_ASSERT (SCM_INUM (start) <= SCM_ROLENGTH (str), start, SCM_OUTOFRANGE, FUNC_NAME);
-  SCM_ASSERT (SCM_INUM (end) <= SCM_ROLENGTH (str), end, SCM_OUTOFRANGE, FUNC_NAME);
+  SCM_ASSERT_RANGE (2,start,SCM_INUM (start) <= SCM_ROLENGTH (str));
+  SCM_ASSERT_RANGE (2,end,SCM_INUM (end) <= SCM_ROLENGTH (str));
   l = SCM_INUM (end)-SCM_INUM (start);
   SCM_ASSERT (l >= 0, SCM_MAKINUM (l), SCM_OUTOFRANGE, FUNC_NAME);
   return scm_makfromstr (&SCM_ROCHARS (str)[SCM_INUM (start)], (scm_sizet)l, 0);
@@ -354,9 +354,8 @@ GUILE_PROC(scm_make_shared_substring, "make-shared-substring", 1, 2, 0,
   SCM_VALIDATE_INT_DEF_COPY(2,frm,0,f);
   SCM_VALIDATE_INT_DEF_COPY(3,to,0,t);
 
-  SCM_ASSERT ((f >= 0), frm, SCM_OUTOFRANGE, FUNC_NAME);
-  SCM_ASSERT ((f <= t) && (t <= SCM_ROLENGTH (str)), to, SCM_OUTOFRANGE,
-	      FUNC_NAME);
+  SCM_ASSERT_RANGE (2,frm,(f >= 0));
+  SCM_ASSERT_RANGE (3,to, (f <= t) && (t <= SCM_ROLENGTH (str)));
 
   SCM_NEWCELL (answer);
   SCM_NEWCELL (len_str);
