@@ -1,16 +1,16 @@
 ;;;; test-suite/lib.scm --- generic support for testing
 ;;;; Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
-;;;; 
+;;;;
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
 ;;;; the Free Software Foundation; either version 2, or (at your option)
 ;;;; any later version.
-;;;; 
+;;;;
 ;;;; This program is distributed in the hope that it will be useful,
 ;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;;;; GNU General Public License for more details.
-;;;; 
+;;;;
 ;;;; You should have received a copy of the GNU General Public License
 ;;;; along with this software; see the file COPYING.  If not, write to
 ;;;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
@@ -37,7 +37,7 @@
  ;; Reporting results in various ways.
  register-reporter unregister-reporter reporter-registered?
  make-count-reporter print-counts
- make-log-reporter 
+ make-log-reporter
  full-reporter
  user-reporter
  format-test-name)
@@ -75,12 +75,12 @@
 ;;;;
 ;;;; Convenience macros for tests expected to pass or fail
 ;;;;
-;;;; * (pass-if name body) is a short form for 
+;;;; * (pass-if name body) is a short form for
 ;;;;   (run-test name #t (lambda () body))
-;;;; * (expect-fail name body) is a short form for 
+;;;; * (expect-fail name body) is a short form for
 ;;;;   (run-test name #f (lambda () body))
 ;;;;
-;;;; For example:  
+;;;; For example:
 ;;;;
 ;;;;    (pass-if "integer addition" (= 2 (+ 1 1)))
 ;;;;
@@ -118,23 +118,23 @@
 ;;;; - Test names can be compared with EQUAL?.
 ;;;; - Test names can be reliably stored and retrieved with the standard WRITE
 ;;;;   and READ procedures; doing so preserves their identity.
-;;;; 
+;;;;
 ;;;; For example:
-;;;; 
+;;;;
 ;;;;    (pass-if "simple addition" (= 4 (+ 2 2)))
-;;;; 
+;;;;
 ;;;; In that case, the test name is the list ("simple addition").
 ;;;;
 ;;;; The WITH-TEST-PREFIX syntax and WITH-TEST-PREFIX* procedure establish
 ;;;; a prefix for the names of all tests whose results are reported
 ;;;; within their dynamic scope.  For example:
-;;;; 
+;;;;
 ;;;; (begin
 ;;;;   (with-test-prefix "basic arithmetic"
 ;;;;     (pass-if "addition" (= (+ 2 2) 4))
 ;;;;     (pass-if "subtraction" (= (- 4 2) 2)))
 ;;;;   (pass-if "multiplication" (= (* 2 2) 4)))
-;;;; 
+;;;;
 ;;;; In that example, the three test names are:
 ;;;;   ("basic arithmetic" "addition"),
 ;;;;   ("basic arithmetic" "subtraction"), and
@@ -142,7 +142,7 @@
 ;;;;
 ;;;; WITH-TEST-PREFIX can be nested.  Each WITH-TEST-PREFIX postpends
 ;;;; a new element to the current prefix:
-;;;; 
+;;;;
 ;;;; (with-test-prefix "arithmetic"
 ;;;;   (with-test-prefix "addition"
 ;;;;     (pass-if "integer" (= (+ 2 2) 4))
@@ -150,7 +150,7 @@
 ;;;;   (with-test-prefix "subtraction"
 ;;;;     (pass-if "integer" (= (- 2 2) 0))
 ;;;;     (pass-if "complex" (= (- 2+3i 1+2i) 1+1i))))
-;;;; 
+;;;;
 ;;;; The four test names here are:
 ;;;;   ("arithmetic" "addition" "integer")
 ;;;;   ("arithmetic" "addition" "complex")
@@ -160,7 +160,7 @@
 ;;;; To print a name for a human reader, we DISPLAY its elements,
 ;;;; separated by ": ".  So, the last set of test names would be
 ;;;; reported as:
-;;;; 
+;;;;
 ;;;;   arithmetic: addition: integer
 ;;;;   arithmetic: addition: complex
 ;;;;   arithmetic: subtraction: integer
@@ -173,16 +173,16 @@
 
 
 ;;;; REPORTERS
-;;;; 
+;;;;
 ;;;; A reporter is a function which we apply to each test outcome.
 ;;;; Reporters can log results, print interesting results to the
 ;;;; standard output, collect statistics, etc.
-;;;; 
+;;;;
 ;;;; A reporter function takes two mandatory arguments, RESULT and TEST, and
 ;;;; possibly additional arguments depending on RESULT; its return value
 ;;;; is ignored.  RESULT has one of the following forms:
 ;;;;
-;;;; pass         - The test named TEST passed.  
+;;;; pass         - The test named TEST passed.
 ;;;;                Additional arguments are ignored.
 ;;;; upass        - The test named TEST passed unexpectedly.
 ;;;;                Additional arguments are ignored.
@@ -195,7 +195,7 @@
 ;;;;                tested because something else went wrong.
 ;;;;                Additional arguments are ignored.
 ;;;; untested     - The test named TEST was not actually performed, for
-;;;;                example because the test case is not complete yet. 
+;;;;                example because the test case is not complete yet.
 ;;;;                Additional arguments are ignored.
 ;;;; unsupported  - The test named TEST requires some feature that is not
 ;;;;                available in the configured testing environment.
@@ -259,16 +259,16 @@
 		(throw 'unresolved)))
 	    (lambda (key . args)
 	      (case key
-		((pass) 
+		((pass)
 		 (report (if expect-pass 'pass 'upass) test-name))
-		((fail) 
+		((fail)
 		 (report (if expect-pass 'fail 'xfail) test-name))
-		((unresolved untested unsupported) 
+		((unresolved untested unsupported)
 		 (report key test-name))
-		((quit) 
+		((quit)
 		 (report 'unresolved test-name)
 		 (quit))
-		(else 
+		(else
 		 (report 'error test-name (cons key args))))))
 	  (set! test-running #f))))
   (set! run-test local-run-test))
@@ -287,10 +287,21 @@
     (lambda ()
       (stack-catch (car exception)
 	(lambda () (thunk) #f)
-	(lambda (key proc message . rest) 
-	  (if (not (string-match (cdr exception) message))
-	      (apply throw key proc message rest)
-	      #t))))))
+	(lambda (key proc message . rest)
+	  (cond
+           ;; handle explicit key
+           ((string-match (cdr exception) message)
+            #t)
+           ;; handle `(error ...)' which uses `misc-error' for key and doesn't
+           ;; yet format the message and args (we have to do it here).
+           ((and (eq? 'misc-error (car exception))
+                 (list? rest)
+                 (string-match (cdr exception)
+                               (apply simple-format #f message (car rest))))
+            #t)
+           ;; unhandled; throw again
+           (else
+            (apply throw key proc message rest))))))))
 
 ;;; A short form for tests that expect a certain exception to be thrown.
 (defmacro pass-if-exception (name exception body . rest)
@@ -344,7 +355,7 @@
 
 
 ;;;; REPORTERS
-;;;; 
+;;;;
 
 ;;; The global list of reporters.
 (define reporters '())
@@ -385,7 +396,7 @@
 ;;;; User reporters write interesting test results to the standard output.
 
 ;;; The complete list of possible test results.
-(define result-tags 
+(define result-tags
   '((pass        "PASS"        "passes:                 ")
     (fail        "FAIL"        "failures:               ")
     (upass       "UPASS"       "unexpected passes:      ")
@@ -396,7 +407,7 @@
     (error       "ERROR"       "errors:                 ")))
 
 ;;; The list of important test results.
-(define important-result-tags 
+(define important-result-tags
   '(fail upass unresolved error))
 
 ;;; Display a single test result in formatted form to the given port
@@ -426,9 +437,9 @@
     (list
      (lambda (result name . args)
        (let ((pair (assq result counts)))
-	 (if pair 
+	 (if pair
 	     (set-cdr! pair (+ 1 (cdr pair)))
-	     (error "count-reporter: unexpected test result: " 
+	     (error "count-reporter: unexpected test result: "
 		    (cons result (cons name args))))))
      (lambda ()
        (append counts '())))))
@@ -436,7 +447,7 @@
 ;;; Print a count reporter's results nicely.  Pass this function the value
 ;;; returned by a count reporter's RESULTS procedure.
 (define (print-counts results . port?)
-  (let ((port (if (pair? port?) 
+  (let ((port (if (pair? port?)
 		  (car port?)
 		  (current-output-port))))
     (newline port)
