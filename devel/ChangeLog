@@ -1,3 +1,7 @@
+2002-02-05  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* build/pre-inst-guile.text: Initial revision.
+
 2001-12-04  Gary Houston  <ghouston@arglist.com>
 
 	* some discussion in extension/dynamic-root.text.
