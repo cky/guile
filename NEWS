@@ -1193,7 +1193,7 @@ These functions use the current RNG through the scm_the_rng interface.
 It might be a good idea to use these functions from your C code so
 that only one random generator is used by all code in your program.
 
-You can get the default random state using:
+The default random state is stored in:
 
 *** Variable: SCM scm_var_random_state
 Contains the vcell of the Scheme variable "*random-state*" which is
@@ -1202,19 +1202,39 @@ level interface.
 
 Example:
 
-  double x = scm_i_uniform01 (SCM_RSTATE (SCM_CDR (scm_var_random_state)));
+  double x = scm_c_uniform01 (SCM_RSTATE (SCM_CDR (scm_var_random_state)));
 
-*** Function: double scm_i_uniform01 (scm_rstate *STATE)
+*** Function: scm_rstate *scm_c_default_rstate (void)
+This is a convenience function which returns the value of
+scm_var_random_state.  An error message is generated if this value
+isn't a random state.
+
+*** Function: scm_rstate *scm_c_make_rstate (char *SEED, int LENGTH)
+Make a new random state from the string SEED of length LENGTH.
+
+It is generally not a good idea to use multiple random states in a
+program.  While subsequent random numbers generated from one random
+state are guaranteed to be reasonably independent, there is no such
+guarantee for numbers generated from different random states.
+
+*** Macro: unsigned long scm_c_uniform32 (scm_rstate *STATE)
+Return 32 random bits.
+
+*** Function: double scm_c_uniform01 (scm_rstate *STATE)
 Return a sample from the uniform(0,1) distribution.
 
-*** Function: double scm_i_normal01 (scm_rstate *STATE)
+*** Function: double scm_c_normal01 (scm_rstate *STATE)
 Return a sample from the normal(0,1) distribution.
 
-*** Function: double scm_i_exp1 (scm_rstate *STATE)
+*** Function: double scm_c_exp1 (scm_rstate *STATE)
 Return a sample from the exp(1) distribution.
 
-*** Function: unsigned long scm_i_random (unsigned long M, scm_rstate *STATE)
+*** Function: unsigned long scm_c_random (scm_rstate *STATE, unsigned long M)
 Return a sample from the discrete uniform(0,M) distribution.
+
+*** Function: SCM scm_c_random_bignum (scm_rstate *STATE, SCM M)
+Return a sample from the discrete uniform(0,M) distribution.
+M must be a bignum object.  The returned value may be an INUM.
 
 
 

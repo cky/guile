@@ -1,3 +1,10 @@
+1999-07-25  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* random.c, random.h (scm_c_default_rstate, scm_c_uniform32):
+	Added.
+	Renamed functions in the random function library interface
+	from scm_i_XXX --> scm_c_XXX.
+
 1999-07-25  Gary Houston  <ghouston@easynet.co.uk>
 
 	* ports.c (scm_putc): fix line-buffering.
