@@ -391,7 +391,7 @@
   (and (struct? obj) (eq? record-type-vtable (struct-vtable obj))))
 
 (define (make-record-type type-name fields . opt)
-  (let ((printer-fn (and opt (car opt))))
+  (let ((printer-fn (and (pair? opt) (car opt))))
     (let ((struct (make-struct record-type-vtable 0
 			       (make-struct-layout (apply symbol-append (map (lambda (f) "pw") fields)))
 			       type-name
@@ -416,7 +416,7 @@
       (error 'not-a-record-type obj)))
 
 (define (record-constructor rtd . opt)
-  (let ((field-names (if opt (car opt) (record-type-fields rtd))))
+  (let ((field-names (if (pair? opt) (car opt) (record-type-fields rtd))))
     (eval `(lambda ,field-names
 	     (make-struct ',rtd 0 ,@(map (lambda (f)
 					  (if (memq f field-names)
