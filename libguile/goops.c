@@ -245,10 +245,8 @@ remove_duplicate_slots (SCM l, SCM res, SCM slots_already_seen)
     return res;
 
   tmp = SCM_CAAR (l);
-  if (!(SCM_NIMP (tmp) && SCM_SYMBOLP (tmp)))
-    scm_misc_error ("%compute-slots",
-		    "bad slot name ~S",
-		    SCM_LIST1 (tmp));
+  if (!SCM_SYMBOLP (tmp))
+    scm_misc_error ("%compute-slots", "bad slot name ~S", SCM_LIST1 (tmp));
   
   if (SCM_FALSEP (scm_c_memq (tmp, slots_already_seen))) {
     res 	       = scm_cons (SCM_CAR (l), res);
@@ -277,7 +275,7 @@ maplist (SCM ls)
   SCM orig = ls;
   while (SCM_NIMP (ls))
     {
-      if (!(SCM_NIMP (SCM_CAR (ls)) && SCM_CONSP (SCM_CAR (ls))))
+      if (!SCM_CONSP (SCM_CAR (ls)))
 	SCM_SETCAR (ls, scm_cons (SCM_CAR (ls), SCM_EOL));
       ls = SCM_CDR (ls);
     }
@@ -433,7 +431,7 @@ SCM_DEFINE (scm_sys_initialize_object, "%initialize-object", 2, 0, 0,
 	  if (tmp)
 	    {
 	      /* an initarg was provided for this slot */
-	      if (!(SCM_NIMP (tmp) && SCM_KEYWORDP (tmp)))
+	      if (!SCM_KEYWORDP (tmp))
 		SCM_MISC_ERROR ("initarg must be a keyword. It was ~S",
 				SCM_LIST1 (tmp));
 	      slot_value = scm_i_get_keyword (tmp,
@@ -498,7 +496,7 @@ SCM_DEFINE (scm_sys_prep_layout_x, "%prep-layout!", 1, 0, 0,
   s  = n > 0 ? scm_must_malloc (n, FUNC_NAME) : 0;
   for (i = 0; i < n; i += 2)
     {
-      if (!(SCM_NIMP (slots) && SCM_CONSP (slots)))
+      if (!SCM_CONSP (slots))
 	SCM_MISC_ERROR ("to few slot definitions", SCM_EOL);
       len = scm_ilength (SCM_CDAR (slots));
       type = scm_i_get_keyword (k_class, SCM_CDAR (slots), len, SCM_BOOL_F,
@@ -547,9 +545,7 @@ SCM_DEFINE (scm_sys_inherit_magic_x, "%inherit-magic!", 2, 0, 0,
   SCM_VALIDATE_INSTANCE (1, class);
   while (SCM_NNULLP (ls))
     {
-      SCM_ASSERT (SCM_NIMP (ls)
-		  && SCM_CONSP (ls)
-		  && SCM_NIMP (SCM_CAR (ls))
+      SCM_ASSERT (SCM_CONSP (ls)
 		  && SCM_INSTANCEP (SCM_CAR (ls)),
 		  dsupers,
 		  SCM_ARG2,
@@ -785,7 +781,7 @@ SCM_DEFINE (scm_instance_p, "instance?", 1, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_instance_p
 {
-  return SCM_NIMP (obj) && SCM_INSTANCEP (obj) ? SCM_BOOL_T : SCM_BOOL_F;
+  return SCM_BOOL (SCM_INSTANCEP (obj));
 }
 #undef FUNC_NAME
 
@@ -1363,7 +1359,7 @@ SCM_DEFINE (scm_sys_set_object_setter_x, "%set-object-setter!", 2, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_sys_set_object_setter_x
 {
-  SCM_ASSERT (SCM_NIMP (obj) && SCM_STRUCTP (obj)
+  SCM_ASSERT (SCM_STRUCTP (obj)
 	      && ((SCM_CLASS_FLAGS (obj) & SCM_CLASSF_OPERATOR)
 		  || SCM_I_ENTITYP (obj)),
 	      obj,
@@ -1559,18 +1555,16 @@ SCM_DEFINE (scm_sys_invalidate_method_cache_x, "%invalidate-method-cache!", 1, 0
 #define FUNC_NAME s_scm_sys_invalidate_method_cache_x
 {
   SCM used_by;
-  SCM_ASSERT (SCM_NIMP (gf) && SCM_STRUCTP (gf) && SCM_PUREGENERICP (gf),
+  SCM_ASSERT (SCM_STRUCTP (gf) && SCM_PUREGENERICP (gf),
 	      gf, SCM_ARG1, FUNC_NAME);
   used_by = SCM_SLOT (gf, scm_si_used_by);
   if (SCM_NFALSEP (used_by))
     {
       SCM methods = SCM_SLOT (gf, scm_si_methods);
-      for (; SCM_NIMP (used_by) && SCM_CONSP (used_by);
-	   used_by = SCM_CDR (used_by))
+      for (; SCM_CONSP (used_by); used_by = SCM_CDR (used_by))
 	scm_sys_invalidate_method_cache_x (SCM_CAR (used_by));
       clear_method_cache (gf);
-      for (; SCM_NIMP (methods) && SCM_CONSP (methods);
-	   methods = SCM_CDR (methods))
+      for (; SCM_CONSP (methods); methods = SCM_CDR (methods))
 	SCM_SLOT (SCM_CAR (methods), scm_si_code_table) = SCM_EOL;
     }
   {
@@ -1805,7 +1799,7 @@ scm_compute_applicable_methods (SCM gf, SCM args, int len, int find_method_p)
 	continue;
       for (i = 0; ; i++, fl = SCM_CDR (fl))
 	{
-	  if ((SCM_NIMP (fl) && SCM_INSTANCEP (fl))
+	  if (SCM_INSTANCEP (fl)
 	      /* We have a dotted argument list */
 	      || (i >= len && SCM_NULLP (fl)))
 	    {	/* both list exhausted */
@@ -1886,7 +1880,7 @@ scm_m_atdispatch (SCM xorig, SCM env)
   SCM args, n, v, gf, x = SCM_CDR (xorig);
   SCM_ASSYNT (scm_ilength (x) == 4, xorig, scm_s_expression, s_atdispatch);
   args = SCM_CAR (x);
-  SCM_ASSYNT (SCM_NIMP (args) && (SCM_CONSP (args) || SCM_SYMBOLP (args)),
+  SCM_ASSYNT (SCM_CONSP (args) || SCM_SYMBOLP (args),
 	      args, SCM_ARG1, s_atdispatch);
   x = SCM_CDR (x);
   n = SCM_XEVALCAR (x, env);
@@ -1894,10 +1888,10 @@ scm_m_atdispatch (SCM xorig, SCM env)
   SCM_ASSERT_RANGE (0, n, SCM_INUM (n) >= 1);
   x = SCM_CDR (x);
   v = SCM_XEVALCAR (x, env);
-  SCM_ASSYNT (SCM_NIMP (v) && SCM_VECTORP (v), v, SCM_ARG3, s_atdispatch);
+  SCM_ASSYNT (SCM_VECTORP (v), v, SCM_ARG3, s_atdispatch);
   x = SCM_CDR (x);
   gf = SCM_XEVALCAR (x, env);
-  SCM_ASSYNT (SCM_NIMP (gf) && SCM_STRUCTP (gf) && SCM_PUREGENERICP (gf),
+  SCM_ASSYNT (SCM_STRUCTP (gf) && SCM_PUREGENERICP (gf),
 	      gf, SCM_ARG4, s_atdispatch);
   return SCM_LIST5 (SCM_IM_DISPATCH, args, n, v, gf);
 }
@@ -2607,9 +2601,7 @@ SCM_DEFINE (scm_pure_generic_p, "pure-generic?", 1, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_pure_generic_p
 {
-  return (SCM_NIMP (obj) && SCM_STRUCTP (obj) && SCM_PUREGENERICP (obj)
-	  ? SCM_BOOL_T
-	  : SCM_BOOL_F);
+  return SCM_BOOL (SCM_STRUCTP (obj) && SCM_PUREGENERICP (obj));
 }
 #undef FUNC_NAME
 

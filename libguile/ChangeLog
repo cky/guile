@@ -1,3 +1,12 @@
+2000-12-16  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* goops.c (remove_duplicate_slots, maplist,
+	scm_sys_initialize_object, scm_sys_prep_layout_x,
+	scm_sys_inherit_magic_x, scm_instance_p,
+	scm_sys_set_object_setter_x, scm_sys_invalidate_method_cache_x,
+	scm_compute_applicable_methods, scm_m_atdispatch,
+	scm_pure_generic_p):  Remove redundant SCM_N?IMP tests.
+
 2000-12-16  Keisuke Nishida  <kxn30@po.cwru.edu>
 
 	* validate.h (SCM_WRONG_NUM_ARGS): New macro.
