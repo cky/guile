@@ -76,8 +76,6 @@ that user-visible changes are reflected in NEWS.
 
 - Start a new section of the NEWS file.
 
-- Start a new THANKS file.
-
 
 * Before releasing 1.10.0:
 

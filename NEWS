@@ -12,6 +12,13 @@ Previously, comparing two variables with `equal?' would recursivly
 compare their values.  This is no longer done.  Variables are now only
 `equal?' if they are `eq?'.
 
+* Changes to the C interface
+
+** New function: scm_str2string
+
+This function creates a scheme string from a 0-terminated C string.  The input
+string is copied.
+
 Changes since Guile 1.4:
 
 * Changes to the distribution

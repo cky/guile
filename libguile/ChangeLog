@@ -1,3 +1,7 @@
+2001-09-12  Martin Baulig  <martin@home-of-linux.org>
+
+	* strings.[ch] (scm_str2string): New function.
+
 2001-09-06  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* gc.c (scm_done_free): Always subtract size from scm_mallocated

@@ -66,6 +66,7 @@ extern SCM scm_makfromstrs (int argc, char **argv);
 extern SCM scm_take_str (char *s, size_t len);
 extern SCM scm_take0str (char *s);
 extern SCM scm_mem2string (const char *src, size_t len);
+extern SCM scm_str2string (const char *src);
 extern SCM scm_makfrom0str (const char *src);
 extern SCM scm_makfrom0str_opt (const char *src);
 extern SCM scm_allocate_string (size_t len);

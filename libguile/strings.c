@@ -162,6 +162,14 @@ scm_mem2string (const char *src, size_t len)
   return s;
 }
 
+
+SCM
+scm_str2string (const char *src)
+{
+  return scm_mem2string (src, strlen (src));
+}
+
+
 SCM 
 scm_makfrom0str (const char *src)
 {
