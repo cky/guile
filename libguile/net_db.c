@@ -87,9 +87,8 @@ SCM_DEFINE (scm_inet_aton, "inet-aton", 1, 0, 0,
 	    "Converts a string containing an Internet host address in the traditional\n"
 	    "dotted decimal notation into an integer.\n\n"
 	    "@smalllisp\n"
-	    "(inet-aton "127.0.0.1") @result{} 2130706433
-
-@end smalllisp")
+	    "(inet-aton \"127.0.0.1\") @result{} 2130706433\n\n"
+	    "@end smalllisp")
 #define FUNC_NAME s_scm_inet_aton
 {
   struct in_addr soka;
@@ -109,8 +108,8 @@ SCM_DEFINE (scm_inet_ntoa, "inet-ntoa", 1, 0, 0,
 	    "Converts an integer Internet host address into a string with the\n"
 	    "traditional dotted decimal representation.\n\n"
 	    "@smalllisp\n"
-	    "(inet-ntoa 2130706433) @result{} "127.0.0.1"
-@end smalllisp")
+	    "(inet-ntoa 2130706433) @result{} \"127.0.0.1\""
+	    "@end smalllisp")
 #define FUNC_NAME s_scm_inet_ntoa
 {
   struct in_addr addr;
@@ -224,7 +223,7 @@ static void scm_resolv_error (const char *subr, SCM bad_value)
 	}
 
 #ifdef HAVE_HSTRERROR
-      errmsg = hstrerror (h_errno);
+      errmsg = (const char *) hstrerror (h_errno);
 #endif
       scm_error (key, subr, errmsg, scm_cons (bad_value, SCM_EOL), SCM_EOL);
     }
