@@ -907,10 +907,10 @@ these macros are used without parentheses, as in @code{SCM_DEFER_INTS;}.
 Use @code{scm_from_bool} instead.
 
 @item @code{gh_ulong2scm}
-Use @code{scm_ulong2num} instead.
+Use @code{scm_from_ulong} instead.
 
 @item @code{gh_long2scm}
-Use @code{scm_long2num} instead.
+Use @code{scm_from_long} instead.
 
 @item @code{gh_double2scm}
 Use @code{scm_make_real} instead.
@@ -947,25 +947,13 @@ Use @code{scm_c_floats2fvect} and @code{scm_c_doubles2dvect} instead.
 Use @code{scm_is_true} or @code{scm_to_bool} instead.
 
 @item @code{gh_scm2int}
-Replace @code{gh_scm2int (@var{obj})} by
-@example
-scm_num2int (@var{obj}, SCM_ARG1, @var{str})
-@end example
-where @var{str} is a C string that describes the context of the call.
+Use @code{scm_to_int} instead.
 
 @item @code{gh_scm2ulong}
-Replace @code{gh_scm2ulong (@var{obj})} by
-@example
-scm_num2ulong (@var{obj}, SCM_ARG1, @var{str})
-@end example
-where @var{str} is a C string that describes the context of the call.
+Use @code{scm_to_ulong} instead.
 
 @item @code{gh_scm2long}
-Replace @code{gh_scm2long (@var{obj})} by
-@example
-scm_num2long (@var{obj}, SCM_ARG1, @var{str})
-@end example
-where @var{str} is a C string that describes the context of the call.
+Use @code{scm_to_long} instead.
 
 @item @code{gh_scm2double}
 Replace @code{gh_scm2double (@var{obj})} by
@@ -975,10 +963,7 @@ scm_num2dbl (@var{obj}, @var{str})
 where @var{str} is a C string that describes the context of the call.
 
 @item @code{gh_scm2char}
-Use the @code{SCM_CHAR} macro instead, but note that @code{SCM_CHAR}
-does not check that its argument is actually a character.  To check that
-a @code{SCM} value is a character before using @code{SCM_CHAR} to
-extract the character value, use the @code{SCM_VALIDATE_CHAR} macro.
+Use @code{scm_to_char} instead.
 
 @item @code{gh_scm2newstr}
 Instead of @code{gh_scm2newstr (@var{obj}, @var{lenp})} use
@@ -1121,7 +1106,7 @@ Use @code{scm_list_n} instead.
 @item @code{gh_length}
 Replace @code{gh_length (@var{lst})} by
 @example
-scm_num2ulong (scm_length (@var{lst}), SCM_ARG1, @var{str})
+scm_to_size_t (scm_length (@var{lst}), SCM_ARG1, @var{str})
 @end example
 where @var{str} is a C string that describes the context of the call.
 
