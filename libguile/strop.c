@@ -274,9 +274,7 @@ SCM_DEFINE (scm_string_copy, "string-copy", 1, 0, 0,
 	    "Return a newly allocated copy of the given @var{string}.")
 #define FUNC_NAME s_scm_string_copy
 {
-  SCM_VALIDATE_STRING (1, str);
-
-  return string_copy (str);
+  return scm_c_substring (str, 0, scm_c_string_length (str));
 }
 #undef FUNC_NAME
 
