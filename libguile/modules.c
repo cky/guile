@@ -262,11 +262,14 @@ scm_lookup_closure_module (SCM proc)
     }
 }
 
-SCM
-scm_env_module (SCM env)
+SCM_DEFINE (scm_env_module, "env-module", 1, 0, 0,
+	    (SCM env),
+	    "Return the module of @var{ENV}, a lexical environment.")
+#define FUNC_NAME s_scm_env_module
 {
   return scm_lookup_closure_module (scm_env_top_level (env));
 }
+#undef FUNC_NAME
 
 /*
  * C level implementation of the standard eval closure
