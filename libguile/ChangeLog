@@ -1,3 +1,80 @@
+Wed Sep 11 15:10:38 1996  Petr Adamek  <jimb@floss.cyclic.com>
+
+	* __scm.h (SCM_P): Corrected to run under traditional C.
+
+	* _scm.h (SCM_PROC): Extraneous semicolon (outside functions)
+	removed.
+
+	* async.c: Calls to scm_sysintern corrected.
+
+	* async.h (scm_async_clock): Redundant declaration removed.
+
+	* continuations.c (scm_dynthrow): Redundant declaration removed.
+
+	* debug.c (scm_single_step, scm_memoized, scm_lookup_soft):
+	Definition typos corrected.
+
+	* debug.h: Missing declarations of functions in debug.c added
+	(lots).
+
+	* eval.h (scm_eval_args, scm_deval_args, scm_m_undefine):
+	Missing declarations to functions in eval.c added.
+
+	* filesys.c: Possibly uninitialized variable rv.
+
+	* gc.h (scm_object_addr, scm_unhash_name): Missing
+	declarations of functions defined in gc.c added.
+
+	* genio.c: Possible typos str_data -> wstr_data. ???
+
+	* genio.c: Possibly unintended shadowing of local variable
+	`int c' (gotos out of scope of inner `c'). ???
+
+	* init.c: Uninitialized `SCM last' may be used.
+
+	* ioext.h: (scm_sys_isatty_p): Typo.
+
+	* list.h (scm_list_head): Missing prototype for function in
+	list.c added.
+
+	* numbers.c (scm_two_doubles): Changed from extern to static
+	(is used only within numbers.c).
+
+	* numbers.h: Repeated declarations removed.
+
+	* ports.h (scm_close_all_ports_except): Declaration for the
+	function defined in ports.c added.
+
+	* posix.h: Missing declarations added.
+
+	* procs.h (scm_make_subr_opt): Missing declaration added.
+
+	* socket.h (scm_sys_gethost): Missing declaration added.
+
+	* socket.h: Redundant declarations removed (they are in fdsocket.h).
+
+	* srcprop.h (scm_set_source_property_x, scm_finish_srcprop):
+	Missing declarations added.
+
+	* stime.h (scm_get_internal_real_time): Repeated declarations removed.
+
+	* struct.c: Uninitialized variable `SCM answer' may be used.
+
+	* unif.c (l2ra): Declaration prototype.
+
+	* unif.c (scm_array_equal_p): Dummy definition removed (it is
+	defined in ramap.c).
+
+	* unif.h (scm_raprin1, scm_istr2bve, scm_array_equal_p):
+	Redundant declarations removed (they are in ramap.h).
+
+	* variable.h (scm_make_udvariable,
+	scm_make_undefined_variable): Declaration corrected to
+	correspond variable.c.
+
+	* vectors.h (scm_vector_move_left_x, scm_vector_move_right_x):
+	Missing declarations added.
+
 Wed Sep 11 14:38:50 1996  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* Makefile.in (distclean): Don't forget to delete fd.h.
