@@ -31,6 +31,7 @@
 #include "libguile/srfi-4.h"
 #include "libguile/strings.h"
 #include "libguile/srfi-13.h"
+#include "libguile/dynwind.h"
 
 
 
@@ -39,6 +40,52 @@ scm_is_vector (SCM obj)
 {
   return (SCM_VECTORP (obj)
 	  || (SCM_ARRAYP (obj) && SCM_ARRAY_NDIM (obj) == 1));
+}
+
+SCM *
+scm_vector_writable_elements (SCM vec)
+{
+  if (SCM_VECTORP (vec))
+    return SCM_WRITABLE_VELTS (vec);
+  else
+    scm_wrong_type_arg_msg (NULL, 0, vec, "simple vector");
+}
+
+const SCM *
+scm_vector_elements (SCM vec)
+{
+  if (SCM_VECTORP (vec))
+    return SCM_VELTS (vec);
+  else
+    scm_wrong_type_arg_msg (NULL, 0, vec, "simple vector");
+}
+
+void
+scm_vector_release_writable_elements (SCM vec)
+{
+  scm_remember_upto_here_1 (vec);
+}
+
+void
+scm_vector_release_elements (SCM vec)
+{
+  scm_remember_upto_here_1 (vec);
+}
+
+void
+scm_frame_vector_release_writable_elements (SCM vec)
+{
+  scm_frame_unwind_handler_with_scm 
+    (scm_vector_release_writable_elements, vec,
+     SCM_F_WIND_EXPLICITLY);
+}
+
+void
+scm_frame_vector_release_elements (SCM vec)
+{
+  scm_frame_unwind_handler_with_scm
+    (scm_vector_release_elements, vec,
+     SCM_F_WIND_EXPLICITLY);
 }
 
 SCM_DEFINE (scm_vector_p, "vector?", 1, 0, 0, 
@@ -98,22 +145,20 @@ SCM_DEFINE (scm_vector, "vector", 0, 0, 1,
 {
   SCM res;
   SCM *data;
-  long i;
+  long i, len;
 
-  /* Dirk:FIXME:: In case of multiple threads, the list might get corrupted
-     while the vector is being created. */
-  SCM_VALIDATE_LIST_COPYLEN (1, l, i);
-  res = scm_c_make_vector (i, SCM_UNSPECIFIED);
+  SCM_VALIDATE_LIST_COPYLEN (1, l, len);
+  res = scm_c_make_vector (len, SCM_UNSPECIFIED);
 
-  /*
-    this code doesn't alloc. -- accessing RES is safe. 
-  */
-  data = SCM_WRITABLE_VELTS (res);
-  while (!SCM_NULL_OR_NIL_P (l)) 
+  data = scm_vector_writable_elements (res);
+  i = 0;
+  while (!SCM_NULL_OR_NIL_P (l) && i < len) 
     {
-      *data++ = SCM_CAR (l);
+      data[i] = SCM_CAR (l);
       l = SCM_CDR (l);
+      i++;
     }
+  scm_vector_release_writable_elements (res);
 
   return res;
 }
@@ -273,10 +318,11 @@ SCM_DEFINE (scm_vector_to_list, "vector->list", 1, 0, 0,
     {
       SCM res = SCM_EOL;
       long i;
-      SCM const *data;
-      data = SCM_VELTS(v);
+      const SCM *data;
+      data = scm_vector_elements (v);
       for(i = SCM_VECTOR_LENGTH(v)-1; i >= 0; i--)
-	res = scm_cons(data[i], res);
+	res = scm_cons (data[i], res);
+      scm_vector_release_elements (v);
       return res;
     }
   else if (SCM_ARRAYP (v) && SCM_ARRAY_NDIM (v) == 1)
@@ -295,9 +341,10 @@ SCM_DEFINE (scm_vector_fill_x, "vector-fill!", 2, 0, 0,
 {
   if (SCM_VECTORP (v))
     {
-      register long i;
-      for (i = SCM_VECTOR_LENGTH (v) - 1; i >= 0; i--)
-	SCM_VECTOR_SET (v, i, fill);
+      size_t i, len;
+      SCM *elts = scm_vector_writable_elements (v);
+      for (i = 0, len = SCM_VECTOR_LENGTH (v); i < len; i++)
+	elts[i] = fill;
       return SCM_UNSPECIFIED;
     }
   else if (SCM_ARRAYP (v) && SCM_ARRAY_NDIM (v) == 1)
@@ -309,10 +356,10 @@ SCM_DEFINE (scm_vector_fill_x, "vector-fill!", 2, 0, 0,
 
 
 SCM
-scm_vector_equal_p(SCM x, SCM y)
+scm_vector_equal_p (SCM x, SCM y)
 {
   long i;
-  for(i = SCM_VECTOR_LENGTH (x) - 1; i >= 0; i--)
+  for (i = SCM_VECTOR_LENGTH (x) - 1; i >= 0; i--)
     if (scm_is_false (scm_equal_p (SCM_VELTS (x)[i], SCM_VELTS (y)[i])))
       return SCM_BOOL_F;
   return SCM_BOOL_T;
@@ -339,12 +386,16 @@ SCM_DEFINE (scm_vector_move_left_x, "vector-move-left!", 5, 0, 0,
   e = scm_to_unsigned_integer (end1, i, len1);
   j = scm_to_unsigned_integer (start2, 0, len2 - (i-e));
   
-  /* Optimize common case of two regular vectors. 
+  /* Optimize common case of two simple vectors. 
    */
   if (SCM_VECTORP (vec1) && SCM_VECTORP (vec2))
     {
+      const SCM *elts1 = scm_vector_elements (vec1);
+      SCM *elts2 = scm_vector_writable_elements (vec2);
       for (; i < e; i++, j++)
-	SCM_VECTOR_SET (vec2, j, SCM_VECTOR_REF (vec1, i));
+	elts2[j] = elts1[i];
+      scm_vector_release_elements (vec1);
+      scm_vector_release_writable_elements (vec2);
     }
   else
     {
@@ -381,11 +432,15 @@ SCM_DEFINE (scm_vector_move_right_x, "vector-move-right!", 5, 0, 0,
   j += e - i;
   if (SCM_VECTORP (vec1) && SCM_VECTORP (vec2))
     {
+      const SCM *elts1 = scm_vector_elements (vec1);
+      SCM *elts2 = scm_vector_writable_elements (vec2);
       while (i < e)
 	{
 	  e--, j--;
-	  SCM_VECTOR_SET (vec2, j, SCM_VECTOR_REF (vec1, e));
+	  elts2[j] = elts1[e];
 	}
+      scm_vector_release_elements (vec1);
+      scm_vector_release_writable_elements (vec2);
     }
   else
     {

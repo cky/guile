@@ -66,7 +66,6 @@ SCM_API SCM scm_vector_set_x (SCM v, SCM k, SCM obj);
 SCM_API SCM scm_make_vector (SCM k, SCM fill);
 SCM_API SCM scm_vector_to_list (SCM v);
 SCM_API SCM scm_vector_fill_x (SCM v, SCM fill_x);
-SCM_API SCM scm_vector_equal_p (SCM x, SCM y);
 SCM_API SCM scm_vector_move_left_x (SCM vec1, SCM start1, SCM end1,
 				    SCM vec2, SCM start2);
 SCM_API SCM scm_vector_move_right_x (SCM vec1, SCM start1, SCM end1, 
@@ -77,6 +76,12 @@ SCM_API SCM scm_c_make_vector (size_t len, SCM fill);
 SCM_API size_t scm_c_vector_length (SCM vec);
 SCM_API SCM scm_c_vector_ref (SCM vec, size_t k);
 SCM_API void scm_c_vector_set_x (SCM vec, size_t k, SCM obj);
+SCM_API const SCM *scm_vector_elements (SCM vec);
+SCM_API void scm_vector_release_elements (SCM vec);
+SCM_API void scm_frame_vector_release_elements (SCM vec);
+SCM_API SCM *scm_vector_writable_elements (SCM vec);
+SCM_API void scm_vector_release_writable_elements (SCM vec);
+SCM_API void scm_frame_vector_release_writable_elements (SCM vec);
 
 /* Generalized vectors */
 
@@ -90,6 +95,10 @@ SCM_API int scm_is_generalized_vector (SCM obj);
 SCM_API size_t scm_c_generalized_vector_length (SCM v);
 SCM_API SCM scm_c_generalized_vector_ref (SCM v, size_t idx);
 SCM_API void scm_c_generalized_vector_set_x (SCM v, size_t idx, SCM val);
+
+/* Deprecated */
+
+SCM_API SCM scm_vector_equal_p (SCM x, SCM y);
 
 SCM_API void scm_init_vectors (void);
 
