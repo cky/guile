@@ -52,75 +52,104 @@ Julian Satchell <satchell@merry.dra.hmg.gb>:
 
   dec-mips-ultrix
 
-1) Check that the versions of aclocal, automake, autoconf, and autoheader
-   in your PATH match those given in README.  Note that the `make
-   dist' process always invokes these tools, even when all the
-   generated files are up to date.
-2) Verify that Guile builds and runs in your working directory.  I
-   hope that we'll eventually have a test suite to make this more
-   concrete, but for the moment, just make sure things seem sane.
-3) Make sure NEWS, INSTALL and the docs are up to date:
-   a) Scan the ChangeLogs for user-visible changes, marked with an asterisk
-      at the left margin.
-   b) Update NEWS and the Texinfo documentation as appropriate.
-   c) Remove the user-visible markers from the log entries once they're
-      documented.
-   d) Check for any [[incomplete]] sections of NEWS.
-   e) Fact-check INSTALL.
-4) Scan output from `cvs diff' to find files that have changed a lot, but
-   do not have up-to-date copyright notices.
-5) Update the version numbers in GUILE-VERSION, and README.  The Guile
-   version number should be of the form N.M for a major release, and
-   N.M.L for snapshots and beta releases; L should be even for beta
-   releases, and odd for snapshots.
-6) Make sure the downloading addressess and filenames are current.
-7) Set up README appropriately for the release; check name spellings
-   in THANKS, and reformat.
-8) Choose new interface numbers for shared libraries.
-9) Do a `cvs update -A', to get rid of any sticky tags.
-10) Rebuild all generated files in the source tree:
-   a) Install the .m4 files where aclocal will find them.
-   b) Run aclocal.
-   c) Run automake.
-   d) Run autoconf.
-   e) Run autoheader.
-11) Commit all changes to the CVS repository.
-12) Verify that the disty works, too:
-    a) BEFORE doing 'make dist', configure the source tree for build
-       in the same tree with configuration option --with-threads.
-       Make sure that readline was enabled correctly.
-       If this is not done, there will be missing dependencies in two
-       Makefile.in.
-    b) Make a disty, using 'make dist'.
-    c) Unpack it somewhere else.
-    d) Remove automake and autoconf from your path, or turn off their
-       execute bits, or something.  (Users should be able to build disty
-       without installing those tools.)
-    e) Configure, make, and install.
-    f) Test the installed version; don't forget to unset GUILE_LOAD_PATH.
-    g) Test the example code in the doc directory.
-    h) Give the volunteer pre-release testers above a few days to run
-       the distribution on their systems (make the disty available to them
-       via ftp).
-    i) If you made any fixes, commit them, and start from a) again
-13) Add "Guile N.M released." entry to ChangeLog, and commit it.
-14) Tag the entire source tree with a tag of the form "release_N_M".
-15) Copy the tar file over to the GNU machines, and send mail to
-    ftp-upload@gnu.org, asking them to put it on prep.
-16) Send an announcement message to gnu-announce@gnu.org.  Put
-    "Obtaining Guile" first, then a brief summary of the changes in
-    this release, then "Thanks," "About This Distribution," and
-    "Nightly Snapshots."  If I remember correctly, the moderator will
-    delay it until the tar file appears on prep.  The announcement
-    text should be mostly taken from Guile's README file.
-17) Notify freshmeat.net, although they're probably watching anyway.
-    (They got the 1.3 release just fine.)  I have no idea if
-    www.bowerbird.com.au will be something anyone refers to, but Guile
-    does have an entry there.
-18) Tweak the version numbers in GUILE-VERSION, and README to indicate that 
-    the sources are snapshot again.  Snapshots should have version numbers 
-    of the form "N.M.L", where L is odd.
-19) Start a new section of the NEWS file.
-20) Start a new THANKS file.
-21) Send mail to majordomo-owner@cygnus.com updating the message you get
-    when you ask majordomo for "info guile".
+
+Release Checklists ===================================================
+
+There are basically two phases to doing a release:
+
+* "SPIFFING": Updating NEWS, README, INSTALL.  Running tests.  Getting
+  people to try builds on various machines.  Getting everything
+  straightened up.
+
+* "PUNTING": Updating the version numbers.  Tagging the sources.  Asking
+  the FSF to put the disty on ftp.gnu.org.  Posting announcements.
+
+The "Spiffing" phase you might go through several times as you
+discover problems.  The "Punting" phase you do only once.
+
+
+Spiffing checklist:
+
+* Do a `cvs update -A', to get rid of any sticky tags in your working
+  directory.
+* Check for files that have changed a lot, but do not have up-to-date
+  copyright notices.  (It would be nice to have a script to do this...)
+* Make sure NEWS, INSTALL and the docs are up to date:
+  + Scan the ChangeLogs for user-visible changes, marked with an asterisk
+    at the left margin.
+  + Update NEWS and the Texinfo documentation as appropriate.
+  + Remove the user-visible markers from the log entries once they're
+    documented.
+  + Check for any [[incomplete]] sections of NEWS.
+  + Fact-check INSTALL.
+* Make sure the downloading addressess and filenames in README are
+  current.
+* Check that the versions of aclocal, automake, autoconf, and autoheader
+  in your PATH match those given in README.  Note that the `make
+  dist' process always invokes these tools, even when all the
+  generated files are up to date.
+* Rebuild all generated files in the source tree:
+  + Install the .m4 files where aclocal will find them.
+  + Run aclocal.
+  + Run automake.
+  + Run autoconf.
+  + Run autoheader.
+* Verify that Guile builds and runs in your working directory.
+* Run the test suite, in guile-modules/test-suite.
+* Commit all changes to the CVS repository.
+* Build a test distribution.
+  + BEFORE doing 'make dist', configure the source tree for build
+    in the same tree with configuration option --with-threads.
+    Make sure that readline was enabled correctly.
+    If this is not done, there will be missing dependencies in two
+    Makefile.in.
+  + Then do 'make dist'.
+* Give the test disty to various people to try.  Here's what you should do:
+  + Unset GUILE_LOAD_PATH.
+  + Remove automake and autoconf from your path, or turn off their
+    execute bits, or something.  (Users must be able to build the
+    disty without installing those tools.)
+  + Configure, make, and install.
+  + Make sure LD_LIBRARY_PATH doesn't include anything unnecessary.
+  + Run the test suite on the installed version.
+  + You might try the example code in the doc directory.
+
+Once you've got a disty that seems pretty solid:
+
+* Choose new interface numbers for shared libraries.
+* Update the version numbers in GUILE-VERSION and README.  (There are
+  many places in README that need updating!)  The Guile version
+  number should have one of the following forms:
+    N.M                      - a major release
+    N.M.L, where L is even   - a minor release
+    N.M.L, where L is odd    - sources from CVS or nightly snapshot
+* Reformat the names in THANKS.
+* Do a `cvs update -A' of the whole tree, to look for any stray
+  uncommitted or accidental changes.
+* Commit your changes.
+* Make one last test distribution.
+
+Punting checklist:
+
+* Add "Guile N.M released." entry to the top-level ChangeLog, and commit it.
+* Tag the entire source tree with a tag of the form "release_N_M" 
+  or "release_N_M_L".
+* Put the distribution up for FTP somewhere, and send mail to
+  ftp-upload@gnu.org, asking them to put it on prep.
+* Send an announcement message to gnu-announce@gnu.org.  Put a brief
+  summary of the changes in this release first, then "Obtaining
+  Guile", "Thanks", "About This Distribution," and "Nightly
+  Snapshots."  If I remember correctly, the moderator will delay it
+  until the distribution appears on ftp.gnu.org.  The announcement
+  text should be mostly taken from Guile's README file.
+* Notify freshmeat.net, although they're probably watching anyway.
+  (They got the 1.3 release just fine.)  I have no idea if
+  www.bowerbird.com.au will be something anyone refers to, but Guile
+  does have an entry there.
+* Tweak the version numbers in GUILE-VERSION, and README to indicate
+  that the sources are a snapshot again.  Snapshots should have
+  version numbers of the form "N.M.L", where L is odd.
+* Start a new section of the NEWS file.
+* Start a new THANKS file.
+* Send mail to majordomo-owner@cygnus.com updating the message you
+  get when you ask majordomo for "info guile".
