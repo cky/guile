@@ -1,3 +1,9 @@
+2004-01-25  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* configure.in (GUILE_FUNC_DECLARED), acinclude.m4
+	(GUILE_STRUCT_UTIMBUF, GUILE_NAMED_CHECK_FUNC): Correctly quote
+	macros being defined.
+
 2003-12-26  Marius Vollmer  <mvo@zagadka.de>
 
 	* configure.in: Find a suitable type for the new scm_t_intmax and

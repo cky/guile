@@ -606,7 +606,7 @@ AC_TRY_LINK([#include <gmp.h>],
 
 ### Check for a declaration of FUNCTION in HEADERFILE; if it is
 ### not there, #define MISSING_FUNCTION_DECL.
-AC_DEFUN(GUILE_FUNC_DECLARED, [
+AC_DEFUN([GUILE_FUNC_DECLARED], [
   AC_CACHE_CHECK(for $1 declaration, guile_cv_func_$1_declared,
     AC_EGREP_HEADER($1, $2,
 		    guile_cv_func_$1_declared=yes,

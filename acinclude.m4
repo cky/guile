@@ -1,7 +1,7 @@
 dnl  On the NeXT, #including <utime.h> doesn't give you a definition for
 dnl  struct utime, unless you #define _POSIX_SOURCE.
 
-AC_DEFUN(GUILE_STRUCT_UTIMBUF, [
+AC_DEFUN([GUILE_STRUCT_UTIMBUF], [
   AC_CACHE_CHECK([whether we need POSIX to get struct utimbuf],
     guile_cv_struct_utimbuf_needs_posix,
     [AC_TRY_CPP([
@@ -71,7 +71,7 @@ dnl with other parameters, such as libraries, varying.
 dnl
 dnl GUILE_NAMED_CHECK_FUNC(FUNCTION, TESTNAME,
 dnl                        [ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
-AC_DEFUN(GUILE_NAMED_CHECK_FUNC,
+AC_DEFUN([GUILE_NAMED_CHECK_FUNC],
 [AC_MSG_CHECKING([for $1])
 AC_CACHE_VAL(ac_cv_func_$1_$2,
 [AC_TRY_LINK(
