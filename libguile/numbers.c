@@ -1478,9 +1478,7 @@ SCM_DEFINE (scm_logbit_p, "logbit?", 2, 0, 0,
 #define FUNC_NAME s_scm_logbit_p
 {
   unsigned long int iindex;
-
-  SCM_VALIDATE_INUM_MIN (SCM_ARG1, index, 0);
-  iindex = (unsigned long int) SCM_INUM (index);
+  iindex = scm_to_ulong (index);
 
   if (SCM_INUMP (j))
     {
@@ -1770,10 +1768,7 @@ SCM_DEFINE (scm_ash, "ash", 2, 0, 0,
 #define FUNC_NAME s_scm_ash
 {
   long bits_to_shift;
-
-  SCM_VALIDATE_INUM (2, cnt);
-
-  bits_to_shift = SCM_INUM (cnt);
+  bits_to_shift = scm_to_long (cnt);
 
   if (bits_to_shift < 0)
     {
@@ -1782,7 +1777,7 @@ SCM_DEFINE (scm_ash, "ash", 2, 0, 0,
          rounding, negative values require some special treatment.
       */
       SCM div = scm_integer_expt (SCM_I_MAKINUM (2),
-                                  SCM_I_MAKINUM (-bits_to_shift));
+                                  scm_from_long (-bits_to_shift));
 
       /* scm_quotient assumes its arguments are integers, but it's legal to (ash 1/2 -1) */
       if (scm_is_false (scm_negative_p (n)))
@@ -1813,8 +1808,8 @@ SCM_DEFINE (scm_bit_extract, "bit-extract", 3, 0, 0,
 #define FUNC_NAME s_scm_bit_extract
 {
   unsigned long int istart, iend, bits;
-  SCM_VALIDATE_INUM_MIN_COPY (2, start,0, istart);
-  SCM_VALIDATE_INUM_MIN_COPY (3, end, 0, iend);
+  istart = scm_to_ulong (start);
+  iend = scm_to_ulong (end);
   SCM_ASSERT_RANGE (3, end, (iend >= istart));
 
   /* how many bits to keep */
@@ -2267,12 +2262,7 @@ SCM_DEFINE (scm_number_to_string, "number->string", 1, 1, 0,
   if (SCM_UNBNDP (radix))
     base = 10;
   else
-    {
-      SCM_VALIDATE_INUM (2, radix);
-      base = SCM_INUM (radix);
-      /* FIXME: ask if range limit was OK, and if so, document */
-      SCM_ASSERT_RANGE (2, radix, (base >= 2) && (base <= 36));
-    }
+    base = scm_to_signed_integer (radix, 2, 36);
 
   if (SCM_INUMP (n))
     {
@@ -2951,9 +2941,14 @@ SCM_DEFINE (scm_string_to_number, "string->number", 1, 1, 0,
 #define FUNC_NAME s_scm_string_to_number
 {
   SCM answer;
-  int base;
+  unsigned int base;
   SCM_VALIDATE_STRING (1, string);
-  SCM_VALIDATE_INUM_MIN_DEF_COPY (2, radix,2,10, base);
+
+  if (SCM_UNBNDP (radix))
+    base = 10;
+  else
+    base = scm_to_unsigned_integer (radix, 2, INT_MAX);
+
   answer = scm_i_mem2number (SCM_STRING_CHARS (string),
 			     SCM_STRING_LENGTH (string),
 			     base);
@@ -5707,11 +5702,6 @@ scm_is_signed_integer (SCM val, scm_t_intmax min, scm_t_intmax max)
 	  return n >= min && n <= max;
 	}
     }
-  else if (SCM_REALP (val))
-    {
-      double n = SCM_REAL_VALUE (val);
-      return n == floor(n) && n >= min && n <= max;
-    }
   else
     return 0;
 }
@@ -5755,11 +5745,6 @@ scm_is_unsigned_integer (SCM val, scm_t_uintmax min, scm_t_uintmax max)
 
 	  return n >= min && n <= max;
 	}
-    }
-  else if (SCM_REALP (val))
-    {
-      double n = SCM_REAL_VALUE (val);
-      return n == floor (n) && n >= min && n <= max;
     }
   else
     return 0;
@@ -5827,20 +5812,9 @@ scm_to_signed_integer (SCM val, scm_t_intmax min, scm_t_intmax max)
 	    goto out_of_range;
 	}
     }
-  else if (SCM_REALP (val))
-    {
-      double n = SCM_REAL_VALUE (val);
-      if (n != floor(n))
-	goto wrong_type_arg;
-      if (n >= min && n <= max)
-	return n;
-      else
-	goto out_of_range;
-    }
   else
     {
-    wrong_type_arg:
-      scm_wrong_type_arg_msg (NULL, 0, val, "integer");
+      scm_wrong_type_arg_msg (NULL, 0, val, "exact integer");
       return 0;
     }
 }
@@ -5898,20 +5872,9 @@ scm_to_unsigned_integer (SCM val, scm_t_uintmax min, scm_t_uintmax max)
 	    goto out_of_range;
 	}
     }
-  else if (SCM_REALP (val))
-    {
-      double n = SCM_REAL_VALUE (val);
-      if (n != floor(n))
-	goto wrong_type_arg;
-      if (n >= min && n <= max)
-	return n;
-      else
-	goto out_of_range;
-    }
   else
     {
-    wrong_type_arg:
-      scm_wrong_type_arg_msg (NULL, 0, val, "integer");
+      scm_wrong_type_arg_msg (NULL, 0, val, "exact integer");
       return 0;
     }
 }
