@@ -1,5 +1,9 @@
 2002-05-22  Marius Vollmer  <mvo@zagadka.ping.de>
 
+	* numbers.c (mem2ureal): When returning an inexact zero, make sure
+	it is represented as a floating point value so that we can change
+	its sign.
+
         From John W. Eaton  <jwe@bevo.che.wisc.edu>
 
 	* numbers.c (idbl2str): Don't omit sign when printing negative zero.
