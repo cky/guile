@@ -3,17 +3,17 @@
 /* srfi-13.c --- SRFI-13 procedures for Guile
  *
  * 	Copyright (C) 2001 Free Software Foundation, Inc.
- * 
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
  * published by the Free Software Foundation; either version 2, or (at
  * your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
@@ -110,13 +110,14 @@ SCM scm_string_concatenate (SCM ls);
 SCM scm_string_concatenate_shared (SCM ls);
 SCM scm_string_concatenate_reverse (SCM ls, SCM final_string, SCM end);
 SCM scm_string_concatenate_reverse_shared (SCM ls, SCM final_string, SCM end);
-SCM scm_string_map (SCM s, SCM proc, SCM start, SCM end);
-SCM scm_string_map_x (SCM s, SCM proc, SCM start, SCM end);
+SCM scm_string_map (SCM proc, SCM s, SCM start, SCM end);
+SCM scm_string_map_x (SCM proc, SCM s, SCM start, SCM end);
 SCM scm_string_fold (SCM kons, SCM knil, SCM s, SCM start, SCM end);
 SCM scm_string_fold_right (SCM kons, SCM knil, SCM s, SCM start, SCM end);
 SCM scm_string_unfold (SCM p, SCM f, SCM g, SCM seed, SCM base, SCM make_final);
 SCM scm_string_unfold_right (SCM p, SCM f, SCM g, SCM seed, SCM base, SCM make_final);
-SCM scm_string_for_each (SCM s, SCM proc, SCM start, SCM end);
+SCM scm_string_for_each (SCM proc, SCM s, SCM start, SCM end);
+SCM scm_string_for_each_index (SCM proc, SCM s, SCM start, SCM end);
 SCM scm_xsubstring (SCM s, SCM from, SCM to, SCM start, SCM end);
 SCM scm_string_xcopy_x (SCM target, SCM tstart, SCM s, SCM sfrom, SCM sto, SCM start, SCM end);
 SCM scm_string_replace (SCM s1, SCM s2, SCM start1, SCM end1, SCM start2, SCM end2);
