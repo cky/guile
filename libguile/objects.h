@@ -99,6 +99,11 @@
 #define SCM_ENTITY_PROC_3(obj) (SCM_STRUCT_DATA (obj)[scm_struct_i_proc + 3])
 #define SCM_ENTITY_SETTER(obj) (SCM_STRUCT_DATA (obj)[scm_struct_i_setter])
 
+#define SCM_SET_CLASS_DESTRUCTOR(c, d) SCM_SET_VTABLE_DESTRUCTOR (c, d)
+#define SCM_SET_CLASS_INSTANCE_SIZE(c, s) \
+(SCM_STRUCT_DATA (c)[scm_struct_i_size] \
+ = (SCM_STRUCT_DATA (c)[scm_struct_i_size] & SCM_STRUCTF_MASK) | s)
+
 /* {Operator classes}
  *
  * Instances of operator classes can work as operators, i. e., they
@@ -196,7 +201,7 @@ extern SCM scm_class_of (SCM obj);
 extern SCM scm_entity_p (SCM obj);
 extern SCM scm_set_object_procedure_x (SCM obj, SCM procs);
 extern SCM scm_make_class_object (SCM metaclass, SCM layout);
-extern SCM scm_make_subclass_object (SCM class, SCM layout);
+extern SCM scm_make_subclass_object (SCM c, SCM layout);
 
 extern SCM scm_i_make_class_object (SCM metaclass, SCM layout_string,
 				    unsigned long flags);
