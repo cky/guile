@@ -89,6 +89,7 @@ char *alloca ();
 
 
 static SCM canonicalize_define (SCM expr);
+static SCM *scm_lookupcar1 (SCM vloc, SCM genv, int check);
 
 /* prototype in eval.h is not given under --disable-deprecated */
 SCM_API SCM scm_macroexp (SCM x, SCM env);
@@ -437,13 +438,12 @@ scm_i_print_isym (SCM isym, SCM port)
 
 
 
-/* The function lookup_symbol is used during memoization:  Lookup the symbol
- * in the environment.  If there is no binding for the symbol, SCM_UNDEFINED
- * is returned.  If the symbol is a syntactic keyword, the macro object to
- * which the symbol is bound is returned.  If the symbol is a global variable,
- * the variable object to which the symbol is bound is returned.  Finally, if
- * the symbol is a local variable the corresponding iloc object is returned.
- */
+/* The function lookup_symbol is used during memoization: Lookup the symbol in
+ * the environment.  If there is no binding for the symbol, SCM_UNDEFINED is
+ * returned.  If the symbol is a syntactic keyword, the macro object to which
+ * the symbol is bound is returned.  If the symbol is a global variable, the
+ * variable object to which the symbol is bound is returned.  Finally, if the
+ * symbol is a local variable the corresponding iloc object is returned.  */
 
 /* A helper function for lookup_symbol: Try to find the symbol in the top
  * level environment frame.  The function returns SCM_UNDEFINED if the symbol
@@ -538,231 +538,6 @@ is_self_quoting_p (const SCM expr)
   else return 1;
 }
 
-
-
-/* Lookup a given local variable in an environment.  The local variable is
- * given as an iloc, that is a triple <frame, binding, last?>, where frame
- * indicates the relative number of the environment frame (counting upwards
- * from the innermost environment frame), binding indicates the number of the
- * binding within the frame, and last? (which is extracted from the iloc using
- * the macro SCM_ICDRP) indicates whether the binding forms the binding at the
- * very end of the improper list of bindings.  */
-SCM *
-scm_ilookup (SCM iloc, SCM env)
-{
-  unsigned int frame_nr = SCM_IFRAME (iloc);
-  unsigned int binding_nr = SCM_IDIST (iloc);
-  SCM frames = env;
-  SCM bindings;
- 
-  for (; 0 != frame_nr; --frame_nr)
-    frames = SCM_CDR (frames);
-
-  bindings = SCM_CAR (frames);
-  for (; 0 != binding_nr; --binding_nr)
-    bindings = SCM_CDR (bindings);
-
-  if (SCM_ICDRP (iloc))
-    return SCM_CDRLOC (bindings);
-  return SCM_CARLOC (SCM_CDR (bindings));
-}
-
-
-SCM_SYMBOL (scm_unbound_variable_key, "unbound-variable");
-
-static void error_unbound_variable (SCM symbol) SCM_NORETURN;
-static void
-error_unbound_variable (SCM symbol)
-{
-  scm_error (scm_unbound_variable_key, NULL,
-	     "Unbound variable: ~S",
-	     scm_list_1 (symbol), SCM_BOOL_F);
-}
-
-
-/* The Lookup Car Race
-    - by Eva Luator
-
-   Memoization of variables and special forms is done while executing
-   the code for the first time.  As long as there is only one thread
-   everything is fine, but as soon as two threads execute the same
-   code concurrently `for the first time' they can come into conflict.
-
-   This memoization includes rewriting variable references into more
-   efficient forms and expanding macros.  Furthermore, macro expansion
-   includes `compiling' special forms like `let', `cond', etc. into
-   tree-code instructions.
-
-   There shouldn't normally be a problem with memoizing local and
-   global variable references (into ilocs and variables), because all
-   threads will mutate the code in *exactly* the same way and (if I
-   read the C code correctly) it is not possible to observe a half-way
-   mutated cons cell.  The lookup procedure can handle this
-   transparently without any critical sections.
-
-   It is different with macro expansion, because macro expansion
-   happens outside of the lookup procedure and can't be
-   undone. Therefore the lookup procedure can't cope with it.  It has
-   to indicate failure when it detects a lost race and hope that the
-   caller can handle it.  Luckily, it turns out that this is the case.
-
-   An example to illustrate this: Suppose that the following form will
-   be memoized concurrently by two threads
-
-       (let ((x 12)) x)
-
-   Let's first examine the lookup of X in the body.  The first thread
-   decides that it has to find the symbol "x" in the environment and
-   starts to scan it.  Then the other thread takes over and actually
-   overtakes the first.  It looks up "x" and substitutes an
-   appropriate iloc for it.  Now the first thread continues and
-   completes its lookup.  It comes to exactly the same conclusions as
-   the second one and could - without much ado - just overwrite the
-   iloc with the same iloc.
-
-   But let's see what will happen when the race occurs while looking
-   up the symbol "let" at the start of the form.  It could happen that
-   the second thread interrupts the lookup of the first thread and not
-   only substitutes a variable for it but goes right ahead and
-   replaces it with the compiled form (#@let* (x 12) x).  Now, when
-   the first thread completes its lookup, it would replace the #@let*
-   with a variable containing the "let" binding, effectively reverting
-   the form to (let (x 12) x).  This is wrong.  It has to detect that
-   it has lost the race and the evaluator has to reconsider the
-   changed form completely.
-
-   This race condition could be resolved with some kind of traffic
-   light (like mutexes) around scm_lookupcar, but I think that it is
-   best to avoid them in this case.  They would serialize memoization
-   completely and because lookup involves calling arbitrary Scheme
-   code (via the lookup-thunk), threads could be blocked for an
-   arbitrary amount of time or even deadlock.  But with the current
-   solution a lot of unnecessary work is potentially done. */
-
-/* SCM_LOOKUPCAR1 is what SCM_LOOKUPCAR used to be but is allowed to
-   return NULL to indicate a failed lookup due to some race conditions
-   between threads.  This only happens when VLOC is the first cell of
-   a special form that will eventually be memoized (like `let', etc.)
-   In that case the whole lookup is bogus and the caller has to
-   reconsider the complete special form.
-
-   SCM_LOOKUPCAR is still there, of course.  It just calls
-   SCM_LOOKUPCAR1 and aborts on receiving NULL.  So SCM_LOOKUPCAR
-   should only be called when it is known that VLOC is not the first
-   pair of a special form.  Otherwise, use SCM_LOOKUPCAR1 and check
-   for NULL.  I think I've found the only places where this
-   applies. */
-
-static SCM *
-scm_lookupcar1 (SCM vloc, SCM genv, int check)
-{
-  SCM env = genv;
-  register SCM *al, fl, var = SCM_CAR (vloc);
-  register SCM iloc = SCM_ILOC00;
-  for (; SCM_NIMP (env); env = SCM_CDR (env))
-    {
-      if (!SCM_CONSP (SCM_CAR (env)))
-	break;
-      al = SCM_CARLOC (env);
-      for (fl = SCM_CAR (*al); SCM_NIMP (fl); fl = SCM_CDR (fl))
-	{
-	  if (!SCM_CONSP (fl))
-	    {
-	      if (SCM_EQ_P (fl, var))
-	      {
-		if (! SCM_EQ_P (SCM_CAR (vloc), var))
-		  goto race;
-		SCM_SET_CELL_WORD_0 (vloc, SCM_UNPACK (iloc) + SCM_ICDR);
-		return SCM_CDRLOC (*al);
-	      }
-	      else
-		break;
-	    }
-	  al = SCM_CDRLOC (*al);
-	  if (SCM_EQ_P (SCM_CAR (fl), var))
-	    {
-	      if (SCM_UNBNDP (SCM_CAR (*al)))
-		{
-		  env = SCM_EOL;
-		  goto errout;
-		}
-	      if (!SCM_EQ_P (SCM_CAR (vloc), var))
-		goto race;
-	      SCM_SETCAR (vloc, iloc);
-	      return SCM_CARLOC (*al);
-	    }
-	  iloc = SCM_PACK (SCM_UNPACK (iloc) + SCM_IDINC);
-	}
-      iloc = SCM_PACK ((~SCM_IDSTMSK) & (SCM_UNPACK(iloc) + SCM_IFRINC));
-    }
-  {
-    SCM top_thunk, real_var;
-    if (SCM_NIMP (env))
-      {
-	top_thunk = SCM_CAR (env); /* env now refers to a
-				      top level env thunk */
-	env = SCM_CDR (env);
-      }
-    else
-      top_thunk = SCM_BOOL_F;
-    real_var = scm_sym2var (var, top_thunk, SCM_BOOL_F);
-    if (SCM_FALSEP (real_var))
-      goto errout;
-
-    if (!SCM_NULLP (env) || SCM_UNBNDP (SCM_VARIABLE_REF (real_var)))
-      {
-      errout:
-	if (check)
-	  {
-	    if (SCM_NULLP (env))
-              error_unbound_variable (var);
-	    else
-	      scm_misc_error (NULL, "Damaged environment: ~S",
-			      scm_list_1 (var));
-	  }
-	else 
-	  {
-	    /* A variable could not be found, but we shall
-	       not throw an error. */
-	    static SCM undef_object = SCM_UNDEFINED;
-	    return &undef_object;
-	  }
-      }
-
-    if (!SCM_EQ_P (SCM_CAR (vloc), var))
-      {
-	/* Some other thread has changed the very cell we are working
-	   on.  In effect, it must have done our job or messed it up
-	   completely. */
-      race:
-	var = SCM_CAR (vloc);
-	if (SCM_VARIABLEP (var))
-	  return SCM_VARIABLE_LOC (var);
-	if (SCM_ILOCP (var))
-	  return scm_ilookup (var, genv);
-	/* We can't cope with anything else than variables and ilocs.  When
-	   a special form has been memoized (i.e. `let' into `#@let') we
-	   return NULL and expect the calling function to do the right
-	   thing.  For the evaluator, this means going back and redoing
-	   the dispatch on the car of the form. */
-	return NULL;
-      }
-
-    SCM_SETCAR (vloc, real_var);
-    return SCM_VARIABLE_LOC (real_var);
-  }
-}
-
-SCM *
-scm_lookupcar (SCM vloc, SCM genv, int check)
-{
-  SCM *loc = scm_lookupcar1 (vloc, genv, check);
-  if (loc == NULL)
-    abort ();
-  return loc;
-}
-
-
 
 /* Rewrite the body (which is given as the list of expressions forming the
  * body) into its internal form.  The internal form of a body (<expr> ...) is
@@ -2628,6 +2403,229 @@ static SCM deval (SCM x, SCM env);
             :  *scm_lookupcar ((x), (env), 1)))))
 
 SCM_REC_MUTEX (source_mutex);
+
+
+/* Lookup a given local variable in an environment.  The local variable is
+ * given as an iloc, that is a triple <frame, binding, last?>, where frame
+ * indicates the relative number of the environment frame (counting upwards
+ * from the innermost environment frame), binding indicates the number of the
+ * binding within the frame, and last? (which is extracted from the iloc using
+ * the macro SCM_ICDRP) indicates whether the binding forms the binding at the
+ * very end of the improper list of bindings.  */
+SCM *
+scm_ilookup (SCM iloc, SCM env)
+{
+  unsigned int frame_nr = SCM_IFRAME (iloc);
+  unsigned int binding_nr = SCM_IDIST (iloc);
+  SCM frames = env;
+  SCM bindings;
+ 
+  for (; 0 != frame_nr; --frame_nr)
+    frames = SCM_CDR (frames);
+
+  bindings = SCM_CAR (frames);
+  for (; 0 != binding_nr; --binding_nr)
+    bindings = SCM_CDR (bindings);
+
+  if (SCM_ICDRP (iloc))
+    return SCM_CDRLOC (bindings);
+  return SCM_CARLOC (SCM_CDR (bindings));
+}
+
+
+SCM_SYMBOL (scm_unbound_variable_key, "unbound-variable");
+
+static void error_unbound_variable (SCM symbol) SCM_NORETURN;
+static void
+error_unbound_variable (SCM symbol)
+{
+  scm_error (scm_unbound_variable_key, NULL,
+	     "Unbound variable: ~S",
+	     scm_list_1 (symbol), SCM_BOOL_F);
+}
+
+
+/* The Lookup Car Race
+    - by Eva Luator
+
+   Memoization of variables and special forms is done while executing
+   the code for the first time.  As long as there is only one thread
+   everything is fine, but as soon as two threads execute the same
+   code concurrently `for the first time' they can come into conflict.
+
+   This memoization includes rewriting variable references into more
+   efficient forms and expanding macros.  Furthermore, macro expansion
+   includes `compiling' special forms like `let', `cond', etc. into
+   tree-code instructions.
+
+   There shouldn't normally be a problem with memoizing local and
+   global variable references (into ilocs and variables), because all
+   threads will mutate the code in *exactly* the same way and (if I
+   read the C code correctly) it is not possible to observe a half-way
+   mutated cons cell.  The lookup procedure can handle this
+   transparently without any critical sections.
+
+   It is different with macro expansion, because macro expansion
+   happens outside of the lookup procedure and can't be
+   undone. Therefore the lookup procedure can't cope with it.  It has
+   to indicate failure when it detects a lost race and hope that the
+   caller can handle it.  Luckily, it turns out that this is the case.
+
+   An example to illustrate this: Suppose that the following form will
+   be memoized concurrently by two threads
+
+       (let ((x 12)) x)
+
+   Let's first examine the lookup of X in the body.  The first thread
+   decides that it has to find the symbol "x" in the environment and
+   starts to scan it.  Then the other thread takes over and actually
+   overtakes the first.  It looks up "x" and substitutes an
+   appropriate iloc for it.  Now the first thread continues and
+   completes its lookup.  It comes to exactly the same conclusions as
+   the second one and could - without much ado - just overwrite the
+   iloc with the same iloc.
+
+   But let's see what will happen when the race occurs while looking
+   up the symbol "let" at the start of the form.  It could happen that
+   the second thread interrupts the lookup of the first thread and not
+   only substitutes a variable for it but goes right ahead and
+   replaces it with the compiled form (#@let* (x 12) x).  Now, when
+   the first thread completes its lookup, it would replace the #@let*
+   with a variable containing the "let" binding, effectively reverting
+   the form to (let (x 12) x).  This is wrong.  It has to detect that
+   it has lost the race and the evaluator has to reconsider the
+   changed form completely.
+
+   This race condition could be resolved with some kind of traffic
+   light (like mutexes) around scm_lookupcar, but I think that it is
+   best to avoid them in this case.  They would serialize memoization
+   completely and because lookup involves calling arbitrary Scheme
+   code (via the lookup-thunk), threads could be blocked for an
+   arbitrary amount of time or even deadlock.  But with the current
+   solution a lot of unnecessary work is potentially done. */
+
+/* SCM_LOOKUPCAR1 is what SCM_LOOKUPCAR used to be but is allowed to
+   return NULL to indicate a failed lookup due to some race conditions
+   between threads.  This only happens when VLOC is the first cell of
+   a special form that will eventually be memoized (like `let', etc.)
+   In that case the whole lookup is bogus and the caller has to
+   reconsider the complete special form.
+
+   SCM_LOOKUPCAR is still there, of course.  It just calls
+   SCM_LOOKUPCAR1 and aborts on receiving NULL.  So SCM_LOOKUPCAR
+   should only be called when it is known that VLOC is not the first
+   pair of a special form.  Otherwise, use SCM_LOOKUPCAR1 and check
+   for NULL.  I think I've found the only places where this
+   applies. */
+
+static SCM *
+scm_lookupcar1 (SCM vloc, SCM genv, int check)
+{
+  SCM env = genv;
+  register SCM *al, fl, var = SCM_CAR (vloc);
+  register SCM iloc = SCM_ILOC00;
+  for (; SCM_NIMP (env); env = SCM_CDR (env))
+    {
+      if (!SCM_CONSP (SCM_CAR (env)))
+	break;
+      al = SCM_CARLOC (env);
+      for (fl = SCM_CAR (*al); SCM_NIMP (fl); fl = SCM_CDR (fl))
+	{
+	  if (!SCM_CONSP (fl))
+	    {
+	      if (SCM_EQ_P (fl, var))
+	      {
+		if (! SCM_EQ_P (SCM_CAR (vloc), var))
+		  goto race;
+		SCM_SET_CELL_WORD_0 (vloc, SCM_UNPACK (iloc) + SCM_ICDR);
+		return SCM_CDRLOC (*al);
+	      }
+	      else
+		break;
+	    }
+	  al = SCM_CDRLOC (*al);
+	  if (SCM_EQ_P (SCM_CAR (fl), var))
+	    {
+	      if (SCM_UNBNDP (SCM_CAR (*al)))
+		{
+		  env = SCM_EOL;
+		  goto errout;
+		}
+	      if (!SCM_EQ_P (SCM_CAR (vloc), var))
+		goto race;
+	      SCM_SETCAR (vloc, iloc);
+	      return SCM_CARLOC (*al);
+	    }
+	  iloc = SCM_PACK (SCM_UNPACK (iloc) + SCM_IDINC);
+	}
+      iloc = SCM_PACK ((~SCM_IDSTMSK) & (SCM_UNPACK(iloc) + SCM_IFRINC));
+    }
+  {
+    SCM top_thunk, real_var;
+    if (SCM_NIMP (env))
+      {
+	top_thunk = SCM_CAR (env); /* env now refers to a
+				      top level env thunk */
+	env = SCM_CDR (env);
+      }
+    else
+      top_thunk = SCM_BOOL_F;
+    real_var = scm_sym2var (var, top_thunk, SCM_BOOL_F);
+    if (SCM_FALSEP (real_var))
+      goto errout;
+
+    if (!SCM_NULLP (env) || SCM_UNBNDP (SCM_VARIABLE_REF (real_var)))
+      {
+      errout:
+	if (check)
+	  {
+	    if (SCM_NULLP (env))
+              error_unbound_variable (var);
+	    else
+	      scm_misc_error (NULL, "Damaged environment: ~S",
+			      scm_list_1 (var));
+	  }
+	else 
+	  {
+	    /* A variable could not be found, but we shall
+	       not throw an error. */
+	    static SCM undef_object = SCM_UNDEFINED;
+	    return &undef_object;
+	  }
+      }
+
+    if (!SCM_EQ_P (SCM_CAR (vloc), var))
+      {
+	/* Some other thread has changed the very cell we are working
+	   on.  In effect, it must have done our job or messed it up
+	   completely. */
+      race:
+	var = SCM_CAR (vloc);
+	if (SCM_VARIABLEP (var))
+	  return SCM_VARIABLE_LOC (var);
+	if (SCM_ILOCP (var))
+	  return scm_ilookup (var, genv);
+	/* We can't cope with anything else than variables and ilocs.  When
+	   a special form has been memoized (i.e. `let' into `#@let') we
+	   return NULL and expect the calling function to do the right
+	   thing.  For the evaluator, this means going back and redoing
+	   the dispatch on the car of the form. */
+	return NULL;
+      }
+
+    SCM_SETCAR (vloc, real_var);
+    return SCM_VARIABLE_LOC (real_var);
+  }
+}
+
+SCM *
+scm_lookupcar (SCM vloc, SCM genv, int check)
+{
+  SCM *loc = scm_lookupcar1 (vloc, genv, check);
+  if (loc == NULL)
+    abort ();
+  return loc;
+}
 
 
 /* During execution, look up a symbol in the top level of the given local

@@ -1,5 +1,15 @@
 2004-05-15  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
 
+	No functional change, just rearrangements of functions within the
+	file.
+
+	* eval.c (scm_ilookup, scm_unbound_variable_key,
+	error_unbound_variable, scm_lookupcar1, scm_lookupcar): Moved to
+	the definitions used for execution, since that's where they will
+	belong to later.
+
+2004-05-15  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
+
 	* numbers.h (SCM_SLOPPY_FRACTIONP): Removed.  It was not used
 	throughout guile, has not been part of an official release yet,
 	and the concept of sloppy predicates has never been a good idea.
