@@ -55,7 +55,7 @@ the last call to unlock-mutex will actually unlock the mutex.
 ** New function 'try-mutex'.
 
 This function will attempt to lock a mutex but will return immediately
-instead if blocking, indicating failure.
+instead if blocking and indicate failure.
 
 ** Waiting on a condition variable can have a timeout.
 
@@ -346,6 +346,17 @@ option to disable the checking has most probably not been used anyway.
 
 Full number of arguments checking of closures is mandatory now.  However, the
 option to disable the checking has most probably not been used anyway.
+
+** Deprecated configure flags USE_THREADS and GUILE_ISELECT
+
+Previously, when the C preprocessor macro USE_THREADS was defined,
+libguile included a thread API.  This API is now always included, even
+when threads are not really supported.  Thus, you don't need to test
+for USE_THREADS.
+
+Analogously, GUILE_ISELECT was defined when the function
+scm_internal_select was provided by Guile.  This function is now
+always defined, and GUILE_ISELECT with it.
 
 ** Removed definitions:  scm_lisp_nil, scm_lisp_t, s_nil_ify, scm_m_nil_ify,
 s_t_ify, scm_m_t_ify, s_0_cond, scm_m_0_cond, s_0_ify, scm_m_0_ify, s_1_ify,
