@@ -1,3 +1,8 @@
+2004-08-25  Marius Vollmer  <mvo@zagadka.de>
+
+	* api-data.texi, srfi-modules.texi: Moved docs for SRFI-14 into
+	main API chapter.  Updated docstrings from libguile/.
+
 2004-08-24  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	Ran a (docstring-process-module "(guile)") and moved entries from
