@@ -3,6 +3,12 @@ implementation written in C.  Guile provides a machine independent
 execution platform that can be linked in as a library when building
 extensible programs.
 
+This is the first Guile release made by the Free Software Foundation.
+However, Cygnus Support has made earlier releases of Guile, the most
+recent of which is known as `guile-iii'.  The present release
+incorporates many bug fixes and improvements, but has dropped some
+modules that `guile-iii' supported.
+
 Please send bug reports to bug-guile@prep.ai.mit.edu.
 
 Guile is available via anonymous FTP from
@@ -22,7 +28,8 @@ Interesting files include:
 
 The Guile source tree is laid out as follows:
 
-doc:	Documentation for Guile, in Texinfo form.
+doc:	Documentation for Guile, in Texinfo form.  (At the moment, these
+	manuals are incomplete and are currently being revised.)
 libguile:
 	The Guile Scheme interpreter, packaged as an object library
 	for you to link with your programs.
@@ -52,33 +59,39 @@ fixes!) to bug-guile@prep.ai.mit.edu.
 
 Authors And Contributors =============================================
 
-George Carrette wrote SIOD, a stand-alone scheme interpreter.
-Although most of this code as been rewritten or replaced over time,
-the garbage collector from SIOD is still an important part of Guile.
-
-Aubrey Jaffer seriously tuned performance and added features.  He
-designed many hairy but beautiful parts of the tag system and
-evaluator.
-
-Tom Lord librarified SCM, yielding Guile.  He wrote Guile's operating
-system, Ice-9, and connected Guile to Tcl/Tk and the `rx' regular
-expression matcher.
-
-Gary Houston wrote the Unix system call support, including the socket
-support.
-
-Anthony Green wrote the original version of `threads' the interface
-between Guile and qt.
+Many people have generously contributed to Guile.  However, any errors
+are the responsibility of the primary Guile maintainer, Jim Blandy.
 
 Mikael Djurfeldt designed and implemented:
-* the source-level debugger,
+* the source-level debugging support (although the debugger's user
+  interface is not yet complete)
 * stack overflow detection,
 * the GDB patches to support debugging mixed Scheme/C code,
 * the original implementation of weak hash tables,
 * the `threads' interface (rewriting Anthony Green's work), and
 * detection of circular references during printing.
 
-Gary Houston did a lot of work on the error handling code.
+Mark Galassi contributed the Guile high-level functions (libgh), and
+wrote the guile-programmer and guile-user manuals.  (These are in the
+process of revision.)
+
+Anthony Green wrote the original version of `threads' the interface
+between Guile and qt.
+
+Gary Houston wrote the Unix system call support, including the socket
+support, and did a lot of work on the error handling code.
+
+Tom Lord librarified SCM, yielding Guile.  He wrote Guile's operating
+system, Ice-9, and connected Guile to Tcl/Tk and the `rx' regular
+expression matcher.
+
+Aubrey Jaffer seriously tuned performance and added features.  He
+designed many hairy but beautiful parts of the tag system and
+evaluator.
+
+George Carrette wrote SIOD, a stand-alone scheme interpreter.
+Although most of this code as been rewritten or replaced over time,
+the garbage collector from SIOD is still an important part of Guile.
 
 
 Nightly snapshots ====================================================
@@ -102,3 +115,4 @@ to new, experimental features.  Patches submitted relative to recent
 snapshots will be easier for us to evaluate and install, since the
 patch's original sources will be closer to what we're working with.
 And it allows us to start testing features earlier.
+
