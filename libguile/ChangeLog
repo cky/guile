@@ -1,3 +1,40 @@
+1998-10-31  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+
+	* eval.h (scm_macro_eval_x): Removed declaration.
+
+	* eval.c (scm_s_expression, scm_s_test, scm_s_body,
+	scm_s_bindings, scm_s_variable, scm_s_clauses, scm_s_formals):
+	Renamed and made global.
+
+	* eval.c, eval.h (SCM_EVALIM): Renamed from EVALIM.
+	(SCM_XEVAL, SCM_XEVALCAR): Renamed from XEVAL, XEVALCAR.
+
+	* evalext.c, evalext.h: New files.  Contain non-R5RS things
+	having to do with evaluation.
+	
+	* evalext.c (serial-map): New procedure: Version of `map' which
+	guarantees that the procedure is applied to the lists in serial
+	order.
+	(sequence->list): New syntax: Version of `begin' which returns a
+	list of the results of the body forms instead of the result of the
+	last body form.
+	(scm_definedp, scm_m_undefine): Moved from eval.c
+
+	* evalext.h (scm_m_sequence_to_list): Added declaration.
+
+	* macros.c, macros.h: New files.
+	(procedure->syntax, procedure->macro, procedure->memoizing-macro,
+	macro?, macro-type, macro-name, macro-transformer): Moved from
+	eval.c
+	(scm_make_synt): Moved from eval.c
+
+	* procs.c, procs.h (procedure-documentation): Moved from eval.c.
+
+	* init.c (scm_boot_guile_1): Added calls to scm_init_macros and
+	scm_init_evalext.
+
+	* Makefile.am: Added evalext.c, evalext.h, macros.c, macros.h.
+
 1998-10-29  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
 	This change adds the ability to use `unread-char' multiple times
