@@ -75,9 +75,9 @@
 
 (with-test-prefix "string-set!"
 
-  (pass-if-exception "string constant"
+  (pass-if-exception "read-only string"
     exception:read-only-string
-    (string-set! "abc" 1 #\space)))
+    (string-set! (substring/read-only "abc" 0) 1 #\space)))
 
 (with-test-prefix "substring-move!"
 
