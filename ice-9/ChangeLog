@@ -1,3 +1,11 @@
+2000-11-26  Gary Houston  <ghouston@arglist.com>
+
+	* boot-9.scm: values?, get-values, values, call-with-values:
+	removed.  values and call-with-values are now primitives and
+	the other two were only exported by accident.  don't define
+	*values-rtd* record type or handle multiple values in
+	scm-style-repl.
+
 2000-11-07  Gary Houston  <ghouston@arglist.com>
 
 	* popen.scm (open-output-pipe): added docstrings for open-input-pipe

@@ -510,36 +510,6 @@
 	answer
 	(loop (cons init answer) (- n 1)))))
 
-
-
-;;; {Multiple return values}
-
-(define *values-rtd*
-  (make-record-type "values"
-		    '(values)))
-
-;;; These two are needed internally in boot-9.scm.
-;;; They shouldn't be visible outside this module.
-(define values? (record-predicate *values-rtd*))
-(define get-values (record-accessor *values-rtd* 'values))
-
-(define values
-  (let ((make-values (record-constructor *values-rtd*)))
-    (lambda x
-      (if (and (not (null? x))
-	       (null? (cdr x)))
-	  (car x)
-	  (make-values x)))))
-
-(define call-with-values
-  (lambda (producer consumer)
-    (let ((result (producer)))
-      (if (values? result)
-	  (apply consumer (get-values result))
-	  (consumer result)))))
-
-(provide 'values)
-
 
 ;;; {and-map and or-map}
 ;;;
@@ -2591,9 +2561,7 @@
 		     (lambda (result)
 		       (if (not scm-repl-silent)
 			   (begin
-			     (if (values? result)
-				 (for-each maybe-print (get-values result))
-				 (maybe-print result))
+			     (maybe-print result)
 			     (if scm-repl-verbose
 				 (repl-report))
 			     (force-output))))))
