@@ -278,7 +278,7 @@ scm_lookupcar (SCM vloc, SCM genv, int check)
       al = SCM_CARLOC (env);
       for (fl = SCM_CAR (*al); SCM_NIMP (fl); fl = SCM_CDR (fl))
 	{
-	  if (SCM_NCONSP (fl))
+	  if (!SCM_CONSP (fl))
 	    {
 	      if (SCM_EQ_P (fl, var))
 	      {
@@ -336,7 +336,7 @@ scm_lookupcar (SCM vloc, SCM genv, int check)
       goto errout;
 
 #ifndef SCM_RECKLESS
-    if (SCM_NNULLP (env) || SCM_UNBNDP (SCM_VARIABLE_REF (real_var)))
+    if (!SCM_NULLP (env) || SCM_UNBNDP (SCM_VARIABLE_REF (real_var)))
       {
       errout:
 	/* scm_everr (vloc, genv,...) */
@@ -501,7 +501,7 @@ scm_m_body (SCM op, SCM xorig, const char *what)
   /* Retain possible doc string. */
   if (!SCM_CONSP (SCM_CAR (xorig)))
     {
-      if (SCM_NNULLP (SCM_CDR(xorig)))
+      if (!SCM_NULLP (SCM_CDR(xorig)))
 	return scm_cons (SCM_CAR (xorig),
 			 scm_m_body (op, SCM_CDR(xorig), what));
       return xorig;
@@ -673,11 +673,11 @@ scm_m_lambda (SCM xorig, SCM env SCM_UNUSED)
     goto badforms;
   if (SCM_SYMBOLP (proc))
     goto memlambda;
-  if (SCM_NCONSP (proc))
+  if (!SCM_CONSP (proc))
     goto badforms;
   while (SCM_NIMP (proc))
     {
-      if (SCM_NCONSP (proc))
+      if (!SCM_CONSP (proc))
 	{
 	  if (!SCM_SYMBOLP (proc))
 	    goto badforms;
@@ -690,7 +690,7 @@ scm_m_lambda (SCM xorig, SCM env SCM_UNUSED)
 	scm_misc_error (s_lambda, scm_s_duplicate_formals, SCM_EOL);
       proc = SCM_CDR (proc);
     }
-  if (SCM_NNULLP (proc))
+  if (!SCM_NULLP (proc))
     {
     badforms:
       scm_misc_error (s_lambda, scm_s_formals, SCM_EOL);
@@ -1279,7 +1279,7 @@ unmemocopy (SCM x, SCM env)
 #ifdef DEBUG_EXTENSIONS
   SCM p;
 #endif
-  if (SCM_NCELLP (x) || SCM_NCONSP (x))
+  if (!SCM_CELLP (x) || !SCM_CONSP (x))
     return x;
 #ifdef DEBUG_EXTENSIONS
   p = scm_whash_lookup (scm_source_whash, x);
@@ -1414,7 +1414,7 @@ unmemocopy (SCM x, SCM env)
 	x = SCM_CDR (x);
 	ls = scm_cons (scm_sym_define,
 		       z = scm_cons (n = SCM_CAR (x), SCM_UNSPECIFIED));
-	if (SCM_NNULLP (env))
+	if (!SCM_NULLP (env))
 	  SCM_SETCAR (SCM_CAR (env), scm_cons (n, SCM_CAR (SCM_CAR (env))));
 	break;
       }
@@ -1459,7 +1459,7 @@ loop:
     }
   SCM_SETCDR (z, x);
 #ifdef DEBUG_EXTENSIONS
-  if (SCM_NFALSEP (p))
+  if (!SCM_FALSEP (p))
     scm_whash_insert (scm_source_whash, ls, p);
 #endif
   return ls;
@@ -1469,7 +1469,7 @@ loop:
 SCM
 scm_unmemocopy (SCM x, SCM env)
 {
-  if (SCM_NNULLP (env))
+  if (!SCM_NULLP (env))
     /* Make a copy of the lowest frame to protect it from
        modifications by SCM_IM_DEFINE */
     return unmemocopy (x, scm_cons (SCM_CAR (env), SCM_CDR (env)));
@@ -1484,14 +1484,14 @@ scm_badargsp (SCM formals, SCM args)
 {
   while (SCM_NIMP (formals))
     {
-      if (SCM_NCONSP (formals)) 
+      if (!SCM_CONSP (formals)) 
         return 0;
       if (SCM_IMP(args)) 
         return 1;
       formals = SCM_CDR (formals);
       args = SCM_CDR (args);
     }
-  return SCM_NNULLP (args) ? 1 : 0;
+  return !SCM_NULLP (args) ? 1 : 0;
 }
 #endif
 
@@ -1536,8 +1536,8 @@ scm_eval_body (SCM code, SCM env)
 {
   SCM next;
  again:
-  next = code;
-  while (SCM_NNULLP (next = SCM_CDR (next)))
+  next = SCM_CDR (code);
+  while (!SCM_NULLP (next))
     {
       if (SCM_IMP (SCM_CAR (code)))
 	{
@@ -1550,6 +1550,7 @@ scm_eval_body (SCM code, SCM env)
       else
 	SCM_XEVAL (SCM_CAR (code), env);
       code = next;
+      next = SCM_CDR (code);
     }
   return SCM_XEVALCAR (code, env);
 }
@@ -1755,7 +1756,7 @@ scm_deval_args (SCM l, SCM env, SCM proc, SCM *lloc)
   } while (0)
 
 #ifndef DEVAL
-#define CHECK_EQVISH(A,B) 	(SCM_EQ_P ((A), (B)) || (SCM_NFALSEP (scm_eqv_p ((A), (B)))))
+#define CHECK_EQVISH(A,B) 	(SCM_EQ_P ((A), (B)) || (!SCM_FALSEP (scm_eqv_p ((A), (B)))))
 #endif /* DEVAL */
 
 #define BUILTIN_RPASUBR /* Handle rpsubrs and asubrs without calling apply */
@@ -1893,7 +1894,7 @@ dispatch:
     case SCM_BIT8(SCM_IM_AND):
       x = SCM_CDR (x);
       t.arg1 = x;
-      while (SCM_NNULLP (t.arg1 = SCM_CDR (t.arg1)))
+      while (!SCM_NULLP (t.arg1 = SCM_CDR (t.arg1)))
 	if (SCM_FALSEP (EVALCAR (x, env)))
 	  {
 	    RETURN (SCM_BOOL_F);
@@ -2001,7 +2002,7 @@ dispatch:
 	{
 	  proc = SCM_CAR (x);
 	  t.arg1 = EVALCAR (proc, env);
-	  if (SCM_NFALSEP (t.arg1))
+	  if (!SCM_FALSEP (t.arg1))
 	    {
 	      x = SCM_CDR (proc);
 	      if (SCM_NULLP (x))
@@ -2059,7 +2060,7 @@ dispatch:
 
     case SCM_BIT8(SCM_IM_IF):
       x = SCM_CDR (x);
-      if (SCM_NFALSEP (EVALCAR (x, env)))
+      if (!SCM_FALSEP (EVALCAR (x, env)))
 	x = SCM_CDR (x);
       else if (SCM_IMP (x = SCM_CDR (SCM_CDR (x))))
 	{
@@ -2246,7 +2247,7 @@ dispatch:
 	  PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
 	  if (SCM_IMP (proc))
 	    arg2 = *scm_ilookup (proc, env);
-	  else if (SCM_NCONSP (proc))
+	  else if (!SCM_CONSP (proc))
 	    {
 	      if (SCM_VARIABLEP (proc))
 		arg2 = SCM_VARIABLE_REF (proc);
@@ -2377,7 +2378,7 @@ dispatch:
 	    
 	case (SCM_ISYMNUM (SCM_IM_T_IFY)):
 	  x = SCM_CDR (x);
-	  RETURN (SCM_NFALSEP (EVALCAR (x, env)) ? scm_lisp_t : scm_lisp_nil)
+	  RETURN (!SCM_FALSEP (EVALCAR (x, env)) ? scm_lisp_t : scm_lisp_nil)
 	    
 	case (SCM_ISYMNUM (SCM_IM_0_COND)):
 	  proc = SCM_CDR (x);
@@ -2405,7 +2406,7 @@ dispatch:
 	    
 	case (SCM_ISYMNUM (SCM_IM_1_IFY)):
 	  x = SCM_CDR (x);
-	  RETURN (SCM_NFALSEP (EVALCAR (x, env))
+	  RETURN (!SCM_FALSEP (EVALCAR (x, env))
 		  ? SCM_MAKINUM (1)
 		  : SCM_INUM0)
 
@@ -2426,7 +2427,7 @@ dispatch:
 	  scm_dynwinds = scm_acons (t.arg1, SCM_CDAR (env), scm_dynwinds);
 	  
 	  arg2 = x = SCM_CDR (x);
-	  while (SCM_NNULLP (arg2 = SCM_CDR (arg2)))
+	  while (!SCM_NULLP (arg2 = SCM_CDR (arg2)))
 	    {
 	      SIDEVAL (SCM_CAR (x), env);
 	      x = arg2;
@@ -2733,18 +2734,16 @@ evapply:
 		{
 		  RETURN (scm_make_real (SCM_DSUBRF (proc) ((double) SCM_INUM (t.arg1))));
 		}
-	      SCM_ASRTGO (SCM_NIMP (t.arg1), floerr);
-	      if (SCM_REALP (t.arg1))
+	      else if (SCM_REALP (t.arg1))
 		{
 		  RETURN (scm_make_real (SCM_DSUBRF (proc) (SCM_REAL_VALUE (t.arg1))));
 		}
 #ifdef SCM_BIGDIG
-	      if (SCM_BIGP (t.arg1))
+	      else if (SCM_BIGP (t.arg1))
 		{
 		  RETURN (scm_make_real (SCM_DSUBRF (proc) (scm_i_big2dbl (t.arg1))));
 		}
 #endif
-	    floerr:
 	      SCM_WTA_DISPATCH_1 (*SCM_SUBR_GENERIC (proc), t.arg1,
 				  SCM_ARG1, SCM_SYMBOL_CHARS (SCM_SNAME (proc)));
 	    }
@@ -2962,7 +2961,7 @@ evapply:
 	}
     }
 #ifdef SCM_CAUTIOUS
-    if (SCM_IMP (x) || SCM_NCONSP (x))
+    if (SCM_IMP (x) || !SCM_CONSP (x))
       goto wrongnumargs;
 #endif
 #ifdef DEVAL
@@ -3269,7 +3268,7 @@ SCM_DEFINE (scm_nconc2last, "apply:nconc2last", 1, 0, 0,
   SCM *lloc;
   SCM_VALIDATE_NONEMPTYLIST (1,lst);
   lloc = &lst;
-  while (SCM_NNULLP (SCM_CDR (*lloc)))
+  while (!SCM_NULLP (SCM_CDR (*lloc)))
     lloc = SCM_CDRLOC (*lloc);
   SCM_ASSERT (scm_ilength (SCM_CAR (*lloc)) >= 0, lst, SCM_ARG1, FUNC_NAME);
   *lloc = SCM_CAR (*lloc);
@@ -3395,7 +3394,7 @@ tail:
       args = SCM_NULLP (args) ? SCM_UNDEFINED : SCM_CAR (args);
       RETURN (SCM_SUBRF (proc) (arg1, args))
     case scm_tc7_subr_2:
-      SCM_ASRTGO (SCM_NNULLP (args) && SCM_NULLP (SCM_CDR (args)),
+      SCM_ASRTGO (!SCM_NULLP (args) && SCM_NULLP (SCM_CDR (args)),
 		  wrongnumargs);
       args = SCM_CAR (args);
       RETURN (SCM_SUBRF (proc) (arg1, args))
@@ -3415,16 +3414,14 @@ tail:
 	    {
 	      RETURN (scm_make_real (SCM_DSUBRF (proc) ((double) SCM_INUM (arg1))));
 	    }
-	  SCM_ASRTGO (SCM_NIMP (arg1), floerr);
-	  if (SCM_REALP (arg1))
+	  else if (SCM_REALP (arg1))
 	    {
 	      RETURN (scm_make_real (SCM_DSUBRF (proc) (SCM_REAL_VALUE (arg1))));
 	    }
 #ifdef SCM_BIGDIG
-	  if (SCM_BIGP (arg1))
+	  else if (SCM_BIGP (arg1))
 	      RETURN (scm_make_real (SCM_DSUBRF (proc) (scm_i_big2dbl (arg1))))
 #endif
-	floerr:
 	  SCM_WTA_DISPATCH_1 (*SCM_SUBR_GENERIC (proc), arg1,
 			      SCM_ARG1, SCM_SYMBOL_CHARS (SCM_SNAME (proc)));
 	}
@@ -3440,8 +3437,8 @@ tail:
 	RETURN (arg1)
       }
     case scm_tc7_subr_3:
-      SCM_ASRTGO (SCM_NNULLP (args)
-		  && SCM_NNULLP (SCM_CDR (args))
+      SCM_ASRTGO (!SCM_NULLP (args)
+		  && !SCM_NULLP (SCM_CDR (args))
 		  && SCM_NULLP (SCM_CDDR (args)),
 		  wrongnumargs);
       RETURN (SCM_SUBRF (proc) (arg1, SCM_CAR (args), SCM_CAR (SCM_CDR (args))))
@@ -3506,7 +3503,7 @@ tail:
       proc = SCM_CDR (SCM_CODE (proc));
     again:
       arg1 = proc;
-      while (SCM_NNULLP (arg1 = SCM_CDR (arg1)))
+      while (!SCM_NULLP (arg1 = SCM_CDR (arg1)))
 	{
 	  if (SCM_IMP (SCM_CAR (proc)))
 	    {
@@ -3872,7 +3869,7 @@ SCM_DEFINE (scm_copy_tree, "copy-tree", 1, 0, 0,
 	SCM_VELTS (ans)[i] = scm_copy_tree (SCM_VELTS (obj)[i]);
       return ans;
     }
-  if (SCM_NCONSP (obj))
+  if (!SCM_CONSP (obj))
     return obj;
   ans = tl = scm_cons_source (obj,
 			      scm_copy_tree (SCM_CAR (obj)),

@@ -1,5 +1,17 @@
 2001-07-30  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* eval.c (scm_lookupcar, scm_m_body, scm_m_lambda, unmemocopy,
+	scm_unmemocopy, scm_badargsp, scm_eval_body, CHECK_EQVISH,
+	SCM_CEVAL, scm_nconc2last, SCM_APPLY, scm_copy_tree):  Prefer
+	!SCM_<pred> over SCM_N<pred>.
+
+	(scm_eval_body):  Remove side effecting code from macro call.
+
+	(SCM_CEVAL, SCM_APPLY):  Remove goto statement and redundant
+	SCM_NIMP test.
+
+2001-07-30  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* pairs.h (SCM_VALIDATE_PAIR):  Use SCM_CONSP, not SCM_ECONSP.
 
 2001-07-29  Marius Vollmer  <mvo@zagadka.ping.de>
