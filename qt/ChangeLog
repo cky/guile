@@ -1,3 +1,10 @@
+2000-06-12  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* Makefile.am (OMIT_DEPENDENCIES): Defined to contain the list of
+	machine specific headers.  This is necessary, otherwise automake
+	will include a dependency specific for the machine on which the
+	distribution archive was built.
+
 2000-04-21  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* *.*: Change includes so that they always use the "prefixes"
