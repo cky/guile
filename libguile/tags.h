@@ -388,7 +388,8 @@ typedef long SCM;
  */
 
 
-/* scm_tc_free_cell is also the 0th smob type.
+/* scm_tc_free_cell is also the 0th smob type.  We place this
+ * in free cells to tell the conservative marker not to trace it.
  */
 #define scm_tc_free_cell	127
 
