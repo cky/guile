@@ -46,7 +46,7 @@ exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
 ;; -i, --involved USER  -- select USER-involved items
 ;; -p, --personal USER  -- select USER-responsible items
 ;; -t, --todo           -- select unfinished items (status "-")
-;; -t, --done           -- select finished items (status "+")
+;; -d, --done           -- select finished items (status "+")
 ;; -r, --review         -- select review items (marker "R")
 ;;
 ;; -w, --who            -- also show who is associated w/ the item
