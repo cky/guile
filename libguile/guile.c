@@ -89,7 +89,9 @@ int
 main (int argc, char **argv)
 {
 #if defined (DYNAMIC_LINKING) && !defined (__MINGW32__)
-  scm_lt_dlset_preloaded_symbols ();
+  /* libtool automagically inserts this variable into your executable... */
+  extern const scm_lt_dlsymlist lt_preloaded_symbols[];
+  scm_lt_dlpreload_default (lt_preloaded_symbols);
 #endif
   scm_boot_guile (argc, argv, inner_main, 0);
   return 0; /* never reached */
