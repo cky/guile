@@ -1,3 +1,8 @@
+2001-07-26  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* eval.c (scm_ceval, scm_deval): Use "RETURN" macro when returning
+	value of a variable, not the plain "return" statement.
+
 2001-07-25  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* eval.c: Allow variables in memoized code (in addition to glocs).
