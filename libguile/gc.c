@@ -280,7 +280,7 @@ typedef struct scm_heap_seg_data_t
      All segments usually point to the same one, scm_freelist.  */
   scm_freelist_t *freelist;
 
-  /* number of SCM words per object in this segment */
+  /* number of cells per object in this segment */
   int span;
 
   /* If SEG_DATA->valid is non-zero, the conservative marking

@@ -1,3 +1,7 @@
+2000-05-23  Michael Livshin  <mlivshin@bigfoot.com>
+
+	* gc.c (scm_heap_seg_data_t): fixed comment for the `span' member.
+
 2000-05-22  Michael Livshin  <mlivshin@bigfoot.com>
 
 	* guile-doc-snarf.in: put the preprocessed file through sed to
