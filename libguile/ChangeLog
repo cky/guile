@@ -1,3 +1,17 @@
+Sun Dec 12 12:31:38 1999  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* *.c: Finish replacing K&R style prototypes with ANSI C
+	prototypes.
+
+	* eval.c: Make scm_m_mody's 3rd argument be a const char *, not a
+	char *.  ANSI prototypes caught this.
+
+	* strorder.c: Use GUILE_PROC1 for the couple SCM_PROC1 expansions
+	that I missed.
+
+	* scm_validate.h: Use SCM_BOOLP for validating bools.  Do not
+	expand macros if SCM_DOCSTRING_SNARF.
+
 Sun Dec 12 11:23:22 1999  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* *.c, srcprop.h: Use SCM_BOOL(f) instead of (f? SCM_BOOL_T:
