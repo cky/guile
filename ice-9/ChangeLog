@@ -1,3 +1,8 @@
+2001-06-27  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* common-list.scm (member-if): Put in docstring for member-if, it
+	was a cut-n-paste error previously.
+
 2001-06-26  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* debug.scm (trace): Set evaluator trap options to handle tracing.
