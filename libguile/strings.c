@@ -986,7 +986,7 @@ scm_i_get_substring_spec (size_t len,
 */
 
 int
-SCM_STRINGP (SCM str)
+scm_i_deprecated_stringp (SCM str)
 {
   scm_c_issue_deprecation_warning
     ("SCM_STRINGP is deprecated.  Use scm_is_string instead.");
@@ -995,7 +995,7 @@ SCM_STRINGP (SCM str)
 }
 
 char *
-SCM_STRING_CHARS (SCM str)
+scm_i_deprecated_string_chars (SCM str)
 {
   char *chars;
 
@@ -1027,7 +1027,7 @@ SCM_STRING_CHARS (SCM str)
 }
 
 size_t
-SCM_STRING_LENGTH (SCM str)
+scm_i_deprecated_string_length (SCM str)
 {
   scm_c_issue_deprecation_warning
     ("SCM_STRING_LENGTH is deprecated.  Use scm_c_string_length instead.");

@@ -1108,7 +1108,7 @@ SCM_DEFINE (scm_gentemp, "gentemp", 0, 2, 0,
 #undef FUNC_NAME
 
 SCM
-SCM_MAKINUM (scm_t_signed_bits val)
+scm_i_makinum (scm_t_signed_bits val)
 {
   scm_c_issue_deprecation_warning
     ("SCM_MAKINUM is deprecated.  Use scm_from_int or similar instead.");
@@ -1116,7 +1116,7 @@ SCM_MAKINUM (scm_t_signed_bits val)
 }
 
 int
-SCM_INUMP (SCM obj)
+scm_i_inump (SCM obj)
 {
   scm_c_issue_deprecation_warning
     ("SCM_INUMP is deprecated.  Use scm_is_integer or similar instead.");
@@ -1124,7 +1124,7 @@ SCM_INUMP (SCM obj)
 }
 
 scm_t_signed_bits
-SCM_INUM (SCM obj)
+scm_i_inum (SCM obj)
 {
   scm_c_issue_deprecation_warning
     ("SCM_INUM is deprecated.  Use scm_to_int or similar instead.");
@@ -1205,7 +1205,7 @@ scm_round (double x)
 }
 
 char *
-SCM_SYMBOL_CHARS (SCM sym)
+scm_i_deprecated_symbol_chars (SCM sym)
 {
   scm_c_issue_deprecation_warning
     ("SCM_SYMBOL_CHARS is deprecated.  Use scm_symbol_to_string.");
@@ -1214,7 +1214,7 @@ SCM_SYMBOL_CHARS (SCM sym)
 }
 
 size_t
-SCM_SYMBOL_LENGTH (SCM sym)
+scm_i_deprecated_symbol_length (SCM sym)
 {
   scm_c_issue_deprecation_warning
     ("SCM_SYMBOL_LENGTH is deprecated.  Use scm_symbol_to_string.");
@@ -1222,7 +1222,7 @@ SCM_SYMBOL_LENGTH (SCM sym)
 }
 
 int
-SCM_KEYWORDP (SCM obj)
+scm_i_keywordp (SCM obj)
 {
   scm_c_issue_deprecation_warning
     ("SCM_KEYWORDP is deprecated.  Use scm_is_keyword instead.");
@@ -1230,7 +1230,7 @@ SCM_KEYWORDP (SCM obj)
 }
 
 SCM
-SCM_KEYWORDSYM (SCM keyword)
+scm_i_keywordsym (SCM keyword)
 {
   scm_c_issue_deprecation_warning
     ("SCM_KEYWORDSYM is deprecated.  See scm_keyword_to_symbol instead.");
@@ -1238,7 +1238,7 @@ SCM_KEYWORDSYM (SCM keyword)
 }
 
 int
-SCM_VECTORP (SCM x)
+scm_i_vectorp (SCM x)
 {
   scm_c_issue_deprecation_warning
     ("SCM_VECTORP is deprecated.  Use scm_is_vector instead.");
@@ -1246,7 +1246,7 @@ SCM_VECTORP (SCM x)
 }
 
 unsigned long
-SCM_VECTOR_LENGTH (SCM x)
+scm_i_vector_length (SCM x)
 {
   scm_c_issue_deprecation_warning
     ("SCM_VECTOR_LENGTH is deprecated.  Use scm_c_vector_length instead.");
@@ -1254,7 +1254,7 @@ SCM_VECTOR_LENGTH (SCM x)
 }
 
 const SCM *
-SCM_VELTS (SCM x)
+scm_i_velts (SCM x)
 {
   scm_c_issue_deprecation_warning
     ("SCM_VELTS is deprecated.  Use scm_vector_elements instead.");
@@ -1262,7 +1262,7 @@ SCM_VELTS (SCM x)
 }
 
 SCM *
-SCM_WRITABLE_VELTS (SCM x)
+scm_i_writable_velts (SCM x)
 {
   scm_c_issue_deprecation_warning
     ("SCM_WRITABLE_VELTS is deprecated.  "
@@ -1271,7 +1271,7 @@ SCM_WRITABLE_VELTS (SCM x)
 }
 
 SCM
-SCM_VECTOR_REF (SCM x, size_t idx)
+scm_i_vector_ref (SCM x, size_t idx)
 {
   scm_c_issue_deprecation_warning
     ("SCM_VECTOR_REF is deprecated.  "
@@ -1280,7 +1280,7 @@ SCM_VECTOR_REF (SCM x, size_t idx)
 }
 
 void
-SCM_VECTOR_SET (SCM x, size_t idx, SCM val)
+scm_i_vector_set (SCM x, size_t idx, SCM val)
 {
   scm_c_issue_deprecation_warning
     ("SCM_VECTOR_SET is deprecated.  "
@@ -1298,7 +1298,7 @@ scm_vector_equal_p (SCM x, SCM y)
 }
 
 int
-SCM_ARRAYP (SCM a)
+scm_i_arrayp (SCM a)
 {
   scm_c_issue_deprecation_warning
     ("SCM_ARRAYP is deprecated.  Use scm_is_array instead.");
@@ -1306,7 +1306,7 @@ SCM_ARRAYP (SCM a)
 }
 
 size_t
-SCM_ARRAY_NDIM (SCM a)
+scm_i_array_ndim (SCM a)
 {
   scm_c_issue_deprecation_warning
     ("SCM_ARRAY_NDIM is deprecated.  "
@@ -1315,7 +1315,7 @@ SCM_ARRAY_NDIM (SCM a)
 }
 
 int
-SCM_ARRAY_CONTP (SCM a)
+scm_i_array_contp (SCM a)
 {
   scm_c_issue_deprecation_warning
     ("SCM_ARRAY_CONTP is deprecated.  Do not use it.");
@@ -1323,7 +1323,7 @@ SCM_ARRAY_CONTP (SCM a)
 }
 
 scm_t_array *
-SCM_ARRAY_MEM (SCM a)
+scm_i_array_mem (SCM a)
 {
   scm_c_issue_deprecation_warning
     ("SCM_ARRAY_MEM is deprecated.  Do not use it.");
@@ -1331,7 +1331,7 @@ SCM_ARRAY_MEM (SCM a)
 }
 
 SCM
-SCM_ARRAY_V (SCM a)
+scm_i_array_v (SCM a)
 {
   /* We could use scm_shared_array_root here, but it is better to move
      them away from expecting vectors as the basic storage for arrays.
@@ -1342,7 +1342,7 @@ SCM_ARRAY_V (SCM a)
 }
 
 size_t
-SCM_ARRAY_BASE (SCM a)
+scm_i_array_base (SCM a)
 {
   scm_c_issue_deprecation_warning
     ("SCM_ARRAY_BASE is deprecated.  Do not use it.");
@@ -1350,7 +1350,7 @@ SCM_ARRAY_BASE (SCM a)
 }
 
 scm_t_array_dim *
-SCM_ARRAY_DIMS (SCM a)
+scm_i_array_dims (SCM a)
 {
   scm_c_issue_deprecation_warning
     ("SCM_ARRAY_DIMS is deprecated.  Use scm_array_handle_dims instead.");

@@ -149,10 +149,14 @@ SCM_API void scm_i_get_substring_spec (size_t len,
 
 #if SCM_ENABLE_DEPRECATED
 
-SCM_API int SCM_STRINGP (SCM obj);
-SCM_API char *SCM_STRING_CHARS (SCM str);
-SCM_API size_t SCM_STRING_LENGTH (SCM str);
-#define SCM_STRING_UCHARS ((unsigned char *)SCM_STRING_CHARS (str))
+SCM_API int scm_i_deprecated_stringp (SCM obj);
+SCM_API char *scm_i_deprecated_string_chars (SCM str);
+SCM_API size_t scm_i_deprecated_string_length (SCM str);
+
+#define SCM_STRINGP(x)       scm_i_deprecated_stringp(x)
+#define SCM_STRING_CHARS(x)  scm_i_deprecated_string_chars(x)
+#define SCM_STRING_LENGTH(x) scm_i_deprecated_string_length(x)
+#define SCM_STRING_UCHARS    ((unsigned char *)SCM_STRING_CHARS (str))
 
 #endif
 

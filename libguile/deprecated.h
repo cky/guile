@@ -308,10 +308,14 @@ SCM_API SCM scm_gentemp (SCM prefix, SCM obarray);
 /* Users shouldn't know about INUMs.
  */
 
-SCM_API SCM SCM_MAKINUM (scm_t_signed_bits val);
-SCM_API int SCM_INUMP (SCM obj);
-#define SCM_NINUMP(x) (!SCM_INUMP(x))
-SCM_API scm_t_signed_bits SCM_INUM (SCM obj);
+SCM_API SCM scm_i_makinum (scm_t_signed_bits val);
+SCM_API int scm_i_inump (SCM obj);
+SCM_API scm_t_signed_bits scm_i_inum (SCM obj);
+
+#define SCM_MAKINUM(x)   scm_i_makinum(x)
+#define SCM_INUM(x)      scm_i_inum(x)
+#define SCM_INUMP(x)     scm_i_inump(x)
+#define SCM_NINUMP(x)    (!SCM_INUMP(x))
 
 #define SCM_VALIDATE_INUM(pos, k) SCM_MAKE_VALIDATE_MSG (pos, k, INUMP, "exact integer")
 
@@ -453,39 +457,59 @@ SCM_API double scm_round (double x);
    symbols directly.
 */
 
-SCM_API char *SCM_SYMBOL_CHARS (SCM sym);
-SCM_API size_t SCM_SYMBOL_LENGTH (SCM sym);
+SCM_API char *scm_i_deprecated_symbol_chars (SCM sym);
+SCM_API size_t scm_i_deprecated_symbol_length (SCM sym);
+
+#define SCM_SYMBOL_CHARS(x)  scm_i_deprecated_symbol_chars(x)
+#define SCM_SYMBOL_LENGTH(x) scm_i_deprecated_symbol_length(x)
 
 /* Deprecated because the macros used to evaluate the arguments more
    than once and because the symbol of a keyword now has no dash.
 */
 
-SCM_API int SCM_KEYWORDP (SCM obj);
-SCM_API SCM SCM_KEYWORDSYM (SCM keyword);
+SCM_API int scm_i_keywordp (SCM obj);
+SCM_API SCM scm_i_keywordsym (SCM keyword);
+
+#define SCM_KEYWORDP(x)   scm_i_keywordp(x)
+#define SCM_KEYWORDSYM(x) scm_i_keywordsym(x)
 
 /* Deprecated because we don't want to hand out unprotected pointers
    to arrays, vectors, etc. */
 
 #define SCM_VECTOR_MAX_LENGTH ((1L << 24) - 1)
 
-SCM_API int SCM_VECTORP (SCM x);
-SCM_API unsigned long SCM_VECTOR_LENGTH (SCM x);
-SCM_API const SCM *SCM_VELTS (SCM x);
-SCM_API SCM *SCM_WRITABLE_VELTS (SCM x);
-SCM_API SCM SCM_VECTOR_REF (SCM x, size_t idx);
-SCM_API void SCM_VECTOR_SET (SCM x, size_t idx, SCM val);
+SCM_API int scm_i_vectorp (SCM x);
+SCM_API unsigned long scm_i_vector_length (SCM x);
+SCM_API const SCM *scm_i_velts (SCM x);
+SCM_API SCM *scm_i_writable_velts (SCM x);
+SCM_API SCM scm_i_vector_ref (SCM x, size_t idx);
+SCM_API void scm_i_vector_set (SCM x, size_t idx, SCM val);
 SCM_API SCM scm_vector_equal_p (SCM x, SCM y);
+
+#define SCM_VECTORP(x)         scm_i_vectorp(x)
+#define SCM_VECTOR_LENGTH(x)   scm_i_vector_length(x)
+#define SCM_VELTS(x)           scm_i_velts(x)
+#define SCM_WRITABLE_VELTS(x)  scm_i_writable_velts(x)
+#define SCM_VECTOR_REF(x,y)    scm_i_vector_ref(x,y)
+#define SCM_VECTOR_SET(x,y,z)  scm_i_vector_set(x,y,z)
 
 typedef scm_i_t_array scm_t_array;
 
-SCM_API int SCM_ARRAYP (SCM a);
-SCM_API size_t SCM_ARRAY_NDIM (SCM a);
-SCM_API int SCM_ARRAY_CONTP (SCM a);
+SCM_API int scm_i_arrayp (SCM a);
+SCM_API size_t scm_i_array_ndim (SCM a);
+SCM_API int scm_i_array_contp (SCM a);
+SCM_API scm_t_array *scm_i_array_mem (SCM a);
+SCM_API SCM scm_i_array_v (SCM a);
+SCM_API size_t scm_i_array_base (SCM a);
+SCM_API scm_t_array_dim *scm_i_array_dims (SCM a);
 
-SCM_API scm_t_array *SCM_ARRAY_MEM (SCM a);
-SCM_API SCM SCM_ARRAY_V (SCM a);
-SCM_API size_t SCM_ARRAY_BASE (SCM a);
-SCM_API scm_t_array_dim *SCM_ARRAY_DIMS (SCM a);
+#define SCM_ARRAYP(a)      scm_i_arrayp(a)
+#define SCM_ARRAY_NDIM(a)  scm_i_array_ndim(a)
+#define SCM_ARRAY_CONTP(a) scm_i_array_contp(a)
+#define SCM_ARRAY_MEM(a)   scm_i_array_mem(a)
+#define SCM_ARRAY_V(a)     scm_i_array_v(a)
+#define SCM_ARRAY_BASE(a)  scm_i_array_base(a)
+#define SCM_ARRAY_DIMS(a)  scm_i_attay_dims(a)
 
 void scm_i_init_deprecated (void);
 
