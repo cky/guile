@@ -6,7 +6,6 @@
     from the appendix describing the debugger UI.  The intro
     should have a pointer to the UI appendix.
 
-@c docstring begin (texi-doc-string "guile" "display-error")
 @deffn primitive display-error stack port subr message args rest
 Display an error message to the output port @var{port}.
 @var{stack} is the saved stack for the error, @var{subr} is
@@ -17,14 +16,12 @@ the list @var{args} accordingly.  @var{rest} is currently
 ignored.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "display-application")
 @deffn primitive display-application frame [port [indent]]
 Display a procedure application @var{frame} to the output port
 @var{port}. @var{indent} specifies the indentation of the
 output.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "display-backtrace")
 @deffn primitive display-backtrace stack port [first [depth]]
 Display a backtrace to the output port @var{port}. @var{stack}
 is the stack to take the backtrace from, @var{first} specifies
@@ -33,13 +30,11 @@ to display. Both @var{first} and @var{depth} can be @code{#f},
 which means that default values will be used.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "backtrace")
 @deffn primitive backtrace
 Display a backtrace of the stack saved by the last error
 to the current output port.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "malloc-stats")
 @deffn primitive malloc-stats
 Return an alist ((@var{what} . @var{n}) ...) describing number
 of malloced objects.
@@ -48,119 +43,97 @@ of malloced objects.
 allocated.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "debug-options-interface")
 @deffn primitive debug-options-interface [setting]
 Option interface for the debug options. Instead of using
 this procedure directly, use the procedures @code{debug-enable},
 @code{debug-disable}, @code{debug-set!} and @var{debug-options}.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "with-traps")
 @deffn primitive with-traps thunk
 Call @var{thunk} with traps enabled.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "memoized?")
 @deffn primitive memoized? obj
 Return @code{#t} if @var{obj} is memoized.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "unmemoize")
 @deffn primitive unmemoize m
 Unmemoize the memoized expression @var{m},
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "memoized-environment")
 @deffn primitive memoized-environment m
 Return the environment of the memoized expression @var{m}.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "procedure-name")
 @deffn primitive procedure-name proc
 Return the name of the procedure @var{proc}
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "procedure-source")
 @deffn primitive procedure-source proc
 Return the source of the procedure @var{proc}.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "procedure-environment")
 @deffn primitive procedure-environment proc
 Return the environment of the procedure @var{proc}.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "debug-object?")
 @deffn primitive debug-object? obj
 Return @code{#t} if @var{obj} is a debug object.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "frame-arguments")
 @deffn primitive frame-arguments frame
 Return the arguments of @var{frame}.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "frame-evaluating-args?")
 @deffn primitive frame-evaluating-args? frame
 Return @code{#t} if @var{frame} contains evaluated arguments.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "frame-next")
 @deffn primitive frame-next frame
 Return the next frame of @var{frame}, or @code{#f} if
 @var{frame} is the last frame in its stack.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "frame-number")
 @deffn primitive frame-number frame
 Return the frame number of @var{frame}.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "frame-overflow?")
 @deffn primitive frame-overflow? frame
 Return @code{#t} if @var{frame} is an overflow frame.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "frame-previous")
 @deffn primitive frame-previous frame
 Return the previous frame of @var{frame}, or @code{#f} if
 @var{frame} is the first frame in its stack.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "frame-procedure")
 @deffn primitive frame-procedure frame
 Return the procedure for @var{frame}, or @code{#f} if no
 procedure is associated with @var{frame}.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "frame-procedure?")
 @deffn primitive frame-procedure? frame
 Return @code{#t} if a procedure is associated with @var{frame}.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "frame-real?")
 @deffn primitive frame-real? frame
 Return @code{#t} if @var{frame} is a real frame.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "frame-source")
 @deffn primitive frame-source frame
 Return the source of @var{frame}.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "frame?")
 @deffn primitive frame? obj
 Return @code{#t} if @var{obj} is a stack frame.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "last-stack-frame")
 @deffn primitive last-stack-frame obj
 Return a stack which consists of a single frame, which is the
 last stack frame for @var{obj}. @var{obj} must be either a
 debug object or a continuation.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "make-stack")
 @deffn primitive make-stack obj . args
 Create a new stack. If @var{obj} is @code{#t}, the current
 evaluation stack is used for creating the stack frames,
@@ -170,22 +143,18 @@ either a debug object or a continuation).
 resulting stack will be narrowed.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "stack-id")
 @deffn primitive stack-id stack
 Return the identifier given to @var{stack} by @code{start-stack}.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "stack-length")
 @deffn primitive stack-length stack
 Return the length of @var{stack}.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "stack-ref")
 @deffn primitive stack-ref stack i
 Return the @var{i}'th frame from @var{stack}.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "stack?")
 @deffn primitive stack? obj
 Return @code{#t} if @var{obj} is a calling stack.
 @end deffn

@@ -15,25 +15,21 @@
 [FIXME: this is pasted in from Tom Lord's original guile.texi and should
 be reviewed]
 
-@c docstring begin (texi-doc-string "guile" "gc")
 @deffn primitive gc
 Scans all of SCM objects and reclaims for further use those that are
 no longer accessible.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "gc-stats")
 @deffn primitive gc-stats
 Return an association list of statistics about Guile's current
 use of storage.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "object-address")
 @deffn primitive object-address obj
 Return an integer that for the lifetime of @var{obj} is uniquely
 returned by this function for @var{obj}
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "unhash-name")
 @deffn primitive unhash-name name
 Flushes the glocs for @var{name}, or all glocs if @var{name}
 is @code{#t}.
@@ -88,7 +84,6 @@ they constitute a doubly-weak table has to be used.
 @node Weak key hashes
 @subsection Weak key hashes
 
-@c docstring begin (texi-doc-string "guile" "make-weak-key-hash-table")
 @deffn primitive make-weak-key-hash-table size
 @deffnx primitive make-weak-value-hash-table size
 @deffnx primitive make-doubly-weak-hash-table size
@@ -99,7 +94,6 @@ You can modify weak hash tables in exactly the same way you
 would modify regular hash tables. (@pxref{Hash Tables})
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "weak-key-hash-table?")
 @deffn primitive weak-key-hash-table? obj
 @deffnx primitive weak-value-hash-table? obj
 @deffnx primitive doubly-weak-hash-table? obj
@@ -108,19 +102,15 @@ table. Note that a doubly weak hash table is neither a weak key
 nor a weak value hash table.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "make-weak-value-hash-table")
 @deffn primitive make-weak-value-hash-table k
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "weak-value-hash-table?")
 @deffn primitive weak-value-hash-table? x
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "make-doubly-weak-hash-table")
 @deffn primitive make-doubly-weak-hash-table k
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "doubly-weak-hash-table?")
 @deffn primitive doubly-weak-hash-table? x
 @end deffn
 
@@ -131,7 +121,6 @@ nor a weak value hash table.
 Weak vectors are mainly useful in Guile's implementation of weak hash
 tables.
 
-@c docstring begin (texi-doc-string "guile" "make-weak-vector")
 @deffn primitive make-weak-vector size [fill]
 Return a weak vector with @var{size} elements. If the optional
 argument @var{fill} is given, all entries in the vector will be
@@ -139,8 +128,6 @@ set to @var{fill}. The default value for @var{fill} is the
 empty list.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "weak-vector")
-@c docstring begin (texi-doc-string "guile" "list->weak-vector")
 @deffn primitive weak-vector . l
 @deffnx primitive list->weak-vector l
 Construct a weak vector from a list: @code{weak-vector} uses
@@ -149,7 +136,6 @@ its only argument @var{l} (a list) to construct a weak vector
 the same way @code{list->vector} would.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "weak-vector?")
 @deffn primitive weak-vector? obj
 Return @code{#t} if @var{obj} is a weak vector. Note that all
 weak hashes are also weak vectors.
@@ -159,7 +145,6 @@ weak hashes are also weak vectors.
 @node Guardians
 @section Guardians
 
-@c docstring begin (texi-doc-string "guile" "make-guardian")
 @deffn primitive make-guardian [greedy?]
 Create a new guardian.
 A guardian protects a set of objects from garbage collection,
@@ -207,29 +192,24 @@ Return @code{#t} if @var{guardian} has been destroyed, otherwise @code{#f}.
 @node Objects
 @chapter Objects
 
-@c docstring begin (texi-doc-string "guile" "entity?")
 @deffn primitive entity? obj
 Return @code{#t} if @var{obj} is an entity.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "operator?")
 @deffn primitive operator? obj
 Return @code{#t} if @var{obj} is an operator.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "set-object-procedure!")
 @deffn primitive set-object-procedure! obj proc
 Return the object procedure of @var{obj} to @var{proc}.
 @var{obj} must be either an entity or an operator.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "make-class-object")
 @deffn primitive make-class-object metaclass layout
 Create a new class object of class @var{metaclass}, with the
 slot layout specified by @var{layout}.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "make-subclass-object")
 @deffn primitive make-subclass-object class layout
 Create a subclass object of @var{class}, with the slot layout
 specified by @var{layout}.

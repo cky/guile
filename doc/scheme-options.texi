@@ -275,9 +275,6 @@ It is often useful to have site-specific information about the current
 Guile installation.  This chapter describes how to find out about
 Guile's configuration at run time.
 
-@c docstring begin (texi-doc-string "guile" "version")
-@c docstring begin (texi-doc-string "guile" "major-version")
-@c docstring begin (texi-doc-string "guile" "minor-version")
 @deffn primitive version
 @deffnx primitive major-version
 @deffnx primitive minor-version
@@ -299,26 +296,22 @@ interpreter and the ice-9 runtime have grown out of date with one
 another.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "%package-data-dir")
 @deffn primitive %package-data-dir
 Return the name of the directory where Scheme packages, modules and
 libraries are kept.  On most Unix systems, this will be
 @samp{/usr/local/share/guile}.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "%library-dir")
 @deffn primitive %library-dir
 Return the directory where the Guile Scheme library files are installed.
 E.g., may return "/usr/share/guile/1.3.5".
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "%site-dir")
 @deffn primitive %site-dir
 Return the directory where the Guile site files are installed.
 E.g., may return "/usr/share/guile/site".
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "parse-path")
 @deffn primitive parse-path path [tail]
 Parse @var{path}, which is expected to be a colon-separated
 string, into a list and return the resulting list with
@@ -326,7 +319,6 @@ string, into a list and return the resulting list with
 is returned.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "search-path")
 @deffn primitive search-path path filename [extensions]
 Search @var{path} for a directory containing a file named
 @var{filename}. The file must be readable, and not a directory.

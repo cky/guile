@@ -88,7 +88,6 @@ Instead of using @code{call-with-current-continuation}, the exception
 primitives documented here are implemented as built-ins that take
 advantage of the @emph{upward only} nature of exceptions.
 
-@c docstring begin (texi-doc-string "guile" "catch")
 @deffn primitive catch key thunk handler
 Invoke @var{thunk} in the dynamic context of @var{handler} for
 exceptions matching @var{key}.  If thunk throws to the symbol
@@ -106,7 +105,6 @@ If the key is @code{#t}, then a throw to @emph{any} symbol will
 match this call to @code{catch}.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "throw")
 @deffn primitive throw key . args
 Invoke the catch form matching @var{key}, passing @var{args} to the
 @var{handler}.
@@ -117,7 +115,6 @@ Invoke the catch form matching @var{key}, passing @var{args} to the
 If there is no handler at all, an error is signaled.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "lazy-catch")
 @deffn primitive lazy-catch key thunk handler
 This behaves exactly like @code{catch}, except that it does
 not unwind the stack (this is the major difference), and if
@@ -139,7 +136,6 @@ displaying @var{msg} and writing @var{args}.
 @end deffn
 @c end
 
-@c docstring begin (texi-doc-string "guile" "scm-error")
 @deffn primitive scm-error key subr message args data
 Raise an error with key @var{key}.  @var{subr} can be a string
 naming the procedure associated with the error, or @code{#f}.
@@ -156,7 +152,6 @@ should be a list containing the Unix signal number; otherwise
 it will usually be @code{#f}.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "strerror")
 @deffn primitive strerror err
 Return the Unix error message corresponding to @var{err}, which
 must be an integer value.
@@ -177,7 +172,6 @@ if an exception occurs then @code{#f} is returned instead.
 be reviewed]
 
 @rnindex dynamic-wind
-@c docstring begin (texi-doc-string "guile" "dynamic-wind")
 @deffn primitive dynamic-wind in_guard thunk out_guard
 All three arguments must be 0-argument procedures.
 @var{in_guard} is called, then @var{thunk}, then

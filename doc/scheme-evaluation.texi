@@ -52,7 +52,6 @@ loading and evaluating Scheme code at run time.
 @node Reader Extensions
 @subsection Reader Extensions
 
-@c docstring begin (texi-doc-string "guile" "read-hash-extend")
 @deffn primitive read-hash-extend chr proc
 Install the procedure @var{proc} for reading expressions
 starting with the character sequence @code{#} and @var{chr}.
@@ -66,7 +65,6 @@ returned will be the return value of @code{read}.
 @section Reading Scheme Code
 
 @rnindex read
-@c docstring begin (texi-doc-string "guile" "read")
 @deffn primitive read [port]
 Read an s-expression from the input port @var{port}, or from
 the current input port if @var{port} is not specified.
@@ -101,7 +99,6 @@ options and switches them on, @code{read-disable} switches them off.
 @code{read-set!} can be used to set an option to a specific value.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "read-options-interface")
 @deffn primitive read-options-interface [setting]
 Option interface for the read options. Instead of using
 this procedure directly, use the procedures @code{read-enable},
@@ -114,14 +111,12 @@ this procedure directly, use the procedures @code{read-enable},
 
 @rnindex eval
 @c ARGFIXME environment/environment specifier
-@c docstring begin (texi-doc-string "guile" "eval")
 @deffn primitive eval exp environment
 Evaluate @var{exp}, a list representing a Scheme expression, in the
 environment given by @var{environment specifier}.
 @end deffn
 
 @rnindex interaction-environment
-@c docstring begin (texi-doc-string "guile" "interaction-environment")
 @deffn primitive interaction-environment
 Return a specifier for the environment that contains
 implementation--defined bindings, typically a superset of those
@@ -130,7 +125,6 @@ return the environment in which the implementation would
 evaluate expressions dynamically typed by the user.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "eval-string")
 @deffn primitive eval-string string
 Evaluate @var{string} as the text representation of a Scheme
 form or forms, and return whatever value they produce.
@@ -138,7 +132,6 @@ Evaluation takes place in the environment returned by the
 procedure @code{interaction-environment}.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "apply:nconc2last")
 @deffn primitive apply:nconc2last lst
 Given a list (@var{arg1} @dots{} @var{args}), this function
 conses the @var{arg1} @dots{} arguments onto the front of
@@ -189,7 +182,6 @@ any code is loaded.  See documentation for @code{%load-hook} later in
 this section.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "primitive-load")
 @deffn primitive primitive-load filename
 Load the file named @var{filename} and evaluate its contents in
 the top-level environment. The load paths are not searched;
@@ -200,7 +192,6 @@ that will be called before any code is loaded.  See the
 documentation for @code{%load-hook} later in this section.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "primitive-load-path")
 @deffn primitive primitive-load-path filename
 Search @var{%load-path} for the file named @var{filename} and
 load it into the top-level environment.  If @var{filename} is a
@@ -208,7 +199,6 @@ relative pathname and is not found in the list of search paths,
 an error is signalled.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "%search-load-path")
 @deffn primitive %search-load-path filename
 Search @var{%load-path} for the file named @var{filename},
 which must be readable by the current user.  If @var{filename}
@@ -235,7 +225,6 @@ was passed to @code{primitive-load}.
 
 @end defvar
 
-@c docstring begin (texi-doc-string "guile" "current-load-port")
 @deffn primitive current-load-port
 Return the current-load-port.
 The load port is used internally by @code{primitive-load}.
@@ -254,14 +243,12 @@ list @code{("" ".scm")}.
 
 [delay]
 
-@c docstring begin (texi-doc-string "guile" "promise?")
 @deffn primitive promise? obj
 Return true if @var{obj} is a promise, i.e. a delayed computation
 (@pxref{Delayed evaluation,,,r4rs.info,The Revised^4 Report on Scheme}).
 @end deffn
 
 @rnindex force
-@c docstring begin (texi-doc-string "guile" "force")
 @deffn primitive force x
 If the promise @var{x} has not been computed yet, compute and
 return @var{x}, otherwise just return the previously computed
@@ -274,7 +261,6 @@ value.
 
 [the-environment]
 
-@c docstring begin (texi-doc-string "guile" "local-eval")
 @deffn primitive local-eval exp [env]
 Evaluate @var{exp} in its environment.  If @var{env} is supplied,
 it is the environment in which to evaluate @var{exp}.  Otherwise,
@@ -318,7 +304,6 @@ options and switches them on, @code{eval-disable} switches them off.
 @code{eval-set!} can be used to set an option to a specific value.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "eval-options-interface")
 @deffn primitive eval-options-interface [setting]
 Option interface for the evaluation options. Instead of using
 this procedure directly, use the procedures @code{eval-enable},
@@ -349,7 +334,6 @@ options and switches them on, @code{trap-disable} switches them off.
 @code{trap-set!} can be used to set an option to a specific value.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "evaluator-traps-interface")
 @deffn primitive evaluator-traps-interface [setting]
 Option interface for the evaluator trap options.
 @end deffn

@@ -1,3 +1,13 @@
+2001-04-09  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* deprecated.texi, posix.texi, scheme-binding.texi,
+	scheme-control.texi, scheme-data.texi, scheme-debug.texi,
+	scheme-evaluation.texi, scheme-io.texi, scheme-memory.texi,
+	scheme-modules.texi, scheme-options.texi, scheme-procedures.texi,
+	scheme-scheduling.texi, scheme-translation.texi,
+	scheme-utility.texi: Remove `@c docstring' comments, since they
+	aren't used any more by the docstring tracking utilities.
+
 2001-04-09  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* scheme-data.texi (Pairs): New data type and procedure

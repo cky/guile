@@ -26,7 +26,6 @@
 @section Querying variable bindings
 
 @c NJFIXME explain [env]
-@c docstring begin (texi-doc-string "guile" "defined?")
 @deffn primitive defined? sym [env]
 Return @code{#t} if @var{sym} is defined in the top-level environment.
 @end deffn

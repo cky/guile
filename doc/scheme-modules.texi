@@ -132,7 +132,6 @@ space use, and demonstrate how one would do Python's "from Tkinter
 import *" versus "import Tkinter".  Must also add something about paths
 and standards for contributed modules.]
 
-@c docstring begin (texi-doc-string "guile" "standard-eval-closure")
 @deffn primitive standard-eval-closure module
 Return an eval closure for the module @var{module}.
 @end deffn
@@ -182,7 +181,6 @@ written properly.
 Guile's dynamic linking functions make it relatively easy to write a
 module that incorporates code from third-party object code libraries.
 
-@c docstring begin (texi-doc-string "guile" "dynamic-link")
 @deffn primitive dynamic-link filename
 Open the dynamic library called @var{filename}.  A library
 handle representing the opened library is returned; this handle
@@ -190,13 +188,11 @@ should be used as the @var{dobj} argument to the following
 functions.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "dynamic-object?")
 @deffn primitive dynamic-object? obj
 Return @code{#t} if @var{obj} is a dynamic library handle, or @code{#f}
 otherwise.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "dynamic-unlink")
 @deffn primitive dynamic-unlink dobj
 Unlink the indicated object file from the application.  The
 argument @var{dobj} must have been obtained by a call to
@@ -204,7 +200,6 @@ argument @var{dobj} must have been obtained by a call to
 called on @var{dobj}, its content is no longer accessible.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "dynamic-func")
 @deffn primitive dynamic-func name dobj
 Search the dynamic object @var{dobj} for the C function
 indicated by the string @var{name} and return some Scheme
@@ -217,7 +212,6 @@ underscore in @var{function}.  Guile knows whether the underscore is
 needed or not and will add it when necessary.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "dynamic-call")
 @deffn primitive dynamic-call func dobj
 Call the C function indicated by @var{func} and @var{dobj}.
 The function is passed no arguments and its return value is
@@ -233,7 +227,6 @@ Interrupts are deferred while the C function is executing (with
 @code{SCM_DEFER_INTS}/@code{SCM_ALLOW_INTS}).
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "dynamic-args-call")
 @deffn primitive dynamic-args-call func dobj args
 Call the C function indicated by @var{func} and @var{dobj},
 just like @code{dynamic-call}, but pass it some arguments and
@@ -250,7 +243,6 @@ converted to a Scheme number and returned from the call to
 @code{dynamic-args-call}.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "c-registered-modules")
 @deffn primitive c-registered-modules
 Return a list of the object code modules that have been imported into
 the current Guile process.  Each element of the list is a pair whose
@@ -259,7 +251,6 @@ for that module's initializer function.  The name is the string that
 has been passed to scm_register_module_xxx.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "c-clear-registered-modules")
 @deffn primitive c-clear-registered-modules
 Destroy the list of modules registered with the current Guile process.
 The return value is unspecified.  @strong{Warning:} this function does

@@ -1,7 +1,6 @@
 @node Deprecated
 @chapter Deprecated
 
-@c docstring begin (texi-doc-string "guile" "tag")
 @deffn primitive tag x
 Return an integer corresponding to the type of X.  Deprecated.
 @end deffn

@@ -33,7 +33,6 @@ that simulate ports in software.  @dfn{Soft ports} and @dfn{string
 ports} are two interesting and powerful examples of this technique.
 
 @rnindex input-port?
-@c docstring begin (texi-doc-string "guile" "input-port?")
 @deffn primitive input-port? x
 Return @code{#t} if @var{x} is an input port, otherwise return
 @code{#f}.  Any object satisfying this predicate also satisfies
@@ -41,14 +40,12 @@ Return @code{#t} if @var{x} is an input port, otherwise return
 @end deffn
 
 @rnindex output-port?
-@c docstring begin (texi-doc-string "guile" "output-port?")
 @deffn primitive output-port? x
 Return @code{#t} if @var{x} is an output port, otherwise return
 @code{#f}.  Any object satisfying this predicate also satisfies
 @code{port?}.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "port?")
 @deffn primitive port? x
 Return a boolean indicating whether @var{x} is a port.
 Equivalent to @code{(or (input-port? @var{x}) (output-port?
@@ -62,14 +59,12 @@ Equivalent to @code{(or (input-port? @var{x}) (output-port?
 [Generic procedures for reading from ports.]
 
 @rnindex eof-object?
-@c docstring begin (texi-doc-string "guile" "eof-object?")
 @deffn primitive eof-object? x
 Return @code{#t} if @var{x} is an end-of-file object; otherwise
 return @code{#f}.
 @end deffn
 
 @rnindex char-ready?
-@c docstring begin (texi-doc-string "guile" "char-ready?")
 @deffn primitive char-ready? [port]
 Return @code{#t} if a character is ready on input @var{port}
 and return @code{#f} otherwise.  If @code{char-ready?} returns
@@ -87,7 +82,6 @@ interactive port that has no ready characters.}
 @end deffn
 
 @rnindex read-char?
-@c docstring begin (texi-doc-string "guile" "read-char")
 @deffn primitive read-char [port]
 Return the next character available from @var{port}, updating
 @var{port} to point to the following character.  If no more
@@ -95,7 +89,6 @@ characters are available, the end-of-file object is returned.
 @end deffn
 
 @rnindex peek-char?
-@c docstring begin (texi-doc-string "guile" "peek-char")
 @deffn primitive peek-char [port]
 Return the next character available from @var{port},
 @emph{without} updating @var{port} to point to the following
@@ -111,7 +104,6 @@ an interactive port will hang waiting for input whenever a call
 to @code{read-char} would have hung.}
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "unread-char")
 @deffn primitive unread-char cobj port
 Place @var{char} in @var{port} so that it will be read by the
 next read operation.  If called multiple times, the unread characters
@@ -119,7 +111,6 @@ will be read again in last-in first-out order.  If @var{port} is
 not supplied, the current input port is used.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "unread-string")
 @deffn primitive unread-string str port
 Place the string @var{str} in @var{port} so that its characters will be
 read in subsequent read operations.  If called multiple times, the
@@ -127,14 +118,11 @@ unread characters will be read again in last-in first-out order.  If
 @var{port} is not supplied, the current-input-port is used.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "drain-input")
 @deffn primitive drain-input port
 Drain @var{port}'s read buffers (including any pushed-back
 characters) and return the content as a single string.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "port-column")
-@c docstring begin (texi-doc-string "guile" "port-line")
 @deffn primitive port-column port
 @deffnx primitive port-line port
 Return the current column number or line number of @var{port},
@@ -147,8 +135,6 @@ because lines and column numbers traditionally start with 1, and that is
 what non-programmers will find most natural.)
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "set-port-column!")
-@c docstring begin (texi-doc-string "guile" "set-port-line!")
 @deffn primitive set-port-column! port column
 @deffnx primitive set-port-line! port line
 Set the current column or line number of @var{port}, using the
@@ -195,25 +181,21 @@ end-of-file check
 
 [Generic procedures for writing to ports.]
 
-@c docstring begin (texi-doc-string "guile" "get-print-state")
 @deffn primitive get-print-state port
 Return the print state of the port @var{port}. If @var{port}
 has no associated print state, @code{#f} is returned.
 @end deffn
 
 @rnindex newline
-@c docstring begin (texi-doc-string "guile" "newline")
 @deffn primitive newline [port]
 Send a newline to @var{port}.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "port-with-print-state")
 @deffn primitive port-with-print-state port pstate
 Create a new port which behaves like @var{port}, but with an
 included print state @var{pstate}.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "print-options-interface")
 @deffn primitive print-options-interface [setting]
 Option interface for the print options. Instead of using
 this procedure directly, use the procedures
@@ -221,7 +203,6 @@ this procedure directly, use the procedures
 and @code{print-options}.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "simple-format")
 @deffn primitive simple-format destination message . args
 Write @var{message} to @var{destination}, defaulting to
 the current output port.
@@ -237,13 +218,11 @@ containing the formatted text. Does not add a trailing newline.
 @end deffn
 
 @rnindex write-char
-@c docstring begin (texi-doc-string "guile" "write-char")
 @deffn primitive write-char chr [port]
 Send character @var{chr} to @var{port}.
 @end deffn
 
 @findex fflush
-@c docstring begin (texi-doc-string "guile" "force-output")
 @deffn primitive force-output [port]
 Flush the specified output port, or the current output port if @var{port}
 is omitted.  The current output buffer contents are passed to the
@@ -254,7 +233,6 @@ It has no effect on an unbuffered port.
 The return value is unspecified.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "flush-all-ports")
 @deffn primitive flush-all-ports
 Equivalent to calling @code{force-output} on
 all open output ports.  The return value is unspecified.
@@ -264,7 +242,6 @@ all open output ports.  The return value is unspecified.
 @node Closing
 @section Closing
 
-@c docstring begin (texi-doc-string "guile" "close-port")
 @deffn primitive close-port port
 Close the specified port object.  Return @code{#t} if it
 successfully closes a port or @code{#f} if it was already
@@ -275,7 +252,6 @@ descriptors.
 @end deffn
 
 @rnindex close-input-port
-@c docstring begin (texi-doc-string "guile" "close-input-port")
 @deffn primitive close-input-port port
 Close the specified input port object.  The routine has no effect if
 the file has already been closed.  An exception may be raised if an
@@ -286,7 +262,6 @@ which can close file descriptors.
 @end deffn
 
 @rnindex close-output-port
-@c docstring begin (texi-doc-string "guile" "close-output-port")
 @deffn primitive close-output-port port
 Close the specified output port object.  The routine has no effect if
 the file has already been closed.  An exception may be raised if an
@@ -296,7 +271,6 @@ See also @ref{Ports and File Descriptors, close}, for a procedure
 which can close file descriptors.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "port-closed?")
 @deffn primitive port-closed? port
 Return @code{#t} if @var{port} is closed or @code{#f} if it is
 open.
@@ -306,7 +280,6 @@ open.
 @node Random Access
 @section Random Access
 
-@c docstring begin (texi-doc-string "guile" "seek")
 @deffn primitive seek fd_port offset whence
 Sets the current position of @var{fd/port} to the integer
 @var{offset}, which is interpreted according to the value of
@@ -331,13 +304,11 @@ that the current position of a port can be obtained using:
 @end lisp
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "fseek")
 @deffn primitive fseek fd_port offset whence
 Obsolete.  Almost the same as @code{seek}, but the return value
 is unspecified.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "ftell")
 @deffn primitive ftell fd_port
 Return an integer representing the current position of
 @var{fd/port}, measured from the beginning.  Equivalent to:
@@ -348,7 +319,6 @@ Return an integer representing the current position of
 
 @findex truncate
 @findex ftruncate
-@c docstring begin (texi-doc-string "guile" "truncate-file")
 @deffn primitive truncate-file object [length]
 Truncates the object referred to by @var{object} to at most
 @var{length} bytes.  @var{object} can be a string containing a
@@ -435,7 +405,6 @@ NOTE: if the scsh module is loaded then @var{delims} must be an scsh
 char-set, not a string.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "write-line")
 @deffn primitive write-line obj [port]
 Display @var{obj} and a newline character to @var{port}.  If
 @var{port} is not specified, @code{(current-output-port)} is
@@ -450,7 +419,6 @@ Some of the abovementioned I/O functions rely on the following C
 primitives.  These will mainly be of interest to people hacking Guile
 internals.
 
-@c docstring begin (texi-doc-string "guile" "%read-delimited!")
 @deffn primitive %read-delimited! delims str gobble [port [start [end]]]
 Read characters from @var{port} into @var{str} until one of the
 characters in the @var{delims} string is encountered.  If
@@ -468,7 +436,6 @@ at the end of file, the delimiter returned is the
 a delimiter, this value is @code{#f}.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "%read-line")
 @deffn primitive %read-line [port]
 Read a newline-terminated line from @var{port}, allocating storage as
 necessary.  The newline terminator (if any) is removed from the string,
@@ -496,7 +463,6 @@ If omitted, @var{port} defaults to the current output port.
 @section Default Ports for Input, Output and Errors
 
 @rnindex current-input-port
-@c docstring begin (texi-doc-string "guile" "current-input-port")
 @deffn primitive current-input-port
 Return the current input port.  This is the default port used
 by many input procedures.  Initially, @code{current-input-port}
@@ -504,7 +470,6 @@ returns the @dfn{standard input} in Unix and C terminology.
 @end deffn
 
 @rnindex current-output-port
-@c docstring begin (texi-doc-string "guile" "current-output-port")
 @deffn primitive current-output-port
 Return the current output port.  This is the default port used
 by many output procedures.  Initially,
@@ -512,13 +477,11 @@ by many output procedures.  Initially,
 Unix and C terminology.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "current-error-port")
 @deffn primitive current-error-port
 Return the port to which errors and warnings should be sent (the
 @dfn{standard error} in Unix and C terminology).
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "set-current-input-port")
 @deffn primitive set-current-input-port port
 @deffnx primitive set-current-output-port port
 @deffnx primitive set-current-error-port port
@@ -527,12 +490,10 @@ Change the ports returned by @code{current-input-port},
 so that they use the supplied @var{port} for input or output.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "set-current-output-port")
 @deffn primitive set-current-output-port port
 Set the current default output port to PORT.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "set-current-error-port")
 @deffn primitive set-current-error-port port
 Set the current default error port to PORT.
 @end deffn
@@ -558,7 +519,6 @@ The following procedures are used to open file ports.
 See also @ref{Ports and File Descriptors, open}, for an interface
 to the Unix @code{open} system call.
 
-@c docstring begin (texi-doc-string "guile" "open-file")
 @deffn primitive open-file filename mode
 Open the file whose name is @var{filename}, and return a port
 representing that file.  The attributes of the port are
@@ -686,7 +646,6 @@ from the continuation of these procedures, their behavior is
 implementation dependent.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "port-mode")
 @deffn primitive port-mode port
 Returns the port modes associated with the open port @var{port}.  These
 will not necessarily be identical to the modes used when the port was
@@ -694,14 +653,12 @@ opened, since modes such as "append" which are used only during
 port creation are not retained.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "port-filename")
 @deffn primitive port-filename port
 Return the filename associated with @var{port}.  This function returns
 the strings "standard input", "standard output" and "standard error"
 when called on the current input, output and error ports respectively.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "set-port-filename!")
 @deffn primitive set-port-filename! port filename
 Change the filename associated with @var{port}, using the current input
 port if none is specified.  Note that this does not change the port's
@@ -720,14 +677,12 @@ Determine whether @var{obj} is a port that is related to a file.
 The following allow string ports to be opened by analogy to R4R*
 file port facilities:
 
-@c docstring begin (texi-doc-string "guile" "call-with-output-string")
 @deffn primitive call-with-output-string proc
 Calls the one-argument procedure @var{proc} with a newly created output
 port.  When the function returns, the string composed of the characters
 written into the port is returned.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "call-with-input-string")
 @deffn primitive call-with-input-string string proc
 Calls the one-argument procedure @var{proc} with a newly
 created input port from which @var{string}'s contents may be
@@ -748,7 +703,6 @@ port set temporarily to a string port opened on the specified
 @var{string}.  The value yielded by @var{thunk} is returned.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "open-input-string")
 @deffn primitive open-input-string str
 Take a string and return an input port that delivers characters
 from the string. The port can be closed by
@@ -756,7 +710,6 @@ from the string. The port can be closed by
 by the garbage collector if it becomes inaccessible.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "open-output-string")
 @deffn primitive open-output-string
 Return an output port that will accumulate characters for
 retrieval by @code{get-output-string}. The port can be closed
@@ -765,7 +718,6 @@ will be reclaimed by the garbage collector if it becomes
 inaccessible.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "get-output-string")
 @deffn primitive get-output-string port
 Given an output port created by @code{open-output-string},
 return a string consisting of the characters that have been
@@ -784,7 +736,6 @@ but trying to extract the file descriptor number will fail.
 A @dfn{soft-port} is a port based on a vector of procedures capable of
 accepting or delivering characters.  It allows emulation of I/O ports.
 
-@c docstring begin (texi-doc-string "guile" "make-soft-port")
 @deffn primitive make-soft-port pv modes
 Return a port capable of receiving or delivering characters as
 specified by the @var{modes} string (@pxref{File Ports,
@@ -831,7 +782,6 @@ For example:
 This kind of port causes any data to be discarded when written to, and
 always returns the end-of-file object when read from.
 
-@c docstring begin (texi-doc-string "guile" "%make-void-port")
 @deffn primitive %make-void-port mode
 Create and return a new void port.  A void port acts like
 /dev/null.  The @var{mode} argument

@@ -18,20 +18,17 @@ reviewed and largely reorganized.]
 @node Arbiters
 @section Arbiters
 
-@c docstring begin (texi-doc-string "guile" "make-arbiter")
 @deffn primitive make-arbiter name
 Return an object of type arbiter and name @var{name}. Its
 state is initially unlocked.  Arbiters are a way to achieve
 process synchronization.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "try-arbiter")
 @deffn primitive try-arbiter arb
 Return @code{#t} and lock the arbiter @var{arb} if the arbiter
 was unlocked. Otherwise, return @code{#f}.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "release-arbiter")
 @deffn primitive release-arbiter arb
 Return @code{#t} and unlock the arbiter @var{arb} if the
 arbiter was locked. Otherwise, return @code{#f}.
@@ -41,44 +38,36 @@ arbiter was locked. Otherwise, return @code{#f}.
 @node Asyncs
 @section Asyncs
 
-@c docstring begin (texi-doc-string "guile" "async")
 @deffn primitive async thunk
 Create a new async for the procedure @var{thunk}.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "system-async")
 @deffn primitive system-async thunk
 Create a new async for the procedure @var{thunk}.  Also
 add it to the system's list of active async objects.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "async-mark")
 @deffn primitive async-mark a
 Mark the async @var{a} for future execution.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "system-async-mark")
 @deffn primitive system-async-mark a
 Mark the async @var{a} for future execution.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "run-asyncs")
 @deffn primitive run-asyncs list_of_a
 Execute all thunks from the asyncs of the list @var{list_of_a}.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "noop")
 @deffn primitive noop . args
 Do nothing.  When called without arguments, return @code{#f},
 otherwise return the first argument.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "unmask-signals")
 @deffn primitive unmask-signals
 Unmask signals. The returned value is not specified.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "mask-signals")
 @deffn primitive mask-signals
 Mask signals. The returned value is not specified.
 @end deffn
@@ -104,7 +93,6 @@ dynamic root.  For example, if you want to apply a procedure, but to
 not allow that procedure to capture the current continuation, calling
 the procedure under a new dynamic root will do the job.
 
-@c docstring begin (texi-doc-string "guile" "call-with-dynamic-root")
 @deffn primitive call-with-dynamic-root thunk handler
 Evaluate @code{(thunk)} in a new dynamic context, returning its value.
 
@@ -151,7 +139,6 @@ be under a new dynamic root.)
 @end deffn
 
 
-@c docstring begin (texi-doc-string "guile" "dynamic-root")
 @deffn primitive dynamic-root
 Return an object representing the current dynamic root.
 
@@ -293,7 +280,6 @@ Higher level thread procedures are available by loading the
 @code{(ice-9 threads)} module.  These provide standardized
 thread creation and mutex interaction.
 
-@c docstring begin (texi-doc-string "guile" "%thread-handler")
 @deffn primitive %thread-handler tag args@dots{}
 
 This procedure is specified as the standard error-handler for
@@ -308,27 +294,23 @@ and signals are unmasked with @code{unmask-signals}.
 [FIXME: Why distinguish based on number of args?!  Cue voodoo music here.]
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "make-thread")
 @deffn macro make-thread proc [args@dots{}]
 Apply @var{proc} to @var{args} in a new thread formed by
 @code{call-with-new-thread} using @code{%thread-handler} as the error
 handler.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "begin-thread")
 @deffn macro begin-thread first [rest@dots{}]
 Evaluate forms @var{first} and @var{rest} in a new thread formed by
 @code{call-with-new-thread} using @code{%thread-handler} as the error
 handler.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "with-mutex")
 @deffn macro with-mutex m [body@dots{}]
 Lock mutex @var{m}, evaluate @var{body}, and then unlock @var{m}.
 These sub-operations form the branches of a @code{dynamic-wind}.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "monitor")
 @deffn macro monitor first [rest@dots{}]
 Evaluate forms @var{first} and @var{rest} under a newly created
 anonymous mutex, using @code{with-mutex}.
@@ -340,7 +322,6 @@ anonymous mutex, using @code{with-mutex}.
 @node Fluids
 @section Fluids
 
-@c docstring begin (texi-doc-string "guile" "make-fluid")
 @deffn primitive make-fluid
 Return a newly created fluid.
 Fluids are objects of a certain type (a smob) that can hold one SCM
@@ -351,25 +332,21 @@ inherits the values from its parent.  Because each thread executes
 in its own dynamic root, you can use fluids for thread local storage.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "fluid?")
 @deffn primitive fluid? obj
 Return @code{#t} iff @var{obj} is a fluid; otherwise, return
 @code{#f}.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "fluid-ref")
 @deffn primitive fluid-ref fluid
 Return the value associated with @var{fluid} in the current
 dynamic root.  If @var{fluid} has not been set, then return
 @code{#f}.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "fluid-set!")
 @deffn primitive fluid-set! fluid value
 Set the value associated with @var{fluid} in the current dynamic root.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "with-fluids*")
 @deffn primitive with-fluids* fluids values thunk
 Set @var{fluids} to @var{values} temporary, and call @var{thunk}.
 @var{fluids} must be a list of fluids and @var{values} must be the same

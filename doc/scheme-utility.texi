@@ -15,7 +15,6 @@
 @section Equality
 
 @rnindex eq?
-@c docstring begin (texi-doc-string "guile" "eq?")
 @deffn primitive eq? x y
 Return @code{#t} iff @var{x} references the same object as @var{y}.
 @code{eq?} is similar to @code{eqv?} except that in some cases it is
@@ -24,7 +23,6 @@ capable of discerning distinctions finer than those detectable by
 @end deffn
 
 @rnindex eqv?
-@c docstring begin (texi-doc-string "guile" "eqv?")
 @deffn primitive eqv? x y
 The @code{eqv?} procedure defines a useful equivalence relation on objects.
 Briefly, it returns @code{#t} if @var{x} and @var{y} should normally be
@@ -34,7 +32,6 @@ and inexact numbers.
 @end deffn
 
 @rnindex equal?
-@c docstring begin (texi-doc-string "guile" "equal?")
 @deffn primitive equal? x y
 Return @code{#t} iff @var{x} and @var{y} are recursively @code{eqv?} equivalent.
 @code{equal?} recursively compares the contents of pairs,
@@ -60,25 +57,21 @@ closures than for other kinds of objects.  Therefore, when manipulating
 a property list associated with a procedure object, use the
 @code{procedure} functions; otherwise, use the @code{object} functions.
 
-@c docstring begin (texi-doc-string "guile" "object-properties")
 @deffn primitive object-properties obj
 @deffnx primitive procedure-properties obj
 Return @var{obj}'s property list.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "set-object-properties!")
 @deffn primitive set-object-properties! obj alist
 @deffnx primitive set-procedure-properties! obj alist
 Set @var{obj}'s property list to @var{alist}.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "object-property")
 @deffn primitive object-property obj key
 @deffnx primitive procedure-property obj key
 Return the property of @var{obj} with name @var{key}.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "set-object-property!")
 @deffn primitive set-object-property! obj key value
 @deffnx primitive set-procedure-property! obj key value
 In @var{obj}'s property list, set the property named @var{key}
@@ -92,7 +85,6 @@ the user provides a "property table" that is possibly private.]
 @node Primitive Properties
 @section Primitive Properties
 
-@c docstring begin (texi-doc-string "guile" "primitive-make-property")
 @deffn primitive primitive-make-property not_found_proc
 Create a @dfn{property token} that can be used with
 @code{primitive-property-ref} and @code{primitive-property-set!}.
@@ -100,7 +92,6 @@ See @code{primitive-property-ref} for the significance of
 @var{not_found_proc}.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "primitive-property-ref")
 @deffn primitive primitive-property-ref prop obj
 Return the property @var{prop} of @var{obj}.  When no value
 has yet been associated with @var{prop} and @var{obj}, call
@@ -111,12 +102,10 @@ and use its return value.  That value is also associated with
 default value of @var{prop}.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "primitive-property-set!")
 @deffn primitive primitive-property-set! prop obj val
 Associate @var{code} with @var{prop} and @var{obj}.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "primitive-property-del!")
 @deffn primitive primitive-property-del! prop obj
 Remove any value associated with @var{prop} and @var{obj}.
 @end deffn
@@ -125,7 +114,6 @@ Remove any value associated with @var{prop} and @var{obj}.
 @node Sorting
 @section Sorting
 
-@c docstring begin (texi-doc-string "guile" "merge!")
 @deffn primitive merge! alist blist less
 Takes two lists @var{alist} and @var{blist} such that
 @code{(sorted? alist less?)} and @code{(sorted? blist less?)} and
@@ -136,11 +124,9 @@ This is the destructive variant of @code{merge}
 Note:  this does _not_ accept vectors.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "merge")
 @deffn primitive merge alist blist less
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "restricted-vector-sort!")
 @deffn primitive restricted-vector-sort! vec less startpos endpos
 Sort the vector @var{vec}, using @var{less} for comparing
 the vector elements.  @var{startpos} and @var{endpos} delimit
@@ -148,7 +134,6 @@ the range of the vector which gets sorted.  The return value
 is not specified.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "sort!")
 @deffn primitive sort! items less
 Sort the sequence @var{items}, which may be a list or a
 vector.  @var{less} is used for comparing the sequence
@@ -157,14 +142,12 @@ input sequence is modified to produce the sorted result.
 This is not a stable sort.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "sort")
 @deffn primitive sort items less
 Sort the sequence @var{items}, which may be a list or a
 vector.  @var{less} is used for comparing the sequence
 elements.  This is not a stable sort.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "sort-list!")
 @deffn primitive sort-list! items less
 Sort the list @var{items}, using @var{less} for comparing the
 list elements. The sorting is destructive, that means that the
@@ -172,20 +155,17 @@ input list is modified to produce the sorted result.
 This is a stable sort.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "sort-list")
 @deffn primitive sort-list items less
 Sort the list @var{items}, using @var{less} for comparing the
 list elements. This is a stable sort.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "sorted?")
 @deffn primitive sorted? items less
 Return @code{#t} iff @var{items} is a list or a vector such that
 for all 1 <= i <= m, the predicate @var{less} returns true when
 applied to all elements i - 1 and i
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "stable-sort!")
 @deffn primitive stable-sort! items less
 Sort the sequence @var{items}, which may be a list or a
 vector. @var{less} is used for comparing the sequence elements.
@@ -194,7 +174,6 @@ is modified to produce the sorted result.
 This is a stable sort.
 @end deffn
 
-@c docstring begin (texi-doc-string "guile" "stable-sort")
 @deffn primitive stable-sort items less
 Sort the sequence @var{items}, which may be a list or a
 vector. @var{less} is used for comparing the sequence elements.
@@ -205,7 +184,6 @@ This is a stable sort.
 @node Copying
 @section Copying Deep Structures
 
-@c docstring begin (texi-doc-string "guile" "copy-tree")
 @deffn primitive copy-tree obj
 Recursively copy the data tree that is bound to @var{obj}, and return a
 pointer to the new data structure.  @code{copy-tree} recurses down the
