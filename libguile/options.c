@@ -53,43 +53,116 @@
  * This is the basic interface for low-level configuration of the
  * Guile library.  It is used for configuring the reader, evaluator,
  * printer and debugger.
+ *
+ * Motivation:
+ *
+ * 1. Altering option settings can have side effects.
+ * 2. Option values can be stored in native format.
+ *    (Important for efficiency in, e. g., the evaluator.)
+ * 3. Doesn't use up name space.
+ * 4. Options can be naturally grouped => ease of use.
  */
+
+/* scm_options is the core of all options interface procedures.
+ *
+ * Some definitions:
+ *
+ * Run time options in Guile are arranged in groups.  Each group
+ * affects a certain aspect of the behaviour of the library.
+ *
+ * An "options interface procedure" manages one group of options.  It
+ * can be used to check or set options, or to get documentation for
+ * all options of a group.  The options interface procedure is not
+ * intended to be called directly by the user.  The user should
+ * instead call
+ *
+ *   (<group>-options)
+ *   (<group>-options 'help)
+ *   (<group>-options 'full)
+ *
+ * to display current option settings (The second version also
+ * displays documentation.  The third version also displays
+ * information about programmer's options.), and
+ *
+ *   (<group>-enable  '<option-symbol>)
+ *   (<group>-disable '<option-symbol>)
+ *   (<group>-set! <option-symbol> <value>)
+ *   (<group>-options <option setting>)
+ *
+ * to alter the state of an option  (The last version sets all
+ * options according to <option setting>.) where <group> is the name
+ * of the option group.
+ *
+ * An "option setting" represents the state of all low-level options
+ * managed by one options interface procedure.  It is a list of
+ * single symbols and symbols followed by a value.
+ *
+ * For boolean options, the presence of the symbol of that option in
+ * the option setting indicates a true value.  If the symbol isn't a
+ * member of the option setting list, this represents a false value.
+ *
+ * Other options are represented by a symbol followed by that options
+ * value.
+ *
+ * If scm_options is called without arguments, the current option
+ * setting is returned.  If the argument is an option setting, options
+ * are altered and the old setting is returned.  If the argument isn't
+ * a list, a list of sublists is returned, where each sublist contains
+ * option name, value and documentation string.
+ */
+
+SCM_SYMBOL (scm_yes_sym, "yes");
+SCM_SYMBOL (scm_no_sym, "no");
 
 #ifdef __STDC__
 SCM
-scm_change_options (SCM new_mode, scm_option options[], int n, char *s)
+scm_options (SCM new_mode, scm_option options[], int n, char *s)
 #else
 SCM
-scm_change_options (new_mode, options, n, s)
+scm_options (new_mode, options, n, s)
      SCM new_mode;
      scm_option options[];
      int n;
      char *s;
 #endif
 {
-  int i;
-  SCM old = SCM_EOL;
+  int i, docp = (!SCM_UNBNDP (new_mode)
+		 && (SCM_IMP (new_mode) || SCM_NCONSP (new_mode)));
+  SCM ans = SCM_EOL, ls;
   for (i = 0; i < n; ++i)
-    switch (options[i].type)
-      {
-      case SCM_OPTION_BOOLEAN:
-	if (options[i].val)
-	  old = scm_cons (options[i].sym, old);
-	break;
-      case SCM_OPTION_INTEGER:
-	old = scm_cons2 (options[i].sym,
-			 SCM_MAKINUM (options[i].val),
-			 old);
-      }
-  if (!SCM_UNBNDP (new_mode))
     {
-      int *flags;
-      flags = (int *) scm_must_malloc (n * sizeof (int), "mode buffer");
+      ls = docp ? scm_cons ((SCM) options[i].doc, SCM_EOL) : ans;
+      switch (options[i].type)
+	{
+	case SCM_OPTION_BOOLEAN:
+	  if (docp)
+	    ls = scm_cons ((int) options[i].val
+			   ? scm_yes_sym
+			   : scm_no_sym,
+			   ls);
+	  break;
+	case SCM_OPTION_INTEGER:
+	  ls = scm_cons (SCM_MAKINUM ((int) options[i].val), ls);
+	  break;
+	case SCM_OPTION_SCM:
+	  ls = scm_cons ((SCM) options[i].val, ls);
+	}
+      if (!((options[i].type == SCM_OPTION_BOOLEAN)
+	    && !docp
+	    && ! (int) options[i].val))
+	ls = scm_cons ((SCM) options[i].name, ls);
+      ans = docp ? scm_cons (ls, ans) : ls;
+    }
+  if (!(SCM_UNBNDP (new_mode) || docp))
+    {
+      unsigned long *flags;
+      flags = (unsigned long *) scm_must_malloc (n * sizeof (unsigned long),
+						 "mode buffer");
       for (i = 0; i < n; ++i)
 	if (options[i].type == SCM_OPTION_BOOLEAN)
 	  flags[i] = 0;
 	else
-	  flags[i] = options[i].val;
+	  flags[i] = (unsigned long) options[i].val;
       while (SCM_NNULLP (new_mode))
 	{
 	  SCM_ASSERT (SCM_NIMP (new_mode) && SCM_CONSP (new_mode),
@@ -97,7 +170,7 @@ scm_change_options (new_mode, options, n, s)
 		      SCM_ARG1,
 		      s);
 	  for (i = 0; i < n; ++i)
-	    if (SCM_CAR (new_mode) == options[i].sym)
+	    if (SCM_CAR (new_mode) == (SCM) options[i].name)
 	      switch (options[i].type)
 		{
 		case SCM_OPTION_BOOLEAN:
@@ -111,7 +184,11 @@ scm_change_options (new_mode, options, n, s)
 			      new_mode,
 			      SCM_ARG1,
 			      s);
-		  flags[i] = SCM_INUM (SCM_CAR (new_mode));
+		  flags[i] = (unsigned long) SCM_INUM (SCM_CAR (new_mode));
+		  goto cont;
+		case SCM_OPTION_SCM:
+		  new_mode = SCM_CDR (new_mode);
+		  flags[i] = SCM_CAR (new_mode);
 		  goto cont;
 		}
 #ifndef RECKLESS
@@ -124,7 +201,7 @@ scm_change_options (new_mode, options, n, s)
       for (i = 0; i < n; ++i) options[i].val = flags[i];
       scm_must_free ((char *) flags);
     }
-  return old;
+  return ans;
 }
 
 #ifdef __STDC__
@@ -141,7 +218,12 @@ scm_init_opts (func, options, n)
   int i;
 
   for (i = 0; i < n; ++i)
-    options[i].sym = SCM_CAR (scm_sysintern (options[i].name, SCM_UNDEFINED));
+    {
+      options[i].name =	(char *) SCM_CAR (scm_sysintern (options[i].name,
+							 SCM_UNDEFINED));
+      options[i].doc = (char *) scm_permanent_object (scm_take0str
+						      (options[i].doc));
+    }
   func (SCM_UNDEFINED);
 }
 
