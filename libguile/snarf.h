@@ -66,7 +66,8 @@
 #else
 #  define SCM_INSITU(X)
 #  define SCM_INIT(X) \
-%%%	X
+%%%	X \
+
 #endif
 
 #ifndef SCM_MAGIC_SNARFER
