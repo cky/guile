@@ -66,6 +66,7 @@
 
 #include "libguile/validate.h"
 #include "libguile/backtrace.h"
+#include "libguile/filesys.h"
 
 /* {Error reporting and backtraces}
  * (A first approximation.)
@@ -436,6 +437,88 @@ SCM_DEFINE (scm_display_application, "display-application", 1, 2, 0,
 }
 #undef FUNC_NAME
 
+SCM_SYMBOL (sym_base, "base");
+
+static void
+display_backtrace_get_file_line (SCM frame, SCM *file, SCM *line)
+{
+  SCM source = SCM_FRAME_SOURCE (frame);
+  *file = SCM_MEMOIZEDP (source) ? scm_source_property (source, scm_sym_filename) : SCM_BOOL_F;
+  *line = (SCM_MEMOIZEDP (source)) ? scm_source_property (source, scm_sym_line) : SCM_BOOL_F;
+}
+
+static void
+display_backtrace_file (frame, last_file, port, pstate)
+     SCM frame;
+     SCM *last_file;
+     SCM port;
+     scm_print_state *pstate;
+{
+  SCM file, line;
+
+  display_backtrace_get_file_line (frame, &file, &line);
+
+  if (file == *last_file)
+    return;
+
+  *last_file = file;
+
+  scm_puts ("In ", port);
+  if (file == SCM_BOOL_F)
+    if (line == SCM_BOOL_F)
+      scm_puts ("unknown file", port);
+    else
+      scm_puts ("current input", port);
+  else
+    {
+      pstate->writingp = 0;
+      scm_iprin1 (file, port, pstate);
+      pstate->writingp = 1;
+    }
+  scm_puts (":\n", port);
+}
+
+static void
+display_backtrace_file_and_line (SCM frame, SCM port, scm_print_state *pstate)
+{
+  SCM file, line;
+
+  display_backtrace_get_file_line (frame, &file, &line);
+
+  if (SCM_EQ_P (SCM_SHOW_FILE_NAME, sym_base))
+    {
+      if (file == SCM_BOOL_F)
+	{
+	  if (line == SCM_BOOL_F)
+	    scm_putc ('?', port);
+	  else
+	    scm_puts ("<stdin>", port);
+	}
+      else
+	{
+	  pstate -> writingp = 0;
+	  scm_iprin1 (SCM_STRINGP (file) ? scm_basename (file, SCM_UNDEFINED) : file,
+		      port, pstate);
+	  pstate -> writingp = 1;
+	}
+
+      scm_putc (':', port);
+    }
+  else if (line != SCM_BOOL_F)
+    {
+      int i, j=0;
+      for (i = SCM_INUM (line)+1; i > 0; i = i/10, j++)
+	;
+      indent (4-j, port);
+    }
+
+  if (line == SCM_BOOL_F)
+    scm_puts ("   ?", port);
+  else
+    scm_intprint (SCM_INUM (line) + 1, 10, port);
+  scm_puts (": ", port);
+}
+
 static void
 display_frame (SCM frame,int nfield,int indentation,SCM sport,SCM port,scm_print_state *pstate)
 {
@@ -447,6 +530,10 @@ display_frame (SCM frame,int nfield,int indentation,SCM sport,SCM port,scm_print
       indent (nfield + 1 + indentation, port);
       scm_puts ("...\n", port);
     }
+
+  /* display file name and line number */
+  if (SCM_NFALSEP (SCM_SHOW_FILE_NAME))
+    display_backtrace_file_and_line (frame, port, pstate);
 
   /* Check size of frame number. */
   n = SCM_FRAME_NUMBER (frame);
@@ -509,6 +596,7 @@ display_backtrace_body(struct display_backtrace_args *a)
   int n_frames, beg, end, n, i, j;
   int nfield, indent_p, indentation;
   SCM frame, sport, print_state;
+  SCM last_file;
   scm_print_state *pstate;
 
   a->port = SCM_COERCE_OUTPORT (a->port);
@@ -595,13 +683,17 @@ display_backtrace_body(struct display_backtrace_args *a)
   /* Print frames. */
   frame = scm_stack_ref (a->stack, SCM_MAKINUM (beg));
   indentation = 1;
-  display_frame (frame, nfield, indentation, sport, a->port, pstate);
-  for (i = 1; i < n; ++i)
+  last_file = SCM_UNDEFINED;
+  for (i = 0; i < n; ++i)
     {
+      if (!SCM_EQ_P (SCM_SHOW_FILE_NAME, sym_base))
+	display_backtrace_file (frame, &last_file, a->port, pstate);
+
+      display_frame (frame, nfield, indentation, sport, a->port, pstate);
       if (indent_p && SCM_FRAME_EVAL_ARGS_P (frame))
 	++indentation;
-      frame = SCM_BACKWARDS_P ? SCM_FRAME_PREV (frame) : SCM_FRAME_NEXT (frame);
-      display_frame (frame, nfield, indentation, sport, a->port, pstate);
+      frame = (SCM_BACKWARDS_P ? 
+	       SCM_FRAME_PREV (frame) : SCM_FRAME_NEXT (frame));
     }
 
   scm_remember_upto_here_1 (print_state);
