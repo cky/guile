@@ -1,3 +1,9 @@
+2004-07-05  Kevin Ryde  <user42@zip.com.au>
+
+	* configure.in (isinf, isnan): Detect macro versions as well as
+	functions, since C99 specifies them as macros and that's all HP-UX
+	has.  Reported by Andreas Voegele.
+
 2004-06-28  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* configure.in: Removed code for --enable-htmldoc; support for
