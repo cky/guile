@@ -145,7 +145,7 @@ typedef SCM  huge *SCMPTR;
 
 
 #ifdef DEBUG_FREELIST
-#define SCM_NEWCELL(_into) (scm_debug_newcell (&_into))
+#define SCM_NEWCELL(_into) (_into = scm_debug_newcell ())
 #else
 #define SCM_NEWCELL(_into) \
 	{ \

@@ -69,7 +69,7 @@ extern unsigned long scm_mallocated;
 extern unsigned long scm_mtrigger;
 
 #ifdef DEBUG_FREELIST
-extern void scm_debug_newcell (SCM *into);
+extern SCM scm_debug_newcell (void);
 #endif
 
 

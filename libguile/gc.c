@@ -291,9 +291,11 @@ scm_check_freelist ()
 }
 
 static int scm_debug_check_freelist = 0;
-void
-scm_debug_newcell (SCM *into)
+SCM
+scm_debug_newcell (void)
 {
+  SCM new;
+
   scm_newcell_count++;
   if (scm_debug_check_freelist)
     scm_check_freelist ();
@@ -301,13 +303,15 @@ scm_debug_newcell (SCM *into)
   /* The rest of this is supposed to be identical to the SCM_NEWCELL
      macro.  */
   if (SCM_IMP (scm_freelist))
-    *into = scm_gc_for_newcell ();
+    new = scm_gc_for_newcell ();
   else
     {
-      *into = scm_freelist;
+      new = scm_freelist;
       scm_freelist = SCM_CDR (scm_freelist);
       ++scm_cells_allocated;
     }
+
+  return new;
 }
 
 #endif /* DEBUG_FREELIST */
