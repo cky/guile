@@ -1,3 +1,15 @@
+Thu Jul 10 00:22:24 1997  Jim Blandy  <jimb@floss.red-bean.com>
+
+	* stime.c (scm_localtime, scm_mktime): Pass SCM_EOL to
+	scm_misc_error, not SCM_EOF.
+
+	* error.c (scm_wta): Pass SCM_EOL to scm_misc_error as the list of
+	arguments for formatting the error message, not SCM_BOOL_F.  I
+	think this is left over from the (eq? '() #f) days.
+
+	* read.c (recsexpr): Give this a dummy definition if
+	DEBUG_EXTENSIONS isn't #defined.
+
 Fri Jul  4 23:42:17 1997  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* coop-threads.c (scm_wait_condition_variable): Lock mutex again
