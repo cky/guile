@@ -290,6 +290,14 @@ output port.  Corresponds to the scheme level `write'.
 
 ** gh_list_length renamed to gh_length.
 
+** vector handling routines
+
+Several major changes.  In particular, gh_vector() now resembles
+(vector ...) (with a caveat -- see manual), and gh_make_vector() now
+exists and behaves like (make-vector ...).  gh_vref() and gh_vset()
+have been renamed gh_vector_set() and gh_vector_ref().  Some missing
+vector-related gh_ functions have been implemented.
+
 * Changes to the scm_ interface
 
 ** Function: SCM scm_internal_stack_catch (SCM tag,
