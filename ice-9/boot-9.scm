@@ -669,25 +669,56 @@
 
 
 ;; The default handler for built-in error types when
-;; thrown by their symbolic name.  The action is to 
-;; convert the error into a generic error, building
-;; a descriptive message for the error.
-;;
-(define (%%handle-system-error ignored desc proc . args)
-  (let* ((b (assoc desc %%system-errors))
-	 (msghead (cond
-		   (b (caddr b))
-		   ((or (symbol? desc) (string? desc))
-		    (string-append desc " "))
-		   (#t "Unknown error")))
-	 (msg (if (symbol? proc)
-		  (string-append msghead proc ":")
-		  msghead))
-	 (rest (if (and proc (not (symbol? proc)))
-		   (cons proc args)
-		   args))
-	 (fixed-args (cons msg rest)))
-    (apply error fixed-args)))
+;; thrown by their symbolic name.
+(define (%%handle-system-error key . arg-list)
+  (cond ((= (length arg-list) 4)
+	 (letrec ((subr (car arg-list))
+		  (message (cadr arg-list))
+		  (args (caddr arg-list))
+		  (rest (cadddr arg-list))
+		  (cep (current-error-port))
+		  (fill-message (lambda (message args)
+				  (let ((len (string-length message)))
+				    (cond ((< len 2)
+					   (display message cep))
+					  ((string=? (substring message 0 2)
+						     "%S")
+					   (display (car args) cep)
+					   (fill-message
+					    (substring message 2 len)
+					    (cdr args)))
+					  (else
+					   (display (substring message 0 2)
+						    cep)
+					   (fill-message
+					    (substring message 2 len)
+					    args)))))))
+	   (display "ERROR: " cep)
+	   (display subr cep)
+	   (display ": " cep)
+	   (fill-message message args)
+	   (newline cep)
+	   (force-output cep)
+	   (apply throw 'abort key arg-list)))
+	(else
+	 ;; old style errors.
+	 (let* ((desc (car arg-list))
+		(proc (cadr arg-list))
+		(args (cddr arg-list))
+		(b (assoc desc %%system-errors))
+		(msghead (cond
+			  (b (caddr b))
+			  ((or (symbol? desc) (string? desc))
+			   (string-append desc " "))
+			  (#t "Unknown error")))
+		(msg (if (symbol? proc)
+			 (string-append msghead proc ":")
+			 msghead))
+		(rest (if (and proc (not (symbol? proc)))
+			  (cons proc args)
+			  args))
+		(fixed-args (cons msg rest)))
+	   (apply error fixed-args)))))
 
 
 (set-symbol-property! '%%system-error

@@ -1,4 +1,17 @@
+Sat Sep  7 06:57:23 1996  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* error.c (scm_error): declare scm_error_callback.
+
+	* error.h: prototype for scm_error_callback.
+
+	* __scm.h: define lgh_error.
+ 	(SCM_SYSERROR): redefine using lgh_error.
+
 Thu Sep  5 22:40:06 1996  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* error.c (scm_error): new procedure.
+
+	* error.h: prototype for scm_error.
 
 	* Makefile.in (install): install scmconfig.h from the current
 	directory, not $(srcdir).

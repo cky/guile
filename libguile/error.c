@@ -191,7 +191,32 @@ scm_wta (arg, pos, s_subr)
   return SCM_UNSPECIFIED;
 }
 
+void (*scm_error_callback) () = 0;
 
+void
+scm_error (key, subr, message, args, rest)
+     SCM key;
+     char *subr;
+     char *message;
+     SCM args;
+     SCM rest;
+{
+  SCM arg_list;
+  if (scm_error_callback)
+    (*scm_error_callback) (key, subr, message, args, rest);
+
+  arg_list = scm_listify (scm_makfrom0str (subr),
+			  scm_makfrom0str (message),
+			  args,
+			  rest,
+			  SCM_UNDEFINED);
+  scm_ithrow (key, arg_list, 1);
+  
+  /* No return, but just in case: */
+
+  write (2, "unhandled system error", sizeof ("unhandled system error") - 1);
+  exit (1);
+}
 
 #ifdef __STDC__
 void

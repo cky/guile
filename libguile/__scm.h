@@ -296,9 +296,23 @@ extern unsigned int scm_async_clock;
           goto _label
 #endif
 
+#define lgh_error(_key, _subr, _message, _args, _rest) \
+	scm_error (_key, _subr, _message, _args, _rest)
+
 #define SCM_SYSERROR(_subr) \
-	scm_everr (SCM_UNDEFINED, SCM_EOL, SCM_UNDEFINED, \
-		   strerror (errno), _subr)
+	lgh_error (system_error_sym, \
+		   _subr, \
+		   "%S", \
+		   scm_listify (scm_makfrom0str (strerror (errno)), \
+				SCM_UNDEFINED), \
+		   scm_listify (SCM_MAKINUM (errno), SCM_UNDEFINED));
+
+/*
+  old version:
+  #define SCM_SYSERROR(_subr) \
+	  scm_everr (SCM_UNDEFINED, SCM_EOL, SCM_UNDEFINED, \
+	  strerror (errno), _subr)
+	  */
 
      /* equivalent to:
 	scm_throw (system_error_sym, \
