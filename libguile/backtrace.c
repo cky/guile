@@ -499,8 +499,12 @@ display_backtrace_file_and_line (SCM frame, SCM port, scm_print_state *pstate)
       else
 	{
 	  pstate -> writingp = 0;
+#ifdef HAVE_POSIX
 	  scm_iprin1 (SCM_STRINGP (file) ? scm_basename (file, SCM_UNDEFINED) : file,
 		      port, pstate);
+#else
+	  scm_iprin1 (file, port, pstate);
+#endif
 	  pstate -> writingp = 1;
 	}
 
