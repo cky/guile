@@ -64,6 +64,8 @@ In Guile, hooks are first class objects.
 Return a hook for hook functions which can take N_ARGS arguments.
 The default value for N_ARGS is 0.
 
+(See also scm_make_named_hook below.)
+
 *** New function: add-hook! HOOK PROC [APPEND_P]
 
 Put PROC at the beginning of the list of functions stored in HOOK.
@@ -1043,6 +1045,16 @@ pointer is NULL, a new array is malloced (the old behaviour).
 New functions.
 
 * Changes to the scm_ interface
+
+** Function: scm_make_named_hook (char* name, int n_args)
+
+Creates a hook in the same way as make-hook above but also
+binds a variable named NAME to it.
+
+This is the typical way of creating a hook from C code.
+
+Currently, the variable is created in the root module.  This will
+change when we get the new module system.
 
 ** The interfaces for using I/O ports and implementing port types
 (ptobs) have changed significantly.  The new interface is based on
