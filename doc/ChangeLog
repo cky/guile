@@ -1,3 +1,7 @@
+2001-03-09  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* data-rep.texi: Removed.
+
 2001-02-15  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* README: Explain retirement of `data-rep.texi'.
