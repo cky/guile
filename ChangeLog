@@ -1,3 +1,8 @@
+Wed Oct 16 07:32:14 1996  Mark Galassi  <rosalia@sarastro.lanl.gov>
+
+	* lgh: directory renamed to gh, along with all prefixes of the
+	high level library procedures.
+
 Thu Oct 10 14:37:43 1996  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* Makefile.in (TAGS tags): Find the source files in $srcdir. 
