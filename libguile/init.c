@@ -425,12 +425,12 @@ scm_boot_guile_1 (base, result, argc, argv, in, out, err, init_func, boot_cmd)
       scm_init_srcprop ();
 #endif
       scm_init_stackchk ();
+      scm_init_struct ();	/* Requires struct */
       scm_init_stacks ();
       scm_init_strports ();
       scm_init_symbols ();
       scm_init_tag ();
       scm_init_load ();
-      scm_init_struct ();
       scm_init_print ();	/* Requires struct */
       scm_init_read ();
       scm_init_sequences ();
