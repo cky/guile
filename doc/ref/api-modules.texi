@@ -584,11 +584,20 @@ String library (@pxref{SRFI-13}).
 @item (srfi srfi-14)
 Character-set library (@pxref{SRFI-14}).
 
+@item (srfi srfi-16)
+@code{case-lambda} procedures of variable arity (@pxref{SRFI-16}).
+
 @item (srfi srfi-17)
 Getter-with-setter support (@pxref{SRFI-17}).
 
+@item (srfi srfi-19)
+Time/Date library (@pxref{SRFI-19}).
+
 @item (srfi srfi-26)
 Convenient syntax for partial application (@pxref{SRFI-26})
+
+@item (srfi srfi-31)
+@code{rec} convenient recursive expressions (@pxref{SRFI-31})
 
 @item (ice-9 slib)
 This module contains hooks for using Aubrey Jaffer's portable Scheme
