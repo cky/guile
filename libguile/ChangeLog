@@ -1,3 +1,14 @@
+1998-10-16  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	* stime.c: The CPP hair to determine a value for CLKTCK is weird,
+	and is now broken under NetBSD.  I can't fathom what it's trying
+	to do, so I've replaced it with something that I do understand,
+	which seems to work, and which isn't broken on NetBSD.  "Progress?
+	You Decide."  (Thanks to Perry Metzger.)
+
+	* regex-posix.c (scm_regexp_exec): Add a cast to remove a
+	signed/unsigned comparison.
+
 1998-10-15  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	Warning fixes from Greg Harvey:
@@ -49,7 +60,7 @@
  	signed long in milliseconds is about 25 days.  (Thanks to Karl
  	Hegbloom.)
 
-	Don't redefine sleep and usleep.
+	Don't redefine sleep and usleep; fix this problem now.
 	* coop.c (sleep, usleep): Remove declarations; we don't use or
 	redefine these any more.
 	(scm_thread_usleep, scm_thread_sleep): New functions which do the
