@@ -27,4 +27,7 @@
 	      (string=? (version)
 			(string-append (major-version) "."
 				       (minor-version) "."
-				       (micro-version)))))
+				       (micro-version)))
+	      (string=? (effective-version)
+			(string-append (major-version) "."
+				       (minor-version)))))
