@@ -323,6 +323,7 @@ scm_wta (arg, pos, s_subr)
 void
 scm_init_error ()
 {
+#include "errnos.c"
 #include "error.x"
 }
 

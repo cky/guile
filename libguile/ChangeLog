@@ -1,3 +1,18 @@
+Mon Jan 13 03:47:04 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* Makefile.am (EXTRA_DIST): add errnos_cnvt.awk, errnos.default,
+	errnos_get.c.
+	Add a rule to generate errnos.c from errnos.
+	* error.c (scm_init_error): include errnos.c.
+	* errnos_cnvt.awk: new file, converts the list of errno codes to
+ 	C expressions.
+	* errnos_get.c: new file.
+	* errnos.default: new file, contains errnos to try if they can't
+ 	be extracted from errno.h.
+	* configure.in: if using GCC, try and extract errno codes from
+	errno.h.
+	Added AC_PROG_AWK.
+
 Sat Jan 11 14:47:00 1997  Marius Vollmer  <mvo@zagadka.ping.de>
 
  	* configure.in: Replaced AC_PROG_RANLIB with AM_PROG_LIBTOOL.
@@ -58,7 +73,7 @@ Tue Jan  7 15:04:06 1997  Mikael Djurfeldt  <mdj@kenneth>
 Mon Jan  6 20:39:08 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* socket.c (scm_recvfrom): allow buff_or_size to be a list containing
-	the buffer and start and end positions for SCSH networking
+	the buffer and start and end positions for scsh networking
 	implementation.
 
 Sun Jan  5 13:53:53 1997  Jim Blandy  <jimb@floss.cyclic.com>

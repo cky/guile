@@ -88,11 +88,15 @@ modinclude_DATA = scmconfig.h
 bin_SCRIPTS = guile-snarf
 
 EXTRA_DIST = gscm.c gscm.h ChangeLog-scm dynl-dl.c dynl-dld.c dynl-shl.c \
-dynl-vms.c DYNAMIC-LINKING PLUGIN/REQ PLUGIN/guile.config PLUGIN/guile.libs.in
+dynl-vms.c DYNAMIC-LINKING PLUGIN/REQ PLUGIN/guile.config \
+PLUGIN/guile.libs.in errnos_cnvt.awk errnos.default errnos_get.c
 
 SUFFIXES = .x
 
 MKDEP = gcc -M -MG $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
+
+CLEANFILES=errnos.c
+DISTCLEANFILES=errnos.list
 ACLOCAL = $(top_srcdir)/aclocal.m4
 CONFIG_HEADER_IN = scmconfig.h.in
 mkinstalldirs = $(SHELL) $(top_srcdir)/../mkinstalldirs
@@ -488,6 +492,9 @@ libpath.h: Makefile
 	./guile-snarf $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< > $@
 
 dynl.o dynl.lo: dynl.x
+
+errnos.c: errnos.list
+	$(AWK) -f $(srcdir)/errnos_cnvt.awk < errnos.list > errnos.c
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

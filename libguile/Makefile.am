@@ -44,7 +44,8 @@ modinclude_DATA = scmconfig.h
 bin_SCRIPTS = guile-snarf
 
 EXTRA_DIST = gscm.c gscm.h ChangeLog-scm dynl-dl.c dynl-dld.c dynl-shl.c \
-dynl-vms.c DYNAMIC-LINKING PLUGIN/REQ PLUGIN/guile.config PLUGIN/guile.libs.in
+dynl-vms.c DYNAMIC-LINKING PLUGIN/REQ PLUGIN/guile.config \
+PLUGIN/guile.libs.in errnos_cnvt.awk errnos.default errnos_get.c
 
 ## FIXME: shouldn't directly generate file; instead generate temp file
 ## and "mv".  Consider using timestamp file as well, to avoid
@@ -66,3 +67,9 @@ dynl.o dynl.lo: dynl.x
 
 ## Add -MG to make the .x magic work with auto-dep code.
 MKDEP = gcc -M -MG $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
+
+errnos.c: errnos.list
+	$(AWK) -f $(srcdir)/errnos_cnvt.awk < errnos.list > errnos.c
+
+CLEANFILES=errnos.c
+DISTCLEANFILES=errnos.list
