@@ -38,6 +38,7 @@ get the relevant SRFI documents from the SRFI home page
 * SRFI-26::                     Specializing parameters
 * SRFI-31::                     A special form `rec' for recursive evaluation
 * SRFI-39::                     Parameter objects
+* SRFI-55::                     Requiring Features.
 * SRFI-60::                     Integers as bits.
 @end menu
 
@@ -2378,6 +2379,34 @@ the originating context are copied, into new locations.
 SRFI-39 doesn't specify the interaction between parameter objects and
 threads, so the threading behaviour described here should be regarded
 as Guile-specific.
+
+
+@node SRFI-55
+@subsection SRFI-55 - Requiring Features
+@cindex SRFI-55
+
+SRFI-55 provides @code{require-extension} which is a portable
+mechanism to load selected SRFI modules.  This is implemented in the
+Guile core, there's no module needed to get SRFI-55 itself.
+
+@deffn {library syntax} require-extension clause@dots{}
+Require each of the given @var{clause} features, throwing an error if
+any are unavailable.
+
+A @var{clause} is of the form @code{(@var{identifier} arg...)}.  The
+only @var{identifier} currently supported is @code{srfi} and the
+arguments are SRFI numbers.  For example to get SRFI-1 and SRFI-6,
+
+@example
+(require-extension (srfi 1 6))
+@end example
+
+@code{require-extension} can only be used at the top-level.
+
+A Guile-specific program can simply @code{use-modules} to load SRFIs
+not already in the core, @code{require-extension} is for programs
+designed to be portable to other Scheme implementations.
+@end deffn
 
 
 @node SRFI-60
