@@ -66,7 +66,9 @@
 
 SCM_DEFINE (scm_nil_cons, "nil-cons", 2, 0, 0,
             (SCM x, SCM y),
-"")
+	    "Create a new cons cell with @var{x} as the car and @var{y} as\n"
+	    "the cdr, but convert @var{y} to Scheme's end-of-list if it is\n"
+	    "a LISP nil.")
 #define FUNC_NAME s_scm_nil_cons
 {
   register SCM z;
@@ -80,7 +82,8 @@ SCM_DEFINE (scm_nil_cons, "nil-cons", 2, 0, 0,
 
 SCM_DEFINE (scm_nil_car, "nil-car", 1, 0, 0, 
             (SCM x),
-"")
+	    "Return the car of @var{x}, but convert it to LISP nil if it\n"
+	    "is Scheme's end-of-list.")
 #define FUNC_NAME s_scm_nil_car
 {
   if (SCM_NILP (x))
@@ -92,7 +95,8 @@ SCM_DEFINE (scm_nil_car, "nil-car", 1, 0, 0,
 
 SCM_DEFINE (scm_nil_cdr, "nil-cdr", 1, 0, 0, 
             (SCM x),
-"")
+	    "Return the cdr of @var{x}, but convert it to LISP nil if it\n"
+	    "is Scheme's end-of-list.")
 #define FUNC_NAME s_scm_nil_cdr
 {
   if (SCM_NILP (x))
@@ -106,7 +110,8 @@ SCM_DEFINE (scm_nil_cdr, "nil-cdr", 1, 0, 0,
    Could use SCM_BOOL, below, otherwise */
 SCM_DEFINE (scm_null, "null", 1, 0, 0, 
             (SCM x),
-"")
+	    "Return LISP's @code{t} if @var{x} is nil in the LISP sense,\n"
+	    "return LISP's nil otherwise.")
 #define FUNC_NAME s_scm_null
 {
   return (SCM_NILP (x) || SCM_NULLP (x) || SCM_FALSEP (x)) ? scm_lisp_t : scm_lisp_nil;
@@ -134,7 +139,8 @@ scm_m_while (SCM exp, SCM env)
    Could use SCM_BOOL, below, otherwise */
 SCM_DEFINE1 (scm_nil_eq, "nil-eq", scm_tc7_rpsubr, 
              (SCM x, SCM y),
-"")
+	     "Compare @var{x} and @var{y} and return LISP's t if they are\n"
+	     "@code{eq?}, return LISP's nil otherwise.")
 #define FUNC_NAME s_scm_nil_eq
 {
   return ((SCM_EQ_P (x, y)
