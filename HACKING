@@ -4,9 +4,9 @@ Contributing Your Changes ============================================
 
 - If you have put together a change that meets the coding standards
 described below, we encourage you to submit it to Guile.  The best
-place to post it is guile@cygnus.com.  Please don't send it directly
-to me; I often don't have time to look things over.  If you have
-tested your change, then you don't need to be shy.
+place to post it is guile@sourceware.cygnus.com.  Please don't send it
+directly to me; I often don't have time to look things over.  If you
+have tested your change, then you don't need to be shy.
 
 - Please submit patches using either context or unified diffs (diff -c
 or diff -u).  Don't include a patch for ChangeLog; such patches don't
