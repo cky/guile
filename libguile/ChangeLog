@@ -1,3 +1,8 @@
+2000-11-12  Gary Houston  <ghouston@arglist.com>
+
+	* fports.c (scm_open_file): fix the 'b' option.  Thanks
+	to George Caswell.
+
 2000-11-09  Gary Houston  <ghouston@arglist.com>
 
 	* ports.c, ports.h (scm_close_all_ports_except): deprecated.

@@ -306,8 +306,12 @@ SCM_DEFINE (scm_open_file, "open-file", 2, 0, 0,
 	case '+':
 	  flags = (flags & ~(O_RDONLY | O_WRONLY)) | O_RDWR;
 	  break;
+	case 'b':
+#if defined (O_BINARY)
+	  flags |= O_BINARY;
+#endif
+	  break;
 	case '0':  /* unbuffered: handled later.  */
-	case 'b':  /* 'binary' mode: ignored.  */
 	case 'l':  /* line buffered: handled during output.  */
 	  break;
 	default:
