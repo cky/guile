@@ -1,3 +1,9 @@
+Wed Jan 12 00:06:53 2000  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* net_db.c (s_scm_inet_makeaddr): Use SCM_NUM2ULONG since that's
+	the way guile-1.3.4 worked, but #if 0 out the version using
+	SCM_VALIDATE_INUM_COPY for stricter testing.
+
 Tue Jan 11 18:24:18 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* guile-doc-snarf.in: Use new $fullfilename for running
