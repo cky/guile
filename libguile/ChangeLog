@@ -1,3 +1,9 @@
+2002-10-10  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* scmsigs.c (scm_sigaction_for_thread): Store original handler in
+	signal_handlers, not the closure that is used as the async.
+	The closure is stored in signal_handler_cells, as previously.
+	
 2002-10-10  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* root.h (scm_root_state): Added 'block_async' slot.
