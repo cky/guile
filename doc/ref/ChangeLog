@@ -1,3 +1,25 @@
+2003-09-13  Kevin Ryde  <user42@zip.com.au>
+
+	* posix.texi (File System): In stat:dev and stat:mode, clarify that
+	both are numbers.
+
+	* posix.texi (Network Address Conversion): Under IPv4, describe
+	numeric representation in Guile, add INADDR_LOOPBACK and
+	INADDR_BROADCAST, add commented-out INADDR_NONE.
+
+	* scheme-compound.texi (Append/Reverse): Merge reverse and reverse!,
+	describe newtail parameter for reverse!, remove confusing caveat about
+	head becoming tail for reverse!.
+
+	* scheme-io.texi (Reading): In port-column, port-line,
+	set-port-column! and set-port-line!, port parameter must be given,
+	there's no default to current input.
+
+	* scheme-io.texi (Reading): Add scm_c_read.
+	(Writing): Add scm_c_write.
+
+	* srfi-modules.texi (SRFI-1 Constructors): Add list-copy.
+
 2003-09-03  Kevin Ryde  <user42@zip.com.au>
 
 	* scheme-data.texi (Keyword Primitives): Add examples to
