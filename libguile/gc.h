@@ -29,6 +29,34 @@
 
 
 
+/* Cell allocation and garbage collection work rouhgly in the
+   following manner:
+
+   Each thread has a 'freelist', which is a list of available cells.
+   (It actually has two freelists, one for single cells and one for
+   double cells.  Everything works analogous for double cells.)
+
+   When a thread wants to allocate a cell and the freelist is empty,
+   it refers to a global list of unswept 'cards'.  A card is a small
+   block of cells that are contigous in memory, together with the
+   corresponding mark bits.  A unswept card is one where the mark bits
+   are set for cells that have been in use during the last global mark
+   phase, but the unmarked cells of the card have not been scanned and
+   freed yet.
+
+   The thread takes one of the unswept cards and sweeps it, thereby
+   building a new freelist that it then uses.  Sweeping a card will
+   call the smob free functions of unmarked cells, for example, and
+   thus, these free functions can run at any time, in any thread.
+
+   When there are no more unswept cards available, the thread performs
+   a global garbage collection.  For this, all other threads are
+   stopped.  A global mark is performed and all cards are put into the
+   global list of unswept cards.  Whennecessary, new cards are
+   allocated and initialized at this time.  The other threads are then
+   started again.
+*/
+
 typedef struct scm_t_cell
 {
   SCM word_0;
@@ -66,7 +94,7 @@ typedef struct scm_t_cell
 
 #define SCM_GC_CARD_N_HEADER_CELLS 1
 #define SCM_GC_CARD_N_CELLS        256
-#define SCM_GC_SIZEOF_CARD 		SCM_GC_CARD_N_CELLS * sizeof (scm_t_cell)
+#define SCM_GC_SIZEOF_CARD 	   SCM_GC_CARD_N_CELLS * sizeof (scm_t_cell)
 
 #define SCM_GC_CARD_BVEC(card)  ((scm_t_c_bvec_long *) ((card)->word_0))
 #define SCM_GC_SET_CARD_BVEC(card, bvec) \
@@ -187,6 +215,10 @@ typedef unsigned long scm_t_c_bvec_long;
 #define SCM_SET_CELL_OBJECT_2(x, v) SCM_SET_CELL_OBJECT ((x), 2, (v))
 #define SCM_SET_CELL_OBJECT_3(x, v) SCM_SET_CELL_OBJECT ((x), 3, (v))
 
+#define SCM_CELL_OBJECT_LOC(x, n) (SCM_VALIDATE_CELL((x), &SCM_GC_CELL_OBJECT ((x), (n))))
+#define SCM_CARLOC(x)             (SCM_CELL_OBJECT_LOC ((x), 0))
+#define SCM_CDRLOC(x)             (SCM_CELL_OBJECT_LOC ((x), 1))
+
 #define SCM_CELL_TYPE(x) SCM_CELL_WORD_0 (x)
 #define SCM_SET_CELL_TYPE(x, t) SCM_SET_CELL_WORD_0 ((x), (t))
 
@@ -195,26 +227,10 @@ typedef unsigned long scm_t_c_bvec_long;
  * the freelist.  Due to this structure, freelist cells are not cons cells
  * and thus may not be accessed using SCM_CAR and SCM_CDR.  */
 
-/*
-  SCM_FREECELL_P removed ; the semantics are ambiguous with lazy
-  sweeping. Could mean "this cell is no longer in use (will be swept)"
-  or "this cell has just been swept, and is not yet in use".
- */
-
-#define SCM_FREECELL_P  this_macro_has_been_removed_see_gc_header_file
-
 #define SCM_FREE_CELL_CDR(x) \
   (SCM_GC_CELL_OBJECT ((x), 1))
 #define SCM_SET_FREE_CELL_CDR(x, v) \
   (SCM_GC_SET_CELL_OBJECT ((x), 1, (v)))
-
-
-#define SCM_CELL_OBJECT_LOC(x, n) (SCM_VALIDATE_CELL((x), &SCM_GC_CELL_OBJECT ((x), (n))))
-#define SCM_CARLOC(x)             (SCM_CELL_OBJECT_LOC ((x), 0))
-#define SCM_CDRLOC(x)             (SCM_CELL_OBJECT_LOC ((x), 1))
-
-
-
 
 #if (SCM_DEBUG_CELL_ACCESSES == 1)
 /* Set this to != 0 if every cell that is accessed shall be checked:
@@ -227,10 +243,9 @@ void scm_i_expensive_validation_check (SCM cell);
 
 SCM_API scm_i_pthread_mutex_t scm_i_gc_admin_mutex;
 
-SCM_API int scm_block_gc;
-SCM_API int scm_gc_heap_lock;
-SCM_API unsigned int scm_gc_running_p;
+#define scm_gc_running_p (SCM_I_CURRENT_THREAD->gc_running_p)
 SCM_API scm_i_pthread_mutex_t scm_i_sweep_mutex;
+
 
 
 #if (SCM_ENABLE_DEPRECATED == 1)
@@ -305,7 +320,7 @@ SCM_API SCM scm_gc_live_object_stats (void);
 SCM_API SCM scm_gc (void);
 SCM_API void scm_gc_for_alloc (struct scm_t_cell_type_statistics *freelist);
 SCM_API SCM scm_gc_for_newcell (struct scm_t_cell_type_statistics *master, SCM *freelist);
-SCM_API void scm_igc (const char *what);
+SCM_API void scm_i_gc (const char *what);
 SCM_API void scm_gc_mark (SCM p);
 SCM_API void scm_gc_mark_dependencies (SCM p);
 SCM_API void scm_mark_locations (SCM_STACKITEM x[], unsigned long n);

@@ -89,7 +89,7 @@ scm_i_initialize_heap_segment_data (scm_t_heap_segment * segment, size_t request
   scm_t_cell *  memory = 0;
 
   /*
-    We use malloc to alloc the heap. On GNU libc this is 
+    We use calloc to alloc the heap. On GNU libc this is 
     equivalent to mmapping /dev/zero
    */
   SCM_SYSCALL (memory = (scm_t_cell * ) calloc (1, mem_needed));
@@ -320,7 +320,7 @@ SCM
 scm_i_sweep_some_segments (scm_t_cell_type_statistics * fl)
 {
   int i = fl->heap_segment_idx;
-  SCM collected =SCM_EOL;
+  SCM collected = SCM_EOL;
   
   if (i == -1)
     i++;
@@ -458,18 +458,10 @@ scm_i_find_heap_segment_containing_object (SCM obj)
   RETURN: the index of the segment.
  */
 int 
-scm_i_get_new_heap_segment (scm_t_cell_type_statistics *freelist, policy_on_error error_policy)
+scm_i_get_new_heap_segment (scm_t_cell_type_statistics *freelist,
+			    policy_on_error error_policy)
 {
   size_t len;
-
-  if (scm_gc_heap_lock)
-    {
-      /* Critical code sections (such as the garbage collector) aren't
-       * supposed to add heap segments.
-       */
-      fprintf (stderr, "scm_i_get_new_heap_segment: Can not extend locked heap.\n");
-      abort ();
-    }
 
   {
     /* Assure that the new segment is predicted to be large enough.

@@ -111,19 +111,22 @@ scm_realloc (void *mem, size_t size)
     return ptr;
 
   scm_i_scm_pthread_mutex_lock (&scm_i_sweep_mutex);
-  
+  scm_gc_running_p = 1;
+
   scm_i_sweep_all_segments ("realloc");
   
   SCM_SYSCALL (ptr = realloc (mem, size));
   if (ptr)
     { 
+      scm_gc_running_p = 0;
       scm_i_pthread_mutex_unlock (&scm_i_sweep_mutex);
       return ptr;
     }
 
-  scm_igc ("realloc");
+  scm_i_gc ("realloc");
   scm_i_sweep_all_segments ("realloc");
   
+  scm_gc_running_p = 0;
   scm_i_pthread_mutex_unlock (&scm_i_sweep_mutex);
   
   SCM_SYSCALL (ptr = realloc (mem, size));
@@ -219,9 +222,10 @@ increase_mtrigger (size_t size, const char *what)
       float yield;
       
       scm_i_scm_pthread_mutex_lock (&scm_i_sweep_mutex);
+      scm_gc_running_p = 1;
       
       prev_alloced  = mallocated;
-      scm_igc (what);
+      scm_i_gc (what);
       scm_i_sweep_all_segments ("mtrigger");
 
       yield = (((float) prev_alloced - (float) scm_mallocated)
@@ -262,7 +266,8 @@ increase_mtrigger (size_t size, const char *what)
 		   scm_mtrigger);
 #endif
 	}
-      
+
+      scm_gc_running_p = 0;
       scm_i_pthread_mutex_unlock (&scm_i_sweep_mutex);
     }
 }

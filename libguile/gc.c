@@ -67,13 +67,9 @@ extern unsigned long * __libc_ia64_register_backing_store_base;
 #include <unistd.h>
 #endif
 
-
-
-unsigned int scm_gc_running_p = 0;
-
 /* Lock this mutex before doing lazy sweeping.
  */
-scm_i_pthread_mutex_t scm_i_sweep_mutex = SCM_I_PTHREAD_RECURSIVE_MUTEX_INITIALIZER;
+scm_i_pthread_mutex_t scm_i_sweep_mutex = SCM_I_PTHREAD_MUTEX_INITIALIZER;
 
 /* Set this to != 0 if every cell that is accessed shall be checked:
  */
@@ -129,7 +125,7 @@ scm_i_expensive_validation_check (SCM cell)
       else
 	{
 	  counter = scm_debug_cells_gc_interval;
-	  scm_igc ("scm_assert_cell_valid");
+	  scm_gc ();
 	}
     }
 }
@@ -213,18 +209,6 @@ SCM_DEFINE (scm_set_debug_cell_accesses_x, "set-debug-cell-accesses!", 1, 0, 0,
  * is the number of bytes of malloc allocation needed to trigger gc.
  */
 unsigned long scm_mtrigger;
-
-/* scm_gc_heap_lock
- * If set, don't expand the heap.  Set only during gc, during which no allocation
- * is supposed to take place anyway.
- */
-int scm_gc_heap_lock = 0;
-
-/* GC Blocking
- * Don't pause for collection if this is set -- just
- * expand the heap.
- */
-int scm_block_gc = 1;
 
 /* During collection, this accumulates objects holding
  * weak references.
@@ -456,7 +440,12 @@ SCM_DEFINE (scm_gc, "gc", 0, 0, 0,
 	    "no longer accessible.")
 #define FUNC_NAME s_scm_gc
 {
-  scm_igc ("call");
+  scm_i_scm_pthread_mutex_lock (&scm_i_sweep_mutex);
+  scm_gc_running_p = 1;
+  scm_i_gc ("call");
+  scm_gc_running_p = 0;
+  scm_i_pthread_mutex_unlock (&scm_i_sweep_mutex);
+  scm_c_hook_run (&scm_after_gc_c_hook, 0);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -464,16 +453,18 @@ SCM_DEFINE (scm_gc, "gc", 0, 0, 0,
 
 
 
-/* When we get POSIX threads support, the master will be global and
- * common while the freelist will be individual for each thread.
+/* The master is global and common while the freelist will be
+ * individual for each thread.
  */
 
 SCM
 scm_gc_for_newcell (scm_t_cell_type_statistics *freelist, SCM *free_cells)
 {
   SCM cell;
+  int did_gc = 0;
  
   scm_i_scm_pthread_mutex_lock (&scm_i_sweep_mutex);
+  scm_gc_running_p = 1;
 
   *free_cells = scm_i_sweep_some_segments (freelist);
   if (*free_cells == SCM_EOL && scm_i_gc_grow_heap_p (freelist))
@@ -482,10 +473,10 @@ scm_gc_for_newcell (scm_t_cell_type_statistics *freelist, SCM *free_cells)
       *free_cells = scm_i_sweep_some_segments (freelist);
     }
 
-  if (*free_cells == SCM_EOL && !scm_block_gc)
+  if (*free_cells == SCM_EOL)
     {
       /*
-	with the advent of lazy sweep, GC yield is only know just
+	with the advent of lazy sweep, GC yield is only known just
 	before doing the GC.
       */
       scm_i_adjust_min_yield (freelist);
@@ -494,7 +485,8 @@ scm_gc_for_newcell (scm_t_cell_type_statistics *freelist, SCM *free_cells)
 	out of fresh cells. Try to get some new ones.
        */
 
-      scm_igc ("cells");
+      did_gc = 1;
+      scm_i_gc ("cells");
 
       *free_cells = scm_i_sweep_some_segments (freelist);
     }
@@ -515,7 +507,11 @@ scm_gc_for_newcell (scm_t_cell_type_statistics *freelist, SCM *free_cells)
 
   *free_cells = SCM_FREE_CELL_CDR (cell);
 
+  scm_gc_running_p = 0;
   scm_i_pthread_mutex_unlock (&scm_i_sweep_mutex);
+
+  if (did_gc)
+    scm_c_hook_run (&scm_after_gc_c_hook, 0);
 
   return cell;
 }
@@ -527,18 +523,14 @@ scm_t_c_hook scm_before_sweep_c_hook;
 scm_t_c_hook scm_after_sweep_c_hook;
 scm_t_c_hook scm_after_gc_c_hook;
 
+/* Must be called while holding scm_i_sweep_mutex.
+ */
+
 void
-scm_igc (const char *what)
+scm_i_gc (const char *what)
 {
-  if (scm_block_gc)
-    return;
-
-  scm_i_scm_pthread_mutex_lock (&scm_i_sweep_mutex);
-
-  /* During the critical section, only the current thread may run. */
   scm_i_thread_put_to_sleep ();
 
-  ++scm_gc_running_p;
   scm_c_hook_run (&scm_before_gc_c_hook, 0);
 
 #ifdef DEBUGINFO
@@ -552,22 +544,13 @@ scm_igc (const char *what)
 
   gc_start_stats (what);
 
-
-  
-  if (scm_gc_heap_lock)
-    /* We've invoked the collector while a GC is already in progress.
-       That should never happen.  */
-    abort ();
-
   /*
     Set freelists to NULL so scm_cons() always triggers gc, causing
-    the above abort() to be triggered.
+    the assertion above to fail.
   */
   *SCM_FREELIST_LOC (scm_i_freelist) = SCM_EOL;
   *SCM_FREELIST_LOC (scm_i_freelist2) = SCM_EOL;
   
-  ++scm_gc_heap_lock;
-
   /*
     Let's finish the sweep. The conservative GC might point into the
     garbage, and marking that would create a mess.
@@ -589,28 +572,17 @@ scm_igc (const char *what)
   scm_mallocated -= scm_i_deprecated_memory_return;
 
   
-  
-  scm_c_hook_run (&scm_before_mark_c_hook, 0);
+  /* Mark */
 
+  scm_c_hook_run (&scm_before_mark_c_hook, 0);
   scm_mark_all ();
-  
   scm_gc_mark_time_taken += (scm_c_get_internal_run_time () - t_before_gc);
 
-  scm_c_hook_run (&scm_before_sweep_c_hook, 0);
+  /* Sweep
 
-  /*
-    Moved this lock upwards so that we can alloc new heap at the end of a sweep.
-
-    DOCME: why should the heap be locked anyway?
-   */
-  --scm_gc_heap_lock;
-
-  scm_gc_sweep ();
-
-
-  /*
-    TODO: this hook should probably be moved to just before the mark,
-    since that's where the  sweep is finished in lazy sweeping.
+    TODO: the after_sweep hook should probably be moved to just before
+    the mark, since that's where the sweep is finished in lazy
+    sweeping.
 
     MDJ 030219 <djurfeldt@nada.kth.se>: No, probably not.  The
     original meaning implied at least two things: that it would be
@@ -631,17 +603,14 @@ scm_igc (const char *what)
     distinct classes of hook functions since this can prevent some
     bad interference when several modules adds gc hooks.
    */
+
+  scm_c_hook_run (&scm_before_sweep_c_hook, 0);
+  scm_gc_sweep ();
   scm_c_hook_run (&scm_after_sweep_c_hook, 0);
+
   gc_end_stats ();
 
-  --scm_gc_running_p;
   scm_i_thread_wake_up ();
-
-  /*
-    See above.
-   */
-  scm_i_pthread_mutex_unlock (&scm_i_sweep_mutex);
-  scm_c_hook_run (&scm_after_gc_c_hook, 0);
 
   /*
     For debugging purposes, you could do
@@ -789,7 +758,7 @@ scm_gc_unprotect_object (SCM obj)
       fprintf (stderr, "scm_unprotect_object called during GC.\n");
       abort ();
     }
-  
+ 
   handle = scm_hashq_get_handle (scm_protects, obj);
 
   if (scm_is_false (handle))
@@ -916,7 +885,6 @@ scm_init_storage ()
   j = SCM_NUM_PROTECTS;
   while (j)
     scm_sys_protects[--j] = SCM_BOOL_F;
-  scm_block_gc = 1;
 
   scm_gc_init_freelist();
   scm_gc_init_malloc ();
@@ -1046,8 +1014,6 @@ scm_gc_sweep (void)
    */
   scm_i_reset_segments ();
   
-  /* When we move to POSIX threads private freelists should probably
-     be GC-protected instead. */
   *SCM_FREELIST_LOC (scm_i_freelist) = SCM_EOL;
   *SCM_FREELIST_LOC (scm_i_freelist2) = SCM_EOL;
 
