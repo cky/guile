@@ -83,12 +83,28 @@
 %%%	C_NAME = scm_permanent_object (SCM_CAR (scm_intern0 (SCHEME_NAME)))
 #endif
 
+#ifndef SCM_MAGIC_SNARFER
+#define SCM_GLOBAL_SYMBOL(c_name, scheme_name) \
+	SCM c_name = SCM_BOOL_F
+#else
+#define SCM_GLOBAL_SYMBOL(C_NAME, SCHEME_NAME) \
+%%%	C_NAME = scm_permanent_object (SCM_CAR (scm_intern0 (SCHEME_NAME)))
+#endif
+
 
 #ifndef SCM_MAGIC_SNARFER
-#define SCM_GLOBAL(c_name, scheme_name) \
+#define SCM_VCELL(c_name, scheme_name) \
 	static SCM c_name = SCM_BOOL_F
 #else
-#define SCM_GLOBAL(C_NAME, SCHEME_NAME) \
+#define SCM_VCELL(C_NAME, SCHEME_NAME) \
+%%%	C_NAME = scm_permanent_object (scm_intern0 (SCHEME_NAME)); SCM_SETCDR (C_NAME, SCM_BOOL_F)
+#endif
+
+#ifndef SCM_MAGIC_SNARFER
+#define SCM_GLOBAL_VCELL(c_name, scheme_name) \
+	SCM c_name = SCM_BOOL_F
+#else
+#define SCM_GLOBAL_VCELL(C_NAME, SCHEME_NAME) \
 %%%	C_NAME = scm_permanent_object (scm_intern0 (SCHEME_NAME)); SCM_SETCDR (C_NAME, SCM_BOOL_F)
 #endif
 

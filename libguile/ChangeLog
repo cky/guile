@@ -1,3 +1,10 @@
+Fri Mar 21 23:49:28 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* snarf.h, backtrace.c: Name change SCM_GLOBAL --> SCM_VCELL.
+
+	* snarf.h: Added new macros SCM_GLOBAL_SYMBOL and SCM_GLOBAL_VCELL
+	which defines C variables with global linkage.
+
 Mon Mar 17 05:57:11 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* snarf.h (SCM_PROC1): Bugfix: Use (void) rather than (...) for

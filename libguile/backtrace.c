@@ -466,7 +466,7 @@ scm_display_backtrace (stack, port, first, depth)
   return SCM_UNSPECIFIED;
 }
 
-SCM_GLOBAL (scm_has_shown_backtrace_hint_p_var, "has-shown-backtrace-hint?");
+SCM_VCELL (scm_has_shown_backtrace_hint_p_var, "has-shown-backtrace-hint?");
 
 SCM_PROC(s_backtrace, "backtrace", 0, 0, 0, scm_backtrace);
 SCM
