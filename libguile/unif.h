@@ -98,7 +98,7 @@ extern scm_bits_t scm_tc16_array;
 #define SCM_ARRAY_MEM(a)  ((scm_array_t *) SCM_CELL_WORD_1 (a))
 #define SCM_ARRAY_V(a) 	  (SCM_ARRAY_MEM (a)->v)
 #define SCM_ARRAY_BASE(a) (SCM_ARRAY_MEM (a)->base)
-#define SCM_ARRAY_DIMS(a) ((scm_array_dim_t *)((char *) SCM_ARRAY_MEM (a) + sizeof (scm_array))) 
+#define SCM_ARRAY_DIMS(a) ((scm_array_dim_t *)((char *) SCM_ARRAY_MEM (a) + sizeof (scm_array_t))) 
 
 #define SCM_I_MAX_LENGTH  ((scm_ubits_t)((scm_bits_t)-1) >> 8)
 

@@ -1,3 +1,10 @@
+2001-05-24  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* unif.c (scm_make_ra, array_free), unif.h (SCM_ARRAY_DIMS):
+	Changed use of scm_array->scm_array_t and
+	scm_array_dim->scm_array_dim_t to enable build with
+	--disable-deprecated.
+
 2001-05-24  Michael Livshin  <mlivshin@bigfoot.com>
 
 	The purpose of this set of changes is to regularize Guile's usage

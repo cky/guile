@@ -546,7 +546,8 @@ scm_make_ra (int ndim)
   SCM_NEWCELL (ra);
   SCM_DEFER_INTS;
   SCM_NEWSMOB(ra, ((scm_bits_t) ndim << 17) + scm_tc16_array,
-              scm_must_malloc ((sizeof (scm_array) + ndim * sizeof (scm_array_dim)),
+              scm_must_malloc ((sizeof (scm_array_t) +
+				ndim * sizeof (scm_array_dim_t)),
 			       "array"));
   SCM_ARRAY_V (ra) = scm_nullvect;
   SCM_ALLOW_INTS;
@@ -2635,7 +2636,8 @@ static size_t
 array_free (SCM ptr)
 {
   scm_must_free (SCM_ARRAY_MEM (ptr));
-  return sizeof (scm_array) + SCM_ARRAY_NDIM (ptr) * sizeof (scm_array_dim);
+  return sizeof (scm_array_t) +
+    SCM_ARRAY_NDIM (ptr) * sizeof (scm_array_dim_t);
 }
 
 void
