@@ -167,7 +167,7 @@ scm_srcprops_to_plist (SCM obj)
 
 SCM_DEFINE (scm_source_properties, "source-properties", 1, 0, 0, 
             (SCM obj),
-"")
+	    "Return the source property association list of @var{obj}.")
 #define FUNC_NAME s_scm_source_properties
 {
   SCM p;
@@ -189,7 +189,8 @@ SCM_DEFINE (scm_source_properties, "source-properties", 1, 0, 0,
    and try to make a srcprops-object...? */
 SCM_DEFINE (scm_set_source_properties_x, "set-source-properties!", 2, 0, 0,
             (SCM obj, SCM plist),
-"")
+	    "Install the association list @var{plist} as the source property\n"
+	    "list for @var{obj}.")
 #define FUNC_NAME s_scm_set_source_properties_x
 {
   SCM handle;
@@ -208,7 +209,8 @@ SCM_DEFINE (scm_set_source_properties_x, "set-source-properties!", 2, 0, 0,
 
 SCM_DEFINE (scm_source_property, "source-property", 2, 0, 0,
             (SCM obj, SCM key),
-"")
+	    "Return the source property specified by @var{key} from\n"
+	    "@var{obj}'s source property list.")
 #define FUNC_NAME s_scm_source_property
 {
   SCM p;
@@ -240,7 +242,8 @@ SCM_DEFINE (scm_source_property, "source-property", 2, 0, 0,
 
 SCM_DEFINE (scm_set_source_property_x, "set-source-property!", 3, 0, 0,
             (SCM obj, SCM key, SCM datum),
-"")
+	    "Set the source property of object @var{obj}, which is specified by\n"
+	    "@var{key} to @var{datum}.  Normally, the key will be a symbol.")
 #define FUNC_NAME s_scm_set_source_property_x
 {
   scm_whash_handle h;

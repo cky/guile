@@ -144,7 +144,8 @@ SCM_DEFINE (scm_make_weak_key_hash_table, "make-weak-key-hash-table", 1, 0, 0,
 
 SCM_DEFINE (scm_make_weak_value_hash_table, "make-weak-value-hash-table", 1, 0, 0, 
             (SCM k),
-	    "")
+	    "Return a hash table with weak values with @var{size} buckets.\n"
+	    "(@pxref{Hash Tables})")
 #define FUNC_NAME s_scm_make_weak_value_hash_table
 {
   SCM v;
@@ -161,7 +162,8 @@ SCM_DEFINE (scm_make_weak_value_hash_table, "make-weak-value-hash-table", 1, 0, 
 
 SCM_DEFINE (scm_make_doubly_weak_hash_table, "make-doubly-weak-hash-table", 1, 0, 0, 
             (SCM k),
-	    "")
+	    "Return a hash table with weak keys and values with @var{size}\n"
+	    "buckets.  (@pxref{Hash Tables})")
 #define FUNC_NAME s_scm_make_doubly_weak_hash_table
 {
   SCM v;
@@ -190,7 +192,7 @@ SCM_DEFINE (scm_weak_key_hash_table_p, "weak-key-hash-table?", 1, 0, 0,
 
 SCM_DEFINE (scm_weak_value_hash_table_p, "weak-value-hash-table?", 1, 0, 0, 
             (SCM x),
-	    "")
+	    "Return @var{#t} if @var{x} is a weak value hash table.")
 #define FUNC_NAME s_scm_weak_value_hash_table_p
 {
   return SCM_BOOL(SCM_WVECTP (x) && SCM_IS_WHVEC_V(x));
@@ -200,7 +202,7 @@ SCM_DEFINE (scm_weak_value_hash_table_p, "weak-value-hash-table?", 1, 0, 0,
 
 SCM_DEFINE (scm_doubly_weak_hash_table_p, "doubly-weak-hash-table?", 1, 0, 0, 
             (SCM x),
-	    "")
+	    "Return @var{#t} if @var{x} is a doubly weak hash table.")
 #define FUNC_NAME s_scm_doubly_weak_hash_table_p
 {
   return SCM_BOOL(SCM_WVECTP (x) && SCM_IS_WHVEC_B (x));

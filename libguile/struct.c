@@ -513,8 +513,7 @@ SCM_DEFINE (scm_make_vtable_vtable, "make-vtable-vtable", 2, 0, 1,
 	    "(define (make-ball type owner) (make-struct type 0 owner))\n\n"
 	    "(define ball (make-ball green 'Nisse))\n"
 	    "ball @result{} #<a green ball owned by Nisse>\n"
-	    "@end example\n"
-	    "")
+	    "@end example\n")
 #define FUNC_NAME s_scm_make_vtable_vtable
 {
   SCM fields;
@@ -637,7 +636,9 @@ SCM_DEFINE (scm_struct_ref, "struct-ref", 2, 0, 0,
 
 SCM_DEFINE (scm_struct_set_x, "struct-set!", 3, 0, 0,
             (SCM handle, SCM pos, SCM val),
-	    "")
+	    "Set the slot of the structure @var{handle} with index @var{pos}\n"
+	    "to @var{val}.  Signal an error if the slot can not be written\n"
+	    "to.")
 #define FUNC_NAME s_scm_struct_set_x
 {
   scm_bits_t * data;
@@ -722,7 +723,7 @@ SCM_DEFINE (scm_struct_vtable, "struct-vtable", 1, 0, 0,
 
 SCM_DEFINE (scm_struct_vtable_tag, "struct-vtable-tag", 1, 0, 0, 
             (SCM handle),
-	    "")
+	    "Return the vtable tag of the structure @var{handle}.")
 #define FUNC_NAME s_scm_struct_vtable_tag
 {
   SCM_VALIDATE_VTABLE (1,handle);
@@ -761,7 +762,7 @@ scm_struct_create_handle (SCM obj)
 
 SCM_DEFINE (scm_struct_vtable_name, "struct-vtable-name", 1, 0, 0, 
             (SCM vtable),
-	    "")
+	    "Return the name of the vtable @var{vtable}.")
 #define FUNC_NAME s_scm_struct_vtable_name
 {
   SCM_VALIDATE_VTABLE (1,vtable);
@@ -771,7 +772,7 @@ SCM_DEFINE (scm_struct_vtable_name, "struct-vtable-name", 1, 0, 0,
 
 SCM_DEFINE (scm_set_struct_vtable_name_x, "set-struct-vtable-name!", 2, 0, 0, 
             (SCM vtable, SCM name),
-	    "")
+	    "Set the name of the vtable @var{vtable} to @var{name}.")
 #define FUNC_NAME s_scm_set_struct_vtable_name_x
 {
   SCM_VALIDATE_VTABLE (1,vtable);

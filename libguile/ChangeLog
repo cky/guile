@@ -1,3 +1,19 @@
+2001-01-29  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* struct.c (scm_make_vtable_vtable): Removed unnecessary "" from
+	end of docstring.
+
+	* struct.c (scm_struct_set_x, scm_struct_vtable_tag,
+	scm_struct_vtable_name, scm_set_struct_vtable_name_x), weaks.c
+	(scm_make_weak_value_hash_table, scm_make_doubly_weak_hash_table,
+	scm_weak_value_hash_table_p, scm_doubly_weak_hash_table_p),
+	srcprop.c (scm_source_properties, scm_set_source_properties_x,
+	scm_source_property, scm_set_source_property_x), sort.c
+	(scm_sort_list_x, scm_restricted_vector_sort_x, scm_sorted_p,
+	scm_merge, scm_merge_x, scm_sort_x, scm_sort, scm_stable_sort_x,
+	scm_stable_sort, scm_sort_list_x, scm_sort_list): Added
+	docstrings.
+
 2001-01-29  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
 
 	* eval.c (SCM_APPLY): Check that primitives which take 1 arg

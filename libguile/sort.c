@@ -418,7 +418,10 @@ scm_cmp_function (SCM p)
 
 SCM_DEFINE (scm_restricted_vector_sort_x, "restricted-vector-sort!", 4, 0, 0, 
             (SCM vec, SCM less, SCM startpos, SCM endpos),
-"")
+	    "Sort the vector @var{vec}, using @var{less} for comparing\n"
+	    "the vector elements.  @var{startpos} and @var{endpos} delimit\n"
+	    "the range of the vector which gets sorted.  The return value\n"
+	    "is not specified.")
 #define FUNC_NAME s_scm_restricted_vector_sort_x
 {
   size_t  vlen, spos, len, size = sizeof (SCM);
@@ -447,7 +450,9 @@ SCM_DEFINE (scm_restricted_vector_sort_x, "restricted-vector-sort!", 4, 0, 0,
  * (not (less? (list-ref list i) (list-ref list (- i 1)))). */
 SCM_DEFINE (scm_sorted_p, "sorted?", 2, 0, 0,
             (SCM items, SCM less),
-"")
+	    "Return @code{#t} iff @var{items} is a list or a vector such that\n"
+	    "for all 1 <= i <= m, the predicate @var{less} returns true when\n"
+	    "applied to all elements i - 1 and i")
 #define FUNC_NAME s_scm_sorted_p
 {
   long len, j;			/* list/vector length, temp j */
@@ -514,7 +519,12 @@ SCM_DEFINE (scm_sorted_p, "sorted?", 2, 0, 0,
    Note:  this does _not_ accept vectors. */
 SCM_DEFINE (scm_merge, "merge", 3, 0, 0, 
             (SCM alist, SCM blist, SCM less),
-"")
+	    "Takes two lists @var{alist} and @var{blist} such that\n"
+	    "@code{(sorted? alist less?)} and @code{(sorted? blist less?)} and\n"
+	    "returns a new list in which the elements of @var{alist} and\n"
+	    "@var{blist} have been stably interleaved so that\n"
+	    "@code{(sorted? (merge alist blist less?) less?)}.\n"
+	    "Note:  this does _not_ accept vectors.")
 #define FUNC_NAME s_scm_merge
 {
   long alen, blen;		/* list lengths */
@@ -621,7 +631,13 @@ scm_merge_list_x (SCM alist, SCM blist,
 
 SCM_DEFINE (scm_merge_x, "merge!", 3, 0, 0, 
             (SCM alist, SCM blist, SCM less),
-"")
+	    "Takes two lists @var{alist} and @var{blist} such that\n"
+	    "@code{(sorted? alist less?)} and @code{(sorted? blist less?)} and\n"
+	    "returns a new list in which the elements of @var{alist} and\n"
+	    "@var{blist} have been stably interleaved so that\n"
+	    " @code{(sorted? (merge alist blist less?) less?)}.\n"
+	    "This is the destructive variant of @code{merge}\n"
+	    "Note:  this does _not_ accept vectors.")
 #define FUNC_NAME s_scm_merge_x
 {
   long alen, blen;		/* list lengths */
@@ -693,7 +709,11 @@ scm_merge_list_step (SCM * seq,
 /* scm_sort_x manages lists and vectors, not stable sort */
 SCM_DEFINE (scm_sort_x, "sort!", 2, 0, 0, 
             (SCM items, SCM less),
-"")
+	    "Sort the sequence @var{items}, which may be a list or a\n"
+	    "vector.  @var{less} is used for comparing the sequence\n"
+	    "elements.  The sorting is destructive, that means that the\n"
+	    "input sequence is modified to produce the sorted result.\n"
+	    "This is not a stable sort.")
 #define FUNC_NAME s_scm_sort_x
 {
   long len;			/* list/vector length */
@@ -725,7 +745,9 @@ SCM_DEFINE (scm_sort_x, "sort!", 2, 0, 0,
 
 SCM_DEFINE (scm_sort, "sort", 2, 0, 0, 
             (SCM items, SCM less),
-"")
+	    "Sort the sequence @var{items}, which may be a list or a\n"
+	    "vector.  @var{less} is used for comparing the sequence\n"
+	    "elements.  This is not a stable sort.")
 #define FUNC_NAME s_scm_sort
 {
   SCM sortvec;			/* the vector we actually sort */
@@ -816,7 +838,11 @@ scm_merge_vector_step (void *const vp,
 
 SCM_DEFINE (scm_stable_sort_x, "stable-sort!", 2, 0, 0, 
             (SCM items, SCM less),
-"")
+	    "Sort the sequence @var{items}, which may be a list or a\n"
+	    "vector. @var{less} is used for comparing the sequence elements.\n"
+	    "The sorting is destructive, that means that the input sequence\n"
+	    "is modified to produce the sorted result.\n"
+	    "This is a stable sort.")
 #define FUNC_NAME s_scm_stable_sort_x
 {
   long len;			/* list/vector length */
@@ -854,7 +880,9 @@ SCM_DEFINE (scm_stable_sort_x, "stable-sort!", 2, 0, 0,
 
 SCM_DEFINE (scm_stable_sort, "stable-sort", 2, 0, 0, 
             (SCM items, SCM less),
-"")
+	    "Sort the sequence @var{items}, which may be a list or a\n"
+	    "vector. @var{less} is used for comparing the sequence elements.\n"
+	    "This is a stable sort.")
 #define FUNC_NAME s_scm_stable_sort
 {
   long len;			/* list/vector length */
@@ -897,7 +925,10 @@ SCM_DEFINE (scm_stable_sort, "stable-sort", 2, 0, 0,
 /* stable */
 SCM_DEFINE (scm_sort_list_x, "sort-list!", 2, 0, 0, 
             (SCM items, SCM less),
-"")
+	    "Sort the list @var{items}, using @var{less} for comparing the\n"
+	    "list elements. The sorting is destructive, that means that the\n"
+	    "input list is modified to produce the sorted result.\n"
+	    "This is a stable sort.")
 #define FUNC_NAME s_scm_sort_list_x
 {
   long len;
@@ -909,8 +940,9 @@ SCM_DEFINE (scm_sort_list_x, "sort-list!", 2, 0, 0,
 
 /* stable */
 SCM_DEFINE (scm_sort_list, "sort-list", 2, 0, 0, 
-  (SCM items, SCM less),
-"")
+	    (SCM items, SCM less),
+	    "Sort the list @var{items}, using @var{less} for comparing the\n"
+	    "list elements. This is a stable sort.")
 #define FUNC_NAME s_scm_sort_list
 {
   long len;
