@@ -1,3 +1,17 @@
+2000-11-21  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* ports.c:  Include eval.h.
+
+	* strings.c (scm_string_set_x), strings.h (SCM_RWSTRINGP),
+	validate.h (SCM_VALIDATE_RWSTRING):  Deprecate SCM_RWSTRINGP and
+	SCM_VALIDATE_RWSTRING.
+
+	* strings.h (SCM_STRING_UCHARS, SCM_STRING_CHARS):  Handle strings
+	and substrings uniformly.  However, substring handling is
+	deprecated.
+
+	(SCM_RWSTRINGP):  Deprecated.
+
 2000-11-18  Gary Houston  <ghouston@arglist.com>
 
 	* Makefile.am (.c.x): don't prefix ".:" to $PATH when running

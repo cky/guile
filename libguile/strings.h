@@ -52,12 +52,11 @@
 
 
 #define SCM_STRINGP(x) (SCM_NIMP (x) && (SCM_TYP7S (x) == scm_tc7_string))
+#if (SCM_DEBUG_DEPRECATED == 1)
 #define SCM_STRING_UCHARS(x) ((unsigned char *) (SCM_CELL_WORD_1 (x)))
 #define SCM_STRING_CHARS(x) ((char *) (SCM_CELL_WORD_1 (x)))
+#endif
 #define SCM_STRING_LENGTH(x) (((unsigned long) SCM_CELL_WORD_0 (x)) >> 8)
-
-/* Is X a writable string (i.e., not a substring)?  */
-#define SCM_RWSTRINGP(x) (SCM_NIMP (x) && (SCM_TYP7 (x) == scm_tc7_string))
 
 #define SCM_STRING_COERCE_0TERMINATION_X(x) \
   { if (SCM_NIMP (x) && (SCM_TYP7 (x) == scm_tc7_substring)) \
@@ -89,7 +88,16 @@ extern void scm_init_strings (void);
 
 #define SCM_SLOPPY_STRINGP(x) (SCM_STRINGP(x))
 #define SCM_NSTRINGP(x) (!SCM_STRINGP(x))
+#define SCM_RWSTRINGP(x) (SCM_NIMP (x) && (SCM_TYP7 (x) == scm_tc7_string))
 #define SCM_NRWSTRINGP(x) (! SCM_RWSTRINGP (x))
+#define SCM_STRING_UCHARS(x) \
+  ((SCM_TYP7 (x) == scm_tc7_substring) \
+     ? (unsigned char *) SCM_CELL_WORD_1 (SCM_CDDR (x)) + SCM_INUM (SCM_CADR (x)) \
+     : (unsigned char *) SCM_CELL_WORD_1 (x))
+#define SCM_STRING_CHARS(x) \
+  ((SCM_TYP7 (x) == scm_tc7_substring) \
+     ? (char *) SCM_CELL_WORD_1 (SCM_CDDR (x)) + SCM_INUM (SCM_CADR (x)) \
+     : (char *) SCM_CELL_WORD_1 (x))
 extern SCM scm_make_shared_substring (SCM str, SCM frm, SCM to);
 
 #endif  /* SCM_DEBUG_DEPRECATED == 0 */

@@ -261,13 +261,18 @@ SCM_DEFINE (scm_string_ref, "string-ref", 2, 0, 0,
 }
 #undef FUNC_NAME
 
+
 SCM_DEFINE (scm_string_set_x, "string-set!", 3, 0, 0,
             (SCM str, SCM k, SCM chr),
 	    "Stores CHR in element K of STRING and returns an unspecified value.\n"
             "K must be a valid index of STR.")
 #define FUNC_NAME s_scm_string_set_x
 {
-  SCM_VALIDATE_RWSTRING (1,str);
+#if (SCM_DEBUG_DEPRECATED == 0)
+  SCM_VALIDATE_RWSTRING (1, str);
+#else
+  SCM_VALIDATE_STRING (1, str);
+#endif
   SCM_VALIDATE_INUM_RANGE (2,k,0,SCM_STRING_LENGTH(str));
   SCM_VALIDATE_CHAR (3,chr);
   SCM_STRING_UCHARS (str)[SCM_INUM (k)] = SCM_CHAR (chr);

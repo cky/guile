@@ -44,9 +44,6 @@
  * If you do not wish that, delete this exception notice.  */
 
 
-#ifndef PORTSH
-#define PORTSH
-
 /* Define these two if you want support for debugging of Scheme
    programs.  */
 #undef DEBUG_EXTENSIONS

@@ -1,3 +1,7 @@
+2000-11-21  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* acconfig.h:  Removed bogus #ifndef.  Thanks to Lars J. Aas.
+
 2000-10-25  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
 
 	* GUILE-VERSION (LIBGUILE_MAJOR_VERSION): Incremented major

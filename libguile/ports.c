@@ -47,6 +47,7 @@
 
 #include <stdio.h>
 #include "libguile/_scm.h"
+#include "libguile/eval.h"
 #include "libguile/objects.h"
 #include "libguile/smob.h"
 #include "libguile/chars.h"
