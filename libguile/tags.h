@@ -62,7 +62,7 @@ typedef long scm_bits_t;
   But as external interface, we use void*, which will be checked more strictly for
   dubious conversions.
  */
-#define SCM_VOIDP_TEST
+/* #define SCM_VOIDP_TEST */
 #ifndef SCM_VOIDP_TEST
 typedef scm_bits_t  SCM;
 #define SCM_UNPACK(x) (x)
