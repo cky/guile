@@ -1621,8 +1621,14 @@ scm_gc_sweep ()
 #endif
 #ifdef HAVE_ARRAYS
 	    case scm_tc7_bvect:
-	      m += sizeof (long) * ((SCM_BITVECTOR_LENGTH (scmptr) + SCM_LONG_BIT - 1) / SCM_LONG_BIT);
-	      scm_must_free (SCM_BITVECTOR_BASE (scmptr));
+	      {
+		unsigned long int length = SCM_BITVECTOR_LENGTH (scmptr);
+		if (length > 0)
+		  {
+		    m += sizeof (long) * ((length + SCM_LONG_BIT - 1) / SCM_LONG_BIT);
+		    scm_must_free (SCM_BITVECTOR_BASE (scmptr));
+		  }
+	      }
 	      break;
 	    case scm_tc7_byvect:
 	    case scm_tc7_ivect:

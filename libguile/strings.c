@@ -133,7 +133,7 @@ scm_makstr (long len, int dummy)
   mem[len] = 0;
   SCM_NEWCELL (s);
   SCM_SETCHARS (s, mem);
-  SCM_SETLENGTH (s, len, scm_tc7_string);
+  SCM_SET_STRING_LENGTH (s, len);
 
   return s;
 }
@@ -168,7 +168,7 @@ scm_take_str (char *s, int len)
   SCM answer;
   SCM_NEWCELL (answer);
   SCM_DEFER_INTS;
-  SCM_SETLENGTH (answer, len, scm_tc7_string);
+  SCM_SET_STRING_LENGTH (answer, len);
   scm_done_malloc (len + 1);
   SCM_SETCHARS (answer, s);
   SCM_ALLOW_INTS;

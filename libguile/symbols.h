@@ -60,9 +60,9 @@ extern int scm_symhash_dim;
 #define SCM_SYMBOL_UCHARS(x)  ((unsigned char *) (SCM_CELL_WORD_1 (x)))
 #define SCM_SYMBOL_CHARS(x)  ((char *) (SCM_CELL_WORD_1 (x)))
 #define SCM_SYMBOL_LENGTH(x)  (((unsigned long) SCM_CELL_WORD_0 (x)) >> 8)
+#define SCM_SET_SYMBOL_LENGTH(s, l) (SCM_SET_CELL_WORD_0 ((s), ((l) << 8) + scm_tc7_symbol))
 
 #define SCM_LENGTH_MAX		(0xffffffL)
-#define SCM_SETLENGTH(x, v, t)	(SCM_SET_CELL_WORD_0 ((x), ((v) << 8) + (t)))
 
 #define SCM_SETCHARS(x, v)	(SCM_SET_CELL_WORD_1 ((x), (scm_bits_t) (v)))
 
@@ -120,6 +120,7 @@ extern void scm_init_symbols (void);
 #define SCM_SUBSTR_STR(x) (SCM_CDDR (x))
 #define SCM_SUBSTR_OFFSET(x) (SCM_CADR (x))
 #define SCM_LENGTH(x) (((unsigned long) SCM_CELL_WORD_0 (x)) >> 8)
+#define SCM_SETLENGTH(x, v, t) (SCM_SET_CELL_WORD_0 ((x), ((v) << 8) + (t)))
 #define SCM_ROSTRINGP(x) (SCM_NIMP(x) && ((SCM_TYP7S(x)==scm_tc7_string) \
 			  || (SCM_TYP7(x) == scm_tc7_symbol)))
 #define SCM_ROLENGTH(x) SCM_LENGTH (x)

@@ -88,10 +88,12 @@ extern long scm_tc16_array;
 
 #define SCM_UVECTOR_BASE(x) ((void *) (SCM_CELL_WORD_1 (x)))
 #define SCM_UVECTOR_LENGTH(x) (((unsigned long) SCM_CELL_WORD_0 (x)) >> 8)
+#define SCM_SET_UVECTOR_LENGTH(v, l, t) (SCM_SET_CELL_WORD_0 ((v), ((l) << 8) + (t)))
 
 #define SCM_BITVECTOR_P(x) (!SCM_IMP (x) && (SCM_TYP7 (x) == scm_tc7_bvect))
 #define SCM_BITVECTOR_BASE(x) ((void *) (SCM_CELL_WORD_1 (x)))
 #define SCM_BITVECTOR_LENGTH(x) (((unsigned long) SCM_CELL_WORD_0 (x)) >> 8)
+#define SCM_SET_BITVECTOR_LENGTH(v, l) (SCM_SET_CELL_WORD_0 ((v), ((l) << 8) + scm_tc7_bvect))
 
 
 

@@ -1,5 +1,21 @@
 2000-11-22  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* gc.c (scm_gc_sweep), unif.c (scm_make_uve):  Don't allocate or
+	free memory for empty bitvectors.
+
+	* gh_data.c (makvect), strings.c (scm_makstr, scm_take_str),
+	symbols.c (scm_intern_obarray_soft,
+	scm_sysintern0_no_module_lookup), unif.c (scm_make_uve):  Use
+	appropriate SCM_SET_<type>_LENGTH macro instead of SCM_SETLENGTH.
+
+	* strings.h (SCM_SET_STRING_LENGTH), symbols.h
+	(SCM_SET_SYMBOL_LENGTH), unif.h (SCM_SET_UVECTOR_LENGTH,
+	SCM_SET_BITVECTOR_LENGTH):  Added.
+
+	* symbols.h (SCM_SETLENGTH):  Deprecated.
+
+2000-11-22  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* continuations.c (scm_make_cont):  Use
 	SCM_SET_CONTINUATION_LENGTH instead of SCM_SETLENGTH.
 

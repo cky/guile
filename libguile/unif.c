@@ -162,8 +162,19 @@ scm_make_uve (long k, SCM prot)
 
   if (SCM_EQ_P (prot, SCM_BOOL_T))
     {
-      i = sizeof (long) * ((k + SCM_LONG_BIT - 1) / SCM_LONG_BIT);
-      type = scm_tc7_bvect;
+      SCM_NEWCELL (v);
+      if (k > 0)
+	{
+	  i = sizeof (long) * ((k + SCM_LONG_BIT - 1) / SCM_LONG_BIT);
+	  SCM_SETCHARS (v, (char *) scm_must_malloc (i, "vector"));
+	  SCM_SET_BITVECTOR_LENGTH (v, k);
+	}
+      else
+	{
+	  SCM_SETCHARS (v, 0);
+	  SCM_SET_BITVECTOR_LENGTH (v, 0);
+	}
+      return v;
     }
   else if (SCM_CHARP (prot) && (SCM_CHAR (prot) == '\0'))
     {
@@ -173,7 +184,7 @@ scm_make_uve (long k, SCM prot)
   else if (SCM_CHARP (prot))
     {
       i = sizeof (char) * k;
-      type = scm_tc7_string;
+      return scm_makstr (i, 0);
     }
   else if (SCM_INUMP (prot))
     {
@@ -229,7 +240,7 @@ scm_make_uve (long k, SCM prot)
   SCM_NEWCELL (v);
   SCM_DEFER_INTS;
   SCM_SETCHARS (v, (char *) scm_must_malloc (i ? i : 1, "vector"));
-  SCM_SETLENGTH (v, k, type);
+  SCM_SET_UVECTOR_LENGTH (v, k, type);
   SCM_ALLOW_INTS;
   return v;
 }
