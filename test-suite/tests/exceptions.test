@@ -1,0 +1,200 @@
+;;;; exceptions.test                                            -*- scheme -*-
+;;;; Copyright (C) 2001 Free Software Foundation, Inc.
+;;;;
+;;;; This program is free software; you can redistribute it and/or modify
+;;;; it under the terms of the GNU General Public License as published by
+;;;; the Free Software Foundation; either version 2, or (at your option)
+;;;; any later version.
+;;;;
+;;;; This program is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;;;; GNU General Public License for more details.
+;;;;
+;;;; You should have received a copy of the GNU General Public License
+;;;; along with this software; see the file COPYING.  If not, write to
+;;;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+;;;; Boston, MA 02111-1307 USA
+;;;;
+;;;; As a special exception, the Free Software Foundation gives permission
+;;;; for additional uses of the text contained in its release of GUILE.
+;;;;
+;;;; The exception is that, if you link the GUILE library with other files
+;;;; to produce an executable, this does not by itself cause the
+;;;; resulting executable to be covered by the GNU General Public License.
+;;;; Your use of that executable is in no way restricted on account of
+;;;; linking the GUILE library code into it.
+;;;;
+;;;; This exception does not however invalidate any other reasons why
+;;;; the executable file might be covered by the GNU General Public License.
+;;;;
+;;;; This exception applies only to the code released by the
+;;;; Free Software Foundation under the name GUILE.  If you copy
+;;;; code from other Free Software Foundation releases into a copy of
+;;;; GUILE, as the General Public License permits, the exception does
+;;;; not apply to the code that you add in this way.  To avoid misleading
+;;;; anyone as to the status of such modified files, you must delete
+;;;; this exception notice from them.
+;;;;
+;;;; If you write modifications of your own for GUILE, it is your choice
+;;;; whether to permit this exception to apply to your modifications.
+;;;; If you do not wish that, delete this exception notice.
+
+;;;; Commentary:
+
+;;; All tests should use `expect-exception' (aliased to `goad' for
+;;; brevity).  Tests that fail (i.e., do NOT cause exception should be
+;;; marked with a preceding line "no exception on DATE", where DATE is
+;;; when you found the failure.  If guile is fixed so that the test
+;;; passes, do not delete the comment, but instead append "fixed on
+;;; DATE" w/ the fix date.  If the test itself changes (due to a change
+;;; in the specification, for example), append "test amended on DATE"
+;;; and some explanatory text.  You can delete comments (and move the
+;;; test up into the clump of uncommented tests) when the dates become
+;;; very old.
+
+;;;; Code:
+
+(use-modules (test-suite lib) (ice-9 regex) (ice-9 common-list))
+
+(defmacro expect-exception (name-snippet expression)
+  `(pass-if (with-output-to-string
+              (lambda ()
+                (for-each display
+                          (list
+                           "`"
+                           (let ((x (symbol->string ',name-snippet)))
+                             (substring x 2 (string-length x)))
+                           "' expected but not thrown: "))
+                (write ',expression)))
+            (catch #t
+                   (lambda () ,expression #f) ; conniving falsehood!
+                   (lambda args
+                     ;; squeeze value to `#t'
+                     (not (notany (lambda (x)
+                                    (and (string? x)
+                                         (string-match ,name-snippet x)))
+                                  args))))))
+
+(define goad expect-exception)
+
+;; Exception messages
+;; Ideally, we would mine these out of libguile/error.[hc], etc.
+;; (Someday, when guile is re-implemented in Scheme....)
+
+(define x:unbound-var "[Uu]nbound variable")
+(define x:bad-var "[Bb]ad variable")
+(define x:bad-formals "[Bb]ad formals")
+(define x:bad-bindings "[Bb]ad bindings")
+(define x:bad-body "[Bb]ad body")
+(define x:bad/missing-clauses "[Bb]ad or missing clauses")
+(define x:missing/extra-expr "[Mm]issing or extra expression")
+(define x:wrong-num-args "[Ww]rong number of arguments")
+(define x:wrong-type-arg "[Ww]rong type argument")
+
+;; This is to encourage people to write tests.
+
+(define                   x:hm "[Hh]m")                   ;-D
+ (define                 x:bad "[Bb]ad")                 ;-D
+  (define               x:sick "[Ss]ick")               ;-D
+   (define             x:wrong "[Ww]rong")             ;-D
+    (define           x:stupid "[Ss]tupid")           ;-D
+     (define         x:strange "[Ss]trange")         ;-D
+      (define       x:unlikely "[Uu]nlikely")       ;-D
+       (define     x:inelegant "[Ii]nelegant")     ;-D
+        (define   x:suboptimal "[Ss]uboptimal")   ;-D
+         (define x:bletcherous "[Bb]letcherous") ;-D   h a t - t h e - ?!?
+
+;; Tests
+
+(with-test-prefix "syntax"
+  (with-test-prefix "let"
+    (goad x:bad-body (let))
+    (goad x:bad-body (let 1))
+    (goad x:bad-body (let ()))
+    (goad x:bad-body (let (x)))
+    (goad x:bad-bindings (let (x) 1))   ; maybe these should go under bindings?
+    (goad x:bad-bindings (let ((x)) 3))
+    (goad x:bad-bindings (let ((x 1) y) x))
+    (goad x:bad-body (let x ()))
+    (goad x:bad-body (let x (y)))
+
+    ;; no exception on 2001-02-22
+    (goad x:bad-bindings (let ((x 1) (x 2)) x))
+
+    ;; Add more (syntax let) exceptions here.
+    )
+  (with-test-prefix "cond"
+    (goad x:bad/missing-clauses (cond))
+    (goad x:bad/missing-clauses (cond #t))
+    (goad x:bad/missing-clauses (cond 1))
+    (goad x:bad/missing-clauses (cond 1 2))
+    (goad x:bad/missing-clauses (cond 1 2 3))
+    (goad x:bad/missing-clauses (cond 1 2 3 4))
+    (goad x:bad/missing-clauses (cond ()))
+    (goad x:bad/missing-clauses (cond () 1))
+    (goad x:bad/missing-clauses (cond (1) 1))
+    ;; Add more (syntax cond) exceptions here.
+    )
+  (with-test-prefix "if"
+    (goad x:missing/extra-expr (if))
+    (goad x:missing/extra-expr (if 1 2 3 4))
+    ;; Add more (syntax if) exceptions here.
+    )
+  (with-test-prefix "define"
+    (goad x:missing/extra-expr (define))
+    ;; Add more (syntax define) exceptions here.
+    )
+  ;; Add more (syntax) exceptions here.
+  )
+
+(with-test-prefix "bindings"
+  (goad x:unbound-var unlikely-to-be-bound)
+  (goad x:bad-var (set! "some-string" #t))
+  (goad x:bad-var (set! 1 #t))
+  (goad x:bad-var (set! #t #f))
+  (goad x:bad-var (set! #f #t))
+  (goad x:bad-var (set! #\space 'the-final-frontier))
+  (goad x:wrong-type-arg (set! (symbol->string 'safe) 1))
+  (goad x:wrong-type-arg (set! '"abc" 1))      ; from r5rs
+  (goad x:bad-var (set! "abc" 1))
+  (goad x:wrong-type-arg (set! '145932 1))
+  (goad x:bad-var (set! 145932 1))
+  (goad x:wrong-type-arg (set! '#t 1))
+  (goad x:wrong-type-arg (set! '#f 1))
+  (goad x:bad-body (let))
+  (goad x:bad-var (let ((1 2)) 3))
+
+  ;; no exception on 2001-02-22
+  (goad x:bad-var (string-set! (symbol->string 'abc) 1 #\space))
+  ;; no exception on 2001-02-22
+  (goad x:bad-var (string-set! "abc" 1 #\space))
+
+  ;; Add more (bindings) exceptions here.
+  )
+
+(with-test-prefix "lambda"
+
+  (goad x:bad-formals (lambda (x 1) 2))
+  (goad x:bad-formals (lambda (1 x) 2))
+  (goad x:bad-formals (lambda (x "a") 2))
+  (goad x:bad-formals (lambda ("a" x) 2))
+  (goad x:bad-formals (lambda (x x) 1))
+  (goad x:bad-formals (lambda (x x x) 1))
+
+  (with-test-prefix "cond-arrow-proc"
+    (goad x:bad-formals (cond (1 => (lambda (x 1) 2))))
+    ;; Add more (lambda cond-arrow-proc) exceptions here.
+    )
+
+  ;; Add more (lambda) exceptions here.
+  )
+
+(with-test-prefix "application"
+  (goad x:wrong-type-arg (+ 1 #f))
+  (goad x:wrong-type-arg (+ "1" 2))
+  (goad x:wrong-num-args (let ((x (lambda (a b) (+ a b)))) (x 3)))
+  ;; Add more (application) exceptions here.
+  )
+
+;;; exceptions.test ends here
