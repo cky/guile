@@ -1,3 +1,8 @@
+2000-04-03  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* iselect.c (add_fd_sets): Insert empty statement after label.
+	(Thanks to Tim Mooney.)
+
 2000-04-03  Michael Livshin  <mlivshin@bigfoot.com>
 
 	* guardians.c (scm_guardian_zombify): mark all zombies in a
