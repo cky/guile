@@ -34,7 +34,7 @@
 #include <readline/history.h>
 #include <sys/time.h>
 
-#include "libguile/scm_validate.h"
+#include "libguile/validate.h"
 #include "readline.h"
 
 scm_option scm_readline_opts[] = {
