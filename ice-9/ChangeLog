@@ -1,3 +1,9 @@
+2002-04-30  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* gap-buffer.scm: New file.
+
+	* Makefile.am (ice9_sources): Add gap-buffer.scm.
+
 2002-03-12  Rob Browning  <rlb@defaultvalue.org>
 
 	* syncase.scm: fix bad let.
