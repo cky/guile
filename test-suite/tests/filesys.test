@@ -1,0 +1,39 @@
+;;;; filesys.test --- test file system functions -*- scheme -*-
+;;;; 
+;;;; Copyright (C) 2004 Free Software Foundation, Inc.
+;;;; 
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 2.1 of the License, or (at your option) any later version.
+;;;; 
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;; 
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+
+(define-module (test-suite test-filesys)
+  #:use-module (test-suite lib))
+
+;;;
+;;; copy-file
+;;;
+
+(with-test-prefix "copy-file"
+
+  ;; return next prospective file descriptor number
+  (define (next-fd)
+    (let ((fd (dup 0)))
+      (close fd)
+      fd))
+
+  ;; in guile 1.6.4 and earlier, copy-file didn't close the input fd when
+  ;; the output could not be opened
+  (pass-if "fd leak when dest unwritable"
+    (let ((old-next (next-fd)))
+      (false-if-exception (copy-file "/dev/null" "no/such/dir/foo"))
+      (= old-next (next-fd)))))
