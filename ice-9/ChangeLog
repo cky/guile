@@ -1,5 +1,11 @@
 2000-08-11  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
 
+	* r5rs.scm (interaction-environment): Removed definition.  (Is now
+	provided by libguile/modules.c.)
+
+	* safe-r5rs.scm (null-environment): Bugfix: Should include
+	syntactic bindings.
+
 	* boot-9.scm (record-constructor, record-accessor,
 	record-modifier, scm-style-repl): Add second arg to eval.
 	(read-hash-extend #\.): Ditto.  (This is actually a bugfix!)
