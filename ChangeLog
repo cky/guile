@@ -1,3 +1,7 @@
+2001-07-08  Rob Browning  <rlb@defaultvalue.org>
+
+	* AUTHORS: add "many files throughout" for myself.
+
 2001-06-28  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
 	* README: Also mention guile-tools.

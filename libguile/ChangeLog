@@ -1,3 +1,7 @@
+2001-07-08  Rob Browning  <rlb@defaultvalue.org>
+
+	* .cvsignore: add stamp-h.in.
+
 2001-07-04  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* hooks.c (scm_make_hook, scm_add_hook_x),
