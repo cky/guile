@@ -81,6 +81,8 @@ In the subdirectory ice-9, wrote:
     session.scm
 
 Michael N. Livshin:
+Implemented support for double-word heap cells and converted some
+smobs to use them.
 In the subdirectory libguile, wrote:
     guardians.c
     guardians.h

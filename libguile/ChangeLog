@@ -1,5 +1,8 @@
 2000-03-14  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
+	[Almost all of these changes should be documented in the NEWS
+	file.]
+
 	* Makefile.am (libguile_la_LDFLAGS): Bumped library version
 	number.
 
