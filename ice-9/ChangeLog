@@ -1,3 +1,7 @@
+Wed Mar  5 20:30:24 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* boot-9.scm: check use-emacs-interface for emacs support.
+
 Sun Mar  2 19:47:14 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* boot-9.scm (scm-style-repl): call repl-report-start-timing if

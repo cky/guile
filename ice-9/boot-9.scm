@@ -3668,8 +3668,7 @@
 ;;; *fixme* This is a temporary solution.
 ;;;
 
-(if (or (member "-e" (cdr (program-arguments)))
-	(member "--emacs" (cdr (program-arguments))))
+(if use-emacs-interface
     (define-module (guile) :use-module (ice-9 emacs)))
 
 
