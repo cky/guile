@@ -6,17 +6,17 @@
 ;;;; Jim Blandy <jimb@red-bean.com> --- May 1999
 ;;;;
 ;;;; 	Copyright (C) 1999, 2001 Free Software Foundation, Inc.
-;;;; 
+;;;;
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
 ;;;; the Free Software Foundation; either version 2, or (at your option)
 ;;;; any later version.
-;;;; 
+;;;;
 ;;;; This program is distributed in the hope that it will be useful,
 ;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;;;; GNU General Public License for more details.
-;;;; 
+;;;;
 ;;;; You should have received a copy of the GNU General Public License
 ;;;; along with this software; see the file COPYING.  If not, write to
 ;;;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
@@ -36,16 +36,19 @@
 ;;;; Scheme code.)  However, you can have it execute specific tests by
 ;;;; listing their filenames on the command line.
 ;;;;
-;;;; The option '--test-suite' can be given to specify the test
+;;;; The option `--test-suite' can be given to specify the test
 ;;;; directory.  If no such option is given, the test directory is
 ;;;; taken from the environment variable TEST_SUITE_DIR (if defined),
-;;;; otherwise a default directory that is hardcoded in this file is 
+;;;; otherwise a default directory that is hardcoded in this file is
 ;;;; used (see "Installation" below).
 ;;;;
 ;;;; If present, the `--log-file LOG' option tells `guile-test' to put
 ;;;; the log output in a file named LOG.
 ;;;;
-;;;; If present, the '--debug' option will enable a debugging mode.
+;;;; If present, the `--debug' option will enable a debugging mode.
+;;;;
+;;;; If present, the `--flag-unresolved' option will cause guile-test
+;;;; to exit with failure status if any tests are UNRESOLVED.
 ;;;;
 ;;;;
 ;;;; Installation:
@@ -105,7 +108,7 @@
 ;;; symlinks.
 (define (for-each-file f root)
 
-  ;; A "hard directory" is a path that denotes a directory and is not a 
+  ;; A "hard directory" is a path that denotes a directory and is not a
   ;; symlink.
   (define (file-is-hard-directory? filename)
     (eq? (stat:type (lstat filename)) 'directory))
@@ -116,7 +119,7 @@
 	  (let ((dir (opendir root)))
 	    (let loop ()
 	      (let ((entry (readdir dir)))
-		(cond 
+		(cond
 		 ((eof-object? entry) #f)
 		 ((or (string=? entry ".")
 		      (string=? entry ".."))
@@ -157,13 +160,15 @@
 
 (define (main args)
   (let ((options (getopt-long args
-			      `((test-suite 
+			      `((test-suite
 				 (single-char #\t)
 				 (value #t))
-				(log-file 
+                                (flag-unresolved
+                                 (single-char #\u))
+				(log-file
 				 (single-char #\l)
 				 (value #t))
-				(debug 
+				(debug
 				 (single-char #\d))))))
     (define (opt tag default)
       (let ((pair (assq tag options)))
@@ -184,10 +189,10 @@
 
     (let* ((tests
 	    (let ((foo (opt '() '())))
-	      (if (null? foo) 
+	      (if (null? foo)
 		  (enumerate-tests test-suite)
 		  foo)))
-	   (log-file 
+	   (log-file
 	    (opt 'log-file "guile.log")))
 
       ;; Open the log file.
@@ -201,7 +206,10 @@
 	  (register-reporter user-reporter)
 	  (register-reporter (lambda results
 			       (case (car results)
-				 ((fail upass unresolved error)
+                                 ((unresolved)
+                                  (and (opt 'flag-unresolved #f)
+                                       (set! global-pass #f)))
+				 ((fail upass error)
 				  (set! global-pass #f)))))
 
 	  ;; Run the tests.
