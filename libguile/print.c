@@ -51,6 +51,7 @@
 #include "read.h"
 #include "weaks.h"
 #include "unif.h"
+#include "alist.h"
 
 #include "print.h"
 
@@ -297,8 +298,8 @@ taloop:
 	      SCM code = SCM_CODE (exp);
 	      exp = scm_unmemocopy (code,
 				    SCM_EXTEND_ENV (SCM_CAR (code),
-							SCM_EOL,
-							SCM_ENV (exp)));
+						    SCM_EOL,
+						    SCM_ENV (exp)));
 	      scm_iprlist ("#<CLOSURE ", exp, '>', port, writing);
 	    }
 	  break;
@@ -310,17 +311,17 @@ taloop:
 	case scm_tc7_string:
 	  if (writing)
 	    {
-	      scm_gen_putc ('\"', port);
+	      scm_gen_putc ('"', port);
 	      for (i = 0; i < SCM_ROLENGTH (exp); ++i)
 		switch (SCM_ROCHARS (exp)[i])
 		  {
-		  case '\"':
+		  case '"':
 		  case '\\':
 		    scm_gen_putc ('\\', port);
 		  default:
 		    scm_gen_putc (SCM_ROCHARS (exp)[i], port);
 		  }
-	      scm_gen_putc ('\"', port);
+	      scm_gen_putc ('"', port);
 	      break;
 	    }
 	  else
@@ -363,7 +364,7 @@ taloop:
 #endif
 		  case '(':
 		  case ')':
-		  case '\"':
+		  case '"':
 		  case ';':
 		  case SCM_WHITE_SPACES:
 		  case SCM_LINE_INCREMENTORS:
