@@ -1,5 +1,10 @@
 1998-07-29  Jim Blandy  <jimb@zwingli.cygnus.com>
 
+	* Makefile.in, aclocal.m4, configure: Regenerated using the last
+ 	public version of automake, not the hacked Cygnus version.
+	* config.guess, config.sub, ltconfig, ltmain.sh: New versions from
+ 	libtool.
+	
 	* configure.in, qthreads.m4: Display a message about how the
  	threads configuration went.
 	* aclocal.m4, configure: Regenerated.

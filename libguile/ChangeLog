@@ -1,3 +1,8 @@
+1998-07-29  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	* Makefile.in: Regenerated using the last public version of
+	automake, not the hacked Cygnus version.
+
 1998-07-28  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	Remove Totoro kludge.
