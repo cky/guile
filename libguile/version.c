@@ -42,12 +42,14 @@
 
 
 
+#include <stdio.h>
 #include "libguile/_scm.h"
 #include "libguile/strings.h"
-#include "libguile/versiondat.h"
 
 #include "libguile/version.h"
 
+
+#define SCM_TMP_MACRO_MKSTR(x) #x
 
 /* Return a Scheme string containing Guile's major version number.  */
 
@@ -57,7 +59,8 @@ SCM_DEFINE (scm_major_version, "major-version", 0, 0, 0,
             "E.g., the 1 in \"1.6.5\".")
 #define FUNC_NAME s_scm_major_version
 {
-  return scm_makfrom0str (GUILE_MAJOR_VERSION);
+  return scm_number_to_string (SCM_MAKINUM(SCM_GUILE_MAJOR_VERSION),
+                               SCM_MAKINUM(10));
 }
 #undef FUNC_NAME
 
@@ -69,7 +72,8 @@ SCM_DEFINE (scm_minor_version, "minor-version", 0, 0, 0,
             "E.g., the 6 in \"1.6.5\".")
 #define FUNC_NAME s_scm_minor_version
 {
-  return scm_makfrom0str (GUILE_MINOR_VERSION);
+  return scm_number_to_string (SCM_MAKINUM(SCM_GUILE_MINOR_VERSION),
+                               SCM_MAKINUM(10));
 }
 #undef FUNC_NAME
 
@@ -81,7 +85,8 @@ SCM_DEFINE (scm_micro_version, "micro-version", 0, 0, 0,
             "E.g., the 5 in \"1.6.5\".")
 #define FUNC_NAME s_scm_micro_version
 {
-  return scm_makfrom0str (GUILE_MICRO_VERSION);
+  return scm_number_to_string (SCM_MAKINUM(SCM_GUILE_MICRO_VERSION),
+                               SCM_MAKINUM(10));
 }
 #undef FUNC_NAME
 
@@ -100,7 +105,15 @@ SCM_DEFINE (scm_version, "version", 0, 0, 0,
 	    "@end lisp")
 #define FUNC_NAME s_scm_version
 {
-  return scm_makfrom0str (GUILE_VERSION);
+
+  char version_str[64];
+
+  snprintf(version_str, sizeof(version_str), "%d.%d.%d",
+           SCM_GUILE_MAJOR_VERSION,
+           SCM_GUILE_MINOR_VERSION,
+           SCM_GUILE_MICRO_VERSION);
+
+  return scm_makfrom0str (version_str);
 }
 #undef FUNC_NAME
 
