@@ -1,5 +1,19 @@
 2001-05-20  Marius Vollmer  <mvo@zagadka.ping.de>
 
+	* symbols.c (scm_mem2symbol): Call `scm_must_strndup' instead of
+	`duplicate_string'.  Do not use an indirect cell, store symbol
+	directly in collision list of hash table.
+	(duplicate_string): Removed.
+	
+	* init.c (scm_init_guile_1): Call scm_init_extensions.
+
+	* Makefile.am: Add "extensions.c" and related files in all the
+	right places.
+
+	* extensions.h, extension.c: New files.
+
+	* gc.h, gc.c (scm_must_strdup, scm_must_strndup): New.
+
 	* modules.h (scm_system_module_env_p): Move out of deprecated
 	section.
 
