@@ -89,14 +89,14 @@ sysdep_dynl_func (symb, handle, subr)
     char *err;
     char *usymb;
 
-#ifdef DLSYM_ADDS_USCORE
-    fptr = dlsym (handle, symb);
-#else
+#if defined(USCORE) && !defined(DLSYM_ADDS_USCORE)
     usymb = (char *) malloc (strlen (symb) + 2);
     *usymb = '_';
     strcpy (usymb + 1, symb);
     fptr = dlsym (handle, usymb);
     free (usymb);
+#else
+    fptr = dlsym (handle, symb);
 #endif
 
     err = (char *)dlerror ();

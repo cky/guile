@@ -45,8 +45,10 @@
 
 #include "_scm.h"
 
+#ifdef USE_THREADS
 #include "iselect.h"
 #include "coop-threads.h"
+#endif
 
 
 
