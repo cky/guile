@@ -1782,25 +1782,76 @@ SCM_DEFINE (scm_ash, "ash", 2, 0, 0,
   long bits_to_shift;
   bits_to_shift = scm_to_long (cnt);
 
-  if (bits_to_shift < 0)
+  if (SCM_I_INUMP (n))
     {
-      /* Shift right by abs(cnt) bits.  This is realized as a division
-         by div:=2^abs(cnt).  However, to guarantee the floor
-         rounding, negative values require some special treatment.
-      */
-      SCM div = scm_integer_expt (SCM_I_MAKINUM (2),
-                                  scm_from_long (-bits_to_shift));
+      long nn = SCM_I_INUM (n);
 
-      /* scm_quotient assumes its arguments are integers, but it's legal to (ash 1/2 -1) */
-      if (scm_is_false (scm_negative_p (n)))
-        return scm_quotient (n, div);
+      if (bits_to_shift > 0)
+        {
+          /* Left shift of bits_to_shift >= SCM_I_FIXNUM_BIT-1 will always
+             overflow a non-zero fixnum.  For smaller shifts we check the
+             bits going into positions above SCM_I_FIXNUM_BIT-1.  If they're
+             all 0s for nn>=0, or all 1s for nn<0 then there's no overflow.
+             Those bits are "nn >> (SCM_I_FIXNUM_BIT-1 -
+             bits_to_shift)".  */
+
+          if (nn == 0)
+            return n;
+
+          if (bits_to_shift < SCM_I_FIXNUM_BIT-1
+              && ((unsigned long)
+                  (SCM_SRS (nn, (SCM_I_FIXNUM_BIT-1 - bits_to_shift)) + 1)
+                  <= 1))
+            {
+              return SCM_I_MAKINUM (nn << bits_to_shift);
+            }
+          else
+            {
+              SCM result = scm_i_long2big (nn);
+              mpz_mul_2exp (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (result),
+                            bits_to_shift);
+              return result;
+            }
+        }
       else
-        return scm_sum (SCM_I_MAKINUM (-1L),
-                        scm_quotient (scm_sum (SCM_I_MAKINUM (1L), n), div));
+        {
+          bits_to_shift = -bits_to_shift;
+          if (bits_to_shift >= SCM_LONG_BIT)
+            return (nn >= 0 ? SCM_I_MAKINUM (0) : SCM_I_MAKINUM(-1));
+          else
+            return SCM_I_MAKINUM (SCM_SRS (nn, bits_to_shift));
+        }
+
+    }
+  else if (SCM_BIGP (n))
+    {
+      SCM result;
+
+      if (bits_to_shift == 0)
+        return n;
+
+      result = scm_i_mkbig ();
+      if (bits_to_shift >= 0)
+        {
+          mpz_mul_2exp (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (n),
+                        bits_to_shift);
+          return result;
+        }
+      else
+        {
+          /* GMP doesn't have an fdiv_q_2exp variant returning just a long, so
+             we have to allocate a bignum even if the result is going to be a
+             fixnum.  */
+          mpz_fdiv_q_2exp (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (n),
+                           -bits_to_shift);
+          return scm_i_normbig (result);
+        }
+
     }
   else
-    /* Shift left is done by multiplication with 2^CNT */
-    return scm_product (n, scm_integer_expt (SCM_I_MAKINUM (2), cnt));
+    {
+      SCM_WRONG_TYPE_ARG (SCM_ARG1, n);
+    }
 }
 #undef FUNC_NAME
 
