@@ -105,7 +105,8 @@ libguile_la_SOURCES = alist.c arbiters.c async.c backtrace.c boolean.c	    \
     load.c macros.c mallocs.c modules.c numbers.c objects.c objprop.c	    \
     options.c pairs.c ports.c print.c procprop.c procs.c properties.c	    \
     random.c rdelim.c read.c root.c rw.c scmsigs.c script.c simpos.c smob.c \
-    sort.c srcprop.c stackchk.c stacks.c stime.c strings.c srfi-13.c srfi-14.c \
+    sort.c srcprop.c stackchk.c stacks.c stime.c strings.c srfi-4.c	    \
+    srfi-13.c srfi-14.c							    \
     strorder.c strports.c struct.c symbols.c threads.c throw.c values.c	    \
     variable.c vectors.c version.c vports.c weaks.c
 
@@ -116,12 +117,13 @@ DOT_X_FILES = alist.x arbiters.x async.x backtrace.x boolean.x chars.x	 \
     error.x eval.x evalext.x extensions.x feature.x fluids.x fports.x	 \
     futures.x								 \
     gc.x  gc-mark.x gc-segment.x gc-malloc.x gc-card.x goops.x		 \
-    gsubr.x guardians.x hash.x hashtab.x hooks.x i18n.x init.x ioext.x   \
+    gsubr.x guardians.x hash.x hashtab.x hooks.x i18n.x init.x ioext.x	 \
     keywords.x lang.x list.x load.x macros.x mallocs.x modules.x	 \
     numbers.x objects.x objprop.x options.x pairs.x ports.x print.x	 \
     procprop.x procs.x properties.x random.x rdelim.x read.x root.x rw.x \
     scmsigs.x script.x simpos.x smob.x sort.x srcprop.x			 \
-    stackchk.x stacks.x stime.x strings.x srfi-13.x srfi-14.x strorder.x strports.x	 \
+    stackchk.x stacks.x stime.x strings.x srfi-4.x srfi-13.x srfi-14.x	 \
+    strorder.x strports.x						 \
     struct.x symbols.x threads.x throw.x values.x variable.x vectors.x	 \
     version.x vports.x weaks.x
 
@@ -168,8 +170,9 @@ install-exec-hook:
 ## compile, since they are #included.  So instead we list them here.
 ## Perhaps we can deal with them normally once the merge seems to be
 ## working.
-noinst_HEADERS = convert.i.c	\
+noinst_HEADERS = convert.i.c					\
                  conv-integer.i.c conv-uinteger.i.c		\
+                 srfi-4.i.c					\
                  win32-uname.h win32-dirent.h win32-socket.h	\
 	         private-gc.h
 
@@ -190,14 +193,15 @@ modinclude_HEADERS = __scm.h alist.h arbiters.h async.h backtrace.h boolean.h \
     error.h eval.h							      \
     evalext.h extensions.h feature.h filesys.h fluids.h fports.h futures.h    \
     gc.h gdb_interface.h gdbint.h					      \
-    goops.h gsubr.h guardians.h hash.h hashtab.h hooks.h i18n.h init.h        \
+    goops.h gsubr.h guardians.h hash.h hashtab.h hooks.h i18n.h init.h	      \
     inline.h ioext.h							      \
     iselect.h keywords.h lang.h list.h load.h macros.h mallocs.h modules.h    \
     net_db.h numbers.h objects.h objprop.h options.h pairs.h ports.h posix.h  \
     regex-posix.h print.h procprop.h procs.h properties.h random.h ramap.h    \
     rdelim.h read.h root.h rw.h scmsigs.h validate.h script.h simpos.h smob.h \
     snarf.h socket.h sort.h srcprop.h stackchk.h stacks.h stime.h strings.h   \
-    srfi-13.h srfi-14.h strorder.h strports.h struct.h symbols.h tags.h threads.h	      \
+    srfi-4.h srfi-13.h srfi-14.h strorder.h strports.h struct.h symbols.h     \
+    tags.h threads.h							      \
     throw.h unif.h values.h variable.h vectors.h vports.h weaks.h
 
 nodist_modinclude_HEADERS = version.h scmconfig.h
