@@ -40,7 +40,7 @@
  * If you do not wish that, delete this exception notice.  */
 
 
-/* $Id: coop.c,v 1.19 2000-03-19 19:01:10 cmm Exp $ */
+/* $Id: coop.c,v 1.20 2000-03-29 01:57:40 mdj Exp $ */
 
 /* Cooperative thread library, based on QuickThreads */
 
@@ -88,12 +88,14 @@ coop_qget (coop_q_t *q)
 
   t = q->t.next;
   q->t.next = t->next;
-  if (t->next == &q->t) {
-    if (t == &q->t) {		/* If it was already empty .. */
-      return (NULL);		/* .. say so. */
+  if (t->next == &q->t)
+    {
+      if (t == &q->t)
+	{			/* If it was already empty .. */
+	  return NULL;		/* .. say so. */
+	}
+      q->tail = &q->t;		/* Else now it is empty. */
     }
-    q->tail = &q->t;		/* Else now it is empty. */
-  }
   return (t);
 }
 
@@ -160,22 +162,57 @@ coop_q_t coop_global_allq;      /* A queue of all threads. */
 static coop_t coop_global_main; /* Thread for the process. */
 coop_t *coop_global_curr;	/* Currently-executing thread. */
 
+#ifdef GUILE_PTHREAD_COMPAT
+static coop_q_t coop_deadq;
+pthread_cond_t coop_cond_quit;
+#endif
+
 static void *coop_starthelp (qt_t *old, void *ignore0, void *ignore1);
 static void coop_only (void *pu, void *pt, qt_userf_t *f);
 static void *coop_aborthelp (qt_t *sp, void *old, void *null);
 static void *coop_yieldhelp (qt_t *sp, void *old, void *blockq);
 
 
+/* called on process termination.  */
+#ifdef HAVE_ATEXIT
+static void
+coop_finish (void)
+#else
+#ifdef HAVE_ON_EXIT
+extern int on_exit (void (*procp) (), int arg);
+
+static void
+coop_finish (int status, void *arg)
+#else
+#error Dont know how to setup a cleanup handler on your system.
+#endif
+#endif
+{
+#ifdef GUILE_PTHREAD_COMPAT
+  pthread_cond_broadcast (&coop_cond_quit);
+#endif
+}
+
 void
-coop_init()
+coop_init ()
 {
   coop_qinit (&coop_global_runq);
   coop_qinit (&coop_global_sleepq);
   coop_qinit (&coop_tmp_queue);
   coop_qinit (&coop_global_allq);
   coop_global_curr = &coop_global_main;
+#ifdef GUILE_PTHREAD_COMPAT
+  coop_qinit (&coop_deadq);
+  pthread_cond_init (&coop_cond_quit, NULL);
+#endif
+#ifdef HAVE_ATEXIT
+  atexit (coop_finish);
+#else
+#ifdef HAVE_ON_EXIT
+  on_exit (coop_finish, 0);
+#endif
+#endif
 }
-
 
 /* Return the next runnable thread. If no threads are currently runnable,
    and there are sleeping threads - wait until one wakes up. Otherwise,
@@ -502,15 +539,22 @@ coop_condition_variable_destroy (coop_c *c)
 }
 
 #ifdef GUILE_PTHREAD_COMPAT
+
+/* 1K room for the cond wait routine */
+#ifdef SCM_STACK_GROWS_UP
+#define COOP_STACK_ROOM (512)
+#else
+#define COOP_STACK_ROOM (-512)
+#endif
+
 static void *
 dummy_start (void *coop_thread)
 {
   coop_t *t = (coop_t *) coop_thread;
-  t->sto = &t + 1;
-  pthread_mutex_init (&t->dummy_mutex, NULL);
+  t->sp = (qt_t *) (&t + COOP_STACK_ROOM);
   pthread_mutex_lock (&t->dummy_mutex);
-  pthread_cond_init (&t->dummy_cond, NULL);
-  pthread_cond_wait (&t->dummy_cond, &t->dummy_mutex);
+  pthread_cond_signal (&t->dummy_cond);
+  pthread_cond_wait (&coop_cond_quit, &t->dummy_mutex);
   return 0;
 }
 #endif
@@ -519,20 +563,35 @@ coop_t *
 coop_create (coop_userf_t *f, void *pu)
 {
   coop_t *t;
+#ifndef GUILE_PTHREAD_COMPAT
   void *sto;
-
-  t = malloc (sizeof(coop_t));
-
-  t->data = NULL;
-  t->n_keys = 0;
-#ifdef GUILE_PTHREAD_COMPAT
-  pthread_create (&t->dummy_thread, NULL, dummy_start, t);
-#else
-  t->sto = malloc (COOP_STKSIZE);
 #endif
-  sto = COOP_STKALIGN (t->sto, QT_STKALIGN);
-  t->sp = QT_SP (sto, COOP_STKSIZE - QT_STKALIGN);
-  t->base = t->sp;
+
+#ifdef GUILE_PTHREAD_COMPAT
+  t = coop_qget (&coop_deadq);
+  if (t)
+    t->sp = t->base;
+  else
+#endif
+    {
+      t = malloc (sizeof (coop_t));
+
+      t->data = NULL;
+      t->n_keys = 0;
+#ifdef GUILE_PTHREAD_COMPAT
+      pthread_cond_init (&t->dummy_cond, NULL);
+      pthread_mutex_init (&t->dummy_mutex, NULL);
+      pthread_mutex_lock (&t->dummy_mutex);
+      pthread_create (&t->dummy_thread, NULL, dummy_start, t);
+      pthread_cond_wait (&t->dummy_cond, &t->dummy_mutex);
+      pthread_mutex_unlock (&t->dummy_mutex);
+#else
+      t->sto = malloc (COOP_STKSIZE);
+      sto = COOP_STKALIGN (t->sto, QT_STKALIGN);
+      t->sp = QT_SP (sto, COOP_STKSIZE - QT_STKALIGN);
+#endif
+      t->base = t->sp;
+    }
   t->sp = QT_ARGS (t->sp, pu, t, (qt_userf_t *)f, coop_only);
   t->joining = NULL;
   coop_qput (&coop_global_runq, t);
@@ -565,7 +624,7 @@ coop_abort ()
 	{
 	  coop_qput (&coop_global_runq, newthread);
 	}
-      free(coop_global_curr->joining);
+      free (coop_global_curr->joining);
     }
 
 #ifdef GUILE_ISELECT
@@ -577,13 +636,10 @@ coop_abort ()
 #else
   newthread = coop_next_runnable_thread();
 #endif
-  coop_all_qremove(&coop_global_allq, coop_global_curr);
+  coop_all_qremove (&coop_global_allq, coop_global_curr);
   old = coop_global_curr;
   coop_global_curr = newthread;
-#ifdef GUILE_PTHREAD_COMPAT
-  pthread_cond_signal (&old->dummy_cond);
-#endif
-  QT_ABORT (coop_aborthelp, old, (void *)NULL, newthread->sp);
+  QT_ABORT (coop_aborthelp, old, (void *) NULL, newthread->sp);
 }
 
 
@@ -592,13 +648,21 @@ coop_aborthelp (qt_t *sp, void *old, void *null)
 {
   coop_t *oldthread = (coop_t *) old;
 
-  free (oldthread->sto);
-
-  /* "old" is freed in scm_threads_thread_die().
-     Marking old->base NULL indicates that this thread is dead */
-
+#if 0
+  /* Marking old->base NULL indicates that this thread is dead */
   oldthread->base = NULL;
+#endif
 
+  if (oldthread->data)
+    free (oldthread->data);
+#ifndef GUILE_PTHREAD_COMPAT
+  free (oldthread->sto);
+  free (oldthread);
+#else
+  oldthread->n_keys = 0;
+  coop_qput (&coop_deadq, oldthread);
+#endif
+  
   return NULL;
 }
 
