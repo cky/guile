@@ -1,3 +1,38 @@
+Sun Oct 20 03:29:32 1996  Mikael Djurfeldt  <mdj@kenneth>
+
+	* pairs.h, eval.c, eval.h, feature.c, gc.c, list.c, load.c,
+ 	ramap.c, symbols.c: Added new selectors SCM_CARLOC and SCM_CDRLOC
+ 	for obtaining the address of a car or cdr field.  Motivation:
+ 	&SCM_CXR make assumptions about the internal structure of the
+ 	SCM_CXR selectors.
+
+	* eval.h, eval.c: Added new selector SCM_GLOC_VAL_LOC.
+  	Motivation: see SCM_CXRLOC.
+
+	* pairs.h, eval.c, gc.c, init.c, ioext.c, ports.c, ports.h,
+ 	srcprop.h, tags.h, throw.c, unif.c: Added new selectors
+ 	SCM_SETAND_CAR, SCM_SETAND_CDR, SCM_SETOR_CAR and SCM_SETOR_CDR.
+  	Motivation: Safer use.  Some other macros are defined in terms of
+ 	these operations.  If these are defined using the SCM_SETCXR
+ 	(<e1>, SCM_CXR (<e1>) <op> <e2>) pattern a complex <e1> will lead
+ 	to inefficiency and an <e1> with side-effects could potentially
+ 	break.  Also, these particular operations are heavily utilized in
+ 	the garbage collector.  In unoptimized code there will be a
+ 	measurable speedup.
+
+	* alist.c, arbiters.c, continuations.c, debug.c, debug.h, eval.c,
+ 	eval.h, feature.c, filesys.c, fports.c, gc.c, gsubr.c, init.c,
+ 	ioext.c, kw.c, list.c, load.c, mallocs.c, numbers.c, numbers.h,
+ 	pairs.c, pairs.h, ports.c, ports.h, posix.c, procprop.c, procs.c,
+ 	procs.h, ramap.c, read.c, root.c, srcprop.c, srcprop.h,
+ 	strports.c, symbols.c, tags.h, throw.c, unif.c, variable.c,
+ 	vports.c: Cleaned up use of pairs: Don't make any special
+ 	assumptions about the internal structure of selectors and
+ 	mutators: SCM_CXR (<e1>) = <e2> --> SCM_SETCXR (<e1>, <e2>),
+ 	SCM_CXR (<e1>) &= <e2> --> SCM_SETAND_CXR (<e1>, <e2>) etc.
+	(Among other things, this change makes it easier to build Guile
+ 	with certain compilers which have problems with casted lvalues.)
+	
 Fri Oct 18 01:11:56 1996  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* stacks.c: Improve selection of relevant stack frames when making
