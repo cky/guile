@@ -1,3 +1,10 @@
+1999-08-17  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* configure.in (HAVE_RL_GETC_FUNCTION): Modified test to actually
+	use rl_getc_function.  Otherwise smart compilers, like gcc,
+	optimize away the reference so that no error occurs in the link
+	phase.
+
 1999-08-04  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* Makefile.am (INCLUDES): Added -I$(srcdir)/../libguile.
