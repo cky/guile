@@ -1828,7 +1828,7 @@ controlling terminal.  The return value is unspecified.
 @node Pipes
 @subsection Pipes
 
-The following procedures provide an interface to the @code{popen} and
+The following procedures are similar to the @code{popen} and
 @code{pclose} system routines.  The code is in a separate ``popen''
 module:
 
@@ -1837,35 +1837,64 @@ module:
 @end smalllisp
 
 @findex popen
-@deffn {Scheme Procedure} open-pipe command modes
-Executes the shell command @var{command} (a string) in a subprocess.  A
-pipe to the process is created and returned.  @var{modes} specifies
-whether an input or output pipe to the process is created: it should be
-the value of @code{OPEN_READ}, @code{OPEN_WRITE}, or @code{OPEN_BOTH}.
-@end deffn
+@deffn {Scheme Procedure} open-pipe command mode
+@deffnx {Scheme Procedure} open-pipe* mode prog [args...]
+Execute a command in a subprocess, with a pipe to it or from it, or
+with pipes in both directions.
 
-@deffn {Scheme Procedure} open-pipe* mode command [args...]
-Executes the program @var{command} with optional arguments @var{args}
-(all strings) in a subprocess.  A port to the process (based on pipes)
-is created and returned.  @var{modes} specifies whether an input, an
-output or an input-output port to the process is created: it should be
-the value of @code{OPEN_READ}, @code{OPEN_WRITE}, or @code{OPEN_BOTH}.
+@code{open-pipe} runs the shell @var{command} using @samp{/bin/sh -c}.
+@code{open-pipe*} executes @var{prog} directly, with the optional
+@var{args} arguments (all strings).
+
+@var{mode} should be one of the following values.  @code{OPEN_READ} is
+an input pipe, ie.@: to read from the subprocess.  @code{OPEN_WRITE}
+is an output pipe, ie.@: to write to it.
+
+@defvar OPEN_READ
+@defvarx OPEN_WRITE
+@defvarx OPEN_BOTH
+@end defvar
+
+For an input pipe, the child's standard output is the pipe and
+standard input is inherited from @code{current-input-port}.  For an
+output pipe, the child's standard input is the pipe and standard
+output is inherited from @code{current-output-port}.  In all cases
+cases the child's standard error is inherited from
+@code{current-error-port} (@pxref{Default Ports}).
+
+If those @code{current-X-ports} are not files of some kind, and hence
+don't have file descriptors for the child, then @file{/dev/null} is
+used instead.
+
+Care should be taken with @code{OPEN_BOTH}, a deadlock will occur if
+both parent and child are writing, and waiting until the write
+completes before doing any reading.  Each direction has
+@code{PIPE_BUF} bytes of buffering (@pxref{Ports and File
+Descriptors}), which will be enough for small writes, but not for say
+putting a big file through a filter.
 @end deffn
 
 @deffn {Scheme Procedure} open-input-pipe command
 Equivalent to @code{open-pipe} with mode @code{OPEN_READ}.
 
 @lisp
-(read-line (open-input-pipe "date"))
-@result{} "Mon Mar 11 20:10:44 GMT 2002"
-
-(waitpid WAIT_ANY)
-@result{} (24160 . 0)
+(let* ((port (open-input-pipe "date --utc"))
+       (str  (read-line port)))
+  (close-pipe port)
+  str)
+@result{} "Mon Mar 11 20:10:44 UTC 2002"
 @end lisp
 @end deffn
 
 @deffn {Scheme Procedure} open-output-pipe command
 Equivalent to @code{open-pipe} with mode @code{OPEN_WRITE}.
+
+@lisp
+(let ((port (open-output-pipe "lpr")))
+  (display "Something for the line printer.\n" port)
+  (if (not (eqv? 0 (status:exit-val (close-pipe port))))
+      (error "Cannot print")))
+@end lisp
 @end deffn
 
 @deffn {Scheme Procedure} open-input-output-pipe command
@@ -1874,13 +1903,30 @@ Equivalent to @code{open-pipe} with mode @code{OPEN_BOTH}.
 
 @findex pclose
 @deffn {Scheme Procedure} close-pipe port
-Closes the pipe created by @code{open-pipe}, then waits for the process
-to terminate and returns its status value, @xref{Processes, waitpid}, for
-information on how to interpret this value.
-
-@code{close-port} (@pxref{Closing, close-port}) can also be used to
-close a pipe, but doesn't return the status.
+Close a pipe created by @code{open-pipe}, wait for the process to
+terminate, and return the wait status code.  The status is as per
+@code{waitpid} and can be decoded with @code{status:exit-val} etc
+(@pxref{Processes})
 @end deffn
+
+@sp 1
+@code{waitpid WAIT_ANY} should not be used when pipes are open, since
+it can reap a pipe's child process, causing an error from a subsequent
+@code{close-pipe}.
+
+@code{close-port} (@pxref{Closing}) can close a pipe, but it doesn't
+reap the child process.
+
+The garbage collector will close a pipe no longer in use, and reap the
+child process with @code{waitpid}.  If the child hasn't yet terminated
+the garbage collector doesn't block, but instead checks again in the
+next GC.
+
+Many systems have per-user and system-wide limits on the number of
+processes, and a system-wide limit on the number of pipes, so pipes
+should be closed explicitly when no longer needed, rather than letting
+the garbage collector pick them up at some later time.
+
 
 @node Networking
 @subsection Networking
