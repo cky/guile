@@ -23,7 +23,13 @@
 (define-module (ice-9 readline)
   :use-module (ice-9 session))
 
+;;; MDJ 980513 <djurfeldt@nada.kth.se>:
+;;; There should probably be low-level support instead of this code.
+
 (define prompt "")
+(define input-port (current-input-port))
+(define output-port (current-output-port))
+(define read-hook #f)
 
 (define (make-readline-port)
   (let ((read-string "")
@@ -39,9 +45,13 @@
 		    #\nl))
 		 ((= string-index -1)
 		  (begin
-		    (set! read-string (readline (if (string? prompt)
-						    prompt
-						    (prompt))))
+		    (set! read-string
+			  (%readline (if (string? prompt)
+					 prompt
+					 (prompt))
+				     input-port
+				     output-port
+				     read-hook))
 		    (set! string-index 0)
 		    (if (not (eof-object? read-string))
 			(begin
@@ -60,7 +70,8 @@
 ;;; We only create one readline port.  There's no point in having
 ;;; more, since they would all share the tty and history ---
 ;;; everything except the prompt.  And don't forget the
-;;; compile/load/run phase distinctions.
+;;; compile/load/run phase distinctions.  Also, the readline library
+;;; isn't reentrant.
 (define the-readline-port #f)
 
 (define-public (readline-port)
@@ -68,8 +79,45 @@
       (set! the-readline-port (make-readline-port)))
   the-readline-port)
 
+;;; The user might try to use readline in his programs.  It then
+;;; becomes very uncomfortable that the current-input-port is the
+;;; readline port...
+;;;
+;;; Here, we detect this situation and replace it with the
+;;; underlying port.
+;;;
+;;; %readline is the orginal readline procedure.
+(if (not (defined? '%readline))
+    (begin
+      (define-public %readline readline)
+      (variable-set! (builtin-variable 'readline)
+		     (lambda args
+		       (let ((prompt prompt)
+			     (inp input-port))
+			 (cond ((not (null? args))
+				(set! prompt (car args))
+				(set! args (cdr args))
+				(cond ((not (null? args))
+				       (set! inp (car args))
+				       (set! args (cdr args))))))
+			 (apply %readline
+				prompt
+				(if (eq? inp the-readline-port)
+				    input-port
+				    inp)
+				args))))))
+
 (define-public (set-readline-prompt! p)
   (set! prompt p))
+
+(define-public (set-readline-input-port! p)
+  (set! input-port p))
+
+(define-public (set-readline-output-port! p)
+  (set! output-port p))
+
+(define-public (set-readline-read-hook! h)
+  (set! read-hook h))
 
 (define-public apropos-completion-function
   (let ((completions '()))
@@ -85,7 +133,3 @@
 		   retval))))))
 
 (set! *readline-completion-function* apropos-completion-function)
-
-;(define myport (make-readline-port))
-;(define (doit)
-;  (set-current-input-port myport))
