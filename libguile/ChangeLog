@@ -1,3 +1,36 @@
+1999-05-09  Jim Blandy  <jimb@savonarola.red-bean.com>
+
+	Fixes, cleanups, and new functions from Greg Harvey.
+
+	1999-05-03  Greg Harvey  <Greg.Harvey@thezone.net>
+
+	* strop.c (scm_string_capitalize_x, scm_string_capitalize): new
+	functions; capitalize the first letter of each word in the
+	argument string, and downcase the rest.
+	(scm_string_ci_to_symbol): string->symbol, such that the same
+	symbol is returned for any argument where the only difference
+	between strings is in capitalization.
+	(scm_string_upcase, scm_string_downcase): non-destructive
+	versions.
+
+	1999-01-13  Greg Harvey  <Greg.Harvey@thezone.net>
+
+	* strop.c (scm_substring_move_left_x, scm_substring_move_right_x): 
+	changed to use memmove.
+	* strop.c (scm_i_index): removed the pos arguments (it's only
+	called twice, and each time it's SCM_ARG1, SCM_ARG2, SCM_ARG3,
+	SCM_ARG4).
+
+	1999-01-11  Greg Harvey  <Greg.Harvey@thezone.net>
+
+	* strop.h: fixed prototypes.
+
+*	* strop.c (scm_substring_move_left_x, scm_substring_move_right_x): 
+	changed to have 5 required args, rather than 2 required, and 3 required
+	rest args. Also modified to allow str1 & str2 to overlap.
+	(scm_substring_fill_x): changed to 4 args, rather than 2 args and
+	2 required rest args.
+	
 1999-05-02  Jim Blandy  <jimb@savonarola.red-bean.com>
 
 	* procs.h: Doc fix.
