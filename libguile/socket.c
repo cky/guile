@@ -42,6 +42,10 @@
 
 
 
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
 #include <errno.h>
 
 #include "libguile/_scm.h"
@@ -83,16 +87,6 @@
 #if defined (HAVE_UNIX_DOMAIN_SOCKETS) && !defined (SUN_LEN)
 #define SUN_LEN(ptr) ((size_t) (((struct sockaddr_un *) 0)->sun_path) \
 		      + strlen ((ptr)->sun_path))
-#endif
-
-#if !defined (HAVE_UINT32_T)
-#if SIZEOF_INT == 4
-typedef unsigned int uint32_t;
-#elif SIZEOF_LONG == 4
-typedef unsigned long uint32_t;
-#else
-#error can not define uint32_t
-#endif
 #endif
 
 /* we are not currently using socklen_t.  it's not defined on all systems,
@@ -142,7 +136,7 @@ SCM_DEFINE (scm_htonl, "htonl", 1, 0, 0,
 	    "and returned as a new integer.")
 #define FUNC_NAME s_scm_htonl
 {
-  uint32_t c_in = SCM_NUM2ULONG (1, value);
+  scm_t_uint32 c_in = SCM_NUM2ULONG (1, value);
 
   return scm_ulong2num (htonl (c_in));
 }
@@ -155,7 +149,7 @@ SCM_DEFINE (scm_ntohl, "ntohl", 1, 0, 0,
 	    "and returned as a new integer.")
 #define FUNC_NAME s_scm_ntohl
 {
-  uint32_t c_in = SCM_NUM2ULONG (1, value);
+  scm_t_uint32 c_in = SCM_NUM2ULONG (1, value);
 
   return scm_ulong2num (ntohl (c_in));
 }
@@ -327,7 +321,7 @@ static void ipv6_num_to_net (SCM src, char *dst)
 {
   if (SCM_INUMP (src))
     {
-      uint32_t addr = htonl (SCM_INUM (src));
+      scm_t_uint32 addr = htonl (SCM_INUM (src));
 
       memset (dst, 0, 12);
       memcpy (dst + 12, &addr, 4);
@@ -382,7 +376,7 @@ SCM_DEFINE (scm_inet_pton, "inet-pton", 2, 0, 0,
   else if (rv == 0)
     SCM_MISC_ERROR ("Bad address", SCM_EOL);
   if (af == AF_INET)
-    return scm_ulong2num (ntohl (*(uint32_t *) dst));
+    return scm_ulong2num (ntohl (*(scm_t_uint32 *) dst));
   else
     return ipv6_net_to_num ((char *) dst);
 }
@@ -414,7 +408,7 @@ SCM_DEFINE (scm_inet_ntop, "inet-ntop", 2, 0, 0,
   SCM_VALIDATE_INUM_COPY (1, family, af);
   SCM_ASSERT_RANGE (1, family, af == AF_INET || af == AF_INET6);
   if (af == AF_INET)
-    *(uint32_t *) addr6 = htonl (SCM_NUM2ULONG (2, address));
+    *(scm_t_uint32 *) addr6 = htonl (SCM_NUM2ULONG (2, address));
   else
     {
       VALIDATE_INET6 (2, address);
