@@ -1,3 +1,7 @@
+2003-07-03  Han-Wen Nienhuys  <hanwen@cs.uu.nl>
+
+	* __scm.h (SCM_ASSERT): change "else" expansion to "do { } while (0)" 
+
 2003-07-02  Han-Wen Nienhuys  <hanwen@cs.uu.nl>
 
 	* __scm.h (SCM_ASRTGO): add "else" to macro expansions with if
