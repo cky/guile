@@ -188,7 +188,7 @@ stack_depth (scm_debug_frame *dframe,long offset,SCM *id,int *maxp)
 static void
 read_frame (scm_debug_frame *dframe,long offset,scm_info_frame *iframe)
 {
-  SCMWORD flags = SCM_BITS (SCM_INUM0); /* UGh. */
+  scm_bits_t flags = SCM_BITS (SCM_INUM0); /* UGh. */
   int size;
   scm_debug_info *info;
   if (SCM_EVALFRAMEP (*dframe))

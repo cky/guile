@@ -57,19 +57,19 @@
 
 /* In the beginning was the Word:
  */
-typedef long SCMWORD;
+typedef long scm_bits_t;
 /*
   But as external interface, we use void*, which will be checked more strictly for
   dubious conversions.
  */
 #define SCM_VOIDP_TEST
 #ifndef SCM_VOIDP_TEST
-typedef SCMWORD  SCM;
+typedef scm_bits_t  SCM;
 #define SCM_BITS(x) (x)
 #define SCM_SCM(x) (x)
 #else
 typedef void * SCM;
-#define SCM_BITS(x) ((SCMWORD) (x))
+#define SCM_BITS(x) ((scm_bits_t) (x))
 #define SCM_SCM(x) ((SCM) (x))
 #endif
 
@@ -303,7 +303,7 @@ typedef void * SCM;
 
 
 #define SCM_CELLP(x) 	(!SCM_NCELLP (x))
-#define SCM_NCELLP(x) 	((sizeof (scm_cell) - 1) & (SCMWORD) SCM_BITS (x))
+#define SCM_NCELLP(x) 	((sizeof (scm_cell) - 1) & SCM_BITS (x))
 
 /* See numbers.h for macros relating to immediate integers.
  */

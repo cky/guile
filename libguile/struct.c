@@ -326,7 +326,7 @@ scm_alloc_struct (int n_words, int n_extra, char *who)
   SCM *p = block + n_extra;
 
   /* Adjust it even further so it's aligned on an eight-byte boundary.  */
-  p = (SCM *) (((SCMWORD) SCM_BITS (p) + 7) & ~7);
+  p = (SCM *) (((scm_bits_t) SCM_BITS (p) + 7) & ~7);
 
   /* Initialize a few fields as described above.  */
   p[scm_struct_i_free] = (SCM) scm_struct_free_standard;
@@ -522,7 +522,7 @@ SCM_DEFINE (scm_struct_ref, "struct-ref", 2, 0, 0,
   SCM * data;
   SCM layout;
   int p;
-  SCMWORD n_fields;
+  scm_bits_t n_fields;
   unsigned char * fields_desc;
   unsigned char field_type = 0;
   

@@ -2466,7 +2466,7 @@ tail:
 	  scm_putc ('*', port);
 	  for (i = 0; i < (SCM_LENGTH (exp)) / SCM_LONG_BIT; i++)
 	    {
-	      SCMWORD w = SCM_BITS (SCM_VELTS (exp)[i]);
+	      scm_bits_t w = SCM_BITS (SCM_VELTS (exp)[i]);
 	      for (j = SCM_LONG_BIT; j; j--)
 		{
 		  scm_putc (w & 1 ? '1' : '0', port);
