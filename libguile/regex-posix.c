@@ -191,13 +191,24 @@ scm_regexp_exec (rx, str, start)
      SCM str;
      SCM start;
 {
-  int status, nmatches;
+  int status, nmatches, offset;
   regmatch_t *matches;
   SCM mvec = SCM_BOOL_F;
 
   SCM_ASSERT (SCM_NIMP (rx) && SCM_RGXP (rx), rx, SCM_ARG1, s_regexp_exec);
   SCM_ASSERT (SCM_NIMP (str) && SCM_ROSTRINGP (str), str, SCM_ARG2,
 	      s_regexp_exec);
+
+  if (SCM_UNBNDP (start))
+    offset = 0;
+  else
+    {
+      SCM_ASSERT (SCM_INUMP (start), start, SCM_ARG3, s_regexp_exec);
+      offset = SCM_INUM (start);
+      SCM_ASSERT (offset >= 0 && offset <= SCM_LENGTH (str), start,
+		  SCM_OUTOFRANGE, s_regexp_exec);
+    }
+
   SCM_COERCE_SUBSTR (str);
 
   /* re_nsub doesn't account for the `subexpression' representing the
@@ -207,7 +218,7 @@ scm_regexp_exec (rx, str, start)
   SCM_DEFER_INTS;
   matches = (regmatch_t *) scm_must_malloc (sizeof (regmatch_t) * nmatches,
 					    s_regexp_exec);
-  status = regexec (SCM_RGX (rx), SCM_ROCHARS (str), nmatches, matches, 0);
+  status = regexec (SCM_RGX (rx), SCM_ROCHARS (str) + offset, nmatches, matches, 0);
   if (!status)
     {
       int i;
@@ -217,8 +228,8 @@ scm_regexp_exec (rx, str, start)
 			      SCM_UNDEFINED);
       SCM_VELTS(mvec)[0] = str;
       for (i = 0; i < nmatches; ++i)
-	SCM_VELTS(mvec)[i+1] = scm_cons (SCM_MAKINUM (matches[i].rm_so),
-					 SCM_MAKINUM (matches[i].rm_eo));
+	SCM_VELTS(mvec)[i+1] = scm_cons(SCM_MAKINUM(matches[i].rm_so + offset),
+					SCM_MAKINUM(matches[i].rm_eo + offset));
     }
   SCM_ALLOW_INTS;
 
