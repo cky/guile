@@ -1,5 +1,19 @@
 2004-11-10  Marius Vollmer  <mvo@zagadka.de>
 
+	* ramap.c (cind): Changed second arg to be pointer to long instead
+	of uniform vector.
+	(scm_ramapc): Allocate index vector with scm_malloc and not as
+	uniform vector.  Wrap it in a frameso that it gets properly freed.
+	(scm_array_index_map_x): Likewise.
+
+	* unif.c: Changed all uses of scm_array_prototype to
+	scm_array_creator. (scm_i_get_old_prototype): Signal error when no
+	prototype is known.
+	(scm_uniform_array_read_x, scm_uniform_array_write): Reimplemented
+	in terms of scm_uniform_vector_read_x and
+	scm_uniform_vector_write, respectively.  Strings and
+	bitvector support has been dropped.
+	
 	* srfi-4.h, srfi-4.c: Do not include <libguile.h>, include the
 	needed files directly.  Include config.h, <unistd.h> and <io.h>
 	when available.
