@@ -84,9 +84,10 @@ programmers usually refer to this as foldl."
 (define-public (some pred l . rest)
   "PRED is a boolean function of as many arguments as there are list
 arguments to `some'. I.e., L plus any optional arguments. PRED is
-applied to successive elements of the list arguments in order. `some'
-returns #t as soon as one of these applications returns #t, and is #f
-if none returns #t. All the lists should have the same length."
+applied to successive elements of the list arguments in order. As soon
+as one of these applications returns a true value, `some' terminates
+and returns that value.  If no application returns a true value,
+`some' returns #f. All the lists should have the same length."
   (cond ((null? rest)
 	 (let mapf ((l l))
 	   (and (not (null? l))
@@ -111,8 +112,8 @@ PRED is #t and #f otherwise."
 
 (define-public (notany pred . ls) 
   "Return #t iff every application of PRED to L, etc., returns #f.
-Analogous to some but returns #t if no application of PRED returns #t
-or #f as soon as any one does."
+Analogous to some but returns #t if no application of PRED returns a
+true value or #f as soon as any one does."
   (not (apply some pred ls)))
 
 (define-public (notevery pred . ls) 
@@ -123,21 +124,21 @@ or #f otherwise."
 
 (define-public (find-if pred l)
   "Searches for the first element in L such that (PRED element)
-returns #t. If it finds any such element in L, element is
+returns true. If it finds any such element in L, element is
 returned. Otherwise, #f is returned."
   (cond ((null? l) #f)
 	((pred (car l)) (car l))
 	(else (find-if pred (cdr l)))))
 
 (define-public (member-if pred l)
-  "Returns L if (T element) is #t for any element in L.
-Returns #f if PRED does not apply to any element in L."
+  "Returns L if (T element) is true for any element in L.  Returns #f
+if PRED does not apply to any element in L."
   (cond ((null? l) #f)
 	((pred (car l)) l)
 	(else (member-if pred (cdr l)))))
 
 (define-public (remove-if p l)
-  "Removes all elements from L where (P element) is #t.
+  "Removes all elements from L where (P element) is true.
 Returns everything that's left."
   (cond ((null? l) '())
 	((p (car l)) (remove-if p (cdr l)))
@@ -147,8 +148,8 @@ Returns everything that's left."
   "Removes all elements from L where (P element) is #f.
 Returns everything that's left."
   (cond ((null? l) '())
-	((not (p (car l))) (remove-if p (cdr l)))
-	(else (cons (car l) (remove-if p (cdr l))))))
+	((not (p (car l))) (remove-if-not p (cdr l)))
+	(else (cons (car l) (remove-if-not p (cdr l))))))
 
 (define-public (delete-if! pred list)
   "Destructive version of `remove-if'."
@@ -163,9 +164,9 @@ Returns everything that's left."
   "Destructive version of `remove-if-not'."
   (let delete-if ((list list))
     (cond ((null? list) '())
-	  ((not (pred (car list))) (delete-if (cdr list)))
+	  ((not (pred (car list))) (delete-if-not (cdr list)))
 	  (else
-	   (set-cdr! list (delete-if (cdr list)))
+	   (set-cdr! list (delete-if-not (cdr list)))
 	   list))))
 
 (define-public (butlast lst n)
@@ -181,13 +182,13 @@ Returns everything that's left."
 		l))))
 
 (define-public (and? . args)
-  "Return #t iff all of ARGS are #t."
+  "Return #t iff all of ARGS are true."
   (cond ((null? args) #t)
 	((car args) (apply and? (cdr args)))
 	(else #f)))
 
 (define-public (or? . args)
-  "Return #t iff any of ARGS is #t."
+  "Return #t iff any of ARGS is true."
   (cond ((null? args) #f)
 	((car args) #t)
 	(else (apply or? (cdr args)))))
