@@ -81,28 +81,21 @@ prinsfpt (exp, port, pstate)
  */
 
 
-static int sfputc SCM_P ((int c, SCM p));
-
 static int 
-sfputc (c, p)
-     int c;
-     SCM p;
+sfputc (int c, SCM port)
 {
+  SCM p = SCM_STREAM (port);
+
   scm_apply (SCM_VELTS (p)[0], SCM_MAKICHR (c), scm_listofnull);
   errno = 0;
   return c;
 }
 
 
-static scm_sizet sfwrite SCM_P ((char *str, scm_sizet siz, scm_sizet num, SCM p));
-
 static scm_sizet 
-sfwrite (str, siz, num, p)
-     char *str;
-     scm_sizet siz;
-     scm_sizet num;
-     SCM p;
+sfwrite (char *str, scm_sizet siz, scm_sizet num, SCM port)
 {
+  SCM p = SCM_STREAM (port);
   SCM sstr;
   sstr = scm_makfromstr (str, siz * num, 0);
   scm_apply (SCM_VELTS (p)[1], sstr, scm_listofnull);
@@ -111,24 +104,19 @@ sfwrite (str, siz, num, p)
 }
 
 
-static int sfputs SCM_P ((char *s, SCM p));
-
 static int 
-sfputs (s, p)
-     char *s;
-     SCM p;
+sfputs (char *s, SCM port)
 {
-  sfwrite (s, 1, strlen (s), p);
+  sfwrite (s, 1, strlen (s), port);
   return 0;
 }
 
 
-static int sfflush SCM_P ((SCM stream));
-
 static int 
-sfflush (stream)
-     SCM stream;
+sfflush (SCM port)
 {
+  SCM stream = SCM_STREAM (port);
+
   SCM f = SCM_VELTS (stream)[2];
   if (SCM_BOOL_F == f)
     return 0;
@@ -138,12 +126,11 @@ sfflush (stream)
 }
 
 
-static int sfgetc SCM_P ((SCM p));
-
 static int 
-sfgetc (p)
-     SCM p;
+sfgetc (SCM port)
 {
+  SCM p = SCM_STREAM (port);
+
   SCM ans;
   ans = scm_apply (SCM_VELTS (p)[3], SCM_EOL, SCM_EOL);
   errno = 0;
@@ -154,12 +141,10 @@ sfgetc (p)
 }
 
 
-static int sfclose SCM_P ((SCM p));
-
 static int 
-sfclose (p)
-     SCM p;
+sfclose (SCM port)
 {
+  SCM p = SCM_STREAM (port);
   SCM f = SCM_VELTS (p)[4];
   if (SCM_BOOL_F == f)
     return 0;
@@ -193,11 +178,8 @@ scm_make_soft_port (pv, modes)
 }
 
 
-static int noop0 SCM_P ((SCM stream));
-
 static int 
-noop0 (stream)
-     SCM stream;
+noop0 (SCM port)
 {
   return 0;
 }

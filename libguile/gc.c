@@ -1220,7 +1220,7 @@ scm_gc_sweep ()
 		  /* Yes, I really do mean scm_ptobs[k].free */
 		  /* rather than ftobs[k].close.  .close */
 		  /* is for explicit CLOSE-PORT by user */
-		  (scm_ptobs[k].free) (SCM_STREAM (scmptr));
+		  (scm_ptobs[k].free) (scmptr);
 		  SCM_SETSTREAM (scmptr, 0);
 		  scm_remove_from_port_table (scmptr);
 		  scm_gc_ports_collected++;

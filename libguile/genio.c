@@ -59,7 +59,7 @@ scm_putc (c, port)
      SCM port;
 {
   scm_sizet i = SCM_PTOBNUM (port);
-  SCM_SYSCALL ((scm_ptobs[i].fputc) (c, SCM_STREAM (port)));
+  SCM_SYSCALL ((scm_ptobs[i].fputc) (c, port));
 }
 
 void 
@@ -68,7 +68,7 @@ scm_puts (s, port)
      SCM port;
 {
   scm_sizet i = SCM_PTOBNUM (port);
-  SCM_SYSCALL ((scm_ptobs[i].fputs) (s, SCM_STREAM (port)));
+  SCM_SYSCALL ((scm_ptobs[i].fputs) (s, port));
 #ifdef TRANSCRIPT_SUPPORT
   if (scm_trans && (port == def_outp || port == cur_errp))
     SCM_SYSCALL (fputs (s, scm_trans));
@@ -82,7 +82,7 @@ scm_lfwrite (ptr, size, port)
      SCM port;
 {
   scm_sizet i = SCM_PTOBNUM (port);
-  SCM_SYSCALL (scm_ptobs[i].fwrite(ptr, size, 1, SCM_STREAM (port)));
+  SCM_SYSCALL (scm_ptobs[i].fwrite (ptr, size, 1, port));
 #ifdef TRANSCRIPT_SUPPORT
   if (scm_trans && (port == def_outp || port == cur_errp))
     SCM_SYSCALL (fwrite (ptr, size, 1, scm_trans));
@@ -95,7 +95,7 @@ scm_fflush (port)
      SCM port;
 {
   scm_sizet i = SCM_PTOBNUM (port);
-  (scm_ptobs[i].fflush) (SCM_STREAM (port));
+  (scm_ptobs[i].fflush) (port);
 }
 
 
@@ -133,7 +133,7 @@ scm_getc (port)
 	  while (n == -1 && errno == EINTR);
 	}
 #endif
-      SCM_SYSCALL (c = (scm_ptobs[i].fgetc) (f));
+      SCM_SYSCALL (c = (scm_ptobs[i].fgetc) (port));
     }
 
   if (c == '\n')

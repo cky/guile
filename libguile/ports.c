@@ -431,7 +431,7 @@ scm_close_port (port)
   SCM_DEFER_INTS;
   if (scm_ptobs[i].fclose)
     {
-      SCM_SYSCALL (rv = (scm_ptobs[i].fclose) (SCM_STREAM (port)));
+      SCM_SYSCALL (rv = (scm_ptobs[i].fclose) (port));
       /* ports with a closed file descriptor can be reclosed without error.  */
       if (rv < 0 && errno != EBADF)
 	scm_syserror (s_close_port);
@@ -530,7 +530,7 @@ scm_force_output (port)
     }
   {
     scm_sizet i = SCM_PTOBNUM (port);
-    SCM_SYSCALL ((scm_ptobs[i].fflush) (SCM_STREAM (port)));
+    SCM_SYSCALL ((scm_ptobs[i].fflush) (port));
     return SCM_UNSPECIFIED;
   }
 }
@@ -547,7 +547,7 @@ scm_flush_all_ports (void)
       if (SCM_OPOUTPORTP (port))
 	{
 	  scm_sizet ptob = SCM_PTOBNUM (port);
-	  (scm_ptobs[ptob].fflush) (SCM_STREAM (port));
+	  (scm_ptobs[ptob].fflush) (port);
 	}
     }
   return SCM_UNSPECIFIED;
@@ -605,7 +605,6 @@ scm_generic_fgets (port, len)
      SCM port;
      int *len;
 {
-  SCM f		= SCM_STREAM (port);
   scm_sizet p	= SCM_PTOBNUM (port);
 
   char *buf;
@@ -637,7 +636,7 @@ scm_generic_fgets (port, len)
 	limit *= 2;
       }
 
-    c = (scm_ptobs[p].fgetc) (f);
+    c = (scm_ptobs[p].fgetc) (port);
     if (c != EOF)
       buf[(*len)++] = c;
 
@@ -839,19 +838,19 @@ print_void_port (SCM exp, SCM port, scm_print_state *pstate)
 }
 
 static int
-putc_void_port (int c, SCM strm)
+putc_void_port (int c, SCM port)
 {
   return 0;			/* vestigial return value */
 }
 
 static int
-puts_void_port (char *s, SCM strm)
+puts_void_port (char *s, SCM port)
 {
   return 0;			/* vestigial return value */
 }
 
 static scm_sizet
-write_void_port (char *ptr, scm_sizet size, scm_sizet nitems, SCM strm)
+write_void_port (char *ptr, scm_sizet size, scm_sizet nitems, SCM port)
 {
   int len;
   len = size * nitems;
@@ -860,26 +859,26 @@ write_void_port (char *ptr, scm_sizet size, scm_sizet nitems, SCM strm)
 
 
 static int
-flush_void_port (SCM strm)
+flush_void_port (SCM port)
 {
   return 0;
 }
 
 
 static int
-getc_void_port (SCM strm)
+getc_void_port (SCM port)
 {
   return EOF;
 }
 
 static char *
-fgets_void_port (SCM strm, int *len)
+fgets_void_port (SCM port, int *len)
 {
   return NULL;
 }
 
 static int
-close_void_port (SCM strm)
+close_void_port (SCM port)
 {
   return 0;			/* this is ignored by scm_close_port. */
 }
@@ -893,7 +892,7 @@ noop0 (SCM stream)
 }
 
 
-static struct scm_ptobfuns  void_port_ptob =
+static struct scm_ptobfuns void_port_ptob =
 {
   0, 
   noop0,

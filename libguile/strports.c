@@ -59,26 +59,18 @@
  */
 
 
-static int prinstpt SCM_P ((SCM exp, SCM port, scm_print_state *pstate));
-
 static int 
-prinstpt (exp, port, pstate)
-     SCM exp;
-     SCM port;
-     scm_print_state *pstate;
+prinstpt (SCM exp, SCM port, scm_print_state *pstate)
 {
   scm_prinport (exp, port, "string");
   return !0;
 }
 
 
-static int stputc SCM_P ((int c, SCM p));
-
 static int 
-stputc (c, p)
-     int c;
-     SCM p;
+stputc (int c, SCM port)
 {
+  SCM p = SCM_STREAM (port);
   scm_sizet ind = SCM_INUM (SCM_CAR (p));
   SCM_DEFER_INTS;
   if (ind >= SCM_LENGTH (SCM_CDR (p)))
@@ -90,15 +82,14 @@ stputc (c, p)
 }
 
 
-static scm_sizet stwrite SCM_P ((char *str, scm_sizet siz, scm_sizet num, SCM p));
-
 static scm_sizet 
-stwrite (str, siz, num, p)
-     char *str;
-     scm_sizet siz;
-     scm_sizet num;
-     SCM p;
+stwrite (char *str,
+	 scm_sizet siz,
+	 scm_sizet num,
+	 SCM port)
 {
+  SCM p = SCM_STREAM (port);
+
   scm_sizet ind = SCM_INUM (SCM_CAR (p));
   scm_sizet len = siz * num;
   char *dst;
@@ -114,24 +105,19 @@ stwrite (str, siz, num, p)
 }
 
 
-static int stputs SCM_P ((char *s, SCM p));
-
 static int 
-stputs (s, p)
-     char *s;
-     SCM p;
+stputs (char *s, SCM port)
 {
-  stwrite (s, 1, strlen (s), p);
+  stwrite (s, 1, strlen (s), port);
   return 0;
 }
 
 
-static int stgetc SCM_P ((SCM p));
-
 static int 
-stgetc (p)
-     SCM p;
+stgetc (SCM port)
 {
+  SCM p = SCM_STREAM (port);
+
   scm_sizet ind = SCM_INUM (SCM_CAR (p));
   if (ind >= SCM_ROLENGTH (SCM_CDR (p)))
     return EOF;
