@@ -1,3 +1,10 @@
+2001-05-31  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* box-dynamic: New directory, implements the box type in a shared
+	library (aka extension)
+
+	Thanks to Thomas Wawrzinek for patching box.c into an extension!
+	
 2001-05-30  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* box-module: New directory, similar to box, but defines the

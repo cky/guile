@@ -1,6 +1,6 @@
 							       -*- text -*-
 
-This directory includes examples illustrating various aspects of Guile
+This directory contains examples illustrating various aspects of Guile
 programming.
 
 See the README files in the subdirectories for details.
@@ -8,5 +8,6 @@ See the README files in the subdirectories for details.
 scripts     Examples for writing simple scripts in Guile Scheme.
 box	    Example for extending Guile with a new data type.
 box-module  Similar to `box', but define new procedures in a named module.
+box-dynamic Implements the box type in a dynamically loadable library.
 modules     Examples for writing and using Guile modules.
 safe        Examples for creating and using safe environments.
