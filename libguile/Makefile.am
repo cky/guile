@@ -143,7 +143,8 @@ DOT_DOC_FILES = alist.doc arbiters.doc async.doc backtrace.doc		    \
     options.doc pairs.doc ports.doc print.doc procprop.doc		    \
     procs.doc properties.doc random.doc rdelim.doc read.doc root.doc rw.doc \
     scmsigs.doc script.doc simpos.doc smob.doc sort.doc			    \
-    srcprop.doc stackchk.doc stacks.doc stime.doc strings.doc srfi-13.doc srfi-14.doc \
+    srcprop.doc stackchk.doc stacks.doc stime.doc strings.doc srfi-4.doc    \
+    srfi-13.doc srfi-14.doc						    \
     strorder.doc strports.doc struct.doc symbols.doc threads.doc throw.doc  \
     values.doc variable.doc vectors.doc version.doc vports.doc weaks.doc
 
