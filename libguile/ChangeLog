@@ -1,3 +1,9 @@
+1999-09-14  Jim Blandy  <jimb@savonarola.red-bean.com>
+
+	* Makefile.am (.c.x): Don't create a subshell just to delete the
+	.x file and return false.
+	* Makefile.in: Regenerated.
+
 1999-09-13  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* feature.c (scm_create_hook): New function.  Replaces
