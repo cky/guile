@@ -1,7 +1,7 @@
 2002-05-14  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* gc_os_dep.c: For I386/OPENBSD, allow for `__i386__'
-	in addition to `i386'.
+	in addition to `i386'.  Thanks to Dale P. Smith.
 
 2002-05-08  Marius Vollmer  <mvo@zagadka.ping.de>
 
