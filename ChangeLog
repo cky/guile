@@ -1,3 +1,8 @@
+Thu Aug 15 19:03:03 1996  Jim Blandy  <jimb@floss.cyclic.com>
+
+	* configure.in: Check for -ldl, so the check for Tcl won't fail
+ 	spuriously.
+
 Thu Aug 15 01:29:29 1996  Jim Blandy  <jimb@totoro.cyclic.com>
 
 	Change the way we decide whether to build gtcltk-lib, so that it's
