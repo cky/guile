@@ -513,6 +513,8 @@ fi
 
 
 
+rm -f config.build-subdirs
+
 . $srcdir/GUILE-VERSION
 
 all_subdirs=`cat $srcdir/*/PLUGIN/REQ $srcdir/*/PLUGIN/OPT /dev/null | tsort | xargs echo`
@@ -605,7 +607,7 @@ else
   yes;
 #endif
 EOF
-if { ac_try='${CC-cc} -E conftest.c'; { (eval echo configure:609: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }; } | egrep yes >/dev/null 2>&1; then
+if { ac_try='${CC-cc} -E conftest.c'; { (eval echo configure:611: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }; } | egrep yes >/dev/null 2>&1; then
   ac_cv_prog_gcc=yes
 else
   ac_cv_prog_gcc=no
@@ -643,10 +645,14 @@ else
 fi
 
 
+build_subdirs="$all_subdirs"
+
 ### Use gtcltk-lib only if we seem to have Tcl installed on the
 ### system.  This way of doing this doesn't really fit into the PLUGIN
 ### approach, but I'm not sure how to do it more gracefully within
-### that approach.
+### that approach.  We really should check for Tk as well, but that
+### involves finding all the X libraries that we need to do a complete
+### link.
 echo $ac_n "checking for -ltcl7.5""... $ac_c" 1>&6
 ac_lib_var=`echo tcl7.5'_'Tcl_CreateInterp | tr './+\055' '__p_'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
@@ -655,7 +661,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-ltcl7.5 -lm $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 659 "configure"
+#line 665 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -667,7 +673,7 @@ int t() {
 Tcl_CreateInterp()
 ; return 0; }
 EOF
-if { (eval echo configure:671: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; }; then
+if { (eval echo configure:677: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; }; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -687,7 +693,7 @@ have_tcl=false
 fi
 
 if $have_tcl; then :; else
-  all_subdirs="`echo $all_subdirs | sed s:gtcltk-lib::`"
+  build_subdirs="`echo $build_subdirs | sed s:gtcltk-lib::`"
   req_subdirs="`echo $req_subdirs | sed s:gtcltk-lib::`"
 fi  
 
@@ -753,6 +759,8 @@ if test "x$verbose" = xyes; then
   done
 fi
 
+
+echo "${build_subdirs}" > config.build-subdirs
 
 
 
@@ -887,6 +895,7 @@ s%@mandir@%$mandir%g
 s%@CC@%$CC%g
 s%@subdirs@%$subdirs%g
 s%@existingdirs@%$existingdirs%g
+s%@build_subdirs@%$build_subdirs%g
 s%@GUILE_VERSION@%$GUILE_VERSION%g
 
 CEOF

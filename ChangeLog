@@ -1,5 +1,19 @@
 Thu Aug 15 01:29:29 1996  Jim Blandy  <jimb@totoro.cyclic.com>
 
+	Change the way we decide whether to build gtcltk-lib, so that it's
+	omitted from the build process when appropriate, but never from
+	the dist process.
+	* configure.in: Don't edit all_subdirs depending on the
+ 	availability of Tk; let that be the list of all PLUGIN
+ 	subdirectories present, as it used to be.  Instead, edit a new
+ 	variable, build_subdirs; write its final value, the list of
+ 	subdirs we do want to compile in, to config.build-subdirs.
+  	Substitute that into the top-level Makefile too.
+	* Makefile.in (subdirs): Set this to @build_subdirs@, so we only
+	recurse on the subdirectories we should build.
+	(distdirs): Set this to @existingdirs@, so it includes the subdirs
+	we decided not to build.
+
 	* doc/gtcltk.texi: File resurrected from old Guile releases.
 	* doc/Makefile.in (info): Build the gtcltk documentation.
 	(DIST_FILES): Include it in the distribution.
