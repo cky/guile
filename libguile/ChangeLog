@@ -35,6 +35,8 @@
 
 	* Makefile.am: Added evalext.c, evalext.h, macros.c, macros.h.
 
+	* debug.c, print.c: Added #include "macros.h".
+
 1998-10-29  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
 	This change adds the ability to use `unread-char' multiple times
