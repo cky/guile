@@ -317,7 +317,7 @@
 					  (error "Too many arguments.")))
 				    '())
 			      ,@BODY)))
-	   `(lambda (,@ARGLIST . ,(if rest-arg rest-arg '())) 
+	   `(lambda (,@non-optional-args . ,(if rest-arg rest-arg '())) 
 	      ,@BODY))))))
 
 
