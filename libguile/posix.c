@@ -843,9 +843,9 @@ scm_environ (env)
       SCM_ASSERT (SCM_NULLP (env) || (SCM_NIMP (env) && SCM_CONSP (env)),
 	      env, SCM_ARG1, s_environ);
       num_strings = scm_ilength (env);
-      new_environ = (char **) scm_must_malloc ((num_strings + 1)
-					       * sizeof (char *),
-					       s_environ);
+      new_environ = (char **) malloc ((num_strings + 1) * sizeof (char *));
+      if (new_environ == NULL)
+	scm_memory_error (s_environ);
       while (SCM_NNULLP (env))
 	{
 	  int len;
@@ -854,7 +854,9 @@ scm_environ (env)
 		      && SCM_ROSTRINGP (SCM_CAR (env)),
 		      env, SCM_ARG1, s_environ);
 	  len = 1 + SCM_ROLENGTH (SCM_CAR (env));
-	  new_environ[i] = scm_must_malloc ((long) len, s_environ);
+	  new_environ[i] = malloc ((long) len);
+	  if (new_environ[i] == NULL)
+	    scm_memory_error (s_environ);
 	  src = SCM_ROCHARS (SCM_CAR (env));
 	  while (len--) 
 	    new_environ[i][len] = src[len];
@@ -871,8 +873,8 @@ scm_environ (env)
 	if (!first)
 	  {
 	    for (ep = environ; *ep != NULL; ep++)
-	      scm_must_free (*ep);
-	    scm_must_free ((char *) environ);
+	      free (*ep);
+	    free ((char *) environ);
 	  }
 	first = 0;
       }
@@ -929,25 +931,23 @@ scm_open_pipe (pipestr, modes)
   return z;
 }
 
+SCM_PROC (s_close_pipe, "close-pipe", 1, 0, 0, scm_close_pipe);
 
-SCM_PROC (s_open_input_pipe, "open-input-pipe", 1, 0, 0, scm_open_input_pipe);
-
-SCM
-scm_open_input_pipe(pipestr)
-     SCM pipestr;
+SCM 
+scm_close_pipe (port)
+     SCM port;
 {
-  return scm_open_pipe(pipestr, scm_makfromstr("r", (sizeof "r")-1, 0));
+  int rv;
+
+  SCM_ASSERT (SCM_NIMP (port) && SCM_TYP16(port) == scm_tc16_pipe 
+	      && SCM_OPENP (port), port, SCM_ARG1, s_close_pipe);
+  SCM_DEFER_INTS;
+  rv = pclose ((FILE *) SCM_STREAM (port));
+  if (rv == -1)
+    scm_syserror (s_close_pipe);
+  SCM_ALLOW_INTS;
+  return SCM_MAKINUM (rv);
 }
-
-SCM_PROC (s_open_output_pipe, "open-output-pipe", 1, 0, 0, scm_open_output_pipe);
-
-SCM
-scm_open_output_pipe(pipestr)
-     SCM pipestr;
-{
-  return scm_open_pipe(pipestr, scm_makfromstr("w", (sizeof "w")-1, 0));
-}
-
 
 SCM_PROC (s_utime, "utime", 1, 2, 0, scm_utime);
 
@@ -1011,19 +1011,19 @@ SCM
 scm_putenv (str)
      SCM str;
 {
-#ifdef HAVE_PUTENV
   int rv;
+  char *ptr;
 
   SCM_ASSERT (SCM_NIMP (str) && SCM_STRINGP (str), str, SCM_ARG1, s_putenv);
-  rv = putenv (SCM_CHARS (str));
+  /* must make a new copy to be left in the environment, safe from gc.  */
+  ptr = malloc (SCM_LENGTH (str) + 1);
+  if (ptr == NULL)
+    scm_memory_error (s_putenv);
+  strcpy (ptr, SCM_CHARS (str));
+  rv = putenv (ptr);
   if (rv < 0)
     scm_syserror (s_putenv);
   return SCM_UNSPECIFIED;
-#else
-  scm_sysmissing (s_putenv);
-  /* not reached.  */
-  return SCM_BOOL_F;
-#endif
 }
 
 SCM_PROC (s_setlocale, "setlocale", 1, 1, 0, scm_setlocale);
@@ -1180,22 +1180,49 @@ scm_strptime (format, string)
 #endif
 }
 
-SCM_PROC (s_mknod, "mknod", 3, 0, 0, scm_mknod);
+SCM_PROC (s_mknod, "mknod", 4, 0, 0, scm_mknod);
 
 SCM
-scm_mknod(path, mode, dev)
+scm_mknod(path, type, perms, dev)
      SCM path;
-     SCM mode;
+     SCM type;
+     SCM perms;
      SCM dev;
 {
 #ifdef HAVE_MKNOD
   int val;
-  SCM_ASSERT(SCM_NIMP(path) && SCM_ROSTRINGP(path), path, SCM_ARG1, s_mknod);
-  SCM_ASSERT(SCM_INUMP(mode), mode, SCM_ARG2, s_mknod);
-  SCM_ASSERT(SCM_INUMP(dev), dev, SCM_ARG3, s_mknod);
-  SCM_SYSCALL(val = mknod(SCM_ROCHARS(path), SCM_INUM(mode), SCM_INUM(dev)));
+  char *p;
+  int ctype;
+
+  SCM_ASSERT (SCM_NIMP(path) && SCM_ROSTRINGP(path), path, SCM_ARG1, s_mknod);
+  SCM_ASSERT (SCM_NIMP(type) && SCM_SYMBOLP (type), type, SCM_ARG2, s_mknod);
+  SCM_ASSERT (SCM_INUMP (perms), perms, SCM_ARG3, s_mknod);
+  SCM_ASSERT (SCM_INUMP(dev), dev, SCM_ARG4, s_mknod);
+
+  p = SCM_CHARS (type);
+  if (strcmp (p, "regular") == 0)
+    ctype = S_IFREG;
+  else if (strcmp (p, "directory") == 0)
+    ctype = S_IFDIR;
+  else if (strcmp (p, "symlink") == 0)
+    ctype = S_IFLNK;
+  else if (strcmp (p, "block-special") == 0)
+    ctype = S_IFBLK;
+  else if (strcmp (p, "char-special") == 0)
+    ctype = S_IFCHR;
+  else if (strcmp (p, "fifo") == 0)
+    ctype = S_IFIFO;
+  else if (strcmp (p, "socket") == 0)
+    ctype = S_IFSOCK;
+  else
+    scm_out_of_range (s_mknod, type);
+
+  SCM_DEFER_INTS;
+  SCM_SYSCALL (val = mknod(SCM_ROCHARS(path), ctype | SCM_INUM (perms),
+			   SCM_INUM (dev)));
   if (val != 0)
     scm_syserror (s_mknod);
+  SCM_ALLOW_INTS;
   return SCM_UNSPECIFIED;
 #else
   scm_sysmissing (s_mknod);

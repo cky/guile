@@ -2,7 +2,7 @@
 
 #ifndef TIMEH
 #define TIMEH
-/*	Copyright (C) 1995,1996 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996,1997 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,7 +50,11 @@
 extern SCM scm_get_internal_real_time SCM_P ((void));
 extern SCM scm_get_internal_run_time SCM_P ((void));
 extern SCM scm_current_time SCM_P ((void));
-extern long scm_time_in_msec SCM_P ((long x));
+extern SCM scm_time_plus_ticks (void);
+extern SCM scm_localtime (SCM time, SCM zone);
+extern SCM scm_gmtime (SCM time);
+extern SCM scm_mktime (SCM sbd_time);
+extern SCM scm_tzset (void);
 extern void scm_init_stime SCM_P ((void));
 
 #endif  /* TIMEH */

@@ -2017,7 +2017,7 @@ EOF
 fi
 
 
-for ac_func in ctermid ftime getcwd geteuid lstat mkdir mknod nice putenv readlink rename rmdir select setegid seteuid setlocale setpgid setsid strftime strptime symlink sync tcgetpgrp tcsetpgrp times uname waitpid
+for ac_func in ctermid ftime getcwd geteuid gettimeofday lstat mkdir mknod nice readlink rename rmdir select setegid seteuid setlocale setpgid setsid strftime strptime symlink sync tcgetpgrp tcsetpgrp times uname waitpid
 do
 echo $ac_n "checking for $ac_func""... $ac_c" 1>&6
 echo "configure:2024: checking for $ac_func" >&5
@@ -2073,7 +2073,7 @@ fi
 done
 
 
-for ac_func in inet_aton strerror
+for ac_func in inet_aton putenv strerror
 do
 echo $ac_n "checking for $ac_func""... $ac_c" 1>&6
 echo "configure:2080: checking for $ac_func" >&5

@@ -51,9 +51,9 @@ AC_TYPE_GETGROUPS
 AC_TYPE_SIGNAL
 AC_TYPE_MODE_T
 
-AC_CHECK_FUNCS(ctermid ftime getcwd geteuid lstat mkdir mknod nice putenv readlink rename rmdir select setegid seteuid setlocale setpgid setsid strftime strptime symlink sync tcgetpgrp tcsetpgrp times uname waitpid)
+AC_CHECK_FUNCS(ctermid ftime getcwd geteuid gettimeofday lstat mkdir mknod nice readlink rename rmdir select setegid seteuid setlocale setpgid setsid strftime strptime symlink sync tcgetpgrp tcsetpgrp times uname waitpid)
 
-AC_REPLACE_FUNCS(inet_aton strerror)
+AC_REPLACE_FUNCS(inet_aton putenv strerror)
 
 AC_FUNC_ALLOCA
 

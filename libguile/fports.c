@@ -383,16 +383,16 @@ scm_ptobfuns scm_fptob =
 scm_ptobfuns scm_pipob =
 {
   scm_mark0,
-  0, 				/* replaced by pclose in scm_init_ioext() */
-  0, 				/* replaced by prinpipe in scm_init_ioext() */
+  (int (*) SCM_P ((SCM))) pclose,  
+  scm_prinport,
   0,
   (int (*) SCM_P ((int, SCM))) local_fputc,
   (int (*) SCM_P ((char *, SCM))) local_fputs,
   (scm_sizet (*) SCM_P ((char *, scm_sizet, scm_sizet, SCM))) local_ffwrite,
   (int (*) SCM_P ((SCM))) local_fflush,
   (int (*) SCM_P ((SCM))) scm_fgetc,
-  0
-};				/* replaced by pclose in scm_init_ioext() */
+  (int (*) SCM_P ((SCM))) pclose
+};
 
 void
 scm_init_fports ()

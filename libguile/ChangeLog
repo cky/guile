@@ -1,3 +1,48 @@
+Sat Apr  5 02:39:02 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* posix.c (scm_putenv): don't check HAVE_PUTENV.
+	* Makefile.am (EXTRA_libguile_la_SOURCES): add putenv.c.
+	* configure.in: move putenv from AC_CHECK_FUNCS to AC_REPLACE_FUNCS.
+	* putenv.c: new file, from sh-utils 1.12.
+
+	* posix.c (scm_environ): use malloc in place of scm_must_malloc
+	since allocation isn't for Scheme objects.
+	(scm_putenv): copy strings before placing in the environment.
+
+	* stime.c (scm_current_time): throw an error if time returns -1,
+	instead of returning #f.
+	(scm_get_internal_real_time, scm_get_internal_real_time): use
+	scm_long2num for return value instead of SCM_MAKINUM.
+
+	* stime.h: prototypes updated.
+
+	* stime.c (scm_time_in_msec): apparently unused, deleted.
+
+Fri Apr  4 08:53:41 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* configure.in: check for gettimeofday.
+
+	* stime.c (scm_time_plus_ticks): new procedure, an scsh interface
+	which may be more usefully portable than a gettimeofday interface.
+
+Mon Mar 31 03:22:37 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* stime.c (filltime): recovered static procedure.
+	(scm_localtime, scm_gmtime, scm_mktime, scm_tzset): recovered from
+	an earlier Guile.
+
+	* posix.h: add prototype for scm_close_pipe, remove prototypes for
+	scm_open_input_pipe, scm_open_output_pipe, change scm_mknod prototype.
+
+*	* posix.c (scm_mknod): split the mode argument into type and perms
+	arguments, like the extra fields returned by stat.
+
+	* fports.c (scm_pipob): set the close, free and print procedures.
+	(scm_close_pipe): new procedure.
+
+	* posix.c (scm_open_input_pipe, scm_open_output_pipe): deleted,
+	define them in boot-9.scm
+
 Wed Mar 26 04:10:32 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* ioext.c (scm_setfileno): throw a runtime error if SET_FILE_FD_FIELD

@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996,1997 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -126,7 +126,7 @@ long mytime()
 # endif
 #endif
 
-
+extern int errno;
 
 #ifdef HAVE_FTIME
 
@@ -145,7 +145,7 @@ scm_get_internal_real_time()
   tmp = time_buffer.time*1000L + tmp;
   tmp *= CLKTCK;
   tmp /= 1000;
-  return SCM_MAKINUM(tmp);
+  return scm_long2num (tmp);
 }
 
 #else
@@ -155,7 +155,7 @@ SCM_PROC(s_get_internal_real_time, "get-internal-real-time", 0, 0, 0, scm_get_in
 SCM
 scm_get_internal_real_time()
 {
-	return SCM_MAKINUM((time((timet*)0) - scm_your_base) * (int)CLKTCK);
+  return scm_long2num((time((timet*)0) - scm_your_base) * (int)CLKTCK);
 }
 #endif
 
@@ -167,39 +167,255 @@ SCM_PROC(s_get_internal_run_time, "get-internal-run-time", 0, 0, 0, scm_get_inte
 SCM
 scm_get_internal_run_time()
 {
-  return SCM_MAKINUM(mytime()-scm_my_base);
+  return scm_long2num(mytime()-scm_my_base);
 }
 
 SCM_PROC(s_current_time, "current-time", 0, 0, 0, scm_current_time);
 SCM
 scm_current_time()
 {
-  timet timv = time((timet*)0);
-  SCM ans;
-  ans = scm_ulong2num(timv);
-  return SCM_BOOL_F==ans ? SCM_MAKINUM(timv) : ans;
+  timet timv;
+
+  SCM_DEFER_INTS;
+  if ((timv = time (0)) == -1)
+    scm_syserror (s_current_time);
+  SCM_ALLOW_INTS;
+  return scm_long2num((long) timv);
 }
 
-long 
-scm_time_in_msec(x)
-     long x;
+SCM_PROC (s_time_plus_ticks, "time+ticks", 0, 0, 0, scm_time_plus_ticks);
+SCM
+scm_time_plus_ticks (void)
 {
-  if (CLKTCK==60) return (x*50)/3;
-  else
-    return (CLKTCK < 1000 ? x*(1000L/(long)CLKTCK) : (x*1000L)/(long)CLKTCK);
+#ifdef HAVE_GETTIMEOFDAY
+  struct timeval time;
+
+  SCM_DEFER_INTS;
+  if (gettimeofday (&time, NULL) == -1)
+    scm_syserror (s_time_plus_ticks);
+  SCM_ALLOW_INTS;
+  return scm_cons (scm_long2num ((long) time.tv_sec),
+		   scm_long2num ((long) time.tv_usec));
+#else
+# ifdef HAVE_FTIME
+  struct timeb time;
+
+  ftime(&time);
+  return scm_cons (scm_long2num ((long) time.time), 
+		   SCM_MAKINUM (time.millitm));
+# else
+  timet timv;
+  
+  SCM_DEFER_INTS;
+  if ((timv = time (0)) == -1)
+    scm_syserror (s_time_plus_ticks);
+  SCM_ALLOW_INTS;
+  return scm_cons (scm_long2num (timv), SCM_MAKINUM (0));
+# endif
+#endif
+}
+
+static SCM
+filltime (struct tm *bd_time, int zoff, char *zname)
+{
+  SCM result = scm_make_vector(SCM_MAKINUM(11), SCM_UNDEFINED, SCM_UNDEFINED);
+
+  SCM_VELTS (result)[0] = SCM_MAKINUM (bd_time->tm_sec);
+  SCM_VELTS (result)[1] = SCM_MAKINUM (bd_time->tm_min);
+  SCM_VELTS (result)[2] = SCM_MAKINUM (bd_time->tm_hour);
+  SCM_VELTS (result)[3] = SCM_MAKINUM (bd_time->tm_mday);
+  SCM_VELTS (result)[4] = SCM_MAKINUM (bd_time->tm_mon);
+  SCM_VELTS (result)[5] = SCM_MAKINUM (bd_time->tm_year);
+  SCM_VELTS (result)[6] = SCM_MAKINUM (bd_time->tm_wday);
+  SCM_VELTS (result)[7] = SCM_MAKINUM (bd_time->tm_yday);
+  SCM_VELTS (result)[8] = SCM_MAKINUM (bd_time->tm_isdst);
+  SCM_VELTS (result)[9] = SCM_MAKINUM (zoff);
+  SCM_VELTS (result)[10] = scm_makfrom0str (zname);
+  return result;
+}
+
+#if 0
+SCM_PROC (s_localtime, "localtime", 1, 1, 0, scm_localtime);
+SCM
+scm_localtime (SCM time, SCM zone)
+{
+  timet itime;
+  struct tm *lt, *utc;
+  SCM result;
+  int zoff;
+  char *zname = 0;
+  char *tzvar = "TZ";
+  char *oldtz = 0;
+  int err;
+
+  itime = scm_num2long (time, (char *) SCM_ARG1, s_localtime);
+  SCM_DEFER_INTS;
+  if (!SCM_UNBNDP (zone))
+    {
+      char *buf;
+
+      /* if zone was supplied, set the environment variable TZ temporarily.  */
+      SCM_ASSERT (SCM_NIMP (zone) && SCM_STRINGP (zone), zone, SCM_ARG2,
+		  s_localtime);
+      buf = malloc (SCM_LENGTH (zone) + 4);
+      if (buf == 0)
+	scm_memory_error (s_localtime);
+      oldtz = getenv (tzvar);
+      sprintf (buf, "%s=%s", tzvar, SCM_CHARS (zone));
+      putenv (buf);
+      tzset();
+    }
+  lt = localtime (&itime);
+  err = errno;
+  utc = gmtime (&itime);
+  if (utc == NULL)
+    err = errno;
+  if (lt)
+    {
+      /* must be copied before calling tzset again.  */
+      char *ptr = tzname[ (lt->tm_isdst == 1) ? 1 : 0 ];
+
+      zname = scm_must_malloc (strlen (ptr) + 1, s_localtime);
+      strcpy (zname, ptr);
+    }
+  if (!SCM_UNBNDP (zone))
+    {
+      /* restore the old environment value of TZ.  */
+      if (oldtz)
+	putenv (oldtz - 3);
+      else
+	putenv (tzvar);
+      tzset();
+    }
+  errno = err;
+  if (utc == NULL)
+    scm_syserror (s_localtime);
+  if (lt == NULL)
+    scm_syserror (s_localtime);
+
+  /* calculate timezone offset in seconds west of UTC.  */
+  zoff = (utc->tm_hour - lt->tm_hour) * 3600 + (utc->tm_min - lt->tm_min) * 60
+    + utc->tm_sec - lt->tm_sec;
+  if (utc->tm_year < lt->tm_year)
+    zoff -= 24 * 60 * 60;
+  else if (utc->tm_year > lt->tm_year)
+    zoff += 24 * 60 * 60;
+  else if (utc->tm_yday < lt->tm_yday)
+    zoff -= 24 * 60 * 60;
+  else if (utc->tm_yday > lt->tm_yday)
+    zoff += 24 * 60 * 60;
+  
+  result = filltime (lt, zoff, zname);
+  SCM_ALLOW_INTS;
+  return result;
+}
+#endif
+
+SCM_PROC (s_gmtime, "gmtime", 1, 0, 0, scm_gmtime);
+SCM
+scm_gmtime (SCM time)
+{
+  timet itime;
+  struct tm *bd_time;
+  SCM result;
+
+  itime = scm_num2long (time, (char *) SCM_ARG1, s_gmtime);
+  SCM_DEFER_INTS;
+  bd_time = gmtime (&itime);
+  if (bd_time == NULL)
+    scm_syserror (s_gmtime);
+  result = filltime (bd_time, 0, "GMT");
+  SCM_ALLOW_INTS;
+  return result;
+}
+
+#if 0
+SCM_PROC (s_mktime, "mktime", 1, 0, 0, scm_mktime);
+SCM
+scm_mktime (SCM sbd_time)
+{
+  timet itime;
+  struct tm lt, *utc;
+  SCM result;
+  int zoff;
+  char *zname;
+
+  SCM_ASSERT (SCM_VECTORP (sbd_time), sbd_time, SCM_ARG1, s_mktime);
+  SCM_ASSERT (SCM_INUMP (SCM_VELTS (sbd_time)[0]) 
+	      && SCM_INUMP (SCM_VELTS (sbd_time)[1])
+	      && SCM_INUMP (SCM_VELTS (sbd_time)[2])
+	      && SCM_INUMP (SCM_VELTS (sbd_time)[3])
+	      && SCM_INUMP (SCM_VELTS (sbd_time)[4])
+	      && SCM_INUMP (SCM_VELTS (sbd_time)[5])
+	      && SCM_INUMP (SCM_VELTS (sbd_time)[8]),
+	      sbd_time, SCM_ARG1, s_mktime);
+  lt.tm_sec = SCM_INUM (SCM_VELTS (sbd_time)[0]);
+  lt.tm_min = SCM_INUM (SCM_VELTS (sbd_time)[1]);
+  lt.tm_hour = SCM_INUM (SCM_VELTS (sbd_time)[2]);
+  lt.tm_mday = SCM_INUM (SCM_VELTS (sbd_time)[3]);
+  lt.tm_mon = SCM_INUM (SCM_VELTS (sbd_time)[4]);
+  lt.tm_year = SCM_INUM (SCM_VELTS (sbd_time)[5]);
+  lt.tm_isdst = SCM_INUM (SCM_VELTS (sbd_time)[8]);
+
+  SCM_DEFER_INTS;
+  itime = mktime (&lt);
+  if (itime == -1)
+    scm_syserror (s_mktime);
+
+  /* timezone offset in seconds west of UTC.  */
+  utc = gmtime (&itime);
+  zoff = (utc->tm_hour - lt.tm_hour) * 3600 + (utc->tm_min - lt.tm_min) * 60
+    + utc->tm_sec - lt.tm_sec;
+  if (utc->tm_year < lt.tm_year)
+    zoff -= 24 * 60 * 60;
+  else if (utc->tm_year > lt.tm_year)
+    zoff += 24 * 60 * 60;
+  else if (utc->tm_yday < lt.tm_yday)
+    zoff -= 24 * 60 * 60;
+  else if (utc->tm_yday > lt.tm_yday)
+    zoff += 24 * 60 * 60;
+
+  /* timezone name.  */
+  zname = tzname[ (lt.tm_isdst == 1) ? 1 : 0 ];
+
+  result = scm_cons (scm_long2num ((long) itime),
+		     filltime (&lt, zoff, zname));
+  SCM_ALLOW_INTS;
+  return result;
+}
+#endif
+
+SCM_PROC (s_tzset, "tzset", 0, 0, 0, scm_tzset);
+SCM
+scm_tzset (void)
+{
+  tzset();
+  return SCM_UNSPECIFIED;
 }
 
 void
 scm_init_stime()
 {
   scm_sysintern("internal-time-units-per-second",
-		SCM_MAKINUM((long)CLKTCK));
+		scm_long2num((long)CLKTCK));
 
 #ifdef HAVE_FTIME
   if (!scm_your_base.time) ftime(&scm_your_base);
 #else
   if (!scm_your_base) time(&scm_your_base);
 #endif
+
+  scm_sysintern("ticks/sec", 
+#ifdef HAVE_GETTIMEOFDAY
+		scm_long2num ((long) 1000000)
+#else
+# ifdef HAVE_FTIME
+		SCM_MAKINUM (1000)
+# else
+		SCM_MAKINUM (1)
+# endif
+#endif
+		);
 
   if (!scm_my_base) scm_my_base = mytime();
 
