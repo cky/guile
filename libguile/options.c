@@ -123,6 +123,7 @@ scm_options (new_mode, options, n, s)
      char *s;
 {
   int i, docp = (!SCM_UNBNDP (new_mode)
+		 && !SCM_NULLP (new_mode)
 		 && (SCM_IMP (new_mode) || SCM_NCONSP (new_mode)));
   SCM ans = SCM_EOL, ls;
   for (i = 0; i < n; ++i)
