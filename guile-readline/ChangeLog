@@ -1,3 +1,8 @@
+Wed Mar  8 10:43:10 2000  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* readline.c (match_paren): Use SELECT_TYPE, not fd_set, for type
+ 	of readset.
+
 2000-01-25  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* autogen.sh: Call libtoolize.  Pass --add-missing option to
