@@ -1,5 +1,10 @@
 2001-04-15  Keisuke Nishida  <kxn30@po.cwru.edu>
 
+	* boot-9.scm (load-compiled): New variable, initialized in the VM.
+	(try-module-autoload): Try loading compiled modules if applicable.
+
+2001-04-15  Keisuke Nishida  <kxn30@po.cwru.edu>
+
 	* boot-9.scm (call-with-deprecation): New procedure.
 	(identity): New procedure.
 	(id): Deprecated.	

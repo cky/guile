@@ -1727,6 +1727,10 @@
     (module-constructor #() '() b #f #f name 'autoload
 			'() (make-weak-value-hash-table 31) 0)))
 
+;;; {Compiled module}
+
+(define load-compiled #f)
+
 
 ;;; {Autoloading modules}
 
@@ -1743,14 +1747,20 @@
     (resolve-module dir-hint-module-name #f)
     (and (not (autoload-done-or-in-progress? dir-hint name))
 	 (let ((didit #f))
+	   (define (load-file proc file)
+	     (save-module-excursion (lambda () (proc file)))
+	     (set! didit #t))
 	   (dynamic-wind
 	    (lambda () (autoload-in-progress! dir-hint name))
 	    (lambda ()
-	      (let ((full (%search-load-path (in-vicinity dir-hint name))))
-		(if full
-		    (begin
-		      (save-module-excursion (lambda () (primitive-load full)))
-		      (set! didit #t)))))
+	      (let ((file (in-vicinity dir-hint name)))
+		(cond ((and load-compiled
+			    (%search-load-path (string-append file ".go")))
+		       => (lambda (full)
+			    (load-file load-compiled full)))
+		      ((%search-load-path file)
+		       => (lambda (full)
+			    (load-file primitive-load full))))))
 	    (lambda () (set-autoloaded! dir-hint name didit)))
 	   didit))))
 
