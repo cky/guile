@@ -510,11 +510,12 @@
 		 (lp (map1 cdr lists))))))))
 
 (define (count1 pred clist)
-  (if (null? clist)
-    0
-    (if (pred (car clist))
-      (+ 1 (count1 pred (cdr clist)))
-      (count1 pred (cdr clist)))))
+  (let lp ((result 0) (rest clist))
+    (if (null? rest)
+	result
+	(if (pred (car rest))
+	    (lp (+ 1 result) (cdr rest))
+	    (lp result (cdr rest))))))
 
 ;;; Fold, unfold & map
 
@@ -771,12 +772,17 @@
       clist
       (find-tail pred (cdr clist)))))
 
-(define (take-while pred clist)
-  (if (null? clist)
-    '()
-    (if (pred (car clist))
-      (cons (car clist) (take-while pred (cdr clist)))
-      '())))
+(define (take-while pred ls)
+  (cond ((null? ls) '())
+        ((not (pred (car ls))) '())
+        (else
+         (let ((result (list (car ls))))
+           (let lp ((ls (cdr ls)) (p result))
+             (cond ((null? ls) result)
+                   ((not (pred (car ls))) result)
+                   (else
+                    (set-cdr! p (list (car ls)))
+                    (lp (cdr ls) (cdr p)))))))))
 
 (define (take-while! pred clist)
   (take-while pred clist))		; XXX:optimize
