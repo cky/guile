@@ -285,7 +285,7 @@ SCM_DEFINE (scm_search_path, "search-path", 2, 1, 0,
     SCM walk;
 
     max_path_len = 0;
-    for (walk = path; SCM_NIMP (walk); walk = SCM_CDR (walk))
+    for (walk = path; SCM_NNULLP (walk); walk = SCM_CDR (walk))
       {
 	SCM elt = SCM_CAR (walk);
 	SCM_ASSERT (SCM_ROSTRINGP (elt), elt,
@@ -324,7 +324,7 @@ SCM_DEFINE (scm_search_path, "search-path", 2, 1, 0,
     SCM walk;
 
     max_ext_len = 0;
-    for (walk = extensions; SCM_NIMP (walk); walk = SCM_CDR (walk))
+    for (walk = extensions; SCM_NNULLP (walk); walk = SCM_CDR (walk))
       {
 	SCM elt = SCM_CAR (walk);
 	SCM_ASSERT (SCM_ROSTRINGP (elt), elt,
@@ -348,7 +348,7 @@ SCM_DEFINE (scm_search_path, "search-path", 2, 1, 0,
 
     /* Try every path element.  At this point, we know the path is a
        proper list of strings.  */
-    for (; SCM_NIMP (path); path = SCM_CDR (path))
+    for (; SCM_NNULLP (path); path = SCM_CDR (path))
       {
 	int len;
 	SCM dir = SCM_CAR (path);
@@ -364,7 +364,7 @@ SCM_DEFINE (scm_search_path, "search-path", 2, 1, 0,
 
 	/* Try every extension.  At this point, we know the extension
 	   list is a proper, nonempty list of strings.  */
-	for (exts = extensions; SCM_NIMP (exts); exts = SCM_CDR (exts))
+	for (exts = extensions; SCM_NNULLP (exts); exts = SCM_CDR (exts))
 	  {
 	    SCM ext = SCM_CAR (exts);
 	    int ext_len = SCM_ROLENGTH (ext);

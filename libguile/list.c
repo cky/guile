@@ -61,17 +61,14 @@
 
 /* creating lists */
 
-/* SCM_P won't help us deal with varargs here.  */
 SCM
 scm_listify (SCM elt, ...)
 {
   va_list foo;
-  SCM answer;
-  SCM *pos;
+  SCM answer = SCM_EOL;
+  SCM *pos = &answer;
 
   var_start (foo, elt);
-  answer = SCM_EOL;
-  pos = &answer;
   while (elt != SCM_UNDEFINED)
     {
       *pos = scm_cons (elt, SCM_EOL);
@@ -94,7 +91,7 @@ SCM_DEFINE (scm_list, "list", 0, 0, 1,
 
 SCM_DEFINE (scm_list_star, "list*", 1, 0, 1, 
             (SCM arg, SCM rest),
-"")
+	    "Return an improper list of the arguments.")
 #define FUNC_NAME s_scm_list_star
 {
   if (SCM_NNULLP (rest))
@@ -120,16 +117,17 @@ SCM_DEFINE (scm_null_p, "null?", 1, 0, 0,
 "")
 #define FUNC_NAME s_scm_null_p
 {
-  return SCM_BOOL(SCM_NULLP(x));
+  return SCM_BOOL (SCM_NULLP (x));
 }
 #undef FUNC_NAME
+
 
 SCM_DEFINE (scm_list_p, "list?", 1, 0, 0, 
            (SCM x),
 "")
 #define FUNC_NAME s_scm_list_p
 {
-  return SCM_BOOL(scm_ilength(x)>=0);
+  return SCM_BOOL (scm_ilength (x) >= 0);
 }
 #undef FUNC_NAME
 
@@ -163,6 +161,7 @@ scm_ilength(SCM sx)
      a cycle.  */
   return -1;
 }
+
 
 SCM_DEFINE (scm_length, "length", 1, 0, 0, 
            (SCM lst),
