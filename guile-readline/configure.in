@@ -4,6 +4,7 @@ PACKAGE=guile-readline
 AM_INIT_AUTOMAKE($PACKAGE, $VERSION, no-define)
 
 AC_PROG_CC
+AM_PROG_CC_STDC
 AM_PROG_LIBTOOL
 
 dnl Should we check for curses, terminfo, and termlib, too?
