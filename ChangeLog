@@ -1,3 +1,8 @@
+2001-11-12  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* autogen.sh: Recurse into libltdl directory and invoke autoconf
+	there.
+
 2001-11-11  Thien-Thi Nguyen  <ttn@glug.org>
 
 	* HACKING: Restrict documentation change log
