@@ -686,6 +686,8 @@ AC_SUBST(EXTRA_DOT_X_FILES)
 dnl See also top_builddir in info node: (libtool)AC_PROG_LIBTOOL
 top_builddir_absolute=`pwd`
 AC_SUBST(top_builddir_absolute)
+top_srcdir_absolute=`(cd $srcdir ; pwd)`
+AC_SUBST(top_srcdir_absolute)
 
 AC_CONFIG_FILES([
   Makefile
