@@ -32,7 +32,7 @@ SCM
 FLOAT2NUM (FTYPE n)
 {
   SCM z;
-  z = scm_alloc_double_cell (scm_tc16_real, 0, 0, 0);
+  z = scm_double_cell (scm_tc16_real, 0, 0, 0);
   SCM_REAL_VALUE (z) = n;
   return z;
 }

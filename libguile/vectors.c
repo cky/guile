@@ -215,8 +215,7 @@ scm_c_make_vector (unsigned long int k, SCM fill)
   else
     base = NULL;
 
-  v = scm_alloc_cell (SCM_MAKE_VECTOR_TAG (k, scm_tc7_vector),
-		      (scm_t_bits) base);
+  v = scm_cell (SCM_MAKE_VECTOR_TAG (k, scm_tc7_vector), (scm_t_bits) base);
   scm_remember_upto_here_1 (fill);
 
   return v;

@@ -80,7 +80,7 @@ SCM_DEFINE (scm_cons, "cons", 2, 0, 0,
 	    "sense of @code{eq?}) from every previously existing object.")
 #define FUNC_NAME s_scm_cons
 {
-  return scm_alloc_cell (SCM_UNPACK (x), SCM_UNPACK (y));
+  return scm_cell (SCM_UNPACK (x), SCM_UNPACK (y));
 }
 #undef FUNC_NAME
 

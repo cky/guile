@@ -1,3 +1,36 @@
+2002-03-01  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* gc.c (SCM_HEAP_SEG_SIZE, CELL_UP, CELL_DN, NEXT_DATA_CELL,
+	init_heap_seg, alloc_some_heap), gc.h (struct scm_cell, struct
+	scm_t_cell, SCM_CELLPTR, SCM_GC_CARD_SIZE,
+	SCM_GC_IN_CARD_HEADERP), tags.h (SCM_CELLP):  Renamed the struct
+	scm_cell and all its uses to scm_t_cell in accordance to Guile's
+	naming scheme for types.
+
+	* alist.c (scm_acons), convert.i.c (CTYPES2UVECT,
+	CTYPES2UVECT_OPTIONAL), coop-threads.c (scm_call_with_new_thread,
+	scm_spawn_thread), debug.c (scm_make_debugobj), environments.c
+	(scm_make_environment), eval.c (scm_closure), fports.c
+	(scm_fdes_to_port), gc.c (scm_deprecated_newcell,
+	scm_deprecated_newcell2), inline.h (scm_alloc_cell, scm_cell),
+	list.c (SCM_I_CONS), numbers.c (scm_i_mkbig), pairs.c (scm_cons),
+	ports.c (scm_void_port), procs.c (scm_c_make_subr, scm_makcclo),
+	smob.c (scm_make_smob), smob.h (SCM_NEWSMOB), strings.c
+	(scm_take_str, scm_allocate_string), strports.c (scm_mkstrport),
+	unif.c (scm_make_uve), variable.c (make_variable), vectors.c
+	(scm_c_make_vector), vports.c (scm_make_soft_port): Renamed
+	scm_alloc_cell to scm_cell.
+
+	* environments.c (core_environments_observe), gc.c
+	(scm_deprecated_newcell2), goops.c (wrap_init, scm_wrap_object),
+	inline.h (scm_alloc_double_cell, scm_double_cell), num2float.i.c
+	(FLOAT2NUM), numbers.c (scm_make_real), procs.c
+	(scm_make_procedure_with_setter), smob.h (SCM_NEWSMOB2,
+	SCM_NEWSMOB3), struct.c (scm_make_struct, scm_make_vtable_vtable),
+	symbols.c (scm_mem2symbol, scm_mem2uninterned_symbol), weaks.c
+	(allocate_weak_vector): Renamed scm_alloc_double_cell to
+	scm_double_cell.
+
 2002-02-27  Stefan Jahn  <stefan@lkcc.org>
 
 	* convert.i.c, convert.c: Better range checking.

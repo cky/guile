@@ -55,7 +55,7 @@
 #ifdef HAVE_INLINE
 
 static inline SCM
-scm_alloc_cell (scm_t_bits car, scm_t_bits cdr)
+scm_cell (scm_t_bits car, scm_t_bits cdr)
 {
   SCM z;
 
@@ -102,8 +102,8 @@ scm_alloc_cell (scm_t_bits car, scm_t_bits cdr)
 }
 
 static inline SCM
-scm_alloc_double_cell (scm_t_bits car, scm_t_bits cbr,
-		       scm_t_bits ccr, scm_t_bits cdr)
+scm_double_cell (scm_t_bits car, scm_t_bits cbr,
+		 scm_t_bits ccr, scm_t_bits cdr)
 {
   SCM z;
 
@@ -153,9 +153,9 @@ scm_alloc_double_cell (scm_t_bits car, scm_t_bits cbr,
 
 #else /* !HAVE_INLINE */
 
-SCM_API SCM scm_alloc_cell (scm_t_bits car, scm_t_bits cdr);
-SCM_API SCM scm_alloc_double_cell (scm_t_bits car, scm_t_bits cbr,
-				   scm_t_bits ccr, scm_t_bits cdr);
+SCM_API SCM scm_cell (scm_t_bits car, scm_t_bits cdr);
+SCM_API SCM scm_double_cell (scm_t_bits car, scm_t_bits cbr,
+			     scm_t_bits ccr, scm_t_bits cdr);
 
 #endif
 

@@ -533,7 +533,7 @@ SCM_API char *scm_isymnames[];   /* defined in print.c */
 
 #if (SCM_ENABLE_DEPRECATED == 1)
 
-#define SCM_CELLP(x) 	(((sizeof (scm_cell) - 1) & SCM_UNPACK (x)) == 0)
+#define SCM_CELLP(x) 	(((sizeof (scm_t_cell) - 1) & SCM_UNPACK (x)) == 0)
 #define SCM_NCELLP(x) 	(!SCM_CELLP (x))
 
 #endif

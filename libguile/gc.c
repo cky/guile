@@ -277,9 +277,9 @@ size_t scm_default_max_segment_size = 2097000L;/* a little less (adm) than 2 Mb 
 # define SCM_HEAP_SEG_SIZE 32768L
 #else
 # ifdef sequent
-#  define SCM_HEAP_SEG_SIZE (7000L * sizeof (scm_cell))
+#  define SCM_HEAP_SEG_SIZE (7000L * sizeof (scm_t_cell))
 # else
-#  define SCM_HEAP_SEG_SIZE (16384L * sizeof (scm_cell))
+#  define SCM_HEAP_SEG_SIZE (16384L * sizeof (scm_t_cell))
 # endif
 #endif
 /* Make heap grow with factor 1.5 */
@@ -287,7 +287,7 @@ size_t scm_default_max_segment_size = 2097000L;/* a little less (adm) than 2 Mb 
 #define SCM_INIT_MALLOC_LIMIT 100000
 #define SCM_MTRIGGER_HYSTERESIS (SCM_INIT_MALLOC_LIMIT/10)
 
-/* CELL_UP and CELL_DN are used by scm_init_heap_seg to find (scm_cell * span)
+/* CELL_UP and CELL_DN are used by scm_init_heap_seg to find (scm_t_cell * span)
    aligned inner bounds for allocated storage */
 
 #ifdef PROT386
@@ -299,12 +299,12 @@ size_t scm_default_max_segment_size = 2097000L;/* a little less (adm) than 2 Mb 
 #  define CELL_UP(p, span) (SCM_CELLPTR)(~(span) & ((long)(p)+(span)))
 #  define CELL_DN(p, span) (SCM_CELLPTR)(~(span) & (long)(p))
 # else
-#  define CELL_UP(p, span) (SCM_CELLPTR)(~(sizeof(scm_cell)*(span)-1L) & ((long)(p)+sizeof(scm_cell)*(span)-1L))
-#  define CELL_DN(p, span) (SCM_CELLPTR)(~(sizeof(scm_cell)*(span)-1L) & (long)(p))
+#  define CELL_UP(p, span) (SCM_CELLPTR)(~(sizeof(scm_t_cell)*(span)-1L) & ((long)(p)+sizeof(scm_t_cell)*(span)-1L))
+#  define CELL_DN(p, span) (SCM_CELLPTR)(~(sizeof(scm_t_cell)*(span)-1L) & (long)(p))
 # endif				/* UNICOS */
 #endif				/* PROT386 */
 
-#define DOUBLECELL_ALIGNED_P(x)  (((2 * sizeof (scm_cell) - 1) & SCM_UNPACK (x)) == 0)
+#define DOUBLECELL_ALIGNED_P(x)  (((2 * sizeof (scm_t_cell) - 1) & SCM_UNPACK (x)) == 0)
 
 #define ALIGNMENT_SLACK(freelist) (SCM_GC_CARD_SIZE - 1)
 #define CLUSTER_SIZE_IN_BYTES(freelist) \
@@ -1544,7 +1544,7 @@ gc_sweep_freelist_finish (scm_t_freelist *freelist)
 
 #define NEXT_DATA_CELL(ptr, span) \
     do { \
-      scm_cell *nxt__ = CELL_UP ((char *) (ptr) + 1, (span)); \
+      scm_t_cell *nxt__ = CELL_UP ((char *) (ptr) + 1, (span)); \
       (ptr) = (SCM_GC_IN_CARD_HEADERP (nxt__) ? \
                CELL_UP (SCM_GC_CELL_CARD (nxt__) + SCM_GC_CARD_N_HEADER_CELLS, span) \
                : nxt__); \
@@ -2201,9 +2201,9 @@ init_heap_seg (SCM_CELLPTR seg_org, size_t size, scm_t_freelist *freelist)
     NEXT_DATA_CELL (ptr, span);
     while (ptr < seg_end)
       {
-        scm_cell *nxt = ptr;
-        scm_cell *prv = NULL;
-        scm_cell *last_card = NULL;
+        scm_t_cell *nxt = ptr;
+        scm_t_cell *prv = NULL;
+        scm_t_cell *last_card = NULL;
         int n_data_cells = (SCM_GC_CARD_N_DATA_CELLS / span) * SCM_CARDS_PER_CLUSTER - 1;
         NEXT_DATA_CELL(nxt, span);
 
@@ -2216,7 +2216,7 @@ init_heap_seg (SCM_CELLPTR seg_org, size_t size, scm_t_freelist *freelist)
 
         while (n_data_cells--)
 	  {
-            scm_cell *card = SCM_GC_CELL_CARD (ptr);
+            scm_t_cell *card = SCM_GC_CELL_CARD (ptr);
 	    SCM scmptr = PTR2SCM (ptr);
             nxt = ptr;
             NEXT_DATA_CELL (nxt, span);
@@ -2239,7 +2239,7 @@ init_heap_seg (SCM_CELLPTR seg_org, size_t size, scm_t_freelist *freelist)
 
     /* sanity check */
     {
-      scm_cell *ref = seg_end;
+      scm_t_cell *ref = seg_end;
       NEXT_DATA_CELL (ref, span);
       if (ref != ptr)
         /* [cmm] looks like the segment size doesn't divide cleanly by
@@ -2344,7 +2344,7 @@ alloc_some_heap (scm_t_freelist *freelist, policy_on_error error_policy)
 #endif
     if (len < min_cells)
       len = min_cells + freelist->cluster_size;
-    len *= sizeof (scm_cell);
+    len *= sizeof (scm_t_cell);
     /* force new sampling */
     freelist->collected = LONG_MAX;
   }
@@ -2831,18 +2831,18 @@ SCM
 scm_deprecated_newcell (void)
 {
   scm_c_issue_deprecation_warning 
-    ("SCM_NEWCELL is deprecated.  Use `scm_alloc_cell' instead.\n");
+    ("SCM_NEWCELL is deprecated.  Use `scm_cell' instead.\n");
 
-  return scm_alloc_cell (scm_tc16_allocated, 0);
+  return scm_cell (scm_tc16_allocated, 0);
 }
 
 SCM
 scm_deprecated_newcell2 (void)
 {
   scm_c_issue_deprecation_warning 
-    ("SCM_NEWCELL2 is deprecated.  Use `scm_alloc_double_cell' instead.\n");
+    ("SCM_NEWCELL2 is deprecated.  Use `scm_double_cell' instead.\n");
 
-  return scm_alloc_double_cell (scm_tc16_allocated, 0, 0, 0);
+  return scm_double_cell (scm_tc16_allocated, 0, 0, 0);
 }
 
 #endif /* SCM_ENABLE_DEPRECATED == 1 */

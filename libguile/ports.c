@@ -1531,7 +1531,7 @@ scm_void_port (char *mode_str)
   SCM answer;
   scm_t_port * pt;
 
-  answer = scm_alloc_cell (scm_tc16_void_port, 0);
+  answer = scm_cell (scm_tc16_void_port, 0);
   SCM_DEFER_INTS;
   mode_bits = scm_mode_bits (mode_str);
   pt = scm_add_to_port_table (answer);

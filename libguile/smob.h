@@ -72,7 +72,7 @@ typedef struct scm_smob_descriptor
 
 #define SCM_NEWSMOB(z, tc, data) \
 do { \
-  z = scm_alloc_cell ((tc), (scm_t_bits) (data)); \
+  z = scm_cell ((tc), (scm_t_bits) (data)); \
 } while (0)
 
 #define SCM_RETURN_NEWSMOB(tc, data) \
@@ -83,8 +83,7 @@ do { \
 
 #define SCM_NEWSMOB2(z, tc, data1, data2) \
 do { \
-  z = scm_alloc_double_cell ((tc), (scm_t_bits)(data1), \
-                             (scm_t_bits)(data2), 0); \
+  z = scm_double_cell ((tc), (scm_t_bits)(data1), (scm_t_bits)(data2), 0); \
 } while (0)
 
 #define SCM_RETURN_NEWSMOB2(tc, data1, data2) \
@@ -95,8 +94,8 @@ do { \
 
 #define SCM_NEWSMOB3(z, tc, data1, data2, data3) \
 do { \
-  z = scm_alloc_double_cell ((tc), (scm_t_bits)(data1), \
-                             (scm_t_bits)(data2), (scm_t_bits)(data3)); \
+  z = scm_double_cell ((tc), (scm_t_bits)(data1), \
+                       (scm_t_bits)(data2), (scm_t_bits)(data3)); \
 } while (0)
 
 #define SCM_RETURN_NEWSMOB3(tc, data1, data2, data3) \

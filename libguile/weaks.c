@@ -84,20 +84,18 @@ allocate_weak_vector (scm_t_bits type, SCM size, SCM fill, const char* caller)
 	  base = scm_gc_malloc (c_size * sizeof (scm_t_bits), "weak vector");
 	  for (j = 0; j != c_size; ++j)
 	    base[j] = SCM_UNPACK (fill);
-	  v = scm_alloc_double_cell (SCM_MAKE_VECTOR_TAG (c_size,
-							  scm_tc7_wvect),
-				     (scm_t_bits) base,
-				     type,
-				     SCM_UNPACK (SCM_EOL));
+	  v = scm_double_cell (SCM_MAKE_VECTOR_TAG (c_size, scm_tc7_wvect),
+			       (scm_t_bits) base,
+			       type,
+			       SCM_UNPACK (SCM_EOL));
 	  scm_remember_upto_here_1 (fill);
 	}
       else
 	{
-	  v = scm_alloc_double_cell (SCM_MAKE_VECTOR_TAG (0,
-							  scm_tc7_wvect),
-				     (scm_t_bits) NULL,
-				     type,
-				     SCM_UNPACK (SCM_EOL));
+	  v = scm_double_cell (SCM_MAKE_VECTOR_TAG (0, scm_tc7_wvect),
+			       (scm_t_bits) NULL,
+			       type,
+			       SCM_UNPACK (SCM_EOL));
 	}
 
       return v;

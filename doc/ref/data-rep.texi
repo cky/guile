@@ -46,7 +46,7 @@
 @c essay @sp 10
 @c essay @comment The title is printed in a large font.
 @c essay @title Data Representation in Guile
-@c essay @subtitle $Id: data-rep.texi,v 1.4 2002-02-28 20:58:50 mvo Exp $
+@c essay @subtitle $Id: data-rep.texi,v 1.5 2002-03-01 00:19:20 dirk Exp $
 @c essay @subtitle For use with Guile @value{VERSION}
 @c essay @author Jim Blandy
 @c essay @author Free Software Foundation
@@ -1150,13 +1150,13 @@ This reference can be decoded to a C pointer to a heap cell using the
 @code{SCM} value is done using the @code{PTR2SCM} macro.
 
 @c (FIXME:: this name should be changed)
-@deftypefn Macro (scm_cell *) SCM2PTR (SCM @var{x})
+@deftypefn Macro (scm_t_cell *) SCM2PTR (SCM @var{x})
 Extract and return the heap cell pointer from a non-immediate @code{SCM}
 object @var{x}.
 @end deftypefn
 
 @c (FIXME:: this name should be changed)
-@deftypefn Macro SCM PTR2SCM (scm_cell * @var{x})
+@deftypefn Macro SCM PTR2SCM (scm_t_cell * @var{x})
 Return a @code{SCM} value that encodes a reference to the heap cell
 pointer @var{x}.
 @end deftypefn
@@ -1164,7 +1164,7 @@ pointer @var{x}.
 Note that it is also possible to transform a non-immediate @code{SCM}
 value by using @code{SCM_UNPACK} into a @code{scm_t_bits} variable.
 However, the result of @code{SCM_UNPACK} may not be used as a pointer to
-a @code{scm_cell}: only @code{SCM2PTR} is guaranteed to transform a
+a @code{scm_t_cell}: only @code{SCM2PTR} is guaranteed to transform a
 @code{SCM} object into a valid pointer to a heap cell.  Also, it is not
 allowed to apply @code{PTR2SCM} to anything that is not a valid pointer
 to a heap cell.
@@ -1176,7 +1176,7 @@ Summary:
 Only use @code{SCM2PTR} on @code{SCM} values for which @code{SCM_IMP} is
 false!
 @item
-Don't use @code{(scm_cell *) SCM_UNPACK (@var{x})}!  Use @code{SCM2PTR
+Don't use @code{(scm_t_cell *) SCM_UNPACK (@var{x})}!  Use @code{SCM2PTR
 (@var{x})} instead!
 @item
 Don't use @code{PTR2SCM} for anything but a cell pointer!
@@ -1198,7 +1198,7 @@ the code in @code{<libguile/tags.h>}.
 
 If you just want to allocate pairs, use @code{scm_cons}.
 
-@deftypefn Function SCM scm_alloc_cell (scm_t_bits word_0, scm_t_bits word_1)
+@deftypefn Function SCM scm_cell (scm_t_bits word_0, scm_t_bits word_1)
 Allocate a new cell, initialize the two slots with @var{word_0} and
 @var{word_1}, and return it.
 
@@ -1207,8 +1207,8 @@ If you want to pass a @code{SCM} object, you need to use
 @code{SCM_UNPACK}.
 @end deftypefn
 
-@deftypefn Function SCM scm_alloc_double_cell (scm_t_bits word_0, scm_t_bits word_1, scm_t_bits word_2, scm_t_bits word_3)
-Like @code{scm_alloc_cell}, but allocates a double cell with four
+@deftypefn Function SCM scm_double_cell (scm_t_bits word_0, scm_t_bits word_1, scm_t_bits word_2, scm_t_bits word_3)
+Like @code{scm_cell}, but allocates a double cell with four
 slots.
 @end deftypefn
 

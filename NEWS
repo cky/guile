@@ -52,6 +52,12 @@ Use `substring-move!' instead.
 
 * Changes to the C interface
 
+** The struct scm_cell has been renamed to scm_t_cell
+
+This is in accordance to Guile's naming scheme for types.  Note that
+the name scm_cell is now used for a function that allocates and
+initializes a new cell (see below).
+
 ** New functions for memory management
 
 A new set of functions for memory management has been added since the
@@ -94,11 +100,10 @@ SCM_SRFI4_IMPORT, for the corresponding libraries.
 
 ** SCM_NEWCELL and SCM_NEWCELL2 have been deprecated.
 
-Use the new functions scm_alloc_cell and scm_alloc_double_cell
-instead.  The old macros had problems because with them allocation and
-initialization was separated and the GC could sometimes observe half
-initialized cells.  Only careful coding by the user of SCM_NEWCELL and
-SCM_NEWCELL2 could make this safe and efficient.
+Use the new functions scm_cell and scm_double_cell instead.  The old macros
+had problems because with them allocation and initialization was separated and
+the GC could sometimes observe half initialized cells.  Only careful coding by
+the user of SCM_NEWCELL and SCM_NEWCELL2 could make this safe and efficient.
 
 Changes since Guile 1.4:
 

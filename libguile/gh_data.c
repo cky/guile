@@ -149,7 +149,7 @@ gh_doubles2scm (const double *d, long n)
 static SCM
 makvect (char *m, size_t len, int type)
 {
-  return scm_alloc_cell (SCM_MAKE_UVECTOR_TAG (len, type), (scm_t_bits) m);
+  return scm_cell (SCM_MAKE_UVECTOR_TAG (len, type), (scm_t_bits) m);
 }
 
 SCM

@@ -1306,9 +1306,9 @@ wrap_init (SCM class, SCM *m, long n)
   for (i = 0; i < n; i++)
     m[i] = SCM_GOOPS_UNBOUND;
 
-  return scm_alloc_double_cell ((((scm_t_bits) SCM_STRUCT_DATA (class))
-				 | scm_tc3_struct),
-				(scm_t_bits) m, 0, 0);
+  return scm_double_cell ((((scm_t_bits) SCM_STRUCT_DATA (class))
+			   | scm_tc3_struct),
+			  (scm_t_bits) m, 0, 0);
 }
 
 SCM_DEFINE (scm_sys_allocate_instance, "%allocate-instance", 2, 0, 0,
@@ -2580,9 +2580,9 @@ scm_add_slot (SCM class, char *slot_name, SCM slot_class,
 SCM
 scm_wrap_object (SCM class, void *data)
 {
-  return scm_alloc_double_cell (SCM_UNPACK (SCM_CDR (class)) | scm_tc3_struct,
-				(scm_t_bits) data,
-				0, 0);
+  return scm_double_cell (SCM_UNPACK (SCM_CDR (class)) | scm_tc3_struct,
+			  (scm_t_bits) data,
+			  0, 0);
 }
 
 SCM scm_components;

@@ -85,7 +85,7 @@ scm_c_make_subr (const char *name, long type, SCM (*fcn) ())
     }
 
   entry = scm_subr_table_size;
-  z = scm_alloc_cell ((entry << 8) + type, (scm_t_bits) fcn);
+  z = scm_cell ((entry << 8) + type, (scm_t_bits) fcn);
   scm_subr_table[entry].handle = z;
   scm_subr_table[entry].name = scm_str2symbol (name);
   scm_subr_table[entry].generic = 0;
@@ -160,7 +160,7 @@ scm_makcclo (SCM proc, size_t len)
   for (i = 0; i < len; ++i)
     base [i] = SCM_UNPACK (SCM_UNSPECIFIED);
 
-  s = scm_alloc_cell (SCM_MAKE_CCLO_TAG (len), (scm_t_bits) base);
+  s = scm_cell (SCM_MAKE_CCLO_TAG (len), (scm_t_bits) base);
   SCM_SET_CCLO_SUBR (s, proc);
   return s;
 }
@@ -320,9 +320,9 @@ SCM_DEFINE (scm_make_procedure_with_setter, "make-procedure-with-setter", 2, 0, 
 {
   SCM_VALIDATE_PROC (1, procedure);
   SCM_VALIDATE_PROC (2, setter);
-  return scm_alloc_double_cell (scm_tc7_pws,
-				SCM_UNPACK (procedure),
-				SCM_UNPACK (setter), 0);
+  return scm_double_cell (scm_tc7_pws,
+			  SCM_UNPACK (procedure),
+			  SCM_UNPACK (setter), 0);
 }
 #undef FUNC_NAME
 

@@ -52,24 +52,24 @@
 
 
 
-typedef struct scm_cell
+typedef struct scm_t_cell
 {
   scm_t_bits word_0;
   scm_t_bits word_1;
-} scm_cell;
+} scm_t_cell;
 
 
 /* SCM_CELLPTR is a pointer to a cons cell which may be compared or
  * differenced.
  */
-typedef scm_cell * SCM_CELLPTR;
+typedef scm_t_cell * SCM_CELLPTR;
 
 
 /* Cray machines have pointers that are incremented once for each word,
  * rather than each byte, the 3 most significant bits encode the byte
  * within the word.  The following macros deal with this by storing the
  * native Cray pointers like the ones that looks like scm expects.  This
- * is done for any pointers that might appear in the car of a scm_cell,
+ * is done for any pointers that might appear in the car of a scm_t_cell,
  * pointers to scm_vector elts, functions, &c are not munged.
  */
 #ifdef _UNICOS
@@ -83,14 +83,14 @@ typedef scm_cell * SCM_CELLPTR;
 #define SCM_GC_CARD_N_HEADER_CELLS 1
 #define SCM_GC_CARD_N_CELLS        256
 
-#define SCM_GC_CARD_SIZE           (SCM_GC_CARD_N_CELLS * sizeof (scm_cell))
+#define SCM_GC_CARD_SIZE           (SCM_GC_CARD_N_CELLS * sizeof (scm_t_cell))
 #define SCM_GC_CARD_N_DATA_CELLS   (SCM_GC_CARD_N_CELLS - SCM_GC_CARD_N_HEADER_CELLS)
 
 #define SCM_GC_CARD_BVEC_SIZE_IN_LIMBS \
     ((SCM_GC_CARD_N_CELLS + SCM_C_BVEC_LIMB_BITS - 1) / SCM_C_BVEC_LIMB_BITS)
 
 #define SCM_GC_IN_CARD_HEADERP(x) \
-    SCM_PTR_LT ((scm_cell *) (x), SCM_GC_CELL_CARD (x) + SCM_GC_CARD_N_HEADER_CELLS)
+    SCM_PTR_LT ((scm_t_cell *) (x), SCM_GC_CELL_CARD (x) + SCM_GC_CARD_N_HEADER_CELLS)
 
 #define SCM_GC_CARD_BVEC(card)  ((scm_t_c_bvec_limb *) ((card)->word_0))
 #define SCM_GC_SET_CARD_BVEC(card, bvec) \

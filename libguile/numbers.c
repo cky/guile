@@ -1390,7 +1390,7 @@ scm_i_mkbig (size_t nlen, int sign)
 
   base = scm_gc_malloc (nlen * sizeof (SCM_BIGDIG), s_bignum);
 
-  v = scm_alloc_cell (SCM_MAKE_BIGNUM_TAG (nlen, sign), (scm_t_bits) base);
+  v = scm_cell (SCM_MAKE_BIGNUM_TAG (nlen, sign), (scm_t_bits) base);
   return v;
 }
 
@@ -2827,7 +2827,7 @@ SCM
 scm_make_real (double x)
 {
   SCM z;
-  z = scm_alloc_double_cell (scm_tc16_real, 0, 0, 0);
+  z = scm_double_cell (scm_tc16_real, 0, 0, 0);
   SCM_REAL_VALUE (z) = x;
   return z;
 }

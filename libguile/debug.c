@@ -539,7 +539,7 @@ SCM_DEFINE (scm_debug_object_p, "debug-object?", 1, 0, 0,
 SCM
 scm_make_debugobj (scm_t_debug_frame *frame)
 {
-  return scm_alloc_cell (scm_tc16_debugobj, (scm_t_bits) frame);
+  return scm_cell (scm_tc16_debugobj, (scm_t_bits) frame);
 }
 
 

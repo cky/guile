@@ -197,7 +197,7 @@ CTYPES2UVECT (const CTYPE *data, long n)
 		    n > 0 && n <= SCM_UVECTOR_MAX_LENGTH);
   v = scm_gc_malloc (n * sizeof (CTYPE), "uvect");
   memcpy (v, data, n * sizeof (CTYPE));
-  return scm_alloc_cell (SCM_MAKE_UVECTOR_TAG (n, UVECTTYPE), (scm_t_bits) v);
+  return scm_cell (SCM_MAKE_UVECTOR_TAG (n, UVECTTYPE), (scm_t_bits) v);
 }
 #undef FUNC_NAME
 
@@ -212,8 +212,8 @@ CTYPES2UVECT_OPTIONAL (const unsigned CTYPE *data, long n)
 		    n > 0 && n <= SCM_UVECTOR_MAX_LENGTH);
   v = scm_gc_malloc (n * sizeof (unsigned CTYPE) * n, "uvect");
   memcpy (v, data, n * sizeof (unsigned CTYPE));
-  return scm_alloc_cell (SCM_MAKE_UVECTOR_TAG (n, UVECTTYPE_OPTIONAL), 
-			 (scm_t_bits) v);
+  return scm_cell (SCM_MAKE_UVECTOR_TAG (n, UVECTTYPE_OPTIONAL), 
+		   (scm_t_bits) v);
 }
 #undef FUNC_NAME
 #endif /* UVECTTYPE_OPTIONAL */

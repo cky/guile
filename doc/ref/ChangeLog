@@ -1,3 +1,11 @@
+2002-03-01  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* api.txt, data-rep.texi: Renamed the struct scm_cell to
+	scm_t_cell.
+
+	* data-rep.texi: Renamed scm_alloc_cell to scm_cell and
+	scm_alloc_double_cell to scm_double_cell.
+
 2002-03-01  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* scheme-memory.texi (Upgrading from scm_must_malloc et al): New

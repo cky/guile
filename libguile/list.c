@@ -61,7 +61,7 @@
 
 #define SCM_I_CONS(cell,x,y)			\
 do {						\
-  cell = scm_alloc_cell ((scm_t_bits)x, (scm_t_bits)y);			\
+  cell = scm_cell ((scm_t_bits)x, (scm_t_bits)y);			\
 } while (0)
 
 SCM

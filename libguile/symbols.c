@@ -125,12 +125,11 @@ scm_mem2symbol (const char *name, size_t len)
     SCM cell;
     SCM slot;
 
-    symbol = scm_alloc_double_cell (SCM_MAKE_SYMBOL_TAG (len),
-				    (scm_t_bits) scm_gc_strndup (name, len,
-								 "symbol"),
-				    raw_hash,
-				    SCM_UNPACK (scm_cons (SCM_BOOL_F,
-							  SCM_EOL)));
+    symbol = scm_double_cell (SCM_MAKE_SYMBOL_TAG (len),
+			      (scm_t_bits) scm_gc_strndup (name, len,
+							   "symbol"),
+			      raw_hash,
+			      SCM_UNPACK (scm_cons (SCM_BOOL_F, SCM_EOL)));
 
     slot = SCM_VELTS (symbols) [hash];
     cell = scm_cons (symbol, SCM_UNDEFINED);
@@ -146,12 +145,11 @@ scm_mem2uninterned_symbol (const char *name, size_t len)
   size_t raw_hash = (scm_string_hash ((const unsigned char *) name, len)/2
 		     + SCM_T_BITS_MAX/2 + 1);
 
-  return scm_alloc_double_cell (SCM_MAKE_SYMBOL_TAG (len),
-				(scm_t_bits) scm_gc_strndup (name, len, 
-							     "symbol"),
-				raw_hash,
-				SCM_UNPACK (scm_cons (SCM_BOOL_F,
-						      SCM_EOL)));
+  return scm_double_cell (SCM_MAKE_SYMBOL_TAG (len),
+			  (scm_t_bits) scm_gc_strndup (name, len, 
+						       "symbol"),
+			  raw_hash,
+			  SCM_UNPACK (scm_cons (SCM_BOOL_F, SCM_EOL)));
 }
 
 SCM

@@ -3836,8 +3836,7 @@ scm_closure (SCM code, SCM env)
 {
   SCM z;
   SCM closcar = scm_cons (code, SCM_EOL);
-  z = scm_alloc_cell (SCM_UNPACK (closcar) + scm_tc3_closure,
-		      (scm_t_bits) env);
+  z = scm_cell (SCM_UNPACK (closcar) + scm_tc3_closure, (scm_t_bits) env);
   scm_remember_upto_here (closcar);
   return z;
 }

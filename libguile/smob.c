@@ -462,7 +462,7 @@ scm_make_smob (scm_t_bits tc)
   scm_t_bits data = (size > 0
 		     ? (scm_t_bits) scm_gc_malloc (size, SCM_SMOBNAME (n))
 		     : 0);
-  return scm_alloc_cell (tc, data);
+  return scm_cell (tc, data);
 }
 
 

@@ -66,8 +66,8 @@ determined from the scm_bits_t value that is delivered by SCM_UNPACK (x).
 Non immediate objects
 =====================
 
-- (scm_cell *) SCM2PTR (SCM x)           (FIXME:: this name should be changed)
-- SCM PTR2SCM (scm_cell * x)             (FIXME:: this name should be changed)
+- (scm_t_cell *) SCM2PTR (SCM x)         (FIXME:: this name should be changed)
+- SCM PTR2SCM (scm_t_cell * x)           (FIXME:: this name should be changed)
 
 A scheme object of type SCM that does not fullfill the SCM_IMP predicate holds
 an encoded reference to a heap cell.  This reference can be decoded to a C
@@ -76,14 +76,14 @@ a heap cell into a SCM value is done using the PTR2SCM macro.
 
 Note that it is also possible to transform a non immediate SCM value by using
 SCM_UNPACK into a scm_bits_t variable.  Hower, the result of SCM_UNPACK may
-not be used as a pointer to a scm_cell:  Only SCM2PTR is guaranteed to
+not be used as a pointer to a scm_t_cell:  Only SCM2PTR is guaranteed to
 transform a SCM object into a valid pointer to a heap cell.  Also, it is not
 allowed to apply PTR2SCM to anything that is not a valid pointer to a heap
 cell.
 
 Summary:  
 * Only use SCM2PTR for SCM values for which SCM_IMP is false!
-* Don't use '(scm_cell*) SCM_UNPACK (x)'!  Use 'SCM2PTR (x)' instead!
+* Don't use '(scm_t_cell*) SCM_UNPACK (x)'!  Use 'SCM2PTR (x)' instead!
 * Don't use PTR2SCM for anything but a cell pointer!
 
 
