@@ -89,7 +89,7 @@ display_header (SCM source, SCM port)
       else
 	scm_puts ("<unnamed port>", port);
 
-      if (!SCM_FALSEP (line) && !SCM_FALSEP (col))
+      if (scm_is_true (line) && scm_is_true (col))
 	{
 	  scm_putc (':', port);
 	  scm_intprint (SCM_INUM (line) + 1, 10, port);
@@ -116,7 +116,7 @@ struct display_error_message_data {
 static SCM
 display_error_message (struct display_error_message_data *d)
 {
-  if (SCM_STRINGP (d->message) && !SCM_FALSEP (scm_list_p (d->args)))
+  if (SCM_STRINGP (d->message) && scm_is_true (scm_list_p (d->args)))
     scm_simple_format (d->port, d->message, d->args);
   else
     scm_display (d->message, d->port);
@@ -225,7 +225,7 @@ display_error_body (struct display_error_args *a)
       current_frame = scm_stack_ref (a->stack, SCM_INUM0);
       source = SCM_FRAME_SOURCE (current_frame);
       prev_frame = SCM_FRAME_PREV (current_frame);
-      if (!SCM_MEMOIZEDP (source) && !SCM_FALSEP (prev_frame))
+      if (!SCM_MEMOIZEDP (source) && scm_is_true (prev_frame))
 	source = SCM_FRAME_SOURCE (prev_frame);
       if (!SCM_SYMBOLP (pname) && !SCM_STRINGP (pname) && SCM_FRAME_PROC_P (current_frame)
 	  && SCM_EQ_P (scm_procedure_p (SCM_FRAME_PROC (current_frame)), SCM_BOOL_T))
@@ -416,11 +416,11 @@ static void
 display_application (SCM frame, int indentation, SCM sport, SCM port, scm_print_state *pstate)
 {
   SCM proc = SCM_FRAME_PROC (frame);
-  SCM name = (!SCM_FALSEP (scm_procedure_p (proc))
+  SCM name = (scm_is_true (scm_procedure_p (proc))
 	      ? scm_procedure_name (proc)
 	      : SCM_BOOL_F);
   display_frame_expr ("[",
-		      scm_cons (!SCM_FALSEP (name) ? name : proc,
+		      scm_cons (scm_is_true (name) ? name : proc,
 				SCM_FRAME_ARGS (frame)),
 		      SCM_FRAME_EVAL_ARGS_P (frame) ? " ..." : "]",
 		      indentation,
@@ -500,8 +500,8 @@ display_backtrace_file (frame, last_file, port, pstate)
   *last_file = file;
 
   scm_puts ("In ", port);
-  if (SCM_FALSEP (file))
-    if (SCM_FALSEP (line))
+  if (scm_is_false (file))
+    if (scm_is_false (line))
       scm_puts ("unknown file", port);
     else
       scm_puts ("current input", port);
@@ -523,9 +523,9 @@ display_backtrace_file_and_line (SCM frame, SCM port, scm_print_state *pstate)
 
   if (SCM_EQ_P (SCM_PACK (SCM_SHOW_FILE_NAME), sym_base))
     {
-      if (SCM_FALSEP (file))
+      if (scm_is_false (file))
 	{
-	  if (SCM_FALSEP (line))
+	  if (scm_is_false (line))
 	    scm_putc ('?', port);
 	  else
 	    scm_puts ("<stdin>", port);
@@ -544,7 +544,7 @@ display_backtrace_file_and_line (SCM frame, SCM port, scm_print_state *pstate)
 
       scm_putc (':', port);
     }
-  else if (!SCM_FALSEP (line))
+  else if (scm_is_true (line))
     {
       int i, j=0;
       for (i = SCM_INUM (line)+1; i > 0; i = i/10, j++)
@@ -552,7 +552,7 @@ display_backtrace_file_and_line (SCM frame, SCM port, scm_print_state *pstate)
       indent (4-j, port);
     }
 
-  if (SCM_FALSEP (line))
+  if (scm_is_false (line))
     scm_puts ("   ?", port);
   else
     scm_intprint (SCM_INUM (line) + 1, 10, port);
@@ -572,7 +572,7 @@ display_frame (SCM frame, int nfield, int indentation, SCM sport, SCM port, scm_
     }
 
   /* display file name and line number */
-  if (!SCM_FALSEP (SCM_PACK (SCM_SHOW_FILE_NAME)))
+  if (scm_is_true (SCM_PACK (SCM_SHOW_FILE_NAME)))
     display_backtrace_file_and_line (frame, port, pstate);
 
   /* Check size of frame number. */
@@ -772,7 +772,7 @@ SCM_DEFINE (scm_backtrace, "backtrace", 0, 0, 0,
 {
   SCM the_last_stack =
     scm_fluid_ref (SCM_VARIABLE_REF (scm_the_last_stack_fluid_var));
-  if (!SCM_FALSEP (the_last_stack))
+  if (scm_is_true (the_last_stack))
     {
       scm_newline (scm_cur_outp);
       scm_puts ("Backtrace:\n", scm_cur_outp);
@@ -781,7 +781,7 @@ SCM_DEFINE (scm_backtrace, "backtrace", 0, 0, 0,
 			     SCM_UNDEFINED,
 			     SCM_UNDEFINED);
       scm_newline (scm_cur_outp);
-      if (SCM_FALSEP (SCM_VARIABLE_REF (scm_has_shown_backtrace_hint_p_var))
+      if (scm_is_false (SCM_VARIABLE_REF (scm_has_shown_backtrace_hint_p_var))
 	  && !SCM_BACKTRACE_P)
 	{
 	  scm_puts ("Type \"(debug-enable 'backtrace)\" if you would like "

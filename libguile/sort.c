@@ -135,13 +135,13 @@ quicksort (SCM *const base_ptr, size_t nr_elems, scm_t_trampoline_2 cmp, SCM les
 
 	  size_t mid = lo + (hi - lo) / 2;
 
-	  if (!SCM_FALSEP ((*cmp) (less, base_ptr[mid], base_ptr[lo])))
+	  if (scm_is_true ((*cmp) (less, base_ptr[mid], base_ptr[lo])))
 	    SWAP (base_ptr[mid], base_ptr[lo]);
-	  if (!SCM_FALSEP ((*cmp) (less, base_ptr[hi], base_ptr[mid])))
+	  if (scm_is_true ((*cmp) (less, base_ptr[hi], base_ptr[mid])))
 	    SWAP (base_ptr[mid], base_ptr[hi]);
 	  else
 	    goto jump_over;
-	  if (!SCM_FALSEP ((*cmp) (less, base_ptr[mid], base_ptr[lo])))
+	  if (scm_is_true ((*cmp) (less, base_ptr[mid], base_ptr[lo])))
 	    SWAP (base_ptr[mid], base_ptr[lo]);
 	jump_over:;
 
@@ -153,7 +153,7 @@ quicksort (SCM *const base_ptr, size_t nr_elems, scm_t_trampoline_2 cmp, SCM les
 	     that this algorithm runs much faster than others. */
 	  do
 	    {
-	      while (!SCM_FALSEP ((*cmp) (less, base_ptr[left], base_ptr[mid])))
+	      while (scm_is_true ((*cmp) (less, base_ptr[left], base_ptr[mid])))
 		{
 		  left++;
 		  /* The comparison predicate may be buggy */
@@ -161,7 +161,7 @@ quicksort (SCM *const base_ptr, size_t nr_elems, scm_t_trampoline_2 cmp, SCM les
 		    scm_misc_error (NULL, s_buggy_less, SCM_EOL);
 		}
 
-	      while (!SCM_FALSEP ((*cmp) (less, base_ptr[mid], base_ptr[right])))
+	      while (scm_is_true ((*cmp) (less, base_ptr[mid], base_ptr[right])))
 		{
 		  right--;
 		  /* The comparison predicate may be buggy */
@@ -233,7 +233,7 @@ quicksort (SCM *const base_ptr, size_t nr_elems, scm_t_trampoline_2 cmp, SCM les
        and the operation speeds up insertion sort's inner loop. */
 
     for (run = tmp + 1; run <= thresh; run++)
-      if (!SCM_FALSEP ((*cmp) (less, base_ptr[run], base_ptr[tmp])))
+      if (scm_is_true ((*cmp) (less, base_ptr[run], base_ptr[tmp])))
 	tmp = run;
 
     if (tmp != 0)
@@ -245,7 +245,7 @@ quicksort (SCM *const base_ptr, size_t nr_elems, scm_t_trampoline_2 cmp, SCM les
     while (++run <= end)
       {
 	tmp = run - 1;
-	while (!SCM_FALSEP ((*cmp) (less, base_ptr[run], base_ptr[tmp])))
+	while (scm_is_true ((*cmp) (less, base_ptr[run], base_ptr[tmp])))
 	  {
 	    /* The comparison predicate may be buggy */
 	    if (tmp == 0)
@@ -343,7 +343,7 @@ SCM_DEFINE (scm_sorted_p, "sorted?", 2, 0, 0,
       j = len - 1;
       while (j > 0)
 	{
-	  if (!SCM_FALSEP ((*cmp) (less, SCM_CAR (rest), item)))
+	  if (scm_is_true ((*cmp) (less, SCM_CAR (rest), item)))
 	    return SCM_BOOL_F;
 	  else
 	    {
@@ -363,7 +363,7 @@ SCM_DEFINE (scm_sorted_p, "sorted?", 2, 0, 0,
       j = len - 1;
       while (j > 0)
 	{
-	  if (!SCM_FALSEP ((*cmp) (less, vp[1], vp[0])))
+	  if (scm_is_true ((*cmp) (less, vp[1], vp[0])))
 	    return SCM_BOOL_F;
 	  else
 	    {
@@ -409,7 +409,7 @@ SCM_DEFINE (scm_merge, "merge", 3, 0, 0,
 
       SCM_VALIDATE_NONEMPTYLIST_COPYLEN (1, alist, alen);
       SCM_VALIDATE_NONEMPTYLIST_COPYLEN (2, blist, blen);
-      if (!SCM_FALSEP ((*cmp) (less, SCM_CAR (blist), SCM_CAR (alist))))
+      if (scm_is_true ((*cmp) (less, SCM_CAR (blist), SCM_CAR (alist))))
 	{
 	  build = scm_cons (SCM_CAR (blist), SCM_EOL);
 	  blist = SCM_CDR (blist);
@@ -424,7 +424,7 @@ SCM_DEFINE (scm_merge, "merge", 3, 0, 0,
       last = build;
       while ((alen > 0) && (blen > 0))
 	{
-	  if (!SCM_FALSEP ((*cmp) (less, SCM_CAR (blist), SCM_CAR (alist))))
+	  if (scm_is_true ((*cmp) (less, SCM_CAR (blist), SCM_CAR (alist))))
 	    {
 	      SCM_SETCDR (last, scm_cons (SCM_CAR (blist), SCM_EOL));
 	      blist = SCM_CDR (blist);
@@ -461,7 +461,7 @@ scm_merge_list_x (SCM alist, SCM blist,
     return alist;
   else
     {
-      if (!SCM_FALSEP ((*cmp) (less, SCM_CAR (blist), SCM_CAR (alist))))
+      if (scm_is_true ((*cmp) (less, SCM_CAR (blist), SCM_CAR (alist))))
 	{
 	  build = blist;
 	  blist = SCM_CDR (blist);
@@ -476,7 +476,7 @@ scm_merge_list_x (SCM alist, SCM blist,
       last = build;
       while ((alen > 0) && (blen > 0))
 	{
-	  if (!SCM_FALSEP ((*cmp) (less, SCM_CAR (blist), SCM_CAR (alist))))
+	  if (scm_is_true ((*cmp) (less, SCM_CAR (blist), SCM_CAR (alist))))
 	    {
 	      SCM_SETCDR (last, blist);
 	      blist = SCM_CDR (blist);
@@ -551,7 +551,7 @@ scm_merge_list_step (SCM * seq, scm_t_trampoline_2 cmp, SCM less, long n)
       SCM y = SCM_CAR (SCM_CDR (*seq));
       *seq = SCM_CDR (rest);
       SCM_SETCDR (rest, SCM_EOL);
-      if (!SCM_FALSEP ((*cmp) (less, y, x)))
+      if (scm_is_true ((*cmp) (less, y, x)))
 	{
 	  SCM_SETCAR (p, y);
 	  SCM_SETCAR (rest, x);
@@ -668,7 +668,7 @@ scm_merge_vector_x (SCM vec,
        */
       register SCM *vp = SCM_WRITABLE_VELTS(vec);
       
-      if (!SCM_FALSEP ((*cmp) (less, vp[i2], vp[i1])))
+      if (scm_is_true ((*cmp) (less, vp[i2], vp[i1])))
 	temp[it] = vp[i2++];
       else
 	temp[it] = vp[i1++];

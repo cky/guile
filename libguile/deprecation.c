@@ -142,7 +142,7 @@ SCM_DEFINE(scm_include_deprecated_features,
            "in public interfaces.")
 #define FUNC_NAME s_scm_include_deprecated_features
 {
-  return SCM_BOOL (SCM_ENABLE_DEPRECATED == 1);
+  return scm_from_bool (SCM_ENABLE_DEPRECATED == 1);
 }
 #undef FUNC_NAME
 

@@ -262,7 +262,7 @@ SCM_DEFINE (scm_char_ready_p, "char-ready?", 0, 1, 0,
       scm_t_ptob_descriptor *ptob = &scm_ptobs[SCM_PTOBNUM (port)];
       
       if (ptob->input_waiting)
-	return SCM_BOOL(ptob->input_waiting (port));
+	return scm_from_bool(ptob->input_waiting (port));
       else
 	return SCM_BOOL_T;
     }
@@ -749,7 +749,7 @@ SCM_DEFINE (scm_close_port, "close-port", 1, 0, 0,
   scm_remove_from_port_table (port);
   scm_mutex_unlock (&scm_i_port_table_mutex);
   SCM_CLR_PORT_OPEN_FLAG (port);
-  return SCM_BOOL (rv >= 0);
+  return scm_from_bool (rv >= 0);
 }
 #undef FUNC_NAME
 
@@ -838,7 +838,7 @@ SCM_DEFINE (scm_input_port_p, "input-port?", 1, 0, 0,
 	    "@code{port?}.")
 #define FUNC_NAME s_scm_input_port_p
 {
-  return SCM_BOOL (SCM_INPUT_PORT_P (x));
+  return scm_from_bool (SCM_INPUT_PORT_P (x));
 }
 #undef FUNC_NAME
 
@@ -850,7 +850,7 @@ SCM_DEFINE (scm_output_port_p, "output-port?", 1, 0, 0,
 #define FUNC_NAME s_scm_output_port_p
 {
   x = SCM_COERCE_OUTPORT (x);
-  return SCM_BOOL (SCM_OUTPUT_PORT_P (x));
+  return scm_from_bool (SCM_OUTPUT_PORT_P (x));
 }
 #undef FUNC_NAME
 
@@ -861,7 +861,7 @@ SCM_DEFINE (scm_port_p, "port?", 1, 0, 0,
 	    "@var{x}))}.")
 #define FUNC_NAME s_scm_port_p
 {
-  return SCM_BOOL (SCM_PORTP (x));
+  return scm_from_bool (SCM_PORTP (x));
 }
 #undef FUNC_NAME
 
@@ -872,7 +872,7 @@ SCM_DEFINE (scm_port_closed_p, "port-closed?", 1, 0, 0,
 #define FUNC_NAME s_scm_port_closed_p
 {
   SCM_VALIDATE_PORT (1, port);
-  return SCM_BOOL (!SCM_OPPORTP (port));
+  return scm_from_bool (!SCM_OPPORTP (port));
 }
 #undef FUNC_NAME
 
@@ -882,7 +882,7 @@ SCM_DEFINE (scm_eof_object_p, "eof-object?", 1, 0, 0,
 	    "return @code{#f}.")
 #define FUNC_NAME s_scm_eof_object_p
 {
-  return SCM_BOOL(SCM_EOF_OBJECT_P (x));
+  return scm_from_bool(SCM_EOF_OBJECT_P (x));
 }
 #undef FUNC_NAME
 

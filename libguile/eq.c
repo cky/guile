@@ -47,7 +47,7 @@ SCM_DEFINE1 (scm_eq_p, "eq?", scm_tc7_rpsubr,
 	     "@code{eqv?}.")
 #define FUNC_NAME s_scm_eq_p
 {
-  return SCM_BOOL (SCM_EQ_P (x, y));
+  return scm_from_bool (SCM_EQ_P (x, y));
 }
 #undef FUNC_NAME
 
@@ -90,12 +90,12 @@ SCM_PRIMITIVE_GENERIC_1 (scm_eqv_p, "eqv?", scm_tc7_rpsubr,
       if (SCM_INEXACTP (x))
 	{
 	  if (SCM_REALP (x))
-	    return SCM_BOOL (SCM_COMPLEXP (y)
+	    return scm_from_bool (SCM_COMPLEXP (y)
 			     && real_eqv (SCM_REAL_VALUE (x),
 					  SCM_COMPLEX_REAL (y))
 			     && SCM_COMPLEX_IMAG (y) == 0.0);
 	  else
-	    return SCM_BOOL (SCM_REALP (y)
+	    return scm_from_bool (SCM_REALP (y)
 			     && real_eqv (SCM_COMPLEX_REAL (x),
 					  SCM_REAL_VALUE (y))
 			     && SCM_COMPLEX_IMAG (x) == 0.0);
@@ -108,13 +108,13 @@ SCM_PRIMITIVE_GENERIC_1 (scm_eqv_p, "eqv?", scm_tc7_rpsubr,
   if (SCM_NUMP (x))
     {
       if (SCM_BIGP (x)) {
-	return SCM_BOOL (scm_i_bigcmp (x, y) == 0);
+	return scm_from_bool (scm_i_bigcmp (x, y) == 0);
       } else if (SCM_REALP (x)) {
-	return SCM_BOOL (real_eqv (SCM_REAL_VALUE (x), SCM_REAL_VALUE (y)));
+	return scm_from_bool (real_eqv (SCM_REAL_VALUE (x), SCM_REAL_VALUE (y)));
       } else if (SCM_FRACTIONP (x)) {
 	return scm_i_fraction_equalp (x, y);
       } else { /* complex */
-	return SCM_BOOL (real_eqv (SCM_COMPLEX_REAL (x),
+	return scm_from_bool (real_eqv (SCM_COMPLEX_REAL (x),
 				   SCM_COMPLEX_REAL (y)) 
 			 && real_eqv (SCM_COMPLEX_IMAG (x),
 				      SCM_COMPLEX_IMAG (y)));
@@ -149,7 +149,7 @@ SCM_PRIMITIVE_GENERIC_1 (scm_equal_p, "equal?", scm_tc7_rpsubr,
     return SCM_BOOL_F;
   if (SCM_CONSP (x) && SCM_CONSP (y))
     {
-      if (SCM_FALSEP (scm_equal_p (SCM_CAR (x), SCM_CAR (y))))
+      if (scm_is_false (scm_equal_p (SCM_CAR (x), SCM_CAR (y))))
 	return SCM_BOOL_F;
       x = SCM_CDR(x);
       y = SCM_CDR(y);
@@ -164,11 +164,11 @@ SCM_PRIMITIVE_GENERIC_1 (scm_equal_p, "equal?", scm_tc7_rpsubr,
       if (SCM_INEXACTP (x) && SCM_INEXACTP (y))
 	{
 	  if (SCM_REALP (x))
-	    return SCM_BOOL (SCM_COMPLEXP (y)
+	    return scm_from_bool (SCM_COMPLEXP (y)
 			     && SCM_REAL_VALUE (x) == SCM_COMPLEX_REAL (y)
 			     && SCM_COMPLEX_IMAG (y) == 0.0);
 	  else
-	    return SCM_BOOL (SCM_REALP (y)
+	    return scm_from_bool (SCM_REALP (y)
 			     && SCM_COMPLEX_REAL (x) == SCM_REAL_VALUE (y)
 			     && SCM_COMPLEX_IMAG (x) == 0.0);
 	}
@@ -177,17 +177,17 @@ SCM_PRIMITIVE_GENERIC_1 (scm_equal_p, "equal?", scm_tc7_rpsubr,
       else if ((SCM_FRACTIONP (x)) && (SCM_INEXACTP (y)))
 	{
 	  if (SCM_REALP (y))
-	    return SCM_BOOL (scm_i_fraction2double (x) == SCM_REAL_VALUE (y));
+	    return scm_from_bool (scm_i_fraction2double (x) == SCM_REAL_VALUE (y));
 	  else
-	    return SCM_BOOL (SCM_COMPLEX_REAL (y) == scm_i_fraction2double (x)
+	    return scm_from_bool (SCM_COMPLEX_REAL (y) == scm_i_fraction2double (x)
 			     && SCM_COMPLEX_IMAG (y) == 0.0);
 	}
       else if ((SCM_FRACTIONP (y)) && (SCM_INEXACTP (x)))
 	{
 	  if (SCM_REALP (x))
-	    return SCM_BOOL (scm_i_fraction2double (y) == SCM_REAL_VALUE (x));
+	    return scm_from_bool (scm_i_fraction2double (y) == SCM_REAL_VALUE (x));
 	  else
-	    return SCM_BOOL (SCM_COMPLEX_REAL (x) == scm_i_fraction2double (y)
+	    return scm_from_bool (SCM_COMPLEX_REAL (x) == scm_i_fraction2double (y)
 			     && SCM_COMPLEX_IMAG (x) == 0.0);
 	}
 

@@ -220,7 +220,7 @@ scm_call_with_new_thread (SCM argl)
     if (!SCM_CONSP (args))
       SCM_WRONG_NUM_ARGS ();
     thunk = SCM_CAR (args);
-    SCM_ASSERT (SCM_NFALSEP (scm_thunk_p (thunk)),
+    SCM_ASSERT (scm_is_true (scm_thunk_p (thunk)),
 		thunk,
 		SCM_ARG1,
 		s_call_with_new_thread);
@@ -228,7 +228,7 @@ scm_call_with_new_thread (SCM argl)
     if (!SCM_CONSP (args))
       SCM_WRONG_NUM_ARGS ();
     handler = SCM_CAR (args);
-    SCM_ASSERT (SCM_NFALSEP (scm_procedure_p (handler)),
+    SCM_ASSERT (scm_is_true (scm_procedure_p (handler)),
 		handler,
 		SCM_ARG2,
 		s_call_with_new_thread);
@@ -452,7 +452,7 @@ SCM
 scm_try_mutex (SCM m)
 {
   SCM_ASSERT (SCM_MUTEXP (m), m, SCM_ARG1, s_lock_mutex);
-  return SCM_BOOL (coop_mutex_trylock (SCM_MUTEX_DATA (m)));
+  return scm_from_bool (coop_mutex_trylock (SCM_MUTEX_DATA (m)));
 }
 
 SCM
@@ -509,7 +509,7 @@ scm_timed_wait_condition_variable (SCM c, SCM m, SCM t)
 	  SCM_VALIDATE_UINT_COPY (3, t, waittime.tv_sec);
 	  waittime.tv_nsec = 0;
 	}
-      return SCM_BOOL(
+      return scm_from_bool(
         coop_condition_variable_timed_wait_mutex (cv, mx, &waittime));
     }
   else

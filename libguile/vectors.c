@@ -35,7 +35,7 @@ SCM_DEFINE (scm_vector_p, "vector?", 1, 0, 0,
 	    "@code{#f}.")
 #define FUNC_NAME s_scm_vector_p
 {
-  return SCM_BOOL (SCM_VECTORP (obj));
+  return scm_from_bool (SCM_VECTORP (obj));
 }
 #undef FUNC_NAME
 
@@ -245,7 +245,7 @@ scm_vector_equal_p(SCM x, SCM y)
 {
   long i;
   for(i = SCM_VECTOR_LENGTH (x) - 1; i >= 0; i--)
-    if (SCM_FALSEP (scm_equal_p (SCM_VELTS (x)[i], SCM_VELTS (y)[i])))
+    if (scm_is_false (scm_equal_p (SCM_VELTS (x)[i], SCM_VELTS (y)[i])))
       return SCM_BOOL_F;
   return SCM_BOOL_T;
 }

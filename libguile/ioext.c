@@ -204,7 +204,7 @@ SCM_DEFINE (scm_isatty_p, "isatty?", 1, 0, 0,
     return SCM_BOOL_F;
   
   rv = isatty (SCM_FPORT_FDES (port));
-  return  SCM_BOOL(rv);
+  return  scm_from_bool(rv);
 }
 #undef FUNC_NAME
 

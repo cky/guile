@@ -98,7 +98,7 @@ SCM_DEFINE (scm_dynamic_wind, "dynamic-wind", 3, 0, 0,
 #define FUNC_NAME s_scm_dynamic_wind
 {
   SCM ans;
-  SCM_ASSERT (SCM_NFALSEP (scm_thunk_p (out_guard)),
+  SCM_ASSERT (scm_is_true (scm_thunk_p (out_guard)),
 	      out_guard,
 	      SCM_ARG3, FUNC_NAME);
   scm_call_0 (in_guard);

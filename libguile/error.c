@@ -102,7 +102,7 @@ SCM_DEFINE (scm_error_scm, "scm-error", 5, 0, 0,
 
   SCM_VALIDATE_SYMBOL (1, key);
 
-  if (SCM_FALSEP (subr))
+  if (scm_is_false (subr))
     {
       szSubr = NULL;
     }
@@ -116,7 +116,7 @@ SCM_DEFINE (scm_error_scm, "scm-error", 5, 0, 0,
       szSubr = SCM_STRING_CHARS (subr);
     }
 
-  if (SCM_FALSEP (message))
+  if (scm_is_false (message))
     {
       szMessage = NULL;
     }
@@ -163,7 +163,7 @@ scm_syserror (const char *subr)
 	     subr,
 	     "~A",
 	     scm_cons (scm_makfrom0str (SCM_I_STRERROR (save_errno)), SCM_EOL),
-	     scm_cons (SCM_MAKINUM (save_errno), SCM_EOL));
+	     scm_cons (scm_from_int (save_errno), SCM_EOL));
 }
 
 void
@@ -173,7 +173,7 @@ scm_syserror_msg (const char *subr, const char *message, SCM args, int eno)
 	     subr,
 	     message,
 	     args,
-	     scm_cons (SCM_MAKINUM (eno), SCM_EOL));
+	     scm_cons (scm_from_int (eno), SCM_EOL));
 }
 
 SCM_GLOBAL_SYMBOL (scm_num_overflow_key, "numerical-overflow");

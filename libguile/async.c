@@ -162,7 +162,7 @@ scm_async_click ()
       for (asyncs = scm_root->signal_asyncs; !SCM_NULLP(asyncs);
 	   asyncs = SCM_CDR (asyncs))
 	{
-	  if (!SCM_FALSEP (SCM_CAR (asyncs)))
+	  if (scm_is_true (SCM_CAR (asyncs)))
 	    {
 	      SCM proc = SCM_CAR (asyncs);
 	      SCM_SETCAR (asyncs, SCM_BOOL_F);

@@ -65,7 +65,7 @@ sf_flush (SCM port)
       {
 	SCM f = SCM_VELTS (stream)[2];
 
-	if (!SCM_FALSEP (f))
+	if (scm_is_true (f))
 	  scm_call_0 (f);
       }
     }
@@ -91,7 +91,7 @@ sf_fill_input (SCM port)
   SCM ans;
 
   ans = scm_call_0 (SCM_VELTS (p)[3]); /* get char.  */
-  if (SCM_FALSEP (ans) || SCM_EOF_OBJECT_P (ans))
+  if (scm_is_false (ans) || SCM_EOF_OBJECT_P (ans))
     return EOF;
   SCM_ASSERT (SCM_CHARP (ans), ans, SCM_ARG1, "sf_fill_input");
   {
@@ -110,11 +110,11 @@ sf_close (SCM port)
 {
   SCM p = SCM_PACK (SCM_STREAM (port));
   SCM f = SCM_VELTS (p)[4];
-  if (SCM_FALSEP (f))
+  if (scm_is_false (f))
     return 0;
   f = scm_call_0 (f);
   errno = 0;
-  return SCM_FALSEP (f) ? EOF : 0;
+  return scm_is_false (f) ? EOF : 0;
 }
 
 
@@ -125,7 +125,7 @@ sf_input_waiting (SCM port)
   if (SCM_VECTOR_LENGTH (p) >= 6)
     {
       SCM f = SCM_VELTS (p)[5];
-      if (SCM_NFALSEP (f))
+      if (scm_is_true (f))
 	return scm_num2int (scm_call_0 (f), SCM_ARGn, NULL);
     }
   /* Default is such that char-ready? for soft ports returns #t, as it

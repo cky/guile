@@ -389,7 +389,7 @@ SCM_DEFINE (scm_hash_table_p, "hash-table?", 1, 0, 0,
 	    "Return @code{#t} if @var{obj} is a hash table.")
 #define FUNC_NAME s_scm_hash_table_p
 {
-  return SCM_BOOL (SCM_HASHTABLE_P (obj));
+  return scm_from_bool (SCM_HASHTABLE_P (obj));
 }
 #undef FUNC_NAME
 
@@ -403,7 +403,7 @@ SCM_DEFINE (scm_weak_key_hash_table_p, "weak-key-hash-table?", 1, 0, 0,
 	    "nor a weak value hash table.")
 #define FUNC_NAME s_scm_weak_key_hash_table_p
 {
-  return SCM_BOOL (SCM_HASHTABLE_P (obj) && SCM_HASHTABLE_WEAK_KEY_P (obj));
+  return scm_from_bool (SCM_HASHTABLE_P (obj) && SCM_HASHTABLE_WEAK_KEY_P (obj));
 }
 #undef FUNC_NAME
 
@@ -413,7 +413,7 @@ SCM_DEFINE (scm_weak_value_hash_table_p, "weak-value-hash-table?", 1, 0, 0,
 	    "Return @code{#t} if @var{obj} is a weak value hash table.")
 #define FUNC_NAME s_scm_weak_value_hash_table_p
 {
-  return SCM_BOOL (SCM_HASHTABLE_P (obj) && SCM_HASHTABLE_WEAK_VALUE_P (obj));
+  return scm_from_bool (SCM_HASHTABLE_P (obj) && SCM_HASHTABLE_WEAK_VALUE_P (obj));
 }
 #undef FUNC_NAME
 
@@ -423,7 +423,7 @@ SCM_DEFINE (scm_doubly_weak_hash_table_p, "doubly-weak-hash-table?", 1, 0, 0,
 	    "Return @code{#t} if @var{obj} is a doubly weak hash table.")
 #define FUNC_NAME s_scm_doubly_weak_hash_table_p
 {
-  return SCM_BOOL (SCM_HASHTABLE_P (obj) && SCM_HASHTABLE_DOUBLY_WEAK_P (obj));
+  return scm_from_bool (SCM_HASHTABLE_P (obj) && SCM_HASHTABLE_DOUBLY_WEAK_P (obj));
 }
 #undef FUNC_NAME
 
@@ -473,7 +473,7 @@ scm_hash_fn_create_handle_x (SCM table, SCM obj, SCM init, unsigned long (*hash_
   if (k >= SCM_VECTOR_LENGTH (buckets))
     scm_out_of_range ("hash_fn_create_handle_x", scm_ulong2num (k));
   it = assoc_fn (obj, SCM_VELTS (buckets)[k], closure);
-  if (!SCM_FALSEP (it))
+  if (scm_is_true (it))
     return it;
   else
     {
@@ -542,7 +542,7 @@ scm_hash_fn_remove_x (SCM table, SCM obj, unsigned long (*hash_fn)(), SCM (*asso
   if (k >= SCM_VECTOR_LENGTH (buckets))
     scm_out_of_range ("hash_fn_remove_x", scm_ulong2num (k));
   h = assoc_fn (obj, SCM_VELTS (buckets)[k], closure);
-  if (!SCM_FALSEP (h))
+  if (scm_is_true (h))
     {
       SCM_VECTOR_SET (buckets, k, delete_fn (h, SCM_VELTS (buckets)[k]));
       if (table != buckets)

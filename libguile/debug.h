@@ -68,11 +68,11 @@ SCM_API int scm_check_exit_p;
 #define SCM_RESET_DEBUG_MODE \
 do {\
   scm_check_entry_p = (SCM_ENTER_FRAME_P || SCM_BREAKPOINTS_P)\
-    && !SCM_FALSEP (SCM_ENTER_FRAME_HDLR);\
+    && scm_is_true (SCM_ENTER_FRAME_HDLR);\
   scm_check_apply_p = (SCM_APPLY_FRAME_P || SCM_TRACE_P)\
-    && !SCM_FALSEP (SCM_APPLY_FRAME_HDLR);\
+    && scm_is_true (SCM_APPLY_FRAME_HDLR);\
   scm_check_exit_p = (SCM_EXIT_FRAME_P || SCM_TRACE_P)\
-    && !SCM_FALSEP (SCM_EXIT_FRAME_HDLR);\
+    && scm_is_true (SCM_EXIT_FRAME_HDLR);\
   scm_debug_mode_p = SCM_DEVAL_P\
     || scm_check_entry_p || scm_check_apply_p || scm_check_exit_p;\
 } while (0)

@@ -106,7 +106,7 @@ SCM_DEFINE (scm_environment_p, "environment?", 1, 0, 0,
 	    "otherwise.")
 #define FUNC_NAME s_scm_environment_p
 {
-  return SCM_BOOL (SCM_ENVIRONMENT_P (obj));
+  return scm_from_bool (SCM_ENVIRONMENT_P (obj));
 }
 #undef FUNC_NAME
 
@@ -120,7 +120,7 @@ SCM_DEFINE (scm_environment_bound_p, "environment-bound?", 2, 0, 0,
   SCM_ASSERT (SCM_ENVIRONMENT_P (env), env, SCM_ARG1, FUNC_NAME);
   SCM_ASSERT (SCM_SYMBOLP (sym), sym, SCM_ARG2, FUNC_NAME);
 
-  return SCM_BOOL (SCM_ENVIRONMENT_BOUND_P (env, sym));
+  return scm_from_bool (SCM_ENVIRONMENT_BOUND_P (env, sym));
 }
 #undef FUNC_NAME
 
@@ -330,9 +330,9 @@ SCM_DEFINE (scm_environment_cell, "environment-cell", 3, 0, 0,
 
   SCM_ASSERT (SCM_ENVIRONMENT_P (env), env, SCM_ARG1, FUNC_NAME);
   SCM_ASSERT (SCM_SYMBOLP (sym), sym, SCM_ARG2, FUNC_NAME);
-  SCM_ASSERT (SCM_BOOLP (for_write), for_write, SCM_ARG3, FUNC_NAME);
+  SCM_ASSERT (scm_is_bool (for_write), for_write, SCM_ARG3, FUNC_NAME);
 
-  location = SCM_ENVIRONMENT_CELL (env, sym, !SCM_FALSEP (for_write));
+  location = SCM_ENVIRONMENT_CELL (env, sym, scm_is_true (for_write));
   if (!SCM_IMP (location))
     return location;
   else if (SCM_UNBNDP (location))
@@ -921,7 +921,7 @@ leaf_environment_undefine (SCM env, SCM sym)
   SCM obarray = LEAF_ENVIRONMENT (env)->obarray;
   SCM removed = obarray_remove (obarray, sym);
   
-  if (!SCM_FALSEP (removed))
+  if (scm_is_true (removed))
     core_environments_broadcast (env);
 
   return SCM_ENVIRONMENT_SUCCESS;
@@ -1037,7 +1037,7 @@ SCM_DEFINE (scm_leaf_environment_p, "leaf-environment?", 1, 0, 0,
 	    "otherwise.")
 #define FUNC_NAME s_scm_leaf_environment_p
 {
-  return SCM_BOOL (SCM_LEAF_ENVIRONMENT_P (object));
+  return scm_from_bool (SCM_LEAF_ENVIRONMENT_P (object));
 }
 #undef FUNC_NAME
 
@@ -1439,7 +1439,7 @@ SCM_DEFINE (scm_eval_environment_p, "eval-environment?", 1, 0, 0,
 	    "otherwise.")
 #define FUNC_NAME s_scm_eval_environment_p
 {
-  return SCM_BOOL (SCM_EVAL_ENVIRONMENT_P (object));
+  return scm_from_bool (SCM_EVAL_ENVIRONMENT_P (object));
 }
 #undef FUNC_NAME
 
@@ -1851,7 +1851,7 @@ SCM_DEFINE (scm_import_environment_p, "import-environment?", 1, 0, 0,
 	    "@code{#f} otherwise.")
 #define FUNC_NAME s_scm_import_environment_p
 {
-  return SCM_BOOL (SCM_IMPORT_ENVIRONMENT_P (object));
+  return scm_from_bool (SCM_IMPORT_ENVIRONMENT_P (object));
 }
 #undef FUNC_NAME
 
@@ -1946,7 +1946,7 @@ export_environment_ref (SCM env, SCM sym)
   struct export_environment *body = EXPORT_ENVIRONMENT (env);
   SCM entry = scm_assq (sym, body->signature);
 
-  if (SCM_FALSEP (entry))
+  if (scm_is_false (entry))
     return SCM_UNDEFINED;
   else
     return SCM_ENVIRONMENT_REF (body->private, sym);
@@ -1999,7 +1999,7 @@ export_environment_set_x (SCM env, SCM sym, SCM val)
   struct export_environment *body = EXPORT_ENVIRONMENT (env);
   SCM entry = scm_assq (sym, body->signature);
 
-  if (SCM_FALSEP (entry))
+  if (scm_is_false (entry))
     {
       return SCM_UNDEFINED;
     }
@@ -2021,7 +2021,7 @@ export_environment_cell (SCM env, SCM sym, int for_write)
   struct export_environment *body = EXPORT_ENVIRONMENT (env);
   SCM entry = scm_assq (sym, body->signature);
 
-  if (SCM_FALSEP (entry))
+  if (scm_is_false (entry))
     {
       return SCM_UNDEFINED;
     }
@@ -2177,7 +2177,7 @@ SCM_DEFINE (scm_export_environment_p, "export-environment?", 1, 0, 0,
 	    "@code{#f} otherwise.")
 #define FUNC_NAME s_scm_export_environment_p
 {
-  return SCM_BOOL (SCM_EXPORT_ENVIRONMENT_P (object));
+  return scm_from_bool (SCM_EXPORT_ENVIRONMENT_P (object));
 }
 #undef FUNC_NAME
 

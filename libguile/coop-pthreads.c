@@ -549,7 +549,7 @@ scm_call_with_new_thread (SCM argl)
     if (!SCM_CONSP (args))
       SCM_WRONG_NUM_ARGS ();
     thunk = SCM_CAR (args);
-    SCM_ASSERT (SCM_NFALSEP (scm_thunk_p (thunk)),
+    SCM_ASSERT (scm_is_true (scm_thunk_p (thunk)),
 		thunk,
 		SCM_ARG1,
 		s_call_with_new_thread);
@@ -557,7 +557,7 @@ scm_call_with_new_thread (SCM argl)
     if (!SCM_CONSP (args))
       SCM_WRONG_NUM_ARGS ();
     handler = SCM_CAR (args);
-    SCM_ASSERT (SCM_NFALSEP (scm_procedure_p (handler)),
+    SCM_ASSERT (scm_is_true (scm_procedure_p (handler)),
 		handler,
 		SCM_ARG2,
 		s_call_with_new_thread);
@@ -677,7 +677,7 @@ scm_unlock_mutex (SCM mx)
   else
     {
       SCM next = dequeue (m->waiting);
-      if (!SCM_FALSEP (next))
+      if (scm_is_true (next))
 	{
 	  m->owner = next;
 	  unblock (SCM_THREAD_DATA (next));
@@ -763,7 +763,7 @@ scm_timed_wait_condition_variable (SCM cv, SCM mx, SCM t)
   else
     res = timed_block (&waittime);
   scm_lock_mutex (mx);
-  return SCM_BOOL (res);
+  return scm_from_bool (res);
 }
 #undef FUNC_NAME
 
@@ -778,7 +778,7 @@ scm_signal_condition_variable (SCM cv)
 	      SCM_ARG1,
 	      s_signal_condition_variable);
   c = SCM_CONDVAR_DATA (cv);
-  if (!SCM_FALSEP (th = dequeue (c->waiting)))
+  if (scm_is_true (th = dequeue (c->waiting)))
     unblock (SCM_THREAD_DATA (th));
   return SCM_BOOL_T;
 }
@@ -795,7 +795,7 @@ scm_broadcast_condition_variable (SCM cv)
 	      SCM_ARG1,
 	      s_signal_condition_variable);
   c = SCM_CONDVAR_DATA (cv);
-  while (!SCM_FALSEP (th = dequeue (c->waiting)))
+  while (scm_is_true (th = dequeue (c->waiting)))
     unblock (SCM_THREAD_DATA (th));
   return SCM_BOOL_T;
 }

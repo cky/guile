@@ -153,7 +153,7 @@ scm_delq_spine_x (SCM cell, SCM list)
       prev = s;
       s = SCM_CDR (s);
     }
-  if (SCM_FALSEP (prev))
+  if (scm_is_false (prev))
     return SCM_CDR (cell);
   else
     {
@@ -184,7 +184,7 @@ really_install_handler (void *data)
 
   /* Make sure we have a cell. */
   cell = SCM_VECTOR_REF (signal_handler_cells, signum);
-  if (SCM_FALSEP (cell))
+  if (scm_is_false (cell))
     {
       cell = scm_cons (SCM_BOOL_F, SCM_EOL);
       SCM_VECTOR_SET (signal_handler_cells, signum, cell);
@@ -195,12 +195,12 @@ really_install_handler (void *data)
   if (!SCM_EQ_P (thread, old_thread))
     {
       scm_root_state *r;
-      if (!SCM_FALSEP (old_thread))
+      if (scm_is_true (old_thread))
 	{
 	  r = scm_i_thread_root (old_thread);
 	  r->signal_asyncs = scm_delq_spine_x (cell, r->signal_asyncs);
 	}
-      if (!SCM_FALSEP (thread))
+      if (scm_is_true (thread))
 	{
 	  r = scm_i_thread_root (thread);
 	  SCM_SETCDR (cell, r->signal_asyncs);
@@ -214,7 +214,7 @@ really_install_handler (void *data)
     }
 
   /* Set the new handler. */
-  if (SCM_FALSEP (handler))
+  if (scm_is_false (handler))
     {
       SCM_VECTOR_SET (*signal_handlers, signum, SCM_BOOL_F);
       SCM_VECTOR_SET (signal_cell_handlers, signum, SCM_BOOL_F);
@@ -232,7 +232,7 @@ really_install_handler (void *data)
      following code will install the new handler, so we have no
      problem.
   */
-  if (!SCM_FALSEP (SCM_CAR (cell)))
+  if (scm_is_true (SCM_CAR (cell)))
     SCM_SETCAR (cell, SCM_VECTOR_REF (signal_cell_handlers, signum));
 
   /* Phfew.  That should be it. */
@@ -346,7 +346,7 @@ SCM_DEFINE (scm_sigaction_for_thread, "sigaction", 1, 3, 0,
       else
 	SCM_OUT_OF_RANGE (2, handler);
     }
-  else if (SCM_FALSEP (handler))
+  else if (scm_is_false (handler))
     {
       /* restore the default handler.  */
 #ifdef HAVE_SIGACTION

@@ -113,7 +113,7 @@ SCM_DEFINE (scm_fluid_p, "fluid?", 1, 0, 0,
 	    "@code{#f}.")
 #define FUNC_NAME s_scm_fluid_p
 {
-  return SCM_BOOL(SCM_FLUIDP (obj));
+  return scm_from_bool(SCM_FLUIDP (obj));
 }
 #undef FUNC_NAME
 

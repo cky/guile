@@ -428,8 +428,8 @@ SCM_DEFINE (scm_call_with_new_thread, "call-with-new-thread", 2, 0, 0,
 "All the evaluation rules for dynamic roots apply to threads.")
 #define FUNC_NAME s_scm_call_with_new_thread
 {
-  SCM_ASSERT (SCM_NFALSEP (scm_thunk_p (thunk)), thunk, SCM_ARG1, FUNC_NAME);
-  SCM_ASSERT (SCM_NFALSEP (scm_procedure_p (handler)), handler, SCM_ARG2,
+  SCM_ASSERT (scm_is_true (scm_thunk_p (thunk)), thunk, SCM_ARG1, FUNC_NAME);
+  SCM_ASSERT (scm_is_true (scm_procedure_p (handler)), handler, SCM_ARG2,
 	      FUNC_NAME);
 
   return create_thread ((scm_t_catch_body) scm_call_0, thunk,
@@ -443,7 +443,7 @@ SCM_DEFINE (scm_yield, "yield", 0, 0, 0,
 "Move the calling thread to the end of the scheduling queue.")
 #define FUNC_NAME s_scm_yield
 {
-  return SCM_BOOL (scm_thread_yield ());
+  return scm_from_bool (scm_thread_yield ());
 }
 #undef FUNC_NAME
 
@@ -592,7 +592,7 @@ fair_mutex_unlock (fair_mutex *m)
   else
     {
       SCM next = dequeue (m->waiting);
-      if (!SCM_FALSEP (next))
+      if (scm_is_true (next))
 	{
 	  m->owner = next;
 	  unblock (SCM_THREAD_DATA (next));
@@ -667,7 +667,7 @@ fair_cond_signal (fair_cond *c)
 {
   SCM th;
   scm_i_plugin_mutex_lock (&c->lock);
-  if (!SCM_FALSEP (th = dequeue (c->waiting)))
+  if (scm_is_true (th = dequeue (c->waiting)))
     unblock (SCM_THREAD_DATA (th));
   scm_i_plugin_mutex_unlock (&c->lock);
   return 0;
@@ -678,7 +678,7 @@ fair_cond_broadcast (fair_cond *c)
 {
   SCM th;
   scm_i_plugin_mutex_lock (&c->lock);
-  while (!SCM_FALSEP (th = dequeue (c->waiting)))
+  while (scm_is_true (th = dequeue (c->waiting)))
     unblock (SCM_THREAD_DATA (th));
   scm_i_plugin_mutex_unlock (&c->lock);
   return 0;
@@ -1172,7 +1172,7 @@ SCM_DEFINE (scm_thread_exited_p, "thread-exited?", 1, 0, 0,
 	    "Return @code{#t} iff @var{thread} has exited.\n")
 #define FUNC_NAME s_scm_thread_exited_p
 {
-  return SCM_BOOL (scm_c_thread_exited_p (thread));
+  return scm_from_bool (scm_c_thread_exited_p (thread));
 }
 #undef FUNC_NAME
 

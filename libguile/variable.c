@@ -73,7 +73,7 @@ SCM_DEFINE (scm_variable_p, "variable?", 1, 0, 0,
 	    "return @code{#f}.")
 #define FUNC_NAME s_scm_variable_p
 {
-  return SCM_BOOL (SCM_VARIABLEP (obj));
+  return scm_from_bool (SCM_VARIABLEP (obj));
 }
 #undef FUNC_NAME
 
@@ -114,7 +114,7 @@ SCM_DEFINE (scm_variable_bound_p, "variable-bound?", 1, 0, 0,
 #define FUNC_NAME s_scm_variable_bound_p
 {
   SCM_VALIDATE_VARIABLE (1, var);
-  return SCM_BOOL (SCM_VARIABLE_REF (var) != SCM_UNDEFINED);
+  return scm_from_bool (SCM_VARIABLE_REF (var) != SCM_UNDEFINED);
 }
 #undef FUNC_NAME
 

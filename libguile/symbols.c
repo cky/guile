@@ -162,7 +162,7 @@ SCM_DEFINE (scm_symbol_p, "symbol?", 1, 0, 0,
 	    "@code{#f}.")
 #define FUNC_NAME s_scm_symbol_p
 {
-  return SCM_BOOL (SCM_SYMBOLP (obj));
+  return scm_from_bool (SCM_SYMBOLP (obj));
 }
 #undef FUNC_NAME
 
@@ -173,7 +173,7 @@ SCM_DEFINE (scm_symbol_interned_p, "symbol-interned?", 1, 0, 0,
 #define FUNC_NAME s_scm_symbol_interned_p
 {
   SCM_VALIDATE_SYMBOL (1, symbol);
-  return SCM_BOOL (SCM_SYMBOL_INTERNED_P (symbol));
+  return scm_from_bool (SCM_SYMBOL_INTERNED_P (symbol));
 }
 #undef FUNC_NAME
 

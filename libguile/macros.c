@@ -38,8 +38,8 @@ macro_print (SCM macro, SCM port, scm_print_state *pstate)
 {
   SCM code = SCM_MACRO_CODE (macro);
   if (!SCM_CLOSUREP (code)
-      || SCM_FALSEP (scm_procedure_p (SCM_PRINT_CLOSURE))
-      || SCM_FALSEP (scm_printer_apply (SCM_PRINT_CLOSURE,
+      || scm_is_false (scm_procedure_p (SCM_PRINT_CLOSURE))
+      || scm_is_false (scm_printer_apply (SCM_PRINT_CLOSURE,
 					macro, port, pstate)))
     {
       if (!SCM_CLOSUREP (code))
@@ -165,7 +165,7 @@ SCM_DEFINE (scm_macro_p, "macro?", 1, 0, 0,
 	    "syntax transformer.")
 #define FUNC_NAME s_scm_macro_p
 {
-  return SCM_BOOL (SCM_SMOB_PREDICATE (scm_tc16_macro, obj));
+  return scm_from_bool (SCM_SMOB_PREDICATE (scm_tc16_macro, obj));
 }
 #undef FUNC_NAME
 

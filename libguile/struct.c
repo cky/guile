@@ -222,7 +222,7 @@ SCM_DEFINE (scm_struct_p, "struct?", 1, 0, 0,
 	    "@code{#f}.")
 #define FUNC_NAME s_scm_struct_p
 {
-  return SCM_BOOL(SCM_STRUCTP (x));
+  return scm_from_bool(SCM_STRUCTP (x));
 }
 #undef FUNC_NAME
 
@@ -248,7 +248,7 @@ SCM_DEFINE (scm_struct_vtable_p, "struct-vtable?", 1, 0, 0,
 
   mem = SCM_STRUCT_DATA (x);
 
-  return SCM_BOOL (SCM_SYMBOLP (SCM_PACK (mem[scm_vtable_index_layout])));
+  return scm_from_bool (SCM_SYMBOLP (SCM_PACK (mem[scm_vtable_index_layout])));
 }
 #undef FUNC_NAME
 
@@ -726,7 +726,7 @@ scm_struct_create_handle (SCM obj)
 					    scm_struct_ihashq,
 					    scm_sloppy_assq,
 					    0);
-  if (SCM_FALSEP (SCM_CDR (handle)))
+  if (scm_is_false (SCM_CDR (handle)))
     SCM_SETCDR (handle, scm_cons (SCM_BOOL_F, SCM_BOOL_F));
   return handle;
 }
@@ -760,14 +760,14 @@ SCM_DEFINE (scm_set_struct_vtable_name_x, "set-struct-vtable-name!", 2, 0, 0,
 void
 scm_print_struct (SCM exp, SCM port, scm_print_state *pstate)
 {
-  if (SCM_NFALSEP (scm_procedure_p (SCM_STRUCT_PRINTER (exp))))
+  if (scm_is_true (scm_procedure_p (SCM_STRUCT_PRINTER (exp))))
     scm_printer_apply (SCM_STRUCT_PRINTER (exp), exp, port, pstate);
   else
     {
       SCM vtable = SCM_STRUCT_VTABLE (exp);
       SCM name = scm_struct_vtable_name (vtable);
       scm_puts ("#<", port);
-      if (SCM_NFALSEP (name))
+      if (scm_is_true (name))
 	scm_display (name, port);
       else
 	scm_puts ("struct", port);

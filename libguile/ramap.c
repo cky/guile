@@ -486,7 +486,7 @@ scm_array_fill_int (SCM ra, SCM fill, SCM ignore SCM_UNUSED)
 	if (1 == inc && (n >= SCM_LONG_BIT || n == SCM_BITVECTOR_LENGTH (ra)))
 	  {
 	    i = base / SCM_LONG_BIT;
-	    if (SCM_FALSEP (fill))
+	    if (scm_is_false (fill))
 	      {
 		if (base % SCM_LONG_BIT) /* leading partial word */
 		  ve[i++] &= ~(~0L << (base % SCM_LONG_BIT));
@@ -509,7 +509,7 @@ scm_array_fill_int (SCM ra, SCM fill, SCM ignore SCM_UNUSED)
 	  }
 	else
 	  {
-	    if (SCM_FALSEP (fill))
+	    if (scm_is_false (fill))
 	      for (i = base; n--; i += inc)
 		ve[i / SCM_LONG_BIT] &= ~(1L << (i % SCM_LONG_BIT));
 	    else if (SCM_EQ_P (fill, SCM_BOOL_T))
@@ -837,7 +837,7 @@ scm_ra_eqp (SCM ra0, SCM ras)
 	SCM e1 = SCM_UNDEFINED, e2 = SCM_UNDEFINED;
 	for (; n-- > 0; i0 += inc0, i1 += inc1, i2 += inc2)
 	  if (SCM_BITVEC_REF (ra0, i0))
-	    if (SCM_FALSEP(scm_eq_p (RVREF (ra1, i1, e1), RVREF (ra2, i2, e2))))
+	    if (scm_is_false(scm_eq_p (RVREF (ra1, i1, e1), RVREF (ra2, i2, e2))))
 	      SCM_BITVEC_CLR (ra0, i0);
 	break;
       }
@@ -897,8 +897,8 @@ ra_compare (SCM ra0, SCM ra1, SCM ra2, int opt)
 	for (; n-- > 0; i0 += inc0, i1 += inc1, i2 += inc2)
 	  if (SCM_BITVEC_REF (ra0, i0))
 	    if (opt ?
-		SCM_NFALSEP (scm_less_p (RVREF (ra1, i1, e1), RVREF (ra2, i2, e2))) :
-		SCM_FALSEP (scm_less_p (RVREF (ra1, i1, e1), RVREF (ra2, i2, e2))))
+		scm_is_true (scm_less_p (RVREF (ra1, i1, e1), RVREF (ra2, i2, e2))) :
+		scm_is_false (scm_less_p (RVREF (ra1, i1, e1), RVREF (ra2, i2, e2))))
 	      SCM_BITVEC_CLR (ra0, i0);
 	break;
       }
@@ -1323,7 +1323,7 @@ ramap_rp (SCM ra0, SCM proc, SCM ras)
     default:
       for (; n-- > 0; i0 += inc0, i1 += inc1, i2 += inc2)
 	if (SCM_BITVEC_REF  (ra0, i0))
-	  if (SCM_FALSEP (SCM_SUBRF (proc) (RVREF (ra1, i1, e1), RVREF (ra2, i2, e2))))
+	  if (scm_is_false (SCM_SUBRF (proc) (RVREF (ra1, i1, e1), RVREF (ra2, i2, e2))))
 	    SCM_BITVEC_CLR (ra0, i0);
       break;
     case scm_tc7_uvect:
@@ -1337,7 +1337,7 @@ ramap_rp (SCM ra0, SCM proc, SCM ras)
 	     */
 	    SCM n1 = SCM_MAKINUM (((long *) SCM_UNPACK (SCM_CDR (ra1)))[i1]);
 	    SCM n2 = SCM_MAKINUM (((long *) SCM_UNPACK (SCM_CDR (ra2)))[i2]);
-	    if (SCM_FALSEP (SCM_SUBRF (proc) (n1, n2)))
+	    if (scm_is_false (SCM_SUBRF (proc) (n1, n2)))
 	      SCM_BITVEC_CLR (ra0, i0);
 	  }
       break;
@@ -1349,7 +1349,7 @@ ramap_rp (SCM ra0, SCM proc, SCM ras)
 	    {
 	      SCM_REAL_VALUE (a1) = ((float *) SCM_VELTS (ra1))[i1];
 	      SCM_REAL_VALUE (a2) = ((float *) SCM_VELTS (ra2))[i2];
-	      if (SCM_FALSEP (SCM_SUBRF (proc) (a1, a2)))
+	      if (scm_is_false (SCM_SUBRF (proc) (a1, a2)))
 		SCM_BITVEC_CLR (ra0, i0);
 	    }
 	break;
@@ -1363,7 +1363,7 @@ ramap_rp (SCM ra0, SCM proc, SCM ras)
 	    {
 	      SCM_REAL_VALUE (a1) = ((double *) SCM_VELTS (ra1))[i1];
 	      SCM_REAL_VALUE (a2) = ((double *) SCM_VELTS (ra2))[i2];
-	      if (SCM_FALSEP (SCM_SUBRF (proc) (a1, a2)))
+	      if (scm_is_false (SCM_SUBRF (proc) (a1, a2)))
 		SCM_BITVEC_CLR (ra0, i0);
 	    }
 	break;
@@ -1379,7 +1379,7 @@ ramap_rp (SCM ra0, SCM proc, SCM ras)
 	      SCM_COMPLEX_IMAG (a1) = ((double *) SCM_VELTS (ra1))[2 * i1 + 1];
 	      SCM_COMPLEX_REAL (a2) = ((double *) SCM_VELTS (ra2))[2 * i2];
 	      SCM_COMPLEX_IMAG (a2) = ((double *) SCM_VELTS (ra2))[2 * i2 + 1];
-	      if (SCM_FALSEP (SCM_SUBRF (proc) (a1, a2)))
+	      if (scm_is_false (SCM_SUBRF (proc) (a1, a2)))
 		SCM_BITVEC_CLR (ra0, i0);
 	    }
 	break;
@@ -1518,7 +1518,7 @@ SCM_DEFINE (scm_array_map_x, "array-map!", 2, 0, 1,
     case scm_tc7_rpsubr:
       {
 	ra_iproc *p;
-	if (SCM_FALSEP (scm_array_p (ra0, SCM_BOOL_T)))
+	if (scm_is_false (scm_array_p (ra0, SCM_BOOL_T)))
 	  goto gencase;
 	scm_array_fill_x (ra0, SCM_BOOL_T);
 	for (p = ra_rpsubrs; p->name; p++)
@@ -1781,12 +1781,12 @@ raeql_1 (SCM ra0, SCM as_equal, SCM ra1)
     default:
       for (; n--; i0 += inc0, i1 += inc1)
 	{
-	  if (SCM_FALSEP (as_equal))
+	  if (scm_is_false (as_equal))
 	    {
-	      if (SCM_FALSEP (scm_array_equal_p (RVREF (ra0, i0, e0), RVREF (ra1, i1, e1))))
+	      if (scm_is_false (scm_array_equal_p (RVREF (ra0, i0, e0), RVREF (ra1, i1, e1))))
 		return 0;
 	    }
-	  else if (SCM_FALSEP (scm_equal_p (RVREF (ra0, i0, e0), RVREF (ra1, i1, e1))))
+	  else if (scm_is_false (scm_equal_p (RVREF (ra0, i0, e0), RVREF (ra1, i1, e1))))
 	    return 0;
 	}
       return 1;
@@ -1942,7 +1942,7 @@ raeql (SCM ra0, SCM as_equal, SCM ra1)
 SCM
 scm_raequal (SCM ra0, SCM ra1)
 {
-  return SCM_BOOL(raeql (ra0, SCM_BOOL_T, ra1));
+  return scm_from_bool(raeql (ra0, SCM_BOOL_T, ra1));
 }
 
 #if 0
@@ -2007,7 +2007,7 @@ scm_array_equal_p (SCM ra0, SCM ra1)
       if (!SCM_ARRAYP (ra1))
 	goto callequal;
     }
-  return SCM_BOOL(raeql (ra0, SCM_BOOL_F, ra1));
+  return scm_from_bool(raeql (ra0, SCM_BOOL_F, ra1));
 }
 
 

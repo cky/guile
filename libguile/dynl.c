@@ -163,7 +163,7 @@ SCM_DEFINE (scm_dynamic_object_p, "dynamic-object?", 1, 0, 0,
 	    "or @code{#f} otherwise.")
 #define FUNC_NAME s_scm_dynamic_object_p
 {
-  return SCM_BOOL (SCM_TYP16_PREDICATE (scm_tc16_dynamic_obj, obj));
+  return scm_from_bool (SCM_TYP16_PREDICATE (scm_tc16_dynamic_obj, obj));
 }
 #undef FUNC_NAME
 

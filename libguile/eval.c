@@ -266,7 +266,7 @@ syntax_error (const char* const msg, const SCM form, const SCM expr)
       linenr = scm_source_property (form, scm_sym_line);
     }
 
-  if (SCM_FALSEP (filename) && SCM_FALSEP (linenr) && SCM_CONSP (expr))
+  if (scm_is_false (filename) && scm_is_false (linenr) && SCM_CONSP (expr))
     {
       filename = scm_source_property (expr, scm_sym_filename);
       linenr = scm_source_property (expr, scm_sym_line);
@@ -274,12 +274,12 @@ syntax_error (const char* const msg, const SCM form, const SCM expr)
 
   if (!SCM_UNBNDP (expr))
     {
-      if (!SCM_FALSEP (filename))
+      if (scm_is_true (filename))
 	{
 	  format = "In file ~S, line ~S: ~A ~S in expression ~S.";
 	  args = scm_list_5 (filename, linenr, msg_string, form, expr);
 	}
-      else if (!SCM_FALSEP (linenr))
+      else if (scm_is_true (linenr))
 	{
 	  format = "In line ~S: ~A ~S in expression ~S.";
 	  args = scm_list_4 (linenr, msg_string, form, expr);
@@ -292,12 +292,12 @@ syntax_error (const char* const msg, const SCM form, const SCM expr)
     }
   else
     {
-      if (!SCM_FALSEP (filename))
+      if (scm_is_true (filename))
 	{
 	  format = "In file ~S, line ~S: ~A ~S.";
 	  args = scm_list_4 (filename, linenr, msg_string, form);
 	}
-      else if (!SCM_FALSEP (linenr))
+      else if (scm_is_true (linenr))
 	{
 	  format = "In line ~S: ~A ~S.";
 	  args = scm_list_3 (linenr, msg_string, form);
@@ -369,7 +369,7 @@ SCM_DEFINE (scm_dbg_make_iloc, "dbg-make-iloc", 3, 0, 0,
   SCM_VALIDATE_INUM (2, binding);
   return SCM_MAKE_ILOC (SCM_INUM (frame),
 			SCM_INUM (binding),
-			!SCM_FALSEP (cdrp));
+			scm_is_true (cdrp));
 }
 #undef FUNC_NAME
 
@@ -380,7 +380,7 @@ SCM_DEFINE (scm_dbg_iloc_p, "dbg-iloc?", 1, 0, 0,
 	    "Return @code{#t} if @var{obj} is an iloc.")
 #define FUNC_NAME s_scm_dbg_iloc_p
 {
-  return SCM_BOOL (SCM_ILOCP (obj));
+  return scm_from_bool (SCM_ILOCP (obj));
 }
 #undef FUNC_NAME
 
@@ -450,7 +450,7 @@ static SCM
 lookup_global_symbol (const SCM symbol, const SCM top_level)
 {
   const SCM variable = scm_sym2var (symbol, top_level, SCM_BOOL_F);
-  if (SCM_FALSEP (variable))
+  if (scm_is_false (variable))
     return SCM_UNDEFINED;
   else
     return variable;
@@ -555,7 +555,7 @@ unmemoize_expression (const SCM expr, const SCM env)
   else if (SCM_VARIABLEP (expr))
     {
       const SCM sym = scm_module_reverse_lookup (scm_env_module (env), expr);
-      return !SCM_FALSEP (sym) ? sym : sym_three_question_marks;
+      return scm_is_true (sym) ? sym : sym_three_question_marks;
     }
   else if (SCM_VECTORP (expr))
     {
@@ -995,7 +995,7 @@ scm_m_case (SCM expr, SCM env)
   for (; !SCM_NULLP (all_labels); all_labels = SCM_CDR (all_labels))
     {
       const SCM label = SCM_CAR (all_labels);
-      ASSERT_SYNTAX_2 (SCM_FALSEP (scm_c_memq (label, SCM_CDR (all_labels))),
+      ASSERT_SYNTAX_2 (scm_is_false (scm_c_memq (label, SCM_CDR (all_labels))),
                        s_duplicate_case_label, label, expr);
     }
 
@@ -1207,7 +1207,7 @@ scm_m_define (SCM expr, SCM env)
           tmp = SCM_MACRO_CODE (tmp);
         if (SCM_CLOSUREP (tmp)
             /* Only the first definition determines the name. */
-            && SCM_FALSEP (scm_procedure_property (tmp, scm_sym_name)))
+            && scm_is_false (scm_procedure_property (tmp, scm_sym_name)))
           scm_set_procedure_property_x (tmp, scm_sym_name, variable);
       }
 
@@ -1311,7 +1311,7 @@ scm_m_do (SCM expr, SCM env SCM_UNUSED)
         const SCM init = SCM_CADR (binding);
         const SCM step = (length == 2) ? name : SCM_CADDR (binding);
         ASSERT_SYNTAX_2 (SCM_SYMBOLP (name), s_bad_variable, name, expr);
-        ASSERT_SYNTAX_2 (SCM_FALSEP (scm_c_memq (name, variables)),
+        ASSERT_SYNTAX_2 (scm_is_false (scm_c_memq (name, variables)),
                          s_duplicate_binding, name, expr);
 
         variables = scm_cons (name, variables);
@@ -1546,7 +1546,7 @@ transform_bindings (
       const SCM binding = SCM_CAR (binding_idx);
       const SCM cdr_binding = SCM_CDR (binding);
       const SCM name = SCM_CAR (binding);
-      ASSERT_SYNTAX_2 (SCM_FALSEP (scm_c_memq (name, rvariables)),
+      ASSERT_SYNTAX_2 (scm_is_false (scm_c_memq (name, rvariables)),
                        s_duplicate_binding, name, expr);
       rvariables = scm_cons (name, rvariables);
       rinits = scm_cons (SCM_CAR (cdr_binding), rinits);
@@ -2028,7 +2028,7 @@ scm_m_atbind (SCM expr, SCM env)
        * while the second call wont.  */
       const SCM variable = SCM_CAR (variable_idx);
       SCM new_variable = scm_sym2var (variable, top_level, SCM_BOOL_F);
-      if (SCM_FALSEP (new_variable))
+      if (scm_is_false (new_variable))
 	new_variable = scm_sym2var (variable, top_level, SCM_BOOL_T);
       SCM_SETCAR (variable_idx, new_variable);
     }
@@ -2408,7 +2408,7 @@ scm_i_unmemocopy_expr (SCM expr, SCM env)
   const SCM source_properties = scm_whash_lookup (scm_source_whash, expr);
   const SCM um_expr = unmemoize_expression (expr, env);
 
-  if (!SCM_FALSEP (source_properties))
+  if (scm_is_true (source_properties))
     scm_whash_insert (scm_source_whash, um_expr, source_properties);
 
   return um_expr;
@@ -2420,7 +2420,7 @@ scm_i_unmemocopy_body (SCM forms, SCM env)
   const SCM source_properties = scm_whash_lookup (scm_source_whash, forms);
   const SCM um_forms = unmemoize_exprs (forms, env);
 
-  if (!SCM_FALSEP (source_properties))
+  if (scm_is_true (source_properties))
     scm_whash_insert (scm_source_whash, um_forms, source_properties);
 
   return um_forms;
@@ -2459,7 +2459,7 @@ scm_m_undefine (SCM expr, SCM env)
   variable = SCM_CAR (cdr_expr);
   ASSERT_SYNTAX_2 (SCM_SYMBOLP (variable), s_bad_variable, variable, expr);
   location = scm_sym2var (variable, scm_env_top_level (env), SCM_BOOL_F);
-  ASSERT_SYNTAX_2 (!SCM_FALSEP (location)
+  ASSERT_SYNTAX_2 (scm_is_true (location)
                    && !SCM_UNBNDP (SCM_VARIABLE_REF (location)),
                    "variable already unbound ", variable, expr);
   SCM_VARIABLE_SET (location, SCM_UNDEFINED);
@@ -2493,7 +2493,7 @@ scm_unmemocar (SCM form, SCM env)
       if (SCM_VARIABLEP (c))
 	{
 	  SCM sym = scm_module_reverse_lookup (scm_env_module (env), c);
-	  if (SCM_FALSEP (sym))
+	  if (scm_is_false (sym))
 	    sym = sym_three_question_marks;
 	  SCM_SETCAR (form, sym);
 	}
@@ -2812,7 +2812,7 @@ scm_lookupcar1 (SCM vloc, SCM genv, int check)
     else
       top_thunk = SCM_BOOL_F;
     real_var = scm_sym2var (var, top_thunk, SCM_BOOL_F);
-    if (SCM_FALSEP (real_var))
+    if (scm_is_false (real_var))
       goto errout;
 
     if (!SCM_NULLP (env) || SCM_UNBNDP (SCM_VARIABLE_REF (real_var)))
@@ -2878,7 +2878,7 @@ lazy_memoize_variable (const SCM symbol, const SCM environment)
   const SCM top_level = scm_env_top_level (environment);
   const SCM variable = scm_sym2var (symbol, top_level, SCM_BOOL_F);
 
-  if (SCM_FALSEP (variable))
+  if (scm_is_false (variable))
     error_unbound_variable (symbol);
   else
     return variable;
@@ -2978,7 +2978,7 @@ do { \
   if (scm_check_apply_p && SCM_TRAPS_P)\
     if (SCM_APPLY_FRAME_P || (SCM_TRACE_P && PROCTRACEP (proc)))\
       {\
-	SCM tmp, tail = SCM_BOOL(SCM_TRACED_FRAME_P (debug)); \
+	SCM tmp, tail = scm_from_bool(SCM_TRACED_FRAME_P (debug)); \
 	SCM_SET_TRACED_FRAME (debug); \
 	SCM_TRAPS_P = 0;\
 	if (SCM_CHEAPTRAPS_P)\
@@ -3229,7 +3229,7 @@ start:
 	  || (SCM_BREAKPOINTS_P && scm_c_source_property_breakpoint_p (x)))
 	{
 	  SCM stackrep;
-	  SCM tail = SCM_BOOL (SCM_TAILRECP (debug));
+	  SCM tail = scm_from_bool (SCM_TAILRECP (debug));
 	  SCM_SET_TAILREC (debug);
 	  if (SCM_CHEAPTRAPS_P)
 	    stackrep = scm_make_debugobj (&debug);
@@ -3272,7 +3272,7 @@ dispatch:
           while (!SCM_NULLP (SCM_CDR (x)))
             {
               SCM test_result = EVALCAR (x, env);
-              if (SCM_FALSEP (test_result) || SCM_NILP (test_result))
+              if (scm_is_false (test_result) || SCM_NILP (test_result))
                 RETURN (SCM_BOOL_F);
               else
                 x = SCM_CDR (x);
@@ -3368,7 +3368,7 @@ dispatch:
                   {
                     const SCM label = SCM_CAR (labels);
                     if (SCM_EQ_P (label, key)
-                        || !SCM_FALSEP (scm_eqv_p (label, key)))
+                        || scm_is_true (scm_eqv_p (label, key)))
                       {
                         x = SCM_CDR (clause);
                         PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
@@ -3396,7 +3396,7 @@ dispatch:
               else
                 {
                   arg1 = EVALCAR (clause, env);
-                  if (!SCM_FALSEP (arg1) && !SCM_NILP (arg1))
+                  if (scm_is_true (arg1) && !SCM_NILP (arg1))
                     {
                       x = SCM_CDR (clause);
                       if (SCM_NULLP (x))
@@ -3443,7 +3443,7 @@ dispatch:
 
             SCM test_result = EVALCAR (test_form, env);
 
-            while (SCM_FALSEP (test_result) || SCM_NILP (test_result))
+            while (scm_is_false (test_result) || SCM_NILP (test_result))
               {
                 {
                   /* Evaluate body forms.  */
@@ -3497,7 +3497,7 @@ dispatch:
           {
             SCM test_result = EVALCAR (x, env);
             x = SCM_CDR (x);  /* then expression */
-            if (SCM_FALSEP (test_result) || SCM_NILP (test_result))
+            if (scm_is_false (test_result) || SCM_NILP (test_result))
               {
                 x = SCM_CDR (x);  /* else expression */
                 if (SCM_NULLP (x))
@@ -3572,7 +3572,7 @@ dispatch:
           while (!SCM_NULLP (SCM_CDR (x)))
             {
               SCM val = EVALCAR (x, env);
-              if (!SCM_FALSEP (val) && !SCM_NILP (val))
+              if (scm_is_true (val) && !SCM_NILP (val))
                 RETURN (val);
               else
                 x = SCM_CDR (x);
@@ -3853,7 +3853,7 @@ dispatch:
 	    while (!SCM_NULL_OR_NIL_P (x))
 	      {
 		SCM test_result = EVALCAR (test_form, env);
-		if (!(SCM_FALSEP (test_result)
+		if (!(scm_is_false (test_result)
 		      || SCM_NULL_OR_NIL_P (test_result)))
 		  {
 		    if (SCM_EQ_P (SCM_CAR (x), SCM_UNSPECIFIED))
@@ -4409,12 +4409,12 @@ dispatch:
 	  while (SCM_NIMP (arg2));
 	  RETURN (arg1);
 	case scm_tc7_rpsubr:
-	  if (SCM_FALSEP (SCM_SUBRF (proc) (arg1, arg2)))
+	  if (scm_is_false (SCM_SUBRF (proc) (arg1, arg2)))
 	    RETURN (SCM_BOOL_F);
 	  arg1 = SCM_CDDR (debug.info->a.args);
 	  do
 	    {
-	      if (SCM_FALSEP (SCM_SUBRF (proc) (arg2, SCM_CAR (arg1))))
+	      if (scm_is_false (SCM_SUBRF (proc) (arg2, SCM_CAR (arg1))))
 		RETURN (SCM_BOOL_F);
 	      arg2 = SCM_CAR (arg1);
 	      arg1 = SCM_CDR (arg1);
@@ -4471,12 +4471,12 @@ dispatch:
 	  while (!SCM_NULLP (x));
 	  RETURN (arg1);
 	case scm_tc7_rpsubr:
-	  if (SCM_FALSEP (SCM_SUBRF (proc) (arg1, arg2)))
+	  if (scm_is_false (SCM_SUBRF (proc) (arg1, arg2)))
 	    RETURN (SCM_BOOL_F);
 	  do
 	    {
 	      arg1 = EVALCAR (x, env);
-	      if (SCM_FALSEP (SCM_SUBRF (proc) (arg2, arg1)))
+	      if (scm_is_false (SCM_SUBRF (proc) (arg2, arg1)))
 		RETURN (SCM_BOOL_F);
 	      arg2 = arg1;
 	      x = SCM_CDR (x);
@@ -4893,7 +4893,7 @@ tail:
       while (SCM_NIMP (args))
 	{
 	  SCM_ASSERT (SCM_CONSP (args), args, SCM_ARG2, "apply");
-	  if (SCM_FALSEP (SCM_SUBRF (proc) (arg1, SCM_CAR (args))))
+	  if (scm_is_false (SCM_SUBRF (proc) (arg1, SCM_CAR (args))))
 	    RETURN (SCM_BOOL_F);
 	  arg1 = SCM_CAR (args);
 	  args = SCM_CDR (args);
@@ -5629,7 +5629,7 @@ SCM_DEFINE (scm_promise_p, "promise?", 1, 0, 0,
 	    "(@pxref{Delayed evaluation,,,r5rs.info,The Revised^5 Report on Scheme}).")
 #define FUNC_NAME s_scm_promise_p
 {
-  return SCM_BOOL (SCM_TYP16_PREDICATE (scm_tc16_promise, obj));
+  return scm_from_bool (SCM_TYP16_PREDICATE (scm_tc16_promise, obj));
 }
 #undef FUNC_NAME
 
@@ -5645,7 +5645,7 @@ SCM_DEFINE (scm_cons_source, "cons-source", 3, 0, 0,
   z = scm_cons (x, y);
   /* Copy source properties possibly associated with xorig. */
   p = scm_whash_lookup (scm_source_whash, xorig);
-  if (!SCM_FALSEP (p))
+  if (scm_is_true (p))
     scm_whash_insert (scm_source_whash, z, p);
   return z;
 }
@@ -5886,7 +5886,7 @@ SCM_DEFINE (scm_primitive_eval, "primitive-eval", 1, 0, 0,
 {
   SCM env;
   SCM transformer = scm_current_module_transformer ();
-  if (!SCM_FALSEP (transformer))
+  if (scm_is_true (transformer))
     exp = scm_call_1 (transformer, exp);
   env = scm_top_level_env (scm_current_module_lookup_closure ());
   return scm_i_eval (exp, env);

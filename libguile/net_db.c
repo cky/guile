@@ -357,7 +357,7 @@ SCM_DEFINE (scm_sethost, "sethost", 0, 1, 0,
   if (SCM_UNBNDP (stayopen))
     endhostent ();
   else
-    sethostent (!SCM_FALSEP (stayopen));
+    sethostent (scm_is_true (stayopen));
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -373,7 +373,7 @@ SCM_DEFINE (scm_setnet, "setnet", 0, 1, 0,
   if (SCM_UNBNDP (stayopen))
     endnetent ();
   else
-    setnetent (!SCM_FALSEP (stayopen));
+    setnetent (scm_is_true (stayopen));
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -389,7 +389,7 @@ SCM_DEFINE (scm_setproto, "setproto", 0, 1, 0,
   if (SCM_UNBNDP (stayopen))
     endprotoent ();
   else
-    setprotoent (!SCM_FALSEP (stayopen));
+    setprotoent (scm_is_true (stayopen));
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -405,7 +405,7 @@ SCM_DEFINE (scm_setserv, "setserv", 0, 1, 0,
   if (SCM_UNBNDP (stayopen))
     endservent ();
   else
-    setservent (!SCM_FALSEP (stayopen));
+    setservent (scm_is_true (stayopen));
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME

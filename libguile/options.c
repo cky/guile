@@ -239,7 +239,7 @@ scm_options (SCM args, scm_t_option options[], unsigned int n, const char *s)
   else
     {
       SCM old_setting;
-      SCM_ASSERT (!SCM_FALSEP (scm_list_p (args)), args, 1, s);
+      SCM_ASSERT (scm_is_true (scm_list_p (args)), args, 1, s);
       old_setting = get_option_setting (options, n);
       change_option_setting (args, options, n, s);
       return old_setting;

@@ -10,15 +10,15 @@ SCM2CTYPES (SCM obj, CTYPE *data)
   long i, n;
   SCM val;
 
-  SCM_ASSERT (SCM_NIMP (obj) || SCM_NFALSEP (scm_list_p (obj)), 
+  SCM_ASSERT (SCM_NIMP (obj) || scm_is_true (scm_list_p (obj)), 
 	      obj, SCM_ARG1, FUNC_NAME);
 
   /* list conversion */
-  if (SCM_NFALSEP (scm_list_p (obj)))
+  if (scm_is_true (scm_list_p (obj)))
     {
       /* traverse the given list and validate the range of each member */
       SCM list = obj;
-      for (n = 0; SCM_NFALSEP (scm_pair_p (list)); list = SCM_CDR (list), n++)
+      for (n = 0; scm_is_true (scm_pair_p (list)); list = SCM_CDR (list), n++)
 	{
 	  val = SCM_CAR (list);
 #if SIZEOF_CTYPE && SIZEOF_CTYPE < SIZEOF_SCM_T_BITS
@@ -55,7 +55,7 @@ SCM2CTYPES (SCM obj, CTYPE *data)
 
       /* traverse the list once more and convert each member */
       list = obj;
-      for (i = 0; SCM_NFALSEP (scm_pair_p (list)); list = SCM_CDR (list), i++)
+      for (i = 0; scm_is_true (scm_pair_p (list)); list = SCM_CDR (list), i++)
 	{
           val = SCM_CAR (list);
 	  if (SCM_INUMP (val))

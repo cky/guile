@@ -81,7 +81,7 @@ SCM_DEFINE (scm_read_delimited_x, "%read-delimited!", 3, 3, 0,
 	{
 	  if (cdelims[k] == c)
 	    {
-	      if (SCM_FALSEP (gobble))
+	      if (scm_is_false (gobble))
 		scm_ungetc (c, port);
 
 	      return scm_cons (SCM_MAKE_CHAR (c),

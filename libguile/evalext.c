@@ -49,7 +49,7 @@ SCM_DEFINE (scm_defined_p, "defined?", 1, 1, 0,
 	{
 	  SCM_ASSERT (SCM_CONSP (frames), env, SCM_ARG2, FUNC_NAME);
 	  b = SCM_CAR (frames);
-	  if (!SCM_FALSEP (scm_procedure_p (b)))
+	  if (scm_is_true (scm_procedure_p (b)))
 	    break;
 	  SCM_ASSERT (SCM_CONSP (b), env, SCM_ARG2, FUNC_NAME);
 	  for (b = SCM_CAR (b); SCM_NIMP (b); b = SCM_CDR (b))
@@ -70,7 +70,7 @@ SCM_DEFINE (scm_defined_p, "defined?", 1, 1, 0,
 			 SCM_BOOL_F);
     }
 	      
-  return (SCM_FALSEP (var) || SCM_UNBNDP (SCM_VARIABLE_REF (var))
+  return (scm_is_false (var) || SCM_UNBNDP (SCM_VARIABLE_REF (var))
 	  ? SCM_BOOL_F
 	  : SCM_BOOL_T);
 }
@@ -93,7 +93,7 @@ SCM_DEFINE (scm_self_evaluating_p, "self-evaluating?", 1, 0, 0,
       return SCM_BOOL_T;
     case scm_tc3_imm24:
 	/* characters, booleans, other immediates */
-      return SCM_BOOL (!SCM_NULLP (obj));
+      return scm_from_bool (!SCM_NULLP (obj));
     case scm_tc3_cons:
       switch (SCM_TYP7 (obj))
 	{

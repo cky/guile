@@ -71,7 +71,7 @@ SCM_DEFINE (scm_sloppy_assv, "sloppy-assv", 2, 0, 0,
     {
       SCM tmp = SCM_CAR (alist);
       if (SCM_CONSP (tmp)
-	  && SCM_NFALSEP (scm_eqv_p (SCM_CAR (tmp), key)))
+	  && scm_is_true (scm_eqv_p (SCM_CAR (tmp), key)))
 	return tmp;
     }
   return SCM_BOOL_F;
@@ -89,7 +89,7 @@ SCM_DEFINE (scm_sloppy_assoc, "sloppy-assoc", 2, 0, 0,
     {
       SCM tmp = SCM_CAR (alist);
       if (SCM_CONSP (tmp)
-	  && SCM_NFALSEP (scm_equal_p (SCM_CAR (tmp), key)))
+	  && scm_is_true (scm_equal_p (SCM_CAR (tmp), key)))
 	return tmp;
     }
   return SCM_BOOL_F;
@@ -139,7 +139,7 @@ SCM_DEFINE (scm_assv, "assv", 2, 0, 0,
       SCM tmp = SCM_CAR (ls);
       SCM_ASSERT_TYPE (SCM_CONSP (tmp), alist, SCM_ARG2, FUNC_NAME,
 		       "association list");
-      if (SCM_NFALSEP (scm_eqv_p (SCM_CAR (tmp), key)))
+      if (scm_is_true (scm_eqv_p (SCM_CAR (tmp), key)))
 	return tmp;
     }
   SCM_ASSERT_TYPE (SCM_NULL_OR_NIL_P (ls), alist, SCM_ARG2, FUNC_NAME,
@@ -160,7 +160,7 @@ SCM_DEFINE (scm_assoc, "assoc", 2, 0, 0,
       SCM tmp = SCM_CAR (ls);
       SCM_ASSERT_TYPE (SCM_CONSP (tmp), alist, SCM_ARG2, FUNC_NAME,
 		       "association list");
-      if (SCM_NFALSEP (scm_equal_p (SCM_CAR (tmp), key)))
+      if (scm_is_true (scm_equal_p (SCM_CAR (tmp), key)))
 	return tmp;
     }
   SCM_ASSERT_TYPE (SCM_NULL_OR_NIL_P (ls), alist, SCM_ARG2, FUNC_NAME,

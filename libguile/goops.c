@@ -95,7 +95,7 @@
 #define TEST_CHANGE_CLASS(obj, class)				       \
 	{							       \
 	  class = SCM_CLASS_OF (obj);				       \
-          if (!SCM_FALSEP (SCM_OBJ_CLASS_REDEF (obj)))		       \
+          if (scm_is_true (SCM_OBJ_CLASS_REDEF (obj)))		       \
 	    {							       \
 	      scm_change_object_class (obj, class, SCM_OBJ_CLASS_REDEF (obj));\
 	      class = SCM_CLASS_OF (obj);			       \
@@ -182,7 +182,7 @@ filter_cpl (SCM ls)
   while (!SCM_NULLP (ls))
     {
       SCM el = SCM_CAR (ls);
-      if (SCM_FALSEP (scm_c_memq (el, res)))
+      if (scm_is_false (scm_c_memq (el, res)))
 	res = scm_cons (el, res);
       ls = SCM_CDR (ls);
     }
@@ -221,7 +221,7 @@ remove_duplicate_slots (SCM l, SCM res, SCM slots_already_seen)
   if (!SCM_SYMBOLP (tmp))
     scm_misc_error ("%compute-slots", "bad slot name ~S", scm_list_1 (tmp));
 
-  if (SCM_FALSEP (scm_c_memq (tmp, slots_already_seen))) {
+  if (scm_is_false (scm_c_memq (tmp, slots_already_seen))) {
     res 	       = scm_cons (SCM_CAR (l), res);
     slots_already_seen = scm_cons (tmp, slots_already_seen);
   }
@@ -431,7 +431,7 @@ SCM_DEFINE (scm_sys_initialize_object, "%initialize-object", 2, 0, 0,
 	{
 	  /* set slot to its :init-form if it exists */
 	  tmp = SCM_CADAR (get_n_set);
-	  if (!SCM_FALSEP (tmp))
+	  if (scm_is_true (tmp))
 	    {
 	      slot_value = get_slot_value (class, obj, SCM_CAR (get_n_set));
 	      if (SCM_GOOPS_UNBOUNDP (slot_value))
@@ -511,7 +511,7 @@ SCM_DEFINE (scm_sys_prep_layout_x, "%prep-layout!", 1, 0, 0,
 	  type = scm_i_get_keyword (k_class, SCM_CDAR (slots),
 				    len, SCM_BOOL_F, FUNC_NAME);
 	  /* determine slot GC protection and access mode */
-	  if (SCM_FALSEP (type))
+	  if (scm_is_false (type))
 	    {
 	      p = 'p';
 	      a = 'w';
@@ -822,7 +822,7 @@ SCM_DEFINE (scm_instance_p, "instance?", 1, 0, 0,
 	    "Return @code{#t} if @var{obj} is an instance.")
 #define FUNC_NAME s_scm_instance_p
 {
-  return SCM_BOOL (SCM_INSTANCEP (obj));
+  return scm_from_bool (SCM_INSTANCEP (obj));
 }
 #undef FUNC_NAME
 
@@ -1160,7 +1160,7 @@ static SCM
 get_slot_value_using_name (SCM class, SCM obj, SCM slot_name)
 {
   SCM slotdef = slot_definition_using_name (class, slot_name);
-  if (!SCM_FALSEP (slotdef))
+  if (scm_is_true (slotdef))
     return get_slot_value (class, obj, slotdef);
   else
     return CALL_GF3 ("slot-missing", class, obj, slot_name);
@@ -1201,7 +1201,7 @@ static SCM
 set_slot_value_using_name (SCM class, SCM obj, SCM slot_name, SCM value)
 {
   SCM slotdef = slot_definition_using_name (class, slot_name);
-  if (!SCM_FALSEP (slotdef))
+  if (scm_is_true (slotdef))
     return set_slot_value (class, obj, slotdef, value);
   else
     return CALL_GF4 ("slot-missing", class, obj, slot_name, value);
@@ -1651,7 +1651,7 @@ SCM_DEFINE (scm_sys_invalidate_method_cache_x, "%invalidate-method-cache!", 1, 0
   SCM used_by;
   SCM_ASSERT (SCM_PUREGENERICP (gf), gf, SCM_ARG1, FUNC_NAME);
   used_by = SCM_SLOT (gf, scm_si_used_by);
-  if (!SCM_FALSEP (used_by))
+  if (scm_is_true (used_by))
     {
       SCM methods = SCM_SLOT (gf, scm_si_methods);
       for (; SCM_CONSP (used_by); used_by = SCM_CDR (used_by))
@@ -1674,7 +1674,7 @@ SCM_DEFINE (scm_generic_capability_p, "generic-capability?", 1, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_generic_capability_p
 {
-  SCM_ASSERT (!SCM_FALSEP (scm_procedure_p (proc)),
+  SCM_ASSERT (scm_is_true (scm_procedure_p (proc)),
 	      proc, SCM_ARG1, FUNC_NAME);
   return (scm_subr_p (proc) && SCM_SUBR_GENERIC (proc)
 	  ? SCM_BOOL_T
@@ -1792,7 +1792,7 @@ static int
 applicablep (SCM actual, SCM formal)
 {
   /* We already know that the cpl is well formed. */
-  return !SCM_FALSEP (scm_c_memq (formal, SCM_SLOT (actual, scm_si_cpl)));
+  return scm_is_true (scm_c_memq (formal, SCM_SLOT (actual, scm_si_cpl)));
 }
 
 static int
@@ -2035,7 +2035,7 @@ call_memoize_method (void *a)
    * the cache miss and locking the mutex.
    */
   SCM cmethod = scm_mcache_lookup_cmethod (x, SCM_CDDR (args));
-  if (!SCM_FALSEP (cmethod))
+  if (scm_is_true (cmethod))
     return cmethod;
   /*fixme* Use scm_apply */
   return CALL_GF3 ("memoize-method!", gf, SCM_CDDR (args), x);
@@ -2101,7 +2101,7 @@ SCM_DEFINE (scm_make, "make",  0, 0, 1,
       if (class == scm_class_accessor)
 	{
 	  SCM setter = scm_get_keyword (k_setter, args, SCM_BOOL_F);
-	  if (!SCM_FALSEP (setter))
+	  if (scm_is_true (setter))
 	    scm_sys_set_object_setter_x (z, setter);
 	}
     }
@@ -2217,7 +2217,7 @@ fix_cpl (SCM c, SCM before, SCM after)
   SCM cpl = SCM_SLOT (c, scm_si_cpl);
   SCM ls = scm_c_memq (after, cpl);
   SCM tail = scm_delq1_x (before, SCM_CDR (ls));
-  if (SCM_FALSEP (ls))
+  if (scm_is_false (ls))
     /* if this condition occurs, fix_cpl should not be applied this way */
     abort ();
   SCM_SETCAR (ls, before);
@@ -2465,7 +2465,7 @@ make_class_from_template (char const *template, char const *type_name, SCM super
 
   /* Only define name if doesn't already exist. */
   if (!SCM_GOOPS_UNBOUNDP (name)
-      && SCM_FALSEP (scm_call_2 (scm_goops_lookup_closure, name, SCM_BOOL_F)))
+      && scm_is_false (scm_call_2 (scm_goops_lookup_closure, name, SCM_BOOL_F)))
     DEFVAR (name, class);
   return class;
 }
@@ -2490,7 +2490,7 @@ scm_i_inherit_applicable (SCM c)
       SCM cpl = SCM_SLOT (c, scm_si_cpl);
       /* patch scm_class_applicable into direct-supers */
       SCM top = scm_c_memq (scm_class_top, dsupers);
-      if (SCM_FALSEP (top))
+      if (scm_is_false (top))
 	dsupers = scm_append (scm_list_2 (dsupers,
 					  scm_list_1 (scm_class_applicable)));
       else
@@ -2501,7 +2501,7 @@ scm_i_inherit_applicable (SCM c)
       SCM_SET_SLOT (c, scm_si_direct_supers, dsupers);
       /* patch scm_class_applicable into cpl */
       top = scm_c_memq (scm_class_top, cpl);
-      if (SCM_FALSEP (top))
+      if (scm_is_false (top))
 	abort ();
       else
 	{
@@ -2578,7 +2578,7 @@ static SCM
 make_struct_class (void *closure SCM_UNUSED,
 		   SCM vtable, SCM data, SCM prev SCM_UNUSED)
 {
-  if (!SCM_FALSEP (SCM_STRUCT_TABLE_NAME (data)))
+  if (scm_is_true (SCM_STRUCT_TABLE_NAME (data)))
     SCM_SET_STRUCT_TABLE_CLASS (data,
 				scm_make_extended_class
 				(SCM_SYMBOL_CHARS (SCM_STRUCT_TABLE_NAME (data)),
@@ -2784,7 +2784,7 @@ SCM_DEFINE (scm_pure_generic_p, "pure-generic?", 1, 0, 0,
 	    "Return @code{#t} if @var{obj} is a pure generic.")
 #define FUNC_NAME s_scm_pure_generic_p
 {
-  return SCM_BOOL (SCM_PUREGENERICP (obj));
+  return scm_from_bool (SCM_PUREGENERICP (obj));
 }
 #undef FUNC_NAME
 

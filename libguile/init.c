@@ -256,7 +256,7 @@ scm_standard_stream_to_port (int fdes, char *mode, char *name)
   body_data.name = name;
   port = scm_internal_catch (SCM_BOOL_T, stream_body, &body_data, 
 			     stream_handler, NULL);
-  if (SCM_FALSEP (port))
+  if (scm_is_false (port))
     port = scm_void_port (mode);
   return port;
 }
@@ -316,7 +316,7 @@ scm_load_startup_files ()
       scm_primitive_load_path (scm_makfrom0str ("ice-9/boot-9.scm"));
 
       /* Load the init.scm file.  */
-      if (SCM_NFALSEP (init_path))
+      if (scm_is_true (init_path))
 	scm_primitive_load (init_path);
     }
 }

@@ -116,7 +116,7 @@ SCM_DEFINE (scm_regexp_p, "regexp?", 1, 0, 0,
 	    "or @code{#f} otherwise.")
 #define FUNC_NAME s_scm_regexp_p
 {
-  return SCM_BOOL(SCM_RGXP (obj));
+  return scm_from_bool(SCM_RGXP (obj));
 }
 #undef FUNC_NAME
 

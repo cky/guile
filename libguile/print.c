@@ -177,7 +177,7 @@ scm_make_print_state ()
     }
   scm_i_plugin_mutex_unlock (&print_state_mutex);
   
-  return SCM_FALSEP (answer) ? make_print_state () : answer;
+  return scm_is_false (answer) ? make_print_state () : answer;
 }
 
 void
@@ -286,7 +286,7 @@ scm_print_symbol_name (const char *str, size_t len, SCM port)
 
   if (len == 0 || str[0] == '\'' || str[0] == '`' || str[0] == ',' ||
       str[0] == ':' || str[len-1] == ':' || (str[0] == '.' && len == 1) ||
-      !SCM_FALSEP (scm_i_mem2number(str, len, 10)))
+      scm_is_true (scm_i_mem2number(str, len, 10)))
     {
       scm_lfwrite ("#{", 2, port);
       weird = 1;
@@ -442,8 +442,8 @@ scm_iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 	  print_circref (port, pstate, exp);
 	  break;
 	case scm_tcs_closures:
-	  if (SCM_FALSEP (scm_procedure_p (SCM_PRINT_CLOSURE))
-	      || SCM_FALSEP (scm_printer_apply (SCM_PRINT_CLOSURE,
+	  if (scm_is_false (scm_procedure_p (SCM_PRINT_CLOSURE))
+	      || scm_is_false (scm_printer_apply (SCM_PRINT_CLOSURE,
 						exp, port, pstate)))
 	    {
 	      SCM formals = SCM_CLOSURE_FORMALS (exp);
@@ -603,7 +603,7 @@ scm_iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 		/* Print gsubrs as primitives */
 		SCM name = scm_procedure_name (exp);
 		scm_puts ("#<primitive-procedure", port);
-		if (!SCM_FALSEP (name))
+		if (scm_is_true (name))
 		  {
 		    scm_putc (' ', port);
 		    scm_puts (SCM_SYMBOL_CHARS (name), port);
@@ -622,7 +622,7 @@ scm_iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 	  scm_puts ("#<procedure-with-setter", port);
 	  {
 	    SCM name = scm_procedure_name (exp);
-	    if (!SCM_FALSEP (name))
+	    if (scm_is_true (name))
 	      {
 		scm_putc (' ', port);
 		scm_display (name, port);
@@ -686,7 +686,7 @@ scm_prin1 (SCM exp, SCM port, int writingp)
 	  print_state_pool = SCM_CDR (print_state_pool);
 	}
       scm_i_plugin_mutex_unlock (&print_state_mutex);
-      if (SCM_FALSEP (handle))
+      if (scm_is_false (handle))
 	handle = scm_list_1 (make_print_state ());
       pstate_scm = SCM_CAR (handle);
     }
@@ -700,7 +700,7 @@ scm_prin1 (SCM exp, SCM port, int writingp)
   /* Return print state to pool if it has been created above and
      hasn't escaped to Scheme. */
 
-  if (!SCM_FALSEP (handle) && !pstate->revealed)
+  if (scm_is_true (handle) && !pstate->revealed)
     {
       scm_i_plugin_mutex_lock (&print_state_mutex);
       SCM_SETCDR (handle, print_state_pool);
@@ -920,7 +920,7 @@ SCM_DEFINE (scm_simple_format, "simple-format", 2, 0, 1,
     {
       destination = port = scm_cur_outp;
     }
-  else if (SCM_FALSEP (destination))
+  else if (scm_is_false (destination))
     {
       fReturnString = 1;
       port = scm_mkstrport (SCM_INUM0, 

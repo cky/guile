@@ -71,7 +71,7 @@ SCM_DEFINE (scm_class_of, "class-of", 1, 0, 0,
     case scm_tc3_imm24:
       if (SCM_CHARP (x))
 	return scm_class_char;
-      else if (SCM_BOOLP (x))
+      else if (scm_is_bool (x))
         return scm_class_boolean;
       else if (SCM_NULLP (x))
         return scm_class_null;
@@ -154,7 +154,7 @@ SCM_DEFINE (scm_class_of, "class-of", 1, 0, 0,
 	  else if (SCM_OBJ_CLASS_FLAGS (x) & SCM_CLASSF_GOOPS)
 	    {
 	      /* Goops object */
-	      if (! SCM_FALSEP (SCM_OBJ_CLASS_REDEF (x)))
+	      if (! scm_is_false (SCM_OBJ_CLASS_REDEF (x)))
 		scm_change_object_class (x,
 					 SCM_CLASS_OF (x),         /* old */
 					 SCM_OBJ_CLASS_REDEF (x)); /* new */
@@ -164,12 +164,12 @@ SCM_DEFINE (scm_class_of, "class-of", 1, 0, 0,
 	    {
 	      /* ordinary struct */
 	      SCM handle = scm_struct_create_handle (SCM_STRUCT_VTABLE (x));
-	      if (!SCM_FALSEP (SCM_STRUCT_TABLE_CLASS (SCM_CDR (handle))))
+	      if (scm_is_true (SCM_STRUCT_TABLE_CLASS (SCM_CDR (handle))))
 		return SCM_STRUCT_TABLE_CLASS (SCM_CDR (handle));
 	      else
 		{
 		  SCM name = SCM_STRUCT_TABLE_NAME (SCM_CDR (handle));
-		  SCM class = scm_make_extended_class (!SCM_FALSEP (name)
+		  SCM class = scm_make_extended_class (scm_is_true (name)
 						       ? SCM_SYMBOL_CHARS (name)
 						       : 0,
 						       SCM_I_OPERATORP (x));
@@ -297,7 +297,7 @@ SCM
 scm_mcache_compute_cmethod (SCM cache, SCM args)
 {
   SCM cmethod = scm_mcache_lookup_cmethod (cache, args);
-  if (SCM_FALSEP (cmethod))
+  if (scm_is_false (cmethod))
     /* No match - memoize */
     return scm_memoize_method (cache, args);
   return cmethod;
@@ -342,7 +342,7 @@ SCM_DEFINE (scm_entity_p, "entity?", 1, 0, 0,
 	    "Return @code{#t} if @var{obj} is an entity.")
 #define FUNC_NAME s_scm_entity_p
 {
-  return SCM_BOOL(SCM_STRUCTP (obj) && SCM_I_ENTITYP (obj));
+  return scm_from_bool(SCM_STRUCTP (obj) && SCM_I_ENTITYP (obj));
 }
 #undef FUNC_NAME
 
@@ -351,7 +351,7 @@ SCM_DEFINE (scm_operator_p, "operator?", 1, 0, 0,
 	    "Return @code{#t} if @var{obj} is an operator.")
 #define FUNC_NAME s_scm_operator_p
 {
-  return SCM_BOOL(SCM_STRUCTP (obj)
+  return scm_from_bool(SCM_STRUCTP (obj)
                   && SCM_I_OPERATORP (obj)
                   && !SCM_I_ENTITYP (obj));
 }

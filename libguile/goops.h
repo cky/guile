@@ -122,7 +122,7 @@ typedef struct scm_t_method {
 #define SCM_INSTANCE_HASH(c, i) (SCM_INST (c) [scm_si_hashsets + (i)])
 #define SCM_SET_HASHSET(c, i, h)  (SCM_INST (c) [scm_si_hashsets + (i)] = (h))
 
-#define SCM_SUBCLASSP(c1, c2)  (!SCM_FALSEP (scm_c_memq (c2, SCM_SLOT (c1, scm_si_cpl))))
+#define SCM_SUBCLASSP(c1, c2)  (scm_is_true (scm_c_memq (c2, SCM_SLOT (c1, scm_si_cpl))))
 #define SCM_IS_A_P(x, c) \
   (SCM_INSTANCEP (x) && SCM_SUBCLASSP (SCM_CLASS_OF (x), c))
 

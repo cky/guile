@@ -60,7 +60,7 @@ scm_i_index (SCM *str, SCM chr, int direction, SCM sub_start,
   SCM_ASSERT (SCM_STRINGP (*str), *str, SCM_ARG1, why);
   SCM_ASSERT (SCM_CHARP (chr), chr, SCM_ARG2, why);
 
-  if (SCM_FALSEP (sub_start))
+  if (scm_is_false (sub_start))
     sub_start = SCM_MAKINUM (0);
 
   SCM_ASSERT (SCM_INUMP (sub_start), sub_start, SCM_ARG3, why);
@@ -68,7 +68,7 @@ scm_i_index (SCM *str, SCM chr, int direction, SCM sub_start,
   if (lower < 0 || lower > SCM_STRING_LENGTH (*str))
     scm_out_of_range (why, sub_start);
 
-  if (SCM_FALSEP (sub_end))
+  if (scm_is_false (sub_end))
     sub_end = SCM_MAKINUM (SCM_STRING_LENGTH (*str));
 
   SCM_ASSERT (SCM_INUMP (sub_end), sub_end, SCM_ARG4, why);
@@ -227,7 +227,7 @@ SCM_DEFINE (scm_string_null_p, "string-null?", 1, 0, 0,
 #define FUNC_NAME s_scm_string_null_p
 {
   SCM_VALIDATE_STRING (1, str);
-  return SCM_BOOL (SCM_STRING_LENGTH (str) == 0);
+  return scm_from_bool (SCM_STRING_LENGTH (str) == 0);
 }
 #undef FUNC_NAME
 
@@ -394,7 +394,7 @@ string_capitalize_x (SCM str)
   len = SCM_STRING_LENGTH(str);
   sz = SCM_STRING_UCHARS (str);
   for(i=0; i<len;  i++) {
-    if (!SCM_FALSEP (scm_char_alphabetic_p (SCM_MAKE_CHAR (sz[i])))) {
+    if (scm_is_true (scm_char_alphabetic_p (SCM_MAKE_CHAR (sz[i])))) {
       if(!in_word) {
         sz[i] = scm_c_upcase(sz[i]);
         in_word = 1;

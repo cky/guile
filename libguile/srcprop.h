@@ -35,7 +35,7 @@
 #define scm_whash_handle SCM
 
 #define scm_whash_get_handle(whash, key) scm_hash_fn_get_handle (whash, key, scm_ihashq, scm_sloppy_assq, 0)
-#define SCM_WHASHFOUNDP(h) (!SCM_FALSEP (h))
+#define SCM_WHASHFOUNDP(h) (scm_is_true (h))
 #define SCM_WHASHREF(whash, handle) SCM_CDR (handle)
 #define SCM_WHASHSET(whash, handle, obj) SCM_SETCDR (handle, obj)
 #define scm_whash_create_handle(whash, key) scm_hash_fn_create_handle_x (whash, key, SCM_UNSPECIFIED, scm_ihashq, scm_sloppy_assq, 0)
@@ -88,7 +88,7 @@ typedef struct scm_t_srcprops_chunk
 #define SETSRCPROPLINE(p, l) SETSRCPROPPOS (p, l, SRCPROPCOL (p))
 #define SETSRCPROPCOL(p, c) SETSRCPROPPOS (p, SRCPROPLINE (p), c)
 
-#define PROCTRACEP(x) (!SCM_FALSEP (scm_procedure_property (x, scm_sym_trace)))
+#define PROCTRACEP(x) (scm_is_true (scm_procedure_property (x, scm_sym_trace)))
 
 SCM_API SCM scm_sym_filename;
 SCM_API SCM scm_sym_copy;

@@ -120,7 +120,7 @@ string_less_p (SCM s1, SCM s2)
     if (c > 0) return SCM_BOOL_F;
   }
 
-  return SCM_BOOL (length1 < length2);
+  return scm_from_bool (length1 < length2);
 }
 
 
@@ -147,7 +147,7 @@ SCM_DEFINE1 (scm_string_leq_p, "string<=?", scm_tc7_rpsubr,
   SCM_VALIDATE_STRING (1, s1);
   SCM_VALIDATE_STRING (2, s2);
 
-  return SCM_BOOL_NOT (string_less_p (s2, s1));
+  return scm_not (string_less_p (s2, s1));
 }
 #undef FUNC_NAME
 
@@ -175,7 +175,7 @@ SCM_DEFINE1 (scm_string_geq_p, "string>=?", scm_tc7_rpsubr,
   SCM_VALIDATE_STRING (1, s1);
   SCM_VALIDATE_STRING (2, s2);
 
-  return SCM_BOOL_NOT (string_less_p (s1, s2));
+  return scm_not (string_less_p (s1, s2));
 }
 #undef FUNC_NAME
 
@@ -200,7 +200,7 @@ string_ci_less_p (SCM s1, SCM s2)
     if (c > 0) return SCM_BOOL_F;
   }
 
-  return SCM_BOOL (length1 < length2);
+  return scm_from_bool (length1 < length2);
 }
 
 
@@ -229,7 +229,7 @@ SCM_DEFINE1 (scm_string_ci_leq_p, "string-ci<=?", scm_tc7_rpsubr,
   SCM_VALIDATE_STRING (1, s1);
   SCM_VALIDATE_STRING (2, s2);
 
-  return SCM_BOOL_NOT (string_ci_less_p (s2, s1));
+  return scm_not (string_ci_less_p (s2, s1));
 }
 #undef FUNC_NAME
 
@@ -259,7 +259,7 @@ SCM_DEFINE1 (scm_string_ci_geq_p, "string-ci>=?", scm_tc7_rpsubr,
   SCM_VALIDATE_STRING (1, s1);
   SCM_VALIDATE_STRING (2, s2);
 
-  return SCM_BOOL_NOT (string_ci_less_p (s1, s2));
+  return scm_not (string_ci_less_p (s1, s2));
 }
 #undef FUNC_NAME
 

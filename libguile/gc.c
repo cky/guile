@@ -181,7 +181,7 @@ SCM_DEFINE (scm_set_debug_cell_accesses_x, "set-debug-cell-accesses!", 1, 0, 0,
 	    "@code{SCM_DEBUG_CELL_ACCESSES} was set to 1.")
 #define FUNC_NAME s_scm_set_debug_cell_accesses_x
 {
-  if (SCM_FALSEP (flag))
+  if (scm_is_false (flag))
     {
       scm_debug_cell_accesses_p = 0;
     }
@@ -745,7 +745,7 @@ scm_gc_unprotect_object (SCM obj)
 
   handle = scm_hashq_get_handle (scm_protects, obj);
 
-  if (SCM_FALSEP (handle))
+  if (scm_is_false (handle))
     {
       fprintf (stderr, "scm_unprotect_object called on unprotected object\n");
       abort ();
@@ -791,7 +791,7 @@ scm_gc_unregister_root (SCM *p)
 
   handle = scm_hashv_get_handle (scm_gc_registered_roots, key);
 
-  if (SCM_FALSEP (handle))
+  if (scm_is_false (handle))
     {
       fprintf (stderr, "scm_gc_unregister_root called on unregistered root\n");
       abort ();

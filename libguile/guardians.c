@@ -209,7 +209,7 @@ guardian_apply (SCM guardian, SCM obj, SCM throw_p)
     return scm_guard (guardian, obj,
                       (SCM_UNBNDP (throw_p)
                        ? 1
-                       : !SCM_FALSEP (throw_p)));
+                       : scm_is_true (throw_p)));
   else
     return scm_get_one_zombie (guardian);
 }
@@ -229,7 +229,7 @@ scm_guard (SCM guardian, SCM obj, int throw_p)
 
       if (GREEDY_P (g))
         {
-          if (!SCM_FALSEP (scm_hashq_get_handle
+          if (scm_is_true (scm_hashq_get_handle
                            (greedily_guarded_whash, obj)))
             {
               SCM_ALLOW_INTS;
@@ -268,7 +268,7 @@ scm_get_one_zombie (SCM guardian)
   if (!TCONC_EMPTYP (g->zombies))
     TCONC_OUT (g->zombies, res);
 
-  if (!SCM_FALSEP (res) && GREEDY_P (g))
+  if (scm_is_true (res) && GREEDY_P (g))
     scm_hashq_remove_x (greedily_guarded_whash, res);
 
   SCM_ALLOW_INTS;
@@ -319,7 +319,7 @@ SCM_DEFINE (scm_make_guardian, "make-guardian", 0, 1, 0,
   g->flags = 0L;
 
   /* [cmm] the UNBNDP check below is redundant but I like it. */
-  if (SCM_UNBNDP (greedy_p) || !SCM_FALSEP (greedy_p))
+  if (SCM_UNBNDP (greedy_p) || scm_is_true (greedy_p))
     SET_GREEDY (g);
   
   SCM_NEWSMOB (z, tc16_guardian, g);
@@ -339,7 +339,7 @@ SCM_DEFINE (scm_guardian_destroyed_p, "guardian-destroyed?", 1, 0, 0,
   /* This critical section barrier will be replaced by a mutex. */
   SCM_DEFER_INTS;
 
-  res = SCM_BOOL (DESTROYED_P (GUARDIAN_DATA (guardian)));
+  res = scm_from_bool (DESTROYED_P (GUARDIAN_DATA (guardian)));
   
   SCM_ALLOW_INTS;
 
@@ -352,7 +352,7 @@ SCM_DEFINE (scm_guardian_greedy_p, "guardian-greedy?", 1, 0, 0,
             "Return @code{#t} if @var{guardian} is a greedy guardian, otherwise @code{#f}.")
 #define FUNC_NAME s_scm_guardian_greedy_p  
 {
-  return SCM_BOOL (GREEDY_P (GUARDIAN_DATA (guardian)));
+  return scm_from_bool (GREEDY_P (GUARDIAN_DATA (guardian)));
 }
 #undef FUNC_NAME
 

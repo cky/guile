@@ -176,7 +176,7 @@ SCM_DEFINE (scm_procedure_p, "procedure?", 1, 0, 0,
       case scm_tc7_pws:
 	return SCM_BOOL_T;
       case scm_tc7_smob:
-	return SCM_BOOL (SCM_SMOB_DESCRIPTOR (obj).apply);
+	return scm_from_bool (SCM_SMOB_DESCRIPTOR (obj).apply);
       default:
 	return SCM_BOOL_F;
       }
@@ -189,7 +189,7 @@ SCM_DEFINE (scm_closure_p, "closure?", 1, 0, 0,
 	    "Return @code{#t} if @var{obj} is a closure.")
 #define FUNC_NAME s_scm_closure_p
 {
-  return SCM_BOOL (SCM_CLOSUREP (obj));
+  return scm_from_bool (SCM_CLOSUREP (obj));
 }
 #undef FUNC_NAME
 
@@ -204,7 +204,7 @@ SCM_DEFINE (scm_thunk_p, "thunk?", 1, 0, 0,
       switch (SCM_TYP7 (obj))
 	{
 	case scm_tcs_closures:
-	  return SCM_BOOL (!SCM_CONSP (SCM_CLOSURE_FORMALS (obj)));
+	  return scm_from_bool (!SCM_CONSP (SCM_CLOSURE_FORMALS (obj)));
 	case scm_tc7_subr_0:
 	case scm_tc7_subr_1o:
 	case scm_tc7_lsubr:
@@ -284,7 +284,7 @@ SCM_DEFINE (scm_procedure_with_setter_p, "procedure-with-setter?", 1, 0, 0,
 	    "associated setter procedure.")
 #define FUNC_NAME s_scm_procedure_with_setter_p
 {
-  return SCM_BOOL(SCM_PROCEDURE_WITH_SETTER_P (obj));
+  return scm_from_bool(SCM_PROCEDURE_WITH_SETTER_P (obj));
 }
 #undef FUNC_NAME
 

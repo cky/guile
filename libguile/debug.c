@@ -134,7 +134,7 @@ SCM_DEFINE (scm_memoized_p, "memoized?", 1, 0, 0,
 	    "Return @code{#t} if @var{obj} is memoized.")
 #define FUNC_NAME s_scm_memoized_p
 {
-  return SCM_BOOL(SCM_MEMOIZEDP (obj));
+  return scm_from_bool(SCM_MEMOIZEDP (obj));
 }
 #undef FUNC_NAME
 
@@ -301,10 +301,10 @@ SCM_DEFINE (scm_procedure_name, "procedure-name", 1, 0, 0,
 #if 0
       /* Source property scm_sym_procname not implemented yet... */
       SCM name = scm_source_property (SCM_CAR (SCM_CLOSURE_BODY (proc)), scm_sym_procname);
-      if (SCM_FALSEP (name))
+      if (scm_is_false (name))
 	name = scm_procedure_property (proc, scm_sym_name);
 #endif
-      if (SCM_FALSEP (name) && SCM_CLOSUREP (proc))
+      if (scm_is_false (name) && SCM_CLOSUREP (proc))
 	name = scm_reverse_lookup (SCM_ENV (proc), proc);
       return name;
     }
@@ -326,7 +326,7 @@ SCM_DEFINE (scm_procedure_source, "procedure-source", 1, 0, 0,
       const SCM body = SCM_CLOSURE_BODY (proc);
       const SCM src = scm_source_property (body, scm_sym_copy);
 
-      if (!SCM_FALSEP (src))
+      if (scm_is_true (src))
         {
           return scm_cons2 (scm_sym_lambda, formals, src);
         }
@@ -356,7 +356,7 @@ SCM_DEFINE (scm_procedure_source, "procedure-source", 1, 0, 0,
   case scm_tc7_pws:
     {
       SCM src = scm_procedure_property (proc, scm_sym_source);
-      if (!SCM_FALSEP (src))
+      if (scm_is_true (src))
 	return src;
       proc = SCM_PROCEDURE (proc);
       goto again;
@@ -493,7 +493,7 @@ SCM_DEFINE (scm_debug_object_p, "debug-object?", 1, 0, 0,
 	    "Return @code{#t} if @var{obj} is a debug object.")
 #define FUNC_NAME s_scm_debug_object_p
 {
-  return SCM_BOOL(SCM_DEBUGOBJP (obj));
+  return scm_from_bool(SCM_DEBUGOBJP (obj));
 }
 #undef FUNC_NAME
 

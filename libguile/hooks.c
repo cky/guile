@@ -136,7 +136,7 @@ hook_print (SCM hook, SCM port, scm_print_state *pstate)
     {
       scm_putc (' ', port);
       name = scm_procedure_name (SCM_CAR (ls));
-      if (!SCM_FALSEP (name))
+      if (scm_is_true (name))
 	scm_iprin1 (name, port, pstate);
       else
 	scm_putc ('?', port);
@@ -177,7 +177,7 @@ SCM_DEFINE (scm_hook_p, "hook?", 1, 0, 0,
 	    "Return @code{#t} if @var{x} is a hook, @code{#f} otherwise.")
 #define FUNC_NAME s_scm_hook_p
 {
-  return SCM_BOOL (SCM_HOOKP (x));
+  return scm_from_bool (SCM_HOOKP (x));
 }
 #undef FUNC_NAME
 
@@ -189,7 +189,7 @@ SCM_DEFINE (scm_hook_empty_p, "hook-empty?", 1, 0, 0,
 #define FUNC_NAME s_scm_hook_empty_p
 {
   SCM_VALIDATE_HOOK (1, hook);
-  return SCM_BOOL (SCM_NULLP (SCM_HOOK_PROCEDURES (hook)));
+  return scm_from_bool (SCM_NULLP (SCM_HOOK_PROCEDURES (hook)));
 }
 #undef FUNC_NAME
 
@@ -205,17 +205,17 @@ SCM_DEFINE (scm_add_hook_x, "add-hook!", 2, 1, 0,
   SCM arity, rest;
   int n_args;
   SCM_VALIDATE_HOOK (1, hook);
-  SCM_ASSERT (!SCM_FALSEP (arity = scm_i_procedure_arity (proc)),
+  SCM_ASSERT (scm_is_true (arity = scm_i_procedure_arity (proc)),
 	      proc, SCM_ARG2, FUNC_NAME);
   n_args = SCM_HOOK_ARITY (hook);
   if (SCM_INUM (SCM_CAR (arity)) > n_args
-      || (SCM_FALSEP (SCM_CADDR (arity))
+      || (scm_is_false (SCM_CADDR (arity))
 	  && (SCM_INUM (SCM_CAR (arity)) + SCM_INUM (SCM_CADR (arity))
 	      < n_args)))
     scm_wrong_type_arg (FUNC_NAME, 2, proc);
   rest = scm_delq_x (proc, SCM_HOOK_PROCEDURES (hook));
   SCM_SET_HOOK_PROCEDURES (hook,
-			   (!SCM_UNBNDP (append_p) && !SCM_FALSEP (append_p)
+			   (!SCM_UNBNDP (append_p) && scm_is_true (append_p)
 			    ? scm_append_x (scm_list_2 (rest, scm_list_1 (proc)))
 			    : scm_cons (proc, rest)));
   return SCM_UNSPECIFIED;

@@ -173,7 +173,7 @@ SCM_DEFINE (scm_weak_vector_p, "weak-vector?", 1, 0, 0,
 	    "weak hashes are also weak vectors.")
 #define FUNC_NAME s_scm_weak_vector_p
 {
-  return SCM_BOOL (SCM_WVECTP (obj) && !SCM_IS_WHVEC (obj));
+  return scm_from_bool (SCM_WVECTP (obj) && !SCM_IS_WHVEC (obj));
 }
 #undef FUNC_NAME
 
@@ -230,7 +230,7 @@ SCM_DEFINE (scm_weak_key_alist_vector_p, "weak-key-alist-vector?", 1, 0, 0,
 	    "nor a weak value hash table.")
 #define FUNC_NAME s_scm_weak_key_alist_vector_p
 {
-  return SCM_BOOL (SCM_WVECTP (obj) && SCM_IS_WHVEC (obj));
+  return scm_from_bool (SCM_WVECTP (obj) && SCM_IS_WHVEC (obj));
 }
 #undef FUNC_NAME
 
@@ -240,7 +240,7 @@ SCM_DEFINE (scm_weak_value_alist_vector_p, "weak-value-alist-vector?", 1, 0, 0,
 	    "Return @code{#t} if @var{obj} is a weak value hash table.")
 #define FUNC_NAME s_scm_weak_value_alist_vector_p
 {
-  return SCM_BOOL (SCM_WVECTP (obj) && SCM_IS_WHVEC_V (obj));
+  return scm_from_bool (SCM_WVECTP (obj) && SCM_IS_WHVEC_V (obj));
 }
 #undef FUNC_NAME
 
@@ -250,7 +250,7 @@ SCM_DEFINE (scm_doubly_weak_alist_vector_p, "doubly-weak-alist-vector?", 1, 0, 0
 	    "Return @code{#t} if @var{obj} is a doubly weak hash table.")
 #define FUNC_NAME s_scm_doubly_weak_alist_vector_p
 {
-  return SCM_BOOL (SCM_WVECTP (obj) && SCM_IS_WHVEC_B (obj));
+  return scm_from_bool (SCM_WVECTP (obj) && SCM_IS_WHVEC_B (obj));
 }
 #undef FUNC_NAME
 

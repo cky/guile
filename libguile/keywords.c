@@ -58,7 +58,7 @@ SCM_DEFINE (scm_make_keyword_from_dash_symbol, "make-keyword-from-dash-symbol", 
 
   SCM_DEFER_INTS;
   keyword = scm_hashq_ref (scm_keyword_obarray, symbol, SCM_BOOL_F);
-  if (SCM_FALSEP (keyword))
+  if (scm_is_false (keyword))
     {
       SCM_NEWSMOB (keyword, scm_tc16_keyword, SCM_UNPACK (symbol));
       scm_hashq_set_x (scm_keyword_obarray, symbol, keyword);
@@ -88,7 +88,7 @@ SCM_DEFINE (scm_keyword_p, "keyword?", 1, 0, 0,
 	    "@code{#f}.")
 #define FUNC_NAME s_scm_keyword_p
 {
-  return SCM_BOOL (SCM_KEYWORDP (obj));
+  return scm_from_bool (SCM_KEYWORDP (obj));
 }
 #undef FUNC_NAME
 

@@ -31,7 +31,7 @@
 SCM 
 gh_bool2scm (int x)
 {
-  return SCM_BOOL(x);
+  return scm_from_bool(x);
 }
 SCM 
 gh_int2scm (int x)
@@ -182,7 +182,7 @@ gh_doubles2dvect (const double *d, long n)
 int 
 gh_scm2bool (SCM obj)
 {
-  return (SCM_FALSEP (obj)) ? 0 : 1;
+  return (scm_is_false (obj)) ? 0 : 1;
 }
 unsigned long 
 gh_scm2ulong (SCM obj)

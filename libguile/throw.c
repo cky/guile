@@ -374,7 +374,7 @@ scm_exit_status (SCM args)
       
       if (SCM_INUMP (cqa))
 	return (SCM_INUM (cqa));
-      else if (SCM_FALSEP (cqa))
+      else if (scm_is_false (cqa))
 	return 1;
     }
   return 0;
@@ -395,7 +395,7 @@ handler_message (void *handler_data, SCM tag, SCM args)
       SCM parts   = SCM_CADDR (args);
       SCM rest    = SCM_CDDDR (args);
 
-      if (SCM_BACKTRACE_P && SCM_NFALSEP (stack))
+      if (SCM_BACKTRACE_P && scm_is_true (stack))
 	{
 	  scm_puts ("Backtrace:\n", p);
 	  scm_display_backtrace (stack, p, SCM_UNDEFINED, SCM_UNDEFINED);
@@ -444,7 +444,7 @@ handler_message (void *handler_data, SCM tag, SCM args)
 SCM
 scm_handle_by_message (void *handler_data, SCM tag, SCM args)
 {
-  if (SCM_NFALSEP (scm_eq_p (tag, scm_str2symbol ("quit"))))
+  if (scm_is_true (scm_eq_p (tag, scm_str2symbol ("quit"))))
     {
       exit (scm_exit_status (args));
     }

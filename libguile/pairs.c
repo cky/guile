@@ -74,7 +74,7 @@ SCM_DEFINE (scm_pair_p, "pair?", 1, 0, 0,
 	    "@code{#f}.")
 #define FUNC_NAME s_scm_pair_p
 {
-  return SCM_BOOL (SCM_CONSP (x));
+  return scm_from_bool (SCM_CONSP (x));
 }
 #undef FUNC_NAME
 

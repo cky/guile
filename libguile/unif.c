@@ -263,7 +263,7 @@ SCM_DEFINE (scm_array_p, "array?", 1, 1, 0,
       v = SCM_ARRAY_V (v);
      }
   if (nprot)
-    return SCM_BOOL(nprot);
+    return scm_from_bool(nprot);
   else
     {
       int protp = 0;
@@ -316,7 +316,7 @@ SCM_DEFINE (scm_array_p, "array?", 1, 1, 0,
  	  /* no default */
  	  ;
  	}
-      return SCM_BOOL(protp);
+      return scm_from_bool(protp);
     }
 }
 #undef FUNC_NAME
@@ -1038,7 +1038,7 @@ tail:
       {
 	unsigned long int length = SCM_INUM (scm_uniform_vector_length (v));
 	SCM_ASRTGO (SCM_NULLP (args) && SCM_INUMP (ind), wna);
-	return SCM_BOOL(pos >= 0 && pos < length);
+	return scm_from_bool(pos >= 0 && pos < length);
       }
     }
 }
@@ -1269,7 +1269,7 @@ SCM_DEFINE (scm_array_set_x, "array-set!", 2, 0, 1,
     case scm_tc7_smob:		/* enclosed */
       goto badarg1;
     case scm_tc7_bvect:
-      if (SCM_FALSEP (obj))
+      if (scm_is_false (obj))
 	SCM_BITVEC_CLR(v, pos);
       else if (SCM_EQ_P (obj, SCM_BOOL_T))
 	SCM_BITVEC_SET(v, pos);
@@ -1762,7 +1762,7 @@ SCM_DEFINE (scm_bit_count, "bit-count", 2, 0, 0,
     unsigned long int count = 0;
     unsigned long int i = (SCM_BITVECTOR_LENGTH (bitvector) - 1) / SCM_LONG_BIT;
     unsigned long int w = SCM_UNPACK (SCM_VELTS (bitvector)[i]);
-    if (SCM_FALSEP (b)) {
+    if (scm_is_false (b)) {
       w = ~w;
     };
     w <<= SCM_LONG_BIT - 1 - ((SCM_BITVECTOR_LENGTH (bitvector) - 1) % SCM_LONG_BIT);
@@ -1776,7 +1776,7 @@ SCM_DEFINE (scm_bit_count, "bit-count", 2, 0, 0,
       } else {
 	--i;
 	w = SCM_UNPACK (SCM_VELTS (bitvector)[i]);
-	if (SCM_FALSEP (b)) {
+	if (scm_is_false (b)) {
 	  w = ~w;
 	}
       }
@@ -1813,7 +1813,7 @@ SCM_DEFINE (scm_bit_position, "bit-position", 3, 0, 0,
   lenw = (SCM_BITVECTOR_LENGTH (v) - 1) / SCM_LONG_BIT;   /* watch for part words */
   i = pos / SCM_LONG_BIT;
   w = SCM_UNPACK (SCM_VELTS (v)[i]);
-  if (SCM_FALSEP (item))
+  if (scm_is_false (item))
     w = ~w;
   xbits = (pos % SCM_LONG_BIT);
   pos -= xbits;
@@ -1847,7 +1847,7 @@ SCM_DEFINE (scm_bit_position, "bit-position", 3, 0, 0,
 	break;
       pos += SCM_LONG_BIT;
       w = SCM_UNPACK (SCM_VELTS (v)[i]);
-      if (SCM_FALSEP (item))
+      if (scm_is_false (item))
 	w = ~w;
     }
   return SCM_BOOL_F;
@@ -1894,7 +1894,7 @@ SCM_DEFINE (scm_bit_set_star_x, "bit-set*!", 3, 0, 0,
     badarg2:SCM_WRONG_TYPE_ARG (2, kv);
     case scm_tc7_uvect:
       vlen = SCM_BITVECTOR_LENGTH (v);
-      if (SCM_FALSEP (obj))
+      if (scm_is_false (obj))
 	for (i = SCM_UVECTOR_LENGTH (kv); i;)
 	  {
 	    k = SCM_UNPACK (SCM_VELTS (kv)[--i]);
@@ -1915,7 +1915,7 @@ SCM_DEFINE (scm_bit_set_star_x, "bit-set*!", 3, 0, 0,
       break;
     case scm_tc7_bvect:
       SCM_ASSERT (SCM_BITVECTOR_LENGTH (v) == SCM_BITVECTOR_LENGTH (kv), v, SCM_ARG1, FUNC_NAME);
-      if (SCM_FALSEP (obj))
+      if (scm_is_false (obj))
 	for (k = (SCM_BITVECTOR_LENGTH (v) + SCM_LONG_BIT - 1) / SCM_LONG_BIT; k--;)
 	  SCM_BITVECTOR_BASE (v) [k] &= ~SCM_BITVECTOR_BASE (kv) [k];
       else if (SCM_EQ_P (obj, SCM_BOOL_T))
@@ -1964,7 +1964,7 @@ SCM_DEFINE (scm_bit_count_star, "bit-count*", 3, 0, 0,
         SCM_WRONG_TYPE_ARG (2, kv);
     case scm_tc7_uvect:
       vlen = SCM_BITVECTOR_LENGTH (v);
-      if (SCM_FALSEP (obj))
+      if (scm_is_false (obj))
 	for (i = SCM_UVECTOR_LENGTH (kv); i;)
 	  {
 	    k = SCM_UNPACK (SCM_VELTS (kv)[--i]);
@@ -1989,7 +1989,7 @@ SCM_DEFINE (scm_bit_count_star, "bit-count*", 3, 0, 0,
       SCM_ASSERT (SCM_BITVECTOR_LENGTH (v) == SCM_BITVECTOR_LENGTH (kv), v, SCM_ARG1, FUNC_NAME);
       if (0 == SCM_BITVECTOR_LENGTH (v))
 	return SCM_INUM0;
-      SCM_ASRTGO (SCM_BOOLP (obj), badarg3);
+      SCM_ASRTGO (scm_is_bool (obj), badarg3);
       fObj = SCM_EQ_P (obj, SCM_BOOL_T);
       i = (SCM_BITVECTOR_LENGTH (v) - 1) / SCM_LONG_BIT;
       k = SCM_UNPACK (SCM_VELTS (kv)[i]) & (fObj ? SCM_UNPACK (SCM_VELTS (v)[i]) : ~ SCM_UNPACK (SCM_VELTS (v)[i]));
@@ -2116,9 +2116,9 @@ SCM_DEFINE (scm_array_to_list, "array->list", 1, 0, 0,
 	register unsigned long mask;
 	for (k = (SCM_BITVECTOR_LENGTH (v) - 1) / SCM_LONG_BIT; k > 0; k--)
 	  for (mask = 1UL << (SCM_LONG_BIT - 1); mask; mask >>= 1)
-	    res = scm_cons (SCM_BOOL(((long *) data)[k] & mask), res);
+	    res = scm_cons (scm_from_bool(((long *) data)[k] & mask), res);
 	for (mask = 1L << ((SCM_BITVECTOR_LENGTH (v) % SCM_LONG_BIT) - 1); mask; mask >>= 1)
-	  res = scm_cons (SCM_BOOL(((long *) data)[k] & mask), res);
+	  res = scm_cons (scm_from_bool(((long *) data)[k] & mask), res);
 	return res;
       }
     case scm_tc7_byvect:

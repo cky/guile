@@ -64,19 +64,19 @@ SCM_DEFINE (scm_primitive_property_ref, "primitive-property-ref", 2, 0, 0,
   SCM_VALIDATE_CONS (SCM_ARG1, prop);
 
   h = scm_hashq_get_handle (scm_properties_whash, obj);
-  if (!SCM_FALSEP (h))
+  if (scm_is_true (h))
     {
       SCM assoc = scm_assq (prop, SCM_CDR (h));
-      if (!SCM_FALSEP (assoc))
+      if (scm_is_true (assoc))
 	return SCM_CDR (assoc);
     }
 
-  if (SCM_FALSEP (SCM_CAR (prop)))
+  if (scm_is_false (SCM_CAR (prop)))
     return SCM_BOOL_F;
   else
     {
       SCM val = scm_call_2 (SCM_CAR (prop), prop, obj);
-      if (SCM_FALSEP (h))
+      if (scm_is_false (h))
 	h = scm_hashq_create_handle_x (scm_properties_whash, obj, SCM_EOL);
       SCM_SETCDR (h, scm_acons (prop, val, SCM_CDR (h)));
       return val;
@@ -114,7 +114,7 @@ SCM_DEFINE (scm_primitive_property_del_x, "primitive-property-del!", 2, 0, 0,
   SCM h;
   SCM_VALIDATE_CONS (SCM_ARG1, prop);
   h = scm_hashq_get_handle (scm_properties_whash, obj);
-  if (!SCM_FALSEP (h))
+  if (scm_is_true (h))
     SCM_SETCDR (h, scm_assq_remove_x (SCM_CDR (h), prop));
   return SCM_UNSPECIFIED;
 }

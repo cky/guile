@@ -429,7 +429,7 @@ scm_create_hook (const char *name, int n_args)
     ("'scm_create_hook' is deprecated.  "
      "Use 'scm_make_hook' and 'scm_c_define' instead.");
   {
-    SCM hook = scm_make_hook (SCM_MAKINUM (n_args));
+    SCM hook = scm_make_hook (scm_from_int (n_args));
     scm_c_define (name, hook);
     return scm_permanent_object (hook);
   }
@@ -467,7 +467,7 @@ SCM_DEFINE (scm_sloppy_memv, "sloppy-memv", 2, 0, 0,
 
   for(;  SCM_CONSP (lst);  lst = SCM_CDR(lst))
     {
-      if (! SCM_FALSEP (scm_eqv_p (SCM_CAR (lst), x)))
+      if (! scm_is_false (scm_eqv_p (SCM_CAR (lst), x)))
 	return lst;
     }
   return lst;
@@ -487,7 +487,7 @@ SCM_DEFINE (scm_sloppy_member, "sloppy-member", 2, 0, 0,
 
   for(;  SCM_CONSP (lst);  lst = SCM_CDR(lst))
     {
-      if (! SCM_FALSEP (scm_equal_p (SCM_CAR (lst), x)))
+      if (! scm_is_false (scm_equal_p (SCM_CAR (lst), x)))
 	return lst;
     }
   return lst;
@@ -712,7 +712,7 @@ scm_sym2ovcell (SCM sym, SCM obarray)
 				   "Use hashtables instead.");
 
   answer = scm_sym2ovcell_soft (sym, obarray);
-  if (!SCM_FALSEP (answer))
+  if (scm_is_true (answer))
     return answer;
   SCM_MISC_ERROR ("uninterned symbol: ~S", scm_list_1 (sym));
   return SCM_UNSPECIFIED;		/* not reached */
@@ -751,7 +751,7 @@ scm_intern_obarray_soft (const char *name,size_t len,SCM obarray,unsigned int so
   scm_c_issue_deprecation_warning ("`scm_intern_obarray_soft' is deprecated. "
 				   "Use hashtables instead.");
 
-  if (SCM_FALSEP (obarray))
+  if (scm_is_false (obarray))
     {
       if (softness)
 	return SCM_BOOL_F;
@@ -826,14 +826,14 @@ SCM_DEFINE (scm_string_to_obarray_symbol, "string->obarray-symbol", 2, 1, 0,
   int softness;
 
   SCM_VALIDATE_STRING (2, s);
-  SCM_ASSERT (SCM_BOOLP (o) || SCM_VECTORP (o), o, SCM_ARG1, FUNC_NAME);
+  SCM_ASSERT (scm_is_bool (o) || SCM_VECTORP (o), o, SCM_ARG1, FUNC_NAME);
 
   scm_c_issue_deprecation_warning ("`string->obarray-symbol' is deprecated. "
 				   "Use hashtables instead.");
 
-  softness = (!SCM_UNBNDP (softp) && !SCM_FALSEP(softp));
+  softness = (!SCM_UNBNDP (softp) && scm_is_true(softp));
   /* iron out some screwy calling conventions */
-  if (SCM_FALSEP (o))
+  if (scm_is_false (o))
     {
       /* nothing interesting to do here. */
       return scm_string_to_symbol (s);
@@ -845,7 +845,7 @@ SCM_DEFINE (scm_string_to_obarray_symbol, "string->obarray-symbol", 2, 1, 0,
 				   SCM_STRING_LENGTH (s),
 				   o,
 				   softness);
-  if (SCM_FALSEP (vcell))
+  if (scm_is_false (vcell))
     return vcell;
   answer = SCM_CAR (vcell);
   return answer;
@@ -861,7 +861,7 @@ SCM_DEFINE (scm_intern_symbol, "intern-symbol", 2, 0, 0,
 {
   size_t hval;
   SCM_VALIDATE_SYMBOL (2,s);
-  if (SCM_FALSEP (o))
+  if (scm_is_false (o))
     return SCM_UNSPECIFIED;
 
   scm_c_issue_deprecation_warning ("`intern-symbol' is deprecated. "
@@ -907,7 +907,7 @@ SCM_DEFINE (scm_unintern_symbol, "unintern-symbol", 2, 0, 0,
 				   "Use hashtables instead.");
 
   SCM_VALIDATE_SYMBOL (2,s);
-  if (SCM_FALSEP (o))
+  if (scm_is_false (o))
     return SCM_BOOL_F;
   SCM_VALIDATE_VECTOR (1,o);
   hval = SCM_SYMBOL_HASH (s) % SCM_VECTOR_LENGTH (o);
@@ -924,7 +924,7 @@ SCM_DEFINE (scm_unintern_symbol, "unintern-symbol", 2, 0, 0,
 	if (SCM_EQ_P (SCM_CAR (sym), s))
 	  {
 	    /* Found the symbol to unintern. */
-	    if (SCM_FALSEP (lsym_follow))
+	    if (scm_is_false (lsym_follow))
 	      SCM_VECTOR_SET (o, hval, lsym);
 	    else
 	      SCM_SETCDR (lsym_follow, SCM_CDR(lsym));
@@ -952,7 +952,7 @@ SCM_DEFINE (scm_symbol_binding, "symbol-binding", 2, 0, 0,
 				   "Use hashtables instead.");
 
   SCM_VALIDATE_SYMBOL (2,s);
-  if (SCM_FALSEP (o))
+  if (scm_is_false (o))
     return scm_variable_ref (scm_lookup (s));
   SCM_VALIDATE_VECTOR (1,o);
   vcell = scm_sym2ovcell (s, o);
@@ -973,7 +973,7 @@ SCM_DEFINE (scm_symbol_interned_p, "symbol-interned?", 2, 0, 0,
 				   "Use hashtables instead.");
 
   SCM_VALIDATE_SYMBOL (2,s);
-  if (SCM_FALSEP (o))
+  if (scm_is_false (o))
     {
       SCM var = scm_sym2var (s, SCM_BOOL_F, SCM_BOOL_F);
       if (var != SCM_BOOL_F)
@@ -1005,7 +1005,7 @@ SCM_DEFINE (scm_symbol_bound_p, "symbol-bound?", 2, 0, 0,
 				   "Use hashtables instead.");
 
   SCM_VALIDATE_SYMBOL (2,s);
-  if (SCM_FALSEP (o))
+  if (scm_is_false (o))
     {
       SCM var = scm_sym2var (s, SCM_BOOL_F, SCM_BOOL_F);
       if (SCM_VARIABLEP(var) && !SCM_UNBNDP(SCM_VARIABLE_REF(var)))
@@ -1014,7 +1014,7 @@ SCM_DEFINE (scm_symbol_bound_p, "symbol-bound?", 2, 0, 0,
     }
   SCM_VALIDATE_VECTOR (1,o);
   vcell = scm_sym2ovcell_soft (s, o);
-  return SCM_BOOL (SCM_NIMP (vcell) && !SCM_UNBNDP (SCM_CDR (vcell)));
+  return scm_from_bool (SCM_NIMP (vcell) && !SCM_UNBNDP (SCM_CDR (vcell)));
 }
 #undef FUNC_NAME
 
@@ -1032,7 +1032,7 @@ SCM_DEFINE (scm_symbol_set_x, "symbol-set!", 3, 0, 0,
 				   "Use the module system instead.");
 
   SCM_VALIDATE_SYMBOL (2,s);
-  if (SCM_FALSEP (o))
+  if (scm_is_false (o))
     {
       scm_define (s, v);
       return SCM_UNSPECIFIED;
@@ -1089,7 +1089,7 @@ SCM_DEFINE (scm_gentemp, "gentemp", 0, 2, 0,
 		FUNC_NAME);
   do
     n_digits = scm_iint2str (gentemp_counter++, 10, &name[len]);
-  while (!SCM_FALSEP (scm_intern_obarray_soft (name,
+  while (scm_is_true (scm_intern_obarray_soft (name,
 					       len + n_digits,
 					       obarray,
 					       1)));
@@ -1104,6 +1104,16 @@ SCM_DEFINE (scm_gentemp, "gentemp", 0, 2, 0,
   }
 }
 #undef FUNC_NAME
+
+#if 0
+SCM
+SCM_MAKINUM (scm_t_signed_bits val)
+{
+  scm_c_issue_deprecation_warning
+    ("SCM_MAKINUM is deprecated.  Use scm_from_int or similar instead.");
+  return scm_from_int (val);
+}
+#endif
 
 void
 scm_i_init_deprecated ()

@@ -135,11 +135,14 @@
 
 #define SCM_VALIDATE_NIM(pos, scm) SCM_MAKE_VALIDATE_MSG (pos, scm, NIMP, "non-immediate")
 
-#define SCM_VALIDATE_BOOL(pos, flag) SCM_MAKE_VALIDATE_MSG(pos, flag, BOOLP, "boolean")
+#define SCM_VALIDATE_BOOL(pos, flag) \
+  do { \
+    SCM_ASSERT_TYPE (scm_is_bool (flag), flag, pos, FUNC_NAME, "boolean"); \
+  } while (0)
 
 #define SCM_VALIDATE_BOOL_COPY(pos, flag, cvar) \
   do { \
-    SCM_ASSERT (SCM_BOOLP (flag), flag, pos, FUNC_NAME); \
+    SCM_ASSERT (scm_is_bool (flag), flag, pos, FUNC_NAME); \
     cvar = SCM_EQ_P (flag, SCM_BOOL_T) ? 1 : 0; \
   } while (0)
 
@@ -358,7 +361,7 @@
 
 #define SCM_VALIDATE_THUNK(pos, thunk) \
   do { \
-    SCM_ASSERT (!SCM_FALSEP (scm_thunk_p (thunk)), thunk, pos, FUNC_NAME); \
+    SCM_ASSERT (scm_is_true (scm_thunk_p (thunk)), thunk, pos, FUNC_NAME); \
   } while (0)
 
 #define SCM_VALIDATE_SYMBOL(pos, sym) SCM_MAKE_VALIDATE_MSG (pos, sym, SYMBOLP, "symbol")
@@ -427,7 +430,7 @@
 #define SCM_VALIDATE_ARRAY(pos, v) \
   do { \
     SCM_ASSERT (!SCM_IMP (v) \
-                && !SCM_FALSEP (scm_array_p (v, SCM_UNDEFINED)), \
+                && scm_is_true (scm_array_p (v, SCM_UNDEFINED)), \
                 v, pos, FUNC_NAME); \
   } while (0)
 
@@ -444,7 +447,7 @@
 
 #define SCM_VALIDATE_VTABLE(pos, v) \
   do { \
-    SCM_ASSERT (!SCM_IMP (v) && !SCM_FALSEP (scm_struct_vtable_p (v)), \
+    SCM_ASSERT (!SCM_IMP (v) && scm_is_true (scm_struct_vtable_p (v)), \
                 v, pos, FUNC_NAME); \
   } while (0)
 

@@ -143,7 +143,7 @@ scm_srcprops_to_plist (SCM obj)
     plist = scm_acons (scm_sym_filename, SRCPROPFNAME (obj), plist);
   plist = scm_acons (scm_sym_column, SCM_MAKINUM (SRCPROPCOL (obj)), plist);
   plist = scm_acons (scm_sym_line, SCM_MAKINUM (SRCPROPLINE (obj)), plist);
-  plist = scm_acons (scm_sym_breakpoint, SCM_BOOL (SRCPROPBRK (obj)), plist);
+  plist = scm_acons (scm_sym_breakpoint, scm_from_bool (SRCPROPBRK (obj)), plist);
   return plist;
 }
 
@@ -202,7 +202,7 @@ SCM_DEFINE (scm_source_property, "source-property", 2, 0, 0,
   p = scm_hashq_ref (scm_source_whash, obj, SCM_EOL);
   if (!SRCPROPSP (p))
     goto plist;
-  if      (SCM_EQ_P (scm_sym_breakpoint, key)) p = SCM_BOOL (SRCPROPBRK (p));
+  if      (SCM_EQ_P (scm_sym_breakpoint, key)) p = scm_from_bool (SRCPROPBRK (p));
   else if (SCM_EQ_P (scm_sym_line,       key)) p = SCM_MAKINUM (SRCPROPLINE (p));
   else if (SCM_EQ_P (scm_sym_column,     key)) p = SCM_MAKINUM (SRCPROPCOL (p));
   else if (SCM_EQ_P (scm_sym_filename,   key)) p = SRCPROPFNAME (p);
@@ -243,7 +243,7 @@ SCM_DEFINE (scm_set_source_property_x, "set-source-property!", 3, 0, 0,
     {
       if (SRCPROPSP (p))
 	{
-	  if (SCM_FALSEP (datum))
+	  if (scm_is_false (datum))
 	    CLEARSRCPROPBRK (p);
 	  else
 	    SETSRCPROPBRK (p);
@@ -252,7 +252,7 @@ SCM_DEFINE (scm_set_source_property_x, "set-source-property!", 3, 0, 0,
 	{
 	  SCM sp = scm_make_srcprops (0, 0, SCM_UNDEFINED, SCM_UNDEFINED, p);
 	  SCM_WHASHSET (scm_source_whash, h, sp);
-	  if (SCM_FALSEP (datum))
+	  if (scm_is_false (datum))
 	    CLEARSRCPROPBRK (sp);
 	  else
 	    SETSRCPROPBRK (sp);

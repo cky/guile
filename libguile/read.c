@@ -233,7 +233,7 @@ recsexpr (SCM obj, long line, int column, SCM filename)
     /* If this sexpr is visible in the read:sharp source, we want to
        keep that information, so only record non-constant cons cells
        which haven't previously been read by the reader. */
-    if (SCM_FALSEP (scm_whash_lookup (scm_source_whash, obj)))
+    if (scm_is_false (scm_whash_lookup (scm_source_whash, obj)))
       {
 	if (SCM_COPY_SOURCE_P)
 	  {
@@ -381,7 +381,7 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
 	/* Check for user-defined hash procedure first, to allow
 	   overriding of builtin hash read syntaxes.  */
 	SCM sharp = scm_get_hash_procedure (c);
-	if (!SCM_FALSEP (sharp))
+	if (scm_is_true (sharp))
 	  {
 	    int line = SCM_LINUM (port);
 	    int column = SCM_COL (port) - 2;
@@ -439,7 +439,7 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
 	case '*':
 	  j = scm_read_token (c, tok_buf, port, 0);
 	  p = scm_istr2bve (SCM_STRING_CHARS (*tok_buf) + 1, (long) (j - 1));
-	  if (!SCM_FALSEP (p))
+	  if (scm_is_true (p))
 	    return p;
 	  else
 	    goto unkshrp;
@@ -482,7 +482,7 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
 	  {
 	    SCM sharp = scm_get_hash_procedure (c);
 
-	    if (!SCM_FALSEP (sharp))
+	    if (scm_is_true (sharp))
 	      {
 		int line = SCM_LINUM (port);
 		int column = SCM_COL (port) - 2;
@@ -595,7 +595,7 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
 	goto tok;
 
       p = scm_i_mem2number (SCM_STRING_CHARS (*tok_buf), j, 10);
-      if (!SCM_FALSEP (p))
+      if (scm_is_true (p))
 	return p;
       if (c == '#')
 	{
@@ -858,7 +858,7 @@ SCM_DEFINE (scm_read_hash_extend, "read-hash-extend", 2, 0, 0,
   SCM prev;
 
   SCM_VALIDATE_CHAR (1, chr);
-  SCM_ASSERT (SCM_FALSEP (proc)
+  SCM_ASSERT (scm_is_false (proc)
 	      || SCM_EQ_P (scm_procedure_p (proc), SCM_BOOL_T),
 	      proc, SCM_ARG2, FUNC_NAME);
 
@@ -870,7 +870,7 @@ SCM_DEFINE (scm_read_hash_extend, "read-hash-extend", 2, 0, 0,
       if (SCM_NULLP (this))
 	{
 	  /* not found, so add it to the beginning.  */
-	  if (!SCM_FALSEP (proc))
+	  if (scm_is_true (proc))
 	    {
 	      *scm_read_hash_procedures = 
 		scm_cons (scm_cons (chr, proc), *scm_read_hash_procedures);
@@ -880,10 +880,10 @@ SCM_DEFINE (scm_read_hash_extend, "read-hash-extend", 2, 0, 0,
       if (SCM_EQ_P (chr, SCM_CAAR (this)))
 	{
 	  /* already in the alist.  */
-	  if (SCM_FALSEP (proc))
+	  if (scm_is_false (proc))
 	    {
 	      /* remove it.  */
-	      if (SCM_FALSEP (prev))
+	      if (scm_is_false (prev))
 		{
 		  *scm_read_hash_procedures =
 		    SCM_CDR (*scm_read_hash_procedures);

@@ -388,7 +388,7 @@ SCM_DEFINE (scm_close, "close", 1, 0, 0,
      not an error.  */
   if (rv < 0 && errno != EBADF)
     SCM_SYSERROR;
-  return SCM_BOOL (rv >= 0);
+  return scm_from_bool (rv >= 0);
 }
 #undef FUNC_NAME
 
@@ -785,7 +785,7 @@ SCM_DEFINE (scm_directory_stream_p, "directory-stream?", 1, 0, 0,
 	    "stream as returned by @code{opendir}.")
 #define FUNC_NAME s_scm_directory_stream_p
 {
-  return SCM_BOOL (SCM_DIRP (obj));
+  return scm_from_bool (SCM_DIRP (obj));
 }
 #undef FUNC_NAME
 
@@ -1209,7 +1209,7 @@ SCM_DEFINE (scm_select, "select", 3, 2, 0,
       timeout.tv_usec = 0;
       time_ptr = &timeout;
     }
-  else if (SCM_UNBNDP (secs) || SCM_FALSEP (secs))
+  else if (SCM_UNBNDP (secs) || scm_is_false (secs))
     time_ptr = 0;
   else
     {

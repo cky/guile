@@ -310,7 +310,7 @@ SCM_DEFINE (scm_getpwuid, "getpw", 0, 1, 0,
   struct passwd *entry;
 
   SCM result = scm_c_make_vector (7, SCM_UNSPECIFIED);
-  if (SCM_UNBNDP (user) || SCM_FALSEP (user))
+  if (SCM_UNBNDP (user) || scm_is_false (user))
     {
       SCM_SYSCALL (entry = getpwent ());
       if (! entry)
@@ -357,7 +357,7 @@ SCM_DEFINE (scm_setpwent, "setpw", 0, 1, 0,
 	    "@code{endpwent} procedures are implemented on top of this.")
 #define FUNC_NAME s_scm_setpwent
 {
-  if (SCM_UNBNDP (arg) || SCM_FALSEP (arg))
+  if (SCM_UNBNDP (arg) || scm_is_false (arg))
     endpwent ();
   else
     setpwent ();
@@ -379,7 +379,7 @@ SCM_DEFINE (scm_getgrgid, "getgr", 0, 1, 0,
   struct group *entry;
   SCM result = scm_c_make_vector (4, SCM_UNSPECIFIED);
 
-  if (SCM_UNBNDP (name) || SCM_FALSEP (name))
+  if (SCM_UNBNDP (name) || scm_is_false (name))
     {
       SCM_SYSCALL (entry = getgrent ());
       if (! entry)
@@ -414,7 +414,7 @@ SCM_DEFINE (scm_setgrent, "setgr", 0, 1, 0,
 	    "@code{endgrent} procedures are implemented on top of this.")
 #define FUNC_NAME s_scm_setgrent
 {
-  if (SCM_UNBNDP (arg) || SCM_FALSEP (arg))
+  if (SCM_UNBNDP (arg) || scm_is_false (arg))
     endgrent ();
   else
     setgrent ();
@@ -1220,7 +1220,7 @@ SCM_DEFINE (scm_access, "access?", 2, 0, 0,
   SCM_VALIDATE_STRING (1, path);
   SCM_VALIDATE_INUM (2, how);
   rv = access (SCM_STRING_CHARS (path), SCM_INUM (how));
-  return SCM_NEGATE_BOOL(rv);
+  return scm_from_bool (!rv);
 }
 #undef FUNC_NAME
 

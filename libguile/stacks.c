@@ -205,7 +205,7 @@ do { \
       && SCM_EQ_P (SCM_MEMOIZED_EXP (iframe->source), applybody)) \
     { \
       iframe->source = SCM_BOOL_F; \
-      if (SCM_FALSEP (iframe->proc)) \
+      if (scm_is_false (iframe->proc)) \
 	{ \
 	  --iframe; \
 	  ++n; \
@@ -332,7 +332,7 @@ narrow_stack (SCM stack, long inner, SCM inner_key, long outer, SCM outer_key)
 	  SCM m = s->frames[i].source;
 	  if (SCM_MEMOIZEDP (m)
 	      && !SCM_IMP (SCM_MEMOIZED_ENV (m))
-	      && SCM_FALSEP (scm_system_module_env_p (SCM_MEMOIZED_ENV (m))))
+	      && scm_is_false (scm_system_module_env_p (SCM_MEMOIZED_ENV (m))))
 	    {
 	      /* Back up in order to include any non-source frames */
 	      while (i > 0)
@@ -342,8 +342,8 @@ narrow_stack (SCM stack, long inner, SCM inner_key, long outer, SCM outer_key)
 		    break;
 
 		  m = s->frames[i - 1].proc;
-		  if (!SCM_FALSEP (scm_procedure_p (m))
-		      && !SCM_FALSEP (scm_procedure_property
+		  if (scm_is_true (scm_procedure_p (m))
+		      && scm_is_true (scm_procedure_property
 				      (m, scm_sym_system_procedure)))
 		    break;
 
@@ -384,7 +384,7 @@ SCM_DEFINE (scm_stack_p, "stack?", 1, 0, 0,
 	    "Return @code{#t} if @var{obj} is a calling stack.")
 #define FUNC_NAME s_scm_stack_p
 {
-  return SCM_BOOL(SCM_STACKP (obj));
+  return scm_from_bool(SCM_STACKP (obj));
 }
 #undef FUNC_NAME
 
@@ -577,7 +577,7 @@ SCM_DEFINE (scm_frame_p, "frame?", 1, 0, 0,
 	    "Return @code{#t} if @var{obj} is a stack frame.")
 #define FUNC_NAME s_scm_frame_p
 {
-  return SCM_BOOL(SCM_FRAMEP (obj));
+  return scm_from_bool(SCM_FRAMEP (obj));
 }
 #undef FUNC_NAME
 
@@ -706,7 +706,7 @@ SCM_DEFINE (scm_frame_real_p, "frame-real?", 1, 0, 0,
 #define FUNC_NAME s_scm_frame_real_p
 {
   SCM_VALIDATE_FRAME (1, frame);
-  return SCM_BOOL(SCM_FRAME_REAL_P (frame));
+  return scm_from_bool(SCM_FRAME_REAL_P (frame));
 }
 #undef FUNC_NAME
 
@@ -716,7 +716,7 @@ SCM_DEFINE (scm_frame_procedure_p, "frame-procedure?", 1, 0, 0,
 #define FUNC_NAME s_scm_frame_procedure_p
 {
   SCM_VALIDATE_FRAME (1, frame);
-  return SCM_BOOL(SCM_FRAME_PROC_P (frame));
+  return scm_from_bool(SCM_FRAME_PROC_P (frame));
 }
 #undef FUNC_NAME
 
@@ -726,7 +726,7 @@ SCM_DEFINE (scm_frame_evaluating_args_p, "frame-evaluating-args?", 1, 0, 0,
 #define FUNC_NAME s_scm_frame_evaluating_args_p
 {
   SCM_VALIDATE_FRAME (1, frame);
-  return SCM_BOOL(SCM_FRAME_EVAL_ARGS_P (frame));
+  return scm_from_bool(SCM_FRAME_EVAL_ARGS_P (frame));
 }
 #undef FUNC_NAME
 
@@ -736,7 +736,7 @@ SCM_DEFINE (scm_frame_overflow_p, "frame-overflow?", 1, 0, 0,
 #define FUNC_NAME s_scm_frame_overflow_p
 {
   SCM_VALIDATE_FRAME (1, frame);
-  return SCM_BOOL(SCM_FRAME_OVERFLOW_P (frame));
+  return scm_from_bool(SCM_FRAME_OVERFLOW_P (frame));
 }
 #undef FUNC_NAME
 

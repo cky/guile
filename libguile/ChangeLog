@@ -1,3 +1,27 @@
+2004-07-06  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* tags.h (scm_is_eq): New.
+
+	* deprecated.h, boolean.h (SCM_FALSEP, SCM_NFALSEP, SCM_BOOL,
+	SCM_NEGATE_BOOL, SCM_BOOLP): Deprecated by moving into
+	"deprecated.h".  Replaced all uses with scm_is_false, scm_is_true,
+	scm_from_bool, and scm_is_bool, respectively.
+
+	* boolean.h (scm_is_bool): Fix bug in prototype.
+	(scm_from_bool): The argument is "x" not "f", stupid.
+
+	* boolean.c (scm_is_bool): Fix typo.
+
+	* numbers.h, numbers.c (scm_is_integer, scm_is_signed_integer,
+	scm_is_unsigned_integer, scm_to_signed_integer,
+	scm_to_unsigned_integer, scm_to_schar, scm_to_uchar, scm_to_char,
+	scm_to_short, scm_to_ushort, scm_to_long, scm_to_ulong,
+	scm_to_size_t, scm_to_ssize_t, scm_from_schar, scm_from_uchar,
+	scm_from_char, scm_from_short, scm_from_ushort, scm_from_int,
+	scm_from_uint, scm_from_long, scm_from_ulong, scm_from_size_t,
+	scm_from_ssize_t, scm_is_real, scm_to_double, scm_from_double):
+	New.
+	
 2004-07-05  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* boolean.h, boolean.c (scm_is_true, scm_is_false, scm_from_bool,

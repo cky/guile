@@ -130,7 +130,7 @@ scm_i_procedure_arity (SCM proc)
     default:
       return SCM_BOOL_F;
     }
-  return scm_list_3 (SCM_MAKINUM (a), SCM_MAKINUM (o), SCM_BOOL(r));
+  return scm_list_3 (SCM_MAKINUM (a), SCM_MAKINUM (o), scm_from_bool(r));
 }
 
 static SCM
@@ -138,7 +138,7 @@ scm_stand_in_scm_proc(SCM proc)
 {
   SCM answer;
   answer = scm_assq (proc, scm_stand_in_procs);
-  if (SCM_FALSEP (answer))
+  if (scm_is_false (answer))
     {
       answer = scm_closure (scm_list_2 (SCM_EOL, SCM_BOOL_F), SCM_EOL);
       scm_stand_in_procs = scm_acons (proc, answer, scm_stand_in_procs);
@@ -183,7 +183,7 @@ SCM_DEFINE (scm_procedure_property, "procedure-property", 2, 0, 0,
   if (SCM_EQ_P (k, scm_sym_arity))
     {
       SCM arity;
-      SCM_ASSERT (SCM_NFALSEP (arity = scm_i_procedure_arity (p)),
+      SCM_ASSERT (scm_is_true (arity = scm_i_procedure_arity (p)),
 		  p, SCM_ARG1, FUNC_NAME);
       return arity;
     }

@@ -93,11 +93,11 @@ SCM_DEFINE (scm_primitive_load, "primitive-load", 1, 0, 0,
 {
   SCM hook = *scm_loc_load_hook;
   SCM_VALIDATE_STRING (1, filename);
-  if (!SCM_FALSEP (hook) && !SCM_EQ_P (scm_procedure_p (hook), SCM_BOOL_T))
+  if (scm_is_true (hook) && !SCM_EQ_P (scm_procedure_p (hook), SCM_BOOL_T))
     SCM_MISC_ERROR ("value of %load-hook is neither a procedure nor #f",
 		    SCM_EOL);
 
-  if (! SCM_FALSEP (hook))
+  if (! scm_is_false (hook))
     scm_call_1 (hook, filename);
 
   { /* scope */
@@ -211,12 +211,12 @@ SCM_DEFINE (scm_parse_path, "parse-path", 1, 1, 0,
 	    "is returned.")
 #define FUNC_NAME s_scm_parse_path
 {
-  SCM_ASSERT (SCM_FALSEP (path) || (SCM_STRINGP (path)),
+  SCM_ASSERT (scm_is_false (path) || (SCM_STRINGP (path)),
 	      path,
 	      SCM_ARG1, FUNC_NAME);
   if (SCM_UNBNDP (tail))
     tail = SCM_EOL;
-  return (SCM_FALSEP (path)
+  return (scm_is_false (path)
 	  ? tail
 	  : scm_internal_parse_path (SCM_STRING_CHARS (path), tail));
 }
@@ -451,7 +451,7 @@ SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 1, 0, 0,
 
   full_filename = scm_sys_search_load_path (filename);
 
-  if (SCM_FALSEP (full_filename))
+  if (scm_is_false (full_filename))
     {
       int absolute = (SCM_STRING_LENGTH (filename) >= 1
 #ifdef __MINGW32__

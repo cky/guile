@@ -68,7 +68,7 @@ SCM_DEFINE (scm_system, "system", 0, 1, 0,
   if (SCM_UNBNDP (cmd))
     {
       rv = system (NULL);
-      return SCM_BOOL(rv);
+      return scm_from_bool(rv);
     }  
   SCM_VALIDATE_STRING (1, cmd);
   errno = 0;

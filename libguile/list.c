@@ -143,7 +143,7 @@ SCM_DEFINE (scm_null_p, "null?", 1, 0, 0,
 	    "Return @code{#t} iff @var{x} is the empty list, else @code{#f}.")
 #define FUNC_NAME s_scm_null_p
 {
-  return SCM_BOOL (SCM_NULL_OR_NIL_P (x));
+  return scm_from_bool (SCM_NULL_OR_NIL_P (x));
 }
 #undef FUNC_NAME
 
@@ -153,7 +153,7 @@ SCM_DEFINE (scm_list_p, "list?", 1, 0, 0,
 	    "Return @code{#t} iff @var{x} is a proper list, else @code{#f}.")
 #define FUNC_NAME s_scm_list_p
 {
-  return SCM_BOOL (scm_ilength (x) >= 0);
+  return scm_from_bool (scm_ilength (x) >= 0);
 }
 #undef FUNC_NAME
 
@@ -607,7 +607,7 @@ SCM_DEFINE (scm_memv, "memv", 2, 0, 0,
   SCM_VALIDATE_LIST (2, lst);
   for (; !SCM_NULL_OR_NIL_P (lst); lst = SCM_CDR (lst))
     {
-      if (! SCM_FALSEP (scm_eqv_p (SCM_CAR (lst), x)))
+      if (! scm_is_false (scm_eqv_p (SCM_CAR (lst), x)))
 	return lst;
     }
   return SCM_BOOL_F;
@@ -628,7 +628,7 @@ SCM_DEFINE (scm_member, "member", 2, 0, 0,
   SCM_VALIDATE_LIST (2, lst);
   for (; !SCM_NULL_OR_NIL_P (lst); lst = SCM_CDR (lst))
     {
-      if (! SCM_FALSEP (scm_equal_p (SCM_CAR (lst), x)))
+      if (! scm_is_false (scm_equal_p (SCM_CAR (lst), x)))
 	return lst;
     }
   return SCM_BOOL_F;
@@ -681,7 +681,7 @@ SCM_DEFINE (scm_delv_x, "delv!", 2, 0, 0,
        SCM_CONSP (walk);
        walk = SCM_CDR (walk))
     {
-      if (! SCM_FALSEP (scm_eqv_p (SCM_CAR (walk), item)))
+      if (! scm_is_false (scm_eqv_p (SCM_CAR (walk), item)))
 	*prev = SCM_CDR (walk);
       else
 	prev = SCM_CDRLOC (walk);
@@ -706,7 +706,7 @@ SCM_DEFINE (scm_delete_x, "delete!", 2, 0, 0,
        SCM_CONSP (walk);
        walk = SCM_CDR (walk))
     {
-      if (! SCM_FALSEP (scm_equal_p (SCM_CAR (walk), item)))
+      if (! scm_is_false (scm_equal_p (SCM_CAR (walk), item)))
 	*prev = SCM_CDR (walk);
       else
 	prev = SCM_CDRLOC (walk);
@@ -802,7 +802,7 @@ SCM_DEFINE (scm_delv1_x, "delv1!", 2, 0, 0,
        SCM_CONSP (walk);
        walk = SCM_CDR (walk))
     {
-      if (! SCM_FALSEP (scm_eqv_p (SCM_CAR (walk), item)))
+      if (! scm_is_false (scm_eqv_p (SCM_CAR (walk), item)))
 	{
 	  *prev = SCM_CDR (walk);
 	  break;
@@ -830,7 +830,7 @@ SCM_DEFINE (scm_delete1_x, "delete1!", 2, 0, 0,
        SCM_CONSP (walk);
        walk = SCM_CDR (walk))
     {
-      if (! SCM_FALSEP (scm_equal_p (SCM_CAR (walk), item)))
+      if (! scm_is_false (scm_equal_p (SCM_CAR (walk), item)))
 	{
 	  *prev = SCM_CDR (walk);
 	  break;
@@ -866,7 +866,7 @@ SCM_DEFINE (scm_filter, "filter", 2, 0, 0,
        SCM_CONSP (walk);
        walk = SCM_CDR (walk))
     {
-      if (!SCM_FALSEP (call (pred, SCM_CAR (walk))))
+      if (scm_is_true (call (pred, SCM_CAR (walk))))
 	{
 	  *prev = scm_cons (SCM_CAR (walk), SCM_EOL);
 	  prev = SCM_CDRLOC (*prev);
@@ -892,7 +892,7 @@ SCM_DEFINE (scm_filter_x, "filter!", 2, 0, 0,
        SCM_CONSP (walk);
        walk = SCM_CDR (walk))
     {
-      if (!SCM_FALSEP (call (pred, SCM_CAR (walk))))
+      if (scm_is_true (call (pred, SCM_CAR (walk))))
 	prev = SCM_CDRLOC (walk);
       else
 	*prev = SCM_CDR (walk);
