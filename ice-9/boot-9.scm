@@ -1828,7 +1828,7 @@
 	       (purify-module! module)
 	       (loop (cdr kws) reversed-interfaces))
 	      ((export)
-	       (if (not (and (pair? (cdr kws)) (pair? (cddr kws))))
+	       (if (not (pair? (cdr kws)))
 		   (error "unrecognized defmodule argument" kws))
 	       (module-export! module (cadr kws))
 	       (loop (cddr kws) reversed-interfaces))
