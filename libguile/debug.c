@@ -160,8 +160,6 @@ scm_memoized_p (obj)
   return SCM_NIMP (obj) && SCM_MEMOIZEDP (obj) ? SCM_BOOL_T : SCM_BOOL_F;
 }
 
-SCM_PROC (s_make_memoized, "make-memoized", 2, 0, 0, scm_make_memoized);
-
 SCM
 scm_make_memoized (exp, env)
      SCM exp;
@@ -290,10 +288,10 @@ scm_procedure_environment (proc)
 
 
 /* Eval in a local environment.  We would like to have the ability to
- * evaluate in a specified local environment, but due to the memoization
- * this isn't normally possible.  We solve it by copying the code before
- * evaluating.  Probably the best solution would be to have eval.c generate
- * yet another evaluator.  They are not very big actually.
+ * evaluate in a specified local environment, but due to the
+ * memoization this isn't normally possible.  We solve it by copying
+ * the code before evaluating.  One solution would be to have eval.c
+ * generate yet another evaluator.  They are not very big actually.
  */
 SCM_PROC (s_local_eval, "local-eval", 1, 1, 0, scm_local_eval);
 
@@ -317,23 +315,22 @@ scm_m_start_stack (exp, env)
      SCM env;
 {
   SCM answer;
-  scm_debug_frame *oframe = scm_last_debug_frame;
   scm_debug_frame vframe;
   exp = SCM_CDR (exp);
   SCM_ASSERT (SCM_NIMP (exp)
-	      && SCM_CONSP (exp)
+	      && SCM_ECONSP (exp)
 	      && SCM_NIMP (SCM_CDR (exp))
-	      && SCM_CONSP (SCM_CDR (exp))
+	      && SCM_ECONSP (SCM_CDR (exp))
 	      && SCM_NULLP (SCM_CDDR (exp)),
 	      exp,
 	      SCM_WNA,
 	      s_start_stack);
-  vframe.prev = 0;
+  vframe.prev = scm_last_debug_frame;
   vframe.status = SCM_VOIDFRAME;
   vframe.vect[0].id = scm_eval_car (exp, env);
   scm_last_debug_frame = &vframe;
   answer = scm_eval_car (SCM_CDR (exp), env);
-  scm_last_debug_frame = oframe;
+  scm_last_debug_frame = vframe.prev;
   return answer;
 }
 
@@ -382,6 +379,19 @@ scm_make_debugobj (frame)
   SCM_SET_DEBUGOBJ_FRAME (z, (SCM) frame);
   SCM_ALLOW_INTS;
   return z;
+}
+
+
+
+SCM_PROC (s_debug_hang, "debug-hang", 0, 1, 0, scm_debug_hang);
+
+SCM
+scm_debug_hang (obj)
+     SCM obj;
+{
+  int go = 0;
+  while (!go) ;
+  return SCM_UNSPECIFIED;
 }
 
 
