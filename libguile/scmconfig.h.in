@@ -398,6 +398,9 @@
 /* Define if you have the nsl library (-lnsl).  */
 #undef HAVE_LIBNSL
 
+/* Define if you have the readline library (-lreadline).  */
+#undef HAVE_LIBREADLINE
+
 /* Define if you have the rx library (-lrx).  */
 #undef HAVE_LIBRX
 

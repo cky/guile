@@ -17,16 +17,16 @@ guile_LDADD = libguile.la ${THREAD_LIBS}
 
 libguile_la_SOURCES = \
     alist.c appinit.c arbiters.c async.c boolean.c chars.c \
-    continuations.c dynl.c dynwind.c eq.c error.c eval.c \
-    feature.c filesys.c fports.c gc.c gdbint.c genio.c gh_data.c gh_eval.c \
-    gh_funcs.c gh_init.c gh_io.c gh_list.c gh_predicates.c gsubr.c hash.c \
-    hashtab.c init.c ioext.c kw.c list.c load.c mallocs.c markers.c \
-    net_db.c numbers.c objects.c objprop.c options.c pairs.c \
-    ports.c posix.c print.c procprop.c procs.c ramap.c read.c root.c \
-    scmsigs.c script.c simpos.c smob.c socket.c stackchk.c stime.c \
-    strings.c strop.c strorder.c strports.c struct.c symbols.c tag.c \
-    throw.c unif.c variable.c vectors.c version.c vports.c weaks.c \
-    fluids.c
+    continuations.c dynl.c dynwind.c eq.c error.c eval.c feature.c \
+    filesys.c fports.c gc.c gdbint.c genio.c gh_data.c gh_eval.c \
+    gh_funcs.c gh_init.c gh_io.c gh_list.c gh_predicates.c gsubr.c \
+    hash.c hashtab.c init.c ioext.c kw.c list.c load.c mallocs.c \
+    markers.c net_db.c numbers.c objects.c objprop.c options.c pairs.c \
+    ports.c posix.c print.c procprop.c procs.c ramap.c read.c \
+    readline.c root.c scmsigs.c script.c simpos.c smob.c socket.c \
+    stackchk.c stime.c strings.c strop.c strorder.c strports.c \
+    struct.c symbols.c tag.c throw.c unif.c variable.c vectors.c \
+    version.c vports.c weaks.c fluids.c
 
 EXTRA_libguile_la_SOURCES = _scm.h \
     backtrace.c stacks.c debug.c srcprop.c \
