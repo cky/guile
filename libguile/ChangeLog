@@ -6,6 +6,11 @@
 	guaranteed if multiple threads compete to unlock.
 	Update docstrings per doc/ref/api-scheduling.texi.
 
+	* filesys.c (scm_copy_file): Use fstat on the input fd rather than
+	stat on the filename, to be certain a file rename can't mean we get
+	info on one filesystem object but open another.  This fstat usage is
+	similar to Emacs copy-file.
+	
 	* posix.c (scm_setgroups): Enhance docstring, per doc/ref/posix.texi.
 
 	* simpos.c (scm_system_star): Change scm_from_long to scm_from_int on
