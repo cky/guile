@@ -853,15 +853,6 @@
 				     (map string->symbol fields))))
 	 
 
-(read-hash-extend #\/ 
-		  (lambda (c port)
-		    (let ((look (peek-char port)))
-		      (if (or (eof-object? look)
-			      (and (char? look)
-				   (or (char-whitespace? look)
-				       (string-index ")" look))))
-			  '()
-			  (parse-path-symbol (read port))))))
 (read-hash-extend #\' (lambda (c port)
 			(read port)))
 (read-hash-extend #\. (lambda (c port)
@@ -881,6 +872,18 @@
 			  (read:array c port))))
 	(for-each (lambda (char) (read-hash-extend char array-proc))
 		  '(#\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9)))))
+
+;; pushed to the beginning of the alist since it's used more than the
+;; others at present.
+(read-hash-extend #\/ 
+		  (lambda (c port)
+		    (let ((look (peek-char port)))
+		      (if (or (eof-object? look)
+			      (and (char? look)
+				   (or (char-whitespace? look)
+				       (string-index ")" look))))
+			  '()
+			  (parse-path-symbol (read port))))))
 
 ;(define (read-sharp c port)
 ;  (define (barf)
