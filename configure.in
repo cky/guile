@@ -788,7 +788,7 @@ SCM_I_GSC_STACK_GROWS_UP=0
 AC_TRY_RUN(aux (l) unsigned long l;
 	     { int x; exit (l >= ((unsigned long)&x)); }
 	   main () { int q; aux((unsigned long)&q); },
-           SCM_I_GSC_STACK_GROWS_UP=1
+           [SCM_I_GSC_STACK_GROWS_UP=1],
 	   [],
            [AC_MSG_WARN(Guessing that stack grows down -- see scmconfig.h)])
 
