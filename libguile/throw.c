@@ -103,7 +103,7 @@ printjb (exp, port, pstate)
 }
 
 static scm_smobfuns jbsmob = {
-  scm_mark0,
+  0,
 #ifdef DEBUG_EXTENSIONS
   freejb,
 #else
@@ -280,7 +280,7 @@ print_lazy_catch (SCM closure, SCM port, scm_print_state *pstate)
 }
 
 static scm_smobfuns lazy_catch_funs = {
-  scm_mark0, scm_free0, print_lazy_catch, 0
+  0, scm_free0, print_lazy_catch, 0
 };
 
 

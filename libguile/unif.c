@@ -2532,9 +2532,6 @@ static SCM
 markra (ptr)
      SCM ptr;
 {
-  if SCM_GC8MARKP
-    (ptr) return SCM_BOOL_F;
-  SCM_SETGC8MARK (ptr);
   return SCM_ARRAY_V (ptr);
 }
 

@@ -819,31 +819,41 @@ gc_mark_nimp:
 	goto def;
       if (SCM_GC8MARKP (ptr))
 	break;
+      SCM_SETGC8MARK (ptr);
       if (SCM_PTAB_ENTRY(ptr))
 	scm_gc_mark (SCM_PTAB_ENTRY(ptr)->file_name);
-      ptr = (scm_ptobs[i].mark) (ptr);
-      goto gc_mark_loop;
+      if (scm_ptobs[i].mark)
+	{
+	  ptr = (scm_ptobs[i].mark) (ptr);
+	  goto gc_mark_loop;
+	}
+      else
+	return;
       break;
     case scm_tc7_smob:
       if (SCM_GC8MARKP (ptr))
 	break;
-      switch SCM_TYP16 (ptr)
+      SCM_SETGC8MARK (ptr);
+      switch SCM_GCTYP16 (ptr)
 	{ /* should be faster than going through scm_smobs */
 	case scm_tc_free_cell:
 	  /* printf("found free_cell %X ", ptr); fflush(stdout); */
-	  SCM_SETGC8MARK (ptr);
 	  SCM_SETCDR (ptr, SCM_EOL);
 	  break;
 	case scm_tcs_bignums:
 	case scm_tc16_flo:
-	  SCM_SETGC8MARK (ptr);
 	  break;
 	default:
 	  i = SCM_SMOBNUM (ptr);
 	  if (!(i < scm_numsmob))
 	    goto def;
-	  ptr = (scm_smobs[i].mark) (ptr);
-	  goto gc_mark_loop;
+	  if (scm_smobs[i].mark)
+	    {
+	      ptr = (scm_smobs[i].mark) (ptr);
+	      goto gc_mark_loop;
+	    }
+	  else
+	    return;
 	}
       break;
     default:

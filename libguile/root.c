@@ -77,7 +77,7 @@ mark_root (root)
      SCM root;
 {
   scm_root_state *s = SCM_ROOT_STATE (root);
-  SCM_SETGC8MARK (root);
+
   scm_gc_mark (s->rootcont);
   scm_gc_mark (s->dynwinds);
   scm_gc_mark (s->continuation_stack);

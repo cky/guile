@@ -112,7 +112,7 @@ scm_print_regex_t (obj, port, pstate)
 
 
 static scm_smobfuns regex_t_smob =
-{ scm_mark0, scm_free_regex_t, scm_print_regex_t, 0 };
+{ 0, scm_free_regex_t, scm_print_regex_t, 0 };
 
 
 SCM_SYMBOL (scm_regexp_error_key, "regular-expression-syntax");

@@ -92,9 +92,6 @@ static SCM
 scm_markvar (ptr)
      SCM ptr;
 {
-  if (SCM_GC8MARKP (ptr))
-    return SCM_BOOL_F;
-  SCM_SETGC8MARK (ptr);
   return SCM_CDR (ptr);
 }
 

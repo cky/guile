@@ -832,7 +832,7 @@ scm_dir_free (p)
   return 0;
 }
 
-static scm_smobfuns dir_smob = {scm_mark0, scm_dir_free, scm_dir_print, 0};
+static scm_smobfuns dir_smob = {0, scm_dir_free, scm_dir_print, 0};
 
 
 /* {Navigating Directories}

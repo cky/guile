@@ -66,7 +66,7 @@ prinmalloc (exp, port, pstate)
 
 
 int scm_tc16_malloc;
-static scm_smobfuns mallocsmob = {scm_mark0, fmalloc, prinmalloc, 0};
+static scm_smobfuns mallocsmob = {0, fmalloc, prinmalloc, 0};
 
 
 

@@ -107,7 +107,7 @@ print_fluid (exp, port, pstate)
 }
 
 static scm_smobfuns fluid_smob = {
-    scm_mark0,
+    0,
     scm_free0,
     print_fluid
 };

@@ -81,10 +81,7 @@ scm_markstream (ptr)
      SCM ptr;
 {
   int openp;
-  if (SCM_GC8MARKP (ptr))
-    return SCM_BOOL_F;
   openp = SCM_CAR (ptr) & SCM_OPN;
-  SCM_SETGC8MARK (ptr);
   if (openp)
     return SCM_STREAM  (ptr);
   else
@@ -895,7 +892,7 @@ noop0 (SCM stream)
 
 static struct scm_ptobfuns  void_port_ptob =
 {
-  scm_mark0, 
+  0, 
   noop0,
   print_void_port,
   0,				/* equal? */

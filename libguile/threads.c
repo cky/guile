@@ -95,7 +95,7 @@ print_thread (exp, port, pstate)
 
 static scm_smobfuns thread_smob =
 {
-  scm_mark0,
+  0,
   scm_threads_free_thread,
   print_thread,
   0
@@ -115,7 +115,7 @@ print_mutex (exp, port, pstate)
 
 static scm_smobfuns mutex_smob =
 {
-  scm_mark0,
+  0,
   scm_threads_free_mutex,
   print_mutex,
   0
@@ -135,7 +135,7 @@ print_condvar (exp, port, pstate)
 
 static scm_smobfuns condvar_smob =
 {
-  scm_mark0,
+  0,
   scm_threads_free_condvar,
   print_condvar,
   0

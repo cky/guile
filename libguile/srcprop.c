@@ -86,7 +86,6 @@ static SCM
 marksrcprops (obj)
      SCM obj;
 {
-  SCM_SETGC8MARK (obj);
   scm_gc_mark (SRCPROPFNAME (obj));
   scm_gc_mark (SRCPROPCOPY (obj));
   return SRCPROPPLIST (obj);

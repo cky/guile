@@ -458,7 +458,7 @@ local_pclose (fp)
 
 scm_ptobfuns scm_fptob =
 {
-  scm_mark0,
+  0,
   (int (*) SCM_P ((SCM))) local_fclose,
   prinfport,
   0,
@@ -474,7 +474,7 @@ scm_ptobfuns scm_fptob =
 /* {Pipe ports} */
 scm_ptobfuns scm_pipob =
 {
-  scm_mark0,
+  0,
   (int (*) SCM_P ((SCM))) local_pclose,  
   print_pipe_port,
   0,

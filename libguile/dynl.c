@@ -302,7 +302,6 @@ mark_dynl_obj (ptr)
      SCM ptr;
 {
     struct dynl_obj *d = (struct dynl_obj *)SCM_CDR (ptr);
-    SCM_SETGC8MARK (ptr);
     return d->filename;
 }
 

@@ -119,7 +119,7 @@ printguards (SCM exp, SCM port, scm_print_state *pstate)
 }
 
 static scm_smobfuns guardsmob = {
-  scm_mark0,
+  0,
   freeguards,
   printguards,
   0

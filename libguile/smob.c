@@ -89,7 +89,7 @@ scm_newsmob (smob)
 
 static scm_smobfuns freecell =
 {
-  scm_mark0,
+  0,
   scm_free0,
   0,
   0
@@ -97,7 +97,7 @@ static scm_smobfuns freecell =
 
 static scm_smobfuns flob =
 {
-  scm_mark0,
+  0,
   /*flofree*/ 0,
   scm_floprint,
   scm_floequal
@@ -105,7 +105,7 @@ static scm_smobfuns flob =
 
 static scm_smobfuns bigob =
 {
-  scm_mark0,
+  0,
   /*bigfree*/ 0,
   scm_bigprint,
   scm_bigequal

@@ -562,7 +562,7 @@ prindebugobj (obj, port, pstate)
 }
 
 static scm_smobfuns debugobjsmob =
-{scm_mark0, scm_free0, prindebugobj, 0};
+{0, scm_free0, prindebugobj, 0};
 
 SCM_PROC (s_debug_object_p, "debug-object?", 1, 0, 0, scm_debug_object_p);
 

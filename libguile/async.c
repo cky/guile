@@ -285,9 +285,6 @@ mark_async (obj)
      SCM obj;
 {
   struct scm_async * it;
-  if (SCM_GC8MARKP (obj))
-    return SCM_BOOL_F;
-  SCM_SETGC8MARK (obj);
   it = SCM_ASYNC (obj);
   return it->thunk;
 }

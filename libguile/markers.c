@@ -50,11 +50,20 @@
  */
 
 
+/* This function is vestigial.  It used to be the mark function's
+   responsibility to set the mark bit on the smob or port, but now the
+   generic marking routine in gc.c takes care of that, and a zero
+   pointer for a mark function means "don't bother".  So you never
+   need scm_mark0.
+
+   However, we leave it here because it's harmless to call it, and
+   people out there have smob code that uses it, and there's no reason
+   to make their links fail.  */
+
 SCM 
 scm_mark0 (ptr)
      SCM ptr;
 {
-  SCM_SETGC8MARK (ptr);
   return SCM_BOOL_F;
 }
 
@@ -64,9 +73,6 @@ SCM
 scm_markcdr (ptr)
      SCM ptr;
 {
-  if (SCM_GC8MARKP (ptr))
-    return SCM_BOOL_F;
-  SCM_SETGC8MARK (ptr);
   return SCM_CDR (ptr);
 }
 
