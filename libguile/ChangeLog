@@ -1,3 +1,73 @@
+2004-10-27  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	First cut at integrating uniform vectors from srfi-4 with the rest
+	of Guile.  This change replaces scm_tc7_byvect with a s8 uniform
+	vector.  The plan is to gradually replace one type after the other
+	until none is left and then to consider general cleanups and
+	optimizations.
+	
+	* srfi-4.h, srfi-4.i.c (scm_u8vector_elements, etc): New.
+
+	* srfi-4.h, srfi-4.c (scm_uniform_vector_p,
+	scm_uniform_vector_ref, scm_uniform_vector_set_x,
+	scm_uniform_vector_to_list, scm_is_uniform_vector,
+	scm_c_uniform_vector_lengths, scm_c_uniform_vector_size,
+	scm_uniform_vector_elements, scm_uniform_vector_element_size,
+	scm_uniform_vector_release): New.
+	(scm_i_uniform_vector_prototype, scm_i_uniform_vector_tag): New.
+	(scm_uniform_element_size, scm_uniform_vector_length): Moved here
+	from unif.h, unif.c and extended to handle both the old and new
+	uniform vectors.
+
+	* tags.h (scm_tc7_byvect): Commented out.
+
+	* unif.h, unif.c (scm_uniform_vector_ref, scm_array_ref): Renamed
+	the former to the latter.
+	(scm_uniform_vector_length, scm_uniform_element_size): Moved to
+	srfi-4.h, srfi-4.c.
+	(scm_make_uve): Call scm_make_s8vector for #\nul prototype.
+	(scm_array_p, scm_array_rank, scm_array_dimensions,
+	scm_transpose_array, scm_enclose_array, scm_array_ref, scm_cvref,
+	scm_array_set_x, scm_array_contents, scm_uniform_array_read_x,
+	scm_array_to_list, scm_array_prototype): Handle srfi-4 uniform
+	vectors.  Removed code for scm_tc7_byvect.
+	(scm_dimensions_to_uniform_array): Fill array with 0 when
+	prototype is #\nul.
+	(scm_i_print_array_dimension, scm_i_legacy_tag,
+	scm_i_print_array): New.
+	(scm_raprin1): Call scm_i_print_array for arrays.  Removed code
+	for scm_tc7_byvect.
+
+	* ramap.c (scm_ra_matchp, scm_array_fill_int, racp,
+	scm_array_index_map_x, raeql_1, scm_array_equal_p): Handle srfi-4
+	uniform vectors.  Removed code for scm_tc7_byvect
+
+	* print.c (iprin1): Removed code for scm_tc7_byvect.
+	* objects.c (scm_class_of): Likewise.
+	* gc-mark.c (scm_gc_mark_dependencies): Likewise.
+	* gc-card.c (scm_i_sweep_card): Likewise.
+	* evalext.c (scm_self_evaluating_p): Likewise.
+	* eq.c (scm_equal_p): Likewise.
+
+	* gh_data.c (gh_chars2byvect): Reimplemented with
+	scm_make_s8vector.
+	(gh_scm2chars): Handle s8vectors, removed code for scm_tc7_byvect.
+
+	* srfi-4.c (take_uvec): New.
+	(alloc_uvec): Use it.
+	* srfi-4.h, srfi-4.i.c (scm_take_u8vector, etc): New.
+
+	* random.c (vector_scale, vector_scale_x): Renamed former to the
+	latter, since it modifies its argument.
+	(vector_scale_x, vector_sum_squares, scm_random_normal_vector_x):
+	Do not use scm_universal_vector_length for non-uniform vectors.
+	Use scm_f64vector_elements to access innards of uniform vectors.
+
+	* convert.i.c: Convert srfi-4 style uniform vectors when
+	requested.
+	* convert.c (scm_c_scm2chars, scm_c_chars2scm,
+	scm_c_chars2byvect): Use a s8vector instead of a scm_tc7_byvect.
+	
 2004-10-26  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* numbers.h, numbers.c (scm_i_print_double): New.
