@@ -1,3 +1,8 @@
+1999-09-15  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* tests/c-api.test: New file.  Add test to check that all source
+	files which use SEEK_SET, SEEK_CUR, and SEEK_END include unistd.h.
+
 1999-09-14  Gary Houston  <ghouston@freewire.co.uk>
 
 	* tests/ports.test: test non-blocking I/O.
