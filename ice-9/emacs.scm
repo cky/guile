@@ -248,7 +248,7 @@
 
 (define (emacs-symdoc symbol)
   (if (or (not (module-bound? (current-module) symbol))
-	  (not (procedure? (eval symbol) (interaction-environment))))
+	  (not (procedure? (eval symbol (interaction-environment)))))
       'nil
       (procedure-documentation (eval symbol (interaction-environment)))))
 
