@@ -46,7 +46,7 @@ by the Free Software Foundation.
 @sp 10
 @comment The title is printed in a large font.
 @title Data Representation in Guile
-@subtitle $Id: data-rep.texi,v 1.1 1998-10-07 07:37:16 jimb Exp $
+@subtitle $Id: data-rep.texi,v 1.2 1998-10-15 21:48:12 jimb Exp $
 @subtitle For use with Guile @value{VERSION}
 @author Jim Blandy
 @author Free Software Foundation
@@ -1090,11 +1090,16 @@ says it comes from ``small object'', referring to the fact that only the
 @sc{cdr} and part of the @sc{car} of a smob's cell are available for
 use.}  To define a new smob type, the programmer provides Guile with
 some essential information about the type --- how to print it, how to
-garbage collect it, @i{et cetera} --- and Guile returns a fresh type tag for
+garbage collect it, and so on --- and Guile returns a fresh type tag for
 use in the @sc{car} of new cells.  The programmer can then use
-@code{scm_make_gsubr} to publish a set of C functions to the Scheme
-world that create and operate on these objects.
+@code{scm_make_gsubr} to make a set of C functions that create and
+operate on these objects visible to Scheme code.
 
+(You can find a complete version of the example code used in this
+section in the Guile distribution, in @file{doc/example-smob}.  That
+directory includes a makefile and a suitable @code{main} function, so
+you can build a complete interactive Guile shell, extended with the
+datatypes described here.)
 
 @menu
 * Describing a New Type::       
@@ -1167,11 +1172,11 @@ representing eight-bit grayscale images:
 @example
 #include <libguile.h>
 
+long image_tag;
+
 scm_smobfuns image_funs = @{
   mark_image, free_image, print_image, 0
 @};
-
-long image_tag;
 
 void
 init_image_type ()
@@ -1251,12 +1256,21 @@ struct image @{
 @};
 
 SCM
-create_image (SCM name, int width, int height)
+make_image (SCM name, SCM s_width, SCM s_height)
 @{
   struct image *image;
   SCM image_smob;
+  int width, height;
 
-  image = (struct image *) scm_must_malloc (sizeof (*image), "image");
+  SCM_ASSERT (SCM_NIMP (name) && SCM_STRINGP (name), name,
+              SCM_ARG1, "make-image");
+  SCM_ASSERT (SCM_INUMP (s_width),  s_width,  SCM_ARG2, "make-image");
+  SCM_ASSERT (SCM_INUMP (s_height), s_height, SCM_ARG3, "make-image");
+
+  width = SCM_INUM (s_width);
+  height = SCM_INUM (s_height);
+  
+  image = (struct image *) scm_must_malloc (sizeof (struct image), "image");
   image->width = width;
   image->height = height;
   image->pixels = scm_must_malloc (width * height, "image pixels");
@@ -1264,8 +1278,8 @@ create_image (SCM name, int width, int height)
   image->update_func = SCM_BOOL_F;
 
   SCM_NEWCELL (image_smob);
-  SCM_SETCAR (image_smob, image_tag);
   SCM_SETCDR (image_smob, image);
+  SCM_SETCAR (image_smob, image_tag);
 
   return image_smob;
 @}
@@ -1284,8 +1298,9 @@ non-immediate, whose @sc{car} is the type tag returned by
 
 For example, here is a simple function that operates on an image smob,
 and checks the type of its argument.  We also present an expanded
-version of the @code{init_image_type} function, to make clear_image
-available to the Scheme level.
+version of the @code{init_image_type} function, to make
+@code{clear_image} and the image constructor function @code{make_image}
+visible to Scheme code.
 @example
 SCM
 clear_image (SCM image_smob)
@@ -1313,6 +1328,8 @@ void
 init_image_type ()
 @{
   image_tag = scm_newsmob (&image_funs);
+
+  scm_make_gsubr ("make-image", 3, 0, 0, make_image);
   scm_make_gsubr ("clear-image", 1, 0, 0, clear_image);
 @}
 @end example
@@ -1350,7 +1367,7 @@ function for that smob: the one listed in that smob's
 @code{scm_smobfuns} structure.  It then calls the @code{mark} function,
 passing it the smob as its only argument.
 
-The @code{mark} function's is responsible for marking any other Scheme
+The @code{mark} function is responsible for marking any other Scheme
 objects the smob refers to.  If it does not do so, the objects' mark
 bits will still be clear when the collector begins to sweep, and the
 collector will free them.  If this occurs, it will probably break, or at
@@ -1469,7 +1486,9 @@ for any unusual activity to interfere with normal code.
 It is often useful to define very simple smob types --- smobs which have
 no data to mark, other than the cell itself, or smobs whose @sc{cdr} is
 simply an ordinary Scheme object, to be marked recursively.  Guile
-provides some functions to handle these common cases.
+provides some functions to handle these common cases; you can use these
+functions as your smob type's @code{mark} function, if your smob's
+structure is simple enough.
 
 If the smob refers to no other Scheme objects, then no action is
 necessary; the garbage collector has already marked the smob cell
@@ -1494,13 +1513,21 @@ other than the smob's header cell.
 
 Here is the complete text of the implementation of the image datatype,
 as presented in the sections above.  We also provide a definition for
-the smob's @code{print} function.
+the smob's @code{print} function, and make some objects and functions
+static, to clarify exactly what the surrounding code is using.
+
+As mentioned above, you can find this code in the Guile distribution, in
+@file{doc/example-smob}.  That directory includes a makefile and a
+suitable @code{main} function, so you can build a complete interactive
+Guile shell, extended with the datatypes described here.)
 
 @example
+/* file "image-type.c" */
+
 #include <stdlib.h>
 #include <libguile.h>
 
-long image_tag;
+static long image_tag;
 
 struct image @{
   int width, height;
@@ -1515,14 +1542,22 @@ struct image @{
   SCM update_func;
 @};
 
-
-SCM
-create_image (SCM name, int width, int height)
+static SCM
+make_image (SCM name, SCM s_width, SCM s_height)
 @{
   struct image *image;
   SCM image_smob;
+  int width, height;
 
-  image = (struct image *) scm_must_malloc (sizeof (*image), "image");
+  SCM_ASSERT (SCM_NIMP (name) && SCM_STRINGP (name), name,
+              SCM_ARG1, "make-image");
+  SCM_ASSERT (SCM_INUMP (s_width),  s_width,  SCM_ARG2, "make-image");
+  SCM_ASSERT (SCM_INUMP (s_height), s_height, SCM_ARG3, "make-image");
+
+  width = SCM_INUM (s_width);
+  height = SCM_INUM (s_height);
+  
+  image = (struct image *) scm_must_malloc (sizeof (struct image), "image");
   image->width = width;
   image->height = height;
   image->pixels = scm_must_malloc (width * height, "image pixels");
@@ -1536,8 +1571,7 @@ create_image (SCM name, int width, int height)
   return image_smob;
 @}
 
-
-SCM
+static SCM
 clear_image (SCM image_smob)
 @{
   int area;
@@ -1558,8 +1592,7 @@ clear_image (SCM image_smob)
   return SCM_UNSPECIFIED;
 @}
 
-
-SCM
+static SCM
 mark_image (SCM image_smob)
 @{
   struct image *image = (struct image *) SCM_CDR (image_smob);
@@ -1568,12 +1601,11 @@ mark_image (SCM image_smob)
   return image->update_func;
 @}
 
-
-scm_sizet
+static scm_sizet
 free_image (SCM image_smob)
 @{
   struct image *image = (struct image *) SCM_CDR (image_smob);
-  scm_sizet size = image->width * image->height + sizeof (*image);
+  scm_sizet size = image->width * image->height + sizeof (struct image);
 
   free (image->pixels);
   free (image);
@@ -1581,31 +1613,55 @@ free_image (SCM image_smob)
   return size;
 @}
 
-
-int
-print_image (SCM obj, SCM port, scm_print_state *pstate)
+static int
+print_image (SCM image_smob, SCM port, scm_print_state *pstate)
 @{
   struct image *image = (struct image *) SCM_CDR (image_smob);
 
-  scm_gen_puts (scm_regular_string, "#<image ", port);
+  scm_puts ("#<image ", port);
   scm_display (image->name, port);
-  scm_gen_puts (scm_regular_string, ">", port);
+  scm_puts (">", port);
 
   /* non-zero means success */
   return 1;
 @}
 
-scm_smobfuns image_funs = @{
+static scm_smobfuns image_funs = @{
   mark_image, free_image, print_image, 0
 @};
-
 
 void
 init_image_type ()
 @{
   image_tag = scm_newsmob (&image_funs);
+
   scm_make_gsubr ("clear-image", 1, 0, 0, clear_image);
+  scm_make_gsubr ("make-image", 3, 0, 0, make_image);
 @}
+@end example
+
+Here is a sample build and interaction with the code from the
+@file{example-smob} directory, on the author's machine:
+
+@example
+zwingli:example-smob$ make CC=gcc
+gcc `guile-config compile`   -c image-type.c -o image-type.o
+gcc `guile-config compile`   -c myguile.c -o myguile.o
+gcc `guile-config link` image-type.o myguile.o -o myguile
+zwingli:example-smob$ ./myguile
+guile> make-image
+#<primitive-procedure make-image>
+guile> (define i (make-image "Whistler's Mother" 100 100))
+guile> i
+#<image Whistler's Mother>
+guile> (clear-image i)
+guile> (clear-image 4)
+ERROR: In procedure clear-image in expression (clear-image 4):
+ERROR: Wrong type argument in position 1: 4
+ABORT: (wrong-type-arg)
+ 
+Type "(backtrace)" to get more information.
+guile> 
 @end example
 
 @bye
