@@ -214,11 +214,18 @@ scm_lazy_catch (tag, thunk, handler)
      SCM thunk;
      SCM handler;
 {
+  SCM answer;
   SCM_ASSERT ((SCM_NIMP(tag) && SCM_SYMBOLP(tag))
 	      || (tag == SCM_BOOL_T),
 	      tag, SCM_ARG1, s_lazy_catch);
+  SCM_REDEFER_INTS;
   scm_dynwinds = scm_acons (tag, handler, scm_dynwinds);
-  return scm_apply (thunk, SCM_EOL, SCM_EOL);
+  SCM_REALLOW_INTS;
+  answer = scm_apply (thunk, SCM_EOL, SCM_EOL);
+  SCM_REDEFER_INTS;
+  scm_dynwinds = SCM_CDR (scm_dynwinds);
+  SCM_REALLOW_INTS;
+  return answer;
 }
 
 /* The user has thrown to an uncaught key --- print a message and die. 
@@ -326,17 +333,27 @@ scm_ithrow (key, args, noreturn)
        SCM_CDAR (wind_goal) != jmpbuf;
        wind_goal = SCM_CDR (wind_goal))
     ;
-  scm_dowinds (wind_goal, scm_ilength (scm_dynwinds) - scm_ilength (wind_goal));
   if (!SCM_JMPBUFP (jmpbuf))
     {
+      SCM oldwinds = scm_dynwinds;
+      SCM handle, answer;
+      scm_dowinds (wind_goal, scm_ilength (scm_dynwinds) - scm_ilength (wind_goal));
       SCM_REDEFER_INTS;
+      handle = scm_dynwinds;
       scm_dynwinds = SCM_CDR (scm_dynwinds);
       SCM_REALLOW_INTS;
-      return scm_apply (jmpbuf, scm_cons (key, args), SCM_EOL);
+      answer = scm_apply (jmpbuf, scm_cons (key, args), SCM_EOL);
+      SCM_REDEFER_INTS;
+      SCM_SETCDR (handle, scm_dynwinds);
+      scm_dynwinds = handle;
+      SCM_REALLOW_INTS;
+      scm_dowinds (oldwinds, scm_ilength (scm_dynwinds) - scm_ilength (oldwinds));
+      return answer;
     }
   else
     {
       struct jmp_buf_and_retval * jbr;
+      scm_dowinds (wind_goal, scm_ilength (scm_dynwinds) - scm_ilength (wind_goal));
       jbr = (struct jmp_buf_and_retval *)JBJMPBUF (jmpbuf);
       jbr->throw_tag = key;
       jbr->retval = args;
