@@ -1,5 +1,8 @@
 2004-02-16  Kevin Ryde  <kevin@swox.se>
 
+	* gc-malloc.c (scm_done_malloc, scm_done_free): Allow negative sizes,
+	which were permitted in the past for these.
+
 	* num2float.i.c (NUM2FLOAT): Expand isfinite to !xisinf, as per
 	previous change to numbers.c.
 
