@@ -240,7 +240,7 @@ static void alloc_some_heap (scm_freelist_t *);
 
 /* Debugging functions.  */
 
-#ifdef GUILE_DEBUG_FREELIST
+#if defined (GUILE_DEBUG) || defined (GUILE_DEBUG_FREELIST)
 
 /* Return the number of the heap segment containing CELL.  */
 static int
@@ -330,6 +330,9 @@ SCM_DEFINE (scm_map_free_list, "map-free-list", 0, 0, 0,
 }
 #undef FUNC_NAME
 
+#endif
+
+#ifdef GUILE_DEBUG_FREELIST
 
 /* Number of calls to SCM_NEWCELL since startup.  */
 static unsigned long scm_newcell_count;
