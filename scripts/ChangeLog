@@ -1,3 +1,8 @@
+2004-08-06  Kevin Ryde  <user42@zip.com.au>
+
+	* scripts/read-rfc822 (parse-message): Correction to header
+	continuation, loop with read-line not cdr lines.
+
 2002-12-08  Rob Browning  <rlb@defaultvalue.org>
 
 	* Makefile.am (subpkgdatadir): VERSION -> GUILE_EFFECTIVE_VERSION.
