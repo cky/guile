@@ -716,14 +716,21 @@ scm_srfi1_for_each (SCM proc, SCM arg1, SCM args)
 
 SCM_DEFINE (scm_srfi1_member, "member", 2, 1, 0,
            (SCM x, SCM lst, SCM pred),
-	    "Return the first sublist of @var{lst} whose car is\n"
-	    "@var{equal?} to @var{x} where the sublists of @var{lst} are\n"
-	    "the non-empty lists returned by @code{(list-tail @var{lst}\n"
-	    "@var{k})} for @var{k} less than the length of @var{lst}.  If\n"
-	    "@var{x} does not occur in @var{lst}, then @code{#f} (not the\n"
-	    "empty list) is returned.  If optional third argument @var{equal?}\n"
-	    "isn't given, @code{equal?} is used for comparison.\n"
-	    "(Extended from R5RS.)\n")
+	    "Return the first sublist of @var{lst} whose @sc{car} is equal\n"
+	    "to @var{x}.  If @var{x} does not appear in @var{lst}, return\n"
+	    "@code{#f}.\n"
+	    "\n"
+	    "Equality is determined by @code{equal?}, or by the equality\n"
+	    "predicate @var{=} if given.  @var{=} is called @code{(= @var{x}\n"
+	    "elem)}, ie.@: with the given @var{x} first, so for example to\n"
+	    "find the first element greater than 5,\n"
+	    "\n"
+	    "@example\n"
+	    "(member 5 '(3 5 1 7 2 9) <) @result{} (7 2 9)\n"
+	    "@end example\n"
+	    "\n"
+	    "This version of @code{member} extends the core @code{member} by\n"
+	    "accepting an equality predicate.")
 #define FUNC_NAME s_scm_srfi1_member
 {
   scm_t_trampoline_2 equal_p;
