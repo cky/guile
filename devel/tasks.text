@@ -63,6 +63,26 @@ niibe
 niibe
 dirk?
 
+*** Protecting common resources using mutecis from the new interface.
+
+maciej?
+
+*** Removing the dynamic roots
+
+*** Revise the fluid implementation
+
+Trying to use the thread library's support for thread local data
+(get/setspecific).
+
+*** Implementing the GC thread synchronization (all threads: go to sleep!)
+
+Suitable synchronization point is probably SCM_TICK.
+
+*** Implementing the libguileposix threads glue library
+
+This corresponds to the libguilecoop library implemented during the
+thread factorization.
+
 ** GOOPS
 
 *** integration into libguile
