@@ -1,3 +1,11 @@
+2004-02-18  Marius Vollmer  <mvo@zagadka.de>
+
+	* gc.h (scm_gc_cells_collected): Removed duplicated declaration.
+	Thanks to Bill Schottstaedt!
+	
+	* socket.h (scm_gethost): Removed prototype it is already in
+	"net_db.h".  Thanks to Bill Schottstaedt!
+	
 2004-02-18  Kevin Ryde  <user42@zip.com.au>
 
 	* num2integral.i.c (INTEGRAL2BIG): WORDS_BIGENDIAN not right for word
