@@ -1,0 +1,307 @@
+* Introduction
+
+This is a proposal for how Guile could interface with language
+translators.  It will be posted on the Guile list and revised for some
+short time (days rather than weeks) before being implemented.
+
+The document can be found in the CVS repository as
+guile-core/devel/translation/lantools.text.  All Guile developers are
+welcome to modify and extend it according to the ongoing discussion
+using CVS.
+
+Ideas and comments are welcome.
+
+For clarity, the proposal is partially written as if describing an
+already existing system.
+
+MDJ 000812 <djurfeldt@nada.kth.se>
+
+* Language names
+
+A translator for Guile is a certain kind of Guile module, implemented
+in Scheme, C, or a mixture of both.
+
+To make things simple, the name of the language is closely related to
+the name of the translator module.
+
+Languages have long and short names.  The long form is simply the name
+of the translator module: `(lang ctax)', `(lang emacs-lisp)',
+`(my-modules foo-lang)' etc.
+
+Languages with the long name `(lang IDENTIFIER)' can be referred to
+with the short name IDENTIFIER, for example `emacs-lisp'.
+
+* How to tell Guile to read code in a different language (than Scheme)
+
+There are four methods of specifying which translator to use when
+reading a file:
+
+** Command option
+
+The options to the guile command are parsed linearly from left to
+right.  You can change the language at zero or more points using the
+option
+
+ -t, --language LANGUAGE
+
+Example:
+
+  guile -t emacs-lisp -l foo -l bar -t scheme -l baz
+
+will use the emacs-lisp translator while reading "foo" and "bar", and
+the default translator (scheme) for "baz".
+
+You can use this technique in a script together with the meta switch:
+
+#!/usr/local/bin/guile \
+-t emacs-lisp -s
+!#
+
+** Commentary in file
+
+When opening a file for reading, Guile will read the first few lines,
+looking for the string "-*- LANGNAME -*-", where LANGNAME can be
+either the long or short form of the name.
+
+If found, the corresponding translator is loaded and used to read the
+file.
+
+** File extension
+
+Guile maintains an alist mapping filename extensions to languages.
+Each entry has the form:
+
+  (REGEXP . LANGNAME)
+
+where REGEXP is a string and LANGNAME a symbol or a list of symbols.
+
+The alist can be accessed using `language-alist' which is exported
+by the module `(core config)':
+
+  (language-alist)			--> current alist
+  (language-alist ALIST) 		sets the alist to ALIST
+  (language-alist ALIST :prepend)	prepends ALIST onto the current list
+  (language-alist ALIST :append)	appends ALIST after current list
+
+The `load' command will match filenames against this alist and choose
+the translator to use accordingly.
+
+** Module header
+
+The module header of the current module system is the form
+
+  (define-module NAME OPTION1 ...)
+
+You can specify a translator using the option
+
+  :language LANGNAME
+
+where LANGNAME is the long or short form of language name as described
+above.
+
+The translator is being fed characters from the module file, starting
+immediately after the end-parenthesis of the module header form.
+
+NOTE: There can be only one module header per file.
+
+It is also possible to put the module header in a separate file and
+use the option
+
+  :file FILENAME
+
+to point out a file containing the actual code.
+
+Example:
+
+foo.gm:
+----------------------------------------------------------------------
+(define-module (foo)
+  :language emacs-lisp
+  :file "foo.el"
+  :export (foo bar)
+  )
+----------------------------------------------------------------------
+
+foo.el:
+----------------------------------------------------------------------
+(defun foo ()
+  ...)
+
+(defun bar ()
+  ...)
+----------------------------------------------------------------------
+
+* Language modules
+
+A language module is an ordinary Guile module importing bindings from
+other modules and exporting bindings through its public interface.
+
+It is required to export the following procedures:
+
+  language-environment --> ENVIRONMENT
+
+    Returns a fresh top-level ENVIRONMENT (a module) where expressions
+    in this language are evaluated by default.
+
+    Modules using this language will by default have this environment
+    on their use list.
+
+    The intention is for this procedure to provide the "run-time
+    environment" for the language.
+
+  read-expression PORT --> EXPRESSION
+
+    Read next expression in the foreign syntax from PORT and return an
+    object EXPRESSION representing it.
+
+    It is entirely up to the language module to define what one
+    expression is.  The representation of EXPRESSION is also chosen by
+    the language module.
+
+    This procedure will be called during interactive use (the user
+    types expressions at a prompt) and when the system `read'
+    procedure is called when a module using this language is selected.
+
+  translate EXPRESSION --> SCHEMECODE
+
+    Translate an EXPRESSION into SCHEMECODE.
+
+    EXPRESSION can be anything returned by `read-expression'.
+
+    SCHEMECODE is Scheme source code represented using ordinary Scheme
+    data.  It will be passed to `eval' in an environment containing
+    bindings in the environment returned by `language-environment'.
+
+    This procedure will be called duing interactive use and when the
+    system `eval
+
+  translate-all PORT --> THUNK
+
+    Translate the entire stream of characters PORT until #<eof>.
+    Return a THUNK which can be called repeatedly like this:
+
+      THUNK --> SCHEMECODE
+
+    Each call will yield a new piece of scheme code.  #f is returned
+    to signal the end of the stream of scheme expressions.
+
+    This procedure will be called by the system `load' command and by
+    the module system when loading files.
+
+    The intensions are:
+
+    1. To let the language module decide when and in how large chunks
+       to do the processing.  It may choose to do all processing at
+       the time translate-all is called, all processing when THUNK is
+       called the first time, or small pieces of processing each time
+       THUNK is called, or any conceivable combination.
+
+    2. To let the language module decide in how large chunks to output
+       the resulting Scheme code in order not to overload memory.
+
+    3. To enable the language module to use temporary files, and
+       whole-module analysis and optimization techniques.
+
+  untranslate SCHEMECODE --> EXPRESSION
+
+    Attempt to do the inverse of `translate'.  An approximation is
+    OK.  It is also OK to return #f.  This procedure will be called
+    from the debugger, when generating error messages, backtraces etc.
+
+* Error handling
+
+** Errors during translation
+
+Errors during translation are generated as usual by calling scm-error
+(from Scheme) or scm_misc_error etc (from C).  The effect of
+throwing errors from within `translate-all' is the same as when they
+are generated within a call to the THUNK returned from
+`translate-all'.
+
+scm-error takes a fifth argument.  This is a property list (alist)
+which you can use to pass extra information to the error reporting
+machinery.
+
+Currently, the following properties are supported:
+
+  filename  filename of file being translated
+  line	    line number of errring expression
+  column    column number
+
+** Run-time errors (errors in SCHEMECODE)
+
+This section pertains to what happens when a run-time error occurs
+during evaluation of the translated code.
+
+In order to get "foreign code" in error messages, make sure that
+`untranslate' yields good output.  Note the possibility of maintaining
+a table (preferably using weak references) mapping SCHEMECODE to
+EXPRESSION.
+
+Note the availability of source-properties for attaching filename,
+line and column number, and other, information, such as EXPRESSION, to
+SCHEMECODE.  If filename, line, and, column properties are defined,
+they will be automatically used by the error reporting machinery.
+
+* Proposed changes to Guile
+
+** Implement the above proposal.
+
+* Add new field `reader' and `translator' to all module objects
+
+Make sure they are initialized when a language is specified.
+
+* Use `untranslate' during error handling.
+
+* Implement the use of arg 5 to scm-error
+
+(specified in "Errors during translation")
+
+** Implement a generic lexical analyzer with interface similar to read/rp
+
+Mikael is working on this.  (It might take a few days, since he is
+busy with his studies right now.)
+
+** Remove scm:eval-transformer
+
+This is replaced by new fields in each module object (environment).
+
+`eval' will instead directly the `transformer' field in the module
+passed as second arg.
+
+Internal evaluation will, similarly, use the transformer of the module
+representing the top-level of the local environment.
+
+Note that this level of transformation is something independent of
+language translation.  *This* is a hook for adding Scheme macro
+packages and belong to the core language.
+
+We also need to check the new `translator' field, potentially using
+it.
+
+** Package local environments as smobs
+
+so that environment list structures can't leak out on the Scheme
+level.  (This has already been done in SCM.)
+
+** Introduce "read-states" (symmetrical to "print-states")
+
+These carries state information belonging to a read call chain, such
+as which keyword syntax to support, whether to be case sensitive or
+not, and, which lexical grammar to use.
+
+** Move configuration of keyword syntax and case sensitivity to the read-state
+
+Add new fields to the module objects for these values, so that the
+read-state can be initialized from them.
+
+  *fixme* When? Why? How?
+
+Probably as soon as the language has been determined during file loading.
+
+Need to figure out how to set these values.
+
+
+Local Variables:
+mode: outline
+End:
