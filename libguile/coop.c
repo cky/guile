@@ -40,9 +40,13 @@
  * If you do not wish that, delete this exception notice.  */
 
 
-/* $Id: coop.c,v 1.34 2002-11-04 15:43:00 mvo Exp $ */
+/* $Id: coop.c,v 1.35 2003-03-25 23:54:01 rlb Exp $ */
 
 /* Cooperative thread library, based on QuickThreads */
+
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
 
 #include <stdio.h>
 
@@ -390,7 +394,7 @@ coop_condition_variable_wait_mutex (coop_c *c, coop_m *m)
 int 
 coop_condition_variable_timed_wait_mutex (coop_c *c,
 					  coop_m *m,
-					  const struct timespec *abstime)
+					  const scm_t_timespec *abstime)
 {
   coop_t *old, *t;
 #ifdef ETIMEDOUT
