@@ -1968,20 +1968,6 @@ same type, and have corresponding elements which are either
 @var{array-equal?} but not @var{equal?} to a vector or uniform vector.
 @end deffn
 
-@deffn {Scheme Procedure} array-contents array [strict]
-@deffnx {C Function} scm_array_contents (array, strict)
-If @var{array} may be @dfn{unrolled} into a one dimensional shared array
-without changing their order (last subscript changing fastest), then
-@code{array-contents} returns that shared array, otherwise it returns
-@code{#f}.  All arrays made by @code{make-array} and
-@code{make-generalized-array} may be unrolled, some arrays made by
-@code{make-shared-array} may not be.
-
-If the optional argument @var{strict} is provided, a shared array will
-be returned only if its elements are stored internally contiguous in
-memory.
-@end deffn
-
 @c  FIXME: array-map! accepts no source arrays at all, and in that
 @c  case makes calls "(proc)".  Is that meant to be a documented
 @c  feature?
@@ -2206,6 +2192,20 @@ Return the root vector index of the first element in the array.
 @deffn {Scheme Procedure} shared-array-root array
 @deffnx {C Function} scm_shared_array_root (array)
 Return the root vector of a shared array.
+@end deffn
+
+@deffn {Scheme Procedure} array-contents array [strict]
+@deffnx {C Function} scm_array_contents (array, strict)
+If @var{array} may be @dfn{unrolled} into a one dimensional shared array
+without changing their order (last subscript changing fastest), then
+@code{array-contents} returns that shared array, otherwise it returns
+@code{#f}.  All arrays made by @code{make-array} and
+@code{make-generalized-array} may be unrolled, some arrays made by
+@code{make-shared-array} may not be.
+
+If the optional argument @var{strict} is provided, a shared array will
+be returned only if its elements are stored internally contiguous in
+memory.
 @end deffn
 
 @deffn {Scheme Procedure} transpose-array array dim1 @dots{}
