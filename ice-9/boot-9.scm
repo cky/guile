@@ -43,6 +43,9 @@
 ;;; presumably deprecated.
 (define feature? provided?)
 
+;;; let format alias simple-format until the more complete version is loaded
+(define format simple-format)
+
 
 ;;; {R4RS compliance}
 
@@ -591,10 +594,10 @@
   (save-stack)
   (if (null? args)
       (scm-error 'misc-error #f "?" #f #f)
-      (let loop ((msg "%s")
+      (let loop ((msg "~A")
 		 (rest (cdr args)))
 	(if (not (null? rest))
-	    (loop (string-append msg " %S")
+	    (loop (string-append msg " ~S")
 		  (cdr rest))
 	    (scm-error 'misc-error #f msg args #f)))))
 

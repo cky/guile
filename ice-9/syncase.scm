@@ -87,7 +87,7 @@
   (start-stack 'syncase-stack
 	       (scm-error 'misc-error
 			  who
-			  "%s %S"
+			  "~A ~S"
 			  (list why what)
 			  '())))
 

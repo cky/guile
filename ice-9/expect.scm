@@ -82,7 +82,7 @@
 					       2))
 				       (scm-error 'misc-error
 						  "expect"
-						  "bad recipient: %S"
+						  "bad recipient: ~S"
 						  (list (car exprs))
 						  #f)
 				       `((apply ,(cadar exprs)
