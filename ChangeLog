@@ -1,3 +1,13 @@
+2001-03-18  Gary Houston  <ghouston@arglist.com>
+
+	* check-guile.in: use @srcdir@ instead of @test_suite_dir@.  use
+	the current directory (build dir) not srcdir to find guile
+	executable.  otherwise "make check" doesn't work with a separate
+	build directory.  create the test log in
+	$build_dir/check-guile.log instead of in srcdir/test-suite
+	directory.
+	* configure.in: don't define or substitute test_suite_dir.
+
 2001-03-17  Gary Houston  <ghouston@arglist.com>
 
 	* configure.in: don't append threads.doc to EXTRA_DOT_DOC_FILES,

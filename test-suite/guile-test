@@ -1,4 +1,4 @@
-#!/home/dirk/bin/guile \
+#!/bogus-path/guile \
 -e main -s
 !#
 

@@ -11,15 +11,17 @@
 #
 # Dependencies: dirname sed
 
-TEST_SUITE_DIR=@test_suite_dir@
-parent=`dirname $TEST_SUITE_DIR`
+TEST_SUITE_DIR=@srcdir@/test-suite
+parent=@srcdir@
+build_dir=`pwd`
 
 if [ x"$1" = x-i ] ; then
     guile=$2
     shift
     shift
+    glp=
 else
-    guile=$parent/libguile/guile
+    guile=$build_dir/libguile/guile
     glp=$parent
 fi
 
@@ -38,6 +40,6 @@ else
 fi
 
 cd $TEST_SUITE_DIR
-exec $guile -e main -s guile-test --test-suite $TEST_SUITE_DIR/tests "$@"
+exec $guile -e main -s guile-test --test-suite $TEST_SUITE_DIR/tests --log-file $build_dir/check-guile.log "$@"
 
 # check-guile ends here

@@ -534,10 +534,6 @@ AC_SUBST(LIBLOBJS)
 AC_SUBST(EXTRA_DOT_DOC_FILES)
 AC_SUBST(EXTRA_DOT_X_FILES)
 
-# Support for "make check"
-test_suite_dir="`(cd $srcdir ; pwd)`/test-suite"
-AC_SUBST(test_suite_dir)
-
 AC_OUTPUT([Makefile libguile/Makefile libguile/guile-snarf libguile/guile-doc-snarf libguile/guile-func-name-check libguile/guile-snarf.awk libguile/versiondat.h ice-9/Makefile oop/Makefile oop/goops/Makefile qt/Makefile qt/qt.h qt/md/Makefile qt/time/Makefile guile-config/Makefile doc/Makefile check-guile], [chmod +x libguile/guile-snarf libguile/guile-doc-snarf libguile/guile-func-name-check check-guile])
 
 dnl Local Variables:

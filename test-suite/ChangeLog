@@ -1,3 +1,8 @@
+2001-03-18  Gary Houston  <ghouston@arglist.com>
+
+	* guile-test: use #!/bogus-path/..., not #!/home/dirk/... in the
+	first line.
+	
 2001-03-12  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* tests/syntax.test:  Added a test for let* bindings and
