@@ -1,3 +1,8 @@
+2001-05-04  Gary Houston  <ghouston@arglist.com>
+
+	* socket.c: define uint32_t if netdb.h doesn't.  thanks to
+	Dale P. Smith.
+
 2001-05-02  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* rw.c: Include "modules.h" and "strports.h".

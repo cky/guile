@@ -76,6 +76,16 @@
 		      + strlen ((ptr)->sun_path))
 #endif
 
+#if !defined (HAVE_UINT32_T)
+#if SIZEOF_INT == 4
+typedef unsigned int uint32_t;
+#elif SIZEOF_LONG == 4
+typedef unsigned long uint32_t;
+#else
+#error can not define uint32_t
+#endif
+#endif
+
 /* we are not currently using socklen_t.  it's not defined on all systems,
    so would need to be checked by configure.  in the meantime, plain
    int is the best alternative.  */
