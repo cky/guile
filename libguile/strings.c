@@ -129,9 +129,7 @@ scm_mem2string (const char *src, size_t len)
 {
   SCM s = scm_allocate_string (len);
   char *dst = SCM_STRING_CHARS (s);
-
-  while (len--)
-    *dst++ = *src++;
+  memcpy (dst, src, len);
   return s;
 }
 
