@@ -1,3 +1,13 @@
+2000-05-22  Michael Livshin  <mlivshin@bigfoot.com>
+
+	* guile-doc-snarf.in: put the preprocessed file through sed to
+	trim all lines to 512 chars.  I hope it doesn't break anybody's
+	shell.  we'll see.
+
+	* gc.h (SCM_[SET_]CELL_{WORD,OBJECT}, SCM_VALIDATE_CELL): reverted 
+	the previous change to this macros, after deciding to torture the
+	snarfer instead.
+
 2000-05-21  Michael Livshin  <mlivshin@bigfoot.com>
 
 	* gc.h (SCM_[SET_]CELL_{WORD,OBJECT}, SCM_VALIDATE_CELL): brought

@@ -85,52 +85,36 @@ typedef scm_cell * SCM_CELLPTR;
 /* Low level cell data accessing macros:
  */
 
-#define SCM_VALIDATE_CELL(x) (!scm_cellp (x) ? abort () : 1)
+#define SCM_VALIDATE_CELL(x) \
+        (SCM_DEBUG_CELL_ACCESSES ? (!scm_cellp (x) ? abort () : 1) : 1)
 
-#if (SCM_DEBUG_CELL_ACCESSES == 0)
-#define SCM_CELL_WORD(x, n) (((scm_bits_t *) SCM2PTR (x)) [n])
-#else
 #define SCM_CELL_WORD(x, n) \
     ((SCM_VALIDATE_CELL (x)), \
      (((scm_bits_t *) SCM2PTR (x)) [n]))
-#endif
-
 #define SCM_CELL_WORD_0(x) SCM_CELL_WORD (x, 0)
 #define SCM_CELL_WORD_1(x) SCM_CELL_WORD (x, 1)
 #define SCM_CELL_WORD_2(x) SCM_CELL_WORD (x, 2)
 #define SCM_CELL_WORD_3(x) SCM_CELL_WORD (x, 3)
 
-#if (SCM_DEBUG_CELL_ACCESSES == 0)
-#define SCM_CELL_OBJECT(x, n) SCM_PACK (((scm_bits_t *) SCM2PTR (x)) [n])
-#else
 #define SCM_CELL_OBJECT(x, n) \
     ((SCM_VALIDATE_CELL (x)), \
      (SCM_PACK (((scm_bits_t *) SCM2PTR (x)) [n])))
-#endif
 #define SCM_CELL_OBJECT_0(x) SCM_CELL_OBJECT (x, 0)
 #define SCM_CELL_OBJECT_1(x) SCM_CELL_OBJECT (x, 1)
 #define SCM_CELL_OBJECT_2(x) SCM_CELL_OBJECT (x, 2)
 #define SCM_CELL_OBJECT_3(x) SCM_CELL_OBJECT (x, 3)
 
-#if (SCM_DEBUG_CELL_ACCESSES == 0)
-#define SCM_SET_CELL_WORD(x, n, v) ((((scm_bits_t *) SCM2PTR (x)) [n]) = (scm_bits_t) (v))
-#else
 #define SCM_SET_CELL_WORD(x, n, v) \
     ((SCM_VALIDATE_CELL (x)), \
      ((((scm_bits_t *) SCM2PTR (x)) [n]) = (scm_bits_t) (v)))
-#endif
 #define SCM_SET_CELL_WORD_0(x, v) SCM_SET_CELL_WORD (x, 0, v)
 #define SCM_SET_CELL_WORD_1(x, v) SCM_SET_CELL_WORD (x, 1, v)
 #define SCM_SET_CELL_WORD_2(x, v) SCM_SET_CELL_WORD (x, 2, v)
 #define SCM_SET_CELL_WORD_3(x, v) SCM_SET_CELL_WORD (x, 3, v)
 
-#if (SCM_DEBUG_CELL_ACCESSES == 0)
-#define SCM_SET_CELL_OBJECT(x, n, v) ((((scm_bits_t *) SCM2PTR (x)) [n]) = SCM_UNPACK (v))
-#else
 #define SCM_SET_CELL_OBJECT(x, n, v) \
     ((SCM_VALIDATE_CELL (x)), \
      ((((scm_bits_t *) SCM2PTR (x)) [n]) = SCM_UNPACK (v)))
-#endif
 #define SCM_SET_CELL_OBJECT_0(x, v) SCM_SET_CELL_OBJECT (x, 0, v)
 #define SCM_SET_CELL_OBJECT_1(x, v) SCM_SET_CELL_OBJECT (x, 1, v)
 #define SCM_SET_CELL_OBJECT_2(x, v) SCM_SET_CELL_OBJECT (x, 2, v)
