@@ -349,6 +349,36 @@
       (eq? '() (array-prototype (make-uniform-array '() '(5 6)))))))
 
 ;;;
+;;; array-set!
+;;;
+
+(with-test-prefix "array-set!"
+
+  (with-test-prefix "short"
+
+    (let ((a (make-uniform-array 's 1)))
+      ;; true if n can be array-set! into a
+      (define (fits? n)
+	(false-if-exception (begin (array-set! a n 0) #t)))
+
+      (with-test-prefix "store/fetch"
+	;; Check array-ref gives back what was put with array-set!.
+	;; In Guile 1.6.4 and earlier, array-set! only demanded an inum and
+	;; would silently truncate to a short.
+
+	(do ((n 1 (1+ (* 2 n))))  ;; n=2^k-1
+	    ((not (fits? n)))
+	  (array-set! a n 0)
+	  (pass-if n
+	    (= n (array-ref a 0))))
+
+	(do ((n -1 (* 2 n)))      ;; -n=2^k
+	    ((not (fits? n)))
+	  (array-set! a n 0)
+	  (pass-if n
+	    (= n (array-ref a 0))))))))
+
+;;;
 ;;; uniform-array-set1!
 ;;;
 
