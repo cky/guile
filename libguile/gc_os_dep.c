@@ -342,6 +342,11 @@ typedef int GC_bool;
 #   endif
 #   define mach_type_known
 # endif
+# if defined(__GNU__)
+#    define I386
+#    define GNU
+#    define mach_type_known
+# endif
 
 /* Feel free to add more clauses here */
 
@@ -933,6 +938,9 @@ typedef int GC_bool;
 #     define DATASTART ((ptr_t) &__nullarea)
 #     define DATAEND ((ptr_t) &_end)
 #   endif
+#   ifdef GNU
+#      define OS_TYPE "GNU"
+#    endif
 # endif
 
 # ifdef NS32K
