@@ -1,3 +1,15 @@
+2005-01-15  Kevin Ryde  <user42@zip.com.au>
+
+	* api-data.texi (Bitwise Operations): In logtest and logbit?, describe
+	operations in words, not just equivalent expressions.  In
+	integer-expt, clarify a bit and note negative k allowed and 0^0==1.
+
+	* api-data.texi (Random): In random:solid-sphere!, there is no return
+	value.
+
+	* api-evaluation.texi (Loading): In %load-hook, need to use set!, and
+	describe #f.
+
 2005-01-14  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* scheme-scripts.texi: Describe new 1.4 compatability behavior of
