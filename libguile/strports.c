@@ -266,8 +266,7 @@ SCM scm_strport_to_string (SCM port)
 
   if (pt->rw_active == SCM_PORT_WRITE)
     st_flush (port);
-  return scm_makfromstr (SCM_CHARS (SCM_STREAM (port)),
-			 pt->read_buf_size, 0);
+  return scm_makfromstr (pt->read_buf, pt->read_buf_size, 0);
 }
 
 SCM_PROC(s_call_with_output_string, "call-with-output-string", 1, 0, 0, scm_call_with_output_string);

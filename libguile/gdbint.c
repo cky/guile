@@ -275,7 +275,13 @@ gdb_print (obj)
   scm_seek (gdb_output_port, SCM_INUM0, SCM_MAKINUM (SEEK_SET));
   scm_write (obj, gdb_output_port);
   scm_truncate_file (gdb_output_port, SCM_UNDEFINED);
-  SEND_STRING (SCM_CHARS (SCM_STREAM (gdb_output_port)));
+  {
+    scm_port *pt = SCM_PTAB_ENTRY (gdb_output_port);
+
+    scm_flush (gdb_output_port);
+    *(pt->write_buf + pt->read_buf_size) = 0;
+    SEND_STRING (pt->read_buf);
+  }
   SCM_END_FOREIGN_BLOCK;
   return 0;
 }

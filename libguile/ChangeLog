@@ -1,3 +1,12 @@
+1999-09-18  Gary Houston  <ghouston@freewire.co.uk>
+
+	* strports.c (scm_strport_to_string): create the string from
+	pt->read_buf instead of an expression that evaluates to the
+	same thing.
+
+	* gdbint.c (gdb_print): don't just use SCM_CHARS to get a C string
+	from the port: the port's buffer may not be NUL terminated.
+
 1999-09-16  Mikael Djurfeldt  <mdj@mdj-pc.nada.kth.se>
 
 	* Makefile.am (.c.x): Added missing semicolon after `false'.
