@@ -9,3 +9,4 @@ libpath.h
 .deps
 guile-snarf
 *.lo
+libtool
