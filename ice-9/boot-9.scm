@@ -2723,9 +2723,23 @@
 ;;;
 ;;; Remember to update the features list when adding more SRFIs.
 
-(define cond-expand-features
+(define %cond-expand-features
   ;; Adjust the above comment when changing this.
   '(guile r5rs srfi-0))
+
+;; This table maps module public interfaces to the list of features.
+;;
+(define %cond-expand-table (make-hash-table 31))
+
+;; Add one or more features to the `cond-expand' feature list of the
+;; module `module'.
+;;
+(define (cond-expand-provide module features)
+  (let ((mod (module-public-interface module)))
+    (and mod
+	 (hashq-set! %cond-expand-table mod
+		     (append (hashq-ref %cond-expand-table mod '())
+			     features)))))
 
 (define-macro (cond-expand clause . clauses)
 
@@ -2737,7 +2751,13 @@
 	  (lambda (clause)
 	    (cond
 	      ((symbol? clause)
-	       (memq clause cond-expand-features))
+	       (or (memq clause %cond-expand-features)
+		   (let lp ((uses (module-uses (current-module))))
+		     (if (pair? uses)
+		       (or (memq clause
+				 (hashq-ref %cond-expand-table (car uses) '()))
+			   (lp (cdr uses)))
+		       #f))))
 	      ((pair? clause)
 	       (cond
 		 ((eq? 'and (car clause))
@@ -2793,8 +2813,6 @@
                       (string-append "srfi-" (number->string (car s)))))
                (mod-i (resolve-interface (list 'srfi srfi))))
           (module-use! (current-module) mod-i)
-          (set! cond-expand-features
-                (append cond-expand-features (list srfi)))
           (lp (cdr s))))))
 
 

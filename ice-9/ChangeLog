@@ -1,3 +1,14 @@
+2001-05-23  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* boot-9.scm (%cond-expand-table): New hash table mapping modules
+	to feature lists.
+	(cond-expand): Use feature information associated with modules.
+
+2001-05-21  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* boot-9.scm (use-srfis): Do not extend the srfi-0 feature list.
+	(cond-expand-provide): New procedure.
+	
 2001-05-22  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* boot-9.scm (define-module): Return the new module.
