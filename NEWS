@@ -51,10 +51,10 @@ read again in last-in first-out order.
 Version of `map' which guarantees that the procedure is applied to the
 lists in serial order.
 
-** New syntax: sequence->list BODY1 ...
+** New syntax: collect BODY1 ...
 Version of `begin' which returns a list of the results of the body
 forms instead of the result of the last body form.  In contrast to
-`begin', sequence->list allows an empty body.
+`begin', `collect' allows an empty body.
 
 ** New functions: read-history FILENAME, write-history FILENAME
 Read/write command line history from/to file.  Returns #t on success
