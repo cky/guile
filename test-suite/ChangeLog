@@ -1,3 +1,8 @@
+2003-10-10  Marius Vollmer  <mvo@zagadka.de>
+
+	* tests/numbers.test (inexact->exact): Use corrent argument order
+	for pass-if-exception.  Use "+inf.0" instead of "+.inf", etc.
+
 2003-10-09  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/numbers.test (inexact->exact): New tests.
