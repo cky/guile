@@ -118,7 +118,6 @@ scm_make_continuation (int *first)
   struct rv rv;
 #endif /* __ia64__ */
 
-  SCM_CRITICAL_SECTION_START;
   SCM_FLUSH_REGISTER_WINDOWS;
   stack_size = scm_stack_size (thread->continuation_base);
   continuation = scm_gc_malloc (sizeof (scm_t_contregs)
@@ -131,7 +130,6 @@ scm_make_continuation (int *first)
   continuation->dframe = scm_i_last_debug_frame ();
   src = thread->continuation_base;
   SCM_NEWSMOB (cont, scm_tc16_continuation, continuation);
-  SCM_CRITICAL_SECTION_END;
 
 #if ! SCM_STACK_GROWS_UP
   src -= stack_size;
