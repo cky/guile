@@ -1,3 +1,7 @@
+2002-07-08  Rob Browning  <rlb@defaultvalue.org>
+
+	* gc_os_dep.c: HURD fixes.
+
 2002-07-07  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	Crosscompiling and Cygwin fixes by Jan Nieuwenhuizen.  Thanks!
