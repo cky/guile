@@ -1,3 +1,13 @@
+2002-05-10  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* scan-api (add-props): New proc.
+	(make-grok-proc): Renamed from `make-grok-hook'.
+	(make-members-proc): Renamed from `make-members-hook'.
+	(make-grouper): Renamed from `make-grouping-hook'.  Update callers.
+	Add handling for multiple grouping-defs files.
+	(scan-api): Add handling for multiple grouping-defs files.
+	Cache `symbol->string' result; adjust `sort' usage.
+
 2002-05-09  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* scan-api (scan-C!): Use more robust regexp.
