@@ -827,7 +827,8 @@ scm_gensym (name, obarray)
   if (SCM_UNBNDP (name))
     name = gensym_prefix;
   else
-    SCM_ASSERT (SCM_ROSTRINGP (name), name, SCM_ARG1, s_gensym);
+    SCM_ASSERT (SCM_NIMP (name) && SCM_ROSTRINGP (name),
+		name, SCM_ARG1, s_gensym);
   new = name;
   if (SCM_UNBNDP (obarray))
     {
