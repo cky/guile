@@ -1485,7 +1485,7 @@ SCM_DEFINE (scm_logbit_p, "logbit?", 2, 0, 0,
   if (SCM_INUMP (j))
     {
       /* bits above what's in an inum follow the sign bit */
-      iindex = min (iindex, LONG_BIT-1);
+      iindex = min (iindex, SCM_LONG_BIT - 1);
       return SCM_BOOL ((1L << iindex) & SCM_INUM (j));
     }
   else if (SCM_BIGP (j))
