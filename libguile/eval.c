@@ -2079,12 +2079,14 @@ dispatch:
       x = SCM_CDR (SCM_CDR (x));
       while (proc = SCM_CAR (x), SCM_FALSEP (EVALCAR (proc, env)))
 	{
-	  for (proc = SCM_CAR (SCM_CDR (x)); SCM_NIMP (proc); proc = SCM_CDR (proc))
+	  for (proc = SCM_CADR (x); SCM_NIMP (proc); proc = SCM_CDR (proc))
 	    {
 	      t.arg1 = SCM_CAR (proc); /* body */
 	      SIDEVAL (t.arg1, env);
 	    }
-	  for (t.arg1 = SCM_EOL, proc = SCM_CDR (SCM_CDR (x)); SCM_NIMP (proc); proc = SCM_CDR (proc))
+	  for (t.arg1 = SCM_EOL, proc = SCM_CDDR (x);
+	       SCM_NIMP (proc);
+	       proc = SCM_CDR (proc))
 	    t.arg1 = scm_cons (EVALCAR (proc, env), t.arg1); /* steps */
 	  env = EXTEND_ENV (SCM_CAR (SCM_CAR (env)), t.arg1, SCM_CDR (env));
 	}
@@ -2282,8 +2284,22 @@ dispatch:
 	  goto evap1;
 
 	case (SCM_ISYMNUM (SCM_IM_DISPATCH)):
-	  /* (SCM_IM_DISPATCH N-SPECIALIZED
-	   *   #((TYPE1 ... ENV FORMALS FORM ...) ...))
+	  /* (SCM_IM_DISPATCH ARGS N-SPECIALIZED
+	   *   #((TYPE1 ... ENV FORMALS FORM ...) ...)
+	   *   GF)
+	   */
+	case (SCM_ISYMNUM (SCM_IM_HASH_DISPATCH)):
+	  /* (SCM_IM_HASH_DISPATCH ARGS N-SPECIALIZED HASHSET MASK
+	   *   #((TYPE1 ... ENV FORMALS FORM ...) ...)
+	   *   GF)
+	   *
+	   * ARGS is either a list of expressions, in which case they
+	   * are interpreted as the arguments of an application, or
+	   * a non-pair, which is interpreted as a single expression
+	   * yielding all arguments.
+	   *
+	   * SCM_IM_DISPATCH expressions in generic functions always
+	   * have ARGS = the symbol `args' or the iloc #@0-0.
 	   *
 	   * Need FORMALS in order to support varying arity.  This
 	   * also avoids the need for renaming of bindings.
@@ -2301,62 +2317,90 @@ dispatch:
 	   */
 	  {
 	    int i, n, end, mask;
-	    mask = -1;
-	    n = SCM_INUM (SCM_CADR (x)); /* maximum number of specializers */
-	    proc = SCM_CADDR (x);	 /* cache entries */
-	    i = 0;
-	    end = SCM_LENGTH (proc);
-	  find_method:
+	    SCM z = SCM_CADR (x); /* unevaluated operands */
+	    PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
+	    if (SCM_IMP (z))
+	      arg2 = *scm_ilookup (z, env);
+	    else if (SCM_NCONSP (z))
+	      {
+		if (SCM_NCELLP (z))
+		  arg2 = SCM_GLOC_VAL (z);
+		else
+		  arg2 = *scm_lookupcar (SCM_CDR (x), env, 1);
+	      }
+	    else
+	      {
+		arg2 = scm_cons (EVALCAR (z, env), SCM_EOL);
+		t.lloc = SCM_CDRLOC (arg2);
+		while (SCM_NIMP (z = SCM_CDR (z)))
+		  {
+		    *t.lloc = scm_cons (EVALCAR (z, env), SCM_EOL);
+		    t.lloc = SCM_CDRLOC (*t.lloc);
+		  }
+	      }
+	    
+	  type_dispatch:
+	    z = SCM_CDDR (x);
+	    n = SCM_INUM (SCM_CAR (z)); /* maximum number of specializers */
+	    proc = SCM_CADR (z);        /* method cache */
+
+	    if (SCM_NIMP (proc))
+	      {
+		/* Prepare for linear search */
+		mask = -1;
+		i = 0;
+		end = SCM_LENGTH (proc);
+	      }
+	    else
+	      {
+		/* Compute a hash value */
+		int hashset = SCM_INUM (proc);
+		int j = n;
+		mask = SCM_INUM (SCM_CAR (z = SCM_CDDR (z)));
+		proc = SCM_CADR (z);
+		i = 0;
+		t.arg1 = arg2;
+		do
+		  {
+		    i += (SCM_STRUCT_DATA (scm_class_of (SCM_CAR (t.arg1)))
+			  [scm_si_hashsets + hashset]);
+		    t.arg1 = SCM_CDR (t.arg1);
+		  }
+		while (--j && SCM_NIMP (t.arg1));
+		i &= mask;
+		end = i;
+	      }
+
+	    /* Search for match  */
 	    do
 	      {
 		int j = n;
-		t.arg1 = SCM_CDDAR (env); /* list of arguments */
-		arg2 = SCM_VELTS (proc)[i];
+		SCM entry = SCM_VELTS (proc)[i];
+		t.arg1 = arg2; /* list of arguments */
 		do
 		  {
 		    /* More arguments than specifiers => CLASS != ENV */
-		    if (scm_class_of (SCM_CAR (t.arg1)) != SCM_CAR (arg2))
+		    if (scm_class_of (SCM_CAR (t.arg1)) != SCM_CAR (entry))
 		      goto next_method;
 		    t.arg1 = SCM_CDR (t.arg1);
-		    arg2 = SCM_CDR (arg2);
+		    entry = SCM_CDR (entry);
 		  }
 		while (--j && SCM_NIMP (t.arg1));
 		/* Fewer arguments than specifiers => CAR != ENV */
-		if (!SCM_CONSP (SCM_CAR (arg2)))
+		if (!SCM_CONSP (SCM_CAR (entry)))
 		  goto next_method;
 		/* Copy the environment frame so that the dispatch form can
 		   be used also in normal code. */
-		env = EXTEND_ENV (SCM_CADR (arg2), SCM_CDDAR (env),
-				  SCM_CAR (arg2));
-		x = SCM_CDR (arg2);
-		goto cdrxnoap;
+		env = EXTEND_ENV (SCM_CADR (entry), arg2, SCM_CAR (entry));
+		x = SCM_CDR (entry);
+		goto cdrxbegin;
 	      next_method:
 		i = (i + 1) & mask;
 	      } while (i != end);
-	    scm_memoize_method (x, SCM_CDAR (env));
-	    goto loopnoap;
-	  
-	  case (SCM_ISYMNUM (SCM_IM_HASH_DISPATCH)):
-	    /* (SCM_IM_HASH_DISPATCH N-SPECIALIZED HASHSET MASK
-	         #((TYPE1 ... ENV FORMALS FORM ...) ...)) */
-	    n = SCM_INUM (SCM_CADR (x)); /* maximum number of specializers */
-	    {
-	      int hashset = SCM_INUM (SCM_CADDR (x));
-	      int j = n;
-	      mask = SCM_INUM (SCM_CADDDR (x));
-	      proc = SCM_CAR (SCM_CDDDDR (x));
-	      i = 0;
-	      t.arg1 = SCM_CDDAR (env);
-	      do
-		{
-		  i += SCM_STRUCT_DATA (scm_class_of (SCM_CAR (t.arg1)))[scm_si_hashsets + hashset];
-		  t.arg1 = SCM_CDR (t.arg1);
-		}
-	      while (--j && SCM_NIMP (t.arg1));
-	      i &= mask;
-	      end = i;
-	    }
-	    goto find_method;
+
+	    /* No match - call external function and try again */
+	    scm_memoize_method (x, arg2);
+	    goto type_dispatch;
 	  }
 
 	case (SCM_ISYMNUM (SCM_IM_SLOT_REF)):
@@ -2825,7 +2869,17 @@ evapply:
 	case scm_tc7_contin:
 	  scm_call_continuation (proc, t.arg1);
 	case scm_tcs_cons_gloc:
-	  if (!SCM_I_OPERATORP (proc))
+	  if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
+	    {
+#ifdef DEVAL
+	      arg2 = debug.info->a.args;
+#else
+	      arg2 = scm_cons (t.arg1, SCM_EOL);
+#endif
+	      x = SCM_ENTITY_PROC_1 (proc);
+	      goto type_dispatch;
+	    }
+	  else if (!SCM_I_OPERATORP (proc))
 	    goto badfun;
 	  else
 	    {
@@ -2932,7 +2986,17 @@ evapply:
 #endif
 	  goto evap2;
 	case scm_tcs_cons_gloc:
-	  if (!SCM_I_OPERATORP (proc))
+	  if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
+	    {
+#ifdef DEVAL
+	      arg2 = debug.info->a.args;
+#else
+	      arg2 = scm_cons2 (t.arg1, arg2, SCM_EOL);
+#endif
+	      x = SCM_ENTITY_PROC_2 (proc);
+	      goto type_dispatch;
+	    }
+	  else if (!SCM_I_OPERATORP (proc))
 	    goto badfun;
 	  else
 	    {
@@ -3115,7 +3179,17 @@ evapply:
 	goto cdrxbegin;
 #endif /* DEVAL */
       case scm_tcs_cons_gloc:
-	if (!SCM_I_OPERATORP (proc))
+	if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
+	  {
+#ifdef DEVAL
+	    arg2 = debug.info->a.args;
+#else
+	    arg2 = scm_cons2 (t.arg1, arg2, scm_eval_args (x, env, proc));
+#endif
+	    x = SCM_ENTITY_PROC_3 (proc);
+	    goto type_dispatch;
+	  }
+	else if (!SCM_I_OPERATORP (proc))
 	  goto badfun;
 	else
 	  {
@@ -3234,6 +3308,8 @@ scm_nconc2last (lst)
   *lloc = SCM_CAR (*lloc);
   return lst;
 }
+
+SCM_SYMBOL (scm_sym_args, "args");
 
 #endif /* !DEVAL */
 
@@ -3495,7 +3571,33 @@ tail:
 #endif
       goto tail;
     case scm_tcs_cons_gloc:
-      if (!SCM_I_OPERATORP (proc))
+      if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
+	{
+#ifdef DEVAL
+	  args = (SCM_UNBNDP(arg1) ? SCM_EOL : debug.vect[0].a.args);
+#else
+	  args = (SCM_UNBNDP(arg1) ? SCM_EOL : scm_cons (arg1, args));
+#endif
+	  if (SCM_NULLP (args))
+	    {
+	      arg1 = proc;
+	      proc = SCM_ENTITY_PROC_0 (proc);
+#ifdef DEVAL
+	      debug.vect[0].a.proc = proc;
+	      debug.vect[0].a.args = scm_cons (arg1, args);
+#endif
+	      goto tail;
+	    }
+	    proc = (SCM_NULLP (SCM_CDR (args))
+		    ? SCM_ENTITY_PROC_1 (proc)
+		    : (SCM_NULLP (SCM_CDDR (args))
+		       ? SCM_ENTITY_PROC_2 (proc)
+		       : SCM_ENTITY_PROC_3 (proc)));
+	    RETURN (SCM_CEVAL (proc,
+			       scm_acons (scm_sym_args, args,
+					  scm_apply_generic_env)));
+	}
+      else if (!SCM_I_OPERATORP (proc))
 	goto badproc;
       else
 	{
