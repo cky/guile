@@ -111,6 +111,7 @@ distclean:
 	rm -f config.cache
 	rm -f config.log
 	rm -f config.status
+	rm -f config.build-subdirs
 	rm -f Makefile
 	rm -f doc/Makefile
 	for dir in ${subdirs}; do \
