@@ -218,6 +218,7 @@ SCM_DEFINE (scm_regexp_exec, "regexp-exec", 2, 2, 0,
 {
   int status, nmatches, offset;
   regmatch_t *matches;
+  char *c_str;
   SCM mvec = SCM_BOOL_F;
 
   SCM_VALIDATE_RGXP (1, rx);
@@ -226,7 +227,10 @@ SCM_DEFINE (scm_regexp_exec, "regexp-exec", 2, 2, 0,
   if (SCM_UNBNDP (start))
     offset = 0;
   else
-    offset = scm_to_signed_integer (start, 0, scm_i_string_length (str));
+    {
+      str = scm_substring (str, start, SCM_UNDEFINED);
+      offset = scm_to_int (start);
+    }
 
   if (SCM_UNBNDP (flags))
     flags = SCM_INUM0;
@@ -237,9 +241,11 @@ SCM_DEFINE (scm_regexp_exec, "regexp-exec", 2, 2, 0,
   nmatches = SCM_RGX(rx)->re_nsub + 1;
   SCM_DEFER_INTS;
   matches = scm_malloc (sizeof (regmatch_t) * nmatches);
-  status = regexec (SCM_RGX (rx), scm_i_string_chars (str) + offset,
-		    nmatches, matches,
+  c_str = scm_to_locale_string (str);
+  status = regexec (SCM_RGX (rx), c_str, nmatches, matches,
 		    scm_to_int (flags));
+  free (c_str);
+
   if (!status)
     {
       int i;
