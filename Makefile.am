@@ -21,7 +21,7 @@
 
 
 SUBDIRS = oop qt libltdl libguile ice-9 guile-config guile-readline \
-	  scripts srfi doc examples test-suite lang
+	  scripts srfi doc examples test-suite lang am
 
 bin_SCRIPTS = guile-tools
 

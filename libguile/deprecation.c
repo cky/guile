@@ -51,6 +51,11 @@
 #include "libguile/strings.h"
 #include "libguile/ports.h"
 
+/* Windows defines. */
+#ifdef __MINGW32__
+#define vsnprintf _vsnprintf
+#endif
+
 
 
 #if (SCM_ENABLE_DEPRECATED == 1)

@@ -5,8 +5,8 @@
 
 
 /* Convert a vector, weak vector, (if possible string, substring), list
-   or uniform vector into an C array.  If result array in argument 2 is 
-   NULL, malloc() a new one.  If out of memory, return NULL.  */
+   or uniform vector into an C array.  If the result array in argument 2 
+   is NULL, malloc() a new one.  If out of memory, return NULL.  */
 #define FUNC_NAME SCM2CTYPES_FN
 CTYPE *
 SCM2CTYPES (SCM obj, CTYPE *data)
@@ -17,40 +17,58 @@ SCM2CTYPES (SCM obj, CTYPE *data)
   SCM_ASSERT (SCM_NIMP (obj) || SCM_NFALSEP (scm_list_p (obj)), 
 	      obj, SCM_ARG1, FUNC_NAME);
 
+  /* list conversion */
   if (SCM_NFALSEP (scm_list_p (obj)))
     {
+      /* traverse the given list and validate the range of each member */
       SCM list = obj;
       for (n = 0; SCM_NFALSEP (scm_pair_p (list)); list = SCM_CDR (list), n++)
 	{
 	  val = SCM_CAR (list);
-#if defined (CTYPEMIN) && defined (CTYPEMAX)
+#if SIZEOF_CTYPE && SIZEOF_CTYPE < SIZEOF_SCM_T_BITS
+	  /* check integer ranges */
           if (SCM_INUMP (val))
             {
-              long v = SCM_INUM (val);
-	      SCM_ASSERT_RANGE (SCM_ARG1, obj, v >= CTYPEMIN && v <= CTYPEMAX);
+              scm_t_signed_bits v = SCM_INUM (val);
+	      CTYPE c = (CTYPE) v;
+	      SCM_ASSERT_RANGE (SCM_ARG1, val, v != (scm_t_signed_bits) c);
             }
-          else
-#elif defined (FLOATTYPE1)
-          if (!SCM_INUMP (val) && !(SCM_BIGP (val) || SCM_REALP (val)))
+	  /* check big number ranges */
+	  else if (SCM_BIGP (val))
+	    {
+              scm_t_signed_bits v = scm_num2long (val, SCM_ARG1, FUNC_NAME);
+	      CTYPE c = (CTYPE) v;
+	      SCM_ASSERT_RANGE (SCM_ARG1, val, v != (scm_t_signed_bits) c);
+	    }
+	  else
+	  /* check float types */
+#elif defined (FLOATTYPE)
+	  /* real values, big numbers and immediate values are valid 
+	     for float conversions */
+	  if (!SCM_REALP (val) && !SCM_BIGP (val) && !SCM_INUMP (val))
 #else
-	  if (!SCM_INUMP (val) && !SCM_BIGP (val))
-#endif
-            SCM_WRONG_TYPE_ARG (SCM_ARG1, obj);
+	  if (!SCM_BIGP (val) && !SCM_INUMP (val))
+#endif /* FLOATTYPE */
+	    SCM_WRONG_TYPE_ARG (SCM_ARG1, val);
         }
-      if (data == NULL)
-        data = (CTYPE *) malloc (n * sizeof (CTYPE));
-      if (data == NULL)
-        return NULL;
 
+      /* allocate new memory if necessary */
+      if (data == NULL)
+	{
+	  if ((data = (CTYPE *) malloc (n * sizeof (CTYPE))) == NULL)
+	    return NULL;
+	}
+
+      /* traverse the list once more and convert each member */
       list = obj;
       for (i = 0; SCM_NFALSEP (scm_pair_p (list)); list = SCM_CDR (list), i++)
 	{
           val = SCM_CAR (list);
 	  if (SCM_INUMP (val))
-            data[i] = SCM_INUM (val);
+            data[i] = (CTYPE) SCM_INUM (val);
           else if (SCM_BIGP (val))
 	    data[i] = (CTYPE) scm_num2long (val, SCM_ARG1, FUNC_NAME);
-#ifdef FLOATTYPE1
+#if defined (FLOATTYPE)
           else
             data[i] = (CTYPE) SCM_REAL_VALUE (val);
 #endif
@@ -58,33 +76,52 @@ SCM2CTYPES (SCM obj, CTYPE *data)
       return data;
     }
 
+  /* other conversions */
   switch (SCM_TYP7 (obj))
     {
+      /* vectors and weak vectors */
     case scm_tc7_vector:
     case scm_tc7_wvect:
       n = SCM_VECTOR_LENGTH (obj);
+      /* traverse the given vector and validate each member */
       for (i = 0; i < n; i++)
         {
           val = SCM_VELTS (obj)[i];
-
-#if defined (CTYPEMIN) && defined (CTYPEMAX)
+#if SIZEOF_CTYPE && SIZEOF_CTYPE < SIZEOF_SCM_T_BITS
+	  /* check integer ranges */
           if (SCM_INUMP (val))
             {
-              long v = SCM_INUM (val);
-	      SCM_ASSERT_RANGE (SCM_ARG1, obj, v >= CTYPEMIN && v <= CTYPEMAX);
+              scm_t_signed_bits v = SCM_INUM (val);
+	      CTYPE c = (CTYPE) v;
+	      SCM_ASSERT_RANGE (SCM_ARG1, val, v != (scm_t_signed_bits) c);
             }
+	  /* check big number ranges */
+	  else if (SCM_BIGP (val))
+	    {
+              scm_t_signed_bits v = scm_num2long (val, SCM_ARG1, FUNC_NAME);
+	      CTYPE c = (CTYPE) v;
+	      SCM_ASSERT_RANGE (SCM_ARG1, val, v != (scm_t_signed_bits) c);
+	    }
           else
-#elif defined (FLOATTYPE1)
-          if (!SCM_INUMP (val) && !(SCM_BIGP (val) || SCM_REALP (val)))
+	  /* check float types */
+#elif defined (FLOATTYPE)
+	  /* real values, big numbers and immediate values are valid 
+	     for float conversions */
+	  if (!SCM_REALP (val) && !SCM_BIGP (val) && !SCM_INUMP (val))
 #else
-	  if (!SCM_INUMP (val) && !SCM_BIGP (val))
-#endif
-            SCM_WRONG_TYPE_ARG (SCM_ARG1, obj);
+	  if (!SCM_BIGP (val) && !SCM_INUMP (val))
+#endif /* FLOATTYPE */
+	    SCM_WRONG_TYPE_ARG (SCM_ARG1, val);
         }
+
+      /* allocate new memory if necessary */
       if (data == NULL)
-        data = (CTYPE *) malloc (n * sizeof (CTYPE));
-      if (data == NULL)
-        return NULL;
+	{
+	  if ((data = (CTYPE *) malloc (n * sizeof (CTYPE))) == NULL)
+	    return NULL;
+	}
+
+      /* traverse the vector once more and convert each member */
       for (i = 0; i < n; i++)
 	{
           val = SCM_VELTS (obj)[i];
@@ -92,7 +129,7 @@ SCM2CTYPES (SCM obj, CTYPE *data)
             data[i] = (CTYPE) SCM_INUM (val);
           else if (SCM_BIGP (val))
 	    data[i] = (CTYPE) scm_num2long (val, SCM_ARG1, FUNC_NAME);
-#ifdef FLOATTYPE1
+#if defined (FLOATTYPE)
           else
             data[i] = (CTYPE) SCM_REAL_VALUE (val);
 #endif
@@ -100,37 +137,43 @@ SCM2CTYPES (SCM obj, CTYPE *data)
       break;
 
 #ifdef HAVE_ARRAYS
-    case ARRAYTYPE1:
-#ifdef ARRAYTYPE2
-    case ARRAYTYPE2:
+      /* array conversions (uniform vectors) */
+    case ARRAYTYPE:
+#ifdef ARRAYTYPE_OPTIONAL
+    case ARRAYTYPE_OPTIONAL:
 #endif
       n = SCM_UVECTOR_LENGTH (obj);
+
+      /* allocate new memory if necessary */
       if (data == NULL)
-        data = (CTYPE *) malloc (n * sizeof (CTYPE));
-      if (data == NULL)
-        return NULL;
-#ifdef FLOATTYPE2
-      if (SCM_TYP7 (obj) == ARRAYTYPE2)
+	{
+	  if ((data = (CTYPE *) malloc (n * sizeof (CTYPE))) == NULL)
+	    return NULL;
+	}
+
+#ifdef FLOATTYPE_OPTIONAL
+      /* float <-> double conversions */
+      if (SCM_TYP7 (obj) == ARRAYTYPE_OPTIONAL)
 	{
 	  for (i = 0; i < n; i++)
-	    data[i] = ((FLOATTYPE2 *) SCM_UVECTOR_BASE (obj))[i];
+	    data[i] = ((FLOATTYPE_OPTIONAL *) SCM_UVECTOR_BASE (obj))[i];
 	}
       else
 #endif
+      /* copy whole array */
       memcpy (data, (CTYPE *) SCM_UVECTOR_BASE (obj), n * sizeof (CTYPE));
       break;
 #endif /* HAVE_ARRAYS */
 
-#ifdef STRINGTYPE
+#if SIZEOF_CTYPE == 1
     case scm_tc7_string:
       n = SCM_STRING_LENGTH (obj);
       if (data == NULL)
-        data = (CTYPE *) malloc (n * sizeof (CTYPE));
-      if (data == NULL)
-        return NULL;
+        if ((data = (CTYPE *) malloc (n * sizeof (CTYPE))) == NULL)
+	  return NULL;
       memcpy (data, SCM_STRING_CHARS (obj), n * sizeof (CTYPE));
       break;
-#endif /* STRINGTYPE */
+#endif
 
     default:
       SCM_WRONG_TYPE_ARG (SCM_ARG1, obj);
@@ -150,31 +193,33 @@ CTYPES2UVECT (const CTYPE *data, long n)
 {
   char *v;
 
-  SCM_ASSERT_RANGE (SCM_ARG2, scm_long2num (n), 
+  SCM_ASSERT_RANGE (SCM_ARG2, scm_long2num (n),
 		    n > 0 && n <= SCM_UVECTOR_MAX_LENGTH);
-  v = scm_gc_malloc (sizeof (CTYPE) * n, "vector");
+  v = scm_gc_malloc (n * sizeof (CTYPE), "uvect");
   memcpy (v, data, n * sizeof (CTYPE));
   return scm_alloc_cell (SCM_MAKE_UVECTOR_TAG (n, UVECTTYPE), (scm_t_bits) v);
 }
 #undef FUNC_NAME
 
-#ifdef UVECTTYPE2
-#define FUNC_NAME CTYPES2UVECT_FN2
+#ifdef UVECTTYPE_OPTIONAL
+#define FUNC_NAME CTYPES2UVECT_FN_OPTIONAL
 SCM
-CTYPES2UVECT2 (const unsigned CTYPE *data, long n)
+CTYPES2UVECT_OPTIONAL (const unsigned CTYPE *data, long n)
 {
   char *v;
 
   SCM_ASSERT_RANGE (SCM_ARG2, scm_long2num (n), 
 		    n > 0 && n <= SCM_UVECTOR_MAX_LENGTH);
-  v = scm_gc_malloc (sizeof (unsigned CTYPE) * n, "vector");
+  v = scm_gc_malloc (n * sizeof (unsigned CTYPE) * n, "uvect");
   memcpy (v, data, n * sizeof (unsigned CTYPE));
-  return scm_alloc_cell (SCM_MAKE_UVECTOR_TAG (n, UVECTTYPE2), (scm_t_bits) v);
+  return scm_alloc_cell (SCM_MAKE_UVECTOR_TAG (n, UVECTTYPE_OPTIONAL), 
+			 (scm_t_bits) v);
 }
 #undef FUNC_NAME
-#endif /* UVECTTYPE2 */
+#endif /* UVECTTYPE_OPTIONAL */
 
 #endif /* HAVE_ARRAYS */
+
 
 /* Converts a C array into a vector. */
 #define FUNC_NAME CTYPES2SCM_FN
@@ -189,13 +234,10 @@ CTYPES2SCM (const CTYPE *data, long n)
   v = scm_c_make_vector (n, SCM_UNSPECIFIED);
   velts = SCM_VELTS (v);
   for (i = 0; i < n; i++)
-#ifdef FLOATTYPE1
+#ifdef FLOATTYPE
     velts[i] = scm_make_real ((double) data[i]);
-#elif defined (CTYPEFIXABLE)
-    velts[i] = SCM_MAKINUM (data[i]);
 #else
-    velts[i] = (SCM_FIXABLE (data[i]) ? SCM_MAKINUM (data[i]) : 
-		scm_i_long2big (data[i]));
+    velts[i] = SCM_MAKINUM (data[i]);
 #endif
   return v;
 }
@@ -209,33 +251,22 @@ CTYPES2SCM (const CTYPE *data, long n)
 #undef CTYPE
 #undef CTYPES2UVECT
 #undef CTYPES2UVECT_FN
-#ifdef CTYPEFIXABLE
-#undef CTYPEFIXABLE
-#endif
 #undef UVECTTYPE
-#ifdef UVECTTYPE2
-#undef CTYPES2UVECT2
-#undef CTYPES2UVECT_FN2
-#undef UVECTTYPE2
+#ifdef UVECTTYPE_OPTIONAL
+#undef CTYPES2UVECT_OPTIONAL
+#undef CTYPES2UVECT_FN_OPTIONAL
+#undef UVECTTYPE_OPTIONAL
 #endif
-#ifdef CTYPEMIN
-#undef CTYPEMIN
+#undef SIZEOF_CTYPE
+#undef ARRAYTYPE
+#ifdef ARRAYTYPE_OPTIONAL
+#undef ARRAYTYPE_OPTIONAL
 #endif
-#ifdef CTYPEMAX
-#undef CTYPEMAX
+#ifdef FLOATTYPE
+#undef FLOATTYPE
 #endif
-#undef ARRAYTYPE1
-#ifdef ARRAYTYPE2
-#undef ARRAYTYPE2
-#endif
-#ifdef FLOATTYPE1
-#undef FLOATTYPE1
-#endif
-#ifdef FLOATTYPE2
-#undef FLOATTYPE2
-#endif
-#ifdef STRINGTYPE
-#undef STRINGTYPE
+#ifdef FLOATTYPE_OPTIONAL
+#undef FLOATTYPE_OPTIONAL
 #endif
 
 /*

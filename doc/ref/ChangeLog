@@ -1,3 +1,8 @@
+2002-02-27  Stefan Jahn  <stefan@lkcc.org>
+
+	* gh.texi (scm transition summary): Documented some more
+	gh equivalents and removed appropriate FIXME's.
+
 2002-02-26  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* Makefile.am: Update path to pre-inst-guile automake frag.

@@ -929,16 +929,16 @@ Use @code{scm_str2symbol} instead.  [FIXME: inconsistent naming,
 should be @code{scm_str02symbol}.]
 
 @item @code{gh_ints2scm} and @code{gh_doubles2scm}
-No direct scm equivalent.  [FIXME]
+Use @code{scm_c_ints2scm} and @code{scm_c_doubles2scm} instead.
 
 @item @code{gh_chars2byvect} and @code{gh_shorts2svect}
-No direct scm equivalent.  [FIXME]
+Use @code{scm_c_chars2byvect} and @code{scm_c_shorts2svect} instead.
 
 @item @code{gh_longs2ivect} and @code{gh_ulongs2uvect}
-No direct scm equivalent.  [FIXME]
+Use @code{scm_c_longs2ivect} and @code{scm_c_ulongs2uvect} instead.
 
 @item @code{gh_floats2fvect} and @code{gh_doubles2dvect}
-No direct scm equivalent.  [FIXME]
+Use @code{scm_c_floats2fvect} and @code{scm_c_doubles2dvect} instead.
 
 @item @code{gh_scm2bool}
 Use @code{SCM_NFALSEP} instead.
@@ -993,13 +993,13 @@ instead.  With the additional @var{str} argument the user can pass a
 pre-allocated memory chunk or leave it passing NULL.
 
 @item @code{gh_scm2chars}
-No direct scm equivalent.  [FIXME]
+Use @code{scm_c_scm2chars} instead.
 
 @item @code{gh_scm2shorts} and @code{gh_scm2longs}
-No direct scm equivalent.  [FIXME]
+Use @code{scm_c_shorts2scm} and @code{scm_c_longs2scm} instead.
 
 @item @code{gh_scm2floats} and @code{gh_scm2doubles}
-No direct scm equivalent.  [FIXME]
+Use @code{scm_c_floats2scm} and @code{scm_c_doubles2scm} instead.
 
 @item @code{gh_boolean_p}
 Use the @code{SCM_BOOLP} macro instead, or replace @code{gh_boolean_p

@@ -1,3 +1,7 @@
+2002-02-27  Stefan Jahn  <stefan@lkcc.org>
+
+	* Makefile.am (SUBDIRS): Added the `am' directory.
+
 2002-02-26  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* pre-inst-guile.in: New file.

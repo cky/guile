@@ -56,91 +56,90 @@
 #include <string.h>
 #endif
 
-#define CTYPE char
-#define SCM2CTYPES_FN "scm_c_scm2chars"
-#define SCM2CTYPES scm_c_scm2chars
-#define CTYPES2SCM_FN "scm_c_chars2scm"
-#define CTYPES2SCM scm_c_chars2scm
-#define CTYPEFIXABLE
+#define CTYPE           char
+#define SIZEOF_CTYPE    1
+#define SCM2CTYPES_FN   "scm_c_scm2chars"
+#define SCM2CTYPES      scm_c_scm2chars
+#define CTYPES2SCM_FN   "scm_c_chars2scm"
+#define CTYPES2SCM      scm_c_chars2scm
 #define CTYPES2UVECT_FN "scm_c_chars2byvect"
-#define CTYPES2UVECT scm_c_chars2byvect
-#define UVECTTYPE scm_tc7_byvect
-#define CTYPEMIN -128
-#define CTYPEMAX +255
-#define ARRAYTYPE1 scm_tc7_byvect
-#define STRINGTYPE
+#define CTYPES2UVECT    scm_c_chars2byvect
+#define UVECTTYPE       scm_tc7_byvect
+#define ARRAYTYPE       scm_tc7_byvect
 #include "convert.i.c"
 
-#define CTYPE short
-#define SCM2CTYPES_FN "scm_c_scm2shorts"
-#define SCM2CTYPES scm_c_scm2shorts
-#define CTYPES2SCM_FN "scm_c_shorts2scm"
-#define CTYPES2SCM scm_c_shorts2scm
-#define CTYPEFIXABLE
+#define CTYPE           short
+#define SIZEOF_CTYPE    SIZEOF_SHORT
+#define SCM2CTYPES_FN   "scm_c_scm2shorts"
+#define SCM2CTYPES      scm_c_scm2shorts
+#define CTYPES2SCM_FN   "scm_c_shorts2scm"
+#define CTYPES2SCM      scm_c_shorts2scm
 #define CTYPES2UVECT_FN "scm_c_shorts2svect"
-#define CTYPES2UVECT scm_c_shorts2svect
-#define UVECTTYPE scm_tc7_svect
-#define CTYPEMIN -32768
-#define CTYPEMAX +65535
-#define ARRAYTYPE1 scm_tc7_svect
+#define CTYPES2UVECT    scm_c_shorts2svect
+#define UVECTTYPE       scm_tc7_svect
+#define ARRAYTYPE       scm_tc7_svect
 #include "convert.i.c"
 
-#define CTYPE int
-#define SCM2CTYPES_FN "scm_c_scm2ints"
-#define SCM2CTYPES scm_c_scm2ints
-#define CTYPES2SCM_FN "scm_c_ints2scm"
-#define CTYPES2SCM scm_c_ints2scm
-#define CTYPES2UVECT_FN "scm_c_ints2ivect"
-#define CTYPES2UVECT scm_c_ints2ivect
-#define UVECTTYPE scm_tc7_ivect
-#define CTYPES2UVECT_FN2 "scm_c_uints2uvect"
-#define CTYPES2UVECT2 scm_c_uints2uvect
-#define UVECTTYPE2 scm_tc7_uvect
-#define ARRAYTYPE1 scm_tc7_ivect
-#define ARRAYTYPE2 scm_tc7_uvect
+#define CTYPE                    int
+#define SIZEOF_CTYPE             SIZEOF_INT
+#define SCM2CTYPES_FN            "scm_c_scm2ints"
+#define SCM2CTYPES               scm_c_scm2ints
+#define CTYPES2SCM_FN            "scm_c_ints2scm"
+#define CTYPES2SCM               scm_c_ints2scm
+#define CTYPES2UVECT_FN          "scm_c_ints2ivect"
+#define CTYPES2UVECT             scm_c_ints2ivect
+#define UVECTTYPE                scm_tc7_ivect
+#define CTYPES2UVECT_FN_OPTIONAL "scm_c_uints2uvect"
+#define CTYPES2UVECT_OPTIONAL    scm_c_uints2uvect
+#define UVECTTYPE_OPTIONAL       scm_tc7_uvect
+#define ARRAYTYPE                scm_tc7_ivect
+#define ARRAYTYPE_OPTIONAL       scm_tc7_uvect
 #include "convert.i.c"
 
-#define CTYPE long
-#define SCM2CTYPES_FN "scm_c_scm2longs"
-#define SCM2CTYPES scm_c_scm2longs
-#define CTYPES2SCM_FN "scm_c_longs2scm"
-#define CTYPES2SCM scm_c_longs2scm
-#define CTYPES2UVECT_FN "scm_c_longs2ivect"
-#define CTYPES2UVECT scm_c_longs2ivect
-#define UVECTTYPE scm_tc7_ivect
-#define CTYPES2UVECT_FN2 "scm_c_ulongs2uvect"
-#define CTYPES2UVECT2 scm_c_ulongs2uvect
-#define UVECTTYPE2 scm_tc7_uvect
-#define ARRAYTYPE1 scm_tc7_ivect
-#define ARRAYTYPE2 scm_tc7_uvect
+#define CTYPE                    long
+#define SIZEOF_CTYPE             SIZEOF_LONG
+#define SCM2CTYPES_FN            "scm_c_scm2longs"
+#define SCM2CTYPES               scm_c_scm2longs
+#define CTYPES2SCM_FN            "scm_c_longs2scm"
+#define CTYPES2SCM               scm_c_longs2scm
+#define CTYPES2UVECT_FN          "scm_c_longs2ivect"
+#define CTYPES2UVECT             scm_c_longs2ivect
+#define UVECTTYPE                scm_tc7_ivect
+#define CTYPES2UVECT_FN_OPTIONAL "scm_c_ulongs2uvect"
+#define CTYPES2UVECT_OPTIONAL    scm_c_ulongs2uvect
+#define UVECTTYPE_OPTIONAL       scm_tc7_uvect
+#define ARRAYTYPE                scm_tc7_ivect
+#define ARRAYTYPE_OPTIONAL       scm_tc7_uvect
 #include "convert.i.c"
 
-#define CTYPE float
-#define SCM2CTYPES_FN "scm_c_scm2floats"
-#define SCM2CTYPES scm_c_scm2floats
-#define CTYPES2SCM_FN "scm_c_floats2scm"
-#define CTYPES2SCM scm_c_floats2scm
-#define CTYPES2UVECT_FN "scm_c_floats2fvect"
-#define CTYPES2UVECT scm_c_floats2fvect
-#define UVECTTYPE scm_tc7_fvect
-#define ARRAYTYPE1 scm_tc7_fvect
-#define ARRAYTYPE2 scm_tc7_dvect
-#define FLOATTYPE1 float
-#define FLOATTYPE2 double
+#define CTYPE              float
+#define SIZEOF_CTYPE       0
+#define SCM2CTYPES_FN      "scm_c_scm2floats"
+#define SCM2CTYPES         scm_c_scm2floats
+#define CTYPES2SCM_FN      "scm_c_floats2scm"
+#define CTYPES2SCM         scm_c_floats2scm
+#define CTYPES2UVECT_FN    "scm_c_floats2fvect"
+#define CTYPES2UVECT       scm_c_floats2fvect
+#define UVECTTYPE          scm_tc7_fvect
+#define ARRAYTYPE          scm_tc7_fvect
+#define ARRAYTYPE_OPTIONAL scm_tc7_dvect
+#define FLOATTYPE          float
+#define FLOATTYPE_OPTIONAL double
 #include "convert.i.c"
 
-#define CTYPE double
-#define SCM2CTYPES_FN "scm_c_scm2doubles"
-#define SCM2CTYPES scm_c_scm2doubles
-#define CTYPES2SCM_FN "scm_c_doubles2scm"
-#define CTYPES2SCM scm_c_doubles2scm
-#define CTYPES2UVECT_FN "scm_c_doubles2dvect"
-#define CTYPES2UVECT scm_c_doubles2dvect
-#define UVECTTYPE scm_tc7_dvect
-#define ARRAYTYPE1 scm_tc7_dvect
-#define ARRAYTYPE2 scm_tc7_fvect
-#define FLOATTYPE1 double
-#define FLOATTYPE2 float
+#define CTYPE              double
+#define SIZEOF_CTYPE       0
+#define SCM2CTYPES_FN      "scm_c_scm2doubles"
+#define SCM2CTYPES         scm_c_scm2doubles
+#define CTYPES2SCM_FN      "scm_c_doubles2scm"
+#define CTYPES2SCM         scm_c_doubles2scm
+#define CTYPES2UVECT_FN    "scm_c_doubles2dvect"
+#define CTYPES2UVECT       scm_c_doubles2dvect
+#define UVECTTYPE          scm_tc7_dvect
+#define ARRAYTYPE          scm_tc7_dvect
+#define ARRAYTYPE_OPTIONAL scm_tc7_fvect
+#define FLOATTYPE          double
+#define FLOATTYPE_OPTIONAL float
 #include "convert.i.c"
 
 /*

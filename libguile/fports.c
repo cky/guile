@@ -69,7 +69,8 @@ size_t fwrite ();
 #include <errno.h>
 
 #include "libguile/iselect.h"
-/* Some defines for Windows. */
+
+/* Some defines for Windows (native port, not Cygwin). */
 #ifdef __MINGW32__
 # include <sys/stat.h>
 # include <winsock2.h>
