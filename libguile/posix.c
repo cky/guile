@@ -256,7 +256,11 @@ SCM_DEFINE (scm_getgroups, "getgroups", 0, 0, 0,
 #ifdef HAVE_SETGROUPS
 SCM_DEFINE (scm_setgroups, "setgroups", 1, 0, 0,
             (SCM group_vec),
-	    "Set the supplementary group IDs to those found in the vector argument.")
+	    "Set the current set of supplementary group IDs to the integers\n"
+	    "in the given vector @var{vec}.  The return value is\n"
+	    "unspecified.\n"
+	    "\n"
+	    "Generally only the superuser can set the process group IDs.")
 #define FUNC_NAME s_scm_setgroups
 {
   size_t ngroups;
