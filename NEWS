@@ -868,7 +868,7 @@ The following macros have been removed: SCM_VECTOR_BASE,
 SCM_SET_VECTOR_BASE, SCM_MAKE_VECTOR_TAG, SCM_SET_VECTOR_LENGTH,
 SCM_VELTS_AS_STACKITEMS, SCM_SETVELTS, SCM_GC_WRITABLE_VELTS.
 
-** Some C functions related to arrays have been deprecated.
+** Some C functions and macros related to arrays have been deprecated.
 
 Migrate according to the following table:
 
@@ -879,6 +879,14 @@ Migrate according to the following table:
     scm_ra_set_contp    -> do not use
     scm_aind            -> scm_array_handle_pos
     scm_raprin1         -> scm_display or scm_write
+
+    SCM_ARRAYP          -> scm_is_array
+    SCM_ARRAY_NDIM      -> scm_c_array_rank
+    SCM_ARRAY_DIMS      -> scm_array_handle_dims
+    SCM_ARRAY_CONTP     -> do not use
+    SCM_ARRAY_MEM       -> do not use
+    SCM_ARRAY_V         -> scm_array_handle_elements or similar
+    SCM_ARRAY_BASE      -> do not use
 
 ** SCM_CELL_WORD_LOC has been deprecated.
 
