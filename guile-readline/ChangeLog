@@ -1,3 +1,8 @@
+1999-08-04  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* Makefile.am (INCLUDES): Added -I$(srcdir)/../libguile.
+	(Thanks to Greg Badros.)
+
 1999-07-24  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* readline.c (handle_error): Put a cosmetic newline on
