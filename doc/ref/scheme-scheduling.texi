@@ -280,21 +280,12 @@ The @code{#f} case has not been implemented.
 @section Threads
 @cindex threads
 @cindex Guile threads
+@cindex POSIX threads
 
-@strong{[NOTE: this chapter was written for Cygnus Guile and has not yet
-been updated for the Guile 1.x release.]}
-
-Here is a the reference for Guile's threads.  In this chapter I simply
-quote verbatim Tom Lord's description of the low-level primitives
-written in C (basically an interface to the POSIX threads library) and
-Anthony Green's description of the higher-level thread procedures
-written in scheme.
-@cindex posix threads
-@cindex Lord, Tom
-@cindex Green, Anthony
-
-When using Guile threads, keep in mind that each guile thread is
-executed in a new dynamic root.
+Guile threads are implemented using POSIX threads, they run
+pre-emptively and concurrently through both Scheme code and system
+calls.  The only exception is for garbage collection, where all
+threads must rendezvous.
 
 @menu
 * Low level thread primitives::  
@@ -449,6 +440,43 @@ not allowed or are inconvenient to use.
 Furthermore, they are the primitives that Guile relies on for its own
 higher level threads.  By reimplementing them, you can adapt Guile to
 different low-level thread implementations.
+
+C code in a thread must call a libguile function periodically.  When
+one thread finds garbage collection is required, it waits for all
+threads to rendezvous before doing that GC.  Such a rendezvous is
+checked within libguile functions.  If C code wants to sleep or block
+in a thread it should use one of the libguile functions provided.
+
+Only threads created by Guile can use the libguile functions.  Threads
+created directly with say @code{pthread_create} are unknown to Guile
+and they cannot call libguile.  The stack in such foreign threads is
+not scanned during GC, so @code{SCM} values generally cannot be held
+there.
+
+@c  FIXME:
+@c
+@c  Describe SCM_TICK which can be called if no other libguile
+@c  function is being used by a C function.
+@c
+@c  Describe "Guile mode", which a thread can enter and exit.  There
+@c  are no functions for doing this yet.
+@c
+@c  When in guile mode a thread can call libguile, is subject to the
+@c  tick rule, and its stack is scanned.  When not in guile mode it
+@c  cannot call libguile, it doesn't have to tick, and its stack is
+@c  not scanned.  The strange guile control flow things like
+@c  exceptions, continuations and asyncs only occur when in guile
+@c  mode.
+@c
+@c  When guile mode is exited, the portion of the stack allocated
+@c  while it was in guile mode is still scanned.  This portion may not
+@c  be modified when outside guile mode.  The stack ends up
+@c  partitioned into alternating guile and non-guile regions.
+@c
+@c  Leaving guile mode is convenient when running an extended
+@c  calculation not involving guile, since one doesn't need to worry
+@c  about SCM_TICK calls.
+
 
 @deftp {C Data Type} scm_t_thread
 This data type represents a thread, to be used with scm_thread_create,
