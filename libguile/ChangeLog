@@ -1,3 +1,10 @@
+2003-05-14  Han-Wen Nienhuys  <hanwen@cs.uu.nl>
+
+	* gc-malloc.c (scm_gc_register_collectable_memory): avoid
+	wrap-around for scm_mtrigger
+	(scm_gc_register_collectable_memory): abort on overflowing
+	scm_mallocated().
+
 2003-05-13  Kevin Ryde  <user42@zip.com.au>
 
 	* numbers.c (xmpz_cmp_d): New macro, handling infs if gmp doesn't.

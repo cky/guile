@@ -180,6 +180,11 @@ scm_strdup (const char *str)
 void
 scm_gc_register_collectable_memory (void *mem, size_t size, const char *what)
 {
+  if (ULONG_MAX - size < scm_mallocated)
+    {
+      scm_memory_error ("Overflow of scm_mallocated: too much memory in use.");
+    }
+
   scm_mallocated += size;
 
   /*
@@ -230,7 +235,12 @@ scm_gc_register_collectable_memory (void *mem, size_t size, const char *what)
 	  float no_overflow_trigger = scm_mallocated * 110.0;
 
 	  no_overflow_trigger /= (float)  (100.0 - scm_i_minyield_malloc);
-	  scm_mtrigger =  (unsigned long) no_overflow_trigger;
+
+	  
+	  if (no_overflow_trigger >= (float) ULONG_MAX)
+	    scm_mtrigger = ULONG_MAX;
+	  else
+	    scm_mtrigger =  (unsigned long) no_overflow_trigger;
 	  
 #ifdef DEBUGINFO
 	  fprintf (stderr, "Mtrigger sweep: ineffective. New trigger %d\n",
@@ -267,7 +277,6 @@ scm_gc_malloc (size_t size, const char *what)
      that it might call the GC twice, once in scm_malloc and then
      again in scm_gc_register_collectable_memory.  We don't really
      want the second GC since it will not find new garbage.
-
 
      Note: this is a theoretical peeve. In reality, malloc() never
      returns NULL. Usually, memory is overcommitted, and when you try
