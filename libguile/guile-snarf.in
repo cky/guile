@@ -107,7 +107,7 @@ cpp_ok_p=false
 temp="/tmp/snarf.$$"
 if [ x"$CPP" = x ] ; then cpp="@CPP@" ; else cpp="$CPP" ; fi
 
-trap "rm -f $temp $clean_infile" 0 1 2 15
+trap "rm -f $temp" 0 1 2 15
 
 if [ ! "$outfile" = "-" ]; then
     self_blind_regexp='^#include ".*'`basename $outfile`'"'
@@ -117,6 +117,7 @@ if [ ! "$outfile" = "-" ]; then
                                         # use .c to satisfy cpp heuristics.
 
     # clean input file
+    trap "rm -f $cleanfile" 0 1 2 15
     grep -v "$self_blind_regexp" $infile > $clean_infile
     modern_snarf "$@" $clean_infile > $outfile
 else
