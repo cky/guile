@@ -1,3 +1,9 @@
+2003-04-21  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* tests/sort.test: Added.  Both tests in that file did fail (one
+	even with a segfault) with CVS guile before the recent changes to
+	sort.c.
+
 2003-04-17  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* tests/goops.test: Added tests for correctness of class

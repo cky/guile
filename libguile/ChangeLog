@@ -1,3 +1,27 @@
+2003-04-23  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* sort.c: Replaced hand-made trampline code by the new official
+	mechanism from eval.c.  This fixes a segfault in the new test file
+	sort.test.
+
+	(quicksort, compare_function, scm_restricted_vector_sort_x,
+	scm_sorted_p, scm_merge, scm_merge_list_x, scm_merge_x,
+	scm_merge_list_step, scm_sort_x, scm_sort, scm_merge_vector_x,
+	scm_merge_vector_step, scm_stable_sort_x, scm_stable_sort,
+	scm_sort_list_x, scm_sort_list): Use trampoline mechanism from
+	eval.c.
+
+	(subr2less, lsubrless, closureless, applyless, scm_cmp_function,
+	cmp_fun_t): Removed.
+
+	(compare_function): Added.
+
+	* sort.c (quicksort, SWAP, stack_node): Replaced pointer
+	arithmetics with index arithmetics.  Changed quicksort to work on
+	an array of SCM values instead of an array of characters.  Avoid
+	bytewise copying of SCM elements.  Avoid allocating memory on the
+	stack with alloca.  Fixed some comments.
+
 2003-04-21  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* eval.c (EXTEND_ENV): Eliminated.

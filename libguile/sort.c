@@ -32,34 +32,8 @@
  * quicksort code.
  */
 
-/* We need this to get the definitions for HAVE_ALLOCA_H, etc.  */
-#if HAVE_CONFIG_H
-#  include <config.h>
-#endif
-
-/* do we still need this here? */
-#include "libguile/scmconfig.h"
-
-/* AIX requires this to be the first thing in the file.  The #pragma
-   directive is indented so pre-ANSI compilers will ignore it, rather
-   than choke on it.  */
-#ifndef __GNUC__
-# if HAVE_ALLOCA_H
-#  include <alloca.h>
-# else
-#  ifdef _AIX
- #pragma alloca
-#  else
-#   ifndef alloca /* predefined by HP cc +Olibcalls */
-char *alloca ();
-#   endif
-#  endif
-# endif
-#endif
-
 #include <string.h>
 #include "libguile/_scm.h"
-
 #include "libguile/eval.h"
 #include "libguile/unif.h"
 #include "libguile/ramap.h"
@@ -71,6 +45,7 @@ char *alloca ();
 
 #include "libguile/validate.h"
 #include "libguile/sort.h"
+
 
 /* The routine quicksort was extracted from the GNU C Library qsort.c
    written by Douglas C. Schmidt (schmidt@ics.uci.edu)
@@ -85,300 +60,225 @@ char *alloca ();
    version but doesn't consume extra memory.
  */
 
-/* Byte-wise swap two items of size SIZE. */
-#define SWAP(a, b, size)						      \
-  do									      \
-    {									      \
-      register size_t __size = (size);					      \
-      register char *__a = (a), *__b = (b);				      \
-      do								      \
-	{								      \
-	  char __tmp = *__a;						      \
-	  *__a++ = *__b;						      \
-	  *__b++ = __tmp;						      \
-	} while (--__size > 0);						      \
-    } while (0)
-
-/* Discontinue quicksort algorithm when partition gets below this size.
-   This particular magic number was chosen to work best on a Sun 4/260. */
-#define MAX_THRESH 4
-
-/* Stack node declarations used to store unfulfilled partition obligations. */
-typedef struct
-  {
-    char *lo;
-    char *hi;
-  }
-stack_node;
-
-/* The next 4 #defines implement a very fast in-line stack abstraction. */
-#define STACK_SIZE	(8 * sizeof(unsigned long int))
-#define PUSH(low, high)	((void) ((top->lo = (low)), (top->hi = (high)), ++top))
-#define	POP(low, high)	((void) (--top, (low = top->lo), (high = top->hi)))
-#define	STACK_NOT_EMPTY	(stack < top)
+#define SWAP(a, b) do { const SCM _tmp = a; a = b; b = _tmp; } while (0)
 
 
 /* Order size using quicksort.  This implementation incorporates
    four optimizations discussed in Sedgewick:
 
-   1. Non-recursive, using an explicit stack of pointer that store the
-   next array partition to sort.  To save time, this maximum amount
-   of space required to store an array of MAX_INT is allocated on the
-   stack.  Assuming a 32-bit integer, this needs only 32 *
-   sizeof(stack_node) == 136 bits.  Pretty cheap, actually.
+   1. Non-recursive, using an explicit stack of pointer that store the next
+   array partition to sort.  To save time, this maximum amount of space
+   required to store an array of MAX_SIZE_T is allocated on the stack.
+   Assuming a bit width of 32 bits for size_t, this needs only
+   32 * sizeof (stack_node) == 128 bytes.  Pretty cheap, actually.
 
-   2. Chose the pivot element using a median-of-three decision tree.
-   This reduces the probability of selecting a bad pivot value and
-   eliminates certain extraneous comparisons.
+   2. Chose the pivot element using a median-of-three decision tree.  This
+   reduces the probability of selecting a bad pivot value and eliminates
+   certain extraneous comparisons.
 
-   3. Only quicksorts TOTAL_ELEMS / MAX_THRESH partitions, leaving
-   insertion sort to order the MAX_THRESH items within each partition.
-   This is a big win, since insertion sort is faster for small, mostly
-   sorted array segments.
+   3. Only quicksorts NR_ELEMS / MAX_THRESH partitions, leaving insertion sort
+   to order the MAX_THRESH items within each partition.  This is a big win,
+   since insertion sort is faster for small, mostly sorted array segments.
 
    4. The larger of the two sub-partitions is always pushed onto the
    stack first, with the algorithm then concentrating on the
    smaller partition.  This *guarantees* no more than log (n)
    stack size is needed (actually O(1) in this case)!  */
 
-typedef int (*cmp_fun_t) (SCM less,
-			  const void*,
-			  const void*);
 
-static const char s_buggy_less[] = "buggy less predicate used when sorting";
+/* Discontinue quicksort algorithm when partition gets below this size.
+ * This particular magic number was chosen to work best on a Sun 4/260. */
+#define MAX_THRESH 4
+
+
+/* Inline stack abstraction:  The stack size for quicksorting at most as many
+ * elements as can be given by a value of type size_t is, as described above,
+ * log (MAX_SIZE_T), which is the number of bits of size_t.  More accurately,
+ * we would only need ceil (log (MAX_SIZE_T / MAX_THRESH)), but this is
+ * ignored below. */
+
+/* Stack node declarations used to store unfulfilled partition obligations. */
+typedef struct {
+    size_t lo;
+    size_t hi;
+} stack_node;
+
+#define STACK_SIZE       (8 * sizeof (size_t))  /* assume 8 bit char */
+#define PUSH(low, high)  ((void) ((top->lo = (low)), (top->hi = (high)), ++top))
+#define	POP(low, high)	 ((void) (--top, (low = top->lo), (high = top->hi)))
+#define	STACK_NOT_EMPTY	 (stack < top)
+
 
 static void
-quicksort (void *const pbase,
-	   size_t total_elems,
-	   size_t size,
-	   cmp_fun_t cmp,
-	   SCM less)
+quicksort (SCM *const base_ptr, size_t nr_elems, scm_t_trampoline_2 cmp, SCM less)
 {
-  register char *base_ptr = (char *) pbase;
+  static const char s_buggy_less[] = "buggy less predicate used when sorting";
 
-  /* Allocating SIZE bytes for a pivot buffer facilitates a better
-     algorithm below since we can do comparisons directly on the pivot. */
-  char *pivot_buffer = (char *) alloca (size);
-  const size_t max_thresh = MAX_THRESH * size;
-
-  if (total_elems == 0)
+  if (nr_elems == 0)
     /* Avoid lossage with unsigned arithmetic below.  */
     return;
 
-  if (total_elems > MAX_THRESH)
+  if (nr_elems > MAX_THRESH)
     {
-      char *lo = base_ptr;
-      char *hi = &lo[size * (total_elems - 1)];
-      /* Largest size needed for 32-bit int!!! */
+      size_t lo = 0;
+      size_t hi = nr_elems - 1;
+
       stack_node stack[STACK_SIZE];
       stack_node *top = stack + 1;
 
       while (STACK_NOT_EMPTY)
 	{
-	  char *left_ptr;
-	  char *right_ptr;
-
-	  char *pivot = pivot_buffer;
+	  size_t left;
+	  size_t right;
 
 	  /* Select median value from among LO, MID, and HI. Rearrange
 	     LO and HI so the three values are sorted. This lowers the
 	     probability of picking a pathological pivot value and
-	     skips a comparison for both the LEFT_PTR and RIGHT_PTR. */
+	     skips a comparison for both the left and right. */
 
-	  char *mid = lo + size * ((hi - lo) / size >> 1);
+	  size_t mid = lo + (hi - lo) / 2;
 
-	  if ((*cmp) (less, (void *) mid, (void *) lo))
-	    SWAP (mid, lo, size);
-	  if ((*cmp) (less, (void *) hi, (void *) mid))
-	    SWAP (mid, hi, size);
+	  if (!SCM_FALSEP ((*cmp) (less, base_ptr[mid], base_ptr[lo])))
+	    SWAP (base_ptr[mid], base_ptr[lo]);
+	  if (!SCM_FALSEP ((*cmp) (less, base_ptr[hi], base_ptr[mid])))
+	    SWAP (base_ptr[mid], base_ptr[hi]);
 	  else
 	    goto jump_over;
-	  if ((*cmp) (less, (void *) mid, (void *) lo))
-	    SWAP (mid, lo, size);
+	  if (!SCM_FALSEP ((*cmp) (less, base_ptr[mid], base_ptr[lo])))
+	    SWAP (base_ptr[mid], base_ptr[lo]);
 	jump_over:;
-	  memcpy (pivot, mid, size);
-	  pivot = pivot_buffer;
 
-	  left_ptr = lo + size;
-	  right_ptr = hi - size;
+	  left = lo + 1;
+	  right = hi - 1;
 
 	  /* Here's the famous ``collapse the walls'' section of quicksort.
 	     Gotta like those tight inner loops!  They are the main reason
 	     that this algorithm runs much faster than others. */
 	  do
 	    {
-	      while ((*cmp) (less, (void *) left_ptr, (void *) pivot))
+	      while (!SCM_FALSEP ((*cmp) (less, base_ptr[left], base_ptr[mid])))
 		{
-		  left_ptr += size;
+		  left++;
 		  /* The comparison predicate may be buggy */
-		  if (left_ptr > hi)
+		  if (left > hi)
 		    scm_misc_error (NULL, s_buggy_less, SCM_EOL);
 		}
 
-	      while ((*cmp) (less, (void *) pivot, (void *) right_ptr))
+	      while (!SCM_FALSEP ((*cmp) (less, base_ptr[mid], base_ptr[right])))
 		{
-		  right_ptr -= size;
+		  right--;
 		  /* The comparison predicate may be buggy */
-		  if (right_ptr < lo)
+		  if (right < lo)
 		    scm_misc_error (NULL, s_buggy_less, SCM_EOL);
 		}
 
-	      if (left_ptr < right_ptr)
+	      if (left < right)
 		{
-		  SWAP (left_ptr, right_ptr, size);
-		  left_ptr += size;
-		  right_ptr -= size;
+		  SWAP (base_ptr[left], base_ptr[right]);
+		  left++;
+		  right--;
 		}
-	      else if (left_ptr == right_ptr)
+	      else if (left == right)
 		{
-		  left_ptr += size;
-		  right_ptr -= size;
+		  left++;
+		  right--;
 		  break;
 		}
 	    }
-	  while (left_ptr <= right_ptr);
+	  while (left <= right);
 
 	  /* Set up pointers for next iteration.  First determine whether
 	     left and right partitions are below the threshold size.  If so,
 	     ignore one or both.  Otherwise, push the larger partition's
 	     bounds on the stack and continue sorting the smaller one. */
 
-	  if ((size_t) (right_ptr - lo) <= max_thresh)
+	  if ((size_t) (right - lo) <= MAX_THRESH)
 	    {
-	      if ((size_t) (hi - left_ptr) <= max_thresh)
+	      if ((size_t) (hi - left) <= MAX_THRESH)
 		/* Ignore both small partitions. */
 		POP (lo, hi);
 	      else
 		/* Ignore small left partition. */
-		lo = left_ptr;
+		lo = left;
 	    }
-	  else if ((size_t) (hi - left_ptr) <= max_thresh)
+	  else if ((size_t) (hi - left) <= MAX_THRESH)
 	    /* Ignore small right partition. */
-	    hi = right_ptr;
-	  else if ((right_ptr - lo) > (hi - left_ptr))
+	    hi = right;
+	  else if ((right - lo) > (hi - left))
 	    {
 	      /* Push larger left partition indices. */
-	      PUSH (lo, right_ptr);
-	      lo = left_ptr;
+	      PUSH (lo, right);
+	      lo = left;
 	    }
 	  else
 	    {
 	      /* Push larger right partition indices. */
-	      PUSH (left_ptr, hi);
-	      hi = right_ptr;
+	      PUSH (left, hi);
+	      hi = right;
 	    }
 	}
     }
 
-  /* Once the BASE_PTR array is partially sorted by quicksort the rest
-     is completely sorted using insertion sort, since this is efficient
-     for partitions below MAX_THRESH size. BASE_PTR points to the beginning
-     of the array to sort, and END_PTR points at the very last element in
-     the array (*not* one beyond it!). */
+  /* Once the BASE_PTR array is partially sorted by quicksort the rest is
+     completely sorted using insertion sort, since this is efficient for
+     partitions below MAX_THRESH size. BASE_PTR points to the beginning of the
+     array to sort, and END idexes the very last element in the array (*not*
+     one beyond it!). */
 
   {
-    char *const end_ptr = &base_ptr[size * (total_elems - 1)];
-    char *tmp_ptr = base_ptr;
-    char *thresh = min (end_ptr, base_ptr + max_thresh);
-    register char *run_ptr;
+    size_t tmp = 0;
+    size_t end = nr_elems - 1;
+    size_t thresh = min (end, MAX_THRESH);
+    size_t run;
 
     /* Find smallest element in first threshold and place it at the
        array's beginning.  This is the smallest array element,
        and the operation speeds up insertion sort's inner loop. */
 
-    for (run_ptr = tmp_ptr + size; run_ptr <= thresh; run_ptr += size)
-      if ((*cmp) (less, (void *) run_ptr, (void *) tmp_ptr))
-	tmp_ptr = run_ptr;
+    for (run = tmp + 1; run <= thresh; run++)
+      if (!SCM_FALSEP ((*cmp) (less, base_ptr[run], base_ptr[tmp])))
+	tmp = run;
 
-    if (tmp_ptr != base_ptr)
-      SWAP (tmp_ptr, base_ptr, size);
+    if (tmp != 0)
+      SWAP (base_ptr[tmp], base_ptr[0]);
 
     /* Insertion sort, running from left-hand-side up to right-hand-side.  */
 
-    run_ptr = base_ptr + size;
-    while ((run_ptr += size) <= end_ptr)
+    run = 1;
+    while (++run <= end)
       {
-	tmp_ptr = run_ptr - size;
-	while ((*cmp) (less, (void *) run_ptr, (void *) tmp_ptr))
+	tmp = run - 1;
+	while (!SCM_FALSEP ((*cmp) (less, base_ptr[run], base_ptr[tmp])))
 	  {
-	    tmp_ptr -= size;
 	    /* The comparison predicate may be buggy */
-	    if (tmp_ptr < base_ptr)
+	    if (tmp == 0)
 	      scm_misc_error (NULL, s_buggy_less, SCM_EOL);
+
+	    tmp--;
 	  }
 
-	tmp_ptr += size;
-	if (tmp_ptr != run_ptr)
+	tmp++;
+	if (tmp != run)
 	  {
-	    char *trav;
+            SCM to_insert = base_ptr[run];
+            size_t hi, lo;
 
-	    trav = run_ptr + size;
-	    while (--trav >= run_ptr)
-	      {
-		char c = *trav;
-		char *hi, *lo;
-
-		for (hi = lo = trav; (lo -= size) >= tmp_ptr; hi = lo)
-		  *hi = *lo;
-		*hi = c;
-	      }
+            for (hi = lo = run; --lo >= tmp; hi = lo)
+              base_ptr[hi] = base_ptr[lo];
+            base_ptr[hi] = to_insert;
 	  }
       }
   }
-}				/* quicksort */
+}
 
 
-/* comparison routines */
-
-static int 
-subr2less (SCM less, const void *a, const void *b)
+static scm_t_trampoline_2
+compare_function (SCM less, unsigned int arg_nr, const char* fname)
 {
-  return SCM_NFALSEP (SCM_SUBRF (less) (*(SCM *) a, *(SCM *) b));
-}				/* subr2less */
-
-static int 
-lsubrless (SCM less, const void *a, const void *b)
-{
-  return SCM_NFALSEP (SCM_SUBRF (less)
-		      (scm_cons (*(SCM *) a,
-				 scm_cons (*(SCM *) b, SCM_EOL))));
-}				/* lsubrless */
-
-static int 
-closureless (SCM code, const void *a, const void *b)
-{
-  SCM env = SCM_EXTEND_ENV (SCM_CLOSURE_FORMALS (code),
-			    scm_cons (*(SCM *) a,
-				      scm_cons (*(SCM *) b, SCM_EOL)),
-			    SCM_ENV (code));
-  /* Evaluate the closure body */
-  return !SCM_FALSEP (scm_eval_body (SCM_CLOSURE_BODY (code), env));
-}				/* closureless */
-
-static int 
-applyless (SCM less, const void *a, const void *b)
-{
-  return SCM_NFALSEP (scm_call_2 (less, *(SCM *) a, *(SCM *) b));
-}				/* applyless */
-
-static cmp_fun_t
-scm_cmp_function (SCM p)
-{
-  switch (SCM_TYP7 (p))
-    {
-    case scm_tc7_subr_2:
-    case scm_tc7_subr_2o:
-    case scm_tc7_rpsubr:
-    case scm_tc7_asubr:
-      return subr2less;
-    case scm_tc7_lsubr:
-      return lsubrless;
-    case scm_tcs_closures:
-      return closureless;
-    default:
-      return applyless;
-    }
-}				/* scm_cmp_function */
+  const scm_t_trampoline_2 cmp = scm_trampoline_2 (less);
+  SCM_ASSERT_TYPE (cmp != NULL, less, arg_nr, fname, "less predicate");
+  return cmp;
+}
 
 
 /* Question: Is there any need to make this a more general array sort?
@@ -394,12 +294,11 @@ SCM_DEFINE (scm_restricted_vector_sort_x, "restricted-vector-sort!", 4, 0, 0,
 	    "is not specified.")
 #define FUNC_NAME s_scm_restricted_vector_sort_x
 {
-  size_t  vlen, spos, len, size = sizeof (SCM);
+  const scm_t_trampoline_2 cmp = compare_function (less, 2, FUNC_NAME);
+  size_t  vlen, spos, len;
   SCM *vp;
 
   SCM_VALIDATE_VECTOR (1, vec);
-  SCM_VALIDATE_NIM (2, less);
-
   vp = SCM_WRITABLE_VELTS (vec);		/* vector pointer */
   vlen = SCM_VECTOR_LENGTH (vec);
 
@@ -408,12 +307,13 @@ SCM_DEFINE (scm_restricted_vector_sort_x, "restricted-vector-sort!", 4, 0, 0,
   SCM_VALIDATE_INUM_RANGE (4, endpos,0, vlen+1);
   len = SCM_INUM (endpos) - spos;
 
-  quicksort (&vp[spos], len, size, scm_cmp_function (less), less);
+  quicksort (&vp[spos], len, cmp, less);
+  scm_remember_upto_here_1 (vec);
   
-  return scm_return_first (SCM_UNSPECIFIED, vec);
-  /* return vec; */
+  return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
+
 
 /* (sorted? sequence less?)
  * is true when sequence is a list (x0 x1 ... xm) or a vector #(x0 ... xm)
@@ -426,15 +326,13 @@ SCM_DEFINE (scm_sorted_p, "sorted?", 2, 0, 0,
 	    "applied to all elements i - 1 and i")
 #define FUNC_NAME s_scm_sorted_p
 {
+  const scm_t_trampoline_2 cmp = compare_function (less, 2, FUNC_NAME);
   long len, j;			/* list/vector length, temp j */
   SCM item, rest;		/* rest of items loop variable */
   SCM const *vp;
-  cmp_fun_t cmp = scm_cmp_function (less);
 
   if (SCM_NULL_OR_NIL_P (items))
     return SCM_BOOL_T;
-
-  SCM_VALIDATE_NIM (2, less);
 
   if (SCM_CONSP (items))
     {
@@ -448,7 +346,7 @@ SCM_DEFINE (scm_sorted_p, "sorted?", 2, 0, 0,
       j = len - 1;
       while (j > 0)
 	{
-	  if ((*cmp) (less, SCM_CARLOC(rest), &item))
+	  if (!SCM_FALSEP ((*cmp) (less, SCM_CAR (rest), item)))
 	    return SCM_BOOL_F;
 	  else
 	    {
@@ -468,7 +366,7 @@ SCM_DEFINE (scm_sorted_p, "sorted?", 2, 0, 0,
       j = len - 1;
       while (j > 0)
 	{
-	  if ((*cmp) (less, &vp[1], vp))
+	  if (!SCM_FALSEP ((*cmp) (less, vp[1], vp[0])))
 	    return SCM_BOOL_F;
 	  else
 	    {
@@ -482,6 +380,7 @@ SCM_DEFINE (scm_sorted_p, "sorted?", 2, 0, 0,
   return SCM_BOOL_F;
 }
 #undef FUNC_NAME
+
 
 /* (merge a b less?)
    takes two lists a and b such that (sorted? a less?) and (sorted? b less?)
@@ -499,10 +398,7 @@ SCM_DEFINE (scm_merge, "merge", 3, 0, 0,
 	    "Note:  this does _not_ accept vectors.")
 #define FUNC_NAME s_scm_merge
 {
-  long alen, blen;		/* list lengths */
-  SCM build, last;
-  cmp_fun_t cmp = scm_cmp_function (less);
-  SCM_VALIDATE_NIM (3, less);
+  SCM build;
 
   if (SCM_NULL_OR_NIL_P (alist))
     return blist;
@@ -510,9 +406,13 @@ SCM_DEFINE (scm_merge, "merge", 3, 0, 0,
     return alist;
   else
     {
+      const scm_t_trampoline_2 cmp = compare_function (less, 3, FUNC_NAME);
+      long alen, blen;		/* list lengths */
+      SCM last;
+
       SCM_VALIDATE_NONEMPTYLIST_COPYLEN (1, alist, alen);
       SCM_VALIDATE_NONEMPTYLIST_COPYLEN (2, blist, blen);
-      if ((*cmp) (less, SCM_CARLOC (blist), SCM_CARLOC (alist)))
+      if (!SCM_FALSEP ((*cmp) (less, SCM_CAR (blist), SCM_CAR (alist))))
 	{
 	  build = scm_cons (SCM_CAR (blist), SCM_EOL);
 	  blist = SCM_CDR (blist);
@@ -527,7 +427,7 @@ SCM_DEFINE (scm_merge, "merge", 3, 0, 0,
       last = build;
       while ((alen > 0) && (blen > 0))
 	{
-	  if ((*cmp) (less, SCM_CARLOC (blist), SCM_CARLOC (alist)))
+	  if (!SCM_FALSEP ((*cmp) (less, SCM_CAR (blist), SCM_CAR (alist))))
 	    {
 	      SCM_SETCDR (last, scm_cons (SCM_CAR (blist), SCM_EOL));
 	      blist = SCM_CDR (blist);
@@ -554,7 +454,7 @@ SCM_DEFINE (scm_merge, "merge", 3, 0, 0,
 static SCM 
 scm_merge_list_x (SCM alist, SCM blist,
 		  long alen, long blen,
-		  cmp_fun_t cmp, SCM less)
+		  scm_t_trampoline_2 cmp, SCM less)
 {
   SCM build, last;
 
@@ -564,7 +464,7 @@ scm_merge_list_x (SCM alist, SCM blist,
     return alist;
   else
     {
-      if ((*cmp) (less, SCM_CARLOC (blist), SCM_CARLOC (alist)))
+      if (!SCM_FALSEP ((*cmp) (less, SCM_CAR (blist), SCM_CAR (alist))))
 	{
 	  build = blist;
 	  blist = SCM_CDR (blist);
@@ -579,7 +479,7 @@ scm_merge_list_x (SCM alist, SCM blist,
       last = build;
       while ((alen > 0) && (blen > 0))
 	{
-	  if ((*cmp) (less, SCM_CARLOC (blist), SCM_CARLOC (alist)))
+	  if (!SCM_FALSEP ((*cmp) (less, SCM_CAR (blist), SCM_CAR (alist))))
 	    {
 	      SCM_SETCDR (last, blist);
 	      blist = SCM_CDR (blist);
@@ -601,6 +501,7 @@ scm_merge_list_x (SCM alist, SCM blist,
   return build;
 }				/* scm_merge_list_x */
 
+
 SCM_DEFINE (scm_merge_x, "merge!", 3, 0, 0, 
             (SCM alist, SCM blist, SCM less),
 	    "Takes two lists @var{alist} and @var{blist} such that\n"
@@ -612,24 +513,21 @@ SCM_DEFINE (scm_merge_x, "merge!", 3, 0, 0,
 	    "Note:  this does _not_ accept vectors.")
 #define FUNC_NAME s_scm_merge_x
 {
-  long alen, blen;		/* list lengths */
-
-  SCM_VALIDATE_NIM (3, less);
   if (SCM_NULL_OR_NIL_P (alist))
     return blist;
   else if (SCM_NULL_OR_NIL_P (blist))
     return alist;
   else
     {
+      const scm_t_trampoline_2 cmp = compare_function (less, 3, FUNC_NAME);
+      long alen, blen;		/* list lengths */
       SCM_VALIDATE_NONEMPTYLIST_COPYLEN (1, alist, alen);
       SCM_VALIDATE_NONEMPTYLIST_COPYLEN (2, blist, blen);
-      return scm_merge_list_x (alist, blist,
-			       alen, blen,
-			       scm_cmp_function (less),
-			       less);
+      return scm_merge_list_x (alist, blist, alen, blen, cmp, less);
     }
 }
 #undef FUNC_NAME
+
 
 /* This merge sort algorithm is same as slib's by Richard A. O'Keefe.
    The algorithm is stable. We also tried to use the algorithm used by
@@ -637,10 +535,7 @@ SCM_DEFINE (scm_merge_x, "merge!", 3, 0, 0,
    though it claimed to be.
 */
 static SCM 
-scm_merge_list_step (SCM * seq,
-		     cmp_fun_t cmp,
-		     SCM less,
-		     long n)
+scm_merge_list_step (SCM * seq, scm_t_trampoline_2 cmp, SCM less, long n)
 {
   SCM a, b;
 
@@ -659,7 +554,7 @@ scm_merge_list_step (SCM * seq,
       SCM y = SCM_CAR (SCM_CDR (*seq));
       *seq = SCM_CDR (rest);
       SCM_SETCDR (rest, SCM_EOL);
-      if ((*cmp) (less, &y, &x))
+      if (!SCM_FALSEP ((*cmp) (less, y, x)))
 	{
 	  SCM_SETCAR (p, y);
 	  SCM_SETCAR (rest, x);
@@ -678,7 +573,6 @@ scm_merge_list_step (SCM * seq,
 }				/* scm_merge_list_step */
 
 
-/* scm_sort_x manages lists and vectors, not stable sort */
 SCM_DEFINE (scm_sort_x, "sort!", 2, 0, 0, 
             (SCM items, SCM less),
 	    "Sort the sequence @var{items}, which may be a list or a\n"
@@ -692,12 +586,11 @@ SCM_DEFINE (scm_sort_x, "sort!", 2, 0, 0,
   if (SCM_NULL_OR_NIL_P (items))
     return items;
 
-  SCM_VALIDATE_NIM (2, less);
-
   if (SCM_CONSP (items))
     {
+      const scm_t_trampoline_2 cmp = compare_function (less, 2, FUNC_NAME);
       SCM_VALIDATE_LIST_COPYLEN (1, items, len);
-      return scm_merge_list_step (&items, scm_cmp_function (less), less, len);
+      return scm_merge_list_step (&items, cmp, less, len);
     }
   else if (SCM_VECTORP (items))
     {
@@ -713,7 +606,6 @@ SCM_DEFINE (scm_sort_x, "sort!", 2, 0, 0,
 }
 #undef FUNC_NAME
 
-/* scm_sort manages lists and vectors, not stable sort */
 
 SCM_DEFINE (scm_sort, "sort", 2, 0, 0, 
             (SCM items, SCM less),
@@ -725,14 +617,14 @@ SCM_DEFINE (scm_sort, "sort", 2, 0, 0,
   if (SCM_NULL_OR_NIL_P (items))
     return items;
 
-  SCM_VALIDATE_NIM (2, less);
   if (SCM_CONSP (items))
     {
+      const scm_t_trampoline_2 cmp = compare_function (less, 2, FUNC_NAME);
       long len;
   
       SCM_VALIDATE_LIST_COPYLEN (1, items, len);
       items = scm_list_copy (items);
-      return scm_merge_list_step (&items, scm_cmp_function (less), less, len);
+      return scm_merge_list_step (&items, cmp, less, len);
     }
 #if SCM_HAVE_ARRAYS
   /* support ordinary vectors even if arrays not available?  */
@@ -754,10 +646,11 @@ SCM_DEFINE (scm_sort, "sort", 2, 0, 0,
 }
 #undef FUNC_NAME
 
+
 static void
 scm_merge_vector_x (SCM vec,
 		    SCM * temp,
-		    cmp_fun_t cmp,
+		    scm_t_trampoline_2 cmp,
 		    SCM less,
 		    long low,
 		    long mid,
@@ -778,7 +671,7 @@ scm_merge_vector_x (SCM vec,
        */
       register SCM *vp = SCM_WRITABLE_VELTS(vec);
       
-      if ((*cmp) (less, &vp[i2], &vp[i1]))
+      if (!SCM_FALSEP ((*cmp) (less, vp[i2], vp[i1])))
 	temp[it] = vp[i2++];
       else
 	temp[it] = vp[i1++];
@@ -801,10 +694,11 @@ scm_merge_vector_x (SCM vec,
   }
 } 	        		/* scm_merge_vector_x */
 
+
 static void
 scm_merge_vector_step (SCM vp,
 		       SCM * temp,
-		       cmp_fun_t cmp,
+		       scm_t_trampoline_2 cmp,
 		       SCM less,
 		       long low,
 		       long high)
@@ -819,8 +713,6 @@ scm_merge_vector_step (SCM vp,
 }				/* scm_merge_vector_step */
 
 
-/* stable-sort! manages lists and vectors */
-
 SCM_DEFINE (scm_stable_sort_x, "stable-sort!", 2, 0, 0, 
             (SCM items, SCM less),
 	    "Sort the sequence @var{items}, which may be a list or a\n"
@@ -830,16 +722,16 @@ SCM_DEFINE (scm_stable_sort_x, "stable-sort!", 2, 0, 0,
 	    "This is a stable sort.")
 #define FUNC_NAME s_scm_stable_sort_x
 {
+  const scm_t_trampoline_2 cmp = compare_function (less, 2, FUNC_NAME);
   long len;			/* list/vector length */
 
   if (SCM_NULL_OR_NIL_P (items))
     return items;
 
-  SCM_VALIDATE_NIM (2, less);
   if (SCM_CONSP (items))
     {
       SCM_VALIDATE_LIST_COPYLEN (1, items, len);
-      return scm_merge_list_step (&items, scm_cmp_function (less), less, len);
+      return scm_merge_list_step (&items, cmp, less, len);
     }
   else if (SCM_VECTORP (items))
     {
@@ -852,12 +744,7 @@ SCM_DEFINE (scm_stable_sort_x, "stable-sort!", 2, 0, 0,
       */
       temp = scm_malloc (len * sizeof(SCM));
 
-      scm_merge_vector_step (items,
-			     temp,
-			     scm_cmp_function (less),
-			     less,
-			     0,
-			     len - 1);
+      scm_merge_vector_step (items, temp, cmp, less, 0, len - 1);
       free(temp);
       return items;
     }
@@ -866,7 +753,7 @@ SCM_DEFINE (scm_stable_sort_x, "stable-sort!", 2, 0, 0,
 }
 #undef FUNC_NAME
 
-/* stable_sort manages lists and vectors */
+
 SCM_DEFINE (scm_stable_sort, "stable-sort", 2, 0, 0, 
             (SCM items, SCM less),
 	    "Sort the sequence @var{items}, which may be a list or a\n"
@@ -874,17 +761,18 @@ SCM_DEFINE (scm_stable_sort, "stable-sort", 2, 0, 0,
 	    "This is a stable sort.")
 #define FUNC_NAME s_scm_stable_sort
 {
+  const scm_t_trampoline_2 cmp = compare_function (less, 2, FUNC_NAME);
 
   if (SCM_NULL_OR_NIL_P (items))
     return items;
 
-  SCM_VALIDATE_NIM (2, less);
   if (SCM_CONSP (items))
     {
       long len;			/* list/vector length */      
+  
       SCM_VALIDATE_LIST_COPYLEN (1, items, len);
       items = scm_list_copy (items);
-      return scm_merge_list_step (&items, scm_cmp_function (less), less, len);
+      return scm_merge_list_step (&items, cmp, less, len);
     }
 #if SCM_HAVE_ARRAYS
   /* support ordinary vectors even if arrays not available?  */
@@ -895,12 +783,7 @@ SCM_DEFINE (scm_stable_sort, "stable-sort", 2, 0, 0,
       SCM retvec = scm_make_uve (len, scm_array_prototype (items));
       scm_array_copy_x (items, retvec);
 
-      scm_merge_vector_step (retvec,
-			     temp,
-			     scm_cmp_function (less),
-			     less,
-			     0,
-			     len - 1);
+      scm_merge_vector_step (retvec, temp, cmp, less, 0, len - 1);
       free (temp);
       return retvec;
     }
@@ -910,7 +793,7 @@ SCM_DEFINE (scm_stable_sort, "stable-sort", 2, 0, 0,
 }
 #undef FUNC_NAME
 
-/* stable */
+
 SCM_DEFINE (scm_sort_list_x, "sort-list!", 2, 0, 0, 
             (SCM items, SCM less),
 	    "Sort the list @var{items}, using @var{less} for comparing the\n"
@@ -919,27 +802,30 @@ SCM_DEFINE (scm_sort_list_x, "sort-list!", 2, 0, 0,
 	    "This is a stable sort.")
 #define FUNC_NAME s_scm_sort_list_x
 {
+  const scm_t_trampoline_2 cmp = compare_function (less, 2, FUNC_NAME);
   long len;
+
   SCM_VALIDATE_LIST_COPYLEN (1, items, len);
-  SCM_VALIDATE_NIM (2, less);
-  return scm_merge_list_step (&items, scm_cmp_function (less), less, len);
+  return scm_merge_list_step (&items, cmp, less, len);
 }
 #undef FUNC_NAME
 
-/* stable */
+
 SCM_DEFINE (scm_sort_list, "sort-list", 2, 0, 0, 
 	    (SCM items, SCM less),
 	    "Sort the list @var{items}, using @var{less} for comparing the\n"
 	    "list elements. This is a stable sort.")
 #define FUNC_NAME s_scm_sort_list
 {
+  const scm_t_trampoline_2 cmp = compare_function (less, 2, FUNC_NAME);
   long len;
+
   SCM_VALIDATE_LIST_COPYLEN (1, items, len);
-  SCM_VALIDATE_NIM (2, less);
   items = scm_list_copy (items);
-  return scm_merge_list_step (&items, scm_cmp_function (less), less, len);
+  return scm_merge_list_step (&items, cmp, less, len);
 }
 #undef FUNC_NAME
+
 
 void
 scm_init_sort ()
