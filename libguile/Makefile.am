@@ -88,7 +88,7 @@ DOT_DOC_FILES = alist.doc arbiters.doc async.doc backtrace.doc		    \
 EXTRA_DOT_DOC_FILES = @EXTRA_DOT_DOC_FILES@
 
 BUILT_SOURCES = cpp_err_symbols.c cpp_sig_symbols.c libpath.h scmconfig.h \
-    $(DOT_X_FILES) $(EXTRA_DOT_X_FILES)
+    $(DOT_X_FILES) $(EXTRA_DOT_X_FILES) guile.texi
 
 EXTRA_libguile_la_SOURCES = _scm.h			\
     alloca.c inet_aton.c memmove.c putenv.c strerror.c	\
@@ -207,10 +207,14 @@ posix.x: cpp_sig_symbols.c
 load.x: libpath.h
 
 guile.texi: $(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES) guile-snarf-docs-texi.in guile
+	cat $(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES) | ./guile-snarf-docs-texi --manual > $@ \
+	|| { rm $@; false; }
+
+guile-procedures.texi: $(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES) guile-snarf-docs-texi.in guile
 	cat $(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES) | ./guile-snarf-docs-texi > $@ \
 	|| { rm $@; false; }
 
-guile-procedures.txt: guile.texi
+guile-procedures.txt: guile-procedures.texi
 	rm -f $@
 	makeinfo --force -o $@ $< || test -f $@
 
@@ -268,6 +272,6 @@ MOSTLYCLEANFILES = \
 	cpp_err_symbols_here cpp_err_symbols_diff cpp_err_symbols_new \
 	cpp_sig_symbols_here cpp_sig_symbols_diff cpp_sig_symbols_new
 
-CLEANFILES = libpath.h *.x *.doc guile-procedures.txt guile.texi
+CLEANFILES = libpath.h *.x *.doc guile-procedures.txt guile-procedures.texi guile.texi
 
 MAINTAINERCLEANFILES = c-tokenize.c

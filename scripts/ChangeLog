@@ -1,3 +1,21 @@
+2001-11-16  Neil Jerram  <neil@ossau.uklinux.net>
+
+	These changes add a @deffnx C function declaration and function
+	index entries for each Guile primitive to the copy of the doc
+	snarf output that is used for reference manual synchronization.
+	Online help is unchanged.
+	
+	* snarf-check-and-output-texi (*manual-flag*,
+	snarf-check-and-output-texi): Handle `--manual' invocation arg
+	passed through from libguile/Makefile.am.
+	(*c-function-name*, begin-multiline, do-command): Pick out C
+	function name from snarfed token stream.
+	(end-multiline): Add @deffnx C declaration and function index
+	entries to output.
+	(*primitive-deffnx-signature*, *primitive-deffnx-sig-length*):
+	Fluff to help insert the C declaration after any "@deffnx
+	primitive" lines in the snarfed docstring.
+	
 2001-10-05  Thien-Thi Nguyen  <ttn@glug.org>
 
 	* read-scheme-source (quoted?, clump): New procs, exported.

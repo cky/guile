@@ -1,3 +1,23 @@
+2001-11-16  Neil Jerram  <neil@ossau.uklinux.net>
+
+	These changes add a @deffnx C function declaration and function
+	index entries for each Guile primitive to the copy of the doc
+	snarf output that is used for reference manual synchronization.
+	Online help is unchanged.
+	
+	* snarf.h (SCM_SNARF_DOCS): Output primitive's C function name.
+	(SCM_DEFINE, SCM_DEFINE1, SCM_REGISTER_PROC): Supply to C function
+	name to SCM_SNARF_DOCS.
+	
+	* guile-snarf-docs-texi.in: Pass the shell script's arguments into
+	snarf-check-and-output-texi.
+
+	* Makefile.am (guile-procedures.texi): New rule.
+	(BUILT_SOURCES, guile.texi, guile-procedures.txt, CLEANFILES):
+	Changed so that the last stage of doc snarfing is now performed
+	twice, once to produce guile-procedures.txt for online help, and
+	once to produce guile.texi for reference manual synchronization.
+
 2001-11-15  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* eval.c (RETURN):  Wrap in do{}while(0) in order to make it
