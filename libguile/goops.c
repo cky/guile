@@ -466,6 +466,8 @@ SCM_DEFINE (scm_sys_initialize_object, "%initialize-object", 2, 0, 0,
 
 
 SCM_KEYWORD (k_class, "class");
+SCM_KEYWORD (k_allocation, "allocation");
+SCM_KEYWORD (k_instance, "instance");
 
 SCM_DEFINE (scm_sys_prep_layout_x, "%prep-layout!", 1, 0, 0,
 	    (SCM class),
@@ -492,14 +494,23 @@ SCM_DEFINE (scm_sys_prep_layout_x, "%prep-layout!", 1, 0, 0,
   for (i = 0; i < n; i += 2)
     {
       long len;
-      SCM type;
+      SCM type, allocation;
       char p, a;
 
       if (!SCM_CONSP (slots))
 	SCM_MISC_ERROR ("too few slot definitions", SCM_EOL);
       len = scm_ilength (SCM_CDAR (slots));
-      type = scm_i_get_keyword (k_class, SCM_CDAR (slots), len, SCM_BOOL_F,
-				FUNC_NAME);
+      allocation = scm_i_get_keyword (k_allocation, SCM_CDAR (slots),
+				      len, k_instance, FUNC_NAME);
+      while (!SCM_EQ_P (allocation, k_instance))
+	{
+	  slots = SCM_CDR (slots);
+	  len = scm_ilength (SCM_CDAR (slots));
+	  allocation = scm_i_get_keyword (k_allocation, SCM_CDAR (slots),
+					  len, k_instance, FUNC_NAME);
+	}
+      type = scm_i_get_keyword (k_class, SCM_CDAR (slots),
+				len, SCM_BOOL_F, FUNC_NAME);
       if (SCM_FALSEP (type))
 	{
 	  p = 'p';
