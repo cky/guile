@@ -1,5 +1,10 @@
 2000-07-26  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* gc.c (scm_gc_sweep):  Renamed local variable from 'free' to
+	'free_struct_data' to avoid confusion with stdlib's 'free'.
+
+2000-07-26  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* vectors.c (scm_make_vector):  Fix the initialization order of
 	the vector such that the type cell is initialized last.
 

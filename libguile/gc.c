@@ -1480,9 +1480,9 @@ scm_gc_sweep ()
 		    if (vtable_data [scm_vtable_index_vcell] == 0
 			|| vtable_data [scm_vtable_index_vcell] == 1)
 		      {
-			scm_struct_free_t free
+			scm_struct_free_t free_struct_data
 			  = (scm_struct_free_t) vtable_data[scm_struct_i_free];
-			m += free (vtable_data, (scm_bits_t *) SCM_UNPACK (SCM_GCCDR (scmptr)));
+			m += free_struct_data (vtable_data, (scm_bits_t *) SCM_UNPACK (SCM_GCCDR (scmptr)));
 		      }
 		  }
 	      }
