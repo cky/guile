@@ -1,5 +1,10 @@
 2000-04-21  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
+	* numbers.c (scm_odd_p, scm_even_p): Use SCM_WRONG_TYPE_ARG
+	instead of SCM_ASSERT (0, ...).  (Some compilers will complain
+	about control reaching end of function otherwise, and, besides,
+	the new code is not less clear.)
+
 	* gc.c (scm_must_malloc, scm_must_realloc, scm_must_free): Added
 	calls to malloc debugging functions. 
 
