@@ -473,6 +473,49 @@ SCM_DEFINE (scm_srfi1_delete_duplicates_x, "delete-duplicates!", 1, 1, 0,
 #undef FUNC_NAME
 
 
+SCM_DEFINE (scm_srfi1_find, "find", 2, 0, 0,
+            (SCM pred, SCM lst),
+	    "Return the first element of @var{lst} which satisfies the\n"
+	    "predicate @var{pred}, or return @code{#f} if no such element is\n"
+	    "found.")
+#define FUNC_NAME s_scm_srfi1_find
+{
+  scm_t_trampoline_1 pred_tramp = scm_trampoline_1 (pred);
+  SCM_ASSERT (pred_tramp, pred, SCM_ARG1, FUNC_NAME);
+
+  for ( ; scm_is_pair (lst); lst = SCM_CDR (lst))
+    {
+      SCM elem = SCM_CAR (lst);
+      if (scm_is_true (pred_tramp (pred, elem)))
+        return elem;
+    }
+  SCM_ASSERT_TYPE (SCM_NULL_OR_NIL_P (lst), lst, SCM_ARG2, FUNC_NAME, "list");
+
+  return SCM_BOOL_F;
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_srfi1_find_tail, "find-tail", 2, 0, 0,
+            (SCM pred, SCM lst),
+	    "Return the first pair of @var{lst} whose @sc{car} satisfies the\n"
+	    "predicate @var{pred}, or return @code{#f} if no such element is\n"
+	    "found.")
+#define FUNC_NAME s_scm_srfi1_find_tail
+{
+  scm_t_trampoline_1 pred_tramp = scm_trampoline_1 (pred);
+  SCM_ASSERT (pred_tramp, pred, SCM_ARG1, FUNC_NAME);
+
+  for ( ; scm_is_pair (lst); lst = SCM_CDR (lst))
+    if (scm_is_true (pred_tramp (pred, SCM_CAR (lst))))
+      return lst;
+  SCM_ASSERT_TYPE (SCM_NULL_OR_NIL_P (lst), lst, SCM_ARG2, FUNC_NAME, "list");
+
+  return SCM_BOOL_F;
+}
+#undef FUNC_NAME
+
+
 SCM_DEFINE (scm_srfi1_length_plus, "length+", 1, 0, 0,
             (SCM lst),
 	    "Return the length of @var{lst}, or @code{#f} if @var{lst} is\n"

@@ -578,20 +578,6 @@
 
 ;;; Searching
 
-(define (find pred clist)
-  (if (null? clist)
-    #f
-    (if (pred (car clist))
-      (car clist)
-      (find pred (cdr clist)))))
-
-(define (find-tail pred clist)
-  (if (null? clist)
-    #f
-    (if (pred (car clist))
-      clist
-      (find-tail pred (cdr clist)))))
-
 (define (take-while pred ls)
   (cond ((null? ls) '())
         ((not (pred (car ls))) '())
