@@ -5007,14 +5007,24 @@ SCM_DEFINE (scm_round_number, "round", 1, 0, 0,
 	    "round towards the even one.")
 #define FUNC_NAME s_scm_round_number
 {
-  SCM plus_half = scm_sum (x, exactly_one_half);
-  SCM result = scm_floor (plus_half);
-  /* Adjust so that the scm_round is towards even.  */
-  if (!SCM_FALSEP (scm_num_eq_p (plus_half, result))
-      && !SCM_FALSEP (scm_odd_p (result)))
-    return scm_difference (result, SCM_MAKINUM (1));
+  if (SCM_INUMP (x) || SCM_BIGP (x))
+    return x;
+  else if (SCM_REALP (x))
+    return scm_make_real (scm_round (SCM_REAL_VALUE (x)));
   else
-    return result;
+    {
+      /* OPTIMIZE-ME: Fraction case could be done more efficiently by a
+         single quotient+remainder division then examining to see which way
+         the rounding should go.  */
+      SCM plus_half = scm_sum (x, exactly_one_half);
+      SCM result = scm_floor (plus_half);
+      /* Adjust so that the scm_round is towards even.  */
+      if (!SCM_FALSEP (scm_num_eq_p (plus_half, result))
+          && !SCM_FALSEP (scm_odd_p (result)))
+        return scm_difference (result, SCM_MAKINUM (1));
+      else
+        return result;
+    }
 }
 #undef FUNC_NAME
 
