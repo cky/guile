@@ -1,4 +1,4 @@
-/* Copyright (C) 1999,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1999,2000,2001, 2003 Free Software Foundation, Inc.
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2, or (at your option)
@@ -265,6 +265,21 @@ scm_c_random (scm_t_rstate *state, unsigned long m)
   return r;
 }
 
+/*
+  SCM scm_c_random_bignum (scm_t_rstate *state, SCM m)
+
+  Takes a random state (source of random bits) and a bignum m.
+  Returns a bignum b, 0 <= b < m.
+
+  It does this by allocating a bignum b with as many base 65536 digits
+  as m, filling b with random bits (in 32 bit chunks) up to the most
+  significant 1 in m, and, finally checking if the resultant b is too
+  large (>= m).  If too large, we simply repeat the process again.  (It
+  is important to throw away all generated random bits if b >= m,
+  otherwise we'll end up with a distorted distribution.)
+
+*/
+
 SCM
 scm_c_random_bignum (scm_t_rstate *state, SCM m)
 {
@@ -272,7 +287,10 @@ scm_c_random_bignum (scm_t_rstate *state, SCM m)
   int i, nd;
   LONG32 *bits, mask, w;
   nd = SCM_NUMDIGS (m);
-  /* calculate mask for most significant digit */
+  /* Compute a 32-bit bitmask for use when filling bits into the most
+     significant long word in b's bit space.  A combination of
+     conditionals and an 8-bit lookup table (scm_masktab) is used.
+  */
 #if SIZEOF_INT == 4
   /* 16 bit digits */
   if (nd & 1)
@@ -298,12 +316,13 @@ scm_c_random_bignum (scm_t_rstate *state, SCM m)
 		 ? scm_masktab[w >> 16] << 16 | 0xffff
 		 : scm_masktab[w >> 24] << 24 | 0xffffff));
     }
+  /* allocate b and assign the bit space address to the variable "bits" */
   b = scm_i_mkbig (nd, 0);
   bits = (LONG32 *) SCM_BDIGITS (b);
   do
     {
       i = nd;
-      /* treat most significant digit specially */
+      /* generate the most significant bits using the mask */
 #if SIZEOF_INT == 4
       /* 16 bit digits */
       if (i & 1)
@@ -328,9 +347,13 @@ scm_c_random_bignum (scm_t_rstate *state, SCM m)
       /* now fill up the rest of the bignum */
       while (i)
 	bits[--i] = scm_the_rng.random_bits (state);
+      /* use scm_i_normbig to cut away leading zeros and/or convert to inum */
       b = scm_i_normbig (b);
       if (SCM_INUMP (b))
 	return b;
+      /* if b >= m, regenerate b (it is important to regenerates all
+	 bits in order not to get a distorted distribution)
+      */
     } while (scm_bigcomp (b, m) <= 0);
   return b;
 }
