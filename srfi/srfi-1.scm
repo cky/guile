@@ -567,14 +567,11 @@
 
 ;;; Filtering & partitioning
 
-(define (remove pred list)
-  (filter (lambda (x) (not (pred x))) list))
-
 (define (partition! pred list)
   (partition pred list))		; XXX:optimize
 
 (define (remove! pred list)
-  (remove pred list))			; XXX:optimize
+  (filter! (lambda (x) (not (pred x))) list))
 
 ;;; Searching
 
