@@ -62,13 +62,13 @@ free_var (obj)
 
 #ifdef __STDC__
 static int
-prin_var (SCM exp, SCM port, int writing)
+prin_var (SCM exp, SCM port, scm_print_state *pstate)
 #else
 static int
-prin_var (exp, port, writing)
+prin_var (exp, port, pstate)
      SCM exp;
      SCM port;
-     int writing;
+     scm_print_state *pstate;
 #endif
 {
   scm_gen_puts (scm_regular_string, "#<variable ", port);
@@ -79,10 +79,10 @@ prin_var (exp, port, writing)
     if (SCM_CAR (val_cell) != SCM_UNDEFINED)
       {
 	scm_gen_puts (scm_regular_string, " name: ", port);
-	scm_iprin1 (SCM_CAR (val_cell), port, writing);
+	scm_iprin1 (SCM_CAR (val_cell), port, pstate);
       }
     scm_gen_puts (scm_regular_string, " binding: ", port);
-    scm_iprin1 (SCM_CDR (val_cell), port, writing);
+    scm_iprin1 (SCM_CDR (val_cell), port, pstate);
   }
   scm_gen_putc('>', port);
   return 1;

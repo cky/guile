@@ -92,13 +92,13 @@ freejb (jbsmob)
 
 #ifdef __STDC__
 static int
-printjb (SCM exp, SCM port, int writing)
+printjb (SCM exp, SCM port, scm_print_state *pstate)
 #else
 static int
-printjb (exp, port, writing)
+printjb (exp, port, pstate)
      SCM exp;
      SCM port;
-     int writing;
+     scm_print_state *pstate;
 #endif
 {
   scm_gen_puts (scm_regular_string, "#<jmpbuffer ", port);

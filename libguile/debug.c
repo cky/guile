@@ -143,17 +143,20 @@ long scm_tc16_memoized;
 
 #ifdef __STDC__
 static int
-prinmemoized (SCM obj, SCM port, int writing)
+prinmemoized (SCM obj, SCM port, scm_print_state *pstate)
 #else
 static int
-prinmemoized (obj, port, writing)
+prinmemoized (obj, port, pstate)
      SCM obj;
      SCM port;
-     int writing;
+     scm_print_state *pstate;
 #endif
 {
+  int writingp = SCM_WRITINGP (pstate);
   scm_gen_puts (scm_regular_string, "#<memoized ", port);
-  scm_iprin1 (scm_unmemoize (obj), port, 1);
+  SCM_SET_WRITINGP (pstate, 1);
+  scm_iprin1 (scm_unmemoize (obj), port, pstate);
+  SCM_SET_WRITINGP (pstate, writingp);
   scm_gen_putc ('>', port);
   return 1;
 }
@@ -379,11 +382,13 @@ long scm_tc16_debugobj;
 
 #ifdef __STDC__
 static int
-prindebugobj (SCM obj, SCM port, int writing)
+prindebugobj (SCM obj, SCM port, scm_print_state *pstate)
 #else
 static int
-prindebugobj (writing)
-     SCM obj, SCM port, int writing;
+prindebugobj (pstate)
+     SCM obj;
+     SCM port;
+     scm_print_state *pstate;
 #endif
 {
   scm_gen_puts (scm_regular_string, "#<debug-object ", port);

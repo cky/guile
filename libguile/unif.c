@@ -2287,15 +2287,15 @@ l2ra (lst, ra, base, k)
 
 #ifdef __STDC__
 static void 
-rapr1 (SCM ra, scm_sizet j, scm_sizet k, SCM port, int writing)
+rapr1 (SCM ra, scm_sizet j, scm_sizet k, SCM port, scm_print_state *pstate)
 #else
 static void 
-rapr1 (ra, j, k, port, writing)
+rapr1 (ra, j, k, port, pstate)
      SCM ra;
      scm_sizet j;
      scm_sizet k;
      SCM port;
-     int writing;
+     scm_print_state *pstate;
 #endif
 {
   long inc = 1;
@@ -2310,12 +2310,12 @@ tail:
 	{
 	  SCM_ARRAY_BASE (ra) = j;
 	  if (n-- > 0)
-	    scm_iprin1 (ra, port, writing);
+	    scm_iprin1 (ra, port, pstate);
 	  for (j += inc; n-- > 0; j += inc)
 	    {
 	      scm_gen_putc (' ', port);
 	      SCM_ARRAY_BASE (ra) = j;
-	      scm_iprin1 (ra, port, writing);
+	      scm_iprin1 (ra, port, pstate);
 	    }
 	  break;
 	}
@@ -2326,14 +2326,14 @@ tail:
 	  for (i = SCM_ARRAY_DIMS (ra)[k].lbnd; i < SCM_ARRAY_DIMS (ra)[k].ubnd; i++)
 	    {
 	      scm_gen_putc ('(', port);
-	      rapr1 (ra, j, k + 1, port, writing);
+	      rapr1 (ra, j, k + 1, port, pstate);
 	      scm_gen_puts (scm_regular_string, ") ", port);
 	      j += inc;
 	    }
 	  if (i == SCM_ARRAY_DIMS (ra)[k].ubnd)
 	    {			/* could be zero size. */
 	      scm_gen_putc ('(', port);
-	      rapr1 (ra, j, k + 1, port, writing);
+	      rapr1 (ra, j, k + 1, port, pstate);
 	      scm_gen_putc (')', port);
 	    }
 	  break;
@@ -2350,21 +2350,21 @@ tail:
       goto tail;
     default:
       if (n-- > 0)
-	scm_iprin1 (scm_uniform_vector_ref (ra, SCM_MAKINUM (j)), port, writing);
+	scm_iprin1 (scm_uniform_vector_ref (ra, SCM_MAKINUM (j)), port, pstate);
       for (j += inc; n-- > 0; j += inc)
 	{
 	  scm_gen_putc (' ', port);
-	  scm_iprin1 (scm_cvref (ra, j, SCM_UNDEFINED), port, writing);
+	  scm_iprin1 (scm_cvref (ra, j, SCM_UNDEFINED), port, pstate);
 	}
       break;
     case scm_tc7_string:
       if (n-- > 0)
-	scm_iprin1 (SCM_MAKICHR (SCM_CHARS (ra)[j]), port, writing);
-      if (writing)
+	scm_iprin1 (SCM_MAKICHR (SCM_CHARS (ra)[j]), port, pstate);
+      if (SCM_WRITINGP (pstate))
 	for (j += inc; n-- > 0; j += inc)
 	  {
 	    scm_gen_putc (' ', port);
-	    scm_iprin1 (SCM_MAKICHR (SCM_CHARS (ra)[j]), port, writing);
+	    scm_iprin1 (SCM_MAKICHR (SCM_CHARS (ra)[j]), port, pstate);
 	  }
       else
 	for (j += inc; n-- > 0; j += inc)
@@ -2408,12 +2408,12 @@ tail:
 	{
 	  SCM z = scm_makflo (1.0);
 	  SCM_FLO (z) = ((float *) SCM_VELTS (ra))[j];
-	  scm_floprint (z, port, writing);
+	  scm_floprint (z, port, pstate);
 	  for (j += inc; n-- > 0; j += inc)
 	    {
 	      scm_gen_putc (' ', port);
 	      SCM_FLO (z) = ((float *) SCM_VELTS (ra))[j];
-	      scm_floprint (z, port, writing);
+	      scm_floprint (z, port, pstate);
 	    }
 	}
       break;
@@ -2423,12 +2423,12 @@ tail:
 	{
 	  SCM z = scm_makdbl (1.0 / 3.0, 0.0);
 	  SCM_REAL (z) = ((double *) SCM_VELTS (ra))[j];
-	  scm_floprint (z, port, writing);
+	  scm_floprint (z, port, pstate);
 	  for (j += inc; n-- > 0; j += inc)
 	    {
 	      scm_gen_putc (' ', port);
 	      SCM_REAL (z) = ((double *) SCM_VELTS (ra))[j];
-	      scm_floprint (z, port, writing);
+	      scm_floprint (z, port, pstate);
 	    }
 	}
       break;
@@ -2438,13 +2438,13 @@ tail:
 	  SCM cz = scm_makdbl (0.0, 1.0), z = scm_makdbl (1.0 / 3.0, 0.0);
 	  SCM_REAL (z) = SCM_REAL (cz) = (((double *) SCM_VELTS (ra))[2 * j]);
 	  SCM_IMAG (cz) = ((double *) SCM_VELTS (ra))[2 * j + 1];
-	  scm_floprint ((0.0 == SCM_IMAG (cz) ? z : cz), port, writing);
+	  scm_floprint ((0.0 == SCM_IMAG (cz) ? z : cz), port, pstate);
 	  for (j += inc; n-- > 0; j += inc)
 	    {
 	      scm_gen_putc (' ', port);
 	      SCM_REAL (z) = SCM_REAL (cz) = ((double *) SCM_VELTS (ra))[2 * j];
 	      SCM_IMAG (cz) = ((double *) SCM_VELTS (ra))[2 * j + 1];
-	      scm_floprint ((0.0 == SCM_IMAG (cz) ? z : cz), port, writing);
+	      scm_floprint ((0.0 == SCM_IMAG (cz) ? z : cz), port, pstate);
 	    }
 	}
       break;
@@ -2455,13 +2455,13 @@ tail:
 
 #ifdef __STDC__
 int 
-scm_raprin1 (SCM exp, SCM port, int writing)
+scm_raprin1 (SCM exp, SCM port, scm_print_state *pstate)
 #else
 int 
-scm_raprin1 (exp, port, writing)
+scm_raprin1 (exp, port, pstate)
      SCM exp;
      SCM port;
-     int writing;
+     scm_print_state *pstate;
 #endif
 {
   SCM v = exp;
@@ -2480,7 +2480,7 @@ tail:
 
 	  {
 	    scm_gen_puts (scm_regular_string, "<enclosed-array ", port);
-	    rapr1 (exp, base, 0, port, writing);
+	    rapr1 (exp, base, 0, port, pstate);
 	    scm_gen_putc ('>', port);
 	    return 1;
 	  }
@@ -2554,7 +2554,7 @@ tail:
 #endif /*SCM_FLOATS*/
     }
   scm_gen_putc ('(', port);
-  rapr1 (exp, base, 0, port, writing);
+  rapr1 (exp, base, 0, port, pstate);
   scm_gen_putc (')', port);
   return 1;
 }
@@ -2664,13 +2664,13 @@ scm_init_unif ()
 
 #ifdef __STDC__
 int 
-scm_raprin1 (SCM exp, SCM port, int writing)
+scm_raprin1 (SCM exp, SCM port, scm_print_state *pstate)
 #else
 int 
-scm_raprin1 (exp, port, writing)
+scm_raprin1 (exp, port, pstate)
      SCM exp;
      SCM port;
-     int writing;
+     scm_print_state *pstate;
 #endif
 {
   return 0;

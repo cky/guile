@@ -58,19 +58,19 @@ static long scm_tc16_arbiter;
 
 #ifdef __STDC__
 static int 
-prinarb (SCM exp, SCM port, int writing)
+prinarb (SCM exp, SCM port, scm_print_state *pstate)
 #else
 static int 
-prinarb (exp, port, writing)
+prinarb (exp, port, pstate)
      SCM exp;
      SCM port;
-     int writing;
+     scm_print_state *pstate;
 #endif
 {
   scm_gen_puts (scm_regular_string, "#<arbiter ", port);
   if (SCM_CAR (exp) & (1L << 16))
     scm_gen_puts (scm_regular_string, "locked ", port);
-  scm_iprin1 (SCM_CDR (exp), port, writing);
+  scm_iprin1 (SCM_CDR (exp), port, pstate);
   scm_gen_putc ('>', port);
   return !0;
 }

@@ -53,13 +53,13 @@ fmalloc(ptr)
 
 #ifdef __STDC__
 static int
-prinmalloc (SCM exp, SCM port, int writing)
+prinmalloc (SCM exp, SCM port, scm_print_state *pstate)
 #else
 static int
-prinmalloc (exp, port, writing)
+prinmalloc (exp, port, pstate)
      SCM exp;
      SCM port;
-     int writing;
+     scm_print_state *pstate;
 #endif
 {
   scm_gen_puts(scm_regular_string, "#<malloc ", port);

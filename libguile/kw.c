@@ -63,13 +63,13 @@ free_kw (obj)
 
 #ifdef __STDC__
 static int
-prin_kw (SCM exp, SCM port, int writing)
+prin_kw (SCM exp, SCM port, scm_print_state *pstate)
 #else
 static int
-prin_kw (exp, port, writing)
+prin_kw (exp, port, pstate)
      SCM exp;
      SCM port;
-     int writing;
+     scm_print_state *pstate;
 #endif
 {
   scm_gen_puts (scm_regular_string, ":", port);

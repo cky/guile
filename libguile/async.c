@@ -302,13 +302,13 @@ scm_deliver_signal (num)
 
 #ifdef __STDC__
 static int
-print_async (SCM exp, SCM port, int writing)
+print_async (SCM exp, SCM port, scm_print_state *pstate)
 #else
 static int
-print_async (exp, port, writing)
+print_async (exp, port, pstate)
      SCM exp;
      SCM port;
-     int writing;
+     scm_print_state *pstate;
 #endif
 {
   scm_gen_puts (scm_regular_string, "#<async ", port);

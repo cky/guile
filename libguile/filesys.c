@@ -240,13 +240,13 @@ long scm_tc16_fd;
 
 #ifdef __STDC__
 static int 
-scm_fd_print (SCM sexp, SCM port, int writing)
+scm_fd_print (SCM sexp, SCM port, scm_print_state *pstate)
 #else
 static int 
-scm_fd_print (sexp, port, writing)
+scm_fd_print (sexp, port, pstate)
      SCM sexp;
      SCM port;
-     int writing;
+     scm_print_state *pstate;
 #endif
 {
   scm_gen_puts (scm_regular_string, "#<fd ", port);
@@ -872,13 +872,13 @@ scm_sys_closedir (port)
 
 #ifdef __STDC__
 static int 
-scm_dir_print (SCM sexp, SCM port, int writing)
+scm_dir_print (SCM sexp, SCM port, scm_print_state *pstate)
 #else
 static int 
-scm_dir_print (sexp, port, writing)
+scm_dir_print (sexp, port, pstate)
      SCM sexp;
      SCM port;
-     int writing;
+     scm_print_state *pstate;
 #endif
 {
   scm_prinport (sexp, port, "directory");
