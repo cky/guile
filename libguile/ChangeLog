@@ -60,7 +60,6 @@
 	call function scm_wta, call scm_misc_error or scm_wrong_type_arg
 	instead.
 
->>>>>>> 1.1294
 2001-03-04  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
 
 	* goops.c (scm_sys_pre_expand_closure_x): New procedure.
