@@ -1,5 +1,11 @@
 1998-10-03  Jim Blandy  <jimb@zwingli.cygnus.com>
 
+	* guile-config.in: Don't import ice-9 regex; that's not available
+	on all systems.  Maybe someday we'll have our own...
+	(set-program-name!): Use basename.
+	(build-link): Use basename and stock string functions, instead of
+	string-match.
+
 	* Directory renamed to guile-config from build.
 	* guile-config.in: Renamed from build-guile.in, for consistency
  	with the analogous script for GTK, called gtk-config.
