@@ -1,3 +1,8 @@
+2004-01-07  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* boot-9.scm (with-fluids): Use with-fluid* when only one fluid is
+	being set.
+
 2004-01-07  Kevin Ryde  <user42@zip.com.au>
 
 	* q.scm (q-pop!): Should be "null?" not "not" for end-of-list.

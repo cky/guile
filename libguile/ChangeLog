@@ -1,6 +1,16 @@
 2004-01-07  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
+	* dynwind.c (scm_i_dowinds): Removed code for handling fluids.
+
+	* fluids.c (scm_c_with_fluids): Use frames instead of adding to
+	the wind chain explicitely.  Use scm_c_with_fluid for the common
+	case of only one fluid.
+	(scm_with_fluid): New.
+	(scm_c_with_fluid): Use frames instead of scm_c_with_fluids.
+	
 	* fluids.h, fluids.c (scm_frame_fluid): New.
+	(scm_with_fluid): New.
+	(scm_i_swap_fluids, scm_i_swap_fluids_reverse): Removed.
 
 	* dynwind.c (scm_frame_end): Do not use scm_i_dowinds.  Instead,
 	do the unwinding directly.  It is simple enough.
