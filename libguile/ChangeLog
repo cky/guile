@@ -1,3 +1,11 @@
+2004-11-04  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* rw.c (scm_read_string_x_partial): Bugfix, apply offset to dest
+	only after dest has been set.  Thanks to Hyper Division!
+
+	* gh_data.c (gh_uniform_vector_length): Use
+	scm_uniform_vector_length instead of SCM_UVECTOR_LENGTH.
+
 2004-11-03  Marius Vollmer  <mvo@zagadka.de>
 
 	* unif.h (SCM_UVECTOR_BASE, SCM_SET_UVECTOR_BASE,
