@@ -1,3 +1,21 @@
+2004-08-18  Kevin Ryde  <user42@zip.com.au>
+
+	* arbiters.c (FETCH_STORE): New macro.
+	(SCM_LOCK_VAL, SCM_UNLOCK_VAL): New constants.
+	(SCM_LOCK_ARB, SCM_UNLOCK_ARB): Remove, effectively absorbed into
+	scm_try_arbiter and scm_release_arbiter.
+	(scm_try_arbiter, scm_release_arbiter): Use FETCH_STORE to get xchg
+	for speed on i386, otherwise using mutex.
+
+	* eq.c (scm_equal_p): Remove real==fraction and fraction==real, they
+	must be #f according to R5RS.  (equal? follows eqv?, and for eqv? an
+	exact and inexact is #f.)
+
+	* fports.c (fport_print): Use scm_ttyname instead of ttyname directly,
+	to get thread safety of scm_ttyname.
+
+	* ports.c (ttyname): Remove prototype, unused.
+
 2004-08-13  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* load.c (scm_init_load_path): Do not pass NULL to
