@@ -195,9 +195,9 @@ scm_catch (tag, thunk, handler)
    of a read-eval-print loop.
    3) Given that we shouldn't do anything complex, it's much more
    robust to do it in C code.  */
-static SCM unhandled_throw SCM_P ((SCM key, SCM args));
+static SCM uncaught_throw SCM_P ((SCM key, SCM args));
 static SCM
-unhandled_throw (key, args)
+uncaught_throw (key, args)
      SCM key;
      SCM args;
 {
@@ -265,7 +265,7 @@ scm_ithrow (key, args, noreturn)
 
       /* If we didn't find anything, print a message and exit Guile.  */
       if (SCM_IMP (winds) || SCM_NCONSP (winds))
-	unhandled_throw (key, args);
+	uncaught_throw (key, args);
       
       if (dynpair != SCM_BOOL_F)
 	jmpbuf = SCM_CDR (dynpair);
