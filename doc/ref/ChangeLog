@@ -5,6 +5,13 @@
 	scm_list_5, scm_list_n.  Remove scm_list, since it's a no-op.
 	* guile.texi (nicode): New macro.
 
+        * scheme-evaluation.texi (Fly Evaluation): In apply, reword for
+        clarity, drop the "append" example.  Add scm_apply, scm_apply_0,
+        scm_apply_1, scm_apply_2, scm_apply_3.
+        Add scm_call_0, scm_call_1, scm_call_2, scm_call_3.
+        In apply:nconc2last, move down after "apply", reword for clarity, note
+        correspondence to apply params.
+
 	* srfi-modules.texi (SRFI-0): Add cond-expand index entry.
 	(SRFI-9): Add define-record-type index entry.
 
