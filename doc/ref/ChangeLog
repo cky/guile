@@ -30,6 +30,10 @@
 	* scripts.texi: Renamed to scheme-scripts.texi.
 	* program.texi: Renamed to libguile-program.texi.
 
+	* api-deprecated.texi: Removed.
+	* intro.texi (Discouraged and Deprecated): General information
+	about deprecation, etc.
+	
 2004-07-30  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* misc-modules.texi (Formatted Output): Changed @w to @w{} in
