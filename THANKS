@@ -1,22 +1,21 @@
 The Guile core distribution:
 
-I (Jim Blandy) made the Guile 1.3.2 release in a bit of a rush, and
-then skipped town for a week.  There were some problems, but Mikael
-Djurfeldt did a fantastic job of fixing my mistakes and putting
-together a new release file.  I'm very grateful to Mikael for this;
-Guile is very lucky to have him.
+Thanks to:
+- Mikael Djurfeldt, for his work on GOOPS, last-minute fixes to the
+  1.3.2 release, and just generally being really energetic and helpful.
+- Gary Houston, for continuing work on the I/O system.
+- Tom Tromey, for Automake therapy (the code and its users alike).
+- Greg Harvey, for work on the Guile web pages.
+- Marius Vollmer, for kibbitzing, and keeping Mikael company.
 
 Bug reports and fixes from:
 
 Greg Badros                     Keisuke Nishida
 Robert Bihlmeyer                Ken Raeburn
-Rodney Brown                    Jorgen Schaefer
-Ian Grant                       Bill Schottstaedt
-Dirk Herrmann                   Ceri Storey
-Anders Holst                    Suzuki Toshiya
-Karoly Lorentey                 Tom Tromey
-Han-Wen Nienhuys                Bernard Urban
-Jan Nieuwenhuizen
-
-Also, thanks to Tom Tromey for helping us sort out some weird automake
-behavior.
+Rodney Brown                    Julian Satchell
+Ian Grant                       Jorgen Schaefer   
+Dirk Herrmann                   Bill Schottstaedt 
+Anders Holst                    Ceri Storey       
+Karoly Lorentey                 Suzuki Toshiya    
+Han-Wen Nienhuys                Tom Tromey        
+Jan Nieuwenhuizen		Bernard Urban     
