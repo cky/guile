@@ -1,7 +1,7 @@
 dnl   configuration script for Guile
 dnl   Process this file with autoconf to produce configure.
 dnl
-dnl  Copyright (C) 1998, 1999 Free Software Foundation, Inc.
+dnl  Copyright (C) 1998, 1999, 2000 Free Software Foundation, Inc.
 dnl
 dnl  This file is part of GUILE
 dnl
@@ -392,6 +392,19 @@ AC_CACHE_VAL(scm_cv_struct_linger,
 AC_MSG_RESULT($scm_cv_struct_linger)
 if test $scm_cv_struct_linger = yes; then
 	AC_DEFINE(HAVE_STRUCT_LINGER)
+fi
+
+
+AC_MSG_CHECKING(for struct timespec)
+AC_CACHE_VAL(scm_cv_struct_timespec,
+	AC_TRY_COMPILE([
+#include <time.h>],
+			[struct timespec t;  t.tv_nsec = 100],
+			scm_cv_struct_timespec="yes",
+			scm_cv_struct_timespec="no"))
+AC_MSG_RESULT($scm_cv_struct_timespec)
+if test $scm_cv_struct_timespec = yes; then
+	AC_DEFINE(HAVE_STRUCT_TIMESPEC)
 fi
 
 #--------------------------------------------------------------------
