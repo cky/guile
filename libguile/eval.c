@@ -1327,6 +1327,7 @@ scm_deval_args (l, env, lloc)
 #endif
 #endif /* DEVAL */
 
+#define BUILTIN_RPASUBR /* Handle rpsubrs and asubrs without calling apply */
 
 /* SECTION: This is the evaluator.  Like any real monster, it has
  * three heads.  This code is compiled twice.
@@ -2119,18 +2120,21 @@ evapply:
 	SCM_ASRTGO (SCM_NULLP (SCM_CDR (x)), wrongnumargs);
 	RETURN (SCM_SUBRF (proc) (t.arg1, arg2, SCM_CAR (SCM_CDR (SCM_CDR (debug.info->a.args)))));
       case scm_tc7_asubr:
-	/*      t.arg1 = SCM_SUBRF(proc)(t.arg1, arg2);
-		while SCM_NIMP(x) {
-		t.arg1 = SCM_SUBRF(proc)(t.arg1, EVALCAR(x, env));
-		x = SCM_CDR(x);
-		}
-		RETURN (t.arg1) */
+#ifdef BUILTIN_RPASUBR
+	t.arg1 = SCM_SUBRF(proc)(t.arg1, arg2);
+	arg2 = SCM_CDR (SCM_CDR (debug.info->a.args));
+	do {
+	  t.arg1 = SCM_SUBRF(proc)(t.arg1, SCM_CAR (arg2));
+	  arg2 = SCM_CDR (arg2);
+	} while (SCM_NIMP (arg2));
+	RETURN (t.arg1)
+#endif /* BUILTIN_RPASUBR */
       case scm_tc7_rpsubr:
 	RETURN (SCM_APPLY (proc, t.arg1, scm_acons (arg2, SCM_CDR (SCM_CDR (debug.info->a.args)), SCM_EOL)))
-	  case scm_tc7_lsubr_2:
-	    RETURN (SCM_SUBRF (proc) (t.arg1, arg2, SCM_CDR (SCM_CDR (debug.info->a.args))))
-	  case scm_tc7_lsubr:
-	    RETURN (SCM_SUBRF (proc) (debug.info->a.args))
+      case scm_tc7_lsubr_2:
+	RETURN (SCM_SUBRF (proc) (t.arg1, arg2, SCM_CDR (SCM_CDR (debug.info->a.args))))
+      case scm_tc7_lsubr:
+	RETURN (SCM_SUBRF (proc) (debug.info->a.args))
 #ifdef CCLO
       case scm_tc7_cclo:
 	goto cclon;
@@ -2147,12 +2151,14 @@ evapply:
 	SCM_ASRTGO (SCM_NULLP (SCM_CDR (x)), wrongnumargs);
 	RETURN (SCM_SUBRF (proc) (t.arg1, arg2, EVALCAR (x, env)));
       case scm_tc7_asubr:
-	/*      t.arg1 = SCM_SUBRF(proc)(t.arg1, arg2);
-		while SCM_NIMP(x) {
-		t.arg1 = SCM_SUBRF(proc)(t.arg1, EVALCAR(x, env));
-		x = SCM_CDR(x);
-		}
-		RETURN (t.arg1) */
+#ifdef BUILTIN_RPASUBR
+	t.arg1 = SCM_SUBRF(proc)(t.arg1, arg2);
+	do {
+	  t.arg1 = SCM_SUBRF(proc)(t.arg1, EVALCAR(x, env));
+	  x = SCM_CDR(x);
+	} while (SCM_NIMP (x));
+	RETURN (t.arg1)
+#endif /* BUILTIN_RPASUBR */
       case scm_tc7_rpsubr:
 	RETURN (SCM_APPLY (proc, t.arg1, scm_acons (arg2, scm_eval_args (x, env), SCM_EOL)));
       case scm_tc7_lsubr_2:
