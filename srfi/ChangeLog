@@ -1,3 +1,11 @@
+2003-12-03  Kevin Ryde  <user42@zip.com.au>
+
+	* srfi-1.c, srfi-1.h, srfi-1.scm (count): Rewrite in C, avoiding
+	non-tail recursion.
+
+	* srfi-1.scm (map!): Define as an alias for map, previous definition
+	was not tail-recursive.
+	
 2003-08-23  Kevin Ryde  <user42@zip.com.au>
 
 	* srfi-1.c, srfi-1.h, srfi-1.scm (list-copy): New function, derived
