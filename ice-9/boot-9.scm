@@ -884,6 +884,9 @@
 
 (set! abs magnitude)
 
+(define (log10 arg)
+  (/ (log arg) (log 10)))
+
 
 ;;; {User Settable Hooks}
 ;;;

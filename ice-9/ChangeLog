@@ -1,3 +1,7 @@
+Sat Apr 12 08:27:05 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* boot-9.scm (log10): defined.
+
 Tue Apr  1 17:46:49 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* expect.scm (expect-select): correct the millisecond timeout
