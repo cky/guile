@@ -69,6 +69,20 @@ extern int scm_gc_heap_lock;
 
 typedef struct scm_freelist_t {
   SCM cells;
+#ifdef GUILE_NEW_GC_SCHEME
+  int n_objects;
+  /* a list of freelists, each of size gc_trigger,
+     except the last one which may be shorter */
+  SCM clusters;
+  SCM *clustertail;
+  /* GC trigger */
+  int triggeredp;
+  /* trigger GC ? */
+  int triggerp;
+  /* minimum number of objects allocated before GC is triggered
+     and cluster size.  */
+  int gc_trigger;
+#endif
   /* number of cells per object on this list */
   int span;
   /* number of collected cells during last GC */
@@ -81,8 +95,15 @@ typedef struct scm_freelist_t {
 
 extern unsigned long scm_heap_size;
 extern SCM_CELLPTR scm_heap_org;
+#ifdef GUILE_NEW_GC_SCHEME
+extern SCM scm_freelist;
+extern scm_freelist_t scm_master_freelist;
+extern SCM scm_freelist2;
+extern scm_freelist_t scm_master_freelist2;
+#else
 extern scm_freelist_t scm_freelist;
 extern scm_freelist_t scm_freelist2;
+#endif
 extern unsigned long scm_gc_cells_collected;
 extern unsigned long scm_gc_malloc_collected;
 extern unsigned long scm_gc_ports_collected;
@@ -106,7 +127,11 @@ extern void scm_gc_start (const char *what);
 extern void scm_gc_end (void);
 extern SCM scm_gc (void);
 extern void scm_gc_for_alloc (scm_freelist_t *freelistp);
+#ifdef GUILE_NEW_GC_SCHEME
+extern SCM scm_gc_for_newcell (scm_freelist_t *master, SCM *freelist);
+#else
 extern SCM scm_gc_for_newcell (scm_freelist_t *freelistp);
+#endif
 extern void scm_igc (const char *what);
 extern void scm_gc_mark (SCM p);
 extern void scm_mark_locations (SCM_STACKITEM x[], scm_sizet n);
@@ -124,7 +149,12 @@ extern int scm_return_first_int (int x, ...);
 extern SCM scm_permanent_object (SCM obj);
 extern SCM scm_protect_object (SCM obj);
 extern SCM scm_unprotect_object (SCM obj);
+#ifdef GUILE_NEW_GC_SCHEME
+extern int scm_init_storage (scm_sizet init_heap_size, int tp, int trig,
+                             scm_sizet init_heap2_size, int tp2, int trig2);
+#else
 extern int scm_init_storage (scm_sizet init_heap_size,
                              scm_sizet init_heap2_size);
+#endif
 extern void scm_init_gc (void);
 #endif  /* GCH */

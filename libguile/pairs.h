@@ -179,6 +179,35 @@ typedef SCM  huge *SCMPTR;
 #define SCM_NEWCELL(_into) do { _into = scm_debug_newcell (); } while (0)
 #define SCM_NEWCELL2(_into) do { _into = scm_debug_newcell2 (); } while (0)
 #else
+#ifdef GUILE_NEW_GC_SCHEME
+/* When we introduce POSIX threads support, every thread will have
+   a freelist of its own.  Then it won't any longer be necessary to
+   initialize cells with scm_tc16_allocated.  */
+#define SCM_NEWCELL(_into) \
+	do { \
+	  if (SCM_IMP (scm_freelist)) \
+	     _into = scm_gc_for_newcell (&scm_master_freelist, \
+					 &scm_freelist); \
+	  else \
+	    { \
+	       _into = scm_freelist; \
+	       scm_freelist = SCM_CDR (scm_freelist);\
+               SCM_SETCAR (_into, scm_tc16_allocated); \
+	    } \
+	} while(0)
+#define SCM_NEWCELL2(_into) \
+	do { \
+	  if (SCM_IMP (scm_freelist2)) \
+	     _into = scm_gc_for_newcell (&scm_master_freelist2, \
+					 &scm_freelist2); \
+	  else \
+	    { \
+	       _into = scm_freelist2; \
+	       scm_freelist2 = SCM_CDR (scm_freelist2);\
+               SCM_SETCAR (_into, scm_tc16_allocated); \
+  	    } \
+  	} while(0)
+#else /* GUILE_NEW_GC_SCHEME */
 #define SCM_NEWCELL(_into) \
 	do { \
 	  if (SCM_IMP (scm_freelist.cells)) \
@@ -203,6 +232,7 @@ typedef SCM  huge *SCMPTR;
 	       scm_cells_allocated += 2; \
   	    } \
   	} while(0)
+#endif /* GUILE_NEW_GC_SCHEME */
 #endif
 
 
