@@ -50,6 +50,9 @@
 #include "mbstrings.h"
 #include "kw.h"
 #include "alist.h"
+#include "srcprop.h"
+#include "hashtab.h"
+#include "hash.h"
 
 #include "read.h"
 
@@ -59,7 +62,6 @@
 
 
 
-#ifdef READER_EXTENSIONS
 scm_option scm_read_opts[] = {
   { SCM_OPTION_BOOLEAN, "copy", 0,
     "Copy source code expressions." },
@@ -85,7 +87,6 @@ scm_read_options (setting)
     SCM_RECORD_POSITIONS_P = 1;
   return ans;
 }
-#endif
 
 SCM_PROC (s_read, "read", 0, 3, 0, scm_read);
 #ifdef __STDC__
@@ -100,13 +101,16 @@ scm_read (port, case_insensitive_p, sharp)
 #endif
 {
   int c;
-  SCM tok_buf;
+  SCM tok_buf, copy;
   int case_i;
 
   if (SCM_UNBNDP (port))
     port = scm_cur_inp;
   else
-    SCM_ASSERT (SCM_NIMP (port) && SCM_OPINPORTP (port), port, SCM_ARG1, s_read);
+    SCM_ASSERT (SCM_NIMP (port) && SCM_OPINPORTP (port),
+		port,
+		SCM_ARG1,
+		s_read);
 
   case_i = (SCM_UNBNDP (case_insensitive_p)
 	    ? default_case_i
@@ -121,7 +125,7 @@ scm_read (port, case_insensitive_p, sharp)
   scm_gen_ungetc (c, port);
 
   tok_buf = scm_makstr (30L, 0);
-  return scm_lreadr (&tok_buf, port, case_i, sharp);
+  return scm_lreadr (&tok_buf, port, case_i, sharp, &copy);
 }
 
 
@@ -171,12 +175,8 @@ scm_flush_ws (port, eoferr)
 	  }
 	break;
       case SCM_LINE_INCREMENTORS:
-	break;
       case SCM_SINGLE_SPACES:
-	SCM_INCCOL (port);
-	break;
       case '\t':
-	SCM_TABCOL (port);
 	break;
       default:
 	return c;
@@ -206,16 +206,73 @@ scm_casei_streq (s1, s2)
 }
 
 
+/* recsexpr is used when recording expressions
+ * constructed by read:sharp.
+ */
+#ifdef __STDC__
+static SCM
+recsexpr (SCM obj, int line, int column, SCM filename)
+#else
+static SCM
+recsexpr (obj, line, column, filename)
+     SCM obj;
+     int line;
+     int column;
+     SCM filename;
+#endif
+{
+  if (SCM_IMP (obj) || SCM_NCONSP(obj))
+    return obj;
+  {
+    SCM tmp = obj, copy;
+    /* If this sexpr is visible in the read:sharp source, we want to
+       keep that information, so only record non-constant cons cells
+       which haven't previously been read by the reader. */
+    if (SCM_FALSEP (scm_whash_lookup (scm_source_whash, obj)))
+      {
+	if (SCM_COPY_SOURCE_P)
+	  {
+	    copy = scm_cons (recsexpr (SCM_CAR (obj), line, column, filename),
+			     SCM_UNDEFINED);
+	    while (SCM_NIMP (tmp = SCM_CDR (tmp)) && SCM_CONSP (tmp))
+	      copy = (SCM_CDR (copy) = scm_cons (recsexpr (SCM_CAR (tmp),
+							   line,
+							   column,
+							   filename),
+						 SCM_UNDEFINED));
+	    SCM_CDR (copy) = tmp;
+	  }
+	else
+	  {
+	    recsexpr (SCM_CAR (obj), line, column, filename);
+	    while (SCM_NIMP (tmp = SCM_CDR (tmp)) && SCM_CONSP (tmp))
+	      recsexpr (SCM_CAR (tmp), line, column, filename);
+	    copy = SCM_UNDEFINED;
+	  }
+	scm_whash_insert (scm_source_whash,
+			  obj,
+			  scm_make_srcprops (line,
+					     column,
+					     filename,
+					     copy,
+					     SCM_EOL));
+      }
+    return obj;
+  }
+}
+
+static char s_list[]="list";
 #ifdef __STDC__
 SCM 
-scm_lreadr (SCM * tok_buf, SCM port, int case_i, SCM sharp)
+scm_lreadr (SCM *tok_buf, SCM port, int case_i, SCM sharp, SCM *copy)
 #else
 SCM 
-scm_lreadr (tok_buf, port, case_i, sharp)
-     SCM * tok_buf;
+scm_lreadr (tok_buf, port, case_i, sharp, copy)
+     SCM *tok_buf;
      SCM port;
      int case_i;
      SCM sharp;
+     SCM *copy;
 #endif
 {
   int c;
@@ -230,18 +287,19 @@ tryagain:
       return SCM_EOF_VAL;
 
     case '(':
-      return scm_lreadparen (tok_buf, port, "list", case_i, sharp);
-
+      return SCM_RECORD_POSITIONS_P
+	     ? scm_lreadrecparen (tok_buf, port, s_list, case_i, sharp, copy)
+	     : scm_lreadparen (tok_buf, port, s_list, case_i, sharp, copy);
     case ')':
       scm_wta (SCM_UNDEFINED, "unexpected \")\"", "read");
       goto tryagain;
     
     case '\'':
-      return scm_cons2 (scm_i_quote, scm_lreadr (tok_buf, port, case_i, sharp), SCM_EOL);
-
+      p = scm_i_quote;
+      goto recquote;
     case '`':
-      return scm_cons2 (scm_i_quasiquote, scm_lreadr (tok_buf, port, case_i, sharp), SCM_EOL);
-
+      p = scm_i_quasiquote;
+      goto recquote;
     case ',':
       c = scm_gen_getc (port);
       if ('@' == c)
@@ -251,14 +309,29 @@ tryagain:
 	  scm_gen_ungetc (c, port);
 	  p = scm_i_unquote;
 	}
-      return scm_cons2 (p, scm_lreadr (tok_buf, port, case_i, sharp), SCM_EOL);
-
+    recquote:
+      p = scm_cons2 (p,
+		     scm_lreadr (tok_buf, port, case_i, sharp, copy),
+		     SCM_EOL);
+      if (SCM_RECORD_POSITIONS_P)
+	scm_whash_insert (scm_source_whash,
+			  p,
+			  scm_make_srcprops (SCM_LINUM (port),
+					     SCM_COL (port) - 1,
+					     SCM_FILENAME (port),
+					     SCM_COPY_SOURCE_P
+					     ? (*copy = scm_cons2 (SCM_CAR (p),
+								   SCM_CAR (SCM_CDR (p)),
+								   SCM_EOL))
+					     : SCM_UNDEFINED,
+					     SCM_EOL));
+      return p;
     case '#':
       c = scm_gen_getc (port);
       switch (c)
 	{
 	case '(':
-	  p = scm_lreadparen (tok_buf, port, "vector", case_i, sharp);
+	  p = scm_lreadparen (tok_buf, port, "vector", case_i, sharp, copy);
 	  return SCM_NULLP (p) ? scm_nullvect : scm_vector (p);
 
 	case 't':
@@ -321,11 +394,19 @@ tryagain:
 	callshrp:
 	  if (SCM_NIMP (sharp))
 	    {
+	      int line = SCM_LINUM (port);
+	      int column = SCM_COL (port) - 2;
 	      SCM got;
-	      got = scm_apply (sharp, SCM_MAKICHR (c), scm_acons (port, SCM_EOL, SCM_EOL));
+	      got = scm_apply (sharp,
+			       SCM_MAKICHR (c),
+			       scm_acons (port, SCM_EOL, SCM_EOL));
 	      if (SCM_UNSPECIFIED == got)
 		goto unkshrp;
-	      return got;
+	      if (SCM_RECORD_POSITIONS_P)
+		return *copy = recsexpr (got, line, column,
+					 SCM_FILENAME (port));
+	      else
+		return got;
 	    }
 	unkshrp:scm_wta ((SCM) SCM_MAKICHR (c), "unknown # object", "");
 	}
@@ -559,10 +640,10 @@ _Pragma ("opt");		/* # pragma _CRI opt */
 
 #ifdef __STDC__
 SCM 
-scm_lreadparen (SCM * tok_buf, SCM port, char *name, int case_i, SCM sharp)
+scm_lreadparen (SCM * tok_buf, SCM port, char *name, int case_i, SCM sharp, SCM *copy)
 #else
 SCM 
-scm_lreadparen (tok_buf, port, name, case_i, sharp)
+scm_lreadparen (tok_buf, port, name, case_i, sharp, SCM *copy)
      SCM *tok_buf;
      SCM port;
      char *name;
@@ -579,9 +660,9 @@ scm_lreadparen (tok_buf, port, name, case_i, sharp)
   if (')' == c)
     return SCM_EOL;
   scm_gen_ungetc (c, port);
-  if (scm_i_dot == (tmp = scm_lreadr (tok_buf, port, case_i, sharp)))
+  if (scm_i_dot == (tmp = scm_lreadr (tok_buf, port, case_i, sharp, copy)))
     {
-      ans = scm_lreadr (tok_buf, port, case_i, sharp);
+      ans = scm_lreadr (tok_buf, port, case_i, sharp, copy);
     closeit:
       if (')' != (c = scm_flush_ws (port, name)))
 	scm_wta (SCM_UNDEFINED, "missing close paren", "");
@@ -591,13 +672,88 @@ scm_lreadparen (tok_buf, port, name, case_i, sharp)
   while (')' != (c = scm_flush_ws (port, name)))
     {
       scm_gen_ungetc (c, port);
-      if (scm_i_dot == (tmp = scm_lreadr (tok_buf, port, case_i, sharp)))
+      if (scm_i_dot == (tmp = scm_lreadr (tok_buf, port, case_i, sharp, copy)))
 	{
-	  SCM_CDR (tl) = scm_lreadr (tok_buf, port, case_i, sharp);
+	  SCM_CDR (tl) = scm_lreadr (tok_buf, port, case_i, sharp, copy);
 	  goto closeit;
 	}
       tl = (SCM_CDR (tl) = scm_cons (tmp, SCM_EOL));
     }
+  return ans;
+}
+
+#ifdef __STDC__
+SCM 
+scm_lreadrecparen (SCM * tok_buf, SCM port, char *name, int case_i, SCM sharp, SCM *copy)
+#else
+SCM 
+scm_lreadrecparen (tok_buf, port, name, case_i, sharp, copy)
+     SCM *tok_buf;
+     SCM port;
+     char *name;
+     int case_i;
+     SCM sharp;
+     SCM *copy;
+#endif
+{
+  register int c;
+  register SCM tmp;
+  register SCM tl, tl2;
+  SCM ans, ans2;
+  /* Need to capture line and column numbers here. */
+  int line = SCM_LINUM (port);
+  int column = SCM_COL (port) - 1;
+
+  c = scm_flush_ws (port, name);
+  if (')' == c)
+    return SCM_EOL;
+  scm_gen_ungetc (c, port);
+  if (scm_i_dot == (tmp = scm_lreadr (tok_buf, port, case_i, sharp, copy)))
+    {
+      ans = scm_lreadr (tok_buf, port, case_i, sharp, copy);
+      if (')' != (c = scm_flush_ws (port, name)))
+	scm_wta (SCM_UNDEFINED, "missing close paren", "");
+      return ans;
+    }
+  /* Build the head of the list structure. */
+  ans = tl = scm_cons (tmp, SCM_EOL);
+  if (SCM_COPY_SOURCE_P)
+    ans2 = tl2 = scm_cons (SCM_NIMP (tmp) && SCM_CONSP (tmp)
+			   ? *copy
+			   : tmp,
+			   SCM_EOL);
+  while (')' != (c = scm_flush_ws (port, name)))
+    {
+      scm_gen_ungetc (c, port);
+      if (scm_i_dot == (tmp = scm_lreadr (tok_buf, port, case_i, sharp, copy)))
+	{
+	  SCM_SETCDR (tl, tmp = scm_lreadr (tok_buf, port, case_i, sharp, copy));
+	  if (SCM_COPY_SOURCE_P)
+	    SCM_SETCDR (tl2, scm_cons (SCM_NIMP (tmp) && SCM_CONSP (tmp)
+				       ? *copy
+				       : tmp,
+				       SCM_EOL));
+	  if (')' != (c = scm_flush_ws (port, name)))
+	    scm_wta (SCM_UNDEFINED, "missing close paren", "");
+	  goto exit;
+	}
+      tl = SCM_SETCDR (tl, scm_cons (tmp, SCM_EOL));
+      if (SCM_COPY_SOURCE_P)
+	tl2 = SCM_SETCDR (tl2, scm_cons (SCM_NIMP (tmp) && SCM_CONSP (tmp)
+					 ? *copy
+					 : tmp,
+					 SCM_EOL));
+    }
+exit:
+  scm_whash_insert (scm_source_whash,
+		    ans,
+		    scm_make_srcprops (line,
+				       column,
+				       SCM_FILENAME (port),
+				       SCM_COPY_SOURCE_P
+				       ? *copy = ans2
+				       : SCM_UNDEFINED,
+				       SCM_EOL));
   return ans;
 }
 
@@ -618,4 +774,3 @@ scm_init_read ()
 #endif
 #include "read.x"
 }
-
