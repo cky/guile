@@ -100,21 +100,21 @@ int scm_I_am_dead;
 /* This flag indicates that several threads are waiting on the same
    file descriptor.  When this is the case, the common fd sets are
    updated in a more inefficient way.  */
-int collisionp;
+static int collisionp;
 
 /* These are the common fd sets.  When new select calls are made,
    those sets are merged into these.  */
-int gnfds;
-SELECT_TYPE greadfds;
-SELECT_TYPE gwritefds;
-SELECT_TYPE gexceptfds;
+static int gnfds;
+static SELECT_TYPE greadfds;
+static SELECT_TYPE gwritefds;
+static SELECT_TYPE gexceptfds;
 
 /* These are the result sets.  They are used when we call OS select.
    We couldn't use the common fd sets above, since that would destroy
    them.  */
-SELECT_TYPE rreadfds;
-SELECT_TYPE rwritefds;
-SELECT_TYPE rexceptfds;
+static SELECT_TYPE rreadfds;
+static SELECT_TYPE rwritefds;
+static SELECT_TYPE rexceptfds;
 
 /* Constant timeval struct representing a zero timeout which we use
    when polling.  */

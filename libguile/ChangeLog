@@ -1,3 +1,11 @@
+2002-03-12  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* iselect.c (collisionp, gnfds, greadfds, gwritefds, gexceptfds,
+	rreadfds, rwritefds, rexceptfds): Made static.
+
+	* gc.c (terminating), fports.c (terminating): Renamed
+	scm_i_terminating.
+
 2002-03-11  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* numbers.c (scm_divide): Adapt code from libstdc++/f2c to void
