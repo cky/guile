@@ -1,3 +1,11 @@
+2003-04-25  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* eval.c, eval.h, goops.c, goops.h (scm_m_atslot_ref,
+	scm_m_atslot_set_x, scm_m_atdispatch): Move the declarations and
+	definitions of the special goops memoizers from goops.[ch] to
+	eval.[ch].  Hmm... it seems that scm_m_atdispatch is not used
+	throughout guile.
+
 2003-04-24  Mikael Djurfeldt  <mdj@kvast.blakulla.net>
 
 	* ports.c, ports.h (scm_i_port_table_mutex): New mutex.

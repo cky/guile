@@ -199,6 +199,9 @@ SCM_API SCM scm_m_nil_cond (SCM xorig, SCM env);
 SCM_API SCM scm_m_atfop (SCM xorig, SCM env);
 #endif /* SCM_ENABLE_ELISP */
 SCM_API SCM scm_m_atbind (SCM xorig, SCM env);
+SCM_API SCM scm_m_atslot_ref (SCM xorig, SCM env);
+SCM_API SCM scm_m_atslot_set_x (SCM xorig, SCM env);
+SCM_API SCM scm_m_atdispatch (SCM xorig, SCM env);
 SCM_API SCM scm_m_at_call_with_values (SCM xorig, SCM env);
 SCM_API int scm_badargsp (SCM formals, SCM args);
 SCM_API SCM scm_ceval (SCM x, SCM env);

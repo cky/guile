@@ -2001,62 +2001,6 @@ scm_sys_compute_applicable_methods (SCM gf, SCM args)
 SCM_SYMBOL (sym_compute_applicable_methods, "compute-applicable-methods");
 SCM_VARIABLE_INIT (var_compute_applicable_methods, "compute-applicable-methods", scm_c_define_gsubr (s_sys_compute_applicable_methods, 2, 0, 0, scm_sys_compute_applicable_methods));
 
-SCM_SYNTAX (s_atslot_ref, "@slot-ref", scm_makmmacro, scm_m_atslot_ref);
-
-SCM
-scm_m_atslot_ref (SCM xorig, SCM env SCM_UNUSED)
-#define FUNC_NAME s_atslot_ref
-{
-  SCM x = SCM_CDR (xorig);
-  SCM_ASSYNT (scm_ilength (x) == 2, scm_s_expression, FUNC_NAME);
-  SCM_VALIDATE_INUM (SCM_ARG2, SCM_CADR (x));
-  return scm_cons (SCM_IM_SLOT_REF, x);
-}
-#undef FUNC_NAME
-
-
-SCM_SYNTAX (s_atslot_set_x, "@slot-set!", scm_makmmacro, scm_m_atslot_set_x);
-
-SCM
-scm_m_atslot_set_x (SCM xorig, SCM env SCM_UNUSED)
-#define FUNC_NAME s_atslot_set_x
-{
-  SCM x = SCM_CDR (xorig);
-  SCM_ASSYNT (scm_ilength (x) == 3, scm_s_expression, FUNC_NAME);
-  SCM_VALIDATE_INUM (SCM_ARG2, SCM_CADR (x));
-  return scm_cons (SCM_IM_SLOT_SET_X, x);
-}
-#undef FUNC_NAME
-
-
-SCM_SYNTAX (s_atdispatch, "@dispatch", scm_makmmacro, scm_m_atdispatch);
-
-SCM_SYMBOL (sym_atdispatch, s_atdispatch);
-
-SCM
-scm_m_atdispatch (SCM xorig, SCM env)
-#define FUNC_NAME s_atdispatch
-{
-  SCM args, n, v, gf, x = SCM_CDR (xorig);
-  SCM_ASSYNT (scm_ilength (x) == 4, scm_s_expression, FUNC_NAME);
-  args = SCM_CAR (x);
-  if (!SCM_CONSP (args) && !SCM_SYMBOLP (args))
-    SCM_WRONG_TYPE_ARG (SCM_ARG1, args);
-  x = SCM_CDR (x);
-  n = SCM_XEVALCAR (x, env);
-  SCM_VALIDATE_INUM (SCM_ARG2, n);
-  SCM_ASSERT_RANGE (0, n, SCM_INUM (n) >= 1);
-  x = SCM_CDR (x);
-  v = SCM_XEVALCAR (x, env);
-  SCM_VALIDATE_VECTOR (SCM_ARG3, v);
-  x = SCM_CDR (x);
-  gf = SCM_XEVALCAR (x, env);
-  SCM_VALIDATE_PUREGENERIC (SCM_ARG4, gf);
-  return scm_list_5 (SCM_IM_DISPATCH, args, n, v, gf);
-}
-#undef FUNC_NAME
-
-
 static void
 lock_cache_mutex (void *m)
 {
