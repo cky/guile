@@ -304,6 +304,7 @@ Pipes are commonly used for communication with a newly forked
 child process.  The need to flush the output port can be
 avoided by making it unbuffered using @code{setvbuf}.
 
+@vindex PIPE_BUF
 Writes occur atomically provided the size of the data in bytes
 is not greater than the value of @code{PIPE_BUF}.  Note that
 the output port is likely to block if too much data (typically
@@ -416,15 +417,17 @@ cookie.
 @deffn {Scheme Procedure} setvbuf port mode [size]
 @deffnx {C Function} scm_setvbuf (port, mode, size)
 Set the buffering mode for @var{port}.  @var{mode} can be:
-@table @code
-@item _IONBF
+
+@defvar _IONBF
 non-buffered
-@item _IOLBF
+@end defvar
+@defvar _IOLBF
 line buffered
-@item _IOFBF
+@end defvar
+@defvar _IOFBF
 block buffered, using a newly allocated buffer of @var{size} bytes.
 If @var{size} is omitted, a default size will be used.
-@end table
+@end defvar
 @end deffn
 
 @deffn {Scheme Procedure} fcntl object cmd [value]
@@ -435,44 +438,54 @@ integer argument.
 
 Values for @var{command} are:
 
-@table @code
-@item F_DUPFD
+@defvar F_DUPFD
 Duplicate a file descriptor
-@item F_GETFD
+@end defvar
+@defvar F_GETFD
 Get flags associated with the file descriptor.
-@item F_SETFD
+@end defvar
+@defvar F_SETFD
 Set flags associated with the file descriptor to @var{value}.
-@item F_GETFL
+@end defvar
+@defvar F_GETFL
 Get flags associated with the open file.
-@item F_SETFL
+@end defvar
+@defvar F_SETFL
 Set flags associated with the open file to @var{value}
-@item F_GETOWN
+@end defvar
+@defvar F_GETOWN
 Get the process ID of a socket's owner, for @code{SIGIO} signals.
-@item F_SETOWN
+@end defvar
+@defvar F_SETOWN
 Set the process that owns a socket to @var{value}, for @code{SIGIO} signals.
-@item FD_CLOEXEC
+@end defvar
+@defvar FD_CLOEXEC
 The value used to indicate the ``close on exec'' flag with @code{F_GETFL} or
 @code{F_SETFL}.
-@end table
+@end defvar
 @end deffn
 
 @deffn {Scheme Procedure} flock file operation
 @deffnx {C Function} scm_flock (file, operation)
 Apply or remove an advisory lock on an open file.
 @var{operation} specifies the action to be done:
-@table @code
-@item LOCK_SH
+
+@defvar LOCK_SH
 Shared lock.  More than one process may hold a shared lock
 for a given file at a given time.
-@item LOCK_EX
+@end defvar
+@defvar LOCK_EX
 Exclusive lock.  Only one process may hold an exclusive lock
 for a given file at a given time.
-@item LOCK_UN
+@end defvar
+@defvar LOCK_UN
 Unlock the file.
-@item LOCK_NB
+@end defvar
+@defvar LOCK_NB
 Don't block when locking.  May be specified by bitwise OR'ing
 it to one of the other operations.
-@end table
+@end defvar
+
 The return value is not specified. @var{file} may be an open
 file descriptor or an open file descriptor port.
 @end deffn
@@ -559,53 +572,64 @@ The object returned by @code{stat} can be passed as a single
 parameter to the following procedures, all of which return
 integers:
 
-@table @code
-@item stat:dev
+@deffn {Scheme Procedure} stat:dev st
 The device containing the file.
-@item stat:ino
+@end deffn
+@deffn {Scheme Procedure} stat:ino st
 The file serial number, which distinguishes this file from all
 other files on the same device.
-@item stat:mode
+@end deffn
+@deffn {Scheme Procedure} stat:mode st
 The mode of the file.  This includes file type information and
 the file permission bits.  See @code{stat:type} and
 @code{stat:perms} below.
-@item stat:nlink
+@end deffn
+@deffn {Scheme Procedure} stat:nlink st
 The number of hard links to the file.
-@item stat:uid
+@end deffn
+@deffn {Scheme Procedure} stat:uid st
 The user ID of the file's owner.
-@item stat:gid
+@end deffn
+@deffn {Scheme Procedure} stat:gid st
 The group ID of the file.
-@item stat:rdev
+@end deffn
+@deffn {Scheme Procedure} stat:rdev st
 Device ID; this entry is defined only for character or block
 special files.
-@item stat:size
+@end deffn
+@deffn {Scheme Procedure} stat:size st
 The size of a regular file in bytes.
-@item stat:atime
+@end deffn
+@deffn {Scheme Procedure} stat:atime st
 The last access time for the file.
-@item stat:mtime
+@end deffn
+@deffn {Scheme Procedure} stat:mtime st
 The last modification time for the file.
-@item stat:ctime
+@end deffn
+@deffn {Scheme Procedure} stat:ctime st
 The last modification time for the attributes of the file.
-@item stat:blksize
+@end deffn
+@deffn {Scheme Procedure} stat:blksize st
 The optimal block size for reading or writing the file, in
 bytes.
-@item stat:blocks
+@end deffn
+@deffn {Scheme Procedure} stat:blocks st
 The amount of disk space that the file occupies measured in
 units of 512 byte blocks.
-@end table
+@end deffn
 
 In addition, the following procedures return the information
 from stat:mode in a more convenient form:
 
-@table @code
-@item stat:type
+@deffn {Scheme Procedure} stat:type st
 A symbol representing the type of file.  Possible values are
 @samp{regular}, @samp{directory}, @samp{symlink},
 @samp{block-special}, @samp{char-special}, @samp{fifo}, @samp{socket},
 and @samp{unknown}.
-@item stat:perms
+@end deffn
+@deffn {Scheme Procedure} stat:perms st
 An integer representing the access permission bits.
-@end table
+@end deffn
 @end deffn
 
 @deffn {Scheme Procedure} lstat str
@@ -829,22 +853,28 @@ They should be used with care since they are not reentrant.
 The following functions accept an object representing user information
 and return a selected component:
 
-@table @code
-@item passwd:name
+@deffn {Scheme Procedure} passwd:name pw
 The name of the userid.
-@item passwd:passwd
+@end deffn
+@deffn {Scheme Procedure} passwd:passwd pw
 The encrypted passwd.
-@item passwd:uid
+@end deffn
+@deffn {Scheme Procedure} passwd:uid pw
 The user id number.
-@item passwd:gid
+@end deffn
+@deffn {Scheme Procedure} passwd:gid pw
 The group id number.
-@item passwd:gecos
+@end deffn
+@deffn {Scheme Procedure} passwd:gecos pw
 The full name.
-@item passwd:dir
+@end deffn
+@deffn {Scheme Procedure} passwd:dir pw
 The home directory.
-@item passwd:shell
+@end deffn
+@deffn {Scheme Procedure} passwd:shell pw
 The login shell.
-@end table
+@end deffn
+@sp 1
 
 @deffn {Scheme Procedure} getpwuid uid
 Look up an integer userid in the user database.
@@ -886,16 +916,19 @@ or getpwent respectively.
 The following functions accept an object representing group information
 and return a selected component:
 
-@table @code
-@item group:name
+@deffn {Scheme Procedure} group:name gr
 The group name.
-@item group:passwd
+@end deffn
+@deffn {Scheme Procedure} group:passwd gr
 The encrypted group password.
-@item group:gid
+@end deffn
+@deffn {Scheme Procedure} group:gid gr
 The group id number.
-@item group:mem
+@end deffn
+@deffn {Scheme Procedure} group:mem gr
 A list of userids which have this group as a supplementary group.
-@end table
+@end deffn
+@sp 1
 
 @deffn {Scheme Procedure} getgrgid gid
 Look up an integer group id in the group database.
@@ -975,31 +1008,52 @@ time and return a selected component, or accept an object representing
 a broken down time and a value and set the component to the value.
 The numbers in parentheses give the usual range.
 
-@table @code
-@item tm:sec, set-tm:sec
+@deffn {Scheme Procedure} tm:sec tm
+@deffnx {Scheme Procedure} set-tm:sec tm val
 Seconds (0-59).
-@item tm:min, set-tm:min
+@end deffn
+@deffn {Scheme Procedure} tm:min tm
+@deffnx {Scheme Procedure} set-tm:min tm val
 Minutes (0-59).
-@item tm:hour, set-tm:hour
+@end deffn
+@deffn {Scheme Procedure} tm:hour tm
+@deffnx {Scheme Procedure} set-tm:hour tm val
 Hours (0-23).
-@item tm:mday, set-tm:mday
+@end deffn
+@deffn {Scheme Procedure} tm:mday tm
+@deffnx {Scheme Procedure} set-tm:mday tm val
 Day of the month (1-31).
-@item tm:mon, set-tm:mon
+@end deffn
+@deffn {Scheme Procedure} tm:mon tm
+@deffnx {Scheme Procedure} set-tm:mon tm val
 Month (0-11).
-@item tm:year, set-tm:year
+@end deffn
+@deffn {Scheme Procedure} tm:year tm
+@deffnx {Scheme Procedure} set-tm:year tm val
 Year (70-), the year minus 1900.
-@item tm:wday, set-tm:wday
+@end deffn
+@deffn {Scheme Procedure} tm:wday tm
+@deffnx {Scheme Procedure} set-tm:wday tm val
 Day of the week (0-6) with Sunday represented as 0.
-@item tm:yday, set-tm:yday
+@end deffn
+@deffn {Scheme Procedure} tm:yday tm
+@deffnx {Scheme Procedure} set-tm:yday tm val
 Day of the year (0-364, 365 in leap years).
-@item tm:isdst, set-tm:isdst
+@end deffn
+@deffn {Scheme Procedure} tm:isdst tm
+@deffnx {Scheme Procedure} set-tm:isdst tm val
 Daylight saving indicator (0 for ``no'', greater than 0 for ``yes'', less than
 0 for ``unknown'').
-@item tm:gmtoff, set-tm:gmtoff
+@end deffn
+@deffn {Scheme Procedure} tm:gmtoff tm
+@deffnx {Scheme Procedure} set-tm:gmtoff tm val
 Time zone offset in seconds west of @acronym{UTC} (-46800 to 43200).
-@item tm:zone, set-tm:zone
+@end deffn
+@deffn {Scheme Procedure} tm:zone tm
+@deffnx {Scheme Procedure} set-tm:zone tm val
 Time zone label (a string), not necessarily unique.
-@end table
+@end deffn
+@sp 1
 
 @deffn {Scheme Procedure} localtime time [zone]
 @deffnx {C Function} scm_localtime (time, zone)
@@ -1079,23 +1133,26 @@ Return an object with information about real and processor
 time.  The following procedures accept such an object as an
 argument and return a selected component:
 
-@table @code
-@item tms:clock
+@deffn {Scheme Procedure} tms:clock tms
 The current real time, expressed as time units relative to an
 arbitrary base.
-@item tms:utime
+@end deffn
+@deffn {Scheme Procedure} tms:utime tms
 The CPU time units used by the calling process.
-@item tms:stime
+@end deffn
+@deffn {Scheme Procedure} tms:stime tms
 The CPU time units used by the system on behalf of the calling
 process.
-@item tms:cutime
+@end deffn
+@deffn {Scheme Procedure} tms:cutime tms
 The CPU time units used by terminated child processes of the
 calling process, whose status has been collected (e.g., using
 @code{waitpid}).
-@item tms:cstime
+@end deffn
+@deffn {Scheme Procedure} tms:cstime tms
 Similarly, the CPU times units used by the system on behalf of
 terminated child processes.
-@end table
+@end deffn
 @end deffn
 
 @deffn {Scheme Procedure} get-internal-real-time
@@ -1321,8 +1378,10 @@ The value of @var{pid} determines the behaviour:
 @item @var{pid} greater than 0
 Request status information from the specified child process.
 @item @var{pid} equal to -1 or @code{WAIT_ANY}
+@vindex WAIT_ANY
 Request status information for any child process.
 @item @var{pid} equal to 0 or @code{WAIT_MYPGRP}
+@vindex WAIT_MYPGRP
 Request status information for any child process in the current process
 group.
 @item @var{pid} less than -1
@@ -1450,6 +1509,9 @@ The return value is unspecified.
 
 @deffn {Scheme Procedure} setpriority which who prio
 @deffnx {C Function} scm_setpriority (which, who, prio)
+@vindex PRIO_PROCESS
+@vindex PRIO_PGRP
+@vindex PRIO_USER
 Set the scheduling priority of the process, process group
 or user, as indicated by @var{which} and @var{who}. @var{which}
 is one of the variables @code{PRIO_PROCESS}, @code{PRIO_PGRP}
@@ -1467,6 +1529,9 @@ value is not specified.
 
 @deffn {Scheme Procedure} getpriority which who
 @deffnx {C Function} scm_getpriority (which, who)
+@vindex PRIO_PROCESS
+@vindex PRIO_PGRP
+@vindex PRIO_USER
 Return the scheduling priority of the process, process group
 or user, as indicated by @var{which} and @var{who}. @var{which}
 is one of the variables @code{PRIO_PROCESS}, @code{PRIO_PGRP}
@@ -2102,6 +2167,12 @@ in host order.
 
 @deffn {Scheme Procedure} socket family style proto
 @deffnx {C Function} scm_socket (family, style, proto)
+@vindex AF_UNIX
+@vindex AF_INET
+@vindex AF_INET6
+@vindex SOCK_STREAM
+@vindex SOCK_DGRAM
+@vindex SOCK_RAW
 Return a new socket port of the type specified by @var{family},
 @var{style} and @var{proto}.  All three parameters are
 integers.  Supported values for @var{family} are
@@ -2280,20 +2351,22 @@ connection and will continue to accept new requests.
 The following functions take a socket address object, as returned
 by @code{accept} and other procedures, and return a selected component.
 
-@table @code
-@item sockaddr:fam
+@deffn {Scheme Procedure} sockaddr:fam sa
 The socket family, typically equal to the value of @code{AF_UNIX} or
 @code{AF_INET}.
-@item sockaddr:path
+@end deffn
+@deffn {Scheme Procedure} sockaddr:path sa
 If the socket family is @code{AF_UNIX}, returns the path of the
 filename the socket is based on.
-@item sockaddr:addr
+@end deffn
+@deffn {Scheme Procedure} sockaddr:addr sa
 If the socket family is @code{AF_INET}, returns the Internet host
 address.
-@item sockaddr:port
+@end deffn
+@deffn {Scheme Procedure} sockaddr:port sa
 If the socket family is @code{AF_INET}, returns the Internet port
 number.
-@end table
+@end deffn
 
 @deffn {Scheme Procedure} getsockname sock
 @deffnx {C Function} scm_getsockname (sock)
@@ -2323,6 +2396,9 @@ protocols, if a packet larger than this limit is encountered
 then some data
 will be irrevocably lost.
 
+@vindex MSG_OOB
+@vindex MSG_PEEK
+@vindex MSG_DONTROUTE
 The optional @var{flags} argument is a value or bitwise OR of
 @code{MSG_OOB}, @code{MSG_PEEK}, @code{MSG_DONTROUTE} etc.
 
@@ -2336,6 +2412,9 @@ any unread buffered port data is ignored.
 
 @deffn {Scheme Procedure} send sock message [flags]
 @deffnx {C Function} scm_send (sock, message, flags)
+@vindex MSG_OOB
+@vindex MSG_PEEK
+@vindex MSG_DONTROUTE
 Transmit the string @var{message} on a socket port @var{sock}.
 @var{sock} must already be bound to a destination address.  The value
 returned is the number of bytes transmitted---it's possible for this
@@ -2359,6 +2438,9 @@ of data which can be received: in the case of packet protocols,
 if a packet larger than this limit is encountered then some
 data will be irrevocably lost.
 
+@vindex MSG_OOB
+@vindex MSG_PEEK
+@vindex MSG_DONTROUTE
 The optional @var{flags} argument is a value or bitwise OR of
 @code{MSG_OOB}, @code{MSG_PEEK}, @code{MSG_DONTROUTE} etc.
 
@@ -2524,23 +2606,26 @@ information about the system it runs on.
 @deffnx {C Function} scm_uname ()
 Return an object with some information about the computer
 system the program is running on.
-@end deffn
 
 The following procedures accept an object as returned by @code{uname}
 and return a selected component.
 
-@table @code
-@item utsname:sysname
+@deffn {Scheme Procedure} utsname:sysname un
 The name of the operating system.
-@item utsname:nodename
+@end deffn
+@deffn {Scheme Procedure} utsname:nodename un
 The network name of the computer.
-@item utsname:release
+@end deffn
+@deffn {Scheme Procedure} utsname:release un
 The current release level of the operating system implementation.
-@item utsname:version
+@end deffn
+@deffn {Scheme Procedure} utsname:version un
 The current version level within the release of the operating system.
-@item utsname:machine
+@end deffn
+@deffn {Scheme Procedure} utsname:machine un
 A description of the hardware.
-@end table
+@end deffn
+@end deffn
 
 @deffn {Scheme Procedure} gethostname
 @deffnx {C Function} scm_gethostname ()
@@ -2575,6 +2660,13 @@ no other easy or unambiguous way of detecting such features.
 
 @deffn {Scheme Procedure} setlocale category [locale]
 @deffnx {C Function} scm_setlocale (category, locale)
+@vindex LC_ALL
+@vindex LC_COLLATE
+@vindex LC_CTYPE
+@vindex LC_MESSAGES
+@vindex LC_MONETARY
+@vindex LC_NUMERIC
+@vindex LC_TIME
 If @var{locale} is omitted, return the current value of the specified
 locale @var{category} as a system-dependent string.  @var{category}
 should be specified using the values @code{LC_COLLATE}, @code{LC_ALL}

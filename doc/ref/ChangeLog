@@ -1,3 +1,9 @@
+2003-05-01  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* posix.texi: Add index entries for many variables and functions,
+	either using @defvar/@deffn or @vindex/@pindex.  (Patch supplied
+	by Kevin Ryde.)
+
 2003-04-30  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* posix.texi (scm_c_port_for_each): Added. 
