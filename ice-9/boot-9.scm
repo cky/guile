@@ -2375,7 +2375,10 @@
 ;;      (display "No backtrace available.\n")))
 
 (define (error-catching-repl r e p)
-  (error-catching-loop (lambda () (p (e (r))))))
+  (error-catching-loop
+   (lambda ()
+     (call-with-values (lambda () (e (r)))
+       (lambda the-values (for-each p the-values))))))
 
 (define (gc-run-time)
   (cdr (assq 'gc-time-taken (gc-stats))))
