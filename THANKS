@@ -1,8 +1,6 @@
 The Guile maintainer committee consists of
 
-	    Jim Blandy
 	 Mikael Djurfeldt
-	 Maciej Stachowiak
 	 Marius Vollmer
 
 Contributors since the last release:
@@ -14,3 +12,5 @@ For fixes or providing information which led to a fix:
           Brian Crowder
     Christopher Cramer
            John Goerzen 
+            Ken Raeburn
+          Chris Cramer
