@@ -1,3 +1,9 @@
+2003-04-17  Rob Browning  <rlb@defaultvalue.org>
+
+	* numbers.c (scm_integer_expt): fix case where we were declaring
+	vars in the middle of a statement block.  Thanks to Thamer
+	Al-Harbash.
+
 2003-04-17  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* eq.c (scm_eqv_p): Turned into a primitive generic.
