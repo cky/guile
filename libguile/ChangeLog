@@ -1,3 +1,24 @@
+Wed Jan  5 10:46:15 2000  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* guile-snarf.awk.in: Do argument/number mismatch checking and
+	print warnings in an Emacs compile-mode parseable format.
+
+	* struct.c: Use SCM_ASSERT_RANGE instead of SCM_ASSERT w/
+	SCM_OUTOFRANGE as 3rd argument.
+
+	* random.c: Fix argument/number mismatch (that I introduced :-( ).
+
+	* __scm.h: Do not #define SCM_ARG* when snarfing;
+	lets us distinguish between 1 and SCM_ARG1 when snarfing as only
+	the former (using the number) requires the argument to match the
+	formal in the current argument snarfing check.
+
+	* snarf.h: Give new definition of SCM_ASSERT when in
+	snarfing mode to output a lexically-identifiable sequence that the 
+	guile-snarf.awk script uses to verify argument/position matching.
+
+	* ramap.c: Remove extraneous #undef FUNC_NAME.
+
 Wed Jan  5 08:36:38 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* guile-doc-snarf.awk.in: Removed -- guile-snarf.awk.in is the
