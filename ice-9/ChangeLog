@@ -1,3 +1,15 @@
+Tue Apr  1 17:46:49 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* expect.scm (expect-select): correct the millisecond timeout
+	arithmetic (from Marko.Kohtala@ntc.nokia.com).
+	
+Mon Mar 31 03:23:19 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* boot-9.scm (open-input-pipe, open-output-pipe): defined here
+	instead of in libguile.
+	(tm:sec etc.) new accessors for broken-down time.
+	(set-tm:sec etc.) new setters for broken-down time.
+
 Thu Mar 27 05:06:00 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* boot-9.scm (netent:addrtype, servent:port): added missing

@@ -113,12 +113,11 @@
 ;;; simplified select: returns #t if input is waiting or #f if timed out.
 ;;; timeout is absolute in terms of get-internal-real-time.
 (define (expect-select port timeout)
-  (let* ((relative (- timeout (get-internal-real-time)))
-	 (relative-s (inexact->exact
-		      (floor (/ relative internal-time-units-per-second))))
+  (let* ((relative (/ (- timeout (get-internal-real-time))
+		      internal-time-units-per-second))
+	 (relative-s (inexact->exact (floor relative)))
 	 (relative-ms (inexact->exact
-		       (round (/ (* (- relative relative-s) 1000)
-				 internal-time-units-per-second)))))
+		       (round (* (- relative relative-s) 1000)))))
     (and (> relative 0)
 	 (pair? (car (select (list port) () ()
 			     relative-s
