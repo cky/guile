@@ -84,7 +84,7 @@ modinclude_DATA = scmconfig.h
 bin_SCRIPTS = guile-snarf
 
 EXTRA_DIST = gscm.c gscm.h ChangeLog-scm dynl-dl.c dynl-dld.c dynl-shl.c \
-dynl-vms.c PLUGIN/REQ PLUGIN/guile.config PLUGIN/guile.libs.in
+dynl-vms.c DYNAMIC-LINKING PLUGIN/REQ PLUGIN/guile.config PLUGIN/guile.libs.in
 
 SUFFIXES = .x
 

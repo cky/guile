@@ -43,7 +43,7 @@ modinclude_DATA = scmconfig.h
 bin_SCRIPTS = guile-snarf
 
 EXTRA_DIST = gscm.c gscm.h ChangeLog-scm dynl-dl.c dynl-dld.c dynl-shl.c \
-dynl-vms.c PLUGIN/REQ PLUGIN/guile.config PLUGIN/guile.libs.in
+dynl-vms.c DYNAMIC-LINKING PLUGIN/REQ PLUGIN/guile.config PLUGIN/guile.libs.in
 
 ## FIXME: shouldn't directly generate file; instead generate temp file
 ## and "mv".  Consider using timestamp file as well, to avoid
