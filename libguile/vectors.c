@@ -38,61 +38,6 @@
 
 #define VECTOR_MAX_LENGTH (SCM_T_BITS_MAX >> 8)
 
-#if SCM_ENABLE_DEPRECATED
-
-int
-SCM_VECTORP (SCM x)
-{
-  scm_c_issue_deprecation_warning
-    ("SCM_VECTORP is deprecated.  Use scm_is_vector instead.");
-  return SCM_I_IS_VECTOR (x);
-}
-
-unsigned long
-SCM_VECTOR_LENGTH (SCM x)
-{
-  scm_c_issue_deprecation_warning
-    ("SCM_VECTOR_LENGTH is deprecated.  Use scm_c_vector_length instead.");
-  return SCM_I_VECTOR_LENGTH (x);
-}
-
-const SCM *
-SCM_VELTS (SCM x)
-{
-  scm_c_issue_deprecation_warning
-    ("SCM_VELTS is deprecated.  Use scm_vector_elements instead.");
-  return SCM_I_VECTOR_ELTS (x);
-}
-
-SCM *
-SCM_WRITABLE_VELTS (SCM x)
-{
-  scm_c_issue_deprecation_warning
-    ("SCM_WRITABLE_VELTS is deprecated.  "
-     "Use scm_vector_writable_elements instead.");
-  return SCM_I_VECTOR_WELTS (x);
-}
-
-SCM
-SCM_VECTOR_REF (SCM x, size_t idx)
-{
-  scm_c_issue_deprecation_warning
-    ("SCM_VECTOR_REF is deprecated.  "
-     "Use scm_c_vector_ref or scm_vector_elements instead.");
-  return scm_c_vector_ref (x, idx);
-}
-
-void
-SCM_VECTOR_SET (SCM x, size_t idx, SCM val)
-{
-  scm_c_issue_deprecation_warning
-    ("SCM_VECTOR_SET is deprecated.  "
-     "Use scm_c_vector_set_x or scm_vector_writable_elements instead.");
-  scm_c_vector_set_x (x, idx, val);
-}
-
-#endif
-
 int
 scm_is_vector (SCM obj)
 {
@@ -110,6 +55,34 @@ int
 scm_is_simple_vector (SCM obj)
 {
   return SCM_I_IS_VECTOR (obj);
+}
+
+const SCM *
+scm_vector_elements (SCM vec, scm_t_array_handle *h,
+		     size_t *lenp, ssize_t *incp)
+{
+  scm_generalized_vector_get_handle (vec, h);
+  if (lenp)
+    {
+      scm_t_array_dim *dim = scm_array_handle_dims (h);
+      *lenp = dim->ubnd - dim->lbnd + 1;
+      *incp = dim->inc;
+    }
+  return scm_array_handle_elements (h);
+}
+
+SCM *
+scm_vector_writable_elements (SCM vec, scm_t_array_handle *h,
+			      size_t *lenp, ssize_t *incp)
+{
+  scm_generalized_vector_get_handle (vec, h);
+  if (lenp)
+    {
+      scm_t_array_dim *dim = scm_array_handle_dims (h);
+      *lenp = dim->ubnd - dim->lbnd + 1;
+      *incp = dim->inc;
+    }
+  return scm_array_handle_writable_elements (h);
 }
 
 SCM_DEFINE (scm_vector_p, "vector?", 1, 0, 0, 
@@ -455,7 +428,7 @@ SCM_DEFINE (scm_vector_fill_x, "vector-fill!", 2, 0, 0,
 
 
 SCM
-scm_vector_equal_p (SCM x, SCM y)
+scm_i_vector_equal_p (SCM x, SCM y)
 {
   long i;
   for (i = SCM_I_VECTOR_LENGTH (x) - 1; i >= 0; i--)
@@ -567,6 +540,14 @@ SCM_DEFINE (scm_generalized_vector_p, "generalized-vector?", 1, 0, 0,
   return scm_from_bool (scm_is_generalized_vector (obj));
 }
 #undef FUNC_NAME
+
+void
+scm_generalized_vector_get_handle (SCM vec, scm_t_array_handle *h)
+{
+  scm_array_get_handle (vec, h);
+  if (scm_array_handle_rank (h) != 1)
+    scm_wrong_type_arg_msg (NULL, 0, vec, "vector");
+}
 
 size_t
 scm_c_generalized_vector_length (SCM v)

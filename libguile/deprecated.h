@@ -454,6 +454,18 @@ SCM_API size_t SCM_SYMBOL_LENGTH (SCM sym);
 SCM_API int SCM_KEYWORDP (SCM obj);
 SCM_API SCM SCM_KEYWORDSYM (SCM keyword);
 
+/* Deprecated because we don't want to hand out unprotected pointers
+   to arrays, vectors, etc. */
+
+#define SCM_VECTOR_MAX_LENGTH ((1L << 24) - 1)
+
+SCM_API int SCM_VECTORP (SCM x);
+SCM_API unsigned long SCM_VECTOR_LENGTH (SCM x);
+SCM_API const SCM *SCM_VELTS (SCM x);
+SCM_API SCM *SCM_WRITABLE_VELTS (SCM x);
+SCM_API SCM SCM_VECTOR_REF (SCM x, size_t idx);
+SCM_API void SCM_VECTOR_SET (SCM x, size_t idx, SCM val);
+SCM_API SCM scm_vector_equal_p (SCM x, SCM y);
 
 void scm_i_init_deprecated (void);
 

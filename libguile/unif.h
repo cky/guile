@@ -121,15 +121,6 @@ SCM_API const SCM *scm_array_handle_elements (scm_t_array_handle *h);
 SCM_API SCM *scm_array_handle_writable_elements (scm_t_array_handle *h);
 SCM_API void scm_array_handle_release (scm_t_array_handle *h);
 
-SCM_API void scm_generalized_vector_get_handle (SCM vec,
-						scm_t_array_handle *h);
-SCM_API const SCM *scm_vector_elements (SCM vec,
-					scm_t_array_handle *h,
-					size_t *lenp, ssize_t *incp);
-SCM_API SCM *scm_vector_writable_elements (SCM vec,
-					   scm_t_array_handle *h,
-					   size_t *lenp, ssize_t *incp);
-
 
 /** Bit vectors */
 

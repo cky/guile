@@ -277,7 +277,7 @@ SCM_PRIMITIVE_GENERIC_1 (scm_equal_p, "equal?", scm_tc7_rpsubr,
         }
     case scm_tc7_vector:
     case scm_tc7_wvect:
-      return scm_vector_equal_p (x, y);
+      return scm_i_vector_equal_p (x, y);
     }
  generic_equal:
   if (SCM_UNPACK (g_scm_equal_p))

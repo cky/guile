@@ -340,42 +340,6 @@ scm_array_handle_writable_elements (scm_t_array_handle *h)
   scm_wrong_type_arg_msg (NULL, 0, h->array, "non-uniform array");
 }
 
-void
-scm_generalized_vector_get_handle (SCM vec, scm_t_array_handle *h)
-{
-  scm_array_get_handle (vec, h);
-  if (scm_array_handle_rank (h) != 1)
-    scm_wrong_type_arg_msg (NULL, 0, vec, "vector");
-}
-
-const SCM *
-scm_vector_elements (SCM vec, scm_t_array_handle *h,
-		     size_t *lenp, ssize_t *incp)
-{
-  scm_generalized_vector_get_handle (vec, h);
-  if (lenp)
-    {
-      scm_t_array_dim *dim = scm_array_handle_dims (h);
-      *lenp = dim->ubnd - dim->lbnd + 1;
-      *incp = dim->inc;
-    }
-  return scm_array_handle_elements (h);
-}
-
-SCM *
-scm_vector_writable_elements (SCM vec, scm_t_array_handle *h,
-			      size_t *lenp, ssize_t *incp)
-{
-  scm_generalized_vector_get_handle (vec, h);
-  if (lenp)
-    {
-      scm_t_array_dim *dim = scm_array_handle_dims (h);
-      *lenp = dim->ubnd - dim->lbnd + 1;
-      *incp = dim->inc;
-    }
-  return scm_array_handle_writable_elements (h);
-}
-
 #if SCM_ENABLE_DEPRECATED
 
 SCM_DEFINE (scm_array_p, "array?", 1, 1, 0,

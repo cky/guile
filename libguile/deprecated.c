@@ -1210,6 +1210,66 @@ SCM_KEYWORDSYM (SCM keyword)
   return scm_keyword_dash_symbol (keyword);
 }
 
+int
+SCM_VECTORP (SCM x)
+{
+  scm_c_issue_deprecation_warning
+    ("SCM_VECTORP is deprecated.  Use scm_is_vector instead.");
+  return SCM_I_IS_VECTOR (x);
+}
+
+unsigned long
+SCM_VECTOR_LENGTH (SCM x)
+{
+  scm_c_issue_deprecation_warning
+    ("SCM_VECTOR_LENGTH is deprecated.  Use scm_c_vector_length instead.");
+  return SCM_I_VECTOR_LENGTH (x);
+}
+
+const SCM *
+SCM_VELTS (SCM x)
+{
+  scm_c_issue_deprecation_warning
+    ("SCM_VELTS is deprecated.  Use scm_vector_elements instead.");
+  return SCM_I_VECTOR_ELTS (x);
+}
+
+SCM *
+SCM_WRITABLE_VELTS (SCM x)
+{
+  scm_c_issue_deprecation_warning
+    ("SCM_WRITABLE_VELTS is deprecated.  "
+     "Use scm_vector_writable_elements instead.");
+  return SCM_I_VECTOR_WELTS (x);
+}
+
+SCM
+SCM_VECTOR_REF (SCM x, size_t idx)
+{
+  scm_c_issue_deprecation_warning
+    ("SCM_VECTOR_REF is deprecated.  "
+     "Use scm_c_vector_ref or scm_vector_elements instead.");
+  return scm_c_vector_ref (x, idx);
+}
+
+void
+SCM_VECTOR_SET (SCM x, size_t idx, SCM val)
+{
+  scm_c_issue_deprecation_warning
+    ("SCM_VECTOR_SET is deprecated.  "
+     "Use scm_c_vector_set_x or scm_vector_writable_elements instead.");
+  scm_c_vector_set_x (x, idx, val);
+}
+
+SCM
+scm_vector_equal_p (SCM x, SCM y)
+{
+  scm_c_issue_deprecation_warning
+    ("scm_vector_euqal_p is deprecated.  "
+     "Use scm_equal_p instead.");
+  return scm_equal_p (x, y);
+}
+
 void
 scm_i_init_deprecated ()
 {

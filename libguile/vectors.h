@@ -3,7 +3,7 @@
 #ifndef SCM_VECTORS_H
 #define SCM_VECTORS_H
 
-/* Copyright (C) 1995,1996,1998,2000,2001, 2002 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,2000,2001,2002,2004,2005 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -27,18 +27,6 @@
 
 
 
-/*
-  bit vectors
- */
-#define SCM_BITVEC_REF(a, i) ((SCM_BITVECTOR_BASE (a) [(i) / SCM_LONG_BIT] & (1L << ((i) % SCM_LONG_BIT))) ? 1 : 0)
-#define SCM_BITVEC_SET(a, i) SCM_BITVECTOR_BASE (a) [(i) / SCM_LONG_BIT] |= (1L << ((i) % SCM_LONG_BIT))
-#define SCM_BITVEC_CLR(a, i) SCM_BITVECTOR_BASE (a) [(i) / SCM_LONG_BIT] &= ~(1L << ((i) % SCM_LONG_BIT))
-
-
-
-
-
-
 SCM_API SCM scm_vector_p (SCM x);
 SCM_API SCM scm_vector_length (SCM v);
 SCM_API SCM scm_vector (SCM l);
@@ -59,13 +47,18 @@ SCM_API SCM scm_c_make_vector (size_t len, SCM fill);
 SCM_API size_t scm_c_vector_length (SCM vec);
 SCM_API SCM scm_c_vector_ref (SCM vec, size_t k);
 SCM_API void scm_c_vector_set_x (SCM vec, size_t k, SCM obj);
+SCM_API const SCM *scm_vector_elements (SCM vec,
+					scm_t_array_handle *h,
+					size_t *lenp, ssize_t *incp);
+SCM_API SCM *scm_vector_writable_elements (SCM vec,
+					   scm_t_array_handle *h,
+					   size_t *lenp, ssize_t *incp);
 
 /* Fast, non-checking accessors for simple vectors.
  */
 #define SCM_SIMPLE_VECTOR_LENGTH(x)      SCM_I_VECTOR_LENGTH(x)
 #define SCM_SIMPLE_VECTOR_REF(x,idx)     ((SCM_I_VECTOR_ELTS(x))[idx])
 #define SCM_SIMPLE_VECTOR_SET(x,idx,val) ((SCM_I_VECTOR_WELTS(x))[idx]=(val))
-#define SCM_SIMPLE_VECTOR_LOC(x,idx)     (&((SCM_I_VECTOR_WELTS(x))[idx]))
 
 /* Generalized vectors */
 
@@ -79,23 +72,8 @@ SCM_API int scm_is_generalized_vector (SCM obj);
 SCM_API size_t scm_c_generalized_vector_length (SCM v);
 SCM_API SCM scm_c_generalized_vector_ref (SCM v, size_t idx);
 SCM_API void scm_c_generalized_vector_set_x (SCM v, size_t idx, SCM val);
-
-/* Deprecated */
-
-#if SCM_ENABLE_DEPRECATED
-
-#define SCM_VECTOR_MAX_LENGTH ((1L << 24) - 1)
-
-SCM_API int SCM_VECTORP (SCM x);
-SCM_API unsigned long SCM_VECTOR_LENGTH (SCM x);
-SCM_API const SCM *SCM_VELTS (SCM x);
-SCM_API SCM *SCM_WRITABLE_VELTS (SCM x);
-SCM_API SCM SCM_VECTOR_REF (SCM x, size_t idx);
-SCM_API void SCM_VECTOR_SET (SCM x, size_t idx, SCM val);
-
-#endif
-
-SCM_API SCM scm_vector_equal_p (SCM x, SCM y);
+SCM_API void scm_generalized_vector_get_handle (SCM vec,
+						scm_t_array_handle *h);
 
 /* Internals */
 
@@ -105,10 +83,10 @@ SCM_API SCM scm_vector_equal_p (SCM x, SCM y);
 #define SCM_I_VECTOR_LENGTH(x) (((size_t) SCM_CELL_WORD_0 (x)) >> 8)
 
 SCM_API void scm_i_vector_free (SCM vec);
+SCM_API SCM  scm_i_vector_equal_p (SCM x, SCM y);
 
 /* Weak vectors share implementation details with ordinary vectors,
-   but no one else should.  Weak vectors need to be cleaned up as
-   well.
+   but no one else should.
  */
 
 #define SCM_I_WVECTP(x)                 (!SCM_IMP (x) && \
