@@ -40,13 +40,16 @@
  * If you do not wish that, delete this exception notice.  */
 
 
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
 
 #include "libguile/_scm.h"
 #include "libguile/validate.h"
 #include "libguile/strings.h"
 #include "libguile/vectors.h"
 #include "libguile/pairs.h"
-#if HAVE_ARRAYS
+#if SCM_HAVE_ARRAYS
 # include "libguile/unif.h"
 #endif
 
