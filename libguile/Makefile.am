@@ -43,8 +43,8 @@ libguile_la_SOURCES = \
     list.c load.c macros.c mallocs.c markers.c modules.c net_db.c \
     numbers.c objects.c \
     objprop.c options.c pairs.c ports.c posix.c print.c procprop.c \
-    procs.c ramap.c read.c readline.c root.c scmsigs.c script.c \
-    simpos.c smob.c socket.c srcprop.c stackchk.c stacks.c stime.c \
+    procs.c ramap.c random.c read.c readline.c root.c scmsigs.c script.c \
+    simpos.c smob.c socket.c sort.c srcprop.c stackchk.c stacks.c stime.c \
     strings.c strop.c strorder.c strports.c struct.c symbols.c tag.c \
     throw.c unif.c variable.c vectors.c version.c vports.c weaks.c
 
@@ -58,10 +58,10 @@ BUILT_SOURCES = \
     iselect.x kw.x list.x load.x macros.x mallocs.x markers.x modules.x \
     net_db.x numbers.x \
     objects.x objprop.x options.x pairs.x ports.x posix.x print.x \
-    procprop.x procs.x ramap.x read.x readline.x regex-posix.x root.x \
-    scmsigs.x script.x simpos.x smob.x socket.x srcprop.x stackchk.x \
-    stacks.x stime.x strings.x strop.x strorder.x strports.x struct.x \
-    symbols.x tag.x threads.x throw.x unif.x variable.x vectors.x \
+    procprop.x procs.x random.x ramap.x read.x readline.x regex-posix.x \
+    root.x scmsigs.x script.x simpos.x smob.x socket.x sort.x srcprop.x \
+    stackchk.x stacks.x stime.x strings.x strop.x strorder.x strports.x \
+    struct.x symbols.x tag.x threads.x throw.x unif.x variable.x vectors.x \
     version.x vports.x weaks.x
 
 EXTRA_libguile_la_SOURCES = _scm.h \
@@ -94,8 +94,8 @@ modinclude_HEADERS = \
     macros.h mallocs.h markers.h modules.h net_db.h numbers.h \
     objects.h objprop.h \
     options.h pairs.h ports.h posix.h regex-posix.h print.h procprop.h \
-    procs.h ramap.h read.h readline.h root.h scmsigs.h script.h \
-    simpos.h smob.h socket.h srcprop.h stackchk.h stacks.h stime.h \
+    procs.h random.h ramap.h read.h readline.h root.h scmsigs.h script.h \
+    simpos.h smob.h socket.h sort.h srcprop.h stackchk.h stacks.h stime.h \
     strings.h strop.h strorder.h strports.h struct.h symbols.h tag.h \
     tags.h throw.h unif.h variable.h vectors.h version.h vports.h \
     weaks.h snarf.h threads.h coop-defs.h fluids.h iselect.h
