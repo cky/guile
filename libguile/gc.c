@@ -1059,8 +1059,6 @@ scm_igc (const char *what)
   /* During the critical section, only the current thread may run. */
   SCM_CRITICAL_SECTION_START;
 
-  /* fprintf (stderr, "gc: %s\n", what); */
-
   if (!scm_stack_base || scm_block_gc)
     {
       --scm_gc_running_p;
@@ -1985,11 +1983,15 @@ scm_must_malloc (size_t size, const char *what)
   if (NULL != ptr)
     {
       scm_mallocated = nm;
+      
       if (nm > scm_mtrigger - SCM_MTRIGGER_HYSTERESIS) {
+	unsigned long old_trigger = scm_mtrigger;
 	if (nm > scm_mtrigger)
 	  scm_mtrigger = nm + nm / 2;
 	else
 	  scm_mtrigger += scm_mtrigger / 2;
+	if (scm_mtrigger < old_trigger)
+	  abort ();
       }
 #ifdef GUILE_DEBUG_MALLOC
       scm_malloc_register (ptr, what);
@@ -2053,10 +2055,13 @@ scm_must_realloc (void *where,
     {
       scm_mallocated = nm;
       if (nm > scm_mtrigger - SCM_MTRIGGER_HYSTERESIS) {
+	unsigned long old_trigger = scm_mtrigger;
 	if (nm > scm_mtrigger)
 	  scm_mtrigger = nm + nm / 2;
 	else
 	  scm_mtrigger += scm_mtrigger / 2;
+	if (scm_mtrigger < old_trigger)
+	  abort ();
       }
 #ifdef GUILE_DEBUG_MALLOC
       scm_malloc_reregister (where, ptr, what);
@@ -2158,7 +2163,7 @@ scm_done_free (long size)
          scm_mallocated, which underflowed.  */
       abort ();
   } else {
-    unsigned long nm = scm_mallocated + size;
+    unsigned long nm = scm_mallocated - size;
     if (nm < size)
       /* The byte count of allocated objects has overflowed.  This is
          probably because you forgot to report the correct size of freed
