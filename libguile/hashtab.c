@@ -73,17 +73,18 @@ scm_hash_fn_get_handle (SCM table,SCM obj,unsigned int (*hash_fn)(),SCM (*assoc_
 }
 
 
-
 SCM
 scm_hash_fn_create_handle_x (SCM table,SCM obj,SCM init,unsigned int (*hash_fn)(),
                              SCM (*assoc_fn)(),void * closure)
+#define FUNC_NAME "scm_hash_fn_create_handle_x"
 {
   unsigned int k;
   SCM it;
 
   SCM_ASSERT (SCM_VECTORP (table), table, SCM_ARG1, "hash_fn_create_handle_x");
   if (SCM_LENGTH (table) == 0)
-    return SCM_EOL;
+    SCM_MISC_ERROR ("void hashtable", SCM_EOL);
+
   k = hash_fn (obj, SCM_LENGTH (table), closure);
   if (k >= SCM_LENGTH (table))
     scm_out_of_range ("hash_fn_create_handle_x", scm_ulong2num (k));
@@ -104,8 +105,7 @@ scm_hash_fn_create_handle_x (SCM table,SCM obj,SCM init,unsigned int (*hash_fn)(
     return SCM_CAR (new_bucket);
   }
 }
-
-
+#undef FUNC_NAME
 
 
 SCM 

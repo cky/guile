@@ -1,3 +1,8 @@
+2000-07-07  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* hashtab.c (scm_hash_fn_create_handle_x):  Signal an error if the
+	given hash table has no slots.
+
 2000-07-06  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* gc.c (policy_on_error):  Added in order to allow alloc_some_heap
