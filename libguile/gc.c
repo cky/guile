@@ -1771,15 +1771,8 @@ scm_remember (ptr)
 {}
 
 
-#ifdef __STDC__
 SCM
 scm_return_first (SCM elt, ...)
-#else
-SCM
-scm_return_first (elt, va_alist)
-     SCM elt;
-     va_dcl
-#endif
 {
   return elt;
 }
