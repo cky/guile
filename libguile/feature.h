@@ -46,10 +46,14 @@
 
 #include "libguile/__scm.h"
 
-extern void scm_add_feature SCM_P((char* str));
-extern SCM scm_program_arguments  SCM_P((void));
-extern void scm_set_program_arguments SCM_P ((int argc, char **argv,
-					      char *first));
-extern void scm_init_feature SCM_P((void));
+extern void scm_add_feature (char* str);
+extern SCM scm_program_arguments (void);
+extern void scm_set_program_arguments (int argc, char **argv, char *first);
+extern SCM scm_make_hook (void);
+extern SCM scm_make_named_hook (char* name);
+extern SCM scm_add_hook_x (SCM hook, SCM thunk, SCM appendp);
+extern SCM scm_remove_hook_x (SCM hook, SCM thunk);
+extern SCM scm_run_hooks (SCM hooks);
+extern void scm_init_feature (void);
 
 #endif  /* FEATUREH */

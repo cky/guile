@@ -43,6 +43,8 @@
 #include <stdio.h>
 #include "_scm.h"
 
+#include "eval.h"
+
 #include "feature.h"
 
 #ifdef HAVE_STRING_H
@@ -87,6 +89,78 @@ scm_set_program_arguments (argc, argv, first)
     scm_progargs = scm_cons (scm_makfrom0str (first), scm_progargs);
 }
 
+
+
+/* Hooks */
+
+SCM_SYMBOL (scm_sym_hook, "hook");
+
+SCM_PROC (s_make_hook, "make-hook", 0, 0, 0, scm_make_hook);
+
+SCM
+scm_make_hook ()
+{
+  return scm_cons (scm_sym_hook, SCM_EOL);
+}
+
+SCM
+scm_make_named_hook (char* name)
+{
+  SCM hook = scm_make_hook ();
+  scm_permanent_object (scm_sysintern (name, hook));
+  return hook;
+}
+
+SCM_PROC (s_add_hook_x, "add-hook!", 2, 1, 0, scm_add_hook_x);
+
+SCM
+scm_add_hook_x (SCM hook, SCM thunk, SCM append_p)
+{
+  SCM rest;
+  SCM_ASSERT (SCM_NIMP (hook)
+	      && SCM_CONSP (hook)
+	      && SCM_CAR (hook) == scm_sym_hook
+	      && scm_ilength (SCM_CDR (hook)) >= 0,
+	      hook, SCM_ARG1, s_add_hook_x);
+  SCM_ASSERT (SCM_NFALSEP (scm_thunk_p (thunk)),
+	      thunk, SCM_ARG2, s_add_hook_x);
+  rest = scm_delq_x (thunk, SCM_CDR (hook));
+  SCM_SETCDR (hook, (!SCM_UNBNDP (append_p) && SCM_NFALSEP (append_p)
+		     ? scm_append_x (SCM_LIST2 (rest, SCM_LIST1 (thunk)))
+		     : scm_cons (thunk, rest)));
+  return SCM_UNSPECIFIED;
+}
+
+SCM_PROC (s_remove_hook_x, "remove-hook!", 2, 0, 0, scm_remove_hook_x);
+
+SCM
+scm_remove_hook_x (SCM hook, SCM thunk)
+{
+  SCM_ASSERT (SCM_NIMP (hook)
+	      && SCM_CONSP (hook)
+	      && SCM_CAR (hook) == scm_sym_hook
+	      && scm_ilength (SCM_CDR (hook)) >= 0,
+	      hook, SCM_ARG1, s_add_hook_x);
+  SCM_ASSERT (SCM_NFALSEP (scm_thunk_p (thunk)),
+	      thunk, SCM_ARG2, s_add_hook_x);
+  SCM_SETCDR (hook, scm_delq_x (thunk, SCM_CDR (hook)));
+  return SCM_UNSPECIFIED;
+}
+
+SCM_PROC (s_run_hooks, "run-hooks", 1, 0, 0, scm_run_hooks);
+
+SCM
+scm_run_hooks (SCM hook)
+{
+  SCM_ASSERT (SCM_NIMP (hook)
+	      && SCM_CONSP (hook)
+	      && SCM_CAR (hook) == scm_sym_hook
+	      && scm_ilength (SCM_CDR (hook)) >= 0,
+	      hook, SCM_ARG1, s_add_hook_x);
+  while (SCM_NIMP (hook = SCM_CDR (hook)))
+    scm_apply (SCM_CAR (hook), SCM_EOL, SCM_EOL);
+  return SCM_UNSPECIFIED;
+}
 
 
 
