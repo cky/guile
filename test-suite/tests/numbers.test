@@ -1745,3 +1745,16 @@
 ;;;
 ;;; inexact->exact
 ;;;
+
+;;;
+;;; logcount
+;;;
+
+(with-test-prefix "logcount"
+  
+  (with-test-prefix "-2^i, meaning ...11100..00"
+    (do ((n -1 (ash n 1))
+	 (i 0  (1+ i)))
+	((> i 256))
+      (pass-if n
+	(= i (logcount n))))))
