@@ -1,6 +1,6 @@
 ;;; installed-scm-file
 
-;;;; 	Copyright (C) 1995, 1996 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1995, 1996, 1997 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -1647,7 +1647,8 @@
     (or already
 	(begin
 	  (if (or (null? maybe-autoload) (car maybe-autoload))
-	      (try-module-autoload name))
+	      (or (try-module-autoload name)
+		  (try-module-dynamic-link name)))
 	  (make-modules-in (current-module) full-name))))))
 	    
 (define (beautify-user-module! module)
@@ -1751,6 +1752,143 @@
 		      (loop (cdr dirs))))))
 	    (lambda () (set-autoloaded! dir-hint name didit)))
 	   didit))))
+
+;;; Dynamic linking of modules
+
+;; Initializing a module that is written in C is a two step process.
+;; First the module's `module init' function is called.  This function
+;; is expected to call `scm_register_module_xxx' to register the `real
+;; init' function.  Later, when the module is referenced for the first
+;; time, this real init function is called in the right context.  See
+;; gtcltk-lib/gtcltk-module.c for an example.
+;;
+;; The code for the module can be in a regular shared library (so that
+;; the `module init' function will be called when libguile is
+;; initialized).  Or it can be dynamically linked.
+;;
+;; You can safely call `scm_register_module_xxx' before libguile
+;; itself is initialized.  You could call it from an C++ constructor
+;; of a static object, for example.
+;;
+;; To make your Guile extension into a dynamic linkable module, follow
+;; these easy steps:
+;;
+;; - Find a name for your module, like #/ice-9/gtcltk
+;; - Write a function with a name like
+;;
+;;     scm_init_ice_9_gtcltk_module
+;;
+;;   This is your `module init' function.  It should call
+;;   
+;;     scm_register_module_xxx ("ice-9 gtcltk", scm_init_gtcltk);
+;;   
+;;   "ice-9 gtcltk" is the C version of the module name. Slashes are
+;;   replaced by spaces, the rest is untouched. `scm_init_gtcltk' is
+;;   the real init function that executes the usual initilizations
+;;   like making new smobs, etc.
+;;
+;; - Make a shared library with your code and a name like
+;;
+;;     ice-9/libgtcltk.so
+;;
+;;   and put it somewhere in %load-path.
+;;
+;; - Then you can simply write `:use-module #/ice-9/gtcltk' and it
+;;   will be linked automatically.
+;;
+;; This is all very experimental.
+
+(define (split-c-module-name str)
+  (let loop ((rev '())
+	     (start 0)
+	     (pos 0)
+	     (end (string-length str)))
+    (cond
+     ((= pos end)
+      (reverse (cons (string->symbol (substring str start pos)) rev)))
+     ((eq? (string-ref str pos) #\space)
+      (loop (cons (string->symbol (substring str start pos)) rev)
+	    (+ pos 1)
+	    (+ pos 1)
+	    end))
+     (else
+      (loop rev start (+ pos 1) end)))))
+
+(define (convert-c-registered-modules dynobj)
+  (let ((res (map (lambda (c)
+		    (list (split-c-module-name (car c)) (cdr c) dynobj))
+		  (c-registered-modules))))
+    (c-clear-registered-modules)
+    res))
+
+(define registered-modules (convert-c-registered-modules #f))
+    
+(define (init-dynamic-module modname)
+  (or-map (lambda (modinfo)
+	    (if (equal? (car modinfo) modname)
+		(let ((mod (resolve-module modname #f)))
+		  (save-module-excursion
+		   (lambda ()
+		     (set-current-module mod)
+		     (dynamic-call (cadr modinfo) (caddr modinfo))
+		     (set-module-public-interface! mod mod)))
+		  (set! registered-modules (delq! modinfo registered-modules))
+		  #t)
+		#f))
+	  registered-modules))
+
+(define (dynamic-maybe-call name dynobj)
+  (catch #t				; could use false-if-exception here
+	 (lambda ()
+	   (dynamic-call name dynobj))
+	 (lambda args
+	   #f)))
+
+(define (find-and-link-dynamic-module module-name)
+  (define (make-init-name mod-name)
+    (string-append 'scm_init
+		   (list->string (map (lambda (c)
+					(if (or (char-alphabetic? c)
+						(char-numeric? c))
+					    c
+					    #\_))
+				      (string->list mod-name)))
+		   '_module))
+  (let ((libname
+	 (let loop ((dirs "")
+		    (syms module-name))
+	   (cond
+	    ((null? (cdr syms))
+	     (string-append dirs "lib" (car syms) ".so"))
+	    (else
+	     (loop (string-append dirs (car syms) "/") (cdr syms))))))
+	(init (make-init-name (apply string-append
+				     (map (lambda (s)
+					    (string-append "_" s))
+					  module-name)))))
+    ;; (pk 'libname libname 'init init)
+    (or-map
+     (lambda (dir)
+       (let ((full (in-vicinity dir libname)))
+	 ;; (pk 'trying full)
+	 (if (file-exists? full)
+	     (begin
+	       (link-dynamic-module full init)
+	       #t)
+	     #f)))
+     %load-path)))
+
+(define (link-dynamic-module filename initname)
+  (let ((dynobj (dynamic-link filename)))
+    (if (dynamic-maybe-call initname dynobj)
+	(set! registered-modules (append! (convert-c-registered-modules dynobj)
+					  registered-modules))
+	(dynamic-unlink dynobj))))
+
+(define (try-module-dynamic-link module-name)
+  (or (init-dynamic-module module-name)
+      (and (find-and-link-dynamic-module module-name)
+	   (init-dynamic-module module-name))))
 
 (define autoloads-done '((guile . guile)))
 
