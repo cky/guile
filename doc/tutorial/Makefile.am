@@ -24,16 +24,3 @@ AUTOMAKE_OPTIONS = gnu
 info_TEXINFOS = guile-tut.texi
 
 TEXINFO_TEX = ../ref/texinfo.tex
-
-# Optionally support building an HTML version of the reference manual.
-
-if HTMLDOC
-
-htmldir = $(prefix)/html/guile-$(VERSION)
-
-html_DATA = guile-tut_toc.html $(shell ls guile-tut_*.html 2>/dev/null)
-
-guile-tut_toc.html: guile-tut.texi
-	$(TEXI2HTML) -split_chapter guile-tut.texi
-
-endif
