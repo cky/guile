@@ -1,6 +1,6 @@
-# Makefile.in generated automatically by automake 1.2d from Makefile.am
+# Makefile.in generated automatically by automake 1.3 from Makefile.am
 
-# Copyright (C) 1994, 1995, 1996, 1997 Free Software Foundation, Inc.
+# Copyright (C) 1994, 1995, 1996, 1997, 1998 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
@@ -31,6 +31,8 @@ infodir = @infodir@
 mandir = @mandir@
 includedir = @includedir@
 oldincludedir = /usr/include
+
+DISTDIR =
 
 pkgdatadir = $(datadir)/@PACKAGE@
 pkglibdir = $(libdir)/@PACKAGE@
@@ -111,13 +113,13 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
 TAR = tar
 GZIP = --best
-default: all
+all: Makefile $(DATA)
 
 .SUFFIXES:
-$(srcdir)/Makefile.in: @MAINT@ Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
+$(srcdir)/Makefile.in: @MAINT@ Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4)
 	cd $(top_srcdir) && $(AUTOMAKE) --foreign ice-9/Makefile
 
-Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status $(BUILT_SOURCES)
+Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)
 	cd $(top_builddir) \
 	  && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
@@ -126,21 +128,21 @@ version.scm: $(top_builddir)/config.status version.scm.in
 
 install-subpkgdataDATA: $(subpkgdata_DATA)
 	@$(NORMAL_INSTALL)
-	$(mkinstalldirs) $(subpkgdatadir)
+	$(mkinstalldirs) $(DESTDIR)$(subpkgdatadir)
 	@list='$(subpkgdata_DATA)'; for p in $$list; do \
 	  if test -f $(srcdir)/$$p; then \
-	    echo " $(INSTALL_DATA) $(srcdir)/$$p $(subpkgdatadir)/$$p"; \
-	    $(INSTALL_DATA) $(srcdir)/$$p $(subpkgdatadir)/$$p; \
+	    echo " $(INSTALL_DATA) $(srcdir)/$$p $(DESTDIR)$(subpkgdatadir)/$$p"; \
+	    $(INSTALL_DATA) $(srcdir)/$$p $(DESTDIR)$(subpkgdatadir)/$$p; \
 	  else if test -f $$p; then \
-	    echo " $(INSTALL_DATA) $$p $(subpkgdatadir)/$$p"; \
-	    $(INSTALL_DATA) $$p $(subpkgdatadir)/$$p; \
+	    echo " $(INSTALL_DATA) $$p $(DESTDIR)$(subpkgdatadir)/$$p"; \
+	    $(INSTALL_DATA) $$p $(DESTDIR)$(subpkgdatadir)/$$p; \
 	  fi; fi; \
 	done
 
 uninstall-subpkgdataDATA:
-	$(NORMAL_UNINSTALL)
+	@$(NORMAL_UNINSTALL)
 	list='$(subpkgdata_DATA)'; for p in $$list; do \
-	  rm -f $(subpkgdatadir)/$$p; \
+	  rm -f $(DESTDIR)$(subpkgdatadir)/$$p; \
 	done
 
 tags: TAGS
@@ -152,8 +154,12 @@ ID: $(HEADERS) $(SOURCES) $(LISP)
 TAGS:  $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) $(LISP)
 	tags=; \
 	here=`pwd`; \
-	test -z "$(ETAGS_ARGS)$(SOURCES)$(HEADERS)$(LISP)$$tags" \
-	  || (cd $(srcdir) && etags $(ETAGS_ARGS) $$tags  $(SOURCES) $(HEADERS) $(LISP) -o $$here/TAGS)
+	list='$(SOURCES) $(HEADERS)'; \
+	unique=`for i in $$list; do echo $$i; done | \
+	  awk '    { files[$$0] = 1; } \
+	       END { for (i in files) print i; }'`; \
+	test -z "$(ETAGS_ARGS)$$unique$(LISP)$$tags" \
+	  || (cd $(srcdir) && etags $(ETAGS_ARGS) $$tags  $$unique $(LISP) -o $$here/TAGS)
 
 mostlyclean-tags:
 
@@ -196,12 +202,10 @@ install: install-exec install-data all
 
 uninstall: uninstall-subpkgdataDATA
 
-all: Makefile $(DATA)
-
 install-strip:
 	$(MAKE) INSTALL_PROGRAM='$(INSTALL_PROGRAM) -s' INSTALL_SCRIPT='$(INSTALL_PROGRAM)' install
 installdirs:
-	$(mkinstalldirs)  $(subpkgdatadir)
+	$(mkinstalldirs)  $(DATADIR)$(subpkgdatadir)
 
 
 mostlyclean-generic:
@@ -231,7 +235,7 @@ maintainer-clean:  maintainer-clean-tags maintainer-clean-generic \
 	@echo "This command is intended for maintainers to use;"
 	@echo "it deletes files that may require special tools to rebuild."
 
-.PHONY: default uninstall-subpkgdataDATA install-subpkgdataDATA tags \
+.PHONY: uninstall-subpkgdataDATA install-subpkgdataDATA tags \
 mostlyclean-tags distclean-tags clean-tags maintainer-clean-tags \
 distdir info dvi installcheck install-exec install-data install \
 uninstall all installdirs mostlyclean-generic distclean-generic \
