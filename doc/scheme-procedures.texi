@@ -14,6 +14,69 @@
 @node Lambda
 @section Lambda: Basic Procedure Creation
 
+@c FIXME::martin: Review me!
+
+A @code{lambda} expression evaluates to a procedure.  The environment
+which is in effect when a @code{lambda} expression is evaluated is
+enclosed in the newly created procedure, this is referred to as a
+@dfn{closure} (@pxref{About Closure}).
+
+When a procedure created by @code{lambda} is called with some actual
+arguments, the environment enclosed in the procedure is extended by
+binding the variables named in the formal argument list to new locations
+and storing the actual arguments into these locations.  Then the body of
+the @code{lambda} expression is evaluation sequentially.  The result of
+the last expression in the procedure body is then the result of the
+procedure invocation.
+
+The following examples will show how procedures can be created using
+@code{lambda}, and what you can do with these procedures.
+
+@lisp
+(lambda (x) (+ x x))       @result{} @r{a procedure}
+((lambda (x) (+ x x)) 4)   @result{} 8
+@end lisp
+
+The fact that the environment in effect when creating a procedure is
+enclosed in the procedure is shown with this example:
+
+@lisp
+(define add4
+  (let ((x 4))
+    (lambda (y) (+ x y))))
+(add4 6)                   @result{} 10
+@end lisp
+
+
+@deffn syntax lambda formals body
+@var{formals} should be a formal argument list as described in the
+following table.
+
+@table @code
+@item (@var{variable1} @dots{})
+The procedure takes a fixed number of arguments; when the procedure is
+called, the arguments will be stored into the newly created location for
+the formal variables.
+@item @var{variable}
+The procedure takes any number of arguments; when the procedure is
+called, the sequence of actual arguments will converted into a list and
+stored into the newly created location for the formal variable.
+@item (@var{variable1} @dots{} @var{variablen} . @var{variablen+1})
+If a space--delimited period precedes the last variable, then the
+procedure takes @var{n} or more variablesm where @var{n} is the number
+of formal arguments before the period.  There must be at least one
+argument before the period.  The first @var{n} actual arguments will be
+stored into the newly allocated locations for the first @var{n} formal
+arguments and the sequence of the remaining actual arguments is
+converted into a list and the stored into the location for the last
+formal argument.  If there are exactly @var{n} actual arguments, the
+empty list is stored into the location of the last formal argument.
+@end table
+
+@var{body} is a sequence of Scheme expressions which are evaluated in
+order when the procedure is invoked.
+@end deffn
+
 
 @node Optional Arguments
 @section Optional Arguments
@@ -21,6 +84,42 @@
 
 @node Procedure Properties
 @section Procedure Properties and Metainformation
+
+@c FIXME::martin: Review me!
+
+Procedures always have attached the environment in which they were
+created and information about how to apply them to actual arguments.  In
+addition to that, properties and metainformation can be stored with
+procedures.  The procedures in this section can be used to test whether
+a given procedure satisfies a condition; and to access and set a
+procedure's property.
+
+The first group of procedures are predicates to test whether a Scheme
+object is a procedure, or a special procedure, respectively.
+@code{procedure?} is the most general predicates, it returns @code{#t}
+for any kind of procedure.  @code{closure?} does not return @code{#t}
+for primitive procedures, and @code{thunk?} only returns @code{#t} for
+procedures which do not accept any arguments.
+@c FIXME::martin: thunk? returns true for `id'.  What's wrong here?
+
+@rnindex procedure?
+@deffn primitive procedure? obj
+Return @code{#t} if @var{obj} is a procedure.
+@end deffn
+
+@deffn primitive closure? obj
+Return @code{#t} if @var{obj} is a closure.
+@end deffn
+
+@deffn primitive thunk? obj
+Return @code{#t} if @var{obj} is a thunk.
+@end deffn
+
+@c FIXME::martin: Is that true?
+@cindex procedure properties
+Procedure properties are general properties to be attached to
+procedures.  These can be the name of a procedure or other relevant
+information, such as debug hints.
 
 @deffn primitive procedure-properties proc
 Return @var{obj}'s property list.
@@ -39,6 +138,10 @@ In @var{obj}'s property list, set the property named @var{key} to
 @var{value}.
 @end deffn
 
+@cindex procedure documentation
+Documentation for a procedure can be accessed with the procedure
+@code{procedure-documentation}.
+
 @deffn primitive procedure-documentation proc
 Return the documentation string associated with @code{proc}.  By
 convention, if a procedure contains more than one expression and the
@@ -46,18 +149,10 @@ first expression is a string constant, that string is assumed to contain
 documentation for that procedure.
 @end deffn
 
-@deffn primitive closure? obj
-Return @code{#t} if @var{obj} is a closure.
-@end deffn
-
-@rnindex procedure?
-@deffn primitive procedure? obj
-Return @code{#t} if @var{obj} is a procedure.
-@end deffn
-
-@deffn primitive thunk? obj
-Return @code{#t} if @var{obj} is a thunk.
-@end deffn
+@cindex source properties
+@c FIXME::martin: Is the following true?
+Source properties are properties which are related to the source code of
+a procedure, such as the line and column numbers, the file name etc.
 
 @deffn primitive set-source-properties! obj plist
 Install the association list @var{plist} as the source property
@@ -83,6 +178,63 @@ Return the source property specified by @var{key} from
 @node Procedures with Setters
 @section Procedures with Setters
 
+@c FIXME::martin: Review me!
+
+@c FIXME::martin: Document `operator struct'.
+
+@cindex procedure with setter
+@cindex setter
+A @dfn{procedure with setter} is a special kind of procedure which
+normally behaves like any accesor procedure, that is a procedure which
+accesses a data structure.  The difference is that this kind of
+procedure has a so--called @dfn{setter} attached, which is a procedure
+for storing something into a data structure.
+
+Procedures with setters are treated specially when the procedure appears
+in the special form @code{set!} (REFFIXME).  How it works is best shown
+by example.
+
+Suppose we have a procedure called @code{foo-ref}, which accepts two
+arguments, a value of type @code{foo} and an integer.  The procedure
+returns the value stored at the given index in the @code{foo} object.
+Let @code{f} be a variable containing such a @code{foo} data
+structure.@footnote{Working definitions would be:
+@lisp
+(define foo-ref vector-ref)
+(define foo-set! vector-set!) 
+(define f (make-vector 2 #f))
+@end lisp}
+
+@lisp
+(foo-ref f 0)       @result{} bar
+(foo-ref f 1)       @result{} braz
+@end lisp
+
+Also suppose that a corresponding setter procedure called
+@code{foo-set!} does exist.
+
+@lisp
+(foo-set! f 0 'bla)
+(foo-ref f 0)       @result{} bla
+@end lisp
+
+Now we could create a new procedure called @code{foo}, which is a
+procedure with setter, by calling @code{make-procedure-with-setter} with
+the accessor and setter procedures @code{foo-ref} and @code{foo-set!}.
+Let us call this new procedure @code{foo}.
+
+@lisp
+(define foo (make-procedure-with-setter foo-ref foo-set!))
+@end lisp
+
+@code{foo} can from now an be used to either read from the data
+structure stored in @code{f}, or to write into the structure.
+
+@lisp
+(set! (foo f 0) 'dum)   
+(foo f 0)          @result{} dum
+@end lisp
+
 @deffn primitive make-procedure-with-setter procedure setter
 Create a new procedure which behaves like @var{procedure}, but
 with the associated setter @var{setter}.
@@ -99,6 +251,8 @@ procedure with setter, or an operator struct.
 @end deffn
 
 @deffn primitive setter proc
+Return the setter of @var{proc}, which must be either a procedure with
+setter or an operator struct.
 @end deffn
 
 

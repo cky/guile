@@ -1,3 +1,15 @@
+2001-04-11  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* scheme-procedures.texi (Lambda): Documented the lambda form.
+	(Procedure Properties): Concept and usage explanation added.
+	(Procedures with Setters): Explain by example, introduce
+	definitions.
+
+	* scheme-data.texi (Symbols and Variables): Split and reorganized
+	this section.
+	(Symbols): New introductory text.
+	(Characters): Added char-ci* procedures to rn index.
+
 2001-04-10  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* scm.texi (Handling Errors):  Improve Texinfo markup.  Thanks to
