@@ -54,6 +54,7 @@
 #define SCM_VECTORP(x) (SCM_NIMP (x) && (SCM_TYP7S (x) == scm_tc7_vector))
 #define SCM_VECTOR_BASE(x) ((scm_bits_t *) SCM_CELL_WORD_1 (x))
 #define SCM_SET_VECTOR_BASE(v, b) (SCM_SET_CELL_WORD_1 ((v), (b)))
+#define SCM_VECTOR_MAX_LENGTH ((1L << 24) - 1)
 #define SCM_VECTOR_LENGTH(x) (((unsigned long) SCM_CELL_WORD_0 (x)) >> 8)
 #define SCM_SET_VECTOR_LENGTH(v, l, t) (SCM_SET_CELL_WORD_0 ((v), ((l) << 8) + (t)))
 

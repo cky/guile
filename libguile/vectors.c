@@ -270,41 +270,51 @@ SCM_DEFINE (scm_make_vector, "make-vector", 1, 1, 0,
 	    "Otherwise the initial contents of each element is unspecified. (r5rs)")
 #define FUNC_NAME s_scm_make_vector
 {
-  SCM_VALIDATE_INUM_MIN (1, k, 0);
   if (SCM_UNBNDP (fill))
     fill = SCM_UNSPECIFIED;
-  return scm_c_make_vector (SCM_INUM (k), fill);
+
+  if (SCM_INUMP (k))
+    {
+      SCM_ASSERT_RANGE (1, k, k >= 0);
+      return scm_c_make_vector (SCM_INUM (k), fill);
+    }
+  else if (SCM_BIGP (k))
+    SCM_OUT_OF_RANGE (1, k);
+  else
+    SCM_WRONG_TYPE_ARG (1, k);
 }
 #undef FUNC_NAME
+
 
 SCM
 scm_c_make_vector (unsigned long int k, SCM fill)
 #define FUNC_NAME s_scm_make_vector
 {
   SCM v;
-  scm_bits_t *velts;
+  scm_bits_t *base;
+
+  if (k > 0) 
+    {
+      unsigned long int j;
+
+      SCM_ASSERT_RANGE (1, scm_ulong2num (k), k <= SCM_VECTOR_MAX_LENGTH);
+
+      base = scm_must_malloc (k * sizeof (scm_bits_t), FUNC_NAME);
+      for (j = 0; j != k; ++j)
+	base[j] = SCM_UNPACK (fill);
+    }
+  else
+    base = NULL;
 
   SCM_NEWCELL (v);
-
-  velts = (k != 0)
-    ? scm_must_malloc (k * sizeof (scm_bits_t), FUNC_NAME)
-    : NULL;
-
-  SCM_DEFER_INTS;
-  {
-    unsigned long int j;
-
-    for (j = 0; j != k; ++j)
-      velts[j] = SCM_UNPACK (fill);
-
-    SCM_SET_VECTOR_BASE (v, velts);
-    SCM_SET_VECTOR_LENGTH (v, k, scm_tc7_vector);
-  }
-  SCM_ALLOW_INTS;
+  SCM_SET_VECTOR_BASE (v, base);
+  SCM_SET_VECTOR_LENGTH (v, k, scm_tc7_vector);
+  scm_remember_upto_here_1 (fill);
 
   return v;
 }
 #undef FUNC_NAME
+
 
 SCM_DEFINE (scm_vector_to_list, "vector->list", 1, 0, 0, 
            (SCM v),
