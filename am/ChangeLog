@@ -1,0 +1,4 @@
+2002-02-26  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* pre-inst-guile, Makefile.am, README: New files.
+
