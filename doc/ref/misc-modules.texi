@@ -421,6 +421,183 @@ Test whether obj is a compiled regular expression.
 @end deffn
 
 
+@node File Tree Walk
+@chapter File Tree Walk
+@cindex file tree walk
+
+The functions in this section traverse a tree of files and
+directories, in a fashion similar to the C @code{ftw} and @code{nftw}
+routines (@pxref{Working with Directory Trees,,, libc, GNU C Library
+Reference Manual}).
+
+@example
+(use-modules (ice-9 ftw))
+@end example
+@sp 1
+
+@defun ftw startname proc ['hash-size n]
+Walk the filesystem tree descending from @var{startname}, calling
+@var{proc} for each file and directory.
+
+Hard links and symbolic links are followed.  A file or directory is
+reported to @var{proc} only once, and skipped if seen again in another
+place.  One consequence of this is that @code{ftw} is safe against
+circularly linked directory structures.
+
+Each @var{proc} call is @code{(@var{proc} filename statinfo flag)} and
+it should return @code{#t} to continue, or any other value to stop.
+
+@var{filename} is the item visited, being @var{startname} plus a
+further path and the name of the item.  @var{statinfo} is the return
+from @code{stat} (@pxref{File System}) on @var{filename}.  @var{flag}
+is one of the following symbols,
+
+@table @code
+@item regular
+@var{filename} is a file, this includes special files like devices,
+named pipes, etc.
+
+@item directory
+@var{filename} is a directory.
+
+@item invalid-stat
+An error occurred when calling @code{stat}, so nothing is known.
+@var{statinfo} is @code{#f} in this case.
+
+@item directory-not-readable
+@var{filename} is a directory, but one which cannot be read and hence
+won't be recursed into.
+
+@item symlink
+@var{filename} is a dangling symbolic link.  Symbolic links are
+normally followed and their target reported, the link itself is
+reported if the target does not exist.
+@end table
+
+The return value from @code{ftw} is @code{#t} if it ran to completion,
+or otherwise the non-@code{#t} value from @var{proc} which caused the
+stop.
+
+Optional argument symbol @code{hash-size} and an integer can be given
+to set the size of the hash table used to track items already visited.
+(@pxref{Hash Table Reference})
+
+@c  Actually, it's probably safe to escape from ftw, just need to
+@c  check it.
+@c
+In the current implementation, returning non-@code{#t} from @var{proc}
+is the only valid way to terminate @code{ftw}.  @var{proc} must not
+use @code{throw} or similar to escape.
+@end defun
+
+
+@defun nftw startname proc ['chdir] ['depth] ['hash-size n] ['mount] ['physical]
+Walk the filesystem tree starting at @var{startname}, calling
+@var{proc} for each file and directory.  @code{nftw} has extra
+features over the basic @code{ftw} described above.
+
+Hard links and symbolic links are followed, but a file or directory is
+reported to @var{proc} only once, and skipped if seen again in another
+place.  One consequence of this is that @code{nftw} is safe against
+circular linked directory structures.
+
+Each @var{proc} call is @code{(@var{proc} filename statinfo flag
+basename level)} and it should return @code{#t} to continue, or any
+other value to stop.
+
+@var{filename} is the item visited, being @var{startname} plus a
+further path and the name of the item.  @var{statinfo} is the return
+from @code{stat} on @var{filename} (@pxref{File System}).
+@var{basename} it the item name without any path.  @var{level} is an
+integer giving the directory nesting level, starting from 0 for the
+contents of @var{startname} (or that item itself if it's a file).
+@var{flag} is one of the following symbols,
+
+@table @code
+@item regular
+@var{filename} is a file, this includes special files like devices,
+named pipes, etc.
+
+@item directory
+@var{filename} is a directory.
+
+@item directory-processed
+@var{filename} is a directory, and its contents have all been visited.
+This flag is given instead of @code{directory} when the @code{depth}
+option below is used.
+
+@item invalid-stat
+An error occurred when applying @code{stat} to @var{filename}, so
+nothing is known about it.  @var{statinfo} is @code{#f} in this case.
+
+@item directory-not-readable
+@var{filename} is a directory, but one which cannot be read and hence
+won't be recursed into.
+
+@item symlink
+@var{filename} is a dangling symbolic link.  Symbolic links are
+normally followed and their target reported, the link itself is
+reported if the target does not exist.
+
+Under the @code{physical} option described below, @code{symlink} is
+instead given for symbolic links whose target does exist.
+
+@item stale-symlink
+Under the @code{physical} option described below, this indicates
+@var{filename} is a dangling symbolic link, meaning its target does
+not exist.  Without the @code{physical} option plain @code{symlink}
+indicates this.
+@end table
+
+The following optional arguments can be given to modify the way
+@code{nftw} works.  Each is passed as a symbol (and @code{hash-size}
+takes a following integer value).
+
+@table @asis
+@item @code{chdir}
+Change to the directory containing the item before calling @var{proc}.
+When @code{nftw} returns the original current directory is restored.
+
+Under this option, generally the @var{basename} parameter should be
+used to access the item in each @var{proc} call.  The @var{filename}
+parameter still has a path as normal and this will only be valid if
+the @var{startname} directory was absolute.
+
+@item @code{depth}
+Visit files ``depth first'', meaning @var{proc} is called for the
+contents of each directory before it's called for the directory
+itself.  Normally a directory is reported first, then its contents.
+
+Under this option, the @var{flag} to @var{proc} for a directory is
+@code{directory-processed} instead of @code{directory}.
+
+@item @code{hash-size @var{n}}
+Set the size of the hash table used to track items already visited.
+(@pxref{Hash Table Reference})
+
+@item @code{mount}
+Don't cross a mount point, meaning only visit items on the same
+filesystem as @var{startname}.  (Ie.@: the same @code{stat:dev}.)
+
+@item @code{physical}
+Don't follow symbolic links, instead report them to @var{proc} as
+@code{symlink}, and report dangling links as @code{stale-symlink}.
+@end table
+
+The return value from @code{nftw} is @code{#t} if it ran to
+completion, or otherwise the non-@code{#t} value from @var{proc} which
+caused the stop.
+
+@c  For reference, one reason not to esacpe is that the current
+@c  directory is not saved and restored with dynamic-wind.  Maybe
+@c  changing that would be enough to allow escaping.
+@c
+In the current implementation, returning non-@code{#t} from @var{proc}
+is the only valid way to terminate @code{ftw}.  @var{proc} must not
+use @code{throw} or similar to escape.
+@end defun
+
+
 @c Local Variables:
 @c TeX-master: "guile.texi"
 @c End:
