@@ -49,6 +49,7 @@
 #include "debug.h"
 #include "continuations.h"
 #include "struct.h"
+#include "macros.h"
 
 #include "stacks.h"
 
@@ -208,7 +209,10 @@ read_frame (dframe, offset, iframe)
 		flags |= SCM_FRAMEF_EVAL_ARGS;
 	    }
 	}
-      iframe->source = scm_make_memoized (info[0].e.exp, info[0].e.env);
+      else
+	{
+	  iframe->source = scm_make_memoized (info[0].e.exp, info[0].e.env);
+	}
     }
   else
     {
@@ -232,8 +236,8 @@ read_frame (dframe, offset, iframe)
 } \
 
 
-static void read_frames SCM_P ((scm_debug_frame *dframe, long offset, int nframes, scm_info_frame *iframes));
-static void
+static int read_frames SCM_P ((scm_debug_frame *dframe, long offset, int nframes, scm_info_frame *iframes));
+static int
 read_frames (dframe, offset, n, iframes)
      scm_debug_frame *dframe;
      long offset;
@@ -251,6 +255,13 @@ read_frames (dframe, offset, n, iframes)
       read_frame (dframe, offset, iframe);
       if (SCM_EVALFRAMEP (*dframe))
 	{
+	  /* If current frame is a macro frame, we should skip the
+	     previously recorded macro application frame.  */
+	  if (SCM_MACROFRAMEP (*dframe) && iframe > iframes)
+	    {
+	      *(iframe - 1) = *iframe;
+	      --iframe;
+	    }
 	  size = dframe->status & SCM_MAX_FRAME_SIZE;
 	  info =  RELOC_INFO (dframe->info, offset);
 	  if ((info - dframe->vect) & 1)
@@ -285,6 +296,9 @@ read_frames (dframe, offset, n, iframes)
 	      NEXT_FRAME (iframe, n, quit);
 	    }
 	}
+      else if (iframe->proc == scm_f_gsubr_apply)
+	/* Skip gsubr apply frames. */
+	continue;
       else
 	{
 	  NEXT_FRAME (iframe, n, quit);
@@ -293,6 +307,7 @@ read_frames (dframe, offset, n, iframes)
       if (iframe > iframes)
 	(iframe - 1) -> flags |= SCM_FRAMEF_REAL;
     }
+  return iframe - iframes;  /* Number of frames actually read */
 }
 
 static void narrow_stack SCM_P ((SCM stack, int inner, SCM inner_key, int outer, SCM outer_key));
@@ -394,12 +409,12 @@ scm_make_stack (args)
   /* Make the stack object. */
   stack = scm_make_struct (scm_stack_type, SCM_MAKINUM (size), SCM_EOL);
   SCM_STACK (stack) -> id = id;
-  SCM_STACK (stack) -> length = n;
   iframe = &SCM_STACK (stack) -> tail[0];
   SCM_STACK (stack) -> frames = iframe;
 
   /* Translate the current chain of stack frames into debugging information. */
-  read_frames (RELOC_FRAME (dframe, offset), offset, n, iframe);
+  n = read_frames (RELOC_FRAME (dframe, offset), offset, n, iframe);
+  SCM_STACK (stack) -> length = n;
 
   /* Narrow the stack according to the arguments given to scm_make_stack. */
   while (n > 0 && SCM_NIMP (args) && SCM_CONSP (args))

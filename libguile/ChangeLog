@@ -1,5 +1,10 @@
 1998-11-10  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
+	* stacks.c (read_frames): Skip gsubr frames in backtraces.  (They
+	don't contain interesting information since all arguments are
+	present in the frame which applies the compiled closure anyway.);
+	Skip the transformer application frames.
+
 	* print.c (scm_iprin1): Print gsubrs as primitives.
 
 1998-11-09  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
