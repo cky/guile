@@ -132,6 +132,7 @@ extern "C" {
 #endif
 #include "libguile/threads.h"
 #include "libguile/inline.h"
+#include "libguile/deprecated.h"
 
 #ifdef __cplusplus
 }
