@@ -1,3 +1,11 @@
+1999-07-31  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* hashtab.c: Bugfix: Don't declare s_hash_fold without storage
+	size. (Thanks to James Dean Palmer.)
+
+	* numbers.c (scm_makdbl): Bugfix: Initialize imaginary part.
+	(Thanks to Lorentey Karoly.)
+
 1999-07-30  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* eval.c (scm_m_expand_body): Use scm_cons_source.
