@@ -1,0 +1,11 @@
+This directory contains documentation on the Guile core.
+
+At the moment, we don't have a full manual on Guile; that's at the
+head of our task list.
+
+The file `data-rep.texi' is an essay on how to write C code that uses
+Guile values.  If you're interested in writing a application which is
+extensible via Guile, this is a good place to start.  Make builds the
+`info' manual by default, designed to be read on-line; if you want to
+print it out, go to the `doc' subdirectory of the tree you're building
+in, and run `make data-rep.ps'.
