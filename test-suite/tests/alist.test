@@ -1,0 +1,301 @@
+;;;; alist.test --- tests guile's alists     -*- scheme -*-
+;;;; Copyright (C) 1999 Free Software Foundation, Inc.
+;;;; 
+;;;; This program is free software; you can redistribute it and/or modify
+;;;; it under the terms of the GNU General Public License as published by
+;;;; the Free Software Foundation; either version 2, or (at your option)
+;;;; any later version.
+;;;; 
+;;;; This program is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;;;; GNU General Public License for more details.
+;;;; 
+;;;; You should have received a copy of the GNU General Public License
+;;;; along with this software; see the file COPYING.  If not, write to
+;;;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+;;;; Boston, MA 02111-1307 USA
+;;;;
+;;;; As a special exception, the Free Software Foundation gives permission
+;;;; for additional uses of the text contained in its release of GUILE.
+;;;;
+;;;; The exception is that, if you link the GUILE library with other files
+;;;; to produce an executable, this does not by itself cause the
+;;;; resulting executable to be covered by the GNU General Public License.
+;;;; Your use of that executable is in no way restricted on account of
+;;;; linking the GUILE library code into it.
+;;;;
+;;;; This exception does not however invalidate any other reasons why
+;;;; the executable file might be covered by the GNU General Public License.
+;;;;
+;;;; This exception applies only to the code released by the
+;;;; Free Software Foundation under the name GUILE.  If you copy
+;;;; code from other Free Software Foundation releases into a copy of
+;;;; GUILE, as the General Public License permits, the exception does
+;;;; not apply to the code that you add in this way.  To avoid misleading
+;;;; anyone as to the status of such modified files, you must delete
+;;;; this exception notice from them.
+;;;;
+;;;; If you write modifications of your own for GUILE, it is your choice
+;;;; whether to permit this exception to apply to your modifications.
+;;;; If you do not wish that, delete this exception notice.  
+
+(use-modules (test-suite lib))
+
+;;; (gbh) some of these are duplicated in r4rs. This is probably a bit
+;;;       more thorough, though (maybe overkill? I need it, anyway).
+;;;                        
+;;;       
+;;;       Also: it will fail on the ass*-ref & remove functions. 
+;;;       Sloppy versions should be added with the current behaviour
+;;;       (it's the only set of 'ref functions that won't cause an 
+;;;       error on an incorrect arg); they aren't actually used anywhere
+;;;       so changing's not a big deal.
+
+;;; Misc
+
+(define-macro (pass-if-not str form)
+  `(pass-if ,str (not ,form)))
+
+(define (safe-assq-ref alist elt)
+  (let ((x (assq elt alist)))
+    (if x (cdr x) x)))
+
+(define (safe-assv-ref alist elt)
+  (let ((x (assv elt alist)))
+    (if x (cdr x) x)))
+
+(define (safe-assoc-ref alist elt)
+  (let ((x (assoc elt alist)))
+    (if x (cdr x) x)))
+  
+;;; Creators, getters
+(catch-test-errors
+ (let ((a (acons 'a 'b (acons 'c 'd (acons 'e 'f ()))))
+       (b (acons "this" "is" (acons "a" "test" ())))
+       (deformed '(a b c d e f g)))
+   (pass-if "alist: acons"
+            (and (equal? a '((a . b) (c . d) (e . f)))
+                 (equal? b '(("this" . "is") ("a" . "test")))))
+   (pass-if "alist: sloppy-assq"
+            (let ((x (sloppy-assq 'c a)))
+              (and (pair? x)
+                   (eq? (car x) 'c)
+                   (eq? (cdr x) 'd))))
+   (pass-if "alist: sloppy-assq not"
+            (let ((x (sloppy-assq "this" b)))
+              (not x)))
+   (pass-if "alist: sloppy-assv"
+            (let ((x (sloppy-assv 'c a)))
+              (and (pair? x)
+                   (eq? (car x) 'c)
+                   (eq? (cdr x) 'd))))
+   (pass-if "alist: sloppy-assv not"
+            (let ((x (sloppy-assv "this" b)))
+              (not x)))
+   (pass-if "alist: sloppy-assoc"
+            (let ((x (sloppy-assoc "this" b)))
+              (and (pair? x)
+                   (string=? (cdr x) "is"))))
+   (pass-if "alist: sloppy-assoc not"
+            (let ((x (sloppy-assoc "heehee" b)))
+              (not x)))
+   (pass-if "alist: assq"
+            (let ((x (assq 'c a)))
+              (and (pair? x)
+                   (eq? (car x) 'c)
+                   (eq? (cdr x) 'd))))
+   (pass-if "alist: assq deformed"
+            (catch 'wrong-type-arg
+                   (lambda ()
+                     (assq 'x deformed))
+                   (lambda (key . args)
+                     #t)))
+   (pass-if-not "alist: assq not" (assq 'r a))
+   (pass-if "alist: assv"
+            (let ((x (assv 'a a)))
+              (and (pair? x)
+                   (eq? (car x) 'a)
+                   (eq? (cdr x) 'b))))
+   (pass-if "alist: assv deformed"
+            (catch 'wrong-type-arg
+                   (lambda ()
+                     (assv 'x deformed)
+                     #f)
+                   (lambda (key . args)
+                     #t)))
+   (pass-if-not "alist: assv not" (assq "this" b))
+
+   (pass-if "alist: assoc"
+            (let ((x (assoc "this" b)))
+              (and (pair? x)
+                   (string=? (car x) "this")
+                   (string=? (cdr x) "is"))))
+   (pass-if "alist: assoc deformed"
+            (catch 'wrong-type-arg
+                   (lambda ()
+                     (assoc 'x deformed)
+                     #f)
+                   (lambda (key . args)
+                     #t)))
+   (pass-if-not "alist: assoc not" (assoc "this isn't" b))))
+
+
+;;; Refers
+(catch-test-errors
+ (let ((a '((foo bar) (baz quux)))
+       (b '(("one" 2 3) ("four" 5 6) ("seven" 8 9)))
+       (deformed '(thats a real sloppy assq you got there)))
+   (pass-if "alist: assq-ref"
+            (let ((x (assq-ref a 'foo)))
+              (and (list? x)
+                   (eq? (car x) 'bar))))
+   
+   (pass-if-not "alist: assq-ref not" (assq-ref b "one"))
+   (pass-if "alist: assv-ref"
+            (let ((x (assv-ref a 'baz)))
+              (and (list? x)
+                   (eq? (car x) 'quux))))
+           
+   (pass-if-not "alist: assv-ref not" (assv-ref b "one"))
+
+   (pass-if "alist: assoc-ref"
+            (let ((x (assoc-ref b "one")))
+              (and (list? x)
+                   (eq? (car x) 2)
+                   (eq? (cadr x) 3))))
+
+   
+   (pass-if-not "alist: assoc-ref not" (assoc-ref a 'testing))
+   (expect-failure-if (not (defined? 'sloppy-assv-ref)) 
+                      (pass-if "alist: assv-ref deformed"
+                               (catch 'wrong-type-arg
+                                      (lambda ()
+                                        (assv-ref deformed 'sloppy)
+                                        #f)
+                                      (lambda (key . args)
+                                        #t)))
+                      (pass-if "alist: assoc-ref deformed"
+                               (catch 'wrong-type-arg
+                                      (lambda ()
+                                        (assoc-ref deformed 'sloppy)
+                                        #f)
+                                      (lambda (key . args)
+                                        #t)))
+                      
+                      (pass-if "alist: assq-ref deformed"
+                               (catch 'wrong-type-arg
+                                      (lambda ()
+                                        (assq-ref deformed 'sloppy)
+                                        #f)
+                                      (lambda (key . args)
+                                        #t))))))
+                      
+
+;;; Setters
+(catch-test-errors
+ (let ((a '((another . silly) (alist . test-case)))
+       (b '(("this" "one" "has") ("strings" "!")))
+       (deformed '(canada is a cold nation)))
+   (pass-if "alist: assq-set!"
+            (begin
+              (set! a (assq-set! a 'another 'stupid))
+              (let ((x (safe-assq-ref a 'another)))
+                (and x
+                     (symbol? x) (eq? x 'stupid)))))
+
+   (pass-if "alist: assq-set! add"
+            (begin
+              (set! a (assq-set! a 'fickle 'pickle))
+              (let ((x (safe-assq-ref a 'fickle)))
+                (and x (symbol? x)
+                     (eq? x 'pickle)))))
+   
+   (pass-if "alist: assv-set!"
+            (begin
+              (set! a (assv-set! a 'another 'boring))
+              (let ((x (safe-assv-ref a 'another)))
+                    (and x
+                         (eq? x 'boring)))))
+   (pass-if "alist: assv-set! add"
+            (begin
+              (set! a (assv-set! a 'whistle '(while you work)))
+              (let ((x (safe-assv-ref a 'whistle)))
+                (and x (equal? x '(while you work))))))
+
+   (pass-if "alist: assoc-set!"
+            (begin
+              (set! b (assoc-set! b "this" "has"))
+              (let ((x (safe-assoc-ref b "this")))
+                (and x (string? x)
+                     (string=? x "has")))))
+   (pass-if "alist: assoc-set! add"
+            (begin
+              (set! b (assoc-set! b "flugle" "horn"))
+              (let ((x (safe-assoc-ref b "flugle")))
+                (and x (string? x)
+                     (string=? x "horn")))))
+   (expect-failure-if (not (defined? 'sloppy-assq-ref))
+                      (pass-if "alist: assq-set! deformed"
+                               (catch 'wrong-type-arg
+                                      (lambda ()
+                                        (assq-set! deformed 'cold '(very cold))
+                                        #f)
+                                      (lambda (key . args)
+                                        #t)))   
+                      (pass-if "alist: assv-set! deformed"
+                               (catch 'wrong-type-arg
+                                      (lambda ()
+                                        (assv-set! deformed 'canada 'Canada)
+                                        #f)
+                                      (lambda (key . args)
+                                        #t)))
+                      (pass-if "alist: assoc-set! deformed"
+                               (catch 'wrong-type-arg
+                                      (lambda ()
+                                        (assoc-set! deformed 'canada 
+                                                    '(Iceland hence the name))
+                                        #f)
+                                      (lambda (key . args)
+                                        #t))))))
+   
+;;; Removers
+
+(catch-test-errors
+ (let ((a '((a b) (c d) (e boring)))
+       (b '(("what" .  "else") ("could" . "I") ("say" . "here")))
+       (deformed 1))
+   (pass-if "alist: assq-remove!"
+            (begin 
+              (set! a (assq-remove! a 'a))
+              (equal? a '((c d) (e boring)))))
+   (pass-if "alist: assv-remove!"
+            (begin
+              (set! a (assv-remove! a 'c))
+              (equal? a '((e boring)))))
+   (pass-if "alist: assoc-remove!"
+            (begin
+              (set! b (assoc-remove! b "what"))
+              (equal? b '(("could" . "I") ("say" . "here")))))
+   (expect-failure-if (not (defined? 'sloppy-assq-remove!))
+                      (pass-if "alist: assq-remove! deformed"
+                               (catch 'wrong-type-arg
+                                      (lambda ()
+                                        (assq-remove! deformed 'puddle)
+                                        #f)
+                                      (lambda (key . args)
+                                        #t)))
+                      (pass-if "alist: assv-remove! deformed"
+                               (catch 'wrong-type-arg
+                                      (lambda ()
+                                        (assv-remove! deformed 'splashing)
+                                        #f)
+                                      (lambda (key . args)
+                                        #t)))
+                      (pass-if "alist: assoc-remove! deformed"
+                               (catch 'wrong-type-arg
+                                      (lambda ()
+                                        (assoc-remove! deformed 'fun)
+                                        #f)
+                                      (lambda (key . args)
+                                        #t))))))
