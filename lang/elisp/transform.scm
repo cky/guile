@@ -16,7 +16,7 @@
 (define (transformer x)
   (cond ((eq? x 'nil) %nil)
 	((eq? x 't) #t)
-	((null? x) '())
+	((null? x) %nil)
 	((not (pair? x)) x)
 	((and (pair? (car x))
 	      (eq? (caar x) 'quasiquote))
@@ -51,7 +51,7 @@
 	(else (syntax-error x))))
 
 (define (m-quasiquote exp env)
-  (cons 'quasiquote
+  (cons quasiquote
 	(map transform-inside-qq (cdr exp))))
 
 (define (transform-inside-qq x)

@@ -1,6 +1,7 @@
 (define-module (lang elisp internals fset)
-  #:use-module (lang elisp internals signal)
   #:use-module (lang elisp internals evaluation)
+  #:use-module (lang elisp internals lambda)
+  #:use-module (lang elisp internals signal)
   #:export (fset
 	    fref
 	    fref/error-if-void
@@ -105,7 +106,8 @@
 		function)
 	       ((and (pair? function)
 		     (eq? (car function) 'lambda))
-		(eval function the-elisp-module))
+		(eval (transform-lambda/interactive function '<elisp-lambda>)
+		      the-root-module))
 	       (else
 		(signal 'invalid-function (list function))))
 	 args))

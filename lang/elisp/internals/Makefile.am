@@ -27,6 +27,7 @@ elisp_sources = \
 	evaluation.scm \
 	format.scm \
 	fset.scm \
+	lambda.scm \
 	load.scm \
 	null.scm \
 	set.scm \

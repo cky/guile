@@ -1,3 +1,24 @@
+2002-02-04  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* primitives/syntax.scm (parse-formals, transform-lambda,
+	interactive-spec, set-not-subr!, transform-lambda/interactive):
+	Move into internals/lambda.scm so that these can also be used
+	by...
+	
+	* internals/fset.scm (elisp-apply): Use `eval' and 
+	`transform-lambda/interactive' to turn a quoted lambda expression
+	into a Scheme procedure.
+
+	* transform.scm (m-quasiquote): Don't quote `quasiquote' in
+	transformed code.
+	(transformer): Transform '() to #nil.
+
+2002-02-03  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* internals/Makefile.am (elisp_sources): Add lambda.scm.
+
+	* internals/lambda.scm (lang): New file.
+
 2002-02-01  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* transform.scm (transformer), primitives/syntax.scm (let*):
