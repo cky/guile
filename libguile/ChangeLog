@@ -1,3 +1,8 @@
+1998-11-13  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+
+	* evalext.c, evalext.h (scm_m_sequence_to_list): Removed.
+	Replaced by macro `collect' in boot-9.scm.
+
 1998-11-10  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
 	* eval.c (scm_copy_tree): Copy source properties if existent.

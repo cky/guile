@@ -50,7 +50,6 @@
 
 extern SCM scm_definedp SCM_P ((SCM sym));
 extern SCM scm_m_undefine SCM_P ((SCM x, SCM env));
-extern SCM scm_m_sequence_to_list SCM_P ((SCM x, SCM env));
 extern void scm_init_evalext SCM_P ((void));
 
 #endif  /* EVALEXTH */

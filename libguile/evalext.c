@@ -99,21 +99,6 @@ scm_m_undefine (x, env)
 #endif
 }
 
-static char s_sequence_to_list[] = "sequence->list";
-
-SCM
-scm_m_sequence_to_list (SCM xorig, SCM env)
-{
-  SCM x = xorig;
-  SCM res = SCM_EOL;
-  while (SCM_NNULLP (x = SCM_CDR (x)))
-    {
-      SCM_ASSYNT (SCM_NIMP (x) && SCM_ECONSP (x),
-		  xorig, scm_s_expression, s_sequence_to_list);
-      res = scm_cons (SCM_XEVALCAR (x, env), res);
-    }
-  return res;
-}
 
 SCM_PROC (s_serial_map, "serial-map", 2, 0, 1, scm_map);
 
@@ -121,6 +106,5 @@ void
 scm_init_evalext ()
 {
   scm_make_synt (s_undefine, scm_makacro, scm_m_undefine);
-  scm_make_synt (s_sequence_to_list, scm_makacro, scm_m_sequence_to_list);
 #include "evalext.x"
 }
