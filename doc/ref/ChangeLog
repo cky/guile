@@ -1,3 +1,9 @@
+2002-07-10  Gary Houston  <ghouston@arglist.com>
+
+	* scheme-modules.texi (Compiled Code Modules): Removed description
+	of scm_register_module_xxx, which no longer exists.  A description
+	of current techniques is needed.
+
 2002-05-09  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* scheme-data.texi (Numbers): Added description of the new values

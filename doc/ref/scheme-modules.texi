@@ -76,8 +76,7 @@ module system.
 
 In 1996 Tom Lord implemented a full-featured module system for Guile which
 allows loading Scheme source files into a private name space.  This system has
-been in available since Guile version 1.4.
-@c fixme: Actually, was it available before?  1.4 seems a bit late...
+been in available since at least Guile version 1.1.
 
 For Guile version 1.5.0 and later, the system has been improved to have better
 integration from C code, more fine-grained user control over interfaces, and
@@ -500,44 +499,46 @@ When using the low level procedures to do your dynamic linking, you have
 complete control over which library is loaded when and what gets done
 with it.
 
-@deffn {Scheme Procedure} dynamic-link library
-@deffnx {C Function} scm_dynamic_link (library)
-Find the shared library denoted by @var{library} (a string) and link it
-into the running Guile application.  When everything works out, return a
-Scheme object suitable for representing the linked object file.
-Otherwise an error is thrown.  How object files are searched is system
-dependent.
+@deffn {Scheme Procedure} dynamic-link filename
+@deffnx {C Function} scm_dynamic_link (filename)
+Find the shared object (shared library) denoted by
+@var{filename} and link it into the running Guile
+application.  The returned
+scheme object is a ``handle'' for the library which can
+be passed to @code{dynamic-func}, @code{dynamic-call} etc.
 
-Normally, @var{library} is just the name of some shared library file
-that will be searched for in the places where shared libraries usually
-reside, such as in @file{/usr/lib} and @file{/usr/local/lib}.
+Searching for object files is system dependent.  Normally,
+if @var{filename} does have an explicit directory it will
+be searched for in locations
+such as @file{/usr/lib} and @file{/usr/local/lib}.
 @end deffn
 
 @deffn {Scheme Procedure} dynamic-object? obj
 @deffnx {C Function} scm_dynamic_object_p (obj)
-Return @code{#t} if @var{obj} is a dynamic library handle, or @code{#f}
-otherwise.
+Return @code{#t} if @var{obj} is a dynamic object handle,
+or @code{#f} otherwise.
 @end deffn
 
 @deffn {Scheme Procedure} dynamic-unlink dobj
 @deffnx {C Function} scm_dynamic_unlink (dobj)
-Unlink the indicated object file from the application.  The
-argument @var{dobj} must have been obtained by a call to
-@code{dynamic-link}.  After @code{dynamic-unlink} has been
-called on @var{dobj}, its content is no longer accessible.
+Unlink a dynamic object from the application, if possible.  The
+object must have been linked by @code{dynamic-link}, with 
+@var{dobj} the corresponding handle.  After this procedure
+is called, the handle can no longer be used to access the
+object.
 @end deffn
 
 @deffn {Scheme Procedure} dynamic-func name dobj
 @deffnx {C Function} scm_dynamic_func (name, dobj)
-Search the dynamic object @var{dobj} for the C function
-indicated by the string @var{name} and return some Scheme
-handle that can later be used with @code{dynamic-call} to
-actually call the function.
+Return a ``handle'' for the function @var{name} in the
+shared object referred to by @var{dobj}.  The handle
+can be passed to @code{dynamic-call} to actually
+call the function.
 
-Regardless whether your C compiler prepends an underscore @samp{_} to
-the global names in a program, you should @strong{not} include this
-underscore in @var{function}.  Guile knows whether the underscore is
-needed or not and will add it when necessary.
+Regardless whether your C compiler prepends an underscore
+@samp{_} to the global names in a program, you should
+@strong{not} include this underscore in @var{name}
+since it will be added automatically when necessary.
 @end deffn
 
 @deffn {Scheme Procedure} dynamic-call func dobj
@@ -583,7 +584,7 @@ converted to a Scheme number and returned from the call to
 When dynamic linking is disabled or not supported on your system,
 the above functions throw errors, but they are still available.
 
-Here is a small example that works on GNU/Linux:
+Here is a small example that may work on GNU/Linux:
 
 @smallexample
 (define libc-obj (dynamic-link "libc.so"))
@@ -657,43 +658,6 @@ this current module.
 
 Therefore, all we need to do is to make sure that the right module is
 current when calling @code{gh_new_procedure} for our new primitives.
-Unfortunately, there is not yet an easy way to access the module system
-from C, so we are better off with a more indirect approach.  Instead of
-adding our primitives at initialization time we merely register with
-Guile that we are ready to provide the contents of a certain module,
-should it ever be needed.
-
-@deftypefun void scm_register_module_xxx (char *@var{name}, void (*@var{initfunc})(void))
-Register with Guile that @var{initfunc} will provide the contents of the
-module @var{name}.
-
-The function @var{initfunc} should perform the usual initialization
-actions for your new primitives, like calling @code{gh_new_procedure} or
-including the file produced by the snarfer.  When @var{initfunc} is
-called, the current module is a newly created module with a name as
-indicated by @var{name}.  Each definition that is added to it will be
-automatically exported.
-
-The string @var{name} indicates the hierarchical name of the new module.
-It should consist of the individual components of the module name
-separated by single spaces.  That is, the Scheme module name @code{(foo
-bar)}, which is a list, should be written as @code{"foo bar"} for the
-@var{name} parameter.
-
-You can call @code{scm_register_module_xxx} at any time, even before
-Guile has been initialized.  This might be useful when you want to put
-the call to it in some initialization code that is magically called
-before main, like constructors for global C++ objects.
-
-An example for @code{scm_register_module_xxx} appears in the next section.
-@end deftypefun
-
-Now, instead of calling the initialization function at program startup,
-you should simply call @code{scm_register_module_xxx} and pass it the
-initialization function.  When the named module is later requested by
-Scheme code with @code{use-modules} for example, Guile will notice that
-it knows how to create this module and will call the initialization
-function at the right time in the right context.
 
 @node Dynamic Linking and Compiled Code Modules
 @subsection Dynamic Linking and Compiled Code Modules
@@ -774,49 +738,32 @@ Fun, isn't it?  But we are only half way there.  This is what
 As you can see, @code{j0} is contained in the root module, where all
 the other Guile primitives like @code{display}, etc live.  In general,
 a primitive is put into whatever module is the @dfn{current module} at
-the time @code{gh_new_procedure} is called.  To put @code{j0} into its
-own module named @samp{(math bessel)}, we need to make a call to
-@code{scm_register_module_xxx}.  Additionally, to have Guile perform
-the dynamic linking automatically, we need to put @file{libbessel.so}
-into a place where Guile can find it.  The call to
-@code{scm_register_module_xxx} should be contained in a specially
-named @dfn{module init function}.  Guile knows about this special name
-and will call that function automatically after having linked in the
-shared library.  For our example, we add the following code to
-@file{bessel.c}:
+the time @code{gh_new_procedure} is called.
+
+A compiled module should have a specially named @dfn{module init
+function}.  Guile knows about this special name and will call that
+function automatically after having linked in the shared library.  For
+our example, we add the following code to @file{bessel.c}:
 
 @smallexample
 void scm_init_math_bessel_module ()
 @{
-  scm_register_module_xxx ("math bessel", init_math_bessel);
+   /* contents currently unavailable.  */
 @}
 @end smallexample
 
 The general pattern for the name of a module init function is:
 @samp{scm_init_}, followed by the name of the module where the
 individual hierarchical components are concatenated with underscores,
-followed by @samp{_module}.  It should call
-@code{scm_register_module_xxx} with the correct module name and the
-appropriate initialization function.  When that initialization function
-will be called, a newly created module with the right name will be the
-@emph{current module} so that all definitions that the initialization
-functions makes will end up in the correct module.
+followed by @samp{_module}.
 
 After @file{libbessel.so} has been rebuild, we need to place the shared
-library into the right place.  When Guile tries to autoload the
-@samp{(math bessel)} module, it looks not only for a file called
-@file{math/bessel.scm} in its @code{%load-path}, but also for
-@file{math/libbessel.so}.  So all we need to do is to create a directory
-called @file{math} somewhere in Guile's @code{%load-path} and place
-@file{libbessel.so} there.  Normally, the current directory @file{.} is
-in the @code{%load-path}, so we just use that for this example.
+library into the right place.
+
+Once the module has been correctly installed, it should be possible to
+use it like this:
 
 @smallexample
-% mkdir maths
-% cd maths
-% ln -s ../libbessel.so .
-% cd ..
-% guile
 guile> (use-modules (math bessel))
 guile> (j0 2)
 0.223890779141236
@@ -825,18 +772,6 @@ guile> (apropos 'j0)
 @end smallexample
 
 That's it!
-
-Note that we used a symlink to make @file{libbessel.so} appear in the
-right spot.  This is probably not a bad idea in general.  The
-directories that the @file{%load-path} normally contains are supposed to
-contain only architecture independent files.  They are not really the
-right place for a shared library.  You might want to install the
-libraries somewhere below @samp{exec_prefix} and then symlink to them
-from the architecture independent directory.  This will at least work on
-heterogenous systems where the architecture dependent stuff resides in
-the same place on all machines (which seems like a good idea to me
-anyway).
-
 
 @node Variables
 @section Variables
