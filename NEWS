@@ -85,6 +85,9 @@ at the top of the script.
 (The first options enables the debugging evaluator.
  The second enables backtraces.)
 
+** New procedure: port-closed? PORT
+Returns #t if PORT is closed or #f if it is open.
+
 * Changes to the scm_ interface
 
 ** Port internals: the rw_random variable in the scm_port structure

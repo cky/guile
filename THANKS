@@ -1,10 +1,16 @@
-Jim Blandy is Guile's maintainer.
+Maintainer:
 
-Thanks to:
+Contributors since the last release:
 
-Bug reports and fixes from:
+      Greg Badros
+       Jim Blandy
+    Mikael Djurfeldt
+      Gary Houston
+
+Bug reports and fixes:
 
      Lauri Alanko
+      Mark Galassi
       Greg Harvey
     Roland Orre
   Bertrand Petit

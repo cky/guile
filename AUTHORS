@@ -20,7 +20,8 @@ In the subdirectory libguile, wrote:
     gsubr.h  ramap.h  unif.h
 
 Gary Houston: changes to many files in libguile.
-wrote: libguile/socket.c, ice-9/expect.scm
+In the subdirectory ice-9, wrote:
+    expect.scm networking.scm popen.scm posix.scm
 
 Jim Blandy: Many changes throughout.
 In the subdirectory libguile, wrote:

@@ -622,6 +622,14 @@ scm_output_port_p (SCM x)
   return SCM_OUTPORTP (x) ? SCM_BOOL_T : SCM_BOOL_F;
 }
 
+SCM_PROC(s_port_closed_p, "port-closed?", 1, 0, 0, scm_port_closed_p);
+SCM
+scm_port_closed_p (SCM port)
+{
+  SCM_ASSERT (SCM_NIMP (port) && SCM_PORTP (port), port, SCM_ARG1, 
+	      s_port_closed_p);
+  return SCM_OPPORTP (port) ? SCM_BOOL_F : SCM_BOOL_T;
+}
 
 SCM_PROC(s_eof_object_p, "eof-object?", 1, 0, 0, scm_eof_object_p);
 

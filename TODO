@@ -16,10 +16,6 @@ Desired later on
 
 * Good interface to Tk
 
-* Add a convenient facility for running a pipeline of processes
-with redirections.  Gary Houston <ghouston@actrix.gen.nz>
-is working on this.
-
 * Make it possible to link Guile and TK without using libtcl.a, by
 providing Guile-based replacements for the libtcl.a functions that TK
 requires.
