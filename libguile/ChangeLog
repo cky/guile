@@ -1,3 +1,9 @@
+1999-03-17  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+
+	* list.c (scm_reverse): Report an error if given a circular list
+	instead of filling memory.
+	* list.c (scm_reverse_x): Check args.
+
 1999-03-14  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
 	Most of this batch of changes is about how to deal with extended
