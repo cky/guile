@@ -1464,7 +1464,7 @@ scm_long_long2big (long_long n)
     }
   return ans;
 }
-#endif
+#endif /* HAVE_LONG_LONGS */
 
 
 SCM
@@ -4170,7 +4170,7 @@ scm_long_long2num (long_long sl)
     }
 }
 
-#endif
+#endif /* HAVE_LONG_LONGS */
 
 
 SCM
@@ -4289,7 +4289,7 @@ scm_num2long_long (SCM num, char *pos, const char *s_caller)
   }
 }
 
-#endif
+#endif /* HAVE_LONG_LONGS */
 
 
 unsigned long
