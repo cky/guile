@@ -1,3 +1,12 @@
+1999-10-05  Jim Blandy  <jimb@savonarola.red-bean.com>
+
+	* numbers.c (scm_string_to_number): Signal an error if radix is
+	less than two.  (Thanks to Jorgen Schaefer.)
+
+	* print.c (scm_write, scm_display, scm_newline, scm_write_char):
+	Don't assume that the current output port is valid.  Somebody
+	might close it.  (Thanks to Bernard Urban.)
+
 1999-10-02  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	* scmconfig.h.in: Regenerated.
