@@ -1,3 +1,10 @@
+1998-01-03  Jim Blandy  <jimb@totoro.red-bean.com>
+
+	* iselect.h: Some systems require <sys/types.h> to get the FD_SET
+	macro definitions.
+
+	* gc.c, tags.h: Doc fixes.
+
 1998-01-02  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* eval.c (macro-eval!): Removed.  This function was a design bug.
