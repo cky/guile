@@ -520,6 +520,14 @@ These functions replace the function scm_remember.
 Use one of the new functions scm_remember_upto_here_1,
 scm_remember_upto_here_2 or scm_remember_upto_here instead.
 
+** New function: scm_allocate_string
+
+This function replaces the function scm_makstr.
+
+** Deprecated function:  scm_makstr
+
+Use the new function scm_allocate_string instead.
+
 ** New global variable scm_gc_running_p introduced.
 
 Use this variable to find out if garbage collection is being executed.  Up to

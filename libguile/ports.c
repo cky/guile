@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996,1997,1998,1999, 2000, 2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -322,7 +322,7 @@ SCM_DEFINE (scm_drain_input, "drain-input", 1, 0, 0,
   if (pt->read_buf == pt->putback_buf)
     count += pt->saved_read_end - pt->saved_read_pos;
 
-  result = scm_makstr (count, 0);
+  result = scm_allocate_string (count);
   scm_take_from_input_buffers (port, SCM_STRING_CHARS (result), count);
 
   return result;

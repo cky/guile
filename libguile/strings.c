@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996,1998,2000 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -106,7 +106,7 @@ SCM_DEFINE (scm_string, "string", 0, 0, 1,
     long i = scm_ilength (chrs);
 
     SCM_ASSERT (i >= 0, chrs, SCM_ARGn, FUNC_NAME);
-    result = scm_makstr (i, 0);
+    result = scm_allocate_string (i);
   }
 
   {
@@ -125,6 +125,7 @@ SCM_DEFINE (scm_string, "string", 0, 0, 1,
 }
 #undef FUNC_NAME
 
+#if (SCM_DEBUG_DEPRECATED == 0)
 
 SCM 
 scm_makstr (long len, int dummy)
@@ -146,6 +147,7 @@ scm_makstr (long len, int dummy)
 }
 #undef FUNC_NAME
 
+#endif  /* SCM_DEBUG_DEPRECATED == 0 */
 
 /* converts C scm_array of strings to SCM scm_list of strings. */
 /* If argc < 0, a null terminated scm_array is assumed. */
@@ -199,7 +201,7 @@ scm_take0str (char *s)
 SCM 
 scm_makfromstr (const char *src, scm_sizet len, int dummy)
 {
-  SCM s = scm_makstr (len, 0);
+  SCM s = scm_allocate_string (len);
   char *dst = SCM_STRING_CHARS (s);
 
   while (len--)
@@ -222,6 +224,27 @@ scm_makfrom0str_opt (const char *src)
 }
 
 
+SCM
+scm_allocate_string (scm_sizet len)
+#define FUNC_NAME "scm_allocate_string"
+{
+  char *mem;
+  SCM s;
+
+  SCM_ASSERT_RANGE (1, scm_long2num (len), len <= SCM_STRING_MAX_LENGTH);
+
+  mem = (char *) scm_must_malloc (len + 1, FUNC_NAME);
+  mem[len] = 0;
+
+  SCM_NEWCELL (s);
+  SCM_SET_STRING_CHARS (s, mem);
+  SCM_SET_STRING_LENGTH (s, len);
+
+  return s;
+}
+#undef FUNC_NAME
+
+
 SCM_DEFINE (scm_make_string, "make-string", 1, 1, 0,
             (SCM k, SCM chr),
 	    "Return a newly allocated string of\n"
@@ -237,7 +260,7 @@ SCM_DEFINE (scm_make_string, "make-string", 1, 1, 0,
 
       SCM_ASSERT_RANGE (1, k, i >= 0);
 
-      res = scm_makstr (i, 0);
+      res = scm_allocate_string (i);
       if (!SCM_UNBNDP (chr))
 	{
 	  unsigned char *dst;
@@ -348,7 +371,7 @@ SCM_DEFINE (scm_string_append, "string-append", 0, 0, 1,
     SCM_VALIDATE_STRING (SCM_ARGn,s);
     i += SCM_STRING_LENGTH (s);
   }
-  res = scm_makstr (i, 0);
+  res = scm_allocate_string (i);
   data = SCM_STRING_UCHARS (res);
   for (l = args;SCM_NIMP (l);l = SCM_CDR (l)) {
     s = SCM_CAR (l);

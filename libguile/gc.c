@@ -2630,7 +2630,7 @@ scm_init_storage ()
   SCM_SETCDR (scm_undefineds, scm_undefineds);
 
   scm_listofnull = scm_cons (SCM_EOL, SCM_EOL);
-  scm_nullstr = scm_makstr (0L, 0);
+  scm_nullstr = scm_allocate_string (0);
   scm_nullvect = scm_c_make_vector (0, SCM_UNDEFINED);
 
 #define DEFAULT_SYMHASH_SIZE 277

@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996,1997, 1999, 2000 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1999,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -116,7 +116,7 @@ SCM_DEFINE (scm_read, "read", 0, 1, 0,
     return SCM_EOF_VAL;
   scm_ungetc (c, port);
 
-  tok_buf = scm_makstr (30L, 0);
+  tok_buf = scm_allocate_string (30);
   return scm_lreadr (&tok_buf, port, &copy);
 }
 #undef FUNC_NAME
@@ -127,7 +127,7 @@ char *
 scm_grow_tok_buf (SCM *tok_buf)
 {
   unsigned long int oldlen = SCM_STRING_LENGTH (*tok_buf);
-  SCM newstr = scm_makstr (2 * oldlen, 0);
+  SCM newstr = scm_allocate_string (2 * oldlen);
   unsigned long int i;
 
   for (i = 0; i != oldlen; ++i)

@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996,1998,1999, 2000 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -100,7 +100,7 @@ static void
 st_resize_port (scm_port *pt, off_t new_size)
 {
   SCM old_stream = SCM_PACK (pt->stream);
-  SCM new_stream = scm_makstr (new_size, 0);
+  SCM new_stream = scm_allocate_string (new_size);
   unsigned long int old_size = SCM_STRING_LENGTH (old_stream);
   unsigned long int min_size = min (old_size, new_size);
   unsigned long int i;
@@ -323,7 +323,7 @@ SCM_DEFINE (scm_object_to_string, "object->string", 1, 1, 0,
   if (!SCM_UNBNDP (printer))
     SCM_VALIDATE_PROC (2, printer);
 
-  str = scm_makstr (0, 0);
+  str = scm_allocate_string (0);
   port = scm_mkstrport (SCM_INUM0, str, SCM_OPN | SCM_WRTNG, FUNC_NAME);
 
   if (SCM_UNBNDP (printer))

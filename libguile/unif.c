@@ -186,7 +186,7 @@ scm_make_uve (long k, SCM prot)
   else if (SCM_CHARP (prot))
     {
       i = sizeof (char) * k;
-      return scm_makstr (i, 0);
+      return scm_allocate_string (i);
     }
   else if (SCM_INUMP (prot))
     {

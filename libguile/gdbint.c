@@ -1,5 +1,5 @@
 /* GDB interface for Guile
- * Copyright (C) 1996, 1997, 1999, 2000 Free Software Foundation
+ * Copyright (C) 1996,1997,1999,2000,2001 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -329,7 +329,7 @@ scm_init_gdbint ()
 			s);
   gdb_input_port = scm_permanent_object (port);
 
-  tok_buf = scm_permanent_object (scm_makstr (30L, 0));
+  tok_buf = scm_permanent_object (scm_allocate_string (30));
 }
 
 /*

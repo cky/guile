@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -2244,7 +2244,7 @@ big2str (SCM b, unsigned int radix)
   scm_sizet k = 0;
   scm_sizet radct = 0;
   SCM_BIGDIG radpow = 1, radmod = 0;
-  SCM ss = scm_makstr ((long) j, 0);
+  SCM ss = scm_allocate_string (j);
   char *s = SCM_STRING_CHARS (ss), c;
   while ((long) radpow * radix < SCM_BIGRAD)
     {

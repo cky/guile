@@ -1,3 +1,16 @@
+2001-03-22  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* gc.c (scm_init_storage), gdbint.c (scm_init_gdbint), numbers.c
+	(big2str), ports.c (scm_drain_input), read.c (scm_read,
+	scm_grow_tok_buf), strings.c (scm_string, scm_makfromstr,
+	scm_make_string, scm_string_append), strports.c (st_resize_port,
+	scm_object_to_string), unif.c (scm_make_uve):  Replace calls to
+	scm_makstr with calls to scm_allocate_string.
+
+	* strings.[ch] (scm_allocate_string):  New function.
+
+	* strings.[ch] (scm_makstr):  Deprecated.
+
 2001-03-18  Gary Houston  <ghouston@arglist.com>
 
 	* posix.c (scm_tmpnam): check that return value from tmpnam is not
