@@ -13,6 +13,9 @@
 
 @node Equality
 @section Equality
+@r5index eq?
+@r5index eqv?
+@r5index equal?
 
 @c docstring begin (texi-doc-string "guile" "eq?")
 @deffn primitive eq? x y

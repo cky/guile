@@ -72,6 +72,7 @@ this procedure directly, use the procedures @code{read-enable},
 @code{read-disable}, @code{read-set!} and @var{read-options}.
 @end deffn
 
+@r5index read
 @c docstring begin (texi-doc-string "guile" "read")
 @deffn primitive read [port]
 Read an s-expression from the input port @var{port}, or from
@@ -83,6 +84,7 @@ Any whitespace before the next token is discarded.
 @node Fly Evaluation
 @section Procedures for On the Fly Evaluation
 
+@r5index eval
 @c ARGFIXME environment/environment specifier
 @c docstring begin (texi-doc-string "guile" "eval")
 @deffn primitive eval exp environment
@@ -90,6 +92,7 @@ Evaluate @var{exp}, a list representing a Scheme expression, in the
 environment given by @var{environment specifier}.
 @end deffn
 
+@r5index interaction-environment
 @c docstring begin (texi-doc-string "guile" "interaction-environment")
 @deffn primitive interaction-environment
 This procedure returns a specifier for the environment that contains
@@ -117,6 +120,13 @@ Note: Rather than do new consing, @code{apply:nconc2last}
 destroys its argument, so use with care.
 @end deffn
 
+@r5index apply
+@deffn primitive apply proc arg1 @dots{} args
+@var{proc} must be a procedure and @var{args} must be a list.  Call
+@var{proc} with the elements of the list @code{(append (list @var{arg1}
+@dots{}) @var{args})} as the actual arguments.
+@end deffn
+
 @deffn primitive primitive-eval exp
 Evaluate @var{exp} in the top-level environment specified by
 the current module.
@@ -140,6 +150,15 @@ signalled.
 
 @node Loading
 @section Loading Scheme Code from File
+
+@r5index load
+@deffn procedure load filename
+Load @var{file} and evaluate its contents in the top-level environment.
+The load paths are searched.  If the variable @code{%load-hook} is
+defined, it should be bound to a procedure that will be called before
+any code is loaded.  See documentation for @code{%load-hook} later in
+this section.
+@end deffn
 
 @c ARGFIXME file/filename
 @c docstring begin (texi-doc-string "guile" "primitive-load")
@@ -213,6 +232,7 @@ Return true if @var{obj} is a promise, i.e. a delayed computation
 (@pxref{Delayed evaluation,,,r4rs.info,The Revised^4 Report on Scheme}).
 @end deffn
 
+@r5index force
 @c docstring begin (texi-doc-string "guile" "force")
 @deffn primitive force x
 If the promise X has not been computed yet, compute and return

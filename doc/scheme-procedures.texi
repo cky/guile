@@ -56,6 +56,7 @@ documentation for that procedure.
 Return @code{#t} if @var{obj} is a closure.
 @end deffn
 
+@r5index procedure?
 @c docstring begin (texi-doc-string "guile" "procedure?")
 @deffn primitive procedure? obj
 Return @code{#t} if @var{obj} is a procedure.

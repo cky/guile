@@ -1,3 +1,34 @@
+2001-03-16  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* scheme-data.texi (Arithmetic): Documented the arithmetic
+	procedures.
+	(Integer Operations): Added documentation.
+	(Comparison): Added documentation.
+	(Complex): Added documentation.
+	(Symbols and Variables): Comment out `builtin-bindings', which is
+	removed according to NEWS.
+	(Pairs): Added documentation.
+
+	* scheme-io.texi: Added R5RS index entries for all R5RS
+	procedures.
+	(File Ports): New docs for `call-with-input-file',
+	`call-with-output-file', `with-input-from-file',
+	`with-output-to-file', `with-error-to-file'.
+
+	* scheme-control.texi, scheme-utility.texi,
+	* scheme-procedures.texi: Added R5RS index entries for all R5RS
+	procedures.
+
+	* scheme-evaluation.texi (Fly Evaluation): Added documentation for
+	`apply'.  Added R5RS index entries for all R5RS procedures.
+
+	* scheme-data.texi: Added R5RS index entries for all R5RS
+	procedures.  Removed R5RS index entries for `ass{q,v,occ}-set!'.
+	Removed explicit entries into the function entries.  They are
+	automagic.
+	(Vectors): Added documentation for `make-vector', `vector-ref' and
+	`vector-set!'.
+
 2001-03-12  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* intro.texi: Changed to reflect current practice better.  Added

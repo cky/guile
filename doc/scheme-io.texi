@@ -32,6 +32,7 @@ Because this definition is so loose, it is easy to write functions
 that simulate ports in software.  @dfn{Soft ports} and @dfn{string
 ports} are two interesting and powerful examples of this technique.
 
+@r5index input-port?
 @c docstring begin (texi-doc-string "guile" "input-port?")
 @deffn primitive input-port? x
 Returns @code{#t} if @var{x} is an input port, otherwise returns
@@ -39,6 +40,7 @@ Returns @code{#t} if @var{x} is an input port, otherwise returns
 @code{port?}.
 @end deffn
 
+@r5index output-port?
 @c docstring begin (texi-doc-string "guile" "output-port?")
 @deffn primitive output-port? x
 Returns @code{#t} if @var{x} is an output port, otherwise returns
@@ -58,12 +60,14 @@ Equivalent to @code{(or (input-port? X) (output-port? X))}.
 
 [Generic procedures for reading from ports.]
 
+@r5index eof-object?
 @c docstring begin (texi-doc-string "guile" "eof-object?")
 @deffn primitive eof-object? x
 Returns @code{#t} if @var{x} is an end-of-file object; otherwise
 returns @code{#f}.
 @end deffn
 
+@r5index char-ready?
 @c docstring begin (texi-doc-string "guile" "char-ready?")
 @deffn primitive char-ready? [port]
 Returns @code{#t} if a character is ready on input @var{port} and
@@ -81,6 +85,7 @@ indistinguishable from an interactive port that has no ready
 characters.}
 @end deffn
 
+@r5index read-char?
 @c docstring begin (texi-doc-string "guile" "read-char")
 @deffn primitive read-char [port]
 Returns the next character available from @var{port}, updating
@@ -88,6 +93,7 @@ Returns the next character available from @var{port}, updating
 characters are available, an end-of-file object is returned.
 @end deffn
 
+@r5index peek-char?
 @c docstring begin (texi-doc-string "guile" "peek-char")
 @deffn primitive peek-char [port]
 Returns the next character available from @var{port},
@@ -195,6 +201,7 @@ Return the print state of the port @var{port}. If @var{port}
 has no associated print state, @code{#f} is returned.
 @end deffn
 
+@r5index newline
 @c docstring begin (texi-doc-string "guile" "newline")
 @deffn primitive newline [port]
 Send a newline to @var{port}.
@@ -228,6 +235,7 @@ port, if @var{destination} is @code{#f}, then return a string
 containing the formatted text. Does not add a trailing newline.
 @end deffn
 
+@r5index write-char
 @c docstring begin (texi-doc-string "guile" "write-char")
 @deffn primitive write-char chr [port]
 Send character @var{chr} to @var{port}.
@@ -265,6 +273,7 @@ See also @ref{Ports and File Descriptors, close}, for a procedure
 which can close file descriptors.
 @end deffn
 
+@r5index close-input-port
 @c docstring begin (texi-doc-string "guile" "close-input-port")
 @deffn primitive close-input-port port
 Close the specified input port object.  The routine has no effect if
@@ -275,6 +284,7 @@ See also @ref{Ports and File Descriptors, close}, for a procedure
 which can close file descriptors.
 @end deffn
 
+@r5index close-output-port
 @c docstring begin (texi-doc-string "guile" "close-output-port")
 @deffn primitive close-output-port port
 Close the specified output port object.  The routine has no effect if
@@ -492,6 +502,7 @@ If omitted, @var{port} defaults to the current output port.
 @node Default Ports
 @section Default Ports for Input, Output and Errors
 
+@r5index current-input-port
 @c docstring begin (texi-doc-string "guile" "current-input-port")
 @deffn primitive current-input-port
 Return the current input port.  This is the default port used
@@ -499,6 +510,7 @@ by many input procedures.  Initially, @code{current-input-port}
 returns the @dfn{standard input} in Unix and C terminology.
 @end deffn
 
+@r5index current-output-port
 @c docstring begin (texi-doc-string "guile" "current-output-port")
 @deffn primitive current-output-port
 Return the current output port.  This is the default port used
@@ -600,6 +612,7 @@ If a file cannot be opened with the access requested,
 @code{open-file} throws an exception.
 @end deffn
 
+@r5index open-input-file
 @c begin (scm-doc-string "r4rs.scm" "open-input-file")
 @deffn procedure open-input-file filename
 Open @var{filename} for input.  Equivalent to
@@ -608,12 +621,82 @@ Open @var{filename} for input.  Equivalent to
 @end smalllisp
 @end deffn
 
+@r5index open-output-file
 @c begin (scm-doc-string "r4rs.scm" "open-output-file")
 @deffn procedure open-output-file filename
 Open @var{filename} for output.  Equivalent to
 @smalllisp
 (open-file @var{filename} "w")
 @end smalllisp
+@end deffn
+
+@r5index call-with-input-file
+@c begin (scm-doc-string "r4rs.scm" "call-with-input-file")
+@deffn procedure call-with-input-file file proc
+@var{proc} should be a procedure of one argument, and @var{file} should
+be a string naming a file.  The file must already exist. These
+procedures call @var{proc} with one argument: the port obtained by
+opening the named file for input or output.  If the file cannot be
+opened, an error is signalled.  If the procedure returns, then the port
+is closed automatically and the value yielded by the procedure is
+returned.  If the procedure does not return, then the port will not be
+closed automatically unless it is possible to prove that the port will
+never again be used for a read or write operation.
+@end deffn
+
+@r5index call-with-output-file
+@c begin (scm-doc-string "r4rs.scm" "call-with-output-file")
+@deffn procedure call-with-output-file file proc
+@var{proc} should be a procedure of one argument, and @var{file} should
+be a string naming a file.  The behaviour is unspecified if the file
+already exists. These procedures call @var{proc} with one argument: the
+port obtained by opening the named file for input or output.  If the
+file cannot be opened, an error is signalled.  If the procedure returns,
+then the port is closed automatically and the value yielded by the
+procedure is returned.  If the procedure does not return, then the port
+will not be closed automatically unless it is possible to prove that the
+port will never again be used for a read or write operation.
+@end deffn
+
+@r5index with-input-from-file
+@c begin (scm-doc-string "r4rs.scm" "with-input-from-file")
+@deffn procedure with-input-from-file file thunk
+@var{thunk} must be a procedure of no arguments, and @var{file} must be
+a string naming a file.  The file must already exist. The file is opened
+for input, an input port connected to it is made the default value
+returned by @code{current-input-port}, and the @var{thunk} is called
+with no arguments.  When the @var{thunk} returns, the port is closed and
+the previous default is restored.  Returns the value yielded by
+@var{thunk}.  If an escape procedure is used to escape from the
+continuation of these procedures, their behavior is implementation
+dependent.
+@end deffn
+
+@r5index with-output-to-file
+@c begin (scm-doc-string "r4rs.scm" "with-output-to-file")
+@deffn procedure with-output-to-file file thunk
+@var{thunk} must be a procedure of no arguments, and @var{file} must be
+a string naming a file.  The effect is unspecified if the file already
+exists.  The file is opened for output, an output port connected to it
+is made the default value returned by @code{current-output-port}, and
+the @var{thunk} is called with no arguments.  When the @var{thunk}
+returns, the port is closed and the previous default is restored.
+Returns the value yielded by @var{thunk}.  If an escape procedure is
+used to escape from the continuation of these procedures, their behavior
+is implementation dependent.
+@end deffn
+
+@c begin (scm-doc-string "r4rs.scm" "with-error-to-file")
+@deffn procedure with-error-to-file file thunk
+@var{thunk} must be a procedure of no arguments, and @var{file} must be
+a string naming a file.  The effect is unspecified if the file already
+exists.  The file is opened for output, an output port connected to it
+is made the default value returned by @code{current-error-port}, and the
+@var{thunk} is called with no arguments.  When the @var{thunk} returns,
+the port is closed and the previous default is restored.  Returns the
+value yielded by @var{thunk}.  If an escape procedure is used to escape
+from the continuation of these procedures, their behavior is
+implementation dependent.
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "port-mode")

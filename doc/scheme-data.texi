@@ -63,6 +63,8 @@ sections of this manual that cover them.
 
 @node Booleans
 @section Booleans
+@r5index not
+@r5index boolean?
 
 The two boolean values are @code{#t} for true and @code{#f} for false.
 
@@ -167,6 +169,7 @@ in Scheme, which is particularly clear and accessible: see
 
 @node Numerical Tower
 @subsection Scheme's Numerical ``Tower''
+@r5index number?
 
 Scheme's numerical ``tower'' consists of the following categories of
 numbers:
@@ -229,6 +232,7 @@ in detail.
 
 @node Integers
 @subsection Integers
+@r5index integer?
 
 Integers are whole numbers, that is numbers with no fractional part,
 such as 2, 83 and -3789.
@@ -287,6 +291,8 @@ Return @code{#t} if @var{obj} is an integer number, @code{#f} else.
 
 @node Reals and Rationals
 @subsection Real and Rational Numbers
+@r5index real?
+@r5index rational?
 
 Mathematically, the real numbers are the set of numbers that describe
 all possible points along a continuous, infinite, one-dimensional line.
@@ -347,6 +353,7 @@ is an integer number.
 
 @node Complex Numbers
 @subsection Complex Numbers
+@r5index complex?
 
 Complex numbers are the set of numbers that describe all possible points
 in a two-dimensional space.  The two coordinates of a particular point
@@ -382,6 +389,10 @@ the set of complex numbers, so the predicate will also be fulfilled if
 
 @node Exactness
 @subsection Exact and Inexact Numbers
+@r5index exact?
+@r5index inexact?
+@r5index exact->inexact
+@r5index inexact->exact
 
 R5RS requires that a calculation involving inexact numbers always
 produces an inexact result.  To meet this requirement, Guile
@@ -403,11 +414,12 @@ Return #t if X is an inexact number, #f else.
 
 @c docstring begin (texi-doc-string "guile" "inexact->exact")
 @deffn primitive inexact->exact z
-Returns an exact number that is numerically closest to Z.
+Returns an exact number that is numerically closest to @var{z}.
 @end deffn
 
 @c begin (texi-doc-string "guile" "exact->inexact")
-@deffn primitive exact->inexact
+@deffn primitive exact->inexact z
+Convert the number @var{z} to its inexact representation.
 @end deffn
 
 
@@ -480,6 +492,13 @@ multiplying by 10^N.
 
 @node Integer Operations
 @subsection Operations on Integer Values
+@r5index odd?
+@r5index even?
+@r5index quotient
+@r5index remainder
+@r5index modulo
+@r5index gcd
+@r5index lcm
 
 @c docstring begin (texi-doc-string "guile" "odd?")
 @deffn primitive odd? n
@@ -493,63 +512,98 @@ Return #t if N is an even number, #f otherwise.
 
 @c begin (texi-doc-string "guile" "quotient")
 @deffn primitive quotient
+Return the quotient of the numbers @var{x} and @var{y}.
 @end deffn
 
 @c begin (texi-doc-string "guile" "remainder")
 @deffn primitive remainder
+Return the remainder of the numbers @var{x} and @var{y}.
+@lisp
+(remainder 13 4) @result{} 1
+(remainder -13 4) @result{} -1
+@end lisp
 @end deffn
 
 @c begin (texi-doc-string "guile" "modulo")
 @deffn primitive modulo
+Return the modulo of the numbers @var{x} and @var{y}.
+@lisp
+(modulo 13 4) @result{} 1
+(modulo -13 4) @result{} 3
+@end lisp
 @end deffn
 
 @c begin (texi-doc-string "guile" "gcd")
 @deffn primitive gcd
+Return the greatest common divisor of all arguments.
+If called without arguments, 0 is returned.
 @end deffn
 
 @c begin (texi-doc-string "guile" "lcm")
 @deffn primitive lcm
+Return the least common multiple of the arguments.
+If called without arguments, 1 is returned.
 @end deffn
 
 
 @node Comparison
 @subsection Comparison Predicates
+@r5index zero?
+@r5index positive?
+@r5index negative?
 
 @c begin (texi-doc-string "guile" "=")
 @deffn primitive =
+Return @code{#t} if all parameters are numerically equal.
 @end deffn
 
 @c begin (texi-doc-string "guile" "<")
 @deffn primitive <
+Return @code{#t} if the list of parameters is monotonically
+increasing.
 @end deffn
 
 @c begin (texi-doc-string "guile" ">")
 @deffn primitive >
+Return @code{#t} if the list of parameters is monotonically
+decreasing.
 @end deffn
 
 @c begin (texi-doc-string "guile" "<=")
 @deffn primitive <=
+Return @code{#t} if the list of parameters is monotonically
+non-decreasing.
 @end deffn
 
 @c begin (texi-doc-string "guile" ">=")
 @deffn primitive >=
+Return @code{#t} if the list of parameters is monotonically
+non-increasing.
 @end deffn
 
 @c begin (texi-doc-string "guile" "zero?")
 @deffn primitive zero?
+Return @code{#t} if @var{z} is an exact or inexact number equal to
+zero.
 @end deffn
 
 @c begin (texi-doc-string "guile" "positive?")
 @deffn primitive positive?
+Return @code{#t} if @var{x} is an exact or inexact number greater than
+zero.
 @end deffn
 
 @c begin (texi-doc-string "guile" "negative?")
 @deffn primitive negative?
+Return @code{#t} if @var{x} is an exact or inexact number less than
+zero.
 @end deffn
 
 
 @node Conversion
 @subsection Converting Numbers To and From Strings
+@r5index number->string
+@r5index string->number
 
 @c docstring begin (texi-doc-string "guile" "number->string")
 @deffn primitive number->string n [radix]
@@ -572,6 +626,12 @@ for a number, then `string->number' returns #f.  (r5rs)
 
 @node Complex
 @subsection Complex Number Operations
+@r5index make-rectangular
+@r5index make-polar
+@r5index real-part
+@r5index imag-part
+@r5index magnitude
+@r5index angle
 
 @c docstring begin (texi-doc-string "guile" "make-rectangular")
 @deffn primitive make-rectangular real imaginary
@@ -586,71 +646,111 @@ Return the complex number X * e^(i * Y).
 
 @c begin (texi-doc-string "guile" "real-part")
 @deffn primitive real-part
+Return the real part of the number @var{z}.
 @end deffn
 
 @c begin (texi-doc-string "guile" "imag-part")
 @deffn primitive imag-part
+Return the imaginary part of the number @var{z}.
 @end deffn
 
 @c begin (texi-doc-string "guile" "magnitude")
 @deffn primitive magnitude
+Return the magnitude of the number @var{z}. This is the same as
+@code{abs} for real arguments, but also allows complex numbers.
 @end deffn
 
 @c begin (texi-doc-string "guile" "angle")
 @deffn primitive angle
+Return the angle of the complex number @var{z}.
 @end deffn
 
 
 @node Arithmetic
 @subsection Arithmetic Functions
+@r5index max
+@r5index min
+@r5index +
+@r5index *
+@r5index -
+@r5index /
+@r5index abs
+@r5index floor
+@r5index ceiling
+@r5index truncate
+@r5index round
 
 @c begin (texi-doc-string "guile" "+")
-@deffn primitive +
+@deffn primitive + z1 @dots{}
+Return the sum of all parameter values.  Return 0 if called without any
+parameters.
 @end deffn
 
 @c begin (texi-doc-string "guile" "-")
-@deffn primitive -
+@deffn primitive - z1 z2 @dots{}
+If called without arguments, 0 is returned. Otherwise the sum of all but
+the first argument are subtracted from the first argument.
 @end deffn
 
 @c begin (texi-doc-string "guile" "*")
-@deffn primitive *
+@deffn primitive * z1 @dots{}
+Return the product of all arguments.  If called without arguments, 1 is
+returned.
 @end deffn
 
 @c begin (texi-doc-string "guile" "/")
-@deffn primitive /
+@deffn primitive / z1 z2 @dots{}
+Divide the first argument by the product of the remaining arguments.
 @end deffn
 
 @c begin (texi-doc-string "guile" "abs")
-@deffn primitive abs
+@deffn primitive abs x
+Return the absolute value of @var{x}.
 @end deffn
 
 @c begin (texi-doc-string "guile" "max")
-@deffn primitive max
+@deffn primitive max x1 x2 @dots{}
+Return the maximum of all parameter values.
 @end deffn
 
 @c begin (texi-doc-string "guile" "min")
-@deffn primitive min
+@deffn primitive min x1 x2 @dots{}
+Return the minium of all parameter values.
 @end deffn
 
 @c begin (texi-doc-string "guile" "truncate")
 @deffn primitive truncate
+Round the inexact number @var{x} towards zero.
 @end deffn
 
 @c begin (texi-doc-string "guile" "round")
-@deffn primitive round
+@deffn primitive round x
+Round the inexact number @var{x} towards zero.
 @end deffn
 
 @c begin (texi-doc-string "guile" "floor")
-@deffn primitive floor
+@deffn primitive floor x
+Round the number @var{x} towards minus infinity.
 @end deffn
 
 @c begin (texi-doc-string "guile" "ceiling")
-@deffn primitive ceiling
+@deffn primitive ceiling x
+Round the number @var{x} towards infinity.
 @end deffn
 
 
 @node Scientific
 @subsection Scientific Functions
+@r5index exp
+@r5index log
+@r5index sin
+@r5index cos
+@r5index tan
+@r5index asin
+@r5index acos
+@r5index atan
+@r5index sqrt
+@r5index expt
 
 The following procedures accept any kind of number as arguments,
 including complex numbers.
@@ -1083,6 +1183,22 @@ Return a new random state using @var{seed}.
 
 @node Characters
 @section Characters
+@r5index char?
+@r5index char=?
+@r5index char<?
+@r5index char>?
+@r5index char<=?
+@r5index char>=?
+@r5index char-alphabetic?
+@r5index char-numeric?
+@r5index char-whitespace?
+@r5index char-upper-case?
+@r5index char-lower-case?
+@r5index char->integer
+@r5index integer->char
+@r5index char-upcase
+@r5index char-downcase
+
 
 Most of the characters in the ASCII character set may be referred to by
 name: for example, @code{#\tab}, @code{#\esc}, @code{#\stx}, and so on.
@@ -1290,6 +1406,8 @@ eventually, and it will be helpful to know how they work.
 @node String Fun
 @subsection String Fun
 
+@r5index string
+@r5index list->string
 @c docstring begin (texi-doc-string "guile" "string")
 @c docstring begin (texi-doc-string "guile" "list->string")
 @deffn primitive string . chrs
@@ -1298,6 +1416,7 @@ Returns a newly allocated string composed of the arguments,
 @var{chrs}.
 @end deffn
 
+@r5index make-string
 @c docstring begin (texi-doc-string "guile" "make-string")
 @deffn primitive make-string k [chr]
 Return a newly allocated string of
@@ -1306,23 +1425,27 @@ the string are initialized to @var{chr}, otherwise the contents
 of the @var{string} are unspecified.
 @end deffn
 
+@r5index string-append
 @c docstring begin (texi-doc-string "guile" "string-append")
 @deffn primitive string-append . args
 Return a newly allocated string whose characters form the
 concatenation of the given strings, @var{args}.
 @end deffn
 
+@r5index string-length
 @c docstring begin (texi-doc-string "guile" "string-length")
 @deffn primitive string-length string
 Return the number of characters in @var{string}.
 @end deffn
 
+@r5index string-ref
 @c docstring begin (texi-doc-string "guile" "string-ref")
 @deffn primitive string-ref str k
 Return character @var{k} of @var{str} using zero-origin
 indexing. @var{k} must be a valid index of @var{str}.
 @end deffn
 
+@r5index string-set!
 @c docstring begin (texi-doc-string "guile" "string-set!")
 @deffn primitive string-set! str k chr
 Store @var{chr} in element @var{k} of @var{str} and return
@@ -1330,12 +1453,14 @@ an unspecified value. @var{k} must be a valid index of
 @var{str}.
 @end deffn
 
+@r5index string?
 @c docstring begin (texi-doc-string "guile" "string?")
 @deffn primitive string? obj
 Returns @code{#t} iff @var{obj} is a string, else returns
 @code{#f}.
 @end deffn
 
+@r5index substring
 @c docstring begin (texi-doc-string "guile" "substring")
 @deffn primitive substring str start [end]
 Return a newly allocated string formed from the characters
@@ -1566,6 +1691,7 @@ Destructively capitalize every character in @code{str}.
 Capitalize every character in @code{str}.
 @end deffn
 
+@r5index string<=?
 @c docstring begin (texi-doc-string "guile" "string-ci<=?")
 @deffn primitive string-ci<=? s1 s2
 Case insensitive lexicographic ordering predicate;
@@ -1573,6 +1699,7 @@ returns @t{#t} if @var{s1} is lexicographically less than
 or equal to @var{s2} regardless of case.  (r5rs)
 @end deffn
 
+@r5index string-ci<
 @c docstring begin (texi-doc-string "guile" "string-ci<?")
 @deffn primitive string-ci<? s1 s2
 Case insensitive lexicographic ordering predicate;
@@ -1580,6 +1707,7 @@ returns @t{#t} if @var{s1} is lexicographically less than
 @var{s2} regardless of case.  (r5rs)
 @end deffn
 
+@r5index string-ci=?
 @c docstring begin (texi-doc-string "guile" "string-ci=?")
 @deffn primitive string-ci=? s1 s2
 Case-insensitive string equality predicate; returns @t{#t} if
@@ -1587,6 +1715,7 @@ the two strings are the same length and their component characters
 match (ignoring case) at each position; otherwise returns @t{#f}. (r5rs)
 @end deffn
 
+@r5index string-ci>=?
 @c docstring begin (texi-doc-string "guile" "string-ci>=?")
 @deffn primitive string-ci>=? s1 s2
 Case insensitive lexicographic ordering predicate;
@@ -1594,6 +1723,7 @@ returns @t{#t} if @var{s1} is lexicographically greater than
 or equal to @var{s2} regardless of case.  (r5rs)
 @end deffn
 
+@r5index string-ci>?
 @c docstring begin (texi-doc-string "guile" "string-ci>?")
 @deffn primitive string-ci>? s1 s2
 Case insensitive lexicographic ordering predicate;
@@ -1601,18 +1731,21 @@ returns @t{#t} if @var{s1} is lexicographically greater than
 @var{s2} regardless of case.  (r5rs)
 @end deffn
 
+@r5index string<=?
 @c docstring begin (texi-doc-string "guile" "string<=?")
 @deffn primitive string<=? s1 s2
 Lexicographic ordering predicate; returns @t{#t} if @var{s1}
 is lexicographically less than or equal to @var{s2}.  (r5rs)
 @end deffn
 
+@r5index string<?
 @c docstring begin (texi-doc-string "guile" "string<?")
 @deffn primitive string<? s1 s2
 Lexicographic ordering predicate; returns @t{#t} if @var{s1}
 is lexicographically less than @var{s2}.  (r5rs)
 @end deffn
 
+@r5index string=?
 @c docstring begin (texi-doc-string "guile" "string=?")
 @deffn primitive string=? s1 s2
 Lexicographic equality predicate;
@@ -1624,18 +1757,21 @@ upper and lower case letters as though they were the same character, but
 @samp{string=?} treats upper and lower case as distinct characters.
 @end deffn
 
+@r5index string>=?
 @c docstring begin (texi-doc-string "guile" "string>=?")
 @deffn primitive string>=? s1 s2
 Lexicographic ordering predicate; returns @t{#t} if @var{s1}
 is lexicographically greater than or equal to @var{s2}.  (r5rs)
 @end deffn
 
+@r5index string>?
 @c docstring begin (texi-doc-string "guile" "string>?")
 @deffn primitive string>? s1 s2
 Lexicographic ordering predicate; returns @t{#t} if @var{s1}
 is lexicographically greater than @var{s2}.  (r5rs)
 @end deffn
 
+@r5index string->list
 @c docstring begin (texi-doc-string "guile" "string->list")
 @deffn primitive string->list str
 @samp{String->list} returns a newly allocated list of the
@@ -1651,11 +1787,13 @@ inverses so far as @samp{equal?} is concerned.  (r5rs)
 Return the symbol whose name is @var{str}, downcased in necessary(???).
 @end deffn
 
+@r5index string-copy
 @c docstring begin (texi-doc-string "guile" "string-copy")
 @deffn primitive string-copy str
 Returns a newly allocated copy of the given @var{string}. (r5rs)
 @end deffn
 
+@r5index string-fill!
 @c docstring begin (texi-doc-string "guile" "string-fill!")
 @deffn primitive string-fill! str chr
 Stores @var{char} in every element of the given @var{string} and returns an
@@ -2244,6 +2382,10 @@ Test whether obj is a compiled regular expression.
 
 @node Symbols and Variables
 @section Symbols and Variables
+@r5index symbol?
+@r5index symbol->string
+@r5index string->symbol
+
 
 Guile symbol tables are hash tables.  Each hash table, also called an
 @dfn{obarray} (for `object array'), is a vector of association lists.
@@ -2252,11 +2394,13 @@ Each entry in the alists is a pair (@var{SYMBOL} . @var{VALUE}).  To
 (@var{SYMBOL} . @var{VALUE}) pair, adding a new entry to the symbol
 table (with an undefined value) if none is yet present.
 
-@c docstring begin (texi-doc-string "guile" "builtin-bindings")
-@deffn primitive builtin-bindings
-Create and return a copy of the global symbol table, removing all
-unbound symbols.
-@end deffn
+@c FIXME::martin: According to NEWS, removed.  Remove here too, or 
+@c leave for compatibility?
+@c @c docstring begin (texi-doc-string "guile" "builtin-bindings")
+@c @deffn primitive builtin-bindings
+@c Create and return a copy of the global symbol table, removing all
+@c unbound symbols.
+@c @end deffn
 
 @c docstring begin (texi-doc-string "guile" "gensym")
 @deffn primitive gensym [prefix]
@@ -2695,6 +2839,10 @@ This is the inverse of @code{make-keyword-from-dash-symbol}.
 
 @node Pairs
 @section Pairs
+@r5index pair?
+@r5index cons
+@r5index set-car!
+@r5index set-cdr!
 
 @c docstring begin (texi-doc-string "guile" "cons")
 @deffn primitive cons x y
@@ -2706,6 +2854,25 @@ Returns a newly allocated pair whose car is @var{x} and whose cdr is
 @c docstring begin (texi-doc-string "guile" "pair?")
 @deffn primitive pair? x
 Returns @code{#t} if @var{x} is a pair; otherwise returns @code{#f}.
+@end deffn
+
+@r5index car
+@r5index cdr
+@deffn primitive car pair
+@deffnx primitive cdr pair
+Return the car or the cdr of @var{pair}, respectively.
+@end deffn
+
+@deffn primitive caar pair
+@deffnx primitive cadr pair @dots{}
+@deffnx primitive cdddar pair
+@deffnx primitive cddddr pair
+These procedures are compositions of @code{car} and @code{cdr}, where
+for example @code{caddr} could be defined by
+
+@lisp
+(define caddr (lambda (x) (car (cdr (cdr x)))))
+@end lisp
 @end deffn
 
 @c docstring begin (texi-doc-string "guile" "set-car!")
@@ -2723,6 +2890,18 @@ by @code{set-cdr!} is unspecified.
 
 @node Lists
 @section Lists
+@r5index null?
+@r5index list?
+@r5index list
+@r5index length
+@r5index append
+@r5index reverse
+@r5index list-tail
+@r5index list-ref
+@r5index memq
+@r5index memv
+@r5index member
+
 
 @c docstring begin (texi-doc-string "guile" "list")
 @deffn primitive list . objs
@@ -2958,12 +3137,14 @@ Its use is recommended only in writing Guile internals,
 not for high-level Scheme programs.
 @end deffn
 
+@r5index map
 @c begin (texi-doc-string "guile" "map")
 @c docstring begin (texi-doc-string "guile" "map-in-order")
 @deffn primitive map proc arg1 . args
 @deffnx primitive map-in-order proc arg1 . args
 @end deffn
 
+@r5index for-each
 @c begin (texi-doc-string "guile" "for-each")
 @deffn primitive for-each proc arg1 . args
 @end deffn
@@ -3990,13 +4171,6 @@ lists which do not require their entries' keys to be unique.
 
 @node Adding or Setting Alist Entries
 @subsubsection Adding or Setting Alist Entries
-@findex acons
-@findex assq-set!
-@findex assv-set!
-@findex assoc-set!
-@r5index assq-set!
-@r5index assv-set!
-@r5index assoc-set!
 
 @code{acons} adds a new entry to an association list and returns the
 combined association list.  The combined alist is formed by consing the
@@ -4124,18 +4298,9 @@ association list.
 
 @node Retrieving Alist Entries
 @subsubsection Retrieving Alist Entries
-@findex assq
-@findex assv
-@findex assoc
-@findex assq-ref
-@findex assv-ref
-@findex assoc-ref
 @r5index assq
 @r5index assv
 @r5index assoc
-@r5index assq-ref
-@r5index assv-ref
-@r5index assoc-ref
 
 @code{assq}, @code{assv} and @code{assoc} take an alist and a key as
 arguments and return the entry for that key if an entry exists, or
@@ -4190,9 +4355,6 @@ where @var{associator} is one of @code{assq}, @code{assv} or @code{assoc}.
 
 @node Removing Alist Entries
 @subsubsection Removing Alist Entries
-@findex assq-remove!
-@findex assv-remove!
-@findex assoc-remove!
 
 To remove the element from an association list whose key matches a
 specified key, use @code{assq-remove!}, @code{assv-remove!} or
@@ -4261,9 +4423,6 @@ the resulting alist.
 
 @node Sloppy Alist Functions
 @subsubsection Sloppy Alist Functions
-@findex sloppy-assq
-@findex sloppy-assv
-@findex sloppy-assoc
 
 @code{sloppy-assq}, @code{sloppy-assv} and @code{sloppy-assoc} behave
 like the corresponding non-@code{sloppy-} procedures, except that they
@@ -4611,6 +4770,7 @@ table into an a-list of key-value pairs.
 @node Vectors
 @section Vectors
 
+@r5index make-vector
 @c docstring begin (texi-doc-string "guile" "make-vector")
 @deffn primitive make-vector k [fill]
 Returns a newly allocated vector of @var{k} elements.  If a second
@@ -4618,6 +4778,8 @@ argument is given, then each element is initialized to @var{fill}.
 Otherwise the initial contents of each element is unspecified. (r5rs)
 @end deffn
 
+@r5index vector
+@r5index list->vector
 @c docstring begin (texi-doc-string "guile" "vector")
 @c docstring begin (texi-doc-string "guile" "list->vector")
 @deffn primitive vector . l
@@ -4630,6 +4792,7 @@ arguments.  Analogous to @samp{list}. (r5rs)
 @end format
 @end deffn
 
+@r5index vector->list
 @c docstring begin (texi-doc-string "guile" "vector->list")
 @deffn primitive vector->list v
 @samp{Vector->list} returns a newly allocated list of the objects contained
@@ -4644,17 +4807,52 @@ list->vector '(dididit dah))
 @end format
 @end deffn
 
+@r5index vector-fill!
+@c FIXME::martin: Argument names
 @c docstring begin (texi-doc-string "guile" "vector-fill!")
 @deffn primitive vector-fill! v fill_x
 Stores @var{fill} in every element of @var{vector}.
 The value returned by @samp{vector-fill!} is unspecified. (r5rs)
 @end deffn
 
+@r5index vector?
 @c docstring begin (texi-doc-string "guile" "vector?")
 @deffn primitive vector? obj
 Returns @t{#t} if @var{obj} is a vector, otherwise returns @t{#f}. (r5rs)
 @end deffn
 
+@r5index vector-length
+@deffn primitive vector-length vector
+Returns the number of elements in @var{vector} as an exact integer.
+@end deffn
+
+@r5index vector-ref
+@deffn primitive vector-ref vector k
+@var{k} must be a valid index of @var{vector}.
+@samp{Vector-ref} returns the contents of element @var{k} of
+@var{vector}.
+@lisp
+(vector-ref '#(1 1 2 3 5 8 13 21) 5) @result{} 8
+(vector-ref '#(1 1 2 3 5 8 13 21)
+    (let ((i (round (* 2 (acos -1)))))
+      (if (inexact? i)
+        (inexact->exact i)
+           i))) @result{} 13
+@end lisp
+@end deffn
+
+@r5index vector-set!
+@deffn primitive vector-set! vector k obj
+@var{k} must be a valid index of @var{vector}.
+@code{Vector-set!} stores @var{obj} in element @var{k} of @var{vector}.
+The value returned by @samp{vector-set!} is unspecified.
+@lisp
+(let ((vec (vector 0 '(2 2 2 2) "Anna")))
+  (vector-set! vec 1 '("Sue" "Sue"))
+  vec) @result{}  #(0 ("Sue" "Sue") "Anna")
+(vector-set! '#(0 1 2) 1 "doe") @result{} @emph{error} ; constant vector
+@end lisp
+@end deffn
 
 @node Hooks
 @section Hooks
