@@ -210,11 +210,11 @@ extern SCM *scm_smob_class;
 
 extern SCM scm_no_applicable_method;
 
-/* Plugin Goops functions. */
-extern SCM (*scm_make_extended_class) (char *type_name);
-extern void (*scm_make_port_classes) (int ptobnum, char *type_name);
-extern void (*scm_change_object_class) (SCM, SCM, SCM);
-extern SCM (*scm_memoize_method) (SCM x, SCM args);
+/* Goops functions. */
+extern SCM scm_make_extended_class (char *type_name);
+extern void scm_make_port_classes (int ptobnum, char *type_name);
+extern void scm_change_object_class (SCM, SCM, SCM);
+extern SCM scm_memoize_method (SCM x, SCM args);
 
 extern SCM scm_class_of (SCM obj);
 extern SCM scm_mcache_lookup_cmethod (SCM cache, SCM args);

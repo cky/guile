@@ -104,8 +104,6 @@ char *alloca ();
 #include "libguile/validate.h"
 #include "libguile/eval.h"
 
-SCM (*scm_memoize_method) (SCM, SCM);
-
 
 
 /* The evaluator contains a plethora of EVAL symbols.

@@ -82,10 +82,6 @@ SCM *scm_smob_class = 0;
 
 SCM scm_no_applicable_method;
 
-SCM (*scm_make_extended_class) (char *type_name);
-void (*scm_make_port_classes) (int ptobnum, char *type_name);
-void (*scm_change_object_class) (SCM, SCM, SCM);
-
 /* This function is used for efficient type dispatch.  */
 SCM
 scm_class_of (SCM x)
