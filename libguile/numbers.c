@@ -2678,6 +2678,7 @@ mem2ureal (const char* mem, size_t len, unsigned int *p_idx,
 	   unsigned int radix, enum t_exactness *p_exactness)
 {
   unsigned int idx = *p_idx;
+  SCM result;
 
   if (idx == len)
     return SCM_BOOL_F;
@@ -2709,14 +2710,13 @@ mem2ureal (const char* mem, size_t len, unsigned int *p_idx,
       else if (!isdigit (mem[idx + 1]))
 	return SCM_BOOL_F;
       else
-	return mem2decimal_from_point (SCM_MAKINUM (0), mem, len,
-				       p_idx, p_exactness);
+	result = mem2decimal_from_point (SCM_MAKINUM (0), mem, len,
+					 p_idx, p_exactness);
     }
   else
     {
       enum t_exactness x = EXACT;
       SCM uinteger;
-      SCM result;
 
       uinteger = mem2uinteger (mem, len, &idx, radix, &x);
       if (SCM_FALSEP (uinteger))
@@ -2748,9 +2748,15 @@ mem2ureal (const char* mem, size_t len, unsigned int *p_idx,
       *p_idx = idx;
       if (x == INEXACT)
 	*p_exactness = x;
-
-      return result;
     }
+
+  /* When returning an inexact zero, make sure it is represented as a
+     floating point value so that we can change its sign. 
+  */
+  if (SCM_EQ_P (result, SCM_MAKINUM(0)) && *p_exactness == INEXACT)
+    result = scm_make_real (0.0);
+
+  return result;
 }
 
 
