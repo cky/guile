@@ -1050,8 +1050,8 @@
 	(for-each (lambda (char template)
 		    (read-hash-extend char
 				      (make-array-proc template)))
-		  '(#\b #\a #\u #\e #\s #\i #\c)
-		  '(#t  #\a 1   -1  1.0 1/3 0+i)))
+		  '(#\b #\a #\u #\e #\s #\i #\c #\y   #\h)
+		  '(#t  #\a 1   -1  1.0 1/3 0+i #\nul s)))
       (let ((array-proc (lambda (c port)
 			  (read:array c port))))
 	(for-each (lambda (char) (read-hash-extend char array-proc))
