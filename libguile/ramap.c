@@ -36,6 +36,7 @@
 #include "libguile/root.h"
 #include "libguile/vectors.h"
 #include "libguile/srfi-4.h"
+#include "libguile/dynwind.h"
 
 #include "libguile/validate.h"
 #include "libguile/ramap.h"
@@ -139,11 +140,10 @@ do { type (*v0)[2] = (type (*)[2]) SCM_VELTS (ra0);\
 	  } while (0)
 
 static unsigned long
-cind (SCM ra, SCM inds)
+cind (SCM ra, long *ve)
 {
   unsigned long i;
   int k;
-  long *ve = (long*) SCM_VELTS (inds);
   if (!SCM_ARRAYP (ra))
     return *ve;
   i = SCM_ARRAY_BASE (ra);
@@ -258,7 +258,7 @@ scm_ra_matchp (SCM ra0, SCM ras)
 int 
 scm_ramapc (int (*cproc)(), SCM data, SCM ra0, SCM lra, const char *what)
 {
-  SCM inds, z;
+  SCM z;
   SCM vra0, ra1, vra1;
   SCM lvra, *plvra;
   long *vinds;
@@ -367,8 +367,12 @@ scm_ramapc (int (*cproc)(), SCM data, SCM ra0, SCM lra, const char *what)
 	*plvra = scm_cons (vra1, SCM_EOL);
 	plvra = SCM_CDRLOC (*plvra);
       }
-    inds = scm_make_uve (SCM_ARRAY_NDIM (ra0), scm_from_int (-1));
-    vinds = (long *) SCM_VELTS (inds);
+
+    scm_frame_begin (0);
+
+    vinds = scm_malloc (sizeof(long) * SCM_ARRAY_NDIM (ra0));
+    scm_frame_free (vinds);
+
     for (k = 0; k <= kmax; k++)
       vinds[k] = SCM_ARRAY_DIMS (ra0)[k].lbnd;
     k = kmax;
@@ -377,9 +381,9 @@ scm_ramapc (int (*cproc)(), SCM data, SCM ra0, SCM lra, const char *what)
 	if (k == kmax)
 	  {
 	    SCM y = lra;
-	    SCM_ARRAY_BASE (vra0) = cind (ra0, inds);
+	    SCM_ARRAY_BASE (vra0) = cind (ra0, vinds);
 	    for (z = lvra; SCM_NIMP (z); z = SCM_CDR (z), y = SCM_CDR (y))
-	      SCM_ARRAY_BASE (SCM_CAR (z)) = cind (SCM_CAR (y), inds);
+	      SCM_ARRAY_BASE (SCM_CAR (z)) = cind (SCM_CAR (y), vinds);
 	    if (0 == (SCM_UNBNDP (data) ? cproc(vra0, lvra) : cproc(vra0, data, lvra)))
 	      return 0;
 	    k--;
@@ -395,6 +399,8 @@ scm_ramapc (int (*cproc)(), SCM data, SCM ra0, SCM lra, const char *what)
 	k--;
       }
     while (k >= 0);
+
+    scm_frame_end ();
     return 1;
     }
 }
@@ -1093,11 +1099,17 @@ SCM_DEFINE (scm_array_index_map_x, "array-index-map!", 2, 0, 0,
   else if (SCM_ARRAYP (ra))
     {
       SCM args = SCM_EOL;
-      SCM inds = scm_make_uve (SCM_ARRAY_NDIM (ra), scm_from_int (-1));
-      long *vinds = (long *) SCM_VELTS (inds);
       int j, k, kmax = SCM_ARRAY_NDIM (ra) - 1;
+      long *vinds;
+
       if (kmax < 0)
 	return scm_array_set_x (ra, scm_call_0 (proc), SCM_EOL);
+
+      scm_frame_begin (0);
+
+      vinds = scm_malloc (sizeof(long) * SCM_ARRAY_NDIM (ra));
+      scm_frame_free (vinds);
+
       for (k = 0; k <= kmax; k++)
 	vinds[k] = SCM_ARRAY_DIMS (ra)[k].lbnd;
       k = kmax;
@@ -1106,7 +1118,7 @@ SCM_DEFINE (scm_array_index_map_x, "array-index-map!", 2, 0, 0,
 	  if (k == kmax)
 	    {
 	      vinds[k] = SCM_ARRAY_DIMS (ra)[k].lbnd;
-	      i = cind (ra, inds);
+	      i = cind (ra, vinds);
 	      for (; vinds[k] <= SCM_ARRAY_DIMS (ra)[k].ubnd; vinds[k]++)
 		{
 		  for (j = kmax + 1, args = SCM_EOL; j--;)
@@ -1129,6 +1141,8 @@ SCM_DEFINE (scm_array_index_map_x, "array-index-map!", 2, 0, 0,
 	  k--;
 	}
       while (k >= 0);
+
+      scm_frame_end ();
       return SCM_UNSPECIFIED;
     }
   else
