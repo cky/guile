@@ -1824,6 +1824,10 @@ test "x$FD_SETTER" != x && cat >> confdefs.h <<\EOF
 EOF
 
 
+## If we're using GCC, ask for aggressive warnings.
+case "$GCC" in
+  yes ) CFLAGS="$CFLAGS -Wall -Wpointer-arith" ;;
+esac
 
 cat >> confdefs.h <<EOF
 #define GUILE_MAJOR_VERSION "$GUILE_MAJOR_VERSION"
