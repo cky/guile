@@ -1,3 +1,8 @@
+Wed Mar  8 10:15:59 2000  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* numbers.c:  Use SCM_VALIDATE_LONG_COPY, and longs, not ints, in
+	various logXXX primitives.  Thanks Eric Moore!
+
 Tue Mar  7 08:05:22 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* run-test, remaining-docs-needed:  Added these scripts.  The
