@@ -122,7 +122,7 @@ SCM_DEFINE1 (scm_eqv_p, "eqv?", scm_tc7_rpsubr,
   if (SCM_NUMP (x))
     {
       if (SCM_BIGP (x)) {
-	return SCM_BOOL (0 == scm_bigcomp (x, y));
+	return SCM_BOOL (0 == scm_i_bigcmp (x, y));
       } else if (SCM_SLOPPY_REALP (x)) {
 	return SCM_BOOL (real_eqv (SCM_REAL_VALUE (x), SCM_REAL_VALUE (y)));
       } else { /* complex */
