@@ -2841,5 +2841,6 @@
 
 (define (inherit-print-state old-port new-port)
   (if (pair? old-port)
-      (cons new-port (cdr old-port))
+      (cons (if (pair? new-port) (car new-port) new-port)
+	    (cdr old-port))
       new-port))
