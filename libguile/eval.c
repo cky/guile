@@ -158,8 +158,8 @@ scm_ilookup (iloc, env)
   for (ir = SCM_IDIST (iloc); 0 != ir; --ir)
     er = SCM_CDR (er);
   if (SCM_ICDRP (iloc))
-    return &SCM_CDR (er);
-  return &SCM_CAR (SCM_CDR (er));
+    return SCM_CDRLOC (er);
+  return SCM_CARLOC (SCM_CDR (er));
 }
 #endif
 
@@ -178,20 +178,20 @@ scm_lookupcar (vloc, genv)
     {
       if (SCM_BOOL_T == scm_procedure_p (SCM_CAR (env)))
 	break;
-      al = &SCM_CAR (env);
+      al = SCM_CARLOC (env);
       for (fl = SCM_CAR (*al); SCM_NIMP (fl); fl = SCM_CDR (fl))
 	{
 	  if (SCM_NCONSP (fl))
 	      if (fl == var)
 	      {
 #ifdef MEMOIZE_LOCALS
-		SCM_CAR (vloc) = iloc + SCM_ICDR;
+		SCM_SETCAR (vloc, iloc + SCM_ICDR);
 #endif
-		return &SCM_CDR (*al);
+		return SCM_CDRLOC (*al);
 	      }
 	    else
 	      break;
-	  al = &SCM_CDR (*al);
+	  al = SCM_CDRLOC (*al);
 	  if (SCM_CAR (fl) == var)
 	    {
 #ifdef MEMOIZE_LOCALS
@@ -202,9 +202,9 @@ scm_lookupcar (vloc, genv)
 		  goto errout;
 		}
 #endif
-	      SCM_CAR (vloc) = iloc;
+	      SCM_SETCAR (vloc, iloc);
 #endif
-	      return &SCM_CAR (*al);
+	      return SCM_CARLOC (*al);
 	    }
 #ifdef MEMOIZE_LOCALS
 	  iloc += SCM_IDINC;
@@ -244,11 +244,11 @@ scm_lookupcar (vloc, genv)
 		 SCM_BOOL_F);
     }
 #endif
-  SCM_CAR (vloc) = var + 1;
+  SCM_SETCAR (vloc, var + 1);
   /* Except wait...what if the var is not a vcell,
    * but syntax or something....
    */
-  return &SCM_CDR (var);
+  return SCM_CDRLOC (var);
 }
 
 #define unmemocar scm_unmemocar
@@ -267,7 +267,7 @@ scm_unmemocar (form, env)
     return form;
   c = SCM_CAR (form);
   if (1 == (c & 7))
-    SCM_CAR (form) = SCM_CAR (c - 1);
+    SCM_SETCAR (form, SCM_CAR (c - 1));
 #ifdef MEMOIZE_LOCALS
 #ifdef DEBUG_EXTENSIONS
   else if (SCM_ILOCP (c))
@@ -277,7 +277,7 @@ scm_unmemocar (form, env)
       env = SCM_CAR (SCM_CAR (env));
       for (ir = SCM_IDIST (c); ir != 0; --ir)
 	env = SCM_CDR (env);
-      SCM_CAR (form) = SCM_ICDRP (c) ? env : SCM_CAR (env);
+      SCM_SETCAR (form, SCM_ICDRP (c) ? env : SCM_CAR (env));
     }
 #endif
 #endif
@@ -492,7 +492,7 @@ scm_m_cond (xorig, env)
       if (scm_i_else == SCM_CAR (arg1))
 	{
 	  ASSYNT (SCM_NULLP (SCM_CDR (x)) && len >= 2, xorig, "bad ELSE clause", "cond");
-	  SCM_CAR (arg1) = SCM_BOOL_T;
+	  SCM_SETCAR (arg1, SCM_BOOL_T);
 	}
       if (len >= 2 && scm_i_arrow == SCM_CAR (SCM_CDR (arg1)))
 	ASSYNT (3 == len && SCM_NIMP (SCM_CAR (SCM_CDR (SCM_CDR (arg1)))),
@@ -538,7 +538,7 @@ scm_m_lambda (xorig, env)
     (proc)
   badforms:scm_wta (xorig, s_formals, "lambda");
 memlambda:
-  bodycheck (xorig, &SCM_CDR (x), "lambda");
+  bodycheck (xorig, SCM_CDRLOC (x), "lambda");
   return scm_cons (SCM_IM_LAMBDA, SCM_CDR (xorig));
 }
 
@@ -560,11 +560,11 @@ scm_m_letstar (xorig, env)
       ASSYNT (2 == scm_ilength (arg1), xorig, s_bindings, "let*");
       ASSYNT (SCM_NIMP (SCM_CAR (arg1)) && SCM_SYMBOLP (SCM_CAR (arg1)), xorig, s_variable, "let*");
       *varloc = scm_cons2 (SCM_CAR (arg1), SCM_CAR (SCM_CDR (arg1)), SCM_EOL);
-      varloc = &SCM_CDR (SCM_CDR (*varloc));
+      varloc = SCM_CDRLOC (SCM_CDR (*varloc));
       proc = SCM_CDR (proc);
     }
   x = scm_cons (vars, SCM_CDR (x));
-  bodycheck (xorig, &SCM_CDR (x), "let*");
+  bodycheck (xorig, SCM_CDRLOC (x), "let*");
   return scm_cons (SCM_IM_LETSTAR, x);
 }
 
@@ -607,17 +607,17 @@ scm_m_do (xorig, env)
       vars = scm_cons (SCM_CAR (arg1), vars);	/* variable */
       arg1 = SCM_CDR (arg1);
       *initloc = scm_cons (SCM_CAR (arg1), SCM_EOL);	/* init */
-      initloc = &SCM_CDR (*initloc);
+      initloc = SCM_CDRLOC (*initloc);
       arg1 = SCM_CDR (arg1);
       *steploc = scm_cons (SCM_IMP (arg1) ? SCM_CAR (vars) : SCM_CAR (arg1), SCM_EOL);	/* step */
-      steploc = &SCM_CDR (*steploc);
+      steploc = SCM_CDRLOC (*steploc);
       proc = SCM_CDR (proc);
     }
   x = SCM_CDR (x);
   ASSYNT (scm_ilength (SCM_CAR (x)) >= 1, xorig, s_test, "do");
   x = scm_cons2 (SCM_CAR (x), SCM_CDR (x), steps);
   x = scm_cons2 (vars, inits, x);
-  bodycheck (xorig, &SCM_CAR (SCM_CDR (SCM_CDR (x))), "do");
+  bodycheck (xorig, SCM_CARLOC (SCM_CDR (SCM_CDR (x))), "do");
   return scm_cons (SCM_IM_DO, x);
 }
 
@@ -755,7 +755,7 @@ scm_m_define (x, env)
       if (5 <= scm_verbose && SCM_UNDEFINED != SCM_CDR (arg1))
 	scm_warn ("redefining ", SCM_CHARS (proc));
 #endif
-      SCM_CDR (arg1) = x;
+      SCM_SETCDR (arg1, x);
 #ifdef SICP
       return scm_cons2 (scm_i_quote, SCM_CAR (arg1), SCM_EOL);
 #else
@@ -788,7 +788,7 @@ scm_m_undefine (x, env)
     if (5 <= scm_verbose && SCM_UNDEFINED != SCM_CDR (arg1))
       scm_warn ("redefining ", SCM_CHARS (x));
 #endif
-  SCM_CDR (arg1) = SCM_UNDEFINED;
+  SCM_SETCDR (arg1, SCM_UNDEFINED);
 #ifdef SICP
   return SCM_CAR (arg1);
 #else
@@ -822,12 +822,12 @@ scm_m_letrec (xorig, env)
       ASRTSYNTAX (SCM_NIMP (SCM_CAR (arg1)) && SCM_SYMBOLP (SCM_CAR (arg1)), s_variable);
       vars = scm_cons (SCM_CAR (arg1), vars);
       *initloc = scm_cons (SCM_CAR (SCM_CDR (arg1)), SCM_EOL);
-      initloc = &SCM_CDR (*initloc);
+      initloc = SCM_CDRLOC (*initloc);
     }
   while SCM_NIMP
   (proc = SCM_CDR (proc));
   cdrx = scm_cons2 (vars, inits, SCM_CDR (x));
-  bodycheck (xorig, &SCM_CDR (SCM_CDR (cdrx)), what);
+  bodycheck (xorig, SCM_CDRLOC (SCM_CDR (cdrx)), what);
   return scm_cons (SCM_IM_LETREC, cdrx);
 }
 
@@ -864,9 +864,9 @@ scm_m_let (xorig, env)
       ASSYNT (2 == scm_ilength (arg1), xorig, s_bindings, "let");
       ASSYNT (SCM_NIMP (SCM_CAR (arg1)) && SCM_SYMBOLP (SCM_CAR (arg1)), xorig, s_variable, "let");
       *varloc = scm_cons (SCM_CAR (arg1), SCM_EOL);
-      varloc = &SCM_CDR (*varloc);
+      varloc = SCM_CDRLOC (*varloc);
       *initloc = scm_cons (SCM_CAR (SCM_CDR (arg1)), SCM_EOL);
-      initloc = &SCM_CDR (*initloc);
+      initloc = SCM_CDRLOC (*initloc);
       proc = SCM_CDR (proc);
     }
   return
@@ -976,13 +976,15 @@ unmemocopy (x, env)
 	    s = SCM_CDR (s);
 	  }
 	while SCM_NIMP (v);
-	SCM_CDR (ls) = z = scm_cons (z, SCM_UNSPECIFIED);
+	z = scm_cons (z, SCM_UNSPECIFIED);
+	SCM_SETCDR (ls, z);
 	if (SCM_CAR (ls) == scm_i_do)
 	  {
 	    x = SCM_CDR (x);
-	    z = (SCM_CDR (z) = scm_cons (unmemocopy (SCM_CAR (x), env),
+	    SCM_SETCDR (z, scm_cons (unmemocopy (SCM_CAR (x), env),
 				     SCM_UNSPECIFIED));
-	    x = (SCM) (&SCM_CAR (SCM_CDR (x)) - 1);
+	    z = SCM_CDR (z);
+	    x = (SCM) (SCM_CARLOC (SCM_CDR (x)) - 1);
 	  }
 	break;
       }
@@ -1011,15 +1013,16 @@ unmemocopy (x, env)
 	  }
 	do
 	  {
-	    z = (SCM_CDR (z) = scm_acons (SCM_CAR (b),
-					  unmemocar (
+	    SCM_SETCDR (z, scm_acons (SCM_CAR (b),
+				      unmemocar (
 	    scm_cons (unmemocopy (SCM_CAR (SCM_CDR (b)), env), SCM_EOL), env),
-					  SCM_UNSPECIFIED));
+				      SCM_UNSPECIFIED));
+	    z = SCM_CDR (z);
 	    env = EXTEND_ENV (SCM_CAR (b), SCM_BOOL_F, env);
 	    b = SCM_CDR (SCM_CDR (b));
 	  }
 	while SCM_NIMP (b);
-	SCM_CDR (z) = SCM_EOL;
+	SCM_SETCDR (z, SCM_EOL);
       letstar:
 	ls = scm_cons (scm_i_letstar, z = scm_cons (y, SCM_UNSPECIFIED));
 	break;
@@ -1046,7 +1049,7 @@ unmemocopy (x, env)
 	ls = scm_cons (scm_i_define,
 		       z = scm_cons (n = SCM_CAR (x), SCM_UNSPECIFIED));
 	if (SCM_NNULLP (env))
-	  SCM_CAR (SCM_CAR (env)) = scm_cons (n, SCM_CAR (SCM_CAR (env)));
+	  SCM_SETCAR (SCM_CAR (env), scm_cons (n, SCM_CAR (SCM_CAR (env))));
 	break;
       }
     case (127 & SCM_MAKISYM (0)):
@@ -1071,10 +1074,13 @@ unmemocopy (x, env)
     }
 loop:
   while (SCM_CELLP (x = SCM_CDR (x)) && SCM_ECONSP (x))
-    z = (SCM_CDR (z) = unmemocar (scm_cons (unmemocopy (SCM_CAR (x), env),
-					    SCM_UNSPECIFIED),
-				  env));
-  SCM_CDR (z) = x;
+    {
+      SCM_SETCDR (z, unmemocar (scm_cons (unmemocopy (SCM_CAR (x), env),
+					  SCM_UNSPECIFIED),
+				env));
+      z = SCM_CDR (z);
+    }
+  SCM_SETCDR (z, x);
 #ifdef DEBUG_EXTENSIONS
   if (SCM_NFALSEP (p))
     scm_whash_insert (scm_source_whash, ls, p);
@@ -1131,7 +1137,7 @@ scm_eval_args (l, env)
   while (SCM_NIMP (l))
     {
       *lloc = scm_cons (EVALCAR (l, env), SCM_EOL);
-      lloc = &SCM_CDR (*lloc);
+      lloc = SCM_CDRLOC (*lloc);
       l = SCM_CDR (l);
     }
   return res;
@@ -1258,7 +1264,7 @@ scm_deval_args (l, env, lloc)
   while (SCM_NIMP (l))
     {
       *lloc = scm_cons (EVALCAR (l, env), SCM_EOL);
-      lloc = &SCM_CDR (*lloc);
+      lloc = SCM_CDRLOC (*lloc);
       l = SCM_CDR (l);
     }
   return *res;
@@ -1575,7 +1581,7 @@ dispatch:
 	  t.arg1 = scm_cons (EVALCAR (proc, env), t.arg1);
 	}
       while (SCM_NIMP (proc = SCM_CDR (proc)));
-      SCM_CDR (SCM_CAR (env)) = t.arg1;
+      SCM_SETCDR (SCM_CAR (env), t.arg1);
       goto cdrxnoap;
 
 
@@ -1629,7 +1635,7 @@ dispatch:
 	  t.lloc = scm_lookupcar (x, env);
 	  break;
 	case 1:
-	  t.lloc = &SCM_GLOC_VAL (proc);
+	  t.lloc = SCM_GLOC_VAL_LOC (proc);
 	  break;
 #ifdef MEMOIZE_LOCALS
 	case 4:
@@ -1657,8 +1663,8 @@ dispatch:
 #endif
       env = SCM_CAR (env);
       SCM_DEFER_INTS;
-      SCM_CAR (env) = scm_cons (proc, SCM_CAR (env));
-      SCM_CDR (env) = scm_cons (x, SCM_CDR (env));
+      SCM_SETCAR (env, scm_cons (proc, SCM_CAR (env)));
+      SCM_SETCDR (env, scm_cons (x, SCM_CDR (env)));
       SCM_ALLOW_INTS;
       RETURN (SCM_UNSPECIFIED);
 
@@ -1813,8 +1819,8 @@ dispatch:
 			}
 #endif
 		      SCM_DEFER_INTS;
-		      SCM_CAR (x) = SCM_CAR (t.arg1);
-		      SCM_CDR (x) = SCM_CDR (t.arg1);
+		      SCM_SETCAR (x, SCM_CAR (t.arg1));
+		      SCM_SETCDR (x, SCM_CDR (t.arg1));
 		      SCM_ALLOW_INTS;
 		      goto dispatch;
 		    }
@@ -1824,8 +1830,8 @@ dispatch:
 					       scm_source_properties (x));
 #endif
 		  SCM_DEFER_INTS;
-		  SCM_CAR (x) = SCM_CAR (t.arg1);
-		  SCM_CDR (x) = SCM_CDR (t.arg1);
+		  SCM_SETCAR (x, SCM_CAR (t.arg1));
+		  SCM_SETCDR (x, SCM_CDR (t.arg1));
 		  SCM_ALLOW_INTS;
 		  goto loopnoap;
 		case 1:
@@ -2080,7 +2086,7 @@ evapply:
     }
 #ifdef DEVAL
     debug.info->a.args = scm_cons2 (t.arg1, arg2,
-	    scm_deval_args (x, env, &SCM_CDR (SCM_CDR (debug.info->a.args))));
+	    scm_deval_args (x, env, SCM_CDRLOC (SCM_CDR (debug.info->a.args))));
 #endif
     ENTER_APPLY;
     switch (SCM_TYP7 (proc))
@@ -2245,7 +2251,7 @@ scm_nconc2last (lst)
   SCM_ASSERT (scm_ilength (lst) > 0, lst, SCM_ARG1, s_nconc2last);
   lloc = &lst;
   while (SCM_NNULLP (SCM_CDR (*lloc)))
-    lloc = &SCM_CDR (*lloc);
+    lloc = SCM_CDRLOC (*lloc);
   SCM_ASSERT (scm_ilength (SCM_CAR (*lloc)) >= 0, lst, SCM_ARG1, s_nconc2last);
   *lloc = SCM_CAR (*lloc);
   return lst;
@@ -2516,7 +2522,7 @@ scm_map (proc, arg1, args)
 	{
 	  SCM_ASSERT (SCM_CONSP (arg1), arg1, SCM_ARG2, s_map);
 	  *pres = scm_cons (scm_apply (proc, SCM_CAR (arg1), scm_listofnull), SCM_EOL);
-	  pres = &SCM_CDR (*pres);
+	  pres = SCM_CDRLOC (*pres);
 	  arg1 = SCM_CDR (arg1);
 	}
       return res;
@@ -2538,7 +2544,7 @@ scm_map (proc, arg1, args)
 	  ve[i] = SCM_CDR (ve[i]);
 	}
       *pres = scm_cons (scm_apply (proc, arg1, SCM_EOL), SCM_EOL);
-      pres = &SCM_CDR (*pres);
+      pres = SCM_CDRLOC (*pres);
     }
 }
 
@@ -2596,7 +2602,7 @@ scm_closure (code, env)
   register SCM z;
   SCM_NEWCELL (z);
   SCM_SETCODE (z, code);
-  SCM_ENV (z) = env;
+  SCM_SETENV (z, env);
   return z;
 }
 
@@ -2609,8 +2615,8 @@ scm_makprom (code)
 {
   register SCM z;
   SCM_NEWCELL (z);
-  SCM_CDR (z) = code;
-  SCM_CAR (z) = scm_tc16_promise;
+  SCM_SETCDR (z, code);
+  SCM_SETCAR (z, scm_tc16_promise);
   return z;
 }
 
@@ -2642,8 +2648,8 @@ scm_makacro (code)
 {
   register SCM z;
   SCM_NEWCELL (z);
-  SCM_CDR (z) = code;
-  SCM_CAR (z) = scm_tc16_macro;
+  SCM_SETCDR (z, code);
+  SCM_SETCAR (z, scm_tc16_macro);
   return z;
 }
 
@@ -2656,8 +2662,8 @@ scm_makmacro (code)
 {
   register SCM z;
   SCM_NEWCELL (z);
-  SCM_CDR (z) = code;
-  SCM_CAR (z) = scm_tc16_macro | (1L << 16);
+  SCM_SETCDR (z, code);
+  SCM_SETCAR (z, scm_tc16_macro | (1L << 16));
   return z;
 }
 
@@ -2670,8 +2676,8 @@ scm_makmmacro (code)
 {
   register SCM z;
   SCM_NEWCELL (z);
-  SCM_CDR (z) = code;
-  SCM_CAR (z) = scm_tc16_macro | (2L << 16);
+  SCM_SETCDR (z, code);
+  SCM_SETCAR (z, scm_tc16_macro | (2L << 16));
   return z;
 }
 
@@ -2713,8 +2719,8 @@ scm_force (x)
       if (!((1L << 16) & SCM_CAR (x)))
 	{
 	  SCM_DEFER_INTS;
-	  SCM_CDR (x) = ans;
-	  SCM_CAR (x) |= (1L << 16);
+	  SCM_SETCDR (x, ans);
+	  SCM_SETOR_CAR (x, (1L << 16));
 	  SCM_ALLOW_INTS;
 	}
     }
@@ -2754,8 +2760,12 @@ scm_copy_tree (obj)
 /*  return scm_cons(scm_copy_tree(SCM_CAR(obj)), scm_copy_tree(SCM_CDR(obj))); */
   ans = tl = scm_cons (scm_copy_tree (SCM_CAR (obj)), SCM_UNSPECIFIED);
   while (SCM_NIMP (obj = SCM_CDR (obj)) && SCM_CONSP (obj))
-    tl = (SCM_CDR (tl) = scm_cons (scm_copy_tree (SCM_CAR (obj)), SCM_UNSPECIFIED));
-  SCM_CDR (tl) = obj;
+    {
+      SCM_SETCDR (tl, scm_cons (scm_copy_tree (SCM_CAR (obj)),
+				SCM_UNSPECIFIED));
+      tl = SCM_CDR (tl);
+    }
+  SCM_SETCDR (tl, obj);
   return ans;
 }
 
@@ -2864,8 +2874,8 @@ scm_make_synt (name, macroizer, fcn)
     tmp = 0;
   SCM_NEWCELL (z);
   SCM_SUBRF (z) = fcn;
-  SCM_CAR (z) = tmp + scm_tc7_subr_2;
-  SCM_CDR (symcell) = macroizer (z);
+  SCM_SETCAR (z, tmp + scm_tc7_subr_2);
+  SCM_SETCDR (symcell, macroizer (z));
   return SCM_CAR (symcell);
 }
 
