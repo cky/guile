@@ -42,20 +42,24 @@
 
 #include <stdio.h>
 #include "_scm.h"
+
 #include "alist.h"
 #include "eval.h"
 #include "procs.h"
 #include "gsubr.h"
+#include "objects.h"
 
 #include "procprop.h"
 
 
 SCM_GLOBAL_SYMBOL (scm_sym_arity, "arity");
 
-static SCM
-scm_i_procedure_arity (proc)
+SCM
+scm_i_procedure_arity (SCM proc)
 {
   int a = 0, o = 0, r = 0;
+  if (SCM_IMP (proc))
+    return SCM_BOOL_F;
  loop:
   switch (SCM_TYP7 (proc))
     {
@@ -88,7 +92,7 @@ scm_i_procedure_arity (proc)
       if (SCM_CCLO_SUBR (proc) == scm_f_gsubr_apply)
 	{
 	  int type = SCM_INUM (SCM_GSUBR_TYPE (proc));
-	  a = SCM_GSUBR_REQ (type);
+	  a += SCM_GSUBR_REQ (type);
 	  o = SCM_GSUBR_OPT (type);
 	  r = SCM_GSUBR_REST (type);
 	  break;
@@ -109,6 +113,32 @@ scm_i_procedure_arity (proc)
       if (SCM_NIMP (proc))
 	r = 1;
       break;
+    case scm_tcs_cons_gloc:
+      if (!SCM_I_OPERATORP (proc))
+	return SCM_BOOL_F;
+      {
+	SCM *p = (SCM_I_ENTITYP (proc)
+		  ? &SCM_ENTITY_PROC_0 (proc)
+		  : &SCM_OPERATOR_PROC_0 (proc));
+	SCM arity;
+	int i, amin = -1, amax = 0;
+	for (i = 0; i < 4; ++i)
+	  if (SCM_NFALSEP (arity = scm_i_procedure_arity (p[i])))
+	    {
+	      if (amin < 0)
+		amin = i;
+	      amax = i;
+	    }
+	if (amin < 0)
+	  /* no procedures in the struct! */
+	  return SCM_BOOL_F;
+	a += amin;
+	o = amax - amin;
+	r = SCM_NFALSEP (arity) && SCM_NFALSEP (SCM_CADDR (arity));
+	break;
+      }
+    default:
+      return SCM_BOOL_F;
     }
   return SCM_LIST3 (SCM_MAKINUM (a),
 		    SCM_MAKINUM (o),
@@ -169,10 +199,15 @@ scm_procedure_property (p, k)
      SCM k;
 {
   SCM assoc;
+  if (k == scm_sym_arity)
+    {
+      SCM arity;
+      SCM_ASSERT (SCM_NFALSEP (arity = scm_i_procedure_arity (p)),
+		  p, SCM_ARG1, s_procedure_property);
+      return arity;
+    }
   SCM_ASSERT (SCM_NFALSEP (scm_procedure_p (p)),
 	      p, SCM_ARG1, s_procedure_property);
-  if (k == scm_sym_arity)
-    return scm_i_procedure_arity (p);
   assoc = scm_sloppy_assq (k,
 			   SCM_PROCPROPS (SCM_NIMP (p) && SCM_CLOSUREP (p)
 					  ? p
