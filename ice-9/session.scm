@@ -30,28 +30,32 @@
     (lambda (exp env)
       "(help [NAME])
 Prints useful information.  Try `(help)'."
-      (if (not (= (length exp) 2))
-	  (help-usage)
-	  (let ((name (cadr exp)))
-	    (cond ((symbol? name)
-		   (help-doc name
-			     (string-append "^"
-					    (symbol->string name)
-					    "$")))
-		  ((string? name)
-		   (help-doc name name))
-		  ((and (list? name)
-			(= (length name) 2)
-			(eq? (car name) 'unquote))
-		   (let ((doc (object-documentation (local-eval (cadr name)
-								env))))
-		     (if (not doc)
-			 (simple-format #t "No documentation found for ~S\n"
-					(cadr name))
-			 (write-line doc))))
-		  (else
-		   (help-usage)))
-	    *unspecified*)))))
+      (cond ((not (= (length exp) 2))
+	     (help-usage))
+	    ((not (feature? 'regex))
+	     (display "`help' depends on the `regex' feature.
+You don't seem to have regular expressions installed.\n"))
+	    (else
+	     (let ((name (cadr exp)))
+	       (cond ((symbol? name)
+		      (help-doc name
+				(string-append "^"
+					       (symbol->string name)
+					       "$")))
+		     ((string? name)
+		      (help-doc name name))
+		     ((and (list? name)
+			   (= (length name) 2)
+			   (eq? (car name) 'unquote))
+		      (let ((doc (object-documentation (local-eval (cadr name)
+								   env))))
+			(if (not doc)
+			    (simple-format #t "No documentation found for ~S\n"
+					   (cadr name))
+			    (write-line doc))))
+		     (else
+		      (help-usage)))
+	       *unspecified*))))))
 
 (define (help-doc term regexp)
   (let ((entries (apropos-fold (lambda (module name object data)
