@@ -1,3 +1,11 @@
+2001-08-25  Thien-Thi Nguyen  <ttn@revel.glug.org>
+
+	* tests/srfi-19.test (test-time-comparision,
+	test-time-arithmatic): New procs.
+
+	Add time comparison tests using new procs.
+	Thanks to Alex Shinn.
+
 2001-08-25  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* tests/dynamic-scope.test: New file.
