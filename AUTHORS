@@ -21,3 +21,7 @@ of guile.texi.
 
 Mikael Djurfeldt: wrote debug.c, debug.h, options.c, options.h,
 srcprop.c, srcprop.h.  Many changes throughout.
+
+David Keppel wrote the 'qt' threads package.  Other contributors
+include: Weihaw Chuang, Richard O'Keefe, Laurent Perron, John Polstra,
+Shinji Suzuki, and Assar Westerlund.  Uwe Reder wrote the HP-PA port. 

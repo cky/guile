@@ -1,3 +1,7 @@
+Thu Oct 10 14:37:43 1996  Jim Blandy  <jimb@floss.cyclic.com>
+
+	* Makefile.in (TAGS tags): Find the source files in $srcdir. 
+
 Wed Oct  9 19:37:14 1996  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* Makefile.in (DISTFILES): Add AUTHORS and aclocal.m4.

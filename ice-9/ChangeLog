@@ -1,3 +1,10 @@
+Thu Oct 10 22:27:32 1996  Jim Blandy  <jimb@totoro.cyclic.com>
+
+	* mapping.scm (hash-table-mapping): Explicitly request that
+ 	make-vector fill new vectors with '(); this will make it easier to
+	port Guile Scheme code to other Schemes.
+	* boot-9.scm (make-print-style, make-print-table): Same.
+
 Sun Oct  6 03:54:59 1996  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* boot-9.scm (load): rewritten again.

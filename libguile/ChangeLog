@@ -1,3 +1,25 @@
+Fri Oct 11 02:43:59 1996  Jim Blandy  <jimb@totoro.cyclic.com>
+
+	* eval.c (scm_nconc2last): Make sure that each element of lst
+	(which is a list of argument lists, except for the tail) is a
+	proper list, i.e., finite and terminated by '().
+
+Thu Oct 10 21:09:13 1996  Jim Blandy  <jimb@totoro.cyclic.com>
+
+	* unif.c (scm_ra_set_contp): Localize `inc' declaration.
+	Clarifies flow.
+
+	* struct.c (scm_make_struct, scm_make_vtable_vtable): Use the
+	symbolic name for the tag, scm_tc3_cons_gloc, instead of just
+	saying "1".
+
+	* vectors.c (scm_make_vector): Fill vectors with the undefined
+ 	value, to help make Guile Scheme code more portable to other
+ 	Schemes.
+
+	* symbols.c (scm_intern_obarray_soft, scm_sysintern): Doc fixes.
+	* symbols.h, tags.h: Doc fixes.
+	
 Wed Oct  9 19:39:29 1996  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* async.c (scm_take_signal): Doc fixes.
