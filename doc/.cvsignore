@@ -1,7 +1,7 @@
 Makefile
 Makefile.in
 stamp-vti
-stamp-vti1
+stamp-vti.1
 *.log
 *.dvi
 *.aux
