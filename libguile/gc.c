@@ -1692,7 +1692,7 @@ scm_gc_sweep ()
 #endif /* def SCM_BIGDIG */
 		case scm_tc16_complex:
 		  m += sizeof (scm_complex_t);
-		  scm_must_free (SCM_CHARS (scmptr));
+		  scm_must_free (SCM_COMPLEX_MEM (scmptr));
 		  break;
 		default:
 		  {

@@ -81,9 +81,10 @@ extern long scm_tc16_array;
 #define SCM_ARRAY_CONTIGUOUS 	0x10000
 #define SCM_ARRAY_CONTP(x) 	(SCM_ARRAY_CONTIGUOUS & (SCM_CELL_WORD_0 (x)))
 
-#define SCM_ARRAY_V(a) 	  (((scm_array *) SCM_CELL_WORD_1 (a))->v)
-#define SCM_ARRAY_BASE(a) (((scm_array *) SCM_CELL_WORD_1 (a))->base)
-#define SCM_ARRAY_DIMS(a) ((scm_array_dim *)(SCM_CHARS(a)+sizeof(scm_array))) 
+#define SCM_ARRAY_MEM(a)  ((scm_array *) SCM_CELL_WORD_1 (a))
+#define SCM_ARRAY_V(a) 	  (SCM_ARRAY_MEM (a)->v)
+#define SCM_ARRAY_BASE(a) (SCM_ARRAY_MEM (a)->base)
+#define SCM_ARRAY_DIMS(a) ((scm_array_dim *)((char *) SCM_ARRAY_MEM (a) + sizeof (scm_array))) 
 
 #define SCM_UVECTOR_BASE(x) ((void *) (SCM_CELL_WORD_1 (x)))
 

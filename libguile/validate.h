@@ -1,4 +1,4 @@
-/* $Id: validate.h,v 1.15 2000-09-22 17:17:55 dirk Exp $ */
+/* $Id: validate.h,v 1.16 2000-09-26 21:53:49 dirk Exp $ */
 /*	Copyright (C) 1999, 2000 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -53,9 +53,6 @@
 
 #define SCM_SYSERROR_MSG(str, args, val) \
   do { scm_syserror_msg (FUNC_NAME, (str), (args), (val)); } while (0)
-
-#define SCM_COERCE_ROSTRING(pos, scm) \
-  do { scm = scm_coerce_rostring (scm, FUNC_NAME, pos); } while (0)
 
 #define SCM_WTA(pos, scm) \
   do { scm_wta (scm, (char *) pos, FUNC_NAME); } while (0)

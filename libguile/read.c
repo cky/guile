@@ -123,7 +123,7 @@ char *
 scm_grow_tok_buf (SCM *tok_buf)
 {
   scm_vector_set_length_x (*tok_buf, SCM_MAKINUM (2 * SCM_LENGTH (*tok_buf)));
-  return SCM_CHARS (*tok_buf);
+  return SCM_STRING_CHARS (*tok_buf);
 }
 
 
@@ -365,7 +365,7 @@ tryagain_no_flush_ws:
 #ifdef HAVE_ARRAYS
 	case '*':
 	  j = scm_read_token (c, tok_buf, port, 0);
-	  p = scm_istr2bve (SCM_CHARS (*tok_buf) + 1, (long) (j - 1));
+	  p = scm_istr2bve (SCM_STRING_CHARS (*tok_buf) + 1, (long) (j - 1));
 	  if (SCM_NFALSEP (p))
 	    return p;
 	  else
@@ -374,7 +374,7 @@ tryagain_no_flush_ws:
 
 	case '{':
 	  j = scm_read_token (c, tok_buf, port, 1);
-	  p = scm_intern (SCM_CHARS (*tok_buf), j);
+	  p = scm_intern (SCM_STRING_CHARS (*tok_buf), j);
 	  return SCM_CAR (p);
 
 	case '\\':
@@ -384,20 +384,20 @@ tryagain_no_flush_ws:
 	    return SCM_MAKE_CHAR (c);
 	  if (c >= '0' && c < '8')
 	    {
-	      p = scm_istr2int (SCM_CHARS (*tok_buf), (long) j, 8);
+	      p = scm_istr2int (SCM_STRING_CHARS (*tok_buf), (long) j, 8);
 	      if (SCM_NFALSEP (p))
 		return SCM_MAKE_CHAR (SCM_INUM (p));
 	    }
 	  for (c = 0; c < scm_n_charnames; c++)
 	    if (scm_charnames[c]
-		&& (scm_casei_streq (scm_charnames[c], SCM_CHARS (*tok_buf))))
+		&& (scm_casei_streq (scm_charnames[c], SCM_STRING_CHARS (*tok_buf))))
 	      return SCM_MAKE_CHAR (scm_charnums[c]);
-	  scm_wta (SCM_UNDEFINED, "unknown # object: #\\", SCM_CHARS (*tok_buf));
+	  scm_wta (SCM_UNDEFINED, "unknown # object: #\\", SCM_STRING_CHARS (*tok_buf));
 
 	  /* #:SYMBOL is a syntax for keywords supported in all contexts.  */
 	case ':':
 	  j = scm_read_token ('-', tok_buf, port, 0);
-	  p = scm_intern (SCM_CHARS (*tok_buf), j);
+	  p = scm_intern (SCM_STRING_CHARS (*tok_buf), j);
 	  return scm_make_keyword_from_dash_symbol (SCM_CAR (p));
 
 	default:
@@ -464,15 +464,15 @@ tryagain_no_flush_ws:
 		c = '\v';
 		break;
 	      }
-	  SCM_CHARS (*tok_buf)[j] = c;
+	  SCM_STRING_CHARS (*tok_buf)[j] = c;
 	  ++j;
 	}
       if (j == 0)
 	return scm_nullstr;
-      SCM_CHARS (*tok_buf)[j] = 0;
+      SCM_STRING_CHARS (*tok_buf)[j] = 0;
       {
 	SCM str;
-	str = scm_makfromstr (SCM_CHARS (*tok_buf), j, 0);
+	str = scm_makfromstr (SCM_STRING_CHARS (*tok_buf), j, 0);
 	return str;
       }
 
@@ -483,7 +483,7 @@ tryagain_no_flush_ws:
     case '+':
     num:
       j = scm_read_token (c, tok_buf, port, 0);
-      p = scm_istring2number (SCM_CHARS (*tok_buf), (long) j, 10L);
+      p = scm_istring2number (SCM_STRING_CHARS (*tok_buf), (long) j, 10L);
       if (SCM_NFALSEP (p))
 	return p;
       if (c == '#')
@@ -491,10 +491,10 @@ tryagain_no_flush_ws:
 	  if ((j == 2) && (scm_getc (port) == '('))
 	    {
 	      scm_ungetc ('(', port);
-	      c = SCM_CHARS (*tok_buf)[1];
+	      c = SCM_STRING_CHARS (*tok_buf)[1];
 	      goto callshrp;
 	    }
-	  scm_wta (SCM_UNDEFINED, "unknown # object", SCM_CHARS (*tok_buf));
+	  scm_wta (SCM_UNDEFINED, "unknown # object", SCM_STRING_CHARS (*tok_buf));
 	}
       goto tok;
 
@@ -502,7 +502,7 @@ tryagain_no_flush_ws:
       if (SCM_EQ_P (SCM_PACK (SCM_KEYWORD_STYLE), scm_keyword_prefix))
 	{
 	  j = scm_read_token ('-', tok_buf, port, 0);
-	  p = scm_intern (SCM_CHARS (*tok_buf), j);
+	  p = scm_intern (SCM_STRING_CHARS (*tok_buf), j);
 	  return scm_make_keyword_from_dash_symbol (SCM_CAR (p));
 	}
       /* fallthrough */
@@ -511,7 +511,7 @@ tryagain_no_flush_ws:
       /* fallthrough */
 
     tok:
-      p = scm_intern (SCM_CHARS (*tok_buf), j);
+      p = scm_intern (SCM_STRING_CHARS (*tok_buf), j);
       return SCM_CAR (p);
     }
 }
@@ -528,7 +528,7 @@ scm_read_token (int ic, SCM *tok_buf, SCM port, int weird)
   register char *p;
 
   c = (SCM_CASE_INSENSITIVE_P ? scm_downcase(ic) : ic);
-  p = SCM_CHARS (*tok_buf);
+  p = SCM_STRING_CHARS (*tok_buf);
 
   if (weird)
     j = 0;

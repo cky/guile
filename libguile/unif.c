@@ -972,11 +972,11 @@ SCM_DEFINE (scm_enclose_array, "enclose-array", 1, 0, 1,
       SCM_ARRAY_DIMS (ra_inr)[k].lbnd = s[j].lbnd;
       SCM_ARRAY_DIMS (ra_inr)[k].ubnd = s[j].ubnd;
       SCM_ARRAY_DIMS (ra_inr)[k].inc = s[j].inc;
-      SCM_CHARS (axv)[j] = 1;
+      SCM_STRING_CHARS (axv)[j] = 1;
     }
   for (j = 0, k = 0; k < noutr; k++, j++)
     {
-      while (SCM_CHARS (axv)[j])
+      while (SCM_STRING_CHARS (axv)[j])
 	j++;
       SCM_ARRAY_DIMS (res)[k].lbnd = s[j].lbnd;
       SCM_ARRAY_DIMS (res)[k].ubnd = s[j].ubnd;
@@ -1140,7 +1140,7 @@ SCM_DEFINE (scm_uniform_vector_ref, "uniform-vector-ref", 2, 0, 0,
     case scm_tc7_string:
       return SCM_MAKE_CHAR (SCM_UCHARS (v)[pos]);
     case scm_tc7_byvect:
-      return SCM_MAKINUM (((char *)SCM_CHARS (v))[pos]);
+      return SCM_MAKINUM (((char *) SCM_UVECTOR_BASE (v))[pos]);
   case scm_tc7_uvect:
     return scm_ulong2num (((unsigned long *) SCM_VELTS (v))[pos]);
   case scm_tc7_ivect:
@@ -1185,7 +1185,7 @@ scm_cvref (SCM v, scm_sizet pos, SCM last)
     case scm_tc7_string:
       return SCM_MAKE_CHAR (SCM_UCHARS (v)[pos]);
     case scm_tc7_byvect:
-      return SCM_MAKINUM (((char *)SCM_CHARS (v))[pos]);
+      return SCM_MAKINUM (((char *) SCM_UVECTOR_BASE (v))[pos]);
     case scm_tc7_uvect:
       return scm_ulong2num(((unsigned long *) SCM_VELTS (v))[pos]);
     case scm_tc7_ivect:
@@ -1300,7 +1300,7 @@ SCM_DEFINE (scm_array_set_x, "array-set!", 2, 0, 1,
       if (SCM_CHARP (obj))
 	obj = SCM_MAKINUM ((char) SCM_CHAR (obj));
       SCM_ASRTGO (SCM_INUMP (obj), badobj);
-      ((char *)SCM_CHARS (v))[pos] = SCM_INUM (obj);
+      ((char *) SCM_UVECTOR_BASE (v))[pos] = SCM_INUM (obj);
       break;
     case scm_tc7_uvect:
       SCM_VELTS(v)[pos] = SCM_PACK (scm_num2ulong(obj, (char *)SCM_ARG2, FUNC_NAME));
@@ -1475,6 +1475,7 @@ SCM_DEFINE (scm_uniform_array_read_x, "uniform-array-read!", 1, 3, 0,
   long cstart = 0;
   long cend;
   long offset = 0;
+  char *base;
 
   SCM_ASRTGO (SCM_NIMP (v), badarg1);
   if (SCM_UNBNDP (port_or_fd))
@@ -1527,7 +1528,12 @@ loop:
       sz = 2 * sizeof (double);
       break;
     }
-  
+
+  if (SCM_STRINGP (v))
+    base = SCM_STRING_CHARS (v);
+  else
+    base = (char *) SCM_UVECTOR_BASE (v);
+
   cend = vlen;
   if (!SCM_UNBNDP (start))
     {
@@ -1552,7 +1558,7 @@ loop:
     {
       scm_port *pt = SCM_PTAB_ENTRY (port_or_fd);
       int remaining = (cend - offset) * sz;
-      char *dest = SCM_CHARS (v) + (cstart + offset) * sz;
+      char *dest = base + (cstart + offset) * sz;
 
       if (pt->rw_active == SCM_PORT_WRITE)
 	scm_flush (port_or_fd);
@@ -1590,7 +1596,7 @@ loop:
   else /* file descriptor.  */
     {
       SCM_SYSCALL (ans = read (SCM_INUM (port_or_fd),
-			       SCM_CHARS (v) + (cstart + offset) * sz,
+			       base + (cstart + offset) * sz,
 			       (scm_sizet) (sz * (cend - offset))));
       if (ans == -1)
 	SCM_SYSERROR;
@@ -1623,6 +1629,7 @@ SCM_DEFINE (scm_uniform_array_write, "uniform-array-write", 1, 3, 0,
   long offset = 0;
   long cstart = 0;
   long cend;
+  char *base;
 
   port_or_fd = SCM_COERCE_OUTPORT (port_or_fd);
 
@@ -1678,6 +1685,11 @@ loop:
       break;
     }
 
+  if (SCM_STRINGP (v))
+    base = SCM_STRING_CHARS (v);
+  else
+    base = (char *) SCM_UVECTOR_BASE (v);
+
   cend = vlen;
   if (!SCM_UNBNDP (start))
     {
@@ -1700,7 +1712,7 @@ loop:
 
   if (SCM_NIMP (port_or_fd))
     {
-      char *source = SCM_CHARS (v) + (cstart + offset) * sz;
+      char *source = base + (cstart + offset) * sz;
 
       ans = cend - offset;
       scm_lfwrite (source, ans * sz, port_or_fd);
@@ -1708,7 +1720,7 @@ loop:
   else /* file descriptor.  */
     {
       SCM_SYSCALL (ans = write (SCM_INUM (port_or_fd),
-				SCM_CHARS (v) + (cstart + offset) * sz,
+				base + (cstart + offset) * sz,
 				(scm_sizet) (sz * (cend - offset))));
       if (ans == -1)
 	SCM_SYSERROR;
@@ -2298,7 +2310,7 @@ tail:
 	  }
       else
 	for (j += inc; n-- > 0; j += inc)
-	  scm_putc (SCM_CHARS (ra)[j], port);
+	  scm_putc (SCM_STRING_CHARS (ra)[j], port);
       break;
     case scm_tc7_byvect:
       if (n-- > 0)
@@ -2554,7 +2566,7 @@ markra (SCM ptr)
 static scm_sizet
 freera (SCM ptr)
 {
-  scm_must_free (SCM_CHARS (ptr));
+  scm_must_free (SCM_ARRAY_MEM (ptr));
   return sizeof (scm_array) + SCM_ARRAY_NDIM (ptr) * sizeof (scm_array_dim);
 }
 

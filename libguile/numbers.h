@@ -134,8 +134,9 @@
 #define SCM_COMPLEXP(x) (SCM_NIMP (x) && SCM_TYP16 (x) == scm_tc16_complex)
 
 #define SCM_REAL_VALUE(x) (((scm_double_t *) SCM2PTR (x))->real)
-#define SCM_COMPLEX_REAL(x) (((scm_complex_t *) SCM_CELL_WORD_1 (x))->real)
-#define SCM_COMPLEX_IMAG(x) (((scm_complex_t *) SCM_CELL_WORD_1 (x))->imag)
+#define SCM_COMPLEX_MEM(x) ((scm_complex_t *) SCM_CELL_WORD_1 (x))
+#define SCM_COMPLEX_REAL(x) (SCM_COMPLEX_MEM (x)->real)
+#define SCM_COMPLEX_IMAG(x) (SCM_COMPLEX_MEM (x)->imag)
 
 /* Define SCM_BIGDIG to an integer type whose size is smaller than long if
  * you want bignums.  SCM_BIGRAD is one greater than the biggest SCM_BIGDIG. 

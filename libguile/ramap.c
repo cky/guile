@@ -53,6 +53,7 @@
 
 #include <stdio.h>
 #include "libguile/_scm.h"
+#include "libguile/strings.h"
 #include "libguile/unif.h"
 #include "libguile/smob.h"
 #include "libguile/chars.h"
@@ -489,7 +490,7 @@ scm_array_fill_int (SCM ra, SCM fill, SCM ignore)
     case scm_tc7_string:
       SCM_ASRTGO (SCM_CHARP (fill), badarg2);
       for (i = base; n--; i += inc)
-	SCM_CHARS (ra)[i] = SCM_CHAR (fill);
+	SCM_STRING_CHARS (ra)[i] = SCM_CHAR (fill);
       break;
     case scm_tc7_byvect:
       if (SCM_CHARP (fill))
@@ -498,7 +499,7 @@ scm_array_fill_int (SCM ra, SCM fill, SCM ignore)
 		  && -128 <= SCM_INUM (fill) && SCM_INUM (fill) < 128,
 		  badarg2);
       for (i = base; n--; i += inc)
-	SCM_CHARS (ra)[i] = SCM_INUM (fill);
+	((char *) SCM_UVECTOR_BASE (ra))[i] = SCM_INUM (fill);
       break;
     case scm_tc7_bvect:
       { /* scope */
@@ -645,8 +646,7 @@ racp (SCM src, SCM dst)
   if (SCM_EQ_P (src, dst))
     return 1 ;
   
-  switch SCM_TYP7
-    (dst)
+  switch SCM_TYP7 (dst)
     {
     default:
     gencase:
@@ -657,14 +657,19 @@ racp (SCM src, SCM dst)
 	scm_array_set_x (dst, scm_cvref (src, i_s, SCM_UNDEFINED), SCM_MAKINUM (i_d));
       break;
     case scm_tc7_string:
-    case scm_tc7_byvect:
-      if (scm_tc7_string != SCM_TYP7 (dst))
+      if (SCM_TYP7 (src) != scm_tc7_string)
 	goto gencase;
       for (; n-- > 0; i_s += inc_s, i_d += inc_d)
-	SCM_CHARS (dst)[i_d] = SCM_CHARS (src)[i_s];
+	SCM_STRING_CHARS (dst)[i_d] = SCM_STRING_CHARS (src)[i_s];
+      break;
+    case scm_tc7_byvect:
+      if (SCM_TYP7 (src) != scm_tc7_byvect)
+	goto gencase;
+      for (; n-- > 0; i_s += inc_s, i_d += inc_d)
+	((char *) SCM_UVECTOR_BASE (dst))[i_d] = ((char *) SCM_UVECTOR_BASE (src))[i_s];
       break;
     case scm_tc7_bvect:
-      if (scm_tc7_bvect != SCM_TYP7 (dst))
+      if (SCM_TYP7 (src) != scm_tc7_bvect)
 	goto gencase;
       if (1 == inc_d && 1 == inc_s && i_s % SCM_LONG_BIT == i_d % SCM_LONG_BIT && n >= SCM_LONG_BIT)
 	{
@@ -1797,10 +1802,18 @@ raeql_1 (SCM ra0,SCM as_equal,SCM ra1)
 	}
       return 1;
     case scm_tc7_string:
+      {
+	char *v0 = SCM_STRING_CHARS (ra0) + i0;
+	char *v1 = SCM_STRING_CHARS (ra1) + i1;
+	for (; n--; v0 += inc0, v1 += inc1)
+	  if (*v0 != *v1)
+	    return 0;
+	return 1;
+      }
     case scm_tc7_byvect:
       {
-	char *v0 = SCM_CHARS (ra0) + i0;
-	char *v1 = SCM_CHARS (ra1) + i1;
+	char *v0 = ((char *) SCM_UVECTOR_BASE (ra0)) + i0;
+	char *v1 = ((char *) SCM_UVECTOR_BASE (ra1)) + i1;
 	for (; n--; v0 += inc0, v1 += inc1)
 	  if (*v0 != *v1)
 	    return 0;

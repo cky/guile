@@ -64,7 +64,6 @@ extern int scm_symhash_dim;
 #define SCM_LENGTH(x)		(((unsigned long) SCM_CELL_WORD_0 (x)) >> 8)
 #define SCM_SETLENGTH(x, v, t)	(SCM_SET_CELL_WORD_0 ((x), ((v) << 8) + (t)))
 
-#define SCM_CHARS(x)		((char *) (SCM_CELL_WORD_1 (x)))
 #define SCM_UCHARS(x)		((unsigned char *) (SCM_CELL_WORD_1 (x)))
 #define SCM_SETCHARS(x, v)	(SCM_SET_CELL_WORD_1 ((x), (scm_bits_t) (v)))
 
@@ -137,6 +136,7 @@ extern void scm_init_symbols (void);
 
 #if (SCM_DEBUG_DEPRECATED == 0)
 
+#define SCM_CHARS(x) ((char *) (SCM_CELL_WORD_1 (x)))
 #define SCM_SLOPPY_SUBSTRP(x) (SCM_SUBSTRP (x))
 #define scm_strhash(str, len, n) (scm_string_hash ((str), (len)) % (n))
 

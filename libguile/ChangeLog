@@ -1,5 +1,35 @@
 2000-09-26  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* gc.c (scm_gc_sweep):  Replace SCM_CHARS by SCM_COMPLEX_MEM.
+
+	* numbers.h (SCM_COMPLEX_MEM):  Added as a replacement for
+	SCM_CHARS.
+
+	(SCM_COMPLEX_REAL, SCM_COMPLEX_IMAG):  Use it.
+
+	* ramap.c (scm_array_fill_int, racp, raeql_1):  Replace SCM_CHARS
+	with SCM_STRING_CHARS or SCM_UVECTOR_BASE.
+
+	(racp):  Fix: Make sure that src and dst types match.
+
+	* read.c (scm_grow_tok_buf, scm_lreadr, scm_read_token):  Replace
+	SCM_CHARS with SCM_STRING_CHARS.
+
+	* symbols.h (SCM_CHARS):  Deprecated.
+
+	* unif.c (scm_enclose_array, scm_uniform_vector_ref, scm_cvref,
+	scm_array_set_x, scm_uniform_array_read_x, rapr1, freera,
+	scm_uniform_array_write):  Replace SCM_CHARS with
+	SCM_STRING_CHARS, SCM_UVECTOR_BASE or SCM_ARRAY_MEM.
+
+	* unif.h (SCM_ARRAY_MEM):  Added as a replacement for SCM_CHARS.
+
+	(SCM_ARRAY_V, SCM_ARRAY_BASE, SCM_ARRAY_DIMS):  Use it.
+
+	* validate.h (SCM_COERCE_ROSTRING):  Removed.
+
+2000-09-26  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* gc.c (scm_igc):  :  Eliminate references to SCM_LENGTH and
 	SCM_CHARS from comment.
 
