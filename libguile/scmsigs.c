@@ -415,6 +415,89 @@ SCM_DEFINE (scm_alarm, "alarm", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+#ifdef HAVE_SETITIMER
+SCM_DEFINE (scm_setitimer, "setitimer", 5, 0, 0,
+           (SCM which_timer,
+            SCM interval_seconds, SCM interval_microseconds,
+            SCM value_seconds, SCM value_microseconds),
+            "Set the timer specified by @var{which_timer} according to the given\n"
+            "@var{interval_seconds}, @var{interval_microseconds},\n"
+            "@var{value_seconds}, and @var{value_microseconds} values.\n"
+            "\n"
+            "Return information about the timer's previous setting."
+            "\n"
+            "Errors are handled as described in the guile info pages under ``POSIX\n"
+            "Interface Conventions''.\n"
+            "\n"
+            "The timers available are: @code{ITIMER_REAL}, @code{ITIMER_VIRTUAL}, \n"
+            "and @code{ITIMER_PROF}.\n"
+            "\n"
+            "The return value will be a list of two cons pairs representing the\n"
+            "current state of the given timer.  The first pair is the seconds and\n"
+            "microseconds of the timer @code{it_interval}, and the second pair is\n"
+            "the seconds and microseconds of the timer @code{it_value}.\n")
+#define FUNC_NAME s_scm_setitimer
+{
+  int rv;
+  int c_which_timer;
+  struct itimerval new_timer;
+  struct itimerval old_timer;
+
+  c_which_timer = SCM_NUM2INT(1, which_timer);
+  new_timer.it_interval.tv_sec = SCM_NUM2LONG(2, interval_seconds);
+  new_timer.it_interval.tv_usec = SCM_NUM2LONG(3, interval_microseconds);
+  new_timer.it_value.tv_sec = SCM_NUM2LONG(4, value_seconds);
+  new_timer.it_value.tv_usec = SCM_NUM2LONG(5, value_microseconds);
+
+  SCM_SYSCALL(rv = setitimer(c_which_timer, &new_timer, &old_timer));
+  
+  if(rv != 0)
+    SCM_SYSERROR;
+
+  return scm_list_2(scm_cons(scm_long2num(old_timer.it_interval.tv_sec),
+                             scm_long2num(old_timer.it_interval.tv_usec)),
+                    scm_cons(scm_long2num(old_timer.it_value.tv_sec),
+                             scm_long2num(old_timer.it_value.tv_usec)));
+}
+#undef FUNC_NAME
+#endif /* HAVE_SETITIMER */
+
+#ifdef HAVE_GETITIMER
+SCM_DEFINE (scm_getitimer, "getitimer", 1, 0, 0,
+  (SCM which_timer),
+            "Return information about the timer specified by @var{which_timer}"
+            "\n"
+            "Errors are handled as described in the guile info pages under ``POSIX\n"
+            "Interface Conventions''.\n"
+            "\n"
+            "The timers available are: @code{ITIMER_REAL}, @code{ITIMER_VIRTUAL}, \n"
+            "and @code{ITIMER_PROF}.\n"
+            "\n"
+            "The return value will be a list of two cons pairs representing the\n"
+            "current state of the given timer.  The first pair is the seconds and\n"
+            "microseconds of the timer @code{it_interval}, and the second pair is\n"
+            "the seconds and microseconds of the timer @code{it_value}.\n")
+#define FUNC_NAME s_scm_getitimer
+{
+  int rv;
+  int c_which_timer;
+  struct itimerval old_timer;
+
+  c_which_timer = SCM_NUM2INT(1, which_timer);
+
+  SCM_SYSCALL(rv = getitimer(c_which_timer, &old_timer));
+  
+  if(rv != 0)
+    SCM_SYSERROR;
+  
+  return scm_list_2(scm_cons(scm_long2num(old_timer.it_interval.tv_sec),
+                             scm_long2num(old_timer.it_interval.tv_usec)),
+                    scm_cons(scm_long2num(old_timer.it_value.tv_sec),
+                             scm_long2num(old_timer.it_value.tv_usec)));
+}
+#undef FUNC_NAME
+#endif /* HAVE_GETITIMER */
+
 #ifdef HAVE_PAUSE
 SCM_DEFINE (scm_pause, "pause", 0, 0, 0,
            (),
@@ -551,6 +634,13 @@ scm_init_scmsigs ()
 #ifdef SA_RESTART
   scm_c_define ("SA_RESTART", scm_long2num (SA_RESTART));
 #endif
+
+#if defined(HAVE_SETITIMER) || defined(HAVE_GETITIMER)
+  /* Stuff needed by setitimer and getitimer. */
+  scm_c_define ("ITIMER_REAL", SCM_MAKINUM (ITIMER_REAL));
+  scm_c_define ("ITIMER_VIRTUAL", SCM_MAKINUM (ITIMER_VIRTUAL));
+  scm_c_define ("ITIMER_PROF", SCM_MAKINUM (ITIMER_PROF));
+#endif /* defined(HAVE_SETITIMER) || defined(HAVE_GETITIMER) */
 
 #ifndef SCM_MAGIC_SNARFER
 #include "libguile/scmsigs.x"
