@@ -2692,6 +2692,18 @@ the case-sensitivity of symbols:
     (string->symbol "K. Harper, M.D."))) @result{} #t
 @end lisp
 
+From C, there are lower level functions that construct a Scheme symbol
+from a null terminated C string or from a sequence of bytes whose length
+is specified explicitly.
+
+@deffn {C Function} scm_str2symbol (const char * name)
+@deffnx {C Function} scm_mem2symbol (const char * name, size_t len)
+Construct and return a Scheme symbol whose name is specified by
+@var{name}.  For @code{scm_str2symbol} @var{name} must be null
+terminated; For @code{scm_mem2symbol} the length of @var{name} is
+specified explicitly by @var{len}.
+@end deffn
+
 Finally, some applications, especially those that generate new Scheme
 code dynamically, need to generate symbols for use in the generated
 code.  The @code{gensym} primitive meets this need:

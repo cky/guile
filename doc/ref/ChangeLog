@@ -1,5 +1,8 @@
 2003-04-26  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* scheme-data.texi (Symbol Primitives): Document scm_str2symbol
+	and scm_mem2symbol.
+
 	* data-rep.texi (Describing a New Type): Clarify that
 	scm_make_smob_type_mfpe is deprecated.  (Thanks to
 	tomas@fabula.de.)
