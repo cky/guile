@@ -490,6 +490,10 @@ The ordering of the list of procedures returned by @code{hook->list}
 matches the order in which those procedures would be called if the hook
 was run using @code{run-hook}.
 
+Note that the C functions in the following entries are for handling
+@dfn{Scheme-level} hooks in C.  There are also @dfn{C-level} hooks which
+have their own interface (@pxref{C Hooks}).
+
 @deffn {Scheme Procedure} make-hook [n_args]
 @deffnx {C Function} scm_make_hook (n_args)
 Create a hook for storing procedure of arity @var{n_args}.
@@ -550,6 +554,27 @@ The same as @code{scm_run_hook} but without any type checking to confirm
 that @var{hook} is actually a hook object and that @var{args} is a
 well-formed list matching the arity of the hook.
 @end deftypefn
+
+For C code, @code{SCM_HOOKP} is a faster alternative to
+@code{scm_hook_p}:
+
+@deftypefn {C Macro} int SCM_HOOKP (x)
+Return 1 if @var{x} is a Scheme-level hook, 0 otherwise.
+@end deftypefn
+
+
+@subsection Handling Scheme-level hooks from C code
+
+Here is an example of how to handle Scheme-level hooks from C code using
+the above functions.
+
+@example
+if (SCM_NFALSEP (scm_hook_p (obj)))
+  /* handle Scheme-level hook using C functions */
+  scm_reset_hook_x (obj);
+else
+  /* do something else (obj is not a hook) */
+@end example
 
 
 @node C Hooks

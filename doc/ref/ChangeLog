@@ -1,3 +1,8 @@
+2002-09-19  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scheme-utility.texi (Hook Reference): Improvements to hook docs.
+	Thanks to Thien-Thi Nguyen for the patches.
+
 2002-09-16  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* scheme-data.texi (Symbol Props): It's "set-symbol-property!",
