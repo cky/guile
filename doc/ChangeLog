@@ -1,3 +1,15 @@
+2002-05-09  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* groupings.alist: Add copyright and commentary.
+
+	(favorite): Delete this example composite.
+	(embedded-libltdl, gdb, coop, gh, g-fdes, r-fdes, scm, k, POSIX,
+	guile-C-API): New groups.
+
+2002-05-08  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* groupings.alist: New file.
+
 2002-04-23  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* guile-api.alist: Update.
