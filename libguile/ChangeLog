@@ -1,3 +1,9 @@
+Wed Dec 18 11:43:22 1996  Jim Blandy  <jimb@totoro.cyclic.com>
+
+	* eval.c, debug.h: Revert changes of Dec 16 and Nov 21.  They
+	cause an infinite loop (???).  So much for the algebraic
+	equivalency of variable-sized arrays and alloca...
+
 Tue Dec 17 20:29:03 1996  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* backtrace.c (scm_display_error): Bugfix: scm_procedure_p returns
