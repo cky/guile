@@ -1,3 +1,20 @@
+2000-06-21  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* eval.c, eval.h (scm_top_level_lookup_closure_var): Added.
+	#include "libguile/fluids.h".
+
+	* eval.h (SCM_TOP_LEVEL_LOOKUP_CLOSURE): New macro which replaces
+	SCM_CDR (scm_top_level_lookup_closure_var) everywhere.
+
+	* root.h (scm_top_level_lookup_closure_var,
+	scm_system_transformer): Removed.  (It's no sense in having the
+	*variable* be a "fluid".)
+
+	* root.c (mark_root): Removed marking of
+	s->top_level_lookup_closure_var and s->system_transformer.
+
+	* modules.c (scm_selected_module): the_module is now a fluid.
+
 2000-06-20  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* gc.h, tags.h: Be kind to compilers which must see hash signs in
