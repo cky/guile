@@ -1,3 +1,7 @@
+1999-07-08  Mikael Djurfeldt  <mdj@mdj-pc.nada.kth.se>
+
+	* symbols.c (scm_gensym): Bugfix.  (Thanks to Johannes Hjorth.)
+
 Fri Jun 25 22:14:32 1999  Greg Badros  <gjb@cs.washington.edu>
 
 	* smob.c: added scm_make_smob_type_mfpe (), scm_set_smob_mfpe ();
