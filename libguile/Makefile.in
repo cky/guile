@@ -1,4 +1,4 @@
-# Makefile.in generated automatically by automake 1.1j from Makefile.am
+# Makefile.in generated automatically by automake 1.1k from Makefile.am
 
 # Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
@@ -147,16 +147,16 @@ default: all
 
 .SUFFIXES:
 .SUFFIXES: .c .o .x
+$(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in 
+	cd $(top_srcdir) && automake --foreign Makefile
+
+Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status $(BUILT_SOURCES)
+	cd $(top_builddir) \
+	  && CONFIG_FILES=$@ CONFIG_HEADERS= $(SHELL) ./config.status
+
 $(srcdir)/aclocal.m4: configure.in acinclude.m4
 	cd $(srcdir) && aclocal
 
-$(srcdir)/Makefile.in: Makefile.am configure.in
-	cd $(srcdir) && automake --strictness=foreign Makefile
-
-# For an explanation of the following Makefile rules, see node
-# `Automatic Remaking' in GNU Autoconf documentation.
-Makefile: $(srcdir)/Makefile.in config.status $(BUILT_SOURCES)
-	CONFIG_FILES=$@ CONFIG_HEADERS= $(SHELL) ./config.status
 config.status: configure
 	$(SHELL) ./config.status --recheck
 $(srcdir)/configure: configure.in $(ACLOCAL) $(CONFIGURE_DEPENDENCIES)
@@ -331,7 +331,7 @@ distdir: $(DISTFILES)
 	-chmod 755 $(distdir)
 	here=`pwd`; distdir=`cd $(distdir) && pwd` \
 	  && cd $(srcdir) \
-	  && automake --include-deps --build-dir=$$here --srcdir-name=$(srcdir) --output-dir=$$distdir --strictness=foreign
+	  && automake --include-deps --build-dir=$$here --srcdir-name=$(srcdir) --output-dir=$$distdir --foreign
 	$(mkinstalldirs) $(distdir)/PLUGIN
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
@@ -355,15 +355,11 @@ distclean-depend:
 maintainer-clean-depend:
 	rm -rf .deps
 
-.deps/%.P: $(srcdir)/%.c
+.deps/%.P: $(srcdir)/%@EXT@
 	@echo "Computing dependencies for $<..."
-	@$(MKDEP) $< > $@-tmp
-	@if test -n "$o"; then			\
-	  sed 's/\.o:/$$o:/' $@-tmp > $@;	\
-	  rm $@-tmp;				\
-	else					\
-	  mv $@-tmp $@;				\
-	fi
+	@o='o';				\
+ONLYC	test -n "$o" && o='$$o';	\
+	$(@MKDEP@) $< | sed "s/^\(.*\)\.o:/\1.$$o \1.l$$o:/" > $@
 info:
 dvi:
 check: all
@@ -408,17 +404,16 @@ mostlyclean:  mostlyclean-hdr mostlyclean-libLIBRARIES \
 		mostlyclean-generic
 
 clean:  clean-hdr clean-libLIBRARIES clean-compile clean-tags \
-		clean-depend clean-generic mostlyclean 
+		clean-depend clean-generic mostlyclean
 
 distclean:  distclean-hdr distclean-libLIBRARIES distclean-compile \
-		distclean-tags distclean-depend distclean-generic \
-		clean 
+		distclean-tags distclean-depend distclean-generic clean
 	rm -f config.status
 
 maintainer-clean:  maintainer-clean-hdr maintainer-clean-libLIBRARIES \
 		maintainer-clean-compile maintainer-clean-tags \
 		maintainer-clean-depend maintainer-clean-generic \
-		distclean 
+		distclean
 	@echo "This command is intended for maintainers to use;"
 	@echo "it deletes files that may require special tools to rebuild."
 	rm -f config.status

@@ -1,4 +1,4 @@
-# Makefile.in generated automatically by automake 1.1i from Makefile.am
+# Makefile.in generated automatically by automake 1.1k from Makefile.am
 
 # Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
@@ -64,16 +64,16 @@ TAR = tar
 default: all
 
 .SUFFIXES:
+$(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in 
+	cd $(top_srcdir) && automake --foreign Makefile
+
+Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status $(BUILT_SOURCES)
+	cd $(top_builddir) \
+	  && CONFIG_FILES=$@ CONFIG_HEADERS= $(SHELL) ./config.status
+
 $(srcdir)/aclocal.m4: configure.in
 	cd $(srcdir) && aclocal
 
-$(srcdir)/Makefile.in: Makefile.am configure.in
-	cd $(srcdir) && automake --strictness=foreign Makefile
-
-# For an explanation of the following Makefile rules, see node
-# `Automatic Remaking' in GNU Autoconf documentation.
-Makefile: $(srcdir)/Makefile.in config.status $(BUILT_SOURCES)
-	CONFIG_FILES=$@ CONFIG_HEADERS= $(SHELL) ./config.status
 config.status: configure
 	$(SHELL) ./config.status --recheck
 $(srcdir)/configure: configure.in $(ACLOCAL) $(CONFIGURE_DEPENDENCIES)
@@ -134,7 +134,7 @@ distdir: $(DISTFILES)
 	-chmod 755 $(distdir)
 	here=`pwd`; distdir=`cd $(distdir) && pwd` \
 	  && cd $(srcdir) \
-	  && automake --include-deps --build-dir=$$here --srcdir-name=$(srcdir) --output-dir=$$distdir --strictness=foreign
+	  && automake --include-deps --build-dir=$$here --srcdir-name=$(srcdir) --output-dir=$$distdir --foreign
 	$(mkinstalldirs) $(distdir)/PLUGIN
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
@@ -182,12 +182,12 @@ maintainer-clean-generic:
 	test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
 mostlyclean:  mostlyclean-generic
 
-clean:  clean-generic mostlyclean 
+clean:  clean-generic mostlyclean
 
-distclean:  distclean-generic clean 
+distclean:  distclean-generic clean
 	rm -f config.status
 
-maintainer-clean:  maintainer-clean-generic distclean 
+maintainer-clean:  maintainer-clean-generic distclean
 	@echo "This command is intended for maintainers to use;"
 	@echo "it deletes files that may require special tools to rebuild."
 	rm -f config.status

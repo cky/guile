@@ -41,7 +41,7 @@ Fri Sep 13 14:39:30 1996  Mark Galassi  <rosalia@sarastro.lanl.gov>
 	directories, to arrange for lgh to the last thing
 	configured/built.
 
-Wed Sep 11 21:11:33 1996  Mark Galassi  <rosalia@papageno.lanl.gov>
+Wed Sep 11 21:11:33 1996  Mark Galassi  <rosalia@nis.lanl.gov>
 
 	* lgh/: added the directory in which I implement the high level
 	libguile library (lgh_) for this release of Guile.  See the
