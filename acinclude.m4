@@ -32,7 +32,7 @@ AC_DEFUN([GUILE_HEADER_LIBC_WITH_UNISTD],
   [
     AC_CHECK_HEADERS(libc.h unistd.h)
     AC_CACHE_CHECK(
-      "whether libc.h and unistd.h can be included together",
+      [whether libc.h and unistd.h can be included together],
       guile_cv_header_libc_with_unistd,
       [
         if test "$ac_cv_header_libc_h" = "no"; then
