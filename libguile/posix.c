@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2004 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -1374,7 +1374,13 @@ SCM_DEFINE (scm_setlocale, "setlocale", 1, 1, 0,
 
   rv = setlocale (scm_i_to_lc_category (category, 1), clocale);
   if (rv == NULL)
-    SCM_SYSERROR;
+    {
+      /* POSIX and C99 don't say anything about setlocale setting errno, so
+         force a sensible value here.  glibc leaves ENOENT, which would be
+         fine, but it's not a documented feature.  */
+      errno = EINVAL;
+      SCM_SYSERROR;
+    }
 
   scm_frame_end ();
   return scm_from_locale_string (rv);
