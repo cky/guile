@@ -41,6 +41,10 @@
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
 
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
 #include <string.h>
 
 #include "libguile/_scm.h"
