@@ -1,3 +1,9 @@
+Wed Nov 27 14:14:56 1996  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* eval.c (scm_definedp): Incompatibly changed to be a builtin
+ 	Scheme function, instead of syntax. Single argument is now a
+ 	symbol.
+
 Thu Nov 21 11:17:42 1996  Jim Blandy  <jimb@floss.cyclic.com>
 
 	It's an "eval closure", not an "eval thunk."  A thunk is a
