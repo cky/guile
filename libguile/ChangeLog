@@ -1,3 +1,18 @@
+2001-03-12  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* goops.h (SCM_VALIDATE_PUREGENERIC):  New macro.
+
+	* goops.c (scm_m_atslot_ref, scm_m_atslot_set_x,
+	scm_m_atdispatch):  Provide definitions for FUNC_NAME.  Don't use
+	SCM_ASSYNT to check for correct argument types.  Either use some
+	SCM_VALIDATE_* macro or an explicit test.
+
+	(scm_make_foreign_object):  Don't use SCM_ASSERT to check for
+	misc-errors.
+
+	* macros.h (SCM_ASSYNT):  On assertion failure, issue a misc-error
+	instead of calling scm_wta.
+
 2001-03-12  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* load.c (scm_primitive_load, scm_primitive_load_path),

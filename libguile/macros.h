@@ -48,7 +48,8 @@
 
 
 
-#define SCM_ASSYNT(_cond, _arg, _pos, _subr) if(!(_cond))scm_wta(_arg, (char *)_pos, _subr);
+#define SCM_ASSYNT(_cond, _arg, _msg, _subr) \
+  if (!(_cond)) scm_misc_error (_subr, _msg, SCM_EOL);
 
 extern scm_bits_t scm_tc16_macro;
 

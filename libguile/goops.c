@@ -1866,23 +1866,29 @@ SCM_SYNTAX (s_atslot_ref, "@slot-ref", scm_makmmacro, scm_m_atslot_ref);
 
 SCM
 scm_m_atslot_ref (SCM xorig, SCM env)
+#define FUNC_NAME s_atslot_ref
 {
   SCM x = SCM_CDR (xorig);
-  SCM_ASSYNT (scm_ilength (x) == 2, xorig, scm_s_expression, s_atslot_ref);
-  SCM_ASSYNT (SCM_INUMP (SCM_CADR (x)), SCM_CADR (x), SCM_ARG2, s_atslot_ref);
+  SCM_ASSYNT (scm_ilength (x) == 2, xorig, scm_s_expression, FUNC_NAME);
+  SCM_VALIDATE_INUM (SCM_ARG2, SCM_CADR (x));
   return scm_cons (SCM_IM_SLOT_REF, x);
 }
+#undef FUNC_NAME
+
 
 SCM_SYNTAX (s_atslot_set_x, "@slot-set!", scm_makmmacro, scm_m_atslot_set_x);
 
 SCM
 scm_m_atslot_set_x (SCM xorig, SCM env)
+#define FUNC_NAME s_atslot_set_x
 {
   SCM x = SCM_CDR (xorig);
-  SCM_ASSYNT (scm_ilength (x) == 3, xorig, scm_s_expression, s_atslot_set_x);
-  SCM_ASSYNT (SCM_INUMP (SCM_CADR (x)), SCM_CADR (x), SCM_ARG2, s_atslot_set_x);
+  SCM_ASSYNT (scm_ilength (x) == 3, xorig, scm_s_expression, FUNC_NAME);
+  SCM_VALIDATE_INUM (SCM_ARG2, SCM_CADR (x));
   return scm_cons (SCM_IM_SLOT_SET_X, x);
 }
+#undef FUNC_NAME
+
 
 SCM_SYNTAX (s_atdispatch, "@dispatch", scm_makmmacro, scm_m_atdispatch);
 
@@ -1893,20 +1899,20 @@ scm_m_atdispatch (SCM xorig, SCM env)
 #define FUNC_NAME s_atdispatch
 {
   SCM args, n, v, gf, x = SCM_CDR (xorig);
-  SCM_ASSYNT (scm_ilength (x) == 4, xorig, scm_s_expression, s_atdispatch);
+  SCM_ASSYNT (scm_ilength (x) == 4, xorig, scm_s_expression, FUNC_NAME);
   args = SCM_CAR (x);
-  SCM_ASSYNT (SCM_CONSP (args) || SCM_SYMBOLP (args),
-	      args, SCM_ARG1, s_atdispatch);
+  if (!SCM_CONSP (args) && !SCM_SYMBOLP (args))
+    SCM_WRONG_TYPE_ARG (SCM_ARG1, args);
   x = SCM_CDR (x);
   n = SCM_XEVALCAR (x, env);
-  SCM_ASSYNT (SCM_INUMP (n), n, SCM_ARG2, s_atdispatch);
+  SCM_VALIDATE_INUM (SCM_ARG2, n);
   SCM_ASSERT_RANGE (0, n, SCM_INUM (n) >= 1);
   x = SCM_CDR (x);
   v = SCM_XEVALCAR (x, env);
-  SCM_ASSYNT (SCM_VECTORP (v), v, SCM_ARG3, s_atdispatch);
+  SCM_VALIDATE_VECTOR (SCM_ARG3, v);
   x = SCM_CDR (x);
   gf = SCM_XEVALCAR (x, env);
-  SCM_ASSYNT (SCM_PUREGENERICP (gf), gf, SCM_ARG4, s_atdispatch);
+  SCM_VALIDATE_PUREGENERIC (SCM_ARG4, gf);
   return SCM_LIST5 (SCM_IM_DISPATCH, args, n, v, gf);
 }
 #undef FUNC_NAME
@@ -2432,15 +2438,19 @@ scm_load_goops ()
     scm_resolve_module (scm_read_0str ("(oop goops)"));
 }
 
+
 SCM
 scm_make_foreign_object (SCM class, SCM initargs)
+#define FUNC_NAME s_scm_make
 {
   void * (*constructor) (SCM)
     = (void * (*) (SCM)) SCM_SLOT (class, scm_si_constructor);
-  SCM_ASSERT (constructor != 0, class, "Can't make instances of this class",
-	      s_scm_make);
+  if (constructor == 0)
+    SCM_MISC_ERROR ("Can't make instances of class ~S", SCM_LIST1 (class));
   return scm_wrap_object (class, constructor (initargs));
 }
+#undef FUNC_NAME
+
 
 static size_t
 scm_free_foreign_object (SCM *class, SCM *data)
