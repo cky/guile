@@ -724,10 +724,10 @@
 	  (and (every (lambda (el) (member el (car r) =)) f)
 	       (lp (car r) (cdr r)))))))
 
-(define (lset= = list1 . rest)
+(define (lset= = . rest)
   (if (null? rest)
     #t
-    (let lp ((f list1) (r rest))
+    (let lp ((f (car rest)) (r (cdr rest)))
       (or (null? r)
 	  (and (every (lambda (el) (member el (car r) =)) f)
 	       (every (lambda (el) (member el f =)) (car r))
