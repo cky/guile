@@ -1,3 +1,54 @@
+2001-11-25  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* vectors.h (SCM_MAKE_VECTOR_TAG): New.
+	* unif.h (SCM_MAKE_BITVECTOR_TAG, SCM_MAKE_UVECTOR_TAG): New. 
+	* symbols.h (SCM_MAKE_SYMBOL_TAG): New.
+	* strings.h (SCM_MAKE_STRING_TAG): New.
+	* procs.h (SCM_MAKE_CCLO_TAG): New.
+	* numbers.h (SCM_MAKE_BIGNUM_TAG): New.
+
+	* goops.h: Replaced SCM_DEBUG_DEPRECATED with
+	!SCM_ENABLE_DEPRECATED.
+
+	* async.c, async.h (scm_system_async_mark_from_signal_handler):
+	New.
+
+	* scmsigs.c (scm_take_signal): Removed all code that assumes that
+	signal handlers are allowed to divert the flow of control.  Call
+	scm_system_async_mark_from_signal_handler instead of
+	scm_system_async_mark.
+
+
+	Deprecated SCM_NEWCELL and SCM_NEWCELL2.  Added scm_alloc_cell and
+	scm_alloc_double_cell in their place.
+	
+	* gc.h (SCM_GC_SET_ALLOCATED, scm_debug_newcell,
+	scm_debug_newcell2, scm_tc16_allocated): Removed from header.
+	(scm_deprecated_newcell, scm_deprecated_newcell2): New.
+	(SCM_NEWCELL, SCM_NEWCELL2): Implement in terms of
+	scm_deprecated_newcell and scm_deprecated_newcell2.
+
+	gc.c (scm_tc16_allocated): Only define when including deprecated
+	features.
+	(scm_debug_newcell, scm_debug_newcell2): Removed.
+	(scm_init_storage): Do not initialize scm_tc16_allocated.
+	(scm_init_gc): Do it here.
+	(allocated_mark): New, from old code.
+	(scm_deprecated_newcell, scm_deprecated_newcell2): New.
+	
+	* inline.c, inline.h: New files.
+	* Makefile.am: Added them in all the right places. 
+
+	* _scm.h: Include "libguile/inline.h". 
+
+	* alist.c, coop-threads.c, debug.c, environments.c, eval.c,
+	fports.c, gh_data.c, goops.c, guardians.c, lang.c, list.c,
+	num2float.i.c, numbers.c, pairs.c, ports.c, print.c, procs.c,
+	smob.c, smob.h, strings.c, strports.c, struct.c, symbols.c,
+	unif.c, variable.c, vectors.c, vports.c, weaks.c: Replaced
+	SCM_NEWCELL and SCM_NEWCELL2 with scm_alloc_cell and
+	scm_alloc_double_cell, respectively.
+
 2001-11-23  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* modules.c (scm_c_use_module): Adapt to changes to
