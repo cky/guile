@@ -130,7 +130,7 @@ modinclude_HEADERS = __scm.h alist.h arbiters.h async.h \
     gdb_interface.h gdbint.h genio.h gsubr.h hash.h hashtab.h init.h \
     ioext.h kw.h list.h load.h mallocs.h markers.h mbstrings.h net_db.h \
     numbers.h objprop.h options.h pairs.h ports.h posix.h regex-posix.h print.h \
-    procprop.h procs.h ramap.h read.h root.h scmhob.h scmsigs.h script.h \
+    procprop.h procs.h ramap.h read.h root.h scmsigs.h script.h \
     simpos.h smob.h socket.h srcprop.h stackchk.h stacks.h \
     stime.h strings.h strop.h strorder.h strports.h struct.h symbols.h \
     tag.h tags.h throw.h unif.h variable.h vectors.h version.h vports.h \

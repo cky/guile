@@ -1,3 +1,7 @@
+Tue Sep 16 02:12:02 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* scmhob.h: Removed.
+
 Mon Sep 15 20:42:03 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* list.h (SCM_LISTn): New macros.  Make list creation in C code
