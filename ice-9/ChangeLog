@@ -1,3 +1,7 @@
+2001-04-27  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* Makefile.am (ice9_sources): Remove srfi-8.scm.
+
 2001-04-26  Rob Browning  <rlb@cs.utexas.edu>
 
 	* srfi-8.scm: removed in favor of srfi/srfi-8.scm - (wasn't ever
