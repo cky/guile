@@ -246,6 +246,25 @@
 (define >?  >)
 (define >=? >=)
 
+;;; {system}
+;;;
+
+;; If the program run is killed by a signal, the shell normally gives an
+;; exit code of 128+signum.  If the shell itself is killed by a signal then
+;; we do the same 128+signum here.
+;;
+;; "stop-sig" shouldn't arise here, since system shouldn't be calling
+;; waitpid with WUNTRACED, but allow for it anyway, just in case.
+;;
+(if (defined? 'system)
+    (define-public system
+      (let ((guile-core-system system))
+	(lambda (str)
+	  (let ((st (guile-core-system str)))
+	    (or (status:exit-val st)
+		(+ 128 (or (status:term-sig st)
+			   (status:stop-sig st)))))))))
+
 ;;; {Time}
 ;;;
 
