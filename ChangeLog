@@ -1,3 +1,10 @@
+1999-01-11  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	* configure.in: Remove quotes around ac_cv_lib_readline_main and
+ 	ac_cv_var_rl_getc_function.  They should both always be set to
+	non-null values; this way, we get error messages.
+	* configure: Regenerated.
+
 1999-01-10  Jim Blandy  <jimb@savonarola.red-bean.com>
 
 	* configure.in: Cite the variable ac_cv_lib_readline_main, not

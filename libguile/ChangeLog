@@ -1,7 +1,14 @@
+1999-01-11  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	* Makefile.in: This changed, for some reason I don't really
+ 	understand, when I ran automake in the top level directory.  This
+ 	may be contamination by Cygnus internal releases.  If you re-run
+ 	automake and this change gets reverted, don't worry about it.
+
 1999-01-10  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
 	* sort.c, sort.h: New files: Implement slib's and scsh's sort
-	interfaces.  Author: Roland Orre.
+ 	interfaces.  Author: Roland Orre.
 
 	* Makefile.am: Added sort.c, sort.h, sort.x.
 
