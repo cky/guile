@@ -909,9 +909,13 @@ SCM_DEFINE (scm_execl, "execl", 1, 0, 1,
 #define FUNC_NAME s_scm_execl
 {
   char **execargv;
+  int save_errno;
   SCM_VALIDATE_STRING (1, filename);
   execargv = allocate_string_pointers (args);
   execv (SCM_STRING_CHARS (filename), execargv);
+  save_errno = errno;
+  free (execargv);
+  errno = save_errno;
   SCM_SYSERROR;
   /* not reached.  */
   return SCM_BOOL_F;
@@ -929,9 +933,13 @@ SCM_DEFINE (scm_execlp, "execlp", 1, 0, 1,
 #define FUNC_NAME s_scm_execlp
 {
   char **execargv;
+  int save_errno;
   SCM_VALIDATE_STRING (1, filename);
   execargv = allocate_string_pointers (args);
   execvp (SCM_STRING_CHARS (filename), execargv);
+  save_errno = errno;
+  free (execargv);
+  errno = save_errno;
   SCM_SYSERROR;
   /* not reached.  */
   return SCM_BOOL_F;
@@ -969,6 +977,9 @@ environ_list_to_c (SCM envlist, int arg, const char *proc)
   return result;
 }
 
+/* OPTIMIZE-ME: scm_execle doesn't need malloced copies of the environment
+   list strings the way environ_list_to_c gives.  */
+
 SCM_DEFINE (scm_execle, "execle", 2, 0, 1, 
             (SCM filename, SCM env, SCM args),
 	    "Similar to @code{execl}, but the environment of the new process is\n"
@@ -980,12 +991,19 @@ SCM_DEFINE (scm_execle, "execle", 2, 0, 1,
 {
   char **execargv;
   char **exec_env;
+  int save_errno, i;
 
   SCM_VALIDATE_STRING (1, filename);
   
   execargv = allocate_string_pointers (args);
   exec_env = environ_list_to_c (env, SCM_ARG2, FUNC_NAME);
   execve (SCM_STRING_CHARS (filename), execargv, exec_env);
+  save_errno = errno;
+  free (execargv);
+  for (i = 0; exec_env[i] != NULL; i++)
+    free (exec_env[i]);
+  free (exec_env);
+  errno = save_errno;
   SCM_SYSERROR;
   /* not reached.  */
   return SCM_BOOL_F;
