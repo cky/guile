@@ -44,6 +44,13 @@
 
 #include "libguile/__scm.h"
 
+extern scm_option scm_readline_opts[];
+
+#define SCM_HISTORY_FILE_P     scm_readline_opts[0].val
+#define SCM_HISTORY_LENGTH     scm_readline_opts[1].val
+#define SCM_N_READLINE_OPTIONS 2
+
+extern SCM scm_readline_options (SCM setting);
 extern SCM scm_readline (SCM txt, SCM inp, SCM outp, SCM read_hook);
 extern SCM scm_add_history (SCM txt);
 extern SCM scm_read_history (SCM file);

@@ -50,6 +50,29 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 
+scm_option scm_readline_opts[] = {
+  { SCM_OPTION_BOOLEAN, "history-file", 1,
+    "Use history file." },
+  { SCM_OPTION_INTEGER, "history-length", 200,
+    "History length." }
+};
+
+extern void stifle_history (int max);
+
+SCM_PROC (s_readline_options, "readline-options-interface", 0, 1, 0, scm_readline_options);
+
+SCM
+scm_readline_options (setting)
+     SCM setting;
+{
+  SCM ans = scm_options (setting,
+			 scm_readline_opts,
+			 SCM_N_READLINE_OPTIONS,
+			 s_readline_options);
+  stifle_history (SCM_HISTORY_LENGTH);
+  return ans;
+}
+
 #ifndef HAVE_STRDUP
 static char *
 strdup (char *s)
@@ -350,6 +373,9 @@ scm_init_readline ()
 #ifdef USE_THREADS
   scm_mutex_init (&reentry_barrier_mutex);
 #endif
+  scm_init_opts (scm_readline_options,
+		 scm_readline_opts,
+		 SCM_N_READLINE_OPTIONS);
   scm_add_feature ("readline");
 }
 
