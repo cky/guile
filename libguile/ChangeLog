@@ -1,3 +1,8 @@
+2001-02-22  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* numbers.c (s_scm_logior) [SCM_DIGSTOOBIG]: Also use
+	SCM_DIGSPERLONG instead of DIGSPERLONG.
+
 2001-02-21  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* eval.c (scm_ceval, scm_deval): Check for wrong number of args
