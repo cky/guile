@@ -1,3 +1,16 @@
+2003-03-19  Rob Browning  <rlb@defaultvalue.org>
+
+	* readline.c: add HAVE_CONFIG_H test guarding #include config.h.
+
+	* autogen.sh: add a --force when autoreconfing.  We may need to
+	change this if it doesn't work out...
+
+	* Makefile.am (ice-9/readline.scm): new target -- so readline will
+	work from the source tree when guile-readline is added to
+	GUILE_LOAD_PATH.
+	(all-local): add ice-9/readline.scm.
+	(clean-local): remove ice-9/readline at clean time.
+
 2003-02-27  Rob Browning  <rlb@defaultvalue.org>
 
 	* autogen.sh: use autoreconf.

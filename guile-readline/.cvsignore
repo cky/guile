@@ -13,4 +13,10 @@ config.log
 config.status
 config.sub
 configure
+depcomp
+ice-9
+install-sh
 libtool
+ltmain.sh
+missing
+mkinstalldirs
