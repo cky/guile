@@ -97,8 +97,8 @@ TEXINFO_TEX = $(srcdir)/texinfo.tex
 INFO_DEPS = data-rep.info
 DVIS = data-rep.dvi
 TEXINFOS = data-rep.texi
-DIST_COMMON =  README $(data_rep_TEXINFOS) Makefile.am Makefile.in \
-mdate-sh stamp-vti texinfo.tex version.texi
+DIST_COMMON =  README $(data_rep_TEXINFOS) ChangeLog Makefile.am \
+Makefile.in mdate-sh stamp-vti texinfo.tex version.texi
 
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
