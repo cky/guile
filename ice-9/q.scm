@@ -30,12 +30,14 @@
 ;;;;
 ;;; {Q}
 ;;;
-;;; A list is just a bunch of cons pairs that follows some constrains, right?
-;;; Association lists are the same.  Hash tables are just vectors and association
-;;; lists.  You can print them, read them, write them as constants, pun them off as other data
-;;; structures etc. This is good.  This is lisp.   These structures are fast and compact
-;;; and easy to manipulate arbitrarily because of their simple, regular structure and 
-;;; non-disjointedness (associations being lists and so forth).   
+;;; A list is just a bunch of cons pairs that follows some constrains,
+;;; right?  Association lists are the same.  Hash tables are just
+;;; vectors and association lists.  You can print them, read them,
+;;; write them as constants, pun them off as other data structures
+;;; etc. This is good.  This is lisp.  These structures are fast and
+;;; compact and easy to manipulate arbitrarily because of their
+;;; simple, regular structure and non-disjointedness (associations
+;;; being lists and so forth).
 ;;;
 ;;; So I figured, queues should be the same -- just a "subtype" of cons-pair 
 ;;; structures in general.
@@ -43,36 +45,47 @@
 ;;; A queue is a cons pair:
 ;;;		( <the-q> . <last-pair> )
 ;;;
-;;; <the-q> is a list of things in the q.   New elements go at the end of that list.
+;;; <the-q> is a list of things in the q.  New elements go at the end
+;;; of that list.
 ;;;
-;;; <last-pair> is #f if the q is empty, and otherwise is the last pair of <the-q>.
+;;; <last-pair> is #f if the q is empty, and otherwise is the last
+;;;pair of <the-q>.
 ;;;
-;;; q's print nicely, but alas, they do not read well because the eq?-ness of 
-;;; <last-pair> and (last-pair <the-q>) is lost by read.   The procedure
+;;; q's print nicely, but alas, they do not read well because the
+;;; eq?-ness of <last-pair> and (last-pair <the-q>) is lost by read.
+;;;
+;;; All the functions that aren't explicitly defined to return
+;;; something else (a queue element; a boolean value) return the queue
+;;; object itself.
+;;;
+;;; The procedure
 ;;; 
 ;;;		(sync-q! q)
 ;;;
 ;;; recomputes and resets the <last-pair> component of a queue.
 ;;;
-
-(define-public (sync-q! obj) (set-cdr! obj (and (car obj) (last-pair (car obj)))))
+(define-public (sync-q! q)
+  (set-cdr! q (if (pair? (car q)) (last-pair (car q))
+		  #f))
+  q)
 
 ;;; make-q
 ;;;  return a new q.
 ;;;
-(define-public (make-q) (cons '() '()))
+(define-public (make-q) (cons '() #f))
 
 ;;; q? obj
 ;;;   Return true if obj is a Q.
-;;;   An object is a queue if it is equal? to '(#f . #f) or
-;;;   if it is a pair P with (list? (car P)) and (eq? (cdr P) (last-pair P)).
+;;;   An object is a queue if it is equal? to '(() . #f)
+;;;   or it is a pair P with (list? (car P))
+;;;                      and (eq? (cdr P) (last-pair (car P))).
 ;;;
-(define-public (q? obj) (and (pair? obj)
-				 (or (and (null? (car obj))
-					  (null? (cdr obj)))
-				     (and
-				      (list? (car obj))
-				      (eq? (cdr obj) (last-pair (car obj)))))))
+(define-public (q? obj)
+  (and (pair? obj)
+       (if (pair? (car obj))
+	   (eq? (cdr obj) (last-pair (car obj)))
+	   (and (null? (car obj))
+		(not (cdr obj))))))
 
 ;;; q-empty? obj
 ;;;  
@@ -81,7 +94,6 @@
 ;;; q-empty-check q
 ;;;  Throw a q-empty exception if Q is empty.
 (define-public (q-empty-check q) (if (q-empty? q) (throw 'q-empty q)))
-
 
 ;;; q-front q
 ;;;  Return the first element of Q.
@@ -94,26 +106,26 @@
 ;;; q-remove! q obj
 ;;;  Remove all occurences of obj from Q.
 (define-public (q-remove! q obj)
-  (while (memq obj (car q))
-	 (set-car! q (delq! obj (car q))))
-  (set-cdr! q (last-pair (car q))))
+  (set-car! q (delq! obj (car q)))
+  (sync-q! q))
 
 ;;; q-push! q obj
 ;;;  Add obj to the front of Q
-(define-public (q-push! q d)
-  (let ((h (cons d (car q))))
+(define-public (q-push! q obj)
+  (let ((h (cons obj (car q))))
     (set-car! q h)
-    (if (null? (cdr q))
-	(set-cdr! q h))))
+    (or (cdr q) (set-cdr! q h)))
+  q)
 
 ;;; enq! q obj
 ;;;  Add obj to the rear of Q
-(define-public (enq! q d)
-  (let ((h (cons d '())))
-    (if (not (null? (cdr q)))
-       	(set-cdr! (cdr q) h)
-	(set-car! q h))
-    (set-cdr! q h)))
+(define-public (enq! q obj)
+  (let ((h (cons obj '())))
+    (if (null? (car q))
+	(set-car! q h)
+	(set-cdr! (cdr q) h))
+    (set-cdr! q h))
+  q)
 
 ;;; q-pop! q
 ;;;  Take the front of Q and return it.
@@ -134,6 +146,3 @@
 ;;;  Return the number of enqueued elements.
 ;;;
 (define-public (q-length q) (length (car q)))
-
-
-
