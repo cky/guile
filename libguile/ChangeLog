@@ -1,3 +1,8 @@
+2004-11-02  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* read.c (scm_lreadr): Bugfix: include the last bit in the
+	bit vector.
+
 2004-10-29  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* unif.h, unif.c (scm_array_creator): New.
