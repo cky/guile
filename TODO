@@ -1,0 +1,35 @@
+Needed before release
+
+* Add facilities for debugging Scheme programs.
+
+Mikael Djurfeldt <mdj@nada.kth.se> is working on this.
+
+* Modify the gscm functions as planned by Tom Lord.
+
+I think Mark Galassi <rosalia@nis.lanl.gov> is working on this.
+
+* Merge in the Cygnus threads package.
+
+Anthony Green <green@cygnus.com> is working on this,
+but he lacks time, so perhaps he could use help.
+
+Desired later on
+
+* Add a convenient facility for running a pipeline of processes
+with redirections.  Gary Houston <ghouston@actrix.gen.nz>
+is working on this.
+
+* Make it possible to link Guile and TK without using libtcl.a, by
+providing Guile-based replacements for the libtcl.a functions that TK
+requires.
+
+* Make ordinary lambda functions work as callbacks for Tk;
+eliminate the need for tcl-lambda.
+
+* Translators for additional languages; in particular, Perl, Python,
+TCL, Emacs Lisp, and Rexx.
+
+* Clean up declarations of C functions to use a PROTO macro
+for conditional prototypes, instead of explicit conditionals.
+
+* A package for time conversions and formatting.
