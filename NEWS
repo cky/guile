@@ -19,6 +19,9 @@ guile-rgx-ctax --- the interface between Guile and the Rx regular
 	programming language.  These are packaged together because the
 	Ctax translator uses Rx to parse Ctax source code.
 
+This NEWS file describes the changes made to guile-core since the 1.0
+release.
+
 We no longer distribute the documentation, since it was either out of
 date, or incomplete.  As soon as we have current documentation, we
 will distribute it.
@@ -74,6 +77,66 @@ with the arguments given to the script.  Guile loads the script, which
 defines the `main' function, and then applies it to the list of
 remaining command-line arguments, ("a" "speckled" "gecko").
 
+In Unix, the first line of a script file must take the following form:
+
+#!INTERPRETER ARGUMENT
+
+where INTERPRETER is the absolute filename of the interpreter
+executable, and ARGUMENT is a single command-line argument to pass to
+the interpreter.
+
+You may only pass one argument to the interpreter, and its length is
+limited.  These restrictions can be annoying to work around, so Guile
+provides a general mechanism (borrowed from, and compatible with,
+SCSH) for circumventing them.
+
+If the ARGUMENT in a Guile script is a single backslash character,
+`\', Guile will open the script file, parse arguments from its second
+and subsequent lines, and replace the `\' with them.  So, for example,
+here is another implementation of the `ekko' script:
+
+#!/usr/local/bin/guile \
+-e main -s
+!#
+(define (main args)
+  (for-each (lambda (arg) (display arg) (display " "))
+            (cdr args))
+  (newline))
+
+If the user invokes this script as follows:
+
+	ekko a speckled gecko
+
+Unix expands this into
+
+	/usr/local/bin/guile \ ekko a speckled gecko
+
+When Guile sees the `\' argument, it replaces it with the arguments
+read from the second line of the script, producing:
+
+	/usr/local/bin/guile -e main -s ekko a speckled gecko
+
+This tells Guile to load the `ekko' script, and apply the function
+`main' to the argument list ("a" "speckled" "gecko").
+
+Here is how Guile parses the command-line arguments:
+- Each space character terminates an argument.  This means that two
+  spaces in a row introduce an empty-string argument.
+- The tab character is not permitted (unless you quote it with the
+  backslash character, as described below), to avoid confusion.
+- The newline character terminates the sequence of arguments, and will
+  also terminate a final non-empty argument.  (However, a newline
+  following a space will not introduce a final empty-string argument;
+  it only terminates the argument list.)
+- The backslash character is the escape character.  It escapes
+  backslash, space, tab, and newline.  The ANSI C escape sequences
+  like \n and \t are also supported.  These produce argument
+  constituents; the two-character combination \n doesn't act like a
+  terminating newline.  The escape sequence \NNN for exactly three
+  octal digits reads as the character whose ASCII code is NNN.  As
+  above, characters produced this way are argument constituents.
+  Backslash followed by other characters is not allowed.
+
 * Changes to the procedure for linking libguile with your programs
 
 ** Guile now builds and installs a shared guile library, if your
@@ -100,40 +163,89 @@ AC_CHECK_LIB(guile, scm_shell)
 
 * Changes to Scheme functions
 
-** There are new accessors and setters for the broken-out time vectors
-returned by `localtime', `gmtime', and that ilk.  They are:
+** Guile Scheme's special syntax for keyword objects is now optional,
+and disabled by default.
 
-  Component                 Accessor     Setter
-  ========================= ============ ============
-  seconds                   tm:sec       set-tm:sec
-  minutes                   tm:min       set-tm:min
-  hours                     tm:hour      set-tm:hour
-  day of the month          tm:mday      set-tm:mday
-  month                     tm:mon       set-tm:mon
-  year                      tm:year      set-tm:year
-  day of the week           tm:wday      set-tm:wday
-  day in the year           tm:yday      set-tm:yday
-  daylight saving time      tm:isdst     set-tm:isdst
-  GMT offset, seconds       tm:gmtoff    set-tm:gmtoff
-  name of time zone         tm:zone      set-tm:zone
+The syntax variation from R4RS made it difficult to port some
+interesting packages to Guile.  The routines which accepted keyword
+arguments (mostly in the module system) have been modified to also
+accept symbols whose names begin with `:'.
 
-** There are new accessors for the vectors returned by `uname'.
+To change the keyword syntax, you must first import the (ice-9 debug)
+module:
+	(use-modules (ice-9 debug))
 
-  Component                                      Accessor
-  ============================================== ================
-  name of the operating system implementation    utsname:sysname
-  network name of this machine                   utsname:nodename
-  release level of the operating system          utsname:release
-  version level of the operating system          utsname:version
-  machine hardware platform                      utsname:machine
+Then you can enable the keyword syntax as follows:
+	(read-set! keywords 'prefix)
 
-** There is now a complete set of accessors for the vectors returned
-by the `getserv'
+To disable keyword syntax, do this:
+	(read-set! keywords #f)
+
+** Many more primitive functions accept shared substrings as
+arguments.  In the past, these functions required normal, mutable
+strings as arguments, although they never made use of this
+restriction.
+
+** The uniform array functions now operate on byte vectors.  These
+functions are `array-fill!', `serial-array-copy!', `array-copy!',
+`serial-array-map', `array-map', `array-for-each', and
+`array-index-map!'.
+
+** The new functions `trace' and `untrace' implement simple debugging
+support for Scheme functions.
+
+The `trace' function accepts any number of procedures as arguments,
+and tells the Guile interpreter to display each procedure's name and
+arguments each time the procedure is invoked.  When invoked with no
+arguments, `trace' returns the list of procedures currently being
+traced.
+
+The `untrace' function accepts any number of procedures as arguments,
+and tells the Guile interpreter not to trace them any more.  When
+invoked with no arguments, `untrace' untraces all curretly traced
+procedures.
+
+The tracing in Guile has an advantage over most other systems: we
+don't create new procedure objects, but mark the procedure objects
+themselves.  This means that anonymous and internal procedures can be
+traced.
+
+** The function `assert-repl-prompt' has been renamed to
+`set-repl-prompt!'.  It takes one argument, PROMPT.
+- If PROMPT is #f, the Guile read-eval-print loop will not prompt.
+- If PROMPT is a string, we use it as a prompt.
+- If PROMPT is a procedure accepting no arguments, we call it, and
+  display the result as a prompt.
+- Otherwise, we display "> ".
 
 ** The new function `eval-string' reads Scheme expressions from a
 string and evaluates them, returning the value of the last expression
 in the string.  If the string contains no expressions, it returns an
 unspecified value.
+
+** The new function `thunk?' returns true iff its argument is a
+procedure of zero arguments.
+
+** `defined?' is now a builtin function, instead of syntax.  This
+means that its argument should be quoted.  It returns #t iff its
+argument is bound in the current module.
+
+** The new syntax `use-modules' allows you to add new modules to your
+environment without re-typing a complete `define-module' form.  It
+accepts any number of module names as arguments, and imports their
+public bindings into the current module.
+
+** The new function (module-defined? NAME MODULE) returns true iff
+NAME, a symbol, is defined in MODULE, a module object.
+
+** The new function `builtin-bindings' creates and returns a hash
+table containing copies of all the root module's bindings.
+
+** The new function `builtin-weak-bindings' does the same as
+`builtin-bindings', but creates a doubly-weak hash table.
+
+** The `equal?' function now considers variable objects to be
+equivalent if they have the same name and the same value.
 
 ** The new function `command-line' returns the command-line arguments
 given to Guile, as a list of strings.
@@ -152,8 +264,315 @@ but we thought it might also be useful in other circumstances.
 ** The new function `log10' returns the base-10 logarithm of its
 argument.
 
-** gethost, getproto, and getnet, and getserv now return more helpful
-error codes.
+** Changes to I/O functions
+
+*** The functions `read', `primitive-load', `read-and-eval!', and 
+`primitive-load-path' no longer take optional arguments controlling
+case insensitivity and a `#' parser.
+
+Case sensitivity is now controlled by a read option called
+`case-insensitive'.  The user can add new `#' syntaxes with the
+`read-hash-extend' function (see below).
+
+*** The new function `read-hash-extend' allows the user to change the
+syntax of Guile Scheme in a somewhat controlled way.
+
+(read-hash-extend CHAR PROC)
+  When parsing S-expressions, if we read a `#' character followed by
+  the character CHAR, use PROC to parse an object from the stream.
+  If PROC is #f, remove any parsing procedure registered for CHAR.
+
+  The reader applies PROC to two arguments: CHAR and an input port.
+
+*** The new functions read-delimited and read-delimited! provide a 
+general mechanism for doing delimited input on streams.
+
+(read-delimited DELIMS [PORT HANDLE-DELIM])
+  Read until we encounter one of the characters in DELIMS (a string),
+  or end-of-file.  PORT is the input port to read from; it defaults to
+  the current input port.  The HANDLE-DELIM parameter determines how
+  the terminating character is handled; it should be one of the
+  following symbols:
+
+    'trim     omit delimiter from result
+    'peek     leave delimiter character in input stream
+    'concat   append delimiter character to returned value
+    'split    return a pair: (RESULT . TERMINATOR)
+
+  HANDLE-DELIM defaults to 'peek.
+
+(read-delimited! DELIMS BUF [PORT HANDLE-DELIM START END])
+  A side-effecting variant of `read-delimited'.
+
+  The data is written into the string BUF at the indices in the
+  half-open interval [START, END); the default interval is the whole
+  string: START = 0 and END = (string-length BUF).  The values of
+  START and END must specify a well-defined interval in BUF, i.e.
+  0 <= START <= END <= (string-length BUF).
+
+  It returns NBYTES, the number of bytes read.  If the buffer filled
+  up without a delimiter character being found, it returns #f.  If the
+  port is at EOF when the read starts, it returns the EOF object.
+
+  If an integer is returned (i.e., the read is successfully terminated
+  by reading a delimiter character), then the HANDLE-DELIM parameter
+  determines how to handle the terminating character.  It is described
+  above, and defaults to 'peek.
+
+(The descriptions of these functions were borrowed from the SCSH
+manual, by Olin Shivers and Brian Carlstrom.)
+
+*** The `%read-delimited!' function is the primitive used to implement
+`read-delimited' and `read-delimited!'.
+
+(%read-delimited! DELIMS BUF GOBBLE? [PORT START END])
+
+This returns a pair of values: (TERMINATOR . NUM-READ).
+- TERMINATOR describes why the read was terminated.  If it is a
+  character or the eof object, then that is the value that terminated
+  the read.  If it is #f, the function filled the buffer without finding
+  a delimiting character.
+- NUM-READ is the number of characters read into BUF.
+
+If the read is successfully terminated by reading a delimiter
+character, then the gobble? parameter determines what to do with the
+terminating character.  If true, the character is removed from the
+input stream; if false, the character is left in the input stream
+where a subsequent read operation will retrieve it.  In either case,
+the character is also the first value returned by the procedure call.
+
+(The descriptions of this function was borrowed from the SCSH manual,
+by Olin Shivers and Brian Carlstrom.)
+
+*** The `read-line' and `read-line!' functions have changed; they now
+trim the terminator by default; previously they appended it to the
+returned string.  For the old behavior, use (read-line PORT 'concat).
+
+*** The functions `uniform-array-read!' and `uniform-array-write!' now
+take new optional START and END arguments, specifying the region of
+the array to read and write.
+
+*** The `ungetc-char-ready?' function has been removed.
+
+** Changes to the Unix library and system call interface
+
+*** The new fcntl function provides access to the Unix `fcntl' system
+call.
+
+(fcntl PORT COMMAND VALUE)
+  Apply COMMAND to PORT's file descriptor, with VALUE as an argument.
+  Values for COMMAND are:
+
+    F_DUPFD	duplicate a file descriptor
+    F_GETFD	read the descriptor's close-on-exec flag
+    F_SETFD     set the descriptor's close-on-exec flag to VALUE
+    F_GETFL	read the descriptor's flags, as set on open
+    F_SETFL	set the descriptor's flags, as set on open to VALUE
+    F_GETOWN    return the process ID of a socket's owner, for SIGIO
+    F_SETOWN    set the process that owns a socket to VALUE, for SIGIO
+    FD_CLOEXEC  not sure what this is
+
+For details, see the documentation for the fcntl system call.
+
+*** The arguments to `select' have changed, for compatibility with
+SCSH.  The TIMEOUT parameter may now be non-integral, yielding the
+expected behavior.  The MILLISECONDS parameter has been changed to
+MICROSECONDS, to more closely resemble the underlying system call.
+The RVEC, WVEC, and EVEC arguments can now be vectors; the type of the
+corresponding return set will be the same.
+
+*** The arguments to the `mknod' system call have changed.  They are
+now:
+
+(mknod PATH TYPE PERMS DEV)
+  Create a new file (`node') in the file system.  PATH is the name of
+  the file to create.  TYPE is the kind of file to create; it should
+  be 'fifo, 'block-special, or 'char-special.  PERMS specifies the
+  permission bits to give the newly created file.  If TYPE is
+  'block-special or 'char-special, DEV specifies which device the
+  special file refers to; its interpretation depends on the kind of
+  special file being created.
+
+*** The `fork' function has been renamed to `primitive-fork', to avoid
+clashing with various SCSH forks.
+
+*** The `recv' and `recvfrom' functions have been renamed to `recv!'
+and `recvfrom!'.  They no longer accept a size for a second argument;
+you must pass a string to hold the received value.  They no longer
+return the buffer.  Instead, `recv' returns the length of the message
+received, and `recvfrom' returns a pair containing the packet's length
+and originating address. 
+
+*** The file descriptor datatype has been removed, as have the
+`read-fd', `write-fd', `close', `lseek', and `dup' functions.
+We plan to replace these functions with a SCSH-compatible interface.
+
+*** The `create' function has been removed; it's just a special case
+of `open'.
+
+*** There are new functions to break down process termination status
+values.  In the descriptions below, STATUS is a value returned by
+`waitpid'.
+
+(status:exit-val STATUS)
+  If the child process exited normally, this function returns the exit
+  code for the child process (i.e., the value passed to exit, or
+  returned from main).  If the child process did not exit normally,
+  this function returns #f.
+
+(status:stop-sig STATUS)
+  If the child process was suspended by a signal, this function
+  returns the signal that suspended the child.  Otherwise, it returns
+  #f.
+
+(status:term-sig STATUS)
+  If the child process terminated abnormally, this function returns
+  the signal that terminated the child.  Otherwise, this function
+  returns false.
+
+POSIX promises that exactly one of these functions will return true on
+a valid STATUS value.
+
+These functions are compatible with SCSH.
+
+*** There are new accessors and setters for the broken-out time vectors
+returned by `localtime', `gmtime', and that ilk.  They are:
+
+  Component                 Accessor     Setter
+  ========================= ============ ============
+  seconds                   tm:sec       set-tm:sec
+  minutes                   tm:min       set-tm:min
+  hours                     tm:hour      set-tm:hour
+  day of the month          tm:mday      set-tm:mday
+  month                     tm:mon       set-tm:mon
+  year                      tm:year      set-tm:year
+  day of the week           tm:wday      set-tm:wday
+  day in the year           tm:yday      set-tm:yday
+  daylight saving time      tm:isdst     set-tm:isdst
+  GMT offset, seconds       tm:gmtoff    set-tm:gmtoff
+  name of time zone         tm:zone      set-tm:zone
+
+*** There are new accessors for the vectors returned by `uname',
+describing the host system:
+
+  Component                                      Accessor
+  ============================================== ================
+  name of the operating system implementation    utsname:sysname
+  network name of this machine                   utsname:nodename
+  release level of the operating system          utsname:release
+  version level of the operating system          utsname:version
+  machine hardware platform                      utsname:machine
+
+*** There are new accessors for the vectors returned by `getpw',
+`getpwnam', `getpwuid', and `getpwent', describing entries from the
+system's user database:
+
+  Component              Accessor
+  ====================== =================
+  user name              passwd:name
+  user password		 passwd:passwd
+  user id		 passwd:uid
+  group id		 passwd:gid
+  real name		 passwd:gecos
+  home directory	 passwd:dir
+  shell program		 passwd:shell
+
+*** There are new accessors for the vectors returned by `getgr',
+`getgrnam', `getgrgid', and `getgrent', describing entries from the
+system's group database:
+
+  Component               Accessor
+  ======================= ============
+  group name              group:name
+  group password 	  group:passwd
+  group id       	  group:gid
+  group members  	  group:mem
+
+*** There are new accessors for the vectors returned by `gethost',
+`gethostbyaddr', `gethostbyname', and `gethostent', describing
+internet hosts:
+
+  Component                 Accessor
+  ========================= ===============
+  official name of host     hostent:name
+  alias list		    hostent:aliases
+  host address type	    hostent:addrtype
+  length of address	    hostent:length
+  list of addresses	    hostent:addr-list
+
+*** There are new accessors for the vectors returned by `getnet',
+`getnetbyaddr', `getnetbyname', and `getnetent', describing internet
+networks:
+
+  Component                 Accessor
+  ========================= ===============
+  official name of net      netent:name
+  alias list		    netent:aliases
+  net number type	    netent:addrtype
+  net number		    netent:net
+
+*** There are new accessors for the vectors returned by `getproto',
+`getprotobyname', `getprotobynumber', and `getprotoent', describing
+internet protocols:
+
+  Component                 Accessor
+  ========================= ===============
+  official protocol name    protoent:name
+  alias list		    protoent:aliases
+  protocol number	    protoent:proto
+
+*** There are new accessors for the vectors returned by `getserv',
+`getservbyname', `getservbyport', and `getservent', describing
+internet protocols:
+
+  Component                 Accessor
+  ========================= ===============
+  official service name     servent:name   
+  alias list		    servent:aliases
+  port number		    servent:port   
+  protocol to use	    servent:proto  
+
+*** There are new accessors for the sockaddr structures returned by
+`accept', `getsockname', `getpeername', `recvfrom!':
+
+  Component                                Accessor
+  ======================================== ===============
+  address format (`family')                sockaddr:fam 
+  path, for file domain addresses	   sockaddr:path
+  address, for internet domain addresses   sockaddr:addr
+  TCP or UDP port, for internet		   sockaddr:port
+
+*** The `getpwent', `getgrent', `gethostent', `getnetent',
+`getprotoent', and `getservent' functions now return #f at the end of
+the user database.  (They used to throw an exception.)
+
+Note that calling MUMBLEent function is equivalent to calling the
+corresponding MUMBLE function with no arguments.
+
+*** The `setpwent', `setgrent', `sethostent', `setnetent',
+`setprotoent', and `setservent' routines now take no arguments.
+
+*** The `gethost', `getproto', `getnet', and `getserv' functions now
+provide more useful information when they throw an exception.
+
+*** The `lnaof' function has been renamed to `inet-lnaof'.
+
+*** Guile now claims to have the `current-time' feature.
+
+*** The `mktime' function now takes an optional second argument ZONE,
+giving the time zone to use for the conversion.  ZONE should be a
+string, in the same format as expected for the "TZ" environment variable.
+
+*** The `strptime' function now returns a pair (TIME . COUNT), where
+TIME is the parsed time as a vector, and COUNT is the number of
+characters from the string left unparsed.  This function used to
+return the remaining characters as a string.
+
+*** The `gettimeofday' function has replaced the old `time+ticks' function.
+The return value is now (SECONDS . MICROSECONDS); the fractional
+component is no longer expressed in "ticks".
+
+*** The `ticks/sec' constant has been removed, in light of the above change.
 
 * Changes to the gh_ interface
 
@@ -172,6 +591,109 @@ the user to interpret the data both ways.
 
 * Changes to the scm_ interface
 
+** The new function scm_symbol_value0 provides an easy way to get a
+symbol's value from C code:
+
+SCM scm_symbol_value0 (char *NAME)
+  Return the value of the symbol named by the null-terminated string
+  NAME in the current module.  If the symbol named NAME is unbound in
+  the current module, return SCM_UNDEFINED.
+
+** The new function scm_sysintern0 creates new top-level variables,
+without assigning them a value.
+
+SCM scm_sysintern0 (char *NAME)
+  Create a new Scheme top-level variable named NAME.  NAME is a
+  null-terminated string.  Return the variable's value cell.
+
+** The function scm_internal_catch is the guts of catch.  It handles
+all the mechanics of setting up a catch target, invoking the catch
+body, and perhaps invoking the handler if the body does a throw.
+
+The function is designed to be usable from C code, but is general
+enough to implement all the semantics Guile Scheme expects from throw.
+
+TAG is the catch tag.  Typically, this is a symbol, but this function
+doesn't actually care about that.
+
+BODY is a pointer to a C function which runs the body of the catch;
+this is the code you can throw from.  We call it like this:
+   BODY (BODY_DATA, JMPBUF)
+where:
+   BODY_DATA is just the BODY_DATA argument we received; we pass it
+      through to BODY as its first argument.  The caller can make
+      BODY_DATA point to anything useful that BODY might need.
+   JMPBUF is the Scheme jmpbuf object corresponding to this catch,
+      which we have just created and initialized.
+
+HANDLER is a pointer to a C function to deal with a throw to TAG,
+should one occur.  We call it like this:
+   HANDLER (HANDLER_DATA, THROWN_TAG, THROW_ARGS)
+where
+   HANDLER_DATA is the HANDLER_DATA argument we recevied; it's the
+      same idea as BODY_DATA above.
+   THROWN_TAG is the tag that the user threw to; usually this is
+      TAG, but it could be something else if TAG was #t (i.e., a
+      catch-all), or the user threw to a jmpbuf.
+   THROW_ARGS is the list of arguments the user passed to the THROW
+      function.
+
+BODY_DATA is just a pointer we pass through to BODY.  HANDLER_DATA
+is just a pointer we pass through to HANDLER.  We don't actually
+use either of those pointers otherwise ourselves.  The idea is
+that, if our caller wants to communicate something to BODY or
+HANDLER, it can pass a pointer to it as MUMBLE_DATA, which BODY and
+HANDLER can then use.  Think of it as a way to make BODY and
+HANDLER closures, not just functions; MUMBLE_DATA points to the
+enclosed variables.
+
+Of course, it's up to the caller to make sure that any data a
+MUMBLE_DATA needs is protected from GC.  A common way to do this is
+to make MUMBLE_DATA a pointer to data stored in an automatic
+structure variable; since the collector must scan the stack for
+references anyway, this assures that any references in MUMBLE_DATA
+will be found.
+
+** The new function scm_internal_lazy_catch is exactly like
+scm_internal_catch, except:
+
+- It does not unwind the stack (this is the major difference).
+- If handler returns, its value is returned from the throw.
+- BODY always receives #f as its JMPBUF argument (since there's no
+  jmpbuf associated with a lazy catch, because we don't unwind the
+  stack.)
+
+** scm_body_thunk is a new body function you can pass to
+scm_internal_catch if you want the body to be like Scheme's `catch'
+--- a thunk, or a function of one argument if the tag is #f.
+
+BODY_DATA is a pointer to a scm_body_thunk_data structure, which
+contains the Scheme procedure to invoke as the body, and the tag
+we're catching.  If the tag is #f, then we pass JMPBUF (created by
+scm_internal_catch) to the body procedure; otherwise, the body gets
+no arguments.
+
+** scm_handle_by_proc is a new handler function you can pass to
+scm_internal_catch if you want the handler to act like Scheme's catch
+--- call a procedure with the tag and the throw arguments.
+
+If the user does a throw to this catch, this function runs a handler
+procedure written in Scheme.  HANDLER_DATA is a pointer to an SCM
+variable holding the Scheme procedure object to invoke.  It ought to
+be a pointer to an automatic variable (i.e., one living on the stack),
+or the procedure object should be otherwise protected from GC.
+
+** scm_handle_by_message is a new handler function to use with
+`scm_internal_catch' if you want Guile to print a message and die.
+It's useful for dealing with throws to uncaught keys at the top level.
+
+HANDLER_DATA, if non-zero, is assumed to be a char * pointing to a
+message header to print; if zero, we use "guile" instead.  That
+text is followed by a colon, then the message described by ARGS.
+
+** The return type of scm_boot_guile is now void; the function does
+not return a value, and indeed, never returns at all.
+
 ** The new function scm_shell makes it easy for user applications to
 process command-line arguments in a way that is compatible with the
 stand-alone guile interpreter (which is in turn compatible with SCSH,
@@ -186,20 +708,97 @@ generally means loading a script file or starting up an interactive
 command interpreter.  For details, see "Changes to the stand-alone
 interpreter" above.
 
-** [[new: scm_usage_name, scm_shell_usage, scm_compile_shell_switches]]
+** The new functions scm_get_meta_args and scm_count_argv help you
+implement the SCSH-style meta-argument, `\'.  
+
+char **scm_get_meta_args (int ARGC, char **ARGV)
+  If the second element of ARGV is a string consisting of a single
+  backslash character (i.e. "\\" in Scheme notation), open the file
+  named by the following argument, parse arguments from it, and return
+  the spliced command line.  The returned array is terminated by a
+  null pointer.
+  
+  For details of argument parsing, see above, under "guile now accepts
+  command-line arguments compatible with SCSH..."
+
+int scm_count_argv (char **ARGV)
+  Count the arguments in ARGV, assuming it is terminated by a null
+  pointer.
+
+For an example of how these functions might be used, see the source
+code for the function scm_shell in libguile/script.c.
+
+You will usually want to use scm_shell instead of calling this
+function yourself.
+
+** The new function scm_compile_shell_switches turns an array of
+command-line arguments into Scheme code to carry out the actions they
+describe.  Given ARGC and ARGV, it returns a Scheme expression to
+evaluate, and calls scm_set_program_arguments to make any remaining
+command-line arguments available to the Scheme code.  For example,
+given the following arguments:
+
+	-e main -s ekko a speckled gecko
+
+scm_set_program_arguments will return the following expression:
+
+	(begin (load "ekko") (main (command-line)) (quit))
+
+You will usually want to use scm_shell instead of calling this
+function yourself.
+
+** The function scm_shell_usage prints a usage message appropriate for
+an interpreter that uses scm_compile_shell_switches to handle its
+command-line arguments.
+
+void scm_shell_usage (int FATAL, char *MESSAGE)
+  Print a usage message to the standard error output.  If MESSAGE is
+  non-zero, write it before the usage message, followed by a newline.
+  If FATAL is non-zero, exit the process, using FATAL as the
+  termination status.  (If you want to be compatible with Guile,
+  always use 1 as the exit status when terminating due to command-line
+  usage problems.)
+
+You will usually want to use scm_shell instead of calling this
+function yourself.
 
 ** scm_eval_0str now returns SCM_UNSPECIFIED if the string contains no
-expressions.  It used to return SCM_EOL.
+expressions.  It used to return SCM_EOL.  Earth-shattering.
 
-* Changes to documentation
+** The macros for declaring scheme objects in C code have been
+rearranged slightly.  They are now:
 
-** the $(srcdir)/newdoc hierarchy now contains a new approach to the
-manuals.  The approach, recommended by Jim Blandy, is to have: (*) a
-tutorial with the pedagogical style of guile-user, and a non-dry
-reference manual in the style of the most excellent GNU libc reference
-manual: the reference manual should be complete, but at the same time
-it should have an introductory screen for each major topic, which can
-be referenced if the user goes "up" a level in the info documentation.
+SCM_SYMBOL (C_NAME, SCHEME_NAME)
+  Declare a static SCM variable named C_NAME, and initialize it to
+  point to the Scheme symbol whose name is SCHEME_NAME.  C_NAME should
+  be a C identifier, and SCHEME_NAME should be a C string.
+
+SCM_GLOBAL_SYMBOL (C_NAME, SCHEME_NAME)
+  Just like SCM_SYMBOL, but make C_NAME globally visible.
+
+SCM_VCELL (C_NAME, SCHEME_NAME)
+  Create a global variable at the Scheme level named SCHEME_NAME.
+  Declare a static SCM variable named C_NAME, and initialize it to
+  point to the Scheme variable's value cell.
+
+SCM_GLOBAL_VCELL (C_NAME, SCHEME_NAME)
+  Just like SCM_VCELL, but make C_NAME globally visible.
+
+The `guile-snarf' script writes initialization code for these macros
+to its standard output, given C source code as input.
+
+The SCM_GLOBAL macro is gone.
+
+** The scm_read_line and scm_read_line_x functions have been replaced
+by Scheme code based on the %read-delimited! procedure (known to C
+code as scm_read_delimited_x).  See its description above for more
+information.
+
+** The function scm_sys_open has been renamed to scm_open.  It now
+returns a port instead of an FD object.
+
+* The dynamic linking support has changed.  For more information, see
+libguile/DYNAMIC-LINKING.
 
 
 Guile 1.0b3

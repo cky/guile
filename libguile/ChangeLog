@@ -3,8 +3,9 @@ Thu May 15 16:22:33 1997  Jim Blandy  <jimb@floss.cyclic.com>
 	* net_db.c (scm_gethost, scm_getnet, scm_getproto, scm_getserv):
 	Return #f on end-of-file when scanning table (i.e. when called
 	with no arguments).  Try to catch errors, when we can.
-
-	* script.h (scm_shell-usage, scm_compile_shell_switches): New
+	* posix.c (scm_getgrgid, scm_getpwuid): Same.
+	
+	* script.h (scm_shell_usage, scm_compile_shell_switches): New
 	external declarations.  These are useful.
 
 Thu May 15 05:21:36 1997  Gary Houston  <ghouston@actrix.gen.nz>
@@ -12,7 +13,7 @@ Thu May 15 05:21:36 1997  Gary Houston  <ghouston@actrix.gen.nz>
 	* posix.c: don't include <sys/select.h> or define macros for
 	select, since they were not used in this file.
 
-*	* filesys.c (scm_select): make the fifth parameter microseconds,
+	* filesys.c (scm_select): make the fifth parameter microseconds,
 	not milliseconds.  let the fourth parameter be either a real value
 	or an integer or #f.  The first, second and third arguments can
 	now be vectors: the type of the corresponding return set will be
@@ -150,7 +151,7 @@ Sun Apr 27 17:57:15 1997  Jim Blandy  <jimb@floss.cyclic.com>
 Thu Apr 24 00:41:08 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 	Functions for finding variable bindings, grace à Tim Pierce.
-*	* gh_data.c (gh_lookup, gh_module_lookup): New functions.
+	* gh_data.c (gh_lookup, gh_module_lookup): New functions.
 	* gh.h (gh_lookup, gh_module_lookup): New prototypes.
 
 	Get 'make dist' to work again.
@@ -298,7 +299,7 @@ Sun Apr 13 23:03:55 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 Fri Apr 11 14:12:13 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
-*	* filesys.c (scm_fcntl): New function from Roland McGrath.
+	* filesys.c (scm_fcntl): New function from Roland McGrath.
 	(scm_init_filesys): New symbols for use with fcntl.
 	* filesys.h: Added prototype.
 
@@ -348,7 +349,7 @@ Wed Apr  9 09:08:54 1997  Gary Houston  <ghouston@actrix.gen.nz>
 	(scm_strftime): don't call mktime before strftime.  Use
 	filltime for return value.
 	(filltime): convert NULL zname to #f.
-*	(scm_strptime): return a count of characters consumed, not
+	(scm_strptime): return a count of characters consumed, not
 	the remaining string.
 
 Sun Apr  6 05:44:11 1997  Gary Houston  <ghouston@actrix.gen.nz>
@@ -417,7 +418,7 @@ Mon Mar 31 03:22:37 1997  Gary Houston  <ghouston@actrix.gen.nz>
 	* posix.h: add prototype for scm_close_pipe, remove prototypes for
 	scm_open_input_pipe, scm_open_output_pipe, change scm_mknod prototype.
 
-*	* posix.c (scm_mknod): split the mode argument into type and perms
+	* posix.c (scm_mknod): split the mode argument into type and perms
 	arguments, like the extra fields returned by stat.
 
 	* fports.c (scm_pipob): set the close, free and print procedures.
@@ -545,7 +546,7 @@ Thu Mar 13 18:31:33 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 	* unif.c (scm_array_set_x): Cast ICHR (obj) to char if storing in
 	a scm_tc7_byvect.
 
-	* ramap.c (scm_ra_matchp, scm_ra_matchp, scm_array_fill_int, racp,
+	* ramap.c (scm_ra_matchp, scm_array_fill_int, racp,
  	scm_array_index_map_x, raeql_1, scm_array_equal_p): Completed
  	support for byte vectors.
 
@@ -580,7 +581,7 @@ Mon Mar 10 06:28:54 1997  Gary Houston  <ghouston@actrix.gen.nz>
 	Setup scm_keyword_prefix symbol.
 	(scm_lreadr): Only process keywords if SCM_KEYWORD_STYLE is
 	set to 'prefix.
-*	I've left keyword support disabled by default, since it doesn't
+	I've left keyword support disabled by default, since it doesn't
 	seem to break the module system and it gives R4RS standard behaviour.
 	It can be reactivated with (read-set! keywords 'prefix).
 
@@ -622,7 +623,7 @@ Sat Mar  8 00:27:05 1997  Gary Houston  <ghouston@actrix.gen.nz>
 	* read.c (scm_read_hash_procedures): new variable.
 	(scm_read_hash_extend): new procedure.
 	(scm_get_hash_procedure): new procedure.
-*	(scm_lreadr): use scm_get_hash_procedure instead of an argument
+	(scm_lreadr): use scm_get_hash_procedure instead of an argument
 	for extended # processing.
 	(scm_read, scm_lreadr, scm_lreadrecparen, scm_lreadparen,
 	scm_read_token): remove case_i, sharp arguments.  Change callers.
@@ -633,7 +634,7 @@ Fri Mar  7 08:58:21 1997  Gary Houston  <ghouston@actrix.gen.nz>
 	(SCM_CASE_INSENSITIVE_P): define.
 
 	* read.c: add case-insensitive option to scm_read_opts.
-*	(scm_read_token): use SCM_CASE_INSENSITIVE_P instead of an argument
+	(scm_read_token): use SCM_CASE_INSENSITIVE_P instead of an argument
 	to determine whether to convert symbol case.
 	(default_case_i): definition removed.
 	* read.c (scm_read_token): if case_i, downcase ic before doing
@@ -668,7 +669,7 @@ Fri Mar  7 19:38:18 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 	debug support twice, but it also seems to increase the speed of
 	the evaluator for such calls (e. g. (+ 1 2 3)).
 
-*	* backtrace.c (scm_display_application): New procedure:
+	* backtrace.c (scm_display_application): New procedure:
 	display-application; Set fancy printing parameters individually
 	for different types of display (backtrace, error, application).
 	(These should of course be customizable!)
@@ -690,7 +691,7 @@ Wed Mar  5 23:31:21 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 	(scm_symbol_hash): Bugfix: Must msymbolize if tc7_ssymbol, othwise
 	we get segmentation fault!
 
-*	* symbols.c: Added #include "weaks.h".  New functions:
+	* symbols.c: Added #include "weaks.h".  New functions:
  	`builtin-bindings' and `builtin-weak-bindings'.  (These will be
  	moved to an extraneous library when we split libguile.)
 
@@ -905,7 +906,7 @@ Tue Feb  4 16:57:40 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 Tue Feb  4 05:07:35 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
-*	* net_db.c (scm_lnaof): change scheme name from lnaof to inet-lnaof.
+	* net_db.c (scm_lnaof): change scheme name from lnaof to inet-lnaof.
 
 Mon Feb  3 06:12:37 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
@@ -924,7 +925,7 @@ Fri Jan 31 04:33:11 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* ioext.c, ioext.h: remove obsolete _sys_ from 9 procedure names.
 	
-*	* posix.c (scm_fork): Scheme name changed from fork to primitive-fork,
+	* posix.c (scm_fork): Scheme name changed from fork to primitive-fork,
 	to avoid clash with various scsh forks.
 
 Thu Jan 30 20:14:09 1997  Mikael Djurfeldt  <mdj@syk-0606.pdc.kth.se>
@@ -960,11 +961,11 @@ Fri Jan 24 06:16:32 1997  Gary Houston  <ghouston@actrix.gen.nz>
 	* __scm.h: uncomment SCM_ARG6 and SCM_ARG7, I needed SCM_ARG6.
 
 	* ioext.h: update prototypes.
-*	* ioext.c (scm_read_delimited_x): replaces scm_read_line and
+	* ioext.c (scm_read_delimited_x): replaces scm_read_line and
 	scm_read_line_x, it's a more general procedure using an
 	interface from scsh.  read-line and read-line! are now defined
 	in boot-9.scm.
-*  	Note that the new read-line trims the terminator
+  	Note that the new read-line trims the terminator
 	by default, previously it was appended to the returned string.  An
 	optional argument specifies how to process the terminator (scsh
 	compatible).  For the old behaviour: (read-line port 'concat).
@@ -975,7 +976,7 @@ Fri Jan 24 06:16:32 1997  Gary Houston  <ghouston@actrix.gen.nz>
 	socket.h: update prototypes.
 	* socket.c (scm_recvfrom): for consistency with other procedures,
 	take start and end as separate optional arguments.
-*	(scm_recv, scm_recvfrom): don't allow the second argument
+	(scm_recv, scm_recvfrom): don't allow the second argument
 	to be a size, only a buffer.  Change the scheme names to
 	recv! and recvfrom!.  Don't return the buffer.
 
@@ -1027,14 +1028,14 @@ Sat Jan 18 00:03:31 1997  Gary Houston  <ghouston@actrix.gen.nz>
 	SCM_FD.
 	* filesys.c (scm_sys_stat, scm_sys_lstat): pass errno to
 	scm_syserror_msg.
-*	(scm_sys_read_fd, scm_sys_write_fd, scm_sys_close, scm_sys_lseek,
+	(scm_sys_read_fd, scm_sys_write_fd, scm_sys_close, scm_sys_lseek,
 	scm_sys_dup): deleted: FD capability will be added to other
 	procedures.
-*	Remove support for the FD object type: scm_tc16_fd, scm_fd_print,
+	Remove support for the FD object type: scm_tc16_fd, scm_fd_print,
 	scm_fd_free, fd_smob, scm_intern_fd.
-*	(scm_open): renamed from scm_sys_open.  Return a port instead of
+	(scm_open): renamed from scm_sys_open.  Return a port instead of
 	an FD object.  Make the mode argument optional.
-*	(scm_sys_create): deleted, it's just a special case of open.
+	(scm_sys_create): deleted, it's just a special case of open.
 	(scm_init_filesys): move interning of constants O_CREAT etc.,
 	here (were previously using SCM_CONST_LONG macro).
 	Add missing constants: O_RDONLY, O_WRONLY, O_RDWR, O_CREAT.
