@@ -118,16 +118,26 @@ program_free (SCM obj)
 static int
 program_print (SCM obj, SCM port, scm_print_state *pstate)
 {
-  scm_puts ("#<program 0x", port);
-  scm_intprint ((long) SCM_PROGRAM_BASE (obj), 16, port);
-  scm_putc ('>', port);
+  SCM name = scm_object_property (obj, scm_sym_name);
+  if (SCM_FALSEP (name))
+    {
+      scm_puts ("#<program 0x", port);
+      scm_intprint ((long) SCM_PROGRAM_BASE (obj), 16, port);
+      scm_putc ('>', port);
+    }
+  else
+    {
+      scm_puts ("#<program ", port);
+      scm_display (name, port);
+      scm_putc ('>', port);
+    }
   return 1;
 }
 
 static SCM
 program_apply (SCM program, SCM args)
 {
-  return scm_vm_apply (scm_make_vm (), program, args);
+  return scm_vm_apply (scm_the_vm (), program, args);
 }
 
 
@@ -150,9 +160,10 @@ SCM_DEFINE (scm_program_arity, "program-arity", 1, 0, 0,
 #define FUNC_NAME s_scm_program_arity
 {
   SCM_VALIDATE_PROGRAM (1, program);
-  return SCM_LIST3 (SCM_MAKINUM (SCM_PROGRAM_NARGS (program)),
+  return SCM_LIST4 (SCM_MAKINUM (SCM_PROGRAM_NARGS (program)),
 		    SCM_MAKINUM (SCM_PROGRAM_NREST (program)),
-		    SCM_MAKINUM (SCM_PROGRAM_NLOCS (program)));
+		    SCM_MAKINUM (SCM_PROGRAM_NLOCS (program)),
+		    SCM_MAKINUM (SCM_PROGRAM_NEXTS (program)));
 }
 #undef FUNC_NAME
 

@@ -129,7 +129,7 @@
   vp->fp = fp;					\
 }
 
-#define CACHE_PROGRAM(program)			\
+#define CACHE_PROGRAM()				\
 {						\
   bp = SCM_PROGRAM_DATA (program);		\
   objects  = SCM_VELTS (bp->objs);		\
@@ -183,7 +183,7 @@
     goto vm_error_stack_overflow
 
 #define CHECK_UNDERFLOW()			\
-  if (sp > stack_limit)				\
+  if (sp >= stack_limit)			\
     goto vm_error_stack_underflow
 
 #define PUSH(x)	do { CHECK_OVERFLOW (); *--sp = x; } while (0)

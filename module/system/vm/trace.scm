@@ -44,11 +44,8 @@
 
 (define (trace-next vm)
   (let ((frame (vm-current-frame vm)))
-    (format #t "0x~8X  ~20S~S\t~S\n"
-	    (vm:ip vm)
-	    (vm-fetch-code vm)
-	    (frame-variables frame)
-	    (vm-fetch-stack vm))))
+    (format #t "0x~8X  ~20S~S\n"
+	    (vm:ip vm) (vm-fetch-code vm) (vm-fetch-stack vm))))
 
 (define (trace-apply vm)
   (if (vm-option vm 'trace-first)

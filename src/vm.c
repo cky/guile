@@ -228,8 +228,7 @@ vm_fetch_length (scm_byte_t *ip, size_t *lenp)
  * VM
  */
 
-#define VM_DEFAULT_STACK_SIZE	(16 * 1024)
-#define VM_MAXIMUM_STACK_SIZE	(128 * 1024)
+#define VM_DEFAULT_STACK_SIZE	(4 * 1024)
 
 #define VM_REGULAR_ENGINE	0
 #define VM_DEBUG_ENGINE		1
@@ -250,6 +249,8 @@ vm_fetch_length (scm_byte_t *ip, size_t *lenp)
 
 scm_bits_t scm_tc16_vm;
 
+static SCM the_vm;
+
 static SCM
 make_vm (void)
 #define FUNC_NAME "make_vm"
@@ -258,11 +259,10 @@ make_vm (void)
   struct scm_vm *vp = SCM_MUST_MALLOC (sizeof (struct scm_vm));
   vp->stack_size  = VM_DEFAULT_STACK_SIZE;
   vp->stack_base  = SCM_MUST_MALLOC (vp->stack_size * sizeof (SCM));
-  vp->stack_limit = vp->stack_base + vp->stack_size - 1;
+  vp->stack_limit = vp->stack_base + vp->stack_size;
   vp->ip    	   = NULL;
   vp->sp    	   = vp->stack_limit;
   vp->fp    	   = NULL;
-  vp->cons        = 0;
   vp->time        = 0;
   vp->clock       = 0;
   vp->options     = SCM_EOL;
@@ -336,6 +336,16 @@ SCM_DEFINE (scm_vm_version, "vm-version", 0, 0, 0,
   return scm_makfrom0str (VERSION);
 }
 #undef FUNC_NAME
+
+SCM_DEFINE (scm_the_vm, "the-vm", 0, 0, 0,
+	    (),
+	    "")
+#define FUNC_NAME s_scm_the_vm
+{
+  return the_vm;
+}
+#undef FUNC_NAME
+
 
 SCM_DEFINE (scm_vm_p, "vm?", 1, 0, 0,
 	    (SCM obj),
@@ -489,10 +499,9 @@ SCM_DEFINE (scm_vm_stats, "vm-stats", 1, 0, 0,
 
   SCM_VALIDATE_VM (1, vm);
 
-  stats = scm_c_make_vector (3, SCM_MAKINUM (0));
-  SCM_VELTS (stats)[0] = scm_long2num (SCM_VM_DATA (vm)->cons);
-  SCM_VELTS (stats)[1] = scm_long2num (SCM_VM_DATA (vm)->time);
-  SCM_VELTS (stats)[2] = scm_long2num (SCM_VM_DATA (vm)->clock);
+  stats = scm_c_make_vector (2, SCM_MAKINUM (0));
+  SCM_VELTS (stats)[0] = scm_long2num (SCM_VM_DATA (vm)->time);
+  SCM_VELTS (stats)[1] = scm_long2num (SCM_VM_DATA (vm)->clock);
 
   return stats;
 }
@@ -595,6 +604,8 @@ scm_init_vm (void)
   scm_set_smob_mark (scm_tc16_vm, vm_mark);
   scm_set_smob_free (scm_tc16_vm, vm_free);
   scm_set_smob_apply (scm_tc16_vm, scm_vm_apply, 1, 0, 1);
+
+  the_vm = scm_permanent_object (make_vm ());
 
 #ifndef SCM_MAGIC_SNARFER
 #include "vm.x"

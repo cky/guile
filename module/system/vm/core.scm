@@ -25,9 +25,8 @@
 
 (export vms:cons vms:time vms:clock)
 
-(define (vms:cons stat) (vector-ref stat 0))
-(define (vms:time stat) (vector-ref stat 1))
-(define (vms:clock stat) (vector-ref stat 2))
+(define (vms:time stat) (vector-ref stat 0))
+(define (vms:clock stat) (vector-ref stat 1))
 
 (module-export! (current-module)
 		(delq! '%module-public-interface

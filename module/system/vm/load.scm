@@ -25,8 +25,6 @@
   :use-module (ice-9 regex)
   :export (load/compile))
 
-(define *the-vm* (make-vm))
-
 (define (load/compile file)
   (let* ((file (file-name-full-name file))
 	 (compiled (object-file-name file)))
@@ -36,7 +34,7 @@
     (let ((bytes (make-uniform-vector (stat:size (stat compiled)) #\a)))
       (call-with-input-file compiled
 	(lambda (p) (uniform-vector-read! bytes p)))
-      (vm-load *the-vm* bytes))))
+      (vm-load (the-vm) bytes))))
 
 (define (file-name-full-name filename)
   (let ((oldname (and (current-load-port)

@@ -129,7 +129,6 @@ struct scm_vm {
   SCM *stack_limit;		/* stack limit address */
   SCM hooks[SCM_VM_NUM_HOOKS];	/* hooks */
   SCM options;			/* options */
-  unsigned long cons;		/* cons count */
   unsigned long time;		/* time spent */
   unsigned long clock;		/* bogos clock */
 };
@@ -138,6 +137,7 @@ struct scm_vm {
 #define SCM_VM_DATA(vm)		((struct scm_vm *) SCM_SMOB_DATA (vm))
 #define SCM_VALIDATE_VM(pos,x)	SCM_MAKE_VALIDATE (pos, x, VM_P)
 
+extern SCM scm_the_vm ();
 extern SCM scm_make_vm (void);
 extern SCM scm_vm_apply (SCM vm, SCM program, SCM args);
 extern SCM scm_vm_option_ref (SCM vm, SCM key);

@@ -62,7 +62,7 @@ VM_DEFINE_INSTRUCTION (halt, "halt", 0, 0, 0)
   return ret;
 }
 
-VM_DEFINE_INSTRUCTION (drop, "drop", 0, 1, 0)
+VM_DEFINE_INSTRUCTION (drop, "drop", 0, 0, 0)
 {
   DROP ();
   NEXT;
@@ -216,6 +216,7 @@ VM_DEFINE_INSTRUCTION (external_set, "external-set", 1, 1, 0)
 VM_DEFINE_INSTRUCTION (variable_set, "variable-set", 0, 1, 0)
 {
   VARIABLE_SET (sp[0], sp[1]);
+  scm_set_object_property_x (sp[1], scm_sym_name, SCM_CAR (sp[0]));
   sp += 2;
   NEXT;
 }
@@ -295,7 +296,7 @@ VM_DEFINE_INSTRUCTION (call, "call", 1, -1, 1)
     {
       int i;
     vm_call_program:
-      CACHE_PROGRAM (program);
+      CACHE_PROGRAM ();
       INIT_ARGS ();
       NEW_FRAME ();
 
@@ -317,6 +318,7 @@ VM_DEFINE_INSTRUCTION (call, "call", 1, -1, 1)
   if (!SCM_FALSEP (scm_procedure_p (program)))
     {
       POP_LIST (nargs);
+      SYNC_BEFORE_GC ();
       *sp = scm_apply (program, *sp, SCM_EOL);
       program = SCM_VM_FRAME_PROGRAM (fp);
       NEXT;
@@ -399,6 +401,7 @@ VM_DEFINE_INSTRUCTION (tail_call, "tail-call", 1, -1, 1)
   if (!SCM_FALSEP (scm_procedure_p (program)))
     {
       POP_LIST (nargs);
+      SYNC_BEFORE_GC ();
       *sp = scm_apply (program, *sp, SCM_EOL);
       program = SCM_VM_FRAME_PROGRAM (fp);
       goto vm_return;
@@ -432,7 +435,7 @@ VM_DEFINE_INSTRUCTION (return, "return", 0, 0, 1)
 
   /* Cache the last program */
   program = SCM_VM_FRAME_PROGRAM (fp);
-  CACHE_PROGRAM (program);
+  CACHE_PROGRAM ();
   PUSH (ret);
   NEXT;
 }

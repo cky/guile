@@ -24,8 +24,16 @@
   :export (frame->call))
 
 (define (frame->call frame)
-  (let ((prog (frame-program frame)))
-    (cons prog (reverse! (vector->list (frame-variables frame))))))
+  (let* ((prog (frame-program frame))
+	 (nargs (car (program-arity prog))))
+    (do ((i 0 (1+ i))
+	 (l (reverse! (vector->list (frame-variables frame))) (cdr l))
+	 (r '() (cons (car l) r)))
+	((= i nargs) (cons (program-name prog) r)))))
+
+(define (program-name x)
+  (hash-fold (lambda (s v d) (if (eq? x (variable-ref v)) s d)) x
+	     (module-obarray (current-module))))
 
 ; (define-method (binding (prog <program>))
 ;   (fold (lambda (s v d) (if (eq? v prog) s d))

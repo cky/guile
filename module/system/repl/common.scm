@@ -37,7 +37,7 @@
   vm language module value-count value-history tm-stats vm-stats gc-stats)
 
 (define (make-repl lang)
-  (let ((vm (make-vm)))
+  (let ((vm (the-vm)))
     (make <repl>
 	  :vm vm
 	  :language (lookup-language lang)

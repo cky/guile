@@ -85,20 +85,22 @@ vm_engine (SCM vm, SCM program, SCM args)
 
   /* Initialization */
   {
-    /* Bootcode */
+    SCM prog = program;
+
+    /* Boot program */
     scm_byte_t bytes[3] = {scm_op_call, 0, scm_op_halt};
-    SCM bootcode = scm_c_make_program (bytes, 3, SCM_BOOL_T);
     bytes[1] = scm_ilength (args);
+    program = scm_c_make_program (bytes, 3, SCM_BOOL_T);
 
     /* Initial frame */
     CACHE_REGISTER ();
-    CACHE_PROGRAM (bootcode);
+    CACHE_PROGRAM ();
     NEW_FRAME ();
 
     /* Initial arguments */
     for (; !SCM_NULLP (args); args = SCM_CDR (args))
       PUSH (SCM_CAR (args));
-    PUSH (program);
+    PUSH (prog);
   }
 
   /* Let's go! */
