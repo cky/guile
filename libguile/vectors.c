@@ -262,19 +262,13 @@ SCM_DEFINE (scm_vector_move_left_x, "vector-move-left!", 5, 0, 0,
 	    "@var{start1} is greater than @var{start2}.")
 #define FUNC_NAME s_scm_vector_move_left_x
 {
-  long i;
-  long j;
-  long e;
+  size_t i, j, e;
   
   SCM_VALIDATE_VECTOR (1, vec1);
-  SCM_VALIDATE_INUM_COPY (2, start1, i);
-  SCM_VALIDATE_INUM_COPY (3, end1, e);
   SCM_VALIDATE_VECTOR (4, vec2);
-  SCM_VALIDATE_INUM_COPY (5, start2, j);
-  SCM_ASSERT_RANGE (2, start1, i <= SCM_VECTOR_LENGTH (vec1) && i >= 0);
-  SCM_ASSERT_RANGE (5, start2, j <= SCM_VECTOR_LENGTH (vec2) && j >= 0);
-  SCM_ASSERT_RANGE (3, end1, e <= SCM_VECTOR_LENGTH (vec1) && e >= 0);
-  SCM_ASSERT_RANGE (5, start2, e-i+j <= SCM_VECTOR_LENGTH (vec2));
+  i = scm_to_unsigned_integer (start1, 0, SCM_VECTOR_LENGTH(vec1));
+  e = scm_to_unsigned_integer (end1, i, SCM_VECTOR_LENGTH(vec1));
+  j = scm_to_unsigned_integer (start2, 0, SCM_VECTOR_LENGTH(vec2)-(i-e));
 
   while (i<e)
     {
@@ -298,20 +292,15 @@ SCM_DEFINE (scm_vector_move_right_x, "vector-move-right!", 5, 0, 0,
 	    "@var{start1} is less than @var{start2}.")
 #define FUNC_NAME s_scm_vector_move_right_x
 {
-  long i;
-  long j;
-  long e;
+  size_t i, j, e;
 
   SCM_VALIDATE_VECTOR (1, vec1);
-  SCM_VALIDATE_INUM_COPY (2, start1, i);
-  SCM_VALIDATE_INUM_COPY (3, end1, e);
   SCM_VALIDATE_VECTOR (4, vec2);
-  SCM_VALIDATE_INUM_COPY (5, start2, j);
-  SCM_ASSERT_RANGE (2, start1, i <= SCM_VECTOR_LENGTH (vec1) && i >= 0);
-  SCM_ASSERT_RANGE (5, start2, j <= SCM_VECTOR_LENGTH (vec2) && j >= 0);
-  SCM_ASSERT_RANGE (3, end1, e <= SCM_VECTOR_LENGTH (vec1) && e >= 0);
-  j = e - i + j;
-  SCM_ASSERT_RANGE (5, start2, j <= SCM_VECTOR_LENGTH (vec2));
+  i = scm_to_unsigned_integer (start1, 0, SCM_VECTOR_LENGTH(vec1));
+  e = scm_to_unsigned_integer (end1, i, SCM_VECTOR_LENGTH(vec1));
+  j = scm_to_unsigned_integer (start2, 0, SCM_VECTOR_LENGTH(vec2)-(i-e));
+
+  j += e - i;
   while (i < e)
     {
       j--;

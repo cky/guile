@@ -171,8 +171,8 @@ SCM_DEFINE (scm_hashq, "hashq", 2, 0, 0,
 	    "different values, since @code{foo} will be garbage collected.")
 #define FUNC_NAME s_scm_hashq
 {
-  SCM_VALIDATE_INUM_MIN (2, size, 1);
-  return SCM_I_MAKINUM (scm_ihashq (key, SCM_INUM (size)));
+  unsigned long sz = scm_to_unsigned_integer (size, 1, ULONG_MAX);
+  return scm_from_ulong (scm_ihashq (key, sz));
 }
 #undef FUNC_NAME
 
@@ -207,8 +207,8 @@ SCM_DEFINE (scm_hashv, "hashv", 2, 0, 0,
 	    "different values, since @code{foo} will be garbage collected.")
 #define FUNC_NAME s_scm_hashv
 {
-  SCM_VALIDATE_INUM_MIN (2, size, 1);
-  return SCM_I_MAKINUM (scm_ihashv (key, SCM_INUM (size)));
+  unsigned long sz = scm_to_unsigned_integer (size, 1, ULONG_MAX);
+  return scm_from_ulong (scm_ihashv (key, sz));
 }
 #undef FUNC_NAME
 
@@ -230,8 +230,8 @@ SCM_DEFINE (scm_hash, "hash", 2, 0, 0,
 	    "integer in the range 0 to @var{size} - 1.")
 #define FUNC_NAME s_scm_hash
 {
-  SCM_VALIDATE_INUM_MIN (2, size, 1);
-  return SCM_I_MAKINUM (scm_ihash (key, SCM_INUM (size)));
+  unsigned long sz = scm_to_unsigned_integer (size, 1, ULONG_MAX);
+  return scm_from_ulong (scm_ihash (key, sz));
 }
 #undef FUNC_NAME
 

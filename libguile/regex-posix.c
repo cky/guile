@@ -230,11 +230,14 @@ SCM_DEFINE (scm_regexp_exec, "regexp-exec", 2, 2, 0,
 
   SCM_VALIDATE_RGXP (1, rx);
   SCM_VALIDATE_STRING (2, str);
-  SCM_VALIDATE_INUM_DEF_COPY (3, start,0, offset);
-  SCM_ASSERT_RANGE (3, start, offset >= 0 && offset <= SCM_STRING_LENGTH (str));
+
+  if (SCM_UNBNDP (start))
+    offset = 0;
+  else
+    offset = scm_to_signed_integer (start, 0, SCM_STRING_LENGTH (str));
+
   if (SCM_UNBNDP (flags))
     flags = SCM_INUM0;
-  SCM_VALIDATE_INUM (4, flags);
 
   /* re_nsub doesn't account for the `subexpression' representing the
      whole regexp, so add 1 to nmatches. */
@@ -244,7 +247,7 @@ SCM_DEFINE (scm_regexp_exec, "regexp-exec", 2, 2, 0,
   matches = scm_malloc (sizeof (regmatch_t) * nmatches);
   status = regexec (SCM_RGX (rx), SCM_STRING_CHARS (str) + offset,
 		    nmatches, matches,
-		    SCM_INUM (flags));
+		    scm_to_int (flags));
   if (!status)
     {
       int i;

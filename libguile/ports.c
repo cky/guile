@@ -598,9 +598,8 @@ SCM_DEFINE (scm_pt_member, "pt-member", 1, 0, 0,
 	    "@code{--enable-guile-debug} builds.")
 #define FUNC_NAME s_scm_pt_member
 {
-  long i;
-  SCM_VALIDATE_INUM_COPY (1, index, i);
-  if (i < 0 || i >= scm_i_port_table_size)
+  size_t i = scm_to_size_t (index);
+  if (i >= scm_i_port_table_size)
     return SCM_BOOL_F;
   else
     return scm_i_port_table[i]->port;
@@ -654,8 +653,7 @@ SCM_DEFINE (scm_set_port_revealed_x, "set-port-revealed!", 2, 0, 0,
 {
   port = SCM_COERCE_OUTPORT (port);
   SCM_VALIDATE_OPENPORT (1, port);
-  SCM_VALIDATE_INUM (2, rcount);
-  SCM_REVEALED (port) = SCM_INUM (rcount);
+  SCM_REVEALED (port) = scm_to_int (rcount);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -1351,8 +1349,12 @@ SCM_DEFINE (scm_seek, "seek", 3, 0, 0,
 
   fd_port = SCM_COERCE_OUTPORT (fd_port);
 
-  off = SCM_NUM2LONG (2, offset);
-  SCM_VALIDATE_INUM_COPY (3, whence, how);
+  if (sizeof (off_t) == sizeof (scm_t_intmax))
+    off = scm_to_intmax (offset);
+  else
+    off = scm_to_long (offset);
+  how = scm_to_int (whence);
+
   if (how != SEEK_SET && how != SEEK_CUR && how != SEEK_END)
     SCM_OUT_OF_RANGE (3, whence);
   if (SCM_OPPORTP (fd_port))
@@ -1367,12 +1369,11 @@ SCM_DEFINE (scm_seek, "seek", 3, 0, 0,
     }
   else /* file descriptor?.  */
     {
-      SCM_VALIDATE_INUM (1, fd_port);
-      rv = lseek (SCM_INUM (fd_port), off, how);
+      rv = lseek (scm_to_int (fd_port), off, how);
       if (rv == -1)
 	SCM_SYSERROR;
     }
-  return scm_long2num (rv);
+  return scm_from_intmax (rv);
 }
 #undef FUNC_NAME
 
@@ -1472,8 +1473,7 @@ SCM_DEFINE (scm_set_port_line_x, "set-port-line!", 2, 0, 0,
 {
   port = SCM_COERCE_OUTPORT (port);
   SCM_VALIDATE_OPENPORT (1, port);
-  SCM_VALIDATE_INUM (2, line);
-  SCM_PTAB_ENTRY (port)->line_number = SCM_INUM (line);
+  SCM_PTAB_ENTRY (port)->line_number = scm_to_int (line);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -1504,8 +1504,7 @@ SCM_DEFINE (scm_set_port_column_x, "set-port-column!", 2, 0, 0,
 {
   port = SCM_COERCE_OUTPORT (port);
   SCM_VALIDATE_OPENPORT (1, port);
-  SCM_VALIDATE_INUM (2, column);
-  SCM_PTAB_ENTRY (port)->column_number = SCM_INUM (column);
+  SCM_PTAB_ENTRY (port)->column_number = scm_to_int (column);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME

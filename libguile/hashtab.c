@@ -312,11 +312,7 @@ SCM_DEFINE (scm_make_hash_table, "make-hash-table", 0, 1, 0,
   if (SCM_UNBNDP (n))
     return make_hash_table (0, 0, FUNC_NAME);
   else
-    {
-      int k;
-      SCM_VALIDATE_INUM_COPY (1, n, k);
-      return make_hash_table (0, k, FUNC_NAME);
-    }
+    return make_hash_table (0, scm_to_ulong (n), FUNC_NAME);
 }
 #undef FUNC_NAME
 
@@ -335,11 +331,8 @@ SCM_DEFINE (scm_make_weak_key_hash_table, "make-weak-key-hash-table", 0, 1, 0,
   if (SCM_UNBNDP (n))
     return make_hash_table (SCM_HASHTABLEF_WEAK_CAR, 0, FUNC_NAME);
   else
-    {
-      int k;
-      SCM_VALIDATE_INUM_COPY (1, n, k);
-      return make_hash_table (SCM_HASHTABLEF_WEAK_CAR, k, FUNC_NAME);
-    }
+    return make_hash_table (SCM_HASHTABLEF_WEAK_CAR,
+			    scm_to_ulong (n), FUNC_NAME);
 }
 #undef FUNC_NAME
 
@@ -354,9 +347,8 @@ SCM_DEFINE (scm_make_weak_value_hash_table, "make-weak-value-hash-table", 0, 1, 
     return make_hash_table (SCM_HASHTABLEF_WEAK_CDR, 0, FUNC_NAME);
   else
     {
-      int k;
-      SCM_VALIDATE_INUM_COPY (1, n, k);
-      return make_hash_table (SCM_HASHTABLEF_WEAK_CDR, k, FUNC_NAME);
+      return make_hash_table (SCM_HASHTABLEF_WEAK_CDR,
+			      scm_to_ulong (n), FUNC_NAME);
     }
 }
 #undef FUNC_NAME
@@ -374,10 +366,8 @@ SCM_DEFINE (scm_make_doubly_weak_hash_table, "make-doubly-weak-hash-table", 1, 0
 			    FUNC_NAME);
   else
     {
-      int k;
-      SCM_VALIDATE_INUM_COPY (1, n, k);
       return make_hash_table (SCM_HASHTABLEF_WEAK_CAR | SCM_HASHTABLEF_WEAK_CDR,
-			      k,
+			      scm_to_ulong (n),
 			      FUNC_NAME);
     }
 }
@@ -785,7 +775,7 @@ scm_ihashx (SCM obj, unsigned long n, scm_t_ihashx_closure *closure)
   SCM answer = scm_call_2 (closure->hash,
 			   obj,
 			   scm_ulong2num ((unsigned long) n));
-  return SCM_INUM (answer);
+  return scm_to_ulong (answer);
 }
 
 

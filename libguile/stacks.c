@@ -551,10 +551,7 @@ SCM_DEFINE (scm_stack_ref, "stack-ref", 2, 0, 0,
   unsigned long int c_index;
 
   SCM_VALIDATE_STACK (1, stack);
-  SCM_VALIDATE_INUM (2, index);
-  SCM_ASSERT_RANGE (1, index, SCM_INUM (index) >= 0);
-  c_index = SCM_INUM (index);
-  SCM_ASSERT_RANGE (1, index, c_index < SCM_STACK_LENGTH (stack));
+  c_index = scm_to_unsigned_integer (index, 0, SCM_STACK_LENGTH(stack)-1);
   return scm_cons (stack, index);
 }
 #undef FUNC_NAME

@@ -1,3 +1,30 @@
+2004-07-10  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* socket.c (ipv6_net_to_num, scm_from_ipv6): Renamed
+	ipv6_net_to_num to scm_from_ipv6, for converting from an IPv&
+	byte-wise address to a SCM integer.  Changed all uses.
+	(ipv6_num_to_net, scm_to_ipv6): Renamed ipv6_num_to_net to
+	scm_to_ipv6 and added type and range checking, for converting from
+	an IPv& byte-wise address to a SCM integer.  Changed all uses.
+	(bignum_in_ipv6_range_p, VALIDATE_INET6): Removed, their function
+	is now done by scm_to_ipv6.
+	
+	* numbers.c (scm_to_signed_integer, scm_to_unsigned_integer): dot
+	not accept inexact integers.
+
+	* validate.h, deprecated.h (SCM_VALIDATE_INUM,
+	SCM_VALIDATE_INUM_COPY, SCM_VALIDATE_BIGINT,
+	SCM_VALIDATE_INUM_MIN, SCM_VALIDATE_INUM_MIN_COPY,
+	SCM_VALIDATE_INUM_MIN_DEF_COPY,SCM_VALIDATE_INUM_DEF,
+	SCM_VALIDATE_INUM_DEF_COPY, SCM_VALIDATE_INUM_RANGE,
+	SCM_VALIDATE_INUM_RANGE_COPY): Deprecated because they make the
+	fixnum/bignum distinction visible.  Changed all uses to
+	scm_to_size_t or similar.
+
+2004-07-09  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* cpp_cnvt.awk: Use scm_from_int instead of SCM_MAKINUM.
+
 2004-07-10  Kevin Ryde  <user42@zip.com.au>
 
 	* hash.c (scm_hashq, scm_hashv, scm_hash): Restrict to size>=1 rather

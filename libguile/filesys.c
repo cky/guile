@@ -201,22 +201,20 @@ SCM_DEFINE (scm_chown, "chown", 3, 0, 0,
 
   object = SCM_COERCE_OUTPORT (object);
 
-  SCM_VALIDATE_INUM (2, owner);
-  SCM_VALIDATE_INUM (3, group);
 #ifdef HAVE_FCHOWN
-  if (SCM_INUMP (object) || (SCM_OPFPORTP (object)))
+  if (scm_is_integer (object) || (SCM_OPFPORTP (object)))
     {
-      int fdes = SCM_INUMP (object) ? SCM_INUM (object)
-	: SCM_FPORT_FDES (object);
+      int fdes = (SCM_OPFPORTP (object)?
+		  SCM_FPORT_FDES (object) : scm_to_int (object));
 
-      SCM_SYSCALL (rv = fchown (fdes, SCM_INUM (owner), SCM_INUM (group)));
+      SCM_SYSCALL (rv = fchown (fdes, scm_to_int (owner), scm_to_int (group)));
     }
   else
 #endif
     {
       SCM_VALIDATE_STRING (1, object);
       SCM_SYSCALL (rv = chown (SCM_STRING_CHARS (object),
-			       SCM_INUM (owner), SCM_INUM (group)));
+			       scm_to_int (owner), scm_to_int (group)));
     }
   if (rv == -1)
     SCM_SYSERROR;
@@ -242,19 +240,18 @@ SCM_DEFINE (scm_chmod, "chmod", 2, 0, 0,
 
   object = SCM_COERCE_OUTPORT (object);
 
-  SCM_VALIDATE_INUM (2, mode);
-  if (SCM_INUMP (object) || SCM_OPFPORTP (object))
+  if (scm_is_integer (object) || SCM_OPFPORTP (object))
     {
-      if (SCM_INUMP (object))
-	fdes = SCM_INUM (object);
+      if (scm_is_integer (object))
+	fdes = scm_to_int (object);
       else
 	fdes = SCM_FPORT_FDES (object);
-      SCM_SYSCALL (rv = fchmod (fdes, SCM_INUM (mode)));
+      SCM_SYSCALL (rv = fchmod (fdes, scm_to_int (mode)));
     }
   else
     {
       SCM_VALIDATE_STRING (1, object);
-      SCM_SYSCALL (rv = chmod (SCM_STRING_CHARS (object), SCM_INUM (mode)));
+      SCM_SYSCALL (rv = chmod (SCM_STRING_CHARS (object), scm_to_int (mode)));
     }
   if (rv == -1)
     SCM_SYSERROR;
@@ -278,10 +275,9 @@ SCM_DEFINE (scm_umask, "umask", 0, 1, 0,
     }
   else
     {
-      SCM_VALIDATE_INUM (1, mode);
-      mask = umask (SCM_INUM (mode));
+      mask = umask (scm_to_uint (mode));
     }
-  return SCM_I_MAKINUM (mask);
+  return scm_from_uint (mask);
 }
 #undef FUNC_NAME
 
@@ -380,8 +376,7 @@ SCM_DEFINE (scm_close, "close", 1, 0, 0,
 
   if (SCM_PORTP (fd_or_port))
     return scm_close_port (fd_or_port);
-  SCM_VALIDATE_INUM (1, fd_or_port);
-  fd = SCM_INUM (fd_or_port);
+  fd = scm_to_int (fd_or_port);
   scm_evict_ports (fd);		/* see scsh manual.  */
   SCM_SYSCALL (rv = close (fd));
   /* following scsh, closing an already closed file descriptor is
@@ -404,7 +399,7 @@ SCM_DEFINE (scm_close_fdes, "close-fdes", 1, 0, 0,
   int c_fd;
   int rv;
 
-  SCM_VALIDATE_INUM_COPY (1, fd, c_fd);
+  c_fd = scm_to_int (fd);
   SCM_SYSCALL (rv = close (c_fd));
   if (rv < 0)
     SCM_SYSERROR;
@@ -743,8 +738,7 @@ SCM_DEFINE (scm_mkdir, "mkdir", 1, 1, 0,
     }
   else
     {
-      SCM_VALIDATE_INUM (2, mode);
-      SCM_SYSCALL (rv = mkdir (SCM_STRING_CHARS (path), SCM_INUM (mode)));
+      SCM_SYSCALL (rv = mkdir (SCM_STRING_CHARS (path), scm_to_uint (mode)));
     }
   if (rv != 0)
     SCM_SYSERROR;
@@ -1213,16 +1207,13 @@ SCM_DEFINE (scm_select, "select", 3, 2, 0,
     time_ptr = 0;
   else
     {
-      if (SCM_INUMP (secs))
+      if (scm_is_unsigned_integer (secs, 0, ULONG_MAX))
 	{
-	  timeout.tv_sec = SCM_INUM (secs);
+	  timeout.tv_sec = scm_to_ulong (secs);
 	  if (SCM_UNBNDP (usecs))
 	    timeout.tv_usec = 0;
 	  else
-	    {
-              SCM_VALIDATE_INUM (5, usecs);
-	      timeout.tv_usec = SCM_INUM (usecs);
-	    }
+	    timeout.tv_usec = scm_to_long (usecs);
 	}
       else
 	{
@@ -1288,25 +1279,20 @@ SCM_DEFINE (scm_fcntl, "fcntl", 2, 1, 0,
 
   object = SCM_COERCE_OUTPORT (object);
 
-  SCM_VALIDATE_INUM (2, cmd);
   if (SCM_OPFPORTP (object))
     fdes = SCM_FPORT_FDES (object);
   else
-    {
-      SCM_VALIDATE_INUM (1, object);
-      fdes = SCM_INUM (object);
-    }
+    fdes = scm_to_int (object);
 
-  if (SCM_UNBNDP (value)) {
+  if (SCM_UNBNDP (value))
     ivalue = 0;
-  } else {
-    SCM_VALIDATE_INUM_COPY (SCM_ARG3, value, ivalue);
-  }
+  else
+    ivalue = scm_to_int (value);
 
-  SCM_SYSCALL (rv = fcntl (fdes, SCM_INUM (cmd), ivalue));
+  SCM_SYSCALL (rv = fcntl (fdes, scm_to_int (cmd), ivalue));
   if (rv == -1)
     SCM_SYSERROR;
-  return SCM_I_MAKINUM (rv);
+  return scm_from_int (rv);
 }
 #undef FUNC_NAME
 #endif /* HAVE_FCNTL */
@@ -1329,10 +1315,8 @@ SCM_DEFINE (scm_fsync, "fsync", 1, 0, 0,
       fdes = SCM_FPORT_FDES (object);
     }
   else
-    {
-      SCM_VALIDATE_INUM (1, object);
-      fdes = SCM_INUM (object);
-    }
+    fdes = scm_to_int (object);
+
   if (fsync (fdes) == -1)
     SCM_SYSERROR;
   return SCM_UNSPECIFIED;

@@ -443,8 +443,6 @@ SCM_DEFINE (scm_display_application, "display-application", 1, 2, 0,
     SCM_VALIDATE_OPOUTPORT (2, port);
   if (SCM_UNBNDP (indent))
     indent = SCM_INUM0;
-  else
-    SCM_VALIDATE_INUM (3, indent);
   
   if (SCM_FRAME_PROC_P (frame))
     /* Display an application. */
@@ -465,7 +463,7 @@ SCM_DEFINE (scm_display_application, "display-application", 1, 2, 0,
       pstate->writingp = 1;
       pstate->fancyp = 1;
       
-      display_application (frame, SCM_INUM (indent), sport, port, pstate);
+      display_application (frame, scm_to_int (indent), sport, port, pstate);
       return SCM_BOOL_T;
     }
   else

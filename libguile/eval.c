@@ -328,6 +328,8 @@ syntax_error (const char* const msg, const SCM form, const SCM expr)
  * environment frame, the number of the binding within that frame, and a
  * boolean value indicating whether the binding is the last binding in the
  * frame.
+ *
+ * Frame numbers have 11 bits, relative offsets have 12 bits.
  */
 
 #define SCM_ILOC00		SCM_MAKE_ITAG8(0L, scm_tc8_iloc)
@@ -339,6 +341,8 @@ syntax_error (const char* const msg, const SCM form, const SCM expr)
 #define SCM_IDIST(n) 		(SCM_UNPACK (n) >> 20)
 #define SCM_ICDRP(n) 		(SCM_ICDR & SCM_UNPACK (n))
 #define SCM_IDSTMSK		(-SCM_IDINC)
+#define SCM_IFRAMEMAX           ((1<<11)-1)
+#define SCM_IDISTMAX            ((1<<12)-1)
 #define SCM_MAKE_ILOC(frame_nr, binding_nr, last_p) \
   SCM_PACK ( \
     ((frame_nr) << 8) \
@@ -365,10 +369,8 @@ SCM_DEFINE (scm_dbg_make_iloc, "dbg-make-iloc", 3, 0, 0,
 	    "offset @var{binding} and the cdr flag @var{cdrp}.")
 #define FUNC_NAME s_scm_dbg_make_iloc
 {
-  SCM_VALIDATE_INUM (1, frame);
-  SCM_VALIDATE_INUM (2, binding);
-  return SCM_MAKE_ILOC (SCM_INUM (frame),
-			SCM_INUM (binding),
+  return SCM_MAKE_ILOC (scm_to_unsigned_integer (frame, 0, SCM_IFRAME_MAX),
+			scm_to_unsigned_integer (binding, 0, SCM_IDIST_MAX),
 			scm_is_true (cdrp));
 }
 #undef FUNC_NAME

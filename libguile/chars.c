@@ -249,8 +249,7 @@ SCM_DEFINE (scm_integer_to_char, "integer->char", 1, 0, 0,
 	    "Return the character at position @var{n} in the ASCII sequence.")
 #define FUNC_NAME s_scm_integer_to_char
 {
-  SCM_VALIDATE_INUM_RANGE (1, n, 0, 256);
-  return SCM_MAKE_CHAR (SCM_INUM (n));
+  return SCM_MAKE_CHAR (scm_to_uchar (n));
 }
 #undef FUNC_NAME
 

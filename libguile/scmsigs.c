@@ -298,9 +298,8 @@ SCM_DEFINE (scm_sigaction_for_thread, "sigaction", 1, 3, 0,
       
   SCM old_handler;
 
-  SCM_VALIDATE_INUM_COPY (1, signum, csig);
-  if (csig < 0 || csig >= NSIG)
-    SCM_OUT_OF_RANGE (1, signum);
+  csig = scm_to_signed_integer (signum, 0, NSIG-1);
+
 #if defined(HAVE_SIGACTION)
 #if defined(SA_RESTART) && defined(HAVE_RESTARTABLE_SYSCALLS)
   /* don't allow SA_RESTART to be omitted if HAVE_RESTARTABLE_SYSCALLS
@@ -311,10 +310,7 @@ SCM_DEFINE (scm_sigaction_for_thread, "sigaction", 1, 3, 0,
   action.sa_flags = 0;
 #endif
   if (!SCM_UNBNDP (flags))
-    {
-      SCM_VALIDATE_INUM (3, flags);
-      action.sa_flags |= SCM_INUM (flags);
-    }
+    action.sa_flags |= scm_to_int (flags);
   sigemptyset (&action.sa_mask);
 #endif
 
@@ -497,10 +493,7 @@ SCM_DEFINE (scm_alarm, "alarm", 1, 0, 0,
 	    "no previous alarm, the return value is zero.")
 #define FUNC_NAME s_scm_alarm
 {
-  unsigned int j;
-  SCM_VALIDATE_INUM (1, i);
-  j = alarm (SCM_INUM (i));
-  return SCM_I_MAKINUM (j);
+  return scm_from_uint (alarm (scm_to_uint (i)));
 }
 #undef FUNC_NAME
 
@@ -608,23 +601,16 @@ SCM_DEFINE (scm_sleep, "sleep", 1, 0, 0,
 	    "of seconds remaining otherwise.")
 #define FUNC_NAME s_scm_sleep
 {
-  unsigned long j;
-  SCM_VALIDATE_INUM_MIN (1, i,0);
-  j = scm_thread_sleep (SCM_INUM(i));
-  return scm_ulong2num (j);
+  return scm_from_ulong (scm_thread_sleep (scm_to_int (i)));
 }
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_usleep, "usleep", 1, 0, 0,
            (SCM i),
-	    "Sleep for I microseconds.  @code{usleep} is not available on\n"
-	    "all platforms.")
+	    "Sleep for @var{i} microseconds.")
 #define FUNC_NAME s_scm_usleep
 {
-  unsigned long j;
-  SCM_VALIDATE_INUM_MIN (1, i,0);
-  j = scm_thread_usleep (SCM_INUM (i));
-  return scm_ulong2num (j);
+  return scm_from_ulong (scm_thread_usleep (scm_to_ulong (i)));
 }
 #undef FUNC_NAME
 
@@ -634,11 +620,8 @@ SCM_DEFINE (scm_raise, "raise", 1, 0, 0,
 	    "@var{sig} is as described for the kill procedure.")
 #define FUNC_NAME s_scm_raise
 {
-  SCM_VALIDATE_INUM (1, sig);
-  SCM_DEFER_INTS;
-  if (kill (getpid (), (int) SCM_INUM (sig)) != 0)
+  if (kill (getpid (), scm_to_int (sig)) != 0)
     SCM_SYSERROR;
-  SCM_ALLOW_INTS;
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME

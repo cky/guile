@@ -450,14 +450,12 @@ SCM_DEFINE (scm_kill, "kill", 2, 0, 0,
 	    "@end defvar")
 #define FUNC_NAME s_scm_kill
 {
-  SCM_VALIDATE_INUM (1, pid);
-  SCM_VALIDATE_INUM (2, sig);
   /* Signal values are interned in scm_init_posix().  */
 #ifdef HAVE_KILL
-  if (kill ((int) SCM_INUM (pid), (int) SCM_INUM (sig)) != 0)
+  if (kill (scm_to_int (pid), scm_to_int  (sig)) != 0)
 #else
-  if ((int) SCM_INUM (pid) == getpid ())
-    if (raise ((int) SCM_INUM (sig)) != 0)
+  if (scm_to_int (pid) == getpid ())
+    if (raise (scm_to_int (sig)) != 0)
 #endif
       SCM_SYSERROR;
   return SCM_UNSPECIFIED;
@@ -506,19 +504,17 @@ SCM_DEFINE (scm_waitpid, "waitpid", 1, 1, 0,
   int i;
   int status;
   int ioptions;
-  SCM_VALIDATE_INUM (1, pid);
   if (SCM_UNBNDP (options))
     ioptions = 0;
   else
     {
-      SCM_VALIDATE_INUM (2, options);
       /* Flags are interned in scm_init_posix.  */
-      ioptions = SCM_INUM (options);
+      ioptions = scm_to_int (options);
     }
-  SCM_SYSCALL (i = waitpid (SCM_INUM (pid), &status, ioptions));
+  SCM_SYSCALL (i = waitpid (scm_to_int (pid), &status, ioptions));
   if (i == -1)
     SCM_SYSERROR;
-  return scm_cons (SCM_I_MAKINUM (0L + i), SCM_I_MAKINUM (0L + status));
+  return scm_cons (scm_from_int (i), scm_from_int (status));
 }
 #undef FUNC_NAME
 #endif /* HAVE_WAITPID */
@@ -533,13 +529,11 @@ SCM_DEFINE (scm_status_exit_val, "status:exit-val", 1, 0, 0,
 {
   int lstatus;
 
-  SCM_VALIDATE_INUM (1, status);
-
   /* On Ultrix, the WIF... macros assume their argument is an lvalue;
      go figure.  SCM_INUM does not yield an lvalue.  */
-  lstatus = SCM_INUM (status);
+  lstatus = scm_to_int (status);
   if (WIFEXITED (lstatus))
-    return (SCM_I_MAKINUM (WEXITSTATUS (lstatus)));
+    return (scm_from_int (WEXITSTATUS (lstatus)));
   else
     return SCM_BOOL_F;
 }
@@ -553,11 +547,9 @@ SCM_DEFINE (scm_status_term_sig, "status:term-sig", 1, 0, 0,
 {
   int lstatus;
 
-  SCM_VALIDATE_INUM (1, status);
-
-  lstatus = SCM_INUM (status);
+  lstatus = scm_to_int (status);
   if (WIFSIGNALED (lstatus))
-    return SCM_I_MAKINUM (WTERMSIG (lstatus));
+    return scm_from_int (WTERMSIG (lstatus));
   else
     return SCM_BOOL_F;
 }
@@ -571,11 +563,9 @@ SCM_DEFINE (scm_status_stop_sig, "status:stop-sig", 1, 0, 0,
 {
   int lstatus;
 
-  SCM_VALIDATE_INUM (1, status);
-
-  lstatus = SCM_INUM (status);
+  lstatus = scm_to_int (status);
   if (WIFSTOPPED (lstatus))
-    return SCM_I_MAKINUM (WSTOPSIG (lstatus));
+    return scm_from_int (WSTOPSIG (lstatus));
   else
     return SCM_BOOL_F;
 }
@@ -659,8 +649,7 @@ SCM_DEFINE (scm_setuid, "setuid", 1, 0, 0,
 	    "The return value is unspecified.")
 #define FUNC_NAME s_scm_setuid
 {
-  SCM_VALIDATE_INUM (1, id);
-  if (setuid (SCM_INUM (id)) != 0)
+  if (setuid (scm_to_int (id)) != 0)
     SCM_SYSERROR;
   return SCM_UNSPECIFIED;
 }
@@ -673,8 +662,7 @@ SCM_DEFINE (scm_setgid, "setgid", 1, 0, 0,
 	    "The return value is unspecified.")
 #define FUNC_NAME s_scm_setgid
 {
-  SCM_VALIDATE_INUM (1, id);
-  if (setgid (SCM_INUM (id)) != 0)
+  if (setgid (scm_to_int (id)) != 0)
     SCM_SYSERROR;
   return SCM_UNSPECIFIED;
 }
@@ -691,11 +679,10 @@ SCM_DEFINE (scm_seteuid, "seteuid", 1, 0, 0,
 {
   int rv;
 
-  SCM_VALIDATE_INUM (1, id);
 #ifdef HAVE_SETEUID
-  rv = seteuid (SCM_INUM (id));
+  rv = seteuid (scm_to_int (id));
 #else
-  rv = setuid (SCM_INUM (id));
+  rv = setuid (scm_to_int (id));
 #endif
   if (rv != 0)
     SCM_SYSERROR;
@@ -717,11 +704,10 @@ SCM_DEFINE (scm_setegid, "setegid", 1, 0, 0,
 {
   int rv;
 
-  SCM_VALIDATE_INUM (1, id);
 #ifdef HAVE_SETEUID
-  rv = setegid (SCM_INUM (id));
+  rv = setegid (scm_to_int (id));
 #else
-  rv = setgid (SCM_INUM (id));
+  rv = setgid (scm_to_int (id));
 #endif
   if (rv != 0)
     SCM_SYSERROR;
@@ -757,10 +743,8 @@ SCM_DEFINE (scm_setpgid, "setpgid", 2, 0, 0,
 	    "The return value is unspecified.")
 #define FUNC_NAME s_scm_setpgid
 {
-  SCM_VALIDATE_INUM (1, pid);
-  SCM_VALIDATE_INUM (2, pgid);
   /* FIXME(?): may be known as setpgrp.  */
-  if (setpgid (SCM_INUM (pid), SCM_INUM (pgid)) != 0)
+  if (setpgid (scm_to_int (pid), scm_to_int (pgid)) != 0)
     SCM_SYSERROR;
   return SCM_UNSPECIFIED;
 }
@@ -867,9 +851,8 @@ SCM_DEFINE (scm_tcsetpgrp, "tcsetpgrp", 2, 0, 0,
   port = SCM_COERCE_OUTPORT (port);
 
   SCM_VALIDATE_OPFPORT (1, port);
-  SCM_VALIDATE_INUM (2, pgid);
   fd = SCM_FPORT_FDES (port);
-  if (tcsetpgrp (fd, SCM_INUM (pgid)) == -1)
+  if (tcsetpgrp (fd, scm_to_int (pgid)) == -1)
     SCM_SYSERROR;
   return SCM_UNSPECIFIED;
 }
@@ -1218,8 +1201,7 @@ SCM_DEFINE (scm_access, "access?", 2, 0, 0,
   int rv;
 
   SCM_VALIDATE_STRING (1, path);
-  SCM_VALIDATE_INUM (2, how);
-  rv = access (SCM_STRING_CHARS (path), SCM_INUM (how));
+  rv = access (SCM_STRING_CHARS (path), scm_to_int (how));
   return scm_from_bool (!rv);
 }
 #undef FUNC_NAME
@@ -1343,7 +1325,6 @@ SCM_DEFINE (scm_setlocale, "setlocale", 1, 1, 0,
   char *clocale;
   char *rv;
 
-  SCM_VALIDATE_INUM (1, category);
   if (SCM_UNBNDP (locale))
     {
       clocale = NULL;
@@ -1354,7 +1335,7 @@ SCM_DEFINE (scm_setlocale, "setlocale", 1, 1, 0,
       clocale = SCM_STRING_CHARS (locale);
     }
 
-  rv = setlocale (SCM_INUM (category), clocale);
+  rv = setlocale (scm_to_int (category), clocale);
   if (rv == NULL)
     SCM_SYSERROR;
   return scm_makfrom0str (rv);
@@ -1386,8 +1367,6 @@ SCM_DEFINE (scm_mknod, "mknod", 4, 0, 0,
 
   SCM_VALIDATE_STRING (1, path);
   SCM_VALIDATE_SYMBOL (2, type);
-  SCM_VALIDATE_INUM (3, perms);
-  SCM_VALIDATE_INUM (4, dev);
 
   p = SCM_SYMBOL_CHARS (type);
   if (strcmp (p, "regular") == 0)
@@ -1409,8 +1388,9 @@ SCM_DEFINE (scm_mknod, "mknod", 4, 0, 0,
   else
     SCM_OUT_OF_RANGE (2, type);
 
-  SCM_SYSCALL (val = mknod (SCM_STRING_CHARS (path), ctype | SCM_INUM (perms),
-			    SCM_INUM (dev)));
+  SCM_SYSCALL (val = mknod (SCM_STRING_CHARS (path),
+			    ctype | scm_to_int (perms),
+			    scm_to_int (dev)));
   if (val != 0)
     SCM_SYSERROR;
   return SCM_UNSPECIFIED;
@@ -1426,8 +1406,7 @@ SCM_DEFINE (scm_nice, "nice", 1, 0, 0,
 	    "The return value is unspecified.")
 #define FUNC_NAME s_scm_nice
 {
-  SCM_VALIDATE_INUM (1, incr);
-  if (nice(SCM_INUM(incr)) != 0)
+  if (nice (scm_to_int (incr)) != 0)
     SCM_SYSERROR;
   return SCM_UNSPECIFIED;
 }
@@ -1553,8 +1532,8 @@ SCM_DEFINE (scm_getpriority, "getpriority", 2, 0, 0,
 {
   int cwhich, cwho, ret;
 
-  SCM_VALIDATE_INUM_COPY (1, which, cwhich);
-  SCM_VALIDATE_INUM_COPY (2, who, cwho);
+  cwhich = scm_to_int (which);
+  cwho = scm_to_int (who);
 
   /* We have to clear errno and examine it later, because -1 is a
      legal return value for getpriority().  */
@@ -1562,7 +1541,7 @@ SCM_DEFINE (scm_getpriority, "getpriority", 2, 0, 0,
   ret = getpriority (cwhich, cwho);
   if (errno != 0)
     SCM_SYSERROR;
-  return SCM_I_MAKINUM (ret);
+  return scm_from_int (ret);
 }
 #undef FUNC_NAME
 #endif /* HAVE_GETPRIORITY */
@@ -1587,9 +1566,9 @@ SCM_DEFINE (scm_setpriority, "setpriority", 3, 0, 0,
 {
   int cwhich, cwho, cprio;
 
-  SCM_VALIDATE_INUM_COPY (1, which, cwhich);
-  SCM_VALIDATE_INUM_COPY (2, who, cwho);
-  SCM_VALIDATE_INUM_COPY (3, prio, cprio);
+  cwhich = scm_to_int (which);
+  cwho = scm_to_int (who);
+  cprio = scm_to_int (prio);
 
   if (setpriority (cwhich, cwho, cprio) == -1)
     SCM_SYSERROR;
@@ -1714,18 +1693,17 @@ SCM_DEFINE (scm_flock, "flock", 2, 0, 0,
 	    "file descriptor or an open file descriptor port.")
 #define FUNC_NAME s_scm_flock
 {
-  int coperation, fdes;
+  int fdes;
 
-  if (SCM_INUMP (file))
-    fdes = SCM_INUM (file);
+  if (scm_is_integer (file))
+    fdes = scm_to_int (file);
   else
     {
       SCM_VALIDATE_OPFPORT (2, file);
 
       fdes = SCM_FPORT_FDES (file);
     }
-  SCM_VALIDATE_INUM_COPY (2, operation, coperation);
-  if (flock (fdes, coperation) == -1)
+  if (flock (fdes, scm_to_int (operation)) == -1)
     SCM_SYSERROR;
   return SCM_UNSPECIFIED;
 }

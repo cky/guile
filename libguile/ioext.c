@@ -127,11 +127,11 @@ SCM_DEFINE (scm_dup_to_fdes, "dup->fdes", 1, 1, 0,
       newfd = dup (oldfd);
       if (newfd == -1)
 	SCM_SYSERROR;
-      fd = SCM_I_MAKINUM (newfd);
+      fd = scm_from_int (newfd);
     }
   else
     {
-      SCM_VALIDATE_INUM_COPY (2, fd, newfd);
+      newfd = scm_to_int (fd);
       if (oldfd != newfd)
 	{
 	  scm_evict_ports (newfd);	/* see scsh manual.  */
@@ -161,8 +161,8 @@ SCM_DEFINE (scm_dup2, "dup2", 2, 0, 0,
   int c_newfd;
   int rv;
 
-  SCM_VALIDATE_INUM_COPY (1, oldfd, c_oldfd);
-  SCM_VALIDATE_INUM_COPY (2, newfd, c_newfd);
+  c_oldfd = scm_to_int (oldfd);
+  c_newfd = scm_to_int (newfd);
   rv = dup2 (c_oldfd, c_newfd);
   if (rv == -1)
     SCM_SYSERROR;
@@ -218,10 +218,9 @@ SCM_DEFINE (scm_fdopen, "fdopen", 2, 0, 0,
 	    "same as that accepted by @ref{File Ports, open-file}.")
 #define FUNC_NAME s_scm_fdopen
 {
-  SCM_VALIDATE_INUM (1, fdes);
   SCM_VALIDATE_STRING (2, modes);
-
-  return scm_fdes_to_port (SCM_INUM (fdes), SCM_STRING_CHARS (modes), SCM_BOOL_F);
+  return scm_fdes_to_port (scm_to_int (fdes),
+			   SCM_STRING_CHARS (modes), SCM_BOOL_F);
 }
 #undef FUNC_NAME
 
@@ -250,10 +249,9 @@ SCM_DEFINE (scm_primitive_move_to_fdes, "primitive-move->fdes", 2, 0, 0,
   port = SCM_COERCE_OUTPORT (port);
 
   SCM_VALIDATE_OPFPORT (1, port);
-  SCM_VALIDATE_INUM (2, fd);
   stream = SCM_FSTREAM (port);
   old_fd = stream->fdes;
-  new_fd = SCM_INUM (fd);
+  new_fd = scm_to_int (fd);
   if  (old_fd == new_fd)
     {
       return SCM_BOOL_F;
@@ -279,8 +277,8 @@ SCM_DEFINE (scm_fdes_to_ports, "fdes->ports", 1, 0, 0,
   SCM result = SCM_EOL;
   int int_fd;
   long i;
-  
-  SCM_VALIDATE_INUM_COPY (1, fd, int_fd);
+
+  int_fd = scm_to_int (fd);
 
   scm_mutex_lock (&scm_i_port_table_mutex);
   for (i = 0; i < scm_i_port_table_size; i++)

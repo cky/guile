@@ -142,7 +142,7 @@ SCM_DEFINE (scm_setvbuf, "setvbuf", 2, 1, 0,
   port = SCM_COERCE_OUTPORT (port);
 
   SCM_VALIDATE_OPFPORT (1,port);
-  SCM_VALIDATE_INUM_COPY (2,mode,cmode);
+  cmode = scm_to_int (mode);
   if (cmode != _IONBF && cmode != _IOFBF && cmode != _IOLBF)
     scm_out_of_range (FUNC_NAME, mode);
 
@@ -165,7 +165,7 @@ SCM_DEFINE (scm_setvbuf, "setvbuf", 2, 1, 0,
     }
   else
     {
-      SCM_VALIDATE_INUM_COPY (3,size,csize);
+      csize = scm_to_int (size);
       if (csize < 0 || (cmode == _IONBF && csize > 0))
 	scm_out_of_range (FUNC_NAME, size);
     }

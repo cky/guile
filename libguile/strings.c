@@ -227,11 +227,10 @@ SCM_DEFINE (scm_string_ref, "string-ref", 2, 0, 0,
 	    "indexing. @var{k} must be a valid index of @var{str}.")
 #define FUNC_NAME s_scm_string_ref
 {
-  long idx;
+  unsigned long idx;
 
   SCM_VALIDATE_STRING (1, str);
-  SCM_VALIDATE_INUM_COPY (2, k, idx);
-  SCM_ASSERT_RANGE (2, k, idx >= 0 && idx < SCM_STRING_LENGTH (str));
+  idx = scm_to_unsigned_integer (k, 0, SCM_STRING_LENGTH(str)-1);
   return SCM_MAKE_CHAR (SCM_STRING_UCHARS (str)[idx]);
 }
 #undef FUNC_NAME
@@ -244,10 +243,12 @@ SCM_DEFINE (scm_string_set_x, "string-set!", 3, 0, 0,
 	    "@var{str}.")
 #define FUNC_NAME s_scm_string_set_x
 {
+  unsigned long idx;
+
   SCM_VALIDATE_STRING (1, str);
-  SCM_VALIDATE_INUM_RANGE (2, k,0, SCM_STRING_LENGTH(str));
+  idx = scm_to_unsigned_integer (k, 0, SCM_STRING_LENGTH(str)-1);
   SCM_VALIDATE_CHAR (3, chr);
-  SCM_STRING_UCHARS (str)[SCM_INUM (k)] = SCM_CHAR (chr);
+  SCM_STRING_UCHARS (str)[idx] = SCM_CHAR (chr);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -263,19 +264,16 @@ SCM_DEFINE (scm_substring, "substring", 2, 1, 0,
             "0 <= @var{start} <= @var{end} <= (string-length @var{str}).")
 #define FUNC_NAME s_scm_substring
 {
-  long int from;
-  long int to;
+  unsigned long int from;
+  unsigned long int to;
   SCM substr;
 
   SCM_VALIDATE_STRING (1, str);
-  SCM_VALIDATE_INUM (2, start);
-  SCM_VALIDATE_INUM_DEF (3, end, SCM_STRING_LENGTH (str));
-
-  from = SCM_INUM (start);
-  SCM_ASSERT_RANGE (2, start, 0 <= from && from <= SCM_STRING_LENGTH (str));
-  to = SCM_INUM (end);
-  SCM_ASSERT_RANGE (3, end, from <= to && to <= SCM_STRING_LENGTH (str));
-
+  from = scm_to_unsigned_integer (start, 0, SCM_STRING_LENGTH(str));
+  if (SCM_UNBNDP (end))
+    to = SCM_STRING_LENGTH(str);
+  else
+    to = scm_to_unsigned_integer (end, from, SCM_STRING_LENGTH(str));
   substr = scm_mem2string (&SCM_STRING_CHARS (str)[from], to - from);
   scm_remember_upto_here_1 (str);
   return substr;

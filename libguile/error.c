@@ -148,8 +148,7 @@ SCM_DEFINE (scm_strerror, "strerror", 1, 0, 0,
 	    "must be an integer value.")
 #define FUNC_NAME s_scm_strerror
 {
-  SCM_VALIDATE_INUM (1, err);
-  return scm_makfrom0str (SCM_I_STRERROR (SCM_INUM (err)));
+  return scm_makfrom0str (SCM_I_STRERROR (scm_to_int (err)));
 }
 #undef FUNC_NAME
 

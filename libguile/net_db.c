@@ -333,12 +333,13 @@ SCM_DEFINE (scm_getserv, "getserv", 0, 2, 0,
   SCM_VALIDATE_STRING (2, protocol);
   if (SCM_STRINGP (name))
     {
-      entry = getservbyname (SCM_STRING_CHARS (name), SCM_STRING_CHARS (protocol));
+      entry = getservbyname (SCM_STRING_CHARS (name),
+			     SCM_STRING_CHARS (protocol));
     }
   else
     {
-      SCM_VALIDATE_INUM (1, name);
-      entry = getservbyport (htons (SCM_INUM (name)), SCM_STRING_CHARS (protocol));
+      entry = getservbyport (htons (scm_to_int (name)),
+			     SCM_STRING_CHARS (protocol));
     }
   if (!entry)
     SCM_SYSERROR_MSG("no such service ~A", scm_list_1 (name), errno);

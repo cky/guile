@@ -800,9 +800,8 @@ SCM_DEFINE (scm_transpose_array, "transpose-array", 1, 0, 1,
 #endif
       if (SCM_NULLP (args) || !SCM_NULLP (SCM_CDR (args)))
 	SCM_WRONG_NUM_ARGS ();
-      SCM_VALIDATE_INUM (SCM_ARG2, SCM_CAR (args));
-      SCM_ASSERT_RANGE (SCM_ARG2, SCM_CAR (args), 
-			SCM_EQ_P (SCM_INUM0, SCM_CAR (args)));
+      SCM_VALIDATE_INT_COPY (SCM_ARG2, SCM_CAR (args), i);
+      SCM_ASSERT_RANGE (SCM_ARG2, SCM_CAR (args), i == 0);
       return ra;
     case scm_tc7_smob:
       SCM_ASRTGO (SCM_ARRAYP (ra), badarg);
@@ -1078,8 +1077,7 @@ SCM_DEFINE (scm_uniform_vector_ref, "uniform-vector-ref", 2, 0, 0,
 	}
       else
 	{
-          SCM_VALIDATE_INUM (2, args);
-	  pos = SCM_INUM (args);
+	  pos = scm_to_long (args);
 	}
       length = SCM_INUM (scm_uniform_vector_length (v));
       SCM_ASRTGO (pos >= 0 && pos < length, outrng);
@@ -1252,7 +1250,7 @@ SCM_DEFINE (scm_array_set_x, "array-set!", 2, 0, 1,
 	}
       else
 	{
-          SCM_VALIDATE_INUM_COPY (3, args, pos);
+	  pos = scm_to_long (args);
 	}
       length = SCM_INUM (scm_uniform_vector_length (v));
       SCM_ASRTGO (pos >= 0 && pos < length, outrng);
@@ -1804,7 +1802,7 @@ SCM_DEFINE (scm_bit_position, "bit-position", 3, 0, 0,
 
   SCM_VALIDATE_BOOL (1, item);
   SCM_ASSERT (SCM_BITVECTOR_P (v), v, SCM_ARG2, FUNC_NAME);
-  SCM_VALIDATE_INUM_COPY (3, k, pos);
+  pos = scm_to_long (k);
   SCM_ASSERT_RANGE (3, k, (pos <= SCM_BITVECTOR_LENGTH (v)) && (pos >= 0));
 
   if (pos == SCM_BITVECTOR_LENGTH (v))
@@ -2201,7 +2199,7 @@ SCM_DEFINE (scm_list_to_uniform_array, "list->uniform-array", 3, 0, 0,
   SCM ra;
   unsigned long k;
   long n;
-  SCM_VALIDATE_INUM_COPY (1, ndim, k);
+  k = scm_to_ulong (ndim);
   while (k--)
     {
       n = scm_ilength (row);

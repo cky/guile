@@ -413,18 +413,17 @@ SCM_DEFINE (scm_make_struct, "make-struct", 2, 0, 1,
 #define FUNC_NAME s_scm_make_struct
 {
   SCM layout;
-  int basic_size;
-  int tail_elts;
+  size_t basic_size;
+  size_t tail_elts;
   scm_t_bits * data;
   SCM handle;
 
   SCM_VALIDATE_VTABLE (1, vtable);
-  SCM_VALIDATE_INUM (2, tail_array_size);
   SCM_VALIDATE_REST_ARGUMENT (init);
 
   layout = SCM_PACK (SCM_STRUCT_DATA (vtable) [scm_vtable_index_layout]);
   basic_size = SCM_SYMBOL_LENGTH (layout) / 2;
-  tail_elts = SCM_INUM (tail_array_size);
+  tail_elts = scm_to_size_t (tail_array_size);
   SCM_DEFER_INTS;
   if (SCM_STRUCT_DATA (vtable)[scm_struct_i_flags] & SCM_STRUCTF_ENTITY)
     {
@@ -499,20 +498,19 @@ SCM_DEFINE (scm_make_vtable_vtable, "make-vtable-vtable", 2, 0, 1,
 {
   SCM fields;
   SCM layout;
-  int basic_size;
-  int tail_elts;
-  scm_t_bits * data;
+  size_t basic_size;
+  size_t tail_elts;
+  scm_t_bits *data;
   SCM handle;
 
   SCM_VALIDATE_STRING (1, user_fields);
-  SCM_VALIDATE_INUM (2, tail_array_size);
   SCM_VALIDATE_REST_ARGUMENT (init);
 
   fields = scm_string_append (scm_list_2 (required_vtable_fields,
 					  user_fields));
   layout = scm_make_struct_layout (fields);
   basic_size = SCM_SYMBOL_LENGTH (layout) / 2;
-  tail_elts = SCM_INUM (tail_array_size);
+  tail_elts = scm_to_size_t (tail_array_size);
   SCM_DEFER_INTS;
   data = scm_alloc_struct (basic_size + tail_elts,
 			   scm_struct_n_extra_words,
@@ -541,18 +539,17 @@ SCM_DEFINE (scm_struct_ref, "struct-ref", 2, 0, 0,
   SCM answer = SCM_UNDEFINED;
   scm_t_bits * data;
   SCM layout;
-  int p;
+  size_t p;
   scm_t_bits n_fields;
   char * fields_desc;
   char field_type = 0;
   
 
   SCM_VALIDATE_STRUCT (1, handle);
-  SCM_VALIDATE_INUM (2, pos);
 
   layout = SCM_STRUCT_LAYOUT (handle);
   data = SCM_STRUCT_DATA (handle);
-  p = SCM_INUM (pos);
+  p = scm_to_size_t (pos);
 
   fields_desc = SCM_SYMBOL_CHARS (layout);
   n_fields = data[scm_struct_i_n_words];
@@ -618,17 +615,16 @@ SCM_DEFINE (scm_struct_set_x, "struct-set!", 3, 0, 0,
 {
   scm_t_bits * data;
   SCM layout;
-  int p;
+  size_t p;
   int n_fields;
   char * fields_desc;
   char field_type = 0;
 
   SCM_VALIDATE_STRUCT (1, handle);
-  SCM_VALIDATE_INUM (2, pos);
 
   layout = SCM_STRUCT_LAYOUT (handle);
   data = SCM_STRUCT_DATA (handle);
-  p = SCM_INUM (pos);
+  p = scm_to_size_t (pos);
 
   fields_desc = SCM_SYMBOL_CHARS (layout);
   n_fields = data[scm_struct_i_n_words];

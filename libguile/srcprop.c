@@ -260,22 +260,20 @@ SCM_DEFINE (scm_set_source_property_x, "set-source-property!", 3, 0, 0,
     }
   else if (SCM_EQ_P (scm_sym_line, key))
     {
-      SCM_VALIDATE_INUM (3, datum);
       if (SRCPROPSP (p))
-	SETSRCPROPLINE (p, SCM_INUM (datum));
+	SETSRCPROPLINE (p, scm_to_int (datum));
       else
 	SCM_WHASHSET (scm_source_whash, h,
-		      scm_make_srcprops (SCM_INUM (datum), 0,
+		      scm_make_srcprops (scm_to_int (datum), 0,
 					 SCM_UNDEFINED, SCM_UNDEFINED, p));
     }
   else if (SCM_EQ_P (scm_sym_column, key))
     {
-      SCM_VALIDATE_INUM (3, datum);
       if (SRCPROPSP (p))
-	SETSRCPROPCOL (p, SCM_INUM (datum));
+	SETSRCPROPCOL (p, scm_to_int (datum));
       else
 	SCM_WHASHSET (scm_source_whash, h,
-		      scm_make_srcprops (0, SCM_INUM (datum),
+		      scm_make_srcprops (0, scm_to_int (datum),
 					 SCM_UNDEFINED, SCM_UNDEFINED, p));
     }
   else if (SCM_EQ_P (scm_sym_filename, key))

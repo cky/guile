@@ -154,18 +154,12 @@ SCM_DEFINE (scm_make_hook, "make-hook", 0, 1, 0,
 	    "object to be used with the other hook procedures.")
 #define FUNC_NAME s_scm_make_hook
 {
-  int n;
+  unsigned int n;
 
   if (SCM_UNBNDP (n_args))
-    {
-      n = 0;
-    }
+    n = 0;
   else
-    {
-      SCM_VALIDATE_INUM_COPY (SCM_ARG1, n_args, n);
-      if (n < 0 || n > 16)
-	SCM_OUT_OF_RANGE (SCM_ARG1, n_args);
-    }
+    n = scm_to_unsigned_integer (n_args, 0, 16);
   
   SCM_RETURN_NEWSMOB (scm_tc16_hook + (n << 16), SCM_UNPACK (SCM_EOL));
 }

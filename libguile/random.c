@@ -360,7 +360,8 @@ SCM_DEFINE (scm_random, "random", 1, 1, 0,
     return scm_make_real (SCM_REAL_VALUE (n)
 			  * scm_c_uniform01 (SCM_RSTATE (state)));
 
-  SCM_VALIDATE_BIGINT (1, n);
+  if (!SCM_BIGP (n))
+    SCM_WRONG_TYPE_ARG (1, n);
   return scm_c_random_bignum (SCM_RSTATE (state), n);
 }
 #undef FUNC_NAME

@@ -165,19 +165,14 @@ SCM_DEFINE (scm_substring_move_x, "substring-move!", 5, 0, 0,
 	    "@var{str1} and @var{str2} can be the same string.")
 #define FUNC_NAME s_scm_substring_move_x
 {
-  long s1, s2, e, len;
+  unsigned long s1, s2, e, len;
 
   SCM_VALIDATE_STRING (1, str1);
-  SCM_VALIDATE_INUM_COPY (2, start1, s1);
-  SCM_VALIDATE_INUM_COPY (3, end1, e);
   SCM_VALIDATE_STRING (4, str2);
-  SCM_VALIDATE_INUM_COPY (5, start2, s2);
+  s1 = scm_to_unsigned_integer (start1, 0, SCM_STRING_LENGTH(str1));
+  e = scm_to_unsigned_integer (end1, s1, SCM_STRING_LENGTH(str1));
   len = e - s1;
-  SCM_ASSERT_RANGE (3, end1, len >= 0);
-  SCM_ASSERT_RANGE (2, start1, s1 <= SCM_STRING_LENGTH (str1) && s1 >= 0);
-  SCM_ASSERT_RANGE (5, start2, s2 <= SCM_STRING_LENGTH (str2) && s2 >= 0);
-  SCM_ASSERT_RANGE (3, end1, e <= SCM_STRING_LENGTH (str1) && e >= 0);
-  SCM_ASSERT_RANGE (5, start2, len+s2 <= SCM_STRING_LENGTH (str2));
+  s2 = scm_to_unsigned_integer (start2, 0, SCM_STRING_LENGTH(str2)-len);
 
   SCM_SYSCALL(memmove((void *)(&(SCM_STRING_CHARS(str2)[s2])),
 		      (void *)(&(SCM_STRING_CHARS(str1)[s1])),
@@ -201,14 +196,12 @@ SCM_DEFINE (scm_substring_fill_x, "substring-fill!", 4, 0, 0,
 	    "@end lisp")
 #define FUNC_NAME s_scm_substring_fill_x
 {
-  long i, e;
+  size_t i, e;
   char c;
   SCM_VALIDATE_STRING (1, str);
-  SCM_VALIDATE_INUM_COPY (2, start, i);
-  SCM_VALIDATE_INUM_COPY (3, end, e);
+  i = scm_to_unsigned_integer (start, 0, SCM_STRING_LENGTH (str));
+  e = scm_to_unsigned_integer (end, i, SCM_STRING_LENGTH (str));
   SCM_VALIDATE_CHAR_COPY (4, fill, c);
-  SCM_ASSERT_RANGE (2, start, i <= SCM_STRING_LENGTH (str) && i >= 0);
-  SCM_ASSERT_RANGE (3, end, e <= SCM_STRING_LENGTH (str) && e >= 0);
   while (i<e) SCM_STRING_CHARS (str)[i++] = c;
   return SCM_UNSPECIFIED;
 }

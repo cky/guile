@@ -383,7 +383,7 @@ SCM_DEFINE (scm_list_ref, "list-ref", 2, 0, 0,
 {
   SCM lst = list;
   unsigned long int i;
-  SCM_VALIDATE_INUM_MIN_COPY (2, k,0, i);
+  i = scm_to_ulong (k);
   while (SCM_CONSP (lst)) {
     if (i == 0)
       return SCM_CAR (lst);
@@ -406,8 +406,7 @@ SCM_DEFINE (scm_list_set_x, "list-set!", 3, 0, 0,
 #define FUNC_NAME s_scm_list_set_x
 {
   SCM lst = list;
-  unsigned long int i;
-  SCM_VALIDATE_INUM_MIN_COPY (2, k,0, i);
+  unsigned long int i = scm_to_ulong (k);
   while (SCM_CONSP (lst)) {
     if (i == 0) {
       SCM_SETCAR (lst, val);
@@ -437,8 +436,7 @@ SCM_DEFINE (scm_list_tail, "list-tail", 2, 0, 0,
 	    "or returning the results of cdring @var{k} times down @var{lst}.")
 #define FUNC_NAME s_scm_list_tail
 {
-  register long i;
-  SCM_VALIDATE_INUM_MIN_COPY (2, k,0, i);
+  size_t i = scm_to_size_t (k);
   while (i-- > 0) {
     SCM_VALIDATE_CONS (1, lst);
     lst = SCM_CDR(lst);
@@ -454,8 +452,7 @@ SCM_DEFINE (scm_list_cdr_set_x, "list-cdr-set!", 3, 0, 0,
 #define FUNC_NAME s_scm_list_cdr_set_x
 {
   SCM lst = list;
-  unsigned long int i;
-  SCM_VALIDATE_INUM_MIN_COPY (2, k,0, i);
+  size_t i = scm_to_size_t (k);
   while (SCM_CONSP (lst)) {
     if (i == 0) {
       SCM_SETCDR (lst, val);
@@ -484,9 +481,8 @@ SCM_DEFINE (scm_list_head, "list-head", 2, 0, 0,
 {
   SCM answer;
   SCM * pos;
-  register long i;
+  size_t i = scm_to_size_t (k);
 
-  SCM_VALIDATE_INUM_MIN_COPY (2, k,0, i);
   answer = SCM_EOL;
   pos = &answer;
   while (i-- > 0)

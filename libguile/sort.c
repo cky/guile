@@ -299,10 +299,8 @@ SCM_DEFINE (scm_restricted_vector_sort_x, "restricted-vector-sort!", 4, 0, 0,
   vp = SCM_WRITABLE_VELTS (vec);		/* vector pointer */
   vlen = SCM_VECTOR_LENGTH (vec);
 
-  SCM_VALIDATE_INUM_MIN_COPY (3, startpos, 0, spos);
-  SCM_ASSERT_RANGE (3, startpos, spos <= vlen);
-  SCM_VALIDATE_INUM_RANGE (4, endpos,0, vlen+1);
-  len = SCM_INUM (endpos) - spos;
+  spos = scm_to_unsigned_integer (startpos, 0, vlen);
+  len = scm_to_unsigned_integer (endpos, 0, vlen) - spos;
 
   quicksort (&vp[spos], len, cmp, less);
   scm_remember_upto_here_1 (vec);
