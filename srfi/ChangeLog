@@ -1,3 +1,19 @@
+2001-04-25  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* srfi-13.c (scm_string_replace): Take sizeof (char) into account
+	when using memmove().
+
+	* srfi-14.h: Added prototypes for all exported procedures..
+
+	* srfi-13.c: Include srfi-13.h
+
+	* srfi-13.h: New file containing the prototypes.
+
+	* Makefile.am: Removed guile-srfi.texi and info_TEXINFOS variable.
+	(libguile_srfi_srfi_13_14_la_SOURCES): Added srfi-14.h, so it gets
+	distributed.
+	(libguile_srfi_srfi_13_14_la_SOURCES): Added srfi-13.h.
+
 2001-04-24  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* Makefile.am: Fixed "srf-14.x" typo.

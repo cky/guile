@@ -49,6 +49,7 @@
 
 #include <libguile.h>
 
+#include "srfi-13.h"
 #include "srfi-14.h"
 
 SCM_DEFINE (scm_string_any, "string-any", 2, 2, 0, 
@@ -2775,11 +2776,11 @@ SCM_DEFINE (scm_string_replace, "string-replace", 2, 4, 0,
   result = scm_allocate_string (cstart1 + (cend2 - cstart2) +
 				SCM_STRING_LENGTH (s1) - cend1);
   p = SCM_STRING_CHARS (result);
-  memmove (p, cstr1, cstart1);
-  memmove (p + cstart1, cstr2 + cstart2, (cend2 - cstart2));
+  memmove (p, cstr1, cstart1 * sizeof (char));
+  memmove (p + cstart1, cstr2 + cstart2, (cend2 - cstart2) * sizeof (char));
   memmove (p + cstart1 + (cend2 - cstart2),
 	   cstr1 + cend1,
-	   SCM_STRING_LENGTH (s1) - cend1);
+	   (SCM_STRING_LENGTH (s1) - cend1) * sizeof (char));
   return result;
 }
 #undef FUNC_NAME
@@ -3021,7 +3022,7 @@ SCM_DEFINE (scm_string_delete, "string-delete", 2, 2, 0,
 
 
 void
-scm_init_srfi_13 ()
+scm_init_srfi_13 (void)
 {
 #ifndef SCM_MAGIC_SNARFER
 #include "srfi-13.x"
@@ -3030,7 +3031,7 @@ scm_init_srfi_13 ()
 
 
 void
-scm_init_srfi_13_14 ()
+scm_init_srfi_13_14 (void)
 {
   static int initialized = 0;
 

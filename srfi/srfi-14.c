@@ -1348,7 +1348,7 @@ SCM_DEFINE (scm_char_set_diff_plus_intersection_x, "char-set-diff+intersection!"
 
 
 void
-scm_init_srfi_14 ()
+scm_init_srfi_14 (void)
 {
   scm_tc16_charset = scm_make_smob_type ("character-set", 
 					 SCM_CHARSET_SIZE * sizeof (long));

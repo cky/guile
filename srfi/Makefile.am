@@ -34,7 +34,8 @@ INCLUDES = -I.. -I$(srcdir)/..
 lib_LTLIBRARIES = libguile-srfi-srfi-13-14.la
 
 BUILT_SOURCES = srfi-13.x srfi-14.x
-libguile_srfi_srfi_13_14_la_SOURCES = srfi-13.x srfi-13.c srfi-14.x srfi-14.c
+libguile_srfi_srfi_13_14_la_SOURCES = srfi-13.x srfi-13.c srfi-14.x srfi-14.c\
+ srfi-13.h srfi-14.h
 libguile_srfi_srfi_13_14_la_LDFLAGS = -version-info 0:0 -export-dynamic
 
 srfidir = $(datadir)/guile/$(VERSION)/srfi
