@@ -13,13 +13,21 @@ Changes since Guile 1.4:
 *** Macros removed
 
   SCM_INPORTP, SCM_OUTPORTP SCM_ICHRP, SCM_ICHR, SCM_MAKICHR
-  SCM_SETJMPBUF SCM_NSTRINGP SCM_NRWSTRINGP SCM_NVECTORP
+  SCM_SETJMPBUF SCM_NSTRINGP SCM_NRWSTRINGP SCM_NVECTORP SCM_DOUBLE_CELLP
 
-*** Functions removed
+*** C Functions removed
 
-  scm_sysmissing
-
+  scm_sysmissing scm_tag scm_tc16_flo scm_tc_flo
+  scm_fseek - replaced by scm_seek.
   gc-thunk - replaced by after-gc-hook.
+  gh_int2scmb - replaced by gh_bool2scm.
+  scm_tc_dblr - replaced by scm_tc16_real.
+  scm_tc_dblc - replaced by scm_tc16_complex.
+  scm_list_star - replaced by scm_cons_star.
+
+*** scheme functions removed:
+
+  list* - replaced by cons*.  
 
 ** New SRFI modules have been added:
 

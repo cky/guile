@@ -1,3 +1,41 @@
+2001-04-28  Rob Browning  <rlb@cs.utexas.edu>
+
+	* numbers.c: enabled local definition of SCM_FLOBUFLEN until we
+	know what's supposed to happen to it.
+
+	* list.h (scm_list_star): deprecation expired - removed.
+
+	* numbers.h (scm_dblproc): deprecation expired - removed.
+	(SCM_UNEGFIXABLE): deprecation expired - removed.
+	(SCM_FLOBUFLEN): deprecation expired - removed.
+	(SCM_INEXP): deprecation expired - removed.
+	(SCM_CPLXP): deprecation expired - removed.
+	(SCM_REAL): deprecation expired - removed.
+	(SCM_IMAG): deprecation expired - removed.
+	(SCM_REALPART): deprecation expired - removed.
+	(scm_makdbl): deprecation expired - removed.
+	(SCM_SINGP): deprecation expired - removed.
+	(SCM_NUM2DBL): deprecation expired - removed.
+	(SCM_NO_BIGDIG): deprecation expired - removed.
+
+	* tags.h (SCM_DOUBLE_CELLP): deprecation expired - removed.
+	(scm_tc_dblr): deprecation expired - removed.
+	(scm_tc_dblc): deprecation expired - removed.
+	(scm_tc16_flo): deprecation expired - removed.
+	(scm_tc_flo): deprecation expired - removed.
+
+	* tag.h (scm_tag): deprecation expired - removed.
+
+	* tag.c: (scm_tag): deprecation expired - removed.
+
+	* ioext.c: (scm_fseek): deprecation expired - removed.
+
+	* ioext.h (scm_fseek): deprecation expired - removed.
+
+	* gh_data.c (gh_int2scmb): deprecation expired - removed.
+
+	* gh.h (gh_int2scmb): deprecation expired - removed.
+
 2001-04-28  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* stacks.c (scm_make_stack): Fix typo in docstring.

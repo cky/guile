@@ -7,9 +7,7 @@ absinthe, etc.  However, the first release containing the module
 system should be called Godot: "This is the one you've been waiting
 for."
 
-* Remove compatability module (ice-9 and-let*) eventually (when a
-  major release with the real module (ice-9 and-let-star) has been out
-  long enough, probably release 1.8).
+=== Eventually:
 
 * Deprecate `read-only-string?'.
 
@@ -17,24 +15,19 @@ After signal handling and threading have been fixed:
 - remove the code corresponding to GUILE_OLD_ASYNC_CLICK and the corresponding
   GUILE_OLD_ASYNC_CLICK macro.
 
-In release 1.6.0:
-- remove gh_int2scmb (replaced by gh_bool2scm)
-- remove scm_fseek (replaced by scm_seek)
-- remove scm_tag
+=== In release 1.6.0:
+
+- Q: Was SCM_FLOBUFLEN only deprecated publically, or was it supposed
+  to be removed from numbers.c as well?
+
 - remove code related to the name property of hooks.  Also, check init.c,
   since the dependency between hooks and objprop will then be eliminated.
-- remove deprecated function scm_list_star/list*  (use SRFI-1 compliant
-  scm_cons_star/cons* instead.)
-- remove scm_tc16_flo, scm_tc_flo (guile always uses doubles to represent
-  inexact real numbers) 
-- remove scm_tc_dblr (replaced by scm_tc16_real)
-- remove scm_tc_dblc (replaced by scm_tc16_complex)
-- remove deprecated types, functions and macros from numbers.h:  scm_dblproc,
-  SCM_UNEGFIXABLE, SCM_FLOBUFLEN, SCM_INEXP, SCM_CPLXP, SCM_REAL, SCM_IMAG,
-  SCM_REALPART, scm_makdbl, SCM_SINGP, SCM_NUM2DBL, SCM_NO_BIGDIG
-- remove deprecated macro from tags.h: SCM_DOUBLE_CELLP
 
-In release 1.8.0:
+=== In release 1.8.0:
+
+- remove compatability module (ice-9 and-let*).  It
+  has been replaced by (ice-9 and-let-star) and/or (srfi srfi-2).
+
 - remove support for autoloading compiled-code modules:
     try-module-linked
     try-module-dynamic-link
