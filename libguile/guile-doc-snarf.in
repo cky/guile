@@ -1,10 +1,10 @@
 #!/bin/sh
 # Extract the initialization actions for builtin things.
 
-filename=$1; shift
+fullfilename=$1; shift
 
 # strip path to source directory
-filename=`basename $filename`
+filename=`basename $fullfilename`
 
 # we need to be sure that the .x file exists
 # since the .c/.cc file may include it
@@ -22,9 +22,9 @@ trap "rm -f $temp" 0 1 2 15
 test -n "${CPP+set}" || CPP="@CPP@"
 
 ## Must run guile-func-name-check on the unpreprocessed source
-guile-func-name-check "$filename"
+guile-func-name-check "$fullfilename"
 
 ## We must use a temporary file here, instead of a pipe, because we
 ## need to know if CPP exits with a non-zero status.
 ${CPP} -DSCM_MAGIC_SNARFER "$@" > ${temp} || exit $?
-< ${temp} awk -f `dirname $0`/guile-snarf.awk $filename
+< ${temp} awk -f `dirname $0`/guile-snarf.awk "$filename"
