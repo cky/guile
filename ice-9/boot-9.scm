@@ -2815,6 +2815,9 @@
    (lambda (x e)
      e)))
 
+(define (environment->module env)
+  (car (last-pair env)))
+
 
 
 ;;; {Macros}

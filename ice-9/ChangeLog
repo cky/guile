@@ -5,6 +5,10 @@
 	* setf.scm: Removed.  1. It was buggy.  2. It was unschemey.
 	(These shortcomings were my fault.)
 
+1998-12-10  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* boot-9.scm (environment->module): New procedure.
+
 1998-12-07  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
 	* Makefile.am: Added setf.scm.
