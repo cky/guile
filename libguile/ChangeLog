@@ -1,3 +1,8 @@
+2001-01-16  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* symbols.c (scm_symbol_bound_p):  Fixed comment.
+	Thanks to Chris Cramer.
+
 2001-01-15  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* smob.[ch] (scm_make_smob_type):  Return type is scm_bits_t now.

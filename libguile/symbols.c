@@ -633,7 +633,7 @@ SCM_DEFINE (scm_symbol_bound_p, "symbol-bound?", 2, 0, 0,
            (SCM o, SCM s),
 	    "Return @var{#t} if @var{obarray} contains a symbol with name\n"
 	    "@var{string} bound to a defined value.  This differs from\n"
-	    "@var{symbol-bound?} in that the mere mention of a symbol usually causes\n"
+	    "@var{symbol-interned?} in that the mere mention of a symbol usually causes\n"
 	    "it to be interned; @code{symbol-bound?} determines whether a symbol has\n"
 	    "been given any meaningful value.")
 #define FUNC_NAME s_scm_symbol_bound_p
