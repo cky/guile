@@ -32,26 +32,15 @@
 ;; and can be invoked with "-R" therein.  We infer this if `LOCAL_WORK_ROOT'
 ;; is not set, and use instead `CVSROOT'.  At least one of these must be set.
 ;;
-;; The ChangeLog files are by default updated in the cwd, unless overriden by
-;; the environment variable `CHANGELOG_DIR', with the name MODULE.ChangeLog.
-;; No new files are created; you must manually touch a file to have the next
-;; ucl run notice it.
-;;
 ;; You can pass additional options to rcs2log using env var `RCS2LOG_OPTS'.
 ;;
-;; Usage from a Lisp program: 
-;;   (ucl-root)              -- return dir of ChangeLog or error if not found
-;;   (ucl-update module-dir) -- get cvs logs starting in CVSROOT/MODULE-DIR,
-;;                              stitch them to ./ChangeLog, and write it out
+;; Usage from a Lisp program:
+;;   (ucl-update filename) -- Update FILENAME, a Change Log file
 
 ;;; Code:
 
 ;;;---------------------------------------------------------------------------
 ;;; Variables
-
-(defvar ucl-outdir (expand-file-name (or (getenv "CHANGELOG_DIR")
-					 default-directory))
-  "Directory containing changelogs (one per cvs module) to be updated.")
 
 (defvar ucl-o (or (getenv "RCS2LOG_OPTS") "")
   "Additional options to pass to rcs2log.")
@@ -123,13 +112,14 @@ on NEW-OLD, while the other cleanup funcs ignore it.  (Sigh.)")
 		(error "Must set env var LOCAL_WORK_ROOT or CVSROOT"))
 	    "/")))
 
-(defun ucl-update (module-dir)
-  (let ((ofile (expand-file-name (concat module-dir ".ChangeLog") ucl-outdir))
-	(cmd   (concat "cd %s; rcs2log " ucl-o " -c %s"))
-	(obuf  "*ucl-work*"))
+(defun ucl-update (filename)
+  (interactive "fChangeLog: ")
+  (let* ((ofile (expand-file-name filename))
+         (cmd   (concat "rcs2log " ucl-o " -c " ofile))
+         (obuf  "*ucl-work*"))
     (when (and (file-exists-p ofile)
 	       (progn
-		 (shell-command (format cmd module-dir ofile) obuf)
+		 (shell-command cmd obuf)
 		 (get-buffer obuf)))
       (save-excursion			; prevent default-directory hosing
 	(set-buffer obuf)
@@ -143,20 +133,12 @@ on NEW-OLD, while the other cleanup funcs ignore it.  (Sigh.)")
 		(write-file ofile))))
 	(kill-buffer (current-buffer))))))
 
-(defun ucl-update-all ()
-  (let ((default-directory (ucl-root)))
-    (mapcar (lambda (file)
-	      (and (file-directory-p file)
-		   (or (string-match "-R" ucl-o)	; see `ucl-root'
-		       (file-exists-p (concat file "/CVS")))
-		   (ucl-update file)))
-	    (directory-files default-directory))))
-
 ;;;---------------------------------------------------------------------------
 ;;; Load-time actions
 
-(and noninteractive			; only when `-batch'
-     (ucl-update-all))
+(when noninteractive			; only when `-batch'
+  (or (ucl-update "ChangeLog")
+      (message "Sorry, could not update ChangeLog in %s" default-directory)))
 
 (provide 'update-changelog)
 
