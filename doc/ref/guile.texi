@@ -6,6 +6,37 @@
 @set guile
 @set MANUAL-EDITION 1.1
 @c %**end of header
+@include version.texi
+
+@copying
+This reference manual documents Guile, GNU's Ubiquitous Intelligent
+Language for Extensions, manual edition @value{MANUAL-EDITION}
+corresponding to Guile @value{VERSION}.
+
+Copyright 1996, 1997, 2000, 2001, 2002, 2003 Free Software Foundation.
+
+Permission is granted to make and distribute verbatim copies of
+this manual provided the copyright notice and this permission notice
+are preserved on all copies.
+
+Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided that the entire
+resulting derived work is distributed under the terms of a permission
+notice identical to this one.
+
+Permission is granted to copy and distribute translations of this manual
+into another language, under the above conditions for modified versions,
+except that this permission notice may be stated in a translation approved
+by Free Software Foundation.
+@end copying
+
+@ignore
+Permission is granted to process this file through TeX and print the
+results, provided the printed document carries copying permission
+notice identical to this one except for the removal of this paragraph
+(this paragraph not being relevant to the printed manual).
+@end ignore
+
 
 @c Notes
 @c
@@ -47,8 +78,6 @@
 @c Guile extension.
 @defcodeindex rn
 
-@include version.texi
-
 @c vnew - For (some) new items, indicates the Guile version in which
 @c item first appeared.  In future, this could be made to expand to
 @c something like a "New in Guile 45!" banner.
@@ -79,42 +108,12 @@
 
 @setchapternewpage off
 
-@ifinfo
-Guile Reference Manual
-Copyright (C) 1996 Free Software Foundation @*
-Copyright (C) 1997 Free Software Foundation @*
-Copyright (C) 2000 Free Software Foundation @*
-Copyright (C) 2001 Free Software Foundation @*
-Copyright (C) 2002 Free Software Foundation
-
-Permission is granted to make and distribute verbatim copies of
-this manual provided the copyright notice and this permission notice
-are preserved on all copies.
-
-@ignore
-Permission is granted to process this file through TeX and print the
-results, provided the printed document carries copying permission
-notice identical to this one except for the removal of this paragraph
-(this paragraph not being relevant to the printed manual).
-@end ignore
-
-Permission is granted to copy and distribute modified versions of this
-manual under the conditions for verbatim copying, provided that the entire
-resulting derived work is distributed under the terms of a permission
-notice identical to this one.
-
-Permission is granted to copy and distribute translations of this manual
-into another language, under the above conditions for modified versions,
-except that this permission notice may be stated in a translation approved
-by the Free Software Foundation.
-@end ifinfo
-
 @titlepage
 @sp 10
 @comment The title is printed in a large font.
 @title Guile Reference Manual
 @subtitle Edition @value{MANUAL-EDITION}, for use with Guile @value{VERSION}
-@subtitle $Id: guile.texi,v 1.21 2003-05-10 03:58:37 kryde Exp $
+@subtitle $Id: guile.texi,v 1.22 2003-05-15 23:39:56 kryde Exp $
 
 @c AUTHORS
 
@@ -172,29 +171,7 @@ by the Free Software Foundation.
 @page
 @vskip 0pt plus 1filll
 @vskip 0pt plus 1filll
-Copyright @copyright{} 1996 Free Software Foundation
-
-Copyright @copyright{} 1997 Free Software Foundation
-
-Copyright @copyright{} 2000 Free Software Foundation
-
-Copyright @copyright{} 2001 Free Software Foundation
-
-Copyright @copyright{} 2002 Free Software Foundation
-
-Permission is granted to make and distribute verbatim copies of
-this manual provided the copyright notice and this permission notice
-are preserved on all copies.
-
-Permission is granted to copy and distribute modified versions of this
-manual under the conditions for verbatim copying, provided that the entire
-resulting derived work is distributed under the terms of a permission
-notice identical to this one.
-
-Permission is granted to copy and distribute translations of this manual
-into another language, under the above conditions for modified versions,
-except that this permission notice may be stated in a translation approved
-by Free Software Foundation.
+@insertcopying
 @end titlepage
 
 @c @smallbook
@@ -208,12 +185,8 @@ by Free Software Foundation.
 @node Top, Guile License, (dir), (dir)
 @top The Guile Reference Manual
 
-This reference manual documents Guile, GNU's Ubiquitous Intelligent
-Language for Extensions.  It describes how to use Guile in many useful
-and interesting ways.
-
-This Info file contains edition @value{MANUAL-EDITION} of the reference
-manual, corresponding to Guile version @value{VERSION}.
+@insertcopying
+@sp 1
 @end ifnottex
 
 @menu
