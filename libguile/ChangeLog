@@ -1,3 +1,9 @@
+2004-09-06  Kevin Ryde  <user42@zip.com.au>
+
+	* stime.h (SCM_TIME_UNITS_PER_SECOND): Use sysconf(_SC_CLK_TCK) when
+	available.  This also gets around CLK_TCK being absent when
+	_GNU_SOURCE and _POSIX_C_SOURCE are defined in stime.c.
+
 2004-09-03  Stefan Jahn  <stefan@lkcc.org>
 
 	* threads.c (scm_threads_mark_stacks):  Fixed local variable
