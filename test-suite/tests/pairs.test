@@ -1,0 +1,131 @@
+;;;; pairs.test --- test suite for Guile's pair functions       -*- scheme -*-
+;;;; 
+;;;; Copyright (C) 2003 Free Software Foundation, Inc.
+;;;; 
+;;;; This program is free software; you can redistribute it and/or modify
+;;;; it under the terms of the GNU General Public License as published by
+;;;; the Free Software Foundation; either version 2, or (at your option)
+;;;; any later version.
+;;;; 
+;;;; This program is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;;;; GNU General Public License for more details.
+;;;; 
+;;;; You should have received a copy of the GNU General Public License
+;;;; along with this software; see the file COPYING.  If not, write to
+;;;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+;;;; Boston, MA 02111-1307 USA
+
+
+(use-modules (test-suite lib))
+
+(with-test-prefix "cxr"
+
+  (define x
+    '(1 . 2))
+
+  (pass-if "car"
+    (= (car x) 1))
+
+  (pass-if "cdr"
+    (= (cdr x) 2)))
+
+(with-test-prefix "cxxr"
+
+  (define x
+    '((1 . 3) 2 . 4))
+
+  (pass-if "caar"
+    (= (caar x) 1))
+
+  (pass-if "cadr"
+    (= (cadr x) 2))
+
+  (pass-if "cdar"
+    (= (cdar x) 3))
+
+  (pass-if "cddr"
+    (= (cddr x) 4)))
+
+(with-test-prefix "cxxxr"
+
+  (define x
+    '(((1 . 5) 3 . 7) (2 . 6) 4 . 8))
+
+  (pass-if "caaar"
+    (= (caaar x) 1))
+
+  (pass-if "caadr"
+    (= (caadr x) 2))
+
+  (pass-if "cadar"
+    (= (cadar x) 3))
+
+  (pass-if "caddr"
+    (= (caddr x) 4))
+
+  (pass-if "cdaar"
+    (= (cdaar x) 5))
+
+  (pass-if "cdadr"
+    (= (cdadr x) 6))
+
+  (pass-if "cddar"
+    (= (cddar x) 7))
+
+  (pass-if "cdddr"
+    (= (cdddr x) 8)))
+
+(with-test-prefix "cxxxxr"
+
+  (define x
+    '((((1 . 9) 5 . 13) (3 . 11) 7 . 15) ((2 . 10) 6 . 14) (4 . 12) 8 . 16))
+
+  (pass-if "caaaar"
+    (= (caaaar x) 1))
+
+  (pass-if "caaadr"
+    (= (caaadr x) 2))
+
+  (pass-if "caadar"
+    (= (caadar x) 3))
+
+  (pass-if "caaddr"
+    (= (caaddr x) 4))
+
+  (pass-if "cadaar"
+    (= (cadaar x) 5))
+
+  (pass-if "cadadr"
+    (= (cadadr x) 6))
+
+  (pass-if "caddar"
+    (= (caddar x) 7))
+
+  (pass-if "cadddr"
+    (= (cadddr x) 8))
+
+  (pass-if "cdaaar"
+    (= (cdaaar x) 9))
+
+  (pass-if "cdaadr"
+    (= (cdaadr x) 10))
+
+  (pass-if "cdadar"
+    (= (cdadar x) 11))
+
+  (pass-if "cdaddr"
+    (= (cdaddr x) 12))
+
+  (pass-if "cddaar"
+    (= (cddaar x) 13))
+
+  (pass-if "cddadr"
+    (= (cddadr x) 14))
+
+  (pass-if "cdddar"
+    (= (cdddar x) 15))
+
+  (pass-if "cddddr"
+    (= (cddddr x) 16)))

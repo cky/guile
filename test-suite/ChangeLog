@@ -1,5 +1,9 @@
 2003-06-01  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* tests/pairs.test: Added.
+
+2003-06-01  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* tests/vectors.test: Added.
 
 2003-06-01  Dirk Herrmann  <D.Herrmann@tu-bs.de>
