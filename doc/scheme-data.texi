@@ -9,7 +9,7 @@ One of the great strengths of Scheme is that there is no straightforward
 distinction between ``data'' and ``functionality''.  For example,
 Guile's support for dynamic linking could be described
 
-@itemize
+@itemize @bullet
 @item
 either in a ``data-centric'' way, as the behaviour and properties of the
 ``dynamically linked object'' data type, and the operations that may be
@@ -172,7 +172,7 @@ in Scheme, which is particularly clear and accessible: see
 Scheme's numerical ``tower'' consists of the following categories of
 numbers:
 
-@itemize
+@itemize @bullet
 @item
 integers (whole numbers)
 
@@ -2295,9 +2295,14 @@ to write a symbol containing characters not mentioned above, you write
 symbols as follows:
 
 @itemize @bullet
-@item Begin the symbol with the two character @code{#@{},
-@item write the characters of the symbol and
-@item finish the symbol with the characters @code{@}#}.
+@item
+Begin the symbol with the two character @code{#@{},
+
+@item
+write the characters of the symbol and
+
+@item
+finish the symbol with the characters @code{@}#}.
 @end itemize
 
 Here are a few examples of this form of read syntax; the first
@@ -2859,8 +2864,11 @@ of pairs which looks like a list.}
 This is the short definition of what a list is:
 
 @itemize @bullet
-@item Either the empty list @code{()},
-@item or a pair which has a list in its cdr.
+@item
+Either the empty list @code{()},
+
+@item
+or a pair which has a list in its cdr.
 @end itemize
 
 @c FIXME::martin: Describe the pair chaining in more detail.

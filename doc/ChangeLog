@@ -1,3 +1,24 @@
+2001-04-17  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* scheme-utility.texi (General Conversion): New node, added
+	`object->string'.
+	(Equality): Added definition and explanation of `sameness'.
+
+	* posix.texi (System Identification): Added `gethostname' and
+	`sethostname'.
+	(Processes): Added `setpriority' and `getpriority'.
+	(User Information): Added `cuserid' and `getlogin'.
+	(Ports and File Descriptors): Added `flock'.
+	(Processes): Added `chroot'.
+	(File System): Added `mkstemp!'.
+	(Encryption): New node, added `crypt' and `getpass'.
+
+	* new-docstrings.texi: Moved several docstrings over to the
+	reference manual (see above which).
+
+	* scheme-data.texi (Data Types), (Numerical Tower): Add explicit
+	@bullet to @itemize to satisfy older `makeinfo'.
+
 2001-04-16  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* data-rep.texi (Signalling Type Errors):  Update SCM_ASSERT doc

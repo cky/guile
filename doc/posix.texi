@@ -3,19 +3,20 @@
 
 @menu
 * Conventions::                 Conventions employed by the POSIX interface.
-* Ports and File Descriptors::	Scheme ``ports'' and Unix file descriptors
+* Ports and File Descriptors::  Scheme ``ports'' and Unix file descriptors
 				  have different representations.
-* File System::			stat, chown, chmod, etc.
-* User Information::		Retrieving a user's GECOS (/etc/passwd) entry.
-* Time::			gettimeofday, localtime, strftime, etc.
+* File System::                 stat, chown, chmod, etc.
+* User Information::            Retrieving a user's GECOS (/etc/passwd) entry.
+* Time::                        gettimeofday, localtime, strftime, etc.
 * Runtime Environment::         Accessing and modifying Guile's environment.
-* Processes::			getuid, getpid, etc.
+* Processes::                   getuid, getpid, etc.
 * Signals::                     sigaction, kill, pause, alarm, etc.
-* Terminals and Ptys::		ttyname, tcsetpgrp, etc.
-* Pipes::			Communicating data between processes.
-* Networking::			gethostbyaddr, getnetent, socket, bind, listen.
-* System Identification::	`uname' and getting info about this machine.
+* Terminals and Ptys::          ttyname, tcsetpgrp, etc.
+* Pipes::                       Communicating data between processes.
+* Networking::                  gethostbyaddr, getnetent, socket, bind, listen.
+* System Identification::       Obtaining information about the system.
 * Locales::                     setlocale, etc.
+* Encryption::                  
 @end menu
 
 @node Conventions
@@ -442,6 +443,26 @@ The value used to indicate the "close on exec" flag with @code{F_GETFL} or
 @end table
 @end deffn
 
+@deffn primitive flock file operation
+Apply or remove an advisory lock on an open file.
+@var{operation} specifies the action to be done:
+@table @code
+@item LOCK_SH
+Shared lock.  More than one process may hold a shared lock
+for a given file at a given time.
+@item LOCK_EX
+Exclusive lock.  Only one process may hold an exclusive lock
+for a given file at a given time.
+@item LOCK_UN
+Unlock the file.
+@item LOCK_NB
+Don't block when locking.  May be specified by bitwise OR'ing
+it to one of the other operations.
+@end table
+The return value is not specified. @var{file} may be an open
+file descriptor or an open file descriptior port.
+@end deffn
+
 @deffn primitive select reads writes excepts [secs [usecs]]
 This procedure has a variety of uses: waiting for the ability
 to provide input, accept output, or the existance of
@@ -712,6 +733,14 @@ Care should be taken if opening the file, e.g., use the
 @code{O_EXCL} open flag or use @code{mkstemp!} instead.
 @end deffn
 
+@deffn primitive mkstemp! tmpl
+Create a new unique file in the file system and returns a new
+buffered port open for reading and writing to the file.
+@var{tmpl} is a string specifying where the file should be
+created: it must end with @code{XXXXXX} and will be changed in
+place to return the name of the temporary file.
+@end deffn
+
 @deffn primitive dirname filename
 Return the directory name component of the file name
 @var{filename}. If @var{filename} does not contain a directory
@@ -837,6 +866,22 @@ Look up an entry in the group database.  @var{obj} can be an integer,
 a string, or omitted, giving the behaviour of getgrgid, getgrnam
 or getgrent respectively.
 @end deffn
+
+In addition to the accessor procedures for the user database, the
+following shortcut procedures are also available.
+
+@deffn primitive cuserid
+Return a string containing a user name associated with the
+effective user id of the process.  Return @code{#f} if this
+information cannot be obtained.
+@end deffn
+
+@deffn primitive getlogin
+Return a string containing the name of the user logged in on
+the controlling terminal of the process, or @code{#f} if this
+information cannot be obtained.
+@end deffn
+
 
 @node Time
 @section Time
@@ -1055,6 +1100,14 @@ file creation mask.  Otherwise the file creation mask is set to
 E.g., @code{(umask #o022)} sets the mask to octal 22, decimal 18.
 @end deffn
 
+@deffn primitive chroot path
+Change the root directory to that specified in @var{path}.
+This directory will be used for path names beginning with
+@file{/}.  The root directory is inherited by all children
+of the current process.  Only the superuser may change the
+root directory.
+@end deffn
+
 @deffn primitive getpid
 Return an integer representing the current process ID.
 @end deffn
@@ -1267,6 +1320,36 @@ priority value means that the process runs less often.
 The return value is unspecified.
 @end deffn
 
+@deffn primitive setpriority which who prio
+Set the scheduling priority of the process, process group
+or user, as indicated by @var{which} and @var{who}. @var{which}
+is one of the variables @code{PRIO_PROCESS}, @code{PRIO_PGRP}
+or @code{PRIO_USER}, and @var{who} is interpreted relative to
+@var{which} (a process identifier for @code{PRIO_PROCESS},
+process group identifier for @code{PRIO_PGRP}, and a user
+identifier for @code{PRIO_USER}.  A zero value of @var{who}
+denotes the current process, process group, or user.
+@var{prio} is a value in the range -20 and 20, the default
+priority is 0; lower priorities cause more favorable
+scheduling.  Sets the priority of all of the specified
+processes.  Only the super-user may lower priorities.
+The return value is not specified.
+@end deffn
+
+@deffn primitive getpriority which who
+Return the scheduling priority of the process, process group
+or user, as indicated by @var{which} and @var{who}. @var{which}
+is one of the variables @code{PRIO_PROCESS}, @code{PRIO_PGRP}
+or @code{PRIO_USER}, and @var{who} is interpreted relative to
+@var{which} (a process identifier for @code{PRIO_PROCESS},
+process group identifier for @code{PRIO_PGRP}, and a user
+identifier for @code{PRIO_USER}.  A zero value of @var{who}
+denotes the current process, process group, or user.  Return
+the highest priority (lowest numerical value) of any of the
+specified processes.
+@end deffn
+
+
 @node Signals
 @section Signals
 
@@ -1449,8 +1532,8 @@ close a pipe, but doesn't return the status.
 @section Networking
 
 @menu
-* Network Databases and Address Conversion::
-* Network Sockets and Communication::
+* Network Databases and Address Conversion::  
+* Network Sockets and Communication::  
 @end menu
 
 @node Network Databases and Address Conversion
@@ -2044,6 +2127,9 @@ These procedures are inconvenient to use at present, but consider:
 @node System Identification
 @section System Identification
 
+This section lists the various procedures Guile provides for accessing
+information about the system it runs on.
+
 @deffn primitive uname
 Return an object with some information about the computer
 system the program is running on.
@@ -2065,6 +2151,17 @@ The current version level within the release of the operating system.
 A description of the hardware.
 @end table
 
+@deffn primitive gethostname
+Return the host name of the current processor.
+@end deffn
+
+@deffn primitive sethostname name
+Set the host name of the current processor to @var{name}. May
+only be used by the superuser.  The return value is not
+specified.
+@end deffn
+
+@c FIXME::martin: Not in libguile!
 @deffn primitive software-type
 Return a symbol describing the current platform's operating system.
 This may be one of AIX, VMS, UNIX, COHERENT, WINDOWS, MS-DOS, OS/2,
@@ -2090,4 +2187,32 @@ Otherwise the specified locale category is set to the string
 @var{locale} and the new value is returned as a
 system-dependent string.  If @var{locale} is an empty string,
 the locale will be set using envirionment variables.
+@end deffn
+
+@node Encryption
+@section Encryption
+
+Please note that the procedures in this section are not suited for
+strong encryption, they are only interfaces to the well--known and
+common system library functions of the same name.  They are just as good
+(or bad) as the underlying functions, so you should refer to your system
+documentation before using them.
+
+@deffn primitive crypt key salt
+Encrypt @var{key} using @var{salt} as the salt value to the
+crypt(3) library call
+@end deffn
+
+@code{getpass} is no encryption procedure at all, but it is often used
+in compination with @code{crypt}, that is why it appears in this
+section.
+
+@deffn primitive getpass prompt
+Display @var{prompt} to the standard error output and read
+a password from @file{/dev/tty}.  If this file is not
+accessible, it reads from standard input.  The password may be
+up to 127 characters in length.  Additional characters and the
+terminating newline character are discarded.  While reading
+the password, echoing and the generation of signals by special
+characters is disabled.
 @end deffn
