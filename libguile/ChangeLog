@@ -1,3 +1,14 @@
+2001-06-27  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* read.c (scm_lreadr): When reading a hash token, check for a
+	user-defined hash procedure first, so that overriding the builtin
+	hash characters is possible (this was needed for implementing
+	SRFI-4's read synax `f32(...)').
+	
+	* num2integral.i.c: Use scm_t_signed_bits instead of scm_t_bits,
+	because the latter is unsigned now and breaks comparisons like
+	(n < (scm_t_signed_bits)MIN_VALUE).
+	
 2001-06-26  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* eval.h, eval.c (scm_call_4): New function.

@@ -289,9 +289,9 @@ scm_lreadr (SCM *tok_buf,SCM port,SCM *copy)
   size_t j;
   SCM p;
 				  
-tryagain:
+ tryagain:
   c = scm_flush_ws (port, s_scm_read);
-tryagain_no_flush_ws:
+ tryagain_no_flush_ws:
   switch (c)
     {
     case EOF:
@@ -299,8 +299,8 @@ tryagain_no_flush_ws:
 
     case '(':
       return SCM_RECORD_POSITIONS_P
-	     ? scm_lreadrecparen (tok_buf, port, s_list, copy)
-	     : scm_lreadparen (tok_buf, port, s_list, copy);
+	? scm_lreadrecparen (tok_buf, port, s_list, copy)
+	: scm_lreadparen (tok_buf, port, s_list, copy);
     case ')':
       SCM_MISC_ERROR ("unexpected \")\"", SCM_EOL);
       goto tryagain;
@@ -339,6 +339,27 @@ tryagain_no_flush_ws:
       return p;
     case '#':
       c = scm_getc (port);
+
+      {
+	/* Check for user-defined hash procedure first, to allow
+	   overriding of builtin hash read syntaxes.  */
+	SCM sharp = scm_get_hash_procedure (c);
+	if (!SCM_FALSEP (sharp))
+	  {
+	    int line = SCM_LINUM (port);
+	    int column = SCM_COL (port) - 2;
+	    SCM got;
+
+	    got = scm_call_2 (sharp, SCM_MAKE_CHAR (c), port);
+	    if (SCM_EQ_P (got, SCM_UNSPECIFIED))
+	      goto unkshrp;
+	    if (SCM_RECORD_POSITIONS_P)
+	      return *copy = recsexpr (got, line, column,
+				       SCM_FILENAME (port));
+	    else
+	      return got;
+	  }
+      }
       switch (c)
 	{
 	case '(':
@@ -435,8 +456,8 @@ tryagain_no_flush_ws:
 	      }
 	  }
 	unkshrp:
-	  scm_misc_error (s_scm_read, "Unknown # object: ~S",
-			  SCM_LIST1 (SCM_MAKE_CHAR (c)));
+	scm_misc_error (s_scm_read, "Unknown # object: ~S",
+			SCM_LIST1 (SCM_MAKE_CHAR (c)));
 	}
 
     case '"':
@@ -484,27 +505,27 @@ tryagain_no_flush_ws:
       SCM_STRING_CHARS (*tok_buf)[j] = 0;
       return scm_mem2string (SCM_STRING_CHARS (*tok_buf), j);
 
-    case'0':case '1':case '2':case '3':case '4':
+      case'0':case '1':case '2':case '3':case '4':
     case '5':case '6':case '7':case '8':case '9':
     case '.':
     case '-':
     case '+':
     num:
-      j = scm_read_token (c, tok_buf, port, 0);
-      p = scm_istring2number (SCM_STRING_CHARS (*tok_buf), (long) j, 10L);
-      if (!SCM_FALSEP (p))
-	return p;
-      if (c == '#')
-	{
-	  if ((j == 2) && (scm_getc (port) == '('))
-	    {
-	      scm_ungetc ('(', port);
-	      c = SCM_STRING_CHARS (*tok_buf)[1];
-	      goto callshrp;
-	    }
-	  SCM_MISC_ERROR ("unknown # object", SCM_EOL);
-	}
-      goto tok;
+		j = scm_read_token (c, tok_buf, port, 0);
+		p = scm_istring2number (SCM_STRING_CHARS (*tok_buf), (long) j, 10L);
+		if (!SCM_FALSEP (p))
+		  return p;
+		if (c == '#')
+		  {
+		    if ((j == 2) && (scm_getc (port) == '('))
+		      {
+			scm_ungetc ('(', port);
+			c = SCM_STRING_CHARS (*tok_buf)[1];
+			goto callshrp;
+		      }
+		    SCM_MISC_ERROR ("unknown # object", SCM_EOL);
+		  }
+		goto tok;
 
     case ':':
       if (SCM_EQ_P (SCM_PACK (SCM_KEYWORD_STYLE), scm_keyword_prefix))
