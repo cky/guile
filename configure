@@ -2411,7 +2411,7 @@ else
   
         if test "$ac_cv_header_libc_h" = "no"; then
           guile_cv_header_libc_with_unistd="no"
-        elif test "$ac_cv_header_unistd.h" = "no"; then
+        elif test "$ac_cv_header_unistd_h" = "no"; then
           guile_cv_header_libc_with_unistd="yes"
         else
           cat > conftest.$ac_ext <<EOF
