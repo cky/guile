@@ -738,16 +738,14 @@ SCM scm_big_test(SCM_BIGDIG *x, size_t nx, int xsgn, SCM bigy)
 
 #endif
 
-
 SCM_DEFINE1 (scm_logand, "logand", scm_tc7_asubr,
              (SCM n1, SCM n2),
-	    "Return the integer which is the bit-wise AND of the two integer\n"
-	    "arguments.\n"
-	    "\n"
-	    "@lisp\n"
-	    "(number->string (logand #b1100 #b1010) 2)\n"
-	    "   @result{} \"1000\"\n"
-	    "@end lisp")
+	     "Return the bitwise AND of the integer arguments.\n\n"
+	     "@lisp\n"
+	     "(logand) @result{} -1\n"
+	     "(logand 7) @result{} 7\n"
+	     "(logand #b111 #b011 #\b001) @result{} 1\n"
+	     "@end lisp")
 #define FUNC_NAME s_scm_logand
 {
   long int nn1;
@@ -828,12 +826,11 @@ SCM_DEFINE1 (scm_logand, "logand", scm_tc7_asubr,
 
 SCM_DEFINE1 (scm_logior, "logior", scm_tc7_asubr,
              (SCM n1, SCM n2),
-	    "Return the integer which is the bit-wise OR of the two integer\n"
-	    "arguments.\n"
-	    "\n"
-	    "@lisp\n"
-	    "(number->string (logior #b1100 #b1010) 2)\n"
-	    "   @result{} \"1110\"\n"
+	     "Return the bitwise OR of the integer arguments.\n\n"
+	     "@lisp\n"
+	     "(logior) @result{} 0\n"
+	     "(logior 7) @result{} 7\n"
+	     "(logior #b000 #b001 #b011) @result{} 3\n"
 	    "@end lisp")
 #define FUNC_NAME s_scm_logior
 {
@@ -914,12 +911,13 @@ SCM_DEFINE1 (scm_logior, "logior", scm_tc7_asubr,
 
 SCM_DEFINE1 (scm_logxor, "logxor", scm_tc7_asubr,
              (SCM n1, SCM n2),
-	    "Return the integer which is the bit-wise XOR of the two integer\n"
-	    "arguments.\n"
-	    "\n"
-	    "@lisp\n"
-	    "(number->string (logxor #b1100 #b1010) 2)\n"
-	    "   @result{} \"110\"\n"
+	     "Return the bitwise XOR of the integer arguments.  A bit is\n"
+	     "set in the result if it is set in an odd number of arguments.\n"
+	     "@lisp\n"
+	     "(logxor) @result{} 0\n"
+	     "(logxor 7) @result{} 7\n"
+	     "(logxor #b000 #b001 #b011) @result{} 2\n"
+	     "(logxor #b000 #b001 #b011 #b011) @result{} 1\n"
 	    "@end lisp")
 #define FUNC_NAME s_scm_logxor
 {

@@ -1,3 +1,8 @@
+2001-07-25  Gary Houston  <ghouston@arglist.com>
+
+	* numbers.c (scm_logand, scm_logior, scm_logxor): adjusted the
+	docstrings to reflect the n-ary implementation.
+
 2001-07-26  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* eval.c (scm_ceval, scm_deval): Use "RETURN" macro when returning
