@@ -146,6 +146,7 @@ extern SCM scm_sym_uq_splicing;
 extern SCM scm_sym_dot;
 extern SCM scm_sym_atapply;
 extern SCM scm_sym_atcall_cc;
+extern SCM scm_sym_delay;
 extern SCM scm_sym_arrow;
 extern SCM scm_sym_else;
 extern SCM scm_sym_apply;
