@@ -171,7 +171,9 @@ start_stack (void *base)
 
   scm_exitval = SCM_BOOL_F;	/* vestigial */
 
+#if SCM_DEBUG_DEPRECATED == 0
   scm_top_level_lookup_closure_var = SCM_BOOL_F;
+#endif
   scm_system_transformer = SCM_BOOL_F;
 
   scm_root->fluids = scm_make_initial_fluids ();

@@ -147,8 +147,6 @@ extern SCM scm_builtin_weak_bindings (void);
 extern SCM scm_gensym (SCM name, SCM obarray);
 extern void scm_init_symbols (void);
 
-extern int scm_can_use_top_level_lookup_closure_var;
-
 #endif  /* SYMBOLSH */
 
 /*
