@@ -42,7 +42,7 @@ ltdl.h.diff: ltdl.h ../raw-ltdl.h
 	  -e 's/ SCM_UNUSED//go;' \
 	  raw-ltdl.guilemod.h.tmp
 	mv raw-ltdl.guilemod.h.tmp raw-ltdl.guilemod.h
-	diff -ru upstream/ltdl.h raw-ltdl.guilemod.h > upstream/ltdl.h.diff; \
+	diff -ru ltdl.h raw-ltdl.guilemod.h > ltdl.h.diff; \
 	  test "$$?" -eq 1
 
 ltdl.c.diff: ltdl.c ../raw-ltdl.c
@@ -53,7 +53,7 @@ ltdl.c.diff: ltdl.c ../raw-ltdl.c
 	  -e 's/ SCM_UNUSED//go;' \
 	  raw-ltdl.guilemod.c.tmp
 	mv raw-ltdl.guilemod.c.tmp raw-ltdl.guilemod.c
-	diff -ru upstream/ltdl.c raw-ltdl.guilemod.c > upstream/ltdl.c.diff; \
+	diff -ru ltdl.c raw-ltdl.guilemod.c > ltdl.c.diff; \
 	  test "$$?" -eq 1
 
 CLEANFILES := \
