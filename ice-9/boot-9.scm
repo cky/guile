@@ -2580,6 +2580,7 @@
 	  ((memq 'backtrace (debug-options-interface))
 	   (run-hook before-backtrace-hook)
 	   (newline cep)
+	   (display "Backtrace:\n")
 	   (display-backtrace (fluid-ref the-last-stack) cep)
 	   (newline cep)
 	   (run-hook after-backtrace-hook)))
@@ -2968,6 +2969,12 @@
 ;; (set-current-input-port inp)
 ;; (set-current-output-port outp)
 ;; (set-current-error-port errp)
+
+(define using-readline?
+  (let ((using-readline? (make-fluid)))
+     (make-procedure-with-setter
+      (lambda () (fluid-ref using-readline?))
+      (lambda (v) (fluid-set! using-readline? v)))))
 
 ;; this is just (scm-style-repl) with a wrapper to install and remove 
 ;; signal handlers.
