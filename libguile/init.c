@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -470,6 +470,7 @@ scm_init_guile_1 (SCM_STACKITEM *base)
 #endif
   start_stack (base);
   scm_init_gsubr ();
+  scm_init_thread_procs ();    /* Requires gsubrs */
   scm_init_procprop ();
   scm_init_environments ();
   scm_init_feature ();
