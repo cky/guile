@@ -13,7 +13,8 @@ test_cflags := \
   -I$(top_srcdir) \
   -I$(top_srcdir)/libguile-ltdl $(EXTRA_DEFS)
 
-snarfcppopts = $(DEFS) $(DEFAULT_INCLUDES) $(CPPFLAGS) $(CFLAGS)
+snarfcppopts = \
+  $(DEFS) $(DEFAULT_INCLUDES) $(CPPFLAGS) $(CFLAGS) -I$(top_srcdir)
 %.x: %.c
 	${top_builddir}/libguile/guile-snarf -o $@ $< $(snarfcppopts)
 

@@ -1,3 +1,7 @@
+2003-12-01  Mikael Djurfeldt  <mdj@chunk.mit.edu>
+
+	* standalone/Makefile.am (snarfcppopts): Added -I$(top_srcdir).
+
 2003-11-19  Rob Browning  <rlb@defaultvalue.org>
 
 	* standalone/test-system-cmds: new test.
