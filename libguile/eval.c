@@ -1,4 +1,4 @@
-/* Copyright (C) 1995, 96, 97, 98, 99, 2000 Free Software Foundation, Inc.
+/* Copyright (C) 1995, 96, 97, 98, 99, 2000, 2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -3338,6 +3338,10 @@ tail:
 	RETURN (arg1)
       }
     case scm_tc7_subr_3:
+      SCM_ASRTGO (SCM_NNULLP (args)
+		  && SCM_NNULLP (SCM_CDR (args))
+		  && SCM_NULLP (SCM_CDDR (args)),
+		  wrongnumargs);
       RETURN (SCM_SUBRF (proc) (arg1, SCM_CAR (args), SCM_CAR (SCM_CDR (args))))
     case scm_tc7_lsubr:
 #ifdef DEVAL
