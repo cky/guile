@@ -1,4 +1,4 @@
-# Makefile.in generated automatically by automake 1.1k from Makefile.am
+# Makefile.in generated automatically by automake 1.1l from Makefile.am
 
 # Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
@@ -37,7 +37,10 @@ INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 transform = @program_transform_name@
+INSTALL_SCRIPT = @INSTALL_SCRIPT@
+PACKAGE = @PACKAGE@
 existingdirs = @existingdirs@
+VERSION = @VERSION@
 
 SUBDIRS = @existingdirs@ doc
 
@@ -57,9 +60,6 @@ Makefile.in NEWS README TODO aclocal.m4 config.guess config.sub \
 configure configure.in install-sh mdate-sh mkinstalldirs
 
 
-PACKAGE = @PACKAGE@
-VERSION = @VERSION@
-
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) \
 	$(TEXINFOS) $(MANS) $(EXTRA_DIST)
 
@@ -67,8 +67,8 @@ TAR = tar
 default: all
 
 .SUFFIXES:
-$(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in 
-	cd $(top_srcdir) && automake --foreign Makefile
+$(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL) 
+	cd $(top_srcdir) && automake --gnu Makefile
 
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status $(BUILT_SOURCES)
 	cd $(top_builddir) \
@@ -85,10 +85,12 @@ $(srcdir)/configure: configure.in $(ACLOCAL) $(CONFIGURE_DEPENDENCIES)
 install-aclocalDATA: $(aclocal_DATA)
 	$(NORMAL_INSTALL)
 	$(mkinstalldirs) $(aclocaldir)
-	list="$(aclocal_DATA)"; for p in $$list; do \
+	@list="$(aclocal_DATA)"; for p in $$list; do \
 	  if test -f $(srcdir)/$$p; then \
+	    echo "$(INSTALL_DATA) $(srcdir)/$$p $(aclocaldir)/$$p"; \
 	    $(INSTALL_DATA) $(srcdir)/$$p $(aclocaldir)/$$p; \
 	  else if test -f $$p; then \
+	    echo "$(INSTALL_DATA) $$p $(aclocaldir)/$$p"; \
 	    $(INSTALL_DATA) $$p $(aclocaldir)/$$p; \
 	  fi; fi; \
 	done
@@ -112,9 +114,10 @@ installdirs-recursive install-recursive uninstall-recursive  \
 check-recursive installcheck-recursive info-recursive dvi-recursive \
 mostlyclean-recursive clean-recursive distclean-recursive \
 maintainer-clean-recursive:
-	for subdir in $(SUBDIRS); do		\
+	@for subdir in $(SUBDIRS); do \
 	  target=`echo $@ | sed s/-recursive//`; \
-	  (cd $$subdir && $(MAKE) $$target)	\
+	  echo "Making $$target in $$subdir"; \
+	  (cd $$subdir && $(MAKE) $$target) \
 	   || case "$(MFLAGS)" in *k*) fail=yes;; *) exit 1;; esac; \
 	done && test -z "$$fail"
 tags-recursive:
@@ -161,7 +164,7 @@ distdir: $(DISTFILES)
 	-chmod 755 $(distdir)
 	here=`pwd`; distdir=`cd $(distdir) && pwd` \
 	  && cd $(srcdir) \
-	  && automake --include-deps --build-dir=$$here --srcdir-name=$(srcdir) --output-dir=$$distdir --foreign
+	  && automake --include-deps --build-dir=$$here --srcdir-name=$(srcdir) --output-dir=$$distdir --gnu
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
 	  test -f $(distdir)/$$file \
