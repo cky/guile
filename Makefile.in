@@ -68,7 +68,7 @@ default: all
 
 .SUFFIXES:
 $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in 
-	cd $(top_srcdir) && automake --gnu Makefile
+	cd $(top_srcdir) && automake --foreign Makefile
 
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status $(BUILT_SOURCES)
 	cd $(top_builddir) \
@@ -161,7 +161,7 @@ distdir: $(DISTFILES)
 	-chmod 755 $(distdir)
 	here=`pwd`; distdir=`cd $(distdir) && pwd` \
 	  && cd $(srcdir) \
-	  && automake --include-deps --build-dir=$$here --srcdir-name=$(srcdir) --output-dir=$$distdir --gnu
+	  && automake --include-deps --build-dir=$$here --srcdir-name=$(srcdir) --output-dir=$$distdir --foreign
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
 	  test -f $(distdir)/$$file \
