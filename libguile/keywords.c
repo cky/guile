@@ -81,7 +81,7 @@ static SCM
 keyword_undump (SCM dstate)
 {
   int len;
-  const char *mem = scm_restore_string (dstate, &len);
+  const char *mem = scm_restore_string (&len, dstate);
   SCM sym = scm_mem2symbol (mem, len);
   return scm_make_keyword_from_dash_symbol (sym);
 }

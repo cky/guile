@@ -1,6 +1,7 @@
 2001-02-05  Keisuke Nishida  <kxn30@po.cwru.edu>
 
 	* dump.c, dump.h: Modified a lot.
+	(SCM_DUMP_COOKIE): Version 0.1
 	(scm_dump_mark): Removed.
 	(scm_restore_cell_object, scm_store_cell_object): New functions.
 

@@ -60,7 +60,7 @@
 #include "libguile/validate.h"
 #include "libguile/dump.h"
 
-#define SCM_DUMP_COOKIE			"\x7fGBF-0.0"
+#define SCM_DUMP_COOKIE			"\x7fGBF-0.1"
 
 #define SCM_DUMP_HASH_SIZE		151
 #define SCM_DUMP_IMAGE_SIZE		4096
@@ -285,7 +285,7 @@ scm_store_string (const char *addr, scm_sizet size, SCM dstate)
 }
 
 void
-scm_store_bytes (const char *addr, scm_sizet size, SCM dstate)
+scm_store_bytes (const void *addr, scm_sizet size, SCM dstate)
 {
   struct scm_dstate *p = SCM_DSTATE_DATA (dstate);
   while (p->image_index + size >= p->image_size)
@@ -298,7 +298,7 @@ scm_store_bytes (const char *addr, scm_sizet size, SCM dstate)
 void
 scm_store_word (const scm_bits_t word, SCM dstate)
 {
-  scm_store_bytes ((const char *) &word, sizeof (scm_bits_t), dstate);
+  scm_store_bytes (&word, sizeof (scm_bits_t), dstate);
 }
 
 void
@@ -337,21 +337,21 @@ scm_restore_pad (SCM dstate)
 }
 
 const char *
-scm_restore_string (SCM dstate, int *lenp)
+scm_restore_string (scm_sizet *sizep, SCM dstate)
 {
   struct scm_dstate *p = SCM_DSTATE_DATA (dstate);
   const char *addr = p->image_base + p->image_index;
-  *lenp = strlen (addr);
-  p->image_index += *lenp + 1;
+  *sizep = strlen (addr);
+  p->image_index += *sizep + 1;
   scm_restore_pad (dstate);
   return addr;
 }
 
-const char *
-scm_restore_bytes (SCM dstate, scm_sizet size)
+const void *
+scm_restore_bytes (scm_sizet size, SCM dstate)
 {
   struct scm_dstate *p = SCM_DSTATE_DATA (dstate);
-  const char *addr = p->image_base + p->image_index;
+  const void *addr = p->image_base + p->image_index;
   p->image_index += size;
   scm_restore_pad (dstate);
   return addr;
@@ -510,14 +510,14 @@ scm_undump (SCM dstate)
     case scm_tc7_symbol:
       {
 	int len;
-	const char *mem = scm_restore_string (dstate, &len);
+	const char *mem = scm_restore_string (&len, dstate);
 	obj = scm_mem2symbol (mem, len);
 	goto store_object;
       }
     case scm_tc7_string:
       {
 	int len;
-	const char *mem = scm_restore_string (dstate, &len);
+	const char *mem = scm_restore_string (&len, dstate);
 	obj = scm_makfromstr (mem, len, 0);
 	goto store_object;
       }
