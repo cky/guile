@@ -1,3 +1,12 @@
+Fri Sep 13 12:58:08 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
+
+	* __scm.h, chars.c, debug.c, eval.c, eval.h, extchrs.c, extchrs.h,
+ 	fdsocket.c, feature.c, mbstrings.c, mbstrings.h, numbers.c,
+ 	numbers.h, print.c, scmhob.h, simpos.h, symbols.c, symbols.h,
+ 	tags.h, throw.c, variable.h: Name cleanup.  Lots of xxxSCM_yyy
+ 	renamed.  (These were introduced by unsupervised name
+ 	substitution.)
+
 Fri Sep 13 01:19:08 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
 
 *	* print.c: Added code for detection of circular references during
