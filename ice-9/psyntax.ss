@@ -13,6 +13,7 @@
 ;;; AUTHORS BE LIABLE FOR CONSEQUENTIAL OR INCIDENTAL DAMAGES OF ANY
 ;;; NATURE WHATSOEVER.
 
+
 ;;; Before attempting to port this code to a new implementation of
 ;;; Scheme, please read the notes below carefully.
 
@@ -102,6 +103,13 @@
 ;;; evaluator/expander that no expansion is necessary, since expr has
 ;;; already been fully expanded to core forms.
 ;;;
+;;; eval will not be invoked during the loading of psyntax.pp.  After
+;;; psyntax.pp has been loaded, the expansion of any macro definition,
+;;; whether local or global, will result in a call to eval.  If, however,
+;;; sc-expand has already been registered as the expander to be used
+;;; by eval, and eval accepts one argument, nothing special must be done
+;;; to support the "noexpand" flag, since it is handled by sc-expand.
+;;;
 ;;; (error who format-string why what)
 ;;; where who is either a symbol or #f, format-string is always "~a ~s",
 ;;; why is always a string, and what may be any object.  error should
@@ -126,6 +134,12 @@
 ;;; change the hooks and constructors defined toward the beginning of
 ;;; the code below, but to avoid bootstrapping problems, do so only
 ;;; after you have a working version of the expander.
+
+;;; Chez Scheme allows the syntactic form (syntax <template>) to be
+;;; abbreviated to #'<template>, just as (quote <datum>) may be
+;;; abbreviated to '<datum>.  The #' syntax makes programs written
+;;; using syntax-case shorter and more readable and draws out the
+;;; intuitive connection between syntax and quote.
 
 ;;; If you find that this code loads or runs slowly, consider
 ;;; switching to faster hardware or a faster implementation of
