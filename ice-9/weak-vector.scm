@@ -44,7 +44,7 @@
 
 
 (define-module (ice-9 weak-vector)
-  :export (make-weak-vector list->weak-vector weak-vector?
+  :export (make-weak-vector list->weak-vector weak-vector weak-vector?
 	   make-weak-key-alist-vector
 	   make-weak-value-alist-vector
 	   make-doubly-weak-alist-vector
