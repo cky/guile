@@ -1,3 +1,21 @@
+Wed Jan  5 08:36:38 2000  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* guile-doc-snarf.awk.in: Removed -- guile-snarf.awk.in is the
+	current version of the same functionality; it writes the .x output 
+	to stdout instead of directly into the file.
+
+Wed Jan  5 08:15:04 2000  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* unif.c, symbols.c, strings.c, stacks.c, random.c, print.c,
+	posix.c:  Eliminated a bunch of SCM_NIMP(..)s that are now
+	redundant with the safer macros.  Patch from Dirk Hermann applied
+	by hand. Thanks Dirk!
+
+	* scm_validate.h: Added SCM_VALIDATE_VECTOR_OR_DVECTOR for some
+	uses in random.c.
+
+	* ramap.c: whitespace change.
+
 Tue Jan  4 14:21:35 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* options.c, objects.c, keywords.c, gc.c: Some redundant SCM_NIMP
