@@ -3,7 +3,7 @@
 #ifndef SCM_THREADS_H
 #define SCM_THREADS_H
 
-/* Copyright (C) 1996,1997,1998,2000,2001, 2002, 2003 Free Software Foundation, Inc.
+/* Copyright (C) 1996,1997,1998,2000,2001, 2002, 2003, 2004 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -241,6 +241,8 @@ extern scm_t_key scm_i_thread_key;
 #define SCM_SET_THREAD_LOCAL_DATA(x) scm_i_set_thread_data(x)
 SCM_API scm_t_key scm_i_root_state_key;
 SCM_API void scm_i_set_thread_data (void *);
+
+SCM_API scm_t_mutex scm_i_misc_mutex;
 
 #endif  /* SCM_THREADS_H */
 

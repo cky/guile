@@ -1329,6 +1329,12 @@ scm_init_threads (SCM_STACKITEM *base)
   threads_initialized_p = 1;
 }
 
+/* scm_i_misc_mutex is intended for miscellaneous uses, to protect
+   operations which are non-reentrant or non-thread-safe but which are
+   either not important enough or not used often enough to deserve their own
+   private mutex.  */
+SCM_GLOBAL_MUTEX (scm_i_misc_mutex);
+
 void
 scm_init_thread_procs ()
 {
