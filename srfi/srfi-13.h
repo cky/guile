@@ -2,7 +2,7 @@
 #define SCM_SRFI_13_H
 /* srfi-13.c --- SRFI-13 procedures for Guile
  *
- * 	Copyright (C) 2001 Free Software Foundation, Inc.
+ * 	Copyright (C) 2001, 2004 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -42,7 +42,7 @@ SCM_SRFI1314_API SCM scm_string_to_listS (SCM str, SCM start, SCM end);
 SCM_SRFI1314_API SCM scm_reverse_list_to_string (SCM chrs);
 SCM_SRFI1314_API SCM scm_string_join (SCM ls, SCM delimiter, SCM grammar);
 SCM_SRFI1314_API SCM scm_string_copyS (SCM str, SCM start, SCM end);
-SCM_SRFI1314_API SCM scm_substring_shared (SCM str, SCM start, SCM end);
+SCM_SRFI1314_API SCM scm_substring_sharedS (SCM str, SCM start, SCM end);
 SCM_SRFI1314_API SCM scm_string_copy_x (SCM target, SCM tstart, SCM s, SCM start, SCM end);
 SCM_SRFI1314_API SCM scm_string_take (SCM s, SCM n);
 SCM_SRFI1314_API SCM scm_string_drop (SCM s, SCM n);
