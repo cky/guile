@@ -1,3 +1,8 @@
+2004-01-20  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* boot-9.scm (error-catching-loop): Back out 2003-11-19 change to
+	lazy-handler-dispatch lookup.
+
 2004-01-12  Marius Vollmer  <mvo@zagadka.de>
 
 	* mapping.scm: Use '#:' prefix for keywords instead of ':'.

@@ -2315,18 +2315,18 @@
 					    (loop (thunk)))
 					  #f)))))
 
-				  ;; Use a closure here rather than
-				  ;; just `lazy-handler-dispatch' so
-				  ;; that lookup of
-				  ;; lazy-handler-dispatch's value is
-				  ;; deferred until a throw occurs.
-				  ;; This means that if code executed
-				  ;; in the REPL just above set!s
-				  ;; lazy-handler-dispatch, the new
-				  ;; value will be used to handle the
-				  ;; next throw from the REPL.
-				  (lambda args
-				    (apply lazy-handler-dispatch args))))
+				  ;; Note that having just
+				  ;; `lazy-handler-dispatch' here is
+				  ;; connected with the mechanism that
+				  ;; produces a nice backtrace upon
+				  ;; error.  If, for example, this is
+				  ;; replaced with (lambda args (apply
+				  ;; lazy-handler-dispatch args)), the
+				  ;; stack cutting (in save-stack)
+				  ;; goes wrong and ends up saving no
+				  ;; stack at all, so there is no
+				  ;; backtrace.
+				  lazy-handler-dispatch))
 
 		    (lambda (key . args)
 		      (case key
