@@ -1,5 +1,13 @@
 2003-05-10  Kevin Ryde  <user42@zip.com.au>
 
+	* tests/numbers.test (=, <): Add tests involving NaNs.
+
+	* tests/numbers.test (integer-length): Exercise some negatives, in
+	particular -2^n which is ...11100..00.
+
+	* tests/numbers.test (gcd): Exercise bignum/inum with a bignum not
+	fitting a ulong.
+
 	* tests/srfi-1.test: New file, exercising take and drop.
 	* Makefile.am (SCM_TESTS): Add it.
 
