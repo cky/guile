@@ -1070,31 +1070,41 @@ SCM_DEFINE (scm_char_set_union, "char-set-union", 0, 0, 1,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_char_set_intersection, "char-set-intersection", 1, 0, 1,
-	    (SCM cs1, SCM rest),
+SCM_DEFINE (scm_char_set_intersection, "char-set-intersection", 0, 0, 1,
+	    (SCM rest),
 	    "Return the intersection of all argument character sets.")
 #define FUNC_NAME s_scm_char_set_intersection
 {
-  int c = 2;
   SCM res;
-  long * p;
 
-  SCM_VALIDATE_SMOB (1, cs1, charset);
   SCM_VALIDATE_REST_ARGUMENT (rest);
 
-  res = scm_char_set_copy (cs1);
-  p = (long *) SCM_SMOB_DATA (res);
-  while (!SCM_NULLP (rest))
+  if (SCM_NULLP (rest))
+    res = make_char_set (FUNC_NAME);
+  else
     {
-      int k;
-      SCM cs = SCM_CAR (rest);
-      SCM_VALIDATE_SMOB (c, cs, charset);
-      c++;
+      long *p;
+      int argnum = 2;
+
+      res = scm_char_set_copy (SCM_CAR (rest));
+      p = (long *) SCM_SMOB_DATA (res);
       rest = SCM_CDR (rest);
 
-      for (k = 0; k < LONGS_PER_CHARSET; k++)
-	p[k] &= ((long *) SCM_SMOB_DATA (cs))[k];
+      while (SCM_CONSP (rest))
+	{
+	  int k;
+	  SCM cs = SCM_CAR (rest);
+	  long *cs_data;
+
+	  SCM_VALIDATE_SMOB (argnum, cs, charset);
+	  argnum++;
+	  cs_data = (long *) SCM_SMOB_DATA (cs);
+	  rest = SCM_CDR (rest);
+	  for (k = 0; k < LONGS_PER_CHARSET; k++)
+	    p[k] &= cs_data[k];
+	}
     }
+
   return res;
 }
 #undef FUNC_NAME
@@ -1130,30 +1140,40 @@ SCM_DEFINE (scm_char_set_difference, "char-set-difference", 1, 0, 1,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_char_set_xor, "char-set-xor", 1, 0, 1,
-	    (SCM cs1, SCM rest),
+SCM_DEFINE (scm_char_set_xor, "char-set-xor", 0, 0, 1,
+	    (SCM rest),
 	    "Return the exclusive-or of all argument character sets.")
 #define FUNC_NAME s_scm_char_set_xor
 {
-  int c = 2;
   SCM res;
-  long * p;
 
-  SCM_VALIDATE_SMOB (1, cs1, charset);
   SCM_VALIDATE_REST_ARGUMENT (rest);
 
-  res = scm_char_set_copy (cs1);
-  p = (long *) SCM_SMOB_DATA (res);
-  while (!SCM_NULLP (rest))
+  if (SCM_NULLP (rest))
+    res = make_char_set (FUNC_NAME);
+  else
     {
-      int k;
-      SCM cs = SCM_CAR (rest);
-      SCM_VALIDATE_SMOB (c, cs, charset);
-      c++;
+      long * p;
+      int argnum = 2;
+
+      res = scm_char_set_copy (SCM_CAR (rest));
+      p = (long *) SCM_SMOB_DATA (res);
       rest = SCM_CDR (rest);
 
-      for (k = 0; k < LONGS_PER_CHARSET; k++)
-	p[k] ^= ((long *) SCM_SMOB_DATA (cs))[k];
+      while (SCM_CONSP (rest))
+	{
+	  int k;
+	  SCM cs = SCM_CAR (rest);
+	  long *cs_data; 
+
+	  SCM_VALIDATE_SMOB (argnum, cs, charset);
+	  argnum++;
+	  cs_data = (long *) SCM_SMOB_DATA (cs);
+	  rest = SCM_CDR (rest);
+
+	  for (k = 0; k < LONGS_PER_CHARSET; k++)
+	    p[k] ^= cs_data[k];
+	}
     }
   return res;
 }
