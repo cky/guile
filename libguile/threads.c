@@ -157,7 +157,7 @@ make_thread (SCM creation_protects)
   t->base = NULL;
   t->joining_threads = make_queue ();
   scm_i_plugin_cond_init (&t->sleep_cond, 0);
-  scm_i_plugin_mutex_init (&t->heap_mutex, 0);
+  scm_i_plugin_mutex_init (&t->heap_mutex, &scm_i_plugin_mutex);
   t->clear_freelists_p = 0;
   t->exited = 0;
   return z;
@@ -581,7 +581,7 @@ SCM_DEFINE (scm_make_fair_mutex, "make-fair-mutex", 0, 0, 0,
 {
   SCM mx = scm_make_smob (scm_tc16_fair_mutex);
   fair_mutex *m = SCM_MUTEX_DATA (mx);
-  scm_i_plugin_mutex_init (&m->lock, 0);
+  scm_i_plugin_mutex_init (&m->lock, &scm_i_plugin_mutex);
   m->lockedp = 0;
   m->owner = SCM_BOOL_F;
   m->level = 0;
@@ -763,7 +763,7 @@ SCM_DEFINE (scm_make_mutex, "make-mutex", 0, 0, 0,
 #define FUNC_NAME s_scm_make_mutex
 {
   SCM mx = scm_make_smob (scm_tc16_mutex);
-  scm_i_plugin_mutex_init (SCM_MUTEX_DATA (mx), 0);
+  scm_i_plugin_mutex_init (SCM_MUTEX_DATA (mx), &scm_i_plugin_mutex);
   return mx;
 }
 #undef FUNC_NAME
