@@ -1,3 +1,11 @@
+2000-08-24  Keisuke Nishida  <kxn30@po.cwru.edu>
+
+	* src/vm.c (lookup_variable): New function.
+	(scm_make_bytecode): Call lookup_variable for top-level variables.
+	* src/vm_engine.h (VM_VARIABLE_REF, VM_VARIABLE_SET): New macros.
+	* src/vm_system.c (TOPLEVEL_VAR, TOPLEVEL_VAR_SET): Removed.
+	Use VM_VARIABLE_REF and VM_VARIABLE_SET instead.
+
 2000-08-22  Keisuke Nishida  <kxn30@po.cwru.edu>
 
 	* src/vm.c, src/vm.h, src/vm_engine.c, src/vm_engine.h,
