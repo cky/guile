@@ -1,3 +1,7 @@
+2002-03-01  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* guile-api.alist: Update.
+
 2001-08-27  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* mltext.texi (Guile Character Properties): Fix `hexidecimal'
@@ -39,7 +43,7 @@
 
 	* scheme-evaluation.texi: Added `load-from-path'.  Corrected `load':
 	it doesn't use the load paths.
-	
+
 2001-07-04  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* scheme-data.texi (Hook Reference): Removed documentation for
@@ -57,7 +61,7 @@
 	@result{} and @print{}.
 
 	* scheme-data.texi (Hash Table Examples): New subsubsection.
-	
+
 2001-06-30  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* scheme-data.texi (Hash Tables): Added docs for
@@ -157,7 +161,7 @@
 
 2001-06-04  Gary Houston  <ghouston@arglist.com>
 
-	* scheme-io.texi (Block Reading and Writing): added 
+	* scheme-io.texi (Block Reading and Writing): added
 	write-string/partial, updated read-string!/partial.
 
 2001-05-30  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
@@ -248,7 +252,7 @@
 
 	* srfi-modules.texi (SRFI-0): New section.
 	(SRFI-16): New section.
-	
+
 	Change `--' to `-' throughout.
 
 2001-05-13  Thien-Thi Nguyen  <ttn@revel.glug.org>
