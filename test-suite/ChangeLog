@@ -1,3 +1,7 @@
+2001-05-07  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* tests/srfi-13.test: New file testing the SRFI string library.
+
 2001-04-26  Gary Houston  <ghouston@arglist.com>
 
 	* tests/r4rs.test: delete files tmp1, tmp2, tmp3 after the tests
