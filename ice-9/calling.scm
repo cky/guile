@@ -1,6 +1,6 @@
 ;;;; calling.scm --- Calling Conventions
 ;;;;
-;;;; 	Copyright (C) 1995, 1996, 1997 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1995, 1996, 1997, 2000 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -129,9 +129,9 @@
 
 (define (excursion-function-syntax vars)
   (let ((saved-value-names (map gensym vars))
-	(tmp-var-name (gensym 'temp))
-	(swap-fn-name (gensym 'swap))
-	(thunk-name (gensym 'thunk)))
+	(tmp-var-name (gensym "temp"))
+	(swap-fn-name (gensym "swap"))
+	(thunk-name (gensym "thunk")))
     `(lambda (,thunk-name)
        (letrec ((,tmp-var-name #f)
 		(,swap-fn-name
@@ -148,10 +148,10 @@
 
 
 (define (getter-and-setter-syntax vars)
-  (let ((args-name (gensym 'args))
-	(an-arg-name (gensym 'an-arg))
-	(new-val-name (gensym 'new-value))
-	(loop-name (gensym 'loop))
+  (let ((args-name (gensym "args"))
+	(an-arg-name (gensym "an-arg"))
+	(new-val-name (gensym "new-value"))
+	(loop-name (gensym "loop"))
 	(kws (map symbol->keyword vars)))
     (list `(lambda ,args-name
 	     (let ,loop-name ((,args-name ,args-name))
@@ -184,10 +184,10 @@
 			(,loop-name (cddr ,args-name)))))))))
 
 (define (delegating-getter-and-setter-syntax  vars get-delegate set-delegate)
-  (let ((args-name (gensym 'args))
-	(an-arg-name (gensym 'an-arg))
-	(new-val-name (gensym 'new-value))
-	(loop-name (gensym 'loop))
+  (let ((args-name (gensym "args"))
+	(an-arg-name (gensym "an-arg"))
+	(new-val-name (gensym "new-value"))
+	(loop-name (gensym "loop"))
 	(kws (map symbol->keyword vars)))
     (list `(lambda ,args-name
 	     (let ,loop-name ((,args-name ,args-name))
