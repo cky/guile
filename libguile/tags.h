@@ -439,17 +439,15 @@ typedef unsigned long scm_t_bits;
 #define scm_tc7_pws		31
 
 #if SCM_HAVE_ARRAYS
-#define scm_tc7_llvect          29
-#define scm_tc7_uvect		37
-#define scm_tc7_fvect		45
-#define scm_tc7_dvect		47
-#define scm_tc7_cvect		53
-#define scm_tc7_svect		55
+#define scm_tc7_unused_1        29
+#define scm_tc7_unused_2	37
+#define scm_tc7_unused_3	45
+#define scm_tc7_unused_4	47
+#define scm_tc7_unused_5	53
+#define scm_tc7_unused_6	55
 #define scm_tc7_bvect		71
-#if 0
-#define scm_tc7_byvect		77
-#endif
-#define scm_tc7_ivect		79
+#define scm_tc7_unused_7	77
+#define scm_tc7_unused_8	79
 #endif
 
 #define scm_tc7_dsubr		61
