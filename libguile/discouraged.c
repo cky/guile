@@ -76,6 +76,12 @@ scm_double2num (double n)
   return scm_from_double (n);
 }
 
+SCM
+scm_make_complex (double x, double y)
+{
+  return scm_c_make_rectangular (x, y);
+}
+
 void
 scm_i_init_discouraged (void)
 {

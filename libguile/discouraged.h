@@ -111,6 +111,8 @@ SCM_API float scm_num2float (SCM num, unsigned long int pos,
 SCM_API double scm_num2double (SCM num, unsigned long int pos,
 			       const char *s_caller);
 
+SCM_API SCM scm_make_complex (double x, double y);
+
 void scm_i_init_discouraged (void);
 
 #endif /* SCM_ENABLE_DISCOURAGED == 1 */

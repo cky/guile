@@ -213,12 +213,13 @@ SCM_API int scm_print_complex (SCM sexp, SCM port, scm_print_state *pstate);
 SCM_API int scm_bigprint (SCM exp, SCM port, scm_print_state *pstate);
 SCM_API SCM scm_i_mem2number (const char *mem, size_t len, unsigned int radix);
 SCM_API SCM scm_string_to_number (SCM str, SCM radix);
-SCM_API SCM scm_make_complex (double x, double y);
 SCM_API SCM scm_bigequal (SCM x, SCM y);
 SCM_API SCM scm_real_equalp (SCM x, SCM y);
 SCM_API SCM scm_complex_equalp (SCM x, SCM y);
 SCM_API SCM scm_number_p (SCM x);
+SCM_API SCM scm_complex_p (SCM x);
 SCM_API SCM scm_real_p (SCM x);
+SCM_API SCM scm_rational_p (SCM z);
 SCM_API SCM scm_integer_p (SCM x);
 SCM_API SCM scm_inexact_p (SCM x);
 SCM_API SCM scm_num_eq_p (SCM x, SCM y);
@@ -270,7 +271,6 @@ SCM_API SCM scm_i_ulong2big (unsigned long n);
 SCM_API SCM scm_rationalize (SCM x, SCM err);
 SCM_API SCM scm_numerator (SCM z);
 SCM_API SCM scm_denominator (SCM z);
-SCM_API SCM scm_rational_p (SCM z);
 
 /* fraction internal functions */
 SCM_API double scm_i_fraction2double (SCM z);
@@ -449,12 +449,24 @@ SCM_API SCM          scm_from_uint64 (scm_t_uint64 x);
 #endif
 #endif
 
-/* conversion functions for reals */
+/* conversion functions for double */
 
 SCM_API int scm_is_real (SCM val);
 SCM_API int scm_is_rational (SCM val);
 SCM_API double scm_to_double (SCM val);
 SCM_API SCM scm_from_double (double val);
+
+/* conversion functions for complex */
+
+SCM_API int scm_is_complex (SCM val);
+SCM_API SCM scm_c_make_rectangular (double re, double im);
+SCM_API SCM scm_c_make_polar (double mag, double ang);
+SCM_API double scm_c_real_part (SCM z);
+SCM_API double scm_c_imag_part (SCM z);
+SCM_API double scm_c_magnitude (SCM z);
+SCM_API double scm_c_angle (SCM z);
+
+SCM_API int scm_is_number (SCM val);
 
 SCM_API void scm_init_numbers (void);
 
