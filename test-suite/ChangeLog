@@ -1,3 +1,7 @@
+2000-03-22  Jim Blandy  <jimb@savonarola.red-bean.com>
+
+	* lib.scm: Doc fixes.
+
 Sun Jan 16 14:01:51 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* paths.scm: Assume that ~/guile-core/test-suite is the location
