@@ -8,7 +8,7 @@ Changes since Guile 1.4:
 
 * Changes to the distribution
 
-** Guile now using versioning scheme similar to that of the Linux kernel.
+** Guile now uses a versioning scheme similar to that of the Linux kernel.
 
 Guile now always uses three numbers to represent the version,
 i.e. "1.6.5".  The first number, 1, is the major version number, the
@@ -29,7 +29,13 @@ micro version number.
 
 In addition, ./GUILE-VERSION now defines GUILE_MICRO_VERSION.
 
-** As per RELEASE directions, deprecated items have been removed
+** Guile now actively warns about deprecated features.
+
+The new configure option `--enable-deprecated=LEVEL' and the
+environment variable GUILE_WARN_DEPRECATED control this mechanism.
+See INSTALL and README for more information.
+
+** Deprecated items have been removed
 
 *** Macros removed
 
@@ -45,12 +51,6 @@ In addition, ./GUILE-VERSION now defines GUILE_MICRO_VERSION.
   scm_tc_dblr - replaced by scm_tc16_real.
   scm_tc_dblc - replaced by scm_tc16_complex.
   scm_list_star - replaced by scm_cons_star.
-
-*** scheme functions removed:
-
-  tag - no replacement.
-  fseek - replaced by seek.
-  list* - replaced by cons*.
 
 ** New SRFI modules have been added:
 
@@ -128,55 +128,8 @@ On systems that support it, there is also a compatibility module named
   (oop goops composite-slot)
 
 The Guile Object Oriented Programming System (GOOPS) has been
-integrated into Guile.
-
-Type
-
-  (use-modules (oop goops))
-
-access GOOPS bindings.
-
-We're now ready to try some basic GOOPS functionality.
-
-Generic functions
-
-  (define-method (+ (x <string>) (y <string>))
-    (string-append x y))
-
-  (+ 1 2) --> 3
-  (+ "abc" "de") --> "abcde"
-
-User-defined types
-
-  (define-class <2D-vector> ()
-    (x #:init-value 0 #:accessor x-component #:init-keyword #:x)
-    (y #:init-value 0 #:accessor y-component #:init-keyword #:y))
-
-  (define-method write ((obj <2D-vector>) port)
-    (display (format #f "<~S, ~S>" (x-component obj) (y-component obj))
-	     port))
-
-  (define v (make <2D-vector> #:x 3 #:y 4))
-  v --> <3, 4>
-
-  (define-method + ((x <2D-vector>) (y <2D-vector>))
-    (make <2D-vector>
-          #:x (+ (x-component x) (x-component y))
-          #:y (+ (y-component x) (y-component y))))
-
-  (+ v v) --> <6, 8>
-
-Asking for the type of an object
-
-  (class-of v) --> #<<class> <2D-vector> 40241ac0>
-  <2D-vector>  --> #<<class> <2D-vector> 40241ac0>
-  (class-of 1) --> #<<class> <integer> 401b2a98>
-  <integer>    --> #<<class> <integer> 401b2a98>
-
-  (is-a? v <2D-vector>) --> #t
-
-See further in the GOOPS manual and tutorial in the `doc' directory,
-in info (goops.info) and texinfo formats.
+integrated into Guile.  For further information, consult the GOOPS
+manual and tutorial in the `doc' directory.
 
 ** New module (ice-9 rdelim).
 
@@ -202,46 +155,20 @@ can be used for similar functionality.
 This is a subset of the (scsh rw) module from guile-scsh.  Currently
 it defines a single procedure:
 
-** New function: read-string!/partial str [port_or_fdes [start [end]]]
+*** New function: read-string!/partial str [port_or_fdes [start [end]]]
 
      Read characters from an fport or file descriptor into a string
      STR.  This procedure is scsh-compatible and can efficiently read
-     large strings.  It will:
-
-        * attempt to fill the entire string, unless the START and/or
-          END arguments are supplied.  i.e., START defaults to 0 and
-          END defaults to `(string-length str)'
-
-        * use the current input port if PORT_OR_FDES is not supplied.
-
-        * read any characters that are currently available, without
-          waiting for the rest (short reads are possible).
-
-        * wait for as long as it needs to for the first character to
-          become available, unless the port is in non-blocking mode
-
-        * return `#f' if end-of-file is encountered before reading any
-          characters, otherwise return the number of characters read.
-
-        * return 0 if the port is in non-blocking mode and no characters
-          are immediately available.
-
-        * return 0 if the request is for 0 bytes, with no end-of-file
-          check
+     large strings.
 
 ** New module (ice-9 match)
 
-This module includes Andrew K. Wright's pattern matcher:
+This module includes Andrew K. Wright's pattern matcher.  See
+ice-9/match.scm for brief description or
 
-(use-modules (ice-9 match))
+    http://www.star-lab.com/wright/code.html
 
-(match '(+ 1 2)
-  (('+ x) x)
-  (('+ x y) `(add ,x ,y))
-  (('- x y) `(sub ,x ,y)))  => (add 1 2)
-
-See ice-9/match.scm for brief description or
-http://www.star-lab.com/wright/code.html for complete documentation.
+for complete documentation.
 
 This module requires SLIB to be installed and available from Guile.
 
@@ -279,21 +206,6 @@ See the README file in the `doc' directory for more details.
 
 * Changes to the stand-alone interpreter
 
-** Evaluation of "()", the empty list, is now an error.
-
-Previously, you could for example write (cons 1 ()); now you need to
-be more explicit and write (cons 1 '()).
-
-** It's now possible to create modules with controlled environments
-
-Example:
-
-(use-modules (ice-9 safe))
-(define m (make-safe-module))
-;;; m will now be a module containing only a safe subset of R5RS
-(eval '(+ 1 2) m) --> 3
-(eval 'load m) --> ERROR: Unbound variable: load
-
 ** New command line option `--use-srfi'
 
 Using this option, SRFI modules can be loaded on startup and be
@@ -316,11 +228,51 @@ guile> (string-pad "bla" 20)
 
 * Changes to Scheme functions and syntax
 
-** The empty combination is no longer valid syntax.
+** Previously deprecated Scheme functions have been removed:
+
+  tag - no replacement.
+  fseek - replaced by seek.
+  list* - replaced by cons*.
+
+** It's now possible to create modules with controlled environments
+
+Example:
+
+(use-modules (ice-9 safe))
+(define m (make-safe-module))
+;;; m will now be a module containing only a safe subset of R5RS
+(eval '(+ 1 2) m) --> 3
+(eval 'load m) --> ERROR: Unbound variable: load
+
+** Evaluation of "()", the empty list, is now an error.
 
 Previously, the expression "()" evaluated to the empty list.  This has
 been changed to signal a "missing expression" error.  The correct way
 to write the empty list as a literal constant is to use quote: "'()".
+
+** New concept of `Guile Extensions'.
+
+A Guile Extension is just a ordinary shared library that can be linked
+at run-time.  We found it advantageous to give this simple concept a
+dedicated name to distinguish the issues related to shared libraries
+from the issues related to the module system.
+
+*** New function: load-extension
+
+Executing (load-extension lib init) is mostly equivalent to
+
+   (dynamic-call init (dynamic-link lib))
+
+except when scm_register_extension has been called previously.
+Whenever appropriate, you should use `load-extension' instead of
+dynamic-link and dynamic-call.
+
+*** New C function: scm_c_register_extension
+
+This function registers a initialization function for use by
+`load-extension'.  Use it when you don't want specific extensions to
+be loaded as shared libraries (for example on platforms that don't
+support dynamic linking).
 
 ** Auto-loading of compiled-code modules is deprecated.
 
@@ -330,10 +282,10 @@ library to satisfy requests for a module.  For example, the module
 "foo/libbar.so" (or with a different extension) in a directory on the
 load path of Guile.
 
-This has been found to be too tricky, and is no longer supported.
-What you should do instead now is to write a small Scheme file that
-explicitly calls `dynamic-link' to load the shared library and
-`dynamic-call' to initialize it.
+This has been found to be too tricky, and is no longer supported.  The
+shared libraries are now called "extensions".  You should now write a
+small Scheme file that calls `load-extension' to load the shared
+library and initialize it explicitely.
 
 The shared libraries themselves should be installed in the usual
 places for shared libraries, with names like "libguile-foo-bar".
@@ -342,20 +294,29 @@ For example, place this into a file "foo/bar.scm"
 
     (define-module (foo bar))
 
-    (dynamic-call "foobar_init" (dynamic-link "libguile-foo-bar"))
+    (load-extension "libguile-foo-bar" "foobar_init")
 
-The file name passed to `dynamic-link' should not contain an
-extension.  It will be provided automatically.
+** Backward incompatible change: eval EXP ENVIRONMENT-SPECIFIER
+
+`eval' is now R5RS, that is it takes two arguments.
+The second argument is an environment specifier, i.e. either
+
+  (scheme-report-environment 5)
+  (null-environment 5)
+  (interaction-environment)
+
+or
+
+  any module.
 
 ** The module system has been made more disciplined.
 
-The function `eval' will now save and restore the current module
-around the evaluation of the specified expression.  While this
-expression is evaluated, `(current-module)' will now return the right
-module, which is the module specified as the second argument to
-`eval'.
+The function `eval' will save and restore the current module around
+the evaluation of the specified expression.  While this expression is
+evaluated, `(current-module)' will now return the right module, which
+is the module specified as the second argument to `eval'.
 
-A consequence of this change is that `eval' is not particularily
+A consequence of this change is that `eval' is not particularly
 useful when you want allow the evaluated code to change what module is
 designated as the current module and have this change persist from one
 call to `eval' to the next.  The read-eval-print-loop is an example
@@ -372,7 +333,7 @@ Previously, subforms of top-level forms such as `begin', `case',
 etc. did not respect changes to the current module although these
 subforms are at the top-level as well.
 
-To prevent strange behaviour, the forms `define-module',
+To prevent strange behavior, the forms `define-module',
 `use-modules', `use-syntax', and `export' have been restricted to only
 work on the top level.  The forms `define-public' and
 `defmacro-public' only export the new binding on the top level.  They
@@ -424,12 +385,12 @@ objects that were guarded by it, thus undoing the side effect.
 Note that all this hair is hardly very important, since guardian
 objects are usually permanent.
 
-** Escape procedures created by call-with-current-continuation now
-accept any number of arguments, as required by R5RS.
+** Continuations created by call-with-current-continuation now accept
+any number of arguments, as required by R5RS.
 
 ** New function `issue-deprecation-warning'
 
-This function is used to displaying the deprecation messages that are
+This function is used to display the deprecation messages that are
 controlled by GUILE_WARN_DEPRECATION as explained in the README.
 
   (define (id x)
@@ -473,19 +434,6 @@ Instead of #&optional, #&key, etc you should now use #:optional,
 The old reader syntax `#&' is still supported, but deprecated.  It
 will be removed in the next release.
 
-** Backward incompatible change: eval EXP ENVIRONMENT-SPECIFIER
-
-`eval' is now R5RS, that is it takes two arguments.
-The second argument is an environment specifier, i.e. either
-
-  (scheme-report-environment 5)
-  (null-environment 5)
-  (interaction-environment)
-
-or
-
-  any module.
-
 ** New define-module option: pure
 
 Tells the module system not to include any bindings from the root
@@ -505,31 +453,15 @@ a module which doesn't import one of `define-public' or `export'.
 
 Example:
 
-(define-module (foo)
-  :pure
-  :use-module (ice-9 r5rs)
-  :export (bar))
+    (define-module (foo)
+      :pure
+      :use-module (ice-9 r5rs)
+      :export (bar))
 
-;;; Note that we're pure R5RS below this point!
+    ;;; Note that we're pure R5RS below this point!
 
-(define (bar)
-  ...)
-
-** Deprecated: scm_make_shared_substring
-
-Explicit shared substrings will disappear from Guile.
-
-Instead, "normal" strings will be implemented using sharing
-internally, combined with a copy-on-write strategy.
-
-** Deprecated: scm_read_only_string_p
-
-The concept of read-only strings will disappear in next release of
-Guile.
-
-** Deprecated: scm_sloppy_memq, scm_sloppy_memv, scm_sloppy_member
-
-Instead, use scm_c_memq or scm_memq, scm_memv, scm_member.
+    (define (bar)
+      ...)
 
 ** New function: object->string OBJ
 
@@ -546,12 +478,11 @@ Determines whether a given object is a port that is related to a file.
 
 ** New function: port-for-each proc
 
-     Apply PROC to each port in the Guile port table in turn.  The
-     return value is unspecified.  More specifically, PROC is applied
-     exactly once to every port that exists in the system at the time
-     PORT-FOR-EACH is invoked.  Changes to the port table while
-     PORT-FOR-EACH is running have no effect as far as PORT-FOR-EACH is
-     concerned.
+Apply PROC to each port in the Guile port table in turn.  The return
+value is unspecified.  More specifically, PROC is applied exactly once
+to every port that exists in the system at the time PORT-FOR-EACH is
+invoked.  Changes to the port table while PORT-FOR-EACH is running
+have no effect as far as PORT-FOR-EACH is concerned.
 
 ** New function: dup2 oldfd newfd
 
@@ -634,21 +565,23 @@ Return the argument.
 
 ** New function: inet-pton family address
 
-     Convert a printable string network address into an integer.  Note
-     that unlike the C version of this function, the result is an
-     integer with normal host byte ordering.  FAMILY can be `AF_INET'
-     or `AF_INET6'.  e.g.,
-          (inet-pton AF_INET "127.0.0.1") => 2130706433
-          (inet-pton AF_INET6 "::1") => 1
+Convert a printable string network address into an integer.  Note that
+unlike the C version of this function, the result is an integer with
+normal host byte ordering.  FAMILY can be `AF_INET' or `AF_INET6'.
+e.g.,
+
+    (inet-pton AF_INET "127.0.0.1") => 2130706433
+    (inet-pton AF_INET6 "::1") => 1
 
 ** New function: inet-ntop family address
 
-     Convert an integer network address into a printable string.  Note
-     that unlike the C version of this function, the input is an
-     integer with normal host byte ordering.  FAMILY can be `AF_INET'
-     or `AF_INET6'.  e.g.,
-          (inet-ntop AF_INET 2130706433) => "127.0.0.1"
-          (inet-ntop AF_INET6 (- (expt 2 128) 1)) =>
+Convert an integer network address into a printable string.  Note that
+unlike the C version of this function, the input is an integer with
+normal host byte ordering.  FAMILY can be `AF_INET' or `AF_INET6'.
+e.g.,
+
+    (inet-ntop AF_INET 2130706433) => "127.0.0.1"
+    (inet-ntop AF_INET6 (- (expt 2 128) 1)) =>
           ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff
 
 ** Deprecated: id
@@ -661,7 +594,7 @@ Use `1-' instead.
 
 ** Deprecated: return-it
 
-Use `noop' instead.
+Do without it.
 
 ** Deprecated: string-character-length
 
@@ -708,9 +641,28 @@ If you have old code using the old syntax, import
 There is no longer a distinction between builtin or other variables.
 Use module system operations for all variables.
 
-* Changes to the gh_ interface
+** Lazy-catch handlers are no longer allowed to return.
 
-* Changes to the scm_ interface
+That is, a call to `throw', `error', etc is now guaranteed to not
+return.
+
+* Changes to the C interface
+
+** Deprecated: scm_make_shared_substring
+
+Explicit shared substrings will disappear from Guile.
+
+Instead, "normal" strings will be implemented using sharing
+internally, combined with a copy-on-write strategy.
+
+** Deprecated: scm_read_only_string_p
+
+The concept of read-only strings will disappear in next release of
+Guile.
+
+** Deprecated: scm_sloppy_memq, scm_sloppy_memv, scm_sloppy_member
+
+Instead, use scm_c_memq or scm_memq, scm_memv, scm_member.
 
 ** New function: scm_c_read (SCM port, void *buffer, scm_sizet size)
 
@@ -901,10 +853,6 @@ Instead, create a fresh vector of the desired size and copy the contents.
 
 scm_gensym now only takes one argument.
 
-** New function: scm_gentemp (SCM prefix, SCM obarray)
-
-The builtin `gentemp' has now become a primitive.
-
 ** Deprecated type tags:  scm_tc7_ssymbol, scm_tc7_msymbol, scm_tcs_symbols,
 scm_tc7_lvector
 
@@ -947,6 +895,50 @@ Use scm_c_define or scm_c_lookup instead, as appropriate.
     scm_module_define, scm_define.
 
 These functions work with variables instead of with vcells.
+
+** New functions for creating and defining `subr's and `gsubr's.
+
+The new functions more clearly distinguish between creating a subr (or
+gsubr) object and adding it to the current module.
+
+These new functions are available: scm_c_make_subr, scm_c_define_subr,
+scm_c_make_subr_with_generic, scm_c_define_subr_with_generic,
+scm_c_make_gsubr, scm_c_define_gsubr, scm_c_make_gsubr_with_generic,
+scm_c_define_gsubr_with_generic.
+
+** Deprecated functions: scm_make_subr, scm_make_subr_opt,
+   scm_make_subr_with_generic, scm_make_gsubr,
+   scm_make_gsubr_with_generic.
+
+Use the new ones from above instead.
+
+** C interface to the module system has changed.
+
+While we suggest that you avoid as many explicit module system
+operations from C as possible for the time being, the C interface has
+been made more similar to the high-level Scheme module system.
+
+*** New functions: scm_c_define_module, scm_c_use_module,
+    scm_c_export, scm_c_resolve_module.
+
+They mostly work like their Scheme namesakes.  scm_c_define_module
+takes a function that is called a context where the new module is
+current.
+
+*** Deprecated functions: scm_the_root_module, scm_make_module,
+    scm_ensure_user_module, scm_load_scheme_module.
+
+Use the new functions instead.
+
+** Renamed function: scm_internal_with_fluids becomes
+   scm_c_with_fluids.
+
+scm_internal_with_fluids is available as a deprecated function.
+
+** New function: scm_c_with_fluid.
+
+Just like scm_c_with_fluids, but takes one fluid and one value instead
+of lists of same.
 
 
 Changes since Guile 1.3.4:

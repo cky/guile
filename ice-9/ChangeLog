@@ -1,3 +1,8 @@
+2001-05-21  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* optargs.scm (#\&): Use `issue-deprecation-warning' instead of
+	`display'.
+
 2001-05-19  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* psyntax.ss (build-lexical-var): Use gensym instead of gentemp.

@@ -1,3 +1,10 @@
+2001-05-21  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* eval.c: Use SCM_EQ_P insteda of `==' or `!=' in certain
+	places. (scm_c_improper_memq): Return q instead of SCM_BOOL_T.
+
+	* eval.h (SCM_EVALIM2): Use SCM_EQ_P instead of `=='.
+
 2001-05-20  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* symbols.c (scm_mem2symbol): Call `scm_must_strndup' instead of
