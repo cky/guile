@@ -1,3 +1,10 @@
+2001-09-30  Thien-Thi Nguyen  <ttn@glug.org>
+
+	* display-commentary (module-name->filename-frag,
+	display-module-commentary): New procs.
+	(display-commentary): Also handle refs that look like module
+	names.
+
 2001-08-25  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* Makefile.am (AUTOMAKE_OPTIONS): Change "foreign" to "gnu".
