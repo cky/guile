@@ -4,6 +4,8 @@
 	etc.
 	(scm_gc_yield_1): New variable: Holds previous yield.  Used to
 	make better judgements.
+	(gc_sweep_freelist_finish): Inserted explanation of use of
+	gc_trigger.
 
 	* print.h, stacks.h, options.c, options.h: Changed C++
 	commentaries to C.
