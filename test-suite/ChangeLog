@@ -1,3 +1,8 @@
+2003-06-21  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/numbers.test (truncate, round, asinh, acosh, atanh): Add some
+	tests.
+	
 2003-06-19  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/posix.test: New file, exercising putenv, setenv, unsetenv.

@@ -1,3 +1,12 @@
+2003-06-21  Kevin Ryde  <user42@zip.com.au>
+
+	* numbers.c (_GNU_SOURCE): #define, to get C99 things.
+	(scm_asinh, scm_acosh, scm_atanh, scm_truncate, $asinh, $acosh,
+	$atanh, truncate): Use C library asinh, acosh, atanh and trunc, when
+	available.
+	(scm_inexact_to_exact): Expand isfinite to its definition !xisinf.
+	(isfinite): Remove, conflicts with C99 isfinite().
+
 2003-06-19  Marius Vollmer  <mvo@zagadka.de>
 
 	* deprecated.h, deprecated.c (scm_strhash, scm_sym2ovcell_soft,
