@@ -77,8 +77,6 @@ Interesting files include:
 
 - INSTALL, which contains instructions on building and installing Guile.
 - NEWS, which describes user-visible changes since the last release of Guile.
-- COPYING, which describes the terms under which you may redistribute
-  Guile, and explains that there is no warranty.
 
 Files are usually installed according to the prefix specified to
 configure, /usr/local by default.  Building and installing gives you:
