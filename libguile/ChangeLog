@@ -1,3 +1,18 @@
+Thu Nov 21 11:17:42 1996  Jim Blandy  <jimb@floss.cyclic.com>
+
+	It's an "eval closure", not an "eval thunk."  A thunk is a
+	function of no arguments.
+	* root.h (struct scm_root_state): Renamed
+	top_level_lookup_closure_var from top_level_lookup_thunk_var.
+	(scm_top_level_lookup_closure_var): Renamed from
+	scm_top_level_lookup_thunk_var.
+	* root.c (mark_root): Uses changed.
+	* gdbint.c (gdb_eval, gdb_binding): Uses changed.
+	* init.c (scm_start_stack): Uses changed.
+	* eval.c (scm_eval, scm_eval_x, scm_init_eval): Rename uses.
+	Change scheme-visible name to *top-level-lookup-closure* from
+	*top-level-lookup-thunk*.
+
 Tue Nov 19 22:43:31 1996  Jim Blandy  <jimb@totoro.cyclic.com>
 
 	* gc.c (scm_igc, scm_gc_mark): Round up the size of the stack we
