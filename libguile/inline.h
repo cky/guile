@@ -49,10 +49,10 @@
    "inline.c".
 */
 
+#include "libguile/__scm.h"
 
 #if (SCM_DEBUG_CELL_ACCESSES == 1)
 #include <stdio.h>
-
 #endif
 
 #include "libguile/pairs.h"
@@ -64,18 +64,21 @@ SCM_API SCM scm_cell (scm_t_bits car, scm_t_bits cdr);
 SCM_API SCM scm_double_cell (scm_t_bits car, scm_t_bits cbr,
 			     scm_t_bits ccr, scm_t_bits cdr);
 
-#ifdef HAVE_INLINE
 
-#ifndef EXTERN_INLINE
-#define EXTERN_INLINE extern inline
-#endif
+
+#if defined SCM_C_INLINE || defined SCM_INLINE_C_INCLUDING_INLINE_H
+/* either inlining, or being included from inline.c.  We use (and
+   repeat) this long #if test here and below so that we don't have to
+   introduce any extraneous symbols into the public namespace.  We
+   only need SCM_C_INLINE to be seen publically . */
 
 extern unsigned scm_newcell2_count;
 extern unsigned scm_newcell_count;
 
-
-
-EXTERN_INLINE
+#if defined SCM_C_INLINE && ! defined SCM_INLINE_C_INCLUDING_INLINE_H
+/* definitely inlining */
+extern SCM_C_INLINE
+#endif
 SCM
 scm_cell (scm_t_bits car, scm_t_bits cdr)
 {
@@ -146,7 +149,7 @@ scm_cell (scm_t_bits car, scm_t_bits cdr)
   SCM_GC_SET_CELL_WORD (z, 0, car);
 
 #if 0 /*fixme* Hmm... let's consider this later. */
-#if !defined(USE_COOP_THREADS) && !defined(USE_NULL_THREADS) && !defined(USE_COPT_THREADS)
+#if !defined(SCM_USE_COOP_THREADS) && !defined(SCM_USE_NULL_THREADS) && !defined(SCM_USE_COPT_THREADS)
   /* When we are using preemtive threads, we might need to make
      sure that the initial values for the slots are protected until
      the cell is completely initialized.
@@ -164,7 +167,10 @@ scm_cell (scm_t_bits car, scm_t_bits cdr)
   return z;
 }
 
-EXTERN_INLINE
+#if defined SCM_C_INLINE && ! defined SCM_INLINE_C_INCLUDING_INLINE_H
+/* definitely inlining */
+extern SCM_C_INLINE
+#endif
 SCM
 scm_double_cell (scm_t_bits car, scm_t_bits cbr,
 		 scm_t_bits ccr, scm_t_bits cdr)
@@ -194,7 +200,7 @@ scm_double_cell (scm_t_bits car, scm_t_bits cbr,
   SCM_GC_SET_CELL_WORD (z, 0, car);
 
 #if 0 /*fixme* Hmm... let's consider this later. */
-#if !defined(USE_COOP_THREADS) && !defined(USE_NULL_THREADS) && !defined(USE_COPT_THREADS)
+#if !defined(SCM_USE_COOP_THREADS) && !defined(SCM_USE_NULL_THREADS) && !defined(SCM_USE_COPT_THREADS)
   /* When we are using non-cooperating threads, we might need to make
      sure that the initial values for the slots are protected until
      the cell is completely initialized.
