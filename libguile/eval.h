@@ -125,6 +125,7 @@ extern const char scm_s_bindings[];
 extern const char scm_s_variable[];
 extern const char scm_s_clauses[];
 extern const char scm_s_formals[];
+extern const char scm_s_set_x[];
 
 extern SCM scm_i_dot;
 extern SCM scm_i_quote;
@@ -136,6 +137,7 @@ extern SCM scm_i_else;
 extern SCM scm_i_unquote;
 extern SCM scm_i_uq_splicing;
 extern SCM scm_i_apply;
+extern SCM scm_sym_set_x;
 
 extern long scm_tc16_macro;
 
@@ -160,7 +162,7 @@ extern SCM scm_deval_args SCM_P ((SCM l, SCM env, SCM proc, SCM *lloc));
 extern SCM scm_m_quote SCM_P ((SCM xorig, SCM env));
 extern SCM scm_m_begin SCM_P ((SCM xorig, SCM env));
 extern SCM scm_m_if SCM_P ((SCM xorig, SCM env));
-extern SCM scm_m_set SCM_P ((SCM xorig, SCM env));
+extern SCM scm_m_set_x SCM_P ((SCM xorig, SCM env));
 extern SCM scm_m_vref SCM_P ((SCM xorig, SCM env));
 extern SCM scm_m_vset SCM_P ((SCM xorig, SCM env));
 extern SCM scm_m_and SCM_P ((SCM xorig, SCM env));
