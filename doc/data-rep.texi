@@ -18,7 +18,7 @@
 @ifinfo
 Data Representation in Guile
 
-Copyright (C) 1998 Free Software Foundation
+Copyright (C) 1998, 1999 Free Software Foundation
 
 Permission is granted to make and distribute verbatim copies of
 this manual provided the copyright notice and this permission notice
@@ -46,7 +46,7 @@ by the Free Software Foundation.
 @sp 10
 @comment The title is printed in a large font.
 @title Data Representation in Guile
-@subtitle $Id: data-rep.texi,v 1.4 1999-04-17 15:16:18 jimb Exp $
+@subtitle $Id: data-rep.texi,v 1.5 1999-06-17 22:52:01 jimb Exp $
 @subtitle For use with Guile @value{VERSION}
 @author Jim Blandy
 @author Free Software Foundation
@@ -76,6 +76,12 @@ by Free Software Foundation.
 @c @finalout
 @headings double
 
+
+@menu
+* Data Representation in Scheme::  
+* How Guile does it::           
+* Defining New Types (Smobs)::  
+@end menu
 
 @node Top, Data Representation in Scheme, (dir), (dir)
 @top Data Representation in Guile
@@ -1107,6 +1113,7 @@ datatypes described here.)
 * Creating Instances::          
 * Typechecking::                
 * Garbage Collecting Smobs::    
+* A Common Mistake In Allocating Smobs::  
 * Garbage Collecting Simple Smobs::  
 * A Complete Example::          
 @end menu
@@ -1340,7 +1347,7 @@ collection; see the description of @code{SCM_GCTYP16} in @ref{Garbage
 Collecting Smobs}.
 
 
-@node Garbage Collecting Smobs, Garbage Collecting Simple Smobs, Typechecking, Defining New Types (Smobs)
+@node Garbage Collecting Smobs, A Common Mistake In Allocating Smobs, Typechecking, Defining New Types (Smobs)
 @subsection Garbage Collecting Smobs
 
 Once a smob has been released to the tender mercies of the Scheme
@@ -1481,7 +1488,79 @@ very simple.  Since collections occur at unpredictable times, it is easy
 for any unusual activity to interfere with normal code.
 
 
-@node Garbage Collecting Simple Smobs, A Complete Example, Garbage Collecting Smobs, Defining New Types (Smobs)
+@node A Common Mistake In Allocating Smobs, Garbage Collecting Simple Smobs, Garbage Collecting Smobs, Defining New Types (Smobs)
+@subsection A Common Mistake In Allocating Smobs
+
+When constructing new objects, you must be careful that the garbage
+collector can always find any new objects you allocate.  For example,
+suppose we wrote the @code{make_image} function this way:
+
+@example
+SCM
+make_image (SCM name, SCM s_width, SCM s_height)
+@{
+  struct image *image;
+  SCM image_smob;
+  int width, height;
+
+  SCM_ASSERT (SCM_NIMP (name) && SCM_STRINGP (name), name,
+              SCM_ARG1, "make-image");
+  SCM_ASSERT (SCM_INUMP (s_width),  s_width,  SCM_ARG2, "make-image");
+  SCM_ASSERT (SCM_INUMP (s_height), s_height, SCM_ARG3, "make-image");
+
+  width = SCM_INUM (s_width);
+  height = SCM_INUM (s_height);
+  
+  image = (struct image *) scm_must_malloc (sizeof (struct image), "image");
+  image->width = width;
+  image->height = height;
+  image->pixels = scm_must_malloc (width * height, "image pixels");
+
+  /* THESE TWO LINES HAVE CHANGED: */
+  image->name = scm_string_copy (name);
+  image->update_func = scm_make_gsubr (@dots{});
+
+  SCM_NEWCELL (image_smob);
+  SCM_SETCDR (image_smob, image);
+  SCM_SETCAR (image_smob, image_tag);
+
+  return image_smob;
+@}
+@end example
+
+This code is incorrect.  The calls to @code{scm_string_copy} and
+@code{scm_make_gsubr} allocate fresh objects.  Allocating any new object
+may cause the garbage collector to run.  If @code{scm_make_gsubr}
+invokes a collection, the garbage collector has no way to discover that
+@code{image->name} points to the new string object; the @code{image}
+structure is not yet part of any Scheme object, so the garbage collector
+will not traverse it.  Since the garbage collector cannot find any
+references to the new string object, it will free it, leaving
+@code{image} pointing to a dead object.
+
+A correct implementation might say, instead:
+@example
+  image->name = SCM_BOOL_F;
+  image->update_func = SCM_BOOL_F;
+
+  SCM_NEWCELL (image_smob);
+  SCM_SETCDR (image_smob, image);
+  SCM_SETCAR (image_smob, image_tag);
+
+  image->name = scm_string_copy (name);
+  image->update_func = scm_make_gsubr (@dots{});
+
+  return image_smob;
+@end example
+
+Now, by the time we allocate the new string and function objects,
+@code{image_smob} points to @code{image}.  If the garbage collector
+scans the stack, it will find a reference to @code{image_smob} and
+traverse @code{image}, so any objects @code{image} points to will be
+preserved.
+
+
+@node Garbage Collecting Simple Smobs, A Complete Example, A Common Mistake In Allocating Smobs, Defining New Types (Smobs)
 @subsection Garbage Collecting Simple Smobs
 
 It is often useful to define very simple smob types --- smobs which have
