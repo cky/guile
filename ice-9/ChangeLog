@@ -1,3 +1,7 @@
+2000-04-16  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* r4rs.scm (close-input-port, close-output-port): Removed.
+
 2000-04-13  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* session.scm (help): New macro.  Prints helpful information.

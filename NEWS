@@ -123,9 +123,9 @@ tty device.  Previously in this situation it was line-buffered.
 
 * Changes to Scheme functions and syntax
 
-** New procedures: close-input-port, close-output-port
+** close-input-port and close-output-port are now R5RS
 
-These are R5RS procedures.
+These procedures have been turned into primitives and have R5RS behaviour.
 
 ** New procedure: simple-format PORT MESSAGE ARG1 ...
 
