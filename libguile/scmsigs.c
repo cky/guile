@@ -114,7 +114,7 @@ static SCM *signal_handlers;
 #ifdef HAVE_SIGACTION
 static struct sigaction orig_handlers[NSIG];
 #else
-static SIGRETTYPE (*orig_handlers)(int)[NSIG];
+static SIGRETTYPE (*orig_handlers[NSIG])(int);
 #endif
 
 static SIGRETTYPE
@@ -325,7 +325,7 @@ SCM_DEFINE (scm_sigaction, "sigaction", 1, 2, 0,
 	orig_handlers[csig] = old_chandler;
     }
   if (old_chandler == SIG_DFL || old_chandler == SIG_IGN)
-    old_handler = scm_long2num (old_chandler);
+    old_handler = scm_long2num ((long) old_chandler);
   SCM_ALLOW_INTS;
   return scm_cons (old_handler, SCM_MAKINUM (0));
 #endif
