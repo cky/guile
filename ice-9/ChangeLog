@@ -1,5 +1,12 @@
 2003-05-03  Marius Vollmer  <mvo@zagadka.de>
 
+	* gap-buffer.scm (point++n!, point+-n!): Use substring-move!
+	instead of substring-move-left! or substring-move-right!.  Thanks
+	to Kevin Ryde.
+
+	* deprecated.scm (substring-move-left!, substring-move-right!):
+	New.
+
 	* boot-9.scm (display-usage-report): Use keyword->symbol instead
 	of keyword-symbol, which doesn't exist.  Thanks to Kevin Ryde.
 
