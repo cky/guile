@@ -112,7 +112,7 @@ srcprops_print (SCM obj, SCM port, scm_print_state *pstate)
   int writingp = SCM_WRITINGP (pstate);
   scm_puts ("#<srcprops ", port);
   SCM_SET_WRITINGP (pstate, 1);
-  scm_iprin1 (scm_t_srcpropso_plist (obj), port, pstate);
+  scm_iprin1 (scm_srcprops_to_plist (obj), port, pstate);
   SCM_SET_WRITINGP (pstate, writingp);
   scm_putc ('>', port);
   return 1;
@@ -154,7 +154,7 @@ scm_make_srcprops (long line, int col, SCM filename, SCM copy, SCM plist)
 
 
 SCM
-scm_t_srcpropso_plist (SCM obj)
+scm_srcprops_to_plist (SCM obj)
 {
   SCM plist = SRCPROPPLIST (obj);
   if (!SCM_UNBNDP (SRCPROPCOPY (obj)))
@@ -182,7 +182,7 @@ SCM_DEFINE (scm_source_properties, "source-properties", 1, 0, 0,
 #endif
   p = scm_hashq_ref (scm_source_whash, obj, SCM_BOOL_F);
   if (SRCPROPSP (p))
-    return scm_t_srcpropso_plist (p);
+    return scm_srcprops_to_plist (p);
   return SCM_EOL;
 }
 #undef FUNC_NAME

@@ -137,7 +137,7 @@ extern SCM scm_sym_breakpoint;
 
 
 
-extern SCM scm_t_srcpropso_plist (SCM obj);
+extern SCM scm_srcprops_to_plist (SCM obj);
 extern SCM scm_make_srcprops (long line, int col, SCM fname, SCM copy, SCM plist);
 extern SCM scm_source_property (SCM obj, SCM key);
 extern SCM scm_set_source_property_x (SCM obj, SCM key, SCM datum);
