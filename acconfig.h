@@ -102,3 +102,6 @@
 /* Define if usleep doesn't return a value. */
 #undef USLEEP_RETURNS_VOID
 
+/* Define if your readline library has the rl_getc_function variable.  */
+#define HAVE_RL_GETC_FUNCTION 1
+
