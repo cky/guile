@@ -4,6 +4,8 @@
 
 	* TODO: Initial revision
 
+	* Makefile.am (EXTRA_DIST): Add TODO.
+
 2001-06-27  Michael Livshin  <mlivshin@bigfoot.com>
 
 	* autogen.sh: don't run flex here.
