@@ -29,8 +29,8 @@ Changes since Guile 1.4:
 ** New module (ice-9 stack-catch):
 
 stack-catch is like catch, but saves the current state of the stack in
-the the-last-stack fluid for the debugger to inspect or in able to
-re-throw an error.
+the the-last-stack fluid.  This fluid can be useful during debugger
+inspection or when re-throwing an error.
 
 ** The module (ice-9 and-let*) has been renamed to (ice-9 and-let-star)
 
