@@ -1,4 +1,14 @@
-Wed Jan  5 10:46:15 2000  Greg J. Badros  <gjb@cs.washington.edu>
+Wed Jan  5 10:59:06 2000  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* *.[ch]:  Replace SCM_VALIDATE_INT w/ SCM_VALIDATE_INUM for
+	better consistency with the names of other SCM_VALIDATE_ macros
+	and better conformance to guile naming policy.
+
+Wed Jan  5 10:50:39 2000  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* ports.c (s_scm_close_all_ports_except): Use SCM_ARG1 in a
+	SCM_VALIDATE instead of 1 to avoid a check on the argument (since
+	it's not the actual name of the formal).
 
 	* guile-snarf.awk.in: Do argument/number mismatch checking and
 	print warnings in an Emacs compile-mode parseable format.
