@@ -2,7 +2,7 @@
 
 #ifndef __SCMH
 #define __SCMH
-/*	Copyright (C) 1995, 1996, 1998 Free Software Foundation, Inc.
+/*	Copyright (C) 1995, 1996, 1998, 1999 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
