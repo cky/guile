@@ -14,7 +14,7 @@ AC_ARG_ENABLE(debug,
 if test "$enableval" != n && test "$enableval" != no; then
   AC_DEFINE(DEBUG_EXTENSIONS)
   AC_DEFINE(READER_EXTENSIONS)
-  LIBOBJS="debug.o srcprop.o $LIBOBJS"
+  LIBOBJS="backtrace.o stacks.o debug.o srcprop.o $LIBOBJS"
 fi
 
 #--------------------------------------------------------------------

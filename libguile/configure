@@ -541,7 +541,7 @@ EOF
 #define READER_EXTENSIONS 1
 EOF
 
-  LIBOBJS="debug.o srcprop.o $LIBOBJS"
+  LIBOBJS="backtrace.o stacks.o debug.o srcprop.o $LIBOBJS"
 fi
 
 #--------------------------------------------------------------------
