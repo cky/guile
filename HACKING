@@ -1,5 +1,23 @@
 Here are some guidelines for members of the Guile developers team.
 
+Contributing Your Changes ============================================
+
+- If you have put together a change that meets the coding standards
+described below, we encourage you to submit it to Guile.  The best
+place to post it is guile@cygnus.com.  Please don't send it directly
+to me; I often don't have time to look things over.  If you have
+tested your change, then you don't need to be shy.
+
+- Please submit patches using either context or unified diffs (diff -c
+or diff -u).  Don't include a patch for ChangeLog; such patches don't
+apply cleanly, since we've probably changed the top of ChangeLog too.
+Instead, provide the unaltered text at the top of your patch.
+
+Please don't include patches for generated files like configure,
+aclocal.m4, or any Makefile.in.  Such patches are often large, and
+we're just going to regenerate those files anyway.
+
+
 CVS conventions ======================================================
 
 - We use CVS to manage the Guile sources.  The repository lives on
@@ -33,7 +51,6 @@ The Guile sources live in several modules:
   - guile-www --- A Guile module for making HTTP requests.
 
 There is a mailing list for CVS commit messages; see README for details.
-
 
 - We check Makefile.in and configure files into CVS, as well as the
 files they are built from (Makefile.am, configure.in); we do not check
@@ -83,6 +100,11 @@ about uninitialized variables.  You should look into these warnings to
 make sure they are indeed spurious, but you needn't correct warnings
 caused by this EGCS bug.
 
+- If you add code which uses functions or other features that are not
+entirely portable, please make sure the rest of Guile will still
+function properly on systems where they are missing.  This usually
+entails adding a test to configure.in, and then adding #ifdefs to your
+code to disable it if the system's features are missing.
 
 - When you make a user-visible change (i.e. one that should be
 documented, and appear in NEWS, put an asterisk in column zero of the
@@ -115,7 +137,6 @@ Since the change here is about the name itself --- we're adding a new
 alias for scm_map that guarantees the order in which we process list
 elements, but we're not changing scm_map at all --- it's appropriate
 to use the Scheme name in the log entry.
-
 
 - There's no need to keep a change log for documentation files.  This
 is because documentation is not susceptible to bugs that are hard to
