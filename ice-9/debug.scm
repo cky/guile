@@ -25,10 +25,13 @@
 
 ;;; {Misc}
 ;;;
-(define-public (frame-number->index n)
-  (if (memq 'backwards (debug-options))
-      n
-      (- (stack-length (fluid-ref the-last-stack)) n 1)))
+(define-public (frame-number->index n . stack)
+  (let ((stack (if (null? stack)
+		   (fluid-ref the-last-stack)
+		   (car stack))))
+    (if (memq 'backwards (debug-options))
+	n
+	(- (stack-length stack) n 1))))
 
 
 ;;; {Trace}
