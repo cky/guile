@@ -1,8 +1,49 @@
 2001-07-26  Marius Vollmer  <mvo@zagadka.ping.de>
 
+	"Glocs" have been removed.
+	
+	* tags.h: Update tag system docs.
+	(scm_tc3_cons_gloc): Renamed to scm_tc3_struct.  Changed all uses.
+	(scm_tcs_cons_gloc): Renamed to scm_tcs_struct.  Changed all uses.
+	(SCM_ECONSP, SCM_NECONSP): Removed.  Changed all uses to SCM_CONSP
+	or SCM_NCONSP, respectively.
+
+	* struct.c, struct.h, srcprop.c, procs.c, procprop.c, print.c,
+	objects.c. modules.c, goops.c, eval.c, debug.c: Changed all uses
+	of scm_tc3_cond_gloc and scm_tcs_cons_gloc.  See above.
+
+	* print.c (scm_iprin1): Remove printing of glocs.  Do not try to
+	tell glocs from structs.
+	
+	* gc.c (scm_gc_mark, scm_gc_sweep): Remove handling of glocs.
+
+	* eval.c (scm_m_atbind): Make a list of variables, not glocs.
+	(scm_ceval, scm_deval): For SCM_IM_BIND, fiddle with variables
+	instead of with glocs.
+	(EVALCAR): Do not test for glocs.
+	(scm_lookupcar, scm_lookupcar1): Do not handle glocs in race
+	condition.
+	(scm_unmemocar): Do not handle glocs.
+	(scm_m_atfop): Memoize as a variable, not as a gloc.
+	(scm_eval_args, scm_deval_args): Do not handle glocs.
+	(scm_ceval, scm_deval): Likewise.
+	
+	* eval.h (SCM_XEVALCAR): Do not test for glocs.
+	(SCM_GLOC_VAR, SCM_GLOC_VAL, SCM_GLOC_SET_VAL, SCM_GLOC_VAL_LOC):
+	Removed.
+
+	* debug.h, debug.c (scm_make_gloc, scm_gloc_p): Removed.
+
+	* dynwind.c (scm_swap_bindings): Likewise.
+	(scm_dowinds): Updated to recognize lists of variables instead of
+	lists of glocs.
+
+	* __scm.h (SCM_CAUTIOS, SCM_RECKLESS): Update comments.
+
+	
 	* gc_os_dep.c (GC_noop1): Moved into the same #if/#endif context
 	where it is needed.
-
+	
 2001-07-25  Gary Houston  <ghouston@arglist.com>
 
 	* numbers.c (scm_logand, scm_logior, scm_logxor): adjusted the
