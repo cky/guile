@@ -186,8 +186,6 @@ SCM_API scm_t_bits scm_tc16_memoized;
 
 
 
-SCM_API int scm_ready_p (void);
-SCM_API void debug_print (SCM obj);
 SCM_API SCM scm_debug_object_p (SCM obj);
 SCM_API SCM scm_local_eval (SCM exp, SCM env);
 SCM_API SCM scm_reverse_lookup (SCM env, SCM data);

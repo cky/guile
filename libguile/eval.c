@@ -128,9 +128,6 @@ char *alloca ();
  *  
  *   EVALCAR evaluates the car of an expression.
  *  
- *   EVALCELLCAR is like EVALCAR, but is used when it is known that the
- *   car is a lisp cell.
- *
  * The following macros should be used in code which is read once
  * (where the choice of evaluator is dynamic):
  *
@@ -146,13 +143,12 @@ char *alloca ();
  */
 
 #define SCM_CEVAL scm_ceval
-#define EVALCELLCAR(x, env) (SCM_SYMBOLP (SCM_CAR (x)) \
-			     ? *scm_lookupcar (x, env, 1) \
-			     : SCM_CEVAL (SCM_CAR (x), env))
 
 #define EVALCAR(x, env) (SCM_IMP (SCM_CAR (x)) \
 			 ? SCM_EVALIM (SCM_CAR (x), env) \
-			 : EVALCELLCAR (x, env))
+			 : (SCM_SYMBOLP (SCM_CAR (x)) \
+			    ? *scm_lookupcar (x, env, 1) \
+			    : SCM_CEVAL (SCM_CAR (x), env)))
 
 #define EXTEND_ENV SCM_EXTEND_ENV
 
@@ -1918,8 +1914,6 @@ SCM_CEVAL (SCM x, SCM env)
   goto start;
 #endif
 
-loopnoap:
-  PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
 loop:
 #ifdef DEVAL
   SCM_CLEAR_ARGSREADY (debug);
@@ -1932,8 +1926,7 @@ loop:
    *
    * For this to be the case, however, it is necessary that primitive
    * special forms which jump back to `loop', `begin' or some similar
-   * label call PREP_APPLY.  A convenient way to do this is to jump to
-   * `loopnoap' or `cdrxnoap'.
+   * label call PREP_APPLY.
    */
   else if (++debug.info >= debug_info_end)
     {
@@ -2791,10 +2784,17 @@ dispatch:
 		  SCM_SETCAR (x, SCM_CAR (arg1));
 		  SCM_SETCDR (x, SCM_CDR (arg1));
 		  SCM_ALLOW_INTS;
-		  goto loopnoap;
+		  PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
+		  goto loop;
 		case 1:
-		  if (SCM_NIMP (x = arg1))
-		    goto loopnoap;
+		  x = arg1;
+		  if (SCM_NIMP (x))
+		    {
+		      PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
+		      goto loop;
+		    }
+		  else
+		    RETURN (arg1);
 		case 0:
 		  RETURN (arg1);
 		}

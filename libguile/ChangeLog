@@ -1,3 +1,12 @@
+2002-03-24  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* debug.h (scm_ready_p, debug_print): Removed declarations.
+
+	* eval.c (EVALCELLCAR): Removed.
+
+	(SCM_CEVAL): Eliminated label loopnoap.  Removed side-effecting
+	operation from condition.
+
 2002-03-24  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* guile-snarf.in: When the output filename is "-", write to
