@@ -48,6 +48,7 @@
 #include "append.h"
 #include "arbiters.h"
 #include "async.h"
+#include "backtrace.h"
 #include "boolean.h"
 #include "chars.h"
 #include "continuations.h"
@@ -91,6 +92,7 @@
 #include "socket.h"
 #include "srcprop.h"
 #include "stackchk.h"
+#include "stacks.h"
 #include "stime.h"
 #include "strings.h"
 #include "strop.h"
@@ -196,7 +198,7 @@ scm_start_stack (base, in, out, err)
   /* Create an object to hold the root continuation.
    */
   SCM_NEWCELL (scm_rootcont);
-  SCM_SETJMPBUF (scm_rootcont, scm_must_malloc ((long) sizeof (regs), "continuation"));
+  SCM_SETJMPBUF (scm_rootcont, scm_must_malloc ((long) sizeof (scm_contregs), "continuation"));
   SCM_CAR (scm_rootcont) = scm_tc7_contin;
   SCM_SEQ (scm_rootcont) = 0;
   /* The root continuation if further initialized by scm_restart_stack. */
@@ -387,12 +389,10 @@ scm_boot_guile_1 (base, result, argc, argv, in, out, err, init_func, boot_cmd)
       scm_init_append ();
       scm_init_arbiters ();
       scm_init_async ();
+      scm_init_backtrace ();
       scm_init_boolean ();
       scm_init_chars ();
       scm_init_continuations ();
-#ifdef DEBUG_EXTENSIONS
-      scm_init_debug ();
-#endif
       scm_init_dynwind ();
       scm_init_eq ();
       scm_init_error ();
@@ -425,6 +425,7 @@ scm_boot_guile_1 (base, result, argc, argv, in, out, err, init_func, boot_cmd)
       scm_init_srcprop ();
 #endif
       scm_init_stackchk ();
+      scm_init_stacks ();
       scm_init_strports ();
       scm_init_symbols ();
       scm_init_tag ();
@@ -445,6 +446,9 @@ scm_boot_guile_1 (base, result, argc, argv, in, out, err, init_func, boot_cmd)
       scm_init_weaks ();
       scm_init_vports ();
       scm_init_eval ();
+#ifdef DEBUG_EXTENSIONS
+      scm_init_debug ();	/* Requires macro smobs */
+#endif
       scm_init_ramap ();
       scm_init_unif ();
       scm_init_simpos ();
