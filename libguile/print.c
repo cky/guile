@@ -964,13 +964,17 @@ scm_display (SCM obj, SCM port)
 
 SCM_DEFINE (scm_simple_format, "simple-format", 2, 0, 1,
             (SCM destination, SCM message, SCM args),
-	    "Write MESSAGE to DESTINATION, defaulting to `current-output-port'.\n"
-	    "MESSAGE can contain ~A (was %s) and ~S (was %S) escapes.  When printed,\n"
-	    "the escapes are replaced with corresponding members of ARGS:\n"
-	    "~A formats using `display' and ~S formats using `write'.\n"
-	    "If DESTINATION is #t, then use the `current-output-port',\n"
-	    "if DESTINATION is #f, then return a string containing the formatted text.\n"
-	    "Does not add a trailing newline.")
+	    "Write @var{message} to @var{destination}, defaulting to\n"
+	    "the current output port.\n"
+	    "@var{message} can contain @code{~A} (was @code{%s}) and\n"
+	    "@code{~S} (was @code{%S}) escapes.  When printed,\n"
+	    "the escapes are replaced with corresponding members of\n"
+	    "@var{ARGS}:\n"
+	    "@code{~A} formats using @code{display} and @code{~S} formats\n"
+	    "using @code{write}.\n"
+	    "If @var{destination} is @code{#t}, then use the current output\n"
+	    "port, if @var{destination} is @code{#f}, then return a string\n"
+	    "containing the formatted text. Does not add a trailing newline.")
 #define FUNC_NAME s_scm_simple_format
 {
   SCM answer = SCM_UNSPECIFIED;
@@ -1035,7 +1039,7 @@ SCM_DEFINE (scm_simple_format, "simple-format", 2, 0, 1,
 
 SCM_DEFINE (scm_newline, "newline", 0, 1, 0, 
             (SCM port),
-	    "Send a newline to PORT.")
+	    "Send a newline to @var{port}.")
 #define FUNC_NAME s_scm_newline
 {
   if (SCM_UNBNDP (port))
@@ -1050,7 +1054,7 @@ SCM_DEFINE (scm_newline, "newline", 0, 1, 0,
 
 SCM_DEFINE (scm_write_char, "write-char", 1, 1, 0,
             (SCM chr, SCM port),
-	    "Send character CHR to PORT.")
+	    "Send character @var{chr} to @var{port}.")
 #define FUNC_NAME s_scm_write_char
 {
   if (SCM_UNBNDP (port))
