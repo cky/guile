@@ -243,17 +243,31 @@ typedef long SCM_STACKITEM;
 
 
 #ifndef USE_THREADS
-#define SCM_THREADS_SWITCHING_CODE
+#define SCM_THREAD_DEFER
+#define SCM_THREAD_ALLOW
+#define SCM_THREAD_REDEFER
+#define SCM_THREAD_REALLOW_1
+#define SCM_THREAD_REALLOW_2
+#define SCM_THREAD_SWITCHING_CODE
 #endif
 
 extern unsigned int scm_async_clock;
+#if 0
 #define SCM_ASYNC_TICK \
 { \
   if (0 == --scm_async_clock) \
     scm_async_click (); \
-  SCM_THREADS_SWITCHING_CODE; \
 } \
 
+#else
+#define SCM_ASYNC_TICK \
+{ \
+  if (0 == --scm_async_clock) \
+    scm_async_click (); \
+  SCM_THREAD_SWITCHING_CODE; \
+} \
+
+#endif
 
 #ifdef SCM_CAREFUL_INTS
 #define SCM_CHECK_NOT_DISABLED \
@@ -273,12 +287,14 @@ extern unsigned int scm_async_clock;
 #define SCM_DEFER_INTS \
 { \
   SCM_CHECK_NOT_DISABLED; \
+  SCM_THREAD_DEFER; \
   scm_ints_disabled = 1; \
 } \
 
 
 #define SCM_ALLOW_INTS_ONLY \
 { \
+  SCM_THREAD_ALLOW; \
   scm_ints_disabled = 0; \
 } \
 
@@ -286,6 +302,7 @@ extern unsigned int scm_async_clock;
 #define SCM_ALLOW_INTS \
 { \
   SCM_CHECK_NOT_ENABLED; \
+  SCM_THREAD_ALLOW; \
   scm_ints_disabled = 0; \
   SCM_ASYNC_TICK; \
 } \
@@ -293,15 +310,20 @@ extern unsigned int scm_async_clock;
 
 #define SCM_REDEFER_INTS  \
 { \
+  SCM_THREAD_REDEFER; \
   ++scm_ints_disabled; \
 } \
 
 
 #define SCM_REALLOW_INTS \
 { \
+  SCM_THREAD_REALLOW_1; \
   --scm_ints_disabled; \
   if (!scm_ints_disabled) \
-    SCM_ASYNC_TICK; \
+    { \
+      SCM_THREAD_REALLOW_2; \
+      SCM_ASYNC_TICK; \
+    } \
 } \
 
 
