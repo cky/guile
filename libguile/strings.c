@@ -116,7 +116,7 @@ scm_string (chrs)
 	  int l;
 	  char * c;
 	  l = SCM_ROLENGTH (SCM_CAR (chrs));
-	  c = SCM_ROUCHARS (SCM_CAR (chrs));
+	  c = SCM_ROCHARS (SCM_CAR (chrs));
 	  while (l)
 	    {
 	      --l;

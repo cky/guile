@@ -175,16 +175,17 @@ scm_tag (x)
 	  {
 	    int tag;
 	    tag = (SCM_TYP16 (x) >> 8) & 0xff;
-	    return SCM_MAKINUM (SCM_INUM (SCM_CDR (scm_utag_smob_base)) | (tag << 8));
+	    return SCM_MAKINUM (SCM_INUM (SCM_CDR (scm_utag_smob_base))
+				| (tag << 8));
 	  }
 	case scm_tcs_cons_gloc:
 	  /* must be a struct */
 	  {
 	    int tag;
 	    tag = SCM_STRUCT_VTABLE_DATA (x)[scm_struct_i_tag];
-	    return SCM_MAKINUM (SCM_INUM (SCM_CDR (scm_utag_struct_base)) | (tag << 8));
+	    return SCM_MAKINUM (SCM_INUM (SCM_CDR (scm_utag_struct_base))
+				| (tag << 8));
 	  }
-	  return SCM_CDR (scm_utag_struct_base) ;
 
 	default:
 	  if (SCM_CONSP (x))

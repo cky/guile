@@ -204,7 +204,8 @@ scm_gen_puts (rep, str_data, port)
 	    while (size)
 	      {
 		len = xmbtowc (&output, str_data, size);
-		SCM_ASSERT ((len > 0), SCM_MAKINUM (*str_data), "bogus character", "scm_gen_puts");
+		SCM_ASSERT ((len > 0), SCM_MAKINUM (*str_data),
+			    "bogus character", "scm_gen_puts");
 		scm_putc ((output >> 8) & 0xff, port);
 		scm_putc (output & 0xff, port);
 		size -= len;
@@ -437,7 +438,7 @@ scm_gen_getc (port)
     case scm_mb_port:
       {
 	int x;
-	unsigned char buf[256];
+	char buf[256];
 
 	SCM_ASSERT (XMB_CUR_MAX < sizeof (buf), SCM_BOOL_F,
 		"huge translation", "scm_gen_puts");

@@ -59,7 +59,6 @@ maybe_drag_in_eprintf ()
 }
 
 #include <stdio.h>
-
 #include "_scm.h"
 #include "dynl.h"
 #include "genio.h"
@@ -401,7 +400,8 @@ scm_dynamic_func (SCM symb, SCM dobj)
     d = get_dynl_obj (dobj, s_dynamic_func, SCM_ARG2);
 
     SCM_DEFER_INTS;
-    func = sysdep_dynl_func (SCM_CHARS (symb), d->handle, s_dynamic_func);
+    func = (void (*) ()) sysdep_dynl_func (SCM_CHARS (symb), d->handle,
+					   s_dynamic_func);
     SCM_ALLOW_INTS;
 
     return scm_ulong2num ((unsigned long)func);
