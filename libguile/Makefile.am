@@ -81,7 +81,7 @@ guile_LDADD = libguile.la
 guile_LDFLAGS = @DLPREOPEN@
 
 libguile_la_SOURCES = alist.c arbiters.c async.c backtrace.c boolean.c	    \
-    chars.c continuations.c convert.c debug.c deprecation.c		    \
+    chars.c continuations.c convert.c debug.c deprecation.c deprecated.c    \
     dynwind.c environments.c eq.c error.c eval.c evalext.c extensions.c	    \
     feature.c fluids.c fports.c	futures.c				    \
     gc.c gc-mark.c gc-segment.c gc-malloc.c gc-card.c gc-freelist.c	    \
@@ -97,12 +97,12 @@ libguile_la_SOURCES = alist.c arbiters.c async.c backtrace.c boolean.c	    \
     variable.c vectors.c version.c vports.c weaks.c
 
 DOT_X_FILES = alist.x arbiters.x async.x backtrace.x boolean.x chars.x	  \
-    continuations.x debug.x deprecation.x dynl.x dynwind.x		  \
+    continuations.x debug.x deprecation.x deprecated.x dynl.x dynwind.x   \
     environments.x eq.x							  \
     error.x eval.x evalext.x extensions.x feature.x fluids.x fports.x	  \
     futures.x								  \
     gc.x  gc-mark.x gc-segment.x gc-malloc.x gc-card.x goops.x		  \
-    gsubr.x guardians.x hash.x hashtab.x hooks.x init.x ioext.x iselect.x \
+    gsubr.x guardians.x hash.x hashtab.x hooks.x init.x ioext.x           \
     keywords.x lang.x list.x load.x macros.x mallocs.x modules.x	  \
     numbers.x objects.x objprop.x options.x pairs.x ports.x print.x	  \
     procprop.x procs.x properties.x random.x rdelim.x read.x root.x rw.x  \
@@ -114,13 +114,14 @@ DOT_X_FILES = alist.x arbiters.x async.x backtrace.x boolean.x chars.x	  \
 EXTRA_DOT_X_FILES = @EXTRA_DOT_X_FILES@
 
 DOT_DOC_FILES = alist.doc arbiters.doc async.doc backtrace.doc		    \
-    boolean.doc chars.doc continuations.doc debug.doc dynl.doc		    \
-    dynwind.doc environments.doc eq.doc error.doc eval.doc evalext.doc	    \
+    boolean.doc chars.doc continuations.doc debug.doc deprecation.doc	    \
+    deprecated.doc dynl.doc dynwind.doc environments.doc eq.doc		    \
+    error.doc eval.doc evalext.doc					    \
     extensions.doc feature.doc fluids.doc fports.doc futures.doc	    \
     gc.doc goops.doc							    \
-    gsubr.doc gc-mark.doc gc-segment.doc gc-malloc.doc gc-card.doc          \
+    gsubr.doc gc-mark.doc gc-segment.doc gc-malloc.doc gc-card.doc	    \
     guardians.doc hash.doc hashtab.doc hooks.doc init.doc ioext.doc	    \
-    iselect.doc keywords.doc lang.doc list.doc load.doc macros.doc	    \
+    keywords.doc lang.doc list.doc load.doc macros.doc	    \
     mallocs.doc modules.doc numbers.doc objects.doc objprop.doc		    \
     options.doc pairs.doc ports.doc print.doc procprop.doc		    \
     procs.doc properties.doc random.doc rdelim.doc read.doc root.doc rw.doc \
@@ -168,7 +169,8 @@ modincludedir = $(includedir)/libguile
 modinclude_HEADERS = __scm.h alist.h arbiters.h async.h backtrace.h boolean.h \
     chars.h continuations.h convert.h debug.h				      \
     debug-malloc.h threads-plugin.h null-threads.h pthread-threads.h	      \
-    deprecation.h dynl.h dynwind.h environments.h eq.h error.h eval.h	      \
+    deprecation.h deprecated.h dynl.h dynwind.h environments.h eq.h	      \
+    error.h eval.h							      \
     evalext.h extensions.h feature.h filesys.h fluids.h fports.h futures.h    \
     gc.h gdb_interface.h gdbint.h					      \
     goops.h gsubr.h guardians.h hash.h hashtab.h hooks.h init.h		      \
