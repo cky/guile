@@ -434,7 +434,8 @@ install: all
 	for h in $(installed_h_files); do \
 	  $(INSTALL_DATA) $(srcdir)/$$h $(includedir); \
 	done
-	for h in scmconfig.h $(inner_h_files); do \
+	$(INSTALL_DATA) scmconfig.h $(innerincludedir)
+	for h in $(inner_h_files); do \
 	  $(INSTALL_DATA) $(srcdir)/$$h $(innerincludedir); \
 	done
 

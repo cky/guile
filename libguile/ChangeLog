@@ -1,3 +1,8 @@
+Thu Sep  5 22:40:06 1996  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* Makefile.in (install): install scmconfig.h from the current
+	directory, not $(srcdir).
+
 Thu Sep  5 11:38:07 1996  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* Makefile.in (.c.x): Simplify; there's no need to run this rule
