@@ -94,6 +94,9 @@
 #undef DEBUG_EXTENSIONS
 #undef READER_EXTENSIONS
 
+/* Define this if your system defines S_ISLNK in sys/stat.h */
+#undef HAVE_S_ISLNK
+
 /* Define this if your system defines struct linger, for use with the
    getsockopt and setsockopt system calls.  */
 #undef HAVE_STRUCT_LINGER
@@ -170,6 +173,9 @@
 /* The number of bytes in a long.  */
 #undef SIZEOF_LONG
 
+/* Define if you have the bcopy function.  */
+#undef HAVE_BCOPY
+
 /* Define if you have the bzero function.  */
 #undef HAVE_BZERO
 
@@ -244,6 +250,9 @@
 
 /* Define if you have the lstat function.  */
 #undef HAVE_LSTAT
+
+/* Define if you have the memmove function.  */
+#undef HAVE_MEMMOVE
 
 /* Define if you have the mkdir function.  */
 #undef HAVE_MKDIR

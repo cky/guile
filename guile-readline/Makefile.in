@@ -81,6 +81,8 @@ libguilereadline_la_SOURCES = readline.h readline.c
 
 BUILT_SOURCES = readline.x
 
+pkginclude_HEADERS = readline.h
+
 scmdir = $(datadir)/guile
 scm_DATA = readline-activator.scm
 
@@ -106,6 +108,8 @@ LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $
 CCLD = $(CC)
 LINK = $(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(LDFLAGS) -o $@
 DATA =  $(scm_DATA)
+
+HEADERS =  $(pkginclude_HEADERS)
 
 DIST_COMMON =  ChangeLog Makefile.am Makefile.in aclocal.m4 configure \
 configure.in
@@ -214,6 +218,21 @@ uninstall-scmDATA:
 	@$(NORMAL_UNINSTALL)
 	list='$(scm_DATA)'; for p in $$list; do \
 	  rm -f $(DESTDIR)$(scmdir)/$$p; \
+	done
+
+install-pkgincludeHEADERS: $(pkginclude_HEADERS)
+	@$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(DESTDIR)$(pkgincludedir)
+	@list='$(pkginclude_HEADERS)'; for p in $$list; do \
+	  if test -f "$$p"; then d= ; else d="$(srcdir)/"; fi; \
+	  echo " $(INSTALL_DATA) $$d$$p $(DESTDIR)$(pkgincludedir)/$$p"; \
+	  $(INSTALL_DATA) $$d$$p $(DESTDIR)$(pkgincludedir)/$$p; \
+	done
+
+uninstall-pkgincludeHEADERS:
+	@$(NORMAL_UNINSTALL)
+	list='$(pkginclude_HEADERS)'; for p in $$list; do \
+	  rm -f $(DESTDIR)$(pkgincludedir)/$$p; \
 	done
 
 tags: TAGS
@@ -341,20 +360,22 @@ installcheck: installcheck-am
 install-exec-am: install-libLTLIBRARIES
 install-exec: install-exec-am
 
-install-data-am: install-scmDATA
+install-data-am: install-scmDATA install-pkgincludeHEADERS
 install-data: install-data-am
 
 install-am: all-am
 	@$(MAKE) $(AM_MAKEFLAGS) install-exec-am install-data-am
 install: install-am
-uninstall-am: uninstall-libLTLIBRARIES uninstall-scmDATA
+uninstall-am: uninstall-libLTLIBRARIES uninstall-scmDATA \
+		uninstall-pkgincludeHEADERS
 uninstall: uninstall-am
-all-am: Makefile $(LTLIBRARIES) $(DATA)
+all-am: Makefile $(LTLIBRARIES) $(DATA) $(HEADERS)
 all-redirect: all-am
 install-strip:
 	$(MAKE) $(AM_MAKEFLAGS) AM_INSTALL_PROGRAM_FLAGS=-s install
 installdirs:
-	$(mkinstalldirs)  $(DESTDIR)$(libdir) $(DESTDIR)$(scmdir)
+	$(mkinstalldirs)  $(DESTDIR)$(libdir) $(DESTDIR)$(scmdir) \
+		$(DESTDIR)$(pkgincludedir)
 
 
 mostlyclean-generic:
@@ -401,7 +422,8 @@ clean-libLTLIBRARIES maintainer-clean-libLTLIBRARIES \
 uninstall-libLTLIBRARIES install-libLTLIBRARIES mostlyclean-compile \
 distclean-compile clean-compile maintainer-clean-compile \
 mostlyclean-libtool distclean-libtool clean-libtool \
-maintainer-clean-libtool uninstall-scmDATA install-scmDATA tags \
+maintainer-clean-libtool uninstall-scmDATA install-scmDATA \
+uninstall-pkgincludeHEADERS install-pkgincludeHEADERS tags \
 mostlyclean-tags distclean-tags clean-tags maintainer-clean-tags \
 distdir mostlyclean-depend distclean-depend clean-depend \
 maintainer-clean-depend info-am info dvi-am dvi check check-am \
