@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in.
 
-SUBDIRS = libguile ice-9 qt
+SUBDIRS = ice-9 qt libguile
 
 ## FIXME: in the future there will be direct automake support for
 ## doing this.  When that happens, switch over.

@@ -69,7 +69,7 @@ qtmds_s = @qtmds_s@
 target_libs = @target_libs@
 xtra_PLUGIN_guile_libs = @xtra_PLUGIN_guile_libs@
 
-SUBDIRS = libguile ice-9 qt
+SUBDIRS = ice-9 qt libguile
 
 aclocaldir = $(datadir)/aclocal
 aclocal_DATA = guile.m4 threads.m4
