@@ -33,6 +33,9 @@ Changes since Guile 1.4:
 
 ** New SRFI modules have been added:
 
+SRFI-0 `cond-expand' is now supported in Guile, without requiring
+using a module.
+
 (srfi srfi-2) exports and-let*.
 
 (srfi srfi-6) is a dummy module for now, since guile already provides
@@ -43,13 +46,20 @@ Changes since Guile 1.4:
 
 (srfi srfi-9) exports define-record-type.
 
+(srfi srfi-10) exports define-reader-ctor and implements the reader
+  extension #,().
+
 (srfi srfi-11) exports let-values and let*-values.
 
 (srfi srfi-13) implements the SRFI String Library.
 
 (srfi srfi-14) implements the SRFI Character-Set Library.
 
-(srfi srfi-14) implements the SRFI Time/Date Library.
+(srfi srfi-17) implements setter and getter-with-setter and redefines
+  some accessor procedures as procedures with getters. (such as car,
+  cdr, vector-ref etc.)
+
+(srfi srfi-19) implements the SRFI Time/Date Library.
 
 ** New scripts / "executable modules"
 

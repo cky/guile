@@ -127,6 +127,7 @@ In the subdirectory srfi, wrote:
     srfi-14.scm
     srfi-13.c
     srfi-14.c
+    srfi-16.scm
 In the subdirectory scripts, wrote:
     doc-snarf
 In the subdirectory doc, wrote:
