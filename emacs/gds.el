@@ -478,11 +478,7 @@ The function is called with one argument, the CLIENT in question."
     ;; If there's already a window showing the buffer, use it.
     (let ((window (get-buffer-window buf t)))
       (if window
-	  (progn
-	    (make-frame-visible (window-frame window))
-	    (select-frame (window-frame window))
-	    (select-window window))
-	;;(select-window (display-buffer buf))
+	  (make-frame-visible (window-frame window))
 	(display-buffer buf)))
     ;; If there is an associated source buffer, display it as well.
     (if (and (eq (car gds-views) 'stack)

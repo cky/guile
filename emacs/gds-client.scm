@@ -411,26 +411,43 @@ decimal IP address where the UI server is running; default is
 		  (set-port-line! (current-input-port) line)
 		  (set-port-column! (current-input-port) column)
 		  (let ((m (and module (resolve-module-from-root module))))
-		    (let loop ((exprs '()) (x (read)))
-		      (if (eof-object? x)
-			  ;; Expressions to be evaluated have all been
-			  ;; read.  Now hand them off to an
-			  ;; eval-thread for the actual evaluation.
-			  (with-mutex eval-work-mutex
-			    (trc 'protocol-thread "evaluation work available")
-			    (set! eval-work (cons* correlator m (reverse! exprs)))
-			    (set! eval-work-available #t)
-			    (broadcast-condition-variable eval-work-changed)
-			    (wait-condition-variable eval-work-taken
-						     eval-work-mutex)
-			    (assert (not eval-work-available))
-			    (trc 'protocol-thread "evaluation work underway"))
-			  ;; Another complete expression read.  Set
-			  ;; breakpoints in the read code as specified
-			  ;; by bpinfo, and add it to the list.
-			  (begin
-			    (install-breakpoints x bpinfo)
-			    (loop (cons x exprs) (read)))))))))
+		    (catch 'read-error
+		      (lambda ()
+			(let loop ((exprs '()) (x (read)))
+			  (if (eof-object? x)
+			      ;; Expressions to be evaluated have all
+			      ;; been read.  Now hand them off to an
+			      ;; eval-thread for the actual
+			      ;; evaluation.
+			      (with-mutex eval-work-mutex
+				(trc 'protocol-thread
+				     "evaluation work available")
+				(set! eval-work
+				      (cons* correlator m (reverse! exprs)))
+				(set! eval-work-available #t)
+				(broadcast-condition-variable eval-work-changed)
+				(wait-condition-variable eval-work-taken
+							 eval-work-mutex)
+				(assert (not eval-work-available))
+				(trc 'protocol-thread
+				     "evaluation work underway"))
+			      ;; Another complete expression read.
+			      ;; Set breakpoints in the read code as
+			      ;; specified by bpinfo, and add it to
+			      ;; the list.
+			      (begin
+				(install-breakpoints x bpinfo)
+				(loop (cons x exprs) (read))))))
+		      (lambda (key . args)
+			(write-form `(eval-results
+				      ,correlator
+				      ,(with-output-to-string
+					 (lambda ()
+					   (display ";;; Reading expressions")
+					   (display " to evaluate\n")
+					   (apply display-error #f
+						  (current-output-port) args)))
+				      ("error-in-read")))))))))
 	    (cdr ins))
      state)
     ((complete)
