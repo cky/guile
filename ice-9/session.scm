@@ -19,6 +19,7 @@
 
 (define-module (ice-9 session)
   :use-module (ice-9 documentation)
+  :use-module (ice-9 regex)
   )
 
 
@@ -40,7 +41,8 @@ You don't seem to have regular expressions installed.\n"))
 	       (cond ((symbol? name)
 		      (help-doc name
 				(string-append "^"
-					       (symbol->string name)
+					       (regexp-quote
+						(symbol->string name))
 					       "$")))
 		     ((string? name)
 		      (help-doc name name))
