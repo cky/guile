@@ -50,42 +50,45 @@
 #include "libguile/tag.h"
 
 
-SCM_CONST_LONG (scm_utag_immediate_integer, "utag_immediate_integer", 0);
-SCM_CONST_LONG (scm_utag_immediate_char, "utag_immediate_char", 1);
-SCM_CONST_LONG (scm_utag_pair, "utag_pair", 2);
-SCM_CONST_LONG (scm_utag_closure, "utag_closure", 3);
-SCM_CONST_LONG (scm_utag_symbol, "utag_symbol", 4);
-SCM_CONST_LONG (scm_utag_vector, "utag_vector", 5);
-SCM_CONST_LONG (scm_utag_wvect, "utag_wvect", 6);
+#define CONST_INUM(c_name, scheme_name, value) \
+SCM_VCELL_INIT(c_name, scheme_name, SCM_MAKINUM (value))
+
+CONST_INUM (scm_utag_immediate_integer, "utag_immediate_integer", 0);
+CONST_INUM (scm_utag_immediate_char, "utag_immediate_char", 1);
+CONST_INUM (scm_utag_pair, "utag_pair", 2);
+CONST_INUM (scm_utag_closure, "utag_closure", 3);
+CONST_INUM (scm_utag_symbol, "utag_symbol", 4);
+CONST_INUM (scm_utag_vector, "utag_vector", 5);
+CONST_INUM (scm_utag_wvect, "utag_wvect", 6);
 
 #ifdef HAVE_ARRAYS
-SCM_CONST_LONG (scm_utag_bvect, "utag_bvect", 7);
-SCM_CONST_LONG (scm_utag_byvect, "utag_byvect", 8);
-SCM_CONST_LONG (scm_utag_svect, "utag_svect", 9);
-SCM_CONST_LONG (scm_utag_ivect, "utag_ivect", 10);
-SCM_CONST_LONG (scm_utag_uvect, "utag_uvect", 11);
-SCM_CONST_LONG (scm_utag_fvect, "utag_fvect", 12);
-SCM_CONST_LONG (scm_utag_dvect, "utag_dvect", 13);
-SCM_CONST_LONG (scm_utag_cvect, "utag_cvect", 14);
+CONST_INUM (scm_utag_bvect, "utag_bvect", 7);
+CONST_INUM (scm_utag_byvect, "utag_byvect", 8);
+CONST_INUM (scm_utag_svect, "utag_svect", 9);
+CONST_INUM (scm_utag_ivect, "utag_ivect", 10);
+CONST_INUM (scm_utag_uvect, "utag_uvect", 11);
+CONST_INUM (scm_utag_fvect, "utag_fvect", 12);
+CONST_INUM (scm_utag_dvect, "utag_dvect", 13);
+CONST_INUM (scm_utag_cvect, "utag_cvect", 14);
 #endif 
 
-SCM_CONST_LONG (scm_utag_string, "utag_string", 15);
-SCM_CONST_LONG (scm_utag_substring, "utag_substring", 17);
-SCM_CONST_LONG (scm_utag_asubr, "utag_asubr", 19);
-SCM_CONST_LONG (scm_utag_subr_0, "utag_subr_0", 20);
-SCM_CONST_LONG (scm_utag_subr_1, "utag_subr_1", 21);
-SCM_CONST_LONG (scm_utag_cxr, "utag_cxr", 22);
-SCM_CONST_LONG (scm_utag_subr_3, "utag_subr_3", 23);
-SCM_CONST_LONG (scm_utag_subr_2, "utag_subr_2", 24);
-SCM_CONST_LONG (scm_utag_rpsubr, "utag_rpsubr", 25);
-SCM_CONST_LONG (scm_utag_subr_1o, "utag_subr_1o", 26);
-SCM_CONST_LONG (scm_utag_subr_2o, "utag_subr_2o", 27);
-SCM_CONST_LONG (scm_utag_lsubr_2, "utag_lsubr_2", 28);
-SCM_CONST_LONG (scm_utag_lsubr, "utag_lsubr", 29);
-SCM_CONST_LONG (scm_utag_smob_base, "utag_smob_base", 252);
-SCM_CONST_LONG (scm_utag_port_base, "utag_port_base", 253);
-SCM_CONST_LONG (scm_utag_flag_base, "utag_flag_base", 254);
-SCM_CONST_LONG (scm_utag_struct_base, "utag_struct_base", 255);
+CONST_INUM (scm_utag_string, "utag_string", 15);
+CONST_INUM (scm_utag_substring, "utag_substring", 17);
+CONST_INUM (scm_utag_asubr, "utag_asubr", 19);
+CONST_INUM (scm_utag_subr_0, "utag_subr_0", 20);
+CONST_INUM (scm_utag_subr_1, "utag_subr_1", 21);
+CONST_INUM (scm_utag_cxr, "utag_cxr", 22);
+CONST_INUM (scm_utag_subr_3, "utag_subr_3", 23);
+CONST_INUM (scm_utag_subr_2, "utag_subr_2", 24);
+CONST_INUM (scm_utag_rpsubr, "utag_rpsubr", 25);
+CONST_INUM (scm_utag_subr_1o, "utag_subr_1o", 26);
+CONST_INUM (scm_utag_subr_2o, "utag_subr_2o", 27);
+CONST_INUM (scm_utag_lsubr_2, "utag_lsubr_2", 28);
+CONST_INUM (scm_utag_lsubr, "utag_lsubr", 29);
+CONST_INUM (scm_utag_smob_base, "utag_smob_base", 252);
+CONST_INUM (scm_utag_port_base, "utag_port_base", 253);
+CONST_INUM (scm_utag_flag_base, "utag_flag_base", 254);
+CONST_INUM (scm_utag_struct_base, "utag_struct_base", 255);
 
 
 #if (SCM_DEBUG_DEPRECATED == 0)

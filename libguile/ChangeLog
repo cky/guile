@@ -1,3 +1,8 @@
+2001-03-16  Keisuke Nishida  <kxn30@po.cwru.edu>
+
+	* snarf.h (SCM_CONST_LONG): Deprecated.
+	* tag.c (CONST_INUM): New macro.  Use it to define scm_utag_*.
+
 2001-03-15  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* numbers.c (scm_num2ulong): Check that a bignum is positive
