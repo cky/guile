@@ -1,3 +1,8 @@
+2004-02-20  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* scheme-evaluation.texi (Expression Syntax): Turned syntax
+	description into a table, @deffn is not really up to the task.
+
 2004-02-18  Marius Vollmer  <mvo@zagadka.de>
 
 	* guile.texi: Replaced list of authors with "The Guile
