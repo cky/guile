@@ -1,5 +1,13 @@
 2000-06-05  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* procs.h (SCM_SET_SUBRF):  Added.
+
+	* procs.c (scm_make_subr_opt):  Don't assign to SCM_SUBRF, use
+	SCM_SET_SUBRF instead.  Thanks to Bernard Urban for the bug
+	report.
+
+2000-06-05  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* gc.h (SCM_CARLOC, SCM_CDRLOC):  Don't take the address of a SCM
 	value.
 

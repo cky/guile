@@ -72,6 +72,7 @@ typedef struct
 #define SCM_SUBR_ENTRY(x) (scm_subr_table[SCM_SUBRNUM (x)])
 #define SCM_SNAME(x) (SCM_SUBR_ENTRY (x).name)
 #define SCM_SUBRF(x) ((SCM (*)()) SCM_CELL_WORD_1 (x))
+#define SCM_SET_SUBRF(x, v) (SCM_SET_CELL_WORD_1 ((x), (v)))
 #define SCM_DSUBRF(x) ((double (*)()) SCM_CELL_WORD_1 (x))
 #define SCM_CCLO_SUBR(x) (SCM_VELTS(x)[0])
 

@@ -95,7 +95,7 @@ scm_make_subr_opt (const char *name, int type, SCM (*fcn) (), int set)
   scm_subr_table[entry].properties = SCM_EOL;
   scm_subr_table[entry].documentation = SCM_BOOL_F;
   
-  SCM_SUBRF (z) = fcn;
+  SCM_SET_SUBRF (z, fcn);
   SCM_SET_CELL_TYPE (z, (entry << 8) + type);
   scm_subr_table_size++;
   
