@@ -1,10 +1,28 @@
 This is beta release 1.0b3 of Guile, the GNU extension language library.
+Please send bug reports to bug-guile@prep.ai.mit.edu.
 
-Guile is a portable, embaddable Scheme implementation written in C.
+Guile is a portable, embeddable Scheme implementation written in C.
 Guile provides a machine independent execution platform that can be
 linked in as a library when building extensible programs.
 
 Guile is derived from SCM, by Aubrey Jaffer and others.  Tom Lord
-librarified SCM, yeilding Guile.  He wrote Guile's operating system,
+librarified SCM, yielding Guile.  He wrote Guile's operating system,
 Ice-9, connected Guile to Tcl/Tk and the `rx' regular expression
 matcher, and took care of a lot of miscellany.
+
+Interesting files include:
+- INSTALL, which contains instructions on building and installing Guile.
+- NEWS, which describes user-visible changes since the last release of Guile.
+- COPYING, which describes the terms under which you may redistribute
+  Guile, and explains that there is no warranty.
+
+The Guile source tree is laid out as follows:
+
+doc:	  Documentation for Guile, in Texinfo form.
+libguile: The Guile Scheme interpreter, packaged as an object
+          library for you to link with your programs.
+guile:    An interactive front end for the Guile Scheme interpreter.
+rx:       A regular expression matching library, interfaced to Guile.
+ice-9:    Guile's module system, initialization code, and other infrastructure.
+lang:     A Guile module of tools for writing lexical analyzers and parsers.
+ctax:     A Guile module providing a C-like syntax for Scheme.
