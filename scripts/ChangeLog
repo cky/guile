@@ -1,3 +1,17 @@
+2002-04-05  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* read-text-outline (display-outline-tree): No longer export this proc.
+
+	(*depth-cue-rx*, *subm-number*, *level-divisor*, >>,
+	display-outline-tree): Delete these vars and procs.
+
+	(??, msub, ??-predicates, make-line-parser,
+	make-text-outline-reader): New procs.
+
+	(make-text-outline-reader): Export.
+	(read-text-outline-silently): Rewrite
+	using `make-text-outline-reader'.
+
 2002-04-04  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* lint: New script.
