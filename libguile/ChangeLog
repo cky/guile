@@ -5,6 +5,7 @@
 	SCM_P macro.
 
 	Do magic to mix reads and writes on stdio FILE-based ports.
+	(Thanks to Christian Lynbech.)
 	* fports.c (FPORT_READ_SAFE, FPORT_WRITE_SAFE, FPORT_ALL_OKAY):
 	New macros.
 	(pre_read, pre_write): New functions.
