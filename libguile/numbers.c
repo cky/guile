@@ -45,6 +45,7 @@
 #include "_scm.h"
 #include "genio.h"
 #include "unif.h"
+#include "feature.h"
 
 #include "numbers.h"
 
