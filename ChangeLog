@@ -1,3 +1,18 @@
+2002-01-13  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* Makefile.am (SUBDIRS): Added lang.
+
+	* configure.in (AC_CONFIG_FILES): Added Makefiles in lang,
+	lang/elisp, lang/elisp/internals and lang/elisp/primitives.
+
+2002-01-11  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* acconfig.h (SCM_ENABLE_ELISP): New conditional.
+
+	* configure.in (SCM_ENABLE_ELISP): Define this conditional (or
+	not) according to absence (or presence) of `--disable-elisp'
+	in the configure args.
+
 2001-12-31  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* TODO: Added two items.

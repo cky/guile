@@ -129,6 +129,10 @@ dnl a required part of the distribution.
 AC_DEFINE(DEBUG_EXTENSIONS)
 AC_DEFINE(READER_EXTENSIONS)
 
+AC_ARG_ENABLE(elisp,
+  [  --disable-elisp         omit Emacs Lisp support],,
+  enable_elisp=yes)
+
 dnl files which are destined for separate modules.
 
 if test "$enable_arrays" = yes; then
@@ -148,6 +152,10 @@ fi
 
 if test "$enable_debug_malloc" = yes; then
    LIBOBJS="$LIBOBJS debug-malloc.o"
+fi
+
+if test "$enable_elisp" = yes; then
+   AC_DEFINE(SCM_ENABLE_ELISP)
 fi
 
 #--------------------------------------------------------------------
@@ -660,6 +668,10 @@ AC_CONFIG_FILES([
   libguile/guile-snarf-docs-texi
   libguile/version.h
   ice-9/Makefile
+  lang/Makefile
+  lang/elisp/Makefile
+  lang/elisp/internals/Makefile
+  lang/elisp/primitives/Makefile
   oop/Makefile
   oop/goops/Makefile
   scripts/Makefile

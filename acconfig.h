@@ -134,6 +134,9 @@
 /* Define this if you want support for arrays and uniform arrays.  */
 #undef HAVE_ARRAYS
 
+/* Define this if you want Elisp support (in addition to Scheme). */
+#undef SCM_ENABLE_ELISP
+
 /* Define this if your IPv6 has sin6_scope_id in sockaddr_in6 struct.  */
 #undef HAVE_SIN6_SCOPE_ID
 
