@@ -103,9 +103,13 @@ if test "$enable_deprecated" = no; then
   AC_DEFINE(SCM_DEBUG_DEPRECATED)
 else
   if test "$enable_deprecated" = yes || test "$enable_deprecated" = ""; then
-    enable_deprecated=summary
+    warn_default=summary
+  elif test "$enable_deprecated" = shutup; then
+    warn_default=no
+  else
+    warn_default=$enable_deprecated
   fi
-  AC_DEFINE_UNQUOTED(GUILE_WARN_DEPRECATED_DEFAULT, "$enable_deprecated")
+  AC_DEFINE_UNQUOTED(GUILE_WARN_DEPRECATED_DEFAULT, "$warn_default")
 fi
 
 dnl The --disable-debug used to control these two.  But now they are
