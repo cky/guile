@@ -360,6 +360,14 @@ scm_tc7_lvector
 There is now only a single symbol type scm_tc7_symbol.
 The tag scm_tc7_lvector was not used anyway.
 
+** Deprecated function:  scm_make_smob_type_mfpe, scm_set_smob_mfpe.
+
+Use scm_make_smob_type and scm_set_smob_XXX instead.
+
+** New function scm_set_smob_apply.
+
+This can be used to set an apply function to a smob type.
+
 
 Changes since Guile 1.3.4:
 
