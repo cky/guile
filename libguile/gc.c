@@ -1,4 +1,4 @@
-/* Copyright (C) 1995, 1996, 1997, 1998, 1999 Free Software Foundation, Inc.
+/* Copyright (C) 1995, 96, 97, 98, 99, 2000 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -147,6 +147,7 @@
  * is the head of freelist of cons pairs.
  */
 SCM scm_freelist = SCM_EOL;
+SCM scm_freelist2 = SCM_EOL;
 
 /* scm_mtrigger
  * is the number of bytes of must_malloc allocation needed to trigger gc.
@@ -243,32 +244,40 @@ which_seg (SCM cell)
 }
 
 
-SCM_DEFINE (scm_map_free_list, "map-free-list", 0, 0, 0, 
-            (),
-            "Print debugging information about the free-list.\n"
-            "`map-free-list' is only included in GUILE_DEBUG_FREELIST builds of Guile.")
-#define FUNC_NAME s_scm_map_free_list
+static void
+map_free_list (SCM freelist, int ncells)
 {
   int last_seg = -1, count = 0;
   SCM f;
   
-  fprintf (stderr, "%d segments total\n", scm_n_heap_segs);
-  for (f = scm_freelist; SCM_NIMP (f); f = SCM_CDR (f))
+  for (f = freelist; SCM_NIMP (f); f = SCM_CDR (f))
     {
       int this_seg = which_seg (f);
 
       if (this_seg != last_seg)
 	{
 	  if (last_seg != -1)
-	    fprintf (stderr, "  %5d cells in segment %d\n", count, last_seg);
+	    fprintf (stderr, "  %5d %d-cells in segment %d\n",
+		     count, ncells, last_seg);
 	  last_seg = this_seg;
 	  count = 0;
 	}
       count++;
     }
   if (last_seg != -1)
-    fprintf (stderr, "  %5d cells in segment %d\n", count, last_seg);
+    fprintf (stderr, "  %5d %d-cells in segment %d\n",
+	     count, ncells, last_seg);
+}
 
+SCM_DEFINE (scm_map_free_list, "map-free-list", 0, 0, 0, 
+            (),
+            "Print debugging information about the free-list.\n"
+            "`map-free-list' is only included in GUILE_DEBUG_FREELIST builds of Guile.")
+#define FUNC_NAME s_scm_map_free_list
+{
+  fprintf (stderr, "%d segments total\n", scm_n_heap_segs);
+  map_free_list (scm_freelist, 1);
+  map_free_list (scm_freelist2, 2);
   fflush (stderr);
 
   return SCM_UNSPECIFIED;
@@ -278,16 +287,17 @@ SCM_DEFINE (scm_map_free_list, "map-free-list", 0, 0, 0,
 
 /* Number of calls to SCM_NEWCELL since startup.  */
 static unsigned long scm_newcell_count;
+static unsigned long scm_newcell2_count;
 
 /* Search freelist for anything that isn't marked as a free cell.
    Abort if we find something.  */
 static void
-scm_check_freelist ()
+scm_check_freelist (SCM freelist)
 {
   SCM f;
   int i = 0;
 
-  for (f = scm_freelist; SCM_NIMP (f); f = SCM_CDR (f), i++)
+  for (f = freelist; SCM_NIMP (f); f = SCM_CDR (f), i++)
     if (SCM_CAR (f) != (SCM) scm_tc_free_cell)
       {
 	fprintf (stderr, "Bad cell in freelist on newcell %lu: %d'th elt\n",
@@ -319,20 +329,46 @@ scm_debug_newcell (void)
 
   scm_newcell_count++;
   if (scm_debug_check_freelist) {
-    scm_check_freelist ();
+    scm_check_freelist (scm_freelist);
     scm_gc();
   }
 
   /* The rest of this is supposed to be identical to the SCM_NEWCELL
      macro.  */
   if (SCM_IMP (scm_freelist))
-    new = scm_gc_for_newcell ();
+    new = scm_gc_for_newcell (1, &scm_freelist);
   else
     {
       new = scm_freelist;
       scm_freelist = SCM_CDR (scm_freelist);
       SCM_SETCAR (new, scm_tc16_allocated);
       ++scm_cells_allocated;
+    }
+
+  return new;
+}
+
+SCM
+scm_debug_newcell2 (void)
+{
+  SCM new;
+
+  scm_newcell2_count++;
+  if (scm_debug_check_freelist) {
+    scm_check_freelist (scm_freelist2);
+    scm_gc();
+  }
+
+  /* The rest of this is supposed to be identical to the SCM_NEWCELL2
+     macro.  */
+  if (SCM_IMP (scm_freelist2))
+    new = scm_gc_for_newcell (2, &scm_freelist2);
+  else
+    {
+      new = scm_freelist2;
+      scm_freelist2 = SCM_CDR (scm_freelist2);
+      SCM_SETCAR (new, scm_tc16_allocated);
+      scm_cells_allocated += 2;
     }
 
   return new;
@@ -417,7 +453,7 @@ SCM_DEFINE (scm_object_address, "object-address", 1, 0, 0,
 	    "returned by this function for @var{obj}")
 #define FUNC_NAME s_scm_object_address
 {
-  return scm_ulong2num ((unsigned long)obj);
+  return scm_ulong2num ((unsigned long) obj);
 }
 #undef FUNC_NAME
 
@@ -445,6 +481,10 @@ scm_gc_for_alloc (int ncells, SCM *freelistp)
 {
   SCM_REDEFER_INTS;
   scm_igc ("cells");
+#if 0
+  fprintf (stderr, "Collected: %d, min_yield: %d\n",
+	   scm_gc_cells_collected, MIN_GC_YIELD);
+#endif
   if ((scm_gc_cells_collected < MIN_GC_YIELD) || SCM_IMP (*freelistp))
     {
       alloc_some_heap (ncells, freelistp);
@@ -454,13 +494,13 @@ scm_gc_for_alloc (int ncells, SCM *freelistp)
 
 
 SCM 
-scm_gc_for_newcell ()
+scm_gc_for_newcell (int ncells, SCM *freelistp)
 {
   SCM fl;
-  scm_gc_for_alloc (1, &scm_freelist);
-  fl = scm_freelist;
-  scm_freelist = SCM_CDR (fl);
-  SCM_SETCAR(fl, scm_tc16_allocated);
+  scm_gc_for_alloc (ncells, freelistp);
+  fl = *freelistp;
+  *freelistp = SCM_CDR (fl);
+  SCM_SETCAR (fl, scm_tc16_allocated);
   return fl;
 }
 
@@ -655,10 +695,16 @@ gc_mark_nimp:
       ptr = SCM_GCCDR (ptr);
       goto gc_mark_nimp;
     case scm_tcs_cons_imcar:
+      if (SCM_GCMARKP (ptr))
+	break;
+      SCM_SETGCMARK (ptr);
+      ptr = SCM_GCCDR (ptr);
+      goto gc_mark_loop;
     case scm_tc7_pws:
       if (SCM_GCMARKP (ptr))
 	break;
       SCM_SETGCMARK (ptr);
+      scm_gc_mark (SCM_CELL_WORD (ptr, 2));
       ptr = SCM_GCCDR (ptr);
       goto gc_mark_loop;
     case scm_tcs_cons_gloc:
@@ -883,16 +929,14 @@ gc_mark_nimp:
       if (SCM_GC8MARKP (ptr))
 	break;
       SCM_SETGC8MARK (ptr);
-      switch SCM_GCTYP16 (ptr)
+      switch (SCM_GCTYP16 (ptr))
 	{ /* should be faster than going through scm_smobs */
 	case scm_tc_free_cell:
 	  /* printf("found free_cell %X ", ptr); fflush(stdout); */
-          break;
         case scm_tc16_allocated:
-	  SCM_SETGC8MARK (ptr);
-	  break;
-	case scm_tcs_bignums:
-	case scm_tc16_flo:
+	case scm_tc16_big:
+	case scm_tc16_real:
+	case scm_tc16_complex:
 	  break;
 	default:
 	  i = SCM_SMOBNUM (ptr);
@@ -1279,33 +1323,22 @@ scm_gc_sweep ()
 	      switch SCM_GCTYP16 (scmptr)
 		{
 		case scm_tc_free_cell:
+		case scm_tc16_real:
 		  if SCM_GC8MARKP (scmptr)
 		    goto c8mrkcontinue;
 		  break;
 #ifdef SCM_BIGDIG
-		case scm_tcs_bignums:
+		case scm_tc16_big:
 		  if SCM_GC8MARKP (scmptr)
 		    goto c8mrkcontinue;
 		  m += (SCM_NUMDIGS (scmptr) * SCM_BITSPERDIG / SCM_CHAR_BIT);
 		  goto freechars;
 #endif /* def SCM_BIGDIG */
-		case scm_tc16_flo:
+		case scm_tc16_complex:
 		  if SCM_GC8MARKP (scmptr)
 		    goto c8mrkcontinue;
-		  switch ((int) (SCM_UNPACK_CAR (scmptr) >> 16))
-		    {
-		    case (SCM_IMAG_PART | SCM_REAL_PART) >> 16:
-		      m += sizeof (double);
-		    case SCM_REAL_PART >> 16:
-		    case SCM_IMAG_PART >> 16:
-		      m += sizeof (double);
-		      goto freechars;
-		    case 0:
-		      break;
-		    default:
-		      goto sweeperr;
-		    }
-		  break;
+		  m += 2 * sizeof (double);
+		  goto freechars;
 		default:
 		  if SCM_GC8MARKP (scmptr)
 		    goto c8mrkcontinue;
@@ -1363,7 +1396,7 @@ scm_gc_sweep ()
 	*hp_freelist = nfreelist;
 
 #ifdef GUILE_DEBUG_FREELIST
-      scm_check_freelist ();
+      scm_check_freelist (*hp_freelist);
       scm_map_free_list ();
 #endif
 
@@ -1623,12 +1656,14 @@ init_heap_seg (SCM_CELLPTR seg_org, scm_sizet size, int ncells, SCM *freelistp)
 #endif
   SCM_CELLPTR seg_end;
   int new_seg_index;
-  int n_new_objects;
+  int n_new_cells;
   
   if (seg_org == NULL)
     return 0;
 
   ptr = seg_org;
+
+  size = (size / sizeof(scm_cell) / ncells) * ncells * sizeof(scm_cell);
 
   /* Compute the ceiling on valid object pointers w/in this segment. 
    */
@@ -1663,7 +1698,8 @@ init_heap_seg (SCM_CELLPTR seg_org, scm_sizet size, int ncells, SCM *freelistp)
   ptr = CELL_UP (ptr);
 
 
-  n_new_objects = seg_end - ptr;
+  /*n_new_cells*/
+  n_new_cells = seg_end - ptr;
 
   /* Prepend objects in this segment to the freelist. 
    */
@@ -1685,7 +1721,7 @@ init_heap_seg (SCM_CELLPTR seg_org, scm_sizet size, int ncells, SCM *freelistp)
   SCM_SETCDR (PTR2SCM (ptr), *freelistp);
   *freelistp = PTR2SCM (CELL_UP (seg_org));
 
-  scm_heap_size += (ncells * n_new_objects);
+  scm_heap_size += n_new_cells;
   return size;
 #ifdef scmptr
 #undef scmptr
@@ -1907,8 +1943,34 @@ cleanup (int status, void *arg)
 }
 
 
+static int
+make_initial_segment(scm_sizet init_heap_size,
+                     int ncells,
+                     SCM *freelistp)
+{
+  if (0L == init_heap_size)
+    init_heap_size = SCM_INIT_HEAP_SIZE;
+  if (!init_heap_seg ((SCM_CELLPTR) malloc (init_heap_size),
+		      init_heap_size,
+		      ncells,
+		      freelistp))
+    {
+      init_heap_size = SCM_HEAP_SEG_SIZE;
+      if (!init_heap_seg ((SCM_CELLPTR) malloc (init_heap_size),
+			  init_heap_size,
+			  ncells,
+			  freelistp))
+	return 1;
+    }
+  else
+    scm_expmem = 1;
+
+  return 0;
+}
+
+
 int
-scm_init_storage (scm_sizet init_heap_size)
+scm_init_storage (scm_sizet init_heap_size, scm_sizet init_heap2_size)
 {
   scm_sizet j;
 
@@ -1917,25 +1979,20 @@ scm_init_storage (scm_sizet init_heap_size)
     scm_sys_protects[--j] = SCM_BOOL_F;
   scm_block_gc = 1;
   scm_freelist = SCM_EOL;
+  scm_freelist2 = SCM_EOL;
   scm_expmem = 0;
 
   j = SCM_HEAP_SEG_SIZE;
   scm_mtrigger = SCM_INIT_MALLOC_LIMIT;
   scm_heap_table = ((struct scm_heap_seg_data *)
-		    scm_must_malloc (sizeof (struct scm_heap_seg_data), "hplims"));
-  if (0L == init_heap_size)
-    init_heap_size = SCM_INIT_HEAP_SIZE;
-  j = init_heap_size;
-  if ((init_heap_size != j)
-      || !init_heap_seg ((SCM_CELLPTR) malloc (j), j, 1, &scm_freelist))
-    {
-      j = SCM_HEAP_SEG_SIZE;
-      if (!init_heap_seg ((SCM_CELLPTR) malloc (j), j, 1, &scm_freelist))
-	return 1;
-    }
-  else
-    scm_expmem = 1;
+		    scm_must_malloc (sizeof (struct scm_heap_seg_data) * 2, "hplims"));
+
+  if (make_initial_segment(init_heap_size, 1, &scm_freelist) ||
+      make_initial_segment(init_heap2_size, 2, &scm_freelist2))
+    return 1;
+
   scm_heap_org = CELL_UP (scm_heap_table[0].bounds[0]);
+
   /* scm_hplims[0] can change. do not remove scm_heap_org */
   scm_weak_vectors = SCM_EOL;
 
