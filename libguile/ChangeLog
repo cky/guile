@@ -1,3 +1,9 @@
+Fri Jun 20 10:03:41 1997  Tim Pierce  <twpierce@bio-5.bsd.uchicago.edu>
+
+	* guile-snarf.in: Changed regexp to support CPPs that insert
+	whitespace between lexical tokens (which munges the `%%%' snarf
+	cookie).
+
 Tue Jun 17 13:49:56 1997  Tim Pierce  <twpierce@bio-5.bsd.uchicago.edu>
 
 *	* load.c (scm_init_load_path): Append $(datadir)/guile to
