@@ -1,3 +1,27 @@
+Fri Jan  7 15:50:46 2000  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* scm_validate.h (SCM_OUT_OF_RANGE): Use scm_out_of_range_pos to
+	report the position of the argument.
+
+	* error.h, error.c (scm_out_of_range_pos):  Added this function to 
+	take extra "pos" argument, the position number of the errant
+	argument. 
+
+	* debug.c: Use SCM_OUT_OF_RANGE instead of scm_out_of_range.
+
+	* snarf.h: Use SCM_HERE and SCM_INIT as names, not SCM_NOTSNARF
+	and SCM_SNARFING.  Also put the %%% in the SCM_INIT since Mikael
+	prefers that and I'm reasonably indifferent.
+
+Fri Jan  7 15:03:32 2000  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* snarf.h: Factor out differences between C++ and non-C++ into
+	SCM_FUNC_CAST_ARBITRARY_ARGS macro.  Modify all the snarf macro
+	definitions to use SCM_NOTSNARF and SCM_SNARFING macros (like
+	Mikael's macros, below, but changed names and SCM_SNARFING no
+	longer expands to include %%% -- that must appear in the argument
+	so that the token appears at the call-site as a reminder).
+
 2000-01-07  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* snarf.h (SCM_INSITU, SCM_INIT): New snarf macros for use in user
