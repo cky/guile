@@ -102,10 +102,8 @@ scm_inet_ntoa (inetid)
   char *s;
   SCM answer;
   addr.s_addr = htonl (scm_num2ulong (inetid, (char *) SCM_ARG1, s_inet_ntoa));
-  SCM_DEFER_INTS;
   s = inet_ntoa (addr);
   answer = scm_makfromstr (s, strlen (s), 0);
-  SCM_ALLOW_INTS;
   return answer;
 }
 
@@ -174,7 +172,6 @@ scm_gethost (name)
   int i = 0;
   if (SCM_UNBNDP (name))
     {
-      SCM_DEFER_INTS;
 #ifdef HAVE_GETHOSTENT
       entry = gethostent ();
 #else
@@ -188,23 +185,19 @@ scm_gethost (name)
              afterwards doesn't cut it, because, on Linux, it seems to
              try to contact some other server (YP?) and fails, which
              is a benign failure.  */
-	  SCM_ALLOW_INTS;
 	  return SCM_BOOL_F;
 	}
     }
   else if (SCM_NIMP (name) && SCM_ROSTRINGP (name))
     {
       SCM_COERCE_SUBSTR (name);
-      SCM_DEFER_INTS;
       entry = gethostbyname (SCM_ROCHARS (name));
     }
   else
     {
       inad.s_addr = htonl (scm_num2ulong (name, (char *) SCM_ARG1, s_gethost));
-      SCM_DEFER_INTS;
       entry = gethostbyaddr ((char *) &inad, sizeof (inad), AF_INET);
     }
-  SCM_ALLOW_INTS;
   if (!entry)
     {
       char *errmsg;
@@ -264,12 +257,10 @@ scm_getnet (name)
   ve = SCM_VELTS (ans);
   if (SCM_UNBNDP (name))
     {
-      SCM_DEFER_INTS;
       errno = 0;
       entry = getnetent ();
       if (! entry)
 	{
-	  SCM_ALLOW_INTS;
 	  if (errno)
 	    scm_syserror (s_getnet);
 	  else 
@@ -279,17 +270,14 @@ scm_getnet (name)
   else if (SCM_NIMP (name) && SCM_ROSTRINGP (name))
     {
       SCM_COERCE_SUBSTR (name);
-      SCM_DEFER_INTS;
       entry = getnetbyname (SCM_ROCHARS (name));
     }
   else
     {
       unsigned long netnum;
       netnum = scm_num2ulong (name, (char *) SCM_ARG1, s_getnet);
-      SCM_DEFER_INTS;
       entry = getnetbyaddr (netnum, AF_INET);
     }
-  SCM_ALLOW_INTS;
   if (!entry)
     scm_syserror_msg (s_getnet, "no such network %s",
 		      scm_listify (name, SCM_UNDEFINED), errno);
@@ -316,12 +304,10 @@ scm_getproto (name)
   ve = SCM_VELTS (ans);
   if (SCM_UNBNDP (name))
     {
-      SCM_DEFER_INTS;
       errno = 0;
       entry = getprotoent ();
       if (! entry)
 	{
-	  SCM_ALLOW_INTS;
 	  if (errno)
 	    scm_syserror (s_getproto);
 	  else
@@ -331,17 +317,14 @@ scm_getproto (name)
   else if (SCM_NIMP (name) && SCM_ROSTRINGP (name))
     {
       SCM_COERCE_SUBSTR (name);
-      SCM_DEFER_INTS;
       entry = getprotobyname (SCM_ROCHARS (name));
     }
   else
     {
       unsigned long protonum;
       protonum = scm_num2ulong (name, (char *) SCM_ARG1, s_getproto);
-      SCM_DEFER_INTS;
       entry = getprotobynumber (protonum);
     }
-  SCM_ALLOW_INTS;
   if (!entry)
     scm_syserror_msg (s_getproto, "no such protocol %s",
 		      scm_listify (name, SCM_UNDEFINED), errno);
@@ -367,7 +350,6 @@ scm_return_entry (entry)
   ve[1] = scm_makfromstrs (-1, entry->s_aliases);
   ve[2] = SCM_MAKINUM (ntohs (entry->s_port) + 0L);
   ve[3] = scm_makfromstr (entry->s_proto, (scm_sizet) strlen (entry->s_proto), 0);
-  SCM_ALLOW_INTS;
   return ans;
 }
 
@@ -382,10 +364,8 @@ scm_getserv (name, proto)
   struct servent *entry;
   if (SCM_UNBNDP (name))
     {
-      SCM_DEFER_INTS;
       errno = 0;
       entry = getservent ();
-      SCM_ALLOW_INTS;
       if (!entry)
 	{
 	  if (errno)
@@ -400,19 +380,16 @@ scm_getserv (name, proto)
   if (SCM_NIMP (name) && SCM_ROSTRINGP (name))
     {
       SCM_COERCE_SUBSTR (name);
-      SCM_DEFER_INTS;
       entry = getservbyname (SCM_ROCHARS (name), SCM_ROCHARS (proto));
     }
   else
     {
       SCM_ASSERT (SCM_INUMP (name), name, SCM_ARG1, s_getserv);
-      SCM_DEFER_INTS;
       entry = getservbyport (htons (SCM_INUM (name)), SCM_ROCHARS (proto));
     }
   if (!entry)
     scm_syserror_msg (s_getserv, "no such service %s",
 		      scm_listify (name, SCM_UNDEFINED), errno);
-  SCM_ALLOW_INTS;
   return scm_return_entry (entry);
 }
 #endif

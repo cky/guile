@@ -173,18 +173,32 @@ scm_makfromstrs (argc, argv)
 }
 
 
+/* This function must only be applied to memory obtained via malloc,
+   since the GC is going to apply `free' to it when the string is
+   dropped.
 
+   Also, s[len] must be `\0', since we promise that strings are
+   null-terminated.  Perhaps we could handle non-null-terminated
+   strings by claiming they're shared substrings of a string we just
+   made up.  */
 SCM
-scm_take0str (it)
-     char * it;
+scm_take_str (char *s, int len)
 {
   SCM answer;
   SCM_NEWCELL (answer);
   SCM_DEFER_INTS;
-  SCM_SETLENGTH (answer, strlen (it), scm_tc7_string);
-  SCM_SETCHARS (answer, it);
+  SCM_SETLENGTH (answer, len, scm_tc7_string);
+  scm_done_malloc (len + 1);
+  SCM_SETCHARS (answer, s);
   SCM_ALLOW_INTS;
   return answer;
+}
+
+/* `s' must be a malloc'd string.  See scm_take_str.  */
+SCM
+scm_take0str (char *s)
+{
+  return scm_take_str (s, strlen (s));
 }
 
 

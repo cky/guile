@@ -252,7 +252,19 @@ check_config ()
 
 /* initializing standard and current I/O ports */
 
-/* Create standard ports from stdio stdin, stdout, and stderr.  */
+/* Like scm_fdes_to_port, except that:
+   - NAME is a standard C string, not a Guile string
+   - we set the revealed count for FILE's file descriptor to 1, so
+     that fdes won't be closed when the port object is GC'd.  */
+static SCM
+scm_standard_stream_to_port (int fdes, char *mode, char *name)
+{
+  SCM port = scm_fdes_to_port (fdes, mode, scm_makfrom0str (name));
+  scm_set_port_revealed_x (port, SCM_MAKINUM (1));
+  return port;
+}
+
+/* Create standard ports from stdin, stdout, and stderr.  */
 static void
 scm_init_standard_ports ()
 {
@@ -269,12 +281,19 @@ scm_init_standard_ports ()
      and scsh, read stdin unbuffered.  Applications that can tolerate
      buffered input on stdin can reset \ex{(current-input-port)} to
      block buffering for higher performance.  */
+
+  /* stdout and stderr are also now unbuffered if connected to
+     a terminal, since line buffered output is no longer available.  */
   scm_def_inp
-    = scm_standard_stream_to_port (stdin, 
-				   (isatty (fileno (stdin)) ? "r0" : "r"),
+    = scm_standard_stream_to_port (0, 
+				   isatty (0) ? "r0" : "r",
 				   "standard input");
-  scm_def_outp = scm_standard_stream_to_port (stdout, "w", "standard output");
-  scm_def_errp = scm_standard_stream_to_port (stderr, "w", "standard error");
+  scm_def_outp = scm_standard_stream_to_port (1,
+					      isatty (1) ? "wl" : "w",
+					      "standard output");
+  scm_def_errp = scm_standard_stream_to_port (2,
+					      isatty (2) ? "w0" : "w",
+					      "standard error");
 
   scm_cur_inp = scm_def_inp;
   scm_cur_outp = scm_def_outp;

@@ -72,71 +72,47 @@ prinsfpt (exp, port, pstate)
   return !0;
 }
 
-/* sfputc sfwrite sfputs sfclose 
- * are called within a SCM_SYSCALL.  
- *
- * So we need to set errno to 0 before returning.  sfflush
- * may be called within a SCM_SYSCALL.  So we need to set errno to 0
- * before returning.
- */
-
-
-static int 
-sfputc (int c, SCM port)
-{
-  SCM p = SCM_STREAM (port);
-
-  scm_apply (SCM_VELTS (p)[0], SCM_MAKICHR (c), scm_listofnull);
-  errno = 0;
-  return c;
-}
-
-
-static scm_sizet 
-sfwrite (char *str, scm_sizet siz, scm_sizet num, SCM port)
-{
-  SCM p = SCM_STREAM (port);
-  SCM sstr;
-  sstr = scm_makfromstr (str, siz * num, 0);
-  scm_apply (SCM_VELTS (p)[1], sstr, scm_listofnull);
-  errno = 0;
-  return num;
-}
-
-
-static int 
-sfputs (char *s, SCM port)
-{
-  sfwrite (s, 1, strlen (s), port);
-  return 0;
-}
-
-
-static int 
+/* called with a single char at most.  */
+static void
 sfflush (SCM port)
 {
-  SCM stream = SCM_STREAM (port);
+  struct scm_port_table *pt = SCM_PTAB_ENTRY (port);
+  SCM stream = pt->stream;
 
-  SCM f = SCM_VELTS (stream)[2];
-  if (SCM_BOOL_F == f)
-    return 0;
-  f = scm_apply (f, SCM_EOL, SCM_EOL);
-  errno = 0;
-  return SCM_BOOL_F == f ? EOF : 0;
+  if (pt->write_pos > pt->write_buf)
+    {
+      /* write the char. */
+      scm_apply (SCM_VELTS (stream)[0], SCM_MAKICHR (*pt->write_buf),
+		 scm_listofnull);
+      pt->write_pos = pt->write_buf;
+  
+      /* flush the output.  */
+      {
+	SCM f = SCM_VELTS (stream)[2];
+
+	if (f != SCM_BOOL_F)
+	  scm_apply (f, SCM_EOL, SCM_EOL);
+      }
+    }
 }
 
+/* string output proc (element 1) is no longer called.  */
 
+/* calling the flush proc (element 2) is in case old code needs it,
+   but perhaps softports could the use port buffer in the same way as
+   fports.  */
+
+/* returns a single character.  */
 static int 
-sfgetc (SCM port)
+sf_fill_buffer (SCM port)
 {
   SCM p = SCM_STREAM (port);
-
   SCM ans;
-  ans = scm_apply (SCM_VELTS (p)[3], SCM_EOL, SCM_EOL);
-  errno = 0;
+
+  ans = scm_apply (SCM_VELTS (p)[3], SCM_EOL, SCM_EOL); /* get char.  */
   if (SCM_FALSEP (ans) || SCM_EOF_OBJECT_P (ans))
     return EOF;
-  SCM_ASSERT (SCM_ICHRP (ans), ans, SCM_ARG1, "getc");
+  SCM_ASSERT (SCM_ICHRP (ans), ans, SCM_ARG1, "sf_fill_buffer");
   return SCM_ICHR (ans);
 }
 
@@ -173,6 +149,10 @@ scm_make_soft_port (pv, modes)
   SCM_SETCAR (z, scm_tc16_sfport | scm_mode_bits (SCM_ROCHARS (modes)));
   SCM_SETPTAB_ENTRY (z, pt);
   SCM_SETSTREAM (z, pv);
+  pt->read_buf = pt->read_pos = pt->read_end = &pt->shortbuf;
+  pt->write_buf = pt->write_pos = &pt->shortbuf;
+  pt->read_buf_size = pt->write_buf_size = 1;
+  pt->write_end = pt->write_buf + pt->write_buf_size;
   SCM_ALLOW_INTS;
   return z;
 }
@@ -191,13 +171,11 @@ scm_ptobfuns scm_sfptob =
   noop0,
   prinsfpt,
   0,
-  sfputc,
-  sfputs,
-  sfwrite,
   sfflush,
-  sfgetc,
-  scm_generic_fgets,
-  sfclose
+  sfclose,
+  sf_fill_buffer,
+  0,
+  0,
 };
 
 

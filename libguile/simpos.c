@@ -105,6 +105,7 @@ scm_getenv(nam)
   return (val) ? scm_makfromstr(val, (scm_sizet)strlen(val), 0) : SCM_BOOL_F;
 }
 
+/* simple exit, without unwinding the scheme stack or flushing ports.  */
 SCM_PROC (s_primitive_exit, "primitive-exit", 0, 1, 0, scm_primitive_exit);
 SCM
 scm_primitive_exit (SCM status)

@@ -113,6 +113,7 @@ static SIGRETTYPE (*orig_handlers)(int)[NSIG];
 static SIGRETTYPE
 take_signal (int signum)
 {
+  int saved_errno = errno;
   SCM ignored;
   if (!scm_ints_disabled)
     {
@@ -141,6 +142,7 @@ take_signal (int signum)
   }
 #endif
   scm_system_async_mark (signal_async);
+  errno = saved_errno;
 }
 
 static SCM

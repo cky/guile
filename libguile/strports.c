@@ -66,65 +66,46 @@ prinstpt (SCM exp, SCM port, scm_print_state *pstate)
   return !0;
 }
 
-
-static int 
-stputc (int c, SCM port)
+static int
+stfill_buffer (SCM port)
 {
-  SCM p = SCM_STREAM (port);
-  scm_sizet ind = SCM_INUM (SCM_CAR (p));
-  SCM_DEFER_INTS;
-  if (ind >= SCM_LENGTH (SCM_CDR (p)))
-    scm_vector_set_length_x (SCM_CDR (p), SCM_MAKINUM (ind + (ind >> 1)));
-  SCM_ALLOW_INTS;
-  SCM_CHARS (SCM_CDR (p))[ind] = c;
-  SCM_SETCAR (p, SCM_MAKINUM (ind + 1));
-  return c;
-}
+  SCM str = SCM_STREAM (port);
+  struct scm_port_table *pt = SCM_PTAB_ENTRY (port);
+  
+  pt->read_buf = SCM_ROCHARS (str);
+  pt->read_buf_size = SCM_ROLENGTH (str);
+  pt->read_end = pt->read_buf + pt->read_buf_size;
 
-
-static scm_sizet 
-stwrite (char *str,
-	 scm_sizet siz,
-	 scm_sizet num,
-	 SCM port)
-{
-  SCM p = SCM_STREAM (port);
-
-  scm_sizet ind = SCM_INUM (SCM_CAR (p));
-  scm_sizet len = siz * num;
-  char *dst;
-  SCM_DEFER_INTS;
-  if (ind + len >= SCM_LENGTH (SCM_CDR (p)))
-    scm_vector_set_length_x (SCM_CDR (p), SCM_MAKINUM (ind + len + ((ind + len) >> 1)));
-  SCM_ALLOW_INTS;
-  dst = &(SCM_CHARS (SCM_CDR (p))[ind]);
-  while (len--)
-    dst[len] = str[len];
-  SCM_SETCAR (p, SCM_MAKINUM (ind + siz * num));
-  return num;
-}
-
-
-static int 
-stputs (char *s, SCM port)
-{
-  stwrite (s, 1, strlen (s), port);
-  return 0;
-}
-
-
-static int 
-stgetc (SCM port)
-{
-  SCM p = SCM_STREAM (port);
-
-  scm_sizet ind = SCM_INUM (SCM_CAR (p));
-  if (ind >= SCM_ROLENGTH (SCM_CDR (p)))
+  if (pt->read_pos >= pt->read_end)
     return EOF;
-  SCM_SETCAR (p, SCM_MAKINUM (ind + 1));
-  return SCM_ROUCHARS (SCM_CDR (p))[ind];
+  else
+    return scm_return_first (*(pt->read_pos++), port);
 }
 
+/* not a conventional "flush": it extends the string for more data.  */
+static void
+st_flush (SCM port)
+{
+  struct scm_port_table *pt = SCM_PTAB_ENTRY (port);
+
+  if (pt->write_pos == pt->write_end)
+    {
+      pt->write_buf_size += pt->write_buf_size >> 1;
+      scm_vector_set_length_x (pt->stream,
+			       SCM_MAKINUM (pt->write_buf_size));
+      /* reset buffer in case reallocation moved the string. */
+      {
+	int read = pt->read_pos - pt->read_buf;
+	int written = pt->write_pos - pt->write_buf;
+
+	pt->read_buf = pt->write_buf = SCM_CHARS (pt->stream);
+	pt->read_pos = pt->read_buf + read;
+	pt->write_pos = pt->write_buf + written;
+	pt->write_end = pt->write_buf + pt->write_buf_size;
+	pt->read_end = pt->read_buf + pt->read_buf_size;
+      }
+    }
+}
 
 SCM 
 scm_mkstrport (pos, str, modes, caller)
@@ -139,13 +120,21 @@ scm_mkstrport (pos, str, modes, caller)
 
   SCM_ASSERT(SCM_INUMP(pos) && SCM_INUM(pos) >= 0, pos, SCM_ARG1, caller);
   SCM_ASSERT(SCM_NIMP(str) && SCM_ROSTRINGP(str), str, SCM_ARG1, caller);
-  stream = scm_cons(pos, str);
+  stream = str;
   SCM_NEWCELL (z);
   SCM_DEFER_INTS;
   pt = scm_add_to_port_table (z);
   SCM_SETCAR (z, scm_tc16_strport | modes);
   SCM_SETPTAB_ENTRY (z, pt);
   SCM_SETSTREAM (z, stream);
+  pt->write_buf = pt->read_buf = SCM_ROCHARS (str);
+  pt->write_pos = pt->read_pos = pt->read_buf + SCM_INUM (pos);
+  pt->read_buf_size = SCM_ROLENGTH (str);
+  pt->read_end = pt->read_buf + pt->read_buf_size;
+  /* after the last (normally NUL) character is written to,
+     the port will be "flushed".  */
+  pt->write_buf_size = pt->read_buf_size + 1;
+  pt->write_end = pt->write_buf + pt->write_buf_size;
   SCM_ALLOW_INTS;
   return z;
 }
@@ -163,11 +152,11 @@ scm_call_with_output_string (proc)
   scm_apply (proc, p, scm_listofnull);
   {
     SCM answer;
-    SCM_DEFER_INTS;
-    answer = scm_makfromstr (SCM_CHARS (SCM_CDR (SCM_STREAM (p))),
-			     SCM_INUM (SCM_CAR (SCM_STREAM (p))),
+    struct scm_port_table *pt = SCM_PTAB_ENTRY (p);
+
+    answer = scm_makfromstr (SCM_CHARS (SCM_STREAM (p)),
+			     pt->write_pos - pt->write_buf,
 			     0);
-    SCM_ALLOW_INTS;
     return answer;
   }
 }
@@ -189,12 +178,12 @@ scm_strprint_obj (obj)
   port = scm_mkstrport (SCM_MAKINUM (0), str, SCM_OPN | SCM_WRTNG, "scm_strprint_obj");
   scm_prin1 (obj, port, 1);
   {
+    struct scm_port_table *pt = SCM_PTAB_ENTRY (obj);
     SCM answer;
-    SCM_DEFER_INTS;
-    answer = scm_makfromstr (SCM_CHARS (SCM_CDR (SCM_STREAM (port))),
-			     SCM_INUM (SCM_CAR (SCM_STREAM (port))),
+
+    answer = scm_makfromstr (SCM_CHARS (SCM_STREAM (port)),
+			     pt->write_pos - pt->write_buf,
 			     0);
-    SCM_ALLOW_INTS;
     return answer;
   }
 }
@@ -285,13 +274,11 @@ scm_ptobfuns scm_stptob =
   noop0,
   prinstpt,
   0,
-  stputc,
-  stputs,
-  stwrite,
-  noop0,
-  stgetc,
-  scm_generic_fgets,
-  0
+  st_flush,
+  0,
+  stfill_buffer,
+  0,
+  0,
 };
 
 

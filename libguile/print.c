@@ -961,15 +961,6 @@ scm_newline (port)
     SCM_ASSERT (scm_valid_oport_value_p (port), port, SCM_ARG1, s_newline);
 
   scm_putc ('\n', SCM_COERCE_OUTPORT (port));
-#ifdef HAVE_PIPE
-# ifdef EPIPE
-  if (EPIPE == errno)
-    scm_close_port (port);
-  else
-# endif
-#endif
-  if (port == scm_cur_outp)
-    scm_fflush (port);
   return SCM_UNSPECIFIED;
 }
 

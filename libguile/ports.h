@@ -53,23 +53,53 @@
 
 #define SCM_INITIAL_CBUF_SIZE 4
 
-struct scm_port_table 
+struct scm_port_table
 {
-  SCM port;			/* Open port.  */
+  SCM port;			/* Link back to the port object.  */
   int entry;			/* Index in port table. */
   int revealed;			/* 0 not revealed, > 1 revealed.
 				 * Revealed ports do not get GC'd.
 				 */
-
+  /* ptob specific data.  may be SCM data or cast to a pointer to C data.  */
   SCM stream;
 
   SCM file_name;		/* debugging support.  */
   int line_number;		/* debugging support.  */
   int column_number;		/* debugging support.  */
 
-  char *cp;			/* where to put and get unget chars */
-  char *cbufend;		/* points after this struct */
-  char cbuf[SCM_INITIAL_CBUF_SIZE]; /* must be last: may grow */
+  /* port buffers.  the buffer(s) are set up for all ports.  
+     in the case of string ports, the buffer is the string itself.
+     in the case of unbuffered file ports, the buffer is a
+     single char: shortbuf.  */
+
+  /* this buffer is filled from read_buf to read_end using the ptob 
+     buffer_fill.  then input requests are taken from read_pos until
+     it reaches read_end.  */
+
+  unsigned char *read_buf;	/* buffer start.  */
+  unsigned char *read_pos;      /* the next unread char.  */
+  unsigned char *read_end;      /* pointer to last buffered char + 1.  */
+  int read_buf_size;		/* size of the buffer.  */
+
+  /* write requests are saved into this buffer at write_pos until it
+     reaches write_buf + write_buf_size, then the ptob flush is
+     called.  */
+
+  unsigned char *write_buf;	/* buffer start.  */
+  unsigned char *write_pos;     /* pointer to last buffered char + 1.  */
+  unsigned char *write_end;     /* pointer to end of buffer + 1.  */
+  int write_buf_size;		/* size of the buffer.  */
+
+  unsigned char shortbuf;       /* buffer for "unbuffered" streams.  */
+
+  int write_needs_seek;		/* whether port position needs to be adjusted
+				   before writing to it.  */
+
+  /* a completely separate buffer which is only used for un-read chars
+     and strings.  */
+  unsigned char *cp;	        /* where to put and get unget chars */
+  unsigned char *cbufend;	/* points after this struct */
+  unsigned char cbuf[SCM_INITIAL_CBUF_SIZE]; /* must be last: may grow */
 };
 
 extern struct scm_port_table **scm_port_table;
@@ -88,9 +118,9 @@ extern int scm_port_table_size; /* Number of ports in scm_port_table.  */
 #define SCM_OPN		(1L<<16) /* Is the port open? */
 #define SCM_RDNG	(2L<<16) /* Is it a readable port? */
 #define SCM_WRTNG	(4L<<16) /* Is it writable? */
-#define SCM_BUF0	(8L<<16)
-#define SCM_NOFTELL     (16L<<16) /* Does ftell work on this?  Yuck!  */
-#define SCM_CRDY	(32L<<16) /* Should char-ready? return #t? */
+#define SCM_BUF0	(8L<<16) /* Is it unbuffered? */
+#define SCM_CRDY	(32L<<16) /* Are there pushed back characters?  */
+#define SCM_BUFLINE     (64L<<16) /* Is it line-buffered? */
 
 /* A mask used to clear the char-ready port flag. */
 #define SCM_CUC		(~SCM_CRDY)
@@ -99,11 +129,6 @@ extern int scm_port_table_size; /* Number of ports in scm_port_table.  */
 #define SCM_OPPORTP(x) (((0x7f | SCM_OPN) & SCM_CAR(x))==(scm_tc7_port | SCM_OPN))
 #define SCM_OPINPORTP(x) (((0x7f | SCM_OPN | SCM_RDNG) & SCM_CAR(x))==(scm_tc7_port | SCM_OPN | SCM_RDNG))
 #define SCM_OPOUTPORTP(x) (((0x7f | SCM_OPN | SCM_WRTNG) & SCM_CAR(x))==(scm_tc7_port | SCM_OPN | SCM_WRTNG))
-#define SCM_FPORTP(x) (SCM_TYP16S(x)==scm_tc7_port)
-#define SCM_OPFPORTP(x) (((0xfeff | SCM_OPN) & SCM_CAR(x))==(scm_tc7_port | SCM_OPN))
-#define SCM_OPINFPORTP(x) (((0xfeff | SCM_OPN | SCM_RDNG) & SCM_CAR(x))==(scm_tc7_port | SCM_OPN | SCM_RDNG))
-#define SCM_OPOUTFPORTP(x) (((0xfeff | SCM_OPN | SCM_WRTNG) & SCM_CAR(x))==(scm_tc7_port | SCM_OPN | SCM_WRTNG))
-
 #define SCM_INPORTP(x) (((0x7f | SCM_RDNG) & SCM_CAR(x))==(scm_tc7_port | SCM_RDNG))
 #define SCM_OUTPORTP(x) (((0x7f | SCM_WRTNG) & SCM_CAR(x))==(scm_tc7_port | SCM_WRTNG))
 #define SCM_OPENP(x) (SCM_OPN & SCM_CAR(x))
@@ -111,7 +136,7 @@ extern int scm_port_table_size; /* Number of ports in scm_port_table.  */
 #define SCM_PTAB_ENTRY(x) ((struct scm_port_table *)SCM_CDR(x))
 #define SCM_SETPTAB_ENTRY(x,ent) SCM_SETCDR ((x), (SCM)(ent))
 #define SCM_STREAM(x) SCM_PTAB_ENTRY(x)->stream
-#define SCM_SETSTREAM(x,s) (SCM_PTAB_ENTRY(x)->stream = s)
+#define SCM_SETSTREAM(x,s) (SCM_PTAB_ENTRY(x)->stream = (SCM) s)
 #define SCM_FILENAME(x) SCM_PTAB_ENTRY(x)->file_name
 #define SCM_LINUM(x) SCM_PTAB_ENTRY(x)->line_number
 #define SCM_COL(x) SCM_PTAB_ENTRY(x)->column_number
@@ -168,16 +193,11 @@ typedef struct scm_ptobfuns
   int (*free) (SCM);
   int (*print) (SCM exp, SCM port, scm_print_state *pstate);
   SCM (*equalp) (SCM, SCM);
-  int (*fputc) (int, SCM port);
-  int (*fputs) (char *, SCM port);
-  scm_sizet (*fwrite) SCM_P ((char *ptr,
-			      scm_sizet size,
-			      scm_sizet nitems,
-			      SCM port));
-  int (*fflush) (SCM port);
-  int (*fgetc) (SCM port);
-  char * (*fgets) (SCM port, int *len);
+  void (*fflush) (SCM port);
   int (*fclose) (SCM port);
+  int (*fill_buffer) (SCM port);
+  off_t (*seek) (SCM port, off_t OFFSET, int WHENCE);
+  int (*input_waiting_p) (SCM port);
 } scm_ptobfuns;
 
 #define SCM_PTOBNUM(x) (0x0ff & (SCM_CAR(x)>>8))
@@ -193,6 +213,7 @@ extern int scm_port_table_room;
 extern SCM scm_markstream SCM_P ((SCM ptr));
 extern long scm_newptob SCM_P ((scm_ptobfuns *ptob));
 extern SCM scm_char_ready_p SCM_P ((SCM port));
+extern SCM scm_drain_input (SCM port);
 extern SCM scm_current_input_port SCM_P ((void));
 extern SCM scm_current_output_port SCM_P ((void));
 extern SCM scm_current_error_port SCM_P ((void));
@@ -218,6 +239,13 @@ extern SCM scm_eof_object_p SCM_P ((SCM x));
 extern SCM scm_force_output SCM_P ((SCM port));
 extern SCM scm_flush_all_ports SCM_P ((void));
 extern SCM scm_read_char SCM_P ((SCM port));
+extern void scm_putc SCM_P ((int c, SCM port));
+extern void scm_puts SCM_P ((char *str_data, SCM port));
+extern void scm_lfwrite SCM_P ((char *ptr, scm_sizet size, SCM port));
+extern void scm_fflush SCM_P ((SCM port));
+extern int scm_getc SCM_P ((SCM port));
+extern void scm_ungetc SCM_P ((int c, SCM port));
+extern void scm_ungets SCM_P ((char *s, int n, SCM port));
 extern SCM scm_peek_char SCM_P ((SCM port));
 extern SCM scm_unread_char SCM_P ((SCM cobj, SCM port));
 extern SCM scm_unread_string SCM_P ((SCM str, SCM port));

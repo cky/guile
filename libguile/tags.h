@@ -364,17 +364,13 @@ typedef long SCM;
 #define scm_tc7_lsubr		119
 
 
-/* There are 256 port subtypes.  Here are the first four.
+/* There are 256 port subtypes.  Here are the first few.
  * These must agree with the init function in ports.c
  */
 #define scm_tc7_port		125
 
-/* fports and pipes form an intended TYP16S equivelancy
- * group (similar to a tc7 "couple".
- */
 #define scm_tc16_fport 		(scm_tc7_port + 0*256L)
-#define scm_tc16_pipe 		(scm_tc7_port + 1*256L)
-
+/* scm_tc16_pipe was here.  */
 #define scm_tc16_strport	(scm_tc7_port + 2*256L)
 #define scm_tc16_sfport 	(scm_tc7_port + 3*256L)
 

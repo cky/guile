@@ -43,13 +43,15 @@
 
 #include <stdio.h>
 #include "_scm.h"
-#include "genio.h"
+#include "ports.h"
 #include "read.h"
 #include "fports.h"
 #include "unif.h"
 #include "chars.h"
 
 #include "ioext.h"
+
+#include <fcntl.h>
 
 #ifdef HAVE_STRING_H
 #include <string.h>
@@ -138,8 +140,144 @@ scm_read_delimited_x (delims, buf, gobble, port, start, end)
   return scm_cons (SCM_BOOL_F, scm_long2num (j - cstart));
 }
 
+static unsigned char *
+scm_do_read_line (SCM port, int *len_p)
+{
+  struct scm_port_table *pt = SCM_PTAB_ENTRY (port);
+  unsigned char *end;
+
+  /* I thought reading lines was simple.  Mercy me.  */
+
+  /* If there are any pushed-back characters, read the line character
+     by character.  */
+  if (SCM_CRDYP (port))
+    {
+      int buf_size = 60;
+      /* Invariant: buf always has buf_size + 1 characters allocated;
+	 the `+ 1' is for the final '\0'.  */
+      unsigned char *buf = malloc (buf_size + 1);
+      int buf_len = 0;
+      int c;
+
+      while ((c = scm_getc (port)) != EOF)
+	{
+	  if (buf_len >= buf_size)
+	    {
+	      buf = realloc (buf, buf_size * 2 + 1);
+	      buf_size *= 2;
+	    }
+	  
+	  buf[buf_len++] = c;
+
+	  if (c == '\n')
+	    break;
+	}
+
+      /* Since SCM_CRDYP returned true, we ought to have gotten at
+         least one character.  */
+      if (buf_len == 0)
+	abort ();
+
+      buf[buf_len] = '\0';
+
+      *len_p = buf_len;
+      return buf;
+    }
+
+  /* The common case: no unread characters, and the buffer contains
+     a complete line.  This needs to be fast.  */
+  if ((end = memchr (pt->read_pos, '\n', (pt->read_end - pt->read_pos)))
+	   != 0)
+    {
+      int buf_len = (end + 1) - pt->read_pos;
+      /* Allocate a buffer of the perfect size.  */
+      unsigned char *buf = malloc (buf_len + 1);
+
+      memcpy (buf, pt->read_pos, buf_len);
+      pt->read_pos += buf_len;
+
+      buf[buf_len] = '\0';
+
+      *len_p = buf_len;
+      return buf;
+    }
+
+  /* There are no unread characters, and the buffer contains no newlines.  */
+  {
+    /* When live, len is always the number of characters in the
+       current buffer that are part of the current line.  */
+    int len = (pt->read_end - pt->read_pos);
+    int buf_size = (len < 50) ? 60 : len * 2;
+    /* Invariant: buf always has buf_size + 1 characters allocated;
+       the `+ 1' is for the final '\0'.  */
+    unsigned char *buf = malloc (buf_size + 1);
+    int buf_len = 0;
+    int c;
+
+    for (;;)
+      {
+	if (buf_len + len > buf_size)
+	  {
+	    int new_size = (buf_len + len) * 2;
+	    buf = realloc (buf, new_size + 1);
+	    buf_size = new_size;
+	  }
+
+	/* Copy what we've got out of the port, into our buffer.  */
+	memcpy (buf + buf_len, pt->read_pos, len);
+	buf_len += len;
+	pt->read_pos += len;
+
+	/* If we had seen a newline, we're done now.  */
+	if (end)
+	  break;
+
+	/* Get more characters.  I think having fill_buffer return a
+           character is not terribly graceful...  */
+	c = (scm_ptobs[SCM_PTOBNUM (port)].fill_buffer) (port);
+	if (c == EOF)
+	  {
+	    /* If we're missing a final newline in the file, return
+	       what we did get, sans newline.  */
+	    if (buf_len > 0)
+	      break;
+
+	    free (buf);
+	    return 0;
+	  }
+
+	/* ... because it makes us duplicate code here...  */
+	if (buf_len + 1 > buf_size)
+	  {
+	    int new_size = buf_size * 2;
+	    buf = realloc (buf, new_size + 1);
+	    buf_size = new_size;
+	  }
+
+	/* ... and this is really a duplication of the memcpy and
+           memchr calls, on a single-byte buffer.  */
+	buf[buf_len++] = c;
+	if (c == '\n')
+	  break;
+
+	/* Search the buffer for newlines.  */
+	if ((end = memchr (pt->read_pos, '\n',
+			   (len = (pt->read_end - pt->read_pos))))
+	    != 0)
+	  len = (end - pt->read_pos) + 1;
+      }
+
+    /* I wonder how expensive this realloc is.  */
+    buf = realloc (buf, buf_len + 1);
+    buf[buf_len] = '\0';
+    *len_p = buf_len;
+    return buf;
+  }
+}  
+
+
 /*
- * %read-line uses a port's fgets method for fast line i/o.  It
+ * %read-line 
  * truncates any terminating newline from its input, and returns
  * a cons of the string read and its terminating character.  Doing
  * so makes it easy to implement the hairy `read-line' options
@@ -173,15 +311,16 @@ scm_read_line (port)
       if (s[slen-1] == '\n')
 	{
 	  term = SCM_MAKICHR ('\n');
-	  line = scm_makfromstr (s, slen-1, 0);
+	  s[slen-1] = '\0';
+	  line = scm_take_str (s, slen-1);
+	  SCM_INCLINE (port);
 	}
       else
 	{
 	  /* Fix: we should check for eof on the port before assuming this. */
 	  term = SCM_EOF_VAL;
-	  line = scm_makfromstr (s, slen, 0);
+	  line = scm_take_str (s, slen);
 	}	  
-      free (s);
     }
 
   return scm_cons (line, term);
@@ -204,29 +343,57 @@ SCM
 scm_ftell (object)
      SCM object;
 {
-  long pos;
-
-  object = SCM_COERCE_OUTPORT (object);
-
-  SCM_DEFER_INTS;
-  if (SCM_NIMP (object) && SCM_OPFPORTP (object))
+  if (SCM_INUMP (object))
     {
-      SCM_SYSCALL (pos = ftell ((FILE *)SCM_STREAM (object)));
-      if (pos > 0 && SCM_CRDYP (object))
-	pos -= SCM_N_READY_CHARS (object);
+      int fdes = SCM_INUM (object);
+      fpos_t pos;
+
+      pos = lseek (fdes, 0, SEEK_CUR);
+      if (pos == -1)
+	scm_syserror (s_ftell);
+      return scm_long2num (pos);
     }
   else
     {
-      SCM_ASSERT (SCM_INUMP (object), object, SCM_ARG1, s_ftell);
-      SCM_SYSCALL (pos = lseek (SCM_INUM (object), 0, SEEK_CUR));
+      struct scm_fport *fp;
+      struct scm_port_table *pt;
+      int fdes;
+      fpos_t pos;
+
+      object = SCM_COERCE_OUTPORT (object);
+      SCM_ASSERT (SCM_NIMP (object) && SCM_OPFPORTP (object),
+		  object, SCM_ARG1, s_ftell);
+      fp = SCM_FSTREAM (object);
+      pt = SCM_PTAB_ENTRY (object);
+      fdes = fp->fdes;
+      pos = lseek (fdes, 0, SEEK_CUR);
+      if (pos == -1)
+	scm_syserror (s_ftell);
+      /* the seek will only have succeeded if fdes is random access,
+	 in which case only one buffer can be filled.  */
+      if (pt->write_pos > pt->write_buf)
+	{
+	  pos += pt->write_pos - pt->write_buf;
+	}
+      else
+	{
+	  pos -= pt->read_end - pt->read_pos;
+	  if (SCM_CRDYP (object))
+	    pos -= SCM_N_READY_CHARS (object);
+	}
+      return scm_long2num (pos);
     }
-  if (pos < 0)
-    scm_syserror (s_ftell);
-  SCM_ALLOW_INTS;
-  return scm_long2num (pos);
 }
 
-
+/* clear the three buffers in a port.  */
+#define SCM_CLEAR_BUFFERS(port, pt)\
+{\
+   if (pt->write_pos > pt->write_buf)\
+     scm_fflush (port);\
+   pt->read_pos = pt->read_end = pt->read_buf;\
+   pt->write_needs_seek = 0;\
+   SCM_CLRDY (port);\
+}
 
 SCM_PROC (s_fseek, "fseek", 3, 0, 0, scm_fseek);
 
@@ -243,20 +410,28 @@ scm_fseek (object, offset, whence)
 
   loff = scm_num2long (offset, (char *)SCM_ARG2, s_fseek);
   SCM_ASSERT (SCM_INUMP (whence), whence, SCM_ARG3, s_fseek);
-  SCM_DEFER_INTS;
   if (SCM_NIMP (object) && SCM_OPFPORTP (object))
     {
-      SCM_CLRDY (object);			/* Clear ungetted char */
-      rv = fseek ((FILE *)SCM_STREAM (object), loff, SCM_INUM (whence));
+      struct scm_fport *fp = SCM_FSTREAM (object);
+      struct scm_port_table *pt = SCM_PTAB_ENTRY (object);
+
+      /* clear the three buffers.  the write buffer should be flushed
+         before changing the position.  */
+      if (fp->random)
+	{
+	  SCM_CLEAR_BUFFERS (object, pt);
+	}  /* if not random, lseek will fail.  */
+      rv = lseek (fp->fdes, loff, SCM_INUM (whence));
+      if (rv == -1)
+	scm_syserror (s_fseek);
     }
   else
     {
       SCM_ASSERT (SCM_INUMP (object), object, SCM_ARG1, s_fseek);
       rv = lseek (SCM_INUM (object), loff, SCM_INUM (whence));
+      if (rv == -1)
+	scm_syserror (s_fseek);
     }
-  if (rv < 0)
-    scm_syserror (s_fseek);
-  SCM_ALLOW_INTS;
   return SCM_UNSPECIFIED;
 }
 
@@ -268,23 +443,31 @@ scm_redirect_port (old, new)
      SCM new;
 {
   int ans, oldfd, newfd;
+  struct scm_fport *fp;
 
   old = SCM_COERCE_OUTPORT (old);
   new = SCM_COERCE_OUTPORT (new);
 
-  SCM_DEFER_INTS;
-  SCM_ASSERT (SCM_NIMP (old) && SCM_OPPORTP (old), old, SCM_ARG1, s_redirect_port);
-  SCM_ASSERT (SCM_NIMP (new) && SCM_OPPORTP (new), new, SCM_ARG2, s_redirect_port);
-  oldfd = fileno ((FILE *)SCM_STREAM (old));
-  if (oldfd == -1)
-    scm_syserror (s_redirect_port);
-  newfd = fileno ((FILE *)SCM_STREAM (new));
-  if (newfd == -1)
-    scm_syserror (s_redirect_port);
-  SCM_SYSCALL (ans = dup2 (oldfd, newfd));
-  if (ans == -1)
-    scm_syserror (s_redirect_port);
-  SCM_ALLOW_INTS;
+  SCM_ASSERT (SCM_NIMP (old) && SCM_OPFPORTP (old), old, SCM_ARG1, s_redirect_port);
+  SCM_ASSERT (SCM_NIMP (new) && SCM_OPFPORTP (new), new, SCM_ARG2, s_redirect_port);
+  oldfd = SCM_FPORT_FDES (old);
+  fp = SCM_FSTREAM (new);
+  newfd = fp->fdes;
+  if (oldfd != newfd)
+    {
+      struct scm_port_table *pt = SCM_PTAB_ENTRY (new);
+
+      /* must flush to old fdes.  don't clear all buffers here
+	 in case dup2 fails.  */
+      if (pt->write_pos > pt->write_buf)
+	scm_fflush (new);
+      ans = dup2 (oldfd, newfd);
+      if (ans == -1)
+	scm_syserror (s_redirect_port);
+      fp->random = SCM_FDES_RANDOM_P (fp->fdes);
+      /* continue using existing buffers, even if inappropriate.  */
+      SCM_CLEAR_BUFFERS (new, pt);
+    }
   return SCM_UNSPECIFIED;
 }
 
@@ -296,21 +479,18 @@ scm_dup_to_fdes (SCM fd_or_port, SCM fd)
 
   fd_or_port = SCM_COERCE_OUTPORT (fd_or_port);
 
-  SCM_DEFER_INTS;
   if (SCM_INUMP (fd_or_port))
     oldfd = SCM_INUM (fd_or_port);
   else
     {
-      SCM_ASSERT (SCM_NIMP (fd_or_port) && SCM_OPPORTP (fd_or_port),
+      SCM_ASSERT (SCM_NIMP (fd_or_port) && SCM_OPFPORTP (fd_or_port),
 		  fd_or_port, SCM_ARG1, s_dup_to_fdes);
-      oldfd = fileno ((FILE *)SCM_STREAM (fd_or_port));
-      if (oldfd == -1)
-	scm_syserror (s_dup_to_fdes);
+      oldfd = SCM_FPORT_FDES (fd_or_port);
     }
 
   if (SCM_UNBNDP (fd))
     {
-      SCM_SYSCALL (newfd = dup (oldfd));
+      newfd = dup (oldfd);
       if (newfd == -1)
 	scm_syserror (s_dup_to_fdes);
       fd = SCM_MAKINUM (newfd);
@@ -322,12 +502,11 @@ scm_dup_to_fdes (SCM fd_or_port, SCM fd)
       if (oldfd != newfd)
 	{
 	  scm_evict_ports (newfd);	/* see scsh manual.  */
-	  SCM_SYSCALL (rv = dup2 (oldfd, newfd));
+	  rv = dup2 (oldfd, newfd);
 	  if (rv == -1)
 	    scm_syserror (s_dup_to_fdes);
 	}
     }
-  SCM_ALLOW_INTS;
   return fd;
 }
 
@@ -337,15 +516,10 @@ SCM
 scm_fileno (port)
      SCM port;
 {
-  int fd;
-
   port = SCM_COERCE_OUTPORT (port);
-
-  SCM_ASSERT (SCM_NIMP (port) && SCM_OPFPORTP (port), port, SCM_ARG1, s_fileno);
-  fd = fileno ((FILE *)SCM_STREAM (port));
-  if (fd == -1)
-    scm_syserror (s_fileno);
-  return SCM_MAKINUM (fd);
+  SCM_ASSERT (SCM_NIMP (port) && SCM_OPFPORTP (port), port, SCM_ARG1,
+	      s_fileno);
+  return SCM_MAKINUM (SCM_FPORT_FDES (port));
 }
 
 SCM_PROC (s_isatty, "isatty?", 1, 0, 0, scm_isatty_p);
@@ -360,10 +534,8 @@ scm_isatty_p (port)
 
   if (!(SCM_NIMP (port) && SCM_OPFPORTP (port)))
     return SCM_BOOL_F;
-  rv = fileno ((FILE *)SCM_STREAM (port));
-  if (rv == -1)
-    scm_syserror (s_isatty);
-  rv = isatty (rv);
+  
+  rv = isatty (SCM_FPORT_FDES (port));
   return  rv ? SCM_BOOL_T : SCM_BOOL_F;
 }
 
@@ -376,19 +548,13 @@ scm_fdopen (fdes, modes)
      SCM fdes;
      SCM modes;
 {
-  FILE *f;
   SCM port;
 
   SCM_ASSERT (SCM_INUMP (fdes), fdes, SCM_ARG1, s_fdopen);
   SCM_ASSERT (SCM_NIMP (modes) && SCM_ROSTRINGP (modes), modes, SCM_ARG2,
 	      s_fdopen);
   SCM_COERCE_SUBSTR (modes);
-  SCM_DEFER_INTS;
-  f = fdopen (SCM_INUM (fdes), SCM_ROCHARS (modes));
-  if (f == NULL)
-    scm_syserror (s_fdopen);
-  port = scm_stdio_to_port (f, SCM_ROCHARS (modes), SCM_BOOL_F);
-  SCM_ALLOW_INTS;
+  port = scm_fdes_to_port (SCM_INUM (fdes), SCM_ROCHARS (modes), SCM_BOOL_F);
   return port;
 }
 
@@ -406,7 +572,7 @@ scm_primitive_move_to_fdes (port, fd)
      SCM port;
      SCM fd;
 {
-  FILE *stream;
+  struct scm_fport *stream;
   int old_fd;
   int new_fd;
   int rv;
@@ -415,22 +581,19 @@ scm_primitive_move_to_fdes (port, fd)
 
   SCM_ASSERT (SCM_NIMP (port) && SCM_OPFPORTP (port), port, SCM_ARG1, s_primitive_move_to_fdes);
   SCM_ASSERT (SCM_INUMP (fd), fd, SCM_ARG2, s_primitive_move_to_fdes);
-  SCM_DEFER_INTS;
-  stream = (FILE *)SCM_STREAM (port);
-  old_fd = fileno (stream);
+  stream = SCM_FSTREAM (port);
+  old_fd = stream->fdes;
   new_fd = SCM_INUM (fd);
   if  (old_fd == new_fd)
     {
-      SCM_ALLOW_INTS;
       return SCM_BOOL_F;
     }
   scm_evict_ports (new_fd);
   rv = dup2 (old_fd, new_fd);
   if (rv == -1)
     scm_syserror (s_primitive_move_to_fdes);
-  scm_setfileno (stream, new_fd);
+  stream->fdes = new_fd;
   SCM_SYSCALL (close (old_fd));  
-  SCM_ALLOW_INTS;
   return SCM_BOOL_T;
 }
 
@@ -448,14 +611,12 @@ scm_fdes_to_ports (fd)
   SCM_ASSERT (SCM_INUMP (fd), fd, SCM_ARG1, s_fdes_to_ports);
   int_fd = SCM_INUM (fd);
 
-  SCM_DEFER_INTS;
   for (i = 0; i < scm_port_table_size; i++)
     {
-      if (SCM_FPORTP (scm_port_table[i]->port)
-	  && fileno ((FILE *)SCM_STREAM (scm_port_table[i]->port)) == int_fd)
+      if (SCM_OPFPORTP (scm_port_table[i]->port)
+	  && ((struct scm_fport *) scm_port_table[i]->stream)->fdes == int_fd)
 	result = scm_cons (scm_port_table[i]->port, result);
     }
-  SCM_ALLOW_INTS;
   return result;
 }    
 

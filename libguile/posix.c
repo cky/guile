@@ -167,34 +167,14 @@ SCM
 scm_pipe ()
 {
   int fd[2], rv;
-  FILE *f_rd, *f_wt;
   SCM p_rd, p_wt;
 
   rv = pipe (fd);
   if (rv)
     scm_syserror (s_pipe);
-  f_rd = fdopen (fd[0], "r");
-  if (!f_rd)
-    {
-      SCM_SYSCALL (close (fd[0]));
-      SCM_SYSCALL (close (fd[1]));
-      scm_syserror (s_pipe);
-    }
-  f_wt = fdopen (fd[1], "w");
-  if (!f_wt)
-    {
-      int en;
-      en = errno;
-      fclose (f_rd);
-      SCM_SYSCALL (close (fd[1]));
-      errno = en;
-      scm_syserror (s_pipe);
-    }
-
-  p_rd = scm_stdio_to_port (f_rd, "r", sym_read_pipe);
-  p_wt = scm_stdio_to_port (f_wt, "w", sym_write_pipe);
-
-  SCM_ALLOW_INTS;
+  
+  p_rd = scm_fdes_to_port (fd[0], "r", sym_read_pipe);
+  p_wt = scm_fdes_to_port (fd[1], "w", sym_write_pipe);
   return scm_cons (p_rd, p_wt);
 }
 
@@ -220,15 +200,17 @@ scm_getgroups()
     val = getgroups(ngroups, groups);
     if (val < 0)
       {
+	int en = errno;
 	scm_must_free((char *)groups);
+	errno = en;
 	scm_syserror (s_getgroups);
       }
     SCM_SETCHARS(grps, groups);	/* set up grps as a GC protect */
     SCM_SETLENGTH(grps, 0L + ngroups * sizeof(GETGROUPS_T), scm_tc7_string);
-    SCM_ALLOW_INTS;
     ans = scm_make_vector (SCM_MAKINUM(ngroups), SCM_UNDEFINED);
     while (--ngroups >= 0) SCM_VELTS(ans)[ngroups] = SCM_MAKINUM(groups[ngroups]);
     SCM_SETCHARS(grps, groups);	/* to make sure grps stays around. */
+    SCM_ALLOW_INTS;
     return ans;
   }
 }  
@@ -249,17 +231,14 @@ scm_getpwuid (user)
   ve = SCM_VELTS (result);
   if (SCM_UNBNDP (user) || SCM_FALSEP (user))
     {
-      SCM_DEFER_INTS;
       SCM_SYSCALL (entry = getpwent ());
       if (! entry)
 	{
-	  SCM_ALLOW_INTS;
 	  return SCM_BOOL_F;
 	}
     }
   else if (SCM_INUMP (user))
     {
-      SCM_DEFER_INTS;
       entry = getpwuid (SCM_INUM (user));
     }
   else
@@ -267,7 +246,6 @@ scm_getpwuid (user)
       SCM_ASSERT (SCM_NIMP (user) && SCM_ROSTRINGP (user), user, SCM_ARG1, s_getpwuid);
       if (SCM_SUBSTRP (user))
 	user = scm_makfromstr (SCM_ROCHARS (user), SCM_ROLENGTH (user), 0);
-      SCM_DEFER_INTS;
       entry = getpwnam (SCM_ROCHARS (user));
     }
   if (!entry)
@@ -286,7 +264,6 @@ scm_getpwuid (user)
     ve[6] = scm_makfrom0str ("");
   else
     ve[6] = scm_makfrom0str (entry->pw_shell);
-  SCM_ALLOW_INTS;
   return result;
 }
 
@@ -320,13 +297,11 @@ scm_getgrgid (name)
   SCM *ve;
   result = scm_make_vector (SCM_MAKINUM (4), SCM_UNSPECIFIED);
   ve = SCM_VELTS (result);
-  SCM_DEFER_INTS;
   if (SCM_UNBNDP (name) || (name == SCM_BOOL_F))
     {
       SCM_SYSCALL (entry = getgrent ());
       if (! entry)
 	{
-	  SCM_ALLOW_INTS;
 	  return SCM_BOOL_F;
 	}
     }
@@ -346,7 +321,6 @@ scm_getgrgid (name)
   ve[1] = scm_makfrom0str (entry->gr_passwd);
   ve[2] = scm_ulong2num ((unsigned long) entry->gr_gid);
   ve[3] = scm_makfromstrs (-1, entry->gr_mem);
-  SCM_ALLOW_INTS;
   return result;
 }
 
@@ -644,9 +618,7 @@ scm_ttyname (port)
   SCM_ASSERT (SCM_NIMP (port) && SCM_OPPORTP (port), port, SCM_ARG1, s_ttyname);
   if (scm_tc16_fport != SCM_TYP16 (port))
     return SCM_BOOL_F;
-  fd = fileno ((FILE *)SCM_STREAM (port));
-  if (fd == -1)
-    scm_syserror (s_ttyname);
+  fd = SCM_FPORT_FDES (port);
   SCM_SYSCALL (ans = ttyname (fd));
   if (!ans)
     scm_syserror (s_ttyname);
@@ -683,8 +655,8 @@ scm_tcgetpgrp (port)
   port = SCM_COERCE_OUTPORT (port);
 
   SCM_ASSERT (SCM_NIMP (port) && SCM_OPFPORTP (port), port, SCM_ARG1, s_tcgetpgrp);
-  fd = fileno ((FILE *)SCM_STREAM (port));
-  if (fd == -1 || (pgid = tcgetpgrp (fd)) == -1)
+  fd = SCM_FPORT_FDES (port);
+  if ((pgid = tcgetpgrp (fd)) == -1)
     scm_syserror (s_tcgetpgrp);
   return SCM_MAKINUM (pgid);
 #else
@@ -706,8 +678,8 @@ scm_tcsetpgrp (port, pgid)
 
   SCM_ASSERT (SCM_NIMP (port) && SCM_OPFPORTP (port), port, SCM_ARG1, s_tcsetpgrp);
   SCM_ASSERT (SCM_INUMP (pgid), pgid, SCM_ARG2, s_tcsetpgrp);
-  fd = fileno ((FILE *)SCM_STREAM (port));
-  if (fd == -1 || tcsetpgrp (fd, SCM_INUM (pgid)) == -1)
+  fd = SCM_FPORT_FDES (port);
+  if (tcsetpgrp (fd, SCM_INUM (pgid)) == -1)
     scm_syserror (s_tcsetpgrp);
   return SCM_UNSPECIFIED;
 #else
@@ -729,7 +701,6 @@ scm_convert_exec_args (SCM args, int pos, const char *subr)
   SCM_ASSERT (SCM_NULLP (args)
 	      || (SCM_NIMP (args) && SCM_CONSP (args)),
 	      args, pos, subr);
-  SCM_DEFER_INTS;
   num_args = scm_ilength (args);
   execargv = (char **) 
     scm_must_malloc ((num_args + 1) * sizeof (char *), subr);
@@ -748,7 +719,6 @@ scm_convert_exec_args (SCM args, int pos, const char *subr)
       execargv[i] = dst;
     }
   execargv[i] = 0;
-  SCM_ALLOW_INTS;
   return execargv;
 }
 
@@ -793,7 +763,6 @@ environ_list_to_c (SCM envlist, int arg, const char *proc)
   char **result;
   int i = 0;
 
-  SCM_REDEFER_INTS;
   SCM_ASSERT (SCM_NULLP (envlist)
 	      || (SCM_NIMP (envlist) && SCM_CONSP (envlist)),
 	      envlist, arg, proc);
@@ -820,7 +789,6 @@ environ_list_to_c (SCM envlist, int arg, const char *proc)
       i++;
     }
   result[i] = 0;
-  SCM_REALLOW_INTS;
   return result;
 }
 
@@ -867,7 +835,6 @@ scm_uname ()
   struct utsname buf;
   SCM ans = scm_make_vector (SCM_MAKINUM(5), SCM_UNSPECIFIED);
   SCM *ve = SCM_VELTS (ans);
-  SCM_DEFER_INTS;
   if (uname (&buf) < 0)
     scm_syserror (s_uname);
   ve[0] = scm_makfrom0str (buf.sysname);
@@ -879,7 +846,6 @@ scm_uname ()
    a linux special?
   ve[5] = scm_makfrom0str (buf.domainname);
 */
-  SCM_ALLOW_INTS;
   return ans;
 #else
   scm_sysmissing (s_uname);
@@ -900,7 +866,6 @@ scm_environ (env)
     {
       char **new_environ;
 
-      SCM_DEFER_INTS;
       new_environ = environ_list_to_c (env, SCM_ARG1, s_environ);
       /* Free the old environment, except when called for the first
        * time.
@@ -917,7 +882,6 @@ scm_environ (env)
 	first = 0;
       }
       environ = new_environ;
-      SCM_ALLOW_INTS;
       return SCM_UNSPECIFIED;
     }
 }
@@ -933,60 +897,6 @@ SCM scm_tmpnam()
   return scm_makfrom0str (name);
 }
 #endif
-
-SCM_PROC (s_open_pipe, "open-pipe", 2, 0, 0, scm_open_pipe);
-
-SCM 
-scm_open_pipe (pipestr, modes)
-     SCM pipestr;
-     SCM modes;
-{
-  FILE *f;
-  register SCM z;
-  struct scm_port_table * pt;
-
-  SCM_ASSERT (SCM_NIMP (pipestr) && SCM_ROSTRINGP (pipestr), pipestr,
-	      SCM_ARG1, s_open_pipe);
-  if (SCM_SUBSTRP (pipestr))
-    pipestr = scm_makfromstr (SCM_ROCHARS (pipestr),
-			      SCM_ROLENGTH (pipestr), 0);
-  SCM_ASSERT (SCM_NIMP (modes) && SCM_ROSTRINGP (modes), modes, SCM_ARG2,
-	      s_open_pipe);
-  if (SCM_SUBSTRP (modes))
-    modes = scm_makfromstr (SCM_ROCHARS (modes), SCM_ROLENGTH (modes), 0);
-  SCM_NEWCELL (z);
-  SCM_DEFER_INTS;
-  SCM_SYSCALL (f = popen (SCM_ROCHARS (pipestr), SCM_ROCHARS (modes)));
-  if (!f)
-    scm_syserror (s_open_pipe);
-  pt = scm_add_to_port_table (z);
-  SCM_SETPTAB_ENTRY (z, pt);
-  SCM_SETCAR (z, scm_tc16_pipe | SCM_OPN 
-    | (strchr (SCM_ROCHARS (modes), 'r') ? SCM_RDNG : SCM_WRTNG));
-  SCM_SETSTREAM (z, (SCM)f);
-  SCM_ALLOW_INTS;
-  return z;
-}
-
-SCM_PROC (s_close_pipe, "close-pipe", 1, 0, 0, scm_close_pipe);
-
-SCM 
-scm_close_pipe (port)
-     SCM port;
-{
-  int rv;
-
-  SCM_ASSERT (SCM_NIMP (port) && SCM_TYP16(port) == scm_tc16_pipe 
-	      && SCM_OPENP (port), port, SCM_ARG1, s_close_pipe);
-  SCM_DEFER_INTS;
-  rv = pclose ((FILE *) SCM_STREAM (port));
-  scm_remove_from_port_table (port);
-  SCM_SETAND_CAR (port, ~SCM_OPN);
-  if (rv == -1)
-    scm_syserror (s_close_pipe);
-  SCM_ALLOW_INTS;
-  return SCM_MAKINUM (rv);
-}
 
 SCM_PROC (s_utime, "utime", 1, 2, 0, scm_utime);
 
@@ -1140,12 +1050,10 @@ scm_mknod(path, type, perms, dev)
   else
     scm_out_of_range (s_mknod, type);
 
-  SCM_DEFER_INTS;
   SCM_SYSCALL (val = mknod(SCM_ROCHARS(path), ctype | SCM_INUM (perms),
 			   SCM_INUM (dev)));
   if (val != 0)
     scm_syserror (s_mknod);
-  SCM_ALLOW_INTS;
   return SCM_UNSPECIFIED;
 #else
   scm_sysmissing (s_mknod);

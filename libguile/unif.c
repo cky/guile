@@ -44,7 +44,7 @@
 #include "_scm.h"
 #include "chars.h"
 #include "eval.h"
-#include "genio.h"
+#include "fports.h"
 #include "smob.h"
 #include "strop.h"
 #include "feature.h"
