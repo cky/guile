@@ -3063,6 +3063,11 @@
 
 ;; Place the user in the guile-user module.
 ;;
+
 (define-module (guile-user))
+
+(if include-deprecated-features
+    ;; automatic availability of this module is deprecated.
+    (use-modules (ice-9 rdelim)))
 
 ;;; boot-9.scm ends here
