@@ -6,10 +6,6 @@ Wed Sep  4 01:30:47 1996  Jim Blandy  <jimb@totoro.cyclic.com>
 	* Makefile.in (CC): Don't list -Wall here; it's a GCC-specific flag.
 	* configure.in: Instead, put it in CFLAGS here, iff we're using GCC.
 
-Tue Sep  3 19:53:00 1996  Jim Blandy  <jimb@totoro.cyclic.com>
-
-	* posix.c: Doc fixes.
-
 Wed Sep  4 00:55:49 1996  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* PLUGIN/guile.config (xtra_cflags): Include .. in the header
@@ -63,6 +59,10 @@ Wed Sep  4 00:55:49 1996  Jim Blandy  <jimb@floss.cyclic.com>
 Tue Sep  3 20:27:35 1996  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* Makefile.in (.c.x): Remove duplicate use of $(ALL_CFLAGS).
+
+Tue Sep  3 19:53:00 1996  Jim Blandy  <jimb@totoro.cyclic.com>
+
+	* posix.c: Doc fixes.
 
 Mon Sep  2 15:22:40 1996  Jim Blandy  <jimb@totoro.cyclic.com>
 
