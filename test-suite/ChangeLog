@@ -1,3 +1,8 @@
+2003-11-15  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/bit-operations.test: Use (test-suite lib), for the benefit of
+	standalone execution.
+
 2003-11-09  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* tests/optargs.test: Wrap tests in module (test-suite
