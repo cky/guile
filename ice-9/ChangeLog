@@ -1,3 +1,13 @@
+2000-08-13  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
+
+	* psyntax.ss (top-level-eval-hook, local-eval-hook): Pass
+	`(interaction-environment)' as second arg to `eval'.  This is
+	completely equivalent with the state before the change to eval of
+	2000-08-11, but we should extend psyntax.ss to be module aware.
+	(Thanks to Ian Bicking.)
+
+	* emacs.scm (emacs-symdoc): Parenthesis fix.
+
 2000-08-11  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
 
 	* r5rs.scm (interaction-environment): Removed definition.  (Is now
