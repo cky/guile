@@ -49,8 +49,8 @@ bin_SCRIPTS = guile-snarf
 
 EXTRA_DIST = gscm.c gscm.h ChangeLog-scm dynl-dl.c dynl-dld.c dynl-shl.c \
 dynl-vms.c DYNAMIC-LINKING PLUGIN/REQ PLUGIN/guile.config \
-PLUGIN/guile.libs.in cpp_signal.c cpp_errno.c cpp_err_symbols \
-cpp_sig_symbols cpp_cnvt.awk
+PLUGIN/guile.libs.in cpp_signal.c cpp_errno.c cpp_err_symbols.in \
+cpp_sig_symbols.in cpp_cnvt.awk
 
 ## FIXME: shouldn't directly generate file; instead generate temp file
 ## and "mv".  Consider using timestamp file as well, to avoid
@@ -68,37 +68,39 @@ SUFFIXES = .x
 ## Add -MG to make the .x magic work with auto-dep code.
 MKDEP = gcc -M -MG $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
 
-cpp_err_symbols.c: cpp_err_symbols
-	$(AWK) -f $(srcdir)/cpp_cnvt.awk < $(srcdir)/cpp_err_symbols > \
+cpp_err_symbols.c: cpp_err_symbols.in
+	$(AWK) -f $(srcdir)/cpp_cnvt.awk < $(srcdir)/cpp_err_symbols.in > \
 		cpp_err_symbols.c
 
-cpp_sig_symbols.c: cpp_sig_symbols
-	$(AWK) -f $(srcdir)/cpp_cnvt.awk < $(srcdir)/cpp_sig_symbols > \
+cpp_sig_symbols.c: cpp_sig_symbols.in
+	$(AWK) -f $(srcdir)/cpp_cnvt.awk < $(srcdir)/cpp_sig_symbols.in > \
 		cpp_sig_symbols.c
 
-## Create a new version of the cpp_sig_symbols file, including all SIGXXX
+## Create a new version of the cpp_sig_symbols.in file, including all SIGXXX
 ## macros defined on this platform.
 check_signals:
 	gcc -undef -dM -E $(srcdir)/cpp_signal.c | egrep ' SIG[A-Z]+' \
 	  | cut -f2 -d' ' | sort > cpp_sig_symbols_here
-	diff -u $(srcdir)/cpp_sig_symbols cpp_sig_symbols_here | egrep '^\+S' \
+	diff -u $(srcdir)/cpp_sig_symbols.in cpp_sig_symbols_here \
+          | egrep '^\+S' \
 	  | cut -c2- > cpp_sig_symbols_diff
 	if test -s cpp_sig_symbols_diff ; then \
-	  cat $(srcdir)/cpp_sig_symbols cpp_sig_symbols_diff \
+	  cat $(srcdir)/cpp_sig_symbols.in cpp_sig_symbols_diff \
 	    | sort > cpp_sig_symbols_new ;\
 	  echo "cpp_sig_symbols_new has the following additions:" ;\
 	  cat cpp_sig_symbols_diff ;\
 	else echo "No new symbols found."; \
 	fi
 
-## Likewise for cpp_err_symbols.
+## Likewise for cpp_err_symbols.in.
 check_errnos:
 	gcc -undef -dM -E $(srcdir)/cpp_errno.c | egrep ' E.+' \
 	  | cut -f2 -d' ' | sort > cpp_err_symbols_here
-	diff -u $(srcdir)/cpp_err_symbols cpp_err_symbols_here | egrep '^\+E' \
+	diff -u $(srcdir)/cpp_err_symbols.in cpp_err_symbols_here \
+          | egrep '^\+E' \
 	  | cut -c2- > cpp_err_symbols_diff
 	if test -s cpp_err_symbols_diff ; then \
-	  cat $(srcdir)/cpp_err_symbols cpp_err_symbols_diff \
+	  cat $(srcdir)/cpp_err_symbols.in cpp_err_symbols_diff \
 	    | sort > cpp_err_symbols_new ;\
 	  echo "cpp_err_symbols_new has the following additions:" ;\
 	  cat cpp_err_symbols_diff ;\
