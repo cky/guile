@@ -1,3 +1,35 @@
+Sun Jul 27 10:54:01 1997  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* fluids.c (scm_fluid_p): New function.
+	* fluids.h (scm_fluid_p): New prototype.
+
+Sat Jul 26 21:33:37 1997  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* print.c (scm_iprin1): Enter printed structures into the print
+ 	state as nested data while they are printed.
+	(print_state_fluid, print_state_fluid_num): New variables.
+	(scm_init_print): Initialize them.
+	(scm_iprin): If print_state_fluid carries a print_state, use that
+ 	instead of creating a new one.
+	(scm_printer_apply, apply_stub, struct apply_data): New
+ 	definitions to help with calling printer functions written in
+ 	Scheme.
+  	* print.h (scm_printer_apply): New prototype.
+
+	* struct.c (scm_print_struct): Use scm_printer_apply to call the
+ 	user defined struct printer.
+	
+	* dynwind.c (scm_dowinds): Handle fluids on the wind list.
+	* fluids.h (scm_internal_with_fluids, scm_with_fluids,
+ 	scm_swap_fluids, scm_swap_fluids_reverse): New prototypes.
+	* fluids.c (scm_internal_with_fluids, scm_with_fluids,
+ 	scm_swap_fluids, scm_swap_fluids_reverse): New functions.
+
+Fri Jul 25 12:05:46 1997  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* fluids.c (scm_fluid_ref, scm_fluid_set_x): Fixed use of
+ 	SCM_ASSERT: arg comes before pos.
+
 Fri Jul 25 17:00:38 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* eval.c (scm_apply): Handle the case when a tc7_sybr_2 is applied
