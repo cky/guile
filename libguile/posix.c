@@ -768,6 +768,15 @@ SCM_DEFINE (scm_setsid, "setsid", 0, 0, 0,
 #undef FUNC_NAME
 #endif /* HAVE_SETSID */
 
+
+/* ttyname returns its result in a single static buffer, hence
+   scm_i_misc_mutex for thread safety.  In glibc 2.3.2 two threads
+   continuously calling ttyname will otherwise get an overwrite quite
+   easily.
+
+   ttyname_r (when available) could be used instead of scm_i_misc_mutex, but
+   there's probably little to be gained in either speed or parallelism.  */
+
 #ifdef HAVE_TTYNAME
 SCM_DEFINE (scm_ttyname, "ttyname", 1, 0, 0, 
             (SCM port),
@@ -776,21 +785,31 @@ SCM_DEFINE (scm_ttyname, "ttyname", 1, 0, 0,
 #define FUNC_NAME s_scm_ttyname
 {
   char *result;
-  int fd;
+  int fd, err;
+  SCM ret;
 
   port = SCM_COERCE_OUTPORT (port);
   SCM_VALIDATE_OPPORT (1, port);
   if (!SCM_FPORTP (port))
     return SCM_BOOL_F;
   fd = SCM_FPORT_FDES (port);
+
+  scm_mutex_lock (&scm_i_misc_mutex);
   SCM_SYSCALL (result = ttyname (fd));
+  err = errno;
+  ret = scm_makfrom0str (result);
+  scm_mutex_unlock (&scm_i_misc_mutex);
+
   if (!result)
-    SCM_SYSERROR;
-  /* result could be overwritten by another call to ttyname */
-  return (scm_makfrom0str (result));
+    {
+      errno = err;
+      SCM_SYSERROR;
+    }
+  return ret;
 }
 #undef FUNC_NAME
 #endif /* HAVE_TTYNAME */
+
 
 /* For thread safety "buf" is used instead of NULL for the ctermid static
    buffer.  Actually it's unlikely the controlling terminal will change
