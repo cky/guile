@@ -64,8 +64,6 @@ exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
 
 ;;; Code:
 
-(debug-enable 'debug 'backtrace)
-
 (define-module (scripts scan-api)
   :use-module (ice-9 popen)
   :use-module (ice-9 rdelim)
