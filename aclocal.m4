@@ -302,12 +302,11 @@ done<<>>dnl>>)
 changequote([,]))])
 
 
-# serial 25 AM_PROG_LIBTOOL
+# serial 24 AM_PROG_LIBTOOL
 AC_DEFUN(AM_PROG_LIBTOOL,
 [AC_REQUIRE([AM_ENABLE_SHARED])dnl
 AC_REQUIRE([AM_ENABLE_STATIC])dnl
 AC_REQUIRE([AC_CANONICAL_HOST])dnl
-AC_REQUIRE([AC_CANONICAL_BUILD])dnl
 AC_REQUIRE([AC_PROG_RANLIB])dnl
 AC_REQUIRE([AC_PROG_CC])dnl
 AC_REQUIRE([AM_PROG_LD])dnl
@@ -352,24 +351,14 @@ case "$host" in
   # On SCO OpenServer 5, we need -belf to get full-featured binaries.
   CFLAGS="$CFLAGS -belf"
   ;;
-
-*-*-cygwin32*)
-  AM_SYS_LIBTOOL_CYGWIN32
-  ;;
-
 esac
 
 # Actually configure libtool.  ac_aux_dir is where install-sh is found.
 CC="$CC" CFLAGS="$CFLAGS" CPPFLAGS="$CPPFLAGS" \
 LD="$LD" NM="$NM" RANLIB="$RANLIB" LN_S="$LN_S" \
-DLLTOOL="$DLLTOOL" AS="$AS" \
-${CONFIG_SHELL-/bin/sh} $ac_aux_dir/ltconfig --no-reexec \
+${CONFIG_SHELL-/bin/sh} $ac_aux_dir/ltconfig \
 $libtool_flags --no-verify $ac_aux_dir/ltmain.sh $host \
 || AC_MSG_ERROR([libtool configure failed])
-
-# Redirect the config.log output again, so that the ltconfig log is not
-# clobbered by the next message.
-exec 5>>./config.log
 ])
 
 # AM_ENABLE_SHARED - implement the --enable-shared flag
@@ -380,8 +369,10 @@ AC_DEFUN(AM_ENABLE_SHARED,
 [define([AM_ENABLE_SHARED_DEFAULT], ifelse($1, no, no, yes))dnl
 AC_ARG_ENABLE(shared,
 changequote(<<, >>)dnl
-<<  --enable-shared[=PKGS]  build shared libraries [default=>>AM_ENABLE_SHARED_DEFAULT],
+<<  --enable-shared         build shared libraries [default=>>AM_ENABLE_SHARED_DEFAULT]
 changequote([, ])dnl
+[  --enable-shared=PKGS    only build shared libraries if the current package
+                          appears as an element in the PKGS list],
 [p=${PACKAGE-default}
 case "$enableval" in
 yes) enable_shared=yes ;;
@@ -417,8 +408,10 @@ AC_DEFUN(AM_ENABLE_STATIC,
 [define([AM_ENABLE_STATIC_DEFAULT], ifelse($1, no, no, yes))dnl
 AC_ARG_ENABLE(static,
 changequote(<<, >>)dnl
-<<  --enable-static[=PKGS]  build static libraries [default=>>AM_ENABLE_STATIC_DEFAULT],
+<<  --enable-static         build static libraries [default=>>AM_ENABLE_STATIC_DEFAULT]
 changequote([, ])dnl
+[  --enable-static=PKGS    only build shared libraries if the current package
+                          appears as an element in the PKGS list],
 [p=${PACKAGE-default}
 case "$enableval" in
 yes) enable_static=yes ;;
@@ -452,9 +445,7 @@ if test "$ac_cv_prog_gcc" = yes; then
   ac_prog=`($CC -print-prog-name=ld) 2>&5`
   case "$ac_prog" in
   # Accept absolute paths.
-changequote(,)dnl
   /* | [A-Za-z]:\\*)
-changequote([,])dnl
     test -z "$LD" && LD="$ac_prog"
     ;;
   "")
@@ -517,10 +508,11 @@ fi])
 AC_DEFUN(AM_PROG_NM,
 [AC_MSG_CHECKING([for BSD-compatible nm])
 AC_CACHE_VAL(ac_cv_path_NM,
-[if test -n "$NM"; then
-  # Let the user override the test.
-  ac_cv_path_NM="$NM"
-else
+[case "$NM" in
+/* | [A-Za-z]:\\*)
+  ac_cv_path_NM="$NM" # Let the user override the test with a path.
+  ;;
+*)
   IFS="${IFS= 	}"; ac_save_ifs="$IFS"; IFS="${IFS}:"
   for ac_dir in /usr/ucb /usr/ccs/bin $PATH /bin; do
     test -z "$ac_dir" && ac_dir=.
@@ -540,16 +532,11 @@ else
   done
   IFS="$ac_save_ifs"
   test -z "$ac_cv_path_NM" && ac_cv_path_NM=nm
-fi])
+  ;;
+esac])
 NM="$ac_cv_path_NM"
 AC_MSG_RESULT([$NM])
 AC_SUBST(NM)
-])
-
-# AM_SYS_LIBTOOL_CYGWIN32 - find tools needed on cygwin32
-AC_DEFUN(AM_SYS_LIBTOOL_CYGWIN32,
-[AC_CHECK_TOOL(DLLTOOL, dlltool, false)
-AC_CHECK_TOOL(AS, as, false)
 ])
 
 dnl   Autoconf macros for configuring the QuickThreads package
@@ -597,7 +584,6 @@ dnl   configure script, but here they are.
 AC_DEFUN([QTHREADS_CONFIGURE],[
   AC_REQUIRE([AC_PROG_LN_S])
 
-  AC_MSG_CHECKING(QuickThreads configuration)
   # How can we refer to the qt source directory from within the qt build
   # directory?  For headers, we can rely on the fact that the qt src
   # directory appears in the #include path.
@@ -608,42 +594,36 @@ AC_DEFUN([QTHREADS_CONFIGURE],[
   THREAD_PACKAGE=QT
   case "$host" in
     i[3456]86-*-*)
-      port_name=i386
       qtmd_h=md/i386.h
       qtmds_s=md/i386.s
       qtmdc_c=md/null.c 
       qtdmdb_s=
       ;;
     mips-sgi-irix[56]*)
-      port_name=irix
       qtmd_h=md/mips.h
       qtmds_s=md/mips-irix5.s
       qtmdc_c=md/null.c
       qtdmdb_s=md/mips_b.s 
       ;;
     mips-*-*)
-      port_name=mips
       qtmd_h=md/mips.h
       qtmds_s=md/mips.s
       qtmdc_c=md/null.c
       qtdmdb_s=md/mips_b.s 
       ;;
     sparc-*-sunos*)
-      port_name=sparc-sunos
       qtmd_h=md/sparc.h
       qtmds_s=md/_sparc.s
       qtmdc_c=md/null.c
       qtdmdb_s=md/_sparc_b.s 
       ;;
     sparc-*-*)
-      port_name=sparc
       qtmd_h=md/sparc.h
       qtmds_s=md/sparc.s
       qtmdc_c=md/null.c
       qtdmdb_s=md/sparc_b.s 
       ;;
     alpha-*-*)
-      port_name=alpha
       qtmd_h=md/axp.h
       qtmds_s=md/axp.s
       qtmdc_c=md/null.c
@@ -658,13 +638,10 @@ AC_DEFUN([QTHREADS_CONFIGURE],[
 
   # Did configuration succeed?
   if test -n "$THREAD_PACKAGE"; then
-    AC_MSG_RESULT($port_name)
     QTHREAD_LTLIBS=libqthreads.la
     THREAD_CPPFLAGS="-I$qtsrcdir -I../qt"
     THREAD_LIBS_LOCAL="../qt/libqthreads.la"
     THREAD_LIBS_INSTALLED="-lqthreads"
-  else
-    AC_MSG_RESULT(none; disabled)
   fi
 
   AC_SUBST(QTHREAD_LTLIBS)
