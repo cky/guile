@@ -1,4 +1,4 @@
-/*	Copyright (C) 1996 Free Software Foundation, Inc.
+/*	Copyright (C) 1996, 1997 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -63,9 +63,7 @@ SCM_CONST_LONG (scm_utag_fvect, "utag_fvect", 12);
 SCM_CONST_LONG (scm_utag_dvect, "utag_dvect", 13);
 SCM_CONST_LONG (scm_utag_cvect, "utag_cvect", 14);
 SCM_CONST_LONG (scm_utag_string, "utag_string", 15);
-SCM_CONST_LONG (scm_utag_mb_string, "utag_mb_string", 16);
 SCM_CONST_LONG (scm_utag_substring, "utag_substring", 17);
-SCM_CONST_LONG (scm_utag_mb_substring, "utag_mb_substring", 18);
 SCM_CONST_LONG (scm_utag_asubr, "utag_asubr", 19);
 SCM_CONST_LONG (scm_utag_subr_0, "utag_subr_0", 20);
 SCM_CONST_LONG (scm_utag_subr_1, "utag_subr_1", 21);
@@ -136,12 +134,8 @@ scm_tag (x)
 	  return SCM_CDR (scm_utag_cvect) ;
 	case scm_tc7_string:
 	  return SCM_CDR (scm_utag_string) ;
-	case scm_tc7_mb_string:
-	  return SCM_CDR (scm_utag_mb_string) ;
 	case scm_tc7_substring:
 	  return SCM_CDR (scm_utag_substring) ;
-	case scm_tc7_mb_substring:
-	  return SCM_CDR (scm_utag_mb_substring) ;
 	case scm_tc7_asubr:
 	  return SCM_CDR (scm_utag_asubr) ;
 	case scm_tc7_subr_0:

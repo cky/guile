@@ -44,7 +44,6 @@
 #include "_scm.h"
 #include "chars.h"
 #include "genio.h"
-#include "mbstrings.h"
 #include "smob.h"
 #include "eval.h"
 #include "procprop.h"
@@ -146,7 +145,7 @@ scm_print_options (setting)
     { \
       if (pstate->top - pstate->list_offset >= pstate->level) \
 	{ \
-	  scm_gen_putc ('#', port); \
+	  scm_putc ('#', port); \
 	  return; \
 	} \
     } \
@@ -222,9 +221,9 @@ print_state_printer (obj, port)
 	      SCM_ARG2,
 	      s_print_state_printer);
   port = SCM_COERCE_OPORT (port);
-  scm_gen_puts (scm_regular_string, "#<print-state ", port);
+  scm_puts ("#<print-state ", port);
   scm_intprint (obj, 16, port);
-  scm_gen_putc ('>', port);
+  scm_putc ('>', port);
   return SCM_UNSPECIFIED;
 }
 
@@ -287,9 +286,9 @@ print_circref (port, pstate, ref)
   for (i = pstate->top - 1; 1; --i)
     if (pstate->ref_stack[i] == ref)
       break;
-  scm_gen_putc ('#', port);
+  scm_putc ('#', port);
   scm_intprint (i - self, 10, port);
-  scm_gen_putc ('#', port);
+  scm_putc ('#', port);
 }
 
 /* Print generally.  Handles both write and display according to PSTATE.
@@ -314,17 +313,27 @@ taloop:
       if (SCM_ICHRP (exp))
 	{
 	  i = SCM_ICHR (exp);
-	  scm_put_wchar (i, port, SCM_WRITINGP (pstate));
-
+	  if (SCM_WRITINGP (pstate))
+	    {
+	      scm_puts ("#\\", port);
+	      if ((i >= 0) && (i <= ' ') && scm_charnames[i])
+		scm_puts (scm_charnames[i], port);
+	      else if (i < 0 || i > '\177')
+		scm_intprint (i, 8, port);
+	      else
+		scm_putc (i, port);
+	    }
+	  else
+	    scm_putc (i, port);
 	}
       else if (SCM_IFLAGP (exp)
 	       && (SCM_ISYMNUM (exp) < (sizeof scm_isymnames / sizeof (char *))))
-	  scm_gen_puts (scm_regular_string, SCM_ISYMCHARS (exp), port);
+	  scm_puts (SCM_ISYMCHARS (exp), port);
       else if (SCM_ILOCP (exp))
 	{
-	  scm_gen_puts (scm_regular_string, "#@", port);
+	  scm_puts ("#@", port);
 	  scm_intprint ((long) SCM_IFRAME (exp), 10, port);
-	  scm_gen_putc (SCM_ICDRP (exp) ? '-' : '+', port);
+	  scm_putc (SCM_ICDRP (exp) ? '-' : '+', port);
 	  scm_intprint ((long) SCM_IDIST (exp), 10, port);
 	}
       else
@@ -332,7 +341,7 @@ taloop:
       break;
     case 1:
       /* gloc */
-      scm_gen_puts (scm_regular_string, "#@", port);
+      scm_puts ("#@", port);
       exp = SCM_CAR (exp - 1);
       goto taloop;
     default:
@@ -380,21 +389,20 @@ taloop:
 		if (!SCM_CLOSUREP (SCM_CDR (exp)))
 		  {
 		    code = env = 0;
-		    scm_gen_puts (scm_regular_string, "#<primitive-",
-				  port);
+		    scm_puts ("#<primitive-", port);
 		  }
 		else
 		  {
 		    code = SCM_CODE (SCM_CDR (exp));
 		    env = SCM_ENV (SCM_CDR (exp));
-		    scm_gen_puts (scm_regular_string, "#<", port);
+		    scm_puts ("#<", port);
 		  }
 		if (SCM_CAR (exp) & (3L << 16))
-		  scm_gen_puts (scm_regular_string, "macro", port);
+		  scm_puts ("macro", port);
 		else
-		  scm_gen_puts (scm_regular_string, "syntax", port);
+		  scm_puts ("syntax", port);
 		if (SCM_CAR (exp) & (2L << 16))
-		  scm_gen_putc ('!', port);
+		  scm_putc ('!', port);
 	      }
 	    else
 	      {
@@ -402,13 +410,12 @@ taloop:
 		name = scm_procedure_name (exp);
 		code = SCM_CODE (exp);
 		env = SCM_ENV (exp);
-		scm_gen_puts (scm_regular_string, "#<procedure",
-			      port);
+		scm_puts ("#<procedure", port);
 	      }
 	    if (SCM_NIMP (name) && SCM_ROSTRINGP (name))
 	      {
-		scm_gen_putc (' ', port);
-		scm_gen_puts (scm_regular_string, SCM_ROCHARS (name), port);
+		scm_putc (' ', port);
+		scm_puts (SCM_ROCHARS (name), port);
 	      }
 	    if (code)
 	      {
@@ -426,49 +433,38 @@ taloop:
 		  {
 		    if (SCM_TYP16 (exp) != scm_tc16_macro)
 		      {
-			scm_gen_putc (' ', port);
+			scm_putc (' ', port);
 			scm_iprin1 (SCM_CAR (code), port, pstate);
 		      }
-		    scm_gen_putc ('>', port);
+		    scm_putc ('>', port);
 		  }
 	      }
 	    else
-	      scm_gen_putc ('>', port);
+	      scm_putc ('>', port);
 	  }
-	  break;
-	case scm_tc7_mb_string:
-	case scm_tc7_mb_substring:
-	  scm_print_mb_string (exp, port, SCM_WRITINGP (pstate));
 	  break;
 	case scm_tc7_substring:
 	case scm_tc7_string:
 	  if (SCM_WRITINGP (pstate))
 	    {
-	      scm_gen_putc ('"', port);
+	      scm_putc ('"', port);
 	      for (i = 0; i < SCM_ROLENGTH (exp); ++i)
 		switch (SCM_ROCHARS (exp)[i])
 		  {
 		  case '"':
 		  case '\\':
-		    scm_gen_putc ('\\', port);
+		    scm_putc ('\\', port);
 		  default:
-		    scm_gen_putc (SCM_ROCHARS (exp)[i], port);
+		    scm_putc (SCM_ROCHARS (exp)[i], port);
 		  }
-	      scm_gen_putc ('"', port);
+	      scm_putc ('"', port);
 	      break;
 	    }
 	  else
-	    scm_gen_write (scm_regular_string, SCM_ROCHARS (exp),
-			   (scm_sizet) SCM_ROLENGTH (exp),
-			   port);
+	    scm_lfwrite (SCM_ROCHARS (exp), (scm_sizet) SCM_ROLENGTH (exp),
+			 port);
 	  break;
 	case scm_tcs_symbols:
-	  if (SCM_MB_STRINGP (exp))
-	    {
-	      scm_print_mb_symbol (exp, port);
-	      break;
-	    }
-	  else
 	    {
 	      int pos;
 	      int end;
@@ -486,7 +482,7 @@ taloop:
 	      maybe_weird = 0;
 
 	      if (len == 0)
-		scm_gen_write (scm_regular_string, "#{}#", 4, port);
+		scm_lfwrite ("#{}#", 4, port);
 
 	      for (end = pos; end < len; ++end)
 		switch (str[end])
@@ -509,18 +505,18 @@ taloop:
 		      }
 		    if (!weird)
 		      {
-			scm_gen_write (scm_regular_string, "#{", 2, port);
+			scm_lfwrite ("#{", 2, port);
 			weird = 1;
 		      }
 		    if (pos < end)
 		      {
-			scm_gen_write (scm_regular_string, str + pos, end - pos, port);
+			scm_lfwrite (str + pos, end - pos, port);
 		      }
 		    {
 		      char buf[2];
 		      buf[0] = '\\';
 		      buf[1] = str[end];
-		      scm_gen_write (scm_regular_string, buf, 2, port);
+		      scm_lfwrite (buf, 2, port);
 		    }
 		    pos = end + 1;
 		    break;
@@ -542,22 +538,22 @@ taloop:
 		    break;
 		  }
 	      if (pos < end)
-		scm_gen_write (scm_regular_string, str + pos, end - pos, port);
+		scm_lfwrite (str + pos, end - pos, port);
 	      if (weird)
-		scm_gen_write (scm_regular_string, "}#", 2, port);
+		scm_lfwrite ("}#", 2, port);
 	      break;
 	    }
 	case scm_tc7_wvect:
 	  ENTER_NESTED_DATA (pstate, exp, circref);
 	  if (SCM_IS_WHVEC (exp))
-	    scm_gen_puts (scm_regular_string, "#wh(", port);
+	    scm_puts ("#wh(", port);
 	  else
-	    scm_gen_puts (scm_regular_string, "#w(", port);
+	    scm_puts ("#w(", port);
 	  goto common_vector_printer;
 
 	case scm_tc7_vector:
 	  ENTER_NESTED_DATA (pstate, exp, circref);
-	  scm_gen_puts (scm_regular_string, "#(", port);
+	  scm_puts ("#(", port);
 	common_vector_printer:
 	  {
 	    int last = SCM_LENGTH (exp) - 1;
@@ -571,7 +567,7 @@ taloop:
 	      {
 		/* CHECK_INTS; */
 		scm_iprin1 (SCM_VELTS (exp)[i], port, pstate);
-		scm_gen_putc (' ', port);
+		scm_putc (' ', port);
 	      }
 	    if (i == last)
 	      {
@@ -579,8 +575,8 @@ taloop:
 		scm_iprin1 (SCM_VELTS (exp)[i], port, pstate);
 	      }
 	    if (cutp)
-	      scm_gen_puts (scm_regular_string, " ...", port);
-	    scm_gen_putc (')', port);
+	      scm_puts (" ...", port);
+	    scm_putc (')', port);
 	  }
 	  EXIT_NESTED_DATA (pstate);
 	  break;
@@ -598,26 +594,23 @@ taloop:
 	  scm_raprin1 (exp, port, pstate);
 	  break;
 	case scm_tcs_subrs:
-	  scm_gen_puts (scm_regular_string, "#<primitive-procedure ", port);
-	  scm_gen_puts ((SCM_MB_STRINGP (SCM_SNAME(exp))
-			 ? scm_mb_string
-			 : scm_regular_string),
-			SCM_CHARS (SCM_SNAME (exp)), port);
-	  scm_gen_putc ('>', port);
+	  scm_puts ("#<primitive-procedure ", port);
+	  scm_puts (SCM_CHARS (SCM_SNAME (exp)), port);
+	  scm_putc ('>', port);
 	  break;
 #ifdef CCLO
 	case scm_tc7_cclo:
-	  scm_gen_puts (scm_regular_string, "#<compiled-closure ", port);
+	  scm_puts ("#<compiled-closure ", port);
 	  scm_iprin1 (SCM_CCLO_SUBR (exp), port, pstate);
-	  scm_gen_putc ('>', port);
+	  scm_putc ('>', port);
 	  break;
 #endif
 	case scm_tc7_contin:
-	  scm_gen_puts (scm_regular_string, "#<continuation ", port);
+	  scm_puts ("#<continuation ", port);
 	  scm_intprint (SCM_LENGTH (exp), 10, port);
-	  scm_gen_puts (scm_regular_string, " @ ", port);
+	  scm_puts (" @ ", port);
 	  scm_intprint ((long) SCM_CHARS (exp), 16, port);
-	  scm_gen_putc ('>', port);
+	  scm_putc ('>', port);
 	  break;
 	case scm_tc7_port:
 	  i = SCM_PTOBNUM (exp);
@@ -718,7 +711,7 @@ scm_intprint (n, radix, port)
      SCM port;
 {
   char num_buf[SCM_INTBUFLEN];
-  scm_gen_write (scm_regular_string, num_buf, scm_iint2str (n, radix, num_buf), port);
+  scm_lfwrite (num_buf, scm_iint2str (n, radix, num_buf), port);
 }
 
 /* Print an object of unrecognized type.
@@ -730,19 +723,19 @@ scm_ipruk (hdr, ptr, port)
      SCM ptr;
      SCM port;
 {
-  scm_gen_puts (scm_regular_string, "#<unknown-", port);
-  scm_gen_puts (scm_regular_string, hdr, port);
+  scm_puts ("#<unknown-", port);
+  scm_puts (hdr, port);
   if (SCM_CELLP (ptr))
     {
-      scm_gen_puts (scm_regular_string, " (0x", port);
+      scm_puts (" (0x", port);
       scm_intprint (SCM_CAR (ptr), 16, port);
-      scm_gen_puts (scm_regular_string, " . 0x", port);
+      scm_puts (" . 0x", port);
       scm_intprint (SCM_CDR (ptr), 16, port);
-      scm_gen_puts (scm_regular_string, ") @", port);
+      scm_puts (") @", port);
     }
-  scm_gen_puts (scm_regular_string, " 0x", port);
+  scm_puts (" 0x", port);
   scm_intprint (ptr, 16, port);
-  scm_gen_putc ('>', port);
+  scm_putc ('>', port);
 }
 
 /* Print a list.
@@ -760,7 +753,7 @@ scm_iprlist (hdr, exp, tlr, port, pstate)
   register int i;
   register SCM hare, tortoise;
   int floor = pstate->top - 2;
-  scm_gen_puts (scm_regular_string, hdr, port);
+  scm_puts (hdr, port);
   /* CHECK_INTS; */
   if (pstate->fancyp)
     goto fancy_printing;
@@ -791,18 +784,18 @@ scm_iprlist (hdr, exp, tlr, port, pstate)
 	if (pstate->ref_stack[i] == exp)
 	  goto circref;
       PUSH_REF (pstate, exp);
-      scm_gen_putc (' ', port);
+      scm_putc (' ', port);
       /* CHECK_INTS; */
       scm_iprin1 (SCM_CAR (exp), port, pstate);
     }
   if (SCM_NNULLP (exp))
     {
-      scm_gen_puts (scm_regular_string, " . ", port);
+      scm_puts (" . ", port);
       scm_iprin1 (exp, port, pstate);
     }
 
 end:
-  scm_gen_putc (tlr, port);
+  scm_putc (tlr, port);
   pstate->top = floor + 2;
   return;
   
@@ -823,7 +816,7 @@ fancy_printing:
 	  {
 	    if (n == 0)
 	      {
-		scm_gen_puts (scm_regular_string, " ...", port);
+		scm_puts (" ...", port);
 		goto skip_tail;
 	      }
 	    else
@@ -831,14 +824,14 @@ fancy_printing:
 	  }
 	PUSH_REF(pstate, exp);
 	++pstate->list_offset;
-	scm_gen_putc (' ', port);
+	scm_putc (' ', port);
 	/* CHECK_INTS; */
 	scm_iprin1 (SCM_CAR (exp), port, pstate);
       }
   }
   if (SCM_NNULLP (exp))
     {
-      scm_gen_puts (scm_regular_string, " . ", port);
+      scm_puts (" . ", port);
       scm_iprin1 (exp, port, pstate);
     }
 skip_tail:
@@ -849,7 +842,7 @@ fancy_circref:
   pstate->list_offset -= pstate->top - floor - 2;
   
 circref:
-  scm_gen_puts (scm_regular_string, " . ", port);
+  scm_puts (" . ", port);
   print_circref (port, pstate, exp);
   goto end;
 }
@@ -924,7 +917,7 @@ scm_newline (port)
   else
     SCM_ASSERT (scm_valid_oport_value_p (port), port, SCM_ARG1, s_newline);
 
-  scm_gen_putc ('\n', SCM_COERCE_OPORT (port));
+  scm_putc ('\n', SCM_COERCE_OPORT (port));
 #ifdef HAVE_PIPE
 # ifdef EPIPE
   if (EPIPE == errno)
@@ -950,7 +943,7 @@ scm_write_char (chr, port)
     SCM_ASSERT (scm_valid_oport_value_p (port), port, SCM_ARG2, s_write_char);
 
   SCM_ASSERT (SCM_ICHRP (chr), chr, SCM_ARG1, s_write_char);
-  scm_gen_putc ((int) SCM_ICHR (chr), SCM_COERCE_OPORT (port));
+  scm_putc ((int) SCM_ICHR (chr), SCM_COERCE_OPORT (port));
 #ifdef HAVE_PIPE
 # ifdef EPIPE
   if (EPIPE == errno)

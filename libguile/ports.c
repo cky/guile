@@ -258,7 +258,6 @@ scm_add_to_port_table (port)
   scm_port_table[scm_port_table_size]->file_name = SCM_BOOL_F;
   scm_port_table[scm_port_table_size]->line_number = 1;
   scm_port_table[scm_port_table_size]->column_number = 0;
-  scm_port_table[scm_port_table_size]->representation = scm_regular_port;
   return scm_port_table[scm_port_table_size++];
 }
 
@@ -543,7 +542,7 @@ scm_read_char (port)
     port = scm_cur_inp;
   else
     SCM_ASSERT (SCM_NIMP (port) && SCM_OPINPORTP (port), port, SCM_ARG1, s_read_char);
-  c = scm_gen_getc (port);
+  c = scm_getc (port);
   if (EOF == c)
     return SCM_EOF_VAL;
   return SCM_MAKICHR (c);
@@ -561,10 +560,10 @@ scm_peek_char (port)
     port = scm_cur_inp;
   else
     SCM_ASSERT (SCM_NIMP (port) && SCM_OPINPORTP (port), port, SCM_ARG1, s_peek_char);
-  c = scm_gen_getc (port);
+  c = scm_getc (port);
   if (EOF == c)
     return SCM_EOF_VAL;
-  scm_gen_ungetc (c, port);
+  scm_ungetc (c, port);
   return SCM_MAKICHR (c);
 }
 
@@ -642,7 +641,7 @@ scm_unread_char (cobj, port)
 
   c = SCM_ICHR (cobj);
 
-  scm_gen_ungetc (c, port);
+  scm_ungetc (c, port);
   return cobj;
 }
 
@@ -765,25 +764,25 @@ scm_prinport (exp, port, type)
      SCM port;
      char *type;
 {
-  scm_gen_puts (scm_regular_string, "#<", port);
+  scm_puts ("#<", port);
   if (SCM_CLOSEDP (exp))
-    scm_gen_puts (scm_regular_string, "closed: ", port);
+    scm_puts ("closed: ", port);
   else
     {
       if (SCM_RDNG & SCM_CAR (exp))
-	scm_gen_puts (scm_regular_string, "input: ", port);
+	scm_puts ("input: ", port);
       if (SCM_WRTNG & SCM_CAR (exp))
-	scm_gen_puts (scm_regular_string, "output: ", port);
+	scm_puts ("output: ", port);
     }
-  scm_gen_puts (scm_regular_string, type, port);
-  scm_gen_putc (' ', port);
+  scm_puts (type, port);
+  scm_putc (' ', port);
 #ifndef MSDOS
 #ifndef __EMX__
 #ifndef _DCC
 #ifndef AMIGA
 #ifndef THINK_C
   if (SCM_OPENP (exp) && scm_tc16_fport == SCM_TYP16 (exp) && isatty (fileno ((FILE *)SCM_STREAM (exp))))
-    scm_gen_puts (scm_regular_string, ttyname (fileno ((FILE *)SCM_STREAM (exp))), port);
+    scm_puts (ttyname (fileno ((FILE *)SCM_STREAM (exp))), port);
   else
 #endif
 #endif
@@ -794,7 +793,7 @@ scm_prinport (exp, port, type)
     scm_intprint ((long) fileno ((FILE *)SCM_STREAM (exp)), 10, port);
   else
     scm_intprint (SCM_CDR (exp), 16, port);
-  scm_gen_putc ('>', port);
+  scm_putc ('>', port);
 }
 
 

@@ -1,4 +1,4 @@
-/*	Copyright (C) 1996 Free Software Foundation, Inc.
+/*	Copyright (C) 1996, 1997 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -607,12 +607,11 @@ scm_print_struct (exp, port, pstate)
     scm_printer_apply (SCM_STRUCT_PRINTER (exp), exp, port, pstate);
   else
     {
-      scm_gen_write (scm_regular_string, "#<struct ", sizeof ("#<struct ") - 1,
-		     port);
+      scm_lfwrite ("#<struct ", sizeof ("#<struct ") - 1, port);
       scm_intprint (SCM_STRUCT_VTABLE (exp), 16, port);
-      scm_gen_putc (':', port);
+      scm_putc (':', port);
       scm_intprint (exp, 16, port);
-      scm_gen_putc ('>', port);
+      scm_putc ('>', port);
     }
 }
 

@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996, 1997 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -98,9 +98,7 @@ scm_hasher(obj, n, d)
       }
     case scm_tcs_symbols:
     case scm_tc7_string:
-    case scm_tc7_mb_string:
     case scm_tc7_substring:
-    case scm_tc7_mb_substring:
       return scm_strhash(SCM_ROUCHARS(obj), (scm_sizet) SCM_ROLENGTH(obj), n);
     case scm_tc7_wvect:
     case scm_tc7_vector:

@@ -99,7 +99,6 @@ scm_vector_set_length_x (vect, len)
     default:
     badarg1: scm_wta (vect, (char *) SCM_ARG1, s_vector_set_length_x);
     case scm_tc7_string:
-    case scm_tc7_mb_string:
       SCM_ASRTGO (vect != scm_nullstr, badarg1);
       sz = sizeof (char);
       l++;
@@ -2228,7 +2227,7 @@ tail:
 	    scm_iprin1 (ra, port, pstate);
 	  for (j += inc; n-- > 0; j += inc)
 	    {
-	      scm_gen_putc (' ', port);
+	      scm_putc (' ', port);
 	      SCM_ARRAY_BASE (ra) = j;
 	      scm_iprin1 (ra, port, pstate);
 	    }
@@ -2240,16 +2239,16 @@ tail:
 	  inc = SCM_ARRAY_DIMS (ra)[k].inc;
 	  for (i = SCM_ARRAY_DIMS (ra)[k].lbnd; i < SCM_ARRAY_DIMS (ra)[k].ubnd; i++)
 	    {
-	      scm_gen_putc ('(', port);
+	      scm_putc ('(', port);
 	      rapr1 (ra, j, k + 1, port, pstate);
-	      scm_gen_puts (scm_regular_string, ") ", port);
+	      scm_puts (") ", port);
 	      j += inc;
 	    }
 	  if (i == SCM_ARRAY_DIMS (ra)[k].ubnd)
 	    {			/* could be zero size. */
-	      scm_gen_putc ('(', port);
+	      scm_putc ('(', port);
 	      rapr1 (ra, j, k + 1, port, pstate);
-	      scm_gen_putc (')', port);
+	      scm_putc (')', port);
 	    }
 	  break;
 	}
@@ -2268,7 +2267,7 @@ tail:
 	scm_iprin1 (scm_uniform_vector_ref (ra, SCM_MAKINUM (j)), port, pstate);
       for (j += inc; n-- > 0; j += inc)
 	{
-	  scm_gen_putc (' ', port);
+	  scm_putc (' ', port);
 	  scm_iprin1 (scm_cvref (ra, j, SCM_UNDEFINED), port, pstate);
 	}
       break;
@@ -2278,19 +2277,19 @@ tail:
       if (SCM_WRITINGP (pstate))
 	for (j += inc; n-- > 0; j += inc)
 	  {
-	    scm_gen_putc (' ', port);
+	    scm_putc (' ', port);
 	    scm_iprin1 (SCM_MAKICHR (SCM_CHARS (ra)[j]), port, pstate);
 	  }
       else
 	for (j += inc; n-- > 0; j += inc)
-	  scm_gen_putc (SCM_CHARS (ra)[j], port);
+	  scm_putc (SCM_CHARS (ra)[j], port);
       break;
     case scm_tc7_byvect:
       if (n-- > 0)
 	scm_intprint (((char *)SCM_CDR (ra))[j], 10, port);
       for (j += inc; n-- > 0; j += inc)
 	{
-	  scm_gen_putc (' ', port);
+	  scm_putc (' ', port);
 	  scm_intprint (((char *)SCM_CDR (ra))[j], 10, port);
 	}
       break;
@@ -2301,7 +2300,7 @@ tail:
 	scm_intprint (SCM_VELTS (ra)[j], 10, port);
       for (j += inc; n-- > 0; j += inc)
 	{
-	  scm_gen_putc (' ', port);
+	  scm_putc (' ', port);
 	  scm_intprint (SCM_VELTS (ra)[j], 10, port);
 	}
       break;
@@ -2311,7 +2310,7 @@ tail:
 	scm_intprint (((short *)SCM_CDR (ra))[j], 10, port);
       for (j += inc; n-- > 0; j += inc)
 	{
-	  scm_gen_putc (' ', port);
+	  scm_putc (' ', port);
 	  scm_intprint (((short *)SCM_CDR (ra))[j], 10, port);
 	}
       break;
@@ -2326,7 +2325,7 @@ tail:
 	  scm_floprint (z, port, pstate);
 	  for (j += inc; n-- > 0; j += inc)
 	    {
-	      scm_gen_putc (' ', port);
+	      scm_putc (' ', port);
 	      SCM_FLO (z) = ((float *) SCM_VELTS (ra))[j];
 	      scm_floprint (z, port, pstate);
 	    }
@@ -2341,7 +2340,7 @@ tail:
 	  scm_floprint (z, port, pstate);
 	  for (j += inc; n-- > 0; j += inc)
 	    {
-	      scm_gen_putc (' ', port);
+	      scm_putc (' ', port);
 	      SCM_REAL (z) = ((double *) SCM_VELTS (ra))[j];
 	      scm_floprint (z, port, pstate);
 	    }
@@ -2356,7 +2355,7 @@ tail:
 	  scm_floprint ((0.0 == SCM_IMAG (cz) ? z : cz), port, pstate);
 	  for (j += inc; n-- > 0; j += inc)
 	    {
-	      scm_gen_putc (' ', port);
+	      scm_putc (' ', port);
 	      SCM_REAL (z) = SCM_REAL (cz) = ((double *) SCM_VELTS (ra))[2 * j];
 	      SCM_IMAG (cz) = ((double *) SCM_VELTS (ra))[2 * j + 1];
 	      scm_floprint ((0.0 == SCM_IMAG (cz) ? z : cz), port, pstate);
@@ -2377,7 +2376,7 @@ scm_raprin1 (exp, port, pstate)
 {
   SCM v = exp;
   scm_sizet base = 0;
-  scm_gen_putc ('#', port);
+  scm_putc ('#', port);
 tail:
   switch SCM_TYP7
     (v)
@@ -2390,9 +2389,9 @@ tail:
 	if (SCM_ARRAYP (v))
 
 	  {
-	    scm_gen_puts (scm_regular_string, "<enclosed-array ", port);
+	    scm_puts ("<enclosed-array ", port);
 	    rapr1 (exp, base, 0, port, pstate);
-	    scm_gen_putc ('>', port);
+	    scm_putc ('>', port);
 	    return 1;
 	  }
 	else
@@ -2405,13 +2404,13 @@ tail:
       if (exp == v)
 	{			/* a uve, not an scm_array */
 	  register long i, j, w;
-	  scm_gen_putc ('*', port);
+	  scm_putc ('*', port);
 	  for (i = 0; i < (SCM_LENGTH (exp)) / SCM_LONG_BIT; i++)
 	    {
 	      w = SCM_VELTS (exp)[i];
 	      for (j = SCM_LONG_BIT; j; j--)
 		{
-		  scm_gen_putc (w & 1 ? '1' : '0', port);
+		  scm_putc (w & 1 ? '1' : '0', port);
 		  w >>= 1;
 		}
 	    }
@@ -2421,52 +2420,52 @@ tail:
 	      w = SCM_VELTS (exp)[SCM_LENGTH (exp) / SCM_LONG_BIT];
 	      for (; j; j--)
 		{
-		  scm_gen_putc (w & 1 ? '1' : '0', port);
+		  scm_putc (w & 1 ? '1' : '0', port);
 		  w >>= 1;
 		}
 	    }
 	  return 1;
 	}
       else
-	scm_gen_putc ('b', port);
+	scm_putc ('b', port);
       break;
     case scm_tc7_string:
-      scm_gen_putc ('a', port);
+      scm_putc ('a', port);
       break;
     case scm_tc7_byvect:
-      scm_gen_puts (scm_regular_string, "bytes", port);
+      scm_puts ("bytes", port);
       break;
     case scm_tc7_uvect:
-      scm_gen_putc ('u', port);
+      scm_putc ('u', port);
       break;
     case scm_tc7_ivect:
-      scm_gen_putc ('e', port);
+      scm_putc ('e', port);
       break;
     case scm_tc7_svect:
-      scm_gen_puts (scm_regular_string, "short", port);
+      scm_puts ("short", port);
       break;
 #ifdef LONGLONGS
     case scm_tc7_llvect:
-      scm_gen_puts (scm_regular_string, "long_long", port);
+      scm_puts ("long_long", port);
       break;
 #endif
 #ifdef SCM_FLOATS
 #ifdef SCM_SINGLES
     case scm_tc7_fvect:
-      scm_gen_putc ('s', port);
+      scm_putc ('s', port);
       break;
 #endif /*SCM_SINGLES*/
     case scm_tc7_dvect:
-      scm_gen_putc ('i', port);
+      scm_putc ('i', port);
       break;
     case scm_tc7_cvect:
-      scm_gen_putc ('c', port);
+      scm_putc ('c', port);
       break;
 #endif /*SCM_FLOATS*/
     }
-  scm_gen_putc ('(', port);
+  scm_putc ('(', port);
   rapr1 (exp, base, 0, port, pstate);
-  scm_gen_putc (')', port);
+  scm_putc (')', port);
   return 1;
 }
 

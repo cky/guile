@@ -2,7 +2,7 @@
 
 #ifndef TAGSH
 #define TAGSH
-/*	Copyright (C) 1995,1996 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996, 1997 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -218,30 +218,19 @@ typedef long SCM;
  *              bits) can be masked off to reveal a common type.
  *
  *		TYP7S(X) returns TYP7, but masking out the option bit S.
- *		TYP7D(X) returns TYP7, but masking out the option bit D.
- *		TYP7SD(X) masks out both option bits.
  *
  *              For example, all strings have 001 in the 'xxx' bits in
  *              the diagram above, the D bit says whether it's a
- *              substring, and the S bit says whether it's a multibyte
- *              character string.
+ *              substring.
  *
  *		for example:
- *						      D S
+ *						        S
  *			scm_tc7_string    	= G0010101
- *			scm_tc7_mb_string 	= G0010111
  *			scm_tc7_substring	= G0011101
- *			scm_tc7_mb_substring	= G0011111
  *
- *		TYP7DS turns all string tags into tc7_string; thus,
- *		testing TYP7DS against tc7_string is a quick way to
+ *		TYP7S turns all string tags into tc7_string; thus,
+ *		testing TYP7S against tc7_string is a quick way to
  *		test for any kind of string.
- *
- *		TYP7S turns tc7_mb_string into tc7_string and
- *		tc7_mb_substring into tc7_substring.
- *
- *		TYP7D turns tc7_mb_substring into tc7_mb_string and
- *		tc7_substring into tc7_string.
  *
  *		Some TC7 types are subdivided into 256 subtypes giving
  *		rise to the macros:
@@ -312,8 +301,6 @@ typedef long SCM;
 
 #define SCM_TYP7(x) 		(0x7f & (int)SCM_CAR(x))
 #define SCM_TYP7S(x) 		(0x7d & (int)SCM_CAR(x))
-#define SCM_TYP7SD(x) 		(0x75 & (int)SCM_CAR(x))
-#define SCM_TYP7D(x) 		(0x77 & (int)SCM_CAR(x))
 
 
 #define SCM_TYP16(x) 		(0xffff & (int)SCM_CAR(x))
@@ -344,9 +331,7 @@ typedef long SCM;
 
 /* a quad, two couples, two trists */
 #define scm_tc7_string		21
-#define scm_tc7_mb_string	23
 #define scm_tc7_substring	29
-#define scm_tc7_mb_substring	31
 
 /* Many of the following should be turned
  * into structs or smobs.  We need back some

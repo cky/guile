@@ -104,9 +104,9 @@ scm_print_regex_t (obj, port, pstate)
 {
   regex_t *r;
   r = SCM_RGX (obj);
-  scm_gen_puts (scm_regular_string, "#<rgx ", port);
+  scm_puts ("#<rgx ", port);
   scm_intprint (obj, 16, port);
-  scm_gen_puts (scm_regular_string, ">", port);
+  scm_puts (">", port);
   return 1;
 }
 

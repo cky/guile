@@ -94,10 +94,10 @@ printjb (exp, port, pstate)
      SCM port;
      scm_print_state *pstate;
 {
-  scm_gen_puts (scm_regular_string, "#<jmpbuffer ", port);
-  scm_gen_puts (scm_regular_string, JBACTIVE(exp) ? "(active) " : "(inactive) ", port);
+  scm_puts ("#<jmpbuffer ", port);
+  scm_puts (JBACTIVE(exp) ? "(active) " : "(inactive) ", port);
   scm_intprint((SCM) JBJMPBUF(exp), 16, port);
-  scm_gen_putc ('>', port);
+  scm_putc ('>', port);
   return 1 ;
 }
 
@@ -273,7 +273,7 @@ print_lazy_catch (SCM closure, SCM port, scm_print_state *pstate)
 
   sprintf (buf, "#<lazy-catch 0x%lx 0x%lx>",
 	   (long) c->handler, (long) c->handler_data);
-  scm_gen_puts (scm_regular_string, buf, port);
+  scm_puts (buf, port);
 
   return 1;
 }
@@ -489,8 +489,8 @@ handler_message (void *handler_data, SCM tag, SCM args)
   if (! prog_name)
     prog_name = "guile";
 
-  scm_gen_puts (scm_regular_string, prog_name, p);
-  scm_gen_puts (scm_regular_string, ": ", p);
+  scm_puts (prog_name, p);
+  scm_puts (": ", p);
 
   if (scm_ilength (args) >= 3)
     {
@@ -501,11 +501,11 @@ handler_message (void *handler_data, SCM tag, SCM args)
     }
   else
     {
-      scm_gen_puts (scm_regular_string, "uncaught throw to ", p);
+      scm_puts ("uncaught throw to ", p);
       scm_prin1 (tag, p, 0);
-      scm_gen_puts (scm_regular_string, ": ", p);
+      scm_puts (": ", p);
       scm_prin1 (args, p, 1);
-      scm_gen_putc ('\n', p);
+      scm_putc ('\n', p);
     }
 }
 

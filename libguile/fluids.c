@@ -1,4 +1,4 @@
-/*	Copyright (C) 1996 Free Software Foundation, Inc.
+/*	Copyright (C) 1996, 1997 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -105,9 +105,9 @@ print_fluid (exp, port, pstate)
      SCM port;
      scm_print_state *pstate;
 {
-    scm_gen_puts (scm_regular_string, "#<fluid ", port);
+    scm_puts ("#<fluid ", port);
     scm_intprint (SCM_FLUID_NUM (exp), 10, port);
-    scm_gen_putc ('>', port);
+    scm_putc ('>', port);
     return 1;
 }
 

@@ -79,14 +79,14 @@ display_header (source, port)
   if (SCM_NIMP (fname) && SCM_STRINGP (fname))
     {
       scm_prin1 (fname, port, 0);
-      scm_gen_putc (':', port);
+      scm_putc (':', port);
       scm_prin1 (scm_source_property (source, scm_i_line), port, 0);
-      scm_gen_putc (':', port);
+      scm_putc (':', port);
       scm_prin1 (scm_source_property (source, scm_i_column), port, 0);
     }
   else
-    scm_gen_puts (scm_regular_string, "ERROR", port);
-  scm_gen_puts (scm_regular_string, ": ", port);
+    scm_puts ("ERROR", port);
+  scm_puts (": ", port);
 }
 
 
@@ -104,7 +104,7 @@ scm_display_error_message (message, args, port)
       || !scm_list_p (args))
     {
       scm_prin1 (message, port, 0);
-      scm_gen_putc ('\n', port);
+      scm_putc ('\n', port);
       return;
     }
 
@@ -124,13 +124,13 @@ scm_display_error_message (message, args, port)
 	else
 	  continue;
 
-	scm_gen_write (scm_regular_string, start, p - start - 1, port);
+	scm_lfwrite (start, p - start - 1, port);
 	scm_prin1 (SCM_CAR (args), port, writingp);
 	args = SCM_CDR (args);
 	start = p + 1;
       }
-  scm_gen_write (scm_regular_string, start, p - start, port);
-  scm_gen_putc ('\n', port);
+  scm_lfwrite (start, p - start, port);
+  scm_putc ('\n', port);
 }
 
 static void display_expression SCM_P ((SCM frame, SCM pname, SCM source, SCM port));
@@ -152,24 +152,24 @@ display_expression (frame, pname, source, port)
       if (SCM_NIMP (frame)
 	  && SCM_FRAMEP (frame)
 	  && SCM_FRAME_EVAL_ARGS_P (frame))
-	scm_gen_puts (scm_regular_string, "While evaluating arguments to ", port);
+	scm_puts ("While evaluating arguments to ", port);
       else
-	scm_gen_puts (scm_regular_string, "In procedure ", port);
+	scm_puts ("In procedure ", port);
       scm_iprin1 (pname, port, pstate);
       if (SCM_NIMP (source) && SCM_MEMOIZEDP (source))
 	{
-	  scm_gen_puts (scm_regular_string, " in expression ", port);
+	  scm_puts (" in expression ", port);
 	  pstate->writingp = 1;
 	  scm_iprin1 (scm_unmemoize (source), port, pstate);
 	}
     }
   else if (SCM_NIMP (source))
     {
-      scm_gen_puts (scm_regular_string, "In expression ", port);
+      scm_puts ("In expression ", port);
       pstate->writingp = 1;
       scm_iprin1 (scm_unmemoize (source), port, pstate);
     }
-  scm_gen_puts (scm_regular_string, ":\n", port);
+  scm_puts (":\n", port);
   scm_free_print_state (print_state);
 }
 
@@ -229,13 +229,11 @@ display_error_handler (struct display_error_handler_data *data,
 		       SCM tag, SCM args)
 {
   SCM print_state = scm_make_print_state ();
-  scm_gen_puts (scm_regular_string,
-		"\nException during displaying of ",
-		data->port);
-  scm_gen_puts (scm_regular_string, data->mode, data->port);
-  scm_gen_puts (scm_regular_string, ": ", data->port);
+  scm_puts ("\nException during displaying of ", data->port);
+  scm_puts (data->mode, data->port);
+  scm_puts (": ", data->port);
   scm_iprin1 (tag, data->port, SCM_PRINT_STATE (print_state));
-  scm_gen_putc ('\n', data->port);
+  scm_putc ('\n', data->port);
   return SCM_UNSPECIFIED;
 }
 
@@ -265,7 +263,7 @@ indent (n, port)
 {
   int i;
   for (i = 0; i < n; ++i)
-    scm_gen_putc (' ', port);
+    scm_putc (' ', port);
 }
 
 static void display_frame_expr SCM_P ((char *hdr, SCM exp, char *tlr, int indentation, SCM sport, SCM port, scm_print_state *pstate));
@@ -282,11 +280,11 @@ display_frame_expr (hdr, exp, tlr, indentation, sport, port, pstate)
   if (SCM_NIMP (exp) && SCM_CONSP (exp))
     {
       scm_iprlist (hdr, exp, tlr[0], port, pstate);
-      scm_gen_puts (scm_regular_string, &tlr[1], port);
+      scm_puts (&tlr[1], port);
     }
   else
     scm_iprin1 (exp, port, pstate);
-  scm_gen_putc ('\n', port);
+  scm_putc ('\n', port);
 }
 
 static void display_application SCM_P ((SCM frame, int indentation, SCM sport, SCM port, scm_print_state *pstate));
@@ -356,7 +354,7 @@ display_frame (frame, nfield, indentation, sport, port, pstate)
   if (!SCM_BACKWARDS_P && SCM_FRAME_OVERFLOW_P (frame))
     {
       indent (nfield + 1 + indentation, port);
-      scm_gen_puts (scm_regular_string, "...\n", port);
+      scm_puts ("...\n", port);
     }
 
   /* Check size of frame number. */
@@ -370,7 +368,7 @@ display_frame (frame, nfield, indentation, sport, port, pstate)
   scm_iprin1 (SCM_MAKINUM (n), port, pstate);
 
   /* Real frame marker */
-  scm_gen_putc (SCM_FRAME_REAL_P (frame) ? '*' : ' ', port);
+  scm_putc (SCM_FRAME_REAL_P (frame) ? '*' : ' ', port);
 
   /* Indentation. */
   indent (indentation, port);
@@ -398,7 +396,7 @@ display_frame (frame, nfield, indentation, sport, port, pstate)
   if (SCM_BACKWARDS_P && SCM_FRAME_OVERFLOW_P (frame))
     {
       indent (nfield + 1 + indentation, port);
-      scm_gen_puts (scm_regular_string, "...\n", port);
+      scm_puts ("...\n", port);
     }
 }
 
@@ -500,7 +498,7 @@ display_backtrace_body (struct display_backtrace_args *a, SCM jmpbuf)
   for (i = 0; j > 0; ++i) j /= 10;
   nfield = i ? i : 1;
   
-  scm_gen_puts (scm_regular_string, "Backtrace:\n", a->port);
+  scm_puts ("Backtrace:\n", a->port);
 
   /* Print frames. */
   frame = scm_stack_ref (a->stack, SCM_MAKINUM (beg));
@@ -549,19 +547,16 @@ scm_backtrace ()
       if (SCM_FALSEP (SCM_CDR (scm_has_shown_backtrace_hint_p_var))
 	  && !SCM_BACKTRACE_P)
 	{
-	  scm_gen_puts (scm_regular_string,
-			"Type \"(debug-enable 'backtrace)\" if you would like "
-			"a backtrace\n"
-			"automatically if an error occurs in the future.\n",
-			scm_cur_outp);
+	  scm_puts ("Type \"(debug-enable 'backtrace)\" if you would like "
+		    "a backtrace\n"
+		    "automatically if an error occurs in the future.\n",
+		    scm_cur_outp);
 	  SCM_SETCDR (scm_has_shown_backtrace_hint_p_var, SCM_BOOL_T);
 	}
     }
   else
     {
-      scm_gen_puts (scm_regular_string,
-		    "No backtrace available.\n",
-		    scm_cur_outp);
+      scm_puts ("No backtrace available.\n", scm_cur_outp);
     }
   return SCM_UNSPECIFIED;
 }

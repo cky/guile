@@ -50,21 +50,6 @@
 
 
 
-enum scm_port_representation_type
-{
-  scm_regular_port,
-  scm_mb_port,
-  scm_wchar_port
-};
-
-enum scm_string_representation_type
-{
-  scm_regular_string = scm_regular_port,
-  scm_mb_string = scm_mb_port,
-  scm_wchar_string = scm_wchar_port
-};
-
-
 struct scm_port_table 
 {
   SCM port;			/* Open port.  */
@@ -78,8 +63,6 @@ struct scm_port_table
 
   int line_number;		/* debugging support.  */
   int column_number;		/* debugging support.  */
-
-  enum scm_port_representation_type representation;
 };
 
 extern struct scm_port_table **scm_port_table;
@@ -124,8 +107,6 @@ extern int scm_port_table_size; /* Number of ports in scm_port_table.  */
 #define SCM_COL(x) SCM_PTAB_ENTRY(x)->column_number
 #define SCM_REVEALED(x) SCM_PTAB_ENTRY(x)->revealed
 #define SCM_SETREVEALED(x,s) (SCM_PTAB_ENTRY(x)->revealed = s)
-#define SCM_PORT_REPRESENTATION(x) SCM_PTAB_ENTRY(x)->representation
-#define SCM_SET_PORT_REPRESENTATION(x,s) (SCM_PTAB_ENTRY(x)->representation = s)
 #define SCM_CRDYP(port) (SCM_CAR (port) & SCM_CRDY)
 #define SCM_CLRDY(port) {SCM_SETAND_CAR (port, SCM_CUC);}
 #define SCM_SETRDY(port) {SCM_SETOR_CAR (port, SCM_CRDY);}

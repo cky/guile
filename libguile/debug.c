@@ -1,5 +1,5 @@
 /* Debugging extensions for Guile
- * Copyright (C) 1995, 1996 Free Software Foundation
+ * Copyright (C) 1995, 1996, 1997 Free Software Foundation
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -140,11 +140,11 @@ prinmemoized (obj, port, pstate)
      scm_print_state *pstate;
 {
   int writingp = SCM_WRITINGP (pstate);
-  scm_gen_puts (scm_regular_string, "#<memoized ", port);
+  scm_puts ("#<memoized ", port);
   SCM_SET_WRITINGP (pstate, 1);
   scm_iprin1 (scm_unmemoize (obj), port, pstate);
   SCM_SET_WRITINGP (pstate, writingp);
-  scm_gen_putc ('>', port);
+  scm_putc ('>', port);
   return 1;
 }
 
@@ -353,9 +353,9 @@ prindebugobj (obj, port, pstate)
      SCM port;
      scm_print_state *pstate;
 {
-  scm_gen_puts (scm_regular_string, "#<debug-object ", port);
+  scm_puts ("#<debug-object ", port);
   scm_intprint (SCM_DEBUGOBJ_FRAME (obj), 16, port);
-  scm_gen_putc ('>', port);
+  scm_putc ('>', port);
   return 1;
 }
 

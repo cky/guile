@@ -73,7 +73,6 @@
 #include "list.h"
 #include "load.h"
 #include "mallocs.h"
-#include "mbstrings.h"
 #include "net_db.h"
 #include "numbers.h"
 #include "objects.h"
@@ -443,7 +442,6 @@ scm_boot_guile_1 (base, closure)
       scm_init_stime ();
       scm_init_strings ();
       scm_init_strorder ();
-      scm_init_mbstrings ();
       scm_init_strop ();
       scm_init_throw ();
       scm_init_variable ();

@@ -1,7 +1,7 @@
 #ifndef LIBGUILEH
 #define LIBGUILEH
 
-/*	Copyright (C) 1995, 1996 Free Software Foundation, Inc.
+/*	Copyright (C) 1995, 1996, 1997 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -68,7 +68,6 @@
 #include "libguile/eq.h"
 #include "libguile/error.h"
 #include "libguile/eval.h"
-#include "libguile/extchrs.h"
 #include "libguile/feature.h"
 #include "libguile/filesys.h"
 #include "libguile/fports.h"
@@ -85,7 +84,6 @@
 #include "libguile/load.h"
 #include "libguile/mallocs.h"
 #include "libguile/markers.h"
-#include "libguile/mbstrings.h"
 #include "libguile/net_db.h"
 #include "libguile/numbers.h"
 #include "libguile/objprop.h"

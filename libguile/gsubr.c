@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996, 1997 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -172,13 +172,13 @@ SCM
 gsubr_21l(req1, req2, opt, rst)
      SCM req1, req2, opt, rst;
 {
-  scm_gen_puts (scm_regular_string, "gsubr-2-1-l:\n req1: ", scm_cur_outp);
+  scm_puts ("gsubr-2-1-l:\n req1: ", scm_cur_outp);
   scm_display(req1, scm_cur_outp);
-  scm_gen_puts (scm_regular_string, "\n req2: ", scm_cur_outp);
+  scm_puts ("\n req2: ", scm_cur_outp);
   scm_display(req2, scm_cur_outp);
-  scm_gen_puts (scm_regular_string, "\n opt: ", scm_cur_outp);
+  scm_puts ("\n opt: ", scm_cur_outp);
   scm_display(opt, scm_cur_outp);
-  scm_gen_puts (scm_regular_string, "\n rest: ", scm_cur_outp);
+  scm_puts ("\n rest: ", scm_cur_outp);
   scm_display(rst, scm_cur_outp);
   scm_newline(scm_cur_outp);
   return SCM_UNSPECIFIED;

@@ -46,7 +46,6 @@
 #include "eval.h"
 #include "variable.h"
 #include "alist.h"
-#include "mbstrings.h"
 #include "weaks.h"
 
 #include "symbols.h"
@@ -298,7 +297,6 @@ scm_intern_obarray_soft (name, len, obarray, softness)
   lsym = scm_makfromstr (name, len, SCM_SYMBOL_SLOTS);
 
   SCM_SETLENGTH (lsym, (long) len, scm_tc7_msymbol);
-  SCM_SYMBOL_MULTI_BYTE_STRINGP (lsym) = SCM_BOOL_F;
   SCM_SYMBOL_HASH (lsym) = scm_hash;
   SCM_SYMBOL_PROPS (lsym) = SCM_EOL;
   if (obarray == SCM_BOOL_F)
@@ -474,13 +472,6 @@ scm_string_to_symbol(s)
   SCM_ASSERT(SCM_NIMP(s) && SCM_ROSTRINGP(s), s, SCM_ARG1, s_string_to_symbol);
   vcell = scm_intern(SCM_ROCHARS(s), (scm_sizet)SCM_LENGTH(s));
   answer = SCM_CAR (vcell);
-  if (SCM_TYP7 (answer) == scm_tc7_msymbol)
-    {
-      if (SCM_REGULAR_STRINGP (s))
-	SCM_SYMBOL_MULTI_BYTE_STRINGP (answer) = SCM_BOOL_F;
-      else
-	SCM_SYMBOL_MULTI_BYTE_STRINGP (answer) = SCM_BOOL_T;
-    }
   return answer;
 }
 
@@ -520,13 +511,6 @@ scm_string_to_obarray_symbol(o, s, softp)
   if (vcell == SCM_BOOL_F)
     return vcell;
   answer = SCM_CAR (vcell);
-  if (SCM_TYP7 (s) == scm_tc7_msymbol)
-    {
-      if (SCM_REGULAR_STRINGP (s))
-	SCM_SYMBOL_MULTI_BYTE_STRINGP (answer) = SCM_BOOL_F;
-      else
-	SCM_SYMBOL_MULTI_BYTE_STRINGP (answer) = SCM_BOOL_T;
-    }
   return answer;
 }
 
@@ -689,7 +673,6 @@ msymbolize (s)
   string = scm_makfromstr (SCM_CHARS (s), SCM_LENGTH (s), SCM_SYMBOL_SLOTS);
   SCM_SETCHARS (s, SCM_CHARS (string));
   SCM_SETLENGTH (s, SCM_LENGTH (s), scm_tc7_msymbol);
-  SCM_SYMBOL_MULTI_BYTE_STRINGP (s) = SCM_BOOL_F;
   SCM_SETCDR (string, SCM_EOL);
   SCM_SETCAR (string, SCM_EOL);
   SCM_SYMBOL_PROPS (s) = SCM_EOL;

@@ -1,3 +1,61 @@
+Tue Oct 14 22:03:06 1997  Tom Tromey  <tromey@cygnus.com>
+
+	* Makefile.in: Rebuilt.
+	* Makefile.am (libguile_la_SOURCES): Removed extchrs.c,
+	mbstrings.c.
+	(modinclude_HEADERS): Removed extchrs.h, mbstrings.h.
+	* unif.c (scm_vector_set_length_x): Don't handle multibyte
+	strings.
+	* tag.c (scm_utag_mb_string, scm_utag_mb_substring): Removed.
+	(scm_tag): Don't handle multibyte strings.
+	* read.c: Don't include mbstrings.h.
+	(scm_lreadr): Don't handle multibyte ports.
+	* kw.c: Don't include mbstrings.h.
+	* init.c: Don't include mbstrings.h.
+	(scm_boot_guile_1): Don't init mbstrings module.
+	* hash.c (scm_hasher): Don't handle mbstrings.
+	* gscm.c (gscm_run_scm): Don't init mbstrings module.
+	* gc.c (scm_gc_mark): Don't handle mbstrings.
+	(scm_gc_sweep): Likewise.
+	* eval.c (SCM_CEVAL): Don't handle mbstrings.
+	* eq.c (scm_equal_p): Use SCM_TYP7S, not SCM_TYP7SD.
+	* tags.h (SCM_TYP7SD): Removed.
+	(SCM_TYP7D): Removed.
+	(scm_tc7_mb_string): Removed.
+	(scm_tc7_mb_substring): Removed.
+	* print.c (scm_iprin1): Handle char printing directly.  Don't
+	handle mbstrings.
+	Don't include "mbstrings.h".
+	* symbols.c (scm_intern_obarray_soft, scm_string_to_symbol,
+	scm_string_to_obarray_symbol, msymbolize): Don't set symbol's
+	multi-byte flag.
+	Don't include "mbstrings.h".
+	* symbols.h (SCM_SYMBOL_MULTI_BYTE_STRINGP): Removed.
+	(SCM_SYMBOL_SLOTS): Define as 4.
+	(SCM_ROSTRINGP): Use SCM_TYP7S, not SCM_TYP7SD.
+	* arbiters.c, backtrace.c, debug.c, dynl.c, eval.c, fluids.c,
+	gc.c, gsubr.c, ioext.c, kw.c, mallocs.c, numbers.c, ports.c,
+	print.c, read.c, regex-posix.c, root.c, srcprop.c, stackchk.c,
+	struct.c, threads.c, throw.c, unif.c, variable.c: Use new
+	("gen"-less) I/O function names.
+	* ports.c (scm_add_to_port_table): Don't set port's
+	representation.
+	* ports.h (scm_port_representation_type): Removed.
+	(scm_string_representation_type): Removed.
+	(struct scm_port_table ): Removed representation field.
+	(SCM_PORT_REPRESENTATION): Removed.
+	(SCM_SET_PORT_REPRESENTATION): Removed.
+	* genio.h: Use new function names.
+	* genio.c: Don't include "extchrs.h".
+	(scm_gen_putc, scm_gen_puts, scm_gen_write, scm_get_getc):
+	Removed.
+	(scm_putc, scm_puts, scm_lfwrite): No longer static.
+	(scm_getc): No longer static; handle line and column changes.
+	(scm_ungetc): Renamed from scm_gen_ungetc.
+	(scm_do_read_line): Renamed from scm_gen_read_line.
+	* libguile.h: Don't include "extchrs.h" or "mbstrings.h"
+	* extchrs.h, extchrs.c, mbstrings.h, mbstrings.c: Removed.
+
 1997-10-12  Mark Galassi  <rosalia@cygnus.com>
 
 	* gh_test_repl.c (c_vector_test): same as gh_test_c.c

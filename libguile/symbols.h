@@ -59,9 +59,8 @@ extern int scm_symhash_dim;
    and that's it.  They use the scm_tc7_ssymbol tag (S bit clear).
 
    Msymbols are symbols with extra slots.  These slots hold a property
-   list and a function value (for Emacs Lisp compatibility), a hash
-   code, and a flag to indicate whether their name contains multibyte
-   characters.  They use the scm_tc7_msymbol tag.
+   list and a function value (for Emacs Lisp compatibility), and a hash
+   code.  They use the scm_tc7_msymbol tag.
 
    We'd like SCM_CHARS to work on msymbols just as it does on
    ssymbols, so we'll have it point to the symbol's name as usual, and
@@ -82,13 +81,12 @@ extern int scm_symhash_dim;
 #define SCM_CHARS(x) ((char *)(SCM_CDR(x)))
 #define SCM_UCHARS(x) ((unsigned char *)(SCM_CDR(x)))
 #define SCM_SLOTS(x) ((SCM *) (* ((SCM *)SCM_CHARS(x) - 1)))
-#define SCM_SYMBOL_SLOTS 5
+#define SCM_SYMBOL_SLOTS 4
 #define SCM_SYMBOL_FUNC(X) (SCM_SLOTS(X)[0])
 #define SCM_SYMBOL_PROPS(X) (SCM_SLOTS(X)[1])
 #define SCM_SYMBOL_HASH(X) (*(unsigned long*)(&SCM_SLOTS(X)[2]))
-#define SCM_SYMBOL_MULTI_BYTE_STRINGP(X) (*(unsigned long*)(&SCM_SLOTS(X)[3]))
 
-#define SCM_ROSTRINGP(x) ((SCM_TYP7SD(x)==scm_tc7_string) || (SCM_TYP7S(x) == scm_tc7_ssymbol))
+#define SCM_ROSTRINGP(x) ((SCM_TYP7S(x)==scm_tc7_string) || (SCM_TYP7S(x) == scm_tc7_ssymbol))
 #define SCM_ROCHARS(x) ((SCM_TYP7(x) == scm_tc7_substring) \
 			? SCM_INUM (SCM_CADR (x)) + SCM_CHARS (SCM_CDDR (x))  \
 			: SCM_CHARS (x))

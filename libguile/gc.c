@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996, 1997 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -712,12 +712,10 @@ gc_mark_nimp:
 #endif
 
     case scm_tc7_string:
-    case scm_tc7_mb_string:
       SCM_SETGC8MARK (ptr);
       break;
 
     case scm_tc7_substring:
-    case scm_tc7_mb_substring:
       if (SCM_GC8MARKP(ptr))
 	break;
       SCM_SETGC8MARK (ptr);
@@ -735,12 +733,9 @@ gc_mark_nimp:
 					sizeof (SCM *) * (scm_weak_size *= 2)));
 	  if (scm_weak_vectors == NULL)
 	    {
-	      scm_gen_puts (scm_regular_string,
-			    "weak vector table",
-			    scm_cur_errp);
-	      scm_gen_puts (scm_regular_string,
-			    "\nFATAL ERROR DURING CRITICAL SCM_CODE SECTION\n",
-			    scm_cur_errp);
+	      scm_puts ("weak vector table", scm_cur_errp);
+	      scm_puts ("\nFATAL ERROR DURING CRITICAL SCM_CODE SECTION\n",
+			scm_cur_errp);
 	      exit(SCM_EXIT_FAILURE);
 	    }
 	}
@@ -1173,12 +1168,10 @@ scm_gc_sweep ()
 	      m += SCM_HUGE_LENGTH (scmptr) * 2 * sizeof (double);
 	      goto freechars;
 	    case scm_tc7_substring:
-	    case scm_tc7_mb_substring:
 	      if (SCM_GC8MARKP (scmptr))
 		goto c8mrkcontinue;
 	      break;
 	    case scm_tc7_string:
-	    case scm_tc7_mb_string:
 	      if (SCM_GC8MARKP (scmptr))
 		goto c8mrkcontinue;
 	      m += SCM_HUGE_LENGTH (scmptr) + 1;

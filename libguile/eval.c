@@ -1938,9 +1938,7 @@ dispatch:
     case scm_tc7_llvect:
 #endif
     case scm_tc7_string:
-    case scm_tc7_mb_string:
     case scm_tc7_substring:
-    case scm_tc7_mb_substring:
     case scm_tc7_smob:
     case scm_tcs_closures:
     case scm_tcs_subrs:
@@ -3060,11 +3058,11 @@ prinprom (exp, port, pstate)
      scm_print_state *pstate;
 {
   int writingp = SCM_WRITINGP (pstate);
-  scm_gen_puts (scm_regular_string, "#<promise ", port);
+  scm_puts ("#<promise ", port);
   SCM_SET_WRITINGP (pstate, 1);
   scm_iprin1 (SCM_CDR (exp), port, pstate);
   SCM_SET_WRITINGP (pstate, writingp);
-  scm_gen_putc ('>', port);
+  scm_putc ('>', port);
   return !0;
 }
 

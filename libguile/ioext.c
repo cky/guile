@@ -117,13 +117,13 @@ scm_read_delimited_x (delims, buf, gobble, port, start, end)
     {  
       int k;
 
-      c = scm_gen_getc (port);
+      c = scm_getc (port);
       for (k = 0; k < num_delims; k++)
 	{
 	  if (cdelims[k] == c)
 	    {
 	      if (SCM_FALSEP (gobble))
-		scm_gen_ungetc (c, port);
+		scm_ungetc (c, port);
 
 	      return scm_cons (SCM_MAKICHR (c),
 			       scm_long2num (j - cstart));
@@ -154,7 +154,7 @@ scm_read_line (port)
 		  port, SCM_ARG1, s_read_line);
     }
 
-  s = scm_gen_read_line (port);
+  s = scm_do_read_line (port);
   return (s == NULL ? SCM_EOF_VAL : scm_makfrom0str (s));
 }
 

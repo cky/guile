@@ -2,7 +2,7 @@
 
 #ifndef GENIOH
 #define GENIOH
-/*	Copyright (C) 1995,1996 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996, 1997 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,13 +48,12 @@
 
 
 
-extern void scm_gen_putc SCM_P ((int c, SCM port));
-extern void scm_gen_puts SCM_P ((enum scm_string_representation_type rep,
-			  char *str_data,
-			  SCM port));
-extern void scm_gen_write SCM_P ((enum scm_string_representation_type rep, char *str_data, scm_sizet nitems, SCM port));
-extern int scm_gen_getc SCM_P ((SCM port));
-extern void scm_gen_ungetc SCM_P ((int c, SCM port));
-extern char *scm_gen_read_line SCM_P ((SCM port));
+extern void scm_putc SCM_P ((int c, SCM port));
+extern void scm_puts SCM_P ((char *str_data, SCM port));
+extern void scm_lfwrite SCM_P ((char *ptr, scm_sizet size, SCM port));
+extern int scm_getc SCM_P ((SCM port));
+extern void scm_ungetc SCM_P ((int c, SCM port));
+/* FIXME: this is a terrible name.  */
+extern char *scm_do_read_line SCM_P ((SCM port));
 
 #endif  /* GENIOH */

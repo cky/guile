@@ -1,6 +1,6 @@
 /* classes: src_files */
 
-/*	Copyright (C) 1995 Free Software Foundation, Inc.
+/*	Copyright (C) 1995, 1997 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -58,9 +58,9 @@ prinmalloc (exp, port, pstate)
      SCM port;
      scm_print_state *pstate;
 {
-  scm_gen_puts(scm_regular_string, "#<malloc ", port);
+  scm_puts("#<malloc ", port);
   scm_intprint(SCM_CDR(exp), 16, port);
-  scm_gen_putc('>', port);
+  scm_putc('>', port);
   return 1;
 }
 

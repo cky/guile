@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996 Free Software Foundation
+/*	Copyright (C) 1995,1996, 1997 Free Software Foundation
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -114,11 +114,11 @@ prinsrcprops (obj, port, pstate)
      scm_print_state *pstate;
 {
   int writingp = SCM_WRITINGP (pstate);
-  scm_gen_puts (scm_regular_string, "#<srcprops ", port);
+  scm_puts ("#<srcprops ", port);
   SCM_SET_WRITINGP (pstate, 1);
   scm_iprin1 (scm_srcprops_to_plist (obj), port, pstate);
   SCM_SET_WRITINGP (pstate, writingp);
-  scm_gen_putc ('>', port);
+  scm_putc ('>', port);
   return 1;
 }
 

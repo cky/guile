@@ -40,14 +40,12 @@
  * If you do not wish that, delete this exception notice.  */
 
 
-#include "extchrs.h"
 #include <stdio.h>
 #include "_scm.h"
 #include "chars.h"
 #include "genio.h"
 #include "eval.h"
 #include "unif.h"
-#include "mbstrings.h"
 #include "kw.h"
 #include "alist.h"
 #include "srcprop.h"
@@ -109,7 +107,7 @@ scm_read (port)
   c = scm_flush_ws (port, (char *) NULL);
   if (EOF == c)
     return SCM_EOF_VAL;
-  scm_gen_ungetc (c, port);
+  scm_ungetc (c, port);
 
   tok_buf = scm_makstr (30L, 0);
   return scm_lreadr (&tok_buf, port, &copy);
@@ -134,7 +132,7 @@ scm_flush_ws (port, eoferr)
 {
   register int c;
   while (1)
-    switch (c = scm_gen_getc (port))
+    switch (c = scm_getc (port))
       {
       case EOF:
       goteof:
@@ -143,7 +141,7 @@ scm_flush_ws (port, eoferr)
 	return c;
       case ';':
       lp:
-	switch (c = scm_gen_getc (port))
+	switch (c = scm_getc (port))
 	  {
 	  case EOF:
 	    goto goteof;
@@ -254,7 +252,7 @@ skip_scsh_block_comment (port)
 
   for (;;)
     {
-      int c = scm_gen_getc (port);
+      int c = scm_getc (port);
 
       if (c == EOF)
 	scm_wta (SCM_UNDEFINED,
@@ -305,12 +303,12 @@ tryagain_no_flush_ws:
       p = scm_i_quasiquote;
       goto recquote;
     case ',':
-      c = scm_gen_getc (port);
+      c = scm_getc (port);
       if ('@' == c)
 	p = scm_i_uq_splicing;
       else
 	{
-	  scm_gen_ungetc (c, port);
+	  scm_ungetc (c, port);
 	  p = scm_i_unquote;
 	}
     recquote:
@@ -331,7 +329,7 @@ tryagain_no_flush_ws:
 					     SCM_EOL));
       return p;
     case '#':
-      c = scm_gen_getc (port);
+      c = scm_getc (port);
       switch (c)
 	{
 	case '(':
@@ -357,7 +355,7 @@ tryagain_no_flush_ws:
 	case 'I':
 	case 'e':
 	case 'E':
-	  scm_gen_ungetc (c, port);
+	  scm_ungetc (c, port);
 	  c = '#';
 	  goto num;
 
@@ -380,12 +378,10 @@ tryagain_no_flush_ws:
 	case '{':
 	  j = scm_read_token (c, tok_buf, port, 1);
 	  p = scm_intern (SCM_CHARS (*tok_buf), j);
-	  if (SCM_PORT_REPRESENTATION (port) != scm_regular_port)
-	    scm_set_symbol_multi_byte_x (SCM_CAR (p), SCM_BOOL_T);
 	  return SCM_CAR (p);
 
 	case '\\':
-	  c = scm_gen_getc (port);
+	  c = scm_getc (port);
 	  j = scm_read_token (c, tok_buf, port, 0);
 	  if (j == 1)
 	    return SCM_MAKICHR (c);
@@ -405,8 +401,6 @@ tryagain_no_flush_ws:
 	case ':':
 	  j = scm_read_token ('-', tok_buf, port, 0);
 	  p = scm_intern (SCM_CHARS (*tok_buf), j);
-	  if (SCM_PORT_REPRESENTATION (port) != scm_regular_port)
-	    scm_set_symbol_multi_byte_x (SCM_CAR (p), SCM_BOOL_T);
 	  return scm_make_keyword_from_dash_symbol (SCM_CAR (p));
 
 	default:
@@ -439,15 +433,15 @@ tryagain_no_flush_ws:
 
     case '"':
       j = 0;
-      while ('"' != (c = scm_gen_getc (port)))
+      while ('"' != (c = scm_getc (port)))
 	{
 	  SCM_ASSERT (EOF != c, SCM_UNDEFINED, "end of file in ", "string");
 
-	  while (j + sizeof(xwchar_t) + XMB_CUR_MAX >= SCM_LENGTH (*tok_buf))
+	  while (j + 2 >= SCM_LENGTH (*tok_buf))
 	    scm_grow_tok_buf (tok_buf);
 
 	  if (c == '\\')
-	    switch (c = scm_gen_getc (port))
+	    switch (c = scm_getc (port))
 	      {
 	      case '\n':
 		continue;
@@ -473,20 +467,8 @@ tryagain_no_flush_ws:
 		c = '\v';
 		break;
 	      }
-	  if (SCM_PORT_REPRESENTATION(port) == scm_regular_port)
-	    {
-	      SCM_CHARS (*tok_buf)[j] = c;
-	      ++j;
-	    }
-	  else
-	    {
-	      int len;
-	      len = xwctomb (SCM_CHARS (*tok_buf) + j, c);
-	      if (len == 0)
-		len = 1;
-	      SCM_ASSERT (len > 0, SCM_MAKINUM (c), "bogus char", "read");
-	      j += len;
-	    }
+	  SCM_CHARS (*tok_buf)[j] = c;
+	  ++j;
 	}
       if (j == 0)
 	return scm_nullstr;
@@ -494,10 +476,6 @@ tryagain_no_flush_ws:
       {
 	SCM str;
 	str = scm_makfromstr (SCM_CHARS (*tok_buf), j, 0);
-	if (SCM_PORT_REPRESENTATION(port) != scm_regular_port)
-	  {
-	    SCM_SETLENGTH (str, SCM_LENGTH (str), scm_tc7_mb_string);
-	  }
 	return str;
       }
 
@@ -513,9 +491,9 @@ tryagain_no_flush_ws:
 	return p;
       if (c == '#')
 	{
-	  if ((j == 2) && (scm_gen_getc (port) == '('))
+	  if ((j == 2) && (scm_getc (port) == '('))
 	    {
-	      scm_gen_ungetc ('(', port);
+	      scm_ungetc ('(', port);
 	      c = SCM_CHARS (*tok_buf)[1];
 	      goto callshrp;
 	    }
@@ -528,8 +506,6 @@ tryagain_no_flush_ws:
 	{
 	  j = scm_read_token ('-', tok_buf, port, 0);
 	  p = scm_intern (SCM_CHARS (*tok_buf), j);
-	  if (SCM_PORT_REPRESENTATION (port) != scm_regular_port)
-	    scm_set_symbol_multi_byte_x (SCM_CAR (p), SCM_BOOL_T);
 	  return scm_make_keyword_from_dash_symbol (SCM_CAR (p));
 	}
       /* fallthrough */
@@ -539,8 +515,6 @@ tryagain_no_flush_ws:
 
     tok:
       p = scm_intern (SCM_CHARS (*tok_buf), j);
-      if (SCM_PORT_REPRESENTATION (port) != scm_regular_port)
-	scm_set_symbol_multi_byte_x (SCM_CAR (p), SCM_BOOL_T);
       return SCM_CAR (p);
     }
 }
@@ -568,29 +542,17 @@ scm_read_token (ic, tok_buf, port, weird)
   else
     {
       j = 0;
-      while (j + sizeof(xwchar_t) + XMB_CUR_MAX >= SCM_LENGTH (*tok_buf))
+      while (j + 2 >= SCM_LENGTH (*tok_buf))
 	p = scm_grow_tok_buf (tok_buf);
-      if (SCM_PORT_REPRESENTATION(port) == scm_regular_port)
-	{
-	  p[j] = c;
-	  ++j;
-	}
-      else
-	{
-	  int len;
-	  len = xwctomb (p + j, c);
-	  if (len == 0)
-	    len = 1;
-	  SCM_ASSERT (len > 0, SCM_MAKINUM (c), "bogus char", "read");
-	  j += len;
-	}
+      p[j] = c;
+      ++j;
     }
 
   while (1)
     {
-      while (j + sizeof(xwchar_t) + XMB_CUR_MAX >= SCM_LENGTH (*tok_buf))
+      while (j + 2 >= SCM_LENGTH (*tok_buf))
 	p = scm_grow_tok_buf (tok_buf);
-      c = scm_gen_getc (port);
+      c = scm_getc (port);
       switch (c)
 	{
 	case '(':
@@ -602,7 +564,7 @@ scm_read_token (ic, tok_buf, port, weird)
 	  if (weird)
 	    goto default_case;
 
-	  scm_gen_ungetc (c, port);
+	  scm_ungetc (c, port);
 	case EOF:
 	eof_case:
 	  p[j] = 0;
@@ -612,7 +574,7 @@ scm_read_token (ic, tok_buf, port, weird)
 	    goto default_case;
 	  else
 	    {
-	      c = scm_gen_getc (port);
+	      c = scm_getc (port);
 	      if (c == EOF)
 		goto eof_case;
 	      else
@@ -622,7 +584,7 @@ scm_read_token (ic, tok_buf, port, weird)
 	  if (!weird)
 	    goto default_case;
 
-	  c = scm_gen_getc (port);
+	  c = scm_getc (port);
 	  if (c == '#')
 	    {
 	      p[j] = 0;
@@ -630,7 +592,7 @@ scm_read_token (ic, tok_buf, port, weird)
 	    }
 	  else
 	    {
-	      scm_gen_ungetc (c, port);
+	      scm_ungetc (c, port);
 	      c = '}';
 	      goto default_case;
 	    }
@@ -639,20 +601,8 @@ scm_read_token (ic, tok_buf, port, weird)
 	default_case:
 	  {
 	    c = (SCM_CASE_INSENSITIVE_P ? scm_downcase(c) : c);
-	    if (SCM_PORT_REPRESENTATION(port) == scm_regular_port)
-	      {
-		p[j] = c;
-		++j;
-	      }
-	    else
-	      {
-		int len;
-		len = xwctomb (p + j, c);
-		if (len == 0)
-		  len = 1;
-		SCM_ASSERT (len > 0, SCM_MAKINUM (c), "bogus char", "read");
-		j += len;
-	      }
+	    p[j] = c;
+	    ++j;
 	  }
 
 	}
@@ -678,7 +628,7 @@ scm_lreadparen (tok_buf, port, name, copy)
   c = scm_flush_ws (port, name);
   if (')' == c)
     return SCM_EOL;
-  scm_gen_ungetc (c, port);
+  scm_ungetc (c, port);
   if (scm_i_dot == (tmp = scm_lreadr (tok_buf, port, copy)))
     {
       ans = scm_lreadr (tok_buf, port, copy);
@@ -690,7 +640,7 @@ scm_lreadparen (tok_buf, port, name, copy)
   ans = tl = scm_cons (tmp, SCM_EOL);
   while (')' != (c = scm_flush_ws (port, name)))
     {
-      scm_gen_ungetc (c, port);
+      scm_ungetc (c, port);
       if (scm_i_dot == (tmp = scm_lreadr (tok_buf, port, copy)))
 	{
 	  SCM_SETCDR (tl, scm_lreadr (tok_buf, port, copy));
@@ -721,7 +671,7 @@ scm_lreadrecparen (tok_buf, port, name, copy)
   c = scm_flush_ws (port, name);
   if (')' == c)
     return SCM_EOL;
-  scm_gen_ungetc (c, port);
+  scm_ungetc (c, port);
   if (scm_i_dot == (tmp = scm_lreadr (tok_buf, port, copy)))
     {
       ans = scm_lreadr (tok_buf, port, copy);
@@ -738,7 +688,7 @@ scm_lreadrecparen (tok_buf, port, name, copy)
 			   SCM_EOL);
   while (')' != (c = scm_flush_ws (port, name)))
     {
-      scm_gen_ungetc (c, port);
+      scm_ungetc (c, port);
       if (scm_i_dot == (tmp = scm_lreadr (tok_buf, port, copy)))
 	{
 	  SCM_SETCDR (tl, tmp = scm_lreadr (tok_buf, port, copy));

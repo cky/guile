@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995, 1996 Free Software Foundation, Inc.
+/*	Copyright (C) 1995, 1996, 1997 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -87,9 +87,9 @@ print_thread (exp, port, pstate)
      SCM port;
      scm_print_state *pstate;
 {
-  scm_gen_puts (scm_regular_string, "#<thread ", port);
+  scm_puts ("#<thread ", port);
   scm_intprint (SCM_CDR (exp), 16, port);
-  scm_gen_putc ('>', port);
+  scm_putc ('>', port);
   return 1;
 }
 
@@ -107,9 +107,9 @@ print_mutex (exp, port, pstate)
      SCM port;
      scm_print_state *pstate;
 {
-  scm_gen_puts (scm_regular_string, "#<mutex ", port);
+  scm_puts ("#<mutex ", port);
   scm_intprint (SCM_CDR (exp), 16, port);
-  scm_gen_putc ('>', port);
+  scm_putc ('>', port);
   return 1;
 }
 
@@ -127,9 +127,9 @@ print_condvar (exp, port, pstate)
      SCM port;
      scm_print_state *pstate;
 {
-  scm_gen_puts (scm_regular_string, "#<condition-variable ", port);
+  scm_puts ("#<condition-variable ", port);
   scm_intprint (SCM_CDR (exp), 16, port);
-  scm_gen_putc ('>', port);
+  scm_putc ('>', port);
   return 1;
 }
 

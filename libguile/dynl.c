@@ -321,11 +321,11 @@ print_dynl_obj (exp, port, pstate)
      scm_print_state *pstate;
 {
     struct dynl_obj *d = (struct dynl_obj *)SCM_CDR (exp);
-    scm_gen_puts (scm_regular_string, "#<dynamic-object ", port);
+    scm_puts ("#<dynamic-object ", port);
     scm_iprin1 (d->filename, port, pstate);
     if (d->handle == NULL)
-      scm_gen_puts (scm_regular_string, " (unlinked)", port);
-    scm_gen_putc ('>', port);
+      scm_puts (" (unlinked)", port);
+    scm_putc ('>', port);
     return 1;
 }
 

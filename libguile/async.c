@@ -273,9 +273,9 @@ print_async (exp, port, pstate)
      SCM port;
      scm_print_state *pstate;
 {
-  scm_gen_puts (scm_regular_string, "#<async ", port);
+  scm_puts ("#<async ", port);
   scm_intprint(exp, 16, port);
-  scm_gen_putc('>', port);
+  scm_putc('>', port);
   return 1;
 }
 

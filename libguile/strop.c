@@ -257,7 +257,6 @@ SCM
 scm_string_copy (str)
      SCM str;
 {
-  /* doesn't handle multibyte strings.  */
   SCM_ASSERT (SCM_NIMP (str) && (SCM_STRINGP (str) || SCM_SUBSTRP (str)),
 	      str, SCM_ARG1, s_string_copy);
   return scm_makfromstr (SCM_ROCHARS (str), (scm_sizet)SCM_ROLENGTH (str), 0);

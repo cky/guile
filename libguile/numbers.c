@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996, 1997 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1441,7 +1441,7 @@ scm_floprint(sexp, port, pstate)
 {
 #ifdef SCM_FLOATS
   char num_buf[SCM_FLOBUFLEN];
-  scm_gen_write (scm_regular_string, num_buf, iflo2str(sexp, num_buf), port);
+  scm_lfwrite (num_buf, iflo2str(sexp, num_buf), port);
 #else
   scm_ipruk("float", sexp, port);
 #endif
@@ -1458,7 +1458,7 @@ scm_bigprint(exp, port, pstate)
 {
 #ifdef SCM_BIGDIG
   exp = big2str(exp, (unsigned int)10);
-  scm_gen_write (scm_regular_string, SCM_CHARS(exp), (scm_sizet)SCM_LENGTH(exp), port);
+  scm_lfwrite (SCM_CHARS(exp), (scm_sizet)SCM_LENGTH(exp), port);
 #else
   scm_ipruk("bignum", exp, port);
 #endif

@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996, 1997 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -87,11 +87,11 @@ scm_stack_report ()
   SCM_STACKITEM stack;
   scm_intprint (scm_stack_size (SCM_BASE (scm_rootcont)) * sizeof (SCM_STACKITEM),
 		16, scm_cur_errp);
-  scm_gen_puts (scm_regular_string, " of stack: 0x", scm_cur_errp);
+  scm_puts (" of stack: 0x", scm_cur_errp);
   scm_intprint ((long) SCM_BASE (scm_rootcont), 16, scm_cur_errp);
-  scm_gen_puts (scm_regular_string, " - 0x", scm_cur_errp);
+  scm_puts (" - 0x", scm_cur_errp);
   scm_intprint ((long) &stack, 16, scm_cur_errp);
-  scm_gen_puts (scm_regular_string, "\n", scm_cur_errp);
+  scm_puts ("\n", scm_cur_errp);
 }
 
 

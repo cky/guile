@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996, 1997 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -68,20 +68,20 @@ prin_var (exp, port, pstate)
      SCM port;
      scm_print_state *pstate;
 {
-  scm_gen_puts (scm_regular_string, "#<variable ", port);
+  scm_puts ("#<variable ", port);
   scm_intprint(exp, 16, port);
   {
     SCM val_cell;
     val_cell = SCM_CDR(exp);
     if (SCM_CAR (val_cell) != SCM_UNDEFINED)
       {
-	scm_gen_puts (scm_regular_string, " name: ", port);
+	scm_puts (" name: ", port);
 	scm_iprin1 (SCM_CAR (val_cell), port, pstate);
       }
-    scm_gen_puts (scm_regular_string, " binding: ", port);
+    scm_puts (" binding: ", port);
     scm_iprin1 (SCM_CDR (val_cell), port, pstate);
   }
-  scm_gen_putc('>', port);
+  scm_putc('>', port);
   return 1;
 }
 
