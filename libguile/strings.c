@@ -124,19 +124,27 @@ SCM_DEFINE (scm_string, "string", 0, 0, 1,
 }
 #undef FUNC_NAME
 
+
 SCM 
 scm_makstr (long len, int dummy)
+#define FUNC_NAME "scm_makstr"
 {
   SCM s;
-  char *mem = (char *) scm_must_malloc (len + 1, "scm_makstr");
+  char *mem;
 
+  SCM_ASSERT_RANGE (1, scm_long2num (len), len <= SCM_STRING_MAX_LENGTH);
+
+  mem = (char *) scm_must_malloc (len + 1, FUNC_NAME);
   mem[len] = 0;
+
   SCM_NEWCELL (s);
   SCM_SET_STRING_CHARS (s, mem);
   SCM_SET_STRING_LENGTH (s, len);
 
   return s;
 }
+#undef FUNC_NAME
+
 
 /* converts C scm_array of strings to SCM scm_list of strings. */
 /* If argc < 0, a null terminated scm_array is assumed. */
@@ -164,16 +172,21 @@ scm_makfromstrs (int argc, char **argv)
    made up.  */
 SCM
 scm_take_str (char *s, int len)
+#define FUNC_NAME "scm_take_str"
 {
   SCM answer;
+
+  SCM_ASSERT_RANGE (2, scm_ulong2num (len), len <= SCM_STRING_MAX_LENGTH);
+
   SCM_NEWCELL (answer);
-  SCM_DEFER_INTS;
+  SCM_SET_STRING_CHARS (answer, s);
   SCM_SET_STRING_LENGTH (answer, len);
   scm_done_malloc (len + 1);
-  SCM_SET_STRING_CHARS (answer, s);
-  SCM_ALLOW_INTS;
+
   return answer;
 }
+#undef FUNC_NAME
+
 
 /* `s' must be a malloc'd string.  See scm_take_str.  */
 SCM
@@ -208,8 +221,6 @@ scm_makfrom0str_opt (const char *src)
 }
 
 
-
-
 SCM_DEFINE (scm_make_string, "make-string", 1, 1, 0,
             (SCM k, SCM chr),
 	    "Returns a newly allocated string of\n"
@@ -218,23 +229,33 @@ SCM_DEFINE (scm_make_string, "make-string", 1, 1, 0,
             "STRING are unspecified.\n")
 #define FUNC_NAME s_scm_make_string
 {
-  SCM res;
-  register long i;
-  SCM_VALIDATE_INUM_MIN_COPY (1,k,0,i);
-  res = scm_makstr (i, 0);
-  if (!SCM_UNBNDP (chr))
+  if (SCM_INUMP (k))
     {
-      SCM_VALIDATE_CHAR (2,chr);
-      {
-	unsigned char *dst = SCM_STRING_UCHARS (res);
-	char c = SCM_CHAR (chr);
-	
-	memset (dst, c, i);
-      }
+      long int i = SCM_INUM (k);
+      SCM res;
+
+      SCM_ASSERT_RANGE (1, k, i >= 0);
+
+      res = scm_makstr (i, 0);
+      if (!SCM_UNBNDP (chr))
+	{
+	  unsigned char *dst;
+
+	  SCM_VALIDATE_CHAR (2, chr);
+
+	  dst = SCM_STRING_UCHARS (res);
+	  memset (dst, SCM_CHAR (chr), i);
+	}
+
+      return res;
     }
-  return res;
+  else if (SCM_BIGP (k))
+    SCM_OUT_OF_RANGE (1, k);
+  else
+    SCM_WRONG_TYPE_ARG (1, k);
 }
 #undef FUNC_NAME
+
 
 SCM_DEFINE (scm_string_length, "string-length", 1, 0, 0, 
            (SCM string),

@@ -1,5 +1,18 @@
 2001-02-08  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* strings.h (SCM_STRING_MAX_LENGTH):  New macro.
+
+	* strings.c (scm_makstr, scm_take_str, scm_make_string):  Added
+	range checking for the size parameter.  Thanks to Martin
+	Grabmueller for the hint.
+
+	(scm_makstr):  Reordered string initialization to make interrupt
+	deferring unnecessary.
+
+	* vectors.c (scm_make_vector):  Fixed range checking.
+
+2001-02-08  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* vectors.h (SCM_VECTOR_MAX_LENGTH):  New macro.
 
 	* vectors.c (scm_make_vector, scm_c_make_vector):  Improved the

@@ -275,7 +275,7 @@ SCM_DEFINE (scm_make_vector, "make-vector", 1, 1, 0,
 
   if (SCM_INUMP (k))
     {
-      SCM_ASSERT_RANGE (1, k, k >= 0);
+      SCM_ASSERT_RANGE (1, k, SCM_INUM (k) >= 0);
       return scm_c_make_vector (SCM_INUM (k), fill);
     }
   else if (SCM_BIGP (k))
