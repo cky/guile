@@ -83,6 +83,14 @@ SCM_DEFINE_INSTRUCTION (halt, "%halt", INST_NONE)
   return ac;
 }
 
+SCM_DEFINE_INSTRUCTION (name, "%name", INST_SCM)
+{
+  SCM name = FETCH ();
+  if (SCM_NIMP (name))
+    scm_set_name_x (ac, name);
+  NEXT;
+}
+
 
 /*
  * %push family
@@ -342,7 +350,6 @@ SCM_DEFINE_INSTRUCTION (savee_2, "%savee:2", INST_INUM)
 SCM_DEFINE_INSTRUCTION (savet, "%savet", INST_TOP)
 {
   SCM cell = FETCH ();
-  scm_set_object_property_x (ac, scm_sym_name, SCM_CAR (cell));
   VM_VARIABLE_SET (cell, ac);
   NEXT;
 }
