@@ -289,7 +289,8 @@ fi
 
 AC_MSG_CHECKING(for working IPv6 support)
 AC_CACHE_VAL(guile_cv_have_ipv6,
-[AC_TRY_COMPILE([#include <netinet/in.h>],
+[AC_TRY_COMPILE([#include <netinet/in.h>
+#include <sys/socket.h>],
 [struct sockaddr_in6 a;  a.sin6_family = AF_INET6;],
 guile_cv_have_ipv6=yes, guile_cv_have_ipv6=no)])
 AC_MSG_RESULT($guile_cv_have_ipv6)
