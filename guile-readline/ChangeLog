@@ -1,3 +1,7 @@
+2002-02-08  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* Makefile.am (AUTOMAKE_OPTIONS): Replace "foreign" with "gnu".
+
 2002-01-29  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* readline.scm (with-readline-completion-function): Renamed from
@@ -24,7 +28,7 @@
 2001-11-02  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	Support for native Win32.  Thanks to Stefan Jahn!
-	
+
         * Makefile.am: Put `-export-dynamic -no-undefined' into LDFLAGS
         and add the library `libguile.la' to support linkers which do not
         allow unresolved symbols inside shared libraries.
@@ -55,7 +59,7 @@
 	* readline.scm: Use load-extension instead of explicit
 	dynamic-link/dynamic-call.  Removed ".so" extension from library
 	name.
-	
+
 2001-08-02  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* readline.scm (call-with-readline-completion-function): New.
