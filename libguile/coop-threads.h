@@ -1,0 +1,140 @@
+/* classes: h_files */
+
+#ifndef COOP_THREADSH
+#define COOP_THREADSH
+
+/*	Copyright (C) 1996 Free Software Foundation, Inc.
+ * 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2, or (at your option)
+ * any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this software; see the file COPYING.  If not, write to
+ * the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+ *
+ * As a special exception, the Free Software Foundation gives permission
+ * for additional uses of the text contained in its release of GUILE.
+ *
+ * The exception is that, if you link the GUILE library with other files
+ * to produce an executable, this does not by itself cause the
+ * resulting executable to be covered by the GNU General Public License.
+ * Your use of that executable is in no way restricted on account of
+ * linking the GUILE library code into it.
+ *
+ * This exception does not however invalidate any other reasons why
+ * the executable file might be covered by the GNU General Public License.
+ *
+ * This exception applies only to the code released by the
+ * Free Software Foundation under the name GUILE.  If you copy
+ * code from other Free Software Foundation releases into a copy of
+ * GUILE, as the General Public License permits, the exception does
+ * not apply to the code that you add in this way.  To avoid misleading
+ * anyone as to the status of such modified files, you must delete
+ * this exception notice from them.
+ *
+ * If you write modifications of your own for GUILE, it is your choice
+ * whether to permit this exception to apply to your modifications.
+ * If you do not wish that, delete this exception notice.  
+ */
+
+
+/* This file is only included by coop-threads.c while coop-defs.h is
+   included by threads.h, which, in turn, is included by
+   libguile.h. */
+
+/* The coop_t struct is declared in coop-defs.h. */
+
+#include "libguile/__scm.h"
+
+#include <time.h>
+
+#include "coop-defs.h"
+#include "../qt/qt.h"
+
+/* This code is based on a sample thread libraru by David Keppel.
+   Portions of this file fall under the following copyright: */
+
+/*
+ * QuickThreads -- Threads-building toolkit.
+ * Copyright (c) 1993 by David Keppel
+ *
+ * Permission to use, copy, modify and distribute this software and
+ * its documentation for any purpose and without fee is hereby
+ * granted, provided that the above copyright notice and this notice
+ * appear in all copies.  This software is provided as a
+ * proof-of-concept and for demonstration purposes; there is no
+ * representation about the suitability of this software for any
+ * purpose.
+ */
+
+/* A queue is a circular list of threads.  The queue head is a
+   designated list element.  If this is a uniprocessor-only
+   implementation we can store the `main' thread in this, but in a
+   multiprocessor there are several `heavy' threads but only one run
+   queue.  A fancier implementation might have private run queues,
+   which would lead to a simpler (trivial) implementation */
+
+typedef struct coop_q_t {
+  coop_t t;
+  coop_t *tail;
+} coop_q_t;
+
+/* A Mutex variable is made up of a owner thread, and a queue of threads
+   waiting on the mutex */
+
+typedef struct coop_m {
+  coop_t *owner;          /* Mutex owner */
+  coop_q_t waiting;      /* Queue of waiting threads */
+} coop_m;
+
+/* A Condition variable is made up of a list of threads waiting on the
+   condition. */
+
+typedef struct coop_c {
+  coop_q_t waiting;      /* Queue of waiting threads */
+} coop_c;
+
+/* Each thread starts by calling a user-supplied function of this
+   type. */
+
+typedef void (coop_userf_t)(void *p0);
+
+/* Call this before any other primitives. */
+extern void coop_init();
+
+/* When one or more threads are created by the main thread,
+   the system goes multithread when this is called.  It is done
+   (no more runable threads) when this returns. */
+
+extern void coop_start (void);
+
+/* Create a thread and make it runable.  When the thread starts
+   running it will call `f' with arguments `p0' and `p1'. */
+
+extern coop_t *coop_create (coop_userf_t *f, void *p0);
+
+/* The current thread stops running but stays runable.
+   It is an error to call `coop_yield' before `coop_start'
+   is called or after `coop_start' returns. */
+
+extern void coop_yield (void);
+
+/* Like `coop_yield' but the thread is discarded.  Any intermediate
+   state is lost.  The thread can also terminate by simply
+   returning. */
+
+extern void coop_abort (void);
+
+extern coop_q_t coop_global_runq;	/* A queue of runable threads. */
+extern coop_q_t coop_global_sleepq;	
+extern coop_q_t coop_global_allq;	/* A queue of all threads. */
+extern coop_t *coop_global_curr;       	/* Currently-executing thread. */
+
+#endif /* COOP_THREADSH */

@@ -22,7 +22,15 @@ libguile_la_SOURCES = \
     variable.c vectors.c version.c vports.c weaks.c
 EXTRA_libguile_la_SOURCES = _scm.h \
     backtrace.c stacks.c debug.c srcprop.c \
-    strerror.c inet_aton.c putenv.c
+    strerror.c inet_aton.c putenv.c \
+    threads.c
+
+## This is kind of nasty... there are ".c" files that we don't want to
+## compile, since they are #included in threads.c.  So instead we list
+## them here.  Perhaps we can deal with them normally once the merge
+## seems to be working.
+noinst_HEADERS = coop-threads.c coop-threads.h coop.c
+
 libguile_la_DEPENDENCIES = @LIBLOBJS@
 libguile_la_LIBADD = @LIBLOBJS@
 libguile_la_LDFLAGS = -version-info 0:0 -rpath $(libdir)
@@ -44,7 +52,7 @@ modinclude_HEADERS = __scm.h alist.h append.h arbiters.h async.h \
     sequences.h simpos.h smob.h socket.h srcprop.h stackchk.h stacks.h \
     stime.h strings.h strop.h strorder.h strports.h struct.h symbols.h \
     tag.h tags.h throw.h unif.h variable.h vectors.h version.h vports.h \
-    weaks.h snarf.h
+    weaks.h snarf.h threads.h coop-defs.h
 
 ## This file is generated at configure time.  That is why it is DATA
 ## and not a header -- headers are included in the distribution.
@@ -63,7 +71,9 @@ gh_test_repl_LDADD = ${check_ldadd}
 EXTRA_DIST = gscm.c gscm.h ChangeLog-scm dynl-dl.c dynl-dld.c dynl-shl.c \
     dynl-vms.c DYNAMIC-LINKING PLUGIN/REQ PLUGIN/guile.config \
     PLUGIN/guile.libs.in cpp_signal.c cpp_errno.c cpp_err_symbols.in \
-    cpp_sig_symbols.in cpp_cnvt.awk
+    cpp_sig_symbols.in cpp_cnvt.awk \
+    coop-threads.h.cygnus coop-threads.c.cygnus mit-pthreads.h mit-pthreads.c \
+    fsu-pthreads.h
 
 ## FIXME: shouldn't directly generate file; instead generate temp file
 ## and "mv".  Consider using timestamp file as well, to avoid

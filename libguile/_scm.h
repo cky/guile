@@ -66,8 +66,8 @@
 #include "ports.h"		/* Everyone does I/O.  */
 #include "async.h"		/* Everyone allows/disallows ints.  */
 #ifdef USE_THREADS
-#include "../threads/threads.h"	/* Some thread packages does switching
-				   at async ticks. */
+#include "threads.h"		/* The cooperative thread package does
+				   switching at async ticks.  */
 #endif
 #include "snarf.h"		/* Everyone snarfs. */
 

@@ -81,7 +81,11 @@ libguile_la_SOURCES = \
     variable.c vectors.c version.c vports.c weaks.c
 EXTRA_libguile_la_SOURCES = _scm.h \
     backtrace.c stacks.c debug.c srcprop.c \
-    strerror.c inet_aton.c putenv.c
+    strerror.c inet_aton.c putenv.c \
+    threads.c
+
+noinst_HEADERS = coop-threads.c coop-threads.h coop.c
+
 libguile_la_DEPENDENCIES = @LIBLOBJS@
 libguile_la_LIBADD = @LIBLOBJS@
 libguile_la_LDFLAGS = -version-info 0:0 -rpath $(libdir)
@@ -103,7 +107,7 @@ modinclude_HEADERS = __scm.h alist.h append.h arbiters.h async.h \
     sequences.h simpos.h smob.h socket.h srcprop.h stackchk.h stacks.h \
     stime.h strings.h strop.h strorder.h strports.h struct.h symbols.h \
     tag.h tags.h throw.h unif.h variable.h vectors.h version.h vports.h \
-    weaks.h snarf.h
+    weaks.h snarf.h threads.h coop-defs.h
 
 modinclude_DATA = scmconfig.h
 
@@ -120,7 +124,9 @@ gh_test_repl_LDADD = ${check_ldadd}
 EXTRA_DIST = gscm.c gscm.h ChangeLog-scm dynl-dl.c dynl-dld.c dynl-shl.c \
     dynl-vms.c DYNAMIC-LINKING PLUGIN/REQ PLUGIN/guile.config \
     PLUGIN/guile.libs.in cpp_signal.c cpp_errno.c cpp_err_symbols.in \
-    cpp_sig_symbols.in cpp_cnvt.awk
+    cpp_sig_symbols.in cpp_cnvt.awk \
+    coop-threads.h.cygnus coop-threads.c.cygnus mit-pthreads.h mit-pthreads.c \
+    fsu-pthreads.h
 
 SUFFIXES = .x
 
@@ -167,7 +173,7 @@ LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CF
 LINK = $(LIBTOOL) --mode=link $(CC) $(LDFLAGS) -o $@
 DATA =  $(modinclude_DATA)
 
-HEADERS =  $(include_HEADERS) $(modinclude_HEADERS) \
+HEADERS =  $(include_HEADERS) $(modinclude_HEADERS) $(noinst_HEADERS) \
 $(pkginclude_HEADERS)
 
 DIST_COMMON =  COPYING ChangeLog Makefile.am Makefile.in acconfig.h \
@@ -197,8 +203,8 @@ DEP_FILES =  .deps/alist.P .deps/append.P .deps/appinit.P \
 .deps/socket.P .deps/srcprop.P .deps/stackchk.P .deps/stacks.P \
 .deps/stime.P .deps/strerror.P .deps/strings.P .deps/strop.P \
 .deps/strorder.P .deps/strports.P .deps/struct.P .deps/symbols.P \
-.deps/tag.P .deps/throw.P .deps/unif.P .deps/variable.P .deps/vectors.P \
-.deps/version.P .deps/vports.P .deps/weaks.P
+.deps/tag.P .deps/threads.P .deps/throw.P .deps/unif.P .deps/variable.P \
+.deps/vectors.P .deps/version.P .deps/vports.P .deps/weaks.P
 SOURCES = $(libguile_la_SOURCES) $(EXTRA_libguile_la_SOURCES) $(gh_test_c_SOURCES) $(gh_test_repl_SOURCES)
 OBJECTS = $(libguile_la_OBJECTS) $(gh_test_c_OBJECTS) $(gh_test_repl_OBJECTS)
 

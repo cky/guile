@@ -122,7 +122,7 @@
 #include "libguile/vports.h"
 #include "libguile/weaks.h"
 #ifdef USE_THREADS
-#include "libguile/../threads/threads.h"
+#include "libguile/threads.h"
 #endif
 
 

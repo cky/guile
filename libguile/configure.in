@@ -224,6 +224,7 @@ fi
 
 if test "$cy_cv_threads_package" != ""; then
   AC_DEFINE(USE_THREADS)
+  LIBOBJS="$LIBOBJS threads.o"
 fi
 
 ## If we're using GCC, ask for aggressive warnings.
