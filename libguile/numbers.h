@@ -71,9 +71,9 @@
 /* shifts of more than one are done by a library call, single shifts are
  * performed in registers
  */
-# define SCM_MAKINUM(x) (SCM_PACK (((SCM_UNPACK (x) << 1) << 1) + 2L))
+# define SCM_MAKINUM(x) (SCM_PACK ((((x) << 1) << 1) + 2L))
 #else
-# define SCM_MAKINUM(x) (SCM_PACK ((SCM_UNPACK (x) << 2) + 2L))
+# define SCM_MAKINUM(x) (SCM_PACK (((x) << 2) + 2L))
 #endif /* def __TURBOC__ */
 
 

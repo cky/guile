@@ -4422,7 +4422,11 @@ scm_long_long2num (long_long sl)
       return scm_makdbl ((double) sl, 0.0);
 #endif
     }
-  return SCM_MAKINUM (sl);
+  else
+    {
+      /* we know that sl fits into an inum */
+      return SCM_MAKINUM ((scm_bits_t) sl);
+    }
 }
 #endif
 

@@ -1,3 +1,15 @@
+2000-03-20  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* numbers.h (SCM_MAKINUM):  The parameter to SCM_MAKINUM should
+	already be a C value.  No need to unpack it.
+
+	* numbers.h (scm_long_long2num):  Cast the parameter to scm_bits_t
+	if we know it fits into an inum.
+
+	* ramap.c (ramap_rp):  An scm_tc7_[ui]vect object does point to a
+	field of long values.  In contrast, SCM_VELTS accesses a field of
+	SCM values.
+
 2000-03-20  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* gc.c (scm_gc_stats): Inserted explanation of local_scm_mtrigger

@@ -1321,8 +1321,13 @@ ramap_rp (SCM ra0,SCM proc,SCM ras)
       for (; n-- > 0; i0 += inc0, i1 += inc1, i2 += inc2)
 	if (SCM_BITVEC_REF (ra0, i0))
 	  {
-	    if (SCM_FALSEP (SCM_SUBRF (proc) (SCM_MAKINUM (SCM_VELTS (ra1)[i1]),
-					      SCM_MAKINUM (SCM_VELTS (ra2)[i2]))))
+	    /* DIRK:FIXME:: There should be a way to access the elements
+	       of a cell as raw data.  Further:  How can we be sure that
+	       the values fit into an inum?
+	     */
+	    SCM n1 = SCM_MAKINUM (((long *) SCM2PTR (SCM_CDR (ra1)))[i1]);
+	    SCM n2 = SCM_MAKINUM (((long *) SCM2PTR (SCM_CDR (ra2)))[i2]);
+	    if (SCM_FALSEP (SCM_SUBRF (proc) (n1, n2)));
 	      SCM_BITVEC_CLR (ra0, i0);
 	  }
       break;
