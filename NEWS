@@ -736,6 +736,10 @@ space" for Guile headers.  This means that the compiler only is given
 Implements the interface to documentation strings associated with
 objects.
 
+** New module (ice-9 time)
+
+Provides a macro `time', which displays execution time of a given form.
+
 * Changes to the stand-alone interpreter
 
 ** New command line option --debug
