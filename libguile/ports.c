@@ -824,7 +824,6 @@ scm_ports_prehistory ()
   /* scm_tc16_strport = */ scm_newptob (&scm_stptob);
   /* scm_tc16_sfport = */ scm_newptob (&scm_sfptob);
 }
-
 
 
 /* Void ports.   */
@@ -908,9 +907,6 @@ static struct scm_ptobfuns  void_port_ptob =
   close_void_port,
 };
 
-
-
-
 SCM
 scm_void_port (mode_str)
      char * mode_str;
@@ -947,7 +943,7 @@ scm_sys_make_void_port (mode)
 
 
 
-
+/* Initialization.  */
 
 void
 scm_init_ports ()
