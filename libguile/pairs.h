@@ -70,7 +70,8 @@ typedef SCM  *SCMPTR;
 
 # ifdef nosve
 #  define SCM_PTR_MASK 0xffffffffffff
-#  define SCM_PTR_LT(x, y) (((int)(x)&SCM_PTR_MASK) < ((int)(y)&SCM_PTR_MASK))
+#  define SCM_PTR_LT(x, y)\
+ (((int) (x) &SCM_PTR_MASK) < ((int) (y) & SCM_PTR_MASK))
 # else
 #  define SCM_PTR_LT(x, y) ((x) < (y))
 # endif /* def nosve */
@@ -80,7 +81,7 @@ typedef SCM  *SCMPTR;
 # ifdef PROT386
 typedef scm_cell *SCM_CELLPTR;
 typedef SCM *SCMPTR;
-#  define SCM_PTR_LT(x, y) (((long)(x)) < ((long)(y)))
+#  define SCM_PTR_LT(x, y) (((long) (x)) < ((long) (y)))
 # else
 typedef scm_cell huge *SCM_CELLPTR;
 typedef SCM  huge *SCMPTR;
@@ -89,9 +90,9 @@ typedef SCM  huge *SCMPTR;
 
 #endif /*  defined(__TURBOC__) && !defined(__TOS__) */
 
-#define SCM_PTR_GT(x, y) SCM_PTR_LT(y, x)
-#define SCM_PTR_LE(x, y) (!SCM_PTR_GT(x, y))
-#define SCM_PTR_GE(x, y) (!SCM_PTR_LT(x, y))
+#define SCM_PTR_GT(x, y) SCM_PTR_LT (y, x)
+#define SCM_PTR_LE(x, y) (!SCM_PTR_GT (x, y))
+#define SCM_PTR_GE(x, y) (!SCM_PTR_LT (x, y))
 
 #define SCM_NULLP(x) 		(SCM_EOL == (x))
 #define SCM_NNULLP(x) 		(SCM_EOL != (x))
@@ -102,11 +103,11 @@ typedef SCM  huge *SCMPTR;
 /* Cons Pairs
  */
 
-#define SCM_CAR(x) (((scm_cell *)(SCM2PTR(x)))->car)
-#define SCM_CDR(x) (((scm_cell *)(SCM2PTR(x)))->cdr)
-#define SCM_GCCDR(x) SCM_PACK(~1L & SCM_UNPACK (SCM_CDR(x)))
-#define SCM_SETCAR(x, v) (SCM_CAR(x) = SCM_PACK(v))
-#define SCM_SETCDR(x, v) (SCM_CDR(x) = SCM_PACK(v))
+#define SCM_CAR(x) (((scm_cell *) (SCM2PTR (x)))->car)
+#define SCM_CDR(x) (((scm_cell *) (SCM2PTR (x)))->cdr)
+#define SCM_GCCDR(x) SCM_PACK(~1L & SCM_UNPACK (SCM_CDR (x)))
+#define SCM_SETCAR(x, v) (SCM_CAR (x) = SCM_PACK (v))
+#define SCM_SETCDR(x, v) (SCM_CDR (x) = SCM_PACK (v))
 
 #define SCM_CARLOC(x) (&SCM_CAR (x))
 #define SCM_CDRLOC(x) (&SCM_CDR (x))
@@ -151,6 +152,23 @@ typedef SCM  huge *SCMPTR;
 #define SCM_CADDDR(OBJ)		SCM_CAR (SCM_CDR (SCM_CDR (SCM_CDR (OBJ))))
 #define SCM_CDDDDR(OBJ)		SCM_CDR (SCM_CDR (SCM_CDR (SCM_CDR (OBJ))))
 
+/* Multi-cells
+ */
+
+#define SCM_CELL_WORD(x, n) (((SCM *) (SCM2PTR (x)))[n])
+#define SCM_SET_CELL_WORD(x, n, v) (SCM_CELL_WORD (x, n) = (SCM) (v))
+#define SCM_CELL_WORD_LOC(x, n) (&SCM_CELL_WORD (x, n))
+
+#define SCM_CELL_WORD0(x)   SCM_CELL_WORD (x, 0)
+#define SCM_CELL_WORD1(x)   SCM_CELL_WORD (x, 1)
+#define SCM_CELL_WORD2(x)   SCM_CELL_WORD (x, 2)
+#define SCM_CELL_WORD3(x)   SCM_CELL_WORD (x, 3)
+
+#define SCM_SET_CELL_WORD0(x, v)  SCM_SET_CELL_WORD(x, 0, v)
+#define SCM_SET_CELL_WORD1(x, v)  SCM_SET_CELL_WORD(x, 1, v)
+#define SCM_SET_CELL_WORD2(x, v)  SCM_SET_CELL_WORD(x, 2, v)
+#define SCM_SET_CELL_WORD3(x, v)  SCM_SET_CELL_WORD(x, 3, v)
+
 /* the allocated thing: The car of newcells are set to
    scm_tc16_allocated to avoid the fragile state of newcells wrt the
    gc. If it stays as a freecell, any allocation afterwards could
@@ -159,19 +177,32 @@ typedef SCM  huge *SCMPTR;
 
 #ifdef GUILE_DEBUG_FREELIST
 #define SCM_NEWCELL(_into) do { _into = scm_debug_newcell (); } while (0)
+#define SCM_NEWCELL2(_into) do { _into = scm_debug_newcell2 (); } while (0)
 #else
 #define SCM_NEWCELL(_into) \
 	do { \
-	  if (SCM_IMP(scm_freelist)) \
-	     _into = scm_gc_for_newcell();\
+	  if (SCM_IMP (scm_freelist)) \
+	     _into = scm_gc_for_newcell (1, &scm_freelist);\
 	  else \
 	    { \
 	       _into = scm_freelist; \
-	       scm_freelist = SCM_CDR(scm_freelist);\
-               SCM_SETCAR(_into, scm_tc16_allocated); \
+	       scm_freelist = SCM_CDR (scm_freelist);\
+               SCM_SETCAR (_into, scm_tc16_allocated); \
 	       ++scm_cells_allocated; \
 	    } \
 	} while(0)
+#define SCM_NEWCELL2(_into) \
+	do { \
+	  if (SCM_IMP (scm_freelist2)) \
+	     _into = scm_gc_for_newcell (2, &scm_freelist2);\
+	  else \
+	    { \
+	       _into = scm_freelist2; \
+	       scm_freelist2 = SCM_CDR (scm_freelist2);\
+               SCM_SETCAR (_into, scm_tc16_allocated); \
+	       scm_cells_allocated += 2; \
+  	    } \
+  	} while(0)
 #endif
 
 
