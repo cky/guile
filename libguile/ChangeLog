@@ -1,5 +1,12 @@
 2001-09-13  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* guardians.c (mark_dependencies_in_tconc,
+	whine_about_self_centered_zombies, scm_init_guardians):  Register
+	the static global variable `self_centered_zombies' via
+	scm_gc_register_root, to make some cdr-ing unnecessary.
+
+2001-09-13  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* backtrace.c (display_backtrace_file,
 	display_backtrace_file_and_line):  Use SCM_EQ_P when comparing SCM
 	values, use SCM_FALSEP when comparing SCM values against #f.

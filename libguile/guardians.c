@@ -464,8 +464,8 @@ mark_dependencies_in_tconc (tconc_t *tc)
                  complain about it later. */
               *prev_ptr = next_pair;
               SCM_SETGCMARK (pair);
-              SCM_SETCDR (pair, SCM_CDR (self_centered_zombies));
-              SCM_SETCDR (self_centered_zombies, pair);
+              SCM_SETCDR (pair, self_centered_zombies);
+              self_centered_zombies = pair;
             }
           else
             {
@@ -595,21 +595,21 @@ whine_about_self_centered_zombies (void *dummy1 SCM_UNUSED,
 				   void *dummy2 SCM_UNUSED,
 				   void *dummy3 SCM_UNUSED)
 {
-  if (! SCM_NULLP (SCM_CDR (self_centered_zombies)))
+  if (!SCM_NULLP (self_centered_zombies))
     {
       SCM pair;
       
       scm_puts ("** WARNING: the following guarded objects were unguarded due to cycles:",
                 scm_cur_errp);
       scm_newline (scm_cur_errp);
-      for (pair = SCM_CDR (self_centered_zombies);
-           ! SCM_NULLP (pair); pair = SCM_CDR (pair))
+      for (pair = self_centered_zombies;
+           !SCM_NULLP (pair); pair = SCM_CDR (pair))
         {
           scm_display (SCM_CAR (pair), scm_cur_errp);
           scm_newline (scm_cur_errp);
         }
 
-      SCM_SETCDR (self_centered_zombies, SCM_EOL);
+      self_centered_zombies = SCM_EOL;
     }
   
   return 0;
@@ -627,8 +627,7 @@ scm_init_guardians ()
   scm_c_hook_add (&scm_before_mark_c_hook, guardian_gc_init, 0, 0);
   scm_c_hook_add (&scm_before_sweep_c_hook, guardian_zombify, 0, 0);
 
-  self_centered_zombies =
-    scm_permanent_object (scm_cons (SCM_UNDEFINED, SCM_EOL));
+  scm_gc_register_root (&self_centered_zombies);
   scm_c_hook_add (&scm_after_gc_c_hook,
                   whine_about_self_centered_zombies, 0, 0);
 
