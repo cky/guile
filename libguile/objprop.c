@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996, 2000, 2001 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996, 2000, 2001, 2003 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -113,7 +113,7 @@ SCM_DEFINE (scm_set_object_property_x, "set-object-property!", 3, 0, 0,
 void
 scm_init_objprop ()
 {
-  scm_object_whash = scm_make_weak_key_hash_table (SCM_MAKINUM (511));
+  scm_object_whash = scm_make_weak_key_hash_table (SCM_UNDEFINED);
 #include "libguile/objprop.x"
 }
 

@@ -59,7 +59,7 @@
 
 scm_t_bits scm_tc16_environment;
 scm_t_bits scm_tc16_observer;
-#define DEFAULT_OBARRAY_SIZE 137
+#define DEFAULT_OBARRAY_SIZE 31
 
 SCM scm_system_environment;
 

@@ -427,7 +427,7 @@ scm_c_symbol2str (SCM obj, char *str, size_t *lenp)
 void
 scm_symbols_prehistory ()
 {
-  symbols = scm_make_weak_key_hash_table (SCM_MAKINUM (1009));
+  symbols = scm_make_weak_key_hash_table (SCM_MAKINUM (2139));
   scm_permanent_object (symbols);
 }
 

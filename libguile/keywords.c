@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2003 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -137,7 +137,7 @@ scm_init_keywords ()
   scm_set_smob_mark (scm_tc16_keyword, scm_markcdr);
   scm_set_smob_print (scm_tc16_keyword, keyword_print);
 
-  scm_keyword_obarray = scm_c_make_hash_table (256);
+  scm_keyword_obarray = scm_c_make_hash_table (0);
 #include "libguile/keywords.x"
 }
 

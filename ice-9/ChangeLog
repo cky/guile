@@ -1,5 +1,10 @@
 2003-02-19  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
+	* boot-9.scm (make-module): Changed default size from 1021 to 31
+	(since the size now adapts).
+	(macro-table, xformer-table): Changed default size from 523 to 61.
+	(make-module): Don't call make-hash-table with zero size.
+
 	* Makefile.am (ice9_sources): Added weak-vector.scm.
 
 	* weak-vector.scm: New file.

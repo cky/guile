@@ -617,7 +617,7 @@ void
 scm_modules_prehistory ()
 {
   scm_pre_modules_obarray 
-    = scm_permanent_object (scm_c_make_hash_table (2001));
+    = scm_permanent_object (scm_c_make_hash_table (1533));
 }
 
 void

@@ -990,7 +990,7 @@
       (if (> (length args) 3)
 	  (error "Too many args to make-module." args))
 
-      (let ((size (parse-arg 0 1021))
+      (let ((size (parse-arg 0 31))
 	    (uses (parse-arg 1 '()))
 	    (binder (parse-arg 2 #f)))
 
@@ -1003,7 +1003,8 @@
 	    (error
 	     "Lazy-binder expected to be a procedure or #f." binder))
 
-	(let ((module (module-constructor (make-hash-table size)
+	(let ((module (module-constructor (and (not (zero? size))
+					       (make-hash-table size))
 					  uses binder #f #f #f #f
 					  '()
 					  (make-weak-value-hash-table 31)
@@ -1902,8 +1903,8 @@
 
 ;;; {Defmacros}
 ;;;
-(define macro-table (make-weak-key-hash-table 523))
-(define xformer-table (make-weak-key-hash-table 523))
+(define macro-table (make-weak-key-hash-table 61))
+(define xformer-table (make-weak-key-hash-table 61))
 
 (define (defmacro? m)  (hashq-ref macro-table m))
 (define (assert-defmacro?! m) (hashq-set! macro-table m #t))

@@ -1,5 +1,23 @@
 2003-02-19  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
+	* environments.c (DEFAULT_OBARRAY_SIZE): Changed from 137 to 31
+	(since hash tables now adapt their size).
+
+	* modules.c (scm_modules_prehistory): Changed from 2001 to 1533
+	(current number of prehistory bindings; hashtable code will select
+	a prime which is greater than this value).
+
+	* symbols.c (scm_symbols_prehistory): Changed from 1009 to 2139
+	(current number of initial symbols).
+
+	* properties.c (scm_init_properties): Don't specify size of
+	scm_properties_whash.
+
+	* objprop.c (scm_init_objprop): Don't specify size of
+	scm_object_whash.
+
+	* keywords.c (scm_init_keywords): Don't specify a hash table size.
+
 	* hooks.c (scm_c_hook_add): Fixed bug in append mode.
 
 	The following changes introduce the use of resizable hash tables
