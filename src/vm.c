@@ -334,6 +334,18 @@ init_bytecode_type ()
   scm_set_smob_free (scm_bytecode_tag, free_bytecode);
 }
 
+/* Internal functions */
+
+static SCM
+lookup_variable (SCM sym)
+{
+  SCM closure = scm_standard_eval_closure (scm_selected_module ());
+  SCM var = scm_apply (closure, SCM_LIST2 (sym, SCM_BOOL_F), SCM_EOL);
+  if (SCM_FALSEP (var))
+    var = scm_apply (closure, SCM_LIST2 (sym, SCM_BOOL_T), SCM_EOL);
+  return var;
+}
+
 /* Scheme interface */
 
 SCM_DEFINE (scm_bytecode_p, "bytecode?", 1, 0, 0,
@@ -428,7 +440,7 @@ SCM_DEFINE (scm_make_bytecode, "make-bytecode", 1, 0, 0,
 	case INST_TOP:
 	  /* top-level variable */
 	  SCM_VALIDATE_SYMBOL (1, old[i]);
-	  new[i] = scm_intern0 (SCM_CHARS (old[i]));
+	  new[i] = lookup_variable (old[i]);
 	  break;
 	case INST_EXT:
 	  /* just copy for now */

@@ -65,9 +65,6 @@
 #define EXTERNAL_VAR1(OFFSET)	SCM_VM_EXTERNAL_VARIABLE (SCM_VM_EXTERNAL_LINK (ext), OFFSET)
 #define EXTERNAL_VAR2(OFFSET)	SCM_VM_EXTERNAL_VARIABLE (SCM_VM_EXTERNAL_LINK (SCM_VM_EXTERNAL_LINK (ext)), OFFSET)
 
-#define TOPLEVEL_VAR(CELL)		SCM_CDR (CELL)
-#define TOPLEVEL_VAR_SET(CELL,OBJ)	SCM_SETCDR (CELL, OBJ)
-
 
 /*
  * Basic operations
@@ -176,7 +173,7 @@ SCM_DEFINE_INSTRUCTION (pusht, "%pusht", INST_TOP)
 {
   ac = FETCH ();
   VM_ASSERT_BOUND (ac);
-  PUSH (TOPLEVEL_VAR (ac));
+  PUSH (VM_VARIABLE_REF (ac));
   NEXT;
 }
 
@@ -257,7 +254,7 @@ SCM_DEFINE_INSTRUCTION (loadt, "%loadt", INST_TOP)
 {
   ac = FETCH ();
   VM_ASSERT_BOUND (ac);
-  RETURN (TOPLEVEL_VAR (ac));
+  RETURN (VM_VARIABLE_REF (ac));
 }
 
 
@@ -338,7 +335,7 @@ SCM_DEFINE_INSTRUCTION (savet, "%savet", INST_TOP)
 {
   SCM cell = FETCH ();
   scm_set_object_property_x (ac, scm_sym_name, SCM_CAR (cell));
-  TOPLEVEL_VAR_SET (cell, ac);
+  VM_VARIABLE_SET (cell, ac);
   NEXT;
 }
 

@@ -95,17 +95,6 @@
  * Type checking
  */
 
-#define VM_ASSERT_PROGRAM(OBJ)	SCM_VALIDATE_PROGRAM (1, OBJ)
-
-#undef VM_ASSERT_BOUND
-#if VM_CHECK_BINDING
-#define VM_ASSERT_BOUND(CELL)					\
-  if (SCM_UNBNDP (SCM_CDR (CELL)))				\
-    SCM_MISC_ERROR ("Unbound variable: ~S", SCM_LIST1 (SCM_CAR (CELL)))
-#else
-#define VM_ASSERT_BOUND(CELL)
-#endif
-
 #undef VM_ASSERT_LINK
 #if VM_CHECK_LINK
 #define VM_ASSERT_LINK(OBJ)				\
@@ -113,6 +102,23 @@
     SCM_MISC_ERROR ("VM broken link", SCM_EOL)
 #else
 #define VM_ASSERT_LINK(OBJ)
+#endif
+
+
+/*
+ * Top-level variable
+ */
+
+#define VM_VARIABLE_REF(VAR)		SCM_CDDR (VAR)
+#define VM_VARIABLE_SET(VAR,VAL)	SCM_SETCDR (SCM_CDR (VAR), VAL)
+
+#undef VM_ASSERT_BOUND
+#if VM_CHECK_BINDING
+#define VM_ASSERT_BOUND(VAR)						\
+  if (SCM_UNBNDP (VM_VARIABLE_REF (VAR)))				\
+    SCM_MISC_ERROR ("Unbound variable: ~S", SCM_LIST1 (SCM_CADR (VAR)))
+#else
+#define VM_ASSERT_BOUND(CELL)
 #endif
 
 
