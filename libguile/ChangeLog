@@ -1,3 +1,20 @@
+2005-01-18  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* ports.c, smob.c: Include "libguile/goops.h".
+
+	* objects.h, objects.c, goops.c, goops.h (scm_class_boolean,
+	scm_class_char, scm_class_pair, scm_class_procedure,
+	scm_class_string, scm_class_symbol,
+	scm_class_procedure_with_setter, scm_class_primitive_generic,
+	scm_class_vector, scm_class_null, scm_class_real,
+	scm_class_complex, scm_class_integer, scm_class_fraction,
+	scm_class_unknown, scm_port_class, scm_smob_class,
+	scm_no_applicable_method, scm_class_of): Moved from objects to
+	goops since they are only useable once goops has been loaded.
+	(scm_classes_initialized): Removed.
+	(scm_class_of): Do not check it.
+	(create_standard_classes): Do not set it.
+	
 2005-01-17  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* objects.h, objects.c (scm_classes_initialized): New.

@@ -1,3 +1,8 @@
+2005-01-18  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* goops.scm (class-of): Changed from being re-exported to just
+	being exported.
+
 2004-02-08  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* Makefile.am, goops/Makefile.am (TAGS_FILES): Use this variable
