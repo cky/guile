@@ -386,9 +386,9 @@ scm_gc_end ()
 }
 
 
-SCM_PROC(s_object_address, "object-address", 1, 0, 0, scm_object_addr);
+SCM_PROC (s_object_address, "object-address", 1, 0, 0, scm_object_address);
 SCM
-scm_object_addr (obj)
+scm_object_address (obj)
      SCM obj;
 {
   return scm_ulong2num ((unsigned long)obj);
@@ -608,6 +608,7 @@ gc_mark_nimp:
       ptr = SCM_GCCDR (ptr);
       goto gc_mark_nimp;
     case scm_tcs_cons_imcar:
+    case scm_tc7_pws:
       if (SCM_GCMARKP (ptr))
 	break;
       SCM_SETGCMARK (ptr);
@@ -650,6 +651,7 @@ gc_mark_nimp:
 		  scm_gc_mark (mem[scm_struct_i_proc + 1]);
 		  scm_gc_mark (mem[scm_struct_i_proc + 2]);
 		  scm_gc_mark (mem[scm_struct_i_proc + 3]);
+		  scm_gc_mark (mem[scm_struct_i_setter]);
 		}
 	      if (len)
 		{
@@ -1113,15 +1115,26 @@ scm_gc_sweep ()
 		if ((SCM_CDR (vcell) == 0) || (SCM_CDR (vcell) == 1))
 		  {
 		    SCM *p = (SCM *) SCM_GCCDR (scmptr);
- 		    m += p[scm_struct_i_n_words] * sizeof (SCM) + 7;
-		    /* I feel like I'm programming in BCPL here... */
-		    free ((char *) p[scm_struct_i_ptr]);
+		    if (((SCM*) vcell)[scm_struct_i_flags]
+			& SCM_STRUCTF_LIGHT)
+		      {
+			SCM layout = ((SCM*)vcell)[scm_vtable_index_layout];
+			m += (SCM_LENGTH (layout) / 2) * sizeof (SCM);
+			free ((char *) p);
+		      }
+		    else
+		      {
+			m += p[scm_struct_i_n_words] * sizeof (SCM) + 7;
+			/* I feel like I'm programming in BCPL here... */
+			free ((char *) p[scm_struct_i_ptr]);
+		      }
 		  }
 	      }
 	      break;
 	    case scm_tcs_cons_imcar:
 	    case scm_tcs_cons_nimcar:
 	    case scm_tcs_closures:
+	    case scm_tc7_pws:
 	      if (SCM_GCMARKP (scmptr))
 		goto cmrkcontinue;
 	      break;
