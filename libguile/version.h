@@ -50,6 +50,7 @@
 
 extern SCM scm_major_version (void);
 extern SCM scm_minor_version (void);
+extern SCM scm_micro_version (void);
 extern SCM scm_version (void);
 extern void scm_init_version (void);
 
