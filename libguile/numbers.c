@@ -1661,6 +1661,8 @@ SCM_DEFINE (scm_ash, "ash", 2, 0, 0,
 #undef FUNC_NAME
 
 
+#define MIN(x,y)  ((x) < (y) ? (x) : (y))
+
 SCM_DEFINE (scm_bit_extract, "bit-extract", 3, 0, 0,
             (SCM n, SCM start, SCM end),
 	    "Return the integer composed of the @var{start} (inclusive)\n"
@@ -1675,55 +1677,65 @@ SCM_DEFINE (scm_bit_extract, "bit-extract", 3, 0, 0,
 	    "@end lisp")
 #define FUNC_NAME s_scm_bit_extract
 {
-  unsigned long int istart, iend;
+  unsigned long int istart, iend, bits;
   SCM_VALIDATE_INUM_MIN_COPY (2, start,0, istart);
   SCM_VALIDATE_INUM_MIN_COPY (3, end, 0, iend);
   SCM_ASSERT_RANGE (3, end, (iend >= istart));
 
+  /* how many bits to keep */
+  bits = iend - istart;
+
   if (SCM_INUMP (n))
     {
       long int in = SCM_INUM (n);
-      unsigned long int bits = iend - istart;
+
+      /* When istart>=SCM_I_FIXNUM_BIT we can just limit the shift to
+         SCM_I_FIXNUM_BIT-1 to get either 0 or -1 per the sign of "in".
+         FIXME: This shift relies on signed right shifts being arithmetic,
+         which is not guaranteed by C99. */
+      in >>= MIN (istart, SCM_I_FIXNUM_BIT-1);
 
       if (in < 0 && bits >= SCM_I_FIXNUM_BIT)
 	{
 	  /* Since we emulate two's complement encoded numbers, this
 	   * special case requires us to produce a result that has
-	   * more bits than can be stored in a fixnum.  Thus, we fall
-	   * back to the more general algorithm that is used for
-	   * bignums.
+	   * more bits than can be stored in a fixnum.
 	   */
-	  goto generalcase;
+          SCM result = scm_i_long2big (in);
+          mpz_fdiv_r_2exp (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (result),
+                           bits);
+          return result;
 	}
 
-      if (istart < SCM_I_FIXNUM_BIT)
-	{
-	  in = in >> istart;
-	  if (bits < SCM_I_FIXNUM_BIT)
-	    return SCM_MAKINUM (in & ((1L << bits) - 1));
-	  else /* we know: in >= 0 */
-	    return SCM_MAKINUM (in);
-	}
-      else if (in < 0)
-	return SCM_MAKINUM (-1L & ((1L << bits) - 1));
-      else
-	return SCM_MAKINUM (0);
+      /* mask down to requisite bits */
+      bits = MIN (bits, SCM_I_FIXNUM_BIT);
+      return SCM_MAKINUM (in & ((1L << bits) - 1));
     }
   else if (SCM_BIGP (n))
     {
-    generalcase:
-      {
-	SCM num1 = SCM_MAKINUM (1L);
-	SCM num2 = SCM_MAKINUM (2L);
-	SCM bits = SCM_MAKINUM (iend - istart);
-	SCM mask  = scm_difference (scm_integer_expt (num2, bits), num1);
-	return scm_logand (mask, scm_ash (n, SCM_MAKINUM (-istart)));
-      }
+      SCM result;
+      if (bits == 1)
+        {
+          result = SCM_MAKINUM (mpz_tstbit (SCM_I_BIG_MPZ (n), istart));
+        }
+      else
+        {
+          /* ENHANCE-ME: It'd be nice not to allocate a new bignum when
+             bits<SCM_I_FIXNUM_BIT.  Would want some help from GMP to get
+             such bits into a ulong.  */
+          result = scm_i_mkbig ();
+          mpz_fdiv_q_2exp (SCM_I_BIG_MPZ(result), SCM_I_BIG_MPZ(n), istart);
+          mpz_fdiv_r_2exp (SCM_I_BIG_MPZ(result), SCM_I_BIG_MPZ(result), bits);
+          result = scm_i_normbig (result);
+        }
+      scm_remember_upto_here_1 (n);
+      return result;
     }
   else
     SCM_WRONG_TYPE_ARG (SCM_ARG1, n);
 }
 #undef FUNC_NAME
+
 
 static const char scm_logtab[] = {
   0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4
