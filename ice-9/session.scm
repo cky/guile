@@ -257,12 +257,14 @@ where OPTIONSET is one of debug, read, eval, print
 			  (display name)
 			  (display ": ")
 			  (display (car x))
-			  (cond ((procedure? (variable-ref (cdr x)))
+			  (cond ((variable-bound? (cdr x))
+				 (let ((val (variable-ref (cdr x))))
+				   (cond ((or (procedure? val) value)
+					  (display separator)
+					  (display val)))))
+				(else
 				 (display separator)
-				 (display (variable-ref (cdr x))))
-				(value
-				 (display separator)
-				 (display (variable-ref (cdr x)))))
+				 (display "(unbound)")))
 			  (if (and shadow
 				   (not (eq? (module-ref module
 							 (car x))
@@ -313,7 +315,9 @@ Fourth arg FOLDER is one of
 			   data)))
 		    (module-filter
 		     (lambda (name var data)
-		       (obarray-filter name (variable-ref var) data))))
+		       (if (variable-bound? var)
+			   (obarray-filter name (variable-ref var) data)
+			   data))))
 	       (cond (module (hash-fold module-filter
 					data
 					(module-obarray module)))
@@ -352,7 +356,7 @@ It is an image under the mapping EXTRACT."
 
 (define (submodules m)
   (hash-fold (lambda (name var data)
-	       (let ((obj (variable-ref var)))
+	       (let ((obj (and (variable-bound? var) (variable-ref var))))
 		 (if (and (module? obj)
 			  (eq? (module-kind obj) 'directory))
 		     (cons obj data)
