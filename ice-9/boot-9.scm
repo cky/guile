@@ -2342,7 +2342,7 @@
 				     (begin
 				       (newline (current-error-port))
 				       (display
-					"Type \"(backtrace)\" to get more information.\n"
+					"Type \"(backtrace)\" to get more information or \"(debug)\" to enter the debugger.\n"
 					(current-error-port))
 				       (set! has-shown-debugger-hint? #t)))
 				 (force-output (current-error-port)))
