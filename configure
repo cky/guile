@@ -3997,7 +3997,7 @@ i[3456]86-*-*)
 	qtmd_h=md/i386.h
 	qtmdc_c=$qtsrcdir/md/null.c 
 	;;
-mips-sgi-irix5*)
+mips-sgi-irix[56]*)
 	qtmds_s=$qtsrcdir/md/mips-irix5.s
 	qtmd_h=md/mips.h
 	qtmdc_c=$qtsrcdir/md/null.c
