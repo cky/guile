@@ -2103,7 +2103,8 @@ scm_list_to_uniform_array (ndim, prot, lst)
       if (SCM_NIMP (row))
 	row = SCM_CAR (row);
     }
-  ra = scm_dimensions_to_uniform_array (scm_reverse (shp), prot, SCM_EOL);
+  ra = scm_dimensions_to_uniform_array (scm_reverse (shp), prot,
+					SCM_UNDEFINED);
   if (SCM_NULLP (shp))
 
     {

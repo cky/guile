@@ -1,3 +1,9 @@
+1999-11-20  Gary Houston  <ghouston@freewire.co.uk>
+
+	* unif.c (scm_list_to_uniform_array): call 
+	scm_dimensions_to_uniform_array with a third argument of 
+	SCM_UNDEFINED instead of SCM_EOL.
+
 1999-11-19  Gary Houston  <ghouston@freewire.co.uk>
 
 	* the following changes allow guile to be built with the array
