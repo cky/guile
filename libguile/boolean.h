@@ -47,10 +47,18 @@
 					   ^ (SCM_UNPACK (SCM_BOOL_T) \
 					      ^ SCM_UNPACK (SCM_BOOL_F))))
 
+#define scm_is_false(x) scm_is_eq ((x), SCM_BOOL_F)
+#define scm_is_true(x)  !scm_is_false (x)
+
+SCM_API int scm_is_bool(x);
+#define scm_from_bool(x) ((f) ? SCM_BOOL_T : SCM_BOOL_F)
+SCM_API int scm_to_bool (SCM x);
+
 
 
 SCM_API SCM scm_not (SCM x);
 SCM_API SCM scm_boolean_p (SCM obj);
+
 SCM_API void scm_init_boolean (void);
 
 #endif  /* SCM_BOOLEAN_H */

@@ -45,7 +45,22 @@ SCM_DEFINE (scm_boolean_p, "boolean?", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+int
+scm_is_bool (SCM x)
+{
+  return scm_is_eq (x, SCM_BOOL_F) || scm_is_eq (SCM_BOOL_T);
+}
 
+int
+scm_to_bool (SCM x)
+{
+  if (scm_is_eq (x, SCM_BOOL_F))
+    return 0;
+  else if (scm_is_eq (x, SCM_BOOL_T))
+    return 1;
+  else    
+    scm_wrong_type_arg (NULL, 0, x);
+}
 
 void
 scm_init_boolean ()
