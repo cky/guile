@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995, 1996, 1997, 1998 Free Software Foundation, Inc.
+/*	Copyright (C) 1995, 1996, 1997, 1998, 2000 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -210,7 +210,7 @@ scheme_launch_thread (void *p)
 		     &data,
 		     (scm_catch_handler_t) scheme_handler_bootstrip,
 		     &data,
-		     &thread);
+		     (SCM_STACKITEM *) &thread);
   scm_thread_count--;
   SCM_DEFER_INTS;
 }
@@ -322,7 +322,7 @@ c_launch_thread (void *p)
 		     data,
 		     (scm_catch_handler_t) c_handler_bootstrip,
 		     data,
-		     &thread);
+		     (SCM_STACKITEM *) &thread);
   scm_thread_count--;
   scm_must_free ((char *) data);
 }
