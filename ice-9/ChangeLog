@@ -1,3 +1,10 @@
+Fri Apr 25 21:21:35 1997  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* boot-9.scm (process-use-modules): New function to support the
+ 	use-modules macro
+	(use-modules): throw an error iff one of the requested modules
+	can't be found.
+	
 Tue Apr 29 06:54:46 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* boot-9.scm: don't define timer-thunk or gc-thunk.
