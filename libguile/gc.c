@@ -1122,7 +1122,7 @@ gc_mark_nimp:
   if (!SCM_CELLP (ptr))
     SCM_MISC_ERROR ("rogue pointer in heap", SCM_EOL);
 
-#if (defined (GUILE_DEBUG) || defined (GUILE_DEBUG_FREELIST))
+#if (defined (GUILE_DEBUG_FREELIST))
 
   if (SCM_GC_IN_CARD_HEADERP (SCM2PTR (ptr)))
     scm_wta (ptr, "rogue pointer in heap", NULL);
