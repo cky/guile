@@ -1,3 +1,8 @@
+Wed Aug 21 13:06:56 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
+
+	* boot-9.scm (print-vector): Renamed weak-hash-table? -->
+ 	weak-key-hash-table?.  (Again!)
+
 Tue Aug 20 07:31:39 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
 
 	* boot-9.scm (print-vector, macro-table, xformer-table):
