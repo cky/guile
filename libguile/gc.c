@@ -109,8 +109,8 @@
  * work around a oscillation that caused almost constant GC.]  
  */
 
-#define SCM_INIT_HEAP_SIZE (32768L*sizeof(scm_cell))
-#define SCM_MIN_HEAP_SEG_SIZE (2048L*sizeof(scm_cell))
+#define SCM_INIT_HEAP_SIZE (40000L * sizeof (scm_cell))
+#define SCM_MIN_HEAP_SEG_SIZE (2048L * sizeof (scm_cell))
 #ifdef _QC
 # define SCM_HEAP_SEG_SIZE 32768L
 #else
@@ -120,7 +120,7 @@
 #  define SCM_HEAP_SEG_SIZE (16384L*sizeof(scm_cell))
 # endif
 #endif
-#define SCM_EXPHEAP(scm_heap_size) (scm_heap_size*2)
+#define SCM_EXPHEAP(scm_heap_size) (scm_heap_size * 3 / 2)
 #define SCM_INIT_MALLOC_LIMIT 100000
 #define SCM_MTRIGGER_HYSTERESIS (SCM_INIT_MALLOC_LIMIT/10)
 
@@ -143,11 +143,11 @@
 
 
 
-/* scm_freelist
- * is the head of freelist of cons pairs.
+/* scm_freelists
  */
-SCM scm_freelist = SCM_EOL;
-SCM scm_freelist2 = SCM_EOL;
+
+scm_freelist_t scm_freelist = { SCM_EOL, 1, 0, 0 };
+scm_freelist_t scm_freelist2 = { SCM_EOL, 2, 0, 0 };
 
 /* scm_mtrigger
  * is the number of bytes of must_malloc allocation needed to trigger gc.
@@ -171,7 +171,7 @@ int scm_block_gc = 1;
 /* If fewer than MIN_GC_YIELD cells are recovered during a garbage
  * collection (GC) more space is allocated for the heap.
  */
-#define MIN_GC_YIELD (scm_heap_size/4)
+#define MIN_GC_YIELD(freelist) (freelist->heap_size / 4)
 
 /* During collection, this accumulates objects holding
  * weak references.
@@ -182,7 +182,7 @@ SCM scm_weak_vectors;
  */
 unsigned long scm_cells_allocated = 0;
 long scm_mallocated = 0;
-unsigned long scm_gc_cells_collected;
+/* unsigned long scm_gc_cells_collected; */
 unsigned long scm_gc_malloc_collected;
 unsigned long scm_gc_ports_collected;
 unsigned long scm_gc_rt;
@@ -203,10 +203,10 @@ struct scm_heap_seg_data
 
   /* address of the head-of-freelist pointer for this segment's cells.
      All segments usually point to the same one, scm_freelist.  */
-  SCM *freelistp;
+  scm_freelist_t *freelistp;
 
   /* number of SCM words per object in this segment */
-  int ncells;
+  int span;
 
   /* If SEG_DATA->valid is non-zero, the conservative marking
      functions will apply SEG_DATA->valid to the purported pointer and
@@ -218,9 +218,9 @@ struct scm_heap_seg_data
 
 
 
-static void scm_mark_weak_vector_spines(void);
-static scm_sizet init_heap_seg(SCM_CELLPTR, scm_sizet, int, SCM *);
-static void alloc_some_heap(int, SCM *);
+static void scm_mark_weak_vector_spines (void);
+static scm_sizet init_heap_seg (SCM_CELLPTR, scm_sizet, scm_freelist_t *);
+static void alloc_some_heap (scm_freelist_t *);
 
 
 
@@ -239,18 +239,18 @@ which_seg (SCM cell)
 	&& SCM_PTR_GT (scm_heap_table[i].bounds[1], (SCM_CELLPTR) cell))
       return i;
   fprintf (stderr, "which_seg: can't find segment containing cell %lx\n",
-	   cell);
+	   SCM_UNPACK (cell));
   abort ();
 }
 
 
 static void
-map_free_list (SCM freelist, int ncells)
+map_free_list (scm_freelist_t *freelistp)
 {
   int last_seg = -1, count = 0;
   SCM f;
   
-  for (f = freelist; SCM_NIMP (f); f = SCM_CDR (f))
+  for (f = freelistp->cells; SCM_NIMP (f); f = SCM_CDR (f))
     {
       int this_seg = which_seg (f);
 
@@ -258,7 +258,7 @@ map_free_list (SCM freelist, int ncells)
 	{
 	  if (last_seg != -1)
 	    fprintf (stderr, "  %5d %d-cells in segment %d\n",
-		     count, ncells, last_seg);
+		     count, freelistp->span, last_seg);
 	  last_seg = this_seg;
 	  count = 0;
 	}
@@ -266,7 +266,7 @@ map_free_list (SCM freelist, int ncells)
     }
   if (last_seg != -1)
     fprintf (stderr, "  %5d %d-cells in segment %d\n",
-	     count, ncells, last_seg);
+	     count, freelistp->span, last_seg);
 }
 
 SCM_DEFINE (scm_map_free_list, "map-free-list", 0, 0, 0, 
@@ -276,8 +276,8 @@ SCM_DEFINE (scm_map_free_list, "map-free-list", 0, 0, 0,
 #define FUNC_NAME s_scm_map_free_list
 {
   fprintf (stderr, "%d segments total\n", scm_n_heap_segs);
-  map_free_list (scm_freelist, 1);
-  map_free_list (scm_freelist2, 2);
+  map_free_list (&scm_freelist);
+  map_free_list (&scm_freelist2);
   fflush (stderr);
 
   return SCM_UNSPECIFIED;
@@ -292,12 +292,12 @@ static unsigned long scm_newcell2_count;
 /* Search freelist for anything that isn't marked as a free cell.
    Abort if we find something.  */
 static void
-scm_check_freelist (SCM freelist)
+scm_check_freelist (scm_freelist_t *freelistp)
 {
   SCM f;
   int i = 0;
 
-  for (f = freelist; SCM_NIMP (f); f = SCM_CDR (f), i++)
+  for (f = freelistp->cells; SCM_NIMP (f); f = SCM_CDR (f), i++)
     if (SCM_CAR (f) != (SCM) scm_tc_free_cell)
       {
 	fprintf (stderr, "Bad cell in freelist on newcell %lu: %d'th elt\n",
@@ -316,7 +316,7 @@ SCM_DEFINE (scm_gc_set_debug_check_freelist_x, "gc-set-debug-check-freelist!", 1
             "compile-time flag was selected.\n")
 #define FUNC_NAME s_scm_gc_set_debug_check_freelist_x
 {
-  SCM_VALIDATE_BOOL_COPY (1,flag,scm_debug_check_freelist);
+  SCM_VALIDATE_BOOL_COPY (1, flag, scm_debug_check_freelist);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -328,19 +328,20 @@ scm_debug_newcell (void)
   SCM new;
 
   scm_newcell_count++;
-  if (scm_debug_check_freelist) {
-    scm_check_freelist (scm_freelist);
-    scm_gc();
-  }
+  if (scm_debug_check_freelist)
+    {
+      scm_check_freelist (&scm_freelist);
+      scm_gc();
+    }
 
   /* The rest of this is supposed to be identical to the SCM_NEWCELL
      macro.  */
-  if (SCM_IMP (scm_freelist))
-    new = scm_gc_for_newcell (1, &scm_freelist);
+  if (SCM_IMP (scm_freelist.cells))
+    new = scm_gc_for_newcell (&scm_freelist);
   else
     {
-      new = scm_freelist;
-      scm_freelist = SCM_CDR (scm_freelist);
+      new = scm_freelist.cells;
+      scm_freelist.cells = SCM_CDR (scm_freelist.cells);
       SCM_SETCAR (new, scm_tc16_allocated);
       ++scm_cells_allocated;
     }
@@ -355,18 +356,18 @@ scm_debug_newcell2 (void)
 
   scm_newcell2_count++;
   if (scm_debug_check_freelist) {
-    scm_check_freelist (scm_freelist2);
+    scm_check_freelist (&scm_freelist2);
     scm_gc();
   }
 
   /* The rest of this is supposed to be identical to the SCM_NEWCELL2
      macro.  */
-  if (SCM_IMP (scm_freelist2))
-    new = scm_gc_for_newcell (2, &scm_freelist2);
+  if (SCM_IMP (scm_freelist2.cells))
+    new = scm_gc_for_newcell (&scm_freelist2);
   else
     {
-      new = scm_freelist2;
-      scm_freelist2 = SCM_CDR (scm_freelist2);
+      new = scm_freelist2.cells;
+      scm_freelist2.cells = SCM_CDR (scm_freelist2.cells);
       SCM_SETCAR (new, scm_tc16_allocated);
       scm_cells_allocated += 2;
     }
@@ -412,7 +413,7 @@ SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
   /// ? ?? ? 
   local_scm_mtrigger = scm_mtrigger;
   local_scm_mallocated = scm_mallocated;
-  local_scm_heap_size = scm_heap_size;
+  local_scm_heap_size = scm_freelist.heap_size; /*fixme*/
   local_scm_cells_allocated = scm_cells_allocated;
   local_scm_gc_time_taken = scm_gc_time_taken;
 
@@ -433,7 +434,7 @@ void
 scm_gc_start (const char *what)
 {
   scm_gc_rt = SCM_INUM (scm_get_internal_run_time ());
-  scm_gc_cells_collected = 0;
+  /* scm_gc_cells_collected = 0; */
   scm_gc_malloc_collected = 0;
   scm_gc_ports_collected = 0;
 }
@@ -477,29 +478,28 @@ SCM_DEFINE (scm_gc, "gc", 0, 0, 0,
  */
 
 void
-scm_gc_for_alloc (int ncells, SCM *freelistp)
+scm_gc_for_alloc (scm_freelist_t *freelistp)
 {
   SCM_REDEFER_INTS;
   scm_igc ("cells");
-#if 0
+#ifdef GUILE_DEBUG_FREELIST
   fprintf (stderr, "Collected: %d, min_yield: %d\n",
-	   scm_gc_cells_collected, MIN_GC_YIELD);
+	   freelistp->collected, MIN_GC_YIELD (freelistp));
 #endif
-  if ((scm_gc_cells_collected < MIN_GC_YIELD) || SCM_IMP (*freelistp))
-    {
-      alloc_some_heap (ncells, freelistp);
-    }
+  if ((freelistp->collected < MIN_GC_YIELD (freelistp))
+      || SCM_IMP (freelistp->cells))
+    alloc_some_heap (freelistp);
   SCM_REALLOW_INTS;
 }
 
 
 SCM 
-scm_gc_for_newcell (int ncells, SCM *freelistp)
+scm_gc_for_newcell (scm_freelist_t *freelistp)
 {
   SCM fl;
-  scm_gc_for_alloc (ncells, freelistp);
-  fl = *freelistp;
-  *freelistp = SCM_CDR (fl);
+  scm_gc_for_alloc (freelistp);
+  fl = freelistp->cells;
+  freelistp->cells = SCM_CDR (fl);
   SCM_SETCAR (fl, scm_tc16_allocated);
   return fl;
 }
@@ -621,7 +621,7 @@ scm_igc (const char *what)
 #else /* USE_THREADS */
 
   /* Mark every thread's stack and registers */
-  scm_threads_mark_stacks();
+  scm_threads_mark_stacks ();
 
 #endif /* USE_THREADS */
 
@@ -1136,7 +1136,7 @@ scm_gc_sweep ()
 #define scmptr (SCM)ptr
 #endif
   register SCM nfreelist;
-  register SCM *hp_freelist;
+  register scm_freelist_t *hp_freelist;
   register long m;
   register int span;
   long i;
@@ -1147,7 +1147,7 @@ scm_gc_sweep ()
   /* Reset all free list pointers.  We'll reconstruct them completely
      while scanning.  */
   for (i = 0; i < scm_n_heap_segs; i++)
-    *scm_heap_table[i].freelistp = SCM_EOL;
+    scm_heap_table[i].freelistp->cells = SCM_EOL;
 
   for (i = 0; i < scm_n_heap_segs; i++)
     {
@@ -1161,9 +1161,10 @@ scm_gc_sweep ()
 	 free, we free (i.e., malloc's free) the whole segment, and
 	 simply don't assign nfreelist back into the real freelist.  */
       hp_freelist = scm_heap_table[i].freelistp;
-      nfreelist = *hp_freelist;
+      nfreelist = hp_freelist->cells;
+      span = scm_heap_table[i].span;
+      hp_freelist->collected = 0;
 
-      span = scm_heap_table[i].ncells;
       ptr = CELL_UP (scm_heap_table[i].bounds[0]);
       seg_size = CELL_DN (scm_heap_table[i].bounds[1]) - ptr;
       for (j = seg_size + span; j -= span; ptr += span)
@@ -1307,7 +1308,7 @@ scm_gc_sweep ()
 		  if (!(k < scm_numptob))
 		    goto sweeperr;
 		  /* Keep "revealed" ports alive.  */
-		  if (scm_revealed_count(scmptr) > 0)
+		  if (scm_revealed_count (scmptr) > 0)
 		    continue;
 		  /* Yes, I really do mean scm_ptobs[k].free */
 		  /* rather than ftobs[k].close.  .close */
@@ -1381,7 +1382,7 @@ scm_gc_sweep ()
 	{
 	  register long j;
 
-	  scm_heap_size -= seg_size;
+	  hp_freelist->heap_size -= seg_size;
 	  free ((char *) scm_heap_table[i].bounds[0]);
 	  scm_heap_table[i].bounds[0] = 0;
 	  for (j = i + 1; j < scm_n_heap_segs; j++)
@@ -1393,14 +1394,15 @@ scm_gc_sweep ()
 #endif /* ifdef GC_FREE_SEGMENTS */
 	/* Update the real freelist pointer to point to the head of
            the list of free cells we've built for this segment.  */
-	*hp_freelist = nfreelist;
+	hp_freelist->cells = nfreelist;
 
 #ifdef GUILE_DEBUG_FREELIST
-      scm_check_freelist (*hp_freelist);
+      scm_check_freelist (hp_freelist);
       scm_map_free_list ();
 #endif
 
-      scm_gc_cells_collected += n;
+      hp_freelist->collected += n;
+      scm_cells_allocated += hp_freelist->heap_size - hp_freelist->collected;
     }
   /* Scan weak vectors. */
   {
@@ -1459,7 +1461,6 @@ scm_gc_sweep ()
 	  }
       }
   }
-  scm_cells_allocated = (scm_heap_size - scm_gc_cells_collected);
   scm_mallocated -= m;
   scm_gc_malloc_collected = m;
 }
@@ -1628,11 +1629,6 @@ SCM_CELLPTR scm_heap_org;
 struct scm_heap_seg_data * scm_heap_table = 0;
 int scm_n_heap_segs = 0;
 
-/* scm_heap_size
- * is the total number of cells in heap segments.
- */
-unsigned long scm_heap_size = 0;
-
 /* init_heap_seg
  * initializes a new heap segment and return the number of objects it contains.
  *
@@ -1645,7 +1641,7 @@ unsigned long scm_heap_size = 0;
 
 
 static scm_sizet 
-init_heap_seg (SCM_CELLPTR seg_org, scm_sizet size, int ncells, SCM *freelistp)
+init_heap_seg (SCM_CELLPTR seg_org, scm_sizet size, scm_freelist_t *freelistp)
 {
   register SCM_CELLPTR ptr;
 #ifdef SCM_POINTERS_MUNGED
@@ -1657,13 +1653,14 @@ init_heap_seg (SCM_CELLPTR seg_org, scm_sizet size, int ncells, SCM *freelistp)
   SCM_CELLPTR seg_end;
   int new_seg_index;
   int n_new_cells;
+  int span = freelistp->span;
   
   if (seg_org == NULL)
     return 0;
 
   ptr = seg_org;
 
-  size = (size / sizeof(scm_cell) / ncells) * ncells * sizeof(scm_cell);
+  size = (size / sizeof (scm_cell) / span) * span * sizeof (scm_cell);
 
   /* Compute the ceiling on valid object pointers w/in this segment. 
    */
@@ -1687,7 +1684,7 @@ init_heap_seg (SCM_CELLPTR seg_org, scm_sizet size, int ncells, SCM *freelistp)
   ++scm_n_heap_segs;
 
   scm_heap_table[new_seg_index].valid = 0;
-  scm_heap_table[new_seg_index].ncells = ncells;
+  scm_heap_table[new_seg_index].span = span;
   scm_heap_table[new_seg_index].freelistp = freelistp;
   scm_heap_table[new_seg_index].bounds[0] = (SCM_CELLPTR)ptr;
   scm_heap_table[new_seg_index].bounds[1] = (SCM_CELLPTR)seg_end;
@@ -1709,19 +1706,19 @@ init_heap_seg (SCM_CELLPTR seg_org, scm_sizet size, int ncells, SCM *freelistp)
       scmptr = PTR2SCM (ptr);
 #endif
       SCM_SETCAR (scmptr, (SCM) scm_tc_free_cell);
-      SCM_SETCDR (scmptr, PTR2SCM (ptr + ncells));
-      ptr += ncells;
+      SCM_SETCDR (scmptr, PTR2SCM (ptr + span));
+      ptr += span;
     }
 
-  ptr -= ncells;
+  ptr -= span;
 
   /* Patch up the last freelist pointer in the segment
    * to join it to the input freelist.
    */
-  SCM_SETCDR (PTR2SCM (ptr), *freelistp);
-  *freelistp = PTR2SCM (CELL_UP (seg_org));
+  SCM_SETCDR (PTR2SCM (ptr), freelistp->cells);
+  freelistp->cells = PTR2SCM (CELL_UP (seg_org));
 
-  scm_heap_size += n_new_cells;
+  freelistp->heap_size += n_new_cells;
   return size;
 #ifdef scmptr
 #undef scmptr
@@ -1730,7 +1727,7 @@ init_heap_seg (SCM_CELLPTR seg_org, scm_sizet size, int ncells, SCM *freelistp)
 
 
 static void 
-alloc_some_heap (int ncells, SCM *freelistp)
+alloc_some_heap (scm_freelist_t *freelistp)
 {
   struct scm_heap_seg_data * tmptable;
   SCM_CELLPTR ptr;
@@ -1762,8 +1759,9 @@ alloc_some_heap (int ncells, SCM *freelistp)
    */
   if (scm_expmem)
     {
-      len = (scm_sizet) (SCM_EXPHEAP (scm_heap_size) * sizeof (scm_cell));
-      if ((scm_sizet) (SCM_EXPHEAP (scm_heap_size) * sizeof (scm_cell)) != len)
+      len = (scm_sizet) SCM_EXPHEAP (freelistp->heap_size * sizeof (scm_cell));
+      if ((scm_sizet) SCM_EXPHEAP (freelistp->heap_size * sizeof (scm_cell))
+	  != len)
 	len = 0;
     }
   else
@@ -1772,9 +1770,9 @@ alloc_some_heap (int ncells, SCM *freelistp)
   {
     scm_sizet smallest;
 
-    smallest = (ncells * sizeof (scm_cell));
+    smallest = (freelistp->span * sizeof (scm_cell));
     if (len < smallest)
-      len = (ncells * sizeof (scm_cell));
+      len = (freelistp->span * sizeof (scm_cell));
 
     /* Allocate with decaying ambition. */
     while ((len >= SCM_MIN_HEAP_SEG_SIZE)
@@ -1783,7 +1781,7 @@ alloc_some_heap (int ncells, SCM *freelistp)
 	SCM_SYSCALL (ptr = (SCM_CELLPTR) malloc (len));
 	if (ptr)
 	  {
-	    init_heap_seg (ptr, len, ncells, freelistp);
+	    init_heap_seg (ptr, len, freelistp);
 	    return;
 	  }
 	len /= 2;
@@ -1944,21 +1942,17 @@ cleanup (int status, void *arg)
 
 
 static int
-make_initial_segment(scm_sizet init_heap_size,
-                     int ncells,
-                     SCM *freelistp)
+make_initial_segment (scm_sizet init_heap_size, scm_freelist_t *freelistp)
 {
   if (0L == init_heap_size)
     init_heap_size = SCM_INIT_HEAP_SIZE;
   if (!init_heap_seg ((SCM_CELLPTR) malloc (init_heap_size),
 		      init_heap_size,
-		      ncells,
 		      freelistp))
     {
       init_heap_size = SCM_HEAP_SEG_SIZE;
       if (!init_heap_seg ((SCM_CELLPTR) malloc (init_heap_size),
 			  init_heap_size,
-			  ncells,
 			  freelistp))
 	return 1;
     }
@@ -1978,8 +1972,14 @@ scm_init_storage (scm_sizet init_heap_size, scm_sizet init_heap2_size)
   while (j)
     scm_sys_protects[--j] = SCM_BOOL_F;
   scm_block_gc = 1;
-  scm_freelist = SCM_EOL;
-  scm_freelist2 = SCM_EOL;
+  scm_freelist.cells = SCM_EOL;
+  scm_freelist.span = 1;
+  scm_freelist.collected = 0;
+  scm_freelist.heap_size = 0;
+  scm_freelist2.cells = SCM_EOL;
+  scm_freelist2.span = 2;
+  scm_freelist2.collected = 0;
+  scm_freelist2.heap_size = 0;
   scm_expmem = 0;
 
   j = SCM_HEAP_SEG_SIZE;
@@ -1987,8 +1987,8 @@ scm_init_storage (scm_sizet init_heap_size, scm_sizet init_heap2_size)
   scm_heap_table = ((struct scm_heap_seg_data *)
 		    scm_must_malloc (sizeof (struct scm_heap_seg_data) * 2, "hplims"));
 
-  if (make_initial_segment(init_heap_size, 1, &scm_freelist) ||
-      make_initial_segment(init_heap2_size, 2, &scm_freelist2))
+  if (make_initial_segment (init_heap_size, &scm_freelist) ||
+      make_initial_segment (init_heap2_size, &scm_freelist2))
     return 1;
 
   scm_heap_org = CELL_UP (scm_heap_table[0].bounds[0]);
