@@ -732,7 +732,7 @@ SCM_DEFINE (scm_port_for_each, "port-for-each", 1, 0, 0,
 
   while (ports != SCM_EOL)
     {
-      scm_apply (proc, scm_cons (SCM_CAR (ports), SCM_EOL), SCM_EOL);
+      scm_call_1 (proc, SCM_CAR (ports));
       ports = SCM_CDR (ports);
     }
 

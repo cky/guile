@@ -1246,7 +1246,7 @@ scm_macroexp (SCM x, SCM env)
     return x;
 
   SCM_SETCAR (x, orig_sym);  /* Undo memoizing effect of lookupcar */
-  res = scm_apply (SCM_MACRO_CODE (proc), x, scm_cons (env, scm_listofnull));
+  res = scm_call_2 (SCM_MACRO_CODE (proc), x, env);
   
   if (scm_ilength (res) <= 0)
     res = scm_cons2 (SCM_IM_BEGIN, res, SCM_EOL);
@@ -3245,6 +3245,62 @@ ret:
 
 #ifndef DEVAL
 
+
+/* Simple procedure calls
+ */
+
+SCM
+scm_call_0 (SCM proc)
+{
+  return scm_apply (proc, SCM_EOL, SCM_EOL);
+}
+
+SCM
+scm_call_1 (SCM proc, SCM arg1)
+{
+  return scm_apply (proc, arg1, scm_listofnull);
+}
+
+SCM
+scm_call_2 (SCM proc, SCM arg1, SCM arg2)
+{
+  return scm_apply (proc, arg1, scm_cons (arg2, scm_listofnull));
+}
+
+SCM
+scm_call_3 (SCM proc, SCM arg1, SCM arg2, SCM arg3)
+{
+  return scm_apply (proc, arg1, scm_cons2 (arg2, arg3, scm_listofnull));
+}
+
+/* Simple procedure applies
+ */
+
+SCM
+scm_apply_0 (SCM proc, SCM args)
+{
+  return scm_apply (proc, args, SCM_EOL);
+}
+
+SCM
+scm_apply_1 (SCM proc, SCM arg1, SCM args)
+{
+  return scm_apply (proc, scm_cons (arg1, args), SCM_EOL);
+}
+
+SCM
+scm_apply_2 (SCM proc, SCM arg1, SCM arg2, SCM args)
+{
+  return scm_apply (proc, scm_cons2 (arg1, arg2, args), SCM_EOL);
+}
+
+SCM
+scm_apply_3 (SCM proc, SCM arg1, SCM arg2, SCM arg3, SCM args)
+{
+  return scm_apply (proc, scm_cons (arg1, scm_cons2 (arg2, arg3, args)),
+		    SCM_EOL);
+}
+
 /* This code processes the arguments to apply:
 
    (apply PROC ARG1 ... ARGS)
@@ -3812,7 +3868,7 @@ SCM_DEFINE (scm_force, "force", 1, 0, 0,
   SCM_VALIDATE_SMOB (1, x, promise);
   if (!((1L << 16) & SCM_CELL_WORD_0 (x)))
     {
-      SCM ans = scm_apply (SCM_CELL_OBJECT_1 (x), SCM_EOL, SCM_EOL);
+      SCM ans = scm_call_0 (SCM_CELL_OBJECT_1 (x));
       if (!((1L << 16) & SCM_CELL_WORD_0 (x)))
 	{
 	  SCM_DEFER_INTS;
@@ -3948,7 +4004,7 @@ scm_primitive_eval_x (SCM exp)
   SCM env;
   SCM transformer = scm_current_module_transformer ();
   if (SCM_NIMP (transformer))
-    exp = scm_apply (transformer, exp, scm_listofnull);
+    exp = scm_call_1 (transformer, exp);
   env = scm_top_level_env (scm_current_module_lookup_closure ());
   return scm_i_eval_x (exp, env);
 }
@@ -3962,7 +4018,7 @@ SCM_DEFINE (scm_primitive_eval, "primitive-eval", 1, 0, 0,
   SCM env;
   SCM transformer = scm_current_module_transformer ();
   if (SCM_NIMP (transformer))
-    exp = scm_apply (transformer, exp, scm_listofnull);
+    exp = scm_call_1 (transformer, exp);
   env = scm_top_level_env (scm_current_module_lookup_closure ());
   return scm_i_eval (exp, env);
 }

@@ -120,7 +120,7 @@ static SCM
 with_traps_inner (void *data)
 {
   SCM thunk = SCM_PACK (data);
-  return scm_apply (thunk, SCM_EOL, SCM_EOL);
+  return scm_call_0 (thunk);
 }
 
 SCM_DEFINE (scm_with_traps, "with-traps", 1, 0, 0, 

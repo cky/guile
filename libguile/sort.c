@@ -86,6 +86,7 @@ char *alloca ();
 #include "libguile/ramap.h"
 #include "libguile/alist.h"
 #include "libguile/feature.h"
+#include "libguile/root.h"
 #include "libguile/vectors.h"
 
 #include "libguile/validate.h"
@@ -385,10 +386,7 @@ closureless (SCM code, const void *a, const void *b)
 static int 
 applyless (SCM less, const void *a, const void *b)
 {
-  return SCM_NFALSEP (scm_apply (less,
-				 scm_cons (*(SCM *) a,
-					   scm_cons (*(SCM *) b, SCM_EOL)),
-				 SCM_EOL));
+  return SCM_NFALSEP (scm_call_2 (less, *(SCM *) a, *(SCM *) b));
 }				/* applyless */
 
 static cmp_fun_t

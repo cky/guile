@@ -1068,7 +1068,7 @@ scm_printer_apply (SCM proc, SCM exp, SCM port, scm_print_state *pstate)
   SCM pair = scm_cons (port, pstate->handle);
   SCM_NEWSMOB (pwps, scm_tc16_port_with_ps, SCM_UNPACK (pair));
   pstate->revealed = 1;
-  return scm_apply (proc, exp, scm_cons (pwps, scm_listofnull));
+  return scm_call_2 (proc, exp, pwps);
 }
 
 SCM_DEFINE (scm_port_with_print_state, "port-with-print-state", 2, 0, 0, 

@@ -424,9 +424,7 @@ tryagain_no_flush_ws:
 		int column = SCM_COL (port) - 2;
 		SCM got;
 
-		got = scm_apply (sharp,
-				 SCM_MAKE_CHAR (c),
-				 scm_acons (port, SCM_EOL, SCM_EOL));
+		got = scm_call_2 (sharp, SCM_MAKE_CHAR (c), port);
 		if (SCM_EQ_P (got, SCM_UNSPECIFIED))
 		  goto unkshrp;
 		if (SCM_RECORD_POSITIONS_P)

@@ -162,17 +162,15 @@ scm_c_resolve_module (const char *name)
 SCM
 scm_resolve_module (SCM name)
 {
-  return scm_apply (SCM_VARIABLE_REF (resolve_module_var),
-		    SCM_LIST1 (name), SCM_EOL);
+  return scm_call_1 (SCM_VARIABLE_REF (resolve_module_var), name);
 }
 
 SCM
 scm_c_define_module (const char *name,
 		     void (*init)(void *), void *data)
 {
-  SCM module = scm_apply (SCM_VARIABLE_REF (process_define_module_var),
-			  SCM_LIST1 (SCM_LIST1 (convert_module_name (name))),
-			  SCM_EOL);
+  SCM module = scm_call_1 (SCM_VARIABLE_REF (process_define_module_var),
+			   SCM_LIST1 (convert_module_name (name)));
   if (init)
     scm_c_call_with_current_module (module, (SCM (*)(void*))init, data);
   return module;
@@ -181,9 +179,8 @@ scm_c_define_module (const char *name,
 void
 scm_c_use_module (const char *name)
 {
-  scm_apply (SCM_VARIABLE_REF (process_use_modules_var),
-	     SCM_LIST1 (SCM_LIST1 (convert_module_name (name))),
-	     SCM_EOL);
+  scm_call_1 (SCM_VARIABLE_REF (process_use_modules_var),
+	      SCM_LIST1 (convert_module_name (name)));
 }
 
 static SCM module_export_x_var;
@@ -203,10 +200,8 @@ scm_c_export (const char *name, ...)
       *tail = scm_cons (scm_str2symbol (n), SCM_EOL);
       tail = SCM_CDRLOC (*tail);
     }
-  scm_apply (SCM_VARIABLE_REF (module_export_x_var),
-	     SCM_LIST2 (scm_current_module (),
-			names),
-	     SCM_EOL);
+  scm_call_2 (SCM_VARIABLE_REF (module_export_x_var),
+	      scm_current_module (), names);
 }
 
 /* Environments */
@@ -292,9 +287,7 @@ module_variable (SCM module, SCM sym)
     if (SCM_NFALSEP (binder))
       /* 2. Custom binder */
       {
-	b = scm_apply (binder,
-		       SCM_LIST3 (module, sym, SCM_BOOL_F),
-		       SCM_EOL);
+	b = scm_call_3 (binder, module, sym, SCM_BOOL_F);
 	if (SCM_NFALSEP (b))
 	  return b;
       }
@@ -329,9 +322,8 @@ scm_eval_closure_lookup (SCM eclo, SCM sym, SCM definep)
     {
       if (SCM_EVAL_CLOSURE_INTERFACE_P (eclo))
 	return SCM_BOOL_F;
-      return scm_apply (SCM_VARIABLE_REF (module_make_local_var_x_var),
-			SCM_LIST2 (module, sym),
-			SCM_EOL);
+      return scm_call_2 (SCM_VARIABLE_REF (module_make_local_var_x_var),
+			 module, sym);
     }
   else
     return module_variable (module, sym);
@@ -423,7 +415,7 @@ scm_sym2var (SCM sym, SCM proc, SCM definep)
 	  var = scm_eval_closure_lookup (proc, sym, definep);
 	}
       else
-	var = scm_apply (proc, sym, scm_cons (definep, scm_listofnull));
+	var = scm_call_2 (proc, sym, definep);
     }
   else
     {
@@ -686,10 +678,9 @@ scm_make_module (SCM name)
   scm_c_issue_deprecation_warning ("`scm_make_module' is deprecated. "
 				   "Use `scm_c_define_module instead.");
 
-  return scm_apply (SCM_VARIABLE_REF (make_modules_in_var),
-		    SCM_LIST2 (scm_the_root_module (),
-			       scm_module_full_name (name)),
-		    SCM_EOL);
+  return scm_call_2 (SCM_VARIABLE_REF (make_modules_in_var),
+		     scm_the_root_module (),
+		     scm_module_full_name (name));
 }
 
 SCM
@@ -698,8 +689,7 @@ scm_ensure_user_module (SCM module)
   scm_c_issue_deprecation_warning ("`scm_ensure_user_module' is deprecated. "
 				   "Use `scm_c_define_module instead.");
 
-  scm_apply (SCM_VARIABLE_REF (beautify_user_module_x_var),
-	     SCM_LIST1 (module), SCM_EOL);
+  scm_call_1 (SCM_VARIABLE_REF (beautify_user_module_x_var), module);
   return SCM_UNSPECIFIED;
 }
 
@@ -709,8 +699,7 @@ scm_load_scheme_module (SCM name)
   scm_c_issue_deprecation_warning ("`scm_load_scheme_module' is deprecated. "
 				   "Use `scm_c_resolve_module instead.");
 
-  return scm_apply (SCM_VARIABLE_REF (try_module_autoload_var),
-		    SCM_LIST1 (name), SCM_EOL);
+  return scm_call_1 (SCM_VARIABLE_REF (try_module_autoload_var), name);
 }
 
 #endif

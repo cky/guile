@@ -1,3 +1,32 @@
+2001-06-27  Keisuke Nishida  <kxn30@po.cwru.edu>
+
+	* eval.c (scm_call_0, scm_call_1, scm_call_2, scm_call_3,
+	scm_apply_0, scm_apply_1, scm_apply_2, scm_apply_3): New functions.
+	* eval.h (scm_call_0, scm_call_1, scm_call_2, scm_call_3,
+	scm_apply_0, scm_apply_1, scm_apply_2, scm_apply_3): Declared.
+	* async.c (scm_run_asyncs), coop-threads.c (scheme_body_bootstrip,
+	scheme_handler_bootstrip), debug.c (with_traps_inner), dynwind.c
+	(scm_dynamic_wind, scm_dowinds), environments.c
+	(import_environment_conflict), eval.c (scm_macroexp, scm_force,
+	scm_primitive_eval_x, scm_primitive_eval), fluids.c (apply_thunk),
+	goops.c (GETVAR, purgatory, make_class_from_template,
+	scm_ensure_accessor), hashtab.c (scm_ihashx, scm_sloppy_assx,
+	scm_delx_x, fold_proc), hooks.c (scm_c_run_hook), load.c
+	(scm_primitive_load), modules.c (scm_resolve_module,
+	scm_c_define_module, scm_c_use_module, scm_c_export,
+	module_variable, scm_eval_closure_lookup, scm_sym2var,
+	scm_make_module, scm_ensure_user_module, scm_load_scheme_module),
+	ports.c (scm_port_for_each), print.c (scm_printer_apply),
+	properties.c (scm_primitive_property_ref), ramap.c (ramap,
+	ramap_cxr, rafe, scm_array_index_map_x, read.c (scm_lreadr),
+	scmsigs.c (sys_deliver_signals), sort.c (applyless), strports.c
+	(scm_object_to_string, scm_call_with_output_string,
+	scm_call_with_input_string), throw.c (scm_body_thunk,
+	scm_handle_by_proc, hbpca_body), unif.c (scm_make_shared_array,
+	scm_make_shared_array), vports.c (sf_flush, sf_write,
+	sf_fill_input, sf_close): Use one of the above functions.
+	* goops.c, hashtab.c, scmsigs.c, sort.c: #include "libguile/root.h".
+
 2001-06-26  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* filesys.c (scm_close), ports.c (scm_close_port,

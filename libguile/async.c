@@ -363,7 +363,7 @@ SCM_DEFINE (scm_run_asyncs, "run-asyncs", 1, 0, 0,
       if (ASYNC_GOT_IT (a))
 	{
 	  SET_ASYNC_GOT_IT (a, 0);
-	  scm_apply (ASYNC_THUNK (a), SCM_EOL, SCM_EOL);
+	  scm_call_0 (ASYNC_THUNK (a));
 	}
       scm_mask_ints = 0;
       list_of_a = SCM_CDR (list_of_a);

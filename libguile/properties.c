@@ -100,7 +100,7 @@ SCM_DEFINE (scm_primitive_property_ref, "primitive-property-ref", 2, 0, 0,
     return SCM_BOOL_F;
   else
     {
-      SCM val = scm_apply (SCM_CAR (prop), SCM_LIST2 (prop, obj), SCM_EOL);
+      SCM val = scm_call_2 (SCM_CAR (prop), prop, obj);
       if (SCM_FALSEP (h))
 	h = scm_hashq_create_handle_x (scm_properties_whash, obj, SCM_EOL);
       SCM_SETCDR (h, scm_acons (prop, val, SCM_CDR (h)));

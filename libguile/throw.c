@@ -348,7 +348,7 @@ scm_body_thunk (void *body_data)
 {
   struct scm_body_thunk_data *c = (struct scm_body_thunk_data *) body_data;
 
-  return scm_apply (c->body_proc, SCM_EOL, SCM_EOL);
+  return scm_call_0 (c->body_proc);
 }
 
 
@@ -367,7 +367,7 @@ scm_handle_by_proc (void *handler_data, SCM tag, SCM throw_args)
 {
   SCM *handler_proc_p = (SCM *) handler_data;
 
-  return scm_apply (*handler_proc_p, scm_cons (tag, throw_args), SCM_EOL);
+  return scm_apply_1 (*handler_proc_p, tag, throw_args);
 }
 
 /* SCM_HANDLE_BY_PROC_CATCHING_ALL is like SCM_HANDLE_BY_PROC but
@@ -383,7 +383,7 @@ static SCM
 hbpca_body (void *body_data)
 {
   struct hbpca_data *data = (struct hbpca_data *)body_data;
-  return scm_apply (data->proc, data->args, SCM_EOL);
+  return scm_apply_0 (data->proc, data->args);
 }
 
 SCM

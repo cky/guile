@@ -721,7 +721,7 @@ SCM_DEFINE (scm_make_shared_array, "make-shared-array", 2, 0, 1,
 	  return ra;
 	}
     }
-  imap = scm_apply (mapfunc, scm_reverse (inds), SCM_EOL);
+  imap = scm_apply_0 (mapfunc, scm_reverse (inds));
   if (SCM_ARRAYP (oldra))
       i = (size_t) scm_aind (oldra, imap, FUNC_NAME);
   else
@@ -743,7 +743,7 @@ SCM_DEFINE (scm_make_shared_array, "make-shared-array", 2, 0, 1,
       if (s[k].ubnd > s[k].lbnd)
 	{
 	  SCM_SETCAR (indptr, SCM_MAKINUM (SCM_INUM (SCM_CAR (indptr)) + 1));
-	  imap = scm_apply (mapfunc, scm_reverse (inds), SCM_EOL);
+	  imap = scm_apply_0 (mapfunc, scm_reverse (inds));
 	  if (SCM_ARRAYP (oldra))
 
 	      s[k].inc = scm_aind (oldra, imap, FUNC_NAME) - i;

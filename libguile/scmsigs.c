@@ -51,6 +51,7 @@
 
 #include "libguile/async.h"
 #include "libguile/eval.h"
+#include "libguile/root.h"
 #include "libguile/vectors.h"
 
 #include "libguile/validate.h"
@@ -166,9 +167,7 @@ sys_deliver_signals (void)
 #ifndef HAVE_SIGACTION
 	  signal (i, take_signal);
 #endif
-	  scm_apply (SCM_VELTS (*signal_handlers)[i],
-		     SCM_LIST1 (SCM_MAKINUM (i)),
-		     SCM_EOL);
+	  scm_call_1 (SCM_VELTS (*signal_handlers)[i], SCM_MAKINUM (i));
 	}
     }
   return SCM_UNSPECIFIED;

@@ -333,7 +333,7 @@ SCM_DEFINE (scm_object_to_string, "object->string", 1, 1, 0,
   if (SCM_UNBNDP (printer))
     scm_write (obj, port);
   else
-    scm_apply (printer, SCM_LIST2 (obj, port), SCM_EOL);
+    scm_call_2 (printer, obj, port);
 
   return scm_strport_to_string (port);
 }
@@ -362,7 +362,7 @@ SCM_DEFINE (scm_call_with_output_string, "call-with-output-string", 1, 0, 0,
 		     scm_make_string (SCM_INUM0, SCM_UNDEFINED),
 		     SCM_OPN | SCM_WRTNG,
                      FUNC_NAME);
-  scm_apply (proc, p, scm_listofnull);
+  scm_call_1 (proc, p);
 
   return scm_strport_to_string (p);
 }
@@ -376,7 +376,7 @@ SCM_DEFINE (scm_call_with_input_string, "call-with-input-string", 2, 0, 0,
 #define FUNC_NAME s_scm_call_with_input_string
 {
   SCM p = scm_mkstrport(SCM_INUM0, string, SCM_OPN | SCM_RDNG, FUNC_NAME);
-  return scm_apply (proc, p, scm_listofnull);
+  return scm_call_1 (proc, p);
 }
 #undef FUNC_NAME
 

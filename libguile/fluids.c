@@ -213,7 +213,7 @@ scm_swap_fluids_reverse (SCM fluids, SCM vals)
 static SCM
 apply_thunk (void *thunk)
 {
-  return scm_apply (SCM_PACK (thunk), SCM_EOL, SCM_EOL);
+  return scm_call_0 (SCM_PACK (thunk));
 }
 
 SCM_DEFINE (scm_with_fluids, "with-fluids*", 3, 0, 0, 

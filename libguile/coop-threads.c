@@ -180,21 +180,19 @@ typedef struct scheme_launch_data {
   SCM handler;
 } scheme_launch_data;
 
-extern SCM scm_apply (SCM, SCM, SCM);
-
 static SCM
 scheme_body_bootstrip (scheme_launch_data* data)
 {
   /* First save the new root continuation */
   data->rootcont = scm_root->rootcont;
-  return scm_apply (data->body, SCM_EOL, SCM_EOL);
+  return scm_call_0 (data->body);
 }
 
 static SCM
 scheme_handler_bootstrip (scheme_launch_data* data, SCM tag, SCM throw_args)
 {
   scm_root->rootcont = data->rootcont;
-  return scm_apply (data->handler, scm_cons (tag, throw_args), SCM_EOL);
+  return scm_apply_1 (data->handler, tag, throw_args);
 }
 
 static void

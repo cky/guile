@@ -63,6 +63,7 @@
 #include "libguile/ports.h"
 #include "libguile/procprop.h"
 #include "libguile/random.h"
+#include "libguile/root.h"
 #include "libguile/smob.h"
 #include "libguile/strings.h"
 #include "libguile/strports.h"
@@ -79,9 +80,8 @@
 	      scm_module_goops); }
 /* Temporary hack until we get the new module system */
 /*fixme* Should optimize by keeping track of the variable object itself */
-#define GETVAR(v) (SCM_VARIABLE_REF (scm_apply (scm_goops_lookup_closure, \
-					SCM_LIST2 ((v), SCM_BOOL_F), \
-					SCM_EOL)))
+#define GETVAR(v) (SCM_VARIABLE_REF (scm_call_2 (scm_goops_lookup_closure,  \
+						 (v), SCM_BOOL_F)))
 
 /* Fixme: Should use already interned symbols */
 #define CALL_GF1(name,a)	(scm_apply (GETVAR (scm_str2symbol (name)), \
@@ -1513,7 +1513,7 @@ go_to_heaven (void *o)
 static SCM
 purgatory (void *args)
 {
-  return scm_apply (GETVAR (scm_str2symbol ("change-class")), (SCM) args, SCM_EOL);
+  return scm_apply_0 (GETVAR (scm_str2symbol ("change-class")), (SCM) args);
 }
 
 void
@@ -2339,9 +2339,7 @@ make_class_from_template (char *template, char *type_name, SCM supers)
 
   /* Only define name if doesn't already exist. */
   if (!SCM_GOOPS_UNBOUNDP (name)
-      && SCM_FALSEP (scm_apply (scm_goops_lookup_closure,
-				SCM_LIST2 (name, SCM_BOOL_F),
-				SCM_EOL)))
+      && SCM_FALSEP (scm_call_2 (scm_goops_lookup_closure, name, SCM_BOOL_F)))
     DEFVAR (name, class);
   return class;
 }
@@ -2588,9 +2586,7 @@ scm_wrap_component (SCM class, SCM container, void *data)
 SCM
 scm_ensure_accessor (SCM name)
 {
-  SCM gf = scm_apply (SCM_TOP_LEVEL_LOOKUP_CLOSURE,
-		      SCM_LIST2 (name, SCM_BOOL_F),
-		      SCM_EOL);
+  SCM gf = scm_call_2 (SCM_TOP_LEVEL_LOOKUP_CLOSURE, name, SCM_BOOL_F);
   if (!SCM_IS_A_P (gf, scm_class_generic_with_setter))
     {
       gf = scm_make (SCM_LIST3 (scm_class_generic, k_name, name));

@@ -125,11 +125,11 @@ SCM_DEFINE (scm_dynamic_wind, "dynamic-wind", 3, 0, 0,
   SCM_ASSERT (SCM_NFALSEP (scm_thunk_p (out_guard)),
 	      out_guard,
 	      SCM_ARG3, FUNC_NAME);
-  scm_apply (in_guard, SCM_EOL, SCM_EOL);
+  scm_call_0 (in_guard);
   scm_dynwinds = scm_acons (in_guard, out_guard, scm_dynwinds);
-  ans = scm_apply (thunk, SCM_EOL, SCM_EOL);
+  ans = scm_call_0 (thunk);
   scm_dynwinds = SCM_CDR (scm_dynwinds);
-  scm_apply (out_guard, SCM_EOL, SCM_EOL);
+  scm_call_0 (out_guard);
   return ans;
 }
 #undef FUNC_NAME
@@ -231,7 +231,7 @@ scm_dowinds (SCM to, long delta)
 	      else if (SCM_GUARDSP (wind_key))
 		SCM_BEFORE_GUARD (wind_key) (SCM_GUARD_DATA (wind_key));
 	      else if (SCM_TYP3 (wind_key) == scm_tc3_closure)
-		scm_apply (wind_key, SCM_EOL, SCM_EOL);
+		scm_call_0 (wind_key);
 	    }
 	}
       scm_dynwinds = to;
@@ -263,7 +263,7 @@ scm_dowinds (SCM to, long delta)
 	      else if (SCM_GUARDSP (wind_key))
 		SCM_AFTER_GUARD (wind_key) (SCM_GUARD_DATA (wind_key));
 	      else if (SCM_TYP3 (wind_key) == scm_tc3_closure)
-		scm_apply (from, SCM_EOL, SCM_EOL);
+		scm_call_0 (from);
 	    }
 	}
       delta--;

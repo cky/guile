@@ -1613,7 +1613,7 @@ import_environment_conflict (SCM env, SCM sym, SCM imports)
   SCM conflict_proc = IMPORT_ENVIRONMENT (env)->conflict_proc;
   SCM args = scm_cons2 (env, sym, scm_cons (imports, SCM_EOL));
 
-  return scm_apply (conflict_proc, args, SCM_EOL);
+  return scm_apply_0 (conflict_proc, args);
 }
 
 

@@ -48,6 +48,7 @@
 #include "libguile/alist.h"
 #include "libguile/hash.h"
 #include "libguile/eval.h"
+#include "libguile/root.h"
 #include "libguile/vectors.h"
 
 #include "libguile/validate.h"
@@ -380,9 +381,7 @@ scm_ihashx (SCM obj, unsigned long n, scm_t_ihashx_closure *closure)
 {
   SCM answer;
   SCM_DEFER_INTS;
-  answer = scm_apply (closure->hash,
-		      SCM_LIST2 (obj, scm_ulong2num ((unsigned long)n)),
-		      SCM_EOL);
+  answer = scm_call_2 (closure->hash, obj, scm_ulong2num ((unsigned long) n));
   SCM_ALLOW_INTS;
   return SCM_INUM (answer);
 }
@@ -394,9 +393,7 @@ scm_sloppy_assx (SCM obj, SCM alist, scm_t_ihashx_closure *closure)
 {
   SCM answer;
   SCM_DEFER_INTS;
-  answer = scm_apply (closure->assoc,
-		      SCM_LIST2 (obj, alist),
-		      SCM_EOL);
+  answer = scm_call_2 (closure->assoc, obj, alist);
   SCM_ALLOW_INTS;
   return answer;
 }
@@ -409,9 +406,7 @@ scm_delx_x (SCM obj, SCM alist, scm_t_ihashx_closure *closure)
 {
   SCM answer;
   SCM_DEFER_INTS;
-  answer = scm_apply (closure->delete,
-		      SCM_LIST2 (obj, alist),
-		      SCM_EOL);
+  answer = scm_call_2 (closure->delete, obj, alist);
   SCM_ALLOW_INTS;
   return answer;
 }
@@ -519,7 +514,7 @@ scm_hashx_remove_x (SCM hash, SCM assoc, SCM delete, SCM table, SCM obj)
 static SCM
 fold_proc (void *proc, SCM key, SCM data, SCM value)
 {
-  return scm_apply (SCM_PACK (proc), SCM_LIST3 (key, data, value), SCM_EOL);
+  return scm_call_3 (SCM_PACK (proc), key, data, value);
 }
 
 SCM_DEFINE (scm_hash_fold, "hash-fold", 3, 0, 0, 

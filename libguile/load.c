@@ -119,7 +119,7 @@ SCM_DEFINE (scm_primitive_load, "primitive-load", 1, 0, 0,
 		    SCM_EOL);
 
   if (! SCM_FALSEP (hook))
-    scm_apply (hook, SCM_LIST1 (filename), SCM_EOL);
+    scm_call_1 (hook, filename);
 
   { /* scope */
     SCM port, save_port;

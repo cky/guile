@@ -81,8 +81,7 @@ sf_flush (SCM port)
   if (pt->write_pos > pt->write_buf)
     {
       /* write the byte. */
-      scm_apply (SCM_VELTS (stream)[0], SCM_MAKE_CHAR (*pt->write_buf),
-		 scm_listofnull);
+      scm_call_1 (SCM_VELTS (stream)[0], SCM_MAKE_CHAR (*pt->write_buf));
       pt->write_pos = pt->write_buf;
   
       /* flush the output.  */
@@ -90,7 +89,7 @@ sf_flush (SCM port)
 	SCM f = SCM_VELTS (stream)[2];
 
 	if (!SCM_FALSEP (f))
-	  scm_apply (f, SCM_EOL, SCM_EOL);
+	  scm_call_0 (f);
       }
     }
 }
@@ -100,9 +99,7 @@ sf_write (SCM port, const void *data, size_t size)
 {
   SCM p = SCM_PACK (SCM_STREAM (port));
 
-  scm_apply (SCM_VELTS (p)[1], 
-	     scm_cons (scm_mem2string ((char *) data, size), SCM_EOL),
-	     SCM_EOL);
+  scm_call_1 (SCM_VELTS (p)[1], scm_mem2string ((char *) data, size));
 }
 
 /* calling the flush proc (element 2) is in case old code needs it,
@@ -116,7 +113,7 @@ sf_fill_input (SCM port)
   SCM p = SCM_PACK (SCM_STREAM (port));
   SCM ans;
 
-  ans = scm_apply (SCM_VELTS (p)[3], SCM_EOL, SCM_EOL); /* get char.  */
+  ans = scm_call_0 (SCM_VELTS (p)[3]); /* get char.  */
   if (SCM_FALSEP (ans) || SCM_EOF_OBJECT_P (ans))
     return EOF;
   SCM_ASSERT (SCM_CHARP (ans), ans, SCM_ARG1, "sf_fill_input");
@@ -138,7 +135,7 @@ sf_close (SCM port)
   SCM f = SCM_VELTS (p)[4];
   if (SCM_FALSEP (f))
     return 0;
-  f = scm_apply (f, SCM_EOL, SCM_EOL);
+  f = scm_call_0 (f);
   errno = 0;
   return SCM_FALSEP (f) ? EOF : 0;
 }
