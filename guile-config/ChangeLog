@@ -1,3 +1,7 @@
+2003-04-05  Marius Vollmer  <mvo@zagadka.de>
+
+	* Changed license terms to the plain LGPL thru-out.
+
 2002-10-14  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* guile-config.in (build-link): Include "-lguile-ltdl" in link

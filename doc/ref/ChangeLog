@@ -1,3 +1,7 @@
+2003-04-05  Marius Vollmer  <mvo@zagadka.de>
+
+	* preface.texi: Reflect change to LGPL.
+
 2003-03-27  Rob Browning  <rlb@defaultvalue.org>
 
 	* scheme-io.texi (Reading): clarify character ordering in port for
