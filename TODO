@@ -1,3 +1,5 @@
+* Use "real" procprops.
+
 * Add facilities for debugging Scheme programs.
 
 The low-level debugging support is done, and we are now working on the
