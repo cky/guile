@@ -1,3 +1,7 @@
+Fri Jul 11 00:13:43 1997  Jim Blandy  <jimb@floss.red-bean.com>
+
+	* boot-9.scm (define-public): Changed to accomodate Hobbit.
+
 Tue Jun 24 00:31:47 1997  Jim Blandy  <jimb@floss.red-bean.com>
 
 	* boot-9.scm, debug.scm, hcons.scm, lineio.scm, mapping.scm,
