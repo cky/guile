@@ -1,5 +1,7 @@
 Thu Apr 10 15:10:07 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
+	* eval.c: Doc fixes.
+
 	* throw.c: Doc fixes; rearranged.
 
 	* putenv.c: #include "libguile/scmconfig.h", not <config.h>.
