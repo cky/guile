@@ -71,14 +71,18 @@ dist-hook:
          cd example-smob; \
 	 cp $(EXAMPLE_SMOB_FILES) $$dest)
 
+## The following two kluges were added so that CVS checkouts would
+## build when not configured with `--enable-maintainer-mode'.  They
+## were removed again since they relied on internal automake features.
+
 # This rule overrides automake's rule for version.texi.  It causes
 # version.texi to be created even in non-maintainer-mode.
-$(srcdir)/version.texi: stamp-vti
-	@:
+#$(srcdir)/version.texi: stamp-vti
+#	@:
 
 # And the same for version-tutorial.texi.
-$(srcdir)/version-tutorial.texi: stamp-vti1
-	@:
+#$(srcdir)/version-tutorial.texi: stamp-vti1
+#	@:
 
 # pending the papers from Robert Merkel
 # EXTRA_DIST = guile.1
