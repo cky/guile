@@ -1,3 +1,8 @@
+Tue Feb  8 13:57:46 2000  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* ports.c: Doc patches from Richard Kim.  Pasted from MIT Scheme.
+	Thanks Richard!
+
 Mon Feb  7 09:07:31 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* macros.c: Doc patches from Richard Kim.  Pasted from scm.texi.
