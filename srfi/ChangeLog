@@ -1,3 +1,12 @@
+2001-07-17  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* srfi-14.c: Fix for bug caused by brain-malfunctioning on my
+	side.  Bit sets were handled wrong because I couldn't tell bit
+	counts from byte counts.  Also, the bit array should be 256 / 8
+	bytes long.  Thank you, Gary!	
+
+	Removed unnecessary protoype for scm_char_set_copy.
+
 2001-07-16  Gary Houston  <ghouston@arglist.com>
 
 	* srfi-14.scm: export string->char-set!, not string-char-set!.

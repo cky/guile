@@ -50,9 +50,9 @@
 
 #include "srfi-14.h"
 
-#define SCM_CHARSET_SET(cs, idx) (((long *) SCM_SMOB_DATA (cs))[(idx) / sizeof (long)] |= (1 << ((idx) % sizeof (long))))
 
-SCM scm_char_set_copy (SCM cs);
+#define SCM_CHARSET_SET(cs, idx) (((long *) SCM_SMOB_DATA (cs))[(idx) / SCM_BITS_PER_LONG] |= (1 << ((idx) % SCM_BITS_PER_LONG)))
+
 
 /* Smob type code for character sets.  */
 int scm_tc16_charset = 0;
@@ -94,8 +94,8 @@ make_char_set (const char * func_name)
 {
   long * p;
   
-  p = scm_must_malloc (SCM_CHARSET_SIZE / sizeof (char), func_name);
-  memset (p, 0, SCM_CHARSET_SIZE / sizeof (char));
+  p = scm_must_malloc (SCM_CHARSET_SIZE / 8, func_name);
+  memset (p, 0, SCM_CHARSET_SIZE / 8);
   SCM_RETURN_NEWSMOB (scm_tc16_charset, p);
 }
 
@@ -131,8 +131,7 @@ SCM_DEFINE (scm_char_set_eq, "char-set=", 0, 0, 1,
       csi_data = (long *) SCM_SMOB_DATA (csi);
       if (cs1_data == NULL)
 	cs1_data = csi_data;
-      else if (memcmp (cs1_data, csi_data,
-		       SCM_CHARSET_SIZE / sizeof (char)) != 0)
+      else if (memcmp (cs1_data, csi_data, SCM_CHARSET_SIZE / 8) != 0)
 	return SCM_BOOL_F;
       char_sets = SCM_CDR (char_sets);
     }
@@ -476,7 +475,7 @@ SCM_DEFINE (scm_char_set, "char-set", 0, 0, 1,
       SCM_VALIDATE_CHAR_COPY (argnum, SCM_CAR (rest), c);
       argnum++;
       rest = SCM_CDR (rest);
-      p[c / sizeof (long)] |= 1 << (c % sizeof (long));
+      p[c / SCM_BITS_PER_LONG] |= 1 << (c % SCM_BITS_PER_LONG);
     }
   return cs;
 }
@@ -510,7 +509,7 @@ SCM_DEFINE (scm_list_to_char_set, "list->char-set", 1, 1, 0,
       SCM_VALIDATE_CHAR_COPY (0, chr, c);
       list = SCM_CDR (list);
 
-      p[c / sizeof (long)] |= 1 << (c % sizeof (long));
+      p[c / SCM_BITS_PER_LONG] |= 1 << (c % SCM_BITS_PER_LONG);
     }
   return cs;
 }
@@ -537,7 +536,7 @@ SCM_DEFINE (scm_list_to_char_set_x, "list->char-set!", 2, 0, 0,
       SCM_VALIDATE_CHAR_COPY (0, chr, c);
       list = SCM_CDR (list);
 
-      p[c / sizeof (long)] |= 1 << (c % sizeof (long));
+      p[c / SCM_BITS_PER_LONG] |= 1 << (c % SCM_BITS_PER_LONG);
     }
   return base_cs;
 }
@@ -569,7 +568,7 @@ SCM_DEFINE (scm_string_to_char_set, "string->char-set", 1, 1, 0,
   while (k < SCM_STRING_LENGTH (str))
     {
       int c = s[k++];
-      p[c / sizeof (long)] |= 1 << (c % sizeof (long));
+      p[c / SCM_BITS_PER_LONG] |= 1 << (c % SCM_BITS_PER_LONG);
     }
   return cs;
 }
@@ -594,7 +593,7 @@ SCM_DEFINE (scm_string_to_char_set_x, "string->char-set!", 2, 0, 0,
   while (k < SCM_STRING_LENGTH (str))
     {
       int c = s[k++];
-      p[c / sizeof (long)] |= 1 << (c % sizeof (long));
+      p[c / SCM_BITS_PER_LONG] |= 1 << (c % SCM_BITS_PER_LONG);
     }
   return base_cs;
 }
@@ -629,7 +628,7 @@ SCM_DEFINE (scm_char_set_filter, "char-set-filter", 2, 1, 0,
 	  SCM res = scm_call_1 (pred, SCM_MAKE_CHAR (k));
 
 	  if (!SCM_FALSEP (res))
-	    p[k / sizeof (long)] |= 1 << (k % sizeof (long));
+	    p[k / SCM_BITS_PER_LONG] |= 1 << (k % SCM_BITS_PER_LONG);
 	}
     }
   return ret;
@@ -658,7 +657,7 @@ SCM_DEFINE (scm_char_set_filter_x, "char-set-filter!", 3, 0, 0,
 	  SCM res = scm_call_1 (pred, SCM_MAKE_CHAR (k));
 
 	  if (!SCM_FALSEP (res))
-	    p[k / sizeof (long)] |= 1 << (k % sizeof (long));
+	    p[k / SCM_BITS_PER_LONG] |= 1 << (k % SCM_BITS_PER_LONG);
 	}
     }
   return base_cs;
@@ -712,7 +711,7 @@ SCM_DEFINE (scm_ucs_range_to_char_set, "ucs-range->char-set", 2, 2, 0,
   p = (long *) SCM_SMOB_DATA (cs);
   while (clower < cupper)
     {
-      p[clower / sizeof (long)] |= 1 << (clower % sizeof (long));
+      p[clower / SCM_BITS_PER_LONG] |= 1 << (clower % SCM_BITS_PER_LONG);
       clower++;
     }
   return cs;
@@ -755,7 +754,7 @@ SCM_DEFINE (scm_ucs_range_to_char_set_x, "ucs-range->char-set!", 4, 0, 0,
   p = (long *) SCM_SMOB_DATA (base_cs);
   while (clower < cupper)
     {
-      p[clower / sizeof (long)] |= 1 << (clower % sizeof (long));
+      p[clower / SCM_BITS_PER_LONG] |= 1 << (clower % SCM_BITS_PER_LONG);
       clower++;
     }
   return base_cs;
@@ -928,7 +927,7 @@ SCM_DEFINE (scm_char_set_adjoin, "char-set-adjoin", 1, 0, 1,
       SCM_VALIDATE_CHAR_COPY (1, chr, c);
       rest = SCM_CDR (rest);
 
-      p[c / sizeof (long)] |= 1 << (c % sizeof (long));
+      p[c / SCM_BITS_PER_LONG] |= 1 << (c % SCM_BITS_PER_LONG);
     }
   return cs;
 }
@@ -956,7 +955,7 @@ SCM_DEFINE (scm_char_set_delete, "char-set-delete", 1, 0, 1,
       SCM_VALIDATE_CHAR_COPY (1, chr, c);
       rest = SCM_CDR (rest);
 
-      p[c / sizeof (long)] &= ~(1 << (c % sizeof (long)));
+      p[c / SCM_BITS_PER_LONG] &= ~(1 << (c % SCM_BITS_PER_LONG));
     }
   return cs;
 }
@@ -983,7 +982,7 @@ SCM_DEFINE (scm_char_set_adjoin_x, "char-set-adjoin!", 1, 0, 1,
       SCM_VALIDATE_CHAR_COPY (1, chr, c);
       rest = SCM_CDR (rest);
 
-      p[c / sizeof (long)] |= 1 << (c % sizeof (long));
+      p[c / SCM_BITS_PER_LONG] |= 1 << (c % SCM_BITS_PER_LONG);
     }
   return cs;
 }
@@ -1010,7 +1009,7 @@ SCM_DEFINE (scm_char_set_delete_x, "char-set-delete!", 1, 0, 1,
       SCM_VALIDATE_CHAR_COPY (1, chr, c);
       rest = SCM_CDR (rest);
 
-      p[c / sizeof (long)] &= ~(1 << (c % sizeof (long)));
+      p[c / SCM_BITS_PER_LONG] &= ~(1 << (c % SCM_BITS_PER_LONG));
     }
   return cs;
 }
@@ -1129,7 +1128,7 @@ SCM_DEFINE (scm_char_set_difference, "char-set-difference", 1, 0, 1,
 
 SCM_DEFINE (scm_char_set_xor, "char-set-xor", 1, 0, 1,
 	    (SCM cs1, SCM rest),
-	    "Return the exclusive--or of all argument character sets.")
+	    "Return the exclusive-or of all argument character sets.")
 #define FUNC_NAME s_scm_char_set_xor
 {
   int c = 2;
@@ -1296,7 +1295,7 @@ SCM_DEFINE (scm_char_set_difference_x, "char-set-difference!", 1, 0, 1,
 
 SCM_DEFINE (scm_char_set_xor_x, "char-set-xor!", 1, 0, 1,
 	    (SCM cs1, SCM rest),
-	    "Return the exclusive--or of all argument character sets.")
+	    "Return the exclusive-or of all argument character sets.")
 #define FUNC_NAME s_scm_char_set_xor_x
 {
   int c = 2;
@@ -1369,8 +1368,8 @@ scm_c_init_srfi_14 (void)
 
   if (!initialized)
     {
-      scm_tc16_charset = scm_make_smob_type ("character-set", 
-					     SCM_CHARSET_SIZE / sizeof (char));
+      scm_tc16_charset = scm_make_smob_type ("character-set",
+					     SCM_CHARSET_SIZE / 8);
       scm_set_smob_free (scm_tc16_charset, charset_free);
       scm_set_smob_print (scm_tc16_charset, charset_print);
       initialized = 1;
