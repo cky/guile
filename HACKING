@@ -185,18 +185,28 @@ When deprecating a definition, always follow this procedure:
 
 1. Mark the definition using
 
-#if (SCM_DEBUG_DEPRECATED == 0)
-...
-#endif
+   #if (SCM_DEBUG_DEPRECATED == 0)
+   ...
+   #endif
 
-2. Write a comment at the definition explaining how a programmer
-can manage without the deprecated definition.
+   or, for Scheme code, wrap it using
 
-3. Add an entry that the definition has been deprecated in NEWS
+   (begin-deprecated
+      ...)
 
-4. At the top of RELEASE, there is a list of releases with reminders
-about what to do at each release.  Add a reminder about the removal of
-the deprecated defintion at the appropriate release.
+2. Make the deprecated code issue a warning when it is used, by using
+   scm_c_issue_deprecation_warning (in C) or issue-deprecation-warning
+   (in Scheme).
+
+3. Write a comment at the definition explaining how a programmer can
+   manage without the deprecated definition.
+
+4. Add an entry that the definition has been deprecated in NEWS and
+   explain what do do instead.
+
+5. At the top of RELEASE, there is a list of releases with reminders
+   about what to do at each release.  Add a reminder about the removal
+   of the deprecated defintion at the appropriate release.
 
 - When you make a user-visible change (i.e. one that should be
 documented, and appear in NEWS, put an asterisk in column zero of the
