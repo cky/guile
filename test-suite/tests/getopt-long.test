@@ -1,4 +1,4 @@
-;;;; getopt-long.test --- optional long arg processing -*- scheme -*-
+;;;; getopt-long.test --- long options processing -*- scheme -*-
 ;;;; Thien-Thi Nguyen <ttn@gnu.org> --- August 2001
 ;;;;
 ;;;; 	Copyright (C) 2001 Free Software Foundation, Inc.
@@ -18,11 +18,6 @@
 ;;;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
 ;;;; Boston, MA 02111-1307 USA
 
-;;;;
-;;;; NB: Please don't report the TTN_TEST_NEW env var refs as a bug.
-;;;;     They will go away on checkin of rewritten getopt-long.scm.
-;;;;
-
 (use-modules (test-suite lib)
              (ice-9 getopt-long)
              (ice-9 regex))
@@ -36,9 +31,6 @@
 (deferr option-does-not-support-arg "^option does not support argument")
 (deferr option-must-be-specified    "^option must be specified")
 (deferr option-must-have-arg        "^option must be specified with argument")
-
-(or (getenv "TTN_TEST_NEW")
-    (deferr not-enough-args             "^not enough arg"))
 
 (with-test-prefix "exported procs"
   (pass-if "`option-ref' defined"  (defined? 'option-ref))
@@ -61,9 +53,7 @@
                      (test1 "foo" "bar" "--test=foo"))
 
   (pass-if-exception "option has no arg"
-                     (if (getenv "TTN_TEST_NEW")
-                         exception:option-must-have-arg
-                         exception:not-enough-args)
+                     exception:option-must-have-arg
                      (test1 "foo" "bar" "--test"))
 
   )
@@ -132,9 +122,8 @@
   (pass-if "option-ref `-f 4'"
            (test4 "4" "-f" "4"))
 
-  (and (getenv "TTN_TEST_NEW")
-       (pass-if "option-ref `-f4'"
-                (test4 "4" "-f4")))
+  (pass-if "option-ref `-f4'"
+           (test4 "4" "-f4"))
 
   (pass-if "option-ref `--foo=4'"
            (test4 "4" "--foo=4"))
@@ -150,10 +139,9 @@
            (equal? (test5 '() '())
                    '((()))))
 
-  (and (getenv "TTN_TEST_NEW")
-       (pass-if-exception "not mentioned, given"
-                          exception:no-such-option
-                          (test5 '("--req") '((something)))))
+  (pass-if-exception "not mentioned, given"
+                     exception:no-such-option
+                     (test5 '("--req") '((something))))
 
   (pass-if "not specified required, not given"
            (equal? (test5 '() '((req (required? #f))))
@@ -182,10 +170,9 @@
   (define (test6 args specs)
     (getopt-long (cons "foo" args) specs))
 
-  (and (getenv "TTN_TEST_NEW")
-       (pass-if-exception "using \"=\" syntax"
-                          exception:option-does-not-support-arg
-                          (test6 '("--maybe=yes") '((maybe)))))
+  (pass-if-exception "using \"=\" syntax"
+                     exception:option-does-not-support-arg
+                     (test6 '("--maybe=yes") '((maybe))))
 
   )
 
@@ -211,15 +198,13 @@
                      exception:option-must-have-arg
                      (test7 '("-H")))
 
-  (and (getenv "TTN_TEST_NEW")
-       (pass-if-exception "long non-\"=\" opt, arg not given (next arg an option)"
-                          exception:option-must-have-arg
-                          (test7 '("--hmm" "--ignore"))))
+  (pass-if-exception "long non-\"=\" opt, arg not given (next arg an option)"
+                     exception:option-must-have-arg
+                     (test7 '("--hmm" "--ignore")))
 
-  (and (getenv "TTN_TEST_NEW")
-       (pass-if-exception "long \"=\" opt, arg not given"
-                          exception:option-must-have-arg
-                          (test7 '("--hmm"))))
+  (pass-if-exception "long \"=\" opt, arg not given"
+                     exception:option-must-have-arg
+                     (test7 '("--hmm")))
 
   )
 
