@@ -6,6 +6,16 @@ Please send Guile bug reports to bug-guile@gnu.org.
 
 Changes since Guile 1.3:
 
+* Changes to Scheme functions and syntax
+
+** New function: unread-string STRING PORT
+Unread STRING to PORT, that is, push it back onto the port so that
+next read operation will work on the pushed back characters.
+
+** unread-char can now be called multiple times
+If unread-char is called multiple times, the unread characters will be
+read again in last-in first-out order.
+
 * Changes to the gh_ interface
 
 ** gh_scm2doubles
