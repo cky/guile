@@ -116,7 +116,7 @@ scm_single_step (cont, val)
   SCM_ENTER_FRAME_P = SCM_EXIT_FRAME_P = 1;
   SCM_RESET_DEBUG_MODE;
   SCM_ALLOW_INTS;
-  scm_throw (cont, val);
+  scm_call_continuation (cont, val);
   return SCM_BOOL_F; /* never returns */
 }
 
