@@ -57,13 +57,62 @@
 ;;; Code:
 
 (define-module (ice-9 threads)
+  :export (par-map
+	   par-for-each
+	   %thread-handler)
   :export-syntax (make-thread
 		  begin-thread
+		  parallel
 		  with-mutex
-		  monitor)
-  :export (%thread-handler))
+		  monitor))
 
 
+
+(define (par-map proc . arglists)
+  (let* ((m (make-mutex))
+	 (c (make-condition-variable))
+	 (n (length (car arglists)))
+	 (counter (- n 1))
+	 (res (make-list n))
+	 (ls res))
+    (lock-mutex m)
+    (apply for-each
+	   (lambda args
+	     (let ((res ls))
+	       (set! ls (cdr ls))
+	       (call-with-new-thread
+		(lambda ()
+		  (set-car! res (apply proc args))
+		  ;; synchronize
+		  (lock-mutex m)
+		  (if (zero? counter)
+		      (signal-condition-variable c)
+		      (set! counter (- counter 1)))
+		  (unlock-mutex m))
+		%thread-handler)))
+	   arglists)
+    (wait-condition-variable c m)
+    res))
+
+(define (par-for-each proc . arglists)
+  (let* ((m (make-mutex))
+	 (c (make-condition-variable))
+	 (counter (- (length (car arglists)) 1)))
+    (lock-mutex m)
+    (apply for-each
+	   (lambda args
+	     (call-with-new-thread
+	      (lambda ()
+		(apply proc args)
+		;; synchronize
+		(lock-mutex m)
+		(if (zero? counter)
+		    (signal-condition-variable c)
+		    (set! counter (- counter 1)))
+		(unlock-mutex m))
+	      %thread-handler))
+	   arglists)
+    (wait-condition-variable c m)))
 
 (define (%thread-handler tag . args)
   (fluid-set! the-last-stack #f)
@@ -102,6 +151,42 @@
       (begin
 	,first ,@rest))
     %thread-handler))
+
+(defmacro parallel forms
+  (cond ((null? forms) '(begin))
+	((null? (cdr forms)) (car forms))
+	(else
+	 (let* ((m (make-symbol "m"))
+		(c (make-symbol "c"))
+		(counter (make-symbol "counter"))
+		(sync (make-symbol "sync"))
+		(n-forms (length forms))
+		(vars (map (lambda (i)
+			     (make-symbol (string-append "res"
+							 (number->string i))))
+			   (iota n-forms))))
+	   `(let* ((,m (make-mutex))
+		   (,c (make-condition-variable))
+		   (,counter ,(- n-forms 1))
+		   (,sync (lambda ()
+			    (lock-mutex ,m)
+			    (if (zero? ,counter)
+				(signal-condition-variable ,c)
+				(set! ,counter (- ,counter 1)))
+			    (unlock-mutex ,m)))
+		   ,@(map (lambda (var)
+			    `(,var #f))
+			  vars))
+	      (lock-mutex ,m)       
+	      ,@(map (lambda (var form)
+		       `(call-with-new-thread (lambda ()
+						(set! ,var ,form)
+						(,sync))
+					      %thread-handler))
+		     vars
+		     forms)
+	      (wait-condition-variable ,c ,m)
+	      (values ,@vars))))))
 
 (defmacro with-mutex (m . body)
   `(dynamic-wind

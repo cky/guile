@@ -1,3 +1,10 @@
+2002-12-04  Mikael Djurfeldt  <mdj@linnaeus>
+
+	* threads.scm (par-map, par-for-each, parallel): 
+
+	* documentation.scm (object-documentation): Added support for
+	defmacros.
+
 2002-11-24  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* boot-9.scm (re-export-syntax):  Re-introduced after accidentally
