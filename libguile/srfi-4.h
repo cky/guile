@@ -300,8 +300,15 @@ SCM_API double *scm_c64vector_writable_elements (SCM uvec,
 SCM_API SCM scm_i_generalized_vector_type (SCM vec);
 SCM_API const char *scm_i_uniform_vector_tag (SCM uvec);
 
-/* deprecated */
+#if SCM_ENABLE_DEPRECATED
+
+/* Deprecated because we want people to use the scm_t_array_handle
+   interface.
+*/
+
 SCM_API size_t scm_uniform_element_size (SCM obj);
+
+#endif
 
 SCM_API void scm_init_srfi_4 (void);
 
