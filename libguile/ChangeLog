@@ -1,5 +1,16 @@
 2002-03-02  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* eval.c (SCM_CEVAL): Cleaned up the handling of 'if', 'let',
+	'letrec' and 'set*': Removed some uses of t.arg1, t.lloc and proc
+	as temporary variables.  Removed side-effecting operations from
+	conditions and macro calls.  Introduced temporary variables with
+	hopefully descriptive names for clarification.  Replaced SCM_N?IMP
+	by a more explicit predicate in some places.  Removed code that
+	was conditionally compiled if SICP was defined - which it never
+	is.
+
+2002-03-02  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* eval.c (SCM_CEVAL): Cleaned up the handling of 'cons' and 'do':
 	Removed some uses of t.arg1 and proc as temporary variables.
 	Removed side-effecting operations from conditions and macro calls.

@@ -2003,8 +2003,8 @@ dispatch:
       x = SCM_CDR (x);
       while (!SCM_NULLP (SCM_CDR (x)))
 	{
-	  SCM condition = EVALCAR (x, env);
-	  if (SCM_FALSEP (condition) || SCM_NILP (condition))
+	  SCM test_result = EVALCAR (x, env);
+	  if (SCM_FALSEP (test_result) || SCM_NILP (test_result))
 	    RETURN (SCM_BOOL_F);
 	  else
 	    x = SCM_CDR (x);
@@ -2085,7 +2085,7 @@ dispatch:
       }
 
 
-    case SCM_BIT8(SCM_IM_CASE):
+    case SCM_BIT8 (SCM_IM_CASE):
       x = SCM_CDR (x);
       {
 	SCM key = EVALCAR (x, env);
@@ -2229,46 +2229,59 @@ dispatch:
       goto nontoplevel_begin;
 
 
-    case SCM_BIT8(SCM_IM_IF):
+    case SCM_BIT8 (SCM_IM_IF):
       x = SCM_CDR (x);
-      if (!SCM_FALSEP (t.arg1 = EVALCAR (x, env)) && !SCM_NILP (t.arg1))
-	x = SCM_CDR (x);
-      else if (SCM_IMP (x = SCM_CDDR (x)))
-	RETURN (SCM_UNSPECIFIED);
+      {
+	SCM test_result = EVALCAR (x, env);
+	if (!SCM_FALSEP (test_result) && !SCM_NILP (test_result))
+	  x = SCM_CDR (x);
+	else
+	  {
+	    x = SCM_CDDR (x);
+	    if (SCM_NULLP (x))
+	      RETURN (SCM_UNSPECIFIED);
+	  }
+      }
       PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
       goto carloop;
 
 
-    case SCM_BIT8(SCM_IM_LET):
+    case SCM_BIT8 (SCM_IM_LET):
       x = SCM_CDR (x);
-      proc = SCM_CADR (x);
-      t.arg1 = SCM_EOL;
-      do
-	{
-	  t.arg1 = scm_cons (EVALCAR (proc, env), t.arg1);
-	}
-      while (SCM_NIMP (proc = SCM_CDR (proc)));
-      env = EXTEND_ENV (SCM_CAR (x), t.arg1, env);
+      {
+	SCM init_forms = SCM_CADR (x);
+	SCM init_values = SCM_EOL;
+	do
+	  {
+	    init_values = scm_cons (EVALCAR (init_forms, env), init_values);
+	    init_forms = SCM_CDR (init_forms);
+	  }
+	while (!SCM_NULLP (init_forms));
+	env = EXTEND_ENV (SCM_CAR (x), init_values, env);
+      }
       x = SCM_CDR (x);
       goto nontoplevel_cdrxnoap;
 
 
-    case SCM_BIT8(SCM_IM_LETREC):
+    case SCM_BIT8 (SCM_IM_LETREC):
       x = SCM_CDR (x);
       env = EXTEND_ENV (SCM_CAR (x), scm_undefineds, env);
       x = SCM_CDR (x);
-      proc = SCM_CAR (x);
-      t.arg1 = SCM_EOL;
-      do
-	{
-	  t.arg1 = scm_cons (EVALCAR (proc, env), t.arg1);
-	}
-      while (SCM_NIMP (proc = SCM_CDR (proc)));
-      SCM_SETCDR (SCM_CAR (env), t.arg1);
+      {
+	SCM init_forms = SCM_CAR (x);
+	SCM init_values = SCM_EOL;
+	do
+	  {
+	    init_values = scm_cons (EVALCAR (init_forms, env), init_values);
+	    init_forms = SCM_CDR (init_forms);
+	  }
+	while (!SCM_NULLP (init_forms));
+	SCM_SETCDR (SCM_CAR (env), init_values);
+      }
       goto nontoplevel_cdrxnoap;
 
 
-    case SCM_BIT8(SCM_IM_LETSTAR):
+    case SCM_BIT8 (SCM_IM_LETSTAR):
       x = SCM_CDR (x);
       {
 	SCM bindings = SCM_CAR (x);
@@ -2289,7 +2302,7 @@ dispatch:
       goto nontoplevel_cdrxnoap;
 
 
-    case SCM_BIT8(SCM_IM_OR):
+    case SCM_BIT8 (SCM_IM_OR):
       x = SCM_CDR (x);
       while (!SCM_NULLP (SCM_CDR (x)))
 	{
@@ -2303,42 +2316,36 @@ dispatch:
       goto carloop;
 
 
-    case SCM_BIT8(SCM_IM_LAMBDA):
+    case SCM_BIT8 (SCM_IM_LAMBDA):
       RETURN (scm_closure (SCM_CDR (x), env));
 
 
-    case SCM_BIT8(SCM_IM_QUOTE):
+    case SCM_BIT8 (SCM_IM_QUOTE):
       RETURN (SCM_CADR (x));
 
 
-    case SCM_BIT8(SCM_IM_SET_X):
+    case SCM_BIT8 (SCM_IM_SET_X):
       x = SCM_CDR (x);
-      proc = SCM_CAR (x);
-      switch (SCM_ITAG3 (proc))
-	{
-	case scm_tc3_cons:
-	  if (SCM_VARIABLEP (proc))
-	    t.lloc = SCM_VARIABLE_LOC (proc);
-	  else
-	    t.lloc = scm_lookupcar (x, env, 1);
-	  break;
+      {
+	SCM *location;
+	SCM variable = SCM_CAR (x);
+	if (SCM_VARIABLEP (variable))
+	  location = SCM_VARIABLE_LOC (variable);
 #ifdef MEMOIZE_LOCALS
-	case scm_tc3_imm24:
-	  t.lloc = scm_ilookup (proc, env);
-	  break;
+	else if (SCM_ILOCP (variable))
+	  location = scm_ilookup (variable, env);
 #endif
-	}
-      x = SCM_CDR (x);
-      *t.lloc = EVALCAR (x, env);
-#ifdef SICP
-      RETURN (*t.lloc);
-#else
+	else /* (SCM_SYMBOLP (variable)) is known to be true */
+	  location = scm_lookupcar (x, env, 1);
+	x = SCM_CDR (x);
+	*location = EVALCAR (x, env);
+      }
       RETURN (SCM_UNSPECIFIED);
-#endif
 
 
     case SCM_BIT8(SCM_IM_DEFINE):	/* only for internal defines */
       scm_misc_error (NULL, "Bad define placement", SCM_EOL);
+
 
       /* new syntactic forms go here. */
     case SCM_BIT8(SCM_MAKISYM (0)):
