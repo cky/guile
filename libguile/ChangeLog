@@ -1,3 +1,11 @@
+2004-08-27  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* strings.c (SCM_STRINGP): Accept all strings.
+	(SCM_STRING_CHARS): Reject shared substrings here.
+
+	* script.c (scm_compile_shell_switches): Added 2003 and 2004 to
+	the Copyright years.
+
 2004-08-27  Kevin Ryde  <user42@zip.com.au>
 
 	* socket.c (scm_fill_sockaddr): Use HAVE_STRUCT_SOCKADDR_SIN_LEN and

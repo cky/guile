@@ -1,3 +1,8 @@
+2004-08-27  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* tests/srfi-13.test (module-peek): Removed, this kluge is no
+	longer necessary.
+
 2004-08-27  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/regexp.test (regexp-quote): New tests.
