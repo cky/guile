@@ -44,6 +44,8 @@
  * Mikael Djurfeldt, SANS/NADA KTH, 10044 STOCKHOLM, SWEDEN */
 
 #include <stdio.h>
+#include <ctype.h>
+
 #include "_scm.h"
 #include "stacks.h"
 #include "srcprop.h"
@@ -274,6 +276,55 @@ scm_display_error (stack, port, subr, message, args, rest)
   return SCM_UNSPECIFIED;
 }
 
+typedef struct {
+  int level;
+  int length;
+} print_params_t;
+
+static int n_print_params = 9;
+static print_params_t default_print_params[] = {
+  { 4, 9 }, { 4, 3 },
+  { 3, 4 }, { 3, 3 },
+  { 2, 4 }, { 2, 3 },
+  { 1, 4 }, { 1, 3 }, { 1, 2 }
+};
+static print_params_t *print_params = default_print_params;
+
+#ifdef GUILE_DEBUG
+SCM_PROC (s_set_print_params_x, "set-print-params!", 1, 0, 0, scm_set_print_params_x);
+
+SCM
+scm_set_print_params_x (SCM params)
+{
+  int i, n = scm_ilength (params);
+  SCM ls;
+  print_params_t *new_params;
+  SCM_ASSERT (n >= 1, params, SCM_ARG2, s_set_print_params_x);
+  for (ls = params; SCM_NIMP (ls); ls = SCM_CDR (ls))
+    SCM_ASSERT (scm_ilength (SCM_CAR (params)) == 2
+		&& SCM_INUMP (SCM_CAAR (ls))
+		&& SCM_INUM (SCM_CAAR (ls)) >= 0
+		&& SCM_INUMP (SCM_CADAR (ls))
+		&& SCM_INUM (SCM_CADAR (ls)) >= 0,
+		params,
+		SCM_ARG2,
+		s_set_print_params_x);
+  new_params = scm_must_malloc (n * sizeof (print_params_t),
+				s_set_print_params_x);
+  if (print_params != default_print_params)
+    scm_must_free (print_params);
+  print_params = new_params;
+  for (i = 0; i < n; ++i)
+    {
+      print_params[i].level = SCM_INUM (SCM_CAAR (params));
+      print_params[i].length = SCM_INUM (SCM_CADAR (params));
+      params = SCM_CDR (params);
+    }
+  n_print_params = n;
+  return SCM_UNSPECIFIED;
+}
+#endif
+
 static void indent SCM_P ((int n, SCM port));
 static void
 indent (n, port)
@@ -296,13 +347,43 @@ display_frame_expr (hdr, exp, tlr, indentation, sport, port, pstate)
      SCM port;
      scm_print_state *pstate;
 {
-  if (SCM_NIMP (exp) && SCM_CONSP (exp))
+  SCM string;
+  int i = 0, n;
+  scm_ptob_descriptor *ptob = scm_ptobs + SCM_PTOBNUM (sport);
+  do
     {
-      scm_iprlist (hdr, exp, tlr[0], port, pstate);
-      scm_puts (&tlr[1], port);
+      pstate->length = print_params[i].length;
+      ptob->seek (sport, 0, SEEK_SET);
+      if (SCM_NIMP (exp) && SCM_CONSP (exp))
+	{
+	  pstate->level = print_params[i].level - 1;
+	  scm_iprlist (hdr, exp, tlr[0], sport, pstate);
+	  scm_puts (&tlr[1], sport);
+	}
+      else
+	{
+	  pstate->level = print_params[i].level;
+	  scm_iprin1 (exp, sport, pstate);
+	}
+      ptob->flush (sport);
+      n = ptob->seek (sport, 0, SEEK_CUR);
+      ++i;
     }
-  else
-    scm_iprin1 (exp, port, pstate);
+  while (indentation + n > SCM_BACKTRACE_WIDTH && i < n_print_params);
+  ptob->truncate (sport, n);
+  string = scm_strport_to_string (sport);
+  /* Remove control characters */
+  for (i = 0; i < n; ++i)
+    if (iscntrl (SCM_CHARS (string)[i]))
+      SCM_CHARS (string)[i] = ' ';
+  /* Truncate */
+  if (indentation + n > SCM_BACKTRACE_WIDTH)
+    {
+      n = SCM_BACKTRACE_WIDTH - indentation;
+      SCM_CHARS (string)[n - 1] = '$';
+    }
+      
+  scm_lfwrite (SCM_CHARS (string), n, port);
 }
 
 static void display_application SCM_P ((SCM frame, int indentation, SCM sport, SCM port, scm_print_state *pstate));
@@ -328,28 +409,43 @@ display_application (frame, indentation, sport, port, pstate)
 		      pstate);
 }
 
-SCM_PROC(s_display_application, "display-application", 1, 1, 0, scm_display_application);
+SCM_PROC(s_display_application, "display-application", 1, 2, 0, scm_display_application);
 
 SCM
-scm_display_application (SCM frame, SCM port)
+scm_display_application (SCM frame, SCM port, SCM indent)
 {
+  SCM_ASSERT (SCM_NIMP (frame) && SCM_FRAMEP (frame),
+	      frame, SCM_ARG1, s_display_application);
   if (SCM_UNBNDP (port))
     port = scm_cur_outp;
+  else
+    SCM_ASSERT (SCM_NIMP (port) && SCM_OPOUTPORTP (port),
+		port, SCM_ARG2, s_display_application);
+  if (SCM_UNBNDP (indent))
+    indent = SCM_INUM0;
+  else
+    SCM_ASSERT (SCM_INUMP (indent), indent, SCM_ARG3, s_display_application);
+  
   if (SCM_FRAME_PROC_P (frame))
     /* Display an application. */
     {
-      SCM print_state;
+      SCM sport, print_state;
       scm_print_state *pstate;
       
+      /* Create a string port used for adaptation of printing parameters. */
+      sport = scm_mkstrport (SCM_INUM0,
+			     scm_make_string (SCM_MAKINUM (240),
+					      SCM_UNDEFINED),
+			     SCM_OPN | SCM_WRTNG,
+			     s_display_application);
+
       /* Create a print state for printing of frames. */
       print_state = scm_make_print_state ();
       pstate = SCM_PRINT_STATE (print_state);
       pstate->writingp = 1;
       pstate->fancyp = 1;
-      pstate->level = 2;
-      pstate->length = 9;
       
-      display_application (frame, 0, SCM_BOOL_F, port, pstate); /*fixme*/
+      display_application (frame, SCM_INUM (indent), sport, port, pstate);
       return SCM_BOOL_T;
     }
   else
@@ -492,8 +588,6 @@ display_backtrace_body (struct display_backtrace_args *a)
   pstate = SCM_PRINT_STATE (print_state);
   pstate->writingp = 1;
   pstate->fancyp = 1;
-  pstate->level = 2;
-  pstate->length = 3;
 
   /* First find out if it's reasonable to do indentation. */
   if (SCM_BACKWARDS_P)

@@ -53,9 +53,12 @@ extern SCM scm_the_last_stack_fluid;
 
 void scm_display_error_message SCM_P ((SCM message, SCM args, SCM port));
 SCM scm_display_error SCM_P ((SCM stack, SCM port, SCM subr, SCM message, SCM args, SCM rest));
-SCM scm_display_application SCM_P ((SCM frame, SCM port));
+SCM scm_display_application (SCM frame, SCM port, SCM indent);
 SCM scm_display_backtrace SCM_P ((SCM stack, SCM port, SCM first, SCM depth));
 SCM scm_backtrace SCM_P ((void));
+#ifdef GUILE_DEBUG
+SCM scm_set_print_params_x (SCM params);
+#endif
 
 void scm_init_backtrace SCM_P ((void));
 
