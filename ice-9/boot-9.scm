@@ -652,9 +652,6 @@
 (define (alarm-thunk) #t)
 
 (define (signal-handler n)
-  (set! the-last-stack (make-stack #f 1 5))
-  (if (not (eq? (stack-id the-last-stack) 'repl-stack))
-      (set! the-last-stack #f))
   (let* (
 	 ;; these numbers are set in libguile, not the same as those 
 	 ;; interned in posix.c for SIGSEGV etc.
@@ -668,7 +665,10 @@
      ((= n 21)	(unmask-signals) (timer-thunk))
      ((= n 20)	(unmask-signals) (gc-thunk))
      ((= n 19)	(unmask-signals) (alarm-thunk))
-     (else (unmask-signals)
+     (else (set! the-last-stack (make-stack #f 1 8))
+	   (if (not (eq? (stack-id the-last-stack) 'repl-stack))
+	       (set! the-last-stack #f))
+	   (unmask-signals)
 	   (let ((sig-pair (assoc n signal-messages)))
 	     (scm-error 'error-signal #f 
 			(cdr (or sig-pair
