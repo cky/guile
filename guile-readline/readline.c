@@ -325,7 +325,7 @@ SCM_DEFINE (scm_add_history, "add-history", 1, 0, 0,
 #define FUNC_NAME s_scm_add_history
 {
   char* s;
-  SCM_VALIDATE_STRING(1,text);
+  SCM_VALIDATE_STRING (1,text);
   SCM_COERCE_SUBSTR (text);
 
   s = SCM_CHARS (text);
@@ -341,7 +341,7 @@ SCM_DEFINE (scm_read_history, "read-history", 1, 0, 0,
 "")
 #define FUNC_NAME s_scm_read_history
 {
-  SCM_VALIDATE_STRING(1,file);
+  SCM_VALIDATE_STRING (1,file);
   return SCM_NEGATE_BOOL(read_history (SCM_ROCHARS (file)));
 }
 #undef FUNC_NAME
@@ -352,7 +352,7 @@ SCM_DEFINE (scm_write_history, "write-history", 1, 0, 0,
 "")
 #define FUNC_NAME s_scm_write_history
 {
-  SCM_VALIDATE_STRING(1,file);
+  SCM_VALIDATE_STRING (1,file);
   return SCM_NEGATE_BOOL(write_history (SCM_ROCHARS (file)));
 }
 #undef FUNC_NAME
@@ -365,7 +365,7 @@ SCM_DEFINE (scm_filename_completion_function, "filename-completion-function", 2,
 {
   char *s;
   SCM ans;
-  SCM_VALIDATE_STRING(1,text);
+  SCM_VALIDATE_STRING (1,text);
   SCM_COERCE_SUBSTR (text);
   s = filename_completion_function (SCM_CHARS (text), SCM_NFALSEP (continuep));
   ans = scm_makfrom0str (s);
