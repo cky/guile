@@ -1949,10 +1949,23 @@ SCM_DEFINE (scm_string_index_right, "string-index-right", 2, 2, 0,
 }
 #undef FUNC_NAME
 
-SCM
-scm_string_rindex (SCM str, SCM chr, SCM frm, SCM to)
+SCM_DEFINE (scm_string_rindex, "string-rindex", 2, 2, 0,
+	    (SCM s, SCM char_pred, SCM start, SCM end),
+	    "Search through the string @var{s} from right to left, returning\n"
+	    "the index of the last occurence of a character which\n"
+	    "\n"
+	    "@itemize @bullet\n"
+	    "@item\n"
+	    "equals @var{char_pred}, if it is character,\n"
+	    "\n"
+	    "@item\n"
+	    "satisifies the predicate @var{char_pred}, if it is a procedure,\n"
+	    "\n"
+	    "@item\n"
+	    "is in the set if @var{char_pred} is a character set.\n"
+	    "@end itemize")
 {
-  return scm_string_index_right (str, chr, frm, to);
+  return scm_string_index_right (s, char_pred, start, end);
 }
 
 SCM_DEFINE (scm_string_skip, "string-skip", 2, 2, 0,
