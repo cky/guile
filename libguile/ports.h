@@ -71,7 +71,7 @@ struct scm_port_table
 				 */
 
   SCM stream;
-  SCM file_name;
+  /*  SCM file_name; */
   int unchr;			/* pushed back character, if any */
 
   int line_number;
@@ -188,7 +188,7 @@ extern SCM scm_peek_char (SCM port);
 extern SCM scm_unread_char (SCM cobj, SCM port);
 extern SCM scm_line_number (SCM port);
 extern SCM scm_column_number (SCM port);
-extern SCM scm_port_file_name (SCM port);
+/* extern SCM scm_port_file_name (SCM port); */
 extern void scm_prinport (SCM exp, SCM port, char *type);
 extern void scm_ports_prehistory (void);
 extern SCM scm_void_port (char * mode_str);
@@ -225,7 +225,7 @@ extern SCM scm_peek_char ();
 extern SCM scm_unread_char ();
 extern SCM scm_line_number ();
 extern SCM scm_column_number ();
-extern SCM scm_port_file_name ();
+/* extern SCM scm_port_file_name ();*/
 extern void scm_prinport ();
 extern void scm_ports_prehistory ();
 extern SCM scm_void_port ();

@@ -140,41 +140,6 @@ scm_mode_bits (modes)
  *
  * Return the new port.
  */
-
-#ifdef __STDC__
-SCM
-scm_mkfile (char * name, char * modes)
-#else
-SCM
-scm_mkfile (name, modes)
-     char * name;
-     char * modes;
-#endif
-{
-  register SCM port;
-  FILE *f;
-  SCM_NEWCELL (port);
-  SCM_DEFER_INTS;
-  SCM_SYSCALL (f = fopen (name, modes));
-  if (!f)
-    {
-      SCM_ALLOW_INTS;
-      port = SCM_BOOL_F;
-    }
-  else
-    {
-      struct scm_port_table * pt;
-      pt = scm_add_to_port_table (port);
-      SCM_SETPTAB_ENTRY (port, pt);
-      if (SCM_BUF0 & (SCM_CAR (port) = scm_tc16_fport | scm_mode_bits (modes)))
-	scm_setbuf0 (port);
-      SCM_SETSTREAM (port, (SCM)f);
-      SCM_PTAB_ENTRY (port)->file_name = scm_makfrom0str (name);
-      SCM_ALLOW_INTS;
-    }
-  return port;
-}
-
 SCM_PROC(s_open_file, "open-file", 2, 0, 0, scm_open_file);
 #ifdef __STDC__
 SCM
@@ -187,22 +152,42 @@ scm_open_file (filename, modes)
 #endif
 {
   SCM port;
+  FILE *f;
+  char *file;
+  char *mode;
+
   SCM_ASSERT (SCM_NIMP (filename) && SCM_ROSTRINGP (filename), filename, SCM_ARG1, s_open_file);
   SCM_ASSERT (SCM_NIMP (modes) && SCM_ROSTRINGP (modes), modes, SCM_ARG2, s_open_file);
   if (SCM_SUBSTRP (filename))
     filename = scm_makfromstr (SCM_ROCHARS (filename), SCM_ROLENGTH (filename), 0);
   if (SCM_SUBSTRP (modes))
     modes = scm_makfromstr (SCM_ROCHARS (modes), SCM_ROLENGTH (modes), 0);
-  port = scm_mkfile (SCM_ROCHARS (filename), SCM_ROCHARS (modes));
 
-  if (port == SCM_BOOL_F) {
-    scm_syserror_msg (s_open_file, "%S: %S",
-		      scm_listify (scm_makfrom0str (strerror (errno)),
-				   filename,
-				   SCM_UNDEFINED));
-    /* Force the compiler to keep filename and modes alive.  */
-    scm_cons (filename, modes);
-  }
+  file = SCM_ROCHARS (filename);
+  mode = SCM_ROCHARS (modes);
+
+  SCM_NEWCELL (port);
+  SCM_DEFER_INTS;
+  SCM_SYSCALL (f = fopen (file, mode));
+  if (!f)
+    {
+      scm_syserror_msg (s_open_file, "%S: %S",
+			scm_listify (scm_makfrom0str (strerror (errno)),
+				     filename,
+				     SCM_UNDEFINED));
+    }
+  else
+    {
+      struct scm_port_table * pt;
+
+      pt = scm_add_to_port_table (port);
+      SCM_SETPTAB_ENTRY (port, pt);
+      if (SCM_BUF0 & (SCM_CAR (port) = scm_tc16_fport | scm_mode_bits (mode)))
+	scm_setbuf0 (port);
+      SCM_SETSTREAM (port, (SCM)f);
+      /* SCM_PTAB_ENTRY (port)->file_name = scm_makfrom0str (filename); */
+    }
+  SCM_ALLOW_INTS;
   return port;
 }
 
@@ -249,6 +234,7 @@ prinfport (exp, port, writing)
      int writing;
 #endif
 {
+  /*
   SCM name;
   char * c;
   if (SCM_CLOSEDP (exp))
@@ -263,8 +249,10 @@ prinfport (exp, port, writing)
       else
 	c = "file";
     }
-
+    
   scm_prinport (exp, port, c);
+  */
+  scm_prinport (exp, port, "file");
   return !0;
 }
 

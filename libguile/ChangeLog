@@ -1,5 +1,17 @@
 Sun Sep 15 03:58:29 1996  Gary Houston  <ghouston@actrix.gen.nz>
 
+	* ports.h (scm_port_table): remove file_name member for now, it seems
+	undesirable.
+	* fports.c (scm_open_file): don't set file_name in PTAB.
+	(prinfport): don't use file_name in PTAB.
+	* ioext.c (scm_sys_duplicate_port): don't set file_name in PTAB.
+	* ports.c (scm_add_to_port_table): don't intialize file_name.
+	(scm_port_file_name): remove for now.
+	* gc.c (scm_gc_mark): don't mark PTAB file_name.
+
+	* fports.h (scm_mkfile): prototype deleted.
+	* fports.c (scm_mkfile): merged into scm_open_file to simplify.
+
 	* debug.c, unif.c: use scm_out_of_range instead of
 	wta for range errors (ASSERT still needs work).
 

@@ -182,7 +182,7 @@ scm_sys_duplicate_port (oldpt, modes)
     if (SCM_BUF0 & (SCM_CAR (newpt) = scm_tc16_fport | scm_mode_bits (SCM_CHARS (modes))))
       scm_setbuf0 (newpt);
     SCM_SETSTREAM (newpt, (SCM)f);
-    SCM_PTAB_ENTRY (newpt)->file_name = SCM_PTAB_ENTRY (oldpt)->file_name;
+    /* SCM_PTAB_ENTRY (newpt)->file_name = SCM_PTAB_ENTRY (oldpt)->file_name;*/
   }
   SCM_ALLOW_INTS;
   return newpt;
