@@ -4803,6 +4803,7 @@ void
 scm_init_numbers ()
 {
 #ifdef SCM_FLOATS
+  scm_add_feature("inexact");
   SCM_NEWCELL (scm_flo0);
 #ifdef SCM_SINGLES
   SCM_SETCAR (scm_flo0, scm_tc_flo);
