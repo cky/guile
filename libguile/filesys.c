@@ -57,8 +57,16 @@
 #include <unistd.h>
 #endif
 
+#ifdef HAVE_LIBC_H
+#include <libc.h>
+#endif
+
 #ifdef HAVE_SYS_SELECT_H
 #include <sys/select.h>
+#endif
+
+#ifdef HAVE_STRING_H
+#include <string.h>
 #endif
 
 #include <sys/types.h>
