@@ -2,7 +2,7 @@
  * The `autoheader' command, from the autoconf suite, generates
  * libguile/scmconfig.h, based on configure.in and this file.
  *
- *	Copyright (C) 1998 Free Software Foundation, Inc.
+ *	Copyright (C) 1998, 2000 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -61,6 +61,9 @@
 /* Define this if your system defines struct linger, for use with the
    getsockopt and setsockopt system calls.  */
 #undef HAVE_STRUCT_LINGER
+
+/* Define this if your system defines struct timespec via <time.h>. */
+#undef HAVE_STRUCT_TIMESPEC
 
 /* Define this if floats are the same size as longs.  */
 #undef SCM_SINGLES
