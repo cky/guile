@@ -1667,6 +1667,7 @@ scm_init_storage (init_heap_size)
   scm_symhash = scm_make_vector ((SCM) SCM_MAKINUM (scm_symhash_dim), SCM_EOL, SCM_UNDEFINED);
   scm_weak_symhash = scm_make_weak_key_hash_table ((SCM) SCM_MAKINUM (scm_symhash_dim));
   scm_symhash_vars = scm_make_vector ((SCM) SCM_MAKINUM (scm_symhash_dim), SCM_EOL, SCM_UNDEFINED);
+  scm_stand_in_procs = SCM_EOL;
   scm_permobjs = SCM_EOL;
   scm_asyncs = SCM_EOL;
   scm_sysintern ("most-positive-fixnum", (SCM) SCM_MAKINUM (SCM_MOST_POSITIVE_FIXNUM));
