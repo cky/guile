@@ -486,9 +486,8 @@ fport_wait_for_input (SCM port)
 
 static void fport_flush (SCM port);
 
-/* fill a port's read-buffer with a single read.
-   returns the first char and moves the read_pos pointer past it.
-   or returns EOF if end of file.  */
+/* fill a port's read-buffer with a single read.  returns the first
+   char or EOF if end of file.  */
 static int
 fport_fill_input (SCM port)
 {

@@ -48,7 +48,10 @@
 
 
 
-extern SCM scm_read_delimited_x (SCM delims, SCM buf, SCM gobble, SCM port, SCM offset, SCM length);
+extern SCM scm_read_string_x_partial (SCM str, SCM port_or_fdes, SCM start,
+				      SCM end);
+extern SCM scm_read_delimited_x (SCM delims, SCM buf, SCM gobble, SCM port,
+				 SCM offset, SCM length);
 extern SCM scm_read_line (SCM port);
 extern SCM scm_write_line (SCM obj, SCM port);
 extern SCM scm_ftell (SCM object);

@@ -1,3 +1,11 @@
+2001-01-06  Gary Houston  <ghouston@arglist.com>
+
+	* ioext.c (scm_read_string_x_partial): new procedure, implements
+	read-string!/partial.
+	* ports.c (scm_take_from_input_buffers): new procedure used by
+	scm_read_string_x_partial.
+	(scm_drain_input): use scm_take_from_input_buffers.
+
 2001-01-06  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* validate.h (SCM_VALIDATE_NUMBER): New.

@@ -69,6 +69,110 @@
 #endif
 
 
+SCM_DEFINE (scm_read_string_x_partial, "read-string!/partial", 1, 3, 0,
+	    (SCM str, SCM port_or_fdes, SCM start, SCM end),
+	    "Read characters from an fport or file descriptor into a\n"
+	    "string @var{str}.  This procedure is scsh-compatible\n"
+	    "and can efficiently read large strings.  It will:\n\n"
+	    "@itemize\n"
+	    "@item\n"
+	    "attempt to fill the entire string, unless the @var{start}\n"
+	    "and/or @var{end} arguments are supplied.  i.e., @var{start}\n"
+	    "defaults to 0 and @var{end} defaults to\n"
+	    "@code{(string-length str)}\n"
+	    "@item\n"
+	    "use the current input port if @var{port_or_fdes} is not\n"
+	    "supplied.\n" 
+	    "@item\n"
+	    "read any characters that are currently available,\n"
+	    "without waiting for the rest (short reads are possible).\n\n"
+	    "@item\n"
+	    "wait for as long as it needs to for the first character to\n"
+	    "become available, unless the port is in non-blocking mode\n"
+	    "@item\n"
+	    "return @code{#f} if end-of-file is encountered before reading\n"
+            "any characters, otherwise return the number of characters\n"
+	    "read.\n"
+	    "@item\n"
+	    "return 0 if the port is in non-blocking mode and no characters\n"
+	    "are immediately available.\n"
+	    "@item\n"
+	    "return 0 if the request is for 0 bytes, with no\n"
+	    "end-of-file check\n"
+	    "@end itemize")
+#define FUNC_NAME s_scm_read_string_x_partial
+{
+  char *dest;
+  long read_len;
+  long chars_read = 0;
+  int fdes = -1;
+  SCM port = SCM_BOOL_F;
+
+  SCM_VALIDATE_STRING_COPY (1, str, dest);
+  if (SCM_UNBNDP (port_or_fdes))
+    port = scm_cur_inp;
+  else if (SCM_INUMP (port_or_fdes))
+    fdes = SCM_INUM (port_or_fdes);
+  else
+    {
+      SCM_VALIDATE_OPFPORT (2, port_or_fdes);
+      SCM_VALIDATE_INPUT_PORT (2, port_or_fdes);
+      port = port_or_fdes;
+    }
+
+  {
+    long string_len = SCM_STRING_LENGTH (str);
+    long offset = SCM_NUM2LONG_DEF (3, start, 0);
+    long last = SCM_NUM2LONG_DEF (4, end, string_len);
+
+    if (offset < 0 || offset > string_len)
+      SCM_OUT_OF_RANGE (3, start);
+    if (last < offset || last > string_len)
+      SCM_OUT_OF_RANGE (4, end);
+
+    dest += offset;
+    read_len = last - offset;
+  }
+
+  if (fdes == -1)
+    {
+      /* if there's anything in the port buffers, use it.  but if
+	 something is read from the buffers, don't touch the file
+	 descriptor.  otherwise the "return immediately if something
+	 is available" rule may be violated.  */
+      chars_read = scm_take_from_input_buffers (port, dest, read_len);
+
+    }
+
+  if (chars_read == 0 && read_len > 0) /* don't confuse read_len == 0 with
+					  EOF.  */
+    {
+      if (fdes == -1)
+	fdes = SCM_FPORT_FDES (port);
+      
+      SCM_SYSCALL (chars_read = read (fdes, dest, read_len));
+      if (chars_read == -1)
+	{
+#if defined (EWOULDBLOCK) || defined (EAGAIN)
+	  if (
+#if defined (EWOULDBLOCK)
+	      errno == EWOULDBLOCK
+#else
+	      errno == EAGAIN
+#endif
+	      )
+	    chars_read = 0;
+	  else
+#endif
+	    SCM_SYSERROR;
+        }
+      else if (chars_read == 0)
+	return SCM_BOOL_F;
+    }
+  return scm_long2num (chars_read);
+}
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_read_delimited_x, "%read-delimited!", 3, 3, 0,
             (SCM delims, SCM buf, SCM gobble, SCM port, SCM start, SCM end),
 	    "Read characters from @var{port} into @var{buf} until one of the\n"

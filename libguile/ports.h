@@ -244,6 +244,7 @@ extern void scm_set_port_truncate (long tc,
 						     off_t length));
 extern void scm_set_port_input_waiting (long tc, int (*input_waiting) (SCM));
 extern SCM scm_char_ready_p (SCM port);
+size_t scm_take_from_input_buffers (SCM port, char *dest, size_t read_len);
 extern SCM scm_drain_input (SCM port);
 extern SCM scm_current_input_port (void);
 extern SCM scm_current_output_port (void);

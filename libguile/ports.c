@@ -272,6 +272,37 @@ SCM_DEFINE (scm_char_ready_p, "char-ready?", 0, 1, 0,
 }
 #undef FUNC_NAME
 
+/* move up to read_len chars from port's putback and/or read buffers
+   into memory starting at dest.  returns the number of chars moved.  */
+size_t scm_take_from_input_buffers (SCM port, char *dest, size_t read_len)
+{
+  scm_port *pt = SCM_PTAB_ENTRY (port);
+  size_t chars_read = 0;
+  size_t from_buf = min (pt->read_end - pt->read_pos, read_len);
+
+  if (from_buf > 0)
+    {
+      memcpy (dest, pt->read_pos, from_buf);
+      pt->read_pos += from_buf;
+      chars_read += from_buf;
+      read_len -= from_buf;
+      dest += from_buf;
+    }
+
+  /* if putback was active, try the real input buffer too.  */
+  if (pt->read_buf == pt->putback_buf)
+    {
+      from_buf = min (pt->saved_read_end - pt->saved_read_pos, read_len);
+      if (from_buf > 0)
+	{
+	  memcpy (dest, pt->saved_read_pos, from_buf);
+	  pt->saved_read_pos += from_buf;
+	  chars_read += from_buf;
+	}
+    }
+  return chars_read;
+}
+
 /* Clear a port's read buffers, returning the contents.  */
 SCM_DEFINE (scm_drain_input, "drain-input", 1, 0, 0, 
             (SCM port),
@@ -282,7 +313,6 @@ SCM_DEFINE (scm_drain_input, "drain-input", 1, 0, 0,
   SCM result;
   scm_port *pt = SCM_PTAB_ENTRY (port);
   int count;
-  char *dst;
 
   SCM_VALIDATE_OPINPORT (1,port);
 
@@ -291,16 +321,7 @@ SCM_DEFINE (scm_drain_input, "drain-input", 1, 0, 0,
     count += pt->saved_read_end - pt->saved_read_pos;
 
   result = scm_makstr (count, 0);
-  dst = SCM_STRING_CHARS (result);
-
-  while (pt->read_pos < pt->read_end)
-    *dst++ = *(pt->read_pos++);
-  
-  if (pt->read_buf == pt->putback_buf)
-    {
-      while (pt->saved_read_pos < pt->saved_read_end)
-	*dst++ = *(pt->saved_read_pos++);
-    }
+  scm_take_from_input_buffers (port, SCM_STRING_CHARS (result), count);
 
   return result;
 }
