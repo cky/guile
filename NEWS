@@ -82,8 +82,8 @@ Example:
 (use-modules (ice-9 safe))
 (define m (make-safe-module))
 ;;; m will now be a module containing only a safe subset of R5RS
-(eval-in-module '(+ 1 2) m) --> 3
-(eval-in-module 'load m) --> ERROR: Unbound variable: load
+(eval '(+ 1 2) m) --> 3
+(eval 'load m) --> ERROR: Unbound variable: load
 
 * Changes to Scheme functions and syntax
 
