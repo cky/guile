@@ -1,3 +1,17 @@
+Sun Dec 12 11:23:22 1999  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* *.c, srcprop.h: Use SCM_BOOL(f) instead of (f? SCM_BOOL_T:
+	SCM_BOOL_F) and use SCM_NEGATE_BOOL(f) instead of (f? SCM_BOOL_F:
+	SCM_BOOL_T).
+
+Sun Dec 12 11:08:51 1999  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* boolean.h: Added SCM_BOOL, SCM_NEGATE_BOOL, SCM_BOOLP to here,
+	from scm_validate.h.
+
+	* scm_validate.h: Moved above out into boolean.h, fix typo in
+	SCM_VALIDATE_NIM macro.
+
 Sun Dec 12 10:29:12 1999  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* *.c, scm_validate.h: Use SCM_VALIDATE_NIM, not SCM_VALIDATE_NIMP
