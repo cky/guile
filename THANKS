@@ -3,7 +3,7 @@ The Guile core distribution:
 The Guile maintainer is Jim ("Miserable old dodderer") Blandy.
 
 Thanks to:
-- Mikael ("Lazy Dog") Djurfeldt, for his work on GOOPS, last-minute
+- Mikael ("Lazy dog") Djurfeldt, for his work on GOOPS, last-minute
   fixes to the 1.3.2 release, and just generally being really energetic
   and helpful.
 - Gary Houston, for continuing work on the I/O system.
