@@ -235,6 +235,9 @@ Evaluate @var{exp} in the top-level environment specified by
 the current module.
 @end deffn
 
+@vgone{eval2,1.6}
+@vgone{read-and-eval!,1.6}
+
 
 @node Loading
 @section Loading Scheme Code from File

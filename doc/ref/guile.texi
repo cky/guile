@@ -83,7 +83,7 @@
 
 @dircategory The Algorithmic Language Scheme
 @direntry
-* Guile Reference: (guile).  The Guile reference manual.
+* Guile Reference: (guile).     The Guile reference manual.
 @end direntry
 
 @setchapternewpage off
@@ -121,7 +121,7 @@ by the Free Software Foundation.
 @sp 10
 @comment The title is printed in a large font.
 @title Guile Reference Manual
-@subtitle $Id: guile.texi,v 1.14 2002-03-15 14:03:53 ossau Exp $
+@subtitle $Id: guile.texi,v 1.15 2002-03-16 13:51:03 ossau Exp $
 @subtitle For use with Guile @value{VERSION}
 
 @c AUTHORS

@@ -572,25 +572,28 @@ code needs to do, you may prefer to use this interface.
 To create a C hook, you should allocate storage for a structure of type
 @code{scm_t_c_hook} and then initialize it using @code{scm_c_hook_init}.
 
-@deffn {C Type} scm_t_c_hook
+@deftp {C Type} scm_t_c_hook
 Data type for a C hook.  The internals of this type should be treated as
 opaque.
-@end deffn
+@end deftp
 
-@deffn {C Enum} scm_t_c_hook_type
+@deftp {C Enum} scm_t_c_hook_type
 Enumeration of possible hook types, which are:
 
 @table @code
 @item SCM_C_HOOK_NORMAL
+@vindex SCM_C_HOOK_NORMAL
 Type of hook for which all the registered functions will always be called.
 @item SCM_C_HOOK_OR
+@vindex SCM_C_HOOK_OR
 Type of hook for which the sequence of registered functions will be
 called only until one of them returns C true (a non-NULL pointer).
 @item SCM_C_HOOK_AND
+@vindex SCM_C_HOOK_AND
 Type of hook for which the sequence of registered functions will be
 called only until one of them returns C false (a NULL pointer).
 @end table
-@end deffn
+@end deftp
 
 @deftypefn {C Function} void scm_c_hook_init (scm_t_c_hook *hook, void *hook_data, scm_t_c_hook_type type)
 Initialize the C hook at memory pointed to by @var{hook}.  @var{type}
@@ -618,10 +621,10 @@ The call closure data specified by the @code{scm_c_hook_run} call that
 runs the hook.
 @end table
 
-@deffn {C Type} scm_t_c_hook_function
+@deftp {C Type} scm_t_c_hook_function
 Function type for a C hook function: takes three @code{void *}
 parameters and returns a @code{void *} result.
-@end deffn
+@end deftp
 
 @deftypefn {C Function} void scm_c_hook_add (scm_t_c_hook *hook, scm_t_c_hook_function func, void *func_data, int appendp)
 Add function @var{func}, with function closure data @var{func_data}, to
@@ -654,13 +657,73 @@ function to be called.
 @node Guile Hooks
 @subsection Hooks Provided by Guile
 
-@table @code
-@item scm_before_gc_c_hook
-@item scm_before_mark_c_hook
-@item scm_before_sweep_c_hook
-@item scm_after_sweep_c_hook
-@item scm_after_gc_c_hook
-@end table
+@menu
+* GC Hooks::                    Garbage collection hooks.
+* REPL Hooks::                  Hooks into the Guile REPL.
+@end menu
+
+
+@node GC Hooks
+@subsubsection Hooks for Garbage Collection
+
+Whenever Guile performs a garbage collection, it calls the following
+hooks in the order shown.
+
+@defvr {C Hook} scm_before_gc_c_hook
+C hook called at the very start of a garbage collection, after setting
+@code{scm_gc_running_p} to 1, but before entering the GC critical
+section.
+
+If garbage collection is blocked because @code{scm_block_gc} is
+non-zero, GC exits early soon after calling this hook, and no further
+hooks will be called.
+@end defvr
+
+@defvr {C Hook} scm_before_mark_c_hook
+C hook called before beginning the mark phase of garbage collection,
+after the GC thread has entered a critical section.
+@end defvr
+
+@defvr {C Hook} scm_before_sweep_c_hook
+C hook called before beginning the sweep phase of garbage collection.
+This is the same as at the end of the mark phase, since nothing else
+happens between marking and sweeping.
+@end defvr
+
+@defvr {C Hook} scm_after_sweep_c_hook
+C hook called after the end of the sweep phase of garbage collection,
+but while the GC thread is still inside its critical section.
+@end defvr
+
+@defvr {C Hook} scm_after_gc_c_hook
+C hook called at the very end of a garbage collection, after the GC
+thread has left its critical section.
+@end defvr
+
+@defvr {Scheme Hook} after-gc-hook
+@vindex scm_after_gc_hook
+Scheme hook with arity 0.  This hook is run asynchronously
+(@pxref{Asyncs}) soon after the GC has completed and any other events
+that were deferred during garbage collection have been processed.  (Also
+accessible from C with the name @code{scm_after_gc_hook}.)
+@end defvr
+
+All the C hooks listed here have type @code{SCM_C_HOOK_NORMAL}, are
+initialized with hook closure data NULL, are are invoked by
+@code{scm_c_hook_run} with call closure data NULL.
+
+@cindex guardians, testing for GC'd objects
+The Scheme hook @code{after-gc-hook} is particularly useful in
+conjunction with guardians (@pxref{Guardians}).  Typically, if you are
+using a guardian, you want to call the guardian after garbage collection
+to see if any of the objects added to the guardian have been collected.
+By adding a thunk that performs this call to @code{after-gc-hook}, you
+can ensure that your guardian is tested after every garbage collection
+cycle.
+
+
+@node REPL Hooks
+@subsubsection Hooks into the Guile REPL
 
 
 @c Local Variables:

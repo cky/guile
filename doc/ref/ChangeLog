@@ -1,3 +1,14 @@
+2002-03-16  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scheme-utility.texi (Hooks): Further updates.  New material on
+	GC hooks.
+	
+	* scheme-evaluation.texi (Fly Evaluation): Note disappearance of
+	eval2 and read-and-eval!.
+
+	* deprecated.texi (Deprecated): Remove docs about previously
+	deprecated items that have now been removed.
+
 2002-03-15  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* tools.texi (guile-1.4 guile-snarf): Remove this node.
