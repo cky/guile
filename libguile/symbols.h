@@ -79,9 +79,12 @@
 SCM_API SCM scm_sys_symbols (void);
 #endif
 SCM_API SCM scm_mem2symbol (const char*, size_t);
+SCM_API SCM scm_mem2uninterned_symbol (const char *name, size_t len);
 SCM_API SCM scm_str2symbol (const char*);
 
 SCM_API SCM scm_symbol_p (SCM x);
+SCM_API SCM scm_symbol_interned_p (SCM sym);
+SCM_API SCM scm_make_symbol (SCM name);
 SCM_API SCM scm_symbol_to_string (SCM s);
 SCM_API SCM scm_string_to_symbol (SCM s);
 
