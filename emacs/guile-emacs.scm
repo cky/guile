@@ -93,7 +93,7 @@
 	(docs (and docs (object-documentation proc))))
     `(defun ,name ,args
        ,@(if docs (list docs) '())
-       (guile-lisp-flat-eval ,@(procedure-call name args)))))
+       (guile-lisp-flat-eval ,@(procedure-call (procedure-name proc) args)))))
 
 (define (guile-emacs-export proc-name func-name docs)
   (let ((proc (module-ref (current-module) proc-name)))
