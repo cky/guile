@@ -57,9 +57,24 @@ AC_STRUCT_ST_BLOCKS
 GUILE_STRUCT_UTIMBUF
 
 # Checks for dynamic linking
+
+xtra_PLUGIN_guile_libs=""
+AC_SUBST(xtra_PLUGIN_guile_libs)
+
+if test "$enable_dynamic_linking" = "yes"; then
+
 AC_CHECK_LIB(dl,dlopen)
 AC_CHECK_LIB(dld,dld_link)
 AC_CHECK_FUNCS(shl_load)
+
+if test "$ac_cv_lib_dl_dlopen" = "yes"; then
+  xtra_PLUGIN_guile_libs="-lguile -ldl"
+else
+if test "$ac_cv_lib_dld_dld_link" = "yes"; then
+  xtra_PLUGIN_guile_libs="-lguile -ldld"
+fi fi
+
+fi
 
 #--------------------------------------------------------------------
 #
@@ -209,7 +224,7 @@ AC_DEFINE_UNQUOTED(GUILE_MINOR_VERSION, "$GUILE_MINOR_VERSION")
 AC_DEFINE_UNQUOTED(GUILE_VERSION, "$GUILE_VERSION")
 
 AC_SUBST(FD_SETTER)
-AC_OUTPUT([Makefile fd.h guile-snarf], [chmod +x guile-snarf])
+AC_OUTPUT([Makefile fd.h guile-snarf PLUGIN/guile.libs], [chmod +x guile-snarf])
 
 dnl Local Variables:
 dnl comment-start: "dnl "
