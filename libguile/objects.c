@@ -373,8 +373,7 @@ GUILE_PROC (scm_operator_p, "operator?", 1, 0, 0,
 "")
 #define FUNC_NAME s_scm_operator_p
 {
-  return SCM_BOOL(SCM_NIMP (obj)
-                  && SCM_STRUCTP (obj)
+  return SCM_BOOL(SCM_STRUCTP (obj)
                   && SCM_I_OPERATORP (obj)
                   && !SCM_I_ENTITYP (obj));
 }

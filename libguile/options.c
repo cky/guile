@@ -177,8 +177,7 @@ scm_options (SCM arg, scm_option options[], int n, const char *s)
 		  goto cont;
 		case SCM_OPTION_INTEGER:
 		  new_mode = SCM_CDR (new_mode);
-		  SCM_ASSERT (SCM_NIMP (new_mode)
-			      && SCM_CONSP (new_mode)
+		  SCM_ASSERT (   SCM_CONSP (new_mode)
 			      && SCM_INUMP (SCM_CAR (new_mode)),
 			      new_mode,
 			      SCM_ARG1,

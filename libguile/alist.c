@@ -54,38 +54,40 @@
 
 
 GUILE_PROC(scm_acons, "acons", 3, 0, 0,
-           (SCM w, SCM x, SCM y),
+           (SCM key, SCM value, SCM alist),
 "Adds a new key-value pair to @var{alist}.  A new pair is
 created whose car is @var{key} and whose cdr is @var{value}, and the
 pair is consed onto @var{alist}, and the new list is returned.  This
 function is @emph{not} destructive; @var{alist} is not modified.")
 #define FUNC_NAME s_scm_acons
 {
-  register SCM z;
-  SCM_NEWCELL (z);
-  SCM_SETCAR (z, w);
-  SCM_SETCDR (z, x);
-  x = z;
-  SCM_NEWCELL (z);
-  SCM_SETCAR (z, x);
-  SCM_SETCDR (z, y);
-  return z;
+  SCM pair;
+  SCM head;
+
+  SCM_NEWCELL (pair);
+  SCM_SETCAR (pair, key);
+  SCM_SETCDR (pair, value);
+
+  SCM_NEWCELL (head);
+  SCM_SETCAR (head, pair);
+  SCM_SETCDR (head, alist);
+
+  return head;
 }
 #undef FUNC_NAME
 
 
 
 GUILE_PROC (scm_sloppy_assq, "sloppy-assq", 2, 0, 0,
-            (SCM x, SCM alist),
+            (SCM key, SCM alist),
 "Behaves like @code{assq} but does not do any error checking.
 Recommended only for use in Guile internals.")
 #define FUNC_NAME s_scm_sloppy_assq
 {
-
   for (; SCM_CONSP (alist); alist = SCM_CDR (alist))
     {
       SCM tmp = SCM_CAR(alist);
-      if (SCM_CONSP (tmp) && (SCM_CAR (tmp)==x))
+      if (SCM_CONSP (tmp) && (SCM_CAR (tmp)==key))
 	return tmp;
     }
   return SCM_BOOL_F;
@@ -95,7 +97,7 @@ Recommended only for use in Guile internals.")
 
 
 GUILE_PROC (scm_sloppy_assv, "sloppy-assv", 2, 0, 0,
-            (SCM x, SCM alist),
+            (SCM key, SCM alist),
 "Behaves like @code{assv} but does not do any error checking.
 Recommended only for use in Guile internals.")
 #define FUNC_NAME s_scm_sloppy_assv
@@ -103,9 +105,8 @@ Recommended only for use in Guile internals.")
   for (; SCM_CONSP (alist); alist = SCM_CDR (alist))
     {
       SCM tmp = SCM_CAR(alist);
-      if (SCM_NIMP (tmp)
-	  && SCM_CONSP (tmp)
-	  && SCM_NFALSEP (scm_eqv_p (SCM_CAR (tmp), x)))
+      if (SCM_CONSP (tmp)
+	  && SCM_NFALSEP (scm_eqv_p (SCM_CAR (tmp), key)))
 	return tmp;
     }
   return SCM_BOOL_F;
@@ -114,7 +115,7 @@ Recommended only for use in Guile internals.")
 
 
 GUILE_PROC (scm_sloppy_assoc, "sloppy-assoc", 2, 0, 0,
-            (SCM x, SCM alist),
+            (SCM key, SCM alist),
 "Behaves like @code{assoc} but does not do any error checking.
 Recommended only for use in Guile internals.")
 #define FUNC_NAME s_scm_sloppy_assoc
@@ -122,9 +123,8 @@ Recommended only for use in Guile internals.")
   for (; SCM_CONSP (alist); alist = SCM_CDR (alist))
     {
       SCM tmp = SCM_CAR(alist);
-      if (SCM_NIMP (tmp)
-	  && SCM_CONSP (tmp)
-	  && SCM_NFALSEP (scm_equal_p (SCM_CAR (tmp), x)))
+      if (SCM_CONSP (tmp)
+	  && SCM_NFALSEP (scm_equal_p (SCM_CAR (tmp), key)))
 	return tmp;
     }
   return SCM_BOOL_F;
@@ -135,7 +135,7 @@ Recommended only for use in Guile internals.")
 
 
 GUILE_PROC(scm_assq, "assq", 2, 0, 0,
-           (SCM x, SCM alist),
+           (SCM key, SCM alist),
 "@deffnx primitive assv key alist
 @deffnx primitive assoc key alist
 Fetches the entry in @var{alist} that is associated with @var{key}.  To
@@ -150,7 +150,7 @@ return the entire alist entry found (i.e. both the key and the value).")
   SCM tmp;
   for(;SCM_NIMP(alist);alist = SCM_CDR(alist)) {
     SCM_VALIDATE_ALISTCELL_COPYSCM(2,alist,tmp);
-    if (SCM_CAR(tmp)==x) return tmp;
+    if (SCM_CAR(tmp)==key) return tmp;
   }
   SCM_VALIDATE_NULL(2,alist);
   return SCM_BOOL_F;
@@ -159,8 +159,8 @@ return the entire alist entry found (i.e. both the key and the value).")
 
 
 GUILE_PROC(scm_assv, "assv", 2, 0, 0,
-           (SCM x, SCM alist),
-"")
+           (SCM key, SCM alist),
+"Behaves like @code{assq} but uses @code{eqv?} for key comparison.")
 #define FUNC_NAME s_scm_assv
 {
   SCM tmp;
@@ -168,7 +168,7 @@ GUILE_PROC(scm_assv, "assv", 2, 0, 0,
     SCM_ASRTGO(SCM_CONSP(alist), badlst);
     tmp = SCM_CAR(alist);
     SCM_ASRTGO(SCM_CONSP(tmp), badlst);
-    if SCM_NFALSEP(scm_eqv_p(SCM_CAR(tmp), x)) return tmp;
+    if SCM_NFALSEP(scm_eqv_p(SCM_CAR(tmp), key)) return tmp;
   }
 # ifndef SCM_RECKLESS
   if (!(SCM_NULLP(alist)))
@@ -180,14 +180,14 @@ GUILE_PROC(scm_assv, "assv", 2, 0, 0,
 
 
 GUILE_PROC(scm_assoc, "assoc", 2, 0, 0,
-           (SCM x, SCM alist),
-"See @code{assq}.")
+           (SCM key, SCM alist),
+"Behaves like @code{assq} but uses @code{equal?} for key comparison.")
 #define FUNC_NAME s_scm_assoc
 {
   SCM tmp;
   for(;SCM_NIMP(alist);alist = SCM_CDR(alist)) {
     SCM_VALIDATE_ALISTCELL_COPYSCM(2,alist,tmp);
-    if SCM_NFALSEP(scm_equal_p(SCM_CAR(tmp), x)) return tmp;
+    if SCM_NFALSEP(scm_equal_p(SCM_CAR(tmp), key)) return tmp;
   }
   SCM_VALIDATE_NULL(2,alist);
   return SCM_BOOL_F;
@@ -227,7 +227,7 @@ where @var{associator} is one of @code{assq}, @code{assv} or @code{assoc}.")
 
 GUILE_PROC (scm_assv_ref, "assv-ref", 2, 0, 0,
             (SCM alist, SCM key),
-"See @code{assq-ref}.")
+"Behaves like @code{assq-ref} but uses @code{eqv?} for key comparison.")
 #define FUNC_NAME s_scm_assv_ref
 {
   SCM handle;
@@ -244,7 +244,7 @@ GUILE_PROC (scm_assv_ref, "assv-ref", 2, 0, 0,
 
 GUILE_PROC (scm_assoc_ref, "assoc-ref", 2, 0, 0,
             (SCM alist, SCM key),
-"See @code{assq-ref}.")
+"Behaves like @code{assq-ref} but uses @code{equal?} for key comparison.")
 #define FUNC_NAME s_scm_assoc_ref
 {
   SCM handle;
@@ -292,7 +292,7 @@ association list.")
 
 GUILE_PROC (scm_assv_set_x, "assv-set!", 3, 0, 0,
             (SCM alist, SCM key, SCM val),
-"See @code{assq-set!}.")
+"Behaves like @code{assq-set!} but uses @code{eqv?} for key comparison.")
 #define FUNC_NAME s_scm_assv_set_x
 {
   SCM handle;
@@ -310,7 +310,7 @@ GUILE_PROC (scm_assv_set_x, "assv-set!", 3, 0, 0,
 
 GUILE_PROC (scm_assoc_set_x, "assoc-set!", 3, 0, 0,
             (SCM alist, SCM key, SCM val),
-"See @code{assq-set!}.")
+"Behaves like @code{assq-set!} but uses @code{equal?} for key comparison.")
 #define FUNC_NAME s_scm_assoc_set_x
 {
   SCM handle;
@@ -352,7 +352,7 @@ the resulting alist.")
 
 GUILE_PROC (scm_assv_remove_x, "assv-remove!", 2, 0, 0,
             (SCM alist, SCM key),
-"See @code{assq-remove!}.")
+"Behaves like @code{assq-remove!} but uses @code{eqv?} for key comparison.")
 #define FUNC_NAME s_scm_assv_remove_x
 {
   SCM handle;
@@ -370,7 +370,7 @@ GUILE_PROC (scm_assv_remove_x, "assv-remove!", 2, 0, 0,
 
 GUILE_PROC (scm_assoc_remove_x, "assoc-remove!", 2, 0, 0,
             (SCM alist, SCM key),
-"See @code{assq-remove!}.")
+"Behaves like @code{assq-remove!} but uses @code{equal?} for key comparison.")
 #define FUNC_NAME s_scm_assoc_remove_x
 {
   SCM handle;

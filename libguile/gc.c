@@ -805,10 +805,8 @@ gc_mark_nimp:
 
 	      /* mark everything on the alist except the keys or
 	       * values, according to weak_values and weak_keys.  */
-	      while (   SCM_NIMP (alist)
-		     && SCM_CONSP (alist)
+	      while (   SCM_CONSP (alist)
 		     && !SCM_GCMARKP (alist)
-		     && SCM_NIMP (SCM_CAR (alist))
 		     && SCM_CONSP (SCM_CAR (alist)))
 		{
 		  SCM kvpair;
@@ -1063,10 +1061,8 @@ scm_mark_weak_vector_spines ()
 	      SCM alist;
 
 	      alist = ptr[j];
-	      while (   SCM_NIMP (alist)
-		     && SCM_CONSP (alist)
+	      while (   SCM_CONSP (alist)
 		     && !SCM_GCMARKP (alist) 
-		     && SCM_NIMP (SCM_CAR (alist))
 		     && SCM_CONSP  (SCM_CAR (alist)))
 		{
 		  SCM_SETGCMARK (alist);
@@ -1404,9 +1400,7 @@ scm_gc_sweep ()
 		fixup = ptr + j;
 		alist = *fixup;
 
-		while (SCM_NIMP (alist)
-		       && SCM_CONSP (alist)
-		       && SCM_NIMP (SCM_CAR (alist))
+		while (   SCM_CONSP (alist)
 		       && SCM_CONSP (SCM_CAR (alist)))
 		  {
 		    SCM key;

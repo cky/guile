@@ -75,8 +75,7 @@ GUILE_PROC (scm_make_keyword_from_dash_symbol, "make-keyword-from-dash-symbol", 
 {
   SCM vcell;
 
-  SCM_ASSERT (SCM_NIMP (symbol)
-	      && SCM_SYMBOLP (symbol)
+  SCM_ASSERT (SCM_SYMBOLP (symbol)
 	      && ('-' == SCM_CHARS(symbol)[0]),
 	      symbol, SCM_ARG1, FUNC_NAME);
 
