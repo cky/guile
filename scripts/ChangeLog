@@ -1,3 +1,7 @@
+2002-10-26  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* lint (lint): Add message telling resolved module name.
+
 2002-10-05  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* snarf-check-and-output-texi (end-multiline): Use '*function-name*'

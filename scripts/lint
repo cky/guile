@@ -115,6 +115,7 @@ exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
 	(free-vars (uniq (scan-file-for-free-variables filename))))
     (let ((module (resolve-module module-name))
 	  (all-resolved? #t))
+      (format #t "Resolved module: ~S\n" module)
       (let loop ((free-vars free-vars))
 	(or (null? free-vars)
 	    (begin
