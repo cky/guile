@@ -67,6 +67,10 @@
 
 
 
+static SCM symbols;
+
+
+
 static char *
 duplicate_string (const char * src, unsigned long length)
 {
@@ -86,14 +90,14 @@ SCM
 scm_mem2symbol (const char *name, scm_sizet len)
 {
   scm_sizet raw_hash = scm_string_hash ((const unsigned char *) name, len);
-  scm_sizet hash = raw_hash % SCM_VECTOR_LENGTH (scm_symbols);
+  scm_sizet hash = raw_hash % SCM_VECTOR_LENGTH (symbols);
 
   {
-    /* Try to find the symbol in the scm_symbols table */
+    /* Try to find the symbol in the symbols table */
 
     SCM l;
 
-    for (l = SCM_VELTS (scm_symbols) [hash]; !SCM_NULLP (l); l = SCM_CDR (l))
+    for (l = SCM_VELTS (symbols) [hash]; !SCM_NULLP (l); l = SCM_CDR (l))
       {
 	SCM sym = SCM_CAAR (l);
 	if (SCM_SYMBOL_HASH (sym) == raw_hash && SCM_SYMBOL_LENGTH (sym) == len)
@@ -128,8 +132,8 @@ scm_mem2symbol (const char *name, scm_sizet len)
     SCM_SET_SYMBOL_LENGTH (symbol, (long) len);
 
     cell = scm_cons (symbol, SCM_UNDEFINED);
-    slot = SCM_VELTS (scm_symbols) [hash];
-    SCM_VELTS (scm_symbols) [hash] = scm_cons (cell, slot);
+    slot = SCM_VELTS (symbols) [hash];
+    SCM_VELTS (symbols) [hash] = scm_cons (cell, slot);
 
     return symbol;
   }
@@ -392,6 +396,7 @@ scm_symbol_value0 (const char *name)
     return SCM_UNDEFINED;
   return SCM_CDR (vcell);
 }
+
 
 SCM_DEFINE (scm_symbol_p, "symbol?", 1, 0, 0, 
 	    (SCM obj),
@@ -852,6 +857,15 @@ SCM_DEFINE (scm_gentemp, "gentemp", 0, 2, 0,
   }
 }
 #undef FUNC_NAME
+
+
+void
+scm_symbols_prehistory ()
+{
+  symbols = scm_make_weak_key_hash_table (SCM_MAKINUM (277));
+  scm_permanent_object (symbols);
+}
+
 
 void
 scm_init_symbols ()

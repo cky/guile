@@ -469,8 +469,9 @@ scm_init_guile_1 (SCM_STACKITEM *base)
   scm_debug_malloc_prehistory ();
 #endif
   scm_init_storage ();
-  scm_struct_prehistory ();	/* Must come after scm_init_storage */
-  scm_weaks_prehistory ();	/* Must come after scm_init_storage */
+  scm_struct_prehistory ();	/* requires storage */
+  scm_symbols_prehistory ();    /* requires storage */
+  scm_weaks_prehistory ();	/* requires storage */
   scm_init_subr_table ();
   scm_environments_prehistory (); /* create the root environment */
   scm_init_continuations ();

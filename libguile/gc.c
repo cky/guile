@@ -2521,17 +2521,11 @@ scm_init_storage ()
 
 #define DEFAULT_SYMHASH_SIZE 277
   scm_symhash = scm_make_vector (SCM_MAKINUM (DEFAULT_SYMHASH_SIZE), SCM_EOL);
-  scm_symbols = scm_make_weak_key_hash_table (SCM_MAKINUM (DEFAULT_SYMHASH_SIZE));
   scm_symhash_vars = scm_make_vector (SCM_MAKINUM (DEFAULT_SYMHASH_SIZE), SCM_EOL);
 
   scm_stand_in_procs = SCM_EOL;
   scm_permobjs = SCM_EOL;
   scm_protects = scm_make_vector (SCM_MAKINUM (31), SCM_EOL);
-  scm_sysintern ("most-positive-fixnum", SCM_MAKINUM (SCM_MOST_POSITIVE_FIXNUM));
-  scm_sysintern ("most-negative-fixnum", SCM_MAKINUM (SCM_MOST_NEGATIVE_FIXNUM));
-#ifdef SCM_BIGDIG
-  scm_sysintern ("bignum-radix", SCM_MAKINUM (SCM_BIGRAD));
-#endif
 
   return 0;
 }

@@ -1,5 +1,25 @@
 2000-12-12  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	The variable scm_symbols is made static within symbols.c and
+	renamed to symbols.  The initialization of the symbols hash table
+	is done in function scm_symbols_prehistory.
+
+	* gc.c (scm_init_storage):  Don't initialize scm_symbols.  Don't
+	define most-positive-fixnum, most-negative-fixnum and
+	bignum-radix.
+
+	* init.c (scm_init_guile_1):  Call scm_symbols_prehistory.
+
+	* root.h (scm_symbols):  Not in scm_sys_protects any more.
+
+	* symbols.c (symbols):  Renamed from scm_symbols and made static.
+
+	(scm_mem2symbol):  scm_symbols is renamed to symbols.
+
+	* symbols.[ch] (scm_symbols_prehistory):  Added.
+
+2000-12-12  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* gc.c (scm_init_storage), root.h (scm_weak_symhash, scm_symbols):
 	Removed the former scm_weak_symhash hash table.  Added scm_symbols
 	hash table.

@@ -211,6 +211,8 @@ current values of file descriptors 0, 1, and 2 in the parent process.
 
 There is no such concept as a weak binding any more.
 
+** Removed constants:  most-positive-fixnum, most-negative-fixnum, bignum-radix
+
 * Changes to the gh_ interface
 
 * Changes to the scm_ interface
