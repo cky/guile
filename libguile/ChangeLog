@@ -1,5 +1,12 @@
 2003-09-04  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* numbers.h (SCM_MAKINUM): Define in terms of scm_tc2_int.
+
+	(SCM_INEXACTP, SCM_REALP, SCM_COMPLEXP): Define in terms of the
+	respective SLOPPY macro.
+
+2003-09-04  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* eq.c (scm_equal_p): Use SCM_TYP7 to check if an object is of
 	type string, not SCM_TYP7S.
 

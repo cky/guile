@@ -68,7 +68,8 @@
 
 #define SCM_INUMP(x)	(2 & SCM_UNPACK (x))
 #define SCM_NINUMP(x) 	(!SCM_INUMP (x))
-#define SCM_MAKINUM(x)  (SCM_PACK ((((scm_t_signed_bits) (x)) << 2) + 2))
+#define SCM_MAKINUM(x) \
+  (SCM_PACK ((((scm_t_signed_bits) (x)) << 2) + scm_tc2_int))
 #define SCM_INUM(x)     (SCM_SRS ((scm_t_signed_bits) SCM_UNPACK (x), 2))
 
 
@@ -123,9 +124,9 @@
 #define SCM_SLOPPY_INEXACTP(x) (SCM_TYP16S (x) == scm_tc16_real)
 #define SCM_SLOPPY_REALP(x) (SCM_TYP16 (x) == scm_tc16_real)
 #define SCM_SLOPPY_COMPLEXP(x) (SCM_TYP16 (x) == scm_tc16_complex)
-#define SCM_INEXACTP(x) (!SCM_IMP (x) && SCM_TYP16S (x) == scm_tc16_real)
-#define SCM_REALP(x) (!SCM_IMP (x) && SCM_TYP16 (x) == scm_tc16_real)
-#define SCM_COMPLEXP(x) (!SCM_IMP (x) && SCM_TYP16 (x) == scm_tc16_complex)
+#define SCM_INEXACTP(x) (!SCM_IMP (x) && SCM_SLOPPY_INEXACTP(x))
+#define SCM_REALP(x) (!SCM_IMP (x) && SCM_SLOPPY_REALP(x))
+#define SCM_COMPLEXP(x) (!SCM_IMP (x) && SCM_SLOPPY_COMPLEXP(x))
 
 #define SCM_REAL_VALUE(x) (((scm_t_double *) SCM2PTR (x))->real)
 #define SCM_COMPLEX_MEM(x) ((scm_t_complex *) SCM_CELL_WORD_1 (x))
