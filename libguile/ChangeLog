@@ -1,5 +1,17 @@
 2000-09-26  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* gc.c (scm_igc):  :  Eliminate references to SCM_LENGTH and
+	SCM_CHARS from comment.
+
+	(scm_gc_mark, scm_gc_sweep):  Replace SCM_CHARS with
+	SCM_SYMBOL_CHARS or SCM_CCLO_BASE or SCM_UVECTOR_BASE or
+	SCM_BDIGITS, and replace SCM_VELTS with SCM_VECTOR_BASE or
+	SCM_CONTREGS, according to the corresponding types.
+
+	(scm_gc_sweep):  Simplify sweeping of uniform vectors.
+
+2000-09-26  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* procs.h (SCM_CCLO_LENGTH, SCM_SET_CCLO_LENGTH, SCM_CCLO_BASE,
 	SCM_SET_CCLO_BASE, SCM_CCLO_REF, SCM_CCLO_SET, SCM_CCLO_SUBR,
 	SCM_SET_CCLO_SUBR):  Added resp. changed such that none of the

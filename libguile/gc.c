@@ -1028,8 +1028,8 @@ scm_igc (const char *what)
   /* Protect from the C stack.  This must be the first marking
    * done because it provides information about what objects
    * are "in-use" by the C code.   "in-use" objects are  those
-   * for which the values from SCM_LENGTH and SCM_CHARS must remain
-   * usable.   This requirement is stricter than a liveness
+   * for which the information about length and base address must
+   * remain usable.   This requirement is stricter than a liveness
    * requirement -- in particular, it constrains the implementation
    * of scm_vector_set_length_x.
    */
@@ -1173,7 +1173,7 @@ gc_mark_nimp:
             /* ptr is a struct */
             SCM layout = SCM_PACK (vtable_data [scm_vtable_index_layout]);
             int len = SCM_LENGTH (layout);
-            char * fields_desc = SCM_CHARS (layout);
+            char * fields_desc = SCM_SYMBOL_CHARS (layout);
             scm_bits_t * struct_data = (scm_bits_t *) SCM_STRUCT_DATA (ptr);
 
             if (vtable_data[scm_struct_i_flags] & SCM_STRUCTF_ENTITY)
@@ -1604,45 +1604,36 @@ scm_gc_sweep ()
 	      break;
 	    case scm_tc7_wvect:
               m += (2 + SCM_LENGTH (scmptr)) * sizeof (SCM);
-              scm_must_free ((char *)(SCM_VELTS (scmptr) - 2));
+              scm_must_free (SCM_VECTOR_BASE (scmptr) - 2);
               break;
 	    case scm_tc7_vector:
+	      m += (SCM_LENGTH (scmptr) * sizeof (SCM));
+	      scm_must_free (SCM_VECTOR_BASE (scmptr));
+	      break;
 #ifdef CCLO
 	    case scm_tc7_cclo:
-#endif
 	      m += (SCM_LENGTH (scmptr) * sizeof (SCM));
-	    freechars:
-	      scm_must_free (SCM_CHARS (scmptr));
-	      /*	SCM_SETCHARS(scmptr, 0);*/
+	      scm_must_free (SCM_CCLO_BASE (scmptr));
 	      break;
+#endif
 #ifdef HAVE_ARRAYS
 	    case scm_tc7_bvect:
 	      m += sizeof (long) * ((SCM_HUGE_LENGTH (scmptr) + SCM_LONG_BIT - 1) / SCM_LONG_BIT);
-	      goto freechars;
+	      scm_must_free (SCM_UVECTOR_BASE (scmptr));
+	      break;
 	    case scm_tc7_byvect:
-	      m += SCM_HUGE_LENGTH (scmptr) * sizeof (char);
-	      goto freechars;
 	    case scm_tc7_ivect:
 	    case scm_tc7_uvect:
-	      m += SCM_HUGE_LENGTH (scmptr) * sizeof (long);
-	      goto freechars;
 	    case scm_tc7_svect:
-	      m += SCM_HUGE_LENGTH (scmptr) * sizeof (short);
-	      goto freechars;
 #ifdef HAVE_LONG_LONGS
 	    case scm_tc7_llvect:
-	      m += SCM_HUGE_LENGTH (scmptr) * sizeof (long_long);
-	      goto freechars;
 #endif
 	    case scm_tc7_fvect:
-	      m += SCM_HUGE_LENGTH (scmptr) * sizeof (float);
-	      goto freechars;
 	    case scm_tc7_dvect:
-	      m += SCM_HUGE_LENGTH (scmptr) * sizeof (double);
-	      goto freechars;
 	    case scm_tc7_cvect:
-	      m += SCM_HUGE_LENGTH (scmptr) * 2 * sizeof (double);
-	      goto freechars;
+	      m += SCM_HUGE_LENGTH (scmptr) * scm_uniform_element_size (scmptr);
+	      scm_must_free (SCM_UVECTOR_BASE (scmptr));
+	      break;
 #endif
 	    case scm_tc7_substring:
 	      break;
@@ -1656,8 +1647,15 @@ scm_gc_sweep ()
 	      break;
 	    case scm_tc7_contin:
 	      m += SCM_LENGTH (scmptr) * sizeof (SCM_STACKITEM) + sizeof (scm_contregs);
-	      if (SCM_VELTS (scmptr))
-		goto freechars;
+	      if (SCM_CONTREGS (scmptr))
+		{
+		  scm_must_free (SCM_CONTREGS (scmptr));
+		  break;
+		}
+	      else
+		{
+		  continue;
+		}
 	    case scm_tcs_subrs:
               /* the various "subrs" (primitives) are never freed */
 	      continue;
@@ -1689,11 +1687,13 @@ scm_gc_sweep ()
 #ifdef SCM_BIGDIG
 		case scm_tc16_big:
 		  m += (SCM_NUMDIGS (scmptr) * SCM_BITSPERDIG / SCM_CHAR_BIT);
-		  goto freechars;
+		  scm_must_free (SCM_BDIGITS (scmptr));
+		  break;
 #endif /* def SCM_BIGDIG */
 		case scm_tc16_complex:
-		  m += 2 * sizeof (double);
-		  goto freechars;
+		  m += sizeof (scm_complex_t);
+		  scm_must_free (SCM_CHARS (scmptr));
+		  break;
 		default:
 		  {
 		    int k;
