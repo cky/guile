@@ -251,7 +251,7 @@ SCM_DEFINE (scm_read_line, "%read-line", 0, 1, 0,
   if (pt->rw_active == SCM_PORT_WRITE)
     scm_ptobs[SCM_PTOBNUM (port)].flush (port);
 
-  s = scm_do_read_line (port, &slen);
+  s = (char *) scm_do_read_line (port, &slen);
 
   if (s == NULL)
     term = line = SCM_EOF_VAL;
