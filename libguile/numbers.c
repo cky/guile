@@ -2316,7 +2316,10 @@ enum t_exactness {NO_EXACTNESS, INEXACT, EXACT};
 /* R5RS, section 7.1.1, lexical structure of numbers: <uinteger R>. */
 
 /* In non ASCII-style encodings the following macro might not work. */
-#define XDIGIT2UINT(d) (isdigit (d) ? (d) - '0' : tolower (d) - 'a' + 10)
+#define XDIGIT2UINT(d)                                  \
+  (isdigit ((int) (unsigned char) d)                    \
+   ? (d) - '0'                                          \
+   : tolower ((int) (unsigned char) d) - 'a' + 10)
 
 static SCM
 mem2uinteger (const char* mem, size_t len, unsigned int *p_idx,
@@ -2334,7 +2337,7 @@ mem2uinteger (const char* mem, size_t len, unsigned int *p_idx,
     return SCM_BOOL_F;
 
   c = mem[idx];
-  if (!isxdigit (c))
+  if (!isxdigit ((int) (unsigned char) c))
     return SCM_BOOL_F;
   digit_value = XDIGIT2UINT (c);
   if (digit_value >= radix)
@@ -2345,7 +2348,7 @@ mem2uinteger (const char* mem, size_t len, unsigned int *p_idx,
   while (idx != len)
     {
       char c = mem[idx];
-      if (isxdigit (c))
+      if (isxdigit ((int) (unsigned char) c))
 	{
 	  if (hash_seen)
 	    break;
@@ -2422,7 +2425,7 @@ mem2decimal_from_point (SCM result, const char* mem, size_t len,
       while (idx != len)
 	{
 	  char c = mem[idx];
-	  if (isdigit (c))
+	  if (isdigit ((int) (unsigned char) c))
 	    {
 	      if (x == INEXACT)
 		return SCM_BOOL_F;
@@ -2503,7 +2506,7 @@ mem2decimal_from_point (SCM result, const char* mem, size_t len,
 	  else
 	    sign = 1;
 
-	  if (!isdigit (c))
+	  if (!isdigit ((int) (unsigned char) c))
 	    return SCM_BOOL_F;
 
 	  idx++;
@@ -2511,7 +2514,7 @@ mem2decimal_from_point (SCM result, const char* mem, size_t len,
 	  while (idx != len)
 	    {
 	      char c = mem[idx];
-	      if (isdigit (c))
+	      if (isdigit ((int) (unsigned char) c))
 		{
 		  idx++;
 		  if (exponent <= SCM_MAXEXP)
@@ -2589,7 +2592,7 @@ mem2ureal (const char* mem, size_t len, unsigned int *p_idx,
 	return SCM_BOOL_F;
       else if (idx + 1 == len)
 	return SCM_BOOL_F;
-      else if (!isdigit (mem[idx + 1]))
+      else if (!isdigit ((int) (unsigned char) mem[idx + 1]))
 	return SCM_BOOL_F;
       else
 	result = mem2decimal_from_point (SCM_MAKINUM (0), mem, len,
