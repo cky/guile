@@ -469,9 +469,9 @@ SCM_DEFINE (scm_mktime, "mktime", 1, 1, 0,
 	    "@var{bd-time} is an object representing broken down time and @code{zone}\n"
 	    "is an optional time zone specifier (otherwise the TZ environment variable\n"
 	    "or the system default is used).\n\n"
-	    "Returns a pair: the CAR is a corresponding\n"
+	    "Returns a pair: the car is a corresponding\n"
 	    "integer time value like that returned\n"
-	    "by @code{current-time}; the CDR is a broken down time object, similar to\n"
+	    "by @code{current-time}; the cdr is a broken down time object, similar to\n"
 	    "as @var{bd-time} but with normalized values.")
 #define FUNC_NAME s_scm_mktime
 {
@@ -651,16 +651,16 @@ SCM_DEFINE (scm_strftime, "strftime", 2, 0, 0,
 #ifdef HAVE_STRPTIME
 SCM_DEFINE (scm_strptime, "strptime", 2, 0, 0,
             (SCM format, SCM string),
-	    "Performs the reverse action to @code{strftime}, parsing @var{string}\n"
-	    "according to the specification supplied in @var{template}.  The\n"
-	    "interpretation of month and day names is dependent on the current\n"
-	    "locale.  The\n"
-	    "value returned is a pair.  The CAR has an object with time components \n"
+	    "Performs the reverse action to @code{strftime}, parsing\n"
+	    "@var{string} according to the specification supplied in\n"
+	    "@var{template}.  The interpretation of month and day names is\n"
+	    "dependent on the current locale.  The value returned is a pair.\n"
+	    "The car has an object with time components\n"
 	    "in the form returned by @code{localtime} or @code{gmtime},\n"
 	    "but the time zone components\n"
 	    "are not usefully set.\n"
-	    "The CDR reports the number of characters from @var{string} which\n"
-	    "were used for the conversion.")
+	    "The cdr reports the number of characters from @var{string}\n"
+	    "which were used for the conversion.")
 #define FUNC_NAME s_scm_strptime
 {
   struct tm t;
