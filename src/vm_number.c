@@ -43,6 +43,26 @@
 
 #include "vm-snarf.h"
 
+#define FUNC2(CFUNC,SFUNC)				\
+{							\
+  VM_SETUP_ARGS2 ();					\
+  if (SCM_INUMP (a1) && SCM_INUMP (a2))			\
+    {							\
+      int n = SCM_INUM (a1) CFUNC SCM_INUM (a2);	\
+      if (SCM_FIXABLE (n))				\
+	RETURN (SCM_MAKINUM (n));			\
+    }							\
+  RETURN (SFUNC (a1, a2));				\
+}
+
+#define REL2(CREL,SREL)						\
+{								\
+  VM_SETUP_ARGS2 ();						\
+  if (SCM_INUMP (a1) && SCM_INUMP (a2))				\
+    RETURN (SCM_BOOL (SCM_INUM (a1) CREL SCM_INUM (a2)));	\
+  RETURN (SREL (a1, a2));					\
+}
+
 SCM_DEFINE_VM_FUNCTION (zero_p, "zero?", "zero?", 1, 0)
 {
   VM_SETUP_ARGS1 ();
@@ -99,14 +119,7 @@ SCM_DEFINE_VM_FUNCTION (add, "+", "add", 0, 1)
 
 SCM_DEFINE_VM_FUNCTION (add2, "+", "add2", 2, 0)
 {
-  VM_SETUP_ARGS2 ();
-  if (SCM_INUMP (a1) && SCM_INUMP (a2))
-    {
-      int n = SCM_INUM (a1) + SCM_INUM (a2);
-      if (SCM_FIXABLE (n))
-	RETURN (SCM_MAKINUM (n));
-    }
-  RETURN (scm_sum (a1, a2));
+  FUNC2 (+, scm_sum);
 }
 
 SCM_DEFINE_VM_FUNCTION (sub, "-", "sub", 1, 1)
@@ -140,14 +153,7 @@ SCM_DEFINE_VM_FUNCTION (sub, "-", "sub", 1, 1)
 
 SCM_DEFINE_VM_FUNCTION (sub2, "-", "sub2", 2, 0)
 {
-  VM_SETUP_ARGS2 ();
-  if (SCM_INUMP (a1) && SCM_INUMP (a2))
-    {
-      int n = SCM_INUM (a1) - SCM_INUM (a2);
-      if (SCM_FIXABLE (n))
-	RETURN (SCM_MAKINUM (n));
-    }
-  RETURN (scm_difference (a1, a2));
+  FUNC2 (-, scm_difference);
 }
 
 SCM_DEFINE_VM_FUNCTION (minus, "-", "minus", 1, 0)
@@ -162,11 +168,11 @@ SCM_DEFINE_VM_FUNCTION (minus, "-", "minus", 1, 0)
   RETURN (scm_difference (a1, SCM_UNDEFINED));
 }
 
-#define REL2(CREL,SREL)						\
-  VM_SETUP_ARGS2 ();						\
-  if (SCM_INUMP (a1) && SCM_INUMP (a2))				\
-    RETURN (SCM_BOOL (SCM_INUM (a1) CREL SCM_INUM (a2)));	\
-  RETURN (SREL (a1, a2))
+SCM_DEFINE_VM_FUNCTION (remainder, "remainder", "remainder", 2, 0)
+{
+  VM_SETUP_ARGS2 ();
+  RETURN (scm_remainder (a1, a2));
+}
 
 SCM_DEFINE_VM_FUNCTION (lt2, "<", "lt2", 2, 0)
 {
