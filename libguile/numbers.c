@@ -3211,7 +3211,27 @@ scm_num_eq_p (SCM x, SCM y)
       else if (SCM_BIGP (y))
 	return SCM_BOOL_F;
       else if (SCM_REALP (y))
-	return scm_from_bool ((double) xx == SCM_REAL_VALUE (y));
+        {
+          /* On a 32-bit system an inum fits a double, we can cast the inum
+             to a double and compare.
+
+             But on a 64-bit system an inum is bigger than a double and
+             casting it to a double (call that dxx) will round.  dxx is at
+             worst 1 bigger or smaller than xx, so if dxx==yy we know yy is
+             an integer and fits a long.  So we cast yy to a long and
+             compare with plain xx.
+
+             An alternative (for any size system actually) would be to check
+             yy is an integer (with floor) and is in range of an inum
+             (compare against appropriate powers of 2) then test
+             xx==(long)yy.  It's just a matter of which casts/comparisons
+             might be fastest or easiest for the cpu.  */
+
+          double yy = SCM_REAL_VALUE (y);
+          return SCM_BOOL ((double) xx == yy
+                           && (DBL_MANT_DIG >= SCM_I_FIXNUM_BIT-1
+                               || xx == (long) yy));
+        }
       else if (SCM_COMPLEXP (y))
 	return scm_from_bool (((double) xx == SCM_COMPLEX_REAL (y))
 			 && (0.0 == SCM_COMPLEX_IMAG (y)));
@@ -3257,8 +3277,15 @@ scm_num_eq_p (SCM x, SCM y)
     }
   else if (SCM_REALP (x))
     {
+      double xx = SCM_REAL_VALUE (x);
       if (SCM_I_INUMP (y))
-	return scm_from_bool (SCM_REAL_VALUE (x) == (double) SCM_I_INUM (y));
+        {
+          /* see comments with inum/real above */
+          long yy = SCM_I_INUM (y);
+          return SCM_BOOL (xx == (double) yy
+                           && (DBL_MANT_DIG >= SCM_I_FIXNUM_BIT-1
+                               || (long) xx == yy));
+        }
       else if (SCM_BIGP (y))
 	{
 	  int cmp;
