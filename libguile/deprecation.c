@@ -43,11 +43,11 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdarg.h>
 
 #include "libguile/_scm.h"
 
 #include "libguile/deprecation.h"
-#include "libguile/hashtab.h"
 #include "libguile/strings.h"
 #include "libguile/ports.h"
 
@@ -55,18 +55,52 @@
 
 #if (SCM_ENABLE_DEPRECATED == 1)
 
-/* This is either a boolean (when a summary should be printed) or a
-   hashtab (when detailed warnings should be printed).
-*/
-SCM issued_msgs;
+struct issued_warning {
+  struct issued_warning *prev;
+  const char *message;
+};
+
+static struct issued_warning *issued_warnings;
+static enum { detailed, summary, summary_print } mode;
 
 void
 scm_c_issue_deprecation_warning (const char *msg)
 {
-  if (SCM_BOOLP (issued_msgs))
-    issued_msgs = SCM_BOOL_T;
+  if (mode != detailed)
+    mode = summary_print;
   else
-    scm_issue_deprecation_warning (scm_list_1 (scm_makfrom0str (msg)));
+    {
+      struct issued_warning *iw;
+      for (iw = issued_warnings; iw; iw = iw->prev)
+	if (!strcmp (iw->message, msg))
+	  return;
+      if (scm_gc_running_p)
+	fprintf (stderr, "%s\n", msg);
+      else
+	{
+	  scm_puts (msg, scm_current_error_port ());
+	  scm_newline (scm_current_error_port ());
+	}
+      msg = strdup (msg);
+      iw = malloc (sizeof (struct issued_warning));
+      if (msg == NULL || iw == NULL)
+	return;
+      iw->message = msg;
+      iw->prev = issued_warnings;
+      issued_warnings = iw;
+    }
+}
+
+void
+scm_c_issue_deprecation_warning_fmt (const char *msg, ...)
+{
+  va_list ap;
+  char buf[512];
+
+  va_start (ap, msg);
+  vsnprintf (buf, 511, msg, ap);
+  buf[511] = '\0';
+  scm_c_issue_deprecation_warning (buf);
 }
 
 SCM_DEFINE(scm_issue_deprecation_warning,
@@ -74,26 +108,27 @@ SCM_DEFINE(scm_issue_deprecation_warning,
 	   (SCM msgs),
 	   "Output @var{msgs} to @code{(current-error-port)} when this "
 	   "is the first call to @code{issue-deprecation-warning} with "
-	   "this specific @var{msg}.  Do nothing otherwise. "
+	   "this specific @var{msgs}.  Do nothing otherwise. "
 	   "The argument @var{msgs} should be a list of strings; "
 	   "they are printed in turn, each one followed by a newline.")
 #define FUNC_NAME s_scm_issue_deprecation_warning
 {
-  if (SCM_BOOLP (issued_msgs))
-    issued_msgs = SCM_BOOL_T;
+  if (mode != detailed)
+    mode = summary_print;
   else
     {
-      SCM handle = scm_hash_create_handle_x (issued_msgs, msgs, SCM_BOOL_F);
-      if (SCM_CDR (handle) == SCM_BOOL_F)
+      SCM nl = scm_str2string ("\n");
+      SCM msgs_nl = SCM_EOL;
+      while (SCM_CONSP (msgs))
 	{
-	  while (SCM_CONSP (msgs))
-	    {
-	      scm_display (SCM_CAR (msgs), scm_current_error_port ());
-	      scm_newline (scm_current_error_port ());
-	      msgs = SCM_CDR (msgs);
-	    }
-	  SCM_SETCDR (handle, SCM_BOOL_T);
+	  if (msgs_nl != SCM_EOL)
+	    msgs_nl = scm_cons (nl, msgs_nl);
+	  msgs_nl = scm_cons (SCM_CAR (msgs), msgs_nl);
+	  msgs = SCM_CDR (msgs);
 	}
+      msgs_nl = scm_string_append (scm_reverse_x (msgs_nl, SCM_EOL));
+      scm_c_issue_deprecation_warning (SCM_STRING_CHARS (msgs_nl));
+      scm_remember_upto_here_1 (msgs_nl);
     }
   return SCM_UNSPECIFIED;
 }
@@ -102,7 +137,7 @@ SCM_DEFINE(scm_issue_deprecation_warning,
 static void
 print_deprecation_summary (void)
 {
-  if (issued_msgs == SCM_BOOL_T)
+  if (mode == summary_print)
     {
       fputs ("\n"
 	     "Some deprecated features have been used.  Set the environment\n"
@@ -136,12 +171,12 @@ scm_init_deprecation ()
   if (level == NULL)
     level = SCM_WARN_DEPRECATED_DEFAULT;
   if (!strcmp (level, "detailed"))
-    issued_msgs = scm_permanent_object (scm_c_make_hash_table (17));
+    mode = detailed;
   else if (!strcmp (level, "no"))
-    issued_msgs = SCM_BOOL_F;
+    mode = summary;
   else
     {
-      issued_msgs = SCM_BOOL_F;
+      mode = summary;
       atexit (print_deprecation_summary);
     }
 #endif

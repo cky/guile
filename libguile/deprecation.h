@@ -53,6 +53,7 @@
 #if (SCM_ENABLE_DEPRECATED == 1)
 
 SCM_API void scm_c_issue_deprecation_warning (const char *msg);
+SCM_API void scm_c_issue_deprecation_warning_fmt (const char *msg, ...);
 SCM_API SCM scm_issue_deprecation_warning (SCM msgs);
 
 #endif
