@@ -71,6 +71,7 @@ SCM *scm_port_class = 0;
 SCM *scm_smob_class = 0;
 
 SCM (*scm_make_extended_class) (char *type_name);
+void (*scm_make_port_classes) (int ptobnum, char *type_name);
 void (*scm_change_object_class) (SCM, SCM, SCM);
 
 /* This function is used for efficient type dispatch.  */
@@ -140,8 +141,8 @@ scm_class_of (SCM x)
 	  return scm_class_procedure_with_setter;
 
 	case scm_tc7_port:
-	  return scm_port_class[(SCM_CAR (x) | SCM_WRTNG
-				 ? (SCM_CAR (x) | SCM_RDNG
+	  return scm_port_class[(SCM_WRTNG & SCM_CAR (x)
+				 ? (SCM_RDNG & SCM_CAR (x)
 				    ? SCM_INOUT_PCLASS_INDEX | SCM_PTOBNUM (x)
 				    : SCM_OUT_PCLASS_INDEX | SCM_PTOBNUM (x))
 				 : SCM_IN_PCLASS_INDEX | SCM_PTOBNUM (x))];

@@ -200,6 +200,7 @@ extern SCM *scm_smob_class;
 
 /* Plugin Goops functions. */
 extern SCM (*scm_make_extended_class) (char *type_name);
+extern void (*scm_make_port_classes) (int ptobnum, char *type_name);
 extern void (*scm_change_object_class) (SCM, SCM, SCM);
 extern void (*scm_memoize_method) (SCM x, SCM args);
 
