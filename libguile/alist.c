@@ -147,14 +147,17 @@ SCM_DEFINE (scm_assq, "assq", 2, 0, 0,
 	    "return the entire alist entry found (i.e. both the key and the value).")
 #define FUNC_NAME s_scm_assq
 {
-  for (; SCM_CONSP (alist); alist = SCM_CDR (alist)) 
+  SCM ls = alist;
+  for (; SCM_CONSP (ls); ls = SCM_CDR (ls)) 
     {
-      SCM tmp = SCM_CAR (alist);
-      SCM_VALIDATE_CONS (SCM_ARG2, alist);
+      SCM tmp = SCM_CAR (ls);
+      SCM_ASSERT_TYPE (SCM_CONSP (tmp), alist, SCM_ARG2, FUNC_NAME,
+		       "association list");
       if (SCM_EQ_P (SCM_CAR (tmp), key))
 	return tmp;
     }
-  SCM_VALIDATE_NULL (2, alist);
+  SCM_ASSERT_TYPE (SCM_NULLP (ls), alist, SCM_ARG2, FUNC_NAME,
+		   "association list");
   return SCM_BOOL_F;
 }
 #undef FUNC_NAME
@@ -165,14 +168,17 @@ SCM_DEFINE (scm_assv, "assv", 2, 0, 0,
 	    "Behaves like @code{assq} but uses @code{eqv?} for key comparison.")
 #define FUNC_NAME s_scm_assv
 {
-  for(; SCM_CONSP (alist); alist = SCM_CDR (alist)) 
+  SCM ls = alist;
+  for(; SCM_CONSP (ls); ls = SCM_CDR (ls)) 
     {
-      SCM tmp = SCM_CAR (alist);
-      SCM_VALIDATE_CONS (SCM_ARG2, alist);
+      SCM tmp = SCM_CAR (ls);
+      SCM_ASSERT_TYPE (SCM_CONSP (tmp), alist, SCM_ARG2, FUNC_NAME,
+		       "association list");
       if (SCM_NFALSEP (scm_eqv_p (SCM_CAR (tmp), key)))
 	return tmp;
     }
-  SCM_VALIDATE_NULL (2, alist);
+  SCM_ASSERT_TYPE (SCM_NULLP (ls), alist, SCM_ARG2, FUNC_NAME,
+		   "association list");
   return SCM_BOOL_F;
 }
 #undef FUNC_NAME
@@ -183,14 +189,17 @@ SCM_DEFINE (scm_assoc, "assoc", 2, 0, 0,
 	    "Behaves like @code{assq} but uses @code{equal?} for key comparison.")
 #define FUNC_NAME s_scm_assoc
 {
-  for(; SCM_CONSP (alist); alist = SCM_CDR (alist)) 
+  SCM ls = alist;
+  for(; SCM_CONSP (ls); ls = SCM_CDR (ls)) 
     {
-      SCM tmp = SCM_CAR (alist);
-      SCM_VALIDATE_CONS (SCM_ARG2, alist);
+      SCM tmp = SCM_CAR (ls);
+      SCM_ASSERT_TYPE (SCM_CONSP (tmp), alist, SCM_ARG2, FUNC_NAME,
+		       "association list");
       if (SCM_NFALSEP (scm_equal_p (SCM_CAR (tmp), key)))
 	return tmp;
     }
-  SCM_VALIDATE_NULL (2, alist);
+  SCM_ASSERT_TYPE (SCM_NULLP (ls), alist, SCM_ARG2, FUNC_NAME,
+		   "association list");
   return SCM_BOOL_F;
 }
 #undef FUNC_NAME
