@@ -421,21 +421,48 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
     handle_sharp:
       switch (c)
 	{
+	  /* Vector, arrays, both uniform and not are handled by this
+	     one function.  It also disambiguates between '#f' and
+	     '#f32' and '#f64'.
+	  */
+	case '0': case '1': case '2': case '3': case '4':
+	case '5': case '6': case '7': case '8': case '9':
+	case 'u': case 's': case 'f':
+	case '@':
 	case '(':
-	  p = scm_i_lreadparen (tok_buf, port, s_vector, copy, ')');
-	  return scm_is_null (p) ? scm_nullvect : scm_vector (p);
+#if SCM_ENABLE_DEPRECATED
+	  /* See below for 'i' and 'e'. */
+	case 'a':
+	case 'c':
+	case 'y':
+	case 'h':
+	case 'l':
+#endif
+	  return scm_i_read_array (port, c);
 
 	case 't':
 	case 'T':
 	  return SCM_BOOL_T;
 
-	case 'f':
-	  /* #f32(...), #f64(...), or just #f.
-	   */
-	  return scm_i_read_homogenous_vector (port, 'f');
 	case 'F':
+	  /* See above for lower case 'f'. */
 	  return SCM_BOOL_F;
 
+
+	case 'i':
+	case 'e':
+#if SCM_ENABLE_DEPRECATED
+	  {
+	    /* When next char is '(', it really is an old-style
+	       uniform array. */
+	    int next_c = scm_getc (port);
+	    if (next_c != EOF)
+	      scm_ungetc (next_c, port);
+	    if (next_c == '(')
+	      return scm_i_read_array (port, c);
+	    /* Fall through. */
+	  }
+#endif  
 	case 'b':
 	case 'B':
 	case 'o':
@@ -444,23 +471,11 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
 	case 'D':
 	case 'x':
 	case 'X':
-	case 'i':
 	case 'I':
-	case 'e':
 	case 'E':
 	  scm_ungetc (c, port);
 	  c = '#';
 	  goto num;
-
-	case 's':
-	  /* #s8(...), #s16(...), #s32(...) or #s64(...)
-	   */
-	  return scm_i_read_homogenous_vector (port, 's');
-	  
-	case 'u':
-	  /* #u8(...), #u16(...), #u32(...) or #u64(...)
-	   */
-	  return scm_i_read_homogenous_vector (port, 'u');
 
 	case '!':
 	  /* should never happen, #!...!# block comments are skipped
