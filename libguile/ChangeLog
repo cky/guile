@@ -5,7 +5,7 @@ Sat Mar  8 00:27:05 1997  Gary Houston  <ghouston@actrix.gen.nz>
 	called once.)
 	(scm_read_hash_extend): don't call scm_permanent_object.
 	(ideas from Mikael): if chr is already in the list, replace its
-	procedure instead of appending it again.  If chr is #f, remove
+	procedure instead of appending it again.  If proc is #f, remove
 	it from the list.
 	(scm_get_hash_procedure): take CDR of scm_read_hash_procedures.
 
