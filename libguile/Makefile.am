@@ -85,8 +85,6 @@ libguile_la_DEPENDENCIES = @LIBLOBJS@
 libguile_la_LIBADD = @LIBLOBJS@ $(LIBLTDL)
 libguile_la_LDFLAGS = -version-info 8:0 -export-dynamic
 
-include_HEADERS = libguile.h
-
 # These are headers visible as <guile/mumble.h> 
 pkginclude_HEADERS = gh.h
 
