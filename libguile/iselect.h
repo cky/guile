@@ -3,7 +3,7 @@
 #ifndef ISELECTH
 #define ISELECTH
 
-/*	Copyright (C) 1997, 1998 Free Software Foundation, Inc.
+/*	Copyright (C) 1997, 1998, 2000 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -84,20 +84,19 @@
 
 #endif /* no FD_SET */
 
-#ifdef GUILE_ISELECT
-
-extern int scm_I_am_dead;
-
 extern int scm_internal_select (int fds,
 				SELECT_TYPE *rfds,
 				SELECT_TYPE *wfds,
 				SELECT_TYPE *efds,
 				struct timeval *timeout);
+
+#ifdef GUILE_ISELECT
+
+extern int scm_I_am_dead;
+
 extern void scm_error_revive_threads (void);
 extern void scm_init_iselect (void);
 
-#else /* GUILE_ISELECT */
-#define scm_internal_select select
 #endif /* GUILE_ISELECT */
 
 #endif
