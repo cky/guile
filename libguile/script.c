@@ -46,6 +46,7 @@
 #include "_scm.h"
 #include "gh.h"
 #include "load.h"
+#include "version.h"
 
 #include "script.h"
 
@@ -570,7 +571,7 @@ scm_compile_shell_switches (int argc, char **argv)
 		  "certain other uses are permitted as well.  For details, see the file\n"
 		  "`COPYING', which is included in the Guile distribution.\n"
 		  "There is no warranty, to the extent permitted by law.\n",
-		  GUILE_VERSION);
+		  SCM_CHARS (scm_version ()));
 	  exit (0);
 	}
 

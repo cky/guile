@@ -130,12 +130,6 @@
    aclocal.m4.  */
 #undef LIBC_H_WITH_UNISTD_H
 
-/* Define these to indicate the current version of Guile.  These
-   values are supposed to be supplied by the configuration system.  */
-#undef GUILE_MAJOR_VERSION
-#undef GUILE_MINOR_VERSION
-#undef GUILE_VERSION
-
 /* Define this to include various undocumented functions used to debug
    the Guile library itself.  */
 #undef GUILE_DEBUG

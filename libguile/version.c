@@ -41,6 +41,7 @@
 
 
 #include "_scm.h"
+#include "versiondat.h"
 
 #include "version.h"
 
@@ -73,6 +74,16 @@ SCM
 scm_version ()
 {
   return scm_makfrom0str (GUILE_VERSION);
+}
+
+/* Return a Scheme string containing Guile's configuration stamp.  */
+
+SCM_PROC(s_libguile_config_stamp, "libguile-config-stamp", 0, 0, 0, scm_libguile_config_stamp);
+
+SCM
+scm_libguile_config_stamp ()
+{
+  return scm_makfrom0str (GUILE_STAMP);
 }
 
 
