@@ -1,5 +1,25 @@
 2002-04-20  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* scheme-debug.texi (Debugging): Rename chapter `Debugging
+	Infrastructure' and reorganize its contents.
+	
+	* scheme-debug.texi (Debugging), scheme-control.texi (Handling
+	Errors): Move display-error to error-focussed section.
+
+	* scheme-debug.texi (Debugging), debugging.texi (Backtrace): Move
+	backtrace to user-level debugging chapter.
+	
+	* scheme-debug.texi (Debugging), scheme-procedures.texi (Procedure
+	Properties): Move procedure-name, procedure-source and
+	procedure-environment to procedures chapter.
+
+	* scheme-debug.texi (Debugging), scheme-memory.texi (Memory
+	Blocks): Move malloc-stats to memory management chapter.
+
+	* scheme-procedures.texi (Syntax Rules): Remove mention of
+	use-modules for loading syncase; only use-syntax really works.
+	Thanks to Panagiotis Vossos for spotting this.
+
 	* program.texi (Scheme vs C): New node, with existing material
 	taken from chapter intro.
 	(Programming Overview): New intro para to introduce example of

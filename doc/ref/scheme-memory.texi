@@ -26,6 +26,7 @@ Return an association list of statistics about Guile's current
 use of storage.
 @end deffn
 
+
 @node Memory Blocks
 @section Memory Blocks
 
@@ -80,7 +81,6 @@ When not enough memory is available, signal an error.  This function
 runs the GC to free up some memory when it deems it appropriate.
 @end deftypefn
 
-
 @deftypefn {C Function} void scm_gc_register_collectable_memory (void *@var{mem}, size_t @var{size}, const char *@var{what})
 Informs the GC that the memory at @var{mem} of size @var{size} can
 potentially be freed during a GC.  That is, announce that @var{mem} is
@@ -108,7 +108,6 @@ this, the GC might have a wrong impression of what is going on and run
 much less efficiently than it could.
 @end deftypefn
 
-
 @deftypefn {C Function} void *scm_gc_malloc (size_t @var{size}, const char *@var{what})
 @deftypefnx {C Function} void *scm_gc_realloc (void *@var{mem}, size_t @var{old_size}, size_t @var{new_size}, const char *@var{what});
 Like @code{scm_malloc} or @code{scm_realloc}, but also call
@@ -127,8 +126,16 @@ frees us from tracking this value in the GC itself, which will keep
 the memory management overhead very low.
 @end deftypefn
 
+@deffn {Scheme Procedure} malloc-stats
+Return an alist ((@var{what} . @var{n}) ...) describing number
+of malloced objects.
+@var{what} is the second argument to @code{scm_gc_malloc},
+@var{n} is the number of objects of that type currently
+allocated.
+@end deffn
 
-@subsection Upgrading from scm_must_malloc et al
+
+@subsection Upgrading from scm_must_malloc et al.
 
 Version 1.6 of Guile and earlier did not have the functions from the
 previous section.  In their place, it had the functions
@@ -183,6 +190,7 @@ The important thing is to always pair @code{scm_malloc} with
 
 The same reasoning applies to @code{scm_must_realloc} and
 @code{scm_realloc} versus @code{scm_gc_realloc}.
+
 
 @node Weak References
 @section Weak References

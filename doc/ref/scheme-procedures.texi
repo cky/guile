@@ -368,6 +368,21 @@ Procedure properties are general properties to be attached to
 procedures.  These can be the name of a procedure or other relevant
 information, such as debug hints.
 
+@deffn {Scheme Procedure} procedure-name proc
+@deffnx {C Function} scm_procedure_name (proc)
+Return the name of the procedure @var{proc}
+@end deffn
+
+@deffn {Scheme Procedure} procedure-source proc
+@deffnx {C Function} scm_procedure_source (proc)
+Return the source of the procedure @var{proc}.
+@end deffn
+
+@deffn {Scheme Procedure} procedure-environment proc
+@deffnx {C Function} scm_procedure_environment (proc)
+Return the environment of the procedure @var{proc}.
+@end deffn
+
 @deffn {Scheme Procedure} procedure-properties proc
 @deffnx {C Function} scm_procedure_properties (proc)
 Return @var{obj}'s property list.
@@ -627,11 +642,10 @@ example of the previous section looks like this:
 
 In Guile, the @code{syntax-rules} system is provided by the @code{(ice-9
 syncase)} module.  To make these facilities available in your code,
-include the expression @code{(use-modules (ice-9 syncase))} or
-@code{(use-syntax (ice-9 syncase))} (@pxref{Using Guile Modules})
-before the first usage of @code{define-syntax} etc.  If you are writing
-a Scheme module, you can alternatively use one of the keywords
-@code{#:use-module} and @code{#:use-syntax} in your @code{define-module}
+include the expression @code{(use-syntax (ice-9 syncase))} (@pxref{Using
+Guile Modules}) before the first usage of @code{define-syntax} etc.  If
+you are writing a Scheme module, you can alternatively include the form
+@code{#:use-syntax (ice-9 syncase)} in your @code{define-module}
 declaration (@pxref{Creating Guile Modules}).
 
 @menu

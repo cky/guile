@@ -109,6 +109,12 @@ iteration.  Using @code{trace} here helps us see why this is so.
 @node Backtrace
 @section Backtrace
 
+@deffn {Scheme Procedure} backtrace
+@deffnx {C Function} scm_backtrace ()
+Display a backtrace of the stack saved by the last error
+to the current output port.
+@end deffn
+
 
 @node Stacks and Frames
 @section Stacks and Frames
