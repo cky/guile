@@ -99,6 +99,7 @@
 #include "libguile/scmsigs.h"
 #include "libguile/sequences.h"
 #include "libguile/simpos.h"
+#include "libguile/snarf.h"
 #include "libguile/socket.h"
 #include "libguile/srcprop.h"
 #include "libguile/stackchk.h"

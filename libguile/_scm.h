@@ -69,6 +69,7 @@
 #include "../threads/threads.h"	/* Some thread packages does switching
 				   at async ticks. */
 #endif
+#include "snarf.h"		/* Everyone snarfs. */
 
 /* On VMS, GNU C's errno.h contains a special hack to get link attributes
  * for errno correct for linking to the C RTL.
@@ -111,44 +112,6 @@
 #endif /* def __TURBOC__ */
 
 
-
-#ifndef SCM_MAGIC_SNARFER
-#define SCM_PROC(RANAME, STR, REQ, OPT, VAR, CFN)  \
-	static char RANAME[]=STR
-#define SCM_PROC1(RANAME, STR, TYPE, CFN)  \
-	static char RANAME[]=STR
-#else
-#define SCM_PROC(RANAME, STR, REQ, OPT, VAR, CFN)  \
-%%%	scm_make_gsubr (RANAME, REQ, OPT, VAR, CFN)
-#define SCM_PROC1(RANAME, STR, TYPE, CFN)  \
-%%%	scm_make_subr(RANAME, TYPE, CFN)
-#endif
-
-#ifndef SCM_MAGIC_SNARFER
-#define SCM_SYMBOL(c_name, scheme_name) \
-	static SCM c_name = SCM_BOOL_F
-#else
-#define SCM_SYMBOL(C_NAME, SCHEME_NAME) \
-%%%	C_NAME = scm_permanent_object (SCM_CAR (scm_intern0 (SCHEME_NAME)))
-#endif
-
-
-#ifndef SCM_MAGIC_SNARFER
-#define SCM_GLOBAL(c_name, scheme_name) \
-	static SCM c_name = SCM_BOOL_F
-#else
-#define SCM_GLOBAL(C_NAME, SCHEME_NAME) \
-%%%	C_NAME = scm_permanent_object (scm_intern0 (SCHEME_NAME)); SCM_SETCDR (C_NAME, SCM_BOOL_F)
-#endif
-
-
-#ifndef SCM_MAGIC_SNARFER
-#define SCM_CONST_LONG(C_NAME, SCHEME_NAME,VALUE) \
-	static SCM C_NAME = SCM_BOOL_F
-#else
-#define SCM_CONST_LONG(C_NAME, SCHEME_NAME,VALUE) \
-%%%	C_NAME = scm_permanent_object (scm_intern0 (SCHEME_NAME)); SCM_SETCDR (C_NAME, scm_long2num (VALUE))
-#endif
 
 #define min(A,B) ((A) <= (B) ? (A) : (B))
 #define max(A,B) ((A) >= (B) ? (A) : (B))
