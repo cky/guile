@@ -1,3 +1,8 @@
+1998-04-10  Mikael Djurfeldt  <mdj@kenneth>
+
+	* script.c (scm_compile_shell_switches): Use "guile" as default
+	zero arg if argc is NULL.
+
 1998-04-02  Mikael Djurfeldt  <mdj@nada.kth.se>
 
 	* script.c (scm_compile_shell_switches): Allow NULL argv if argc
