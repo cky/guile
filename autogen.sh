@@ -47,11 +47,14 @@ $mscripts/render-bugs > BUGS
 rm -rf libltdl
 libtoolize --force --copy --automake --ltdl
 
+# Fix older versions of libtool.
 # Make sure we use a ./configure.in compatible autoconf in ./libltdl/
-mv libltdl/configure.in libltdl/configure.tmp
-echo 'AC_PREREQ(2.50)' > libltdl/configure.in
-cat libltdl/configure.tmp >> libltdl/configure.in
-rm libltdl/configure.tmp
+if [ -f libltdl/configure.in ]; then
+	mv libltdl/configure.in libltdl/configure.tmp
+	echo 'AC_PREREQ(2.50)' > libltdl/configure.in
+	cat libltdl/configure.tmp >> libltdl/configure.in
+	rm libltdl/configure.tmp
+fi
 ######################################################################
 
 autoheader
