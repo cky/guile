@@ -109,7 +109,9 @@ char *scm_isymnames[] =
   "#@0-cond",
   "#@0-ify",
   "#@1-ify",
-  "#@bind"
+  "#@bind",
+  
+  "#@delay"
 };
 
 scm_option scm_print_opts[] = {
