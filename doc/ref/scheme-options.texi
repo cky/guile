@@ -397,10 +397,38 @@ concatenated with each @var{extension}.
 @end deffn
 
 @defvar %load-path
-Return the list of directories which should be searched for Scheme
+List of directories which should be searched for Scheme
 modules and libraries.
 @end defvar
 
+@defvar %guile-build-info
+Alist of information collected during the building of a particular
+@code{guile} program.  Entries can be grouped into one of several
+categories: directories, env vars, and versioning info.
+
+Briefly, here are the keys in @code{%guile-build-info}, by group:
+@itemize @bullet
+@item directories
+srcdir, top_srcdir, prefix, exec_prefix, bindir, sbindir, libexecdir,
+datadir, sysconfdir, sharedstatedir, localstatedir, libdir, infodir,
+mandir, includedir, pkgdatadir, pkglibdir, pkgincludedir
+@item env vars
+LIBS
+@item versioning info
+guileversion, libguileinterface, buildstamp
+@end itemize
+
+Values are all strings.  The value for @code{LIBS} is typically found also as
+a part of "guile-config link" output.  The value for @code{guileversion} has
+form X.Y.Z, and should be the same as returned by @code{version}.  The value
+for @code{libguileinterface} is libtool compatible and has form
+CURRENT:REVISION:AGE.  The value for @code{buildstamp} is the output of the
+date(1) command.
+
+In the source, @code{%guile-build-info} is initialized from
+libguile/libpath.h, which is completely generated, so deleting this file
+before a build guarantees up-to-date values for that build.
+@end defvar
 
 @c Local Variables:
 @c TeX-master: "guile.texi"
