@@ -406,7 +406,7 @@ example,
     (set! foo (delete-duplicates ...)))
 @end example
 
-When a module is autoloaded, all it's bindings become available.
+When a module is autoloaded, all its bindings become available.
 @var{symbol-list} is just those that will first trigger the load.
 
 An autoload is a good way to put off loading a big module until it's
