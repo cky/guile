@@ -3199,7 +3199,7 @@ else
 #include </usr/include/unistd.h>
 EOF
 if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
-  egrep "void[ ][ ]*usleep" >/dev/null 2>&1; then
+  egrep "void[ 	]+usleep" >/dev/null 2>&1; then
   rm -rf conftest*
   guile_cv_func_usleep_return_type=void
 else
