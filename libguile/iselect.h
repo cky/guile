@@ -3,7 +3,7 @@
 #ifndef SCM_ISELECT_H
 #define SCM_ISELECT_H
 
-/* Copyright (C) 1997,1998,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1997,1998,2000,2001, 2002 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -95,14 +95,15 @@ SCM_API int scm_internal_select (int fds,
 				 SELECT_TYPE *efds,
 				 struct timeval *timeout);
 
-#ifdef GUILE_ISELECT
+#ifdef USE_COOP_THREADS
 
 SCM_API int scm_I_am_dead;
 
 SCM_API void scm_error_revive_threads (void);
-SCM_API void scm_init_iselect (void);
 
-#endif /* GUILE_ISELECT */
+#endif /* USE_COOP_THREADS */
+
+SCM_API void scm_init_iselect (void);
 
 #endif  /* SCM_ISELECT_H */
 

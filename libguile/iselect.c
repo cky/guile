@@ -1,4 +1,4 @@
-/*	Copyright (C) 1997, 1998, 2000, 2001 Free Software Foundation, Inc.
+/*	Copyright (C) 1997, 1998, 2000, 2001, 2002 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -53,7 +53,7 @@
 
 #include "libguile/iselect.h"
 
-#ifdef GUILE_ISELECT
+#ifdef USE_COOP_THREADS
 
 #include "libguile/coop-threads.h"
 
@@ -623,8 +623,6 @@ scm_init_iselect ()
 #include "libguile/iselect.x"
 }
 
-#endif /* GUILE_ISELECT */
-
 int
 scm_internal_select (int nfds,
 		     SELECT_TYPE *readfds,
@@ -632,11 +630,6 @@ scm_internal_select (int nfds,
 		     SELECT_TYPE *exceptfds,
 		     struct timeval *timeout)
 {
-#ifndef GUILE_ISELECT
-  int res = select (nfds, readfds, writefds, exceptfds, timeout);
-  SCM_ASYNC_TICK;
-  return res;
-#else /* GUILE_ISELECT */
   struct timeval now;
   coop_t *t, *curr = coop_global_curr;
 
@@ -691,8 +684,31 @@ scm_internal_select (int nfds,
   SCM_ALLOW_INTS;
   SCM_ASYNC_TICK;
   return coop_global_curr->retval;
-#endif /* GUILE_ISELECT */
 }
+
+#else
+#ifdef USE_NULL_THREADS
+
+int
+scm_internal_select (int nfds,
+		     SELECT_TYPE *readfds,
+		     SELECT_TYPE *writefds,
+		     SELECT_TYPE *exceptfds,
+		     struct timeval *timeout)
+{
+  int res = select (nfds, readfds, writefds, exceptfds, timeout);
+  SCM_ASYNC_TICK;
+  return res;
+}
+
+void
+scm_init_iselect ()
+{
+#include "libguile/iselect.x"
+}
+
+#endif /* USE_NULL_THREADS */
+#endif /* !USE_COOP_THREADS */
 
 /*
   Local Variables:
