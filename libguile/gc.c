@@ -1128,55 +1128,61 @@ gc_mark_nimp:
 	break;
       SCM_SETGCMARK (ptr);
       {
-	SCM vcell;
-	vcell = (SCM) SCM_STRUCT_VTABLE_DATA (ptr);
-	switch (SCM_UNPACK (SCM_CDR (vcell)))
+	/* Dirk:FIXME:: The following code is super ugly:  ptr may be a struct
+	 * or a gloc.  If it is a gloc, the cell word #0 of ptr is a pointer
+	 * to a heap cell.  If it is a struct, the cell word #0 of ptr is a
+	 * pointer to a struct vtable data region. The fact that these are
+	 * accessed in the same way restricts the possibilites to change the
+	 * data layout of structs or heap cells. 
+	 */
+	scm_bits_t word0 = SCM_CELL_WORD_0 (ptr) - scm_tc3_cons_gloc;
+	scm_bits_t * vtable_data = (scm_bits_t *) word0; /* access as struct */
+	switch (vtable_data [scm_vtable_index_vcell])
 	  {
 	  default:
-	    scm_gc_mark (vcell);
-	    ptr = SCM_GCCDR (ptr);
-	    goto gc_mark_loop;
+	    {
+	      /* ptr is a gloc */
+	      SCM gloc_car = SCM_PACK (word0);
+	      scm_gc_mark (gloc_car);
+	      ptr = SCM_GCCDR (ptr);
+	      goto gc_mark_loop;
+	    }
 	  case 1:		/* ! */
 	  case 0:		/* ! */
 	    {
-	      SCM layout;
-	      SCM * vtable_data;
-	      int len;
-	      char * fields_desc;
-	      register SCM * mem;
-	      register int x;
-
-	      vtable_data = (SCM *) vcell;
-	      layout = vtable_data[scm_vtable_index_layout];
-	      len = SCM_LENGTH (layout);
-	      fields_desc = SCM_CHARS (layout);
+	      /* ptr is a struct */
+	      SCM layout = SCM_PACK (vtable_data [scm_vtable_index_layout]);
+	      int len = SCM_LENGTH (layout);
+	      char * fields_desc = SCM_CHARS (layout);
 	      /* We're using SCM_GCCDR here like STRUCT_DATA, except
                  that it removes the mark */
-	      mem = (SCM *) SCM_GCCDR (ptr);
+	      scm_bits_t * struct_data = (scm_bits_t *) SCM_UNPACK (SCM_GCCDR (ptr));
 
-	      if (SCM_UNPACK (vtable_data[scm_struct_i_flags]) & SCM_STRUCTF_ENTITY)
+	      if (vtable_data[scm_struct_i_flags] & SCM_STRUCTF_ENTITY)
 		{
-		  scm_gc_mark (mem[scm_struct_i_procedure]);
-		  scm_gc_mark (mem[scm_struct_i_setter]);
+		  scm_gc_mark (SCM_PACK (struct_data[scm_struct_i_procedure]));
+		  scm_gc_mark (SCM_PACK (struct_data[scm_struct_i_setter]));
 		}
 	      if (len)
 		{
-		  for (x = 0; x < len - 2; x += 2, ++mem)
+		  int x;
+
+		  for (x = 0; x < len - 2; x += 2, ++struct_data)
 		    if (fields_desc[x] == 'p')
-		      scm_gc_mark (*mem);
+		      scm_gc_mark (SCM_PACK (*struct_data));
 		  if (fields_desc[x] == 'p')
 		    {
 		      if (SCM_LAYOUT_TAILP (fields_desc[x + 1]))
-			for (x = (long int) *mem; x; --x)
-			  scm_gc_mark (*++mem);
+			for (x = *struct_data; x; --x)
+			  scm_gc_mark (SCM_PACK (*++struct_data));
 		      else
-			scm_gc_mark (*mem);
+			scm_gc_mark (SCM_PACK (*struct_data));
 		    }
 		}
-	      if (!SCM_CDR (vcell))
+	      if (vtable_data [scm_vtable_index_vcell] == 0)
 		{
-		  SCM_SETGCMARK (vcell);
-		  ptr = vtable_data[scm_vtable_index_vtable];
+		  vtable_data [scm_vtable_index_vcell] = 1;
+		  ptr = SCM_PACK (vtable_data [scm_vtable_index_vtable]);
 		  goto gc_mark_loop;
 		}
 	    }
@@ -1637,24 +1643,28 @@ scm_gc_sweep ()
 	  switch SCM_TYP7 (scmptr)
 	    {
 	    case scm_tcs_cons_gloc:
-	      if (SCM_GCMARKP (scmptr))
-		{
-		  if (SCM_CELL_WORD_1 ((SCM) SCM_STRUCT_VTABLE_DATA (scmptr))
-		      == 1)
-		    SCM_SET_CELL_WORD_1 ((SCM) SCM_STRUCT_VTABLE_DATA (scmptr),
-					 0);
-		  goto cmrkcontinue;
-		}
 	      {
-		SCM vcell;
-		vcell = (SCM) SCM_STRUCT_VTABLE_DATA (scmptr);
-
-		if ((SCM_CELL_WORD_1 (vcell) == 0)
-		    || (SCM_CELL_WORD_1 (vcell) == 1))
+		/* Dirk:FIXME:: Again, super ugly code:  scmptr may be a
+		 * struct or a gloc.  See the corresponding comment in
+		 * scm_gc_mark.
+		 */
+		scm_bits_t word0 = SCM_CELL_WORD_0 (scmptr) - scm_tc3_cons_gloc;
+		scm_bits_t * vtable_data = (scm_bits_t *) word0; /* access as struct */
+		if (SCM_GCMARKP (scmptr))
 		  {
-		    scm_struct_free_t free
-		      = (scm_struct_free_t) ((SCM*) vcell)[scm_struct_i_free];
-		    m += free ((SCM *) vcell, (SCM *) SCM_GCCDR (scmptr));
+		    if (vtable_data [scm_vtable_index_vcell] == 1)
+		      vtable_data [scm_vtable_index_vcell] = 0;
+		    goto cmrkcontinue;
+		  }
+		else 
+		  {
+		    if (vtable_data [scm_vtable_index_vcell] == 0
+			|| vtable_data [scm_vtable_index_vcell] == 1)
+		      {
+			scm_struct_free_t free
+			  = (scm_struct_free_t) vtable_data[scm_struct_i_free];
+			m += free (vtable_data, (scm_bits_t *) SCM_UNPACK (SCM_GCCDR (scmptr)));
+		      }
 		  }
 	      }
 	      break;
@@ -1813,7 +1823,7 @@ scm_gc_sweep ()
 		    k = SCM_SMOBNUM (scmptr);
 		    if (!(k < scm_numsmob))
 		      goto sweeperr;
-		    m += (scm_smobs[k].free) ((SCM) scmptr);
+		    m += (scm_smobs[k].free) (scmptr);
 		    break;
 		  }
 		}
@@ -2401,7 +2411,6 @@ alloc_some_heap (scm_freelist_t *freelist)
 }
 
 
-
 SCM_DEFINE (scm_unhash_name, "unhash-name", 1, 0, 0,
             (SCM name),
 	    "")
@@ -2420,16 +2429,19 @@ SCM_DEFINE (scm_unhash_name, "unhash-name", 1, 0, 0,
       pbound = (SCM_CELLPTR)scm_heap_table[x].bounds[1];
       while (p < pbound)
 	{
-	  SCM incar;
-	  incar = p->car;
-	  if (1 == (7 & (int)incar))
+	  SCM cell = PTR2SCM (p);
+	  if (SCM_TYP3 (cell) == scm_tc3_cons_gloc)
 	    {
-	      --incar;
-	      if (   ((name == SCM_BOOL_T) || (SCM_CAR (incar) == name))
-		  && (SCM_CDR (incar) != 0)
-		  && (SCM_UNPACK (SCM_CDR (incar)) != 1))
+	      /* Dirk:FIXME:: Again, super ugly code:  cell may be a gloc or a
+	       * struct cell.  See the corresponding comment in scm_gc_mark.
+	       */
+	      scm_bits_t word0 = SCM_CELL_WORD_0 (cell) - scm_tc3_cons_gloc;
+	      SCM gloc_car = SCM_PACK (word0); /* access as gloc */
+	      SCM vcell = SCM_CELL_OBJECT_1 (gloc_car);
+	      if ((SCM_TRUE_P (name) || SCM_EQ_P (SCM_CAR (gloc_car), name))
+		  && (SCM_UNPACK (vcell) != 0) && (SCM_UNPACK (vcell) != 1))
 		{
-		  p->car = name;
+		  SCM_SET_CELL_OBJECT_0 (cell, name);
 		}
 	    }
 	  ++p;
@@ -2517,7 +2529,7 @@ scm_unprotect_object (SCM obj)
   SCM *tail_ptr = &scm_protects;
 
   while (SCM_CONSP (*tail_ptr))
-    if (SCM_CAR (*tail_ptr) == obj)
+    if (SCM_EQ_P (SCM_CAR (*tail_ptr), obj))
       {
 	*tail_ptr = SCM_CDR (*tail_ptr);
 	break;

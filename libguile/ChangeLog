@@ -1,5 +1,20 @@
 2000-04-17  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* struct.c (scm_alloc_struct, scm_struct_free_0,
+	scm_struct_free_light, scm_struct_free_standard,
+	scm_struct_free_entity, scm_make_struct, scm_make_vtable_vtable),
+	struct.h (scm_struct_free_t, scm_alloc_struct, scm_struct_free_0,
+	scm_struct_free_light, scm_struct_free_standard,
+	scm_struct_free_entity):  Struct data regions (and thus also
+	vtable data regions) are now C arrays of scm_bits_t elements.
+
+	* gc.c (scm_gc_mark, scm_gc_sweep, scm_unhash_name):  Made the
+	mixup of glocs and structs explicit.
+
+	* gc.c (scm_unprotect_object):  Compare SCM's with SCM_EQ_P.
+
+2000-04-17  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* eval.c (scm_unmemocar):  Use macros to test for gloc cell.
 	Minimize scope of variable 'ir'.
 
