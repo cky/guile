@@ -31,6 +31,7 @@
 #include "libguile/fports.h"
 #include "libguile/strings.h"
 #include "libguile/vectors.h"
+#include "libguile/dynwind.h"
 
 #include "libguile/validate.h"
 #include "libguile/socket.h"
@@ -782,8 +783,13 @@ scm_fill_sockaddr (int fam, SCM address, SCM *args, int which_arg,
       {
 	struct sockaddr_un *soka;
 	int addr_size;
+	char *c_address;
 
-	SCM_ASSERT (SCM_STRINGP (address), address, which_arg, proc);
+	scm_frame_begin (0);
+
+	c_address = scm_to_locale_string (address);
+	scm_frame_free (c_address);
+
 	/* the static buffer size in sockaddr_un seems to be arbitrary
 	   and not necessarily a hard limit.  e.g., the glibc manual
 	   suggests it may be possible to declare it size 0.  let's
@@ -791,15 +797,14 @@ scm_fill_sockaddr (int fam, SCM address, SCM *args, int which_arg,
 	   connect/bind etc., to fail.  sun_path is always the last
 	   member of the structure.  */
 	addr_size = sizeof (struct sockaddr_un)
-	  + max (0, SCM_STRING_LENGTH (address) + 1 - (sizeof soka->sun_path));
+	  + max (0, strlen (c_address) + 1 - (sizeof soka->sun_path));
 	soka = (struct sockaddr_un *) scm_malloc (addr_size);
-	if (!soka)
-	  scm_memory_error (proc);
 	memset (soka, 0, addr_size);  /* for sun_len: see sin_len above. */
 	soka->sun_family = AF_UNIX;
-	memcpy (soka->sun_path, SCM_STRING_CHARS (address),
-		SCM_STRING_LENGTH (address));
+	strcpy (soka->sun_path, c_address);
 	*size = SUN_LEN (soka);
+
+	scm_frame_end ();
 	return (struct sockaddr *) soka;
       }
 #endif

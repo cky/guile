@@ -27,6 +27,7 @@
 #include "libguile/strings.h"
 #include "libguile/validate.h"
 #include "libguile/gc.h"
+#include "libguile/dynwind.h"
 
 #include "libguile/fports.h"
 
@@ -289,11 +290,13 @@ SCM_DEFINE (scm_open_file, "open-file", 2, 0, 0,
   char *md;
   char *ptr;
 
-  SCM_VALIDATE_STRING (1, filename);
-  SCM_VALIDATE_STRING (2, mode);
+  scm_frame_begin (0);
 
-  file = SCM_STRING_CHARS (filename);
-  md = SCM_STRING_CHARS (mode);
+  file = scm_to_locale_string (filename);
+  scm_frame_free (file);
+
+  md = scm_to_locale_string (mode);
+  scm_frame_free (md);
 
   switch (*md)
     {
@@ -340,6 +343,9 @@ SCM_DEFINE (scm_open_file, "open-file", 2, 0, 0,
 				  scm_cons (filename, SCM_EOL)), en);
     }
   port = scm_fdes_to_port (fdes, md, filename);
+
+  scm_frame_end ();
+
   return port;
 }
 #undef FUNC_NAME
@@ -489,7 +495,7 @@ fport_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
     {
       int fdes;
       SCM name = SCM_FILENAME (exp);
-      if (SCM_STRINGP (name) || SCM_SYMBOLP (name))
+      if (scm_is_string (name) || SCM_SYMBOLP (name))
 	scm_display (name, port);
       else
 	scm_puts (SCM_PTOBNAME (SCM_PTOBNUM (exp)), port);

@@ -1480,7 +1480,7 @@ scm_m_lambda (SCM expr, SCM env SCM_UNUSED)
    * the documentation string will have to be skipped with every execution
    * of the closure.  */
   cddr_expr = SCM_CDR (cdr_expr);
-  documentation = (length >= 3 && SCM_STRINGP (SCM_CAR (cddr_expr)));
+  documentation = (length >= 3 && scm_is_string (SCM_CAR (cddr_expr)));
   body = documentation ? SCM_CDR (cddr_expr) : cddr_expr;
   new_body = m_body (SCM_IM_LAMBDA, body);
 

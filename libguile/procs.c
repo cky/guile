@@ -258,7 +258,7 @@ SCM_DEFINE (scm_procedure_documentation, "procedure-documentation", 1, 0, 0,
       if (SCM_NULLP (SCM_CDR (code)))
 	return SCM_BOOL_F;
       code = SCM_CAR (code);
-      if (SCM_STRINGP (code))
+      if (scm_is_string (code))
 	return code;
       else
 	return SCM_BOOL_F;

@@ -51,6 +51,7 @@ maybe_drag_in_eprintf ()
 #include "libguile/deprecation.h"
 #include "libguile/lang.h"
 #include "libguile/validate.h"
+#include "libguile/dynwind.h"
 
 #include "guile-ltdl.h"
 
@@ -149,9 +150,13 @@ SCM_DEFINE (scm_dynamic_link, "dynamic-link", 1, 0, 0,
 #define FUNC_NAME s_scm_dynamic_link
 {
   void *handle;
+  char *file;
 
-  SCM_VALIDATE_STRING (1, filename);
-  handle = sysdep_dynl_link (SCM_STRING_CHARS (filename), FUNC_NAME);
+  scm_frame_begin (0);
+  file = scm_to_locale_string (filename);
+  scm_frame_free (file);
+  handle = sysdep_dynl_link (file, FUNC_NAME);
+  scm_frame_end ();
   SCM_RETURN_NEWSMOB2 (scm_tc16_dynamic_obj, SCM_UNPACK (filename), handle);
 }
 #undef FUNC_NAME
@@ -216,9 +221,12 @@ SCM_DEFINE (scm_dynamic_func, "dynamic-func", 2, 0, 0,
   } else {
     char *chars;
 
-    chars = SCM_STRING_CHARS (name);
+    scm_frame_begin (0);
+    chars = scm_to_locale_string (name);
+    scm_frame_free (chars);
     func = (void (*) ()) sysdep_dynl_func (chars, DYNL_HANDLE (dobj), 
 					   FUNC_NAME);
+    scm_frame_end ();
     return scm_from_ulong ((unsigned long) func);
   }
 }
@@ -247,41 +255,18 @@ SCM_DEFINE (scm_dynamic_call, "dynamic-call", 2, 0, 0,
 {
   void (*fptr) ();
   
-  if (SCM_STRINGP (func))
+  if (scm_is_string (func))
     func = scm_dynamic_func (func, dobj);
-  fptr = (void (*) ()) SCM_NUM2ULONG (1, func);
+  fptr = (void (*) ()) scm_to_ulong (func);
   fptr ();
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
 
-/* return a newly allocated array of char pointers to each of the strings
-   in args, with a terminating NULL pointer.  */
-/* Note: a similar function is defined in posix.c, but we don't necessarily
-   want to export it.  */
-static char **allocate_string_pointers (SCM args, int *num_args_return)
+static void
+free_string_pointers (void *data)
 {
-  char **result;
-  int n_args = scm_ilength (args);
-  int i;
-
-  SCM_ASSERT (n_args >= 0, args, SCM_ARGn, "allocate_string_pointers");
-  result = (char **) scm_malloc ((n_args + 1) * sizeof (char *));
-  result[n_args] = NULL;
-  for (i = 0; i < n_args; i++)
-    {
-      SCM car = SCM_CAR (args);
-
-      if (!SCM_STRINGP (car))
-	{
-	  free (result);
-	  scm_wrong_type_arg ("allocate_string_pointers", SCM_ARGn, car);
-	}
-      result[i] = SCM_STRING_CHARS (SCM_CAR (args));
-      args = SCM_CDR (args);
-    }
-  *num_args_return = n_args;
-  return result;
+  scm_i_free_string_pointers ((char **)data);
 }
 
 SCM_DEFINE (scm_dynamic_args_call, "dynamic-args-call", 3, 0, 0, 
@@ -304,17 +289,21 @@ SCM_DEFINE (scm_dynamic_args_call, "dynamic-args-call", 3, 0, 0,
   int result, argc;
   char **argv;
 
-  if (SCM_STRINGP (func))
+  scm_frame_begin (0);
+
+  if (scm_is_string (func))
     func = scm_dynamic_func (func, dobj);
 
-  fptr = (int (*) (int, char **)) SCM_NUM2ULONG (1, func);
-  argv = allocate_string_pointers (args, &argc);
-  /* if the procedure mutates its arguments, the original strings will be
-     changed -- in Guile 1.6 and earlier, this wasn't the case since a
-     new copy of each string was allocated.  */
-  result = (*fptr) (argc, argv);
-  free (argv);
+  fptr = (int (*) (int, char **)) scm_to_ulong (func);
 
+  argv = scm_i_allocate_string_pointers (args);
+  scm_frame_unwind_handler (free_string_pointers, argv,
+			    SCM_F_WIND_EXPLICITLY);
+  for (argc = 0; argv[argc]; argc++)
+    ;
+  result = (*fptr) (argc, argv);
+
+  scm_frame_end ();
   return scm_from_int (result);
 }
 #undef FUNC_NAME

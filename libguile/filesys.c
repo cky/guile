@@ -610,18 +610,17 @@ SCM_DEFINE (scm_stat, "stat", 1, 0, 0,
       SCM_SYSCALL (rv = fstat (scm_to_int (object), &stat_temp));
 #endif
     }
-  else if (SCM_STRINGP (object))
+  else if (scm_is_string (object))
     {
+      char *file = scm_to_locale_string (object);
 #ifdef __MINGW32__
-      char *p, *file = strdup (SCM_STRING_CHARS (object));
+      char *p;
       p = file + strlen (file) - 1;
       while (p > file && (*p == '/' || *p == '\\'))
 	*p-- = '\0';
+#endif
       SCM_SYSCALL (rv = stat (file, &stat_temp));
       free (file);
-#else
-      SCM_SYSCALL (rv = stat (SCM_STRING_CHARS (object), &stat_temp));
-#endif
     }
   else
     {

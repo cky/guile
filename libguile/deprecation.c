@@ -105,6 +105,7 @@ SCM_DEFINE(scm_issue_deprecation_warning,
     {
       SCM nl = scm_str2string ("\n");
       SCM msgs_nl = SCM_EOL;
+      char *c_msgs;
       while (SCM_CONSP (msgs))
 	{
 	  if (msgs_nl != SCM_EOL)
@@ -113,8 +114,9 @@ SCM_DEFINE(scm_issue_deprecation_warning,
 	  msgs = SCM_CDR (msgs);
 	}
       msgs_nl = scm_string_append (scm_reverse_x (msgs_nl, SCM_EOL));
-      scm_c_issue_deprecation_warning (SCM_STRING_CHARS (msgs_nl));
-      scm_remember_upto_here_1 (msgs_nl);
+      c_msgs = scm_to_locale_string (msgs_nl);
+      scm_c_issue_deprecation_warning (c_msgs);
+      free (c_msgs);
     }
   return SCM_UNSPECIFIED;
 }

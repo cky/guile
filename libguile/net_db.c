@@ -35,6 +35,7 @@
 #include "libguile/feature.h"
 #include "libguile/strings.h"
 #include "libguile/vectors.h"
+#include "libguile/dynwind.h"
 
 #include "libguile/validate.h"
 #include "libguile/net_db.h"
@@ -139,6 +140,7 @@ SCM_DEFINE (scm_gethost, "gethost", 0, 1, 0,
   struct in_addr inad;
   char **argv;
   int i = 0;
+
   if (SCM_UNBNDP (host))
     {
 #ifdef HAVE_GETHOSTENT
@@ -157,15 +159,18 @@ SCM_DEFINE (scm_gethost, "gethost", 0, 1, 0,
 	  return SCM_BOOL_F;
 	}
     }
-  else if (SCM_STRINGP (host))
+  else if (scm_is_string (host))
     {
-      entry = gethostbyname (SCM_STRING_CHARS (host));
+      char *str = scm_to_locale_string (host);
+      entry = gethostbyname (str);
+      free (str);
     }
   else
     {
-      inad.s_addr = htonl (SCM_NUM2ULONG (1, host));
+      inad.s_addr = htonl (scm_to_ulong (host));
       entry = gethostbyaddr ((char *) &inad, sizeof (inad), AF_INET);
     }
+
   if (!entry)
     scm_resolv_error (FUNC_NAME, host);
   
@@ -211,8 +216,9 @@ SCM_DEFINE (scm_getnet, "getnet", 0, 1, 0,
 	    "given.")
 #define FUNC_NAME s_scm_getnet
 {
-  SCM   result = scm_c_make_vector (4, SCM_UNSPECIFIED);
+  SCM result = scm_c_make_vector (4, SCM_UNSPECIFIED);
   struct netent *entry;
+  int eno;
 
   if (SCM_UNBNDP (net))
     {
@@ -225,18 +231,23 @@ SCM_DEFINE (scm_getnet, "getnet", 0, 1, 0,
 	  return SCM_BOOL_F;
 	}
     }
-  else if (SCM_STRINGP (net))
+  else if (scm_is_string (net))
     {
-      entry = getnetbyname (SCM_STRING_CHARS (net));
+      char *str = scm_to_locale_string (net);
+      entry = getnetbyname (str);
+      eno = errno;
+      free (str);
     }
   else
     {
-      unsigned long netnum;
-      netnum = SCM_NUM2ULONG (1, net);
+      unsigned long netnum = scm_to_ulong (net);
       entry = getnetbyaddr (netnum, AF_INET);
+      eno = errno;
     }
+
   if (!entry)
-    SCM_SYSERROR_MSG ("no such network ~A", scm_list_1 (net), errno);
+    SCM_SYSERROR_MSG ("no such network ~A", scm_list_1 (net), eno);
+
   SCM_VECTOR_SET(result, 0, scm_mem2string (entry->n_name, strlen (entry->n_name)));
   SCM_VECTOR_SET(result, 1, scm_makfromstrs (-1, entry->n_aliases));
   SCM_VECTOR_SET(result, 2, scm_from_int (entry->n_addrtype));
@@ -257,9 +268,10 @@ SCM_DEFINE (scm_getproto, "getproto", 0, 1, 0,
 	    "@code{getprotoent} (see below) if no arguments are supplied.")
 #define FUNC_NAME s_scm_getproto
 {
-  SCM   result = scm_c_make_vector (3, SCM_UNSPECIFIED);
-
+  SCM result = scm_c_make_vector (3, SCM_UNSPECIFIED);
   struct protoent *entry;
+  int eno;
+
   if (SCM_UNBNDP (protocol))
     {
       entry = getprotoent ();
@@ -271,18 +283,23 @@ SCM_DEFINE (scm_getproto, "getproto", 0, 1, 0,
 	  return SCM_BOOL_F;
 	}
     }
-  else if (SCM_STRINGP (protocol))
+  else if (scm_is_string (protocol))
     {
-      entry = getprotobyname (SCM_STRING_CHARS (protocol));
+      char *str = scm_to_locale_string (protocol);
+      entry = getprotobyname (str);
+      eno = errno;
+      free (str);
     }
   else
     {
-      unsigned long protonum;
-      protonum = SCM_NUM2ULONG (1, protocol);
+      unsigned long protonum = scm_to_ulong (protocol);
       entry = getprotobynumber (protonum);
+      eno = errno;
     }
+
   if (!entry)
-    SCM_SYSERROR_MSG ("no such protocol ~A", scm_list_1 (protocol), errno);
+    SCM_SYSERROR_MSG ("no such protocol ~A", scm_list_1 (protocol), eno);
+
   SCM_VECTOR_SET(result, 0, scm_mem2string (entry->p_name, strlen (entry->p_name)));
   SCM_VECTOR_SET(result, 1, scm_makfromstrs (-1, entry->p_aliases));
   SCM_VECTOR_SET(result, 2, scm_from_int (entry->p_proto));
@@ -318,6 +335,9 @@ SCM_DEFINE (scm_getserv, "getserv", 0, 2, 0,
 #define FUNC_NAME s_scm_getserv
 {
   struct servent *entry;
+  char *protoname;
+  int eno;
+
   if (SCM_UNBNDP (name))
     {
       entry = getservent ();
@@ -330,19 +350,29 @@ SCM_DEFINE (scm_getserv, "getserv", 0, 2, 0,
 	}
       return scm_return_entry (entry);
     }
-  SCM_VALIDATE_STRING (2, protocol);
-  if (SCM_STRINGP (name))
+
+  scm_frame_begin (0);
+
+  protoname = scm_to_locale_string (protocol);
+  scm_frame_free (protoname);
+
+  if (scm_is_string (name))
     {
-      entry = getservbyname (SCM_STRING_CHARS (name),
-			     SCM_STRING_CHARS (protocol));
+      char *str = scm_to_locale_string (name);
+      entry = getservbyname (str, protoname);
+      eno = errno;
+      free (str);
     }
   else
     {
-      entry = getservbyport (htons (scm_to_int (name)),
-			     SCM_STRING_CHARS (protocol));
+      entry = getservbyport (htons (scm_to_int (name)), protoname);
+      eno = errno;
     }
+
   if (!entry)
-    SCM_SYSERROR_MSG("no such service ~A", scm_list_1 (name), errno);
+    SCM_SYSERROR_MSG("no such service ~A", scm_list_1 (name), eno);
+
+  scm_frame_end ();
   return scm_return_entry (entry);
 }
 #undef FUNC_NAME

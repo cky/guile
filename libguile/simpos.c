@@ -33,6 +33,7 @@
 
 #include "libguile/validate.h"
 #include "libguile/simpos.h"
+#include "libguile/dynwind.h"
 
 #ifdef HAVE_STRING_H
 #include <string.h>
@@ -84,33 +85,10 @@ SCM_DEFINE (scm_system, "system", 0, 1, 0,
 #ifdef HAVE_SYSTEM
 #ifdef HAVE_WAITPID
 
-/* return a newly allocated array of char pointers to each of the strings
-   in args, with a terminating NULL pointer.  */
-/* Note: a similar function is defined in dynl.c, but we don't necessarily
-   want to export it.  */
-static char **
-allocate_string_pointers (SCM args)
+static void
+free_string_pointers (void *data)
 {
-  char **result;
-  int n_args = scm_ilength (args);
-  int i;
-
-  SCM_ASSERT (n_args >= 0, args, SCM_ARGn, "allocate_string_pointers");
-  result = (char **) scm_malloc ((n_args + 1) * sizeof (char *));
-  result[n_args] = NULL;
-  for (i = 0; i < n_args; i++)
-    {
-      SCM car = SCM_CAR (args);
-
-      if (!SCM_STRINGP (car))
-	{
-	  free (result);
-	  scm_wrong_type_arg ("allocate_string_pointers", SCM_ARGn, car);
-	}
-      result[i] = SCM_STRING_CHARS (SCM_CAR (args));
-      args = SCM_CDR (args);
-    }
-  return result;
+  scm_i_free_string_pointers ((char **)data);
 }
 
 SCM_DEFINE (scm_system_star, "system*", 0, 0, 1,
@@ -146,9 +124,12 @@ SCM_DEFINE (scm_system_star, "system*", 0, 0, 1,
       int pid;
       char **execargv;
 
-      SCM_VALIDATE_STRING (1, SCM_CAR (args));
+      scm_frame_begin (0);
+
       /* allocate before fork */
-      execargv = allocate_string_pointers (args);
+      execargv = scm_i_allocate_string_pointers (args);
+      scm_frame_unwind_handler (free_string_pointers, execargv,
+				SCM_F_WIND_EXPLICITLY);
 
       /* make sure the child can't kill us (as per normal system call) */
       sig_ign = scm_from_long ((unsigned long) SIG_IGN);
@@ -161,33 +142,32 @@ SCM_DEFINE (scm_system_star, "system*", 0, 0, 1,
       if (pid == 0)
         {
           /* child */
-          execvp (SCM_STRING_CHARS (SCM_CAR (args)), execargv);
-          scm_remember_upto_here_1 (args);
+          execvp (execargv[0], execargv);
           SCM_SYSERROR;
           /* not reached.  */
+	  scm_frame_end ();
           return SCM_BOOL_F;
         }
       else
         {
           /* parent */
-          int wait_result, status, save_errno;
+          int wait_result, status;
 
-          save_errno = errno;
-          free (execargv);
-          errno = save_errno;
           if (pid == -1)
             SCM_SYSERROR;
 
           SCM_SYSCALL (wait_result = waitpid (pid, &status, 0));
-          if (wait_result == -1) SCM_SYSERROR;
+          if (wait_result == -1)
+	    SCM_SYSERROR;
           scm_sigaction (sigint, SCM_CAR (oldint), SCM_CDR (oldint));
           scm_sigaction (sigquit, SCM_CAR (oldquit), SCM_CDR (oldquit));
-          scm_remember_upto_here_2 (oldint, oldquit);
+
+	  scm_frame_end ();
           return scm_from_int (status);
         }
     }
   else
-    SCM_WRONG_TYPE_ARG (1, SCM_CAR (args));
+    SCM_WRONG_TYPE_ARG (1, args);
 }
 #undef FUNC_NAME
 #endif /* HAVE_WAITPID */
@@ -202,9 +182,10 @@ SCM_DEFINE (scm_getenv, "getenv", 1, 0, 0,
 #define FUNC_NAME s_scm_getenv
 {
   char *val;
-  SCM_VALIDATE_STRING (1, nam);
-  val = getenv (SCM_STRING_CHARS (nam));
-  return val ? scm_mem2string (val, strlen (val)) : SCM_BOOL_F;
+  char *var = scm_to_locale_string (nam);
+  val = getenv (var);
+  free (var);
+  return val ? scm_from_locale_string (val) : SCM_BOOL_F;
 }
 #undef FUNC_NAME
 

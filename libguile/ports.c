@@ -1397,7 +1397,7 @@ SCM_DEFINE (scm_truncate_file, "truncate-file", 1, 1, 0,
 	    "@var{length} bytes.  @var{object} can be a string containing a\n"
 	    "file name or an integer file descriptor or a port.\n"
 	    "@var{length} may be omitted if @var{object} is not a file name,\n"
-	    "in which case the truncation occurs at the current port.\n"
+	    "in which case the truncation occurs at the current port\n"
 	    "position.  The return value is unspecified.")
 #define FUNC_NAME s_scm_truncate_file
 {
@@ -1409,14 +1409,12 @@ SCM_DEFINE (scm_truncate_file, "truncate-file", 1, 1, 0,
   if (SCM_UNBNDP (length))
     {
       /* must supply length if object is a filename.  */
-      if (SCM_STRINGP (object))
+      if (scm_is_string (object))
         SCM_MISC_ERROR("must supply length if OBJECT is a filename", SCM_EOL);
       
       length = scm_seek (object, SCM_INUM0, scm_from_int (SEEK_CUR));
     }
-  c_length = SCM_NUM2LONG (2, length);
-  if (c_length < 0)
-    SCM_MISC_ERROR ("negative offset", SCM_EOL);
+  c_length = scm_to_size_t (length);
 
   object = SCM_COERCE_OUTPORT (object);
   if (scm_is_integer (object))
@@ -1440,8 +1438,12 @@ SCM_DEFINE (scm_truncate_file, "truncate-file", 1, 1, 0,
     }
   else
     {
-      SCM_VALIDATE_STRING (1, object);
-      SCM_SYSCALL (rv = truncate (SCM_STRING_CHARS (object), c_length));
+      char *str = scm_to_locale_string (object);
+      int eno;
+      SCM_SYSCALL (rv = truncate (str, c_length));
+      eno = errno;
+      free (str);
+      errno = eno;
     }
   if (rv == -1)
     SCM_SYSERROR;

@@ -293,10 +293,14 @@ setzone (SCM zone, int pos, const char *subr)
     {
       static char *tmpenv[2];
       char *buf;
-
-      SCM_ASSERT (SCM_STRINGP (zone), zone, pos, subr);
-      buf = scm_malloc (SCM_STRING_LENGTH (zone) + sizeof (tzvar) + 1);
-      sprintf (buf, "%s=%s", tzvar, SCM_STRING_CHARS (zone));
+      size_t zone_len;
+      
+      zone_len = scm_to_locale_stringbuf (zone, NULL, 0);
+      buf = scm_malloc (zone_len + sizeof (tzvar) + 1);
+      strcpy (buf, tzvar);
+      buf[sizeof(tzvar)-1] = '=';
+      scm_to_locale_stringbuf (zone, buf+sizeof(tzvar), zone_len);
+      buf[sizeof(tzvar)+zone_len] = '\0';
       oldenv = environ;
       tmpenv[0] = buf;
       tmpenv[1] = 0;
@@ -459,7 +463,7 @@ bdtime2c (SCM sbd_time, struct tm *lt, int pos, const char *subr)
     {
       SCM_ASSERT (scm_is_integer (velts[i]), sbd_time, pos, subr);
     }
-  SCM_ASSERT (scm_is_false (velts[10]) || SCM_STRINGP (velts[10]),
+  SCM_ASSERT (scm_is_false (velts[10]) || scm_is_string (velts[10]),
 	      sbd_time, pos, subr);
 
   lt->tm_sec = scm_to_int (velts[0]);
