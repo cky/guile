@@ -1,5 +1,21 @@
 Sat Mar  8 03:49:03 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
+	* configure.in: Added configuration option `guile-debug'.
+	Configure with --enable-guile-debug if you want a bunch of extra
+	functions used for debugging when developing Guile.
+
+	* acconfig.h: Added new preprocessor symbol GUILE_DEBUG.
+
+	* procs.c (make-cclo): New undocumented debugging procedure: Make
+	compiled closure with internal procedure PROC and length LENGTH.
+	Only compiled if GUILE_DEBUG is defined.
+
+	* debug.c: Only include `debug-hang' if GUILE_DEBUG is defined.
+
+	* print.c: Put #ifdef GUILE_DEBUG around `current-pstate'.
+
+	* ports.c: Changed preprocessor symbol DEBUG --> GUILE_DEBUG.
+
 	* eval.c (SCM_CEVAL): Added code sections for handling of rpsubrs
 	with 3 or more args internally to the evaluator.
 
