@@ -19,3 +19,4 @@ libpath.h
 libtool
 scmconfig.h
 stamp-h
+versiondat.h

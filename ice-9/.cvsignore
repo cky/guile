@@ -1,3 +1,4 @@
 Makefile
 config.log
 config.status
+version.scm
