@@ -1,5 +1,9 @@
 2004-04-06  Kevin Ryde  <user42@zip.com.au>
 
+	* numbers.c (scm_make_ratio): For inum/bignum integer detection, use
+	x==SCM_MOST_NEGATIVE_FIXNUM explicitly, for clarity and to avoid
+	calling mpz_cmp_ui in most cases.
+
 	* numbers.c (scm_quotient, scm_remainder): In inum/big, use mpz_cmp_ui
 	for big == abs(most-negative-fixnum) special case.
 	(abs_most_negative_fixnum): Remove, no longer used.
