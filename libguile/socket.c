@@ -136,9 +136,13 @@ SCM_DEFINE (scm_inet_aton, "inet-aton", 1, 0, 0,
 #define FUNC_NAME s_scm_inet_aton
 {
   struct in_addr soka;
+  char *c_address;
+  int rv;
 
-  SCM_VALIDATE_STRING (1, address);
-  if (inet_aton (SCM_STRING_CHARS (address), &soka) == 0)
+  c_address = scm_to_locale_string (address);
+  rv = inet_aton (c_address, &soka);
+  free (c_address);
+  if (rv == 0)
     SCM_MISC_ERROR ("bad address", SCM_EOL);
   return scm_from_ulong (ntohl (soka.s_addr));
 }
@@ -398,12 +402,15 @@ SCM_DEFINE (scm_inet_pton, "inet-pton", 2, 0, 0,
   int af;
   char *src;
   char dst[16];
-  int rv;
+  int rv, eno;
 
   af = scm_to_int (family);
   SCM_ASSERT_RANGE (1, family, af == AF_INET || af == AF_INET6);
-  SCM_VALIDATE_STRING_COPY (2, address, src);
+  src = scm_to_locale_string (address);
   rv = inet_pton (af, src, dst);
+  eno = errno;
+  free (src);
+  errno = eno;
   if (rv == -1)
     SCM_SYSERROR;
   else if (rv == 0)
@@ -1136,10 +1143,13 @@ SCM_DEFINE (scm_recv, "recv!", 2, 1, 0,
     flg = scm_to_int (flags);
   fd = SCM_FPORT_FDES (sock);
 
-  SCM_SYSCALL (rv = recv (fd, SCM_STRING_CHARS (buf), SCM_STRING_LENGTH (buf), flg));
+  SCM_SYSCALL (rv = recv (fd, 
+			  SCM_I_STRING_CHARS (buf), SCM_I_STRING_LENGTH (buf),
+			  flg));
   if (rv == -1)
     SCM_SYSERROR;
 
+  scm_remember_upto_here_1 (buf);
   return scm_from_int (rv);
 }
 #undef FUNC_NAME
@@ -1173,9 +1183,14 @@ SCM_DEFINE (scm_send, "send", 2, 1, 0,
     flg = scm_to_int (flags);
   fd = SCM_FPORT_FDES (sock);
 
-  SCM_SYSCALL (rv = send (fd, SCM_STRING_CHARS (message), SCM_STRING_LENGTH (message), flg));
+  SCM_SYSCALL (rv = send (fd,
+			  SCM_I_STRING_CHARS (message),
+			  SCM_I_STRING_LENGTH (message),
+			  flg));
   if (rv == -1)
     SCM_SYSERROR;
+
+  scm_remember_upto_here_1 (message);
   return scm_from_int (rv);
 }
 #undef FUNC_NAME
@@ -1207,8 +1222,8 @@ SCM_DEFINE (scm_recvfrom, "recvfrom!", 2, 3, 0,
   int fd;
   int flg;
   char *buf;
-  int offset;
-  int cend;
+  size_t offset;
+  size_t cend;
   SCM address;
   int addr_size = MAX_ADDR_SIZE;
   char max_addr[MAX_ADDR_SIZE];
@@ -1216,8 +1231,12 @@ SCM_DEFINE (scm_recvfrom, "recvfrom!", 2, 3, 0,
 
   SCM_VALIDATE_OPFPORT (1, sock);
   fd = SCM_FPORT_FDES (sock);
-  SCM_VALIDATE_SUBSTRING_SPEC_COPY (2, str, buf, 4, start, offset,
-				    5, end, cend);
+  
+  SCM_VALIDATE_STRING (2, str);
+  buf = SCM_I_STRING_CHARS (str);
+  scm_i_get_substring_spec (SCM_I_STRING_LENGTH (str),
+			    start, &offset, end, &cend);
+
   if (SCM_UNBNDP (flags))
     flg = 0;
   else
@@ -1236,6 +1255,7 @@ SCM_DEFINE (scm_recvfrom, "recvfrom!", 2, 3, 0,
   else
     address = SCM_BOOL_F;
 
+  scm_remember_upto_here_1 (str);
   return scm_cons (scm_from_int (rv), address);
 }
 #undef FUNC_NAME
@@ -1280,8 +1300,9 @@ SCM_DEFINE (scm_sendto, "sendto", 4, 0, 1,
       SCM_VALIDATE_CONS (5, args_and_flags);
       flg = SCM_NUM2ULONG (5, SCM_CAR (args_and_flags));
     }
-  SCM_SYSCALL (rv = sendto (fd, SCM_STRING_CHARS (message),
-			    SCM_STRING_LENGTH (message),
+  SCM_SYSCALL (rv = sendto (fd,
+			    SCM_I_STRING_CHARS (message),
+			    SCM_I_STRING_LENGTH (message),
 			    flg, soka, size));
   if (rv == -1)
     {
@@ -1291,6 +1312,8 @@ SCM_DEFINE (scm_sendto, "sendto", 4, 0, 1,
       SCM_SYSERROR;
     }
   free (soka);
+
+  scm_remember_upto_here_1 (message);
   return scm_from_int (rv);
 }
 #undef FUNC_NAME
