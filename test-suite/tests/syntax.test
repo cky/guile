@@ -55,7 +55,27 @@
 
   (with-test-prefix "bad formals"
 
-    (pass-if-exception "(lambda (x 1) 2)" 
+    (pass-if-exception "(lambda)"
+      exception:bad-formals
+      (lambda))
+
+    (pass-if-exception "(lambda . \"foo\")"
+      exception:bad-formals
+      (lambda . "foo"))
+
+    (pass-if-exception "(lambda ())"
+      exception:bad-formals
+      (lambda ()))
+
+    (pass-if-exception "(lambda \"foo\")"
+      exception:bad-formals
+      (lambda "foo"))
+
+    (pass-if-exception "(lambda \"foo\" #f)"
+      exception:bad-formals
+      (lambda "foo" #f))
+
+    (pass-if-exception "(lambda (x 1) 2)"
       exception:bad-formals
       (lambda (x 1) 2))
 

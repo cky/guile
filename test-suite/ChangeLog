@@ -1,3 +1,7 @@
+2001-10-14  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* tests/syntax.test:  Added test cases for 'lambda' syntax.
+
 2001-10-13  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* tests/syntax.test:  Added test cases for 'case' syntax.
