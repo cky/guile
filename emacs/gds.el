@@ -269,7 +269,8 @@
 		      (gds-set gds-statuses client status)
 		      (cond ((eq status 'waiting-for-input)
 			     (gds-debug client))
-			    ((eq status 'running)
+			    ((or (eq status 'running)
+				 (eq status 'ready-for-input))
 			     (if (eq client gds-displayed-client)
 				 (gds-display-state client)))
 			    (t
@@ -416,9 +417,9 @@
     (gds-maybe-delete-region "Status")
     (widget-insert "Status: "
 		   (cdr (assq (cdr (assq client gds-statuses))
-			      '((running . "running")
+			      '((running . "running (cannot accept input)")
 				(waiting-for-input . "waiting for input")
-				(ready-for-input . "ready for input"))))
+				(ready-for-input . "running"))))
 		   "\n\n")
     (let ((output (cdr (assq client gds-outputs))))
       (if (> (length output) 0)
@@ -746,3 +747,13 @@ not of primary interest when debugging application code."
 			module
 			sym
 			behaviour)))))
+
+
+;;;; Evaluating code.
+
+;; The Scheme process to which code is sent is determined in the usual
+;; cmuscheme.el way by the `scheme-buffer' variable (q.v.).
+;; Customizations to the way that code is sent, for example pro- and
+;; postlogs to set up and restore evaluation context correctly in the
+;; Scheme process, are achieved (elsewhere than this file) by advising
+;; `scheme-send-region' accordingly.

@@ -1,3 +1,12 @@
+2003-10-04  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* debugger/ui-client.scm (ui-disable-async-thread,
+	ui-continue-async-thread, start-async-ui-thread): New.
+	(ui-command-loop): Call ui-disable-async-thread and
+	ui-continue-async-thread.
+	(handle-instruction): Read terminating newline char so it doesn't
+	cause following select to pop immediately.
+
 2003-09-25  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* debugger/ui-client.scm, debugger/ui-server.scm: New (work in

@@ -1,3 +1,7 @@
+2003-10-04  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* gds.el (gds-handle-input): Handle `ready-for-input' status.
+
 2003-08-20  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* guileint: New subdirectory.

@@ -26,6 +26,7 @@
   #:use-module (ice-9 optargs)
   #:use-module (ice-9 session)
   #:use-module (ice-9 string-fun)
+  #:use-module (ice-9 threads)
   #:export (ui-port-number
 	    ui-connected?
 	    ui-connect
@@ -62,12 +63,58 @@ decimal IP address where the UI server is running; default is
 				accumulate-output
 				#f #f #f #f)
 			"w"))
+  ;; Start the asynchronous UI thread.
+  (start-async-ui-thread)
   ;; Write initial context to debug server.
   (write-form (list 'name name))
   (write-form (cons 'modules (map module-name (loaded-modules))))
   (debug-stack (make-stack #t ui-connect) #:continuable)
 ;  (ui-command-loop #f)
   )
+
+(define ui-disable-async-thread noop)
+(define ui-continue-async-thread noop)
+
+(define (start-async-ui-thread)
+  (let ((mutex (make-mutex))
+	(condition (make-condition-variable))
+	(admin (pipe)))
+    ;; Start the asynchronous UI thread.
+    (begin-thread
+      (lock-mutex mutex)
+      ;;(write (cons admin ui-port))
+      ;;(newline)
+      (let loop ((avail '()))
+	;;(write avail)
+	;;(newline)
+	(if (null? avail)
+	    (begin
+	      (write-status 'ready-for-input)
+	      (loop (car (select (list ui-port (car admin)) '() '()))))
+	    (let ((port (car avail)))
+	      (if (eq? port ui-port)
+		  (handle-instruction #f (read ui-port))
+		  (begin
+		    ;; Notification from debugger that it wants to take
+		    ;; over.  Read the notification char.
+		    (read-char (car admin))
+		    ;; Wait on condition variable - this allows the
+		    ;; debugger thread to grab the mutex.
+		    (wait-condition-variable condition mutex)))
+	      ;; Loop.
+	      (loop (cdr avail))))))
+    ;; Redefine procs used by debugger thread to take control.
+    (set! ui-disable-async-thread
+	  (lambda ()
+	    (write-char #\x (cdr admin))
+	    (force-output (cdr admin))
+	    ;;(display "ui-disable-async-thread: locking mutex...\n"
+	    ;;	     (current-error-port))
+	    (lock-mutex mutex)))
+    (set! ui-continue-async-thread
+	  (lambda ()
+	    (unlock-mutex mutex)
+	    (signal-condition-variable condition)))))
 
 (define accumulated-output '())
 
@@ -89,6 +136,7 @@ decimal IP address where the UI server is running; default is
   "Interact with the UI frontend."
   (or (ui-connected?)
       (error "Not connected to UI server."))
+  (ui-disable-async-thread)
   (catch 'exit-debugger
 	 (lambda ()
 	   (let loop ((state state))
@@ -103,7 +151,8 @@ decimal IP address where the UI server is running; default is
 	     ;; Read next instruction, act on it, and loop with
 	     ;; updated state.
 	     (loop (handle-instruction state (read ui-port)))))
-	 (lambda args *unspecified*)))
+	 (lambda args *unspecified*))
+  (ui-continue-async-thread))
 
 (define (write-stack state)
   ;; Write Emacs-readable representation of current state to UI
@@ -176,6 +225,8 @@ decimal IP address where the UI server is running; default is
   (resolve-module '(ice-9 debugger commands)))
 
 (define (handle-instruction state ins)
+  ;; Read the newline that always follows an instruction.
+  (read-char ui-port)
   ;; Handle instruction from the UI frontend, and return updated state.
   (case (car ins)
     ((query-module)
