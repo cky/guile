@@ -33,8 +33,6 @@
 ;;; Code:
 
 (define-module (srfi srfi-1)
-  :use-module (ice-9 session)
-  :use-module (ice-9 receive)
   :export (
 ;;; Constructors
  ;; cons				<= in the core
