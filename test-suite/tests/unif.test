@@ -202,8 +202,8 @@
 
 (with-test-prefix "array-equal?"
 
-  (pass-if "#h(...)"
-    (array-equal? #h(1 2 3) #h(1 2 3))))
+  (pass-if "#s16(...)"
+    (array-equal? #s16(1 2 3) #s16(1 2 3))))
 
 ;;;
 ;;; array-fill!
@@ -409,50 +409,42 @@
 	    (= n (array-ref a 0))))))))
 
 ;;;
-;;; uniform-array-set1!
+;;; array-set!
 ;;;
 
-(with-test-prefix "uniform-array-set1!"
+(with-test-prefix "array-set!"
 
   (with-test-prefix "one dim"
     (let ((a (make-uniform-array '() '(3 5))))
       (pass-if "start"
-	(uniform-array-set1! a 'y '(3))
+	(array-set! a 'y 3)
 	#t)
       (pass-if "end"
-	(uniform-array-set1! a 'y '(5))
+	(array-set! a 'y 5)
 	#t)
       (pass-if-exception "start-1" exception:out-of-range
-	(uniform-array-set1! a 'y '(2)))
+	(array-set! a 'y 2))
       (pass-if-exception "end+1" exception:out-of-range
-	(uniform-array-set1! a 'y '(6)))
+	(array-set! a 'y 6))
       (pass-if-exception "two indexes" exception:out-of-range
-	(uniform-array-set1! a 'y '(6 7)))
-      (pass-if-exception "two improper indexes" exception:out-of-range
-	(uniform-array-set1! a 'y '(6 . 7)))
-      (pass-if-exception "three improper indexes" exception:out-of-range
-	(uniform-array-set1! a 'y '(6 7 . 8)))))
+	(array-set! a 'y 6 7))))
 
   (with-test-prefix "two dim"
     (let ((a (make-uniform-array '() '(3 5) '(7 9))))
       (pass-if "start"
-	(uniform-array-set1! a 'y '(3 7))
+	(array-set! a 'y 3 7)
 	#t)
       (pass-if "end"
-	(uniform-array-set1! a 'y '(5 9))
+	(array-set! a 'y 5 9)
 	#t)
       (pass-if-exception "start i-1" exception:out-of-range
-	(uniform-array-set1! a 'y '(2 7)))
+	(array-set! a 'y 2 7))
       (pass-if-exception "end i+1" exception:out-of-range
-	(uniform-array-set1! a 'y '(6 9)))
+	(array-set! a 'y 6 9))
       (pass-if-exception "one index" exception:wrong-num-args
-	(uniform-array-set1! a 'y '(4)))
+	(array-set! a 'y 4))
       (pass-if-exception "three indexes" exception:wrong-num-args
-	(uniform-array-set1! a 'y '(4 8 0)))
-      (pass-if-exception "two improper indexes" exception:wrong-num-args
-	(uniform-array-set1! a 'y '(4 . 8)))
-      (pass-if-exception "three improper indexes" exception:wrong-num-args
-	(uniform-array-set1! a 'y '(4 8 . 0))))))
+	(array-set! a 'y 4 8 0)))))
 
 ;;;
 ;;; uniform-vector-ref
