@@ -1,0 +1,66 @@
+@c -*-texinfo-*-
+@c This is part of the GNU Guile Reference Manual.
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004
+@c   Free Software Foundation, Inc.
+@c See the file guile.texi for copying conditions.
+
+
+@node Initialization
+@section Initializing Guile
+
+@deftypefn {C Function} void scm_boot_guile (int @var{argc}, char **@var{argv}, void (*@var{main_func}) (void *@var{data}, int @var{argc}, char **@var{argv}), void *@var{data})
+Initialize the Guile Scheme interpreter.  Then call @var{main_func},
+passing it @var{data}, @var{argc}, and @var{argv} as indicated.  The
+function @var{main_func} should do all the work of the program
+(initializing other packages, defining application-specific functions,
+reading user input, and so on) before returning.  When @var{main_func}
+returns, @code{scm_boot_guile} calls @code{exit (0)};
+@code{scm_boot_guile} never returns.  If you want some other exit
+value, have @var{main_func} call @code{exit} itself.
+
+@code{scm_boot_guile} arranges for the Scheme @code{command-line}
+function to return the strings given by @var{argc} and @var{argv}.  If
+@var{main_func} modifies @var{argc} or @var{argv}, it should call
+@code{scm_set_program_arguments} with the final list, so Scheme code
+will know which arguments have been processed.
+
+Why must the caller do all the real work from @var{main_func}?  Guile's
+garbage collector scans the stack to find all local variables that
+reference Scheme objects.  To do this, it needs to know the bounds of
+the stack that might contain such references.  Because there is no
+portable way in C to find the base of the stack, @code{scm_boot_guile}
+assumes that all references are above its own stack frame.  If you try
+to manipulate Scheme objects after this function returns, it's the luck
+of the draw whether Guile's storage manager will be able to find the
+objects you allocate.  So, @code{scm_boot_guile} function exits, rather
+than returning, to discourage you from making that mistake.
+
+See @code{scm_init_guile}, below, for a function that can find the real
+base of the stack, but not in a portable way.
+@end deftypefn
+
+@deftypefn {C Function} void scm_init_guile ()
+Initialize the Guile Scheme interpreter.
+
+In contrast to @code{scm_boot_guile}, this function knows how to find
+the true base of the stack and thus does not need to usurp the control
+flow of your program.  However, since finding the stack base can not be
+done portably, this function might not be available in all installations
+of Guile.  If you can, you should use @code{scm_boot_guile} instead.
+
+Note that @code{scm_init_guile} does not inform Guile about the command
+line arguments that should be returned by the Scheme function
+@code{command-line}.  You can use @code{scm_set_program_arguments} to do
+this.
+@end deftypefn
+
+@deftypefn {C Function} void scm_shell (int @var{argc}, char **@var{argv})
+Process command-line arguments in the manner of the @code{guile}
+executable.  This includes loading the normal Guile initialization
+files, interacting with the user or running any scripts or expressions
+specified by @code{-s} or @code{-e} options, and then exiting.
+@xref{Invoking Guile}, for more details.
+
+Since this function does not return, you must do all
+application-specific initialization before calling this function.
+@end deftypefn

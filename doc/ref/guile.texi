@@ -137,7 +137,7 @@ x
 @comment The title is printed in a large font.
 @title Guile Reference Manual
 @subtitle Edition @value{MANUAL-EDITION}, for use with Guile @value{VERSION}
-@c @subtitle $Id: guile.texi,v 1.34 2004-08-02 11:46:57 mvo Exp $
+@c @subtitle $Id: guile.texi,v 1.35 2004-08-02 12:29:00 mvo Exp $
 
 @c See preface.texi for the list of authors
 @author The Guile Developers
@@ -225,8 +225,8 @@ etc. that make up Guile's application programming interface (API),
 
 @include scheme-ideas.texi
 @include scheme-intro.texi
-@include scripts.texi
-@include debugging.texi
+@include scheme-scripts.texi
+@include scheme-debugging.texi
 @include scheme-reading.texi
 
 @node Programming in C
@@ -306,27 +306,27 @@ available through both Scheme and C interfaces.
 * GH::                          The deprecated GH interface.
 @end menu
 
-@include scm.texi
-@include scheme-scm.texi
-@include ref-init.texi
-@include scheme-snarf.texi
-@include scheme-data.texi
-@include scheme-compound.texi
-@include scheme-smobs.texi
-@include scheme-procedures.texi
-@include scheme-utility.texi
-@include scheme-binding.texi
-@include scheme-control.texi
-@include scheme-io.texi
-@include scheme-evaluation.texi
-@include scheme-memory.texi
-@include scheme-modules.texi
-@include scheme-scheduling.texi
+@include api-overview.texi
+@include api-scm.texi
+@include api-init.texi
+@include api-snarf.texi
+@include api-data.texi
+@include api-compound.texi
+@include api-smobs.texi
+@include api-procedures.texi
+@include api-utility.texi
+@include api-binding.texi
+@include api-control.texi
+@include api-io.texi
+@include api-evaluation.texi
+@include api-memory.texi
+@include api-modules.texi
+@include api-scheduling.texi
 @c object orientation support here
-@include scheme-options.texi
-@include scheme-translation.texi
-@include scheme-debug.texi
-@include deprecated.texi
+@include api-options.texi
+@include api-translation.texi
+@include api-debug.texi
+@include api-deprecated.texi
 @include gh.texi
 
 @node Guile Modules

@@ -27,24 +27,24 @@ guile_TEXINFOS = preface.texi			\
                  intro.texi			\
                  libguile-program.texi		\
                  scheme-intro.texi		\
-  		 scheme-scm.texi		\
-		 scheme-snarf.texi		\
-		 scheme-smobs.texi		\
+		 api-scm.texi			\
+		 api-snarf.texi			\
+		 api-smobs.texi			\
 		 scheme-ideas.texi		\
-		 scheme-data.texi		\
-		 scheme-procedures.texi		\
-		 scheme-utility.texi		\
-		 scheme-binding.texi		\
-		 scheme-control.texi		\
-		 scheme-io.texi			\
-		 scheme-evaluation.texi		\
-		 scheme-memory.texi		\
-		 scheme-modules.texi		\
-		 scheme-scheduling.texi		\
-		 scheme-options.texi		\
-		 scheme-translation.texi	\
-		 scheme-debug.texi		\
-		 deprecated.texi		\
+		 api-data.texi			\
+		 api-procedures.texi		\
+		 api-utility.texi		\
+		 api-binding.texi		\
+		 api-control.texi		\
+		 api-io.texi			\
+		 api-evaluation.texi		\
+		 api-memory.texi		\
+		 api-modules.texi		\
+		 api-scheduling.texi		\
+		 api-options.texi		\
+		 api-translation.texi		\
+		 api-debug.texi			\
+		 api-deprecated.texi		\
 		 scheme-reading.texi		\
 		 scheme-indices.texi		\
 		 slib.texi			\
@@ -52,17 +52,17 @@ guile_TEXINFOS = preface.texi			\
 		 expect.texi			\
 		 scsh.texi			\
 		 tcltk.texi			\
-		 scripts.texi			\
+		 scheme-scripts.texi		\
 		 gh.texi			\
-		 scm.texi			\
-		 debugging.texi			\
+		 api-overview.texi		\
+		 scheme-debugging.texi		\
 		 indices.texi			\
 		 script-getopt.texi		\
 		 data-rep.texi			\
 		 repl-modules.texi		\
 		 srfi-modules.texi		\
 		 misc-modules.texi		\
-		 scheme-compound.texi		\
+		 api-compound.texi		\
 		 autoconf.texi			\
 		 autoconf-macros.texi		\
 		 tools.texi			\
@@ -72,7 +72,7 @@ guile_TEXINFOS = preface.texi			\
 		 libguile-snarf.texi		\
 		 libguile-linking.texi		\
 	 	 libguile-extensions.texi	\
-		 ref-init.texi			\
+		 api-init.texi			\
 		 mod-getopt-long.texi
 
 ETAGS_ARGS = $(info_TEXINFOS) $(guile_TEXINFOS)
