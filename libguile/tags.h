@@ -319,7 +319,7 @@ typedef unsigned long scm_t_bits;
 #define scm_tc7_ivect		79
 #endif
 
-/* free         		61 */
+#define scm_tc7_dsubr		61
 #define scm_tc7_cclo		63
 #define scm_tc7_rpsubr		69
 #define scm_tc7_subr_0		85
@@ -497,9 +497,19 @@ SCM_API char *scm_isymnames[];   /* defined in print.c */
 
 /* For subrs
  */
-#define scm_tcs_subrs scm_tc7_asubr:case scm_tc7_subr_0:case scm_tc7_subr_1:case scm_tc7_cxr:\
- case scm_tc7_subr_3:case scm_tc7_subr_2:case scm_tc7_rpsubr:case scm_tc7_subr_1o:\
- case scm_tc7_subr_2o:case scm_tc7_lsubr_2:case scm_tc7_lsubr
+#define scm_tcs_subrs \
+       scm_tc7_asubr:\
+  case scm_tc7_subr_0:\
+  case scm_tc7_subr_1:\
+  case scm_tc7_dsubr:\
+  case scm_tc7_cxr:\
+  case scm_tc7_subr_3:\
+  case scm_tc7_subr_2:\
+  case scm_tc7_rpsubr:\
+  case scm_tc7_subr_1o:\
+  case scm_tc7_subr_2o:\
+  case scm_tc7_lsubr_2:\
+  case scm_tc7_lsubr
 
 
 

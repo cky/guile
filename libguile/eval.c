@@ -2885,6 +2885,7 @@ evapply: /* inputs: x, proc */
       case scm_tc7_subr_1:
       case scm_tc7_subr_2:
       case scm_tc7_subr_2o:
+      case scm_tc7_dsubr:
       case scm_tc7_cxr:
       case scm_tc7_subr_3:
       case scm_tc7_lsubr_2:
@@ -2921,33 +2922,31 @@ evapply: /* inputs: x, proc */
 	  case scm_tc7_subr_1:
 	  case scm_tc7_subr_1o:
 	    RETURN (SCM_SUBRF (proc) (arg1));
+	  case scm_tc7_dsubr:
+            if (SCM_INUMP (arg1))
+              {
+                RETURN (scm_make_real (SCM_DSUBRF (proc) ((double) SCM_INUM (arg1))));
+              }
+            else if (SCM_REALP (arg1))
+              {
+                RETURN (scm_make_real (SCM_DSUBRF (proc) (SCM_REAL_VALUE (arg1))));
+              }
+            else if (SCM_BIGP (arg1))
+              {
+                RETURN (scm_make_real (SCM_DSUBRF (proc) (scm_i_big2dbl (arg1))));
+              }
+            SCM_WTA_DISPATCH_1 (*SCM_SUBR_GENERIC (proc), arg1,
+                                SCM_ARG1, SCM_SYMBOL_CHARS (SCM_SNAME (proc)));
 	  case scm_tc7_cxr:
-	    if (SCM_SUBRF (proc))
-	      {
-		if (SCM_INUMP (arg1))
-		  {
-		    RETURN (scm_make_real (SCM_DSUBRF (proc) ((double) SCM_INUM (arg1))));
-		  }
-		else if (SCM_REALP (arg1))
-		  {
-		    RETURN (scm_make_real (SCM_DSUBRF (proc) (SCM_REAL_VALUE (arg1))));
-		  }
-		else if (SCM_BIGP (arg1))
-		  {
-		    RETURN (scm_make_real (SCM_DSUBRF (proc) (scm_i_big2dbl (arg1))));
-		  }
-		SCM_WTA_DISPATCH_1 (*SCM_SUBR_GENERIC (proc), arg1,
-				    SCM_ARG1, SCM_SYMBOL_CHARS (SCM_SNAME (proc)));
-	      }
-	    proc = SCM_SNAME (proc);
 	    {
-	      char *chrs = SCM_SYMBOL_CHARS (proc) + SCM_SYMBOL_LENGTH (proc) - 1;
-	      while ('c' != *--chrs)
-		{
-		  SCM_ASSERT (SCM_CONSP (arg1),
-			      arg1, SCM_ARG1, SCM_SYMBOL_CHARS (proc));
-		  arg1 = ('a' == *chrs) ? SCM_CAR (arg1) : SCM_CDR (arg1);
-		}
+              unsigned char pattern = (scm_t_bits) SCM_SUBRF (proc);
+              do
+                {
+		  SCM_ASSERT (SCM_CONSP (arg1), arg1, SCM_ARG1,
+                              SCM_SYMBOL_CHARS (SCM_SNAME (proc)));
+                  arg1 = (pattern & 1) ? SCM_CAR (arg1) : SCM_CDR (arg1);
+                  pattern >>= 2;
+                } while (pattern);
 	      RETURN (arg1);
 	    }
 	  case scm_tc7_rpsubr:
@@ -3119,6 +3118,7 @@ evapply: /* inputs: x, proc */
             else
               goto badfun;
 	  case scm_tc7_subr_0:
+	  case scm_tc7_dsubr:
 	  case scm_tc7_cxr:
 	  case scm_tc7_subr_1o:
 	  case scm_tc7_subr_1:
@@ -3317,6 +3317,7 @@ evapply: /* inputs: x, proc */
 	case scm_tc7_subr_1o:
 	case scm_tc7_subr_2o:
 	case scm_tc7_subr_0:
+	case scm_tc7_dsubr:
 	case scm_tc7_cxr:
 	case scm_tc7_subr_1:
 	  scm_wrong_num_args (proc);
@@ -3602,34 +3603,34 @@ tail:
 	scm_wrong_num_args (proc);
       else
 	RETURN (SCM_SUBRF (proc) (arg1));
+    case scm_tc7_dsubr:
+      if (SCM_UNBNDP (arg1) || !SCM_NULLP (args))
+	scm_wrong_num_args (proc);
+      if (SCM_INUMP (arg1))
+        {
+          RETURN (scm_make_real (SCM_DSUBRF (proc) ((double) SCM_INUM (arg1))));
+        }
+      else if (SCM_REALP (arg1))
+        {
+          RETURN (scm_make_real (SCM_DSUBRF (proc) (SCM_REAL_VALUE (arg1))));
+        }
+      else if (SCM_BIGP (arg1))
+        RETURN (scm_make_real (SCM_DSUBRF (proc) (scm_i_big2dbl (arg1))));
+      SCM_WTA_DISPATCH_1 (*SCM_SUBR_GENERIC (proc), arg1,
+                          SCM_ARG1, SCM_SYMBOL_CHARS (SCM_SNAME (proc)));
     case scm_tc7_cxr:
       if (SCM_UNBNDP (arg1) || !SCM_NULLP (args))
 	scm_wrong_num_args (proc);
-      if (SCM_SUBRF (proc))
-	{
-	  if (SCM_INUMP (arg1))
-	    {
-	      RETURN (scm_make_real (SCM_DSUBRF (proc) ((double) SCM_INUM (arg1))));
-	    }
-	  else if (SCM_REALP (arg1))
-	    {
-	      RETURN (scm_make_real (SCM_DSUBRF (proc) (SCM_REAL_VALUE (arg1))));
-	    }
-	  else if (SCM_BIGP (arg1))
-	    RETURN (scm_make_real (SCM_DSUBRF (proc) (scm_i_big2dbl (arg1))));
-	  SCM_WTA_DISPATCH_1 (*SCM_SUBR_GENERIC (proc), arg1,
-			      SCM_ARG1, SCM_SYMBOL_CHARS (SCM_SNAME (proc)));
-	}
-      proc = SCM_SNAME (proc);
       {
-	char *chrs = SCM_SYMBOL_CHARS (proc) + SCM_SYMBOL_LENGTH (proc) - 1;
-	while ('c' != *--chrs)
-	  {
-	    SCM_ASSERT (SCM_CONSP (arg1),
-		    arg1, SCM_ARG1, SCM_SYMBOL_CHARS (proc));
-	    arg1 = ('a' == *chrs) ? SCM_CAR (arg1) : SCM_CDR (arg1);
-	  }
-	RETURN (arg1);
+        unsigned char pattern = (scm_t_bits) SCM_SUBRF (proc);
+        do
+          {
+            SCM_ASSERT (SCM_CONSP (arg1), arg1, SCM_ARG1,
+                        SCM_SYMBOL_CHARS (SCM_SNAME (proc)));
+            arg1 = (pattern & 1) ? SCM_CAR (arg1) : SCM_CDR (arg1);
+            pattern >>= 2;
+          } while (pattern);
+        RETURN (arg1);
       }
     case scm_tc7_subr_3:
       if (SCM_NULLP (args)
@@ -3951,17 +3952,15 @@ call_dsubr_1 (SCM proc, SCM arg1)
 static SCM
 call_cxr_1 (SCM proc, SCM arg1)
 {
-  proc = SCM_SNAME (proc);
-  {
-    char *chrs = SCM_SYMBOL_CHARS (proc) + SCM_SYMBOL_LENGTH (proc) - 1;
-    while ('c' != *--chrs)
-      {
-	SCM_ASSERT (SCM_CONSP (arg1),
-		    arg1, SCM_ARG1, SCM_SYMBOL_CHARS (proc));
-	arg1 = ('a' == *chrs) ? SCM_CAR (arg1) : SCM_CDR (arg1);
-      }
-    return (arg1);
-  }
+  unsigned char pattern = (scm_t_bits) SCM_SUBRF (proc);
+  do
+    {
+      SCM_ASSERT (SCM_CONSP (arg1), arg1, SCM_ARG1,
+                  SCM_SYMBOL_CHARS (SCM_SNAME (proc)));
+      arg1 = (pattern & 1) ? SCM_CAR (arg1) : SCM_CDR (arg1);
+      pattern >>= 2;
+    } while (pattern);
+  return arg1;
 }
 
 static SCM 
@@ -3990,11 +3989,10 @@ scm_trampoline_1 (SCM proc)
       return call_subr2o_1;
     case scm_tc7_lsubr:
       return call_lsubr_1;
+    case scm_tc7_dsubr:
+      return call_dsubr_1;
     case scm_tc7_cxr:
-      if (SCM_SUBRF (proc))
-	return call_dsubr_1;
-      else
-	return call_cxr_1;
+      return call_cxr_1;
     case scm_tcs_closures:
       {
 	SCM formals = SCM_CLOSURE_FORMALS (proc);

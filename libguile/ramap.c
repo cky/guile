@@ -1247,7 +1247,7 @@ ramap (SCM ra0, SCM proc, SCM ras)
 
 
 static int
-ramap_cxr (SCM ra0, SCM proc, SCM ras)
+ramap_dsubr (SCM ra0, SCM proc, SCM ras)
 {
   SCM ra1 = SCM_CAR (ras);
   SCM e1 = SCM_UNDEFINED;
@@ -1514,10 +1514,8 @@ SCM_DEFINE (scm_array_map_x, "array-map!", 2, 0, 1,
     case scm_tc7_subr_2o:
       scm_ramapc (ramap_2o, proc, ra0, lra, FUNC_NAME);
       return SCM_UNSPECIFIED;
-    case scm_tc7_cxr:
-      if (!SCM_SUBRF (proc))
-	goto gencase;
-      scm_ramapc (ramap_cxr, proc, ra0, lra, FUNC_NAME);
+    case scm_tc7_dsubr:
+      scm_ramapc (ramap_dsubr, proc, ra0, lra, FUNC_NAME);
       return SCM_UNSPECIFIED;
     case scm_tc7_rpsubr:
       {

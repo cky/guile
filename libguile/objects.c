@@ -112,6 +112,7 @@ SCM_DEFINE (scm_class_of, "class-of", 1, 0, 0,
 	case scm_tc7_asubr:
 	case scm_tc7_subr_0:
 	case scm_tc7_subr_1:
+	case scm_tc7_dsubr:
 	case scm_tc7_cxr:
 	case scm_tc7_subr_3:
 	case scm_tc7_subr_2:

@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002, 2003 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003 Free Software Foundation, Inc.
  *
  * Portions Copyright 1990, 1991, 1992, 1993 by AT&T Bell Laboratories
  * and Bellcore.  See scm_divide.
@@ -3613,7 +3613,7 @@ scm_divide (SCM x, SCM y)
 }
 #undef FUNC_NAME
 
-SCM_GPROC1 (s_asinh, "$asinh", scm_tc7_cxr, (SCM (*)()) scm_asinh, g_asinh);
+SCM_GPROC1 (s_asinh, "$asinh", scm_tc7_dsubr, (SCM (*)()) scm_asinh, g_asinh);
 /* "Return the inverse hyperbolic sine of @var{x}."
  */
 double
@@ -3623,7 +3623,7 @@ scm_asinh (double x)
 }
 
 
-SCM_GPROC1 (s_acosh, "$acosh", scm_tc7_cxr, (SCM (*)()) scm_acosh, g_acosh);
+SCM_GPROC1 (s_acosh, "$acosh", scm_tc7_dsubr, (SCM (*)()) scm_acosh, g_acosh);
 /* "Return the inverse hyperbolic cosine of @var{x}."
  */
 double
@@ -3633,7 +3633,7 @@ scm_acosh (double x)
 }
 
 
-SCM_GPROC1 (s_atanh, "$atanh", scm_tc7_cxr, (SCM (*)()) scm_atanh, g_atanh);
+SCM_GPROC1 (s_atanh, "$atanh", scm_tc7_dsubr, (SCM (*)()) scm_atanh, g_atanh);
 /* "Return the inverse hyperbolic tangent of @var{x}."
  */
 double
@@ -3643,7 +3643,7 @@ scm_atanh (double x)
 }
 
 
-SCM_GPROC1 (s_truncate, "truncate", scm_tc7_cxr, (SCM (*)()) scm_truncate, g_truncate);
+SCM_GPROC1 (s_truncate, "truncate", scm_tc7_dsubr, (SCM (*)()) scm_truncate, g_truncate);
 /* "Round the inexact number @var{x} towards zero."
  */
 double
@@ -3655,7 +3655,7 @@ scm_truncate (double x)
 }
 
 
-SCM_GPROC1 (s_round, "round", scm_tc7_cxr, (SCM (*)()) scm_round, g_round);
+SCM_GPROC1 (s_round, "round", scm_tc7_dsubr, (SCM (*)()) scm_round, g_round);
 /* "Round the inexact number @var{x}. If @var{x} is halfway between two\n"
  * "numbers, round towards even."
  */
@@ -3670,49 +3670,49 @@ scm_round (double x)
 }
 
 
-SCM_GPROC1 (s_i_floor, "floor", scm_tc7_cxr, (SCM (*)()) floor, g_i_floor);
+SCM_GPROC1 (s_i_floor, "floor", scm_tc7_dsubr, (SCM (*)()) floor, g_i_floor);
 /* "Round the number @var{x} towards minus infinity."
  */
-SCM_GPROC1 (s_i_ceil, "ceiling", scm_tc7_cxr, (SCM (*)()) ceil, g_i_ceil);
+SCM_GPROC1 (s_i_ceil, "ceiling", scm_tc7_dsubr, (SCM (*)()) ceil, g_i_ceil);
 /* "Round the number @var{x} towards infinity."
  */
-SCM_GPROC1 (s_i_sqrt, "$sqrt", scm_tc7_cxr, (SCM (*)()) sqrt, g_i_sqrt);
+SCM_GPROC1 (s_i_sqrt, "$sqrt", scm_tc7_dsubr, (SCM (*)()) sqrt, g_i_sqrt);
 /* "Return the square root of the real number @var{x}."
  */
-SCM_GPROC1 (s_i_abs, "$abs", scm_tc7_cxr, (SCM (*)()) fabs, g_i_abs);
+SCM_GPROC1 (s_i_abs, "$abs", scm_tc7_dsubr, (SCM (*)()) fabs, g_i_abs);
 /* "Return the absolute value of the real number @var{x}."
  */
-SCM_GPROC1 (s_i_exp, "$exp", scm_tc7_cxr, (SCM (*)()) exp, g_i_exp);
+SCM_GPROC1 (s_i_exp, "$exp", scm_tc7_dsubr, (SCM (*)()) exp, g_i_exp);
 /* "Return the @var{x}th power of e."
  */
-SCM_GPROC1 (s_i_log, "$log", scm_tc7_cxr, (SCM (*)()) log, g_i_log);
+SCM_GPROC1 (s_i_log, "$log", scm_tc7_dsubr, (SCM (*)()) log, g_i_log);
 /* "Return the natural logarithm of the real number @var{x}."
  */
-SCM_GPROC1 (s_i_sin, "$sin", scm_tc7_cxr, (SCM (*)()) sin, g_i_sin);
+SCM_GPROC1 (s_i_sin, "$sin", scm_tc7_dsubr, (SCM (*)()) sin, g_i_sin);
 /* "Return the sine of the real number @var{x}."
  */
-SCM_GPROC1 (s_i_cos, "$cos", scm_tc7_cxr, (SCM (*)()) cos, g_i_cos);
+SCM_GPROC1 (s_i_cos, "$cos", scm_tc7_dsubr, (SCM (*)()) cos, g_i_cos);
 /* "Return the cosine of the real number @var{x}."
  */
-SCM_GPROC1 (s_i_tan, "$tan", scm_tc7_cxr, (SCM (*)()) tan, g_i_tan);
+SCM_GPROC1 (s_i_tan, "$tan", scm_tc7_dsubr, (SCM (*)()) tan, g_i_tan);
 /* "Return the tangent of the real number @var{x}."
  */
-SCM_GPROC1 (s_i_asin, "$asin", scm_tc7_cxr, (SCM (*)()) asin, g_i_asin);
+SCM_GPROC1 (s_i_asin, "$asin", scm_tc7_dsubr, (SCM (*)()) asin, g_i_asin);
 /* "Return the arc sine of the real number @var{x}."
  */
-SCM_GPROC1 (s_i_acos, "$acos", scm_tc7_cxr, (SCM (*)()) acos, g_i_acos);
+SCM_GPROC1 (s_i_acos, "$acos", scm_tc7_dsubr, (SCM (*)()) acos, g_i_acos);
 /* "Return the arc cosine of the real number @var{x}."
  */
-SCM_GPROC1 (s_i_atan, "$atan", scm_tc7_cxr, (SCM (*)()) atan, g_i_atan);
+SCM_GPROC1 (s_i_atan, "$atan", scm_tc7_dsubr, (SCM (*)()) atan, g_i_atan);
 /* "Return the arc tangent of the real number @var{x}."
  */
-SCM_GPROC1 (s_i_sinh, "$sinh", scm_tc7_cxr, (SCM (*)()) sinh, g_i_sinh);
+SCM_GPROC1 (s_i_sinh, "$sinh", scm_tc7_dsubr, (SCM (*)()) sinh, g_i_sinh);
 /* "Return the hyperbolic sine of the real number @var{x}."
  */
-SCM_GPROC1 (s_i_cosh, "$cosh", scm_tc7_cxr, (SCM (*)()) cosh, g_i_cosh);
+SCM_GPROC1 (s_i_cosh, "$cosh", scm_tc7_dsubr, (SCM (*)()) cosh, g_i_cosh);
 /* "Return the hyperbolic cosine of the real number @var{x}."
  */
-SCM_GPROC1 (s_i_tanh, "$tanh", scm_tc7_cxr, (SCM (*)()) tanh, g_i_tanh);
+SCM_GPROC1 (s_i_tanh, "$tanh", scm_tc7_dsubr, (SCM (*)()) tanh, g_i_tanh);
 /* "Return the hyperbolic tangent of the real number @var{x}."
  */
 

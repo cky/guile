@@ -106,39 +106,50 @@ SCM_DEFINE (scm_set_cdr_x, "set-cdr!", 2, 0, 0,
 
 
 
-static const char * cxrs[] = 
+/* Every cxr-pattern is made up of pairs of bits, starting with the two least
+ * significant bits.  If in a pair of bits the least significant of the two
+ * bits is 0, this means CDR, otherwise CAR.  The most significant bits of the
+ * two bits is only needed to indicate when cxr-ing is ready.  This is the
+ * case, when all remaining pairs of bits equal 00.  */
+
+typedef struct {
+  const char *name;
+  unsigned char pattern;
+} t_cxr;
+
+static const t_cxr cxrs[] = 
 {
-  "car",
-  "cdr",
-  "caar",
-  "cadr",
-  "cdar",
-  "cddr",
-  "caaar",
-  "caadr",
-  "cadar",
-  "caddr",
-  "cdaar",
-  "cdadr",
-  "cddar",
-  "cdddr",
-  "caaaar",
-  "caaadr",
-  "caadar",
-  "caaddr",
-  "cadaar",
-  "cadadr",
-  "caddar",
-  "cadddr",
-  "cdaaar",
-  "cdaadr",
-  "cdadar",
-  "cdaddr",
-  "cddaar",
-  "cddadr",
-  "cdddar",
-  "cddddr",
-  0
+  {"cdr",    0x02}, /* 00000010 */
+  {"car",    0x03}, /* 00000011 */
+  {"cddr",   0x0a}, /* 00001010 */
+  {"cdar",   0x0b}, /* 00001011 */
+  {"cadr",   0x0e}, /* 00001110 */
+  {"caar",   0x0f}, /* 00001111 */
+  {"cdddr",  0x2a}, /* 00101010 */
+  {"cddar",  0x2b}, /* 00101011 */
+  {"cdadr",  0x2e}, /* 00101110 */
+  {"cdaar",  0x2f}, /* 00101111 */
+  {"caddr",  0x3a}, /* 00111010 */
+  {"cadar",  0x3b}, /* 00111011 */
+  {"caadr",  0x3e}, /* 00111110 */
+  {"caaar",  0x3f}, /* 00111111 */
+  {"cddddr", 0xaa}, /* 10101010 */
+  {"cdddar", 0xab}, /* 10101011 */
+  {"cddadr", 0xae}, /* 10101110 */
+  {"cddaar", 0xaf}, /* 10101111 */
+  {"cdaddr", 0xba}, /* 10111010 */
+  {"cdadar", 0xbb}, /* 10111011 */
+  {"cdaadr", 0xbe}, /* 10111110 */
+  {"cdaaar", 0xbf}, /* 10111111 */
+  {"cadddr", 0xea}, /* 11101010 */
+  {"caddar", 0xeb}, /* 11101011 */
+  {"cadadr", 0xee}, /* 11101110 */
+  {"cadaar", 0xef}, /* 11101111 */
+  {"caaddr", 0xfa}, /* 11111010 */
+  {"caadar", 0xfb}, /* 11111011 */
+  {"caaadr", 0xfe}, /* 11111110 */
+  {"caaaar", 0xff}, /* 11111111 */
+  {0, 0}
 };
 
 
@@ -148,8 +159,11 @@ scm_init_pairs ()
 {
   unsigned int subnr = 0;
 
-  for (subnr = 0; cxrs [subnr]; subnr++)
-    scm_c_define_subr (cxrs [subnr], scm_tc7_cxr, NULL);
+  for (subnr = 0; cxrs[subnr].name; subnr++)
+    {
+      SCM (*pattern) () = (SCM (*) ()) (scm_t_bits) cxrs[subnr].pattern;
+      scm_c_define_subr (cxrs[subnr].name, scm_tc7_cxr, pattern);
+    }
 
 #include "libguile/pairs.x"
 }

@@ -1,3 +1,27 @@
+2003-06-01  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	This set of patches separates the representation of the cxr family
+	of functions (car, cdr etc.) from the dsubr family of functions
+	(i. e. functions that take a double precision floating point
+	argument).  Further, the algorithm for handling the cxr function
+	is improved.
+
+	* eval.c (SCM_CEVAL, SCM_APPLY, scm_trampoline_1), numbers.c
+	(scm_asinh, scm_acosh, scm_atanh, scm_truncate, scm_round, floor,
+	ceil, sqrt, fabs, exp, log, sin, cos, tan, asin, acos, atan, sinh,
+	cosh, tanh), objects.c (scm_class_of), procprop.c
+	(scm_i_procedure_arity), ramap.c (scm_array_map_x), tags.h
+	(scm_tc7_dsubr, scm_tcs_subrs): Introduce scm_tc7_dsubr as new
+	typecode for the dsubr family of functions.
+
+	* ramap.c (ramap_cxr, ramap_dsubr): Renamed ramap_cxr to
+	ramap_dsubr.
+
+	* eval.c (SCM_CEVAL, SCM_APPLY, call_cxr_1), pairs.c
+	(scm_init_pairs): Make use of the (now usable) second cell element
+	of a scm_tc7_cxr function to implement the cxr family of functions
+	more efficiently.
+
 2003-05-31  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* eval.c (SCM_CEVAL, SCM_APPLY, scm_trampoline_0,
