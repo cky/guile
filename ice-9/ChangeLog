@@ -1,3 +1,7 @@
+2003-03-20  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* list.scm: New file.
+
 2003-03-19  Marius Vollmer  <mvo@zagadka.de>
 
 	* format.scm (format:out-substr): Update the column counter
