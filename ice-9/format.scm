@@ -1203,6 +1203,31 @@
 				(list-ref format:ordinal-ones-list ones))))
 			))))))))
 
+;; format inf and nan.
+
+(define (format:out-inf-nan number width digits edigits overch padch)
+  ;; inf and nan are always printed exactly as "+inf.0", "-inf.0" or
+  ;; "+nan.0", suitably justified in their field.  We insist on
+  ;; printing this exact form so that the numbers can be read back in.
+
+  (let* ((str (number->string number))
+	 (len (string-length str))
+	 (dot (string-index str #\.))
+	 (digits (+ (or digits 0)
+		    (if edigits (+ edigits 2) 0))))
+    (if (and width overch (< width len))
+	(format:out-fill width (integer->char overch))
+	(let* ((leftpad (if width
+			    (max (- width (max len (+ dot 1 digits))) 0)
+			    0))
+	       (rightpad (if width
+			     (max (- width leftpad len) 0)
+			     0))
+	       (padch (integer->char (or padch format:space-ch)))) 
+	  (format:out-fill leftpad padch)
+	  (format:out-str str)
+	  (format:out-fill rightpad padch)))))
+
 ;; format fixed flonums (~F)
 
 (define (format:out-fixed modifier number pars)
@@ -1216,51 +1241,53 @@
 	  (overch (format:par pars l 3 #f #f))
 	  (padch (format:par pars l 4 format:space-ch #f)))
 
-    (if digits
+    (cond
+     ((or (inf? number) (nan? number))
+      (format:out-inf-nan number width digits #f overch padch))
 
-	(begin				; fixed precision
-	  (format:parse-float 
-	   (if (string? number) number (number->string number)) #t scale)
-	  (if (<= (- format:fn-len format:fn-dot) digits)
-	      (format:fn-zfill #f (- digits (- format:fn-len format:fn-dot)))
-	      (format:fn-round digits))
-	  (if width
-	      (let ((numlen (+ format:fn-len 1)))
-		(if (or (not format:fn-pos?) (eq? modifier 'at))
-		    (set! numlen (+ numlen 1)))
-		(if (and (= format:fn-dot 0) (> width (+ digits 1)))
-		    (set! numlen (+ numlen 1)))
-		(if (< numlen width)
-		    (format:out-fill (- width numlen) (integer->char padch)))
-		(if (and overch (> numlen width))
-		    (format:out-fill width (integer->char overch))
-		    (format:fn-out modifier (> width (+ digits 1)))))
-	      (format:fn-out modifier #t)))
+     (digits
+      (format:parse-float 
+       (if (string? number) number (number->string number)) #t scale)
+      (if (<= (- format:fn-len format:fn-dot) digits)
+	  (format:fn-zfill #f (- digits (- format:fn-len format:fn-dot)))
+	  (format:fn-round digits))
+      (if width
+	  (let ((numlen (+ format:fn-len 1)))
+	    (if (or (not format:fn-pos?) (eq? modifier 'at))
+		(set! numlen (+ numlen 1)))
+	    (if (and (= format:fn-dot 0) (> width (+ digits 1)))
+		(set! numlen (+ numlen 1)))
+	    (if (< numlen width)
+		(format:out-fill (- width numlen) (integer->char padch)))
+	    (if (and overch (> numlen width))
+		(format:out-fill width (integer->char overch))
+		(format:fn-out modifier (> width (+ digits 1)))))
+	  (format:fn-out modifier #t)))
 
-	(begin				; free precision
-	  (format:parse-float
-	   (if (string? number) number (number->string number)) #t scale)
-	  (format:fn-strip)
-	  (if width
-	      (let ((numlen (+ format:fn-len 1)))
-		(if (or (not format:fn-pos?) (eq? modifier 'at))
-		    (set! numlen (+ numlen 1)))
-		(if (= format:fn-dot 0)
-		    (set! numlen (+ numlen 1)))
-		(if (< numlen width)
-		    (format:out-fill (- width numlen) (integer->char padch)))
-		(if (> numlen width)	; adjust precision if possible
-		    (let ((dot-index (- numlen
-					(- format:fn-len format:fn-dot))))
-		      (if (> dot-index width)
-			  (if overch	; numstr too big for required width
-			      (format:out-fill width (integer->char overch))
-			      (format:fn-out modifier #t))
-			  (begin
-			    (format:fn-round (- width dot-index))
-			    (format:fn-out modifier #t))))
-		    (format:fn-out modifier #t)))
-	      (format:fn-out modifier #t)))))))
+     (else
+      (format:parse-float
+       (if (string? number) number (number->string number)) #t scale)
+      (format:fn-strip)
+      (if width
+	  (let ((numlen (+ format:fn-len 1)))
+	    (if (or (not format:fn-pos?) (eq? modifier 'at))
+		(set! numlen (+ numlen 1)))
+	    (if (= format:fn-dot 0)
+		(set! numlen (+ numlen 1)))
+	    (if (< numlen width)
+		(format:out-fill (- width numlen) (integer->char padch)))
+	    (if (> numlen width)	; adjust precision if possible
+		(let ((dot-index (- numlen
+				    (- format:fn-len format:fn-dot))))
+		  (if (> dot-index width)
+		      (if overch	; numstr too big for required width
+			  (format:out-fill width (integer->char overch))
+			  (format:fn-out modifier #t))
+		      (begin
+			(format:fn-round (- width dot-index))
+			(format:fn-out modifier #t))))
+		(format:fn-out modifier #t)))
+	  (format:fn-out modifier #t)))))))
 
 ;; format exponential flonums (~E)
 
@@ -1276,8 +1303,12 @@
 	  (overch (format:par pars l 4 #f #f))
 	  (padch (format:par pars l 5 format:space-ch #f))
 	  (expch (format:par pars l 6 #f #f)))
-	 
-    (if digits				; fixed precision
+	
+      (cond
+       ((or (inf? number) (nan? number))
+	(format:out-inf-nan number width digits edigits overch padch))
+
+       (digits				; fixed precision
 
 	(let ((digits (if (> scale 0)
 			  (if (< scale (+ digits 2))
@@ -1312,47 +1343,47 @@
 			  (format:en-out edigits expch)))))
 	      (begin
 		(format:fn-out modifier #t)
-		(format:en-out edigits expch))))
+		(format:en-out edigits expch)))))
 
-	(begin				; free precision
-	  (format:parse-float
-	   (if (string? number) number (number->string number)) #f scale)
-	  (format:fn-strip)
-	  (if width
-	      (if (and edigits overch (> format:en-len edigits))
-		  (format:out-fill width (integer->char overch))
-		  (let ((numlen (+ format:fn-len 3))) ; .E+
-		    (if (or (not format:fn-pos?) (eq? modifier 'at))
-			(set! numlen (+ numlen 1)))
-		    (if (= format:fn-dot 0)
-			(set! numlen (+ numlen 1)))
-		    (set! numlen
-			  (+ numlen
-			     (if (and edigits (>= edigits format:en-len))
-				 edigits 
-				 format:en-len)))
-		    (if (< numlen width)
-			(format:out-fill (- width numlen)
-					 (integer->char padch)))
-		    (if (> numlen width) ; adjust precision if possible
-			(let ((f (- format:fn-len format:fn-dot))) ; fract len
-			  (if (> (- numlen f) width)
-			      (if overch ; numstr too big for required width
-				  (format:out-fill width 
-						   (integer->char overch))
-				  (begin
-				    (format:fn-out modifier #t)
-				    (format:en-out edigits expch)))
-			      (begin
-				(format:fn-round (+ (- f numlen) width))
-				(format:fn-out modifier #t)
-				(format:en-out edigits expch))))
-			(begin
-			  (format:fn-out modifier #t)
-			  (format:en-out edigits expch)))))
-	      (begin
-		(format:fn-out modifier #t)
-		(format:en-out edigits expch))))))))
+       (else
+	(format:parse-float
+	 (if (string? number) number (number->string number)) #f scale)
+	(format:fn-strip)
+	(if width
+	    (if (and edigits overch (> format:en-len edigits))
+		(format:out-fill width (integer->char overch))
+		(let ((numlen (+ format:fn-len 3))) ; .E+
+		  (if (or (not format:fn-pos?) (eq? modifier 'at))
+		      (set! numlen (+ numlen 1)))
+		  (if (= format:fn-dot 0)
+		      (set! numlen (+ numlen 1)))
+		  (set! numlen
+			(+ numlen
+			   (if (and edigits (>= edigits format:en-len))
+			       edigits 
+			       format:en-len)))
+		  (if (< numlen width)
+		      (format:out-fill (- width numlen)
+				       (integer->char padch)))
+		  (if (> numlen width) ; adjust precision if possible
+		      (let ((f (- format:fn-len format:fn-dot))) ; fract len
+			(if (> (- numlen f) width)
+			    (if overch ; numstr too big for required width
+				(format:out-fill width 
+						 (integer->char overch))
+				(begin
+				  (format:fn-out modifier #t)
+				  (format:en-out edigits expch)))
+			    (begin
+			      (format:fn-round (+ (- f numlen) width))
+			      (format:fn-out modifier #t)
+			      (format:en-out edigits expch))))
+		      (begin
+			(format:fn-out modifier #t)
+			(format:en-out edigits expch)))))
+	    (begin
+	      (format:fn-out modifier #t)
+	      (format:en-out edigits expch))))))))
 	
 ;; format general flonums (~G)
 
@@ -1366,23 +1397,28 @@
 	  (edigits (if (> l 2) (list-ref pars 2) #f))
 	  (overch (if (> l 4) (list-ref pars 4) #f))
 	  (padch (if (> l 5) (list-ref pars 5) #f)))
-    (format:parse-float
-     (if (string? number) number (number->string number)) #t 0)
-    (format:fn-strip)
-    (let* ((ee (if edigits (+ edigits 2) 4)) ; for the following algorithm
-	   (ww (if width (- width ee) #f))   ; see Steele's CL book p.395
-	   (n (if (= format:fn-dot 0)	; number less than (abs 1.0) ?
-		  (- (format:fn-zlead))
-		  format:fn-dot))
-	   (d (if digits
-		  digits
-		  (max format:fn-len (min n 7)))) ; q = format:fn-len
-	   (dd (- d n)))
-      (if (<= 0 dd d)
-	  (begin
-	    (format:out-fixed modifier number (list ww dd #f overch padch))
-	    (format:out-fill ee #\space)) ;~@T not implemented yet
-	  (format:out-expon modifier number pars))))))
+      (cond
+       ((or (inf? number) (nan? number))
+	;; FIXME: this isn't right.
+	(format:out-inf-nan number width digits edigits overch padch))
+       (else
+	(format:parse-float
+	 (if (string? number) number (number->string number)) #t 0)
+	(format:fn-strip)
+	(let* ((ee (if edigits (+ edigits 2) 4)) ; for the following algorithm
+	       (ww (if width (- width ee) #f))   ; see Steele's CL book p.395
+	       (n (if (= format:fn-dot 0)	; number less than (abs 1.0) ?
+		      (- (format:fn-zlead))
+		      format:fn-dot))
+	       (d (if digits
+		      digits
+		      (max format:fn-len (min n 7)))) ; q = format:fn-len
+	       (dd (- d n)))
+	  (if (<= 0 dd d)
+	      (begin
+		(format:out-fixed modifier number (list ww dd #f overch padch))
+		(format:out-fill ee #\space)) ;~@T not implemented yet
+	      (format:out-expon modifier number pars))))))))
 
 ;; format dollar flonums (~$)
 
