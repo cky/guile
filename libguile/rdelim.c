@@ -289,18 +289,6 @@ scm_init_rdelim_builtins (void)
 #include "libguile/rdelim.x"
 #endif
 
-#if DEBUG_DEPRECATED == 0
-  {
-    SCM old_module = scm_current_module ();
-    const char expr[] = "\
-(define-module (guile) :use-module (ice-9 rdelim))\
-(define-module (guile-user) :use-module (ice-9 rdelim))";
-
-    scm_eval_string (scm_makfromstr (expr, (sizeof expr) - 1, 0));
-    scm_set_current_module (old_module);
-  }
-#endif
-
   return SCM_UNSPECIFIED;
 }
 
