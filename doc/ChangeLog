@@ -1,5 +1,12 @@
 2001-06-30  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
+	* preface.texi (Manual Conventions): Added description of
+	@result{} and @print{}.
+
+	* scheme-data.texi (Hash Table Examples): New subsubsection.
+	
+2001-06-30  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
 	* scheme-data.texi (Hash Tables): Added docs for
 	`make-hash-table'.
 

@@ -4784,6 +4784,98 @@ capitals
 @subsection Hash Tables
 @tpindex Hash Tables
 
+@c FIXME::martin: Review me!
+
+Hash tables are dictionaries which offer similar functionality as
+association lists: They provide a mapping from keys to values.  The
+difference is that association lists need time linear in the size of
+elements when searching for entries, whereas hash tables can normally
+search in constant time.  The drawback is that hash tables require a
+little bit more memory, and that you can not use the normal list
+procedures (@pxref{Lists}) for working with them.
+
+@menu
+* Hash Table Examples::         Demonstration of hash table usage.
+* Hash Table Reference::        Hash table procedure descriptions.
+@end menu
+
+
+@node Hash Table Examples
+@subsubsection Hash Table Examples
+
+@c FIXME::martin: Review me!
+
+For demonstration purposes, this section gives a few usage examples of
+some hash table procedures, together with some explanation what they do.
+
+First we start by creating a new hash table with 31 slots, and
+populate it with two key/value pairs.
+
+@lisp
+(define h (make-hash-table 31))
+
+(hashq-create-handle! h 'foo "bar")
+@result{}
+(foo . "bar")
+
+(hashq-create-handle! h 'braz "zonk")
+@result{}
+(braz . "zonk")
+
+(hashq-create-handle! h 'frob #f)
+@result{}
+(frob . #f)
+@end lisp
+
+You can get the value for a given key with the procedure
+@code{hashq-ref}, but the problem with this procedure is that you
+cannot reliably determine whether a key does exists in the table.  The
+reason is that the procedure returns @code{#f} if the key is not in
+the table, but it will return the same value if the key is in the
+table and just happens to have the value @code{#f}, as you can see in
+the following examples.
+
+@lisp
+(hashq-ref h 'foo)
+@result{}
+"bar"
+
+(hashq-ref h 'frob)
+@result{}
+#f
+
+(hashq-ref h 'not-there)
+@result{}
+#f
+@end lisp
+
+Better is to use the procedure @code{hashq-get-handle}, which makes a
+distinction between the two cases.  Just like @code{assq}, this
+procedure returns a key/value-pair on success, and @code{#f} if the
+key is not found.
+
+@lisp
+(hashq-get-handle h 'foo)
+@result{}
+(foo . "bar")
+
+(hashq-get-handle h 'not-there)
+@result{}
+#f
+@end lisp
+
+There is no procedure for calculating the number of key/value-pairs in
+a hash table, but @code{hash-fold} can be used for doing exactly that.
+
+@lisp
+(hash-fold (lambda (key value seed) (+ 1 seed)) 0 h)
+@result{}
+3
+@end lisp
+
+@node Hash Table Reference
+@subsubsection Hash Table Reference
+
 Like the association list functions, the hash table functions come
 in several varieties: @code{hashq}, @code{hashv}, and @code{hash}.
 The @code{hashq} functions use @code{eq?} to determine whether two
@@ -4991,7 +5083,7 @@ The arguments to PROC are "(key value prior-result)" where key
 and value are successive pairs from the hash table TABLE, and
 prior-result is either INIT (for the first application of PROC)
 or the return value of the previous application of PROC.
-For example, @code{(hash-fold acons () tab)} will convert a hash
+For example, @code{(hash-fold acons '() tab)} will convert a hash
 table into an a-list of key-value pairs.
 @end deffn
 
