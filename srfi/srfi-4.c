@@ -279,8 +279,8 @@ SCM_DEFINE (scm_u8vector_p, "u8vector?", 1, 0, 0,
 	    "@code{#f} otherwise.")
 #define FUNC_NAME s_scm_u8vector_p
 {
-  return SCM_BOOL (SCM_SMOB_PREDICATE (scm_tc16_uvec, obj) &&
-		   SCM_UVEC_TYPE (obj) == SCM_UVEC_U8);
+  return scm_from_bool (SCM_SMOB_PREDICATE (scm_tc16_uvec, obj) &&
+			SCM_UVEC_TYPE (obj) == SCM_UVEC_U8);
 }
 #undef FUNC_NAME
 
@@ -465,8 +465,8 @@ SCM_DEFINE (scm_s8vector_p, "s8vector?", 1, 0, 0,
 	    "@code{#f} otherwise.")
 #define FUNC_NAME s_scm_s8vector_p
 {
-  return SCM_BOOL (SCM_SMOB_PREDICATE (scm_tc16_uvec, obj) &&
-		   SCM_UVEC_TYPE (obj) == SCM_UVEC_S8);
+  return scm_from_bool (SCM_SMOB_PREDICATE (scm_tc16_uvec, obj) &&
+			SCM_UVEC_TYPE (obj) == SCM_UVEC_S8);
 }
 #undef FUNC_NAME
 
@@ -653,8 +653,8 @@ SCM_DEFINE (scm_u16vector_p, "u16vector?", 1, 0, 0,
 	    "@code{#f} otherwise.")
 #define FUNC_NAME s_scm_u16vector_p
 {
-  return SCM_BOOL (SCM_SMOB_PREDICATE (scm_tc16_uvec, obj) &&
-		   SCM_UVEC_TYPE (obj) == SCM_UVEC_U16);
+  return scm_from_bool (SCM_SMOB_PREDICATE (scm_tc16_uvec, obj) &&
+			SCM_UVEC_TYPE (obj) == SCM_UVEC_U16);
 }
 #undef FUNC_NAME
 
@@ -823,8 +823,8 @@ SCM_DEFINE (scm_s16vector_p, "s16vector?", 1, 0, 0,
 	    "@code{#f} otherwise.")
 #define FUNC_NAME s_scm_s16vector_p
 {
-  return SCM_BOOL (SCM_SMOB_PREDICATE (scm_tc16_uvec, obj) &&
-		   SCM_UVEC_TYPE (obj) == SCM_UVEC_S16);
+  return scm_from_bool (SCM_SMOB_PREDICATE (scm_tc16_uvec, obj) &&
+			SCM_UVEC_TYPE (obj) == SCM_UVEC_S16);
 }
 #undef FUNC_NAME
 
@@ -996,8 +996,8 @@ SCM_DEFINE (scm_u32vector_p, "u32vector?", 1, 0, 0,
 	    "@code{#f} otherwise.")
 #define FUNC_NAME s_scm_u32vector_p
 {
-  return SCM_BOOL (SCM_SMOB_PREDICATE (scm_tc16_uvec, obj) &&
-		   SCM_UVEC_TYPE (obj) == SCM_UVEC_U32);
+  return scm_from_bool (SCM_SMOB_PREDICATE (scm_tc16_uvec, obj) &&
+			SCM_UVEC_TYPE (obj) == SCM_UVEC_U32);
 }
 #undef FUNC_NAME
 
@@ -1167,8 +1167,8 @@ SCM_DEFINE (scm_s32vector_p, "s32vector?", 1, 0, 0,
 	    "@code{#f} otherwise.")
 #define FUNC_NAME s_scm_s32vector_p
 {
-  return SCM_BOOL (SCM_SMOB_PREDICATE (scm_tc16_uvec, obj) &&
-		   SCM_UVEC_TYPE (obj) == SCM_UVEC_S32);
+  return scm_from_bool (SCM_SMOB_PREDICATE (scm_tc16_uvec, obj) &&
+			SCM_UVEC_TYPE (obj) == SCM_UVEC_S32);
 }
 #undef FUNC_NAME
 
@@ -1340,8 +1340,8 @@ SCM_DEFINE (scm_u64vector_p, "u64vector?", 1, 0, 0,
 	    "@code{#f} otherwise.")
 #define FUNC_NAME s_scm_u64vector_p
 {
-  return SCM_BOOL (SCM_SMOB_PREDICATE (scm_tc16_uvec, obj) &&
-		   SCM_UVEC_TYPE (obj) == SCM_UVEC_U64);
+  return scm_from_bool (SCM_SMOB_PREDICATE (scm_tc16_uvec, obj) &&
+			SCM_UVEC_TYPE (obj) == SCM_UVEC_U64);
 }
 #undef FUNC_NAME
 
@@ -1511,8 +1511,8 @@ SCM_DEFINE (scm_s64vector_p, "s64vector?", 1, 0, 0,
 	    "@code{#f} otherwise.")
 #define FUNC_NAME s_scm_s64vector_p
 {
-  return SCM_BOOL (SCM_SMOB_PREDICATE (scm_tc16_uvec, obj) &&
-		   SCM_UVEC_TYPE (obj) == SCM_UVEC_S64);
+  return scm_from_bool (SCM_SMOB_PREDICATE (scm_tc16_uvec, obj) &&
+			SCM_UVEC_TYPE (obj) == SCM_UVEC_S64);
 }
 #undef FUNC_NAME
 
@@ -1684,8 +1684,8 @@ SCM_DEFINE (scm_f32vector_p, "f32vector?", 1, 0, 0,
 	    "@code{#f} otherwise.")
 #define FUNC_NAME s_scm_f32vector_p
 {
-  return SCM_BOOL (SCM_SMOB_PREDICATE (scm_tc16_uvec, obj) &&
-		   SCM_UVEC_TYPE (obj) == SCM_UVEC_F32);
+  return scm_from_bool (SCM_SMOB_PREDICATE (scm_tc16_uvec, obj) &&
+			SCM_UVEC_TYPE (obj) == SCM_UVEC_F32);
 }
 #undef FUNC_NAME
 
@@ -1880,8 +1880,8 @@ SCM_DEFINE (scm_f64vector_p, "f64vector?", 1, 0, 0,
 	    "@code{#f} otherwise.")
 #define FUNC_NAME s_scm_f64vector_p
 {
-  return SCM_BOOL (SCM_SMOB_PREDICATE (scm_tc16_uvec, obj) &&
-		   SCM_UVEC_TYPE (obj) == SCM_UVEC_F64);
+  return scm_from_bool (SCM_SMOB_PREDICATE (scm_tc16_uvec, obj) &&
+			SCM_UVEC_TYPE (obj) == SCM_UVEC_F64);
 }
 #undef FUNC_NAME
 

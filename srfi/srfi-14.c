@@ -85,7 +85,7 @@ SCM_DEFINE (scm_char_set_p, "char-set?", 1, 0, 0,
 	    "otherwise.")
 #define FUNC_NAME s_scm_char_set_p
 {
-  return SCM_BOOL (SCM_SMOB_PREDICATE (scm_tc16_charset, obj));
+  return scm_from_bool (SCM_SMOB_PREDICATE (scm_tc16_charset, obj));
 }
 #undef FUNC_NAME
 
@@ -261,7 +261,7 @@ SCM_DEFINE (scm_end_of_char_set_p, "end-of-char-set?", 1, 0, 0,
   int ccursor;
 
   SCM_VALIDATE_INUM_MIN_COPY (1, cursor, 0, ccursor);
-  return SCM_BOOL (ccursor >= SCM_CHARSET_SIZE);
+  return scm_from_bool (ccursor >= SCM_CHARSET_SIZE);
 }
 #undef FUNC_NAME
 
@@ -316,7 +316,7 @@ SCM_DEFINE (scm_char_set_unfold, "char-set-unfold", 4, 1, 0,
     result = make_char_set (FUNC_NAME);
 
   tmp = scm_call_1 (p, seed);
-  while (SCM_FALSEP (tmp))
+  while (scm_is_false (tmp))
     {
       SCM ch = scm_call_1 (f, seed);
       if (!SCM_CHARP (ch))
@@ -354,7 +354,7 @@ SCM_DEFINE (scm_char_set_unfold_x, "char-set-unfold!", 5, 0, 0,
   SCM_VALIDATE_SMOB (5, base_cs, charset);
 
   tmp = scm_call_1 (p, seed);
-  while (SCM_FALSEP (tmp))
+  while (scm_is_false (tmp))
     {
       SCM ch = scm_call_1 (f, seed);
       if (!SCM_CHARP (ch))
@@ -606,7 +606,7 @@ SCM_DEFINE (scm_char_set_filter, "char-set-filter", 2, 1, 0,
 	{
 	  SCM res = scm_call_1 (pred, SCM_MAKE_CHAR (k));
 
-	  if (!SCM_FALSEP (res))
+	  if (scm_is_true (res))
 	    p[k / SCM_BITS_PER_LONG] |= 1L << (k % SCM_BITS_PER_LONG);
 	}
     }
@@ -635,7 +635,7 @@ SCM_DEFINE (scm_char_set_filter_x, "char-set-filter!", 3, 0, 0,
 	{
 	  SCM res = scm_call_1 (pred, SCM_MAKE_CHAR (k));
 
-	  if (!SCM_FALSEP (res))
+	  if (scm_is_true (res))
 	    p[k / SCM_BITS_PER_LONG] |= 1L << (k % SCM_BITS_PER_LONG);
 	}
     }
@@ -670,7 +670,7 @@ SCM_DEFINE (scm_ucs_range_to_char_set, "ucs-range->char-set", 2, 2, 0,
   SCM_ASSERT_RANGE (2, upper, cupper >= 0 && cupper >= clower);
   if (!SCM_UNBNDP (error))
     {
-      if (!SCM_FALSEP (error))
+      if (scm_is_true (error))
 	{
 	  SCM_ASSERT_RANGE (1, lower, clower <= SCM_CHARSET_SIZE);
 	  SCM_ASSERT_RANGE (2, upper, cupper <= SCM_CHARSET_SIZE);
@@ -721,7 +721,7 @@ SCM_DEFINE (scm_ucs_range_to_char_set_x, "ucs-range->char-set!", 4, 0, 0,
   SCM_VALIDATE_INUM_COPY (2, upper, cupper);
   SCM_ASSERT_RANGE (1, lower, clower >= 0);
   SCM_ASSERT_RANGE (2, upper, cupper >= 0 && cupper >= clower);
-  if (!SCM_FALSEP (error))
+  if (scm_is_true (error))
     {
       SCM_ASSERT_RANGE (1, lower, clower <= SCM_CHARSET_SIZE);
       SCM_ASSERT_RANGE (2, upper, cupper <= SCM_CHARSET_SIZE);
@@ -772,7 +772,7 @@ SCM_DEFINE (scm_char_set_count, "char-set-count", 2, 0, 0,
     if (SCM_CHARSET_GET (cs, k))
       {
 	SCM res = scm_call_1 (pred, SCM_MAKE_CHAR (k));
-	if (!SCM_FALSEP (res))
+	if (scm_is_true (res))
 	  count++;
       }
   return SCM_MAKINUM (count);
@@ -833,7 +833,7 @@ SCM_DEFINE (scm_char_set_contains_p, "char-set-contains?", 2, 0, 0,
 {
   SCM_VALIDATE_SMOB (1, cs, charset);
   SCM_VALIDATE_CHAR (2, ch);
-  return SCM_BOOL (SCM_CHARSET_GET (cs, SCM_CHAR (ch)));
+  return scm_from_bool (SCM_CHARSET_GET (cs, SCM_CHAR (ch)));
 }
 #undef FUNC_NAME
 
@@ -854,7 +854,7 @@ SCM_DEFINE (scm_char_set_every, "char-set-every", 2, 0, 0,
     if (SCM_CHARSET_GET (cs, k))
       {
 	res = scm_call_1 (pred, SCM_MAKE_CHAR (k));
-	if (SCM_FALSEP (res))
+	if (scm_is_false (res))
 	  return res;
       }
   return res;
@@ -877,7 +877,7 @@ SCM_DEFINE (scm_char_set_any, "char-set-any", 2, 0, 0,
     if (SCM_CHARSET_GET (cs, k))
       {
 	SCM res = scm_call_1 (pred, SCM_MAKE_CHAR (k));
-	if (!SCM_FALSEP (res))
+	if (scm_is_true (res))
 	  return res;
       }
   return SCM_BOOL_F;

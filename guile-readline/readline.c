@@ -342,7 +342,7 @@ SCM_DEFINE (scm_read_history, "read-history", 1, 0, 0,
 #define FUNC_NAME s_scm_read_history
 {
   SCM_VALIDATE_STRING (1,file);
-  return SCM_NEGATE_BOOL (read_history (SCM_STRING_CHARS (file)));
+  return scm_from_bool (!read_history (SCM_STRING_CHARS (file)));
 }
 #undef FUNC_NAME
 
@@ -353,7 +353,7 @@ SCM_DEFINE (scm_write_history, "write-history", 1, 0, 0,
 #define FUNC_NAME s_scm_write_history
 {
   SCM_VALIDATE_STRING (1,file);
-  return SCM_NEGATE_BOOL (write_history (SCM_STRING_CHARS (file)));
+  return scm_from_bool (!write_history (SCM_STRING_CHARS (file)));
 }
 #undef FUNC_NAME
 

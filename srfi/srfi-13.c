@@ -47,7 +47,7 @@ SCM_DEFINE (scm_string_any, "string-any", 2, 2, 0,
   while (cstart < cend)
     {
       res = scm_call_1 (pred, SCM_MAKE_CHAR (*cstr));
-      if (!SCM_FALSEP (res))
+      if (scm_is_true (res))
 	return res;
       cstr++;
       cstart++;
@@ -79,7 +79,7 @@ SCM_DEFINE (scm_string_every, "string-every", 2, 2, 0,
   while (cstart < cend)
     {
       res = scm_call_1 (pred, SCM_MAKE_CHAR (*cstr));
-      if (SCM_FALSEP (res))
+      if (scm_is_false (res))
 	return res;
       cstr++;
       cstart++;
@@ -625,7 +625,7 @@ SCM_DEFINE (scm_string_trim, "string-trim", 1, 3, 0,
 	  SCM res;
 
 	  res = scm_call_1 (char_pred, SCM_MAKE_CHAR (cstr[cstart]));
-	  if (SCM_FALSEP (res))
+	  if (scm_is_false (res))
 	    break;
 	  cstart++;
 	}
@@ -700,7 +700,7 @@ SCM_DEFINE (scm_string_trim_right, "string-trim-right", 1, 3, 0,
 	  SCM res;
 
 	  res = scm_call_1 (char_pred, SCM_MAKE_CHAR (cstr[cend - 1]));
-	  if (SCM_FALSEP (res))
+	  if (scm_is_false (res))
 	    break;
 	  cend--;
 	}
@@ -793,7 +793,7 @@ SCM_DEFINE (scm_string_trim_both, "string-trim-both", 1, 3, 0,
 	  SCM res;
 
 	  res = scm_call_1 (char_pred, SCM_MAKE_CHAR (cstr[cstart]));
-	  if (SCM_FALSEP (res))
+	  if (scm_is_false (res))
 	    break;
 	  cstart++;
 	}
@@ -802,7 +802,7 @@ SCM_DEFINE (scm_string_trim_both, "string-trim-both", 1, 3, 0,
 	  SCM res;
 
 	  res = scm_call_1 (char_pred, SCM_MAKE_CHAR (cstr[cend - 1]));
-	  if (SCM_FALSEP (res))
+	  if (scm_is_false (res))
 	    break;
 	  cend--;
 	}
@@ -1480,12 +1480,12 @@ SCM_DEFINE (scm_string_prefix_p, "string-prefix?", 2, 4, 0,
   while (cstart1 < cend1 && cstart2 < cend2)
     {
       if (cstr1[cstart1] != cstr2[cstart2])
-	return SCM_BOOL (len == len1);
+	return scm_from_bool (len == len1);
       len++;
       cstart1++;
       cstart2++;
     }
-  return SCM_BOOL (len == len1);
+  return scm_from_bool (len == len1);
 }
 #undef FUNC_NAME
 
@@ -1509,12 +1509,12 @@ SCM_DEFINE (scm_string_prefix_ci_p, "string-prefix-ci?", 2, 4, 0,
   while (cstart1 < cend1 && cstart2 < cend2)
     {
       if (scm_c_downcase (cstr1[cstart1]) != scm_c_downcase (cstr2[cstart2]))
-	return SCM_BOOL (len == len1);
+	return scm_from_bool (len == len1);
       len++;
       cstart1++;
       cstart2++;
     }
-  return SCM_BOOL (len == len1);
+  return scm_from_bool (len == len1);
 }
 #undef FUNC_NAME
 
@@ -1540,10 +1540,10 @@ SCM_DEFINE (scm_string_suffix_p, "string-suffix?", 2, 4, 0,
       cend1--;
       cend2--;
       if (cstr1[cend1] != cstr2[cend2])
-	return SCM_BOOL (len == len1);
+	return scm_from_bool (len == len1);
       len++;
     }
-  return SCM_BOOL (len == len1);
+  return scm_from_bool (len == len1);
 }
 #undef FUNC_NAME
 
@@ -1569,10 +1569,10 @@ SCM_DEFINE (scm_string_suffix_ci_p, "string-suffix-ci?", 2, 4, 0,
       cend1--;
       cend2--;
       if (scm_c_downcase (cstr1[cend1]) != scm_c_downcase (cstr2[cend2]))
-	return SCM_BOOL (len == len1);
+	return scm_from_bool (len == len1);
       len++;
     }
-  return SCM_BOOL (len == len1);
+  return scm_from_bool (len == len1);
 }
 #undef FUNC_NAME
 
@@ -1628,7 +1628,7 @@ SCM_DEFINE (scm_string_indexS, "string-index", 2, 2, 0,
 	{
 	  SCM res;
 	  res = scm_call_1 (char_pred, SCM_MAKE_CHAR (cstr[cstart]));
-	  if (!SCM_FALSEP (res))
+	  if (scm_is_true (res))
 	    return SCM_MAKINUM (cstart);
 	  cstart++;
 	}
@@ -1688,7 +1688,7 @@ SCM_DEFINE (scm_string_index_right, "string-index-right", 2, 2, 0,
 	  SCM res;
 	  cend--;
 	  res = scm_call_1 (char_pred, SCM_MAKE_CHAR (cstr[cend]));
-	  if (!SCM_FALSEP (res))
+	  if (scm_is_true (res))
 	    return SCM_MAKINUM (cend);
 	}
     }
@@ -1747,7 +1747,7 @@ SCM_DEFINE (scm_string_skip, "string-skip", 2, 2, 0,
 	{
 	  SCM res;
 	  res = scm_call_1 (char_pred, SCM_MAKE_CHAR (cstr[cstart]));
-	  if (SCM_FALSEP (res))
+	  if (scm_is_false (res))
 	    return SCM_MAKINUM (cstart);
 	  cstart++;
 	}
@@ -1808,7 +1808,7 @@ SCM_DEFINE (scm_string_skip_right, "string-skip-right", 2, 2, 0,
 	  SCM res;
 	  cend--;
 	  res = scm_call_1 (char_pred, SCM_MAKE_CHAR (cstr[cend]));
-	  if (SCM_FALSEP (res))
+	  if (scm_is_false (res))
 	    return SCM_MAKINUM (cend);
 	}
     }
@@ -1867,7 +1867,7 @@ SCM_DEFINE (scm_string_count, "string-count", 2, 2, 0,
 	{
 	  SCM res;
 	  res = scm_call_1 (char_pred, SCM_MAKE_CHAR (cstr[cstart]));
-	  if (!SCM_FALSEP (res))
+	  if (scm_is_true (res))
 	    count++;
 	  cstart++;
 	}
@@ -2086,7 +2086,7 @@ string_titlecase_x (SCM str, int start, int end)
   sz = SCM_STRING_UCHARS (str);
   for(i = start; i < end;  i++)
     {
-      if (!SCM_FALSEP (scm_char_alphabetic_p (SCM_MAKE_CHAR (sz[i]))))
+      if (scm_is_true (scm_char_alphabetic_p (SCM_MAKE_CHAR (sz[i]))))
 	{
 	  if (!in_word)
 	    {
@@ -2528,7 +2528,7 @@ SCM_DEFINE (scm_string_unfold, "string-unfold", 4, 2, 0,
     SCM_VALIDATE_PROC (6, make_final);
 
   res = scm_call_1 (p, seed);
-  while (SCM_FALSEP (res))
+  while (scm_is_false (res))
     {
       SCM str;
       SCM ch = scm_call_1 (f, seed);
@@ -2590,7 +2590,7 @@ SCM_DEFINE (scm_string_unfold_right, "string-unfold-right", 4, 2, 0,
     SCM_VALIDATE_PROC (6, make_final);
 
   res = scm_call_1 (p, seed);
-  while (SCM_FALSEP (res))
+  while (scm_is_false (res))
     {
       SCM str;
       SCM ch = scm_call_1 (f, seed);
@@ -2895,7 +2895,7 @@ SCM_DEFINE (scm_string_filter, "string-filter", 2, 2, 0,
 	{
 	  SCM res;
 	  res = scm_call_1 (char_pred, SCM_MAKE_CHAR (cstr[idx]));
-	  if (!SCM_FALSEP (res))
+	  if (scm_is_true (res))
 	    ls = scm_cons (SCM_MAKE_CHAR (cstr[idx]), ls);
 	  idx++;
 	}
@@ -2961,7 +2961,7 @@ SCM_DEFINE (scm_string_delete, "string-delete", 2, 2, 0,
 	{
 	  SCM res;
 	  res = scm_call_1 (char_pred, SCM_MAKE_CHAR (cstr[idx]));
-	  if (SCM_FALSEP (res))
+	  if (scm_is_false (res))
 	    ls = scm_cons (SCM_MAKE_CHAR (cstr[idx]), ls);
 	  idx++;
 	}

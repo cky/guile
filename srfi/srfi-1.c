@@ -99,7 +99,7 @@ SCM_DEFINE (scm_srfi1_count, "count", 2, 0, 1,
       SCM_ASSERT (pred_tramp, pred, SCM_ARG1, FUNC_NAME);
 
       for ( ; SCM_CONSP (lst1); lst1 = SCM_CDR (lst1))
-        count += ! SCM_FALSEP (pred_tramp (pred, SCM_CAR (lst1)));
+        count += scm_is_true (pred_tramp (pred, SCM_CAR (lst1)));
 
     end_lst1:
       SCM_ASSERT_TYPE (SCM_NULL_OR_NIL_P (lst1), lst1, SCM_ARG2, FUNC_NAME,
@@ -125,8 +125,8 @@ SCM_DEFINE (scm_srfi1_count, "count", 2, 0, 1,
                                FUNC_NAME, "list");
               break;
             }
-          count += ! SCM_FALSEP (pred_tramp
-                                 (pred, SCM_CAR (lst1), SCM_CAR (lst2)));
+          count += scm_is_true (pred_tramp
+				(pred, SCM_CAR (lst1), SCM_CAR (lst2)));
           lst1 = SCM_CDR (lst1);
           lst2 = SCM_CDR (lst2);
         }
@@ -165,7 +165,7 @@ SCM_DEFINE (scm_srfi1_count, "count", 2, 0, 1,
               SCM_SETCAR (l, SCM_CDR (lst));  /* keep rest of lst */
             }
 
-          count += ! SCM_FALSEP (scm_apply (pred, args, SCM_EOL));
+          count += scm_is_true (scm_apply (pred, args, SCM_EOL));
         }
     }
  done:
@@ -218,7 +218,7 @@ SCM_DEFINE (scm_srfi1_delete, "delete", 2, 1, 0,
 
   for ( ; SCM_CONSP (lst); lst = SCM_CDR (lst))
     {
-      if (! SCM_FALSEP (equal_p (pred, x, SCM_CAR (lst))))
+      if (scm_is_true (equal_p (pred, x, SCM_CAR (lst))))
         {
           /* delete this element, so copy from keeplst (inclusive) to lst
              (exclusive) onto ret */
@@ -277,7 +277,7 @@ SCM_DEFINE (scm_srfi1_delete_x, "delete!", 2, 1, 0,
        SCM_CONSP (walk);
        walk = SCM_CDR (walk))
     {
-      if (! SCM_FALSEP (equal_p (pred, x, SCM_CAR (walk))))
+      if (scm_is_true (equal_p (pred, x, SCM_CAR (walk))))
 	*prev = SCM_CDR (walk);
       else
 	prev = SCM_CDRLOC (walk);
@@ -362,7 +362,7 @@ SCM_DEFINE (scm_srfi1_delete_duplicates, "delete-duplicates", 1, 1, 0,
           /* loop searching ret upto lst */
           for (l = ret; ! SCM_EQ_P (l, lst); l = SCM_CDR (l))
             {
-              if (! SCM_FALSEP (equal_p (pred, SCM_CAR (l), item)))
+              if (scm_is_true (equal_p (pred, SCM_CAR (l), item)))
                 {
                   /* duplicate, don't want this element, so copy keeplst
                      (inclusive) to lst (exclusive) onto ret */
@@ -447,7 +447,7 @@ SCM_DEFINE (scm_srfi1_delete_duplicates_x, "delete-duplicates!", 1, 1, 0,
           l = ret;
           for (;;)
             {
-              if (! SCM_FALSEP (equal_p (pred, SCM_CAR (l), item)))
+              if (scm_is_true (equal_p (pred, SCM_CAR (l), item)))
                 break;  /* equal, forget this element */
 
               if (SCM_EQ_P (l, endret))
@@ -739,7 +739,7 @@ SCM_DEFINE (scm_srfi1_member, "member", 2, 1, 0,
     }
   for (; !SCM_NULL_OR_NIL_P (lst); lst = SCM_CDR (lst))
     {
-      if (!SCM_FALSEP (equal_p (pred, SCM_CAR (lst), x)))
+      if (scm_is_true (equal_p (pred, SCM_CAR (lst), x)))
 	return lst;
     }
   return SCM_BOOL_F;
@@ -767,7 +767,7 @@ SCM_DEFINE (scm_srfi1_assoc, "assoc", 2, 1, 0,
       SCM tmp = SCM_CAR (ls);
       SCM_ASSERT_TYPE (SCM_CONSP (tmp), alist, SCM_ARG2, FUNC_NAME,
 		       "association list");
-      if (SCM_NFALSEP (equal_p (pred, SCM_CAR (tmp), key)))
+      if (scm_is_true (equal_p (pred, SCM_CAR (tmp), key)))
 	return tmp;
     }
   SCM_ASSERT_TYPE (SCM_NULL_OR_NIL_P (ls), alist, SCM_ARG2, FUNC_NAME,
@@ -798,7 +798,7 @@ SCM_DEFINE (scm_srfi1_partition, "partition", 2, 0, 0,
   for (; !SCM_NULL_OR_NIL_P (list); list = SCM_CDR(list)) {
     SCM elt = SCM_CAR(list);
     SCM new_tail = scm_cons(SCM_CAR(list), SCM_EOL);
-    if (SCM_NFALSEP(call(pred, elt))) {
+    if (scm_is_true (call (pred, elt))) {
       SCM_SETCDR(kept_tail, new_tail);
       kept_tail = new_tail;
     }
