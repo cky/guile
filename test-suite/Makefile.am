@@ -37,6 +37,7 @@ SCM_TESTS = tests/alist.test			\
 	    tests/getopt-long.test		\
 	    tests/goops.test			\
 	    tests/guardians.test		\
+	    tests/hash.test			\
 	    tests/hooks.test			\
 	    tests/import.test			\
 	    tests/interp.test			\
