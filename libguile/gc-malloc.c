@@ -177,8 +177,16 @@ scm_strdup (const char *str)
   return scm_strndup (str, strlen (str));
 }
 
-void
-scm_gc_register_collectable_memory (void *mem, size_t size, const char *what)
+
+static void
+decrease_mtrigger (size_t size, const char * what)
+{
+  scm_mallocated -= size;
+  scm_gc_malloc_collected += size;
+}
+
+static void
+increase_mtrigger (size_t size, const char *what)
 {
   if (ULONG_MAX - size < scm_mallocated)
     {
@@ -186,11 +194,6 @@ scm_gc_register_collectable_memory (void *mem, size_t size, const char *what)
     }
 
   scm_mallocated += size;
-
-  /*
-    we could finish the full sweep (without mark) here, but in
-    practice this turns out to be ineffective.
-   */
 
   /*
     A program that uses a lot of malloced collectable memory (vectors,
@@ -250,19 +253,23 @@ scm_gc_register_collectable_memory (void *mem, size_t size, const char *what)
       
       scm_rec_mutex_unlock (&scm_i_sweep_mutex);
     }
-  
+}
+
+void
+scm_gc_register_collectable_memory (void *mem, size_t size, const char *what)
+{
+  increase_mtrigger (size, what); 
 #ifdef GUILE_DEBUG_MALLOC
   if (mem)
     scm_malloc_register (mem, what);
 #endif
 }
 
+
 void
 scm_gc_unregister_collectable_memory (void *mem, size_t size, const char *what)
 {
-  scm_mallocated -= size;
-  scm_gc_malloc_collected += size;
-  
+  decrease_mtrigger (size, what);
 #ifdef GUILE_DEBUG_MALLOC
   if (mem)
     scm_malloc_unregister (mem);
@@ -302,9 +309,24 @@ scm_gc_realloc (void *mem, size_t old_size, size_t new_size, const char *what)
 {
   /* XXX - see scm_gc_malloc. */
 
+
+  /*    
+  scm_realloc() may invalidate the block pointed to by WHERE, eg. by
+  unmapping it from memory or altering the contents.  Since
+  increase_mtrigger() might trigger a GC that would scan
+  MEM, it is crucial that this call precedes realloc().
+  */
+
+  decrease_mtrigger (old_size, what);
+  increase_mtrigger (new_size, what);
+
   void *ptr = scm_realloc (mem, new_size);
-  scm_gc_unregister_collectable_memory (mem, old_size, what);
-  scm_gc_register_collectable_memory (ptr, new_size, what);
+
+#ifdef GUILE_DEBUG_MALLOC
+  if (mem)
+    scm_malloc_reregister (mem, ptr, what);
+#endif
+  
   return ptr;
 }
 

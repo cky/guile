@@ -1,3 +1,14 @@
+2003-07-06  Han-Wen Nienhuys  <hanwen@cs.uu.nl>
+
+	* gc-malloc.c (decrease_mtrigger): new function
+	(increase_mtrigger): new function, separate debug registering and
+	mtrigger administration.
+	(scm_gc_realloc): bugfix: do mtrigger administration before the
+	actual realloc, for the realloc might invalidate a GC-d segment of
+	memory. Thanks to Sam Hocevar for pointing this out.
+	(scm_gc_realloc): use scm_malloc_reregister instead of
+	unregistering and registering in sequence.
+
 2003-07-03  Han-Wen Nienhuys  <hanwen@cs.uu.nl>
 
 	* __scm.h (SCM_ASSERT): change "else" expansion to "do { } while (0)" 
