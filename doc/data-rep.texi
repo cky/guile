@@ -46,7 +46,7 @@ by the Free Software Foundation.
 @sp 10
 @comment The title is printed in a large font.
 @title Data Representation in Guile
-@subtitle $Id: data-rep.texi,v 1.9 2000-02-28 20:58:59 jimb Exp $
+@subtitle $Id: data-rep.texi,v 1.10 2000-05-15 11:42:01 dirk Exp $
 @subtitle For use with Guile @value{VERSION}
 @author Jim Blandy
 @author Free Software Foundation
@@ -632,16 +632,16 @@ This function does not check for overflow.
 
 Here are functions for operating on characters.
 
-@deftypefn Macro int SCM_ICHRP (SCM @var{x})
+@deftypefn Macro int SCM_CHARP (SCM @var{x})
 Return non-zero iff @var{x} is a character value.
 @end deftypefn
 
-@deftypefn Macro {unsigned int} SCM_ICHR (SCM @var{x})
+@deftypefn Macro {unsigned int} SCM_CHAR (SCM @var{x})
 Return the value of @code{x} as a C character.  If @var{x} is not a
 Scheme character, the result is undefined.
 @end deftypefn
 
-@deftypefn Macro SCM SCM_MAKICHR (int @var{c})
+@deftypefn Macro SCM SCM_MAKE_CHAR (int @var{c})
 Given a C character @var{c}, return its representation as a Scheme
 character value.
 @end deftypefn

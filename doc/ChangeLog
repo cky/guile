@@ -1,3 +1,8 @@
+2000-05-15  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* data-rep.texi:  Updated the macro names for operating on
+	characters.
+
 2000-03-22  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* api.txt:  Added a first attempt for a description of the newly
