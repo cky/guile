@@ -46,6 +46,7 @@
 #include "libguile/eval.h"
 #include "libguile/gh.h"
 #include "libguile/hash.h"
+#include "libguile/list.h"
 #include "libguile/ports.h"
 #include "libguile/smob.h"
 #include "libguile/symbols.h"
@@ -587,49 +588,6 @@ obarray_retrieve (SCM obarray, SCM sym)
   return SCM_UNDEFINED;
 }
 
-/*
-  Remove first occurance of KEY from (cdr ALIST),
-  return (KEY . VAL) if found, otherwise return #f
-
-  PRECONDITION:
-
-  length (ALIST) >= 1
-
-  This could also be done by combining scm_delq1_x () and
-  scm_sloppy_assq(), at the cost of walking the list another time.
- */
-static
-SCM
-remove_key_from_alist (SCM alist, SCM key)
-{
-  SCM cell_cdr = alist;
-  alist =SCM_CDR (alist);
-
-  /*
-    inv: cdr(cell_cdr) == alist
-   */
-  while (!SCM_NULLP (alist))
-    {
-      if (SCM_EQ_P(SCM_CAAR (alist), key))
-	{
-	  SCM entry = SCM_CAR(alist);
-	  SCM_SETCDR(cell_cdr, SCM_CDR (alist));
-
-	  return entry;
-	}
-      else
-	{
-	  cell_cdr = SCM_CDR (cell_cdr);
-	}
-      
-      if (!SCM_NULLP(alist))
-	alist = SCM_CDR (alist);
-    }
-
-  return SCM_BOOL_F;
-}
-
-  
 
 /*
  * Remove entry from obarray.  If the symbol was found and removed, the old
@@ -640,19 +598,15 @@ obarray_remove (SCM obarray, SCM sym)
 {
   size_t hash = SCM_SYMBOL_HASH (sym) % SCM_VECTOR_LENGTH (obarray);
   SCM table_entry = SCM_VELTS (obarray)[hash];
+  SCM handle = scm_sloppy_assq (sym, table_entry);
 
-  if (SCM_NULLP(table_entry))
-    return SCM_BOOL_F;
+  if (SCM_CONSP (handle))
+    {
+      SCM new_table_entry = scm_delq1_x (handle, table_entry);
+      SCM_VECTOR_SET (obarray, hash, new_table_entry);
+    }
 
-  if (SCM_EQ_P (SCM_CAAR (table_entry), sym))
-    {
-      SCM_VECTOR_SET (obarray, hash, SCM_CDR(table_entry));
-      return SCM_CAR(table_entry);
-    }
-  else
-    {
-      return remove_key_from_alist (table_entry, sym);
-    }
+  return handle;
 }
 
 

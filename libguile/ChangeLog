@@ -1,3 +1,9 @@
+2002-07-24  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* environments.c (remove_key_from_alist):  Removed.
+
+	(obarray_remove):  Simplified.
+
 2002-07-24  Stefan Jahn  <stefan@lkcc.org>
 
 	* continuations.h: ia64: Include <signal.h> before 
