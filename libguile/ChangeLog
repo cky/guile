@@ -1,5 +1,14 @@
 Tue Sep 10 14:01:46 1996  Jim Blandy  <jimb@floss.cyclic.com>
 
+	* marksweep.c, marksweep.h: Deleted; marksweep.c was empty, and
+	marksweep.h just declared functions from gc.c.
+	* gc.h, libguile.h: Don't #include "marksweep.h".
+	* Makefile.in (libobjs, inner_h_files, c_files, gen_c_files): Omit
+	marksweep.o, marksweep.h, marksweep.c, and marksweep.x.  Other
+	dependencies updated.
+
+	* libguile.h: Don't #include "files.h"; it's been deleted.
+
 	* files.c (scm_sys_delete_file): Moved to filesys.c.
 	File is now empty; deleted.
 	* files.h: Deleted.
