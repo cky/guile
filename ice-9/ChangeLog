@@ -1,3 +1,16 @@
+Sun Jun 22 18:33:17 1997  Jim Blandy  <jimb@floss.red-bean.com>
+
+	Try to detect when people are using one version of libguile and a
+	different version of ice-9.  People have been skewing things and
+	sending in bug reports.
+	* version.scm.in: New file, which the configure script munges to
+	produce version.scm, which contains the ice-9 config stamp.
+	* boot-9.scm: Compare the libguile and ice-9 config stamps;
+	display a warning if the two are different.
+	* Makefile.am: Install version.scm, but don't distribute it.
+	Distribute version.scm.in, but don't install it.
+	* Makefile.in: Regenerated.
+
 Thu Jun 19 21:01:16 1997  Jim Blandy  <jimb@floss.red-bean.com>
 
 	* slib.scm (slib:warn): Alias for WARN function.

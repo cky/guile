@@ -1,5 +1,22 @@
 Sun Jun 22 15:46:35 1997  Jim Blandy  <jimb@floss.red-bean.com>
 
+	Try to detect when people are using one version of libguile and a
+	different version of ice-9.  People have been skewing things and
+	sending in bug reports.
+	* Makefile.am (versiondat.h): New file to generate.
+	* version.c: #include "versiondat.h", to get version info.
+	(scm_libguile_config_stamp): New function.
+	* script.c: #include "version.h".
+	(scm_compile_switches): Call scm_version to get version number.
+	* scmconfig.h.in, Makefile.in: Regenerated.
+	* Makefile.in: Regenerated.
+
+	* Makefile.am (ETAGS_ARGS): Catch SCM_PROC, etc. so we can find
+	primitive definitions under their Scheme names.
+
+	* Makefile.am (libguile_la_LDFLAGS): Update library version to
+	1:2.  Helps avoid confusion between installed and uninstalled libs.
+
 	* scmconfig.h.in: Regenerated.  (Needed after June 3 change to
 	../configure.in.)
 
