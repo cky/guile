@@ -77,8 +77,7 @@ int scm_numptob;
 
 /* GC marker for a port with stream of SCM type.  */
 SCM 
-scm_markstream (ptr)
-     SCM ptr;
+scm_markstream (SCM ptr)
 {
   int openp;
   openp = SCM_CAR (ptr) & SCM_OPN;
@@ -211,8 +210,7 @@ scm_set_port_input_waiting (long tc, int (*input_waiting) (SCM))
 SCM_PROC(s_char_ready_p, "char-ready?", 0, 1, 0, scm_char_ready_p);
 
 SCM 
-scm_char_ready_p (port)
-     SCM port;
+scm_char_ready_p (SCM port)
 {
   scm_port *pt;
 
@@ -312,8 +310,7 @@ scm_current_load_port ()
 SCM_PROC(s_set_current_input_port, "set-current-input-port", 1, 0, 0, scm_set_current_input_port);
 
 SCM 
-scm_set_current_input_port (port)
-     SCM port;
+scm_set_current_input_port (SCM port)
 {
   SCM oinp = scm_cur_inp;
   SCM_ASSERT (SCM_NIMP (port) && SCM_OPINPORTP (port), port, SCM_ARG1, s_set_current_input_port);
@@ -325,8 +322,7 @@ scm_set_current_input_port (port)
 SCM_PROC(s_set_current_output_port, "set-current-output-port", 1, 0, 0, scm_set_current_output_port);
 
 SCM 
-scm_set_current_output_port (port)
-     SCM port;
+scm_set_current_output_port (SCM port)
 {
   SCM ooutp = scm_cur_outp;
   port = SCM_COERCE_OUTPORT (port);
@@ -339,8 +335,7 @@ scm_set_current_output_port (port)
 SCM_PROC(s_set_current_error_port, "set-current-error-port", 1, 0, 0, scm_set_current_error_port);
 
 SCM 
-scm_set_current_error_port (port)
-     SCM port;
+scm_set_current_error_port (SCM port)
 {
   SCM oerrp = scm_cur_errp;
   port = SCM_COERCE_OUTPORT (port);
@@ -360,8 +355,7 @@ int scm_port_table_room = 20;	/* Size of the array.  */
 /* Add a port to the table.  */
 
 scm_port *
-scm_add_to_port_table (port)
-     SCM port;
+scm_add_to_port_table (SCM port)
 {
   scm_port *entry;
 
@@ -399,8 +393,7 @@ scm_add_to_port_table (port)
 /* Remove a port from the table and destroy it.  */
 
 void
-scm_remove_from_port_table (port)
-     SCM port;
+scm_remove_from_port_table (SCM port)
 {
   scm_port *p = SCM_PTAB_ENTRY (port);
   int i = p->entry;
@@ -435,8 +428,7 @@ scm_pt_size ()
 /* Return the ith member of the port table.  */
 SCM_PROC(s_pt_member, "pt-member", 1, 0, 0, scm_pt_member);
 SCM
-scm_pt_member (member)
-     SCM member;
+scm_pt_member (SCM member)
 {
   int i;
   SCM_ASSERT (SCM_INUMP (member), member, SCM_ARG1, s_pt_member);
@@ -457,8 +449,7 @@ scm_pt_member (member)
  */
 
 int
-scm_revealed_count (port)
-     SCM port;
+scm_revealed_count (SCM port)
 {
   return SCM_REVEALED(port);
 }
@@ -470,8 +461,7 @@ scm_revealed_count (port)
 SCM_PROC(s_port_revealed, "port-revealed", 1, 0, 0, scm_port_revealed);
 
 SCM
-scm_port_revealed (port)
-     SCM port;
+scm_port_revealed (SCM port)
 {
   port = SCM_COERCE_OUTPORT (port);
   SCM_ASSERT (SCM_NIMP (port) && SCM_PORTP (port), port, SCM_ARG1, s_port_revealed);
@@ -482,12 +472,11 @@ scm_port_revealed (port)
 SCM_PROC(s_set_port_revealed_x, "set-port-revealed!", 2, 0, 0, scm_set_port_revealed_x);
 
 SCM
-scm_set_port_revealed_x (port, rcount)
-     SCM port;
-     SCM rcount;
+scm_set_port_revealed_x (SCM port, SCM rcount)
 {
   port = SCM_COERCE_OUTPORT (port);
-  SCM_ASSERT (SCM_NIMP (port) && SCM_PORTP (port), port, SCM_ARG1, s_set_port_revealed_x);
+  SCM_ASSERT (SCM_NIMP (port) && SCM_PORTP (port),
+	      port, SCM_ARG1, s_set_port_revealed_x);
   SCM_ASSERT (SCM_INUMP (rcount), rcount, SCM_ARG2, s_set_port_revealed_x);
   SCM_REVEALED (port) = SCM_INUM (rcount);
   return SCM_UNSPECIFIED;
@@ -504,8 +493,7 @@ scm_set_port_revealed_x (port, rcount)
  */
 
 long
-scm_mode_bits (modes)
-     char *modes;
+scm_mode_bits (char *modes)
 {
   return (SCM_OPN
 	  | (strchr (modes, 'r') || strchr (modes, '+') ? SCM_RDNG : 0)
@@ -524,8 +512,7 @@ scm_mode_bits (modes)
 SCM_PROC(s_port_mode, "port-mode", 1, 0, 0, scm_port_mode);
 
 SCM
-scm_port_mode (port)
-     SCM port;
+scm_port_mode (SCM port)
 {
   char modes[3];
   modes[0] = '\0';
@@ -556,8 +543,7 @@ scm_port_mode (port)
 SCM_PROC(s_close_port, "close-port", 1, 0, 0, scm_close_port);
 
 SCM
-scm_close_port (port)
-     SCM port;
+scm_close_port (SCM port)
 {
   scm_sizet i;
   int rv;
@@ -581,8 +567,7 @@ scm_close_port (port)
 SCM_PROC(s_close_all_ports_except, "close-all-ports-except", 0, 0, 1, scm_close_all_ports_except);
 
 SCM
-scm_close_all_ports_except (ports)
-     SCM ports;
+scm_close_all_ports_except (SCM ports)
 {
   int i = 0;
   SCM_ASSERT (SCM_NIMP (ports) && SCM_CONSP (ports), ports, SCM_ARG1, s_close_all_ports_except);
@@ -617,8 +602,7 @@ scm_close_all_ports_except (ports)
 SCM_PROC(s_input_port_p, "input-port?", 1, 0, 0, scm_input_port_p);
 
 SCM 
-scm_input_port_p (x)
-     SCM x;
+scm_input_port_p (SCM x)
 {
   if (SCM_IMP (x))
     return SCM_BOOL_F;
@@ -628,8 +612,7 @@ scm_input_port_p (x)
 SCM_PROC(s_output_port_p, "output-port?", 1, 0, 0, scm_output_port_p);
 
 SCM 
-scm_output_port_p (x)
-     SCM x;
+scm_output_port_p (SCM x)
 {
   if (SCM_IMP (x))
     return SCM_BOOL_F;
@@ -642,8 +625,7 @@ scm_output_port_p (x)
 SCM_PROC(s_eof_object_p, "eof-object?", 1, 0, 0, scm_eof_object_p);
 
 SCM 
-scm_eof_object_p (x)
-     SCM x;
+scm_eof_object_p (SCM x)
 {
   return SCM_EOF_OBJECT_P (x) ? SCM_BOOL_T : SCM_BOOL_F;
 }
@@ -651,8 +633,7 @@ scm_eof_object_p (x)
 SCM_PROC(s_force_output, "force-output", 0, 1, 0, scm_force_output);
 
 SCM 
-scm_force_output (port)
-     SCM port;
+scm_force_output (SCM port)
 {
   if (SCM_UNBNDP (port))
     port = scm_cur_outp;
@@ -668,7 +649,7 @@ scm_force_output (port)
 
 SCM_PROC (s_flush_all_ports, "flush-all-ports", 0, 0, 0, scm_flush_all_ports);
 SCM
-scm_flush_all_ports (void)
+scm_flush_all_ports ()
 {
   int i;
 
@@ -683,8 +664,7 @@ scm_flush_all_ports (void)
 SCM_PROC(s_read_char, "read-char", 0, 1, 0, scm_read_char);
 
 SCM 
-scm_read_char (port)
-     SCM port;
+scm_read_char (SCM port)
 {
   int c;
   if (SCM_UNBNDP (port))
@@ -719,8 +699,7 @@ scm_fill_input (SCM port)
 }
 
 int 
-scm_getc (port)
-     SCM port;
+scm_getc (SCM port)
 {
   int c;
   scm_port *pt = SCM_PTAB_ENTRY (port);
@@ -759,26 +738,19 @@ scm_getc (port)
 }
 
 void 
-scm_putc (c, port)
-     char c;
-     SCM port;
+scm_putc (char c, SCM port)
 {
   scm_lfwrite (&c, 1, port);
 }
 
 void 
-scm_puts (s, port)
-     char *s;
-     SCM port;
+scm_puts (char *s, SCM port)
 {
   scm_lfwrite (s, strlen (s), port);
 }
 
 void 
-scm_lfwrite (ptr, size, port)
-     char *ptr;
-     scm_sizet size;
-     SCM port;
+scm_lfwrite (char *ptr, scm_sizet size, SCM port)
 {
   scm_port *pt = SCM_PTAB_ENTRY (port);
   scm_ptob_descriptor *ptob = &scm_ptobs[SCM_PTOBNUM (port)];
@@ -794,16 +766,14 @@ scm_lfwrite (ptr, size, port)
 
 
 void 
-scm_flush (port)
-     SCM port;
+scm_flush (SCM port)
 {
   scm_sizet i = SCM_PTOBNUM (port);
   (scm_ptobs[i].flush) (port);
 }
 
 void
-scm_end_input (port)
-     SCM port;
+scm_end_input (SCM port)
 {
   int offset;
   scm_port *pt = SCM_PTAB_ENTRY (port);
@@ -826,9 +796,7 @@ scm_end_input (port)
 
 
 void 
-scm_ungetc (c, port)
-     int c;
-     SCM port;
+scm_ungetc (int c, SCM port)
 {
   scm_port *pt = SCM_PTAB_ENTRY (port);
 
@@ -857,7 +825,15 @@ scm_ungetc (c, port)
 	{
 	  int count = pt->read_end - pt->read_pos;
 
+#ifdef HAVE_MEMMOVE
 	  memmove (pt->read_buf + 1, pt->read_pos, count);
+#else
+#ifdef HAVE_BCOPY
+	  bcopy (pt->read_pos, pt->read_buf + 1, count);
+#else
+#error Need memmove.  Please send a bug report to bug-guile@gnu.org.
+#endif
+#endif
 	  pt->read_end = pt->read_buf + 1 + count;
 	}
 
@@ -902,10 +878,7 @@ scm_ungetc (c, port)
 
 
 void 
-scm_ungets (s, n, port)
-     char *s;
-     int n;
-     SCM port;
+scm_ungets (char *s, int n, SCM port)
 {
   /* This is simple minded and inefficient, but unreading strings is
    * probably not a common operation, and remember that line and
@@ -921,8 +894,7 @@ scm_ungets (s, n, port)
 SCM_PROC(s_peek_char, "peek-char", 0, 1, 0, scm_peek_char);
 
 SCM 
-scm_peek_char (port)
-     SCM port;
+scm_peek_char (SCM port)
 {
   int c;
   if (SCM_UNBNDP (port))
@@ -939,9 +911,7 @@ scm_peek_char (port)
 SCM_PROC (s_unread_char, "unread-char", 2, 0, 0, scm_unread_char);
 
 SCM 
-scm_unread_char (cobj, port)
-     SCM cobj;
-     SCM port;
+scm_unread_char (SCM cobj, SCM port)
 {
   int c;
 
@@ -962,9 +932,7 @@ scm_unread_char (cobj, port)
 SCM_PROC (s_unread_string, "unread-string", 2, 0, 0, scm_unread_string);
 
 SCM 
-scm_unread_string (str, port)
-     SCM str;
-     SCM port;
+scm_unread_string (SCM str, SCM port)
 {
   SCM_ASSERT (SCM_NIMP (str) && SCM_STRINGP (str),
 	      str, SCM_ARG1, s_unread_string);
@@ -1080,8 +1048,7 @@ scm_truncate_file (SCM object, SCM length)
 SCM_PROC (s_port_line, "port-line", 1, 0, 0, scm_port_line);
 
 SCM 
-scm_port_line (port)
-     SCM port;
+scm_port_line (SCM port)
 {
   port = SCM_COERCE_OUTPORT (port);
   SCM_ASSERT (SCM_NIMP (port) && SCM_PORTP (port) && SCM_OPENP (port),
@@ -1094,9 +1061,7 @@ scm_port_line (port)
 SCM_PROC (s_set_port_line_x, "set-port-line!", 2, 0, 0, scm_set_port_line_x);
 
 SCM 
-scm_set_port_line_x (port, line)
-     SCM port;
-     SCM line;
+scm_set_port_line_x (SCM port, SCM line)
 {
   port = SCM_COERCE_OUTPORT (port);
   SCM_ASSERT (SCM_NIMP (port) && SCM_PORTP (port) && SCM_OPENP (port),
@@ -1110,8 +1075,7 @@ scm_set_port_line_x (port, line)
 SCM_PROC (s_port_column, "port-column", 1, 0, 0, scm_port_column);
 
 SCM
-scm_port_column  (port)
-     SCM port;
+scm_port_column  (SCM port)
 {
   port = SCM_COERCE_OUTPORT (port);
   SCM_ASSERT (SCM_NIMP (port) && SCM_PORTP (port) && SCM_OPENP (port),
@@ -1124,9 +1088,7 @@ scm_port_column  (port)
 SCM_PROC (s_set_port_column_x, "set-port-column!", 2, 0, 0, scm_set_port_column_x);
 
 SCM 
-scm_set_port_column_x (port, column)
-     SCM port;
-     SCM column;
+scm_set_port_column_x (SCM port, SCM column)
 {
   port = SCM_COERCE_OUTPORT (port);
   SCM_ASSERT (SCM_NIMP (port) && SCM_PORTP (port) && SCM_OPENP (port),
@@ -1140,8 +1102,7 @@ scm_set_port_column_x (port, column)
 SCM_PROC (s_port_filename, "port-filename", 1, 0, 0, scm_port_filename);
 
 SCM 
-scm_port_filename (port)
-     SCM port;
+scm_port_filename (SCM port)
 {
   port = SCM_COERCE_OUTPORT (port);
   SCM_ASSERT (SCM_NIMP (port) && SCM_PORTP (port) && SCM_OPENP (port),
@@ -1154,9 +1115,7 @@ scm_port_filename (port)
 SCM_PROC (s_set_port_filename_x, "set-port-filename!", 2, 0, 0, scm_set_port_filename_x);
 
 SCM 
-scm_set_port_filename_x (port, filename)
-     SCM port;
-     SCM filename;
+scm_set_port_filename_x (SCM port, SCM filename)
 {
   port = SCM_COERCE_OUTPORT (port);
   SCM_ASSERT (SCM_NIMP (port) && SCM_PORTP (port) && SCM_OPENP (port),
@@ -1242,8 +1201,7 @@ write_void_port (SCM port, void *data, size_t size)
 }
 
 SCM
-scm_void_port (mode_str)
-     char * mode_str;
+scm_void_port (char *mode_str)
 {
   int mode_bits;
   SCM answer;
@@ -1264,8 +1222,7 @@ scm_void_port (mode_str)
 SCM_PROC (s_sys_make_void_port, "%make-void-port", 1, 0, 0, scm_sys_make_void_port);
 
 SCM
-scm_sys_make_void_port (mode)
-     SCM mode;
+scm_sys_make_void_port (SCM mode)
 {
   SCM_ASSERT (SCM_NIMP (mode) && SCM_ROSTRINGP (mode), mode,
 	      SCM_ARG1, s_sys_make_void_port);
