@@ -183,7 +183,7 @@ scm_i_ulong2big (unsigned long x)
   return z;
 }
 
-SCM_C_INLINE_KEYWORD static SCM
+SCM_C_INLINE_KEYWORD SCM
 scm_i_clonebig (SCM src_big, int same_sign_p)
 {
   /* Copy src_big's value, negate it if same_sign_p is false, and return. */

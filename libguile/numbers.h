@@ -3,7 +3,7 @@
 #ifndef SCM_NUMBERS_H
 #define SCM_NUMBERS_H
 
-/* Copyright (C) 1995,1996,1998,2000,2001,2002,2003,2004 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,2000,2001,2002,2003,2004,2005 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -271,6 +271,7 @@ SCM_API SCM scm_i_dbl2num (double d);
 SCM_API double scm_i_big2dbl (SCM b);
 SCM_API SCM scm_i_long2big (long n);
 SCM_API SCM scm_i_ulong2big (unsigned long n);
+SCM_API SCM scm_i_clonebig (SCM src_big, int same_sign_p);
 
 /* ratio functions */
 SCM_API SCM scm_rationalize (SCM x, SCM err);
