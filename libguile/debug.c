@@ -500,7 +500,7 @@ SCM
 scm_reverse_lookup (SCM env, SCM data)
 {
   SCM names, values;
-  while (SCM_CONSP (SCM_CAR (env)))
+  while (SCM_NIMP (env) && SCM_SLOPPY_CONSP (SCM_CAR (env)))
     {
       names = SCM_CAAR (env);
       values = SCM_CDAR (env);
