@@ -42,6 +42,7 @@
 
 #include <stdio.h>
 #include "_scm.h"
+#include "libpath.h"
 
 #ifdef HAVE_STRING_H
 #include <string.h>
