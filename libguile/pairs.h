@@ -145,10 +145,10 @@ typedef SCM  huge *SCMPTR;
 
 
 #ifdef DEBUG_FREELIST
-#define SCM_NEWCELL(_into) (_into = scm_debug_newcell ())
+#define SCM_NEWCELL(_into) do { _into = scm_debug_newcell (); } while (0)
 #else
 #define SCM_NEWCELL(_into) \
-	{ \
+	do { \
 	  if (SCM_IMP(scm_freelist)) \
 	     _into = scm_gc_for_newcell();\
 	  else \
@@ -157,7 +157,7 @@ typedef SCM  huge *SCMPTR;
 	       scm_freelist = SCM_CDR(scm_freelist);\
 	       ++scm_cells_allocated; \
 	    } \
-	}
+	} while(0)
 #endif
 
 

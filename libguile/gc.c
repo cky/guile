@@ -290,14 +290,28 @@ scm_check_freelist ()
 }
 
 static int scm_debug_check_freelist = 0;
+
+SCM_PROC (s_gc_set_debug_check_freelist_x, "gc-set-debug-check-freelist!", 1, 0, 0, scm_gc_set_debug_check_freelist_x);
+SCM
+scm_gc_set_debug_check_freelist_x (SCM flag)
+{
+  SCM_ASSERT(SCM_BOOL_T == flag || SCM_BOOL_F == flag, 
+             flag, 1, s_gc_set_debug_check_freelist_x);
+  scm_debug_check_freelist = (SCM_BOOL_T==flag)? 1: 0;
+  return SCM_UNSPECIFIED;
+}
+
+
 SCM
 scm_debug_newcell (void)
 {
   SCM new;
 
   scm_newcell_count++;
-  if (scm_debug_check_freelist)
+  if (scm_debug_check_freelist) {
     scm_check_freelist ();
+    scm_gc();
+  }
 
   /* The rest of this is supposed to be identical to the SCM_NEWCELL
      macro.  */

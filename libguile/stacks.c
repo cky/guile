@@ -440,7 +440,7 @@ scm_make_stack (args)
      SCM args;
 {
   int n, maxp, size;
-  scm_debug_frame *dframe;
+  scm_debug_frame *dframe = scm_last_debug_frame;
   scm_info_frame *iframe;
   long offset = 0;
   SCM stack, id;
@@ -455,9 +455,9 @@ scm_make_stack (args)
 
   /* Extract a pointer to the innermost frame of whatever object
      scm_make_stack was given.  */
-  if (obj == SCM_BOOL_T)
-    dframe = scm_last_debug_frame;
-  else
+  /* just use dframe == scm_last_debug_frame 
+     (from initialization of dframe, above) if obj is #t */
+  if (obj != SCM_BOOL_T)
     {
       SCM_ASSERT (SCM_NIMP (obj), obj, SCM_ARG1, s_make_stack);
       if (SCM_DEBUGOBJP (obj))
