@@ -1,3 +1,9 @@
+2000-06-06  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* scmsigs.c (scm_sigaction): Silently ignore setting handlers for
+	`program error signals' because they can't currently be handled by
+	Scheme code.
+
 2000-06-05  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* procs.h (SCM_SET_SUBRF):  Added.
@@ -32,6 +38,7 @@
 	validate.h (SCM_VALIDATE_BOOL_COPY, SCM_VALIDATE_PROC):  Replace
 	uses of SCM_TRUE_P (x) with SCM_EQ_P (x, SCM_BOOL_T).
 
+>>>>>>> 1.990
 2000-06-04  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* eval.c (scm_badformalsp): New static function.
