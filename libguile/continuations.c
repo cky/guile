@@ -161,7 +161,7 @@ scm_make_continuation (int *first)
   SCM_NEWSMOB (cont, scm_tc16_continuation, continuation);
   SCM_EXIT_A_SECTION;
 
-#ifndef SCM_STACK_GROWS_UP
+#if ! SCM_STACK_GROWS_UP
   src -= stack_size;
 #endif
   memcpy (continuation->stack, src, sizeof (SCM_STACKITEM) * stack_size);
@@ -266,7 +266,7 @@ scm_dynthrow (SCM cont, SCM val)
   SCM_STACKITEM * dst = SCM_BASE (scm_rootcont);
   SCM_STACKITEM stack_top_element;
 
-#ifdef SCM_STACK_GROWS_UP
+#if SCM_STACK_GROWS_UP
   if (SCM_PTR_GE (dst + continuation->num_stack_items, &stack_top_element))
     grow_stack (cont, val);
 #else
