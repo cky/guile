@@ -1,3 +1,11 @@
+1999-03-04  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	New automake: 1.4
+	* config.guess, config.sub, install-sh, mdate-sh, missing,
+	mkinstalldirs: New versions.
+	* Makefile.in, aclocal.m4, configure: Regenerated.
+	* README: Mention new version numbers on autoconf and automake.
+
 1999-02-12  Jim Blandy  <jimb@savonarola.red-bean.com>
 
 	* configure.in: Add --with-readline flag.
