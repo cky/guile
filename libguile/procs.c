@@ -367,7 +367,7 @@ scm_setter (SCM proc)
       /* fall through */
     }
   SCM_WTA_DISPATCH_1 (g_setter, proc, SCM_ARG1, s_setter);
-  return SCM_BOOL_F;
+  return SCM_BOOL_F; /* not reached */
 }
 
 
