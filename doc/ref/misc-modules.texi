@@ -1424,6 +1424,163 @@ modifies the queue @var{list} then it must either maintain
 @end deffn
 
 
+@node Streams
+@section Streams
+@cindex streams
+
+A stream represents a sequence of values, each of which is calculated
+only when required.  This allows large or even infinite sequences to
+be represented and manipulated with familiar operations like ``car'',
+``cdr'', ``map'' or ``fold''.  In such manipulations only as much as
+needed is actually held in memory at any one time.  The functions in
+this section are available from
+
+@example
+(use-modules (ice-9 streams))
+@end example
+
+Streams are implemented using promises (@pxref{Delayed Evaluation}),
+which is how the underlying calculation of values is made only when
+needed, and the values then retained so the calculation is not
+repeated.
+
+@noindent
+Here is a simple example producing a stream of all odd numbers,
+
+@example
+(define odds (make-stream (lambda (state)
+                            (cons state (+ state 2)))
+                          1))
+(stream-car odds)              @result{} 1
+(stream-car (stream-cdr odds)) @result{} 3
+@end example
+
+@noindent
+@code{stream-map} could be used to derive a stream of odd squares,
+
+@example
+(define (square n) (* n n))
+(define oddsquares (stream-map square odds))
+@end example
+
+These are infinite sequences, so it's not possible to convert them to
+a list, but they could be printed (infinitely) with for example
+
+@example
+(stream-for-each (lambda (n sq)
+                   (format #t "~a squared is ~a\n" n sq))
+                 odds oddsquares)
+@print{}
+1 squared is 1
+3 squared is 9
+5 squared is 25
+7 squared is 49
+@dots{}
+@end example
+
+@sp 1
+@defun make-stream proc initial-state
+Return a new stream, formed by calling @var{proc} successively.
+
+Each call is @code{(@var{proc} @var{state})}, it should return a pair,
+the @code{car} being the value for the stream, and the @code{cdr}
+being the new @var{state} for the next call.  For the first call
+@var{state} is the given @var{initial-state}.  At the end of the
+stream, @var{proc} should return some non-pair object.
+@end defun
+
+@defun stream-car stream
+Return the first element from @var{stream}.  @var{stream} must not be
+empty.
+@end defun
+
+@defun stream-cdr stream
+Return a stream which is the second and subsequent elements of
+@var{stream}.  @var{stream} must not be empty.
+@end defun
+
+@defun stream-null? stream
+Return true if @var{stream} is empty.
+@end defun
+
+@defun list->stream list
+@defunx vector->stream vector
+Return a stream with the contents of @var{list} or @var{vector}.
+
+@var{list} or @var{vector} should not be modified subsequently, since
+it's unspecified whether changes there will be reflected in the stream
+returned.
+@end defun
+
+@defun port->stream port readproc
+Return a stream which is the values obtained by reading from
+@var{port} using @var{readproc}.  Each read call is
+@code{(@var{readproc} @var{port})}, and it should return an EOF object
+(@pxref{Reading}) at the end of input.
+
+For example a stream of characters from a file,
+
+@example
+(port->stream (open-input-file "/foo/bar.txt") read-char)
+@end example
+@end defun
+
+@defun stream->list stream
+Return a list which is the entire contents of @var{stream}.
+@end defun
+
+@defun stream->reversed-list stream
+Return a list which is the entire contents of @var{stream}, but in
+reverse order.
+@end defun
+
+@defun stream->list&length stream
+Return two values (@pxref{Multiple Values}) being a list which is the
+entire contents of @var{stream}, and the number of elements in that
+list.
+@end defun
+
+@defun stream->reversed-list&length stream
+Return two values (@pxref{Multiple Values}) being a list which is the
+entire contents of @var{stream}, but in reverse order, and the number
+of elements in that list.
+@end defun
+
+@defun stream->vector stream
+Return a vector which is the entire contents of @var{stream}.
+@end defun
+
+@defun stream-fold proc init stream0 @dots{} streamN
+Apply @var{proc} successively over the elements of the given streams,
+from first to last until the end of the shortest stream is reached.
+Return the result from the last @var{proc} call.
+
+Each call is @code{(@var{proc} elem0 @dots{} elemN prev)}, where each
+@var{elem} is from the corresponding @var{stream}.  @var{prev} is the
+return from the previous @var{proc} call, or the given @var{init} for
+the first call.
+@end defun
+
+@defun stream-for-each proc stream0 @dots{} streamN
+Call @var{proc} on the elements from the given @var{stream}s.  The
+return value is unspecified.
+
+Each call is @code{(@var{proc} elem0 @dots{} elemN)}, where each
+@var{elem} is from the corresponding @var{stream}.
+@code{stream-for-each} stops when it reaches the end of the shortest
+@var{stream}.
+@end defun
+
+@defun stream-map proc stream0 @dots{} streamN
+Return a new stream which is the results of applying @var{proc} to the
+elements of the given @var{stream}s.
+
+Each call is @code{(@var{proc} elem0 @dots{} elemN)}, where each
+@var{elem} is from the corresponding @var{stream}.  The new stream
+ends when the end of teh shortest given @var{stream} is reached.
+@end defun
+
+
 @c Local Variables:
 @c TeX-master: "guile.texi"
 @c End:
