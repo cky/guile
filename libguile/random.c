@@ -491,7 +491,6 @@ SCM_DEFINE (scm_random_solid_sphere_x, "random:solid-sphere!", 1, 1, 0,
             "The sum of the squares of the numbers is returned.")
 #define FUNC_NAME s_scm_random_solid_sphere_x
 {
-  SCM_VALIDATE_VECTOR_OR_DVECTOR (1, v);
   if (SCM_UNBNDP (state))
     state = SCM_VARIABLE_REF (scm_var_random_state);
   SCM_VALIDATE_RSTATE (2, state);
@@ -514,7 +513,6 @@ SCM_DEFINE (scm_random_hollow_sphere_x, "random:hollow-sphere!", 1, 1, 0,
             "unit n-sphere.")
 #define FUNC_NAME s_scm_random_hollow_sphere_x
 {
-  SCM_VALIDATE_VECTOR_OR_DVECTOR (1, v);
   if (SCM_UNBNDP (state))
     state = SCM_VARIABLE_REF (scm_var_random_state);
   SCM_VALIDATE_RSTATE (2, state);
