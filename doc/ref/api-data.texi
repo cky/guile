@@ -3809,86 +3809,117 @@ Return @code{#t} if @var{obj} is a compiled regular expression,
 or @code{#f} otherwise.
 @end deffn
 
-Regular expressions are commonly used to find patterns in one string and
-replace them with the contents of another string.
+@sp 1
+Regular expressions are commonly used to find patterns in one string
+and replace them with the contents of another string.  The following
+functions are convenient ways to do this.
 
 @c begin (scm-doc-string "regex.scm" "regexp-substitute")
 @deffn {Scheme Procedure} regexp-substitute port match [item@dots{}]
-Write to the output port @var{port} selected contents of the match
-structure @var{match}.  Each @var{item} specifies what should be
-written, and may be one of the following arguments:
+Write to @var{port} selected parts of the match structure @var{match}.
+Or if @var{port} is @code{#f} then form a string from those parts and
+return that.
+
+Each @var{item} specifies a part to be written, and may be one of the
+following,
 
 @itemize @bullet
 @item
 A string.  String arguments are written out verbatim.
 
 @item
-An integer.  The submatch with that number is written.
+An integer.  The submatch with that number is written
+(@code{match:substring}).  Zero is the entire match.
 
 @item
 The symbol @samp{pre}.  The portion of the matched string preceding
-the regexp match is written.
+the regexp match is written (@code{match:prefix}).
 
 @item
 The symbol @samp{post}.  The portion of the matched string following
-the regexp match is written.
+the regexp match is written (@code{match:suffix}).
 @end itemize
 
-The @var{port} argument may be @code{#f}, in which case nothing is
-written; instead, @code{regexp-substitute} constructs a string from the
-specified @var{item}s and returns that.
-@end deffn
+For example, changing a match and retaining the text before and after,
 
-The following example takes a regular expression that matches a standard
-@sc{yyyymmdd}-format date such as @code{"20020828"}.  The
-@code{regexp-substitute} call returns a string computed from the
-information in the match structure, consisting of the fields and text
-from the original string reordered and reformatted.
+@example
+(regexp-substitute #f (string-match "[0-9]+" "number 25 is good")
+                   'pre "37" 'post)
+@result{} "number 37 is good"
+@end example
+
+Or matching a @sc{yyyymmdd} format date such as @samp{20020828} and
+re-ordering and hyphenating the fields.
 
 @lisp
 (define date-regex "([0-9][0-9][0-9][0-9])([0-9][0-9])([0-9][0-9])")
 (define s "Date 20020429 12am.")
-(define sm (string-match date-regex s))
-(regexp-substitute #f sm 'pre 2 "-" 3 "-" 1 'post " (" 0 ")")
+(regexp-substitute #f (string-match date-regex s)
+                   'pre 2 "-" 3 "-" 1 'post " (" 0 ")")
 @result{} "Date 04-29-2002 12am. (20020429)"
 @end lisp
+@end deffn
+
 
 @c begin (scm-doc-string "regex.scm" "regexp-substitute")
 @deffn {Scheme Procedure} regexp-substitute/global port regexp target [item@dots{}]
-Similar to @code{regexp-substitute}, but can be used to perform global
-substitutions on @var{str}.  Instead of taking a match structure as an
-argument, @code{regexp-substitute/global} takes two string arguments: a
-@var{regexp} string describing a regular expression, and a @var{target}
-string which should be matched against this regular expression.
+@cindex search and replace
+Write to @var{port} selected parts of matches of @var{regexp} in
+@var{target}.  If @var{port} is @code{#f} then form a string from
+those parts and return that.  @var{regexp} can be a string or a
+compiled regex.
 
-Each @var{item} behaves as in @code{regexp-substitute}, with the
-following exceptions:
+This is similar to @code{regexp-substitute}, but allows global
+substitutions on @var{target}.  Each @var{item} behaves as per
+@code{regexp-substitute}, with the following differences,
 
 @itemize @bullet
 @item
-A function may be supplied.  When this function is called, it will be
-passed one argument: a match structure for a given regular expression
-match.  It should return a string to be written out to @var{port}.
+A function.  Called as @code{(@var{item} match)} with the match
+structure for the @var{regexp} match, it should return a string to be
+written to @var{port}.
 
 @item
-The @samp{post} symbol causes @code{regexp-substitute/global} to recurse
-on the unmatched portion of @var{str}.  This @emph{must} be supplied in
-order to perform global search-and-replace on @var{str}; if it is not
-present among the @var{item}s, then @code{regexp-substitute/global} will
-return after processing a single match.
-@end itemize
-@end deffn
+The symbol @samp{post}.  This doesn't output anything, but instead
+causes @code{regexp-substitute/global} to recurse on the unmatched
+portion of @var{target}.
 
-The example above for @code{regexp-substitute} could be rewritten as
-follows to remove the @code{string-match} stage:
+This @emph{must} be supplied to perform a global search and replace on
+@var{target}; without it @code{regexp-substitute/global} returns after
+a single match and output.
+@end itemize
+
+For example, to collapse runs of tabs and spaces to a single hyphen
+each,
+
+@example
+(regexp-substitute/global #f "[ \t]+"  "this   is   the text"
+                          'pre "-" 'post)
+@result{} "this-is-the-text"
+@end example
+
+Or using a function to reverse the letters in each word,
+
+@example
+(regexp-substitute/global #f "[a-z]+"  "to do and not-do"
+  'pre (lambda (m) (string-reverse (match:substring m))) 'post)
+@result{} "ot od dna ton-od"
+@end example
+
+Without the @code{post} symbol, just one regexp match is made.  For
+example the following is the date example from
+@code{regexp-substitute} above, without the need for the separate
+@code{string-match} call.
 
 @lisp
 (define date-regex "([0-9][0-9][0-9][0-9])([0-9][0-9])([0-9][0-9])")
 (define s "Date 20020429 12am.")
 (regexp-substitute/global #f date-regex s
-  'pre 2 "-" 3 "-" 1 'post " (" 0 ")")
+                          'pre 2 "-" 3 "-" 1 'post " (" 0 ")")
+
 @result{} "Date 04-29-2002 12am. (20020429)"
 @end lisp
+@end deffn
 
 
 @node Match Structures
