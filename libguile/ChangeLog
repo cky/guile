@@ -1,3 +1,24 @@
+1999-07-27  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* Makefile.am (EXTRA_libguile_la_SOURCES): Added lang.c.
+
+	* lang.c: New file: Beginning of multi-language support.
+	
+	* init.c (scm_boot_guile_1): Added call to scm_init_lang ().
+
+	* dynwind.c (scm_dowinds): Removed obsolete wind_key #f case.
+	(scm_dynamic_wind): Added argument checking for the after guard so
+	that we don't add garbage on the dynwind chain.
+	(scm_swap_bindings): Added.
+
+	* tags.h, print.c (SCM_IM_NIL_COND, SCM_IM_NIL_IFY, SCM_IM_T_IFY,
+	SCM_IM_0_COND, SCM_IM_0_IFY, SCM_IM_1_IFY), print.c
+	(scm_isymnames): New isyms for multi-language support.
+	
+ 	* eval.c (scm_nil, scm_t): New symbols.
+	(nil-cond, nil-ify, t-ify, 0-cond, 0-ify, 1-ify): New special
+	forms for multi-language support.
+
 1999-07-25  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* random.c, random.h (scm_c_default_rstate, scm_c_uniform32):
