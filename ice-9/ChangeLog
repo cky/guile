@@ -1,3 +1,8 @@
+2001-04-29  Gary Houston  <ghouston@arglist.com>
+
+	* rw.scm: new file, for module (ice-9 rw).
+	* Makefile.am: add rw.scm.
+
 2001-04-28  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
 	* boot-9.scm, optargs.scm:
