@@ -3,6 +3,7 @@
 *	* debugger.scm: New file: Initial version of the Guile debugger
 	written by Chris Hanson.  (The debugger isn't finished, but is
 	included in Guile anyway since it is already quite useful.)
+	Use readline conditionally.
 
 *	* boot-9.scm (top-repl): Use (ice-9 debug) (ice-9 debugger) (ice-9
 	session) (ice-9 threads) (ice-9 regex) from guile-user only if
