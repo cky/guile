@@ -1,3 +1,14 @@
+2005-03-13  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/numbers.test (=): Exercise inum/flonum cases that used to
+	round on 64-bit systems.
+
+	* tests/numbers.test (logior): New tests, exercising negative bignums
+	reducing to inum.
+
+	* tests/srfi-60.test: New file.
+	* Makefile.am (SCM_TESTS): Add it.
+
 2005-03-02  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* tests/threads.test: Only test when 'threads are provided.
