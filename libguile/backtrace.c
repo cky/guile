@@ -177,7 +177,7 @@ display_expression (SCM frame, SCM pname, SCM source, SCM port)
   pstate->fancyp = 1;
   pstate->level  = DISPLAY_EXPRESSION_MAX_LEVEL;
   pstate->length = DISPLAY_EXPRESSION_MAX_LENGTH;
-  if (SCM_SYMBOLP (pname) || scm_is_string (pname))
+  if (scm_is_symbol (pname) || scm_is_string (pname))
     {
       if (SCM_FRAMEP (frame)
 	  && SCM_FRAME_EVAL_ARGS_P (frame))
@@ -228,13 +228,13 @@ display_error_body (struct display_error_args *a)
       prev_frame = SCM_FRAME_PREV (current_frame);
       if (!SCM_MEMOIZEDP (source) && scm_is_true (prev_frame))
 	source = SCM_FRAME_SOURCE (prev_frame);
-      if (!SCM_SYMBOLP (pname)
+      if (!scm_is_symbol (pname)
 	  && !scm_is_string (pname)
 	  && SCM_FRAME_PROC_P (current_frame)
 	  && scm_is_true (scm_procedure_p (SCM_FRAME_PROC (current_frame))))
 	pname = scm_procedure_name (SCM_FRAME_PROC (current_frame));
     }
-  if (SCM_SYMBOLP (pname) || scm_is_string (pname) || SCM_MEMOIZEDP (source))
+  if (scm_is_symbol (pname) || scm_is_string (pname) || SCM_MEMOIZEDP (source))
     {
       display_header (source, a->port);
       display_expression (current_frame, pname, source, a->port);
@@ -401,18 +401,24 @@ display_frame_expr (char *hdr, SCM exp, char *tlr, int indentation, SCM sport, S
   string = scm_strport_to_string (sport);
   assert (scm_is_string (string));
 
-  /* Remove control characters */
-  for (i = 0; i < n; ++i)
-    if (iscntrl ((int) SCM_I_STRING_UCHARS (string)[i]))
-      SCM_I_STRING_UCHARS (string)[i] = ' ';
-  /* Truncate */
-  if (indentation + n > SCM_BACKTRACE_WIDTH)
-    {
-      n = SCM_BACKTRACE_WIDTH - indentation;
-      SCM_I_STRING_UCHARS (string)[n - 1] = '$';
-    }
+  {
+    char *data = scm_i_string_writable_chars (string);
+
+    /* Remove control characters */
+    for (i = 0; i < n; ++i)
+      if (iscntrl (data[i]))
+	data[i] = ' ';
+    /* Truncate */
+    if (indentation + n > SCM_BACKTRACE_WIDTH)
+      {
+	n = SCM_BACKTRACE_WIDTH - indentation;
+	data[n-1] = '$';
+      }
+
+    scm_i_string_stop_writing ();
+  }
       
-  scm_lfwrite (SCM_I_STRING_CHARS (string), n, port);
+  scm_lfwrite (scm_i_string_chars (string), n, port);
   scm_remember_upto_here_1 (string);
 }
 

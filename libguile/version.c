@@ -95,7 +95,7 @@ SCM_DEFINE (scm_version, "version", 0, 0, 0,
            SCM_MAJOR_VERSION,
            SCM_MINOR_VERSION,
            SCM_MICRO_VERSION);
-  return scm_makfrom0str (version_str);
+  return scm_from_locale_string (version_str);
 }
 #undef FUNC_NAME
 
@@ -120,7 +120,7 @@ SCM_DEFINE (scm_effective_version, "effective-version", 0, 0, 0,
 # error version string may overflow buffer
 #endif
   sprintf (version_str, "%d.%d", SCM_MAJOR_VERSION, SCM_MINOR_VERSION);
-  return scm_makfrom0str (version_str);
+  return scm_from_locale_string (version_str);
 }
 #undef FUNC_NAME
 

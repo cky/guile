@@ -82,32 +82,21 @@ regex_free (SCM obj)
 
 SCM_SYMBOL (scm_regexp_error_key, "regular-expression-syntax");
 
-static char *
+static SCM
 scm_regexp_error_msg (int regerrno, regex_t *rx)
 {
-  SCM errmsg;
+  char *errmsg;
   int l;
 
-  /* FIXME: must we wrap any external calls in SCM_DEFER_INTS...SCM_ALLOW_INTS?
-     Or are these only necessary when a SCM object may be left in an
-     undetermined state (half-formed)?  If the latter then I believe we
-     may do without the critical section code. -twp */
-
-  /* We could simply make errmsg a char pointer, and allocate space with
-     malloc.  But since we are about to pass the pointer to scm_error, which
-     never returns, we would never have the opportunity to free it.  Creating
-     it as a SCM object means that the system will GC it at some point. */
-
-  errmsg = scm_make_string (scm_from_int (80), SCM_UNDEFINED);
-  SCM_DEFER_INTS;
-  l = regerror (regerrno, rx, SCM_I_STRING_CHARS (errmsg), 80);
+  errmsg = scm_malloc (80);
+  l = regerror (regerrno, rx, errmsg, 80);
   if (l > 80)
     {
-      errmsg = scm_make_string (scm_from_int (l), SCM_UNDEFINED);
-      regerror (regerrno, rx, SCM_I_STRING_CHARS (errmsg), l);
+      free (errmsg);
+      errmsg = scm_malloc (l);
+      regerror (regerrno, rx, errmsg, l);
     }
-  SCM_ALLOW_INTS;
-  return SCM_I_STRING_CHARS (errmsg);
+  return scm_take_locale_string (errmsg);
 }
 
 SCM_DEFINE (scm_regexp_p, "regexp?", 1, 0, 0,
@@ -164,6 +153,7 @@ SCM_DEFINE (scm_make_regexp, "make-regexp", 1, 0, 1,
   SCM flag;
   regex_t *rx;
   int status, cflags;
+  char *c_pat;
 
   SCM_VALIDATE_STRING (1, pat);
   SCM_VALIDATE_REST_ARGUMENT (flags);
@@ -182,19 +172,21 @@ SCM_DEFINE (scm_make_regexp, "make-regexp", 1, 0, 1,
     }
 
   rx = scm_gc_malloc (sizeof(regex_t), "regex");
-  status = regcomp (rx, SCM_I_STRING_CHARS (pat),
+  c_pat = scm_to_locale_string (pat);
+  status = regcomp (rx, c_pat,
 		    /* Make sure they're not passing REG_NOSUB;
                        regexp-exec assumes we're getting match data.  */
 		    cflags & ~REG_NOSUB);
+  free (c_pat);
   if (status != 0)
     {
-      char *errmsg = scm_regexp_error_msg (status, rx);
+      SCM errmsg = scm_regexp_error_msg (status, rx);
       scm_gc_free (rx, sizeof(regex_t), "regex");
-      scm_error (scm_regexp_error_key,
-		 FUNC_NAME,
-		 errmsg,
-		 SCM_BOOL_F,
-		 SCM_BOOL_F);
+      scm_error_scm (scm_regexp_error_key,
+		     scm_from_locale_string (FUNC_NAME),
+		     errmsg,
+		     SCM_BOOL_F,
+		     SCM_BOOL_F);
       /* never returns */
     }
   SCM_RETURN_NEWSMOB (scm_tc16_regex, rx);
@@ -234,7 +226,7 @@ SCM_DEFINE (scm_regexp_exec, "regexp-exec", 2, 2, 0,
   if (SCM_UNBNDP (start))
     offset = 0;
   else
-    offset = scm_to_signed_integer (start, 0, SCM_I_STRING_LENGTH (str));
+    offset = scm_to_signed_integer (start, 0, scm_i_string_length (str));
 
   if (SCM_UNBNDP (flags))
     flags = SCM_INUM0;
@@ -245,7 +237,7 @@ SCM_DEFINE (scm_regexp_exec, "regexp-exec", 2, 2, 0,
   nmatches = SCM_RGX(rx)->re_nsub + 1;
   SCM_DEFER_INTS;
   matches = scm_malloc (sizeof (regmatch_t) * nmatches);
-  status = regexec (SCM_RGX (rx), SCM_I_STRING_CHARS (str) + offset,
+  status = regexec (SCM_RGX (rx), scm_i_string_chars (str) + offset,
 		    nmatches, matches,
 		    scm_to_int (flags));
   if (!status)
@@ -268,11 +260,11 @@ SCM_DEFINE (scm_regexp_exec, "regexp-exec", 2, 2, 0,
   SCM_ALLOW_INTS;
 
   if (status != 0 && status != REG_NOMATCH)
-    scm_error (scm_regexp_error_key,
-	       FUNC_NAME,
-	       scm_regexp_error_msg (status, SCM_RGX (rx)),
-	       SCM_BOOL_F,
-	       SCM_BOOL_F);
+    scm_error_scm (scm_regexp_error_key,
+		   scm_from_locale_string (FUNC_NAME),
+		   scm_regexp_error_msg (status, SCM_RGX (rx)),
+		   SCM_BOOL_F,
+		   SCM_BOOL_F);
   return mvec;
 }
 #undef FUNC_NAME

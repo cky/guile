@@ -1,4 +1,4 @@
-/* Copyright (C) 1996,1997,1998,1999,2000,2001, 2003 Free Software Foundation, Inc.
+/* Copyright (C) 1996,1997,1998,1999,2000,2001, 2003, 2004 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -59,16 +59,16 @@ SCM_DEFINE (scm_make_struct_layout, "make-struct-layout", 1, 0, 0,
   SCM_VALIDATE_STRING (1, fields);
 
   { /* scope */
-    char * field_desc;
+    const char * field_desc;
     size_t len;
     int x;
 
-    len = SCM_I_STRING_LENGTH (fields);
+    len = scm_i_string_length (fields);
     if (len % 2 == 1)
       SCM_MISC_ERROR ("odd length field specification: ~S", 
 		      scm_list_1 (fields));
 
-    field_desc = SCM_I_STRING_CHARS (fields);
+    field_desc = scm_i_string_chars (fields);
 
     for (x = 0; x < len; x += 2)
       {
@@ -120,7 +120,7 @@ SCM_DEFINE (scm_make_struct_layout, "make-struct-layout", 1, 0, 0,
 	  }
 #endif
       }
-    new_sym = scm_mem2symbol (field_desc, len);
+    new_sym = scm_string_to_symbol (fields);
   }
   scm_remember_upto_here_1 (fields);
   return new_sym;
@@ -134,9 +134,10 @@ SCM_DEFINE (scm_make_struct_layout, "make-struct-layout", 1, 0, 0,
 static void
 scm_struct_init (SCM handle, SCM layout, scm_t_bits * mem, int tail_elts, SCM inits)
 {
-  unsigned char * fields_desc = (unsigned char *) SCM_SYMBOL_CHARS (layout) - 2;
+  unsigned const char *fields_desc =
+    (unsigned const char *) scm_i_symbol_chars (layout) - 2;
   unsigned char prot = 0;
-  int n_fields = SCM_SYMBOL_LENGTH (layout) / 2;
+  int n_fields = scm_i_symbol_length (layout) / 2;
   int tailp = 0;
 
   while (n_fields)
@@ -239,20 +240,20 @@ SCM_DEFINE (scm_struct_vtable_p, "struct-vtable?", 1, 0, 0,
 
   layout = SCM_STRUCT_LAYOUT (x);
 
-  if (SCM_SYMBOL_LENGTH (layout)
-      < SCM_I_STRING_LENGTH (required_vtable_fields))
+  if (scm_i_symbol_length (layout)
+      < scm_i_string_length (required_vtable_fields))
     return SCM_BOOL_F;
 
-  tmp = strncmp (SCM_SYMBOL_CHARS (layout),
-		 SCM_I_STRING_CHARS (required_vtable_fields),
-		 SCM_I_STRING_LENGTH (required_vtable_fields));
+  tmp = strncmp (scm_i_symbol_chars (layout),
+		 scm_i_string_chars (required_vtable_fields),
+		 scm_i_string_length (required_vtable_fields));
   scm_remember_upto_here_1 (required_vtable_fields);
   if (tmp)
     return SCM_BOOL_F;
 
   mem = SCM_STRUCT_DATA (x);
 
-  return scm_from_bool (SCM_SYMBOLP (SCM_PACK (mem[scm_vtable_index_layout])));
+  return scm_from_bool (scm_is_symbol (SCM_PACK (mem[scm_vtable_index_layout])));
 }
 #undef FUNC_NAME
 
@@ -426,7 +427,7 @@ SCM_DEFINE (scm_make_struct, "make-struct", 2, 0, 1,
   SCM_VALIDATE_REST_ARGUMENT (init);
 
   layout = SCM_PACK (SCM_STRUCT_DATA (vtable) [scm_vtable_index_layout]);
-  basic_size = SCM_SYMBOL_LENGTH (layout) / 2;
+  basic_size = scm_i_symbol_length (layout) / 2;
   tail_elts = scm_to_size_t (tail_array_size);
   SCM_DEFER_INTS;
   if (SCM_STRUCT_DATA (vtable)[scm_struct_i_flags] & SCM_STRUCTF_ENTITY)
@@ -513,7 +514,7 @@ SCM_DEFINE (scm_make_vtable_vtable, "make-vtable-vtable", 2, 0, 1,
   fields = scm_string_append (scm_list_2 (required_vtable_fields,
 					  user_fields));
   layout = scm_make_struct_layout (fields);
-  basic_size = SCM_SYMBOL_LENGTH (layout) / 2;
+  basic_size = scm_i_symbol_length (layout) / 2;
   tail_elts = scm_to_size_t (tail_array_size);
   SCM_DEFER_INTS;
   data = scm_alloc_struct (basic_size + tail_elts,
@@ -543,9 +544,10 @@ SCM_DEFINE (scm_struct_ref, "struct-ref", 2, 0, 0,
   SCM answer = SCM_UNDEFINED;
   scm_t_bits * data;
   SCM layout;
+  size_t layout_len;
   size_t p;
   scm_t_bits n_fields;
-  char * fields_desc;
+  const char *fields_desc;
   char field_type = 0;
   
 
@@ -555,12 +557,13 @@ SCM_DEFINE (scm_struct_ref, "struct-ref", 2, 0, 0,
   data = SCM_STRUCT_DATA (handle);
   p = scm_to_size_t (pos);
 
-  fields_desc = SCM_SYMBOL_CHARS (layout);
+  fields_desc = scm_i_symbol_chars (layout);
+  layout_len = scm_i_symbol_length (layout);
   n_fields = data[scm_struct_i_n_words];
   
   SCM_ASSERT_RANGE(1, pos, p < n_fields);
 
-  if (p * 2 < SCM_SYMBOL_LENGTH (layout))
+  if (p * 2 < layout_len)
     {
       char ref;
       field_type = fields_desc[p * 2];
@@ -573,8 +576,8 @@ SCM_DEFINE (scm_struct_ref, "struct-ref", 2, 0, 0,
 	    SCM_MISC_ERROR ("ref denied for field ~A", scm_list_1 (pos));
 	}
     }
-  else if (fields_desc[SCM_SYMBOL_LENGTH (layout) - 1] != 'O')    
-    field_type = fields_desc[SCM_SYMBOL_LENGTH (layout) - 2];
+  else if (fields_desc[layout_len - 1] != 'O')    
+    field_type = fields_desc[layout_len - 2];
   else
     SCM_MISC_ERROR ("ref denied for field ~A", scm_list_1 (pos));
   
@@ -619,9 +622,10 @@ SCM_DEFINE (scm_struct_set_x, "struct-set!", 3, 0, 0,
 {
   scm_t_bits * data;
   SCM layout;
+  size_t layout_len;
   size_t p;
   int n_fields;
-  char * fields_desc;
+  const char *fields_desc;
   char field_type = 0;
 
   SCM_VALIDATE_STRUCT (1, handle);
@@ -630,12 +634,13 @@ SCM_DEFINE (scm_struct_set_x, "struct-set!", 3, 0, 0,
   data = SCM_STRUCT_DATA (handle);
   p = scm_to_size_t (pos);
 
-  fields_desc = SCM_SYMBOL_CHARS (layout);
+  fields_desc = scm_i_symbol_chars (layout);
+  layout_len = scm_i_symbol_length (layout);
   n_fields = data[scm_struct_i_n_words];
 
   SCM_ASSERT_RANGE (1, pos, p < n_fields);
 
-  if (p * 2 < SCM_SYMBOL_LENGTH (layout))
+  if (p * 2 < layout_len)
     {
       char set_x;
       field_type = fields_desc[p * 2];
@@ -643,8 +648,8 @@ SCM_DEFINE (scm_struct_set_x, "struct-set!", 3, 0, 0,
       if (set_x != 'w')
 	SCM_MISC_ERROR ("set! denied for field ~A", scm_list_1 (pos));
     }
-  else if (fields_desc[SCM_SYMBOL_LENGTH (layout) - 1] == 'W')    
-    field_type = fields_desc[SCM_SYMBOL_LENGTH (layout) - 2];
+  else if (fields_desc[layout_len - 1] == 'W')    
+    field_type = fields_desc[layout_len - 2];
   else
     SCM_MISC_ERROR ("set! denied for field ~A", scm_list_1 (pos));
   
@@ -794,7 +799,7 @@ scm_init_struct ()
 {
   scm_struct_table
     = scm_permanent_object (scm_make_weak_key_hash_table (scm_from_int (31)));
-  required_vtable_fields = scm_makfrom0str ("prsrpw");
+  required_vtable_fields = scm_from_locale_string ("prsrpw");
   scm_permanent_object (required_vtable_fields);
   scm_c_define ("vtable-index-layout", scm_from_int (scm_vtable_index_layout));
   scm_c_define ("vtable-index-vtable", scm_from_int (scm_vtable_index_vtable));

@@ -451,13 +451,13 @@ scm_compile_shell_switches (int argc, char **argv)
 	     (i.e., the #f) with the script name.  */
 	  if (!SCM_NULLP (do_script))
 	    {
-	      SCM_SETCAR (do_script, scm_makfrom0str (argv[i]));
+	      SCM_SETCAR (do_script, scm_from_locale_string (argv[i]));
 	      do_script = SCM_EOL;
 	    }
 	  else
 	    /* Construct an application of LOAD to the script name.  */
 	    tail = scm_cons (scm_cons2 (sym_load,
-					scm_makfrom0str (argv[i]),
+					scm_from_locale_string (argv[i]),
 					SCM_EOL),
 			       tail);
 	  argv0 = argv[i];
@@ -471,7 +471,7 @@ scm_compile_shell_switches (int argc, char **argv)
 	  if (++i >= argc)
 	    scm_shell_usage (1, "missing argument to `-c' switch");
 	  tail = scm_cons (scm_cons2 (sym_eval_string,
-				      scm_makfrom0str (argv[i]),
+				      scm_from_locale_string (argv[i]),
 				      SCM_EOL),
 			   tail);
 	  i++;
@@ -489,7 +489,7 @@ scm_compile_shell_switches (int argc, char **argv)
 	{
 	  if (++i < argc)
 	    tail = scm_cons (scm_cons2 (sym_load,
-					scm_makfrom0str (argv[i]),
+					scm_from_locale_string (argv[i]),
 					SCM_EOL),
 			     tail);
 	  else

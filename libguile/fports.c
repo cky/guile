@@ -501,7 +501,7 @@ fport_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
     {
       int fdes;
       SCM name = SCM_FILENAME (exp);
-      if (scm_is_string (name) || SCM_SYMBOLP (name))
+      if (scm_is_string (name) || scm_is_symbol (name))
 	scm_display (name, port);
       else
 	scm_puts (SCM_PTOBNAME (SCM_PTOBNUM (exp)), port);

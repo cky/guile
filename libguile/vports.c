@@ -76,7 +76,7 @@ sf_write (SCM port, const void *data, size_t size)
 {
   SCM p = SCM_PACK (SCM_STREAM (port));
 
-  scm_call_1 (SCM_VELTS (p)[1], scm_mem2string ((char *) data, size));
+  scm_call_1 (SCM_VELTS (p)[1], scm_from_locale_stringn ((char *) data, size));
 }
 
 /* calling the flush proc (element 2) is in case old code needs it,

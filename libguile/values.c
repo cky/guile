@@ -76,8 +76,10 @@ scm_init_values (void)
 				 print_values);
 
   scm_values_vtable 
-    = scm_permanent_object (scm_make_vtable_vtable (scm_makfrom0str ("pr"),
-						    SCM_INUM0, SCM_EOL));
+    = scm_permanent_object (
+        scm_make_vtable_vtable (scm_from_locale_string ("pr"),
+				SCM_INUM0, SCM_EOL));
+
   SCM_SET_STRUCT_PRINTER (scm_values_vtable, print);
 
   scm_add_feature ("values");

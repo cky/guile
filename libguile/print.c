@@ -1,4 +1,4 @@
-/* Copyright (C) 1995-1999,2000,2001, 2002, 2003 Free Software Foundation, Inc.
+/* Copyright (C) 1995-1999,2000,2001, 2002, 2003, 2004 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -484,12 +484,15 @@ scm_iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 	case scm_tc7_string:
 	  if (SCM_WRITINGP (pstate))
 	    {
-	      size_t i;
+	      size_t i, len;
+	      const char *data;
 
 	      scm_putc ('"', port);
-	      for (i = 0; i < SCM_I_STRING_LENGTH (exp); ++i)
+	      len = scm_i_string_length (exp);
+	      data = scm_i_string_chars (exp);
+	      for (i = 0; i < len; ++i)
 		{
-		  unsigned char ch = SCM_I_STRING_CHARS (exp)[i];
+		  unsigned char ch = data[i];
 		  if ((ch < 32 && ch != '\n') || (127 <= ch && ch < 148))
 		    {
 		      static char const hex[]="0123456789abcdef";
@@ -506,25 +509,26 @@ scm_iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 		    }
 		}
 	      scm_putc ('"', port);
+	      scm_remember_upto_here_1 (exp);
 	    }
 	  else
-	    scm_lfwrite (SCM_I_STRING_CHARS (exp), SCM_I_STRING_LENGTH (exp),
+	    scm_lfwrite (scm_i_string_chars (exp), scm_i_string_length (exp),
 			 port);
 	  scm_remember_upto_here_1 (exp);
 	  break;
 	case scm_tc7_symbol:
-	  if (SCM_SYMBOL_INTERNED_P (exp))
+	  if (scm_i_symbol_is_interned (exp))
 	    {
-	      scm_print_symbol_name (SCM_SYMBOL_CHARS (exp),
-				     SCM_SYMBOL_LENGTH (exp),
+	      scm_print_symbol_name (scm_i_symbol_chars (exp),
+				     scm_i_symbol_length (exp),
 				     port);
 	      scm_remember_upto_here_1 (exp);
 	    }
 	  else
 	    {
 	      scm_puts ("#<uninterned-symbol ", port);
-	      scm_print_symbol_name (SCM_SYMBOL_CHARS (exp),
-				     SCM_SYMBOL_LENGTH (exp),
+	      scm_print_symbol_name (scm_i_symbol_chars (exp),
+				     scm_i_symbol_length (exp),
 				     port);
 	      scm_putc (' ', port);
 	      scm_intprint ((long)exp, 16, port);
@@ -592,7 +596,7 @@ scm_iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 		    ? "#<primitive-generic "
 		    : "#<primitive-procedure ",
 		    port);
-	  scm_puts (SCM_SYMBOL_CHARS (SCM_SNAME (exp)), port);
+	  scm_puts (scm_i_symbol_chars (SCM_SNAME (exp)), port);
 	  scm_putc ('>', port);
 	  break;
 #ifdef CCLO
@@ -607,7 +611,7 @@ scm_iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 		if (scm_is_true (name))
 		  {
 		    scm_putc (' ', port);
-		    scm_puts (SCM_SYMBOL_CHARS (name), port);
+		    scm_puts (scm_i_symbol_chars (name), port);
 		  }
 	      }
 	    else
@@ -913,9 +917,9 @@ SCM_DEFINE (scm_simple_format, "simple-format", 2, 0, 1,
   SCM port, answer = SCM_UNSPECIFIED;
   int fReturnString = 0;
   int writingp;
-  char *start;
-  char *end;
-  char *p;
+  const char *start;
+  const char *end;
+  const char *p;
 
   if (scm_is_eq (destination, SCM_BOOL_T))
     {
@@ -938,8 +942,8 @@ SCM_DEFINE (scm_simple_format, "simple-format", 2, 0, 1,
   SCM_VALIDATE_STRING (2, message);
   SCM_VALIDATE_REST_ARGUMENT (args);
 
-  start = SCM_I_STRING_CHARS (message);
-  end = start + SCM_I_STRING_LENGTH (message);
+  start = scm_i_string_chars (message);
+  end = start + scm_i_string_length (message);
   for (p = start; p != end; ++p)
     if (*p == '~')
       {
@@ -1102,9 +1106,10 @@ scm_init_print ()
   scm_gc_register_root (&print_state_pool);
   scm_gc_register_root (&scm_print_state_vtable);
   vtable = scm_make_vtable_vtable (scm_nullstr, SCM_INUM0, SCM_EOL);
-  layout = scm_make_struct_layout (scm_makfrom0str (SCM_PRINT_STATE_LAYOUT));
+  layout =
+    scm_make_struct_layout (scm_from_locale_string (SCM_PRINT_STATE_LAYOUT));
   type = scm_make_struct (vtable, SCM_INUM0, scm_list_1 (layout));
-  scm_set_struct_vtable_name_x (type, scm_str2symbol ("print-state"));
+  scm_set_struct_vtable_name_x (type, scm_from_locale_symbol ("print-state"));
   scm_print_state_vtable = type;
 
   /* Don't want to bind a wrapper class in GOOPS, so pass 0 as arg1. */

@@ -863,7 +863,7 @@ SCM_DEFINE (scm_readdir, "readdir", 1, 0, 0,
     if (errno != 0)
       SCM_SYSERROR;
 
-    return (rdent ? scm_mem2string (rdent->d_name, NAMLEN (rdent))
+    return (rdent ? scm_from_locale_stringn (rdent->d_name, NAMLEN (rdent))
             : SCM_EOF_VAL);
   }
 }
@@ -977,7 +977,7 @@ SCM_DEFINE (scm_getcwd, "getcwd", 0, 0, 0,
       errno = save_errno;
       SCM_SYSERROR;
     }
-  result = scm_mem2string (wd, strlen (wd));
+  result = scm_from_locale_stringn (wd, strlen (wd));
   free (wd);
   return result;
 }
@@ -1501,14 +1501,14 @@ SCM_DEFINE (scm_dirname, "dirname", 1, 0, 0,
 	    "component, @code{.} is returned.")
 #define FUNC_NAME s_scm_dirname
 {
-  char *s;
+  const char *s;
   long int i;
   unsigned long int len;
 
   SCM_VALIDATE_STRING (1, filename);
 
-  s = SCM_I_STRING_CHARS (filename);
-  len = SCM_I_STRING_LENGTH (filename);
+  s = scm_i_string_chars (filename);
+  len = scm_i_string_length (filename);
 
   i = len - 1;
 #ifdef __MINGW32__
@@ -1527,12 +1527,12 @@ SCM_DEFINE (scm_dirname, "dirname", 1, 0, 0,
 #else
       if (len > 0 && s[0] == '/')
 #endif /* ndef __MINGW32__ */
-	return scm_substring (filename, SCM_INUM0, scm_from_int (1));
+	return scm_c_substring (filename, 0, 1);
       else
 	return scm_dot_string;
     }
   else
-    return scm_substring (filename, SCM_INUM0, scm_from_int (i + 1));
+    return scm_c_substring (filename, 0, i + 1);
 }
 #undef FUNC_NAME
 
@@ -1544,20 +1544,20 @@ SCM_DEFINE (scm_basename, "basename", 1, 1, 0,
 	    "@var{basename}, it is removed also.")
 #define FUNC_NAME s_scm_basename
 {
-  char *f, *s = 0;
+  const char *f, *s = 0;
   int i, j, len, end;
 
   SCM_VALIDATE_STRING (1, filename);
-  f = SCM_I_STRING_CHARS (filename);
-  len = SCM_I_STRING_LENGTH (filename);
+  f = scm_i_string_chars (filename);
+  len = scm_i_string_length (filename);
 
   if (SCM_UNBNDP (suffix))
     j = -1;
   else
     {
       SCM_VALIDATE_STRING (2, suffix);
-      s = SCM_I_STRING_CHARS (suffix);
-      j = SCM_I_STRING_LENGTH (suffix) - 1;
+      s = scm_i_string_chars (suffix);
+      j = scm_i_string_length (suffix) - 1;
     }
   i = len - 1;
 #ifdef __MINGW32__
@@ -1581,12 +1581,12 @@ SCM_DEFINE (scm_basename, "basename", 1, 1, 0,
 #else
       if (len > 0 && f[0] == '/')
 #endif /* ndef __MINGW32__ */
-	return scm_substring (filename, SCM_INUM0, scm_from_int (1));
+	return scm_c_substring (filename, 0, 1);
       else
 	return scm_dot_string;
     }
   else
-    return scm_substring (filename, scm_from_int (i+1), scm_from_int (end+1));
+    return scm_c_substring (filename, i+1, end+1);
 }
 #undef FUNC_NAME
 
@@ -1601,7 +1601,7 @@ scm_init_filesys ()
   scm_set_smob_free (scm_tc16_dir, scm_dir_free);
   scm_set_smob_print (scm_tc16_dir, scm_dir_print);
 
-  scm_dot_string = scm_permanent_object (scm_makfrom0str ("."));
+  scm_dot_string = scm_permanent_object (scm_from_locale_string ("."));
   
 #ifdef O_RDONLY
   scm_c_define ("O_RDONLY", scm_from_long (O_RDONLY));

@@ -57,24 +57,24 @@ scm_i_index (SCM str, SCM chr, int direction, SCM sub_start,
   long upper;
   int ch;
 
-  SCM_ASSERT (SCM_I_STRINGP (str), str, SCM_ARG1, why);
+  SCM_ASSERT (scm_is_string (str), str, SCM_ARG1, why);
   SCM_ASSERT (SCM_CHARP (chr), chr, SCM_ARG2, why);
 
   if (scm_is_false (sub_start))
     lower = 0;
   else
-    lower = scm_to_signed_integer (sub_start, 0, SCM_I_STRING_LENGTH(str));
+    lower = scm_to_signed_integer (sub_start, 0, scm_i_string_length(str));
 
   if (scm_is_false (sub_end))
-    upper = SCM_I_STRING_LENGTH (str);
+    upper = scm_i_string_length (str);
   else
-    upper = scm_to_signed_integer (sub_end, lower, SCM_I_STRING_LENGTH(str));
+    upper = scm_to_signed_integer (sub_end, lower, scm_i_string_length(str));
 
   x = -1;
 
   if (direction > 0)
     {
-      p = SCM_I_STRING_UCHARS (str) + lower;
+      p = (unsigned char *) scm_i_string_chars (str) + lower;
       ch = SCM_CHAR (chr);
 
       for (x = lower; x < upper; ++x, ++p)
@@ -83,7 +83,7 @@ scm_i_index (SCM str, SCM chr, int direction, SCM sub_start,
     }
   else
     {
-      p = upper - 1 + SCM_I_STRING_UCHARS (str);
+      p = upper - 1 + (unsigned char *)scm_i_string_chars (str);
       ch = SCM_CHAR (chr);
       for (x = upper - 1; x >= lower; --x, --p)
 	if (*p == ch)
@@ -164,17 +164,20 @@ SCM_DEFINE (scm_substring_move_x, "substring-move!", 5, 0, 0,
 #define FUNC_NAME s_scm_substring_move_x
 {
   unsigned long s1, s2, e, len;
+  const char *src;
+  char *dst;
 
   SCM_VALIDATE_STRING (1, str1);
   SCM_VALIDATE_STRING (4, str2);
-  s1 = scm_to_unsigned_integer (start1, 0, SCM_I_STRING_LENGTH(str1));
-  e = scm_to_unsigned_integer (end1, s1, SCM_I_STRING_LENGTH(str1));
+  s1 = scm_to_unsigned_integer (start1, 0, scm_i_string_length(str1));
+  e = scm_to_unsigned_integer (end1, s1, scm_i_string_length(str1));
   len = e - s1;
-  s2 = scm_to_unsigned_integer (start2, 0, SCM_I_STRING_LENGTH(str2)-len);
+  s2 = scm_to_unsigned_integer (start2, 0, scm_i_string_length(str2)-len);
 
-  SCM_SYSCALL(memmove((void *)(&(SCM_I_STRING_CHARS(str2)[s2])),
-		      (void *)(&(SCM_I_STRING_CHARS(str1)[s1])),
-		      len));
+  src = scm_i_string_chars (str2);
+  dst = scm_i_string_writable_chars (str1);
+  SCM_SYSCALL (memmove (dst+s2, src+s1, len));
+  scm_i_string_stop_writing ();
 
   scm_remember_upto_here_2 (str1, str2);
   return SCM_UNSPECIFIED;
@@ -197,12 +200,17 @@ SCM_DEFINE (scm_substring_fill_x, "substring-fill!", 4, 0, 0,
 {
   size_t i, e;
   char c;
+  char *dst;
+
   SCM_VALIDATE_STRING (1, str);
-  i = scm_to_unsigned_integer (start, 0, SCM_I_STRING_LENGTH (str));
-  e = scm_to_unsigned_integer (end, i, SCM_I_STRING_LENGTH (str));
+  i = scm_to_unsigned_integer (start, 0, scm_i_string_length (str));
+  e = scm_to_unsigned_integer (end, i, scm_i_string_length (str));
   SCM_VALIDATE_CHAR_COPY (4, fill, c);
+  dst = scm_i_string_writable_chars (str);
   while (i<e)
-    SCM_I_STRING_CHARS (str)[i++] = c;
+    dst[i++] = c;
+  scm_i_string_stop_writing ();
+  scm_remember_upto_here (str);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -220,7 +228,7 @@ SCM_DEFINE (scm_string_null_p, "string-null?", 1, 0, 0,
 #define FUNC_NAME s_scm_string_null_p
 {
   SCM_VALIDATE_STRING (1, str);
-  return scm_from_bool (SCM_I_STRING_LENGTH (str) == 0);
+  return scm_from_bool (scm_i_string_length (str) == 0);
 }
 #undef FUNC_NAME
 
@@ -235,10 +243,10 @@ SCM_DEFINE (scm_string_to_list, "string->list", 1, 0, 0,
 {
   long i;
   SCM res = SCM_EOL;
-  unsigned char *src;
+  const unsigned char *src;
   SCM_VALIDATE_STRING (1, str);
-  src = SCM_I_STRING_UCHARS (str);
-  for (i = SCM_I_STRING_LENGTH (str)-1;i >= 0;i--)
+  src = scm_i_string_chars (str);
+  for (i = scm_i_string_length (str)-1;i >= 0;i--)
     res = scm_cons (SCM_MAKE_CHAR (src[i]), res);
   scm_remember_upto_here_1 (src);
   return res;
@@ -251,10 +259,11 @@ SCM_DEFINE (scm_string_to_list, "string->list", 1, 0, 0,
 static SCM
 string_copy (SCM str)
 {
-  const char* chars = SCM_I_STRING_CHARS (str);
-  size_t length = SCM_I_STRING_LENGTH (str);
-  SCM new_string = scm_allocate_string (length);
-  memcpy (SCM_I_STRING_CHARS (new_string), chars, length+1);
+  const char* chars = scm_i_string_chars (str);
+  size_t length = scm_i_string_length (str);
+  char *dst;
+  SCM new_string = scm_i_make_string (length, &dst);
+  memcpy (dst, chars, length);
   scm_remember_upto_here_1 (str);
   return new_string;
 }
@@ -282,9 +291,10 @@ SCM_DEFINE (scm_string_fill_x, "string-fill!", 2, 0, 0,
   long k;
   SCM_VALIDATE_STRING (1, str);
   SCM_VALIDATE_CHAR_COPY (2, chr, c);
-  dst = SCM_I_STRING_CHARS (str);
-  for (k = SCM_I_STRING_LENGTH (str)-1;k >= 0;k--)
+  dst = scm_i_string_writable_chars (str);
+  for (k = scm_i_string_length (str)-1;k >= 0;k--)
     dst[k] = c;
+  scm_i_string_stop_writing ();
   scm_remember_upto_here_1 (str);
   return SCM_UNSPECIFIED;
 }
@@ -296,11 +306,14 @@ SCM_DEFINE (scm_string_fill_x, "string-fill!", 2, 0, 0,
 static SCM
 string_upcase_x (SCM v)
 {
-  unsigned long k;
+  size_t k, len;
+  char *dst;
 
-  for (k = 0; k < SCM_I_STRING_LENGTH (v); ++k)
-    SCM_I_STRING_UCHARS (v) [k] = scm_c_upcase (SCM_I_STRING_UCHARS (v) [k]);
-
+  len = scm_i_string_length (v);
+  dst = scm_i_string_writable_chars (v);
+  for (k = 0; k < len; ++k)
+    dst[k] = scm_c_upcase (dst[k]);
+  scm_i_string_stop_writing ();
   return v;
 }
 
@@ -341,10 +354,14 @@ SCM_DEFINE (scm_string_upcase, "string-upcase", 1, 0, 0,
 static SCM
 string_downcase_x (SCM v)
 {
-  unsigned long k;
+  size_t k, len;
+  char *dst;
 
-  for (k = 0; k < SCM_I_STRING_LENGTH (v); ++k)
-    SCM_I_STRING_UCHARS (v) [k] = scm_c_downcase (SCM_I_STRING_UCHARS (v) [k]);
+  len = scm_i_string_length (v);
+  dst = scm_i_string_writable_chars (v);
+  for (k = 0; k < len; ++k)
+    dst[k] = scm_c_downcase (dst[k]);
+  scm_i_string_stop_writing ();
 
   return v;
 }
@@ -387,22 +404,29 @@ static SCM
 string_capitalize_x (SCM str)
 {
   unsigned char *sz;
-  long i, len;
+  size_t i, len;
   int in_word=0;
 
-  len = SCM_I_STRING_LENGTH(str);
-  sz = SCM_I_STRING_UCHARS (str);
-  for(i=0; i<len;  i++) {
-    if (scm_is_true (scm_char_alphabetic_p (SCM_MAKE_CHAR (sz[i])))) {
-      if(!in_word) {
-        sz[i] = scm_c_upcase(sz[i]);
-        in_word = 1;
-      } else {
-        sz[i] = scm_c_downcase(sz[i]);
-      }
+  len = scm_i_string_length (str);
+  sz = scm_i_string_writable_chars (str);
+  for (i = 0; i < len; i++)
+    {
+      if (scm_is_true (scm_char_alphabetic_p (SCM_MAKE_CHAR (sz[i])))) 
+	{
+	  if (!in_word) 
+	    {
+	      sz[i] = scm_c_upcase (sz[i]);
+	      in_word = 1;
+	    } 
+	  else
+	    {
+	      sz[i] = scm_c_downcase (sz[i]);
+	    }
+	}
+      else 
+	in_word = 0;
     }
-    else in_word = 0;
-  }
+  scm_i_string_stop_writing ();
   return str;
 }
 
@@ -463,15 +487,15 @@ SCM_DEFINE (scm_string_split, "string-split", 2, 0, 0,
 #define FUNC_NAME s_scm_string_split
 {
   long idx, last_idx;
-  char * p;
+  const char * p;
   int ch;
   SCM res = SCM_EOL;
 
   SCM_VALIDATE_STRING (1, str);
   SCM_VALIDATE_CHAR (2, chr);
 
-  idx = SCM_I_STRING_LENGTH (str);
-  p = SCM_I_STRING_CHARS (str);
+  idx = scm_i_string_length (str);
+  p = scm_i_string_chars (str);
   ch = SCM_CHAR (chr);
   while (idx >= 0)
     {
@@ -480,7 +504,8 @@ SCM_DEFINE (scm_string_split, "string-split", 2, 0, 0,
 	idx--;
       if (idx >= 0)
 	{
-	  res = scm_cons (scm_mem2string (p + idx, last_idx - idx), res);
+	  res = scm_cons (scm_c_substring (str, idx, last_idx), res);
+	  p = scm_i_string_chars (str);
 	  idx--;
 	}
     }

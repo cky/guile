@@ -163,11 +163,11 @@ SCM2CTYPES (SCM obj, CTYPE *data)
 
 #if SIZEOF_CTYPE == 1
     case scm_tc7_string:
-      n = SCM_I_STRING_LENGTH (obj);
+      n = scm_i_string_length (obj);
       if (data == NULL)
         if ((data = (CTYPE *) malloc (n * sizeof (CTYPE))) == NULL)
 	  return NULL;
-      memcpy (data, SCM_I_STRING_CHARS (obj), n * sizeof (CTYPE));
+      memcpy (data, scm_i_string_chars (obj), n * sizeof (CTYPE));
       break;
 #endif
 

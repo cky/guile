@@ -3,7 +3,7 @@
 #ifndef SCM_VALIDATE_H
 #define SCM_VALIDATE_H
 
-/* Copyright (C) 1999,2000,2001, 2002 Free Software Foundation, Inc.
+/* Copyright (C) 1999,2000,2001, 2002, 2004 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -152,7 +152,10 @@
     cvar = SCM_CHAR (scm); \
   } while (0)
 
-#define SCM_VALIDATE_STRING(pos, str) SCM_MAKE_VALIDATE_MSG (pos, str, I_STRINGP, "string")
+#define SCM_VALIDATE_STRING(pos, str) \
+  do { \
+    SCM_ASSERT_TYPE (scm_is_string (str), str, pos, FUNC_NAME, "string"); \
+  } while (0)
 
 #define SCM_VALIDATE_REAL(pos, z) SCM_MAKE_VALIDATE_MSG (pos, z, REALP, "real")
 
@@ -270,7 +273,10 @@
     SCM_ASSERT (scm_is_true (scm_thunk_p (thunk)), thunk, pos, FUNC_NAME); \
   } while (0)
 
-#define SCM_VALIDATE_SYMBOL(pos, sym) SCM_MAKE_VALIDATE_MSG (pos, sym, SYMBOLP, "symbol")
+#define SCM_VALIDATE_SYMBOL(pos, str) \
+  do { \
+    SCM_ASSERT_TYPE (scm_is_symbol (str), str, pos, FUNC_NAME, "symbol"); \
+  } while (0)
 
 #define SCM_VALIDATE_VARIABLE(pos, var) SCM_MAKE_VALIDATE_MSG (pos, var, VARIABLEP, "variable")
 

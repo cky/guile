@@ -75,8 +75,8 @@ sysdep_dynl_link (const char *fname, const char *subr)
       SCM fn;
       SCM msg;
 
-      fn = scm_makfrom0str (fname);
-      msg = scm_makfrom0str (scm_lt_dlerror ());
+      fn = scm_from_locale_string (fname);
+      msg = scm_from_locale_string (scm_lt_dlerror ());
       scm_misc_error (subr, "file: ~S, message: ~S", scm_list_2 (fn, msg));
     }
   return (void *) handle;

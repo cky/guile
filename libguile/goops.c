@@ -61,13 +61,14 @@
 						 (v), SCM_BOOL_F)))
 
 /* Fixme: Should use already interned symbols */
-#define CALL_GF1(name, a)	(scm_call_1 (GETVAR (scm_str2symbol (name)), \
+
+#define CALL_GF1(name, a)	(scm_call_1 (GETVAR (scm_from_locale_symbol (name)), \
 					     a))
-#define CALL_GF2(name, a, b)	(scm_call_2 (GETVAR (scm_str2symbol (name)), \
+#define CALL_GF2(name, a, b)	(scm_call_2 (GETVAR (scm_from_locale_symbol (name)), \
 					     a, b))
-#define CALL_GF3(name, a, b, c)	(scm_call_3 (GETVAR (scm_str2symbol (name)), \
+#define CALL_GF3(name, a, b, c)	(scm_call_3 (GETVAR (scm_from_locale_symbol (name)), \
 					     a, b, c))
-#define CALL_GF4(name, a, b, c, d)	(scm_call_4 (GETVAR (scm_str2symbol (name)), \
+#define CALL_GF4(name, a, b, c, d)	(scm_call_4 (GETVAR (scm_from_locale_symbol (name)), \
 					     a, b, c, d))
 
 /* Class redefinition protocol:
@@ -218,7 +219,7 @@ remove_duplicate_slots (SCM l, SCM res, SCM slots_already_seen)
     return res;
 
   tmp = SCM_CAAR (l);
-  if (!SCM_SYMBOLP (tmp))
+  if (!scm_is_symbol (tmp))
     scm_misc_error ("%compute-slots", "bad slot name ~S", scm_list_1 (tmp));
 
   if (scm_is_false (scm_c_memq (tmp, slots_already_seen))) {
@@ -479,6 +480,7 @@ SCM_DEFINE (scm_sys_prep_layout_x, "%prep-layout!", 1, 0, 0,
   SCM slots, getters_n_setters, nfields;
   unsigned long int n, i;
   char *s;
+  SCM layout;
 
   SCM_VALIDATE_INSTANCE (1, class);
   slots = SCM_SLOT (class, scm_si_slots);
@@ -493,7 +495,7 @@ SCM_DEFINE (scm_sys_prep_layout_x, "%prep-layout!", 1, 0, 0,
     SCM_MISC_ERROR ("class object doesn't have enough fields: ~S",
 		    scm_list_1 (nfields));
 
-  s = n > 0 ? scm_malloc (n) : 0;
+  layout = scm_i_make_string (n, &s);
   i = 0;
   while (SCM_CONSP (getters_n_setters))
     {
@@ -519,11 +521,7 @@ SCM_DEFINE (scm_sys_prep_layout_x, "%prep-layout!", 1, 0, 0,
 	  else
 	    {
 	      if (!SCM_CLASSP (type))
-		{
-		  if (s)
-		    free (s);
-		  SCM_MISC_ERROR ("bad slot class", SCM_EOL);
-		}
+		SCM_MISC_ERROR ("bad slot class", SCM_EOL);
 	      else if (SCM_SUBCLASSP (type, scm_class_foreign_slot))
 		{
 		  if (SCM_SUBCLASSP (type, scm_class_self))
@@ -564,13 +562,9 @@ SCM_DEFINE (scm_sys_prep_layout_x, "%prep-layout!", 1, 0, 0,
   if (!SCM_NULLP (slots))
     {
     inconsistent:
-      if (s)
-	free (s);
       SCM_MISC_ERROR ("inconsistent getters-n-setters", SCM_EOL);
     }
-  SCM_SET_SLOT (class, scm_si_layout, scm_mem2symbol (s, n));
-  if (s)
-    free (s);
+  SCM_SET_SLOT (class, scm_si_layout, scm_string_to_symbol (layout));
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -763,9 +757,9 @@ create_basic_classes (void)
   /* SCM slots_of_class = build_class_class_slots (); */
 
   /**** <scm_class_class> ****/
-  SCM cs = scm_makfrom0str (SCM_CLASS_CLASS_LAYOUT
-			    + 2 * scm_vtable_offset_user);
-  SCM name = scm_str2symbol ("<class>");
+  SCM cs = scm_from_locale_string (SCM_CLASS_CLASS_LAYOUT
+				   + 2 * scm_vtable_offset_user);
+  SCM name = scm_from_locale_symbol ("<class>");
   scm_class_class = scm_permanent_object (scm_make_vtable_vtable (cs,
 								  SCM_INUM0,
 								  SCM_EOL));
@@ -791,7 +785,7 @@ create_basic_classes (void)
   DEFVAR(name, scm_class_class);
 
   /**** <scm_class_top> ****/
-  name = scm_str2symbol ("<top>");
+  name = scm_from_locale_symbol ("<top>");
   scm_class_top = scm_permanent_object (scm_basic_make_class (scm_class_class,
 						    name,
 						    SCM_EOL,
@@ -800,7 +794,7 @@ create_basic_classes (void)
   DEFVAR(name, scm_class_top);
 
   /**** <scm_class_object> ****/
-  name	 = scm_str2symbol ("<object>");
+  name	 = scm_from_locale_symbol ("<object>");
   scm_class_object = scm_permanent_object (scm_basic_make_class (scm_class_class,
 						       name,
 						       scm_list_1 (scm_class_top),
@@ -977,7 +971,7 @@ SCM_DEFINE (scm_method_generic_function, "method-generic-function", 1, 0, 0,
 #define FUNC_NAME s_scm_method_generic_function
 {
   SCM_VALIDATE_METHOD (1, obj);
-  return scm_slot_ref (obj, scm_str2symbol ("generic-function"));
+  return scm_slot_ref (obj, scm_from_locale_symbol ("generic-function"));
 }
 #undef FUNC_NAME
 
@@ -987,7 +981,7 @@ SCM_DEFINE (scm_method_specializers, "method-specializers", 1, 0, 0,
 #define FUNC_NAME s_scm_method_specializers
 {
   SCM_VALIDATE_METHOD (1, obj);
-  return scm_slot_ref (obj, scm_str2symbol ("specializers"));
+  return scm_slot_ref (obj, scm_from_locale_symbol ("specializers"));
 }
 #undef FUNC_NAME
 
@@ -1007,7 +1001,7 @@ SCM_DEFINE (scm_accessor_method_slot_definition, "accessor-method-slot-definitio
 #define FUNC_NAME s_scm_accessor_method_slot_definition
 {
   SCM_VALIDATE_ACCESSOR (1, obj);
-  return scm_slot_ref (obj, scm_str2symbol ("slot-definition"));
+  return scm_slot_ref (obj, scm_from_locale_symbol ("slot-definition"));
 }
 #undef FUNC_NAME
 
@@ -2139,7 +2133,7 @@ SCM_DEFINE (scm_make, "make",  0, 0, 1,
 	    scm_i_get_keyword (k_name,
 			       args,
 			       len - 1,
-			       scm_str2symbol ("???"),
+			       scm_from_locale_symbol ("???"),
 			       FUNC_NAME));
 	  SCM_SET_SLOT (z, scm_si_direct_supers,
 	    scm_i_get_keyword (k_dsupers,
@@ -2234,7 +2228,7 @@ fix_cpl (SCM c, SCM before, SCM after)
 static void
 make_stdcls (SCM *var, char *name, SCM meta, SCM super, SCM slots)
 {
-   SCM tmp = scm_str2symbol (name);
+   SCM tmp = scm_from_locale_symbol (name);
 
    *var = scm_permanent_object (scm_basic_make_class (meta,
 						      tmp,
@@ -2252,32 +2246,32 @@ static void
 create_standard_classes (void)
 {
   SCM slots;
-  SCM method_slots = scm_list_4 (scm_str2symbol ("generic-function"),
-				 scm_str2symbol ("specializers"),
+  SCM method_slots = scm_list_4 (scm_from_locale_symbol ("generic-function"),
+				 scm_from_locale_symbol ("specializers"),
 				 sym_procedure,
-				 scm_str2symbol ("code-table"));
-  SCM amethod_slots = scm_list_1 (scm_list_3 (scm_str2symbol ("slot-definition"),
+				 scm_from_locale_symbol ("code-table"));
+  SCM amethod_slots = scm_list_1 (scm_list_3 (scm_from_locale_symbol ("slot-definition"),
 					      k_init_keyword,
 					      k_slot_definition));
-  SCM mutex_slot = scm_list_1 (scm_str2symbol ("make-mutex"));
+  SCM mutex_slot = scm_list_1 (scm_from_locale_symbol ("make-mutex"));
   SCM mutex_closure = scm_i_eval_x (scm_list_3 (scm_sym_lambda,
                                                 SCM_EOL,
                                                 mutex_slot),
                                     SCM_EOL);
-  SCM gf_slots = scm_list_5 (scm_str2symbol ("methods"),
-			     scm_list_3 (scm_str2symbol ("n-specialized"),
+  SCM gf_slots = scm_list_5 (scm_from_locale_symbol ("methods"),
+			     scm_list_3 (scm_from_locale_symbol ("n-specialized"),
 					 k_init_value,
 					 SCM_INUM0),
-			     scm_list_3 (scm_str2symbol ("used-by"),
+			     scm_list_3 (scm_from_locale_symbol ("used-by"),
 					 k_init_value,
 					 SCM_BOOL_F),
-			     scm_list_3 (scm_str2symbol ("cache-mutex"),
+			     scm_list_3 (scm_from_locale_symbol ("cache-mutex"),
 					 k_init_thunk,
                                          mutex_closure),
-			     scm_list_3 (scm_str2symbol ("extended-by"),
+			     scm_list_3 (scm_from_locale_symbol ("extended-by"),
 					 k_init_value,
 					 SCM_EOL));
-  SCM egf_slots = scm_list_1 (scm_list_3 (scm_str2symbol ("extends"),
+  SCM egf_slots = scm_list_1 (scm_list_3 (scm_from_locale_symbol ("extends"),
 					  k_init_value,
 					  SCM_EOL));
   /* Foreign class slot classes */
@@ -2320,10 +2314,10 @@ create_standard_classes (void)
 
   make_stdcls (&scm_class_foreign_class, "<foreign-class>",
 	       scm_class_class, scm_class_class,
-	       scm_list_2 (scm_list_3 (scm_str2symbol ("constructor"),
+	       scm_list_2 (scm_list_3 (scm_from_locale_symbol ("constructor"),
 				       k_class,
 				       scm_class_opaque),
-			   scm_list_3 (scm_str2symbol ("destructor"),
+			   scm_list_3 (scm_from_locale_symbol ("destructor"),
 				       k_class,
 				       scm_class_opaque)));
   make_stdcls (&scm_class_foreign_object,  "<foreign-object>",
@@ -2450,7 +2444,7 @@ make_class_from_template (char const *template, char const *type_name, SCM super
     {
       char buffer[100];
       sprintf (buffer, template, type_name);
-      name = scm_str2symbol (buffer);
+      name = scm_from_locale_symbol (buffer);
     }
   else
     name = SCM_GOOPS_UNBOUND;
@@ -2580,7 +2574,7 @@ make_struct_class (void *closure SCM_UNUSED,
   if (scm_is_true (SCM_STRUCT_TABLE_NAME (data)))
     SCM_SET_STRUCT_TABLE_CLASS (data,
 				scm_make_extended_class
-				(SCM_SYMBOL_CHARS (SCM_STRUCT_TABLE_NAME (data)),
+				(scm_i_symbol_chars (SCM_STRUCT_TABLE_NAME (data)),
 				 SCM_CLASS_FLAGS (vtable) & SCM_CLASSF_OPERATOR));
   return SCM_UNSPECIFIED;
 }
@@ -2632,7 +2626,7 @@ scm_make_class (SCM meta, char *s_name, SCM supers, size_t size,
 		size_t (*destructor) (void *))
 {
   SCM name, class;
-  name = scm_str2symbol (s_name);
+  name = scm_from_locale_symbol (s_name);
   if (SCM_NULLP (supers))
     supers = scm_list_1 (scm_class_foreign_object);
   class = scm_basic_basic_make_class (meta, name, supers, SCM_EOL);
@@ -2649,7 +2643,7 @@ scm_make_class (SCM meta, char *s_name, SCM supers, size_t size,
       SCM_SET_CLASS_INSTANCE_SIZE (class, size);
     }
 
-  SCM_SET_SLOT (class, scm_si_layout, scm_str2symbol (""));
+  SCM_SET_SLOT (class, scm_si_layout, scm_from_locale_symbol (""));
   SCM_SET_SLOT (class, scm_si_constructor, (SCM) constructor);
 
   return class;
@@ -2692,8 +2686,8 @@ scm_add_slot (SCM class, char *slot_name, SCM slot_class,
                              SCM_EOL);
 
     {
-      SCM name = scm_str2symbol (slot_name);
-      SCM aname = scm_str2symbol (accessor_name);
+      SCM name = scm_from_locale_symbol (slot_name);
+      SCM aname = scm_from_locale_symbol (accessor_name);
       SCM gf = scm_ensure_accessor (aname);
       SCM slot = scm_list_5 (name,
 			     k_class,
@@ -2840,7 +2834,7 @@ scm_init_goops_builtins (void)
   create_port_classes ();
 
   {
-    SCM name = scm_str2symbol ("no-applicable-method");
+    SCM name = scm_from_locale_symbol ("no-applicable-method");
     scm_no_applicable_method
       = scm_permanent_object (scm_make (scm_list_3 (scm_class_generic,
 						    k_name,

@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2003 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2003, 2004 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -28,6 +28,8 @@
 
 #include "libguile/validate.h"
 #include "libguile/keywords.h"
+#include "libguile/strings.h"
+
 
 
 scm_t_bits scm_tc16_keyword;
@@ -38,8 +40,8 @@ keyword_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
   SCM symbol = SCM_KEYWORDSYM (exp);
 
   scm_puts ("#:", port);
-  scm_print_symbol_name (SCM_SYMBOL_CHARS (symbol) + 1,
-			 SCM_SYMBOL_LENGTH (symbol) - 1,
+  scm_print_symbol_name (scm_i_symbol_chars (symbol) + 1,
+			 scm_i_symbol_length (symbol) - 1,
 			 port);
   scm_remember_upto_here_1 (symbol);
   return 1;
@@ -52,8 +54,8 @@ SCM_DEFINE (scm_make_keyword_from_dash_symbol, "make-keyword-from-dash-symbol", 
 {
   SCM keyword;
 
-  SCM_ASSERT (SCM_SYMBOLP (symbol)
-	      && ('-' == SCM_SYMBOL_CHARS(symbol)[0]),
+  SCM_ASSERT (scm_is_symbol (symbol)
+	      && ('-' == scm_i_symbol_chars(symbol)[0]),
 	      symbol, SCM_ARG1, FUNC_NAME);
 
   SCM_DEFER_INTS;
@@ -71,14 +73,15 @@ SCM_DEFINE (scm_make_keyword_from_dash_symbol, "make-keyword-from-dash-symbol", 
 SCM
 scm_c_make_keyword (char *s)
 {
-  char *buf = scm_malloc (strlen (s) + 2);
-  SCM symbol;
+  char *buf;
+  size_t len;
+  SCM string, symbol;
 
+  len = strlen (s) + 1;
+  string = scm_i_make_string (len, &buf);
   buf[0] = '-';
   strcpy (buf + 1, s);
-  symbol = scm_str2symbol (buf);
-  free (buf);
-
+  symbol = scm_string_to_symbol (string);
   return scm_make_keyword_from_dash_symbol (symbol);
 }
 

@@ -1,4 +1,4 @@
-/* Copyright (C) 1998,2000,2001,2002, 2003 Free Software Foundation, Inc.
+/* Copyright (C) 1998,2000,2001,2002, 2003, 2004 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -111,7 +111,8 @@ convert_module_name (const char *name)
 	ptr++;
       if (ptr > name)
 	{
-	  *tail = scm_cons (scm_mem2symbol (name, ptr-name), SCM_EOL);
+	  SCM sym = scm_from_locale_symboln (name, ptr-name);
+	  *tail = scm_cons (sym, SCM_EOL);
 	  tail = SCM_CDRLOC (*tail);
 	}
       name = ptr;
@@ -185,7 +186,7 @@ scm_c_export (const char *name, ...)
   if (name)
     {
       va_list ap;
-      SCM names = scm_cons (scm_str2symbol (name), SCM_EOL);
+      SCM names = scm_cons (scm_from_locale_symbol (name), SCM_EOL);
       SCM *tail = SCM_CDRLOC (names);
       va_start (ap, name);
       while (1)
@@ -193,7 +194,7 @@ scm_c_export (const char *name, ...)
 	  const char *n = va_arg (ap, const char *);
 	  if (n == NULL)
 	    break;
-	  *tail = scm_cons (scm_str2symbol (n), SCM_EOL);
+	  *tail = scm_cons (scm_from_locale_symbol (n), SCM_EOL);
 	  tail = SCM_CDRLOC (*tail);
 	}
       va_end (ap);
@@ -485,7 +486,7 @@ scm_sym2var (SCM sym, SCM proc, SCM definep)
 SCM
 scm_c_module_lookup (SCM module, const char *name)
 {
-  return scm_module_lookup (module, scm_str2symbol (name));
+  return scm_module_lookup (module, scm_from_locale_symbol (name));
 }
 
 SCM
@@ -505,7 +506,7 @@ scm_module_lookup (SCM module, SCM sym)
 SCM
 scm_c_lookup (const char *name)
 {
-  return scm_lookup (scm_str2symbol (name));
+  return scm_lookup (scm_from_locale_symbol (name));
 }
 
 SCM
@@ -521,7 +522,7 @@ scm_lookup (SCM sym)
 SCM
 scm_c_module_define (SCM module, const char *name, SCM value)
 {
-  return scm_module_define (module, scm_str2symbol (name), value);
+  return scm_module_define (module, scm_from_locale_symbol (name), value);
 }
 
 SCM
@@ -540,7 +541,7 @@ scm_module_define (SCM module, SCM sym, SCM value)
 SCM
 scm_c_define (const char *name, SCM value)
 {
-  return scm_define (scm_str2symbol (name), value);
+  return scm_define (scm_from_locale_symbol (name), value);
 }
 
 SCM

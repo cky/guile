@@ -118,7 +118,7 @@ SCM_DEFINE (scm_environment_bound_p, "environment-bound?", 2, 0, 0,
 #define FUNC_NAME s_scm_environment_bound_p
 {
   SCM_ASSERT (SCM_ENVIRONMENT_P (env), env, SCM_ARG1, FUNC_NAME);
-  SCM_ASSERT (SCM_SYMBOLP (sym), sym, SCM_ARG2, FUNC_NAME);
+  SCM_ASSERT (scm_is_symbol (sym), sym, SCM_ARG2, FUNC_NAME);
 
   return scm_from_bool (SCM_ENVIRONMENT_BOUND_P (env, sym));
 }
@@ -135,7 +135,7 @@ SCM_DEFINE (scm_environment_ref, "environment-ref", 2, 0, 0,
   SCM val;
 
   SCM_ASSERT (SCM_ENVIRONMENT_P (env), env, SCM_ARG1, FUNC_NAME);
-  SCM_ASSERT (SCM_SYMBOLP (sym), sym, SCM_ARG2, FUNC_NAME);
+  SCM_ASSERT (scm_is_symbol (sym), sym, SCM_ARG2, FUNC_NAME);
 
   val = SCM_ENVIRONMENT_REF (env, sym);
 
@@ -155,7 +155,7 @@ SCM
 scm_c_environment_ref (SCM env, SCM sym)
 {
   SCM_ASSERT (SCM_ENVIRONMENT_P (env), env, SCM_ARG1, "scm_c_environment_ref");
-  SCM_ASSERT (SCM_SYMBOLP (sym), sym, SCM_ARG2, "scm_c_environment_ref");
+  SCM_ASSERT (scm_is_symbol (sym), sym, SCM_ARG2, "scm_c_environment_ref");
   return SCM_ENVIRONMENT_REF (env, sym);
 }
 
@@ -240,7 +240,7 @@ SCM_DEFINE (scm_environment_define, "environment-define", 3, 0, 0,
   SCM status;
 
   SCM_ASSERT (SCM_ENVIRONMENT_P (env), env, SCM_ARG1, FUNC_NAME);
-  SCM_ASSERT (SCM_SYMBOLP (sym), sym, SCM_ARG2, FUNC_NAME);
+  SCM_ASSERT (scm_is_symbol (sym), sym, SCM_ARG2, FUNC_NAME);
 
   status = SCM_ENVIRONMENT_DEFINE (env, sym, val);
 
@@ -266,7 +266,7 @@ SCM_DEFINE (scm_environment_undefine, "environment-undefine", 2, 0, 0,
   SCM status;
 
   SCM_ASSERT(SCM_ENVIRONMENT_P(env), env, SCM_ARG1, FUNC_NAME);
-  SCM_ASSERT(SCM_SYMBOLP(sym), sym, SCM_ARG2, FUNC_NAME);
+  SCM_ASSERT(scm_is_symbol(sym), sym, SCM_ARG2, FUNC_NAME);
 
   status = SCM_ENVIRONMENT_UNDEFINE (env, sym);
 
@@ -294,7 +294,7 @@ SCM_DEFINE (scm_environment_set_x, "environment-set!", 3, 0, 0,
   SCM status;
 
   SCM_ASSERT (SCM_ENVIRONMENT_P (env), env, SCM_ARG1, FUNC_NAME);
-  SCM_ASSERT (SCM_SYMBOLP (sym), sym, SCM_ARG2, FUNC_NAME);
+  SCM_ASSERT (scm_is_symbol (sym), sym, SCM_ARG2, FUNC_NAME);
 
   status = SCM_ENVIRONMENT_SET (env, sym, val);
 
@@ -329,7 +329,7 @@ SCM_DEFINE (scm_environment_cell, "environment-cell", 3, 0, 0,
   SCM location;
 
   SCM_ASSERT (SCM_ENVIRONMENT_P (env), env, SCM_ARG1, FUNC_NAME);
-  SCM_ASSERT (SCM_SYMBOLP (sym), sym, SCM_ARG2, FUNC_NAME);
+  SCM_ASSERT (scm_is_symbol (sym), sym, SCM_ARG2, FUNC_NAME);
   SCM_ASSERT (scm_is_bool (for_write), for_write, SCM_ARG3, FUNC_NAME);
 
   location = SCM_ENVIRONMENT_CELL (env, sym, scm_is_true (for_write));
@@ -355,7 +355,7 @@ SCM
 scm_c_environment_cell(SCM env, SCM sym, int for_write)
 {
   SCM_ASSERT (SCM_ENVIRONMENT_P (env), env, SCM_ARG1, "scm_c_environment_cell");
-  SCM_ASSERT (SCM_SYMBOLP (sym), sym, SCM_ARG2, "scm_c_environment_cell");
+  SCM_ASSERT (scm_is_symbol (sym), sym, SCM_ARG2, "scm_c_environment_cell");
 
   return SCM_ENVIRONMENT_CELL (env, sym, for_write);
 }
@@ -507,7 +507,7 @@ observer_print (SCM type, SCM port, scm_print_state *pstate SCM_UNUSED)
 static SCM
 obarray_enter (SCM obarray, SCM symbol, SCM data)
 {
-  size_t hash = SCM_SYMBOL_HASH (symbol) % SCM_HASHTABLE_N_BUCKETS (obarray);
+  size_t hash = scm_i_symbol_hash (symbol) % SCM_HASHTABLE_N_BUCKETS (obarray);
   SCM entry = scm_cons (symbol, data);
   SCM slot = scm_cons (entry, SCM_HASHTABLE_BUCKETS (obarray)[hash]);
   SCM_SET_HASHTABLE_BUCKET  (obarray, hash, slot);
@@ -525,7 +525,7 @@ obarray_enter (SCM obarray, SCM symbol, SCM data)
 static SCM
 obarray_replace (SCM obarray, SCM symbol, SCM data)
 {
-  size_t hash = SCM_SYMBOL_HASH (symbol) % SCM_HASHTABLE_N_BUCKETS (obarray);
+  size_t hash = scm_i_symbol_hash (symbol) % SCM_HASHTABLE_N_BUCKETS (obarray);
   SCM new_entry = scm_cons (symbol, data);
   SCM lsym;
   SCM slot;
@@ -557,7 +557,7 @@ obarray_replace (SCM obarray, SCM symbol, SCM data)
 static SCM
 obarray_retrieve (SCM obarray, SCM sym)
 {
-  size_t hash = SCM_SYMBOL_HASH (sym) % SCM_HASHTABLE_N_BUCKETS (obarray);
+  size_t hash = scm_i_symbol_hash (sym) % SCM_HASHTABLE_N_BUCKETS (obarray);
   SCM lsym;
 
   for (lsym = SCM_HASHTABLE_BUCKETS (obarray)[hash];
@@ -580,7 +580,7 @@ obarray_retrieve (SCM obarray, SCM sym)
 static SCM
 obarray_remove (SCM obarray, SCM sym)
 {
-  size_t hash = SCM_SYMBOL_HASH (sym) % SCM_HASHTABLE_N_BUCKETS (obarray);
+  size_t hash = scm_i_symbol_hash (sym) % SCM_HASHTABLE_N_BUCKETS (obarray);
   SCM table_entry = SCM_HASHTABLE_BUCKETS (obarray)[hash];
   SCM handle = scm_sloppy_assq (sym, table_entry);
 
@@ -787,7 +787,8 @@ update_catch_handler (void *ptr, SCM tag, SCM args)
 {
   struct update_data *data = (struct update_data *) ptr;
   SCM observer = data->observer;
-  SCM message = scm_makfrom0str ("Observer `~A' signals `~A' error: ~S");
+  SCM message =
+    scm_from_locale_string ("Observer `~A' signals `~A' error: ~S");
 
   return scm_cons (message, scm_list_3 (observer, tag, args));
 }
@@ -2238,7 +2239,7 @@ export_environment_parse_signature (SCM signature, const char* caller)
     {
       SCM entry = SCM_CAR (l);
 
-      if (SCM_SYMBOLP (entry))
+      if (scm_is_symbol (entry))
 	{
 	  SCM new_entry = scm_cons2 (entry, symbol_immutable_location, SCM_EOL);
 	  result = scm_cons (new_entry, result);
@@ -2253,7 +2254,7 @@ export_environment_parse_signature (SCM signature, const char* caller)
 	  SCM l2;
 
 	  SCM_ASSERT (SCM_CONSP (entry), entry, SCM_ARGn, caller);
-	  SCM_ASSERT (SCM_SYMBOLP (SCM_CAR (entry)), entry, SCM_ARGn, caller);
+	  SCM_ASSERT (scm_is_symbol (SCM_CAR (entry)), entry, SCM_ARGn, caller);
 
 	  sym = SCM_CAR (entry);
 

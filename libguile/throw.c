@@ -444,7 +444,7 @@ handler_message (void *handler_data, SCM tag, SCM args)
 SCM
 scm_handle_by_message (void *handler_data, SCM tag, SCM args)
 {
-  if (scm_is_true (scm_eq_p (tag, scm_str2symbol ("quit"))))
+  if (scm_is_true (scm_eq_p (tag, scm_from_locale_symbol ("quit"))))
     {
       exit (scm_exit_status (args));
     }
@@ -502,7 +502,7 @@ SCM_DEFINE (scm_catch, "catch", 3, 0, 0,
 {
   struct scm_body_thunk_data c;
 
-  SCM_ASSERT (SCM_SYMBOLP (key) || scm_is_eq (key, SCM_BOOL_T),
+  SCM_ASSERT (scm_is_symbol (key) || scm_is_eq (key, SCM_BOOL_T),
 	      key, SCM_ARG1, FUNC_NAME);
 
   c.tag = key;
@@ -530,7 +530,7 @@ SCM_DEFINE (scm_lazy_catch, "lazy-catch", 3, 0, 0,
 {
   struct scm_body_thunk_data c;
 
-  SCM_ASSERT (SCM_SYMBOLP (key) || scm_is_eq (key, SCM_BOOL_T),
+  SCM_ASSERT (scm_is_symbol (key) || scm_is_eq (key, SCM_BOOL_T),
 	      key, SCM_ARG1, FUNC_NAME);
 
   c.tag = key;

@@ -285,18 +285,18 @@ scm_init_gdbint ()
   scm_print_carefully_p = 0;
   
   port = scm_mkstrport (SCM_INUM0,
-			scm_make_string (scm_from_int (0), SCM_UNDEFINED),
+			scm_c_make_string (0, SCM_UNDEFINED),
 			SCM_OPN | SCM_WRTNG,
 			s);
   gdb_output_port = scm_permanent_object (port);
   
   port = scm_mkstrport (SCM_INUM0,
-			scm_make_string (scm_from_int (0), SCM_UNDEFINED),
+			scm_c_make_string (0, SCM_UNDEFINED),
 			SCM_OPN | SCM_RDNG | SCM_WRTNG,
 			s);
   gdb_input_port = scm_permanent_object (port);
 
-  tok_buf = scm_permanent_object (scm_allocate_string (30));
+  tok_buf = scm_permanent_object (scm_c_make_string (30, SCM_UNDEFINED));
 }
 
 /*

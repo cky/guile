@@ -56,20 +56,18 @@ SCM_DEFINE (scm_read_delimited_x, "%read-delimited!", 3, 3, 0,
 #define FUNC_NAME s_scm_read_delimited_x
 {
   size_t j;
-  char *buf;
   size_t cstart;
   size_t cend;
   int c;
-  char *cdelims;
+  const char *cdelims;
   size_t num_delims;
 
   SCM_VALIDATE_STRING (1, delims);
-  cdelims = SCM_I_STRING_CHARS (delims);
-  num_delims = SCM_I_STRING_LENGTH (delims);
+  cdelims = scm_i_string_chars (delims);
+  num_delims = scm_i_string_length (delims);
 
   SCM_VALIDATE_STRING (2, str);
-  buf = SCM_I_STRING_CHARS (str);
-  scm_i_get_substring_spec (SCM_I_STRING_LENGTH (str),
+  scm_i_get_substring_spec (scm_i_string_length (str),
 			    start, &cstart, end, &cend);
 
   if (SCM_UNBNDP (port))
@@ -97,7 +95,7 @@ SCM_DEFINE (scm_read_delimited_x, "%read-delimited!", 3, 3, 0,
 	return scm_cons (SCM_EOF_VAL, 
 			 scm_from_size_t (j - cstart));
 
-      buf[j] = c;
+      scm_c_string_set_x (str, j, SCM_MAKE_CHAR (c));
     }
   return scm_cons (SCM_BOOL_F, scm_from_size_t (j - cstart));
 }
@@ -227,14 +225,14 @@ SCM_DEFINE (scm_read_line, "%read-line", 0, 1, 0,
 	{
 	  term = SCM_MAKE_CHAR ('\n');
 	  s[slen-1] = '\0';
-	  line = scm_take_str (s, slen-1);
+	  line = scm_take_locale_stringn (s, slen-1);
 	  SCM_INCLINE (port);
 	}
       else
 	{
 	  /* Fix: we should check for eof on the port before assuming this. */
 	  term = SCM_EOF_VAL;
-	  line = scm_take_str (s, slen);
+	  line = scm_take_locale_stringn (s, slen);
 	  SCM_COL (port) += slen;
 	}
     }

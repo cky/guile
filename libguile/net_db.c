@@ -174,7 +174,7 @@ SCM_DEFINE (scm_gethost, "gethost", 0, 1, 0,
   if (!entry)
     scm_resolv_error (FUNC_NAME, host);
   
-  SCM_VECTOR_SET(result, 0, scm_mem2string (entry->h_name, strlen (entry->h_name)));
+  SCM_VECTOR_SET(result, 0, scm_from_locale_string (entry->h_name));
   SCM_VECTOR_SET(result, 1, scm_makfromstrs (-1, entry->h_aliases));
   SCM_VECTOR_SET(result, 2, scm_from_int (entry->h_addrtype));
   SCM_VECTOR_SET(result, 3, scm_from_int (entry->h_length));
@@ -248,7 +248,7 @@ SCM_DEFINE (scm_getnet, "getnet", 0, 1, 0,
   if (!entry)
     SCM_SYSERROR_MSG ("no such network ~A", scm_list_1 (net), eno);
 
-  SCM_VECTOR_SET(result, 0, scm_mem2string (entry->n_name, strlen (entry->n_name)));
+  SCM_VECTOR_SET(result, 0, scm_from_locale_string (entry->n_name));
   SCM_VECTOR_SET(result, 1, scm_makfromstrs (-1, entry->n_aliases));
   SCM_VECTOR_SET(result, 2, scm_from_int (entry->n_addrtype));
   SCM_VECTOR_SET(result, 3, scm_from_ulong (entry->n_net));
@@ -300,7 +300,7 @@ SCM_DEFINE (scm_getproto, "getproto", 0, 1, 0,
   if (!entry)
     SCM_SYSERROR_MSG ("no such protocol ~A", scm_list_1 (protocol), eno);
 
-  SCM_VECTOR_SET(result, 0, scm_mem2string (entry->p_name, strlen (entry->p_name)));
+  SCM_VECTOR_SET(result, 0, scm_from_locale_string (entry->p_name));
   SCM_VECTOR_SET(result, 1, scm_makfromstrs (-1, entry->p_aliases));
   SCM_VECTOR_SET(result, 2, scm_from_int (entry->p_proto));
   return result;
@@ -314,10 +314,10 @@ scm_return_entry (struct servent *entry)
 {
   SCM result = scm_c_make_vector (4, SCM_UNSPECIFIED);
 
-  SCM_VECTOR_SET(result, 0, scm_mem2string (entry->s_name, strlen (entry->s_name)));
+  SCM_VECTOR_SET(result, 0, scm_from_locale_string (entry->s_name));
   SCM_VECTOR_SET(result, 1, scm_makfromstrs (-1, entry->s_aliases));
   SCM_VECTOR_SET(result, 2, scm_from_uint16 (ntohs (entry->s_port)));
-  SCM_VECTOR_SET(result, 3, scm_mem2string (entry->s_proto, strlen (entry->s_proto)));
+  SCM_VECTOR_SET(result, 3, scm_from_locale_string (entry->s_proto));
   return result;
 }
 

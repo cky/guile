@@ -163,7 +163,7 @@ SCM_DEFINE (scm_inet_ntoa, "inet-ntoa", 1, 0, 0,
   SCM answer;
   addr.s_addr = htonl (SCM_NUM2ULONG (1, inetid));
   s = inet_ntoa (addr);
-  answer = scm_mem2string (s, strlen (s));
+  answer = scm_from_locale_string (s);
   return answer;
 }
 #undef FUNC_NAME
@@ -453,7 +453,7 @@ SCM_DEFINE (scm_inet_ntop, "inet-ntop", 2, 0, 0,
     scm_to_ipv6 (addr6, address);
   if (inet_ntop (af, &addr6, dst, sizeof dst) == NULL)
     SCM_SYSERROR;
-  return scm_makfrom0str (dst);
+  return scm_from_locale_string (dst);
 }
 #undef FUNC_NAME
 #endif
@@ -1000,8 +1000,7 @@ scm_addr_vector (const struct sockaddr *address, int addr_size,
 	if (addr_size <= offsetof (struct sockaddr_un, sun_path))
 	  SCM_VECTOR_SET(result, 1, SCM_BOOL_F);
 	else
-	  SCM_VECTOR_SET(result, 1, scm_mem2string (nad->sun_path,
-						    strlen (nad->sun_path)));
+	  SCM_VECTOR_SET(result, 1, scm_from_locale_string (nad->sun_path));
       }
       break;
 #endif
@@ -1134,6 +1133,8 @@ SCM_DEFINE (scm_recv, "recv!", 2, 1, 0,
   int rv;
   int fd;
   int flg;
+  char *dest;
+  size_t len;
 
   SCM_VALIDATE_OPFPORT (1, sock);
   SCM_VALIDATE_STRING (2, buf);
@@ -1143,9 +1144,11 @@ SCM_DEFINE (scm_recv, "recv!", 2, 1, 0,
     flg = scm_to_int (flags);
   fd = SCM_FPORT_FDES (sock);
 
-  SCM_SYSCALL (rv = recv (fd, 
-			  SCM_I_STRING_CHARS (buf), SCM_I_STRING_LENGTH (buf),
-			  flg));
+  len =  scm_i_string_length (buf);
+  dest = scm_i_string_writable_chars (buf);
+  SCM_SYSCALL (rv = recv (fd, dest, len, flg));
+  scm_i_string_stop_writing ();
+
   if (rv == -1)
     SCM_SYSERROR;
 
@@ -1173,6 +1176,8 @@ SCM_DEFINE (scm_send, "send", 2, 1, 0,
   int rv;
   int fd;
   int flg;
+  const char *src;
+  size_t len;
 
   sock = SCM_COERCE_OUTPORT (sock);
   SCM_VALIDATE_OPFPORT (1, sock);
@@ -1183,10 +1188,11 @@ SCM_DEFINE (scm_send, "send", 2, 1, 0,
     flg = scm_to_int (flags);
   fd = SCM_FPORT_FDES (sock);
 
-  SCM_SYSCALL (rv = send (fd,
-			  SCM_I_STRING_CHARS (message),
-			  SCM_I_STRING_LENGTH (message),
-			  flg));
+  len = scm_i_string_length (message);
+  src = scm_i_string_writable_chars (message);
+  SCM_SYSCALL (rv = send (fd, src, len, flg));
+  scm_i_string_stop_writing ();
+
   if (rv == -1)
     SCM_SYSERROR;
 
@@ -1233,8 +1239,7 @@ SCM_DEFINE (scm_recvfrom, "recvfrom!", 2, 3, 0,
   fd = SCM_FPORT_FDES (sock);
   
   SCM_VALIDATE_STRING (2, str);
-  buf = SCM_I_STRING_CHARS (str);
-  scm_i_get_substring_spec (SCM_I_STRING_LENGTH (str),
+  scm_i_get_substring_spec (scm_i_string_length (str),
 			    start, &offset, end, &cend);
 
   if (SCM_UNBNDP (flags))
@@ -1244,10 +1249,13 @@ SCM_DEFINE (scm_recvfrom, "recvfrom!", 2, 3, 0,
 
   /* recvfrom will not necessarily return an address.  usually nothing
      is returned for stream sockets.  */
+  buf = scm_i_string_writable_chars (str);
   addr->sa_family = AF_UNSPEC;
   SCM_SYSCALL (rv = recvfrom (fd, buf + offset,
 			      cend - offset, flg,
 			      addr, &addr_size));
+  scm_i_string_stop_writing ();
+
   if (rv == -1)
     SCM_SYSERROR;
   if (addr->sa_family != AF_UNSPEC)
@@ -1301,8 +1309,8 @@ SCM_DEFINE (scm_sendto, "sendto", 4, 0, 1,
       flg = SCM_NUM2ULONG (5, SCM_CAR (args_and_flags));
     }
   SCM_SYSCALL (rv = sendto (fd,
-			    SCM_I_STRING_CHARS (message),
-			    SCM_I_STRING_LENGTH (message),
+			    scm_i_string_chars (message),
+			    scm_i_string_length (message),
 			    flg, soka, size));
   if (rv == -1)
     {

@@ -254,7 +254,7 @@ syntax_error (const char* const, const SCM, const SCM) SCM_NORETURN;
 static void 
 syntax_error (const char* const msg, const SCM form, const SCM expr)
 {
-  const SCM msg_string = scm_makfrom0str (msg);
+  SCM msg_string = scm_from_locale_string (msg);
   SCM filename = SCM_BOOL_F;
   SCM linenr = SCM_BOOL_F;
   const char *format;
@@ -524,7 +524,7 @@ is_self_quoting_p (const SCM expr)
 {
   if (SCM_CONSP (expr))
     return 0;
-  else if (SCM_SYMBOLP (expr))
+  else if (scm_is_symbol (expr))
     return 0;
   else if (SCM_NULLP (expr))
     return 0;
@@ -651,7 +651,7 @@ m_body (SCM op, SCM exprs)
 static SCM
 try_macro_lookup (const SCM expr, const SCM env)
 {
-  if (SCM_SYMBOLP (expr))
+  if (scm_is_symbol (expr))
     {
       const SCM variable = lookup_symbol (expr, env);
       if (SCM_VARIABLEP (variable))
@@ -848,7 +848,7 @@ macroexp (SCM x, SCM env)
 
  macro_tail:
   orig_sym = SCM_CAR (x);
-  if (!SCM_SYMBOLP (orig_sym))
+  if (!scm_is_symbol (orig_sym))
     return x;
 
   {
@@ -1178,7 +1178,7 @@ canonicalize_define (const SCM expr)
       body = scm_list_1 (lambda);
       variable = SCM_CAR (variable);
     }
-  ASSERT_SYNTAX_2 (SCM_SYMBOLP (variable), s_bad_variable, variable, expr);
+  ASSERT_SYNTAX_2 (scm_is_symbol (variable), s_bad_variable, variable, expr);
   ASSERT_SYNTAX (scm_ilength (body) == 1, s_expression, expr);
 
   SCM_SETCAR (cdr_expr, variable);
@@ -1313,7 +1313,7 @@ scm_m_do (SCM expr, SCM env SCM_UNUSED)
         const SCM name = SCM_CAR (binding);
         const SCM init = SCM_CADR (binding);
         const SCM step = (length == 2) ? name : SCM_CADDR (binding);
-        ASSERT_SYNTAX_2 (SCM_SYMBOLP (name), s_bad_variable, name, expr);
+        ASSERT_SYNTAX_2 (scm_is_symbol (name), s_bad_variable, name, expr);
         ASSERT_SYNTAX_2 (scm_is_false (scm_c_memq (name, variables)),
                          s_duplicate_binding, name, expr);
 
@@ -1455,7 +1455,7 @@ scm_m_lambda (SCM expr, SCM env SCM_UNUSED)
     }
   else
     {
-      ASSERT_SYNTAX_2 (SCM_SYMBOLP (formals) || SCM_NULLP (formals),
+      ASSERT_SYNTAX_2 (scm_is_symbol (formals) || SCM_NULLP (formals),
                        s_bad_formals, formals, expr);
     }
 
@@ -1466,12 +1466,12 @@ scm_m_lambda (SCM expr, SCM env SCM_UNUSED)
     {
       const SCM formal = SCM_CAR (formals_idx);
       const SCM next_idx = SCM_CDR (formals_idx);
-      ASSERT_SYNTAX_2 (SCM_SYMBOLP (formal), s_bad_formal, formal, expr);
+      ASSERT_SYNTAX_2 (scm_is_symbol (formal), s_bad_formal, formal, expr);
       ASSERT_SYNTAX_2 (!c_improper_memq (formal, next_idx),
                        s_duplicate_formal, formal, expr);
       formals_idx = next_idx;
     }
-  ASSERT_SYNTAX_2 (SCM_NULLP (formals_idx) || SCM_SYMBOLP (formals_idx),
+  ASSERT_SYNTAX_2 (SCM_NULLP (formals_idx) || scm_is_symbol (formals_idx),
                    s_bad_formal, formals_idx, expr);
 
   /* Memoize the body.  Keep a potential documentation string.  */
@@ -1525,7 +1525,7 @@ check_bindings (const SCM bindings, const SCM expr)
                        s_bad_binding, binding, expr);
 
       name = SCM_CAR (binding);
-      ASSERT_SYNTAX_2 (SCM_SYMBOLP (name), s_bad_variable, name, expr);
+      ASSERT_SYNTAX_2 (scm_is_symbol (name), s_bad_variable, name, expr);
     }
 }
 
@@ -1611,7 +1611,7 @@ scm_m_let (SCM expr, SCM env)
   ASSERT_SYNTAX (length >= 2, s_missing_expression, expr);
 
   bindings = SCM_CAR (cdr_expr);
-  if (SCM_SYMBOLP (bindings))
+  if (scm_is_symbol (bindings))
     {
       ASSERT_SYNTAX (length >= 3, s_missing_expression, expr);
       return memoize_named_let (expr, env);
@@ -1944,7 +1944,7 @@ scm_m_set_x (SCM expr, SCM env SCM_UNUSED)
   variable = SCM_CAR (cdr_expr);
 
   /* Memoize the variable form. */
-  ASSERT_SYNTAX_2 (SCM_SYMBOLP (variable), s_bad_variable, variable, expr);
+  ASSERT_SYNTAX_2 (scm_is_symbol (variable), s_bad_variable, variable, expr);
   new_variable = lookup_symbol (variable, env);
   /* Leave the memoization of unbound symbols to lazy memoization: */
   if (SCM_UNBNDP (new_variable))
@@ -2140,7 +2140,7 @@ scm_m_generalized_set_x (SCM expr, SCM env)
 	  && SCM_NULLP (SCM_CDDR (exp_target)))
 	{
 	  exp_target= SCM_CADR (exp_target);
-	  ASSERT_SYNTAX_2 (SCM_SYMBOLP (exp_target)
+	  ASSERT_SYNTAX_2 (scm_is_symbol (exp_target)
 			   || SCM_VARIABLEP (exp_target),
 			   s_bad_variable, exp_target, expr);
 	  return scm_cons (SCM_IM_SET_X, scm_cons (exp_target,
@@ -2276,7 +2276,7 @@ scm_m_atfop (SCM expr, SCM env SCM_UNUSED)
   ASSERT_SYNTAX (scm_ilength (cdr_expr) >= 1, s_missing_expression, expr);
 
   symbol = SCM_CAR (cdr_expr);
-  ASSERT_SYNTAX_2 (SCM_SYMBOLP (symbol), s_bad_variable, symbol, expr);
+  ASSERT_SYNTAX_2 (scm_is_symbol (symbol), s_bad_variable, symbol, expr);
 
   location = scm_symbol_fref (symbol);
   ASSERT_SYNTAX_2 (SCM_VARIABLEP (location), s_defun, symbol, expr);
@@ -2284,7 +2284,7 @@ scm_m_atfop (SCM expr, SCM env SCM_UNUSED)
   /* The elisp function `defalias' allows to define aliases for symbols.  To
    * look up such definitions, the chain of symbol definitions has to be
    * followed up to the terminal symbol.  */
-  while (SCM_SYMBOLP (SCM_VARIABLE_REF (location)))
+  while (scm_is_symbol (SCM_VARIABLE_REF (location)))
     {
       const SCM alias = SCM_VARIABLE_REF (location);
       location = scm_symbol_fref (alias);
@@ -2460,7 +2460,7 @@ scm_m_undefine (SCM expr, SCM env)
     ("`undefine' is deprecated.\n");
 
   variable = SCM_CAR (cdr_expr);
-  ASSERT_SYNTAX_2 (SCM_SYMBOLP (variable), s_bad_variable, variable, expr);
+  ASSERT_SYNTAX_2 (scm_is_symbol (variable), s_bad_variable, variable, expr);
   location = scm_sym2var (variable, scm_env_top_level (env), SCM_BOOL_F);
   ASSERT_SYNTAX_2 (scm_is_true (location)
                    && !SCM_UNBNDP (SCM_VARIABLE_REF (location)),
@@ -2622,7 +2622,7 @@ static SCM deval (SCM x, SCM env);
          ? (scm_debug_mode_p \
             ? deval (SCM_CAR (x), (env)) \
             : ceval (SCM_CAR (x), (env))) \
-         : (!SCM_SYMBOLP (SCM_CAR (x)) \
+         : (!scm_is_symbol (SCM_CAR (x)) \
             ? SCM_CAR (x) \
             : *scm_lookupcar ((x), (env), 1)))))
 
@@ -2642,7 +2642,7 @@ static SCM deval (SCM x, SCM env);
       ? SCM_VARIABLE_REF (SCM_CAR (x)) \
       : (SCM_CONSP (SCM_CAR (x)) \
          ? CEVAL (SCM_CAR (x), (env)) \
-         : (!SCM_SYMBOLP (SCM_CAR (x)) \
+         : (!scm_is_symbol (SCM_CAR (x)) \
             ? SCM_CAR (x) \
             :  *scm_lookupcar ((x), (env), 1)))))
 
@@ -3345,7 +3345,7 @@ dispatch:
               RETURN (SCM_I_EVALIM (last_form, env));
             else if (SCM_VARIABLEP (last_form))
               RETURN (SCM_VARIABLE_REF (last_form));
-            else if (SCM_SYMBOLP (last_form))
+            else if (scm_is_symbol (last_form))
               RETURN (*scm_lookupcar (x, env, 1));
             else
               RETURN (last_form);
@@ -3603,7 +3603,7 @@ dispatch:
               location = SCM_VARIABLE_LOC (variable);
             else
               {
-                /* (SCM_SYMBOLP (variable)) is known to be true */
+                /* (scm_is_symbol (variable)) is known to be true */
                 variable = lazy_memoize_variable (variable, env);
                 SCM_SETCAR (x, variable);
                 location = SCM_VARIABLE_LOC (variable);
@@ -3945,7 +3945,7 @@ dispatch:
         proc = *scm_ilookup (SCM_CAR (x), env);
       else if (SCM_CONSP (SCM_CAR (x)))
 	proc = CEVAL (SCM_CAR (x), env);
-      else if (SCM_SYMBOLP (SCM_CAR (x)))
+      else if (scm_is_symbol (SCM_CAR (x)))
 	{
 	  SCM orig_sym = SCM_CAR (x);
 	  {
@@ -4160,14 +4160,15 @@ dispatch:
                 RETURN (scm_from_double (SCM_DSUBRF (proc) (scm_i_fraction2double (arg1))));
 	      }
 	    SCM_WTA_DISPATCH_1 (*SCM_SUBR_GENERIC (proc), arg1,
-                                SCM_ARG1, SCM_SYMBOL_CHARS (SCM_SNAME (proc)));
+                                SCM_ARG1,
+				scm_i_symbol_chars (SCM_SNAME (proc)));
 	  case scm_tc7_cxr:
 	    {
               unsigned char pattern = (scm_t_bits) SCM_SUBRF (proc);
               do
                 {
 		  SCM_ASSERT (SCM_CONSP (arg1), arg1, SCM_ARG1,
-                              SCM_SYMBOL_CHARS (SCM_SNAME (proc)));
+                              scm_i_symbol_chars (SCM_SNAME (proc)));
                   arg1 = (pattern & 1) ? SCM_CAR (arg1) : SCM_CDR (arg1);
                   pattern >>= 2;
                 } while (pattern);
@@ -4847,7 +4848,7 @@ tail:
 	  RETURN (scm_from_double (SCM_DSUBRF (proc) (scm_i_fraction2double (arg1))));
 	}
       SCM_WTA_DISPATCH_1 (*SCM_SUBR_GENERIC (proc), arg1,
-                          SCM_ARG1, SCM_SYMBOL_CHARS (SCM_SNAME (proc)));
+                          SCM_ARG1, scm_i_symbol_chars (SCM_SNAME (proc)));
     case scm_tc7_cxr:
       if (SCM_UNBNDP (arg1) || !SCM_NULLP (args))
 	scm_wrong_num_args (proc);
@@ -4856,7 +4857,7 @@ tail:
         do
           {
             SCM_ASSERT (SCM_CONSP (arg1), arg1, SCM_ARG1,
-                        SCM_SYMBOL_CHARS (SCM_SNAME (proc)));
+                        scm_i_symbol_chars (SCM_SNAME (proc)));
             arg1 = (pattern & 1) ? SCM_CAR (arg1) : SCM_CDR (arg1);
             pattern >>= 2;
           } while (pattern);
@@ -5199,7 +5200,7 @@ call_dsubr_1 (SCM proc, SCM arg1)
       RETURN (scm_from_double (SCM_DSUBRF (proc) (scm_i_fraction2double (arg1))));
     }
   SCM_WTA_DISPATCH_1 (*SCM_SUBR_GENERIC (proc), arg1,
-		      SCM_ARG1, SCM_SYMBOL_CHARS (SCM_SNAME (proc)));
+		      SCM_ARG1, scm_i_symbol_chars (SCM_SNAME (proc)));
 }
 
 static SCM
@@ -5209,7 +5210,7 @@ call_cxr_1 (SCM proc, SCM arg1)
   do
     {
       SCM_ASSERT (SCM_CONSP (arg1), arg1, SCM_ARG1,
-                  SCM_SYMBOL_CHARS (SCM_SNAME (proc)));
+                  scm_i_symbol_chars (SCM_SNAME (proc)));
       arg1 = (pattern & 1) ? SCM_CAR (arg1) : SCM_CDR (arg1);
       pattern >>= 2;
     } while (pattern);
@@ -5854,7 +5855,7 @@ SCM_DEFINE (scm_copy_tree, "copy-tree", 1, 0, 0,
 SCM 
 scm_i_eval_x (SCM exp, SCM env)
 {
-  if (SCM_SYMBOLP (exp))
+  if (scm_is_symbol (exp))
     return *scm_lookupcar (scm_cons (exp, SCM_UNDEFINED), env, 1);
   else
     return SCM_I_XEVAL (exp, env);
@@ -5864,7 +5865,7 @@ SCM
 scm_i_eval (SCM exp, SCM env)
 {
   exp = scm_copy_tree (exp);
-  if (SCM_SYMBOLP (exp))
+  if (scm_is_symbol (exp))
     return *scm_lookupcar (scm_cons (exp, SCM_UNDEFINED), env, 1);
   else
     return SCM_I_XEVAL (exp, env);
@@ -5980,7 +5981,7 @@ SCM scm_ceval (SCM x, SCM env)
 {
   if (SCM_CONSP (x))
     return ceval (x, env);
-  else if (SCM_SYMBOLP (x))
+  else if (scm_is_symbol (x))
     return *scm_lookupcar (scm_cons (x, SCM_UNDEFINED), env, 1);
   else
     return SCM_I_XEVAL (x, env);
@@ -5991,7 +5992,7 @@ SCM scm_deval (SCM x, SCM env)
 {
   if (SCM_CONSP (x))
     return deval (x, env);
-  else if (SCM_SYMBOLP (x))
+  else if (scm_is_symbol (x))
     return *scm_lookupcar (scm_cons (x, SCM_UNDEFINED), env, 1);
   else
     return SCM_I_XEVAL (x, env);

@@ -103,7 +103,7 @@ SCM_DEFINE(scm_issue_deprecation_warning,
     mode = summary_print;
   else
     {
-      SCM nl = scm_str2string ("\n");
+      SCM nl = scm_from_locale_string ("\n");
       SCM msgs_nl = SCM_EOL;
       char *c_msgs;
       while (SCM_CONSP (msgs))

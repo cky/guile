@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1999,2000,2001, 2003 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1999,2000,2001, 2003, 2004 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -170,7 +170,7 @@ SCM_DEFINE (scm_class_of, "class-of", 1, 0, 0,
 		{
 		  SCM name = SCM_STRUCT_TABLE_NAME (SCM_CDR (handle));
 		  SCM class = scm_make_extended_class (scm_is_true (name)
-						       ? SCM_SYMBOL_CHARS (name)
+						       ? scm_i_symbol_chars (name)
 						       : 0,
 						       SCM_I_OPERATORP (x));
 		  SCM_SET_STRUCT_TABLE_CLASS (SCM_CDR (handle), class);
@@ -468,8 +468,7 @@ SCM_DEFINE (scm_make_subclass_object, "make-subclass-object", 2, 0, 0,
   SCM_VALIDATE_STRUCT (1, class);
   SCM_VALIDATE_STRING (2, layout);
   pl = SCM_PACK (SCM_STRUCT_DATA (class) [scm_vtable_index_layout]);
-  /* Convert symbol->string */
-  pl = scm_mem2string (SCM_SYMBOL_CHARS (pl), SCM_SYMBOL_LENGTH (pl));
+  pl = scm_symbol_to_string (pl);
   return scm_i_make_class_object (SCM_STRUCT_VTABLE (class),
 				  scm_string_append (scm_list_2 (pl, layout)),
 				  SCM_CLASS_FLAGS (class));
@@ -479,15 +478,15 @@ SCM_DEFINE (scm_make_subclass_object, "make-subclass-object", 2, 0, 0,
 void
 scm_init_objects ()
 {
-  SCM ms = scm_makfrom0str (SCM_METACLASS_STANDARD_LAYOUT);
+  SCM ms = scm_from_locale_string (SCM_METACLASS_STANDARD_LAYOUT);
   SCM mt = scm_make_vtable_vtable (ms, SCM_INUM0,
 				   scm_list_3 (SCM_BOOL_F, SCM_EOL, SCM_EOL));
   
-  SCM os = scm_makfrom0str (SCM_METACLASS_OPERATOR_LAYOUT);
+  SCM os = scm_from_locale_string (SCM_METACLASS_OPERATOR_LAYOUT);
   SCM ot = scm_make_vtable_vtable (os, SCM_INUM0,
 				   scm_list_3 (SCM_BOOL_F, SCM_EOL, SCM_EOL));
   
-  SCM es = scm_makfrom0str (SCM_ENTITY_LAYOUT);
+  SCM es = scm_from_locale_string (SCM_ENTITY_LAYOUT);
   SCM el = scm_make_struct_layout (es);
   SCM et = scm_make_struct (mt, SCM_INUM0,
 			    scm_list_4 (el, SCM_BOOL_F, SCM_EOL, SCM_EOL));

@@ -2286,25 +2286,25 @@ SCM_DEFINE (scm_number_to_string, "number->string", 1, 1, 0,
     {
       char num_buf [SCM_INTBUFLEN];
       size_t length = scm_iint2str (SCM_I_INUM (n), base, num_buf);
-      return scm_mem2string (num_buf, length);
+      return scm_from_locale_stringn (num_buf, length);
     }
   else if (SCM_BIGP (n))
     {
       char *str = mpz_get_str (NULL, base, SCM_I_BIG_MPZ (n));
       scm_remember_upto_here_1 (n);
-      return scm_take0str (str);
+      return scm_take_locale_string (str);
     }
   else if (SCM_FRACTIONP (n))
     {
       scm_i_fraction_reduce (n);
       return scm_string_append (scm_list_3 (scm_number_to_string (SCM_FRACTION_NUMERATOR (n), radix),
-					    scm_mem2string ("/", 1), 
+					    scm_from_locale_string ("/"), 
 					    scm_number_to_string (SCM_FRACTION_DENOMINATOR (n), radix)));
     }
   else if (SCM_INEXACTP (n))
     {
       char num_buf [FLOBUFLEN];
-       return scm_mem2string (num_buf, iflo2str (n, num_buf, base));
+      return scm_from_locale_stringn (num_buf, iflo2str (n, num_buf, base));
     }
   else
     SCM_WRONG_TYPE_ARG (1, n);
@@ -2338,7 +2338,7 @@ scm_i_print_fraction (SCM sexp, SCM port, scm_print_state *pstate SCM_UNUSED)
   SCM str;
   scm_i_fraction_reduce (sexp);
   str = scm_number_to_string (sexp, SCM_UNDEFINED);
-  scm_lfwrite (SCM_I_STRING_CHARS (str), SCM_I_STRING_LENGTH (str), port);
+  scm_lfwrite (scm_i_string_chars (str), scm_i_string_length (str), port);
   scm_remember_upto_here_1 (str);
   return !0;
 }
@@ -2596,7 +2596,7 @@ mem2decimal_from_point (SCM result, const char* mem, size_t len,
 	  if (exponent > SCM_MAXEXP)
 	    {
 	      size_t exp_len = idx - start;
-	      SCM exp_string = scm_mem2string (&mem[start], exp_len);
+	      SCM exp_string = scm_from_locale_stringn (&mem[start], exp_len);
 	      SCM exp_num = scm_string_to_number (exp_string, SCM_UNDEFINED);
 	      scm_out_of_range ("string->number", exp_num);
 	    }
@@ -2967,8 +2967,8 @@ SCM_DEFINE (scm_string_to_number, "string->number", 1, 1, 0,
   else
     base = scm_to_unsigned_integer (radix, 2, INT_MAX);
 
-  answer = scm_i_mem2number (SCM_I_STRING_CHARS (string),
-			     SCM_I_STRING_LENGTH (string),
+  answer = scm_i_mem2number (scm_i_string_chars (string),
+			     scm_i_string_length (string),
 			     base);
   scm_remember_upto_here_1 (string);
   return answer;

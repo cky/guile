@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,1999,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2004 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -105,7 +105,7 @@ SCM_DEFINE (scm_primitive_load, "primitive-load", 1, 0, 0,
 
   { /* scope */
     SCM port, save_port;
-    port = scm_open_file (filename, scm_mem2string ("r", sizeof (char)));
+    port = scm_open_file (filename, scm_from_locale_string ("r"));
     save_port = port;
     scm_internal_dynamic_wind (swap_port,
 			       load,
@@ -121,7 +121,7 @@ SCM_DEFINE (scm_primitive_load, "primitive-load", 1, 0, 0,
 SCM
 scm_c_primitive_load (const char *filename)
 {
-  return scm_primitive_load (scm_makfrom0str (filename));
+  return scm_primitive_load (scm_from_locale_string (filename));
 }
 
 
@@ -134,7 +134,7 @@ SCM_DEFINE (scm_sys_package_data_dir, "%package-data-dir", 0, 0, 0,
 	    "@samp{/usr/local/share/guile}.")
 #define FUNC_NAME s_scm_sys_package_data_dir
 {
-  return scm_makfrom0str (SCM_PKGDATA_DIR);
+  return scm_from_locale_string (SCM_PKGDATA_DIR);
 }
 #undef FUNC_NAME
 #endif /* SCM_PKGDATA_DIR */
@@ -146,7 +146,7 @@ SCM_DEFINE (scm_sys_library_dir, "%library-dir", 0,0,0,
 	    "E.g., may return \"/usr/share/guile/1.3.5\".")
 #define FUNC_NAME s_scm_sys_library_dir
 {
-  return scm_makfrom0str(SCM_LIBRARY_DIR);
+  return scm_from_locale_string (SCM_LIBRARY_DIR);
 }
 #undef FUNC_NAME
 #endif /* SCM_LIBRARY_DIR */
@@ -158,7 +158,7 @@ SCM_DEFINE (scm_sys_site_dir, "%site-dir", 0,0,0,
 	    "E.g., may return \"/usr/share/guile/site\".")
 #define FUNC_NAME s_scm_sys_site_dir
 {
-  return scm_makfrom0str(SCM_SITE_DIR);
+  return scm_from_locale_string (SCM_SITE_DIR);
 }
 #undef FUNC_NAME
 #endif /* SCM_SITE_DIR */
@@ -208,9 +208,9 @@ scm_init_load_path ()
   SCM path = SCM_EOL;
 
 #ifdef SCM_LIBRARY_DIR
-  path = scm_list_3 (scm_makfrom0str (SCM_SITE_DIR),
-		     scm_makfrom0str (SCM_LIBRARY_DIR),
-		     scm_makfrom0str (SCM_PKGDATA_DIR));
+  path = scm_list_3 (scm_from_locale_string (SCM_SITE_DIR),
+		     scm_from_locale_string (SCM_LIBRARY_DIR),
+		     scm_from_locale_string (SCM_PKGDATA_DIR));
 #endif /* SCM_LIBRARY_DIR */
 
   env = getenv ("GUILE_LOAD_PATH");
@@ -483,7 +483,7 @@ SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 1, 0, 0,
 SCM
 scm_c_primitive_load_path (const char *filename)
 {
-  return scm_primitive_load_path (scm_makfrom0str (filename));
+  return scm_primitive_load_path (scm_from_locale_string (filename));
 }
 
 
@@ -499,11 +499,12 @@ init_build_info ()
   unsigned long i;
 
   for (i = 0; i < (sizeof (info) / sizeof (info[0])); i++)
-    *loc = scm_acons (scm_str2symbol (info[i].name),
-		      scm_makfrom0str (info[i].value),
-		      *loc);
+    {
+      SCM key = scm_from_locale_symbol (info[i].name);
+      SCM val = scm_from_locale_string (info[i].value);
+      *loc = scm_acons (key, val, *loc);
+    }
 }
-
 
 
 void
@@ -513,8 +514,8 @@ scm_init_load ()
   scm_loc_load_path = SCM_VARIABLE_LOC (scm_c_define ("%load-path", SCM_EOL));
   scm_loc_load_extensions
     = SCM_VARIABLE_LOC (scm_c_define ("%load-extensions",
-				    scm_list_2 (scm_makfrom0str (".scm"),
-						scm_nullstr)));
+				      scm_list_2 (scm_from_locale_string (".scm"),
+						  scm_nullstr)));
   scm_loc_load_hook = SCM_VARIABLE_LOC (scm_c_define ("%load-hook", SCM_BOOL_F));
 
   init_build_info ();

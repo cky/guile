@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,1999,2000,2001,2002, 2003 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001,2002, 2003, 2004 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -41,7 +41,7 @@ void
 scm_add_feature (const char *str)
 {
   SCM old = SCM_VARIABLE_REF (features_var);
-  SCM new = scm_cons (scm_str2symbol (str), old);
+  SCM new = scm_cons (scm_from_locale_symbol (str), old);
   SCM_VARIABLE_SET (features_var, new);
 }
 
@@ -71,7 +71,7 @@ scm_set_program_arguments (int argc, char **argv, char *first)
 {
   scm_progargs = scm_makfromstrs (argc, argv);
   if (first)
-    scm_progargs = scm_cons (scm_makfrom0str (first), scm_progargs);
+    scm_progargs = scm_cons (scm_from_locale_string (first), scm_progargs);
 }
 
 

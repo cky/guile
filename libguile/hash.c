@@ -110,13 +110,13 @@ scm_hasher(SCM obj, unsigned long n, size_t d)
       /* Fall through */
     case scm_tc7_string:
       {
-	unsigned long hash = scm_string_hash (SCM_I_STRING_UCHARS (obj),
-					      SCM_I_STRING_LENGTH (obj)) % n;
+	unsigned long hash = scm_string_hash (scm_i_string_chars (obj),
+					      scm_i_string_length (obj)) % n;
 	scm_remember_upto_here_1 (obj);
 	return hash;
       }
     case scm_tc7_symbol:
-      return SCM_SYMBOL_HASH (obj) % n;
+      return scm_i_symbol_hash (obj) % n;
     case scm_tc7_wvect:
     case scm_tc7_vector:
       {

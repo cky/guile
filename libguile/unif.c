@@ -169,7 +169,7 @@ scm_make_uve (long k, SCM prot)
   else if (SCM_CHARP (prot) && (SCM_CHAR (prot) == '\0'))
     return make_uve (scm_tc7_byvect, k, sizeof (char));
   else if (SCM_CHARP (prot))
-    return scm_allocate_string (sizeof (char) * k);
+    return scm_c_make_string (sizeof (char) * k, SCM_UNDEFINED);
   else if (SCM_I_INUMP (prot))
     return make_uve (SCM_I_INUM (prot) > 0 ? scm_tc7_uvect : scm_tc7_ivect,
 		     k,
@@ -179,11 +179,11 @@ scm_make_uve (long k, SCM prot)
       if (scm_num_eq_p (exactly_one_third, prot))
         goto dvect;
     }
-  else if (SCM_SYMBOLP (prot) && (1 == SCM_SYMBOL_LENGTH (prot)))
+  else if (scm_is_symbol (prot) && (1 == scm_i_symbol_length (prot)))
     {
       char s;
 
-      s = SCM_SYMBOL_CHARS (prot)[0];
+      s = scm_i_symbol_chars (prot)[0];
       if (s == 's')
 	return make_uve (scm_tc7_svect, k, sizeof (short));
 #if SCM_SIZEOF_LONG_LONG != 0
@@ -220,7 +220,7 @@ SCM_DEFINE (scm_uniform_vector_length, "uniform-vector-length", 1, 0, 0,
     case scm_tc7_wvect:
       return scm_from_size_t (SCM_VECTOR_LENGTH (v));
     case scm_tc7_string:
-      return scm_from_size_t (SCM_I_STRING_LENGTH (v));
+      return scm_from_size_t (scm_i_string_length (v));
     case scm_tc7_bvect:
       return scm_from_size_t (SCM_BITVECTOR_LENGTH (v));
     case scm_tc7_byvect:
@@ -286,15 +286,15 @@ SCM_DEFINE (scm_array_p, "array?", 1, 1, 0,
  	  protp = SCM_I_INUMP(prot) && SCM_I_INUM(prot)<=0;
           break;
  	case scm_tc7_svect:
- 	  protp = SCM_SYMBOLP (prot)
- 	    && (1 == SCM_SYMBOL_LENGTH (prot))
- 	    && ('s' == SCM_SYMBOL_CHARS (prot)[0]);
+ 	  protp = scm_is_symbol (prot)
+ 	    && (1 == scm_i_symbol_length (prot))
+ 	    && ('s' == scm_i_symbol_chars (prot)[0]);
           break;
 #if SCM_SIZEOF_LONG_LONG != 0
  	case scm_tc7_llvect:
- 	  protp = SCM_SYMBOLP (prot)
- 	    && (1 == SCM_SYMBOL_LENGTH (prot))
- 	    && ('l' == SCM_SYMBOL_CHARS (prot)[0]);
+ 	  protp = scm_is_symbol (prot)
+ 	    && (1 == scm_i_symbol_length (prot))
+ 	    && ('l' == scm_i_symbol_chars (prot)[0]);
           break;
 #endif
  	case scm_tc7_fvect:
@@ -564,7 +564,7 @@ SCM_DEFINE (scm_dimensions_to_uniform_array, "dimensions->uniform-array", 2, 1, 
       SCM answer = scm_make_uve (scm_to_long (dims), prot);
       if (!SCM_UNBNDP (fill))
 	scm_array_fill_x (answer, fill);
-      else if (SCM_SYMBOLP (prot))
+      else if (scm_is_symbol (prot))
 	scm_array_fill_x (answer, scm_from_int (0));
       else
 	scm_array_fill_x (answer, prot);
@@ -589,7 +589,7 @@ SCM_DEFINE (scm_dimensions_to_uniform_array, "dimensions->uniform-array", 2, 1, 
 
   if (!SCM_UNBNDP (fill))
     scm_array_fill_x (ra, fill);
-  else if (SCM_SYMBOLP (prot))
+  else if (scm_is_symbol (prot))
     scm_array_fill_x (ra, scm_from_int (0));
   else
     scm_array_fill_x (ra, prot);
@@ -880,6 +880,7 @@ SCM_DEFINE (scm_enclose_array, "enclose-array", 1, 0, 1,
 #define FUNC_NAME s_scm_enclose_array
 {
   SCM axv, res, ra_inr;
+  const char *c_axv;
   scm_t_array_dim vdim, *s = &vdim;
   int ndim, j, k, ninr, noutr;
 
@@ -939,16 +940,18 @@ SCM_DEFINE (scm_enclose_array, "enclose-array", 1, 0, 1,
       SCM_ARRAY_DIMS (ra_inr)[k].lbnd = s[j].lbnd;
       SCM_ARRAY_DIMS (ra_inr)[k].ubnd = s[j].ubnd;
       SCM_ARRAY_DIMS (ra_inr)[k].inc = s[j].inc;
-      SCM_I_STRING_CHARS (axv)[j] = 1;
+      scm_c_string_set_x (axv, j, SCM_MAKE_CHAR (1));
     }
+  c_axv = scm_i_string_chars (axv);
   for (j = 0, k = 0; k < noutr; k++, j++)
     {
-      while (SCM_I_STRING_CHARS (axv)[j])
+      while (c_axv[j])
 	j++;
       SCM_ARRAY_DIMS (res)[k].lbnd = s[j].lbnd;
       SCM_ARRAY_DIMS (res)[k].ubnd = s[j].ubnd;
       SCM_ARRAY_DIMS (res)[k].inc = s[j].inc;
     }
+  scm_remember_upto_here_1 (axv);
   scm_ra_set_contp (ra_inr);
   scm_ra_set_contp (res);
   return res;
@@ -1109,7 +1112,7 @@ SCM_DEFINE (scm_uniform_vector_ref, "uniform-vector-ref", 2, 0, 0,
       else
 	return SCM_BOOL_F;
     case scm_tc7_string:
-      return SCM_MAKE_CHAR (SCM_I_STRING_UCHARS (v)[pos]);
+      return scm_c_string_ref (v, pos);
     case scm_tc7_byvect:
       return scm_from_schar (((char *) SCM_UVECTOR_BASE (v))[pos]);
   case scm_tc7_uvect:
@@ -1155,7 +1158,7 @@ scm_cvref (SCM v, unsigned long pos, SCM last)
       else
 	return SCM_BOOL_F;
     case scm_tc7_string:
-      return SCM_MAKE_CHAR (SCM_I_STRING_UCHARS (v)[pos]);
+      return scm_c_string_ref (v, pos);
     case scm_tc7_byvect:
       return scm_from_char (((char *) SCM_UVECTOR_BASE (v))[pos]);
     case scm_tc7_uvect:
@@ -1269,7 +1272,7 @@ SCM_DEFINE (scm_array_set_x, "array-set!", 2, 0, 1,
       break;
     case scm_tc7_string:
       SCM_ASRTGO (SCM_CHARP (obj), badobj);
-      SCM_I_STRING_UCHARS (v)[pos] = SCM_CHAR (obj);
+      scm_c_string_set_x (v, pos, obj);
       break;
     case scm_tc7_byvect:
       if (SCM_CHARP (obj))
@@ -1478,7 +1481,7 @@ loop:
       v = SCM_ARRAY_V (cra);
       goto loop;
     case scm_tc7_string:
-      base = SCM_I_STRING_CHARS (v);
+      base = NULL;  /* writing to strings is special, see below. */
       sz = sizeof (char);
       break;
     case scm_tc7_bvect:
@@ -1544,7 +1547,7 @@ loop:
     {
       scm_t_port *pt = SCM_PTAB_ENTRY (port_or_fd);
       int remaining = (cend - offset) * sz;
-      char *dest = base + (cstart + offset) * sz;
+      size_t off = (cstart + offset) * sz;
 
       if (pt->rw_active == SCM_PORT_WRITE)
 	scm_flush (port_or_fd);
@@ -1557,10 +1560,18 @@ loop:
 	      int to_copy = min (pt->read_end - pt->read_pos,
 				 remaining);
 
-	      memcpy (dest, pt->read_pos, to_copy);
+	      if (base == NULL)
+		{
+		  /* strings */
+		  char *b = scm_i_string_writable_chars (v);
+		  memcpy (b + off, pt->read_pos, to_copy);
+		  scm_i_string_stop_writing ();
+		}
+	      else
+		memcpy (base + off, pt->read_pos, to_copy);
 	      pt->read_pos += to_copy;
 	      remaining -= to_copy;
-	      dest += to_copy;
+	      off += to_copy;
 	    }
 	  else
 	    {
@@ -1581,9 +1592,19 @@ loop:
     }
   else /* file descriptor.  */
     {
-      SCM_SYSCALL (ans = read (scm_to_int (port_or_fd),
-			       base + (cstart + offset) * sz,
-			       (sz * (cend - offset))));
+      if (base == NULL)
+	{
+	  /* strings */
+	  char *b = scm_i_string_writable_chars (v);
+	  SCM_SYSCALL (ans = read (scm_to_int (port_or_fd),
+				   b + (cstart + offset) * sz,
+				   (sz * (cend - offset))));
+	  scm_i_string_stop_writing ();
+	}
+      else
+	SCM_SYSCALL (ans = read (scm_to_int (port_or_fd),
+				 base + (cstart + offset) * sz,
+				 (sz * (cend - offset))));
       if (ans == -1)
 	SCM_SYSERROR;
     }
@@ -1615,7 +1636,7 @@ SCM_DEFINE (scm_uniform_array_write, "uniform-array-write", 1, 3, 0,
   long offset = 0;
   long cstart = 0;
   long cend;
-  char *base;
+  const char *base;
 
   port_or_fd = SCM_COERCE_OUTPORT (port_or_fd);
 
@@ -1644,7 +1665,7 @@ loop:
       v = SCM_ARRAY_V (v);
       goto loop;
     case scm_tc7_string:
-      base = SCM_I_STRING_CHARS (v);
+      base = scm_i_string_chars (v);
       sz = sizeof (char);
       break;
     case scm_tc7_bvect:
@@ -1708,7 +1729,7 @@ loop:
 
   if (SCM_NIMP (port_or_fd))
     {
-      char *source = base + (cstart + offset) * sz;
+      const char *source = base + (cstart + offset) * sz;
 
       ans = cend - offset;
       scm_lfwrite (source, ans * sz, port_or_fd);
@@ -2014,13 +2035,16 @@ SCM_DEFINE (scm_bit_invert_x, "bit-invert!", 1, 0, 0,
 
 
 SCM 
-scm_istr2bve (char *str, long len)
+scm_istr2bve (SCM str)
 {
+  size_t len = scm_i_string_length (str);
   SCM v = scm_make_uve (len, SCM_BOOL_T);
   long *data = (long *) SCM_VELTS (v);
   register unsigned long mask;
   register long k;
   register long j;
+  const char *c_str = scm_i_string_chars (str);
+
   for (k = 0; k < (len + SCM_LONG_BIT - 1) / SCM_LONG_BIT; k++)
     {
       data[k] = 0L;
@@ -2028,7 +2052,7 @@ scm_istr2bve (char *str, long len)
       if (j > SCM_LONG_BIT)
 	j = SCM_LONG_BIT;
       for (mask = 1L; j--; mask <<= 1)
-	switch (*str++)
+	switch (*c_str++)
 	  {
 	  case '0':
 	    break;
@@ -2320,17 +2344,22 @@ tail:
 	}
       break;
     case scm_tc7_string:
-      if (n-- > 0)
-	scm_iprin1 (SCM_MAKE_CHAR (SCM_I_STRING_UCHARS (ra)[j]), port, pstate);
-      if (SCM_WRITINGP (pstate))
-	for (j += inc; n-- > 0; j += inc)
-	  {
-	    scm_putc (' ', port);
-	    scm_iprin1 (SCM_MAKE_CHAR (SCM_I_STRING_UCHARS (ra)[j]), port, pstate);
-	  }
-      else
-	for (j += inc; n-- > 0; j += inc)
-	  scm_putc (SCM_I_STRING_CHARS (ra)[j], port);
+      {
+	const char *src;
+	src = scm_i_string_chars (ra);
+	if (n-- > 0)
+	  scm_iprin1 (SCM_MAKE_CHAR (src[j]), port, pstate);
+	if (SCM_WRITINGP (pstate))
+	  for (j += inc; n-- > 0; j += inc)
+	    {
+	      scm_putc (' ', port);
+	      scm_iprin1 (SCM_MAKE_CHAR (src[j]), port, pstate);
+	    }
+	else
+	  for (j += inc; n-- > 0; j += inc)
+	    scm_putc (src[j], port);
+	scm_remember_upto_here_1 (ra);
+      }
       break;
     case scm_tc7_byvect:
       if (n-- > 0)
@@ -2560,10 +2589,10 @@ loop:
     case scm_tc7_ivect:
       return scm_from_int (-1);
     case scm_tc7_svect:
-      return scm_str2symbol ("s");
+      return scm_from_locale_symbol ("s");
 #if SCM_SIZEOF_LONG_LONG != 0
     case scm_tc7_llvect:
-      return scm_str2symbol ("l");
+      return scm_from_locale_symbol ("l");
 #endif
     case scm_tc7_fvect:
       return scm_from_double (1.0);

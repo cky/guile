@@ -355,19 +355,19 @@ SCM_DEFINE (scm_getpwuid, "getpw", 0, 1, 0,
   if (!entry)
     SCM_MISC_ERROR ("entry not found", SCM_EOL);
 
-  SCM_VECTOR_SET(result, 0, scm_makfrom0str (entry->pw_name));
-  SCM_VECTOR_SET(result, 1, scm_makfrom0str (entry->pw_passwd));
+  SCM_VECTOR_SET(result, 0, scm_from_locale_string (entry->pw_name));
+  SCM_VECTOR_SET(result, 1, scm_from_locale_string (entry->pw_passwd));
   SCM_VECTOR_SET(result, 2, scm_from_ulong (entry->pw_uid));
   SCM_VECTOR_SET(result, 3, scm_from_ulong (entry->pw_gid));
-  SCM_VECTOR_SET(result, 4, scm_makfrom0str (entry->pw_gecos));
+  SCM_VECTOR_SET(result, 4, scm_from_locale_string (entry->pw_gecos));
   if (!entry->pw_dir)
-    SCM_VECTOR_SET(result, 5, scm_makfrom0str (""));
+    SCM_VECTOR_SET(result, 5, scm_from_locale_string (""));
   else
-    SCM_VECTOR_SET(result, 5, scm_makfrom0str (entry->pw_dir));
+    SCM_VECTOR_SET(result, 5, scm_from_locale_string (entry->pw_dir));
   if (!entry->pw_shell)
-    SCM_VECTOR_SET(result, 6, scm_makfrom0str (""));
+    SCM_VECTOR_SET(result, 6, scm_from_locale_string (""));
   else
-    SCM_VECTOR_SET(result, 6, scm_makfrom0str (entry->pw_shell));
+    SCM_VECTOR_SET(result, 6, scm_from_locale_string (entry->pw_shell));
   return result;
 }
 #undef FUNC_NAME
@@ -420,8 +420,8 @@ SCM_DEFINE (scm_getgrgid, "getgr", 0, 1, 0,
   if (!entry)
     SCM_SYSERROR;
 
-  SCM_VECTOR_SET(result, 0, scm_makfrom0str (entry->gr_name));
-  SCM_VECTOR_SET(result, 1, scm_makfrom0str (entry->gr_passwd));
+  SCM_VECTOR_SET(result, 0, scm_from_locale_string (entry->gr_name));
+  SCM_VECTOR_SET(result, 1, scm_from_locale_string (entry->gr_passwd));
   SCM_VECTOR_SET(result, 2, scm_from_ulong  (entry->gr_gid));
   SCM_VECTOR_SET(result, 3, scm_makfromstrs (-1, entry->gr_mem));
   return result;
@@ -820,7 +820,7 @@ SCM_DEFINE (scm_ttyname, "ttyname", 1, 0, 0,
   scm_mutex_lock (&scm_i_misc_mutex);
   SCM_SYSCALL (result = ttyname (fd));
   err = errno;
-  ret = scm_makfrom0str (result);
+  ret = scm_from_locale_string (result);
   scm_mutex_unlock (&scm_i_misc_mutex);
 
   if (!result)
@@ -850,7 +850,7 @@ SCM_DEFINE (scm_ctermid, "ctermid", 0, 0, 0,
   char *result = ctermid (buf);
   if (*result == '\0')
     SCM_SYSERROR;
-  return scm_makfrom0str (result);
+  return scm_from_locale_string (result);
 }
 #undef FUNC_NAME
 #endif /* HAVE_CTERMID */
@@ -1051,14 +1051,14 @@ SCM_DEFINE (scm_uname, "uname", 0, 0, 0,
   SCM result = scm_c_make_vector (5, SCM_UNSPECIFIED);
   if (uname (&buf) < 0)
     SCM_SYSERROR;
-  SCM_VECTOR_SET(result, 0, scm_makfrom0str (buf.sysname));
-  SCM_VECTOR_SET(result, 1, scm_makfrom0str (buf.nodename));
-  SCM_VECTOR_SET(result, 2, scm_makfrom0str (buf.release));
-  SCM_VECTOR_SET(result, 3, scm_makfrom0str (buf.version));
-  SCM_VECTOR_SET(result, 4, scm_makfrom0str (buf.machine));
+  SCM_VECTOR_SET(result, 0, scm_from_locale_string (buf.sysname));
+  SCM_VECTOR_SET(result, 1, scm_from_locale_string (buf.nodename));
+  SCM_VECTOR_SET(result, 2, scm_from_locale_string (buf.release));
+  SCM_VECTOR_SET(result, 3, scm_from_locale_string (buf.version));
+  SCM_VECTOR_SET(result, 4, scm_from_locale_string (buf.machine));
 /* 
    a linux special?
-  SCM_VECTOR_SET(result, 5, scm_makfrom0str (buf.domainname));
+  SCM_VECTOR_SET(result, 5, scm_from_locale_string (buf.domainname));
 */
   return result;
 }
@@ -1116,7 +1116,7 @@ SCM_DEFINE (scm_tmpnam, "tmpnam", 0, 0, 0,
   if (rv == NULL)
     /* not SCM_SYSERROR since errno probably not set.  */
     SCM_MISC_ERROR ("tmpnam failed", SCM_EOL);
-  return scm_makfrom0str (name);
+  return scm_from_locale_string (name);
 }
 #undef FUNC_NAME
 
@@ -1369,13 +1369,13 @@ SCM_DEFINE (scm_mknod, "mknod", 4, 0, 0,
 #define FUNC_NAME s_scm_mknod
 {
   int val;
-  char *p;
+  const char *p;
   int ctype = 0;
 
   SCM_VALIDATE_STRING (1, path);
   SCM_VALIDATE_SYMBOL (2, type);
 
-  p = SCM_SYMBOL_CHARS (type);
+  p = scm_i_symbol_chars (type);
   if (strcmp (p, "regular") == 0)
     ctype = S_IFREG;
   else if (strcmp (p, "directory") == 0)
@@ -1530,7 +1530,7 @@ SCM_DEFINE (scm_getlogin, "getlogin", 0, 0, 0,
   p = getlogin ();
   if (!p || !*p)
     return SCM_BOOL_F;
-  return scm_makfrom0str (p);
+  return scm_from_locale_string (p);
 }
 #undef FUNC_NAME
 #endif /* HAVE_GETLOGIN */
@@ -1549,7 +1549,7 @@ SCM_DEFINE (scm_cuserid, "cuserid", 0, 0, 0,
   p = cuserid (buf);
   if (!p || !*p)
     return SCM_BOOL_F;
-  return scm_makfrom0str (p);
+  return scm_from_locale_string (p);
 }
 #undef FUNC_NAME
 #endif /* HAVE_CUSERID */
@@ -1839,8 +1839,8 @@ SCM_DEFINE (scm_gethostname, "gethostname", 0, 0, 0,
     }
   else
     {
-      /* scm_makfrom0str may throw an exception.  */
-      const SCM name = scm_makfrom0str (p);
+      /* scm_from_locale_string may throw an exception.  */
+      const SCM name = scm_from_locale_string (p);
 
       // No guile exceptions can occur before we have freed p's memory.
       scm_frame_end ();

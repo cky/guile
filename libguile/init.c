@@ -224,7 +224,7 @@ stream_body (void *data)
 {
   stream_body_data *body_data = (stream_body_data *) data;
   SCM port = scm_fdes_to_port (body_data->fdes, body_data->mode,
-			       scm_makfrom0str (body_data->name));
+			       scm_from_locale_string (body_data->name));
 
   SCM_REVEALED (port) = 1;
   return port;
@@ -309,12 +309,13 @@ scm_load_startup_files ()
   /* We want a path only containing directories from GUILE_LOAD_PATH,
      SCM_SITE_DIR and SCM_LIBRARY_DIR when searching for the site init
      file, so we do this before loading Ice-9.  */
-  SCM init_path = scm_sys_search_load_path (scm_makfrom0str ("init.scm"));
+  SCM init_path =
+    scm_sys_search_load_path (scm_from_locale_string ("init.scm"));
 
   /* Load Ice-9.  */
   if (!scm_ice_9_already_loaded)
     {
-      scm_primitive_load_path (scm_makfrom0str ("ice-9/boot-9.scm"));
+      scm_primitive_load_path (scm_from_locale_string ("ice-9/boot-9.scm"));
 
       /* Load the init.scm file.  */
       if (scm_is_true (init_path))

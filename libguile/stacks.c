@@ -744,13 +744,14 @@ scm_init_stacks ()
 {
   SCM vtable;
   SCM stack_layout
-    = scm_make_struct_layout (scm_makfrom0str (SCM_STACK_LAYOUT));
+    = scm_make_struct_layout (scm_from_locale_string (SCM_STACK_LAYOUT));
   vtable = scm_make_vtable_vtable (scm_nullstr, SCM_INUM0, SCM_EOL);
   scm_stack_type
     = scm_permanent_object (scm_make_struct (vtable, SCM_INUM0,
 					     scm_cons (stack_layout,
 						       SCM_EOL)));
-  scm_set_struct_vtable_name_x (scm_stack_type, scm_str2symbol ("stack"));
+  scm_set_struct_vtable_name_x (scm_stack_type,
+				scm_from_locale_symbol ("stack"));
 #include "libguile/stacks.x"
 }
 

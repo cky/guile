@@ -119,7 +119,7 @@ scm_i_uniform32 (scm_t_i_rstate *state)
 #endif
 
 void
-scm_i_init_rstate (scm_t_i_rstate *state, char *seed, int n)
+scm_i_init_rstate (scm_t_i_rstate *state, const char *seed, int n)
 {
   scm_t_int32 w = 0L;
   scm_t_int32 c = 0L;
@@ -153,7 +153,7 @@ scm_i_copy_rstate (scm_t_i_rstate *state)
  */
 
 scm_t_rstate *
-scm_c_make_rstate (char *seed, int n)
+scm_c_make_rstate (const char *seed, int n)
 {
   scm_t_rstate *state = scm_malloc (scm_the_rng.rstate_size);
   if (state == 0)
@@ -328,7 +328,7 @@ rstate_free (SCM rstate)
  * Scheme level interface.
  */
 
-SCM_GLOBAL_VARIABLE_INIT (scm_var_random_state, "*random-state*", scm_seed_to_random_state (scm_makfrom0str ("URL:http://stat.fsu.edu/~geo/diehard.html")));
+SCM_GLOBAL_VARIABLE_INIT (scm_var_random_state, "*random-state*", scm_seed_to_random_state (scm_from_locale_string ("URL:http://stat.fsu.edu/~geo/diehard.html")));
 
 SCM_DEFINE (scm_random, "random", 1, 1, 0, 
             (SCM n, SCM state),
@@ -387,8 +387,8 @@ SCM_DEFINE (scm_seed_to_random_state, "seed->random-state", 1, 0, 0,
   if (SCM_NUMBERP (seed))
     seed = scm_number_to_string (seed, SCM_UNDEFINED);
   SCM_VALIDATE_STRING (1, seed);
-  res = make_rstate (scm_c_make_rstate (SCM_I_STRING_CHARS (seed),
-					SCM_I_STRING_LENGTH (seed)));
+  res = make_rstate (scm_c_make_rstate (scm_i_string_chars (seed),
+					scm_i_string_length (seed)));
   scm_remember_upto_here_1 (seed);
   return res;
   

@@ -63,7 +63,7 @@ scm_c_make_subr (const char *name, long type, SCM (*fcn) ())
   entry = scm_subr_table_size;
   z = scm_cell ((entry << 8) + type, (scm_t_bits) fcn);
   scm_subr_table[entry].handle = z;
-  scm_subr_table[entry].name = scm_str2symbol (name);
+  scm_subr_table[entry].name = scm_from_locale_symbol (name);
   scm_subr_table[entry].generic = 0;
   scm_subr_table[entry].properties = SCM_EOL;
   scm_subr_table_size++;

@@ -3,7 +3,7 @@
 #ifndef SCM_SNARF_H
 #define SCM_SNARF_H
 
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2004 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -175,11 +175,11 @@ SCM_SNARF_INIT(scm_make_synt (RANAME, TYPE, CFN))
 
 #define SCM_SYMBOL(c_name, scheme_name) \
 SCM_SNARF_HERE(static SCM c_name) \
-SCM_SNARF_INIT(c_name = scm_permanent_object (scm_str2symbol (scheme_name)))
+SCM_SNARF_INIT(c_name = scm_permanent_object (scm_from_locale_symbol (scheme_name)))
 
 #define SCM_GLOBAL_SYMBOL(c_name, scheme_name) \
 SCM_SNARF_HERE(SCM c_name) \
-SCM_SNARF_INIT(c_name = scm_permanent_object (scm_str2symbol (scheme_name)))
+SCM_SNARF_INIT(c_name = scm_permanent_object (scm_from_locale_symbol (scheme_name)))
 
 #define SCM_KEYWORD(c_name, scheme_name) \
 SCM_SNARF_HERE(static SCM c_name) \
