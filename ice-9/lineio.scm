@@ -32,6 +32,11 @@
 ;;;
 ;;; 	read-string  	which returns the next line of input
 ;;;	unread-string 	which pushes a line back onto the stream
+;;; 
+;;; The implementation of unread-string is kind of limited; it doesn't
+;;; interact properly with unread-char, or any of the other port
+;;; reading functions.  Only read-string will get you back the things that
+;;; unread-string accepts.
 ;;;
 ;;; Normally a "line" is all characters up to and including a newline.
 ;;; If lines are put back using unread-string, they can be broken arbitrarily
@@ -90,9 +95,7 @@
 
 	 (unread-string (lambda (str)
 			  (and (< 0 (string-length str))
-			       (if (ungetc-char-ready? self)
-				   (set! buffers (append! (list str (string (read-char self))) buffers))
-				   (set! buffers (cons str buffers))))))
+				   (set! buffers (cons str buffers)))))
 
 	 (read-string (lambda ()
 		       (cond
@@ -100,10 +103,8 @@
 			 (let ((answer (car buffers)))
 			   (set! buffers (cdr buffers))
 			   answer))
-			((ungetc-char-ready? self)
-			 (read-line self 'include-newline))
 			(else
-			 (read-line underlying-port 'include-newline))))))
+			 (read-line underlying-port 'concat)))))) ;handle-newline->concat
 
     (set-object-property! self 'unread-string unread-string)
     (set-object-property! self 'read-string read-string)
