@@ -49,6 +49,24 @@
 #include "libguile/__scm.h"
 #include "libguile/print.h"
 
+#if defined (HAVE_FLOATINGPOINT_H)
+#include <floatingpoint.h>
+#endif
+
+#if defined (HAVE_IEEEFP_H)
+#include <ieeefp.h>
+#endif
+
+#if defined (HAVE_NAN_H)
+#if defined (SCO)
+#define _IEEE 1
+#endif
+#include <nan.h>
+#if defined (SCO)
+#undef _IEEE
+#endif
+#endif
+
 
 
 /* Immediate Numbers, also known as fixnums
@@ -202,6 +220,10 @@ typedef struct scm_t_complex
 SCM_API SCM scm_exact_p (SCM x);
 SCM_API SCM scm_odd_p (SCM n);
 SCM_API SCM scm_even_p (SCM n);
+SCM_API SCM scm_inf_p (SCM n);
+SCM_API SCM scm_nan_p (SCM n);
+SCM_API SCM scm_inf (void);
+SCM_API SCM scm_nan (void);
 SCM_API SCM scm_abs (SCM x);
 SCM_API SCM scm_quotient (SCM x, SCM y);
 SCM_API SCM scm_remainder (SCM x, SCM y);
