@@ -58,11 +58,12 @@ scm_make_weak_vector (k, fill)
      SCM fill;
 {
   SCM v;
-  v = scm_make_vector (scm_sum (k, SCM_MAKINUM (1)), fill);
+  v = scm_make_vector (scm_sum (k, SCM_MAKINUM (2)), fill);
   SCM_DEFER_INTS;
   SCM_SETLENGTH(v, SCM_INUM (k), scm_tc7_wvect);
-  SCM_VELTS(v)[0] = (SCM)0;
-  SCM_SETVELTS(v, SCM_VELTS(v) + 1);
+  SCM_VELTS(v)[0] = SCM_EOL;
+  SCM_VELTS(v)[1] = (SCM)0;
+  SCM_SETVELTS(v, SCM_VELTS(v) + 2);
   SCM_ALLOW_INTS;
   return v;
 }
