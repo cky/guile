@@ -1,3 +1,15 @@
+Fri Oct 18 01:03:08 1996  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* boot-9.scm (handle-system-error): Added hooks before-error-hook,
+ 	after-error-hook, before-backtrace-hook and after-backtrace-hook
+ 	to the error handler.  E.g.: fancy emacs support could plug into
+ 	these.
+	(save-stack): New function.  The stack is now made differently
+ 	depending on the stack id.  (The motivation is to make a better
+ 	choice regarding what stack frames to present to the user.)
+	(error-catching-loop): Stack handling code moved outside into
+ 	save-stack.
+
 Thu Oct 17 20:33:08 1996  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* Makefile.in (scm_files): add expect.scm.

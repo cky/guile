@@ -1,3 +1,30 @@
+Fri Oct 18 01:11:56 1996  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* stacks.c: Improve selection of relevant stack frames when making
+ 	a stack object.  Introduce one level of indirection in the stack
+ 	object to make it possible to "narrow" to a certain region of the
+ 	stack.  This facilitates making use of more clever algorithms (not
+ 	implemented) for selecting relevant frames and gives a cleaner
+ 	design since selection of frames can be done independently of
+ 	extraction of frames from the real stack.
+	(scm_stack_id): Also take #t as argument which means look at
+	current stack.
+
+	* stacks.h: In struct scm_stack: Turn field frames into a pointer.
+	Turn n_tail into an integer directly representing current number
+	of frames in stack.  Add field tail.
+
+	* ports.c (scm_port_line_x, scm_port_column_x): New mutators.
+
+	* debug.c (scm_make_memoized): Made it available at scheme level.
+	(scm_unmemoize, scm_memoized_environment): Bugfix: Check for
+	SCM_NIMP before applying heavier predicates in argument checking.
+	(scm_local_eval): Also take memoized object as argument.
+	
+	* backtrace.c (scm_display_error): Just a safety measure: Stacks
+	aren't created with zero length, but should such a strange
+	creature suddenly turn up...
+
 Tue Oct 15 17:06:13 1996  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* variable.c (scm_make_variable): Make the name hint optional, as
