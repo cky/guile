@@ -1,3 +1,9 @@
+Fri Jun 25 22:21:43 1999  Greg Badros  <gjb@cs.washington.edu>
+
+	* data-rep.texi: Updated SMOB docs to talk about
+ 	scm_make_smob_type_mfpe, SCM_RETURN_NEWSMOB, SCM_NEWSMOB function
+ 	and macros.
+	
 1999-04-17  Jim Blandy  <jimb@savonarola.red-bean.com>
 
 	* Makefile.in: Regenerated.

@@ -1,3 +1,8 @@
+Fri Jun 25 22:21:04 1999  Greg Badros  <gjb@cs.washington.edu>
+
+	* image-type.c:  Updated example to use scm_make_smob_type_mfpe,
+	SCM_RETURN_NEWSMOB, SCM_NEWSMOB function and macros.
+	
 1998-10-19  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	* image-type.c, myguile.c: Terminate copyright comments.

@@ -1,3 +1,17 @@
+Fri Jun 25 22:14:32 1999  Greg Badros  <gjb@cs.washington.edu>
+
+	* smob.c: added scm_make_smob_type_mfpe (), scm_set_smob_mfpe ();
+	use scm_make_smob_type_mfpe to initialize "free", "flo", "bigpos", 
+	and "bigneg" smob types.
+
+	* smob.h: Add do ... while(0) idiom to SCM_NEWSMOB.  Added
+	SCM_RETURN_NEWSMOB macro.  Added protos for new functions in
+	smob.c.
+
+	* *.c: Use scm_make_smob_type_mfpe, instead of scm_newsmob, and
+	use SCM_NEWSMOB or SCM_RETURN_NEWSMOB in constructors instead of
+	SCM_NEWCELL and setting the CAR/CDR by hand.
+	
 1999-07-04  Gary Houston  <ghouston@easynet.co.uk>
 
 	* unif.c (scm_uniform_array_write): likewise.
