@@ -122,9 +122,9 @@
 	    (let ((mod (make-vmod module)))
 	      (if toplevel
 		  (begin
-		    (push-code! `(load-module ,module))
+		    ;; (push-code! `(load-module ,module))
 		    (push-code! `(load-symbol ,name))
-		    (push-code! `(link)))
+		    (push-code! `(link/current-module)))
 		  (let ((vlink (make-vlink mod name)))
 		    (push-code! `(object-ref ,(object-index vlink)))))
 	      (push-code! (list (symbol-append 'variable- op)))))
@@ -212,9 +212,9 @@
       (let dump! ((x (car obj+index)))
 	(cond
 	 ((vlink? x)
-	  (push-code! `(local-ref ,(object-index (vlink-module x))))
+	  ;; (push-code! `(local-ref ,(object-index (vlink-module x))))
 	  (push-code! `(load-symbol ,(vlink-name x)))
-	  (push-code! `(link)))
+	  (push-code! `(link/current-module)))
 	 ((vmod? x)
 	  (push-code! `(load-module ,(vmod-id x))))
 	 (else

@@ -18,7 +18,7 @@
 
 
 (define-module (language r5rs expand)
-  :export (expand
+  :export (expand void
 	   identifier? free-identifier=? bound-identifier=?
 	   generate-temporaries datum->syntax-object syntax-object->datum))
 

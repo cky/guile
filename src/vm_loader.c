@@ -126,6 +126,19 @@ VM_DEFINE_INSTRUCTION (link, "link", 0)
   NEXT;
 }
 
+VM_DEFINE_INSTRUCTION (link_current_module, "link/current-module", 0)
+{
+  SCM mod = scm_current_module ();
+  SCM var = scm_eval_closure_lookup (scm_standard_eval_closure (mod),
+				     *sp, SCM_BOOL_F);
+  if (SCM_FALSEP (var))
+    /* Create a new variable if not defined yet */
+    var = scm_eval_closure_lookup (scm_standard_eval_closure (mod),
+				   *sp, SCM_BOOL_T);
+  *sp = SCM_VARVCELL (var);
+  NEXT;
+}
+
 /*
   Local Variables:
   c-file-style: "gnu"
