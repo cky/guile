@@ -2,18 +2,19 @@
 
 #ifndef SCM_NUMBERS_H
 #define SCM_NUMBERS_H
+
 /* Copyright (C) 1995,1996,1998,2000,2001 Free Software Foundation, Inc.
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2, or (at your option)
  * any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
@@ -233,24 +234,9 @@ extern SCM scm_i_ulong2big (unsigned long n);
 extern SCM scm_i_size2big (size_t n);
 extern SCM scm_i_ptrdiff2big (ptrdiff_t n);
 
-
-#if (SCM_DEBUG_DEPRECATED == 0)
-extern SCM scm_big2inum (SCM b, size_t l);
-extern SCM scm_mkbig (size_t nlen, int sign);
-extern SCM scm_adjbig (SCM b, size_t len);
-extern SCM scm_normbig (SCM b);
-extern SCM scm_copybig (SCM b, int sign);
-
-#define SCM_FIXNUM_BIT SCM_I_FIXNUM_BIT
-#endif
-
 #ifdef HAVE_LONG_LONGS
 extern SCM scm_i_long_long2big (long long n);
 extern SCM scm_i_ulong_long2big (unsigned long long n);
-#endif
-
-#if (SCM_DEBUG_DEPRECATED == 0)
-extern SCM scm_2ulong2big (unsigned long * np);
 #endif
 
 extern int scm_bigcomp (SCM x, SCM y);
@@ -307,16 +293,7 @@ extern SCM scm_exact_to_inexact (SCM z);
 extern SCM scm_inexact_to_exact (SCM z);
 extern SCM scm_trunc (SCM x);
 extern SCM scm_i_dbl2big (double d);
-
-#if (SCM_DEBUG_DEPRECATED == 0)
-extern SCM scm_dbl2big (double d);
-#endif
-
 extern double scm_i_big2dbl (SCM b);
-
-#if (SCM_DEBUG_DEPRECATED == 0)
-extern double scm_big2dbl (SCM b);
-#endif
 
 extern SCM scm_short2num (short n);
 extern SCM scm_ushort2num (unsigned short n);

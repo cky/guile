@@ -470,30 +470,6 @@ scm_c_primitive_load_path (const char *filename)
   return scm_primitive_load_path (scm_makfrom0str (filename));
 }
 
-#if SCM_DEBUG_DEPRECATED == 0
-
-/* Eval now copies source properties, so this function is no longer required.
- */
-
-SCM_SYMBOL (scm_end_of_file_key, "end-of-file");
-
-SCM_DEFINE (scm_read_and_eval_x, "read-and-eval!", 0, 1, 0, 
-            (SCM port),
-	    "Read a form from @var{port} (standard input by default), and evaluate it\n"
-	    "(memoizing it in the process) in the top-level environment.  If no data\n"
-	    "is left to be read from @var{port}, an @code{end-of-file} error is\n"
-	    "signalled.")
-#define FUNC_NAME s_scm_read_and_eval_x
-{
-  SCM form = scm_read (port);
-  if (SCM_EOF_OBJECT_P (form))
-    scm_ithrow (scm_end_of_file_key, SCM_EOL, 1);
-  return scm_eval_x (form, scm_current_module ());
-}
-#undef FUNC_NAME
-
-#endif
-
 
 /* Information about the build environment.  */
 

@@ -401,42 +401,6 @@ scm_init_procs ()
 #endif
 }
 
-#if SCM_DEBUG_DEPRECATED == 0
-
-SCM
-scm_make_subr_opt (const char *name, int type, SCM (*fcn) (), int set)
-{
-  scm_c_issue_deprecation_warning 
-    ("`scm_make_subr_opt' is deprecated.  Use `scm_c_make_subr' or "
-     "`scm_c_define_subr' instead.");
-
-  if (set)
-    return scm_c_define_subr (name, type, fcn);
-  else
-    return scm_c_make_subr (name, type, fcn);
-}
-
-SCM 
-scm_make_subr (const char *name, int type, SCM (*fcn) ())
-{
-  scm_c_issue_deprecation_warning 
-    ("`scm_make_subr' is deprecated.  Use `scm_c_define_subr' instead.");
-
-  return scm_c_define_subr (name, type, fcn);
-}
-
-SCM
-scm_make_subr_with_generic (const char *name, int type, SCM (*fcn) (), SCM *gf)
-{
-  scm_c_issue_deprecation_warning 
-    ("`scm_make_subr_with_generic' is deprecated.  Use "
-     "`scm_c_define_subr_with_generic' instead.");
-  
-  return scm_c_define_subr_with_generic (name, type, fcn, gf);
-}
-
-#endif /* !SCM_DEBUG_DEPRECATION */
-
 /*
   Local Variables:
   c-file-style: "gnu"

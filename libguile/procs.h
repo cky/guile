@@ -2,18 +2,19 @@
 
 #ifndef SCM_PROCS_H
 #define SCM_PROCS_H
+
 /* Copyright (C) 1995,1996,1998,1999,2000,2001 Free Software Foundation, Inc.
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2, or (at your option)
  * any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
@@ -63,10 +64,6 @@ typedef struct
   SCM properties;		/* procedure properties */
 } scm_t_subr_entry;
 
-#if (SCM_DEBUG_DEPRECATED == 0)
-# define scm_subr_entry scm_t_subr_entry
-#endif
-
 #define SCM_SUBRNUM(subr) (SCM_CELL_WORD_0 (subr) >> 8)
 #define SCM_SET_SUBRNUM(subr, num) \
         SCM_SET_CELL_WORD_0 (subr, (num << 8) + SCM_TYP7 (subr))
@@ -92,7 +89,7 @@ typedef struct
 /* Closures
  */
 
-#define SCM_CLOSUREP(x) (SCM_NIMP(x) && (SCM_TYP3 (x) == scm_tc3_closure))
+#define SCM_CLOSUREP(x) (!SCM_IMP(x) && (SCM_TYP3 (x) == scm_tc3_closure))
 #define SCM_CLOSCAR(x) SCM_PACK (SCM_CELL_WORD_0 (x) - scm_tc3_closure)
 #define SCM_CODE(x) SCM_CAR (SCM_CLOSCAR (x))
 #define SCM_CLOSURE_FORMALS(x) SCM_CAR (SCM_CODE (x))
@@ -151,7 +148,7 @@ typedef struct
    GETTER and SETTER slots can live directly on the heap, using the
    new four-word cells.  */
 
-#define SCM_PROCEDURE_WITH_SETTER_P(obj) (SCM_NIMP(obj) && (SCM_TYP7 (obj) == scm_tc7_pws))
+#define SCM_PROCEDURE_WITH_SETTER_P(obj) (!SCM_IMP(obj) && (SCM_TYP7 (obj) == scm_tc7_pws))
 #define SCM_PROCEDURE(obj) SCM_CELL_OBJECT_1 (obj)
 #define SCM_SETTER(obj) SCM_CELL_OBJECT_2 (obj)
 
@@ -185,24 +182,6 @@ extern void scm_init_procs (void);
 #ifdef GUILE_DEBUG
 extern SCM scm_make_cclo (SCM proc, SCM len);
 #endif /*GUILE_DEBUG*/
-
-
-
-#if (SCM_DEBUG_DEPRECATED == 0)
-
-#define SCM_SUBR_DOC(x) SCM_BOOL_F
-
-extern SCM scm_make_subr (const char *name, int type, SCM (*fcn) ());
-extern SCM scm_make_subr_with_generic (const char *name,
-				       int type,
-				       SCM (*fcn) (),
-				       SCM *gf);
-extern SCM scm_make_subr_opt (const char *name, 
-                              int type, 
-                              SCM (*fcn) (),
-                              int set);
-
-#endif  /* SCM_DEBUG_DEPRECATED == 0 */
 
 #endif  /* SCM_PROCS_H */
 

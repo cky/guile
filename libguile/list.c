@@ -133,12 +133,6 @@ SCM_DEFINE (scm_list, "list", 0, 0, 1,
 #undef FUNC_NAME
 
 
-#if (SCM_DEBUG_DEPRECATED == 0)
-
-SCM_REGISTER_PROC (s_list_star, "list*", 1, 0, 1, scm_cons_star);
-
-#endif  /* SCM_DEBUG_DEPRECATED == 0 */
-
 SCM_DEFINE (scm_cons_star, "cons*", 1, 0, 1, 
             (SCM arg, SCM rest),
 	    "Like @code{list}, but the last arg provides the tail of the\n"
@@ -553,60 +547,6 @@ SCM_DEFINE (scm_list_copy, "list-copy", 1, 0, 0,
 
 /* membership tests (memq, memv, etc.) */ 
 
-#if SCM_DEBUG_DEPRECATED == 0
-
-SCM_DEFINE (scm_sloppy_memq, "sloppy-memq", 2, 0, 0,
-            (SCM x, SCM lst),
-	    "This procedure behaves like @code{memq}, but does no type or error checking.\n"
-	    "Its use is recommended only in writing Guile internals,\n"
-            "not for high-level Scheme programs.")
-#define FUNC_NAME s_scm_sloppy_memq
-{
-  for(;  SCM_CONSP (lst);  lst = SCM_CDR(lst))
-    {
-      if (SCM_EQ_P (SCM_CAR (lst), x))
-	return lst;
-    }
-  return lst;
-}
-#undef FUNC_NAME
-
-
-SCM_DEFINE (scm_sloppy_memv, "sloppy-memv", 2, 0, 0,
-            (SCM x, SCM lst),
- 	    "This procedure behaves like @code{memv}, but does no type or error checking.\n"
-	    "Its use is recommended only in writing Guile internals,\n"
-            "not for high-level Scheme programs.")
-#define FUNC_NAME s_scm_sloppy_memv
-{
-  for(;  SCM_CONSP (lst);  lst = SCM_CDR(lst))
-    {
-      if (! SCM_FALSEP (scm_eqv_p (SCM_CAR (lst), x)))
-	return lst;
-    }
-  return lst;
-}
-#undef FUNC_NAME
-
-
-SCM_DEFINE (scm_sloppy_member, "sloppy-member", 2, 0, 0,
-            (SCM x, SCM lst),
- 	    "This procedure behaves like @code{member}, but does no type or error checking.\n"
-	    "Its use is recommended only in writing Guile internals,\n"
-            "not for high-level Scheme programs.")
-#define FUNC_NAME s_scm_sloppy_member
-{
-  for(;  SCM_CONSP (lst);  lst = SCM_CDR(lst))
-    {
-      if (! SCM_FALSEP (scm_equal_p (SCM_CAR (lst), x)))
-	return lst;
-    }
-  return lst;
-}
-#undef FUNC_NAME
-
-#endif /* DEPRECATED */
-
 /* The function scm_c_memq returns the first sublist of list whose car is
  * 'eq?' obj, where the sublists of list are the non-empty lists returned by
  * (list-tail list k) for k less than the length of list.  If obj does not
@@ -640,7 +580,6 @@ SCM_DEFINE (scm_memq, "memq", 2, 0, 0,
   return scm_c_memq (x, lst);
 }
 #undef FUNC_NAME
-
 
 
 SCM_DEFINE (scm_memv, "memv", 2, 0, 0,
@@ -683,7 +622,6 @@ SCM_DEFINE (scm_member, "member", 2, 0, 0,
   return SCM_BOOL_F;
 }
 #undef FUNC_NAME
-
 
 
 /* deleting elements from a list (delq, etc.) */

@@ -2,18 +2,19 @@
 
 #ifndef SCM_HOOKS_H
 #define SCM_HOOKS_H
+
 /* Copyright (C) 1995,1996,1999,2000,2001 Free Software Foundation, Inc.
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2, or (at your option)
  * any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
@@ -111,10 +112,6 @@ extern SCM scm_run_hook (SCM hook, SCM args);
 extern void scm_c_run_hook (SCM hook, SCM args);
 extern SCM scm_hook_to_list (SCM hook);
 extern void scm_init_hooks (void);
-
-#if (SCM_DEBUG_DEPRECATED == 0)
-extern SCM scm_create_hook (const char* name, int n_args);
-#endif
 
 #endif  /* SCM_HOOKS_H */
 

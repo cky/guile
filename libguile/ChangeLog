@@ -1,5 +1,51 @@
 2001-08-31  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* Makefile.am:  Remove references to symbols-deprecated.c.
+
+	* symbols.c (scm_init_symbols):  Don't initialize deprecated
+	symbol functions.
+
+	* symbols-deprecated.c:  Removed.
+
+	* fluids.[ch] (scm_internal_with_fluids), gsubr.[ch]
+	(scm_make_gsubr, scm_make_gsubr_with_generic), hooks.[ch]
+	(scm_create_hook), list.c (list*), list.h (SCM_LIST[0-9],
+	scm_listify), list.[ch] (scm_sloppy_memq, scm_sloppy_memv,
+	scm_sloppy_member), load.c (scm_end_of_file_key), load.[ch]
+	(scm_read_and_eval_x), numbers.[ch] (scm_mkbig, scm_big2inum,
+	scm_adjbig, scm_normbig, scm_copybig, scm_2ulong2big, scm_dbl2big,
+	scm_big2dbl), numbers.h (SCM_FIXNUM_BIT), procs.h
+	(scm_subr_entry, SCM_SUBR_DOC), procs.[ch] (scm_make_subr_opt,
+	scm_make_subr, scm_make_subr_with_generic), root.c (setjmp_type,
+	setjmp_type), root.[ch] (scm_call_catching_errors), smob.[ch]
+	(scm_make_smob_type_mfpe, scm_set_smob_mfpe), strports.[ch]
+	(scm_strprint_obj, scm_read_0str, scm_eval_0str), symbols.h
+	(SCM_CHARS, SCM_UCHARS, SCM_SETCHARS, SCM_SLOPPY_SUBSTRP,
+	SCM_SUBSTR_STR, SCM_SUBSTR_OFFSET, SCM_LENGTH_MAX, SCM_LENGTH,
+	SCM_SETLENGTH, SCM_ROSTRINGP, SCM_ROLENGTH, SCM_ROCHARS,
+	SCM_ROUCHARS, SCM_SUBSTRP, SCM_COERCE_SUBSTR, scm_strhash,
+	scm_sym2vcell, scm_sym2ovcell_soft, scm_sym2ovcell,
+	scm_intern_obarray_soft, scm_intern_obarray, scm_intern,
+	scm_intern0, scm_sysintern, scm_sysintern0,
+	scm_sysintern0_no_module_lookup, scm_symbol_value0,
+	scm_string_to_obarray_symbol, scm_intern_symbol,
+	scm_unintern_symbol, scm_symbol_binding, scm_symbol_interned_p,
+	scm_symbol_bound_p, scm_symbol_set_x, scm_gentemp,
+	scm_init_symbols_deprecated), vectors.c (s_vector_set_length_x),
+	vectors.[ch] (scm_vector_set_length_x): Removed.
+
+	* fluids.h (FLUIDSH, SCM_FLUIDS_H), gsubr.c (GSUBRH, SCM_GSUBR_H),
+	list.h (LISTH, SCM_LIST_H), load.h (LOADH, SCM_LOAD_H), root.h
+	(ROOTH, SCM_ROOT_H), strports.h (STRPORTSH, SCM_STRPORTS_H):
+	Renamed the macros that are defined to inhibit double inclusion of
+	the same headers to the SCM_<filename>_H format.
+
+	* procs.h (SCM_CLOSUREP, SCM_PROCEDURE_WITH_SETTER_P), symbols.h
+	(SCM_SYMBOLP), vectors.h (SCM_VECTORP): Prefer !SCM_<foo> over
+	SCM_N<foo>.
+
+2001-08-31  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* continuations.h (scm_contregs), debug.h (scm_debug_info,
 	scm_debug_frame, SCM_DSIDEVAL), filesys.h (SCM_OPDIRP), fports.h
 	(scm_fport), options.h (scm_option), snarf.h (SCM_CONST_LONG,

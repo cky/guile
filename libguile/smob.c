@@ -476,39 +476,6 @@ scm_make_smob (scm_t_bits tc)
 }
 
 
-/* {Deprecated stuff}
- */
-
-#if (SCM_DEBUG_DEPRECATED == 0)
-
-long
-scm_make_smob_type_mfpe (char *name, size_t size,
-                        SCM (*mark) (SCM),
-                        size_t (*free) (SCM),
-                        int (*print) (SCM, SCM, scm_print_state *),
-                        SCM (*equalp) (SCM, SCM))
-{
-  long answer = scm_make_smob_type (name, size);
-  scm_set_smob_mfpe (answer, mark, free, print, equalp);
-  return answer;
-}
-
-void
-scm_set_smob_mfpe (long tc, 
-		   SCM (*mark) (SCM),
-		   size_t (*free) (SCM),
-		   int (*print) (SCM, SCM, scm_print_state *),
-		   SCM (*equalp) (SCM, SCM))
-{
-  if (mark) scm_set_smob_mark (tc, mark);
-  if (free) scm_set_smob_free (tc, free);
-  if (print) scm_set_smob_print (tc, print);
-  if (equalp) scm_set_smob_equalp (tc, equalp);
-}
-
-#endif  /* SCM_DEBUG_DEPRECATED == 0 */
-
-
 /* {Initialization for i/o types, float, bignum, the type of free cells}
  */
 

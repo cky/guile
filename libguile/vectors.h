@@ -2,18 +2,19 @@
 
 #ifndef SCM_VECTORS_H
 #define SCM_VECTORS_H
+
 /* Copyright (C) 1995,1996,1998,2000,2001 Free Software Foundation, Inc.
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2, or (at your option)
  * any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
@@ -49,7 +50,7 @@
 
 
 
-#define SCM_VECTORP(x) (SCM_NIMP (x) && (SCM_TYP7S (x) == scm_tc7_vector))
+#define SCM_VECTORP(x) (!SCM_IMP (x) && (SCM_TYP7S (x) == scm_tc7_vector))
 #define SCM_VECTOR_BASE(x) ((scm_t_bits *) SCM_CELL_WORD_1 (x))
 #define SCM_SET_VECTOR_BASE(v, b) (SCM_SET_CELL_WORD_1 ((v), (b)))
 #define SCM_VECTOR_MAX_LENGTH ((1L << 24) - 1)
@@ -88,14 +89,6 @@ extern SCM scm_vector_move_left_x (SCM vec1, SCM start1, SCM end1,
 extern SCM scm_vector_move_right_x (SCM vec1, SCM start1, SCM end1, 
                                     SCM vec2, SCM start2);
 extern void scm_init_vectors (void);
-
-
-
-#if (SCM_DEBUG_DEPRECATED == 0)
-
-extern SCM scm_vector_set_length_x (SCM vect, SCM len);
-
-#endif  /* SCM_DEBUG_DEPRECATED == 0 */
 
 #endif  /* SCM_VECTORS_H */
 

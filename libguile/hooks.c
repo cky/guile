@@ -171,17 +171,6 @@ hook_print (SCM hook, SCM port, scm_print_state *pstate)
   return 1;
 }
 
-#if (SCM_DEBUG_DEPRECATED == 0)
-
-SCM
-scm_create_hook (const char *name, int n_args)
-{
-  SCM hook = scm_make_hook (SCM_MAKINUM (n_args));
-  scm_c_define (name, hook);
-  return scm_permanent_object (hook);
-}
-
-#endif
 
 SCM_DEFINE (scm_make_hook, "make-hook", 0, 1, 0, 
             (SCM n_args),

@@ -1,20 +1,20 @@
 /* classes: h_files */
 
-#ifndef ROOTH
-#define ROOTH
+#ifndef SCM_ROOT_H
+#define SCM_ROOT_H
 
-/*	Copyright (C) 1996,1998, 2000, 2001 Free Software Foundation, Inc.
- * 
+/* Copyright (C) 1996,1998,2000,2001 Free Software Foundation, Inc.
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2, or (at your option)
  * any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
@@ -43,8 +43,6 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
-
-
 
 
 
@@ -157,16 +155,7 @@ extern SCM scm_dynamic_root (void);
 extern SCM scm_apply_with_dynamic_root (SCM proc, SCM a1, SCM args, SCM handler);
 extern void scm_init_root (void);
 
-
-
-#if (SCM_DEBUG_DEPRECATED == 0)
-
-/* Use the catch functions from throw.[ch] instead of: */
-extern SCM scm_call_catching_errors (SCM (*thunk)(), SCM (*err_filter)(), void * closure);
-
-#endif  /* SCM_DEBUG_DEPRECATED == 0 */
-
-#endif  /* ROOTH */
+#endif  /* SCM_ROOT_H */
 
 /*
   Local Variables:

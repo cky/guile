@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996,1997,1998, 1999, 2000, 2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,7 +38,6 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
-
 
 
 
@@ -278,7 +277,6 @@ gsubr_21l(SCM req1, SCM req2, SCM opt, SCM rst)
 #endif
 
 
-
 void
 scm_init_gsubr()
 {
@@ -292,32 +290,6 @@ scm_init_gsubr()
 #include "libguile/gsubr.x"
 #endif
 }
-
-#if SCM_DEBUG_DEPRECATED == 0
-
-SCM
-scm_make_gsubr (const char *name, int req, int opt, int rst, SCM (*fcn)())
-{
-  scm_c_issue_deprecation_warning 
-    ("`scm_make_gsubr' is deprecated.  Use `scm_c_define_gsubr' instead.");
-
-  return scm_c_define_gsubr (name, req, opt, rst, fcn);
-}
-
-SCM
-scm_make_gsubr_with_generic (const char *name,
-			     int req, int opt, int rst,
-			     SCM (*fcn)(), SCM *gf)
-{
-  scm_c_issue_deprecation_warning 
-    ("`scm_make_gsubr_with_generic' is deprecated.  "
-     "Use `scm_c_define_gsubr_with_generic' instead.");
-
-  return scm_c_define_gsubr_with_generic (name, req, opt, rst, fcn, gf);
-}
-
-#endif /* !SCM_DEBUG_DEPRECATED */
-
 
 /*
   Local Variables:

@@ -382,46 +382,6 @@ scm_apply_with_dynamic_root (SCM proc, SCM a1, SCM args, SCM handler)
 
 
 
-#if (SCM_DEBUG_DEPRECATED == 0)
-
-/* Call thunk(closure) underneath a top-level error handler.
- * If an error occurs, pass the exitval through err_filter and return it.
- * If no error occurs, return the value of thunk.
- */
-
-#ifdef _UNICOS
-typedef int setjmp_type;
-#else
-typedef long setjmp_type;
-#endif
-
-
-SCM
-scm_call_catching_errors (SCM (*thunk)(), SCM (*err_filter)(), void *closure)
-{
-  SCM answer;
-  setjmp_type i;
-#ifdef DEBUG_EXTENSIONS
-  SCM_DFRAME (scm_rootcont) = scm_last_debug_frame;
-#endif
-  i = setjmp (SCM_JMPBUF (scm_rootcont));
-  scm_stack_checking_enabled_p = SCM_STACK_CHECKING_P;
-  if (!i)
-    {
-      scm_gc_heap_lock = 0;
-      answer = thunk (closure);
-    }
-  else
-    {
-      scm_gc_heap_lock = 1;
-      answer = err_filter (scm_exitval, closure);
-    }
-  return answer;
-}
-
-#endif  /* SCM_DEBUG_DEPRECATED == 0 */
-
-
 void
 scm_init_root ()
 {

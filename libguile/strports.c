@@ -338,16 +338,6 @@ SCM_DEFINE (scm_object_to_string, "object->string", 1, 1, 0,
 }
 #undef FUNC_NAME
 
-#if (SCM_DEBUG_DEPRECATED == 0)
-
-SCM
-scm_strprint_obj (SCM obj)
-{
-  return scm_object_to_string (obj, SCM_UNDEFINED);
-}
-
-#endif /* (SCM_DEBUG_DEPRECATED == 0) */
-
 SCM_DEFINE (scm_call_with_output_string, "call-with-output-string", 1, 0, 0, 
            (SCM proc),
 	    "Calls the one-argument procedure @var{proc} with a newly created output\n"
@@ -449,28 +439,6 @@ scm_c_eval_string (const char *expr)
 {
   return scm_eval_string (scm_makfrom0str (expr));
 }
-
-#if SCM_DEBUG_DEPRECATED == 0
-
-SCM
-scm_read_0str (char *expr)
-{
-  scm_c_issue_deprecation_warning 
-    ("scm_read_0str is deprecated.  Use scm_c_read_string instead.");
-
-  return scm_c_read_string (expr);
-}
-
-SCM
-scm_eval_0str (const char *expr)
-{
-  scm_c_issue_deprecation_warning 
-    ("scm_eval_0str is deprecated.  Use scm_c_eval_string instead.");
-
-  return scm_c_eval_string (expr);
-}
-
-#endif
 
 static SCM
 inner_eval_string (void *data)

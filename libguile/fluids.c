@@ -266,19 +266,6 @@ scm_init_fluids ()
 #endif
 }
 
-#if SCM_DEBUG_DEPRECATED == 0
-
-SCM
-scm_internal_with_fluids (SCM fluids, SCM values, SCM (*cproc) (), void *cdata)
-{
-  scm_c_issue_deprecation_warning ("`scm_internal_with_fluids' is deprecated. "
-				   "Use `scm_c_with_fluids' instead.");
-
-  return scm_c_with_fluids (fluids, values, cproc, cdata);
-}
-
-#endif
-
 /*
   Local Variables:
   c-file-style: "gnu"

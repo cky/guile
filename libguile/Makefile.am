@@ -52,7 +52,7 @@ libguile_la_SOURCES = alist.c arbiters.c async.c backtrace.c boolean.c	    \
     random.c rdelim.c read.c root.c rw.c scmsigs.c script.c simpos.c smob.c \
     sort.c srcprop.c stackchk.c stacks.c stime.c strings.c strop.c	    \
     strorder.c strports.c struct.c symbols.c throw.c values.c 		    \
-    variable.c vectors.c version.c vports.c weaks.c symbols-deprecated.c
+    variable.c vectors.c version.c vports.c weaks.c
 
 DOT_X_FILES = alist.x arbiters.x async.x backtrace.x boolean.x chars.x	  \
     continuations.x debug.x deprecation.x dynl.x dynwind.x		  \
@@ -66,7 +66,7 @@ DOT_X_FILES = alist.x arbiters.x async.x backtrace.x boolean.x chars.x	  \
     scmsigs.x script.x simpos.x smob.x sort.x srcprop.x			  \
     stackchk.x stacks.x stime.x strings.x strop.x strorder.x strports.x	  \
     struct.x symbols.x throw.x values.x variable.x vectors.x		  \
-    version.x vports.x weaks.x symbols-deprecated.x
+    version.x vports.x weaks.x
 
 EXTRA_DOT_X_FILES = @EXTRA_DOT_X_FILES@
 
@@ -83,8 +83,7 @@ DOT_DOC_FILES = alist.doc arbiters.doc async.doc backtrace.doc		    \
     scmsigs.doc script.doc simpos.doc smob.doc sort.doc			    \
     srcprop.doc stackchk.doc stacks.doc stime.doc strings.doc strop.doc	    \
     strorder.doc strports.doc struct.doc symbols.doc throw.doc		    \
-    values.doc variable.doc vectors.doc version.doc vports.doc weaks.doc    \
-    symbols-deprecated.doc
+    values.doc variable.doc vectors.doc version.doc vports.doc weaks.doc
 
 EXTRA_DOT_DOC_FILES = @EXTRA_DOT_DOC_FILES@
 
