@@ -1,3 +1,8 @@
+2002-12-15  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* version.c: Unmade some changes to my private copy that got
+	committed by mistake.
+
 2002-12-11  Mikael Djurfeldt  <mdj@kvast.blakulla.net>
 
 	* gc-malloc.c, gc.h, init.c: Reverted gc-malloc change of
