@@ -1,4 +1,49 @@
+Sun Sep 22 17:10:06 1996  Mikael Djurfeldt  <mdj@kenneth>
+
+	* eval.c, numbers.h, unif.h, smob.h, srcprop.c: Added #include
+ 	"print.h"
+	
+	* print.c: Added #include "struct.h".  Removed function
+	scm_prlist.
+
+	* print.h: Modified prototypes for scm_iprlist, scm_prin1 and
+ 	scm_iprin1.  Removed prototype for scm_prlist.
+	
+	* arbiters.c (prinarb),
+	async.c (print_async),
+	debug.c (prindebugobj, prinmemoized),
+	eval.c (prinprom, prinmacro),
+	filesys.c (scm_fd_print, scm_dir_print),
+	kw.c (print_kw),
+	mallocs.c (prinmalloc),
+	numbers.c, numbers.h (scm_floprint, scm_bigprint),
+	smob.h (scm_smobfuns),
+	srcprop.c (prinsrcprops),
+	throw.c (prinjb),
+	unif.c, unif.h (scm_raprin1, rapr1),
+	variable.c (prin_var): Changed argument `int writing' to
+	`scm_print_state *pstate'.
+
+	* init.c (scm_boot_guile): Moved scm_init_struct upwards so
+	that it will be called before scm_init_print.
+
+	* print.c (scm_prin1): Print states are now allocated when calling
+ 	scm_prin1 and then passed around to all printing functions as an
+ 	argument.  A cache `print_state_pool' enables reuse of print
+ 	states.
+	(scm_make_print_state): New function.
+	(scm_iprin1): Adaption to print states.
+	(scm_iprlist): An initial "hare and tortoise" scan brings down
+	time complexity to O (depth * N).  (Better time complexity will be
+	achieved when the printing code is completely rewritten.)
+	
 Thu Sep 19 15:33:51 1996  Mikael Djurfeldt  <mdj@kenneth>
+
+	* struct.c (scm_make_struct_layout, init_struct, scm_struct_ref,
+ 	scm_struct_set_x), struct.h, gc.c (scm_gc_mark): Completed Tom
+ 	Lord's implementation of structs, allowing for tail arrays as
+ 	described in the manual. Also fixed some bugs. (Both the interface
+ 	and the implementation should be improved.)
 
 	* read.c (scm_init_read): Removed #ifdef READER_EXTENSIONS
 
