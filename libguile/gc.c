@@ -197,20 +197,25 @@ SCM_DEFINE (scm_set_debug_cell_accesses_x, "set-debug-cell-accesses!", 1, 0, 0,
  * large heaps, especially if code behaviour is varying its
  * maximum consumption between different freelists.
  */
-int scm_default_init_heap_size_1 = (45000L * sizeof (scm_cell));
-int scm_default_min_yield_1 = 40;
-#define SCM_CLUSTER_SIZE_1 2000L
 
-int scm_default_init_heap_size_2 = (2500L * 2 * sizeof (scm_cell));
+#define SCM_DATA_CELLS2CARDS(n) (((n) + SCM_GC_CARD_N_DATA_CELLS - 1) / SCM_GC_CARD_N_DATA_CELLS)
+#define SCM_CARDS_PER_CLUSTER SCM_DATA_CELLS2CARDS (2000L)
+#define SCM_CLUSTER_SIZE_1 (SCM_CARDS_PER_CLUSTER * SCM_GC_CARD_N_DATA_CELLS)
+int scm_default_init_heap_size_1 = (((SCM_DATA_CELLS2CARDS (45000L) + SCM_CARDS_PER_CLUSTER - 1)
+                                     / SCM_CARDS_PER_CLUSTER) * SCM_GC_CARD_SIZE);
+int scm_default_min_yield_1 = 40;
+
+#define SCM_CLUSTER_SIZE_2 (SCM_CARDS_PER_CLUSTER * (SCM_GC_CARD_N_DATA_CELLS / 2))
+int scm_default_init_heap_size_2 = (((SCM_DATA_CELLS2CARDS (2500L * 2) + SCM_CARDS_PER_CLUSTER - 1)
+                                     / SCM_CARDS_PER_CLUSTER) * SCM_GC_CARD_SIZE);
 /* The following value may seem large, but note that if we get to GC at
  * all, this means that we have a numerically intensive application
  */
 int scm_default_min_yield_2 = 40;
-#define SCM_CLUSTER_SIZE_2 1000L
 
 int scm_default_max_segment_size = 2097000L;/* a little less (adm) than 2 Mb */
 
-#define SCM_MIN_HEAP_SEG_SIZE (2048L * sizeof (scm_cell))
+#define SCM_MIN_HEAP_SEG_SIZE (8 * SCM_GC_CARD_SIZE)
 #ifdef _QC
 # define SCM_HEAP_SEG_SIZE 32768L
 #else
@@ -225,8 +230,8 @@ int scm_default_max_segment_size = 2097000L;/* a little less (adm) than 2 Mb */
 #define SCM_INIT_MALLOC_LIMIT 100000
 #define SCM_MTRIGGER_HYSTERESIS (SCM_INIT_MALLOC_LIMIT/10)
 
-/* CELL_UP and CELL_DN are used by scm_init_heap_seg to find scm_cell aligned inner
-   bounds for allocated storage */
+/* CELL_UP and CELL_DN are used by scm_init_heap_seg to find (scm_cell * span)
+   aligned inner bounds for allocated storage */
 
 #ifdef PROT386
 /*in 386 protected mode we must only adjust the offset */
@@ -241,12 +246,10 @@ int scm_default_max_segment_size = 2097000L;/* a little less (adm) than 2 Mb */
 #  define CELL_DN(p, span) (SCM_CELLPTR)(~(sizeof(scm_cell)*(span)-1L) & (long)(p))
 # endif				/* UNICOS */
 #endif				/* PROT386 */
-#define CLUSTER_SIZE_IN_BYTES(freelist) ((freelist)->cluster_size * (freelist)->span * sizeof(scm_cell))
-#define ALIGNMENT_SLACK(freelist) (sizeof (scm_cell) * (freelist)->span - 1)
-#define SCM_HEAP_SIZE \
-  (scm_master_freelist.heap_size + scm_master_freelist2.heap_size)
-#define SCM_MAX(A, B) ((A) > (B) ? (A) : (B))
 
+#define ALIGNMENT_SLACK(freelist) (SCM_GC_CARD_SIZE - 1)
+#define CLUSTER_SIZE_IN_BYTES(freelist) \
+    (((freelist)->cluster_size / (SCM_GC_CARD_N_DATA_CELLS / (freelist)->span)) * SCM_GC_CARD_SIZE)
 
 
 /* scm_freelists
@@ -300,7 +303,6 @@ scm_freelist_t scm_master_freelist2 = {
  * is the number of bytes of must_malloc allocation needed to trigger gc.
  */
 unsigned long scm_mtrigger;
-
 
 /* scm_gc_heap_lock
  * If set, don't expand the heap.  Set only during gc, during which no allocation
@@ -373,6 +375,82 @@ static scm_sizet init_heap_seg (SCM_CELLPTR, scm_sizet, scm_freelist_t *);
 
 typedef enum { return_on_error, abort_on_error } policy_on_error;
 static void alloc_some_heap (scm_freelist_t *, policy_on_error);
+
+
+#define SCM_HEAP_SIZE \
+  (scm_master_freelist.heap_size + scm_master_freelist2.heap_size)
+#define SCM_MAX(A, B) ((A) > (B) ? (A) : (B))
+
+#define BVEC_GROW_SIZE  256
+#define BVEC_GROW_SIZE_IN_LIMBS (SCM_GC_CARD_BVEC_SIZE_IN_LIMBS * BVEC_GROW_SIZE)
+#define BVEC_GROW_SIZE_IN_BYTES (BVEC_GROW_SIZE_IN_LIMBS * sizeof (scm_c_bvec_limb_t))
+
+/* mark space allocation */
+
+typedef struct scm_mark_space_t
+{
+  scm_c_bvec_limb_t *bvec_space;
+  struct scm_mark_space_t *next;
+} scm_mark_space_t;
+
+static scm_mark_space_t *current_mark_space;
+static scm_mark_space_t **mark_space_ptr;
+static int current_mark_space_offset;
+static scm_mark_space_t *mark_space_head;
+
+static scm_c_bvec_limb_t *
+get_bvec ()
+{
+  scm_c_bvec_limb_t *res;
+
+  if (!current_mark_space)
+    {
+      SCM_SYSCALL (current_mark_space = (scm_mark_space_t *) malloc (sizeof (scm_mark_space_t)));
+      if (!current_mark_space)
+        scm_wta (SCM_UNDEFINED, "could not grow", "heap");
+
+      current_mark_space->bvec_space = NULL;
+      current_mark_space->next = NULL;
+
+      *mark_space_ptr = current_mark_space;
+      mark_space_ptr = &(current_mark_space->next);
+
+      return get_bvec ();
+    }
+
+  if (!(current_mark_space->bvec_space))
+    {
+      SCM_SYSCALL (current_mark_space->bvec_space =
+                   (scm_c_bvec_limb_t *) calloc (BVEC_GROW_SIZE_IN_BYTES, 1));
+      if (!(current_mark_space->bvec_space))
+        scm_wta (SCM_UNDEFINED, "could not grow", "heap");
+
+      current_mark_space_offset = 0;
+
+      return get_bvec ();
+    }
+
+  if (current_mark_space_offset == BVEC_GROW_SIZE_IN_LIMBS)
+    {
+      current_mark_space = NULL;
+
+      return get_bvec ();
+    }
+
+  res = current_mark_space->bvec_space + current_mark_space_offset;
+  current_mark_space_offset += SCM_GC_CARD_BVEC_SIZE_IN_LIMBS;
+
+  return res;
+}
+
+static void
+clear_mark_space ()
+{
+  scm_mark_space_t *ms;
+
+  for (ms = mark_space_head; ms; ms = ms->next)
+    memset (ms->bvec_space, 0, BVEC_GROW_SIZE_IN_BYTES);
+}
 
 
 
@@ -538,8 +616,6 @@ scm_check_freelist (SCM freelist)
       }
 }
 
-static int scm_debug_check_freelist = 0;
-
 SCM_DEFINE (scm_gc_set_debug_check_freelist_x, "gc-set-debug-check-freelist!", 1, 0, 0,
             (SCM flag),
             "If FLAG is #t, check the freelist for consistency on each cell allocation.\n"
@@ -547,6 +623,8 @@ SCM_DEFINE (scm_gc_set_debug_check_freelist_x, "gc-set-debug-check-freelist!", 1
             "compile-time flag was selected.\n")
 #define FUNC_NAME s_scm_gc_set_debug_check_freelist_x
 {
+  /* [cmm] I did a double-take when I read this code the first time.
+     well, FWIW. */
   SCM_VALIDATE_BOOL_COPY (1, flag, scm_debug_check_freelist);
   return SCM_UNSPECIFIED;
 }
@@ -612,6 +690,7 @@ scm_debug_newcell2 (void)
 static unsigned long
 master_cells_allocated (scm_freelist_t *master)
 {
+  /* the '- 1' below is to ignore the cluster spine cells. */
   int objects = master->clusters_allocated * (master->cluster_size - 1);
   if (SCM_NULLP (master->clusters))
     objects -= master->left_to_collect;
@@ -849,6 +928,11 @@ scm_gc_for_newcell (scm_freelist_t *master, SCM *freelist)
       ++master->clusters_allocated;
     }
   while (SCM_NULLP (cell));
+
+#ifdef GUILE_DEBUG_FREELIST
+  scm_check_freelist (cell);
+#endif
+
   --scm_ints_disabled;
   *freelist = SCM_FREE_CELL_CDR (cell);
   SCM_SET_FREE_CELL_TYPE (cell, scm_tc16_allocated);
@@ -939,6 +1023,8 @@ scm_igc (const char *what)
   }
 
   scm_c_hook_run (&scm_before_mark_c_hook, 0);
+
+  clear_mark_space ();
 
 #ifndef USE_THREADS
 
@@ -1036,37 +1122,37 @@ gc_mark_nimp:
   if (!SCM_CELLP (ptr))
     SCM_MISC_ERROR ("rogue pointer in heap", SCM_EOL);
 
+#if (defined (GUILE_DEBUG) || defined (GUILE_DEBUG_FREELIST))
+
+  if (SCM_GC_IN_CARD_HEADERP (SCM2PTR (ptr)))
+    scm_wta (ptr, "rogue pointer in heap", NULL);
+
+#endif
+
+  if (SCM_GCMARKP (ptr))
+    return;
+
+  SCM_SETGCMARK (ptr);
+
   switch (SCM_TYP7 (ptr))
     {
     case scm_tcs_cons_nimcar:
-      if (SCM_GCMARKP (ptr))
-	break;
-      SCM_SETGCMARK (ptr);
-      if (SCM_IMP (SCM_CDR (ptr))) /* SCM_IMP works even with a GC mark */
+      if (SCM_IMP (SCM_CDR (ptr)))
 	{
 	  ptr = SCM_CAR (ptr);
 	  goto gc_mark_nimp;
 	}
       scm_gc_mark (SCM_CAR (ptr));
-      ptr = SCM_GCCDR (ptr);
+      ptr = SCM_CDR (ptr);
       goto gc_mark_nimp;
     case scm_tcs_cons_imcar:
-      if (SCM_GCMARKP (ptr))
-	break;
-      SCM_SETGCMARK (ptr);
-      ptr = SCM_GCCDR (ptr);
+      ptr = SCM_CDR (ptr);
       goto gc_mark_loop;
     case scm_tc7_pws:
-      if (SCM_GCMARKP (ptr))
-	break;
-      SCM_SETGCMARK (ptr);
       scm_gc_mark (SCM_CELL_OBJECT_2 (ptr));
-      ptr = SCM_GCCDR (ptr);
+      ptr = SCM_CDR (ptr);
       goto gc_mark_loop;
     case scm_tcs_cons_gloc:
-      if (SCM_GCMARKP (ptr))
-	break;
-      SCM_SETGCMARK (ptr);
       {
 	/* Dirk:FIXME:: The following code is super ugly:  ptr may be a struct
 	 * or a gloc.  If it is a gloc, the cell word #0 of ptr is a pointer
@@ -1079,69 +1165,61 @@ gc_mark_nimp:
 	scm_bits_t * vtable_data = (scm_bits_t *) word0; /* access as struct */
 	if (vtable_data [scm_vtable_index_vcell] != 0)
 	  {
-	    /* ptr is a gloc */
-	    SCM gloc_car = SCM_PACK (word0);
-	    scm_gc_mark (gloc_car);
-	    ptr = SCM_GCCDR (ptr);
-	    goto gc_mark_loop;
-	  }
-	else
-	  {
-	    /* ptr is a struct */
-	    SCM layout = SCM_PACK (vtable_data [scm_vtable_index_layout]);
-	    int len = SCM_LENGTH (layout);
-	    char * fields_desc = SCM_CHARS (layout);
-	    /* We're using SCM_GCCDR here like STRUCT_DATA, except
-	       that it removes the mark */
-	    scm_bits_t * struct_data = (scm_bits_t *) SCM_UNPACK (SCM_GCCDR (ptr));
-
-	    if (vtable_data[scm_struct_i_flags] & SCM_STRUCTF_ENTITY)
-	      {
-		scm_gc_mark (SCM_PACK (struct_data[scm_struct_i_procedure]));
-		scm_gc_mark (SCM_PACK (struct_data[scm_struct_i_setter]));
-	      }
-	    if (len)
-	      {
-		int x;
-
-		for (x = 0; x < len - 2; x += 2, ++struct_data)
-		  if (fields_desc[x] == 'p')
-		    scm_gc_mark (SCM_PACK (*struct_data));
-		if (fields_desc[x] == 'p')
-		  {
-		    if (SCM_LAYOUT_TAILP (fields_desc[x + 1]))
-		      for (x = *struct_data; x; --x)
-			scm_gc_mark (SCM_PACK (*++struct_data));
-		    else
-		      scm_gc_mark (SCM_PACK (*struct_data));
-		  }
-	      }
-	    /* mark vtable */
-	    ptr = SCM_PACK (vtable_data [scm_vtable_index_vtable]);
-	    goto gc_mark_loop;
+            /* ptr is a gloc */
+            SCM gloc_car = SCM_PACK (word0);
+            scm_gc_mark (gloc_car);
+            ptr = SCM_CDR (ptr);
+            goto gc_mark_loop;
+          }
+        else
+          {
+            /* ptr is a struct */
+            SCM layout = SCM_PACK (vtable_data [scm_vtable_index_layout]);
+            int len = SCM_LENGTH (layout);
+            char * fields_desc = SCM_CHARS (layout);
+            scm_bits_t * struct_data = (scm_bits_t *) SCM_STRUCT_DATA (ptr);
+            
+            if (vtable_data[scm_struct_i_flags] & SCM_STRUCTF_ENTITY)
+              {
+                scm_gc_mark (SCM_PACK (struct_data[scm_struct_i_procedure]));
+                scm_gc_mark (SCM_PACK (struct_data[scm_struct_i_setter]));
+              }
+            if (len)
+              {
+                int x;
+                
+                for (x = 0; x < len - 2; x += 2, ++struct_data)
+                  if (fields_desc[x] == 'p')
+                    scm_gc_mark (SCM_PACK (*struct_data));
+                if (fields_desc[x] == 'p')
+                  {
+                    if (SCM_LAYOUT_TAILP (fields_desc[x + 1]))
+                      for (x = *struct_data; x; --x)
+                        scm_gc_mark (SCM_PACK (*++struct_data));
+                    else
+                      scm_gc_mark (SCM_PACK (*struct_data));
+                  }
+              }
+            /* mark vtable */
+            ptr = SCM_PACK (vtable_data [scm_vtable_index_vtable]);
+            goto gc_mark_loop;
 	  }
       }
       break;
     case scm_tcs_closures:
-      if (SCM_GCMARKP (ptr))
-	break;
-      SCM_SETGCMARK (ptr);
       if (SCM_IMP (SCM_CDR (ptr)))
 	{
 	  ptr = SCM_CLOSCAR (ptr);
 	  goto gc_mark_nimp;
 	}
       scm_gc_mark (SCM_CLOSCAR (ptr));
-      ptr = SCM_GCCDR (ptr);
+      ptr = SCM_CDR (ptr);
       goto gc_mark_nimp;
     case scm_tc7_vector:
     case scm_tc7_lvector:
 #ifdef CCLO
     case scm_tc7_cclo:
 #endif
-      if (SCM_GC8MARKP (ptr))
-	break;
-      SCM_SETGC8MARK (ptr);
       i = SCM_LENGTH (ptr);
       if (i == 0)
 	break;
@@ -1151,9 +1229,6 @@ gc_mark_nimp:
       ptr = SCM_VELTS (ptr)[0];
       goto gc_mark_loop;
     case scm_tc7_contin:
-      if SCM_GC8MARKP
-	(ptr) break;
-      SCM_SETGC8MARK (ptr);
       if (SCM_VELTS (ptr))
 	scm_mark_locations (SCM_VELTS_AS_STACKITEMS (ptr),
 			    (scm_sizet)
@@ -1176,22 +1251,15 @@ gc_mark_nimp:
 #endif
 #endif
     case scm_tc7_string:
-      SCM_SETGC8MARK (ptr);
       break;
 
     case scm_tc7_substring:
-      if (SCM_GC8MARKP(ptr))
-	break;
-      SCM_SETGC8MARK (ptr);
       ptr = SCM_CDR (ptr);
       goto gc_mark_loop;
 
     case scm_tc7_wvect:
-      if (SCM_GC8MARKP(ptr))
-	break;
       SCM_WVECT_GC_CHAIN (ptr) = scm_weak_vectors;
       scm_weak_vectors = ptr;
-      SCM_SETGC8MARK (ptr);
       if (SCM_IS_WHVEC_ANY (ptr))
 	{
 	  int x;
@@ -1239,7 +1307,7 @@ gc_mark_nimp:
 		  if (!weak_keys)
 		    scm_gc_mark (SCM_CAR (kvpair));
 		  if (!weak_values)
-		    scm_gc_mark (SCM_GCCDR (kvpair));
+		    scm_gc_mark (SCM_CDR (kvpair));
 		  alist = next_alist;
 		}
 	      if (SCM_NIMP (alist))
@@ -1249,26 +1317,16 @@ gc_mark_nimp:
       break;
 
     case scm_tc7_msymbol:
-      if (SCM_GC8MARKP(ptr))
-	break;
-      SCM_SETGC8MARK (ptr);
       scm_gc_mark (SCM_SYMBOL_FUNC (ptr));
       ptr = SCM_SYMBOL_PROPS (ptr);
       goto gc_mark_loop;
     case scm_tc7_ssymbol:
-      if (SCM_GC8MARKP(ptr))
-	break;
-      SCM_SETGC8MARK (ptr);
-      break;
     case scm_tcs_subrs:
       break;
     case scm_tc7_port:
       i = SCM_PTOBNUM (ptr);
       if (!(i < scm_numptob))
 	goto def;
-      if (SCM_GC8MARKP (ptr))
-	break;
-      SCM_SETGC8MARK (ptr);
       if (SCM_PTAB_ENTRY(ptr))
 	scm_gc_mark (SCM_PTAB_ENTRY(ptr)->file_name);
       if (scm_ptobs[i].mark)
@@ -1280,10 +1338,7 @@ gc_mark_nimp:
 	return;
       break;
     case scm_tc7_smob:
-      if (SCM_GC8MARKP (ptr))
-	break;
-      SCM_SETGC8MARK (ptr);
-      switch (SCM_GCTYP16 (ptr))
+      switch (SCM_TYP16 (ptr))
 	{ /* should be faster than going through scm_smobs */
 	case scm_tc_free_cell:
 	  /* printf("found free_cell %X ", ptr); fflush(stdout); */
@@ -1366,6 +1421,10 @@ scm_mark_locations (SCM_STACKITEM x[], scm_sizet n)
 			    break;
 			}
 		    }
+                  
+                  if (SCM_GC_IN_CARD_HEADERP (ptr))
+                    break;
+                  
 		  if (scm_heap_table[seg_id].span == 1
 		      || SCM_DOUBLE_CELLP (obj))
 		    {
@@ -1403,14 +1462,14 @@ scm_cellp (SCM value)
 
     if (SCM_PTR_LE (scm_heap_table[i].bounds[0], ptr)
 	&& SCM_PTR_GT (scm_heap_table[i].bounds[1], ptr)
-	&& (scm_heap_table[i].span == 1 || SCM_DOUBLE_CELLP (value))) {
+	&& (scm_heap_table[i].span == 1 || SCM_DOUBLE_CELLP (value))
+        && !SCM_GC_IN_CARD_HEADERP (ptr)
+        )
       return 1;
-    } else {
+    else
       return 0;
-    }
-  } else {
+  } else
     return 0;
-  }
 }
 
 
@@ -1452,6 +1511,14 @@ gc_sweep_freelist_finish (scm_freelist_t *freelist)
   freelist->grow_heap_p = (collected < freelist->min_yield);
 }
 
+#define NEXT_DATA_CELL(ptr, span) \
+    do { \
+      scm_cell *nxt__ = CELL_UP ((char *) (ptr) + 1, (span)); \
+      (ptr) = (SCM_GC_IN_CARD_HEADERP (nxt__) ? \
+               CELL_UP (SCM_GC_CELL_CARD (nxt__) + SCM_GC_CARD_N_HEADER_CELLS, span) \
+               : nxt__); \
+    } while (0)
+
 void
 scm_gc_sweep ()
 #define FUNC_NAME "scm_gc_sweep"
@@ -1488,14 +1555,35 @@ scm_gc_sweep ()
       ptr = CELL_UP (scm_heap_table[i].bounds[0], span);
       seg_size = CELL_DN (scm_heap_table[i].bounds[1], span) - ptr;
 
+      /* use only data cells in seg_size */
+      seg_size = (seg_size / SCM_GC_CARD_N_CELLS) * (SCM_GC_CARD_N_DATA_CELLS / span) * span;
+
       scm_gc_cells_swept += seg_size;
 
       for (j = seg_size + span; j -= span; ptr += span)
 	{
-	  SCM scmptr = PTR2SCM (ptr);
+	  SCM scmptr;
 
-	  switch SCM_TYP7 (scmptr)
+          if (SCM_GC_IN_CARD_HEADERP (ptr))
 	    {
+              SCM_CELLPTR nxt;
+
+              /* cheat here */
+              nxt = ptr;
+              NEXT_DATA_CELL (nxt, span);
+              j += span;
+
+              ptr = nxt - span;
+              continue;
+            }
+
+          scmptr = PTR2SCM (ptr);
+
+          if (SCM_GCMARKP (scmptr))
+              continue;
+          
+	  switch SCM_TYP7 (scmptr)
+            {
 	    case scm_tcs_cons_gloc:
 	      {
 		/* Dirk:FIXME:: Again, super ugly code:  scmptr may be a
@@ -1506,16 +1594,13 @@ scm_gc_sweep ()
 				    - scm_tc3_cons_gloc);
 		/* access as struct */
 		scm_bits_t * vtable_data = (scm_bits_t *) word0;
-		if (SCM_GCMARKP (scmptr))
-		  goto cmrkcontinue;
-		else if (vtable_data[scm_vtable_index_vcell] == 0)
+		if (vtable_data[scm_vtable_index_vcell] == 0)
 		  {
 		    /* Structs need to be freed in a special order.
 		     * This is handled by GC C hooks in struct.c.
 		     */
 		    SCM_SET_STRUCT_GC_CHAIN (scmptr, scm_structs_to_free);
 		    scm_structs_to_free = scmptr;
-		    goto cmrkcontinue;
 		  }
 		/* fall through so that scmptr gets collected */
 	      }
@@ -1524,29 +1609,16 @@ scm_gc_sweep ()
 	    case scm_tcs_cons_nimcar:
 	    case scm_tcs_closures:
 	    case scm_tc7_pws:
-	      if (SCM_GCMARKP (scmptr))
-		goto cmrkcontinue;
 	      break;
 	    case scm_tc7_wvect:
-	      if (SCM_GC8MARKP (scmptr))
-		{
-		  goto c8mrkcontinue;
-		}
-	      else
-		{
-		  m += (2 + SCM_LENGTH (scmptr)) * sizeof (SCM);
-		  scm_must_free ((char *)(SCM_VELTS (scmptr) - 2));
-		  break;
-		}
-
+              m += (2 + SCM_LENGTH (scmptr)) * sizeof (SCM);
+              scm_must_free ((char *)(SCM_VELTS (scmptr) - 2));
+              break;
 	    case scm_tc7_vector:
 	    case scm_tc7_lvector:
 #ifdef CCLO
 	    case scm_tc7_cclo:
 #endif
-	      if (SCM_GC8MARKP (scmptr))
-		goto c8mrkcontinue;
-
 	      m += (SCM_LENGTH (scmptr) * sizeof (SCM));
 	    freechars:
 	      scm_must_free (SCM_CHARS (scmptr));
@@ -1554,80 +1626,53 @@ scm_gc_sweep ()
 	      break;
 #ifdef HAVE_ARRAYS
 	    case scm_tc7_bvect:
-	      if SCM_GC8MARKP (scmptr)
-		goto c8mrkcontinue;
 	      m += sizeof (long) * ((SCM_HUGE_LENGTH (scmptr) + SCM_LONG_BIT - 1) / SCM_LONG_BIT);
 	      goto freechars;
 	    case scm_tc7_byvect:
-	      if SCM_GC8MARKP (scmptr)
-		goto c8mrkcontinue;
 	      m += SCM_HUGE_LENGTH (scmptr) * sizeof (char);
 	      goto freechars;
 	    case scm_tc7_ivect:
 	    case scm_tc7_uvect:
-	      if SCM_GC8MARKP (scmptr)
-		goto c8mrkcontinue;
 	      m += SCM_HUGE_LENGTH (scmptr) * sizeof (long);
 	      goto freechars;
 	    case scm_tc7_svect:
-	      if SCM_GC8MARKP (scmptr)
-		goto c8mrkcontinue;
 	      m += SCM_HUGE_LENGTH (scmptr) * sizeof (short);
 	      goto freechars;
 #ifdef HAVE_LONG_LONGS
 	    case scm_tc7_llvect:
-	      if SCM_GC8MARKP (scmptr)
-		goto c8mrkcontinue;
 	      m += SCM_HUGE_LENGTH (scmptr) * sizeof (long_long);
 	      goto freechars;
 #endif
 	    case scm_tc7_fvect:
-	      if SCM_GC8MARKP (scmptr)
-		goto c8mrkcontinue;
 	      m += SCM_HUGE_LENGTH (scmptr) * sizeof (float);
 	      goto freechars;
 	    case scm_tc7_dvect:
-	      if SCM_GC8MARKP (scmptr)
-		goto c8mrkcontinue;
 	      m += SCM_HUGE_LENGTH (scmptr) * sizeof (double);
 	      goto freechars;
 	    case scm_tc7_cvect:
-	      if SCM_GC8MARKP (scmptr)
-		goto c8mrkcontinue;
 	      m += SCM_HUGE_LENGTH (scmptr) * 2 * sizeof (double);
 	      goto freechars;
 #endif
 	    case scm_tc7_substring:
-	      if (SCM_GC8MARKP (scmptr))
-		goto c8mrkcontinue;
 	      break;
 	    case scm_tc7_string:
-	      if (SCM_GC8MARKP (scmptr))
-		goto c8mrkcontinue;
 	      m += SCM_HUGE_LENGTH (scmptr) + 1;
 	      goto freechars;
 	    case scm_tc7_msymbol:
-	      if (SCM_GC8MARKP (scmptr))
-		goto c8mrkcontinue;
 	      m += (SCM_LENGTH (scmptr) + 1
 		    + (SCM_CHARS (scmptr) - (char *) SCM_SLOTS (scmptr)));
 	      scm_must_free ((char *)SCM_SLOTS (scmptr));
 	      break;
 	    case scm_tc7_contin:
-	      if SCM_GC8MARKP (scmptr)
-		goto c8mrkcontinue;
 	      m += SCM_LENGTH (scmptr) * sizeof (SCM_STACKITEM) + sizeof (scm_contregs);
 	      if (SCM_VELTS (scmptr))
 		goto freechars;
 	    case scm_tc7_ssymbol:
-	      if SCM_GC8MARKP(scmptr)
-		goto c8mrkcontinue;
 	      break;
 	    case scm_tcs_subrs:
+              /* the various "subrs" (primitives) are never freed */
 	      continue;
 	    case scm_tc7_port:
-	      if SCM_GC8MARKP (scmptr)
-		goto c8mrkcontinue;
 	      if SCM_OPENP (scmptr)
 		{
 		  int k = SCM_PTOBNUM (scmptr);
@@ -1647,29 +1692,20 @@ scm_gc_sweep ()
 		}
 	      break;
 	    case scm_tc7_smob:
-	      switch SCM_GCTYP16 (scmptr)
+	      switch SCM_TYP16 (scmptr)
 		{
 		case scm_tc_free_cell:
 		case scm_tc16_real:
-		  if SCM_GC8MARKP (scmptr)
-		    goto c8mrkcontinue;
 		  break;
 #ifdef SCM_BIGDIG
 		case scm_tc16_big:
-		  if SCM_GC8MARKP (scmptr)
-		    goto c8mrkcontinue;
 		  m += (SCM_NUMDIGS (scmptr) * SCM_BITSPERDIG / SCM_CHAR_BIT);
 		  goto freechars;
 #endif /* def SCM_BIGDIG */
 		case scm_tc16_complex:
-		  if SCM_GC8MARKP (scmptr)
-		    goto c8mrkcontinue;
 		  m += 2 * sizeof (double);
 		  goto freechars;
 		default:
-		  if SCM_GC8MARKP (scmptr)
-		    goto c8mrkcontinue;
-
 		  {
 		    int k;
 		    k = SCM_SMOBNUM (scmptr);
@@ -1684,10 +1720,7 @@ scm_gc_sweep ()
 	    sweeperr:
 	      SCM_MISC_ERROR ("unknown type", SCM_EOL);
 	    }
-#if 0
-	  if (SCM_FREE_CELL_P (scmptr))
-	    exit (2);
-#endif
+          
 	  if (!--left_to_collect)
 	    {
 	      SCM_SETCAR (scmptr, nfreelist);
@@ -1708,14 +1741,8 @@ scm_gc_sweep ()
 	      SCM_SET_FREE_CELL_CDR (scmptr, nfreelist);
 	      nfreelist = scmptr;
 	    }
-
-	  continue;
-	c8mrkcontinue:
-	  SCM_CLRGC8MARK (scmptr);
-	  continue;
-	cmrkcontinue:
-	  SCM_CLRGCMARK (scmptr);
 	}
+
 #ifdef GC_FREE_SEGMENTS
       if (n == seg_size)
 	{
@@ -1739,9 +1766,6 @@ scm_gc_sweep ()
 	}
 
 #ifdef GUILE_DEBUG_FREELIST
-      scm_check_freelist (freelist == &scm_master_freelist
-			  ? scm_freelist
-			  : scm_freelist2);
       scm_map_free_list ();
 #endif
     }
@@ -1763,7 +1787,6 @@ scm_gc_sweep ()
 
 
 
-
 /* {Front end to malloc}
  *
  * scm_must_malloc, scm_must_realloc, scm_must_free, scm_done_malloc,
@@ -1931,7 +1954,6 @@ scm_done_free (long size)
 
 
 
-
 /* {Heap Segments}
  *
  * Each heap segment is an array of objects of a particular size.
@@ -1960,15 +1982,22 @@ static unsigned int heap_segment_table_size = 0;
 int scm_n_heap_segs = 0;
 
 /* init_heap_seg
- * initializes a new heap segment and return the number of objects it contains.
+ * initializes a new heap segment and returns the number of objects it contains.
  *
- * The segment origin, segment size in bytes, and the span of objects
- * in cells are input parameters.  The freelist is both input and output.
+ * The segment origin and segment size in bytes are input parameters.
+ * The freelist is both input and output.
  *
- * This function presume that the scm_heap_table has already been expanded
- * to accomodate a new segment record.
+ * This function presumes that the scm_heap_table has already been expanded
+ * to accomodate a new segment record and that the markbit space was reserved
+ * for all the cards in this segment.
  */
 
+#define INIT_CARD(card, span) \
+    do { \
+      SCM_GC_CARD_BVEC (card) = get_bvec (); \
+      if ((span) == 2) \
+        SCM_GC_SET_CARD_DOUBLECELL (card); \
+    } while (0)
 
 static scm_sizet
 init_heap_seg (SCM_CELLPTR seg_org, scm_sizet size, scm_freelist_t *freelist)
@@ -1982,11 +2011,13 @@ init_heap_seg (SCM_CELLPTR seg_org, scm_sizet size, scm_freelist_t *freelist)
   if (seg_org == NULL)
     return 0;
 
-  ptr = CELL_UP (seg_org, span);
+  /* Align the begin ptr up.
+   */
+  ptr = SCM_GC_CARD_UP (seg_org);
 
   /* Compute the ceiling on valid object pointers w/in this segment.
    */
-  seg_end = CELL_DN ((char *) seg_org + size, span);
+  seg_end = SCM_GC_CARD_DOWN ((char *)seg_org + size);
 
   /* Find the right place and insert the segment record.
    *
@@ -2010,12 +2041,6 @@ init_heap_seg (SCM_CELLPTR seg_org, scm_sizet size, scm_freelist_t *freelist)
   scm_heap_table[new_seg_index].bounds[0] = ptr;
   scm_heap_table[new_seg_index].bounds[1] = seg_end;
 
-
-  /* Compute the least valid object pointer w/in this segment
-   */
-  ptr = CELL_UP (ptr, span);
-
-
   /*n_new_cells*/
   n_new_cells = seg_end - ptr;
 
@@ -2025,40 +2050,55 @@ init_heap_seg (SCM_CELLPTR seg_org, scm_sizet size, scm_freelist_t *freelist)
   {
     SCM clusters;
     SCM *clusterp = &clusters;
-    int n_cluster_cells = span * freelist->cluster_size;
 
-    while (n_new_cells > span) /* at least one spine + one freecell */
+    NEXT_DATA_CELL (ptr, span);
+    while (ptr < seg_end)
       {
-	/* Determine end of cluster
-	 */
-	if (n_new_cells >= n_cluster_cells)
-	  {
-	    seg_end = ptr + n_cluster_cells;
-	    n_new_cells -= n_cluster_cells;
-	  }
-	else
-          /* [cmm] looks like the segment size doesn't divide cleanly by
-             cluster size.  bad cmm! */
-          abort();
+        scm_cell *nxt = ptr;
+        scm_cell *prv = NULL;
+        scm_cell *last_card = NULL;
+        int n_data_cells = (SCM_GC_CARD_N_DATA_CELLS / span) * SCM_CARDS_PER_CLUSTER - 1;
+        NEXT_DATA_CELL(nxt, span);
 
 	/* Allocate cluster spine
 	 */
 	*clusterp = PTR2SCM (ptr);
-	SCM_SETCAR (*clusterp, PTR2SCM (ptr + span));
+        SCM_SETCAR (*clusterp, PTR2SCM (nxt));
 	clusterp = SCM_CDRLOC (*clusterp);
-	ptr += span;
+        ptr = nxt;
 
-	while (ptr < seg_end)
+        while (n_data_cells--)
 	  {
+            scm_cell *card = SCM_GC_CELL_CARD (ptr);
 	    SCM scmptr = PTR2SCM (ptr);
+            nxt = ptr;
+            NEXT_DATA_CELL (nxt, span);
+            prv = ptr;
+
+            if (card != last_card)
+              {
+                INIT_CARD (card, span);
+                last_card = card;
+              }
 
 	    SCM_SET_CELL_TYPE (scmptr, scm_tc_free_cell);
-	    SCM_SET_FREE_CELL_CDR (scmptr, PTR2SCM (ptr + span));
-	    ptr += span;
+	    SCM_SETCDR (scmptr, PTR2SCM (nxt));
+
+            ptr = nxt;
 	  }
 
-	SCM_SET_FREE_CELL_CDR (PTR2SCM (ptr - span), SCM_EOL);
+	SCM_SET_FREE_CELL_CDR (PTR2SCM (prv), SCM_EOL);
       }
+
+    /* sanity check */
+    {
+      scm_cell *ref = seg_end;
+      NEXT_DATA_CELL (ref, span);
+      if (ref != ptr)
+        /* [cmm] looks like the segment size doesn't divide cleanly by
+           cluster size.  bad cmm! */
+        abort();
+    }
 
     /* Patch up the last cluster pointer in the segment
      * to join it to the input freelist.
@@ -2129,7 +2169,6 @@ alloc_some_heap (scm_freelist_t *freelist, policy_on_error error_policy)
 	  heap_segment_table_size = new_table_size;
 	}
     }
-
 
   /* Pick a size for the new heap segment.
    * The rule for picking the size of a segment is explained in
@@ -2371,6 +2410,7 @@ static int
 make_initial_segment (scm_sizet init_heap_size, scm_freelist_t *freelist)
 {
   scm_sizet rounded_size = round_to_cluster_size (freelist, init_heap_size);
+
   if (!init_heap_seg ((SCM_CELLPTR) malloc (rounded_size),
 		      rounded_size,
 		      freelist))
@@ -2447,6 +2487,8 @@ scm_init_storage (scm_sizet init_heap_size_1, int gc_trigger_1,
 		    scm_must_malloc (sizeof (scm_heap_seg_data_t) * 2, "hplims"));
   heap_segment_table_size = 2;
 
+  mark_space_ptr = &mark_space_head;
+
   if (make_initial_segment (init_heap_size_1, &scm_master_freelist) ||
       make_initial_segment (init_heap_size_2, &scm_master_freelist2))
     return 1;
@@ -2491,6 +2533,7 @@ scm_init_storage (scm_sizet init_heap_size_1, int gc_trigger_1,
 #ifdef SCM_BIGDIG
   scm_sysintern ("bignum-radix", SCM_MAKINUM (SCM_BIGRAD));
 #endif
+
   return 0;
 }
 
