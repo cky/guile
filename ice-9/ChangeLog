@@ -1,3 +1,32 @@
+2000-06-11  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* boot-9.scm (make-autoload-interface): Set init value for uses to
+	'() instead of #f.
+	(make-modules-in): Name modules with their real (= full) names.
+	(the-root-module, the-scm-module): Named `(guile)' instead of
+	`the-root-module'.
+	(the-scm-module): Set kind to 'interface.
+
+	* Makefile.am (ice9_sources): Replaced doc.scm with
+	documentation.scm.
+
+	* session.scm (ice-9): Use module (ice-9 documentation).
+	(name): Use the name property if everything else fails.
+	(apropos-fold): New procedure.
+	(apropos-internal): Re-implement in terms of `apropos-fold'.
+	(help): Rewritten.
+
+	* doc.scm: Removed module (ice-9 doc).
+
+	* documentation.scm: New module (ice-9 documentation).
+
+2000-06-08  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* doc.scm (documentation-files): Renamed from `doc-files'.
+	(write-all): Removed.
+	(find-documentation): Renamed from `documentation'.  Return
+	documentation string instead of printing it.  Not exported.
+
 2000-06-05  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* boot-9.scm (error-catching-loop): Inform about debugger on error.
