@@ -32,43 +32,61 @@
       "(help [NAME])
 Prints useful information.  Try `(help)'."
       (cond ((not (= (length exp) 2))
-	     (help-usage))
-	    ((not (feature? 'regex))
-	     (display "`help' depends on the `regex' feature.
+             (help-usage))
+            ((not (provided? 'regex))
+             (display "`help' depends on the `regex' feature.
 You don't seem to have regular expressions installed.\n"))
-	    (else
-	     (let ((name (cadr exp)))
-	       (cond ((symbol? name)
-		      (help-doc name
-				(string-append "^"
-					       (regexp-quote
-						(symbol->string name))
-					       "$")))
-		     ((string? name)
-		      (help-doc name name))
-		     ((and (list? name)
-			   (= (length name) 2)
-			   (eq? (car name) 'unquote))
-		      (let ((doc (object-documentation (local-eval (cadr name)
-								   env))))
-			(if (not doc)
-			    (simple-format #t "No documentation found for ~S\n"
-					   (cadr name))
-                            (write-line doc))))
-                     ((and (list? name)
-                           (and-map symbol? name)
-                           (not (null? name))
-                           (not (eq? (car name) 'quote)))
-                      (let ((doc (module-commentary name)))
-                        (if (not doc)
-                            (simple-format
-                             #t "No commentary found for module ~S\n" name)
-                            (begin
-                              (display name) (write-line " commentary:")
-                              (write-line doc)))))
-		     (else
-		      (help-usage)))
-	       *unspecified*))))))
+            (else
+             (let ((name (cadr exp))
+                   (not-found (lambda (type x)
+                                (simple-format #t "No ~A found for ~A\n"
+                                               type x))))
+               (cond
+
+                ;; SYMBOL
+                ((symbol? name)
+                 (help-doc name
+                           (simple-format
+                            #f "^~A$"
+                            (regexp-quote (symbol->string name)))))
+
+                ;; "STRING"
+                ((string? name)
+                 (help-doc name name))
+
+                ;; (unquote SYMBOL)
+                ((and (list? name)
+                      (= (length name) 2)
+                      (eq? (car name) 'unquote))
+                 (cond ((object-documentation
+                         (local-eval (cadr name) env))
+                        => write-line)
+                       (else (not-found 'documentation (cadr name)))))
+
+                ;; (quote SYMBOL)
+                ((and (list? name)
+                      (= (length name) 2)
+                      (eq? (car name) 'quote)
+                      (symbol? (cadr name)))
+                 (cond ((search-documentation-files (cadr name))
+                        => write-line)
+                       (else (not-found 'documentation (cadr name)))))
+
+                ;; (SYM1 SYM2 ...)
+                ((and (list? name)
+                      (and-map symbol? name)
+                      (not (null? name))
+                      (not (eq? (car name) 'quote)))
+                 (cond ((module-commentary name)
+                        => (lambda (doc)
+                             (display name) (write-line " commentary:")
+                             (write-line doc)))
+                       (else (not-found 'commentary name))))
+
+                ;; unrecognized
+                (else
+                 (help-usage)))
+               *unspecified*))))))
 
 (define (module-filename name)          ; fixme: better way? / done elsewhere?
   (let* ((name (map symbol->string name))
@@ -104,64 +122,71 @@ You don't seem to have regular expressions installed.\n"))
 	(name cadr)
 	(doc caddr)
 	(type cadddr))
-    (if (null? entries)
-	;; no matches
-	(begin
-	  (display "Did not find any object ")
-	  (simple-format #t
-			 (if (symbol? term)
-			     "named `~A'\n"
-			     "matching regexp \"~A\"\n")
-			 term))
-	(let ((first? #t)
-	      (undocumented-entries '())
-	      (documented-entries '())
-	      (documentations '()))
+    (cond ((not (null? entries))
+           (let ((first? #t)
+                 (undocumented-entries '())
+                 (documented-entries '())
+                 (documentations '()))
 
-	  (for-each (lambda (entry)
-		      (let ((entry-summary (simple-format #f
-							  "~S: ~S\n"
-							  (module-name (module entry))
-							  (name entry))))
-			(if (doc entry)
-			    (begin
-			      (set! documented-entries
-				    (cons entry-summary documented-entries))
-			      ;; *fixme*: Use `describe' when we have GOOPS?
-			      (set! documentations
-				    (cons (simple-format #f
-							 "`~S' is ~A in the ~S module.\n\n~A\n"
-							 (name entry)
-							 (type entry)
-							 (module-name (module entry))
-							 (doc entry))
-					  documentations)))
-			    (set! undocumented-entries
-				  (cons entry-summary undocumented-entries)))))
-		    entries)
+             (for-each (lambda (entry)
+                         (let ((entry-summary (simple-format
+                                               #f "~S: ~S\n"
+                                               (module-name (module entry))
+                                               (name entry))))
+                           (if (doc entry)
+                               (begin
+                                 (set! documented-entries
+                                       (cons entry-summary documented-entries))
+                                 ;; *fixme*: Use `describe' when we have GOOPS?
+                                 (set! documentations
+                                       (cons (simple-format
+                                              #f "`~S' is ~A in the ~S module.\n\n~A\n"
+                                              (name entry)
+                                              (type entry)
+                                              (module-name (module entry))
+                                              (doc entry))
+                                             documentations)))
+                               (set! undocumented-entries
+                                     (cons entry-summary
+                                           undocumented-entries)))))
+                       entries)
 
-	  (if (and (not (null? documented-entries))
-		   (or (> (length documented-entries) 1)
-		       (not (null? undocumented-entries))))
-	      (begin
-		(display "Documentation found for:\n")
-		(for-each (lambda (entry) (display entry)) documented-entries)
-		(set! first? #f)))
+             (if (and (not (null? documented-entries))
+                      (or (> (length documented-entries) 1)
+                          (not (null? undocumented-entries))))
+                 (begin
+                   (display "Documentation found for:\n")
+                   (for-each (lambda (entry) (display entry))
+                             documented-entries)
+                   (set! first? #f)))
 
-	  (for-each (lambda (entry)
-		      (if first?
-			  (set! first? #f)
-			  (newline))
-		      (display entry))
-		    documentations)
+             (for-each (lambda (entry)
+                         (if first?
+                             (set! first? #f)
+                             (newline))
+                         (display entry))
+                       documentations)
 
-	  (if (not (null? undocumented-entries))
-	      (begin
-		(if first?
-		    (set! first? #f)
-		    (newline))
-		(display "No documentation found for:\n")
-		(for-each (lambda (entry) (display entry)) undocumented-entries)))))))
+             (if (not (null? undocumented-entries))
+                 (begin
+                   (if first?
+                       (set! first? #f)
+                       (newline))
+                   (display "No documentation found for:\n")
+                   (for-each (lambda (entry) (display entry))
+                             undocumented-entries)))))
+          ((search-documentation-files term)
+           => (lambda (doc)
+                (write-line "Documentation from file:")
+                (write-line doc)))
+          (else
+           ;; no matches
+           (display "Did not find any object ")
+           (simple-format #t
+                          (if (symbol? term)
+                              "named `~A'\n"
+                              "matching regexp \"~A\"\n")
+                          term)))))
 
 (define (help-usage)
   (display "Usage: (help NAME) gives documentation about objects named NAME (a symbol)
@@ -318,7 +343,7 @@ It is an image under the mapping EXTRACT."
 (define-public (apropos-fold-accessible module)
   (make-fold-modules (lambda () (list module))
 		     module-uses
-		     (lambda (x) x)))
+		     identity))
 
 (define (root-modules)
   (cons the-root-module
@@ -338,7 +363,7 @@ It is an image under the mapping EXTRACT."
   (make-fold-modules root-modules submodules module-public-interface))
 
 (define-public apropos-fold-all
-  (make-fold-modules root-modules submodules (lambda (x) x)))
+  (make-fold-modules root-modules submodules identity))
 
 (define-public (source obj)
   (cond ((procedure? obj) (procedure-source obj))
@@ -396,3 +421,5 @@ It is an image under the mapping EXTRACT."
 	 (set-system-module! m s)
 	 (string-append "Module " (symbol->string (module-name m))
 			" is now a " (if s "system" "user") " module."))))))
+
+;;; session.scm ends here
