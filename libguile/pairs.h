@@ -52,8 +52,8 @@
 
 
 
-#define SCM_NULLP(x) 		(SCM_EOL == (x))
-#define SCM_NNULLP(x) 		(SCM_EOL != (x))
+#define SCM_NULLP(x)		(SCM_EQ_P ((x), SCM_EOL))
+#define SCM_NNULLP(x)		(!SCM_NULLP (x))
 
 #define SCM_CAR(x)		(SCM_CELL_OBJECT_0 (x))
 #define SCM_CDR(x)		(SCM_CELL_OBJECT_1 (x))

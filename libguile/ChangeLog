@@ -1,3 +1,10 @@
+2000-03-29  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* boolean.h (SCM_TRUE_P):  New macro.
+
+	* boolean.h (SCM_FALSEP, SCM_NFALSEP, SCM_BOOLP), pairs.h
+	(SCM_NULLP, SCM_NNULLP):  Use SCM_EQ_P to compare SCM values.
+
 2000-03-28  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* continuations.h (SCM_CONTREGS, SCM_SET_CONTREGS):  New macros to
