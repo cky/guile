@@ -1,3 +1,7 @@
+1999-01-26  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* random.c (scm_i_random_bignum): Made independent of endianness.
+
 1999-01-22  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* eval.c (SCM_CEVAL): Added ENTER_APPLY in code for SCM_IM_APPLY.
