@@ -1,3 +1,31 @@
+1999-08-24  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* print.h (SCM_PORT_WITH_PS_P, SCM_PORT_WITH_PS_PORT,
+	SCM_PORT_WITH_PS_PS): Represent ports with print states as a smob
+	instead of a pair of a port and a print state.  We'll need to cons
+	once extra in scm_printer_apply but the type system will be
+	cleaner, it will mix better with GOOPS, and, it will be even more
+	transparent to the user.
+
+	* print.c (scm_get_print_state): New procedure: Given an output
+	port, return the print state associated to it in the current print
+	chain, if one exists;
+	(scm_port_with_print_state): New procedure: Associate a
+	print-state with a port.
+	(scm_valid_oport_value_p): Use SCM_PORT_WITH_PS_P;
+	(scm_printer_apply): Wrap port and pstate as a smob;
+	(print_state_printer): Removed.
+	
+	* objects.c (scm_class_of): Treat scm_tc16_port_with_ps as ports.
+
+	* eval.c (scm_init_eval): Use scm_make_smob_type instead of
+	scm_newsmob.
+
+	* ports.c (scm_output_port_p): Bugfix: Coerce output port before
+	testing (otherwise the port-print-state trick won't be transparent
+	to the user; one example where this caused problems was in the
+	(ice-9 format) module).
+
 1999-08-23  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* eval.c (SCM_CEVAL): Let the SCM_IM_SLOT_SET_X form return
