@@ -1,5 +1,8 @@
 2003-04-07  Rob Browning  <rlb@defaultvalue.org>
 
+	* debug.h: change "id" arg name to "info_id" to avoid objective-c
+	clash.
+
 	* num2integral.i.c (NUM2INTEGRAL): fix bug pointed out by Mikael
 	and add regression test to standalone/.
 
