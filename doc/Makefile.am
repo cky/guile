@@ -21,6 +21,9 @@
 
 AUTOMAKE_OPTIONS = foreign
 
+# pending the papers from Robert Merkel
+# man_MANS = guile.1
+
 info_TEXINFOS = guile.texi r5rs.texi goops.texi guile-tut.texi
 
 guile_TEXINFOS = preface.texi intro.texi scheme-intro.texi \
@@ -73,3 +76,6 @@ $(srcdir)/version.texi: stamp-vti
 # And the same for version-tutorial.texi.
 $(srcdir)/version-tutorial.texi: stamp-vti1
 	@:
+
+# pending the papers from Robert Merkel
+# EXTRA_DIST = guile.1
