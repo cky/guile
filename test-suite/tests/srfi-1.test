@@ -719,6 +719,44 @@
       (equal? '(4) (filter-map noop '(4 #f) '(1 2 3))))))
   
 ;;
+;; find
+;;
+
+(with-test-prefix "find"
+  (pass-if (eqv? #f (find odd? '())))
+  (pass-if (eqv? #f (find odd? '(0))))
+  (pass-if (eqv? #f (find odd? '(0 2))))
+  (pass-if (eqv? 1 (find odd? '(1))))
+  (pass-if (eqv? 1 (find odd? '(0 1))))
+  (pass-if (eqv? 1 (find odd? '(0 1 2))))
+  (pass-if (eqv? 1 (find odd? '(2 0 1))))
+  (pass-if (eqv? 1 (find (lambda (x) (= 1 x)) '(2 0 1)))))
+
+;;
+;; find-tail
+;;
+
+(with-test-prefix "find-tail"
+  (pass-if (let ((lst '()))
+	     (eq? #f (find-tail odd? lst))))
+  (pass-if (let ((lst '(0)))
+	     (eq? #f (find-tail odd? lst))))
+  (pass-if (let ((lst '(0 2)))
+	     (eq? #f (find-tail odd? lst))))
+  (pass-if (let ((lst '(1)))
+	     (eq? lst (find-tail odd? lst))))
+  (pass-if (let ((lst '(1 2)))
+	     (eq? lst (find-tail odd? lst))))
+  (pass-if (let ((lst '(2 1)))
+	     (eq? (cdr lst) (find-tail odd? lst))))
+  (pass-if (let ((lst '(2 1 0)))
+	     (eq? (cdr lst) (find-tail odd? lst))))
+  (pass-if (let ((lst '(2 0 1)))
+	     (eq? (cddr lst) (find-tail odd? lst))))
+  (pass-if (let ((lst '(2 0 1)))
+	     (eq? (cddr lst) (find-tail (lambda (x) (= 1 x)) lst)))))
+
+;;
 ;; length+
 ;;
 
@@ -907,9 +945,6 @@
 
 (with-test-prefix "lset-adjoin"
 
-  (pass-if "no args"
-    (eq? #t (lset= eq?)))
-
   ;; in guile 1.6.7 and earlier, lset-adjoin didn't actually use the given
   ;; `=' procedure, all comparisons were just with `equal?
   ;;
@@ -921,7 +956,8 @@
   (pass-if "called arg order"
     (let ((good #f))
       (lset-adjoin (lambda (x y)
-		     (set! good (and (= x 1) (= y 2))))
+		     (set! good (and (= x 1) (= y 2)))
+		     (= x y))
 		   '(1) 2)
       good))
 
@@ -931,6 +967,28 @@
   ;; duplicates among args are cast out
   (pass-if "(2) 1 1"
     (equal? '(1 2) (lset-adjoin = '(2) 1 1))))
+
+;;
+;; lset-union
+;;
+
+(with-test-prefix "lset-union"
+
+  (pass-if "no args"
+    (eq? '() (lset-union eq?)))
+
+  (pass-if "one arg"
+    (equal? '(1 2 3) (lset-union eq? '(1 2 3))))
+
+  ;; in guile 1.6.7 and earlier, `=' was called with the arguments the wrong
+  ;; way around
+  (pass-if "called arg order"
+    (let ((good #f))
+      (lset-union (lambda (x y)
+		    (set! good (and (= x 1) (= y 2)))
+		    (= x y))
+		  '(1) '(2))
+      good)))
 
 ;;
 ;; member
