@@ -1,5 +1,14 @@
 2000-10-06  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* numbers.c (big2str), read.c (scm_grow_tok_buf), strports.c
+	(st_resize_port):  Don't call scm_vector_set_length_x to resize
+	strings.
+
+	* read.c (scm_lreadr, scm_read_token):  Use SCM_STRING_LENGTH for
+	string arguments (instead of SCM_LENGTH).
+
+2000-10-06  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* continuations.h (SCM_CONTINUATION_LENGTH), strings.h
 	(SCM_STRING_LENGTH), symbols.h (SCM_SYMBOL_LENGTH), unif.h
 	(SCM_UVECTOR_LENGTH, SCM_BITVECTOR_LENGTH), vectors.h

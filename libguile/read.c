@@ -122,8 +122,15 @@ SCM_DEFINE (scm_read, "read", 0, 1, 0,
 char *
 scm_grow_tok_buf (SCM *tok_buf)
 {
-  scm_vector_set_length_x (*tok_buf, SCM_MAKINUM (2 * SCM_LENGTH (*tok_buf)));
-  return SCM_STRING_CHARS (*tok_buf);
+  unsigned long int oldlen = SCM_STRING_LENGTH (*tok_buf);
+  SCM newstr = scm_makstr (2 * oldlen, 0);
+  unsigned long int i;
+
+  for (i = 0; i != oldlen; ++i)
+    SCM_STRING_CHARS (newstr) [i] = SCM_STRING_CHARS (*tok_buf) [i];
+
+  *tok_buf = newstr;
+  return SCM_STRING_CHARS (newstr);
 }
 
 
@@ -434,7 +441,7 @@ tryagain_no_flush_ws:
 	{
 	  SCM_ASSERT (EOF != c, SCM_UNDEFINED, "end of file in ", "string");
 
-	  while (j + 2 >= SCM_LENGTH (*tok_buf))
+	  while (j + 2 >= SCM_STRING_LENGTH (*tok_buf))
 	    scm_grow_tok_buf (tok_buf);
 
 	  if (c == '\\')
@@ -535,7 +542,7 @@ scm_read_token (int ic, SCM *tok_buf, SCM port, int weird)
   else
     {
       j = 0;
-      while (j + 2 >= SCM_LENGTH (*tok_buf))
+      while (j + 2 >= SCM_STRING_LENGTH (*tok_buf))
 	p = scm_grow_tok_buf (tok_buf);
       p[j] = c;
       ++j;
@@ -543,7 +550,7 @@ scm_read_token (int ic, SCM *tok_buf, SCM port, int weird)
 
   while (1)
     {
-      while (j + 2 >= SCM_LENGTH (*tok_buf))
+      while (j + 2 >= SCM_STRING_LENGTH (*tok_buf))
 	p = scm_grow_tok_buf (tok_buf);
       c = scm_getc (port);
       switch (c)

@@ -57,7 +57,6 @@
 #include "libguile/read.h"
 #include "libguile/root.h"
 #include "libguile/strings.h"
-#include "libguile/vectors.h"
 #include "libguile/modules.h"
 
 #include "libguile/strports.h"
@@ -96,17 +95,23 @@ stfill_buffer (SCM port)
 static void 
 st_resize_port (scm_port *pt, off_t new_size)
 {
-  SCM stream = SCM_PACK (pt->stream);
+  SCM old_stream = SCM_PACK (pt->stream);
+  SCM new_stream = scm_makstr (new_size, 0);
+  unsigned long int old_size = SCM_STRING_LENGTH (old_stream);
+  unsigned long int min_size = min (old_size, new_size);
+  unsigned long int i;
 
   off_t index = pt->write_pos - pt->write_buf;
 
   pt->write_buf_size = new_size;
 
-  scm_vector_set_length_x (stream, SCM_MAKINUM (new_size));
+  for (i = 0; i != min_size; ++i)
+    SCM_STRING_CHARS (new_stream) [i] = SCM_STRING_CHARS (old_stream) [i];
 
-  /* reset buffer in case reallocation moved the string. */
+  /* reset buffer. */
   {
-    pt->read_buf = pt->write_buf = SCM_STRING_UCHARS (stream);
+    pt->stream = new_stream;
+    pt->read_buf = pt->write_buf = SCM_STRING_UCHARS (new_stream);
     pt->read_pos = pt->write_pos = pt->write_buf + index;
     pt->write_end = pt->write_buf + pt->write_buf_size;
     pt->read_end = pt->read_buf + pt->read_buf_size;

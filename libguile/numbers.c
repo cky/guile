@@ -52,7 +52,6 @@
 #include "libguile/root.h"
 #include "libguile/smob.h"
 #include "libguile/strings.h"
-#include "libguile/vectors.h"
 
 #include "libguile/validate.h"
 #include "libguile/numbers.h"
@@ -2205,8 +2204,8 @@ big2str (SCM b, unsigned int radix)
     {				/* jeh */
       for (i = j; j < SCM_LENGTH (ss); j++)
 	s[ch + j - i] = s[j];	/* jeh */
-      scm_vector_set_length_x (ss, /* jeh */
-			       SCM_MAKINUM (ch + SCM_LENGTH (ss) - i));
+      ss = scm_substring (ss, SCM_INUM0, 
+			  SCM_MAKINUM (ch + SCM_STRING_LENGTH (ss) - i));
     }
 
   return scm_return_first (ss, t);
