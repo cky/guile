@@ -1,3 +1,9 @@
+2003-05-24  Kevin Ryde  <user42@zip.com.au>
+
+	* scheme-procedures.texi: Add index entries lambda, optargs, syncase.
+
+	* scsh.texi (The Scheme shell (scsh)): Add index entries.
+
 2003-05-22  Kevin Ryde  <user42@zip.com.au>
 
 	* srfi-modules.texi (SRFI-2): Rewrite and-let*, describing plain
