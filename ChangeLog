@@ -1,3 +1,12 @@
+Sun Aug 24 15:51:12 1997  Mikael Djurfeldt  <mdj@kenneth>
+
+	* configure.in (AC_CHECK_HEADERS): Test for rxposix.h,
+	rx/rxposix.h.  Add library rx only if regcomp can't be found
+	without it.
+
+	* acconfig.h (HAVE_REGCOMP): Added it here since autoheader misses
+	it for some reason!
+
 Fri Aug 22 21:21:49 1997  Jim Blandy  <jimb@totoro.red-bean.com>
 
 	* THANKS: New file.

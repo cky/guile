@@ -74,3 +74,6 @@
 
 /* Define if the system supports Unix-domain (file-domain) sockets.  */
 #undef HAVE_UNIX_DOMAIN_SOCKETS
+
+/* This is included as part of a workaround for a autoheader bug. */
+#undef HAVE_REGCOMP
