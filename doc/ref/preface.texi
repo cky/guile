@@ -49,7 +49,7 @@ using Guile.  This covers both the Scheme level --- where we provide an
 introduction to the key ideas of the Scheme language --- and use of
 Guile's @code{scm} interface to write new primitives and objects in C,
 and to incorporate Guile into a C application.  It also covers the use
-of Guile as a POSIX compliant script interpreter, and how to use the
+of Guile as a POSIX-compliant script interpreter and how to use the
 Guile debugger.
 
 @c @strong{Part V: Extending Applications Using Guile} explains the options
@@ -67,9 +67,9 @@ Guile debugger.
 
 @strong{Part IV: Guile API Reference} documents Guile's core API.  Most
 of the variables and procedures in Guile's core programming interface
-are available in both Scheme and C, and are related systematically such
+are available in both Scheme and C and are related systematically such
 that the C interface can be inferred from the Scheme interface and vice
-versa.  Therefore this part of the manual documents the Guile API in
+versa.  Therefore, this part of the manual documents the Guile API in
 functionality-based groups with the Scheme and C interfaces presented
 side by side.  Where the Scheme and C interfaces for a particular
 functional area do differ --- which is sometimes inevitable, given the
@@ -93,7 +93,7 @@ are:
 
 @itemize @bullet
 @item
-the POSIX module, which provides Scheme level procedures for system and
+the POSIX module, which provides Scheme-level procedures for system and
 network programming that conform to the POSIX standard
 
 @item
