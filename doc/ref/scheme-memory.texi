@@ -199,8 +199,8 @@ as soon as the value is no longer in use. Entries in a doubly weak hash
 disappear when either the key or the value are not used anywhere else
 anymore.
 
-Property lists offer the same kind of functionality as weak key hashes
-in many situations. (@pxref{Property Lists})
+Object properties offer the same kind of functionality as weak key
+hashes in many situations. (@pxref{Object Properties})
 
 Here's an example (a little bit strained perhaps, but one of the
 examples is actually used in Guile):

@@ -51,7 +51,7 @@ allocated.
 @deffnx {C Function} scm_debug_options (setting)
 Option interface for the debug options. Instead of using
 this procedure directly, use the procedures @code{debug-enable},
-@code{debug-disable}, @code{debug-set!} and @var{debug-options}.
+@code{debug-disable}, @code{debug-set!} and @code{debug-options}.
 @end deffn
 
 @deffn {Scheme Procedure} with-traps thunk

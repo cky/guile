@@ -890,7 +890,7 @@ always returns the end-of-file object when read from.
 @deffn {Scheme Procedure} %make-void-port mode
 @deffnx {C Function} scm_sys_make_void_port (mode)
 Create and return a new void port.  A void port acts like
-/dev/null.  The @var{mode} argument
+@file{/dev/null}.  The @var{mode} argument
 specifies the input/output modes for this port: see the
 documentation for @code{open-file} in @ref{File Ports}.
 @end deffn

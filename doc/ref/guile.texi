@@ -50,13 +50,40 @@
 
 @include version.texi
 
+@c Macros for describing version information.  I've initially defined
+@c all of these to expand to nothing, but they could perhaps be made to
+@c expand to something like "New in Guile 45!" in future.
+
+@c vnew - indicates the Guile version in which item first appeared.
+@macro vnew{VERSION}
+@end macro
+
+@c vdeprecated - indicates that the item has been deprecated, and the
+@c Guile version in which the deprecation started.
+@macro vdeprecated{VERSION}
+@end macro
+
+@c vgone - a way of tracking items that are no longer here.  In this
+@c case, VERSION is the last Guile version in which the item was present.
+@macro vgone{WHAT, VERSION}
+@end macro
+
+@c vchanged - indicates the Guile version in which item's behaviour
+@c significantly changed.
+@macro vchanged{VERSION}
+@end macro
+
+@c vnote - catchall for any additional notes.
+@macro vnote{NOTE}
+@end macro
+
 @c @iftex
 @c @cropmarks
 @c @end iftex
 
 @dircategory The Algorithmic Language Scheme
 @direntry
-* Guile Reference: (guile).     The Guile reference manual.
+* Guile Reference: (guile).  The Guile reference manual.
 @end direntry
 
 @setchapternewpage off
@@ -94,7 +121,7 @@ by the Free Software Foundation.
 @sp 10
 @comment The title is printed in a large font.
 @title Guile Reference Manual
-@subtitle $Id: guile.texi,v 1.13 2002-03-08 21:23:36 ttn Exp $
+@subtitle $Id: guile.texi,v 1.14 2002-03-15 14:03:53 ossau Exp $
 @subtitle For use with Guile @value{VERSION}
 
 @c AUTHORS

@@ -10,8 +10,7 @@ applications, they are collected in a @dfn{utility} chapter.
 
 @menu
 * Equality::                    When are two values `the same'?
-* Property Lists::              Managing meta-information about Scheme objects.
-* Primitive Properties::        A modern interface to object properties.
+* Object Properties::           A modern interface to object properties.
 * Sorting::                     Sort utility procedures.
 * Copying::                     Copying deep structures.
 * General Conversion::          Converting objects to strings.
@@ -75,48 +74,78 @@ terminate if its arguments are circular data structures.
 @end deffn
 
 
-@node Property Lists
-@section Property Lists
+@node Object Properties
+@section Object Properties
 
-Every object in the system can have a @dfn{property list} that may
-be used for information about that object.  For example, a
-function may have a property list that includes information about
-the source file in which it is defined.
+It's often useful to associate a piece of additional information with a
+Scheme object even though that object does not have a dedicated slot
+available in which the additional information could be stored.  Object
+properties allow you to do just that.
 
-Property lists are implemented as assq lists (@pxref{Association Lists}).
+An object property is most commonly used to associate one kind of
+additional information with each instance of a class of similar Scheme
+objects.  For example, all procedures have a `name' property, which
+stores the name of the variable in which the procedure was stored by a
+@code{define} expression, or @code{#f} if the procedure wasn't created
+by that kind of expression.
 
-Currently, property lists are implemented differently for procedures and
-closures than for other kinds of objects.  Therefore, when manipulating
-a property list associated with a procedure object, use the
-@code{procedure} functions; otherwise, use the @code{object} functions.
+Guile's representation of an object property is a procedure-with-setter
+(@pxref{Procedures with Setters}) that can be used with the generalized
+form of @code{set!} (REFFIXME) to set and retrieve that property for any
+Scheme object.  So, setting a property looks like this:
 
-@deffn {Scheme Procedure} object-properties obj
-@deffnx {C Function} scm_object_properties (obj)
-Return @var{obj}'s property list.
+@lisp
+(set! (my-property obj1) value-for-obj1)
+(set! (my-property obj2) value-for-obj2)
+@end lisp
+
+@noindent
+And retrieving values of the same property looks like this:
+
+@lisp
+(my-property obj1)
+@result{}
+value-for-obj1
+
+(my-property obj2)
+@result{}
+value-for-obj2
+@end lisp
+
+To create an object property in the first place, use the
+@code{make-object-property} procedure:
+
+@lisp
+(define my-property (make-object-property))
+@end lisp
+
+@deffn {Scheme Procedure} make-object-property
+Create and return an object property.  An object property is a
+procedure-with-setter that can be called in two ways.  @code{(set!
+(@var{property} @var{obj}) @var{val})} sets @var{obj}'s @var{property}
+to @var{val}.  @code{(@var{property} @var{obj})} returns the current
+setting of @var{obj}'s @var{property}.
 @end deffn
 
-@deffn {Scheme Procedure} set-object-properties! obj alist
-@deffnx {C Function} scm_set_object_properties_x (obj, alist)
-Set @var{obj}'s property list to @var{alist}.
-@end deffn
+A single object property created by @code{make-object-property} can
+associate distinct property values with all Scheme values that are
+distinguishable by @code{eq?} (including, for example, integers).
 
-@deffn {Scheme Procedure} object-property obj key
-@deffnx {C Function} scm_object_property (obj, key)
-Return the property of @var{obj} with name @var{key}.
-@end deffn
+Internally, object properties are implemented using a weak key hash
+table.  This means that, as long as a Scheme value with property values
+is protected from garbage collection, its property values are also
+protected.  When the Scheme value is collected, its entry in the
+property table is removed and so the (ex-) property values are no longer
+protected by the table.
 
-@deffn {Scheme Procedure} set-object-property! obj key value
-@deffnx {C Function} scm_set_object_property_x (obj, key, value)
-In @var{obj}'s property list, set the property named @var{key}
-to @var{value}.
-@end deffn
-
-[Interface bug:  there should be a second level of interface in which
-the user provides a "property table" that is possibly private.]
+@menu
+* Property Primitives::         Low level property implementation.
+* Old-fashioned Properties::    An older approach to properties.
+@end menu
 
 
-@node Primitive Properties
-@section Primitive Properties
+@node Property Primitives
+@subsection Low Level Property Implementation.
 
 @deffn {Scheme Procedure} primitive-make-property not_found_proc
 @deffnx {C Function} scm_primitive_make_property (not_found_proc)
@@ -145,6 +174,41 @@ Associate @var{code} with @var{prop} and @var{obj}.
 @deffn {Scheme Procedure} primitive-property-del! prop obj
 @deffnx {C Function} scm_primitive_property_del_x (prop, obj)
 Remove any value associated with @var{prop} and @var{obj}.
+@end deffn
+
+
+@node Old-fashioned Properties
+@subsection An Older Approach to Properties
+
+Traditionally, Lisp systems provide a different object property
+interface to that provided by @code{make-object-property}, in which the
+object property that is being set or retrieved is indicated by a symbol.
+
+Guile includes this older kind of interface as well, but it may well be
+removed in a future release, as it is less powerful than
+@code{make-object-property} and so increases the size of the Guile
+library for no benefit.  (And it is trivial to write a compatibility
+layer in Scheme.)
+
+@deffn {Scheme Procedure} object-properties obj
+@deffnx {C Function} scm_object_properties (obj)
+Return @var{obj}'s property list.
+@end deffn
+
+@deffn {Scheme Procedure} set-object-properties! obj alist
+@deffnx {C Function} scm_set_object_properties_x (obj, alist)
+Set @var{obj}'s property list to @var{alist}.
+@end deffn
+
+@deffn {Scheme Procedure} object-property obj key
+@deffnx {C Function} scm_object_property (obj, key)
+Return the property of @var{obj} with name @var{key}.
+@end deffn
+
+@deffn {Scheme Procedure} set-object-property! obj key value
+@deffnx {C Function} scm_set_object_property_x (obj, key, value)
+In @var{obj}'s property list, set the property named @var{key}
+to @var{value}.
 @end deffn
 
 
@@ -349,13 +413,13 @@ arguments.  When the procedures have been added, we can invoke them
 using @code{run-hook}.
 
 @lisp
-(add-hook! hook (lambda (x y) 
-                    (display "Foo: ") 
-                    (display (+ x y)) 
+(add-hook! hook (lambda (x y)
+                    (display "Foo: ")
+                    (display (+ x y))
                     (newline)))
-(add-hook! hook (lambda (x y) 
-                    (display "Bar: ") 
-                    (display (* x y)) 
+(add-hook! hook (lambda (x y)
+                    (display "Bar: ")
+                    (display (* x y))
                     (newline)))
 (run-hook hook 3 4)
 @print{} Bar: 12
@@ -367,14 +431,14 @@ added.  This can be changed by providing the optional third argument
 on the second call to @code{add-hook!}.
 
 @lisp
-(add-hook! hook (lambda (x y) 
-                    (display "Foo: ") 
-                    (display (+ x y)) 
+(add-hook! hook (lambda (x y)
+                    (display "Foo: ")
+                    (display (+ x y))
                     (newline)))
-(add-hook! hook (lambda (x y) 
-                    (display "Bar: ") 
-                    (display (* x y)) 
-                    (newline)) 
+(add-hook! hook (lambda (x y)
+                    (display "Bar: ")
+                    (display (* x y))
+                    (newline))
                     #t)   ; @r{<- Change here!}
 (run-hook hook 3 4)
 @print{} Foo: 7

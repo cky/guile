@@ -321,7 +321,7 @@ Change the signature of export environment @var{env}.
 @deffnx {C Function} scm_sys_compute_slots (class)
 Return a list consisting of the names of all slots belonging to
 class @var{class}, i. e. the slots of @var{class} and of all of
-its super-classes.
+its superclasses.
 @end deffn
 
 @deffn {Scheme Procedure} get-keyword key l default_value
@@ -532,7 +532,7 @@ Return the direct slots of the class @var{obj}.
 
 @deffn {Scheme Procedure} class-direct-supers obj
 @deffnx {C Function} scm_class_direct_supers (obj)
-Return the direct super-classes of the class @var{obj}.
+Return the direct superclasses of the class @var{obj}.
 @end deffn
 
 @deffn {Scheme Procedure} class-name obj

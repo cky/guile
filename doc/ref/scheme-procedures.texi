@@ -738,9 +738,7 @@ environment.
 Return a @dfn{macro} which, when a symbol defined to this value
 appears as the first symbol in an expression, evaluates the
 result of applying @var{code} to the expression and the
-environment.  The value returned from @var{code} which has been
-passed to @code{procedure->memoizing-macro} replaces the form
-passed to @var{code}.  For example:
+environment.  For example:
 
 @lisp
 (define trace

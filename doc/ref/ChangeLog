@@ -1,3 +1,17 @@
+2002-03-15  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scheme-utility.texi (Object Properties): Revamp documentation on
+	object properties.
+
+	* scheme-memory.texi (Weak References): Update reference to Object
+	Properties node.
+
+	* guile.texi: Add macros for describing version information.
+
+	* scheme-data.texi, scheme-debug.texi, scheme-io.texi,
+	scheme-procedures.texi: Automatic updates from snarfed libguile
+	docstrings.
+
 2002-03-13  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* Makefile.am (guile_toc.html): Look for guile.texi in $(srcdir).

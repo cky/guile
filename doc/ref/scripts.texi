@@ -101,6 +101,7 @@ slow down execution.  By default, the debugging evaluator is only used
 when entering an interactive session.  When executing a script with
 @code{-s} or @code{-c}, the normal, faster evaluator is used by default.
 
+@vnew{1.6}
 @item --no-debug
 Do not use the debugging evaluator, even when entering an interactive
 session.

@@ -339,7 +339,7 @@ if @var{obj} is an integer number or a rational number.
 @deffn {Scheme Procedure} rational? x
 @deffnx {C Function} scm_real_p (x)
 Return @code{#t} if @var{x} is a rational number, @code{#f}
-else.  Note that the set of integer values forms a subset of
+otherwise.  Note that the set of integer values forms a subset of
 the set of rational numbers, i. e. the predicate will also be
 fulfilled if @var{x} is an integer number.  Real numbers
 will also satisfy this predicate, because of their limited
@@ -379,7 +379,7 @@ properties of inexactness and limited precision as single real numbers.
 @deffn {Scheme Procedure} complex? x
 @deffnx {C Function} scm_number_p (x)
 Return @code{#t} if @var{x} is a complex number, @code{#f}
-else.  Note that the sets of real, rational and integer
+otherwise.  Note that the sets of real, rational and integer
 values form subsets of the set of complex numbers, i. e. the
 predicate will also be fulfilled if @var{x} is a real,
 rational or integer number.
@@ -1443,7 +1443,7 @@ fulfills some specified property.
 @rnindex string?
 @deffn {Scheme Procedure} string? obj
 @deffnx {C Function} scm_string_p (obj)
-Return @code{#t} iff @var{obj} is a string, else @code{#f}.
+Return @code{#t} if @var{obj} is a string, else @code{#f}.
 @end deffn
 
 @deffn {Scheme Procedure} string-null? str
