@@ -72,8 +72,6 @@ SCM scm_class_unknown;
 SCM *scm_port_class = 0;
 SCM *scm_smob_class = 0;
 
-SCM scm_apply_generic_env;
-
 SCM scm_no_applicable_method;
 
 SCM (*scm_make_extended_class) (char *type_name);
@@ -217,6 +215,37 @@ scm_class_of (SCM x)
   return scm_class_unknown;
 }
 
+/* (SCM_IM_DISPATCH ARGS N-SPECIALIZED
+ *   #((TYPE1 ... ENV FORMALS FORM ...) ...)
+ *   GF)
+ *
+ * (SCM_IM_HASH_DISPATCH ARGS N-SPECIALIZED HASHSET MASK
+ *   #((TYPE1 ... ENV FORMALS FORM ...) ...)
+ *   GF)
+ *
+ * ARGS is either a list of expressions, in which case they
+ * are interpreted as the arguments of an application, or
+ * a non-pair, which is interpreted as a single expression
+ * yielding all arguments.
+ *
+ * SCM_IM_DISPATCH expressions in generic functions always
+ * have ARGS = the symbol `args' or the iloc #@0-0.
+ *
+ * Need FORMALS in order to support varying arity.  This
+ * also avoids the need for renaming of bindings.
+ *
+ * We should probably not complicate this mechanism by
+ * introducing "optimizations" for getters and setters or
+ * primitive methods.  Getters and setter will normally be
+ * compiled into @slot-[ref|set!] or a procedure call.
+ * They rely on the dispatch performed before executing
+ * the code which contains them.
+ *
+ * We might want to use a more efficient representation of
+ * this form in the future, perhaps after we have introduced
+ * low-level support for syntax-case macros.
+ */
+
 SCM
 scm_mcache_lookup_cmethod (SCM cache, SCM args)
 {
@@ -241,13 +270,14 @@ scm_mcache_lookup_cmethod (SCM cache, SCM args)
       methods = SCM_CADR (z);
       i = 0;
       ls = args;
-      do
-	{
-	  i += (SCM_STRUCT_DATA (scm_class_of (SCM_CAR (ls)))
-		[scm_si_hashsets + hashset]);
-	  ls = SCM_CDR (ls);
-	}
-      while (--j && SCM_NIMP (ls));
+      if (SCM_NIMP (ls))
+	do
+	  {
+	    i += (SCM_STRUCT_DATA (scm_class_of (SCM_CAR (ls)))
+		  [scm_si_hashsets + hashset]);
+	    ls = SCM_CDR (ls);
+	  }
+	while (--j && SCM_NIMP (ls));
       i &= mask;
       end = i;
     }
@@ -258,15 +288,16 @@ scm_mcache_lookup_cmethod (SCM cache, SCM args)
       int j = n;
       z = SCM_VELTS (methods)[i];
       ls = args; /* list of arguments */
-      do
-	{
-	  /* More arguments than specifiers => CLASS != ENV */
-	  if (scm_class_of (SCM_CAR (ls)) != SCM_CAR (z))
-	    goto next_method;
-	  ls = SCM_CDR (ls);
-	  z = SCM_CDR (z);
-	}
-      while (--j && SCM_NIMP (ls));
+      if (SCM_NIMP (ls))
+	do
+	  {
+	    /* More arguments than specifiers => CLASS != ENV */
+	    if (scm_class_of (SCM_CAR (ls)) != SCM_CAR (z))
+	      goto next_method;
+	    ls = SCM_CDR (ls);
+	    z = SCM_CDR (z);
+	  }
+	while (--j && SCM_NIMP (ls));
       /* Fewer arguments than specifiers => CAR != ENV */
       if (!SCM_CONSP (SCM_CAR (z)))
 	goto next_method;
@@ -277,8 +308,10 @@ scm_mcache_lookup_cmethod (SCM cache, SCM args)
   return SCM_BOOL_F;
 }
 
+SCM (*scm_memoize_method) (SCM, SCM);
+
 SCM
-scm_mcache_create_cmethod (SCM cache, SCM args)
+scm_mcache_compute_cmethod (SCM cache, SCM args)
 {
   SCM cmethod = scm_mcache_lookup_cmethod (cache, args);
   if (SCM_IMP (cmethod))
@@ -288,74 +321,37 @@ scm_mcache_create_cmethod (SCM cache, SCM args)
 }
 
 SCM
+scm_apply_generic (SCM gf, SCM args)
+{
+  SCM cmethod = scm_mcache_compute_cmethod (SCM_ENTITY_PROCEDURE (gf), args);
+  return scm_eval_body (SCM_CDR (SCM_CMETHOD_CODE (cmethod)),
+			SCM_EXTEND_ENV (SCM_CAR (SCM_CMETHOD_CODE (cmethod)),
+					args,
+					SCM_CMETHOD_ENV (cmethod)));
+}
+
+SCM
 scm_call_generic_0 (SCM gf)
 {
-  SCM clos = SCM_ENTITY_PROC_0 (gf);
-  if (SCM_CLOSUREP (clos))
-    return scm_eval_body (SCM_CDR (SCM_CODE (clos)),
-			  SCM_EXTEND_ENV (SCM_CAR (SCM_CODE (clos)),
-					  SCM_LIST1 (gf),
-					  SCM_ENV (clos)));
-  else
-    return SCM_SUBRF (clos) (gf);
+  return scm_apply_generic (gf, SCM_EOL);
 }
 
 SCM
 scm_call_generic_1 (SCM gf, SCM a1)
 {
-  SCM args = SCM_LIST1 (a1);
-  SCM cmethod = scm_mcache_create_cmethod (SCM_ENTITY_PROC_1 (gf), args);
-  return scm_eval_body (SCM_CDR (SCM_CMETHOD_CODE (cmethod)),
-			SCM_EXTEND_ENV (SCM_CAR (SCM_CMETHOD_CODE (cmethod)),
-					args,
-					SCM_CMETHOD_ENV (cmethod)));
+  return scm_apply_generic (gf, SCM_LIST1 (a1));
 }
 
 SCM
 scm_call_generic_2 (SCM gf, SCM a1, SCM a2)
 {
-  SCM args = SCM_LIST2 (a1, a2);
-  SCM cmethod = scm_mcache_create_cmethod (SCM_ENTITY_PROC_2 (gf), args);
-  if (SCM_IMP (cmethod))
-    return scm_call_generic_2 (scm_no_applicable_method, gf, args);
-  return scm_eval_body (SCM_CDR (SCM_CMETHOD_CODE (cmethod)),
-			SCM_EXTEND_ENV (SCM_CAR (SCM_CMETHOD_CODE (cmethod)),
-					args,
-					SCM_CMETHOD_ENV (cmethod)));
+  return scm_apply_generic (gf, SCM_LIST2 (a1, a2));
 }
 
 SCM
 scm_call_generic_3 (SCM gf, SCM a1, SCM a2, SCM a3)
 {
-  SCM args = SCM_LIST3 (a1, a2, a3);
-  SCM cmethod = scm_mcache_create_cmethod (SCM_ENTITY_PROC_3 (gf), args);
-  if (SCM_IMP (cmethod))
-    return scm_call_generic_2 (scm_no_applicable_method, gf, args);
-  return scm_eval_body (SCM_CDR (SCM_CMETHOD_CODE (cmethod)),
-			SCM_EXTEND_ENV (SCM_CAR (SCM_CMETHOD_CODE (cmethod)),
-					args,
-					SCM_CMETHOD_ENV (cmethod)));
-}
-
-SCM
-scm_apply_generic (SCM gf, SCM args)
-{
-  if (SCM_NULLP (args))
-    return scm_call_generic_0 (gf);
-  {
-    SCM cache = (SCM_NULLP (SCM_CDR (args))
-		 ? SCM_ENTITY_PROC_1 (gf)
-		 : (SCM_NULLP (SCM_CDDR (args))
-		    ? SCM_ENTITY_PROC_2 (gf)
-		    : SCM_ENTITY_PROC_3 (gf)));
-    SCM cmethod = scm_mcache_create_cmethod (cache, args);
-    if (SCM_IMP (cmethod))
-      return scm_call_generic_2 (scm_no_applicable_method, gf, args);
-    return scm_eval_body (SCM_CDR (SCM_CMETHOD_CODE (cmethod)),
-			  SCM_EXTEND_ENV (SCM_CAR (SCM_CMETHOD_CODE (cmethod)),
-					  args,
-					  SCM_CMETHOD_ENV (cmethod)));
-  }
+  return scm_apply_generic (gf, SCM_LIST3 (a1, a2, a3));
 }
 
 SCM_PROC (s_entity_p, "entity?", 1, 0, 0, scm_entity_p);
@@ -381,15 +377,11 @@ scm_operator_p (SCM obj)
 	  : SCM_BOOL_F);
 }
 
-SCM_PROC (s_set_object_procedure_x, "set-object-procedure!", 1, 0, 1, scm_set_object_procedure_x);
-
-SCM_SYMBOL (scm_sym_atdispatch, "@dispatch");
+SCM_PROC (s_set_object_procedure_x, "set-object-procedure!", 2, 0, 0, scm_set_object_procedure_x);
 
 SCM
-scm_set_object_procedure_x (SCM obj, SCM procs)
+scm_set_object_procedure_x (SCM obj, SCM proc)
 {
-  SCM proc[4], *pp, p, setp, arity;
-  int i, a, r;
   SCM_ASSERT (SCM_NIMP (obj) && SCM_STRUCTP (obj)
 	      && ((SCM_CLASS_FLAGS (obj) & SCM_CLASSF_OPERATOR)
 		  || (SCM_I_ENTITYP (obj)
@@ -398,104 +390,28 @@ scm_set_object_procedure_x (SCM obj, SCM procs)
 	      obj,
 	      SCM_ARG1,
 	      s_set_object_procedure_x);
-  for (i = 0; i < 4; ++i)
-    proc[i] = SCM_BOOL_F;
-  i = 0;
-  while (SCM_NIMP (procs))
-    {
-      if (i == 4)
-	scm_wrong_num_args (scm_makfrom0str (s_set_object_procedure_x));
-      p = SCM_CAR (procs);
-      setp = 0;
-      SCM_ASSERT (SCM_NIMP (p), p, SCM_ARG2 + i, s_set_object_procedure_x);
-      if (SCM_CLOSUREP (p))
-	{
-	  arity = scm_procedure_property (p, scm_sym_arity);
-	  a = SCM_INUM (SCM_CAR (arity));
-	  /* Closures have zero optional args */
-	  r = SCM_NFALSEP (SCM_CADDR (arity));
-	  if (a == 1 || (a <= 1 && r))
-	    {
-	      if (SCM_NFALSEP (proc[0]))
-		goto ambiguous;
-	      proc[0] = setp = p;
-	    }
-	  if (a == 2 || (a <= 2 && r))
-	    {
-	      if (SCM_NFALSEP (proc[1]))
-		goto ambiguous;
-	      proc[1] = setp = p;
-	    }
-	  if (a == 3 || (a <= 3 && r))
-	    {
-	      if (SCM_NFALSEP (proc[2]))
-		goto ambiguous;
-	      proc[2] = setp = p;
-	    }
-	  if (a <= 4 && r)
-	    {
-	      if (SCM_NFALSEP (proc[3]))
-		goto ambiguous;
-	      proc[3] = setp = p;
-	    }
-	}
-      else if (SCM_TYP7 (p) == scm_tc7_subr_1)
-	{
-	  if (SCM_NFALSEP (proc[0]))
-	    goto ambiguous;
-	  proc[0] = setp = p;
-	}
-      else if (SCM_TYP7 (p) == scm_tc7_subr_2)
-	{
-	  if (SCM_NFALSEP (proc[1]))
-	    goto ambiguous;
-	  proc[1] = setp = p;
-	}
-      else if (SCM_TYP7 (p) == scm_tc7_subr_3)
-	{
-	  if (SCM_NFALSEP (proc[2]))
-	    goto ambiguous;
-	  proc[2] = setp = p;
-	}
-      else if (SCM_TYP7 (p) == scm_tc7_lsubr_2)
-	{
-	  if (SCM_NFALSEP (proc[3]))
-	    {
-	    ambiguous:
-	      SCM_ASSERT (0, p, "Ambiguous procedure arities",
-			  s_set_object_procedure_x);
-	    }
-	  proc[3] = setp = p;
-	}
-      SCM_ASSERT (setp, p, SCM_ARG2 + i, s_set_object_procedure_x);
-      ++i;
-      procs = SCM_CDR (procs);
-    }
-  pp = (SCM_I_ENTITYP (obj)
-	? &SCM_ENTITY_PROC_0 (obj)
-	: &SCM_OPERATOR_CLASS (obj)->proc0);
-  for (i = 0; i < 4; ++i)
-    *pp++ = proc[i];
+  SCM_ASSERT (SCM_NFALSEP (scm_procedure_p (proc)),
+	      proc, SCM_ARG2, s_set_object_procedure_x);
+  if (SCM_I_ENTITYP (obj))
+    SCM_ENTITY_PROCEDURE (obj) = proc;
+  else
+    SCM_OPERATOR_CLASS (obj)->procedure = proc;
   return SCM_UNSPECIFIED;
 }
 
 #ifdef GUILE_DEBUG
-SCM_PROC (s_object_procedures, "object-procedures", 1, 0, 0, scm_object_procedures);
+SCM_PROC (s_object_procedure, "object-procedure", 1, 0, 0, scm_object_procedure);
 
 SCM
-scm_object_procedures (SCM obj)
+scm_object_procedure (SCM obj)
 {
-  SCM_ASSERT (SCM_NIMP (obj) && SCM_STRUCTP (obj) && SCM_I_OPERATORP (obj),
-	      obj, SCM_ARG1, s_object_procedures);
+  SCM_ASSERT (SCM_NIMP (obj) && SCM_STRUCTP (obj)
+	      && ((SCM_CLASS_FLAGS (obj) & SCM_CLASSF_OPERATOR)
+		  || SCM_I_ENTITYP (obj)),
+	      obj, SCM_ARG1, s_object_procedure);
   return (SCM_I_ENTITYP (obj)
-	  ? SCM_LIST4 (SCM_ENTITY_PROC_0 (obj),
-		       SCM_ENTITY_PROC_1 (obj),
-		       SCM_ENTITY_PROC_2 (obj),
-		       SCM_ENTITY_PROC_3 (obj))
-	  : SCM_LIST4 (SCM_OPERATOR_PROC_0 (obj),
-		       SCM_OPERATOR_PROC_1 (obj),
-		       SCM_OPERATOR_PROC_2 (obj),
-		       SCM_OPERATOR_PROC_3 (obj)));
+	  ? SCM_ENTITY_PROCEDURE (obj)
+	  : SCM_OPERATOR_CLASS (obj)->procedure);
 }
 #endif /* GUILE_DEBUG */
 
