@@ -1,3 +1,15 @@
+2003-09-12  Marius Vollmer  <mvo@zagadka.de>
+
+	* boot-9.scm (make-autoload-interface): Use a proper hashtable as
+	the obarray, not an empty vector.
+	(make-module): Always construct a hashtable for the obarray, even
+	for empty ones.
+
+	* format.scm (format:error): Use 'format:format' instead of
+	'format' since the latter will lock the mutex again that we have
+	already locked.
+	(format:format-work): Flag multiple '#' as an error.
+	
 2003-08-17  Kevin Ryde  <user42@zip.com.au>
 
 	* boot-9.scm (while): Use a new key dynamically for each loop, so
