@@ -195,6 +195,8 @@ Spiffing checklist:
   in your PATH match those given in HACKING.  Note that the `make
   dist' process always invokes these tools, even when all the
   generated files are up to date.
+  Make specifically sure that the files in libltdl are generated using
+  the same tools as the rest.
 * Rebuild all generated files in the source tree:
   + Install the .m4 files where aclocal will find them.
   + Run aclocal.
