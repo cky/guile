@@ -72,11 +72,18 @@ typedef struct scm_smobfuns
 
 
 #define SCM_NEWSMOB(z, tc, data) \
-{ \
+do { \
   SCM_NEWCELL (z); \
   SCM_SETCDR (z, data); \
   SCM_SETCAR (z, tc); \
-} \
+} while (0)
+
+#define SCM_RETURN_NEWSMOB(tc, data) \
+  do { SCM __SCM_smob_answer; \
+       SCM_NEWSMOB (__SCM_smob_answer, tc, data); \
+       return __SCM_smob_answer; \
+  } while (0)
+
 
 #define SCM_SMOB_DATA(x) SCM_CDR (x)
 #define SCM_SET_SMOB_DATA(x, data) SCM_SETCDR (x, data)
@@ -94,13 +101,40 @@ extern SCM scm_markcdr SCM_P ((SCM ptr));
 extern scm_sizet scm_free0 SCM_P ((SCM ptr));
 extern scm_sizet scm_smob_free (SCM obj);
 extern int scm_smob_print (SCM exp, SCM port, scm_print_state *pstate);
+
+/* These next two functions are the supported way to create new SMOB types.
+ 
+   scm_make_smob_type is useful if there are no special smob functions
+     and the defaults work for mark,free,print,equal_p, or you want to use
+     scm_set_smob_{mark,free,print,equalp}, below.
+
+   scm_make_smob_type_mfpe is ideal if you need to set one or more of
+     the special smob functions-- use NULL for when the default function 
+     is fine 
+*/
+
 extern long scm_make_smob_type (char *name, scm_sizet size);
+
+extern long scm_make_smob_type_mfpe (char *name, scm_sizet size,
+                                    SCM (*mark) (SCM),
+                                    scm_sizet (*free) (SCM),
+                                    int (*print) (SCM, SCM, scm_print_state*),
+                                    SCM (*equalp) (SCM, SCM));
+
 extern void scm_set_smob_mark (long tc, SCM (*mark) (SCM));
 extern void scm_set_smob_free (long tc, scm_sizet (*free) (SCM));
 extern void scm_set_smob_print (long tc, int (*print) (SCM,
 						       SCM,
 						       scm_print_state*));
 extern void scm_set_smob_equalp (long tc, SCM (*equalp) (SCM, SCM));
+/* convenience function for registering multiple handler fns */
+extern void scm_set_smob_mfpe (long tc, 
+			       SCM (*mark) (SCM),
+			       scm_sizet (*free) (SCM),
+			       int (*print) (SCM, SCM, scm_print_state*),
+			       SCM (*equalp) (SCM, SCM));
+
+
 extern SCM scm_make_smob (long tc);
 extern void scm_smob_prehistory (void);
 

@@ -116,13 +116,6 @@ g_mark (SCM ptr)
   return SCM_BOOL_F;
 }
 
-static scm_sizet
-g_free (SCM ptr)
-{
-  scm_must_free ((char *) GUARDIAN (ptr));
-  return sizeof (guardian_t);
-}
-
 static int
 g_print (SCM exp, SCM port, scm_print_state *pstate)
 {
@@ -134,13 +127,6 @@ g_print (SCM exp, SCM port, scm_print_state *pstate)
 
   return 1;
 }
-
-static scm_smobfuns g_smob = {
-  g_mark,
-  g_free,
-  g_print,
-  0 /* g_equalp */
-};
 
 #define CCLO_G(cclo) (SCM_VELTS (cclo)[1])
 
@@ -168,15 +154,11 @@ scm_make_guardian ()
   SCM z1 = scm_cons (SCM_BOOL_F, SCM_BOOL_F);
   SCM z2 = scm_cons (SCM_BOOL_F, SCM_BOOL_F);
   SCM z;
-  SCM_NEWCELL (z);
-
-  SCM_DEFER_INTS;
   /* A tconc starts out with one tail pair. */
   g->live.head = g->live.tail = z1;
   g->zombies.head = g->zombies.tail = z2;
-  SCM_SETCDR (z, g);
-  SCM_SETCAR (z, scm_tc16_guardian);
-  SCM_ALLOW_INTS;
+
+  SCM_NEWSMOB (z, scm_tc16_guardian, g);
 
   CCLO_G (cclo) = z;
 
@@ -277,7 +259,8 @@ scm_get_one_zombie (SCM guardian)
 void
 scm_init_guardian()
 {
-  scm_tc16_guardian = scm_newsmob (&g_smob);
+  scm_tc16_guardian = scm_make_smob_type_mfpe ("guardian", sizeof (guardian_t),
+                                              g_mark, NULL, g_print, NULL);
   guard1 = scm_make_subr_opt ("guardian", scm_tc7_subr_2o, guard, 0);
 
 #include "guardians.x"

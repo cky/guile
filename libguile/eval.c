@@ -3256,13 +3256,7 @@ SCM
 scm_makprom (code)
      SCM code;
 {
-  register SCM z;
-  SCM_NEWCELL (z);
-  SCM_ENTER_A_SECTION;
-  SCM_SETCDR (z, code);
-  SCM_SETCAR (z, scm_tc16_promise);
-  SCM_EXIT_A_SECTION;
-  return z;
+  SCM_RETURN_NEWSMOB (scm_tc16_promise, code);
 }
 
 

@@ -46,6 +46,7 @@
 #include "genio.h"
 #include "unif.h"
 #include "feature.h"
+#include "smob.h"
 
 #include "numbers.h"
 
@@ -2450,7 +2451,6 @@ scm_makdbl (x, y)
   SCM z;
   if ((y == 0.0) && (x == 0.0))
     return scm_flo0;
-  SCM_NEWCELL (z);
   SCM_DEFER_INTS;
   if (y == 0.0)
     {
@@ -2460,20 +2460,17 @@ scm_makdbl (x, y)
       if ((-FLTMAX < x) && (x < FLTMAX) && (fx == x))
 #endif
 	{
-	  SCM_SETCAR (z, scm_tc_flo);
+          SCM_NEWSMOB(z,scm_tc_flo,NULL);
 	  SCM_FLO (z) = x;
 	  SCM_ALLOW_INTS;
 	  return z;
 	}
 #endif /* def SCM_SINGLES */
-      SCM_SETCDR (z, (SCM) scm_must_malloc (1L * sizeof (double), "real"));
-      SCM_SETCAR (z, scm_tc_dblr);
+      SCM_NEWSMOB(z,scm_tc_dblr,scm_must_malloc (1L * sizeof (double), "real"));
     }
   else
     {
-      SCM_SETCDR (z, (SCM) scm_must_malloc (2L * sizeof (double), "complex"));
-      SCM_SETCAR (z, scm_tc_dblc);
-      SCM_IMAG (z) = y;
+      SCM_NEWSMOB(z,scm_tc_dblc,scm_must_malloc (2L * sizeof (double), "comkplex"));
     }
   SCM_REAL (z) = x;
   SCM_ALLOW_INTS;
@@ -4805,14 +4802,11 @@ scm_init_numbers ()
 {
 #ifdef SCM_FLOATS
   scm_add_feature("inexact");
-  SCM_NEWCELL (scm_flo0);
 #ifdef SCM_SINGLES
-  SCM_SETCAR (scm_flo0, scm_tc_flo);
-  SCM_FLO (scm_flo0) = 0.0;
+  SCM_NEWSMOB(scm_flo0,scm_tc_flo,NULL);
 #else
-  SCM_SETCDR (scm_flo0, (SCM) scm_must_malloc (1L * sizeof (double), "real"));
+  SCM_NEWSMOB(scm_flo0,scm_tc_dblr,scm_must_malloc (1L * sizeof (double), "real"));
   SCM_REAL (scm_flo0) = 0.0;
-  SCM_SETCAR (scm_flo0, scm_tc_dblr);
 #endif
 #ifdef DBL_DIG
   scm_dblprec = (DBL_DIG > 20) ? 20 : DBL_DIG;

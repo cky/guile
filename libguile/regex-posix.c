@@ -144,7 +144,7 @@ SCM_PROC (s_make_regexp, "make-regexp", 1, 0, 1, scm_make_regexp);
 SCM
 scm_make_regexp (SCM pat, SCM flags)
 {
-  SCM result, flag;
+  SCM flag;
   regex_t *rx;
   int status, cflags;
 
@@ -179,8 +179,7 @@ scm_make_regexp (SCM pat, SCM flags)
 		 SCM_BOOL_F);
       /* never returns */
     }
-  SCM_NEWSMOB (result, scm_tc16_regex, rx);
-  return result;
+  SCM_RETURN_NEWSMOB (scm_tc16_regex, rx);
 }
 
 SCM_PROC (s_regexp_exec, "regexp-exec", 2, 2, 0, scm_regexp_exec);
@@ -252,8 +251,8 @@ scm_regexp_exec (SCM rx, SCM str, SCM start, SCM flags)
 void
 scm_init_regex_posix ()
 {
-  scm_tc16_regex = scm_make_smob_type ("regexp", sizeof (regex_t));
-  scm_set_smob_free (scm_tc16_regex, free_regex);
+  scm_tc16_regex = scm_make_smob_type_mfpe ("regexp", sizeof (regex_t),
+                                            NULL, free_regex, NULL, NULL);
 
   /* Compilation flags.  */
   scm_sysintern ("regexp/basic", scm_long2num (REG_BASIC));

@@ -97,15 +97,6 @@ mark_root (root)
   return SCM_ROOT_STATE (root) -> parent;
 }
 
-static scm_sizet free_root SCM_P ((SCM));
-
-static scm_sizet
-free_root (root)
-     SCM root;
-{
-  scm_must_free ((char *) SCM_ROOT_STATE (root));
-  return sizeof (scm_root_state);
-}
 
 static int print_root SCM_P ((SCM exp, SCM port, scm_print_state *pstate));
 
@@ -121,13 +112,6 @@ print_root (exp, port, pstate)
   return 1;
 }
 
-static scm_smobfuns root_smob =
-{
-  mark_root,
-  free_root,
-  print_root,
-  0
-};
 
 
 
@@ -150,10 +134,8 @@ scm_make_root (parent)
     {
       root_state->parent = SCM_BOOL_F;
     }
-  SCM_NEWCELL (root);
   SCM_REDEFER_INTS;
-  SCM_SETCAR (root, scm_tc16_root);
-  SCM_SETCDR (root, root_state);
+  SCM_NEWSMOB (root, scm_tc16_root, root_state);
   root_state->handle = root;
   SCM_REALLOW_INTS;
   return root;
@@ -411,6 +393,8 @@ scm_call_catching_errors (thunk, err_filter, closure)
 void
 scm_init_root ()
 {
-  scm_tc16_root = scm_newsmob (&root_smob);
+  scm_tc16_root = scm_make_smob_type_mfpe ("root", sizeof (struct scm_root_state),
+                                          mark_root, NULL, print_root, NULL);
+                                          
 #include "root.x"
 }

@@ -164,9 +164,6 @@ prinmemoized (obj, port, pstate)
   return 1;
 }
 
-static scm_smobfuns memoizedsmob =
-{scm_markcdr, scm_free0, prinmemoized, 0};
-
 SCM_PROC (s_memoized_p, "memoized?", 1, 0, 0, scm_memoized_p);
 
 SCM
@@ -184,12 +181,8 @@ scm_make_memoized (exp, env)
   /* *fixme* Check that env is a valid environment. */
   register SCM z, ans;
   SCM_ENTER_A_SECTION;
-  SCM_NEWCELL (z);
-  SCM_SETCDR (z, env);
-  SCM_SETCAR (z, exp);
-  SCM_NEWCELL (ans);
-  SCM_SETCDR (ans, z);
-  SCM_SETCAR (ans, scm_tc16_memoized);
+  SCM_NEWSMOB (z, exp, env);
+  SCM_NEWSMOB (ans, scm_tc16_memoized, z);
   SCM_EXIT_A_SECTION;
   return ans;
 }
@@ -589,9 +582,6 @@ prindebugobj (obj, port, pstate)
   return 1;
 }
 
-static scm_smobfuns debugobjsmob =
-{0, scm_free0, prindebugobj, 0};
-
 SCM_PROC (s_debug_object_p, "debug-object?", 1, 0, 0, scm_debug_object_p);
 
 SCM
@@ -638,8 +628,11 @@ scm_init_debug ()
 {
   scm_init_opts (scm_debug_options, scm_debug_opts, SCM_N_DEBUG_OPTIONS);
 
-  scm_tc16_memoized = scm_newsmob (&memoizedsmob);
-  scm_tc16_debugobj = scm_newsmob (&debugobjsmob);
+  scm_tc16_memoized = scm_make_smob_type_mfpe ("memoized", 0,
+                                              scm_markcdr, NULL, prinmemoized, NULL);
+
+  scm_tc16_debugobj = scm_make_smob_type_mfpe ("debug-object", 0,
+                                              NULL, NULL, prindebugobj, NULL);
 
   scm_i_procname = SCM_CAR (scm_sysintern ("procname", SCM_UNDEFINED));
   scm_i_more = SCM_CAR (scm_sysintern ("...", SCM_UNDEFINED));

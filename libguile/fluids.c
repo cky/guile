@@ -107,12 +107,6 @@ print_fluid (exp, port, pstate)
     return 1;
 }
 
-static scm_smobfuns fluid_smob = {
-    0,
-    scm_free0,
-    print_fluid
-};
-
 static
 int next_fluid_num ()
 {
@@ -132,17 +126,11 @@ SCM_PROC (s_make_fluid, "make-fluid", 0, 0, 0, scm_make_fluid);
 SCM
 scm_make_fluid ()
 {
-  SCM z;
   int n;
 
   SCM_DEFER_INTS;
   n = next_fluid_num ();
-  SCM_NEWCELL (z);
-  SCM_SETCAR (z, scm_tc16_fluid);
-  SCM_SETCDR (z, n);
-  SCM_ALLOW_INTS;
-  
-  return z;
+  SCM_RETURN_NEWSMOB (scm_tc16_fluid, n);
 }
 
 SCM_PROC (s_fluid_p, "fluid?", 1, 0, 0, scm_fluid_p);
@@ -265,6 +253,7 @@ scm_with_fluids (fluids, vals, thunk)
 void
 scm_init_fluids ()
 {
-  scm_tc16_fluid = scm_newsmob(&fluid_smob);
+  scm_tc16_fluid = scm_make_smob_type_mfpe ("fluid", 0,
+                                           NULL, NULL, print_fluid, NULL);
 #include "fluids.x"
 }

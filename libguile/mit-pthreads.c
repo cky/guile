@@ -405,11 +405,7 @@ scm_make_mutex ()
 {
   SCM m;
   pthread_mutex_t *data = (pthread_mutex_t *) scm_must_malloc (sizeof (pthread_mutex_t), "mutex");
-  SCM_NEWCELL (m);
-  SCM_DEFER_INTS;
-  SCM_SETCAR (m, scm_tc16_mutex);
-  SCM_SETCDR (m, data);
-  SCM_ALLOW_INTS;
+  SCM_NEWSMOB (m,scm_tc16_mutex, data);
   pthread_mutex_init (SCM_MUTEX_DATA (m), NULL);
   return m;
 }
@@ -452,11 +448,7 @@ scm_make_condition_variable ()
 {
   SCM c;
   pthread_cond_t *data = (pthread_cond_t *) scm_must_malloc (sizeof (pthread_cond_t), "condvar");
-  SCM_NEWCELL (c);
-  SCM_DEFER_INTS;
-  SCM_SETCAR (c, scm_tc16_condvar);
-  SCM_SETCDR (c, data);
-  SCM_ALLOW_INTS;
+  SCM_NEWSMOB (c, scm_tc16_condvar, data);
   pthread_cond_init (SCM_CONDVAR_DATA (c), NULL);
   return c;
 }

@@ -320,22 +320,7 @@ long scm_tc16_rstate;
 static SCM
 make_rstate (scm_rstate *state)
 {
-  SCM cell;
-  SCM_NEWCELL (cell);
-  SCM_ENTER_A_SECTION;
-  SCM_SETCDR (cell, state);
-  SCM_SETCAR (cell, scm_tc16_rstate);
-  SCM_EXIT_A_SECTION;
-  return cell;
-}
-
-static int
-print_rstate (SCM rstate, SCM port, scm_print_state *pstate)
-{
-  scm_puts ("#<random-state ", port);
-  scm_intprint ((long) SCM_RSTATE (rstate), 16, port);
-  scm_putc ('>', port);
-  return 1;
+  SCM_RETURN_NEWSMOB (scm_tc16_rstate, state);
 }
 
 static scm_sizet
@@ -344,8 +329,6 @@ free_rstate (SCM rstate)
   free (SCM_RSTATE (rstate));
   return scm_the_rng.rstate_size;
 }
-
-static scm_smobfuns rstate_smob = { 0, free_rstate, print_rstate, 0};
 
 /*
  * Scheme level interface.
@@ -564,7 +547,8 @@ scm_init_random ()
   };
   scm_the_rng = rng;
   
-  scm_tc16_rstate = scm_newsmob (&rstate_smob);
+  scm_tc16_rstate = scm_make_smob_type_mfpe ("random-state", 0,
+                                            NULL, free_rstate, NULL, NULL);
 
   for (m = 1; m <= 0x100; m <<= 1)
     for (i = m >> 1; i < m; ++i)

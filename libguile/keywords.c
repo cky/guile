@@ -48,17 +48,6 @@
 #include "keywords.h"
 
 
-
-static scm_sizet free_keyword SCM_P ((SCM obj));
-
-static scm_sizet
-free_keyword (obj)
-     SCM obj;
-{
-  return 0;
-}
-
-
 static int prin_keyword SCM_P ((SCM exp, SCM port, scm_print_state *pstate));
 
 static int
@@ -77,10 +66,6 @@ int scm_tc16_keyword;
 /* This global is only kept for backward compatibility.
    Will be removed in next release.  */
 int scm_tc16_kw;
-
-static scm_smobfuns keyword_smob =
-{scm_markcdr, free_keyword, prin_keyword, 0};
-
 
 
 SCM_PROC (s_make_keyword_from_dash_symbol, "make-keyword-from-dash-symbol", 1, 0, 0, scm_make_keyword_from_dash_symbol);
@@ -101,9 +86,7 @@ scm_make_keyword_from_dash_symbol (symbol)
   if (vcell == SCM_BOOL_F)
     {
       SCM keyword;
-      SCM_NEWCELL(keyword);
-      SCM_SETCAR (keyword, (SCM)scm_tc16_keyword);
-      SCM_SETCDR (keyword, symbol);
+      SCM_NEWSMOB (keyword, scm_tc16_keyword, symbol);
       scm_intern_symbol (scm_keyword_obarray, symbol);
       vcell = scm_sym2ovcell_soft (symbol, scm_keyword_obarray);
       SCM_SETCDR (vcell, keyword);
@@ -155,7 +138,8 @@ scm_keyword_dash_symbol (keyword)
 void
 scm_init_keywords ()
 {
-  scm_tc16_keyword = scm_newsmob (&keyword_smob);
+  scm_tc16_keyword = scm_make_smob_type_mfpe ("keyword", 0,
+                                             scm_markcdr, NULL, prin_keyword, NULL);
   scm_tc16_kw = scm_tc16_keyword;
   scm_keyword_obarray = scm_make_vector (SCM_MAKINUM (256), SCM_EOL);
 #include "keywords.x"

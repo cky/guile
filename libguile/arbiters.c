@@ -78,9 +78,7 @@ SCM
 scm_make_arbiter (name)
      SCM name;
 {
-  SCM z;
-  SCM_NEWSMOB (z, scm_tc16_arbiter, name);
-  return z;
+  SCM_RETURN_NEWSMOB (scm_tc16_arbiter, name);
 }
 
 SCM_PROC(s_try_arbiter, "try-arbiter", 1, 0, 0, scm_try_arbiter);
@@ -121,9 +119,7 @@ scm_release_arbiter (arb)
 void
 scm_init_arbiters ()
 {
-  scm_tc16_arbiter = scm_make_smob_type ("arbiter", 0);
-  scm_set_smob_mark (scm_tc16_arbiter, scm_markcdr);
-  scm_set_smob_print (scm_tc16_arbiter, prinarb);
-
+  scm_tc16_arbiter = scm_make_smob_type_mfpe ("arbiter", 0,
+                                              scm_markcdr, NULL, prinarb, NULL);
 #include "arbiters.x"
 }

@@ -47,21 +47,15 @@
 
 long scm_tc16_macro;
 
-static const scm_smobfuns macrosmob = {scm_markcdr, scm_free0};
-
 SCM_PROC(s_makacro, "procedure->syntax", 1, 0, 0, scm_makacro);
 
 SCM 
 scm_makacro (code)
      SCM code;
 {
-  register SCM z;
   SCM_ASSERT (SCM_NFALSEP (scm_procedure_p (code)),
 	      code, SCM_ARG1, s_makacro);
-  SCM_NEWCELL (z);
-  SCM_SETCDR (z, code);
-  SCM_SETCAR (z, scm_tc16_macro);
-  return z;
+  SCM_RETURN_NEWSMOB (scm_tc16_macro, code);
 }
 
 
@@ -71,13 +65,9 @@ SCM
 scm_makmacro (code)
      SCM code;
 {
-  register SCM z;
   SCM_ASSERT (SCM_NFALSEP (scm_procedure_p (code)),
 	      code, SCM_ARG1, s_makmacro);
-  SCM_NEWCELL (z);
-  SCM_SETCDR (z, code);
-  SCM_SETCAR (z, scm_tc16_macro | (1L << 16));
-  return z;
+  SCM_RETURN_NEWSMOB (scm_tc16_macro | (1L << 16), code);
 }
 
 
@@ -87,13 +77,9 @@ SCM
 scm_makmmacro (code)
      SCM code;
 {
-  register SCM z;
   SCM_ASSERT (SCM_NFALSEP (scm_procedure_p (code)),
 	      code, SCM_ARG1, s_makmmacro);
-  SCM_NEWCELL (z);
-  SCM_SETCDR (z, code);
-  SCM_SETCAR (z, scm_tc16_macro | (2L << 16));
-  return z;
+  SCM_RETURN_NEWSMOB (scm_tc16_macro | (2L << 16), code);
 }
 
 
@@ -179,6 +165,7 @@ scm_make_synt (name, macroizer, fcn)
 void
 scm_init_macros ()
 {
-  scm_tc16_macro = scm_newsmob (&macrosmob);
+  scm_tc16_macro = scm_make_smob_type_mfpe ("macro", 0,
+                                           scm_markcdr, NULL, NULL, NULL);
 #include "macros.x"
 }

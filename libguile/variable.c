@@ -49,17 +49,6 @@
 #include "variable.h"
 
 
-static scm_sizet free_var SCM_P ((SCM obj));
-
-static scm_sizet
-free_var (obj)
-     SCM obj;
-{
-  return 0;
-}
-
-
-
 static int prin_var SCM_P ((SCM exp, SCM port, scm_print_state *pstate));
 
 static int
@@ -106,7 +95,6 @@ var_equal (var1, var2)
 }
 
 int scm_tc16_variable;
-static scm_smobfuns variable_smob = {scm_markvar, free_var, prin_var, var_equal};
 
 
 static SCM anonymous_variable_sym;
@@ -118,13 +106,7 @@ static SCM
 make_vcell_variable (vcell)
      SCM vcell;
 {
-  SCM answer;
-  SCM_NEWCELL(answer);
-  SCM_REDEFER_INTS;
-  SCM_SETCAR (answer, scm_tc16_variable);
-  SCM_SETCDR (answer, vcell);
-  SCM_REALLOW_INTS;
-  return answer;
+  SCM_RETURN_NEWSMOB (scm_tc16_variable, vcell);
 }
 
 SCM_PROC(s_make_variable, "make-variable", 1, 1, 0, scm_make_variable);
@@ -250,7 +232,8 @@ scm_variable_bound_p (var)
 void
 scm_init_variable ()
 {
-  scm_tc16_variable = scm_newsmob (&variable_smob);
+  scm_tc16_variable = scm_make_smob_type_mfpe ("variable", 0,
+                                              scm_markvar, NULL, prin_var, var_equal);
   anonymous_variable_sym = SCM_CAR (scm_sysintern ("anonymous-variable", SCM_UNDEFINED));
 #include "variable.x"
 }

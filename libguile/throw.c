@@ -102,30 +102,22 @@ printjb (exp, port, pstate)
   return 1 ;
 }
 
-static scm_smobfuns jbsmob = {
-  0,
-#ifdef DEBUG_EXTENSIONS
-  freejb,
-#else
-  scm_free0,
-#endif
-  printjb,
-  0
-};
 
 static SCM make_jmpbuf SCM_P ((void));
 static SCM
 make_jmpbuf ()
 {
   SCM answer;
-  SCM_NEWCELL (answer);
   SCM_REDEFER_INTS;
   {
 #ifdef DEBUG_EXTENSIONS
     char *mem = scm_must_malloc (sizeof (scm_cell), "jb");
-    SCM_SETCDR (answer, (SCM) mem);
 #endif
-    SCM_SETCAR (answer, scm_tc16_jmpbuffer);
+#ifdef DEBUG_EXTENSIONS
+    SCM_NEWSMOB (answer, scm_tc16_jmpbuffer, mem);
+#else
+    SCM_NEWSMOB (answer, scm_tc16_jmpbuffer, 0);
+#endif
     SETJBJMPBUF(answer, (jmp_buf *)0);
     DEACTIVATEJB(answer);
   }
@@ -279,10 +271,6 @@ print_lazy_catch (SCM closure, SCM port, scm_print_state *pstate)
   return 1;
 }
 
-static scm_smobfuns lazy_catch_funs = {
-  0, scm_free0, print_lazy_catch, 0
-};
-
 
 /* Given a pointer to a lazy catch structure, return a smob for it,
    suitable for inclusion in the wind list.  ("Ah yes, a Château
@@ -290,13 +278,7 @@ static scm_smobfuns lazy_catch_funs = {
 static SCM
 make_lazy_catch (struct lazy_catch *c)
 {
-  SCM smob;
-
-  SCM_NEWCELL (smob);
-  SCM_SETCDR (smob, c);
-  SCM_SETCAR (smob, tc16_lazy_catch);
-
-  return smob;
+  SCM_RETURN_NEWSMOB (tc16_lazy_catch, c);
 }
 
 #define SCM_LAZY_CATCH_P(obj) \
@@ -749,7 +731,26 @@ scm_ithrow (key, args, noreturn)
 void
 scm_init_throw ()
 {
-  scm_tc16_jmpbuffer = scm_newsmob (&jbsmob);
-  tc16_lazy_catch = scm_newsmob (&lazy_catch_funs);
+#ifdef DEBUG_EXTENSIONS
+  scm_tc16_jmpbuffer = scm_make_smob_type_mfpe ("jmpbuffer",
+						sizeof (scm_cell),
+						NULL, /* mark */
+						freejb,
+						printjb,
+						NULL);
+#else
+  scm_tc16_jmpbuffer = scm_make_smob_type_mfpe ("jmpbuffer",
+						0,
+						NULL, /* mark */
+						NULL
+						printjb,
+						NULL);
+#endif
+
+  tc16_lazy_catch = scm_make_smob_type_mfpe ("lazy-catch", 0,
+					     NULL,
+					     NULL,
+					     print_lazy_catch,
+					     NULL);
 #include "throw.x"
 }

@@ -56,45 +56,6 @@ size_t scm_switch_counter = SCM_THREAD_SWITCH_COUNT;
 coop_m scm_critical_section_mutex;
 
 #ifdef __STDC__
-static size_t
-scm_threads_free_thread (SCM t)
-#else
-static size_t
-scm_threads_free_thread (t)
-     SCM t;
-#endif
-{
-  scm_must_free (SCM_THREAD_DATA (t));
-  return sizeof (coop_t);
-}
-
-#ifdef __STDC__
-static size_t
-scm_threads_free_mutex (SCM m)
-#else
-static size_t
-scm_threads_free_mutex (m)
-     SCM m;
-#endif
-{
-  scm_must_free (SCM_MUTEX_DATA (m));
-  return sizeof (coop_m);
-}
-
-#ifdef __STDC__
-static size_t
-scm_threads_free_condvar (SCM c)
-#else
-static size_t
-scm_threads_free_condvar (c)
-     SCM c;
-#endif
-{
-  scm_must_free (SCM_CONDVAR_DATA (c));
-  return sizeof (coop_c);
-}
-
-#ifdef __STDC__
 void
 scm_threads_init (SCM_STACKITEM *i)
 #else
@@ -474,11 +435,8 @@ scm_make_mutex ()
 {
   SCM m;
   coop_m *data = (coop_m *) scm_must_malloc (sizeof (coop_m), "mutex");
-  SCM_NEWCELL (m);
-  SCM_DEFER_INTS;
-  SCM_SETCAR (m, scm_tc16_mutex);
-  SCM_SETCDR (m, data);
-  SCM_ALLOW_INTS;
+
+  SCM_NEWSMOB (m, scm_tc16_mutex, data);
   coop_mutex_init (data);
   return m;
 }
@@ -526,11 +484,7 @@ scm_make_condition_variable ()
 {
   SCM c;
   coop_c *data = (coop_c *) scm_must_malloc (sizeof (coop_c), "condvar");
-  SCM_NEWCELL (c);
-  SCM_DEFER_INTS;
-  SCM_SETCAR (c, scm_tc16_condvar);
-  SCM_SETCDR (c, data);
-  SCM_ALLOW_INTS;
+  SCM_NEWSMOB (c, scm_tc16_condvar, data);
   coop_condition_variable_init (SCM_CONDVAR_DATA (c));
   return c;
 }

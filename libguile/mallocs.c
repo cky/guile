@@ -66,8 +66,6 @@ prinmalloc (exp, port, pstate)
 
 
 int scm_tc16_malloc;
-static scm_smobfuns mallocsmob = {0, fmalloc, prinmalloc, 0};
-
 
 
 
@@ -75,11 +73,8 @@ SCM
 scm_malloc_obj (n)
      scm_sizet n;
 {
-  SCM answer;
   SCM mem;
 
-  SCM_NEWCELL (answer);
-  SCM_DEFER_INTS;
   mem = (n
 	 ? (SCM)malloc (n)
 	 : 0);
@@ -88,10 +83,7 @@ scm_malloc_obj (n)
       SCM_ALLOW_INTS;
       return SCM_BOOL_F;
     }
-  SCM_SETCDR (answer, mem);
-  SCM_SETCAR (answer, scm_tc16_malloc);
-  SCM_ALLOW_INTS;
-  return answer;
+  SCM_RETURN_NEWSMOB (scm_tc16_malloc, mem);
 }
 
 
@@ -100,6 +92,6 @@ scm_malloc_obj (n)
 void 
 scm_init_mallocs ()
 {
-  scm_tc16_malloc = scm_newsmob (&mallocsmob);
+  scm_tc16_malloc = scm_make_smob_type_mfpe ("malloc", 0,
+                                            NULL, fmalloc, prinmalloc, NULL);
 }
-

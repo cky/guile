@@ -118,13 +118,6 @@ printguards (SCM exp, SCM port, scm_print_state *pstate)
   return 1;
 }
 
-static scm_smobfuns guardsmob = {
-  0,
-  freeguards,
-  printguards,
-  0
-};
-
 SCM
 scm_internal_dynamic_wind (scm_guard_t before,
 			   scm_inner_t inner,
@@ -135,15 +128,11 @@ scm_internal_dynamic_wind (scm_guard_t before,
   SCM guards, ans;
   guardsmem *g;
   before (guard_data);
-  SCM_NEWCELL (guards);
-  SCM_DEFER_INTS;
   g = (guardsmem *) scm_must_malloc (sizeof (*g), "guards");
   g->before = before;
   g->after = after;
   g->data = guard_data;
-  SCM_SETCDR (guards, g);
-  SCM_SETCAR (guards, tc16_guards);
-  SCM_ALLOW_INTS;
+  SCM_NEWSMOB (guards, tc16_guards, g);
   scm_dynwinds = scm_acons (guards, SCM_BOOL_F, scm_dynwinds);
   ans = inner (inner_data);
   scm_dynwinds = SCM_CDR (scm_dynwinds);
@@ -239,6 +228,7 @@ scm_dowinds (to, delta)
 void
 scm_init_dynwind ()
 {
-  tc16_guards = scm_newsmob (&guardsmob);
+  tc16_guards = scm_make_smob_type_mfpe ("guards", sizeof (struct guardsmem),
+                                        NULL, freeguards, printguards, NULL);
 #include "dynwind.x"
 }

@@ -610,19 +610,13 @@ scm_opendir (dirname)
      SCM dirname;
 {
   DIR *ds;
-  SCM dir;
   SCM_ASSERT (SCM_NIMP (dirname) && SCM_ROSTRINGP (dirname), dirname, SCM_ARG1,
 	      s_opendir);
   SCM_COERCE_SUBSTR (dirname);
-  SCM_NEWCELL (dir);
-  SCM_DEFER_INTS;
   SCM_SYSCALL (ds = opendir (SCM_ROCHARS (dirname)));
   if (ds == NULL)
     scm_syserror (s_opendir);
-  SCM_SETCAR (dir, scm_tc16_dir | SCM_OPN);
-  SCM_SETCDR (dir, ds);
-  SCM_ALLOW_INTS;
-  return dir;
+  SCM_RETURN_NEWSMOB (scm_tc16_dir | SCM_OPN, ds);
 }
 
 
@@ -703,8 +697,6 @@ scm_dir_free (p)
     closedir ((DIR *) SCM_CDR (p));
   return 0;
 }
-
-static scm_smobfuns dir_smob = {0, scm_dir_free, scm_dir_print, 0};
 
 
 /* {Navigating Directories}
@@ -1226,7 +1218,8 @@ scm_init_filesys ()
 {
   scm_add_feature ("i/o-extensions");
 
-  scm_tc16_dir = scm_newsmob (&dir_smob);
+  scm_tc16_dir = scm_make_smob_type_mfpe ("directory", 0,
+                                         NULL, scm_dir_free,scm_dir_print, NULL);
 
   scm_dot_string = scm_permanent_object (scm_makfrom0str ("."));
   

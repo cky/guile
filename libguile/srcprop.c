@@ -122,9 +122,6 @@ prinsrcprops (obj, port, pstate)
   return 1;
 }
 
-static scm_smobfuns srcpropssmob =
-{marksrcprops, freesrcprops, prinsrcprops, 0};
-
 
 SCM
 scm_make_srcprops (line, col, filename, copy, plist)
@@ -134,7 +131,6 @@ scm_make_srcprops (line, col, filename, copy, plist)
      SCM copy;
      SCM plist;
 {
-  register SCM ans;
   register scm_srcprops *ptr;
   SCM_DEFER_INTS;
   if ((ptr = srcprops_freelist) != NULL)
@@ -156,15 +152,11 @@ scm_make_srcprops (line, col, filename, copy, plist)
       *(scm_srcprops **)&ptr[SRCPROPS_CHUNKSIZE - 1] = 0;
       srcprops_freelist = (scm_srcprops *) &ptr[1];
     }
-  SCM_NEWCELL (ans);
-  SCM_SETCAR (ans, scm_tc16_srcprops);
   ptr->pos = SRCPROPMAKPOS (line, col);
   ptr->fname = filename;
   ptr->copy = copy;
   ptr->plist = plist;
-  SCM_SETCDR (ans, (SCM) ptr);
-  SCM_ALLOW_INTS;
-  return ans;
+  SCM_RETURN_NEWSMOB (scm_tc16_srcprops, ptr);
 }
 
 
@@ -349,7 +341,8 @@ scm_set_source_property_x (obj, key, datum)
 void
 scm_init_srcprop ()
 {
-  scm_tc16_srcprops = scm_newsmob (&srcpropssmob);
+  scm_tc16_srcprops = scm_make_smob_type_mfpe ("srcprops", 0,
+                                         marksrcprops, freesrcprops, prinsrcprops, NULL);
   scm_source_whash = scm_make_weak_key_hash_table (SCM_MAKINUM (2047));
 
   scm_i_filename = SCM_CAR (scm_sysintern ("filename", SCM_UNDEFINED));

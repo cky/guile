@@ -101,66 +101,6 @@ SCM_PROC(s_signal_condition_variable, "signal-condition-variable", 1, 0, 0, scm_
 #include "coop-threads.c"
 #endif
 
-static int
-print_thread (exp, port, pstate)
-     SCM exp;
-     SCM port;
-     scm_print_state *pstate;
-{
-  scm_puts ("#<thread ", port);
-  scm_intprint (SCM_CDR (exp), 16, port);
-  scm_putc ('>', port);
-  return 1;
-}
-
-static scm_smobfuns thread_smob =
-{
-  0,
-  scm_threads_free_thread,
-  print_thread,
-  0
-};
-
-static int
-print_mutex (exp, port, pstate)
-     SCM exp;
-     SCM port;
-     scm_print_state *pstate;
-{
-  scm_puts ("#<mutex ", port);
-  scm_intprint (SCM_CDR (exp), 16, port);
-  scm_putc ('>', port);
-  return 1;
-}
-
-static scm_smobfuns mutex_smob =
-{
-  0,
-  scm_threads_free_mutex,
-  print_mutex,
-  0
-};
-
-static int
-print_condvar (exp, port, pstate)
-     SCM exp;
-     SCM port;
-     scm_print_state *pstate;
-{
-  scm_puts ("#<condition-variable ", port);
-  scm_intprint (SCM_CDR (exp), 16, port);
-  scm_putc ('>', port);
-  return 1;
-}
-
-static scm_smobfuns condvar_smob =
-{
-  0,
-  scm_threads_free_condvar,
-  print_condvar,
-  0
-};
-
 
 
 #ifdef __STDC__
@@ -172,9 +112,10 @@ scm_init_threads (i)
      SCM_STACKITEM *i;
 #endif
 {
-  scm_tc16_thread = scm_newsmob (&thread_smob);
-  scm_tc16_mutex = scm_newsmob (&mutex_smob);
-  scm_tc16_condvar = scm_newsmob (&condvar_smob);
+  scm_tc16_thread = scm_make_smob_type ("thread", sizeof (coop_t));
+  scm_tc16_mutex = scm_make_smob_type ("mutex", sizeof (coop_m));
+  scm_tc16_condvar = scm_make_smob_type ("condition-variable", sizeof (coop_c));
+                                        
 #include "threads.x"
   /* Initialize implementation specific details of the threads support */
   scm_threads_init (i);

@@ -504,9 +504,9 @@ scm_make_ra (ndim)
   SCM ra;
   SCM_NEWCELL (ra);
   SCM_DEFER_INTS;
-  SCM_SETCDR (ra, scm_must_malloc ((long) (sizeof (scm_array) + ndim * sizeof (scm_array_dim)),
+  SCM_NEWSMOB(ra, ((long) ndim << 17) + scm_tc16_array,
+              scm_must_malloc ((long) (sizeof (scm_array) + ndim * sizeof (scm_array_dim)),
 			       "array"));
-  SCM_SETCAR (ra, ((long) ndim << 17) + scm_tc16_array);
   SCM_ARRAY_V (ra) = scm_nullvect;
   SCM_ALLOW_INTS;
   return ra;
@@ -2595,18 +2595,18 @@ freera (ptr)
   return sizeof (scm_array) + SCM_ARRAY_NDIM (ptr) * sizeof (scm_array_dim);
 }
 
-static scm_smobfuns rasmob =
-{markra, freera, scm_raprin1, scm_array_equal_p};
-
-
 /* This must be done after scm_init_scl() */
 
 void
 scm_init_unif ()
 {
-#include "unif.x"
-  scm_tc16_array = scm_newsmob (&rasmob);
+  scm_tc16_array = scm_make_smob_type_mfpe ("array", 0,
+					    markra,
+					    freera,
+					    scm_raprin1,
+					    scm_array_equal_p);
   scm_add_feature ("array");
+#include "unif.x"
 }
 
 #else /* ARRAYS */

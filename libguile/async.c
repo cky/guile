@@ -282,13 +282,11 @@ SCM
 scm_async (thunk)
      SCM thunk;
 {
-  SCM it;
   struct scm_async * async
     = (struct scm_async *) scm_must_malloc (sizeof (*async), s_async);
   async->got_it = 0;
   async->thunk = thunk;
-  SCM_NEWSMOB (it, scm_tc16_async, async);
-  return it;
+  SCM_RETURN_NEWSMOB (scm_tc16_async, async);
 }
 
 SCM_PROC(s_system_async, "system-async", 1, 0, 0, scm_system_async);
@@ -301,12 +299,8 @@ scm_system_async (thunk)
   SCM list;
 
   it = scm_async (thunk);
-  SCM_NEWCELL (list);
-  SCM_DEFER_INTS;
-  SCM_SETCAR (list, it);
-  SCM_SETCDR (list, scm_asyncs);
+  SCM_NEWSMOB (list, it, scm_asyncs);
   scm_asyncs = list;
-  SCM_ALLOW_INTS;
   return it;
 }
 
@@ -473,8 +467,8 @@ void
 scm_init_async ()
 {
   SCM a_thunk;
-  scm_tc16_async = scm_make_smob_type ("async", sizeof (struct scm_async));
-  scm_set_smob_mark (scm_tc16_async, mark_async);
+  scm_tc16_async = scm_make_smob_type_mfpe ("async", sizeof (struct scm_async),
+                                           mark_async, NULL, NULL, NULL);
   scm_gc_vcell = scm_sysintern ("gc-thunk", SCM_BOOL_F);
   a_thunk = scm_make_gsubr ("%gc-thunk", 0, 0, 0, scm_sys_gc_async_thunk);
   scm_gc_async = scm_system_async (a_thunk);

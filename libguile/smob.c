@@ -153,6 +153,18 @@ scm_make_smob_type (char *name, scm_sizet size)
   return scm_tc7_smob + (scm_numsmob - 1) * 256;
 }
 
+long
+scm_make_smob_type_mfpe (char *name, scm_sizet size,
+                        SCM (*mark) (SCM),
+                        scm_sizet (*free) (SCM),
+                        int (*print) (SCM, SCM, scm_print_state *),
+                        SCM (*equalp) (SCM, SCM))
+{
+  long answer = scm_make_smob_type (name, size);
+  scm_set_smob_mfpe (answer, mark, free, print, equalp);
+  return answer;
+}
+
 void
 scm_set_smob_mark (long tc, SCM (*mark) (SCM))
 {
@@ -177,7 +189,21 @@ scm_set_smob_equalp (long tc, SCM (*equalp) (SCM, SCM))
   scm_smobs[SCM_TC2SMOBNUM (tc)].equalp = equalp;
 }
 
-/* Deprecated function - use scm_make_smob_type instead. */
+void
+scm_set_smob_mfpe (long tc, 
+		   SCM (*mark) (SCM),
+		   scm_sizet (*free) (SCM),
+		   int (*print) (SCM, SCM, scm_print_state *),
+		   SCM (*equalp) (SCM, SCM))
+{
+  if (mark) scm_set_smob_mark (tc, mark);
+  if (free) scm_set_smob_free (tc, free);
+  if (print) scm_set_smob_print (tc, print);
+  if (equalp) scm_set_smob_equalp (tc, equalp);
+}
+
+/* Deprecated function - use scm_make_smob_type, or scm_make_smob_type_mfpe
+   instead. */
 long 
 scm_newsmob (const scm_smobfuns *smob)
 {
@@ -232,21 +258,20 @@ freeprint (SCM exp,
 void
 scm_smob_prehistory ()
 {
-  long tc;
   scm_numsmob = 0;
   scm_smobs = ((scm_smob_descriptor *)
 	       malloc (7 * sizeof (scm_smob_descriptor)));
 
   /* WARNING: These scm_make_smob_type calls must be done in this order */
-  tc = scm_make_smob_type ("free", 0);
-  scm_set_smob_print (tc, freeprint);
-  tc = scm_make_smob_type ("flo", 0); /* freed in gc */
-  scm_set_smob_print (tc, scm_floprint);
-  scm_set_smob_equalp (tc, scm_floequal);
-  tc = scm_make_smob_type ("bigpos", 0); /* freed in gc */
-  scm_set_smob_print (tc, scm_bigprint);
-  scm_set_smob_equalp (tc, scm_bigequal);
-  tc = scm_make_smob_type ("bigneg", 0);
-  scm_set_smob_print (tc, scm_bigprint);
-  scm_set_smob_equalp (tc, scm_bigequal);
+  scm_make_smob_type_mfpe ("free", 0,
+                          NULL, NULL, freeprint, NULL);
+
+  scm_make_smob_type_mfpe ("flo", 0,    /* freed in gc */
+                          NULL, NULL, scm_floprint, scm_floequal);
+
+  scm_make_smob_type_mfpe ("bigpos", 0,     /* freed in gc */
+                          NULL, NULL, scm_bigprint, scm_bigequal);
+
+  scm_make_smob_type_mfpe ("bigneg", 0,
+                          NULL, NULL, scm_bigprint, scm_bigequal);
 }

@@ -332,12 +332,6 @@ print_dynl_obj (exp, port, pstate)
     return 1;
 }
 
-static scm_smobfuns dynl_obj_smob = {
-    mark_dynl_obj,
-    free_dynl_obj,
-    print_dynl_obj
-};
-
 static SCM kw_global;
 SCM_SYMBOL (sym_global, "-global");
 
@@ -496,7 +490,9 @@ scm_dynamic_args_call (func, dobj, args)
 void
 scm_init_dynamic_linking ()
 {
-    scm_tc16_dynamic_obj = scm_newsmob (&dynl_obj_smob);
+    scm_tc16_dynamic_obj = scm_make_smob_type_mfpe ("dynamic-object", sizeof (struct dynl_obj),
+                                                   mark_dynl_obj, free_dynl_obj, 
+                                                   print_dynl_obj, NULL);
     sysdep_dynl_init ();
 #include "dynl.x"
     kw_global = scm_make_keyword_from_dash_symbol (sym_global);
