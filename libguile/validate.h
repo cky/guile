@@ -1,4 +1,4 @@
-/* $Id: validate.h,v 1.8 2000-04-17 03:17:02 mdj Exp $ */
+/* $Id: validate.h,v 1.9 2000-04-18 15:23:11 gjb Exp $ */
 /*	Copyright (C) 1999, 2000 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -238,13 +238,12 @@
   } while (0)
 
 /* [low,high) */
-#define SCM_VALIDATE_INUM_RANGE(pos, k, low, high) \
-  do { \
-    SCM_ASSERT (SCM_INUMP (k), k, pos, FUNC_NAME); \
-    SCM_ASSERT_RANGE (pos, k, \
-		      (SCM_INUM (k) >= low \
-                      && ((unsigned) SCM_INUM (k)) < high)); \
-  } while (0)
+#define SCM_VALIDATE_INUM_RANGE(pos,k,low,high) \
+  do { SCM_ASSERT(SCM_INUMP(k), k, pos, FUNC_NAME); \
+       SCM_ASSERT_RANGE(pos,k, \
+                        (SCM_INUM (k) >= low && \
+                         SCM_INUM (k) < high)); \
+     } while (0)
 
 #define SCM_VALIDATE_INUM_RANGE_COPY(pos, k, low, high, cvar) \
   do { \
