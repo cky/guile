@@ -1,3 +1,8 @@
+2002-08-26  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* script.c (scm_compile_shell_switches): Added "2002" to Copyright
+	years.  Thanks to Martin Grabmüller!
+
 2002-08-25  Han-Wen Nienhuys  <hanwen@cs.uu.nl>
 
 	* gc-segment.c (scm_i_get_new_heap_segment): use float in stead of
@@ -8,7 +13,7 @@
 2002-08-24  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* gc_os_dep.c: When we have __libc_stack_end, use that directly
-	instead the old tricks.
+	instead of the old tricks.
 
 	* guile-snarf.in: Do not expect the input file to be the first
 	argument after the optional "-o" option, just pass everything to
