@@ -320,6 +320,7 @@ AC_ARG_WITH(threads, [  --with-threads          thread interface],
 
 ### Turn $with_threads into either the name of a threads package, like
 ### `qt', or `no', meaning that threads should not be supported.
+AC_MSG_CHECKING(whether to support threads)
 case "$with_threads" in
   "yes" | "qt" | "coop" | "")
     with_threads=qt
@@ -330,6 +331,7 @@ case "$with_threads" in
     AC_MSG_ERROR(invalid value for --with-threads: $with_threads)
   ;;
 esac
+AC_MSG_RESULT($with_threads)
 
 ## Make sure the threads package we've chosen is actually supported on
 ## the present platform.
