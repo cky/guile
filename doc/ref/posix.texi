@@ -16,7 +16,7 @@
 * Networking::                  gethostbyaddr, getnetent, socket, bind, listen.
 * System Identification::       Obtaining information about the system.
 * Locales::                     setlocale, etc.
-* Encryption::                  
+* Encryption::
 @end menu
 
 @node Conventions
@@ -1683,8 +1683,8 @@ close a pipe, but doesn't return the status.
 
 @menu
 * Network Address Conversion::
-* Network Databases::  
-* Network Sockets and Communication::  
+* Network Databases::
+* Network Sockets and Communication::
 @end menu
 
 @node Network Address Conversion
@@ -2474,9 +2474,8 @@ Encrypt @var{key} using @var{salt} as the salt value to the
 crypt(3) library call.
 @end deffn
 
-@code{getpass} is no encryption procedure at all, but it is often used
-in compination with @code{crypt}, that is why it appears in this
-section.
+Although @code{getpass} is not an encryption procedure per se, it
+appears here because it is often used in combination with @code{crypt}:
 
 @deffn {Scheme Procedure} getpass prompt
 @deffnx {C Function} scm_getpass (prompt)
