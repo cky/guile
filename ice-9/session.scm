@@ -58,10 +58,11 @@ Prints useful information.  Try `(help)'."
 	    *unspecified*)))))
 
 (define (help-usage)
-  (display "Usage: (help NAME) gives documentation about NAME (unquoted)
+  (display "Usage: (help NAME) gives documentation about NAME
        (help) gives this text
 
-Example: (help help)
+Examples: (help help)
+          (help cons)
 
 Other useful sources of helpful information:
 
@@ -72,8 +73,10 @@ Other useful sources of helpful information:
 
 Tools:
 
-(debug)					;the debugger
-(backtrace)				;backtrace from last error
+(backtrace)				;show backtrace from last error
+(debug)					;enter the debugger
+(trace [PROCEDURE])			;trace procedure (no arg => show)
+(untrace [PROCEDURE])			;untrace (no arg => untrace all)
 
 (OPTIONSET-options 'full)		;display option information
 (OPTIONSET-enable 'OPTION)
