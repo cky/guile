@@ -191,9 +191,6 @@ SCM_DEFINE (scm_registered_modules, "c-registered-modules", 0, 0, 0,
   SCM res;
   struct moddata *md;
 
-  scm_c_issue_deprecation_warning 
-    ("`registered-modules' is deprecated.  Use extensions instead.");
-
   res = SCM_EOL;
   for (md = registered_mods; md; md = md->link)
     res = scm_cons (scm_cons (scm_makfrom0str (md->module_name),
@@ -213,9 +210,6 @@ SCM_DEFINE (scm_clear_registered_modules, "c-clear-registered-modules", 0, 0, 0,
 #define FUNC_NAME s_scm_clear_registered_modules
 {
   struct moddata *md1, *md2;
-
-  scm_c_issue_deprecation_warning 
-    ("`c-clear-registered-modules' is deprecated.  Use extensions instead.");
 
   SCM_DEFER_INTS;
 
