@@ -1,5 +1,12 @@
 Wed Jun 11 00:34:01 1997  Jim Blandy  <jimb@floss.red-bean.com>
 
+	* ltconfig, ltmain.sh, config.guess: New files from libtool 0.9g.
+
+	* configure.in: By default, include functions in Guile to allow
+ 	linking with dynamic libraries at run-time.  In other words,
+	--enable-dynamic-linking is now the default.
+	* configure: Rebuilt.
+
 	* configure.in: Remove space between AC_CHECK_LIB and opening
 	paren in check for Rx.
 	* configure: Regenerated.

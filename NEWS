@@ -10,6 +10,16 @@ Changes in Guile 1.2:
 
 * Changes to the distribution
 
+** Nightly snapshots are now available from ftp.red-bean.com.
+The old server, ftp.cyclic.com, has been relinquished to its rightful
+owner.
+
+Nightly snapshots of the Guile development sources are now available via
+anonymous FTP from ftp.red-bean.com, as /pub/guile/guile-snap.tar.gz.
+
+Via the web, that's:  ftp://ftp.red-bean.com/pub/guile/guile-snap.tar.gz
+For getit, that's:    ftp.red-bean.com:/pub/guile/guile-snap.tar.gz
+
 * Changes to the procedure for linking libguile with your programs
 
 ** Like Guile 1.1, Guile 1.2 will now use the Rx regular expression
