@@ -99,6 +99,7 @@ char *alloca ();
 #include "libguile/ports.h"
 #include "libguile/root.h"
 #include "libguile/vectors.h"
+#include "libguile/fluids.h"
 
 #include "libguile/validate.h"
 #include "libguile/eval.h"
@@ -3825,8 +3826,9 @@ SCM_DEFINE (scm_copy_tree, "copy-tree", 1, 0, 0,
 SCM 
 scm_eval_3 (SCM obj, int copyp, SCM env)
 {
-  if (SCM_NIMP (SCM_CDR (scm_system_transformer)))
-    obj = scm_apply (SCM_CDR (scm_system_transformer), obj, scm_listofnull);
+  SCM transformer = scm_fluid_ref (SCM_CDR (scm_system_transformer));
+  if (SCM_NIMP (transformer))
+    obj = scm_apply (transformer, obj, scm_listofnull);
   else if (copyp)
     obj = scm_copy_tree (obj);
   return SCM_XEVAL (obj, env);
@@ -3843,6 +3845,9 @@ SCM_DEFINE (scm_eval2, "eval2", 2, 0, 0,
 }
 #undef FUNC_NAME
 
+SCM scm_system_transformer;
+SCM scm_top_level_lookup_closure_var;
+
 SCM_DEFINE (scm_eval, "eval", 1, 0, 0, 
            (SCM obj),
 	    "Evaluate @var{exp}, a list representing a Scheme expression, in the\n"
@@ -3851,8 +3856,7 @@ SCM_DEFINE (scm_eval, "eval", 1, 0, 0,
 {
   return scm_eval_3 (obj,
 		     1,
-		     scm_top_level_env
-		     (SCM_CDR (scm_top_level_lookup_closure_var)));
+		     scm_top_level_env (SCM_TOP_LEVEL_LOOKUP_CLOSURE));
 }
 #undef FUNC_NAME
 
@@ -3865,8 +3869,7 @@ scm_eval_x (SCM obj)
 {
   return scm_eval_3 (obj,
 		     0,
-		     scm_top_level_env
-		     (SCM_CDR (scm_top_level_lookup_closure_var)));
+		     scm_top_level_env (SCM_TOP_LEVEL_LOOKUP_CLOSURE));
 }
 
 
@@ -3895,7 +3898,8 @@ scm_init_eval ()
   scm_set_smob_print (scm_tc16_promise, prinprom);
 
   scm_f_apply = scm_make_subr ("apply", scm_tc7_lsubr_2, scm_apply);
-  scm_system_transformer = scm_sysintern ("scm:eval-transformer", SCM_UNDEFINED);
+  scm_system_transformer = scm_sysintern ("scm:eval-transformer",
+					  scm_make_fluid ());
   scm_sym_dot = SCM_CAR (scm_sysintern (".", SCM_UNDEFINED));
   scm_sym_arrow = SCM_CAR (scm_sysintern ("=>", SCM_UNDEFINED));
   scm_sym_else = SCM_CAR (scm_sysintern ("else", SCM_UNDEFINED));
@@ -3913,7 +3917,7 @@ scm_init_eval ()
   /* end of acros */
 
   scm_top_level_lookup_closure_var =
-    scm_sysintern("*top-level-lookup-closure*", SCM_BOOL_F);
+    scm_sysintern ("*top-level-lookup-closure*", scm_make_fluid ());
   scm_can_use_top_level_lookup_closure_var = 1;
 
 #ifdef DEBUG_EXTENSIONS
