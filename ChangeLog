@@ -1,3 +1,10 @@
+2003-10-30  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* configure.in (AC_CONFIG_FILES): Add `emacs/Makefile'.
+	(AM_PATH_LISPDIR): Added.
+
+	* Makefile.am (SUBDIRS): Add `emacs'.
+
 2003-07-27  Marius Vollmer  <mvo@zagadka.de>
 
 	* configure.in: Look for sched_yield in -lrt; this is needed for

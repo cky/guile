@@ -62,6 +62,8 @@ AC_LIB_LTDL
 AC_CHECK_PROG(have_makeinfo, makeinfo, yes, no)
 AM_CONDITIONAL(HAVE_MAKEINFO, test "$have_makeinfo" = yes)
 
+AM_PATH_LISPDIR
+
 #--------------------------------------------------------------------
 #
 # User options (after above tests that may set default CFLAGS etc.)
@@ -1086,6 +1088,7 @@ AC_CONFIG_FILES([
   doc/r5rs/Makefile
   doc/ref/Makefile
   doc/tutorial/Makefile
+  emacs/Makefile
   examples/Makefile
   examples/box-dynamic-module/Makefile
   examples/box-dynamic/Makefile
