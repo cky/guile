@@ -437,6 +437,17 @@ extern SCM scm_call_generic_2 (SCM gf, SCM a1, SCM a2);
 #define SCM_GASSERT2(cond, gf, a1, a2, pos, subr) \
   if (!(cond)) SCM_WTA_DISPATCH_2((gf), (a1), (a2), (pos), (subr))
 
+extern SCM scm_apply_generic (SCM gf, SCM args);
+
+#define SCM_WTA_DISPATCH_n(gf, args, pos, subr) \
+  return ((gf) \
+          ? scm_apply_generic ((gf), (args)) \
+          : scm_wta (scm_list_ref ((args), SCM_MAKINUM ((pos) - 1)), \
+		     (char *) (pos), \
+		     (subr)))
+#define SCM_GASSERTn(cond, gf, args, pos, subr) \
+  if (!(cond)) SCM_WTA_DISPATCH_n((gf), (args), (pos), (subr))
+
 #define SCM_ARGn 		0
 #define SCM_ARG1 		1
 #define SCM_ARG2 		2
