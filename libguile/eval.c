@@ -232,7 +232,7 @@ scm_ilookup (SCM iloc, SCM env)
    arbitrary amount of time or even deadlock.  But with the current
    solution a lot of unnecessary work is potentially done. */
 
-/* SCM_LOOKUPCAR1 is was SCM_LOOKUPCAR used to be but is allowed to
+/* SCM_LOOKUPCAR1 is what SCM_LOOKUPCAR used to be but is allowed to
    return NULL to indicate a failed lookup due to some race conditions
    between threads.  This only happens when VLOC is the first cell of
    a special form that will eventually be memoized (like `let', etc.)
@@ -2917,12 +2917,10 @@ evapply: /* inputs: x, proc */
 		  {
 		    RETURN (scm_make_real (SCM_DSUBRF (proc) (SCM_REAL_VALUE (arg1))));
 		  }
-#ifdef SCM_BIGDIG
 		else if (SCM_BIGP (arg1))
 		  {
 		    RETURN (scm_make_real (SCM_DSUBRF (proc) (scm_i_big2dbl (arg1))));
 		  }
-#endif
 		SCM_WTA_DISPATCH_1 (*SCM_SUBR_GENERIC (proc), arg1,
 				    SCM_ARG1, SCM_SYMBOL_CHARS (SCM_SNAME (proc)));
 	      }
@@ -3580,10 +3578,8 @@ tail:
 	    {
 	      RETURN (scm_make_real (SCM_DSUBRF (proc) (SCM_REAL_VALUE (arg1))));
 	    }
-#ifdef SCM_BIGDIG
 	  else if (SCM_BIGP (arg1))
 	    RETURN (scm_make_real (SCM_DSUBRF (proc) (scm_i_big2dbl (arg1))));
-#endif
 	  SCM_WTA_DISPATCH_1 (*SCM_SUBR_GENERIC (proc), arg1,
 			      SCM_ARG1, SCM_SYMBOL_CHARS (SCM_SNAME (proc)));
 	}
@@ -3907,10 +3903,8 @@ call_dsubr_1 (SCM proc, SCM arg1)
     {
       RETURN (scm_make_real (SCM_DSUBRF (proc) (SCM_REAL_VALUE (arg1))));
     }
-#ifdef SCM_BIGDIG
   else if (SCM_BIGP (arg1))
     RETURN (scm_make_real (SCM_DSUBRF (proc) (scm_i_big2dbl (arg1))));
-#endif
   SCM_WTA_DISPATCH_1 (*SCM_SUBR_GENERIC (proc), arg1,
 		      SCM_ARG1, SCM_SYMBOL_CHARS (SCM_SNAME (proc)));
 }
