@@ -1,6 +1,7 @@
 Makefile
 Makefile.in
 stamp-vti
+stamp-vti1
 *.log
 *.dvi
 *.aux
@@ -19,3 +20,4 @@ stamp-vti
 *.info*
 *.html
 version.texi
+version-tutorial.texi
