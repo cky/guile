@@ -39,3 +39,5 @@ it in the distribution.
     the sources are snapshot again.  Snapshots should have version numbers 
     of the form "N.Ma", where the "a" means "alpha".
 12) Start a new section of the NEWS file.
+13) Send mail to majordomo-owner@cygnus.com updating the message you get
+    when you ask majordomo for "info guile".
