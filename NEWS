@@ -722,6 +722,17 @@ Example:
 
   scm_apply_1 (proc, arg1, args);
 
+** New functions: scm_list_1, scm_list_2, scm_list_3, scm_list_4, scm_list_5
+
+Create a list of the given number of elements.
+
+** Renamed function: scm_listify has been replaced by scm_list_n.
+
+** Deprecated macros: SCM_LIST0, SCM_LIST1, SCM_LIST2, SCM_LIST3, SCM_LIST4,
+SCM_LIST5, SCM_LIST6, SCM_LIST7, SCM_LIST8, SCM_LIST9.
+
+Use functions scm_list_N instead.
+
 ** New function: scm_c_read (SCM port, void *buffer, scm_sizet size)
 
 Used by an application to read arbitrary number of bytes from a port.
