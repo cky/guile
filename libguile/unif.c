@@ -1329,13 +1329,11 @@ scm_array_set_x (v, obj, args)
 #ifdef SCM_FLOATS
 #ifdef SCM_SINGLES
     case scm_tc7_fvect:
-      SCM_ASRTGO (SCM_NIMP (obj) && SCM_REALP (obj), badobj);
-      ((float *) SCM_CDR (v))[pos] = SCM_REALPART (obj);
+      ((float *) SCM_CDR (v))[pos] = (float)scm_num2dbl(obj, s_array_set_x); break;
       break;
 #endif
     case scm_tc7_dvect:
-      SCM_ASRTGO (SCM_NIMP (obj) && SCM_REALP (obj), badobj);
-      ((double *) SCM_CDR (v))[pos] = SCM_REALPART (obj);
+      ((double *) SCM_CDR (v))[pos] = scm_num2dbl(obj, s_array_set_x); break;
       break;
     case scm_tc7_cvect:
       SCM_ASRTGO (SCM_NIMP (obj) && SCM_INEXP (obj), badobj);
