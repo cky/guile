@@ -1,3 +1,11 @@
+Wed Apr 23 21:25:39 1997  Jim Blandy  <jimb@floss.cyclic.com>
+
+	* gh_data.c (gh_scm2newstr, gh_symbol2newstr): Use
+	scm_must_malloc, not raw malloc.
+
+	* script.c (scm_compile_shell_switches): Dyke out debugging output
+	code.
+
 Mon Apr 21 05:00:32 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* eq.c (scm_equal_p): use "SCM_TYP7SD", not "SCM (TYP7SD".
