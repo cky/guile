@@ -1,5 +1,7 @@
 * Introduction
 
+Version: $Id: langtools.text,v 1.2 2000-08-13 02:31:46 mdj Exp $
+
 This is a proposal for how Guile could interface with language
 translators.  It will be posted on the Guile list and revised for some
 short time (days rather than weeks) before being implemented.
@@ -86,7 +88,48 @@ by the module `(core config)':
 The `load' command will match filenames against this alist and choose
 the translator to use accordingly.
 
+There will be a default alist for common translators.  For translators
+not listed, the alist has to be extended in .guile just as Emacs users
+extend auto-mode-alist in .emacs.
+
 ** Module header
+
+You specify the language used by a module with the :language option in
+the module header.  (See below under "Module configuration language".)
+
+* Module system
+
+This section describes how the Guile module system is adapted to use
+with other languages.
+
+** Module configuration language
+
+*** The `(config)' module
+
+Guile has a sophisticated module system.  We don't require each
+translator implementation to implement its own syntax for modules.
+That would be too much work for the implementor, and users would have
+to learn the module system anew for each syntax.
+
+Instead, the module `(config)' exports the module header form
+`(define-module ...)'.
+
+The config module also exports a number of primitives by which you can
+customize the Guile library, such as `language-alist' and `load-path'.
+
+*** Default module environment
+
+The bindings of the config module is available in the default
+interaction environment when Guile starts up.  This is because the
+config module is on the module use list for the startup environment.
+
+However, config bindings are *not* available by default in new
+modules.
+
+The default module environment provides bindings from the R5RS module
+only.
+
+*** Module headers
 
 The module header of the current module system is the form
 
@@ -131,82 +174,303 @@ foo.el:
   ...)
 ----------------------------------------------------------------------
 
+** Repl commands
+
+Up till now, Guile has been dependent upon the available bindings in
+the selected module in order to do basic operations such as moving to
+a different module, enter the debugger or getting documentation.
+
+This is not acceptable since we want be able to control Guile
+consistently regardless of in which module we are, and sinc we don't
+want to equip a module with bindings which don't have anything to do
+with the purpose of the module.
+
+Therefore, the repl provides a special command language on top of
+whatever syntax the current module provides.  (Scheme48 and RScheme
+provides similar repl command languages.)
+
+*** Repl command syntax
+
+Normally, repl commands have the syntax
+
+  ,COMMAND ARG1 ...
+
+Input starting with arbitrary amount of whitespace + a comma thus
+works as an escape syntax.
+
+This syntax is probably compatible with all languages.  (Note that we
+don't need to activate the lexer of the language until we've checked
+if the first non-whitespace char is a comma.)
+
+(Hypothetically, if this would become a problem, we can provide means
+of disabling this behaviour of the repl and let that particular
+language module take sole control of reading at the repl prompt.)
+
+Among the commands available are
+
+*** ,in MODULE
+
+Select module named MODULE, that is any new expressions typed by the
+user after this command will be evaluated in the evaluation
+environment provided by MODULE.
+
+*** ,in MODULE EXPR
+
+Evaluate expression EXPR in MODULE.  EXPR has the syntax supplied by
+the language used by MODULE.
+
+*** ,use MODULE
+
+Import all bindings exported by MODULE to the current module.
+
 * Language modules
+
+Since code written in any kind of language should be able to implement
+most tasks, which may include reading, evaluating and writing, and
+generally computing with, expressions and data originating from other
+languages, we want the basic reading, evaluation and printing
+operations to be independent of the language.
+
+That is, instead of supplying separate `read', `eval' and `write'
+procedures for different languages, a language module is required to
+use the system procedures in the translated code.
+
+This means that the behaviour of `read', `eval' and `write' are
+context dependent.  (See further "How Guile system procedures `read',
+`eval', `write' use language modules" below.)
+
+** Language data types
+
+Each language module should try to use the fundamental Scheme data
+types as far as this is possible.
+
+Some data types have important differences in semantics between
+languages, though, and all required data types may not exist in
+Guile.
+
+In such cases, the language module must supply its own, distinct, data
+types.  So, each language supported by Guile uses a certain set of
+data types, with the basic Scheme data types as the intersection
+between all sets.
+
+Specifically, syntax trees representing source code expressions should
+normally be a distinct data type.
+
+** Foreign language escape syntax
+
+Note that such data can flow freely between modules.  In order to
+accomodate data with different native syntaxes, each language module
+provides a foreign language escape syntax.  In Scheme, this syntax
+uses the sharp comma extension specified by SRFI-10.  The read
+constructor is simply the last symbol in the long language name (which
+is usually the same as the short language name).
+
+** Example1
+
+Characters have the syntax in Scheme and in ctax.  Lists currently
+have syntax in Scheme but lack ctax syntax.  Enums have syntax in ctax
+but lack Scheme syntax.
+
+The following table now shows the syntax used for reading and writing
+these expressions in module A using the language scheme, and module B
+using the language ctax (we assume that the foreign language escape
+syntax in ctax is #LANGUAGE EXPR):
+
+	  A		   B
+
+chars	  #\X		   'X'
+
+lists	  (1 2 3)	   #scheme (1 2 3)
+
+enums	  #,(ctax ENUM)	   ENUM
+
+** Example2
+
+  A user is typing expressions in a ctax module which imports the
+  bindings x and y from the module `(foo)':
+
+  ctax> x = read ();
+  1+2;
+  1+2;
+  ctax> x
+  1+2;
+  ctax> y = 1;
+  1
+  ctax> y;
+  1  
+  ctax> ,in (guile-user)
+  guile> ,use (foo)
+  guile> x
+  #,(ctax 1+2;)
+  guile> y
+  1
+  guile>
+
+The example shows that ctax uses a distinct representation for ctax
+expressions, but Scheme integers for integers.
+
+** Language module interface
 
 A language module is an ordinary Guile module importing bindings from
 other modules and exporting bindings through its public interface.
 
-It is required to export the following procedures:
+It is required to export the following variable and procedures:
 
-  language-environment --> ENVIRONMENT
+*** language-environment --> ENVIRONMENT
 
-    Returns a fresh top-level ENVIRONMENT (a module) where expressions
-    in this language are evaluated by default.
+Returns a fresh top-level ENVIRONMENT (a module) where expressions
+in this language are evaluated by default.
 
-    Modules using this language will by default have this environment
-    on their use list.
+Modules using this language will by default have this environment
+on their use list.
 
-    The intention is for this procedure to provide the "run-time
-    environment" for the language.
+The intention is for this procedure to provide the "run-time
+environment" for the language.
 
-  read-expression PORT --> EXPRESSION
+*** native-read PORT --> OBJECT
 
-    Read next expression in the foreign syntax from PORT and return an
-    object EXPRESSION representing it.
+Read next expression in the foreign syntax from PORT and return an
+object OBJECT representing it.
 
-    It is entirely up to the language module to define what one
-    expression is.  The representation of EXPRESSION is also chosen by
-    the language module.
+It is entirely up to the language module to define what one
+expression is, that is, how much to read.
 
-    This procedure will be called during interactive use (the user
-    types expressions at a prompt) and when the system `read'
-    procedure is called when a module using this language is selected.
+In lisp-like languages, `native-read' corresponds to `read'.  Note
+that in such languages, OBJECT need not be source code, but could
+be data.
 
-  translate EXPRESSION --> SCHEMECODE
+The representation of OBJECT is also chosen by the language
+module.  It can consist of Scheme data types, data types distinct for
+the language, or a mixture.
 
-    Translate an EXPRESSION into SCHEMECODE.
+There is one requirement, however: Distinct data types must be
+instances of a subclass of `language-specific-class'.
 
-    EXPRESSION can be anything returned by `read-expression'.
+This procedure will be called during interactive use (the user
+types expressions at a prompt) and when the system `read'
+procedure is called at a time when a module using this language is
+selected.
 
-    SCHEMECODE is Scheme source code represented using ordinary Scheme
-    data.  It will be passed to `eval' in an environment containing
-    bindings in the environment returned by `language-environment'.
+Some languages (for example Python) parse differently depending if
+its an interactive or non-interactive session.  Guile prvides the
+predicate `interactive-port?' to test for this.
 
-    This procedure will be called duing interactive use and when the
-    system `eval
+*** language-specific-class
 
-  translate-all PORT --> THUNK
+This variable contains the superclass of all non-Scheme data-types
+provided by the language.
 
-    Translate the entire stream of characters PORT until #<eof>.
-    Return a THUNK which can be called repeatedly like this:
+*** native-write OBJECT PORT
 
-      THUNK --> SCHEMECODE
+This procedure prints the OBJECT on PORT using the specific
+language syntax.
 
-    Each call will yield a new piece of scheme code.  #f is returned
-    to signal the end of the stream of scheme expressions.
+*** write-foreign-syntax OBJECT LANGUAGE NATIVE-WRITE PORT
 
-    This procedure will be called by the system `load' command and by
-    the module system when loading files.
+Write OBJECT in the foreign language escape syntax of this module.
+The object is specific to language LANGUAGE and can be written using
+NATIVE-WRITE.
 
-    The intensions are:
+Here's an implementation for Scheme:
 
-    1. To let the language module decide when and in how large chunks
-       to do the processing.  It may choose to do all processing at
-       the time translate-all is called, all processing when THUNK is
-       called the first time, or small pieces of processing each time
-       THUNK is called, or any conceivable combination.
+(define (write-foreign-syntax object language native-write port)
+  (format port "#(~A " language))
+  (native-write object port)
+  (display #\) port)
 
-    2. To let the language module decide in how large chunks to output
-       the resulting Scheme code in order not to overload memory.
+*** translate EXPRESSION --> SCHEMECODE
 
-    3. To enable the language module to use temporary files, and
-       whole-module analysis and optimization techniques.
+Translate an EXPRESSION into SCHEMECODE.
 
-  untranslate SCHEMECODE --> EXPRESSION
+EXPRESSION can be anything returned by `read'.
 
-    Attempt to do the inverse of `translate'.  An approximation is
-    OK.  It is also OK to return #f.  This procedure will be called
-    from the debugger, when generating error messages, backtraces etc.
+SCHEMECODE is Scheme source code represented using ordinary Scheme
+data.  It will be passed to `eval' in an environment containing
+bindings in the environment returned by `language-environment'.
+
+This procedure will be called duing interactive use and when the
+system `eval
+
+*** translate-all PORT [ALIST] --> THUNK
+
+Translate the entire stream of characters PORT until #<eof>.
+Return a THUNK which can be called repeatedly like this:
+
+  THUNK --> SCHEMECODE
+
+Each call will yield a new piece of scheme code.  #f is returned
+to signal the end of the stream of scheme expressions.  (Note that
+it isn't meaningful for THUNK to return immediates.  In fact, it's
+only meaningful to return expressions with side-effects.)
+
+The optional argument ALIST provides compilation options for the
+translator:
+
+  (debug . #t) means produce code suitable for debugging
+
+This procedure will be called by the system `load' command and by
+the module system when loading files.
+
+The intensions are:
+
+1. To let the language module decide when and in how large chunks
+   to do the processing.  It may choose to do all processing at
+   the time translate-all is called, all processing when THUNK is
+   called the first time, or small pieces of processing each time
+   THUNK is called, or any conceivable combination.
+
+2. To let the language module decide in how large chunks to output
+   the resulting Scheme code in order not to overload memory.
+
+3. To enable the language module to use temporary files, and
+   whole-module analysis and optimization techniques.
+
+*** untranslate SCHEMECODE --> EXPRESSION
+
+Attempt to do the inverse of `translate'.  An approximation is OK.  It
+is also OK to return #f.  This procedure will be called from the
+debugger, when generating error messages, backtraces etc.
+
+The debugger uses the local evaluation environment to determine from
+which module an expression come.  This is how the debugger can know
+which `untranslate' procedure to call for a given expression.
+
+(This is used currently to decide whether which backtrace frames to
+display.  System modules use the option :no-backtrace to prevent
+displaying of Guile's internals to the user.)
+
+Note that `untranslate' can use source-properties set by `native-read'
+to give hints about how to do the reverse translation.  Such hints
+could for example be the filename, and line and column numbers for the
+source expression, or an actual copy of the source expression.
+
+** How Guile system procedures `read', `eval', `write' use language modules
+
+*** read
+
+The idea is that the `read' exported from the R5RS library will
+continue work when called from other languages, and will keep its
+semantics.
+
+A call to `read' simply means "read in an expression from PORT using
+the syntax associated with that port".
+
+Each module carries information about its language.
+
+When an input port is created for a module to be read or during
+interaction with a given module, this information is copied to the
+port object.
+
+read uses this information to call `native-read' in the correct
+language module.
+
+*** eval
+
+[To be written.]
+
+*** write
+
+[To be written.]
 
 * Error handling
 
@@ -284,11 +548,19 @@ it.
 so that environment list structures can't leak out on the Scheme
 level.  (This has already been done in SCM.)
 
-** Introduce "read-states" (symmetrical to "print-states")
+** Introduce new fields in input ports
 
-These carries state information belonging to a read call chain, such
-as which keyword syntax to support, whether to be case sensitive or
-not, and, which lexical grammar to use.
+These carries state information such as
+
+*** which keyword syntax to support
+
+*** whether to be case sensitive or not
+
+*** which lexical grammar to use
+
+*** whether the port is used in an interactive session or not
+
+There will be a new Guile primitive `interactive-port?' testing for this.
 
 ** Move configuration of keyword syntax and case sensitivity to the read-state
 
