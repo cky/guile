@@ -27,6 +27,7 @@
 #include "libguile/strings.h"
 #include "libguile/gc.h"
 #include "libguile/dynl.h"
+#include "libguile/dynwind.h"
 
 #include "libguile/extensions.h"
 
@@ -71,17 +72,28 @@ static void
 load_extension (SCM lib, SCM init)
 {
   /* Search the registry. */
-  {
-    extension_t *ext;
+  if (registered_extensions != NULL)
+    {
+      extension_t *ext;
+      char *clib, *cinit;
 
-    for (ext = registered_extensions; ext; ext = ext->next)
-      if ((ext->lib == NULL || !strcmp (ext->lib, SCM_STRING_CHARS (lib)))
-	  && !strcmp (ext->init, SCM_STRING_CHARS (init)))
-	{
-	  ext->func (ext->data);
-	  return;
-	}
-  }
+      scm_frame_begin (0);
+
+      clib = scm_to_locale_string (lib);
+      scm_frame_free (clib);
+      cinit = scm_to_locale_string (init);
+      scm_frame_free (cinit);
+
+      for (ext = registered_extensions; ext; ext = ext->next)
+	if ((ext->lib == NULL || !strcmp (ext->lib, clib))
+	    && !strcmp (ext->init, cinit))
+	  {
+	    ext->func (ext->data);
+	    break;
+	  }
+
+      scm_frame_end ();
+    }
 
   /* Dynamically link the library. */
   scm_dynamic_call (init, scm_dynamic_link (lib));
@@ -90,7 +102,7 @@ load_extension (SCM lib, SCM init)
 void
 scm_c_load_extension (const char *lib, const char *init)
 {
-  load_extension (scm_makfrom0str (lib), scm_makfrom0str (init));
+  load_extension (scm_from_locale_string (lib), scm_from_locale_string (init));
 }
 
 SCM_DEFINE (scm_load_extension, "load-extension", 2, 0, 0,
@@ -131,8 +143,6 @@ SCM_DEFINE (scm_load_extension, "load-extension", 2, 0, 0,
 	    "@end lisp")
 #define FUNC_NAME s_scm_load_extension
 {
-  SCM_VALIDATE_STRING (1, lib);
-  SCM_VALIDATE_STRING (2, init);
   load_extension (lib, init);
   return SCM_UNSPECIFIED;
 }
