@@ -22,6 +22,10 @@ After signal handling and threading have been fixed:
 
 === In release 1.8.0:
 
+- remove re-exporting behaviour of `export'.
+    in boot-9.scm, remove begin-deprecated part of `module-export!' 
+    in format.scm, remove kluge at top
+
 - remove deprecated subr and gsubr functions
     in procs.h, procs.c: scm_make_subr, scm_make_subr_opt,
       scm_make_subr_with_generic,
@@ -45,7 +49,7 @@ After signal handling and threading have been fixed:
 - remove support for autoloading compiled-code modules:
     try-module-linked
     try-module-dynamic-link
-    init-dynamic-module
+    init-dynamic-module, etc.
     scm_register_module_xxx
     scm_registered_modules
     scm_clear_registered_modules

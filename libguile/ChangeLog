@@ -1,3 +1,8 @@
+2001-06-09  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* ports.c (scm_lfwrite): Maintain columnd and row count in port.
+	Thanks to Matthias Köppe!
+	
 2001-06-08  Michael Livshin  <mlivshin@bigfoot.com>
 
 	* snarf.h, filter-doc-snarfage.c: more changes to cope with

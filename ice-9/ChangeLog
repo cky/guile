@@ -1,3 +1,17 @@
+2001-06-09  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* pretty-print.scm (generic-write): Use `object->string' to print
+	unknown objects.
+
+	* optargs.scm (lambda*): Make sure that BODY is always put into a
+	real body context so that it can contain internal definitions.
+	Thanks to Matthias Köppe!
+	
+	* format.scm: Use (ice-9 and-let-star).
+	(format:out): Initialize format:output-col with current column of
+	`port', if it has one.  Else leave it alone.  Thanks to Matthias
+	Köppe!
+
 2001-06-05  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* boot-9.scm (module-ensure-local-variable!): Renamed from
