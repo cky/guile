@@ -17,15 +17,67 @@
 ;;;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
 ;;;; Boston, MA 02111-1307 USA
 
+(use-modules (ice-9 documentation))
+
+
+;;;
+;;; miscellaneous
+;;;
 
 ;; FIXME:  As soon as guile supports immutable strings, this has to be
 ;; replaced with the appropriate error type and message.
 (define exception:immutable-string
   (cons 'some-error-type "^trying to modify an immutable string"))
 
+(define (documented? object)
+  (not (not (object-documentation object))))
+
+
+;;;
+;;; symbol?
+;;;
+
+(with-test-prefix "symbol?"
+
+  (pass-if "documented?"
+    (documented? symbol?))
+
+  (pass-if "string"
+    (not (symbol? "foo")))
+
+  (pass-if "symbol"
+    (symbol? 'foo)))
+
+
+;;;
+;;; symbol->string
+;;;
 
 (with-test-prefix "symbol->string"
 
   (expect-fail-exception "result is an immutable string"
     exception:immutable-string
     (string-set! (symbol->string 'abc) 1 #\space)))
+
+
+;;;
+;;; gensym
+;;;
+
+(with-test-prefix "gensym"
+
+  (pass-if "documented?"
+    (documented? gensym))
+
+  (pass-if "produces a symbol"
+    (symbol? (gensym)))
+
+  (pass-if "produces a fresh symbol"
+    (not (eq? (gensym) (gensym))))
+
+  (pass-if "accepts a string prefix"
+    (symbol? (gensym "foo")))
+
+  (pass-if-exception "does not accept a symbol prefix"
+    exception:wrong-type-arg
+    (gensym 'foo)))

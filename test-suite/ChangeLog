@@ -1,3 +1,7 @@
+2001-04-02  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* tests/symbols.c:  Added some tests.
+
 2001-03-19  Gary Houston  <ghouston@arglist.com>
 
 	* tests/r4rs.test: use test-file-name to locate r4rs.test,
