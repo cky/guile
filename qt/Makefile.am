@@ -20,4 +20,4 @@ qtmdc.o: @qtmdc_c@ @qtmd_h@
 	mv @qtmdc_o@ qtmdc.o
 
 EXTRA_DIST = CHANGES README.MISC README.PORT b.h meas.c stp.c stp.h \
-PLUGIN/OPT Makefile.base config
+Makefile.base config

@@ -80,7 +80,7 @@ libqt_a_SOURCES = qt.c copyright.h
 libqt_a_LIBADD = qtmds.o qtmdc.o
 
 EXTRA_DIST = CHANGES README.MISC README.PORT b.h meas.c stp.c stp.h \
-PLUGIN/OPT Makefile.base config
+Makefile.base config
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = ../libguile/scmconfig.h
 CONFIG_CLEAN_FILES =  qt.h
@@ -238,7 +238,6 @@ distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
 
 subdir = qt
 distdir: $(DISTFILES)
-	$(mkinstalldirs) $(distdir)/PLUGIN
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
 	  test -f $(distdir)/$$file \
