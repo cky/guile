@@ -329,6 +329,16 @@ scm_i_card_statistics (scm_t_cell *p, SCM hashtab, scm_t_heap_segment *seg)
 	case scm_tcs_cons_nimcar:
 	  tag = scm_tc3_cons;
 	  break;
+
+	case scm_tcs_struct:
+	  tag = scm_tc3_struct;
+	  break;
+	case scm_tcs_closures:
+	  tag = scm_tc3_closure;
+	  break;
+	case scm_tcs_subrs:
+	  tag = scm_tc7_asubr;
+	  break;
 	}
       
       SCM tag_as_scm = scm_from_int (tag);

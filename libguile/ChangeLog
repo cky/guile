@@ -1,6 +1,10 @@
 2005-01-27  Han-Wen Nienhuys  <hanwen@xs4all.nl>
 
+	* gc-card.c (scm_i_card_statistics): map structs, closures and
+	subrs to one tag.
+
 	* gc.c (s_scm_gc_live_object_stats): return alist, not hashtable.
+	(tag_table_to_type_alist): ignore unknown types.
 
 	* gc-segment.c (scm_i_all_segments_statistics): new function.
 	(scm_i_heap_segment_statistics): new function
