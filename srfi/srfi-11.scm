@@ -1,6 +1,6 @@
 ;;; srfi-11.scm --- let-values and let*-values
 
-;; Copyright (C) 2000, 2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001, 2002, 2004 Free Software Foundation, Inc.
 ;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -67,6 +67,7 @@
 ;; I originally wrote this as a define-macro, but then I found out
 ;; that guile's gensym/gentemp was broken, so I tried rewriting it as
 ;; a syntax-rules statement.
+;;     [make-symbol now fixes gensym/gentemp problems.]
 ;;
 ;; Since syntax-rules didn't seem powerful enough to implement
 ;; let-values in one definition without exposing illegal syntax (or
@@ -167,9 +168,6 @@
 ;       ((_ ((vars binding) ...) body ...)
 ;        (lv-builder ((vars binding) ...) () body ...)))))
 
-;; FIXME: This is currently somewhat unsafe (b/c gentemp/gensym is
-;; broken -- right now (as of 1.4.1, it doesn't generate unique
-;; symbols)
 (define-macro (let-values vars . body)
 
   (define (map-1-dot proc elts)
@@ -189,7 +187,7 @@
 
   (define (let-values-helper vars body prev-let-vars)
     (let* ((var-binding (car vars))
-           (new-tmps (map-1-dot (lambda (sym) (gensym))
+           (new-tmps (map-1-dot (lambda (sym) (make-symbol "let-values-var"))
                                 (car var-binding)))
            (let-vars (map (lambda (sym tmp) (list sym tmp))
                           (undot-list (car var-binding))
