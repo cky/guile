@@ -1,3 +1,9 @@
+2003-01-10  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* Makefile.am (ice9_sources): Added occam-channel.scm.
+
+	* occam-channel.scm: New file.  Implements occam-like channels.
+
 2002-12-28  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* boot-9.scm (module-defined-hook): New hook, run whenever a new

@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in.
 ##
-##  	Copyright (C) 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
+##   Copyright (C) 1998,1999,2000,2001,2003 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##
@@ -34,7 +34,7 @@ ice9_sources =								   \
 	safe-r5rs.scm safe.scm session.scm slib.scm stack-catch.scm	   \
 	streams.scm string-fun.scm syncase.scm threads.scm	   	   \
 	buffered-input.scm time.scm history.scm channel.scm		   \
-        pretty-print.scm ftw.scm gap-buffer.scm
+        pretty-print.scm ftw.scm gap-buffer.scm occam-channel.scm
 
 subpkgdatadir = $(pkgdatadir)/${GUILE_EFFECTIVE_VERSION}/ice-9
 subpkgdata_DATA = $(ice9_sources)
