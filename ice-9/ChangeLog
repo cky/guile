@@ -1,3 +1,7 @@
+2003-03-13  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* session.scm (apropos): Don't look in duplicates interface.
+
 2003-03-12  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* boot-9.scm (duplicate-handlers): Make sure the merge-generics
