@@ -182,6 +182,15 @@
 /* Define if your readline library has the rl_getc_function variable.  */
 #undef HAVE_RL_GETC_FUNCTION
 
+/* Define if the compiler supports long longs.  */
+#undef HAVE_LONG_LONGS
+
+/* The number of bytes in a int.  */
+#undef SIZEOF_INT
+
+/* The number of bytes in a long.  */
+#undef SIZEOF_LONG
+
 /* Define if you have the bzero function.  */
 #undef HAVE_BZERO
 
@@ -451,6 +460,3 @@
 
 /* Define if you have the socket library (-lsocket).  */
 #undef HAVE_LIBSOCKET
-
-/* Define if you have the termcap library (-ltermcap).  */
-#undef HAVE_LIBTERMCAP
