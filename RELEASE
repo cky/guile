@@ -12,6 +12,10 @@ In release 1.5:
 - remove names evalext.c: serial-map,
                ramap.c:   serial-array-copy!, serial-array-map!
 
+Modules sort.c and random.c should be factored out into separate
+modules (but still be distributed with guile-core) when we get a new
+module system.
+
 Platforms for test builds:
 SunOS (gcc and pcc) --- galapas.ai.mit.edu
 Solaris (gcc and SUN cc) --- saturn.ai.mit.edu
