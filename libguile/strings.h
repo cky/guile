@@ -51,8 +51,8 @@
 
 
 
-#define SCM_SLOPPY_STRINGP(x) (SCM_TYP7S (x) == scm_tc7_string)
-#define SCM_STRINGP(x) (SCM_NIMP (x) && SCM_SLOPPY_STRINGP (x))
+#define SCM_STRINGP(x) (SCM_NIMP (x) && (SCM_TYP7S (x) == scm_tc7_string))
+#define SCM_STRING_CHARS(x) ((char *) (SCM_CELL_WORD_1 (x)))
 
 /* Is X a writable string (i.e., not a substring)?  */
 #define SCM_RWSTRINGP(x) (SCM_NIMP (x) && (SCM_TYP7 (x) == scm_tc7_string))
@@ -82,6 +82,7 @@ extern void scm_init_strings (void);
 
 #if (SCM_DEBUG_DEPRECATED == 0)
 
+#define SCM_SLOPPY_STRINGP(x) (SCM_STRINGP(x))
 #define SCM_NSTRINGP(x) (!SCM_STRINGP(x))
 #define SCM_NRWSTRINGP(x) (! SCM_RWSTRINGP (x))
 

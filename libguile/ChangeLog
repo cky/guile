@@ -1,3 +1,13 @@
+2000-09-22  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* strings.h (SCM_STRING_CHARS):  Added, should be used instead of
+	SCM_CHARS whenever the argument is known to be a string.
+
+	(SCM_SLOPPY_STRINGP):  Deprecated.
+
+	* symbols.h (SCM_SYMBOL_CHARS):  Added, should be used instead of
+	SCM_CHARS whenever the argument is known to be a symbol.
+
 2000-09-22  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* struct.c (scm_make_struct): Fix texinfo warning in docstring by

@@ -57,6 +57,7 @@ extern int scm_symhash_dim;
  */
 
 #define SCM_SYMBOLP(x)	(SCM_NIMP (x) && (SCM_TYP7 (x) == scm_tc7_symbol))
+#define SCM_SYMBOL_CHARS(x)  ((char *) (SCM_CELL_WORD_1 (x)))
 
 #define SCM_LENGTH_MAX		(0xffffffL)
 #define SCM_LENGTH(x)		(((unsigned long) SCM_CELL_WORD_0 (x)) >> 8)

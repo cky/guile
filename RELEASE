@@ -50,7 +50,7 @@ In release 1.6:
 - remove deprecated macros: SCM_OUTOFRANGE, SCM_NALLOC, SCM_HUP_SIGNAL, 
   SCM_INT_SIGNAL, SCM_FPE_SIGNAL, SCM_BUS_SIGNAL, SCM_SEGV_SIGNAL, 
   SCM_ALRM_SIGNAL, SCM_GC_SIGNAL, SCM_TICK_SIGNAL, SCM_SIG_ORD, 
-  SCM_ORD_SIG, SCM_NUM_SIGS
+  SCM_ORD_SIG, SCM_NUM_SIGS, SCM_SLOPPY_STRINGP
 - remove function scm_call_catching_errors
   (replaced by catch functions from throw.[ch])
 - remove support for "#&" reader syntax in (ice-9 optargs).
