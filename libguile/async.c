@@ -287,8 +287,8 @@ async_mark (SCM obj)
 
 
 SCM_DEFINE (scm_async, "async", 1, 0, 0,
-           (SCM thunk),
-"")
+	    (SCM thunk),
+	    "Create a new async for the procedure @var{thunk}.")
 #define FUNC_NAME s_scm_async
 {
   SCM_RETURN_NEWSMOB (tc16_async, SCM_UNPACK (thunk));
@@ -297,7 +297,8 @@ SCM_DEFINE (scm_async, "async", 1, 0, 0,
 
 SCM_DEFINE (scm_system_async, "system-async", 1, 0, 0,
             (SCM thunk),
-"")
+	    "Create a new async for the procedure @var{thunk}.  Also\n"
+	    "add it to the system's list of active async objects.")
 #define FUNC_NAME s_scm_system_async
 {
   SCM it;
@@ -314,7 +315,7 @@ SCM_DEFINE (scm_system_async, "system-async", 1, 0, 0,
 
 SCM_DEFINE (scm_async_mark, "async-mark", 1, 0, 0,
             (SCM a),
-"")
+	    "Mark the async @var{a} for future execution.")
 #define FUNC_NAME s_scm_async_mark
 {
   VALIDATE_ASYNC (1, a);
@@ -330,7 +331,7 @@ SCM_DEFINE (scm_async_mark, "async-mark", 1, 0, 0,
 
 SCM_DEFINE (scm_system_async_mark, "system-async-mark", 1, 0, 0,
            (SCM a),
-"")
+	    "Mark the async @var{a} for future execution.")
 #define FUNC_NAME s_scm_system_async_mark
 {
   VALIDATE_ASYNC (1, a);
@@ -349,8 +350,8 @@ SCM_DEFINE (scm_system_async_mark, "system-async-mark", 1, 0, 0,
 
 
 SCM_DEFINE (scm_run_asyncs, "run-asyncs", 1, 0, 0,
-           (SCM list_of_a),
-"")
+	    (SCM list_of_a),
+	    "Execute all thunks from the asyncs of the list @var{list_of_a}.")
 #define FUNC_NAME s_scm_run_asyncs
 {
 #ifdef GUILE_OLD_ASYNC_CLICK
@@ -382,8 +383,9 @@ SCM_DEFINE (scm_run_asyncs, "run-asyncs", 1, 0, 0,
 
 
 SCM_DEFINE (scm_noop, "noop", 0, 0, 1,
-           (SCM args),
-"")
+	    (SCM args),
+	    "Do nothing.  When called without arguments, return @code{#f},\n"
+	    "otherwise return the first argument.")
 #define FUNC_NAME s_scm_noop
 {
   SCM_VALIDATE_REST_ARGUMENT (args);
@@ -397,8 +399,9 @@ SCM_DEFINE (scm_noop, "noop", 0, 0, 1,
 #ifdef GUILE_OLD_ASYNC_CLICK
 
 SCM_DEFINE (scm_set_tick_rate, "set-tick-rate", 1, 0, 0,
-           (SCM n),
-"")
+	    (SCM n),
+	    "Set the rate of async ticks to @var{n}. Return the old rate\n"
+	    "value.")
 #define FUNC_NAME s_scm_set_tick_rate
 {
   unsigned int old_n = scm_tick_rate;
@@ -414,8 +417,9 @@ SCM_DEFINE (scm_set_tick_rate, "set-tick-rate", 1, 0, 0,
 
 
 SCM_DEFINE (scm_set_switch_rate, "set-switch-rate", 1, 0, 0,
-           (SCM n),
-"")
+	    (SCM n),
+	    "Set the async switch rate to @var{n}. Return the old value\n"
+	    "of the switch rate.")
 #define FUNC_NAME s_scm_set_switch_rate
 {
   unsigned int old_n = scm_switch_rate;
@@ -432,8 +436,8 @@ SCM_DEFINE (scm_set_switch_rate, "set-switch-rate", 1, 0, 0,
 
 
 SCM_DEFINE (scm_unmask_signals, "unmask-signals", 0, 0, 0,
-           (),
-"")
+	    (),
+	    "Unmask signals. The returned value is not specified.")
 #define FUNC_NAME s_scm_unmask_signals
 {
   scm_mask_ints = 0;
@@ -443,8 +447,8 @@ SCM_DEFINE (scm_unmask_signals, "unmask-signals", 0, 0, 0,
 
 
 SCM_DEFINE (scm_mask_signals, "mask-signals", 0, 0, 0,
-           (),
-"")
+	    (),
+	    "Mask signals. The returned value is not specified.")
 #define FUNC_NAME s_scm_mask_signals
 {
   scm_mask_ints = 1;
