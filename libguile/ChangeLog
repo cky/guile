@@ -1,5 +1,10 @@
 2004-08-25  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
+	* srfi-13.c: First cut at thread-safeness and proper use of
+	scm_i_string_chars et al.  Copious scm_remember_upto_heres have
+	been inserted.  Made sure that no internal string pointer is used
+	across a SCM_TICK or a possible GC.
+	
 	* script.c (scm_compile_shell_switches): Use
 	scm_from_locale_string instead of scm_makfrom0str.
 
