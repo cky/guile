@@ -1,3 +1,7 @@
+2000-01-12  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* libltdl/acconfig.h: New file: Needed by autogen.sh.
+
 Tue Jan 11 13:42:35 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* autogen.sh: Added messages as we run autogen in subdirectories.

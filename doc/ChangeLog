@@ -1,5 +1,8 @@
 2000-01-12  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
+	* Makefile.am (dist-hook): Updated to include oldfmt.c in
+	distribution archive.
+
 	* README: Updated with note about oldfmt.c.
 
 	* oldfmt.c: New file: Used by application writers to adapt to
