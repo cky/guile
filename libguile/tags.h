@@ -545,7 +545,7 @@ extern char *scm_isymnames[];   /* defined in print.c */
  */
 #define SCM_UNBOUND		SCM_MAKIFLAG (33)
 
-#define SCM_UNBNDP(x) 	(SCM_UNDEFINED == (x))
+#define SCM_UNBNDP(x)		(SCM_EQ_P ((x), SCM_UNDEFINED))
 
 
 

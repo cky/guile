@@ -224,7 +224,7 @@ gh_doubles2dvect (double *d, int n)
 int 
 gh_scm2bool (SCM obj)
 {
-  return ((obj) == SCM_BOOL_F) ? 0 : 1;
+  return (SCM_FALSEP (obj)) ? 0 : 1;
 }
 unsigned long 
 gh_scm2ulong (SCM obj)
@@ -687,7 +687,7 @@ SCM
 gh_module_lookup (SCM vec, char *sname)
 {
   SCM sym = gh_symbol2scm (sname);
-  if ((scm_symbol_bound_p (vec, sym)) == SCM_BOOL_T)
+  if (SCM_TRUE_P (scm_symbol_bound_p (vec, sym)))
     return scm_symbol_binding (vec, sym);
   else
     return SCM_UNDEFINED;

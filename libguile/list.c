@@ -69,7 +69,7 @@ scm_listify (SCM elt, ...)
   SCM *pos = &answer;
 
   var_start (foo, elt);
-  while (elt != SCM_UNDEFINED)
+  while (! SCM_UNBNDP (elt))
     {
       *pos = scm_cons (elt, SCM_EOL);
       pos = SCM_CDRLOC (*pos);
@@ -155,7 +155,7 @@ scm_ilength(SCM sx)
     /* For every two steps the hare takes, the tortoise takes one.  */
     tortoise = SCM_CDR(tortoise);
   }
-  while (hare != tortoise);
+  while (! SCM_EQ_P (hare, tortoise));
 
   /* If the tortoise ever catches the hare, then the list must contain
      a cycle.  */
@@ -266,7 +266,7 @@ SCM_DEFINE (scm_last_pair, "last-pair", 1, 0, 0,
     hare = ahead;
     tortoise = SCM_CDR(tortoise);
   }
-  while (hare != tortoise);
+  while (! SCM_EQ_P (hare, tortoise));
   SCM_MISC_ERROR ("Circular structure in position 1: ~S", SCM_LIST1 (lst));
 }
 #undef FUNC_NAME
@@ -294,7 +294,7 @@ SCM_DEFINE (scm_reverse, "reverse", 1, 0, 0,
       hare = SCM_CDR (hare);
       tortoise = SCM_CDR (tortoise);
     }
-  while (hare != tortoise);
+  while (! SCM_EQ_P (hare, tortoise));
   SCM_MISC_ERROR ("Circular structure in position 1: ~S", SCM_LIST1 (lst));
 }
 #undef FUNC_NAME
@@ -479,7 +479,7 @@ SCM_DEFINE (scm_sloppy_memq, "sloppy-memq", 2, 0, 0,
 {
   for(;  SCM_CONSP (lst);  lst = SCM_CDR(lst))
     {
-      if (SCM_CAR(lst)==x)
+      if (SCM_EQ_P (SCM_CAR (lst), x))
 	return lst;
     }
   return lst;
@@ -496,7 +496,7 @@ SCM_DEFINE (scm_sloppy_memv, "sloppy-memv", 2, 0, 0,
 {
   for(;  SCM_CONSP (lst);  lst = SCM_CDR(lst))
     {
-      if (SCM_BOOL_F != scm_eqv_p (SCM_CAR(lst), x))
+      if (! SCM_FALSEP (scm_eqv_p (SCM_CAR (lst), x)))
 	return lst;
     }
   return lst;
@@ -513,7 +513,7 @@ SCM_DEFINE (scm_sloppy_member, "sloppy-member", 2, 0, 0,
 {
   for(;  SCM_CONSP (lst);  lst = SCM_CDR(lst))
     {
-      if (SCM_BOOL_F != scm_equal_p (SCM_CAR(lst), x))
+      if (! SCM_FALSEP (scm_equal_p (SCM_CAR (lst), x)))
 	return lst;
     }
   return lst;
@@ -534,7 +534,7 @@ SCM_DEFINE (scm_memq, "memq", 2, 0, 0,
   SCM answer;
   SCM_VALIDATE_LIST (2,lst);
   answer = scm_sloppy_memq (x, lst);
-  return (answer == SCM_EOL) ? SCM_BOOL_F : answer;
+  return (SCM_NULLP (answer)) ? SCM_BOOL_F : answer;
 }
 #undef FUNC_NAME
 
@@ -552,7 +552,7 @@ SCM_DEFINE (scm_memv, "memv", 2, 0, 0,
   SCM answer;
   SCM_VALIDATE_LIST (2,lst);
   answer = scm_sloppy_memv (x, lst);
-  return (answer == SCM_EOL) ? SCM_BOOL_F : answer;
+  return (SCM_NULLP (answer)) ? SCM_BOOL_F : answer;
 }
 #undef FUNC_NAME
 
@@ -569,7 +569,7 @@ SCM_DEFINE (scm_member, "member", 2, 0, 0,
   SCM answer;
   SCM_VALIDATE_LIST (2,lst);
   answer = scm_sloppy_member (x, lst);
-  return (answer == SCM_EOL) ? SCM_BOOL_F : answer;
+  return (SCM_NULLP (answer)) ? SCM_BOOL_F : answer;
 }
 #undef FUNC_NAME
 
@@ -596,7 +596,7 @@ SCM_DEFINE (scm_delq_x, "delq!", 2, 0, 0,
        SCM_CONSP (walk);
        walk = SCM_CDR (walk))
     {
-      if (SCM_CAR (walk) == item)
+      if (SCM_EQ_P (SCM_CAR (walk), item))
 	*prev = SCM_CDR (walk);
       else
 	prev = SCM_CDRLOC (walk);
@@ -619,7 +619,7 @@ SCM_DEFINE (scm_delv_x, "delv!", 2, 0, 0,
        SCM_CONSP (walk);
        walk = SCM_CDR (walk))
     {
-      if (SCM_BOOL_F != scm_eqv_p (SCM_CAR (walk), item))
+      if (! SCM_FALSEP (scm_eqv_p (SCM_CAR (walk), item)))
 	*prev = SCM_CDR (walk);
       else
 	prev = SCM_CDRLOC (walk);
@@ -643,7 +643,7 @@ SCM_DEFINE (scm_delete_x, "delete!", 2, 0, 0,
        SCM_CONSP (walk);
        walk = SCM_CDR (walk))
     {
-      if (SCM_BOOL_F != scm_equal_p (SCM_CAR (walk), item))
+      if (! SCM_FALSEP (scm_equal_p (SCM_CAR (walk), item)))
 	*prev = SCM_CDR (walk);
       else
 	prev = SCM_CDRLOC (walk);
@@ -710,7 +710,7 @@ SCM_DEFINE (scm_delq1_x, "delq1!", 2, 0, 0,
        SCM_CONSP (walk);
        walk = SCM_CDR (walk))
     {
-      if (SCM_CAR (walk) == item)
+      if (SCM_EQ_P (SCM_CAR (walk), item))
 	{
 	  *prev = SCM_CDR (walk);
 	  break;
@@ -737,7 +737,7 @@ SCM_DEFINE (scm_delv1_x, "delv1!", 2, 0, 0,
        SCM_CONSP (walk);
        walk = SCM_CDR (walk))
     {
-      if (SCM_BOOL_F != scm_eqv_p (SCM_CAR (walk), item))
+      if (! SCM_FALSEP (scm_eqv_p (SCM_CAR (walk), item)))
 	{
 	  *prev = SCM_CDR (walk);
 	  break;
@@ -764,7 +764,7 @@ SCM_DEFINE (scm_delete1_x, "delete1!", 2, 0, 0,
        SCM_CONSP (walk);
        walk = SCM_CDR (walk))
     {
-      if (SCM_BOOL_F != scm_equal_p (SCM_CAR (walk), item))
+      if (! SCM_FALSEP (scm_equal_p (SCM_CAR (walk), item)))
 	{
 	  *prev = SCM_CDR (walk);
 	  break;

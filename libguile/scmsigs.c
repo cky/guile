@@ -240,7 +240,7 @@ SCM_DEFINE (scm_sigaction, "sigaction", 1, 2, 0,
   old_handler = scheme_handlers[csig];
   if (SCM_UNBNDP (handler))
     query_only = 1;
-  else if (scm_integer_p (handler) == SCM_BOOL_T)
+  else if (SCM_TRUE_P (scm_integer_p (handler)))
     {
       if (SCM_NUM2LONG (2,handler) == (long) SIG_DFL
 	  || SCM_NUM2LONG (2,handler) == (long) SIG_IGN)

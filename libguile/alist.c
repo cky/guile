@@ -87,7 +87,7 @@ SCM_DEFINE (scm_sloppy_assq, "sloppy-assq", 2, 0, 0,
   for (; SCM_CONSP (alist); alist = SCM_CDR (alist))
     {
       SCM tmp = SCM_CAR (alist);
-      if (SCM_CONSP (tmp) && SCM_CAR (tmp) == key)
+      if (SCM_CONSP (tmp) && SCM_EQ_P (SCM_CAR (tmp), key))
 	return tmp;
     }
   return SCM_BOOL_F;
@@ -151,7 +151,7 @@ SCM_DEFINE (scm_assq, "assq", 2, 0, 0,
     {
       SCM tmp = SCM_CAR (alist);
       SCM_VALIDATE_CONS (SCM_ARG2, tmp);
-      if (SCM_CAR (tmp) == key) 
+      if (SCM_EQ_P (SCM_CAR (tmp), key))
 	return tmp;
     }
   SCM_VALIDATE_NULL (2, alist);

@@ -67,7 +67,7 @@ SCM_DEFINE (scm_boolean_p, "boolean?", 1, 0, 0,
             "Return #t iff OBJ is either #t or #f.\n")
 #define FUNC_NAME s_scm_boolean_p
 {
-  return SCM_BOOL(SCM_BOOL_F == obj || SCM_BOOL_T == obj);
+  return SCM_BOOL (SCM_BOOLP (obj));
 }
 #undef FUNC_NAME
 

@@ -1,3 +1,27 @@
+2000-03-29  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* alist.c (scm_sloppy_assq, scm_assq), eq.c (scm_eq_p, scm_eqv_p,
+	scm_equal_p), list.c (scm_ilength, scm_last_pair, scm_reverse,
+	scm_sloppy_memq, scm_delq_x, scm_delq1_x), tags.h (SCM_UNBNDP):
+	Don't use C operators == and != to compare SCM values, use
+	SCM_EQ_P instead.
+
+	* boolean.c (scm_boolean_p):  Use SCM_BOOLP to determine whether a
+	SCM value is equal to #t or #f.
+
+	* eq.c (scm_eqv_p, scm_equal_p):  Don't use SCM_CAR to access the
+	cell type entry of non immediate objects of unknown type.  Use
+	SCM_CELL_TYPE instead.
+
+	* gh_data.c (gh_scm2bool, gh_module_lookup), list.c
+	(scm_sloppy_memv, scm_sloppy_member, scm_delv_x, scm_delete_x,
+	scm_delv1_x, scm_delete1_x), scmsigs.c (scm_sigaction):  Use
+	SCM_FALSEP and SCM_TRUE_P to compare SCM values against #f and
+	#t.
+
+	* list.c (scm_listify):  Use SCM_UNBNDP to test for an unbound
+	scheme value.
+
 2000-03-29  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* coop-threads.c (scm_call_with_new_thread, scm_spawn_thread,

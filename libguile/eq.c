@@ -65,7 +65,7 @@ SCM_DEFINE1 (scm_eq_p, "eq?", scm_tc7_rpsubr,
              "those detectable by `eqv?'.\n")
 #define FUNC_NAME s_scm_eq_p
 {
-  return SCM_BOOL(x==y);
+  return SCM_BOOL (SCM_EQ_P (x, y));
 }
 #undef FUNC_NAME
 
@@ -79,14 +79,14 @@ SCM_DEFINE1 (scm_eqv_p, "eqv?", scm_tc7_rpsubr,
              "immediate integers, characters, and inexact numbers.\n")
 #define FUNC_NAME s_scm_eqv_p
 {
-  if (x == y)
+  if (SCM_EQ_P (x, y))
     return SCM_BOOL_T;
   if (SCM_IMP (x))
     return SCM_BOOL_F;
   if (SCM_IMP (y))
     return SCM_BOOL_F;
   /* this ensures that types and scm_length are the same. */
-  if (SCM_CAR (x) != SCM_CAR (y))
+  if (SCM_CELL_TYPE (x) != SCM_CELL_TYPE (y))
     {
       /* treat mixes of real and complex types specially */
       if (SCM_SLOPPY_INEXACTP (x))
@@ -130,7 +130,7 @@ SCM_DEFINE1 (scm_equal_p, "equal?", scm_tc7_rpsubr,
   SCM_CHECK_STACK;
  tailrecurse:
   SCM_TICK;
-  if (x == y)
+  if (SCM_EQ_P (x, y))
     return SCM_BOOL_T;
   if (SCM_IMP (x))
     return SCM_BOOL_F;
@@ -147,7 +147,7 @@ SCM_DEFINE1 (scm_equal_p, "equal?", scm_tc7_rpsubr,
   if (SCM_TYP7S (x) == scm_tc7_string && SCM_TYP7S (y) == scm_tc7_string)
     return scm_string_equal_p (x, y);
   /* This ensures that types and scm_length are the same.  */
-  if (SCM_CAR (x) != SCM_CAR (y))
+  if (SCM_CELL_TYPE (x) != SCM_CELL_TYPE (y))
     {
       /* treat mixes of real and complex types specially */
       if (SCM_SLOPPY_INEXACTP (x))
