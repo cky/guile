@@ -71,6 +71,109 @@ SCM_REGISTER_PROC (s_srfi1_concatenate,   "concatenate",  1, 0, 0, scm_append);
 SCM_REGISTER_PROC (s_srfi1_concatenate_x, "concatenate!", 1, 0, 0, scm_append_x);
 
 
+SCM_DEFINE (scm_srfi1_count, "count", 2, 0, 1,
+            (SCM pred, SCM lst1, SCM rest),
+	    "Return a count of the number of times @var{pred} returns true\n"
+	    "when called on elements from the given lists.\n"
+	    "\n"
+	    "@var{pred} is called with @var{N} parameters @code{(@var{pred}\n"
+	    "@var{elem1} @dots{} @var{elemN})}, each element being from the\n"
+	    "corresponding @var{lst1} @dots{} @var{lstN}.  The first call is\n"
+	    "with the first element of each list, the second with the second\n"
+	    "element from each, and so on.\n"
+	    "\n"
+	    "Counting stops when the end of the shortest list is reached.\n"
+	    "At least one list must be non-circular.")
+#define FUNC_NAME s_scm_srfi1_count
+{
+  long  count;
+  SCM_VALIDATE_REST_ARGUMENT (rest);
+
+  count = 0;
+
+  if (SCM_NULLP (rest))
+    {
+      /* one list */
+      scm_t_trampoline_1 pred_tramp;
+      pred_tramp = scm_trampoline_1 (pred);
+      SCM_ASSERT (pred_tramp, pred, SCM_ARG1, FUNC_NAME);
+
+      for ( ; SCM_CONSP (lst1); lst1 = SCM_CDR (lst1))
+        count += ! SCM_FALSEP (pred_tramp (pred, SCM_CAR (lst1)));
+
+    end_lst1:
+      SCM_ASSERT_TYPE (SCM_NULL_OR_NIL_P (lst1), lst1, SCM_ARG2, FUNC_NAME,
+                       "list");
+    }
+  else if (SCM_CONSP (rest) && SCM_NULLP (SCM_CDR (rest)))
+    {
+      /* two lists */
+      scm_t_trampoline_2 pred_tramp;
+      SCM lst2;
+
+      pred_tramp = scm_trampoline_2 (pred);
+      SCM_ASSERT (pred_tramp, pred, SCM_ARG1, FUNC_NAME);
+
+      lst2 = SCM_CAR (rest);
+      for (;;)
+        {
+          if (! SCM_CONSP (lst1))
+            goto end_lst1;
+          if (! SCM_CONSP (lst2))
+            {
+              SCM_ASSERT_TYPE (SCM_NULL_OR_NIL_P (lst2), lst2, SCM_ARG3,
+                               FUNC_NAME, "list");
+              break;
+            }
+          count += ! SCM_FALSEP (pred_tramp
+                                 (pred, SCM_CAR (lst1), SCM_CAR (lst2)));
+          lst1 = SCM_CDR (lst1);
+          lst2 = SCM_CDR (lst2);
+        }
+    }
+  else
+    {
+      /* three or more lists */
+      SCM  lstlst, args, l, a, lst;
+      int  argnum;
+
+      /* lstlst is a list of the list arguments */
+      lstlst = scm_cons (lst1, rest);
+
+      /* args is the argument list to pass to pred, same length as lstlst,
+         re-used for each call */
+      args = SCM_EOL;
+      for (l = lstlst; SCM_CONSP (l); l = SCM_CDR (l))
+        args = scm_cons (SCM_BOOL_F, args);
+
+      for (;;)
+        {
+          /* first elem of each list in lstlst into args, and step those
+             lstlst entries onto their next element */
+          for (l = lstlst, a = args, argnum = 2;
+               SCM_CONSP (l);
+               l = SCM_CDR (l), a = SCM_CDR (a), argnum++)
+            {
+              lst = SCM_CAR (l);  /* list argument */
+              if (! SCM_CONSP (lst))
+                {
+                  SCM_ASSERT_TYPE (SCM_NULL_OR_NIL_P (lst), lst,
+                                   argnum, FUNC_NAME, "list");
+                  goto done;
+                }
+              SCM_SETCAR (a, SCM_CAR (lst));  /* arg for pred */
+              SCM_SETCAR (l, SCM_CDR (lst));  /* keep rest of lst */
+            }
+
+          count += ! SCM_FALSEP (scm_apply (pred, args, SCM_EOL));
+        }
+    }
+ done:
+  return SCM_MAKINUM (count);
+}
+#undef FUNC_NAME
+
+
 SCM_DEFINE (scm_srfi1_delete, "delete", 2, 1, 0,
             (SCM x, SCM lst, SCM pred),
 	    "Return a list containing the elements of @var{lst} but with\n"

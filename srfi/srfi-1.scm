@@ -442,25 +442,6 @@
   (values (map1 first l) (map1 second l) (map1 third l) (map1 fourth l)
 	  (map1 fifth l)))
 
-(define (count pred clist1 . rest)
-  (if (null? rest)
-      (count1 pred clist1)
-      (let lp ((lists (cons clist1 rest)))
-	(cond ((any1 null? lists)
-	       0)
-	      (else
-	       (if (apply pred (map1 car lists))
-		 (+ 1 (lp (map1 cdr lists)))
-		 (lp (map1 cdr lists))))))))
-
-(define (count1 pred clist)
-  (let lp ((result 0) (rest clist))
-    (if (null? rest)
-	result
-	(if (pred (car rest))
-	    (lp (+ 1 result) (cdr rest))
-	    (lp result (cdr rest))))))
-
 ;;; Fold, unfold & map
 
 (define (fold kons knil list1 . rest)
