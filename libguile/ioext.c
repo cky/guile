@@ -53,6 +53,7 @@
 #include "unif.h"
 #include "chars.h"
 #include "feature.h"
+#include "strings.h"
 
 #include "validate.h"
 #include "ioext.h"

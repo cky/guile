@@ -70,7 +70,6 @@
 #include "numbers.h"		/* Everyone deals with fixnums.  */
 #include "symbols.h"		/* For length, chars, values, miscellany.  */
 #include "boolean.h"		/* Everyone wonders about the truth.  */
-#include "strings.h"		/* Everyone loves string.  */
 #include "root.h"		/* Everyone uses these objects.  */
 #include "async.h"		/* Everyone allows/disallows ints.  */
 #ifdef USE_THREADS

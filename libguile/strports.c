@@ -55,6 +55,7 @@
 #include "eval.h"
 #include "ports.h"
 #include "read.h"
+#include "strings.h"
 #include "vectors.h"
 
 #include "strports.h"

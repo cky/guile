@@ -51,6 +51,7 @@
 #include "feature.h"
 #include "ports.h"
 #include "smob.h"
+#include "strings.h"
 #include "vectors.h"
 
 #include "validate.h"

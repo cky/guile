@@ -49,6 +49,7 @@
 
 #include <stdio.h>
 #include "_scm.h"
+#include "strings.h"
 
 #include "options.h"
 

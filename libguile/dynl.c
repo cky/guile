@@ -70,6 +70,7 @@ maybe_drag_in_eprintf ()
 #include "smob.h"
 #include "keywords.h"
 #include "ports.h"
+#include "strings.h"
 
 #include "validate.h"
 

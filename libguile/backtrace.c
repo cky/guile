@@ -63,6 +63,7 @@
 #include "throw.h"
 #include "fluids.h"
 #include "ports.h"
+#include "strings.h"
 
 #include "validate.h"
 #include "backtrace.h"

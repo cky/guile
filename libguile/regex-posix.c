@@ -82,6 +82,7 @@
 #include "strports.h"
 #include "ports.h"
 #include "feature.h"
+#include "strings.h"
 
 #include "validate.h"
 #include "regex-posix.h"

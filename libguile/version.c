@@ -45,6 +45,7 @@
 
 
 #include "_scm.h"
+#include "strings.h"
 #include "versiondat.h"
 
 #include "version.h"

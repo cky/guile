@@ -26,6 +26,7 @@ Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
 #include <stdio.h>
 #include "_scm.h"
 #include "chars.h"
+#include "strings.h"
 
 #include "validate.h"
 #include "strop.h"

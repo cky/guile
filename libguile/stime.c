@@ -47,6 +47,7 @@
 #include <stdio.h>
 #include "_scm.h"
 #include "feature.h"
+#include "strings.h"
 #include "vectors.h"
 
 #include "validate.h"

@@ -48,6 +48,7 @@
 #include "_scm.h"
 
 #include "scmsigs.h"
+#include "strings.h"
 
 #include "validate.h"
 #include "simpos.h"

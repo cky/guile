@@ -51,6 +51,7 @@
 #include "ports.h"
 #include "procprop.h"
 #include "smob.h"
+#include "strings.h"
 
 #include "validate.h"
 #include "feature.h"

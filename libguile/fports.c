@@ -47,6 +47,7 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include "_scm.h"
+#include "strings.h"
 
 #include "validate.h"
 #include "fports.h"

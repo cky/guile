@@ -52,6 +52,7 @@
 #include "weaks.h"
 #include "hashtab.h"
 #include "ports.h"
+#include "strings.h"
 
 #include "validate.h"
 #include "struct.h"

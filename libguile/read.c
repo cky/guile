@@ -55,6 +55,7 @@
 #include "hashtab.h"
 #include "hash.h"
 #include "ports.h"
+#include "strings.h"
 #include "vectors.h"
 
 #include "validate.h"

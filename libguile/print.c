@@ -58,6 +58,7 @@
 #include "struct.h"
 #include "objects.h"
 #include "ports.h"
+#include "strings.h"
 #include "strports.h"
 #include "vectors.h"
 

@@ -48,6 +48,7 @@
 
 #include "_scm.h"
 #include "pairs.h"
+#include "strings.h"
 #include "throw.h"
 
 #include "validate.h"

@@ -53,6 +53,7 @@
 #include "throw.h"
 #include "alist.h"
 #include "dynwind.h"
+#include "strings.h"
 
 #include "validate.h"
 #include "load.h"

@@ -1,5 +1,16 @@
 2000-03-17  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* _scm.h:  Don't include strings.h everywhere...
+
+	* backtrace.c dynl.c error.c feature.c filesys.c fports.c gc.c
+	gdbint.c ioext.c load.c net_db.c numbers.c objects.c options.c
+	ports.c posix.c print.c procs.c random.c read.c regex-posix.c
+	simpos.c socket.c stacks.c stime.c strop.c strports.c struct.c
+	symbols.c unif.c vectors.c version.c vports.c: ... only include it
+	here.
+
+2000-03-17  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* _scm.h:  Don't include ports.h everywhere...
 
 	* arbiters.c backtrace.c debug.c dynl.c dynwind.c eval.c feature.c
