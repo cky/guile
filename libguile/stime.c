@@ -218,9 +218,10 @@ SCM_DEFINE (scm_current_time, "current-time", 0, 0, 0,
   timet timv;
 
   SCM_DEFER_INTS;
-  if ((timv = time (0)) == -1)
-    SCM_MISC_ERROR ("current time not available", SCM_EOL);
+  timv = time (NULL);
   SCM_ALLOW_INTS;
+  if (timv == -1)
+    SCM_MISC_ERROR ("current time not available", SCM_EOL);
   return scm_from_long (timv);
 }
 #undef FUNC_NAME
@@ -235,11 +236,17 @@ SCM_DEFINE (scm_gettimeofday, "gettimeofday", 0, 0, 0,
 {
 #ifdef HAVE_GETTIMEOFDAY
   struct timeval time;
+  int ret, err;
 
   SCM_DEFER_INTS;
-  if (gettimeofday (&time, NULL) == -1)
-    SCM_SYSERROR;
+  ret = gettimeofday (&time, NULL);
+  err = errno;
   SCM_ALLOW_INTS;
+  if (ret == -1)
+    {
+      errno = err;
+      SCM_SYSERROR;
+    }
   return scm_cons (scm_from_long (time.tv_sec),
 		   scm_from_long (time.tv_usec));
 #else
@@ -251,11 +258,17 @@ SCM_DEFINE (scm_gettimeofday, "gettimeofday", 0, 0, 0,
 		   scm_from_int (time.millitm * 1000));
 # else
   timet timv;
+  int err;
 
   SCM_DEFER_INTS;
-  if ((timv = time (0)) == -1)
-    SCM_SYSERROR;
+  timv = time (NULL);
+  err = errno;
   SCM_ALLOW_INTS;
+  if (timv == -1)
+    {
+      errno = err;
+      SCM_SYSERROR;
+    }
   return scm_cons (scm_from_long (timv), scm_from_int (0));
 # endif
 #endif
@@ -726,7 +739,9 @@ SCM_DEFINE (scm_strptime, "strptime", 2, 0, 0,
      fields, hence the use of SCM_DEFER_INTS.  */
   t.tm_isdst = -1;
   SCM_DEFER_INTS;
-  if ((rest = strptime (str, fmt, &t)) == NULL)
+  rest = strptime (str, fmt, &t);
+  SCM_ALLOW_INTS;
+  if (rest == NULL)
     {
       /* POSIX doesn't say strptime sets errno, and on glibc 2.3.2 for
          instance it doesn't.  Force a sensible value for our error
@@ -735,7 +750,6 @@ SCM_DEFINE (scm_strptime, "strptime", 2, 0, 0,
       SCM_SYSERROR;
     }
 
-  SCM_ALLOW_INTS;
   return scm_cons (filltime (&t, 0, NULL),
 		   scm_from_signed_integer (rest - str));
 }
