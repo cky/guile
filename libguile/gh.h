@@ -179,8 +179,8 @@ SCM gh_append4(SCM l1, SCM l2, SCM l3, SCM l4);
 #define gh_list_tail(ls, k) scm_list_tail(ls, k)
 #define gh_list_ref(ls, k) scm_list_ref(ls, k)
 #define gh_memq(x, ls) scm_memq(x, ls)
-#define gh_memv(x, ls) scm_memqv(x, ls)
-#define gh_member(x, ls) scm_memqber(x, ls)
+#define gh_memv(x, ls) scm_memv(x, ls)
+#define gh_member(x, ls) scm_member(x, ls)
 #define gh_assq(x, alist) scm_assq(x, alist)
 #define gh_assv(x, alist) scm_assv(x, alist)
 #define gh_assoc(x, alist) scm_assoc(x, alist)
@@ -215,6 +215,7 @@ SCM gh_call3 (SCM proc, SCM arg1, SCM arg2, SCM arg3);
 
 /* reading and writing Scheme objects.  */
 void gh_display (SCM x);
+void gh_write (SCM x);
 void gh_newline (void);
 
 /* void  gh_gc_mark(SCM)              : mark an SCM as in use. */
