@@ -408,12 +408,10 @@ uvec_to_list (int type, SCM uvec)
   SCM res = SCM_EOL;
 
   elts = uvec_elements (type, uvec, &handle, &len, &inc);
-  if (type < 0)
-    type = uvec_type (&handle);
   for (i = len*inc; i > 0;)
     {
       i -= inc;
-      res = scm_cons (uvec_fast_ref (type, elts, i), res);
+      res = scm_cons (scm_array_handle_ref (&handle, i), res);
     }
   scm_array_handle_release (&handle);
   return res;
@@ -1000,6 +998,36 @@ SCM_DEFINE (scm_uniform_vector_write, "uniform-vector-write", 1, 3, 0,
 #define TAG   c64
 #define CTYPE double
 #include "libguile/srfi-4.i.c"
+
+static scm_i_t_array_ref uvec_reffers[12] = {
+  u8ref, s8ref,
+  u16ref, s16ref,
+  u32ref, s32ref,
+  u64ref, s64ref,
+  f32ref, f64ref,
+  c32ref, c64ref
+};
+
+static scm_i_t_array_set uvec_setters[12] = {
+  u8set, s8set,
+  u16set, s16set,
+  u32set, s32set,
+  u64set, s64set,
+  f32set, f64set,
+  c32set, c64set
+};
+
+scm_i_t_array_ref
+scm_i_uniform_vector_ref_proc (SCM uvec)
+{
+  return uvec_reffers[SCM_UVEC_TYPE(uvec)];
+}
+
+scm_i_t_array_set
+scm_i_uniform_vector_set_proc (SCM uvec)
+{
+  return uvec_setters[SCM_UVEC_TYPE(uvec)];
+}
 
 void
 scm_init_srfi_4 (void)

@@ -180,6 +180,18 @@ F(scm_,TAG,vector_writable_elements) (SCM uvec,
   return F(scm_array_handle_,TAG,_writable_elements) (h);
 }
 
+static SCM
+F(,TAG,ref) (scm_t_array_handle *handle, ssize_t pos)
+{
+  return uvec_fast_ref (TYPE, handle->elements, pos);
+}
+
+static void
+F(,TAG,set) (scm_t_array_handle *handle, ssize_t pos, SCM val)
+{
+  uvec_fast_set_x (TYPE, handle->writable_elements, pos, val);
+}
+
 #undef paste
 #undef s_paste
 #undef stringify

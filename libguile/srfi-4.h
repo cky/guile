@@ -299,6 +299,8 @@ SCM_API double *scm_c64vector_writable_elements (SCM uvec,
 
 SCM_API SCM scm_i_generalized_vector_type (SCM vec);
 SCM_API const char *scm_i_uniform_vector_tag (SCM uvec);
+SCM_API scm_i_t_array_ref scm_i_uniform_vector_ref_proc (SCM uvec);
+SCM_API scm_i_t_array_set scm_i_uniform_vector_set_proc (SCM uvec);
 
 #if SCM_ENABLE_DEPRECATED
 
