@@ -1,3 +1,9 @@
+2003-03-21  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* autogen.sh: Invoke autoreconf twice since the required files do
+	not seem to be generated in the right order.  XXX - investigate
+	further.
+
 2003-03-19  Marius Vollmer  <mvo@zagadka.de>
 
 	* guile-tools.in (guileversion): Use $GUILE_EFFECTIVE_VERSION
