@@ -446,13 +446,18 @@ multiple values with a procedure which accepts these values as
 parameters.
 
 @rnindex values
-@deffn {Scheme Procedure} values . args
+@deffn {Scheme Procedure} values arg1 @dots{} argN
 @deffnx {C Function} scm_values (args)
 Delivers all of its arguments to its continuation.  Except for
 continuations created by the @code{call-with-values} procedure,
 all continuations take exactly one value.  The effect of
 passing no value or more than one value to continuations that
 were not created by @code{call-with-values} is unspecified.
+
+For @code{scm_values}, @var{args} is a list of arguments and the
+return is a multiple-values object which the caller can return.  In
+the current implementation that object shares structure with
+@var{args}, so @var{args} should not be modified subsequently.
 @end deffn
 
 @rnindex call-with-values
