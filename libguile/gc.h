@@ -153,11 +153,18 @@ typedef struct scm_cell
 #define SCM_PTR_GE(x, y) (!SCM_PTR_LT (x, y))
 
 
-/* the allocated thing: The car of newcells are set to
+/* Dirk:FIXME:: */
+/* Freelists consist of linked cells where the type entry holds the value
+ * scm_tc_free_cell and the second entry holds a pointer to the next cell of
+ * the freelist.  Due to this structure, freelist cells are not cons cells
+ * and thus may not be accessed using SCM_CAR and SCM_CDR.
+ */
+
+/* the allocated thing:  The car of new cells is set to
    scm_tc16_allocated to avoid the fragile state of newcells wrt the
-   gc. If it stays as a freecell, any allocation afterwards could
+   gc.  If it stays as a freecell, any allocation afterwards could
    cause the cell to go back on the freelist, which will bite you
-   sometime afterwards */
+   sometime afterwards. */
 
 #ifdef GUILE_DEBUG_FREELIST
 #define SCM_NEWCELL(_into) do { _into = scm_debug_newcell (); } while (0)
@@ -175,8 +182,8 @@ typedef struct scm_cell
           else \
             { \
                _into = scm_freelist; \
-               scm_freelist = SCM_CDR (scm_freelist);\
-               SCM_SETCAR (_into, scm_tc16_allocated); \
+               scm_freelist = SCM_CDR (scm_freelist); \
+               SCM_SET_CELL_TYPE (_into, scm_tc16_allocated); \
             } \
         } while(0)
 #define SCM_NEWCELL2(_into) \
@@ -187,32 +194,32 @@ typedef struct scm_cell
           else \
             { \
                _into = scm_freelist2; \
-               scm_freelist2 = SCM_CDR (scm_freelist2);\
-               SCM_SETCAR (_into, scm_tc16_allocated); \
+               scm_freelist2 = SCM_CDR (scm_freelist2); \
+               SCM_SET_CELL_TYPE (_into, scm_tc16_allocated); \
             } \
         } while(0)
 #else /* GUILE_NEW_GC_SCHEME */
 #define SCM_NEWCELL(_into) \
         do { \
           if (SCM_IMP (scm_freelist.cells)) \
-             _into = scm_gc_for_newcell (&scm_freelist);\
+             _into = scm_gc_for_newcell (&scm_freelist); \
           else \
             { \
                _into = scm_freelist.cells; \
-               scm_freelist.cells = SCM_CDR (scm_freelist.cells);\
-               SCM_SETCAR (_into, scm_tc16_allocated); \
+               scm_freelist.cells = SCM_CDR (scm_freelist.cells); \
+               SCM_SET_CELL_TYPE (_into, scm_tc16_allocated); \
                ++scm_cells_allocated; \
             } \
         } while(0)
 #define SCM_NEWCELL2(_into) \
         do { \
           if (SCM_IMP (scm_freelist2.cells)) \
-             _into = scm_gc_for_newcell (&scm_freelist2);\
+             _into = scm_gc_for_newcell (&scm_freelist2); \
           else \
             { \
                _into = scm_freelist2.cells; \
-               scm_freelist2.cells = SCM_CDR (scm_freelist2.cells);\
-               SCM_SETCAR (_into, scm_tc16_allocated); \
+               scm_freelist2.cells = SCM_CDR (scm_freelist2.cells); \
+               SCM_SET_CELL_TYPE (_into, scm_tc16_allocated); \
                scm_cells_allocated += 2; \
             } \
         } while(0)
@@ -220,15 +227,15 @@ typedef struct scm_cell
 #endif
 
 
-#define SCM_FREEP(x) (SCM_NIMP(x) && SCM_UNPACK_CAR (x)==scm_tc_free_cell)
-#define SCM_NFREEP(x) (!SCM_FREEP(x))
+#define SCM_FREEP(x) (SCM_NIMP (x) && (SCM_CELL_TYPE (x) == scm_tc_free_cell))
+#define SCM_NFREEP(x) (!SCM_FREEP (x))
 
 /* 1. This shouldn't be used on immediates.
    2. It thinks that subrs are always unmarked (harmless). */
-#define SCM_MARKEDP(x) ((SCM_UNPACK_CAR (x) & 5) == 5 \
-			? SCM_GC8MARKP(x) \
-			: SCM_GCMARKP(x))
-#define SCM_NMARKEDP(x) (!SCM_MARKEDP(x))
+#define SCM_MARKEDP(x) ((SCM_CELL_TYPE (x) & 5) == 5 \
+			? SCM_GC8MARKP (x) \
+			: SCM_GCMARKP (x))
+#define SCM_NMARKEDP(x) (!SCM_MARKEDP (x))
 
 extern struct scm_heap_seg_data_t *scm_heap_table;
 extern int scm_n_heap_segs;
