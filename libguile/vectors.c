@@ -156,7 +156,7 @@ scm_make_vector(k, fill, multip)
 
   SCM_ASSERT(SCM_INUMP(k) && (0 <= SCM_INUM (k)), k, SCM_ARG1, s_make_vector);
   if (SCM_UNBNDP(fill))
-    fill = SCM_EOL;
+    fill = SCM_UNSPECIFIED;
   multi = !(SCM_UNBNDP(multip) || SCM_FALSEP(multip));
   i = SCM_INUM(k);
   SCM_NEWCELL(v);
