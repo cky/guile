@@ -256,6 +256,7 @@ scm_regexp_exec (SCM rx, SCM str, SCM start, SCM flags)
 	SCM_VELTS(mvec)[i+1] = scm_cons(SCM_MAKINUM(matches[i].rm_so + offset),
 					SCM_MAKINUM(matches[i].rm_eo + offset));
     }
+  scm_must_free ((char *) matches);
   SCM_ALLOW_INTS;
 
   if (status != 0 && status != REG_NOMATCH)
