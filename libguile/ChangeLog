@@ -2,6 +2,7 @@
 
 	* posix.c (scm_crypt): Use new HAVE_CRYPT.
 	(<crypt.h>): Remove HAVE_LIBCRYPT condition.
+	Reported by Andreas Voegele.
 
 2004-02-20  Neil Jerram  <neil@ossau.uklinux.net>
 
