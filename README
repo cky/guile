@@ -86,6 +86,56 @@ license statement as found in any individual file that it applies to:
  whether to permit this exception to apply to your modifications.
  If you do not wish that, delete this exception notice.
 
+Handling of Deprecated Features ======================================
+
+Guile may contain features that are `deprecated'.  When a feature is
+deprecated, it means that it is still there and fully functional, but
+that there is a better way of achieving the same thing, and we'd
+rather have you use this better way.  This allows us to eventually
+remove the old implementation and helps to keep Guile reasonably clean
+of historic baggage.
+
+See the file NEWS for a list of features that are currently
+deprecated.  Each entry will also tell you what you should replace
+your code with.
+
+To give you some help with this process, and to encourage (OK, nudge)
+people to switch to the newer methods, Guile can emit warnings or
+errors when you use a deprecated feature.  There is quite a range of
+possibilities, from being completely silent to giving errors at link
+time.  What exactly happens is determined both by the value of the
+`--enable-deprecated' configuration option when Guile was built, and
+by the GUILE_WARN_DEPRECATED environment variable.
+
+It works like this:
+
+  When Guile has been configured with `--enable-deprecated=no' (or,
+  equivalently, with `--disable-deprecated') then all deprecated
+  features are omitted from Guile.  You will get "undefined
+  reference", "variable unbound" or similar errors when you try to use
+  them.
+
+  When `--enable-deprecated=LEVEL' has been specified (for LEVEL not
+  "no"), LEVEL will be used as the default value of the environment
+  variable GUILE_WARN_DEPRECATED.  A value of "yes" is changed to
+  "summary", however.
+
+  When GUILE_WARN_DEPRECATION has the value "no", nothing special will
+  happen when a deprecated feature is used.
+
+  When GUILE_WARN_DEPRECATION has the value "summary", and a deprecated
+  feature has been used, Guile will print this message at exit:
+
+    Some deprecated features have been used.  Set the environment
+    variable GUILE_WARN_DEPRECATED to "detailed" and rerun the program
+    to get more information.  Set it to "no" to suppress this message.
+
+  When GUILE_WARN_DEPRECATION has the value "detailed", a detailed
+  warning is emitted immediatly for the first use of a deprecated
+  feature.
+
+The default is `--enable-deprecation=yes'.
+
 About This Distribution ==============================================
 
 Interesting files include:
