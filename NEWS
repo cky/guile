@@ -87,6 +87,9 @@ Example:
 
 * Changes to Scheme functions and syntax
 
+** Escape procedures created by call-with-current-continuation now
+accept any number of arguments, as required by R5RS.
+
 ** New function `make-object-property'
 
 This function returns a new `procedure with setter' P that can be used
@@ -302,6 +305,9 @@ Use a type specific setter macro instead of SCM_SETCHARS.
 Use a type specific length macro instead of SCM_LENGTH_MAX.
 
 ** Removed function:  scm_struct_init
+
+** Renamed function: scm_make_cont has been replaced by
+scm_make_continuation, which has a different interface.
 
 ** Deprecated function:  scm_call_catching_errors
 
