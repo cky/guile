@@ -154,6 +154,3 @@
 
 /* Define if the compiler supports long longs.  */
 #undef HAVE_LONG_LONGS
-
-/* Define if GCC has GCSE optimisation bug.  */
-#undef BROKEN_GCSE
