@@ -32,7 +32,7 @@ GUILE_SNARF = ../libguile/guile-snarf
 
 lib_LTLIBRARIES = libguilereadline.la
 
-libguilereadline_la_SOURCES = readline.h readline.c
+libguilereadline_la_SOURCES = readline.c
 
 BUILT_SOURCES = readline.x
 
@@ -48,7 +48,9 @@ SUFFIXES = .x
 
 EXTRA_DIST = readline.scm
 
-DISTCLEANFILES = *.x
+MKDEP = gcc -M -MG $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
+
+CLEANFILES = *.x
 
 dist-hook:
 	(temp="/tmp/mangle-deps.$$$$"; \
