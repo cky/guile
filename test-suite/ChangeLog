@@ -1,6 +1,7 @@
 2004-09-02  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/format.test (~@d): New tests.
+	New tests of excess arguments now ignored.
 
 2004-09-01  Han-Wen Nienhuys <hanwen@cs.uu.nl>, Kevin Ryde <user42@zip.com.au>
 

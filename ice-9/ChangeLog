@@ -1,3 +1,9 @@
+2004-09-02  Kevin Ryde  <user42@zip.com.au>
+
+	* format.scm (format:out): Ignore excess arguments, per common lisp.
+
+	* format.scm (format:out-num-padded): Print "+" on 0 under @ modifier.
+
 2004-08-27  Kevin Ryde  <user42@zip.com.au>
 
 	* regex.scm (regexp-quote): [ and | must be quoted.  Quote ( ) { + ?
