@@ -1072,6 +1072,7 @@ SCM_REGISTER_PROC(s_array_ref, "array-ref", 1, 0, 1, scm_uniform_vector_ref);
 
 SCM_DEFINE (scm_uniform_vector_ref, "uniform-vector-ref", 2, 0, 0,
            (SCM v, SCM args),
+	    "@deffnx primitive array-ref v . args\n"
 	    "Returns the element at the @code{(index1, index2)} element in @var{array}.")
 #define FUNC_NAME s_scm_uniform_vector_ref
 {
@@ -1245,6 +1246,7 @@ SCM_REGISTER_PROC(s_uniform_array_set1_x, "uniform-array-set1!", 3, 0, 0, scm_ar
    PROC is used (and it's called from C too).  */
 SCM_DEFINE (scm_array_set_x, "array-set!", 2, 0, 1, 
            (SCM v, SCM obj, SCM args),
+	    "@deffnx primitive uniform-array-set1! v obj args\n"
 	    "Sets the element at the @code{(index1, index2)} element in @var{array} to\n"
 	    "@var{new-value}.  The value returned by array-set! is unspecified.")
 #define FUNC_NAME s_scm_array_set_x           
