@@ -8,6 +8,10 @@ AUTOMAKE_OPTIONS = foreign
 INCLUDES = -I.. -I$(srcdir)/..
 
 lib_LTLIBRARIES = libguile.la
+bin_PROGRAMS = guile
+
+guile_SOURCES = guile.c
+guile_LDADD = libguile.la ${THREAD_LIBS}
 
 libguile_la_SOURCES = \
     alist.c append.c appinit.c arbiters.c async.c boolean.c chars.c \
@@ -17,13 +21,14 @@ libguile_la_SOURCES = \
     hashtab.c init.c ioext.c kw.c list.c load.c mallocs.c markers.c \
     mbstrings.c net_db.c numbers.c objprop.c options.c pairs.c ports.c \
     posix.c print.c procprop.c procs.c ramap.c read.c root.c scmsigs.c \
-    sequences.c simpos.c smob.c socket.c stackchk.c stime.c strings.c \
-    strop.c strorder.c strports.c struct.c symbols.c tag.c throw.c unif.c \
-    variable.c vectors.c version.c vports.c weaks.c
+    script.c sequences.c simpos.c smob.c socket.c stackchk.c stime.c \
+    strings.c strop.c strorder.c strports.c struct.c symbols.c tag.c \
+    throw.c unif.c variable.c vectors.c version.c vports.c weaks.c
+
 EXTRA_libguile_la_SOURCES = _scm.h \
     backtrace.c stacks.c debug.c srcprop.c \
     strerror.c inet_aton.c putenv.c \
-    threads.c
+    threads.c alloca.c
 
 ## This is kind of nasty... there are ".c" files that we don't want to
 ## compile, since they are #included in threads.c.  So instead we list
@@ -48,7 +53,7 @@ modinclude_HEADERS = __scm.h alist.h append.h arbiters.h async.h \
     gdb_interface.h gdbint.h genio.h gsubr.h hash.h hashtab.h init.h \
     ioext.h kw.h list.h load.h mallocs.h markers.h mbstrings.h net_db.h \
     numbers.h objprop.h options.h pairs.h ports.h posix.h print.h \
-    procprop.h procs.h ramap.h read.h root.h scmhob.h scmsigs.h \
+    procprop.h procs.h ramap.h read.h root.h scmhob.h scmsigs.h script.h \
     sequences.h simpos.h smob.h socket.h srcprop.h stackchk.h stacks.h \
     stime.h strings.h strop.h strorder.h strports.h struct.h symbols.h \
     tag.h tags.h throw.h unif.h variable.h vectors.h version.h vports.h \
@@ -68,7 +73,7 @@ gh_test_c_LDADD = ${check_ldadd}
 gh_test_repl_SOURCES = gh_test_repl.c
 gh_test_repl_LDADD = ${check_ldadd}
 
-EXTRA_DIST = gscm.c gscm.h ChangeLog-scm dynl-dl.c dynl-dld.c dynl-shl.c \
+EXTRA_DIST = ChangeLog-scm dynl-dl.c dynl-dld.c dynl-shl.c \
     dynl-vms.c DYNAMIC-LINKING PLUGIN/REQ PLUGIN/guile.config \
     PLUGIN/guile.libs.in cpp_signal.c cpp_errno.c cpp_err_symbols.in \
     cpp_sig_symbols.in cpp_cnvt.awk \
