@@ -1954,6 +1954,40 @@
 
 
 
+
+;; {EVAL-CASE}
+;;
+;; (eval-case ((situation*) forms)* (else forms)?)
+;;
+;; Evaluate certain code based on the situation that eval-case is used
+;; in.  The only defined situation right now is `load-toplevel' which
+;; triggers for code evaluated at the top-level, for example from the
+;; REPL or when loading a file.
+ 
+(define eval-case
+  (procedure->memoizing-macro
+   (lambda (exp env)
+     (define (toplevel-env? env)
+       (or (not (pair? env)) (not (pair? (car env)))))
+     (define (syntax)
+       (error "syntax error in eval-case"))
+     (let loop ((clauses (cdr exp)))
+       (cond 
+	((null? clauses)
+	 #f)
+	((not (list? (car clauses)))
+	 (syntax))
+	((eq? 'else (caar clauses))
+	 (or (null? (cdr clauses))
+	     (syntax))
+	 (cons 'begin (cdar clauses)))
+	((not (list? (caar clauses)))
+	 (syntax))
+	((and (toplevel-env? env)
+	      (memq 'load-toplevel (caar clauses)))
+	 (cons 'begin (cdar clauses)))
+	(else
+	 (loop (cdr clauses))))))))
 
 
 ;;; {Macros}
@@ -2536,40 +2570,6 @@
 	     (car rest)
 	     `(lambda ,(cdr first) ,@rest))))
     `(define ,name (defmacro:syntax-transformer ,transformer))))
-
-;; EVAL-CASE
-;;
-;; (eval-case ((situation*) forms)* (else forms)?)
-;;
-;; Evaluate certain code based on the situation that eval-case is used
-;; in.  The only defined situation right now is `load-toplevel' which
-;; triggers for code evaluated at the top-level, for example from the
-;; REPL or when loading a file.
- 
-(define eval-case
-  (procedure->memoizing-macro
-   (lambda (exp env)
-     (define (toplevel-env? env)
-       (or (not (pair? env)) (not (pair? (car env)))))
-     (define (syntax)
-       (error "syntax error in eval-case"))
-     (let loop ((clauses (cdr exp)))
-       (cond 
-	((null? clauses)
-	 #f)
-	((not (list? (car clauses)))
-	 (syntax))
-	((eq? 'else (caar clauses))
-	 (or (null? (cdr clauses))
-	     (syntax))
-	 (cons 'begin (cdar clauses)))
-	((not (list? (caar clauses)))
-	 (syntax))
-	((and (toplevel-env? env)
-	      (memq 'load-toplevel (caar clauses)))
-	 (cons 'begin (cdar clauses)))
-	(else
-	 (loop (cdr clauses))))))))
 
 
 ;;; {Module System Macros}
