@@ -41,6 +41,7 @@
 
 
 #include <stdio.h>
+#include <gmp.h>
 
 #include "libguile/_scm.h"
 #include "libguile/eval.h"
@@ -256,13 +257,10 @@ scm_i_sweep_card (scm_t_cell *  p, SCM *free_list, scm_t_heap_segment*seg)
 	    case scm_tc_free_cell:
 	    case scm_tc16_real:
 	      break;
-#ifdef SCM_BIGDIG
-	    case scm_tc16_big:
-	      scm_gc_free (SCM_BDIGITS (scmptr),
-			   ((SCM_NUMDIGS (scmptr) * SCM_BITSPERDIG
-			     / SCM_CHAR_BIT)), "bignum");
-	      break;
-#endif /* def SCM_BIGDIG */
+            case scm_tc16_big:
+              mpz_clear (SCM_I_BIG_MPZ (scmptr));
+              /* nothing else to do here since the mpz is in a double cell */
+              break;
 	    case scm_tc16_complex:
 	      scm_gc_free (SCM_COMPLEX_MEM (scmptr), 2*sizeof (double),
 			   "complex");
