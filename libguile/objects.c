@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995, 1996, 1999 Free Software Foundation, Inc.
+/*	Copyright (C) 1995, 1996, 1999, 2000 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -158,14 +158,7 @@ scm_class_of (SCM x)
 	case scm_tc7_smob:
 	  {
 	    long type = SCM_TYP16 (x);
-	    if (type == scm_tc16_flo)
-	      {
-		if (SCM_UNPACK_CAR (x) & SCM_IMAG_PART)
-		  return scm_class_complex;
-		else
-		  return scm_class_real;
-	      }
-	    else if (type != scm_tc16_port_with_ps)
+	    if (type != scm_tc16_port_with_ps)
 	      return scm_smob_class[SCM_TC2SMOBNUM (type)];
 	    x = SCM_PORT_WITH_PS_PORT (x);
 	    /* fall through to ports */

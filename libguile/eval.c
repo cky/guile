@@ -1786,11 +1786,7 @@ scm_deval_args (SCM l, SCM env, SCM proc, SCM *lloc)
  */
 
 #ifndef DEVAL
-#ifdef SCM_FLOATS
 #define CHECK_EQVISH(A,B) 	(((A) == (B)) || (SCM_NFALSEP (scm_eqv_p ((A), (B)))))
-#else
-#define CHECK_EQVISH(A,B) 	((A) == (B))
-#endif
 #endif /* DEVAL */
 
 #define BUILTIN_RPASUBR /* Handle rpsubrs and asubrs without calling apply */
@@ -2736,7 +2732,6 @@ evapply:
 	case scm_tc7_subr_1o:
 	  RETURN (SCM_SUBRF (proc) (t.arg1));
 	case scm_tc7_cxr:
-#ifdef SCM_FLOATS
 	  if (SCM_SUBRF (proc))
 	    {
 	      if (SCM_INUMP (t.arg1))
@@ -2759,7 +2754,6 @@ evapply:
 	      SCM_WTA_DISPATCH_1 (*SCM_SUBR_GENERIC (proc), t.arg1,
 				  SCM_ARG1, SCM_CHARS (SCM_SNAME (proc)));
 	    }
-#endif
 	  proc = (SCM) SCM_SNAME (proc);
 	  {
 	    char *chrs = SCM_CHARS (proc) + SCM_LENGTH (proc) - 1;
@@ -3332,7 +3326,6 @@ tail:
       RETURN (SCM_SUBRF (proc) (arg1))
     case scm_tc7_cxr:
       SCM_ASRTGO (SCM_NULLP (args), wrongnumargs);
-#ifdef SCM_FLOATS
       if (SCM_SUBRF (proc))
 	{
 	  if (SCM_INUMP (arg1))
@@ -3352,7 +3345,6 @@ tail:
 	  SCM_WTA_DISPATCH_1 (*SCM_SUBR_GENERIC (proc), arg1,
 			      SCM_ARG1, SCM_CHARS (SCM_SNAME (proc)));
 	}
-#endif
       proc = (SCM) SCM_SNAME (proc);
       {
 	char *chrs = SCM_CHARS (proc) + SCM_LENGTH (proc) - 1;

@@ -2,7 +2,7 @@
 
 #ifndef UNIFH
 #define UNIFH
-/*	Copyright (C) 1995,1996,1997,1999 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996,1997,1999, 2000 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -96,7 +96,6 @@ extern long scm_tc16_array;
 
 
 extern scm_sizet scm_uniform_element_size (SCM obj);
-extern SCM scm_makflo (float x);
 extern SCM scm_make_uve (long k, SCM prot);
 extern SCM scm_uniform_vector_length (SCM v);
 extern SCM scm_array_p (SCM v, SCM prot);

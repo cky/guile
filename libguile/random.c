@@ -1,4 +1,4 @@
-/*      Copyright (C) 1999 Free Software Foundation, Inc.
+/*      Copyright (C) 1999, 2000 Free Software Foundation, Inc.
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2, or (at your option)
@@ -380,7 +380,7 @@ SCM_DEFINE (scm_random, "random", 1, 1, 0,
   if (SCM_REALP (n))
     return scm_makdbl (SCM_REALPART (n) * scm_c_uniform01 (SCM_RSTATE (state)),
 		       0.0);
-  SCM_VALIDATE_SMOB (1,n,bigpos);
+  SCM_VALIDATE_SMOB (1, n, big);
   return scm_c_random_bignum (SCM_RSTATE (state), n);
 }
 #undef FUNC_NAME

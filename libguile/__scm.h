@@ -48,7 +48,7 @@
  * These may be defined or undefined.
  */
 
-/* #define GUILE_DEBUG_FREELIST */
+#define GUILE_DEBUG_FREELIST
 
 /* If the compile FLAG `SCM_CAUTIOUS' is #defined then the number of
  * arguments is always checked for application of closures.  If the
@@ -69,7 +69,6 @@
 
 /* All the number support there is.
  */
-#define SCM_FLOATS
 #define BIGNUMS
 
 /* GC should relinquish empty cons-pair arenas. 

@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996,1997 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996,1997, 2000 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -94,13 +94,12 @@ scm_hasher(SCM obj, unsigned long n, scm_sizet d)
       return 263 % n;
     case scm_tc7_smob:
       switch SCM_TYP16(obj) {
-      case scm_tcs_bignums:
+      case scm_tc16_big:
         return SCM_INUM(scm_modulo(obj, SCM_MAKINUM(n)));
       default: 
 	return 263 % n;
-#ifdef SCM_FLOATS
-      case scm_tc16_flo:
-	if SCM_REALP(obj) {
+      case scm_tc16_real:
+	{
 	  double r = SCM_REALPART(obj);
 	  if (floor(r)==r) {
 	    obj = scm_inexact_to_exact (obj);
@@ -108,8 +107,8 @@ scm_hasher(SCM obj, unsigned long n, scm_sizet d)
 	    return SCM_INUM(scm_modulo(obj, SCM_MAKINUM(n)));
 	  }
 	}
+      case scm_tc16_complex:
 	obj = scm_number_to_string(obj, SCM_MAKINUM(10));
-#endif
       }
     case scm_tcs_symbols:
     case scm_tc7_string:

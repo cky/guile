@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996,1997,1998 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996,1997,1998, 2000 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -76,21 +76,39 @@ SCM_DEFINE1 (scm_eqv_p, "eqv?", scm_tc7_rpsubr,
              "immediate integers, characters, and inexact numbers.\n")
 #define FUNC_NAME s_scm_eqv_p
 {
-  if (x==y) return SCM_BOOL_T;
-  if (SCM_IMP(x)) return SCM_BOOL_F;
-  if (SCM_IMP(y)) return SCM_BOOL_F;
-  /* this ensures that types and scm_length are the same. */
-  if (SCM_CAR(x) != SCM_CAR(y)) return SCM_BOOL_F;
-  if (SCM_NUMP(x)) {
-# ifdef SCM_BIGDIG
-    if (SCM_BIGP(x)) return SCM_BOOL(0==scm_bigcomp(x, y));
-# endif
-#ifdef SCM_FLOATS
-    if (SCM_REALPART(x) != SCM_REALPART(y)) return SCM_BOOL_F;
-    if (SCM_CPLXP(x) && (SCM_IMAG(x) != SCM_IMAG(y))) return SCM_BOOL_F;
-#endif
+  if (x == y)
     return SCM_BOOL_T;
-  }
+  if (SCM_IMP (x))
+    return SCM_BOOL_F;
+  if (SCM_IMP (y))
+    return SCM_BOOL_F;
+  /* this ensures that types and scm_length are the same. */
+  if (SCM_CAR (x) != SCM_CAR (y))
+    {
+      /* treat mixes of real and complex types specially */
+      if (SCM_SLOPPY_INEXACTP (x))
+	{
+	  if (SCM_SLOPPY_REALP (x))
+	    return SCM_BOOL (SCM_SLOPPY_COMPLEXP (y)
+			     && SCM_REAL_VALUE (x) == SCM_COMPLEX_REAL (y)
+			     && 0.0 == SCM_COMPLEX_IMAG (y));
+	  else
+	    return SCM_BOOL (SCM_SLOPPY_REALP (y)
+			     && SCM_COMPLEX_REAL (x) == SCM_REAL_VALUE (y)
+			     && SCM_COMPLEX_IMAG (x) == 0.0);
+	}
+      return SCM_BOOL_F;
+    }
+  if (SCM_NUMP (x))
+    {
+# ifdef SCM_BIGDIG
+      if (SCM_BIGP (x))
+	return SCM_BOOL (0 == scm_bigcomp (x, y));
+# endif
+      if (SCM_REALPART (x) != SCM_REALPART(y)) return SCM_BOOL_F;
+      if (SCM_CPLXP(x) && (SCM_IMAG(x) != SCM_IMAG(y))) return SCM_BOOL_F;
+      return SCM_BOOL_T;
+    }
   return SCM_BOOL_F;
 }
 #undef FUNC_NAME
@@ -107,48 +125,71 @@ SCM_DEFINE1 (scm_equal_p, "equal?", scm_tc7_rpsubr,
 #define FUNC_NAME s_scm_equal_p
 {
   SCM_CHECK_STACK;
- tailrecurse: SCM_TICK;
-	if (x==y) return SCM_BOOL_T;
-	if (SCM_IMP(x)) return SCM_BOOL_F;
-	if (SCM_IMP(y)) return SCM_BOOL_F;
-	if (SCM_CONSP(x) && SCM_CONSP(y)) {
-		if SCM_FALSEP(scm_equal_p(SCM_CAR(x), SCM_CAR(y))) return SCM_BOOL_F;
-		x = SCM_CDR(x);
-		y = SCM_CDR(y);
-		goto tailrecurse;
-	}
-	if (SCM_TYP7S (x) == scm_tc7_string
-	    && SCM_TYP7S (y) == scm_tc7_string)
-	  return scm_string_equal_p (x, y);
-	/* This ensures that types and scm_length are the same.  */
-	if (SCM_CAR(x) != SCM_CAR(y)) return SCM_BOOL_F;
-	switch (SCM_TYP7(x)) {
-        default: return SCM_BOOL_F;
-	case scm_tc7_vector:
-	case scm_tc7_wvect:
-	  return scm_vector_equal_p(x, y);
-	case scm_tc7_smob: {
-	        int i = SCM_SMOBNUM(x);
-	        if (!(i < scm_numsmob)) return SCM_BOOL_F;
-	        if (scm_smobs[i].equalp)
-		  return (scm_smobs[i].equalp)(x, y);
-		else
-		  return SCM_BOOL_F;
-	      }
-#ifdef HAVE_ARRAYS
-	case scm_tc7_bvect: case scm_tc7_uvect: case scm_tc7_ivect:
-	case scm_tc7_fvect:	case scm_tc7_cvect: case scm_tc7_dvect:
-	case scm_tc7_svect:
-#ifdef HAVE_LONG_LONGS
-	case scm_tc7_llvect:
-#endif
-	case scm_tc7_byvect:
-	  if (   scm_tc16_array
-	      && scm_smobs[0x0ff & (scm_tc16_array >> 8)].equalp)
-	    return scm_array_equal_p(x, y);
-#endif
-	}
+ tailrecurse:
+  SCM_TICK;
+  if (x == y)
+    return SCM_BOOL_T;
+  if (SCM_IMP (x))
+    return SCM_BOOL_F;
+  if (SCM_IMP (y))
+    return SCM_BOOL_F;
+  if (SCM_SLOPPY_CONSP (x) && SCM_SLOPPY_CONSP (y))
+    {
+      if (SCM_FALSEP (scm_equal_p (SCM_CAR (x), SCM_CAR (y))))
 	return SCM_BOOL_F;
+      x = SCM_CDR(x);
+      y = SCM_CDR(y);
+      goto tailrecurse;
+    }
+  if (SCM_TYP7S (x) == scm_tc7_string && SCM_TYP7S (y) == scm_tc7_string)
+    return scm_string_equal_p (x, y);
+  /* This ensures that types and scm_length are the same.  */
+  if (SCM_CAR (x) != SCM_CAR (y))
+    {
+      /* treat mixes of real and complex types specially */
+      if (SCM_SLOPPY_INEXACTP (x))
+	{
+	  if (SCM_SLOPPY_REALP (x))
+	    return SCM_BOOL (SCM_SLOPPY_COMPLEXP (y)
+			     && SCM_REAL_VALUE (x) == SCM_COMPLEX_REAL (y)
+			     && 0.0 == SCM_COMPLEX_IMAG (y));
+	  else
+	    return SCM_BOOL (SCM_SLOPPY_REALP (y)
+			     && SCM_COMPLEX_REAL (x) == SCM_REAL_VALUE (y)
+			     && SCM_COMPLEX_IMAG (x) == 0.0);
+	}
+      return SCM_BOOL_F;
+    }
+  switch (SCM_TYP7 (x))
+    {
+    default:
+      return SCM_BOOL_F;
+    case scm_tc7_vector:
+    case scm_tc7_wvect:
+      return scm_vector_equal_p (x, y);
+    case scm_tc7_smob:
+      {
+	int i = SCM_SMOBNUM (x);
+	if (!(i < scm_numsmob))
+	  return SCM_BOOL_F;
+	if (scm_smobs[i].equalp)
+	  return (scm_smobs[i].equalp) (x, y);
+	else
+	  return SCM_BOOL_F;
+      }
+#ifdef HAVE_ARRAYS
+    case scm_tc7_bvect: case scm_tc7_uvect: case scm_tc7_ivect:
+    case scm_tc7_fvect:	case scm_tc7_cvect: case scm_tc7_dvect:
+    case scm_tc7_svect:
+#ifdef HAVE_LONG_LONGS
+    case scm_tc7_llvect:
+#endif
+    case scm_tc7_byvect:
+      if (scm_tc16_array && scm_smobs[0x0ff & (scm_tc16_array >> 8)].equalp)
+	return scm_array_equal_p (x, y);
+#endif
+    }
+  return SCM_BOOL_F;
 }
 #undef FUNC_NAME
 

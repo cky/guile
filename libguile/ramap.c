@@ -1,4 +1,4 @@
-/*	Copyright (C) 1996, 1998 Free Software Foundation, Inc.
+/*	Copyright (C) 1996, 1998, 2000 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -579,8 +579,6 @@ scm_array_fill_int (SCM ra, SCM fill, SCM ignore)
 	break;
       }
 #endif
-#ifdef SCM_FLOATS
-#ifdef SCM_SINGLES
     case scm_tc7_fvect:
       { /* scope */
 	float f, *ve = (float *) SCM_VELTS (ra);
@@ -590,7 +588,6 @@ scm_array_fill_int (SCM ra, SCM fill, SCM ignore)
 	  ve[i] = f;
 	break;
       }
-#endif /* SCM_SINGLES */
     case scm_tc7_dvect:
       { /* scope */
 	double f, *ve = (double *) SCM_VELTS (ra);
@@ -614,7 +611,6 @@ scm_array_fill_int (SCM ra, SCM fill, SCM ignore)
 	  }
 	break;
       }
-#endif /* SCM_FLOATS */
     }
   return 1;
 }
@@ -710,8 +706,6 @@ racp (SCM src, SCM dst)
             d[i_d] = s[i_s];
           break;
 	}
-#ifdef SCM_FLOATS
-#ifdef SCM_SINGLES
     case scm_tc7_fvect:
       {
 	float *d = (float *) SCM_VELTS (dst);
@@ -737,7 +731,6 @@ racp (SCM src, SCM dst)
 	  }
 	break;
       }
-#endif /* SCM_SINGLES */
     case scm_tc7_dvect:
       {
 	double *d = (double *) SCM_VELTS (dst);
@@ -804,7 +797,6 @@ racp (SCM src, SCM dst)
 	break;
       }
     }
-#endif /* SCM_FLOATS */
   return 1;
 }
 
@@ -860,15 +852,12 @@ scm_ra_eqp (SCM ra0, SCM ras)
 	  if (SCM_VELTS (ra1)[i1] != SCM_VELTS (ra2)[i2])
 	    SCM_BITVEC_CLR (ra0, i0);
       break;
-#ifdef SCM_FLOATS
-#ifdef SCM_SINGLES
     case scm_tc7_fvect:
       for (; n-- > 0; i0 += inc0, i1 += inc1, i2 += inc2)
 	if (SCM_BITVEC_REF (ra0, i0))
 	  if (((float *) SCM_VELTS (ra1))[i1] != ((float *) SCM_VELTS (ra2))[i2])
 	    SCM_BITVEC_CLR (ra0, i0);
       break;
-#endif /*SCM_SINGLES*/
     case scm_tc7_dvect:
       for (; n-- > 0; i0 += inc0, i1 += inc1, i2 += inc2)
 	if (SCM_BITVEC_REF (ra0, i0))
@@ -882,7 +871,6 @@ scm_ra_eqp (SCM ra0, SCM ras)
 	      ((double *) SCM_VELTS (ra1))[2 * i1 + 1] != ((double *) SCM_VELTS (ra2))[2 * i2 + 1])
 	    SCM_BITVEC_CLR (ra0, i0);
       break;
-#endif /*SCM_FLOATS*/
     }
   return 1;
 }
@@ -924,8 +912,6 @@ ra_compare (SCM ra0,SCM ra1,SCM ra2,int opt)
 	      SCM_BITVEC_CLR (ra0, i0);
 	}
       break;
-#ifdef SCM_FLOATS
-#ifdef SCM_SINGLES
     case scm_tc7_fvect:
       for (; n-- > 0; i0 += inc0, i1 += inc1, i2 += inc2)
 	if (SCM_BITVEC_REF(ra0, i0))
@@ -934,7 +920,6 @@ ra_compare (SCM ra0,SCM ra1,SCM ra2,int opt)
 	      ((float *) SCM_VELTS (ra1))[i1] >= ((float *) SCM_VELTS (ra2))[i2])
 	    SCM_BITVEC_CLR (ra0, i0);
       break;
-#endif /*SCM_SINGLES*/
     case scm_tc7_dvect:
       for (; n-- > 0; i0 += inc0, i1 += inc1, i2 += inc2)
 	if (SCM_BITVEC_REF (ra0, i0))
@@ -943,7 +928,6 @@ ra_compare (SCM ra0,SCM ra1,SCM ra2,int opt)
 	      ((double *) SCM_VELTS (ra1))[i1] >= ((double *) SCM_VELTS (ra2))[i2])
 	    SCM_BITVEC_CLR (ra0, i0);
       break;
-#endif /*SCM_FLOATS*/
     }
   return 1;
 }
@@ -1004,16 +988,12 @@ scm_ra_sum (SCM ra0, SCM ras)
 	case scm_tc7_uvect:
 	case scm_tc7_ivect:
           BINARY_ELTS_CODE( +=, long);
-#ifdef SCM_FLOATS
-#ifdef SCM_SINGLES
 	case scm_tc7_fvect:
           BINARY_ELTS_CODE( +=, float);
-#endif /* SCM_SINGLES */
 	case scm_tc7_dvect:
           BINARY_ELTS_CODE( +=, double);
 	case scm_tc7_cvect:
           BINARY_PAIR_ELTS_CODE( +=, double); 
-#endif /* SCM_FLOATS */
 	}
     }
   return 1;
@@ -1041,16 +1021,12 @@ scm_ra_difference (SCM ra0, SCM ras)
                                SCM_MAKINUM (i0));
 	    break;
 	  }
-#ifdef SCM_FLOATS
-#ifdef SCM_SINGLES
 	case scm_tc7_fvect:
           UNARY_ELTS_CODE( =  -, float);
-#endif /* SCM_SINGLES */
 	case scm_tc7_dvect:
           UNARY_ELTS_CODE( =  -, double);
 	case scm_tc7_cvect:
           UNARY_PAIR_ELTS_CODE( = -, double);
-#endif /* SCM_FLOATS */
 	}
     }
   else
@@ -1068,16 +1044,12 @@ scm_ra_difference (SCM ra0, SCM ras)
 	      scm_array_set_x (ra0, scm_difference (RVREF (ra0, i0, e0), RVREF (ra1, i1, e1)), SCM_MAKINUM (i0));
 	    break;
 	  }
-#ifdef SCM_FLOATS
-#ifdef SCM_SINGLES
 	case scm_tc7_fvect:
           BINARY_ELTS_CODE( -=, float);
-#endif /* SCM_SINGLES */
 	case scm_tc7_dvect:
           BINARY_ELTS_CODE( -=, double);
 	case scm_tc7_cvect:
           BINARY_PAIR_ELTS_CODE( -=, double);
-#endif /* SCM_FLOATS */
 	}
     }
   return 1;
@@ -1111,11 +1083,8 @@ scm_ra_product (SCM ra0, SCM ras)
 	case scm_tc7_uvect:
 	case scm_tc7_ivect:
           BINARY_ELTS_CODE( *=, long);
-#ifdef SCM_FLOATS
-#ifdef SCM_SINGLES
 	case scm_tc7_fvect:
           BINARY_ELTS_CODE( *=, float);
-#endif /* SCM_SINGLES */
 	case scm_tc7_dvect:
           BINARY_ELTS_CODE( *=, double);
 	case scm_tc7_cvect:
@@ -1133,7 +1102,6 @@ scm_ra_product (SCM ra0, SCM ras)
 		   );
 	    break;
 	  }
-#endif /* SCM_FLOATS */
 	}
     }
   return 1;
@@ -1158,11 +1126,8 @@ scm_ra_divide (SCM ra0, SCM ras)
 	      scm_array_set_x (ra0, scm_divide (RVREF (ra0, i0, e0), SCM_UNDEFINED), SCM_MAKINUM (i0));
 	    break;
 	  }
-#ifdef SCM_FLOATS
-#ifdef SCM_SINGLES
 	case scm_tc7_fvect:
           UNARY_ELTS_CODE( = 1.0 / , float);
-#endif /* SCM_SINGLES */
 	case scm_tc7_dvect:
           UNARY_ELTS_CODE( = 1.0 / , double);
 	case scm_tc7_cvect:
@@ -1177,7 +1142,6 @@ scm_ra_divide (SCM ra0, SCM ras)
 	      }
 	    break;
 	  }
-#endif /* SCM_FLOATS */
 	}
     }
   else
@@ -1195,11 +1159,8 @@ scm_ra_divide (SCM ra0, SCM ras)
 	      scm_array_set_x (ra0, scm_divide (RVREF (ra0, i0, e0), RVREF (ra1, i1, e1)), SCM_MAKINUM (i0));
 	    break;
 	  }
-#ifdef SCM_FLOATS
-#ifdef SCM_SINGLES
 	case scm_tc7_fvect:
           BINARY_ELTS_CODE( /=, float);
-#endif /* SCM_SINGLES */
 	case scm_tc7_dvect:
           BINARY_ELTS_CODE( /=, double);
 	case scm_tc7_cvect:
@@ -1218,7 +1179,6 @@ scm_ra_divide (SCM ra0, SCM ras)
 		   )
 	      break;
 	  }
-#endif /* SCM_FLOATS */
 	}
     }
   return 1;
@@ -1289,8 +1249,6 @@ ramap_cxr (SCM ra0,SCM proc,SCM ras)
  for (; n-- > 0; i0 += inc0, i1 += inc1)
    scm_array_set_x (ra0, scm_apply (proc, RVREF (ra1, i1, e1), scm_listofnull), SCM_MAKINUM (i0));
  break;
-#ifdef SCM_FLOATS
-#ifdef SCM_SINGLES
     case scm_tc7_fvect:
       {
 	float *dst = (float *) SCM_VELTS (ra0);
@@ -1310,7 +1268,6 @@ ramap_cxr (SCM ra0,SCM proc,SCM ras)
 	  }
 	break;
       }
-#endif /* SCM_SINGLES */
     case scm_tc7_dvect:
       {
 	double *dst = (double *) SCM_VELTS (ra0);
@@ -1330,7 +1287,6 @@ ramap_cxr (SCM ra0,SCM proc,SCM ras)
 	  }
 	break;
       }
-#endif /* SCM_FLOATS */
     }
   return 1;
 }
@@ -1368,22 +1324,19 @@ ramap_rp (SCM ra0,SCM proc,SCM ras)
 	      SCM_BITVEC_CLR (ra0, i0);
 	  }
       break;
-#ifdef SCM_FLOATS
-#ifdef SCM_SINGLES
     case scm_tc7_fvect:
       {
-	SCM a1 = scm_makflo (1.0), a2 = scm_makflo (1.0);
+	SCM a1 = scm_make_real (1.0), a2 = scm_make_real (1.0);
 	for (; n-- > 0; i0 += inc0, i1 += inc1, i2 += inc2)
 	  if (SCM_BITVEC_REF (ra0, i0))
 	    {
-	      SCM_FLO (a1) = ((float *) SCM_VELTS (ra1))[i1];
-	      SCM_FLO (a2) = ((float *) SCM_VELTS (ra2))[i2];
+	      SCM_REAL_VALUE (a1) = ((float *) SCM_VELTS (ra1))[i1];
+	      SCM_REAL_VALUE (a2) = ((float *) SCM_VELTS (ra2))[i2];
 	      if (SCM_FALSEP (SCM_SUBRF (proc) (a1, a2)))
 		SCM_BITVEC_CLR (ra0, i0);
 	    }
 	break;
       }
-#endif /*SCM_SINGLES*/
     case scm_tc7_dvect:
       {
 	SCM a1 = scm_makdbl (1.0 / 3.0, 0.0), a2 = scm_makdbl (1.0 / 3.0, 0.0);
@@ -1403,16 +1356,15 @@ ramap_rp (SCM ra0,SCM proc,SCM ras)
 	for (; n-- > 0; i0 += inc0, i1 += inc1, i2 += inc2)
 	  if (SCM_BITVEC_REF (ra0, i0))
 	    {
-	      SCM_REAL (a1) = ((double *) SCM_VELTS (ra1))[2 * i1];
-	      SCM_IMAG (a1) = ((double *) SCM_VELTS (ra1))[2 * i1 + 1];
-	      SCM_REAL (a2) = ((double *) SCM_VELTS (ra2))[2 * i2];
-	      SCM_IMAG (a2) = ((double *) SCM_VELTS (ra2))[2 * i2 + 1];
+	      SCM_COMPLEX_REAL (a1) = ((double *) SCM_VELTS (ra1))[2 * i1];
+	      SCM_COMPLEX_IMAG (a1) = ((double *) SCM_VELTS (ra1))[2 * i1 + 1];
+	      SCM_COMPLEX_REAL (a2) = ((double *) SCM_VELTS (ra2))[2 * i2];
+	      SCM_COMPLEX_IMAG (a2) = ((double *) SCM_VELTS (ra2))[2 * i2 + 1];
 	      if (SCM_FALSEP (SCM_SUBRF (proc) (a1, a2)))
 		SCM_BITVEC_CLR (ra0, i0);
 	    }
 	break;
       }
-#endif /*SCM_FLOATS*/
     }
   return 1;
 }
@@ -1857,8 +1809,6 @@ raeql_1 (SCM ra0,SCM as_equal,SCM ra1)
 	return 1;
       }
 #endif
-#ifdef SCM_FLOATS
-#ifdef SCM_SINGLES
     case scm_tc7_fvect:
       {
 	float *v0 = (float *) SCM_VELTS (ra0) + i0;
@@ -1868,7 +1818,6 @@ raeql_1 (SCM ra0,SCM as_equal,SCM ra1)
 	    return 0;
 	return 1;
       }
-#endif /* SCM_SINGLES */
     case scm_tc7_dvect:
       {
 	double *v0 = (double *) SCM_VELTS (ra0) + i0;
@@ -1891,7 +1840,6 @@ raeql_1 (SCM ra0,SCM as_equal,SCM ra1)
 	  }
 	return 1;
       }
-#endif /* SCM_FLOATS */
     }
 }
 
