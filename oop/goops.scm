@@ -30,7 +30,7 @@
 		  define-generic define-accessor define-method
 		  define-extended-generic define-extended-generics
 		  method)
-  :export (goops-version is-a?
+  :export (goops-version is-a? class-of
            ensure-metaclass ensure-metaclass-with-supers
 	   make-class
 	   make-generic ensure-generic
@@ -77,7 +77,6 @@
 	   method-procedure accessor-method-slot-definition
 	   slot-exists? make find-method get-keyword)
   :replace (<class> <operator-class> <entity-class> <entity>)
-  :re-export (class-of)  ;; from (guile)
   :no-backtrace)
 
 ;; First initialize the builtin part of GOOPS
