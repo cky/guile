@@ -1,3 +1,9 @@
+2003-05-31  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* eval.c (SCM_CEVAL, SCM_APPLY, scm_trampoline_0,
+	scm_trampoline_1, scm_trampoline_2): Postpone error cases to the
+	end of an if-else-if-sequence of checks.
+
 2003-05-30  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* eval.c (SCM_CEVAL): Improved readability of call-with-values

@@ -2868,9 +2868,7 @@ evapply: /* inputs: x, proc */
 	    arg1 = SCM_EOL;
 	    goto type_dispatch;
 	  }
-	else if (!SCM_I_OPERATORP (proc))
-	  goto badfun;
-	else
+	else if (SCM_I_OPERATORP (proc))
 	  {
 	    arg1 = proc;
 	    proc = (SCM_I_ENTITYP (proc)
@@ -2882,6 +2880,8 @@ evapply: /* inputs: x, proc */
 #endif
             goto evap1;
 	  }
+        else
+          goto badfun;
       case scm_tc7_subr_1:
       case scm_tc7_subr_2:
       case scm_tc7_subr_2o:
@@ -3011,9 +3011,7 @@ evapply: /* inputs: x, proc */
 #endif
 		goto type_dispatch;
 	      }
-	    else if (!SCM_I_OPERATORP (proc))
-	      goto badfun;
-	    else
+	    else if (SCM_I_OPERATORP (proc))
 	      {
 		arg2 = arg1;
 		arg1 = proc;
@@ -3026,6 +3024,8 @@ evapply: /* inputs: x, proc */
 #endif
                 goto evap2;
 	      }
+            else
+              goto badfun;
 	  case scm_tc7_subr_2:
 	  case scm_tc7_subr_0:
 	  case scm_tc7_subr_3:
@@ -3095,9 +3095,7 @@ evapply: /* inputs: x, proc */
 #endif
 		goto type_dispatch;
 	      }
-	    else if (!SCM_I_OPERATORP (proc))
-	      goto badfun;
-	    else
+	    else if (SCM_I_OPERATORP (proc))
 	      {
 	      operatorn:
 #ifdef DEVAL
@@ -3118,6 +3116,8 @@ evapply: /* inputs: x, proc */
 				   SCM_EOL));
 #endif
 	      }
+            else
+              goto badfun;
 	  case scm_tc7_subr_0:
 	  case scm_tc7_cxr:
 	  case scm_tc7_subr_1o:
@@ -3309,10 +3309,10 @@ evapply: /* inputs: x, proc */
 	      x = SCM_ENTITY_PROCEDURE (proc);
 	      goto type_dispatch;
 	    }
-	  else if (!SCM_I_OPERATORP (proc))
-	    goto badfun;
-	  else
+	  else if (SCM_I_OPERATORP (proc))
 	    goto operatorn;
+	  else
+	    goto badfun;
 	case scm_tc7_subr_2:
 	case scm_tc7_subr_1o:
 	case scm_tc7_subr_2o:
@@ -3762,9 +3762,7 @@ tail:
 #endif
 	  RETURN (scm_apply_generic (proc, args));
 	}
-      else if (!SCM_I_OPERATORP (proc))
-	goto badproc;
-      else
+      else if (SCM_I_OPERATORP (proc))
 	{
 	  /* operator */
 #ifdef DEVAL
@@ -3785,6 +3783,8 @@ tail:
 	  else
 	    goto badproc;
 	}
+      else
+        goto badproc;
     default:
     badproc:
       scm_wrong_type_arg ("apply", SCM_ARG1, proc);
@@ -3895,9 +3895,9 @@ scm_trampoline_0 (SCM proc)
     case scm_tcs_struct:
       if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
 	return scm_call_generic_0;
-      else if (!SCM_I_OPERATORP (proc))
-	return NULL;
-      return scm_call_0;
+      else if (SCM_I_OPERATORP (proc))
+        return scm_call_0;
+      return NULL;
     case scm_tc7_smob:
       if (SCM_SMOB_APPLICABLE_P (proc))
 	return SCM_SMOB_DESCRIPTOR (proc).apply_0;
@@ -4007,9 +4007,9 @@ scm_trampoline_1 (SCM proc)
     case scm_tcs_struct:
       if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
 	return scm_call_generic_1;
-      else if (!SCM_I_OPERATORP (proc))
-	return NULL;
-      return scm_call_1;
+      else if (SCM_I_OPERATORP (proc))
+        return scm_call_1;
+      return NULL;
     case scm_tc7_smob:
       if (SCM_SMOB_APPLICABLE_P (proc))
 	return SCM_SMOB_DESCRIPTOR (proc).apply_1;
@@ -4086,9 +4086,9 @@ scm_trampoline_2 (SCM proc)
     case scm_tcs_struct:
       if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
 	return scm_call_generic_2;
-      else if (!SCM_I_OPERATORP (proc))
-	return NULL;
-      return scm_call_2;
+      else if (SCM_I_OPERATORP (proc))
+        return scm_call_2;
+      return NULL;
     case scm_tc7_smob:
       if (SCM_SMOB_APPLICABLE_P (proc))
 	return SCM_SMOB_DESCRIPTOR (proc).apply_2;
