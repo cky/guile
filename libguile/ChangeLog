@@ -1,3 +1,7 @@
+2004-07-29  Kevin Ryde  <user42@zip.com.au>
+
+	* posix.c (scm_ttyname): Use scm_i_misc_mutex for thread safety.
+
 2004-07-28  Kevin Ryde  <user42@zip.com.au>
 
 	* posix.c (scm_ctermid): Use an L_ctermid buf on the stack, for thread
