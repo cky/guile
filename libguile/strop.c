@@ -133,7 +133,19 @@ scm_string_rindex (str, chr, frm, to)
 	  ? SCM_BOOL_F
 	  : SCM_MAKINUM (pos));
 }
- 
+
+/* What is the purpose of these strange assertions in the following
+   `substring' functions?
+
+  SCM_ASSERT (3==scm_ilength (args), scm_makfrom0str (s_substring_move_left_x),
+	      SCM_WNA, NULL);
+
+   Why bother to make args a `rest argument' if we are merely going to
+   force it to include exactly three arguments?  Why not merely make
+   them all required arguments instead?  This makes me suspicious that
+   the functions haven't been fully implemented.  If anyone can
+   clarify what's going on here, please do so. -twp */
+
 SCM_PROC(s_substring_move_left_x, "substring-move-left!", 2, 0, 1, scm_substring_move_left_x);
 
 SCM
