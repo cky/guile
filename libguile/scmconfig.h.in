@@ -164,6 +164,9 @@
 /* Define if you have the ctermid function.  */
 #undef HAVE_CTERMID
 
+/* Define if you have the dlopen function.  */
+#undef HAVE_DLOPEN
+
 /* Define if you have the endhostent function.  */
 #undef HAVE_ENDHOSTENT
 
