@@ -21,7 +21,7 @@
 
 AUTOMAKE_OPTIONS = gnu
 
-am_frags = pre-inst-guile
+am_frags = pre-inst-guile maintainer-dirs
 
 EXTRA_DIST = $(am_frags)
 
