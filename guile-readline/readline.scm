@@ -98,15 +98,14 @@
 		    (if (not (eof-object? read-string))
 			(begin
 			  (or (string=? read-string "")
-			      (begin
-				(add-history read-string)
-				(set! prompt prompt2)))
+			      (add-history read-string))
 			  (get-character))
 			read-string)))
 		 (else 
 		  (let ((res (string-ref read-string string-index)))
 		    (set! string-index (+ 1 string-index))
-		    res))))))	      
+		    (set! prompt prompt2)
+		    res))))))
       (make-soft-port
        (vector #f #f #f get-character #f)
        "r"))))
