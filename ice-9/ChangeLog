@@ -1,3 +1,9 @@
+1998-08-19  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+
+	* boot-9.scm: Removed (ice-9 regex) from use-list of (guile)
+	module.
+	(try-using-libtool-name): Removed dependency on (ice-9 regex).
+
 1998-08-15  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
 	* boot-9.scm: Make the root module use (ice-9 regex) if

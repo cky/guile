@@ -2102,20 +2102,20 @@
 		  (check-dirs (cdr dir-list)))))))))
 
 (define (try-using-libtool-name libdir libname)
-  ;; FIXME: is `use-modules' legal inside `define'?
-  (use-modules (ice-9 regex))
   (let ((libtool-filename (in-vicinity libdir
 				       (string-append libname ".la"))))
     (and (file-exists? libtool-filename)
-	 (let ((dlname-pattern (make-regexp "^dlname='(.*)'")))
-	   (with-input-from-file libtool-filename
-	     (lambda ()
-	       (let loop ((ln (read-line)))
-		 (cond ((eof-object? ln) #f)
-		       ((regexp-exec dlname-pattern ln)
-			=> (lambda (match)
-			     (in-vicinity libdir (match:substring match 1))))
-		       (else (loop (read-line)))))))))))
+	 (with-input-from-file libtool-filename
+	   (lambda ()
+	     (let loop ((ln (read-line)))
+	       (cond ((eof-object? ln) #f)
+		     ((and (>= (string-length ln) 8)
+			   (string=? "dlname='" (substring ln 0 8))
+			   (string-index ln #\' 8))
+		      =>
+		      (lambda (end)
+			(in-vicinity libdir (substring ln 8 end))))
+		     (else (loop (read-line))))))))))
 			      
 (define (try-using-sharlib-name libdir libname)
   (in-vicinity libdir (string-append libname ".so")))
@@ -2974,9 +2974,7 @@
 ;;; {Load regexp code if regexp primitives are available.}
 
 (if (memq 'regex *features*)
-    (begin
-      (define-module (guile) :use-module (ice-9 regex))
-      (define-module (guile-user) :use-module (ice-9 regex))))
+    (define-module (guile-user) :use-module (ice-9 regex)))
 
 
 (define-module (guile))
