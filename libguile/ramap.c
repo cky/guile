@@ -923,7 +923,7 @@ scm_ra_sum (ra0, ras)
 	      long *v1 = SCM_VELTS (ra1);
 	      IVDEP (ra0 != ra1,
 		     for (; n-- > 0; i0 += inc0, i1 += inc1)
-		     v0[i0] += v1[i1]);
+		     v0[i0] += v1[i1];)
 	      break;
 	    }
 #ifdef SCM_FLOATS
@@ -934,7 +934,7 @@ scm_ra_sum (ra0, ras)
 	      float *v1 = (float *) SCM_VELTS (ra1);
 	      IVDEP (ra0 != ra1,
 		     for (; n-- > 0; i0 += inc0, i1 += inc1)
-		     v0[i0] += v1[i1]);
+		     v0[i0] += v1[i1];)
 	      break;
 	    }
 #endif /* SCM_SINGLES */
@@ -944,7 +944,7 @@ scm_ra_sum (ra0, ras)
 	      double *v1 = (double *) SCM_VELTS (ra1);
 	      IVDEP (ra0 != ra1,
 		     for (; n-- > 0; i0 += inc0, i1 += inc1)
-		     v0[i0] += v1[i1]);
+		     v0[i0] += v1[i1];)
 	      break;
 	    }
 	  case scm_tc7_cvect:
@@ -1043,7 +1043,7 @@ scm_ra_difference (ra0, ras)
 	    float *v1 = (float *) SCM_VELTS (ra1);
 	    IVDEP (ra0 != ra1,
 		   for (; n-- > 0; i0 += inc0, i1 += inc1)
-		   v0[i0] -= v1[i1]);
+		   v0[i0] -= v1[i1];)
 	    break;
 	  }
 #endif /* SCM_SINGLES */
@@ -1053,7 +1053,7 @@ scm_ra_difference (ra0, ras)
 	    double *v1 = (double *) SCM_VELTS (ra1);
 	    IVDEP (ra0 != ra1,
 		   for (; n-- > 0; i0 += inc0, i1 += inc1)
-		   v0[i0] -= v1[i1]);
+		   v0[i0] -= v1[i1];)
 	    break;
 	  }
 	case scm_tc7_cvect:
@@ -1110,7 +1110,7 @@ scm_ra_product (ra0, ras)
 	      long *v1 = SCM_VELTS (ra1);
 	      IVDEP (ra0 != ra1,
 		     for (; n-- > 0; i0 += inc0, i1 += inc1)
-		     v0[i0] *= v1[i1]);
+		     v0[i0] *= v1[i1];)
 	      break;
 	    }
 #ifdef SCM_FLOATS
@@ -1121,7 +1121,7 @@ scm_ra_product (ra0, ras)
 	      float *v1 = (float *) SCM_VELTS (ra1);
 	      IVDEP (ra0 != ra1,
 		     for (; n-- > 0; i0 += inc0, i1 += inc1)
-		     v0[i0] *= v1[i1]);
+		     v0[i0] *= v1[i1];)
 	      break;
 	    }
 #endif /* SCM_SINGLES */
@@ -1131,7 +1131,7 @@ scm_ra_product (ra0, ras)
 	      double *v1 = (double *) SCM_VELTS (ra1);
 	      IVDEP (ra0 != ra1,
 		     for (; n-- > 0; i0 += inc0, i1 += inc1)
-		     v0[i0] *= v1[i1]);
+		     v0[i0] *= v1[i1];)
 	      break;
 	    }
 	  case scm_tc7_cvect:
@@ -1233,7 +1233,7 @@ scm_ra_divide (ra0, ras)
 	    float *v1 = (float *) SCM_VELTS (ra1);
 	    IVDEP (ra0 != ra1,
 		   for (; n-- > 0; i0 += inc0, i1 += inc1)
-		   v0[i0] /= v1[i1]);
+		   v0[i0] /= v1[i1];)
 	    break;
 	  }
 #endif /* SCM_SINGLES */
@@ -1243,7 +1243,7 @@ scm_ra_divide (ra0, ras)
 	    double *v1 = (double *) SCM_VELTS (ra1);
 	    IVDEP (ra0 != ra1,
 		   for (; n-- > 0; i0 += inc0, i1 += inc1)
-		   v0[i0] /= v1[i1]);
+		   v0[i0] /= v1[i1];)
 	    break;
 	  }
 	case scm_tc7_cvect:
