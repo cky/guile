@@ -24,8 +24,12 @@ data_rep_TEXINFOS = data-rep.texi version.texi
 EXAMPLE_SMOB_FILES = \
     ChangeLog Makefile README COPYING image-type.c image-type.h myguile.c
 
+OLDFMT = oldfmt.c
+
 dist-hook:
 	mkdir $(distdir)/example-smob
-	(dest="`cd $(distdir)/example-smob; pwd`"; \
-         cd $(srcdir)/example-smob; \
+	(cd $(srcdir); \
+	 cp $(OLDFMT) $(distdir); \
+	 dest="`cd $(distdir)/example-smob; pwd`"; \
+         cd example-smob; \
 	 cp $(EXAMPLE_SMOB_FILES) $$dest)
