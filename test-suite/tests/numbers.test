@@ -1940,6 +1940,21 @@
 ;;; make-polar
 ;;;
 
+(with-test-prefix "make-polar"
+  (define pi 3.14159265358979323846)
+  (define (almost= x y)
+    (> 0.01 (magnitude (- x y))))
+  
+  (pass-if (= 0 (make-polar 0 0)))
+  (pass-if (= 0 (make-polar 0 123.456)))
+  (pass-if (= 1 (make-polar 1 0)))
+  (pass-if (= -1 (make-polar -1 0)))
+  
+  (pass-if (almost= 0+i (make-polar 1 (* 0.5 pi))))
+  (pass-if (almost= -1  (make-polar 1 (* 1.0 pi))))
+  (pass-if (almost= 0-i (make-polar 1 (* 1.5 pi))))
+  (pass-if (almost= 1   (make-polar 1 (* 2.0 pi)))))
+
 ;;;
 ;;; real-part
 ;;;
@@ -1951,6 +1966,17 @@
 ;;;
 ;;; magnitude
 ;;;
+
+(with-test-prefix "magnitude"
+  (pass-if (= 0 (magnitude 0)))
+  (pass-if (= 1 (magnitude 1)))
+  (pass-if (= 1 (magnitude -1)))
+  (pass-if (= 1 (magnitude 0+i)))
+  (pass-if (= 1 (magnitude 0-i)))
+  (pass-if (= 5 (magnitude 3+4i)))
+  (pass-if (= 5 (magnitude 3-4i)))
+  (pass-if (= 5 (magnitude -3+4i)))
+  (pass-if (= 5 (magnitude -3-4i))))
 
 ;;;
 ;;; angle
