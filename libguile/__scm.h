@@ -321,11 +321,12 @@ extern unsigned int scm_async_clock;
 #define SCM_ARG3 		3
 #define SCM_ARG4 		4
 #define SCM_ARG5 		5
-#define SCM_ARG6 		6
-#define SCM_ARG7 		7
-#define SCM_ARGERR(X) 		((X) < SCM_WNA \
+     /* #define SCM_ARG6 		6
+	#define SCM_ARG7 		7 */
+     /* #define SCM_ARGERR(X) 		((X) < SCM_WNA \
 				 ? (char *)(X) \
 				 : "wrong type argument")
+				 */
 
 /* Following must match entry indexes in scm_errmsgs[].
  * Also, SCM_WNA must follow the last SCM_ARGn in sequence.
@@ -334,8 +335,8 @@ extern unsigned int scm_async_clock;
      /* #define SCM_OVSCM_FLOW 		9 */
 #define SCM_OUTOFRANGE 		10
 #define SCM_NALLOC 		11
-#define SCM_STACK_OVFLOW	12
-#define SCM_EXIT 		13
+     /* #define SCM_STACK_OVFLOW	12 */
+     /* #define SCM_EXIT 		13 */
 
 
 /* (...still matching scm_errmsgs)  These

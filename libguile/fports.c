@@ -171,7 +171,7 @@ scm_open_file (filename, modes)
   SCM_SYSCALL (f = fopen (file, mode));
   if (!f)
     {
-      scm_syserror_msg (s_open_file, "%S: %S",
+      scm_syserror_msg (s_open_file, "%s: %S",
 			scm_listify (scm_makfrom0str (strerror (errno)),
 				     filename,
 				     SCM_UNDEFINED));

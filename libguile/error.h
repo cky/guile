@@ -51,9 +51,16 @@ extern int scm_ints_disabled;
 extern SCM scm_system_error_key;
 extern SCM scm_num_overflow_key;
 extern SCM scm_out_of_range_key;
+extern SCM scm_arg_type_key;
+extern SCM scm_args_number_key;
+extern SCM scm_memory_alloc_key;
+extern SCM scm_stack_overflow_key;
+extern SCM scm_misc_error_key;
 
 
 
+extern SCM scm_errno SCM_P ((SCM arg));
+extern SCM scm_perror SCM_P ((SCM arg));
 extern void scm_error SCM_P ((SCM key, char *subr, char *message,
 			      SCM args, SCM rest));
 extern void (*scm_error_callback) SCM_P ((SCM key, char *subr,
@@ -63,27 +70,10 @@ extern void scm_syserror_msg SCM_P ((char *subr, char *message, SCM args));
 extern void scm_sysmissing SCM_P ((char *subr));
 extern void scm_num_overflow SCM_P ((char *subr));
 extern void scm_out_of_range SCM_P ((char *subr, SCM bad_value));
-
-#ifdef __STDC__
-extern int scm_handle_it (int i);
-extern void scm_warn (char *str1, char *str2);
-extern SCM scm_errno (SCM arg);
-extern SCM scm_perror (SCM arg);
-extern void scm_def_err_response (void);
-extern void scm_everr (SCM exp, SCM env, SCM arg, char *pos, char *s_subr);
-extern SCM scm_wta (SCM arg, char *pos, char *s_subr);
-extern void scm_init_error (void);
-
-#else /* STDC */
-extern int scm_handle_it ();
-extern void scm_warn ();
-extern SCM scm_errno ();
-extern SCM scm_perror ();
-extern void scm_def_err_response ();
-extern void scm_everr ();
-extern SCM scm_wta ();
-extern void scm_init_error ();
-
-#endif /* STDC */
+extern void scm_wrong_num_args SCM_P ((SCM proc));
+extern void scm_wrong_type_arg SCM_P ((char *subr, int pos, SCM bad_value));
+extern void scm_memory_error SCM_P ((char *subr));
+extern SCM scm_wta SCM_P ((SCM arg, char *pos, char *s_subr));
+extern void scm_init_error SCM_P ((void));
 
 #endif  /* ERRORH */

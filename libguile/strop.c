@@ -200,7 +200,8 @@ scm_substring_move_left_x (str1, start1, args)
 {
   SCM end1, str2, start2;
   long i, j, e;
-  SCM_ASSERT (3==scm_ilength (args), args, SCM_WNA, s_substring_move_left_x);
+  SCM_ASSERT (3==scm_ilength (args), scm_makfrom0str (s_substring_move_left_x),
+	      SCM_WNA, NULL);
   end1 = SCM_CAR (args); args = SCM_CDR (args);
   str2 = SCM_CAR (args); args = SCM_CDR (args);
   start2 = SCM_CAR (args);
@@ -233,7 +234,8 @@ scm_substring_move_right_x (str1, start1, args)
 {
   SCM end1, str2, start2;
   long i, j, e;
-  SCM_ASSERT (3==scm_ilength (args), args, SCM_WNA, s_substring_move_right_x);
+  SCM_ASSERT (3==scm_ilength (args),
+	      scm_makfrom0str (s_substring_move_right_x), SCM_WNA, NULL);
   end1 = SCM_CAR (args); args = SCM_CDR (args);
   str2 = SCM_CAR (args); args = SCM_CDR (args);
   start2 = SCM_CAR (args);
@@ -267,7 +269,8 @@ scm_substring_fill_x (str, start, args)
   SCM end, fill;
   long i, e;
   char c;
-  SCM_ASSERT (2==scm_ilength (args), args, SCM_WNA, s_substring_fill_x);
+  SCM_ASSERT (2==scm_ilength (args),  scm_makfrom0str (s_substring_fill_x),
+	      SCM_WNA, NULL);
   end = SCM_CAR (args); args = SCM_CDR (args);
   fill = SCM_CAR (args);
   SCM_ASSERT (SCM_NIMP (str) && SCM_STRINGP (str), str, SCM_ARG1, s_substring_fill_x);

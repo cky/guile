@@ -503,7 +503,7 @@ scm_aind (ra, args, what)
   if (SCM_INUMP (args))
 
     {
-      SCM_ASSERT (1 == k, SCM_UNDEFINED, SCM_WNA, what);
+      SCM_ASSERT (1 == k, scm_makfrom0str (what), SCM_WNA, NULL);
       return pos + (SCM_INUM (args) - s->lbnd) * (s->inc);
     }
   while (k && SCM_NIMP (args))
@@ -517,7 +517,8 @@ scm_aind (ra, args, what)
       k--;
       s++;
     }
-  SCM_ASSERT (0 == k && SCM_NULLP (args), SCM_UNDEFINED, SCM_WNA, what);
+  SCM_ASSERT (0 == k && SCM_NULLP (args), scm_makfrom0str (what), SCM_WNA,
+	      NULL);
   return pos;
 }
 
@@ -610,7 +611,9 @@ scm_dimensions_to_uniform_array (dims, prot, fill)
 	  answer = scm_make_uve (SCM_INUM (dims), prot);
 	  if (SCM_NNULLP (fill))
 	    {
-	      SCM_ASSERT (1 == scm_ilength (fill), fill, SCM_WNA, s_dimensions_to_uniform_array);
+	      SCM_ASSERT (1 == scm_ilength (fill),
+			  scm_makfrom0str (s_dimensions_to_uniform_array),
+			  SCM_WNA, NULL);
 	      scm_array_fill_x (answer, SCM_CAR (fill));
 	    }
 	  else if (SCM_NIMP (prot) && SCM_SYMBOLP (prot))
@@ -666,7 +669,9 @@ scm_dimensions_to_uniform_array (dims, prot, fill)
     }
   if (SCM_NNULLP (fill))
     {
-      SCM_ASSERT (1 == scm_ilength (fill), fill, SCM_WNA, s_dimensions_to_uniform_array);
+      SCM_ASSERT (1 == scm_ilength (fill),
+		  scm_makfrom0str (s_dimensions_to_uniform_array), SCM_WNA,
+		  NULL);
       scm_array_fill_x (ra, SCM_CAR (fill));
     }
   else if (SCM_NIMP (prot) && SCM_SYMBOLP (prot))
@@ -836,14 +841,15 @@ scm_transpose_array (args)
   SCM ra, res, vargs, *ve = &vargs;
   scm_array_dim *s, *r;
   int ndim, i, k;
-  SCM_ASSERT (SCM_NIMP (args), SCM_UNDEFINED, SCM_WNA, s_transpose_array);
+  SCM_ASSERT (SCM_NNULLP (args), scm_makfrom0str (s_transpose_array),
+	      SCM_WNA, NULL);
   ra = SCM_CAR (args);
+  SCM_ASSERT (SCM_NIMP (ra), ra, SCM_ARG1, s_transpose_array);
   args = SCM_CDR (args);
-  switch SCM_TYP7
-    (ra)
+  switch (SCM_TYP7 (ra))
     {
     default:
-    badarg:scm_wta (ra, (char *) SCM_ARG1, s_transpose_array);
+    badarg:scm_wta (ra, (char *) SCM_ARGn, s_transpose_array);
     case scm_tc7_bvect:
     case scm_tc7_string:
     case scm_tc7_byvect:
@@ -856,14 +862,19 @@ scm_transpose_array (args)
 #ifdef LONGLONGS
     case scm_tc7_llvect:
 #endif
-      SCM_ASSERT (SCM_NIMP (args) && SCM_NULLP (SCM_CDR (args)), SCM_UNDEFINED, SCM_WNA, s_transpose_array);
-      SCM_ASSERT (SCM_INUM0 == SCM_CAR (args), SCM_CAR (args), SCM_ARG1, s_transpose_array);
+      SCM_ASSERT (SCM_NIMP (args) && SCM_NULLP (SCM_CDR (args)),
+		  scm_makfrom0str (s_transpose_array), SCM_WNA, NULL);
+      SCM_ASSERT (SCM_INUMP (SCM_CAR (args)), SCM_CAR (args), SCM_ARG2,
+		  s_transpose_array);
+      SCM_ASSERT (SCM_INUM0 == SCM_CAR (args), SCM_CAR (args), SCM_OUTOFRANGE,
+		  s_transpose_array);
       return ra;
     case scm_tc7_smob:
       SCM_ASRTGO (SCM_ARRAYP (ra), badarg);
       vargs = scm_vector (args);
-      SCM_ASSERT (SCM_LENGTH (vargs) == SCM_ARRAY_NDIM (ra), SCM_UNDEFINED, SCM_WNA, s_transpose_array);
-      ve = SCM_VELTS (vargs);
+      SCM_ASSERT (SCM_LENGTH (vargs) == SCM_ARRAY_NDIM (ra),
+		  scm_makfrom0str (s_transpose_array), SCM_WNA, NULL);
+		  ve = SCM_VELTS (vargs);
       ndim = 0;
       for (k = 0; k < SCM_ARRAY_NDIM (ra); k++)
 	{
@@ -926,7 +937,8 @@ scm_enclose_array (axes)
   SCM axv, ra, res, ra_inr;
   scm_array_dim vdim, *s = &vdim;
   int ndim, j, k, ninr, noutr;
-  SCM_ASSERT (SCM_NIMP (axes), SCM_UNDEFINED, SCM_WNA, s_enclose_array);
+  SCM_ASSERT (SCM_NIMP (axes), scm_makfrom0str (s_enclose_array), SCM_WNA,
+	      NULL);
   ra = SCM_CAR (axes);
   axes = SCM_CDR (axes);
   if (SCM_NULLP (axes))
@@ -970,7 +982,8 @@ scm_enclose_array (axes)
     }
   noutr = ndim - ninr;
   axv = scm_make_string (SCM_MAKINUM (ndim), SCM_MAKICHR (0));
-  SCM_ASSERT (0 <= noutr && 0 <= ninr, SCM_UNDEFINED, SCM_WNA, s_enclose_array);
+  SCM_ASSERT (0 <= noutr && 0 <= ninr, scm_makfrom0str (s_enclose_array),
+	      SCM_WNA, NULL);
   res = scm_make_ra (noutr);
   SCM_ARRAY_BASE (res) = SCM_ARRAY_BASE (ra_inr);
   SCM_ARRAY_V (res) = ra_inr;
@@ -1013,7 +1026,8 @@ scm_array_in_bounds_p (args)
   register scm_sizet k;
   register long j;
   scm_array_dim *s;
-  SCM_ASSERT (SCM_NIMP (args), args, SCM_WNA, s_array_in_bounds_p);
+  SCM_ASSERT (SCM_NIMP (args), scm_makfrom0str (s_array_in_bounds_p),
+	      SCM_WNA, NULL);
   v = SCM_CAR (args);
   args = SCM_CDR (args);
   SCM_ASRTGO (SCM_NIMP (v), badarg1);
@@ -1031,7 +1045,7 @@ tail:
     {
     default:
     badarg1:scm_wta (v, (char *) SCM_ARG1, s_array_in_bounds_p);
-    wna:scm_wta (args, (char *) SCM_WNA, s_array_in_bounds_p);
+    wna: scm_wrong_num_args (scm_makfrom0str (s_array_in_bounds_p));
     case scm_tc7_smob:
       k = SCM_ARRAY_NDIM (v);
       s = SCM_ARRAY_DIMS (v);
@@ -1129,7 +1143,7 @@ scm_uniform_vector_ref (v, args)
  return v;
     badarg:scm_wta (v, (char *) SCM_ARG1, s_uniform_vector_ref);
     outrng:scm_out_of_range (s_uniform_vector_ref, SCM_MAKINUM (pos));
-    wna:scm_wta (SCM_UNDEFINED, (char *) SCM_WNA, s_uniform_vector_ref);
+    wna: scm_wrong_num_args (scm_makfrom0str (s_uniform_vector_ref));
     case scm_tc7_smob:
       {				/* enclosed */
 	int k = SCM_ARRAY_NDIM (v);
@@ -1322,7 +1336,7 @@ scm_array_set_x (v, obj, args)
     default:
     badarg1:scm_wta (v, (char *) SCM_ARG1, s_array_set_x);
     outrng:scm_out_of_range (s_array_set_x, SCM_MAKINUM (pos));
-    wna:scm_wta (SCM_UNDEFINED, (char *) SCM_WNA, s_array_set_x);
+    wna: scm_wrong_num_args (scm_makfrom0str (s_array_set_x));
     case scm_tc7_smob:		/* enclosed */
       goto badarg1;
     case scm_tc7_bvect:

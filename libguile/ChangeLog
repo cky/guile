@@ -1,3 +1,41 @@
+Thu Sep 19 00:00:29 1996  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* filesys.c (scsm_sys_stat): don't SIGSEGV if argument is an
+	integer (assuming for now accepting an integer is a good thing).
+
+	* error.c, fports.c: replace use of %S in lgh_error args with %s.
+	%S will be used instead for write'ing arguments.
+
+	* unif.c (scm_transpose_array): change arguments in the SCM_WNA
+	asserts.  fix a few other asserts.
+	(scm_aind, scm_enclose_array, scm_array_in_bounds_p,
+	scm_uniform_vector_ref,	scm_array_set_x,
+	scm_dimensions_to_unform_array): change args in
+	SCM_WNA SCM_ASSERTS and change scm_wta's to scm_wrong_num_args.
+	strop.c (scm_substring_move_left_x, scm_substring_move_right_x,
+	scm_substring_fill_x): likewise.
+	gsubr.c (scm_gsubr_apply): likewise.
+	eval.c (SCM_APPLY): likewise.
+
+	* eval.c (4 places): replace scm_everr with lgh_error or
+ 	scm_wrong_num_args.
+
+	* error.c, error.h (scm_wrong_num_args, scm_wrong_type_arg,
+	scm_memory_error): new procedures.
+*	scm_everr: deleted.  can use scm_wta, dropping first two args.
+	scm_error: convert NULL subr to SCM_BOOL_F.
+
+	* __scm.h: don't define SCM_STACK_OVFLOW, SCM_EXIT, SCM_ARG6, SCM_ARG7,
+	SCM_ARGERR.
+
+	* stackchk.c (scm_report_stack_overflow): use lgh_error instead
+	of scm_wta.
+
+	* error.c, error.h: new error keys: scm_arg_type_key,
+	scm_args_number_key, scm_memory_alloc_key, scm_stack_overflow_key,
+	scm_misc_error_key.
+	scm_wta: reimplement using lgh_error instead of scm_everr.
+
 Wed Sep 18 17:13:35 1996  Mikael Djurfeldt  <mdj@kenneth>
 
 	* gdbint.c: scm_lread now has one more argument.

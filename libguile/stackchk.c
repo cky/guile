@@ -57,7 +57,11 @@ void
 scm_report_stack_overflow ()
 {
   scm_stack_checking_enabled_p = 0;
-  scm_wta (SCM_UNDEFINED, (char *) SCM_STACK_OVFLOW, NULL);
+  lgh_error (scm_stack_overflow_key,
+	     NULL,
+	     "Stack overflow",
+	     SCM_BOOL_F,
+	     SCM_BOOL_F);
 }
 
 #endif

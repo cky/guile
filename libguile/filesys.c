@@ -594,7 +594,6 @@ scm_sys_stat (fd_or_path)
 
   if (SCM_INUMP (fd_or_path))
     {
-      SCM_ASSERT (SCM_OPFPORTP (fd_or_path), fd_or_path, SCM_ARG1, s_sys_stat);
       rv = SCM_INUM (fd_or_path);
       SCM_SYSCALL (rv = fstat (rv, &stat_temp));
     }

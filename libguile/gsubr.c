@@ -130,7 +130,7 @@ scm_gsubr_apply(args)
   for (i = 0; i < GSUBR_REQ(typ); i++) {
 #ifndef RECKLESS
     if (SCM_IMP(args))
-      scm_wta(SCM_UNDEFINED, (char *)SCM_WNA, SCM_CHARS(SCM_SNAME(GSUBR_PROC(self))));
+      scm_wrong_num_args (SCM_SNAME(GSUBR_PROC(self)));
 #endif
     v[i] = SCM_CAR(args);
     args = SCM_CDR(args);

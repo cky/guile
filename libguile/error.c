@@ -63,16 +63,11 @@
  */
 int scm_ints_disabled = 1;
 
-
 extern int errno;
-#ifdef __STDC__
-static void 
-err_head (char *str)
-#else
+
 static void 
 err_head (str)
      char *str;
-#endif
 {
   int oerrno = errno;
   if (SCM_NIMP (scm_cur_outp))
@@ -100,14 +95,9 @@ err_head (str)
 
 
 SCM_PROC(s_errno, "errno", 0, 1, 0, scm_errno);
-#ifdef __STDC__
-SCM 
-scm_errno (SCM arg)
-#else
-SCM 
+SCM
 scm_errno (arg)
      SCM arg;
-#endif
 {
   int old = errno;
   if (!SCM_UNBNDP (arg))
@@ -121,82 +111,19 @@ scm_errno (arg)
 }
 
 SCM_PROC(s_perror, "perror", 1, 0, 0, scm_perror);
-#ifdef __STDC__
-SCM 
-scm_perror (SCM arg)
-#else
 SCM 
 scm_perror (arg)
      SCM arg;
-#endif
 {
   SCM_ASSERT (SCM_NIMP (arg) && SCM_STRINGP (arg), arg, SCM_ARG1, s_perror);
   err_head (SCM_CHARS (arg));
   return SCM_UNSPECIFIED;
 }
 
-
-#ifdef __STDC__
-void 
-scm_everr (SCM exp, SCM env, SCM arg, char *pos, char *s_subr)
-#else
-void 
-scm_everr (exp, env, arg, pos, s_subr)
-     SCM exp;
-     SCM env;
-     SCM arg; 
-     char *pos;
-     char *s_subr;
-#endif
-{
-  SCM desc;
-  SCM args;
-  
-  if ((~0x1fL) & (long) pos)
-    desc = scm_makfrom0str (pos);
-  else
-    desc = SCM_MAKINUM ((long)pos);
-  
-  {
-    SCM sym;
-    if (!s_subr || !*s_subr)
-      sym = SCM_BOOL_F;
-    else
-      sym = SCM_CAR (scm_intern0 (s_subr));
-    args = scm_listify (desc, sym, arg, SCM_UNDEFINED);
-  }
-  
-  /* (throw (quote scm_system-error_key) <desc> <proc-name> arg)
-   *
-   * <desc> is a string or an integer (see %%system-errors).
-   * <proc-name> is a symbol or #f in some annoying cases (e.g. cddr).
-   */
-  
-  scm_ithrow (scm_system_error_key, args, 1);
-  
-  /* No return, but just in case: */
-
-  write (2, "unhandled system error", sizeof ("unhandled system error") - 1);
-  exit (1);
-}
-
-#ifdef __STDC__
-SCM
-scm_wta (SCM arg, char *pos, char *s_subr)
-#else
-SCM
-scm_wta (arg, pos, s_subr)
-     SCM arg;
-     char *pos;
-     char *s_subr;
-#endif
-{
-  scm_everr (SCM_UNDEFINED, SCM_EOL, arg, pos, s_subr);
-  return SCM_UNSPECIFIED;
-}
-
 void (*scm_error_callback) () = 0;
 
+/* all errors thrown from C should pass through here.  */
+/* also known as lgh_error.  */
 void
 scm_error (key, subr, message, args, rest)
      SCM key;
@@ -209,7 +136,7 @@ scm_error (key, subr, message, args, rest)
   if (scm_error_callback)
     (*scm_error_callback) (key, subr, message, args, rest);
 
-  arg_list = scm_listify (scm_makfrom0str (subr),
+  arg_list = scm_listify (subr ? scm_makfrom0str (subr) : SCM_BOOL_F,
 			  scm_makfrom0str (message),
 			  args,
 			  rest,
@@ -227,15 +154,19 @@ scm_error (key, subr, message, args, rest)
 SCM scm_system_error_key;
 SCM scm_num_overflow_key;
 SCM scm_out_of_range_key;
+SCM scm_arg_type_key;
+SCM scm_args_number_key;
+SCM scm_memory_alloc_key;
+SCM scm_stack_overflow_key;
+SCM scm_misc_error_key;
 
-/* various convenient interfaces to lgh_error.  */
 void
 scm_syserror (subr)
      char *subr;
 {
   lgh_error (scm_system_error_key,
 	     subr,
-	     "%S",
+	     "%s",
 	     scm_listify (scm_makfrom0str (strerror (errno)),
 			  SCM_UNDEFINED),
 	     scm_listify (SCM_MAKINUM (errno), SCM_UNDEFINED));
@@ -261,7 +192,7 @@ scm_sysmissing (subr)
 #ifdef ENOSYS
   lgh_error (scm_system_error_key,
 	     subr,
-	     "%S",
+	     "%s",
 	     scm_listify (scm_makfrom0str (strerror (ENOSYS)), SCM_UNDEFINED),
 	     scm_listify (SCM_MAKINUM (ENOSYS), SCM_UNDEFINED));
 #else
@@ -295,14 +226,104 @@ scm_out_of_range (subr, bad_value)
 	     scm_listify (bad_value, SCM_UNDEFINED),
 	     SCM_BOOL_F);
 }
-  
-#ifdef __STDC__
+
 void
-scm_init_error (void)
-#else
+scm_wrong_num_args (proc)
+     SCM proc;
+{
+  lgh_error (scm_args_number_key,
+	     NULL,
+	     "Wrong number of arguments to %s",
+	     scm_listify (proc, SCM_UNDEFINED),
+	     SCM_BOOL_F);
+}
+
+void
+scm_wrong_type_arg (subr, pos, bad_value)
+     char *subr;
+     int pos;
+     SCM bad_value;
+{
+  lgh_error (scm_arg_type_key,
+	     subr,
+	     (pos == 0) ? "Wrong type argument: %S"
+	     : "Wrong type argument in position %s: %S",
+	     (pos == 0) ? scm_listify (bad_value, SCM_UNDEFINED)
+	     : scm_listify (SCM_MAKINUM (pos), bad_value, SCM_UNDEFINED),
+	     SCM_BOOL_F);
+}
+
+void
+scm_memory_error (subr)
+     char *subr;
+{
+  lgh_error (scm_memory_alloc_key,
+	     subr,
+	     "Memory allocation error",
+	     SCM_BOOL_F,
+	     SCM_BOOL_F);
+}
+
+/* implements the SCM_ASSERT interface.  */  
+SCM
+scm_wta (arg, pos, s_subr)
+     SCM arg;
+     char *pos;
+     char *s_subr;
+{
+  if (!s_subr || !*s_subr)
+    s_subr = NULL;
+  if ((~0x1fL) & (long) pos)
+    {
+      /* error string supplied.  */
+      lgh_error (scm_misc_error_key,
+		 s_subr,
+		 pos,
+		 SCM_BOOL_F,
+		 SCM_BOOL_F);
+    }
+  else
+    {
+      /* numerical error code.  */
+      int error = (long) pos;
+
+      switch (error)
+	{
+	case SCM_ARGn:
+	  scm_wrong_type_arg (s_subr, 0, arg);
+	case SCM_ARG1:
+	  scm_wrong_type_arg (s_subr, 1, arg);
+	case SCM_ARG2:
+	  scm_wrong_type_arg (s_subr, 2, arg);
+	case SCM_ARG3:
+	  scm_wrong_type_arg (s_subr, 3, arg);
+	case SCM_ARG4:
+	  scm_wrong_type_arg (s_subr, 4, arg);
+	case SCM_ARG5:
+	  scm_wrong_type_arg (s_subr, 5, arg);
+	case SCM_WNA:
+	  scm_wrong_num_args (arg);
+	case SCM_OUTOFRANGE:
+	  scm_out_of_range (s_subr, arg);
+	case SCM_NALLOC:
+	  scm_memory_error (s_subr);
+	default:
+	  /* this shouldn't happen.  */
+	  lgh_error (scm_misc_error_key,
+		     s_subr,
+		     "Unknown error",
+		     SCM_BOOL_F,
+		     SCM_BOOL_F);
+	}
+    }
+  return SCM_UNSPECIFIED;
+}
+
+/*  obsolete interface: scm_everr (exp, env, arg, pos, s_subr)
+    was equivalent to scm_wta (arg, pos, s_subr)  */
+
 void
 scm_init_error ()
-#endif
 {
   scm_system_error_key
     = scm_permanent_object (SCM_CAR (scm_intern0 ("system-error")));
@@ -310,6 +331,16 @@ scm_init_error ()
     = scm_permanent_object (SCM_CAR (scm_intern0 ("numerical-overflow")));
   scm_out_of_range_key
     = scm_permanent_object (SCM_CAR (scm_intern0 ("out-of-range")));
+  scm_arg_type_key
+    = scm_permanent_object (SCM_CAR (scm_intern0 ("wrong-type-arg")));
+  scm_args_number_key
+    = scm_permanent_object (SCM_CAR (scm_intern0 ("wrong-number-of-args")));
+  scm_memory_alloc_key
+    = scm_permanent_object (SCM_CAR (scm_intern0 ("memory-allocation-error")));
+  scm_stack_overflow_key
+    = scm_permanent_object (SCM_CAR (scm_intern0 ("stack-overflow")));
+  scm_misc_error_key
+    = scm_permanent_object (SCM_CAR (scm_intern0 ("misc-error")));
 #include "error.x"
 }
 
