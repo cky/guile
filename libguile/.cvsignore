@@ -4,6 +4,7 @@ config.status
 config.cache
 fd.h
 scmconfig.h
+stamp-h
 *.x
 libpath.h
 .deps
