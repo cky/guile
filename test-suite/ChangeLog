@@ -1,3 +1,8 @@
+2004-08-06  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/unif.test (array-set!): Exercise byte array range checks.
+	(uniform-vector-ref): Exercise byte returns.
+
 2004-08-03  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* standalone/test-num2integral.c: Only perform the tests when the

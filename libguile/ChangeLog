@@ -1,3 +1,9 @@
+2004-08-06  Kevin Ryde  <user42@zip.com.au>
+
+	* unif.c (scm_uniform_vector_ref, scm_array_set_x): For byvect, force
+	signed byte range checks by using scm_to_schar and scm_from_schar,
+	don't want to depend on signedness of C char.
+
 2004-08-05  Kevin Ryde  <user42@zip.com.au>
 
 	* arbiters.c (scm_try_arbiter): Use scm_i_misc_mutex instead of
