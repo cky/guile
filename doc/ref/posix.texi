@@ -2197,11 +2197,14 @@ has been connected to another socket.
 
 @deffn {Scheme Procedure} socketpair family style proto
 @deffnx {C Function} scm_socketpair (family, style, proto)
-Return a pair of connected (but unnamed) socket ports of the
-type specified by @var{family}, @var{style} and @var{proto}.
-Many systems support only socket pairs of the @code{AF_UNIX}
-family.  Zero is likely to be the only meaningful value for
-@var{proto}.
+Return a pair, the @code{car} and @code{cdr} of which are two unnamed
+socket ports connected to each other.  The connection is full-duplex,
+so data can be transferred in either direction between the two.
+
+@var{family}, @var{style} and @var{proto} are as per @code{socket}
+above.  But many systems only support socket pairs in the
+@code{PF_UNIX} family.  Zero is likely to be the only meaningful value
+for @var{proto}.
 @end deffn
 
 @deffn {Scheme Procedure} getsockopt sock level optname
