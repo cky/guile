@@ -690,29 +690,48 @@ Equality is determined by the equality predicate @var{=}, or
 
 @c FIXME::martin: Review me!
 
-The procedures for deleting elements from a list either accept a
-predicate or a comparison object for determining which elements are to
-be removed.
-
 @deffn {Scheme Procedure} delete x lst [=]
 @deffnx {Scheme Procedure} delete! x lst [=]
-Return a list containing all elements from @var{lst}, but without the
-elements equal to @var{x}.  Equality is determined by the equality
-predicate @var{=}, which defaults to @code{equal?} if not given.
+Return a list containing the elements of @var{lst} but with those
+equal to @var{x} deleted.  The returned elements will be in the same
+order as they were in @var{lst}.
 
-@code{delete!} is allowed, but not required to modify the structure of
-the argument list in order to produce the result.
+Equality is determined by the @var{=} predicate, or @code{equal?} if
+not given.  An equality call is made just once for each element, but
+the order in which the calls are made on the elements is unspecified.
+
+The equality calls are always @code{(= x elem)}, ie. the given @var{x}
+is first.  This means for instance elements greater than 5 can be
+deleted with @code{(delete 5 lst <)}.
+
+@code{delete} does not modify @var{lst}, but the return might share a
+common tail with @var{lst}.  @code{delete!} may modify the structure
+of @var{lst} to construct its return.
 @end deffn
 
 @deffn {Scheme Procedure} delete-duplicates lst [=]
 @deffnx {Scheme Procedure} delete-duplicates! lst [=]
-Return a list containing all elements from @var{lst}, but without
-duplicate elements.  Equality of elements is determined by the
-equality predicate @var{=}, which defaults to @code{equal?} if not
-given.
+Return a list containing the elements of @var{lst} but without
+duplicates.
 
-@code{delete-duplicates!} is allowed, but not required to modify the
-structure of the argument list in order to produce the result.
+When elements are equal, only the first in @var{lst} is retained.
+Equal elements can be anywhere in @var{lst}, they don't have to be
+adjacent.  The returned list will have the retained elements in the
+same order as they were in @var{lst}.
+
+Equality is determined by the @var{=} predicate, or @code{equal?} if
+not given.  Calls @code{(= x y)} are made with element @var{x} being
+before @var{y} in @var{lst}.  A call is made at most once for each
+combination, but the sequence of the calls across the elements is
+unspecified.
+
+@code{delete-duplicates} does not modify @var{lst}, but the return
+might share a common tail with @var{lst}.  @code{delete-duplicates!}
+may modify the structure of @var{lst} to construct its return.
+
+In the worst case, this is an @math{O(N^2)} algorithm because it must
+check each element against all those preceding it.  For long lists it
+is more efficient to sort and then compare only adjacent elements.
 @end deffn
 
 
