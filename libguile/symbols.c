@@ -425,12 +425,11 @@ scm_symbol_value0 (const char *name)
 }
 
 SCM_DEFINE (scm_symbol_p, "symbol?", 1, 0, 0, 
-           (SCM obj),
+	    (SCM obj),
 	    "Returns @t{#t} if @var{obj} is a symbol, otherwise returns @t{#f}. (r5rs)")
 #define FUNC_NAME s_scm_symbol_p
 {
-  if SCM_IMP(obj) return SCM_BOOL_F;
-  return SCM_BOOL(SCM_SYMBOLP(obj));
+  return SCM_BOOL (SCM_SYMBOLP (obj));
 }
 #undef FUNC_NAME
 

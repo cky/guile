@@ -1,5 +1,9 @@
 2000-09-12  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* symbols.c (scm_symbol_p):  Eliminate redundant SCM_IMP test.
+
+2000-09-12  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	This patch unifies the formerly distinct ssymbol and msymbol types
 	to a common symbol type scm_tc7_symbol.  The representation of the
 	new symbol type uses a double cell with the following layout:
