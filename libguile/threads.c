@@ -1041,6 +1041,12 @@ scm_spawn_thread (scm_t_catch_body body, void *body_data,
   return create_thread (body, body_data, handler, handler_data, SCM_BOOL_F);
 }
 
+scm_t_thread
+scm_c_scm2thread (SCM thread)
+{
+  return SCM_THREAD_DATA (thread)->thread;
+}
+
 int
 scm_mutex_lock (scm_t_mutex *m)
 {

@@ -91,6 +91,7 @@ SCM_API void scm_init_thread_procs (void);
  */
 SCM_API SCM scm_spawn_thread (scm_t_catch_body body, void *body_data,
 			      scm_t_catch_handler handler, void *handler_data);
+SCM_API scm_t_thread scm_c_scm2thread (SCM thread);
 
 #define scm_thread_join		scm_i_plugin_thread_join
 #define scm_thread_detach	scm_i_plugin_thread_detach

@@ -1,3 +1,7 @@
+2004-03-03  Mikael Djurfeldt  <mdj@chunk.mit.edu>
+
+	* threads.c, threads.h (scm_c_scm2thread): New function.
+
 2004-02-29  Kevin Ryde  <user42@zip.com.au>
 
 	* numbers.c (guile_ieee_init): Use C99 INFINITY and NAN when
