@@ -1,5 +1,19 @@
 2000-05-10  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* eq.c (scm_eqv_p):  Separate handling of real and complex
+	values.  Remove #ifdef SCM_BIGDIG #endif test.
+
+	* eval.c (SCM_CEVAL, SCM_APPLY), gh_data.c (gh_scm2floats,
+	gh_scm2doubles), hash.c (scm_hasher), ramap.c (scm_array_fill_int,
+	ramap_rp, scm_array_map_x), random.c (vector_scale,
+	vector_sum_squares), unif.c (scm_make_uve, scm_array_p,
+	scm_array_set_x):  Use SCM_REAL_VALUE instead of SCM_REALPART if
+	the object is known to be real.  Use SCM_COMPLEXP instead of
+	deprecated SCM_CPLXP.  Use SCM_INEXACTP instead of deprecated
+	SCM_INEXP.
+
+2000-05-10  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* numbers.c:  No need to include unif.h.
 
 	(IS_INF):  Returned to old test for now:  x == x + 1 will not work

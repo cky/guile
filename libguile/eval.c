@@ -2739,7 +2739,7 @@ evapply:
 	      SCM_ASRTGO (SCM_NIMP (t.arg1), floerr);
 	      if (SCM_REALP (t.arg1))
 		{
-		  RETURN (scm_make_real (SCM_DSUBRF (proc) (SCM_REALPART (t.arg1))));
+		  RETURN (scm_make_real (SCM_DSUBRF (proc) (SCM_REAL_VALUE (t.arg1))));
 		}
 #ifdef SCM_BIGDIG
 	      if (SCM_BIGP (t.arg1))
@@ -3335,7 +3335,7 @@ tail:
 	  SCM_ASRTGO (SCM_NIMP (arg1), floerr);
 	  if (SCM_REALP (arg1))
 	    {
-	      RETURN (scm_make_real (SCM_DSUBRF (proc) (SCM_REALPART (arg1))));
+	      RETURN (scm_make_real (SCM_DSUBRF (proc) (SCM_REAL_VALUE (arg1))));
 	    }
 #ifdef SCM_BIGDIG
 	  if (SCM_BIGP (arg1))

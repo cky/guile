@@ -585,7 +585,7 @@ scm_array_fill_int (SCM ra, SCM fill, SCM ignore)
       { /* scope */
 	float f, *ve = (float *) SCM_VELTS (ra);
 	SCM_ASRTGO (SCM_REALP (fill), badarg2);
-	f = SCM_REALPART (fill);
+	f = SCM_REAL_VALUE (fill);
 	for (i = base; n--; i += inc)
 	  ve[i] = f;
 	break;
@@ -594,7 +594,7 @@ scm_array_fill_int (SCM ra, SCM fill, SCM ignore)
       { /* scope */
 	double f, *ve = (double *) SCM_VELTS (ra);
 	SCM_ASRTGO (SCM_REALP (fill), badarg2);
-	f = SCM_REALPART (fill);
+	f = SCM_REAL_VALUE (fill);
 	for (i = base; n--; i += inc)
 	  ve[i] = f;
 	break;
@@ -603,9 +603,14 @@ scm_array_fill_int (SCM ra, SCM fill, SCM ignore)
       { /* scope */
 	double fr, fi;
 	double (*ve)[2] = (double (*)[2]) SCM_VELTS (ra);
-	SCM_ASRTGO (SCM_INEXP (fill), badarg2);
-	fr = SCM_REALPART (fill);
-	fi = (SCM_CPLXP (fill) ? SCM_IMAG (fill) : 0.0);
+	SCM_ASRTGO (SCM_INEXACTP (fill), badarg2);
+	if (SCM_REALP (fill)) {
+	  fr = SCM_REAL_VALUE (fill);
+	  fi = 0.0;
+	} else {
+	  fr = SCM_COMPLEX_REAL (fill);
+	  fi = SCM_COMPLEX_IMAG (fill);
+	}
 	for (i = base; n--; i += inc)
 	  {
 	    ve[i][0] = fr;
@@ -1365,8 +1370,8 @@ ramap_rp (SCM ra0,SCM proc,SCM ras)
 	for (; n-- > 0; i0 += inc0, i1 += inc1, i2 += inc2)
 	  if (SCM_BITVEC_REF (ra0, i0))
 	    {
-	      SCM_REAL (a1) = ((double *) SCM_VELTS (ra1))[i1];
-	      SCM_REAL (a2) = ((double *) SCM_VELTS (ra2))[i2];
+	      SCM_REAL_VALUE (a1) = ((double *) SCM_VELTS (ra1))[i1];
+	      SCM_REAL_VALUE (a2) = ((double *) SCM_VELTS (ra2))[i2];
 	      if (SCM_FALSEP (SCM_SUBRF (proc) (a1, a2)))
 		SCM_BITVEC_CLR (ra0, i0);
 	    }
@@ -1550,7 +1555,7 @@ SCM_DEFINE (scm_array_map_x, "array-map!", 2, 0, 1,
 	  if (SCM_INUMP(fill))
 	    {
 	      prot = scm_array_prototype (ra0);
-	      if (SCM_INEXP (prot))
+	      if (SCM_INEXACTP (prot))
 		fill = scm_make_real ((double) SCM_INUM (fill));
 	    }
 

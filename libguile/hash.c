@@ -106,7 +106,7 @@ scm_hasher(SCM obj, unsigned long n, scm_sizet d)
 	return 263 % n;
       case scm_tc16_real:
 	{
-	  double r = SCM_REALPART(obj);
+	  double r = SCM_REAL_VALUE(obj);
 	  if (floor(r)==r) {
 	    obj = scm_inexact_to_exact (obj);
 	    if SCM_IMP(obj) return SCM_INUM(obj) % n;

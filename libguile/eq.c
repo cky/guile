@@ -104,13 +104,14 @@ SCM_DEFINE1 (scm_eqv_p, "eqv?", scm_tc7_rpsubr,
     }
   if (SCM_NUMP (x))
     {
-# ifdef SCM_BIGDIG
-      if (SCM_BIGP (x))
+      if (SCM_BIGP (x)) {
 	return SCM_BOOL (0 == scm_bigcomp (x, y));
-# endif
-      if (SCM_REALPART (x) != SCM_REALPART(y)) return SCM_BOOL_F;
-      if (SCM_CPLXP(x) && (SCM_IMAG(x) != SCM_IMAG(y))) return SCM_BOOL_F;
-      return SCM_BOOL_T;
+      } else if (SCM_SLOPPY_REALP (x)) {
+	return SCM_BOOL (SCM_REAL_VALUE (x) == SCM_REAL_VALUE (y));
+      } else { /* complex */
+	return SCM_BOOL (SCM_COMPLEX_REAL (x) == SCM_COMPLEX_REAL (y) 
+			 && SCM_COMPLEX_IMAG (x) == SCM_COMPLEX_IMAG (y));
+      }
     }
   return SCM_BOOL_F;
 }

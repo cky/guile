@@ -422,7 +422,7 @@ gh_scm2floats (SCM obj, float *m)
 	  else if (SCM_BIGP (val))
 	    m[i] = scm_num2long (val, 0, 0);
 	  else
-	    m[i] = SCM_REALPART (val);
+	    m[i] = SCM_REAL_VALUE (val);
 	}
       break;
 #ifdef HAVE_ARRAYS
@@ -478,7 +478,7 @@ gh_scm2doubles (SCM obj, double *m)
 	  else if (SCM_BIGP (val))
 	    m[i] = scm_num2long (val, 0, 0);
 	  else
-	    m[i] = SCM_REALPART (val);
+	    m[i] = SCM_REAL_VALUE (val);
 	}
       break;
 #ifdef HAVE_ARRAYS

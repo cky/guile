@@ -202,7 +202,7 @@ scm_make_uve (long k, SCM prot)
 	}
     }
   else
-  if (SCM_IMP (prot) || !SCM_INEXP (prot))
+  if (SCM_IMP (prot) || !SCM_INEXACTP (prot))
     /* Huge non-unif vectors are NOT supported. */
     /* no special scm_vector */
     return scm_make_vector (SCM_MAKINUM (k), SCM_UNDEFINED);
@@ -211,7 +211,7 @@ scm_make_uve (long k, SCM prot)
       i = sizeof (float) * k;
       type = scm_tc7_fvect;
     }
-  else if (SCM_CPLXP (prot))
+  else if (SCM_COMPLEXP (prot))
     {
       i = 2 * sizeof (double) * k;
       type = scm_tc7_cvect;
@@ -318,7 +318,7 @@ SCM_DEFINE (scm_array_p, "array?", 1, 1, 0,
  	case scm_tc7_dvect:
  	  protp = SCM_REALP(prot);
  	case scm_tc7_cvect:
- 	  protp = SCM_CPLXP(prot);
+ 	  protp = SCM_COMPLEXP(prot);
  	case scm_tc7_vector:
  	case scm_tc7_wvect:
  	  protp = SCM_NULLP(prot);
@@ -1332,9 +1332,14 @@ SCM_DEFINE (scm_array_set_x, "array-set!", 2, 0, 1,
       ((double *) SCM_CELL_WORD_1 (v))[pos] = scm_num2dbl (obj, FUNC_NAME);
       break;
     case scm_tc7_cvect:
-      SCM_ASRTGO (SCM_INEXP (obj), badobj);
-      ((double *) SCM_CELL_WORD_1 (v))[2 * pos] = SCM_REALPART (obj);
-      ((double *) SCM_CELL_WORD_1 (v))[2 * pos + 1] = SCM_CPLXP (obj) ? SCM_IMAG (obj) : 0.0;
+      SCM_ASRTGO (SCM_INEXACTP (obj), badobj);
+      if (SCM_REALP (obj)) {
+	((double *) SCM_CELL_WORD_1 (v))[2 * pos] = SCM_REAL_VALUE (obj);
+	((double *) SCM_CELL_WORD_1 (v))[2 * pos + 1] = 0.0;
+      } else {
+	((double *) SCM_CELL_WORD_1 (v))[2 * pos] = SCM_COMPLEX_REAL (obj);
+	((double *) SCM_CELL_WORD_1 (v))[2 * pos + 1] = SCM_COMPLEX_IMAG (obj);
+      }
       break;
     case scm_tc7_vector:
     case scm_tc7_wvect:

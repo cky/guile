@@ -447,7 +447,7 @@ vector_scale (SCM v, double c)
   int n = SCM_LENGTH (v);
   if (SCM_VECTORP (v))
     while (--n >= 0)
-      SCM_REAL (SCM_VELTS (v)[n]) *= c;
+      SCM_REAL_VALUE (SCM_VELTS (v)[n]) *= c;
   else
     while (--n >= 0)
       ((double *) SCM_VELTS (v))[n] *= c;
@@ -461,7 +461,7 @@ vector_sum_squares (SCM v)
   if (SCM_VECTORP (v))
     while (--n >= 0)
       {
-	x = SCM_REAL (SCM_VELTS (v)[n]);
+	x = SCM_REAL_VALUE (SCM_VELTS (v)[n]);
 	sum += x * x;
       }
   else
