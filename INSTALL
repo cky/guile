@@ -16,7 +16,7 @@ Their voluminous output is not shown.
         $ make install				# install in the usual places
 
 (Note: under SunOS 4.1, you may need to say ./configure --disable-shared;
-Guile's shared library support for that systems seems to be confused.)
+Guile's shared library support for that system seems to be confused.)
 
 What You Get ==============================================================
 
@@ -90,6 +90,18 @@ if you're using Bash or any other Bourne shell variant, or
 	setenv SCHEME_LOAD_PATH /home/jimb/my-scheme:/home/jimb/guile-snap
 
 if you're using CSH or one of its variants.
+
+
+Building a Statically Linked Guile ========================================
+
+Sometimes it's useful to build a statically-linked version of the
+Guile executable.  It's helpful in debugging, and for producing
+stand-alone executables for distribution to machines you don't
+control.
+
+To do this, set the LDFLAGS environment variable to `-static' before
+you configure, or before you run the `make' command to build the
+executable.
 
 
 Generic Instructions for Building Auto-Configured Packages ================
