@@ -1,3 +1,8 @@
+2001-06-04  Gary Houston  <ghouston@arglist.com>
+
+	* scheme-io.texi (Block Reading and Writing): added 
+	write-string/partial, updated read-string!/partial.
+
 2001-05-30  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* General: A lot of typo, texinfo markup and layout corrections.

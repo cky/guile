@@ -1,3 +1,9 @@
+2001-06-04  Gary Houston  <ghouston@arglist.com>
+
+	* rw.c (scm_write_string_partial): new procedure implementing
+	write-string/partial in (ice-9 rw).
+	* rw.h: declare scm_write_string_partial.
+	
 2001-06-04  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	Added exception notice to all files.

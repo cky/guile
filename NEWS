@@ -136,13 +136,21 @@ can be used for similar functionality.
 ** New module (ice-9 rw)
 
 This is a subset of the (scsh rw) module from guile-scsh.  Currently
-it defines a single procedure:
+it defines two single procedures:
 
 *** New function: read-string!/partial str [port_or_fdes [start [end]]]
 
-     Read characters from an fport or file descriptor into a string
-     STR.  This procedure is scsh-compatible and can efficiently read
+     Read characters from a port or file descriptor into a string STR.
+     A port must have an underlying file descriptor -- a so-called
+     fport.  This procedure is scsh-compatible and can efficiently read
      large strings.
+
+*** New function: write-string/partial str [port_or_fdes [start [end]]]
+
+     Write characters from a string STR to a port or file descriptor.
+     A port must have an underlying file descriptor -- a so-called
+     fport.  This procedure is mostly compatible and can efficiently
+     write large strings.
 
 ** New module (ice-9 match)
 
