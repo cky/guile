@@ -76,7 +76,8 @@ typedef struct
 #define SCM_SUBR_GENERIC(x) (SCM_SUBR_ENTRY (x).generic)
 
 #define SCM_CCLO_LENGTH(x) (SCM_CELL_WORD_0 (x) >> 8)
-#define SCM_SET_CCLO_LENGTH(x, v) (SCM_SET_CELL_WORD_0 ((x), ((v) << 8) + scm_tc7_cclo))
+#define SCM_MAKE_CCLO_TAG(v)  (((v) << 8) + scm_tc7_cclo)
+#define SCM_SET_CCLO_LENGTH(x, v) (SCM_SET_CELL_WORD_0 ((x), SCM_MAKE_CCLO_TAG(v)))
 #define SCM_CCLO_BASE(x) ((scm_t_bits *) SCM_CELL_WORD_1 (x))
 #define SCM_SET_CCLO_BASE(x, v) (SCM_SET_CELL_WORD_1 ((x), (v)))
 
