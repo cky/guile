@@ -1,5 +1,8 @@
 1998-04-12  Mikael Djurfeldt  <mdj@kenneth>
 
+	* gc.c (scm_gc_sweep): Count cells correctly.  (Thanks to Ben
+	Caradoc-Davies.)
+
 	* eval.c (SCM_CEVAL, SCM_APPLY): In SCM_IM_APPLY and in the
 	procedure apply: Copy argument lists before pushing them unto the
 	environment so that the environment won't get mutated due to

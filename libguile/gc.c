@@ -1289,6 +1289,7 @@ scm_gc_sweep ()
       if (n == seg_size)
 	{
 	  scm_heap_size -= seg_size;
+	  n = 0;
 	  free ((char *) scm_heap_table[i].bounds[0]);
 	  scm_heap_table[i].bounds[0] = 0;
 	  for (j = i + 1; j < scm_n_heap_segs; j++)
