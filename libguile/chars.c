@@ -312,7 +312,7 @@ scm_tables_prehistory ()
   int i;
   for (i = 0; i < SCM_CHAR_CODE_LIMIT; i++)
     scm_upcase_table[i] = scm_downcase_table[i] = i;
-  for (i = 0; i < sizeof scm_lowers / sizeof (char); i++)
+  for (i = 0; i < (int) (sizeof scm_lowers / sizeof (scm_lowers[0])); i++)
     {
       scm_upcase_table[scm_lowers[i]] = scm_uppers[i];
       scm_downcase_table[scm_uppers[i]] = scm_lowers[i];
