@@ -1,6 +1,7 @@
 2001-07-31  Keisuke Nishida  <knishida@nurs.or.jp>
 
-	* boot-9.scm (process-define-module): Bug fixed.
+	* boot-9.scm (process-define-module): Fixed a bug that did not
+	handle :use-syntax correctly.
 
 2001-07-24  Marius Vollmer  <mvo@zagadka.ping.de>
 
