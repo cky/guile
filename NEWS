@@ -88,6 +88,11 @@ space" for Guile headers.  This means that the compiler only is given
 
 ** The module (ice-9 getopt-gnu-style) has been removed.
 
+** New module (ice-9 documentation)
+
+Implements the interface to documentation strings associated with
+objects.
+
 * Changes to the stand-alone interpreter
 
 ** New help facility
@@ -103,6 +108,8 @@ Usage: (help NAME) gives documentation about objects named NAME (a symbol)
 Examples: (help help)
           (help cons)
           (help "output-string")
+
+** `help' and `apropos' now prints full module names
 
 ** Dynamic linking now uses libltdl from the libtool package.
 
@@ -159,6 +166,12 @@ at the top of the script.
 (The first options enables the debugging evaluator.
  The second enables backtraces.)
 
+** Part of module system symbol lookup now implemented in C
+
+The eval closure of most modules is now implemented in C.  Since this
+was one of the bottlenecks for loading speed, Guile now loads code
+substantially faster than before.
+
 ** Attempting to get the value of an unbound variable now produces
 an exception with a key of 'unbound-variable instead of 'misc-error.
 
@@ -202,6 +215,9 @@ in the old GC.
 4. The old code would often trigger heap allocation several times in a
    row.  (The new scheme predicts how large the segments needs to be
    in order not to need further allocation.)
+
+All in all, the new GC policy will make larger applications more
+efficient.
 
 The new GC scheme also is prepared for POSIX threading.  Threads can
 allocate private pools of cells ("clusters") with just a single
@@ -273,6 +289,19 @@ is returned as result.
 This function is called `list*' in some other Schemes and in Common LISP.
 
 ** Removed deprecated: serial-map, serial-array-copy!, serial-array-map!
+
+** New procedure: object-documentation OBJECT
+
+Returns the documentation string associated with OBJECT.  The
+procedure uses a caching mechanism so that subsequent lookups are
+faster.
+
+Exported by (ice-9 documentation).
+
+** module-name now returns full names of modules
+
+Previously, only the last part of the name was returned (`session' for
+`(ice-9 session)').  Ex: `(ice-9 session)'.
 
 * Changes to the gh_ interface
 
