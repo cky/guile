@@ -351,7 +351,10 @@ scm_make_stack (args)
   SCM stack, id;
   SCM obj, inner_cut, outer_cut;
 
-  SCM_ASSERT (SCM_NIMP (args) && SCM_CONSP (args), SCM_WNA, args, s_make_stack);
+  SCM_ASSERT (SCM_NIMP (args) && SCM_CONSP (args),
+	      scm_makfrom0str (s_make_stack),
+	      SCM_WNA,
+	      NULL);
   obj = SCM_CAR (args);
   args = SCM_CDR (args);
 

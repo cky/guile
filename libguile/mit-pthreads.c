@@ -294,20 +294,26 @@ scm_call_with_new_thread (argl)
   {
     register SCM args = argl;
     SCM thunk, handler;
-    SCM_ASSERT (SCM_NIMP (args), argl, SCM_WNA, s_call_with_new_thread);
+    SCM_ASSERT (SCM_NIMP (args),
+		scm_makfrom0str (s_call_with_new_thread),
+		SCM_WNA, NULL);
     thunk = SCM_CAR (args);
     SCM_ASSERT (SCM_NFALSEP (scm_thunk_p (thunk)),
 		thunk,
 		SCM_ARG1,
 		s_call_with_new_thread);
     args = SCM_CDR (args);
-    SCM_ASSERT (SCM_NIMP (args), argl, SCM_WNA, s_call_with_new_thread);
+    SCM_ASSERT (SCM_NIMP (args),
+		scm_makfrom0str (s_call_with_new_thread),
+		SCM_WNA, NULL);
     handler = SCM_CAR (args);
     SCM_ASSERT (SCM_NFALSEP (scm_procedure_p (handler)),
 		handler,
 		SCM_ARG2,
 		s_call_with_new_thread);
-    SCM_ASSERT (SCM_NULLP (SCM_CDR (args)), argl, SCM_WNA, s_call_with_new_thread);
+    SCM_ASSERT (SCM_NULLP (SCM_CDR (args)),
+		scm_makfrom0str (s_call_with_new_thread),
+		SCM_WNA, NULL);
   }
 
   /* Make new thread. */

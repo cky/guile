@@ -1,3 +1,23 @@
+1997-08-14  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* stacks.c (scm_make_stack), coop-threads.c, mit-pthreads.c
+	(scm_call_with_new_thread): Bugfix: SCM_WNA should go as third
+	argument to SCM_ASSERT.  Furthermore, the name of the function
+	should be passed as first argument when signalling
+	SCM_WNA. (Thanks to Thomas Morgan)
+
+	* gsubr.c (scm_gsubr_apply): From Radey Shouman
+	<shouman@zianet.com>: "The switch in scm_gsubr_apply that
+	dispatches on the number of actual args has a default case
+	reporting an internal error.  This is a vestige from a version
+	that mallocated a SCM vector to hold the arguments.  In the
+	current version this check is too late: if it ever happens we will
+	have already overstepped the bounds of the array.
+
+	Also, the patch [...] adds a check for too many actual arguments."
+
+	mdj: Removed check for "internal programming error".
+
 Wed Aug 13 15:38:44 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 *	* gh_io.c (gh_write): New function.
