@@ -170,8 +170,6 @@ SCM_API SCM scm_make_debugobj (scm_t_debug_frame *debug);
 SCM_API void scm_init_debug (void);
 
 #ifdef GUILE_DEBUG
-SCM_API SCM scm_make_iloc (SCM frame, SCM binding, SCM cdrp);
-SCM_API SCM scm_iloc_p (SCM obj);
 SCM_API SCM scm_memcons (SCM car, SCM cdr, SCM env);
 SCM_API SCM scm_mem_to_proc (SCM obj);
 SCM_API SCM scm_proc_to_mem (SCM obj);

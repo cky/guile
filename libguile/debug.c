@@ -211,29 +211,6 @@ scm_make_memoized (SCM exp, SCM env)
 #include "libguile/variable.h"
 #include "libguile/procs.h"
 
-SCM_DEFINE (scm_make_iloc, "make-iloc", 3, 0, 0,
-            (SCM frame, SCM binding, SCM cdrp),
-	    "Return a new iloc with frame offset @var{frame}, binding\n"
-	    "offset @var{binding} and the cdr flag @var{cdrp}.")
-#define FUNC_NAME s_scm_make_iloc
-{
-  SCM_VALIDATE_INUM (1, frame);
-  SCM_VALIDATE_INUM (2, binding);
-  return SCM_MAKE_ILOC (SCM_INUM (frame),
-			SCM_INUM (binding),
-			!SCM_FALSEP (cdrp));
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_iloc_p, "iloc?", 1, 0, 0, 
-          (SCM obj),
-	    "Return @code{#t} if @var{obj} is an iloc.")
-#define FUNC_NAME s_scm_iloc_p
-{
-  return SCM_BOOL(SCM_ILOCP (obj));
-}
-#undef FUNC_NAME
-
 SCM_DEFINE (scm_memcons, "memcons", 2, 1, 0,
             (SCM car, SCM cdr, SCM env),
 	    "Return a new memoized cons cell with @var{car} and @var{cdr}\n"

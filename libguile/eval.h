@@ -59,21 +59,12 @@ SCM_API SCM scm_eval_options_interface (SCM setting);
  * 
  */
 #define SCM_ILOCP(n)		(SCM_ITAG8(n)==scm_tc8_iloc)
-#define SCM_ILOC00		SCM_MAKE_ITAG8(0L, scm_tc8_iloc)
-#define SCM_IDINC		(0x00100000L)
 #define SCM_ICDR		(0x00080000L)
 #define SCM_IFRINC		(0x00000100L)
-#define SCM_IDSTMSK		(-SCM_IDINC)
 #define SCM_IFRAME(n) 		((long)((SCM_ICDR-SCM_IFRINC)>>8) \
 				 & (SCM_UNPACK (n) >> 8))
 #define SCM_IDIST(n) 		(SCM_UNPACK (n) >> 20)
 #define SCM_ICDRP(n) 		(SCM_ICDR & SCM_UNPACK (n))
-#define SCM_MAKE_ILOC(frame_nr, binding_nr, last_p) \
-  SCM_PACK ( \
-    ((frame_nr) << 8) \
-    + ((binding_nr) << 20) \
-    + ((last_p) ? SCM_ICDR : 0) \
-    + scm_tc8_iloc )
 
 
 

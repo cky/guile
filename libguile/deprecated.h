@@ -27,6 +27,13 @@
 
 #if (SCM_ENABLE_DEPRECATED == 1)
 
+/* From eval.h: Macros for handling ilocs.  These were deprecated in guile
+ * 1.7.0 on 2003-06-04.  */
+#define SCM_ILOC00		SCM_MAKE_ITAG8(0L, scm_tc8_iloc)
+#define SCM_IDINC		(0x00100000L)
+#define SCM_IDSTMSK		(-SCM_IDINC)
+
+
 /* From eval.h: Error messages of the evaluator.  These were deprecated in
  * guile 1.7.0 on 2003-06-02.  */
 SCM_API const char scm_s_expression[];

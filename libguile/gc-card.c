@@ -325,7 +325,7 @@ scm_i_init_card_freelist (scm_t_cell *  card, SCM *free_list,
 }
 
 
-#if (SCM_DEBUG_DEBUGGER_SUPPORT == 1)
+#if (SCM_DEBUG_DEBUGGING_SUPPORT == 1)
 
 typedef struct scm_dbg_t_list_cell {
   scm_t_bits car;  

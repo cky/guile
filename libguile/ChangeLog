@@ -1,13 +1,37 @@
+2003-06-04  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* __scm.h, gc-card.c (SCM_DEBUG_DEBUGGER_SUPPORT,
+	SCM_DEBUG_DEBUGGING_SUPPORT): Renamed macro
+	SCM_DEBUG_DEBUGGER_SUPPORT to SCM_DEBUG_DEBUGGING_SUPPORT and
+	generalized it to apply not only to C level functions but also to
+	scheme level functions.
+
+	* debug.c, debug.h, eval.c (make-iloc, scm_make_iloc, iloc?,
+	scm_iloc_p, dbg-make-iloc, scm_dbg_make_iloc, dbg-iloc?,
+	scm_dbg_iloc_p): Moved functions scm_make_iloc, scm_iloc_p to
+	eval.c, made them available under SCM_DEBUG_DEBUGGING_SUPPORT == 1
+	only and renamed them to scm_dbg_make_iloc, scm_dbg_iloc_p,
+	respectively.
+
+	* deprecated.h, eval.c, eval.h (SCM_ILOC00, SCM_IDINC,
+	SCM_IDSTMSK): Deprecated.  The macro definitions are moved from
+	eval.h into eval.c and a copy is placed into deprecated.h.
+
+	* eval.c, eval.h (SCM_MAKE_ILOC): Removed from eval.h and placed
+	into eval.c. This definition was not part of the API in any
+	officially released version of guile and thus does not need to go
+	through a phase of deprecation.
+
 2003-06-02  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
-	* deprecated.c, deprecated.h, eval.c, eval.h: Deprecated
-	scm_s_expression, scm_s_test, scm_s_body, scm_s_bindings,
-	scm_s_variable, scm_s_clauses, scm_s_formals.  In eval.c the
+	* deprecated.c, deprecated.h, eval.c, eval.h (scm_s_expression,
+	scm_s_test, scm_s_body, scm_s_bindings, scm_s_variable,
+	scm_s_clauses, scm_s_formals): Deprecated.  In eval.c the
 	definitions are make static and renamed from scm_s_xxx to s_xxx.
 	In deprecated.c the original definitions are copied.
 
-	* deprecated.h, eval.c, eval: Deprecated SCM_EVALIM2, SCM_EVALIM,
-	SCM_XEVAL and SCM_XEVALCAR.  The macro definitions are moved from
+	* deprecated.h, eval.c, eval (SCM_EVALIM2, SCM_EVALIM, SCM_XEVAL,
+	SCM_XEVALCAR): Deprecated.  The macro definitions are moved from
 	eval.h into eval.c and a copy (slightly modified to work in user
 	code) is placed into deprecated.h.
 

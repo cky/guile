@@ -85,6 +85,55 @@ char *alloca ();
 
 
 
+/* {Ilocs}
+ *
+ * Ilocs are memoized references to variables in local environment frames.
+ * They are represented as three values:  The relative offset of the
+ * environment frame, the number of the binding within that frame, and a
+ * boolean value indicating whether the binding is the last binding in the
+ * frame.
+ */
+#define SCM_ILOC00		SCM_MAKE_ITAG8(0L, scm_tc8_iloc)
+#define SCM_IDINC		(0x00100000L)
+#define SCM_IDSTMSK		(-SCM_IDINC)
+#define SCM_MAKE_ILOC(frame_nr, binding_nr, last_p) \
+  SCM_PACK ( \
+    ((frame_nr) << 8) \
+    + ((binding_nr) << 20) \
+    + ((last_p) ? SCM_ICDR : 0) \
+    + scm_tc8_iloc )
+
+#if (SCM_DEBUG_DEBUGGING_SUPPORT == 1)
+
+SCM scm_dbg_make_iloc (SCM frame, SCM binding, SCM cdrp);
+SCM_DEFINE (scm_dbg_make_iloc, "dbg-make-iloc", 3, 0, 0,
+            (SCM frame, SCM binding, SCM cdrp),
+	    "Return a new iloc with frame offset @var{frame}, binding\n"
+	    "offset @var{binding} and the cdr flag @var{cdrp}.")
+#define FUNC_NAME s_scm_dbg_make_iloc
+{
+  SCM_VALIDATE_INUM (1, frame);
+  SCM_VALIDATE_INUM (2, binding);
+  return SCM_MAKE_ILOC (SCM_INUM (frame),
+			SCM_INUM (binding),
+			!SCM_FALSEP (cdrp));
+}
+#undef FUNC_NAME
+
+SCM scm_dbg_iloc_p (SCM obj);
+SCM_DEFINE (scm_dbg_iloc_p, "dbg-iloc?", 1, 0, 0, 
+          (SCM obj),
+	    "Return @code{#t} if @var{obj} is an iloc.")
+#define FUNC_NAME s_scm_dbg_iloc_p
+{
+  return SCM_BOOL (SCM_ILOCP (obj));
+}
+#undef FUNC_NAME
+
+#endif
+
+
+
 #define SCM_VALIDATE_NON_EMPTY_COMBINATION(x) \
   do { \
     if (SCM_EQ_P ((x), SCM_EOL)) \
