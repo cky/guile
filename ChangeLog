@@ -1,3 +1,10 @@
+1998-12-14  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	* configure.in: Check for tgoto in ncurses, then termcap.
+  	S.u.S.E. Linux doesn't have a termcap.  (Thanks to Karl
+ 	Eichwalder.)
+	* configure: Regenerated.
+
 1998-10-24  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	* configure.in: Call AM_PROG_CC_STDC, to see what flags we should

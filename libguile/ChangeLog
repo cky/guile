@@ -1,3 +1,7 @@
+1998-12-14  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	* Makefile.in: Regenerated.
+
 1998-12-05  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	* pairs.h (SCM_NEWCELL): When DEBUG_FREELIST is defined, don't
