@@ -558,10 +558,10 @@ elif test "$ac_cv_sizeof_unsigned___int64" -ne 0; then
   SCM_I_GSC_T_UINTMAX_LIMITS='"unknown"'
 elif test "$ac_cv_sizeof_unsigned_long_long" -ne 0; then
   SCM_I_GSC_T_UINTMAX='"unsigned long long"'
-  SCM_I_GSC_T_INTMAX_LIMITS='"SCM_I_ULLONG"'
+  SCM_I_GSC_T_UINTMAX_LIMITS='"SCM_I_ULLONG"'
 else
   SCM_I_GSC_T_UINTMAX='"unsigned long"'
-  SCM_I_GSC_T_INTMAX_LIMITS='"ULONG"'
+  SCM_I_GSC_T_UINTMAX_LIMITS='"ULONG"'
 fi
 AC_SUBST([SCM_I_GSC_T_UINTMAX])
 AC_SUBST([SCM_I_GSC_T_UINTMAX_LIMITS])
