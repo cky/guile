@@ -543,7 +543,7 @@ however it may be continued over multiple lines."
     (let ((source (frame-source (stack-ref (state-stack state)
 					   (state-index state)))))
       (if (not source)
-	  (display "No environment for this frame.")
+	  (display "No environment for this frame.\n")
 	  (catch 'continue
 		 (lambda ()
 		   (lazy-catch #t
@@ -571,17 +571,16 @@ If the number of frames aren't explicitly given, the debug option
 	       ;;(write-state-short* stack index))
 	       ;;
 	       ;; Use builtin backtrace instead:
-	       (let ((start (if (memq 'backwards (debug-options))
-				start
-				(- end 1)))
-		     (port (current-output-port)))
-		 (if n-frames
-		     (display-backtrace stack port start (abs n-frames))
-		     (display-backtrace stack port start)))
+	       (display-backtrace stack
+				  (current-output-port)
+				  (if (memq 'backwards (debug-options))
+				      start
+				      (- end 1))
+				  (- end start))
 	       )))
 	(let ((end (stack-length stack)))
-	  (cond ((or (not n-frames) (>= (abs n-frames) end))
-		 (values 0 end))
+	  (cond ((not n-frames) ;(>= (abs n-frames) end))
+		 (values 0 (min end (cadr (memq 'depth (debug-options))))))
 		((>= n-frames 0)
 		 (values 0 n-frames))
 		(else
