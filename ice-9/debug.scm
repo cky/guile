@@ -87,7 +87,8 @@
 	    (set! trace-level (+ trace-level 1)))
 	(let indent ((n trace-level))
 	  (cond ((> n 1) (display "|  " cep) (indent (- n 1)))))
-	(display-application frame cep)))
+	(display-application frame cep)
+	(newline cep)))
   ;; It's not necessary to call the continuation since
   ;; execution will continue if the handler returns
   ;(cont #f)

@@ -1,3 +1,8 @@
+1999-09-11  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* backtrace.c (display_frame_expr): Don't print a newline.
+	(display_frame): Print the newline here instead.
+
 1999-09-09  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* procs.c (scm_setter): Signal WTA if handed an entity or operator
