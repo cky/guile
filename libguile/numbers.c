@@ -70,6 +70,22 @@ static SCM scm_divbigint (SCM x, long z, int sgn, int mode);
 #define SCM_SWAP(x,y) do { SCM __t = x; x = y; y = __t; } while (0)
 
 
+#if (SCM_DEBUG_DEPRECATED == 1)  /* not defined in header yet? */
+/* SCM_FIXABLE is non-0 if its long argument can be encoded in an SCM_INUM.
+ */
+#define SCM_POSFIXABLE(n) ((n) <= SCM_MOST_POSITIVE_FIXNUM)
+#define SCM_NEGFIXABLE(n) ((n) >= SCM_MOST_NEGATIVE_FIXNUM)
+#define SCM_UNEGFIXABLE(n) ((n) <= -SCM_MOST_NEGATIVE_FIXNUM)
+#define SCM_FIXABLE(n) (SCM_POSFIXABLE(n) && SCM_NEGFIXABLE(n))
+
+
+/* SCM_FLOBUFLEN is the maximum number of characters neccessary for the
+ * printed or scm_string representation of an inexact number.
+ */
+#define SCM_FLOBUFLEN (10+2*(sizeof(double)/sizeof(char)*SCM_CHAR_BIT*3+9)/10)
+#endif
+
+
 /* IS_INF tests its floating point number for infiniteness
    Dirk:FIXME:: This test does not work if x == 0
  */
@@ -2803,7 +2819,9 @@ SCM
 scm_make_real (double x)
 {
   SCM z;
-  SCM_NEWREAL (z, x);
+  SCM_NEWCELL2 (z);
+  SCM_SET_CELL_TYPE (z, scm_tc16_real);
+  SCM_REAL_VALUE (z) = x;
   return z;
 }
 
@@ -2811,9 +2829,15 @@ scm_make_real (double x)
 SCM
 scm_make_complex (double x, double y)
 {
-  SCM z;
-  SCM_NEWCOMPLEX (z, x, y);
-  return z;
+  if (y == 0.0) {
+    return scm_make_real (x);
+  } else {
+    SCM z;
+    SCM_NEWSMOB (z, scm_tc16_complex, scm_must_malloc (2L * sizeof (double), "complex"));
+    SCM_COMPLEX_REAL (z) = x;
+    SCM_COMPLEX_IMAG (z) = y;
+    return z;
+  }
 }
 
 

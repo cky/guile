@@ -1,3 +1,23 @@
+2000-05-11  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* __scm.h:  Added new section for debugging options.
+
+	(SCM_DEBUG_DEPRECATED):  If 1, no deprecated code is included to
+	help developers to get rid of references to deprecated code.
+
+	* numbers.[ch] (SCM_POSFIXABLE, SCM_NEGFIXABLE, SCM_UNEGFIXABLE,
+	SCM_FIXABLE, SCM_FLOBUFLEN):  These macros are no longer provided
+	as part of the interface and are marked as deprecated in the
+	header file.
+
+	* numbers.c (scm_make_real, scm_make_complex):  Inlined the
+	corresponding macros SCM_NEWREAL and SCM_NEWCOMPLEX,
+	respectively.
+
+	* numbers.h (SCM_NEWREAL, SCM_NEWCOMPLEX, SCM_INEXP, SCM_CPLXP,
+	SCM_REAL, SCM_IMAG, SCM_REALPART, scm_makdbl, SCM_SINGP,
+	SCM_NO_BIGDIG, SCM_NUM2DBL, scm_dblproc):  Deprecated.
+
 2000-05-10  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* gc.h (scm_cell, SCM_CELL_WORD, SCM_CELL_OBJECT,

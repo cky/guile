@@ -127,8 +127,38 @@
 #undef NO_CEVAL_STACK_CHECKING
 
 
+
 /* What did the configure script discover about the outside world?  */
 #include "libguile/scmconfig.h"
+
+
+
+/* {Debugging Options}
+ *
+ * These compile time options determine whether to include code that is only
+ * useful for debugging guile itself or C level extensions to guile.  The
+ * common prefix for all option macros of this kind is "SCM_DEBUG_".  It is
+ * guaranteed that a macro named SCM_DEBUG_XXX is defined to be either 0 or 1,
+ * i. e. there is no need to test for the undefined case.  This allows to use
+ * these definitions comfortably in macro code, as in the following example:
+ *   #define FOO do { if (SCM_DEBUG_XXX) bar(); else baz(); } while (0)
+ * Any sane compiler will remove the unused branch without any performance
+ * penalty for the resulting code.
+ *
+ * Note:  Some SCM_DEBUG_XXX options are not settable at configure time.
+ * To change the value of such options you will have to edit this header
+ * file or give -DSCM_DEBUG_XXX options to make.
+ */
+
+
+/* If SCM_DEBUG_DEPRECATED is set to 1, deprecated code is not compiled.  This
+ * can be used by developers to get rid of references to deprecated code.
+ */
+#ifndef SCM_DEBUG_DEPRECATED
+#define SCM_DEBUG_DEPRECATED 0
+#endif
+
+
 
 #ifdef HAVE_LONG_LONGS
 

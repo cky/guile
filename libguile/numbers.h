@@ -48,7 +48,6 @@
 
 
 #include "libguile/__scm.h"
-
 #include "libguile/print.h"
 
 
@@ -122,13 +121,6 @@
 #endif /* def FLT_MAX */
 
 
-/* SCM_FIXABLE is non-0 if its long argument can be encoded in an SCM_INUM.
- */
-#define SCM_POSFIXABLE(n) ((n) <= SCM_MOST_POSITIVE_FIXNUM)
-#define SCM_NEGFIXABLE(n) ((n) >= SCM_MOST_NEGATIVE_FIXNUM)
-#define SCM_UNEGFIXABLE(n) ((n) <= -SCM_MOST_NEGATIVE_FIXNUM)
-#define SCM_FIXABLE(n) (SCM_POSFIXABLE(n) && SCM_NEGFIXABLE(n))
-
 /* SCM_INTBUFLEN is the maximum number of characters neccessary for the
  * printed or scm_string representation of an exact immediate.
  */
@@ -141,38 +133,11 @@
 #endif /* ndef SCM_LONG_BIT */
 #define SCM_INTBUFLEN (5+SCM_LONG_BIT)
 
-/* SCM_FLOBUFLEN is the maximum number of characters neccessary for the
- * printed or scm_string representation of an inexact number.
- */
-
-#define SCM_FLOBUFLEN (10+2*(sizeof(double)/sizeof(char)*SCM_CHAR_BIT*3+9)/10)
-
 
 
 
 /* Numbers 
  */
-
-#define SCM_NEWREAL(z, x) \
-  do { \
-    SCM_NEWCELL2 (z); \
-    SCM_SET_CELL_TYPE (z, scm_tc16_real); \
-    SCM_REAL_VALUE (z) = (x); \
-  } while (0) \
-
-#define SCM_NEWCOMPLEX(z, x, y)	\
-  do { \
-    double __SCM_complex_tmp = (y); \
-    if (__SCM_complex_tmp == 0.0) \
-      SCM_NEWREAL (z, x); \
-    else \
-      { \
-        SCM_NEWSMOB (z, scm_tc16_complex, \
-		     scm_must_malloc (2L * sizeof (double), "complex")); \
-        SCM_COMPLEX_REAL (z) = (x); \
-        SCM_COMPLEX_IMAG (z) = __SCM_complex_tmp; \
-      } \
-  } while (0) \
 
 #define SCM_SLOPPY_INEXACTP(x) (SCM_TYP16S (x) == scm_tc16_real)
 #define SCM_SLOPPY_REALP(x) (SCM_TYP16 (x) == scm_tc16_real)
@@ -181,27 +146,9 @@
 #define SCM_REALP(x) (SCM_NIMP (x) && SCM_TYP16 (x) == scm_tc16_real)
 #define SCM_COMPLEXP(x) (SCM_NIMP (x) && SCM_TYP16 (x) == scm_tc16_complex)
 
-#define SCM_INEXP(x) SCM_INEXACTP(x) /* Deprecated */
-#define SCM_CPLXP(x) SCM_COMPLEXP(x) /* Deprecated */
-
 #define SCM_REAL_VALUE(x) (((scm_double_t *) SCM2PTR (x))->real)
 #define SCM_COMPLEX_REAL(x) (((scm_complex_t *) SCM_CELL_WORD_1 (x))->real)
 #define SCM_COMPLEX_IMAG(x) (((scm_complex_t *) SCM_CELL_WORD_1 (x))->imag)
-#define SCM_REAL(x) \
- (SCM_SLOPPY_REALP (x) \
-  ? SCM_REAL_VALUE (x) \
-  : SCM_COMPLEX_REAL (x)) \
-
-#define SCM_IMAG(x) \
-  (SCM_SLOPPY_REALP (x) \
-   ? 0.0 \
-   : SCM_COMPLEX_IMAG (x)) \
-
-#define SCM_REALPART(x) \
-  (SCM_SLOPPY_REALP (x) ? SCM_REAL_VALUE (x) : SCM_COMPLEX_REAL (x))
-
-#define scm_makdbl scm_make_complex /* Deprecated */
-#define SCM_SINGP(x) 0 /* Deprecated */
 
 /* Define SCM_BIGDIG to an integer type whose size is smaller than long if
  * you want bignums.  SCM_BIGRAD is one greater than the biggest SCM_BIGDIG. 
@@ -228,7 +175,6 @@
 # define SCM_LONGLONGBIGUP(x) ((ulong_long)(x) << SCM_BITSPERDIG)
 # define SCM_BIGDN(x) ((x) >> SCM_BITSPERDIG)
 # define SCM_BIGLO(x) ((x) & (SCM_BIGRAD-1))
-
 #endif /* def BIGNUMS */
 
 #ifndef SCM_BIGDIG
@@ -236,21 +182,9 @@
  * prototypes to compile with conditionalization.
  */
 # define SCM_BIGDIG unsigned short
-# define SCM_NO_BIGDIG
 #endif /* ndef SCM_BIGDIG */
 
 #define SCM_NUMBERP(x) (SCM_INUMP(x) || SCM_NUMP(x))
-#ifdef SCM_BIGDIG
-#define SCM_NUM2DBL(x) (SCM_INUMP (x) \
-			? (double) SCM_INUM (x) \
-			: (SCM_REALP (x) \
-			   ? SCM_REALPART (x) \
-			   : scm_big2dbl (x)))
-#else
-#define SCM_NUM2DBL(x) (SCM_INUMP (x) \
-			? (double) SCM_INUM (x) \
-			: SCM_REALPART (x))
-#endif
 #define SCM_NUMP(x) \
   (SCM_NIMP(x) && (0xfcff & SCM_UNPACK (SCM_CAR(x))) == scm_tc7_smob)
 #define SCM_BIGP(x) SCM_SMOB_PREDICATE (scm_tc16_big, x)
@@ -267,12 +201,6 @@
 
 
 
-typedef struct scm_dblproc
-{
-  char *scm_string;
-  double (*cproc) ();
-} scm_dblproc;
-
 typedef struct scm_double_t
 {
   SCM type;
@@ -285,7 +213,6 @@ typedef struct scm_complex_t
   double real;
   double imag;
 } scm_complex_t;
-
 
 
 
@@ -335,7 +262,6 @@ extern SCM scm_istring2number (char *str, long len, long radix);
 extern SCM scm_string_to_number (SCM str, SCM radix);
 extern SCM scm_make_real (double x);
 extern SCM scm_make_complex (double x, double y);
-extern SCM scm_makdbl (double x, double y); /* Deprecated */
 extern SCM scm_bigequal (SCM x, SCM y);
 extern SCM scm_real_equalp (SCM x, SCM y);
 extern SCM scm_complex_equalp (SCM x, SCM y);
@@ -385,6 +311,38 @@ extern long_long scm_num2long_long (SCM num, char *pos,
 extern unsigned long scm_num2ulong (SCM num, char *pos,
                                     const char *s_caller);
 extern void scm_init_numbers (void);
+
+
+
+#if (SCM_DEBUG_DEPRECATED == 0)
+
+typedef struct scm_dblproc
+{
+  char *scm_string;
+  double (*cproc) ();
+} scm_dblproc;
+
+#define SCM_NEWREAL(z, x) do { z = scm_make_real (x); } while (0)
+#define SCM_NEWCOMPLEX(z, x, y) do { z = scm_make_complex (x, y); } while (0)
+#define SCM_POSFIXABLE(n) ((n) <= SCM_MOST_POSITIVE_FIXNUM)
+#define SCM_NEGFIXABLE(n) ((n) >= SCM_MOST_NEGATIVE_FIXNUM)
+#define SCM_UNEGFIXABLE(n) ((n) <= -SCM_MOST_NEGATIVE_FIXNUM)
+#define SCM_FIXABLE(n) (SCM_POSFIXABLE(n) && SCM_NEGFIXABLE(n))
+#define SCM_FLOBUFLEN (10+2*(sizeof(double)/sizeof(char)*SCM_CHAR_BIT*3+9)/10)
+#define SCM_INEXP(x) SCM_INEXACTP(x)
+#define SCM_CPLXP(x) SCM_COMPLEXP(x)
+#define SCM_REAL(x) (SCM_SLOPPY_REALP (x) ? SCM_REAL_VALUE (x) : SCM_COMPLEX_REAL (x))
+#define SCM_IMAG(x) (SCM_SLOPPY_REALP (x) ? 0.0 : SCM_COMPLEX_IMAG (x))
+#define SCM_REALPART(x) (SCM_SLOPPY_REALP (x) ? SCM_REAL_VALUE (x) : SCM_COMPLEX_REAL (x))
+#define scm_makdbl scm_make_complex
+#define SCM_SINGP(x) 0
+#define SCM_NUM2DBL(x) scm_num2dbl(x, "SCM_NUM2DBL")
+
+#ifndef SCM_BIGDIG
+# define SCM_NO_BIGDIG
+#endif
+
+#endif  /* SCM_DEBUG_DEPRECATED == 0 */
 
 #endif  /* NUMBERSH */
 
