@@ -1,3 +1,14 @@
+Wed Jun  4 23:27:16 1997  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* boot-9.scm (struct-layout, %struct-printer-tag, struct-printer,
+ 	make-struct-printer, set-struct-printer-in-vtable!): New bindings
+ 	to support printing of structures.
+        (record-type-vtable, make-record-type): Add slot to hold printing
+ 	function and initialize it with something appropriate.  Removed
+ 	commented out printing code.
+	(record-type-name, record-type-fields): Adjusted slot offsets.
+	(%print-module): Reduce argument list to "mod" and "port".
+	
 Sat May 31 18:57:12 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* boot-9.scm: signal-handler, alarm-thunk: removed.

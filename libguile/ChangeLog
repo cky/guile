@@ -1,3 +1,12 @@
+Wed Jun  4 23:47:01 1997  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* struct.c (struct_printer): New variable that holds a handle on
+ 	the Scheme variable *struct-printer*.  This variable can be set by
+ 	Scheme code to override the printing of structures.
+	(scm_print_struct): If struct_printer is set, call it.  If it is
+	not set, or returns #f, print the structure in the old fashion.
+	Include "eval.h" for scm_apply.
+	
 Tue Jun  3 23:01:39 1997  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* struct.c (scm_struct_ref, scm_struct_set_x): Use
