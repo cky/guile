@@ -1,5 +1,11 @@
-1999-06-16  Jim Blandy  <jimb@zwingli.cygnus.com>
+1999-06-16  Jim Blandy  <jimb@savonarola.red-bean.com>
 
+	* gc.c (scm_mallocated): Just make this signed.
+	(scm_igc): Check for underflow by seeing if this is negative.
+	Much cleaner.
+	* gc.h (scm_mallocated): Fix declaration.
+	(Thanks to Greg Harvey.)
+	
 	* ports.h: #include <sys/types.h>, to get a definition for `off_t'.
 
 1999-06-15  Jim Blandy  <jimb@savonarola.red-bean.com>
