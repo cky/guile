@@ -1,3 +1,8 @@
+2001-02-23  Keisuke Nishida  <kxn30@po.cwru.edu>
+
+	* goops.scm (method): Enclosed BODY by `(let () ...)'.
+	This allows local defines at the beginning of methods.
+
 2000-12-15  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* goops/save.scm (load-objects):  eval-in-module is deprecated.
