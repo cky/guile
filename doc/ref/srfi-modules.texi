@@ -700,7 +700,7 @@ Equality is determined by the @var{=} predicate, or @code{equal?} if
 not given.  An equality call is made just once for each element, but
 the order in which the calls are made on the elements is unspecified.
 
-The equality calls are always @code{(= x elem)}, ie. the given @var{x}
+The equality calls are always @code{(= x elem)}, ie.@: the given @var{x}
 is first.  This means for instance elements greater than 5 can be
 deleted with @code{(delete 5 lst <)}.
 
