@@ -248,10 +248,6 @@ scm_gc_mark_dependencies (SCM p)
 	goto gc_mark_loop;
       }
 #endif
-#if SCM_HAVE_ARRAYS
-    case scm_tc7_bvect:
-      break;
-#endif
 
     case scm_tc7_string:
       ptr = scm_i_string_mark (ptr);

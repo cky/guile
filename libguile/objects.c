@@ -89,9 +89,6 @@ SCM_DEFINE (scm_class_of, "class-of", 1, 0, 0,
 	  return scm_class_symbol;
 	case scm_tc7_vector:
 	case scm_tc7_wvect:
-#if SCM_HAVE_ARRAYS
-	case scm_tc7_bvect:
-#endif
 	  return scm_class_vector;
 	case scm_tc7_string:
 	  return scm_class_string;

@@ -598,11 +598,6 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 	  }
 	  EXIT_NESTED_DATA (pstate);
 	  break;
-#if SCM_HAVE_ARRAYS
-	case scm_tc7_bvect:
-	  scm_raprin1 (exp, port, pstate);
-	  break;
-#endif
 	case scm_tcs_subrs:
 	  scm_puts (SCM_SUBR_GENERIC (exp)
 		    ? "#<primitive-generic "
