@@ -1,6 +1,6 @@
 /* readline.c --- line editing support for Guile */
 
-/*	Copyright (C) 1997,1999 Free Software Foundation, Inc.
+/*	Copyright (C) 1997,1999, 2000 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -409,18 +409,19 @@ completion_function (char *text, int continuep)
 
 /*Bouncing parenthesis (reimplemented by GH, 11/23/98, since readline is strict gpl)*/
 
-static void match_paren(int x, int k);
-static int find_matching_paren(int k);
-static void init_bouncing_parens();
+static int match_paren (int x, int k);
+static int find_matching_paren (int k);
+static void init_bouncing_parens ();
 
 static void
-init_bouncing_parens()
+init_bouncing_parens ()
 {
-  if(strncmp(rl_get_keymap_name(rl_get_keymap()), "vi", 2)) {
-    rl_bind_key(')', match_paren);
-    rl_bind_key(']', match_paren);
-    rl_bind_key('}', match_paren);
-  }
+  if (strncmp (rl_get_keymap_name (rl_get_keymap ()), "vi", 2))
+    {
+      rl_bind_key (')', match_paren);
+      rl_bind_key (']', match_paren);
+      rl_bind_key ('}', match_paren);
+    }
 }
 
 static int
@@ -455,44 +456,48 @@ find_matching_paren(int k)
 	}
       else if (rl_line_buffer[i] == c)
 	{
-	  if (end_parens_found==0) return i;
+	  if (end_parens_found==0)
+	    return i;
 	  else --end_parens_found;
 	}
     }
   return -1;
 }
 
-static void
-match_paren(int x, int k)
+static int
+match_paren (int x, int k)
 {
   int tmp;
   fd_set readset;
   struct timeval timeout;
   
-  rl_insert(x, k);
+  rl_insert (x, k);
   if (!SCM_READLINE_BOUNCE_PARENS)
-    return;
+    return 0;
 
   /* Did we just insert a quoted paren?  If so, then don't bounce.  */
   if (rl_point - 1 >= 1
       && rl_line_buffer[rl_point - 2] == '\\')
-    return;
+    return 0;
 
   tmp = 1000 * SCM_READLINE_BOUNCE_PARENS;
   timeout.tv_sec = tmp / 1000000;
   timeout.tv_usec = tmp % 1000000;
-  FD_ZERO(&readset);
-  FD_SET(fileno(rl_instream), &readset);
+  FD_ZERO (&readset);
+  FD_SET (fileno (rl_instream), &readset);
   
-  if(rl_point > 1) {
-    tmp = rl_point;
-    rl_point = find_matching_paren(k);
-    if(rl_point > -1) {
-      rl_redisplay();
-      scm_internal_select(1, &readset, NULL, NULL, &timeout);
+  if (rl_point > 1)
+    {
+      tmp = rl_point;
+      rl_point = find_matching_paren (k);
+      if (rl_point > -1)
+	{
+	  rl_redisplay ();
+	  scm_internal_select (1, &readset, NULL, NULL, &timeout);
+	}
+      rl_point = tmp;
     }
-    rl_point = tmp;
-  }
+  return 0;
 }
 
 
@@ -509,7 +514,7 @@ scm_init_readline ()
   rl_readline_name = "Guile";
 
 #ifdef USE_THREADS
-  scm_mutex_init (&reentry_barrier_mutex);
+  scm_mutex_init (&reentry_barrier_mutex, NULL);
 #endif
   scm_init_opts (scm_readline_options,
 		 scm_readline_opts,
