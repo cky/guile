@@ -1,11 +1,27 @@
-[ID: $Id: TODO,v 1.15 2001-06-27 09:46:44 ttn Exp $]
+[ID: $Id: TODO,v 1.16 2001-06-27 17:15:36 ttn Exp $]
 
-These are grouped by release target.  If you would like to suggest changes or
-contribute patches, please first email guile-devel@gnu.org to coordinate.  See
-also file HACKING.
+These TODO items are grouped by target release version.  The first group is
+the "Eventually" group, which is not associated w/ any particular version.
+Move these items under a version upon completion (or better yet, ownership).
 
+Upon completion, simply change the "-" to a "+", but do not delete the item.
+At release time, the "+" entries will be deleted after review to make sure
+that user-visible changes are reflected in NEWS (and that proper credit is
+applied :-).
 
-=== Eventually (not yet associated with a specific release):
+Ownership is indicated by `[USERNAME]'.  Maintainers (w/ write privs) can
+indicate sponsorship by `[ACTUAL-OWNER:MAINTAINER]', where both elements are
+usernames.
+
+If you would like to suggest changes or contribute patches, please first email
+guile-devel@gnu.org to coordinate efforts.  If you distribute this file,
+please include the first line and check around on the Internet for updates.
+
+See also file HACKING.
+
+------------------------------------------------------------------------------
+
+=== Eventually:
 
 - deprecate `read-only-string?'
 - [after signal handling and threading have been fixed] remove the code
@@ -24,7 +40,7 @@ also file HACKING.
   - rewrite method cache management in C
   - rewrite core macros (define-class et al) in C
   - define C API
-- write orbit CORBA interface
+- write Orbit CORBA interface
 - [after new module system] factor out modules sort.c and random.c should be
   factored out into separate modules
 
