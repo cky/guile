@@ -1,3 +1,8 @@
+2003-08-23  Kevin Ryde  <user42@zip.com.au>
+
+	* simpos.c (scm_system): Remove SCM_DEFER_INTS, system() should be
+	thread safe, and could take a long time too.
+
 2003-08-22  Kevin Ryde  <user42@zip.com.au>
 
 	* numbers.c (scm_difference): Correction to bignum - negative inum.
