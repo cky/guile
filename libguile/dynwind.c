@@ -284,42 +284,34 @@ scm_i_dowinds (SCM to, long delta, void (*turn_func) (void *), void *data)
       scm_i_dowinds (SCM_CDR (to), 1 + delta, turn_func, data);
       wind_elt = SCM_CAR (to);
 
-#if 0
-      if (SCM_INUMP (wind_elt))
+      if (FRAME_P (wind_elt))
 	{
-	  scm_cross_dynwind_binding_scope (wind_elt, 0);
+	  if (!FRAME_REWINDABLE_P (wind_elt))
+	    scm_misc_error ("dowinds", 
+			    "cannot invoke continuation from this context",
+			    SCM_EOL);
+	}
+      else if (WINDER_P (wind_elt))
+	{
+	  if (WINDER_REWIND_P (wind_elt))
+	    WINDER_PROC (wind_elt) (WINDER_DATA (wind_elt));
 	}
       else
-#endif
 	{
-	  if (FRAME_P (wind_elt))
+	  wind_key = SCM_CAR (wind_elt);
+	  /* key = #t | symbol | thunk | list of variables */
+	  if (SCM_NIMP (wind_key))
 	    {
-	      if (!FRAME_REWINDABLE_P (wind_elt))
-		scm_misc_error ("dowinds", 
-				"cannot invoke continuation from this context",
-				SCM_EOL);
-	    }
-	  else if (WINDER_P (wind_elt))
-	    {
-	      if (WINDER_REWIND_P (wind_elt))
-		WINDER_PROC (wind_elt) (WINDER_DATA (wind_elt));
-	    }
-	  else
-	    {
-	      wind_key = SCM_CAR (wind_elt);
-	      /* key = #t | symbol | thunk | list of variables */
-	      if (SCM_NIMP (wind_key))
+	      if (SCM_CONSP (wind_key))
 		{
-		  if (SCM_CONSP (wind_key))
-		    {
-		      if (SCM_VARIABLEP (SCM_CAR (wind_key)))
-			scm_swap_bindings (wind_key, SCM_CDR (wind_elt));
-		    }
-		  else if (SCM_TYP3 (wind_key) == scm_tc3_closure)
-		    scm_call_0 (wind_key);
+		  if (SCM_VARIABLEP (SCM_CAR (wind_key)))
+		    scm_swap_bindings (wind_key, SCM_CDR (wind_elt));
 		}
+	      else if (SCM_TYP3 (wind_key) == scm_tc3_closure)
+		scm_call_0 (wind_key);
 	    }
 	}
+
       scm_dynwinds = to;
     }
   else
@@ -330,38 +322,30 @@ scm_i_dowinds (SCM to, long delta, void (*turn_func) (void *), void *data)
       wind_elt = SCM_CAR (scm_dynwinds);
       scm_dynwinds = SCM_CDR (scm_dynwinds);
 
-#if 0
-      if (SCM_INUMP (wind_elt))
+      if (FRAME_P (wind_elt))
 	{
-	  scm_cross_dynwind_binding_scope (wind_elt, 0);
+	  /* Nothing to do. */
+	}
+      else if (WINDER_P (wind_elt))
+	{
+	  if (!WINDER_REWIND_P (wind_elt))
+	    WINDER_PROC (wind_elt) (WINDER_DATA (wind_elt));
 	}
       else
-#endif
 	{
-	  if (FRAME_P (wind_elt))
+	  wind_key = SCM_CAR (wind_elt);
+	  if (SCM_NIMP (wind_key))
 	    {
-	      /* Nothing to do. */
-	    }
-	  else if (WINDER_P (wind_elt))
-	    {
-	      if (!WINDER_REWIND_P (wind_elt))
-		WINDER_PROC (wind_elt) (WINDER_DATA (wind_elt));
-	    }
-	  else
-	    {
-	      wind_key = SCM_CAR (wind_elt);
-	      if (SCM_NIMP (wind_key))
+	      if (SCM_CONSP (wind_key))
 		{
-		  if (SCM_CONSP (wind_key))
-		    {
-		      if (SCM_VARIABLEP (SCM_CAR (wind_key)))
-			scm_swap_bindings (wind_key, SCM_CDR (wind_elt));
-		    }
-		  else if (SCM_TYP3 (wind_key) == scm_tc3_closure)
-		    scm_call_0 (SCM_CDR (wind_elt));
+		  if (SCM_VARIABLEP (SCM_CAR (wind_key)))
+		    scm_swap_bindings (wind_key, SCM_CDR (wind_elt));
 		}
+	      else if (SCM_TYP3 (wind_key) == scm_tc3_closure)
+		scm_call_0 (SCM_CDR (wind_elt));
 	    }
 	}
+
       delta--;
       goto tail;		/* scm_dowinds(to, delta-1); */
     }
