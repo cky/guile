@@ -35,6 +35,34 @@ in backtraces.
 
 * Changes to Scheme functions and syntax
 
+** New syntax: and-let*
+Guile now supports the `and-let*' form, described in the draft SRFI-2.
+
+Syntax: (land* (<clause> ...) <body> ...)
+Each <clause> should have one of the following forms:
+  (<variable> <expression>)
+  (<expression>)
+  <bound-variable>
+Each <variable> or <bound-variable> should be an identifier.  Each
+<expression> should be a valid expression.  The <body> should be a
+possibly empty sequence of expressions, like the <body> of a
+lambda form.
+
+Semantics: A LAND* expression is evaluated by evaluating the
+<expression> or <bound-variable> of each of the <clause>s from
+left to right.  The value of the first <expression> or
+<bound-variable> that evaluates to a false value is returned; the
+remaining <expression>s and <bound-variable>s are not evaluated.
+The <body> forms are evaluated iff all the <expression>s and
+<bound-variable>s evaluate to true values.
+
+The <expression>s and the <body> are evaluated in an environment
+binding each <variable> of the preceding (<variable> <expression>)
+clauses to the value of the <expression>.  Later bindings
+shadow earlier bindings.
+
+Guile's and-let* macro was contributed by Michael Livshin.
+
 ** New function: sorted? SEQUENCE LESS?
 Returns `#t' when the sequence argument is in non-decreasing order
 according to LESS? (that is, there is no adjacent pair `... x y
