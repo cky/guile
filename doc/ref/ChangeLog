@@ -1,3 +1,10 @@
+2002-08-14  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* scheme-evaluation.texi (eval-string): Updated. 
+
+	* scheme-scheduling.texi (Fluids): Touched up a bit, added
+	with-fluids.
+
 2002-08-13  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* scheme-modules.texi (More Modules Procedures): Removed.
