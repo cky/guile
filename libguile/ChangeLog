@@ -1,3 +1,7 @@
+2004-02-24  Kevin Ryde  <user42@zip.com.au>
+
+	* posix.c (scm_cuserid): Use a private result buffer, for thread safe.
+
 2004-02-22  Kevin Ryde  <user42@zip.com.au>
 
 	* numbers.c (scm_max, scm_min): For one arg, dispatch to generic for
