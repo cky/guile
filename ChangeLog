@@ -1,5 +1,10 @@
 2002-03-04  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
+	* configure.in (top_srcdir_absolute): New AC_SUBST var.
+
+	* pre-inst-guile.in (top_srcdir): Use `top_srcdir_absolute'
+	AC_SUBST var.
+
 	* pre-inst-guile.in (top_srcdir): Fix ref bug: Force absolute.
 
 2002-02-27  Thien-Thi Nguyen  <ttn@giblet.glug.org>
