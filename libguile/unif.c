@@ -1267,7 +1267,6 @@ SCM_DEFINE (scm_array_set_x, "array-set!", 2, 0, 1,
 {
   long pos = 0;
 
-  SCM_VALIDATE_REST_ARGUMENT (args);
   SCM_ASRTGO (SCM_NIMP (v), badarg1);
   if (SCM_ARRAYP (v))
     {
@@ -1277,10 +1276,9 @@ SCM_DEFINE (scm_array_set_x, "array-set!", 2, 0, 1,
   else
     {
       unsigned long int length;
-      if (SCM_NIMP (args))
+      if (SCM_CONSP (args))
 	{
-	  SCM_ASSERT (SCM_CONSP(args) && SCM_INUMP (SCM_CAR (args)), args,
-		 SCM_ARG3, FUNC_NAME);
+	  SCM_ASSERT (SCM_INUMP (SCM_CAR (args)), args, SCM_ARG3, FUNC_NAME);
 	  SCM_ASRTGO (SCM_NULLP (SCM_CDR (args)), wna);
 	  pos = SCM_INUM (SCM_CAR (args));
 	}

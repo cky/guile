@@ -1,5 +1,11 @@
 2001-06-30  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* unif.c (scm_array_set_x):  The variable args does not
+	necessarily have to be a list.  Further, got rid of a redundant
+	SCM_NIMP test.
+
+2001-06-30  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* list.c (SCM_I_CONS):  Make sure the cell type is initialized
 	last.
 
