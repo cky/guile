@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1833,12 +1833,18 @@ scm_gc_sweep ()
   scm_gc_yield -= scm_cells_allocated;
 
   if (scm_mallocated < m)
-    /* The byte count of allocated objects has underflowed.  This is
-       probably because you forgot to report the sizes of objects you
-       have allocated, by calling scm_done_malloc or some such.  When
-       the GC freed them, it subtracted their size from
-       scm_mallocated, which underflowed.  */
-    abort ();
+    {
+      /* The byte count of allocated objects has underflowed.  This is
+	 probably because you forgot to report the sizes of objects you
+	 have allocated, by calling scm_done_malloc or some such.  When
+	 the GC freed them, it subtracted their size from
+	 scm_mallocated, which underflowed.  */
+      fprintf (stderr,
+	       "scm_gc_sweep: Byte count of allocated objects has underflowed.\n"
+	       "This is probably because the GC hasn't been correctly informed\n"
+	       "about object sizes\n");
+      abort ();
+    }
 
   scm_mallocated -= m;
   scm_gc_malloc_collected = m;
