@@ -4,6 +4,19 @@ See the end for copying conditions.
 
 Please send Guile bug reports to bug-guile@gnu.org.
 
+Changes since Guile 1.4:
+
+* Changes to the distribution
+
+* Changes to the stand-alone interpreter
+
+* Changes to Scheme functions and syntax
+
+* Changes to the gh_ interface
+
+* Changes to the scm_ interface
+
+
 Changes since Guile 1.3.4:
 
 * Changes to the distribution

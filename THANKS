@@ -7,42 +7,5 @@ The Guile maintainer committee consists of
 
 Contributors since the last release:
 
-       Greg Badros
- 	Jim Blandy
-     Mikael Djurfeldt
-       Dirk Herrmann
-       Gary Houston
-    Michael Livshin
-     Thomas Tanner
-     Marius Vollmer
-
 For fixes or providing information which led to a fix:
 
-      Lauri Alanko
-      Craig Brozefsky
-      Diego Dainese
-       Mark Galassi
-        Ian Grant
-       Greg Harvey
-    Karl M. Hegbloom
-	Jon Hellan 	
-    Richard Kim
-       Brad Knotwell
- 	Tim Mooney
-       Eric Moore
-  Thien-Thi Nguyen
-Kalle Olavi Niemitalo
-    Han-Wen Nienhuys
-        Jan Nieuwenhuizen
-    Keisuke Nishida
-     Roland Orre
-   Bertrand Petit
-     Jorgen Schaefer
-       Bill Schottstaedt
-     Daniel Skarda
-    Dale P. Smith
-       Ivan Toshkov
- 	Tal Tversky
-    Bernard Urban
-       Lynn Winebarger
-       Ryan Yeske
