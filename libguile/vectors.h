@@ -95,8 +95,9 @@ SCM_API SCM  scm_i_vector_equal_p (SCM x, SCM y);
 #define SCM_I_WVECT_VELTS               SCM_I_VECTOR_ELTS
 #define SCM_I_WVECT_GC_WVELTS           SCM_I_VECTOR_WELTS
 #define SCM_I_WVECT_TYPE(x)             (SCM_CELL_WORD_2 (x))
-#define SCM_I_WVECT_GC_CHAIN(X)         (SCM_CELL_OBJECT_3 (X))
-#define SCM_I_SET_WVECT_GC_CHAIN(X, o)  (SCM_SET_CELL_OBJECT_3 ((X), (o)))
+#define SCM_I_SET_WVECT_TYPE(x, t)      (SCM_SET_CELL_WORD_2 ((x),(t)))
+#define SCM_I_WVECT_GC_CHAIN(x)         (SCM_CELL_OBJECT_3 (x))
+#define SCM_I_SET_WVECT_GC_CHAIN(x, o)  (SCM_SET_CELL_OBJECT_3 ((x), (o)))
 
 SCM_API SCM scm_i_allocate_weak_vector (scm_t_bits type, SCM size, SCM fill);
 

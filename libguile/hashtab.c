@@ -162,25 +162,40 @@ scm_i_rehash (SCM table,
   else
     new_buckets = scm_c_make_vector (new_size, SCM_EOL);
 
+  /* When this is a weak hashtable, running the GC might change it.
+     We need to cope with this while rehashing its elements.  We do
+     this by first installing the new, empty bucket vector and turning
+     the old bucket vector into a regularily scanned weak vector.
+     Then we iterate over the elements in the old bucket vector.
+     While iterating, the elements in LS will not disappear since they
+     are protected.
+  */
+
+  SCM_SET_HASHTABLE_VECTOR (table, new_buckets);
+  SCM_SET_HASHTABLE_N_ITEMS (table, 0);
+  if (SCM_HASHTABLE_WEAK_P (table))
+    SCM_I_SET_WVECT_TYPE (buckets, (SCM_HASHTABLE_FLAGS (table)));
+
   old_size = SCM_SIMPLE_VECTOR_LENGTH (buckets);
   for (i = 0; i < old_size; ++i)
     {
-      SCM ls = SCM_SIMPLE_VECTOR_REF (buckets, i), handle;
-      while (!scm_is_null (ls))
+      SCM ls, cell, handle;
+
+      ls = SCM_SIMPLE_VECTOR_REF (buckets, i);
+      while (scm_is_pair (ls))
 	{
 	  unsigned long h;
-	  handle = SCM_CAR (ls);
+	  cell = ls;
+	  handle = SCM_CAR (cell);
+	  ls = SCM_CDR (ls);
 	  h = hash_fn (SCM_CAR (handle), new_size, closure);
 	  if (h >= new_size)
 	    scm_out_of_range (func_name, scm_from_ulong (h));
-	  SCM_SIMPLE_VECTOR_SET 
-	    (new_buckets, h,
-	     scm_cons (handle,
-		       SCM_SIMPLE_VECTOR_REF (new_buckets, h)));
-	  ls = SCM_CDR (ls);
+	  SCM_SETCDR (cell, SCM_SIMPLE_VECTOR_REF (new_buckets, h));
+	  SCM_SIMPLE_VECTOR_SET (new_buckets, h, cell);
+	  SCM_HASHTABLE_INCREMENT (table);
 	}
     }
-  SCM_SET_HASHTABLE_VECTOR (table, new_buckets);
 }
 
 
@@ -475,8 +490,11 @@ scm_hash_fn_create_handle_x (SCM table, SCM obj, SCM init, unsigned long (*hash_
     return it;
   else
     {
-      SCM old_bucket = SCM_SIMPLE_VECTOR_REF (buckets, k);
-      SCM new_bucket = scm_acons (obj, init, old_bucket);
+      /* We need to take care not to run the GC while linking the new
+	 bucket into its chain.  A GC might change a weak hashtable.
+      */
+      SCM new_bucket = scm_acons (obj, init, SCM_EOL);
+      SCM_SETCDR (new_bucket, SCM_SIMPLE_VECTOR_REF (buckets, k));
       SCM_SIMPLE_VECTOR_SET (buckets, k, new_bucket);
       if (table != buckets)
 	{
