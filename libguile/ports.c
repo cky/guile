@@ -1249,8 +1249,8 @@ SCM_DEFINE (scm_port_column, "port-column", 1, 0, 0,
 
 SCM_DEFINE (scm_set_port_column_x, "set-port-column!", 2, 0, 0,
             (SCM port, SCM column),
-	    "@deffnx primitive set-port-column! [input-port] column\n"
-	    "Set the current column or line number of @var{input-port}, using the\n"
+	    "@deffnx primitive set-port-line! port line\n"
+	    "Set the current column or line number of @var{port}, using the\n"
 	    "current input port if none is specified.")
 #define FUNC_NAME s_scm_set_port_column_x
 {

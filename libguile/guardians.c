@@ -173,7 +173,7 @@ SCM_DEFINE (scm_make_guardian, "make-guardian", 0, 0, 0,
 	    "one of the protected objects which are ready for garbage\n"
 	    "collection or @code{#f} if no such object is available.\n"
 	    "Objects which are returned in this way are removed from\n"
-	    "the guardian.\n\n".
+	    "the guardian.\n\n"
 
             "See R. Kent Dybvig, Carl Bruggeman, and David Eby (1993)\n"
             "\"Guardians in a Generation-Based Garbage Collector\".\n"

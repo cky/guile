@@ -1,3 +1,10 @@
+2000-08-25  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* ports.c (scm_set_port_column_x): Fix docstring so that it
+	mentions set-port-line! rather than set-port-column! twice.
+
+	* guardians.c (scm_make_guardian): Remove spurious . from doc string.
+
 2000-08-25  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* Makefile.am:  Added all necessary environments.* files.
