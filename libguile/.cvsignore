@@ -10,4 +10,5 @@ libpath.h
 guile-snarf
 *.lo
 libtool
+.libs
 errnos.list
