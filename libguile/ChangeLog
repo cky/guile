@@ -1,5 +1,10 @@
 2000-01-18  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
+	* backtrace.c (scm_display_error_message): Bugfix: Don't use
+	result of scm_list_p as C boolean.
+	(scm_display_error_message, scm_set_print_params_x): Use new
+	validation macros. (Thanks to Dirk Herrmann.)
+
 	* net_db.c (scm_resolv_error): Cast result from hstrerror.
 
 	* strports.c (st_end_input): Inserted parenthesis to get operator
