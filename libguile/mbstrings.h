@@ -50,7 +50,7 @@
 
 #define SCM_MB_STRINGP(x) (   (SCM_TYP7(x)==scm_tc7_mb_string) \
 			   || (   (SCM_TYP7(x) == scm_tc7_msymbol) \
-			       && (SCM_SYMBOL_MULTI_BYTE_SCM_STRINGP (x) != SCM_BOOL_F)))
+			       && (SCM_SYMBOL_MULTI_BYTE_STRINGP (x) != SCM_BOOL_F)))
 #define SCM_REGULAR_STRINGP(x) (SCM_TYP7D(x)==scm_tc7_string)
 				    
 

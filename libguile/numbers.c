@@ -162,11 +162,11 @@ scm_abs(x)
 #endif
   if (SCM_INUM(x) >= 0) return x;
   x = -SCM_INUM(x);
-  if (!SCM_POSSCM_FIXABLE(x))
+  if (!SCM_POSFIXABLE(x))
 #ifdef SCM_BIGDIG
     return scm_long2big(x);
 #else
-  scm_wta(SCM_MAKINUM(-x), (char *)SCM_OVSCM_FLOW, s_abs);
+  scm_wta(SCM_MAKINUM(-x), (char *)SCM_OVFLOW, s_abs);
 #endif
   return SCM_MAKINUM(x);
 }
@@ -229,7 +229,7 @@ scm_quotient(x, y)
   SCM_ASSERT(SCM_INUMP(y), y, SCM_ARG2, s_quotient);
 #endif
   if ((z = SCM_INUM(y))==0)
-    ov: scm_wta(y, (char *)SCM_OVSCM_FLOW, s_quotient);
+    ov: scm_wta(y, (char *)SCM_OVFLOW, s_quotient);
   z = SCM_INUM(x)/z;
 #ifdef BADIVSGNS
   {
@@ -249,7 +249,7 @@ scm_quotient(x, y)
 #ifdef SCM_BIGDIG
     return scm_long2big(z);
 #else
-  scm_wta(x, (char *)SCM_OVSCM_FLOW, s_quotient);
+  scm_wta(x, (char *)SCM_OVFLOW, s_quotient);
 #endif
   return SCM_MAKINUM(z);
 }
@@ -289,7 +289,7 @@ scm_remainder(x, y)
   SCM_ASSERT(SCM_INUMP(y), y, SCM_ARG2, s_remainder);
 #endif
   if (!(z = SCM_INUM(y)))
-    ov: scm_wta(y, (char *)SCM_OVSCM_FLOW, s_remainder);
+    ov: scm_wta(y, (char *)SCM_OVFLOW, s_remainder);
 #if (__TURBOC__==1)
   if (z < 0) z = -z;
 #endif
@@ -339,7 +339,7 @@ scm_modulo(x, y)
   SCM_ASSERT(SCM_INUMP(y), y, SCM_ARG2, s_modulo);
 #endif
   if (!(yy = SCM_INUM(y)))
-    ov: scm_wta(y, (char *)SCM_OVSCM_FLOW, s_modulo);
+    ov: scm_wta(y, (char *)SCM_OVFLOW, s_modulo);
 #if (__TURBOC__==1)
   z = SCM_INUM(x);
   z = ((yy<0) ? -z : z)%yy;
@@ -406,11 +406,11 @@ scm_gcd(x, y)
   if ((t = u-v)) goto b3;
   u = u*k;
  getout:
-  if (!SCM_POSSCM_FIXABLE(u))
+  if (!SCM_POSFIXABLE(u))
 #ifdef SCM_BIGDIG
     return scm_long2big(u);
 #else
-  scm_wta(x, (char *)SCM_OVSCM_FLOW, s_gcd);
+  scm_wta(x, (char *)SCM_OVFLOW, s_gcd);
 #endif
   return SCM_MAKINUM(u);
 }
@@ -675,7 +675,7 @@ scm_ash(n, cnt)
   cnt = SCM_INUM(cnt);
   if (cnt < 0) return SCM_MAKINUM(SCM_SRS(res, -cnt));
   res = SCM_MAKINUM(res<<cnt);
-  if (SCM_INUM(res)>>cnt != SCM_INUM(n)) scm_wta(n, (char *)SCM_OVSCM_FLOW, s_ash);
+  if (SCM_INUM(res)>>cnt != SCM_INUM(n)) scm_wta(n, (char *)SCM_OVFLOW, s_ash);
   return res;
 #endif
 }
@@ -809,9 +809,9 @@ scm_big2inum(b, l)
   SCM_BIGDIG *tmp = SCM_BDIGITS(b);
   while (l--) num = SCM_BIGUP(num) + tmp[l];
   if (SCM_TYP16(b)==scm_tc16_bigpos) {
-    if SCM_POSSCM_FIXABLE(num) return SCM_MAKINUM(num);
+    if SCM_POSFIXABLE(num) return SCM_MAKINUM(num);
   }
-  else if SCM_UNEGSCM_FIXABLE(num) return SCM_MAKINUM(-num);
+  else if SCM_UNEGFIXABLE(num) return SCM_MAKINUM(-num);
   return b;
 }
 
@@ -1674,7 +1674,7 @@ scm_istr2int(str, len, radix)
 	ds[k++] = SCM_BIGLO(t2);
 	t2 = SCM_BIGDN(t2);
       }
-      SCM_ASSERT(blen <= j, (SCM)SCM_MAKINUM(blen), SCM_OVSCM_FLOW, "bignum");
+      SCM_ASSERT(blen <= j, (SCM)SCM_MAKINUM(blen), SCM_OVFLOW, "bignum");
       if (t2) {blen++; goto moretodo;}
       break;
     default:
@@ -2808,7 +2808,7 @@ scm_sum(x, y)
 # ifdef SCM_FLOATS
   return scm_makdbl((double)x, 0.0);
 # else
-  scm_wta(y, (char *)SCM_OVSCM_FLOW, s_sum);
+  scm_wta(y, (char *)SCM_OVFLOW, s_sum);
   return SCM_UNSPECIFIED;
 # endif
 #endif
@@ -2951,7 +2951,7 @@ scm_difference(x, y)
 # ifdef SCM_FLOATS
   return scm_makdbl((double)x, 0.0);
 # else
-  scm_wta(y, (char *)SCM_OVSCM_FLOW, s_difference);
+  scm_wta(y, (char *)SCM_OVFLOW, s_difference);
   return SCM_UNSPECIFIED;
 # endif
 #endif
@@ -3105,7 +3105,7 @@ scm_product(x, y)
 # ifdef SCM_FLOATS
     return scm_makdbl(((double)i)*((double)j), 0.0);
 # else
-    scm_wta(y, (char *)SCM_OVSCM_FLOW, s_product);
+    scm_wta(y, (char *)SCM_OVFLOW, s_product);
 # endif
 #endif
     return y;
@@ -3183,7 +3183,7 @@ scm_divide(x, y)
       SCM z;
       if SCM_INUMP(y) {
         z = SCM_INUM(y);
-        SCM_ASSERT(z, y, SCM_OVSCM_FLOW, s_divide);
+        SCM_ASSERT(z, y, SCM_OVFLOW, s_divide);
 	if (1==z) return x;
         if (z < 0) z = -z;
         if (z < SCM_BIGRAD) {
@@ -3323,7 +3323,7 @@ scm_divide(x, y)
 #ifdef SCM_FLOATS
   ov: return scm_makdbl(((double)SCM_INUM(x))/((double)SCM_INUM(y)), 0.0);
 #else
-  ov: scm_wta(x, (char *)SCM_OVSCM_FLOW, s_divide);
+  ov: scm_wta(x, (char *)SCM_OVFLOW, s_divide);
     return SCM_UNSPECIFIED;
 #endif
   }
@@ -3768,7 +3768,7 @@ scm_dbl2big(d)
     u -= c;
     digits[i] = c;
   }
-  SCM_ASSERT(0==u, SCM_INUM0, SCM_OVSCM_FLOW, "dbl2big");
+  SCM_ASSERT(0==u, SCM_INUM0, SCM_OVFLOW, "dbl2big");
   return ans;
 }
 
@@ -3852,7 +3852,7 @@ scm_ulong2num(sl)
      unsigned long sl;
 #endif
 {
-  if (!SCM_POSSCM_FIXABLE(sl)) {
+  if (!SCM_POSFIXABLE(sl)) {
 #ifdef SCM_BIGDIG
     return scm_ulong2big(sl);
 #else
@@ -3995,7 +3995,7 @@ scm_num2long_long(num, pos, s_caller)
     scm_sizet l = SCM_NUMDIGS(num);
     SCM_ASRTGO(SCM_DIGSPERLONGLONG >= l, errout);
     res = 0;
-    for(;l--;) res = SCM_LONGLONGSCM_BIGUP(res) + SCM_BDIGITS(num)[l];
+    for(;l--;) res = SCM_LONGLONGBIGUP(res) + SCM_BDIGITS(num)[l];
     return res;
   }
 #endif

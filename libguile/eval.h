@@ -83,7 +83,7 @@
 
 
 
-#define SCM_EXTEND_SCM_ENV scm_acons
+#define SCM_EXTEND_ENV scm_acons
 
 
 extern SCM scm_i_dot;

@@ -384,8 +384,8 @@ scm_char_downcase(chr)
 
 
 
-static unsigned char scm_upcase_table[SCM_CHAR_SCM_CODE_LIMIT];
-static unsigned char scm_downcase_table[SCM_CHAR_SCM_CODE_LIMIT];
+static unsigned char scm_upcase_table[SCM_CHAR_CODE_LIMIT];
+static unsigned char scm_downcase_table[SCM_CHAR_CODE_LIMIT];
 static unsigned char scm_lowers[] = "abcdefghijklmnopqrstuvwxyz";
 static unsigned char scm_uppers[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
@@ -398,7 +398,7 @@ scm_tables_prehistory ()
 #endif
 {
   int i;
-  for (i = 0; i < SCM_CHAR_SCM_CODE_LIMIT; i++)
+  for (i = 0; i < SCM_CHAR_CODE_LIMIT; i++)
     scm_upcase_table[i] = scm_downcase_table[i] = i;
   for (i = 0; i < sizeof scm_lowers / sizeof (char); i++)
     {

@@ -140,7 +140,7 @@
 #define XEVALCAR(x, env) EVALCAR(x, env)
 #endif
 
-#define EXTEND_SCM_ENV SCM_EXTEND_SCM_ENV
+#define EXTEND_ENV SCM_EXTEND_ENV
 
 #ifdef MEMOIZE_LOCALS
 #ifdef __STDC__
@@ -978,7 +978,7 @@ scm_m_apply (xorig, env)
   return scm_cons (SCM_IM_APPLY, SCM_CDR (xorig));
 }
 
-#define s_atcall_cc (SCM_ISYMSCM_CHARS(SCM_IM_CONT)+1)
+#define s_atcall_cc (SCM_ISYMCHARS(SCM_IM_CONT)+1)
 
 #ifdef __STDC__
 SCM 
@@ -1052,7 +1052,7 @@ unmemocopy (x, env)
 	x = SCM_CDR (x);
 	f = v = SCM_CAR (x);
 	x = SCM_CDR (x);
-	z = EXTEND_SCM_ENV (f, SCM_EOL, env);
+	z = EXTEND_ENV (f, SCM_EOL, env);
 	e = scm_reverse (unmemocopy (SCM_CAR (x),
 				     SCM_CAR (ls) == scm_i_letrec ? z : env));
 	env = z;
@@ -1091,14 +1091,14 @@ unmemocopy (x, env)
 	y = SCM_EOL;
 	if SCM_IMP (b)
 	  {
-	    env = EXTEND_SCM_ENV (SCM_EOL, SCM_EOL, env);
+	    env = EXTEND_ENV (SCM_EOL, SCM_EOL, env);
 	    goto letstar;
 	  }
 	y = z = scm_acons (SCM_CAR (b),
 			   unmemocar (
 	scm_cons (unmemocopy (SCM_CAR (SCM_CDR (b)), env), SCM_EOL), env),
 			   SCM_UNSPECIFIED);
-	env = EXTEND_SCM_ENV (SCM_CAR (b), SCM_BOOL_F, env);
+	env = EXTEND_ENV (SCM_CAR (b), SCM_BOOL_F, env);
 	b = SCM_CDR (SCM_CDR (b));
 	if (SCM_IMP (b))
 	  {
@@ -1112,7 +1112,7 @@ unmemocopy (x, env)
 					  unmemocar (
 	    scm_cons (unmemocopy (SCM_CAR (SCM_CDR (b)), env), SCM_EOL), env),
 					  SCM_UNSPECIFIED));
-	    env = EXTEND_SCM_ENV (SCM_CAR (b), SCM_BOOL_F, env);
+	    env = EXTEND_ENV (SCM_CAR (b), SCM_BOOL_F, env);
 	    b = SCM_CDR (SCM_CDR (b));
 	  }
 	while SCM_NIMP (b);
@@ -1128,7 +1128,7 @@ unmemocopy (x, env)
       x = SCM_CDR (x);
       ls = scm_cons (scm_i_lambda,
 		     z = scm_cons (SCM_CAR (x), SCM_UNSPECIFIED));
-      env = EXTEND_SCM_ENV (SCM_CAR (x), SCM_EOL, env);
+      env = EXTEND_ENV (SCM_CAR (x), SCM_EOL, env);
       break;
     case (127 & SCM_IM_QUOTE):
       ls = z = scm_cons (scm_i_quote, SCM_UNSPECIFIED);
@@ -1637,7 +1637,7 @@ dispatch:
 	  t.arg1 = scm_cons (EVALCAR (proc, env), t.arg1);
 	  proc = SCM_CDR (proc);
 	}
-      env = EXTEND_SCM_ENV (SCM_CAR (x), t.arg1, env);
+      env = EXTEND_ENV (SCM_CAR (x), t.arg1, env);
       x = SCM_CDR (SCM_CDR (x));
       while (proc = SCM_CAR (x), SCM_FALSEP (EVALCAR (proc, env)))
 	{
@@ -1648,7 +1648,7 @@ dispatch:
 	    }
 	  for (t.arg1 = SCM_EOL, proc = SCM_CDR (SCM_CDR (x)); SCM_NIMP (proc); proc = SCM_CDR (proc))
 	    t.arg1 = scm_cons (EVALCAR (proc, env), t.arg1); /* steps */
-	  env = EXTEND_SCM_ENV (SCM_CAR (SCM_CAR (env)), t.arg1, SCM_CDR (env));
+	  env = EXTEND_ENV (SCM_CAR (SCM_CAR (env)), t.arg1, SCM_CDR (env));
 	}
       x = SCM_CDR (proc);
       if (SCM_NULLP (x))
@@ -1678,14 +1678,14 @@ dispatch:
 	  t.arg1 = scm_cons (EVALCAR (proc, env), t.arg1);
 	}
       while (SCM_NIMP (proc = SCM_CDR (proc)));
-      env = EXTEND_SCM_ENV (SCM_CAR (x), t.arg1, env);
+      env = EXTEND_ENV (SCM_CAR (x), t.arg1, env);
       x = SCM_CDR (x);
       goto cdrxnoap;
 
 
     case (127 & SCM_IM_LETREC):
       x = SCM_CDR (x);
-      env = EXTEND_SCM_ENV (SCM_CAR (x), scm_undefineds, env);
+      env = EXTEND_ENV (SCM_CAR (x), scm_undefineds, env);
       x = SCM_CDR (x);
       proc = SCM_CAR (x);
       t.arg1 = SCM_EOL;
@@ -1703,14 +1703,14 @@ dispatch:
       proc = SCM_CAR (x);
       if (SCM_IMP (proc))
 	{
-	  env = EXTEND_SCM_ENV (SCM_EOL, SCM_EOL, env);
+	  env = EXTEND_ENV (SCM_EOL, SCM_EOL, env);
 	  goto cdrxnoap;
 	}
       do
 	{
 	  t.arg1 = SCM_CAR (proc);
 	  proc = SCM_CDR (proc);
-	  env = EXTEND_SCM_ENV (t.arg1, EVALCAR (proc, env), env);
+	  env = EXTEND_ENV (t.arg1, EVALCAR (proc, env), env);
 	}
       while (SCM_NIMP (proc = SCM_CDR (proc)));
       goto cdrxnoap;
@@ -1818,7 +1818,7 @@ dispatch:
 	      if (scm_badargsp (SCM_CAR (SCM_CODE (proc)), t.arg1))
 		goto wrongnumargs;
 #endif
-	      env = EXTEND_SCM_ENV (SCM_CAR (SCM_CODE (proc)), t.arg1, SCM_ENV (proc));
+	      env = EXTEND_ENV (SCM_CAR (SCM_CODE (proc)), t.arg1, SCM_ENV (proc));
 	      x = SCM_CODE (proc);
 	      goto cdrxbegin;
 	    }
@@ -2008,7 +2008,7 @@ evapply:
 #endif
       case scm_tcs_closures:
 	x = SCM_CODE (proc);
-	env = EXTEND_SCM_ENV (SCM_CAR (x), SCM_EOL, SCM_ENV (proc));
+	env = EXTEND_ENV (SCM_CAR (x), SCM_EOL, SCM_ENV (proc));
 	goto cdrxbegin;
       case scm_tc7_contin:
       case scm_tc7_subr_1:
@@ -2108,9 +2108,9 @@ evapply:
 	case scm_tcs_closures:
 	  x = SCM_CODE (proc);
 #ifdef DEVAL
-	  env = EXTEND_SCM_ENV (SCM_CAR (x), debug.info->a.args, SCM_ENV (proc));
+	  env = EXTEND_ENV (SCM_CAR (x), debug.info->a.args, SCM_ENV (proc));
 #else
-	  env = EXTEND_SCM_ENV (SCM_CAR (x), scm_cons (t.arg1, SCM_EOL), SCM_ENV (proc));
+	  env = EXTEND_ENV (SCM_CAR (x), scm_cons (t.arg1, SCM_EOL), SCM_ENV (proc));
 #endif
 	  goto cdrxbegin;
 	case scm_tc7_contin:
@@ -2184,9 +2184,9 @@ evapply:
 	  goto badfun;
 	case scm_tcs_closures:
 #ifdef DEVAL
-	  env = EXTEND_SCM_ENV (SCM_CAR (SCM_CODE (proc)), debug.info->a.args, SCM_ENV (proc));
+	  env = EXTEND_ENV (SCM_CAR (SCM_CODE (proc)), debug.info->a.args, SCM_ENV (proc));
 #else
-	  env = EXTEND_SCM_ENV (SCM_CAR (SCM_CODE (proc)), scm_cons2 (t.arg1, arg2, SCM_EOL), SCM_ENV (proc));
+	  env = EXTEND_ENV (SCM_CAR (SCM_CODE (proc)), scm_cons2 (t.arg1, arg2, SCM_EOL), SCM_ENV (proc));
 #endif
 	  x = SCM_CODE (proc);
 	  goto cdrxbegin;
@@ -2222,7 +2222,7 @@ evapply:
 #endif
       case scm_tcs_closures:
 	SCM_SET_ARGSREADY (debug);
-	env = EXTEND_SCM_ENV (SCM_CAR (SCM_CODE (proc)),
+	env = EXTEND_ENV (SCM_CAR (SCM_CODE (proc)),
 			      debug.info->a.args,
 			      SCM_ENV (proc));
 	x = SCM_CODE (proc);
@@ -2252,7 +2252,7 @@ evapply:
 #ifdef DEVAL
 	SCM_SET_ARGSREADY (debug);
 #endif
-	env = EXTEND_SCM_ENV (SCM_CAR (SCM_CODE (proc)),
+	env = EXTEND_ENV (SCM_CAR (SCM_CODE (proc)),
 			      scm_cons2 (t.arg1, arg2, scm_eval_args (x, env)),
 			      SCM_ENV (proc));
 	x = SCM_CODE (proc);
@@ -2557,7 +2557,7 @@ tail:
       if (scm_badargsp (SCM_CAR (SCM_CODE (proc)), arg1))
 	goto wrongnumargs;
 #endif
-      args = EXTEND_SCM_ENV (SCM_CAR (SCM_CODE (proc)), arg1, SCM_ENV (proc));
+      args = EXTEND_ENV (SCM_CAR (SCM_CODE (proc)), arg1, SCM_ENV (proc));
       proc = SCM_CODE (proc);
       while (SCM_NNULLP (proc = SCM_CDR (proc)))
 	arg1 = EVALCAR (proc, args);

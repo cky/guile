@@ -137,7 +137,7 @@ typedef unsigned long ulong_long;
 
 /* Define
  *
- * SCM_CHAR_SCM_CODE_LIMIT		== UCHAR_MAX + 1
+ * SCM_CHAR_CODE_LIMIT		== UCHAR_MAX + 1
  * SCM_MOST_POSITIVE_FIXNUM 	(LONG_MAX>>2)
  * SCM_MOST_NEGATIVE_FIXNUM 	== SCM_SRS((long)LONG_MIN, 2)
  */
@@ -145,9 +145,9 @@ typedef unsigned long ulong_long;
 #ifdef HAVE_LIMITS_H
 # include <limits.h>
 # ifdef UCHAR_MAX
-#  define SCM_CHAR_SCM_CODE_LIMIT (UCHAR_MAX+1L)
+#  define SCM_CHAR_CODE_LIMIT (UCHAR_MAX+1L)
 # else
-#  define SCM_CHAR_SCM_CODE_LIMIT 256L
+#  define SCM_CHAR_CODE_LIMIT 256L
 # endif /* def UCHAR_MAX */
 # define SCM_MOST_POSITIVE_FIXNUM (LONG_MAX>>2)
 # ifdef _UNICOS			/* Stupid cray bug */
@@ -156,7 +156,7 @@ typedef unsigned long ulong_long;
 #  define SCM_MOST_NEGATIVE_FIXNUM SCM_SRS((long)LONG_MIN, 2)
 # endif				/* UNICOS */
 #else
-# define SCM_CHAR_SCM_CODE_LIMIT 256L
+# define SCM_CHAR_CODE_LIMIT 256L
 # define SCM_MOST_POSITIVE_FIXNUM ((long)((unsigned long)~0L>>3))
 # if (0 != ~0)
 #  define SCM_MOST_NEGATIVE_FIXNUM (-SCM_MOST_POSITIVE_FIXNUM-1)
@@ -361,7 +361,7 @@ extern unsigned int scm_async_clock;
  * Also, SCM_WNA must follow the last SCM_ARGn in sequence.
  */
 #define SCM_WNA 		8
-#define SCM_OVSCM_FLOW 		9
+#define SCM_OVFLOW 		9
 #define SCM_OUTOFRANGE 		10
 #define SCM_NALLOC 		11
 #define SCM_STACK_OVFLOW	12

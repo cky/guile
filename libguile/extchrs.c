@@ -44,7 +44,7 @@
 
 
 
-#ifdef FAKE_EXT_SCM_CHARS
+#ifdef SCM_FAKE_EXT_CHARS
 
 #ifdef __STDC__
 int
@@ -142,5 +142,5 @@ xmbtowc (result, str, size)
   return 4;
 }
 
-#endif /* FAKE_EXT_SCM_CHARS */
+#endif /* SCM_FAKE_EXT_CHARS */
 

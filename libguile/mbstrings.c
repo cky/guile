@@ -193,7 +193,7 @@ scm_symbol_multi_byte_p (symbol)
      SCM symbol;
 #endif
 {
-  return SCM_SYMBOL_MULTI_BYTE_SCM_STRINGP(symbol);
+  return SCM_SYMBOL_MULTI_BYTE_STRINGP(symbol);
 }
 
 SCM_PROC(s_set_symbol_multi_byte_x, "set-symbol-multi-byte!", 2, 0, 0, scm_set_symbol_multi_byte_x);
@@ -209,7 +209,7 @@ scm_set_symbol_multi_byte_x (symbol, val)
 {
   if (SCM_TYP7 (symbol) == scm_tc7_msymbol)
     {
-      SCM_SYMBOL_MULTI_BYTE_SCM_STRINGP(symbol) = (SCM_FALSEP (val)
+      SCM_SYMBOL_MULTI_BYTE_STRINGP(symbol) = (SCM_FALSEP (val)
 						   ? SCM_BOOL_F
 						   : SCM_BOOL_T);
     }

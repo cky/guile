@@ -278,7 +278,7 @@ scm_procedure_source (proc)
       src = SCM_CODE (proc);
       return scm_cons (scm_i_lambda,
 		       scm_unmemocopy (src,
-				       SCM_EXTEND_SCM_ENV (SCM_CAR (src),
+				       SCM_EXTEND_ENV (SCM_CAR (src),
 							   SCM_EOL,
 							   SCM_ENV (proc))));
     }

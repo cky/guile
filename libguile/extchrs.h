@@ -46,9 +46,9 @@
 
 #include <stdlib.h>
 
-#define FAKE_EXT_SCM_CHARS 1
+#define SCM_FAKE_EXT_CHARS 1
 
-#if !defined(FAKE_EXT_SCM_CHARS)
+#if !defined(SCM_FAKE_EXT_CHARS)
 
 #define xmblen mblen
 #define xwctomb wctomb

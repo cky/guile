@@ -96,6 +96,6 @@ scm_init_feature()
   scm_add_feature ("full-continuation");
 #endif
 
-  scm_sysintern ("char-code-limit", SCM_MAKINUM (SCM_CHAR_SCM_CODE_LIMIT));
+  scm_sysintern ("char-code-limit", SCM_MAKINUM (SCM_CHAR_CODE_LIMIT));
 #include "feature.x"
 }
