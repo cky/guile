@@ -47,7 +47,7 @@
 
 
 
-#include "__scm.h"
+#include <libguile/__scm.h>
 
 
 

@@ -45,7 +45,7 @@
 
 
 #include <stdio.h>
-#include "_scm.h"
+#include <libguile/__scm.h>
 
 
 

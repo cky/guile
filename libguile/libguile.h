@@ -45,7 +45,7 @@
 
 
 
-#include "__scm.h"
+#include <libguile/__scm.h>
 
 #ifdef STDC_HEADERS
 # include <stdlib.h>
@@ -61,80 +61,79 @@
 # endif /* def _SIZE_T */
 #endif /* def STDC_HEADERS */
 
-#include "smob.h"
+#include <libguile/smob.h>
 
 
 
-#include "alist.h"
-#include "append.h"
-#include "arbiters.h"
-#include "async.h"
-#include "boolean.h"
-#include "chars.h"
-#include "continuations.h"
+#include <libguile/alist.h>
+#include <libguile/append.h>
+#include <libguile/arbiters.h>
+#include <libguile/async.h>
+#include <libguile/boolean.h>
+#include <libguile/chars.h>
+#include <libguile/continuations.h>
 #ifdef DEBUG_EXTENSIONS
-#include "debug.h"
+#include <libguile/debug.h>
 #endif
-#include "dynwind.h"
-#include "eq.h"
-#include "error.h"
-#include "eval.h"
-#include "extchrs.h"
-#include "fdsocket.h"
-#include "feature.h"
-#include "files.h"
-#include "filesys.h"
-#include "fports.h"
-#include "gc.h"
-#include "genio.h"
-#include "gsubr.h"
-#include "hash.h"
-#include "hashtab.h"
-#include "init.h"
-#include "ioext.h"
-#include "kw.h"
-#include "libguile.h"
-#include "list.h"
-#include "load.h"
-#include "mallocs.h"
-#include "markers.h"
-#include "marksweep.h"
-#include "mbstrings.h"
-#include "numbers.h"
-#include "objprop.h"
-#include "options.h"
-#include "pairs.h"
-#include "params.h"
-#include "ports.h"
-#include "posix.h"
-#include "print.h"
-#include "procprop.h"
-#include "procs.h"
-#include "ramap.h"
-#include "read.h"
-#include "root.h"
-#include "scmsigs.h"
-#include "sequences.h"
-#include "simpos.h"
-#include "socket.h"
-#include "srcprop.h"
-#include "stackchk.h"
-#include "stime.h"
-#include "strings.h"
-#include "strop.h"
-#include "strorder.h"
-#include "strports.h"
-#include "struct.h"
-#include "symbols.h"
-#include "tag.h"
-#include "tags.h"
-#include "throw.h"
-#include "unif.h"
-#include "variable.h"
-#include "vectors.h"
-#include "version.h"
-#include "vports.h"
-#include "weaks.h"
+#include <libguile/dynwind.h>
+#include <libguile/eq.h>
+#include <libguile/error.h>
+#include <libguile/eval.h>
+#include <libguile/extchrs.h>
+#include <libguile/fdsocket.h>
+#include <libguile/feature.h>
+#include <libguile/files.h>
+#include <libguile/filesys.h>
+#include <libguile/fports.h>
+#include <libguile/gc.h>
+#include <libguile/genio.h>
+#include <libguile/gsubr.h>
+#include <libguile/hash.h>
+#include <libguile/hashtab.h>
+#include <libguile/init.h>
+#include <libguile/ioext.h>
+#include <libguile/kw.h>
+#include <libguile/list.h>
+#include <libguile/load.h>
+#include <libguile/mallocs.h>
+#include <libguile/markers.h>
+#include <libguile/marksweep.h>
+#include <libguile/mbstrings.h>
+#include <libguile/numbers.h>
+#include <libguile/objprop.h>
+#include <libguile/options.h>
+#include <libguile/pairs.h>
+#include <libguile/params.h>
+#include <libguile/ports.h>
+#include <libguile/posix.h>
+#include <libguile/print.h>
+#include <libguile/procprop.h>
+#include <libguile/procs.h>
+#include <libguile/ramap.h>
+#include <libguile/read.h>
+#include <libguile/root.h>
+#include <libguile/scmsigs.h>
+#include <libguile/sequences.h>
+#include <libguile/simpos.h>
+#include <libguile/socket.h>
+#include <libguile/srcprop.h>
+#include <libguile/stackchk.h>
+#include <libguile/stime.h>
+#include <libguile/strings.h>
+#include <libguile/strop.h>
+#include <libguile/strorder.h>
+#include <libguile/strports.h>
+#include <libguile/struct.h>
+#include <libguile/symbols.h>
+#include <libguile/tag.h>
+#include <libguile/tags.h>
+#include <libguile/throw.h>
+#include <libguile/unif.h>
+#include <libguile/variable.h>
+#include <libguile/vectors.h>
+#include <libguile/version.h>
+#include <libguile/vports.h>
+#include <libguile/weaks.h>
 
 
 

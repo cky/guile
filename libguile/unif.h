@@ -44,7 +44,7 @@
  */
 
 
-#include "__scm.h"
+#include <libguile/__scm.h>
 
 
 typedef struct scm_array

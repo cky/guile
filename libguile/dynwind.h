@@ -43,7 +43,7 @@
  * If you do not wish that, delete this exception notice.  
  */
 
-#include "__scm.h"
+#include <libguile/__scm.h>
 
 
 #ifdef __STDC__

@@ -119,7 +119,7 @@ typedef unsigned long ulong_long;
 
 
 /* What did the configure script discover about the outside world?  */
-#include <scmconfig.h>
+#include <libguile/scmconfig.h>
 
 
 /* Write prototype declarations like this:
@@ -166,7 +166,7 @@ typedef unsigned long ulong_long;
 #endif /* def HAVE_LIMITS_H */
 
 
-#include "tags.h"
+#include <libguile/tags.h>
 
 
 #ifdef vms

@@ -44,7 +44,7 @@
  */
 
 
-#include "__scm.h"
+#include <libguile/__scm.h>
 
 
 extern scm_option scm_print_opts[];
