@@ -14,7 +14,6 @@ config.sub
 configure
 guile-*.tar.gz
 guile-tools
-libltdl
 libtool
 ltconfig
 ltmain.sh
