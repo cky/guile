@@ -1,4 +1,4 @@
-/* Copyright (C) 1995, 1996, 1997, 1998, 1999 Free Software Foundation, Inc.
+/* Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -457,15 +457,6 @@ SCM_DEFINE (scm_raise, "raise", 1, 0, 0,
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
-
-SCM_PROC(s_segfault, "segfault", 0, 0, 0, scm_segfault);
-
-SCM
-scm_segfault ()
-{
-  *(int *)0 = 0;
-  return SCM_UNSPECIFIED;
-}
 
 
 
