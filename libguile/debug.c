@@ -76,7 +76,7 @@ SCM_DEFINE (scm_debug_options, "debug-options-interface", 0, 1, 0,
             (SCM setting),
 	    "Option interface for the debug options. Instead of using\n"
 	    "this procedure directly, use the procedures @code{debug-enable},\n"
-	    "@code{debug-disable}, @code{debug-set!} and @var{debug-options}.")
+	    "@code{debug-disable}, @code{debug-set!} and @code{debug-options}.")
 #define FUNC_NAME s_scm_debug_options
 {
   SCM ans;

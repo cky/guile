@@ -1779,7 +1779,7 @@ SCM_DEFINE (scm_eval_options_interface, "eval-options-interface", 0, 1, 0,
             (SCM setting),
 	    "Option interface for the evaluation options. Instead of using\n"
 	    "this procedure directly, use the procedures @code{eval-enable},\n"
-	    "@code{eval-disable}, @code{eval-set!} and @var{eval-options}.")
+	    "@code{eval-disable}, @code{eval-set!} and @code{eval-options}.")
 #define FUNC_NAME s_scm_eval_options_interface
 {
   SCM ans;

@@ -79,7 +79,7 @@ SCM_DEFINE (scm_read_options, "read-options-interface", 0, 1, 0,
             (SCM setting),
 	    "Option interface for the read options. Instead of using\n"
 	    "this procedure directly, use the procedures @code{read-enable},\n"
-	    "@code{read-disable}, @code{read-set!} and @var{read-options}.")
+	    "@code{read-disable}, @code{read-set!} and @code{read-options}.")
 #define FUNC_NAME s_scm_read_options
 {
   SCM ans = scm_options (setting,
