@@ -60,6 +60,10 @@
 #include <io.h>
 #endif
 
+#ifdef HAVE_DIRECT_H
+#include <direct.h>
+#endif
+
 #ifdef TIME_WITH_SYS_TIME
 # include <sys/time.h>
 # include <time.h>
@@ -96,7 +100,10 @@
 #endif
 
 
-#if HAVE_DIRENT_H
+#if defined (__MINGW32__) || defined (_MSC_VER) || defined (__BORLANDC__)
+# include "win32-dirent.h"
+# define NAMLEN(dirent) strlen((dirent)->d_name)
+#elif HAVE_DIRENT_H
 # include <dirent.h>
 # define NAMLEN(dirent) strlen((dirent)->d_name)
 #else
@@ -121,10 +128,12 @@
 /* The MinGW gcc does not define the S_ISSOCK macro. Any other native Windows
    compiler like BorlandC or MSVC has none of these macros defined. */
 #ifdef __MINGW32__
-# define S_ISSOCK(mode) (0)
+# define _S_IFSOCK 0xC000
+# define S_ISSOCK(mode) (((mode) & _S_IFMT) == _S_IFSOCK)
 #endif
 #if defined (__BORLANDC__) || defined (_MSC_VER)
-# define S_ISBLK(mode) (0)
+# define _S_IFBLK 0x3000
+# define S_ISBLK(mode) (((mode) & _S_IFMT) == _S_IFBLK)
 # define S_ISFIFO(mode) (((mode) & _S_IFMT) == _S_IFIFO)
 # define S_ISCHR(mode) (((mode) & _S_IFMT) == _S_IFCHR)
 # define S_ISDIR(mode) (((mode) & _S_IFMT) == _S_IFDIR)
@@ -483,6 +492,31 @@ scm_stat2scm (struct stat *stat_temp)
   return ans;
 }
 
+#ifdef __MINGW32__
+/*
+ * Try getting the appropiate stat buffer for a given file descriptor
+ * under Windows. It differentiates between file, pipe and socket 
+ * descriptors.
+ */
+static int fstat_Win32 (int fdes, struct stat *buf)
+{
+  int error, optlen = sizeof (int);
+
+  memset (buf, 0, sizeof (struct stat));
+
+  /* Is this a socket ? */
+  if (getsockopt (fdes, SOL_SOCKET, SO_ERROR, (void *) &error, &optlen) >= 0)
+    {
+      buf->st_mode = _S_IFSOCK | _S_IREAD | _S_IWRITE | _S_IEXEC;
+      buf->st_nlink = 1;
+      buf->st_atime = buf->st_ctime = buf->st_mtime = time (NULL);
+      return 0;
+    }
+  /* Maybe a regular file or pipe ? */
+  return fstat (fdes, buf);
+}
+#endif /* __MINGW32__ */
+
 SCM_DEFINE (scm_stat, "stat", 1, 0, 0, 
             (SCM object),
 	    "Return an object containing various information about the file\n"
@@ -549,18 +583,35 @@ SCM_DEFINE (scm_stat, "stat", 1, 0, 0,
 
   if (SCM_INUMP (object))
     {
+#ifdef __MINGW32__
+      SCM_SYSCALL (rv = fstat_Win32 (SCM_INUM (object), &stat_temp));
+#else
       SCM_SYSCALL (rv = fstat (SCM_INUM (object), &stat_temp));
+#endif
     }
   else if (SCM_STRINGP (object))
     {
+#ifdef __MINGW32__
+      char *p, *file = strdup (SCM_STRING_CHARS (object));
+      p = file + strlen (file) - 1;
+      while (p > file && (*p == '/' || *p == '\\'))
+	*p-- = '\0';
+      SCM_SYSCALL (rv = stat (file, &stat_temp));
+      free (file);
+#else
       SCM_SYSCALL (rv = stat (SCM_STRING_CHARS (object), &stat_temp));
+#endif
     }
   else
     {
       object = SCM_COERCE_OUTPORT (object);
       SCM_VALIDATE_OPFPORT (1, object);
       fdes = SCM_FPORT_FDES (object);
+#ifdef __MINGW32__
+      SCM_SYSCALL (rv = fstat_Win32 (fdes, &stat_temp));
+#else
       SCM_SYSCALL (rv = fstat (fdes, &stat_temp));
+#endif
     }
 
   if (rv == -1)
@@ -1378,7 +1429,7 @@ SCM_DEFINE (scm_dirname, "dirname", 1, 0, 0,
   i = len - 1;
 #ifdef __MINGW32__
   while (i >= 0 && (s[i] == '/' || s[i] == '\\')) --i;
-  while (i >= 0 && (s[i] != '/' || s[i] != '\\')) --i;
+  while (i >= 0 && (s[i] != '/' && s[i] != '\\')) --i;
   while (i >= 0 && (s[i] == '/' || s[i] == '\\')) --i;
 #else
   while (i >= 0 && s[i] == '/') --i;
