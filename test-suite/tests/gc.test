@@ -1,5 +1,5 @@
 ;;;; gc.test --- test guile's garbage collection    -*- scheme -*-
-;;;; Copyright (C) 2000, 2001 Free Software Foundation, Inc.
+;;;; Copyright (C) 2000, 2001, 2004 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -15,7 +15,8 @@
 ;;;; License along with this library; if not, write to the Free Software
 ;;;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-(use-modules (ice-9 documentation))
+(use-modules (ice-9 documentation)
+	     (test-suite lib))
 
 
 ;;;
@@ -25,6 +26,20 @@
 
 (define (documented? object)
   (not (not (object-documentation object))))
+
+;; In guile 1.6.4 this test bombed, due to the record in h being collected
+;; by the gc, but not removed from h, leaving "x" as a freed cell.
+;; The usual correct result here is for x to be #f, but there's always a
+;; chance gc will mark something used when it isn't, so we allow x to be a
+;; record too.
+(pass-if "weak-values versus records"
+  (let ((rec-type (make-record-type "foo" '()))
+	(h        (make-weak-value-hash-table 61)))
+    (hash-set! h "foo" ((record-constructor rec-type)))
+    (gc)
+    (let ((x (hash-ref h "foo")))
+      (or (not x)
+	  ((record-predicate rec-type) x)))))
 
 
 ;;;
