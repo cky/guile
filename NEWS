@@ -46,6 +46,48 @@ in backtraces.
 
 * Changes to Scheme functions and syntax
 
+** Hooks
+
+A hook contains a list of functions which should be called on
+particular occasions in an existing program.  Hooks are used for
+customization.
+
+A window manager might have a hook before-window-map-hook.  The window
+manager uses the function run-hooks to call all functions stored in
+before-window-map-hook each time a window is mapped.  The user can
+store functions in the hook using add-hook!.
+
+In Guile, hooks are first class objects.
+
+*** New function: make-hook [N_ARGS]
+
+Return a hook for hook functions which can take N_ARGS arguments.
+The default value for N_ARGS is 0.
+
+*** New function: add-hook! HOOK PROC [APPEND_P]
+
+Put PROC at the beginning of the list of functions stored in HOOK.
+If APPEND_P is supplied, and non-false, put PROC at the end instead.
+
+PROC must be able to take the number of arguments specified when the
+hook was created.
+
+If PROC already exists in HOOK, then remove it first.
+
+*** New function: remove-hook! HOOK PROC
+
+Remove PROC from the list of functions in HOOK.
+
+*** New function: reset-hook! HOOK
+
+Clear the list of hook functions stored in HOOK.
+
+*** New function: run-hook HOOK ARG1 ...
+
+Run all hook functions stored in HOOK with arguments ARG1 ... .
+The number of arguments supplied must correspond to the number given
+when the hook was created.
+
 ** The function `dynamic-link' now takes optional keyword arguments.
    The only keyword argument that is currently defined is `:global
    BOOL'.  With it, you can control whether the shared library will be
@@ -789,7 +831,9 @@ shadow earlier bindings.
 
 Guile's and-let* macro was contributed by Michael Livshin.
 
-** New function: sorted? SEQUENCE LESS?
+** New sorting functions
+
+*** New function: sorted? SEQUENCE LESS?
 Returns `#t' when the sequence argument is in non-decreasing order
 according to LESS? (that is, there is no adjacent pair `... x y
 ...' for which `(less? y x)').
@@ -798,7 +842,7 @@ Returns `#f' when the sequence contains at least one out-of-order
 pair.  It is an error if the sequence is neither a list nor a
 vector.
 
-** New function: merge LIST1 LIST2 LESS?
+*** New function: merge LIST1 LIST2 LESS?
 LIST1 and LIST2 are sorted lists.
 Returns the sorted list of all elements in LIST1 and LIST2.
 
@@ -807,37 +851,39 @@ in the sense that (LESS? x y) --> #f for x, y in {a, b1, b2},
 and that a < b1 in LIST1.  Then a < b1 < b2 in the result.
 (Here "<" should read "comes before".)
 
-** New procedure: merge! LIST1 LIST2 LESS?
+*** New procedure: merge! LIST1 LIST2 LESS?
 Merges two lists, re-using the pairs of LIST1 and LIST2 to build
 the result.  If the code is compiled, and LESS? constructs no new
 pairs, no pairs at all will be allocated.  The first pair of the
 result will be either the first pair of LIST1 or the first pair of
 LIST2.
 
-** New function: sort SEQUENCE LESS?
+*** New function: sort SEQUENCE LESS?
 Accepts either a list or a vector, and returns a new sequence
 which is sorted.  The new sequence is the same type as the input.
 Always `(sorted? (sort sequence less?) less?)'.  The original
 sequence is not altered in any way.  The new sequence shares its
 elements with the old one; no elements are copied.
 
-** New procedure: sort! SEQUENCE LESS
+*** New procedure: sort! SEQUENCE LESS
 Returns its sorted result in the original boxes.  No new storage is
 allocated at all.  Proper usage: (set! slist (sort! slist <))
 
-** New function: stable-sort SEQUENCE LESS?
+*** New function: stable-sort SEQUENCE LESS?
 Similar to `sort' but stable.  That is, if "equal" elements are
 ordered a < b in the original sequence, they will have the same order
 in the result.
 
-** New function: stable-sort! SEQUENCE LESS?
+*** New function: stable-sort! SEQUENCE LESS?
 Similar to `sort!' but stable.
 Uses temporary storage when sorting vectors.
 
-** New functions: sort-list, sort-list!
+*** New functions: sort-list, sort-list!
 Added for compatibility with scsh.
 
-** New function: random N [STATE]
+** New built-in random number support
+
+*** New function: random N [STATE]
 Accepts a positive integer or real N and returns a number of the
 same type between zero (inclusive) and N (exclusive).  The values
 returned have a uniform distribution.
@@ -848,7 +894,7 @@ of the variable `*random-state*'.  This object is used to maintain the
 state of the pseudo-random-number generator and is altered as a side
 effect of the `random' operation.
 
-** New variable: *random-state*
+*** New variable: *random-state*
 Holds a data structure that encodes the internal state of the
 random-number generator that `random' uses by default.  The nature
 of this data structure is implementation-dependent.  It may be
@@ -856,23 +902,23 @@ printed out and successfully read back in, but may or may not
 function correctly as a random-number state object in another
 implementation.
 
-** New function: copy-random-state [STATE]
+*** New function: copy-random-state [STATE]
 Returns a new object of type suitable for use as the value of the
 variable `*random-state*' and as a second argument to `random'.
 If argument STATE is given, a copy of it is returned.  Otherwise a
 copy of `*random-state*' is returned.
 
-** New function: seed->random-state SEED
+*** New function: seed->random-state SEED
 Returns a new object of type suitable for use as the value of the
 variable `*random-state*' and as a second argument to `random'.
 SEED is a string or a number.  A new state is generated and
 initialized using SEED.
 
-** New function: random:uniform [STATE]
+*** New function: random:uniform [STATE]
 Returns an uniformly distributed inexact real random number in the
 range between 0 and 1.
 
-** New procedure: random:solid-sphere! VECT [STATE]
+*** New procedure: random:solid-sphere! VECT [STATE]
 Fills VECT with inexact real random numbers the sum of whose
 squares is less than 1.0.  Thinking of VECT as coordinates in
 space of dimension N = `(vector-length VECT)', the coordinates are
@@ -880,24 +926,24 @@ uniformly distributed within the unit N-shere.  The sum of the
 squares of the numbers is returned.  VECT can be either a vector
 or a uniform vector of doubles.
 
-** New procedure: random:hollow-sphere! VECT [STATE]
+*** New procedure: random:hollow-sphere! VECT [STATE]
 Fills VECT with inexact real random numbers the sum of whose squares
 is equal to 1.0.  Thinking of VECT as coordinates in space of
 dimension n = `(vector-length VECT)', the coordinates are uniformly
 distributed over the surface of the unit n-shere.  VECT can be either
 a vector or a uniform vector of doubles.
 
-** New function: random:normal [STATE]
+*** New function: random:normal [STATE]
 Returns an inexact real in a normal distribution with mean 0 and
 standard deviation 1.  For a normal distribution with mean M and
 standard deviation D use `(+ M (* D (random:normal)))'.
 
-** New procedure: random:normal-vector! VECT [STATE]
+*** New procedure: random:normal-vector! VECT [STATE]
 Fills VECT with inexact real random numbers which are independent and
 standard normally distributed (i.e., with mean 0 and variance 1).
 VECT can be either a vector or a uniform vector of doubles.
 
-** New function: random:exp STATE
+*** New function: random:exp STATE
 Returns an inexact real in an exponential distribution with mean 1.
 For an exponential distribution with mean U use (* U (random:exp)).
 
