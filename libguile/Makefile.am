@@ -33,13 +33,32 @@ ETAGS_ARGS = --regex='/SCM_\(GLOBAL_\)?\(G?PROC\|G?PROC1\|SYMBOL\|VCELL\|CONST_L
 
 lib_LTLIBRARIES = libguile.la
 bin_PROGRAMS = guile
+
 noinst_PROGRAMS = guile_filter_doc_snarfage
+guile_filter_doc_snarfage_SOURCES = c-tokenize.c
+
+## Override default rule; this should be compiled for BUILD host.
+## For some reason, OBJEXT does not include the dot
+c-tokenize.$(OBJEXT): c-tokenize.c
+	if [ "$(cross_compiling)" = "yes" ]; then \
+		$(CC_FOR_BUILD) -c -o $@ $<; \
+	else \
+		$(COMPILE) -c -o $@ $<; \
+	fi
+
+## Override default rule; this should run on BUILD host.
+guile_filter_doc_snarfage$(EXEEXT): $(guile_filter_doc_snarfage_OBJECTS) $(guile_filter_doc_snarfage_DEPENDENCIES) 
+	@rm -f guile_filter_doc_snarfage$(EXEEXT)
+	if [ "$(cross_compiling)" = "yes" ]; then \
+		$(CCLD_FOR_BUILD) -o $@ $(guile_filter_doc_snarfage_OBJECTS); \
+	else \
+		$(LINK) $(guile_filter_doc_snarfage_OBJECTS) $(LDADD) $(LIBS); \
+	fi
+
 
 guile_SOURCES = guile.c
 guile_LDADD = libguile.la
 guile_LDFLAGS = @DLPREOPEN@
-
-guile_filter_doc_snarfage_SOURCES = c-tokenize.c
 
 libguile_la_SOURCES = alist.c arbiters.c async.c backtrace.c boolean.c	    \
     chars.c continuations.c convert.c debug.c deprecation.c dynl.c 	    \
@@ -213,7 +232,7 @@ load.x: libpath.h
 include $(top_srcdir)/am/pre-inst-guile
 
 alldotdocfiles    = $(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES)
-snarf2checkedtexi = $(preinstguiletool)/snarf-check-and-output-texi
+snarf2checkedtexi = GUILE="$(GUILE_FOR_BUILD)" $(top_srcdir)/scripts/snarf-check-and-output-texi
 dotdoc2texi       = cat $(alldotdocfiles) | $(snarf2checkedtexi)
 
 guile.texi: $(alldotdocfiles) guile
