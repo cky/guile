@@ -161,7 +161,7 @@ extern SCM scm_eval2 SCM_P ((SCM obj, SCM env_thunk));
 extern SCM scm_eval SCM_P ((SCM obj));
 extern SCM scm_eval_x SCM_P ((SCM obj));
 extern SCM scm_macro_eval_x SCM_P ((SCM exp, SCM env));
-extern SCM scm_definedp SCM_P ((SCM x, SCM env));
+extern SCM scm_definedp SCM_P ((SCM sym));
 extern SCM scm_make_synt SCM_P ((char *name,
 				 SCM (*macroizer) (SCM),
 				 SCM (*fcn) ()));
