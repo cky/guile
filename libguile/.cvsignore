@@ -1,3 +1,5 @@
 Makefile
 config.log
 config.status
+fd.h
+scmconfig.h
