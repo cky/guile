@@ -1,6 +1,6 @@
 /* readline.c --- line editing support for Guile */
 
-/* Copyright (C) 1997,1999,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1997,1999,2000,2001, 2002 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -149,7 +149,7 @@ redisplay ()
 
 static int in_readline = 0;
 #ifdef USE_THREADS
-static scm_t_mutex reentry_barrier_mutex;
+static SCM reentry_barrier_mutex;
 #endif
 
 static SCM internal_readline (SCM text);
@@ -229,14 +229,14 @@ reentry_barrier ()
   int reentryp = 0;
 #ifdef USE_THREADS
   /* We should rather use scm_t_mutexry_lock when it becomes available */
-  scm_mutex_lock (&reentry_barrier_mutex);
+  scm_lock_mutex (reentry_barrier_mutex);
 #endif
   if (in_readline)
     reentryp = 1;
   else
     ++in_readline;
 #ifdef USE_THREADS
-  scm_mutex_unlock (&reentry_barrier_mutex);
+  scm_unlock_mutex (reentry_barrier_mutex);
 #endif
   if (reentryp)
     scm_misc_error (s_scm_readline, "readline is not reentrant", SCM_EOL);
@@ -577,7 +577,7 @@ scm_init_readline ()
 #endif
 
 #ifdef USE_THREADS
-  scm_mutex_init (&reentry_barrier_mutex);
+  reentry_barrier_mutex = scm_permanent_object (scm_make_mutex ());
 #endif
   scm_init_opts (scm_readline_options,
 		 scm_readline_opts,
