@@ -3786,25 +3786,26 @@
 	     (str str))
     (cond
      ((string-rindex str ch)
-      => (lambda (pos) (loop (cons (make-shared-substring str (+ 1 w)) fields)
-			     (make-shared-substring str 0 w))))
+      => (lambda (w) (loop (cons (make-shared-substring str (+ 1 w)) fields)
+			   (make-shared-substring str 0 w))))
      (else (ret (cons str fields))))))
 
 (define-public (separate-fields-after-char ch str ret)
-  (let loop ((fields '())
-	     (str str))
-    (cond
-     ((string-rindex str ch)
-      => (lambda (pos) (loop (cons (make-shared-substring str (+ 1 w)) fields)
-			     (make-shared-substring str 0 (+ 1 w)))))
-     (else (ret (cons str fields))))))
+  (reverse
+   (let loop ((fields '())
+             (str str))
+     (cond
+      ((string-index str ch)
+       => (lambda (w) (loop (cons (make-shared-substring str 0 (+ 1 w)) fields)
+                           (make-shared-substring str (+ 1 w)))))
+      (else (ret (cons str fields)))))))
 
 (define-public (separate-fields-before-char ch str ret)
   (let loop ((fields '())
 	     (str str))
     (cond
      ((string-rindex str ch)
-      => (lambda (pos) (loop (cons (make-shared-substring str w) fields)
+      => (lambda (w) (loop (cons (make-shared-substring str w) fields)
 			     (make-shared-substring str 0 w))))
      (else (ret (cons str fields))))))
 
