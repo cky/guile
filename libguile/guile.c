@@ -58,7 +58,8 @@
 #include <libltdl/ltdl.h>
 #endif
 
-#ifdef HAVE_WINSOCK2_H
+#if defined (HAVE_WINSOCK2_H) \
+  && !(defined (__CYGWIN32__) || defined (__CYGWIN__))
 #include <winsock2.h>
 #endif
 
