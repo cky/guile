@@ -47,6 +47,7 @@
 #include "libguile/__scm.h"
 
 
+
 extern SCM scm_catch SCM_P ((SCM tag, SCM thunk, SCM handler));
 extern SCM scm_ithrow SCM_P ((SCM key, SCM args, int noreturn));
 extern SCM scm_throw SCM_P ((SCM key, SCM args));
