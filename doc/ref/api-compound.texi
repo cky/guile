@@ -1655,26 +1655,26 @@ to @var{val}.
 number of dimensions.  Each cell can be accessed in constant time by
 supplying an index for each dimension.
 
-An array uses a generalized vector for the actual storage of its
-elements.  Any kind of generalized vector will do, so you can have
-arrays of uniform numeric values, arrays of characters, arrays of bits,
-and of course arrays of arbitrary Scheme values.  For example, arrays
-with an underlying @code{c64vector} might be nice for digital signal
-processing, while arrays made from a @code{u8vector} might be used to
-hold gray-scale images.
+In the current implementation, an array uses a generalized vector for
+the actual storage of its elements.  Any kind of generalized vector
+will do, so you can have arrays of uniform numeric values, arrays of
+characters, arrays of bits, and of course, arrays of arbitrary Scheme
+values.  For example, arrays with an underlying @code{c64vector} might
+be nice for digital signal processing, while arrays made from a
+@code{u8vector} might be used to hold gray-scale images.
 
-The number of dimensions of an array is called its @dfn{rank}.  Thus, a
-matrix is an array of rank 2, while a vector has rank 1.  When accessing
-an array element, you have to specify one exact integer for each
-dimension.  These integers are called the @dfn{indices} of the element.
-An array specifies the allowed range of indices for each dimension via a
-inclusive lower and upper bound.  These bounds can well be negative, but
-the upper bound must be at grater than or equal to the lower bound.
-When all lower bounds of an array are zero, it is called a
-@dfn{zero-origin} array.
+The number of dimensions of an array is called its @dfn{rank}.  Thus,
+a matrix is an array of rank 2, while a vector has rank 1.  When
+accessing an array element, you have to specify one exact integer for
+each dimension.  These integers are called the @dfn{indices} of the
+element.  An array specifies the allowed range of indices for each
+dimension via a inclusive lower and upper bound.  These bounds can
+well be negative, but the upper bound must be grater than or equal to
+the lower bound.  When all lower bounds of an array are zero, it is
+called a @dfn{zero-origin} array.
 
-For example, ordinary vectors can be regarded as rank 1, zero-origin
-arrays.
+For example, ordinary vectors can be regarded as one-dimensional,
+zero-origin arrays.
 
 An array is displayed as @code{#} followed by its rank, followed by a
 tag that describes the underlying vector, optionally followed by the
@@ -1745,32 +1745,52 @@ dimension in the array.  A @var{idxlist} argument means a list of such
 values, one for each dimension.
 
 
-@deffn {Scheme Procedure} array? obj [creator]
-@deffnx {C Function} scm_array_p (obj, creator)
+@deffn {Scheme Procedure} array? obj
+@deffnx {C Function} scm_array_p (obj, unused)
 Return @code{#t} if the @var{obj} is an array, and @code{#f} if
 not.
 
-When @var{creator} is given, @code{#t} is only returned when it is
-@code{eq?} to @code{(array-creator @var{obj})}.
+The second argument to scm_array_p is there for historical reasons,
+but it is not used.  You should always pass @code{SCM_UNDEFINED} as
+its value.
+@end deffn
+
+@deffn {Scheme Procedure} typed-array? obj type
+@deffnx {C Function} scm_typed_array_p (obj, type)
+Return @code{#t} if the @var{obj} is an array of type @var{type}, and
+@code{#f} if not.
+@end deffn
+
+@deftypefn {C Function} int scm_is_array (SCM obj)
+Return @code{1} if the @var{obj} is an array and @code{0} if not.
+@end deftypefn
+
+@deftypefn {C Function} int scm_is_typed_array (SCM obj, SCM type)
+Return @code{0} if the @var{obj} is an array of type @var{type}, and
+@code{1} if not.
 @end deffn
 
 @deffn {Scheme Procedure} make-array fill bound @dots{}
-Equivalent to @code{(make-array* make-vector @var{fill}
-@var{bound} ...)}.
+@deffnx {C Function} scm_make_array (fill, bounds)
+Equivalent to @code{(make-typed-array #t @var{fill} @var{bound} ...)}.
 @end deffn
 
-@deffn {Scheme Procedure} make-array* creator fill bound @dots{}
+@deffn {Scheme Procedure} make-typed-array type fill bound @dots{}
+@deffnx {C Function} scm_make_typed_array (type, fill, bounds)
 Create and return an array that has as many dimensions as there are
-@var{bound}s and (maybe) fill it with @var{fill}.  
+@var{bound}s and (maybe) fill it with @var{fill}.
 
-The underlaying storage vector is created by @var{creator}, which must
-be a procedure that returns a generalized vector.  Examples include
-@code{make-vector} for ordinary arrays, @code{make-string} for arrays of
-characters, and @code{make-u8vector} for arrays of unsigned 8-bit
-integers.
+The underlaying storage vector is created according to @var{type},
+which must be a symbol whose name is the `vectag' of the array as
+explained above, or @code{#t} for ordinary, non-specialized arrays.
 
-Ordinary arrays are filled with @var{fill}.  Other types of arrays are
-only then filled with @var{fill} when @var{fill} is non-@nicode{#f}.
+For example, using the symbol @code{f64} for @var{type} will create an
+array that uses a @code{f64vector} for storing its elements, and
+@code{a} will use a string.
+
+Ordinary arrays (signified by a @var{type} of @code{#t}) are filled
+with @var{fill}.  Other types of arrays are only then filled with
+@var{fill} when @var{fill} is non-@nicode{#f}.
 
 Each @var{bound} may be a positive non-zero integer @var{N}, in which
 case the index for that dimension can range from 0 through @var{N-1}; or
@@ -1781,13 +1801,13 @@ greater than @var{upper}).
 @end deffn
 
 @deffn {Scheme Procedure} list->array dimspec list
-Equivalent to @code{(list->array* make-vector @var{dimspec}
+Equivalent to @code{(list->typed-array #t @var{dimspec}
 @var{list})}.
 @end deffn
 
-@deffn {Scheme Procedure} list->array* creator dimspec list
-@deffnx {C Function} scm_list_to_array_star (creator, dimspec, list)
-Return an array of the type indicated by @var{creator} with elements the
+@deffn {Scheme Procedure} list->typed-array type dimspec list
+@deffnx {C Function} scm_list_to_typed_array (type, dimspec, list)
+Return an array of the type indicated by @var{type} with elements the
 same as those of @var{list}.
 
 The argument @var{dimspec} determines the number of dimensions of the
@@ -1798,12 +1818,11 @@ lower index bound of a dimension, and there will be as many dimensions
 as elements in the list.
 @end deffn
 
-@deffn {Scheme Procedure} array-creator array
-Return a procedure that can be used with @code{make-array*}
-to create an array of the same kind as @var{array}.
-
-Note that @code{array-creator} does not necessarily return the exact
-procedure passed to @code{make-array*} when creating @var{array}.
+@deffn {Scheme Procedure} array-type array
+Return the type of @var{array}.  This is the `vectag' used for
+printing @var{array} (or @code{#t} for ordinary arrays) and can be
+used with @code{make-typed-array} to create an array of the same kind
+as @var{array}.
 @end deffn
 
 @deffn {Scheme Procedure} array-ref array idx @dots{}
