@@ -455,7 +455,8 @@
   (syntax-rules ()
     ((_ e)
      (let ((x e))
-       (or (boolean? x) (number? x) (string? x) (char? x) (keyword? x))))))
+       (or (boolean? x) (number? x) (string? x) (char? x) (keyword? x)
+	   (procedure? x))))))
 )
 
 (define-structure (syntax-object expression wrap))
