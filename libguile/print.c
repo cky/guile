@@ -220,7 +220,7 @@ print_state_printer (obj, port)
 	      port,
 	      SCM_ARG2,
 	      s_print_state_printer);
-  port = SCM_COERCE_OPORT (port);
+  port = SCM_COERCE_OUTPORT (port);
   scm_puts ("#<print-state ", port);
   scm_intprint (obj, 16, port);
   scm_putc ('>', port);
@@ -917,7 +917,7 @@ scm_newline (port)
   else
     SCM_ASSERT (scm_valid_oport_value_p (port), port, SCM_ARG1, s_newline);
 
-  scm_putc ('\n', SCM_COERCE_OPORT (port));
+  scm_putc ('\n', SCM_COERCE_OUTPORT (port));
 #ifdef HAVE_PIPE
 # ifdef EPIPE
   if (EPIPE == errno)
@@ -943,7 +943,7 @@ scm_write_char (chr, port)
     SCM_ASSERT (scm_valid_oport_value_p (port), port, SCM_ARG2, s_write_char);
 
   SCM_ASSERT (SCM_ICHRP (chr), chr, SCM_ARG1, s_write_char);
-  scm_putc ((int) SCM_ICHR (chr), SCM_COERCE_OPORT (port));
+  scm_putc ((int) SCM_ICHR (chr), SCM_COERCE_OUTPORT (port));
 #ifdef HAVE_PIPE
 # ifdef EPIPE
   if (EPIPE == errno)
