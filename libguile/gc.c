@@ -580,7 +580,7 @@ gc_mark_loop:
 
 gc_mark_nimp:
   if (SCM_NCELLP (ptr))
-    scm_wta (ptr, "rogue pointer in heap", SCM_BOOL_F);
+    scm_wta (ptr, "rogue pointer in heap", NULL);
 
   switch (SCM_TYP7 (ptr))
     {

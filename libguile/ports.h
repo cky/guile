@@ -149,7 +149,7 @@ typedef struct scm_ptobfuns
   scm_sizet (*fwrite) SCM_P ((char *ptr, scm_sizet size, scm_sizet nitems, SCM stream));
   int (*fflush) SCM_P ((SCM stream));
   int (*fgetc) SCM_P ((SCM stream));
-  SCM (*fgets) SCM_P ((SCM stream));
+  char (*fgets) SCM_P ((SCM stream));
   int (*fclose) SCM_P ((SCM stream));
 } scm_ptobfuns;
 
