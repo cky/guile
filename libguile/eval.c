@@ -94,6 +94,8 @@ char *alloca ();
 
 #include "eval.h"
 
+SCM (*scm_memoize_method) (SCM, SCM);
+
 
 
 /* The evaluator contains a plethora of EVAL symbols.
@@ -2332,12 +2334,76 @@ dispatch:
 	    }
 	  
 	type_dispatch:
-	  proc = scm_mcache_compute_cmethod (x, arg2);
-	  env = EXTEND_ENV (SCM_CAR (SCM_CMETHOD_CODE (proc)),
-			    arg2,
-			    SCM_CMETHOD_ENV (proc));
-	  x = SCM_CMETHOD_CODE (proc);
-	  goto cdrxbegin;
+	  /* The type dispatch code is duplicated here
+	   * (c.f. objects.c:scm_mcache_compute_cmethod) since that
+	   * cuts down execution time for type dispatch to 50%.
+	   */
+	  {
+	    int i, n, end, mask;
+	    SCM z = SCM_CDDR (x);
+	    n = SCM_INUM (SCM_CAR (z)); /* maximum number of specializers */
+	    proc = SCM_CADR (z);
+
+	    if (SCM_NIMP (proc))
+	      {
+		/* Prepare for linear search */
+		mask = -1;
+		i = 0;
+		end = SCM_LENGTH (proc);
+	      }
+	    else
+	      {
+		/* Compute a hash value */
+		int hashset = SCM_INUM (proc);
+		int j = n;
+		mask = SCM_INUM (SCM_CAR (z = SCM_CDDR (z)));
+		proc = SCM_CADR (z);
+		i = 0;
+		t.arg1 = arg2;
+		if (SCM_NIMP (t.arg1))
+		  do
+		    {
+		      i += (SCM_STRUCT_DATA (scm_class_of (SCM_CAR (t.arg1)))
+			    [scm_si_hashsets + hashset]);
+		      t.arg1 = SCM_CDR (t.arg1);
+		    }
+		  while (--j && SCM_NIMP (t.arg1));
+		i &= mask;
+		end = i;
+	      }
+
+	    /* Search for match  */
+	    do
+	      {
+		int j = n;
+		z = SCM_VELTS (proc)[i];
+		t.arg1 = arg2; /* list of arguments */
+		if (SCM_NIMP (t.arg1))
+		  do
+		    {
+		      /* More arguments than specifiers => CLASS != ENV */
+		      if (scm_class_of (SCM_CAR (t.arg1)) != SCM_CAR (z))
+			goto next_method;
+		      t.arg1 = SCM_CDR (t.arg1);
+		      z = SCM_CDR (z);
+		    }
+		  while (--j && SCM_NIMP (t.arg1));
+		/* Fewer arguments than specifiers => CAR != ENV */
+		if (!(SCM_IMP (SCM_CAR (z)) || SCM_CONSP (SCM_CAR (z))))
+		  goto next_method;
+	      apply_cmethod:
+		env = EXTEND_ENV (SCM_CAR (SCM_CMETHOD_CODE (z)),
+				  arg2,
+				  SCM_CMETHOD_ENV (z));
+		x = SCM_CMETHOD_CODE (z);
+		goto cdrxbegin;
+	      next_method:
+		i = (i + 1) & mask;
+	      } while (i != end);
+	    
+	    z = scm_memoize_method (x, arg2);
+	    goto apply_cmethod;
+	  }
 
 	case (SCM_ISYMNUM (SCM_IM_SLOT_REF)):
 	  x = SCM_CDR (x);
