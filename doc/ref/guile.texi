@@ -73,6 +73,18 @@ section entitled "GNU Free Documentation License".
 @end macro
 
 
+@c  The following, @le{} and @ge{}, are standard tex directives, given
+@c  definitions for use in non-tex.
+@c
+@ifnottex
+@macro ge
+>=
+@end macro
+@macro le
+<=
+@end macro
+@end ifnottex
+
 @c  @cross{} is a \times symbol in tex, or an "x" in info.  In tex it works
 @c  inside or outside $ $.
 @tex
@@ -125,7 +137,7 @@ x
 @comment The title is printed in a large font.
 @title Guile Reference Manual
 @subtitle Edition @value{MANUAL-EDITION}, for use with Guile @value{VERSION}
-@c @subtitle $Id: guile.texi,v 1.32 2004-07-24 00:45:02 kryde Exp $
+@c @subtitle $Id: guile.texi,v 1.33 2004-07-28 00:53:09 kryde Exp $
 
 @c See preface.texi for the list of authors
 @author The Guile Developers
