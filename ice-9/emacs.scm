@@ -148,7 +148,7 @@
 				  '()))
 		      ((eq? key 'exit))
 		      (else
-		       (save-stack)
+		       (save-stack 2)
 		       (catch 'end-of-chunk
 			      (lambda ()
 				(let loop ()
