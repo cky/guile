@@ -120,7 +120,8 @@ SCM_API void scm_i_string_stop_writing (void);
 
 /* internal functions related to symbols. */
 
-SCM_API SCM scm_i_make_symbol (SCM name, unsigned long hash, SCM props);
+SCM_API SCM scm_i_make_symbol (SCM name, scm_t_bits flags, 
+			       unsigned long hash, SCM props);
 SCM_API const char *scm_i_symbol_chars (SCM sym);
 SCM_API size_t scm_i_symbol_length (SCM sym);
 SCM_API SCM scm_i_symbol_substring (SCM sym, size_t start, size_t end);

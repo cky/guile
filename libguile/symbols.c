@@ -90,7 +90,7 @@ scm_i_mem2symbol (SCM str)
   const char *name = scm_i_string_chars (str);
   size_t len = scm_i_string_length (str);
 
-  size_t raw_hash = scm_string_hash ((const unsigned char *) name, len) / 2;
+  size_t raw_hash = scm_string_hash ((const unsigned char *) name, len);
   size_t hash = raw_hash % SCM_HASHTABLE_N_BUCKETS (symbols);
 
   {
@@ -125,7 +125,7 @@ scm_i_mem2symbol (SCM str)
 
   {
     /* The symbol was not found - create it. */
-    SCM symbol = scm_i_make_symbol (str, raw_hash,
+    SCM symbol = scm_i_make_symbol (str, 0, raw_hash,
 				    scm_cons (SCM_BOOL_F, SCM_EOL));
 
     SCM slot = SCM_HASHTABLE_BUCKETS (symbols) [hash];
@@ -144,12 +144,10 @@ scm_i_mem2uninterned_symbol (SCM str)
 {
   const char *name = scm_i_string_chars (str);
   size_t len = scm_i_string_length (str);
+  size_t raw_hash = scm_string_hash ((const unsigned char *) name, len);
 
-  size_t raw_hash = (scm_string_hash ((const unsigned char *) name, len)/2
-		     + SCM_T_BITS_MAX/2 + 1);
-
-  return scm_i_make_symbol (str, raw_hash,
-			    scm_cons (SCM_BOOL_F, SCM_EOL));
+  return scm_i_make_symbol (str, SCM_I_F_SYMBOL_UNINTERNED, 
+			    raw_hash, scm_cons (SCM_BOOL_F, SCM_EOL));
 }
 
 SCM_DEFINE (scm_symbol_p, "symbol?", 1, 0, 0, 

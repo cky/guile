@@ -348,7 +348,8 @@ scm_i_string_stop_writing (void)
 #define SYMBOL_STRINGBUF SCM_CELL_OBJECT_1
 
 SCM
-scm_i_make_symbol (SCM name, unsigned long hash, SCM props)
+scm_i_make_symbol (SCM name, scm_t_bits flags,
+		   unsigned long hash, SCM props)
 {
   SCM buf;
   size_t start = STRING_START (name);
@@ -376,7 +377,7 @@ scm_i_make_symbol (SCM name, unsigned long hash, SCM props)
 	      STRINGBUF_CHARS (buf) + start, length);
       buf = new_buf;
     }
-  return scm_double_cell (scm_tc7_symbol, SCM_UNPACK (buf),
+  return scm_double_cell (scm_tc7_symbol | flags, SCM_UNPACK (buf),
 			  (scm_t_bits) hash, SCM_UNPACK (props));
 }
 

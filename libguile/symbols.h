@@ -28,7 +28,10 @@
 #define scm_is_symbol(x)            (!SCM_IMP (x) \
                                      && (SCM_TYP7 (x) == scm_tc7_symbol))
 #define scm_i_symbol_hash(x)        ((unsigned long) SCM_CELL_WORD_2 (x))
-#define scm_i_symbol_is_interned(x) (scm_i_symbol_hash(x)<=(SCM_T_BITS_MAX/2))
+#define scm_i_symbol_is_interned(x) \
+  (!(SCM_CELL_WORD_0 (x) & SCM_I_F_SYMBOL_UNINTERNED))
+
+#define SCM_I_F_SYMBOL_UNINTERNED   0x100
 
 
 
