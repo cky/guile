@@ -1,3 +1,12 @@
+Sat Apr  5 17:59:24 1997  Jim Blandy  <jimb@floss.cyclic.com>
+
+	* cpp_err_symbols.in: Renamed from cpp_err_symbols, to avoid
+	make's implicit cpp_err_symbols: cpp_err_symbols.c rule.
+	* cpp_sig_symbols.in: Renamed from cpp_sig_symbols.
+	* Makefile.am (check_errnos, check_signals, cpp_sig_symbols.c,
+	cpp_err_symbols.c): Corresponding changes.
+	* Makefile.in: Regenerated.
+
 Sat Apr  5 02:39:02 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* posix.c (scm_putenv): don't check HAVE_PUTENV.

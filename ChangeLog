@@ -1,3 +1,11 @@
+Sat Apr  5 16:48:38 1997  Jim Blandy  <jimb@floss.cyclic.com>
+
+	* newdoc/ref/scheme.texi (set-object-property!): Fix function name.
+
+	* Makefile.am: Omit doc subtree.
+	* configure.in: Omit makefiles in doc subtree.
+	* Makefile.in, configure: Rebuilt.
+
 Sat Mar 15 01:11:44 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* guile.m4 (AM_INIT_GUILE_MODULE): Replaced AM_INIT_AUTOMAKE macro
