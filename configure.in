@@ -309,11 +309,12 @@ if test $guile_cv_have_h_errno = yes; then
   AC_DEFINE(HAVE_H_ERRNO)
 fi
 
-AC_MSG_CHECKING(whether netdb.h defines uint32_t)
+AC_MSG_CHECKING(whether uint32_t is defined)
 AC_CACHE_VAL(guile_cv_have_uint32_t,
-[AC_TRY_COMPILE([#include <netdb.h>],
-[uint32_t a;],
-guile_cv_have_uint32_t=yes, guile_cv_have_uint32_t=no)])
+  [AC_TRY_COMPILE([#include <sys/types.h>
+	           #include <netdb.h>],
+		  [uint32_t a;],
+		  guile_cv_have_uint32_t=yes, guile_cv_have_uint32_t=no)])
 AC_MSG_RESULT($guile_cv_have_uint32_t)
 if test $guile_cv_have_uint32_t = yes; then
   AC_DEFINE(HAVE_UINT32_T)

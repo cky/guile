@@ -1,3 +1,8 @@
+2001-10-14  Gary Houston  <ghouston@arglist.com>
+
+	* configure.in: include sys/types.h when testing uint32_t.
+	thanks to Bill Schottstaedt.
+
 2001-10-14  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* configure.in: Do not use an absolute path for <unistd.h> when
