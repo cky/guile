@@ -1,3 +1,12 @@
+Thu May 15 16:22:33 1997  Jim Blandy  <jimb@floss.cyclic.com>
+
+	* net_db.c (scm_gethost, scm_getnet, scm_getproto, scm_getserv):
+	Return #f on end-of-file when scanning table (i.e. when called
+	with no arguments).  Try to catch errors, when we can.
+
+	* script.h (scm_shell-usage, scm_compile_shell_switches): New
+	external declarations.  These are useful.
+
 Thu May 15 05:21:36 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* posix.c: don't include <sys/select.h> or define macros for
