@@ -312,16 +312,24 @@ scm_iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 taloop:
   switch (SCM_ITAG3 (exp))
     {
-    case 2:
-    case 6:
+    case scm_tc3_closure:
+    case scm_tc3_tc7_1:
+    case scm_tc3_tc7_2:
+      /* These tc3 tags should never occur in an immediate value.  They are
+       * only used in cell types of non-immediates, i. e. the value returned
+       * by SCM_CELL_TYPE (exp) can use these tags.
+       */
+      scm_ipruk ("immediate", exp, port);
+      break;
+    case scm_tc3_int_1:
+    case scm_tc3_int_2:
       scm_intprint (SCM_INUM (exp), 10, port);
       break;
-    case 4:
+    case scm_tc3_imm24:
       if (SCM_CHARP (exp))
 	{
-	  register long i;
+	  long i = SCM_CHAR (exp);
 
-	  i = SCM_CHAR (exp);
 	  if (SCM_WRITINGP (pstate))
 	    {
 	      scm_puts ("#\\", port);
@@ -350,18 +358,17 @@ taloop:
 	  scm_intprint (SCM_IDIST (exp), 10, port);
 	}
       else
-	goto idef;
+	{
+	  /* unknown immediate value */
+	  scm_ipruk ("immediate", exp, port);
+	}
       break;
-    case 1:
+    case scm_tc3_cons_gloc:
       /* gloc */
       scm_puts ("#@", port);
       exp = SCM_GLOC_SYM (exp);
       goto taloop;
-    default:
-    idef:
-      scm_ipruk ("immediate", exp, port);
-      break;
-    case 0:
+    case scm_tc3_cons:
       switch (SCM_TYP7 (exp))
 	{
 	case scm_tcs_cons_gloc:

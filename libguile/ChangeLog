@@ -1,5 +1,11 @@
 2000-12-05  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* print.c (scm_iprin1):  Use scm_tc3_* codes instead of hardcoded
+	values.  Added comment about tc3 codes that may appear in
+	immediates.  Got rid of one goto command.
+
+2000-12-05  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* dynl.c (sysdep_dynl_link):  Improved error reporting.
 
 	* guardians.c:  Changed the representation from a compiled closure
