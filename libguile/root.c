@@ -191,7 +191,7 @@ cwdr (proc, a1, args, handler, stack_start)
     SCM_NEWCELL (new_rootcont);
     SCM_REDEFER_INTS;
     SCM_SETJMPBUF (new_rootcont,
-		   scm_must_malloc ((long) sizeof (regs),
+		   scm_must_malloc ((long) sizeof (scm_contregs),
 				    "inferior root continuation"));
     SCM_CAR (new_rootcont) = scm_tc7_contin;
     SCM_DYNENV (new_rootcont) = SCM_EOL;

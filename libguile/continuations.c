@@ -68,7 +68,7 @@ scm_make_cont (answer)
   SCM_NEWCELL (cont);
   *answer = cont;
   SCM_DEFER_INTS;
-  SCM_SETJMPBUF (cont, scm_must_malloc ((long) sizeof (regs), s_cont));
+  SCM_SETJMPBUF (cont, scm_must_malloc ((long) sizeof (scm_contregs), s_cont));
   SCM_CAR (cont) = scm_tc7_contin;
   SCM_DYNENV (cont) = scm_dynwinds;
   SCM_THROW_VALUE = SCM_EOL;
@@ -98,7 +98,7 @@ scm_make_cont (answer)
   SCM_FLUSH_REGISTER_WINDOWS;
   j = scm_stack_size (SCM_BASE (scm_rootcont));
   SCM_SETJMPBUF (cont,
-	     scm_must_malloc ((long) (sizeof (regs) + j * sizeof (SCM_STACKITEM)),
+	     scm_must_malloc ((long) (sizeof (scm_contregs) + j * sizeof (SCM_STACKITEM)),
 			      s_cont));
   SCM_SETLENGTH (cont, j, scm_tc7_contin);
   SCM_DYNENV (cont) = scm_dynwinds;
@@ -109,7 +109,7 @@ scm_make_cont (answer)
 #ifndef SCM_STACK_GROWS_UP
   src -= SCM_LENGTH (cont);
 #endif /* ndef SCM_STACK_GROWS_UP */
-  dst = (SCM_STACKITEM *) (SCM_CHARS (cont) + sizeof (regs));
+  dst = (SCM_STACKITEM *) (SCM_CHARS (cont) + sizeof (scm_contregs));
   for (j = SCM_LENGTH (cont); 0 <= --j;)
     *dst++ = *src++;
 #endif /* def CHEAP_CONTINUATIONS */
@@ -165,7 +165,7 @@ scm_dynthrow (a)
     grow_throw (a);
 #endif /* def SCM_STACK_GROWS_UP */
   SCM_FLUSH_REGISTER_WINDOWS;
-  src = (SCM_STACKITEM *) (SCM_CHARS (cont) + sizeof (regs));
+  src = (SCM_STACKITEM *) (SCM_CHARS (cont) + sizeof (scm_contregs));
   for (j = SCM_LENGTH (cont); 0 <= --j;)
     *dst++ = *src++;
 #ifdef sparc			/* clear out stack up to this stackframe */

@@ -58,15 +58,15 @@ typedef struct
 #ifdef DEBUG_EXTENSIONS
   struct scm_debug_frame *dframe;
 #endif
-} regs;
+} scm_contregs;
 
-#define SCM_JMPBUF(x) (((regs *)SCM_CHARS(x))->jmpbuf)
+#define SCM_JMPBUF(x) (((scm_contregs *)SCM_CHARS(x))->jmpbuf)
 #define SCM_SETJMPBUF SCM_SETCDR
-#define SCM_DYNENV(x) (((regs *)SCM_CHARS(x))->dynenv)
-#define SCM_THROW_VALUE(x) (((regs *)SCM_CHARS(x))->throw_value)
-#define SCM_BASE(x) (((regs *)SCM_CHARS(x))->base)
-#define SCM_SEQ(x) (((regs *)SCM_CHARS(x))->seq)
-#define SCM_DFRAME(x) (((regs *)SCM_CHARS(x))->dframe)
+#define SCM_DYNENV(x) (((scm_contregs *)SCM_CHARS(x))->dynenv)
+#define SCM_THROW_VALUE(x) (((scm_contregs *)SCM_CHARS(x))->throw_value)
+#define SCM_BASE(x) (((scm_contregs *)SCM_CHARS(x))->base)
+#define SCM_SEQ(x) (((scm_contregs *)SCM_CHARS(x))->seq)
+#define SCM_DFRAME(x) (((scm_contregs *)SCM_CHARS(x))->dframe)
 
 
 

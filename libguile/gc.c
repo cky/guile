@@ -575,7 +575,7 @@ gc_mark_nimp:
 	(ptr) break;
       SCM_SETGC8MARK (ptr);
       scm_mark_locations (SCM_VELTS (ptr),
-	       (scm_sizet) (SCM_LENGTH (ptr) + sizeof (regs) / sizeof (SCM_STACKITEM)));
+	       (scm_sizet) (SCM_LENGTH (ptr) + sizeof (scm_contregs) / sizeof (SCM_STACKITEM)));
       break;
     case scm_tc7_bvect:
     case scm_tc7_byvect:
@@ -1064,7 +1064,7 @@ scm_gc_sweep ()
 	    case scm_tc7_contin:
 	      if SCM_GC8MARKP (scmptr)
 		goto c8mrkcontinue;
-	      m += SCM_LENGTH (scmptr) * sizeof (SCM_STACKITEM) + sizeof (regs);
+	      m += SCM_LENGTH (scmptr) * sizeof (SCM_STACKITEM) + sizeof (scm_contregs);
 	      goto freechars;
 	    case scm_tc7_ssymbol:
 	      if SCM_GC8MARKP(scmptr)
