@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995, 1996, 1997, 1998 Free Software Foundation, Inc.
+/*	Copyright (C) 1995, 1996, 1997, 1998, 2000 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -147,7 +147,7 @@ SCM_REGISTER_PROC(s_signal_condition_variable, "signal-condition-variable", 1, 0
 void
 scm_init_threads (SCM_STACKITEM *i)
 {
-  scm_tc16_thread = scm_make_smob_type ("thread", sizeof (coop_t));
+  scm_tc16_thread = scm_make_smob_type ("thread", 0);
   scm_tc16_mutex = scm_make_smob_type ("mutex", sizeof (coop_m));
   scm_tc16_condvar = scm_make_smob_type ("condition-variable", sizeof (coop_c));
                                         
