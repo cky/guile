@@ -1120,7 +1120,6 @@ value is @code{#f} unless a string of the form @code{NAME=VALUE} is
 found, in which case the string @code{VALUE} is returned.
 @end deffn
 
-@c begin (scm-doc-string "boot-9.scm" "setenv")
 @deffn {Scheme Procedure} setenv name value
 Modifies the environment of the current process, which is
 also the default environment inherited by child processes.
@@ -1131,6 +1130,11 @@ to the environment, replacing any existing string with name matching
 @var{name}.
 
 The return value is unspecified.
+@end deffn
+
+@deffn {Scheme Procedure} unsetenv name
+Remove variable @var{name} from the environment.  The
+name can not contain a @samp{=} character.
 @end deffn
 
 @deffn {Scheme Procedure} environ [env]
@@ -1159,15 +1163,6 @@ be removed.
 The return value is unspecified.
 @end deffn
 
-@deffn {Scheme Procedure} setenv name value
-Give the environment variable @var{name} the value @var{value}.  The
-name can not contain a @samp{=} character.
-@end deffn
-
-@deffn {Scheme Procedure} unsetenv name
-Remove variable @var{name} from the environment.  The
-name can not contain a @samp{=} character.
-@end deffn
 
 @node Processes
 @section Processes

@@ -97,13 +97,10 @@ interpreter, you will have to add more libraries.
 
 The following C constants and data types are defined in gh:
 
-@deftp {Data type} SCM
-This is a C data type used to store all Scheme data, no matter what the
+@code{SCM} is a C data type used to store all Scheme data, no matter what the
 Scheme type.  Values are converted between C data types and the SCM type
 with utility functions described below (@pxref{Converting data between C
 and Scheme}).  [FIXME: put in references to Jim's essay and so forth.]
-@end deftp
-@cindex SCM data type
 
 @defvr Constant SCM_BOOL_T
 @defvrx Constant SCM_BOOL_F
