@@ -1,3 +1,38 @@
+2004-07-29  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* gen-scmconfig.h.in: Removed SCM_I_GSC_*_LIMITS macros, they are
+	no longer used.
+
+	* __scm.h (SCM_I_UTYPE_MAX, SCM_I_TYPE_MAX, SCM_I_TYPE_MIN,
+	SCM_I_SIZE_MAX, SCM_I_SSIZE_MIN, SCM_I_SSIZE_MAX): New.
+
+	* __scm.h, gen-scmconfig.c (SCM_I_LLONG_MAX, SCM_I_LLONG_MIN,
+	SCM_I_ULLONG_MAX, SCM_T_INT8_MIN, SCM_T_INT8_MAX, SCM_T_UINT8_MAX,
+	SCM_T_INT16_MIN, SCM_T_INT16_MAX, SCM_T_UINT16_MAX,
+	SCM_T_INT32_MIN, SCM_T_INT32_MAX, SCM_T_UINT32_MAX,
+	SCM_T_INT64_MIN, SCM_T_INT64_MAX, SCM_T_UINT64_MAX,
+	SCM_T_INTMAX_MIN, SCM_T_INTMAX_MAX, SCM_T_UINTMAX_MAX): Moved
+	definition into __scm.h, using new SCM_I_TYPE_MIN, etc.
+	
+	* conv-integer.i.c, conv-uinteger.i.c: New files, used to generate
+	the functions below.
+
+	* Makefile.am (noinst_HEADERS): Added conv-integer.i.c and
+	conv-uinteger.i.c.
+
+	* numbers.c, numbers.h (scm_to_int8, scm_to_uint8, scm_to_int16,
+	scm_to_uint16, scm_to_int32, scm_to_uint32, scm_to_int64,
+	scm_to_uint64, scm_from_int8, scm_from_uint8, scm_from_int16,
+	scm_from_uint16, scm_from_int32, scm_from_uint32, scm_from_int64,
+	scm_from_uint64): Turned from macros into proper functions.
+	(scm_to_signed_integer, scm_to_unsigned_integer,
+	scm_from_signed_integer, scm_from_unsigned_integer): Generate via
+	conv-integer.i.c and conv-uinteger.i.c, as well.
+	
+	* number.h (scm_to_ssize_t, scm_to_size_t): Use the new
+	SCM_I_SSIZE_MIN, SCM_I_SSIZE_MAX, and SCM_I_SIZE_MAX macros for
+	the limits.  Those are always defined.
+	
 2004-07-29  Kevin Ryde  <user42@zip.com.au>
 
 	* posix.c (scm_ttyname): Use scm_i_misc_mutex for thread safety.
