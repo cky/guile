@@ -88,6 +88,12 @@ typedef struct scm_dsubr
 #define SCM_SETENV(x, e) SCM_SETCDR (x, e)
 #define SCM_TOP_LEVEL(SCM_ENV)  (SCM_NULLP(SCM_ENV) || (SCM_BOOL_T == scm_procedure_p (SCM_CAR (SCM_ENV))))
 
+/* Prcoedure-with-setter
+ */
+#define SCM_PROCEDURE_WITH_SETTER_P(obj) (SCM_TYP7 (obj) == scm_tc7_pws)
+#define SCM_PROCEDURE(obj) SCM_CADR (obj)
+#define SCM_SETTER(obj) SCM_CDDR (obj)
+
 
 
 extern SCM scm_make_subr SCM_P ((const char *name, int type, SCM (*fcn) ()));
@@ -100,6 +106,10 @@ extern SCM scm_procedure_p SCM_P ((SCM obj));
 extern SCM scm_closure_p SCM_P ((SCM obj));
 extern SCM scm_thunk_p SCM_P ((SCM obj));
 extern SCM scm_procedure_documentation SCM_P ((SCM proc));
+extern SCM scm_procedure_with_setter_p SCM_P ((SCM obj));
+extern SCM scm_make_procedure_with_setter SCM_P ((SCM procedure, SCM setter));
+extern SCM scm_procedure SCM_P ((SCM proc));
+extern SCM scm_setter SCM_P ((SCM proc));
 extern void scm_init_iprocs SCM_P ((const scm_iproc *subra, int type));
 extern void scm_init_procs SCM_P ((void));
 
