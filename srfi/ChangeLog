@@ -1,3 +1,7 @@
+2004-01-24  Marius Vollmer  <mvo@zagadka.de>
+
+	* Makefile.am (srfi_DATA): Added srfi-26.scm.
+
 2004-01-21  Marius Vollmer  <m.vollmer@ping.de>
 
 	* srfi-26.scm: New, from Daniel Skarda.  Thanks!
