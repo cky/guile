@@ -1,3 +1,10 @@
+2004-01-07  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* standalone/test-unwind.c: Adapted to 'frame' renamings.
+	(check_fluid): New.
+
+	* Makefile.am (SCM_TESTS): Added continuations.test.
+
 2004-01-07  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/numbers.test (<): Add tests inum/bignum/flonum/frac with frac.

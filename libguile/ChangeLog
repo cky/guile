@@ -1,3 +1,30 @@
+2004-01-07  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* fluids.h, fluids.c (scm_frame_fluid): New.
+
+	* dynwind.c (scm_frame_end): Do not use scm_i_dowinds.  Instead,
+	do the unwinding directly.  It is simple enough.
+	
+	* dynwind.h, dynwind.c: Did the following renamings:
+	scm_begin_frame -> scm_frame_begin,
+	scm_end_frame -> scm_frame_end,
+	scm_on_unwind -> scm_frame_unwind,
+	scm_on_rewind -> scm_frame_rewind,
+	scm_on_unwind_with_scm -> scm_frame_unwind_with_scm,
+	scm_on_rewind_with_scm -> scm_frame_rewind_with_scm.
+	Changed all uses.
+
+	* aync.h, async.c: Did the follwing renamings:
+	scm_with_blocked_asyncs -> scm_frame_block_asyncs,
+	scm_with_unblocked_asyncs -> scm_frame_unblock_asyncs.
+	Changed all uses.
+	
+	* ports.h, ports.c: Did the follwing renamings:
+	scm_with_current_input_port -> scm_frame_current_input_port,
+	scm_with_current_output_port -> scm_frame_current_output_port,
+	scm_with_current_error_port -> scm_frame_current_error_port.
+	Changed all uses.
+
 2004-01-07  Kevin Ryde  <user42@zip.com.au>
 
 	* numbers.c (s_bignum): Remove, not used since gmp bignums.

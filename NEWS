@@ -581,28 +581,29 @@ starting the week.
 ** New way to deal with non-local exits and reentries.
 
 There is a new set of functions that essentially do what
-scm_internal_dynamic_wind does, but in a more convenient way.  Here is
-a quick example of how to prevent a potential memory leak:
+scm_internal_dynamic_wind does, but in a way that is more convenient
+for C code in some situations.  Here is a quick example of how to
+prevent a potential memory leak:
 
   void
   foo ()
   {
     char *mem;
 
-    scm_begin_frame (0);
+    scm_frame_begin (0);
 
     mem = scm_malloc (100);
-    scm_on_unwind (free, mem, SCM_F_WIND_EXPLICITELY);
+    scm_frame_unwind (free, mem, SCM_F_WIND_EXPLICITELY);
 
-    /* MEM would leak if BAR throws an error.  SCM_ON_UNWIND frees it
+    /* MEM would leak if BAR throws an error.  SCM_FRAME_UNWIND frees it
        nevertheless.
      */
     bar ();
   
-    scm_end_frame ();
+    scm_frame_end ();
 
     /* Because of SCM_F_WIND_EXPLICITELY, MEM will be freed by 
-       SCM_END_FRAME as well. 
+       SCM_FRAME_END as well. 
     */
   }
 
@@ -611,13 +612,18 @@ For full documentation, see the node "Frames" in the manual.
 ** New way to block and unblock asyncs
 
 In addition to scm_c_call_with_blocked_asyncs you can now also use
-scm_with_blocked_asyncs in a 'frame' (see above).  Likewise for
-scm_c_call_with_unblocked_asyncs and scm_with_unblocked_asyncs.
+scm_frame_block_asyncs in a 'frame' (see above).  Likewise for
+scm_c_call_with_unblocked_asyncs and scm_frame_unblock_asyncs.
 
 ** New way to temporarily set the current input, output or error ports
 
-C code can now use scm_with_current_<foo>_port in a 'frame' (see
+C code can now use scm_frame_current_<foo>_port in a 'frame' (see
 above).  <foo> is one of "input", "output" or "error".
+
+** New way to temporarily set fluids
+
+C code can now use scm_frame_fluid in a 'frame' (see
+above) to temporarily set the value of a fluid.
 
 ** New types scm_t_intmax and scm_t_uintmax.
 
