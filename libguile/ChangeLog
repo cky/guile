@@ -8,6 +8,8 @@
 	* numbers.c (scm_max, scm_min): For inum/frac, frac/inum, big/frac,
 	frac/big and frac/frac, use scm_less_p for exact comparison.
 
+	* numbers.c (xisinf): Add a comment about solaris 7 lacking isinf.
+
 2004-04-06  Han-Wen Nienhuys   <hanwen@xs4all.nl>
 
 	* inline.h (scm_cell): use SCM_GC_CELL_WORD for checking tag.
