@@ -179,7 +179,7 @@ SCM_DEFINE (scm_dynamic_unlink, "dynamic-unlink", 1, 0, 0,
   /*fixme* GC-problem */
   SCM_VALIDATE_SMOB (SCM_ARG1, dobj, dynamic_obj);
   if (DYNL_HANDLE (dobj) == NULL) {
-    SCM_MISC_ERROR ("Already unlinked: ~S", dobj);
+    SCM_MISC_ERROR ("Already unlinked: ~S", scm_list_1 (dobj));
   } else {
     sysdep_dynl_unlink (DYNL_HANDLE (dobj), FUNC_NAME);
     SET_DYNL_HANDLE (dobj, NULL);
