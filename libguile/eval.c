@@ -586,14 +586,7 @@ unmemoize_exprs (const SCM exprs, const SCM env)
   SCM um_expr;
 
   /* Note that due to the current lazy memoizer we may find partially memoized
-   * code during execution.  In such code, lists of expressions that stem from
-   * a body form may start with an ISYM if the body itself has not yet been
-   * memoized.  This isym is just an internal marker to indicate that the body
-   * still needs to be memoized.  It is dropped during unmemoization.  */
-  if (SCM_CONSP (expr_idx) && SCM_ISYMP (SCM_CAR (expr_idx)))
-    expr_idx = SCM_CDR (expr_idx);
-
-  /* Moreover, in partially memoized code we have to expect improper lists of
+   * code during execution.  In such code we have to expect improper lists of
    * expressions: On the one hand, for such code syntax checks have not yet
    * fully been performed, on the other hand, there may be even legal code
    * like '(a . b) appear as an improper list of expressions as long as the
@@ -603,8 +596,18 @@ unmemoize_exprs (const SCM exprs, const SCM env)
   for (; SCM_CONSP (expr_idx); expr_idx = SCM_CDR (expr_idx))
     {
       const SCM expr = SCM_CAR (expr_idx);
-      um_expr = unmemoize_expression (expr, env);
-      r_result = scm_cons (um_expr, r_result);
+
+      /* In partially memoized code, lists of expressions that stem from a
+       * body form may start with an ISYM if the body itself has not yet been
+       * memoized.  This isym is just an internal marker to indicate that the
+       * body still needs to be memoized.  An isym may occur at the very
+       * beginning of the body or after one or more comment strings.  It is
+       * dropped during unmemoization.  */
+      if (!SCM_ISYMP (expr))
+        {
+          um_expr = unmemoize_expression (expr, env);
+          r_result = scm_cons (um_expr, r_result);
+        }
     }
   um_expr = unmemoize_expression (expr_idx, env);
   if (!SCM_NULLP (r_result))
