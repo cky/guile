@@ -159,6 +159,7 @@ scm_ra_matchp (ra0, ras)
       default:
 	return 0;
       case scm_tc7_vector:
+      case scm_tc7_wvect:
       case scm_tc7_string:
       case scm_tc7_byvect:
       case scm_tc7_bvect:
@@ -191,6 +192,7 @@ scm_ra_matchp (ra0, ras)
 	    default:
 	      return 0;
 	    case scm_tc7_vector:
+	    case scm_tc7_wvect:
 	    case scm_tc7_string:
 	    case scm_tc7_byvect:
 	    case scm_tc7_bvect:
@@ -429,6 +431,7 @@ scm_array_fill_int (ra, fill, ignore)
 	  scm_array_set_x (ra, fill, SCM_MAKINUM (i));
 	break;
       case scm_tc7_vector:
+      case scm_tc7_wvect:
 	for (i = base; n--; i += inc)
 	  SCM_VELTS (ra)[i] = fill;
 	break;
@@ -558,7 +561,10 @@ racp (src, dst)
     (dst)
       {
       default:
-      gencase: case scm_tc7_vector:
+      gencase:
+      case scm_tc7_vector:
+      case scm_tc7_wvect:
+
 	for (; n-- > 0; i_s += inc_s, i_d += inc_d)
 	  scm_array_set_x (dst, scm_cvref (src, i_s, SCM_UNDEFINED), SCM_MAKINUM (i_d));
 	break;
@@ -1545,7 +1551,7 @@ ramap_1 (ra0, proc, ras)
   long inc0 = SCM_ARRAY_DIMS (ra0)->inc, inc1 = SCM_ARRAY_DIMS (ra1)->inc;
   ra0 = SCM_ARRAY_V (ra0);
   ra1 = SCM_ARRAY_V (ra1);
-  if (scm_tc7_vector == SCM_TYP7 (ra0))
+  if (scm_tc7_vector == SCM_TYP7 (ra0) || scm_tc7_wvect == SCM_TYP7 (ra0))
     for (; n-- > 0; i0 += inc0, i1 += inc1)
       scm_array_set_x (ra0, SCM_SUBRF (proc) (scm_cvref (ra1, i1, SCM_UNDEFINED)), SCM_MAKINUM (i0));
   else
@@ -1575,7 +1581,9 @@ ramap_2o (ra0, proc, ras)
   if SCM_NULLP
     (ras)
       {
-	if (scm_tc7_vector == SCM_TYP7 (ra0))
+	if (scm_tc7_vector == SCM_TYP7 (ra0)
+	    || scm_tc7_wvect == SCM_TYP7 (ra0))
+
 	  for (; n-- > 0; i0 += inc0, i1 += inc1)
 	    scm_array_set_x (ra0, SCM_SUBRF (proc) (scm_cvref (ra1, i1, SCM_UNDEFINED), SCM_UNDEFINED),
 		  SCM_MAKINUM (i0));
@@ -1591,7 +1599,7 @@ ramap_2o (ra0, proc, ras)
       scm_sizet i2 = SCM_ARRAY_BASE (ra2);
       long inc2 = SCM_ARRAY_DIMS (ra2)->inc;
       ra2 = SCM_ARRAY_V (ra2);
-      if (scm_tc7_vector == SCM_TYP7 (ra0))
+      if (scm_tc7_vector == SCM_TYP7 (ra0) || scm_tc7_wvect == SCM_TYP7 (ra0))
 	for (; n-- > 0; i0 += inc0, i1 += inc1, i2 += inc2)
 	  scm_array_set_x (ra0,
 		SCM_SUBRF (proc) (scm_cvref (ra1, i1, SCM_UNDEFINED), scm_cvref (ra2, i2, SCM_UNDEFINED)),
@@ -1821,6 +1829,7 @@ scm_array_index_map_x (ra, proc)
       default:
       badarg:scm_wta (ra, (char *) SCM_ARG1, s_array_index_map_x);
       case scm_tc7_vector:
+      case scm_tc7_wvect:
 	{
 	  SCM *ve = SCM_VELTS (ra);
 	  for (i = 0; i < SCM_LENGTH (ra); i++)
@@ -1912,6 +1921,7 @@ raeql_1 (ra0, as_equal, ra1)
     (ra0)
       {
       case scm_tc7_vector:
+      case scm_tc7_wvect:
       default:
 	for (; n--; i0 += inc0, i1 += inc1)
 	  {
@@ -2088,6 +2098,7 @@ scm_array_equal_p (ra0, ra1)
       case scm_tc7_dvect:
       case scm_tc7_cvect:
       case scm_tc7_vector:
+      case scm_tc7_wvect:
 	break;
       case scm_tc7_smob:
 	if (!SCM_ARRAYP (ra0))
@@ -2107,6 +2118,7 @@ scm_array_equal_p (ra0, ra1)
       case scm_tc7_dvect:
       case scm_tc7_cvect:
       case scm_tc7_vector:
+      case scm_tc7_wvect:
 	break;
       case scm_tc7_smob:
 	if (!SCM_ARRAYP (ra1))

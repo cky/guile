@@ -106,6 +106,7 @@ scm_vector_set_length_x (vect, len)
       l++;
       break;
     case scm_tc7_vector:
+    case scm_tc7_wvect:
       SCM_ASRTGO (vect != scm_nullvect, badarg1);
       sz = sizeof (SCM);
       break;
@@ -306,6 +307,7 @@ scm_uniform_vector_length (v)
     case scm_tc7_dvect:
     case scm_tc7_cvect:
     case scm_tc7_vector:
+    case scm_tc7_wvect:
     case scm_tc7_svect:
 #ifdef LONGLONGS
     case scm_tc7_llvect:
@@ -374,6 +376,7 @@ loop:
       return nprot || (SCM_NIMP(prot) && SCM_CPLXP(prot)) ? SCM_BOOL_T : SCM_BOOL_F;
 # endif
     case scm_tc7_vector:
+    case scm_tc7_wvect:
       return nprot || SCM_NULLP(prot) ? SCM_BOOL_T : SCM_BOOL_F;
     default:;
     }
@@ -395,6 +398,7 @@ scm_array_rank (ra)
       return SCM_INUM0;
     case scm_tc7_string:
     case scm_tc7_vector:
+    case scm_tc7_wvect:
     case scm_tc7_byvect:
     case scm_tc7_uvect:
     case scm_tc7_ivect:
@@ -431,6 +435,7 @@ scm_array_dimensions (ra)
       return SCM_BOOL_F;
     case scm_tc7_string:
     case scm_tc7_vector:
+    case scm_tc7_wvect:
     case scm_tc7_bvect:
     case scm_tc7_byvect:
     case scm_tc7_uvect:
@@ -905,6 +910,7 @@ scm_enclose_array (axes)
     case scm_tc7_dvect:
     case scm_tc7_cvect:
     case scm_tc7_vector:
+    case scm_tc7_wvect:
     case scm_tc7_svect:
 #ifdef LONGLONGS
     case scm_tc7_llvect:
@@ -1028,6 +1034,7 @@ tail:
     case scm_tc7_llvect:
 #endif
     case scm_tc7_vector:
+    case scm_tc7_wvect:
       SCM_ASRTGO (SCM_NULLP (args) && SCM_INUMP (ind), wna);
       return pos >= 0 && pos < SCM_LENGTH (v) ? SCM_BOOL_T : SCM_BOOL_F;
     }
@@ -1134,6 +1141,7 @@ scm_uniform_vector_ref (v, args)
 			 ((double *) SCM_CDR (v))[2 * pos + 1]);
 #endif
     case scm_tc7_vector:
+    case scm_tc7_wvect:
       return SCM_VELTS (v)[pos];
     }
 }
@@ -1209,6 +1217,7 @@ scm_cvref (v, pos, last)
 			 ((double *) SCM_CDR (v))[2 * pos + 1]);
 #endif
     case scm_tc7_vector:
+    case scm_tc7_wvect:
       return SCM_VELTS (v)[pos];
     case scm_tc7_smob:
       {				/* enclosed scm_array */
@@ -1330,6 +1339,7 @@ scm_array_set_x (v, obj, args)
       break;
 #endif
     case scm_tc7_vector:
+    case scm_tc7_wvect:
       SCM_VELTS (v)[pos] = obj;
       break;
     }
@@ -1352,6 +1362,7 @@ scm_array_contents (ra, strict)
     default:
       return SCM_BOOL_F;
     case scm_tc7_vector:
+    case scm_tc7_wvect:
     case scm_tc7_string:
     case scm_tc7_bvect:
     case scm_tc7_byvect:
@@ -2013,6 +2024,7 @@ scm_array_to_list (v)
       SCM_ASRTGO (SCM_ARRAYP (v), badarg1);
       return ra2l (v, SCM_ARRAY_BASE (v), 0);
     case scm_tc7_vector:
+    case scm_tc7_wvect:
       return scm_vector_to_list (v);
     case scm_tc7_string:
       return scm_string_to_list (v);
@@ -2475,6 +2487,7 @@ loop:
       ra = SCM_ARRAY_V (ra);
       goto loop;
     case scm_tc7_vector:
+    case scm_tc7_wvect:
       return SCM_EOL;
     case scm_tc7_bvect:
       return SCM_BOOL_T;

@@ -1,3 +1,13 @@
+Sun Aug 24 01:25:35 1997  Mikael Djurfeldt  <mdj@kenneth>
+
+	* ramap.c (scm_ra_matchp, scm_array_fill_int, racp, ramap_1,
+ 	ramap_2o, scm_array_index_map_x, raeql_1, scm_array_equal_p),
+ 	unif.c (scm_vector_set_length_x, scm_uniform_vector_length,
+ 	scm_array_p, scm_array_rank, scm_array_dimensions,
+ 	scm_enclose_array, scm_array_in_bounds_p, scm_uniform_vector_ref,
+	scm_cvref, scm_array_set_x, scm_array_contents, scm_array_to_list,
+ 	scm_array_prototype): Added case scm_tc7_wvect.
+
 Sat Aug 23 18:45:44 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* errno.h: prototype for scm_strerror.
