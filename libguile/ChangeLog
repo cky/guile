@@ -1,4 +1,9 @@
-2000-03-12  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+2000-03-12  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* coop-defs.h (struct timespec): Conditionally defined.
+
+	* coop.c (coop_condition_variable_timed_wait_mutex): Use ETIMEDOUT
+	instead of ETIME.
 
 	* readline.c (match_paren): Bugfix: First arg to select is not
 	number of descriptors but the number of the highest descriptor +

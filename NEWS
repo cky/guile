@@ -231,6 +231,85 @@ In Scheme:
            ...)
 
 
+** Deprecated: coop_mutex_init, coop_condition_variable_init
+
+Don't use the functions coop_mutex_init and
+coop_condition_variable_init.  They will change.
+
+Use scm_mutex_init and scm_cond_init instead.
+
+** scm_mutex_init now takes a second argument
+
+scm_mutex_init has changed: It now takes a second, attribute,
+argument.  For now, pass NULL as second arg.
+
+If your application uses mutecis and you want to be compatible with
+both older and newer Guile's, put:
+
+  AC_CACHE_CHECK(for two argument scm_mutex_init,
+  ac_cv_func_scm_mutex_init_two_args,
+  AC_TRY_COMPILE([#include <libguile.h>],[scm_mutex_init (NULL, NULL);],
+  ac_cv_func_scm_mutex_init_two_args=yes,
+  ac_cv_func_scm_mutex_init_two_args=no))
+  if test "$ac_cv_func_scm_mutex_init_two_args" = "yes"; then
+    AC_DEFINE(SCM_MUTEX_INIT_TWO_ARGS, 1,
+	      [define if scm_mutex_init takes two arguments])
+  fi
+
+in your configure.in and call scm_mutex_init like this:
+
+  #ifdef SCM_MUTEX_INIT_TWO_ARGS
+    scm_mutex_init (&my_mutex, NULL);
+  #else
+    scm_mutex_init (&my_mutex);
+  #endif
+
+** New function: int scm_cond_timedwait (scm_cond_t *COND, scm_mutex_t *MUTEX, const struct timespec *ABSTIME)
+     `scm_cond_timedwait' atomically unlocks MUTEX and waits on
+     COND, as `scm_cond_wait' does, but it also bounds the duration
+     of the wait. If COND has not been signaled before time ABSTIME,
+     the mutex MUTEX is re-acquired and `scm_cond_timedwait'
+     returns the error code `ETIMEDOUT'.
+
+     The ABSTIME parameter specifies an absolute time, with the same
+     origin as `time' and `gettimeofday': an ABSTIME of 0 corresponds
+     to 00:00:00 GMT, January 1, 1970.
+
+** New function: scm_cond_broadcast (scm_cond_t *COND)
+     `scm_cond_broadcast' restarts all the threads that are waiting
+     on the condition variable COND. Nothing happens if no threads are
+     waiting on COND.
+
+** New function: scm_key_create (scm_key_t *KEY, void (*destr_function) (void *))
+     `scm_key_create' allocates a new TSD key. The key is stored in
+     the location pointed to by KEY. There is no limit on the number
+     of keys allocated at a given time. The value initially associated
+     with the returned key is `NULL' in all currently executing threads.
+
+     The DESTR_FUNCTION argument, if not `NULL', specifies a destructor
+     function associated with the key. When a thread terminates,
+     DESTR_FUNCTION is called on the value associated with the key in
+     that thread. The DESTR_FUNCTION is not called if a key is deleted
+     with `scm_key_delete' or a value is changed with
+     `scm_setspecific'.  The order in which destructor functions are
+     called at thread termination time is unspecified.
+
+     Destructors are not yet implemented.
+
+** New function: scm_setspecific (scm_key_t KEY, const void *POINTER)
+     `scm_setspecific' changes the value associated with KEY in the
+     calling thread, storing the given POINTER instead.
+
+** New function: scm_getspecific (scm_key_t KEY)
+     `scm_getspecific' returns the value currently associated with
+     KEY in the calling thread.
+
+** New function: scm_key_delete (scm_key_t KEY)
+     `scm_key_delete' deallocates a TSD key. It does not check
+     whether non-`NULL' values are associated with that key in the
+     currently executing threads, nor call the destructor function
+     associated with the key.
+
 * Changes to system call interfaces:
 
 ** The "select" procedure now tests port buffers for the ability to
