@@ -1,3 +1,10 @@
+2003-11-30  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* modules.c (module_variable): Fixed (and thus simplified) the
+	definition of SCM_BOUND_THING_P to reflect the fact that since
+	after the 1.4 series of guile, obarrays only hold variable
+	objects.
+
 2003-11-30  Marius Vollmer  <mvo@zagadka.de>
 
 	* numbers.c (scm_logand): It's "#b...", not "#\b...".

@@ -277,8 +277,7 @@ static SCM
 module_variable (SCM module, SCM sym)
 {
 #define SCM_BOUND_THING_P(b) \
-  (!SCM_FALSEP(b) && \
-   (!SCM_VARIABLEP(b) || !SCM_UNBNDP (SCM_VARIABLE_REF (b))))
+  (SCM_VARIABLEP (b) && !SCM_UNBNDP (SCM_VARIABLE_REF (b)))
 
   /* 1. Check module obarray */
   SCM b = scm_hashq_ref (SCM_MODULE_OBARRAY (module), sym, SCM_UNDEFINED);
