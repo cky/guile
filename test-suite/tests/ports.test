@@ -226,3 +226,24 @@
        (read-delimited! "\n" c port 'concat 3)
        (pass-if "read-delimited! reads a first line"
 		(string=? c "defghighi\n!!!!!!!!!!"))))))
+
+
+;;;; char-ready?
+
+(call-with-input-string
+ "howdy"
+ (lambda (port)
+   (pass-if "char-ready? returns true on string port"
+	    (char-ready? port))))
+
+;;; This segfaults on some versions of Guile.  We really should run
+;;; the tests in a subprocess...
+
+(call-with-input-string
+ "howdy"
+ (lambda (port)
+   (with-input-from-port
+       port
+     (lambda ()
+       (pass-if "char-ready? returns true on string port as default port"
+		(char-ready?))))))
