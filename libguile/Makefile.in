@@ -35,14 +35,18 @@ prefix = @prefix@
 exec_prefix = @exec_prefix@
 
 # Directory in which to install init files &c
-libdir = $(exec_prefix)/lib
+libdir = @libdir@
 
-# Directory to search by default for included makefiles.
-includedir = $(prefix)/include
+# Directory for installed #include files
+includedir = @includedir@
+pkgincludedir = $(includedir)/guile$(VERSION)
 
 # Directory to install `guile' in.
-bindir = $(exec_prefix)/bin
+bindir = @bindir@
 
+# Directories for read-only architecture-independent files.
+datadir=@datadir@
+pkgdatadir=$(datadir)/guile
 
 INSTALL = $(srcdir)/../install-sh -c
 INSTALL_DATA = $(INSTALL) -m 644
@@ -51,19 +55,12 @@ INSTALL_DATA = $(INSTALL) -m 644
 ETAGS = etags
 CTAGS = ctags -tw
 
-# where the init files are found
-IMPLPATH=$(libdir)/gls/guile
-
-# where the Tcl and Tk sources are found
-TCL_SRC_DIR = @TCL_SRC_DIR@
-TK_SRC_DIR = @TK_SRC_DIR@
-
 # CC
 X11_INCLUDES =		@XINCLUDES@
 XFLAGS = @X_CFLAGS@
 CFLAGS = @CFLAGS@ 
-INCLUDE_CFLAGS = -I. -I$(srcdir) -I$(TCL_SRC_DIR)/generic -I$(TK_SRC_DIR)/generic 
-ALL_CFLAGS = $(CFLAGS) $(X_CFLAGS) $(INCLUDE_CFLAGS) $(X11_INCLUDES) -DLIBRARY_PATH=\"$(libdir)/\" @DEFS@
+INCLUDE_CFLAGS = -I. -I$(srcdir) 
+ALL_CFLAGS = $(CFLAGS) $(X_CFLAGS) $(INCLUDE_CFLAGS) $(X11_INCLUDES) -DLIBRARY_PATH=\"$(pkgdatadir)/\" @DEFS@
 CC = @CC@ $(ALL_CFLAGS) -Wall
 
 # CC used as a front end for ld
@@ -426,20 +423,19 @@ install: all
 	test -d $(prefix) || mkdir $(prefix)
 	test -d $(libdir) || mkdir $(libdir)
 	test -d $(includedir) || mkdir $(includedir)
-	test -d $(includedir)/guile$(VERSION) || mkdir $(includedir)/guile$(VERSION)
+	test -d $(pkgincludedir) || mkdir $(pkgincludedir)
 	$(INSTALL_DATA) libguile.a $(libdir)/libguile$(VERSION).a
-	$(RANLIB) $(libdir)/libguile$(VERSION).a
-	$(INSTALL_DATA) scmconfig.h $(includedir)/guile$(VERSION)
+	$(INSTALL_DATA) scmconfig.h $(pkgincludedir)
 	for h in $(h_files); do \
-	  $(INSTALL_DATA) $(srcdir)/$$h $(includedir)/guile$(VERSION); \
+	  $(INSTALL_DATA) $(srcdir)/$$h $(pkgincludedir); \
 	done
 
 uninstall:
 	-for h in $(h_files); do \
-	  rm -f $(includedir)/guile$(VERSION)/$$h; \
+	  rm -f $(pkgincludedir)/$$h; \
 	done
-	rm -f $(includedir)/guile$(VERSION)/scmconfig.h
-	-rmdir $(includedir)/guile$(VERSION)
+	rm -f $(pkgincludedir)/scmconfig.h
+	-rmdir $(pkgincludedir)
 	-rm $(libdir)/libguile$(VERSION).a
 
 
@@ -1121,6 +1117,16 @@ vectors.o: vectors.c _scm.h libguile.h __scm.h tags.h smob.h params.h \
  sequences.h simpos.h socket.h srcprop.h stackchk.h stime.h strings.h \
  strop.h strorder.h strports.h struct.h tag.h throw.h unif.h \
  variable.h vectors.h version.h vports.h weaks.h vectors.x
+version.o: version.c _scm.h libguile.h __scm.h tags.h smob.h params.h \
+ alist.h append.h arbiters.h async.h boolean.h chars.h continuations.h \
+ debug.h options.h dynwind.h eq.h error.h pairs.h eval.h extchrs.h \
+ fdsocket.h feature.h files.h filesys.h fports.h gc.h marksweep.h \
+ genio.h ports.h gsubr.h hash.h hashtab.h init.h ioext.h kw.h list.h \
+ load.h mallocs.h markers.h mbstrings.h symbols.h numbers.h objprop.h \
+ posix.h print.h procprop.h procs.h ramap.h read.h root.h scmsigs.h \
+ sequences.h simpos.h socket.h srcprop.h stackchk.h stime.h strings.h \
+ strop.h strorder.h strports.h struct.h tag.h throw.h unif.h \
+ variable.h vectors.h version.h vports.h weaks.h version.x
 vports.o: vports.c _scm.h libguile.h __scm.h tags.h smob.h params.h \
  alist.h append.h arbiters.h async.h boolean.h chars.h continuations.h \
  debug.h options.h dynwind.h eq.h error.h pairs.h eval.h extchrs.h \
