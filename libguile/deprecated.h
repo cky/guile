@@ -47,13 +47,27 @@
  * If you do not wish that, delete this exception notice.  */
 
 #include "libguile/__scm.h"
+#include "libguile/strings.h"
 
 #if (SCM_ENABLE_DEPRECATED == 1)
 
-#include "libguile/strings.h"
-
 #define scm_substring_move_left_x scm_substring_move_x
 #define scm_substring_move_right_x scm_substring_move_x
+
+typedef long long long_long;
+typedef unsigned long long ulong_long;
+
+#define scm_sizet size_t
+
+SCM_API SCM scm_wta (SCM arg, const char *pos, const char *s_subr);
+
+#define SCM_WNA 		8
+#define SCM_OUTOFRANGE         10
+#define SCM_NALLOC             11
+
+SCM_API void scm_register_module_xxx (char *module_name, void *init_func);
+SCM_API SCM scm_registered_modules (void);
+SCM_API SCM scm_clear_registered_modules (void);
 
 void scm_i_init_deprecated (void);
 
@@ -63,33 +77,6 @@ void scm_i_init_deprecated (void);
 
 #if 0 
 /* TODO */
-
-long_long
-ulong_long
-scm_sizet
-SCM_WNA
-SCM_OUTOFRANGE
-SCM_NALLOC
-
-SCM_HUP_SIGNAL
-SCM_INT_SIGNAL
-SCM_FPE_SIGNAL
-	SCM_BUS_SIGNAL
-
-SCM_SEGV_SIGNAL
-SCM_ALRM_SIGNAL
-SCM_GC_SIGNAL
-SCM_TICK_SIGNAL
-
-SCM_SIG_ORD
-SCM_ORD_SIG
-SCM_NUM_SIGS
-
-scm_register_module_xxx
-scm_registered_modules
-
-scm_clear_registered_modules
-scm_wta
 
 scm_eval_3
 scm_eval2
