@@ -158,3 +158,16 @@
 		(display formals)
 		(display #\')))))
     (display ".\n")))
+
+(define-public system-module
+  (procedure->syntax
+   (lambda (exp env)
+     (let* ((m (nested-ref the-root-module
+			   (append '(app modules) (cadr exp)))))
+       (if (not m)
+	   (error "Couldn't find any module named" (cadr exp)))
+       (let ((s (not (procedure-property (module-eval-closure m)
+					 'system-module))))
+	 (set-system-module! m s)
+	 (string-append "Module " (symbol->string (module-name m))
+			" is now a " (if s "system" "user") " module."))))))
