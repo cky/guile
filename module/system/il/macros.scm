@@ -216,14 +216,14 @@
 ;;; length
 ;;; append
 ;;; reverse
-;;; 
-;;; memq
-;;; memv
-;;; member
-;;; 
-;;; assq
-;;; assv
-;;; assoc
+
+(define (@memq x l) `((@ Core::memq) ,x ,l))
+(define (@memv x l) `((@ Core::memv) ,x ,l))
+(define (@member x l) `((@ Core::member) ,x ,l))
+
+(define (@assq x l) `((@ Core::assq) ,x ,l))
+(define (@assv x l) `((@ Core::assv) ,x ,l))
+(define (@assber x l) `((@ Core::assber) ,x ,l))
 
 ;;;; 6.3.3 Symbols
 

@@ -245,7 +245,7 @@ vm_fetch_length (scm_byte_t *ip, size_t *lenp)
  * VM
  */
 
-#define VM_DEFAULT_STACK_SIZE	(4 * 1024)
+#define VM_DEFAULT_STACK_SIZE	(16 * 1024)
 
 #define VM_REGULAR_ENGINE	0
 #define VM_DEBUG_ENGINE		1

@@ -64,6 +64,7 @@
        (($ <ghil-lambda> lambda-env vars #f body)
 	(for-each (lambda (v)
 		    (if (eq? v.kind 'argument) (set! v.kind 'local))
+		    (set! v.env env)
 		    (ghil-env-add! env v))
 		  lambda-env.variables)
 	(optimize (make-<ghil-bind> env vars args body)))

@@ -228,6 +228,19 @@
     ((@begin)
      (parse-body args e))
 
+    ;; (@let ((SYM INIT)...) BODY...)
+    ((@let)
+     (match args
+       ((((sym init) ...) body ...)
+	(let* ((vals (map-parse init e))
+	       (vars (map (lambda (s)
+			    (let ((v (make-ghil-var e s 'local)))
+			      (ghil-env-add! e v) v))
+			  sym))
+	       (body (parse-body body e)))
+	  (for-each (lambda (v) (ghil-env-remove! e v)) vars)
+	  (make-<ghil-bind> e vars vals body)))))
+
     ;; (@letrec ((SYM INIT)...) BODY...)
     ((@letrec)
      (match args

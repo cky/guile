@@ -22,7 +22,6 @@
 (define-module (language gscheme spec)
   :use-module (system base language)
   :use-module (system il ghil)
-  :use-module (language r5rs expand)
   :use-module (ice-9 match)
   :use-module (ice-9 and-let-star)
   :export (gscheme))
@@ -32,7 +31,8 @@
 ;;; Macro expander
 ;;;
 
-(define expand-syntax expand)
+(define (expand x)
+  (expand-macro x (current-module)))
 
 (define (expand-macro x m)
   (if (pair? x)
@@ -42,9 +42,6 @@
 	    (expand-macro (apply (defmacro-transformer v) (cdr x)) m)
 	    (cons (expand-macro (car x) m) (expand-macro (cdr x) m))))
       x))
-
-(define (expand x)
-  (expand-syntax (expand-macro x (current-module))))
 
 
 ;;;
@@ -56,9 +53,18 @@
 (define (translate-pair x)
   (let ((head (car x)) (rest (cdr x)))
     (case head
-      ((quote) (cons '@quote rest))
-      ((define set! if and or begin)
+      ((quote) `(@quote ,@rest))
+      ((set! if and or begin)
        (cons (symbol-append '@ head) (map translate rest)))
+      ((define)
+       (match rest
+	 ((((? symbol? name) . args) . body)
+	  `(@define ,name (@lambda ,args ,@(map translate body))))
+	 (((? symbol? name) val)
+	  `(@define ,name ,(translate val)))
+	 (else (error "Syntax error:" x))))
+      ((lambda)
+       `(@lambda ,(car rest) ,@(map translate (cdr rest))))
       ((let let* letrec)
        (match x
 	 (('let (? symbol? f) ((s v) ...) body ...)
@@ -69,8 +75,41 @@
 		 (map (lambda (b) (cons (car b) (map translate (cdr b))))
 		      (car rest))
 		 (map translate (cdr rest))))))
-      ((lambda)
-       (cons* '@lambda (car rest) (map translate (cdr rest))))
+      ((cond)
+       (let loop ((x rest))
+	 (match x
+	   (() '(@void))
+	   ((('else . body)) `(@begin ,@(map translate body)))
+	   (((test) . rest) `(@or ,(translate test) ,(loop rest)))
+	   (((test '=> proc) . rest)
+	    `(@let ((_t ,(translate test)))
+		   (@if _t (,(translate proc) _t) ,(loop rest))))
+	   (((test . body) . rest)
+	    `(@if ,(translate test)
+		  (@begin ,@(map translate body))
+		  ,(loop rest)))
+	   (else (error "bad cond" x)))))
+      ((case)
+       `(@let ((_t ,(translate (car rest))))
+	      ,(let loop ((x (cdr rest)))
+		 (match x
+		   (() '(@void))
+		   ((('else . body)) `(@begin ,@(map translate body)))
+		   ((((keys ...) . body) . rest)
+		    `(@if (@memv _t (@quote ,keys))
+			  (@begin ,@(map translate body))
+			  ,(loop rest)))
+		   (else (error "bad cond" x))))))
+      ((do)
+       (match rest
+	 ((((sym init update) ...) (test . result) body ...)
+	  `(@letrec ((_loop (@lambda
+			     ,sym
+			     (@if ,(translate test)
+				  (@begin ,@(map translate result))
+				  (@begin ,@(map translate body)
+					  (_loop ,@(map translate update)))))))
+		    (_loop ,@(map translate init))))))
       (else
        (let ((prim (and (symbol? head) (symbol-append '@ head))))
 	 (if (and prim (ghil-primitive? prim))
