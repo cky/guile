@@ -1,3 +1,15 @@
+2005-02-12  Kevin Ryde  <user42@zip.com.au>
+
+	* api-data.texi (String Selection): In string-pad and
+	string-pad-right, clarify which end the padding goes on, and merge
+	descriptions.
+
+	* api-data.texi (Integer Operations): In gcd and lcm, show args.
+	(Arithmetic): In truncate, add missing arg.
+
+	* srfi-modules.texi (SRFI-1 Fold and Map): Rewrite fold, pair-fold and
+	reduce for clarity.
+
 2005-02-05  Kevin Ryde  <user42@zip.com.au>
 
 	* posix.texi (File System): In mkstemp!, in fact posix doesn't specify
