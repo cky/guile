@@ -1,3 +1,10 @@
+2000-06-14  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* guile-snarf.awk.in: Replace the dot_doc_file arg with "-",
+	indicating stdin, instead of "" and don't reset ARGC.  This is a
+	workaround for `nawk' in AIX 4.3 on RS6000 but, as far as I know,
+	it is correct, and perhaps even better.
+
 2000-06-14  Gary Houston  <ghouston@arglist.com>
 
 	* scmsigs.c (scm_init_scmsigs): if HAVE_SIGINTERRUPT is not
