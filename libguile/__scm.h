@@ -514,12 +514,12 @@ do { \
 
 extern SCM scm_call_generic_0 (SCM gf);
 
-#define SCM_WTA_DISPATCH_0(gf, arg, pos, subr)			\
+#define SCM_WTA_DISPATCH_0(gf, subr)			        \
   return (SCM_UNPACK (gf)					\
 	  ? scm_call_generic_0 ((gf))				\
-	  : (scm_wrong_type_arg ((subr), (pos), (arg)), SCM_UNSPECIFIED))
-#define SCM_GASSERT0(cond, gf, arg, pos, subr) \
-  if (!(cond)) SCM_WTA_DISPATCH_0((gf), (arg), (pos), (subr))
+	  : (scm_error_num_args_subr ((subr)), SCM_UNSPECIFIED))
+#define SCM_GASSERT0(cond, gf, subr) \
+  if (!(cond)) SCM_WTA_DISPATCH_0((gf), (subr))
 
 extern SCM scm_call_generic_1 (SCM gf, SCM a1);
 
