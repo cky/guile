@@ -639,6 +639,13 @@ gc_mark_nimp:
                  that it removes the mark */
 	      mem = (SCM *)SCM_GCCDR (ptr);
 	      
+	      if (vtable_data[scm_struct_i_flags] & SCM_STRUCTF_ENTITY)
+		{
+		  scm_gc_mark (mem[scm_struct_i_proc + 0]);
+		  scm_gc_mark (mem[scm_struct_i_proc + 1]);
+		  scm_gc_mark (mem[scm_struct_i_proc + 2]);
+		  scm_gc_mark (mem[scm_struct_i_proc + 3]);
+		}
 	      if (len)
 		{
 		  for (x = 0; x < len - 2; x += 2, ++mem)
