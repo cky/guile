@@ -1,5 +1,5 @@
 ;;; installed-scm-file
-(define-module #/ice-9/slib)
+(define-module (ice-9 slib))
   
 
 

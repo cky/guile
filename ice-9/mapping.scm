@@ -20,8 +20,8 @@
 
 
 
-(define-module #/ice-9/mapping
-  :use-module #/ice-9/poe)
+(define-module (ice-9 mapping)
+  :use-module (ice-9 poe))
 
 (define-public mapping-hooks-type (make-record-type 'mapping-hooks '(get-handle
 								     create-handle

@@ -23,7 +23,7 @@
 ;;;;
 
 
-(define-module #/ice-9/threads)
+(define-module (ice-9 threads))
 
 
 

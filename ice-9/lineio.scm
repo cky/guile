@@ -20,7 +20,7 @@
 
 
 
-(define-module #/ice-9/lineio)
+(define-module (ice-9 lineio))
 
 
 ;;; {Line Buffering Input Ports}

@@ -1729,12 +1729,12 @@
 
 
 
-;;; {#/app}
+;;; {The (app) module}
 ;;;
 ;;; The root of conventionally named objects not directly in the top level.
 ;;;
-;;; #/app/modules
-;;; #/app/modules/guile
+;;; (app modules)
+;;; (app modules guile)
 ;;;
 ;;; The directory of all modules and the standard root module.
 ;;;
@@ -1893,7 +1893,7 @@
 ;; To make your Guile extension into a dynamic linkable module, follow
 ;; these easy steps:
 ;;
-;; - Find a name for your module, like #/ice-9/gtcltk
+;; - Find a name for your module, like (ice-9 gtcltk)
 ;; - Write a function with a name like
 ;;
 ;;     scm_init_ice_9_gtcltk_module
@@ -1913,7 +1913,7 @@
 ;;
 ;;   and put it somewhere in %load-path.
 ;;
-;; - Then you can simply write `:use-module #/ice-9/gtcltk' and it
+;; - Then you can simply write `:use-module (ice-9 gtcltk)' and it
 ;;   will be linked automatically.
 ;;
 ;; This is all very experimental.

@@ -19,8 +19,8 @@
 ;;;; 
 
 
-(define-module  #/ice-9/poe
-  :use-module #/ice-9/hcons)
+(define-module  (ice-9 poe)
+  :use-module (ice-9 hcons))
 
 
 

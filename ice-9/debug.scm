@@ -20,7 +20,7 @@
 ;;;;
 
 
-(define-module #/ice-9/debug)
+(define-module (ice-9 debug))
 
 
 

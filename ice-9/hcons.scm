@@ -19,7 +19,7 @@
 ;;;; 
 
 
-(define-module  #/ice-9/hcons)
+(define-module  (ice-9 hcons))
 
 
 ;;; {Eq? hash-consing}

@@ -20,5 +20,5 @@
 
 
 
-(define-module #/ice-9/tags)
+(define-module (ice-9 tags))
 
