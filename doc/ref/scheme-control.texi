@@ -934,41 +934,38 @@ of arguments.
 
 @subsection C Support
 
-SCM scm_error (SCM key, char *subr, char *message, SCM args, SCM rest)
+In the following C functions, @var{SUBR} and @var{MESSAGE} parameters
+can be @code{NULL} to give the @code{#f} described above.
 
-Throws an error, after converting the char * arguments to Scheme strings.
-subr is the Scheme name of the procedure, NULL is converted to #f.
-Likewise a NULL message is converted to #f.
+@deftypefn {C Function} SCM scm_error (SCM @var{key}, char *@var{subr}, char *@var{message}, SCM @var{args}, SCM @var{rest})
+Throw an error, as per @code{scm-error} above.
+@end deftypefn
 
-The following procedures invoke scm_error with various error keys and
-arguments.  The first three call scm_error with the system-error key
-and automatically supply errno in the "rest" argument:  scm_syserror
-generates messages using strerror.  Care should be taken that the errno
-value is not reset (e.g. due to an interrupt).
+@deftypefn {C Function} void scm_syserror (char *@var{subr})
+@deftypefnx {C Function} void scm_syserror_msg (char *@var{subr}, char *@var{message}, SCM @var{args})
+Throw an error with key @code{system-error} and supply @code{errno} in
+the @var{rest} argument.  For @code{scm_syserror} the message is
+generated using @code{strerror}.
 
-@itemize @bullet
-@item
-void scm_syserror (char *subr);
-@item
-void scm_syserror_msg (char *subr, char *message, SCM args);
-@item
-void scm_num_overflow (char *subr);
-@item
-void scm_out_of_range (char *subr, SCM bad_value);
-@item
-void scm_wrong_num_args (SCM proc);
-@item
-void scm_wrong_type_arg (char *subr, int pos, SCM bad_value);
-@item
-void scm_memory_error (char *subr);
-@item
-static void scm_regex_error (char *subr, int code); (only used in rgx.c).
-@end itemize
+Care should be taken that any code in between the failing operation
+and the call to these routines doesn't change @code{errno}.
+@end deftypefn
+
+@deftypefn {C Function} void scm_num_overflow (char *@var{subr})
+@deftypefnx {C Function} void scm_out_of_range (char *@var{subr}, SCM @var{bad_value})
+@deftypefnx {C Function} void scm_wrong_num_args (SCM @var{proc})
+@deftypefnx {C Function} void scm_wrong_type_arg (char *@var{subr}, int @var{argnum}, SCM @var{bad_value})
+@deftypefnx {C Function} void scm_memory_error (char *@var{subr})
+Throw an error with the various keys described above.
+
+For @code{scm_wrong_num_args}, @var{proc} should be a Scheme symbol
+which is the name of the procedure incorrectly invoked.
+@end deftypefn
 
 Exception handlers can also be installed from C, using
-scm_internal_catch, scm_lazy_catch, or scm_stack_catch from
-libguile/throw.c.  These have not yet been documented, however the
-source contains some useful comments.
+@code{scm_internal_catch}, @code{scm_lazy_catch}, or
+@code{scm_stack_catch} from @file{libguile/throw.c}.  These have not
+yet been documented, but the source contains some useful comments.
 
 
 @c Local Variables:
