@@ -1293,9 +1293,6 @@ scm_gc_sweep ()
   register scm_freelist_t *hp_freelist;
   register long m;
   register int span;
-#ifdef GUILE_NEW_GC_SCHEME
-  long n_objects;
-#endif
   long i;
   scm_sizet seg_size;
 
@@ -1325,6 +1322,9 @@ scm_gc_sweep ()
     {
       register scm_sizet n = 0;
       register scm_sizet j;
+#ifdef GUILE_NEW_GC_SCHEME
+      register scm_sizet n_objects;
+#endif
 
       /* Unmarked cells go onto the front of the freelist this heap
 	 segment points to.  Rather than updating the real freelist
@@ -1546,8 +1546,8 @@ scm_gc_sweep ()
 	      hp_freelist->clustertail = SCM_CDRLOC (scmptr);
 		  
 	      nfreelist = SCM_EOL;
+	      n += span * (hp_freelist->gc_trigger - n_objects + 1);
 	      n_objects = hp_freelist->gc_trigger;
-	      n += span * (n_objects + 1);
 	    }
 	  else
 #endif
