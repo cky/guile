@@ -136,7 +136,7 @@ SCM
 gh_ints2scm (int *d, int n)
 {
   int i;
-  SCM v = scm_make_vector(SCM_MAKINUM(n), SCM_UNSPECIFIED);
+  SCM v = scm_c_make_vector (n, SCM_UNSPECIFIED);
   SCM *velts = SCM_VELTS(v);
 
   for (i = 0; i < n; ++i)
@@ -149,7 +149,7 @@ SCM
 gh_doubles2scm (const double *d, int n)
 {
   int i;
-  SCM v = scm_make_vector(SCM_MAKINUM(n), SCM_UNSPECIFIED);
+  SCM v = scm_c_make_vector (n, SCM_UNSPECIFIED);
   SCM *velts = SCM_VELTS(v);
 
   for(i = 0; i < n; i++) 

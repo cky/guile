@@ -254,7 +254,7 @@ SCM_DEFINE (scm_regexp_exec, "regexp-exec", 2, 2, 0,
       int i;
       /* The match vector must include a cell for the string that was matched,
 	 so add 1. */
-      mvec = scm_make_vector (SCM_MAKINUM (nmatches + 1), SCM_UNSPECIFIED);
+      mvec = scm_c_make_vector (nmatches + 1, SCM_UNSPECIFIED);
       SCM_VELTS(mvec)[0] = str;
       for (i = 0; i < nmatches; ++i)
 	if (matches[i].rm_so == -1)

@@ -55,6 +55,7 @@
 #include "libguile/fluids.h"
 #include "libguile/strings.h"
 #include "libguile/vectors.h"
+#include "libguile/hashtab.h"
 #include "libguile/weaks.h"
 #include "libguile/modules.h"
 
@@ -759,7 +760,7 @@ SCM_DEFINE (scm_builtin_bindings, "builtin-bindings", 0, 0, 0,
 #define FUNC_NAME s_scm_builtin_bindings
 {
   int length = SCM_VECTOR_LENGTH (scm_symhash);
-  SCM obarray = scm_make_vector (SCM_MAKINUM (length), SCM_EOL);
+  SCM obarray = scm_c_make_hash_table (length);
   copy_and_prune_obarray (scm_symhash, obarray);
   return obarray;
 }

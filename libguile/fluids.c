@@ -61,8 +61,7 @@ scm_bits_t scm_tc16_fluid;
 SCM
 scm_make_initial_fluids ()
 {
-  return scm_make_vector (SCM_MAKINUM (INITIAL_FLUIDS),
-			  SCM_BOOL_F);
+  return scm_c_make_vector (INITIAL_FLUIDS, SCM_BOOL_F);
 }
 
 static void
@@ -73,7 +72,7 @@ grow_fluids (scm_root_state *root_state, int new_length)
 
   old_fluids = root_state->fluids;
   old_length = SCM_VECTOR_LENGTH (old_fluids);
-  new_fluids = scm_make_vector (SCM_MAKINUM (new_length), SCM_BOOL_F);
+  new_fluids = scm_c_make_vector (new_length, SCM_BOOL_F);
   i = 0;
   while (i < old_length)
     {

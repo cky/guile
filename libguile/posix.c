@@ -217,7 +217,7 @@ SCM_DEFINE (scm_getgroups, "getgroups", 0, 0, 0,
   groups = scm_must_malloc (size, FUNC_NAME);
   getgroups (ngroups, groups);
 
-  ans = scm_make_vector (SCM_MAKINUM (ngroups), SCM_UNDEFINED);
+  ans = scm_c_make_vector (ngroups, SCM_UNDEFINED);
   while (--ngroups >= 0) 
     SCM_VELTS (ans) [ngroups] = SCM_MAKINUM (groups [ngroups]);
 
@@ -241,7 +241,7 @@ SCM_DEFINE (scm_getpwuid, "getpw", 0, 1, 0,
   struct passwd *entry;
   SCM *ve;
 
-  result = scm_make_vector (SCM_MAKINUM (7), SCM_UNSPECIFIED);
+  result = scm_c_make_vector (7, SCM_UNSPECIFIED);
   ve = SCM_VELTS (result);
   if (SCM_UNBNDP (user) || SCM_FALSEP (user))
     {
@@ -312,7 +312,7 @@ SCM_DEFINE (scm_getgrgid, "getgr", 0, 1, 0,
   SCM result;
   struct group *entry;
   SCM *ve;
-  result = scm_make_vector (SCM_MAKINUM (4), SCM_UNSPECIFIED);
+  result = scm_c_make_vector (4, SCM_UNSPECIFIED);
   ve = SCM_VELTS (result);
   if (SCM_UNBNDP (name) || SCM_FALSEP (name))
     {
@@ -952,7 +952,7 @@ SCM_DEFINE (scm_uname, "uname", 0, 0, 0,
 #define FUNC_NAME s_scm_uname
 {
   struct utsname buf;
-  SCM ans = scm_make_vector (SCM_MAKINUM(5), SCM_UNSPECIFIED);
+  SCM ans = scm_c_make_vector (5, SCM_UNSPECIFIED);
   SCM *ve = SCM_VELTS (ans);
   if (uname (&buf) < 0)
     SCM_SYSERROR;

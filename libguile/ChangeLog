@@ -1,3 +1,27 @@
+2001-02-01  Keisuke Nishida  <kxn30@po.cwru.edu>
+
+	* vectors.c (scm_c_make_vector): New function.
+	* vectors.h (scm_c_make_vector): Declared.
+	* eval.c (scm_copy_tree), filesys.c (scm_stat2scm), fluids.c
+	(scm_make_initial_fluids, grow_fluids), gc.c (scm_init_storage),
+	gh_data.c (gh_ints2scm, gh_doubles2scm): goops.c
+	(scm_make_method_cache, scm_i_vector2list,
+	scm_compute_applicable_methods, scm_sys_method_more_specific_p),
+	init.c (start_stack), net_db.c (scm_gethost, scm_getnet,
+	scm_getproto, scm_return_entry), posix.c (scm_getgroups,
+	scm_getpwuid, scm_getgrgid, scm_uname), print.c (make_print_state,
+	grow_ref_stack), regex-posix.c (scm_regexp_exec), scmsigs.c
+	(scm_init_scmsigs), socket.c (scm_addr_vector, scm_addr_vector),
+	stime.c (scm_times, filltime), unif.c (scm_make_uve), vectors.c
+	(scm_vector, scm_make_vector): Use scm_c_make_vector.
+
+	* hashtab.c (scm_c_make_hash_table): New function.
+	* hashtab.h (scm_c_make_hash_table): Declared.
+	* environments.c (scm_make_leaf_environment,
+	scm_make_eval_environment), gc.c (scm_init_storage),
+	keywords.c (scm_init_keywords), symbols.c (scm_builtin_bindings):
+	Use scm_c_make_hash_table.
+
 2001-01-31  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
 
 	* unif.c (rapr1): Don't apply scm_uniform_vector_length on arrays.

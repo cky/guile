@@ -73,6 +73,8 @@
 
 
 
+extern SCM scm_c_make_vector (unsigned long int k, SCM fill);
+
 extern SCM scm_vector_p (SCM x);
 extern SCM scm_vector_length (SCM v);
 extern SCM scm_vector (SCM l);

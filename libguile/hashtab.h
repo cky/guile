@@ -53,6 +53,8 @@ typedef SCM scm_assoc_fn_t (SCM key, SCM alist, void *closure);
 typedef SCM scm_delete_fn_t (SCM elt, SCM list);
 #endif
 
+extern SCM scm_c_make_hash_table (unsigned long k);
+
 extern SCM scm_hash_fn_get_handle (SCM table, SCM obj, unsigned int (*hash_fn) (), SCM (*assoc_fn) (), void * closure);
 extern SCM scm_hash_fn_create_handle_x (SCM table, SCM obj, SCM init, unsigned int (*hash_fn) (), SCM (*assoc_fn) (), void * closure);
 extern SCM scm_hash_fn_ref (SCM table, SCM obj, SCM dflt, unsigned int (*hash_fn) (), SCM (*assoc_fn) (), void * closure);

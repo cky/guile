@@ -1537,8 +1537,8 @@ SCM
 scm_make_method_cache (SCM gf)
 {
   return SCM_LIST5 (SCM_IM_DISPATCH, scm_sym_args, SCM_MAKINUM (1),
-		    scm_make_vector (SCM_MAKINUM (SCM_INITIAL_MCACHE_SIZE),
-				     list_of_no_method),
+		    scm_c_make_vector (SCM_INITIAL_MCACHE_SIZE,
+				       list_of_no_method),
 		    gf);
 }
 
@@ -1693,7 +1693,7 @@ static SCM
 scm_i_vector2list (SCM l, int len)
 {
   int j;
-  SCM z = scm_make_vector (SCM_MAKINUM (len), SCM_UNDEFINED);
+  SCM z = scm_c_make_vector (len, SCM_UNDEFINED);
   
   for (j = 0; j < len; j++, l = SCM_CDR (l)) {
     SCM_VELTS (z)[j] = SCM_CAR (l);
@@ -1777,7 +1777,7 @@ scm_compute_applicable_methods (SCM gf, SCM args, int len, int find_method_p)
  
   /* Build the list of arguments types */
   if (len >= BUFFSIZE) {
-    tmp   = scm_make_vector (SCM_MAKINUM (len), SCM_UNDEFINED);
+    tmp   = scm_c_make_vector (len, SCM_UNDEFINED);
     /* NOTE: Using pointers to malloced memory won't work if we
        1. have preemtive threading, and,
        2. have a GC which moves objects.  */
@@ -2087,7 +2087,7 @@ SCM_DEFINE (scm_sys_method_more_specific_p, "%method-more-specific?", 3, 0, 0,
   SCM_ASSERT ((len = scm_ilength (targs)) != -1, targs, SCM_ARG3, FUNC_NAME);
 
   /* Verify that all the arguments of targs are classes and place them in a vector*/
-  v = scm_make_vector (SCM_MAKINUM (len), SCM_EOL);
+  v = scm_c_make_vector (len, SCM_EOL);
 
   for (i=0, l=targs; SCM_NNULLP(l); i++, l=SCM_CDR(l)) {
     SCM_ASSERT (SCM_CLASSP (SCM_CAR (l)), targs, SCM_ARG3, FUNC_NAME);

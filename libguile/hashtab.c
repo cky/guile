@@ -55,6 +55,11 @@
 #include "libguile/hashtab.h"
 
 
+SCM
+scm_c_make_hash_table (unsigned long k)
+{
+  return scm_c_make_vector (k, SCM_EOL);
+}
 
 SCM
 scm_hash_fn_get_handle (SCM table,SCM obj,unsigned int (*hash_fn)(),SCM (*assoc_fn)(),void * closure)

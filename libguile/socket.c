@@ -555,7 +555,7 @@ scm_addr_vector (struct sockaddr *address,const char *proc)
   if (fam == AF_UNIX)
     {
       struct sockaddr_un *nad = (struct sockaddr_un *) address;
-      result = scm_make_vector (SCM_MAKINUM (2), SCM_UNSPECIFIED);
+      result = scm_c_make_vector (2, SCM_UNSPECIFIED);
       ve = SCM_VELTS (result);
       ve[0] = scm_ulong2num ((unsigned long) fam);
       ve[1] = scm_makfromstr (nad->sun_path,
@@ -566,7 +566,7 @@ scm_addr_vector (struct sockaddr *address,const char *proc)
   if (fam == AF_INET)
     {
       struct sockaddr_in *nad = (struct sockaddr_in *) address;
-      result = scm_make_vector (SCM_MAKINUM (3), SCM_UNSPECIFIED);
+      result = scm_c_make_vector (3, SCM_UNSPECIFIED);
       ve = SCM_VELTS (result);
       ve[0] = scm_ulong2num ((unsigned long) fam);
       ve[1] = scm_ulong2num (ntohl (nad->sin_addr.s_addr));

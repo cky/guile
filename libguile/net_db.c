@@ -251,7 +251,7 @@ SCM_DEFINE (scm_gethost, "gethost", 0, 1, 0,
 	    "@code{system-error} or @code{misc_error} keys.")
 #define FUNC_NAME s_scm_gethost
 {
-  SCM ans = scm_make_vector (SCM_MAKINUM (5), SCM_UNSPECIFIED);
+  SCM ans = scm_c_make_vector (5, SCM_UNSPECIFIED);
   SCM *ve = SCM_VELTS (ans);
   SCM lst = SCM_EOL;
   struct hostent *entry;
@@ -336,7 +336,7 @@ SCM_DEFINE (scm_getnet, "getnet", 0, 1, 0,
   SCM *ve;
   struct netent *entry;
 
-  ans = scm_make_vector (SCM_MAKINUM (4), SCM_UNSPECIFIED);
+  ans = scm_c_make_vector (4, SCM_UNSPECIFIED);
   ve = SCM_VELTS (ans);
   if (SCM_UNBNDP (net))
     {
@@ -388,7 +388,7 @@ SCM_DEFINE (scm_getproto, "getproto", 0, 1, 0,
   SCM *ve;
   struct protoent *entry;
 
-  ans = scm_make_vector (SCM_MAKINUM (3), SCM_UNSPECIFIED);
+  ans = scm_c_make_vector (3, SCM_UNSPECIFIED);
   ve = SCM_VELTS (ans);
   if (SCM_UNBNDP (protocol))
     {
@@ -430,7 +430,7 @@ scm_return_entry (struct servent *entry)
   SCM ans;
   SCM *ve;
 
-  ans = scm_make_vector (SCM_MAKINUM (4), SCM_UNSPECIFIED);
+  ans = scm_c_make_vector (4, SCM_UNSPECIFIED);
   ve = SCM_VELTS (ans);
   ve[0] = scm_makfromstr (entry->s_name, (scm_sizet) strlen (entry->s_name), 0);
   ve[1] = scm_makfromstrs (-1, entry->s_aliases);

@@ -186,7 +186,7 @@ SCM_DEFINE (scm_times, "times", 0, 0, 0,
   struct tms t;
   clock_t rv;
 
-  SCM result = scm_make_vector (SCM_MAKINUM(5), SCM_UNDEFINED);
+  SCM result = scm_c_make_vector (5, SCM_UNDEFINED);
   rv = times (&t);
   if (rv == -1)
     SCM_SYSERROR;
@@ -273,7 +273,7 @@ SCM_DEFINE (scm_gettimeofday, "gettimeofday", 0, 0, 0,
 static SCM
 filltime (struct tm *bd_time, int zoff, char *zname)
 {
-  SCM result = scm_make_vector (SCM_MAKINUM(11), SCM_UNDEFINED);
+  SCM result = scm_c_make_vector (11, SCM_UNDEFINED);
 
   SCM_VELTS (result)[0] = SCM_MAKINUM (bd_time->tm_sec);
   SCM_VELTS (result)[1] = SCM_MAKINUM (bd_time->tm_min);

@@ -212,13 +212,13 @@ scm_make_uve (long k, SCM prot)
 #endif
       else
 	{
-	  return scm_make_vector (SCM_MAKINUM (k), SCM_UNDEFINED);
+	  return scm_c_make_vector (k, SCM_UNDEFINED);
 	}
     }
   else if (!SCM_INEXACTP (prot))
     /* Huge non-unif vectors are NOT supported. */
     /* no special scm_vector */
-    return scm_make_vector (SCM_MAKINUM (k), SCM_UNDEFINED);
+    return scm_c_make_vector (k, SCM_UNDEFINED);
   else if (singp (prot))
     {
       i = sizeof (float) * k;

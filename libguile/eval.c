@@ -3760,7 +3760,7 @@ SCM_DEFINE (scm_copy_tree, "copy-tree", 1, 0, 0,
   if (SCM_VECTORP (obj))
     {
       scm_sizet i = SCM_VECTOR_LENGTH (obj);
-      ans = scm_make_vector (SCM_MAKINUM (i), SCM_UNSPECIFIED);
+      ans = scm_c_make_vector (i, SCM_UNSPECIFIED);
       while (i--)
 	SCM_VELTS (ans)[i] = scm_copy_tree (SCM_VELTS (obj)[i]);
       return ans;

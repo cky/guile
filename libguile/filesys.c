@@ -373,7 +373,7 @@ SCM_SYMBOL (scm_sym_unknown, "unknown");
 static SCM 
 scm_stat2scm (struct stat *stat_temp)
 {
-  SCM ans = scm_make_vector (SCM_MAKINUM (15), SCM_UNSPECIFIED);
+  SCM ans = scm_c_make_vector (15, SCM_UNSPECIFIED);
   SCM *ve = SCM_VELTS (ans);
   
   ve[0] = scm_ulong2num ((unsigned long) stat_temp->st_dev);
