@@ -1,3 +1,9 @@
+2004-01-11  Marius Vollmer  <mvo@zagadka.de>
+
+	* dynwind.h, dynwind.c (scm_frame_unwind,
+	scm_frame_unwind_handler): Renamed and changed all uses.
+	(scm_frame_rewind, scm_frame_rewind_handler): Likewise.
+	
 2004-01-11  Kevin Ryde  <user42@zip.com.au>
 
 	* unif.c (scm_bit_count, scm_bit_position, s_scm_bit_set_star_x,
@@ -6,8 +12,11 @@
 
 2004-01-10  Marius Vollmer  <mvo@zagadka.de>
 
-	* guile-snarf.in: Use mktemp to create a truely unique temporary
-	file name.  Thanks to Stefan Nordhausen!
+ 	* print.c (scm_print_symbol_name): Handle #{`foo}#, #{,foo}#,
+	#{.}#, and all numeric strings specially.  Thanks to Paul Jarc!
+
+	* guile-snarf.in: Use mkdir to create a unique temporary directory
+	that we can safely use.  Thanks to Stefan Nordhausen!
 
 2004-01-07  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 

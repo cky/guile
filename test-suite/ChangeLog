@@ -1,3 +1,8 @@
+2004-01-11  Marius Vollmer  <mvo@zagadka.de>
+
+	* tests/r5rs_pitfall.scm: New.
+	* Makefile.am (SCM_TESTS): Added it.
+	
 2004-01-11  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/exceptions.test (false-if-exception): Disable tests on
