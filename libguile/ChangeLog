@@ -1,3 +1,28 @@
+Fri Sep 13 01:19:08 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
+
+*	* print.c: Added code for detection of circular references during
+ 	printing.  (init_ref_stack, grow_ref_stack): New functions.  Added
+ 	a hook for printing of closures (accessible via print options).
+  	This leads to a split of calls to scm_iprin1 into two classes:
+ 	elementary print operations (e. g. the code which prints a smob)
+ 	still use scm_iprin1 while top level calls (like scm_display) use
+	scm_prin1.  scm_prin1 begins by clearing the data structure used
+	to record reference information.
+
+	* print.h: Added declarations of scm_prin1 and scm_prlist.
+
+	* strports.c (scm_strprint_obj): scm_iprin1 --> scm_prin1
+
+	* gscm.c (gscm_portprint_obj): scm_iprin1 --> scm_prin1
+
+	* gscm.h (gscm_print_obj): scm_iprin1 --> scm_prin1
+
+	* error.c (err_head): scm_iprin1 --> scm_prin1
+
+	* debug.c: Adjusted header comment.
+
+	* tags.h: Typo.
+
 Wed Sep 11 17:55:59 1996  Jim Blandy  <jimb@totoro.cyclic.com>
 
 	* strerror.c: Doc fix.
