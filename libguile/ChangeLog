@@ -1,5 +1,8 @@
 1999-07-19  Jim Blandy  <jimb@savonarola.red-bean.com>
 
+	* net_db.c (h_errno): Don't declare this if it's #defined.  Eew.
+	(Thanks to Valdis Kletnieks.)
+
 	Fixes for EMX from Mikael Ståldal.
 
 	* filesys.c: #include <io.h>, if we have it.
