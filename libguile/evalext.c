@@ -46,24 +46,52 @@
 
 #include "evalext.h"
 
-SCM_PROC (s_definedp, "defined?", 1, 0, 0, scm_definedp);
+SCM_PROC (s_definedp, "defined?", 1, 1, 0, scm_definedp);
 
 SCM 
-scm_definedp (sym)
-     SCM sym;
+scm_definedp (SCM sym, SCM env)
 {
   SCM vcell;
 
-  if (SCM_ISYMP (sym))
-    return SCM_BOOL_T;
-
   SCM_ASSERT (SCM_NIMP (sym) && SCM_SYMBOLP (sym), sym, SCM_ARG1, s_definedp);
 
-  vcell = scm_sym2vcell(sym,
-			SCM_CDR (scm_top_level_lookup_closure_var),
-			SCM_BOOL_F);
-  return (vcell == SCM_BOOL_F || SCM_UNBNDP(SCM_CDR(vcell))) ? 
-      SCM_BOOL_F : SCM_BOOL_T;
+  if (SCM_UNBNDP (env))
+    vcell = scm_sym2vcell(sym,
+			  SCM_CDR (scm_top_level_lookup_closure_var),
+			  SCM_BOOL_F);
+  else
+    {
+      SCM frames = env;
+      register SCM b;
+      for (; SCM_NIMP (frames); frames = SCM_CDR (frames))
+	{
+	  SCM_ASSERT (SCM_CONSP (frames), env, SCM_ARG2, s_definedp);
+	  b = SCM_CAR (frames);
+	  if (SCM_NFALSEP (scm_procedure_p (b)))
+	    break;
+	  SCM_ASSERT (SCM_NIMP (b) && SCM_CONSP (b),
+		      env, SCM_ARG2, s_definedp);
+	  for (b = SCM_CAR (b); SCM_NIMP (b); b = SCM_CDR (b))
+	    {
+	      if (SCM_NCONSP (b))
+		{
+		  if (b == sym)
+		    return SCM_BOOL_T;
+		  else
+		    break;
+		}
+	      if (SCM_CAR (b) == sym)
+		return SCM_BOOL_T;
+	    }
+	}
+    vcell = scm_sym2vcell (sym,
+			   SCM_NIMP (frames) ? SCM_CAR (frames) : SCM_BOOL_F,
+			   SCM_BOOL_F);
+    }
+	      
+  return (vcell == SCM_BOOL_F || SCM_UNBNDP (SCM_CDR (vcell))
+	  ? SCM_BOOL_F
+	  : SCM_BOOL_T);
 }
 
 static char s_undefine[] = "undefine";

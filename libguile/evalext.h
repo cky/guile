@@ -48,8 +48,8 @@
 
 
 
-extern SCM scm_definedp SCM_P ((SCM sym));
-extern SCM scm_m_undefine SCM_P ((SCM x, SCM env));
-extern void scm_init_evalext SCM_P ((void));
+extern SCM scm_definedp (SCM sym, SCM env);
+extern SCM scm_m_undefine (SCM x, SCM env);
+extern void scm_init_evalext (void);
 
 #endif  /* EVALEXTH */
