@@ -1,3 +1,9 @@
+Tue Oct 15 14:25:01 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
+
+	* boot-9.scm ((signal-handler n)): Bugfix: Moved the recording of
+ 	the stack to the correct place: when it is decided to generate an
+	error-signal.
+
 Mon Oct 14 22:20:30 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
 
 	* boot-9.scm (error-catching-loop, signal-handler,
