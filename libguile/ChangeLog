@@ -1,3 +1,7 @@
+1999-09-16  Mikael Djurfeldt  <mdj@mdj-pc.nada.kth.se>
+
+	* Makefile.am (.c.x): Added missing semicolon after `false'.
+
 1999-09-15  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* print.c (scm_iprin1): Turn `write' and `display' into

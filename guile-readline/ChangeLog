@@ -1,3 +1,7 @@
+1999-09-16  Mikael Djurfeldt  <mdj@mdj-pc.nada.kth.se>
+
+	* Makefile.am (.c.x): Use same rule as in libguile.
+
 1999-09-12  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* readline.h, readline.scm: Updated copyright notices.

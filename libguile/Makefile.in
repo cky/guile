@@ -691,7 +691,7 @@ libpath.h: $(srcdir)/Makefile.in  $(top_builddir)/config.status
 	@mv libpath.tmp libpath.h
 .c.x:
 	./guile-snarf $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< > $@ \
-	|| { rm $@; false }
+	|| { rm $@; false; }
 
 cpp_err_symbols.c: cpp_err_symbols.in
 	$(AWK) -f $(srcdir)/cpp_cnvt.awk < $(srcdir)/cpp_err_symbols.in > \
