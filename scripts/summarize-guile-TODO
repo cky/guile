@@ -1,0 +1,107 @@
+#!/bin/sh
+# aside from this initial boilerplate, this is actually -*- scheme -*- code
+main='(module-ref (resolve-module '\''(scripts summarize-guile-TODO)) '\'main')'
+exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
+!#
+;;; summarize-guile-TODO --- Display Guile TODO list in various ways
+
+;; 	Copyright (C) 2002 Free Software Foundation, Inc.
+;;
+;; This program is free software; you can redistribute it and/or
+;; modify it under the terms of the GNU General Public License as
+;; published by the Free Software Foundation; either version 2, or
+;; (at your option) any later version.
+;;
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;; General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with this software; see the file COPYING.  If not, write to
+;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+;; Boston, MA 02111-1307 USA
+
+;;; Author: Thien-Thi Nguyen <ttn@gnu.org>
+
+;;; Commentary:
+
+;; Usage: summarize-guile-TODO TODOFILE
+;;
+;; The TODOFILE is typically Guile's (see workbook/tasks/README)
+;; presumed to serve as our signal to ourselves (lest we want real
+;; bosses hassling us) wrt to the overt message "items to do" as well as
+;; the messages that can be inferred from its structure.
+;;
+;; This program reads TODOFILE and displays interpretations on its
+;; structure, including registered markers and ownership, in various
+;; ways.  [TODO]
+;;
+;; A primary interest in any task is its parent task.  The output
+;; summarization by default lists every item and its parent chain.
+;; Top-level parents are not items.
+;;
+;;
+;; Usage from a Scheme program:
+;;   (summrize-guile-TODO . args)       ; uses first arg only
+
+;; TODO: Implement the various ways. (Patches welcome.)
+
+;;; Code:
+
+(define-module (scripts summarize-guile-TODO)
+  :use-module (scripts read-text-outline)
+  :export (summarize-guile-TODO))
+
+(define put set-object-property!)
+(define get object-property)
+
+(define (hang-by-the-leaves trees)
+  (let ((leaves '()))
+    (letrec ((hang (lambda (tree parent)
+                     (if (list? tree)
+                         (begin
+                           (put (car tree) 'parent parent)
+                           (for-each (lambda (child)
+                                       (hang child (car tree)))
+                                     (cdr tree)))
+                         (begin
+                           (put tree 'parent parent)
+                           (set! leaves (cons tree leaves)))))))
+      (for-each (lambda (tree)
+                  (hang tree #f))
+                trees))
+    leaves))
+
+
+(define (read-TODO file)
+  (hang-by-the-leaves
+   ((make-text-outline-reader "(([ ][ ])*)([-+])(R*) *([^[]*)(.*)"
+                              '((level-substring-divisor . 2)
+                                (body-submatch-number . 5)
+                                (extra-fields . ((status . 3)
+                                                 (review? . 4)
+                                                 (who . 6)))))
+    (open-file file "r"))))
+
+(define (display-item item)
+  (format #t "status: ~A~A\nitem  : ~A\n" (get item 'status)
+          (if (get item 'review?) "R" "") item)
+  (let loop ((parent (get item 'parent)) (indent 2))
+    (and parent
+         (begin
+           (format #t "under : ~A~A\n"
+                   (make-string indent #\space)
+                   parent)
+           (loop (get parent 'parent) (+ 2 indent))))))
+
+(define (display-items items)
+  (for-each display-item items))
+
+(define (summarize-guile-TODO . args)
+  (display-items (read-TODO (car args)))
+  #t)                                   ; exit val
+
+(define main summarize-guile-TODO)
+
+;;; summarize-guile-TODO ends here
