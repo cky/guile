@@ -221,7 +221,7 @@ guile> (string-pad "bla" 20)
 
 ** Guile now always starts up in the `(guile-user)' module.
 
-Previously, script executed via the `-s' option would run in the
+Previously, scripts executed via the `-s' option would run in the
 `(guile)' module and the repl would run in the `(guile-user)' module.
 Now every user action takes place in the `(guile-user)' module by
 default.
@@ -664,7 +664,7 @@ The old names are still available with status `deprecated'.
 
 ** scm_t_bits (former scm_bits_t) is now a unsigned type.
 
-** Deprecated feature have been removed.
+** Deprecated features have been removed.
 
 *** Macros removed
 
