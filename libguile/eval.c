@@ -100,6 +100,35 @@ char *alloca ();
  * expression is expected, a 'Bad expression' error is signalled.  */
 static const char s_bad_expression[] = "Bad expression";
 
+/* Case or cond expressions must have at least one clause.  If a case or cond
+ * expression without any clauses is detected, a 'Missing clauses' error is
+ * signalled.  */
+static const char s_missing_clauses[] = "Missing clauses";
+
+/* If a case clause is detected that is not in the format
+ *   (<label(s)> <expression1> <expression2> ...)
+ * a 'Bad case clause' error is signalled.  */
+static const char s_bad_case_clause[] = "Bad case clause";
+
+/* If there is an 'else' clause in a case statement, it must be the last
+ * clause.  If after the 'else' case clause further clauses are detected, an
+ * 'Extra case clause' error is signalled.  */
+static const char s_extra_case_clause[] = "Extra case clause";
+
+/* If a case clause is detected where the <label(s)> element is neither a
+ * proper list nor (in case of the last clause) the syntactic keyword 'else',
+ * a 'Bad case labels' error is signalled.  Note: If you encounter this error
+ * for an else-clause which seems to be syntactically correct, check if 'else'
+ * is really a syntactic keyword in that context.  If 'else' is bound in the
+ * local or global environment, it is not considered a syntactic keyword, but
+ * will be treated as any other variable.  */
+static const char s_bad_case_labels[] = "Bad case labels";
+
+/* In a case statement all labels have to be distinct.  If in a case statement
+ * a label occurs more than once, a 'Duplicate case label' error is
+ * signalled.  */
+static const char s_duplicate_case_label[] = "Duplicate case label";
+
 
 /* Signal a syntax error.  We distinguish between the form that caused the
  * error and the enclosing expression.  The error message will print out as
@@ -529,6 +558,22 @@ scm_lookupcar (SCM vloc, SCM genv, int check)
   return loc;
 }
 
+/* Return true if the symbol is - from the point of view of a macro
+ * transformer - a literal in the sense specified in chapter "pattern
+ * language" of R5RS.  In the code below, however, we don't match the
+ * definition of R5RS exactly:  It returns true if the identifier has no
+ * binding or if it is a syntactic keyword.  */
+static int
+literal_p (const SCM symbol, const SCM env)
+{
+  const SCM x = scm_cons (symbol, SCM_UNDEFINED);
+  const SCM value = *scm_lookupcar (x, env, 0);
+  if (SCM_UNBNDP (value) || SCM_MACROP (value))
+    return 1;
+  else
+    return 0;
+}
+
 #define unmemocar scm_unmemocar
 
 SCM_SYMBOL (sym_three_question_marks, "???");
@@ -653,10 +698,14 @@ SCM_SYNTAX (s_begin, "begin", scm_i_makbimacro, scm_m_begin);
 SCM_GLOBAL_SYMBOL (scm_sym_begin, s_begin);
 
 SCM
-scm_m_begin (SCM xorig, SCM env SCM_UNUSED)
+scm_m_begin (SCM expr, SCM env SCM_UNUSED)
 {
-  SCM_ASSYNT (scm_ilength (SCM_CDR (xorig)) >= 0, s_expression, s_begin);
-  return scm_cons (SCM_IM_BEGIN, SCM_CDR (xorig));
+  const SCM cdr_expr = SCM_CDR (expr);
+
+  ASSERT_SYNTAX (scm_ilength (cdr_expr) >= 0, s_bad_expression, expr);
+
+  SCM_SETCAR (expr, SCM_IM_BEGIN);
+  return expr;
 }
 
 
@@ -664,23 +713,63 @@ SCM_SYNTAX (s_case, "case", scm_i_makbimacro, scm_m_case);
 SCM_GLOBAL_SYMBOL (scm_sym_case, s_case);
 
 SCM
-scm_m_case (SCM xorig, SCM env SCM_UNUSED)
+scm_m_case (SCM expr, SCM env)
 {
   SCM clauses;
-  SCM cdrx = SCM_CDR (xorig);
-  SCM_ASSYNT (scm_ilength (cdrx) >= 2, s_clauses, s_case);
-  clauses = SCM_CDR (cdrx);
+  SCM all_labels = SCM_EOL;
+
+  /* Check, whether 'else is a literal, i. e. not bound to a value. */
+  const int else_literal_p = literal_p (scm_sym_else, env);
+
+  const SCM cdr_expr = SCM_CDR (expr);
+  ASSERT_SYNTAX (scm_ilength (cdr_expr) >= 0, s_bad_expression, expr);
+  ASSERT_SYNTAX (scm_ilength (cdr_expr) >= 2, s_missing_clauses, expr);
+
+  clauses = SCM_CDR (cdr_expr);
   while (!SCM_NULLP (clauses))
     {
-      SCM clause = SCM_CAR (clauses);
-      SCM_ASSYNT (scm_ilength (clause) >= 2, s_clauses, s_case);
-      SCM_ASSYNT (scm_ilength (SCM_CAR (clause)) >= 0
-		  || (SCM_EQ_P (scm_sym_else, SCM_CAR (clause)) 
-		      && SCM_NULLP (SCM_CDR (clauses))),
-		  s_clauses, s_case);
+      SCM labels;
+
+      const SCM clause = SCM_CAR (clauses);
+      ASSERT_SYNTAX_2 (scm_ilength (clause) >= 2, 
+		       s_bad_case_clause, clause, expr);
+
+      labels = SCM_CAR (clause);
+      if (SCM_CONSP (labels))
+        {
+          ASSERT_SYNTAX_2 (scm_ilength (labels) >= 0,
+                           s_bad_case_labels, labels, expr);
+          all_labels = scm_append_x (scm_list_2 (labels, all_labels));
+        }
+      else
+        {
+          ASSERT_SYNTAX_2 (SCM_EQ_P (labels, scm_sym_else) && else_literal_p,
+                           s_bad_case_labels, labels, expr);
+          ASSERT_SYNTAX_2 (SCM_NULLP (SCM_CDR (clauses)),
+                           s_extra_case_clause, SCM_CDR (clauses), expr);
+        }
+
+      /* build the new clause */
+      if (SCM_EQ_P (labels, scm_sym_else))
+        SCM_SETCAR (clause, SCM_IM_ELSE);
+
       clauses = SCM_CDR (clauses);
     }
-  return scm_cons (SCM_IM_CASE, cdrx);
+
+  /* Check whether all case labels are distinct. */
+  for (; !SCM_NULLP (all_labels); all_labels = SCM_CDR (all_labels))
+    {
+      const SCM label = SCM_CAR (all_labels);
+      SCM label_idx = SCM_CDR (all_labels);
+      for (; !SCM_NULLP (label_idx); label_idx = SCM_CDR (label_idx))
+	{
+	  ASSERT_SYNTAX_2 (!SCM_EQ_P (SCM_CAR (label_idx), label),
+			   s_duplicate_case_label, label, expr);
+	}
+    }
+
+  SCM_SETCAR (expr, SCM_IM_CASE);
+  return expr;
 }
 
 
@@ -1762,6 +1851,9 @@ unmemocopy (SCM x, SCM env)
 	case (SCM_ISYMNUM (SCM_IM_CALL_WITH_VALUES)):
 	  ls = z = scm_cons (scm_sym_at_call_with_values, SCM_UNSPECIFIED);
 	  goto loop;
+	case (SCM_ISYMNUM (SCM_IM_ELSE)):
+	  ls = z = scm_cons (scm_sym_else, SCM_UNSPECIFIED);
+	  goto loop;
 	default:
 	  /* appease the Sun compiler god: */ ;
 	}
@@ -2297,7 +2389,7 @@ dispatch:
 	  {
 	    SCM clause = SCM_CAR (x);
 	    SCM labels = SCM_CAR (clause);
-	    if (SCM_EQ_P (labels, scm_sym_else))
+	    if (SCM_EQ_P (labels, SCM_IM_ELSE))
 	      {
 		x = SCM_CDR (clause);
 		PREP_APPLY (SCM_UNDEFINED, SCM_EOL);

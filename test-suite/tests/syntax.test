@@ -20,6 +20,9 @@
 (define-module (test-suite test-syntax)
   :use-module (test-suite lib))
 
+
+(define exception:bad-expression
+  (cons 'syntax-error "Bad expression"))
 (define exception:bad-bindings
   (cons 'misc-error "^bad bindings"))
 (define exception:duplicate-bindings
@@ -30,10 +33,18 @@
   (cons 'misc-error "^bad formals"))
 (define exception:duplicate-formals
   (cons 'misc-error "^duplicate formals"))
+(define exception:missing-clauses
+  (cons 'syntax-error "Missing clauses"))
 (define exception:bad-var
   (cons 'misc-error "^bad variable"))
 (define exception:bad/missing-clauses
   (cons 'misc-error "^bad or missing clauses"))
+(define exception:bad-case-clause
+  (cons 'syntax-error "Bad case clause"))
+(define exception:extra-case-clause
+  (cons 'syntax-error "Extra case clause"))
+(define exception:bad-case-labels
+  (cons 'syntax-error "Bad case labels"))
 (define exception:missing/extra-expr
   (cons 'misc-error "^missing or extra expression"))
 
@@ -472,6 +483,10 @@
 
   (with-test-prefix "cond is hygienic"
 
+    (expect-fail "bound 'else is handled correctly"
+      (false-if-exception
+       (eq? (let ((else 'ok)) (cond (else))) 'ok)))
+
     (expect-fail "bound '=> is handled correctly"
       (false-if-exception
        (eq? (let ((=> #f)) (cond (#t => 'ok))) 'ok))))
@@ -494,45 +509,52 @@
 
 (with-test-prefix "case"
 
+  (with-test-prefix "case is hygienic"
+
+    (pass-if-exception "bound 'else is handled correctly"
+      exception:bad-case-labels
+      (eval '(let ((else #f)) (case 1 (else #f)))
+            (interaction-environment))))
+
   (with-test-prefix "bad or missing clauses"
 
     (pass-if-exception "(case)"
-      exception:bad/missing-clauses
+      exception:missing-clauses
       (eval '(case)
 	    (interaction-environment)))
 
     (pass-if-exception "(case . \"foo\")"
-      exception:bad/missing-clauses
+      exception:bad-expression
       (eval '(case . "foo")
 	    (interaction-environment)))
 
     (pass-if-exception "(case 1)"
-      exception:bad/missing-clauses
+      exception:missing-clauses
       (eval '(case 1)
 	    (interaction-environment)))
 
     (pass-if-exception "(case 1 . \"foo\")"
-      exception:bad/missing-clauses
+      exception:bad-expression
       (eval '(case 1 . "foo")
 	    (interaction-environment)))
 
     (pass-if-exception "(case 1 \"foo\")"
-      exception:bad/missing-clauses
+      exception:bad-case-clause
       (eval '(case 1 "foo")
 	    (interaction-environment)))
 
     (pass-if-exception "(case 1 ())"
-      exception:bad/missing-clauses
+      exception:bad-case-clause
       (eval '(case 1 ())
 	    (interaction-environment)))
 
     (pass-if-exception "(case 1 (\"foo\"))"
-      exception:bad/missing-clauses
+      exception:bad-case-clause
       (eval '(case 1 ("foo"))
 	    (interaction-environment)))
 
     (pass-if-exception "(case 1 (\"foo\" \"bar\"))"
-      exception:bad/missing-clauses
+      exception:bad-case-labels
       (eval '(case 1 ("foo" "bar"))
 	    (interaction-environment)))
 
@@ -542,22 +564,22 @@
     ;;   (case 1 (() "bar")))
 
     (pass-if-exception "(case 1 ((2) \"bar\") . \"foo\")"
-      exception:bad/missing-clauses
+      exception:bad-expression
       (eval '(case 1 ((2) "bar") . "foo")
 	    (interaction-environment)))
 
     (pass-if-exception "(case 1 ((2) \"bar\") (else))"
-      exception:bad/missing-clauses
+      exception:bad-case-clause
       (eval '(case 1 ((2) "bar") (else))
 	    (interaction-environment)))
 
     (pass-if-exception "(case 1 (else #f) . \"foo\")"
-      exception:bad/missing-clauses
+      exception:bad-expression
       (eval '(case 1 (else #f) . "foo")
 	    (interaction-environment)))
 
     (pass-if-exception "(case 1 (else #f) ((1) #t))"
-      exception:bad/missing-clauses
+      exception:extra-case-clause
       (eval '(case 1 (else #f) ((1) #t))
 	    (interaction-environment)))))
 

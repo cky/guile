@@ -98,6 +98,8 @@ char *scm_isymnames[] =
   "#@delay",
   "#@future",
   "#@call-with-values",
+  "#@else",
+  "#@arrow",
 
   /* Multi-language support */
   "#@nil-cond",

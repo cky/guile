@@ -584,11 +584,13 @@ SCM_API char *scm_isymnames[];   /* defined in print.c */
 #define SCM_IM_DELAY		SCM_MAKISYM (19)
 #define SCM_IM_FUTURE		SCM_MAKISYM (20)
 #define SCM_IM_CALL_WITH_VALUES SCM_MAKISYM (21)
+#define SCM_IM_ELSE             SCM_MAKISYM (22)
+#define SCM_IM_ARROW            SCM_MAKISYM (23)
 
 /* Multi-language support */
 
-#define SCM_IM_NIL_COND		SCM_MAKISYM (22)
-#define SCM_IM_BIND		SCM_MAKISYM (23)
+#define SCM_IM_NIL_COND		SCM_MAKISYM (24)
+#define SCM_IM_BIND		SCM_MAKISYM (25)
 
 
 
