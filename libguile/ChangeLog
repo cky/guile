@@ -1,3 +1,8 @@
+2003-05-06  Kevin Ryde  <user42@zip.com.au>
+
+	* numbers.c (scm_difference): In inum - bignum, handle negative inum.
+	(scm_logcount): Use mpz_com, not mpz_neg.
+
 2003-05-04  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	The purpose of this patch is to make guile's internal memoizers
