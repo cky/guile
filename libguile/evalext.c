@@ -94,7 +94,8 @@ scm_definedp (SCM sym, SCM env)
 	  : SCM_BOOL_T);
 }
 
-static char s_undefine[] = "undefine";
+
+SCM_SYNTAX (s_undefine, "undefine", scm_makacro, scm_m_undefine);
 
 SCM
 scm_m_undefine (x, env)
@@ -135,6 +136,5 @@ SCM_PROC (s_map_in_order, "map-in-order", 2, 0, 1, scm_map);
 void 
 scm_init_evalext ()
 {
-  scm_make_synt (s_undefine, scm_makacro, scm_m_undefine);
 #include "evalext.x"
 }

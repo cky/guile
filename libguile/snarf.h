@@ -61,6 +61,14 @@
 #endif
 
 #ifndef SCM_MAGIC_SNARFER
+#define SCM_SYNTAX(RANAME, STR, TYPE, CFN)  \
+	static char RANAME[]=STR
+#else
+#define SCM_SYNTAX(RANAME, STR, TYPE, CFN)  \
+%%%	scm_make_synt (RANAME, TYPE, CFN)
+#endif
+
+#ifndef SCM_MAGIC_SNARFER
 #define SCM_SYMBOL(c_name, scheme_name) \
 	static SCM c_name = SCM_BOOL_F
 #else

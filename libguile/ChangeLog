@@ -1,3 +1,11 @@
+Mon Dec 14 18:10:12 1998  Maciej Stachowiak  <mstachow@mit.edu>
+
+	* snarf.h (SCM_SYNTAX): New macro to allow convenient declaration
+ 	of syntactic forms, similar to SCM_PROC.
+	* debug.c, eval.c, evalext.c: use SCM_SYNTAX to declare all special
+ 	forms, and SCM_SYMBOL or SCM_GLOBAL_SYMBOL to delcare C variables
+ 	for the name symbols when needed.
+
 1998-12-14  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	* Makefile.in: Regenerated.

@@ -550,7 +550,8 @@ scm_start_stack (id, exp, env)
   return answer;
 }
 
-static char s_start_stack[] = "start-stack";
+SCM_SYNTAX(s_start_stack, "start-stack", scm_makacro, scm_m_start_stack);
+
 static SCM
 scm_m_start_stack (exp, env)
      SCM exp;
@@ -647,8 +648,6 @@ scm_init_debug ()
   scm_i_proc = SCM_CAR (scm_sysintern ("proc", SCM_UNDEFINED));
   scm_i_args = SCM_CAR (scm_sysintern ("args", SCM_UNDEFINED));
   scm_i_eval_args = SCM_CAR (scm_sysintern ("eval-args", SCM_UNDEFINED));
-
-  scm_make_synt (s_start_stack, scm_makacro, scm_m_start_stack);
 
 #ifdef GUILE_DEBUG
   scm_sysintern ("SCM_IM_AND", SCM_IM_AND);
