@@ -540,14 +540,56 @@ Guile starts up.
 Mikael Djurfeldt's source-level debugging support for Guile
 (@pxref{Debugging Features}).
 
+@item (ice-9 expect)
+Actions based on matching input from a port (@pxref{Expect}).
+
+@item (ice-9 format)
+Formatted output in the style of Common Lisp (@pxref{Formatted
+Output}).
+
+@item (ice-9 ftw)
+File tree walker (@pxref{File Tree Walk}).
+
+@item (ice-9 getopt-long)
+Command line option processing (@pxref{getopt-long}).
+
+@item (ice-9 history)
+Refer to previous interactive expressions (@pxref{Value History}).
+
+@item (ice-9 popen)
+Pipes to and from child processes (@pxref{Pipes}).
+
+@item (ice-9 pretty-print)
+Nicely formatted output of Scheme expressions and objects
+(@pxref{Pretty Printing}).
+
+@item (ice-9 q)
+First-in first-out queues (@pxref{Queues}).
+
 @item (ice-9 threads)
 Guile's support for multi threaded execution (@pxref{Scheduling}).
 
 @item (ice-9 rdelim)
 Line- and character-delimited input (@pxref{Line/Delimited}).
 
+@item (ice-9 readline)
+@code{readline} interactive command line editing (@pxref{Readline
+Support}).
+
+@item (ice-9 receive)
+Multiple-value handling with @code{receive} (@pxref{Multiple Values}).
+
+@item (ice-9 regex)
+Regular expression matching (@pxref{Regular Expressions}).
+
 @item (ice-9 rw)
 Block string input/output (@pxref{Block Reading and Writing}).
+
+@item (ice-9 streams)
+Sequence of values calculated on-demand (@pxref{Streams}).
+
+@item (ice-9 syncase)
+R5RS @code{syntax-rules} macro system (@pxref{Syntax Rules}).
 
 @item (ice-9 documentation)
 Online documentation (REFFIXME).
