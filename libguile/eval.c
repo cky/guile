@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996,1997,1998 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996,1997,1998, 1999 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -3116,6 +3116,32 @@ ret:
 
 #ifndef DEVAL
 
+/* Typechecking for multi-argument MAP and FOR-EACH.
+
+   Verify that each element of the vector ARGS, except for the first,
+   is a proper list whose length is LEN.  Attribute errors to WHO,
+   and claim that the i'th element of ARGS is WHO's i+2'th argument.  */
+static inline void
+check_map_args (long len, SCM args, const char *who)
+{
+  SCM *ve = SCM_VELTS (args);
+  int i;
+
+  for (i = SCM_LENGTH (args) - 1; i >= 1; i--)
+    {
+      int elt_len = scm_ilength (ve[i]);
+
+      if (elt_len < 0)
+	scm_wrong_type_arg (who, i + 2, ve[i]);
+
+      if (elt_len != len)
+	scm_out_of_range (who, ve[i]);
+    }
+
+  scm_remember (&args);
+}
+
+
 SCM_PROC (s_map, "map", 2, 0, 1, scm_map);
 
 /* Note: Currently, scm_map applies PROC to the argument list(s)
@@ -3131,14 +3157,15 @@ scm_map (proc, arg1, args)
      SCM arg1;
      SCM args;
 {
-  long i;
+  long i, len;
   SCM res = SCM_EOL;
   SCM *pres = &res;
   SCM *ve = &args;		/* Keep args from being optimized away. */
 
   if (SCM_NULLP (arg1))
     return res;
-  SCM_ASSERT (SCM_NIMP (arg1), arg1, SCM_ARG2, s_map);
+  len = scm_ilength (arg1);
+  SCM_ASSERT (len >= 0, arg1, SCM_ARG2, s_map);
   if (SCM_NULLP (args))
     {
       while (SCM_NIMP (arg1))
@@ -3153,16 +3180,15 @@ scm_map (proc, arg1, args)
   args = scm_vector (scm_cons (arg1, args));
   ve = SCM_VELTS (args);
 #ifndef SCM_RECKLESS
-  for (i = SCM_LENGTH (args) - 1; i >= 0; i--)
-    SCM_ASSERT (SCM_NIMP (ve[i]) && SCM_CONSP (ve[i]), args, SCM_ARG2, s_map);
+  check_map_args (len, args, s_map);
 #endif
   while (1)
     {
       arg1 = SCM_EOL;
       for (i = SCM_LENGTH (args) - 1; i >= 0; i--)
 	{
-	  if SCM_IMP
-	    (ve[i]) return res;
+	  if (SCM_IMP (ve[i])) 
+	    return res;
 	  arg1 = scm_cons (SCM_CAR (ve[i]), arg1);
 	  ve[i] = SCM_CDR (ve[i]);
 	}
@@ -3181,10 +3207,11 @@ scm_for_each (proc, arg1, args)
      SCM args;
 {
   SCM *ve = &args;		/* Keep args from being optimized away. */
-  long i;
+  long i, len;
   if SCM_NULLP (arg1)
     return SCM_UNSPECIFIED;
-  SCM_ASSERT (SCM_NIMP (arg1), arg1, SCM_ARG2, s_for_each);
+  len = scm_ilength (arg1);
+  SCM_ASSERT (len >= 0, arg1, SCM_ARG2, s_for_each);
   if SCM_NULLP (args)
     {
       while SCM_NIMP (arg1)
@@ -3198,8 +3225,7 @@ scm_for_each (proc, arg1, args)
   args = scm_vector (scm_cons (arg1, args));
   ve = SCM_VELTS (args);
 #ifndef SCM_RECKLESS
-  for (i = SCM_LENGTH (args) - 1; i >= 0; i--)
-    SCM_ASSERT (SCM_NIMP (ve[i]) && SCM_CONSP (ve[i]), args, SCM_ARG2, s_for_each);
+  check_map_args (len, args, s_for_each);
 #endif
   while (1)
     {
