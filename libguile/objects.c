@@ -70,6 +70,8 @@ SCM scm_class_unknown;
 SCM *scm_port_class = 0;
 SCM *scm_smob_class = 0;
 
+SCM scm_apply_generic_env;
+
 SCM (*scm_make_extended_class) (char *type_name);
 void (*scm_make_port_classes) (int ptobnum, char *type_name);
 void (*scm_change_object_class) (SCM, SCM, SCM);
@@ -215,22 +217,39 @@ scm_entity_p (SCM obj)
 	  : SCM_BOOL_F);
 }
 
+SCM_PROC (s_operator_p, "operator?", 1, 0, 0, scm_operator_p);
+
+SCM
+scm_operator_p (SCM obj)
+{
+  return (SCM_NIMP (obj)
+	  && SCM_STRUCTP (obj)
+	  && SCM_I_OPERATORP (obj)
+	  && !SCM_I_ENTITYP (obj)
+	  ? SCM_BOOL_T
+	  : SCM_BOOL_F);
+}
+
 SCM_PROC (s_set_object_procedure_x, "set-object-procedure!", 1, 0, 1, scm_set_object_procedure_x);
+
+SCM_SYMBOL (scm_sym_atdispatch, "@dispatch");
 
 SCM
 scm_set_object_procedure_x (SCM obj, SCM procs)
 {
   SCM proc[4], *pp, p, setp, arity;
-  int i, a, r;
+  int i, a, r, c = 0;
   SCM_ASSERT (SCM_NIMP (obj) && SCM_STRUCTP (obj)
-	      && ((SCM_CLASS_FLAGS (obj) & SCM_CLASSF_OPERATOR)
-		  || SCM_I_ENTITYP (obj)),
+	      && (SCM_I_ENTITYP (obj)
+		  || (SCM_CLASS_FLAGS (obj) & SCM_CLASSF_OPERATOR)),
 	      obj,
 	      SCM_ARG1,
 	      s_set_object_procedure_x);
   for (i = 0; i < 4; ++i)
     proc[i] = SCM_BOOL_F;
   i = 0;
+  if (SCM_OBJ_CLASS_FLAGS (obj) & SCM_CLASSF_PURE_GENERIC)
+    c = 1;
   while (SCM_NIMP (procs))
     {
       if (i == 4)
@@ -238,6 +257,23 @@ scm_set_object_procedure_x (SCM obj, SCM procs)
       p = SCM_CAR (procs);
       setp = 0;
       SCM_ASSERT (SCM_NIMP (p), p, SCM_ARG2 + i, s_set_object_procedure_x);
+      if (c != 0)
+	{
+	  if ((SCM_CAR (p) == scm_sym_atdispatch
+	       || SCM_CAR (p) == SCM_IM_DISPATCH)
+	      && c < 4)
+	    {
+	      proc[c++] = setp = p;
+	      goto next;
+	    }
+	  else
+	    SCM_ASSERT (SCM_TYP7 (p) == scm_tc7_subr_1
+			|| (SCM_CLOSUREP (p)
+			    && (SCM_INUM (SCM_CAR (scm_procedure_property
+						   (p, scm_sym_arity)))
+				== 1)),
+			p, SCM_ARG2 + i, s_set_object_procedure_x);
+	}
       if (SCM_CLOSUREP (p))
 	{
 	  arity = scm_procedure_property (p, scm_sym_arity);
@@ -298,16 +334,44 @@ scm_set_object_procedure_x (SCM obj, SCM procs)
 	  proc[3] = setp = p;
 	}
       SCM_ASSERT (setp, p, SCM_ARG2 + i, s_set_object_procedure_x);
+    next:
       ++i;
       procs = SCM_CDR (procs);
     }
+  /* Fill the rest of the method cache slots
+     if a cache has been supplied earlier. */
+  if (c != 0)
+    for (; c < 4; ++c)
+      proc[c] = proc[c - 1];
+  
   pp = (SCM_I_ENTITYP (obj)
 	? &SCM_ENTITY_PROC_0 (obj)
 	: &SCM_OPERATOR_CLASS (obj)->proc0);
   for (i = 0; i < 4; ++i)
     *pp++ = proc[i];
+  
   return SCM_UNSPECIFIED;
 }
+
+#ifdef GUILE_DEBUG
+SCM_PROC (s_object_procedures, "object-procedures", 1, 0, 0, scm_object_procedures);
+
+SCM
+scm_object_procedures (SCM obj)
+{
+  SCM_ASSERT (SCM_NIMP (obj) && SCM_STRUCTP (obj) && SCM_I_OPERATORP (obj),
+	      obj, SCM_ARG1, s_object_procedures);
+  return (SCM_I_ENTITYP (obj)
+	  ? SCM_LIST4 (SCM_ENTITY_PROC_0 (obj),
+		       SCM_ENTITY_PROC_1 (obj),
+		       SCM_ENTITY_PROC_2 (obj),
+		       SCM_ENTITY_PROC_3 (obj))
+	  : SCM_LIST4 (SCM_OPERATOR_PROC_0 (obj),
+		       SCM_OPERATOR_PROC_1 (obj),
+		       SCM_OPERATOR_PROC_2 (obj),
+		       SCM_OPERATOR_PROC_3 (obj)));
+}
+#endif /* GUILE_DEBUG */
 
 /* The following procedures are not a part of Goops but a minimal
  * object system built upon structs.  They are here for those who

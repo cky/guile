@@ -175,12 +175,13 @@ struct scm_metaclass_operator {
  */
 
 /* Internal representation of Goops objects. */
-#define SCM_CLASSF_GOOPS_VALID (0x080 << 20)
-#define SCM_CLASSF_GOOPS       (0x100 << 20)
-#define scm_si_redefined        9
-#define scm_si_hashsets        10
-#define SCM_CLASS_OF(x)        SCM_STRUCT_VTABLE (x)
-#define SCM_OBJ_CLASS_REDEF(x) (SCM_STRUCT_VTABLE_DATA(x)[scm_si_redefined])
+#define SCM_CLASSF_PURE_GENERIC (0x010 << 20)
+#define SCM_CLASSF_GOOPS_VALID  (0x080 << 20)
+#define SCM_CLASSF_GOOPS        (0x100 << 20)
+#define scm_si_redefined         9
+#define scm_si_hashsets         10
+#define SCM_CLASS_OF(x)         SCM_STRUCT_VTABLE (x)
+#define SCM_OBJ_CLASS_REDEF(x)  (SCM_STRUCT_VTABLE_DATA(x)[scm_si_redefined])
 
 typedef struct scm_effective_slot_definition {
   SCM name;
@@ -209,15 +210,23 @@ extern SCM scm_class_unknown;
 extern SCM *scm_port_class;
 extern SCM *scm_smob_class;
 
+extern SCM scm_apply_generic_env;
+
 /* Plugin Goops functions. */
 extern SCM (*scm_make_extended_class) (char *type_name);
 extern void (*scm_make_port_classes) (int ptobnum, char *type_name);
 extern void (*scm_change_object_class) (SCM, SCM, SCM);
 extern void (*scm_memoize_method) (SCM x, SCM args);
 
+extern SCM scm_sym_atdispatch;
+
 extern SCM scm_class_of (SCM obj);
 extern SCM scm_entity_p (SCM obj);
+extern SCM scm_operator_p (SCM obj);
 extern SCM scm_set_object_procedure_x (SCM obj, SCM procs);
+#ifdef GUILE_DEBUG
+extern SCM scm_object_procedures (SCM obj);
+#endif
 extern SCM scm_make_class_object (SCM metaclass, SCM layout);
 extern SCM scm_make_subclass_object (SCM c, SCM layout);
 
