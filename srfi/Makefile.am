@@ -57,6 +57,7 @@ srfi_DATA = srfi-1.scm \
             srfi-19.scm
 
 EXTRA_DIST = $(srfi_DATA)
+ETAGS_ARGS = $(srfi_DATA)
 
 GUILE_SNARF = ../libguile/guile-snarf
 

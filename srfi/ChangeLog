@@ -1,3 +1,7 @@
+2001-11-30  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* Makefile.am (ETAGS_ARGS): Added.
+
 2001-11-12  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* srfi-4.c: Use HAVE_LONG_LONG instead of HAVE_LONG_LONGS and test

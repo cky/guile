@@ -48,7 +48,8 @@ SUFFIXES = .x
 	$(GUILE_SNARF) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< > $@ \
 	|| { rm $@; false; }
 
-EXTRA_DIST = readline.scm
+EXTRA_DIST = $(ice9_DATA)
+ETAGS_ARGS = $(ice9_DATA)
 
 MKDEP = gcc -M -MG $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
 

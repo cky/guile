@@ -1,3 +1,9 @@
+2001-11-30  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* Makefile.am (EXTRA_DIST): Refer to $(ice9_DATA) rather than
+	readline.scm explicitly.
+	(ETAGS_ARGS): Added.
+
 2001-11-04  Stefan Jahn  <stefan@lkcc.org>
 
 	* configure.in (EXTRA_DEFS): Follow-up patch.  Using SCM_IMPORT
