@@ -92,12 +92,12 @@ scm_make_cont (SCM *answer)
   SCM_SETLENGTH (cont, j, scm_tc7_contin);
   SCM_EXIT_A_SECTION;
 #ifndef SCM_STACK_GROWS_UP
-  src -= SCM_LENGTH (cont);
+  src -= SCM_CONTINUATION_LENGTH (cont);
 #endif /* ndef SCM_STACK_GROWS_UP */
   dst = (SCM_STACKITEM *) ((char *) SCM_CONTREGS (cont) + sizeof (scm_contregs));
 
   /* memcpy should be safe:  src and dst will never overlap */
-  memcpy (dst, src, sizeof (SCM_STACKITEM) * SCM_LENGTH (cont));
+  memcpy (dst, src, sizeof (SCM_STACKITEM) * SCM_CONTINUATION_LENGTH (cont));
 
 #ifdef DEBUG_EXTENSIONS
   SCM_DFRAME (cont) = scm_last_debug_frame;
@@ -135,7 +135,7 @@ copy_stack_and_call (SCM cont, SCM val,
 		     SCM_STACKITEM * src, SCM_STACKITEM * dst)
 {
   /* memcpy should be safe:  src and dst will never overlap */
-  memcpy (dst, src, sizeof (SCM_STACKITEM) * SCM_LENGTH (cont));
+  memcpy (dst, src, sizeof (SCM_STACKITEM) * SCM_CONTINUATION_LENGTH (cont));
 
 #ifdef DEBUG_EXTENSIONS
   scm_last_debug_frame = SCM_DFRAME (cont);
@@ -158,10 +158,10 @@ scm_dynthrow (SCM cont, SCM val)
   SCM_STACKITEM stack_top_element;
 
 #ifdef SCM_STACK_GROWS_UP
-  if (SCM_PTR_GE (dst + SCM_LENGTH (cont), & stack_top_element))
+  if (SCM_PTR_GE (dst + SCM_CONTINUATION_LENGTH (cont), & stack_top_element))
     grow_stack (cont, val);
 #else
-  dst -= SCM_LENGTH (cont);
+  dst -= SCM_CONTINUATION_LENGTH (cont);
   if (SCM_PTR_LE (dst, & stack_top_element))
     grow_stack (cont, val);
 #endif /* def SCM_STACK_GROWS_UP */

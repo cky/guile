@@ -521,7 +521,7 @@ print_observer (SCM type, SCM port, scm_print_state *pstate)
 static SCM
 obarray_enter (SCM obarray, SCM symbol, SCM data)
 {
-  scm_sizet hash = SCM_SYMBOL_HASH (symbol) % SCM_LENGTH (obarray);
+  scm_sizet hash = SCM_SYMBOL_HASH (symbol) % SCM_VECTOR_LENGTH (obarray);
   SCM entry = scm_cons (symbol, data);
   SCM slot = scm_cons (entry, SCM_VELTS (obarray)[hash]);
   SCM_VELTS (obarray)[hash] = slot;
@@ -537,7 +537,7 @@ obarray_enter (SCM obarray, SCM symbol, SCM data)
 static SCM
 obarray_replace (SCM obarray, SCM symbol, SCM data)
 {
-  scm_sizet hash = SCM_SYMBOL_HASH (symbol) % SCM_LENGTH (obarray);
+  scm_sizet hash = SCM_SYMBOL_HASH (symbol) % SCM_VECTOR_LENGTH (obarray);
   SCM new_entry = scm_cons (symbol, data);
   SCM lsym;
   SCM slot;
@@ -565,7 +565,7 @@ obarray_replace (SCM obarray, SCM symbol, SCM data)
 static SCM
 obarray_retrieve (SCM obarray, SCM sym)
 {
-  scm_sizet hash = SCM_SYMBOL_HASH (sym) % SCM_LENGTH (obarray);
+  scm_sizet hash = SCM_SYMBOL_HASH (sym) % SCM_VECTOR_LENGTH (obarray);
   SCM lsym;
 
   for (lsym = SCM_VELTS (obarray)[hash]; !SCM_NULLP (lsym); lsym = SCM_CDR (lsym))
@@ -586,7 +586,7 @@ obarray_retrieve (SCM obarray, SCM sym)
 static SCM
 obarray_remove (SCM obarray, SCM sym)
 {
-  scm_sizet hash = SCM_SYMBOL_HASH (sym) % SCM_LENGTH (obarray);
+  scm_sizet hash = SCM_SYMBOL_HASH (sym) % SCM_VECTOR_LENGTH (obarray);
   SCM lsym;
   SCM *lsymp;
 
@@ -609,7 +609,7 @@ obarray_remove (SCM obarray, SCM sym)
 static void
 obarray_remove_all (SCM obarray)
 {
-  scm_sizet size = SCM_LENGTH (obarray);
+  scm_sizet size = SCM_VECTOR_LENGTH (obarray);
   scm_sizet i;
 
   for (i = 0; i < size; i++)
@@ -896,7 +896,7 @@ leaf_environment_fold (SCM env, scm_environment_folder proc, SCM data, SCM init)
   SCM result = init;
   SCM obarray = LEAF_ENVIRONMENT (env)->obarray;
 
-  for (i = 0; i < SCM_LENGTH (obarray); i++)
+  for (i = 0; i < SCM_VECTOR_LENGTH (obarray); i++)
     {
       SCM l;
       for (l = SCM_VELTS (obarray)[i]; !SCM_NULLP (l); l = SCM_CDR (l))

@@ -72,7 +72,7 @@ grow_fluids (scm_root_state *root_state, int new_length)
   int old_length, i;
 
   old_fluids = root_state->fluids;
-  old_length = SCM_LENGTH (old_fluids);
+  old_length = SCM_VECTOR_LENGTH (old_fluids);
   new_fluids = scm_make_vector (SCM_MAKINUM (new_length), SCM_BOOL_F);
   i = 0;
   while (i < old_length)
@@ -92,7 +92,7 @@ grow_fluids (scm_root_state *root_state, int new_length)
 void
 scm_copy_fluids (scm_root_state *root_state)
 {
-  grow_fluids (root_state, SCM_LENGTH(root_state->fluids));
+  grow_fluids (root_state, SCM_VECTOR_LENGTH (root_state->fluids));
 }
 
 static int
@@ -158,7 +158,7 @@ SCM_DEFINE (scm_fluid_ref, "fluid-ref", 1, 0, 0,
 
   n = SCM_FLUID_NUM (fluid);
 
-  if (SCM_LENGTH (scm_root->fluids) <= n)
+  if (SCM_VECTOR_LENGTH (scm_root->fluids) <= n)
     grow_fluids (scm_root, n+1);
   return SCM_VELTS (scm_root->fluids)[n];
 }
@@ -174,7 +174,7 @@ SCM_DEFINE (scm_fluid_set_x, "fluid-set!", 2, 0, 0,
   SCM_VALIDATE_FLUID (1, fluid);
   n = SCM_FLUID_NUM (fluid);
 
-  if (SCM_LENGTH (scm_root->fluids) <= n)
+  if (SCM_VECTOR_LENGTH (scm_root->fluids) <= n)
     grow_fluids (scm_root, n+1);
   SCM_VELTS (scm_root->fluids)[n] = value;
   return SCM_UNSPECIFIED;

@@ -63,10 +63,10 @@ scm_hash_fn_get_handle (SCM table,SCM obj,unsigned int (*hash_fn)(),SCM (*assoc_
   SCM h;
 
   SCM_ASSERT (SCM_VECTORP (table), table, SCM_ARG1, "hash_fn_get_handle");
-  if (SCM_LENGTH (table) == 0)
+  if (SCM_VECTOR_LENGTH (table) == 0)
     return SCM_EOL;
-  k = hash_fn (obj, SCM_LENGTH (table), closure);
-  if (k >= SCM_LENGTH (table))
+  k = hash_fn (obj, SCM_VECTOR_LENGTH (table), closure);
+  if (k >= SCM_VECTOR_LENGTH (table))
     scm_out_of_range ("hash_fn_get_handle", scm_ulong2num (k));
   h = assoc_fn (obj, SCM_VELTS (table)[k], closure);
   return h;
@@ -82,11 +82,11 @@ scm_hash_fn_create_handle_x (SCM table,SCM obj,SCM init,unsigned int (*hash_fn)(
   SCM it;
 
   SCM_ASSERT (SCM_VECTORP (table), table, SCM_ARG1, "hash_fn_create_handle_x");
-  if (SCM_LENGTH (table) == 0)
+  if (SCM_VECTOR_LENGTH (table) == 0)
     SCM_MISC_ERROR ("void hashtable", SCM_EOL);
 
-  k = hash_fn (obj, SCM_LENGTH (table), closure);
-  if (k >= SCM_LENGTH (table))
+  k = hash_fn (obj, SCM_VECTOR_LENGTH (table), closure);
+  if (k >= SCM_VECTOR_LENGTH (table))
     scm_out_of_range ("hash_fn_create_handle_x", scm_ulong2num (k));
   SCM_REDEFER_INTS;
   it = assoc_fn (obj, SCM_VELTS (table)[k], closure);
@@ -147,10 +147,10 @@ scm_hash_fn_remove_x (SCM table,SCM obj,unsigned int (*hash_fn)(),SCM (*assoc_fn
   SCM h;
 
   SCM_ASSERT (SCM_VECTORP (table), table, SCM_ARG1, "hash_fn_remove_x");
-  if (SCM_LENGTH (table) == 0)
+  if (SCM_VECTOR_LENGTH (table) == 0)
     return SCM_EOL;
-  k = hash_fn (obj, SCM_LENGTH (table), closure);
-  if (k >= SCM_LENGTH (table))
+  k = hash_fn (obj, SCM_VECTOR_LENGTH (table), closure);
+  if (k >= SCM_VECTOR_LENGTH (table))
     scm_out_of_range ("hash_fn_remove_x", scm_ulong2num (k));
   h = assoc_fn (obj, SCM_VELTS (table)[k], closure);
   SCM_VELTS(table)[k] = delete_fn (h, SCM_VELTS(table)[k]);
@@ -533,7 +533,7 @@ SCM_DEFINE (scm_hash_fold, "hash-fold", 3, 0, 0,
 SCM
 scm_internal_hash_fold (SCM (*fn) (), void *closure, SCM init, SCM table)
 {
-  int i, n = SCM_LENGTH (table);
+  int i, n = SCM_VECTOR_LENGTH (table);
   SCM result = init;
   for (i = 0; i < n; ++i)
     {

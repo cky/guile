@@ -230,7 +230,7 @@ scm_mark_weak_vector_spines (void *dummy1, void *dummy2, void *dummy3)
 
 	  obj = w;
 	  ptr = SCM_VELTS (w);
-	  n = SCM_LENGTH (w);
+	  n = SCM_VECTOR_LENGTH (w);
 	  for (j = 0; j < n; ++j)
 	    {
 	      SCM alist;
@@ -262,7 +262,7 @@ scm_scan_weak_vectors (void *dummy1, void *dummy2, void *dummy3)
 	  register long j, n;
 
 	  ptr = SCM_VELTS (w);
-	  n = SCM_LENGTH (w);
+	  n = SCM_VECTOR_LENGTH (w);
 	  for (j = 0; j < n; ++j)
 	    if (SCM_FREE_CELL_P (ptr[j]))
 	      ptr[j] = SCM_BOOL_F;
@@ -270,7 +270,7 @@ scm_scan_weak_vectors (void *dummy1, void *dummy2, void *dummy3)
       else /* if (SCM_IS_WHVEC_ANY (scm_weak_vectors[i])) */
 	{
 	  SCM obj = w;
-	  register long n = SCM_LENGTH (w);
+	  register long n = SCM_VECTOR_LENGTH (w);
 	  register long j;
 
 	  ptr = SCM_VELTS (w);

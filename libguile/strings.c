@@ -242,7 +242,7 @@ SCM_DEFINE (scm_string_length, "string-length", 1, 0, 0,
 #define FUNC_NAME s_scm_string_length
 {
   SCM_VALIDATE_STRINGORSUBSTR (1, string);
-  return SCM_MAKINUM (SCM_LENGTH (string));
+  return SCM_MAKINUM (SCM_STRING_LENGTH (string));
 }
 #undef FUNC_NAME
 
@@ -268,7 +268,7 @@ SCM_DEFINE (scm_string_set_x, "string-set!", 3, 0, 0,
 #define FUNC_NAME s_scm_string_set_x
 {
   SCM_VALIDATE_RWSTRING (1,str);
-  SCM_VALIDATE_INUM_RANGE (2,k,0,SCM_LENGTH(str));
+  SCM_VALIDATE_INUM_RANGE (2,k,0,SCM_STRING_LENGTH(str));
   SCM_VALIDATE_CHAR (3,chr);
   SCM_STRING_UCHARS (str)[SCM_INUM (k)] = SCM_CHAR (chr);
   return SCM_UNSPECIFIED;

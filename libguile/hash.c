@@ -119,7 +119,7 @@ scm_hasher(SCM obj, unsigned long n, scm_sizet d)
 	obj = scm_number_to_string(obj, SCM_MAKINUM(10));
       }
     case scm_tc7_string:
-      return scm_string_hash (SCM_STRING_UCHARS (obj), SCM_LENGTH (obj)) % n;
+      return scm_string_hash (SCM_STRING_UCHARS (obj), SCM_STRING_LENGTH (obj)) % n;
     case scm_tc7_substring:
       return scm_string_hash (SCM_ROUCHARS (obj), SCM_ROLENGTH (obj)) % n;
     case scm_tc7_symbol:
@@ -127,7 +127,7 @@ scm_hasher(SCM obj, unsigned long n, scm_sizet d)
     case scm_tc7_wvect:
     case scm_tc7_vector:
       {
-	scm_sizet len = SCM_LENGTH(obj);
+	scm_sizet len = SCM_VECTOR_LENGTH(obj);
 	SCM *data = SCM_VELTS(obj);
 	if (len>5)
 	  {

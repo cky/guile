@@ -255,10 +255,10 @@ SCM_DEFINE (scm_substring_move_x, "substring-move!", 5, 0, 0,
   SCM_VALIDATE_INUM_COPY (5,start2,s2);
   len = e - s1;
   SCM_ASSERT_RANGE (3,end1,len >= 0);
-  SCM_ASSERT_RANGE (2,start1,s1 <= SCM_LENGTH (str1) && s1 >= 0);
-  SCM_ASSERT_RANGE (5,start2,s2 <= SCM_LENGTH (str2) && s2 >= 0);
-  SCM_ASSERT_RANGE (3,end1,e <= SCM_LENGTH (str1) && e >= 0);
-  SCM_ASSERT_RANGE (5,start2,len+s2 <= SCM_LENGTH (str2));
+  SCM_ASSERT_RANGE (2,start1,s1 <= SCM_STRING_LENGTH (str1) && s1 >= 0);
+  SCM_ASSERT_RANGE (5,start2,s2 <= SCM_STRING_LENGTH (str2) && s2 >= 0);
+  SCM_ASSERT_RANGE (3,end1,e <= SCM_STRING_LENGTH (str1) && e >= 0);
+  SCM_ASSERT_RANGE (5,start2,len+s2 <= SCM_STRING_LENGTH (str2));
 
   SCM_SYSCALL(memmove((void *)(&(SCM_STRING_CHARS(str2)[s2])),
 		      (void *)(&(SCM_STRING_CHARS(str1)[s1])),
@@ -288,8 +288,8 @@ SCM_DEFINE (scm_substring_fill_x, "substring-fill!", 4, 0, 0,
   SCM_VALIDATE_INUM_COPY (2,start,i);
   SCM_VALIDATE_INUM_COPY (3,end,e);
   SCM_VALIDATE_CHAR_COPY (4,fill,c);
-  SCM_ASSERT_RANGE (2,start,i <= SCM_LENGTH (str) && i >= 0);
-  SCM_ASSERT_RANGE (3,end,e <= SCM_LENGTH (str) && e >= 0);
+  SCM_ASSERT_RANGE (2,start,i <= SCM_STRING_LENGTH (str) && i >= 0);
+  SCM_ASSERT_RANGE (3,end,e <= SCM_STRING_LENGTH (str) && e >= 0);
   while (i<e) SCM_STRING_CHARS (str)[i++] = c;
   return SCM_UNSPECIFIED;
 }
@@ -358,7 +358,7 @@ SCM_DEFINE (scm_string_fill_x, "string-fill!", 2, 0, 0,
   register long k;
   SCM_VALIDATE_STRING_COPY (1,str,dst);
   SCM_VALIDATE_CHAR_COPY (2,chr,c);
-  for (k = SCM_LENGTH (str)-1;k >= 0;k--) dst[k] = c;
+  for (k = SCM_STRING_LENGTH (str)-1;k >= 0;k--) dst[k] = c;
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -379,7 +379,7 @@ SCM_DEFINE (scm_string_upcase_x, "string-upcase!", 1, 0, 0,
 
   SCM_VALIDATE_STRING (1, v);
 
-  for (k = 0; k < SCM_LENGTH (v); ++k)
+  for (k = 0; k < SCM_STRING_LENGTH (v); ++k)
     SCM_STRING_UCHARS (v) [k] = scm_upcase (SCM_STRING_UCHARS (v) [k]);
 
   return v;
@@ -413,7 +413,7 @@ SCM_DEFINE (scm_string_downcase_x, "string-downcase!", 1, 0, 0,
 
   SCM_VALIDATE_STRING (1, v);
 
-  for (k = 0; k < SCM_LENGTH (v); ++k)
+  for (k = 0; k < SCM_STRING_LENGTH (v); ++k)
     SCM_STRING_UCHARS (v) [k] = scm_downcase (SCM_STRING_UCHARS (v) [k]);
 
   return v;
@@ -438,7 +438,7 @@ SCM_DEFINE (scm_string_capitalize_x, "string-capitalize!", 1, 0, 0,
   char *sz;
   int i, len, in_word=0;
   SCM_VALIDATE_STRING (1,str);
-  len = SCM_LENGTH(str);
+  len = SCM_STRING_LENGTH(str);
   sz = SCM_STRING_CHARS (str);
   for(i=0; i<len;  i++) {
     if(SCM_NFALSEP(scm_char_alphabetic_p(SCM_MAKE_CHAR(sz[i])))) {

@@ -1,5 +1,26 @@
 2000-10-09  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* continuations.c (scm_make_cont, copy_stack_and_call,
+	scm_dynthrow), environments.c (obarray_enter, obarray_replace,
+	obarray_retrieve, obarray_remove, obarray_remove_all,
+	leaf_environment_fold), fluids.c (grow_fluids, scm_copy_fluids,
+	scm_fluid_ref, scm_fluid_set_x), hash.c (scm_hasher), hashtab.c
+	(scm_hash_fn_get_handle, scm_hash_fn_create_handle_x,
+	scm_hash_fn_remove_x, scm_internal_hash_fold), ioext.c
+	(scm_read_delimited_x), objects.c (scm_mcache_lookup_cmethod,
+	scm_make_subclass_object), ports.c (scm_unread_string), socket.c
+	(scm_recv, scm_recvfrom), stacks.c (scm_make_stack, scm_stack_id,
+	scm_last_stack_frame), strings.c (scm_string_length,
+	scm_string_set_x), strop.c (scm_substring_move_x,
+	scm_substring_fill_x, scm_string_fill_x, scm_string_upcase_x,
+	scm_string_downcase_x, scm_string_capitalize_x), struct.c
+	(scm_struct_init, scm_struct_vtable_p, scm_make_struct,
+	scm_make_vtable_vtable, scm_struct_ref, scm_struct_set_x), weaks.c
+	(scm_mark_weak_vector_spines, scm_scan_weak_vectors):  Replace
+	SCM_LENGTH with the appropriate SCM_<type>_LENGTH macro.
+
+2000-10-09  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* print.c (make_print_state, scm_iprin1):  Replace SCM_LENGTH with
 	the appropriate SCM_<type>_LENGTH macro.
 

@@ -709,7 +709,7 @@ SCM_DEFINE (scm_recv, "recv!", 2, 1, 0,
   SCM_VALIDATE_INUM_DEF_COPY (3,flags,0,flg);
   fd = SCM_FPORT_FDES (sock);
 
-  SCM_SYSCALL (rv = recv (fd, SCM_STRING_CHARS (buf), SCM_LENGTH (buf), flg));
+  SCM_SYSCALL (rv = recv (fd, SCM_STRING_CHARS (buf), SCM_STRING_LENGTH (buf), flg));
   if (rv == -1)
     SCM_SYSERROR;
 
@@ -777,7 +777,7 @@ SCM_DEFINE (scm_recvfrom, "recvfrom!", 2, 3, 0,
 
   SCM_VALIDATE_OPFPORT (1,sock);
   SCM_VALIDATE_STRING (2,buf);
-  cend = SCM_LENGTH (buf);
+  cend = SCM_STRING_LENGTH (buf);
   
   if (SCM_UNBNDP (flags))
     flg = 0;

@@ -96,7 +96,7 @@ SCM_DEFINE (scm_read_delimited_x, "%read-delimited!", 3, 3, 0,
   SCM_VALIDATE_ROSTRING_COPY (1,delims,cdelims);
   num_delims = SCM_ROLENGTH (delims);
   SCM_VALIDATE_STRING_COPY (2,buf,cbuf);
-  cend = SCM_LENGTH (buf);
+  cend = SCM_STRING_LENGTH (buf);
   if (SCM_UNBNDP (port))
     port = scm_cur_inp;
   else

@@ -1084,7 +1084,7 @@ SCM_DEFINE (scm_unread_string, "unread-string", 2, 0, 0,
   else
     SCM_VALIDATE_OPINPORT (2,port);
 
-  scm_ungets (SCM_ROCHARS (str), SCM_LENGTH (str), port);
+  scm_ungets (SCM_ROCHARS (str), SCM_STRING_LENGTH (str), port);
   
   return str;
 }

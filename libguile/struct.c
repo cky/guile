@@ -153,7 +153,7 @@ scm_struct_init (SCM handle, SCM layout, scm_bits_t * mem, int tail_elts, SCM in
 {
   unsigned char * fields_desc = (unsigned char *) SCM_SYMBOL_CHARS (layout) - 2;
   unsigned char prot = 0;
-  int n_fields = SCM_LENGTH (layout) / 2;
+  int n_fields = SCM_SYMBOL_LENGTH (layout) / 2;
   int tailp = 0;
 
   while (n_fields)
@@ -256,11 +256,11 @@ SCM_DEFINE (scm_struct_vtable_p, "struct-vtable?", 1, 0, 0,
 
   layout = SCM_STRUCT_LAYOUT (x);
 
-  if (SCM_LENGTH (layout) < SCM_LENGTH (required_vtable_fields))
+  if (SCM_SYMBOL_LENGTH (layout) < SCM_STRING_LENGTH (required_vtable_fields))
     return SCM_BOOL_F;
 
   if (strncmp (SCM_SYMBOL_CHARS (layout), SCM_STRING_CHARS (required_vtable_fields),
-	       SCM_LENGTH (required_vtable_fields)))
+	       SCM_STRING_LENGTH (required_vtable_fields)))
     return SCM_BOOL_F;
 
   mem = SCM_STRUCT_DATA (x);
@@ -441,7 +441,7 @@ SCM_DEFINE (scm_make_struct, "make-struct", 2, 0, 1,
   SCM_VALIDATE_REST_ARGUMENT (init);
 
   layout = SCM_PACK (SCM_STRUCT_DATA (vtable) [scm_vtable_index_layout]);
-  basic_size = SCM_LENGTH (layout) / 2;
+  basic_size = SCM_SYMBOL_LENGTH (layout) / 2;
   tail_elts = SCM_INUM (tail_array_size);
   SCM_NEWCELL2 (handle);
   SCM_DEFER_INTS;
@@ -532,7 +532,7 @@ SCM_DEFINE (scm_make_vtable_vtable, "make-vtable-vtable", 2, 0, 1,
 					   user_fields,
 					   SCM_UNDEFINED));
   layout = scm_make_struct_layout (fields);
-  basic_size = SCM_LENGTH (layout) / 2;
+  basic_size = SCM_SYMBOL_LENGTH (layout) / 2;
   tail_elts = SCM_INUM (tail_array_size);
   SCM_NEWCELL2 (handle);
   SCM_DEFER_INTS;
@@ -582,7 +582,7 @@ SCM_DEFINE (scm_struct_ref, "struct-ref", 2, 0, 0,
   
   SCM_ASSERT_RANGE(1,pos, p < n_fields);
 
-  if (p * 2 < SCM_LENGTH (layout))
+  if (p * 2 < SCM_SYMBOL_LENGTH (layout))
     {
       unsigned char ref;
       field_type = fields_desc[p * 2];
@@ -595,8 +595,8 @@ SCM_DEFINE (scm_struct_ref, "struct-ref", 2, 0, 0,
 	    SCM_ASSERT (0, pos, "ref denied", FUNC_NAME);
 	}
     }
-  else if (fields_desc[SCM_LENGTH (layout) - 1] != 'O')    
-    field_type = fields_desc[SCM_LENGTH (layout) - 2];
+  else if (fields_desc[SCM_SYMBOL_LENGTH (layout) - 1] != 'O')    
+    field_type = fields_desc[SCM_SYMBOL_LENGTH (layout) - 2];
   else
     {
       SCM_ASSERT (0, pos, "ref denied", FUNC_NAME);
@@ -659,7 +659,7 @@ SCM_DEFINE (scm_struct_set_x, "struct-set!", 3, 0, 0,
 
   SCM_ASSERT_RANGE (1,pos, p < n_fields);
 
-  if (p * 2 < SCM_LENGTH (layout))
+  if (p * 2 < SCM_SYMBOL_LENGTH (layout))
     {
       unsigned char set_x;
       field_type = fields_desc[p * 2];
@@ -667,8 +667,8 @@ SCM_DEFINE (scm_struct_set_x, "struct-set!", 3, 0, 0,
       if (set_x != 'w')
 	SCM_ASSERT (0, pos, "set_x denied", FUNC_NAME);
     }
-  else if (fields_desc[SCM_LENGTH (layout) - 1] == 'W')    
-    field_type = fields_desc[SCM_LENGTH (layout) - 2];
+  else if (fields_desc[SCM_SYMBOL_LENGTH (layout) - 1] == 'W')    
+    field_type = fields_desc[SCM_SYMBOL_LENGTH (layout) - 2];
   else
     {
       SCM_ASSERT (0, pos, "set_x denied", FUNC_NAME);
