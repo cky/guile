@@ -1788,12 +1788,12 @@
 
 
 
-;;; {The (app) module}
+;;; {The (%app) module}
 ;;;
 ;;; The root of conventionally named objects not directly in the top level.
 ;;;
-;;; (app modules)
-;;; (app modules guile)
+;;; (%app modules)
+;;; (%app modules guile)
 ;;;
 ;;; The directory of all modules and the standard root module.
 ;;;
@@ -1844,7 +1844,7 @@
 ;; NOTE: This binding is used in libguile/modules.c.
 ;;
 (define (resolve-module name . maybe-autoload)
-  (let ((full-name (append '(app modules) name)))
+  (let ((full-name (append '(%app modules) name)))
     (let ((already (nested-ref the-root-module full-name)))
       (if already
 	  ;; The module already exists...
@@ -1876,11 +1876,12 @@
 ;;
 (set-current-module the-root-module)
 
-(define app (make-module 31))
-(local-define '(app modules) (make-module 31))
-(local-define '(app modules guile) the-root-module)
+(define %app (make-module 31))
+(define app %app) ;; for backwards compatability
+(local-define '(%app modules) (make-module 31))
+(local-define '(%app modules guile) the-root-module)
 
-;; (define-special-value '(app modules new-ws) (lambda () (make-scm-module)))
+;; (define-special-value '(%app modules new-ws) (lambda () (make-scm-module)))
 
 (define (try-load-module name)
   (or (begin-deprecated (try-module-linked name))

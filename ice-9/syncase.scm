@@ -214,7 +214,7 @@
 ;; (use-syntax sc-expand)
 ;; (load-from-path "ice-9/psyntax.ss")
 
-(define internal-eval (nested-ref the-scm-module '(app modules guile eval)))
+(define internal-eval (nested-ref the-scm-module '(%app modules guile eval)))
 
 (define (eval x environment)
   (internal-eval (if (and (pair? x)
@@ -224,7 +224,7 @@
 		 environment))
 
 ;;; Hack to make syncase macros work in the slib module
-(let ((m (nested-ref the-root-module '(app modules ice-9 slib))))
+(let ((m (nested-ref the-root-module '(%app modules ice-9 slib))))
   (if m
       (set-object-property! (module-local-variable m 'define)
 			    '*sc-expander*
