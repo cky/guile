@@ -151,12 +151,13 @@
     (display (string-join
 	      (list
 	       (get-build-info 'CFLAGS)
-	       (string-join other-flags)
 	       "-lguile -lguile-ltdl" 
-	       (if (or (string=? libdir "/usr/lib")
-		       (string=? libdir "/usr/lib/"))
-		   (string-append "-L" (get-build-info 'libdir))
-		   ""))))
+	       (if (string=? libdir "/usr/lib/")
+		   ""
+		   (string-append "-L" (get-build-info 'libdir)))
+	       (string-join other-flags)
+
+	       )))
     (newline)))
 
 
@@ -185,10 +186,11 @@
   ;; `-I/usr/include' may cause trouble."  For now we hard-code this.
   ;; Later maybe we can do something more dynamic.
   (display
-   (string-join
+   (string-append
     (if (not (string=? (get-build-info 'includedir) "/usr/include"))
-	 (string-append "-I" (get-build-info 'includedir))
-	 "")
+	 (string-append "-I" (get-build-info 'includedir) " ")
+	 " ")
+    
     (get-build-info 'CFLAGS)
     "\n"
     )))
