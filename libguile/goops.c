@@ -393,7 +393,8 @@ static SCM set_slot_value (SCM class, SCM obj, SCM slotdef, SCM value);
 
 SCM_DEFINE (scm_sys_initialize_object, "%initialize-object", 2, 0, 0,
 	    (SCM obj, SCM initargs),
-	    "")
+	    "Initialize the object @var{obj} with the given arguments\n"
+	    "@var{initargs}.")
 #define FUNC_NAME s_scm_sys_initialize_object
 {
   SCM tmp, get_n_set, slots;
@@ -778,7 +779,7 @@ create_basic_classes (void)
 
 SCM_DEFINE (scm_instance_p, "instance?", 1, 0, 0,
 	    (SCM obj),
-	    "")
+	    "Return @code{#t} if @var{obj} is an instance.")
 #define FUNC_NAME s_scm_instance_p
 {
   return SCM_BOOL (SCM_INSTANCEP (obj));
@@ -793,7 +794,7 @@ SCM_DEFINE (scm_instance_p, "instance?", 1, 0, 0,
  ******************************************************************************/
 SCM_DEFINE (scm_class_name, "class-name",  1, 0, 0,
 	    (SCM obj),
-	    "")
+	    "Return the class name of @var{obj}.")
 #define FUNC_NAME s_scm_class_name
 {
   SCM_VALIDATE_CLASS (1, obj);
@@ -803,7 +804,7 @@ SCM_DEFINE (scm_class_name, "class-name",  1, 0, 0,
 
 SCM_DEFINE (scm_class_direct_supers, "class-direct-supers", 1, 0, 0,
 	    (SCM obj),
-	    "")
+	    "Return the direct superclasses of the class @var{obj}.")
 #define FUNC_NAME s_scm_class_direct_supers
 {
   SCM_VALIDATE_CLASS (1, obj);
@@ -813,7 +814,7 @@ SCM_DEFINE (scm_class_direct_supers, "class-direct-supers", 1, 0, 0,
 
 SCM_DEFINE (scm_class_direct_slots, "class-direct-slots", 1, 0, 0,
 	    (SCM obj),
-	    "")
+	    "Return the direct slots of the class @var{obj}.")
 #define FUNC_NAME s_scm_class_direct_slots
 {
   SCM_VALIDATE_CLASS (1, obj);
@@ -823,7 +824,7 @@ SCM_DEFINE (scm_class_direct_slots, "class-direct-slots", 1, 0, 0,
 
 SCM_DEFINE (scm_class_direct_subclasses, "class-direct-subclasses", 1, 0, 0,
 	    (SCM obj),
-	    "")
+	    "Return the direct subclasses of the class @var{obj}.")
 #define FUNC_NAME s_scm_class_direct_subclasses
 {
   SCM_VALIDATE_CLASS (1, obj);
@@ -833,7 +834,7 @@ SCM_DEFINE (scm_class_direct_subclasses, "class-direct-subclasses", 1, 0, 0,
 
 SCM_DEFINE (scm_class_direct_methods, "class-direct-methods", 1, 0, 0,
 	    (SCM obj),
-	    "")
+	    "Return the direct methods of the class @var{obj}")
 #define FUNC_NAME s_scm_class_direct_methods
 {
   SCM_VALIDATE_CLASS (1, obj);
@@ -843,7 +844,7 @@ SCM_DEFINE (scm_class_direct_methods, "class-direct-methods", 1, 0, 0,
 
 SCM_DEFINE (scm_class_precedence_list, "class-precedence-list", 1, 0, 0,
 	    (SCM obj),
-	    "")
+	    "Return the class precedence list of the class @var{obj}.")
 #define FUNC_NAME s_scm_class_precedence_list
 {
   SCM_VALIDATE_CLASS (1, obj);
@@ -853,7 +854,7 @@ SCM_DEFINE (scm_class_precedence_list, "class-precedence-list", 1, 0, 0,
 
 SCM_DEFINE (scm_class_slots, "class-slots", 1, 0, 0,
 	    (SCM obj),
-	    "")
+	    "Return the slot list of the class @var{obj}.")
 #define FUNC_NAME s_scm_class_slots
 {
   SCM_VALIDATE_CLASS (1, obj);
@@ -863,7 +864,7 @@ SCM_DEFINE (scm_class_slots, "class-slots", 1, 0, 0,
 
 SCM_DEFINE (scm_class_environment, "class-environment", 1, 0, 0,
 	    (SCM obj),
-	    "")
+	    "Return the environment of the class @var{obj}.")
 #define FUNC_NAME s_scm_class_environment
 {
   SCM_VALIDATE_CLASS (1, obj);
@@ -874,7 +875,7 @@ SCM_DEFINE (scm_class_environment, "class-environment", 1, 0, 0,
 
 SCM_DEFINE (scm_generic_function_name, "generic-function-name", 1, 0, 0,
 	    (SCM obj),
-	    "")
+	    "Return the name of the generic function @var{obj}.")
 #define FUNC_NAME s_scm_generic_function_name
 {
   SCM_VALIDATE_GENERIC (1, obj);
@@ -884,7 +885,7 @@ SCM_DEFINE (scm_generic_function_name, "generic-function-name", 1, 0, 0,
 
 SCM_DEFINE (scm_generic_function_methods, "generic-function-methods", 1, 0, 0,
 	    (SCM obj),
-	    "")
+	    "Return the methods of the generic function @var{obj}.")
 #define FUNC_NAME s_scm_generic_function_methods
 {
   SCM_VALIDATE_GENERIC (1, obj);
@@ -895,7 +896,7 @@ SCM_DEFINE (scm_generic_function_methods, "generic-function-methods", 1, 0, 0,
 
 SCM_DEFINE (scm_method_generic_function, "method-generic-function", 1, 0, 0,
 	    (SCM obj),
-	    "")
+	    "Return the generic function fot the method @var{obj}.")
 #define FUNC_NAME s_scm_method_generic_function
 {
   SCM_VALIDATE_METHOD (1, obj);
@@ -905,7 +906,7 @@ SCM_DEFINE (scm_method_generic_function, "method-generic-function", 1, 0, 0,
 
 SCM_DEFINE (scm_method_specializers, "method-specializers", 1, 0, 0,
 	    (SCM obj),
-	    "")
+	    "Return specializers of the method @var{obj}.")
 #define FUNC_NAME s_scm_method_specializers
 {
   SCM_VALIDATE_METHOD (1, obj);
@@ -915,7 +916,7 @@ SCM_DEFINE (scm_method_specializers, "method-specializers", 1, 0, 0,
 
 SCM_DEFINE (scm_method_procedure, "method-procedure", 1, 0, 0,
 	    (SCM obj),
-	    "")
+	    "Return the procedure of the method @var{obj}.")
 #define FUNC_NAME s_scm_method_procedure
 {
   SCM_VALIDATE_METHOD (1, obj);
@@ -925,7 +926,7 @@ SCM_DEFINE (scm_method_procedure, "method-procedure", 1, 0, 0,
 
 SCM_DEFINE (scm_accessor_method_slot_definition, "accessor-method-slot-definition", 1, 0, 0,
 	    (SCM obj),
-	    "")
+	    "Return the slot definition of the accessor @var{obj}.")
 #define FUNC_NAME s_scm_accessor_method_slot_definition
 {
   SCM_VALIDATE_ACCESSOR (1, obj);
@@ -942,7 +943,7 @@ SCM_DEFINE (scm_accessor_method_slot_definition, "accessor-method-slot-definitio
 
 SCM_DEFINE (scm_make_unbound, "make-unbound", 0, 0, 0,
 	    (),
-	    "")
+	    "Return the unbound value.")
 #define FUNC_NAME s_scm_make_unbound
 {
   return SCM_GOOPS_UNBOUND;
@@ -951,7 +952,7 @@ SCM_DEFINE (scm_make_unbound, "make-unbound", 0, 0, 0,
 
 SCM_DEFINE (scm_unbound_p, "unbound?", 1, 0, 0,
 	    (SCM obj),
-	    "")
+	    "Return @code{#t} if @var{obj} is unbound.")
 #define FUNC_NAME s_scm_unbound_p
 {
   return SCM_GOOPS_UNBOUNDP (obj) ? SCM_BOOL_T : SCM_BOOL_F;
@@ -960,7 +961,8 @@ SCM_DEFINE (scm_unbound_p, "unbound?", 1, 0, 0,
 
 SCM_DEFINE (scm_assert_bound, "assert-bound", 2, 0, 0,
 	    (SCM value, SCM obj),
-	    "")
+	    "Return @var{value} if it is bound, and invoke the\n"
+	    "@var{slot-unbound} method of @var{obj} if it is not.")
 #define FUNC_NAME s_scm_assert_bound
 {
   if (SCM_GOOPS_UNBOUNDP (value))
@@ -971,7 +973,8 @@ SCM_DEFINE (scm_assert_bound, "assert-bound", 2, 0, 0,
 
 SCM_DEFINE (scm_at_assert_bound_ref, "@assert-bound-ref", 2, 0, 0,
 	    (SCM obj, SCM index),
-	    "")
+	    "Like @code{assert-bound}, but use @var{index} for accessing\n"
+	    "the value from @var{obj}.")
 #define FUNC_NAME s_scm_at_assert_bound_ref
 {
   SCM value = SCM_SLOT (obj, SCM_INUM (index));
@@ -983,7 +986,7 @@ SCM_DEFINE (scm_at_assert_bound_ref, "@assert-bound-ref", 2, 0, 0,
 
 SCM_DEFINE (scm_sys_fast_slot_ref, "%fast-slot-ref", 2, 0, 0,
 	    (SCM obj, SCM index),
-	    "")
+	    "Return the slot value with index @var{index} from @var{obj}.")
 #define FUNC_NAME s_scm_sys_fast_slot_ref
 {
   register long i;
@@ -999,7 +1002,8 @@ SCM_DEFINE (scm_sys_fast_slot_ref, "%fast-slot-ref", 2, 0, 0,
 
 SCM_DEFINE (scm_sys_fast_slot_set_x, "%fast-slot-set!", 3, 0, 0,
 	    (SCM obj, SCM index, SCM value),
-	    "")
+	    "Set the slot with index @var{index} in @var{obj} to\n"
+	    "@var{value}.")
 #define FUNC_NAME s_scm_sys_fast_slot_set_x
 {
   register long i;
@@ -1190,7 +1194,8 @@ SCM_DEFINE (scm_slot_exists_using_class_p, "slot-exists-using-class?", 3, 0, 0,
 
 SCM_DEFINE (scm_slot_ref, "slot-ref", 2, 0, 0,
 	    (SCM obj, SCM slot_name),
-	    "")
+	    "Return the value from @var{obj}'s slot with the name\n"
+	    "@var{slot_name}.")
 #define FUNC_NAME s_scm_slot_ref
 {
   SCM res, class;
@@ -1207,7 +1212,7 @@ SCM_DEFINE (scm_slot_ref, "slot-ref", 2, 0, 0,
 
 SCM_DEFINE (scm_slot_set_x, "slot-set!", 3, 0, 0,
 	    (SCM obj, SCM slot_name, SCM value),
-	    "")
+	    "Set the slot named @var{slot_name} of @var{obj} to @var{value}.")
 #define FUNC_NAME s_scm_slot_set_x
 {
   SCM class;
@@ -1223,7 +1228,8 @@ const char *scm_s_slot_set_x = s_scm_slot_set_x;
 
 SCM_DEFINE (scm_slot_bound_p, "slot-bound?", 2, 0, 0,
 	    (SCM obj, SCM slot_name),
-	    "")
+	    "Return @code{#t} if the slot named @var{slot_name} of @var{obj}\n"
+	    "is bound.")
 #define FUNC_NAME s_scm_slot_bound_p
 {
   SCM class;
@@ -1241,7 +1247,7 @@ SCM_DEFINE (scm_slot_bound_p, "slot-bound?", 2, 0, 0,
 
 SCM_DEFINE (scm_slots_exists_p, "slot-exists?", 2, 0, 0,
 	    (SCM obj, SCM slot_name),
-	    "")
+	    "Return @code{#t} if @var{obj} has a slot named @var{slot_name}.")
 #define FUNC_NAME s_scm_slots_exists_p
 {
   SCM class;
@@ -1283,7 +1289,8 @@ wrap_init (SCM class, SCM *m, int n)
 
 SCM_DEFINE (scm_sys_allocate_instance, "%allocate-instance", 2, 0, 0,
 	    (SCM class, SCM initargs),
-	    "")
+	    "Create a new instance of class @var{class} and initialize it\n"
+	    "from the arguments @var{initargs}.")
 #define FUNC_NAME s_scm_sys_allocate_instance
 {
   SCM *m;
@@ -1963,7 +1970,8 @@ SCM_KEYWORD (k_gf,		"generic-function");
 
 SCM_DEFINE (scm_make, "make",  0, 0, 1,
 	    (SCM args),
-	    "")
+	    "Make a new object.  @var{args} mist contain the class and\n"
+	    "all necessary initialization information.")
 #define FUNC_NAME s_scm_make
 {
   SCM class, z;
@@ -2597,7 +2605,7 @@ scm_add_method (SCM gf, SCM m)
 
 SCM_DEFINE (scm_pure_generic_p, "pure-generic?", 1, 0, 0,
 	    (SCM obj),
-	    "")
+	    "Return @code{#t} if @var{obj} is a pure generic.")
 #define FUNC_NAME s_scm_pure_generic_p
 {
   return SCM_BOOL (SCM_PUREGENERICP (obj));
@@ -2612,7 +2620,8 @@ SCM_DEFINE (scm_pure_generic_p, "pure-generic?", 1, 0, 0,
 
 SCM_DEFINE (scm_sys_goops_loaded, "%goops-loaded", 0, 0, 0,
 	    (),
-	    "")
+	    "Announce that GOOPS is loaded and perform initialization\n"
+	    "on the C level which depends on the loaded GOOPS modules.")
 #define FUNC_NAME s_scm_sys_goops_loaded
 {
   goops_loaded_p = 1;
