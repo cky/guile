@@ -121,9 +121,9 @@
 
 (cond-expand-provide (current-module) '(srfi-19))
 
-;; :OPTIONAL is nice
+;; OPTIONAL is nice
 
-(define-syntax :optional
+(define-syntax optional
   (syntax-rules ()
     ((_ val default-value)
      (if (null? val) default-value (car val)))))
@@ -386,7 +386,7 @@
 ;;  (priv:current-time-ms-time time-gc current-gc-milliseconds))
 
 (define (current-time . clock-type)
-  (let ((clock-type (:optional clock-type time-utc)))
+  (let ((clock-type (optional clock-type time-utc)))
     (cond
      ((eq? clock-type time-tai) (priv:current-time-tai))
      ((eq? clock-type time-utc) (priv:current-time-utc))
@@ -401,7 +401,7 @@
 ;; This will be implementation specific.
 
 (define (time-resolution . clock-type)
-  (let ((clock-type (:optional clock-type time-utc)))
+  (let ((clock-type (optional clock-type time-utc)))
     (case clock-type
       ((time-tai) 1000)
       ((time-utc) 1000)
@@ -642,7 +642,7 @@
 (define (time-utc->date time . tz-offset)
   (if (not (eq? (time-type time) time-utc))
       (priv:time-error 'time->date 'incompatible-time-types  time))
-  (let* ((offset (:optional tz-offset (priv:local-tz-offset)))
+  (let* ((offset (optional tz-offset (priv:local-tz-offset)))
          (leap-second? (priv:leap-second? (+ offset (time-second time))))
          (jdn (priv:time->julian-day-number (if leap-second?
                                                 (- (time-second time) 1)
@@ -667,7 +667,7 @@
 (define (time-tai->date time  . tz-offset)
   (if (not (eq? (time-type time) time-tai))
       (priv:time-error 'time->date 'incompatible-time-types  time))
-  (let* ((offset (:optional tz-offset (priv:local-tz-offset)))
+  (let* ((offset (optional tz-offset (priv:local-tz-offset)))
          (seconds (- (time-second time)
                      (priv:leap-second-delta (time-second time))))
          (leap-second? (priv:leap-second? (+ offset seconds)))
@@ -695,7 +695,7 @@
 (define (time-monotonic->date time . tz-offset)
   (if (not (eq? (time-type time) time-monotonic))
       (priv:time-error 'time->date 'incompatible-time-types  time))
-  (let* ((offset (:optional tz-offset (priv:local-tz-offset)))
+  (let* ((offset (optional tz-offset (priv:local-tz-offset)))
          (seconds (- (time-second time)
                      (priv:leap-second-delta (time-second time))))
          (leap-second? (priv:leap-second? (+ offset seconds)))
@@ -793,7 +793,7 @@
 
 (define (current-date . tz-offset) 
   (time-utc->date (current-time time-utc)
-                  (:optional tz-offset (priv:local-tz-offset))))
+                  (optional tz-offset (priv:local-tz-offset))))
 
 ;; given a 'two digit' number, find the year within 50 years +/-
 (define (priv:natural-year n)
@@ -878,11 +878,11 @@
   (time-utc->time-monotonic! (julian-day->time-utc jdn)))
 
 (define (julian-day->date jdn . tz-offset)
-  (let ((offset (:optional tz-offset (priv:local-tz-offset))))
+  (let ((offset (optional tz-offset (priv:local-tz-offset))))
     (time-utc->date (julian-day->time-utc jdn) offset)))
 
 (define (modified-julian-day->date jdn . tz-offset)
-  (let ((offset (:optional tz-offset (priv:local-tz-offset))))
+  (let ((offset (optional tz-offset (priv:local-tz-offset))))
     (julian-day->date (+ jdn 4800001/2) offset)))
 
 (define (modified-julian-day->time-utc jdn)
@@ -1209,7 +1209,7 @@
 
 (define (date->string date .  format-string)
   (let ((str-port (open-output-string))
-        (fmt-str (:optional format-string "~c")))
+        (fmt-str (optional format-string "~c")))
     (priv:date-printer date 0 fmt-str (string-length fmt-str) str-port)
     (get-output-string str-port)))
 
