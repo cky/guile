@@ -2,19 +2,19 @@ Here are some guidelines for working on the Guile source tree at GNU.
 
 - We use CVS to manage the Guile sources.  The repository lives on
 totoro.red-bean.com, in /u/src/master; you will need an account on
-that machine to access the repository.  I recommend using the cvs
-pserver protocol; thus, you should use the following as your CVS root:
+that machine to access the repository.  Also, for security reasons,
+totoro presently only supports CVS connections via the SSH protocol,
+so you must first install the SSH client.  Then, you should set your
+CVS_RSH environment variable to ssh, and use the following as your CVS
+root:
 
-	:pserver:USER@guile-cvs.red-bean.com:/u/src/master
+	:ext:USER@guile-cvs.red-bean.com:/u/src/master
 
 Either set your CVSROOT environment variable to that, or give it as
 the value of the global -d option to CVS when you check out a working
 directory.
 
-If you want to use SSH for security, set your CVS_RSH environment
-variable to ssh, and then use the following as your CVS root:
-
-	:ext:guile-cvs.red-bean.com:/u/src/master
+For more information on SSH, see http://www.cs.hut.fi/ssh.
 
 The Guile sources live in several modules:
 

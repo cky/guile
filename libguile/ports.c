@@ -588,40 +588,40 @@ scm_peek_char (port)
  * to ensure that you don't have to.
  */
 
-char * scm_generic_fgets SCM_P ((SCM port));
+char * scm_generic_fgets SCM_P ((SCM port, int *len));
 
 char *
-scm_generic_fgets (port)
+scm_generic_fgets (port, len)
      SCM port;
+     int *len;
 {
   SCM f		= SCM_STREAM (port);
   scm_sizet p	= SCM_PTOBNUM (port);
 
-  char *buf   = NULL;
-  int   i     = 0;	/* index into current buffer position */
+  char *buf;
   int   limit = 80;	/* current size of buffer */
   int   c;
 
-  if (feof ((FILE *)f))
-    return NULL;
+  /* FIXME: It would be nice to be able to check for EOF before anything. */
 
+  *len = 0;
   buf = (char *) malloc (limit * sizeof(char));
 
   /* If a char has been pushed onto the port with scm_ungetc,
      read that first. */
   if (SCM_CRDYP (port))
     {
-      buf[i] = SCM_CGETUN (port);
+      buf[*len] = SCM_CGETUN (port);
       SCM_CLRDY (port);
-      if (buf[i++] == '\n')
+      if (buf[(*len)++] == '\n')
 	{
-	  buf[i] = '\0';
+	  buf[*len] = '\0';
 	  return buf;
 	}
     }
 
   while (1) {
-    if (i >= limit-1)
+    if (*len >= limit-1)
       {
 	buf = (char *) realloc (buf, sizeof(char) * limit * 2);
 	limit *= 2;
@@ -629,13 +629,13 @@ scm_generic_fgets (port)
 
     c = (scm_ptobs[p].fgetc) (f);
     if (c != EOF)
-      buf[i++] = c;
+      buf[(*len)++] = c;
 
     if (c == EOF || c == '\n')
       {
-	if (i)
+	if (*len)
 	  {
-	    buf[i] = '\0';
+	    buf[*len] = '\0';
 	    return buf;
 	  }
 	free (buf);
@@ -901,7 +901,7 @@ getc_void_port (SCM strm)
 }
 
 static char *
-fgets_void_port (SCM strm)
+fgets_void_port (SCM strm, int *len)
 {
   return NULL;
 }

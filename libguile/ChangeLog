@@ -1,3 +1,16 @@
+1997-12-13  Tim Pierce  <twp@skepsis.com>
+
+	Make %read-line more suitable for implementing read-line efficiently.
+	* ioext.c (scm_read_line): Strip the terminating newline from a
+	string, and return a cons of the string and its terminator.
+
+	* fports.c, fports.h (scm_fgets): Add `len' argument.  The length
+	of the string that is read is stored in this memory location.
+	* ports.c, ports.h (scm_generic_fgets, fgets_void_port): Same.
+	* genio.c, genio.h (scm_do_read_line): Update caller.
+	* ports.h (scm_ptobfuns): Update typedef.
+	* fports.c (scm_fptob, scm_pipob): Update struct.
+
 1997-12-08  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* filesys.c (set_element): Return file descriptor.

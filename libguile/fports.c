@@ -294,17 +294,17 @@ scm_fgetc (s)
  * we must pass the original Scheme port object.
  */
 
-static char * scm_fgets SCM_P ((SCM port));
+static char * scm_fgets SCM_P ((SCM port, int *len));
 
 static char *
-scm_fgets (port)
+scm_fgets (port, len)
      SCM port;
+     int *len;
 {
   FILE *f;
 
   char *buf   = NULL;
   char *p;		/* pointer to current buffer position */
-  int   i     = 0;	/* index into current buffer position */
   int   limit = 80;	/* current size of buffer */
 
   f = (FILE *) SCM_STREAM (port);
@@ -312,38 +312,47 @@ scm_fgets (port)
     return NULL;
 
   buf = (char *) malloc (limit * sizeof(char));
+  *len = 0;
 
   /* If a char has been pushed onto the port with scm_ungetc,
      read that first. */
   if (SCM_CRDYP (port))
     {
-      buf[i] = SCM_CGETUN (port);
+      buf[*len] = SCM_CGETUN (port);
       SCM_CLRDY (port);
-      if (buf[i++] == '\n')
+      if (buf[(*len)++] == '\n')
 	{
-	  buf[i] = '\0';
+	  buf[*len] = '\0';
 	  return buf;
 	}
     }
 
   while (1)
     {
-      int chunk_size = limit - i;
+      int chunk_size = limit - *len;
+      long int numread, pos;
 
-      p = buf + i;
+      p = buf + *len;
+
+      /* We must use ftell to figure out how many characters were read.
+	 If there are null characters near the end of file, and no
+	 terminating newline, there is no other way to tell the difference
+	 between an embedded null and the string-terminating null. */
+
+      pos = ftell (f);
       if (fgets (p, chunk_size, f) == NULL) {
-	if (i)
+	if (*len)
 	  return buf;
 	free (buf);
 	return NULL;
       }
+      numread = ftell (f) - pos;
+      *len += numread;
 
-      if (strlen(p) < chunk_size - 1 || buf[limit-2] == '\n')
+      if (numread < chunk_size - 1 || buf[limit-2] == '\n')
 	return buf;
 
       buf = (char *) realloc (buf, sizeof(char) * limit * 2);
-
-      i = limit - 1;
       limit *= 2;
     }
 }
@@ -458,7 +467,7 @@ scm_ptobfuns scm_fptob =
   (scm_sizet (*) SCM_P ((char *, scm_sizet, scm_sizet, SCM))) local_ffwrite,
   (int (*) SCM_P ((SCM))) local_fflush,
   (int (*) SCM_P ((SCM))) scm_fgetc,
-  (char * (*) SCM_P ((SCM))) scm_fgets,
+  (char * (*) SCM_P ((SCM, int *))) scm_fgets,
   (int (*) SCM_P ((SCM))) local_fclose
 };
 
@@ -474,7 +483,7 @@ scm_ptobfuns scm_pipob =
   (scm_sizet (*) SCM_P ((char *, scm_sizet, scm_sizet, SCM))) local_ffwrite,
   (int (*) SCM_P ((SCM))) local_fflush,
   (int (*) SCM_P ((SCM))) scm_fgetc,
-  (char * (*) SCM_P ((SCM))) scm_fgets,
+  (char * (*) SCM_P ((SCM, int *))) scm_fgets,
   (int (*) SCM_P ((SCM))) local_pclose
 };
 

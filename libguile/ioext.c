@@ -139,28 +139,11 @@ scm_read_delimited_x (delims, buf, gobble, port, start, end)
 }
 
 /*
- * %read-line uses a port's fgets method for fast line i/o.
- * For %read-line to replace read-line, it will have to take these options:
- *
- *	%READ-LINE [PORT [HANDLE-DELIM]]
- *
- * HANDLE-DELIM instructs %READ-LINE how to handle line delimiter
- * characters, and must be one of the symbols `trim', `concat',
- * `split', `peek'.  If it is `trim' (the default), the line delimiter
- * is read from the port and discarded.  If it is `concat', the
- * delimiter is read from the port and appended to the string.  If it
- * is `split', the delimiter is read from the port, and %READ-LINE
- * returns a pair consisting of the line read and the delimiter
- * character.  If it is `peek', the delimiter is not read from the
- * port at all.
- *
- * Complicating all this, boot-9's READ-LINE function uses the value
- * of SCM-LINE-INCREMENTORS to delimit lines.  That means that Guile
- * programmers could potentially read records delimited by arbitrary
- * characters by changing the value of SCM-LINE-INCREMENTORS and then
- * calling READ-LINE.  If we are to take advantage of fgets(3), we
- * can't afford this luxury.  %READ-LINE will be limited to processing
- * newline-delimited records.
+ * %read-line uses a port's fgets method for fast line i/o.  It
+ * truncates any terminating newline from its input, and returns
+ * a cons of the string read and its terminating character.  Doing
+ * so makes it easy to implement the hairy `read-line' options
+ * efficiently in Scheme.
  */
 
 SCM_PROC (s_read_line, "%read-line", 0, 1, 0, scm_read_line);
@@ -170,7 +153,8 @@ scm_read_line (port)
      SCM port;
 {
   char *s;
-  SCM line;
+  int slen;
+  SCM line, term;
 
   if (SCM_UNBNDP (port))
     port = scm_cur_inp;
@@ -180,15 +164,27 @@ scm_read_line (port)
 		  port, SCM_ARG1, s_read_line);
     }
 
-  s = scm_do_read_line (port);
+  s = scm_do_read_line (port, &slen);
+
   if (s == NULL)
-    line = SCM_EOF_VAL;
+    term = line = SCM_EOF_VAL;
   else
     {
-      line = scm_makfrom0str (s);
+      if (s[slen-1] == '\n')
+	{
+	  term = SCM_MAKICHR ('\n');
+	  line = scm_makfromstr (s, slen-1, 0);
+	}
+      else
+	{
+	  /* Fix: we should check for eof on the port before assuming this. */
+	  term = SCM_EOF_VAL;
+	  line = scm_makfromstr (s, slen, 0);
+	}	  
       free (s);
     }
-  return line;
+
+  return scm_cons (line, term);
 }
 
 SCM_PROC (s_write_line, "write-line", 1, 1, 0, scm_write_line);

@@ -251,11 +251,42 @@
 	       (case handle-delim
 		   ((trim peek concat) (join-substrings))
 		   ((split) (cons (join-substrings) terminator))
+
+
 		   (else (error "unexpected handle-delim value: "
 				handle-delim)))))))))
-    
+
+;;; read-line [PORT [HANDLE-DELIM]] reads a newline-terminated string
+;;; from PORT.  The return value depends on the value of HANDLE-DELIM,
+;;; which may be one of the symbols `trim', `concat', `peek' and
+;;; `split'.  If it is `trim' (the default), the trailing newline is
+;;; removed and the string is returned.  If `concat', the string is
+;;; returned with the trailing newline intact.  If `peek', the newline
+;;; is left in the input port buffer and the string is returned.  If
+;;; `split', the newline is split from the string and read-line
+;;; returns a pair consisting of the truncated string and the newline.
+
 (define (read-line . args)
-  (apply read-delimited scm-line-incrementors args))
+  (let* ((port		(if (null? args)
+			    (current-input-port)
+			    (car args)))
+	 (handle-delim	(if (> (length args) 1)
+			    (cadr args)
+			    'trim))
+	 (line/delim	(%read-line port))
+	 (line		(car line/delim))
+	 (delim		(cdr line/delim)))
+    (case handle-delim
+      ((trim) line)
+      ((split) line/delim)
+      ((concat) (if (and (string? line) (char? delim))
+		    (string-append line (string delim))
+		    line))
+      ((peek) (if (char? delim)
+		  (unread-char delim port))
+	      line)
+      (else
+       (error "unexpected handle-delim value: " handle-delim)))))
 
 
 ;;; {Arrays}

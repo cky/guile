@@ -165,14 +165,15 @@ scm_ungetc (c, port)
 
 
 char *
-scm_do_read_line (port)
+scm_do_read_line (port, len)
      SCM port;
+     int *len;
 {
   char *s;
   scm_sizet i;
 
   i = SCM_PTOBNUM (port);
-  SCM_SYSCALL (s = (scm_ptobs[i].fgets) (port));
+  SCM_SYSCALL (s = (scm_ptobs[i].fgets) (port, len));
   return s;
 }
 

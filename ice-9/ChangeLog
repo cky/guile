@@ -1,3 +1,14 @@
+1997-12-13  Tim Pierce  <twp@skepsis.com>
+
+*	* boot-9.scm (read-line): Rewritten to call %read-line for
+	improved speed.  Minor user-visible changes: the new functions are
+	hardwired to treat the LFD character as signifying end-of-line, so
+	changing `scm-line-incrementors' will no longer affect the
+	behavior of read-line.  On platforms which do not represent
+	end-of-line with a LFD character, read-line should behave more
+	like native line-processing facilities, but there is still a ways
+	to go here.
+
 Sat Nov 29 01:24:46 1997  Mikael Djurfeldt  <mdj@kenneth>
 
 	* boot-9.scm (error-catching-loop, save-stack): `the-last-stack'
@@ -5,11 +16,11 @@ Sat Nov 29 01:24:46 1997  Mikael Djurfeldt  <mdj@kenneth>
 
 1997-11-28  Tim Pierce  <twp@skepsis.com>
 
-	* boot-9.scm (find-and-link-dynamic-module): If a .la file
-	(libtool support file) is found in a module directory, attempt to
- 	extract the shared library name from that file.  If the .la file
-	does not exist, try to link against a .so file.  Libtool-generated
-	compiled modules should load more cleanly in Guile now.
+	* boot-9.scm (find-and-link-dynamic-module): If a module directory
+	contains a .la file (a libtool support file), attempt to extract
+	the shared library name from that file.  If the .la file does not
+	exist, try to link against a .so file.  Libtool-generated compiled
+	modules should load more cleanly in Guile now.
 	(try-using-libtool-name, try-using-sharlib-name): New functions.
 
 Sun Nov  9 06:10:59 1997  Gary Houston  <ghouston@actrix.gen.nz>
