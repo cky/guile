@@ -553,9 +553,6 @@ scm_compile_shell_switches (int argc, char **argv)
 	    }
 	  else
 	    scm_shell_usage (1, "missing argument to `-e' switch");
-
-	  scm_display (entry_point, SCM_UNDEFINED);
-	  scm_newline (SCM_UNDEFINED);
 	}
 
       else if (! strcmp (argv[i], "-ds")) /* do script here */
