@@ -76,7 +76,7 @@ gh_eval_str_with_catch (char *scheme_code, scm_catch_handler_t handler)
 {
   /* FIXME: not there yet */
   return gh_catch (SCM_BOOL_T, (scm_catch_body_t) eval_str_wrapper, scheme_code,
-		   (scm_catch_handler_t) gh_standard_handler, scheme_code);
+		   (scm_catch_handler_t) handler, scheme_code);
 }
 
 SCM
@@ -110,7 +110,7 @@ gh_eval_file_with_catch (char *scheme_code, scm_catch_handler_t handler)
 {
   /* FIXME: not there yet */
   return gh_catch (SCM_BOOL_T, (scm_catch_body_t) eval_file_wrapper,
-		   scheme_code, (scm_catch_handler_t) gh_standard_handler,
+		   scheme_code, (scm_catch_handler_t) handler,
 		   scheme_code);
 }
 
