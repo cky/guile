@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,2000,2001, 2003 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -160,7 +160,7 @@ static SCM
 scm_stand_in_scm_proc(SCM proc)
 {
   SCM answer;
-  answer = scm_assoc (proc, scm_stand_in_procs);
+  answer = scm_assq (proc, scm_stand_in_procs);
   if (SCM_FALSEP (answer))
     {
       answer = scm_closure (scm_list_2 (SCM_EOL, SCM_BOOL_F), SCM_EOL);

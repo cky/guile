@@ -348,9 +348,16 @@ SCM_DEFINE (scm_srfi1_assoc, "assoc", 2, 1, 0,
 void
 scm_init_srfi_1 (void)
 {
+  SCM the_root_module = scm_lookup_closure_module (SCM_BOOL_F);
 #ifndef SCM_MAGIC_SNARFER
 #include "srfi/srfi-1.x"
 #endif
+  scm_c_extend_primitive_generic
+    (SCM_VARIABLE_REF (scm_c_module_lookup (the_root_module, "map")),
+     SCM_VARIABLE_REF (scm_c_lookup ("map")));
+  scm_c_extend_primitive_generic
+    (SCM_VARIABLE_REF (scm_c_module_lookup (the_root_module, "for-each")),
+     SCM_VARIABLE_REF (scm_c_lookup ("for-each")));
 }
 
 /* End of srfi-1.c.  */

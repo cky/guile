@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2003 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -134,14 +134,14 @@ SCM_DEFINE1 (scm_eqv_p, "eqv?", scm_tc7_rpsubr,
 #undef FUNC_NAME
 
 
-SCM_DEFINE1 (scm_equal_p, "equal?", scm_tc7_rpsubr,
-             (SCM x, SCM y),
-	     "Return @code{#t} iff @var{x} and @var{y} are recursively @code{eqv?} equivalent.\n"
-	     "@code{equal?} recursively compares the contents of pairs,\n"
-	     "vectors, and strings, applying @code{eqv?} on other objects such as\n"
-	     "numbers and symbols.  A rule of thumb is that objects are generally\n"
-	     "@code{equal?}  if they print the same.  @code{equal?} may fail to\n"
-	     "terminate if its arguments are circular data structures.")
+SCM_PRIMITIVE_GENERIC_1 (scm_equal_p, "equal?", scm_tc7_rpsubr,
+			 (SCM x, SCM y),
+ "Return @code{#t} iff @var{x} and @var{y} are recursively @code{eqv?} equivalent.\n"
+ "@code{equal?} recursively compares the contents of pairs,\n"
+ "vectors, and strings, applying @code{eqv?} on other objects such as\n"
+ "numbers and symbols.  A rule of thumb is that objects are generally\n"
+ "@code{equal?}  if they print the same.  @code{equal?} may fail to\n"
+ "terminate if its arguments are circular data structures.")
 #define FUNC_NAME s_scm_equal_p
 {
   SCM_CHECK_STACK;
@@ -183,7 +183,7 @@ SCM_DEFINE1 (scm_equal_p, "equal?", scm_tc7_rpsubr,
   switch (SCM_TYP7 (x))
     {
     default:
-      return SCM_BOOL_F;
+      break;
     case scm_tc7_vector:
     case scm_tc7_wvect:
       return scm_vector_equal_p (x, y);
@@ -195,7 +195,7 @@ SCM_DEFINE1 (scm_equal_p, "equal?", scm_tc7_rpsubr,
 	if (scm_smobs[i].equalp)
 	  return (scm_smobs[i].equalp) (x, y);
 	else
-	  return SCM_BOOL_F;
+	  break;
       }
 #ifdef HAVE_ARRAYS
     case scm_tc7_bvect: case scm_tc7_uvect: case scm_tc7_ivect:
@@ -209,7 +209,10 @@ SCM_DEFINE1 (scm_equal_p, "equal?", scm_tc7_rpsubr,
 	return scm_array_equal_p (x, y);
 #endif
     }
-  return SCM_BOOL_F;
+  if (SCM_UNPACK (g_scm_equal_p))
+    return scm_call_generic_2 (g_scm_equal_p, x, y);
+  else
+    return SCM_BOOL_F;
 }
 #undef FUNC_NAME
 

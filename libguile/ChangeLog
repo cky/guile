@@ -1,3 +1,22 @@
+2003-03-06  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* goops.c (scm_primitive_generic_generic): Enable primitive
+	generic if not enabled.
+	(scm_sys_goops_loaded): Setup unextended primitive generics.
+
+	* goops.c, goops.h (scm_c_extend_primitive_generic): New function.
+
+	* snarf.h (SCM_PRIMITIVE_GENERIC, SCM_PRIMITIVE_GENERIC_1): New
+	snarf macros.
+
+	* numbers.c (scm_abs): Use SCM_PRIMITIVE_GENERIC.  (This is only a
+	testing example.  All uses of SCM_GPROC should be converted.)
+
+	* procprop.c (scm_stand_in_scm_proc): Use scm_assq instead of
+	scm_assoc.
+
+	* eq.c (scm_equal_p): Turned into a primitive generic.
+
 2003-02-27  Rob Browning  <rlb@defaultvalue.org>
 
 	* Makefile.am (scmconfig.h): new target -- generate file from

@@ -719,6 +719,8 @@
 ;;; Methods to compare objects
 ;;;
 
+(define-method (equal? x y) #f)
+
 (define-method (object-eqv? x y)    #f)
 (define-method (object-equal? x y)  (eqv? x y))
 

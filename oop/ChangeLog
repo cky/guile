@@ -1,3 +1,7 @@
+2003-03-06  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* goops.scm (equal?): Define default method.
+
 2003-01-18  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* goops.scm (method): Construct a new copy of the constant '('())

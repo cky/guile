@@ -3,7 +3,7 @@
 #ifndef SCM_SNARF_H
 #define SCM_SNARF_H
 
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -108,6 +108,20 @@ scm_c_define_gsubr (s_ ## FNAME, REQ, OPT, VAR, \
 )\
 SCM_SNARF_DOCS(primitive, FNAME, PRIMNAME, ARGLIST, REQ, OPT, VAR, DOCSTRING)
 
+#define SCM_PRIMITIVE_GENERIC(FNAME, PRIMNAME, REQ, OPT, VAR, ARGLIST, DOCSTRING) \
+SCM_SNARF_HERE(\
+static const char s_ ## FNAME [] = PRIMNAME; \
+static SCM g_ ## FNAME; \
+SCM FNAME ARGLIST\
+)\
+SCM_SNARF_INIT(\
+g_ ## FNAME = SCM_PACK (0); \
+scm_c_define_gsubr_with_generic (s_ ## FNAME, REQ, OPT, VAR, \
+                    		 (SCM_FUNC_CAST_ARBITRARY_ARGS) FNAME, \
+				 &g_ ## FNAME); \
+)\
+SCM_SNARF_DOCS(primitive, FNAME, PRIMNAME, ARGLIST, REQ, OPT, VAR, DOCSTRING)
+
 #define SCM_DEFINE_PUBLIC(FNAME, PRIMNAME, REQ, OPT, VAR, ARGLIST, DOCSTRING) \
 SCM_SNARF_HERE(\
 static const char s_ ## FNAME [] = PRIMNAME; \
@@ -126,6 +140,18 @@ static const char s_ ## FNAME [] = PRIMNAME; \
 SCM FNAME ARGLIST\
 )\
 SCM_SNARF_INIT(scm_c_define_subr (s_ ## FNAME, TYPE, FNAME); ) \
+SCM_SNARF_DOCS(1, FNAME, PRIMNAME, ARGLIST, 2, 0, 0, DOCSTRING)
+
+#define SCM_PRIMITIVE_GENERIC_1(FNAME, PRIMNAME, TYPE, ARGLIST, DOCSTRING) \
+SCM_SNARF_HERE(\
+static const char s_ ## FNAME [] = PRIMNAME; \
+static SCM g_ ## FNAME; \
+SCM FNAME ARGLIST\
+)\
+SCM_SNARF_INIT(\
+g_ ## FNAME = SCM_PACK (0); \
+scm_c_define_subr_with_generic (s_ ## FNAME, TYPE, FNAME, &g_ ## FNAME); \
+)\
 SCM_SNARF_DOCS(1, FNAME, PRIMNAME, ARGLIST, 2, 0, 0, DOCSTRING)
 
 #define SCM_PROC(RANAME, STR, REQ, OPT, VAR, CFN)  \

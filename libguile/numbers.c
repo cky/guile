@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002, 2003 Free Software Foundation, Inc.
  *
  * Portions Copyright 1990, 1991, 1992, 1993 by AT&T Bell Laboratories
  * and Bellcore.  See scm_divide.
@@ -289,11 +289,10 @@ SCM_DEFINE (scm_nan, "nan", 0, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_GPROC (s_abs, "abs", 1, 0, 0, scm_abs, g_abs);
-/* "Return the absolute value of @var{x}."
- */
-SCM
-scm_abs (SCM x)
+SCM_PRIMITIVE_GENERIC (scm_abs, "abs", 1, 0, 0,
+		       (SCM x),
+		       "Return the absolute value of @var{x}.")
+#define FUNC_NAME
 {
   if (SCM_INUMP (x)) {
     long int xx = SCM_INUM (x);
@@ -317,9 +316,10 @@ scm_abs (SCM x)
   } else if (SCM_REALP (x)) {
     return scm_make_real (fabs (SCM_REAL_VALUE (x)));
   } else {
-    SCM_WTA_DISPATCH_1 (g_abs, x, 1, s_abs);
+    SCM_WTA_DISPATCH_1 (g_scm_abs, x, 1, s_scm_abs);
   }
 }
+#undef FUNC_NAME
 
 
 SCM_GPROC (s_quotient, "quotient", 2, 0, 0, scm_quotient, g_quotient);

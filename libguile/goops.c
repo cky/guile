@@ -1682,13 +1682,66 @@ SCM_DEFINE (scm_primitive_generic_generic, "primitive-generic-generic", 1, 0, 0,
 {
   if (scm_subr_p (subr) && SCM_SUBR_GENERIC (subr))
     {
-      SCM gf = *SCM_SUBR_GENERIC (subr);
-      if (gf)
-	return gf;
+      if (!*SCM_SUBR_GENERIC (subr))
+	scm_enable_primitive_generic_x (scm_list_1 (subr));
+      return *SCM_SUBR_GENERIC (subr);
     }
   SCM_WRONG_TYPE_ARG (SCM_ARG1, subr);
 }
 #undef FUNC_NAME
+
+typedef struct t_extension {
+  struct t_extension *next;
+  SCM extended;
+  SCM extension;
+} t_extension;
+
+static t_extension *extensions = 0;
+
+SCM_VARIABLE (scm_var_make_extended_generic, "make-extended-generic");
+
+void
+scm_c_extend_primitive_generic (SCM extended, SCM extension)
+{
+  if (goops_loaded_p)
+    {
+      SCM gf, gext;
+      if (!*SCM_SUBR_GENERIC (extended))
+	scm_enable_primitive_generic_x (scm_list_1 (extended));
+      gf = *SCM_SUBR_GENERIC (extended);
+      gext = scm_call_2 (SCM_VARIABLE_REF (scm_var_make_extended_generic),
+			 gf,
+			 SCM_SNAME (extension));
+      *SCM_SUBR_GENERIC (extension) = gext;
+    }
+  else
+    {
+      t_extension *e = scm_malloc (sizeof (t_extension));
+      t_extension **loc = &extensions;
+      /* Make sure that extensions are placed before their own
+       * extensions in the extensions list.  O(N^2) algorithm, but
+       * extensions of primitive generics are rare.
+       */
+      while (*loc && extension != (*loc)->extended)
+	loc = &(*loc)->next;
+      e->next = *loc;
+      e->extended = extended;
+      e->extension = extension;
+      *loc = e;
+    }
+}
+
+static void
+setup_extended_primitive_generics ()
+{
+  while (extensions)
+    {
+      t_extension *e = extensions;
+      scm_c_extend_primitive_generic (e->extended, e->extension);
+      extensions = e->next;
+      free (e);
+    }
+}
 
 /******************************************************************************
  *
@@ -2694,6 +2747,7 @@ SCM_DEFINE (scm_sys_goops_loaded, "%goops-loaded", 0, 0, 0,
   var_compute_applicable_methods =
     scm_sym2var (sym_compute_applicable_methods, scm_goops_lookup_closure,
 		 SCM_BOOL_F);
+  setup_extended_primitive_generics ();
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME

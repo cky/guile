@@ -1,3 +1,9 @@
+2003-03-06  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* srfi-1.c (scm_init_srfi_1): Extend root module map and for-each
+	with the versions in this module using
+	scm_c_extend_primitive_generic.
+
 2003-02-03  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* srfi-1.c (srfi1_for_each): Corrected argument checking for the
