@@ -1,3 +1,8 @@
+2004-05-10  Marius Vollmer  <mvo@zagadka.de>
+
+	* tests/numbers.test (number->string): Added tests for
+	non-radix-10 floating point conversions.
+
 2004-05-10  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/numbers.test (logbit?): New tests.

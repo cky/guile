@@ -1,3 +1,21 @@
+2004-05-10  Marius Vollmer  <mvo@zagadka.de>
+
+	Convert floating point numbers into strings with an arbitrary
+	radix.  Thanks to Richard Todd!
+	
+	* numbers.c (FLOBUFLEN): Increase so that radix 2 strings will
+	fit.
+	(fx): Removed.
+	(scm_dblprec, fx_per_radix, init_dblprec, init_fx_radix,
+	number_chars): New, to support variable radices.
+	(idbl2str): Use above instead of the old base-10 only tables.
+	(iflo2str): Pass on new RADIX argument to idbl2str.
+	(scm_number_to_string): Pass radix to iflo2str.
+	(scm_print_real, scm_print_complex): Explicitly pass radix 10 to
+	iflo2str.
+	(scm_init_numbers): Call init_dblprec and init_fx_radix for all
+	possible radices.
+
 2004-05-10  Kevin Ryde  <user42@zip.com.au>
 
 	* numbers.c (scm_logbit_p): Correction to test above the end of an
