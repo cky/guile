@@ -1545,7 +1545,7 @@ else
 fi
 
 if test $ac_cv_lib_readline_main = no; then
-  { echo "configure: error: libreadline was not found on your system." 1>&2; exit 1; }
+  echo "configure: warning: libreadline was not found on your system." 1>&2
 fi
 
 for ac_func in rl_clear_signals rl_cleanup_after_signal

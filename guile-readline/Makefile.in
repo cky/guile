@@ -82,6 +82,8 @@ lib_LTLIBRARIES = libguilereadline.la
 
 libguilereadline_la_SOURCES = readline.h readline.c
 
+BUILT_SOURCES = readline.x
+
 scmdir = $(datadir)/guile
 scm_DATA = readline-activator.scm
 
@@ -367,6 +369,7 @@ distclean-generic:
 	-rm -f config.cache config.log stamp-h stamp-h[0-9]*
 
 maintainer-clean-generic:
+	-test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
 mostlyclean-am:  mostlyclean-libLTLIBRARIES mostlyclean-compile \
 		mostlyclean-libtool mostlyclean-tags mostlyclean-depend \
 		mostlyclean-generic
