@@ -55,7 +55,7 @@
 
 
 ;;;
-;;; for guile-import and guile-use-modules
+;;; for guile-import and guile-import-module
 ;;;
 
 (define (guile-emacs-export-procedure name proc docs)
@@ -111,7 +111,7 @@
 
 
 ;;;
-;;; for guile-emacs-complete-symbol
+;;; for guile-scheme-complete-symbol
 ;;;
 
 (define (guile-emacs-complete-alist str)
@@ -125,6 +125,23 @@
 		       apropos-fold-all)
 	 (lambda (p1 p2) (string<? (car p1) (car p2)))))
 
+
+;;;
+;;; for guile-scheme-apropos
+;;;
+
+(define (guile-emacs-apropos regexp)
+  (with-output-to-string (lambda () (apropos regexp))))
+
+
+;;;
+;;; for guile-scheme-describe
+;;;
+
+(define (guile-emacs-describe sym)
+  (object-documentation (eval sym (current-module))))
+
+
 ;;;
 ;;; Guile 1.4 compatibility
 ;;;

@@ -63,26 +63,30 @@
 
 ;;;###autoload
 (defun guile:eval (string adapter)
-  (let ((output (guile-process-require adapter (concat "eval " string "\n")
-				       "channel> ")))
-    (cond
-     ((string= output "") nil)
-     ((string-match "^\\(\\(value\\)\\|\\(token\\)\\|\\(exception\\)\\) = "
-		    output)
-      (cond
-       ;; value
-       ((match-beginning 2)
-	(car (read-from-string (substring output (match-end 0)))))
-       ;; token
-       ((match-beginning 3)
-	(cons guile-token-tag
-	      (car (read-from-string (substring output (match-end 0))))))
-       ;; exception
-       ((match-beginning 4)
-	(signal 'guile-error
-		(car (read-from-string (substring output (match-end 0))))))))
-     (t
-      (error "Unsupported result" output)))))
+  (condition-case error
+      (let ((output (guile-process-require adapter (concat "eval " string "\n")
+					   "channel> ")))
+	(cond
+	 ((string= output "") nil)
+	 ((string-match "^\\(\\(value\\)\\|\\(token\\)\\|\\(exception\\)\\) = "
+			output)
+	  (cond
+	   ;; value
+	   ((match-beginning 2)
+	    (car (read-from-string (substring output (match-end 0)))))
+	   ;; token
+	   ((match-beginning 3)
+	    (cons guile-token-tag
+		  (car (read-from-string (substring output (match-end 0))))))
+	   ;; exception
+	   ((match-beginning 4)
+	    (signal 'guile-error
+		    (car (read-from-string (substring output (match-end 0))))))))
+	 (t
+	  (error "Unsupported result" output))))
+    (quit
+     (signal-process (process-id adapter) 'SIGINT)
+     (signal 'quit nil))))
 
 
 ;;;
@@ -94,6 +98,9 @@
 
 (defvar true "#t")
 (defvar false "#f")
+
+(unless (boundp 'keywordp)
+  (defun keywordp (x) (and (symbolp x) (eq (aref (symbol-name x) 0) ?:))))
 
 (defun guile-lisp-adapter ()
   (if (and (processp guile-lisp-adapter)
@@ -135,10 +142,14 @@
     (eval (guile-lisp-eval `(guile-emacs-export ',name ',real ,docs)))))
 
 ;;;###autoload
-(defmacro guile-import-module (name &rest opts)
-  `(guile-process-use-module ',name ',opts))
+(defmacro guile-use-module (name)
+  `(guile-lisp-eval '(use-modules ,name)))
 
-(defun guile-process-use-module (name opts)
+;;;###autoload
+(defmacro guile-import-module (name &rest opts)
+  `(guile-process-import-module ',name ',opts))
+
+(defun guile-process-import-module (name opts)
   (unless (boundp 'guile-emacs-export-procedures)
     (guile-import guile-emacs-export-procedures))
   (let ((docs (if (memq :with-docs opts) true false)))

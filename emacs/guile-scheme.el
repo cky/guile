@@ -90,7 +90,10 @@ All commands in `lisp-mode-shared-map' are inherited by this map.")
 (unless guile-scheme-mode-map
   (let ((map (make-sparse-keymap "Guile-Scheme")))
     (setq guile-scheme-mode-map map)
-    (set-keymap-parent map lisp-mode-shared-map)
+    (cond ((boundp 'lisp-mode-shared-map)
+	   (set-keymap-parent map lisp-mode-shared-map))
+	  ((boundp 'shared-lisp-mode-map)
+	   (set-keymap-parent map shared-lisp-mode-map)))
     (define-key map [menu-bar] (make-sparse-keymap))
     (define-key map [menu-bar guile-scheme] (cons "Guile-Scheme" map))
     (define-key map [uncomment-region]
@@ -108,6 +111,7 @@ All commands in `lisp-mode-shared-map' are inherited by this map.")
     (define-key map "\C-c:" 'guile-scheme-eval-expression)
     (define-key map "\C-c\C-a" 'guile-scheme-apropos)
     (define-key map "\C-c\C-d" 'guile-scheme-describe)
+    (define-key map "\C-c\C-k" 'guile-scheme-kill-process)
 
     (put 'comment-region 'menu-enable 'mark-active)
     (put 'uncomment-region 'menu-enable 'mark-active)
@@ -179,11 +183,13 @@ All commands in `guile-scheme-mode-map' are inherited by this map.")
 
 (defvar guile-scheme-command "guile")
 (defvar guile-scheme-adapter nil)
+(defvar guile-scheme-module nil)
 
 (defun guile-scheme-adapter ()
   (if (and (processp guile-scheme-adapter)
 	   (eq (process-status guile-scheme-adapter) 'run))
       guile-scheme-adapter
+    (setq guile-scheme-module nil)
     (setq guile-scheme-adapter
 	  (guile:make-adapter guile-scheme-command 'emacs-scheme-channel))))
 
@@ -192,14 +198,15 @@ All commands in `guile-scheme-mode-map' are inherited by this map.")
 If there is a (define-module ...) form, evaluate it.
 Otherwise, choose module (guile-user)."
   (save-excursion
-    (guile:eval
-     (if (re-search-backward "^(define-module " nil t)
-	 (let ((start (match-beginning 0)))
-	   (goto-char start)
-	   (forward-sexp)
-	   (buffer-substring-no-properties start (point)))
-       "(define-module (emacs-user))")
-     (guile-scheme-adapter))))
+    (let ((module (if (re-search-backward "^(define-module " nil t)
+		      (let ((start (match-beginning 0)))
+			(goto-char start)
+			(forward-sexp)
+			(buffer-substring-no-properties start (point)))
+		    "(define-module (emacs-user))")))
+      (unless (string= guile-scheme-module module)
+	(prog1 (guile:eval module (guile-scheme-adapter))
+	  (setq guile-scheme-module module))))))
 
 (defun guile-scheme-eval-string (string)
   (guile-scheme-set-module)
@@ -244,9 +251,10 @@ With argument, print output into current buffer."
 (defun guile-scheme-eval-print-last-sexp ()
   "Evaluate sexp before point; print value into current buffer."
   (interactive)
-  (insert "\n")
-  (guile-scheme-eval-last-sexp t)
-  (insert "\n"))
+  (let ((start (point)))
+    (guile-scheme-eval-last-sexp t)
+    (insert "\n")
+    (save-excursion (goto-char start) (insert "\n"))))
 
 (defun guile-scheme-eval-define ()
   (interactive)
@@ -259,10 +267,10 @@ With argument, print output into current buffer."
   (guile-scheme-eval-string (format "(load %s)" (expand-file-name file)))
   (message "done"))
 
+(guile-import guile-emacs-complete-alist)
+
 (defun guile-scheme-complete-symbol ()
   (interactive)
-  (unless (boundp 'guile-emacs-complete-alist)
-    (guile-import guile-emacs-complete-alist))
   (let* ((end (point))
 	 (start (save-excursion (skip-syntax-backward "w_") (point)))
 	 (pattern (buffer-substring-no-properties start end))
@@ -282,44 +290,48 @@ With argument, print output into current buffer."
 	       (display-completion-list alist))
 	     (message "Making completion list...done"))))))
 
-;; (define-command (guile-scheme-apropos regexp)
-;;   (interactive "sGuile-Scheme apropos (regexp): ")
-;;   (guile-scheme-set-module)
-;;   (let ((old #^guile-scheme-output-buffer))
-;;     (dynamic-wind
-;; 	(lambda () (set! #^guile-scheme-output-buffer #f))
-;; 	(lambda ()
-;; 	  (with-output-to-temp-buffer "*Help*"
-;; 	    (lambda ()
-;; 	      (apropos regexp))))
-;; 	(lambda () (set! #^guile-scheme-output-buffer old)))))
-;; 
-;; (define (guile-scheme-input-symbol prompt)
-;;   (let* ((symbol (thing-at-point 'symbol))
-;; 	 (table (map (lambda (sym) (list (symbol->string sym)))
-;; 		     (apropos-list "")))
-;; 	 (default (if (assoc symbol table)
-;; 		      (string-append " (default " symbol ")")
-;; 		      "")))
-;;     (string->symbol (completing-read (string-append prompt default ": ")
-;; 				     table #f #t #f #f symbol))))
-;; 
-;; (define-command (guile-scheme-describe symbol)
-;;   "Display the value and documentation of SYMBOL."
-;;   (interactive (list (guile-scheme-input-symbol "Describe Guile-Scheme variable")))
-;;   (guile-scheme-set-module)
-;;   (let ((old #^guile-scheme-output-buffer))
-;;     (dynamic-wind
-;; 	(lambda () (set! #^guile-scheme-output-buffer #f))
-;; 	(lambda ()
-;; 	  (begin-with-output-to-temp-buffer "*Help*"
-;; 	    (describe symbol)))
-;; 	(lambda () (set! #^guile-scheme-output-buffer old)))))
-;; 
-;; (define-command (guile-scheme-find-definition symbol)
-;;   (interactive (list (guile-scheme-input-symbol "Guile-Scheme find definition")))
-;;   (guile-scheme-set-module)
-;;   )
+(guile-import guile-emacs-apropos)
+
+(defun guile-scheme-apropos (regexp)
+  (interactive "sGuile Scheme apropos (regexp): ")
+  (guile-scheme-set-module)
+  (with-output-to-temp-buffer "*Help*"
+    (princ (guile-emacs-apropos regexp))))
+
+(guile-import guile-emacs-describe)
+
+(defun guile-scheme-describe (symbol)
+  (interactive (list (guile-scheme-input-symbol "Describe Guile variable")))
+  (guile-scheme-set-module)
+  (with-output-to-temp-buffer "*Help*"
+    (princ (guile-emacs-describe symbol))))
+
+(defun guile-scheme-kill-process ()
+  (interactive)
+  (if guile-scheme-adapter
+      (guile-process-kill guile-scheme-adapter))
+  (setq guile-scheme-adapter nil))
+
+
+;;;
+;;; Internal functions
+;;;
+
+(guile-import apropos-internal guile-apropos-internal)
+
+(defvar guile-scheme-complete-table (make-vector 151 nil))
+
+(defun guile-scheme-input-symbol (prompt)
+  (mapc (lambda (sym)
+	  (if (symbolp sym)
+	      (intern (symbol-name sym) guile-scheme-complete-table)))
+	(guile-apropos-internal ""))
+  (let* ((str (thing-at-point 'symbol))
+	 (default (if (intern-soft str guile-scheme-complete-table)
+		      (concat " (default " str ")")
+		    "")))
+    (intern (completing-read (concat prompt default ": ")
+			     guile-scheme-complete-table nil t nil nil str))))
 
 
 ;;;

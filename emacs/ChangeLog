@@ -1,3 +1,24 @@
+2001-05-06  Keisuke Nishida  <kxn30@po.cwru.edu>
+
+	* guile.el (guile:eval): Propagate user interrupt.
+	(keywordp): Define it if not defined yet.
+	(guile-use-module): New macro.
+	(guile-process-import-module): Renamed from guile-process-use-module.
+
+	* guile-emacs.scm (guile-emacs-apropos, guile-emacs-describe):
+	New procedures. 
+
+	* guile-scheme.el (guile-scheme-mode-map): Use
+	`shared-lisp-mode-map' as the parent keymap if
+	`lisp-mode-shared-map' is not defined.
+	(guile-scheme-module): New variable.
+	(guile-scheme-set-module): Set module only when necessary.
+	(guile-scheme-eval-print-last-sexp): Insert newline after eval.
+	(guile-scheme-complete-table): New variable.
+	(guile-scheme-input-symbol): New function.
+	(guile-scheme-apropos, guile-scheme-describe,
+	guile-scheme-kill-process): New commands.
+
 2001-04-25  Keisuke Nishida  <kxn30@po.cwru.edu>
 
 	* guile.el, guile-scheme.el, guile-emacs.scm: New files.
