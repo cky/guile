@@ -37,7 +37,6 @@ dnl   It also sets the following variables, which describe how clients
 dnl   can link against libqthreads.a:
 dnl      THREAD_PACKAGE --- set to "QT" if configuration succeeds, or
 dnl         the empty string if configuration fails.
-dnl	 THREAD_CPPFLAGS --- set to `-I' flags for thread header files
 dnl	 THREAD_LIBS_LOCAL --- linker options for use in this source tree
 dnl	 THREAD_LIBS_INSTALLED --- linker options for use after this package
 dnl	    is installed
@@ -69,10 +68,6 @@ AC_DEFUN([QTHREADS_CONFIGURE],[
   AC_REQUIRE([AC_PROG_LN_S])
 
   AC_MSG_CHECKING(QuickThreads configuration)
-  # How can we refer to the qt source directory from within the qt build
-  # directory?  For headers, we can rely on the fact that the qt src
-  # directory appears in the #include path.
-  qtsrcdir="`(cd $srcdir; pwd)`/qt"
 
   changequote(,)dnl We use [ and ] in a regexp in the case
 
@@ -143,7 +138,6 @@ AC_DEFUN([QTHREADS_CONFIGURE],[
   if test -n "$THREAD_PACKAGE"; then
     AC_MSG_RESULT($port_name)
     QTHREAD_LTLIBS=libqthreads.la
-    THREAD_CPPFLAGS="-I$qtsrcdir -I../qt"
     THREAD_LIBS_LOCAL="../qt/libqthreads.la"
     THREAD_LIBS_INSTALLED="-lqthreads"
   else
@@ -157,7 +151,6 @@ AC_DEFUN([QTHREADS_CONFIGURE],[
   AC_SUBST(qtdmdb_s)
   AC_SUBST(qthread_asflags)
   AC_SUBST(THREAD_PACKAGE)
-  AC_SUBST(THREAD_CPPFLAGS)
   AC_SUBST(THREAD_LIBS_LOCAL)
   AC_SUBST(THREAD_LIBS_INSTALLED)
 ])
