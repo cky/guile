@@ -753,7 +753,9 @@ scm_bit_extract (n, start, end)
   return SCM_MAKINUM ((SCM_INUM (n) >> start) & ((1L << (end - start)) - 1));
 }
 
-char scm_logtab[] = { 0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4 };
+static const char scm_logtab[] = {
+  0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4
+};
 SCM_PROC (s_logcount, "logcount", 1, 0, 0, scm_logcount);
 
 SCM
@@ -786,7 +788,9 @@ scm_logcount (n)
   return SCM_MAKINUM (c);
 }
 
-char scm_ilentab[] = { 0, 1, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4 };
+static const char scm_ilentab[] = {
+  0, 1, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4
+};
 SCM_PROC (s_integer_length, "integer-length", 1, 0, 0, scm_integer_length);
 
 SCM
@@ -827,7 +831,7 @@ scm_integer_length (n)
 
 
 #ifdef SCM_BIGDIG
-char scm_s_bignum[] = "bignum";
+static const char s_bignum[] = "bignum";
 
 SCM
 scm_mkbig (nlen, sign)
@@ -837,11 +841,11 @@ scm_mkbig (nlen, sign)
   SCM v = nlen;
   /* Cast to SCM to avoid signed/unsigned comparison warnings.  */
   if (((v << 16) >> 16) != (SCM) nlen)
-    scm_wta (SCM_MAKINUM (nlen), (char *) SCM_NALLOC, scm_s_bignum);
+    scm_wta (SCM_MAKINUM (nlen), (char *) SCM_NALLOC, s_bignum);
   SCM_NEWCELL (v);
   SCM_DEFER_INTS;
   SCM_SETCHARS (v, scm_must_malloc ((long) (nlen * sizeof (SCM_BIGDIG)),
-				    scm_s_bignum));
+				    s_bignum));
   SCM_SETNUMDIGS (v, nlen, sign ? scm_tc16_bigneg : scm_tc16_bigpos);
   SCM_ALLOW_INTS;
   return v;
@@ -868,7 +872,7 @@ scm_big2inum (b, l)
 }
 
 
-char s_adjbig[] = "scm_adjbig";
+static const char s_adjbig[] = "scm_adjbig";
 
 SCM
 scm_adjbig (b, nlen)
@@ -1521,7 +1525,7 @@ scm_divbigbig (x, nx, y, ny, sgn, modes)
 /*** NUMBERS -> STRINGS ***/
 #ifdef SCM_FLOATS
 int scm_dblprec;
-static double fx[] =
+static const double fx[] =
 {  0.0,  5e-1,  5e-2,  5e-3,   5e-4, 5e-5,
   5e-6,  5e-7,  5e-8,  5e-9,  5e-10,
  5e-11, 5e-12, 5e-13, 5e-14,  5e-15,

@@ -449,13 +449,13 @@ SCM scm_i_trace;
 
 
 
-static void  bodycheck SCM_P ((SCM xorig, SCM *bodyloc, char *what));
+static void  bodycheck SCM_P ((SCM xorig, SCM *bodyloc, const char *what));
 
 static void 
 bodycheck (xorig, bodyloc, what)
      SCM xorig;
      SCM *bodyloc;
-     char *what;
+     const char *what;
 {
   ASRTSYNTAX (scm_ilength (*bodyloc) >= 1, scm_s_expression);
 }
@@ -957,7 +957,7 @@ scm_m_letrec (xorig, env)
 
 
 SCM_SYNTAX(s_let, "let", scm_makmmacro, scm_m_let);
-SCM_SYMBOL(scm_i_let, s_let);
+SCM_GLOBAL_SYMBOL(scm_i_let, s_let);
 
 SCM 
 scm_m_let (xorig, env)

@@ -173,8 +173,6 @@
 # define SCM_BIGDN(x) ((x) >> SCM_BITSPERDIG)
 # define SCM_BIGLO(x) ((x) & (SCM_BIGRAD-1))
 
-extern char scm_s_bignum[];
-
 #endif /* def BIGNUMS */
 
 #ifndef SCM_BIGDIG
