@@ -1,3 +1,7 @@
+2001-02-08  Keisuke Nishida  <kxn30@po.cwru.edu>
+
+	* ports.c (scm_unread_char): Take an optional argument.
+
 2001-02-08  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* modules.h (scm_selected_module, scm_current_module): Renamed

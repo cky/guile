@@ -1121,7 +1121,7 @@ SCM_DEFINE (scm_peek_char, "peek-char", 0, 1, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_unread_char, "unread-char", 2, 0, 0,
+SCM_DEFINE (scm_unread_char, "unread-char", 1, 1, 0,
             (SCM cobj, SCM port),
 	    "Place @var{char} in @var{port} so that it will be read by the\n"
 	    "next read operation.  If called multiple times, the unread characters\n"
