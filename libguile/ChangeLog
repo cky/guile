@@ -1,5 +1,7 @@
 2002-11-03  Marius Vollmer  <mvo@zagadka.ping.de>
 
+	* numbers.c (scm_integer_expt): Make 0^z == 0 for z != 0.
+
 	* _scm.h (HAVE_RESTARTABLE_SYSCALLS): Do define even when
 	SCM_COPT_THREADS is defined.
 	(SCM_SYSCALL): Use EINTR-expection version when SCM_COPT_THREADS
