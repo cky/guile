@@ -1,3 +1,7 @@
+Wed Sep 11 17:55:59 1996  Jim Blandy  <jimb@totoro.cyclic.com>
+
+	* strerror.c: Doc fix.
+
 Thu Sep 12 00:00:32 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
 
 	* gdbint.c (gdb_read): Now possible to run during GC.
