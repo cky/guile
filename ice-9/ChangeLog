@@ -1,3 +1,8 @@
+2004-10-29  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* arrays.scm: Do not install read-hash procedure for reading
+	arrays, this is done in libguile now.
+
 2004-10-27  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* arrays.scm (uniform-vector?, uniform-vector-set!): Removed, now

@@ -1,3 +1,46 @@
+2004-10-29  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* unif.h, unif.c (scm_make_u1vector): New, but only temporary.
+	(make_uve): Removed.
+	(scm_i_proc_make_vector, scm_i_proc_make_string,
+	scm_i_proc_make_u1vector): New.
+	(scm_init_unif): Initialize them.
+	(scm_i_convert_old_prototype): New.
+	(scm_make_uve): Use it to get the creator procedure.  Removed all
+	old code that created old-style uniform vectors.
+	(scm_array_p): Handle generic vectors.
+	(scm_dimensions_to_uniform_array): Do not fill new array with
+	prototype when that is a procedure.
+	(scm_list_to_uniform_array): Also accept a list of lower bounds as
+	the NDIM argument.
+	(scm_i_print_array): Print rank for shared or non-zero-origin
+	vectors.
+	(tag_proto_table, scm_i_tag_to_prototype, scm_i_read_array): New.
+	(scm_raprin1): Do not call scm_i_array_print for enclosed arrays,
+	which I do not understand yet.
+	(scm_array_prototype): Explicitely handle generic vectors.
+	
+	* numbers.c, number.h (scm_i_print_complex, icmplx2str): New.
+	(iflo2str): Use icmplx2str for complex numbers.
+
+	* srfi-4.c, srfi-4.h (scm_i_read_homogenous_vector,
+	scm_i_uniform_vector_prototype): Removed.
+	(scm_i_uniform_vector_creator): New.
+	(SCM_UVEC_C32, scm_c32vector, scm_make_c32vector, etc,
+	SCM_UVEC_C64, scm_c64vector, scm_make_c64vector, etc): New.
+	Updated all tables and generic functions to support them.
+	(scm_i_proc_make_u8vector, scm_i_proc_make_s8vector, etc): New.
+	(scm_init_srfi_4): Initialize them.
+	
+	* srfi-4.i.c (scm_take_u8vector, etc): use uvec_sizes instead of
+	sizeof(CTYPE) as explained in the comment.
+
+	* read.c (scm_lreadr): Call scm_i_read_array for all characters
+	followinf '#' that can start an array.  Explicitely disambiguate
+	'i' and 'e' between introducing numbers and uniform vectors.  Do
+	not call scm_i_read_homogenous_vector, since that is also handled
+	by scm_i_read_array now.
+
 2004-10-27  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	First cut at integrating uniform vectors from srfi-4 with the rest
