@@ -212,7 +212,8 @@ scm_create_hook (const char* name, int n_args)
 
 SCM_DEFINE (scm_make_hook_with_name, "make-hook-with-name", 1, 1, 0, 
             (SCM name, SCM n_args),
-"")
+	    "Create a named hook with the name @var{name} for storing\n"
+	    "procedures of arity @var{n_args}.")
 #define FUNC_NAME s_scm_make_hook_with_name
 {
   SCM hook = make_hook (n_args, FUNC_NAME);
@@ -226,7 +227,7 @@ SCM_DEFINE (scm_make_hook_with_name, "make-hook-with-name", 1, 1, 0,
 
 SCM_DEFINE (scm_make_hook, "make-hook", 0, 1, 0, 
             (SCM n_args),
-"")
+	    "Create a hook for storing procedure of arity @var{n_args}.")
 #define FUNC_NAME s_scm_make_hook
 {
   return make_hook (n_args, FUNC_NAME);
@@ -236,7 +237,7 @@ SCM_DEFINE (scm_make_hook, "make-hook", 0, 1, 0,
 
 SCM_DEFINE (scm_hook_p, "hook?", 1, 0, 0, 
             (SCM x),
-"")
+	    "Return @code{#t} if @var{x} is a hook.")
 #define FUNC_NAME s_scm_hook_p
 {
   return SCM_BOOL (SCM_HOOKP (x));
@@ -246,7 +247,7 @@ SCM_DEFINE (scm_hook_p, "hook?", 1, 0, 0,
 
 SCM_DEFINE (scm_hook_empty_p, "hook-empty?", 1, 0, 0, 
             (SCM hook),
-"")
+	    "Return @code{#t} if @var{hook} is an empty hook.")
 #define FUNC_NAME s_scm_hook_empty_p
 {
   SCM_VALIDATE_HOOK (1, hook);
@@ -257,7 +258,9 @@ SCM_DEFINE (scm_hook_empty_p, "hook-empty?", 1, 0, 0,
 
 SCM_DEFINE (scm_add_hook_x, "add-hook!", 2, 1, 0, 
             (SCM hook, SCM proc, SCM append_p),
-"")
+	    "Add the procedure @var{proc} to the hook @var{hook}. The\n"
+	    "procedure is added to the end if @var{append_p} is true,\n"
+	    "otherwise it is added to the front.")
 #define FUNC_NAME s_scm_add_hook_x
 {
   SCM arity, rest;
@@ -283,7 +286,7 @@ SCM_DEFINE (scm_add_hook_x, "add-hook!", 2, 1, 0,
 
 SCM_DEFINE (scm_remove_hook_x, "remove-hook!", 2, 0, 0, 
             (SCM hook, SCM proc),
-"")
+	    "Remove the procedure @var{proc} from the hook @var{hook}.")
 #define FUNC_NAME s_scm_remove_hook_x
 {
   SCM_VALIDATE_HOOK (1, hook);
@@ -296,7 +299,7 @@ SCM_DEFINE (scm_remove_hook_x, "remove-hook!", 2, 0, 0,
 
 SCM_DEFINE (scm_reset_hook_x, "reset-hook!", 1, 0, 0, 
             (SCM hook),
-"")
+	    "Remove all procedures from the hook @var{hook}.")
 #define FUNC_NAME s_scm_reset_hook_x
 {
   SCM_VALIDATE_HOOK (1,hook);
@@ -308,7 +311,8 @@ SCM_DEFINE (scm_reset_hook_x, "reset-hook!", 1, 0, 0,
 
 SCM_DEFINE (scm_run_hook, "run-hook", 1, 0, 1, 
             (SCM hook, SCM args),
-"")
+	    "Apply all procedures from the hook @var{hook} to the arguments\n"
+	    "@var{args}.")
 #define FUNC_NAME s_scm_run_hook
 {
   SCM_VALIDATE_HOOK (1,hook);
@@ -335,7 +339,7 @@ scm_c_run_hook (SCM hook, SCM args)
 
 SCM_DEFINE (scm_hook_to_list, "hook->list", 1, 0, 0, 
             (SCM hook),
-"")
+	    "Convert the procedure list of @var{hook} to a list.")
 #define FUNC_NAME s_scm_hook_to_list
 {
   SCM_VALIDATE_HOOK (1, hook);
