@@ -1,3 +1,7 @@
+2001-06-30  Thien-Thi Nguyen  <ttn@revel.glug.org>
+
+	* stamp-h.in: bye bye
+
 2001-06-30  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* gh_eval.c (gh_eval_str): Use scm_c_eval_string instead of
@@ -23,7 +27,7 @@
 	(SCM_LIST0, SCM_LIST1, SCM_LIST2, SCM_LIST3, SCM_LIST4, SCM_LIST5,
 	SCM_LIST6, SCM_LIST7, SCM_LIST8, SCM_LIST9, scm_listify): Deprecated.
 	(lots of files): Use the new functions.
-	
+
 	* goops.c (CALL_GF1, CALL_GF2, CALL_GF3, CALL_GF4): Use scm_call_N.
 
 	* strings.c: #include "libguile/deprecation.h".
@@ -34,11 +38,11 @@
 	user-defined hash procedure first, so that overriding the builtin
 	hash characters is possible (this was needed for implementing
 	SRFI-4's read synax `f32(...)').
-	
+
 	* num2integral.i.c: Use scm_t_signed_bits instead of scm_t_bits,
 	because the latter is unsigned now and breaks comparisons like
 	(n < (scm_t_signed_bits)MIN_VALUE).
-	
+
 2001-06-26  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* eval.h, eval.c (scm_call_4): New function.
@@ -46,7 +50,7 @@
 	* eval.c (SCM_APPLY, SCM_CEVAL, ENTER_APPLY): Call trap handlers
 	directly rather than dispatching to them via scm_ithrow and a lazy
 	catch.
-	
+
 	* eval.c (scm_evaluator_trap_table), eval.h (SCM_ENTER_FRAME_HDLR,
 	SCM_APPLY_FRAME_HDLR, SCM_EXIT_FRAME_HDLR): Add three new options
 	for trap handler procedures.
@@ -71,7 +75,7 @@
 
 	Thanks to Stefan Jahn for all necessary information, patches and
 	testing.
-	
+
 	* posix.c: Conditialize getpwent, getgrent, kill, getppid, getuid,
 	getpgrp, ttyname, primitive-fork and some header inclusion for
 	Windows.
@@ -82,7 +86,7 @@
 	* scmsigs.c: Emulate some functions (alarm, sleep, kill) under
 	Windows and conditionalize some signal names.
 
-	* socket.c (scm_getsockopt): Added missing comma.  
+	* socket.c (scm_getsockopt): Added missing comma.
 	Include socket library header under Windows.
 
 	* stime.c (CLKTCK): Add cast to int, to make it compile under
@@ -248,7 +252,7 @@
 	scm_t_srcpropso_plist.  See the big type renaming.
 	* coop-defs.h (scm_mutex_trylock, scm_cond_timedwait): Likewise.
 	Thanks to Seth Alves!
-	
+
 	* numbers.c (SIZE_MAX, PTRDIFF_MIN, PTRDIFF_MAX): Only define when
 	they aren't defined already.
 
@@ -309,7 +313,7 @@
 	extension takes place.
 	* strings.h (SCM_STRING_LENGTH): Likewise.
 	(SCM_STRING_MAX_LENGTH): Use unsigned numbers.
-	
+
 	* __scm.h (ptrdiff_t): Typedef to long when configure didn't find
 	it.
 
