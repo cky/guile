@@ -1974,14 +1974,14 @@
 
 (define (find-and-link-dynamic-module module-name)
   (define (make-init-name mod-name)
-    (string-append 'scm_init
+    (string-append "scm_init"
 		   (list->string (map (lambda (c)
 					(if (or (char-alphabetic? c)
 						(char-numeric? c))
 					    c
 					    #\_))
 				      (string->list mod-name)))
-		   '_module))
+		   "_module"))
 
   ;; Put the subdirectory for this module in the car of SUBDIR-AND-LIBNAME,
   ;; and the `libname' (the name of the module prepended by `lib') in the cdr
@@ -2844,7 +2844,7 @@
 		  (sigaction (car sig-msg)
 			     (car old-handler)
 			     (cdr old-handler))))
-			 signals old-handlers)))))
+	    signals old-handlers)))))
 
 (defmacro false-if-exception (expr)
   `(catch #t (lambda () ,expr)

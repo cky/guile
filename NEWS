@@ -152,6 +152,16 @@ a garbage collection before each allocation of a cell.  This can
 slow down the interpreter dramatically, so the setter should be used to
 turn on this extra processing only when necessary.
 
+* Changes to Scheme functions and syntax
+
+** string-ref: the second argument is no longer optional.
+
+** string, list->string: no longer accept strings in their arguments,
+only characters, for compatibility with R5RS.
+
+** New procedure: port-closed? PORT
+Returns #t if PORT is closed or #f if it is open.
+
 * Changes to the stand-alone interpreter
 
 ** New primitives: `pkgdata-dir', `site-dir', `library-dir' 
@@ -181,9 +191,6 @@ at the top of the script.
 
 (The first options enables the debugging evaluator.
  The second enables backtraces.)
-
-** New procedure: port-closed? PORT
-Returns #t if PORT is closed or #f if it is open.
 
 ** Attempting to get the value of an unbound variable now produces
 an exception with a key of 'unbound-variable instead of 'misc-error.
@@ -220,6 +227,9 @@ removed in a future version.
 ** The "select" procedure now tests port buffers for the ability to
 provide input or accept output.  Previously only the underlying file
 descriptors were checked.
+
+** New variable PIPE_BUF: the maximum number of bytes that can be
+atomically written to a pipe.
 
 ** If a facility is not available on the system when Guile is
 compiled, the corresponding primitive procedure will not be defined.

@@ -45,6 +45,7 @@
 
 
 #include <stdio.h>
+
 #include "_scm.h"
 #include "pairs.h"
 #include "genio.h"
@@ -53,6 +54,9 @@
 #include "scm_validate.h"
 #include "error.h"
 
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif

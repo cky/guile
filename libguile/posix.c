@@ -173,12 +173,13 @@ SCM_DEFINE (scm_pipe, "pipe", 0, 0, 0,
 	    "the CDR is the output port.  Data written (and flushed) to the\n"
 	    "output port can be read from the input port.\n"
 	    "Pipes are commonly used for communication with a newly\n"
-	    "forked child process. @code{setvbuf} can be used to remove the\n"
-	    "buffer from the output port: then data written will be\n"
-	    "available at the input port even if the output port is not\n"
-	    "flushed.  Note that the output port is likely\n"
-	    "to block if too much data is written without reading from\n"
-	    "the input port."
+	    "forked child process.  The need to flush the output port\n"
+	    "can be avoided by making it unbuffered using @code{setvbuf}.\n\n"
+	    "Writes occur atomically provided the size of the data in\n"
+	    "bytes is not greater than the value of @code{PIPE_BUF}\n"
+	    "Note that the output port is likely to block if too much data\n"
+	    "(typically equal to @code{PIPE_BUF}) has been written but not\n"
+	    "yet read from the input port\n"
 	    )
 #define FUNC_NAME s_scm_pipe
 {
@@ -1315,6 +1316,10 @@ scm_init_posix ()
 #ifdef LC_ALL
   scm_sysintern ("LC_ALL", SCM_MAKINUM (LC_ALL));
 #endif
+#ifdef PIPE_BUF
+scm_sysintern ("PIPE_BUF", scm_long2num (PIPE_BUF));
+#endif
+
 #include "cpp_sig_symbols.c"
 #include "posix.x"
 }

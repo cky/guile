@@ -44,6 +44,9 @@
 #include <stdio.h>
 
 #include <gh.h>
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif
 
 /* data conversion C->scheme */
 SCM 

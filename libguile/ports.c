@@ -56,6 +56,10 @@
 #include "scm_validate.h"
 #include "ports.h"
 
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif
+
 #ifdef HAVE_MALLOC_H
 #include <malloc.h>
 #endif

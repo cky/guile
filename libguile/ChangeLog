@@ -1,3 +1,24 @@
+2000-01-31  Gary Houston  <ghouston@arglist.com>
+
+	* strings.h: don't use SCM_P.  don't include <string.h>.
+	* error.c, gh_data.c, ports.c, script.c, strop.c: include <string.h>.
+	
+	* strings.c (scm_string_ref): make the 2nd argument compulsory.
+	previously it defaulted to zero for no good reason that I can see.
+	use a local variable for SCM_INUM (k).  replace
+	SCM_VALIDATE_INUM_DEF with SCM_VALIDATE_INUM_COPY.
+
+	(scm_makfromstr): cosmetic changes.
+
+	(scm_string): Accept only chars in the list, not strings, for
+	conformance to R5RS (particularly for list->string, which is
+	supposed to be the inverse of string->list.)  remove
+	SCM_DEFER_INTS/SCM_ALLOW_INTS, which is unnecessary since
+	scm_makstr handles the cell allocation.  when reporting wrong-type
+	arg, don't report the position as 1.
+
+	* posix.c (scm_init_posix): intern PIPE_BUF if it's defined.
+
 2000-01-29  Gary Houston  <ghouston@arglist.com>
 
 	* posix.c (scm_pipe): rewrote the docstring.

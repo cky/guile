@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996,1998 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996,1998,2000 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -85,64 +85,37 @@ SCM_DEFINE (scm_read_only_string_p, "read-only-string?", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_REGISTER_PROC(s_list_to_string, "list->string", 1, 0, 0, scm_string);
-
+SCM_REGISTER_PROC (s_scm_list_to_string, "list->string", 1, 0, 0, scm_string);
 
 SCM_DEFINE (scm_string, "string", 0, 0, 1, 
             (SCM chrs),
 	    "Returns a newly allocated string composed of the arguments, CHRS.")
 #define FUNC_NAME s_scm_string
 {
-  SCM res;
-  register unsigned char *data;
-  long i;
-  long len;
-  SCM_DEFER_INTS;
-  i = scm_ilength (chrs);
-  if (i < 0)
-    {
-      SCM_ALLOW_INTS;
-      SCM_ASSERT (0, chrs, SCM_ARG1, FUNC_NAME);
-    }
-  len = 0;
-  {
-    SCM s;
+  SCM result;
 
-    for (len = 0, s = chrs; s != SCM_EOL; s = SCM_CDR (s))
-      if (SCM_ICHRP (SCM_CAR (s)))
-	len += 1;
-      else if (SCM_ROSTRINGP (SCM_CAR (s)))
-	len += SCM_ROLENGTH (SCM_CAR (s));
-      else
-	{
-	  SCM_ALLOW_INTS;
-	  SCM_ASSERT (0, s, SCM_ARG1, FUNC_NAME);
-	}
+  {
+    long i = scm_ilength (chrs);
+
+    SCM_ASSERT (i >= 0, chrs, SCM_ARGn, FUNC_NAME);
+    result = scm_makstr (i, 0);
   }
-  res = scm_makstr (len, 0);
-  data = SCM_UCHARS (res);
-  for (;SCM_NNULLP (chrs);chrs = SCM_CDR (chrs))
-    {
-      if (SCM_ICHRP (SCM_CAR (chrs)))
-	*data++ = SCM_ICHR (SCM_CAR (chrs));
-      else
-	{
-	  int l;
-	  char * c;
-	  l = SCM_ROLENGTH (SCM_CAR (chrs));
-	  c = SCM_ROCHARS (SCM_CAR (chrs));
-	  while (l)
-	    {
-	      --l;
-	      *data++ = *c++;
-	    }
-	}
-    }
-  SCM_ALLOW_INTS;
-  return res;
+
+  {
+    unsigned char *data = SCM_UCHARS (result);
+
+    while (SCM_NNULLP (chrs))
+      {
+	SCM elt = SCM_CAR (chrs);
+
+	SCM_VALIDATE_ICHR (SCM_ARGn, elt);
+	*data++ = SCM_ICHR (elt);
+	chrs = SCM_CDR (chrs);
+      }
+  }
+  return result;
 }
 #undef FUNC_NAME
-
 
 SCM 
 scm_makstr (long len, int slots)
@@ -212,20 +185,16 @@ scm_take0str (char *s)
   return scm_take_str (s, strlen (s));
 }
 
-
 SCM 
 scm_makfromstr (const char *src, scm_sizet len, int slots)
 {
-  SCM s;
-  register char *dst;
-  s = scm_makstr ((long) len, slots);
-  dst = SCM_CHARS (s);
+  SCM s = scm_makstr (len, slots);
+  char *dst = SCM_CHARS (s);
+
   while (len--)
     *dst++ = *src++;
   return s;
 }
-
-
 
 SCM 
 scm_makfrom0str (const char *src)
@@ -281,16 +250,18 @@ SCM_DEFINE (scm_string_length, "string-length", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_string_ref, "string-ref", 1, 1, 0,
+SCM_DEFINE (scm_string_ref, "string-ref", 2, 0, 0,
             (SCM str, SCM k),
 	    "Returns character K of STR using zero-origin indexing.\n"
             "K must be a valid index of STR.")
 #define FUNC_NAME s_scm_string_ref
 {
-  SCM_VALIDATE_ROSTRING (1,str);
-  SCM_VALIDATE_INUM_DEF (2,k,0);
-  SCM_ASSERT_RANGE (2,k,SCM_INUM (k) < SCM_ROLENGTH (str) && SCM_INUM (k) >= 0);
-  return SCM_MAKICHR (SCM_ROUCHARS (str)[SCM_INUM (k)]);
+  int idx;
+
+  SCM_VALIDATE_ROSTRING (1, str);
+  SCM_VALIDATE_INUM_COPY (2, k, idx);
+  SCM_ASSERT_RANGE (2, k, idx >= 0 && idx < SCM_ROLENGTH (str));
+  return SCM_MAKICHR (SCM_ROUCHARS (str)[idx]);
 }
 #undef FUNC_NAME
 

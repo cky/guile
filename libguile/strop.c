@@ -30,6 +30,11 @@ Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
 #include "scm_validate.h"
 #include "strop.h"
 #include "read.h" /*For SCM_CASE_INSENSITIVE_P*/
+
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif
+
 
 
 /*
