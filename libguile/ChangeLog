@@ -1,3 +1,10 @@
+2000-07-18  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* root.[ch] (scm_call_catching_errors):  Deprecated.
+
+	* root.c (scm_init_root):  Initialize the root smob type using the
+	standard initialization functions.
+
 2000-07-17  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* eval.c (unmemocopy): Don't rely on V being a list of at least

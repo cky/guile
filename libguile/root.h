@@ -161,8 +161,16 @@ extern SCM scm_internal_cwdr (scm_catch_body_t body,
 extern SCM scm_call_with_dynamic_root (SCM thunk, SCM handler);
 extern SCM scm_dynamic_root (void);
 extern SCM scm_apply_with_dynamic_root (SCM proc, SCM a1, SCM args, SCM handler);
-extern SCM scm_call_catching_errors (SCM (*thunk)(), SCM (*err_filter)(), void * closure);
 extern void scm_init_root (void);
+
+
+
+#if (SCM_DEBUG_DEPRECATED == 0)
+
+/* Use the catch functions from throw.[ch] instead of: */
+extern SCM scm_call_catching_errors (SCM (*thunk)(), SCM (*err_filter)(), void * closure);
+
+#endif  /* SCM_DEBUG_DEPRECATED == 0 */
 
 #endif  /* ROOTH */
 

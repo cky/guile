@@ -42,6 +42,8 @@ In release 1.6:
   SCM_INT_SIGNAL, SCM_FPE_SIGNAL, SCM_BUS_SIGNAL, SCM_SEGV_SIGNAL, 
   SCM_ALRM_SIGNAL, SCM_GC_SIGNAL, SCM_TICK_SIGNAL, SCM_SIG_ORD, 
   SCM_ORD_SIG, SCM_NUM_SIGS
+- remove function scm_call_catching_errors
+  (replaced by catch functions from throw.[ch])
 
 
 Modules sort.c and random.c should be factored out into separate

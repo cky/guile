@@ -399,18 +399,18 @@ scm_apply_with_dynamic_root (SCM proc, SCM a1, SCM args, SCM handler)
 
 
 
+#if (SCM_DEBUG_DEPRECATED == 0)
+
 /* Call thunk(closure) underneath a top-level error handler.
  * If an error occurs, pass the exitval through err_filter and return it.
  * If no error occurs, return the value of thunk.
  */
-
 
 #ifdef _UNICOS
 typedef int setjmp_type;
 #else
 typedef long setjmp_type;
 #endif
-
 
 
 SCM
@@ -436,12 +436,16 @@ scm_call_catching_errors (SCM (*thunk)(), SCM (*err_filter)(), void *closure)
   return answer;
 }
 
+#endif  /* SCM_DEBUG_DEPRECATED == 0 */
+
+
 void
 scm_init_root ()
 {
-  scm_tc16_root = scm_make_smob_type_mfpe ("root", sizeof (struct scm_root_state),
-                                          mark_root, NULL, print_root, NULL);
-                                          
+  scm_tc16_root = scm_make_smob_type ("root", sizeof (struct scm_root_state));
+  scm_set_smob_mark (scm_tc16_root, mark_root);
+  scm_set_smob_print (scm_tc16_root, print_root);
+
 #include "libguile/root.x"
 }
 
