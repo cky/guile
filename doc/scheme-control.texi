@@ -249,25 +249,27 @@ times.
 @node Continuations
 @section Continuations
 
-@c FIXME::martin: Review me!
-
 @cindex call/cc
-The possibility to explicitly capture continuation and the use of
+@cindex call-with-current-continuation
+The ability to explicitly capture continuations using
 @code{call-with-current-continuation} (also often called @code{call/cc}
-for shortness) is maybe the most powerful control structure known.  All
-other control structures like loops or coroutines can be emulated using
-continuation.
+for short), and to invoke such continuations later any number of times,
+and from any other point in a program, provides maybe the most powerful
+control structure known.  All other control structures, such as loops
+and coroutines, can be emulated using continuations.
 
-@c FIXME::martin: Is this too much of understatement, maybe confusing?
-@c   I'm not sure.
+@c NJFIXME - need a little something here about what continuations are
+@c and what they do for you.
+
 The implementation of continuations in Guile is not as efficient as one
-might except, because it is constrained by the fact that Guile is
-required to be cooperative to programs written in other languages, such
-as C which do not know about continuations.  So continuations should be
-used when there is no other possibility to get the needed effect.  If
-you find yourself using @code{call/cc} for escape procedures and your
-program is running to slow, you might want to use exceptions (REFFIXME)
-instead.
+might hope, because it is constrained by the fact that Guile is designed
+to cooperate with programs written in other languages, such as C, which
+do not know about continuations.  So continuations should be used when
+there is no other simple way of achieving the desired behaviour, or
+where the advantages of the elegant continuation mechanism outweigh the
+need for optimum performance.  If you find yourself using @code{call/cc}
+for escape procedures and your program is running too slow, you might
+want to use exceptions (@pxref{Exceptions}) instead.
 
 @rnindex call-with-current-continuation
 @deffn primitive call-with-current-continuation proc
@@ -404,15 +406,89 @@ programming languages) provides an additional mechanism called
 more conveniently.
 
 @menu
-* Catch and Throw::             Basic exception handling primitives.
+* Exception Terminology::       Different ways to say the same thing.
+* Catch::                       Setting up to catch exceptions.
+* Throw::                       Throwing an exception.
 * Lazy Catch::                  Catch without unwinding.
 * Stack Catch::                 Capturing the stack at a throw.
 * Exception Implementation::    How Guile implements exceptions.
 @end menu
 
 
-@node Catch and Throw
-@subsection Basic Exception Handling Primitives
+@node Exception Terminology
+@subsection Exception Terminology
+
+There are several variations on the terminology for dealing with
+non-local jumps.  It is useful to be aware of them, and to realize
+that they all refer to the same basic mechanism.
+
+@itemize @bullet
+@item
+Actually making a non-local jump may be called @dfn{raising an
+exception}, @dfn{raising a signal}, @dfn{throwing an exception} or
+@dfn{doing a long jump}.  When the jump indicates an error condition,
+people may talk about @dfn{signalling}, @dfn{raising} or @dfn{throwing}
+@dfn{an error}.
+
+@item
+Handling the jump at its target may be referred to as @dfn{catching} or
+@dfn{handling} the @dfn{exception}, @dfn{signal} or, where an error
+condition is involved, @dfn{error}.
+@end itemize
+
+Where @dfn{signal} and @dfn{signalling} are used, special care is needed
+to avoid the risk of confusion with POSIX signals.  (Especially
+considering that Guile handles POSIX signals by throwing a corresponding
+kind of exception: REFFIXME.)
+
+This manual prefers to speak of throwing and catching exceptions, since
+this terminology matches the corresponding Guile primitives.
+
+
+@node Catch
+@subsection Catching Exceptions
+
+@code{catch} is used to set up a target for a possible non-local jump.
+The arguments of a @code{catch} expression are a @dfn{key}, which
+restricts the set of exceptions to which this @code{catch} applies, a
+thunk that specifies the @dfn{normal case} code --- i.e. what should
+happen if no exceptions are thrown --- and a @dfn{handler} procedure
+that says what to do if an exception is thrown.  Note that if the
+@dfn{normal case} thunk executes @dfn{normally}, which means without
+throwing any exceptions, the handler procedure is not executed at all.
+
+When an exception is thrown using the @code{throw} primitive, the first
+argument of the @code{throw} is a symbol that indicates the type of the
+exception.  For example, Guile throws an exception using the symbol
+@code{numerical-overflow} to indicate numerical overflow errors such as
+division by zero:
+
+@lisp
+(/ 1 0)
+@result{}
+ABORT: (numerical-overflow)
+@end lisp
+
+The @var{key} argument in a @code{catch} expression corresponds to this
+symbol.  @var{key} may be a specific symbol, such as
+@code{numerical-overflow}, in which case the @code{catch} applies
+specifically to exceptions of that type; or it may be @code{#t}, which
+means that the @code{catch} applies to all exceptions, irrespective of
+their type.
+
+The second argument of a @code{catch} expression should be a thunk
+(i.e. a procedure that accepts no arguments) that specifies the normal
+case code.  The @code{catch} is active for the execution of this thunk,
+including any code called directly or indirectly by the thunk's body.
+Evaluation of the @code{catch} expression activates the catch and then
+calls this thunk.
+
+The third argument of a @code{catch} expression is a handler procedure.
+If an exception is thrown, this procedure is called with exactly the
+arguments specified by the @code{throw}.  Therefore, the handler
+procedure must be designed to accept a number of arguments that
+corresponds to the number of arguments in all @code{throw} expressions
+that can be caught by this @code{catch}.
 
 @deffn primitive catch key thunk handler
 Invoke @var{thunk} in the dynamic context of @var{handler} for
@@ -430,6 +506,32 @@ from further up the call chain is invoked.
 If the key is @code{#t}, then a throw to @emph{any} symbol will
 match this call to @code{catch}.
 @end deffn
+
+If the handler procedure needs to match a variety of @code{throw}
+expressions with varying numbers of arguments, you should write it like
+this:
+
+@lisp
+(lambda (key . args)
+  @dots{})
+@end lisp
+
+@noindent
+The @var{key} argument is guaranteed always to be present, because a
+@code{throw} without a @var{key} is not valid.  The number and
+interpretation of the @var{args} varies from one type of exception to
+another, but should be specified by the documentation for each exception
+type.
+
+Note that, once the handler procedure is invoked, the catch that led to
+the handler procedure being called is no longer active.  Therefore, if
+the handler procedure itself throws an exception, that exception can
+only be caught by another active catch higher up the call stack, if
+there is one.
+
+
+@node Throw
+@subsection Throwing Exceptions
 
 @deffn primitive throw key . args
 Invoke the catch form matching @var{key}, passing @var{args} to the

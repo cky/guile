@@ -1,3 +1,9 @@
+2001-04-22  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scheme-control.texi (Exceptions): Extended documentation.
+	(Continuations): Correct "except" typo, and fix reference to
+	Exceptions node.  Plus minor review changes.
+
 2001-04-20  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* scheme-control.texi (Exceptions): Reorganized and extended
