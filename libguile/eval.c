@@ -445,6 +445,7 @@ const char scm_s_expression[] = "missing or extra expression";
 const char scm_s_test[] = "bad test";
 const char scm_s_body[] = "bad body";
 const char scm_s_bindings[] = "bad bindings";
+const char scm_s_duplicate_bindings[] = "duplicate bindings";
 const char scm_s_variable[] = "bad variable";
 const char scm_s_clauses[] = "bad or missing clauses";
 const char scm_s_formals[] = "bad formals";
@@ -711,6 +712,8 @@ scm_m_letstar (SCM xorig, SCM env)
       arg1 = SCM_CAR (proc);
       SCM_ASSYNT (2 == scm_ilength (arg1), xorig, scm_s_bindings, s_letstar);
       SCM_ASSYNT (SCM_SYMBOLP (SCM_CAR (arg1)), xorig, scm_s_variable, s_letstar);
+      if (scm_c_improper_memq (SCM_CAR (arg1), vars))
+	scm_wta (xorig, scm_s_duplicate_bindings, s_letstar);
       *varloc = scm_cons2 (SCM_CAR (arg1), SCM_CAR (SCM_CDR (arg1)), SCM_EOL);
       varloc = SCM_CDRLOC (SCM_CDR (*varloc));
       proc = SCM_CDR (proc);
@@ -916,6 +919,8 @@ scm_m_letrec1 (SCM op, SCM imm, SCM xorig, SCM env)
       arg1 = SCM_CAR (proc);
       SCM_ASSYNT (2 == scm_ilength (arg1), xorig, scm_s_bindings, what);
       SCM_ASSYNT (SCM_SYMBOLP (SCM_CAR (arg1)), xorig, scm_s_variable, what);
+      if (scm_c_improper_memq (SCM_CAR (arg1), vars))
+	scm_wta (xorig, scm_s_duplicate_bindings, what);
       vars = scm_cons (SCM_CAR (arg1), vars);
       *initloc = scm_cons (SCM_CAR (SCM_CDR (arg1)), SCM_EOL);
       initloc = SCM_CDRLOC (*initloc);
@@ -970,7 +975,7 @@ scm_m_let (SCM xorig, SCM env)
     }
 
   SCM_ASSYNT (SCM_NIMP (proc), xorig, scm_s_bindings, s_let);
-  if (SCM_CONSP (proc))	
+  if (SCM_CONSP (proc))
     {
       /* plain let, proc is <bindings> */
       return scm_m_letrec1 (SCM_IM_LET, SCM_IM_LET, xorig, env);
