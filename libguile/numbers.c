@@ -4337,14 +4337,26 @@ SCM_DEFINE (scm_inexact_to_exact, "inexact->exact", 1, 0, 0,
     return z;
   else if (SCM_REALP (z))
     {
-      double u = floor (SCM_REAL_VALUE (z) + 0.5);
-      long lu = (long) u;
-      if (SCM_FIXABLE (lu))
-	return SCM_MAKINUM (lu);
-      else if (!xisinf (u) && !xisnan (u))
-	return scm_i_dbl2big (u);
-      else
+      /* SCM_MOST_POSITIVE_FIXNUM+1 and SCM_MOST_NEGATIVE_FIXNUM are both
+         powers of 2, so there's no rounding when making "double" values
+         from them.  If plain SCM_MOST_POSITIVE_FIXNUM was used it could get
+         rounded on a 64-bit machine, hence the "+1".
+
+         The use of floor() to force to an integer value ensures we get a
+         "numerically closest" value without depending on how a double->long
+         cast or how mpz_set_d will round.  For reference, double->long
+         probably follows the hardware rounding mode, mpz_set_d truncates
+         towards zero.  */
+
+      double u = SCM_REAL_VALUE (z);
+      if (xisinf (u) || xisnan (u))
 	scm_num_overflow (s_scm_inexact_to_exact);
+      u = floor (u + 0.5);
+      if (u < (double) (SCM_MOST_POSITIVE_FIXNUM+1)
+          && u >= (double) SCM_MOST_NEGATIVE_FIXNUM)
+	return SCM_MAKINUM ((long) u);
+      else
+	return scm_i_dbl2big (u);
     }
   else
     SCM_WRONG_TYPE_ARG (1, z);
