@@ -1,5 +1,5 @@
 ;;;; test-suite/lib.scm --- generic support for testing
-;;;; 	Copyright (C) 1999 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1999, 2000 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -85,12 +85,12 @@
 ;;;; (begin
 ;;;;   (with-test-prefix "basic arithmetic"
 ;;;;     (pass-if "addition" (= (+ 2 2) 4))
-;;;;     (pass-if "division" (= (- 4 2) 2)))
+;;;;     (pass-if "subtraction" (= (- 4 2) 2)))
 ;;;;   (pass-if "multiplication" (= (* 2 2) 4)))
 ;;;; 
 ;;;; In that example, the three test names are:
 ;;;;   ("basic arithmetic" "addition"),
-;;;;   ("basic arithmetic" "division"), and
+;;;;   ("basic arithmetic" "subtraction"), and
 ;;;;   ("multiplication").
 ;;;;
 ;;;; WITH-TEST-PREFIX can be nested.  Each WITH-TEST-PREFIX postpends
@@ -153,7 +153,7 @@
 
 
 ;;;; with-test-prefix: naming groups of tests
-;;;; See the discussion of TEST
+;;;; See the discussion of TEST NAMES, above.
 
 ;;; A fluid containing the current test prefix, as a list.
 (define prefix-fluid (make-fluid))
