@@ -1,6 +1,6 @@
 ## Process this file with Automake to create Makefile.in
 ##
-##  	Copyright (C) 1998 Free Software Foundation, Inc.
+##  	Copyright (C) 1998, 2004 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##   
@@ -39,5 +39,3 @@ goops_toc.html: goops.texi $(goops_TEXINFOS)
 	$(TEXI2HTML) -split_chapter goops.texi
 
 endif
-
-CLEANFILES = goops.tmp goops.cps
