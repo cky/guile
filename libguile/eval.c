@@ -4083,6 +4083,11 @@ scm_init_eval ()
   scm_set_smob_mark (scm_tc16_promise, scm_markcdr);
   scm_set_smob_print (scm_tc16_promise, promise_print);
 
+  /* Dirk:Fixme:: make scm_undefineds local to eval.c: it's only used here. */
+  scm_undefineds = scm_cons (SCM_UNDEFINED, SCM_EOL);
+  SCM_SETCDR (scm_undefineds, scm_undefineds);
+  scm_listofnull = scm_cons (SCM_EOL, SCM_EOL);
+
   scm_f_apply = scm_make_subr ("apply", scm_tc7_lsubr_2, scm_apply);
 
   scm_lisp_nil = scm_sysintern ("nil", SCM_UNDEFINED);
@@ -4092,9 +4097,6 @@ scm_init_eval ()
   SCM_SETCDR (scm_lisp_t, SCM_CAR (scm_lisp_t));
   scm_lisp_t = SCM_CAR (scm_lisp_t);
   
-  /* acros */
-  /* end of acros */
-
 #if SCM_DEBUG_DEPRECATED == 0
   scm_top_level_lookup_closure_var =
     scm_sysintern ("*top-level-lookup-closure*", scm_make_fluid ());

@@ -261,7 +261,7 @@ typedef unsigned long scm_c_bvec_limb_t;
    a freelist of its own.  */
 #define SCM_NEWCELL(_into) \
         do { \
-          if (SCM_IMP (scm_freelist)) \
+          if (SCM_NULLP (scm_freelist)) \
             { \
              _into = scm_gc_for_newcell (&scm_master_freelist, \
                                          &scm_freelist); \
@@ -276,7 +276,7 @@ typedef unsigned long scm_c_bvec_limb_t;
         } while(0)
 #define SCM_NEWCELL2(_into) \
         do { \
-          if (SCM_IMP (scm_freelist2)) \
+          if (SCM_NULLP (scm_freelist2)) \
             { \
              _into = scm_gc_for_newcell (&scm_master_freelist2, \
                                          &scm_freelist2); \

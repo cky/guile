@@ -48,7 +48,7 @@
 
 #include "libguile/_scm.h"
 #include "libguile/chars.h"
-
+#include "libguile/root.h"
 #include "libguile/strings.h"
 #include "libguile/validate.h"
 
@@ -437,6 +437,8 @@ SCM_DEFINE (scm_make_shared_substring, "make-shared-substring", 1, 2, 0,
 void
 scm_init_strings ()
 {
+  scm_nullstr = scm_allocate_string (0);
+
 #ifndef SCM_MAGIC_SNARFER
 #include "libguile/strings.x"
 #endif

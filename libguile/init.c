@@ -471,7 +471,7 @@ scm_init_guile_1 (SCM_STACKITEM *base)
 #ifdef GUILE_DEBUG_MALLOC
   scm_debug_malloc_prehistory ();
 #endif
-  scm_init_storage ();
+  scm_init_storage ();	          /* requires smob_prehistory */
   scm_struct_prehistory ();	  /* requires storage */
   scm_symbols_prehistory ();      /* requires storage */
   scm_weaks_prehistory ();	  /* requires storage */
@@ -541,17 +541,17 @@ scm_init_guile_1 (SCM_STACKITEM *base)
   scm_init_srcprop ();
 #endif
   scm_init_stackchk ();
-  scm_init_struct ();
-  scm_init_stacks ();   /* Requires struct */
+  scm_init_strings ();
+  scm_init_struct ();   /* Requires strings */
+  scm_init_stacks ();   /* Requires strings, struct */
   scm_init_symbols ();
   scm_init_tag ();
   scm_init_values ();   /* Requires struct */
-  scm_init_load ();
+  scm_init_load ();     /* Requires strings */
   scm_init_objects ();	/* Requires struct */
-  scm_init_print ();	/* Requires struct */
+  scm_init_print ();	/* Requires strings, struct */
   scm_init_read ();
   scm_init_stime ();
-  scm_init_strings ();
   scm_init_strorder ();
   scm_init_strop ();
   scm_init_throw ();

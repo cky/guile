@@ -1,3 +1,30 @@
+2001-05-15  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* eval.c (scm_init_eval):  Initialize scm_undefineds and
+	scm_listofnull. 
+
+	* gc.c (scm_debug_newcell, scm_debug_newcell2):  Fixed to behave
+	like the SCM_NEWCELL macro counterparts.
+
+	(scm_init_storage, scm_init_gc):  Moved initialization of
+	scm_tc16_allocated from scm_init_gc to scm_init_storage.
+
+	(scm_init_storage):  Moved initialization of scm_undefineds and
+	scm_listofnull to eval.c, initializion of scm_nullstr to
+	strings.c, initializion of scm_nullvect to vectors.c.
+
+	* gc.h (SCM_NEWCELL, SCM_NEWCELL2):  Prefer SCM_NULLP over
+	SCM_IMP, as in scm_debug_newcell and scm_debug_newcell2.
+
+	* init.c (scm_init_guile_1):  Reordered some initializations and
+	added dependcy information comments.
+
+	* load.c (scm_init_load):  Use scm_nullstr.
+
+	* strings.c (scm_init_strings):  Initialize scm_nullstr.
+
+	* vectors.c (scm_init_vectors):  Initialize scm_nullvect.
+
 2001-05-15  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* values.c (print_values): Print as a unreadable object, not as

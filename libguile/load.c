@@ -513,7 +513,7 @@ scm_init_load ()
   scm_loc_load_extensions
     = SCM_CDRLOC (scm_sysintern ("%load-extensions",
 				 SCM_LIST2 (scm_makfrom0str (".scm"),
-					    scm_makfrom0str (""))));
+					    scm_nullstr)));
   scm_loc_load_hook = SCM_CDRLOC (scm_sysintern ("%load-hook", SCM_BOOL_F));
 
   init_build_info ();

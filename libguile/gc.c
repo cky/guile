@@ -672,11 +672,15 @@ scm_debug_newcell (void)
   /* The rest of this is supposed to be identical to the SCM_NEWCELL
      macro.  */
   if (SCM_NULLP (scm_freelist))
-    new = scm_gc_for_newcell (&scm_master_freelist, &scm_freelist);
+    {
+      new = scm_gc_for_newcell (&scm_master_freelist, &scm_freelist);
+      SCM_GC_SET_ALLOCATED (new);
+    }
   else
     {
       new = scm_freelist;
       scm_freelist = SCM_FREE_CELL_CDR (scm_freelist);
+      SCM_GC_SET_ALLOCATED (new);
     }
 
   return new;
@@ -697,11 +701,15 @@ scm_debug_newcell2 (void)
   /* The rest of this is supposed to be identical to the SCM_NEWCELL
      macro.  */
   if (SCM_NULLP (scm_freelist2))
-    new = scm_gc_for_newcell (&scm_master_freelist2, &scm_freelist2);
+    {
+      new = scm_gc_for_newcell (&scm_master_freelist2, &scm_freelist2);
+      SCM_GC_SET_ALLOCATED (new);
+    }
   else
     {
       new = scm_freelist2;
       scm_freelist2 = SCM_FREE_CELL_CDR (scm_freelist2);
+      SCM_GC_SET_ALLOCATED (new);
     }
 
   return new;
@@ -2589,6 +2597,10 @@ scm_init_storage ()
   scm_sizet init_heap_size_2;
   scm_sizet j;
 
+#if (SCM_DEBUG_CELL_ACCESSES == 1)
+  scm_tc16_allocated = scm_make_smob_type ("allocated cell", 0);
+#endif  /* SCM_DEBUG_CELL_ACCESSES == 1 */
+
   j = SCM_NUM_PROTECTS;
   while (j)
     scm_sys_protects[--j] = SCM_BOOL_F;
@@ -2641,13 +2653,6 @@ scm_init_storage ()
 #endif
 #endif
 
-  scm_undefineds = scm_cons (SCM_UNDEFINED, SCM_EOL);
-  SCM_SETCDR (scm_undefineds, scm_undefineds);
-
-  scm_listofnull = scm_cons (SCM_EOL, SCM_EOL);
-  scm_nullstr = scm_allocate_string (0);
-  scm_nullvect = scm_c_make_vector (0, SCM_UNDEFINED);
-
 #define DEFAULT_SYMHASH_SIZE 277
   scm_symhash = scm_c_make_hash_table (DEFAULT_SYMHASH_SIZE);
   scm_symhash_vars = scm_c_make_hash_table (DEFAULT_SYMHASH_SIZE);
@@ -2694,10 +2699,6 @@ void
 scm_init_gc ()
 {
   SCM after_gc_thunk;
-
-#if (SCM_DEBUG_CELL_ACCESSES == 1)
-  scm_tc16_allocated = scm_make_smob_type ("allocated cell", 0);
-#endif  /* SCM_DEBUG_CELL_ACCESSES == 1 */
 
   /* Dirk:FIXME:: scm_create_hook is strange. */
   scm_after_gc_hook = scm_create_hook ("after-gc-hook", 0);
