@@ -238,14 +238,6 @@ void gh_newline (void);
 
 /* void  gh_assert(int cond, char *msg, SCM obj); */
 
-
-
-#if (SCM_DEBUG_DEPRECATED == 0)
-
-SCM gh_int2scmb(int x);		/* this is being phased out */
-
-#endif  /* SCM_DEBUG_DEPRECATED == 0 */
-
 #ifdef __cplusplus
 }
 #endif
