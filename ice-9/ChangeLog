@@ -1,3 +1,7 @@
+2001-03-09  Keisuke Nishida  <kxn30@po.cwru.edu>
+
+	* match.scm: export defstruct.
+
 2001-03-08  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
 
 	* psyntax.ss: Added FSF copyright notice.  Added a notice of

@@ -22,7 +22,7 @@
   :use-module (ice-9 slib)
   :export (match match-lambda match-lambda* match-define
 		 match-let match-let* match-letrec
-		 define-structure define-const-structure
+		 defstruct define-structure define-const-structure
 		 match:error match:set-error
 		 match:error-control match:set-error-control
 		 match:structure-control match:set-structure-control
