@@ -3,6 +3,9 @@
 	* scan-api: New script.
 	(scan-api): Handle case where `grouping-hook' is #f.
 
+	Remove top-level `debug-enable' form.
+	Add TODO comment; nfc.
+
 	* Makefile.am (scripts_sources): Add "scan-api".
 
 2002-04-30  Thien-Thi Nguyen  <ttn@giblet.glug.org>
