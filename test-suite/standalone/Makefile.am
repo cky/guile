@@ -62,6 +62,13 @@ test_unwind_LDADD = ${top_builddir}/libguile/libguile.la
 check_PROGRAMS += test-unwind
 TESTS += test-unwind
 
+# test-conversion
+test_conversion_SOURCES = test-conversion.c
+test_conversion_CFLAGS = ${test_cflags}
+test_conversion_LDADD = ${top_builddir}/libguile/libguile.la
+check_PROGRAMS += test-conversion
+TESTS += test-conversion
+
 all-local:
 	cd ${srcdir} && chmod u+x ${check_SCRIPTS}
 
