@@ -374,7 +374,6 @@ indent (int n, SCM port)
 static void
 display_frame_expr (char *hdr, SCM exp, char *tlr, int indentation, SCM sport, SCM port, scm_print_state *pstate)
 {
-  SCM string;
   int i = 0, n;
   scm_t_ptob_descriptor *ptob = scm_ptobs + SCM_PTOBNUM (sport);
   do
@@ -398,28 +397,8 @@ display_frame_expr (char *hdr, SCM exp, char *tlr, int indentation, SCM sport, S
     }
   while (indentation + n > SCM_BACKTRACE_WIDTH && i < n_print_params);
   ptob->truncate (sport, n);
-  string = scm_strport_to_string (sport);
-  assert (scm_is_string (string));
-
-  {
-    char *data = scm_i_string_writable_chars (string);
-
-    /* Remove control characters */
-    for (i = 0; i < n; ++i)
-      if (iscntrl (data[i]))
-	data[i] = ' ';
-    /* Truncate */
-    if (indentation + n > SCM_BACKTRACE_WIDTH)
-      {
-	n = SCM_BACKTRACE_WIDTH - indentation;
-	data[n-1] = '$';
-      }
-
-    scm_i_string_stop_writing ();
-  }
       
-  scm_lfwrite (scm_i_string_chars (string), n, port);
-  scm_remember_upto_here_1 (string);
+  scm_display (scm_strport_to_string (sport), port);
 }
 
 static void
