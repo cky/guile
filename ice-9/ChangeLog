@@ -1,3 +1,16 @@
+Tue Dec 17 20:36:45 1996  Marius Vollmer  <mvo@zagadka.ping.de>
+
+*	* boot-9.scm (resolve-module): New optional parameter that
+ 	controls whether autoloading is attempted or not. Default is #t.
+	(process-define-module): Don't autoload the defined module.
+	(try-module-autoload): Don't autoload the directory modules.
+
+*	* boot-9.scm (process-define-module): Ensure that the-scm-module
+ 	is last in the `uses' list to allow shadowing builtin
+ 	bindings. All :use-module options are added in the order they
+ 	appear in the arguments but before anything already on the list
+ 	(such as the-scm-module).
+
 Wed Dec 11 21:06:05 1996  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* slib.scm (slib-parent-dir): throw error if #f returned from
