@@ -889,6 +889,15 @@ the C type @code{float}
 
 @item f64
 the C type @code{double}
+
+@item c32
+complex numbers in rectangular form with the real and imaginary part
+being a @code{float}
+
+@item c64
+complex numbers in rectangular form with the real and imaginary part
+being a @code{double}
+
 @end table
 
 The external representation (ie.@: read syntax) for these vectors is
@@ -917,6 +926,8 @@ anyway to make the intention clear, so this is rarely a problem.
 @deffnx {Scheme Procedure} s64vector? obj
 @deffnx {Scheme Procedure} f32vector? obj
 @deffnx {Scheme Procedure} f64vector? obj
+@deffnx {Scheme Procedure} c32vector? obj
+@deffnx {Scheme Procedure} c64vector? obj
 @deffnx {C Function} scm_uniform_vector_p obj
 @deffnx {C Function} scm_u8vector_p obj
 @deffnx {C Function} scm_s8vector_p obj
@@ -928,6 +939,8 @@ anyway to make the intention clear, so this is rarely a problem.
 @deffnx {C Function} scm_s64vector_p obj
 @deffnx {C Function} scm_f32vector_p obj
 @deffnx {C Function} scm_f64vector_p obj
+@deffnx {C Function} scm_c32vector_p obj
+@deffnx {C Function} scm_c64vector_p obj
 Return @code{#t} if @var{obj} is a homogeneous numeric vector of the
 indicated type.
 @end deffn
@@ -942,6 +955,8 @@ indicated type.
 @deffnx {Scheme Procedure} make-s64vector n [value]
 @deffnx {Scheme Procedure} make-f32vector n [value]
 @deffnx {Scheme Procedure} make-f64vector n [value]
+@deffnx {Scheme Procedure} make-c32vector n [value]
+@deffnx {Scheme Procedure} make-c64vector n [value]
 @deffnx {C Function} scm_make_u8vector n [value]
 @deffnx {C Function} scm_make_s8vector n [value]
 @deffnx {C Function} scm_make_u16vector n [value]
@@ -952,6 +967,8 @@ indicated type.
 @deffnx {C Function} scm_make_s64vector n [value]
 @deffnx {C Function} scm_make_f32vector n [value]
 @deffnx {C Function} scm_make_f64vector n [value]
+@deffnx {C Function} scm_make_c32vector n [value]
+@deffnx {C Function} scm_make_c64vector n [value]
 Return a newly allocated homogeneous numeric vector holding @var{n}
 elements of the indicated type.  If @var{value} is given, the vector
 is initialized with that value, otherwise the contents are
@@ -968,16 +985,20 @@ unspecified.
 @deffnx {Scheme Procedure} s64vector value @dots{}
 @deffnx {Scheme Procedure} f32vector value @dots{}
 @deffnx {Scheme Procedure} f64vector value @dots{}
+@deffnx {Scheme Procedure} c32vector value @dots{}
+@deffnx {Scheme Procedure} c64vector value @dots{}
 @deffnx {C Function} scm_u8vector values
 @deffnx {C Function} scm_s8vector values
-@deffnx {C Function} scm_u16vector valus
-@deffnx {C Function} scm_s16vector valus
-@deffnx {C Function} scm_u32vector valus
-@deffnx {C Function} scm_s32vector valus
-@deffnx {C Function} scm_u64vector valus
-@deffnx {C Function} scm_s64vector valus
-@deffnx {C Function} scm_f32vector valus
-@deffnx {C Function} scm_f64vector valus
+@deffnx {C Function} scm_u16vector values
+@deffnx {C Function} scm_s16vector values
+@deffnx {C Function} scm_u32vector values
+@deffnx {C Function} scm_s32vector values
+@deffnx {C Function} scm_u64vector values
+@deffnx {C Function} scm_s64vector values
+@deffnx {C Function} scm_f32vector values
+@deffnx {C Function} scm_f64vector values
+@deffnx {C Function} scm_c32vector values
+@deffnx {C Function} scm_c64vector values
 Return a newly allocated homogeneous numeric vector of the indicated
 type, holding the given parameter @var{value}s.  The vector length is
 the number of parameters given.
@@ -994,6 +1015,8 @@ the number of parameters given.
 @deffnx {Scheme Procedure} s64vector-length vec
 @deffnx {Scheme Procedure} f32vector-length vec
 @deffnx {Scheme Procedure} f64vector-length vec
+@deffnx {Scheme Procedure} c32vector-length vec
+@deffnx {Scheme Procedure} c64vector-length vec
 @deffnx {C Function} scm_uniform_vector_length vec
 @deffnx {C Function} scm_u8vector_length vec
 @deffnx {C Function} scm_s8vector_length vec
@@ -1005,6 +1028,8 @@ the number of parameters given.
 @deffnx {C Function} scm_s64vector_length vec
 @deffnx {C Function} scm_f32vector_length vec
 @deffnx {C Function} scm_f64vector_length vec
+@deffnx {C Function} scm_c32vector_length vec
+@deffnx {C Function} scm_c64vector_length vec
 Return the number of elements in @var{vec}.
 @end deffn
 
@@ -1019,6 +1044,8 @@ Return the number of elements in @var{vec}.
 @deffnx {Scheme Procedure} s64vector-ref vec i
 @deffnx {Scheme Procedure} f32vector-ref vec i
 @deffnx {Scheme Procedure} f64vector-ref vec i
+@deffnx {Scheme Procedure} c32vector-ref vec i
+@deffnx {Scheme Procedure} c64vector-ref vec i
 @deffnx {C Function} scm_uniform_vector_ref vec i
 @deffnx {C Function} scm_u8vector_ref vec i
 @deffnx {C Function} scm_s8vector_ref vec i
@@ -1030,6 +1057,8 @@ Return the number of elements in @var{vec}.
 @deffnx {C Function} scm_s64vector_ref vec i
 @deffnx {C Function} scm_f32vector_ref vec i
 @deffnx {C Function} scm_f64vector_ref vec i
+@deffnx {C Function} scm_c32vector_ref vec i
+@deffnx {C Function} scm_c64vector_ref vec i
 Return the element at index @var{i} in @var{vec}.  The first element
 in @var{vec} is index 0.
 @end deffn
@@ -1045,6 +1074,8 @@ in @var{vec} is index 0.
 @deffnx {Scheme Procedure} s64vector-set! vec i value
 @deffnx {Scheme Procedure} f32vector-set! vec i value
 @deffnx {Scheme Procedure} f64vector-set! vec i value
+@deffnx {Scheme Procedure} c32vector-set! vec i value
+@deffnx {Scheme Procedure} c64vector-set! vec i value
 @deffnx {C Function} scm_uniform_vector_set_x vec i value
 @deffnx {C Function} scm_u8vector_set_x vec i value
 @deffnx {C Function} scm_s8vector_set_x vec i value
@@ -1056,6 +1087,8 @@ in @var{vec} is index 0.
 @deffnx {C Function} scm_s64vector_set_x vec i value
 @deffnx {C Function} scm_f32vector_set_x vec i value
 @deffnx {C Function} scm_f64vector_set_x vec i value
+@deffnx {C Function} scm_c32vector_set_x vec i value
+@deffnx {C Function} scm_c64vector_set_x vec i value
 Set the element at index @var{i} in @var{vec} to @var{value}.  The
 first element in @var{vec} is index 0.  The return value is
 unspecified.
@@ -1072,6 +1105,8 @@ unspecified.
 @deffnx {Scheme Procedure} s64vector->list vec
 @deffnx {Scheme Procedure} f32vector->list vec
 @deffnx {Scheme Procedure} f64vector->list vec
+@deffnx {Scheme Procedure} c32vector->list vec
+@deffnx {Scheme Procedure} c64vector->list vec
 @deffnx {C Function} scm_uniform_vector_to_list vec
 @deffnx {C Function} scm_u8vector_to_list vec
 @deffnx {C Function} scm_s8vector_to_list vec
@@ -1083,6 +1118,8 @@ unspecified.
 @deffnx {C Function} scm_s64vector_to_list vec
 @deffnx {C Function} scm_f32vector_to_list vec
 @deffnx {C Function} scm_f64vector_to_list vec
+@deffnx {C Function} scm_c32vector_to_list vec
+@deffnx {C Function} scm_c64vector_to_list vec
 Return a newly allocated list holding all elements of @var{vec}.
 @end deffn
 
@@ -1096,6 +1133,8 @@ Return a newly allocated list holding all elements of @var{vec}.
 @deffnx {Scheme Procedure} list->s64vector lst
 @deffnx {Scheme Procedure} list->f32vector lst
 @deffnx {Scheme Procedure} list->f64vector lst
+@deffnx {Scheme Procedure} list->c32vector lst
+@deffnx {Scheme Procedure} list->c64vector lst
 @deffnx {C Function} scm_list_to_u8vector lst
 @deffnx {C Function} scm_list_to_s8vector lst
 @deffnx {C Function} scm_list_to_u16vector lst
@@ -1106,6 +1145,8 @@ Return a newly allocated list holding all elements of @var{vec}.
 @deffnx {C Function} scm_list_to_s64vector lst
 @deffnx {C Function} scm_list_to_f32vector lst
 @deffnx {C Function} scm_list_to_f64vector lst
+@deffnx {C Function} scm_list_to_c32vector lst
+@deffnx {C Function} scm_list_to_c64vector lst
 Return a newly allocated homogeneous numeric vector of the indicated type,
 initialized with the elements of the list @var{lst}.
 @end deffn
@@ -1124,10 +1165,17 @@ Return @code{1} when @var{uvec} is a uniform vector, @code{0} otherwise.
 @deftypefnx {C Function} SCM scm_take_s64vector (const scm_t_int64 *data, size_t len)
 @deftypefnx {C Function} SCM scm_take_f32vector (const float *data, size_t len)
 @deftypefnx {C Function} SCM scm_take_f64vector (const double *data, size_t len)
+@deftypefnx {C Function} SCM scm_take_c32vector (const float *data, size_t len)
+@deftypefnx {C Function} SCM scm_take_c64vector (const double *data, size_t len)
 Return a new uniform vector of the indicated type and length that uses
 the memory pointed to by @var{data} to store its elements.  This memory
 will eventually be freed with @code{free}.  The argument @var{len}
 specifies the number of elements in @var{data}, not its size in bytes.
+
+The @code{c32} and @code{c64} variants take a pointer to a C array of
+@code{float}s or @code{double}s.  The real parts of the complex numbers
+are at even indices in that array, the corresponding imaginary parts are
+at the following odd index.
 @end deftypefn
 
 @deftypefn  {C Function} {void *} scm_uniform_vector_elements (SCM uvec)
@@ -1141,9 +1189,16 @@ specifies the number of elements in @var{data}, not its size in bytes.
 @deftypefnx {C Function} {scm_t_int64 *} scm_s64vector_elements (SCM uvec)
 @deftypefnx {C Function} {float *} scm_f32vector_elements (SCM uvec)
 @deftypefnx {C Function} {double *} scm_f64vector_elements (SCM uvec)
+@deftypefnx {C Function} {float *} scm_c32vector_elements (SCM uvec)
+@deftypefnx {C Function} {double *} scm_c64vector_elements (SCM uvec)
 Return a pointer to the elements of a uniform vector.  For each call to
 one of these functions, you must call @code{scm_uniform_vector_release}
 and after that call the pointer to the elements becomes invalid.
+
+The @code{c32} and @code{c64} variants return pointers to a C array of
+@code{float}s or @code{double}s.  The real parts of the complex numbers
+are at even indices in that array, the corresponding imaginary parts are
+at the following odd index.
 @end deftypefn
 
 @deftypefn {C Function} void scm_uniform_vector_release (SCM uvec)
