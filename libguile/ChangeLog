@@ -4,8 +4,7 @@ Mon Apr 14 01:32:57 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 	Merge GH interface library into libguile.
 	* gh.h, gh_data.c, gh_eval.c, gh_funcs.c, gh_init.c, gh_io.c,
- 	gh_list.c, gh_predicates.c, gh_test_c, gh_test_c.c, gh_test_repl,
- 	gh_test_repl.c: New files.
+ 	gh_list.c, gh_predicates.c, gh_test_c.c, gh_test_repl.c: New files.
 	* Makefile.am (libguile_la_SOURCES): Add gh_data.c, gh_eval.c,
 	gh_funcs.c, gh_init.c, gh_io.c, gh_list.c, gh_predicates.c.  Move
 	_scm.h to ...
