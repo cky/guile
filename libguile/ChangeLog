@@ -1,3 +1,9 @@
+1998-09-30  Mark Galassi  <rosalia@cygnus.com>
+
+	* gh.h: took out the definitions of vset and vref, since they are
+	replaced by the proper vector routines that correspond to the R4RS
+	procedures.
+
 1998-09-29  Jim Blandy  <jimb@totoro.red-bean.com>
 
 	* snarf.h: Add SCM_VCELL_INIT and SCM_GLOBAL_VCELL_INIT macros;

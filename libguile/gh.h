@@ -161,8 +161,6 @@ SCM gh_define(char *name, SCM val);
    ends up being identical to gh_list_to_vector() */
 #define gh_vector(ls) scm_vector(ls)
 SCM gh_make_vector(SCM length, SCM val);
-SCM gh_vset(SCM vec, SCM pos, SCM val);
-SCM gh_vref(SCM vec, SCM pos);
 SCM gh_vector_set_x(SCM vec, SCM pos, SCM val);
 SCM gh_vector_ref(SCM vec, SCM pos);
 unsigned long gh_vector_length (SCM v);
