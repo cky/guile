@@ -1,3 +1,15 @@
+1998-07-19  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	* lineio.scm (make-line-buffering-input-port): Don't use
+	ungetc-char-ready?, since we don't provide that function any
+	more.  The unread-string function doesn't interact properly with
+	any of the standard I/O functions anyway.  (Thanks to Andrew
+	Archibald.)
+
+	* hcons.scm (hashq-cons-assoc): Don't assume the empty list is
+	false.  Return false when we cannot find a matching entry in the
+	list.  (Thanks to Andrew Archibald.)
+
 1998-07-16  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
 	* boot-9.scm (export, export-syntax): New special forms: Export
