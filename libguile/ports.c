@@ -1552,10 +1552,6 @@ SCM_DEFINE (scm_set_port_filename_x, "set-port-filename!", 2, 0, 0,
 }
 #undef FUNC_NAME
 
-#ifndef ttyname
-extern char * ttyname();
-#endif
-
 void
 scm_print_port_mode (SCM exp, SCM port)
 {
