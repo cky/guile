@@ -3,7 +3,7 @@
 #ifndef SCM_ROOT_H
 #define SCM_ROOT_H
 
-/* Copyright (C) 1996,1998,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1996,1998,2000,2001, 2002 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -106,6 +106,9 @@ typedef struct scm_root_state
 
   SCM handle;			/* The root object for this root state */
   SCM parent;			/* The parent root object */
+
+  SCM active_asyncs;            /* The thunks to be run at the next
+                                   safe point */
 } scm_root_state;
 
 #define scm_stack_base			(scm_root->stack_base)
@@ -123,7 +126,8 @@ typedef struct scm_root_state
 #define scm_cur_outp			(scm_root->cur_outp)
 #define scm_cur_errp			(scm_root->cur_errp)
 #define scm_cur_loadp			(scm_root->cur_loadp)
-     
+#define scm_active_asyncs               (scm_root->active_asyncs)
+
 #ifdef USE_THREADS
 #define scm_root ((scm_root_state *) SCM_THREAD_LOCAL_DATA)
 #define scm_set_root(new_root) SCM_SET_THREAD_LOCAL_DATA (new_root)
