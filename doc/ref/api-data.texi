@@ -588,6 +588,16 @@ Return @code{#t} if @var{x} is either @samp{+inf.0} or @samp{-inf.0},
 Return @code{#t} if @var{x} is @samp{+nan.0}, @code{#f} otherwise.
 @end deffn
 
+@deffn {Scheme Procedure} nan
+@deffnx {C Function} scm_nan ()
+Return NaN.
+@end deffn
+
+@deffn {Scheme Procedure} inf
+@deffnx {C Function} scm_inf ()
+Return Inf.
+@end deffn
+
 @deffn {Scheme Procedure} numerator x
 @deffnx {C Function} scm_numerator (x)
 Return the numerator of the rational number @var{x}.
@@ -887,6 +897,16 @@ The C function @code{scm_lcm} always takes two arguments, while the
 Scheme function can take an arbitrary number.
 @end deffn
 
+@deffn {Scheme Procedure} modulo-expt n k m
+@deffnx {C Function} scm_modulo_expt (n, k, m)
+Return @var{n} raised to the integer exponent
+@var{k}, modulo @var{m}.
+
+@lisp
+(modulo-expt 2 3 5)
+   @result{} 3
+@end lisp
+@end deffn
 
 @node Comparison
 @subsubsection Comparison Predicates

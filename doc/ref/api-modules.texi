@@ -149,6 +149,7 @@ there is still some flux.
 * General Information about Modules::  Guile module basics.
 * Using Guile Modules::         How to use existing modules.
 * Creating Guile Modules::      How to package your code into modules.
+* Module System Reflection::    Accessing module objects at run-time.
 * Module System Quirks::        Strange things to be aware of.
 * Included Guile Modules::      Which modules come with Guile?
 * Accessing Modules from C::    How to work with modules with C code.
@@ -424,6 +425,47 @@ Equivalent to @code{(begin (define foo ...) (export foo))}.
 @end deffn
 @c end
 
+@node Module System Reflection
+@subsubsection Module System Reflection
+
+The previous sections have described a declarative view of the module
+system.  You can also work with it programmatically by accessing and
+modifying various parts of the Scheme objects that Guile uses to
+implement the module system.
+
+At any time, there is a @dfn{current module}.  This module is the one
+where a top-level @code{define} and similar syntax will add new
+bindings.  You can find other module objects with @code{resolve-module},
+for example.
+
+These module objects can be used as the second argument to @code{eval}.
+
+@deffn {Scheme Procedure} current-module
+Return the current module object.
+@end deffn
+
+@deffn {Scheme Procedure} set-current-module module
+Set the current module to @var{module} and return
+the previous current module.
+@end deffn
+
+@deffn {Scheme Procedure} resolve-module name
+Find the module named @var{name} and return it.  When it has not already
+been defined, try to auto-load it.  When it can't be found that way
+either, create an empty module.  The name is a list of symbols.
+@end deffn
+
+@deffn {Scheme Procedure} resolve-interface name
+Find the module named @var{name} as with @code{resolve-module} and
+return its interface.  The interface of a module is also a module
+object, but it contains only the exported bindings.
+@end deffn
+
+@deffn {Scheme Procedure} module-use! module interface
+Add @var{interface} to the front of the use-list of @var{module}.  Both
+arguments should be module objects, and @var{interface} should very
+likely be a module returned by @code{resolve-interface}.
+@end deffn
 
 @node Module System Quirks
 @subsubsection Module System Quirks
@@ -955,6 +997,44 @@ guile> (apropos "j0")
 @end smallexample
 
 That's it!
+
+@deffn {Scheme Procedure} load-extension lib init
+@deffnx {C Function} scm_load_extension (lib, init)
+Load and initialize the extension designated by LIB and INIT.
+When there is no pre-registered function for LIB/INIT, this is
+equivalent to
+
+@lisp
+(dynamic-call INIT (dynamic-link LIB))
+@end lisp
+
+When there is a pre-registered function, that function is called
+instead.
+
+Normally, there is no pre-registered function.  This option exists
+only for situations where dynamic linking is unavailable or unwanted.
+In that case, you would statically link your program with the desired
+library, and register its init function right after Guile has been
+initialized.
+
+LIB should be a string denoting a shared library without any file type
+suffix such as ".so".  The suffix is provided automatically.  It
+should also not contain any directory components.  Libraries that
+implement Guile Extensions should be put into the normal locations for
+shared libraries.  We recommend to use the naming convention
+libguile-bla-blum for a extension related to a module `(bla blum)'.
+
+The normal way for a extension to be used is to write a small Scheme
+file that defines a module, and to load the extension into this
+module.  When the module is auto-loaded, the extension is loaded as
+well.  For example,
+
+@lisp
+(define-module (bla blum))
+
+(load-extension "libguile-bla-blum" "bla_init_blum")
+@end lisp
+@end deffn
 
 @node Variables
 @subsection Variables

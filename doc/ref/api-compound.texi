@@ -308,7 +308,7 @@ Return the number of elements in list @var{lst}.
 
 @deffn {Scheme Procedure} last-pair lst
 @deffnx {C Function} scm_last_pair (lst)
-Return a pointer to the last pair in @var{lst}, signalling an error if
+Return the last pair in @var{lst}, signalling an error if
 @var{lst} is circular.
 @end deffn
 
@@ -2377,6 +2377,16 @@ automatically, as described above, but with @var{size} as a minimum.
 If an application knows roughly how many entries the table will hold
 then it can use @var{size} to avoid rehashing when initial entries are
 added.
+@end deffn
+
+@deffn {Scheme Procedure} hash-table? obj
+@deffnx {C Function} scm_hash_table_p (obj)
+Return @code{#t} if @var{obj} is a hash table.
+@end deffn
+
+@deffn {Scheme Procedure} hash-clear! table
+@deffnx {C Function} scm_hash_clear_x (table)
+Remove all items from TABLE (without triggering a resize).
 @end deffn
 
 @deffn {Scheme Procedure} hash-ref table key [dflt]

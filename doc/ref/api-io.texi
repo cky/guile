@@ -108,14 +108,15 @@ and return @code{#f} otherwise.  If @code{char-ready?} returns
 @code{#t} then the next @code{read-char} operation on
 @var{port} is guaranteed not to hang.  If @var{port} is a file
 port at end of file then @code{char-ready?} returns @code{#t}.
-@footnote{@code{char-ready?} exists to make it possible for a
+
+@code{char-ready?} exists to make it possible for a
 program to accept characters from interactive ports without
 getting stuck waiting for input.  Any input editors associated
 with such ports must make sure that characters whose existence
 has been asserted by @code{char-ready?} cannot be rubbed out.
 If @code{char-ready?} were to return @code{#f} at end of file,
 a port at end of file would be indistinguishable from an
-interactive port that has no ready characters.}
+interactive port that has no ready characters.
 @end deffn
 
 @rnindex read-char
@@ -141,7 +142,9 @@ Note that this function does not update @code{port-line} and
 Return the next character available from @var{port},
 @emph{without} updating @var{port} to point to the following
 character.  If no more characters are available, the
-end-of-file object is returned.@footnote{The value returned by
+end-of-file object is returned.
+
+The value returned by
 a call to @code{peek-char} is the same as the value that would
 have been returned by a call to @code{read-char} on the same
 port.  The only difference is that the very next call to
@@ -149,7 +152,7 @@ port.  The only difference is that the very next call to
 return the value returned by the preceding call to
 @code{peek-char}.  In particular, a call to @code{peek-char} on
 an interactive port will hang waiting for input whenever a call
-to @code{read-char} would have hung.}
+to @code{read-char} would have hung.
 @end deffn
 
 @deffn {Scheme Procedure} unread-char cobj [port]
@@ -248,10 +251,12 @@ Send a newline to @var{port}.
 If @var{port} is omitted, send to the current output port.
 @end deffn
 
-@deffn {Scheme Procedure} port-with-print-state port pstate
+@deffn {Scheme Procedure} port-with-print-state port [pstate]
 @deffnx {C Function} scm_port_with_print_state (port, pstate)
 Create a new port which behaves like @var{port}, but with an
-included print state @var{pstate}.
+included print state @var{pstate}.  @var{pstate} is optional.
+If @var{pstate} isn't supplied and @var{port} already has
+a print state, the old print state is reused.
 @end deffn
 
 @deffn {Scheme Procedure} print-options-interface [setting]
@@ -391,7 +396,7 @@ Truncates the object referred to by @var{object} to at most
 @var{length} bytes.  @var{object} can be a string containing a
 file name or an integer file descriptor or a port.
 @var{length} may be omitted if @var{object} is not a file name,
-in which case the truncation occurs at the current port.
+in which case the truncation occurs at the current port
 position.  The return value is unspecified.
 @end deffn
 

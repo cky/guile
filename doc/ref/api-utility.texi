@@ -355,7 +355,7 @@ copies any pairs in the cars of the input lists.
 @deffn {Scheme Procedure} copy-tree obj
 @deffnx {C Function} scm_copy_tree (obj)
 Recursively copy the data tree that is bound to @var{obj}, and return a
-pointer to the new data structure.  @code{copy-tree} recurses down the
+the new data structure.  @code{copy-tree} recurses down the
 contents of both pairs and vectors (since both cons cells and vector
 cells may point to arbitrary objects), and stops recursing when it hits
 any other object.

@@ -39,14 +39,17 @@ returned.
 
 @deffn {Scheme Procedure} make-arbiter name
 @deffnx {C Function} scm_make_arbiter (name)
-Return an arbiter object, initially unlocked.  Currently @var{name} is
-only used for diagnostic output.
+Return an object of type arbiter and name @var{name}. Its
+state is initially unlocked.  Arbiters are a way to achieve
+process synchronization.
 @end deffn
 
 @deffn {Scheme Procedure} try-arbiter arb
 @deffnx {C Function} scm_try_arbiter (arb)
-If @var{arb} is unlocked, then lock it and return @code{#t}.  If
-@var{arb} is already locked, then do nothing and return @code{#f}.
+@deffnx {C Function} scm_try_arbiter (arb)
+If @var{arb} is unlocked, then lock it and return @code{#t}.
+If @var{arb} is already locked, then do nothing and return
+@code{#f}.
 @end deffn
 
 @deffn {Scheme Procedure} release-arbiter arb
@@ -323,8 +326,15 @@ threads must rendezvous.
 @node Low level thread primitives
 @subsubsection Low level thread primitives
 
-@c NJFIXME no current mechanism for making sure that these docstrings
-@c are in sync.
+@deffn {Scheme Procedure} all-threads
+@deffnx {C Function} scm_all_threads ()
+Return a list of all threads.
+@end deffn
+
+@deffn {Scheme Procedure} current-thread
+@deffnx {C Function} scm_current_thread ()
+Return the thread that called this function.
+@end deffn
 
 @c begin (texi-doc-string "guile" "call-with-new-thread")
 @deffn {Scheme Procedure} call-with-new-thread thunk error-handler
@@ -346,6 +356,11 @@ Suspend execution of the calling thread until the target @var{thread}
 terminates, unless the target @var{thread} has already terminated.
 @end deffn
 
+@deffn {Scheme Procedure} thread-exited? thread
+@deffnx {C Function} scm_thread_exited_p (thread)
+Return @code{#t} iff @var{thread} has exited.
+@end deffn
+
 @c begin (texi-doc-string "guile" "yield")
 @deffn {Scheme Procedure} yield
 If one or more threads are waiting to execute, calling yield forces an
@@ -355,6 +370,11 @@ immediate context switch to one of them. Otherwise, yield has no effect.
 @c begin (texi-doc-string "guile" "make-condition-variable")
 @deffn {Scheme Procedure} make-condition-variable
 Make a new condition variable.
+@end deffn
+
+@deffn {Scheme Procedure} make-fair-condition-variable
+@deffnx {C Function} scm_make_fair_condition_variable ()
+Make a new fair condition variable.
 @end deffn
 
 @c begin (texi-doc-string "guile" "wait-condition-variable")
@@ -609,6 +629,12 @@ Set the value associated with @var{fluid} in the current dynamic root.
 @code{with-fluids*} temporarily changes the values of one or more fluids,
 so that the given procedure and each procedure called by it access the
 given values.  After the procedure returns, the old values are restored.
+
+@deffn {Scheme Procedure} with-fluid* fluid value thunk
+@deffnx {C Function} scm_with_fluid (fluid, value, thunk)
+Set @var{fluid} to @var{value} temporarily, and call @var{thunk}.
+@var{thunk} must be a procedure with no argument.
+@end deffn
 
 @deffn {Scheme Procedure} with-fluids* fluids values thunk
 @deffnx {C Function} scm_with_fluids (fluids, values, thunk)

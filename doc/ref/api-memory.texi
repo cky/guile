@@ -323,13 +323,13 @@ To implement a mapping from source code expressions to the procedures
 they constitute a doubly-weak table has to be used.
 
 @menu
-* Weak key hashes::
+* Weak hash tables::
 * Weak vectors::
 @end menu
 
 
-@node Weak key hashes
-@subsubsection Weak key hashes
+@node Weak hash tables
+@subsubsection Weak hash tables
 
 @deffn {Scheme Procedure} make-weak-key-hash-table size
 @deffnx {Scheme Procedure} make-weak-value-hash-table size
@@ -355,19 +355,6 @@ Return @code{#t} if @var{obj} is the specified weak hash
 table. Note that a doubly weak hash table is neither a weak key
 nor a weak value hash table.
 @end deffn
-
-@deffn {Scheme Procedure} make-weak-value-hash-table k
-@end deffn
-
-@deffn {Scheme Procedure} weak-value-hash-table? x
-@end deffn
-
-@deffn {Scheme Procedure} make-doubly-weak-hash-table k
-@end deffn
-
-@deffn {Scheme Procedure} doubly-weak-hash-table? x
-@end deffn
-
 
 @node Weak vectors
 @subsubsection Weak vectors
