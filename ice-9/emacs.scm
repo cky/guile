@@ -167,6 +167,7 @@
 (define (emacs-eval-request form)
   (result-to-emacs (eval form)))
 
+;;*fixme* Not necessary to use flags no-stack and no-source
 (define (get-frame-source frame)
   (if (or (not the-last-stack)
 	  (>= frame (stack-length the-last-stack)))
@@ -191,12 +192,51 @@
 		     '())))
 	'())))
 
+(define (object->string x . method)
+  (with-output-to-string
+    (lambda ()
+      ((if (null? method)
+	   write
+	   (car method))
+       x))))
+
+(define (format template . rest)
+  (let loop ((chars (string->list template))
+	     (result '()))
+    (cond ((null? chars) (list->string (reverse result)))
+	  ((char=? (car chars) #\%)
+	   (loop (cddr chars)
+		 (append (reverse
+			  (string->list
+			   (case (cadr chars)
+			     ((#\S) (object->string (car rest)))
+			     ((#\s) (object->string (car rest) display)))))
+			 result)))
+	  (else (loop (cdr chars) (cons (car chars) result))))))
+
+(define (error-args->string args)
+  (let ((msg (apply format (caddr args) (cadddr args))))
+    (if (symbol? (cadr args))
+	(string-append (symbol->string (cadr args))
+		       ": "
+		       msg)
+	msg)))
+
 (define (emacs-frame-eval frame form)
   (let ((source (get-frame-source frame)))
-    (result-to-emacs
-     (if source
-	 (local-eval form (memoized-environment source))
-	 '()))))
+    (if source
+	(catch #t
+	       (lambda ()
+		 (list 'result
+		       (object->string
+			(local-eval (with-input-from-string form read)
+				    (memoized-environment source)))))
+	       (lambda args
+		 (list (car args)
+		       (error-args->string args))))
+	(begin
+	  (no-source)
+	  '()))))
 
 (define (emacs-symdoc symbol)
   (if (or (not (module-bound? (current-module) symbol))

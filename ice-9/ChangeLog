@@ -1,3 +1,9 @@
+Mon Aug 25 22:00:44 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* emacs.scm (object->string, format, error-args->string): New
+	procedures.
+	(emacs-frame-eval): Reworked.
+
 Mon Aug 25 16:15:55 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* session.scm (apropos-internal): Musn't initialize symbol
