@@ -1,6 +1,7 @@
 1999-01-22  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* eval.c (SCM_CEVAL): Added ENTER_APPLY in code for SCM_IM_APPLY.
+	(Thanks to Eric Hanchrow.)
 
 1999-01-21  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
