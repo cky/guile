@@ -1,3 +1,9 @@
+2004-12-28  Kevin Ryde  <user42@zip.com.au>
+
+	* api-data.texi (String Predicates): For string-any and string-every,
+	last chars are now tail calls per srfi, and reinstate char_pred can be
+	character or character set (somehow lost in cut and paste).
+
 2004-12-27  Marius Vollmer  <mvo@zagadka.de>
 
 	* api-compound.texi (Vectors, Bit Vectors, Uniform Numeric
