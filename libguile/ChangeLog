@@ -1,3 +1,19 @@
+1999-08-20  James Blandy  <jimb@mule.m17n.org>
+
+	* ports.h (enum scm_port_rw_active): New enum, containing
+	SCM_PORT_READ, SCM_PORT_WRITE, and SCM_PORT_NEITHER (instead of
+	zero).  The debugger knows about enums, but doesn't know about
+	#defines.
+	(typedef scm_port): Declare rw_active member to be an enum
+	scm_port_rw_active.
+	* fports.c (fport_flush, fport_end_input): Use SCM_PORT_NEITHER
+	instead of zero.
+	* ports.c (scm_add_to_port_table): Same.
+	* strports.c (st_flush, st_end_input): Same.
+
+	* ioext.c (scm_do_read_line, scm_read_line): Use scm_must_malloc,
+	scm_must_realloc, and scm_done_malloc as appropriate. 
+
 1999-08-20  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* sort.c (quicksort): Added condition to protect the algorithm
