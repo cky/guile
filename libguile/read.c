@@ -242,6 +242,31 @@ recsexpr (obj, line, column, filename)
   }
 }
 
+
+/* Consume an SCSH-style block comment.  Assume that we've already
+   read the initial `#!', and eat characters until the matching `!#'.  */
+
+static void
+skip_scsh_block_comment (port)
+     SCM port;
+{
+  char last_c = '\0';
+
+  for (;;)
+    {
+      int c = scm_gen_getc (port);
+
+      if (c == EOF)
+	scm_wta (SCM_UNDEFINED,
+		 "unterminated `#! ... !#' comment", "read");
+      else if (c == '#' && last_c == '!')
+	return;
+
+      last_c = c;
+    }
+}
+
+
 static char s_list[]="list";
 
 SCM 
@@ -333,6 +358,12 @@ tryagain:
 	  scm_gen_ungetc (c, port);
 	  c = '#';
 	  goto num;
+
+	case '!':
+	  /* start of a shell script.  Parse as a block comment,
+	     terminated by !#, just like SCSH.  */
+	  skip_scsh_block_comment (port);
+	  goto tryagain;
 
 	case '*':
 	  j = scm_read_token (c, tok_buf, port, case_i, 0);
