@@ -63,6 +63,16 @@ We make the developers' working Guile sources available via anonymous
 CVS, and by nightly snapshots, accessible via FTP.  See the files
 `ANON-CVS' and `SNAPSHOTS' for details.
 
+If you would like to receive mail when people commit changes to the
+Guile CVS repository, you can subscribe to guile-cvs@egcs.cygnus.com
+by sending a message to guile-cvs-subscribe@cygnus.com.  Even better,
+you can get daily digests of these commit messages by sending a
+message to guile-cvs-digest-subscribe@egcs.cygnus.com.
+
+If you want to subscribe an e-mail address other than the one that
+appears in your From: header, say foo@bar.com, send a mail note to
+guile-cvs-subscribe-foo=bar.com@egcs.cygnus.com.
+
 
 Hacking It Yourself ==================================================
 
