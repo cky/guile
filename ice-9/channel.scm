@@ -19,9 +19,7 @@
 
 ;;; Code:
 
-(define-module (ice-9 channel)
-  :export (make-object-channel
-	   channel-open channel-print-value channel-print-token))
+(define-module (ice-9 channel))
 
 ;;;
 ;;; Channel type
@@ -32,7 +30,7 @@
 
 (define make-channel (record-constructor channel-type))
 
-(define (make-object-channel printer)
+(define-public (make-object-channel printer)
   (make-channel (current-input-port)
 		(current-output-port)
 		printer
@@ -47,7 +45,7 @@
 ;;; Channel
 ;;;
 
-(define (channel-open ch)
+(define-public (channel-open ch)
   (let ((stdin (channel-stdin ch))
 	(stdout (channel-stdout ch))
 	(printer (channel-printer ch))
@@ -81,10 +79,10 @@
 		     (list key (apply format #f (cadr args) (caddr args))))
 	     (loop))))))))
 
-(define (channel-print-value ch val)
+(define-public (channel-print-value ch val)
   (format (channel-stdout ch) "value = ~S\n" val))
 
-(define (channel-print-token ch val)
+(define-public (channel-print-token ch val)
   (let* ((token (symbol-append (gensym "%%") '%%))
 	 (pair (cons token (object->string val))))
     (format (channel-stdout ch) "token = ~S\n" pair)
@@ -98,3 +96,18 @@
   (display "ERROR: " port)
   (apply format port msg args)
   (newline port))
+
+;;;
+;;; Guile 1.4 compatibility
+;;;
+
+(define guile:eval eval)
+(define eval
+  (if (= (car (procedure-property guile:eval 'arity)) 1)
+    (lambda (x e) (guile:eval x))
+    guile:eval))
+
+(define object->string
+  (if (defined? 'object->string)
+    object->string
+    (lambda (x) (format #f "~S" x))))

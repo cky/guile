@@ -125,4 +125,13 @@
 		       apropos-fold-all)
 	 (lambda (p1 p2) (string<? (car p1) (car p2)))))
 
+;;;
+;;; Guile 1.4 compatibility
+;;;
+
+(define object->string
+  (if (defined? 'object->string)
+    object->string
+    (lambda (x) (format #f "~S" x))))
+
 ;;; guile-emacs.scm ends here
