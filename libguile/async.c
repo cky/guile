@@ -341,8 +341,8 @@ SCM_DEFINE (scm_system_async_mark, "system-async-mark", 1, 0, 0,
 "")
 #define FUNC_NAME s_scm_system_async_mark
 {
-  struct scm_async * it;
-  SCM_VALIDATE_ASYNC_COPY (1,a,it);
+  struct scm_async *it;
+  SCM_VALIDATE_ASYNC_COPY (1, a, it);
   SCM_REDEFER_INTS;
 #ifdef GUILE_OLD_ASYNC_CLICK
   it->got_it = 1;
