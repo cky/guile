@@ -46,7 +46,7 @@
 @c essay @sp 10
 @c essay @comment The title is printed in a large font.
 @c essay @title Data Representation in Guile
-@c essay @subtitle $Id: data-rep.texi,v 1.17 2001-03-09 08:21:59 ossau Exp $
+@c essay @subtitle $Id: data-rep.texi,v 1.18 2001-04-02 21:53:20 ossau Exp $
 @c essay @subtitle For use with Guile @value{VERSION}
 @c essay @author Jim Blandy
 @c essay @author Free Software Foundation
@@ -433,7 +433,7 @@ everything one need know to use Guile's data.
 @menu
 * General Rules::               
 * Conservative GC::          
-* Immediates vs. Non-immediates::  
+* Immediates vs Non-immediates::  
 * Immediate Datatypes::         
 * Non-immediate Datatypes::     
 * Signalling Type Errors::      
@@ -554,8 +554,8 @@ many pieces of code, it is enough for the collector to find the cell,
 and then use the cell's type to find more pointers to trace.
 
 
-@node Immediates vs. Non-immediates
-@subsection Immediates vs. Non-immediates
+@node Immediates vs Non-immediates
+@subsection Immediates vs Non-immediates
 
 Guile classifies Scheme objects into two kinds: those that fit entirely
 within an @code{SCM}, and those that require heap storage.
@@ -575,24 +575,13 @@ Return non-zero iff @var{x} is an immediate object.
 @deftypefn Macro int SCM_NIMP (SCM @var{x})
 Return non-zero iff @var{x} is a non-immediate object.  This is the
 exact complement of @code{SCM_IMP}, above.
-
-You must use this macro before calling a finer-grained predicate to
-determine @var{x}'s type.  For example, to see if @var{x} is a pair, you
-must write:
-@example
-SCM_NIMP (@var{x}) && SCM_CONSP (@var{x})
-@end example
-This is because Guile stores typing information for non-immediate values
-in their cells, rather than in the @code{SCM} value itself; thus, you
-must determine whether @var{x} refers to a cell before looking inside
-it.
-
-This is somewhat of a pity, because it means that the programmer needs
-to know which types Guile implements as immediates vs. non-immediates.
-There are (possibly better) representations in which @code{SCM_CONSP}
-can be self-sufficient.  The immediate type predicates do not suffer
-from this weakness.
 @end deftypefn
+
+Note that, as of Guile 1.4, it is no longer necessary to use the
+@code{SCM_NIMP} macro before calling a finer-grained predicate to
+determine @var{x}'s type, such as @code{SCM_CONSP} or
+@code{SCM_VECTORP}.  The definitions of all Guile type predicates
+now include a call to @code{SCM_NIMP} where necessary.
 
 
 @node Immediate Datatypes
@@ -601,7 +590,7 @@ from this weakness.
 The following datatypes are immediate values; that is, they fit entirely
 within an @code{SCM} value.  The @code{SCM_IMP} and @code{SCM_NIMP}
 macros will distinguish these from non-immediates; see @ref{Immediates
-vs. Non-immediates} for an explanation of the distinction.
+vs Non-immediates} for an explanation of the distinction.
 
 Note that the type predicates for immediate values work correctly on any
 @code{SCM} value; you do not need to call @code{SCM_IMP} first, to
@@ -748,7 +737,7 @@ specific storage location (in the nomenclature of the Revised^4 Report
 on Scheme).
 
 The @code{SCM_IMP} and @code{SCM_NIMP} macros will distinguish these
-from immediates; see @ref{Immediates vs. Non-immediates}.
+from immediates; see @ref{Immediates vs Non-immediates}.
 
 Given a cell, Guile distinguishes between pairs and other non-immediate
 types by storing special @dfn{tag} values in a non-pair cell's car, that

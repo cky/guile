@@ -1,3 +1,14 @@
+2001-04-02  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* data-rep.texi (Immediates vs. Non-immediates): Update
+	out-of-date documentation.  (Thanks to Dirk Herrmann for the
+	report!)
+	(Immediates vs Non-immediates): Renamed without the dot, since the
+	dot causes `info' not to be able to display this node!
+
+	* Makefile.am (guile_TEXINFOS): Add in a few more source files
+	that had got left out.
+
 2001-03-30  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* scheme-reading.texi (Further Reading): Add bullets to further
