@@ -90,9 +90,7 @@ extern void scm_init_strings (void);
 #if (SCM_DEBUG_DEPRECATED == 0)
 
 #define SCM_SLOPPY_STRINGP(x) (SCM_STRINGP(x))
-#define SCM_NSTRINGP(x) (!SCM_STRINGP(x))
 #define SCM_RWSTRINGP(x) (SCM_NIMP (x) && (SCM_TYP7 (x) == scm_tc7_string))
-#define SCM_NRWSTRINGP(x) (! SCM_RWSTRINGP (x))
 #define SCM_STRING_UCHARS(x) \
   ((SCM_TYP7 (x) == scm_tc7_substring) \
      ? (unsigned char *) SCM_CELL_WORD_1 (SCM_CDDR (x)) + SCM_INUM (SCM_CADR (x)) \
