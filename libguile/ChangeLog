@@ -1,3 +1,7 @@
+2001-04-22  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* throw.c (scm_throw): Correct docstring.
+
 2001-04-22  Gary Houston  <ghouston@arglist.com>
 
 	* socket.c: attempted to improve the docstrings slightly.
