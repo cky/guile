@@ -175,6 +175,17 @@ scm_gethost (name)
 #else
       entry = NULL;
 #endif
+      if (! entry)
+	{
+	  /* As far as I can tell, there's no good way to tell whether
+             zero means an error or end-of-file.  The trick of
+             clearing errno before calling gethostent and checking it
+             afterwards doesn't cut it, because, on Linux, it seems to
+             try to contact some other server (YP?) and fails, which
+             is a benign failure.  */
+	  SCM_ALLOW_INTS;
+	  return SCM_BOOL_F;
+	}
     }
   else if (SCM_NIMP (name) && SCM_ROSTRINGP (name))
     {
@@ -193,10 +204,7 @@ scm_gethost (name)
     {
       char *errmsg;
       SCM args;
-      if (SCM_UNBNDP (name))
-	args = SCM_BOOL_F;
-      else
-	args = scm_listify (name, SCM_UNDEFINED);
+      args = scm_listify (name, SCM_UNDEFINED);
       switch (h_errno)
 	{
 	case HOST_NOT_FOUND: errmsg = "host %s not found"; break;
@@ -227,6 +235,15 @@ scm_gethost (name)
 }
 
 
+/* In all subsequent getMUMBLE functions, when we're called with no
+   arguments, we're supposed to traverse the tables entry by entry.
+   However, there doesn't seem to be any documented way to distinguish
+   between end-of-table and an error; in both cases the functions
+   return zero.  Gotta love Unix.  For the time being, we clear errno,
+   and if we get a zero and errno is set, we signal an error.  This
+   doesn't seem quite right (what if errno gets set as part of healthy
+   operation?), but it seems to work okay.  We'll see.  */
+
 SCM_PROC (s_getnet, "getnet", 0, 1, 0, scm_getnet);
 
 SCM 
@@ -242,7 +259,16 @@ scm_getnet (name)
   if (SCM_UNBNDP (name))
     {
       SCM_DEFER_INTS;
+      errno = 0;
       entry = getnetent ();
+      if (! entry)
+	{
+	  SCM_ALLOW_INTS;
+	  if (errno)
+	    scm_syserror (s_getnet);
+	  else 
+	    return SCM_BOOL_F;
+	}
     }
   else if (SCM_NIMP (name) && SCM_ROSTRINGP (name))
     {
@@ -259,13 +285,8 @@ scm_getnet (name)
     }
   SCM_ALLOW_INTS;
   if (!entry)
-    {
-      if (SCM_UNBNDP (name))
-	scm_syserror (s_getnet);
-      else
-	scm_syserror_msg (s_getnet, "no such network %s",
-			  scm_listify (name, SCM_UNDEFINED), errno);
-    }
+    scm_syserror_msg (s_getnet, "no such network %s",
+		      scm_listify (name, SCM_UNDEFINED), errno);
   ve[0] = scm_makfromstr (entry->n_name, (scm_sizet) strlen (entry->n_name), 0);
   ve[1] = scm_makfromstrs (-1, entry->n_aliases);
   ve[2] = SCM_MAKINUM (entry->n_addrtype + 0L);
@@ -288,7 +309,16 @@ scm_getproto (name)
   if (SCM_UNBNDP (name))
     {
       SCM_DEFER_INTS;
+      errno = 0;
       entry = getprotoent ();
+      if (! entry)
+	{
+	  SCM_ALLOW_INTS;
+	  if (errno)
+	    scm_syserror (s_getproto);
+	  else
+	    return SCM_BOOL_F;
+	}
     }
   else if (SCM_NIMP (name) && SCM_ROSTRINGP (name))
     {
@@ -305,13 +335,8 @@ scm_getproto (name)
     }
   SCM_ALLOW_INTS;
   if (!entry)
-    {
-      if (SCM_UNBNDP (name))
-	scm_syserror (s_getproto);
-      else
-	scm_syserror_msg (s_getproto, "no such protocol %s",
-			  scm_listify (name, SCM_UNDEFINED), errno);
-    }
+    scm_syserror_msg (s_getproto, "no such protocol %s",
+		      scm_listify (name, SCM_UNDEFINED), errno);
   ve[0] = scm_makfromstr (entry->p_name, (scm_sizet) strlen (entry->p_name), 0);
   ve[1] = scm_makfromstrs (-1, entry->p_aliases);
   ve[2] = SCM_MAKINUM (entry->p_proto + 0L);
@@ -349,10 +374,16 @@ scm_getserv (name, proto)
   if (SCM_UNBNDP (name))
     {
       SCM_DEFER_INTS;
+      errno = 0;
       entry = getservent ();
-      if (!entry)
-	scm_syserror (s_getserv);
       SCM_ALLOW_INTS;
+      if (!entry)
+	{
+	  if (errno)
+	    scm_syserror (s_getserv);
+	  else
+	    return SCM_BOOL_F;
+	}
       return scm_return_entry (entry);
     }
   SCM_ASSERT (SCM_NIMP (proto) && SCM_ROSTRINGP (proto), proto, SCM_ARG2, s_getserv);
@@ -448,5 +479,3 @@ scm_init_net_db ()
   scm_add_feature ("net-db");
 #include "net_db.x"
 }
-
-
