@@ -58,7 +58,8 @@
 
 GUILE_PROC(scm_object_properties, "object-properties", 1, 0, 0, 
            (SCM obj),
-"")
+"@deffnx primitive procedure-properties obj
+Return @var{obj}'s property list.")
 #define FUNC_NAME s_scm_object_properties
 {
   return scm_hashq_ref (scm_object_whash, obj, SCM_EOL);
@@ -68,7 +69,8 @@ GUILE_PROC(scm_object_properties, "object-properties", 1, 0, 0,
 
 GUILE_PROC(scm_set_object_properties_x, "set-object-properties!", 2, 0, 0,
            (SCM obj, SCM plist),
-"")
+"@deffnx primitive set-procedure-properties! obj alist
+Set @var{obj}'s property list to @var{alist}.")
 #define FUNC_NAME s_scm_set_object_properties_x
 {
   SCM handle = scm_hashq_create_handle_x (scm_object_whash, obj, plist);
@@ -79,7 +81,8 @@ GUILE_PROC(scm_set_object_properties_x, "set-object-properties!", 2, 0, 0,
 
 GUILE_PROC(scm_object_property, "object-property", 2, 0, 0,
            (SCM obj, SCM key),
-"")
+"@deffnx primitive procedure-property obj key
+Return the property of @var{obj} with name @var{key}.")
 #define FUNC_NAME s_scm_object_property
 {
   SCM assoc;
@@ -90,7 +93,9 @@ GUILE_PROC(scm_object_property, "object-property", 2, 0, 0,
 
 GUILE_PROC(scm_set_object_property_x, "set-object-property!", 3, 0, 0,
            (SCM obj, SCM key, SCM val),
-"")
+"@deffnx primitive set-procedure-property! obj key value
+In @var{obj}'s property list, set the property named @var{key} to
+@var{value}.")
 #define FUNC_NAME s_scm_set_object_property_x
 {
   SCM h;

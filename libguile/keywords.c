@@ -109,7 +109,8 @@ scm_c_make_keyword (char *s)
 
 GUILE_PROC(scm_keyword_p, "keyword?", 1, 0, 0, 
            (SCM obj),
-"")
+"@code{keyword?} returns @code{#t} if the argument @var{kw} is a keyword;
+it returns @code{#f} otherwise.")
 #define FUNC_NAME s_scm_keyword_p
 {
   return SCM_BOOL(SCM_NIMP(obj) && SCM_KEYWORDP (obj));
@@ -119,7 +120,8 @@ GUILE_PROC(scm_keyword_p, "keyword?", 1, 0, 0,
 
 GUILE_PROC(scm_keyword_dash_symbol, "keyword-dash-symbol", 1, 0, 0, 
            (SCM keyword),
-"")
+"@code{keyword-dash-symbol} [FIXME: have no idea what this does; it is
+not commented.]")
 #define FUNC_NAME s_scm_keyword_dash_symbol
 {
   SCM_VALIDATE_KEYWORD(1,keyword);

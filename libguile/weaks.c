@@ -57,7 +57,9 @@
 
 GUILE_PROC(scm_make_weak_vector, "make-weak-vector", 1, 1, 0,
            (SCM k, SCM fill),
-"")
+"Return a weak vector with @var{size} elements. If the optional
+argument @var{fill} is given, all entries in the vector will be set to
+@var{fill}. The default value for @var{fill} is the empty list.")
 #define FUNC_NAME s_scm_make_weak_vector
 {
   SCM v;
@@ -77,7 +79,11 @@ SCM_REGISTER_PROC(s_list_to_weak_vector, "list->weak-vector", 1, 0, 0, scm_weak_
 
 GUILE_PROC(scm_weak_vector, "weak-vector", 0, 0, 1, 
            (SCM l),
-"")
+"@deffnx primitive list->weak-vector l
+Construct a weak vector from a list: @code{weak-vector} uses the list of
+its arguments while @code{list->weak-vector} uses its only argument
+@var{l} (a list) to construct a weak vector the same way
+@code{vector->list} would.")
 #define FUNC_NAME s_scm_weak_vector
 {
   SCM res;
@@ -99,7 +105,8 @@ GUILE_PROC(scm_weak_vector, "weak-vector", 0, 0, 1,
 
 GUILE_PROC(scm_weak_vector_p, "weak-vector?", 1, 0, 0, 
            (SCM x),
-"")
+"Return @var{#t} if @var{obj} is a weak vector. Note that all weak
+hashes are also weak vectors.")
 #define FUNC_NAME s_scm_weak_vector_p
 {
   return SCM_BOOL(SCM_NIMP (x) && SCM_WVECTP (x) && !SCM_IS_WHVEC (x));
@@ -114,7 +121,13 @@ GUILE_PROC(scm_weak_vector_p, "weak-vector?", 1, 0, 0,
 
 GUILE_PROC(scm_make_weak_key_hash_table, "make-weak-key-hash-table", 1, 0, 0, 
            (SCM k),
-"")
+"@deffnx primitive make-weak-value-hash-table size
+@deffnx primitive make-doubly-weak-hash-table size
+Return a weak hash table with @var{size} buckets. As with any hash
+table, choosing a good size for the table requires some caution.
+
+You can modify weak hash tables in exactly the same way you would modify
+regular hash tables. (@pxref{Hash Tables})")
 #define FUNC_NAME s_scm_make_weak_key_hash_table
 {
   SCM v;
@@ -162,7 +175,11 @@ GUILE_PROC (scm_make_doubly_weak_hash_table, "make-doubly-weak-hash-table", 1, 0
 
 GUILE_PROC(scm_weak_key_hash_table_p, "weak-key-hash-table?", 1, 0, 0, 
            (SCM x),
-"")
+"@deffnx primitive weak-value-hash-table? obj
+@deffnx primitive doubly-weak-hash-table? obj
+Return @var{#t} if @var{obj} is the specified weak hash table. Note
+that a doubly weak hash table is neither a weak key nor a weak value
+hash table.")
 #define FUNC_NAME s_scm_weak_key_hash_table_p
 {
   return SCM_BOOL(SCM_NIMP (x) && SCM_WVECTP (x) && SCM_IS_WHVEC(x));

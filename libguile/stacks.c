@@ -412,7 +412,7 @@ SCM scm_stack_type;
 
 GUILE_PROC (scm_stack_p, "stack?", 1, 0, 0, 
             (SCM obj),
-"")
+"Return @code{#t} if @var{obj} is a calling stack.")
 #define FUNC_NAME s_scm_stack_p
 {
   return SCM_BOOL(SCM_NIMP (obj) && SCM_STACKP (obj));
@@ -514,7 +514,7 @@ GUILE_PROC (scm_make_stack, "make-stack", 0, 0, 1,
 
 GUILE_PROC (scm_stack_id, "stack-id", 1, 0, 0, 
             (SCM stack),
-"")
+"Return the identifier given to @var{stack} by @code{start-stack}.")
 #define FUNC_NAME s_scm_stack_id
 {
   scm_debug_frame *dframe;

@@ -262,7 +262,10 @@ scm_subr_p (SCM obj)
 
 GUILE_PROC(scm_procedure_documentation, "procedure-documentation", 1, 0, 0, 
            (SCM proc),
-"")
+"Return the documentation string associated with @code{proc}.  By
+convention, if a procedure contains more than one expression and the
+first expression is a string constant, that string is assumed to contain
+documentation for that procedure.")
 #define FUNC_NAME s_scm_procedure_documentation
 {
   SCM code;

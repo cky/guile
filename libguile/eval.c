@@ -3725,7 +3725,8 @@ GUILE_PROC(scm_force, "force", 1, 0, 0,
 
 GUILE_PROC (scm_promise_p, "promise?", 1, 0, 0, 
             (SCM x),
-"")
+"Return true if @var{obj} is a promise, i.e. a delayed computation
+(@pxref{Delayed evaluation,,,r4rs.info,The Revised^4 Report on Scheme}).")
 #define FUNC_NAME s_scm_promise_p
 {
   return SCM_BOOL(SCM_NIMP (x) && (SCM_TYP16 (x) == scm_tc16_promise));
@@ -3751,7 +3752,11 @@ GUILE_PROC (scm_cons_source, "cons-source", 3, 0, 0,
 
 GUILE_PROC (scm_copy_tree, "copy-tree", 1, 0, 0, 
             (SCM obj),
-"")
+"Recursively copy the data tree that is bound to @var{obj}, and return a
+pointer to the new data structure.  @code{copy-tree} recurses down the
+contents of both pairs and vectors (since both cons cells and vector
+cells may point to arbitrary objects), and stops recursing when it hits
+any other object.")
 #define FUNC_NAME s_scm_copy_tree
 {
   SCM ans, tl;
@@ -3795,7 +3800,9 @@ scm_eval_3 (SCM obj, int copyp, SCM env)
 
 GUILE_PROC(scm_eval2, "eval2", 2, 0, 0,
            (SCM obj, SCM env_thunk),
-"")
+"Evaluate @var{exp}, a Scheme expression, in the environment designated
+by @var{lookup}, a symbol-lookup function.  @code{(eval exp)} is
+equivalent to @code{(eval2 exp *top-level-lookup-closure*)}.")
 #define FUNC_NAME s_scm_eval2
 {
   return scm_eval_3 (obj, 1, scm_top_level_env (env_thunk));
@@ -3804,7 +3811,8 @@ GUILE_PROC(scm_eval2, "eval2", 2, 0, 0,
 
 GUILE_PROC(scm_eval, "eval", 1, 0, 0, 
            (SCM obj),
-"")
+"Evaluate @var{exp}, a list representing a Scheme expression, in the
+top-level environment.")
 #define FUNC_NAME s_scm_eval
 {
   return scm_eval_3 (obj,

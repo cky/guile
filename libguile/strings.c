@@ -68,7 +68,18 @@ GUILE_PROC(scm_string_p, "string?", 1, 0, 0,
 
 GUILE_PROC(scm_read_only_string_p, "read-only-string?", 1, 0, 0, 
            (SCM x),
-"")
+"Return true of OBJ can be read as a string,
+
+This illustrates the difference between @code{string?} and
+@code{read-only-string?}:
+
+@example
+(string? \"a string\") @result{} #t
+(string? 'a-symbol) @result{} #f
+
+(read-only-string? \"a string\") @result{} #t
+(read-only-string? 'a-symbol) @result{} #t
+@end example")
 #define FUNC_NAME s_scm_read_only_string_p
 {
   if (SCM_IMP (x))
@@ -342,7 +353,13 @@ GUILE_PROC(scm_string_append, "string-append", 0, 0, 1,
 
 GUILE_PROC(scm_make_shared_substring, "make-shared-substring", 1, 2, 0,
            (SCM str, SCM frm, SCM to),
-"")
+"Return a shared substring of @var{str}.  The semantics are the same as
+for the @code{substring} function: the shared substring returned
+includes all of the text from @var{str} between indexes @var{start}
+(inclusive) and @var{end} (exclusive).  If @var{end} is omitted, it
+defaults to the end of @var{str}.  The shared substring returned by
+@code{make-shared-substring} occupies the same storage space as
+@var{str}.")
 #define FUNC_NAME s_scm_make_shared_substring
 {
   long f;

@@ -72,7 +72,60 @@
 
 GUILE_PROC(scm_dynamic_wind, "dynamic-wind", 3, 0, 0,
            (SCM thunk1, SCM thunk2, SCM thunk3),
-"")
+"All three arguments must be 0-argument procedures.
+
+@var{in-guard} is called, then @var{thunk}, then @var{out-guard}.
+
+If, any time during the execution of @var{thunk}, the continuation
+of the @code{dynamic-wind} expression is escaped non-locally, @var{out-guard}
+is called.   If the continuation of the dynamic-wind is re-entered,
+@var{in-guard} is called.   Thus @var{in-guard} and @var{out-guard} may
+be called any number of times.
+
+@example
+(define x 'normal-binding)
+@result{} x
+
+(define a-cont  (call-with-current-continuation 
+		  (lambda (escape)
+		     (let ((old-x x))
+		       (dynamic-wind
+			  ;; in-guard:
+			  ;;
+			  (lambda () (set! x 'special-binding))
+
+			  ;; thunk
+			  ;;
+		 	  (lambda () (display x) (newline)
+				     (call-with-current-continuation escape)
+				     (display x) (newline)
+				     x)
+
+			  ;; out-guard:
+			  ;;
+			  (lambda () (set! x old-x)))))))
+
+;; Prints: 
+special-binding
+;; Evaluates to:
+@result{} a-cont
+
+x
+@result{} normal-binding
+
+(a-cont #f)
+;; Prints:
+special-binding
+;; Evaluates to:
+@result{} a-cont  ;; the value of the (define a-cont...)
+
+x
+@result{} normal-binding
+
+a-cont
+@result{} special-binding
+@end example
+")
 #define FUNC_NAME s_scm_dynamic_wind
 {
   SCM ans;

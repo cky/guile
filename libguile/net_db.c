@@ -84,7 +84,13 @@ extern int inet_aton ();
 
 GUILE_PROC (scm_inet_aton, "inet-aton", 1, 0, 0, 
             (SCM address),
-"")
+"Converts a string containing an Internet host address in the traditional
+dotted decimal notation into an integer.
+
+@smalllisp
+(inet-aton "127.0.0.1") @result{} 2130706433
+
+@end smalllisp")
 #define FUNC_NAME s_scm_inet_aton
 {
   struct in_addr soka;
@@ -101,7 +107,12 @@ GUILE_PROC (scm_inet_aton, "inet-aton", 1, 0, 0,
 
 GUILE_PROC (scm_inet_ntoa, "inet-ntoa", 1, 0, 0, 
             (SCM inetid),
-"")
+"Converts an integer Internet host address into a string with the
+traditional dotted decimal representation.
+
+@smalllisp
+(inet-ntoa 2130706433) @result{} "127.0.0.1"
+@end smalllisp")
 #define FUNC_NAME s_scm_inet_ntoa
 {
   struct in_addr addr;
@@ -117,7 +128,11 @@ GUILE_PROC (scm_inet_ntoa, "inet-ntoa", 1, 0, 0,
 #ifdef HAVE_INET_NETOF
 GUILE_PROC (scm_inet_netof, "inet-netof", 1, 0, 0, 
             (SCM address),
-"")
+"Returns the network number part of the given integer Internet address.
+
+@smalllisp
+(inet-netof 2130706433) @result{} 127
+@end smalllisp")
 #define FUNC_NAME s_scm_inet_netof
 {
   struct in_addr addr;
@@ -130,7 +145,12 @@ GUILE_PROC (scm_inet_netof, "inet-netof", 1, 0, 0,
 #ifdef HAVE_INET_LNAOF
 GUILE_PROC (scm_lnaof, "inet-lnaof", 1, 0, 0, 
             (SCM address),
-"")
+"Returns the local-address-with-network part of the given Internet
+address.
+
+@smalllisp
+(inet-lnaof 2130706433) @result{} 1
+@end smalllisp")
 #define FUNC_NAME s_scm_lnaof
 {
   struct in_addr addr;
@@ -143,7 +163,12 @@ GUILE_PROC (scm_lnaof, "inet-lnaof", 1, 0, 0,
 #ifdef HAVE_INET_MAKEADDR
 GUILE_PROC (scm_inet_makeaddr, "inet-makeaddr", 2, 0, 0,
             (SCM net, SCM lna),
-"")
+"Makes an Internet host address by combining the network number @var{net}
+with the local-address-within-network number @var{lna}.
+
+@smalllisp
+(inet-makeaddr 127 1) @result{} 2130706433
+@end smalllisp")
 #define FUNC_NAME s_scm_inet_makeaddr
 {
   struct in_addr addr;
@@ -211,7 +236,17 @@ static void scm_resolv_error (const char *subr, SCM bad_value)
 
 GUILE_PROC (scm_gethost, "gethost", 0, 1, 0, 
             (SCM name),
-"")
+"@deffnx procedure gethostbyname hostname
+@deffnx procedure gethostbyaddr address
+Look up a host by name or address, returning a host object.  The
+@code{gethost} procedure will accept either a string name or an integer
+address; if given no arguments, it behaves like @code{gethostent} (see
+below).  If a name or address is supplied but the address can not be
+found, an error will be thrown to one of the keys:
+@code{host-not-found}, @code{try-again}, @code{no-recovery} or
+@code{no-data}, corresponding to the equivalent @code{h_error} values.
+Unusual conditions may result in errors thrown to the
+@code{system-error} or @code{misc_error} keys.")
 #define FUNC_NAME s_scm_gethost
 {
   SCM ans = scm_make_vector (SCM_MAKINUM (5), SCM_UNSPECIFIED);
@@ -286,7 +321,13 @@ GUILE_PROC (scm_gethost, "gethost", 0, 1, 0,
 #if defined(HAVE_GETNETENT) && defined(HAVE_GETNETBYNAME) && defined(HAVE_GETNETBYADDR)
 GUILE_PROC (scm_getnet, "getnet", 0, 1, 0, 
             (SCM name),
-"")
+"@deffnx procedure getnetbyname net-name
+@deffnx procedure getnetbyaddr net-number
+Look up a network by name or net number in the network database.  The
+@var{net-name} argument must be a string, and the @var{net-number}
+argument must be an integer.  @code{getnet} will accept either type of
+argument, behaving like @code{getnetent} (see below) if no arguments are
+given.")
 #define FUNC_NAME s_scm_getnet
 {
   SCM ans;
@@ -333,7 +374,12 @@ GUILE_PROC (scm_getnet, "getnet", 0, 1, 0,
 #ifdef HAVE_GETPROTOENT
 GUILE_PROC (scm_getproto, "getproto", 0, 1, 0, 
             (SCM name),
-"")
+"@deffnx procedure getprotobyname name
+@deffnx procedure getprotobynumber number
+Look up a network protocol by name or by number.  @code{getprotobyname}
+takes a string argument, and @code{getprotobynumber} takes an integer
+argument.  @code{getproto} will accept either type, behaving like
+@code{getprotoent} (see below) if no arguments are supplied.")
 #define FUNC_NAME s_scm_getproto
 {
   SCM ans;
@@ -394,7 +440,16 @@ scm_return_entry (struct servent *entry)
 #ifdef HAVE_GETSERVENT
 GUILE_PROC (scm_getserv, "getserv", 0, 2, 0,
             (SCM name, SCM proto),
-"")
+"@deffnx procedure getservbyname name protocol
+@deffnx procedure getservbyport port protocol
+Look up a network service by name or by service number, and return a
+network service object.  The @var{protocol} argument specifies the name
+of the desired protocol; if the protocol found in the network service
+database does not match this name, a system error is signalled.
+
+The @code{getserv} procedure will take either a service name or number
+as its first argument; if given no arguments, it behaves like
+@code{getservent} (see below).")
 #define FUNC_NAME s_scm_getserv
 {
   struct servent *entry;
@@ -434,7 +489,8 @@ GUILE_PROC (scm_getserv, "getserv", 0, 2, 0,
 #if defined(HAVE_SETHOSTENT) && defined(HAVE_ENDHOSTENT)
 GUILE_PROC (scm_sethost, "sethost", 0, 1, 0, 
             (SCM arg),
-"")
+"If @var{stayopen} is omitted, this is equivalent to @code{endhostent}.
+Otherwise it is equivalent to @code{sethostent stayopen}.")
 #define FUNC_NAME s_scm_sethost
 {
   if (SCM_UNBNDP (arg))
@@ -449,7 +505,8 @@ GUILE_PROC (scm_sethost, "sethost", 0, 1, 0,
 #if defined(HAVE_SETNETENT) && defined(HAVE_ENDNETENT) 
 GUILE_PROC (scm_setnet, "setnet", 0, 1, 0, 
             (SCM arg),
-"")
+"If @var{stayopen} is omitted, this is equivalent to @code{endnetent}.
+Otherwise it is equivalent to @code{setnetent stayopen}.")
 #define FUNC_NAME s_scm_setnet
 {
   if (SCM_UNBNDP (arg))
@@ -464,7 +521,8 @@ GUILE_PROC (scm_setnet, "setnet", 0, 1, 0,
 #if defined(HAVE_SETPROTOENT) && defined(HAVE_ENDPROTOENT)
 GUILE_PROC (scm_setproto, "setproto", 0, 1, 0, 
             (SCM arg),
-"")
+"If @var{stayopen} is omitted, this is equivalent to @code{endprotoent}.
+Otherwise it is equivalent to @code{setprotoent stayopen}.")
 #define FUNC_NAME s_scm_setproto
 {
   if (SCM_UNBNDP (arg))
@@ -479,7 +537,8 @@ GUILE_PROC (scm_setproto, "setproto", 0, 1, 0,
 #if defined(HAVE_SETSERVENT) && defined(HAVE_ENDSERVENT)
 GUILE_PROC (scm_setserv, "setserv", 0, 1, 0, 
             (SCM arg),
-"")
+"If @var{stayopen} is omitted, this is equivalent to @code{endservent}.
+Otherwise it is equivalent to @code{setservent stayopen}.")
 #define FUNC_NAME s_scm_setserv
 {
   if (SCM_UNBNDP (arg))

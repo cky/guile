@@ -55,7 +55,10 @@
 
 GUILE_PROC(scm_acons, "acons", 3, 0, 0,
            (SCM w, SCM x, SCM y),
-"")
+"Adds a new key-value pair to @var{alist}.  A new pair is
+created whose car is @var{key} and whose cdr is @var{value}, and the
+pair is consed onto @var{alist}, and the new list is returned.  This
+function is @emph{not} destructive; @var{alist} is not modified.")
 #define FUNC_NAME s_scm_acons
 {
   register SCM z;
@@ -74,7 +77,8 @@ GUILE_PROC(scm_acons, "acons", 3, 0, 0,
 
 GUILE_PROC (scm_sloppy_assq, "sloppy-assq", 2, 0, 0,
             (SCM x, SCM alist),
-"")
+"Behaves like @code{assq} but does not do any error checking.
+Recommended only for use in Guile internals.")
 #define FUNC_NAME s_scm_sloppy_assq
 {
 
@@ -92,7 +96,8 @@ GUILE_PROC (scm_sloppy_assq, "sloppy-assq", 2, 0, 0,
 
 GUILE_PROC (scm_sloppy_assv, "sloppy-assv", 2, 0, 0,
             (SCM x, SCM alist),
-"")
+"Behaves like @code{assv} but does not do any error checking.
+Recommended only for use in Guile internals.")
 #define FUNC_NAME s_scm_sloppy_assv
 {
   for (; SCM_NIMP (alist) && SCM_CONSP (alist); alist = SCM_CDR (alist))
@@ -110,7 +115,8 @@ GUILE_PROC (scm_sloppy_assv, "sloppy-assv", 2, 0, 0,
 
 GUILE_PROC (scm_sloppy_assoc, "sloppy-assoc", 2, 0, 0,
             (SCM x, SCM alist),
-"")
+"Behaves like @code{assoc} but does not do any error checking.
+Recommended only for use in Guile internals.")
 #define FUNC_NAME s_scm_sloppy_assoc
 {
   for (; SCM_NIMP (alist) && SCM_CONSP (alist); alist = SCM_CDR (alist))
@@ -130,7 +136,15 @@ GUILE_PROC (scm_sloppy_assoc, "sloppy-assoc", 2, 0, 0,
 
 GUILE_PROC(scm_assq, "assq", 2, 0, 0,
            (SCM x, SCM alist),
-"")
+"@deffnx primitive assv key alist
+@deffnx primitive assoc key alist
+Fetches the entry in @var{alist} that is associated with @var{key}.  To
+decide whether the argument @var{key} matches a particular entry in
+@var{alist}, @code{assq} compares keys with @code{eq?}, @code{assv}
+uses @code{eqv?} and @code{assoc} uses @code{equal?}.  If @var{key}
+cannot be found in @var{alist} (according to whichever equality
+predicate is in use), then @code{#f} is returned.  These functions
+return the entire alist entry found (i.e. both the key and the value).")
 #define FUNC_NAME s_scm_assq
 {
   SCM tmp;
@@ -167,7 +181,7 @@ GUILE_PROC(scm_assv, "assv", 2, 0, 0,
 
 GUILE_PROC(scm_assoc, "assoc", 2, 0, 0,
            (SCM x, SCM alist),
-"")
+"See @code{assq}.")
 #define FUNC_NAME s_scm_assoc
 {
   SCM tmp;
@@ -185,7 +199,18 @@ GUILE_PROC(scm_assoc, "assoc", 2, 0, 0,
 
 GUILE_PROC (scm_assq_ref, "assq-ref", 2, 0, 0,
             (SCM alist, SCM key),
-"")
+"@deffnx primitive assv-ref alist key
+@deffnx primitive assoc-ref alist key
+Like @code{assq}, @code{assv} and @code{assoc}, except that only the
+value associated with @var{key} in @var{alist} is returned.  These
+functions are equivalent to
+
+@lisp
+(let ((ent (@var{associator} @var{key} @var{alist})))
+  (and ent (cdr ent)))
+@end lisp
+
+where @var{associator} is one of @code{assq}, @code{assv} or @code{assoc}.")
 #define FUNC_NAME s_scm_assq_ref
 {
   SCM handle;
@@ -202,7 +227,7 @@ GUILE_PROC (scm_assq_ref, "assq-ref", 2, 0, 0,
 
 GUILE_PROC (scm_assv_ref, "assv-ref", 2, 0, 0,
             (SCM alist, SCM key),
-"")
+"See @code{assq-ref}.")
 #define FUNC_NAME s_scm_assv_ref
 {
   SCM handle;
@@ -219,7 +244,7 @@ GUILE_PROC (scm_assv_ref, "assv-ref", 2, 0, 0,
 
 GUILE_PROC (scm_assoc_ref, "assoc-ref", 2, 0, 0,
             (SCM alist, SCM key),
-"")
+"See @code{assq-ref}.")
 #define FUNC_NAME s_scm_assoc_ref
 {
   SCM handle;
@@ -240,7 +265,16 @@ GUILE_PROC (scm_assoc_ref, "assoc-ref", 2, 0, 0,
 
 GUILE_PROC (scm_assq_set_x, "assq-set!", 3, 0, 0,
             (SCM alist, SCM key, SCM val),
-"")
+"@deffnx primitive assv-set! alist key value
+@deffnx primitive assoc-set! alist key value
+Reassociate @var{key} in @var{alist} with @var{value}: find any existing
+@var{alist} entry for @var{key} and associate it with the new
+@var{value}.  If @var{alist} does not contain an entry for @var{key},
+add a new one.  Return the (possibly new) alist.
+
+These functions do not attempt to verify the structure of @var{alist},
+and so may cause unusual results if passed an object that is not an
+association list.")
 #define FUNC_NAME s_scm_assq_set_x
 {
   SCM handle;
@@ -258,7 +292,7 @@ GUILE_PROC (scm_assq_set_x, "assq-set!", 3, 0, 0,
 
 GUILE_PROC (scm_assv_set_x, "assv-set!", 3, 0, 0,
             (SCM alist, SCM key, SCM val),
-"")
+"See @code{assq-set!}.")
 #define FUNC_NAME s_scm_assv_set_x
 {
   SCM handle;
@@ -276,7 +310,7 @@ GUILE_PROC (scm_assv_set_x, "assv-set!", 3, 0, 0,
 
 GUILE_PROC (scm_assoc_set_x, "assoc-set!", 3, 0, 0,
             (SCM alist, SCM key, SCM val),
-"")
+"See @code{assq-set!}.")
 #define FUNC_NAME s_scm_assoc_set_x
 {
   SCM handle;
@@ -297,7 +331,10 @@ GUILE_PROC (scm_assoc_set_x, "assoc-set!", 3, 0, 0,
 
 GUILE_PROC (scm_assq_remove_x, "assq-remove!", 2, 0, 0,
             (SCM alist, SCM key),
-"")
+"@deffnx primitive assv-remove! alist key
+@deffnx primitive assoc-remove! alist key
+Delete any entry in @var{alist} associated with @var{key}, and return
+the resulting alist.")
 #define FUNC_NAME s_scm_assq_remove_x
 {
   SCM handle;
@@ -315,7 +352,7 @@ GUILE_PROC (scm_assq_remove_x, "assq-remove!", 2, 0, 0,
 
 GUILE_PROC (scm_assv_remove_x, "assv-remove!", 2, 0, 0,
             (SCM alist, SCM key),
-"")
+"See @code{assq-remove!}.")
 #define FUNC_NAME s_scm_assv_remove_x
 {
   SCM handle;
@@ -333,7 +370,7 @@ GUILE_PROC (scm_assv_remove_x, "assv-remove!", 2, 0, 0,
 
 GUILE_PROC (scm_assoc_remove_x, "assoc-remove!", 2, 0, 0,
             (SCM alist, SCM key),
-"")
+"See @code{assq-remove!}.")
 #define FUNC_NAME s_scm_assoc_remove_x
 {
   SCM handle;

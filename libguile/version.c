@@ -76,7 +76,16 @@ GUILE_PROC(scm_minor_version, "minor-version", 0, 0, 0,
 
 GUILE_PROC(scm_version, "version", 0, 0, 0, 
            (),
-"")
+"@deffnx primitive major-version
+@deffnx primitive minor-version
+Return a string describing Guile's version number, or its major or minor
+version numbers, respectively.
+
+@example
+(version) @result{} "1.3a"
+(major-version) @result{} "1"
+(minor-version) @result{} "3a"
+@end example")
 #define FUNC_NAME s_scm_version
 {
   return scm_makfrom0str (GUILE_VERSION);

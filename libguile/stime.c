@@ -131,7 +131,7 @@ struct timeb scm_your_base = {0};
 
 GUILE_PROC(scm_get_internal_real_time, "get-internal-real-time", 0, 0, 0, 
            (),
-"")
+"Returns the number of time units since the interpreter was started.")
 #define FUNC_NAME s_scm_get_internal_real_time
 {
   struct timeb time_buffer;
@@ -166,7 +166,25 @@ GUILE_PROC(scm_get_internal_real_time, "get-internal-real-time", 0, 0, 0,
 
 GUILE_PROC (scm_times, "times", 0, 0, 0, 
             (void),
-"")
+"Returns an object with information about real and processor time.
+The following procedures accept such an object as an argument and
+return a selected component:
+
+@table @code
+@item tms:clock
+The current real time, expressed as time units relative to an
+arbitrary base.
+@item tms:utime
+The CPU time units used by the calling process.
+@item tms:stime
+The CPU time units used by the system on behalf of the calling process.
+@item tms:cutime
+The CPU time units used by terminated child processes of the calling
+process, whose status has been collected (e.g., using @code{waitpid}).
+@item tms:cstime
+Similarly, the CPU times units used by the system on behalf of 
+terminated child processes.
+@end table")
 #define FUNC_NAME s_scm_times
 {
 #ifdef HAVE_TIMES
@@ -199,7 +217,9 @@ static long scm_my_base = 0;
 
 GUILE_PROC(scm_get_internal_run_time, "get-internal-run-time", 0, 0, 0, 
            (void),
-"")
+"Returns the number of time units of processor time used by the interpreter.
+Both "system" and "user" time
+are included but subprocesses are not.")
 #define FUNC_NAME s_scm_get_internal_run_time
 {
   return scm_long2num(mytime()-scm_my_base);
@@ -208,7 +228,8 @@ GUILE_PROC(scm_get_internal_run_time, "get-internal-run-time", 0, 0, 0,
 
 GUILE_PROC(scm_current_time, "current-time", 0, 0, 0, 
            (void),
-"")
+"Returns the number of seconds since 1970-01-01 00:00:00 UTC, excluding
+leap seconds.")
 #define FUNC_NAME s_scm_current_time
 {
   timet timv;
@@ -223,7 +244,9 @@ GUILE_PROC(scm_current_time, "current-time", 0, 0, 0,
 
 GUILE_PROC (scm_gettimeofday, "gettimeofday", 0, 0, 0, 
             (void),
-"")
+"Returns a pair containing the number of seconds and microseconds since
+1970-01-01 00:00:00 UTC, excluding leap seconds.  Note: whether true
+microsecond resolution is available depends on the operating system.")
 #define FUNC_NAME s_scm_gettimeofday
 {
 #ifdef HAVE_GETTIMEOFDAY
@@ -316,7 +339,11 @@ restorezone (SCM zone, char **oldenv, const char *subr)
 
 GUILE_PROC (scm_localtime, "localtime", 1, 1, 0, 
             (SCM time, SCM zone),
-"")
+"Returns an object representing the broken down components of @var{time},
+an integer like the one returned by @code{current-time}.  The time zone
+for the calculation is optionally specified by @var{zone} (a string),
+otherwise the @code{TZ} environment variable or the system default is
+used.")
 #define FUNC_NAME s_scm_localtime
 {
   timet itime;
@@ -382,7 +409,9 @@ GUILE_PROC (scm_localtime, "localtime", 1, 1, 0,
 
 GUILE_PROC (scm_gmtime, "gmtime", 1, 0, 0, 
             (SCM time),
-"")
+"Returns an object representing the broken down components of @var{time},
+an integer like the one returned by @code{current-time}.  The values
+are calculated for UTC.")
 #define FUNC_NAME s_scm_gmtime
 {
   timet itime;
@@ -439,7 +468,14 @@ bdtime2c (SCM sbd_time, struct tm *lt, int pos, const char *subr)
 
 GUILE_PROC (scm_mktime, "mktime", 1, 1, 0, 
             (SCM sbd_time, SCM zone),
-"")
+"@var{bd-time} is an object representing broken down time and @code{zone}
+is an optional time zone specifier (otherwise the TZ environment variable
+or the system default is used).
+
+Returns a pair: the CAR is a corresponding
+integer time value like that returned
+by @code{current-time}; the CDR is a broken down time object, similar to
+as @var{bd-time} but with normalized values.")
 #define FUNC_NAME s_scm_mktime
 {
   timet itime;
@@ -508,7 +544,10 @@ GUILE_PROC (scm_mktime, "mktime", 1, 1, 0,
 
 GUILE_PROC (scm_tzset, "tzset", 0, 0, 0, 
             (void),
-"")
+"Initialize the timezone from the TZ environment variable or the system
+default.  Usually this is done automatically by other procedures which
+use the time zone, but this procedure may need to be used if TZ
+is changed.")
 #define FUNC_NAME s_scm_tzset
 {
   tzset();
@@ -518,7 +557,13 @@ GUILE_PROC (scm_tzset, "tzset", 0, 0, 0,
 
 GUILE_PROC (scm_strftime, "strftime", 2, 0, 0,
             (SCM format, SCM stime),
-"")
+"Formats a time specification @var{time} using @var{template}.  @var{time}
+is an object with time components in the form returned by @code{localtime}
+or @code{gmtime}.  @var{template} is a string which can include formatting
+specifications introduced by a @code{%} character.  The formatting of
+month and day names is dependent on the current locale.  The value returned
+is the formatted string.
+@xref{Formatting Date and Time, , , libc, The GNU C Library Reference Manual}.)")
 #define FUNC_NAME s_scm_strftime
 {
   struct tm t;
@@ -551,7 +596,16 @@ GUILE_PROC (scm_strftime, "strftime", 2, 0, 0,
 
 GUILE_PROC (scm_strptime, "strptime", 2, 0, 0,
             (SCM format, SCM string),
-"")
+"Performs the reverse action to @code{strftime}, parsing @var{string}
+according to the specification supplied in @var{template}.  The
+interpretation of month and day names is dependent on the current
+locale.  The
+value returned is a pair.  The CAR has an object with time components 
+in the form returned by @code{localtime} or @code{gmtime},
+but the time zone components
+are not usefully set.
+The CDR reports the number of characters from @var{string} which
+were used for the conversion.")
 #define FUNC_NAME s_scm_strptime
 {
 #ifdef HAVE_STRPTIME

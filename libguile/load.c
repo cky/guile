@@ -99,7 +99,12 @@ load (void *data)
 
 GUILE_PROC(scm_primitive_load, "primitive-load", 1, 0, 0, 
            (SCM filename),
-"")
+"Load @var{file} and evaluate its contents in the top-level environment.
+The load paths are not searched; @var{file} must either be a full
+pathname or be a pathname relative to the current directory.  If the
+variable @code{%load-hook} is defined, it should be bound to a procedure
+that will be called before any code is loaded.  See documentation for
+@code{%load-hook} later in this section.")
 #define FUNC_NAME s_scm_primitive_load
 {
   SCM hook = *scm_loc_load_hook;
@@ -133,7 +138,9 @@ GUILE_PROC(scm_primitive_load, "primitive-load", 1, 0, 0,
 #ifdef SCM_PKGDATA_DIR
 GUILE_PROC (scm_sys_package_data_dir, "%package-data-dir", 0, 0, 0, 
             (),
-"")
+"Return the name of the directory where Scheme packages, modules and
+libraries are kept.  On most Unix systems, this will be
+@samp{/usr/local/share/guile}.")
 #define FUNC_NAME s_scm_sys_package_data_dir
 {
   return scm_makfrom0str (SCM_PKGDATA_DIR);
@@ -194,6 +201,35 @@ GUILE_PROC (scm_parse_path, "parse-path", 1, 1, 0,
 }
 #undef FUNC_NAME
 
+GUILE_PROC (scm_library_dir, "library-dir", 0,0,0,
+            (),
+"Return the directory where the Guile Scheme library files are installed.
+E.g., may return \"/usr/share/guile/1.3.5\".")
+#define FUNC_NAME s_scm_library_dir
+{
+  return scm_makfrom0str(SCM_LIBRARY_DIR);
+}
+#undef FUNC_NAME
+
+GUILE_PROC (scm_pkgdata_dir, "pkgdata-dir", 0,0,0,
+            (),
+"Return the directory where the Guile package files are installed.
+E.g., may return \"/usr/share/guile\".")
+#define FUNC_NAME s_scm_pkgdata_dir
+{
+  return scm_makfrom0str(SCM_PKGDATA_DIR);
+}
+#undef FUNC_NAME
+
+GUILE_PROC (scm_site_dir, "site-dir", 0,0,0,
+            (),
+"Return the directory where the Guile site files are installed.
+E.g., may return \"/usr/share/guile/site\".")
+#define FUNC_NAME s_scm_site_dir
+{
+  return scm_makfrom0str(SCM_SITE_DIR);
+}
+#undef FUNC_NAME
 
 /* Initialize the global variable %load-path, given the value of the
    SCM_SITE_DIR and SCM_LIBRARY_DIR preprocessor symbols and the
@@ -368,7 +404,12 @@ GUILE_PROC(scm_search_path, "search-path", 2, 1, 0,
    If FILENAME is absolute, return it unchanged.  */
 GUILE_PROC(scm_sys_search_load_path, "%search-load-path", 1, 0, 0, 
            (SCM filename),
-"")
+"Search @var{%load-path} for @var{file}, which must be readable by the
+current user.  If @var{file} is found in the list of paths to search or
+is an absolute pathname, return its full pathname.  Otherwise, return
+@code{#f}.  Filenames may have any of the optional extensions in the
+@code{%load-extensions} list; @code{%search-load-path} will try each
+extension automatically.")
 #define FUNC_NAME s_scm_sys_search_load_path
 {
   SCM path = *scm_loc_load_path;
@@ -387,7 +428,9 @@ GUILE_PROC(scm_sys_search_load_path, "%search-load-path", 1, 0, 0,
 
 GUILE_PROC(scm_primitive_load_path, "primitive-load-path", 1, 0, 0, 
            (SCM filename),
-"")
+"Search @var{%load-path} for @var{file} and load it into the top-level
+environment.  If @var{file} is a relative pathname and is not found in
+the list of search paths, an error is signalled.")
 #define FUNC_NAME s_scm_primitive_load_path
 {
   SCM full_filename;
@@ -420,7 +463,10 @@ SCM_SYMBOL (scm_end_of_file_key, "end-of-file");
 
 GUILE_PROC (scm_read_and_eval_x, "read-and-eval!", 0, 1, 0, 
             (SCM port),
-"")
+"Read a form from @var{port} (standard input by default), and evaluate it
+(memoizing it in the process) in the top-level environment.  If no data
+is left to be read from @var{port}, an @code{end-of-file} error is
+signalled.")
 #define FUNC_NAME s_scm_read_and_eval_x
 {
   SCM form = scm_read (port);

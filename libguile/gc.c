@@ -343,7 +343,7 @@ scm_debug_newcell (void)
 
 GUILE_PROC (scm_gc_stats, "gc-stats", 0, 0, 0, 
             (),
-"")
+"Returns an association list of statistics about Guile's current use of storage.  ")
 #define FUNC_NAME s_scm_gc_stats
 {
   int i;
@@ -408,7 +408,8 @@ scm_gc_end ()
 
 GUILE_PROC (scm_object_address, "object-address", 1, 0, 0, 
             (SCM obj),
-"")
+"Return an integer that for the lifetime of @var{obj} is uniquely
+returned by this function for @var{obj}")
 #define FUNC_NAME s_scm_object_address
 {
   return scm_ulong2num ((unsigned long)obj);
@@ -418,7 +419,8 @@ GUILE_PROC (scm_object_address, "object-address", 1, 0, 0,
 
 GUILE_PROC(scm_gc, "gc", 0, 0, 0, 
            (),
-"")
+"Scans all of SCM objects and reclaims for further use those that are
+no longer accessible.")
 #define FUNC_NAME s_scm_gc
 {
   SCM_DEFER_INTS;

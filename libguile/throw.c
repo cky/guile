@@ -528,7 +528,25 @@ scm_handle_by_throw (void *handler_data, SCM tag, SCM args)
 
 GUILE_PROC(scm_catch, "catch", 3, 0, 0,
            (SCM tag, SCM thunk, SCM handler),
-"")
+"Invoke @var{thunk} in the dynamic context of @var{handler} for
+exceptions matching @var{key}.  If thunk throws to the symbol @var{key},
+then @var{handler} is invoked this way:
+
+@example
+(handler key args ...)
+@end example
+
+@var{key} is a symbol or #t.
+
+@var{thunk} takes no arguments.  If @var{thunk} returns normally, that
+is the return value of @code{catch}.
+
+Handler is invoked outside the scope of its own @code{catch}.  If
+@var{handler} again throws to the same key, a new handler from further
+up the call chain is invoked.
+
+If the key is @code{#t}, then a throw to @emph{any} symbol will match
+this call to @code{catch}.")
 #define FUNC_NAME s_scm_catch
 {
   struct scm_body_thunk_data c;
@@ -583,7 +601,13 @@ GUILE_PROC(scm_lazy_catch, "lazy-catch", 3, 0, 0,
 
 GUILE_PROC(scm_throw, "throw", 1, 0, 1,
            (SCM key, SCM args),
-"")
+"Invoke the catch form matching @var{key}, passing @var{args} to the
+@var{handler}.  
+
+@var{key} is a symbol.  It will match catches of the same symbol or of
+#t.
+
+If there is no handler at all, an error is signaled.")
 #define FUNC_NAME s_scm_throw
 {
   SCM_VALIDATE_SYMBOL(1,key);

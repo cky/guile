@@ -124,7 +124,18 @@
 
 GUILE_PROC (scm_chown, "chown", 3, 0, 0, 
             (SCM object, SCM owner, SCM group),
-"")
+"Change the ownership and group of the file referred to by @var{obj} to
+the integer userid values @var{owner} and @var{group}.  @var{obj} can be
+a string containing a file name or a port or integer file descriptor
+which is open on the file (in which case fchown is used as the underlying
+system call).  The return value
+is unspecified.
+
+If @var{obj} is a symbolic link, either the
+ownership of the link or the ownership of the referenced file will be
+changed depending on the operating system (lchown is
+unsupported at present).  If @var{owner} or @var{group} is specified
+as @code{-1}, then that ID is not changed.")
 #define FUNC_NAME s_scm_chown
 {
   int rv;
@@ -159,7 +170,13 @@ GUILE_PROC (scm_chown, "chown", 3, 0, 0,
 
 GUILE_PROC (scm_chmod, "chmod", 2, 0, 0,
             (SCM object, SCM mode),
-"")
+"Changes the permissions of the file referred to by @var{obj}.
+@var{obj} can be a string containing a file name or a port or integer file
+descriptor which is open on a file (in which case @code{fchmod} is used
+as the underlying system call).
+@var{mode} specifies
+the new permissions as a decimal number, e.g., @code{(chmod "foo" #o755)}.
+The return value is unspecified.")
 #define FUNC_NAME s_scm_chmod
 {
   int rv;
@@ -190,7 +207,11 @@ GUILE_PROC (scm_chmod, "chmod", 2, 0, 0,
 
 GUILE_PROC (scm_umask, "umask", 0, 1, 0, 
             (SCM mode),
-"")
+"If @var{mode} is omitted, retuns a decimal number representing the current
+file creation mask.  Otherwise the file creation mask is set to
+@var{mode} and the previous value is returned.
+
+E.g., @code{(umask #o022)} sets the mask to octal 22, decimal 18.")
 #define FUNC_NAME s_scm_umask
 {
   mode_t mask;
@@ -212,7 +233,8 @@ GUILE_PROC (scm_umask, "umask", 0, 1, 0,
 
 GUILE_PROC (scm_open_fdes, "open-fdes", 2, 1, 0, 
             (SCM path, SCM flags, SCM mode),
-"")
+"Similar to @code{open} but returns a file descriptor instead of a
+port.")
 #define FUNC_NAME s_scm_open_fdes
 {
   int fd;
@@ -232,7 +254,33 @@ GUILE_PROC (scm_open_fdes, "open-fdes", 2, 1, 0,
 
 GUILE_PROC (scm_open, "open", 2, 1, 0, 
             (SCM path, SCM flags, SCM mode),
-"")
+"Open the file named by @var{path} for reading and/or writing.
+@var{flags} is an integer specifying how the file should be opened.
+@var{mode} is an integer specifying the permission bits of the file, if
+it needs to be created, before the umask is applied.  The default is 666
+(Unix itself has no default).
+
+@var{flags} can be constructed by combining variables using @code{logior}.
+Basic flags are:
+
+@defvar O_RDONLY
+Open the file read-only.
+@end defvar
+@defvar O_WRONLY
+Open the file write-only. 
+@end defvar
+@defvar O_RDWR
+Open the file read/write.
+@end defvar
+@defvar O_APPEND
+Append to the file instead of truncating.
+@end defvar
+@defvar O_CREAT
+Create the file if it does not already exist.
+@end defvar
+
+See the Unix documentation of the @code{open} system call
+for additional flags.")
 #define FUNC_NAME s_scm_open
 {
   SCM newpt;
@@ -266,7 +314,11 @@ GUILE_PROC (scm_open, "open", 2, 1, 0,
 
 GUILE_PROC (scm_close, "close", 1, 0, 0, 
             (SCM fd_or_port),
-"")
+"Similar to close-port (@pxref{Generic Port Operations, close-port}),
+but also works on file descriptors.  A side
+effect of closing a file descriptor is that any ports using that file
+descriptor are moved to a different file descriptor and have
+their revealed counts set to zero.")
 #define FUNC_NAME s_scm_close
 {
   int rv;
@@ -395,7 +447,60 @@ scm_stat2scm (struct stat *stat_temp)
 
 GUILE_PROC (scm_stat, "stat", 1, 0, 0, 
             (SCM object),
-"")
+"Returns an object containing various information
+about the file determined by @var{obj}.
+@var{obj} can be a string containing a file name or a port or integer file
+descriptor which is open on a file (in which case @code{fstat} is used
+as the underlying system call).
+
+The object returned by @code{stat} can be passed as a single parameter
+to the following procedures, all of which return integers:
+
+@table @code
+@item stat:dev
+The device containing the file.
+@item stat:ino
+The file serial number, which distinguishes this file from all other
+files on the same device.
+@item stat:mode
+The mode of the file.  This includes file type information
+and the file permission bits.  See @code{stat:type} and @code{stat:perms}
+below.
+@item stat:nlink
+The number of hard links to the file.
+@item stat:uid
+The user ID of the file's owner.
+@item stat:gid
+The group ID of the file.
+@item stat:rdev
+Device ID; this entry is defined only for character or block
+special files.
+@item stat:size
+The size of a regular file in bytes.
+@item stat:atime
+The last access time for the file.
+@item stat:mtime
+The last modification time for the file.
+@item stat:ctime
+The last modification time for the attributes of the file.
+@item stat:blksize
+The optimal block size for reading or writing the file, in bytes.
+@item stat:blocks
+The amount of disk space that the file occupies measured in units of
+512 byte blocks.
+@end table
+
+In addition, the following procedures return the information
+from stat:mode in a more convenient form:
+
+@table @code
+@item stat:type
+A symbol representing the type of file.  Possible values are
+regular, directory, symlink, block-special, char-special,
+fifo, socket and unknown
+@item stat:perms
+An integer representing the access permission bits.
+@end table")
 #define FUNC_NAME s_scm_stat
 {
   int rv;
@@ -440,7 +545,9 @@ GUILE_PROC (scm_stat, "stat", 1, 0, 0,
 
 GUILE_PROC (scm_link, "link", 2, 0, 0,
             (SCM oldpath, SCM newpath),
-"")
+"Creates a new name @var{path-to} in the file system for the file
+named by @var{path-from}.  If @var{path-from} is a symbolic link, the
+link may or may not be followed depending on the system.")
 #define FUNC_NAME s_scm_link
 {
   int val;
@@ -464,7 +571,8 @@ GUILE_PROC (scm_link, "link", 2, 0, 0,
 
 GUILE_PROC (scm_rename, "rename-file", 2, 0, 0,
             (SCM oldname, SCM newname),
-"")
+"Renames the file specified by @var{path-from} to @var{path-to}.
+The return value is unspecified.")
 #define FUNC_NAME s_scm_rename
 {
   int rv;
@@ -493,7 +601,7 @@ GUILE_PROC (scm_rename, "rename-file", 2, 0, 0,
 
 GUILE_PROC(scm_delete_file, "delete-file", 1, 0, 0, 
            (SCM str),
-"")
+"Deletes (or \"unlinks\") the file specified by @var{path}.")
 #define FUNC_NAME s_scm_delete_file
 {
   int ans;
@@ -508,7 +616,10 @@ GUILE_PROC(scm_delete_file, "delete-file", 1, 0, 0,
 
 GUILE_PROC (scm_mkdir, "mkdir", 1, 1, 0,
             (SCM path, SCM mode),
-"")
+"Create a new directory named by @var{path}.  If @var{mode} is omitted
+then the permissions of the directory file are set using the current
+umask.  Otherwise they are set to the decimal value specified with
+@var{mode}.  The return value is unspecified.")
 #define FUNC_NAME s_scm_mkdir
 {
 #ifdef HAVE_MKDIR
@@ -541,7 +652,8 @@ GUILE_PROC (scm_mkdir, "mkdir", 1, 1, 0,
 
 GUILE_PROC (scm_rmdir, "rmdir", 1, 0, 0, 
             (SCM path),
-"")
+"Remove the existing directory named by @var{path}.  The directory must
+be empty for this to succeed.  The return value is unspecified.")
 #define FUNC_NAME s_scm_rmdir
 {
 #ifdef HAVE_RMDIR
@@ -569,7 +681,8 @@ long scm_tc16_dir;
 
 GUILE_PROC (scm_directory_stream_p, "directory-stream?", 1, 0, 0, 
             (SCM obj),
-"")
+"Returns a boolean indicating whether @var{object} is a directory stream
+as returned by @code{opendir}.")
 #define FUNC_NAME s_scm_directory_stream_p
 {
   return SCM_BOOL(SCM_NIMP (obj) && SCM_DIRP (obj));
@@ -578,7 +691,8 @@ GUILE_PROC (scm_directory_stream_p, "directory-stream?", 1, 0, 0,
 
 GUILE_PROC (scm_opendir, "opendir", 1, 0, 0, 
             (SCM dirname),
-"")
+"Open the directory specified by @var{path} and return a directory
+stream.")
 #define FUNC_NAME s_scm_opendir
 {
   DIR *ds;
@@ -594,7 +708,9 @@ GUILE_PROC (scm_opendir, "opendir", 1, 0, 0,
 
 GUILE_PROC (scm_readdir, "readdir", 1, 0, 0, 
             (SCM port),
-"")
+"Return (as a string) the next directory entry from the directory stream
+@var{stream}.  If there is no remaining entry to be read then the
+end of file object is returned.")
 #define FUNC_NAME s_scm_readdir
 {
   struct dirent *rdent;
@@ -612,7 +728,8 @@ GUILE_PROC (scm_readdir, "readdir", 1, 0, 0,
 
 GUILE_PROC (scm_rewinddir, "rewinddir", 1, 0, 0, 
             (SCM port),
-"")
+"Reset the directory port @var{stream} so that the next call to
+@code{readdir} will return the first directory entry.")
 #define FUNC_NAME s_scm_rewinddir
 {
   SCM_VALIDATE_OPDIR(1,port);
@@ -625,7 +742,8 @@ GUILE_PROC (scm_rewinddir, "rewinddir", 1, 0, 0,
 
 GUILE_PROC (scm_closedir, "closedir", 1, 0, 0, 
             (SCM port),
-"")
+"Close the directory stream @var{stream}.
+The return value is unspecified.")
 #define FUNC_NAME s_scm_closedir
 {
   int sts;
@@ -674,7 +792,8 @@ scm_dir_free (SCM p)
 
 GUILE_PROC (scm_chdir, "chdir", 1, 0, 0, 
             (SCM str),
-"")
+"Change the current working directory to @var{path}.
+The return value is unspecified.")
 #define FUNC_NAME s_scm_chdir
 {
   int ans;
@@ -692,7 +811,7 @@ GUILE_PROC (scm_chdir, "chdir", 1, 0, 0,
 
 GUILE_PROC (scm_getcwd, "getcwd", 0, 0, 0,
             (),
-"")
+"Returns the name of the current working directory.")
 #define FUNC_NAME s_scm_getcwd
 {
 #ifdef HAVE_GETCWD
@@ -819,7 +938,29 @@ retrieve_select_type (SELECT_TYPE *set, SCM list)
 /* Static helper functions above refer to s_scm_select directly as s_select */
 GUILE_PROC (scm_select, "select", 3, 2, 0, 
             (SCM reads, SCM writes, SCM excepts, SCM secs, SCM usecs),
-"")
+"@var{reads}, @var{writes} and @var{excepts} can be lists or vectors: it
+doesn't matter which, but the corresponding object returned will be
+of the same type.
+Each element is a port or file descriptor on which to wait for
+readability, writeability
+or exceptional conditions respectively.  @var{secs} and @var{usecs}
+optionally specify a timeout: @var{secs} can be specified alone, as
+either an integer or a real number, or both @var{secs} and @var{usecs}
+can be specified as integers, in which case @var{usecs} is an additional
+timeout expressed in microseconds.
+
+Buffered input or output data is (currently, but this may change)
+ignored: select uses the underlying file descriptor of a port
+(@code{char-ready?} will check input buffers, output buffers are
+problematic).
+
+The return value is a list of subsets of the input lists or vectors for
+which the requested condition has been met.
+
+It is not quite compatible with scsh's select: scsh checks port buffers,
+doesn't accept input lists or a microsecond timeout, returns multiple
+values instead of a list and has an additional select! interface.
+")
 #define FUNC_NAME s_scm_select
 {
 #ifdef HAVE_SELECT
@@ -905,7 +1046,31 @@ GUILE_PROC (scm_select, "select", 3, 2, 0,
 
 GUILE_PROC (scm_fcntl, "fcntl", 2, 0, 1,
             (SCM object, SCM cmd, SCM value),
-"")
+"Apply @var{command} to the specified file descriptor or the underlying
+file descriptor of the specified port.  @var{value} is an optional
+integer argument.
+
+Values for @var{command} are:
+
+@table @code
+@item F_DUPFD
+Duplicate a file descriptor
+@item F_GETFD
+Get flags associated with the file descriptor.
+@item F_SETFD
+Set flags associated with the file descriptor to @var{value}.
+@item F_GETFL
+Get flags associated with the open file.
+@item F_SETFL
+Set flags associated with the open file to @var{value}
+@item F_GETOWN
+Get the process ID of a socket's owner, for @code{SIGIO} signals.
+@item F_SETOWN
+Set the process that owns a socket to @var{value}, for @code{SIGIO} signals.
+@item FD_CLOEXEC
+The value used to indicate the "close on exec" flag with @code{F_GETFL} or
+@code{F_SETFL}.
+@end table")
 #define FUNC_NAME s_scm_fcntl
 {
   int rv;
@@ -938,7 +1103,10 @@ GUILE_PROC (scm_fcntl, "fcntl", 2, 0, 1,
 
 GUILE_PROC (scm_fsync, "fsync", 1, 0, 0, 
             (SCM object),
-"")
+"Copies any unwritten data for the specified output file descriptor to disk.
+If @var{port/fd} is a port, its buffer is flushed before the underlying
+file descriptor is fsync'd.
+The return value is unspecified.")
 #define FUNC_NAME s_scm_fsync
 {
   int fdes;
@@ -963,7 +1131,8 @@ GUILE_PROC (scm_fsync, "fsync", 1, 0, 0,
 
 GUILE_PROC (scm_symlink, "symlink", 2, 0, 0,
             (SCM oldpath, SCM newpath),
-"")
+"Create a symbolic link named @var{path-to} with the value (i.e., pointing to)
+@var{path-from}.  The return value is unspecified.")
 #define FUNC_NAME s_scm_symlink
 {
 #ifdef HAVE_SYMLINK
@@ -988,7 +1157,9 @@ GUILE_PROC (scm_symlink, "symlink", 2, 0, 0,
 
 GUILE_PROC (scm_readlink, "readlink", 1, 0, 0, 
             (SCM path),
-"")
+"Returns the value of the symbolic link named by
+@var{path} (a string), i.e., the
+file that the link points to.")
 #define FUNC_NAME s_scm_readlink
 {
 #ifdef HAVE_READLINK
@@ -1021,7 +1192,9 @@ GUILE_PROC (scm_readlink, "readlink", 1, 0, 0,
 
 GUILE_PROC (scm_lstat, "lstat", 1, 0, 0, 
             (SCM str),
-"")
+"Similar to @code{stat}, but does not follow symbolic links, i.e.,
+it will return information about a symbolic link itself, not the 
+file it points to.  @var{path} must be a string.")
 #define FUNC_NAME s_scm_lstat
 {
 #ifdef HAVE_LSTAT
@@ -1053,7 +1226,8 @@ GUILE_PROC (scm_lstat, "lstat", 1, 0, 0,
 
 GUILE_PROC (scm_copy_file, "copy-file", 2, 0, 0,
             (SCM oldfile, SCM newfile),
-"")
+"Copy the file specified by @var{path-from} to @var{path-to}.
+The return value is unspecified.")
 #define FUNC_NAME s_scm_copy_file
 {
   int oldfd, newfd;

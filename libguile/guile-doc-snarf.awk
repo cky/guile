@@ -35,6 +35,7 @@ BEGIN { FS="|";
 		 sub(/[ \t]*$/,"",location);
 		 sub(/: /,":",location);
 		 gsub(/[ \t]*\|.*$/,"",copy);
+		 sub(/ )/,")",copy);
 		 if (numargs != numactuals && !registering) 
 		   { print location ":*** `" copy "' is improperly registered as having " numactuals " arguments"; }
 		 print "\n" copy (registering?")":"") > dot_doc_file ; }

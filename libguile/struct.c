@@ -68,7 +68,16 @@ SCM scm_struct_table;
 
 GUILE_PROC (scm_make_struct_layout, "make-struct-layout", 1, 0, 0, 
             (SCM fields),
-"")
+"Return a new structure layout object.
+
+@var{fields} must be a read-only string made up of pairs of characters
+strung together.  The first character of each pair describes a field
+type, the second a field protection.  Allowed types are 'p' for
+GC-protected Scheme data, 'u' for unprotected binary data, and 's' for
+fields that should point to the structure itself.    Allowed protections
+are 'w' for mutable fields, 'r' for read-only fields, and 'o' for opaque 
+fields.  The last field protection specification may be capitalized to
+indicate that the field is a tail-array.")
 #define FUNC_NAME s_scm_make_struct_layout
 {
   SCM new_sym;
@@ -233,7 +242,7 @@ scm_struct_init (SCM handle, int tail_elts, SCM inits)
 
 GUILE_PROC (scm_struct_p, "struct?", 1, 0, 0, 
             (SCM x),
-"")
+"Return #t iff @var{obj} is a structure object, else #f.")
 #define FUNC_NAME s_scm_struct_p
 {
   return SCM_BOOL(SCM_NIMP (x) && SCM_STRUCTP (x));
@@ -242,7 +251,7 @@ GUILE_PROC (scm_struct_p, "struct?", 1, 0, 0,
 
 GUILE_PROC (scm_struct_vtable_p, "struct-vtable?", 1, 0, 0, 
             (SCM x),
-"")
+"Return #t iff obj is a vtable structure.")
 #define FUNC_NAME s_scm_struct_vtable_p
 {
   SCM layout;
@@ -360,7 +369,19 @@ scm_struct_free_entity (SCM *vtable, SCM *data)
 
 GUILE_PROC (scm_make_struct, "make-struct", 2, 0, 1, 
             (SCM vtable, SCM tail_array_size, SCM init),
-"")
+"Create a new structure.
+
+@var{type} must be a vtable structure (@xref{Vtables}).
+
+@var{tail-elts} must be a non-negative integer.  If the layout
+specification indicated by @var{type} includes a tail-array,
+this is the number of elements allocated to that array.
+
+The @var{inits} are optional arguments describing how successive fields
+of the structure should be initialized.  Only fields with protection 'r'
+or 'w' can be initialized -- fields of protection 's' are automatically
+initialized to point to the new structure itself;  fields of protection 'o'
+can not be initialized by Scheme programs.")
 #define FUNC_NAME s_scm_make_struct
 {
   SCM layout;
@@ -401,7 +422,71 @@ GUILE_PROC (scm_make_struct, "make-struct", 2, 0, 1,
 
 GUILE_PROC (scm_make_vtable_vtable, "make-vtable-vtable", 2, 0, 1,
             (SCM extra_fields, SCM tail_array_size, SCM init),
-"")
+"Return a new, self-describing vtable structure.
+
+@var{new-fields} is a layout specification describing fields
+of the resulting structure beginning at the position bound to
+@code{vtable-offset-user}.
+
+@var{tail-size} specifies the size of the tail-array (if any) of
+this vtable.
+
+@var{inits} initializes the fields of the vtable.  Minimally, one
+initializer must be provided: the layout specification for instances
+of the type this vtable will describe.  If a second initializer is
+provided, it will be interpreted as a print call-back function.
+
+@example
+;;; loading ,a...
+(define x
+  (make-vtable-vtable (make-struct-layout (quote pw))
+                      0
+                      'foo))
+
+(struct? x)
+@result{} #t
+(struct-vtable? x)
+@result{} #t
+(eq? x (struct-vtable x))
+@result{} #t
+(struct-ref x vtable-offset-user)
+@result{} foo
+(struct-ref x 0)
+@result{} pruosrpwpw
+
+
+(define y
+  (make-struct x
+               0
+               (make-struct-layout (quote pwpwpw))
+               'bar))
+
+(struct? y)
+@result{} #t
+(struct-vtable? y)
+@result{} #t
+(eq? x y)
+@result{} ()
+(eq? x (struct-vtable y))
+@result{} #t
+(struct-ref y 0)
+@result{} pwpwpw
+(struct-ref y vtable-offset-user)
+@result{} bar
+
+
+(define z (make-struct y 0 'a 'b 'c))
+
+(struct? z)
+@result{} #t
+(struct-vtable? z)
+@result{} ()
+(eq? y (struct-vtable z))
+@result{} #t
+(map (lambda (n) (struct-ref z n)) '(0 1 2))
+@result{} (a b c)
+@end example
+")
 #define FUNC_NAME s_scm_make_vtable_vtable
 {
   SCM fields;
@@ -439,7 +524,13 @@ GUILE_PROC (scm_make_vtable_vtable, "make-vtable-vtable", 2, 0, 1,
 
 GUILE_PROC (scm_struct_ref, "struct-ref", 2, 0, 0,
             (SCM handle, SCM pos),
-"")
+"@deffnx primitive struct-set! struct n value
+Access (or modify) the @var{n}th field of @var{struct}.
+
+If the field is of type 'p', then it can be set to an arbitrary value.
+
+If the field is of type 'u', then it can only be set to a non-negative
+integer value small enough to fit in one machine word.")
 #define FUNC_NAME s_scm_struct_ref
 {
   SCM answer = SCM_UNDEFINED;
@@ -592,7 +683,7 @@ GUILE_PROC (scm_struct_set_x, "struct-set!", 3, 0, 0,
 
 GUILE_PROC (scm_struct_vtable, "struct-vtable", 1, 0, 0, 
             (SCM handle),
-"")
+"Return the vtable structure that describes the type of @var{struct}.")
 #define FUNC_NAME s_scm_struct_vtable
 {
   SCM_VALIDATE_STRUCT(1,handle);

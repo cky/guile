@@ -87,7 +87,8 @@ GUILE_PROC(scm_makmmacro, "procedure->memoizing-macro", 1, 0, 0,
 
 GUILE_PROC (scm_macro_p, "macro?", 1, 0, 0, 
             (SCM obj),
-"")
+"Return @code{#t} if @var{obj} is a regular macro, a memoizing macro or a
+syntax transformer.")
 #define FUNC_NAME s_scm_macro_p
 {
   return SCM_BOOL(SCM_NIMP (obj) && SCM_TYP16 (obj) == scm_tc16_macro);
@@ -101,7 +102,10 @@ SCM_SYMBOL (scm_sym_mmacro, "macro!");
 
 GUILE_PROC (scm_macro_type, "macro-type", 1, 0, 0, 
             (SCM m),
-"")
+"Return one of the symbols @code{syntax}, @code{macro} or @code{macro!},
+depending on whether @var{obj} is a syntax tranformer, a regular macro,
+or a memoizing macro, respectively.  If @var{obj} is not a macro,
+@code{#f} is returned.")
 #define FUNC_NAME s_scm_macro_type
 {
   if (!(SCM_NIMP (m) && SCM_TYP16 (m) == scm_tc16_macro))

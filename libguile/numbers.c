@@ -512,7 +512,13 @@ scm_lcm (SCM n1, SCM n2)
 #ifndef scm_long2num
 GUILE_PROC1 (scm_logand, "logand", scm_tc7_asubr,
              (SCM n1, SCM n2),
-"")
+"Returns the integer which is the bit-wise AND of the two integer
+arguments.
+
+Example:
+@lisp
+(number->string (logand #b1100 #b1010) 2)
+   @result{} \"1000\"")
 #define FUNC_NAME s_scm_logand
 {
   int i1, i2;
@@ -530,7 +536,14 @@ GUILE_PROC1 (scm_logand, "logand", scm_tc7_asubr,
 
 GUILE_PROC1 (scm_logior, "logior", scm_tc7_asubr,
              (SCM n1, SCM n2),
-"")
+"Returns the integer which is the bit-wise OR of the two integer
+arguments.
+
+Example:
+@lisp
+(number->string (logior #b1100 #b1010) 2)
+   @result{} \"1110\"
+@end lisp")
 #define FUNC_NAME s_scm_logior
 {
   int i1, i2;
@@ -548,7 +561,14 @@ GUILE_PROC1 (scm_logior, "logior", scm_tc7_asubr,
 
 GUILE_PROC1 (scm_logxor, "logxor", scm_tc7_asubr,
              (SCM n1, SCM n2),
-"")
+"Returns the integer which is the bit-wise XOR of the two integer
+arguments.
+
+Example:
+@lisp
+(number->string (logxor #b1100 #b1010) 2)
+   @result{} \"110\"
+@end lisp")
 #define FUNC_NAME s_scm_logxor
 {
   int i1, i2;
@@ -647,7 +667,12 @@ GUILE_PROC1 (scm_logxor, "logxor", scm_tc7_asubr,
 
 GUILE_PROC (scm_logtest, "logtest", 2, 0, 0,
             (SCM n1, SCM n2),
-"")
+"@example
+(logtest j k) @equiv{} (not (zero? (logand j k)))
+
+(logtest #b0100 #b1011) @result{} #f
+(logtest #b0100 #b0111) @result{} #t
+@end example")
 #define FUNC_NAME s_scm_logtest
 {
   int i1, i2;
@@ -659,7 +684,15 @@ GUILE_PROC (scm_logtest, "logtest", 2, 0, 0,
 
 GUILE_PROC (scm_logbit_p, "logbit?", 2, 0, 0,
             (SCM n1, SCM n2),
-"")
+"@example
+(logbit? index j) @equiv{} (logtest (integer-expt 2 index) j)
+
+(logbit? 0 #b1101) @result{} #t
+(logbit? 1 #b1101) @result{} #f
+(logbit? 2 #b1101) @result{} #t
+(logbit? 3 #b1101) @result{} #t
+(logbit? 4 #b1101) @result{} #f
+@end example")
 #define FUNC_NAME s_scm_logbit_p
 {
   int i1, i2;
@@ -672,7 +705,16 @@ GUILE_PROC (scm_logbit_p, "logbit?", 2, 0, 0,
 
 GUILE_PROC (scm_lognot, "lognot", 1, 0, 0, 
             (SCM n),
-"")
+"Returns the integer which is the 2s-complement of the integer argument.
+
+Example:
+@lisp
+(number->string (lognot #b10000000) 2)
+   @result{} \"-10000001\"
+(number->string (lognot #b0) 2)
+   @result{} \"-1\"
+@end lisp
+")
 #define FUNC_NAME s_scm_lognot
 {
   SCM_VALIDATE_INT(1,n);
@@ -682,7 +724,15 @@ GUILE_PROC (scm_lognot, "lognot", 1, 0, 0,
 
 GUILE_PROC (scm_integer_expt, "integer-expt", 2, 0, 0,
             (SCM z1, SCM z2),
-"")
+"Returns @var{n} raised to the non-negative integer exponent @var{k}.
+
+Example:
+@lisp
+(integer-expt 2 5)
+   @result{} 32
+(integer-expt -3 3)
+   @result{} -27
+@end lisp")
 #define FUNC_NAME s_scm_integer_expt
 {
   SCM acc = SCM_MAKINUM (1L);
@@ -715,7 +765,16 @@ GUILE_PROC (scm_integer_expt, "integer-expt", 2, 0, 0,
 
 GUILE_PROC (scm_ash, "ash", 2, 0, 0,
             (SCM n, SCM cnt),
-"")
+"Returns an integer equivalent to
+@code{(inexact->exact (floor (* @var{int} (expt 2 @var{count}))))}.@refill
+
+Example:
+@lisp
+(number->string (ash #b1 3) 2)
+   @result{} "1000"
+(number->string (ash #b1010 -1) 2)
+   @result{} "101"
+@end lisp")
 #define FUNC_NAME s_scm_ash
 {
   /* GJB:FIXME:: what is going on here? */
@@ -749,7 +808,17 @@ GUILE_PROC (scm_ash, "ash", 2, 0, 0,
 /* GJB:FIXME: do not use SCMs as integers! */
 GUILE_PROC (scm_bit_extract, "bit-extract", 3, 0, 0,
             (SCM n, SCM start, SCM end),
-"")
+"Returns the integer composed of the @var{start} (inclusive) through
+@var{end} (exclusive) bits of @var{n}.  The @var{start}th bit becomes
+the 0-th bit in the result.@refill
+
+Example:
+@lisp
+(number->string (bit-extract #b1101101010 0 4) 2)
+   @result{} \"1010\"
+(number->string (bit-extract #b1101101010 4 9) 2)
+   @result{} \"10110\"
+@end lisp")
 #define FUNC_NAME s_scm_bit_extract
 {
   SCM_VALIDATE_INT(1,n);
@@ -778,7 +847,20 @@ static const char scm_logtab[] = {
 
 GUILE_PROC (scm_logcount, "logcount", 1, 0, 0,
             (SCM n),
-"")
+"Returns the number of bits in integer @var{n}.  If integer is positive,
+the 1-bits in its binary representation are counted.  If negative, the
+0-bits in its two's-complement binary representation are counted.  If 0,
+0 is returned.
+
+Example:
+@lisp
+(logcount #b10101010)
+   @result{} 4
+(logcount 0)
+   @result{} 0
+(logcount -2)
+   @result{} 1
+@end lisp")
 #define FUNC_NAME s_scm_logcount
 {
   register unsigned long c = 0;
@@ -815,7 +897,17 @@ static const char scm_ilentab[] = {
 
 GUILE_PROC (scm_integer_length, "integer-length", 1, 0, 0,
             (SCM n),
-"")
+"Returns the number of bits neccessary to represent @var{n}.
+
+Example:
+@lisp
+(integer-length #b10101010)
+   @result{} 8
+(integer-length 0)
+   @result{} 0
+(integer-length #b1111)
+   @result{} 4
+@end lisp")
 #define FUNC_NAME s_scm_integer_length
 {
   register unsigned long c = 0;

@@ -139,7 +139,46 @@ sf_close (SCM port)
 
 GUILE_PROC(scm_make_soft_port, "make-soft-port", 2, 0, 0,
            (SCM pv, SCM modes),
-"")
+"Returns a port capable of receiving or delivering characters as
+specified by the @var{modes} string (@pxref{File Ports,
+open-file}).  @var{vector} must be a vector of length 6.  Its components
+are as follows:
+
+@enumerate 0
+@item
+procedure accepting one character for output
+@item
+procedure accepting a string for output
+@item
+thunk for flushing output
+@item
+thunk for getting one character
+@item
+thunk for closing port (not by garbage collection)
+@end enumerate
+
+For an output-only port only elements 0, 1, 2, and 4 need be
+procedures.  For an input-only port only elements 3 and 4 need be
+procedures.  Thunks 2 and 4 can instead be @code{#f} if there is no useful
+operation for them to perform.
+
+If thunk 3 returns @code{#f} or an @code{eof-object} (@pxref{Input,
+eof-object?, ,r4rs, The Revised^4 Report on Scheme}) it indicates that
+the port has reached end-of-file.  For example:
+
+@example
+(define stdout (current-output-port))
+(define p (make-soft-port
+           (vector
+            (lambda (c) (write c stdout))
+            (lambda (s) (display s stdout))
+            (lambda () (display "." stdout))
+            (lambda () (char-upcase (read-char)))
+            (lambda () (display "@@" stdout)))
+           "rw"))
+
+(write p p) @result{} #<input-output-soft#\space45d10#\>
+@end example")
 #define FUNC_NAME s_scm_make_soft_port
 {
   scm_port *pt;

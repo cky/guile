@@ -221,14 +221,8 @@ scheme_launch_thread (void *p)
   SCM_DEFER_INTS;
 }
 
-#ifdef __STDC__
 SCM
 scm_call_with_new_thread (SCM argl)
-#else
-SCM
-scm_call_with_new_thread (argl)
-     SCM argl;
-#endif
 {
   SCM thread;
 

@@ -69,7 +69,7 @@ scm_m_generalized_set_x (SCM xorig, SCM env)
 
 GUILE_PROC (scm_definedp, "defined?", 1, 1, 0,
             (SCM sym, SCM env),
-"")
+"Return @code{#t} if @var{sym} is defined in the top-level environment.")
 #define FUNC_NAME s_scm_definedp
 {
   SCM vcell;

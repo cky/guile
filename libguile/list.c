@@ -188,7 +188,10 @@ GUILE_PROC(scm_length, "length", 1, 0, 0,
 
 GUILE_PROC (scm_append, "append", 0, 0, 1, 
             (SCM args),
-"")
+"A destructive version of @code{append} (@pxref{Pairs and Lists,,,r4rs,
+The Revised^4 Report on Scheme}).  The cdr field of each list's final
+pair is changed to point to the head of the next list, so no consing is
+performed.  Return a pointer to the mutated list.")
 #define FUNC_NAME s_scm_append
 {
   SCM res = SCM_EOL;
@@ -239,7 +242,8 @@ GUILE_PROC (scm_append_x, "append!", 0, 0, 1,
 
 GUILE_PROC(scm_last_pair, "last-pair", 1, 0, 0, 
            (SCM sx),
-"")
+"Return a pointer to the last pair in @var{lst}, signalling an error if
+@var{lst} is circular.")
 #define FUNC_NAME s_scm_last_pair
 {
   register SCM res = sx;
@@ -267,7 +271,17 @@ GUILE_PROC(scm_last_pair, "last-pair", 1, 0, 0,
 
 GUILE_PROC (scm_reverse, "reverse", 1, 0, 0,
             (SCM ls),
-"")
+"A destructive version of @code{reverse} (@pxref{Pairs and Lists,,,r4rs,
+The Revised^4 Report on Scheme}).  The cdr of each cell in @var{lst} is
+modified to point to the previous list element.  Return a pointer to the
+head of the reversed list.
+
+Caveat: because the list is modified in place, the tail of the original
+list now becomes its head, and the head of the original list now becomes
+the tail.  Therefore, the @var{lst} symbol to which the head of the
+original list was bound now points to the tail.  To ensure that the head
+of the modified list is not lost, it is wise to save the return value of
+@code{reverse!}")
 #define FUNC_NAME s_scm_reverse
 {
   SCM res = SCM_EOL;
@@ -339,7 +353,7 @@ GUILE_PROC(scm_list_ref, "list-ref", 2, 0, 0,
 
 GUILE_PROC(scm_list_set_x, "list-set!", 3, 0, 0,
            (SCM lst, SCM k, SCM val),
-"")
+"Set the @var{k}th element of @var{lst} to @var{val}.")
 #define FUNC_NAME s_scm_list_set_x
 {
   register long i;
@@ -361,7 +375,12 @@ SCM_REGISTER_PROC(s_list_cdr_ref, "list-cdr-ref", 2, 0, 0, scm_list_tail);
 
 GUILE_PROC(scm_list_tail, "list-tail", 2, 0, 0,
            (SCM lst, SCM k),
-"")
+"Return the \"tail\" of @var{lst} beginning with its @var{k}th element.
+The first element of the list is considered to be element 0.
+
+@code{list-cdr-ref} and @code{list-tail} are identical.  It may help to
+think of @code{list-cdr-ref} as accessing the @var{k}th cdr of the list,
+or returning the results of cdring @var{k} times down @var{lst}.")
 #define FUNC_NAME s_scm_list_tail
 {
   register long i;
@@ -377,7 +396,7 @@ GUILE_PROC(scm_list_tail, "list-tail", 2, 0, 0,
 
 GUILE_PROC(scm_list_cdr_set_x, "list-cdr-set!", 3, 0, 0,
            (SCM lst, SCM k, SCM val),
-"")
+"Set the @var{k}th cdr of @var{lst} to @var{val}.")
 #define FUNC_NAME s_scm_list_cdr_set_x
 {
   register long i;
@@ -400,7 +419,8 @@ erout:
 
 GUILE_PROC(scm_list_head, "list-head", 2, 0, 0,
            (SCM lst, SCM k),
-"")
+"Copy the first @var{k} elements from @var{lst} into a new list, and
+return it.")
 #define FUNC_NAME s_scm_list_head
 {
   SCM answer;
@@ -424,7 +444,7 @@ GUILE_PROC(scm_list_head, "list-head", 2, 0, 0,
 
 GUILE_PROC (scm_list_copy, "list-copy", 1, 0, 0, 
             (SCM lst),
-"")
+"Return a (newly-created) copy of @var{lst}.")
 #define FUNC_NAME s_scm_list_copy
 {
   SCM newlst;
@@ -452,7 +472,12 @@ GUILE_PROC (scm_list_copy, "list-copy", 1, 0, 0,
 
 GUILE_PROC (scm_sloppy_memq, "sloppy-memq", 2, 0, 0,
             (SCM x, SCM lst),
-"")
+"@deffnx primitive sloppy-memv
+@deffnx primitive sloppy-member
+These procedures behave like @code{memq}, @code{memv} and @code{member}
+(@pxref{Pairs and Lists,,,r4rs, The Revised^4 Report on Scheme}), but do
+not perform any type or error checking.  Their use is recommended only
+in writing Guile internals, not for high-level Scheme programs.")
 #define FUNC_NAME s_scm_sloppy_memq
 {
   for(;  SCM_NIMP(lst) && SCM_CONSP (lst);  lst = SCM_CDR(lst))
@@ -541,7 +566,14 @@ GUILE_PROC(scm_member, "member", 2, 0, 0,
 
 GUILE_PROC(scm_delq_x, "delq!", 2, 0, 0,
            (SCM item, SCM lst),
-"")
+"@deffnx primitive delv! item lst
+@deffnx primitive delete! item lst
+These procedures are destructive versions of @code{delq}, @code{delv}
+and @code{delete}: they modify the pointers in the existing @var{lst}
+rather than creating a new list.  Caveat evaluator: Like other
+destructive list functions, these functions cannot modify the binding of
+@var{lst}, and so cannot be used to delete the first element of
+@var{lst} destructively.")
 #define FUNC_NAME s_scm_delq_x
 {
   SCM walk;
@@ -614,7 +646,12 @@ GUILE_PROC(scm_delete_x, "delete!", 2, 0, 0,
 
 GUILE_PROC (scm_delq, "delq", 2, 0, 0,
             (SCM item, SCM lst),
-"")
+"@deffnx primitive delv item lst
+@deffnx primitive delete item lst
+Return a newly-created copy of @var{lst} with @var{item} removed.  These
+procedures mirror @code{memq}, @code{memv} and @code{member}:
+@code{delq} compares elements of @var{lst} against @var{item} with
+@code{eq?}, @code{delv} uses @code{eqv?} and @code{delete} uses @code{equal?}")
 #define FUNC_NAME s_scm_delq
 {
   SCM copy = scm_list_copy (lst);

@@ -146,7 +146,12 @@ scm_ihashq (SCM obj, unsigned int n)
 
 GUILE_PROC(scm_hashq, "hashq", 2, 0, 0,
            (SCM obj, SCM n),
-"")
+"@deffnx primitive hashv key size
+@deffnx primitive hash key size
+Default hash functions for Guile hash tables.  @var{key} is the
+object to be hashed, and @var{size} is the size of the target hash
+table.  Each function returns an integer in the range 0 to
+@var{size}-1.")
 #define FUNC_NAME s_scm_hashq
 {
   SCM_VALIDATE_INT_MIN(2,n,0);

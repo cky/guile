@@ -89,7 +89,17 @@ scm_error (SCM key, const char *subr, const char *message, SCM args, SCM rest)
 /* Scheme interface to scm_error.  */
 GUILE_PROC(scm_error_scm, "scm-error", 5, 0, 0, 
            (SCM key, SCM subr, SCM message, SCM args, SCM rest),
-"")
+"Raise an error with key @var{key}.  @var{subr} can be a string naming
+the procedure associated with the error, or @code{#f}.  @var{message}
+is the error message string, possibly containing @code{%S} and @code{%s}
+escapes.  When an error is reported, these are replaced by formating the
+corresponding members of @var{args}: @code{%s} formats using @code{display}
+and @code{%S} formats using @code{write}.  @var{data} is a
+list or @code{#f} depending on @var{key}: if @var{key} is
+@code{system-error} then it should be a list
+containing the Unix @code{errno} value;  If @var{key} is @code{signal} then
+it should be a list containing the Unix signal number; otherwise it
+will usually be @code{#f}.")
 #define FUNC_NAME s_scm_error_scm
 {
   char *szSubr;
@@ -106,7 +116,7 @@ GUILE_PROC(scm_error_scm, "scm-error", 5, 0, 0,
 
 GUILE_PROC (scm_strerror, "strerror", 1, 0, 0, 
             (SCM err),
-"")
+"Returns the Unix error message corresponding to @var{errno}, an integer.")
 #define FUNC_NAME s_scm_strerror
 {
   SCM_VALIDATE_INT(1,err);

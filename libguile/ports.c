@@ -248,7 +248,8 @@ GUILE_PROC(scm_char_ready_p, "char-ready?", 0, 1, 0,
 /* Clear a port's read buffers, returning the contents.  */
 GUILE_PROC (scm_drain_input, "drain-input", 1, 0, 0, 
             (SCM port),
-"")
+"Drains @var{PORT}'s read buffers (including any pushed-back characters)
+and returns the contents as a single string.")
 #define FUNC_NAME s_scm_drain_input
 {
   SCM result;
@@ -301,7 +302,8 @@ GUILE_PROC(scm_current_output_port, "current-output-port", 0, 0, 0,
 
 GUILE_PROC(scm_current_error_port, "current-error-port", 0, 0, 0,
            (),
-"")
+"Return the port to which errors and warnings should be sent (the
+@dfn{standard error} in Unix and C terminology).")
 #define FUNC_NAME s_scm_current_error_port
 {
   return scm_cur_errp;
@@ -319,7 +321,11 @@ GUILE_PROC(scm_current_load_port, "current-load-port", 0, 0, 0,
 
 GUILE_PROC(scm_set_current_input_port, "set-current-input-port", 1, 0, 0,
            (SCM port),
-"")
+"@deffnx primitive set-current-output-port port
+@deffnx primitive set-current-error-port port
+Change the ports returned by @code{current-input-port},
+@code{current-output-port} and @code{current-error-port}, respectively,
+so that they use the supplied @var{port} for input or output.")
 #define FUNC_NAME s_scm_set_current_input_port
 {
   SCM oinp = scm_cur_inp;
@@ -477,7 +483,7 @@ scm_revealed_count (SCM port)
 
 GUILE_PROC(scm_port_revealed, "port-revealed", 1, 0, 0,
            (SCM port),
-"")
+"Returns the revealed count for @var{port}.")
 #define FUNC_NAME s_scm_port_revealed
 {
   port = SCM_COERCE_OUTPORT (port);
@@ -489,7 +495,8 @@ GUILE_PROC(scm_port_revealed, "port-revealed", 1, 0, 0,
 /* Set the revealed count for a port.  */
 GUILE_PROC(scm_set_port_revealed_x, "set-port-revealed!", 2, 0, 0,
            (SCM port, SCM rcount),
-"")
+"Sets the revealed count for a port to a given value.  
+The return value is unspecified.")
 #define FUNC_NAME s_scm_set_port_revealed_x
 {
   port = SCM_COERCE_OUTPORT (port);
@@ -529,7 +536,10 @@ scm_mode_bits (char *modes)
 
 GUILE_PROC(scm_port_mode, "port-mode", 1, 0, 0,
            (SCM port),
-"")
+"Returns the port modes associated with the open port @var{port}.  These
+will not necessarily be identical to the modes used when the port was
+opened, since modes such as \"append\" which are used only during
+port creation are not retained.")
 #define FUNC_NAME s_scm_port_mode
 {
   char modes[3];
@@ -561,7 +571,12 @@ GUILE_PROC(scm_port_mode, "port-mode", 1, 0, 0,
  */
 GUILE_PROC(scm_close_port, "close-port", 1, 0, 0,
            (SCM port),
-"")
+"Close the specified port object.  Returns @code{#t} if it successfully
+closes a port or @code{#f} if it was already
+closed.  An exception may be raised if an error occurs, for example
+when flushing buffered output.
+See also @ref{Ports and File Descriptors, close}, for a procedure
+which can close file descriptors.")
 #define FUNC_NAME s_scm_close_port
 {
   scm_sizet i;
@@ -585,7 +600,13 @@ GUILE_PROC(scm_close_port, "close-port", 1, 0, 0,
 
 GUILE_PROC(scm_close_all_ports_except, "close-all-ports-except", 0, 0, 1,
            (SCM ports),
-"")
+"Close all open file ports used by the interpreter
+except for those supplied as arguments.  This procedure
+is intended to be used before an exec call to close file descriptors
+which are not needed in the new process.Close all open file ports used by the interpreter
+except for those supplied as arguments.  This procedure
+is intended to be used before an exec call to close file descriptors
+which are not needed in the new process.")
 #define FUNC_NAME s_scm_close_all_ports_except
 {
   int i = 0;
@@ -645,7 +666,7 @@ GUILE_PROC(scm_output_port_p, "output-port?", 1, 0, 0,
 
 GUILE_PROC(scm_port_closed_p, "port-closed?", 1, 0, 0,
            (SCM port),
-"")
+"Returns @code{#t} if @var{port} is closed or @code{#f} if it is open.")
 #define FUNC_NAME s_scm_port_closed_p
 {
   SCM_VALIDATE_OPPORT(1,port);
@@ -664,7 +685,13 @@ GUILE_PROC(scm_eof_object_p, "eof-object?", 1, 0, 0,
 
 GUILE_PROC(scm_force_output, "force-output", 0, 1, 0,
            (SCM port),
-"")
+"Flush the specified output port, or the current output port if @var{port}
+is omitted.  The current output buffer contents are passed to the 
+underlying port implementation (e.g., in the case of fports, the
+data will be written to the file and the output buffer will be cleared.)
+It has no effect on an unbuffered port.
+
+The return value is unspecified.")
 #define FUNC_NAME s_scm_force_output
 {
   if (SCM_UNBNDP (port))
@@ -681,7 +708,8 @@ GUILE_PROC(scm_force_output, "force-output", 0, 1, 0,
 
 GUILE_PROC (scm_flush_all_ports, "flush-all-ports", 0, 0, 0,
             (),
-"")
+"Equivalent to calling @code{force-output} on
+all open output ports.  The return value is unspecified.")
 #define FUNC_NAME s_scm_flush_all_ports
 {
   int i;
@@ -937,7 +965,10 @@ GUILE_PROC(scm_peek_char, "peek-char", 0, 1, 0,
 
 GUILE_PROC (scm_unread_char, "unread-char", 2, 0, 0,
             (SCM cobj, SCM port),
-"")
+"Place @var{char} in @var{port} so that it will be read by the
+next read operation.  If called multiple times, the unread characters
+will be read again in last-in first-out order.  If @var{port} is
+not supplied, the current input port is used.")
 #define FUNC_NAME s_scm_unread_char
 {
   int c;
@@ -957,7 +988,10 @@ GUILE_PROC (scm_unread_char, "unread-char", 2, 0, 0,
 
 GUILE_PROC (scm_unread_string, "unread-string", 2, 0, 0,
             (SCM str, SCM port),
-"")
+"Place the string @var{str} in @var{port} so that its characters will be
+read in subsequent read operations.  If called multiple times, the
+unread characters will be read again in last-in first-out order.  If
+@var{port} is not supplied, the current-input-port is used.")
 #define FUNC_NAME s_scm_unread_string
 {
   SCM_VALIDATE_STRING(1,str);
@@ -974,7 +1008,29 @@ GUILE_PROC (scm_unread_string, "unread-string", 2, 0, 0,
 
 GUILE_PROC (scm_seek, "seek", 3, 0, 0,
             (SCM object, SCM offset, SCM whence),
-"")
+"Sets the current position of @var{fd/port} to the integer @var{offset},
+which is interpreted according to the value of @var{whence}.
+
+One of the following variables should be supplied
+for @var{whence}:
+@defvar SEEK_SET
+Seek from the beginning of the file.
+@end defvar
+@defvar SEEK_CUR
+Seek from the current position.
+@end defvar
+@defvar SEEK_END
+Seek from the end of the file.
+@end defvar
+
+If @var{fd/port} is a file descriptor, the underlying system call is
+@code{lseek}.  @var{port} may be a string port.
+
+The value returned is the new position in the file.  This means that
+the current position of a port can be obtained using:
+@smalllisp
+(seek port 0 SEEK_CUR)
+@end smalllisp")
 #define FUNC_NAME s_scm_seek
 {
   off_t off;
@@ -1010,7 +1066,13 @@ GUILE_PROC (scm_seek, "seek", 3, 0, 0,
 
 GUILE_PROC (scm_truncate_file, "truncate-file", 1, 1, 0,
             (SCM object, SCM length),
-"")
+"Truncates the object referred to by @var{obj} to at most @var{size} bytes.
+@var{obj} can be a string containing a file name or an integer file
+descriptor or a port.  @var{size} may be omitted if @var{obj} is not
+a file name, in which case the truncation occurs at the current port.
+position.
+
+The return value is unspecified.")
 #define FUNC_NAME s_scm_truncate_file
 {
   int rv;
@@ -1087,7 +1149,15 @@ GUILE_PROC (scm_set_port_line_x, "set-port-line!", 2, 0, 0,
 
 GUILE_PROC (scm_port_column, "port-column", 1, 0, 0,
             (SCM port),
-"")
+"@deffnx primitive port-line [input-port]
+Return the current column number or line number of @var{input-port},
+using the current input port if none is specified.  If the number is
+unknown, the result is #f.  Otherwise, the result is a 0-origin integer
+- i.e. the first character of the first line is line 0, column 0.
+(However, when you display a file position, for example in an error
+message, we recommand you add 1 to get 1-origin integers.  This is
+because lines and column numbers traditionally start with 1, and that is
+what non-programmers will find most natural.)")
 #define FUNC_NAME s_scm_port_column
 {
   port = SCM_COERCE_OUTPORT (port);
@@ -1098,7 +1168,9 @@ GUILE_PROC (scm_port_column, "port-column", 1, 0, 0,
 
 GUILE_PROC (scm_set_port_column_x, "set-port-column!", 2, 0, 0,
             (SCM port, SCM column),
-"")
+"@deffnx primitive set-port-line! [input-port] line
+Set the current column or line number of @var{input-port}, using the
+current input port if none is specified.")
 #define FUNC_NAME s_scm_set_port_column_x
 {
   port = SCM_COERCE_OUTPORT (port);
@@ -1110,7 +1182,9 @@ GUILE_PROC (scm_set_port_column_x, "set-port-column!", 2, 0, 0,
 
 GUILE_PROC (scm_port_filename, "port-filename", 1, 0, 0,
             (SCM port),
-"")
+"Return the filename associated with @var{port}.  This function returns
+the strings "standard input", "standard output" and "standard error"
+when called on the current input, output and error ports respectively.")
 #define FUNC_NAME s_scm_port_filename
 {
   port = SCM_COERCE_OUTPORT (port);
@@ -1121,7 +1195,10 @@ GUILE_PROC (scm_port_filename, "port-filename", 1, 0, 0,
 
 GUILE_PROC (scm_set_port_filename_x, "set-port-filename!", 2, 0, 0,
             (SCM port, SCM filename),
-"")
+"Change the filename associated with @var{port}, using the current input
+port if none is specified.  Note that this does not change the port's
+source of data, but only the value that is returned by
+@code{port-filename} and reported in diagnostic output.")
 #define FUNC_NAME s_scm_set_port_filename_x
 {
   port = SCM_COERCE_OUTPORT (port);
@@ -1226,7 +1303,9 @@ scm_void_port (char *mode_str)
 
 GUILE_PROC (scm_sys_make_void_port, "%make-void-port", 1, 0, 0,
             (SCM mode),
-"")
+"Create and return a new void port.  The @var{mode} argument describes
+the input/output modes for this port; for a description, see the
+documentation for @code{open-file} in @ref{File Ports}.")
 #define FUNC_NAME s_scm_sys_make_void_port
 {
   SCM_VALIDATE_ROSTRING(1,mode);

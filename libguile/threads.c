@@ -85,14 +85,52 @@ long scm_tc16_condvar;
 #ifdef USE_COOP_THREADS
 SCM_REGISTER_PROC(s_single_thread_p, "single-active-thread?", 0, 0, 0, scm_single_thread_p);
 #endif
+
+/* GJB:FIXME:DOC: SCM_REGISTER_PROC needs to permit a docstring,
+   or these need to move into the file where the proc is defined. */
+
 SCM_REGISTER_PROC(s_yield, "yield", 0, 0, 0, scm_yield);
+/* If one or more threads are waiting to execute, calling yield forces an
+immediate context switch to one of them. Otherwise, yield has no effect.
+*/
+
 SCM_REGISTER_PROC(s_call_with_new_thread, "call-with-new-thread", 0, 0, 1, scm_call_with_new_thread);
+/* Evaluate @var{(thunk)} in a new thread, and new dynamic context,
+returning a new thread object representing the thread.
+
+If an error occurs during evaluation, call error-thunk, passing it an
+error code describing the condition.  [Error codes are currently
+meaningless integers.  In the future, real values will be specified.]
+If this happens, the error-thunk is called outside the scope of the new
+root -- it is called in the same dynamic context in which
+with-new-thread was evaluated, but not in the callers thread.
+
+All the evaluation rules for dynamic roots apply to threads.
+*/
+
 SCM_REGISTER_PROC(s_join_thread, "join-thread", 1, 0, 0, scm_join_thread);
+/* Suspend execution of the calling thread until the target @var{thread}
+terminates, unless the target @var{thread} has already terminated.
+*/
+
 SCM_REGISTER_PROC(s_make_mutex, "make-mutex", 0, 0, 0, scm_make_mutex);
+/* Create a new mutex object. */
+
 SCM_REGISTER_PROC(s_lock_mutex, "lock-mutex", 1, 0, 0, scm_lock_mutex);
+/* Lock @var{mutex}. If the mutex is already locked, the calling thread
+blocks until the mutex becomes available. The function returns when
+the calling thread owns the lock on @var{mutex}. */
+
 SCM_REGISTER_PROC(s_unlock_mutex, "unlock-mutex", 1, 0, 0, scm_unlock_mutex);
+/* Unlocks @var{mutex} if the calling thread owns the lock on @var{mutex}.
+Calling unlock-mutex on a mutex not owned by the current thread results
+in undefined behaviour. Once a mutex has been unlocked, one thread
+blocked on @var{mutex} is awakened and grabs the mutex lock. */
+
 SCM_REGISTER_PROC(s_make_condition_variable, "make-condition-variable", 0, 0, 0, scm_make_condition_variable);
+
 SCM_REGISTER_PROC(s_wait_condition_variable, "wait-condition-variable", 2, 0, 0, scm_wait_condition_variable);
+
 SCM_REGISTER_PROC(s_signal_condition_variable, "signal-condition-variable", 1, 0, 0, scm_signal_condition_variable);
 
 

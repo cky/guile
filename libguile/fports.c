@@ -131,7 +131,45 @@ scm_fport_buffer_add (SCM port, int read_size, int write_size)
 
 GUILE_PROC (scm_setvbuf, "setvbuf", 2, 1, 0, 
             (SCM port, SCM mode, SCM size),
-"")
+"Set the buffering mode for @var{port}.  @var{mode} can be:
+@table @code
+@item _IONBF
+non-buffered
+@item _IOLBF
+line buffered
+@item _IOFBF
+block buffered, using a newly allocated buffer of @var{size} bytes.
+If @var{size} is omitted, a default size will be used.
+@end table
+
+
+@deffn primitive fcntl fd/port command [value]
+Apply @var{command} to the specified file descriptor or the underlying
+file descriptor of the specified port.  @var{value} is an optional
+integer argument.
+
+Values for @var{command} are:
+
+@table @code
+@item F_DUPFD
+Duplicate a file descriptor
+@item F_GETFD
+Get flags associated with the file descriptor.
+@item F_SETFD
+Set flags associated with the file descriptor to @var{value}.
+@item F_GETFL
+Get flags associated with the open file.
+@item F_SETFL
+Set flags associated with the open file to @var{value}
+@item F_GETOWN
+Get the process ID of a socket's owner, for @code{SIGIO} signals.
+@item F_SETOWN
+Set the process that owns a socket to @var{value}, for @code{SIGIO} signals.
+@item FD_CLOEXEC
+The value used to indicate the "close on exec" flag with @code{F_GETFL} or
+@code{F_SETFL}.
+@end table
+")
 #define FUNC_NAME s_scm_setvbuf
 {
   int cmode, csize;
@@ -219,7 +257,48 @@ scm_evict_ports (int fd)
  */
 GUILE_PROC(scm_open_file, "open-file", 2, 0, 0,
            (SCM filename, SCM modes),
-"")
+"Open the file whose name is @var{string}, and return a port
+representing that file.  The attributes of the port are
+determined by the @var{mode} string.  The way in 
+which this is interpreted is similar to C stdio:
+
+The first character must be one of the following:
+
+@table @samp
+@item r
+Open an existing file for input.
+@item w
+Open a file for output, creating it if it doesn't already exist
+or removing its contents if it does.
+@item a
+Open a file for output, creating it if it doesn't already exist.
+All writes to the port will go to the end of the file.
+The "append mode" can be turned off while the port is in use
+@pxref{Ports and File Descriptors, fcntl}
+@end table
+
+The following additional characters can be appended:
+
+@table @samp
+@item +
+Open the port for both input and output.  E.g., @code{r+}: open
+an existing file for both input and output.
+@item 0
+Create an "unbuffered" port.  In this case input and output operations
+are passed directly to the underlying port implementation without
+additional buffering.  This is likely to slow down I/O operations.
+The buffering mode can be changed while a port is in use
+@pxref{Ports and File Descriptors, setvbuf}
+@item l
+Add line-buffering to the port.  The port output buffer will be
+automatically flushed whenever a newline character is written.
+@end table
+
+In theory we could create read/write ports which were buffered in one
+direction only.  However this isn't included in the current interfaces.
+
+If a file cannot be opened with the access requested,
+@code{open-file} throws an exception.")
 #define FUNC_NAME s_scm_open_file
 {
   SCM port;

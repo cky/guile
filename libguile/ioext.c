@@ -69,7 +69,19 @@
 
 GUILE_PROC (scm_read_delimited_x, "%read-delimited!", 3, 3, 0,
             (SCM delims, SCM buf, SCM gobble, SCM port, SCM start, SCM end),
-"")
+"Read characters from @var{port} into @var{buf} until one of the
+characters in the @var{delims} string is encountered.  If @var{gobble?}
+is true, store the delimiter character in @var{buf} as well; otherwise,
+discard it.  If @var{port} is not specified, use the value of
+@code{(current-input-port)}.  If @var{start} or @var{end} are specified,
+store data only into the substring of @var{buf} bounded by @var{start}
+and @var{end} (which default to the beginning and end of the buffer,
+respectively).
+
+Return a pair consisting of the delimiter that terminated the string and
+the number of characters read.  If reading stopped at the end of file,
+the delimiter returned is the @var{eof-object}; if the buffer was filled
+without encountering a delimiter, this value is @var{#f}.")
 #define FUNC_NAME s_scm_read_delimited_x
 {
   long j;
@@ -218,7 +230,12 @@ scm_do_read_line (SCM port, int *len_p)
 
 GUILE_PROC (scm_read_line, "%read-line", 0, 1, 0, 
             (SCM port),
-"")
+"Read a newline-terminated line from @var{port}, allocating storage as
+necessary.  The newline terminator (if any) is removed from the string,
+and a pair consisting of the line and its delimiter is returned.  The
+delimiter may be either a newline or the @var{eof-object}; if
+@code{%read-line} is called at the end of file, it returns the pair
+@code{(#<eof> . #<eof>)}.")
 #define FUNC_NAME s_scm_read_line
 {
   scm_port *pt;
@@ -266,7 +283,14 @@ GUILE_PROC (scm_read_line, "%read-line", 0, 1, 0,
 
 GUILE_PROC (scm_write_line, "write-line", 1, 1, 0,
             (SCM obj, SCM port),
-"")
+"Display @var{obj} and a newline character to @var{port}.  If @var{port}
+is not specified, @code{(current-output-port)} is used.  This function
+is equivalent to:
+
+@smalllisp
+(display obj [port])
+(newline [port])
+@end smalllisp")
 #define FUNC_NAME s_scm_write_line
 {
   scm_display (obj, port);
@@ -276,7 +300,11 @@ GUILE_PROC (scm_write_line, "write-line", 1, 1, 0,
 
 GUILE_PROC (scm_ftell, "ftell", 1, 0, 0, 
             (SCM object),
-"")
+"Returns an integer representing the current position of @var{fd/port},
+measured from the beginning.  Equivalent to:
+@smalllisp
+(seek port 0 SEEK_CUR)
+@end smalllisp")
 #define FUNC_NAME s_scm_ftell
 {
   return scm_seek (object, SCM_INUM0, SCM_MAKINUM (SEEK_CUR));
@@ -285,7 +313,8 @@ GUILE_PROC (scm_ftell, "ftell", 1, 0, 0,
 
 GUILE_PROC (scm_fseek, "fseek", 3, 0, 0,
             (SCM object, SCM offset, SCM whence),
-"")
+"Obsolete.  Almost the same as seek, above, but the return value is
+unspecified.")
 #define FUNC_NAME s_scm_fseek
 {
   scm_seek (object, offset, whence);
@@ -295,7 +324,19 @@ GUILE_PROC (scm_fseek, "fseek", 3, 0, 0,
 
 GUILE_PROC (scm_redirect_port, "redirect-port", 2, 0, 0,
             (SCM old, SCM new),
-"")
+"This procedure takes two ports and duplicates the underlying file
+descriptor from @var{old-port} into @var{new-port}.  The
+current file descriptor in @var{new-port} will be closed.
+After the redirection the two ports will share a file position
+and file status flags.
+
+The return value is unspecified.
+
+Unexpected behaviour can result if both ports are subsequently used
+and the original and/or duplicate ports are buffered.
+
+This procedure does not have any side effects on other ports or
+revealed counts.")
 #define FUNC_NAME s_scm_redirect_port
 {
   int ans, oldfd, newfd;
@@ -332,7 +373,7 @@ GUILE_PROC (scm_redirect_port, "redirect-port", 2, 0, 0,
 
 GUILE_PROC (scm_dup_to_fdes, "dup->fdes", 1, 1, 0, 
             (SCM fd_or_port, SCM fd),
-"")
+"Returns an integer file descriptor.")
 #define FUNC_NAME s_scm_dup_to_fdes
 {
   int oldfd, newfd, rv;
@@ -372,7 +413,8 @@ GUILE_PROC (scm_dup_to_fdes, "dup->fdes", 1, 1, 0,
 
 GUILE_PROC (scm_fileno, "fileno", 1, 0, 0, 
             (SCM port),
-"")
+"Returns the integer file descriptor underlying @var{port}.
+Does not change its revealed count.")
 #define FUNC_NAME s_scm_fileno
 {
   port = SCM_COERCE_OUTPORT (port);
@@ -387,7 +429,8 @@ GUILE_PROC (scm_fileno, "fileno", 1, 0, 0,
    if it is not going to assume that the arg is a port */
 GUILE_PROC (scm_isatty_p, "isatty?", 1, 0, 0, 
             (SCM port),
-"")
+"Returns @code{#t} if @var{port} is using a serial
+non-file device, otherwise @code{#f}.")
 #define FUNC_NAME s_scm_isatty_p
 {
   int rv;
@@ -406,7 +449,10 @@ GUILE_PROC (scm_isatty_p, "isatty?", 1, 0, 0,
 
 GUILE_PROC (scm_fdopen, "fdopen", 2, 0, 0,
             (SCM fdes, SCM modes),
-"")
+"Returns a new port based on the file descriptor @var{fdes}.
+Modes are given by the string @var{modes}.  The revealed count of the port
+is initialized to zero.  The modes string is the same as that accepted
+by @ref{File Ports, open-file}.")
 #define FUNC_NAME s_scm_fdopen
 {
   SCM port;
@@ -428,7 +474,12 @@ GUILE_PROC (scm_fdopen, "fdopen", 2, 0, 0,
  */
 GUILE_PROC (scm_primitive_move_to_fdes, "primitive-move->fdes", 2, 0, 0,
             (SCM port, SCM fd),
-"")
+"Moves the underlying file descriptor for @var{port} to the integer
+value @var{fdes} without changing the revealed count of @var{port}.
+Any other ports already using this descriptor will be automatically
+shifted to new descriptors and their revealed counts reset to zero.
+The return value is @code{#f} if the file descriptor already had the
+required value or @code{#t} if it was moved.")
 #define FUNC_NAME s_scm_primitive_move_to_fdes
 {
   struct scm_fport *stream;
@@ -460,7 +511,8 @@ GUILE_PROC (scm_primitive_move_to_fdes, "primitive-move->fdes", 2, 0, 0,
 /* Return a list of ports using a given file descriptor.  */
 GUILE_PROC(scm_fdes_to_ports, "fdes->ports", 1, 0, 0, 
            (SCM fd),
-"")
+"Returns a list of existing ports which have @var{fdes} as an
+underlying file descriptor, without changing their revealed counts.")
 #define FUNC_NAME s_scm_fdes_to_ports
 {
   SCM result = SCM_EOL;

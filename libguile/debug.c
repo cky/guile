@@ -483,7 +483,10 @@ GUILE_PROC (scm_procedure_environment, "procedure-environment", 1, 0, 0,
  */
 GUILE_PROC (scm_local_eval, "local-eval", 1, 1, 0,
             (SCM exp, SCM env),
-"")
+"Evaluate @var{exp} in its environment.  If @var{env} is supplied,
+it is the environment in which to evaluate @var{exp}.  Otherwise,
+@var{exp} must be a memoized code object (in which case, its environment
+is implicit).")
 #define FUNC_NAME s_scm_local_eval
 {
   if (SCM_UNBNDP (env))

@@ -166,7 +166,15 @@ scm_hash_fn_remove_x (SCM table,SCM obj,unsigned int (*hash_fn)(),SCM (*assoc_fn
 
 GUILE_PROC (scm_hashq_get_handle, "hashq-get-handle", 2, 0, 0,
             (SCM table, SCM obj),
-"")
+"@deffnx primitive hashv-get-handle table key
+@deffnx primitive hash-get-handle table key
+@deffnx primitive hashx-get-handle hasher assoc table key
+These procedures are similar to their @code{-ref} cousins, but return a
+@dfn{handle} from the hash table rather than the value associated with
+@var{key}.  By convention, a handle in a hash table is the pair which
+associates a key with a value.  Where @code{hashq-ref table key} returns
+only a @code{value}, @code{hashq-get-handle table key} returns the pair
+@code{(key . value)}.")
 #define FUNC_NAME s_scm_hashq_get_handle
 {
   return scm_hash_fn_get_handle (table, obj, scm_ihashq, scm_sloppy_assq, 0);
@@ -176,7 +184,12 @@ GUILE_PROC (scm_hashq_get_handle, "hashq-get-handle", 2, 0, 0,
 
 GUILE_PROC (scm_hashq_create_handle_x, "hashq-create-handle!", 3, 0, 0,
             (SCM table, SCM obj, SCM init),
-"")
+"@deffnx primitive hashv-create-handle! table key init
+@deffnx primitive hash-create-handle! table key init
+@deffnx primitive hashx-create-handle! hasher assoc table key init
+These functions look up @var{key} in @var{table} and return its handle,
+If @var{key} is not already present, a new handle is created which
+associates @var{key} with @var{init}.")
 #define FUNC_NAME s_scm_hashq_create_handle_x
 {
   return scm_hash_fn_create_handle_x (table, obj, init, scm_ihashq, scm_sloppy_assq, 0);
@@ -186,7 +199,12 @@ GUILE_PROC (scm_hashq_create_handle_x, "hashq-create-handle!", 3, 0, 0,
 
 GUILE_PROC (scm_hashq_ref, "hashq-ref", 2, 1, 0,
             (SCM table, SCM obj, SCM dflt),
-"")
+"@deffnx primitive hashv-ref table key [default]
+@deffnx primitive hash-ref table key [default]
+Look up @var{key} in the hash table @var{table}, and return the
+value (if any) associated with it.  If @var{key} is not found,
+return @var{default} (or @code{#f} if no @var{default} argument is
+supplied).")
 #define FUNC_NAME s_scm_hashq_ref
 {
   if (dflt == SCM_UNDEFINED)
@@ -199,7 +217,10 @@ GUILE_PROC (scm_hashq_ref, "hashq-ref", 2, 1, 0,
 
 GUILE_PROC (scm_hashq_set_x, "hashq-set!", 3, 0, 0,
             (SCM table, SCM obj, SCM val),
-"")
+"@deffnx primitive hashv-set! table key value
+@deffnx primitive hash-set! table key value
+Find the entry in @var{table} associated with @var{key}, and store
+@var{value} there.")
 #define FUNC_NAME s_scm_hashq_set_x
 {
   return scm_hash_fn_set_x (table, obj, val, scm_ihashq, scm_sloppy_assq, 0);
@@ -210,7 +231,9 @@ GUILE_PROC (scm_hashq_set_x, "hashq-set!", 3, 0, 0,
 
 GUILE_PROC (scm_hashq_remove_x, "hashq-remove!", 2, 0, 0,
             (SCM table, SCM obj),
-"")
+"@deffnx primitive hashv-remove! table key
+@deffnx primitive hash-remove! table key
+Remove @var{key} (and any value associated with it) from @var{table}.")
 #define FUNC_NAME s_scm_hashq_remove_x
 {
   return scm_hash_fn_remove_x (table, obj, scm_ihashq, scm_sloppy_assq, scm_delq_x, 0);
@@ -411,7 +434,17 @@ GUILE_PROC (scm_hashx_create_handle_x, "hashx-create-handle!", 5, 0, 0,
 
 GUILE_PROC (scm_hashx_ref, "hashx-ref", 4, 1, 0, 
             (SCM hash,SCM assoc,SCM table,SCM obj,SCM dflt),
-"")
+"@deffnx primitive hashx-set! hasher assoc table key value
+@deffnx primitive hashx-remove! hasher assoc table key
+These behave the same way as the corresponding @code{ref} and
+@code{set!} functions described above, but use @var{hasher} as a
+hash function and @var{assoc} to compare keys.  @code{hasher} must
+be a function that takes two arguments, a key to be hashed and a
+table size.  @code{assoc} must be an associator function, like
+@code{assoc}, @code{assq} or @code{assv}.
+
+By way of illustration, @code{hashq-ref table key} is equivalent
+to @code{hashx-ref hashq assq table key}.")
 #define FUNC_NAME s_scm_hashx_ref
 {
   struct scm_ihashx_closure closure;

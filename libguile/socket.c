@@ -73,7 +73,9 @@
 
 GUILE_PROC (scm_htons, "htons", 1, 0, 0, 
             (SCM in),
-"")
+"Returns a new integer from @var{value} by converting from host to
+network order. @var{value} must be within the range of a C unsigned
+short integer.")
 #define FUNC_NAME s_scm_htons
 {
   unsigned short c_in;
@@ -88,7 +90,9 @@ GUILE_PROC (scm_htons, "htons", 1, 0, 0,
 
 GUILE_PROC (scm_ntohs, "ntohs", 1, 0, 0, 
             (SCM in),
-"")
+"Returns a new integer from @var{value} by converting from network to
+host order.  @var{value} must be within the range of a C unsigned short
+integer.")
 #define FUNC_NAME s_scm_ntohs
 {
   unsigned short c_in;
@@ -103,7 +107,9 @@ GUILE_PROC (scm_ntohs, "ntohs", 1, 0, 0,
 
 GUILE_PROC (scm_htonl, "htonl", 1, 0, 0, 
             (SCM in),
-"")
+"Returns a new integer from @var{value} by converting from host to
+network order. @var{value} must be within the range of a C unsigned
+long integer.")
 #define FUNC_NAME s_scm_htonl
 {
   unsigned long c_in = SCM_NUM2ULONG (1,in);
@@ -113,7 +119,9 @@ GUILE_PROC (scm_htonl, "htonl", 1, 0, 0,
 
 GUILE_PROC (scm_ntohl, "ntohl", 1, 0, 0, 
             (SCM in),
-"")
+"Returns a new integer from @var{value} by converting from network to
+host order. @var{value} must be within the range of a C unsigned
+long integer.")
 #define FUNC_NAME s_scm_ntohl
 {
   unsigned long c_in = SCM_NUM2ULONG (1,in);
@@ -138,7 +146,18 @@ scm_sock_fd_to_port (int fd, const char *proc)
 
 GUILE_PROC (scm_socket, "socket", 3, 0, 0,
             (SCM family, SCM style, SCM proto),
-"")
+"Returns a new socket port of the type specified by @var{family}, @var{style}
+and @var{protocol}.  All three parameters are integers.  Typical values
+for @var{family} are the values of @code{AF_UNIX}
+and @code{AF_INET}.  Typical values for @var{style} are
+the values of @code{SOCK_STREAM}, @code{SOCK_DGRAM} and @code{SOCK_RAW}.
+
+@var{protocol} can be obtained from a protocol name using
+@code{getprotobyname}.  A value of
+zero specifies the default protocol, which is usually right.
+
+A single socket port cannot by used for communication until
+it has been connected to another socket.")
 #define FUNC_NAME s_scm_socket
 {
   int fd;
@@ -158,7 +177,11 @@ GUILE_PROC (scm_socket, "socket", 3, 0, 0,
 #ifdef HAVE_SOCKETPAIR
 GUILE_PROC (scm_socketpair, "socketpair", 3, 0, 0,
             (SCM family, SCM style, SCM proto),
-"")
+"Returns a pair of connected (but unnamed) socket ports of the type specified
+by @var{family}, @var{style} and @var{protocol}.
+Many systems support only
+socket pairs of the @code{AF_UNIX} family.  Zero is likely to be
+the only meaningful value for @var{protocol}.")
 #define FUNC_NAME s_scm_socketpair
 {
   int fam;
@@ -184,7 +207,15 @@ GUILE_PROC (scm_socketpair, "socketpair", 3, 0, 0,
 
 GUILE_PROC (scm_getsockopt, "getsockopt", 3, 0, 0,
             (SCM sock, SCM level, SCM optname),
-"")
+"Returns the value of a particular socket option for the socket
+port @var{socket}.  @var{level} is an integer code for type of option
+being requested, e.g., @code{SOL_SOCKET} for socket-level options.
+@var{optname} is an
+integer code for the option required and should be specified using one of
+the symbols @code{SO_DEBUG}, @code{SO_REUSEADDR} etc.
+
+The returned value is typically an integer but @code{SO_LINGER} returns a
+pair of integers.")
 #define FUNC_NAME s_scm_getsockopt
 {
   int fd;
@@ -246,7 +277,17 @@ GUILE_PROC (scm_getsockopt, "getsockopt", 3, 0, 0,
 
 GUILE_PROC (scm_setsockopt, "setsockopt", 4, 0, 0,
             (SCM sock, SCM level, SCM optname, SCM value),
-"")
+"Sets the value of a particular socket option for the socket
+port @var{socket}.  @var{level} is an integer code for type of option
+being set, e.g., @code{SOL_SOCKET} for socket-level options.
+@var{optname} is an
+integer code for the option to set and should be specified using one of
+the symbols @code{SO_DEBUG}, @code{SO_REUSEADDR} etc.
+@var{value} is the value to which the option should be set.  For
+most options this must be an integer, but for @code{SO_LINGER} it must
+be a pair.
+
+The return value is unspecified.")
 #define FUNC_NAME s_scm_setsockopt
 {
   int fd;
@@ -319,7 +360,23 @@ GUILE_PROC (scm_setsockopt, "setsockopt", 4, 0, 0,
 
 GUILE_PROC (scm_shutdown, "shutdown", 2, 0, 0,
           (SCM sock, SCM how),
-"")
+"Sockets can be closed simply by using @code{close-port}. The
+@code{shutdown} procedure allows reception or tranmission on a
+connection to be shut down individually, according to the parameter
+@var{how}:
+
+@table @asis
+@item 0
+Stop receiving data for this socket.  If further data arrives,  reject it.
+@item 1
+Stop trying to transmit data from this socket.  Discard any
+data waiting to be sent.  Stop looking for acknowledgement of
+data already sent; don't retransmit it if it is lost.
+@item 2
+Stop both reception and transmission.
+@end table
+
+The return value is unspecified.")
 #define FUNC_NAME s_scm_shutdown
 {
   int fd;
@@ -392,7 +449,20 @@ scm_fill_sockaddr (int fam,SCM address,SCM *args,int which_arg,const char *proc,
   
 GUILE_PROC (scm_connect, "connect", 3, 0, 1,
             (SCM sock, SCM fam, SCM address, SCM args),
-"")
+"Initiates a connection from @var{socket} to the address
+specified by @var{address} and possibly @var{arg @dots{}}.  The format
+required for @var{address}
+and @var{arg} @dots{} depends on the family of the socket.
+
+For a socket of family @code{AF_UNIX},
+only @code{address} is specified and must be a string with the
+filename where the socket is to be created.
+
+For a socket of family @code{AF_INET},
+@code{address} must be an integer Internet host address and @var{arg} @dots{}
+must be a single integer port number.
+
+The return value is unspecified.")
 #define FUNC_NAME s_scm_connect
 {
   int fd;
@@ -413,7 +483,42 @@ GUILE_PROC (scm_connect, "connect", 3, 0, 1,
 
 GUILE_PROC (scm_bind, "bind", 3, 0, 1,
             (SCM sock, SCM fam, SCM address, SCM args),
-"")
+"Assigns an address to the socket port @var{socket}.
+Generally this only needs to be done for server sockets,
+so they know where to look for incoming connections.  A socket
+without an address will be assigned one automatically when it
+starts communicating.
+
+The format of @var{address} and @var{ARG} @dots{} depends on the family
+of the socket.
+
+For a socket of family @code{AF_UNIX}, only @var{address}
+is specified and must 
+be a string with the filename where the socket is to be created.
+
+For a socket of family @code{AF_INET}, @var{address} must be an integer
+Internet host address and @var{arg} @dots{} must be a single integer
+port number.
+
+The values of the following variables can also be used for @var{address}:
+
+@defvar INADDR_ANY
+Allow connections from any address.
+@end defvar
+
+@defvar INADDR_LOOPBACK
+The address of the local host using the loopback device.
+@end defvar
+
+@defvar INADDR_BROADCAST
+The broadcast address on the local network.
+@end defvar
+
+@defvar INADDR_NONE
+No address.
+@end defvar
+
+The return value is unspecified.")
 #define FUNC_NAME s_scm_bind
 {
   int rv;
@@ -436,7 +541,13 @@ GUILE_PROC (scm_bind, "bind", 3, 0, 1,
 
 GUILE_PROC (scm_listen, "listen", 2, 0, 0,
             (SCM sock, SCM backlog),
-"")
+"This procedure enables @var{socket} to accept connection
+requests.  @var{backlog} is an integer specifying
+the maximum length of the queue for pending connections.
+If the queue fills, new clients will fail to connect until the
+server calls @code{accept} to accept a connection from the queue.
+
+The return value is unspecified.")
 #define FUNC_NAME s_scm_listen
 {
   int fd;
@@ -507,7 +618,20 @@ scm_init_addr_buffer (void)
 
 GUILE_PROC (scm_accept, "accept", 1, 0, 0, 
             (SCM sock),
-"")
+"Accepts a connection on a bound, listening socket @var{socket}.  If there
+are no pending connections in the queue, it waits until
+one is available unless the non-blocking option has been set on the
+socket.
+
+The return value is a
+pair in which the CAR is a new socket port for the connection and
+the CDR is an object with address information about the client which
+initiated the connection.
+
+If the address is not available then the CDR will be an empty vector.
+
+@var{socket} does not become part of the
+connection and will continue to accept new requests.")
 #define FUNC_NAME s_scm_accept
 {
   int fd;
@@ -533,7 +657,9 @@ GUILE_PROC (scm_accept, "accept", 1, 0, 0,
 
 GUILE_PROC (scm_getsockname, "getsockname", 1, 0, 0, 
             (SCM sock),
-"")
+"Returns the address of @var{socket}, in the same form as the object
+returned by @code{accept}.  On many systems the address of a socket
+in the @code{AF_FILE} namespace cannot be read.")
 #define FUNC_NAME s_scm_getsockname
 {
   int tmp_size;
@@ -555,7 +681,10 @@ GUILE_PROC (scm_getsockname, "getsockname", 1, 0, 0,
 
 GUILE_PROC (scm_getpeername, "getpeername", 1, 0, 0, 
             (SCM sock),
-"")
+"Returns the address of the socket that the socket @var{socket} is connected to,
+in the same form as the object
+returned by @code{accept}.  On many systems the address of a socket
+in the @code{AF_FILE} namespace cannot be read.")
 #define FUNC_NAME s_scm_getpeername
 {
   int tmp_size;
@@ -577,7 +706,21 @@ GUILE_PROC (scm_getpeername, "getpeername", 1, 0, 0,
 
 GUILE_PROC (scm_recv, "recv!", 2, 1, 0,
             (SCM sock, SCM buf, SCM flags),
-"")
+"Receives data from the socket port @var{socket}.  @var{socket} must already
+be bound to the address from which data is to be received.
+@var{buf} is a string into which
+the data will be written.  The size of @var{buf} limits the amount of
+data which can be received: in the case of packet
+protocols, if a packet larger than this limit is encountered then some data
+will be irrevocably lost.
+
+The optional @var{flags} argument is a value or
+bitwise OR of MSG_OOB, MSG_PEEK, MSG_DONTROUTE etc.
+
+The value returned is the number of bytes read from the socket.
+
+Note that the data is read directly from the socket file descriptor:
+any unread buffered port data is ignored.")
 #define FUNC_NAME s_scm_recv
 {
   int rv;
@@ -599,7 +742,15 @@ GUILE_PROC (scm_recv, "recv!", 2, 1, 0,
 
 GUILE_PROC (scm_send, "send", 2, 1, 0,
             (SCM sock, SCM message, SCM flags),
-"")
+"Transmits the string @var{message} on the socket port @var{socket}. 
+@var{socket} must already be bound to a destination address.  The
+value returned is the number of bytes transmitted -- it's possible for
+this to be less than the length of @var{message} if the socket is
+set to be non-blocking.  The optional @var{flags} argument is a value or
+bitwise OR of MSG_OOB, MSG_PEEK, MSG_DONTROUTE etc.
+
+Note that the data is written directly to the socket file descriptor:
+any unflushed buffered port data is ignored.")
 #define FUNC_NAME s_scm_send
 {
   int rv;
@@ -621,7 +772,27 @@ GUILE_PROC (scm_send, "send", 2, 1, 0,
 
 GUILE_PROC (scm_recvfrom, "recvfrom!", 2, 3, 0,
             (SCM sock, SCM buf, SCM flags, SCM start, SCM end),
-"")
+"Returns data from the socket port @var{socket} and also information about
+where the data was received from.  @var{socket} must already
+be bound to the address from which data is to be received.
+@code{buf}, is a string into which
+the data will be written.  The size of @var{buf} limits the amount of
+data which can be received: in the case of packet
+protocols, if a packet larger than this limit is encountered then some data
+will be irrevocably lost.
+
+The optional @var{flags} argument is a value or
+bitwise OR of MSG_OOB, MSG_PEEK, MSG_DONTROUTE etc.
+
+The value returned is a pair: the CAR is the number of bytes read from
+the socket and the CDR an address object in the same form as returned by
+@code{accept}.
+
+The @var{start} and @var{end} arguments specify a substring of @var{buf}
+to which the data should be written.
+
+Note that the data is read directly from the socket file descriptor:
+any unread buffered port data is ignored.")
 #define FUNC_NAME s_scm_recvfrom
 {
   int rv;
@@ -681,7 +852,17 @@ GUILE_PROC (scm_recvfrom, "recvfrom!", 2, 3, 0,
 
 GUILE_PROC (scm_sendto, "sendto", 4, 0, 1,
             (SCM sock, SCM message, SCM fam, SCM address, SCM args_and_flags),
-"")
+"Transmits the string @var{message} on the socket port @var{socket}.  The
+destination address is specified using the @var{family}, @var{address} and
+@var{arg} arguments, in a similar way to the @code{connect}
+procedure.  The
+value returned is the number of bytes transmitted -- it's possible for
+this to be less than the length of @var{message} if the socket is
+set to be non-blocking.  The optional @var{flags} argument is a value or
+bitwise OR of MSG_OOB, MSG_PEEK, MSG_DONTROUTE etc.
+
+Note that the data is written directly to the socket file descriptor:
+any unflushed buffered port data is ignored.")
 #define FUNC_NAME s_scm_sendto
 {
   int rv;

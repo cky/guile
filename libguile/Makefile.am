@@ -26,7 +26,8 @@ AUTOMAKE_OPTIONS = foreign
 ## building.
 INCLUDES = -I.. -I$(srcdir)/.. ${THREAD_CPPFLAGS}
 
-ETAGS_ARGS = --regex='/SCM_\(GLOBAL_\)?\(G?PROC\|G?PROC1\|SYMBOL\|VCELL\|CONST_LONG\).*\"\([^\"]\)*\"/\3/'
+ETAGS_ARGS = --regex='/SCM_\(GLOBAL_\)?\(G?PROC\|G?PROC1\|SYMBOL\|VCELL\|CONST_LONG\).*\"\([^\"]\)*\"/\3/' \
+   --regex='/[ \t]*GUILE_[G]?PROC1?[ \t]*(\([^,]*\),[^,]*/\1/'
 
 lib_LTLIBRARIES = libguile.la
 bin_PROGRAMS = guile
@@ -164,6 +165,12 @@ SUFFIXES = .x .doc
 .c.doc:
 	./guile-doc-snarf $< $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< \
         || { rm $@; false; }
+
+## GJB:FIXME:: this is ugly;  generate the *.doc files from the *.x file list, above
+guile-procedures.txt: *.doc
+	cat *.doc > $@
+
+pkgdata_DATA = guile-procedures.txt
 
 ## Add -MG to make the .x magic work with auto-dep code.
 MKDEP = gcc -M -MG $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)

@@ -88,7 +88,10 @@ scm_i_index (SCM *str, SCM chr, int direction, SCM sub_start,
 
 GUILE_PROC(scm_string_index, "string-index", 2, 2, 0, 
            (SCM str, SCM chr, SCM frm, SCM to),
-"")
+"Return the index of the first occurrence of @var{chr} in @var{str}.  The
+optional integer arguments @var{frm} and @var{to} limit the search to
+a portion of the string.  This procedure essentially implements the
+@code{index} or @code{strchr} functions from the C library.")
 #define FUNC_NAME s_scm_string_index
 {
   int pos;
@@ -106,7 +109,9 @@ GUILE_PROC(scm_string_index, "string-index", 2, 2, 0,
 
 GUILE_PROC(scm_string_rindex, "string-rindex", 2, 2, 0, 
            (SCM str, SCM chr, SCM frm, SCM to),
-"")
+"Like @code{string-index}, but search from the right of the string rather
+than from the left.  This procedure essentially implements the
+@code{rindex} or @code{strrchr} functions from the C library.")
 #define FUNC_NAME s_scm_string_rindex
 {
   int pos;
@@ -129,7 +134,22 @@ SCM_REGISTER_PROC(s_substring_move_right_x, "substring-move-right!", 5, 0, 0, sc
 
 GUILE_PROC(scm_substring_move_x, "substring-move!", 5, 0, 0, 
            (SCM str1, SCM start1, SCM end1, SCM str2, SCM start2),
-"")
+"Copy the substring of @var{str1} bounded by @var{start1} and @var{end1}
+into @var{str2} beginning at position @var{end2}.
+@code{substring-move-right!} begins copying from the rightmost character
+and moves left, and @code{substring-move-left!} copies from the leftmost
+character moving right.
+
+It is useful to have two functions that copy in different directions so
+that substrings can be copied back and forth within a single string.  If
+you wish to copy text from the left-hand side of a string to the
+right-hand side of the same string, and the source and destination
+overlap, you must be careful to copy the rightmost characters of the
+text first, to avoid clobbering your data.  Hence, when @var{str1} and
+@var{str2} are the same string, you should use
+@code{substring-move-right!} when moving text from left to right, and
+@code{substring-move-left!}  otherwise.  If @code{str1} and @samp{str2}
+are different strings, it does not matter which function you use.")
 #define FUNC_NAME s_scm_substring_move_x
 {
   long s1, s2, e, len;
@@ -157,7 +177,8 @@ GUILE_PROC(scm_substring_move_x, "substring-move!", 5, 0, 0,
 
 GUILE_PROC(scm_substring_fill_x, "substring-fill!", 4, 0, 0, 
            (SCM str, SCM start, SCM end, SCM fill),
-"")
+"Change every character in @var{str} between @var{start} and @var{end} to
+@var{fill-char}.")
 #define FUNC_NAME s_scm_substring_fill_x
 {
   long i, e;
@@ -176,7 +197,8 @@ GUILE_PROC(scm_substring_fill_x, "substring-fill!", 4, 0, 0,
 
 GUILE_PROC(scm_string_null_p, "string-null?", 1, 0, 0, 
            (SCM str),
-"")
+"Return @code{#t} if @var{str}'s length is nonzero, and @code{#f}
+otherwise.")
 #define FUNC_NAME s_scm_string_null_p
 {
   SCM_VALIDATE_ROSTRING(1,str);
@@ -229,7 +251,8 @@ GUILE_PROC(scm_string_fill_x, "string-fill!", 2, 0, 0,
 
 GUILE_PROC(scm_string_upcase_x, "string-upcase!", 1, 0, 0, 
            (SCM v),
-"")
+"@deffnx primitive string-downcase! str
+Upcase or downcase every character in @code{str}, respectively.")
 #define FUNC_NAME s_scm_string_upcase_x
 {
   register long k;
