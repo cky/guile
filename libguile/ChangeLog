@@ -1,3 +1,14 @@
+Sat Jul 11 22:08:21 1998  Mikael Djurfeldt  <mdj@totoro.red-bean.com>
+
+	* init.c, readline.c: OK, I won't have these readline.x bug
+ 	reports anymore.  We've had them since April.  The current reason
+	is a completely unintelligible failure of totoro.red-bean.com to
+	do the test for rl_getc_function in libreadline correctly.  This
+	kludge overrides the test if we're on totoro so that the snapshot
+	generation process can work.
+
+	* readline.c: Define a strdup replacement if not existent on system.
+
 1998-07-12  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
 	* vectors.c, vectors.h (scm_make_vector): Removed third argument.
