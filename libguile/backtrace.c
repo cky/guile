@@ -86,20 +86,28 @@ SCM scm_the_last_stack_fluid;
 static void
 display_header (SCM source, SCM port)
 {
-  SCM fname = (SCM_MEMOIZEDP (source)
-	       ? scm_source_property (source, scm_sym_filename)
-	       : SCM_BOOL_F);
-  if (SCM_STRINGP (fname))
+  if (SCM_MEMOIZEDP (source))
     {
-      scm_prin1 (fname, port, 0);
-      scm_putc (':', port);
-      scm_intprint (SCM_INUM (scm_source_property (source, scm_sym_line)) + 1,
-		    10,
-		    port);
-      scm_putc (':', port);
-      scm_intprint (SCM_INUM (scm_source_property (source, scm_sym_column)) + 1,
-		    10,
-		    port);
+      SCM fname = scm_source_property (source, scm_sym_filename);
+      SCM line = scm_source_property (source, scm_sym_line);
+      SCM col = scm_source_property (source, scm_sym_column);
+
+      /* Dirk:FIXME:: Maybe we should store the _port_ rather than the
+       * filename with the source properties?  Then we could in case of
+       * non-file ports give at least some more details than just
+       * "<unnamed port>". */
+      if (SCM_STRINGP (fname))
+	scm_prin1 (fname, port, 0);
+      else
+	scm_puts ("<unnamed port>", port);
+
+      if (!SCM_FALSEP (line) && !SCM_FALSEP (col))
+	{
+	  scm_putc (':', port);
+	  scm_intprint (SCM_INUM (line) + 1, 10, port);
+	  scm_putc (':', port);
+	  scm_intprint (SCM_INUM (col) + 1, 10, port);
+	}
     }
   else
     scm_puts ("ERROR", port);

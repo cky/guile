@@ -1,5 +1,12 @@
 2001-01-25  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* backtrace.c (display_header):  Make sure that line and column
+	information is shown independent of whether the port the code was
+	read from had an associated filename.  Thanks to Martin
+	Grabmueller for providing this patch.
+
+2001-01-25  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* fports.[ch] (scm_file_port_p):  New primitive.
 
 2001-01-25  Dirk Herrmann  <D.Herrmann@tu-bs.de>
