@@ -1,3 +1,10 @@
+2003-04-30  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* ports.c (scm_c_port_for_each): New function, mostly copied from
+	scm_port_for_each.
+	(scm_port_for_each): Reimplemented using scm_c_port_for_each.
+	* ports.h (scm_c_port_for_each): New prototype.
+	
 2003-04-28  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* eval.c (scm_m_atdispatch): Removed until actually needed.  (This

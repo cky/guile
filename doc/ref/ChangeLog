@@ -1,3 +1,7 @@
+2003-04-30  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* posix.texi (scm_c_port_for_each): Added. 
+
 2003-04-26  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* scheme-data.texi (Symbol Primitives): Document scm_str2symbol
