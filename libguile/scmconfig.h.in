@@ -71,6 +71,9 @@
    caller's stack frame.  On most machines, this is not the case.  */
 #undef SCM_STACK_GROWS_UP
 
+/* Define if you have the ctermid function.  */
+#undef HAVE_CTERMID
+
 /* Define if you have the ftime function.  */
 #undef HAVE_FTIME
 
@@ -116,6 +119,12 @@
 /* Define if you have the setlocale function.  */
 #undef HAVE_SETLOCALE
 
+/* Define if you have the setpgid function.  */
+#undef HAVE_SETPGID
+
+/* Define if you have the setsid function.  */
+#undef HAVE_SETSID
+
 /* Define if you have the strftime function.  */
 #undef HAVE_STRFTIME
 
@@ -128,11 +137,20 @@
 /* Define if you have the sync function.  */
 #undef HAVE_SYNC
 
+/* Define if you have the tcgetpgrp function.  */
+#undef HAVE_TCGETPGRP
+
+/* Define if you have the tcsetpgrp function.  */
+#undef HAVE_TCSETPGRP
+
 /* Define if you have the times function.  */
 #undef HAVE_TIMES
 
 /* Define if you have the uname function.  */
 #undef HAVE_UNAME
+
+/* Define if you have the waitpid function.  */
+#undef HAVE_WAITPID
 
 /* Define if you have the <dirent.h> header file.  */
 #undef HAVE_DIRENT_H

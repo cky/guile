@@ -397,6 +397,7 @@ scm_sys_waitpid (pid, options)
      SCM options;
 #endif
 {
+#ifdef HAVE_WAITPID
   int i;
   int status;
   int ioptions;
@@ -413,6 +414,11 @@ scm_sys_waitpid (pid, options)
   if (i == -1)
     SCM_SYSERROR (s_sys_waitpid);
   return scm_cons (SCM_MAKINUM (0L + i), SCM_MAKINUM (0L + status));
+#else
+  SCM_SYSMISSING (s_sys_waitpid);
+  /* not reached.  */
+  return SCM_BOOL_F;
+#endif
 }
 
 
@@ -587,22 +593,34 @@ SCM
 scm_setpgid (pid, pgid)
      SCM pid, pgid;
 {
+#ifdef HAVE_SETPGID
   SCM_ASSERT (SCM_INUMP (pid), pid, SCM_ARG1, s_setpgid);
   SCM_ASSERT (SCM_INUMP (pgid), pgid, SCM_ARG2, s_setpgid);
   /* FIXME(?): may be known as setpgrp.  */
   if (setpgid (SCM_INUM (pid), SCM_INUM (pgid)) != 0)
     SCM_SYSERROR (s_setpgid);
   return SCM_UNSPECIFIED;
+#else
+  SCM_SYSMISSING (s_sys_setpgid);
+  /* not reached.  */
+  return SCM_BOOL_F;
+#endif
 }
 
 SCM_PROC (s_setsid, "setsid", 0, 0, 0, scm_setsid);
 SCM 
 scm_setsid ()
 {
+#ifdef HAVE_SETSID
   pid_t sid = setsid ();
   if (sid == -1)
     SCM_SYSERROR (s_setsid);
   return SCM_UNSPECIFIED;
+#else
+  SCM_SYSMISSING (s_sys_setsid);
+  /* not reached.  */
+  return SCM_BOOL_F;
+#endif
 }
 
 SCM_PROC (s_ttyname, "ttyname", 1, 0, 0, scm_ttyname);
@@ -635,10 +653,16 @@ SCM_PROC (s_ctermid, "ctermid", 0, 0, 0, scm_ctermid);
 SCM 
 scm_ctermid ()
 {
+#ifdef HAVE_CTERMID
   char *result = ctermid (NULL);
   if (*result == '\0')
     SCM_SYSERROR (s_ctermid);
   return scm_makfrom0str (result);
+#else
+  SCM_SYSMISSING (s_sys_ctermid);
+  /* not reached.  */
+  return SCM_BOOL_F;
+#endif
 }
 
 SCM_PROC (s_tcgetpgrp, "tcgetpgrp", 1, 0, 0, scm_tcgetpgrp);
@@ -646,6 +670,7 @@ SCM
 scm_tcgetpgrp (port)
      SCM port;
 {
+#ifdef HAVE_TCGETPGRP
   int fd;
   pid_t pgid;
   SCM_ASSERT (SCM_NIMP (port) && SCM_OPFPORTP (port), port, SCM_ARG1, s_tcgetpgrp);
@@ -653,6 +678,11 @@ scm_tcgetpgrp (port)
   if (fd == -1 || (pgid = tcgetpgrp (fd)) == -1)
     SCM_SYSERROR (s_tcgetpgrp);
   return SCM_MAKINUM (pgid);
+#else
+  SCM_SYSMISSING (s_sys_tcgetpgrp);
+  /* not reached.  */
+  return SCM_BOOL_F;
+#endif
 }    
 
 SCM_PROC (s_tcsetpgrp, "tcsetpgrp", 2, 0, 0, scm_tcsetpgrp);
@@ -660,6 +690,7 @@ SCM
 scm_tcsetpgrp (port, pgid)
      SCM port, pgid;
 {
+#ifdef HAVE_TCSETPGRP
   int fd;
   SCM_ASSERT (SCM_NIMP (port) && SCM_OPFPORTP (port), port, SCM_ARG1, s_tcsetpgrp);
   SCM_ASSERT (SCM_INUMP (pgid), pgid, SCM_ARG2, s_tcsetpgrp);
@@ -667,6 +698,11 @@ scm_tcsetpgrp (port, pgid)
   if (fd == -1 || tcsetpgrp (fd, SCM_INUM (pgid)) == -1)
     SCM_SYSERROR (s_tcsetpgrp);
   return SCM_UNSPECIFIED;
+#else
+  SCM_SYSMISSING (s_sys_tcsetpgrp);
+  /* not reached.  */
+  return SCM_BOOL_F;
+#endif
 }    
 
 /* Copy exec args from an SCM vector into a new C array.  */

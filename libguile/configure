@@ -1419,7 +1419,7 @@ EOF
 fi
 
 
-for ac_func in ftime times geteuid seteuid setegid select uname mkdir rmdir getcwd rename putenv setlocale strftime strptime mknod nice lstat readlink symlink sync
+for ac_func in ctermid ftime getcwd geteuid lstat mkdir mknod nice putenv readlink rename rmdir select setegid seteuid setlocale setpgid setsid strftime strptime symlink sync tcgetpgrp tcsetpgrp times uname waitpid
 do
 echo $ac_n "checking for $ac_func""... $ac_c" 1>&6
 if eval "test \"`echo '$''{'ac_cv_func_$ac_func'+set}'`\" = set"; then
