@@ -52,10 +52,16 @@
 ;;; and some explanatory text.  You can delete comments (and move the
 ;;; test up into the clump of uncommented tests) when the dates become
 ;;; very old.
+;;;
+;;; By convention, test-prefix strings have no whitespace.  This makes
+;;; change log entries more regular.
 
 ;;;; Code:
 
 (use-modules (test-suite lib) (ice-9 regex) (ice-9 common-list))
+
+(define (read-string s)
+  (with-input-from-string s (lambda () (read))))
 
 (defmacro expect-exception (name-snippet expression)
   `(pass-if (with-output-to-string
@@ -65,7 +71,7 @@
                            "`"
                            (let ((x (symbol->string ',name-snippet)))
                              (substring x 2 (string-length x)))
-                           "' expected but not thrown: "))
+                           "' expected: "))
                 (write ',expression)))
             (catch #t
                    (lambda () ,expression #f) ; conniving falsehood!
@@ -91,6 +97,8 @@
 (define x:missing/extra-expr "[Mm]issing or extra expression")
 (define x:wrong-num-args "[Ww]rong number of arguments")
 (define x:wrong-type-arg "[Ww]rong type argument")
+(define x:eof "[Ee]nd of file")
+(define x:unexpected-rparen "[Uu]nexpected \")\"")
 
 ;; This is to encourage people to write tests.
 
@@ -108,21 +116,68 @@
 ;; Tests
 
 (with-test-prefix "syntax"
+  (with-test-prefix "reading"
+    (goad x:eof (read-string "("))
+    (goad x:unexpected-rparen (read-string ")"))
+    (goad x:eof (read-string "#("))
+    (goad x:unexpected-rparen (read-string ")"))
+    ;; Add more (syntax reading) exceptions here.
+    )
+  (with-test-prefix "lambda"
+
+    (goad x:bad-formals (lambda (x 1) 2))
+    (goad x:bad-formals (lambda (1 x) 2))
+    (goad x:bad-formals (lambda (x "a") 2))
+    (goad x:bad-formals (lambda ("a" x) 2))
+
+    ;; no exception on 2001-02-22
+    (goad x:bad-formals (lambda (x x) 1))
+    ;; no exception on 2001-02-22
+    (goad x:bad-formals (lambda (x x x) 1))
+
+    (with-test-prefix "cond-arrow-proc"
+      (goad x:bad-formals (cond (1 => (lambda (x 1) 2))))
+      ;; Add more (syntax lambda cond-arrow-proc) exceptions here.
+      )
+
+    ;; Add more (syntax lambda) exceptions here.
+    )
+  ;; Below, A1,B1 different from A2,B2 because A1,B1 are "named let".
   (with-test-prefix "let"
     (goad x:bad-body (let))
     (goad x:bad-body (let 1))
     (goad x:bad-body (let ()))
     (goad x:bad-body (let (x)))
-    (goad x:bad-bindings (let (x) 1))   ; maybe these should go under bindings?
+    (goad x:bad-bindings (let (x) 1))
     (goad x:bad-bindings (let ((x)) 3))
     (goad x:bad-bindings (let ((x 1) y) x))
-    (goad x:bad-body (let x ()))
-    (goad x:bad-body (let x (y)))
-
-    ;; no exception on 2001-02-22
-    (goad x:bad-bindings (let ((x 1) (x 2)) x))
-
+    (goad x:bad-body (let x ()))        ; A1
+    (goad x:bad-body (let x (y)))       ; B1
     ;; Add more (syntax let) exceptions here.
+    )
+  (with-test-prefix "let*"
+    (goad x:bad-body (let*))
+    (goad x:bad-body (let* 1))
+    (goad x:bad-body (let* ()))
+    (goad x:bad-body (let* (x)))
+    (goad x:bad-bindings (let* (x) 1))
+    (goad x:bad-bindings (let* ((x)) 3))
+    (goad x:bad-bindings (let* ((x 1) y) x))
+    (goad x:bad-bindings (let* x ()))   ; A2
+    (goad x:bad-bindings (let* x (y)))  ; B2
+    ;; Add more (syntax let*) exceptions here.
+    )
+  (with-test-prefix "letrec"
+    (goad x:bad-body (letrec))
+    (goad x:bad-body (letrec 1))
+    (goad x:bad-body (letrec ()))
+    (goad x:bad-body (letrec (x)))
+    (goad x:bad-bindings (letrec (x) 1))
+    (goad x:bad-bindings (letrec ((x)) 3))
+    (goad x:bad-bindings (letrec ((x 1) y) x))
+    (goad x:bad-bindings (letrec x ()))   ; A2
+    (goad x:bad-bindings (letrec x (y)))  ; B2
+    ;; Add more (syntax letrec) exceptions here.
     )
   (with-test-prefix "cond"
     (goad x:bad/missing-clauses (cond))
@@ -145,49 +200,82 @@
     (goad x:missing/extra-expr (define))
     ;; Add more (syntax define) exceptions here.
     )
+  (with-test-prefix "set!"
+    (goad x:missing/extra-expr (set!))
+    (goad x:missing/extra-expr (set! 1))
+    (goad x:missing/extra-expr (set! 1 2 3))
+    ;; Add more (syntax set!) exceptions here.
+    )
+  (with-test-prefix "misc"
+    (goad x:missing/extra-expr (quote))
+
+    ;; no exception on 2001-02-22
+    ;; R5RS says:
+    ;; *Note:* In many dialects of Lisp, the empty combination, (),
+    ;; is a legitimate expression.  In Scheme, combinations must
+    ;; have at least one subexpression, so () is not a syntactically
+    ;; valid expression.
+    (goad x:missing/extra-expr ())
+
+    ;; Add more (syntax misc) exceptions here.
+    )
   ;; Add more (syntax) exceptions here.
   )
 
 (with-test-prefix "bindings"
-  (goad x:unbound-var unlikely-to-be-bound)
-  (goad x:bad-var (set! "some-string" #t))
-  (goad x:bad-var (set! 1 #t))
-  (goad x:bad-var (set! #t #f))
-  (goad x:bad-var (set! #f #t))
-  (goad x:bad-var (set! #\space 'the-final-frontier))
-  (goad x:wrong-type-arg (set! (symbol->string 'safe) 1))
-  (goad x:wrong-type-arg (set! '"abc" 1))      ; from r5rs
-  (goad x:bad-var (set! "abc" 1))
-  (goad x:wrong-type-arg (set! '145932 1))
-  (goad x:bad-var (set! 145932 1))
-  (goad x:wrong-type-arg (set! '#t 1))
-  (goad x:wrong-type-arg (set! '#f 1))
-  (goad x:bad-body (let))
-  (goad x:bad-var (let ((1 2)) 3))
-
-  ;; no exception on 2001-02-22
-  (goad x:bad-var (string-set! (symbol->string 'abc) 1 #\space))
-  ;; no exception on 2001-02-22
-  (goad x:bad-var (string-set! "abc" 1 #\space))
-
-  ;; Add more (bindings) exceptions here.
-  )
-
-(with-test-prefix "lambda"
-
-  (goad x:bad-formals (lambda (x 1) 2))
-  (goad x:bad-formals (lambda (1 x) 2))
-  (goad x:bad-formals (lambda (x "a") 2))
-  (goad x:bad-formals (lambda ("a" x) 2))
-  (goad x:bad-formals (lambda (x x) 1))
-  (goad x:bad-formals (lambda (x x x) 1))
-
-  (with-test-prefix "cond-arrow-proc"
-    (goad x:bad-formals (cond (1 => (lambda (x 1) 2))))
-    ;; Add more (lambda cond-arrow-proc) exceptions here.
+  (with-test-prefix "unbound"
+    (goad x:unbound-var unlikely-to-be-bound)
+    (goad x:unbound-var (unlikely-to-be-bound))
+    ;; Add more (bindings unbound) exceptions here.
     )
+  (with-test-prefix "immutable-modification"
+    (goad x:bad-var (set! "some-string" #t))
+    (goad x:bad-var (set! 1 #t))
+    (goad x:bad-var (set! #t #f))
+    (goad x:bad-var (set! #f #t))
+    (goad x:bad-var (set! #\space 'the-final-frontier))
+    (goad x:wrong-type-arg (set! (symbol->string 'safe) 1))
+    (goad x:wrong-type-arg (set! '"abc" 1)) ; from r5rs
+    (goad x:bad-var (set! "abc" 1))
+    (goad x:wrong-type-arg (set! '145932 1))
+    (goad x:bad-var (set! 145932 1))
+    (goad x:wrong-type-arg (set! '#t 1))
+    (goad x:wrong-type-arg (set! '#f 1))
 
-  ;; Add more (lambda) exceptions here.
+    ;; no exception on 2001-02-22
+    (goad x:bad-var (string-set! (symbol->string 'abc) 1 #\space))
+    ;; no exception on 2001-02-22
+    (goad x:bad-var (string-set! "abc" 1 #\space))
+
+    ;; Add more (bindings immutable-modification) exceptions here.
+    )
+  (with-test-prefix "let"
+    (goad x:bad-var (let ((1 2)) 3))
+    (goad x:unbound-var (let ((x 1) (y x)) y))
+
+    ;; no exception on 2001-02-22
+    (goad x:bad-bindings (let ((x 1) (x 2)) x))
+
+    ;; Add more (bindings let) exceptions here.
+    )
+  (with-test-prefix "let*"
+    (goad x:bad-var (let* ((1 2)) 3))
+
+    ;; no exception on 2001-02-22
+    (goad x:bad-bindings (let* ((x 1) (x 2)) x))
+
+    ;; Add more (bindings let*) exceptions here.
+    )
+  (with-test-prefix "letrec"
+    (goad x:bad-var (letrec ((1 2)) 3))
+    (goad x:unbound-var (letrec ((x 1) (y x)) y))
+
+    ;; no exception on 2001-02-22
+    (goad x:bad-bindings (letrec ((x 1) (x 2)) x))
+
+    ;; Add more (bindings letrec) exceptions here.
+    )
+  ;; Add more (bindings) exceptions here.
   )
 
 (with-test-prefix "application"
@@ -196,5 +284,9 @@
   (goad x:wrong-num-args (let ((x (lambda (a b) (+ a b)))) (x 3)))
   ;; Add more (application) exceptions here.
   )
+
+;; Local variables:
+;; eval: (put 'with-test-prefix 'scheme-indent-function 1)
+;; End:
 
 ;;; exceptions.test ends here
