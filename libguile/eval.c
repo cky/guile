@@ -1866,6 +1866,12 @@ SCM_CEVAL (x, env)
   scm_debug_info *debug_info_end;
   debug.prev = scm_last_debug_frame;
   debug.status = scm_debug_eframe_size;
+  /*
+   * The debug.vect contains twice as much scm_debug_info frames as the
+   * user has specified with (debug-set! frames <n>).
+   *
+   * Even frames are eval frames, odd frames are apply frames.
+   */
   debug.vect = (scm_debug_info *) alloca (scm_debug_eframe_size
 					  * sizeof (debug.vect[0]));
   debug.info = debug.vect;
@@ -1893,6 +1899,16 @@ loop:
   SCM_CLEAR_ARGSREADY (debug);
   if (SCM_OVERFLOWP (debug))
     --debug.info;
+  /*
+   * In theory, this should be the only place where it is necessary to
+   * check for space in debug.vect since both eval frames and
+   * available space are even.
+   *
+   * For this to be the case, however, it is necessary that primitive
+   * special forms which jump back to `loop', `begin' or some similar
+   * label call PREP_APPLY.  A convenient way to do this is to jump to
+   * `loopnoap' or `cdrxnoap'.
+   */
   else if (++debug.info >= debug_info_end)
     {
       SCM_SET_OVERFLOW (debug);
@@ -2312,13 +2328,13 @@ dispatch:
 		   be used also in normal code. */
 		env = EXTEND_ENV (SCM_CADR (arg2), SCM_CDDAR (env),
 				  SCM_CAR (arg2));
-		x = SCM_CDDR (arg2);
-		goto begin;
+		x = SCM_CDR (arg2);
+		goto cdrxnoap;
 	      next_method:
 		i = (i + 1) & mask;
 	      } while (i != end);
 	    scm_memoize_method (x, SCM_CDAR (env));
-	    goto loop;
+	    goto loopnoap;
 	  
 	  case (SCM_ISYMNUM (SCM_IM_HASH_DISPATCH)):
 	    /* (SCM_IM_HASH_DISPATCH N-SPECIALIZED HASHSET MASK
