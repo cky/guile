@@ -924,9 +924,6 @@ if test "$cross_compiling" = "yes"; then
 else
   CC_FOR_BUILD="${CC_FOR_BUILD-$CC}"
 fi   
-AC_ARG_WITH(cc-for-build,
-  [  --with-cc-for-build=CC  native C compiler, to be used during build])
-test -n "$with_cc_for_build" && CC_FOR_BUILD="$with_cc_for_build"
      
 ## AC_MSG_CHECKING("if we are cross compiling")
 ## AC_MSG_RESULT($cross_compiling)
