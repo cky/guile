@@ -341,6 +341,26 @@ SCM_API char *scm_gc_strndup (const char *str, size_t n, const char *what);
 SCM_API void scm_remember_upto_here_1 (SCM obj);
 SCM_API void scm_remember_upto_here_2 (SCM obj1, SCM obj2);
 SCM_API void scm_remember_upto_here (SCM obj1, ...);
+
+/* In GCC we can force a reference to an SCM with a little do-nothing asm,
+   avoiding the code size and slowdown of an actual function call.
+   __volatile__ ensures nothing will be moved across the reference, and that
+   it won't be optimized away (or rather only if proved unreachable).
+   Unfortunately there doesn't seem to be any way to do the varargs
+   scm_remember_upto_here similarly.  */
+
+#ifdef __GNUC__
+#define scm_remember_upto_here_1(x)             \
+  do {                                          \
+    __asm__ __volatile__ ("" : : "g" (x));      \
+  } while (0)
+#define scm_remember_upto_here_2(x, y)          \
+  do {                                          \
+    scm_remember_upto_here_1 (x);               \
+    scm_remember_upto_here_1 (y);               \
+  } while (0)
+#endif
+
 SCM_API SCM scm_return_first (SCM elt, ...);
 SCM_API int scm_return_first_int (int x, ...);
 SCM_API SCM scm_permanent_object (SCM obj);
