@@ -1,3 +1,9 @@
+2001-05-15  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* script.c (scm_compile_shell_switches): New command line option
+	`--use-srfi' for loading a list of SRFIs on startup.
+	(scm_shell_usage): Added `--use-srfi' to help message.
+
 2001-05-10  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	Merge from mvo-vcell-clenaup-1-branch.

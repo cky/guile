@@ -384,6 +384,8 @@ scm_shell_usage (int fatal, char *message)
            "  --debug        start with debugging evaluator and backtraces\n"
 	   "  -q             inhibit loading of user init file\n"
            "  --emacs        enable Emacs protocol (experimental)\n"
+	   "  --use-srfi=LS  load SRFI modules for the SRFIs in LS,\n"
+	   "                 which is a list of numbers like \"2,13,14\"\n"
            "  -h, --help     display this help and exit\n"
            "  -v, --version  display version information and exit\n"
 	   "  \\              read arguments from following script lines\n",
@@ -402,6 +404,7 @@ SCM_SYMBOL (sym_begin, "begin");
 SCM_SYMBOL (sym_load_user_init, "load-user-init");
 SCM_SYMBOL (sym_top_repl, "top-repl");
 SCM_SYMBOL (sym_quit, "quit");
+SCM_SYMBOL (sym_use_srfis, "use-srfis");
 
 
 /* Given an array of command-line switches, return a Scheme expression
@@ -532,6 +535,43 @@ scm_compile_shell_switches (int argc, char **argv)
 
       else if (! strcmp (argv[i], "-q")) /* don't load user init */ 
 	inhibit_user_init = 1;
+
+      else if (! strncmp (argv[i], "--use-srfi=", 11)) /* load SRFIs */ 
+	{
+	  SCM srfis = SCM_EOL;	/* List of requested SRFIs.  */
+	  char * p = argv[i] + 11;
+	  while (*p)
+	    {
+	      long num;
+	      char * end;
+
+	      num = strtol (p, &end, 10);
+	      if (end - p > 0)
+		{
+		  srfis = scm_cons (scm_long2num (num), srfis);
+		  if (*end)
+		    {
+		      if (*end == ',')
+			p = end + 1;
+		      else
+			scm_shell_usage (1, "invalid SRFI specification");
+		    }
+		  else
+		    break;
+		}
+	      else
+		scm_shell_usage (1, "invalid SRFI specification");
+	    }
+	  if (scm_ilength (srfis) <= 0)
+	    scm_shell_usage (1, "invalid SRFI specification");
+	  srfis = scm_reverse_x (srfis, SCM_UNDEFINED);
+	  tail = scm_cons (scm_listify
+			   (sym_use_srfis,
+			    scm_listify (scm_sym_quote, 
+					 srfis, SCM_UNDEFINED),
+			    SCM_UNDEFINED),
+			   tail);
+	}
 
       else if (! strcmp (argv[i], "-h")
 	       || ! strcmp (argv[i], "--help"))
