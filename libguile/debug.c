@@ -48,6 +48,7 @@
 #include "eval.h"
 #include "throw.h"
 #include "genio.h"
+#include "macros.h"
 #include "smob.h"
 #include "procprop.h"
 #include "srcprop.h"
