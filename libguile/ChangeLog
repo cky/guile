@@ -1,5 +1,8 @@
 1999-07-19  Jim Blandy  <jimb@savonarola.red-bean.com>
 
+	* guardians.c (scm_guardian_zombify): Separate scanning for
+	zombies from marking the pairs of the free list.
+	
 	* guardians.c (scm_guardian_zombify): Don't set marks manually ---
 	use the macros.  (Thanks to Michael Livshin.)
 
