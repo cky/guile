@@ -1,3 +1,7 @@
+2000-08-16  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* optargs.scm: Replaced `#&' reader syntax with keywords.
+
 2000-08-14  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* format.scm (format:obj->str): Made tail-recursive.  (Thanks to
@@ -50,6 +54,7 @@
 	(process-define-module): Bugfix: Make sure that exports are done
 	*after* all used interfaces has been added.
 
+>>>>>>> 1.341
 2000-07-24  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* common-list.scm (uniq): Made tail-recursive.  Thanks to thi!

@@ -22,6 +22,15 @@ Example:
 
 * Changes to Scheme functions and syntax
 
+** Module (ice-9 optargs) now uses keywords instead of `#&'.
+
+Instead of #&optional, #&key, etc you should now use #:optional,
+#:key, etc.  Since #:optional is a keyword, you can write it as just
+:optional when (read-set! keywords 'prefix) is active.
+
+The old reader syntax `#&' is still supported, but deprecated.  It
+will be removed in the next release.
+
 ** Backward incompatible change: eval EXP ENVIRONMENT-SPECIFIER
 
 `eval' is now R5RS, that is it takes two arguments.
