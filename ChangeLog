@@ -1,3 +1,10 @@
+2004-02-29  Kevin Ryde  <user42@zip.com.au>
+
+	* configure.in: Use AC_COPYRIGHT and AH_TOP to get copyright notice
+	into generated configure and config.h.in.
+
+	* configure.in (AC_CHECK_FUNCS): Add DINFINITY and DQNAN.
+
 2004-02-21  Kevin Ryde  <user42@zip.com.au>
 
 	* configure.in (crypt): Test with AC_SEARCH_LIBS, for the benefit of

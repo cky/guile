@@ -1,3 +1,14 @@
+2004-02-29  Kevin Ryde  <user42@zip.com.au>
+
+	* numbers.c (guile_ieee_init): Use C99 INFINITY and NAN when
+	available.  Test HAVE_DINFINITY and HAVE_DQNAN for those globals, in
+	particular don't assume "defined (__alpha__) && ! defined (linux)"
+	means OSF.  Remove "SCO" code, which was not really SCO specific and
+	which John W. Eaton advises should be long past being needed.
+
+	* posix.c (scm_execl, scm_execlp, scm_execle): Avoid memory leak under
+	error throw.
+
 2004-02-24  Kevin Ryde  <user42@zip.com.au>
 
 	* posix.c (scm_cuserid): Use a private result buffer, for thread safe.
