@@ -169,7 +169,7 @@ makvect (char* m, int len, int type)
   SCM ans;
   SCM_NEWCELL (ans);
   SCM_DEFER_INTS;
-  SCM_SETCHARS (ans, m);
+  SCM_SET_UVECTOR_BASE (ans, m);
   SCM_SET_UVECTOR_LENGTH (ans, len, type);
   SCM_ALLOW_INTS;
   return ans;

@@ -291,7 +291,7 @@ scm_intern_obarray_soft (const char *name,scm_sizet len,SCM obarray,unsigned int
     }
 
   SCM_NEWCELL2 (lsym);
-  SCM_SETCHARS (lsym, duplicate_string (name, len));
+  SCM_SET_SYMBOL_CHARS (lsym, duplicate_string (name, len));
   SCM_SET_SYMBOL_HASH (lsym, raw_hash);
   SCM_SET_PROP_SLOTS (lsym, scm_cons (SCM_BOOL_F, SCM_EOL));
   SCM_SET_SYMBOL_LENGTH (lsym, (long) len);
@@ -366,7 +366,7 @@ scm_sysintern0_no_module_lookup (const char *name)
       scm_sizet hash = raw_hash % scm_symhash_dim;
 
       SCM_NEWCELL2 (lsym);
-      SCM_SETCHARS (lsym, name);
+      SCM_SET_SYMBOL_CHARS (lsym, name);
       SCM_SET_SYMBOL_HASH (lsym, raw_hash);
       SCM_SET_PROP_SLOTS (lsym, scm_cons (SCM_BOOL_F, SCM_EOL));
       SCM_SET_SYMBOL_LENGTH (lsym, (long) len);

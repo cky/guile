@@ -1323,8 +1323,7 @@ scm_mkbig (scm_sizet nlen, int sign)
   
   SCM_NEWCELL (v);
   SCM_DEFER_INTS;
-  SCM_SETCHARS (v, scm_must_malloc ((long) (nlen * sizeof (SCM_BIGDIG)),
-				    s_bignum));
+  SCM_SET_BIGNUM_BASE (v, scm_must_malloc (nlen * sizeof (SCM_BIGDIG), s_bignum));
   SCM_SETNUMDIGS (v, nlen, sign);
   SCM_ALLOW_INTS;
   return v;
@@ -1366,7 +1365,7 @@ scm_adjbig (SCM b, scm_sizet nlen)
 			   (long) (SCM_NUMDIGS (b) * sizeof (SCM_BIGDIG)),
 			   (long) (nsiz * sizeof (SCM_BIGDIG)), s_bignum));
 
-    SCM_SETCHARS (b, digits);
+    SCM_SET_BIGNUM_BASE (b, digits);
     SCM_SETNUMDIGS (b, nsiz, SCM_BIGSIGN (b));
   }
   SCM_ALLOW_INTS;

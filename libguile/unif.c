@@ -166,12 +166,12 @@ scm_make_uve (long k, SCM prot)
       if (k > 0)
 	{
 	  i = sizeof (long) * ((k + SCM_LONG_BIT - 1) / SCM_LONG_BIT);
-	  SCM_SETCHARS (v, (char *) scm_must_malloc (i, "vector"));
+	  SCM_SET_BITVECTOR_BASE (v, (char *) scm_must_malloc (i, "vector"));
 	  SCM_SET_BITVECTOR_LENGTH (v, k);
 	}
       else
 	{
-	  SCM_SETCHARS (v, 0);
+	  SCM_SET_BITVECTOR_BASE (v, 0);
 	  SCM_SET_BITVECTOR_LENGTH (v, 0);
 	}
       return v;
@@ -239,7 +239,7 @@ scm_make_uve (long k, SCM prot)
 
   SCM_NEWCELL (v);
   SCM_DEFER_INTS;
-  SCM_SETCHARS (v, (char *) scm_must_malloc (i ? i : 1, "vector"));
+  SCM_SET_UVECTOR_BASE (v, (char *) scm_must_malloc (i ? i : 1, "vector"));
   SCM_SET_UVECTOR_LENGTH (v, k, type);
   SCM_ALLOW_INTS;
   return v;

@@ -179,6 +179,7 @@
 #define SCM_BIGSIZEFIELD 17
 #define SCM_BIGSIGN(x) (SCM_CELL_WORD_0 (x) & SCM_BIGSIGNFLAG)
 #define SCM_BDIGITS(x) ((SCM_BIGDIG *) (SCM_CELL_WORD_1 (x)))
+#define SCM_SET_BIGNUM_BASE(n, b) (SCM_SET_CELL_WORD_1 ((n), (b)))
 #define SCM_NUMDIGS(x) ((scm_sizet) (SCM_CELL_WORD_0 (x) >> SCM_BIGSIZEFIELD))
 #define SCM_SETNUMDIGS(x, v, sign) \
   SCM_SET_CELL_WORD_0 (x, \

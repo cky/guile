@@ -1,5 +1,20 @@
 2000-11-22  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* gh_data.c (makvect), numbers.c (scm_mkbig, scm_adjbig),
+	strings.c (scm_makstr, scm_take_str), symbols.c
+	(scm_intern_obarray_soft, scm_sysintern0_no_module_lookup), unif.c
+	(scm_make_uve), vectors.c (scm_make_vector): Use appropriate
+	SCM_SET_<type>_(CHARS|BASE) macro instead of SCM_SETCHARS.
+
+	* numbers.h (SCM_SET_BIGNUM_BASE), strings.h
+	(SCM_SET_STRING_CHARS), symbols.h (SCM_SET_SYMBOL_CHARS), unif.h
+	(SCM_SET_UVECTOR_BASE, SCM_SET_BITVECTOR_BASE), vectors.h
+	(SCM_SET_VECTOR_BASE):  Added.
+
+	* symbols.c (SCM_SETCHARS):  Deprecated.
+
+2000-11-22  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* gc.c (scm_gc_sweep), unif.c (scm_make_uve):  Don't allocate or
 	free memory for empty bitvectors.
 
