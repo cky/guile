@@ -1,5 +1,7 @@
 1999-08-20  James Blandy  <jimb@mule.m17n.org>
 
+	* Guile 1.3.2 released.
+
 	* Makefile.in: Regenerated.
 
 1999-07-24  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
