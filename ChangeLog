@@ -1,3 +1,8 @@
+1999-09-02  Jim Blandy  <jimb@savonarola.red-bean.com>
+
+	* acinclude.m4 (GUILE_HEADER_LIBC_WITH_UNISTD): Fix typo in
+	variable name.  (Thanks to Bill Schottstaedt.)
+
 1999-09-02  Mikael Djurfeldt  <mdj@mdj-pc.nada.kth.se>
 
 	* configure.in: Test for presence of function on_exit.
