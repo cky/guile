@@ -127,6 +127,7 @@ quicksort (SCM *const base_ptr, size_t nr_elems, scm_t_trampoline_2 cmp, SCM les
 	{
 	  size_t left;
 	  size_t right;
+	  SCM pivot;
 
 	  /* Select median value from among LO, MID, and HI. Rearrange
 	     LO and HI so the three values are sorted. This lowers the
@@ -145,6 +146,7 @@ quicksort (SCM *const base_ptr, size_t nr_elems, scm_t_trampoline_2 cmp, SCM les
 	    SWAP (base_ptr[mid], base_ptr[lo]);
 	jump_over:;
 
+	  pivot = base_ptr[mid];
 	  left = lo + 1;
 	  right = hi - 1;
 
@@ -153,7 +155,7 @@ quicksort (SCM *const base_ptr, size_t nr_elems, scm_t_trampoline_2 cmp, SCM les
 	     that this algorithm runs much faster than others. */
 	  do
 	    {
-	      while (scm_is_true ((*cmp) (less, base_ptr[left], base_ptr[mid])))
+	      while (scm_is_true ((*cmp) (less, base_ptr[left], pivot)))
 		{
 		  left++;
 		  /* The comparison predicate may be buggy */
@@ -161,7 +163,7 @@ quicksort (SCM *const base_ptr, size_t nr_elems, scm_t_trampoline_2 cmp, SCM les
 		    scm_misc_error (NULL, s_buggy_less, SCM_EOL);
 		}
 
-	      while (scm_is_true ((*cmp) (less, base_ptr[mid], base_ptr[right])))
+	      while (scm_is_true ((*cmp) (less, pivot, base_ptr[right])))
 		{
 		  right--;
 		  /* The comparison predicate may be buggy */
