@@ -100,7 +100,7 @@ AC_ARG_ENABLE(deprecated,
   [  --disable-deprecated    omit deprecated features [no]])
 
 if test "$enable_deprecated" = no; then
-  AC_DEFINE(SCM_DEBUG_DEPRECATED)
+  AC_DEFINE(SCM_DEBUG_DEPRECATED, 1)
 else
   if test "$enable_deprecated" = yes || test "$enable_deprecated" = ""; then
     warn_default=summary
@@ -109,6 +109,7 @@ else
   else
     warn_default=$enable_deprecated
   fi
+  AC_DEFINE(SCM_DEBUG_DEPRECATED, 0)
   AC_DEFINE_UNQUOTED(GUILE_WARN_DEPRECATED_DEFAULT, "$warn_default")
 fi
 

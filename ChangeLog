@@ -1,3 +1,7 @@
+2001-05-14  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* configure.in (SCM_DEBUG_DEPRECATED):  Always defined.
+
 2001-05-13  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
 	* AUTHORS (Martin Grabmueller, Thien-Thi Nguyen): Update.

@@ -603,6 +603,22 @@ Return the argument.
 
 Use `identity' instead.
 
+** Deprecated: -1+
+
+Use `1-' instead.
+
+** Deprecated: return-it
+
+Use `noop' instead.
+
+** Deprecated: string-character-length
+
+Use `string-length' instead.
+
+** Deprecated: flags
+
+Use `logior' instead.
+
 ** Deprecated: close-all-ports-except.
 
 This was intended for closing ports in a child process after a fork,

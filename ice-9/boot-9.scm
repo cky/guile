@@ -107,18 +107,22 @@
 
 (define (identity x) x)
 (define (1+ n) (+ n 1))
-(define (-1+ n) (+ n -1))
-(define 1- -1+)
-(define return-it noop)
+(define (1- n) (+ n -1))
 (define (and=> value procedure) (and value (procedure value)))
 (define (make-hash-table k) (make-vector k '()))
 
 (begin-deprecated
  (define (id x)
    (issue-deprecation-warning "`id' is deprecated.  Use `identity' instead.")
-   (identity x)))
+   (identity x))
+ (define (-1+ n)
+   (issue-deprecation-warning "`-1+' is deprecated.  Use `1-' instead.")
+   (1- n))
+ (define (return-it . args)
+   (issue-deprecation-warning "`return-it' is deprecated.  Use `noop' instead.")
+   (apply noop args)))
 
-;;; apply-to-args is functionally redunant with apply and, worse,
+;;; apply-to-args is functionally redundant with apply and, worse,
 ;;; is less general than apply since it only takes two arguments.
 ;;;
 ;;; On the other hand, apply-to-args is a syntacticly convenient way to
@@ -145,18 +149,13 @@
 				(if (even? k) acc (proc acc x))
 				proc))))
 
-(define string-character-length string-length)
-
-
-
-;; A convenience function for combining flag bits.  Like logior, but
-;; handles the cases of 0 and 1 arguments.
-;;
-(define (flags . args)
-  (cond
-   ((null? args) 0)
-   ((null? (cdr args)) (car args))
-   (else (apply logior args))))
+(begin-deprecated
+ (define (string-character-length s)
+   (issue-deprecation-warning "`string-character-length' is deprecated.  Use `string-length' instead.")
+   (string-length s))
+ (define (flags . args)
+   (issue-deprecation-warning "`flags' is deprecated.  Use `logior' instead.")
+   (apply logior args)))
 
 
 ;;; {Symbol Properties}
@@ -178,6 +177,7 @@
 	(symbol-pset! sym (delq! pair (symbol-pref sym))))))
 
 ;;; {General Properties}
+;;;
 
 ;; This is a more modern interface to properties.  It will replace all
 ;; other property-like things eventually.

@@ -1,8 +1,8 @@
 /* classes: h_files */
 
-#ifndef DEPRECATION_H
-#define DEPRECATION_H
-/*	Copyright (C) 2001 Free Software Foundation, Inc.
+#ifndef SCM_DEPRECATION_H
+#define SCM_DEPRECATION_H
+/* Copyright (C) 2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -58,7 +58,7 @@ SCM scm_include_deprecated_features (void);
 
 void scm_init_deprecation (void);
 
-#endif  /* DEPRECATION_H */
+#endif  /* SCM_DEPRECATION_H */
 
 /*
   Local Variables:

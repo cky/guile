@@ -1,3 +1,10 @@
+2001-05-14  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* deprecation.c:  Fixed copyright date.
+
+	* deprecation.h (DEPRECATION_H, SCM_DEPRECATION_H):  Renamed
+	DEPRECATION_H to SCM_DEPRECATION_H.
+
 2001-05-10  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
 	* guile-doc-snarf.in: Update copyright.

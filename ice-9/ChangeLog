@@ -1,3 +1,8 @@
+2001-05-14  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* boot-9.scm (-1+, return-it, string-character-length, flags):
+	Deprecated.
+
 2001-05-11  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* boot-9.scm: Added `cond-expand' (SRFI-0) for portable feature
