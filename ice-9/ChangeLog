@@ -1,5 +1,8 @@
 2003-05-03  Marius Vollmer  <mvo@zagadka.de>
 
+	* boot-9.scm (display-usage-report): Use keyword->symbol instead
+	of keyword-symbol, which doesn't exist.  Thanks to Kevon Ryde.
+
 	* hcons.scm (hashq-cons-get-handle): Pass only the expected four
 	arguments to hashx-get-handle.  Thanks to Kevin Ryde!
 
