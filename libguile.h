@@ -60,6 +60,7 @@ extern "C" {
 #include "libguile/error.h"
 #include "libguile/eval.h"
 #include "libguile/evalext.h"
+#include "libguile/extensions.h"
 #include "libguile/feature.h"
 #include "libguile/filesys.h"
 #include "libguile/fluids.h"
