@@ -2266,27 +2266,53 @@ dispatch:
 	  goto evap1;
 
 	case (SCM_ISYMNUM (SCM_IM_DISPATCH)):
+	  /* (SCM_IM_DISPATCH N-SPECIALIZED
+	   *   #((TYPE1 ... ENV FORMALS FORM ...) ...))
+	   *
+	   * Need FORMALS in order to support varying arity.  This
+	   * also avoids the need for renaming of bindings.
+	   *
+	   * We should probably not complicate this mechanism by
+	   * introducing "optimizations" for getters and setters or
+	   * primitive methods.  Getters and setter will normally be
+	   * compiled into @slot-[ref|set!] or a procedure call.
+	   * They rely on the dispatch performed before executing
+	   * the code which contains them.
+	   *
+	   * We might want to use a more efficient representation of
+	   * this form in the future, perhaps after we have introduced
+	   * low-level support for syntax-case macros.
+	   */
 	  {
-	    int i, end, mask;
+	    int i, n, end, mask;
 	    mask = -1;
-	    proc = SCM_CADR (x);
+	    n = SCM_INUM (SCM_CADR (x)); /* maximum number of specializers */
+	    proc = SCM_CADDR (x);	 /* cache entries */
 	    i = 0;
 	    end = SCM_LENGTH (proc);
 	  find_method:
 	    do
 	      {
-		t.arg1 = SCM_CDDAR (env);
+		int j = n;
+		t.arg1 = SCM_CDDAR (env); /* list of arguments */
 		arg2 = SCM_VELTS (proc)[i];
 		do
 		  {
+		    /* More arguments than specifiers => CLASS != ENV */
 		    if (scm_class_of (SCM_CAR (t.arg1)) != SCM_CAR (arg2))
 		      goto next_method;
 		    t.arg1 = SCM_CDR (t.arg1);
 		    arg2 = SCM_CDR (arg2);
 		  }
-		while (SCM_NIMP (t.arg1));
-		x = arg2;
-		env = scm_cons (SCM_CAR (env), SCM_CDR (arg2));
+		while (--j && SCM_NIMP (t.arg1));
+		/* Fewer arguments than specifiers => CAR != ENV */
+		if (!SCM_CONSP (SCM_CAR (arg2)))
+		  goto next_method;
+		/* Copy the environment frame so that the dispatch form can
+		   be used also in normal code. */
+		env = EXTEND_ENV (SCM_CADR (arg2), SCM_CDDAR (env),
+				  SCM_CAR (arg2));
+		x = SCM_CDDR (arg2);
 		goto begin;
 	      next_method:
 		i = (i + 1) & mask;
@@ -2295,10 +2321,14 @@ dispatch:
 	    goto loop;
 	  
 	  case (SCM_ISYMNUM (SCM_IM_HASH_DISPATCH)):
+	    /* (SCM_IM_HASH_DISPATCH N-SPECIALIZED HASHSET MASK
+	         #((TYPE1 ... ENV FORMALS FORM ...) ...)) */
+	    n = SCM_INUM (SCM_CADR (x)); /* maximum number of specializers */
 	    {
-	      int hashset = SCM_INUM (SCM_CADR (x));
-	      mask = SCM_INUM (SCM_CADDR (x));
-	      proc = SCM_CADDDR (x);
+	      int hashset = SCM_INUM (SCM_CADDR (x));
+	      int j = n;
+	      mask = SCM_INUM (SCM_CADDDR (x));
+	      proc = SCM_CAR (SCM_CDDDDR (x));
 	      i = 0;
 	      t.arg1 = SCM_CDDAR (env);
 	      do
@@ -2306,7 +2336,7 @@ dispatch:
 		  i += SCM_STRUCT_DATA (scm_class_of (SCM_CAR (t.arg1)))[scm_si_hashsets + hashset];
 		  t.arg1 = SCM_CDR (t.arg1);
 		}
-	      while (SCM_NIMP (t.arg1));
+	      while (--j && SCM_NIMP (t.arg1));
 	      i &= mask;
 	      end = i;
 	    }
