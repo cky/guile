@@ -1,5 +1,22 @@
 2002-12-18  Mikael Djurfeldt  <mdj@kvast.blakulla.net>
 
+	Partial introduction of real plugin interface.
+
+	* Makefile.am (modinclude_HEADERS): Added threads-plugin.h.
+	(EXTRA_DIST): Added threads-plugin.c.
+
+	* threads-plugin.h, threads-plugin.c: New files.
+
+	* threads.h: #include "libguile/threads-plugin.h".
+
+	* threads.c: #include "libguile/threads-plugin.c".
+
+	* pthread-threads.c: Temporarily remove debugging functions.
+
+	* threads.c, threads.h (scm_yield): Added back.
+
+2002-12-18  Mikael Djurfeldt  <mdj@kvast.blakulla.net>
+
 	* threads.c (really_launch): Detach before unlocking
 	thread_admin_mutex in order not to risk being joined.
 	(scm_i_thread_put_to_sleep, scm_i_thread_wake_up): Keep

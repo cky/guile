@@ -54,6 +54,8 @@
 #include <pthread.h>
 #include <sched.h>
 
+#include "libguile/threads-plugin.h"
+
 /* MDJ 021209 <djurfeldt@nada.kth.se>:
    The separation of the plugin interface and the low-level C API
    (currently in threads.h) needs to be completed in a sensible way.
@@ -69,73 +71,17 @@
 #define scm_i_plugin_thread_self	pthread_self
 #define scm_i_plugin_thread_yield	sched_yield
 
-/* Size is checked in scm_init_pthread_threads */
-#define SCM_MUTEX_MAXSIZE (9 * sizeof (long))
-typedef struct { char _[SCM_MUTEX_MAXSIZE]; } scm_t_mutex;
-#define scm_t_mutexattr			pthread_mutexattr_t
-
 extern scm_t_mutexattr scm_i_plugin_mutex; /* The "fast" mutex. */
 
-/* This debug stuff made things a bit messy.  This needs some
-   reorganization. */
-#ifdef SCM_DEBUG_THREADS
-int scm_i_plugin_mutex_init (scm_t_mutex *, const scm_t_mutexattr *);
-int scm_i_plugin_mutex_lock (scm_t_mutex *);
-int scm_i_plugin_mutex_unlock (scm_t_mutex *);
-#else
-#define scm_i_plugin_mutex_init(m,a) \
-  pthread_mutex_init ((pthread_mutex_t *) (m), (a))
-#define scm_i_plugin_mutex_lock(m) \
-  pthread_mutex_lock ((pthread_mutex_t *) (m))
-#define scm_i_plugin_mutex_unlock(m) \
-  pthread_mutex_unlock ((pthread_mutex_t *) (m))
-#endif
 #define scm_i_plugin_mutex_destroy(m) \
   pthread_mutex_destroy ((pthread_mutex_t *) (m))
 #define scm_i_plugin_mutex_trylock(m) \
   pthread_mutex_trylock ((pthread_mutex_t *) (m))
 
-/* Size is checked in scm_init_pthread_threads */
-#define SCM_REC_MUTEX_MAXSIZE (SCM_MUTEX_MAXSIZE + 3 * sizeof (long))
-typedef struct { char _[SCM_REC_MUTEX_MAXSIZE]; } scm_t_rec_mutex;
-
 extern scm_t_mutexattr scm_i_plugin_rec_mutex;
-
-#if defined (SCM_MUTEX_RECURSIVE) && !defined (SCM_DEBUG_THREADS)
-/* pthreads has recursive mutexes! */
-#define scm_i_plugin_rec_mutex_init(m,a) \
-  pthread_mutex_init ((pthread_mutex_t *) (m), (a))
-#define scm_i_plugin_rec_mutex_destroy(m) \
-  pthread_mutex_destroy ((pthread_mutex_t *) (m))
-#define scm_i_plugin_rec_mutex_lock(m) \
-  pthread_mutex_lock ((pthread_mutex_t *) (m))
-#define scm_i_plugin_rec_mutex_trylock(m) \
-  pthread_mutex_trylock ((pthread_mutex_t *) (m))
-#define scm_i_plugin_rec_mutex_unlock(m) \
-  pthread_mutex_unlock ((pthread_mutex_t *) (m))
-#else
-int scm_i_plugin_rec_mutex_init	(scm_t_rec_mutex *, const scm_t_mutexattr *);
-#define scm_i_plugin_rec_mutex_destroy(mx) do { (void) (mx); } while (0)
-int scm_i_plugin_rec_mutex_lock (scm_t_rec_mutex *);
-int scm_i_plugin_rec_mutex_trylock (scm_t_rec_mutex *);
-int scm_i_plugin_rec_mutex_unlock (scm_t_rec_mutex *);
-#endif
-
-#define scm_t_cond			pthread_cond_t
 
 #define scm_i_plugin_cond_init		pthread_cond_init 
 #define scm_i_plugin_cond_destroy	pthread_cond_destroy
-#ifdef SCM_DEBUG_THREADS
-int scm_i_plugin_cond_wait (scm_t_cond *, scm_t_mutex *);
-int scm_i_plugin_cond_timedwait (scm_t_cond *,
-				 scm_t_mutex *,
-				 const struct timespec *);
-#else
-#define scm_i_plugin_cond_wait(c, m) \
-  pthread_cond_wait ((c), (pthread_mutex_t *) (m))
-#define scm_i_plugin_cond_timedwait(c, m, t) \
-  pthread_cond_timedwait ((c), (pthread_mutex_t *) (m), (t))
-#endif
 #define scm_i_plugin_cond_signal	pthread_cond_signal 
 #define scm_i_plugin_cond_broadcast	pthread_cond_broadcast 
 

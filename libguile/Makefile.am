@@ -145,7 +145,7 @@ pkginclude_HEADERS = gh.h
 modincludedir = $(includedir)/libguile
 modinclude_HEADERS = __scm.h alist.h arbiters.h async.h backtrace.h boolean.h \
     chars.h continuations.h convert.h debug.h				      \
-    debug-malloc.h null-threads.h pthread-threads.h			      \
+    debug-malloc.h threads-plugin.h null-threads.h pthread-threads.h	      \
     deprecation.h dynl.h dynwind.h environments.h eq.h error.h eval.h	      \
     evalext.h extensions.h feature.h filesys.h fluids.h fports.h gc.h	      \
     gdb_interface.h gdbint.h						      \
@@ -173,7 +173,7 @@ EXTRA_DIST = ChangeLog-gh ChangeLog-scm ChangeLog-threads		\
     ChangeLog-1996-1999 ChangeLog-2000 cpp_signal.c			\
     cpp_errno.c cpp_err_symbols.in cpp_err_symbols.c		\
     cpp_sig_symbols.c cpp_sig_symbols.in cpp_cnvt.awk	\
-    c-tokenize.lex
+    c-tokenize.lex threads-plugin.c
 #    $(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES) \
 #    guile-procedures.txt guile.texi
 

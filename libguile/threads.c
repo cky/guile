@@ -460,6 +460,15 @@ SCM_DEFINE (scm_call_with_new_thread, "call-with-new-thread", 2, 0, 0,
 }
 #undef FUNC_NAME
 
+SCM_DEFINE (scm_yield, "yield", 0, 0, 0,
+	    (),
+"Move the calling thread to the end of the scheduling queue.")
+#define FUNC_NAME s_scm_yield
+{
+  return SCM_BOOL (scm_thread_yield);
+}
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_join_thread, "join-thread", 1, 0, 0,
 	    (SCM thread),
 "Suspend execution of the calling thread until the target @var{thread} "
@@ -1312,6 +1321,7 @@ scm_t_rec_mutex scm_i_defer_mutex;
 #ifdef USE_PTHREAD_THREADS
 #include "libguile/pthread-threads.c"
 #endif
+#include "libguile/threads-plugin.c"
 
 /*** Initialization */
 

@@ -51,6 +51,7 @@
 #include "libguile/throw.h"
 #include "libguile/root.h"
 #include "libguile/iselect.h"
+#include "libguile/threads-plugin.h"
 
 
 /* smob tags for the thread datatypes */
@@ -126,6 +127,7 @@ SCM_API SCM scm_spawn_thread (scm_t_catch_body body, void *body_data,
 #define scm_thread_join		scm_i_plugin_thread_join
 #define scm_thread_detach	scm_i_plugin_thread_detach
 #define scm_thread_self		scm_i_plugin_thread_self
+#define scm_thread_yield	scm_i_plugin_thread_yield
 
 #define scm_mutex_init		scm_i_plugin_mutex_init 
 #define scm_mutex_destroy	scm_i_plugin_mutex_destroy
@@ -235,6 +237,7 @@ do { \
 
 /* The C versions of the Scheme-visible thread functions.  */
 SCM_API SCM scm_call_with_new_thread (SCM thunk, SCM handler);
+SCM_API SCM scm_yield (void);
 SCM_API SCM scm_join_thread (SCM t);
 SCM_API SCM scm_i_make_future (SCM thunk);
 SCM_API SCM scm_future_ref (SCM future);
