@@ -1,3 +1,36 @@
+Mon May 26 17:24:38 1997  Jim Blandy  <jimb@totoro.cyclic.com>
+
+	* COPYING, __scm.h, _scm.h, alist.c, alist.h, append.c, append.h,
+ 	appinit.c, arbiters.c, arbiters.h, async.c, async.h, backtrace.c,
+ 	backtrace.h, boolean.c, boolean.h, chars.c, chars.h,
+ 	continuations.c, continuations.h, coop-defs.h, coop-threads.c,
+ 	coop-threads.c.cygnus, coop-threads.h, coop-threads.h.cygnus,
+ 	coop.c, debug.c, debug.h, dynl-dl.c, dynl-dld.c, dynl-shl.c,
+ 	dynl-vms.c, dynl.c, dynl.h, dynwind.c, dynwind.h, eq.c, eq.h,
+ 	error.c, error.h, eval.c, eval.h, extchrs.h, feature.c, feature.h,
+ 	filesys.c, filesys.h, fports.c, fports.h, fsu-pthreads.h, gc.c,
+ 	gc.h, gdbint.c, gdbint.h, genio.c, genio.h, gh.h, gh_data.c,
+ 	gh_eval.c, gh_funcs.c, gh_init.c, gh_io.c, gh_list.c,
+ 	gh_predicates.c, gh_test_c.c, gh_test_repl.c, gscm.c, gscm.h,
+ 	gsubr.c, gsubr.h, guile.c, hash.c, hash.h, hashtab.c, hashtab.h,
+ 	init.c, init.h, ioext.c, ioext.h, kw.c, kw.h, libguile.h, list.c,
+ 	list.h, load.c, load.h, mallocs.c, mallocs.h, markers.c,
+ 	markers.h, mbstrings.c, mbstrings.h, mit-pthreads.c,
+ 	mit-pthreads.h, net_db.c, net_db.h, numbers.c, numbers.h,
+ 	objprop.c, objprop.h, options.c, options.h, pairs.c, pairs.h,
+ 	ports.c, ports.h, posix.c, posix.h, print.c, print.h, procprop.c,
+ 	procprop.h, procs.c, procs.h, putenv.c, ramap.c, ramap.h, read.c,
+ 	read.h, root.c, root.h, scmhob.h, scmsigs.c, scmsigs.h, script.c,
+ 	script.h, sequences.c, sequences.h, simpos.c, simpos.h, smob.c,
+ 	smob.h, snarf.h, socket.c, socket.h, srcprop.c, srcprop.h,
+ 	stackchk.c, stackchk.h, stacks.c, stacks.h, stime.c, stime.h,
+ 	strings.c, strings.h, strop.c, strop.h, strorder.c, strorder.h,
+ 	strports.c, strports.h, struct.c, struct.h, symbols.c, symbols.h,
+ 	tag.c, tag.h, tags.h, threads.c, threads.h, throw.c, throw.h,
+ 	unif.c, unif.h, variable.c, variable.h, vectors.c, vectors.h,
+ 	version.c, version.h, vports.c, vports.h, weaks.c, weaks.h: New
+ 	address for FSF.
+
 Mon May 26 12:37:30 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* script.c (scm_find_executable): Use prototype-style definition

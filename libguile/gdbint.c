@@ -13,7 +13,8 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
- * the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+ * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+ * Boston, MA 02111-1307 USA
  *
  * As a special exception, the Free Software Foundation gives permission
  * for additional uses of the text contained in its release of GUILE.
@@ -40,8 +41,7 @@
  * If you do not wish that, delete this exception notice.
  *
  * The author can be reached at djurfeldt@nada.kth.se
- * Mikael Djurfeldt, SANS/NADA KTH, 10044 STOCKHOLM, SWEDEN
- */
+ * Mikael Djurfeldt, SANS/NADA KTH, 10044 STOCKHOLM, SWEDEN */
 
 #include <stdio.h>
 #include "_scm.h"

@@ -12,7 +12,8 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
- * the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+ * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+ * Boston, MA 02111-1307 USA
  *
  * As a special exception, the Free Software Foundation gives permission
  * for additional uses of the text contained in its release of GUILE.
@@ -36,11 +37,10 @@
  *
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
- * If you do not wish that, delete this exception notice.  
- */
+ * If you do not wish that, delete this exception notice.  */
 
 
-/* $Id: coop.c,v 1.1 1997-04-15 01:34:30 jimb Exp $ */
+/* $Id: coop.c,v 1.2 1997-05-26 22:31:48 jimb Exp $ */
 
 /* Cooperative thread library, based on QuickThreads */
 
