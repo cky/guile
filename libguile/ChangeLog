@@ -2,6 +2,12 @@ Sat Dec 21 15:38:32 1996  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* libguile.h: Added #include "libguile/net_db.h".
 
+	* libguile.h: Don't #include "libguile/libpath.h", contrary to Oct
+	30 change.  That file is only meant for communication between the
+	configuration process and load.c.  If code linked against libguile
+	wants to get at the paths mentioned in libpath.h, it can call
+	functions declared in load.h.
+
 Sat Dec 21 14:50:42 1996  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* libguile.h: Removed #include "libguile/fdsocket.h"
