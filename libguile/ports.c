@@ -258,7 +258,7 @@ scm_add_to_port_table (port)
   scm_port_table[scm_port_table_size]->revealed = 0;
   scm_port_table[scm_port_table_size]->stream = 0;
   scm_port_table[scm_port_table_size]->file_name = SCM_BOOL_F;
-  scm_port_table[scm_port_table_size]->line_number = 1;
+  scm_port_table[scm_port_table_size]->line_number = 0;
   scm_port_table[scm_port_table_size]->column_number = 0;
   return scm_port_table[scm_port_table_size++];
 }

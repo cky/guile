@@ -1,3 +1,12 @@
+1998-03-30  Mikael Djurfeldt  <mdj@nada.kth.se>
+
+	* ports.c (scm_add_to_port_table): First line is now line 0
+	(was 1).  (Interface changed according to suggestion by Per
+	Bothner.)
+
+	* backtrace.c (display_header): Add 1 to line and column numbers
+	when presenting them to the user.
+
 1998-03-28  Mikael Djurfeldt  <mdj@nada.kth.se>
 
 	* throw.c (handler_message): Print message on current error port
