@@ -1,3 +1,9 @@
+2005-01-12  Kevin Ryde  <user42@zip.com.au>
+
+	* srfi-39.scm (current-input-port, current-output-port): Parameter
+	replacements for core functions, per SRFI spec.
+	(current-error-port): The same, for consistency.
+
 2005-01-10  Marius Vollmer  <mvo@zagadka.de>
 
 	* srfi-1.c (check_args): Bugfix to change from 2005-01-02: ARGV is
