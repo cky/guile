@@ -118,6 +118,9 @@
 #include "libguile/version.h"
 #include "libguile/vports.h"
 #include "libguile/weaks.h"
+#ifdef USE_THREADS
+#include "libguile/../threads/threads.h"
+#endif
 
 
 
