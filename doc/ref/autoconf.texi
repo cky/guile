@@ -4,12 +4,15 @@
 
 When Guile is installed, a set of autoconf macros is also installed as
 PREFIX/share/aclocal/guile.m4.  This chapter documents the macros provided in
-that file.  @xref{Top,The GNU Autoconf Manual,,autoconf}, for more info.
+that file, as well as the high-level guile-tool Autofrisk.  @xref{Top,The GNU
+Autoconf Manual,,autoconf}, for more info.
 
 @menu
 * Autoconf Background::         Why use autoconf?
 * Autoconf Macros::             The GUILE_* macros.
 * Using Autoconf Macros::       How to use them, plus examples.
+* Autofrisk::                   AUTOFRISK_CHECKS and AUTOFRISK_SUMMARY.
+* Using Autofrisk::             Example modules.af files.
 @end menu
 
 
@@ -118,6 +121,113 @@ In Makefile.in:
 
   install:
         $(INSTALL) my/*.scm $(instdir)
+@end example
+
+
+@node Autofrisk
+@section Autofrisk
+
+The @dfn{guile-tools autofrisk} command looks for the file @file{modules.af}
+in the current directory and writes out @file{modules.af.m4} containing
+autoconf definitions for @code{AUTOFRISK_CHECKS} and @code{AUTOFRISK_SUMMARY}.
+@xref{Autoconf Background}, and @xref{Using Autoconf Macros}, for more info.
+
+The modules.af file consists of a series of configuration forms (Scheme
+lists), which have one of the following formats:
+
+@example
+  (files-glob PATTERN ...)                      ;; required
+  (non-critical-external MODULE ...)            ;; optional
+  (non-critical-internal MODULE ...)            ;; optional
+  (programs (MODULE PROG ...) ...)              ;; optional
+  (pww-varname VARNAME)                         ;; optional
+@end example
+
+@var{pattern} is a string that may contain "*" and "?" characters to be
+expanded into filenames.  @var{module} is a list of symbols naming a module,
+such as `(srfi srfi-1)'.  @var{varname} is a shell-safe name to use instead of
+@code{probably_wont_work}, the default.  This var is passed to `AC_SUBST'.
+@var{prog} is a string that names a program, such as "gpg".
+
+Autofrisk expands the @code{files-glob} pattern(s) into a list of files, scans
+each file's module definition form(s), and constructs a module dependency
+graph wherein modules defined by @code{define-module} are considered
+@dfn{internal} and the remaining, @dfn{external}.  For each external module
+that has an internal dependency, Autofrisk emits a
+@code{GUILE_MODULE_REQUIRED} check (@pxref{Autoconf Macros}), which altogether
+form the body of @code{AUTOFRISK_CHECKS}.
+
+@code{GUILE_MODULE_REQUIRED} causes the @file{configure} script to exit with
+an error message if the specified module is not available; it enforces a
+strong dependency.  You can temper dependency strength by using the
+@code{non-critical-external} and @code{non-critical-internal} configuration
+forms in modules.af.  For graph edges that touch such non-critical modules,
+Autofrisk uses @code{GUILE_MODULE_AVAILABLE}, and arranges for
+@code{AUTOFRISK_SUMMARY} to display a warning if they are not found.
+
+The shell code resulting from the expansion of @code{AUTOFRISK_CHECKS} and
+@code{AUTOFRISK_SUMMARY} uses the shell variable @code{probably_wont_work} to
+collect the names of unfound non-critical modules.  If this bothers you, use
+configuration form @code{(pww-name foo)} in modules.af.
+
+Although Autofrisk does not detect when a module uses a program (for example,
+in a @code{system} call), it can generate @code{AC_PATH_PROG} forms anyway if
+you use the @code{programs} configuration form in modules.af.  These are
+collected into @code{AUTOCONF_CHECKS}.
+
+@xref{Using Autofrisk}, for some modules.af examples.
+
+
+@node Using Autofrisk
+@section Using Autofrisk
+
+Using Autofrisk (@pxref{Autofrisk}) involves writing @file{modules.af} and
+adding two macro calls to @file{configure.in}.  Here is an example of the
+latter:
+
+@example
+AUTOFRISK_CHECKS
+AUTOFRISK_SUMMARY
+@end example
+
+Here is an adaptation of the second "GUILE_*" example (@pxref{Using Autoconf
+Macros}) that does basically the same thing.
+
+@example
+(files-glob "my/*.scm")
+(non-critical-external (database postgres))
+(programs ((my gpgutils) "gpg"))        ;; (my gpgutils) uses "gpg"
+@end example
+
+If the SRFI modules (@pxref{SRFI Support}) were a separate package, we could
+use @code{guile-tools frisk} to find out its dependencies:
+
+@example
+$ guile-tools frisk srfi/*.scm
+13 files, 18 modules (13 internal, 5 external), 9 edges
+
+x (ice-9 and-let-star)
+			 regular	(srfi srfi-2)
+x (ice-9 syncase)
+			 regular	(srfi srfi-11)
+x (ice-9 rdelim)
+			 regular	(srfi srfi-10)
+x (ice-9 receive)
+			 regular	(srfi srfi-8)
+			 regular	(srfi srfi-1)
+x (ice-9 session)
+			 regular	(srfi srfi-1)
+@end example
+
+Then, we could use the following modules.af to help configure it:
+
+@example
+(files-glob "srfi/*.scm")
+(non-critical-external          ;; relatively recent
+  (ice-9 rdelim)
+  (ice-9 receive)
+  (ice-9 and-let-star))
+(pww-varname not_fully_supported)
 @end example
 
 @c autoconf.texi ends here
