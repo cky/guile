@@ -1,3 +1,9 @@
+1999-08-01  Jim Blandy  <jimb@savonarola.red-bean.com>
+
+	* ports.c (scm_char_ready_p): Don't try to find PORT's ptab entry
+	until we've verified that it is actually a port.  (Thanks to
+	Lorentey Karoly.)
+
 1999-07-31  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* gc.c (scm_must_malloc, scm_must_realloc): Removed unnecessary

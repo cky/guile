@@ -1,4 +1,17 @@
+1999-08-01  Jim Blandy  <jimb@savonarola.red-bean.com>
+
+	* tests/r4rs.test (SECTION 3 4): Each element of type-matrix
+	corresponds to an example object, not a predicate.  Aubrey
+	probably never noticed this because SCM doesn't check the lengths
+	of the arguments to for-each and map...
+
+	* tests/ports.test: Add some regression tests for char-ready?.
+
 1999-07-19  Jim Blandy  <jimb@savonarola.red-bean.com>
+
+	* tests/ports.test: Fix copyright years.
+
+	* tests/guardians.test: New test file.
 
 	* tests/ports.test ("read-delimited!"): New tests.
 
