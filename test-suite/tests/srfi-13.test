@@ -1,7 +1,7 @@
 ;;;; srfi-13.test --- Test suite for Guile's SRFI-13 functions. -*- scheme -*-
 ;;;; Martin Grabmueller, 2001-05-07
 ;;;;
-;;;; Copyright (C) 2001 Free Software Foundation, Inc.
+;;;; Copyright (C) 2001, 2004 Free Software Foundation, Inc.
 ;;;;
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -57,7 +57,18 @@
   (pass-if "more than one match, start and end index"
     (string-any char-upper-case? "abCDE" 1 4)))
 
+;;;
+;;; string-every
+;;;
+
 (with-test-prefix "string-every"
+
+  ;; in guile 1.6.4 and earlier string-every incorrectly returned #f on an
+  ;; empty string
+  (pass-if "empty string"
+    (string-every char-upper-case? ""))
+  (pass-if "empty substring"
+    (string-every char-upper-case? "abc" 1 1))
 
   (pass-if "no match at all"
     (not (string-every char-upper-case? "abcde")))
