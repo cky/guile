@@ -1,3 +1,10 @@
+1998-11-01  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+
+	* read.c, read.h (history-length, history-file): New read options.
+	(scm_read_options): Stifle history to history length.
+
+	* readline.c (read-history, write-history): New procedures.
+
 1998-10-31  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
 	* eval.h (scm_macro_eval_x): Removed declaration.
