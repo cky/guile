@@ -71,7 +71,6 @@
 
 	* hooks.c, hooks.h: New files.
 
->>>>>>> 1.924
 	* *.*: Change includes so that they always use the "prefixes"
 	libguile/, qt/, guile-readline/, or libltdl/.
 	(Thanks to Tim Mooney.)
