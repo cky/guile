@@ -803,6 +803,11 @@ SCM_DEFINE (scm_opendir, "opendir", 1, 0, 0,
 #undef FUNC_NAME
 
 
+/* FIXME: The glibc manual has a portability note that readdir_r may not
+   null-terminate its return string.  The circumstances outlined for this
+   are not clear, nor is it clear what should be done about it.  Lets worry
+   about this if/when someone can figure it out.  */
+
 SCM_DEFINE (scm_readdir, "readdir", 1, 0, 0, 
             (SCM port),
 	    "Return (as a string) the next directory entry from the directory stream\n"
@@ -817,12 +822,28 @@ SCM_DEFINE (scm_readdir, "readdir", 1, 0, 0,
     SCM_MISC_ERROR ("Directory ~S is not open.", scm_list_1 (port));
 
   errno = 0;
-  SCM_SYSCALL (rdent = readdir ((DIR *) SCM_CELL_WORD_1 (port)));
-  if (errno != 0)
-    SCM_SYSERROR;
+  {
+#if HAVE_READDIR_R
+    /* On Solaris 2.7, struct dirent only contains "char d_name[1]" and one is
+       expected to provide a buffer of "sizeof(struct dirent) + NAME_MAX"
+       bytes.  The glibc 2.3.2 manual notes this sort of thing too, and
+       advises "offsetof(struct dirent,d_name) + NAME_MAX + 1".  Either should
+       suffice, we give both to be certain.  */
+    union {
+      struct dirent ent;
+      char pad1 [sizeof(struct dirent) + NAME_MAX];
+      char pad2 [offsetof (struct dirent, d_name) + NAME_MAX + 1];
+    } u;
+    SCM_SYSCALL (readdir_r ((DIR *) SCM_CELL_WORD_1 (port), &u.ent, &rdent));
+#else
+    SCM_SYSCALL (rdent = readdir ((DIR *) SCM_CELL_WORD_1 (port)));
+#endif
+    if (errno != 0)
+      SCM_SYSERROR;
 
-  return (rdent ? scm_mem2string (rdent->d_name, NAMLEN (rdent))
-	  : SCM_EOF_VAL);
+    return (rdent ? scm_mem2string (rdent->d_name, NAMLEN (rdent))
+            : SCM_EOF_VAL);
+  }
 }
 #undef FUNC_NAME
 
