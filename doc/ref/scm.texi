@@ -1,5 +1,5 @@
 @page
-@node Guile API
+@node API Overview
 @chapter Overview of the Guile API
 
 Guile's application programming interface (@dfn{API}) makes
@@ -40,6 +40,7 @@ primitives on which it is based.
 * Primitives::                  Identical function for Scheme and C.
 * C Only::                      Elements only available in C.
 * Scheme Only::                 Elements only available in Scheme.
+* Reference Layout::            The layout of this part of the manual.
 @end menu
 
 
@@ -164,3 +165,17 @@ generic @code{SCM}.
 
 @node Scheme Only
 @section Elements Available Only in Scheme
+
+
+@node Reference Layout
+@section Reference Material Layout
+
+This part of the reference manual documents all of Guile's core
+Scheme-level language and features in functionally-related groups.
+Where a particular section of the manual includes both R5RS-compliant
+parts and Guile-specific extensions, the text indicates which parts of
+the documentation describe R5RS behaviour and which parts describe Guile
+extensions.
+
+For a quick way of identifying the parts of Guile that implement
+R5RS-compliant features, see the R5RS index: @ref{R5RS Index}.

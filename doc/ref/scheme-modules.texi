@@ -389,7 +389,7 @@ Guile starts up.
 
 @item (ice-9 debug)
 Mikael Djurfeldt's source-level debugging support for Guile
-(@pxref{Debugger User Interface}).
+(@pxref{Debugging Features}).
 
 @item (ice-9 threads)
 Guile's support for multi threaded execution (@pxref{Scheduling}).

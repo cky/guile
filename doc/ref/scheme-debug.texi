@@ -25,6 +25,13 @@ Return @code{#t} if @var{obj} is a debug object.
 
 @section Capturing the Stack or Innermost Stack Frame
 
+When an error occurs in a running program, or the program hits a
+breakpoint, its state at that point can be represented by a @dfn{stack}
+of all the evaluations and procedure applications that are logically in
+progress at that time, each of which is known as a @dfn{frame}.  The
+programmer can learn more about the program's state at the point of
+interruption or error by inspecting the stack and its frames.
+
 @deffn {Scheme Procedure} make-stack obj . args
 @deffnx {C Function} scm_make_stack (obj, args)
 Create a new stack. If @var{obj} is @code{#t}, the current
@@ -180,6 +187,17 @@ Unmemoize the memoized expression @var{m},
 @deffn {Scheme Procedure} memoized-environment m
 @deffnx {C Function} scm_memoized_environment (m)
 Return the environment of the memoized expression @var{m}.
+@end deffn
+
+
+@section Starting a New Stack
+
+@deffn {Scheme Syntax} start-stack id exp
+Evaluate @var{exp} on a new calling stack with identity @var{id}.  If
+@var{exp} is interrupted during evaluation, backtraces will not display
+frames farther back than @var{exp}'s top-level form.  This macro is a
+way of artificially limiting backtraces and stack procedures, largely as
+a convenience to the user.
 @end deffn
 
 

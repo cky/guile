@@ -1,6 +1,6 @@
 @page
-@node Debugger User Interface
-@chapter Debugger User Interface
+@node Debugging Features
+@chapter Debugging Features
 
 @c      --- The title and introduction of this appendix need to
 @c          distinguish this clearly from the chapter on the internal
@@ -23,7 +23,6 @@ and explain why they can't be used to debug interpreted Scheme or Lisp?]
 * Single-Step::         Execute a program or function one step at a time.
 * Trace::               Print a report each time a given function is called.
 * Backtrace::           See a list of the statements that caused an error.
-* Stacks and Frames::	Examine the state of an interrupted program.
 @end menu
 
  
@@ -113,75 +112,4 @@ iteration.  Using @code{trace} here helps us see why this is so.
 @deffnx {C Function} scm_backtrace ()
 Display a backtrace of the stack saved by the last error
 to the current output port.
-@end deffn
-
-
-@node Stacks and Frames
-@section Stacks and Frames
-
-When a running program is interrupted, usually upon reaching an error or
-breakpoint, its state is represented by a @dfn{stack} of suspended
-function calls, each of which is called a @dfn{frame}.  The programmer
-can learn more about the program's state at the point of interruption by
-inspecting and modifying these frames.
-
-@deffn {Scheme Procedure} stack? obj
-Return @code{#t} if @var{obj} is a calling stack.
-@end deffn
-
-@deffn {Scheme Procedure} make-stack
-@end deffn
-
-@deffn syntax start-stack id exp
-Evaluate @var{exp} on a new calling stack with identity @var{id}.  If
-@var{exp} is interrupted during evaluation, backtraces will not display
-frames farther back than @var{exp}'s top-level form.  This macro is a
-way of artificially limiting backtraces and stack procedures, largely as
-a convenience to the user.
-@end deffn
-
-@deffn {Scheme Procedure} stack-id stack
-Return the identifier given to @var{stack} by @code{start-stack}.
-@end deffn
-
-@deffn {Scheme Procedure} stack-ref
-@end deffn
-
-@deffn {Scheme Procedure} stack-length
-@end deffn
-
-@deffn {Scheme Procedure} frame?
-@end deffn
-
-@deffn {Scheme Procedure} last-stack-frame
-@end deffn
-
-@deffn {Scheme Procedure} frame-number
-@end deffn
-
-@deffn {Scheme Procedure} frame-source
-@end deffn
-
-@deffn {Scheme Procedure} frame-procedure
-@end deffn
-
-@deffn {Scheme Procedure} frame-arguments
-@end deffn
-
-@deffn {Scheme Procedure} frame-previous
-@end deffn
-
-@deffn {Scheme Procedure} frame-next
-@end deffn
-
-@deffn {Scheme Procedure} frame-real?
-@end deffn
-
-@deffn {Scheme Procedure} frame-procedure?
-@end deffn
-
-@deffn {Scheme Procedure} frame-evaluating-args?
-@end deffn
-
-@deffn {Scheme Procedure} frame-overflow
 @end deffn

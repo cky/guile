@@ -1,5 +1,29 @@
 2002-04-20  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* scheme-intro.texi (Scheme Layout), scm.texi (Reference Layout):
+	Node moved from a to b.
+
+	* guile.texi (Scheme Intro, Basic Ideas, Guile Scripting, Command
+	Line Handling, Debugging Features, Autoconf Support, Miscellaneous
+	Tools, Further Reading): Moved to new Part II.
+
+	* preface.texi (Manual Layout): Part numbers updated accordingly.
+
+	* guile.texi (Top): Move API Overview node to beginning of Guile
+	API Reference part.
+	(Part II: Writing and Running Guile Scheme): New part; will
+	contain content from `Programming with Guile' that pertains to
+	writing and using Guile on the Scheme level.
+
+	* scm.texi (API Overview): Renamed from `Guile API'.
+
+	* guile.texi (Top), scheme-modules.texi (Included Guile Modules):
+	Debugger User Interface node renamed Debugging Features.
+
+	* debugging.texi (Stacks and Frames): Node deleted; non-duplicated
+	material moved to scheme-debug.texi.
+	(Debugging Features): Renamed from `Debugger User Interface'.
+
 	* scheme-debug.texi (Debugging): Rename chapter `Debugging
 	Infrastructure' and reorganize its contents.
 	

@@ -74,7 +74,7 @@ do not wish that, delete this exception notice.
 @chapter Layout of this Manual
 @end ifnottex
 
-The manual is divided into three parts.
+The manual is divided into five parts.
 
 @strong{Part I: Introduction to Guile} provides an overview of what
 Guile is and how you can use it.  A whirlwind tour shows how Guile can
@@ -85,13 +85,14 @@ documented again and in full by the later parts of the manual.  This
 part also explains how to obtain and install new versions of Guile, and
 how to report bugs effectively.
 
-@strong{Part II: Programming with Guile} documents all aspects of
-practical programming using Guile.  This covers both the Scheme level
---- where we provide an introduction to the key ideas of the Scheme
-language --- and use of Guile's @code{scm} interface to write new
-primitives and objects in C, and to incorporate Guile into a C
-application.  It also covers the use of Guile as a POSIX compliant
-script interpreter, and how to use the Guile debugger.
+@strong{Part II: Writing and Running Guile Scheme} and @strong{Part III:
+Programming with Guile} document all aspects of practical programming
+using Guile.  This covers both the Scheme level --- where we provide an
+introduction to the key ideas of the Scheme language --- and use of
+Guile's @code{scm} interface to write new primitives and objects in C,
+and to incorporate Guile into a C application.  It also covers the use
+of Guile as a POSIX compliant script interpreter, and how to use the
+Guile debugger.
 
 @c @strong{Part V: Extending Applications Using Guile} explains the options
 @c available for using Guile as a application extension language.  At the
@@ -106,7 +107,7 @@ script interpreter, and how to use the Guile debugger.
 @c This part of the manual covers the complete range of application
 @c extension options.
 
-@strong{Part III: Guile API Reference} documents Guile's core API.  Most
+@strong{Part IV: Guile API Reference} documents Guile's core API.  Most
 of the variables and procedures in Guile's core programming interface
 are available in both Scheme and C, and are related systematically such
 that the C interface can be inferred from the Scheme interface and vice
@@ -127,7 +128,7 @@ together.
 @c all documented from scratch, and organized by functionality rather than
 @c by the defining standards.
 
-@strong{Part IV: Guile Modules} describes some important modules,
+@strong{Part V: Guile Modules} describes some important modules,
 distributed as part of the Guile distribution, that extend the
 functionality provided by the Guile Scheme core.  Two important examples
 are:
