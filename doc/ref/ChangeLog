@@ -1,3 +1,12 @@
+2004-08-18  Kevin Ryde  <user42@zip.com.au>
+
+	* posix.texi (Network Sockets and Communication): Add SOCK_RDM and
+	SOCK_SEQPACKET.
+
+	* posix.texi (Internet Socket Examples): Correction to socket calls,
+	should be PF_INET not AF_INET (though generally the two are the same
+	value).
+
 2004-08-14  Kevin Ryde  <user42@zip.com.au>
 
 	* api-scheduling.texi (Mutexes): New datatype-centric section, adding
