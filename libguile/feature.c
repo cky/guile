@@ -177,9 +177,6 @@ scm_reset_hook_x (SCM hook)
   return SCM_UNSPECIFIED;
 }
 
-/* This name is only provided for backward compatibility! */
-SCM_PROC (s_run_hooks, "run-hooks", 1, 0, 1, scm_run_hook);
-
 SCM_PROC (s_run_hook, "run-hook", 1, 0, 1, scm_run_hook);
 
 SCM
