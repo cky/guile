@@ -1,3 +1,12 @@
+2000-08-24  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* Makefile.am (BUILT_SOURCES): Experimentally added scmconfig.h
+	also here.  (This is supposed to make sure that scmconfig.h is
+	built before all sources in order to prevent that everything has
+	to be rebuilt again.  Hope it works---I'm just guessing. :)
+
+	* fluids.c (scm_fluid_set_x): Return SCM_UNSPECIFIED.
+
 2000-08-23  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* gc.c (scm_gc_mark): Don't use GUILE_DEBUG flag to compile in
