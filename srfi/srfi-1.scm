@@ -730,7 +730,7 @@
     (let lp ((f (car rest)) (r (cdr rest)))
       (or (null? r)
 	  (and (every (lambda (el) (member el (car r) =)) f)
-	       (every (lambda (el) (member el f =)) (car r))
+	       (every (lambda (el) (member el f (lambda (x y) (= y x)))) (car r))
 	       (lp (car r) (cdr r)))))))
 
 (define (lset-adjoin = list . rest)
