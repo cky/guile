@@ -435,8 +435,11 @@ static off_t
 local_seek (SCM port, off_t offset, int whence)
 {
   struct scm_fport *fp = SCM_FSTREAM (port);
-  
-  return lseek (fp->fdes, offset, whence);
+  off_t result = lseek (fp->fdes, offset, whence);
+
+  if (result == -1)
+    scm_syserror ("local_seek");
+  return result;
 }
 
 static void

@@ -892,8 +892,6 @@ scm_lseek (SCM object, SCM offset, SCM whence)
 	    ptob->fflush (object);
 	  
 	  rv = ptob->seek (object, off, how);
-	  if (rv == -1)
-	    scm_syserror (s_lseek);
 	}
     }
   else /* file descriptor?.  */
