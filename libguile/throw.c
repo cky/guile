@@ -620,33 +620,32 @@ scm_ithrow (SCM key, SCM args, int noreturn)
 	}
     }
 
-  /* If we didn't find anything, abort.  scm_boot_guile should
-         have established a catch-all, but obviously things are
-         thoroughly screwed up.  */
-  if (SCM_NULLP (winds))
-    abort ();
+#ifdef BROKEN_GCSE
+#ifdef __GNUC__
+  /* GCC 2.95.2 has a bug in its optimizer that makes it generate
+     incorrect code sometimes.  This barrier stops it from being too
+     clever. */
+  asm volatile ("" : "=g" (winds));
+#else
+#error "GCSE bug found: reconfigure without optimization?"
+#endif
+#endif
 
-      /* If the wind list is malformed, bail.  */
+  /* If we didn't find anything, print a message and abort the process
+     right here.  If you don't want this, establish a catch-all around
+     any code that might throw up. */
+  if (SCM_NULLP (winds) || SCM_FALSEP (dynpair))
+    {
+      scm_handle_by_message (NULL, key, args);
+      abort ();
+    }
+
+  /* If the wind list is malformed, bail.  */
   if (SCM_IMP (winds) || SCM_NCONSP (winds))
     abort ();
       
-  if (!SCM_FALSEP (dynpair))
-    jmpbuf = SCM_CDR (dynpair);
-  else
-    {
-      if (!noreturn)
-	return SCM_UNSPECIFIED;
-      else
-	{
-	  scm_exitval = scm_cons (key, args);
-	  scm_dowinds (SCM_EOL, scm_ilength (scm_dynwinds));
-#ifdef DEBUG_EXTENSIONS
-	  scm_last_debug_frame = SCM_DFRAME (scm_rootcont);
-#endif
-	  longjmp (SCM_JMPBUF (scm_rootcont), 1);
-	}
-    }
-
+  jmpbuf = SCM_CDR (dynpair);
+  
   for (wind_goal = scm_dynwinds;
        !SCM_EQ_P (SCM_CDAR (wind_goal), jmpbuf);
        wind_goal = SCM_CDR (wind_goal))
