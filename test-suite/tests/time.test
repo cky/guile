@@ -1,5 +1,5 @@
 ;;;; time.test --- test suite for Guile's time functions     -*- scheme -*-
-;;;; Jim Blandy <jimb@red-bean.com> --- June 1999
+;;;; Jim Blandy <jimb@red-bean.com> --- June 1999, 2004
 ;;;;
 ;;;; 	Copyright (C) 1999, 2004 Free Software Foundation, Inc.
 ;;;; 
@@ -18,8 +18,60 @@
 ;;;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
 ;;;; Boston, MA 02111-1307 USA
 
-(use-modules (test-suite lib)
-	     (ice-9 regex))
+(define-module (test-suite test-time)
+  #:use-module (test-suite lib)
+  #:use-module (ice-9 threads))
+
+;;;
+;;; gmtime
+;;;
+
+(with-test-prefix "gmtime"
+
+  (for-each (lambda (t)
+	      (pass-if (list "in another thread after error" t)
+		(or (provided? 'threads) (throw 'unsupported))
+
+		;; actually this test is perfectly good, but the "internal
+		;; define - missing body expression" in syntax.test somehow
+		;; ends up leaving SCM_DEFER_INTS, making the test here hang
+		;;
+		(throw 'unresolved)
+
+		(alarm 5)
+		(false-if-exception (gmtime t))
+		(future-ref (future (catch 'out-of-range
+				      (lambda () (gmtime t))
+				      (lambda args #f))))
+		(alarm 0)
+		#t))
+
+	    ;; time values that might provoke an error from libc
+	    ;; on 32-bit glibc all values (which fit) are fine
+	    ;; on 64-bit glibc apparently 2^63 can overflow a 32-bit tm_year
+	    (list (1- (ash 1 31)) (1- (ash 1 63))
+		  -1 (- (ash 1 31)) (- (ash 1 63)))))
+
+;;;
+;;; internal-time-units-per-second
+;;;
+
+(with-test-prefix "internal-time-units-per-second"
+
+  ;; Check that sleep 1 gives about internal-time-units-per-second worth of
+  ;; elapsed time from times:clock.  This mainly ensures
+  ;; internal-time-units-per-second correctly indicates CLK_TCK units.
+  ;;
+  (pass-if "versus times and sleep"
+    (or (defined? 'times) (throw 'unsupported))
+    
+    (let ((old (times)))
+      (sleep 1)
+      (let* ((new (times))
+	     (elapsed (- (tms:clock new) (tms:clock old))))
+	(<= (* 0.5 internal-time-units-per-second)
+	    elapsed
+	    (* 2 internal-time-units-per-second))))))
 
 ;;;
 ;;; strftime
@@ -35,3 +87,26 @@
 	   (set-tm:isdst t 0)
 	   (string=? (strftime "%Z" t)
 		     "ZOW")))
+
+;;;
+;;; strptime
+;;;
+
+(with-test-prefix "strptime"
+
+  (pass-if "in another thread after error"
+    (or (defined? 'strptime) (throw 'unsupported))
+    (or (provided? 'threads) (throw 'unsupported))
+
+    ;; actually this test is perfectly good, but the "internal define -
+    ;; missing body expression" in syntax.test somehow ends up leaving
+    ;; SCM_DEFER_INTS, making the test here hang
+    ;;
+    (throw 'unresolved)
+
+    (alarm 5)
+    (false-if-exception
+     (strptime "%a" "nosuchday"))
+    (future-ref (future (strptime "%d" "1")))
+    (alarm 0)
+    #t))
