@@ -69,35 +69,35 @@ extern unsigned long scm_mallocated;
 extern unsigned long scm_mtrigger;
 
 #ifdef DEBUG_FREELIST
-extern void scm_debug_newcell SCM_P ((SCM *into));
+extern void scm_debug_newcell (SCM *into);
 #endif
 
 
 
-extern SCM scm_object_addr SCM_P ((SCM obj));
-extern SCM scm_unhash_name SCM_P ((SCM name));
-extern SCM scm_gc_stats SCM_P ((void));
-extern void scm_gc_start SCM_P ((char *what));
-extern void scm_gc_end SCM_P ((void));
-extern SCM scm_gc SCM_P ((void));
-extern void scm_gc_for_alloc SCM_P ((int ncells, SCM * freelistp));
-extern SCM scm_gc_for_newcell SCM_P ((void));
-extern void scm_igc SCM_P ((char *what));
-extern void scm_gc_mark SCM_P ((SCM p));
-extern void scm_mark_locations SCM_P ((SCM_STACKITEM x[], scm_sizet n));
-extern int scm_cellp SCM_P ((SCM value));
-extern void scm_gc_sweep SCM_P ((void));
-extern char * scm_must_malloc SCM_P ((scm_sizet len, char *what));
-extern char * scm_must_realloc SCM_P ((char *where,
-				       scm_sizet olen, scm_sizet len,
-				       char *what));
-extern void scm_done_malloc SCM_P ((long size));
-extern void scm_must_free SCM_P ((char *obj));
-extern void scm_remember SCM_P ((SCM * ptr));
-extern SCM scm_return_first SCM_P ((SCM elt, ...));
-extern SCM scm_permanent_object SCM_P ((SCM obj));
-extern SCM scm_protect_object SCM_P ((SCM obj));
-extern SCM scm_unprotect_object SCM_P ((SCM obj));
-extern int scm_init_storage SCM_P ((scm_sizet init_heap_size));
-extern void scm_init_gc SCM_P ((void));
+extern SCM scm_object_addr (SCM obj);
+extern SCM scm_unhash_name (SCM name);
+extern SCM scm_gc_stats (void);
+extern void scm_gc_start (char *what);
+extern void scm_gc_end (void);
+extern SCM scm_gc (void);
+extern void scm_gc_for_alloc (int ncells, SCM * freelistp);
+extern SCM scm_gc_for_newcell (void);
+extern void scm_igc (char *what);
+extern void scm_gc_mark (SCM p);
+extern void scm_mark_locations (SCM_STACKITEM x[], scm_sizet n);
+extern int scm_cellp (SCM value);
+extern void scm_gc_sweep (void);
+extern char * scm_must_malloc (scm_sizet len, char *what);
+extern char * scm_must_realloc (char *where,
+				scm_sizet olen, scm_sizet len,
+				char *what);
+extern void scm_done_malloc (long size);
+extern void scm_must_free (char *obj);
+extern void scm_remember (SCM * ptr);
+extern SCM scm_return_first (SCM elt, ...);
+extern SCM scm_permanent_object (SCM obj);
+extern SCM scm_protect_object (SCM obj);
+extern SCM scm_unprotect_object (SCM obj);
+extern int scm_init_storage (scm_sizet init_heap_size);
+extern void scm_init_gc (void);
 #endif  /* GCH */
