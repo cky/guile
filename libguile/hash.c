@@ -169,7 +169,7 @@ SCM_DEFINE (scm_hashq, "hashq", 2, 0, 0,
 	    "Thus two calls to hashq where the keys are eq? are not\n"
 	    "guaranteed to deliver the same value if the key object gets\n"
 	    "garbage collected in between.  This can happen, for example\n"
-	    "with symbols:  (hashq 'x n) (gc) (hashq 'x n) may produce two\n" 
+	    "with symbols:  (hashq 'foo n) (gc) (hashq 'foo n) may produce two\n" 
 	    "different values, since 'x will be garbage collected.")
 #define FUNC_NAME s_scm_hashq
 {
@@ -204,7 +204,7 @@ SCM_DEFINE (scm_hashv, "hashv", 2, 0, 0,
 	    "Thus two calls to hashv where the keys are eqv? are not\n"
 	    "guaranteed to deliver the same value if the key object gets\n"
 	    "garbage collected in between.  This can happen, for example\n"
-	    "with symbols:  (hashv 'x n) (gc) (hashv 'x n) may produce two\n" 
+	    "with symbols:  (hashv 'foo n) (gc) (hashv 'foo n) may produce two\n" 
 	    "different values, since 'x will be garbage collected.")
 #define FUNC_NAME s_scm_hashv
 {
