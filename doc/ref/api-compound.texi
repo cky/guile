@@ -872,7 +872,7 @@ Sets the element at position @var{idx} in the simple vector
 @var{vec} to @var{val}.  No type or range checking is done.
 @end deftypefn
 
-@deftypefn {C Function} {const SCM} *scm_vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
+@deftypefn {C Function} {const SCM *} scm_vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
 Acquire a handle for the vector @var{vec} and return a pointer to the
 elements of it.  This pointer can only be used to read the elements of
 @var{vec}.  When @var{vec} is not a vector, an error is signaled.  The
@@ -902,7 +902,7 @@ scm_array_handle_release (&handle);
 
 @end deftypefn
 
-@deftypefn {C Function} SCM *scm_vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
+@deftypefn {C Function} {SCM *} scm_vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
 Like @code{scm_vector_elements} but the pointer can be used to modify
 the vector.
 
@@ -1334,36 +1334,36 @@ at the following odd index.
 Return the number of elements of @var{uvec} as a @code{size_t}.
 @end deftypefn
 
-@deftypefn  {C Function} {const void} *scm_uniform_vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
-@deftypefnx {C Function} {const scm_t_uint8} *scm_u8vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
-@deftypefnx {C Function} {const scm_t_int8} *scm_s8vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
-@deftypefnx {C Function} {const scm_t_uint16} *scm_u16vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
-@deftypefnx {C Function} {const scm_t_int16} *scm_s16vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
-@deftypefnx {C Function} {const scm_t_uint32} *scm_u32vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
-@deftypefnx {C Function} {const scm_t_int32} *scm_s32vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
-@deftypefnx {C Function} {const scm_t_uint64} *scm_u64vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
-@deftypefnx {C Function} {const scm_t_int64} *scm_s64vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
-@deftypefnx {C Function} {const float} *scm_f23vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
-@deftypefnx {C Function} {const double} *scm_f64vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
-@deftypefnx {C Function} {const float} *scm_c32vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
-@deftypefnx {C Function} {const double} *scm_c64vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
+@deftypefn  {C Function} {const void *} scm_uniform_vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
+@deftypefnx {C Function} {const scm_t_uint8 *} scm_u8vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
+@deftypefnx {C Function} {const scm_t_int8 *} scm_s8vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
+@deftypefnx {C Function} {const scm_t_uint16 *} scm_u16vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
+@deftypefnx {C Function} {const scm_t_int16 *} scm_s16vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
+@deftypefnx {C Function} {const scm_t_uint32 *} scm_u32vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
+@deftypefnx {C Function} {const scm_t_int32 *} scm_s32vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
+@deftypefnx {C Function} {const scm_t_uint64 *} scm_u64vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
+@deftypefnx {C Function} {const scm_t_int64 *} scm_s64vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
+@deftypefnx {C Function} {const float *} scm_f23vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
+@deftypefnx {C Function} {const double *} scm_f64vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
+@deftypefnx {C Function} {const float *} scm_c32vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
+@deftypefnx {C Function} {const double *} scm_c64vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
 Like @code{scm_vector_elements} (which see), but returns a pointer to
 the elements of a uniform numeric vector of the indicated kind.
 @end deftypefn
 
-@deftypefn  {C Function} void *scm_uniform_vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
-@deftypefnx {C Function} scm_t_uint8 *scm_u8vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
-@deftypefnx {C Function} scm_t_int8 *scm_s8vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
-@deftypefnx {C Function} scm_t_uint16 *scm_u16vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
-@deftypefnx {C Function} scm_t_int16 *scm_s16vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
-@deftypefnx {C Function} scm_t_uint32 *scm_u32vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
-@deftypefnx {C Function} scm_t_int32 *scm_s32vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
-@deftypefnx {C Function} scm_t_uint64 *scm_u64vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
-@deftypefnx {C Function} scm_t_int64 *scm_s64vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
-@deftypefnx {C Function} float *scm_f23vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
-@deftypefnx {C Function} double *scm_f64vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
-@deftypefnx {C Function} float *scm_c32vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
-@deftypefnx {C Function} double *scm_c64vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
+@deftypefn  {C Function} {void *} scm_uniform_vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
+@deftypefnx {C Function} {scm_t_uint8 *} scm_u8vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
+@deftypefnx {C Function} {scm_t_int8 *} scm_s8vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
+@deftypefnx {C Function} {scm_t_uint16 *} scm_u16vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
+@deftypefnx {C Function} {scm_t_int16 *} scm_s16vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
+@deftypefnx {C Function} {scm_t_uint32 *} scm_u32vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
+@deftypefnx {C Function} {scm_t_int32 *} scm_s32vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
+@deftypefnx {C Function} {scm_t_uint64 *} scm_u64vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
+@deftypefnx {C Function} {scm_t_int64 *} scm_s64vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
+@deftypefnx {C Function} {float *} scm_f23vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
+@deftypefnx {C Function} {double *} scm_f64vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
+@deftypefnx {C Function} {float *} scm_c32vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
+@deftypefnx {C Function} {double *} scm_c64vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
 Like @code{scm_vector_writable_elements} (which see), but returns a
 pointer to the elements of a uniform numeric vector of the indicated kind.
 @end deftypefn
@@ -1538,7 +1538,7 @@ For example,
 @end example
 @end deffn
 
-@deftypefn {C Function} {const scm_t_uint32} *scm_bitvector_elements (SCM vec, scm_t_array_handle *handle, size_t *offp, size_t *lenp, ssize_t *incp)
+@deftypefn {C Function} {const scm_t_uint32 *} scm_bitvector_elements (SCM vec, scm_t_array_handle *handle, size_t *offp, size_t *lenp, ssize_t *incp)
 Like @code{scm_vector_elements} (which see), but for bitvectors.  The
 variable pointed to by @var{offp} is set to the value returned by
 @code{scm_array_handle_bit_elements_offset}.  See
@@ -1546,7 +1546,7 @@ variable pointed to by @var{offp} is set to the value returned by
 and the offset.
 @end deftypefn
 
-@deftypefn {C Function} scm_t_uint32 *scm_bitvector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *offp, size_t *lenp, ssize_t *incp)
+@deftypefn {C Function} {scm_t_uint32 *} scm_bitvector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *offp, size_t *lenp, ssize_t *incp)
 Like @code{scm_bitvector_elements}, but the pointer is good for reading
 and writing.
 @end deftypefn
@@ -2248,7 +2248,7 @@ that this can be negative.
 @end table
 @end deftp
 
-@deftypefn {C Function} {const scm_t_array_dim} *scm_array_handle_dims (scm_t_array_handle *handle)
+@deftypefn {C Function} {const scm_t_array_dim *} scm_array_handle_dims (scm_t_array_handle *handle)
 Return a pointer to a C vector of information about the dimensions of
 the array represented by @var{handle}.  This pointer is valid as long as
 the array remains reserved.  As explained above, the
@@ -2301,24 +2301,24 @@ acceptable.  No range checking is done on @var{pos}.  An error is
 signalled when the array can not store @var{val}.
 @end deftypefn
 
-@deftypefn {C Function} {const SCM} *scm_array_handle_elements (scm_t_array_handle *handle)
+@deftypefn {C Function} {const SCM *} scm_array_handle_elements (scm_t_array_handle *handle)
 Return a pointer to the elements of a ordinary array of general Scheme
 values (i.e., a non-uniform array) for reading.  This pointer is valid
 as long as the array remains reserved.
 @end deftypefn
 
-@deftypefn {C Function} SCM *scm_array_handle_writable_elements (scm_t_array_handle *handle)
+@deftypefn {C Function} {SCM *} scm_array_handle_writable_elements (scm_t_array_handle *handle)
 Like @code{scm_array_handle_elements}, but the pointer is good for
 reading and writing.
 @end deftypefn
 
-@deftypefn {C Function} {const void} *scm_array_handle_uniform_elements (scm_t_array_handle *handle)
+@deftypefn {C Function} {const void *} scm_array_handle_uniform_elements (scm_t_array_handle *handle)
 Return a pointer to the elements of a uniform numeric array for reading.
 This pointer is valid as long as the array remains reserved.  The size
 of each element is given by @code{scm_array_handle_uniform_element_size}.
 @end deftypefn
 
-@deftypefn {C Function} void *scm_array_handle_uniform_writable_elements (scm_t_array_handle *handle)
+@deftypefn {C Function} {void *} scm_array_handle_uniform_writable_elements (scm_t_array_handle *handle)
 Like @code{scm_array_handle_uniform_elements}, but the pointer is good
 reading and writing.
 @end deftypefn
@@ -2328,18 +2328,18 @@ Return the size of one element of the uniform numeric array represented
 by @var{handle}.
 @end deftypefn
 
-@deftypefn  {C Function} {const scm_t_uint8} *scm_array_handle_u8_elements (scm_t_array_handle *handle)
-@deftypefnx {C Function} {const scm_t_int8} *scm_array_handle_s8_elements (scm_t_array_handle *handle)
-@deftypefnx {C Function} {const scm_t_uint16} *scm_array_handle_u16_elements (scm_t_array_handle *handle)
-@deftypefnx {C Function} {const scm_t_int16} *scm_array_handle_s16_elements (scm_t_array_handle *handle)
-@deftypefnx {C Function} {const scm_t_uint32} *scm_array_handle_u32_elements (scm_t_array_handle *handle)
-@deftypefnx {C Function} {const scm_t_int32} *scm_array_handle_s32_elements (scm_t_array_handle *handle)
-@deftypefnx {C Function} {const scm_t_uint64} *scm_array_handle_u64_elements (scm_t_array_handle *handle)
-@deftypefnx {C Function} {const scm_t_int64} *scm_array_handle_s64_elements (scm_t_array_handle *handle)
-@deftypefnx {C Function} {const float} *scm_array_handle_f32_elements (scm_t_array_handle *handle)
-@deftypefnx {C Function} {const double} *scm_array_handle_f64_elements (scm_t_array_handle *handle)
-@deftypefnx {C Function} {const float} *scm_array_handle_c32_elements (scm_t_array_handle *handle)
-@deftypefnx {C Function} {const double} *scm_array_handle_c64_elements (scm_t_array_handle *handle)
+@deftypefn  {C Function} {const scm_t_uint8 *} scm_array_handle_u8_elements (scm_t_array_handle *handle)
+@deftypefnx {C Function} {const scm_t_int8 *} scm_array_handle_s8_elements (scm_t_array_handle *handle)
+@deftypefnx {C Function} {const scm_t_uint16 *} scm_array_handle_u16_elements (scm_t_array_handle *handle)
+@deftypefnx {C Function} {const scm_t_int16 *} scm_array_handle_s16_elements (scm_t_array_handle *handle)
+@deftypefnx {C Function} {const scm_t_uint32 *} scm_array_handle_u32_elements (scm_t_array_handle *handle)
+@deftypefnx {C Function} {const scm_t_int32 *} scm_array_handle_s32_elements (scm_t_array_handle *handle)
+@deftypefnx {C Function} {const scm_t_uint64 *} scm_array_handle_u64_elements (scm_t_array_handle *handle)
+@deftypefnx {C Function} {const scm_t_int64 *} scm_array_handle_s64_elements (scm_t_array_handle *handle)
+@deftypefnx {C Function} {const float *} scm_array_handle_f32_elements (scm_t_array_handle *handle)
+@deftypefnx {C Function} {const double *} scm_array_handle_f64_elements (scm_t_array_handle *handle)
+@deftypefnx {C Function} {const float *} scm_array_handle_c32_elements (scm_t_array_handle *handle)
+@deftypefnx {C Function} {const double *} scm_array_handle_c64_elements (scm_t_array_handle *handle)
 Return a pointer to the elements of a uniform numeric array of the
 indicated kind for reading.  This pointer is valid as long as the array
 remains reserved.
@@ -2349,23 +2349,23 @@ to pairs of floating point numbers.  The even index holds the real part,
 the odd index the imaginary part of the complex number.
 @end deftypefn
 
-@deftypefn {C Function} scm_t_uint8 *scm_array_handle_u8_writable_elements (scm_t_array_handle *handle)
-@deftypefnx {C Function} scm_t_int8 *scm_array_handle_s8_writable_elements (scm_t_array_handle *handle)
-@deftypefnx {C Function} scm_t_uint16 *scm_array_handle_u16_writable_elements (scm_t_array_handle *handle)
-@deftypefnx {C Function} scm_t_int16 *scm_array_handle_s16_writable_elements (scm_t_array_handle *handle)
-@deftypefnx {C Function} scm_t_uint32 *scm_array_handle_u32_writable_elements (scm_t_array_handle *handle)
-@deftypefnx {C Function} scm_t_int32 *scm_array_handle_s32_writable_elements (scm_t_array_handle *handle)
-@deftypefnx {C Function} scm_t_uint64 *scm_array_handle_u64_writable_elements (scm_t_array_handle *handle)
-@deftypefnx {C Function} scm_t_int64 *scm_array_handle_s64_writable_elements (scm_t_array_handle *handle)
-@deftypefnx {C Function} float *scm_array_handle_f32_writable_elements (scm_t_array_handle *handle)
-@deftypefnx {C Function} double *scm_array_handle_f64_writable_elements (scm_t_array_handle *handle)
-@deftypefnx {C Function} float *scm_array_handle_c32_writable_elements (scm_t_array_handle *handle)
-@deftypefnx {C Function} double *scm_array_handle_c64_writable_elements (scm_t_array_handle *handle)
+@deftypefn {C Function} {scm_t_uint8 *} scm_array_handle_u8_writable_elements (scm_t_array_handle *handle)
+@deftypefnx {C Function} {scm_t_int8 *} scm_array_handle_s8_writable_elements (scm_t_array_handle *handle)
+@deftypefnx {C Function} {scm_t_uint16 *} scm_array_handle_u16_writable_elements (scm_t_array_handle *handle)
+@deftypefnx {C Function} {scm_t_int16 *} scm_array_handle_s16_writable_elements (scm_t_array_handle *handle)
+@deftypefnx {C Function} {scm_t_uint32 *} scm_array_handle_u32_writable_elements (scm_t_array_handle *handle)
+@deftypefnx {C Function} {scm_t_int32 *} scm_array_handle_s32_writable_elements (scm_t_array_handle *handle)
+@deftypefnx {C Function} {scm_t_uint64 *} scm_array_handle_u64_writable_elements (scm_t_array_handle *handle)
+@deftypefnx {C Function} {scm_t_int64 *} scm_array_handle_s64_writable_elements (scm_t_array_handle *handle)
+@deftypefnx {C Function} {float *} scm_array_handle_f32_writable_elements (scm_t_array_handle *handle)
+@deftypefnx {C Function} {double *} scm_array_handle_f64_writable_elements (scm_t_array_handle *handle)
+@deftypefnx {C Function} {float *} scm_array_handle_c32_writable_elements (scm_t_array_handle *handle)
+@deftypefnx {C Function} {double *} scm_array_handle_c64_writable_elements (scm_t_array_handle *handle)
 Like @code{scm_array_handle_<kind>_elements}, but the pointer is good
 for reading and writing.
 @end deftypefn
 
-@deftypefn {C Function} {const scm_t_uint32} *scm_array_handle_bit_elements (scm_t_array_handle *handle)
+@deftypefn {C Function} {const scm_t_uint32 *} scm_array_handle_bit_elements (scm_t_array_handle *handle)
 Return a pointer to the words that store the bits of the represented
 array, which must be a bit array.
 
@@ -2409,7 +2409,7 @@ scm_array_handle_release (&handle);
 
 @end deftypefn
 
-@deftypefn {C Function} scm_t_uint32 *scm_array_handle_bit_writable_elements (scm_t_array_handle *handle)
+@deftypefn {C Function} {scm_t_uint32 *} scm_array_handle_bit_writable_elements (scm_t_array_handle *handle)
 Like @code{scm_array_handle_bit_elements} but the pointer is good for
 reading and writing.  You must take care not to modify bits outside of
 the allowed index range of the array, even for contiguous arrays.
