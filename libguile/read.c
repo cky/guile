@@ -58,13 +58,17 @@
 
 
 
+SCM_SYMBOL (scm_keyword_prefix, "prefix");
+
 scm_option scm_read_opts[] = {
   { SCM_OPTION_BOOLEAN, "copy", 0,
     "Copy source code expressions." },
   { SCM_OPTION_BOOLEAN, "positions", 0,
     "Record positions of source code expressions." },
   { SCM_OPTION_BOOLEAN, "case-insensitive", 0,
-    "Convert symbols to lower case."}
+    "Convert symbols to lower case."},
+  { SCM_OPTION_SCM, "keywords", SCM_BOOL_F,
+    "Style of keyword recognition: #f or 'prefix"}
 };
 
 SCM_PROC (s_read_options, "read-options-interface", 0, 1, 0, scm_read_options);
@@ -508,12 +512,15 @@ tryagain_no_flush_ws:
       goto tok;
 
     case ':':
-      j = scm_read_token ('-', tok_buf, port, 0);
-      p = scm_intern (SCM_CHARS (*tok_buf), j);
-      if (SCM_PORT_REPRESENTATION (port) != scm_regular_port)
-	scm_set_symbol_multi_byte_x (SCM_CAR (p), SCM_BOOL_T);
-      return scm_make_keyword_from_dash_symbol (SCM_CAR (p));
-
+      if (SCM_KEYWORD_STYLE == scm_keyword_prefix)
+	{
+	  j = scm_read_token ('-', tok_buf, port, 0);
+	  p = scm_intern (SCM_CHARS (*tok_buf), j);
+	  if (SCM_PORT_REPRESENTATION (port) != scm_regular_port)
+	    scm_set_symbol_multi_byte_x (SCM_CAR (p), SCM_BOOL_T);
+	  return scm_make_keyword_from_dash_symbol (SCM_CAR (p));
+	}
+      /* fallthrough */
     default:
       j = scm_read_token (c, tok_buf, port, 0);
       /* fallthrough */

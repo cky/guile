@@ -1,3 +1,18 @@
+Mon Mar 10 06:28:54 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* read.h (SCM_N_READ_OPTIONS): increase SCM_N_READ_OPTIONS to 4.
+	(SCM_KEYWORD_STYLE): defined.
+
+	* read.c (scm_read_opts): add a keywords option.  This isn't a
+ 	boolean option, in case someone wants to add support for DSSSL
+ 	keywords too.
+	Setup scm_keyword_prefix symbol.
+	(scm_lreadr): Only process keywords if SCM_KEYWORD_STYLE is
+	set to 'prefix.
+*	I've left keyword support disabled by default, since it doesn't
+	seem to break the module system and it gives R4RS standard behaviour.
+	It can be reactivated with (read-set! keywords 'prefix).
+
 Sun Mar  9 14:14:39 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* arbiters.c (scm_make_arbiter): Bugfix: Must SCM_DEFER_INTS
