@@ -79,8 +79,6 @@ gtcltk-lib:
 	which will make possible a clean, direct interface between
 	Guile and Tk, so we're providing this very simple-minded
 	interface until that's ready.
-threads: Glue code for using various threads packages from Guile, including
-	qt (see below).
 
 This distribution also includes `qt', a cooperative threads package
 from Washington University, which Guile can use.  Qt is under a
