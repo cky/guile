@@ -1,3 +1,15 @@
+2005-01-08  Kevin Ryde  <user42@zip.com.au>
+
+	* api-modules.texi (Creating Guile Modules): Expand define-modules
+	#:autoload, clarify that it's a list of symbols.
+
+	* api-modules.texi (Included Guile Modules): Add expect, format, ftw,
+	getop-long, history, popen, pretty-print, q, readline, receive, regex,
+	streams, syncase, srfi-16, srfi-19 and srfi-31.  Remove ice-9 jacal,
+	no such module.
+
+	* posix.texi (File System): In mkstemp!, note 0600 creation mode.
+
 2005-01-06  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* api-compound.texi: Finished(?) the new array API docs.
