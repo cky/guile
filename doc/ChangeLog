@@ -1,3 +1,11 @@
+2001-05-16  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* data-rep.texi, srfi-modules.texi (SRFI-14 Iterating Over
+	Character Sets), scheme-io.texi (Block Reading and Writing),
+	scheme-control.texi (Lazy Catch), scheme-procedures.texi (Internal
+	Macros): Add @bullet to @itemize usages.  (Thanks for Masao
+	Uebayashi for the bug report!)
+
 2001-05-15  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* scripts.texi (Invoking Guile): Added docs for --use-srfi.

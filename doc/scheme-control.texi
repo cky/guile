@@ -604,7 +604,7 @@ with @var{key}, @var{thunk} and @var{handler} arguments specifying the
 exception type, normal case code and handler procedure, but differs in
 two important respects.
 
-@itemize
+@itemize @bullet
 @item
 The handler procedure is executed without unwinding the call stack from
 the context of the @code{throw} expression that caused the handler to be

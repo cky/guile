@@ -1033,7 +1033,7 @@ initializing it with @var{knil}.
 @deffn primitive char-set-unfold p f g seed [base_cs]
 @deffnx primitive char-set-unfold! p f g seed base_cs
 This is a fundamental constructor for character sets.
-@itemize
+@itemize @bullet
 @item @var{g} is used to generate a series of ``seed'' values 
 from the initial seed: @var{seed}, (@var{g} @var{seed}),
 (@var{g}^2 @var{seed}), (@var{g}^3 @var{seed}), @dots{}

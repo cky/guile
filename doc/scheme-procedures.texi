@@ -672,7 +672,7 @@ Given the expression
 with @code{foo} being some flavour of macro, one of the following things
 will happen when the expression is evaluated.
 
-@itemize
+@itemize @bullet
 @item
 When @code{foo} has been defined to be an @dfn{acro}, the procedure used
 in the acro definition of @code{foo} is passed the whole expression and

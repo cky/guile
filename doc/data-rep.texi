@@ -46,7 +46,7 @@
 @c essay @sp 10
 @c essay @comment The title is printed in a large font.
 @c essay @title Data Representation in Guile
-@c essay @subtitle $Id: data-rep.texi,v 1.23 2001-04-26 18:26:28 ossau Exp $
+@c essay @subtitle $Id: data-rep.texi,v 1.24 2001-05-16 19:30:57 ossau Exp $
 @c essay @subtitle For use with Guile @value{VERSION}
 @c essay @author Jim Blandy
 @c essay @author Free Software Foundation
@@ -1235,7 +1235,7 @@ Deliver the cell entry @var{n} of the heap cell referenced by the
 non-immediate Scheme object @var{x} as raw data.  It is illegal, to
 access cell entries that hold Scheme objects by using these macros.  For
 convenience, the following macros are also provided.
-@itemize
+@itemize @bullet
 @item
 SCM_CELL_WORD_0 (@var{x}) @result{} SCM_CELL_WORD (@var{x}, 0)
 @item
@@ -1252,7 +1252,7 @@ Deliver the cell entry @var{n} of the heap cell referenced by the
 non-immediate Scheme object @var{x} as a Scheme object.  It is illegal,
 to access cell entries that do not hold Scheme objects by using these
 macros.  For convenience, the following macros are also provided.
-@itemize
+@itemize @bullet
 @item
 SCM_CELL_OBJECT_0 (@var{x}) @result{} SCM_CELL_OBJECT (@var{x}, 0)
 @item
@@ -1274,7 +1274,7 @@ the @code{SCM_CELL_TYPE} macro.  For the special case of cell entry 0 it
 has to be made sure that @var{w} contains a cell type information which
 does not describe a Scheme object.  For convenience, the following
 macros are also provided.
-@itemize
+@itemize @bullet
 @item
 SCM_SET_CELL_WORD_0 (@var{x}, @var{w}) @result{} SCM_SET_CELL_WORD
 (@var{x}, 0, @var{w})
@@ -1298,7 +1298,7 @@ using the @code{SCM_CELL_TYPE} macro.  For the special case of cell
 entry 0 the writing of a Scheme object into this cell is only allowed
 if the cell forms a Scheme pair.  For convenience, the following macros
 are also provided.
-@itemize
+@itemize @bullet
 @item
 SCM_SET_CELL_OBJECT_0 (@var{x}, @var{o}) @result{} SCM_SET_CELL_OBJECT
 (@var{x}, 0, @var{o})

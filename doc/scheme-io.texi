@@ -415,7 +415,7 @@ Read characters from an fport or file descriptor into a
 string @var{str}.  This procedure is scsh-compatible
 and can efficiently read large strings.  It will:
 
-@itemize
+@itemize @bullet
 @item
 attempt to fill the entire string, unless the @var{start}
 and/or @var{end} arguments are supplied.  i.e., @var{start}
