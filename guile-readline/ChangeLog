@@ -1,3 +1,8 @@
+2000-03-12  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* readline.c (current_input_getc): Don't pass int values through
+	SCM variables.
+
 Thu Mar  9 08:00:26 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* readline.c: scm_validate.h renamed to validate.h.
