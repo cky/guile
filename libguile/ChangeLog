@@ -1,5 +1,10 @@
 2000-03-21  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* vectors.h (SCM_VELTS, SCM_VELTS_AS_STACKITEMS):  Don't cast SCM
+	values to pointers.  Use SCM2PTR instead.
+
+2000-03-21  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* async.c (scm_set_tick_rate, scm_set_switch_rate):  Don't unpack
 	results of SCM_INUM.
 
