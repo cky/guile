@@ -1,3 +1,9 @@
+1998-11-14  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* debug.c (scm_debug_options): Bugfix: Set the value of
+	scm_stack_checking_enabled_p after setting debug options;
+	#include "stackchk.h".  (Thanks to Richard Polton.)
+
 1998-11-13  Radey Shouman  <rshouman@metro2000.com>
 
 	* unif.c (scm_array_contents): removed unnecessary test for 0
