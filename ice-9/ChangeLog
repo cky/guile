@@ -1,5 +1,10 @@
 2002-11-24  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* boot-9.scm (re-export-syntax):  Re-introduced after accidentally
+	removing it in my patch from 2002-11-16.
+
+2002-11-24  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	Thanks to Mikael Djurfeldt for a bugreport which led to the
 	following changes:
 

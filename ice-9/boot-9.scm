@@ -2671,8 +2671,8 @@
 (defmacro export-syntax names
   `(export ,@names))
 
-(defmacro export-syntax names
-  `(export ,@names))
+(defmacro re-export-syntax names
+  `(re-export ,@names))
 
 (define load load-module)
 
