@@ -357,18 +357,26 @@ scm_make_ratio (SCM numerator, SCM denominator)
   */
   if (SCM_INUMP (numerator))
     {
+      long  x = SCM_INUM (numerator);
       if (SCM_EQ_P (numerator, SCM_INUM0))
 	return SCM_INUM0;
       if (SCM_INUMP (denominator))
 	{
-	  long x, y;
-	  x = SCM_INUM (numerator);
+	  long y;
 	  y = SCM_INUM (denominator);
 	  if (x == y)
 	    return SCM_MAKINUM(1);
 	  if ((x % y) == 0)
 	    return SCM_MAKINUM (x / y);
 	}
+      else
+        {
+          /* When x == SCM_MOST_NEGATIVE_FIXNUM we could have the negative
+             of that value for the denominator, as a bignum.  */
+          long  abs_x = (x >= 0 ? x : -x);
+          if (mpz_cmpabs_ui (SCM_I_BIG_MPZ (denominator), abs_x) == 0)
+	    return SCM_MAKINUM(-1);
+        }
     }
   else if (SCM_BIGP (numerator))
     {
