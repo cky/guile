@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996, 1997, 2000, 2001, 2004 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996, 1997, 2000, 2001, 2004, 2005 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -64,12 +64,12 @@
    atomic.  Unfortunately this approach probably makes arbiters no faster
    than mutexes (though still using less memory of course), so some
    CPU-specifics are highly desirable.  */
-#define FETCH_STORE(fet,mem,sto)                \
-  do {                                          \
-    scm_mutex_lock (&scm_i_misc_mutex);         \
-    (fet) = (mem);                              \
-    (mem) = (sto);                              \
-    scm_mutex_unlock (&scm_i_misc_mutex);       \
+#define FETCH_STORE(fet,mem,sto)                        \
+  do {                                                  \
+    scm_i_scm_pthread_mutex_lock (&scm_i_misc_mutex);   \
+    (fet) = (mem);                                      \
+    (mem) = (sto);                                      \
+    scm_i_pthread_mutex_unlock (&scm_i_misc_mutex);     \
   } while (0)
 #endif
 
