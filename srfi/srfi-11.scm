@@ -194,7 +194,7 @@
 
   (define (let-values-helper vars body prev-let-vars)
     (let* ((var-binding (car vars))
-           (new-tmps (map-1-dot (lambda (sym) (gentemp))
+           (new-tmps (map-1-dot (lambda (sym) (gensym))
                                 (car var-binding)))
            (let-vars (map (lambda (sym tmp) (list sym tmp))
                           (undot-list (car var-binding))
