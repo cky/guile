@@ -1,8 +1,13 @@
 1999-08-31  James Blandy  <jimb@mule.m17n.org>
 
+	* Makefile.am (check-local): Set GUILE_LOAD_PATH so the tests can
+	find (ice-9 boot-9) when Guile was compiled in a separate
+	directory from the source.  (Thanks to Rodney Brown.)
+	* Makefile.in: Regenerated.
+
 	* procs.c (scm_make_subr_opt): Fix typo.  Remember to multiply
 	table lengths by the size of a single element when growing the
-	table.
+	table.  (Thanks to Bill Schottstaedt.)
 
 1999-08-30  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
