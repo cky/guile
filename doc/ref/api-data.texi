@@ -4714,7 +4714,6 @@ syntax extension to permit keywords to begin with @code{:} as well as
 * Coding With Keywords::        How to use keywords.
 * Keyword Read Syntax::         Read syntax for keywords.
 * Keyword Procedures::          Procedures for dealing with keywords.
-* Keyword Primitives::          The underlying primitive procedures.
 @end menu
 
 @node Why Use Keywords?
@@ -4841,13 +4840,13 @@ facilities provided by the @code{(ice-9 optargs)} module, see
 @node Keyword Read Syntax
 @subsubsection Keyword Read Syntax
 
-Guile, by default, only recognizes the keyword syntax specified by R5RS.
-A token of the form @code{#:NAME}, where @code{NAME} has the same syntax
-as a Scheme symbol (@pxref{Symbol Read Syntax}), is the external
-representation of the keyword named @code{NAME}.  Keyword objects print
-using this syntax as well, so values containing keyword objects can be
-read back into Guile.  When used in an expression, keywords are
-self-quoting objects.
+Guile, by default, only recognizes a keyword syntax that is compatible
+with R5RS.  A token of the form @code{#:NAME}, where @code{NAME} has the
+same syntax as a Scheme symbol (@pxref{Symbol Read Syntax}), is the
+external representation of the keyword named @code{NAME}.  Keyword
+objects print using this syntax as well, so values containing keyword
+objects can be read back into Guile.  When used in an expression,
+keywords are self-quoting objects.
 
 If the @code{keyword} read option is set to @code{'prefix}, Guile also
 recognizes the alternative read syntax @code{:NAME}.  Otherwise, tokens
@@ -4884,75 +4883,32 @@ ABORT: (unbound-variable)
 @node Keyword Procedures
 @subsubsection Keyword Procedures
 
-The following procedures can be used for converting symbols to keywords
-and back.
-
-@deffn {Scheme Procedure} symbol->keyword sym
-Return a keyword with the same characters as in @var{sym}.
-@end deffn
-
-@deffn {Scheme Procedure} keyword->symbol kw
-Return a symbol with the same characters as in @var{kw}.
-@end deffn
-
-
-@node Keyword Primitives
-@subsubsection Keyword Primitives
-
-Internally, a keyword is implemented as something like a tagged symbol,
-where the tag identifies the keyword as being self-evaluating, and the
-symbol, known as the keyword's @dfn{dash symbol} has the same name as
-the keyword name but prefixed by a single dash.  For example, the
-keyword @code{#:name} has the corresponding dash symbol @code{-name}.
-
-Most keyword objects are constructed automatically by the reader when it
-reads a token beginning with @code{#:}.  However, if you need to
-construct a keyword object programmatically, you can do so by calling
-@code{make-keyword-from-dash-symbol} with the corresponding dash symbol
-(as the reader does).  The dash symbol for a keyword object can be
-retrieved using the @code{keyword-dash-symbol} procedure.
-
-@deffn {Scheme Procedure} make-keyword-from-dash-symbol symbol
-@deffnx {C Function} scm_make_keyword_from_dash_symbol (symbol)
-Make a keyword object from a @var{symbol} that starts with a dash.
-For example,
-
-@example
-(make-keyword-from-dash-symbol '-foo)
-@result{} #:foo
-@end example
-@end deffn
-
 @deffn {Scheme Procedure} keyword? obj
 @deffnx {C Function} scm_keyword_p (obj)
 Return @code{#t} if the argument @var{obj} is a keyword, else
 @code{#f}.
 @end deffn
 
-@deffn {Scheme Procedure} keyword-dash-symbol keyword
-@deffnx {C Function} scm_keyword_dash_symbol (keyword)
-Return the dash symbol for @var{keyword}.
-This is the inverse of @code{make-keyword-from-dash-symbol}.
-For example,
-
-@example
-(keyword-dash-symbol #:foo)
-@result{} -foo
-@end example
+@deffn {Scheme Procedure} keyword->symbol keyword
+@deffnx {C Function} scm_keyword_to_symbol (keyword)
+Return the symbol with the same name as @var{keyword}.
 @end deffn
 
-@deftypefn {C Function} SCM scm_c_make_keyword (char *@var{str})
-Make a keyword object from a string.  For example,
+@deffn {Scheme Procedure} symbol->keyword symbol
+@deffnx {C Function} scm_symbol_to_keyword (symbol)
+Return the keyword with the same name as @var{symbol}.
+@end deffn
 
-@example
-scm_c_make_keyword ("foo")
-@result{} #:foo
-@end example
-@c
-@c  FIXME: What can be said about the string argument?  Currently it's
-@c  not used after creation, but should that be documented?
+@deftypefn {C Function} int scm_is_keyword (SCM obj)
+Equivalent to @code{scm_is_true (scm_keyword_p (@var{obj}))}.
 @end deftypefn
 
+@deftypefn {C Function} SCM scm_from_locale_keyword (const char *str)
+@deftypefnx {C Function} SCM scm_from_locale_keywordn (const char *str, size_t len)
+Equivalent to @code{scm_symbol_to_keyword (scm_from_locale_symbol
+(@var{str}))} and @code{scm_symbol_to_keyword (scm_from_locale_symboln
+(@var{str}, @var{len}))}, respectively.
+@end deftypefn
 
 @node Other Types
 @subsection ``Functionality-Centric'' Data Types
