@@ -184,7 +184,9 @@ scm_casei_streq (s1, s2)
 /* recsexpr is used when recording expressions
  * constructed by read:sharp.
  */
-
+#ifndef DEBUG_EXTENSIONS
+#define recsexpr(obj, line, column, filename) (obj)
+#else
 static SCM recsexpr SCM_P ((SCM obj, int line, int column, SCM filename));
 
 static SCM
@@ -236,7 +238,7 @@ recsexpr (obj, line, column, filename)
     return obj;
   }
 }
-
+#endif
 
 /* Consume an SCSH-style block comment.  Assume that we've already
    read the initial `#!', and eat characters until we get a
