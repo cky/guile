@@ -1,3 +1,8 @@
+1998-10-05  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	* guile-config.in (build-link): Include a -L option in the output
+	from `guile-config link', indicating where libguile was installed.
+
 1998-10-03  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	* guile-config.in: Don't import ice-9 regex; that's not available
