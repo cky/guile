@@ -20,7 +20,6 @@ type system more compatible with Emacs Lisp's.  However, the change
 caused too much trouble for Scheme programmers, and we found another
 way to reconcile Emacs Lisp with Scheme that didn't require this.
 
-
 * You can now use Guile as a shell script interpreter.
 
 To paraphrase the SCSH manual:
@@ -35,6 +34,9 @@ To paraphrase the SCSH manual:
     filename as its first argument, with the original arguments
     following.  Consult the Unix man page for the `exec' system call
     for more information.
+
+Now you can use Guile as an interpreter, using a mechanism which is a
+compatible subset of that provided by SCSH.
 
 Guile now recognizes a '-s' command line switch, whose argument is the
 name of a file of Scheme code to load.  It also treats the two
@@ -69,7 +71,6 @@ we would like to be backward-compatible with any existing Guile
 scripts once we do.
 
 Note that some very old Unix systems don't support the `#!' syntax.
-
 
 * You can now run Guile without installing it.
 
@@ -125,9 +126,29 @@ any reason, it throws an error.
 The arguments CASE-INSENSITIVE-P and SHARP are interpreted as by the
 %try-load function.
 
-
 
-This is the beginning of recorded history.
+Older changes:
+
+* Guile no longer includes sophisticated Tcl/Tk support.
+
+The old Tcl/Tk support was unsatisfying to us, because it required the
+user to link against the Tcl library, as well as Tk and Guile.  The
+interface was also un-lispy, in that it preserved Tcl/Tk's practice of
+referring to widgets by names, rather than exporting widgets to Scheme
+code as a special datatype.
+
+In the Usenix Tk Developer's Workshop held in July 1996, the Tcl/Tk
+maintainers described some very interesting changes in progress to the
+Tcl/Tk internals, which would facilitate clean interfaces between lone
+Tk and other interpreters --- even for garbage-collected languages
+like Scheme.  They expected the new Tk to be publicly available in the
+fall of 1996.
+
+Since it seems that Guile might soon have a new, cleaner interface to
+lone Tk, and that the old Guile/Tk glue code would probably need to be
+completely rewritten, we (Jim Blandy and Richard Stallman) have
+decided not to support the old code.  We'll spend the time instead on
+a good interface to the newer Tk, as soon as it is available.
 
 
 Copyright information:
