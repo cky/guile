@@ -55,6 +55,7 @@
 #ifdef DEBUG_EXTENSIONS
 #include "debug.h"
 #endif
+#include "dynl.h"
 #include "dynwind.h"
 #include "eq.h"
 #include "error.h"
@@ -305,6 +306,12 @@ scm_boot_guile (argc, argv, main_func, closure)
   return scm_boot_guile_1 (&dummy, argc, argv, main_func, closure);
 }
 
+/* Record here whether SCM_BOOT_GUILE_1 has already been called.  This
+   variable is now here and not inside SCM_BOOT_GUILE_1 so that one
+   can tweak it. This is necessary for unexec to work. (Hey, "1-live"
+   is the name of a local radiostation...) */
+
+int scm_boot_guile_1_live = 0;
 
 static void
 scm_boot_guile_1 (base, argc, argv, main_func, closure)
@@ -315,14 +322,14 @@ scm_boot_guile_1 (base, argc, argv, main_func, closure)
      void *closure;
 {
   static int initialized = 0;
-  static int live = 0;
+  /* static int live = 0; */
   setjmp_type setjmp_val;
 
   /* This function is not re-entrant. */
-  if (live)
+  if (scm_boot_guile_1_live)
     abort ();
 
-  live = 1;
+  scm_boot_guile_1_live = 1;
 
   scm_ints_disabled = 1;
   scm_block_gc = 1;
@@ -413,6 +420,7 @@ scm_boot_guile_1 (base, argc, argv, main_func, closure)
       scm_init_simpos ();
       scm_init_load_path ();
       scm_init_standard_ports ();
+      scm_init_dynamic_linking ();
       initialized = 1;
     }
 
