@@ -1,3 +1,7 @@
+2004-12-22  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* api-compound.texi (Arrays): Reorganized and 'modernized'.
+
 2004-12-20  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* expect.texi (Expect): Removed backslash escapes of regexp
