@@ -49,6 +49,8 @@
 
 #include "libguile/__scm.h"
 
+#include "libguile/hooks.h"
+
 
 
 typedef struct scm_cell
@@ -264,6 +266,14 @@ extern unsigned long scm_gc_ports_collected;
 extern unsigned long scm_cells_allocated;
 extern long scm_mallocated;
 extern unsigned long scm_mtrigger;
+
+extern SCM scm_after_gc_hook;
+
+extern scm_c_hook_t scm_before_gc_c_hook;
+extern scm_c_hook_t scm_before_mark_c_hook;
+extern scm_c_hook_t scm_before_sweep_c_hook;
+extern scm_c_hook_t scm_after_sweep_c_hook;
+extern scm_c_hook_t scm_after_gc_c_hook;
 
 #if defined (GUILE_DEBUG) || defined (GUILE_DEBUG_FREELIST)
 extern SCM scm_map_free_list (void);
