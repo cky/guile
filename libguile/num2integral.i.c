@@ -109,7 +109,7 @@ INTEGRAL2NUM (ITYPE n)
 #endif
 #else
 #ifdef NEED_CHECK
-  if (SCM_FIXABLE (n))
+  if (SCM_POSFIXABLE (n))
 #endif
 #endif
     return SCM_MAKINUM ((scm_t_signed_bits) n);
