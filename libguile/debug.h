@@ -103,7 +103,7 @@ extern int scm_check_entry_p, scm_check_apply_p, scm_check_exit_p;
   if (SCM_ENTER_FRAME_P || SCM_BREAKPOINTS_P) CHECK_ENTRY = 1;\
   if (SCM_APPLY_FRAME_P || SCM_TRACE_P) CHECK_APPLY = 1;\
   if (SCM_EXIT_FRAME_P || SCM_TRACE_P) CHECK_EXIT = 1;\
-  scm_debug_mode = SCM_DEVAL_P || SCM_BACKTRACE_P || CHECK_ENTRY || CHECK_APPLY || CHECK_EXIT;\
+  scm_debug_mode = SCM_DEVAL_P || CHECK_ENTRY || CHECK_APPLY || CHECK_EXIT;\
   scm_ceval_ptr = scm_debug_mode ? scm_deval : scm_ceval;\
 }
 
