@@ -64,6 +64,6 @@ extern SCM scm_sethost SCM_P ((SCM arg));
 extern SCM scm_setnet SCM_P ((SCM arg));
 extern SCM scm_setproto SCM_P ((SCM arg));
 extern SCM scm_setserv SCM_P ((SCM arg));
-extern void scm_init_netdb SCM_P ((void));
+extern void scm_init_net_db SCM_P ((void));
 
 #endif  /* NETDBH */
