@@ -1,3 +1,15 @@
+2003-11-21  Kevin Ryde  <user42@zip.com.au>
+
+	* numbers.c (scm_abs): Allocate a new real only for negatives, as done
+	for bignums.
+
+	* numbers.c (scm_bit_extract): Use mpz functions, rearrange inum case
+	to share some shifting.
+
+	* numbers.c (scm_integer_expt): Don't mpz_init after scm_i_clonebig or
+	scm_i_mkbig, since they do so already.  Don't mpz_clear a bignum SCM,
+	since gc does this.
+
 2003-11-19  Marius Vollmer  <mvo@zagadka.de>
 
 	* numbers.c (scm_make_ratio): Rewritten to have a simpler
