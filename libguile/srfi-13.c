@@ -106,7 +106,7 @@ SCM_DEFINE (scm_string_any, "string-any", 2, 2, 0,
     }
   else if (SCM_CHARSETP (char_pred))
     {
-      int i;
+      size_t i;
       for (i = cstart; i < cend; i++)
         if (SCM_CHARSET_GET (char_pred, cstr[i]))
 	  {
@@ -163,7 +163,7 @@ SCM_DEFINE (scm_string_every, "string-every", 2, 2, 0,
   if (SCM_CHARP (char_pred))
     {
       char cchr = SCM_CHAR (char_pred);
-      int i;
+      size_t i;
       for (i = cstart; i < cend; i++)
         if (cstr[i] != cchr)
 	  {
@@ -173,7 +173,7 @@ SCM_DEFINE (scm_string_every, "string-every", 2, 2, 0,
     }
   else if (SCM_CHARSETP (char_pred))
     {
-      int i;
+      size_t i;
       for (i = cstart; i < cend; i++)
         if (!SCM_CHARSET_GET (char_pred, cstr[i]))
 	  {
@@ -225,7 +225,7 @@ SCM_DEFINE (scm_string_tabulate, "string-tabulate", 2, 0, 0,
       /* The RES string remains untouched since nobody knows about it
 	 yet. No need to refetch P.
       */
-      ch = scm_call_1 (proc, scm_from_int (i));
+      ch = scm_call_1 (proc, scm_from_size_t (i));
       if (!SCM_CHARP (ch))
 	SCM_MISC_ERROR ("procedure ~S returned non-char", scm_list_1 (proc));
       *p++ = SCM_CHAR (ch);
@@ -2326,7 +2326,7 @@ SCM_DEFINE (scm_string_contains_ci, "string-contains-ci", 2, 4, 0,
 /* Helper function for the string uppercase conversion functions.
  * No argument checking is performed.  */
 static SCM
-string_upcase_x (SCM v, int start, int end)
+string_upcase_x (SCM v, size_t start, size_t end)
 {
   size_t k;
   char *dst;
@@ -2392,7 +2392,7 @@ scm_string_upcase (SCM str)
 /* Helper function for the string lowercase conversion functions.
  * No argument checking is performed.  */
 static SCM
-string_downcase_x (SCM v, int start, int end)
+string_downcase_x (SCM v, size_t start, size_t end)
 {
   size_t k;
   char *dst;
@@ -2460,7 +2460,7 @@ scm_string_downcase (SCM str)
 /* Helper function for the string capitalization functions.
  * No argument checking is performed.  */
 static SCM
-string_titlecase_x (SCM str, int start, int end)
+string_titlecase_x (SCM str, size_t start, size_t end)
 {
   unsigned char *sz;
   size_t i;
@@ -2555,18 +2555,21 @@ SCM_DEFINE (scm_string_capitalize, "string-capitalize", 1, 0, 0,
 /* Reverse the portion of @var{str} between str[cstart] (including)
    and str[cend] excluding.  */
 static void
-string_reverse_x (char * str, int cstart, int cend)
+string_reverse_x (char * str, size_t cstart, size_t cend)
 {
   char tmp;
 
-  cend--;
-  while (cstart < cend)
+  if (cend > 0)
     {
-      tmp = str[cstart];
-      str[cstart] = str[cend];
-      str[cend] = tmp;
-      cstart++;
       cend--;
+      while (cstart < cend)
+	{
+	  tmp = str[cstart];
+	  str[cstart] = str[cend];
+	  str[cend] = tmp;
+	  cstart++;
+	  cend--;
+	}
     }
 }
 
@@ -3012,18 +3015,19 @@ SCM_DEFINE (scm_xsubstring, "xsubstring", 2, 3, 0,
 {
   const char *cs;
   char *p;
-  size_t cstart, cend, cfrom, cto;
+  size_t cstart, cend;
+  int cfrom, cto;
   SCM result;
 
   MY_VALIDATE_SUBSTRING_SPEC (1, s,
 			      4, start, cstart,
 			      5, end, cend);
 
-  cfrom = scm_to_size_t (from);
+  cfrom = scm_to_int (from);
   if (SCM_UNBNDP (to))
     cto = cfrom + (cend - cstart);
   else
-    cto = scm_to_size_t (to);
+    cto = scm_to_int (to);
   if (cstart == cend && cfrom != cto)
     SCM_MISC_ERROR ("start and end indices must not be equal", SCM_EOL);
 
@@ -3032,7 +3036,7 @@ SCM_DEFINE (scm_xsubstring, "xsubstring", 2, 3, 0,
   cs = scm_i_string_chars (s);
   while (cfrom < cto)
     {
-      int t = ((cfrom < 0) ? -cfrom : cfrom) % (cend - cstart);
+      size_t t = ((cfrom < 0) ? -cfrom : cfrom) % (cend - cstart);
       if (cfrom < 0)
 	*p = cs[(cend - cstart) - t];
       else
@@ -3058,7 +3062,8 @@ SCM_DEFINE (scm_string_xcopy_x, "string-xcopy!", 4, 3, 0,
 {
   char *p;
   const char *cs;
-  size_t ctstart, csfrom, csto, cstart, cend;
+  size_t ctstart, cstart, cend;
+  int csfrom, csto;
   SCM dummy = SCM_UNDEFINED;
   size_t cdummy;
 
@@ -3068,11 +3073,11 @@ SCM_DEFINE (scm_string_xcopy_x, "string-xcopy!", 4, 3, 0,
   MY_VALIDATE_SUBSTRING_SPEC (3, s,
 			      6, start, cstart,
 			      7, end, cend);
-  csfrom = scm_to_size_t (sfrom);
+  csfrom = scm_to_int (sfrom);
   if (SCM_UNBNDP (sto))
     csto = csfrom + (cend - cstart);
   else
-    csto = scm_to_size_t (sto); 
+    csto = scm_to_int (sto); 
   if (cstart == cend && csfrom != csto)
     SCM_MISC_ERROR ("start and end indices must not be equal", SCM_EOL);
   SCM_ASSERT_RANGE (1, tstart,
@@ -3082,7 +3087,7 @@ SCM_DEFINE (scm_string_xcopy_x, "string-xcopy!", 4, 3, 0,
   cs = scm_i_string_chars (s);
   while (csfrom < csto)
     {
-      int t = ((csfrom < 0) ? -csfrom : csfrom) % (cend - cstart);
+      size_t t = ((csfrom < 0) ? -csfrom : csfrom) % (cend - cstart);
       if (csfrom < 0)
 	*p = cs[(cend - cstart) - t];
       else
@@ -3155,7 +3160,7 @@ SCM_DEFINE (scm_string_tokenize, "string-tokenize", 1, 3, 0,
 
   if (SCM_CHARSETP (token_set))
     {
-      int idx;
+      size_t idx;
 
       while (cstart < cend)
 	{
