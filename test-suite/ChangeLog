@@ -1,5 +1,9 @@
 2001-10-13  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* tests/syntax.test:  Added test cases for 'case' syntax.
+
+2001-10-13  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* tests/numbers.test:  Added a test case that checks if valid
 	number strings are transformed correctly by string->number.
 

@@ -356,6 +356,67 @@
       exception:bad-formals
       (cond (1 => (lambda (x 1) 2))))))
 
+(with-test-prefix "case"
+
+  (with-test-prefix "bad or missing clauses"
+
+    (pass-if-exception "(case)"
+      exception:bad/missing-clauses
+      (case))
+
+    ;; FIXME:  Wouldn't one rather expect a 'bad or missing clauses' error?
+    (pass-if-exception "(case . \"foo\")"
+      exception:wrong-type-arg
+      (case . "foo"))
+
+    (pass-if-exception "(case 1)"
+      exception:bad/missing-clauses
+      (case 1))
+
+    ;; FIXME:  Wouldn't one rather expect a 'bad or missing clauses' error?
+    (pass-if-exception "(case 1 . \"foo\")"
+      exception:wrong-type-arg
+      (case 1 . "foo"))
+
+    (pass-if-exception "(case 1 \"foo\")"
+      exception:bad/missing-clauses
+      (case 1 "foo"))
+
+    (pass-if-exception "(case 1 ())"
+      exception:bad/missing-clauses
+      (case 1 ()))
+
+    (pass-if-exception "(case 1 (\"foo\"))"
+      exception:bad/missing-clauses
+      (case 1 ("foo")))
+
+    (pass-if-exception "(case 1 (\"foo\" \"bar\"))"
+      exception:bad/missing-clauses
+      (case 1 ("foo" "bar")))
+
+    ;; According to R5RS, the following one is syntactically correct.
+    ;; (pass-if-exception "(case 1 (() \"bar\"))"
+    ;;   exception:bad/missing-clauses
+    ;;   (case 1 (() "bar")))
+
+    ;; FIXME:  Wouldn't one rather expect a 'bad or missing clauses' error?
+    (pass-if-exception "(case 1 ((2) \"bar\") . \"foo\")"
+      exception:wrong-type-arg
+      (case 1 ((2) "bar") . "foo"))
+
+    (pass-if-exception "(case 1 (else #f) ((1) #t))"
+      exception:bad/missing-clauses
+      (case 1 ((2) "bar") (else)))
+
+    ;; FIXME:  Wouldn't one rather expect a 'bad or missing clauses' error?
+    (pass-if-exception "(case 1 (else #f) . \"foo\")"
+      exception:wrong-type-arg
+      (case 1 (else #f) . "foo"))
+
+    (pass-if-exception "(case 1 (else #f) ((1) #t))"
+      exception:bad/missing-clauses
+      (case 1 (else #f) ((1) #t)))))
+
 (with-test-prefix "define"
 
   (with-test-prefix "missing or extra expressions"
