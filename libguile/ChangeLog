@@ -1,3 +1,43 @@
+2004-06-27  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
+
+	* backtrace.c (display_expression, display_frame): Call
+	scm_i_unmemoize_expr for unmemoizing a memoized object holding a
+	single memoized expression.
+
+	* debug.c (memoized_print): Don't try to unmemoize the memoized
+	object, since we can't know whether it holds a single expression
+	or a body.
+
+	(scm_mem_to_proc): Removed check for lambda expression, since it
+	was moot anyway.  Whoever uses these functions for debugging
+	purposes should know what they do: Creating invalid memoized code
+	will cause crashes, independent of whether this check is present
+	or not.
+
+	(scm_proc_to_mem): Take the closure's code as it is and don't
+	append a SCM_IM_LAMBDA isym.  To allow easier debugging, the
+	memoized code should not be modified.
+
+	* debug.[ch] (scm_unmemoize, scm_i_unmemoize_expr): Removed
+	scm_unmemoize from public use, but made scm_i_unmemoize_expr
+	available as a guile internal function instead.  However,
+	scm_i_unmemoize_expr will only work on memoized objects that hold
+	a single memoized expression.  It won't work with bodies.
+
+	* debug.c (scm_procedure_source), macros.c (macro_print), print.c
+	(scm_iprin1): Call scm_i_unmemocopy_body for unmemoizing a body,
+	i. e. a list of expressions.
+
+	* eval.c (unmemoize_exprs): Drop internal body markers from the
+	output during unmemoization.
+
+	* eval.[ch] (scm_unmemocopy, scm_i_unmemocopy_expr,
+	scm_i_unmemocopy_body): Removed scm_unmemocopy from public use,
+	but made scm_i_unmemocopy_expr and scm_i_unmemocopy_body available
+	as guile internal functions instead.  scm_i_unmemoize_expr will
+	only work on a single memoized expression, while
+	scm_i_unmemocopy_body will only work on bodies.
+
 2004-06-21  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
 
 	* eval.c (unmemoize_exprs): Handle semi-memoized code.

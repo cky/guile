@@ -670,6 +670,20 @@ On platforms that have them, these types are identical to intmax_t and
 uintmax_t, respectively.  On other platforms, they are identical to
 the largest integer types that Guile knows about.
 
+** scm_unmemocopy and scm_unmemoize have been removed from public use.
+
+For guile internal use, the functions scm_i_unmemocopy_expr,
+scm_i_unmemocopy_body and scm_i_unmemoize_expr are provided to replace
+scm_unmemocopy and scm_unmemoize.  User code should not have used
+scm_unmemocopy and scm_unmemoize and thus should not use the replacement
+functions also.
+
+Background: Formerly, scm_unmemocopy and scm_unmemoize would have allowed to
+unmemoize a single expression as well as a sequence of body forms.  This would
+have lead to problems when unmemoizing code of the new memoizer.  Now the two
+cases have to be distinguished.
+
+
 ** Many public #defines with generic names have been made private.
 
 #defines with generic names like HAVE_FOO or SIZEOF_FOO have been made
@@ -812,13 +826,6 @@ respectively.
 Guile always defines
 
   scm_t_timespec
-
-** The function scm_unmemocopy now expects a sequence of body forms
-
-Formerly, scm_unmemocopy would have accepted both, a single expression and a
-sequence of body forms for unmemoization.  Now, it only accepts only a
-sequence of body forms, which was the normal way of using it.  Passing it a
-single expression won't work any more.
 
 ** The macro SCM_IFLAGP now only returns true for flags
 

@@ -188,14 +188,14 @@ display_expression (SCM frame, SCM pname, SCM source, SCM port)
 	{
 	  scm_puts (" in expression ", port);
 	  pstate->writingp = 1;
-	  scm_iprin1 (scm_unmemoize (source), port, pstate);
+	  scm_iprin1 (scm_i_unmemoize_expr (source), port, pstate);
 	}
     }
   else if (SCM_MEMOIZEDP (source))
     {
       scm_puts ("In expression ", port);
       pstate->writingp = 1;
-      scm_iprin1 (scm_unmemoize (source), port, pstate);
+      scm_iprin1 (scm_i_unmemoize_expr (source), port, pstate);
     }
   scm_puts (":\n", port);
   scm_free_print_state (print_state);
@@ -602,7 +602,7 @@ display_frame (SCM frame, int nfield, int indentation, SCM sport, SCM port, scm_
 		  ? scm_source_property (source, scm_sym_copy)
 		  : SCM_BOOL_F);
       SCM umcopy = (SCM_MEMOIZEDP (source)
-		    ? scm_unmemoize (source)
+		    ? scm_i_unmemoize_expr (source)
 		    : SCM_BOOL_F);
       display_frame_expr ("(",
 			  SCM_CONSP (copy) ? copy : umcopy,

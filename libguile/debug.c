@@ -123,11 +123,7 @@ memoized_print (SCM obj, SCM port, scm_print_state *pstate)
   int writingp = SCM_WRITINGP (pstate);
   scm_puts ("#<memoized ", port);
   SCM_SET_WRITINGP (pstate, 1);
-#ifdef GUILE_DEBUG
   scm_iprin1 (SCM_MEMOIZED_EXP (obj), port, pstate);
-#else
-  scm_iprin1 (scm_unmemoize (obj), port, pstate);
-#endif
   SCM_SET_WRITINGP (pstate, writingp);
   scm_putc ('>', port);
   return 1;
@@ -246,7 +242,7 @@ SCM_DEFINE (scm_memcons, "memcons", 2, 1, 0,
 
 SCM_DEFINE (scm_mem_to_proc, "mem->proc", 1, 0, 0, 
             (SCM obj),
-	    "Convert a memoized object (which must be a lambda expression)\n"
+	    "Convert a memoized object (which must represent a body)\n"
 	    "to a procedure.")
 #define FUNC_NAME s_scm_mem_to_proc
 {
@@ -254,9 +250,7 @@ SCM_DEFINE (scm_mem_to_proc, "mem->proc", 1, 0, 0,
   SCM_VALIDATE_MEMOIZED (1, obj);
   env = SCM_MEMOIZED_ENV (obj);
   obj = SCM_MEMOIZED_EXP (obj);
-  if (!SCM_CONSP (obj) || !SCM_EQ_P (SCM_CAR (obj), SCM_IM_LAMBDA))
-    SCM_MISC_ERROR ("expected lambda expression", scm_list_1 (obj));
-  return scm_closure (SCM_CDR (obj), env);
+  return scm_closure (obj, env);
 }
 #undef FUNC_NAME
 
@@ -266,20 +260,19 @@ SCM_DEFINE (scm_proc_to_mem, "proc->mem", 1, 0, 0,
 #define FUNC_NAME s_scm_proc_to_mem
 {
   SCM_VALIDATE_CLOSURE (1, obj);
-  return scm_make_memoized (scm_cons (SCM_IM_LAMBDA, SCM_CODE (obj)),
-			    SCM_ENV (obj));
+  return scm_make_memoized (SCM_CODE (obj), SCM_ENV (obj));
 }
 #undef FUNC_NAME
 
 #endif /* GUILE_DEBUG */
 
-SCM_DEFINE (scm_unmemoize, "unmemoize", 1, 0, 0, 
+SCM_DEFINE (scm_i_unmemoize_expr, "unmemoize-expr", 1, 0, 0, 
             (SCM m),
 	    "Unmemoize the memoized expression @var{m},")
-#define FUNC_NAME s_scm_unmemoize
+#define FUNC_NAME s_scm_i_unmemoize_expr
 {
   SCM_VALIDATE_MEMOIZED (1, m);
-  return scm_unmemocopy (SCM_MEMOIZED_EXP (m), SCM_MEMOIZED_ENV (m));
+  return scm_i_unmemocopy_expr (SCM_MEMOIZED_EXP (m), SCM_MEMOIZED_ENV (m));
 }
 #undef FUNC_NAME
 
@@ -342,7 +335,7 @@ SCM_DEFINE (scm_procedure_source, "procedure-source", 1, 0, 0,
           const SCM env = SCM_EXTEND_ENV (formals, SCM_EOL, SCM_ENV (proc));
           return scm_cons2 (scm_sym_lambda,
                             scm_i_finite_list_copy (formals),
-                            scm_unmemocopy (body, env));
+                            scm_i_unmemocopy_body (body, env));
         }
     }
   case scm_tcs_struct:

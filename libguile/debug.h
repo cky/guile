@@ -161,8 +161,9 @@ SCM_API SCM scm_memoized_p (SCM obj);
 SCM_API SCM scm_with_traps (SCM thunk);
 SCM_API SCM scm_evaluator_traps (SCM setting);
 SCM_API SCM scm_debug_options (SCM setting);
-SCM_API SCM scm_unmemoize (SCM memoized);
 SCM_API SCM scm_make_debugobj (scm_t_debug_frame *debug);
+
+SCM_API SCM scm_i_unmemoize_expr (SCM memoized);
 SCM_API void scm_init_debug (void);
 
 #ifdef GUILE_DEBUG

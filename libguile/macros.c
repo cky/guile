@@ -66,7 +66,7 @@ macro_print (SCM macro, SCM port, scm_print_state *pstate)
 	  SCM formals = SCM_CLOSURE_FORMALS (code);
 	  SCM env = SCM_ENV (code);
 	  SCM xenv = SCM_EXTEND_ENV (formals, SCM_EOL, env);
-	  SCM src = scm_unmemocopy (SCM_CODE (code), xenv);
+	  SCM src = scm_i_unmemocopy_body (SCM_CODE (code), xenv);
 	  scm_putc (' ', port);
 	  scm_iprin1 (src, port, pstate);
 	}

@@ -455,7 +455,7 @@ scm_iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 		{
 		  SCM env = SCM_ENV (exp);
 		  SCM xenv = SCM_EXTEND_ENV (formals, SCM_EOL, env);
-		  SCM src = scm_unmemocopy (SCM_CODE (exp), xenv);
+		  SCM src = scm_i_unmemocopy_body (SCM_CODE (exp), xenv);
 		  ENTER_NESTED_DATA (pstate, exp, circref);
 		  scm_iprin1 (src, port, pstate);
 		  EXIT_NESTED_DATA (pstate);

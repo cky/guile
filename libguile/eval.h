@@ -128,7 +128,6 @@ SCM_API SCM scm_sym_args;
 
 SCM_API SCM * scm_ilookup (SCM iloc, SCM env);
 SCM_API SCM * scm_lookupcar (SCM vloc, SCM genv, int check);
-SCM_API SCM scm_unmemocopy (SCM form, SCM env);
 SCM_API SCM scm_eval_car (SCM pair, SCM env);
 SCM_API SCM scm_eval_body (SCM code, SCM env);
 SCM_API SCM scm_eval_args (SCM i, SCM env, SCM proc);
@@ -197,6 +196,8 @@ SCM_API SCM scm_eval_x (SCM exp, SCM module);
 
 SCM_API void scm_i_print_iloc (SCM /*iloc*/, SCM /*port*/);
 SCM_API void scm_i_print_isym (SCM /*isym*/, SCM /*port*/);
+SCM_API SCM scm_i_unmemocopy_expr (SCM expr, SCM env);
+SCM_API SCM scm_i_unmemocopy_body (SCM forms, SCM env);
 SCM_API void scm_init_eval (void);
 
 

@@ -580,18 +580,25 @@ static SCM
 unmemoize_exprs (const SCM exprs, const SCM env)
 {
   SCM r_result = SCM_EOL;
-  SCM expr_idx;
+  SCM expr_idx = exprs;
   SCM um_expr;
 
   /* Note that due to the current lazy memoizer we may find partially memoized
-   * code during execution.  In such code we have to expect improper lists of
+   * code during execution.  In such code, lists of expressions that stem from
+   * a body form may start with an ISYM if the body itself has not yet been
+   * memoized.  This isym is just an internal marker to indicate that the body
+   * still needs to be memoized.  It is dropped during unmemoization.  */
+  if (SCM_CONSP (expr_idx) && SCM_ISYMP (SCM_CAR (expr_idx)))
+    expr_idx = SCM_CDR (expr_idx);
+
+  /* Moreover, in partially memoized code we have to expect improper lists of
    * expressions: On the one hand, for such code syntax checks have not yet
    * fully been performed, on the other hand, there may be even legal code
    * like '(a . b) appear as an improper list of expressions as long as the
    * quote expression is still in its unmemoized form.  For this reason, the
    * following code handles improper lists of expressions until memoization
    * and execution have been completely separated.  */
-  for (expr_idx = exprs; SCM_CONSP (expr_idx); expr_idx = SCM_CDR (expr_idx))
+  for (; SCM_CONSP (expr_idx); expr_idx = SCM_CDR (expr_idx))
     {
       const SCM expr = SCM_CAR (expr_idx);
       um_expr = unmemoize_expression (expr, env);
@@ -2383,10 +2390,11 @@ unmemoize_builtin_macro (const SCM expr, const SCM env)
 }
 
 
-/* scm_unmemocopy takes a memoized body together with its environment and
- * rewrites it to its original form.  Thus, it is the inversion of the rewrite
- * rules above.  The procedure is not optimized for speed.  It's used in
- * scm_unmemoize, scm_procedure_source, macro_print and scm_iprin1.
+/* scm_i_unmemocopy_expr and scm_i_unmemocopy_body take a memoized expression
+ * respectively a memoized body together with its environment and rewrite it
+ * to its original form.  Thus, these functions are the inversion of the
+ * rewrite rules above.  The procedure is not optimized for speed.  It's used
+ * in scm_i_unmemoize_expr, scm_procedure_source, macro_print and scm_iprin1.
  *
  * Unmemoizing is not a reliable process.  You cannot in general expect to get
  * the original source back.
@@ -2395,7 +2403,19 @@ unmemoize_builtin_macro (const SCM expr, const SCM env)
  * to change.  */
 
 SCM
-scm_unmemocopy (SCM forms, SCM env)
+scm_i_unmemocopy_expr (SCM expr, SCM env)
+{
+  const SCM source_properties = scm_whash_lookup (scm_source_whash, expr);
+  const SCM um_expr = unmemoize_expression (expr, env);
+
+  if (!SCM_FALSEP (source_properties))
+    scm_whash_insert (scm_source_whash, um_expr, source_properties);
+
+  return um_expr;
+}
+
+SCM
+scm_i_unmemocopy_body (SCM forms, SCM env)
 {
   const SCM source_properties = scm_whash_lookup (scm_source_whash, forms);
   const SCM um_forms = unmemoize_exprs (forms, env);
