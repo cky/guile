@@ -1,3 +1,8 @@
+2004-05-29  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
+
+	* tests/syntax.test: Added various tests to check that
+	unmemoization works correctly.
+
 2004-05-30  Kevin Ryde  <user42@zip.com.au>
 
 	* lib.scm (exception:numerical-overflow): New define.

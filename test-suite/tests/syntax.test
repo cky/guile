@@ -1,6 +1,6 @@
 ;;;; syntax.test --- test suite for Guile's syntactic forms    -*- scheme -*-
 ;;;;
-;;;; Copyright (C) 2001, 2003 Free Software Foundation, Inc.
+;;;; Copyright (C) 2001,2003,2004 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -115,12 +115,46 @@
     (begin)
     #t)
 
+  (with-test-prefix "unmemoization"
+
+    (pass-if "normal begin"
+      (let ((foo (lambda () (if (= 1 1) (begin (+ 1) (+ 2))))))
+        (foo) ; make sure, memoization has been performed
+        (equal? (procedure-source foo)
+                '(lambda () (if (= 1 1) (begin (+ 1) (+ 2)))))))
+
+    (pass-if "redundant nested begin"
+      (let ((foo (lambda () (if (= 1 1) (begin (+ 1) (begin (+ 2) (+ 3)))))))
+        (foo) ; make sure, memoization has been performed
+        (equal? (procedure-source foo)
+                '(lambda () (if (= 1 1) (begin (+ 1) (begin (+ 2) (+ 3))))))))
+
+    (pass-if "redundant begin at start of body"
+      (let ((foo (lambda () (begin (+ 1) (+ 2))))) ; should be optimized
+        (foo) ; make sure, memoization has been performed
+        (equal? (procedure-source foo)
+                '(lambda () (begin (+ 1) (+ 2)))))))
+
   (expect-fail-exception "illegal (begin)"
     exception:bad-body
     (if #t (begin))
     #t))
 
 (with-test-prefix "lambda"
+
+  (with-test-prefix "unmemoization"
+
+    (pass-if "normal lambda"
+      (let ((foo (lambda () (lambda (x y) (+ x y)))))
+        ((foo) 1 2) ; make sure, memoization has been performed
+        (equal? (procedure-source foo)
+                '(lambda () (lambda (x y) (+ x y))))))
+
+    (pass-if "lambda with documentation"
+      (let ((foo (lambda () (lambda (x y) "docstring" (+ x y)))))
+        ((foo) 1 2) ; make sure, memoization has been performed
+        (equal? (procedure-source foo)
+                '(lambda () (lambda (x y) "docstring" (+ x y)))))))
 
   (with-test-prefix "bad formals"
 
@@ -186,6 +220,14 @@
 	    (interaction-environment)))))
 
 (with-test-prefix "let"
+
+  (with-test-prefix "unmemoization"
+
+    (pass-if "normal let"
+      (let ((foo (lambda () (let ((i 1) (j 2)) (+ i j)))))
+        (foo) ; make sure, memoization has been performed
+        (equal? (procedure-source foo)
+                '(lambda () (let ((i 1) (j 2)) (+ i j)))))))
 
   (with-test-prefix "bindings"
 
@@ -283,6 +325,24 @@
 
 (with-test-prefix "let*"
 
+  (with-test-prefix "unmemoization"
+
+    (pass-if "normal let*"
+      (let ((foo (lambda () (let* ((x 1) (y 2)) (+ x y)))))
+        (foo) ; make sure, memoization has been performed
+        (equal? (procedure-source foo)
+                '(lambda () (let* ((x 1) (y 2)) (+ x y))))))
+
+    (pass-if "let* without bindings"
+      (let ((foo (lambda () (let ((x 1) (y 2))
+                              (let* ()
+                                (and (= x 1) (= y 2)))))))
+        (foo) ; make sure, memoization has been performed
+        (equal? (procedure-source foo)
+                '(lambda () (let ((x 1) (y 2))
+                              (let* ()
+                                (and (= x 1) (= y 2)))))))))
+
   (with-test-prefix "bindings"
 
     (pass-if "(let* ((x 1) (x 2)) ...)"
@@ -291,7 +351,12 @@
 
     (pass-if "(let* ((x 1) (x x)) ...)"
       (let* ((x 1) (x x))
-	(= x 1))))
+	(= x 1)))
+
+    (pass-if "(let ((x 1) (y 2)) (let* () ...))"
+      (let ((x 1) (y 2))
+        (let* ()
+          (and (= x 1) (= y 2))))))
 
   (with-test-prefix "bad bindings"
 
@@ -353,6 +418,14 @@
 	    (interaction-environment)))))
 
 (with-test-prefix "letrec"
+
+  (with-test-prefix "unmemoization"
+
+    (pass-if "normal letrec"
+      (let ((foo (lambda () (letrec ((i 1) (j 2)) (+ i j)))))
+        (foo) ; make sure, memoization has been performed
+        (equal? (procedure-source foo)
+                '(lambda () (letrec ((i 1) (j 2)) (+ i j)))))))
 
   (with-test-prefix "bindings"
 
@@ -429,6 +502,28 @@
 
 (with-test-prefix "if"
 
+  (with-test-prefix "unmemoization"
+
+    (pass-if "normal if"
+      (let ((foo (lambda (x) (if x (+ 1) (+ 2)))))
+        (foo #t) ; make sure, memoization has been performed
+        (foo #f) ; make sure, memoization has been performed
+        (equal? (procedure-source foo)
+                '(lambda (x) (if x (+ 1) (+ 2))))))
+
+    (pass-if "if without else"
+      (let ((foo (lambda (x) (if x (+ 1)))))
+        (foo #t) ; make sure, memoization has been performed
+        (foo #f) ; make sure, memoization has been performed
+        (equal? (procedure-source foo)
+                '(lambda (x) (if x (+ 1))))))
+
+    (pass-if "if #f without else"
+      (let ((foo (lambda () (if #f #f))))
+        (foo) ; make sure, memoization has been performed
+        (equal? (procedure-source foo)
+                `(lambda () (if #f #f))))))
+
   (with-test-prefix "missing or extra expressions"
 
     (pass-if-exception "(if)"
@@ -442,6 +537,46 @@
 	    (interaction-environment)))))
 
 (with-test-prefix "cond"
+
+  (with-test-prefix "cond is hygienic"
+
+    (pass-if "bound 'else is handled correctly"
+      (eq? (let ((else 'ok)) (cond (else))) 'ok))
+
+    (with-test-prefix "bound '=> is handled correctly"
+
+      (pass-if "#t => 'ok"
+        (let ((=> 'foo))
+          (eq? (cond (#t => 'ok)) 'ok)))
+
+      (pass-if "else =>"
+        (let ((=> 'foo))
+          (eq? (cond (else =>)) 'foo)))
+
+      (pass-if "else => identity"
+        (let ((=> 'foo))
+          (eq? (cond (else => identity)) identity)))))
+
+  (with-test-prefix "unmemoization"
+
+    (pass-if "normal clauses"
+      (let ((foo (lambda (x) (cond ((= x 1) 'bar) ((= x 2) 'baz)))))
+        (foo 1) ; make sure, memoization has been performed
+        (foo 2) ; make sure, memoization has been performed
+        (equal? (procedure-source foo)
+                '(lambda (x) (cond ((= x 1) 'bar) ((= x 2) 'baz))))))
+
+    (pass-if "else"
+      (let ((foo (lambda () (cond (else 'bar)))))
+        (foo) ; make sure, memoization has been performed
+        (equal? (procedure-source foo)
+                '(lambda () (cond (else 'bar))))))
+
+    (pass-if "=>"
+      (let ((foo (lambda () (cond (#t => identity)))))
+        (foo) ; make sure, memoization has been performed
+        (equal? (procedure-source foo)
+                '(lambda () (cond (#t => identity)))))))
 
   (with-test-prefix "bad or missing clauses"
 
@@ -488,27 +623,7 @@
     (pass-if-exception "(cond (1) 1)"
       exception:bad-cond-clause
       (eval '(cond (1) 1)
-	    (interaction-environment)))))
-
-(with-test-prefix "cond =>"
-
-  (with-test-prefix "cond is hygienic"
-
-    (pass-if "bound 'else is handled correctly"
-      (eq? (let ((else 'ok)) (cond (else))) 'ok))
-
-    (pass-if "bound '=> is handled correctly"
-      (eq? (let ((=> #f)) (cond (#t => 'ok))) 'ok)))
-
-  (with-test-prefix "else is handled correctly"
-
-    (pass-if "else =>"
-      (let ((=> 'foo))
-	(eq? (cond (else =>)) 'foo)))
-
-    (pass-if "else => identity"
-      (let* ((=> 'foo))
-	(eq? (cond (else => identity)) identity))))
+	    (interaction-environment))))
 
   (with-test-prefix "wrong number of arguments"
 
@@ -527,6 +642,24 @@
       exception:bad-case-labels
       (eval '(let ((else #f)) (case 1 (else #f)))
             (interaction-environment))))
+
+  (with-test-prefix "unmemoization"
+
+    (pass-if "normal clauses"
+      (let ((foo (lambda (x) (case x ((1) 'bar) ((2) 'baz) (else 'foobar)))))
+        (foo 1) ; make sure, memoization has been performed
+        (foo 2) ; make sure, memoization has been performed
+        (foo 3) ; make sure, memoization has been performed
+        (equal? (procedure-source foo)
+                '(lambda (x) (case x ((1) 'bar) ((2) 'baz) (else 'foobar))))))
+
+    (pass-if "empty labels"
+      (let ((foo (lambda (x) (case x ((1) 'bar) (() 'baz) (else 'foobar)))))
+        (foo 1) ; make sure, memoization has been performed
+        (foo 2) ; make sure, memoization has been performed
+        (foo 3) ; make sure, memoization has been performed
+        (equal? (procedure-source foo)
+                '(lambda (x) (case x ((1) 'bar) (() 'baz) (else 'foobar)))))))
 
   (with-test-prefix "bad or missing clauses"
 
@@ -684,7 +817,39 @@
               '(lambda () (letrec ((bar (lambda () (quote ok)))) (bar)))))
           (interaction-environment))))
 
+(with-test-prefix "do"
+
+  (with-test-prefix "unmemoization"
+
+    (pass-if "normal case"
+      (let ((foo (lambda () (do ((i 1 (+ i 1)) (j 2))
+                                ((> i 9) (+ i j))
+                              (identity i)))))
+        (foo) ; make sure, memoization has been performed
+        (equal? (procedure-source foo)
+                '(lambda () (do ((i 1 (+ i 1)) (j 2))
+                                ((> i 9) (+ i j))
+                              (identity i))))))
+
+    (pass-if "reduced case"
+      (let ((foo (lambda () (do ((i 1 (+ i 1)) (j 2 j)) ; redundant step for j
+                                ((> i 9) (+ i j))
+                              (identity i)))))
+        (foo) ; make sure, memoization has been performed
+        (equal? (procedure-source foo)
+                '(lambda () (do ((i 1 (+ i 1)) (j 2)) ; no redundancy here
+                                ((> i 9) (+ i j))
+                              (identity i))))))))
+
 (with-test-prefix "set!"
+
+  (with-test-prefix "unmemoization"
+
+    (pass-if "normal set!"
+      (let ((foo (lambda (x) (set! x (+ 1 x)))))
+        (foo 1) ; make sure, memoization has been performed
+        (equal? (procedure-source foo)
+                '(lambda (x) (set! x (+ 1 x)))))))
 
   (with-test-prefix "missing or extra expressions"
 
