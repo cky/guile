@@ -9,7 +9,7 @@
 * Closing::                     Procedures to close a port.
 * Random Access::               Moving around a random access port.
 * Line/Delimited::              Read and write lines or delimited text.
-* Binary IO::                   Save and restore Scheme objects.
+* Block Reading and Writing::   Reading and writing blocks of text.
 * Default Ports::               Defaults for input, output and errors.
 * Port Types::                  Types of port and how to make them.
 @end menu
@@ -323,23 +323,21 @@ in which case the truncation occurs at the current port.
 position.  The return value is unspecified.
 @end deffn
 
-
 @node Line/Delimited
-@section Handling Line Oriented and Delimited Text
+@section Line Oriented and Delimited Text
 
-[Line-oriented and delimited IO.  Or should this be merged into the
-previous two sections?]
+The delimited-I/O module can be accessed with:
 
-Extended I/O procedures are available which read or write lines of text
-or read text delimited by a specified set of characters.
+@smalllisp
+(use-modules (ice-9 rdelim))
+@end smalllisp
 
-@findex fwrite
-@findex fread
-Interfaces to @code{read}/@code{fread} and @code{write}/@code{fwrite} are
-also available, as @code{uniform-array-read!} and @code{uniform-array-write!},
-@ref{Uniform Arrays}.
+It can be used to read or write lines of text, or read text delimited by
+a specified set of characters.  It's similar to the @code{(scsh rdelim)}
+module from guile-scsh, but does not use multiple values or character
+sets and has an extra procedure @code{write-line}.
 
-@c begin (scm-doc-string "boot-9.scm" "read-line")
+@c begin (scm-doc-string "rdelim.scm" "read-line")
 @deffn procedure read-line [port] [handle-delim]
 Return a line of text from @var{port} if specified, otherwise from the
 value returned by @code{(current-input-port)}.  Under Unix, a line of text
@@ -359,13 +357,10 @@ Push the terminating delimiter (if any) back on to the port.
 @item split
 Return a pair containing the string read from the port and the
 terminating delimiter or end-of-file object.
-
-NOTE: if the scsh module is loaded then
-multiple values are returned instead of a pair.
 @end table
 @end deffn
 
-@c begin (scm-doc-string "boot-9.scm" "read-line!")
+@c begin (scm-doc-string "rdelim.scm" "read-line!")
 @deffn procedure read-line! buf [port]
 Read a line of text into the supplied string @var{buf} and return the
 number of characters added to @var{buf}.  If @var{buf} is filled, then
@@ -374,18 +369,15 @@ Read from @var{port} if
 specified, otherwise from the value returned by @code{(current-input-port)}.
 @end deffn
 
-@c begin (scm-doc-string "boot-9.scm" "read-delimited")
+@c begin (scm-doc-string "rdelim.scm" "read-delimited")
 @deffn procedure read-delimited delims [port] [handle-delim]
 Read text until one of the characters in the string @var{delims} is found
 or end-of-file is reached.  Read from @var{port} if supplied, otherwise
 from the value returned by @code{(current-input-port)}.
 @var{handle-delim} takes the same values as described for @code{read-line}.
-
-NOTE: if the scsh module is loaded then @var{delims} must be an scsh
-char-set, not a string.
 @end deffn
 
-@c begin (scm-doc-string "boot-9.scm" "read-delimited!")
+@c begin (scm-doc-string "rdelim.scm" "read-delimited!")
 @deffn procedure read-delimited! delims buf [port] [handle-delim] [start] [end]
 Read text into the supplied string @var{buf} and return the number of
 characters added to @var{buf} (subject to @var{handle-delim}, which takes
@@ -395,9 +387,6 @@ delimiter.  Also terminates if one of the characters in the string
 @var{delims} is found
 or end-of-file is reached.  Read from @var{port} if supplied, otherwise
 from the value returned by @code{(current-input-port)}.
-
-NOTE: if the scsh module is loaded then @var{delims} must be an scsh
-char-set, not a string.
 @end deffn
 
 @deffn primitive write-line obj [port]
@@ -440,19 +429,20 @@ delimiter may be either a newline or the @var{eof-object}; if
 @code{(#<eof> . #<eof>)}.
 @end deffn
 
-@node Binary IO
-@section Saving and Restoring Scheme Objects
+@node Block reading and writing
+@section Block reading and writing
 
-@deffn primitive binary-read [port]
-Read and return an object from @var{port} in a binary format.
-If omitted, @var{port} defaults to the current output port.
+The Block-string-I/O module can be accessed with:
+
+@smalllisp
+(use-modules (ice-9 rw))
+@end smalllisp
+
+It currently contains a single procedure which helps implement
+the @code{(scsh rw)} module in guile-scsh.
+
+@deffn primitive read-string!/partial str [port_or_fdes] [start] [end]
 @end deffn
-
-@deffn primitive binary-write obj [port]
-Write @var{obj} to @var{port} in a binary format.
-If omitted, @var{port} defaults to the current output port.
-@end deffn
-
 
 @node Default Ports
 @section Default Ports for Input, Output and Errors
