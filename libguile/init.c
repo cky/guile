@@ -119,77 +119,19 @@
 #endif
 
 
-void
-scm_start_stack (base, in, out, err)
+static void scm_start_stack SCM_P ((void *base));
+static void scm_restart_stack SCM_P ((void * base));
+
+static void
+scm_start_stack (base)
      void * base;
-     FILE * in;
-     FILE * out;
-     FILE * err;
 {
   SCM root;
-  struct scm_port_table * pt;
 
   root = scm_permanent_object (scm_make_root (SCM_UNDEFINED));
   scm_set_root (SCM_ROOT_STATE (root));
-  
   scm_stack_base = base;
 
-  /* Create standard ports from stdio files, if requested to do so.
-   */
-
-  if (!in)
-    {
-      scm_def_inp = SCM_BOOL_F;
-    }
-  else
-    {
-      SCM_NEWCELL (scm_def_inp);
-      pt = scm_add_to_port_table (scm_def_inp);
-      SCM_SETCAR (scm_def_inp, (scm_tc16_fport | SCM_OPN | SCM_RDNG));
-      SCM_SETPTAB_ENTRY (scm_def_inp, pt);
-      SCM_SETSTREAM (scm_def_inp, (SCM)in);
-      if (isatty (fileno (in)))
-	{
-	  scm_setbuf0 (scm_def_inp); /* turn off stdin buffering */
-	  SCM_SETOR_CAR (scm_def_inp, SCM_BUF0);
-	}
-      scm_set_port_revealed_x (scm_def_inp, SCM_MAKINUM (1));
-    }
-
-  if (!out)
-    {
-      scm_def_outp = SCM_BOOL_F;
-    }
-  else
-    {
-      SCM_NEWCELL (scm_def_outp);
-      pt = scm_add_to_port_table (scm_def_outp);
-      SCM_SETCAR (scm_def_outp, (scm_tc16_fport | SCM_OPN | SCM_WRTNG));
-      SCM_SETPTAB_ENTRY (scm_def_outp, pt);
-      SCM_SETSTREAM (scm_def_outp, (SCM)out);
-      scm_set_port_revealed_x (scm_def_outp, SCM_MAKINUM (1));
-    }
-
-  if (!err)
-    {
-      scm_def_errp = SCM_BOOL_F;
-    }
-  else
-    {
-      SCM_NEWCELL (scm_def_errp);
-      pt = scm_add_to_port_table (scm_def_errp);
-      SCM_SETCAR (scm_def_errp, (scm_tc16_fport | SCM_OPN | SCM_WRTNG));
-      SCM_SETPTAB_ENTRY (scm_def_errp, pt);
-      SCM_SETSTREAM (scm_def_errp, (SCM)err);
-      scm_set_port_revealed_x (scm_def_errp, SCM_MAKINUM (1));
-    }
-
-  scm_cur_inp = scm_def_inp;
-  scm_cur_outp = scm_def_outp;
-  scm_cur_errp = scm_def_errp;
-
-
-  scm_progargs = SCM_BOOL_F;	/* vestigial */
   scm_exitval = SCM_BOOL_F;	/* vestigial */
 
   scm_top_level_lookup_thunk_var = SCM_BOOL_F;
@@ -198,7 +140,8 @@ scm_start_stack (base, in, out, err)
   /* Create an object to hold the root continuation.
    */
   SCM_NEWCELL (scm_rootcont);
-  SCM_SETJMPBUF (scm_rootcont, scm_must_malloc ((long) sizeof (scm_contregs), "continuation"));
+  SCM_SETJMPBUF (scm_rootcont, scm_must_malloc ((long) sizeof (scm_contregs),
+						"continuation"));
   SCM_SETCAR (scm_rootcont, scm_tc7_contin);
   SCM_SEQ (scm_rootcont) = 0;
   /* The root continuation if further initialized by scm_restart_stack. */
@@ -206,17 +149,18 @@ scm_start_stack (base, in, out, err)
   /* Create the look-aside stack for variables that are shared between
    * captured continuations.
    */
-  scm_continuation_stack = scm_make_vector (SCM_MAKINUM (512), SCM_UNDEFINED, SCM_UNDEFINED);
+  scm_continuation_stack = scm_make_vector (SCM_MAKINUM (512),
+					    SCM_UNDEFINED, SCM_UNDEFINED);
   /* The continuation stack is further initialized by scm_restart_stack. */
 
-  /* The remainder of stack initialization is factored out to another function so that
-   * if this stack is ever exitted, it can be re-entered using scm_restart_stack.
-   */
+  /* The remainder of stack initialization is factored out to another
+   * function so that if this stack is ever exitted, it can be
+   * re-entered using scm_restart_stack.  */
   scm_restart_stack (base);
 }
 
 
-void
+static void
 scm_restart_stack (base)
      void * base;
 {
@@ -289,79 +233,94 @@ check_config ()
 
 
 
+/* initializing standard and current I/O ports */
+
+/* Create standard ports from stdio stdin, stdout, and stderr.  */
+static void
+scm_init_standard_ports ()
+{
+  /* I'm not sure why this should be unbuffered when coming from a
+     tty; isn't line buffering more common?  */
+  scm_def_inp = scm_stdio_to_port (stdin, 
+				   (isatty (fileno (stdin)) ? "r0" : "r"),
+				   "standard input");
+  scm_def_outp = scm_stdio_to_port (stdout, "w", "standard output");
+  scm_def_errp = scm_stdio_to_port (stderr, "w", "standard error");
+
+  scm_cur_inp = scm_def_inp;
+  scm_cur_outp = scm_def_outp;
+  scm_cur_errp = scm_def_errp;
+}
+
+
+
 #ifdef _UNICOS
 typedef int setjmp_type;
 #else
 typedef long setjmp_type;
 #endif
 
-/* Fire up Scheme.
- *
- * argc and argv are made the return values of program-arguments.
- *
- * in, out, and err, if not NULL, become the standard ports.
- *	If NULL is passed, your "initfunc" should set up the 
- *      standard ports.
- *
- * boot_cmd is a string containing a Scheme expression to evaluate
- *      to get things rolling.
- *
- * result is returned a string containing a printed result of evaluating
- * 	the boot command.   
- *
- * the return value is:
- *	scm_boot_ok       - evaluation concluded normally
- *	scm_boot_error    - evaluation concluded with a Scheme error
- *	scm_boot_emem     - allocation error mallocing *result
- *	scm_boot_ereenter - scm_boot_guile was called re-entrantly, which is
- *                          prohibited.
- */
+static void scm_boot_guile_1 SCM_P ((SCM_STACKITEM *base,
+				     int argc, char **argv,
+				     void (*main_func) (void *closure,
+							int argc,
+							char **argv),
+				     void *closure));
 
-int scm_boot_guile_1 SCM_P ((SCM_STACKITEM *base,
-				    char **result,
-				    int argc, char **argv,
-				    FILE *in, FILE *out, FILE *err,
-				    void (*init_func) (),
-				    char *boot_cmd));
 
-int
-scm_boot_guile (result, argc, argv, in, out, err, init_func, boot_cmd)
-     char ** result;
+/* Fire up the Guile Scheme interpreter.
+
+   Call MAIN_FUNC, passing it CLOSURE, ARGC, and ARGV.  MAIN_FUNC
+   should do all the work of the program (initializing other packages,
+   reading user input, etc.) before returning.  When MAIN_FUNC
+   returns, call exit (0); this function never returns.  If you want
+   some other exit value, MAIN_FUNC may call exit itself.
+
+   scm_boot_guile arranges for program-arguments to return the strings
+   given by ARGC and ARGV.  If MAIN_FUNC modifies ARGC/ARGV, should
+   call scm_set_program_arguments with the final list, so Scheme code
+   will know which arguments have been processed.
+
+   Why must the caller do all the real work from MAIN_FUNC?  The
+   garbage collector assumes that all local variables of type SCM will
+   be above scm_boot_guile's stack frame on the stack.  If you try to
+   manipulate SCM values after this function returns, it's the luck of
+   the draw whether the GC will be able to find the objects you
+   allocate.  So, scm_boot_guile function exits, rather than
+   returning, to discourage people from making that mistake.  */
+
+
+void
+scm_boot_guile (argc, argv, main_func, closure)
      int argc;
      char ** argv;
-     FILE * in;
-     FILE * out;
-     FILE * err;
-     void (*init_func) ();
-     char * boot_cmd;
+     void (*main_func) ();
+     void *closure;
 {
+  /* The garbage collector uses the address of this variable as one
+     end of the stack, and the address of one of its own local
+     variables as the other end.  */
   SCM_STACKITEM dummy;
 
-  return scm_boot_guile_1 (&dummy, result, argc, argv, in, out, err, 
-			   init_func, boot_cmd);
+  return scm_boot_guile_1 (&dummy, argc, argv, main_func, closure);
 }
 
-int
-scm_boot_guile_1 (base, result, argc, argv, in, out, err, init_func, boot_cmd)
+
+static void
+scm_boot_guile_1 (base, argc, argv, main_func, closure)
      SCM_STACKITEM *base;
-     char ** result;
      int argc;
-     char ** argv;
-     FILE * in;
-     FILE * out;
-     FILE * err;
-     void (*init_func) ();
-     char * boot_cmd;
+     char **argv;
+     void (*main_func) ();
+     void *closure;
 {
   static int initialized = 0;
   static int live = 0;
   setjmp_type setjmp_val;
-  int stat;
 
-  if (live)			/* This function is not re-entrant. */
-    {
-      return scm_boot_ereenter;
-    }
+  /* This function is not re-entrant. */
+  if (live)
+    abort ();
 
   live = 1;
 
@@ -382,7 +341,7 @@ scm_boot_guile_1 (base, result, argc, argv, in, out, err, init_func, boot_cmd)
 #ifdef USE_THREADS
       scm_init_threads (base);
 #endif
-      scm_start_stack (base, in, out, err);
+      scm_start_stack (base);
       scm_init_gsubr ();
       scm_init_feature ();
       scm_init_alist ();
@@ -452,119 +411,36 @@ scm_boot_guile_1 (base, result, argc, argv, in, out, err, init_func, boot_cmd)
       scm_init_ramap ();
       scm_init_unif ();
       scm_init_simpos ();
-      scm_progargs = scm_makfromstrs (argc, argv);
       scm_init_load_path ();
+      scm_init_standard_ports ();
       initialized = 1;
     }
 
   scm_block_gc = 0;		/* permit the gc to run */
   /* ints still disabled */
 
-  {
-    SCM command;
-
-    command = scm_makfrom0str (boot_cmd);
-
-    setjmp_val = setjmp (SCM_JMPBUF (scm_rootcont));
-
 #ifdef STACK_CHECKING
-    scm_stack_checking_enabled_p = SCM_STACK_CHECKING_P;
+  scm_stack_checking_enabled_p = SCM_STACK_CHECKING_P;
 #endif
-    if (!setjmp_val)
-      {
-	SCM last = SCM_UNDEFINED;
-	scm_init_signals ();
 
-	/* Call the initialization function passed in by the user, if
-           present.  */
-	if (init_func) (*init_func) ();
+  setjmp_val = setjmp (SCM_JMPBUF (scm_rootcont));
+  if (!setjmp_val)
+    {
+      scm_init_signals ();
 
-	/* Evaluate boot_cmd string.  */
-	{
-	  SCM p;
-	  SCM form;
+      scm_set_program_arguments (argc, argv);
+      (*main_func) (closure, argc, argv);
+    }
 
-	  p = scm_mkstrport (SCM_MAKINUM (0),
-			     command,
-			     SCM_OPN | SCM_RDNG,
-			     "boot_guile");
-	  while (1)
-	    {
-	      form = scm_read (p, SCM_BOOL_F, SCM_BOOL_F);
-	      if (SCM_EOF_VAL == form)
-		break;
-	      last = scm_eval_x (form);
-	    }
+  scm_restore_signals ();
 
-	}
+  /* This tick gives any pending
+   * asyncs a chance to run.  This must be done after
+   * the call to scm_restore_signals.
+   */
+  SCM_ASYNC_TICK;
 
-	scm_restore_signals ();
-	/* This tick gives any pending
-	 * asyncs a chance to run.  This must be done after
-	 * the call to scm_restore_signals.
-	 */
-	SCM_ASYNC_TICK;
-
-	scm_ints_disabled = 1;	/* Hopefully redundant but just to be sure. */
-
-	{
-	  SCM str_answer;
-
-	  str_answer = scm_strprint_obj (last);
-	  *result = (char *)malloc (1 + SCM_LENGTH (str_answer));
-	  if (!*result)
-	    stat = scm_boot_emem;
-	  else
-	    {
-	      memcpy (*result, SCM_CHARS (str_answer), SCM_LENGTH (str_answer));
-	      (*result)[SCM_LENGTH (str_answer)] = 0;
-	      stat = scm_boot_ok;
-	    }
-	}
-      }
-    else
-      {
-	/* This is reached if an unhandled throw terminated Scheme.
-	 * Such an occurence should be extremely unlikely -- it indicates
-	 * a programming error in the boot code.
-	 *
-	 * Details of the bogus exception are stored in scm_exitval even 
-	 * though that isn't currently reflected in the return value.
-	 * !!!
-	 */
-
-	scm_restore_signals ();
-	/* This tick gives any pending
-	 * asyncs a chance to run.  This must be done after
-	 * the call to scm_restore_signals.
-	 *
-	 * Note that an unhandled exception during signal handling
-	 * will put as back at the call to scm_restore_signals immediately
-	 * preceeding.   A sufficiently bogus signal handler could
-	 * conceivably cause an infinite loop here.
-	 */
-	SCM_ASYNC_TICK;
-
-	scm_ints_disabled = 1;	/* Hopefully redundant but just to be sure. */
-
-	{
-	  SCM str_answer;
-
-	  str_answer = scm_strprint_obj (scm_exitval);
-	  *result = (char *)malloc (1 + SCM_LENGTH (str_answer));
-	  if (!*result)
-	    stat = scm_boot_emem;
-	  else
-	    {
-	      memcpy (*result, SCM_CHARS (str_answer), SCM_LENGTH (str_answer));
-	      (*result)[SCM_LENGTH (str_answer)] = 0;
-	      stat = scm_boot_error;
-	    }
-	}
-      }
-  }
-
-  scm_block_gc = 1;
-  live = 0;
-  return stat;
+  /* If the caller doesn't want this, they should return from
+     main_func themselves.  */
+  exit (0);
 }
