@@ -95,7 +95,7 @@ exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
             (hashq-set! ht x #t)))))
 
 (define (scan-C! ht sofile)
-  (scan "^........ ([B-TV-Z]) (.+)$"
+  (scan "^[0-9a-fA-F]+ ([B-TV-Z]) (.+)$"
         (format #f "nm ~A" sofile)
         (lambda (m)
           (let ((x (string->symbol (match:substring m 2))))
