@@ -1923,8 +1923,7 @@
 			     (stack? the-last-stack))
 			(begin
 			  (newline (current-error-port))
-			  (display "Type \"(backtrace)\" to get more information,
-or type \"$\" to enter the debugger.\n" (current-error-port))
+			  (display "Type \"(backtrace)\" to get more information.\n" (current-error-port))
 			  (set! has-shown-debugger-hint? #t)))
 		    (set! stack-saved? #f)))
 
