@@ -247,7 +247,7 @@ scm_ilookup (SCM iloc, SCM env)
    reconsider the complete special form.
 
    SCM_LOOKUPCAR is still there, of course.  It just calls
-   SCM_LOOKUPCAR1 and aborts on recieving NULL.  So SCM_LOOKUPCAR
+   SCM_LOOKUPCAR1 and aborts on receiving NULL.  So SCM_LOOKUPCAR
    should only be called when it is known that VLOC is not the first
    pair of a special form.  Otherwise, use SCM_LOOKUPCAR1 and check
    for NULL.  I think I've found the only places where this
