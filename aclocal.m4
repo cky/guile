@@ -291,7 +291,7 @@ done<<>>dnl>>)
 changequote([,]))])
 
 
-# serial 17 AM_PROG_LIBTOOL
+# serial 15 AM_PROG_LIBTOOL
 AC_DEFUN(AM_PROG_LIBTOOL,
 [AC_REQUIRE([AC_CANONICAL_HOST])
 AC_REQUIRE([AC_PROG_RANLIB])
@@ -308,11 +308,10 @@ dnl Allow the --disable-shared flag to stop us from building shared libs.
 AC_ARG_ENABLE(shared,
 [  --enable-shared         build shared libraries [default=yes]],
 [if test "$enableval" = no; then
-  libtool_enable_shared=no
+  enable_shared=no
 else
-  libtool_enable_shared=yes
+  enable_shared=yes
 fi])
-test -n "$libtool_enable_shared" && enable_shared="$libtool_enable_shared"
 libtool_shared=
 test "$enable_shared" = no && libtool_shared=" --disable-shared"
 
@@ -320,11 +319,10 @@ dnl Allow the --disable-static flag to stop us from building static libs.
 AC_ARG_ENABLE(static,
 [  --enable-static         build static libraries [default=yes]],
 [if test "$enableval" = no; then
-  libtool_enable_static=no
+  enable_static=no
 else
-  libtool_enable_static=yes
+  enable_static=yes
 fi])
-test -n "$libtool_enable_static" && enable_static="$libtool_enable_static"
 libtool_static=
 test "$enable_static" = no && libtool_static=" --disable-static"
 
@@ -338,28 +336,12 @@ test "$ac_cv_prog_gnu_ld" = yes && libtool_flags="$libtool_flags --with-gnu-ld"
 [case "$host" in
 *-*-irix6*)
   ac_save_CFLAGS="$CFLAGS"
-  flag_passed=no
-  for f in -32 -64 -n32 ABI -cckr -mips1 -mips2 -mips3 -mips4; do
-    case "$f" in
-    ABI)
-      test -n "$SGI_ABI" && flag_passed=yes
-      if test "$flag_passed" = no && test "$ac_cv_prog_gcc" = yes; then
-	# Choose the ABI flag according to GCC's specs.
-	if $CC -dumpspecs 2>&1 | sed '/^\*link:$/,/^$/!d' | egrep -e '[ 	]-32' >/dev/null; then
-	  LD="${LD-ld} -32"
-	else
-	  LD="${LD-ld} -n32"
-	fi
-      fi
-      ;;
-
-    *)
-      if echo " $CC $CFLAGS " | egrep -e "[ 	]$f[	 ]" > /dev/null; then
-	flag_passed=yes
-	LD="${LD-ld} $f"
-      fi
-      ;;
-    esac
+  # -n32 always needs to be added to the linker when using GCC.
+  test "$ac_cv_prog_gcc" = yes && CFLAGS="$CFLAGS -n32"
+  for f in '-32' '-64' '-cckr' '-n32' '-mips1' '-mips2' '-mips3' '-mips4'; do
+    if echo " $CC $CFLAGS " | egrep -e "[ 	]$f[	 ]" > /dev/null; then
+      LD="${LD-ld} $f"
+    fi
   done
   CFLAGS="$ac_save_CFLAGS"
   ;;
