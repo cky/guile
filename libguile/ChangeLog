@@ -1,3 +1,26 @@
+Fri Feb  7 17:30:26 1997  Jim Blandy  <jimb@floss.cyclic.com>
+
+	* throw.c (scm_internal_lazy_catch): New function.
+	(scm_lazy_catch): Rewritten to use it.
+	(scm_ithrow): Handle the new lazy catch representation.
+	Use SCM_LAZY_CATCH_P, instead of assuming that any wind list entry
+ 	that doesn't have a jmpbuf is a lazy catch clause.
+	(tc16_lazy_catch, struct lazy_catch, mark_lazy_catch,
+	free_lazy_catch, print_lazy_catch, lazy_catch_funs,
+	make_lazy_catch, SCM_LAZY_CATCH_P): Support funs, including a new
+	smob.
+	(scm_init_throw): Register the new lazy-catch smob type.
+	* throw.h (scm_internal_lazy_catch): decl for new function.
+
+	* throw.c (scm_internal_catch): Doc fixes.
+
+	* alloca.c: New file, needed to support the AC_FUNC_ALLOCA call in
+	configure.in.  Including this might cause problems if applications
+	that link against libguile include their own copies of alloca, but
+	if they're using autoconf, they should be adding libguile to LIBS
+	before calling AC_FUNC_ALLOCA anyway, in which case they'll find
+	the copy in libguile, and things will be okay.  (I think.)
+
 Thu Feb  6 03:10:32 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* strop.c (scm_string_upcase_x, scm_string_downcase_x):	moved from
