@@ -60,6 +60,9 @@
  * These may be defined or undefined.
  */
 
+/* Old async mechanism */
+/* #define GUILE_OLD_ASYNC_CLICK */
+
 /* New scheme for garbage collection */
 #define GUILE_NEW_GC_SCHEME
 
@@ -250,6 +253,7 @@ typedef long SCM_STACKITEM;
 #define SCM_THREAD_SWITCHING_CODE
 #endif
 
+#ifdef GUILE_OLD_ASYNC_CLICK
 extern unsigned int scm_async_clock;
 
 #define SCM_ASYNC_TICK \
@@ -257,6 +261,15 @@ do { \
   if (0 == --scm_async_clock) \
     scm_async_click (); \
 } while(0)
+#else
+extern int scm_asyncs_pending_p;
+
+#define SCM_ASYNC_TICK /*fixme* should change names */ \
+do { \
+  if (scm_asyncs_pending_p) \
+    scm_async_click (); \
+} while (0)
+#endif
 
 #ifdef SCM_CAREFUL_INTS
 #define SCM_CHECK_NOT_DISABLED \

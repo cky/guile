@@ -94,10 +94,11 @@
  * when the interpreter is not running at all.
  */
 int scm_ints_disabled = 1;
+unsigned int scm_mask_ints = 1;
 
+#ifdef GUILE_OLD_ASYNC_CLICK
 unsigned int scm_async_clock = 20;
 static unsigned int scm_async_rate = 20;
-unsigned int scm_mask_ints = 1;
 
 static unsigned int scm_tick_clock = 0;
 static unsigned int scm_tick_rate = 0;
@@ -105,11 +106,15 @@ static unsigned int scm_desired_tick_rate = 0;
 static unsigned int scm_switch_clock = 0;
 static unsigned int scm_switch_rate = 0;
 static unsigned int scm_desired_switch_rate = 0;
+#else
+int scm_asyncs_pending_p = 0;
+#endif
 
 static long scm_tc16_async;
 
 
 
+#ifdef GUILE_OLD_ASYNC_CLICK
 int
 scm_asyncs_pending ()
 {
@@ -128,14 +133,12 @@ scm_asyncs_pending ()
   return 0;
 }
 
-#if 0
 static SCM
 scm_sys_tick_async_thunk (void)
 {
   scm_deliver_signal (SCM_TICK_SIGNAL);
   return SCM_BOOL_F;
 }
-#endif
 
 void
 scm_async_click ()
@@ -252,19 +255,30 @@ scm_async_click ()
     scm_switch ();
 }
 
+#else
+
+void
+scm_async_click ()
+{
+  if (!scm_mask_ints)
+    do
+      scm_run_asyncs (scm_asyncs);
+    while (scm_asyncs_pending_p);
+}
+#endif
 
 
 
 
+#if 0 /* Thread switching code should probably reside here, but the
+         async switching code doesn't seem to work, so it's put in the
+         SCM_DEFER_INTS macro instead. /mdj */
 void
 scm_switch ()
 {
-#if 0 /* Thread switching code should probably reside here, but the
-         async switching code doesn't seem to work, so it's put in the
-         SCM_ASYNC_TICK macro instead. /mdj */
   SCM_THREAD_SWITCHING_CODE;
-#endif
 }
+#endif
 
 
 
@@ -311,7 +325,11 @@ SCM_DEFINE (scm_async_mark, "async-mark", 1, 0, 0,
 {
   struct scm_async * it;
   SCM_VALIDATE_ASYNC_COPY (1,a,it);
+#ifdef GUILE_OLD_ASYNC_CLICK
   it->got_it = 1;
+#else
+  scm_asyncs_pending_p = it->got_it = 1;
+#endif
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -325,9 +343,13 @@ SCM_DEFINE (scm_system_async_mark, "system-async-mark", 1, 0, 0,
   struct scm_async * it;
   SCM_VALIDATE_ASYNC_COPY (1,a,it);
   SCM_REDEFER_INTS;
+#ifdef GUILE_OLD_ASYNC_CLICK
   it->got_it = 1;
   scm_async_rate = 1 + scm_async_rate - scm_async_clock;
   scm_async_clock = 1;
+#else
+  scm_asyncs_pending_p = it->got_it = 1;
+#endif
   SCM_REALLOW_INTS;
   return SCM_UNSPECIFIED;
 }
@@ -339,13 +361,16 @@ SCM_DEFINE (scm_run_asyncs, "run-asyncs", 1, 0, 0,
 "")
 #define FUNC_NAME s_scm_run_asyncs
 {
+#ifdef GUILE_OLD_ASYNC_CLICK
   if (scm_mask_ints)
     return SCM_BOOL_F;
+#endif
+  scm_asyncs_pending_p = 0;
   while (list_of_a != SCM_EOL)
     {
       SCM a;
       struct scm_async * it;
-      SCM_VALIDATE_CONS (1,list_of_a);
+      SCM_VALIDATE_CONS (1, list_of_a);
       a = SCM_CAR (list_of_a);
       SCM_VALIDATE_ASYNC_COPY (SCM_ARG1,a,it);
       scm_mask_ints = 1;
@@ -375,6 +400,8 @@ SCM_DEFINE (scm_noop, "noop", 0, 0, 1,
 
 
 
+
+#ifdef GUILE_OLD_ASYNC_CLICK
 
 SCM_DEFINE (scm_set_tick_rate, "set-tick-rate", 1, 0, 0, 
            (SCM n),
@@ -407,6 +434,7 @@ SCM_DEFINE (scm_set_switch_rate, "set-switch-rate", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+#endif
 
 
 /* points to the GC system-async, so that scm_gc_end can find it.  */
