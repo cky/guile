@@ -57,10 +57,9 @@ in backtraces.
 
 *** The expect-strings macro now matches `$' in a regular expression
     only at a line-break or end-of-file by default.  Previously it would
-    match the end of the string accumulated so far. Note that the new
-    behaviour requires reading ahead from the input port by one character, 
-    which may block.  The old behaviour can be obtained by setting the
-    variable `expect-strings-exec-flags' to 0.
+    match the end of the string accumulated so far. The old behaviour
+    can be obtained by setting the variable `expect-strings-exec-flags'
+    to 0.
 
 *** The expect-strings macro now uses a variable `expect-strings-exec-flags'
     for the regexp-exec flags.  If `regexp/noteol' is included, then `$'
@@ -73,8 +72,11 @@ in backtraces.
     hard-coded.
 
 *** The expect macro now supplies two arguments to a match procedure:
-    the current accumulated string and the input port.  Previously
-    only the string was supplied.
+    the current accumulated string and a flag to indicate whether
+    end-of-file has been reached.  Previously only the string was supplied.
+    If end-of-file is reached, the match procedure will be called an
+    additional time with the same accumulated string as the previous call
+    but with the flag set.
 
 ** New module (ice-9 format), implementing the Common Lisp `format' function.
 
