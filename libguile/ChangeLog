@@ -1,3 +1,7 @@
+Sat Dec 21 14:50:42 1996  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* net_db.c: Added #include <sys/socket.h>.
+
 Sat Dec 21 00:33:03 1996  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* filesys.c (scm_input_waiting_p): use select in preference to
