@@ -1,8 +1,12 @@
 2000-05-22  Michael Livshin  <mlivshin@bigfoot.com>
 
 	* guile-doc-snarf.in: put the preprocessed file through sed to
-	trim all lines to 512 chars.  I hope it doesn't break anybody's
-	shell.  we'll see.
+	trim all lines to 1024 chars.  I hope it doesn't break anybody's
+	sed.  we'll see.  (note: this is lossy trimming, i.e. the spill
+	isn't wrapped around but actually chopped off.  this seemed to me
+	safe because the current snarfer doesn't understand multi-line
+	cookies anyway.  in the long term, it would be nice not to depend
+	on AWK for anything.)
 
 	* gc.h (SCM_[SET_]CELL_{WORD,OBJECT}, SCM_VALIDATE_CELL): reverted 
 	the previous change to this macros, after deciding to torture the
