@@ -1,3 +1,57 @@
+2001-10-14  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* eval.c (scm_lookupcar, scm_m_letstar, scm_m_do, iqq,
+	scm_m_define, scm_m_letrec1, scm_m_let, scm_m_expand_body,
+	scm_macroexp, unmemocopy, scm_eval_args, scm_deval_args,
+	SCM_CEVAL, scm_map, scm_init_eval):  When building lists, prefer
+	scm_list_<n> over scm_cons[2]?.
+
+	(scm_unmemocar, scm_m_cond, scm_m_letstar, scm_m_letrec1,
+	scm_m_let, scm_m_atbind, unmemocopy, SCM_CEVAL, SCM_APPLY):  Use
+	SCM_C[AD][AD]R instead of explicit form.
+
+	(scm_m_set_x, scm_m_cond, scm_m_letstar, scm_m_do):  Reordered
+	comparison parameters.
+
+	(scm_m_case, scm_m_cond, scm_m_letstar, scm_m_do, SCM_CEVAL):  Use
+	!SCM_NULLP instead of SCM_NIMP.
+
+	(scm_m_case):  Don't copy the form.  Renamed proc to clause and
+	minimized its scope.  Renamed x to clauses.  Removed side
+	effecting operation from macro call.
+
+	(scm_m_cond):  Don't copy the form.  Renamed arg1 to clause and
+	minimized its scope.  Renamed x to clauses.  Minimized the scope
+	of variable 'len'.  Make sure the else clause is treated specially
+	even in case of '=>' occurences.  Don't change the else to #t in
+	order to be able to distinguish this case in the evaluator.  Leave
+	type checking of the recipient to the evaluator.
+
+	(scm_c_improper_memq):  Made the comment somewhat clearer.
+
+	(scm_m_lambda):  Renamed proc to formals.  Removed unnecessary
+	test for SCM_IM_LET at the place of the formal parameters.
+	Simplified the formal parameter checking.
+
+	(scm_m_letstar):  Added Comment.  Renamed proc to bindings.
+	Renamed arg1 to binding and minimized its scope.  Eliminated
+	unnecessary consing.
+
+	(scm_m_do):  Renamed proc to bindings.  Minimized the scope of
+	variable 'len'.
+
+	(build_binding_list):  New static function.
+
+	(unmemocopy):  Don't use SCM_TYP7 on pairs (it's unclean).
+	Further, split up the 'letrec' unmemoizing code to the
+	corresponding parts for 'do', 'let' and 'letrec', adding comments
+	to each form.  Cleanup the handling of the do form (This removes
+	some *real* code :-).
+
+	(SCM_CEVAL):  Removed side effecting operation from macro call.
+	Handle the 'else clause of the 'cond form specially - the symbol
+	'else is not replaced with #t any more.
+
 2001-10-14  Gary Houston  <ghouston@arglist.com>
 
 	* version.c (scm_version): use sprintf instead of snprintf,
