@@ -917,8 +917,8 @@ scm_write (obj, port)
 {
   if (SCM_UNBNDP (port))
     port = scm_cur_outp;
-  else
-    SCM_ASSERT (scm_valid_oport_value_p (port), port, SCM_ARG2, s_write);
+
+  SCM_ASSERT (scm_valid_oport_value_p (port), port, SCM_ARG2, s_write);
 
   scm_prin1 (obj, port, 1);
 #ifdef HAVE_PIPE
@@ -940,8 +940,8 @@ scm_display (obj, port)
 {
   if (SCM_UNBNDP (port))
     port = scm_cur_outp;
-  else
-    SCM_ASSERT (scm_valid_oport_value_p (port), port, SCM_ARG2, s_display);
+
+  SCM_ASSERT (scm_valid_oport_value_p (port), port, SCM_ARG2, s_display);
 
   scm_prin1 (obj, port, 0);
 #ifdef HAVE_PIPE
@@ -961,8 +961,8 @@ scm_newline (port)
 {
   if (SCM_UNBNDP (port))
     port = scm_cur_outp;
-  else
-    SCM_ASSERT (scm_valid_oport_value_p (port), port, SCM_ARG1, s_newline);
+
+  SCM_ASSERT (scm_valid_oport_value_p (port), port, SCM_ARG1, s_newline);
 
   scm_putc ('\n', SCM_COERCE_OUTPORT (port));
   return SCM_UNSPECIFIED;
@@ -977,8 +977,8 @@ scm_write_char (chr, port)
 {
   if (SCM_UNBNDP (port))
     port = scm_cur_outp;
-  else
-    SCM_ASSERT (scm_valid_oport_value_p (port), port, SCM_ARG2, s_write_char);
+
+  SCM_ASSERT (scm_valid_oport_value_p (port), port, SCM_ARG2, s_write_char);
 
   SCM_ASSERT (SCM_ICHRP (chr), chr, SCM_ARG1, s_write_char);
   scm_putc ((int) SCM_ICHR (chr), SCM_COERCE_OUTPORT (port));
