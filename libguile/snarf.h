@@ -54,27 +54,10 @@
 #define SCM_PROC1(RANAME, STR, TYPE, CFN)  \
 	static char RANAME[]=STR
 #else
-#ifdef __cplusplus
-#if REQ == 0 && OPT == 0 && VAR == 0
-#define SCM_PROC(RANAME, STR, REQ, OPT, VAR, CFN)  \
-%%%	scm_make_gsubr (RANAME, REQ, OPT, VAR, (SCM (*) (void)) CFN)
-#else
-#define SCM_PROC(RANAME, STR, REQ, OPT, VAR, CFN)  \
-%%%	scm_make_gsubr (RANAME, REQ, OPT, VAR, (SCM (*) (SCM, ...)) CFN)
-#endif
-#if TYPE == scm_tc7_subr_0
-#define SCM_PROC1(RANAME, STR, TYPE, CFN)  \
-%%%	scm_make_subr(RANAME, TYPE, (SCM (*)(void)) CFN)
-#else
-#define SCM_PROC1(RANAME, STR, TYPE, CFN)  \
-%%%	scm_make_subr(RANAME, TYPE, (SCM (*)(...)) CFN)
-#endif
-#else /* __cplusplus */
 #define SCM_PROC(RANAME, STR, REQ, OPT, VAR, CFN)  \
 %%%	scm_make_gsubr (RANAME, REQ, OPT, VAR, CFN)
 #define SCM_PROC1(RANAME, STR, TYPE, CFN)  \
 %%%	scm_make_subr(RANAME, TYPE, CFN)
-#endif /* __cplusplus */
 #endif
 
 #ifndef SCM_MAGIC_SNARFER
