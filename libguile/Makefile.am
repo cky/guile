@@ -213,7 +213,7 @@ EXTRA_DIST = ChangeLog-gh ChangeLog-scm ChangeLog-threads		\
     cpp_errno.c cpp_err_symbols.in cpp_err_symbols.c		\
     cpp_sig_symbols.c cpp_sig_symbols.in cpp_cnvt.awk	\
     c-tokenize.lex threads-plugin.c version.h.in pthread-threads.c \
-    scmconfig.h.top
+    scmconfig.h.top gettext.h
 #    $(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES) \
 #    guile-procedures.txt guile.texi
 
