@@ -1203,8 +1203,6 @@ scm_basename (SCM filename, SCM suffix)
 void
 scm_init_filesys ()
 {
-  scm_add_feature ("i/o-extensions");
-
   scm_tc16_dir = scm_make_smob_type_mfpe ("directory", 0,
                                          NULL, scm_dir_free,scm_dir_print, NULL);
 

@@ -26,8 +26,9 @@ ice9_sources =								\
 	and-let*.scm boot-9.scm calling.scm common-list.scm debug.scm	\
 	debugger.scm emacs.scm expect.scm format.scm			\
 	getopt-gnu-style.scm getopt-long.scm hcons.scm lineio.scm	\
-	ls.scm mapping.scm						\
-	optargs.scm poe.scm popen.scm psyntax.pp psyntax.ss q.scm	\
+	ls.scm mapping.scm networking.scm				\
+	optargs.scm poe.scm popen.scm posix.scm \
+	psyntax.pp psyntax.ss q.scm	\
 	r4rs.scm regex.scm runq.scm session.scm slib.scm		\
 	streams.scm string-fun.scm syncase.scm tags.scm threads.scm
 

@@ -1,3 +1,23 @@
+1999-09-23  Gary Houston  <ghouston@freewire.co.uk>
+
+	* boot-9.scm (load-user-init): check that the posix feature is
+	available before using getpw and getuid.
+	(top-repl): don't install handlers for SIGINT etc., without posix.
+	(file-is-directory?): use 'posix instead of i/o-extensions to 
+	check for stat.
+	(load-user-init): use file-exists? and file-is-directory? to
+	check for .guile, instead of stat.
+	(file-is-directory?): don't display the file name if posix not
+	available.
+	(feature?): I guess this is deprecated.  redefined using "provided?"
+	and changed users in boot-9.scm to "provided?".
+	Conditionally load posix.scm and networking.scm.
+
+	posix.scm, networking.scm: new files.  Move definitions from
+	boot-9.scm if they are only useful with posix/networking available.
+	
+	* Makefile.am (ice9_sources): add posix.scm, networking.scm.
+
 1999-09-17  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* debugger.scm (read-and-dispatch-commands): Handle other throws

@@ -461,7 +461,6 @@ scm_boot_guile_1 (base, closure)
       scm_init_fluids ();
       scm_init_backtrace ();	/* Requires fluids */
       scm_init_fports ();
-      scm_init_filesys ();
       scm_init_gc ();
       scm_init_gdbint ();
       scm_init_hash ();
@@ -475,20 +474,25 @@ scm_boot_guile_1 (base, closure)
       scm_init_macros ();
       scm_init_mallocs ();
       scm_init_modules ();
-      scm_init_net_db ();
       scm_init_numbers ();
       scm_init_objprop ();
       scm_init_options ();
       scm_init_pairs ();
       scm_init_ports ();
+#ifdef HAVE_POSIX
+      scm_init_filesys ();
       scm_init_posix ();
+#endif
 #ifdef HAVE_REGCOMP
       scm_init_regex_posix ();
 #endif
       scm_init_procs ();
       scm_init_procprop ();
       scm_init_scmsigs ();
+#ifdef HAVE_NETWORKING
+      scm_init_net_db ();
       scm_init_socket ();
+#endif
       scm_init_sort ();
 #ifdef DEBUG_EXTENSIONS
       scm_init_srcprop ();

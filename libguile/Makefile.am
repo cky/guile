@@ -37,13 +37,13 @@ guile_LDADD = libguile.la ${THREAD_LIBS_LOCAL}
 libguile_la_SOURCES = \
     alist.c arbiters.c async.c backtrace.c boolean.c chars.c		\
     continuations.c debug.c dynl.c dynwind.c eq.c error.c eval.c	\
-    evalext.c feature.c filesys.c fluids.c fports.c gc.c gdbint.c	\
+    evalext.c feature.c fluids.c fports.c gc.c gdbint.c	\
     gh_data.c gh_eval.c gh_funcs.c gh_init.c gh_io.c gh_list.c		\
     gh_predicates.c gsubr.c guardians.c hash.c hashtab.c init.c		\
     ioext.c keywords.c lang.c list.c load.c macros.c mallocs.c		\
-    modules.c net_db.c numbers.c objects.c objprop.c options.c pairs.c	\
-    ports.c posix.c print.c procprop.c procs.c ramap.c random.c read.c	\
-    root.c scmsigs.c script.c simpos.c smob.c socket.c sort.c		\
+    modules.c numbers.c objects.c objprop.c options.c pairs.c	\
+    ports.c print.c procprop.c procs.c ramap.c random.c read.c	\
+    root.c scmsigs.c script.c simpos.c smob.c sort.c		\
     srcprop.c stackchk.c stacks.c stime.c strings.c strop.c strorder.c	\
     strports.c struct.c symbols.c tag.c throw.c unif.c variable.c	\
     vectors.c version.c vports.c weaks.c
@@ -64,7 +64,8 @@ BUILT_SOURCES = \
 
 EXTRA_libguile_la_SOURCES = _scm.h		\
     alloca.c inet_aton.c memmove.c putenv.c strerror.c	\
-    threads.c regex-posix.c iselect.c
+    threads.c regex-posix.c iselect.c \
+    filesys.c posix.c netdb.c socket.c
 
 ## This is kind of nasty... there are ".c" files that we don't want to
 ## compile, since they are #included in threads.c.  So instead we list

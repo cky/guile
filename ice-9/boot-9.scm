@@ -40,6 +40,9 @@
 (define (provided? feature)
   (and (memq feature *features*) #t))
 
+;;; presumably deprecated.
+(define feature? provided?)
+
 
 ;;; {R4RS compliance}
 
@@ -564,37 +567,15 @@
 	     (loop (f (car l)) (cdr l))))))
 
 
-;;; {Files}
-;;;
-;;; If no one can explain this comment to me by 31 Jan 1998, I will
-;;; assume it is meaningless and remove it. -twp
-;;;   !!!! these should be implemented using Tcl commands, not fports.
 
-(define (feature? feature)
-  (and (memq feature *features*) #t))
+(if (provided? 'posix)
+    (primitive-load-path "ice-9/posix.scm"))
 
-;; Using the vector returned by stat directly is probably not a good
-;; idea (it could just as well be a record).  Hence some accessors.
-(define (stat:dev f) (vector-ref f 0))
-(define (stat:ino f) (vector-ref f 1))
-(define (stat:mode f) (vector-ref f 2))
-(define (stat:nlink f) (vector-ref f 3))
-(define (stat:uid f) (vector-ref f 4))
-(define (stat:gid f) (vector-ref f 5))
-(define (stat:rdev f) (vector-ref f 6))
-(define (stat:size f) (vector-ref f 7))
-(define (stat:atime f) (vector-ref f 8))
-(define (stat:mtime f) (vector-ref f 9))
-(define (stat:ctime f) (vector-ref f 10))
-(define (stat:blksize f) (vector-ref f 11))
-(define (stat:blocks f) (vector-ref f 12))
-
-;; derived from stat mode.
-(define (stat:type f) (vector-ref f 13))
-(define (stat:perms f) (vector-ref f 14))
+(if (provided? 'socket)
+    (primitive-load-path "ice-9/networking.scm"))
 
 (define file-exists?
-  (if (feature? 'posix)
+  (if (provided? 'posix)
       (lambda (str)
 	(access? str F_OK))
       (lambda (str)
@@ -604,12 +585,10 @@
 	      #f)))))
 
 (define file-is-directory?
-  (if (feature? 'i/o-extensions)
+  (if (provided? 'posix)
       (lambda (str)
 	(eq? (stat:type (stat str)) 'directory))
       (lambda (str)
-	(display str)
-	(newline)
 	(let ((port (catch 'system-error
 			   (lambda () (open-file (string-append str "/.")
 						 OPEN_READ))
@@ -650,82 +629,6 @@
 	(apply error "unhandled-exception:" key args))))
 
 
-;;; {Non-polymorphic versions of POSIX functions}
-
-(define (getgrnam name) (getgr name))
-(define (getgrgid id) (getgr id))
-(define (gethostbyaddr addr) (gethost addr))
-(define (gethostbyname name) (gethost name))
-(define (getnetbyaddr addr) (getnet addr))
-(define (getnetbyname name) (getnet name))
-(define (getprotobyname name) (getproto name))
-(define (getprotobynumber addr) (getproto addr))
-(define (getpwnam name) (getpw name))
-(define (getpwuid uid) (getpw uid))
-(define (getservbyname name proto) (getserv name proto))
-(define (getservbyport port proto) (getserv port proto))
-(define (endgrent) (setgr))
-(define (endhostent) (sethost))
-(define (endnetent) (setnet))
-(define (endprotoent) (setproto))
-(define (endpwent) (setpw))
-(define (endservent) (setserv))
-(define (getgrent) (getgr))
-(define (gethostent) (gethost))
-(define (getnetent) (getnet))
-(define (getprotoent) (getproto))
-(define (getpwent) (getpw))
-(define (getservent) (getserv))
-(define (setgrent) (setgr #f))
-(define (sethostent) (sethost #t))
-(define (setnetent) (setnet #t))
-(define (setprotoent) (setproto #t))
-(define (setpwent) (setpw #t))
-(define (setservent) (setserv #t))
-
-(define (passwd:name obj) (vector-ref obj 0))
-(define (passwd:passwd obj) (vector-ref obj 1))
-(define (passwd:uid obj) (vector-ref obj 2))
-(define (passwd:gid obj) (vector-ref obj 3))
-(define (passwd:gecos obj) (vector-ref obj 4))
-(define (passwd:dir obj) (vector-ref obj 5))
-(define (passwd:shell obj) (vector-ref obj 6))
-
-(define (group:name obj) (vector-ref obj 0))
-(define (group:passwd obj) (vector-ref obj 1))
-(define (group:gid obj) (vector-ref obj 2))
-(define (group:mem obj) (vector-ref obj 3))
-
-(define (hostent:name obj) (vector-ref obj 0))
-(define (hostent:aliases obj) (vector-ref obj 1))
-(define (hostent:addrtype obj) (vector-ref obj 2))
-(define (hostent:length obj) (vector-ref obj 3))
-(define (hostent:addr-list obj) (vector-ref obj 4))
-
-(define (netent:name obj) (vector-ref obj 0))
-(define (netent:aliases obj) (vector-ref obj 1))
-(define (netent:addrtype obj) (vector-ref obj 2))
-(define (netent:net obj) (vector-ref obj 3))
-
-(define (protoent:name obj) (vector-ref obj 0))
-(define (protoent:aliases obj) (vector-ref obj 1))
-(define (protoent:proto obj) (vector-ref obj 2))
-
-(define (servent:name obj) (vector-ref obj 0))
-(define (servent:aliases obj) (vector-ref obj 1))
-(define (servent:port obj) (vector-ref obj 2))
-(define (servent:proto obj) (vector-ref obj 3))
-
-(define (sockaddr:fam obj) (vector-ref obj 0))
-(define (sockaddr:path obj) (vector-ref obj 1))
-(define (sockaddr:addr obj) (vector-ref obj 1))
-(define (sockaddr:port obj) (vector-ref obj 2))
-
-(define (utsname:sysname obj) (vector-ref obj 0))
-(define (utsname:nodename obj) (vector-ref obj 1))
-(define (utsname:release obj) (vector-ref obj 2))
-(define (utsname:version obj) (vector-ref obj 3))
-(define (utsname:machine obj) (vector-ref obj 4))
 
 (define (tm:sec obj) (vector-ref obj 0))
 (define (tm:min obj) (vector-ref obj 1))
@@ -862,16 +765,15 @@
 ;; This is mostly for the internal use of the code generated by
 ;; scm_compile_shell_switches.
 (define (load-user-init)
-  (define (has-init? dir)
+  (define (existing-file dir)
     (let ((path (in-vicinity dir ".guile")))
-      (catch 'system-error 
-	     (lambda ()
-	       (let ((stats (stat path)))
-		 (if (not (eq? (stat:type stats) 'directory))
-		     path)))
-	     (lambda dummy #f))))
-  (let ((path (or (has-init? (or (getenv "HOME") "/"))
-                  (has-init? (passwd:dir (getpw (getuid)))))))
+      (if (and (file-exists? path)
+	       (not (file-is-directory? path)))
+	  path
+	  #f)))
+  (let ((path (or (existing-file (or (getenv "HOME") "/"))
+                  (and (provided? 'posix) 
+		       (existing-file (passwd:dir (getpw (getuid))))))))
     (if path (primitive-load path))))
 
 
@@ -1000,7 +902,7 @@
 (read-hash-extend #\. (lambda (c port)
 			(eval (read port))))
 
-(if (feature? 'array)
+(if (provided? 'array)
     (begin
       (let ((make-array-proc (lambda (template)
 			       (lambda (c port)
@@ -2937,40 +2839,6 @@
   (define-module (guile-user) :use-module (ice-9 emacs)))
 
 
-;;; {I/O functions for Tcl channels (disabled)}
-
-;; (define in-ch (get-standard-channel TCL_STDIN))
-;; (define out-ch (get-standard-channel TCL_STDOUT))
-;; (define err-ch (get-standard-channel TCL_STDERR))
-;; 
-;; (define inp (%make-channel-port in-ch "r"))
-;; (define outp (%make-channel-port out-ch "w"))
-;; (define errp (%make-channel-port err-ch "w"))
-;; 
-;; (define %system-char-ready? char-ready?)
-;; 
-;; (define (char-ready? p)
-;;   (if (not (channel-port? p))
-;;       (%system-char-ready? p)
-;;       (let* ((channel (%channel-port-channel p))
-;; 	     (old-blocking (channel-option-ref channel :blocking)))
-;; 	(dynamic-wind
-;; 	 (lambda () (set-channel-option the-root-tcl-interpreter channel :blocking "0"))
-;; 	 (lambda () (not (eof-object? (peek-char p))))
-;; 	 (lambda () (set-channel-option the-root-tcl-interpreter channel :blocking old-blocking))))))
-;; 
-;; (define (top-repl)
-;;   (with-input-from-port inp
-;;     (lambda ()
-;;       (with-output-to-port outp
-;; 	(lambda ()
-;; 	  (with-error-to-port errp
-;; 	    (lambda ()
-;; 	      (scm-style-repl))))))))
-;; 
-;; (set-current-input-port inp)
-;; (set-current-output-port outp)
-;; (set-current-error-port errp)
 
 (define using-readline?
   (let ((using-readline? (make-fluid)))
@@ -2999,10 +2867,13 @@
       (define-module (guile-user) :use-module (ice-9 regex)))
 
   (let ((old-handlers #f)
-	(signals `((,SIGINT . "User interrupt")
-		   (,SIGFPE . "Arithmetic error")
-		   (,SIGBUS . "Bad memory access (bus error)")
-		   (,SIGSEGV . "Bad memory access (Segmentation violation)"))))
+	(signals (if (provided? 'posix)
+		     `((,SIGINT . "User interrupt")
+		       (,SIGFPE . "Arithmetic error")
+		       (,SIGBUS . "Bad memory access (bus error)")
+		       (,SIGSEGV .
+				 "Bad memory access (Segmentation violation)"))
+		     '())))
 
     (dynamic-wind
 

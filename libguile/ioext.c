@@ -505,6 +505,8 @@ scm_fdes_to_ports (fd)
 void 
 scm_init_ioext ()
 {
+  scm_add_feature ("i/o-extensions");
+
 #include "ioext.x"
 }
 

@@ -150,6 +150,10 @@
 /* This is included as part of a workaround for a autoheader bug. */
 #undef HAVE_REGCOMP
 
+#undef HAVE_POSIX
+
+#undef HAVE_NETWORKING
+
 /* Define if the operating system supplies bzero without declaring it. */
 #undef MISSING_BZERO_DECL
 

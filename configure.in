@@ -41,19 +41,43 @@ AC_CONFIG_SUBDIRS(guile-readline)
 #--------------------------------------------------------------------
 
 AC_ARG_ENABLE(dynamic-linking,
-  [  --enable-dynamic-linking  Include support for dynamic linking],,
+  [  --enable-dynamic-linking  include support for dynamic linking],,
   enable_dynamic_linking=yes)
 
 AC_ARG_ENABLE(guile-debug,
-  [  --enable-guile-debug    Include internal debugging functions],
+  [  --enable-guile-debug    include internal debugging functions],
   if test "$enable_guile_debug" = y || test "$enable_guile_debug" = yes; then
     AC_DEFINE(GUILE_DEBUG)
   fi)
+
+AC_ARG_ENABLE(posix,
+  [  --disable-posix         omit posix interfaces],,
+  enable_posix=yes)
+
+AC_ARG_ENABLE(networking,
+  [  --disable-net           omit networking interfaces],,
+  enable_networking=yes)
+
+AC_ARG_ENABLE(regex,
+  [  --disable-regex         omit regular expression interfaces],,
+  enable_regex=yes)
 
 dnl The --disable-debug used to control these two.  But now they are
 dnl a required part of the distribution.
 AC_DEFINE(DEBUG_EXTENSIONS)
 AC_DEFINE(READER_EXTENSIONS)
+
+dnl files which are destined for separate modules.
+
+if test "$enable_posix" = yes; then
+   LIBOBJS="$LIBOBJS filesys.o posix.o"
+   AC_DEFINE(HAVE_POSIX)
+fi
+
+if test "$enable_networking" = yes; then
+   LIBOBJS="$LIBOBJS net_db.o socket.o"
+   AC_DEFINE(HAVE_NETWORKING)
+fi
 
 #--------------------------------------------------------------------
 
@@ -220,19 +244,21 @@ dnl to behave differently.)
 
 AC_SYS_RESTARTABLE_SYSCALLS
 
-if test "$ac_cv_header_regex_h" = yes ||
-   test "$ac_cv_header_rxposix_h" = yes ||
-   test "$ac_cv_header_rx_rxposix_h" = yes; then
-  GUILE_NAMED_CHECK_FUNC(regcomp, norx, [LIBOBJS="regex-posix.o $LIBOBJS"],
-  [AC_CHECK_LIB(rx, main)
-   GUILE_NAMED_CHECK_FUNC(regcomp, rx, [LIBOBJS="regex-posix.o $LIBOBJS"])]
-  )
-  dnl The following should not be necessary, but for some reason
-  dnl autoheader misses it if we don't include it!
-  if test "$ac_cv_func_regcomp_norx" = yes ||
-     test "$ac_cv_func_regcomp_rx" = yes; then
-    AC_DEFINE(HAVE_REGCOMP)
-  fi
+if test "$enable_regex" = yes; then
+   if test "$ac_cv_header_regex_h" = yes ||
+      test "$ac_cv_header_rxposix_h" = yes ||
+      test "$ac_cv_header_rx_rxposix_h" = yes; then
+     GUILE_NAMED_CHECK_FUNC(regcomp, norx, [LIBOBJS="regex-posix.o $LIBOBJS"],
+     [AC_CHECK_LIB(rx, main)
+      GUILE_NAMED_CHECK_FUNC(regcomp, rx, [LIBOBJS="regex-posix.o $LIBOBJS"])]
+     )
+     dnl The following should not be necessary, but for some reason
+     dnl autoheader misses it if we don't include it!
+     if test "$ac_cv_func_regcomp_norx" = yes ||
+        test "$ac_cv_func_regcomp_rx" = yes; then
+       AC_DEFINE(HAVE_REGCOMP)
+     fi
+   fi
 fi
 
 AC_REPLACE_FUNCS(inet_aton putenv strerror memmove)
@@ -310,85 +336,6 @@ AC_MSG_RESULT($scm_cv_struct_linger)
 if test $scm_cv_struct_linger = yes; then
 	AC_DEFINE(HAVE_STRUCT_LINGER)
 fi
-	
-#--------------------------------------------------------------------
-#
-# How can you violate a stdio abstraction by setting a stream's fd?
-#
-#--------------------------------------------------------------------
-
-dnl  AC_MSG_CHECKING(how to set a stream file descriptor)
-dnl  AC_CACHE_VAL(scm_cv_fd_setter,
-dnl  	AC_TRY_COMPILE([#include <stdio.h>],
-dnl  			[stdout->_file = 1],
-dnl  			scm_cv_fd_setter="_file",
-dnl  	AC_TRY_COMPILE([#include <stdio.h>],
-dnl  			[stdout->__file = 1],
-dnl  			scm_cv_fd_setter="__file",
-dnl  	AC_TRY_COMPILE([#include <stdio.h>],
-dnl  			[stdout->_fileno = 1],
-dnl  			scm_cv_fd_setter="_fileno",
-dnl  			scm_cv_fd_setter=""))))
-
-dnl  if test "$scm_cv_fd_setter"; then
-dnl  	AC_MSG_RESULT($scm_cv_fd_setter)
-dnl  	AC_DEFINE_UNQUOTED(FD_SETTER, $scm_cv_fd_setter)
-dnl  else
-dnl  	AC_MSG_RESULT(we couldn't do it!)
-dnl  fi
-
-#--------------------------------------------------------------------
-# How to find out whether a FILE structure contains buffered data.
-# From Tk we have the following list:
-#		_cnt:		Most UNIX systems
-#		__cnt:		HPUX and SCO
-#		_r:		BSD
-#		readCount:	Sprite
-#	Or, in GNU libc there are two fields, _gptr and _egptr, which
-#	have to be compared.
-#	These can also be known as _IO_read_ptr and _IO_read_end.
-#--------------------------------------------------------------------
-
-dnl  AC_MSG_CHECKING(how to get buffer char count from FILE structure)
-dnl  AC_CACHE_VAL(scm_cv_struct_file_count,
-dnl  	AC_TRY_COMPILE([#include <stdio.h>],
-dnl  			[FILE *f = stdin; f->_cnt = 0],
-dnl  			scm_cv_struct_file_count="_cnt",
-dnl  	AC_TRY_COMPILE([#include <stdio.h>],
-dnl  			[FILE *f = stdin; f->__cnt = 0],
-dnl  			scm_cv_struct_file_count="__cnt",
-dnl  	AC_TRY_COMPILE([#include <stdio.h>],
-dnl  			[FILE *f = stdin; f->_r = 0],
-dnl  			scm_cv_struct_file_count="_r",
-dnl  	AC_TRY_COMPILE([#include <stdio.h>],
-dnl  			[FILE *f = stdin; f->readCount = 0],
-dnl  			scm_cv_struct_file_count="readCount",
-dnl  	scm_cv_struct_file_count="")))))
-dnl  if test "$scm_cv_struct_file_count"; then
-dnl  	AC_MSG_RESULT($scm_cv_struct_file_count)
-dnl  	AC_DEFINE_UNQUOTED(FILE_CNT_FIELD, $scm_cv_struct_file_count)
-dnl  else
-dnl  AC_CACHE_VAL(scm_cv_struct_file_gptr,
-dnl  	AC_TRY_COMPILE([#include <stdio.h>],
-dnl  			[FILE *f = stdin; f->_gptr = f->egptr;],
-dnl  			scm_cv_struct_file_gptr=1,
-dnl  	scm_cv_struct_file_gptr=""))
-dnl  if test "$scm_cv_struct_gptr"; then
-dnl  	AC_MSG_RESULT(gptr)
-dnl  	AC_DEFINE_UNQUOTED(FILE_CNT_GPTR, $scm_cv_struct_file_gptr)
-dnl  else
-dnl  AC_CACHE_VAL(scm_cv_struct_file_readptr,
-dnl  	AC_TRY_COMPILE([#include <stdio.h>],
-dnl  			[FILE *f = stdin; f->_IO_read_ptr = f->_IO_read_end;],
-dnl  			scm_cv_struct_file_readptr=1))
-dnl  if test "$scm_cv_struct_file_readptr"; then
-dnl  	AC_MSG_RESULT(read_ptr)
-dnl  	AC_DEFINE_UNQUOTED(FILE_CNT_READPTR, $scm_cv_struct_file_readptr)
-dnl  else
-dnl  	AC_MSG_RESULT(we couldn't do it!)
-dnl  fi
-dnl  fi
-dnl  fi
 
 #--------------------------------------------------------------------
 #
@@ -451,7 +398,6 @@ if test "${THREAD_PACKAGE}" != "" ; then
     AC_DEFINE(GUILE_ISELECT, 1)
   fi
 fi
-
 
 ## If we're using GCC, ask for aggressive warnings.
 case "$GCC" in
