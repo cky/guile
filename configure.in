@@ -47,7 +47,6 @@ AH_TOP(/*GUILE_CONFIGURE_COPYRIGHT*/)
 #
 #--------------------------------------------------------------------
 
-AC_CONFIG_SUBDIRS(libltdl)
 AC_CONFIG_SUBDIRS(guile-readline)
 
 #--------------------------------------------------------------------
@@ -69,12 +68,11 @@ AC_MINIX
 AM_PROG_CC_STDC
 
 AC_LIBTOOL_DLOPEN
-AC_LIBLTDL_INSTALLABLE
 AC_PROG_LIBTOOL
+AC_CHECK_LIB([ltdl], [lt_dlinit], ,
+  [AC_MSG_ERROR([libltdl not found.  See README.])])
 
 AC_SUBST(DLPREOPEN)
-AC_SUBST(LTDLINCL)
-AC_SUBST(LIBLTDL)
 
 AC_CHECK_PROG(have_makeinfo, makeinfo, yes, no)
 AM_CONDITIONAL(HAVE_MAKEINFO, test "$have_makeinfo" = yes)
@@ -573,9 +571,6 @@ if test "$MINGW32" = "yes" ; then
       AC_DEFINE(USE_DLL_IMPORT, 1,
         [Define if you need additional CPP macros on Win32 platforms.])
     fi
-    if test x"$enable_ltdl_install" = x"yes" ; then
-      INCLTDL="-DLIBLTDL_DLL_IMPORT $INCLTDL"
-    fi
 fi
 AC_SUBST(EXTRA_DEFS)
 
@@ -622,12 +617,12 @@ AC_SEARCH_LIBS(crypt, crypt,
 
 dnl GMP tests
 AC_CHECK_LIB([gmp], [__gmpz_init], ,
-  [AC_MSG_ERROR([GNU MP not found, see http://swox.com/gmp])])
+  [AC_MSG_ERROR([GNU MP not found, see README])])
 
 # mpz_import is a macro so we need to include <gmp.h>
 AC_TRY_LINK([#include <gmp.h>],
             [mpz_import (0, 0, 0, 0, 0, 0, 0);] , ,
-  [AC_MSG_ERROR([At least GNU MP 4.1 is required, see http://swox.com/gmp])])
+  [AC_MSG_ERROR([At least GNU MP 4.1 is required, see README])])
 
 dnl i18n tests
 #AC_CHECK_HEADERS([libintl.h])

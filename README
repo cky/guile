@@ -27,12 +27,13 @@ Generic instructions for configuring and compiling Guile can be found
 in the INSTALL file.  Guile specific information and configure options
 can be found below, including instructions for installing SLIB.
 
-Guile can use a number of external packages such as `readline' when
-they are available.  Guile expects to be able to find these packages
-in the default compiler setup, it does not try to make any special
-arrangements itself.  For example, for the `readline' package, Guile
-expects to be able to find the include file <readline/readline.h>,
-without passing any special `-I' options to the compiler.
+Guile requires a few external packages and can optionally use a number
+of external packages such as `readline' when they are available.
+Guile expects to be able to find these packages in the default
+compiler setup, it does not try to make any special arrangements
+itself.  For example, for the `readline' package, Guile expects to be
+able to find the include file <readline/readline.h>, without passing
+any special `-I' options to the compiler.
 
 If you installed an external package, and you used the --prefix
 installation option to install it somewhere else than /usr/local, you
@@ -44,6 +45,21 @@ particular, it is not good enough to use the same --prefix option when
 you install gcc and the package; you need to use the
 --with-local-prefix option as well.  See the gcc documentation for
 more details.
+
+
+Required External Packages ================================================
+
+Guile requires the following external packages:
+
+  - GNU MP, at least version 4.1
+
+    GNU MP is used for bignum arithmetic.  It is available from
+    http://swox.com/gmp
+
+  - libltdl from libtool, at least from libtool version 1.5.6
+
+    libltdl is used for loading extensions at run-time.  It is
+    available from http://www.gnu.org/software/libtool/
 
 
 Special Instructions For Some Systems =====================================
