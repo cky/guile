@@ -1,6 +1,6 @@
 !!! This is not a Guile release; it is a source tree retrieved via
 anonymous CVS or as a nightly snapshot at some random time after the
-Guile 1.4 release.  If this were a Guile release, you would not see
+Guile 1.6 release.  If this were a Guile release, you would not see
 this message. !!!  [fixme: zonk on release]
 
 This is a 1.7 development version of Guile, Project GNU's extension
@@ -10,7 +10,7 @@ own scripting language.  Guile will eventually support other languages
 as well, giving users of Guile-based applications a choice of
 languages.
 
-Guile versions with an odd middle number, i.e. 1.5.* are unstable
+Guile versions with an odd middle number, i.e. 1.7.* are unstable
 development versions.  Even middle numbers indicate stable versions.
 This has been the case since the 1.3.* series.
 
@@ -53,23 +53,7 @@ instructions above, but it seems that a few systems still need special
 treatment.  If you can send us fixes for these problems, we'd be
 grateful.
 
-SunOS 4.1: Guile's shared library support seems to be confused, but
-    hey; shared libraries are confusing.  You may need to configure
-    Guile with a command like:
-	./configure --disable-shared
-    For more information on `--disable-shared', see below, "Flags
-    Accepted by Configure".
-
-HP/UX: GCC 2.7.2 (and maybe other versions) have trouble creating
-    shared libraries if they depend on any non-shared libraries.  GCC
-    seems to have other problems as well.  To work around this, we
-    suggest you configure Guile to use the system's C compiler:
-	CC=cc ./configure
-
-NetBSD: Perry Metzger says, "Guile will build under NetBSD only using
-    gmake -- the native make will not work.  (gmake is in our package
-    system, so this will not be a problem when we packagize 1.3.)"
-
+   <none yet listed>
 
 Guile specific flags Accepted by Configure =================================
 
@@ -79,25 +63,11 @@ switches specific to Guile you may find useful in some circumstances.
 
 --with-threads  ---  Build with thread support
 
-  Build a Guile executable and library that supports cooperative
-  threading.  If you use this switch, Guile will also build and
-  install the QuickThreads non-preemptive threading library,
-  libqthreads, which you will need to link into your programs after
-  libguile.  When you use `guile-config', you will pick up all
-  neccessary linker flags automatically.
+  Build a Guile executable and library that supports multi-threading.
 
-  Cooperative threads are not yet thoroughly tested; once they are,
-  they will be enabled by default.  The interaction with blocking I/O
-  is pretty ad hoc at the moment.  In our experience, bugs in the
-  thread support do not affect you if you don't actually use threads.
-
---with-modules  ---  Specify statically linked `modules'
-
-  Guile can dynamically load `plugin modules' during runtime, using
-  facilities provided by libtool.  Not all platforms support this,
-  however.  On these platforms, you can statically link the plugin
-  modules into libguile when Guile itself is built.  XXX - how does
-  one specify the modules?
+  The default is to enable threading support when your operating
+  system offsers 'POSIX threads'.  When you do not want threading, use
+  `--without-threads'.
 
 --enable-deprecated=LEVEL
 
@@ -110,7 +80,7 @@ switches specific to Guile you may find useful in some circumstances.
 
   Deprecated features are considered harmful; using them is likely a
   bug.  See below for the related notion of `discouraged' features,
-  which are OK but have fallen out of favour.
+  which are OK but have fallen out of favor.
 
   See the file NEWS for a list of features that are currently
   deprecated.  Each entry will also tell you what you should replace
@@ -173,11 +143,10 @@ switches specific to Guile you may find useful in some circumstances.
   Normally, both static and shared libraries will be built if your
   system supports them.
 
-
 --enable-debug-freelist  ---  Enable freelist debugging.
 
-  This enables a debugging version of SCM_NEWCELL(), and also
-  registers an extra primitive, the setter
+  This enables a debugging version of scm_cell and scm_double_cell,
+  and also registers an extra primitive, the setter
   `gc-set-debug-check-freelist!'.
 
   Configure with the --enable-debug-freelist option to enable the
@@ -191,25 +160,16 @@ switches specific to Guile you may find useful in some circumstances.
   down the interpreter dramatically, so the setter should be used to
   turn on this extra processing only when necessary.
 
-
 --enable-debug-malloc  ---  Enable malloc debugging.
 
-  Include code for debugging of calls to scm_must_malloc/realloc/free.
+  Include code for debugging of calls to scm_malloc, scm_realloc, etc.
 
-  Checks that
-
-  1. objects freed by scm_must_free has been mallocated by scm_must_malloc
-  2. objects reallocated by scm_must_realloc has been allocated by
-     scm_must_malloc
-  3. reallocated objects are reallocated with the same what string
-
-  But, most importantly, it records the number of allocated objects of
-  each kind.  This is useful when searching for memory leaks.
+  It records the number of allocated objects of each kind.  This is
+  useful when searching for memory leaks.
 
   A Guile compiled with this option provides the primitive
   `malloc-stats' which returns an alist with pairs of kind and the
   number of objects of that kind.
-
 
 --enable-guile-debug  ---  Include internal debugging functions
 --disable-arrays      ---  omit array and uniform array support
@@ -243,33 +203,9 @@ GUILE_FOR_BUILD variable, it defaults to just "guile".
 
 Using Guile Without Installing It =========================================
 
-If you want to run Guile without installing it, set the environment
-variable `GUILE_LOAD_PATH' to a colon-separated list of directories,
-including the directory containing this INSTALL file.  If you used a
-separate build directory, you'll need to include the build directory
-in the path as well.
-
-For example, suppose the Guile distribution unpacked into a directory
-called `/home/jimb/guile-snap' (so the full name of this INSTALL file
-would be `/home/jimb/guile-snap/INSTALL').  Then you might say, if
-you're using Bash or any other Bourne shell variant,
-
-  export GUILE_LOAD_PATH=/home/jimb/guile-snap
-
-or if you're using CSH or one of its variants:
-
-  setenv GUILE_LOAD_PATH /home/jimb/guile-snap
-
-You will additionally need to set your `LTDL_LIBRARY_PATH' environment
-variable to the directory in which the compiled SRFI support modules
-are created if you want to use the modules for SRFI-4, SRFI-13 or
-SRFI-14 support.  Similar to the example above, this will be,
-
-  export LTDL_LIBRARY_PATH=/home/jimb/guile-snap/srfi/.libs
-
-or if you're using CSH or one of its variants:
-
-  setenv LTDL_LIBRARY_PATH /home/jimb/guile-snap/srfi/.libs
+The top directory of the Guile sources contains a script called
+"pre-inst-guile" that can be used to run the Guile that has just been
+built.
 
 
 Installing SLIB ===========================================================
@@ -303,6 +239,7 @@ Example:
   (use-modules (ice-9 slib))
   (require 'primes)
   (prime? 7)
+
 
 Guile Documentation ==================================================
 
@@ -349,8 +286,6 @@ Executables, in ${prefix}/bin:
  guile-snarf --- a script to parse declarations in your C code for
  	Scheme-visible C functions, Scheme objects to be used by C code,
  	etc.
- guile-tools --- a wrapper to invoke the executable modules in
- 	subdirectory `scripts' (also installed).
 
 Libraries, in ${prefix}/lib.  Depending on the platform and options
         given to configure, you may get shared libraries in addition
@@ -358,12 +293,9 @@ Libraries, in ${prefix}/lib.  Depending on the platform and options
 
  libguile.a --- an object library containing the Guile interpreter,
  	You can use Guile in your own programs by linking against this.
- libqthreads.a --- an object library containing the QuickThreads
- 	primitives.  If you enabled thread support when you configured
- 	Guile, you will need to link your code against this too.
  libguilereadline.a --- an object library containing glue code for the
-         GNU readline library.  See NEWS for instructions on how to enable
- 	readline for your personal use.
+        GNU readline library.
+
  libguile-srfi-*.a --- various SRFI support libraries
 
 Header files, in ${prefix}/include:
