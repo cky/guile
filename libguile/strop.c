@@ -114,11 +114,11 @@ SCM_DEFINE (scm_string_index, "string-index", 2, 2, 0,
 	    "it is used as the starting index; if @var{to} is given and not @var{#f},\n"
 	    "it is used as the ending index (exclusive).\n\n"
 	    "@example\n"
-	    "(string-index "weiner" #\e)\n"
+	    "(string-index \"weiner\" #\\e)\n"
 	    "@result{} 1\n\n"
-	    "(string-index "weiner" #\e 2)\n"
+	    "(string-index \"weiner\" #\\e 2)\n"
 	    "@result{} 4\n\n"
-	    "(string-index "weiner" #\e 2 4)\n"
+	    "(string-index \"weiner\" #\\e 2 4)\n"
 	    "@result{} #f\n"
 	    "@end example")
 #define FUNC_NAME s_scm_string_index
@@ -145,11 +145,11 @@ SCM_DEFINE (scm_string_rindex, "string-rindex", 2, 2, 0,
 	    "of @var{char} in the range [@var{frm}, @var{to}-1], which defaults to\n"
 	    "the entire string.\n\n"
 	    "@example\n"
-	    "(string-rindex "weiner" #\e)\n"
+	    "(string-rindex \"weiner\" #\\e)\n"
 	    "@result{} 4\n\n"
-	    "(string-rindex "weiner" #\e 2 4)\n"
+	    "(string-rindex \"weiner\" #\\e 2 4)\n"
 	    "@result{} #f\n\n"
-	    "(string-rindex "weiner" #\e 2 5)\n"
+	    "(string-rindex \"weiner\" #\\e 2 5)\n"
 	    "@result{} 4\n"
 	    "@end example")
 #define FUNC_NAME s_scm_string_rindex
@@ -274,7 +274,7 @@ SCM_DEFINE (scm_substring_fill_x, "substring-fill!", 4, 0, 0,
 	    "(qdocs:) Destructively fills @var{str}, from @var{start} to @var{end}, with @var{fill}.\n\n"
 	    "@example\n"
 	    "(define y \"abcdefg\")\n"
-	    "(substring-fill! y 1 3 #\r)\n"
+	    "(substring-fill! y 1 3 #\\r)\n"
 	    "y\n"
 	    "@result{} \"arrdefg\"\n"
 	    "@end example")

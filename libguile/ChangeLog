@@ -1,5 +1,8 @@
 2000-08-12  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* strop.c: Docstring fixes - quotation marks and backslashes
+	needed quoting.
+
 	* numbers.c (s_scm_logand): Docstring fix - "@end lisp" inserted.
 
 2000-08-11  Neil Jerram  <neil@ossau.uklinux.net>
