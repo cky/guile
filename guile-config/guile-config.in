@@ -4,7 +4,7 @@
 ;;;; guile-config --- utility for linking programs with Guile
 ;;;; Jim Blandy <jim@red-bean.com> --- September 1997
 ;;;; 
-;;;; 	Copyright (C) 1998 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1998, 2001 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by

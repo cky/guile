@@ -1,3 +1,7 @@
+2001-07-18  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* guile-config.in, Makefile.am: Updated copyright notice.
+
 2001-05-28  Gary Houston  <ghouston@arglist.com>
 
 	* Makefile.am: let guile-config depend on libguile/libpath.h,
