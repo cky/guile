@@ -892,7 +892,8 @@ A combination of @code{and} and @code{let*}.
 Each @var{clause} is evaluated in turn, and if @code{#f} is obtained
 then evaluation stops and @code{#f} is returned.  If all are
 non-@code{#f} then @var{body} is evaluated and the last form gives the
-return value.  Each @var{clause} should be one of the following,
+return value, or if @var{body} is empty then the result is @code{#t}.
+Each @var{clause} should be one of the following,
 
 @table @code
 @item (symbol expr)
