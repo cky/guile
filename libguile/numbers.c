@@ -3574,8 +3574,8 @@ scm_product (SCM x, SCM y)
 	{
 	  double z = mpz_get_d (SCM_I_BIG_MPZ (y));
 	  scm_remember_upto_here_1 (y);
-	  return scm_make_complex (z * SCM_COMPLEX_REAL (y),
-				   z * SCM_COMPLEX_IMAG (y));
+	  return scm_make_complex (z * SCM_COMPLEX_REAL (x),
+				   z * SCM_COMPLEX_IMAG (x));
 	}
       else if (SCM_REALP (y))
 	return scm_make_complex (SCM_REAL_VALUE (y) * SCM_COMPLEX_REAL (x),
