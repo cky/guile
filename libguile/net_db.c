@@ -236,7 +236,7 @@ static void scm_resolv_error (const char *subr, SCM bad_value)
  */
 
 SCM_DEFINE (scm_gethost, "gethost", 0, 1, 0, 
-            (SCM name),
+            (SCM host),
 	    "@deffnx procedure gethostbyname hostname\n"
 	    "@deffnx procedure gethostbyaddr address\n"
 	    "Look up a host by name or address, returning a host object.  The\n"
@@ -257,7 +257,7 @@ SCM_DEFINE (scm_gethost, "gethost", 0, 1, 0,
   struct in_addr inad;
   char **argv;
   int i = 0;
-  if (SCM_UNBNDP (name))
+  if (SCM_UNBNDP (host))
     {
 #ifdef HAVE_GETHOSTENT
       entry = gethostent ();
@@ -275,18 +275,18 @@ SCM_DEFINE (scm_gethost, "gethost", 0, 1, 0,
 	  return SCM_BOOL_F;
 	}
     }
-  else if (SCM_ROSTRINGP (name))
+  else if (SCM_ROSTRINGP (host))
     {
-      SCM_COERCE_SUBSTR (name);
-      entry = gethostbyname (SCM_ROCHARS (name));
+      SCM_COERCE_SUBSTR (host);
+      entry = gethostbyname (SCM_ROCHARS (host));
     }
   else
     {
-      inad.s_addr = htonl (SCM_NUM2ULONG (1,name));
+      inad.s_addr = htonl (SCM_NUM2ULONG (1,host));
       entry = gethostbyaddr ((char *) &inad, sizeof (inad), AF_INET);
     }
   if (!entry)
-    scm_resolv_error (FUNC_NAME, name);
+    scm_resolv_error (FUNC_NAME, host);
   
   ve[0] = scm_makfromstr (entry->h_name, 
 			  (scm_sizet) strlen (entry->h_name), 0);
@@ -321,7 +321,7 @@ SCM_DEFINE (scm_gethost, "gethost", 0, 1, 0,
 
 #if defined(HAVE_GETNETENT) && defined(HAVE_GETNETBYNAME) && defined(HAVE_GETNETBYADDR)
 SCM_DEFINE (scm_getnet, "getnet", 0, 1, 0, 
-            (SCM name),
+            (SCM net),
 	    "@deffnx procedure getnetbyname net-name\n"
 	    "@deffnx procedure getnetbyaddr net-number\n"
 	    "Look up a network by name or net number in the network database.  The\n"
@@ -337,7 +337,7 @@ SCM_DEFINE (scm_getnet, "getnet", 0, 1, 0,
 
   ans = scm_make_vector (SCM_MAKINUM (4), SCM_UNSPECIFIED);
   ve = SCM_VELTS (ans);
-  if (SCM_UNBNDP (name))
+  if (SCM_UNBNDP (net))
     {
       errno = 0;
       entry = getnetent ();
@@ -349,20 +349,20 @@ SCM_DEFINE (scm_getnet, "getnet", 0, 1, 0,
 	    return SCM_BOOL_F;
 	}
     }
-  else if (SCM_ROSTRINGP (name))
+  else if (SCM_ROSTRINGP (net))
     {
-      SCM_COERCE_SUBSTR (name);
-      entry = getnetbyname (SCM_ROCHARS (name));
+      SCM_COERCE_SUBSTR (net);
+      entry = getnetbyname (SCM_ROCHARS (net));
     }
   else
     {
       unsigned long netnum;
-      netnum = SCM_NUM2ULONG (1, name);
+      netnum = SCM_NUM2ULONG (1, net);
       entry = getnetbyaddr (netnum, AF_INET);
     }
   if (!entry)
     SCM_SYSERROR_MSG ("no such network ~A",
-		      scm_listify (name, SCM_UNDEFINED), errno);
+		      scm_listify (net, SCM_UNDEFINED), errno);
   ve[0] = scm_makfromstr (entry->n_name, (scm_sizet) strlen (entry->n_name), 0);
   ve[1] = scm_makfromstrs (-1, entry->n_aliases);
   ve[2] = SCM_MAKINUM (entry->n_addrtype + 0L);
@@ -374,7 +374,7 @@ SCM_DEFINE (scm_getnet, "getnet", 0, 1, 0,
 
 #ifdef HAVE_GETPROTOENT
 SCM_DEFINE (scm_getproto, "getproto", 0, 1, 0, 
-            (SCM name),
+            (SCM protocol),
 	    "@deffnx procedure getprotobyname name\n"
 	    "@deffnx procedure getprotobynumber number\n"
 	    "Look up a network protocol by name or by number.  @code{getprotobyname}\n"
@@ -389,7 +389,7 @@ SCM_DEFINE (scm_getproto, "getproto", 0, 1, 0,
 
   ans = scm_make_vector (SCM_MAKINUM (3), SCM_UNSPECIFIED);
   ve = SCM_VELTS (ans);
-  if (SCM_UNBNDP (name))
+  if (SCM_UNBNDP (protocol))
     {
       errno = 0;
       entry = getprotoent ();
@@ -401,20 +401,20 @@ SCM_DEFINE (scm_getproto, "getproto", 0, 1, 0,
 	    return SCM_BOOL_F;
 	}
     }
-  else if (SCM_ROSTRINGP (name))
+  else if (SCM_ROSTRINGP (protocol))
     {
-      SCM_COERCE_SUBSTR (name);
-      entry = getprotobyname (SCM_ROCHARS (name));
+      SCM_COERCE_SUBSTR (protocol);
+      entry = getprotobyname (SCM_ROCHARS (protocol));
     }
   else
     {
       unsigned long protonum;
-      protonum = SCM_NUM2ULONG (1,name);
+      protonum = SCM_NUM2ULONG (1,protocol);
       entry = getprotobynumber (protonum);
     }
   if (!entry)
     SCM_SYSERROR_MSG ("no such protocol ~A",
-		      scm_listify (name, SCM_UNDEFINED), errno);
+		      scm_listify (protocol, SCM_UNDEFINED), errno);
   ve[0] = scm_makfromstr (entry->p_name, (scm_sizet) strlen (entry->p_name), 0);
   ve[1] = scm_makfromstrs (-1, entry->p_aliases);
   ve[2] = SCM_MAKINUM (entry->p_proto + 0L);
@@ -440,7 +440,7 @@ scm_return_entry (struct servent *entry)
 
 #ifdef HAVE_GETSERVENT
 SCM_DEFINE (scm_getserv, "getserv", 0, 2, 0,
-            (SCM name, SCM proto),
+            (SCM name, SCM protocol),
 	    "@deffnx procedure getservbyname name protocol\n"
 	    "@deffnx procedure getservbyport port protocol\n"
 	    "Look up a network service by name or by service number, and return a\n"
@@ -466,17 +466,17 @@ SCM_DEFINE (scm_getserv, "getserv", 0, 2, 0,
 	}
       return scm_return_entry (entry);
     }
-  SCM_VALIDATE_ROSTRING (2,proto);
-  SCM_COERCE_SUBSTR (proto);
+  SCM_VALIDATE_ROSTRING (2,protocol);
+  SCM_COERCE_SUBSTR (protocol);
   if (SCM_ROSTRINGP (name))
     {
       SCM_COERCE_SUBSTR (name);
-      entry = getservbyname (SCM_ROCHARS (name), SCM_ROCHARS (proto));
+      entry = getservbyname (SCM_ROCHARS (name), SCM_ROCHARS (protocol));
     }
   else
     {
       SCM_VALIDATE_INUM (1,name);
-      entry = getservbyport (htons (SCM_INUM (name)), SCM_ROCHARS (proto));
+      entry = getservbyport (htons (SCM_INUM (name)), SCM_ROCHARS (protocol));
     }
   if (!entry)
     SCM_SYSERROR_MSG("no such service ~A", 
@@ -488,15 +488,15 @@ SCM_DEFINE (scm_getserv, "getserv", 0, 2, 0,
 
 #if defined(HAVE_SETHOSTENT) && defined(HAVE_ENDHOSTENT)
 SCM_DEFINE (scm_sethost, "sethost", 0, 1, 0, 
-            (SCM arg),
+            (SCM stayopen),
 	    "If @var{stayopen} is omitted, this is equivalent to @code{endhostent}.\n"
 	    "Otherwise it is equivalent to @code{sethostent stayopen}.")
 #define FUNC_NAME s_scm_sethost
 {
-  if (SCM_UNBNDP (arg))
+  if (SCM_UNBNDP (stayopen))
     endhostent ();
   else
-    sethostent (SCM_NFALSEP (arg));
+    sethostent (SCM_NFALSEP (stayopen));
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -504,15 +504,15 @@ SCM_DEFINE (scm_sethost, "sethost", 0, 1, 0,
 
 #if defined(HAVE_SETNETENT) && defined(HAVE_ENDNETENT) 
 SCM_DEFINE (scm_setnet, "setnet", 0, 1, 0, 
-            (SCM arg),
+            (SCM stayopen),
 	    "If @var{stayopen} is omitted, this is equivalent to @code{endnetent}.\n"
 	    "Otherwise it is equivalent to @code{setnetent stayopen}.")
 #define FUNC_NAME s_scm_setnet
 {
-  if (SCM_UNBNDP (arg))
+  if (SCM_UNBNDP (stayopen))
     endnetent ();
   else
-    setnetent (SCM_NFALSEP (arg));
+    setnetent (SCM_NFALSEP (stayopen));
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -520,15 +520,15 @@ SCM_DEFINE (scm_setnet, "setnet", 0, 1, 0,
 
 #if defined(HAVE_SETPROTOENT) && defined(HAVE_ENDPROTOENT)
 SCM_DEFINE (scm_setproto, "setproto", 0, 1, 0, 
-            (SCM arg),
+            (SCM stayopen),
 	    "If @var{stayopen} is omitted, this is equivalent to @code{endprotoent}.\n"
 	    "Otherwise it is equivalent to @code{setprotoent stayopen}.")
 #define FUNC_NAME s_scm_setproto
 {
-  if (SCM_UNBNDP (arg))
+  if (SCM_UNBNDP (stayopen))
     endprotoent ();
   else
-    setprotoent (SCM_NFALSEP (arg));
+    setprotoent (SCM_NFALSEP (stayopen));
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -536,15 +536,15 @@ SCM_DEFINE (scm_setproto, "setproto", 0, 1, 0,
 
 #if defined(HAVE_SETSERVENT) && defined(HAVE_ENDSERVENT)
 SCM_DEFINE (scm_setserv, "setserv", 0, 1, 0, 
-            (SCM arg),
+            (SCM stayopen),
 	    "If @var{stayopen} is omitted, this is equivalent to @code{endservent}.\n"
 	    "Otherwise it is equivalent to @code{setservent stayopen}.")
 #define FUNC_NAME s_scm_setserv
 {
-  if (SCM_UNBNDP (arg))
+  if (SCM_UNBNDP (stayopen))
     endservent ();
   else
-    setservent (SCM_NFALSEP (arg));
+    setservent (SCM_NFALSEP (stayopen));
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME

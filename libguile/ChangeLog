@@ -1,5 +1,13 @@
 2000-08-18  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* net_db.c (scm_gethost, scm_getnet, scm_getproto, scm_sethost,
+	scm_setnet, setproto, setserv): Argument names changed to match
+	doc string.
+	
+	* feature.c (scm_program_arguments): New docstring.
+
+	* simpos.c (scm_getenv): Reflow docstring.
+
 	* eq.c (scm_eq_p, scm_eqv_p, scm_equal_p): Add texinfo markup to
 	docstrings.
 	

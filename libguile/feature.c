@@ -72,8 +72,12 @@ scm_add_feature (const char *str)
 
 
 SCM_DEFINE (scm_program_arguments, "program-arguments", 0, 0, 0, 
-           (),
-"")
+	    (),
+	    "@deffnx procedure command-line\n"
+	    "Return the list of command line arguments passed to Guile, as a list of\n"
+	    "strings.  The list includes the invoked program name, which is usually\n"
+	    "@code{\"guile\"}, but excludes switches and parameters for command line\n"
+	    "options like @code{-e} and @code{-l}.")
 #define FUNC_NAME s_scm_program_arguments
 {
   return scm_progargs;
