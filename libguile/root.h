@@ -98,7 +98,7 @@ typedef struct scm_root_state
   /* It is very inefficient to have this variable in the root state. */
   scm_debug_frame *last_debug_frame;
 #endif
-  
+
   SCM progargs;			/* vestigial */
   SCM exitval;			/* vestigial */
 
@@ -108,6 +108,8 @@ typedef struct scm_root_state
   SCM def_inp;
   SCM def_outp;
   SCM def_errp;
+
+  SCM fluids;
 
   SCM system_transformer;
   SCM top_level_lookup_closure_var;
