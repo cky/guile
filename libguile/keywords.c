@@ -46,7 +46,6 @@
 
 #include <stdio.h>
 #include "_scm.h"
-#include "genio.h"
 #include "smob.h"
 
 #include "validate.h"

@@ -46,7 +46,6 @@
 
 #include <stdio.h>
 #include "_scm.h"
-#include "genio.h"
 #include "procprop.h"
 
 #include "gsubr.h"

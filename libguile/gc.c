@@ -48,7 +48,6 @@
 #include "stime.h"
 #include "stackchk.h"
 #include "struct.h"
-#include "genio.h"
 #include "weaks.h"
 #include "guardians.h"
 #include "smob.h"

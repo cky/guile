@@ -52,7 +52,6 @@
 #include "eval.h"
 #include "stackchk.h"
 #include "throw.h"
-#include "genio.h"
 #include "macros.h"
 #include "smob.h"
 #include "procprop.h"

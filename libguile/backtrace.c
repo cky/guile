@@ -58,7 +58,6 @@
 
 #include "stacks.h"
 #include "srcprop.h"
-#include "genio.h"
 #include "struct.h"
 #include "strports.h"
 #include "throw.h"

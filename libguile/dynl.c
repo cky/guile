@@ -67,7 +67,6 @@ maybe_drag_in_eprintf ()
 #include <stdio.h>
 #include "_scm.h"
 #include "dynl.h"
-#include "genio.h"
 #include "smob.h"
 #include "keywords.h"
 

@@ -48,7 +48,6 @@
 
 #include "_scm.h"
 #include "pairs.h"
-#include "genio.h"
 #include "throw.h"
 
 #include "validate.h"

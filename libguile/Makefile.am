@@ -95,7 +95,7 @@ modinclude_HEADERS = \
     __scm.h alist.h arbiters.h async.h backtrace.h boolean.h chars.h	\
     continuations.h debug.h dynl.h dynwind.h eq.h error.h eval.h	\
     evalext.h feature.h filesys.h fports.h gc.h gdb_interface.h		\
-    gdbint.h genio.h gsubr.h guardians.h hash.h hashtab.h init.h	\
+    gdbint.h gsubr.h guardians.h hash.h hashtab.h init.h		\
     ioext.h keywords.h kw.h lang.h list.h load.h macros.h mallocs.h 	\
     modules.h net_db.h numbers.h objects.h objprop.h options.h pairs.h	\
     ports.h posix.h regex-posix.h print.h procprop.h procs.h random.h	\

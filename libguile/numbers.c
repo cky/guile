@@ -47,7 +47,6 @@
 #include <stdio.h>
 #include <math.h>
 #include "_scm.h"
-#include "genio.h"
 #include "unif.h"
 #include "feature.h"
 #include "smob.h"

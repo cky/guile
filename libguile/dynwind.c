@@ -49,7 +49,6 @@
 #include "eval.h"
 #include "alist.h"
 #include "fluids.h"
-#include "genio.h"
 #include "smob.h"
 
 #include "dynwind.h"

@@ -48,7 +48,6 @@
 
 #include <stdio.h>
 #include <math.h>
-#include "genio.h"
 #include "smob.h"
 #include "numbers.h"
 #include "feature.h"

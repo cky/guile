@@ -45,7 +45,6 @@
 
 #include <stdio.h>
 #include "_scm.h"
-#include "genio.h"
 #include "smob.h"
 #include "feature.h"
 #include "fports.h"

@@ -49,7 +49,6 @@
 #include "stackchk.h"
 #include "dynwind.h"
 #include "eval.h"
-#include "genio.h"
 #include "smob.h"
 #include "pairs.h"
 #include "throw.h"

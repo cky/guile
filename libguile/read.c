@@ -47,7 +47,6 @@
 #include <stdio.h>
 #include "_scm.h"
 #include "chars.h"
-#include "genio.h"
 #include "eval.h"
 #include "unif.h"
 #include "keywords.h"

@@ -1,3 +1,13 @@
+2000-03-17  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* genio.h:  removed.  (Only content was '/* delete me */'.)
+
+	* Makefile.am arbiters.c backtrace.c debug.c dynl.c dynwind.c
+	error.c filesys.c fluids.c gc.c gsubr.c guardians.c keywords.c
+	libguile.h mallocs.c numbers.c print.c random.c read.c root.c
+	srcprop.c stackchk.c struct.c threads.c throw.c variable.c:
+	Removed reference to genio.h
+
 2000-03-17  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* gc.c, gc.h: Cleanup of the change of 2000-03-15.
