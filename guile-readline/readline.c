@@ -137,7 +137,7 @@ redisplay ()
   /* promptp = 1; */
 }
 
-SCM_PROC (s_readline, "readline", 0, 4, 0, scm_readline);
+SCM_PROC (s_readline, "%readline", 0, 4, 0, scm_readline);
 
 static int in_readline = 0;
 #ifdef USE_THREADS
