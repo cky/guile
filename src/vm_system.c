@@ -488,9 +488,9 @@ VM_DEFINE_INSTRUCTION (return, "return", 0, 0, 1)
   FREE_FRAME ();
 
   /* Restore the last program */
-  external = fp[bp->nargs + bp->nlocs];
   program = SCM_VM_FRAME_PROGRAM (fp);
   CACHE_PROGRAM ();
+  external = fp[bp->nargs + bp->nlocs];
   PUSH (ret);
   NEXT;
 }

@@ -280,7 +280,8 @@
 	 (finalize-index! locs)
 	 (finalize-index! exts)
 	 ;; export arguments
-	 (do ((n 0 (1+ n)) (l args (cdr l)))
+	 (do ((n 0 (1+ n))
+	      (l args (cdr l)))
 	     ((null? l))
 	   (let ((v (car l)))
 	     (if (eq? v.kind 'external)

@@ -142,7 +142,7 @@ VM_DEFINE_LOADER (load_program, "load-program")
 	  SCM_PROGRAM_NARGS (prog) = (i >> 12) & 0x07;	/* 15-12 bits */
 	  SCM_PROGRAM_NREST (prog) = (i >> 11) & 0x01;	/* 11 bit */
 	  SCM_PROGRAM_NLOCS (prog) = (i >> 4)  & 0x7f;	/* 10-4 bits */
-	  SCM_PROGRAM_NEXTS (prog) = i & 0x07;		/* 3-0 bits */
+	  SCM_PROGRAM_NEXTS (prog) = i & 0x0f;		/* 3-0 bits */
 	}
     }
   else
