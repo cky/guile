@@ -219,6 +219,11 @@ static const char s_bad_formal[] = "Bad formal";
  * more than once, a 'Duplicate formal' error is signalled.  */
 static const char s_duplicate_formal[] = "Duplicate formal";
 
+/* If the evaluation of an unquote-splicing expression gives something else
+ * than a proper list, a 'Non-list result for unquote-splicing' error is
+ * signalled.  */
+static const char s_splicing[] = "Non-list result for unquote-splicing";
+
 /* If something else than an exact integer is detected as the argument for
  * @slot-ref and @slot-set!, a 'Bad slot number' error is signalled.  */
 static const char s_bad_slot_number[] = "Bad slot number";
@@ -358,8 +363,90 @@ SCM_DEFINE (scm_dbg_iloc_p, "dbg-iloc?", 1, 0, 0,
 
 
 
-#define SCM_VALIDATE_NON_EMPTY_COMBINATION(x) \
-  ASSERT_SYNTAX (!SCM_EQ_P ((x), SCM_EOL), s_empty_combination, x)
+/* The function lookup_symbol is used during memoization:  Lookup the symbol
+ * in the environment.  If there is no binding for the symbol, SCM_UNDEFINED
+ * is returned.  If the symbol is a syntactic keyword, the macro object to
+ * which the symbol is bound is returned.  If the symbol is a global variable,
+ * the variable object to which the symbol is bound is returned.  Finally, if
+ * the symbol is a local variable the corresponding iloc object is returned.
+ */
+
+/* A helper function for lookup_symbol: Try to find the symbol in the top
+ * level environment frame.  The function returns SCM_UNDEFINED if the symbol
+ * is unbound, it returns a macro object if the symbol is a syntactic keyword
+ * and it returns a variable object if the symbol is a global variable.  */
+static SCM
+lookup_global_symbol (const SCM symbol, const SCM top_level)
+{
+  const SCM variable = scm_sym2var (symbol, top_level, SCM_BOOL_F);
+  if (SCM_FALSEP (variable))
+    {
+      return SCM_UNDEFINED;
+    }
+  else
+    {
+      const SCM value = SCM_VARIABLE_REF (variable);
+      if (SCM_MACROP (value))
+	return value;
+      else
+	return variable;
+    }
+}
+
+static SCM
+lookup_symbol (const SCM symbol, const SCM env)
+{
+  SCM frame_idx;
+  unsigned int frame_nr;
+
+  for (frame_idx = env, frame_nr = 0;
+       !SCM_NULLP (frame_idx);
+       frame_idx = SCM_CDR (frame_idx), ++frame_nr)
+    {
+      const SCM frame = SCM_CAR (frame_idx);
+      if (SCM_CONSP (frame))
+	{
+	  /* frame holds a local environment frame */
+	  SCM symbol_idx;
+	  unsigned int symbol_nr;
+
+	  for (symbol_idx = SCM_CAR (frame), symbol_nr = 0;
+	       SCM_CONSP (symbol_idx);
+	       symbol_idx = SCM_CDR (symbol_idx), ++symbol_nr)
+	    {
+	      if (SCM_EQ_P (SCM_CAR (symbol_idx), symbol))
+		/* found the symbol, therefore return the iloc */
+		return SCM_MAKE_ILOC (frame_nr, symbol_nr, 0);
+	    }
+	  if (SCM_EQ_P (symbol_idx, symbol))
+	    /* found the symbol as the last element of the current frame */
+	    return SCM_MAKE_ILOC (frame_nr, symbol_nr, 1);
+	}
+      else
+	{
+	  /* no more local environment frames */
+	  return lookup_global_symbol (symbol, frame);
+	}
+    }
+
+  return lookup_global_symbol (symbol, SCM_BOOL_F);
+}
+
+
+/* Return true if the symbol is - from the point of view of a macro
+ * transformer - a literal in the sense specified in chapter "pattern
+ * language" of R5RS.  In the code below, however, we don't match the
+ * definition of R5RS exactly:  It returns true if the identifier has no
+ * binding or if it is a syntactic keyword.  */
+static int
+literal_p (const SCM symbol, const SCM env)
+{
+  const SCM value = lookup_symbol (symbol, env);
+  if (SCM_UNBNDP (value) || SCM_MACROP (value))
+    return 1;
+  else
+    return 0;
+}
 
 
 
@@ -421,13 +508,6 @@ SCM_DEFINE (scm_dbg_iloc_p, "dbg-iloc?", 1, 0, 0,
 			    : SCM_CEVAL (SCM_CAR (x), env)))
 
 SCM_REC_MUTEX (source_mutex);
-
-
-static const char s_test[] = "bad test";
-static const char s_bindings[] = "bad bindings";
-static const char s_duplicate_bindings[] = "duplicate bindings";
-static const char s_variable[] = "bad variable";
-static const char s_splicing[] = "bad (non-list) result for unquote-splicing";
 
 
 /* Lookup a given local variable in an environment.  The local variable is
@@ -652,22 +732,6 @@ scm_lookupcar (SCM vloc, SCM genv, int check)
   return loc;
 }
 
-/* Return true if the symbol is - from the point of view of a macro
- * transformer - a literal in the sense specified in chapter "pattern
- * language" of R5RS.  In the code below, however, we don't match the
- * definition of R5RS exactly:  It returns true if the identifier has no
- * binding or if it is a syntactic keyword.  */
-static int
-literal_p (const SCM symbol, const SCM env)
-{
-  const SCM x = scm_cons (symbol, SCM_UNDEFINED);
-  const SCM value = *scm_lookupcar (x, env, 0);
-  if (SCM_UNBNDP (value) || SCM_MACROP (value))
-    return 1;
-  else
-    return 0;
-}
-
 
 SCM
 scm_eval_car (SCM pair, SCM env)
@@ -676,20 +740,6 @@ scm_eval_car (SCM pair, SCM env)
 }
 
 
-/* 
- * The following rewrite expressions and
- * some memoized forms have different syntax 
- */
-
-SCM_GLOBAL_SYMBOL (scm_sym_else, "else");
-SCM_GLOBAL_SYMBOL (scm_sym_unquote, "unquote");
-SCM_GLOBAL_SYMBOL (scm_sym_uq_splicing, "unquote-splicing");
-
-SCM_GLOBAL_SYMBOL (scm_sym_enter_frame, "enter-frame");
-SCM_GLOBAL_SYMBOL (scm_sym_apply_frame, "apply-frame");
-SCM_GLOBAL_SYMBOL (scm_sym_exit_frame, "exit-frame");
-SCM_GLOBAL_SYMBOL (scm_sym_trace, "trace");
-
 
 /* Rewrite the body (which is given as the list of expressions forming the
  * body) into its internal form.  The internal form of a body (<expr> ...) is
@@ -724,8 +774,7 @@ try_macro_lookup (const SCM expr, const SCM env)
 {
   if (SCM_SYMBOLP (expr))
     {
-      const SCM tmp_pair = scm_list_1 (expr);
-      const SCM value = *scm_lookupcar1 (tmp_pair, env, 0);
+      const SCM value = lookup_symbol (expr, env);
       return value;
     }
   else
@@ -969,6 +1018,7 @@ scm_m_begin (SCM expr, SCM env SCM_UNUSED)
 
 SCM_SYNTAX (s_case, "case", scm_i_makbimacro, scm_m_case);
 SCM_GLOBAL_SYMBOL (scm_sym_case, s_case);
+SCM_GLOBAL_SYMBOL (scm_sym_else, "else");
 
 SCM
 scm_m_case (SCM expr, SCM env)
@@ -1618,6 +1668,8 @@ scm_m_or (SCM expr, SCM env SCM_UNUSED)
 
 SCM_SYNTAX (s_quasiquote, "quasiquote", scm_makacro, scm_m_quasiquote);
 SCM_GLOBAL_SYMBOL (scm_sym_quasiquote, s_quasiquote);
+SCM_GLOBAL_SYMBOL (scm_sym_unquote, "unquote");
+SCM_GLOBAL_SYMBOL (scm_sym_uq_splicing, "unquote-splicing");
 
 /* Internal function to handle a quasiquotation:  'form' is the parameter in
  * the call (quasiquotation form), 'env' is the environment where unquoted
@@ -2046,6 +2098,8 @@ scm_m_undefine (SCM expr, SCM env)
 #endif
 
 
+#if (SCM_ENABLE_DEPRECATED == 1)
+
 SCM
 scm_macroexp (SCM x, SCM env)
 {
@@ -2090,12 +2144,17 @@ scm_macroexp (SCM x, SCM env)
   goto macro_tail;
 }
 
+#endif
+
+/*****************************************************************************/
+/*****************************************************************************/
+/*               The definitions for unmemoization start here.               */
+/*****************************************************************************/
+/*****************************************************************************/
+
 #define SCM_BIT7(x) (127 & SCM_UNPACK (x))
 
-/* A function object to implement "apply" for non-closure functions.  */
-static SCM f_apply;
-/* An endless list consisting of #<undefined> objects:  */
-static SCM undefineds;
+SCM_SYMBOL (sym_three_question_marks, "???");
 
 
 /* scm_unmemocopy takes a memoized expression together with its
@@ -2128,12 +2187,8 @@ build_binding_list (SCM rnames, SCM rinits)
 }
 
 
-SCM_SYMBOL (sym_three_question_marks, "???");
-
-#define unmemocar scm_unmemocar
-
-SCM 
-scm_unmemocar (SCM form, SCM env)
+static SCM
+unmemocar (SCM form, SCM env)
 {
   if (!SCM_CONSP (form))
     return form;
@@ -2161,6 +2216,18 @@ scm_unmemocar (SCM form, SCM env)
       return form;
     }
 }
+
+
+#if (SCM_ENABLE_DEPRECATED == 1)
+
+SCM
+scm_unmemocar (SCM form, SCM env)
+{
+  return unmemocar (form, env);
+}
+
+#endif
+
 
 static SCM
 unmemocopy (SCM x, SCM env)
@@ -2396,7 +2463,6 @@ loop:
   return ls;
 }
 
-
 SCM
 scm_unmemocopy (SCM x, SCM env)
 {
@@ -2409,7 +2475,24 @@ scm_unmemocopy (SCM x, SCM env)
 }
 
 
-int 
+/*****************************************************************************/
+/*****************************************************************************/
+/*                 The definitions for execution start here.                 */
+/*****************************************************************************/
+/*****************************************************************************/
+
+SCM_GLOBAL_SYMBOL (scm_sym_enter_frame, "enter-frame");
+SCM_GLOBAL_SYMBOL (scm_sym_apply_frame, "apply-frame");
+SCM_GLOBAL_SYMBOL (scm_sym_exit_frame, "exit-frame");
+SCM_GLOBAL_SYMBOL (scm_sym_trace, "trace");
+
+/* A function object to implement "apply" for non-closure functions.  */
+static SCM f_apply;
+/* An endless list consisting of #<undefined> objects:  */
+static SCM undefineds;
+
+
+int
 scm_badargsp (SCM formals, SCM args)
 {
   while (!SCM_NULLP (formals))
@@ -2665,6 +2748,10 @@ deval_args (SCM l, SCM env, SCM proc, SCM *lloc)
     if (p != SCM_CAR (env)) \
       env = scm_top_level_env (p); \
   } while (0)
+
+
+#define SCM_VALIDATE_NON_EMPTY_COMBINATION(x) \
+  ASSERT_SYNTAX (!SCM_EQ_P ((x), SCM_EOL), s_empty_combination, x)
 
 
 /* This is the evaluator.  Like any real monster, it has three heads:

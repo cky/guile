@@ -895,10 +895,12 @@ These macros were used in the implementation of the evaluator.  It's unlikely
 that they have been used by user code.
 
 ** Deprecated helper functions for evaluation and application:
-scm_m_expand_body
+scm_m_expand_body, scm_macroexp
 
 These functions were used in the implementation of the evaluator.  It's
 unlikely that they have been used by user code.
+
+** Deprecated functions for unmemoization: scm_unmemocar
 
 ** Deprecated macros for iloc handling: SCM_ILOC00, SCM_IDINC, SCM_IDSTMSK
 

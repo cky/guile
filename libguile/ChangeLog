@@ -1,3 +1,25 @@
+2003-11-16  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* eval.c (s_splicing): Commented and reformulated.
+
+	(lookup_global_symbol, lookup_symbol): New static functions.
+
+	(s_test, s_bindings, s_duplicate_bindings, s_variable): Removed.
+
+	(try_macro_lookup, literal_p): Use lookup_symbol instead of
+	creating a temporary pair for scm_lookupcar.
+
+	(scm_unmemocar, unmemocar): Renamed scm_unmemocar to unmemocar,
+	created deprecated wrapper function scm_unmemocar.
+
+	(SCM_VALIDATE_NON_EMPTY_COMBINATION, scm_sym_else,
+	scm_sym_unquote, scm_sym_uq_splicing, scm_sym_enter_frame,
+	scm_sym_apply_frame, scm_sym_exit_frame, scm_sym_trace, f_apply,
+	undefineds, sym_three_question_marks): Moved around without
+	modifications.
+
+	* eval.c, eval.h (scm_macroexp, scm_unmemocar): Deprecated.
+
 2003-11-15  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* eval.c (try_macro_lookup, expand_user_macros, is_system_macro_p,
