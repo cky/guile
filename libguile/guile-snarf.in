@@ -45,7 +45,7 @@
 modern_snarf ()                         # writes stdout
 {
 ${cpp} -DSCM_MAGIC_SNARF_INITS "$@" > ${temp} && cpp_ok_p=true
-grep "^ *\^ *\^" ${temp} | sed -e "s/^ *\^ *\^//"
+grep "^ *\^ *\^" ${temp} | sed -e "s/^ *\^ *\^//" -e "s/\^\ *:\ *\^.*/;/"
 }
 
 compat_mode_clean_xxx ()                # modifies $1
