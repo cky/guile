@@ -49,6 +49,8 @@ support for it.
 The readline library is available via anonymous FTP from any GNU
 mirror site; the canonical location is "ftp://prep.ai.mit.edu/pub/gnu".
 
+** the-last-stack is now a fluid.
+
 * Changes to the procedure for linking libguile with your programs
 
 ** You can now use the 'build-guile' utility to link against Guile.

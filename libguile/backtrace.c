@@ -51,6 +51,7 @@
 #include "struct.h"
 #include "strports.h"
 #include "throw.h"
+#include "fluids.h"
 
 #include "backtrace.h"
 
@@ -538,10 +539,11 @@ SCM_PROC(s_backtrace, "backtrace", 0, 0, 0, scm_backtrace);
 SCM
 scm_backtrace ()
 {
-  if (SCM_NFALSEP (SCM_CDR (scm_the_last_stack_var)))
+  SCM the_last_stack = scm_fluid_ref (SCM_CDR (scm_the_last_stack_var));
+  if (SCM_NFALSEP (the_last_stack))
     {
       scm_newline (scm_cur_outp);
-      scm_display_backtrace (SCM_CDR (scm_the_last_stack_var),
+      scm_display_backtrace (the_last_stack,
 			     scm_cur_outp,
 			     SCM_UNDEFINED,
 			     SCM_UNDEFINED);
@@ -568,7 +570,8 @@ scm_backtrace ()
 void
 scm_init_backtrace ()
 {
-  scm_the_last_stack_var = scm_sysintern ("the-last-stack", SCM_BOOL_F);
+  SCM f = scm_make_fluid ();
+  scm_the_last_stack_var = scm_sysintern ("the-last-stack", f);
 
 #include "backtrace.x"
 }

@@ -1,3 +1,12 @@
+Sat Nov 29 01:16:53 1997  Mikael Djurfeldt  <mdj@kenneth>
+
+	* backtrace.c: Added #include "fluids.h"
+	(scm_init_backtrace): Initialize `the-last-stack' to a fluid.
+	(scm_backtrace): `the-last-stack' is now a fluid.
+
+	* init.c (scm_boot_guile_1): Moved call to scm_init_backtrace
+	after scm_init_fluids.
+
 1997-11-28  Tim Pierce  <twp@skepsis.com>
 
 	* iselect.c: #ifdef USE_THREADS around thread-related includes.

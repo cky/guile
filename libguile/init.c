@@ -394,7 +394,6 @@ scm_boot_guile_1 (base, closure)
       scm_init_alist ();
       scm_init_arbiters ();
       scm_init_async ();
-      scm_init_backtrace ();
       scm_init_boolean ();
       scm_init_chars ();
       scm_init_continuations ();
@@ -402,6 +401,7 @@ scm_boot_guile_1 (base, closure)
       scm_init_eq ();
       scm_init_error ();
       scm_init_fluids ();
+      scm_init_backtrace ();	/* Requires fluids */
       scm_init_fports ();
       scm_init_filesys ();
       scm_init_gc ();
