@@ -348,6 +348,11 @@ Construct a list by appending all lists in @var{list-of-lists}.
 
 @code{concatenate!} may modify the structure of the given lists in
 order to produce the result.
+
+@code{concatenate} is the same as @code{(apply append
+@var{list-of-lists})}.  It exists because some Scheme implementations
+have a limit on the number of arguments a function takes, which the
+@code{apply} might exceed.  In Guile there is no such limit.
 @end deffn
 
 @deffn {Scheme Procedure} append-reverse rev-head tail
