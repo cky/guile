@@ -1,3 +1,18 @@
+Thu Mar  2 12:38:30 2000  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* list.c: Moved append docs to append! Thanks Dirk Hermann.  Also, 
+	added append docs from R4RS.
+
+	* strings.c: Docstring typo fix, + eliminate unneeded IMP tests.
+	Thanks Dirk Hermann!
+
+	* chars.h: Provide SCM_CHARP, SCM_CHAR, SCM_MAKE_CHAR and
+	deprecate SCM_ICHRP, SCM_ICHR, SCM_MAKICHR.  Thanks Dirk Hermann!
+ 
+	* *.h, *.c: Use SCM_CHARP, SCM_CHAR, SCM_MAKE_CHAR throughout.
+	Drop use of SCM_P for function prototypes... assume an ANSI C
+	compiler.  Thanks Dirk Hermann!
+
 Sat Feb 19 12:20:12 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* ports.c: Made `set-port-column!' and `set-port-line!' each
