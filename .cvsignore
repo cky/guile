@@ -3,9 +3,13 @@ Makefile.in
 aclocal.m4
 config.build-subdirs
 config.cache
+config.guess
+config.sub
 config.h.in
 config.log
 config.status
 configure
 guile-*.tar.gz
 libtool
+ltconfig
+ltmain.sh
