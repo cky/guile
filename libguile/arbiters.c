@@ -26,21 +26,61 @@
 #include "libguile/arbiters.h"
 
 
-/* ENHANCE-ME: If the cpu has an atomic test-and-set instruction it could be
-   used instead of a mutex in try-arbiter and release-arbiter.
+/* FETCH_STORE sets "fet" to the value fetched from "mem" and then stores
+   "sto" there.  The fetch and store are done atomically, so once the fetch
+   has been done no other thread or processor can fetch from there before
+   the store is done.
 
-   For the i386 family, cmpxchg would suit but it's only available on 80486
-   and higher so that would have to be checked, perhaps at run-time when
-   setting up the definitions of the scheme procedures, or at compile time
-   if we interpret a host cpu type like "i686" to mean not less than that
-   chip.  */
+   The operands are scm_t_bits, fet and sto are plain variables, mem is a
+   memory location (ie. an lvalue).
+
+   ENHANCE-ME: Add more cpu-specifics.  glibc atomicity.h has some of the
+   sort of thing required.  FETCH_STORE could become some sort of
+   compare-and-store if that better suited what various cpus do.  */
+
+#if defined (__GNUC__) && defined (i386) && SIZEOF_SCM_T_BITS == 4
+/* This is for i386 with the normal 32-bit scm_t_bits.  The xchg instruction
+   is atomic on a single processor, and it automatically asserts the "lock"
+   bus signal so it's atomic on a multi-processor (no need for the lock
+   prefix on the instruction).
+
+   The mem operand is read-write but "+" is not used since old gcc
+   (eg. 2.7.2) doesn't support that.  "1" for the mem input doesn't work
+   (eg. gcc 3.3) when mem is a pointer dereference like current usage below.
+   Having mem as a plain input should be ok though.  It tells gcc the value
+   is live, but as an "m" gcc won't fetch it itself (though that would be
+   harmless).  */
+
+#define FETCH_STORE(fet,mem,sto)                \
+  do {                                          \
+    asm ("xchg %0, %1"                          \
+         : "=r" (fet), "=m" (mem)               \
+         : "0"  (sto), "m"  (mem));             \
+  } while (0)
+#endif
+
+#ifndef FETCH_STORE
+/* This is a generic version, with a mutex to ensure the operation is
+   atomic.  Unfortunately this approach probably makes arbiters no faster
+   than mutexes (though still using less memory of course), so some
+   CPU-specifics are highly desirable.  */
+#define FETCH_STORE(fet,mem,sto)                \
+  do {                                          \
+    scm_mutex_lock (&scm_i_misc_mutex);         \
+    (fet) = (mem);                              \
+    (mem) = (sto);                              \
+    scm_mutex_unlock (&scm_i_misc_mutex);       \
+  } while (0)
+#endif
+
 
 static scm_t_bits scm_tc16_arbiter;
 
 
+#define SCM_LOCK_VAL         (scm_tc16_arbiter | (1L << 16))
+#define SCM_UNLOCK_VAL       scm_tc16_arbiter
 #define SCM_ARB_LOCKED(arb)  ((SCM_CELL_WORD_0 (arb)) & (1L << 16))
-#define SCM_LOCK_ARB(arb)    (SCM_SET_CELL_WORD_0 ((arb), scm_tc16_arbiter | (1L << 16)));
-#define SCM_UNLOCK_ARB(arb)  (SCM_SET_CELL_WORD_0 ((arb), scm_tc16_arbiter));
+
 
 static int 
 arbiter_print (SCM exp, SCM port, scm_print_state *pstate)
@@ -64,10 +104,10 @@ SCM_DEFINE (scm_make_arbiter, "make-arbiter", 1, 0, 0,
 #undef FUNC_NAME
 
 
-/* The mutex here is so two threads can't both see the arbiter unlocked and
-   both proceed to lock and return #t.  The arbiter itself wouldn't be
-   corrupted by this, but two threads both getting #t would be entirely
-   contrary to the intended semantics.  */
+/* The atomic FETCH_STORE here is so two threads can't both see the arbiter
+   unlocked and return #t.  The arbiter itself wouldn't be corrupted by
+   this, but two threads both getting #t would be contrary to the intended
+   semantics.  */
 
 SCM_DEFINE (scm_try_arbiter, "try-arbiter", 1, 0, 0, 
 	    (SCM arb),
@@ -77,27 +117,19 @@ SCM_DEFINE (scm_try_arbiter, "try-arbiter", 1, 0, 0,
 #define FUNC_NAME s_scm_try_arbiter
 {
   SCM_VALIDATE_SMOB (1, arb, arbiter);
-
-  scm_mutex_lock (&scm_i_misc_mutex);
-  if (SCM_ARB_LOCKED(arb))
-    arb = SCM_BOOL_F;
-  else
-    {
-      SCM_LOCK_ARB(arb);
-      arb = SCM_BOOL_T;
-    }
-  scm_mutex_unlock (&scm_i_misc_mutex);
-  return arb;
+  scm_t_bits old;
+  FETCH_STORE (old, * (scm_t_bits *) SCM_CELL_OBJECT_LOC(arb,0), SCM_LOCK_VAL);
+  return scm_from_bool (old == SCM_UNLOCK_VAL);
 }
 #undef FUNC_NAME
 
 
-/* The mutex here is so two threads can't both see the arbiter locked and
-   both proceed to unlock and return #t.  The arbiter itself wouldn't be
-   corrupted by this, but we don't want two threads both thinking they were
-   the unlocker.  The intended usage is for the code which locked to be
-   responsible for unlocking, but we guarantee the return value even if
-   multiple threads compete.  */
+/* The atomic FETCH_STORE here is so two threads can't both see the arbiter
+   locked and return #t.  The arbiter itself wouldn't be corrupted by this,
+   but we don't want two threads both thinking they were the unlocker.  The
+   intended usage is for the code which locked to be responsible for
+   unlocking, but we guarantee the return value even if multiple threads
+   compete.  */
 
 SCM_DEFINE (scm_release_arbiter, "release-arbiter", 1, 0, 0,
 	    (SCM arb),
@@ -110,19 +142,10 @@ SCM_DEFINE (scm_release_arbiter, "release-arbiter", 1, 0, 0,
 	    "release it.")
 #define FUNC_NAME s_scm_release_arbiter
 {
-  SCM ret;
   SCM_VALIDATE_SMOB (1, arb, arbiter);
-
-  scm_mutex_lock (&scm_i_misc_mutex);
-  if (!SCM_ARB_LOCKED(arb))
-    ret = SCM_BOOL_F;
-  else
-    {
-      SCM_UNLOCK_ARB (arb);
-      ret = SCM_BOOL_T;
-    }
-  scm_mutex_unlock (&scm_i_misc_mutex);
-  return ret;
+  scm_t_bits old;
+  FETCH_STORE (old, *(scm_t_bits*)SCM_CELL_OBJECT_LOC(arb,0), SCM_UNLOCK_VAL);
+  return scm_from_bool (old == SCM_LOCK_VAL);
 }
 #undef FUNC_NAME
 
