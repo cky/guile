@@ -1,0 +1,30 @@
+BUGS
+
+This file contains bugs we haven't fixed yet, and some we have.
+The format is very simple (one bug per page):
+
+bug NUMBER -- ONE-LINE-DESCRIPTION
+reported-by: SOMEONE / DATE
+fixed: DATE (for guile VERSION)
+OTHER-NOTES
+
+
+bug 0 -- no BUGS file
+reported-by: ttn / 2001-09-25
+fixed: 2001-09-30 (1.5.x, 1.7.x)
+
+all bugs are good bugs!
+
+
+bug 1 -- (debug-disable 'debug) has no effect if first form in ~/.guile
+reported-by: Sven.Hartrumpf@fernuni-hagen.de / 2001-08-31
+fixed:
+
+buggy behavior confirmed on both 1.5.x and 1.7.x (ttn).
+
+on the other hand, when second or later, the expected effect (disabling use of
+debugging evaluator) seems to be reflected when viewing the debug options.  it
+could be that the bug is in display and not the actual setting.
+
+
+[BUGS ends here]
