@@ -67,14 +67,14 @@ scm_make_cont (answer)
 #ifdef CHEAP_CONTINUATIONS
   SCM_NEWCELL (cont);
   *answer = cont;
-  SCM_DEFER_INTS;
+  SCM_ENTER_A_SECTION;
   SCM_SETJMPBUF (cont, scm_must_malloc ((long) sizeof (scm_contregs), s_cont));
-  SCM_SETCAR (cont, scm_tc7_contin);
   SCM_DYNENV (cont) = scm_dynwinds;
   SCM_THROW_VALUE = SCM_EOL;
   SCM_BASE (cont) = SCM_BASE (rootcont);
   SCM_SEQ (cont) = SCM_SEQ (rootcont);
-  SCM_ALLOW_INTS;
+  SCM_SETCAR (cont, scm_tc7_contin);
+  SCM_EXIT_A_SECTION;
 #else
   register SCM_STACKITEM *src, *dst;
 
@@ -94,18 +94,18 @@ scm_make_cont (answer)
 
   SCM_NEWCELL (cont);
   *answer = cont;
-  SCM_DEFER_INTS;
+  SCM_ENTER_A_SECTION;
   SCM_FLUSH_REGISTER_WINDOWS;
   j = scm_stack_size (SCM_BASE (scm_rootcont));
   SCM_SETJMPBUF (cont,
 	     scm_must_malloc ((long) (sizeof (scm_contregs) + j * sizeof (SCM_STACKITEM)),
 			      s_cont));
-  SCM_SETLENGTH (cont, j, scm_tc7_contin);
   SCM_DYNENV (cont) = scm_dynwinds;
   SCM_THROW_VALUE (cont) = SCM_EOL;
   src = SCM_BASE (cont) = SCM_BASE (scm_rootcont);
   SCM_SEQ (cont) = SCM_SEQ (scm_rootcont);
-  SCM_ALLOW_INTS;
+  SCM_SETLENGTH (cont, j, scm_tc7_contin);
+  SCM_EXIT_A_SECTION;
 #ifndef SCM_STACK_GROWS_UP
   src -= SCM_LENGTH (cont);
 #endif /* ndef SCM_STACK_GROWS_UP */

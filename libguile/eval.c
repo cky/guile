@@ -3128,10 +3128,10 @@ scm_makprom (code)
 {
   register SCM z;
   SCM_NEWCELL (z);
-  SCM_DEFER_INTS;
+  SCM_ENTER_A_SECTION;
   SCM_SETCDR (z, code);
   SCM_SETCAR (z, scm_tc16_promise);
-  SCM_ALLOW_INTS;
+  SCM_EXIT_A_SECTION;
   return z;
 }
 

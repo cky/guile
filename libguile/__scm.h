@@ -359,6 +359,44 @@ extern unsigned int scm_async_clock;
 
 
 
+/* Classification of critical sections
+ *
+ * When Guile moves to POSIX threads, it won't be possible to prevent
+ * context switching.  In fact, the whole idea of context switching is
+ * bogus if threads are run by different processors.  Therefore, we
+ * must ultimately eliminate all critical sections or enforce them by
+ * use of mutecis.
+ *
+ * All instances of SCM_DEFER_INTS and SCM_ALLOW_INTS should therefore
+ * be classified and replaced by one of the delimiters below.  If you
+ * understand what this is all about, I'd like to encourage you to
+ * help with this task.  The set of classes below must of course be
+ * incrementally augmented.
+ *
+ * MDJ 980419 <djurfeldt@nada.kth.se>
+ */
+
+/* A sections
+ *
+ * Allocation of a cell with type tag in the CAR.
+ *
+ * With POSIX threads, each thread will have a private pool of free
+ * cells.  Therefore, this type of section can be removed.  But!  It
+ * is important that the CDR is initialized first (with the CAR still
+ * indicating a free cell) so that we can guarantee a consistent heap
+ * at all times.
+ */
+
+#ifdef SCM_POSIX_THREADS
+#define SCM_ENTER_A_SECTION
+#define SCM_EXIT_A_SECTION
+#else
+#define SCM_ENTER_A_SECTION SCM_DEFER_INTS
+#define SCM_EXIT_A_SECTION SCM_ALLOW_INTS
+#endif
+
+
+
 /** SCM_ASSERT
  ** 
  **/

@@ -154,14 +154,14 @@ scm_make_memoized (exp, env)
 {
   /* *fixme* Check that env is a valid environment. */
   register SCM z, ans;
-  SCM_DEFER_INTS;
+  SCM_ENTER_A_SECTION;
   SCM_NEWCELL (z);
-  SCM_SETCAR (z, exp);
   SCM_SETCDR (z, env);
+  SCM_SETCAR (z, exp);
   SCM_NEWCELL (ans);
-  SCM_SETCAR (ans, scm_tc16_memoized);
   SCM_SETCDR (ans, z);
-  SCM_ALLOW_INTS;
+  SCM_SETCAR (ans, scm_tc16_memoized);
+  SCM_EXIT_A_SECTION;
   return ans;
 }
 
@@ -570,11 +570,11 @@ scm_make_debugobj (frame)
      scm_debug_frame *frame;
 {
   register SCM z;
-  SCM_DEFER_INTS;
   SCM_NEWCELL (z);
-  SCM_SETCAR (z, scm_tc16_debugobj);
+  SCM_ENTER_A_SECTION;
   SCM_SET_DEBUGOBJ_FRAME (z, (SCM) frame);
-  SCM_ALLOW_INTS;
+  SCM_SETCAR (z, scm_tc16_debugobj);
+  SCM_EXIT_A_SECTION;
   return z;
 }
 
