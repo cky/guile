@@ -51,7 +51,7 @@ AC_TYPE_GETGROUPS
 AC_TYPE_SIGNAL
 AC_TYPE_MODE_T
 
-ACG_CHECK_LIB (rx, main)
+AC_CHECK_LIB (rx, main)
 
 AC_CHECK_FUNCS(ctermid ftime getcwd geteuid gethostent gettimeofday lstat mkdir mknod nice readlink rename rmdir select setegid seteuid setlocale setpgid setsid sigaction strftime strptime symlink sync tcgetpgrp tcsetpgrp times uname waitpid)
 
