@@ -660,10 +660,18 @@ scm_take_signal (n)
   SCM ignored;
   if (!scm_ints_disabled)
     {
-      SCM_NEWCELL (ignored);		/* In case we interrupted SCM_NEWCELL,
-					 * throw out the possibly already allocated
-					 * free cell.
-					 */
+      /* For reasons of speed, the SCM_NEWCELL macro doesn't defer
+	 interrupts.  Instead, it first sets its argument to point to
+	 the first cell in the list, and then advances the freelist
+	 pointer to the next cell.  Now, if this procedure is
+	 interrupted, the only anomalous state possible is to have
+	 both SCM_NEWCELL's argument and scm_freelist pointing to the
+	 same cell.  To deal with this case, we always throw away the
+	 first cell in scm_freelist here.
+
+	 At least, that's the theory.  I'm not convinced that that's
+	 the only anomalous path we need to worry about.  */
+      SCM_NEWCELL (ignored);
     }
   scm_system_async_mark (system_signal_asyncs[SCM_SIG_ORD(n)]);
   return SCM_BOOL_F;
