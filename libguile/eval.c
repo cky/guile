@@ -666,7 +666,7 @@ scm_lookupcar1 (SCM vloc, SCM genv, int check)
 	var = SCM_CAR (vloc);
 	if (SCM_VARIABLEP (var))
 	  return SCM_VARIABLE_LOC (var);
-	if (SCM_ITAG7 (var) == SCM_ITAG7 (SCM_ILOC00))
+	if (SCM_ILOCP (var))
 	  return scm_ilookup (var, genv);
 	/* We can't cope with anything else than variables and ilocs.  When
 	   a special form has been memoized (i.e. `let' into `#@let') we
@@ -3596,14 +3596,11 @@ dispatch:
 	}
 
 
-    case SCM_BIT7 (SCM_ILOC00):
-      proc = *scm_ilookup (SCM_CAR (x), env);
-      goto checkmacro;
-
-
     default:
       if (SCM_VARIABLEP (SCM_CAR (x)))
         proc = SCM_VARIABLE_REF (SCM_CAR (x));
+      else if (SCM_ILOCP (SCM_CAR (x)))
+        proc = *scm_ilookup (SCM_CAR (x), env);
       else if (SCM_CONSP (SCM_CAR (x)))
 	proc = CEVAL (SCM_CAR (x), env);
       else if (SCM_SYMBOLP (SCM_CAR (x)))
@@ -3679,7 +3676,6 @@ dispatch:
       else
         proc = SCM_CAR (x);
 
-    checkmacro:
       if (SCM_MACROP (proc))
 	goto handle_a_macro;
     }
