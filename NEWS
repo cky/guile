@@ -46,12 +46,35 @@ in backtraces.
 
 * Changes to Scheme functions and syntax
 
-** New function provided?
+** New function `provided?'
 
  - Function: provided? FEATURE
      Return true iff FEATURE is supported by this installation of
      Guile.  FEATURE must be a symbol naming a feature; the global
      variable `*features*' is a list of available features.
+
+** Changes to the module (ice-9 expect):
+
+*** The expect-strings macro now matches `$' in a regular expression
+    only at a line-break or end-of-file by default.  Previously it would
+    match the end of the string accumulated so far. Note that the new
+    behaviour requires reading ahead from the input port by one character, 
+    which may block.  The old behaviour can be obtained by setting the
+    variable `expect-strings-exec-flags' to 0.
+
+*** The expect-strings macro now uses a variable `expect-strings-exec-flags'
+    for the regexp-exec flags.  If `regexp/noteol' is included, then `$'
+    in a regular expression will still match before a line-break or
+    end-of-file.  The default is `regexp/noteol'.
+
+*** The expect-strings macro now uses a variable 
+    `expect-strings-compile-flags' for the flags to be supplied to
+    `make-regexp'.  The default is `regexp/newline', which was previously
+    hard-coded.
+
+*** The expect macro now supplies two arguments to a match procedure:
+    the current accumulated string and the input port.  Previously
+    only the string was supplied.
 
 ** New module (ice-9 format), implementing the Common Lisp `format' function.
 
