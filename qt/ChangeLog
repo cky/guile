@@ -1,3 +1,16 @@
+Wed Oct  9 19:40:13 1996  Jim Blandy  <jimb@floss.cyclic.com>
+
+	* configure.in: If we don't have a port to the current machine,
+ 	just arrange for 'make all' to do nothing.  Don't abort
+ 	configuration.  We need a fully configured directory tree in order
+ 	to make distributions and the like.
+
+	* Makefile.in (distfiles): Update for the new directory structure.
+	(plugin_distfiles, md_distfiles, time_distfiles): New variables.
+	(dist-dir): New target; use all the above to build a subtree of a
+	distribution.
+	(manifest): Target deleted.
+
 Tue Oct  1 02:06:19 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
 
 	* configure.in: Solaris 2 should use sparc.s.

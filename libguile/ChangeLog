@@ -1,3 +1,7 @@
+Wed Oct  9 19:39:29 1996  Jim Blandy  <jimb@floss.cyclic.com>
+
+	* async.c (scm_take_signal): Doc fixes.
+
 Mon Oct  7 00:14:17 1996  Mikael Djurfeldt  <mdj@kenneth>
 
 	* init.c (scm_boot_guile_1): Bugfix: i --> base in argument to
