@@ -19,6 +19,7 @@
 
 
 #include "libguile/_scm.h"
+#include "libguile/async.h"
 #include "libguile/eval.h"
 #include "libguile/list.h"
 #include "libguile/stackchk.h"
@@ -54,7 +55,10 @@ SCM_DEFINE (scm_debug_options, "debug-options-interface", 0, 1, 0,
 #define FUNC_NAME s_scm_debug_options
 {
   SCM ans;
-  SCM_CRITICAL_SECTION_START;
+
+  scm_frame_begin (0);
+  scm_frame_critical_section (SCM_BOOL_F);
+
   ans = scm_options (setting, scm_debug_opts, SCM_N_DEBUG_OPTIONS, FUNC_NAME);
   if (!(1 <= SCM_N_FRAMES && SCM_N_FRAMES <= SCM_MAX_FRAME_SIZE))
     {
@@ -64,7 +68,8 @@ SCM_DEFINE (scm_debug_options, "debug-options-interface", 0, 1, 0,
   SCM_RESET_DEBUG_MODE;
   scm_stack_checking_enabled_p = SCM_STACK_CHECKING_P;
   scm_debug_eframe_size = 2 * SCM_N_FRAMES;
-  SCM_CRITICAL_SECTION_END;
+
+  scm_frame_end ();
   return ans;
 }
 #undef FUNC_NAME
