@@ -1,3 +1,10 @@
+2003-11-11  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* Makefile.am, README.GDS: New.
+
+	* gds-client.scm, gds-server.scm: New (moved here from
+	ice-9/debugger/ui-{client,server}.scm).
+
 2003-08-20  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* guileint: New subdirectory.
