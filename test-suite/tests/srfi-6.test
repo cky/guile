@@ -82,5 +82,4 @@
       (display "abcdef" port)
       (seek port 2 SEEK_SET)
       (display "--" port)
-      (display (get-output-string port))
       (string=? "ab--ef" (get-output-string port)))))
