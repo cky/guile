@@ -26,6 +26,7 @@
 
 #include "libguile/_scm.h"
 
+#include "libguile/async.h"
 #include "libguile/objects.h"
 #include "libguile/goops.h"
 #include "libguile/ports.h"

@@ -35,6 +35,7 @@
 
 
 #include "libguile/_scm.h"
+#include "libguile/async.h"
 #include "libguile/ports.h"
 #include "libguile/print.h"
 #include "libguile/smob.h"

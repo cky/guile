@@ -28,6 +28,7 @@
 
 #include "libguile/_scm.h"
 #include "libguile/alist.h"
+#include "libguile/async.h"
 #include "libguile/chars.h"
 #include "libguile/debug.h"
 #include "libguile/dynl.h"

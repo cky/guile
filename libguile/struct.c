@@ -21,6 +21,7 @@
 #endif
 
 #include "libguile/_scm.h"
+#include "libguile/async.h"
 #include "libguile/chars.h"
 #include "libguile/eval.h"
 #include "libguile/alist.h"

@@ -21,6 +21,7 @@
 #include <string.h>
 
 #include "libguile/_scm.h"
+#include "libguile/async.h"
 #include "libguile/ports.h"
 #include "libguile/root.h"
 #include "libguile/smob.h"

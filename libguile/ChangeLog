@@ -1,3 +1,39 @@
+2005-03-07  Marius Vollmer  <mvo@zagadka.de>
+
+	* threads.h, async.h, threads.c (SCM_CRITICAL_SECTION_START,
+	SCM_CRITICAL_SECTION_END): Moved here from threads.h since now
+	they also block/unblock execution of asyncs and call
+	scm_async_click which is declared in async.h but threads.h can not
+	include async.h since async.h already includes threads.h.
+	(scm_i_critical_section_level): New, for checking mistakes in the
+	use of the SCM_CRITICAL_SECTION_* macros.
+	(scm_i_critical_section_mutex): Make it a recursive mutex so that
+	critical sections can be nested.
+
+	* throw.c (scm_ithrow): Abort when scm_i_critical_section_level is
+	not zero.
+	
+	* threads.h, threads.c (scm_frame_lock_mutex): New.
+	(scm_frame_critical_section): Take mutex as argument.
+	(framed_critical_section_mutex): New, used as default for above.
+	(scm_init_threads): Initialize it.
+	(scm_threads_prehistory): Do not initialize thread_admin_mutex and
+	scm_i_critical_section_mutex; both are initialized statically.
+	
+	* continuation.c, deprecated.c, goops.c, guardians.c keywords.c,
+	libguile_la-arrays.loT, objprop.c, ports.c, smob.c, sort.s,
+	srcprop.c, stime.c, struct.c, throw.c: Include "libguile/async.h"
+	for SCM_CRITICAL_SECTION_START/END.
+
+	* debug.c (scm_debug_options): Replace
+	SCM_CRITICAL_SECTION_START/END with a frame and
+	scm_frame_critical_section.
+
+	* continuations.c (scm_make_continuation): No longer a critical
+	section.
+	(scm_dynthrow):  Abort when scm_i_critical_section_level is
+	not zero.
+	
 2005-03-04  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* threads.c (scm_try_mutex): Renamed argument for consistency.

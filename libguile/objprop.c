@@ -19,6 +19,7 @@
 
 
 #include "libguile/_scm.h"
+#include "libguile/async.h"
 #include "libguile/hashtab.h"
 #include "libguile/alist.h"
 #include "libguile/root.h"

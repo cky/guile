@@ -20,6 +20,7 @@
  */
 
 #include "libguile/_scm.h"
+#include "libguile/async.h"
 #include "libguile/deprecated.h"
 #include "libguile/discouraged.h"
 #include "libguile/deprecation.h"
