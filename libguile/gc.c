@@ -111,14 +111,14 @@
 
 #define SCM_INIT_HEAP_SIZE_1 (40000L * sizeof (scm_cell))
 #define SCM_CLUSTER_SIZE_1 2000L
-#define SCM_GC_TRIGGER_1 -25
+#define SCM_GC_TRIGGER_1 -40
 
 #define SCM_INIT_HEAP_SIZE_2 (2500L * 2 * sizeof (scm_cell))
 #define SCM_CLUSTER_SIZE_2 1000L
 /* The following value may seem large, but note that if we get to GC at
  * all, this means that we have a numerically intensive application
  */
-#define SCM_GC_TRIGGER_2 -25
+#define SCM_GC_TRIGGER_2 -40
 
 #define SCM_MAX_SEGMENT_SIZE 2097000L /* a little less (adm) than 2 Mb */
 
