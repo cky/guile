@@ -1,3 +1,7 @@
+1998-07-30  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	* qt.h.in (qt_null, qt_error): Add prototypes for these.
+
 1998-07-29  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	* Makefile.in, md/Makefile.in, time/Makefile.in: Regenerated using

@@ -1,3 +1,47 @@
+1998-07-30  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	Changes to avoid signed/unsigned comparison warnings.
+	* gc.c (scm_mtrigger, scm_heap_size): Make these unsigned longs.
+	(scm_gc_sweep): Make n and j local to the blocks they're used in,
+	so they can have appropriate types for each application.  Make i
+	signed.  Use initializers in some spots.  I'll probably pay for
+	all this tweaking.
+	(scm_must_malloc, scm_must_realloc): Use scm_sizet for size args.
+	(scm_must_realloc): Make nm unsigned.
+	(init_heap_seg): Make new_seg_index and n_new_objects signed.
+	(scm_init_storage): Use prototype-style definition, and make the
+	argument unsigned.
+	* gc.h (scm_heap_size, scm_mtrigger, scm_must_malloc,
+	scm_must_realloc, scm_init_storage): Adjust prototype accordingly.
+	
+	* filesys.c (scm_readlink): Make local vars rv and size ints, to
+	avoid signed/unsigned comparison warnings, and because the return
+	value of readlink may be -1.  Don't bother casting the third
+	argument to readlink.
+
+	* filesys.c (scm_dirname, scm_basename): Move these to their own
+	page, at the end of the file.
+	* filesys.h (scm_dirname, scm_basename): Add prototypes for these.
+
+	* eval.h (scm_eval_options_interface): Add external prototype for this.
+	* eval.c (scm_eval_options_interface): Use prototype-style def'n.
+	
+	* eval.c (scm_lookupcar1): Make this static.
+
+	* dynl.h (scm_registered_modules, scm_clear_registered_modules):
+	Make these prototype declarations, not K&R-style.
+
+	* chars.c (scm_tables_prehistory): Add cast, to remove signed/
+ 	unsigned comparison warning.
+
+	* appinit.c: File removed.  It had a single function in it, empty,
+ 	whose reason for existence is explained in no documentation or
+ 	comment.  I think it's there as a default for some Tcl-style
+	initialization, but Tcl abandoned that approach a while ago.
+	* Makefile.am (libguile_la_SOURCES): Remove appinit.c.
+	(BUILT_SOURCES): Remove appinit.x.
+	* Makefile.in: Regenerated.
+
 1998-07-29  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	* Makefile.in: Regenerated using the last public version of

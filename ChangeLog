@@ -1,3 +1,8 @@
+1998-07-30  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	* configure.in: Don't use -Wstrict-prototypes after all.
+	* configure: Regenerated.
+
 1998-07-29  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	* configure.in: Request more warnings.
