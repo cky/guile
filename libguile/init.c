@@ -317,7 +317,7 @@ typedef long setjmp_type;
  *                          prohibited.
  */
 
-static int scm_boot_guile_1 SCM_P ((SCM_STACKITEM *base,
+int scm_boot_guile_1 SCM_P ((SCM_STACKITEM *base,
 				    char **result,
 				    int argc, char **argv,
 				    FILE *in, FILE *out, FILE *err,
@@ -341,7 +341,7 @@ scm_boot_guile (result, argc, argv, in, out, err, init_func, boot_cmd)
 			   init_func, boot_cmd);
 }
 
-static int
+int
 scm_boot_guile_1 (base, result, argc, argv, in, out, err, init_func, boot_cmd)
      SCM_STACKITEM *base;
      char ** result;
