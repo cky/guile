@@ -1,5 +1,11 @@
 Sun Jul 20 03:55:49 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
+	* filesys.c (scm_close): oops, don't call SCM_INUM twice on the
+	argument.
+
+	* ioext.h: new prototypes.
+	* ioext.c (scm_primitive_dup, scm_primitive_dup2): new procedures.
+
 	* fluids.c (next_fluid_num): don't do
 	SCM_THREAD_CRITICAL_SECTION_START/END unless USE_THREADS is defined.
 

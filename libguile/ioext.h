@@ -55,6 +55,8 @@ extern SCM scm_fseek SCM_P ((SCM port, SCM offset, SCM whence));
 extern SCM scm_freopen SCM_P ((SCM filename, SCM modes, SCM port));
 extern SCM scm_duplicate_port SCM_P ((SCM oldpt, SCM modes));
 extern SCM scm_redirect_port SCM_P ((SCM into_pt, SCM from_pt));
+extern SCM scm_primitive_dup (SCM fd_or_port);
+extern SCM scm_primitive_dup2 (SCM fd_or_port, SCM newfd);
 extern SCM scm_fileno SCM_P ((SCM port));
 extern SCM scm_isatty_p SCM_P ((SCM port));
 extern SCM scm_fdopen SCM_P ((SCM fdes, SCM modes));

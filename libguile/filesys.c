@@ -274,7 +274,7 @@ scm_close (SCM fd_or_port)
   fd = SCM_INUM (fd_or_port);
   SCM_DEFER_INTS;
   scm_evict_ports (fd);		/* see scsh manual.  */
-  SCM_SYSCALL (rv = close (SCM_INUM (fd)));
+  SCM_SYSCALL (rv = close (fd));
   /* following scsh, closing an already closed file descriptor is
      not an error.  */
   if (rv < 0 && errno != EBADF)
