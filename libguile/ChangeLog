@@ -1,4 +1,12 @@
-2002-03-02  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+2002-03-10  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* eval.c (SCM_CEVAL): Cleaned up the handling of 'slot-ref',
+	'slot-set!' and 'nil-cond'.  Removed some uses of t.arg1, arg2 and
+	proc as temporary variables.  Introduced temporary variables with
+	hopefully descriptive names for clarification.  Replaced SCM_N?IMP
+	by a more explicit predicate in some places.
+
+2002-03-09  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* eval.c (SCM_CEVAL): Cleaned up the handling of #@dispatch.
 	Added lots of comments regarding the implementation of #@dispatch.

@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -2584,40 +2584,54 @@ dispatch:
 	    }
 	  }
 
+
 	case (SCM_ISYMNUM (SCM_IM_SLOT_REF)):
 	  x = SCM_CDR (x);
-	  t.arg1 = EVALCAR (x, env);
-	  RETURN (SCM_PACK (SCM_STRUCT_DATA (t.arg1) [SCM_INUM (SCM_CADR (x))]));
-	  
+	  {
+	    SCM instance = EVALCAR (x, env);
+	    unsigned long int slot = SCM_INUM (SCM_CADR (x));
+	    RETURN (SCM_PACK (SCM_STRUCT_DATA (instance) [slot]));
+	  }
+
+
 	case (SCM_ISYMNUM (SCM_IM_SLOT_SET_X)):
 	  x = SCM_CDR (x);
-	  t.arg1 = EVALCAR (x, env);
-	  x = SCM_CDR (x);
-	  proc = SCM_CDR (x);
-	  SCM_STRUCT_DATA (t.arg1) [SCM_INUM (SCM_CAR (x))]
-	    = SCM_UNPACK (EVALCAR (proc, env));
-	  RETURN (SCM_UNSPECIFIED);
+	  {
+	    SCM instance = EVALCAR (x, env);
+	    unsigned long int slot = SCM_INUM (SCM_CADR (x));
+	    SCM value = EVALCAR (SCM_CDDR (x), env);
+	    SCM_STRUCT_DATA (instance) [slot] = SCM_UNPACK (value);
+	    RETURN (SCM_UNSPECIFIED);
+	  }
+
 
 #ifdef SCM_ENABLE_ELISP
 	  
 	case (SCM_ISYMNUM (SCM_IM_NIL_COND)):
-	  proc = SCM_CDR (x);
-	  while (SCM_NIMP (x = SCM_CDR (proc)))
-	    {
-	      if (!(SCM_FALSEP (t.arg1 = EVALCAR (proc, env))
-		    || SCM_NILP (t.arg1)
-		    || SCM_NULLP (t.arg1)))
-		{
-		  if (SCM_EQ_P (SCM_CAR (x), SCM_UNSPECIFIED))
-		    RETURN (t.arg1);
-		  PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
-		  goto carloop;
-		}
-	      proc = SCM_CDR (x);
-	    }
-	  x = proc;
-	  PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
-	  goto carloop;
+	  {
+	    SCM test_form = SCM_CDR (x);
+	    x = SCM_CDR (test_form);
+	    while (!SCM_NULL_OR_NIL_P (x))
+	      {
+		SCM test_result = EVALCAR (test_form, env);
+		if (!(SCM_FALSEP (test_result)
+		      || SCM_NULL_OR_NIL_P (test_result)))
+		  {
+		    if (SCM_EQ_P (SCM_CAR (x), SCM_UNSPECIFIED))
+		      RETURN (test_result);
+		    PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
+		    goto carloop;
+		  }
+		else
+		  {
+		    test_form = SCM_CDR (x);
+		    x = SCM_CDR (test_form);
+		  }
+	      }
+	    x = test_form;
+	    PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
+	    goto carloop;
+	  }
 
 #endif /* SCM_ENABLE_ELISP */
 
@@ -2639,12 +2653,12 @@ dispatch:
 	    
 	    scm_swap_bindings (vars, vals);
 	    scm_dynwinds = scm_acons (vars, vals, scm_dynwinds);
-	  
-	    arg2 = x = SCM_CDR (x);
-	    while (!SCM_NULLP (arg2 = SCM_CDR (arg2)))
+
+	    /* Ignore all but the last evaluation result.  */
+	    for (x = SCM_CDR (x); !SCM_NULLP (SCM_CDR (x)); x = SCM_CDR (x))
 	      {
-		SIDEVAL (SCM_CAR (x), env);
-		x = arg2;
+		if (SCM_CONSP (SCM_CAR (x)))
+		  SCM_CEVAL (SCM_CAR (x), env);
 	      }
 	    proc = EVALCAR (x, env);
 	  
@@ -2653,6 +2667,7 @@ dispatch:
 
 	    RETURN (proc);
 	  }
+
 
 	case (SCM_ISYMNUM (SCM_IM_CALL_WITH_VALUES)):
 	  {
