@@ -17,6 +17,7 @@
 
 @node Lambda
 @section Lambda: Basic Procedure Creation
+@cindex lambda
 
 @c FIXME::martin: Review me!
 
@@ -140,6 +141,7 @@ provides syntax for handling keywords in argument lists
 Before using any of the procedures or macros defined in this section,
 you have to load the module @code{(ice-9 optargs)} with the statement:
 
+@cindex @code{optargs}
 @lisp
 (use-modules (ice-9 optargs))
 @end lisp
@@ -668,6 +670,7 @@ example of the previous section looks like this:
           (lambda args #f))))
 @end lisp
 
+@cindex @code{syncase}
 In Guile, the @code{syntax-rules} system is provided by the @code{(ice-9
 syncase)} module.  To make these facilities available in your code,
 include the expression @code{(use-syntax (ice-9 syncase))} (@pxref{Using
