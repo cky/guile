@@ -94,6 +94,7 @@ extern SCM scm_make_subr (char *name, int type, SCM (*fcn) ());
 extern SCM scm_make_subr_opt (char *name, int type, SCM (*fcn) (), int set);
 extern SCM scm_makcclo (SCM proc, long len);
 extern SCM scm_procedure_p (SCM obj);
+extern SCM scm_thunk_p (SCM obj);
 extern void scm_init_iprocs(scm_iproc *subra, int type);
 extern void scm_init_procs (void);
 
@@ -102,6 +103,7 @@ extern SCM scm_make_subr ();
 extern SCM scm_make_subr_opt ();
 extern SCM scm_makcclo ();
 extern SCM scm_procedure_p ();
+extern SCM scm_thunk_p ();
 extern void scm_init_iprocs();
 extern void scm_init_procs ();
 
