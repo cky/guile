@@ -1,3 +1,8 @@
+2001-05-04  Thien-Thi Nguyen  <ttn@revel.glug.org>
+
+	* preface.texi (iff): Use proper texi markup.
+	Thanks to Florian Weimer.
+
 2001-05-04  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* scheme-io.texi (Block Reading and Writing): Moved the
@@ -56,7 +61,7 @@
 	expired.
 
 	* guile.texi (Top): Add menu entry for Manual Conventions node.
-	
+
 2001-04-28  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* THANKS: Move authorship bit into AUTHORS, simplify structure,
