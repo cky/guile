@@ -1,5 +1,10 @@
 2005-01-17  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
+	* objects.h, objects.c (scm_classes_initialized): New.
+	(scm_class_of): Signal error when scm_classes_initialized is zero.
+	* goops.c (create_standard_classes): Set scm_classes_initialized
+	to one.
+	
 	* random.c (scm_random_solid_sphere_x): Use
 	scm_c_generalized_vector_length instead of
 	scm_uniform_vector_length.
@@ -787,7 +792,7 @@
 	sizeof(CTYPE) as explained in the comment.
 
 	* read.c (scm_lreadr): Call scm_i_read_array for all characters
-	followinf '#' that can start an array.  Explicitely disambiguate
+	following '#' that can start an array.  Explicitely disambiguate
 	'i' and 'e' between introducing numbers and uniform vectors.  Do
 	not call scm_i_read_homogenous_vector, since that is also handled
 	by scm_i_read_array now.
