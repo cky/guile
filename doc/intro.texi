@@ -1,4 +1,4 @@
-@c $Id: intro.texi,v 1.5 2001-03-30 16:37:51 ossau Exp $
+@c $Id: intro.texi,v 1.6 2001-04-20 07:31:25 mgrabmue Exp $
 
 @page
 @node What is Guile?
@@ -708,12 +708,100 @@ provide reasonable backwards compatability.)
 @node Using Guile Modules
 @subsection Using Existing Modules
 
-To be written.
+@c FIXME::martin: Review me!
+
+@c FIXME::martin: More?  Or leave the rest to the module chapter?
+
+Guile comes with a lot of useful modules, for example for string
+processing or command line parsing.  Additionally, there exist many
+Guile modules written by other Guile hackers, but which have to be
+installed manually.
+
+Existing modules have to be placed in places where Guile looks for them
+by default or in directories in the environment variable
+@code{GUILE_LOAD_PATH}.
+
+Suppose you want to use the procedures and variables exported by the
+module @code{(ice-9 popen)}, which provides the means for communicating
+with other processes over pipes.  Add the following line to your
+currently running Guile REPL or the top of you script file.
+
+@lisp
+(use-modules (ice-9 popen))
+@end lisp
+
+This will load the module and make the procedures exported by
+@code{(ice-9 popen)} automatically available.  The next step could be to
+open a pipe to @file{ls} and read the contents of the current directory,
+one line at a time.
+
+@lisp
+(define p (open-input-pipe "ls -l"))
+(read-line p)
+@result{}
+"total 30"
+(read-line p)
+@result{}
+"drwxr-sr-x    2 mgrabmue mgrabmue     1024 Mar 29 19:57 CVS"
+@end lisp
+
+More details of module usage can be found in (REFFIXME).
+
 
 @node Writing New Modules
 @subsection Writing New Modules
 
-To be written.
+Of course it is possible to write modules yourself.  Using modules for
+structuring your programs makes them more readable and lets you
+distribute them more easily.  Also, explicitly defining the procedures
+and variables which are exported from a module adds documentation to the
+source and specifies the interface a module provides.
+
+In Guile, you can create new modules and switch to exisiting modules in
+order to add bindings to them using the syntactic form
+@code{define-module}.
+
+@lisp
+(define-module (foo bar))
+
+(define (frob x) x)
+@end lisp
+
+Will create the module @code{(foo bar)}.@footnote{It is only convention
+that the module names in this section have two elements.  One or more
+than two elements are perfectly fine, such as @code{(foo)} or @code{(foo
+bar braz)}} All definitions following this statement will add bindings
+to the module @code{(foo bar)}, and these bindings will not be visible
+outside of the module.  To make the bindings accessible to other
+modules, you have to export them explicitly using one of the following
+means:
+
+@itemize @bullet
+@item
+Export them with the @code{export} form:
+@lisp
+(export frob)
+@end lisp
+
+@item
+Include them into the @code{define-module} form with the keyword
+@code{export}:
+@lisp
+(define-module (foo bar)
+  #:export (frob))
+@end lisp
+
+@item
+Change the definition of @code{frob} to use @code{define-public}, which
+is a combination of @code{define} and @code{export}.
+@lisp
+(define-public (frob x) x)
+@end lisp
+@end itemize
+
+After exporting, other modules can access the exported items simply by
+using @code{use-modules} to load the module @code{(foo bar)}.
+
 
 @node Modules and Extensions
 @subsection Modules and Extensions
@@ -743,11 +831,173 @@ for example as @file{/usr/local/share/guile/math/bessel.scm}.
 @node Reporting Bugs
 @chapter Reporting Bugs
 
+@c FIXME::martin: Review me!
+
+@c FIXME::martin: A lot of this was taken from the Emacs reference 
+@c   manual and adapted.  I guess that is okay?
+
 Any problems with the installation should be reported to
 @email{bug-guile@@gnu.org}.
 
-[[how about an explanation of what makes a good bug report?]]
-[[don't complain to us about problems with contributed modules?]]
+Whenever you have found a bug in Guile you are encouraged to report it
+to the Guile developers, so they can fix it.  They may probably have
+also advice what to do to work around a bug when it is not possible for
+you to apply the bugfix or install a new version of Guile yourself.
+
+Before sending in bug reports, please check with the following list that
+you really have found a bug.
+
+@itemize @bullet
+@item
+Whenever documentation and actual behaviour differ, you have certainly
+found a bug, either in the documentation or in the program.
+
+@item
+When Guile crashes, it is a bug.
+
+@item
+When Guile hangs or takes forever to complete a task, it is a bug.
+
+@item
+When calculations produce wrong results, it is a bug.
+
+@item
+When Guile signals an error for valid Scheme programs, it is a bug.
+
+@item
+@c FIXME::martin: Too strict?
+When Guile does not signal an error for invalid Scheme programs, it may
+be a bug, unless this is explicitly documented.
+
+@item
+When some part of the documentation is not clear and does not make sense
+to you even after re--reading the section, it is a bug.
+@end itemize
+
+When you write a bug report, please make sure to include as much of the
+information described below in the report.  If you can't figure out some
+of the items, it is not a problem, but the more information we get, the
+better are chances we can diagnose and fix the bug.
+
+@itemize @bullet
+@item
+The version number of Guile.  Without this, we won't know whether there
+is any point in looking for the bug in the current version of Guile.
+
+You can get the version number by invoking the command
+
+@example
+$ guile --version
+Guile 1.4.1
+Copyright (c) 1995, 1996, 1997, 2000 Free Software Foundation
+Guile may be distributed under the terms of the GNU General Public Licence;
+certain other uses are permitted as well.  For details, see the file
+`COPYING', which is included in the Guile distribution.
+There is no warranty, to the extent permitted by law.
+@end example
+
+@item
+The type of machine you are using, and the operating system name and
+version number.  On GNU systems, you can get it with @file{uname}.
+
+@example
+$ uname -a
+Linux tortoise 2.2.17 #1 Thu Dec 21 17:29:05 CET 2000 i586 unknown
+@end example
+
+@item
+The operands given to the @file{configure} command when Guile was
+installed.
+
+@item
+A complete list of any modifications you have made to the Guile source.
+(We may not have time to investigate the bug unless it happens in an
+unmodified Guile.  But if you've made modifications and you don't tell
+us, you are sending us on a wild goose chase.)
+
+Be precise about these changes.  A description in English is not
+enough--send a context diff for them.
+
+Adding files of your own, or porting to another machine, is a
+modification of the source.
+
+@item
+Details of any other deviations from the standard procedure for
+installing Guile.
+
+@item
+The complete text of any source files needed to reproduce the bug.
+
+If you can tell us a way to cause the problem without loading any source
+files, please do so.  This makes it much easier to debug.  If you do
+need files, make sure you arrange for us to see their exact contents.
+
+@item
+The precise Guile invocation command line we need to type to reproduce
+the bug.
+
+@item
+A description of what behavior you observe that you believe is
+incorrect.  For example, "The Guile process gets a fatal signal," or,
+"The resulting output is as follows, which I think is wrong."
+
+Of course, if the bug is that Guile gets a fatal signal, then one can't
+miss it.  But if the bug is incorrect results, the maintainer might fail
+to notice what is wrong.  Why leave it to chance?
+
+If the manifestation of the bug is an Guile error message, it is
+important to report the precise text of the error message, and a
+backtrace showing how the Scheme program arrived at the error.
+
+This can be done using the procedure @code{backtrace} in the REPL.
+
+@item
+Check whether any programs you have loaded into Guile, including your
+`.guile' file, set any variables that may affect the functioning of
+Guile.  Also, see whether the problem happens in a freshly started Guile
+without loading your `.guile file (start Guile with the `-q' switch to
+prevent loading the init file).  If the problem does _not_ occur then,
+you must report the precise contents of any programs that you must load
+into Guile in order to cause the problem to occur.
+
+@item
+If the problem does depend on an init file or other Lisp programs that
+are not part of the standard Guile distribution, then you should make
+sure it is not a bug in those programs by complaining to their
+maintainers first.  After they verify that they are using Guile in a way
+that is supposed to work, they should report the bug.
+
+@item
+If you wish to mention something in the Guile source, show the line of
+code with a few lines of context.  Don't just give a line number.
+
+The line numbers in the development sources don't match those in your
+sources.  It would take extra work for the maintainers to determine what
+code is in your version at a given line number, and we could not be
+certain.
+
+@item
+Additional information from a C debugger such as GDB might enable
+someone to find a problem on a machine which he does not have available.
+If you don't know how to use GDB, please read the GDB manual--it is not
+very long, and using GDB is easy.  You can find the GDB distribution,
+including the GDB manual in online form, in most of the same places you
+can find the Guile distribution.  To run Guile under GDB, you should
+switch to the `libguile' subdirectory in which Guile was compiled, then
+do `gdb guile'.
+
+However, you need to think when you collect the additional information
+if you want it to show what causes the bug.
+
+For example, many people send just a backtrace, but that is not very
+useful by itself.  A simple backtrace with arguments often conveys
+little about what is happening inside Guile, because most of the
+arguments listed in the backtrace are pointers to Scheme objects.  The
+numeric values of these pointers have no significance whatever; all that
+matters is the contents of the objects they point to (and most of the
+contents are themselves pointers).
+@end itemize
+
 
 
 @c Local Variables:

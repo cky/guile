@@ -1,3 +1,11 @@
+2001-04-20  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* intro.texi (Using Guile Modules): Wrote intro to using modules.
+	(Writing New Modules): New intro for writing modules.
+	(Reporting Bugs): Added info about what is a bug and what to
+	include in a bug report (taken and adapted from the Emacs
+	Reference Manual).
+
 2001-04-19  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* scheme-control.texi (while do): Added documentation for named
