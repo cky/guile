@@ -840,6 +840,8 @@ AC_CONFIG_FILES([
   examples/safe/Makefile
   test-suite/Makefile
   check-guile
+  benchmark-suite/Makefile
+  benchmark-guile
   guile-tools
   pre-inst-guile])
 
@@ -849,6 +851,7 @@ AC_CONFIG_COMMANDS(default,
              libguile/guile-func-name-check \
              libguile/guile-snarf-docs \
              check-guile \
+             benchmark-guile \
              guile-tools \
              pre-inst-guile])
 
