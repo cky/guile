@@ -1,3 +1,8 @@
+2001-07-03  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* srfi-1.scm (list-tabulate): Do not go into infinite loop for
+	invalid arguments.
+
 2001-07-02  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* srfi-1.scm: Replaced calls to `map' in several procedures to

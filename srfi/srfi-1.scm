@@ -242,7 +242,7 @@
 
 (define (list-tabulate n init-proc)
   (let lp ((n n) (acc '()))
-    (if (zero? n)
+    (if (<= n 0)
       acc
       (lp (- n 1) (cons (init-proc (- n 1)) acc)))))
 
