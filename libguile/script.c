@@ -503,12 +503,13 @@ scm_compile_shell_switches (int argc, char **argv)
       else if (! strcmp (argv[i], "-L")) /* add to %load-path */
 	{
 	  if (++i < argc)
-	    user_load_path = scm_cons (scm_list_3 (sym_set_x, 
-                                                   sym_load_path, 
-                                                   scm_list_3(sym_cons,
-                                                              scm_makfrom0str (argv[i]),
-                                                              sym_load_path)),
-                                       user_load_path);
+	    user_load_path =
+	      scm_cons (scm_list_3 (sym_set_x, 
+				    sym_load_path, 
+				    scm_list_3 (sym_cons,
+						scm_from_locale_string (argv[i]),
+						sym_load_path)),
+			user_load_path);
 	  else
 	    scm_shell_usage (1, "missing argument to `-L' switch");
 	}	  
