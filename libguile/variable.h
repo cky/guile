@@ -60,7 +60,7 @@ extern int scm_tc16_variable;
 
 #ifdef __STDC__
 extern SCM scm_make_variable (SCM init, SCM name_hint);
-extern SCM scm_make_udvariable (SCM name_hint);
+extern SCM scm_make_undefined_variable (SCM name_hint);
 extern SCM scm_variable_p (SCM obj);
 extern SCM scm_variable_ref (SCM var);
 extern SCM scm_variable_set_x (SCM var, SCM val);
@@ -70,7 +70,7 @@ extern void scm_init_variable (void);
 
 #else /* STDC */
 extern SCM scm_make_variable ();
-extern SCM scm_make_udvariable ();
+extern SCM scm_make_undefined_variable ();
 extern SCM scm_variable_p ();
 extern SCM scm_variable_ref ();
 extern SCM scm_variable_set_x ();

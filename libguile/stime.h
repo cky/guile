@@ -49,16 +49,12 @@
 
 #ifdef __STDC__
 extern SCM scm_get_internal_real_time(void);
-extern SCM scm_get_internal_real_time(void);
-extern SCM scm_get_internal_real_time(void);
 extern SCM scm_get_internal_run_time(void);
 extern SCM scm_current_time(void);
 extern long scm_time_in_msec(long x);
 extern void scm_init_stime(void);
 
 #else /* STDC */
-extern SCM scm_get_internal_real_time();
-extern SCM scm_get_internal_real_time();
 extern SCM scm_get_internal_real_time();
 extern SCM scm_get_internal_run_time();
 extern SCM scm_current_time();

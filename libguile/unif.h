@@ -110,9 +110,6 @@ extern SCM scm_list_to_uniform_array (SCM ndim, SCM prot, SCM lst);
 extern int scm_raprin1 (SCM exp, SCM port, int writing);
 extern SCM scm_array_prototype (SCM ra);
 extern void scm_init_unif (void);
-extern int scm_raprin1 (SCM exp, SCM port, int writing);
-extern SCM scm_istr2bve (char *str, long len);
-extern SCM scm_array_equal_p (SCM ra0, SCM ra1);
 
 #else /* STDC */
 extern SCM scm_vector_set_length_x ();
@@ -151,9 +148,6 @@ extern SCM scm_list_to_uniform_array ();
 extern int scm_raprin1 ();
 extern SCM scm_array_prototype ();
 extern void scm_init_unif ();
-extern int scm_raprin1 ();
-extern SCM scm_istr2bve ();
-extern SCM scm_array_equal_p ();
 
 #endif /* STDC */
 

@@ -64,6 +64,10 @@ extern SCM scm_make_vector(SCM k, SCM fill, SCM multi);
 extern SCM scm_vector_to_list(SCM v);
 extern SCM scm_vector_fill_x(SCM v, SCM fill_x);
 extern SCM scm_vector_equal_p(SCM x, SCM y);
+extern SCM scm_vector_move_left_x (SCM vec1, SCM start1, SCM end1, SCM
+				   vec2, SCM start2);
+extern SCM scm_vector_move_right_x (SCM vec1, SCM start1, SCM end1, SCM
+				   vec2, SCM start2);
 extern void scm_init_vectors (void);
 
 #else /* STDC */
@@ -76,6 +80,8 @@ extern SCM scm_make_vector();
 extern SCM scm_vector_to_list();
 extern SCM scm_vector_fill_x();
 extern SCM scm_vector_equal_p();
+extern SCM scm_vector_move_left_x ();
+extern SCM scm_vector_move_right_x ();
 extern void scm_init_vectors ();
 
 #endif /* STDC */

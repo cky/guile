@@ -51,6 +51,7 @@
 
 
 #ifdef __STDC__
+extern SCM scm_sys_gethost (SCM name);
 extern SCM scm_sys_inet_aton (SCM address);
 extern SCM scm_inet_ntoa (SCM inetid);
 extern SCM scm_inet_netof (SCM address);
@@ -63,26 +64,10 @@ extern SCM scm_sethost (SCM arg);
 extern SCM scm_setnet (SCM arg);
 extern SCM scm_setproto (SCM arg);
 extern SCM scm_setserv (SCM arg);
-extern SCM scm_sys_socket (SCM family, SCM style, SCM proto);
-extern SCM scm_sys_socketpair (SCM family, SCM style, SCM proto);
-
-extern SCM scm_sys_getsockopt (SCM port, SCM level, SCM optname);
-extern SCM scm_sys_setsockopt (SCM port, SCM level, SCM optname, SCM value);
-extern SCM scm_sys_shutdown (SCM port, SCM how);
-extern SCM scm_sys_connect (SCM sockpt, SCM fam, SCM address, SCM args);
-extern SCM scm_sys_bind (SCM sockpt, SCM fam, SCM address);
-extern SCM scm_sys_listen (SCM port, SCM backlog);
-extern void scm_init_addr_buffer (void);
-extern SCM scm_sys_accept (SCM sockpt);
-extern SCM scm_sys_getsockname (SCM sockpt);
-extern SCM scm_sys_getpeername (SCM sockpt);
-extern SCM scm_sys_recv (SCM sockpt, SCM buff_or_size, SCM flags);
-extern SCM scm_sys_send (SCM sockpt, SCM message, SCM flags);
-extern SCM scm_sys_recvfrom (SCM sockpt, SCM buff_or_size, SCM flags);
-extern SCM scm_sys_sendto (SCM sockpt, SCM message, SCM fam, SCM address, SCM args_and_flags);
 extern void scm_init_socket (void);
 
 #else /* STDC */
+extern SCM scm_sys_gethost ();
 extern SCM scm_sys_inet_aton ();
 extern SCM scm_inet_ntoa ();
 extern SCM scm_inet_netof ();
@@ -95,22 +80,6 @@ extern SCM scm_sethost ();
 extern SCM scm_setnet ();
 extern SCM scm_setproto ();
 extern SCM scm_setserv ();
-extern SCM scm_sys_socket ();
-extern SCM scm_sys_socketpair ();
-extern SCM scm_sys_getsockopt ();
-extern SCM scm_sys_setsockopt ();
-extern SCM scm_sys_shutdown ();
-extern SCM scm_sys_connect ();
-extern SCM scm_sys_bind ();
-extern SCM scm_sys_listen ();
-extern void scm_init_addr_buffer ();
-extern SCM scm_sys_accept ();
-extern SCM scm_sys_getsockname ();
-extern SCM scm_sys_getpeername ();
-extern SCM scm_sys_recv ();
-extern SCM scm_sys_send ();
-extern SCM scm_sys_recvfrom ();
-extern SCM scm_sys_sendto ();
 extern void scm_init_socket ();
 
 #endif /* STDC */

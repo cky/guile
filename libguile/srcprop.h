@@ -116,15 +116,19 @@ typedef struct scm_srcprops_chunk
 extern SCM scm_srcprops_to_plist (SCM obj);
 extern SCM _scm_make_srcprops (int line, int col, SCM fname, SCM copy, SCM plist);
 extern SCM scm_source_property (SCM obj, SCM key);
+extern SCM scm_set_source_property_x (SCM obj, SCM key, SCM datum);
 extern SCM scm_source_properties (SCM obj);
 extern SCM scm_set_source_properties_x (SCM obj, SCM props);
+extern void scm_finish_srcprop (void);
 extern void scm_init_srcprop (void);
 #else
 extern SCM scm_srcprops_to_plist ();
 extern SCM _scm_make_srcprops ();
 extern SCM scm_source_property ();
+extern SCM scm_set_source_property_x ();
 extern SCM scm_source_properties ();
 extern SCM scm_set_source_properties_x ();
+extern void scm_finish_srcprop ();
 extern void scm_init_srcprop ();
 #endif
 

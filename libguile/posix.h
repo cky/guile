@@ -51,8 +51,14 @@
 
 
 #ifdef __STDC__
+extern SCM scm_tcsetpgrp (SCM port, SCM pgid);
+extern SCM scm_tcgetpgrp (SCM port);
+extern SCM scm_ctermid (void);
+extern SCM scm_setsid (void);
+extern SCM scm_setpgid (SCM pid, SCM pgid);
 extern SCM scm_sys_pipe (void);
 extern SCM scm_sys_getgroups(void);
+extern SCM scm_getpgrp (void);
 extern SCM scm_sys_getpwuid (SCM user);
 extern SCM scm_setpwent (SCM arg);
 extern SCM scm_sys_getgrgid (SCM name);
@@ -93,8 +99,14 @@ extern SCM scm_sync(void);
 extern void scm_init_posix (void);
 
 #else /* STDC */
+extern SCM scm_tcsetpgrp ();
+extern SCM scm_tcgetpgrp ();
+extern SCM scm_ctermid ();
+extern SCM scm_setsid ();
+extern SCM scm_setpgid ();
 extern SCM scm_sys_pipe ();
 extern SCM scm_sys_getgroups();
+extern SCM scm_getpgrp ();
 extern SCM scm_sys_getpwuid ();
 extern SCM scm_setpwent ();
 extern SCM scm_sys_getgrgid ();

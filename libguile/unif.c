@@ -2170,7 +2170,11 @@ scm_array_to_list (v)
 
 
 static char s_bad_ralst[] = "Bad scm_array contents scm_list";
+#ifdef __STDC__
+static int l2ra (SCM lst, SCM ra, scm_sizet base, scm_sizet k);
+#else
 static int l2ra ();
+#endif
 
 SCM_PROC(s_list_to_uniform_array, "list->uniform-array", 3, 0, 0, scm_list_to_uniform_array);
 #ifdef __STDC__
@@ -2666,19 +2670,6 @@ SCM
 scm_istr2bve (str, len)
      char *str;
      long len;
-#endif
-{
-  return SCM_BOOL_F;
-}
-
-#ifdef __STDC__
-SCM 
-scm_array_equal_p (SCM ra0, SCM ra1)
-#else
-SCM 
-scm_array_equal_p (ra0, ra1)
-     SCM ra0;
-     SCM ra1;
 #endif
 {
   return SCM_BOOL_F;

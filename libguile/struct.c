@@ -366,7 +366,7 @@ scm_struct_ref (handle, pos)
      SCM pos;
 #endif
 {
-  SCM answer;
+  SCM answer = SCM_UNDEFINED;
   SCM * data;
   SCM layout;
   int p;
