@@ -164,7 +164,37 @@ scm_grow_tok_buf (SCM *tok_buf)
   return newdata;
 }
 
+/* Consume an SCSH-style block comment.  Assume that we've already
+   read the initial `#!', and eat characters until we get a
+   newline/exclamation-point/sharp-sign/newline sequence. 
 
+   A carriage return is also reocgnized as a newline. */
+
+static void
+skip_scsh_block_comment (SCM port)
+{
+  int state = 0;
+
+  for (;;)
+    {
+      int c = scm_getc (port);
+      
+      if (c == EOF)
+	scm_input_error ("skip_block_comment", port, 
+			 "unterminated `#! ... !#' comment", SCM_EOL);
+
+      if (state == 1 && c == '!')
+	state = 2;
+      else if (state == 2 && c == '#')
+	state = 3;
+      else if (state == 3 && (c == '\n' || c == '\r'))
+	return;
+      else if (c == '\n' || c == '\r')
+	state = 1;
+      else
+	state = 0;
+    }
+}
 
 int 
 scm_flush_ws (SCM port, const char *eoferr)
@@ -193,6 +223,20 @@ scm_flush_ws (SCM port, const char *eoferr)
 	    goto lp;
 	  case SCM_LINE_INCREMENTORS:
 	    break;
+	  }
+	break;
+      case '#':
+	switch (c = scm_getc (port))
+	  {
+	  case EOF:
+	    eoferr = "read_sharp";
+	    goto goteof;
+	  case '!':
+	    skip_scsh_block_comment (port);
+	    break;
+	  default:
+	    scm_ungetc (c, port);
+	    return '#';
 	  }
 	break;
       case SCM_LINE_INCREMENTORS:
@@ -284,39 +328,6 @@ recsexpr (SCM obj, long line, int column, SCM filename)
   }
 }
 
-/* Consume an SCSH-style block comment.  Assume that we've already
-   read the initial `#!', and eat characters until we get a
-   newline/exclamation-point/sharp-sign/newline sequence. 
-
-   A carriage return is also reocgnized as a newline. */
-
-static void
-skip_scsh_block_comment (SCM port)
-#define FUNC_NAME "skip_scsh_block_comment"
-{
-  int state = 0;
-
-  for (;;)
-    {
-      int c = scm_getc (port);
-      
-      if (c == EOF)
-	SCM_MISC_ERROR ("unterminated `#! ... !#' comment", SCM_EOL);
-
-      if (state == 1 && c == '!')
-	state = 2;
-      else if (state == 2 && c == '#')
-	state = 3;
-      else if (state == 3 && (c == '\n' || c == '\r'))
-	return;
-      else if (c == '\n' || c == '\r')
-	state = 1;
-      else
-	state = 0;
-    }
-}
-#undef FUNC_NAME
-
 
 static SCM scm_get_hash_procedure(int c);
 static SCM scm_i_lreadparen (SCM *, SCM, char *, SCM *, char);
@@ -334,7 +345,6 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
 				  
  tryagain:
   c = scm_flush_ws (port, s_scm_read);
- tryagain_no_flush_ws:
   switch (c)
     {
     case EOF:
@@ -443,12 +453,9 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
 	  goto num;
 
 	case '!':
-	  /* start of a shell script.  Parse as a block comment,
-	     terminated by !#, just like SCSH.  */
-	  skip_scsh_block_comment (port);
-	  /* EOF is not an error here */
-	  c = scm_flush_ws (port, (char *)NULL);
-	  goto tryagain_no_flush_ws;
+	  /* should never happen, #!...!# block comments are skipped
+	     over in scm_flush_ws. */
+	  abort ();
 
 #if SCM_HAVE_ARRAYS
 	case '*':
