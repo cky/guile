@@ -1,3 +1,8 @@
+2002-01-09  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* Makefile.am (autoconf-macros.texi): Fix build bug:
+	Write this file to srcdir.  Thanks to I. N. Golubev.
+
 2002-01-08  Gary Houston  <ghouston@arglist.com>
 
 	* Makefile.am: attempt to use guile from $(top_builddir)/libguile
