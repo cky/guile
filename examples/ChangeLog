@@ -1,3 +1,27 @@
+2001-06-14  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* scripts/README, scripts/hello.scm, safe/untrusted.scm,
+	safe/evil.scm, safe/README, modules/README, modules/main,
+	modules/module-0.scm, modules/module-1.scm, modules/module-2.scm:
+	Minor cleanup.
+
+	* README: Added intro stuff, restructured a bit.
+
+	* box-dynamic/README, box-module/README, box/README: Cleanup and
+	restructuring.
+
+	* box-dynamic-module/box-mixed.scm: New file, demonstrating usage
+	of extension library functionality, but without exporting
+	procedures from the library.
+
+	Thanks to Thomas Wawrzinek for the idea and example code!
+	
+	* box-dynamic-module/box-module.scm: Add comments, export
+	make-box, box-ref, box-set!.
+
+	* box-dynamic-module/README: Integrate new module (box-mixed),
+	restructure and cleanup a bit.
+
 2001-06-06  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* box-dynamic-module/box-module.scm: New file.

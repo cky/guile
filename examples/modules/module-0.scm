@@ -20,3 +20,5 @@
 (define (bar)
   (display "module-0 bar")
   (newline))
+
+;;; End of file.

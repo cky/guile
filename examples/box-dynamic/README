@@ -1,8 +1,13 @@
-							       -*- text -*-
+							       -*- outline -*-
+
+* Overview
 
 This directory includes an example program for extending Guile with a
 new (and even useful) data type, putting it into a shared library, so it 
 can be called from an unmodified guile interpreter.
+
+
+* Build Instructions
 
 To build the example, simply type
 
@@ -10,10 +15,16 @@ To build the example, simply type
 
 in this directory.
 
+
+* The Box Data Type
+
 A box is simply an object for storing one other object in.  It can be
 used for passing parameters by reference, for example.  You simply
 store an object into a box, pass it to another procedure which can
 store a new object into it and thus return a value via the box.
+
+
+** Usage
 
 Box objects are created with `make-box', set with `box-set!' and
 examined with `box-ref'.  Note that these procedures are placed in a
@@ -23,9 +34,8 @@ this module.  See the following example session for usage details:
 Extend your LD_LIBRARY_PATH variable (or equivalent) to include . and
 .libs 
 
-If you like this example so much that you want to have it available
-for normal usage, install the dynamic libraries in the .libs directory
-to the directory $(prefix)/lib
+
+** Example Session
 
 $ ./guile
 guile> (load-extension "libbox" "scm_init_box")
@@ -39,3 +49,10 @@ guile> (box-ref b)
 (list of values)
 guile> (quit)
 $
+
+
+* Module Installation
+
+If you like this example so much that you want to have it available
+for normal usage, install the dynamic libraries in the .libs directory
+to the directory $(prefix)/lib

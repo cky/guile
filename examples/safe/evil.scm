@@ -23,3 +23,5 @@
 (let lp ((ch (read-char passwd)))
   (if (not (eof-object? ch))
     (lp (read-char passwd))))
+
+;;; End of file.

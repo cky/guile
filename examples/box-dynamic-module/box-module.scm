@@ -1,5 +1,5 @@
-;;; examples/box-dynamic-module/box-module.scm -- Scheme part of the
-;;;   dynamic module (box-module)
+;;; examples/box-dynamic-module/box-module.scm -- Scheme module exporting
+;;;   some functionality from the shared library libbox-module.
 
 ;;; Commentary:
 
@@ -14,4 +14,12 @@
 
 (define-module (box-module))
 
+;; First, load the library.
+;;
 (load-extension "libbox-module" "scm_init_box")
+
+;; Then export the procedures which should be visible to module users.
+;;
+(export make-box box-ref box-set!)
+
+;;; End of file.

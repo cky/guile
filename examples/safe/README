@@ -1,4 +1,6 @@
-							       -*- text -*-
+							       -*- outline -*-
+
+* Overview
 
 This directory includes examples which show how to create and use safe
 environments for safe (sand-boxed) execution of Scheme programs.
@@ -12,7 +14,10 @@ The descriptions below assume that you have a working copy of Guile
 installed and available with the standard installation prefix
 `/usr/local'.
 
-safe:
+* Included Examples
+
+
+** safe
 
   The main program, which executes the Scheme code in a file given on
   the command line in a safe environment.  The following command will
@@ -24,12 +29,12 @@ safe:
 
   guile -s safe untrusted.scm
 
-untrusted.scm:
+** untrusted.scm
 
   This file contains some Scheme code, which will be executed in a
   safe environment by the `safe' script.
 
-evil.scm
+** evil.scm
 
   This file also contains Scheme code, but it tries to do evil things.
   Evaluating this with the `safe' script will abort on those evil

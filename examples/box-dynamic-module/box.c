@@ -107,14 +107,13 @@ box_set_x (SCM b, SCM value)
 #undef FUNC_NAME
 
 
-/* Create and initialize the new smob type, and register the
-   primitives withe the interpreter library.
-
-   This function must be declared a bit different from the example in
-   the ../box directory, because it will be called by
-   `scm_c_define_module', called from below.  */
-static void
-init_box_type (void * unused)
+/* This is the function which must be given to `load-extension' as the
+   second argument.  In this example, the Scheme file box-module.scm
+   (or box-mixed.scm) is responsible for doing the load-extension
+   call.  The Scheme modules are also responsible for placing the
+   procedure definitions in the correct module. */
+void
+scm_init_box ()
 {
   scm_tc16_box = scm_make_smob_type ("box", 0);
   scm_set_smob_mark (scm_tc16_box, mark_box);
@@ -123,26 +122,6 @@ init_box_type (void * unused)
   scm_c_define_gsubr ("make-box", 0, 0, 0, make_box);
   scm_c_define_gsubr ("box-set!", 2, 0, 0, box_set_x);
   scm_c_define_gsubr ("box-ref", 1, 0, 0, box_ref);
-
-  /* This is new too: Since the procedures are now in a module, we
-     have to explicitly export them before they can be used.  */
-  scm_c_export ("make-box", "box-set!", "box-ref", NULL);
-}
-
-/* This is the function which must be given to `load-extension' as the
-   second argument.  It will initialize the shared, library, but will
-   place the definitions in a module called (box-module), so that an
-   additional (use-modules (box-module)) is needed to make them
-   accessible.  In this example, the Scheme file box-module.scm is
-   responsible for doing the load-extension call.  */
-void
-scm_init_box ()
-{
-  /* Unlike the example in ../box, init_box_type is not called
-     directly, but by scm_c_define_module, which will create a module
-     named (box-module) and make this module current while called
-     init_box_type, thus placing the definitions into that module.  */
-  scm_c_define_module ("box-module", init_box_type, NULL);
 }
 
 /* End of file.  */
