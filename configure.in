@@ -603,8 +603,9 @@ AC_CHECK_FUNCS(sethostent   gethostent   endhostent   dnl
 
 AC_MSG_CHECKING(for __libc_stack_end)
 AC_CACHE_VAL(guile_cv_have_libc_stack_end,
-[AC_TRY_LINK([extern char *__libc_stack_end;],
-             [char *p = __libc_stack_end;],
+[AC_TRY_LINK([#include <stdio.h>
+extern char *__libc_stack_end;],
+             [printf("%p", (char*) __libc_stack_end);],
              guile_cv_have_libc_stack_end=yes,
              guile_cv_have_libc_stack_end=no)])
 AC_MSG_RESULT($guile_cv_have_libc_stack_end)
