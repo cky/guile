@@ -204,15 +204,11 @@ INTEGRAL2BIG (ITYPE n)
 #endif
 
       mpz_import (SCM_I_BIG_MPZ (result),
-                  1,
-#ifdef WORDS_BIGENDIAN
-                  1,
-#else
-                  -1,
-#endif
-                  SIZEOF_ITYPE,
-                  0,
-                  0,
+                  1,            /* one word */
+                  1,            /* word order irrelevant when just one word */
+                  SIZEOF_ITYPE, /* word size */
+                  0,            /* native endianness within word */
+                  0,            /* no nails */
                   &n);
 
       /* mpz_import doesn't handle sign */
