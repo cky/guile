@@ -675,6 +675,42 @@
 	    (drop '(a b . c) 2))))
 
 ;;
+;; drop-right
+;;
+
+(with-test-prefix "drop-right"
+
+  (pass-if-exception "() -1" exception:out-of-range
+    (drop-right '() -1))
+  (pass-if (equal? '() (drop-right '() 0)))
+  (pass-if-exception "() 1" exception:wrong-type-arg
+    (drop-right '() 1))
+
+  (pass-if-exception "(1) -1" exception:out-of-range
+    (drop-right '(1) -1))
+  (pass-if (equal? '(1) (drop-right '(1) 0)))
+  (pass-if (equal? '() (drop-right '(1) 1)))
+  (pass-if-exception "(1) 2" exception:wrong-type-arg
+    (drop-right '(1) 2))
+
+  (pass-if-exception "(4 5) -1" exception:out-of-range
+    (drop-right '(4 5) -1))
+  (pass-if (equal? '(4 5) (drop-right '(4 5) 0)))
+  (pass-if (equal? '(4) (drop-right '(4 5) 1)))
+  (pass-if (equal? '() (drop-right '(4 5) 2)))
+  (pass-if-exception "(4 5) 3" exception:wrong-type-arg
+    (drop-right '(4 5) 3))
+
+  (pass-if-exception "(4 5 6) -1" exception:out-of-range
+    (drop-right '(4 5 6) -1))
+  (pass-if (equal? '(4 5 6) (drop-right '(4 5 6) 0)))
+  (pass-if (equal? '(4 5) (drop-right '(4 5 6) 1)))
+  (pass-if (equal? '(4) (drop-right '(4 5 6) 2)))
+  (pass-if (equal? '() (drop-right '(4 5 6) 3)))
+  (pass-if-exception "(4 5 6) 4" exception:wrong-type-arg
+    (drop-right '(4 5 6) 4)))
+
+;;
 ;; filter-map
 ;;
 
@@ -1139,6 +1175,49 @@
 	     (= (length even) 0))))))
 
 ;;
+;; partition!
+;;
+
+(define (test-partition! pred list kept-good dropped-good)
+  (call-with-values (lambda ()
+			(partition! pred list))
+      (lambda (kept dropped)
+	(and (equal? kept kept-good)
+	     (equal? dropped dropped-good)))))
+
+(with-test-prefix "partition!"
+
+  (pass-if "with dropped tail"
+    (test-partition! even? (list 1 2 3 4 5 6 7)
+		     '(2 4 6) '(1 3 5 7)))
+
+  (pass-if "with kept tail"
+    (test-partition! even? (list 1 2 3 4 5 6)
+		     '(2 4 6) '(1 3 5)))
+
+  (pass-if "with everything dropped"
+    (test-partition! even? (list 1 3 5 7)
+		     '() '(1 3 5 7)))
+
+  (pass-if "with everything kept"
+    (test-partition! even? (list 2 4 6)
+		     '(2 4 6) '()))
+
+  (pass-if "with empty list"
+    (test-partition! even? '()
+		     '() '()))
+
+  (pass-if "with reasonably long list"
+    ;; the old implementation from SRFI-1 reference implementation
+    ;; would signal a stack-overflow for a list of only 500 elements!
+    (call-with-values (lambda ()
+			(partition! even?
+				    (make-list 10000 1)))
+      (lambda (even odd)
+	(and (= (length odd) 10000)
+	     (= (length even) 0))))))
+
+;;
 ;; reduce
 ;;
 
@@ -1354,3 +1433,41 @@
 
   (pass-if "nnn"
     (test-span '(-1 -2 -3) '() '(-1 -2 -3))))
+
+;;
+;; take-right
+;;
+
+(with-test-prefix "take-right"
+
+  (pass-if-exception "() -1" exception:out-of-range
+    (take-right '() -1))
+  (pass-if (equal? '() (take-right '() 0)))
+  (pass-if-exception "() 1" exception:wrong-type-arg
+    (take-right '() 1))
+
+  (pass-if-exception "(1) -1" exception:out-of-range
+    (take-right '(1) -1))
+  (pass-if (equal? '() (take-right '(1) 0)))
+  (pass-if (equal? '(1) (take-right '(1) 1)))
+  (pass-if-exception "(1) 2" exception:wrong-type-arg
+    (take-right '(1) 2))
+
+  (pass-if-exception "(4 5) -1" exception:out-of-range
+    (take-right '(4 5) -1))
+  (pass-if (equal? '() (take-right '(4 5) 0)))
+  (pass-if (equal? '(5) (take-right '(4 5) 1)))
+  (pass-if (equal? '(4 5) (take-right '(4 5) 2)))
+  (pass-if-exception "(4 5) 3" exception:wrong-type-arg
+    (take-right '(4 5) 3))
+
+  (pass-if-exception "(4 5 6) -1" exception:out-of-range
+    (take-right '(4 5 6) -1))
+  (pass-if (equal? '() (take-right '(4 5 6) 0)))
+  (pass-if (equal? '(6) (take-right '(4 5 6) 1)))
+  (pass-if (equal? '(5 6) (take-right '(4 5 6) 2)))
+  (pass-if (equal? '(4 5 6) (take-right '(4 5 6) 3)))
+  (pass-if-exception "(4 5 6) 4" exception:wrong-type-arg
+    (take-right '(4 5 6) 4)))
+
+
