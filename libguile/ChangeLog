@@ -1,3 +1,11 @@
+2000-03-09  Han-Wen Nienhuys  <hanwen@cs.uu.nl>, applied by Greg J. Badros, <gjb@cs.washington.edu>
+
+       * libguile/*.[ch]: make a distinction between SCM as a generic
+       name for a Scheme object (now a void*), and SCM as 32 bit word for
+       storing tags and immediates (now a long int).  Introduced
+       SCM_ASWORD and SCM_ASSCM for conversion. Fixed various dubious
+       code in the process: arbiter.c (use macros), unif.c (scm_array_p),
+       
 Wed Mar  8 10:15:59 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* numbers.c:  Use SCM_VALIDATE_LONG_COPY, and longs, not ints, in
