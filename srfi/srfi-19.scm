@@ -821,8 +821,13 @@
     (modulo (- day-of-week-starting-week fdweek-day)
             7)))
 
+;; The "-1" here is a fix for the reference implementation, to make a new
+;; week start on the given day-of-week-starting-week.  date-year-day returns
+;; a day starting from 1 for 1st Jan.
+;;
 (define (date-week-number date day-of-week-starting-week)
   (quotient (- (date-year-day date)
+	       1
                (priv:days-before-first-week  date day-of-week-starting-week))
             7))
 
