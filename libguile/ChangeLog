@@ -1,5 +1,11 @@
 2000-03-18  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* _scm.h:  Don't include async.h everywhere...
+
+	* eq.c eval.c iselect.c: ... only include it here.
+
+2000-03-18  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* _scm.h:  Don't include root.h everywhere...
 
 	* async.c continuations.c eq.c eval.c evalext.c feature.c gc.c

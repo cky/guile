@@ -44,6 +44,7 @@
 #include <string.h>
 
 #include "_scm.h"
+#include "async.h"
 
 #include "iselect.h"
 

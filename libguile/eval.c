@@ -93,6 +93,7 @@ char *alloca ();
 #include "srcprop.h"
 #include "stackchk.h"
 #include "objects.h"
+#include "async.h"
 #include "feature.h"
 #include "modules.h"
 #include "ports.h"
