@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995, 1996, 1997, 1998, 2000 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -220,8 +220,10 @@ scheme_launch_thread (void *p)
   SCM_DEFER_INTS;
 }
 
+
 SCM
 scm_call_with_new_thread (SCM argl)
+#define FUNC_NAME s_call_with_new_thread
 {
   SCM thread;
 
@@ -229,26 +231,23 @@ scm_call_with_new_thread (SCM argl)
   {
     register SCM args = argl;
     SCM thunk, handler;
-    SCM_ASSERT (SCM_NIMP (args),
-		scm_makfrom0str (s_call_with_new_thread),
-		SCM_WNA, NULL);
+    if (!SCM_CONSP (args))
+      SCM_WRONG_NUM_ARGS ();
     thunk = SCM_CAR (args);
     SCM_ASSERT (SCM_NFALSEP (scm_thunk_p (thunk)),
 		thunk,
 		SCM_ARG1,
 		s_call_with_new_thread);
     args = SCM_CDR (args);
-    SCM_ASSERT (SCM_NIMP (args),
-		scm_makfrom0str (s_call_with_new_thread),
-		SCM_WNA, NULL);
+    if (!SCM_CONSP (args))
+      SCM_WRONG_NUM_ARGS ();
     handler = SCM_CAR (args);
     SCM_ASSERT (SCM_NFALSEP (scm_procedure_p (handler)),
 		handler,
 		SCM_ARG2,
 		s_call_with_new_thread);
-    SCM_ASSERT (SCM_NULLP (SCM_CDR (args)),
-		scm_makfrom0str (s_call_with_new_thread),
-		SCM_WNA, NULL);
+    if (!SCM_NULLP (SCM_CDR (args))
+      SCM_WRONG_NUM_ARGS ();
   }
 
   /* Make new thread. */
@@ -285,6 +284,8 @@ scm_call_with_new_thread (SCM argl)
   
   return thread;
 }
+#undef FUNC_NAME
+
 
 /* This is the second thread spawning mechanism: threads from C */
 

@@ -1,4 +1,4 @@
-/* Copyright (C) 1996, 97, 98, 99, 2000 Free Software Foundation, Inc.
+/* Copyright (C) 1996,1997,1998,1999,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -82,14 +82,18 @@ SCM_DEFINE (scm_make_struct_layout, "make-struct-layout", 1, 0, 0,
 {
   SCM new_sym;
   SCM_VALIDATE_STRING (1, fields);
+
   { /* scope */
     char * field_desc;
-    int len;
+    scm_sizet len;
     int x;
 
     len = SCM_STRING_LENGTH (fields);
+    if (len % 2 == 1)
+      SCM_MISC_ERROR ("odd length field specification: ~S", 
+		      SCM_LIST1 (fields));
+
     field_desc = SCM_STRING_CHARS (fields);
-    SCM_ASSERT (!(len & 1), fields, "odd length field specification", FUNC_NAME);
 
     for (x = 0; x < len; x += 2)
       {
@@ -104,35 +108,38 @@ SCM_DEFINE (scm_make_struct_layout, "make-struct-layout", 1, 0, 0,
 	  case 's':
 	    break;
 	  default:
-	    SCM_ASSERT (0, SCM_MAKE_CHAR (field_desc[x]) , "unrecognized field type", FUNC_NAME);
+	    SCM_MISC_ERROR ("unrecognized field type: ~S", 
+			    SCM_LIST1 (SCM_MAKE_CHAR (field_desc[x])));
 	  }
 
 	switch (field_desc[x + 1])
 	  {
 	  case 'w':
-	    SCM_ASSERT (field_desc[x] != 's', SCM_MAKE_CHAR (field_desc[x + 1]),
-			"self fields not writable", FUNC_NAME);
-	      
+	    if (field_desc[x] == 's')
+	      SCM_MISC_ERROR ("self fields not writable", SCM_EOL);
 	  case 'r':
 	  case 'o':
 	    break;
 	  case 'R':
 	  case 'W':
 	  case 'O':
-	    SCM_ASSERT (field_desc[x] != 's', SCM_MAKE_CHAR (field_desc[x + 1]),
-			"self fields not allowed in tail array",
-                        FUNC_NAME);
-	    SCM_ASSERT (x == len - 2, SCM_MAKE_CHAR (field_desc[x + 1]),
-			"tail array field must be last field in layout",
-                        FUNC_NAME);
+	    if (field_desc[x] == 's')
+	      SCM_MISC_ERROR ("self fields not allowed in tail array", 
+			      SCM_EOL);
+	    if (x != len - 2)
+	      SCM_MISC_ERROR ("tail array field must be last field in layout",
+			      SCM_EOL);
 	    break;
 	  default:
-	    SCM_ASSERT (0, SCM_MAKE_CHAR (field_desc[x]) , "unrecognized ref specification", FUNC_NAME);
+	    SCM_MISC_ERROR ("unrecognized ref specification: ~S",
+			    SCM_LIST1 (SCM_MAKE_CHAR (field_desc[x + 1])));
 	  }
 #if 0
 	if (field_desc[x] == 'd')
 	  {
-	    SCM_ASSERT (field_desc[x + 2] == '-', SCM_MAKINUM (x / 2), "missing dash field", FUNC_NAME);
+	    if (field_desc[x + 2] != '-')
+	      SCM_MISC_ERROR ("missing dash field at position ~A",
+			      SCM_LIST1 (SCM_MAKINUM (x / 2)));
 	    x += 2;
 	    goto recheck_ref;
 	  }
@@ -592,16 +599,13 @@ SCM_DEFINE (scm_struct_ref, "struct-ref", 2, 0, 0,
 	  if ((ref == 'R') || (ref == 'W'))
 	    field_type = 'u';
 	  else
-	    SCM_ASSERT (0, pos, "ref denied", FUNC_NAME);
+	    SCM_MISC_ERROR ("ref denied for field ~A", SCM_LIST1 (pos));
 	}
     }
   else if (fields_desc[SCM_SYMBOL_LENGTH (layout) - 1] != 'O')    
     field_type = fields_desc[SCM_SYMBOL_LENGTH (layout) - 2];
   else
-    {
-      SCM_ASSERT (0, pos, "ref denied", FUNC_NAME);
-      abort ();
-    }
+    SCM_MISC_ERROR ("ref denied for field ~A", SCM_LIST1 (pos));
   
   switch (field_type)
     {
@@ -626,8 +630,8 @@ SCM_DEFINE (scm_struct_ref, "struct-ref", 2, 0, 0,
 
 
     default:
-      SCM_ASSERT (0, SCM_MAKE_CHAR (field_type), "unrecognized field type", FUNC_NAME);
-      break;
+      SCM_MISC_ERROR ("unrecognized field type: ~S",
+		      SCM_LIST1 (SCM_MAKE_CHAR (field_type)));
     }
 
   return answer;
@@ -667,15 +671,12 @@ SCM_DEFINE (scm_struct_set_x, "struct-set!", 3, 0, 0,
       field_type = fields_desc[p * 2];
       set_x = fields_desc [p * 2 + 1];
       if (set_x != 'w')
-	SCM_ASSERT (0, pos, "set_x denied", FUNC_NAME);
+	SCM_MISC_ERROR ("set! denied for field ~A", SCM_LIST1 (pos));
     }
   else if (fields_desc[SCM_SYMBOL_LENGTH (layout) - 1] == 'W')    
     field_type = fields_desc[SCM_SYMBOL_LENGTH (layout) - 2];
   else
-    {
-      SCM_ASSERT (0, pos, "set_x denied", FUNC_NAME);
-      abort ();
-    }
+    SCM_MISC_ERROR ("set! denied for field ~A", SCM_LIST1 (pos));
   
   switch (field_type)
     {
@@ -698,12 +699,11 @@ SCM_DEFINE (scm_struct_set_x, "struct-set!", 3, 0, 0,
       break;
 
     case 's':
-      SCM_ASSERT (0, SCM_MAKE_CHAR (field_type), "self fields immutable", FUNC_NAME);
-      break;
+      SCM_MISC_ERROR ("self fields immutable", SCM_EOL);
 
     default:
-      SCM_ASSERT (0, SCM_MAKE_CHAR (field_type), "unrecognized field type", FUNC_NAME);
-      break;
+      SCM_MISC_ERROR ("unrecognized field type: ~S",
+		      SCM_LIST1 (SCM_MAKE_CHAR (field_type)));
     }
 
   return val;

@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996,1998,1999, 2000 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -114,9 +114,9 @@ SCM_DEFINE (scm_primitive_load, "primitive-load", 1, 0, 0,
 {
   SCM hook = *scm_loc_load_hook;
   SCM_VALIDATE_STRING (1, filename);
-  SCM_ASSERT (SCM_FALSEP (hook) || (SCM_EQ_P (scm_procedure_p (hook), SCM_BOOL_T)),
-	      hook, "value of %load-hook is neither a procedure nor #f",
-	      FUNC_NAME);
+  if (!SCM_FALSEP (hook) && !SCM_EQ_P (scm_procedure_p (hook), SCM_BOOL_T))
+    SCM_MISC_ERROR ("value of %load-hook is neither a procedure nor #f",
+		    SCM_EOL);
 
   if (! SCM_FALSEP (hook))
     scm_apply (hook, scm_listify (filename, SCM_UNDEFINED), SCM_EOL);
@@ -301,9 +301,8 @@ SCM_DEFINE (scm_search_path, "search-path", 2, 1, 0,
     for (walk = path; !SCM_NULLP (walk); walk = SCM_CDR (walk))
       {
 	SCM elt = SCM_CAR (walk);
-	SCM_ASSERT (SCM_STRINGP (elt), elt,
-		    "path is not a list of strings",
-		    FUNC_NAME);
+	SCM_ASSERT_TYPE (SCM_STRINGP (elt), path, 1, FUNC_NAME,
+			 "list of strings");
 	if (SCM_STRING_LENGTH (elt) > max_path_len)
 	  max_path_len = SCM_STRING_LENGTH (elt);
       }
@@ -340,9 +339,8 @@ SCM_DEFINE (scm_search_path, "search-path", 2, 1, 0,
     for (walk = extensions; !SCM_NULLP (walk); walk = SCM_CDR (walk))
       {
 	SCM elt = SCM_CAR (walk);
-	SCM_ASSERT (SCM_STRINGP (elt), elt,
-		    "extension list is not a list of strings",
-		    FUNC_NAME);
+	SCM_ASSERT_TYPE (SCM_STRINGP (elt), elt, 3, FUNC_NAME,
+			 "list of strings");
 	if (SCM_STRING_LENGTH (elt) > max_ext_len)
 	  max_ext_len = SCM_STRING_LENGTH (elt);
       }
@@ -426,11 +424,10 @@ SCM_DEFINE (scm_sys_search_load_path, "%search-load-path", 1, 0, 0,
   SCM exts = *scm_loc_load_extensions;
   SCM_VALIDATE_STRING (1, filename);
 
-  SCM_ASSERT (scm_ilength (path) >= 0, path, "load path is not a proper list",
-	      FUNC_NAME);
-  SCM_ASSERT (scm_ilength (exts) >= 0, exts,
-	      "load extension list is not a proper list",
-	      FUNC_NAME);
+  if (scm_ilength (path) < 0)
+    SCM_MISC_ERROR ("%load-path is not a proper list", SCM_EOL);
+  if (scm_ilength (exts) < 0)
+    SCM_MISC_ERROR ("%load-extension list is not a proper list", SCM_EOL);
   return scm_search_path (path, filename, exts);
 }
 #undef FUNC_NAME

@@ -1,3 +1,18 @@
+2001-03-06  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* coop-threads.c (scm_call_with_new_thread), load.c
+	(scm_primitive_load, scm_sys_search_load_path), random.c
+	(scm_c_default_rstate), struct.c (scm_make_struct_layout,
+	scm_struct_ref, scm_struct_set_x):  Don't use SCM_ASSERT to
+	(potentially) issue a scm-misc-error or wrong-num-args error
+	message.
+
+	* load.c (scm_search_path):  Use SCM_ASSERT_TYPE to give details
+	about the expected type with the wrong-type-arg error message.
+
+	* smob.c (scm_make_smob):  Abort on misuse of smob - it indicates
+	a C level bug that can't be fixed from scheme anyway.
+
 2001-03-05  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
 
 	* eval.c (scm_m_letstar): Removed check for duplicate bindings.

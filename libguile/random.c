@@ -1,4 +1,4 @@
-/*      Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+/* Copyright (C) 1999,2000,2001 Free Software Foundation, Inc.
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2, or (at your option)
@@ -192,14 +192,18 @@ scm_c_make_rstate (char *seed, int n)
   return state;
 }
 
+
 scm_rstate *
 scm_c_default_rstate ()
+#define FUNC_NAME "scm_c_default_rstate"
 {
   SCM state = SCM_CDR (scm_var_random_state);
-  SCM_ASSERT (SCM_RSTATEP (state),
-	      state, "*random-state* contains bogus random state", 0);
+  if (!SCM_RSTATEP (state))
+    SCM_MISC_ERROR ("*random-state* contains bogus random state", SCM_EOL);
   return SCM_RSTATE (state);
 }
+#undef FUNC_NAME
+
 
 inline double
 scm_c_uniform01 (scm_rstate *state)
