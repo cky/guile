@@ -21,6 +21,8 @@
 
 AUTOMAKE_OPTIONS = gnu
 
+SUBDIRS = debugger
+
 # These should be installed and distributed.
 ice9_sources =								   \
 	and-let-star.scm arrays.scm boot-9.scm calling.scm common-list.scm \

@@ -1,3 +1,8 @@
+2002-10-26  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* configure.in (AC_CONFIG_FILES): Add ice-9/debugger/Makefile and
+	ice-9/debugger/breakpoints/Makefile.
+
 2002-10-21  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* configure.in: Changed logic in thread support configuration such

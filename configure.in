@@ -848,6 +848,8 @@ AC_CONFIG_FILES([
   libguile-ltdl/Makefile
   libguile-ltdl/upstream/Makefile
   ice-9/Makefile
+  ice-9/debugger/Makefile
+  ice-9/debugger/breakpoints/Makefile
   lang/Makefile
   lang/elisp/Makefile
   lang/elisp/internals/Makefile

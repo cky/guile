@@ -1,3 +1,41 @@
+2002-10-26  Neil Jerram  <neil@ossau.uklinux.net>
+
+	Merging debugger enhancements previously in separate
+	`guile-debugger' package ...
+	
+	* debugger.scm: Factored out into the following constituent parts
+	- see comment in file for more details.
+	(*not-yet-introduced*): New (avoids repeatedly introducing the
+	debugger when entering it from breakpoints).
+	(debug-stack): New.
+	(debug): Rewrite to use more general `debug-stack'.
+
+	* debugger/commands.scm, debugger/command-loop.scm,
+	debugger/state.scm, debugger/utils.scm: New files containing bits
+	of old (ice-9 debugger), plus some rewriting and enhancements for
+	breakpoint support ...
+
+	* debugger/state.scm (state-rtd): Add flags field.
+	(make-state): Extend to optionally take flags.
+	(state-flags): New, accessor for flags field.
+	(set-state-index!, set-stack-index!): New.
+	(write-state-short): Rewritten to print out the current source
+	location in a way that is more easily trackable by Emacs.
+	
+	* debugger/commands.scm (assert-continuable, continue, finish,
+	trace-finish, step, next): New debugger commands for continuing
+	execution from a breakpoint.
+
+	* debugger/behaviour.scm, debugger/breakpoints.scm,
+	debugger/breakpoints/procedural.scm,
+	debugger/breakpoints/range.scm, debugger/breakpoints/source.scm,
+	debugger/trap-hooks.scm, debugger/trc.scm: New files - breakpoint
+	support.
+
+	* Makefile.am (SUBDIRS): Add debugger subdirectory.
+
+	* debugger/Makefile.am, debugger/breakpoints/Makefile.am: New.
+	
 2002-10-21  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* threads.scm (%thread-handler): Do not call unmask-signals, that
