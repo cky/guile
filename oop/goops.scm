@@ -1231,7 +1231,7 @@
 		       (if (or (integer? g-n-s)
 			       (zero? size))
 			   g-n-s
-			   (append g-n-s index size))))))
+			   (append g-n-s (list index size)))))))
        slots))
 
 ;;; compute-cpl
