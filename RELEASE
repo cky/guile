@@ -10,13 +10,15 @@ Please don't put it in the distribution.
    b) Update NEWS and the Texinfo documentation as appropriate.
    c) Remove the user-visible markers from the log entries once they're
       documented.
-3) Update the version numbers in GUILE-VERSION, README, 
+3) Update the version numbers in GUILE-VERSION, and README, to remove the
+   "unreleased" indications.
 4) Commit all changes to the CVS repository.
 5) Verify that the disty works, too:
    a) Make a disty, using 'make dist'.
    b) Unpack it somewhere else.
    c) Remove automake and autoconf from your path, or turn off their
-      execute bits, or something.
+      execute bits, or something.  (Users should be able to build disty
+      without installing those tools.)
    d) Configure, make, and install.
    e) Test the installed version; don't forget to unset SCHEME_LOAD_PATH.
    f) If you made any fixes, commit them, and start from the top of 5).
@@ -26,5 +28,7 @@ Please don't put it in the distribution.
    <hag@ai.mit.edu> has usually been generous enough to help with that.
 8) Send an announcement message to gnu-announce@prep.ai.mit.edu.  If I
    remember correctly, the moderator will delay it until the tar file
-   appears on prep.
-   a) Remember to give credit, but take responsibility.
+   appears on prep.  The announcement text should be mostly taken from 
+   Guile's README file.
+9) Tweak the version numbers in GUILE-VERSION, and README to indicate that 
+   the sources are snapshot again.
