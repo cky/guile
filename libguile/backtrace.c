@@ -254,8 +254,16 @@ scm_display_error (stack, port, subr, message, args, rest)
      SCM args;
      SCM rest;
 {
-  struct display_error_args a = { stack, port, subr, message, args, rest };
-  struct display_error_handler_data data = { "error", port };
+  struct display_error_args a;
+  struct display_error_handler_data data;
+  a.stack = stack;
+  a.port  = port;
+  a.subr  = subr;
+  a.message = message;
+  a.args  = args;
+  a.rest  = rest;
+  data.mode = "error";
+  data.port = port;
   scm_internal_catch (SCM_BOOL_T,
 		      (scm_catch_body_t) display_error_body, &a,
 		      (scm_catch_handler_t) display_error_handler, &data);
@@ -531,8 +539,14 @@ scm_display_backtrace (stack, port, first, depth)
      SCM first;
      SCM depth;
 {
-  struct display_backtrace_args a = { stack, port, first, depth };
-  struct display_error_handler_data data = { "backtrace", port };
+  struct display_backtrace_args a;
+  struct display_error_handler_data data;
+  a.stack = stack;
+  a.port  = port;
+  a.first = first;
+  a.depth = depth;
+  data.mode = "backtrace";
+  data.port = port;
   scm_internal_catch (SCM_BOOL_T,
 		      (scm_catch_body_t) display_backtrace_body, &a,
 		      (scm_catch_handler_t) display_error_handler, &data);
