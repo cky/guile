@@ -130,6 +130,9 @@
 /* Name of this package.  */
 #undef PACKAGE
 
+/* Define if you want support for dynamic linking. */
+#undef DYNAMIC_LINKING
+
 /* Define if you have the ctermid function.  */
 #undef HAVE_CTERMID
 
@@ -186,6 +189,9 @@
 
 /* Define if you have the setsid function.  */
 #undef HAVE_SETSID
+
+/* Define if you have the shl_load function.  */
+#undef HAVE_SHL_LOAD
 
 /* Define if you have the strerror function.  */
 #undef HAVE_STRERROR
@@ -273,3 +279,9 @@
 
 /* Define if you have the <utime.h> header file.  */
 #undef HAVE_UTIME_H
+
+/* Define if you have the dl library (-ldl).  */
+#undef HAVE_LIBDL
+
+/* Define if you have the dld library (-ldld).  */
+#undef HAVE_LIBDLD
