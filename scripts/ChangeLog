@@ -1,3 +1,7 @@
+2002-12-08  Rob Browning  <rlb@defaultvalue.org>
+
+	* Makefile.am (subpkgdatadir): VERSION -> GUILE_EFFECTIVE_VERSION.
+
 2002-10-26  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* lint (lint): Add message telling resolved module name.

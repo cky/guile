@@ -1,3 +1,16 @@
+2002-12-08  Rob Browning  <rlb@defaultvalue.org>
+
+	* configure.in (GUILE_EFFECTIVE_VERSION): AC_SUBST it.
+	(AC_CONFIG_FILES): separate out the files that need to be chmodded
+	at the end of config.status.  Our "default" approach using
+	AC_CONFIG_COMMANDS quit working (and would have needed to be
+	changed to AC_CONFIG_COMMANDS(,,CMDS) rather than our previous
+	AC_CONFIG_COMMANDS(default,CMDS), but I the new approach, using
+	per-file AC_CONFIG_FILES calls appears to be more "correct" in the
+	current autoconf docs.
+
+	* GUILE-VERSION (GUILE_EFFECTIVE_VERSION): new variable.
+
 2002-12-02  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* Makefile.am (SUBDIRS): Removed qt.

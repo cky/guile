@@ -1,3 +1,13 @@
+2002-12-08  Rob Browning  <rlb@defaultvalue.org>
+
+	* Makefile.am (subpkgdatadir): VERSION -> GUILE_EFFECTIVE_VERSION.
+
+	* primitives/Makefile.am (subpkgdatadir): VERSION ->
+	GUILE_EFFECTIVE_VERSION.
+
+	* internals/Makefile.am (subpkgdatadir): VERSION ->
+	GUILE_EFFECTIVE_VERSION.
+
 2002-02-13  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* base.scm (load-emacs): Add optional parameters for specifying an

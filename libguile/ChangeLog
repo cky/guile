@@ -1,3 +1,20 @@
+2002-12-08  Rob Browning  <rlb@defaultvalue.org>
+
+	* version.h.in (SCM_MICRO_VERSION): use @--@ substitution now.
+	(SCM_MINOR_VERSION): use @--@ substitution now.
+	(SCM_MICRO_VERSION): use @--@ substitution now.
+	(scm_effective_version): new function prototype.
+
+	* version.c (scm_effective_version): new function, also add
+	effective-version.
+
+	* Makefile.am (schemelibdir): VERSION -> GUILE_EFFECTIVE_VERSION.
+	(libpath.h): use GUILE_EFFECTIVE_VERSION to compute
+	SCM_LIBRARY_DIR.
+	(version.h): generate this here rather than configure.in.  This
+	approach tracks source edits better (i.e. more immediately).
+	Might be worth considering for other .in files too.
+
 2002-12-02  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	Reorganized thread package selection.  A thread package now only

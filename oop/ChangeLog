@@ -1,3 +1,10 @@
+2002-12-08  Rob Browning  <rlb@defaultvalue.org>
+
+	* Makefile.am (subpkgdatadir): VERSION -> GUILE_EFFECTIVE_VERSION.
+
+	* goops/Makefile.am (subpkgdatadir): VERSION ->
+	GUILE_EFFECTIVE_VERSION.
+
 2002-11-16  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* goops.scm (standard-define-class):  Changed definition to form

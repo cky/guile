@@ -1,4 +1,4 @@
-Guile NEWS --- history of user-visible changes.  -*- text -*-
+Guile NEWS --- history of user-visible changes.
 Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 See the end for copying conditions.
 
@@ -8,8 +8,23 @@ Changes since the stable branch:
 
 * Changes to the distribution
 
-** There are two new thread implementation options: "null" and
-   "coop-pthreads".
+** Guile now provide and uses an "effective" version number.
+
+Guile now provides scm_effective_version and effective-version
+functions which return the "effective" version number.  This is just
+the normal full version string without the final micro-version number,
+so the current effective-version is "1.6".  The effective version
+should remain unchanged during a stable series, and should be used for
+items like the versioned share directory name
+i.e. /usr/share/guile/1.6.
+
+Providing an unchanging version number during a stable release for
+things like the versioned share directory can be particularly
+important for Guile "add-on" packages, since it provides a directory
+that they can install to that won't be changed out from under them
+with each micro release during a stable series.
+
+** There are two new thread implementation options: "null" and "coop-pthreads".
 
 When you configure "--with-threads=null", you will get the usual
 threading API (call-with-new-thread, make-mutex, etc), but you can't
@@ -45,6 +60,12 @@ Previously, the normal evaluator would have been used.  Using the
 debugging evaluator gives better error messages.
 
 * Changes to Scheme functions and syntax
+
+** New function: effective-version
+
+Returns the "effective" version number.  This is just the normal full
+version string without the final micro-version number.  See "Changes
+to the distribution" above.
 
 ** Mutexes are now recursive.
 
@@ -209,6 +230,12 @@ chapter in the reference manual.
 There is no replacement for undefine.
 
 * Changes to the C interface
+
+** New function: scm_effective_version
+
+Returns the "effective" version number.  This is just the normal full
+version string without the final micro-version number.  See "Changes
+to the distribution" above.
 
 ** The function scm_call_with_new_thread has a new prototype.
 
@@ -6340,4 +6367,3 @@ Local variables:
 mode: outline
 paragraph-separate: "[ 	]*$"
 end:
-

@@ -35,7 +35,7 @@ elisp_sources = \
 	time.scm \
 	trace.scm
 
-subpkgdatadir = $(pkgdatadir)/$(VERSION)/lang/elisp/internals
+subpkgdatadir = $(pkgdatadir)/$(GUILE_EFFECTIVE_VERSION)/lang/elisp/internals
 subpkgdata_DATA = $(elisp_sources)
 ETAGS_ARGS = $(subpkgdata_DATA)
 

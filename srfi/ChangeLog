@@ -1,3 +1,7 @@
+2002-12-08  Rob Browning  <rlb@defaultvalue.org>
+
+	* Makefile.am (srfidir): VERSION -> GUILE_EFFECTIVE_VERSION.
+
 2002-12-02  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* Makefile.am (srfiinclude_HEADERS): Added srfi-1.h.

@@ -43,7 +43,7 @@ elisp_sources = \
 	system.scm \
 	time.scm
 
-subpkgdatadir = $(pkgdatadir)/$(VERSION)/lang/elisp/primitives
+subpkgdatadir = $(pkgdatadir)/$(GUILE_EFFECTIVE_VERSION)/lang/elisp/primitives
 subpkgdata_DATA = $(elisp_sources)
 ETAGS_ARGS = $(subpkgdata_DATA)
 

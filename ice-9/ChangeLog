@@ -1,3 +1,13 @@
+2002-12-08  Rob Browning  <rlb@defaultvalue.org>
+
+	* debugger/breakpoints/Makefile.am (subpkgdatadir): VERSION ->
+	GUILE_EFFECTIVE_VERSION.
+
+	* debugger/Makefile.am (subpkgdatadir): VERSION ->
+	GUILE_EFFECTIVE_VERSION.
+
+	* Makefile.am (subpkgdatadir): VERSION -> GUILE_EFFECTIVE_VERSION.
+
 2002-12-04  Mikael Djurfeldt  <mdj@linnaeus>
 
 	* threads.scm (par-map, par-for-each, parallel): 

@@ -1,3 +1,7 @@
+2002-12-08  Rob Browning  <rlb@defaultvalue.org>
+
+	* scheme-options.texi (Build Config): add effective-version docs.
+
 2002-11-17  Neil Jerram  <neil@ossau.uklinux.net>
 
 	Applied patches from Stephen Compall as follows.  (Thanks!)
