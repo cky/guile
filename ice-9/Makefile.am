@@ -23,10 +23,10 @@ AUTOMAKE_OPTIONS = foreign
 
 # These should be installed and distributed.
 ice9_sources = \
-	boot-9.scm calling.scm common-list.scm debug.scm emacs.scm \
-	expect.scm getopt-gnu-style.scm hcons.scm lineio.scm ls.scm \
-	mapping.scm poe.scm psyntax.pp psyntax.ss q.scm r4rs.scm \
-	readline.scm regex.scm runq.scm session.scm slib.scm \
+	and-let*.scm boot-9.scm calling.scm common-list.scm debug.scm \
+	emacs.scm expect.scm getopt-gnu-style.scm hcons.scm lineio.scm \
+	ls.scm mapping.scm poe.scm psyntax.pp psyntax.ss q.scm \
+	r4rs.scm readline.scm regex.scm runq.scm session.scm slib.scm \
 	string-fun.scm syncase.scm tags.scm threads.scm
 
 # These should be installed, but not distributed.
