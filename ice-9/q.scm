@@ -1,6 +1,6 @@
 ;;;; q.scm --- Queues
 ;;;;
-;;;; 	Copyright (C) 1995, 2001 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1995, 2001, 2004 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -136,7 +136,7 @@
   (q-empty-check q)
   (let ((it (caar q))
 	(next (cdar q)))
-    (if (not next)
+    (if (null? next)
 	(set-cdr! q #f))
     (set-car! q next)
     it))
