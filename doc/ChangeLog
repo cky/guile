@@ -1,3 +1,8 @@
+2001-07-02  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* srfi-modules.texi (SRFI-1 Fold and Map): Documented extended
+	versions of `map' and `for-each'.
+
 2001-06-30  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* preface.texi (Manual Conventions): Added description of
