@@ -67,6 +67,26 @@ to activate readline is now
 
 This should work at any time, including from the guile prompt.
 
+To avoid confusion about the terms of Guile's license, please only
+enable readline for your personal use; please don't make it the
+default for others.  Here is why we make this rather odd-sounding
+request:
+
+Guile is normally licensed under a weakened form of the GNU General
+Public License, which allows you to link code with Guile without
+placing that code under the GPL.  This exception is important to some
+people.
+
+However, since readline is distributed under the GNU General Public
+License, when you link Guile with readline, either statically or
+dynamically, you effectively change Guile's license to the strict GPL.
+Whenever you link any strictly GPL'd code into Guile, uses of Guile
+which are normally permitted become forbidden.  This is a rather
+non-obvious consequence of the licensing terms.
+
+So, to make sure things remain clear, please let people choose for
+themselves whether to link GPL'd libraries like readline with Guile.
+
 ** regexp-substitute/global has changed slightly, but incompatibly.
 
 If you include a function in the item list, the string of the match
