@@ -40,6 +40,7 @@
  * If you do not wish that, delete this exception notice.  */
 
 #include <assert.h>
+#include <stdio.h>
 
 #include "libguile/private-gc.h"
 #include "libguile/gc.h"
