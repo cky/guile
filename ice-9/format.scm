@@ -775,68 +775,94 @@
 ;; quoted strings so that the output can always be processed by (read)
 
 (define (format:obj->str obj slashify)
-  (cond
-   ((string? obj)
-    (if slashify
-	(let ((obj-len (string-length obj)))
-	  (string-append
-	   "\""
-	   (let loop ((i 0) (j 0))	; taken from Marc Feeley's pp.scm
-	     (if (= j obj-len)
-		 (string-append (substring obj i j) "\"")
-		 (let ((c (string-ref obj j)))
-		   (if (or (char=? c #\\)
-			   (char=? c #\"))
-		       (string-append (substring obj i j) "\\"
-				      (loop j (+ j 1)))
-		       (loop i (+ j 1))))))))
-	obj))
+  (define (obj->str obj slashify visited)
+    (if (memq obj (cdr visited))
+	(let ((n (- (list-index (cdr visited) (cdr obj)))))
+	  (string-append "#" (number->string n) "#"))
+	(cond
+	 ((string? obj)
+	  (if slashify
+	      (let ((obj-len (string-length obj)))
+		(string-append
+		 "\""
+		 (let loop ((i 0) (j 0)) ; taken from Marc Feeley's pp.scm
+		   (if (= j obj-len)
+		       (string-append (substring obj i j) "\"")
+		       (let ((c (string-ref obj j)))
+			 (if (or (char=? c #\\)
+				 (char=? c #\"))
+			     (string-append (substring obj i j) "\\"
+					    (loop j (+ j 1)))
+			     (loop i (+ j 1))))))))
+	      obj))
    
-   ((boolean? obj) (if obj "#t" "#f"))
+	 ((boolean? obj) (if obj "#t" "#f"))
    
-   ((number? obj) (number->string obj))
+	 ((number? obj) (number->string obj))
 
-   ((symbol? obj) 
-    (if format:symbol-case-conv
-	(format:symbol-case-conv (symbol->string obj))
-	(symbol->string obj)))
+	 ((symbol? obj) 
+	  (if format:symbol-case-conv
+	      (format:symbol-case-conv (symbol->string obj))
+	      (symbol->string obj)))
    
-   ((char? obj)
-    (if slashify
-	(format:char->str obj)
-	(string obj)))
+	 ((char? obj)
+	  (if slashify
+	      (format:char->str obj)
+	      (string obj)))
    
-   ((null? obj) "()")
+	 ((null? obj) "()")
 
-   ((input-port? obj)
-    (format:iobj->str obj))
+	 ((input-port? obj)
+	  (format:iobj->str obj))
    
-   ((output-port? obj)
-    (format:iobj->str obj))
+	 ((output-port? obj)
+	  (format:iobj->str obj))
      
-   ((list? obj)
-    (string-append "("
-		   (let loop ((obj-list obj))
-		     (if (null? (cdr obj-list))
-			 (format:obj->str (car obj-list) #t)
-			 (string-append
-			  (format:obj->str (car obj-list) #t)
-			  " "
-			  (loop (cdr obj-list)))))
-		   ")"))
+	 ((pair? obj)
+	  (string-append "("
+			 (let loop ((obj-list obj)
+				    (visited visited)
+				    (offset 0))
+			   (cond ((null? (cdr obj-list))
+				  (obj->str (car obj-list)
+					    #t
+					    (cons (car obj-list) visited)))
+				 ((memq (cdr obj-list) visited)
+				  (string-append
+				   (obj->str (car obj-list)
+					     #t
+					     (cons (car obj-list) visited))
+				   " . #"
+				   (number->string
+				    (- offset
+				       (list-index visited (cdr obj-list))))
+				   "#"))
+				 ((pair? (cdr obj-list))
+				  (string-append
+				   (obj->str (car obj-list)
+					     #t
+					     (cons (car obj-list) visited))
+				   " "
+				   (loop (cdr obj-list)
+					 (cons (cdr obj-list) visited)
+					 (+ 1 offset))))
+				 (else
+				  (string-append
+				   (obj->str (car obj-list)
+					     #t
+					     (cons (car obj-list) visited))
+				   " . "
+				   (obj->str (cdr obj-list)
+					     #t
+					     (cons (cdr obj-list) visited))))))
+			 ")"))
 
-   ((pair? obj)
-    (string-append "("
-		   (format:obj->str (car obj) #t)
-		   " . "
-		   (format:obj->str (cdr obj) #t)
-		   ")"))
-   
-   ((vector? obj)
-    (string-append "#" (format:obj->str (vector->list obj) #t)))
+	 ((vector? obj)
+	  (string-append "#" (obj->str (vector->list obj) #t visited)))
 
-   (else				; only objects with an #<...> 
-    (format:iobj->str obj))))		; representation should fall in here
+	 (else				; only objects with an #<...> 
+	  (format:iobj->str obj)))))	; representation should fall in here
+  (obj->str obj slashify (list obj)))
 
 ;; format:iobj->str reveals the implementation dependent representation of 
 ;; #<...> objects with the use of display and call-with-output-string.
