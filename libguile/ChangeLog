@@ -1,3 +1,8 @@
+1997-10-26  Mikael Djurfeldt  <mdj@nada.kth.se>
+
+	* scmconfig.h.in: Updated (HAVE_LIBTERMCAP was added when
+	configure.in was changed).
+
 Sun Oct 26 02:20:11 1997  Jim Blandy  <jimb@totoro.red-bean.com>
 
 	* Makefile.am (modinclude_HEADERS): Include readline.h here.
