@@ -577,7 +577,7 @@ scm_init_guile_1 (SCM_STACKITEM *base)
   scm_init_lang ();
   scm_init_script ();
 
-  scm_init_oop_goops_goopscore_module ();
+  scm_init_goops ();
   
   scm_initialized_p = 1;
 
@@ -588,13 +588,10 @@ scm_init_guile_1 (SCM_STACKITEM *base)
   scm_stack_checking_enabled_p = SCM_STACK_CHECKING_P;
 #endif
 
-  scm_load_startup_files ();
-
-  /* these are located here, not from a deep understanding of the
-     module system, but as a way of avoiding segv and other
-     undesirable side effects that arise from various alternatives.  */
   scm_init_rdelim ();
   scm_init_rw ();
+
+  scm_load_startup_files ();
 }
 
 /* Record here whether SCM_BOOT_GUILE_1 has already been called.  This
