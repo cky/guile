@@ -6,7 +6,7 @@ here:
 
 Its MD5 checksum is
 
-    XXX  guile-1.7.2.tar.gz
+    7fabb64198993e971f65a27846202388  guile-1.7.2.tar.gz
 
 This version is guaranteed to contain serious bugs, and the publically
 visible interfaces will almost certainly change before 1.8 is
