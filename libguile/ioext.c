@@ -285,18 +285,19 @@ scm_duplicate_port (oldpt, modes)
 SCM_PROC (s_redirect_port, "redirect-port", 2, 0, 0, scm_redirect_port);
 
 SCM 
-scm_redirect_port (into_pt, from_pt)
-     SCM into_pt;
-     SCM from_pt;
+scm_redirect_port (old, new)
+     SCM old;
+     SCM new;
 {
   int ans, oldfd, newfd;
+
   SCM_DEFER_INTS;
-  SCM_ASSERT (SCM_NIMP (into_pt) && SCM_OPPORTP (into_pt), into_pt, SCM_ARG1, s_redirect_port);
-  SCM_ASSERT (SCM_NIMP (from_pt) && SCM_OPPORTP (from_pt), from_pt, SCM_ARG2, s_redirect_port);
-  oldfd = fileno ((FILE *)SCM_STREAM (into_pt));
+  SCM_ASSERT (SCM_NIMP (old) && SCM_OPPORTP (old), old, SCM_ARG1, s_redirect_port);
+  SCM_ASSERT (SCM_NIMP (new) && SCM_OPPORTP (new), new, SCM_ARG2, s_redirect_port);
+  oldfd = fileno ((FILE *)SCM_STREAM (old));
   if (oldfd == -1)
     scm_syserror (s_redirect_port);
-  newfd = fileno ((FILE *)SCM_STREAM (from_pt));
+  newfd = fileno ((FILE *)SCM_STREAM (new));
   if (newfd == -1)
     scm_syserror (s_redirect_port);
   SCM_SYSCALL (ans = dup2 (oldfd, newfd));

@@ -1,3 +1,8 @@
+Sat Jul 19 04:56:52 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* ports.c (scm_flush_all_ports): SCM_PROC incorrectly allowed an
+	optional argument.
+
 Fri Jul 18 11:19:53 1997  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* fluids.c, fluid.h: New files.

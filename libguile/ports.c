@@ -457,7 +457,7 @@ scm_force_output (port)
   }
 }
 
-SCM_PROC (s_flush_all_ports, "flush-all-ports", 0, 1, 0, scm_flush_all_ports);
+SCM_PROC (s_flush_all_ports, "flush-all-ports", 0, 0, 0, scm_flush_all_ports);
 SCM
 scm_flush_all_ports (void)
 {
