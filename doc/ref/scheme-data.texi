@@ -694,23 +694,23 @@ Return the complex number @var{x} * e^(i * @var{y}).
 @end deffn
 
 @c begin (texi-doc-string "guile" "real-part")
-@deffn {Scheme Procedure} real-part
+@deffn {Scheme Procedure} real-part z
 Return the real part of the number @var{z}.
 @end deffn
 
 @c begin (texi-doc-string "guile" "imag-part")
-@deffn {Scheme Procedure} imag-part
+@deffn {Scheme Procedure} imag-part z
 Return the imaginary part of the number @var{z}.
 @end deffn
 
 @c begin (texi-doc-string "guile" "magnitude")
-@deffn {Scheme Procedure} magnitude
+@deffn {Scheme Procedure} magnitude z
 Return the magnitude of the number @var{z}. This is the same as
 @code{abs} for real arguments, but also allows complex numbers.
 @end deffn
 
 @c begin (texi-doc-string "guile" "angle")
-@deffn {Scheme Procedure} angle
+@deffn {Scheme Procedure} angle z
 Return the angle of the complex number @var{z}.
 @end deffn
 
