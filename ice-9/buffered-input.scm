@@ -105,8 +105,13 @@ with @var{continuation?} set to @code{#t}."
                     (if (not (char-whitespace? res))
                         (set! (buffered-input-continuation? port) #t))
 		    res)))))
+	     (input-waiting
+	      (lambda ()
+		(if (eof-object? read-string)
+		    1
+		    (- (string-length read-string) string-index))))
              (port #f))
-      (set! port (make-soft-port (vector #f #f #f get-character #f) "r"))
+      (set! port (make-soft-port (vector #f #f #f get-character #f input-waiting) "r"))
       (set! (buffered-input-continuation? port) #f)
       port)))
 

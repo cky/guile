@@ -1,3 +1,9 @@
+2002-10-09  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* vports.c (scm_make_soft_port): Allow vector argument to carry a
+	6th element: an input waiting thunk.
+	(sf_input_waiting): New.
+
 2002-10-05  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* root.c (root_mark): Mark active_asyncs slot.

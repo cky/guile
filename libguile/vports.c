@@ -139,12 +139,28 @@ sf_close (SCM port)
 }
 
 
+static int 
+sf_input_waiting (SCM port)
+{
+  SCM p = SCM_PACK (SCM_STREAM (port));
+  if (SCM_VECTOR_LENGTH (p) >= 6)
+    {
+      SCM f = SCM_VELTS (p)[5];
+      if (SCM_NFALSEP (f))
+	return SCM_INUM (scm_call_0 (f));
+    }
+  /* Default is such that char-ready? for soft ports returns #t, as it
+     did before this extension was implemented. */
+  return 1;
+}
+
+
 
 SCM_DEFINE (scm_make_soft_port, "make-soft-port", 2, 0, 0,
            (SCM pv, SCM modes),
 	    "Return a port capable of receiving or delivering characters as\n"
 	    "specified by the @var{modes} string (@pxref{File Ports,\n"
-	    "open-file}).  @var{pv} must be a vector of length 5.  Its\n"
+	    "open-file}).  @var{pv} must be a vector of length 5 or 6.  Its\n"
 	    "components are as follows:\n"
 	    "\n"
 	    "@enumerate 0\n"
@@ -158,6 +174,9 @@ SCM_DEFINE (scm_make_soft_port, "make-soft-port", 2, 0, 0,
 	    "thunk for getting one character\n"
 	    "@item\n"
 	    "thunk for closing port (not by garbage collection)\n"
+	    "@item\n"
+	    "(if present and not @code{#f}) thunk for computing the number of\n"
+	    "characters that can be read from the port without blocking.\n"
 	    "@end enumerate\n"
 	    "\n"
 	    "For an output-only port only elements 0, 1, 2, and 4 need be\n"
@@ -185,9 +204,13 @@ SCM_DEFINE (scm_make_soft_port, "make-soft-port", 2, 0, 0,
 	    "@end lisp")
 #define FUNC_NAME s_scm_make_soft_port
 {
+  int vlen;
   scm_t_port *pt;
   SCM z;
-  SCM_VALIDATE_VECTOR_LEN (1, pv,5);
+
+  SCM_VALIDATE_VECTOR (1, pv);
+  vlen = SCM_VECTOR_LENGTH (pv);
+  SCM_ASSERT ((vlen == 5) || (vlen == 6), pv, 1, FUNC_NAME);
   SCM_VALIDATE_STRING (2, modes);
   
   SCM_DEFER_INTS;
@@ -211,6 +234,7 @@ scm_make_sfptob ()
   scm_set_port_mark (tc, scm_markstream);
   scm_set_port_flush (tc, sf_flush);
   scm_set_port_close (tc, sf_close);
+  scm_set_port_input_waiting (tc, sf_input_waiting);
 
   return tc;
 }

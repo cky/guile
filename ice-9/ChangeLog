@@ -1,3 +1,8 @@
+2002-10-09  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* buffered-input.scm (make-buffered-input-port): Build an
+	input-waiting thunk for just extended version of make-soft-port.
+
 2002-10-04  Rob Browning  <rlb@defaultvalue.org>
 
 	* boot-9.scm (expt): switch if sense and use negative? rather than
