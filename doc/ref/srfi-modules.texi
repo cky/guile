@@ -724,12 +724,19 @@ no set of elements pass then the return is @code{#f}.
 
 @deffn {Scheme Procedure} member x lst [=]
 Return the first sublist of @var{lst} whose @sc{car} is equal to
-@var{x}.  If @var{x} does no appear in @var{lst}, return @code{#f}.
-Equality is determined by the equality predicate @var{=}, or
-@code{equal?} if @var{=} is not given.
+@var{x}.  If @var{x} does not appear in @var{lst}, return @code{#f}.
 
-This function extends the core @code{member} by accepting an equality
-predicate.  (@pxref{List Searching})
+Equality is determined by @code{equal?}, or by the equality predicate
+@var{=} if given.  @var{=} is called @code{(= @var{x} elem)},
+ie.@: with the given @var{x} first, so for example to find the first
+element greater than 5,
+
+@example
+(member 5 '(3 5 1 7 2 9) <) @result{} (7 2 9)
+@end example
+
+This version of @code{member} extends the core @code{member}
+(@pxref{List Searching}) by accepting an equality predicate.
 @end deffn
 
 
