@@ -36,6 +36,8 @@ libqthreads_la_LIBADD = qtmds.lo qtmdc.lo
 libqthreads_la_DEPENDENCIES = qtmds.lo qtmdc.lo
 libqthreads_la_LDFLAGS = -rpath $(libdir)
 
+OMIT_DEPENDENCIES = axp.h hppa.h i386.h ksr.h m88k.h mips.h sparc.h vax.h
+
 .s.lo:
 	$(LIBTOOL) --mode=compile $(COMPILE) $(qthread_asflags) -c $<
 qtmds.s:
