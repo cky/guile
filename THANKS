@@ -6,56 +6,57 @@ The Guile core distribution:
 
 Bug reports and fixes from:
 
-      Lauri Alanko
-     Andrew Archibald
-       Greg Badros
- Aleksandar Bakic
-        Per Bothner
-        Ben Caradoc-Davies
-     Marcus Daniels
-       Doug Evans
-       Fred Fish
-   Jesse N. Glick
-       Eric Hanchrow
-       Greg Harvey
-    Karl M. Hegbloom
-       Dirk Herrmann
-       Gary Houston
-    Charbel Jacquin
-       Bill Janssen
-  Steven G. Johnson
-     Roland Kaufmann
-      Shiro Kawai
-Christopher Lee
- Michael N. Livshin
-  Christian Lynbech
-     Roland McGrath
-      Clark McGrew
-       Russ McManus
-     Harald Meland
-      Perry Metzger
-     Thomas Morgan
-      Shuji Narazaki
-    Nicolas Neuss
-  Thien-Thi Nguyen
-     Robert Pluim
-    Richard Polton
-       Chet Ramey
-        Jim Ravan
-       John Redford
-     Daniel Risacher
-  Ole Myren Röhne
-     Julian Satchell
-      Larry Schwimmer
-      Radey Shouman
-   Miroslav Silovic
-     Maciej Stachowiak
-  Harvey J. Stein
-     Eiichi Takamori
-      David Tillman
-       John Tobey
-       Greg Troxel
-    Bernard Urban
+	  Lauri Alanko
+	 Andrew Archibald
+	   Greg Badros
+     Aleksandar Bakic
+	    Per Bothner
+	    Ben Caradoc-Davies
+	 Marcus Daniels
+	   Doug Evans
+	   Fred Fish
+       Jesse N. Glick
+	   Eric Hanchrow
+	   Greg Harvey
+	Karl M. Hegbloom
+	   Dirk Herrmann
+	   Gary Houston
+	Charbel Jacquin
+	   Bill Janssen
+      Steven G. Johnson
+	 Roland Kaufmann
+	  Shiro Kawai
+    Christopher Lee
+     Michael N. Livshin
+      Christian Lynbech
+	 Roland McGrath
+	  Clark McGrew
+	   Russ McManus
+	 Harald Meland
+	  Perry Metzger
+	 Thomas Morgan
+	  Shuji Narazaki
+	Nicolas Neuss
+      Thien-Thi Nguyen
+	 Robert Pluim
+	Richard Polton
+	   Chet Ramey
+	    Jim Ravan
+	   John Redford
+	 Daniel Risacher
+      Ole Myren Röhne
+	 Julian Satchell
+Jorgen "forcer" Schaefer
+	  Larry Schwimmer
+	  Radey Shouman
+       Miroslav Silovic
+	 Maciej Stachowiak
+      Harvey J. Stein
+	 Eiichi Takamori
+	  David Tillman
+	   John Tobey
+	   Greg Troxel
+	Bernard Urban
 
 Also, thanks to:
 - Pat Eyler, for his continuing work on the Guile web pages
