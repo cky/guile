@@ -242,6 +242,8 @@ AC_CHECK_SIZEOF(unsigned long)
 AC_CHECK_SIZEOF(size_t)
 AC_CHECK_SIZEOF(long long)
 AC_CHECK_SIZEOF(unsigned long long)
+AC_CHECK_SIZEOF(__int64)
+AC_CHECK_SIZEOF(unsigned __int64)
 AC_CHECK_SIZEOF(void *)
 AC_CHECK_SIZEOF(intptr_t)
 AC_CHECK_SIZEOF(uintptr_t)
@@ -419,7 +421,7 @@ fi
 AC_SUBST([SCM_I_GSC_T_UINT32])
 
 ### Optional type scm_t_int64 (ANSI C says int, short, or long might work)
-### Also try long long if we have it.
+### Also try 'long long' and '__int64' if we have it.
 SCM_I_GSC_T_INT64=0
 if test "$ac_cv_sizeof_int" -eq 8; then
   SCM_I_GSC_T_INT64='"int"'
@@ -429,6 +431,8 @@ elif test "$ac_cv_sizeof_short" -eq 8; then
   SCM_I_GSC_T_INT64='"short"'
 elif test "$ac_cv_sizeof_long_long" -eq 8; then
   SCM_I_GSC_T_INT64='"long long"'
+elif test "$ac_cv_sizeof___int64" -eq 8; then
+  SCM_I_GSC_T_INT64='"__int64"'
 elif test "$scm_stdint_has_int64"; then
   SCM_I_GSC_T_INT64='"int64_t"'
   SCM_I_GSC_NEEDS_STDINT_H=1
@@ -441,7 +445,7 @@ fi
 AC_SUBST([SCM_I_GSC_T_INT64])
 
 ### Optional type scm_t_uint64 (ANSI C says int, short, or long might work)
-### Also try long long if we have it.
+### Also try 'long long' and '__int64' if we have it.
 SCM_I_GSC_T_UINT64=0
 if test "$ac_cv_sizeof_unsigned_int" -eq 8; then
   SCM_I_GSC_T_UINT64='"unsigned int"'
@@ -451,6 +455,8 @@ elif test "$ac_cv_sizeof_unsigned_short" -eq 8; then
   SCM_I_GSC_T_UINT64='"unsigned short"'
 elif test "$ac_cv_sizeof_unsigned_long_long" -eq 8; then
   SCM_I_GSC_T_UINT64='"unsigned long long"'
+elif test "$ac_cv_sizeof_unsigned___int64" -eq 8; then
+  SCM_I_GSC_T_UINT64='"unsigned __int64"'
 elif test "$scm_stdint_has_uint64"; then
   SCM_I_GSC_T_UINT64='"uint64_t"'
   SCM_I_GSC_NEEDS_STDINT_H=1

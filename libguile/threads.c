@@ -24,10 +24,14 @@
 
 #include "libguile/_scm.h"
 
+#if HAVE_UNISTD_H
 #include <unistd.h>
+#endif
 #include <stdio.h>
 #include <assert.h>
+#if HAVE_SYS_TIME_H
 #include <sys/time.h>
+#endif
 
 #include "libguile/validate.h"
 #include "libguile/root.h"
@@ -1086,6 +1090,18 @@ scm_cond_timedwait (scm_t_cond *c, scm_t_mutex *m, const scm_t_timespec *wt)
   int res = scm_i_plugin_cond_timedwait (c, m, wt);
   scm_i_enter_guile (t);
   return res;
+}
+
+void *
+scm_getspecific (scm_t_key k)
+{
+  return scm_i_plugin_getspecific (k);
+}
+
+int
+scm_setspecific (scm_t_key k, void *s)
+{
+  return scm_i_plugin_setspecific (k, s);
 }
 
 void

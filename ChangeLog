@@ -1,3 +1,8 @@
+2003-06-14  Stefan Jahn  <stefan@lkcc.org>
+
+	* configure.in: Checking for __int64 as possible candidate for
+	the SCM_I_GSC_T_INT64 define.
+
 2003-05-30  Stefan Jahn  <stefan@lkcc.org>
 
 	* configure.in: Checking for unsetenv().

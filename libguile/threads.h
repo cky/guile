@@ -63,6 +63,12 @@ SCM_API void scm_threads_mark_stacks (void);
 SCM_API void scm_init_threads (SCM_STACKITEM *);
 SCM_API void scm_init_thread_procs (void);
 
+#if SCM_USE_PTHREAD_THREADS
+# include "libguile/pthread-threads.h"
+#else
+# include "libguile/null-threads.h"
+#endif
+
 /*----------------------------------------------------------------------*/
 /* Low-level C API */
 
@@ -130,8 +136,8 @@ SCM_API int scm_cond_timedwait (scm_t_cond *c,
 
 #define scm_key_create		scm_i_plugin_key_create 
 #define scm_key_delete		scm_i_plugin_key_delete 
-#define scm_setspecific		scm_i_plugin_setspecific 
-#define scm_getspecific		scm_i_plugin_getspecific 
+SCM_API int scm_setspecific (scm_t_key k, void *s);
+SCM_API void *scm_getspecific (scm_t_key k);
 
 #define scm_thread_select	scm_internal_select
 
@@ -224,19 +230,13 @@ SCM_API SCM scm_thread_exited_p (SCM thread);
 
 SCM_API scm_root_state *scm_i_thread_root (SCM thread);
 
-#if SCM_USE_PTHREAD_THREADS
-# include "libguile/pthread-threads.h"
-#else
-# include "libguile/null-threads.h"
-#endif
-
 #define SCM_CURRENT_THREAD \
   ((scm_thread *) scm_i_plugin_getspecific (scm_i_thread_key))
 extern scm_t_key scm_i_thread_key;
 
 /* These macros have confusing names.
    They really refer to the root state of the running thread. */
-#define SCM_THREAD_LOCAL_DATA (scm_i_plugin_getspecific (scm_i_root_state_key))
+#define SCM_THREAD_LOCAL_DATA (scm_getspecific (scm_i_root_state_key))
 #define SCM_SET_THREAD_LOCAL_DATA(x) scm_i_set_thread_data(x)
 SCM_API scm_t_key scm_i_root_state_key;
 SCM_API void scm_i_set_thread_data (void *);

@@ -1175,6 +1175,8 @@ SCM_DEFINE (scm_putenv, "putenv", 1, 0, 0,
 	 environment variable 'name'. */
       int e;
       ptr = scm_malloc (SCM_STRING_LENGTH (str) + 2);
+      if (ptr == NULL)
+	SCM_MEMORY_ERROR;
       strncpy (ptr, SCM_STRING_CHARS (str), SCM_STRING_LENGTH (str));
       ptr[SCM_STRING_LENGTH (str)] = '=';
       ptr[SCM_STRING_LENGTH (str) + 1] = 0;
@@ -1182,7 +1184,7 @@ SCM_DEFINE (scm_putenv, "putenv", 1, 0, 0,
       e = errno; free (ptr); errno = e;
       if (rv < 0)
 	SCM_SYSERROR;
-#endif
+#endif /* !HAVE_UNSETENV */
     }
   else
     {
@@ -1191,6 +1193,41 @@ SCM_DEFINE (scm_putenv, "putenv", 1, 0, 0,
       if (ptr == NULL)
 	SCM_MEMORY_ERROR;
       strncpy (ptr, SCM_STRING_CHARS (str), SCM_STRING_LENGTH (str));
+
+#ifdef __MINGW32__
+      /* If str is "FOO=", ie. attempting to set an empty string, then
+         we need to see if it's been successful.  On MINGW, "FOO="
+         means remove FOO from the environment.  As a workaround, we
+         set "FOO= ", ie. a space, and then modify the string returned
+         by getenv.  It's not enough just to modify the string we set,
+         because MINGW putenv copies it.  */
+      if (ptr[SCM_STRING_LENGTH (str) - 1] == '=')
+        {
+	  char *alt;
+          SCM name = scm_substring (str, SCM_MAKINUM (0),
+                                    SCM_MAKINUM (SCM_STRING_LENGTH (str) - 1));
+          if (getenv (SCM_STRING_CHARS (name)) == NULL)
+            {
+              alt = scm_malloc (SCM_STRING_LENGTH (str) + 2);
+	      if (alt == NULL)
+		{
+		  free (ptr);
+		  SCM_MEMORY_ERROR;
+		}
+              memcpy (alt, SCM_STRING_CHARS (str), SCM_STRING_LENGTH (str));
+              alt[SCM_STRING_LENGTH (str)] = ' ';
+              alt[SCM_STRING_LENGTH (str) + 1] = '\0';
+              rv = putenv (alt);
+              if (rv < 0)
+		SCM_SYSERROR;
+              free (ptr);   /* don't need the old string we gave to putenv */
+	    }
+	  alt = getenv (SCM_STRING_CHARS (name));
+	  alt[0] = '\0';
+	  return SCM_UNSPECIFIED;
+        }
+#endif /* __MINGW32__ */
+
       ptr[SCM_STRING_LENGTH (str)] = 0;
       rv = putenv (ptr);
       if (rv < 0)

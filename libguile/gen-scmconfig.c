@@ -276,6 +276,8 @@ main (int argc, char *argv[])
       "   be more likely to be what you want */\n");
   pf ("#define SCM_SIZEOF_LONG_LONG %d\n", SIZEOF_LONG_LONG);
   pf ("#define SCM_SIZEOF_UNSIGNED_LONG_LONG %d\n", SIZEOF_UNSIGNED_LONG_LONG);
+  pf ("#define SCM_SIZEOF___INT64 %d\n", SIZEOF___INT64);
+  pf ("#define SCM_SIZEOF_UNSIGNED___INT64 %d\n", SIZEOF_UNSIGNED___INT64);
 
   pf ("\n");
   pf ("/* These are always defined. */\n");

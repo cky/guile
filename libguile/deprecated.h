@@ -68,8 +68,13 @@ SCM_API const char scm_s_formals[];
 #define scm_substring_move_left_x scm_substring_move_x
 #define scm_substring_move_right_x scm_substring_move_x
 
+#if SCM_SIZEOF_LONG_LONG != 0
 typedef long long long_long;
 typedef unsigned long long ulong_long;
+#elif SCM_SIZEOF___INT64 != 0
+typedef __int64 long_long;
+typedef unsigned __int64 ulong_long;
+#endif
 
 #define scm_sizet size_t
 

@@ -1,3 +1,17 @@
+2003-06-14  Stefan Jahn  <stefan@lkcc.org>
+
+	* threads.h: Redefined scm_getspecific() and scm_setspecific()
+	to be functions instead of macros.
+
+	* threads.c: Conditionalized inclusion of <sys/time.h> and
+	<unistd.h>.
+	(scm_getspecific, scm_setspecific): Made these two function
+	real part of the API.
+
+	* posix.c (s_scm_putenv): Added some code to make a 
+	(putenv "FOO="), i.e. setting an empty string, work also on
+	Win32 systems.  Thanks to Kevin Ryde for the proposal.
+
 2003-06-12  Kevin Ryde  <user42@zip.com.au>
 
 	* posix.c (scm_putenv): Free temporary ptr in mingw unset.  Add
