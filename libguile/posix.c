@@ -67,6 +67,10 @@ extern char *ttyname();
 #endif
 #endif
 
+#ifdef HAVE_LIBC_H
+#include <libc.h>
+#endif
+
 #ifdef HAVE_SYS_SELECT_H
 #include <sys/select.h>
 #endif
@@ -135,7 +139,39 @@ char *strptime ();
 #include <locale.h>
 #endif
 
+/* On NextStep, <utime.h> doesn't define struct utime, unless we
+   #define _POSIX_SOURCE before #including it.  */
+#ifdef UTIMBUF_NEEDS_POSIX
+#define _POSIX_SOURCE
+#endif
 
+#ifdef HAVE_SYS_UTIME_H
+#include <sys/utime.h>
+#endif
+
+#ifdef HAVE_UTIME_H
+#include <utime.h>
+#endif
+
+
+
+/* Some Unix systems don't define these.  CPP hair is dangerous, but
+   this seems safe enough... */
+#ifndef R_OK
+#define R_OK 4
+#endif
+
+#ifndef W_OK
+#define W_OK 2
+#endif
+
+#ifndef X_OK
+#define X_OK 1
+#endif
+
+#ifndef F_OK
+#define F_OK 0
+#endif
 
 
 
@@ -210,8 +246,8 @@ scm_sys_getgroups()
     GETGROUPS_T *groups;
     int val;
 
-    groups = (gid_t *)scm_must_malloc(ngroups * sizeof(GETGROUPS_T),
-				      s_sys_getgroups);
+    groups = (GETGROUPS_T *) scm_must_malloc(ngroups * sizeof(GETGROUPS_T),
+					     s_sys_getgroups);
     val = getgroups(ngroups, groups);
     if (val < 0)
       {
@@ -588,17 +624,17 @@ scm_getpgrp ()
   return SCM_MAKINUM (fn (0));
 }
 
-SCM_PROC (s_setpgid, "setpgid", 2, 0, 0, scm_setpgid);
+SCM_PROC (s_sys_setpgid, "setpgid", 2, 0, 0, scm_setpgid);
 SCM 
 scm_setpgid (pid, pgid)
      SCM pid, pgid;
 {
 #ifdef HAVE_SETPGID
-  SCM_ASSERT (SCM_INUMP (pid), pid, SCM_ARG1, s_setpgid);
-  SCM_ASSERT (SCM_INUMP (pgid), pgid, SCM_ARG2, s_setpgid);
+  SCM_ASSERT (SCM_INUMP (pid), pid, SCM_ARG1, s_sys_setpgid);
+  SCM_ASSERT (SCM_INUMP (pgid), pgid, SCM_ARG2, s_sys_setpgid);
   /* FIXME(?): may be known as setpgrp.  */
   if (setpgid (SCM_INUM (pid), SCM_INUM (pgid)) != 0)
-    SCM_SYSERROR (s_setpgid);
+    SCM_SYSERROR (s_sys_setpgid);
   return SCM_UNSPECIFIED;
 #else
   SCM_SYSMISSING (s_sys_setpgid);
@@ -607,14 +643,14 @@ scm_setpgid (pid, pgid)
 #endif
 }
 
-SCM_PROC (s_setsid, "setsid", 0, 0, 0, scm_setsid);
+SCM_PROC (s_sys_setsid, "setsid", 0, 0, 0, scm_setsid);
 SCM 
 scm_setsid ()
 {
 #ifdef HAVE_SETSID
   pid_t sid = setsid ();
   if (sid == -1)
-    SCM_SYSERROR (s_setsid);
+    SCM_SYSERROR (s_sys_setsid);
   return SCM_UNSPECIFIED;
 #else
   SCM_SYSMISSING (s_sys_setsid);
@@ -649,14 +685,14 @@ scm_ttyname (port)
 }
 
 
-SCM_PROC (s_ctermid, "ctermid", 0, 0, 0, scm_ctermid);
+SCM_PROC (s_sys_ctermid, "ctermid", 0, 0, 0, scm_ctermid);
 SCM 
 scm_ctermid ()
 {
 #ifdef HAVE_CTERMID
   char *result = ctermid (NULL);
   if (*result == '\0')
-    SCM_SYSERROR (s_ctermid);
+    SCM_SYSERROR (s_sys_ctermid);
   return scm_makfrom0str (result);
 #else
   SCM_SYSMISSING (s_sys_ctermid);
@@ -665,7 +701,7 @@ scm_ctermid ()
 #endif
 }
 
-SCM_PROC (s_tcgetpgrp, "tcgetpgrp", 1, 0, 0, scm_tcgetpgrp);
+SCM_PROC (s_sys_tcgetpgrp, "tcgetpgrp", 1, 0, 0, scm_tcgetpgrp);
 SCM 
 scm_tcgetpgrp (port)
      SCM port;
@@ -673,10 +709,10 @@ scm_tcgetpgrp (port)
 #ifdef HAVE_TCGETPGRP
   int fd;
   pid_t pgid;
-  SCM_ASSERT (SCM_NIMP (port) && SCM_OPFPORTP (port), port, SCM_ARG1, s_tcgetpgrp);
+  SCM_ASSERT (SCM_NIMP (port) && SCM_OPFPORTP (port), port, SCM_ARG1, s_sys_tcgetpgrp);
   fd = fileno ((FILE *)SCM_STREAM (port));
   if (fd == -1 || (pgid = tcgetpgrp (fd)) == -1)
-    SCM_SYSERROR (s_tcgetpgrp);
+    SCM_SYSERROR (s_sys_tcgetpgrp);
   return SCM_MAKINUM (pgid);
 #else
   SCM_SYSMISSING (s_sys_tcgetpgrp);
@@ -685,18 +721,18 @@ scm_tcgetpgrp (port)
 #endif
 }    
 
-SCM_PROC (s_tcsetpgrp, "tcsetpgrp", 2, 0, 0, scm_tcsetpgrp);
+SCM_PROC (s_sys_tcsetpgrp, "tcsetpgrp", 2, 0, 0, scm_tcsetpgrp);
 SCM 
 scm_tcsetpgrp (port, pgid)
      SCM port, pgid;
 {
 #ifdef HAVE_TCSETPGRP
   int fd;
-  SCM_ASSERT (SCM_NIMP (port) && SCM_OPFPORTP (port), port, SCM_ARG1, s_tcsetpgrp);
-  SCM_ASSERT (SCM_INUMP (pgid), pgid, SCM_ARG2, s_tcsetpgrp);
+  SCM_ASSERT (SCM_NIMP (port) && SCM_OPFPORTP (port), port, SCM_ARG1, s_sys_tcsetpgrp);
+  SCM_ASSERT (SCM_INUMP (pgid), pgid, SCM_ARG2, s_sys_tcsetpgrp);
   fd = fileno ((FILE *)SCM_STREAM (port));
   if (fd == -1 || tcsetpgrp (fd, SCM_INUM (pgid)) == -1)
-    SCM_SYSERROR (s_tcsetpgrp);
+    SCM_SYSERROR (s_sys_tcsetpgrp);
   return SCM_UNSPECIFIED;
 #else
   SCM_SYSMISSING (s_sys_tcsetpgrp);
@@ -797,7 +833,7 @@ SCM
 scm_sys_fork()
 #endif
 {
-  pid_t pid;
+  int pid;
   pid = fork ();
   if (pid == -1)
     SCM_SYSERROR (s_sys_fork);
@@ -959,12 +995,6 @@ scm_open_output_pipe(pipestr)
   return scm_open_pipe(pipestr, scm_makfromstr("w", (sizeof "w")-1, 0));
 }
 
-
-#ifdef __EMX__
-#include <sys/utime.h>
-#else
-#include <utime.h>
-#endif
 
 SCM_PROC (s_sys_utime, "utime", 1, 2, 0, scm_sys_utime);
 #ifdef __STDC__
@@ -1534,10 +1564,10 @@ scm_init_posix ()
   scm_sysintern ("SIGPWR", SCM_MAKINUM (SIGPWR));
 #endif
   /* access() symbols.  */
-  scm_sysintern ("R_OK", SCM_MAKINUM (4));
-  scm_sysintern ("W_OK", SCM_MAKINUM (2));
-  scm_sysintern ("X_OK", SCM_MAKINUM (1));
-  scm_sysintern ("F_OK", SCM_MAKINUM (0));
+  scm_sysintern ("R_OK", SCM_MAKINUM (R_OK));
+  scm_sysintern ("W_OK", SCM_MAKINUM (W_OK));
+  scm_sysintern ("X_OK", SCM_MAKINUM (X_OK));
+  scm_sysintern ("F_OK", SCM_MAKINUM (F_OK));
 
 #ifdef LC_COLLATE
   scm_sysintern ("LC_COLLATE", SCM_MAKINUM (LC_COLLATE));
