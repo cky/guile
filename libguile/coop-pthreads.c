@@ -60,7 +60,8 @@
    XXX - more overview here.
 */
 
-/* All data is protected by a single mutex: guile_mutex. */
+/* All data (except the ready queue) is protected by a single mutex:
+   guile_mutex. */
 
 static pthread_mutex_t guile_mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -105,7 +106,11 @@ init_thread_creator (SCM thread, pthread_t th, scm_root_state *r)
   scm_copt_thread *t = SCM_THREAD_DATA(thread);
   t->root = r;
   t->pthread = th;
+  t->base = NULL;
   pthread_cond_init (&t->sleep_cond, NULL);
+#if 0
+  fprintf (stderr, "%ld created %ld\n", pthread_self (), th);
+#endif
 }
 
 static void
@@ -120,6 +125,9 @@ static SCM
 thread_mark (SCM obj)
 {
   scm_copt_thread *t = SCM_THREAD_DATA (obj);
+#if 0
+  fprintf (stderr, "marking %ld\n", t->pthread);
+#endif
   scm_gc_mark (t->result);
   return t->root->handle;
 }
@@ -145,6 +153,9 @@ static size_t
 thread_free (SCM obj)
 {
   scm_copt_thread *t = SCM_THREAD_DATA (obj);
+#if 0
+  fprintf (stderr, "freeing %ld\n", t->pthread);
+#endif
   if (t->pthread != -1)
     abort ();
   scm_gc_free (t, sizeof (*t), "thread");
@@ -185,7 +196,21 @@ dequeue (SCM q)
     }
 }
 
-/*** Ready queue */
+/*** Scheduling */
+
+/* When a thread wants to execute Guile functions, it locks the
+   guile_mutex.  Since that is not necessarily fair, we put a layer on
+   top so that only one or a few threads actually compete for that
+   mutex.
+
+   There is a global ready_queue with threads that want the
+   guile_mutex.  When a thread gives up its mutex, it dequeues one
+   thread from the ready_queue and signals its condition variable.
+
+   To enter Guile, a thread first tries to lock the guile_mutex and
+   when that succeeds it has entered.  Otherwise, it puts itself on
+   the ready_queue and waits for its condition variable.
+*/
 
 /* Normally, queues are implemented with the procedures above, but the
    ready queue is special.  We need to put threads on it from the
@@ -194,12 +219,30 @@ dequeue (SCM q)
    objects.
 */
 
+static SCM cur_thread;
+
 static pthread_mutex_t ready_queue_mutex = PTHREAD_MUTEX_INITIALIZER;
 static scm_copt_thread *next_ready = NULL;
 static scm_copt_thread *last_ready = NULL;
 
 static void
-get_ready (scm_copt_thread *t)
+dump_ready_queue (void)
+{
+#if 0
+  scm_copt_thread *t;
+  fprintf (stderr, "ready queue:");
+  for (t = next_ready; t; t = t->next_ready)
+    {
+      fprintf (stderr, " %ld", t->pthread);
+      if (t == last_ready)
+	fprintf (stderr, ".");
+    }
+  fprintf (stderr, "\n");
+#endif
+}
+
+static void
+put_on_ready_queue_locked (scm_copt_thread *t)
 {
   pthread_mutex_lock (&ready_queue_mutex);
   t->next_ready = NULL;
@@ -208,41 +251,38 @@ get_ready (scm_copt_thread *t)
   else
     next_ready = t;
   last_ready = t;
+}
+
+static void
+put_on_ready_queue (scm_copt_thread *t)
+{
+  put_on_ready_queue_locked (t);
   pthread_mutex_unlock (&ready_queue_mutex);
+}
+
+static void
+enter_guile (scm_copt_thread *t)
+{
+  if (pthread_mutex_trylock (&guile_mutex) == EBUSY)
+    {
+      put_on_ready_queue_locked (t);
+#if 0
+      fprintf (stderr, "%ld entering\n", pthread_self ());
+#endif
+      dump_ready_queue ();
+      pthread_cond_wait (&t->sleep_cond, &ready_queue_mutex);
+      pthread_mutex_unlock (&ready_queue_mutex);
+      pthread_mutex_lock (&guile_mutex);
+    }
+#if 0
+  fprintf (stderr, "%ld is in\n", pthread_self ());
+#endif
+  cur_thread = t->handle;
+  t->top = NULL;
 }
 
 static scm_copt_thread *
-get_next_ready ()
-{
-  scm_copt_thread *t;
-  pthread_mutex_lock (&ready_queue_mutex);
-  t = next_ready;
-  if (t)
-    {
-      next_ready = t->next_ready;
-      if (next_ready == NULL)
-	last_ready = NULL;
-    }
-  return t;
-  pthread_mutex_unlock (&ready_queue_mutex);
-}
-
-/*** Running and sleeping */
-
-static SCM cur_thread;
-
-/* Kick the next runnable thread if there is one.
- */
-static void
-kick_next ()
-{
-  scm_copt_thread *next = get_next_ready (ready_queue);
-  if (next)
-    pthread_cond_signal (&next->sleep_cond);
-}
-  
-static SCM
-suspend ()
+leave_guile ()
 {
   SCM cur = cur_thread;
   scm_copt_thread *c = SCM_THREAD_DATA (cur);
@@ -253,57 +293,89 @@ suspend ()
   SCM_FLUSH_REGISTER_WINDOWS;
   setjmp (c->regs);
 
-  return cur;
-}
+#if 0
+  fprintf (stderr, "%ld leaving\n", pthread_self ());
+#endif
 
-static void
-release ()
-{
+  if (next_ready)
+    {
+      /* next_ready will never become NULL expect here.  Thus, we
+	 don't need to test again after getting the mutex.
+      */
+      scm_copt_thread *n = next_ready;
+      pthread_mutex_lock (&ready_queue_mutex);
+      dump_ready_queue ();
+      next_ready = n->next_ready;
+      if (next_ready == NULL)
+	last_ready = NULL;
+      pthread_mutex_unlock (&ready_queue_mutex);
+#if 0
+      fprintf (stderr, "%ld kicking %ld\n", pthread_self (), n->pthread);
+#endif
+      pthread_cond_signal (&n->sleep_cond);
+    }
+
   pthread_mutex_unlock (&guile_mutex);
-}
 
-static void
-acquire ()
-{
-  please = 1;
-  pthread_mutex_lock (&guile_mutex);
-}
-
-static void
-resume (SCM cur)
-{
-  scm_copt_thread *c = SCM_THREAD_DATA (cur);
-  cur_thread = cur;
-  c->top = NULL;
+  return c;
 }
 
 static void
 block ()
 {
-  SCM cur = suspend ();
+  SCM cur = cur_thread;
   scm_copt_thread *c = SCM_THREAD_DATA (cur);
+
+  /* record top of stack for the GC */
+  c->top = (SCM_STACKITEM *)&c;
+  /* save registers. */
+  SCM_FLUSH_REGISTER_WINDOWS;
+  setjmp (c->regs);
+
+#if 0
+  fprintf (stderr, "%ld blocking\n", pthread_self ());
+#endif
+
+  if (next_ready)
+    {
+      /* next_ready will never become NULL expect here.  Thus, we
+	 don't need to test again after getting the mutex.
+      */
+      scm_copt_thread *n = next_ready;
+      pthread_mutex_lock (&ready_queue_mutex);
+      dump_ready_queue ();
+      next_ready = n->next_ready;
+      if (next_ready == NULL)
+	last_ready = NULL;
+      pthread_mutex_unlock (&ready_queue_mutex);
+#if 0
+      fprintf (stderr, "%ld kicking %ld\n", pthread_self (), n->pthread);
+#endif
+      pthread_cond_signal (&n->sleep_cond);
+    }
+
   pthread_cond_wait (&c->sleep_cond, &guile_mutex);
-  resume (cur);
+
+#if 0
+  fprintf (stderr, "%ld is back\n", pthread_self ());
+#endif
+  cur_thread = cur;
+  c->top = NULL;
 }
 
-/* Yielding consists of getting the next thread from the ready_queue
-   and if there is one, putting ourselves on the ready queue and
-   block. 
-*/
+int scm_switch_counter;
+
 SCM
 scm_yield ()
 {
-  scm_copt_thread *next = get_next_ready ();
-  if (next)
+  if (next_ready)
     {
-      pthread_cond_signal (&next->sleep_cond);
-      get_ready (SCM_THREAD_DATA (cur_thread));
+      put_on_ready_queue (SCM_THREAD_DATA (cur_thread));
       block ();
     }
   return SCM_BOOL_T;
 }
 
-int scm_switch_counter;
 
 /*** Thread creation */
 
@@ -336,12 +408,12 @@ really_launch (SCM_STACKITEM *base, SCM thread)
 {
   scm_copt_thread *t = SCM_THREAD_DATA (thread);
   scheme_launch_data data;
+  enter_guile (t);
   init_thread_creatant (thread, base);
-  resume (thread);
 
-  /* Ok, we bullied our way in, now be nice and stand in queue. 
-   */
-  scm_yield ();
+#if 0
+  fprintf (stderr, "%ld is ready\n", pthread_self ());
+#endif
 
   data.rootcont = SCM_BOOL_F;
   data.body = SCM_CAR (t->result);
@@ -353,27 +425,16 @@ really_launch (SCM_STACKITEM *base, SCM thread)
 		       &data, base);
   pthread_detach (t->pthread);
 
-  {
-    SCM next = dequeue (ready_queue);
-    if (!SCM_FALSEP (next))
-      {
-	scm_copt_thread *n = SCM_THREAD_DATA (next);
-	pthread_cond_signal (&n->sleep_cond);
-      }
-  }
-
   all_threads = scm_delq (thread, all_threads);
   t->pthread = -1;
   thread_count--;
-  suspend ();
+  leave_guile ();
 }
 
 static void *
 scheme_launch_thread (void *p)
 {
-  acquire ();
   really_launch ((SCM_STACKITEM *)&p, (SCM)p);
-  release ();
   return NULL;
 }
 
@@ -495,7 +556,6 @@ scm_lock_mutex (SCM mx)
       while (m->owner != cur_thread)
 	{
 	  enqueue (m->waiting, cur_thread);
-	  kick_next ();
 	  block ();
 	  SCM_ASYNC_TICK;
 	}
@@ -527,7 +587,7 @@ scm_unlock_mutex (SCM mx)
       if (!SCM_FALSEP (next))
 	{
 	  m->owner = next;
-	  enqueue (ready_queue, next);
+	  put_on_ready_queue (SCM_THREAD_DATA (next));
 	  scm_yield ();
 	}
       else
@@ -548,12 +608,12 @@ scm_threads_init (SCM_STACKITEM *base)
 
   scm_switch_counter = SCM_THREAD_SWITCH_COUNT;
 
-  acquire ();
   cur_thread = make_thread (SCM_BOOL_F);
+  enter_guile (SCM_THREAD_DATA (cur_thread));
   /* root is set later from init.c */
   init_thread_creator (cur_thread, pthread_self(), NULL);
   init_thread_creatant (cur_thread, base);
-  resume (cur_thread);
+
   thread_count = 1;
   scm_gc_register_root (&all_threads);
   all_threads = scm_cons (cur_thread, SCM_EOL);
@@ -563,8 +623,6 @@ scm_threads_init (SCM_STACKITEM *base)
   scm_set_smob_free (scm_tc16_thread, thread_free);
 
   scm_set_smob_mark (scm_tc16_mutex, mutex_mark);
-
-  ready_queue = scm_permanent_object (make_queue ());
 }
 
 /*** Marking stacks */
@@ -677,11 +735,9 @@ scm_internal_select (int nfds,
 		     struct timeval *timeout)
 {
   int res;
-  SCM cur = suspend ();
-  release ();
+  scm_copt_thread *c = leave_guile ();
   res = select (nfds, readfds, writefds, exceptfds, timeout);
-  acquire ();
-  resume (cur);
+  enter_guile (c);
   SCM_ASYNC_TICK;
   return res;
 }
@@ -899,7 +955,8 @@ scm_signal_condition_variable (SCM c)
 unsigned long
 scm_thread_usleep (unsigned long usec)
 {
-  return usleep (usec);
+  usleep (usec);
+  return 0;
 }
 
 unsigned long
