@@ -149,8 +149,12 @@ static void
 st_end_input (SCM port, int offset)
 {
   scm_port *pt = SCM_PTAB_ENTRY (port);
+  const unsigned char *pos = pt->read_pos - offset;
 
-  pt->write_pos = (unsigned char *) pt->read_pos;
+  if (pos < pt->read_buf)
+    scm_misc_error ("st_end_input", "negative position", SCM_EOL);
+  
+  pt->write_pos = (unsigned char *) pt->read_pos = pos;
   pt->rw_active = SCM_PORT_NEITHER;
 }
 
@@ -160,43 +164,68 @@ st_seek (SCM port, off_t offset, int whence)
   scm_port *pt = SCM_PTAB_ENTRY (port);
   off_t target;
 
-  /* we can assume at this point that pt->write_pos == pt->read_pos.  */
-  switch (whence)
+  if (pt->rw_active == SCM_PORT_READ && offset == 0 && whence == SEEK_CUR)
+    /* special case to avoid disturbing the unread-char buffer.  */
     {
-    case SEEK_CUR:
-      target = pt->read_pos - pt->read_buf + offset;
-      break;
-    case SEEK_END:
-      target = pt->read_end - pt->read_buf + offset;
-      break;
-    default: /* SEEK_SET */
-      target = offset;
-      break;
-    }
-  if (target < 0)
-    scm_misc_error ("st_seek", "negative offset", SCM_EOL);
-  if (target >= pt->write_buf_size)
-    {
-      if (!(SCM_CAR (port) & SCM_WRTNG))
+      if (pt->read_buf == pt->putback_buf)
 	{
-	  if (target > pt->write_buf_size)
-	    {
-	      scm_misc_error ("st_seek", "seek past end of read-only strport",
-			      SCM_EOL);
-	    }
+	  target = pt->saved_read_pos - pt->saved_read_buf
+	    - (pt->read_end - pt->read_pos);
 	}
       else
 	{
-	  st_resize_port (pt, target + (target == pt->write_buf_size
-					? SCM_WRITE_BLOCK
-					: 0));
+	  target = pt->read_pos - pt->read_buf;
 	}
     }
-  pt->read_pos = pt->write_pos = pt->read_buf + target;
-  if (pt->read_pos > pt->read_end)
+  else
+    /* all other cases.  */
     {
-      pt->read_end = (unsigned char *) pt->read_pos;
-      pt->read_buf_size = pt->read_end - pt->read_buf;
+      if (pt->rw_active == SCM_PORT_WRITE)
+	st_flush (port);
+  
+      if (pt->rw_active == SCM_PORT_READ)
+	scm_end_input (port);
+
+      switch (whence)
+	{
+	case SEEK_CUR:
+	  target = pt->read_pos - pt->read_buf + offset;
+	  break;
+	case SEEK_END:
+	  target = pt->read_end - pt->read_buf + offset;
+	  break;
+	default: /* SEEK_SET */
+	  target = offset;
+	  break;
+	}
+
+      if (target < 0)
+	scm_misc_error ("st_seek", "negative offset", SCM_EOL);
+  
+      if (target >= pt->write_buf_size)
+	{
+	  if (!(SCM_CAR (port) & SCM_WRTNG))
+	    {
+	      if (target > pt->write_buf_size)
+		{
+		  scm_misc_error ("st_seek", 
+				  "seek past end of read-only strport",
+				  SCM_EOL);
+		}
+	    }
+	  else
+	    {
+	      st_resize_port (pt, target + (target == pt->write_buf_size
+					    ? SCM_WRITE_BLOCK
+					    : 0));
+	    }
+	}
+      pt->read_pos = pt->write_pos = pt->read_buf + target;
+      if (pt->read_pos > pt->read_end)
+	{
+	  pt->read_end = (unsigned char *) pt->read_pos;
+	  pt->read_buf_size = pt->read_end - pt->read_buf;
+	}
     }
   return target;
 }

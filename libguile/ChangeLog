@@ -1,3 +1,22 @@
+1999-10-24  Gary Houston  <ghouston@freewire.co.uk>
+
+	* Move the responsibility for resetting port buffers from the
+	caller of the ptob seek procedure to the implementation.  This
+	gives more control in general to the ptob seek: in particular the
+	change of 1999-10-20 can be made to work without breaking seek on
+	string ports.  There's a comment in NEWS about upgrading port
+	types.
+	
+	* ports.c (scm_seek): don't reset the port buffers here.
+
+	* fports.c (fport_seek): reset the buffers, except for the
+	0 SEEK_CUR case.
+
+	* strports.c (st_end_input): (bug fix): decrement pt->read_pos by
+	offset.  check that it's not less than read_buf.
+	(st_seek): reset the buffers first, unless it's the 0 SEEK_CUR
+	case and currently reading.
+
 1999-10-20  Gary Houston  <ghouston@freewire.co.uk>
 
 	* ports.c (scm_seek): Add a special case for SEEK_CUR, offset 0,

@@ -90,6 +90,23 @@ at the top of the script.
 must be set to non-zero in any random access port.  In recent Guile
 releases it was only set for bidirectional random-access ports.
 
+** Port internals: the seek ptob procedure is now responsible for
+resetting the buffers if required.  The change was made so that in the
+special case of reading the current position (i.e., seek p 0 SEEK_CUR)
+the fport and strport ptobs can avoid resetting the buffers,
+in particular to avoid discarding unread chars.  An existing port
+type can be fixed by adding something like the following to the
+beginning of the ptob seek procedure:
+
+      if (pt->rw_active == SCM_PORT_READ)
+	scm_end_input (object);
+      else if (pt->rw_active == SCM_PORT_WRITE)
+	ptob->flush (object);
+
+although to actually avoid resetting the buffers and discard unread
+chars requires further hacking that depends on the characteristics
+of the ptob.
+
 
 Changes since Guile 1.3.2:
 

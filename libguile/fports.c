@@ -455,11 +455,52 @@ fport_fill_input (SCM port)
 static off_t
 fport_seek (SCM port, off_t offset, int whence)
 {
+  scm_port *pt = SCM_PTAB_ENTRY (port);
   struct scm_fport *fp = SCM_FSTREAM (port);
-  off_t result = lseek (fp->fdes, offset, whence);
+  off_t rv;
+  off_t result;
 
-  if (result == -1)
+  if (pt->rw_active == SCM_PORT_WRITE)
+    {
+      if (offset != 0 || whence != SEEK_CUR)
+	{
+	  fport_flush (port);
+	  result = rv = lseek (fp->fdes, offset, whence);
+	}
+      else
+	{
+	  /* read current position without disturbing the buffer.  */
+	  rv = lseek (fp->fdes, offset, whence);
+	  result = rv + (pt->write_pos - pt->write_buf);
+	}
+    }
+  else if (pt->rw_active == SCM_PORT_READ)
+    {
+      if (offset != 0 || whence != SEEK_CUR)
+	{
+	  /* could expand to avoid a second seek.  */
+	  scm_end_input (port);
+	  result = rv = lseek (fp->fdes, offset, whence);
+	}
+      else
+	{
+	  /* read current position without disturbing the buffer
+	     (particularly the unread-char buffer).  */
+	  rv = lseek (fp->fdes, offset, whence);
+	  result = rv - (pt->read_end - pt->read_pos);
+
+	  if (pt->read_buf == pt->putback_buf)
+	    result -= pt->saved_read_end - pt->saved_read_pos;
+	}
+    }
+  else /* SCM_PORT_NEITHER */
+    {
+      result = rv = lseek (fp->fdes, offset, whence);      
+    }
+
+  if (rv == -1)
     scm_syserror ("fport_seek");
+
   return result;
 }
 
