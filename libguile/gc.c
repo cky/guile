@@ -316,6 +316,11 @@ scm_igc (what)
 {
   int j;
 
+#ifdef USE_THREADS
+  /* During the critical section, only the current thread may run. */
+  SCM_THREAD_CRITICAL_SECTION_START;
+#endif
+
   scm_gc_start (what);
   if (!scm_stack_base || scm_block_gc)
     {
@@ -363,6 +368,8 @@ scm_igc (what)
       }
   }
 
+#ifndef USE_THREADS
+  
   /* Protect from the C stack.  This must be the first marking
    * done because it provides information about what objects
    * are "in-use" by the C code.   "in-use" objects are  those
@@ -398,6 +405,12 @@ scm_igc (what)
 #endif
   }
 
+#else /* USE_THREADS */
+
+  /* Mark every thread's stack and registers */
+  scm_threads_mark_stacks();
+
+#endif /* USE_THREADS */
 
   /* FIXME: insert a phase to un-protect string-data preserved
    * in scm_vector_set_length_x.
@@ -407,20 +420,9 @@ scm_igc (what)
   while (j--)
     scm_gc_mark (scm_sys_protects[j]);
 
-  scm_gc_mark (scm_rootcont);
-  scm_gc_mark (scm_dynwinds);
-  scm_gc_mark (scm_continuation_stack);
-  scm_gc_mark (scm_continuation_stack_ptr);
-  scm_gc_mark (scm_progargs);
-  scm_gc_mark (scm_exitval);
-  scm_gc_mark (scm_cur_inp);
-  scm_gc_mark (scm_cur_outp);
-  scm_gc_mark (scm_cur_errp);
-  scm_gc_mark (scm_def_inp);
-  scm_gc_mark (scm_def_outp);
-  scm_gc_mark (scm_def_errp);
-  scm_gc_mark (scm_top_level_lookup_thunk_var);
-  scm_gc_mark (scm_system_transformer);
+#ifndef USE_THREADS
+  scm_gc_mark (scm_root->handle);
+#endif
   
   scm_mark_weak_vector_spines ();
 
@@ -428,6 +430,10 @@ scm_igc (what)
 
   --scm_gc_heap_lock;
   scm_gc_end ();
+
+#ifdef USE_THREADS
+  SCM_THREAD_CRITICAL_SECTION_END;
+#endif
 }
 
 
