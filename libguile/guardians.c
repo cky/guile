@@ -313,17 +313,17 @@ SCM_DEFINE (scm_make_guardian, "make-guardian", 0, 1, 0,
 	    "A guardian protects a set of objects from garbage collection,\n"
 	    "allowing a program to apply cleanup or other actions.\n\n"
 
-	    "make-guardian returns a procedure representing the guardian.\n"
+	    "@code{make-guardian} returns a procedure representing the guardian.\n"
 	    "Calling the guardian procedure with an argument adds the\n"
 	    "argument to the guardian's set of protected objects.\n"
 	    "Calling the guardian procedure without an argument returns\n"
 	    "one of the protected objects which are ready for garbage\n"
-	    "collection or @code{#f} if no such object is available.\n"
+	    "collection, or @code{#f} if no such object is available.\n"
 	    "Objects which are returned in this way are removed from\n"
 	    "the guardian.\n\n"
 
-            "make-guardian takes one optional argument that says whether the\n"
-            "new guardian should be greedy or sharing.  if there is any chance\n"
+            "@code{make-guardian} takes one optional argument that says whether the\n"
+            "new guardian should be greedy or sharing.  If there is any chance\n"
             "that any object protected by the guardian may be resurrected,\n"
             "then you should make the guardian greedy (this is the default).\n\n"
 
@@ -361,7 +361,7 @@ SCM_DEFINE (scm_make_guardian, "make-guardian", 0, 1, 0,
 
 SCM_DEFINE (scm_guardian_destroyed_p, "guardian-destroyed?", 1, 0, 0, 
             (SCM guardian),
-            "Is @var{guardian} destroyed?")
+            "Return @code{#t} if @var{guardian} has been destroyed, otherwise @code{#f}.")
 #define FUNC_NAME s_scm_guardian_destroyed_p       
 {
   SCM res = SCM_BOOL_F;
@@ -377,9 +377,9 @@ SCM_DEFINE (scm_guardian_destroyed_p, "guardian-destroyed?", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_guardian_greedy_p, "guardian_greedy?", 1, 0, 0,
+SCM_DEFINE (scm_guardian_greedy_p, "guardian-greedy?", 1, 0, 0,
             (SCM guardian),
-            "Is @var{guardian} greedy?")
+            "Return @code{#t} if @var{guardian} is a greedy guardian, otherwise @code{#f}.\n")
 #define FUNC_NAME s_scm_guardian_greedy_p  
 {
   return SCM_BOOL (GREEDY_P (GUARDIAN (guardian)));

@@ -3880,7 +3880,7 @@ scm_primitive_eval_x (SCM exp)
 
 SCM_DEFINE (scm_primitive_eval, "primitive-eval", 1, 0, 0,
 	    (SCM exp),
-	    "Evaluate @var{epx} in the top-level environment specified by\n"
+	    "Evaluate @var{exp} in the top-level environment specified by\n"
 	    "the current module.")
 #define FUNC_NAME s_scm_primitive_eval
 {

@@ -1,6 +1,13 @@
+2001-02-23  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* dump.c (scm_binary_write, scm_binary_read), eval.c
+	(scm_primitive_eval), guardians.c (scm_guardian_destroyed_p,
+	scm_guardian_greedy_p, scm_make_guardian), fports.c
+	(scm_file_port_p): Minor docstring fixes.
+
 2001-02-22  Marius Vollmer  <mvo@zagadka.ping.de>
 
-	* load.c (load): Use scm_primtive_eval_x instead of scm_i_eval_x.
+	* load.c (load): Use scm_primitive_eval_x instead of scm_i_eval_x.
 
 	* goops.c (scm_add_method, DEFVAR): Use scm_eval instead of
 	scm_i_eval.
@@ -33,6 +40,7 @@
 	* guile-doc-snarf.in, guile-func-name-check.in: Added copyright
 	notice and license.
 
+>>>>>>> 1.1281
 2001-02-17  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* variable.c (scm_make_variable, scm_make_undefined_variable)
