@@ -316,6 +316,13 @@ typedef long setjmp_type;
  *                          prohibited.
  */
 
+static int scm_boot_guile_1 SCM_P ((SCM_STACKITEM *base,
+				    char **result,
+				    int argc, char **argv,
+				    FILE *in, FILE *out, FILE *err,
+				    void (*init_func) (),
+				    char *boot_cmd));
+
 int
 scm_boot_guile (result, argc, argv, in, out, err, init_func, boot_cmd)
      char ** result;
@@ -327,9 +334,26 @@ scm_boot_guile (result, argc, argv, in, out, err, init_func, boot_cmd)
      void (*init_func) ();
      char * boot_cmd;
 {
+  SCM_STACKITEM dummy;
+
+  return scm_boot_guile_1 (&dummy, result, argc, argv, in, out, err, 
+			   init_func, boot_cmd);
+}
+
+static int
+scm_boot_guile_1 (base, result, argc, argv, in, out, err, init_func, boot_cmd)
+     SCM_STACKITEM *base;
+     char ** result;
+     int argc;
+     char ** argv;
+     FILE * in;
+     FILE * out;
+     FILE * err;
+     void (*init_func) ();
+     char * boot_cmd;
+{
   static int initialized = 0;
   static int live = 0;
-  SCM_STACKITEM i;
   setjmp_type setjmp_val;
   int stat;
 
@@ -345,7 +369,7 @@ scm_boot_guile (result, argc, argv, in, out, err, init_func, boot_cmd)
   
   if (initialized)
     {
-      scm_restart_stack (&i);
+      scm_restart_stack (base);
     }
   else
     {
@@ -357,7 +381,7 @@ scm_boot_guile (result, argc, argv, in, out, err, init_func, boot_cmd)
 #ifdef USE_THREADS
       scm_init_threads (&i);
 #endif
-      scm_start_stack (&i, in, out, err);
+      scm_start_stack (base, in, out, err);
       scm_init_gsubr ();
       scm_init_feature ();
       scm_init_alist ();
