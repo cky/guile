@@ -19,12 +19,11 @@ variable to ssh, and then use the following as your CVS root:
 The Guile sources live in several modules:
 
   - guile-core --- the interpreter, QuickThreads, and ice-9
+  - guile-doc --- documentation in progress.  When complete, this will
+	be incorporated into guile-core.
   - guile-tcltk --- the Guile/Tk interface
   - guile-rgx-ctax --- the Guile/Rx interface, and the ctax implementation
   - guile-scsh --- the port of SCSH to guile, talk to Gary Houston
-  - guile --- the old Guile module, containing everything.  The only portion
-    of this anyone should edit is the newdoc subdirectory.  Everything
-    else is out of date.  We'll get rid of this soon.
 
 - As for any part of Project GNU, changes to Guile should follow the
 GNU coding standards.  The standards are available via anonymous FTP
