@@ -211,6 +211,37 @@ but it can also access variables that have not been exported.  It is
 intended only for kluges and temporary fixes and for debugging, not
 for ordinary code.
 
+** Keyword syntax has been made more disciplined.
+
+Previously, the name of a keyword was read as a 'token' but printed as
+a symbol.  Now, it is read as a general Scheme datum which must be a
+symbol.
+
+Previously:
+
+    guile> #:12
+    #:#{12}#
+    guile> #:#{12}#
+    #:#{\#{12}\#}#
+    guile> #:(a b c)
+    #:#{}#
+    ERROR: In expression (a b c):
+           Unbound variable: a
+    guile> #: foo
+    #:#{}#
+    ERROR: Unbound variable: foo
+
+Now:
+
+    guile> #:12
+    ERROR: Wrong type (expecting symbol): 12
+    guile> #:#{12}#
+    #:#{12}#
+    guile> #:(a b c)
+    ERROR: Wrong type (expecting symbol): (a b c)
+    guile> #: foo
+    #:foo
+
 ** 'while' now provides 'break' and 'continue'
 
 break and continue were previously bound in a while loop, but not
@@ -601,6 +632,16 @@ chapter in the reference manual.
 
 There is no replacement for undefine.
 
+* The functions make-keyword-from-dash-symbol and keyword-dash-symbol
+  have been discouraged.
+
+They are relics from a time where a keyword like #:foo was used
+directly as a Tcl option "-foo" and thus keywords were internally
+stored as a symbol with a starting dash.  We now store a symbol
+without the dash.
+
+Use symbol->keyword and keyword->symbol instead.
+
 
 * Changes to the C interface
 
@@ -731,7 +772,7 @@ scm_symbol_to_string and then work with that string.  Because of the
 new string representation, scm_symbol_to_string does not need to copy
 and is thus quite efficient.
 
-** Some string and symbol functions have been discouraged.
+** Some string, symbol and keyword functions have been discouraged.
 
 They don't fit into the uniform naming scheme and are not explicit
 about the character encoding.
@@ -750,6 +791,17 @@ Replace according to the following table:
 
     SCM_SYMBOL_HASH           -> scm_hashq
     SCM_SYMBOL_INTERNED_P     -> scm_symbol_interned_p
+
+    scm_c_make_keyword        -> scm_from_locale_keyword
+
+** The functions scm_keyword_to_symbol and sym_symbol_to_keyword are
+   now also available to C code.
+
+** SCM_KEYWORDP and SCM_KEYWORDSYM have been deprecated.
+
+Use scm_is_keyword and scm_keyword_to_symbol instead, but note that
+the latter returns the true name of the keyword, not the 'dash name',
+as SCM_KEYWORDSYM used to do.
 
 ** SCM_CELL_WORD_LOC has been deprecated.
 

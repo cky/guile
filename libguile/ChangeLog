@@ -1,3 +1,37 @@
+2004-10-04  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* error.c (scm_wrong_type_arg): Do not talk about "argument" for
+	pos == 0.
+
+	Keywords no longer store a 'dash symbol'.  Instead, they store a
+	symbol with their real name.
+	
+	* keywords.h, keywords.c, deprecated.h, deprecated.c
+	(SCM_KEYWORDP, SCM_KEYWORDSYM): Deprecated and implemented in
+	terms of scm_is_keyword and scm_keyword_dash_symbol.
+	
+	* keywords.h, keywords.c, discouraged.h, discouraged.c
+	(scm_make_keyword_from_dash_symbol, scm_keyword_dash_symbol,
+	scm_c_make_keyword): Discouraged.
+
+	* keywords.h, keywords.c (scm_symbol_to_keyword,
+	scm_keyword_to_symbol): Implemented in C.
+	(scm_is_keyword, scm_from_locale_keyword,
+	scm_from_locale_keywordn): New.
+
+	* goops.c: Replaced SCM_KEYWORDP with scm_is_keyword.	
+
+	* snarf.h (SCM_KEYWORD, SCM_GLOBAL_KEYWORD): Use
+	scm_from_locale_keyword instead of scm_c_make_keyword.
+
+	* keywords.c (scm_symbol_to_keyword): Use SCM_ASSERT_TYPE for a
+	better error message.
+
+	* deprecated.c: Include discouraged.h and keywords.h.
+
+	* read.c (scm_lreadr): Simply do (symbol->keyword (read)) after
+	reading '#:' or ':'.  See NEWS for consequences.
+
 2004-09-29  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* read.c (scm_lreadr): Revert change from 2004-09-22: string

@@ -1,3 +1,8 @@
+2004-10-04  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* boot-9.scm (symbol->keyword, keyword->symbol): Removed, they are
+	now implemented in C.
+
 2004-09-26  Kevin Ryde  <user42@zip.com.au>
 
 	* optargs.scm (let-optional-template, let-keywords-template): Change
