@@ -153,14 +153,16 @@ guile --- a stand-alone interpreter for Guile.  With no arguments, this
 	as an interpreter for script files; see the NEWS file for details.
 guile-config --- a Guile script which provides the information necessary
 	to link your programs against the Guile library.
-guile-snarf --- a script to parse declarations in your C code for 
+guile-snarf --- a script to parse declarations in your C code for
 	Scheme-visible C functions, Scheme objects to be used by C code,
 	etc.
+guile-tools --- a wrapper to invoke the executable modules in
+	subdirectory `scripts' (also installed).
 
 Libraries, in ${prefix}/lib.  Depending on the platform and options
         given to configure, you may get shared libraries in addition
 	to or instead of these static libraries:
-	
+
 libguile.a --- an object library containing the Guile interpreter,
 	You can use Guile in your own programs by linking against this.
 libqthreads.a --- an object library containing the QuickThreads
