@@ -79,6 +79,7 @@ In release 1.6:
   interactive use it would be easy to load the module in ~/.guile.
 - remove scm_close_all_ports_except
 - remove scm_strprint_obj
+- remove SCM_CONST_LONG
 
 Modules sort.c and random.c should be factored out into separate
 modules (but still be distributed with guile-core) when we get a new
