@@ -1,3 +1,11 @@
+2005-02-10  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* unif.c (prototype_to_type): Bugfix: Don't compare prototype to
+	the prototypical examples mentioned in the old reference manual.
+	Instead keep the old semantics of dispatching on type.  (Yes, this
+	is extremely ugly, but the whole point of keeping the deprecated
+	interface is not to break old code.)
+
 2005-02-08  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* deprecated.h (SCM_ARRAY_DIMS): Rename scm_i_attay_dims -->

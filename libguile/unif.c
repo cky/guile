@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001,2002,2003,2004 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001,2002,2003,2004, 2005 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -148,6 +148,22 @@ make_typed_vector (SCM type, size_t len)
 SCM_SYMBOL (scm_sym_s, "s");
 SCM_SYMBOL (scm_sym_l, "l");
 
+static int
+singp (SCM obj)
+{
+  if (!SCM_REALP (obj))
+    return 0;
+  else
+    {
+      double x = SCM_REAL_VALUE (obj);
+      float fx = x;
+      return (- SCM_FLTMAX < x) && (x < SCM_FLTMAX) && (fx == x);
+    }
+}
+
+SCM_API int scm_i_inump (SCM obj);
+SCM_API scm_t_signed_bits scm_i_inum (SCM obj);
+
 static SCM
 prototype_to_type (SCM proto)
 {
@@ -155,24 +171,32 @@ prototype_to_type (SCM proto)
 
   if (scm_is_eq (proto, SCM_BOOL_T))
     type_name = "b";
-  else if (scm_is_eq (proto, SCM_MAKE_CHAR ('a')))
-    type_name = "a";
   else if (scm_is_eq (proto, SCM_MAKE_CHAR (0)))
     type_name = "s8";
+  else if (SCM_CHARP (proto))
+    type_name = "a";
+  else if (scm_i_inump (proto))
+    {
+      if (scm_i_inum (proto) > 0)
+	type_name = "u32";
+      else
+	type_name = "s32";
+    }
   else if (scm_is_eq (proto, scm_sym_s))
     type_name = "s16";
-  else if (scm_is_true (scm_eqv_p (proto, scm_from_int (1))))
-    type_name = "u32";
-  else if (scm_is_true (scm_eqv_p (proto, scm_from_int (-1))))
-    type_name = "s32";
   else if (scm_is_eq (proto, scm_sym_l))
     type_name = "s64";
-  else if (scm_is_true (scm_eqv_p (proto, scm_from_double (1.0))))
-    type_name = "f32";
-  else if (scm_is_true (scm_eqv_p (proto, scm_divide (scm_from_int (1),
-						      scm_from_int (3)))))
-    type_name = "f64";
-  else if (scm_is_true (scm_eqv_p (proto, scm_c_make_rectangular (0, 1))))
+  else if (SCM_REALP (proto)
+	   || scm_is_true (scm_eqv_p (proto,
+				      scm_divide (scm_from_int (1),
+						  scm_from_int (3)))))
+    {
+      if (singp (proto))
+	type_name = "f32";
+      else
+	type_name = "f64";
+    }
+  else if (SCM_COMPLEXP (proto))
     type_name = "c64";
   else if (scm_is_null (proto))
     type_name = NULL;
