@@ -89,15 +89,15 @@
 	   (recorded (make-vector 61 '()))
 	   (obarray-names
 	    (lambda (obarray names)
-	      (hash-fold obarray
-			 (lambda (name var vars)
+	      (hash-fold (lambda (name var vars)
 			   (if (and (regexp-exec match name)
 				    (not (hashq-get-handle recorded name)))
 			       (begin
 				 (hashq-set! recorded name #t)
 				 (cons name vars))
 			       vars))
-			 names))))
+			 names
+			 obarray))))
     (do ((modules (cons (current-module) (module-uses (current-module)))
 		  (cdr modules))
 	 (names '()
