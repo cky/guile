@@ -1,3 +1,8 @@
+1999-02-07  Jim Blandy  <jimb@savonarola.red-bean.com>
+
+	* gc.c (scm_gc_sweep): Properly record the size of a freed
+	structure.  (Thanks to Michael Livshin.)
+
 1999-02-06  Jim Blandy  <jimb@savonarola.red-bean.com>
 
 	Readline paren matching from Greg Harvey, with modifications from
