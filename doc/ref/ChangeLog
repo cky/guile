@@ -1,3 +1,10 @@
+2004-07-06  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* scheme-data.texi: Remove non-R5RS stuff from the 'rn' index.
+
+	* scheme-utility.texi: Added scm_is_eq, scm_eq_p, scm_eqv_p, and
+	scm_equal_p.
+
 2004-07-05  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* scheme-data.texi (Booleans): Added reference entries for
