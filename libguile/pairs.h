@@ -181,24 +181,24 @@ typedef SCM  huge *SCMPTR;
 #else
 #define SCM_NEWCELL(_into) \
 	do { \
-	  if (SCM_IMP (scm_freelist)) \
-	     _into = scm_gc_for_newcell (1, &scm_freelist);\
+	  if (SCM_IMP (scm_freelist.cells)) \
+	     _into = scm_gc_for_newcell (&scm_freelist);\
 	  else \
 	    { \
-	       _into = scm_freelist; \
-	       scm_freelist = SCM_CDR (scm_freelist);\
+	       _into = scm_freelist.cells; \
+	       scm_freelist.cells = SCM_CDR (scm_freelist.cells);\
                SCM_SETCAR (_into, scm_tc16_allocated); \
 	       ++scm_cells_allocated; \
 	    } \
 	} while(0)
 #define SCM_NEWCELL2(_into) \
 	do { \
-	  if (SCM_IMP (scm_freelist2)) \
-	     _into = scm_gc_for_newcell (2, &scm_freelist2);\
+	  if (SCM_IMP (scm_freelist2.cells)) \
+	     _into = scm_gc_for_newcell (&scm_freelist2);\
 	  else \
 	    { \
-	       _into = scm_freelist2; \
-	       scm_freelist2 = SCM_CDR (scm_freelist2);\
+	       _into = scm_freelist2.cells; \
+	       scm_freelist2.cells = SCM_CDR (scm_freelist2.cells);\
                SCM_SETCAR (_into, scm_tc16_allocated); \
 	       scm_cells_allocated += 2; \
   	    } \
