@@ -193,10 +193,10 @@ SCM_DEFINE (scm_current_pstate, "current-pstate", 0, 0, 0,
             "`current-pstate' is only included in GUILE_DEBUG builds.")
 #define FUNC_NAME s_scm_current_pstate
 {
-  if (!print_state_pool || SCM_NCONSP(print_state_pool)
-      || SCM_NULLP(SCM_CDR(print_state_pool))) 
+  if (SCM_NNULLP (SCM_CDR (print_state_pool)))
+    return SCM_CADR (print_state_pool);
+  else
     return SCM_BOOL_F;
-  return SCM_CADR (print_state_pool);
 }
 #undef FUNC_NAME
 
@@ -225,8 +225,7 @@ scm_make_print_state ()
 
   /* First try to allocate a print state from the pool */
   SCM_DEFER_INTS;
-  if (print_state_pool && SCM_CONSP(print_state_pool) && 
-      SCM_NNULLP (SCM_CDR (print_state_pool)))
+  if (SCM_NNULLP (SCM_CDR (print_state_pool)))
     {
       answer = SCM_CADR (print_state_pool);
       SCM_SETCDR (print_state_pool, SCM_CDDR (print_state_pool));
