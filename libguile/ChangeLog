@@ -12,7 +12,8 @@
 	* ports.c: Use ANSI C prototypes in definitions.  (Thanks to
 	Bernard Urban.)
 
-	* filesys.c (scm_stat2scm): Conditionally use S_ISLNK.
+	* filesys.c (scm_stat2scm): Conditionally use S_ISLNK.  (Thanks to
+	Bernard Urban.)
 
 	* dynl-dl.c (RTLD_GLOBAL): Define if non-existent.  (Thanks to
 	Bernard Urban and Ian Grant.)
