@@ -1,3 +1,10 @@
+2001-04-25  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* guile.1: New file, from Robert Merkel and Rob Browning.
+	* Makefile.am (man_MANS, EXTRADIST): Added, but still commented
+	out: install and distribute the manpage.  It is not yet installed
+	or distributed since we don't have Robert's papers yet.
+
 2001-04-24  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* guile-tut.texi: Include version-tutorial.texi rather than

@@ -1,3 +1,30 @@
+2001-04-25  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* modules.c (scm_module_type): New.
+	(scm_post_boot_init_modules): Initialize from Scheme value.
+	(the_module, scm_current_module, scm_init_modules): the_module is
+	now a C only fluid.
+	(scm_current_module): Export to Scheme.
+	(scm_set_current_module): Do not call out to Scheme, do all the
+	work in C.  Export procedure to Scheme.  Only accept modules, `#f'
+	is no longer valid as the current module.  Only set
+	scm_top_level_lookup_closure_var and scm_system_transformer when
+	they are not deprecated.
+	(scm_module_transformer, scm_current_module_transformer): New.
+
+	* modules.h (scm_module_index_transformer, SCM_MODULE_TRANSFORMER,
+	scm_current_module_transformer, scm_module_transformer): New.
+	
+	* gh_data.c: Removed FIXME comment about gh_lookup returning
+	SCM_UNDEFINED.  That's the right thing to do.
+
+	* eval.h, eval.c (scm_system_transformer): Deprecated by moving it
+	into the conditionally compiled sections.
+	* eval.c (scm_primitive_eval_x, scm_primitive_eval): Use
+	scm_current_module_transformer instead of scm_system_transformer.
+	* init.c (start_stack): Move initialization of
+	scm_system_transformer to the deprecated section.
+	
 2001-04-22  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* throw.c (scm_throw): Correct docstring.
