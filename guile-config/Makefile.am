@@ -1,7 +1,7 @@
 ## Process this file with Automake to create Makefile.in
 ## Jim Blandy <jimb@red-bean.com> --- September 1997
 ##
-##  	Copyright (C) 1998 Free Software Foundation, Inc.
+##  	Copyright (C) 1998, 1999 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##   
@@ -23,6 +23,11 @@
 bin_SCRIPTS=guile-config
 CLEANFILES=guile-config
 EXTRA_DIST=guile-config.in
+
+## FIXME: in the future there will be direct automake support for
+## doing this.  When that happens, switch over.
+aclocaldir = $(datadir)/aclocal
+aclocal_DATA = guile.m4
 
 ## We use @-...-@ as the substitution brackets here, instead of the
 ## usual @...@, so autoconf doesn't go and substitute the values
