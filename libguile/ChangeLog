@@ -1,3 +1,10 @@
+2000-03-13  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* guile-doc-snarf.in: Don't use absolute path for `sed'.  (Note
+	that we can't use autoconf for this.  Autoconf itself relies on
+	the existence of `sed' somewhere on your path.  (Thanks to Dirk
+	Herrman.)
+	
 2000-03-13  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* Makefile.am (libguile_la_SOURCES): Moved iselect.c here from
