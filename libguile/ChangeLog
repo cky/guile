@@ -1,5 +1,9 @@
 2003-07-27  Marius Vollmer  <mvo@zagadka.de>
 
+	* gc.h (SCM_GC_SET_CELL_BVEC): New.
+	* gc-card.c (scm_i_init_card_freelist): Use it.  Thanks to
+	Matthias Koeppe!
+
 	* __scm.h (SCM_C_INLINE_KEYWORD): New.
 	* numbers.c: Use it in place of SCM_C_INLINE so that the code
 	compiles when SCM_C_INLINE is undefined.
