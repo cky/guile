@@ -1,3 +1,12 @@
+2000-04-02  Gary Houston  <ghouston@arglist.com>
+
+	* guardians.c (TCONC_IN, scm_make_guardian): set the CDR of the
+	empty tconc pair to SCM_EOL instead of SCM_BOOL_F, avoiding the
+	use of an improper list (which breaks g_print.  g_print isn't
+	used).
+	guardians.c: Added more comments and modified the make-guardian
+	docstring.  Reordered a few procedures.
+
 2000-04-01  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* eval.c (scm_lookupcar1, scm_lookupcar, scm_m_case, scm_m_cond,
