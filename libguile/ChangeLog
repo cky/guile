@@ -1,3 +1,8 @@
+2001-07-26  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* gc_os_dep.c (GC_noop1): Moved into the same #if/#endif context
+	where it is needed.
+
 2001-07-25  Gary Houston  <ghouston@arglist.com>
 
 	* numbers.c (scm_logand, scm_logior, scm_logxor): adjusted the
