@@ -84,14 +84,29 @@ scm_newsmob (smob)
   return scm_tc7_smob + (scm_numsmob - 1) * 256;
 }
 
+
 /* {Initialization for i/o types, float, bignum, the type of free cells}
  */
+
+static int
+freeprint (SCM exp,
+	   SCM port,
+	   scm_print_state *pstate)
+{
+  char buf[100];
+
+  sprintf (buf, "#<freed cell %p; GC missed a reference>", (void *) exp);
+  scm_puts (buf, port);
+
+  return 1;
+}
+
 
 static scm_smobfuns freecell =
 {
   0,
   scm_free0,
-  0,
+  freeprint,
   0
 };
 
