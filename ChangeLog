@@ -1,3 +1,9 @@
+2001-06-27  Thien-Thi Nguyen  <ttn@revel.glug.org>
+
+	* RELEASE: Move todo items to file TODO.
+
+	* TODO: Initial revision
+
 2001-06-27  Michael Livshin  <mlivshin@bigfoot.com>
 
 	* autogen.sh: don't run flex here.
@@ -66,7 +72,7 @@
 	(AC_CONFIG_FILES): now generated files go here, not in AC_OUTPUT.
 	(AC_CONFIG_COMMANDS): now actions go here, not in AC_OUTPUT.
 	(AC_OUTPUT): no longer takes args.
-	
+
 	* acinclude.m4: AC_LANG not a variable now -- use __cplusplus
 	unconditionally .
 

@@ -8,6 +8,8 @@ Changes since Guile 1.4:
 
 * Changes to the distribution
 
+** A top-level TODO file is included.
+
 ** Guile now uses a versioning scheme similar to that of the Linux kernel.
 
 Guile now always uses three numbers to represent the version,

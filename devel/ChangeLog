@@ -1,3 +1,9 @@
+2001-06-27  Thien-Thi Nguyen  <ttn@revel.glug.org>
+
+	* README: Remove tasks.text.
+
+	* tasks.text: Bye bye (contents folded into ../TODO).
+
 2001-05-08  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* modules/module-snippets.texi: Fixed a lot of typos and clarified
@@ -11,13 +17,13 @@
 2001-03-16  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* modules: New directory.
-	
+
 	* modules/module-layout.text: New file.
 
 2000-08-26  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
 
 	* strings: New directory.
-	
+
 	* strings/sharedstr.text (sharedstr.text): New file.
 
 2000-08-12  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
