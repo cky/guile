@@ -72,8 +72,8 @@ scm_m_generalized_set_x (SCM xorig, SCM env)
 SCM_DEFINE (scm_definedp, "defined?", 1, 1, 0,
             (SCM sym, SCM env),
 	    "Return @code{#t} if @var{sym} is defined in the lexical "
-	    "environment@var{env}.  When @var{env} is not specified, "
-	    "look in the top-level environment as as defined by the "
+	    "environment @var{env}.  When @var{env} is not specified, "
+	    "look in the top-level environment as defined by the "
 	    "current module.")
 #define FUNC_NAME s_scm_definedp
 {
