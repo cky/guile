@@ -46,21 +46,21 @@
 
 
 
+/**********************************************************************
+ This file is Guile's central private header.
+
+ When included by other files, this file should preceed any include
+ other than __scm.h.  See __scm.h for details regarding the purpose of
+ and differences between _scm.h and __scm.h.
+ **********************************************************************/
+
+
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
 #include <errno.h>
-
 #include "libguile/__scm.h"
-
-/* "What's the difference between _scm.h and __scm.h?"
-
-   _scm.h is not installed; it's only visible to the libguile sources
-   themselves.
-
-   __scm.h is installed, and is #included by <libguile.h>.  If both
-   the client and libguile need some piece of information, and it
-   doesn't fit well into the header file for any particular module, it
-   should go in __scm.h.  */
-
-
 
 /* Include headers for those files central to the implementation.  The
    rest should be explicitly #included in the C files themselves.  */
@@ -88,8 +88,8 @@
    */
 
 #ifdef HAVE_RESTARTABLE_SYSCALLS
-#ifndef USE_PTHREAD_THREADS /* However, don't assume SA_RESTART 
-			    works with pthreads... */
+#ifndef SCM_USE_PTHREAD_THREADS /* However, don't assume SA_RESTART 
+                                   works with pthreads... */
 #define SCM_SYSCALL(line) line
 #endif
 #endif
