@@ -387,7 +387,7 @@ this:
 This is a valid procedure invocation expression, and its result is the
 string @code{"Name=FSF:Address=Cambridge"}.
 
-It it more common, though, to store the procedure value in a variable ---
+It is more common, though, to store the procedure value in a variable ---
 
 @lisp
 (define make-combined-string
