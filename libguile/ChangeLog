@@ -1,3 +1,22 @@
+2001-09-20  Rob Browning  <rlb@defaultvalue.org>
+
+	* .cvsignore: add version.h
+
+	* versiondat.h.in: removed (obsolete).
+
+	* version.h.in: renamed from version.h.
+	(SCM_GUILE_MAJOR_VERSION): new public macro.
+	(SCM_GUILE_MINOR_VERSION): new public macro.
+	(SCM_GUILE_MICRO_VERSION): new public macro.
+
+	* version.h: renamed to version.h.in.
+
+	* version.c
+	(scm_major_version): support integer *_VERSION macros.
+	(scm_minor_version): support integer *_VERSION macros.
+	(scm_micro_version): support integer *_VERSION macros.
+	(scm_version): support integer *_VERSION macros.
+
 2001-09-20  Mikael Djurfeldt  <mdj@linnaeus>
 
 	* error.c, error.h: Made error keys globally accessible.

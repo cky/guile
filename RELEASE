@@ -29,14 +29,6 @@ Tom Tromey <tromey@cygnus.com>:
   mips-sgi-irix6.3
   sparc-sun-sunos4.1.4
 
-Ian Grant <I.A.N.Grant@damtp.cam.ac.uk>:
-
-  alpha-dec-osf4.0e
-
-Julian Satchell <satchell@merry.dra.hmg.gb>:
-
-  dec-mips-ultrix
-
 Perry Metzger <perry@piermont.com>
 
   NetBSD
@@ -201,7 +193,7 @@ Once you've got a disty that seems pretty solid:
 
 Punting checklist:
 
-* Add "Guile N.M released." entry to the top-level ChangeLog, and commit it.
+* Add "Guile X.Y.Z released." entry to the top-level ChangeLog, and commit it.
 
 * Tag the entire source tree with a tag of the form "release_X-Y-Z",
   i.e for release 1.6.0, use release_1-6-0

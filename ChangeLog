@@ -1,3 +1,12 @@
+2001-09-20  Rob Browning  <rlb@defaultvalue.org>
+
+	* configure.in (AC_CONFIG_FILES): add libguile/version.h.
+
+2001-09-11  Rob Browning  <rlb@defaultvalue.org>
+
+	* RELEASE: Deleted Ian Grant and Julian Satchell's addresses from
+	the testing list since they're no longer functional.
+
 2001-09-04  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
 	* TODO:
