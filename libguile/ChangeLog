@@ -1,3 +1,9 @@
+1999-10-11  Jim Blandy  <jimb@savonarola.red-bean.com>
+
+	* gh_data.c (gh_ints2scm, gh_doubles2scm): Make sure elements are
+	protected from GC while building the vector.  (Thanks to Bernard
+	Urban and Greg Harvey.)
+
 1999-10-08  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* throw.c (handler_message): Display backtrace if backtraces
