@@ -1989,6 +1989,20 @@
 ;;; angle
 ;;;
 
+(with-test-prefix "angle"
+  (define pi 3.14159265358979323846)
+  (define (almost= x y)
+    (> 0.01 (magnitude (- x y))))
+  
+  (pass-if "inum +ve"   (=        0 (angle 1)))
+  (pass-if "inum -ve"   (almost= pi (angle -1)))
+
+  (pass-if "bignum +ve" (=        0 (angle (1+ fixnum-max))))
+  (pass-if "bignum -ve" (almost= pi (angle (1- fixnum-min))))
+
+  (pass-if "flonum +ve" (=        0 (angle 1.5)))
+  (pass-if "flonum -ve" (almost= pi (angle -1.5))))
+
 ;;;
 ;;; inexact->exact
 ;;;
