@@ -1,5 +1,18 @@
 2001-09-13  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* guardians.c (tconc_t, t_tconc):  Renamed tconc_t to t_tconc.
+
+	(TCONC_IN):  Make sure that the cell word 0 is initialized last.
+
+	(guardians_t, t_guardians):  Renamed guardians_t to t_guardians.
+
+	(GUARDIAN, GUARDIAN_DATA):  Renamed GUARDIAN to GUARDIAN_DATA.
+
+	(guardian_apply, scm_get_one_zombie, scm_make_guardian,
+	mark_and_zombify):  Prefer !SCM_<foo> over SCM_N<foo>.
+
+2001-09-13  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* guardians.c (mark_dependencies_in_tconc,
 	whine_about_self_centered_zombies, scm_init_guardians):  Register
 	the static global variable `self_centered_zombies' via

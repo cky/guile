@@ -39,7 +39,6 @@
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
 
-
 
 
 /* This is an implementation of guardians as described in
@@ -76,19 +75,19 @@
    so that no synchronization between these needs to take place.
 */
 
-typedef struct tconc_t
+typedef struct t_tconc
 {
   SCM head;
   SCM tail;
-} tconc_t;
+} t_tconc;
 
 #define TCONC_EMPTYP(tc) (SCM_EQ_P ((tc).head, (tc).tail))
 
 #define TCONC_IN(tc, obj, pair) \
 do { \
   SCM_SETCAR ((tc).tail, obj); \
-  SCM_SET_CELL_WORD_0 (pair, SCM_BOOL_F); \
   SCM_SET_CELL_WORD_1 (pair, SCM_EOL); \
+  SCM_SET_CELL_WORD_0 (pair, SCM_BOOL_F); \
   SCM_SETCDR ((tc).tail, pair); \
   (tc).tail = pair; \
 } while (0)
@@ -102,16 +101,16 @@ do { \
 
 static scm_t_bits tc16_guardian;
 
-typedef struct guardian_t
+typedef struct t_guardian
 {
-  tconc_t live;
-  tconc_t zombies;
-  struct guardian_t *next;
+  t_tconc live;
+  t_tconc zombies;
+  struct t_guardian *next;
   unsigned long flags;
-} guardian_t;
+} t_guardian;
 
 #define GUARDIAN_P(x) SCM_SMOB_PREDICATE(tc16_guardian, x)
-#define GUARDIAN(x) ((guardian_t *) SCM_CELL_WORD_1 (x))
+#define GUARDIAN_DATA(x) ((t_guardian *) SCM_CELL_WORD_1 (x))
 
 #define F_GREEDY 1L
 #define F_LISTED (1L << 1)
@@ -129,8 +128,8 @@ typedef struct guardian_t
 
 /* during the gc mark phase, live guardians are linked into the lists
    here. */
-static guardian_t *greedy_guardians = NULL;
-static guardian_t *sharing_guardians = NULL;
+static t_guardian *greedy_guardians = NULL;
+static t_guardian *sharing_guardians = NULL;
 
 static SCM greedily_guarded_whash = SCM_EOL;
 
@@ -141,7 +140,7 @@ static SCM self_centered_zombies = SCM_EOL;
 
 
 static void
-add_to_live_list (guardian_t *g)
+add_to_live_list (t_guardian *g)
 {
   if (LISTED_P (g))
     return;
@@ -164,7 +163,7 @@ add_to_live_list (guardian_t *g)
 static SCM
 guardian_mark (SCM ptr)
 {
-  add_to_live_list (GUARDIAN (ptr));
+  add_to_live_list (GUARDIAN_DATA (ptr));
 
   /* the objects protected by the guardian are not marked here: that
      would prevent them from ever getting collected.  instead marking
@@ -176,15 +175,15 @@ guardian_mark (SCM ptr)
 static size_t
 guardian_free (SCM ptr)
 {
-  scm_must_free (GUARDIAN (ptr));
-  return sizeof (guardian_t);
+  scm_must_free (GUARDIAN_DATA (ptr));
+  return sizeof (t_guardian);
 }
 
 
 static int
 guardian_print (SCM guardian, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
-  guardian_t *g = GUARDIAN (guardian);
+  t_guardian *g = GUARDIAN_DATA (guardian);
   
   scm_puts ("#<", port);
   
@@ -226,7 +225,7 @@ guardian_print (SCM guardian, SCM port, scm_print_state *pstate SCM_UNUSED)
 static SCM
 guardian_apply (SCM guardian, SCM obj, SCM throw_p)
 {
-  if (DESTROYED_P (GUARDIAN (guardian)))
+  if (DESTROYED_P (GUARDIAN_DATA (guardian)))
     scm_misc_error ("guard", "attempted use of destroyed guardian: ~A",
                     scm_list_1 (guardian));
   
@@ -234,7 +233,7 @@ guardian_apply (SCM guardian, SCM obj, SCM throw_p)
     return scm_guard (guardian, obj,
                       (SCM_UNBNDP (throw_p)
                        ? 1
-                       : SCM_NFALSEP (throw_p)));
+                       : !SCM_FALSEP (throw_p)));
   else
     return scm_get_one_zombie (guardian);
 }
@@ -243,7 +242,7 @@ guardian_apply (SCM guardian, SCM obj, SCM throw_p)
 SCM
 scm_guard (SCM guardian, SCM obj, int throw_p)
 {
-  guardian_t *g = GUARDIAN (guardian);
+  t_guardian *g = GUARDIAN_DATA (guardian);
   
   if (!SCM_IMP (obj))
     {
@@ -279,14 +278,13 @@ scm_guard (SCM guardian, SCM obj, int throw_p)
     }
 
   return throw_p ? SCM_UNSPECIFIED : SCM_BOOL_T;
-
 }
 
 
 SCM
 scm_get_one_zombie (SCM guardian)
 {
-  guardian_t *g = GUARDIAN (guardian);
+  t_guardian *g = GUARDIAN_DATA (guardian);
   SCM res = SCM_BOOL_F;
 
   /* This critical section barrier will be replaced by a mutex. */
@@ -295,8 +293,7 @@ scm_get_one_zombie (SCM guardian)
   if (!TCONC_EMPTYP (g->zombies))
     TCONC_OUT (g->zombies, res);
 
-  if (SCM_NFALSEP (res)
-      && GREEDY_P (g))
+  if (!SCM_FALSEP (res) && GREEDY_P (g))
     scm_hashq_remove_x (greedily_guarded_whash, res);
 
   SCM_ALLOW_INTS;
@@ -334,7 +331,7 @@ SCM_DEFINE (scm_make_guardian, "make-guardian", 0, 1, 0,
             "paper still (mostly) accurately describes the interface).")
 #define FUNC_NAME s_scm_make_guardian
 {
-  guardian_t *g = SCM_MUST_MALLOC_TYPE (guardian_t);
+  t_guardian *g = SCM_MUST_MALLOC_TYPE (t_guardian);
   SCM z1 = scm_cons (SCM_BOOL_F, SCM_EOL);
   SCM z2 = scm_cons (SCM_BOOL_F, SCM_EOL);
   SCM z;
@@ -347,7 +344,7 @@ SCM_DEFINE (scm_make_guardian, "make-guardian", 0, 1, 0,
   g->flags = 0L;
 
   /* [cmm] the UNBNDP check below is redundant but I like it. */
-  if (SCM_UNBNDP (greedy_p) || SCM_NFALSEP (greedy_p))
+  if (SCM_UNBNDP (greedy_p) || !SCM_FALSEP (greedy_p))
     SET_GREEDY (g);
   
   SCM_NEWSMOB (z, tc16_guardian, g);
@@ -367,7 +364,7 @@ SCM_DEFINE (scm_guardian_destroyed_p, "guardian-destroyed?", 1, 0, 0,
   /* This critical section barrier will be replaced by a mutex. */
   SCM_DEFER_INTS;
 
-  res = SCM_BOOL (DESTROYED_P (GUARDIAN (guardian)));
+  res = SCM_BOOL (DESTROYED_P (GUARDIAN_DATA (guardian)));
   
   SCM_ALLOW_INTS;
 
@@ -380,7 +377,7 @@ SCM_DEFINE (scm_guardian_greedy_p, "guardian-greedy?", 1, 0, 0,
             "Return @code{#t} if @var{guardian} is a greedy guardian, otherwise @code{#f}.\n")
 #define FUNC_NAME s_scm_guardian_greedy_p  
 {
-  return SCM_BOOL (GREEDY_P (GUARDIAN (guardian)));
+  return SCM_BOOL (GREEDY_P (GUARDIAN_DATA (guardian)));
 }
 #undef FUNC_NAME
 
@@ -391,7 +388,7 @@ SCM_DEFINE (scm_destroy_guardian_x, "destroy-guardian!", 1, 0, 0,
             "objects guarded by @var{guardian}.")
 #define FUNC_NAME s_scm_destroy_guardian_x
 {
-  guardian_t *g = GUARDIAN (guardian);
+  t_guardian *g = GUARDIAN_DATA (guardian);
 
   /* This critical section barrier will be replaced by a mutex. */
   SCM_DEFER_INTS;
@@ -437,7 +434,7 @@ guardian_gc_init (void *dummy1 SCM_UNUSED,
 }
 
 static void
-mark_dependencies_in_tconc (tconc_t *tc)
+mark_dependencies_in_tconc (t_tconc *tc)
 {
   SCM pair, next_pair;
   SCM *prev_ptr;
@@ -472,7 +469,7 @@ mark_dependencies_in_tconc (tconc_t *tc)
               /* see if this is a guardian.  if yes, list it (but don't   
                  mark it yet). */
               if (GUARDIAN_P (obj))
-                add_to_live_list (GUARDIAN (obj));
+                add_to_live_list (GUARDIAN_DATA (obj));
 
               prev_ptr = SCM_CDRLOC (pair);
             }
@@ -481,14 +478,14 @@ mark_dependencies_in_tconc (tconc_t *tc)
 }
 
 static void
-mark_dependencies (guardian_t *g)
+mark_dependencies (t_guardian *g)
 {
   mark_dependencies_in_tconc (&g->zombies);
   mark_dependencies_in_tconc (&g->live);
 }
 
 static void
-mark_and_zombify (guardian_t *g)
+mark_and_zombify (t_guardian *g)
 {
   SCM tconc_tail = g->live.tail;
   SCM *prev_ptr = &g->live.head;
@@ -498,7 +495,7 @@ mark_and_zombify (guardian_t *g)
     {
       SCM next_pair = SCM_CDR (pair);
 
-      if (SCM_NMARKEDP (SCM_CAR (pair)))
+      if (!SCM_MARKEDP (SCM_CAR (pair)))
         {
           /* got you, zombie! */
 
@@ -535,11 +532,11 @@ guardian_zombify (void *dummy1 SCM_UNUSED,
 		  void *dummy2 SCM_UNUSED,
 		  void *dummy3 SCM_UNUSED)
 {
-  guardian_t *last_greedy_guardian = NULL;
-  guardian_t *last_sharing_guardian = NULL;
-  guardian_t *first_greedy_guardian = NULL;
-  guardian_t *first_sharing_guardian = NULL;
-  guardian_t *g;
+  t_guardian *last_greedy_guardian = NULL;
+  t_guardian *last_sharing_guardian = NULL;
+  t_guardian *first_greedy_guardian = NULL;
+  t_guardian *first_sharing_guardian = NULL;
+  t_guardian *g;
 
   /* First, find all newly unreachable objects and mark their
      dependencies.
