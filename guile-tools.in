@@ -36,6 +36,7 @@ If PROGRAM is "list" or omitted, display contents of scripts dir, otherwise
 PROGRAM is run w/ ARGS.  Options (only one of which may be used at a time):
  --scriptsdir DIR    -- Look in DIR for scripts
  --guileversion VERS -- Look in $pkgdatadir/VERS/scripts for scripts
+ --source            -- Display PROGRAM source (ignore ARGS) to stdout
 
 Default scripts dir: $default_scriptsdir
 EOF
@@ -87,6 +88,17 @@ fi
 if [ x"$1" = x -o x"$1" = xlist ] ; then
     ls $scriptsdir
     exit 0
+fi
+
+if [ x"$1" = x--source ] ; then
+    if [ x"$2" = x ] ; then echo $0: need to specify program ; exit 1 ; fi
+    if [ -x $scriptsdir/$2 ] ; then
+        cat $scriptsdir/$2
+        exit 0
+    else
+        echo $0: no such program: $2
+        exit 1
+    fi
 fi
 
 program=$scriptsdir/$1
