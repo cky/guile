@@ -2,7 +2,7 @@
 
 #ifndef WEAKSH
 #define WEAKSH
-/*	Copyright (C) 1995,1996 Free Software Foundation, Inc.   
+/*	Copyright (C) 1995,1996, 2000 Free Software Foundation, Inc.   
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -59,6 +59,8 @@
 #define SCM_IS_WHVEC_ANY(X) (SCM_UNPACK (SCM_VELTS(X)[-1]) != 0)
 #define SCM_WVECT_GC_CHAIN(X) (SCM_VELTS(X)[-2])
 
+extern SCM scm_weak_vectors;
+
 
 
 extern SCM scm_make_weak_vector (SCM k, SCM fill);
@@ -70,6 +72,7 @@ extern SCM scm_make_doubly_weak_hash_table (SCM k);
 extern SCM scm_weak_key_hash_table_p (SCM x);
 extern SCM scm_weak_value_hash_table_p (SCM x);
 extern SCM scm_doubly_weak_hash_table_p (SCM x);
+extern void scm_weaks_prehistory (void);
 extern void scm_init_weaks (void);
 
 #endif  /* WEAKSH */
