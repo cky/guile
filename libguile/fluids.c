@@ -44,7 +44,10 @@
 #include "_scm.h"
 #include "print.h"
 #include "smob.h"
+#include "dynwind.h"
 #include "fluids.h"
+#include "alist.h"
+#include "eval.h"
 
 #define INITIAL_FLUIDS 10
 
@@ -146,6 +149,15 @@ scm_make_fluid ()
   return z;
 }
 
+SCM_PROC (s_fluid_p, "fluid?", 1, 0, 0, scm_fluid_p);
+
+SCM
+scm_fluid_p (fl)
+     SCM fl;
+{
+  return (SCM_NIMP (fl) && SCM_FLUIDP (fl))? SCM_BOOL_T : SCM_BOOL_F;
+}
+
 SCM_PROC (s_fluid_ref, "fluid-ref", 1, 0, 0, scm_fluid_ref);
 
 SCM
@@ -154,7 +166,7 @@ scm_fluid_ref (fl)
 {
   int n;
 
-  SCM_ASSERT (SCM_NIMP (fl) && SCM_FLUIDP (fl), SCM_ARG1, fl, s_fluid_ref);
+  SCM_ASSERT (SCM_NIMP (fl) && SCM_FLUIDP (fl), fl, SCM_ARG1, s_fluid_ref);
 
   n = SCM_FLUID_NUM (fl);
   assert (n >= 0 && n < n_fluids);
@@ -173,7 +185,7 @@ scm_fluid_set_x (fl, val)
 {
   int n;
 
-  SCM_ASSERT (SCM_NIMP (fl) && SCM_FLUIDP (fl), SCM_ARG1, fl, s_fluid_set_x);
+  SCM_ASSERT (SCM_NIMP (fl) && SCM_FLUIDP (fl), fl, SCM_ARG1, s_fluid_set_x);
 
   n = SCM_FLUID_NUM (fl);
   assert (n >= 0 && n < n_fluids);
@@ -182,6 +194,78 @@ scm_fluid_set_x (fl, val)
     grow_fluids (scm_root, n+1);
   SCM_VELTS(scm_root->fluids)[n] = val;
   return val;
+}
+
+void
+scm_swap_fluids (fluids, vals)
+     SCM fluids, vals;
+{
+  while (SCM_NIMP (fluids))
+    {
+      SCM fl = SCM_CAR (fluids);
+      SCM old_val = scm_fluid_ref (fl);
+      scm_fluid_set_x (fl, SCM_CAR (vals));
+      SCM_SETCAR (vals, old_val);
+      fluids = SCM_CDR (fluids);
+      vals = SCM_CDR (vals);
+    }
+}
+
+/* Swap the fluid values in reverse order.  This is important when the
+same fluid appears multiple times in the fluids list. */
+
+void
+scm_swap_fluids_reverse (fluids, vals)
+     SCM fluids, vals;
+{
+  if (SCM_NIMP (fluids))
+    {
+      SCM fl, old_val;
+
+      scm_swap_fluids_reverse (SCM_CDR (fluids), SCM_CDR (vals));
+      fl = SCM_CAR (fluids);
+      old_val = scm_fluid_ref (fl);
+      scm_fluid_set_x (fl, SCM_CAR (vals));
+      SCM_SETCAR (vals, old_val);
+    }
+}
+
+SCM_PROC (s_with_fluids, "with-fluids*", 3, 0, 0, scm_with_fluids);
+
+SCM
+scm_internal_with_fluids (fluids, vals, cproc, cdata)
+     SCM fluids, vals;
+     SCM (*cproc) ();
+     void *cdata;
+{
+  SCM ans;
+
+  int flen = scm_ilength (fluids);
+  int vlen = scm_ilength (vals);
+  SCM_ASSERT (flen >= 0, fluids, SCM_ARG1, s_with_fluids);
+  SCM_ASSERT (vlen >= 0, vals, SCM_ARG2, s_with_fluids);
+  if (flen != vlen)
+    scm_out_of_range (s_with_fluids, vals);
+
+  scm_swap_fluids (fluids, vals);
+  scm_dynwinds = scm_acons (fluids, vals, scm_dynwinds);
+  ans = cproc (cdata);
+  scm_dynwinds = SCM_CDR (scm_dynwinds);
+  scm_swap_fluids_reverse (fluids, vals);
+  return ans;
+}
+
+static SCM
+apply_thunk (void *thunk)
+{
+  return scm_apply ((SCM) thunk, SCM_EOL, SCM_EOL);
+}
+
+SCM
+scm_with_fluids (fluids, vals, thunk)
+     SCM fluids, vals, thunk;
+{
+  return scm_internal_with_fluids (fluids, vals, apply_thunk, (void *)thunk);
 }
 
 void

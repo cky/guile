@@ -62,10 +62,10 @@
    to index a vector that holds the values of all fluids.  Each root
    has its own vector.
 
-   Currently, you can't get rid a certain fluid if you don't use any
-   longer.  The slot that has been allocated for it in the fluid
+   Currently, you can't get rid a certain fluid if you don't use it
+   any longer.  The slot that has been allocated for it in the fluid
    vector will not be reused for other fluids.  Therefore, only use
-   SCM_MAKE_FLUID or it Scheme variant `make-fluid' in initialization
+   SCM_MAKE_FLUID or its Scheme variant `make-fluid' in initialization
    code that is only run once.  Nevertheless, it should be possible to
    implement a more lightweight version of fluids on top of this basic
    mechanism. */
@@ -76,7 +76,7 @@ extern long scm_tc16_fluid;
 #define SCM_FLUID_NUM(x) SCM_CDR(x)
 
 /* The fastest way to acces/modify the value of a fluid.  These macros
-does no error checking at all.  You should only use them when you know
+do no error checking at all.  You should only use them when you know
 that the relevant fluid already exists in the current dynamic root.
 The easiest way to ensure this is to execute a SCM_FLUID_SET_X in the
 topmost root, for example right after SCM_MAKE_FLUID in your
@@ -91,8 +91,14 @@ SCM scm_make_fluid SCM_P ((void));
 SCM scm_fluid_ref SCM_P ((SCM fluid));
 SCM scm_fluid_set_x SCM_P ((SCM fluid, SCM value));
 
+SCM scm_internal_with_fluids SCM_P ((SCM fluids, SCM vals,
+				     SCM (*cproc)(void *), void *cdata));
+SCM scm_with_fluids SCM_P ((SCM fluids, SCM vals, SCM thunk));
+
 SCM scm_make_initial_fluids SCM_P ((void));
 void scm_copy_fluids SCM_P ((scm_root_state *));
+void scm_swap_fluids SCM_P ((SCM fluids, SCM vals));
+void scm_swap_fluids_reverse SCM_P ((SCM fluids, SCM vals));
 
 void scm_init_fluids SCM_P ((void));
 

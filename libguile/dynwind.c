@@ -44,12 +44,23 @@
 #include "_scm.h"
 #include "eval.h"
 #include "alist.h"
+#include "fluids.h"
 
 #include "dynwind.h"
 
 
 /* {Dynamic wind}
- */
+ 
+   Things that can be on the wind list:
+
+   (enter-proc . leave-proc)     dynamic-wind
+   (tag . jmpbuf)                catch
+   (tag . lazy-catch)            lazy-catch
+     tag is either a symbol or a boolean
+
+   ((fluid ...) . (value ...))   with-fluids
+
+*/
 
 
 
@@ -94,10 +105,15 @@ scm_dowinds (to, delta)
 #endif
 	{
 	  wind_key = SCM_CAR (wind_elt);
-	  if (   !(SCM_NIMP (wind_key) && SCM_SYMBOLP (wind_key))
+	  if (!(SCM_NIMP (wind_key) && SCM_SYMBOLP (wind_key))
 	      && (wind_key != SCM_BOOL_F)
 	      && (wind_key != SCM_BOOL_T))
-	    scm_apply (wind_key, SCM_EOL, SCM_EOL);
+	    {
+	      if (SCM_NIMP (wind_key) && SCM_CONSP (wind_key))
+		scm_swap_fluids (wind_key, SCM_CDR (wind_elt));
+	      else
+		scm_apply (wind_key, SCM_EOL, SCM_EOL);
+	    }
 	}
       scm_dynwinds = to;
     }
@@ -119,10 +135,15 @@ scm_dowinds (to, delta)
 #endif
 	{
 	  wind_key = SCM_CAR (wind_elt);
-	  if (   !(SCM_NIMP (wind_key) && SCM_SYMBOLP (wind_key))
+	  if (!(SCM_NIMP (wind_key) && SCM_SYMBOLP (wind_key))
 	      && (wind_key != SCM_BOOL_F)
 	      && (wind_key != SCM_BOOL_T))
-	    scm_apply (from, SCM_EOL, SCM_EOL);
+	    {
+	      if (SCM_NIMP (wind_key) && SCM_CONSP (wind_key))
+		scm_swap_fluids_reverse (wind_key, from);
+	      else
+		scm_apply (from, SCM_EOL, SCM_EOL);
+	    }
 	}
       delta--;
       goto tail;		/* scm_dowinds(to, delta-1); */
@@ -136,4 +157,3 @@ scm_init_dynwind ()
 {
 #include "dynwind.x"
 }
-
