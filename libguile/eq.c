@@ -39,8 +39,8 @@
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
 
-
 
+
 #include "libguile/_scm.h"
 #include "libguile/ramap.h"
 #include "libguile/stackchk.h"
@@ -54,6 +54,12 @@
 #include "libguile/validate.h"
 #include "libguile/eq.h"
 
+
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif
+
+
 SCM_DEFINE1 (scm_eq_p, "eq?", scm_tc7_rpsubr,
              (SCM x, SCM y),
 	     "Return @code{#t} iff @var{x} references the same object as @var{y}.\n"
