@@ -1,3 +1,8 @@
+2004-08-14  Kevin Ryde  <user42@zip.com.au>
+
+	* srfi-13.c (scm_string_any, scm_string_every): Add support for char
+	and charset as predicates, per SRFI-13 spec.
+
 2004-08-12  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* srfi-13.c (MY_VALIDATE_SUBSTRING_SPEC_COPY,
