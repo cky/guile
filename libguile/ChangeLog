@@ -1,5 +1,22 @@
 Tue Jan  7 18:11:24 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
+	I think the Sun compiler has chosen a perverse way to interpret
+	ANSI declarations combined with K&R definitions.  We'll
+	appease it a little bit.  But when it invades France, we fight.
+	* print.c (scm_iprlist): Change 'tlr' argument to an int.
+	* print.h (scm_iprlist): Here too.
+	* numbers.c (scm_divbigdig): Change definition to match
+	declaration in numbers.h.
+	* unif.c (scm_makflo): Change definition to match declaration in
+	unif.h.
+
+	* init.c (scm_boot_guile): Don't return the value of
+	scm_boot_guile_1.  This function doesn't return a value;
+	scm_boot_guile_1 doesn't return a value (or return at all).
+
+	* eval.c (unmemocopy): Add a semicolon to appease the Sun
+	compiler.
+
 	* simpos.c (SYSTNAME): Add case for AIX; otherwise it won't
  	compile.  I have a feeling this function is a bad idea anyway ---
  	one should always test for features, not systems.
