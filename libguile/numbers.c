@@ -4353,6 +4353,7 @@ scm_i_big2dbl (SCM b)
 #define ITYPE long long
 #define MIN_VALUE LLONG_MIN
 #define MAX_VALUE LLONG_MAX
+#define NO_PREPRO_MAGIC
 #include "libguile/num2integral.i.c"
 
 #define NUM2INTEGRAL scm_num2ulong_long
@@ -4361,6 +4362,7 @@ scm_i_big2dbl (SCM b)
 #define UNSIGNED
 #define ITYPE unsigned long long
 #define MAX_VALUE ULLONG_MAX
+#define NO_PREPRO_MAGIC
 #include "libguile/num2integral.i.c"
 
 #endif /* HAVE_LONG_LONGS */
