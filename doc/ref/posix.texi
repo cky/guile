@@ -538,29 +538,45 @@ contents; syncing the file system and creating special files.
 
 @deffn {Scheme Procedure} access? path how
 @deffnx {C Function} scm_access (path, how)
-Return @code{#t} if @var{path} corresponds to an existing file
-and the current process has the type of access specified by
-@var{how}, otherwise @code{#f}.  @var{how} should be specified
-using the values of the variables listed below.  Multiple
-values can be combined using a bitwise or, in which case
-@code{#t} will only be returned if all accesses are granted.
+Test accessibility of a file under the real UID and GID of the calling
+process.  The return is @code{#t} if @var{path} exists and the
+permissions requested by @var{how} are all allowed, or @code{#f} if
+not.
 
-Permissions are checked using the real id of the current
-process, not the effective id, although it's the effective id
-which determines whether the access would actually be granted.
+@var{how} is an integer which is one of the following values, or a
+bitwise-OR (@code{logior}) of multiple values.
 
 @defvar R_OK
-test for read permission.
+Test for read permission.
 @end defvar
 @defvar W_OK
-test for write permission.
+Test for write permission.
 @end defvar
 @defvar X_OK
-test for execute permission.
+Test for execute permission.
 @end defvar
 @defvar F_OK
-test for existence of the file.
+Test for existence of the file.  This is implied by each of the other
+tests, so there's no need to combine it with them.
 @end defvar
+
+It's important to note that @code{access?} does not simply indicate
+what will happen on attempting to read or write a file.  In normal
+circumstances it does, but in a set-UID or set-GID program it doesn't
+because @code{access?} tests the real ID, whereas an open or execute
+attempt uses the effective ID.
+
+A program which will never run set-UID/GID can ignore the difference
+between real and effective IDs, but for maximum generality, especially
+in library functions, it's generally best not to use @code{access?} to
+predict the result of an open or execute, instead simply attempt that
+and catch any exception.
+
+The main use for @code{access?} is to let a set-UID/GID program
+determine what the invoking user would have been allowed to do,
+without the greater (or perhaps lesser) privileges afforded by the
+effective ID.  For more on this, see @ref{Testing File Access,,, libc,
+The GNU C Library Reference Manual}.
 @end deffn
 
 @findex fstat
