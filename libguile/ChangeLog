@@ -1,4 +1,22 @@
+1998-11-27  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* objects.h: Removed slots direct_supers and direct_slots from the
+	definitions of the rudimentary classes described by objects.h.
+
+	* objects.c, objects.h (scm_entity_p): New procedure.  Together
+	with the predicates scm_procedure_p and scm_struct_p, this
+	predicate makes it possible to differ between structs, entities
+	and operators.
+
+	* modules.c, modules.h (scm_resolve_module): New function.
+
 1998-11-26  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* objects.h (SCM_METACLASS_STANDARD_LAYOUT,
+	SCM_METACLASS_OPERATOR_LAYOUT): Removed slots `direct_supers' and
+	`direct_slots'.
+
+	* objects.c (scm_entity_p): New procedure.
 
 	* procprop.c (scm_i_procedure_arity): Bugfix: Return correct value
 	for asubrs, rpsubrs, lsubrs and lsubr_2s.

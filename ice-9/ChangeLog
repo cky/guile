@@ -1,3 +1,7 @@
+1998-11-27  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* session.scm (arity): New procedure.
+
 1998-11-26  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* boot-9.scm: Use run-hook instead of run-hooks everywhere.
