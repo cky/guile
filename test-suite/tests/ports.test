@@ -257,7 +257,58 @@
 				      (write sexpr port)))
 				   read)))
      (pass-if "write/read sexpr"
-	      (equal? in-sexpr sexpr)))))
+	      (equal? in-sexpr sexpr))))
+
+  ;; seeking and unreading from an input string.
+  (catch-test-errors
+   (let ((text "that text didn't look random to me"))
+     (call-with-input-string text
+			     (lambda (p)
+			       (pass-if "input tell 0"
+					(= (seek p 0 SEEK_CUR) 0))
+			       (read-char p)
+			       (pass-if "input tell 1"
+					(= (seek p 0 SEEK_CUR) 1))
+			       (unread-char #\x p)
+			       (pass-if "input tell back to 0"
+					(= (seek p 0 SEEK_CUR) 0))
+			       (pass-if "input ungetted char"
+					(char=? (read-char p) #\x))
+			       (seek p 0 SEEK_END)
+			       (pass-if "input seek to end"
+					(= (seek p 0 SEEK_CUR)
+					   (string-length text)))
+			       (unread-char #\x p)
+			       (pass-if "input seek to beginning"
+					(= (seek p 0 SEEK_SET) 0))
+			       (pass-if "input reread first char"
+					(char=? (read-char p)
+						(string-ref text 0)))))))
+					   
+  ;; seeking an output string.
+  (catch-test-errors
+   (let* ((text "123456789")
+	  (len (string-length text))
+	  (result (call-with-output-string
+		   (lambda (p)
+		     (pass-if "output tell 0"
+			      (= (seek p 0 SEEK_CUR) 0))
+		     (display text p)
+		     (pass-if "output tell end"
+			      (= (seek p 0 SEEK_CUR) len))
+		     (pass-if "output seek to beginning"
+			      (= (seek p 0 SEEK_SET) 0))
+		     (write-char #\a p)
+		     (seek p -1 SEEK_END)
+		     (pass-if "output seek to last char"
+			      (= (seek p 0 SEEK_CUR)
+				 (- len 1)))
+		     (write-char #\b p)))))
+     (string-set! text 0 #\a)
+     (string-set! text (- len 1) #\b)
+     (pass-if "output check"
+	      (string=? text result)))))
+
 
 
 ;;;; Soft ports.  No tests implemented yet.
