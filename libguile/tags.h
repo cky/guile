@@ -414,11 +414,6 @@ typedef long scm_bits_t;
 #define scm_tc16_real           0x027f
 #define scm_tc16_complex        0x037f
 
-/* Smob type 4 allocated, but not initialized cells;
-   this is required to prevent the gc from hosing your cells if
-   you have to allocate while creating the cell*/
-#define scm_tc16_allocated	0x047f
-
 
 /* {Immediate Values}
  */
