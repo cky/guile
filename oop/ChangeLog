@@ -1,5 +1,7 @@
 2003-03-11  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
+	* goops/util.scm (filter): Removed.  (Now supplied by core.)
+
 	* goops.scm (define-extended-generics): New syntax.
 	(<class> <operator-class> <entity-class> <entity>): Marked as
 	replacements.

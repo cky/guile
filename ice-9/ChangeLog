@@ -1,7 +1,16 @@
 2003-03-11  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
+	* debugger/command-loop.scm: Prefix all commands imported from
+	(ice-9 debugger command-loop) with debugger:.
+
 	* boot-9.scm (process-duplicates): Use module-import-interface.
 	(module-symbol-interface): Removed.
+	(resolve-interface): Process #:hide; Name custom interfaces
+	appropriately.
+	(module-use!, module-use-interfaces!): Remove existing interfaces
+	on the use-list based on module name rather than interface
+	identity so that custom interfaces truly replaces their previous
+	version.
 
 	* boot-9.scm (module-override!, make-mutable-parameter,
 	lookup-duplicates-handlers, default-module-duplicates-handler):

@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,2000,2001, 2003 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -47,6 +47,7 @@
 
 #include "libguile/validate.h"
 #include "libguile/list.h"
+#include "libguile/eval.h"
 
 #ifdef __STDC__
 #include <stdarg.h>
@@ -830,6 +831,64 @@ SCM_DEFINE (scm_delete1_x, "delete1!", 2, 0, 0,
 }
 #undef FUNC_NAME
 
+SCM_DEFINE (scm_filter, "filter", 2, 0, 0,
+	    (SCM pred, SCM list),
+	    "Return all the elements of 2nd arg @var{list} that satisfy predicate @var{pred}.\n"
+	    "The list is not disordered -- elements that appear in the result list occur\n"
+	    "in the same order as they occur in the argument list. The returned list may\n"
+	    "share a common tail with the argument list. The dynamic order in which the\n"
+	    "various applications of pred are made is not specified.\n\n"
+	    "@lisp\n"
+	    "(filter even? '(0 7 8 8 43 -4)) => (0 8 8 -4)\n"
+	    "@end lisp")
+#define FUNC_NAME s_scm_filter
+{
+  scm_t_trampoline_1 call = scm_trampoline_1 (pred);
+  SCM walk;
+  SCM *prev;
+  SCM res = SCM_EOL;
+  SCM_ASSERT (call, pred, 1, FUNC_NAME);
+  SCM_VALIDATE_LIST (2, list);
+  
+  for (prev = &res, walk = list;
+       SCM_CONSP (walk);
+       walk = SCM_CDR (walk))
+    {
+      if (!SCM_FALSEP (call (pred, SCM_CAR (walk))))
+	{
+	  *prev = scm_cons (SCM_CAR (walk), SCM_EOL);
+	  prev = SCM_CDRLOC (*prev);
+	}
+    }
+
+  return res;
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_filter_x, "filter!", 2, 0, 0,
+	    (SCM pred, SCM list),
+	    "Linear-update variant of @code{filter}.")
+#define FUNC_NAME s_scm_filter_x
+{
+  scm_t_trampoline_1 call = scm_trampoline_1 (pred);
+  SCM walk;
+  SCM *prev;
+  SCM_ASSERT (call, pred, 1, FUNC_NAME);
+  SCM_VALIDATE_LIST (2, list);
+  
+  for (prev = &list, walk = list;
+       SCM_CONSP (walk);
+       walk = SCM_CDR (walk))
+    {
+      if (!SCM_FALSEP (call (pred, SCM_CAR (walk))))
+	prev = SCM_CDRLOC (walk);
+      else
+	*prev = SCM_CDR (walk);
+    }
+
+  return list;
+}
+#undef FUNC_NAME
 
 
 void

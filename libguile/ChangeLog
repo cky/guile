@@ -1,5 +1,7 @@
 2003-03-11  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
+	* list.c, list.h (scm_filter, scm_filter_x): New functions.
+
 	* modules.c (scm_module_import_interface): New function.
 
 	* goops.c, goops.h (scm_class_accessor_method): Renamed from

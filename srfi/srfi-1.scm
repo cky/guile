@@ -174,10 +174,10 @@
  filter-map
 
 ;;; Filtering & partitioning
- filter
+ ;; filter				<= in the core
  partition
  remove
- filter!
+ ;; filter!				<= in the core
  partition!
  remove!
 
@@ -687,18 +687,6 @@
 
 ;;; Filtering & partitioning
 
-(define (filter pred list)
-  (check-arg-type list? list "filter")  ; reject circular lists.
-  (letrec ((filiter (lambda (pred rest result)
-		      (if (null? rest)
-			  (reverse! result)
-			  (filiter pred (cdr rest)
-				   (cond ((pred (car rest))
-					  (cons (car rest) result))
-					 (else
-					  result)))))))
-    (filiter pred list '())))
-
 (define (partition pred list)
   (if (null? list)
     (values '() '())
@@ -710,9 +698,6 @@
 
 (define (remove pred list)
   (filter (lambda (x) (not (pred x))) list))
-
-(define (filter! pred list)
-  (filter pred list))			; XXX:optimize
 
 (define (partition! pred list)
   (partition pred list))		; XXX:optimize

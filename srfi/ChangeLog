@@ -1,7 +1,8 @@
 2003-03-11  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
-	* srfi-1.scm (iota map for-each map-in-order list-index member
-	delete delete! assoc): Marked as replacements.
+	* srfi-1.scm (iota, map, for-each, map-in-order, list-index,
+	member, delete, delete!, assoc): Marked as replacements.
+	(filter, filter!): Removed.  (Now implemented in the core.)
 
 2003-03-06  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 

@@ -1,6 +1,6 @@
 ;;;; Guile Debugger command loop
 
-;;; Copyright (C) 1999, 2001, 2002 Free Software Foundation, Inc.
+;;; Copyright (C) 1999, 2001, 2002, 2003 Free Software Foundation, Inc.
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License as
@@ -42,7 +42,7 @@
 ;;; If you do not wish that, delete this exception notice.
 
 (define-module (ice-9 debugger command-loop)
-  #:use-module (ice-9 debugger commands)
+  #:use-module ((ice-9 debugger commands) :prefix debugger:)
   #:export (debugger-command-loop
 	    debugger-command-loop-error
 	    debugger-command-loop-quit)
@@ -538,21 +538,21 @@
 	       (error "Unknown value from lookup-command:" value)))))
     state))
 
-(define-command "frame" '('optional exact-nonnegative-integer) frame)
+(define-command "frame" '('optional exact-nonnegative-integer) debugger:frame)
 
-(define-command "position" '() position)
+(define-command "position" '() debugger:position)
 
-(define-command "up" '('optional exact-integer) up)
+(define-command "up" '('optional exact-integer) debugger:up)
 
-(define-command "down" '('optional exact-integer) down)
+(define-command "down" '('optional exact-integer) debugger:down)
 
-(define-command "backtrace" '('optional exact-integer) backtrace)
+(define-command "backtrace" '('optional exact-integer) debugger:backtrace)
 
-(define-command "evaluate" '(object) evaluate)
+(define-command "evaluate" '(object) debugger:evaluate)
 
-(define-command '("info" "args") '() info-args)
+(define-command '("info" "args") '() debugger:info-args)
 
-(define-command '("info" "frame") '() info-frame)
+(define-command '("info" "frame") '() debugger:info-frame)
 
 (define-command "quit" '()
   (lambda (state)
@@ -567,12 +567,12 @@
 (define-command-alias '("info" "stack") "backtrace")
 
 
-(define-command "continue" '() continue)
+(define-command "continue" '() debugger:continue)
 
-(define-command "finish" '() finish)
+(define-command "finish" '() debugger:finish)
 
-(define-command "trace-finish" '() trace-finish)
+(define-command "trace-finish" '() debugger:trace-finish)
 
-(define-command "step" '('optional exact-integer) step)
+(define-command "step" '('optional exact-integer) debugger:step)
 
-(define-command "next" '('optional exact-integer) next)
+(define-command "next" '('optional exact-integer) debugger:next)

@@ -1,4 +1,4 @@
-;;;; 	Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1999, 2000, 2001, 2003 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -42,7 +42,7 @@
 
 
 (define-module (oop goops util)
-  :export (any every filter
+  :export (any every
 	   mapappend find-duplicate top-level-env top-level-env?
 	   map* for-each* length* improper->proper)
   :no-backtrace
@@ -84,11 +84,6 @@
                   (apply pred heads)
                   (and (apply pred heads)
                        (loop (map car tails) (map cdr tails)))))))))
-
-(define (filter test? list)
-  (cond ((null? list) '())
-	((test? (car list)) (cons (car list) (filter test? (cdr list))))
-	(else (filter test? (cdr list)))))
 
 (define (mapappend func . args)
   (if (memv '()  args)
