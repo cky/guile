@@ -1,3 +1,11 @@
+2004-06-28  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* Makefile.am: Removed home-grown code for HTML generation.
+	Automake does it for us now.
+
+	* guile.texi, scheme-scm.texi: Do not use TeXinfo markup in
+	section or node names.
+
 2004-06-20  Rob Browning  <rlb@defaultvalue.org>
 
 	* srfi-modules.texi (SRFI-31): add documentation for srfi-31.
