@@ -1,3 +1,9 @@
+2000-07-13  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* boot-9.scm (expt):  In case of negative integer exponents return
+	an exact result if the input paramters were exact.  Thanks to
+	Mikael for the suggestion.
+
 2000-07-12  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* boot-9.scm (expt):  Make sure that integer-expt is only called
