@@ -241,7 +241,7 @@
 (define exception:missing-expression
   (cons 'misc-error "^missing or extra expression"))
 (define exception:out-of-range
-  (cons 'out-of-range "^Argument .*out of range"))
+  (cons 'out-of-range "^.*out of range"))
 (define exception:unbound-var
   (cons 'unbound-variable "^Unbound variable"))
 (define exception:used-before-defined
@@ -249,7 +249,7 @@
 (define exception:wrong-num-args
   (cons 'wrong-number-of-args "^Wrong number of arguments"))
 (define exception:wrong-type-arg
-  (cons 'wrong-type-arg "^Wrong type argument"))
+  (cons 'wrong-type-arg "^Wrong type"))
 (define exception:numerical-overflow
   (cons 'numerical-overflow "^Numerical overflow"))
 
