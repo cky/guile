@@ -14,12 +14,11 @@
 (define-module (ice-9 format)
   :use-module (ice-9 and-let-star)
   :use-module (ice-9 threads)
-  :autoload (ice-9 pretty-print) (pretty-print))
-
-(export format
-	format:symbol-case-conv
-	format:iobj-case-conv
-	format:expch)
+  :autoload (ice-9 pretty-print) (pretty-print)
+  :replace (format)
+  :export (format:symbol-case-conv
+	   format:iobj-case-conv
+	   format:expch))
 
 ;;; Configuration ------------------------------------------------------------
 

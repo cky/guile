@@ -57,18 +57,18 @@
 ;;; Code:
 
 (define-module (ice-9 threads)
-  :export (future-ref
-	   par-map
+  :export (par-map
 	   par-for-each
 	   n-par-map
 	   n-par-for-each)
+  :re-export (future-ref)
   :export-syntax (begin-thread
-		  future
 		  parallel
 		  letpar
 		  make-thread
 		  with-mutex
-		  monitor))
+		  monitor)
+  :re-export-syntax (future))
 
 
 

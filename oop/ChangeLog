@@ -1,3 +1,9 @@
+2003-03-11  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* goops.scm (define-extended-generics): New syntax.
+	(<class> <operator-class> <entity-class> <entity>): Marked as
+	replacements.
+
 2003-03-07  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* goops.scm (equal?): Define default method.

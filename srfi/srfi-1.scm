@@ -1,6 +1,6 @@
 ;;; srfi-1.scm --- List Library
 
-;; 	Copyright (C) 2001, 2002 Free Software Foundation, Inc.
+;; 	Copyright (C) 2001, 2002, 2003 Free Software Foundation, Inc.
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -59,9 +59,8 @@
 
 (define-module (srfi srfi-1)
   :use-module (ice-9 session)
-  :use-module (ice-9 receive))
-
-(export
+  :use-module (ice-9 receive)
+  :export (
 ;;; Constructors
  ;; cons				<= in the core
  ;; list				<= in the core
@@ -71,7 +70,7 @@
  list-tabulate
  ;; list-copy				<= in the core
  circular-list
- iota					; Extended.
+ ;; iota				; Extended.
 
 ;;; Predicates
  proper-list?
@@ -165,12 +164,12 @@
  reduce-right
  unfold
  unfold-right
- map					; Extended.
- for-each				; Extended.
+ ;; map					; Extended.
+ ;; for-each				; Extended.
  append-map
  append-map!
  map!
- map-in-order				; Extended.
+ ;; map-in-order			; Extended.
  pair-for-each
  filter-map
 
@@ -194,19 +193,19 @@
  break!
  any
  every
- list-index				; Extended.
- member					; Extended.
+ ;; list-index				; Extended.
+ ;; member				; Extended.
  ;; memq				<= in the core
  ;; memv				<= in the core
 
 ;;; Deletion
- delete					; Extended.
- delete!				; Extended.
+ ;; delete				; Extended.
+ ;; delete!				; Extended.
  delete-duplicates
  delete-duplicates!
 
 ;;; Association lists
- assoc					; Extended.
+ ;; assoc				; Extended.
  ;; assq				<= in the core
  ;; assv				<= in the core
  alist-cons
@@ -233,6 +232,9 @@
  ;; set-car!				<= in the core
  ;; set-cdr!				<= in the core
  )
+  :replace (iota map for-each map-in-order list-index member
+	    delete delete! assoc)
+  )
 
 (cond-expand-provide (current-module) '(srfi-1))
 

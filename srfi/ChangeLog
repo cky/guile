@@ -1,3 +1,8 @@
+2003-03-11  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* srfi-1.scm (iota map for-each map-in-order list-index member
+	delete delete! assoc): Marked as replacements.
+
 2003-03-06  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* srfi-1.c (scm_init_srfi_1): Extend root module map and for-each

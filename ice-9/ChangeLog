@@ -1,3 +1,17 @@
+2003-03-11  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* boot-9.scm (module-override!, make-mutable-parameter,
+	lookup-duplicates-handlers, default-module-duplicates-handler):
+	New functions.
+	(process-duplicates): Don't call duplicates handlers for duplicate
+	bindings of the same variable.
+	(process-define-module): Process #:replace.
+	(compile-interface-spec, resolve-interface): Process #:prefix.
+
+	* format.scm (format): Marked as replacement.
+
+	* threads.scm (future, future-ref): Marked as replacements.
+
 2003-03-07  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	These changes enables checking for duplicate imported bindings.

@@ -1601,7 +1601,9 @@
 	  (set-module-name! interface (module-name module))
 	  (set-module-kind! interface 'interface)
 	  (set-module-public-interface! module interface)
-	  (set-module-duplicates-info! module (cons #f #f)))))
+	  (set-module-duplicates-info!
+	   module
+	   (cons (default-module-duplicates-handler) #f)))))
   (if (and (not (memq the-scm-module (module-uses module)))
 	   (not (eq? module the-root-module)))
       (set-module-uses! module
@@ -1677,7 +1679,13 @@
 ;;   #:renamer RENAMER
 ;;
 ;; RENAMER is a procedure that takes a symbol and returns its new
-;; name.  The default is to not perform any renaming.
+;; name.  The default is to append a specified prefix (see below) or
+;; not perform any renaming.
+;;
+;;   #:prefix PREFIX
+;;
+;; PREFIX is a symbol that will be appended to each exported name.
+;; The default is to not perform any renaming.
 ;;
 ;; Signal "no code for module" error if module name is not resolvable
 ;; or its public interface is not available.  Signal "no binding"
@@ -1695,7 +1703,10 @@
 	   def)))
 
   (let* ((select (get-keyword-arg args #:select #f))
-	 (renamer (get-keyword-arg args #:renamer identity))
+	 (renamer (or (get-keyword-arg args #:renamer #f)
+		      (let ((prefix (get-keyword-arg args #:prefix #f)))
+			(and prefix (symbol-prefix-proc prefix)))
+		      identity))
          (module (resolve-module name))
          (public-i (and module (module-public-interface module))))
     (and (or (not module) (not public-i))
@@ -1740,11 +1751,13 @@
     (let loop ((kws kws)
 	       (reversed-interfaces '())
 	       (exports '())
-	       (re-exports '()))
+	       (re-exports '())
+	       (replacements '()))
       (if (null? kws)
 	  (begin
 	    (module-use-interfaces! module (reverse reversed-interfaces))
 	    (module-export! module exports)
+	    (module-replace! module replacements)
 	    (module-re-export! module re-exports))
 	  (case (car kws)
 	    ((#:use-module #:use-syntax)
@@ -1764,7 +1777,8 @@
 	       (loop (cddr kws)
 		     (cons interface reversed-interfaces)
 		     exports
-		     re-exports)))
+		     re-exports
+		     replacements)))
 	    ((#:autoload)
 	     (or (and (pair? (cdr kws)) (pair? (cddr kws)))
 		 (unrecognized kws))
@@ -1774,40 +1788,44 @@
 						  (caddr kws))
 			 reversed-interfaces)
 		   exports
-		   re-exports))
+		   re-exports
+		   replacements))
 	    ((#:no-backtrace)
 	     (set-system-module! module #t)
-	     (loop (cdr kws) reversed-interfaces exports re-exports))
+	     (loop (cdr kws) reversed-interfaces exports re-exports replacements))
 	    ((#:pure)
 	     (purify-module! module)
-	     (loop (cdr kws) reversed-interfaces exports re-exports))
+	     (loop (cdr kws) reversed-interfaces exports re-exports replacements))
 	    ((#:duplicates)
 	     (if (not (pair? (cdr kws)))
 		 (unrecognized kws))
 	     (set-car! (module-duplicates-info module)
-		       (map (lambda (handler-name)
-			      (or (module-symbol-local-binding
-				   duplicate-handlers handler-name #f)
-				  (error "invalid duplicate handler name:"
-					 handler-name)))
-			    (if (list? (cadr kws))
-				(cadr kws)
-				(list (cadr kws)))))
-	     (loop (cddr kws) reversed-interfaces exports re-exports))
+		       (lookup-duplicates-handlers (cadr kws)))
+	     (loop (cddr kws) reversed-interfaces exports re-exports replacements))
 	    ((#:export #:export-syntax)
 	     (or (pair? (cdr kws))
 		 (unrecognized kws))
 	     (loop (cddr kws)
 		   reversed-interfaces
 		   (append (cadr kws) exports)
-		   re-exports))
+		   re-exports
+		   replacements))
 	    ((#:re-export #:re-export-syntax)
 	     (or (pair? (cdr kws))
 		 (unrecognized kws))
 	     (loop (cddr kws)
 		   reversed-interfaces
 		   exports
-		   (append (cadr kws) re-exports)))
+		   (append (cadr kws) re-exports)
+		   replacements))
+	    ((#:replace #:replace-syntax)
+	     (or (pair? (cdr kws))
+		 (unrecognized kws))
+	     (loop (cddr kws)
+		   reversed-interfaces
+		   exports
+		   re-exports
+		   (append (cadr kws) replacements)))
 	    (else
 	     (unrecognized kws)))))
     (run-hook module-defined-hook module)
@@ -2533,6 +2551,7 @@
   (define keys
     ;; sym     key      quote?
     '((:select #:select #t)
+      (:prefix #:prefix #t)
       (:renamer #:renamer #f)))
   (if (not (pair? (car spec)))
       `(',spec)
@@ -2674,6 +2693,14 @@
 		  (module-add! public-i name var)))
 	      names)))
 
+(define (module-replace! m names)
+  (let ((public-i (module-public-interface m)))
+    (for-each (lambda (name)
+		(let ((var (module-ensure-local-variable! m name)))
+		  (set-object-property! var 'replace #t)
+		  (module-add! public-i name var)))
+	      names)))
+
 ;; Re-export a imported variable
 ;;
 (define (module-re-export! m names)
@@ -2711,6 +2738,24 @@
 (define load load-module)
 
 
+;;; {Parameters}
+;;;
+
+(define make-mutable-parameter
+  (let ((make (lambda (fluid converter)
+		(lambda args
+		  (if (null? args)
+		      (fluid-ref fluid)
+		      (fluid-set! fluid (converter (car args))))))))
+    (lambda (init . converter)
+      (let ((fluid (make-fluid))
+	    (converter (if (null? converter)
+			   identity
+			   (car converter))))
+	(fluid-set! fluid (converter init))
+	(make fluid converter)))))
+
+
 ;;; {Handling of duplicate imported bindings}
 ;;;
 
@@ -2734,25 +2779,76 @@
 
 (define duplicate-handlers
   (let ((m (make-module 7)))
+    
+    (define (check module name int1 val1 int2 val2 var val)
+      (scm-error 'misc-error
+		 #f
+		 "~A: ~A imported from ~A and ~A"
+		 (list (module-name module)
+		       name
+		       (module-name int1)
+		       (module-name int2))
+		 #f))
+    
+     (define (warn module name int1 val1 int2 val2 var val)
+       (format #t
+	       "~A: ~A imported from ~A and ~A\n"
+	       (module-name module)
+	       name
+	       (module-name int1)
+	       (module-name int2))
+       #f)
+     
+    (define (replace module name int1 val1 int2 val2 var val)
+      (let ((old (or (and var (object-property var 'replace) var)
+		     (module-variable int1 name)))
+	    (new (module-variable int2 name)))
+	(if (object-property old 'replace)
+	    (and (or (eq? old new)
+		     (not (object-property new 'replace)))
+		 old)
+	    (and (object-property new 'replace)
+		 new))))
+    
+     (define (warn-override-core module name int1 val1 int2 val2 var val)
+       (and (eq? int1 the-scm-module)
+	    (begin
+	      (format #t
+		      "WARNING: ~A: imported module ~A overrides core binding ~A\n"
+		      (module-name module)
+		      (module-name int2)
+		      name)
+	      (module-local-variable int2 name))))
+     
+     (define (first module name int1 val1 int2 val2 var val)
+       (or var (module-local-variable int1 name)))
+     
+     (define (last module name int1 val1 int2 val2 var val)
+       (module-local-variable int2 name))
+     
     (set-module-name! m 'duplicate-handlers)
     (set-module-kind! m 'interface)
-    (module-define! m 'check
-     (lambda (module name int1 val1 int2 val2 var val)
-       (scm-error 'misc-error
-		  #f
-		  "module ~A: duplicate binding ~A imported from ~A and ~A"
-		  (list (module-name module)
-			name
-			(module-name int1)
-			(module-name int2))
-		  #f)))
-    (module-define! m 'first
-     (lambda (module name int1 val1 int2 val2 var val)
-       (or var (module-local-variable int1 name))))
-    (module-define! m 'last
-     (lambda (module name int1 val1 int2 val2 var val)
-       (module-local-variable int2 name)))
+    (module-define! m 'check check)
+    (module-define! m 'warn warn)
+    (module-define! m 'replace replace)
+    (module-define! m 'warn-override-core warn-override-core)
+    (module-define! m 'first first)
+    (module-define! m 'last last)
     m))
+
+(define (lookup-duplicates-handlers handler-names)
+  (map (lambda (handler-name)
+	 (or (module-symbol-local-binding
+	      duplicate-handlers handler-name #f)
+	     (error "invalid duplicate handler name:"
+		    handler-name)))
+       (if (list? handler-names)
+	   handler-names
+	   (list handler-names))))
+
+(define default-module-duplicates-handler
+  (make-mutable-parameter '(replace warn-override-core check)
+			  lookup-duplicates-handlers))
 
 (define (make-duplicates-interface)
   (let ((m (make-module)))
@@ -2771,35 +2867,44 @@
 
 (define (process-duplicates module interface)
   (let* ((duplicates-info (module-duplicates-info module))
-	 (handlers (car duplicates-info))
-	 (d-interface (cdr duplicates-info)))
+	 (duplicates-handlers (car duplicates-info))
+	 (duplicates-interface (cdr duplicates-info)))
     (module-for-each
      (lambda (name var)
        (let ((prev-interface (module-symbol-interface module name)))
 	 (if prev-interface
-	     (begin
-	       (if (not d-interface)
+	     (let ((var1 (module-local-variable prev-interface name))
+		   (var2 (module-local-variable interface name)))
+	       (if (not (eq? var1 var2))
 		   (begin
-		     (set! d-interface (make-duplicates-interface))
-		     (set-cdr! duplicates-info d-interface)))
-	       (let* ((var (module-local-variable d-interface name))
-		      (val (and var (variable-bound? var) (variable-ref var))))
-		 (let loop ((handlers handlers))
-		   (cond ((null? handlers))
-			 (((car handlers)
-			   module
-			   name
-			   prev-interface
-			   (module-symbol-local-binding prev-interface name #f)
-			   interface
-			   (module-symbol-local-binding interface name #f)
-			   var
-			   val)
-			  =>
-			  (lambda (var)
-			    (module-add! d-interface name var)))
-			 (else
-			  (loop (cdr handlers))))))))))
+		     (if (not duplicates-interface)
+			 (begin
+			   (set! duplicates-interface
+				 (make-duplicates-interface))
+			   (set-cdr! duplicates-info duplicates-interface)))
+		     (let* ((var (module-local-variable duplicates-interface
+							name))
+			    (val (and var
+				      (variable-bound? var)
+				      (variable-ref var))))
+		       (let loop ((duplicates-handlers duplicates-handlers))
+			 (cond ((null? duplicates-handlers))
+			       (((car duplicates-handlers)
+				 module
+				 name
+				 prev-interface
+				 (and (variable-bound? var1)
+				      (variable-ref var1))
+				 interface
+				 (and (variable-bound? var2)
+				      (variable-ref var2))
+				 var
+				 val)
+				=>
+				(lambda (var)
+				  (module-add! duplicates-interface name var)))
+			       (else
+				(loop (cdr duplicates-handlers))))))))))))
      interface)))
 
 

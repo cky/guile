@@ -53,7 +53,7 @@
 (define-module (oop goops)
   :export-syntax (define-class class
 		  define-generic define-accessor define-method
-		  define-extended-generic
+		  define-extended-generic define-extended-generics
 		  method)
   :export (goops-version is-a?
            ensure-metaclass ensure-metaclass-with-supers
@@ -97,6 +97,7 @@
 	   primitive-generic-generic enable-primitive-generic!
 	   method-procedure accessor-method-slot-definition
 	   slot-exists? make find-method get-keyword)
+  :replace (<class> <operator-class> <entity-class> <entity>)
   :re-export (class-of)  ;; from (guile)
   :no-backtrace)
 
@@ -383,6 +384,20 @@
 	       (goops-error "missing expression"))
 	      (else
 	       `(define ,name (make-extended-generic ,(caddr exp) ',name))))))))
+(define define-extended-generics
+  (procedure->memoizing-macro
+    (lambda (exp env)
+      (let ((names (cadr exp))
+	    (prefixes (get-keyword #:prefix (cddr exp) #f)))
+	(if prefixes
+	    `(begin
+	       ,@(map (lambda (name)
+			`(define-extended-generic ,name
+			   (list ,@(map (lambda (prefix)
+					  (symbol-append prefix name))
+					prefixes))))
+		      names))
+	    (goops-error "no prefixes supplied"))))))
 
 (define (make-generic . name)
   (let ((name (and (pair? name) (car name))))

@@ -63,31 +63,54 @@ debugging evaluator gives better error messages.
 
 ** Checking for duplicate bindings in module system
 
-The module system now can check for duplicate imported bindings.
-The syntax to enable this feature is:
+The module system now checks for duplicate imported bindings.
+
+The behavior can be controlled by specifying one or more duplicates
+handlers.  For example, to get back the old behavior (which was to use
+the last imported binding of a certain name), write:
 
 (define-module (foo)
   :use-module (bar)
   :use-module (baz)
-  :duplicates check)
+  :duplicates last)
 
-This will report an error if both (bar) and (baz) exports a binding
-with the same name.
+If you want the old behavior without changing your module headers, put
+the line:
+
+  (default-module-duplicates-handler 'last)
+
+in your .guile init file.
 
 The syntax for the :duplicates option is:
 
   :duplicates HANDLER-NAME | (HANDLER1-NAME HANDLER2-NAME ...)
 
 Specifying multiple handlers is useful since some handlers (such as
-merge-generics) can defer conflict resolution to others.
+replace) can defer conflict resolution to others.  Each handler is
+tried until a binding is selected.
 
 Currently available duplicates handlers are:
 
-  check		  report an error for bindings with a common name
-  first		  select the first encountered binding (override)
-  last		  select the last encountered binding (override)
-  merge-generics  merge generic functions with a common name
-		  into an <extended-generic>
+  check		     report an error for bindings with a common name
+  warn		     issue a warning for bindings with a common name
+  replace	     replace bindings which have an imported replacement
+  warn-override-core issue a warning for imports which override core bindings
+  first		     select the first encountered binding (override)
+  last		     select the last encountered binding (override)
+  merge-generics     merge generic functions with a common name
+		     into an <extended-generic>
+
+The default duplicates handler is:
+
+  (replace warn-override-core check)
+
+** New define-module option: :replace
+
+:replace works as :export, but, in addition, marks the binding as a
+replacement.
+
+A typical example is `format' in (ice-9 format) which is a replacement
+for the core binding `format'.
 
 ** Merging generic functions
 
@@ -99,8 +122,9 @@ Assume that we work with a graphical package which needs to use two
 independent vector packages for 2D and 3D vectors respectively.  If
 both packages export `x' we will encounter a name collision.
 
-This can now be resolved with the duplicates handler `merge-generics'
-which merges all generic functions with a common name:
+This can now be resolved automagically with the duplicates handler
+`merge-generics' which gives the module system license to merge all
+generic functions sharing a common name:
 
 (define-module (math 2D-vectors)
   :use-module (oop goops)
@@ -118,17 +142,27 @@ which merges all generic functions with a common name:
 x in (my-module) will now share methods with x in both imported
 modules.
 
-The detailed rule for method visibility is this:
+There will, in fact, now be three distinct generic functions named
+`x': x in (2D-vectors), x in (3D-vectors), and x in (my-module).  The
+last function will be an <extended-generic>, extending the previous
+two functions.
 
-Let's call the imported generic functions the "ancestor functions".
-x in (my-module) is, in turn, a "descendant function" of the imported
-functions.  For any generic function gf, the applicable methods are
-selected from the union of the methods of the descendant functions,
-the methods of gf and the methods of the ancestor functions.
+Let's call the imported generic functions the "ancestor functions".  x
+in (my-module) is, in turn, a "descendant function" of the imported
+functions, extending its ancestors.
 
-This implies that x in (math 2D-vectors) can see the methods of x in
-(my-module) and vice versa, while x in (math 2D-vectors) doesn't see
-the methods of x in (math 3D-vectors), thus preserving modularity.
+For any generic function G, the applicable methods are selected from
+the union of the methods of the descendant functions, the methods of G
+itself and the methods of the ancestor functions.
+
+This, ancestor functions share methods with their descendants and vice
+versa.  This implies that x in (math 2D-vectors) can will share the
+methods of x in (my-module) and vice versa, while x in (math 2D-vectors)
+doesn't share the methods of x in (math 3D-vectors), thus preserving
+modularity.
+
+Sharing is dynamic, so that adding new methods to a descendant implies
+adding it to the ancestor.
 
 If duplicates checking is desired in the above example, the following
 form of the :duplicates option can be used instead:
