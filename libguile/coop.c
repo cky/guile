@@ -40,7 +40,7 @@
  * If you do not wish that, delete this exception notice.  */
 
 
-/* $Id: coop.c,v 1.15 1998-11-19 08:15:22 mdj Exp $ */
+/* $Id: coop.c,v 1.16 1999-12-19 18:24:12 gjb Exp $ */
 
 /* Cooperative thread library, based on QuickThreads */
 
@@ -62,14 +62,8 @@
 
 /* Queue access functions. */
 
-#ifdef __STDC__
 static void
 coop_qinit (coop_q_t *q)
-#else
-static void
-coop_qinit (q)
-     coop_q_t *q;
-#endif
 {
   q->t.next = q->tail = &q->t;
 
@@ -85,14 +79,8 @@ coop_qinit (q)
 }
 
 
-#ifdef __STDC__
 coop_t *
 coop_qget (coop_q_t *q)
-#else
-coop_t *
-coop_qget (q)
-     coop_q_t *q;
-#endif
 {
   coop_t *t;
 
@@ -108,30 +96,16 @@ coop_qget (q)
 }
 
 
-#ifdef __STDC__
 void
 coop_qput (coop_q_t *q, coop_t *t)
-#else
-void
-coop_qput (q, t)
-     coop_q_t *q;
-     coop_t *t;
-#endif
 {
   q->tail->next = t;
   t->next = &q->t;
   q->tail = t;
 }
 
-#ifdef __STDC__
 static void
 coop_all_qput (coop_q_t *q, coop_t *t)
-#else
-static void
-coop_all_qput (q, t)
-     coop_q_t *q;
-     coop_t *t;
-#endif
 {
   if (q->t.all_next)
     q->t.all_next->all_prev = t;
@@ -140,15 +114,8 @@ coop_all_qput (q, t)
   q->t.all_next = t;
 }
 
-#ifdef __STDC__
 static void
 coop_all_qremove (coop_q_t *q, coop_t *t)
-#else
-static void
-coop_all_qremove (q, t)
-     coop_q_t *q;
-     coop_t *t;
-#endif
 {
   if (t->all_prev)
     t->all_prev->all_next = t->all_next;
@@ -174,13 +141,8 @@ static void *coop_aborthelp (qt_t *sp, void *old, void *null);
 static void *coop_yieldhelp (qt_t *sp, void *old, void *blockq);
 
 
-#ifdef __STDC__
 void
 coop_init()
-#else
-void
-coop_init()
-#endif
 {
   coop_qinit (&coop_global_runq);
   coop_qinit (&coop_global_sleepq);
@@ -195,13 +157,8 @@ coop_init()
    return NULL. */
 
 #ifndef GUILE_ISELECT
-#ifdef __STDC__
 coop_t *
 coop_next_runnable_thread()
-#else
-coop_t *
-coop_next_runnable_thread()
-#endif
 {
   int sleepers;
   coop_t *t;
@@ -231,13 +188,8 @@ coop_next_runnable_thread()
 }
 #endif
 
-#ifdef __STDC__
 void
 coop_start()
-#else
-void
-coop_start()
-#endif
 {
   coop_t *next;
 
@@ -248,16 +200,8 @@ coop_start()
 }
 
 
-#ifdef __STDC__
 static void *
 coop_starthelp (qt_t *old, void *ignore0, void *ignore1)
-#else
-static void *
-coop_starthelp (old, ignore0, ignore1)
-     qt_t *old;
-     void *ignore0;
-     void *ignore1;
-#endif
 {
   coop_global_main.sp = old;
   coop_global_main.joining = NULL;
@@ -265,28 +209,16 @@ coop_starthelp (old, ignore0, ignore1)
   return NULL; /* not used, but keeps compiler happy */
 }
 
-#ifdef __STDC__
 int
 coop_mutex_init (coop_m *m)
-#else
-int
-coop_mutex_init (m)
-     coop_m *m;
-#endif
 {
   m->owner = NULL;
   coop_qinit(&(m->waiting));
   return 0;
 }
 
-#ifdef __STDC__
 int
 coop_mutex_lock (coop_m *m)
-#else
-int 
-coop_mutex_lock ()
-     coop_m *m;
-#endif
 {
   if (m->owner == NULL)
     {
@@ -314,14 +246,8 @@ coop_mutex_lock ()
 }
 
 
-#ifdef __STDC__
 int 
 coop_mutex_unlock (coop_m *m)
-#else
-int 
-coop_mutex_unlock (m)
-     coop_m *m;
-#endif
 {
   coop_t *old, *newthread;
   
@@ -346,41 +272,22 @@ coop_mutex_unlock (m)
 }
 
 
-#ifdef __STDC__
 int 
 coop_mutex_destroy (coop_m *m)
-#else
-int 
-coop_mutex_destroy (m)
-     coop_m *m;
-#endif
 {
   return 0;
 }
 
 
-#ifdef __STDC__
 int 
 coop_condition_variable_init (coop_c *c)
-#else
-int 
-coop_condition_variable_init (c)
-     coop_c *c;
-#endif
 {
   coop_qinit(&(c->waiting));
   return 0;
 }
 
-#ifdef __STDC__
 int 
 coop_condition_variable_wait_mutex (coop_c *c, coop_m *m)
-#else
-int 
-coop_condition_variable_wait_mutex (c, m)
-     coop_c *c;
-     coop_m *m;
-#endif
 {
   coop_t *old, *newthread;
 
@@ -411,14 +318,8 @@ coop_condition_variable_wait_mutex (c, m)
 }
 
 
-#ifdef __STDC__
 int 
 coop_condition_variable_signal (coop_c *c)
-#else
-int 
-coop_condition_variable_signal (c)
-     coop_c *c;
-#endif
 {
   coop_t *newthread;
 
@@ -430,28 +331,15 @@ coop_condition_variable_signal (c)
 }
 
 
-#ifdef __STDC__
 int 
 coop_condition_variable_destroy (coop_c *c)
-#else
-int 
-coop_condition_variable_destroy (c)
-     coop_c *c;
-#endif
 {
   return 0;
 }
 
 
-#ifdef __STDC__
 coop_t *
 coop_create (coop_userf_t *f, void *pu)
-#else
-coop_t *
-coop_create (f, pu)
-     coop_userf_t *f;
-     void *pu;
-#endif
 {
   coop_t *t;
   void *sto;
@@ -472,16 +360,8 @@ coop_create (f, pu)
 }
 
 
-#ifdef __STDC__
 static void
 coop_only (void *pu, void *pt, qt_userf_t *f)
-#else
-static void
-coop_only (pu. pt, f)
-     void *pu, 
-     void *pt, 
-     qt_userf_t *f;
-#endif
 {
   coop_global_curr = (coop_t *)pt;
   (*(coop_userf_t *)f)(pu);
@@ -490,13 +370,8 @@ coop_only (pu. pt, f)
 }
 
 
-#ifdef __STDC__
 void
 coop_abort ()
-#else
-void
-coop_abort ()
-#endif
 {
   coop_t *old, *newthread;
 
@@ -527,16 +402,8 @@ coop_abort ()
 }
 
 
-#ifdef __STDC__
 static void *
 coop_aborthelp (qt_t *sp, void *old, void *null)
-#else
-static void *
-coop_aborthelp (sp, old, null)
-     qt_t *sp;
-     void *old;
-     void *null;
-#endif
 {
   coop_t *oldthread = (coop_t *) old;
 
@@ -551,14 +418,8 @@ coop_aborthelp (sp, old, null)
 }
 
 
-#ifdef __STDC__
 void 
 coop_join(coop_t *t)
-#else
-void 
-coop_join()
-     coop_t *t;
-#endif
 {
   coop_t *old, *newthread;
   
@@ -585,13 +446,8 @@ coop_join()
   QT_BLOCK (coop_yieldhelp, old, (coop_q_t *) t->joining, newthread->sp);
 }
 
-#ifdef __STDC__
 void
 coop_yield()
-#else
-void
-coop_yield()
-#endif
 {
   coop_t *old = NULL;
   coop_t *newthread;
@@ -615,16 +471,8 @@ coop_yield()
 }
 
 
-#ifdef __STDC__
 static void *
 coop_yieldhelp (qt_t *sp, void *old, void *blockq)
-#else
-static void *
-coop_yieldhelp (sp, old, blockq)
-     qt_t *sp;
-     void *old;
-     void *blockq;
-#endif
 {
   ((coop_t *)old)->sp = sp;
   coop_qput ((coop_q_t *)blockq, (coop_t *)old);

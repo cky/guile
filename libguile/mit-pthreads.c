@@ -56,41 +56,23 @@ static queue infos = { &infos, &infos };  /* the dequeue of info structures */
 /* Key to thread specific data */
 pthread_key_t info_key;
 
-#ifdef __STDC__
 size_t
 scm_threads_free_thread (SCM t)
-#else
-size_t
-scm_threads_free_thread (t)
-     SCM t;
-#endif
 {
   scm_must_free (SCM_THREAD_DATA (t));
   return sizeof (pthread_t);
 }
 
-#ifdef __STDC__
 size_t
 scm_threads_free_mutex (SCM m)
-#else
-size_t
-scm_threads_free_mutex (m)
-     SCM m;
-#endif
 {
   pthread_mutex_destroy (SCM_MUTEX_DATA (m));
   scm_must_free (SCM_MUTEX_DATA (m));
   return sizeof (pthread_mutex_t);
 }
 
-#ifdef __STDC__
 size_t
 scm_threads_free_condvar (SCM c)
-#else
-size_t
-scm_threads_free_condvar (c)
-     SCM c;
-#endif
 {
   pthread_cond_destroy (SCM_CONDVAR_DATA (c));
   scm_must_free (SCM_CONDVAR_DATA (c));
@@ -99,14 +81,8 @@ scm_threads_free_condvar (c)
 
 /* cleanup for info structure
  */
-#ifdef __STDC__
 static void
 scm_pthread_delete_info (void *ptr)
-#else
-static void
-scm_pthread_delete_info (ptr)
-     void *ptr;
-#endif
 {
   scm_pthread_info *info = (scm_pthread_info *) ptr;
   info->q.blink->flink = info->q.flink;
@@ -114,14 +90,8 @@ scm_pthread_delete_info (ptr)
   scm_must_free ((char *) info);
 }
 
-#ifdef __STDC__
 void
 scm_threads_init (SCM_STACKITEM *i)
-#else
-void
-scm_threads_init (i)
-     SCM_STACKITEM *i;
-#endif
 {
   /*
    * each info structure is made thread-specific, so that the cleanup
@@ -167,13 +137,8 @@ static scm_pthread_info *pthreads_find_info (pthread_t target)
     }
 }
 
-#ifdef __STDC__
 void
 scm_threads_mark_stacks ()
-#else
-void
-scm_threads_mark_stacks ()
-#endif
 {
   scm_pthread_info *info;
   pthread_t thread;
@@ -259,14 +224,8 @@ scm_threads_mark_stacks ()
     }
 }
 
-#ifdef __STDC__
 void *
 launch_thread (void *p)
-#else
-void *
-launch_thread (p)
-     void *p;
-#endif
 {
   /* The thread object will be GC protected by being a member of the
      list given as argument to launch_thread.  It will be marked
@@ -279,14 +238,8 @@ launch_thread (p)
   return NULL;
 }
 
-#ifdef __STDC__
 SCM
 scm_call_with_new_thread (SCM argl)
-#else
-SCM
-scm_call_with_new_thread (argl)
-     SCM argl;
-#endif
 {
   SCM thread;
 
@@ -369,39 +322,23 @@ scm_call_with_new_thread (argl)
   return thread;
 }
 
-#ifdef __STDC__
 SCM
 scm_join_thread (SCM t)
-#else
-SCM
-scm_join_thread (t)
-     SCM t;
-#endif
 {
   void *value;
   pthread_join (SCM_THREAD_DATA (t), &value);
   return SCM_BOOL_T;
 }
 
-#ifdef __STDC__
 SCM
 scm_yield ()
-#else
-SCM
-scm_yield ()
-#endif
 {
   pthread_yield ();
   return SCM_BOOL_T;
 }
 
-#ifdef __STDC__
 SCM
 scm_make_mutex ()
-#else
-SCM
-scm_make_mutex ()
-#endif
 {
   SCM m;
   pthread_mutex_t *data = (pthread_mutex_t *) scm_must_malloc (sizeof (pthread_mutex_t), "mutex");
@@ -410,41 +347,24 @@ scm_make_mutex ()
   return m;
 }
 
-#ifdef __STDC__
 SCM
 scm_lock_mutex (SCM m)
-#else
-SCM
-scm_lock_mutex (m)
-     SCM m;
-#endif
 {
   SCM_ASSERT (SCM_MUTEXP (m), m, SCM_ARG1, s_lock_mutex);
   pthread_mutex_lock (SCM_MUTEX_DATA (m));
   return SCM_BOOL_T;
 }
 
-#ifdef __STDC__
 SCM
 scm_unlock_mutex (SCM m)
-#else
-SCM
-scm_unlock_mutex (m)
-     SCM m;
-#endif
 {
   SCM_ASSERT (SCM_MUTEXP (m), m, SCM_ARG1, s_unlock_mutex);
   pthread_mutex_unlock (SCM_MUTEX_DATA (m));
   return SCM_BOOL_T;
 }
 
-#ifdef __STDC__
 SCM
 scm_make_condition_variable ()
-#else
-SCM
-scm_make_condition_variable ()
-#endif
 {
   SCM c;
   pthread_cond_t *data = (pthread_cond_t *) scm_must_malloc (sizeof (pthread_cond_t), "condvar");
@@ -453,15 +373,8 @@ scm_make_condition_variable ()
   return c;
 }
 
-#ifdef __STDC__
 SCM
 scm_wait_condition_variable (SCM c, SCM m)
-#else
-SCM
-scm_wait_condition_variable (c, m)
-     SCM c;
-     SCM m;
-#endif
 {
   SCM_ASSERT (SCM_CONDVARP (c),
 	      c,
@@ -475,14 +388,8 @@ scm_wait_condition_variable (c, m)
   return SCM_BOOL_T;
 }
 
-#ifdef __STDC__
 SCM
 scm_signal_condition_variable (SCM c)
-#else
-SCM
-scm_signal_condition_variable (c)
-     SCM c;
-#endif
 {
   SCM_ASSERT (SCM_CONDVARP (c),
 	      c,

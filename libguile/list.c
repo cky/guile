@@ -62,15 +62,8 @@
 /* creating lists */
 
 /* SCM_P won't help us deal with varargs here.  */
-#ifdef __STDC__
 SCM
 scm_listify (SCM elt, ...)
-#else
-SCM
-scm_listify (elt, va_alist)
-     SCM elt;
-     va_dcl
-#endif
 {
   va_list foo;
   SCM answer;

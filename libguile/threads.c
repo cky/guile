@@ -145,14 +145,8 @@ SCM_REGISTER_PROC(s_signal_condition_variable, "signal-condition-variable", 1, 0
 
 
 
-#ifdef __STDC__
 void
 scm_init_threads (SCM_STACKITEM *i)
-#else
-void
-scm_init_threads (i)
-     SCM_STACKITEM *i;
-#endif
 {
   scm_tc16_thread = scm_make_smob_type ("thread", sizeof (coop_t));
   scm_tc16_mutex = scm_make_smob_type ("mutex", sizeof (coop_m));
