@@ -1,3 +1,7 @@
+2001-10-25  Thien-Thi Nguyen  <ttn@glug.org>
+
+	* patch.el, README: New files.
+
 2001-06-21  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* guile.el (guile-channel-file): Signal an error if unable to find
