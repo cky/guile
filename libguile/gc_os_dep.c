@@ -266,7 +266,8 @@ typedef int GC_bool;
 #   define MACOS
 #   define mach_type_known
 # endif
-# if defined(macosx)
+# if defined(macosx) || \
+     (defined(__APPLE__) && defined(__MACH__) && defined(__ppc__))
 #    define MACOSX
 #    define POWERPC
 #    define mach_type_known
@@ -1878,7 +1879,9 @@ void *scm_get_stack_base()
 void *scm_get_stack_base()
 {
     word dummy;
-    void *result = &dummy;  /* initialize to silence compiler */
+    void *result;
+
+    result = &dummy;  /* initialize to silence compiler */
 
 #   define STACKBOTTOM_ALIGNMENT_M1 ((word)STACK_GRAN - 1)
 
