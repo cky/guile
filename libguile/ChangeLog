@@ -1,3 +1,7 @@
+Tue Jan 18 13:21:08 2000  Mikael Djurfeldt  <mdj@r11n07-s.pdc.kth.se>
+
+	* posix.c (scm_mknod): Escape " occuring inside docstring.
+
 2000-01-18  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* alist.c, chars.c, debug.c, dynl.c, dynwind.c, error.c, eval.c,
