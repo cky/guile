@@ -1,5 +1,7 @@
 Mon Oct  6 11:45:59 1997  Jim Blandy  <jimb@totoro.red-bean.com>
 
+	* build-guile.in: Try to return an appropriate exit status.
+
 	* build-guile.in: Rearranged to use a table of subcommands, and
  	include per-subcommand help.
 
