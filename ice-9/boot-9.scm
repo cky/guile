@@ -2143,13 +2143,27 @@
 
 (define (set-repl-prompt! v) (set! scm-repl-prompt v))
 
-(define apply-frame-handler #f)
-(define exit-frame-handler #f)
+(define (default-lazy-handler key . args)
+  (save-stack lazy-handler-dispatch)
+  (apply throw key args))
+
+(define apply-frame-handler default-lazy-handler)
+(define exit-frame-handler default-lazy-handler)
+
+(define (lazy-handler-dispatch key . args)
+  (case key
+    ((apply-frame)
+     (apply apply-frame-handler key args))
+    ((exit-frame)
+     (apply exit-frame-handler key args))
+    (else
+     (apply default-lazy-handler key args))))
 
 (define (error-catching-loop thunk)
   (define (loop first)
     (let ((next 
 	   (catch #t
+
 	     (lambda ()
 	       (lazy-catch #t
                  (lambda ()
@@ -2167,16 +2181,7 @@
 		      #f)
 		    (lambda () (mask-signals))))
 
-		 (lambda (key . args)
-		   (cond ((eq? key 'apply-frame)
-			  (and apply-frame-handler
-			       (apply apply-frame-handler key args)))
-			 ((eq? key 'exit-frame)
-			  (and exit-frame-handler
-			       (apply exit-frame-handler key args)))
-			 (else
-			  (save-stack 2)
-			  (apply throw key args))))))
+		 lazy-handler-dispatch))
 	     
 	     (lambda (key . args)
 	       (case key
