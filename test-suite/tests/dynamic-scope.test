@@ -1,0 +1,78 @@
+;;;;                                                          -*- scheme -*-
+;;;; dynamic-scop.test --- test suite for dynamic scoping constructs
+;;;;
+;;;; Copyright (C) 2001 Free Software Foundation, Inc.
+;;;; 
+;;;; This program is free software; you can redistribute it and/or modify
+;;;; it under the terms of the GNU General Public License as published by
+;;;; the Free Software Foundation; either version 2, or (at your option)
+;;;; any later version.
+;;;; 
+;;;; This program is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;;;; GNU General Public License for more details.
+;;;; 
+;;;; You should have received a copy of the GNU General Public License
+;;;; along with this software; see the file COPYING.  If not, write to
+;;;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+;;;; Boston, MA 02111-1307 USA
+
+(use-modules (test-suite lib))
+
+(define global-a 0)
+(define (fetch-global-a) global-a)
+
+(with-test-prefix "dynamic scope"
+
+  (pass-if "@bind binds"
+    (= (@bind ((global-a 1)) (fetch-global-a)) 1))
+
+  (pass-if "@bind unbinds"
+    (begin
+      (set! global-a 0)
+      (@bind ((global-a 1)) (fetch-global-a))
+      (= global-a 0)))
+
+  (pass-if-exception "duplicate @binds"
+    (cons 'misc-error "^duplicate bindings")
+    (@bind ((a 1) (a 2)) (+ a a)))
+
+  (pass-if-exception "@bind missing expression"
+    (cons 'misc-error "^missing or extra expression")
+    (@bind ((global-a 1))))
+
+  (pass-if-exception "@bind bad bindings"
+    (cons 'misc-error "^bad bindings")
+    (@bind (a) #f))
+
+  (pass-if-exception "@bind bad bindings"
+    (cons 'misc-error "^bad bindings")
+    (@bind ((a)) #f))
+
+  (pass-if "@bind and dynamic-wind"
+    (letrec ((co-routine #f)
+	     (spawn (lambda (proc)
+		      (set! co-routine proc)))
+	     (yield (lambda (val)
+		      (call-with-current-continuation
+		       (lambda (k)
+			 (let ((next co-routine))
+			   (set! co-routine k)
+			   (next val)))))))
+      
+      (spawn (lambda (val)
+	       (@bind ((global-a 'inside))
+	         (yield global-a)
+		 (yield global-a))))
+
+      (set! global-a 'outside)
+      (let ((inside-a (yield #f)))
+	(let ((outside-a global-a))
+	  (let ((inside-a2 (yield #f)))
+	    (and (eq? inside-a 'inside)
+		 (eq? outside-a 'outside)
+		 (eq? inside-a2 'inside))))))))
+
+
+			      
