@@ -197,10 +197,10 @@
           (equal? (member "c" `("a" "b" "c" "d" . ,%nil)) `("c" "d" . ,%nil)))
 
 	(pass-if "list->vector"
-          (equal? #(1 2 3) (list->vector `(1 2 3 . ,%nil))))
+          (equal? '#(1 2 3) (list->vector `(1 2 3 . ,%nil))))
 
 	(pass-if "list->vector"
-          (equal? #(1 2 3) (list->vector `(1 2 3 . ,%nil))))
+          (equal? '#(1 2 3) (list->vector `(1 2 3 . ,%nil))))
 
 	(pass-if "list->weak-vector"
           (equal? (weak-vector 1 2 3) (list->weak-vector `(1 2 3 . ,%nil))))

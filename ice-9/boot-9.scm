@@ -1878,7 +1878,7 @@
 		    ;; Replace autoload-interface with interface
 		    (set-car! (memq a (module-uses module)) i)
 		    (module-local-variable i sym))))))
-    (module-constructor #() '() b #f #f name 'autoload #f #f
+    (module-constructor '#() '() b #f #f name 'autoload #f #f
 			'() (make-weak-value-hash-table 31) 0)))
 
 ;;; {Compiled module}

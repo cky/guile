@@ -564,6 +564,11 @@ number in hexadecimal notation.
 #("Hello" foo #xdeadbeef)
 @end lisp
 
+Like lists, vectors have to be quoted (REFFIXME):
+
+@lisp
+'#(a b c) @result{} #(a b c)
+@end lisp
 
 @node Vector Creation
 @subsection Dynamic Vector Creation and Validation

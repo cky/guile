@@ -558,7 +558,7 @@ guile> @kbd{(map (lambda (n) (expt n n)) ls)}
 
 @smalllisp
 ;; @r{make a vector and bind it to the symbol @code{v}}
-guile> @kbd{(define v #(1 2 3 4 5 6 7))}
+guile> @kbd{(define v '#(1 2 3 4 5 6 7))}
 guile> @kbd{v}
        @result{} #(1 2 3 4 5 6 7)
 guile> @kbd{(vector? v)}

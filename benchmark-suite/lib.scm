@@ -147,7 +147,7 @@
 ;;;; execution of the benchmark code would not deliver usable timing results:
 ;;;; The resolution of the system time is not arbitrarily fine.  Thus, some
 ;;;; benchmarks would be executed too quickly to be measured at all.  A rule
-;;;; of thumb is, that the longer a benchmark runs, be more exact is the
+;;;; of thumb is, that the longer a benchmark runs, the more exact is the
 ;;;; information about the execution time.
 ;;;;
 ;;;; However, execution time depends on several influences:  First, the
@@ -278,7 +278,7 @@
 ;;;;     interested in, except if you are doing some garbage collection
 ;;;;     checks.
 ;;;; 
-;;;; There is not function to calculate the garbage-collection time, since the
+;;;; There is no function to calculate the garbage-collection time, since the
 ;;;; garbage collection time is already passed as an argument GC-TIME to the
 ;;;; reporter functions.
 

@@ -1,3 +1,7 @@
+2003-05-27  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* tests/elisp.test: Added missing quote around vector constants.
+
 2003-05-25  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* tests/r5rs_pitfall.test: Test 2.1 now passes.
