@@ -1,3 +1,10 @@
+2001-02-26  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
+
+	* boot-9.scm (save-stack): Use `primitive-eval' for stack
+	cutting.  Makes backtraces work again!  Also added a reference to
+	save-stack from the place in the repl where the primitive-eval
+	frame is invoked.
+
 2001-02-25  Keisuke Nishida  <kxn30@po.cwru.edu>
 
 	* match.scm: New file, including Andrew K. Wright's pattern matcher.

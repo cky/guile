@@ -1,6 +1,6 @@
 ;;; installed-scm-file
 
-;;;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
+;;;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -2259,7 +2259,7 @@
 	      the-last-stack
 	      (case (stack-id #t)
 		((repl-stack)
-		 (apply make-stack #t save-stack eval #t 0 narrowing))
+		 (apply make-stack #t save-stack primitive-eval #t 0 narrowing))
 		((load-stack)
 		 (apply make-stack #t save-stack 0 #t 0 narrowing))
 		((tk-stack)
@@ -2403,6 +2403,11 @@
 	   (-eval (lambda (sourc)
 		    (repl-report-start-timing)
 		    (start-stack 'repl-stack
+				 ;; If you change this procedure
+				 ;; (primitive-eval), please also
+				 ;; modify the repl-stack case in
+				 ;; save-stack so that stack cutting
+				 ;; continues to work.
 				 (primitive-eval sourc))))
 
 	   (-print (let ((maybe-print (lambda (result)
