@@ -285,7 +285,19 @@ extern unsigned int scm_async_clock;
         if (!(_cond)) \
           goto _label
 #endif
+#define SCM_SYSERROR(_subr) \
+	scm_everr (SCM_UNDEFINED, SCM_EOL, SCM_UNDEFINED, \
+		   strerror (errno), _subr)
 
+     /* equivalent to:
+	scm_throw (system_error_sym, \
+	           scm_listify (scm_makfrom0str (strerror (errno)), \
+	           scm_makfrom0str (_subr), \
+	           SCM_UNDEFINED));
+     */
+#define SCM_SYSMISSING(_subr) \
+	scm_everr (SCM_UNDEFINED, SCM_EOL, SCM_UNDEFINED, \
+		   strerror (ENOSYS), _subr)
 
 #define SCM_ARGn 		0
 #define SCM_ARG1 		1

@@ -5,6 +5,17 @@ Thu Aug  1 02:52:42 1996  Jim Blandy  <jimb@totoro.cyclic.com>
 	* PLUGIN/this.configure (aux_files): Removed PLUGIN; it's a
 	directory, and needs special treatment in the dist-dir target.
 
+Thu Aug  1 09:00:21 1996  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* boot-9.scm: remove the wrappers for '%' system primitives,
+	now that they throw errors directly.
+	remove make-simple-wrapper and similar functions.
+	protect a call to getenv which may now throw an exception.
+
+Wed Jul 31 23:44:42 1996  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* boot-9.scm (false-if-exception): new macro.
+
 Fri Apr 19 13:53:08 1996  Tom Lord  <lord@beehive>
 
 	* The more things change...

@@ -3488,7 +3488,7 @@ void scm_two_doubles(z1, z2, sstring, xy)
 
 
 
-SCM_PROC(s_sys_expt, "%expt", 2, 0, 0, scm_sys_expt);
+SCM_PROC(s_sys_expt, "$expt", 2, 0, 0, scm_sys_expt);
 #ifdef __STDC__
 SCM
 scm_sys_expt(SCM z1, SCM z2)
@@ -3506,7 +3506,7 @@ scm_sys_expt(z1, z2)
 
 
 
-SCM_PROC(s_sys_atan2, "%atan2", 2, 0, 0, scm_sys_atan2);
+SCM_PROC(s_sys_atan2, "$atan2", 2, 0, 0, scm_sys_atan2);
 #ifdef __STDC__
 SCM
 scm_sys_atan2(SCM z1, SCM z2)

@@ -76,7 +76,7 @@ scm_system(cmd)
 #endif
 
 extern char *getenv();
-SCM_PROC (s_sys_getenv, "%getenv", 1, 0, 0, scm_sys_getenv);
+SCM_PROC (s_sys_getenv, "getenv", 1, 0, 0, scm_sys_getenv);
 #ifdef __STDC__
 SCM
 scm_sys_getenv(SCM nam)
@@ -92,7 +92,7 @@ scm_sys_getenv(nam)
     nam = scm_makfromstr (SCM_ROCHARS (nam), SCM_ROLENGTH (nam), 0);
   val = getenv(SCM_CHARS(nam));
   if (!val)
-    return SCM_BOOL_F;
+    SCM_SYSERROR (s_sys_getenv);
   return scm_makfromstr(val, (scm_sizet)strlen(val), 0);
 }
 

@@ -17,6 +17,21 @@ Thu Aug  1 02:58:39 1996  Jim Blandy  <jimb@totoro.cyclic.com>
 	every if must have an else, or else the whole command has a
 	non-zero exit code whenever the if's condition is false.
 
+Thu Aug  1 08:22:24 1996  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* posix.c: include string.h.
+
+Wed Jul 31 23:43:05 1996  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* numbers.c: rename %expt -> $expt, %atan2 -> $atan2, as it must
+	have been once.
+
+	* posix.c, ioext.c, socket.c, fdsocket.c, files.c, filesys.c, simpos.c:
+	Remove leading % from scheme names.
+	Do not return error values, call SCM_SYSERROR or similar.
+
+	* __scm.h (SCM_SYSERROR, SCM_SYSMISSING): new macros.
+
 Wed Jun 12 00:28:31 1996  Tom Lord  <lord@beehive>
 
 	* struct.c (scm_init_struct): new file.
