@@ -1,3 +1,8 @@
+2000-10-11  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* alloca.c:  Fixed include file path.  Thanks to Bruce Korb for
+	the bug report.
+
 2000-10-11  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* gc_os_dep.c: Added real implementation based on code from Boehms

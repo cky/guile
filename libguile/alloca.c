@@ -25,7 +25,7 @@
    gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
 
 #ifdef HAVE_CONFIG_H
-#include <scmconfig.h>
+#include "libguile/scmconfig.h"
 #endif
 
 #ifdef HAVE_STRING_H
