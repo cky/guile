@@ -1,5 +1,7 @@
 /* acconfig.h --- documentation for symbols possibly defined in scmconfig.h
-   Jim Blandy <jimb@cyclic.com> --- August 1996 */
+   Jim Blandy <jimb@cyclic.com> --- August 1996
+   The `autoheader' command, from the autoconf suite, generates
+   libguile/scmconfig.h, based on configure.in and this file.  */
 
 /* Define these two if you want support for debugging of Scheme
    programs.  */
