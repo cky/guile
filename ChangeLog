@@ -1,5 +1,7 @@
 2004-09-28  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
+	* ABOUT-NLS: New, from gettext 0.14.1.
+
 	* configure.in: Do use AM_GNU_GETTEXT, since gettextize is not run
 	with autoconf 2.59.
 
