@@ -121,19 +121,18 @@
   (save-module-excursion
    (lambda ()
      (set-current-module slib-module)
-     (let* ((errinfo (catch 'system-error
-			    (lambda ()
-			      (load-from-path name)
-			      #f)
-			    (lambda args args)))
-	    (errinfo (and errinfo
-			  (catch 'system-error
-				 (lambda ()
-				   (load-from-path
-				    (string-append name ".scm"))
-				   #f)
-				 (lambda args args)))))
-       (if errinfo
+     (let ((errinfo (catch 'system-error
+			   (lambda ()
+			     (load-from-path name)
+			     #f)
+			   (lambda args args))))
+       (if (and errinfo
+		(catch 'system-error
+		       (lambda ()
+			 (load-from-path
+			  (string-append name ".scm"))
+			 #f)
+		       (lambda args args)))
 	   (apply throw errinfo))))))
 
 (define slib:load-source slib:load)

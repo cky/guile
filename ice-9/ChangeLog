@@ -1,5 +1,9 @@
 Mon Sep 29 03:21:24 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
+	* slib.scm (slib:load): slib:load first tries to load the file
+	named NAME, then NAME.scm.  On error, report the error occuring at
+	the first attempt (NAME) rather than the second (NAME.scm).
+
 	* boot-9.scm: Bugfix: Hard-solder the print-option procedure into
  	the make-options macro so that we needn't refer to a global
 	symbol.
