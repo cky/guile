@@ -1,3 +1,12 @@
+2001-08-25  Thien-Thi Nguyen  <ttn@revel.glug.org>
+
+	* gc_os_dep.c (GC_noop1): Move before `GC_find_limit' where it is
+	used; nfc.  Thanks to Bill Schottstaedt.
+
+	* validate.h (SCM_VALIDATE_USHORT_COPY, SCM_VALIDATE_SHORT_COPY,
+	SCM_VALIDATE_UINT_COPY, SCM_VALIDATE_INT_COPY): New macros.
+	Thanks to Chris Cramer.
+
 2001-08-25  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* Makefile.am (AUTOMAKE_OPTIONS): Change "foreign" to "gnu".
