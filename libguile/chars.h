@@ -55,9 +55,9 @@
 
 
 
-extern char *scm_charnames[];
+extern char *const scm_charnames[];
 extern int scm_n_charnames;
-extern char scm_charnums[];
+extern const char scm_charnums[];
 
 
 
