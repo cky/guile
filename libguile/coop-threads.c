@@ -42,6 +42,7 @@
 
 
 
+#include "libguile/_scm.h"
 #include "libguile/validate.h"
 #include "libguile/coop-threads.h"
 #include "libguile/root.h"
@@ -104,7 +105,7 @@ scm_threads_mark_stacks (void)
 	  /* Active thread */
 	  /* stack_len is long rather than sizet in order to guarantee
 	     that &stack_len is long aligned */
-#ifdef STACK_GROWS_UP
+#ifdef SCM_STACK_GROWS_UP
 	  long stack_len = ((SCM_STACKITEM *) (&thread) -
 			    (SCM_STACKITEM *) thread->base);
 	  
@@ -151,7 +152,7 @@ scm_threads_mark_stacks (void)
       else
 	{
 	  /* Suspended thread */
-#ifdef STACK_GROWS_UP
+#ifdef SCM_STACK_GROWS_UP
 	  long stack_len = ((SCM_STACKITEM *) (thread->sp) -
 			    (SCM_STACKITEM *) thread->base);
 
@@ -505,7 +506,7 @@ scm_timed_wait_condition_variable (SCM c, SCM m, SCM t)
 {
   coop_c *cv;
   coop_m *mx;
-  struct timespec waittime;
+  scm_t_timespec waittime;
 
   SCM_ASSERT (SCM_CONDVARP (c),
 	      c,
