@@ -61,7 +61,7 @@ AC_ARG_ENABLE(posix,
   enable_posix=yes)
 
 AC_ARG_ENABLE(networking,
-  [  --disable-net           omit networking interfaces],,
+  [  --disable-networking    omit networking interfaces],,
   enable_networking=yes)
 
 AC_ARG_ENABLE(regex,

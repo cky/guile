@@ -126,12 +126,13 @@ added the autogen.sh script, which will reconstruct them
 appropriately.
 
 
-** configure has new options to remove support for certain features:
+** configure now has experimental options to remove support for certain
+features:
 
---disable-arrays   omit array and uniform array support
---disable-posix    omit posix interfaces
---disable-net      omit networking interfaces
---disable-regex    omit regular expression interfaces
+--disable-arrays     omit array and uniform array support
+--disable-posix      omit posix interfaces
+--disable-networking omit networking interfaces
+--disable-regex      omit regular expression interfaces
 
 These are likely to become separate modules some day.
 

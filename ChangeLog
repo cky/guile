@@ -1,3 +1,8 @@
+2000-01-14  Gary Houston  <ghouston@arglist.com>
+
+	* configure.in: needs to have --disable-networking, not
+	--disable-net.
+
 2000-01-12  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* libltdl/acconfig.h: New file: Needed by autogen.sh.
