@@ -1,3 +1,8 @@
+2003-05-08  Kevin Ryde  <kevin@swox.se>
+
+	* slib.texi (JACAL): Fix @ref title.
+	Add index entries, use @file and @code variously.
+
 2003-05-06  Kevin Ryde  <user42@zip.com.au>
 
 	* scheme-scheduling.texi (C level thread interface): Use @deftypefn
