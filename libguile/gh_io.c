@@ -51,6 +51,12 @@ gh_display (SCM x)
 }
 
 void 
+gh_write (SCM x)
+{
+  scm_write (x, scm_current_output_port ());
+}
+
+void 
 gh_newline ()
 {
   scm_newline (scm_current_output_port ());
