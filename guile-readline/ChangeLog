@@ -1,3 +1,9 @@
+2000-01-09  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* readline.c (match_paren): Changed return type to int (this is
+	the definition in readline 4) and modified code layout according
+	to GNU coding standards.
+
 Wed Jan  5 11:18:01 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* readline.c: Whitespace changes -- added space after
