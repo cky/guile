@@ -8,6 +8,24 @@ Changes since Guile 1.4:
 
 * Changes to the distribution
 
+** New module (srfi srfi-11):
+
+This module exports let-values and let*-values.
+
+** New module (srfi srfi-6):
+
+This is a dummy file for now, since guile already provides all of the
+srfi-6 procedures by default: open-input-string, open-output-string,
+get-output-string.
+
+** New module (srfi srfi-8):
+
+This module exports receive.
+
+** New module (srfi srfi-2):
+
+This module exports and-let*.
+
 ** New module (ice-9 stack-catch):
 
 stack-catch is like catch, but saves the current state of the stack in

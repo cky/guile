@@ -91,3 +91,10 @@ Tim Pierce:
 In the subdirectory libguile, wrote:
     regex-posix.c
     regex-posix.h
+
+Rob Browning:
+In the subdirectory srfi, wrote the initial files for:
+    srfi-2.scm
+    srfi-6.scm
+    srfi-8.scm
+    srfi-11.scm
