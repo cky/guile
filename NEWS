@@ -192,6 +192,9 @@ primitive
 
   enable-primitive-generic! PRIMITIVE ...
 
+[This primitive will disappear again in Guile-1.4 when all primitives
+ will be primitive generics.]
+
 It is then possible to extend the primitive(s) by defining methods for
 them without loss of efficiency in normal evaluation.
 
@@ -202,11 +205,11 @@ Example:
   (define-method + ((x <string>) (y <string>))
     (string-append x y))
 
-  + will still be as efficient as usual in numerical calculations, but
-  can also be used for concatenating strings.
++ will still be as efficient as usual in numerical calculations, but
+can also be used for concatenating strings.
 
-  Who will be the first one to extend Guile's numerical tower to
-  rationals?  :)
+Who will be the first one to extend Guile's numerical tower to
+rationals?  :)
 
 *** New snarf macros for defining primitives: SCM_GPROC, SCM_GPROC1
 
