@@ -665,10 +665,7 @@ gc_mark_nimp:
 	      
 	      if (vtable_data[scm_struct_i_flags] & SCM_STRUCTF_ENTITY)
 		{
-		  scm_gc_mark (mem[scm_struct_i_proc + 0]);
-		  scm_gc_mark (mem[scm_struct_i_proc + 1]);
-		  scm_gc_mark (mem[scm_struct_i_proc + 2]);
-		  scm_gc_mark (mem[scm_struct_i_proc + 3]);
+		  scm_gc_mark (mem[scm_struct_i_procedure]);
 		  scm_gc_mark (mem[scm_struct_i_setter]);
 		}
 	      if (len)
