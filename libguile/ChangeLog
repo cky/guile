@@ -1,7 +1,8 @@
 1998-04-25  Mikael Djurfeldt  <mdj@kenneth>
 
 	* scmsigs.c: Declare usleep as returning void on some systems.
-	(scm_usleep): Return SCM_INUM0 on those systems.
+	(scm_usleep): Return SCM_INUM0 on those systems. (Thanks to Julian
+	Satchell.)
 
 	* coop.c (usleep): Return void on some systems.
 
