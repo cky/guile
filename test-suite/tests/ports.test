@@ -171,9 +171,12 @@
 		      (equal? (read-line port) second-line))
 	     (pass-if "read-line increments line number"
 		      (= (port-line port) 2))
-	     (let loop ()
-	       (if (not (eof-object? (read-line port)))
-		   (loop)))
+	     (pass-if "read-line returns EOF"
+		      (let loop ((i 0))
+			(cond
+			 ((eof-object? (read-line port)) #t)
+			 ((> i 20) #f)
+			 (else (loop (+ i 1))))))
 	     (pass-if "line count is 5 at EOF"
 		      (= (port-line port) 5))))
 	 ports port-list-names)
