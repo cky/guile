@@ -1,3 +1,8 @@
+Sun Mar 16 05:09:55 1997  Jim Blandy  <jimb@totoro.cyclic.com>
+
+	* Fix shell syntax error; some shells won't tolerate 
+	multiple "fi" statements on a single line.  (Thanks to Fred Fish.)
+
 Sat Mar 15 01:11:40 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* posix.c (scm_uname): throw an error if uname fails instead
