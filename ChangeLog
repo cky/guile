@@ -1,3 +1,9 @@
+Wed Sep 11 16:12:53 1996  Mark Galassi  <rosalia@sarastro.lanl.gov>
+
+	* doc/ (guile-user and guile-programmer): added the guile-user and
+	guile-programmer directories which contain the user and programmer
+	manuals.  See the ChangeLog entries there for detail.
+
 Wed Sep 11 14:33:49 1996  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* Makefile.in (distclean): Don't forget to delete doc/Makefile.
