@@ -3560,5 +3560,16 @@
 ;;;
 
 (if (memq 'debug-extensions *features*)
-    (define-module (guile) :use-module (ice-9 debug))
-    (define-module (guile)))
+    (define-module (guile) :use-module (ice-9 debug)))
+
+
+
+;;; {Load thread code if threads are present.}
+;;;
+;;; *fixme* This is a temporary solution.
+;;;
+
+(if (memq 'threads *features*)
+    (define-module (guile) :use-module (ice-9 threads)))
+
+(define-module (guile))
