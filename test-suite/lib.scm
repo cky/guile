@@ -1,5 +1,5 @@
 ;;;; test-suite/lib.scm --- generic support for testing
-;;;; Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+;;;; Copyright (C) 1999, 2000, 2001, 2004 Free Software Foundation, Inc.
 ;;;;
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -26,6 +26,7 @@
  exception:missing-expression
  exception:out-of-range exception:unbound-var
  exception:wrong-num-args exception:wrong-type-arg
+ exception:numerical-overflow
 
  ;; Reporting passes and failures.
  run-test
@@ -246,6 +247,8 @@
   (cons 'wrong-number-of-args "^Wrong number of arguments"))
 (define exception:wrong-type-arg
   (cons 'wrong-type-arg "^Wrong type argument"))
+(define exception:numerical-overflow
+  (cons 'numerical-overflow "^Numerical overflow"))
 
 ;;; Display all parameters to the default output port, followed by a newline.
 (define (display-line . objs)
