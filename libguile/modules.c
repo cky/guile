@@ -56,8 +56,7 @@
 #include "libguile/modules.h"
 
 static SCM the_root_module;
-static SCM root_module_closure;
-static SCM scm_module_closure;
+static SCM root_module_lookup_closure;
 
 SCM
 scm_the_root_module ()
@@ -160,7 +159,7 @@ scm_env_top_level (SCM env)
     {
       if (!SCM_CONSP (SCM_CAR (env))
 	  && SCM_NFALSEP (scm_procedure_p (SCM_CAR (env))))
-	return SCM_CAR(env);
+	return SCM_CAR (env);
       env = SCM_CDR (env);
     }
   return SCM_BOOL_F;
@@ -174,7 +173,7 @@ scm_system_module_env_p (SCM env)
 {
   SCM proc = scm_env_top_level (env);
   if (SCM_FALSEP (proc))
-    proc = SCM_CDR (root_module_closure);
+    proc = root_module_lookup_closure;
   return ((SCM_NFALSEP (scm_procedure_property (proc,
 						scm_sym_system_module)))
 	  ? SCM_BOOL_T
@@ -256,8 +255,6 @@ void
 scm_init_modules ()
 {
 #include "libguile/modules.x"
-  root_module_closure = scm_sysintern ("root-module-closure", SCM_UNDEFINED);
-  scm_module_closure = scm_sysintern ("scm-module-closure", SCM_UNDEFINED);
   module_make_local_var_x = scm_sysintern ("module-make-local-var!",
 					   SCM_UNDEFINED);
   f_eval_closure = scm_make_subr_opt ("eval-closure",
@@ -277,6 +274,8 @@ scm_post_boot_init_modules ()
   make_modules_in = scm_intern0 ("make-modules-in");
   beautify_user_module_x = scm_intern0 ("beautify-user-module!");
   module_eval_closure = scm_intern0 ("module-eval-closure");
+  root_module_lookup_closure = scm_permanent_object
+    (scm_module_lookup_closure (SCM_CDR (the_root_module)));
   resolve_module = scm_intern0 ("resolve-module");
   try_module_autoload = scm_intern0 ("try-module-autoload");
 }
