@@ -114,6 +114,7 @@
 #include "libguile/random.h"
 #include "libguile/rdelim.h"
 #include "libguile/read.h"
+#include "libguile/rw.h"
 #include "libguile/scmsigs.h"
 #include "libguile/script.h"
 #include "libguile/simpos.h"
@@ -588,10 +589,11 @@ scm_init_guile_1 (SCM_STACKITEM *base)
 
   scm_load_startup_files ();
 
-  /* this is located here, not from a deep understanding of the
+  /* these are located here, not from a deep understanding of the
      module system, but as a way of avoiding segv and other
      undesirable side effects that arise from various alternatives.  */
   scm_init_rdelim ();
+  scm_init_rw ();
 }
 
 /* Record here whether SCM_BOOT_GUILE_1 has already been called.  This

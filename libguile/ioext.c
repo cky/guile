@@ -51,118 +51,15 @@
 #include "libguile/fports.h"
 #include "libguile/feature.h"
 #include "libguile/ports.h"
-#include "libguile/root.h"
 #include "libguile/strings.h"
 #include "libguile/validate.h"
 
 #include <fcntl.h>
 
-#ifdef HAVE_STRING_H
-#include <string.h>
-#endif
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
 
-
-#if defined (EAGAIN)
-#define SCM_MAYBE_EAGAIN || errno == EAGAIN
-#else
-#define SCM_MAYBE_EAGAIN
-#endif
-
-#if defined (EWOULDBLOCK)
-#define SCM_MAYBE_EWOULDBLOCK || errno == EWOULDBLOCK
-#else
-#define SCM_MAYBE_EWOULDBLOCK
-#endif
-
-/* MAYBE there is EAGAIN way of defining this macro but now I EWOULDBLOCK.  */
-#define SCM_EBLOCK(errno) \
-   (0 SCM_MAYBE_EAGAIN SCM_MAYBE_EWOULDBLOCK)
-
-SCM_DEFINE (scm_read_string_x_partial, "read-string!/partial", 1, 3, 0,
-	    (SCM str, SCM port_or_fdes, SCM start, SCM end),
-	    "Read characters from an fport or file descriptor into a\n"
-	    "string @var{str}.  This procedure is scsh-compatible\n"
-	    "and can efficiently read large strings.  It will:\n\n"
-	    "@itemize\n"
-	    "@item\n"
-	    "attempt to fill the entire string, unless the @var{start}\n"
-	    "and/or @var{end} arguments are supplied.  i.e., @var{start}\n"
-	    "defaults to 0 and @var{end} defaults to\n"
-	    "@code{(string-length str)}\n"
-	    "@item\n"
-	    "use the current input port if @var{port_or_fdes} is not\n"
-	    "supplied.\n" 
-	    "@item\n"
-	    "read any characters that are currently available,\n"
-	    "without waiting for the rest (short reads are possible).\n\n"
-	    "@item\n"
-	    "wait for as long as it needs to for the first character to\n"
-	    "become available, unless the port is in non-blocking mode\n"
-	    "@item\n"
-	    "return @code{#f} if end-of-file is encountered before reading\n"
-            "any characters, otherwise return the number of characters\n"
-	    "read.\n"
-	    "@item\n"
-	    "return 0 if the port is in non-blocking mode and no characters\n"
-	    "are immediately available.\n"
-	    "@item\n"
-	    "return 0 if the request is for 0 bytes, with no\n"
-	    "end-of-file check\n"
-	    "@end itemize")
-#define FUNC_NAME s_scm_read_string_x_partial
-{
-  char *dest;
-  long read_len;
-  long chars_read = 0;
-  int fdes;
-
-  {
-    long offset;
-    long last;
-
-    SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, str, dest, 3, start, offset,
-				      4, end, last);
-    dest += offset;
-    read_len = last - offset;
-  }
-
-  if (SCM_INUMP (port_or_fdes))
-    fdes = SCM_INUM (port_or_fdes);
-  else
-    {
-      SCM port = SCM_UNBNDP (port_or_fdes) ? scm_cur_inp : port_or_fdes;
-
-      SCM_VALIDATE_OPFPORT (2, port);
-      SCM_VALIDATE_INPUT_PORT (2, port);
-
-      /* if there's anything in the port buffers, use it, but then
-	 don't touch the file descriptor.  otherwise the
-	 "return immediately if something is available" rule may
-	 be violated.  */
-      chars_read = scm_take_from_input_buffers (port, dest, read_len);
-      fdes = SCM_FPORT_FDES (port);
-    }
-
-  if (chars_read == 0 && read_len > 0) /* don't confuse read_len == 0 with
-					  EOF.  */
-    {
-      SCM_SYSCALL (chars_read = read (fdes, dest, read_len));
-      if (chars_read == -1)
-	{
-	  if (SCM_EBLOCK (errno))
-	    chars_read = 0;
-	  else
-	    SCM_SYSERROR;
-        }
-      else if (chars_read == 0)
-	return SCM_BOOL_F;
-    }
-  return scm_long2num (chars_read);
-}
-#undef FUNC_NAME
 
 SCM_DEFINE (scm_ftell, "ftell", 1, 0, 0, 
             (SCM fd_port),

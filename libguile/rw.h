@@ -1,8 +1,8 @@
 /* classes: h_files */
 
-#ifndef IOEXTH
-#define IOEXTH
-/*	Copyright (C) 1995, 1996, 1997, 1998, 2000, 2001 Free Software Foundation, Inc.
+#ifndef SCM_RW
+#define SCM_RW
+/*	Copyright (C) 2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -46,20 +46,11 @@
 
 #include "libguile/__scm.h"
 
-
+extern SCM scm_read_string_x_partial (SCM str, SCM port_or_fdes, SCM start,
+				      SCM end);
+void scm_init_rw (void);
 
-extern SCM scm_ftell (SCM object);
-extern SCM scm_redirect_port (SCM into_pt, SCM from_pt);
-extern SCM scm_dup_to_fdes (SCM fd_or_port, SCM newfd);
-extern SCM scm_dup2 (SCM oldfd, SCM newfd);
-extern SCM scm_fileno (SCM port);
-extern SCM scm_isatty_p (SCM port);
-extern SCM scm_fdopen (SCM fdes, SCM modes);
-extern SCM scm_primitive_move_to_fdes (SCM port, SCM fd);
-extern SCM scm_fdes_to_ports (SCM fd);
-extern void scm_init_ioext (void);
-
-#endif  /* IOEXTH */
+#endif
 
 /*
   Local Variables:

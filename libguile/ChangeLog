@@ -1,3 +1,12 @@
+2001-04-29  Gary Houston  <ghouston@arglist.com>
+
+	* rw.c: new file, implementing C part of module (ice-9 rw).
+	(scm_read_string_x_partial): moved from ioext.c
+	(scm_init_rw): new proc.
+	* rw.h: new file.
+	init.c: include rw.h and call scm_init_rw.
+	Makefile.am: include rw.c and rw.h.
+
 2001-04-28  Rob Browning  <rlb@cs.utexas.edu>
 
 	* numbers.c: enabled local definition of SCM_FLOBUFLEN until we
