@@ -1,16 +1,22 @@
+Brief Installation Instructions ===========================================
+
 To build Guile on unix, there are two basic steps:
 
-	1. Configure the package by running the configure script.
-	2. Build the package by running make.
+	1. Type "./configure", to configure the package for your system.
+	2. Type "make", to build the package.
 
 Generic instructions for configuring and compiling GNU distributions
-are included below.  Here is an illustration of commands that might be
-used to build Guile.  The voluminous output of the commands is not shown.
+are included below.  For Guile, you might type the commands below.
+Their voluminous output is not shown.
 
-	% tar xvfz guile-snap.tar.gz	# unpack the sources
-	% cd guile-snap
-	% ./configure
-	% make
+	$ tar xvfz guile-970416.tar.gz	        # unpack the sources
+	$ cd guile-970416
+	$ ./configure				# adapt Guile to your system
+	$ make					# compile Guile
+        $ make install				# install in the usual places
+
+
+What You Get ==============================================================
 
 The `configure' script examines your system, and adapts Guile to
 compile and run on it.
@@ -18,9 +24,9 @@ compile and run on it.
 The `make' command builds several things:
 - An executable file `guile/guile', which is an interactive shell for
   talking with the Guile Scheme interpreter.
-- An object library `guile/libguile.a', containing the Guile Scheme
+- An object library `libguile/.libs/libguile.a', containing the Guile Scheme
   interpreter, ready to be linked into your programs.
-- An object library `gtcltk-lib/libgtcltk.a', containing a simple
+- An object library `gtcltk-lib/.libs/libgtcltk.a', containing a simple
   interface between Guile and Tcl/Tk.  This is only built if the
   configure script notices that you have the appropriate version of
   Tcl/Tk installed on your system already.  If it is installed, `make'
@@ -31,6 +37,43 @@ The `make' command builds several things:
 To install Guile, type `make install'.  This installs the executable
 and libraries mentioned above, as well as Guile's header files and
 Scheme libraries.
+
+Make also builds shared libraries, on systems that support them.
+Because of the nature of shared libraries, before linking against
+them, you should probably install them; `make install' takes care of
+this.
+
+
+Flags Accepted by Configure ===============================================
+
+If you run the configure script with no arguments, it should examine
+your system and set things up appropriately.  However, there are a few
+switches specific to Guile you may find useful in some circumstances.
+
+--enable-maintainer-mode --- If you have automake, autoconf, and
+libtool installed on your system, this switch causes configure to
+generate Makefiles which know how to automatically regenerate
+configure scripts, makefiles, and headers, when they are out of date. 
+The README file says which versions of those tools you will need.
+
+--with-threads --- Build a Guile executable and library that supports
+cooperative threading.  If you use this switch, Guile will also build
+and install the QuickThreads non-preemptive threading library,
+libqt.a, which you will need to link into your programs after
+libguile.a.  That is, you should pass the switches -lguile -qt to your
+linker.  Coop threads are not yet thoroughly tested; once they are,
+they will be enabled by default.
+
+--enable-dynamic-linking --- Build a Guile executable and library that
+supports dynamic linking, on systems that support it.  This feature is
+not yet thoroughly tested; once it is, it will be enabled by default.
+
+--disable-shared --- Do not build shared libraries.  Normally, Guile
+will build shared libraries if your system supports them.  Guile
+always builds static libraries.
+
+
+Using Guile Without Installing It =========================================
 
 If you want to run Guile without installing it, set the environment
 variable `SCHEME_LOAD_PATH' to a colon-separated list of directories,
@@ -47,9 +90,7 @@ if you're using Bash or any other Bourne shell variant, or
 if you're using CSH or one of its variants.
 
 
-      Generic Instructions for Building Auto-Configured Packages
-      ==========================================================
-
+Generic Instructions for Building Auto-Configured Packages ================
 
 To compile this package:
 
