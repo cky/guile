@@ -1,3 +1,10 @@
+2001-01-25  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* readline.scm (set-readline-input-port!,
+	set-readline-output-port!):  Make sure that only valid port
+	parameters are passed.  Thanks to Martin Grabmueller for sending
+	a patch that formed the basis for this change.
+
 2001-01-18  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* readline.scm (make-readline-port): Make readline port

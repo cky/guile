@@ -140,10 +140,24 @@
       (set! prompt2 (car rest))))
 
 (define-public (set-readline-input-port! p)
-  (set! input-port p))
+  (cond ((or (not (file-port? p)) (not (input-port? p)))
+	 (scm-error 'wrong-type-arg "set-readline-input-port!"
+		    "Not a file input port: ~S" (list p) #f))
+	((port-closed? p)
+	 (scm-error 'misc-error "set-readline-input-port!"
+		    "Port not open: ~S" (list p) #f))
+	(else
+	 (set! input-port p))))
 
 (define-public (set-readline-output-port! p)
-  (set! output-port p))
+  (cond ((or (not (file-port? p)) (not (output-port? p)))
+	 (scm-error 'wrong-type-arg "set-readline-input-port!"
+		    "Not a file output port: ~S" (list p) #f))
+	((port-closed? p)
+	 (scm-error 'misc-error "set-readline-output-port!"
+		    "Port not open: ~S" (list p) #f))
+	(else
+	 (set! output-port p))))
 
 (define-public (set-readline-read-hook! h)
   (set! read-hook h))
