@@ -1,3 +1,7 @@
+1999-01-11  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* random.c: Removed alloca includes.
+
 1999-01-11  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	* Makefile.in: This changed, for some reason I don't really
