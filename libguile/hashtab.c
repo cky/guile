@@ -491,10 +491,21 @@ scm_hash_fn_create_handle_x (SCM table, SCM obj, SCM init, unsigned long (*hash_
     return it;
   else
     {
-      /* We need to take care not to run the GC while linking the new
-	 bucket into its chain.  A GC might change a weak hashtable.
+      /* When this is a weak hashtable, running the GC can change it.
+	 Thus, we must allocate the new cells first and can only then
+	 access BUCKETS.  Also, we need to fetch the bucket vector
+	 again since the hashtable might have been rehashed.  This
+	 necessitates a new hash value as well.
       */
       SCM new_bucket = scm_acons (obj, init, SCM_EOL);
+      if (!scm_is_eq (table, buckets)
+	  && !scm_is_eq (SCM_HASHTABLE_VECTOR (table), buckets))
+	{
+	  buckets = SCM_HASHTABLE_VECTOR (table);
+	  k = hash_fn (obj, SCM_SIMPLE_VECTOR_LENGTH (buckets), closure);
+	  if (k >= SCM_SIMPLE_VECTOR_LENGTH (buckets))
+	    scm_out_of_range ("hash_fn_create_handle_x", scm_from_ulong (k));
+	}
       SCM_SETCDR (new_bucket, SCM_SIMPLE_VECTOR_REF (buckets, k));
       SCM_SIMPLE_VECTOR_SET (buckets, k, new_bucket);
       if (table != buckets)
