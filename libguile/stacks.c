@@ -52,6 +52,7 @@
 #include "struct.h"
 #include "macros.h"
 #include "procprop.h"
+#include "modules.h"
 
 #include "stacks.h"
 

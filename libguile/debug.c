@@ -59,6 +59,7 @@
 #include "read.h"
 #include "feature.h"
 #include "dynwind.h"
+#include "modules.h"
 
 #include "debug.h"
 

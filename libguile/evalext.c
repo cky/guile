@@ -43,6 +43,7 @@
 #include "_scm.h"
 #include "eval.h"
 #include "macros.h"
+#include "modules.h"
 
 #include "evalext.h"
 
