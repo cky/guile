@@ -141,10 +141,11 @@ modinclude_HEADERS = __scm.h alist.h arbiters.h async.h backtrace.h boolean.h \
 ## and not a header -- headers are included in the distribution.
 modinclude_DATA = scmconfig.h
 
+bin_SCRIPTS = guile-snarf
+
 # We can re-enable install for some of these if/when they are documented
 # and people feel like maintaining them.  For now, this is not the case.
-noinst_SCRIPTS = guile-snarf guile-doc-snarf guile-snarf-docs \
-    guile-func-name-check
+noinst_SCRIPTS = guile-doc-snarf guile-snarf-docs guile-func-name-check
 
 EXTRA_DIST = ChangeLog-gh ChangeLog-scm ChangeLog-threads		\
     ChangeLog-1996-1999 ChangeLog-2000 cpp_signal.c			\
