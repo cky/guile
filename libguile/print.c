@@ -227,8 +227,7 @@ scm_make_print_state ()
 }
 
 void
-scm_free_print_state (print_state)
-     SCM print_state;
+scm_free_print_state (SCM print_state)
 {
   SCM handle;
   scm_print_state *pstate = SCM_PRINT_STATE (print_state);

@@ -45,6 +45,9 @@
    Author: Aubrey Jaffer
    (Not yet) modified for libguile by Marius Vollmer */
 
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 /* We should try to implement dynamic-link/dynamic-call for VMS,
    too. */
 
@@ -74,8 +77,7 @@ struct dsc$descriptor *descriptorize(x, buff)
  return(x);}
 
 static char s_dynl[] = "vms:dynamic-link-call";
-SCM dynl(dir, symbol, fname)
-     SCM dir, symbol, fname;
+SCM dynl(SCM dir, SCM symbol, SCM fname)
 {
   struct dsc$descriptor fnamed, symbold, dird;
   void (*fcn)();

@@ -135,8 +135,7 @@ GUILE_PROC(scm_vector_p, "vector?", 1, 0, 0,
 SCM_GPROC(s_vector_length, "vector-length", 1, 0, 0, scm_vector_length, g_vector_length);
 
 SCM
-scm_vector_length(v)
-     SCM v;
+scm_vector_length(SCM v)
 {
   SCM_GASSERT1(SCM_NIMP(v) && SCM_VECTORP(v),
 	       g_vector_length, v, SCM_ARG1, s_vector_length);
@@ -179,10 +178,7 @@ scm_vector_ref (SCM v, SCM k)
 SCM_GPROC(s_vector_set_x, "vector-set!", 3, 0, 0, scm_vector_set_x, g_vector_set_x);
 
 SCM
-scm_vector_set_x(v, k, obj)
-     SCM v;
-     SCM k;
-     SCM obj;
+scm_vector_set_x(SCM v, SCM k, SCM obj)
 {
   SCM_GASSERTn (SCM_NIMP(v) && SCM_VECTORP(v),
 		g_vector_set_x, SCM_LIST3 (v, k, obj),

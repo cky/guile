@@ -106,10 +106,7 @@ display_header (SCM source, SCM port)
 
 
 void
-scm_display_error_message (message, args, port)
-     SCM message;
-     SCM args;
-     SCM port;
+scm_display_error_message (SCM message, SCM args, SCM port)
 {
   int writingp;
   char *start;

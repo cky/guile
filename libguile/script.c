@@ -41,6 +41,9 @@
 /* "script.c" argv tricks for `#!' scripts.
    Authors: Aubrey Jaffer and Jim Blandy */
 
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 #include <stdio.h>
 #include <ctype.h>
 #include "_scm.h"
@@ -58,10 +61,7 @@
    string if file exists; 0 otherwise. */
 
 static char *
-scm_cat_path (str1, str2, n)
-     char *str1;
-     const char *str2;
-     long n;
+scm_cat_path (char *str1, const char *str2, long n)
 {
   if (!n)
     n = strlen (str2);
@@ -84,8 +84,7 @@ scm_cat_path (str1, str2, n)
 
 #if 0 
 static char *
-scm_try_path (path)
-     char *path;
+scm_try_path (char *path)
 {
   FILE *f;
   /* fprintf(stderr, "Trying %s\n", path);fflush(stderr); */
@@ -103,9 +102,7 @@ scm_try_path (path)
 }
 
 static char *
-scm_sep_init_try (path, sep, initname)
-     char *path;
-     const char *sep, *initname;
+scm_sep_init_try (char *path, const char *sep, const char *initname)
 {
   if (path)
     path = scm_cat_path (path, sep, 0L);
@@ -166,8 +163,7 @@ scm_find_executable (const char *name)
 
 /* Read a \nnn-style escape.  We've just read the backslash.  */
 static int
-script_get_octal (f)
-     FILE *f;
+script_get_octal (FILE *f)
 {
   int i;
   int value = 0;
@@ -187,8 +183,7 @@ script_get_octal (f)
 
 
 static int
-script_get_backslash (f)
-     FILE *f;
+script_get_backslash (FILE *f)
 {
   int c = getc (f);
 
@@ -229,8 +224,7 @@ script_get_backslash (f)
 
 
 static char *
-script_read_arg (f)
-     FILE *f;
+script_read_arg (FILE *f)
 {
   int size = 7;
   char *buf = malloc (size + 1);
@@ -287,8 +281,7 @@ script_read_arg (f)
 
 
 static int
-script_meta_arg_P (arg)
-     char *arg;
+script_meta_arg_P (char *arg)
 {
   if ('\\' != arg[0])
     return 0L;
@@ -308,9 +301,7 @@ script_meta_arg_P (arg)
 }
 
 char **
-scm_get_meta_args (argc, argv)
-     int argc;
-     char **argv;
+scm_get_meta_args (int argc, char **argv)
 {
   int nargc = argc, argi = 1, nargi = 1;
   char *narg, **nargv;
@@ -352,8 +343,7 @@ scm_get_meta_args (argc, argv)
 }
 
 int
-scm_count_argv (argv)
-     char **argv;
+scm_count_argv (char **argv)
 {
   int argc = 0;
   while (argv[argc])
@@ -626,9 +616,7 @@ scm_compile_shell_switches (int argc, char **argv)
 
 
 void
-scm_shell (argc, argv)
-     int argc;
-     char **argv;
+scm_shell (int argc, char **argv)
 {
   /* If present, add SCSH-style meta-arguments from the top of the
      script file to the argument vector.  See the SCSH manual: "The

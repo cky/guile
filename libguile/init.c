@@ -376,11 +376,7 @@ static SCM invoke_main_func(void *body_data);
 
 
 void
-scm_boot_guile (argc, argv, main_func, closure)
-     int argc;
-     char ** argv;
-     void (*main_func) ();
-     void *closure;
+scm_boot_guile (int argc, char ** argv, void (*main_func) (), void *closure)
 {
   /* The garbage collector uses the address of this variable as one
      end of the stack, and the address of one of its own local
@@ -405,9 +401,7 @@ scm_boot_guile (argc, argv, main_func, closure)
 int scm_boot_guile_1_live = 0;
 
 static void
-scm_boot_guile_1 (base, closure)
-     SCM_STACKITEM *base;
-     struct main_func_closure *closure;
+scm_boot_guile_1 (SCM_STACKITEM *base, struct main_func_closure *closure)
 {
   static int initialized = 0;
   /* static int live = 0; */
@@ -558,8 +552,7 @@ scm_boot_guile_1 (base, closure)
 
 
 static SCM
-invoke_main_func (body_data)
-     void *body_data;
+invoke_main_func (void *body_data)
 {
   struct main_func_closure *closure = (struct main_func_closure *) body_data;
 

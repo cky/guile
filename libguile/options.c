@@ -41,6 +41,10 @@
  *
  * The author can be reached at djurfeldt@nada.kth.se
  * Mikael Djurfeldt, SANS/NADA KTH, 10044 STOCKHOLM, SWEDEN */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 
 #include <stdio.h>
@@ -117,11 +121,7 @@ SCM_SYMBOL (scm_no_sym, "no");
 static SCM protected_objects;
 
 SCM
-scm_options (arg, options, n, s)
-     SCM arg;
-     scm_option options[];
-     int n;
-     const char *s;
+scm_options (SCM arg, scm_option options[], int n, const char *s)
 {
   int i, docp = (!SCM_UNBNDP (arg)
 		 && !SCM_NULLP (arg)
@@ -213,10 +213,7 @@ scm_options (arg, options, n, s)
 
 
 void
-scm_init_opts (func, options, n)
-     SCM (*func) (SCM);
-     scm_option options[];
-     int n;
+scm_init_opts (SCM (*func) (SCM), scm_option options[], int n)
 {
   int i;
 

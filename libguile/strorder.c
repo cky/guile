@@ -38,26 +38,28 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
 
 
 #include <stdio.h>
 #include "_scm.h"
 #include "chars.h"
 
+#include "scm_validate.h"
 #include "strorder.h"
 
 
-SCM_PROC1 (s_string_equal_p, "string=?", scm_tc7_rpsubr, scm_string_equal_p);
-
-SCM
-scm_string_equal_p (s1, s2)
-     SCM s1;
-     SCM s2;
+GUILE_PROC1 (scm_string_equal_p, "string=?", scm_tc7_rpsubr,
+             (SCM s1, SCM s2),
+"")
+#define FUNC_NAME s_scm_string_equal_p
 {
   register scm_sizet i;
   register unsigned char *c1, *c2;
-  SCM_ASSERT (SCM_NIMP (s1) && SCM_ROSTRINGP (s1), s1, SCM_ARG1, s_string_equal_p);
-  SCM_ASSERT (SCM_NIMP (s2) && SCM_ROSTRINGP (s2), s2, SCM_ARG2, s_string_equal_p);
+  SCM_VALIDATE_ROSTRING(1,s1);
+  SCM_VALIDATE_ROSTRING(2,s2);
 
   i = SCM_ROLENGTH (s2);
   if (SCM_ROLENGTH (s1) != i)
@@ -71,18 +73,18 @@ scm_string_equal_p (s1, s2)
       return SCM_BOOL_F;
   return SCM_BOOL_T;
 }
+#undef FUNC_NAME
 
-SCM_PROC1 (s_string_ci_equal_p, "string-ci=?", scm_tc7_rpsubr, scm_string_ci_equal_p);
-
-SCM
-scm_string_ci_equal_p (s1, s2)
-     SCM s1;
-     SCM s2;
+GUILE_PROC1 (scm_string_ci_equal_p, "string-ci=?", scm_tc7_rpsubr,
+             (SCM s1, SCM s2),
+"")
+#define FUNC_NAME s_scm_string_ci_equal_p
 {
   register scm_sizet i;
   register unsigned char *c1, *c2;
-  SCM_ASSERT (SCM_NIMP (s1) && SCM_ROSTRINGP (s1), s1, SCM_ARG1, s_string_ci_equal_p);
-  SCM_ASSERT (SCM_NIMP (s2) && SCM_ROSTRINGP (s2), s2, SCM_ARG2, s_string_ci_equal_p);
+  SCM_VALIDATE_ROSTRING(1,s1);
+  SCM_VALIDATE_ROSTRING(2,s2);
+
   i = SCM_ROLENGTH (s2);
   if (SCM_ROLENGTH (s1) != i)
     {
@@ -95,20 +97,19 @@ scm_string_ci_equal_p (s1, s2)
       return SCM_BOOL_F;
   return SCM_BOOL_T;
 }
+#undef FUNC_NAME
 
-SCM_PROC1 (s_string_less_p, "string<?", scm_tc7_rpsubr, scm_string_less_p);
-
-SCM
-scm_string_less_p (s1, s2)
-     SCM s1;
-     SCM s2;
+GUILE_PROC1 (scm_string_less_p, "string<?", scm_tc7_rpsubr,
+             (SCM s1, SCM s2),
+"")
+#define FUNC_NAME s_scm_string_less_p
 {
   register scm_sizet i, len, s2len;
   register unsigned char *c1, *c2;
   register int c;
 
-  SCM_ASSERT (SCM_NIMP (s1) && SCM_ROSTRINGP (s1), s1, SCM_ARG1, s_string_less_p);
-  SCM_ASSERT (SCM_NIMP (s2) && SCM_ROSTRINGP (s2), s2, SCM_ARG2, s_string_less_p);
+  SCM_VALIDATE_ROSTRING(1,s1);
+  SCM_VALIDATE_ROSTRING(2,s2);
   len = SCM_ROLENGTH (s1);
   s2len = SCM_ROLENGTH (s2);
   if (len>s2len) len = s2len;
@@ -128,49 +129,45 @@ scm_string_less_p (s1, s2)
     return answer;
   }
 }
+#undef FUNC_NAME
 
-SCM_PROC1 (s_string_leq_p, "string<=?", scm_tc7_rpsubr, scm_string_leq_p);
-
-SCM
-scm_string_leq_p (s1, s2)
-     SCM s1;
-     SCM s2;
+GUILE_PROC1 (scm_string_leq_p, "string<=?", scm_tc7_rpsubr,
+             (SCM s1, SCM s2),
+"")
+#define FUNC_NAME s_scm_string_leq_p
 {
   return SCM_BOOL_NOT (scm_string_less_p (s2, s1));
 }
+#undef FUNC_NAME
 
-SCM_PROC1 (s_string_gr_p, "string>?", scm_tc7_rpsubr, scm_string_gr_p);
-
-SCM
-scm_string_gr_p (s1, s2)
-     SCM s1;
-     SCM s2;
+GUILE_PROC1 (scm_string_gr_p, "string>?", scm_tc7_rpsubr,
+             (SCM s1, SCM s2),
+"")
+#define FUNC_NAME s_scm_string_gr_p
 {
   return scm_string_less_p (s2, s1);
 }
+#undef FUNC_NAME
 
-SCM_PROC1 (s_string_geq_p, "string>=?", scm_tc7_rpsubr, scm_string_geq_p);
-
-SCM
-scm_string_geq_p (s1, s2)
-     SCM s1;
-     SCM s2;
+GUILE_PROC1 (scm_string_geq_p, "string>=?", scm_tc7_rpsubr,
+             (SCM s1, SCM s2),
+"")
+#define FUNC_NAME s_scm_string_geq_p
 {
   return SCM_BOOL_NOT (scm_string_less_p (s1, s2));
 }
+#undef FUNC_NAME
 
-SCM_PROC1 (s_string_ci_less_p, "string-ci<?", scm_tc7_rpsubr, scm_string_ci_less_p);
-
-SCM
-scm_string_ci_less_p (s1, s2)
-     SCM s1;
-     SCM s2;
+GUILE_PROC1 (scm_string_ci_less_p, "string-ci<?", scm_tc7_rpsubr,
+             (SCM s1, SCM s2),
+"")
+#define FUNC_NAME s_scm_string_ci_less_p
 {
   register scm_sizet i, len, s2len;
   register unsigned char *c1, *c2;
   register int c;
-  SCM_ASSERT (SCM_NIMP (s1) && SCM_ROSTRINGP (s1), s1, SCM_ARG1, s_string_ci_less_p);
-  SCM_ASSERT (SCM_NIMP (s2) && SCM_ROSTRINGP (s2), s2, SCM_ARG2, s_string_ci_less_p);
+  SCM_VALIDATE_ROSTRING(1,s1);
+  SCM_VALIDATE_ROSTRING(2,s2);
   len = SCM_ROLENGTH (s1);
   s2len = SCM_ROLENGTH (s2);
   if (len>s2len) len = s2len;
@@ -183,36 +180,34 @@ scm_string_ci_less_p (s1, s2)
   }
   return SCM_BOOL(s2len != len);
 }
+#undef FUNC_NAME
 
-SCM_PROC1 (s_string_ci_leq_p, "string-ci<=?", scm_tc7_rpsubr, scm_string_ci_leq_p);
-
-SCM
-scm_string_ci_leq_p (s1, s2)
-     SCM s1;
-     SCM s2;
+GUILE_PROC1 (scm_string_ci_leq_p, "string-ci<=?", scm_tc7_rpsubr,
+             (SCM s1, SCM s2),
+"")
+#define FUNC_NAME s_scm_string_ci_leq_p
 {
   return SCM_BOOL_NOT (scm_string_ci_less_p (s2, s1));
 }
+#undef FUNC_NAME
 
-SCM_PROC1 (s_string_ci_gr_p, "string-ci>?", scm_tc7_rpsubr, scm_string_ci_gr_p);
-
-SCM
-scm_string_ci_gr_p (s1, s2)
-     SCM s1;
-     SCM s2;
+GUILE_PROC1 (scm_string_ci_gr_p, "string-ci>?", scm_tc7_rpsubr,
+             (SCM s1, SCM s2),
+"")
+#define FUNC_NAME s_scm_string_ci_gr_p
 {
   return scm_string_ci_less_p (s2, s1);
 }
+#undef FUNC_NAME
 
-SCM_PROC1 (s_string_ci_geq_p, "string-ci>=?", scm_tc7_rpsubr, scm_string_ci_geq_p);
-
-SCM
-scm_string_ci_geq_p (s1, s2)
-     SCM s1;
-     SCM s2;
+GUILE_PROC1 (scm_string_ci_geq_p, "string-ci>=?", scm_tc7_rpsubr,
+             (SCM s1, SCM s2),
+"")
+#define FUNC_NAME s_scm_string_ci_geq_p
 {
   return SCM_BOOL_NOT (scm_string_ci_less_p (s1, s2));
 }
+#undef FUNC_NAME
 
 
 

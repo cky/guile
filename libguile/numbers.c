@@ -149,8 +149,7 @@ GUILE_PROC (scm_even_p, "even?", 1, 0, 0,
 SCM_GPROC (s_abs, "abs", 1, 0, 0, scm_abs, g_abs);
 
 SCM
-scm_abs (x)
-     SCM x;
+scm_abs (SCM x)
 {
 #ifdef SCM_BIGDIG
   if (SCM_NINUMP (x))
@@ -178,9 +177,7 @@ scm_abs (x)
 SCM_GPROC (s_quotient, "quotient", 2, 0, 0, scm_quotient, g_quotient);
 
 SCM
-scm_quotient (x, y)
-     SCM x;
-     SCM y;
+scm_quotient (SCM x, SCM y)
 {
   register long z;
 #ifdef SCM_BIGDIG
@@ -270,9 +267,7 @@ scm_quotient (x, y)
 SCM_GPROC (s_remainder, "remainder", 2, 0, 0, scm_remainder, g_remainder);
 
 SCM
-scm_remainder (x, y)
-     SCM x;
-     SCM y;
+scm_remainder (SCM x, SCM y)
 {
   register long z;
 #ifdef SCM_BIGDIG
@@ -329,9 +324,7 @@ scm_remainder (x, y)
 SCM_GPROC (s_modulo, "modulo", 2, 0, 0, scm_modulo, g_modulo);
 
 SCM
-scm_modulo (x, y)
-     SCM x;
-     SCM y;
+scm_modulo (SCM x, SCM y)
 {
   register long yy, z;
 #ifdef SCM_BIGDIG
@@ -382,9 +375,7 @@ scm_modulo (x, y)
 SCM_GPROC1 (s_gcd, "gcd", scm_tc7_asubr, scm_gcd, g_gcd);
 
 SCM
-scm_gcd (x, y)
-     SCM x;
-     SCM y;
+scm_gcd (SCM x, SCM y)
 {
   register long u, v, k, t;
   if (SCM_UNBNDP (y))
@@ -481,9 +472,7 @@ scm_gcd (x, y)
 SCM_GPROC1 (s_lcm, "lcm", scm_tc7_asubr, scm_lcm, g_lcm);
 
 SCM
-scm_lcm (n1, n2)
-     SCM n1;
-     SCM n2;
+scm_lcm (SCM n1, SCM n2)
 {
   SCM d;
 #ifndef SCM_BIGDIG
@@ -2556,9 +2545,7 @@ GUILE_PROC (scm_inexact_p, "inexact?", 1, 0, 0,
 SCM_GPROC1 (s_eq_p, "=", scm_tc7_rpsubr, scm_num_eq_p, g_eq_p);
 
 SCM
-scm_num_eq_p (x, y)
-     SCM x;
-     SCM y;
+scm_num_eq_p (SCM x, SCM y)
 {
 #ifdef SCM_FLOATS
   SCM t;
@@ -2672,9 +2659,7 @@ scm_num_eq_p (x, y)
 SCM_GPROC1 (s_less_p, "<", scm_tc7_rpsubr, scm_less_p, g_less_p);
 
 SCM
-scm_less_p (x, y)
-     SCM x;
-     SCM y;
+scm_less_p (SCM x, SCM y)
 {
 #ifdef SCM_FLOATS
   if (SCM_NINUMP (x))
@@ -2803,8 +2788,7 @@ GUILE_PROC1 (scm_geq_p, ">=", scm_tc7_rpsubr,
 SCM_GPROC (s_zero_p, "zero?", 1, 0, 0, scm_zero_p, g_zero_p);
 
 SCM
-scm_zero_p (z)
-     SCM z;
+scm_zero_p (SCM z)
 {
 #ifdef SCM_FLOATS
   if (SCM_NINUMP (z))
@@ -2844,8 +2828,7 @@ scm_zero_p (z)
 SCM_GPROC (s_positive_p, "positive?", 1, 0, 0, scm_positive_p, g_positive_p);
 
 SCM
-scm_positive_p (x)
-     SCM x;
+scm_positive_p (SCM x)
 {
 #ifdef SCM_FLOATS
   if (SCM_NINUMP (x))
@@ -2885,8 +2868,7 @@ scm_positive_p (x)
 SCM_GPROC (s_negative_p, "negative?", 1, 0, 0, scm_negative_p, g_negative_p);
 
 SCM
-scm_negative_p (x)
-     SCM x;
+scm_negative_p (SCM x)
 {
 #ifdef SCM_FLOATS
   if (SCM_NINUMP (x))
@@ -2925,9 +2907,7 @@ scm_negative_p (x)
 SCM_GPROC1 (s_max, "max", scm_tc7_asubr, scm_max, g_max);
 
 SCM
-scm_max (x, y)
-     SCM x;
-     SCM y;
+scm_max (SCM x, SCM y)
 {
 #ifdef SCM_FLOATS
   double z;
@@ -3036,9 +3016,7 @@ scm_max (x, y)
 SCM_GPROC1 (s_min, "min", scm_tc7_asubr, scm_min, g_min);
 
 SCM
-scm_min (x, y)
-     SCM x;
-     SCM y;
+scm_min (SCM x, SCM y)
 {
 #ifdef SCM_FLOATS
   double z;
@@ -3147,9 +3125,7 @@ scm_min (x, y)
 SCM_GPROC1 (s_sum, "+", scm_tc7_asubr, scm_sum, g_sum);
 
 SCM
-scm_sum (x, y)
-     SCM x;
-     SCM y;
+scm_sum (SCM x, SCM y)
 {
   if (SCM_UNBNDP (y))
     {
@@ -3334,9 +3310,7 @@ scm_sum (x, y)
 SCM_GPROC1 (s_difference, "-", scm_tc7_asubr, scm_difference, g_difference);
 
 SCM
-scm_difference (x, y)
-     SCM x;
-     SCM y;
+scm_difference (SCM x, SCM y)
 {
 #ifdef SCM_FLOATS
   if (SCM_NINUMP (x))
@@ -3538,9 +3512,7 @@ scm_difference (x, y)
 SCM_GPROC1 (s_product, "*", scm_tc7_asubr, scm_product, g_product);
 
 SCM
-scm_product (x, y)
-     SCM x;
-     SCM y;
+scm_product (SCM x, SCM y)
 {
   if (SCM_UNBNDP (y))
     {
@@ -3753,9 +3725,7 @@ scm_product (x, y)
 
 
 double
-scm_num2dbl (a, why)
-     SCM a;
-     const char *why;
+scm_num2dbl (SCM a, const char *why)
 {
   if (SCM_INUMP (a))
     return (double) SCM_INUM (a);
@@ -3775,9 +3745,7 @@ scm_num2dbl (a, why)
 SCM_GPROC1 (s_divide, "/", scm_tc7_asubr, scm_divide, g_divide);
 
 SCM
-scm_divide (x, y)
-     SCM x;
-     SCM y;
+scm_divide (SCM x, SCM y)
 {
 #ifdef SCM_FLOATS
   double d, r, i, a;
@@ -4039,8 +4007,7 @@ scm_divide (x, y)
 SCM_GPROC1 (s_asinh, "$asinh", scm_tc7_cxr, (SCM (*)()) scm_asinh, g_asinh);
 
 double
-scm_asinh (x)
-     double x;
+scm_asinh (double x)
 {
   return log (x + sqrt (x * x + 1));
 }
@@ -4051,8 +4018,7 @@ scm_asinh (x)
 SCM_GPROC1 (s_acosh, "$acosh", scm_tc7_cxr, (SCM (*)()) scm_acosh, g_acosh);
 
 double
-scm_acosh (x)
-     double x;
+scm_acosh (double x)
 {
   return log (x + sqrt (x * x - 1));
 }
@@ -4063,8 +4029,7 @@ scm_acosh (x)
 SCM_GPROC1 (s_atanh, "$atanh", scm_tc7_cxr, (SCM (*)()) scm_atanh, g_atanh);
 
 double
-scm_atanh (x)
-     double x;
+scm_atanh (double x)
 {
   return 0.5 * log ((1 + x) / (1 - x));
 }
@@ -4075,8 +4040,7 @@ scm_atanh (x)
 SCM_GPROC1 (s_truncate, "truncate", scm_tc7_cxr, (SCM (*)()) scm_truncate, g_truncate);
 
 double
-scm_truncate (x)
-     double x;
+scm_truncate (double x)
 {
   if (x < 0.0)
     return -floor (-x);
@@ -4088,8 +4052,7 @@ scm_truncate (x)
 SCM_GPROC1 (s_round, "round", scm_tc7_cxr, (SCM (*)()) scm_round, g_round);
 
 double
-scm_round (x)
-     double x;
+scm_round (double x)
 {
   double plus_half = x + 0.5;
   double result = floor (plus_half);
@@ -4103,8 +4066,7 @@ scm_round (x)
 SCM_GPROC1 (s_exact_to_inexact, "exact->inexact", scm_tc7_cxr, (SCM (*)()) scm_exact_to_inexact, g_exact_to_inexact);
 
 double
-scm_exact_to_inexact (z)
-     double z;
+scm_exact_to_inexact (double z)
 {
   return z;
 }
@@ -4137,10 +4099,7 @@ static void scm_two_doubles (SCM z1,
 			     struct dpair * xy);
 
 static void
-scm_two_doubles (z1, z2, sstring, xy)
-     SCM z1, z2;
-     const char *sstring;
-     struct dpair *xy;
+scm_two_doubles (SCM z1, SCM z2, const char *sstring, struct dpair *xy)
 {
   if (SCM_INUMP (z1))
     xy->x = SCM_INUM (z1);
@@ -4249,8 +4208,7 @@ GUILE_PROC (scm_make_polar, "make-polar", 2, 0, 0,
 SCM_GPROC (s_real_part, "real-part", 1, 0, 0, scm_real_part, g_real_part);
 
 SCM
-scm_real_part (z)
-     SCM z;
+scm_real_part (SCM z)
 {
   if (SCM_NINUMP (z))
     {
@@ -4278,8 +4236,7 @@ scm_real_part (z)
 SCM_GPROC (s_imag_part, "imag-part", 1, 0, 0, scm_imag_part, g_imag_part);
 
 SCM
-scm_imag_part (z)
-     SCM z;
+scm_imag_part (SCM z)
 {
   if (SCM_INUMP (z))
     return SCM_INUM0;
@@ -4306,8 +4263,7 @@ scm_imag_part (z)
 SCM_GPROC (s_magnitude, "magnitude", 1, 0, 0, scm_magnitude, g_magnitude);
 
 SCM
-scm_magnitude (z)
-     SCM z;
+scm_magnitude (SCM z)
 {
   if (SCM_INUMP (z))
     return scm_abs (z);
@@ -4338,8 +4294,7 @@ scm_magnitude (z)
 SCM_GPROC (s_angle, "angle", 1, 0, 0, scm_angle, g_angle);
 
 SCM
-scm_angle (z)
-     SCM z;
+scm_angle (SCM z)
 {
   double x, y = 0.0;
   if (SCM_INUMP (z))
@@ -4420,8 +4375,7 @@ GUILE_PROC (scm_inexact_to_exact, "inexact->exact", 1, 0, 0,
 SCM_GPROC (s_trunc, "truncate", 1, 0, 0, scm_trunc, g_trunc);
 
 SCM
-scm_trunc (x)
-     SCM x;
+scm_trunc (SCM x)
 {
   SCM_GASSERT2 (SCM_INUMP (x), g_trunc, x, y, SCM_ARG1, s_truncate);
   return x;
@@ -4436,8 +4390,7 @@ scm_trunc (x)
 /* d must be integer */
 
 SCM
-scm_dbl2big (d)
-     double d;
+scm_dbl2big (double d)
 {
   scm_sizet i = 0;
   long c;
@@ -4468,8 +4421,7 @@ scm_dbl2big (d)
 
 
 double
-scm_big2dbl (b)
-     SCM b;
+scm_big2dbl (SCM b)
 {
   double ans = 0.0;
   scm_sizet i = SCM_NUMDIGS (b);
@@ -4485,8 +4437,7 @@ scm_big2dbl (b)
 
 
 SCM
-scm_long2num (sl)
-     long sl;
+scm_long2num (long sl)
 {
   if (!SCM_FIXABLE (sl))
     {
@@ -4507,8 +4458,7 @@ scm_long2num (sl)
 #ifdef HAVE_LONG_LONGS
 
 SCM
-scm_long_long2num (sl)
-     long_long sl;
+scm_long_long2num (long_long sl)
 {
   if (!SCM_FIXABLE (sl))
     {
@@ -4529,8 +4479,7 @@ scm_long_long2num (sl)
 
 
 SCM
-scm_ulong2num (sl)
-     unsigned long sl;
+scm_ulong2num (unsigned long sl)
 {
   if (!SCM_POSFIXABLE (sl))
     {
@@ -4549,10 +4498,7 @@ scm_ulong2num (sl)
 
 
 long
-scm_num2long (num, pos, s_caller)
-     SCM num;
-     char *pos;
-     const char *s_caller;
+scm_num2long (SCM num, char *pos, const char *s_caller)
 {
   long res;
 
@@ -4615,10 +4561,7 @@ scm_num2long (num, pos, s_caller)
 #ifdef HAVE_LONG_LONGS
 
 long_long
-scm_num2long_long (num, pos, s_caller)
-     SCM num;
-     char *pos;
-     const char *s_caller;
+scm_num2long_long (SCM num, char *pos, const char *s_caller)
 {
   long_long res;
 
@@ -4681,10 +4624,7 @@ scm_num2long_long (num, pos, s_caller)
 
 
 unsigned long
-scm_num2ulong (num, pos, s_caller)
-     SCM num;
-     char *pos;
-     const char *s_caller;
+scm_num2ulong (SCM num, char *pos, const char *s_caller)
 {
   unsigned long res;
 
@@ -4734,8 +4674,7 @@ scm_num2ulong (num, pos, s_caller)
 #ifdef SCM_FLOATS
 #ifndef DBL_DIG
 static void
-add1 (f, fsum)
-     double f, *fsum;
+add1 (double f, double *fsum)
 {
   *fsum = f + 1.0;
 }

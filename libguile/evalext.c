@@ -120,8 +120,7 @@ GUILE_PROC (scm_definedp, "defined?", 1, 1, 0,
 SCM_SYNTAX (s_undefine, "undefine", scm_makacro, scm_m_undefine);
 
 SCM
-scm_m_undefine (x, env)
-     SCM x, env;
+scm_m_undefine (SCM x, SCM env)
 {
   SCM arg1 = x;
   x = SCM_CDR (x);

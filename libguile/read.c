@@ -117,8 +117,7 @@ GUILE_PROC (scm_read, "read", 0, 1, 0,
 
 
 char *
-scm_grow_tok_buf (tok_buf)
-     SCM * tok_buf;
+scm_grow_tok_buf (SCM *tok_buf)
 {
   scm_vector_set_length_x (*tok_buf, SCM_MAKINUM (2 * SCM_LENGTH (*tok_buf)));
   return SCM_CHARS (*tok_buf);
@@ -127,9 +126,7 @@ scm_grow_tok_buf (tok_buf)
 
 
 int 
-scm_flush_ws (port, eoferr)
-     SCM port;
-     const char *eoferr;
+scm_flush_ws (SCM port, const char *eoferr)
 {
   register int c;
   while (1)
@@ -164,9 +161,7 @@ scm_flush_ws (port, eoferr)
 
 
 int
-scm_casei_streq (s1, s2)
-     char * s1;
-     char * s2;
+scm_casei_streq (char *s1, char *s2)
 {
   while (*s1 && *s2)
     if (scm_downcase((int)*s1) != scm_downcase((int)*s2))
@@ -238,8 +233,7 @@ recsexpr (SCM obj,int line,int column,SCM filename)
    newline/exclamation-point/sharp-sign/newline sequence.  */
 
 static void
-skip_scsh_block_comment (port)
-     SCM port;
+skip_scsh_block_comment (SCM port)
 {
   /* Is this portable?  Dear God, spare me from the non-eight-bit
      characters.  But is it tasteful?  */
@@ -517,11 +511,7 @@ _Pragma ("noopt");		/* # pragma _CRI noopt */
 #endif
 
 scm_sizet 
-scm_read_token (ic, tok_buf, port, weird)
-     int ic;
-     SCM *tok_buf;
-     SCM port;
-     int weird;
+scm_read_token (int ic, SCM *tok_buf, SCM port, int weird)
 {
   register scm_sizet j;
   register int c;
@@ -607,11 +597,7 @@ _Pragma ("opt");		/* # pragma _CRI opt */
 #endif
 
 SCM 
-scm_lreadparen (tok_buf, port, name, copy)
-     SCM *tok_buf;
-     SCM port;
-     char *name;
-     SCM *copy;
+scm_lreadparen (SCM *tok_buf, SCM port, char *name, SCM *copy)
 {
   SCM tmp;
   SCM tl;
@@ -647,11 +633,7 @@ scm_lreadparen (tok_buf, port, name, copy)
 
 
 SCM 
-scm_lreadrecparen (tok_buf, port, name, copy)
-     SCM *tok_buf;
-     SCM port;
-     char *name;
-     SCM *copy;
+scm_lreadrecparen (SCM *tok_buf, SCM port, char *name, SCM *copy)
 {
   register int c;
   register SCM tmp;
@@ -777,8 +759,7 @@ GUILE_PROC (scm_read_hash_extend, "read-hash-extend", 2, 0, 0,
 
 /* Recover the read-hash procedure corresponding to char c.  */
 static SCM
-scm_get_hash_procedure (c)
-     int c;
+scm_get_hash_procedure (int c)
 {
   SCM rest = *scm_read_hash_procedures;
 

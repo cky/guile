@@ -79,15 +79,13 @@ scm_smob_descriptor *scm_smobs;
    to make their links fail.  */
 
 SCM 
-scm_mark0 (ptr)
-     SCM ptr;
+scm_mark0 (SCM ptr)
 {
   return SCM_BOOL_F;
 }
 
 SCM 
-scm_markcdr (ptr)
-     SCM ptr;
+scm_markcdr (SCM ptr)
 {
   return SCM_CDR (ptr);
 }
@@ -96,8 +94,7 @@ scm_markcdr (ptr)
  */
 
 scm_sizet 
-scm_free0 (ptr)
-     SCM ptr;
+scm_free0 (SCM ptr)
 {
   return 0;
 }

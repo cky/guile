@@ -317,8 +317,7 @@ scm_tables_prehistory ()
 
 
 int
-scm_upcase (c)
-     unsigned int c;
+scm_upcase (unsigned int c)
 {
   if (c < sizeof (scm_upcase_table))
     return scm_upcase_table[c];
@@ -328,8 +327,7 @@ scm_upcase (c)
 
 
 int
-scm_downcase (c)
-     unsigned int c;
+scm_downcase (unsigned int c)
 {
   if (c < sizeof (scm_downcase_table))
     return scm_downcase_table[c];

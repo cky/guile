@@ -1,4 +1,4 @@
-/* $Id: scm_validate.h,v 1.4 1999-12-12 19:09:46 gjb Exp $ */
+/* $Id: scm_validate.h,v 1.5 1999-12-12 20:35:02 gjb Exp $ */
 /*	Copyright (C) 1999 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
@@ -85,20 +85,24 @@
 
 #define SCM_MUST_MALLOC(size) (scm_must_malloc((size), FUNC_NAME))
 
-#define SCM_VALIDATE_NIM(pos,scm) \
-  do { SCM_ASSERT(SCM_NIMP(scm), scm, pos, FUNC_NAME); } while (0)
-
 #define SCM_MAKE_NIM_VALIDATE(pos,var,pred) \
   do { SCM_ASSERT (SCM_NIMP(var) && SCM ## pred(var), var, pos, FUNC_NAME); } while (0)
 
 #define SCM_MAKE_VALIDATE(pos,var,pred) \
   do { SCM_ASSERT (SCM ## pred(var), var, pos, FUNC_NAME); } while (0)
 
+
+
+#ifndef SCM_DOCSTRING_SNARF
+
+#define SCM_VALIDATE_NIM(pos,scm) \
+  do { SCM_ASSERT(SCM_NIMP(scm), scm, pos, FUNC_NAME); } while (0)
+
 #define SCM_VALIDATE_BOOL(pos,flag) \
-  do { SCM_ASSERT(SCM_BOOL_T == flag || SCM_BOOL_F == flag, flag, pos, FUNC_NAME); } while (0)
+  do { SCM_ASSERT(SCM_BOOLP(flag), pos, FUNC_NAME); } while (0)
 
 #define SCM_VALIDATE_BOOL_COPY(pos,flag,cvar) \
-  do { SCM_ASSERT(SCM_BOOL_T == flag || SCM_BOOL_F == flag, flag, pos, FUNC_NAME); \
+  do { SCM_ASSERT(SCM_BOOLP(flags), flag, pos, FUNC_NAME); \
        cvar = (SCM_BOOL_T == flag)? 1: 0; } while (0)
 
 #define SCM_VALIDATE_CHAR(pos,scm) \
@@ -304,5 +308,7 @@
 
 #define SCM_VALIDATE_VECTOR_LEN(pos,v,len) \
   do { SCM_ASSERT (SCM_NIMP (v) && SCM_VECTORP (v) && len == SCM_LENGTH(v), v, pos, FUNC_NAME); } while (0)
+
+#endif
 
 #endif

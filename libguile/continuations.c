@@ -62,8 +62,7 @@ static char s_cont[] = "continuation";
 
 
 SCM 
-scm_make_cont (answer)
-     SCM * answer;
+scm_make_cont (SCM *answer)
 {
   long j;
   SCM cont;
@@ -141,8 +140,7 @@ grow_throw (SCM *a)
 
 
 void 
-scm_dynthrow (a)
-     SCM *a;
+scm_dynthrow (SCM *a)
 {
   SCM cont = a[0], val = a[1];
 #ifndef CHEAP_CONTINUATIONS
@@ -184,9 +182,7 @@ scm_dynthrow (a)
 
 
 SCM
-scm_call_continuation (cont, val)
-     SCM cont;
-     SCM val;
+scm_call_continuation (SCM cont, SCM val)
 {
   SCM a[3];
   a[0] = cont;

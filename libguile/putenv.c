@@ -15,6 +15,9 @@
    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
    USA */
 
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 #ifdef HAVE_CONFIG_H
 #include "libguile/scmconfig.h"
 #endif
@@ -59,8 +62,7 @@ extern char **environ;
 
 /* Put STRING, which is of the form "NAME=VALUE", in the environment.  */
 int
-putenv (string)
-     const char *string;
+putenv (const char *string)
 {
   char *name_end = strchr (string, '=');
   register size_t size;

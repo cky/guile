@@ -18,10 +18,11 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
 
 char *
-strerror (errnum)
-     int errnum;
+strerror (int errnum)
 {
   extern char *sys_errlist[];
   extern int sys_nerr;

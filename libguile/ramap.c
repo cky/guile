@@ -142,9 +142,7 @@ cind (SCM ra, SCM inds)
    */
 
 int 
-scm_ra_matchp (ra0, ras)
-     SCM ra0;
-     SCM ras;
+scm_ra_matchp (SCM ra0, SCM ras)
 {
   SCM ra1;
   scm_array_dim dims;

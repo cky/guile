@@ -389,8 +389,7 @@ GUILE_PROC (scm_gc_stats, "gc-stats", 0, 0, 0,
 
 
 void 
-scm_gc_start (what)
-     const char *what;
+scm_gc_start (const char *what)
 {
   scm_gc_rt = SCM_INUM (scm_get_internal_run_time ());
   scm_gc_cells_collected = 0;
@@ -912,9 +911,7 @@ gc_mark_nimp:
  */
 
 void 
-scm_mark_locations (x, n)
-     SCM_STACKITEM x[];
-     scm_sizet n;
+scm_mark_locations (SCM_STACKITEM x[], scm_sizet n)
 {
   register long m = n;
   register int i, j;
@@ -981,8 +978,7 @@ scm_mark_locations (x, n)
 
 
 int
-scm_cellp (value)
-     SCM value;
+scm_cellp (SCM value)
 {
   register int i, j;
   register SCM_CELLPTR ptr;
@@ -1553,8 +1549,7 @@ scm_must_free (void *obj)
  * value. */
 
 void
-scm_done_malloc (size)
-     long size;
+scm_done_malloc (long size)
 {
   scm_mallocated += size;
 
@@ -1615,11 +1610,7 @@ unsigned long scm_heap_size = 0;
 
 
 static scm_sizet 
-init_heap_seg (seg_org, size, ncells, freelistp)
-     SCM_CELLPTR seg_org;
-     scm_sizet size;
-     int ncells;
-     SCM *freelistp;
+init_heap_seg (SCM_CELLPTR seg_org, scm_sizet size, int ncells, SCM *freelistp)
 {
   register SCM_CELLPTR ptr;
 #ifdef SCM_POINTERS_MUNGED
@@ -1701,9 +1692,7 @@ init_heap_seg (seg_org, size, ncells, freelistp)
 
 
 static void 
-alloc_some_heap (ncells, freelistp)
-     int ncells;
-     SCM * freelistp;
+alloc_some_heap (int ncells, SCM *freelistp)
 {
   struct scm_heap_seg_data * tmptable;
   SCM_CELLPTR ptr;
@@ -1813,9 +1802,8 @@ GUILE_PROC (scm_unhash_name, "unhash-name", 1, 0, 0,
 
 
 void
-scm_remember (ptr)
-     SCM * ptr;
-{}
+scm_remember (SCM *ptr)
+{ /* empty */ }
 
 
 SCM
@@ -1826,8 +1814,7 @@ scm_return_first (SCM elt, ...)
 
 
 SCM
-scm_permanent_object (obj)
-     SCM obj;
+scm_permanent_object (SCM obj)
 {
   SCM_REDEFER_INTS;
   scm_permobjs = scm_cons (obj, scm_permobjs);
@@ -1853,8 +1840,7 @@ scm_permanent_object (obj)
    scm_unprotect_object removes the first occurrence of its argument
    to the list.  */
 SCM
-scm_protect_object (obj)
-     SCM obj;
+scm_protect_object (SCM obj)
 {
   scm_protects = scm_cons (obj, scm_protects);
 
@@ -1867,8 +1853,7 @@ scm_protect_object (obj)
 
    See scm_protect_object for more information.  */
 SCM
-scm_unprotect_object (obj)
-     SCM obj;
+scm_unprotect_object (SCM obj)
 {
   SCM *tail_ptr = &scm_protects;
 

@@ -90,8 +90,7 @@ grow_fluids (scm_root_state *root_state,int new_length)
 }
 
 void
-scm_copy_fluids (root_state)
-     scm_root_state *root_state;
+scm_copy_fluids (scm_root_state *root_state)
 {
   grow_fluids (root_state, SCM_LENGTH(root_state->fluids));
 }

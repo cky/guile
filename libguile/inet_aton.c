@@ -31,6 +31,9 @@
  * SUCH DAMAGE.
  */
 
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 #if defined(LIBC_SCCS) && !defined(lint)
 static char sccsid[] = "@(#)inet_addr.c	8.1 (Berkeley) 6/17/93";
 #endif /* LIBC_SCCS and not lint */
@@ -48,8 +51,7 @@ static char sccsid[] = "@(#)inet_addr.c	8.1 (Berkeley) 6/17/93";
  * The value returned is in network order.
  */
 u_long
-inet_addr(cp)
-	register const char *cp;
+inet_addr(const char *cp)
 {
 	struct in_addr val;
 
@@ -72,9 +74,7 @@ int inet_aton (const char *cp, struct in_addr *addr);
  * This replaces inet_addr, the return value from which
  * cannot distinguish between failure and a local broadcast address.  */
 int
-inet_aton(cp_arg, addr)
-	const char *cp_arg;
-	struct in_addr *addr;
+inet_aton(const char *cp_arg, struct in_addr *addr)
 {
 	register unsigned long val;
 	register int base, n;

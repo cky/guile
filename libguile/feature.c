@@ -62,8 +62,7 @@
 static SCM *scm_loc_features;
 
 void
-scm_add_feature (str)
-     const char* str;
+scm_add_feature (const char *str)
 {
   *scm_loc_features = scm_cons (SCM_CAR (scm_intern (str, strlen (str))),
 				*scm_loc_features);

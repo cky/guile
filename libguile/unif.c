@@ -1088,10 +1088,7 @@ GUILE_PROC(scm_uniform_vector_ref, "uniform-vector-ref", 2, 0, 0,
    tries to recycle conses.  (Make *sure* you want them recycled.) */
 
 SCM 
-scm_cvref (v, pos, last)
-     SCM v;
-     scm_sizet pos;
-     SCM last;
+scm_cvref (SCM v, scm_sizet pos, SCM last)
 {
   switch SCM_TYP7 (v)
     {
@@ -1345,9 +1342,7 @@ GUILE_PROC(scm_array_contents, "array-contents", 1, 1, 0,
 
 
 SCM 
-scm_ra2contig (ra, copy)
-     SCM ra;
-     int copy;
+scm_ra2contig (SCM ra, int copy)
 {
   SCM ret;
   long inc = 1;

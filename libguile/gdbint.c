@@ -163,8 +163,7 @@ remark_port (SCM port)
 
 
 int
-gdb_maybe_valid_type_p (value)
-     SCM value;
+gdb_maybe_valid_type_p (SCM value)
 {
   if (SCM_IMP (value) || scm_cellp (value))
     return scm_tag (value) != SCM_MAKINUM (-1);
@@ -173,8 +172,7 @@ gdb_maybe_valid_type_p (value)
 
 
 int
-gdb_read (str)
-     char *str;
+gdb_read (char *str)
 {
   SCM ans;
   int status = 0;
@@ -239,8 +237,7 @@ exit:
 
 
 int
-gdb_eval (exp)
-     SCM exp;
+gdb_eval (SCM exp)
 {
   RESET_STRING;
   if (SCM_IMP (exp))
@@ -264,8 +261,7 @@ gdb_eval (exp)
 
 
 int
-gdb_print (obj)
-     SCM obj;
+gdb_print (SCM obj)
 {
   RESET_STRING;
   SCM_BEGIN_FOREIGN_BLOCK;
@@ -286,9 +282,7 @@ gdb_print (obj)
 
 
 int
-gdb_binding (name, value)
-     SCM name;
-     SCM value;
+gdb_binding (SCM name, SCM value)
 {
   RESET_STRING;
   if (SCM_GC_P)

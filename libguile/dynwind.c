@@ -171,9 +171,7 @@ scm_swap_bindings (SCM glocs, SCM vals)
 }
 
 void 
-scm_dowinds (to, delta)
-     SCM to;
-     long delta;
+scm_dowinds (SCM to, long delta)
 {
  tail:
   if (scm_dynwinds == to);

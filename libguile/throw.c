@@ -183,12 +183,7 @@ struct jmp_buf_and_retval	/* use only on the stack, in scm_catch */
    will be found.  */
 
 SCM
-scm_internal_catch (tag, body, body_data, handler, handler_data)
-     SCM tag;
-     scm_catch_body_t body;
-     void *body_data;
-     scm_catch_handler_t handler;
-     void *handler_data;
+scm_internal_catch (SCM tag, scm_catch_body_t body, void *body_data, scm_catch_handler_t handler, void *handler_data)
 {
   struct jmp_buf_and_retval jbr;
   SCM jmpbuf;
@@ -286,12 +281,7 @@ make_lazy_catch (struct lazy_catch *c)
    - It does not unwind the stack (this is the major difference).
    - If handler returns, its value is returned from the throw.  */
 SCM
-scm_internal_lazy_catch (tag, body, body_data, handler, handler_data)
-     SCM tag;
-     scm_catch_body_t body;
-     void *body_data;
-     scm_catch_handler_t handler;
-     void *handler_data;
+scm_internal_lazy_catch (SCM tag, scm_catch_body_t body, void *body_data, scm_catch_handler_t handler, void *handler_data)
 {
   SCM lazy_catch, answer;
   struct lazy_catch c;
@@ -368,8 +358,7 @@ scm_internal_stack_catch (SCM tag,
    we're catching.  */
 
 SCM
-scm_body_thunk (body_data)
-     void *body_data;
+scm_body_thunk (void *body_data)
 {
   struct scm_body_thunk_data *c = (struct scm_body_thunk_data *) body_data;
 
@@ -388,10 +377,7 @@ scm_body_thunk (body_data)
    the stack), or the procedure object should be otherwise protected
    from GC.  */
 SCM
-scm_handle_by_proc (handler_data, tag, throw_args)
-     void *handler_data;
-     SCM tag;
-     SCM throw_args;
+scm_handle_by_proc (void *handler_data, SCM tag, SCM throw_args)
 {
   SCM *handler_proc_p = (SCM *) handler_data;
 
@@ -408,18 +394,14 @@ struct hbpca_data {
 };
 
 static SCM
-hbpca_body (body_data)
-     void *body_data;
+hbpca_body (void *body_data)
 {
   struct hbpca_data *data = (struct hbpca_data *)body_data;
   return scm_apply (data->proc, data->args, SCM_EOL);
 }
 
 SCM
-scm_handle_by_proc_catching_all (handler_data, tag, throw_args)
-     void *handler_data;
-     SCM tag;
-     SCM throw_args;
+scm_handle_by_proc_catching_all (void *handler_data, SCM tag, SCM throw_args)
 {
   SCM *handler_proc_p = (SCM *) handler_data;
   struct hbpca_data data;
@@ -433,8 +415,7 @@ scm_handle_by_proc_catching_all (handler_data, tag, throw_args)
 
 /* Derive the an exit status from the arguments to (quit ...).  */
 int
-scm_exit_status (args)
-  SCM args;
+scm_exit_status (SCM args)
 {
   if (SCM_NNULLP (args))
     {
@@ -506,10 +487,7 @@ handler_message (void *handler_data, SCM tag, SCM args)
    text is followed by a colon, then the message described by ARGS.  */
 
 SCM
-scm_handle_by_message (handler_data, tag, args)
-     void *handler_data;
-     SCM tag;
-     SCM args;
+scm_handle_by_message (void *handler_data, SCM tag, SCM args)
 {
   if (SCM_NFALSEP (scm_eq_p (tag, SCM_CAR (scm_intern0 ("quit")))))
     {
@@ -529,10 +507,7 @@ scm_handle_by_message (handler_data, tag, args)
    enough about the body to handle things in a better way, but don't
    want to let throws fall off the bottom of the wind list.  */
 SCM
-scm_handle_by_message_noexit (handler_data, tag, args)
-     void *handler_data;
-     SCM tag;
-     SCM args;
+scm_handle_by_message_noexit (void *handler_data, SCM tag, SCM args)
 {
   handler_message (handler_data, tag, args);
 
@@ -541,10 +516,7 @@ scm_handle_by_message_noexit (handler_data, tag, args)
 
 
 SCM
-scm_handle_by_throw (handler_data, tag, args)
-     void *handler_data;
-     SCM tag;
-     SCM args;
+scm_handle_by_throw (void *handler_data, SCM tag, SCM args)
 {
   scm_ithrow (tag, args, 1);
   return SCM_UNSPECIFIED;  /* never returns */

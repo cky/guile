@@ -38,6 +38,10 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 
 #include <stdio.h>
@@ -69,8 +73,7 @@ scm_report_stack_overflow ()
 #endif
 
 long 
-scm_stack_size (start)
-     SCM_STACKITEM *start;
+scm_stack_size (SCM_STACKITEM *start)
 {
   SCM_STACKITEM stack;
 #ifdef SCM_STACK_GROWS_UP

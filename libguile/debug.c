@@ -522,10 +522,7 @@ scm_reverse_lookup (SCM env, SCM data)
 }
 
 SCM
-scm_start_stack (id, exp, env)
-     SCM id;
-     SCM exp;
-     SCM env;
+scm_start_stack (SCM id, SCM exp, SCM env)
 {
   SCM answer;
   scm_debug_frame vframe;
@@ -543,9 +540,7 @@ scm_start_stack (id, exp, env)
 SCM_SYNTAX(s_start_stack, "start-stack", scm_makacro, scm_m_start_stack);
 
 static SCM
-scm_m_start_stack (exp, env)
-     SCM exp;
-     SCM env;
+scm_m_start_stack (SCM exp, SCM env)
 {
   exp = SCM_CDR (exp);
   SCM_ASSERT (SCM_NIMP (exp)

@@ -65,8 +65,7 @@ int scm_tc16_malloc;
 
 
 SCM
-scm_malloc_obj (n)
-     scm_sizet n;
+scm_malloc_obj (scm_sizet n)
 {
   SCM mem;
 

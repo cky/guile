@@ -186,8 +186,7 @@ GUILE_PROC (scm_setvbuf, "setvbuf", 2, 1, 0,
  */
 
 void
-scm_evict_ports (fd)
-     int fd;
+scm_evict_ports (int fd)
 {
   int i;
 

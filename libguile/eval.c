@@ -157,9 +157,7 @@ SCM (*scm_memoize_method) (SCM, SCM);
 #ifdef MEMOIZE_LOCALS
 
 SCM *
-scm_ilookup (iloc, env)
-     SCM iloc;
-     SCM env;
+scm_ilookup (SCM iloc, SCM env)
 {
   register int ir = SCM_IFRAME (iloc);
   register SCM er = env;
@@ -384,10 +382,7 @@ scm_lookupcar (SCM vloc, SCM genv, int check)
 
 #ifdef USE_THREADS
 SCM *
-scm_lookupcar (vloc, genv, check)
-     SCM vloc;
-     SCM genv;
-     int check;
+scm_lookupcar (SCM vloc, SCM genv, int check)
 {
   SCM *loc = scm_lookupcar1 (vloc, genv, check);
   if (loc == NULL)
@@ -399,9 +394,7 @@ scm_lookupcar (vloc, genv, check)
 #define unmemocar scm_unmemocar
 
 SCM 
-scm_unmemocar (form, env)
-     SCM form;
-     SCM env;
+scm_unmemocar (SCM form, SCM env)
 {
 #ifdef DEBUG_EXTENSIONS
   register int ir;
@@ -431,9 +424,7 @@ scm_unmemocar (form, env)
 
 
 SCM
-scm_eval_car (pair, env)
-     SCM pair;
-     SCM env;
+scm_eval_car (SCM pair, SCM env)
 {
   return SCM_XEVALCAR (pair, env);
 }
@@ -469,10 +460,7 @@ SCM scm_sym_trace;
 static void  bodycheck SCM_P ((SCM xorig, SCM *bodyloc, const char *what));
 
 static void 
-bodycheck (xorig, bodyloc, what)
-     SCM xorig;
-     SCM *bodyloc;
-     const char *what;
+bodycheck (SCM xorig, SCM *bodyloc, const char *what)
 {
   ASRTSYNTAX (scm_ilength (*bodyloc) >= 1, scm_s_expression);
 }
@@ -491,10 +479,7 @@ bodycheck (xorig, bodyloc, what)
          This is not done yet.  */
 
 static SCM
-scm_m_body (op, xorig, what)
-     SCM op;
-     SCM xorig;
-     char *what;
+scm_m_body (SCM op, SCM xorig, const char *what)
 {
   ASRTSYNTAX (scm_ilength (xorig) >= 1, scm_s_expression);
 
@@ -518,9 +503,7 @@ SCM_SYNTAX(s_quote,"quote", scm_makmmacro, scm_m_quote);
 SCM_GLOBAL_SYMBOL(scm_sym_quote, s_quote);
 
 SCM 
-scm_m_quote (xorig, env)
-     SCM xorig;
-     SCM env;
+scm_m_quote (SCM xorig, SCM env)
 {
   SCM x = scm_copy_tree (SCM_CDR (xorig));
 
@@ -535,9 +518,7 @@ SCM_SYNTAX(s_begin, "begin", scm_makmmacro, scm_m_begin);
 SCM_GLOBAL_SYMBOL(scm_sym_begin, s_begin);
 
 SCM 
-scm_m_begin (xorig, env)
-     SCM xorig;
-     SCM env;
+scm_m_begin (SCM xorig, SCM env)
 {
   SCM_ASSYNT (scm_ilength (SCM_CDR (xorig)) >= 1,
 	      xorig, scm_s_expression, s_begin);
@@ -548,9 +529,7 @@ SCM_SYNTAX(s_if, "if", scm_makmmacro, scm_m_if);
 SCM_GLOBAL_SYMBOL(scm_sym_if, s_if);
 
 SCM 
-scm_m_if (xorig, env)
-     SCM xorig;
-     SCM env;
+scm_m_if (SCM xorig, SCM env)
 {
   int len = scm_ilength (SCM_CDR (xorig));
   SCM_ASSYNT (len >= 2 && len <= 3, xorig, scm_s_expression, "if");
@@ -564,9 +543,7 @@ const char scm_s_set_x[] = "set!";
 SCM_GLOBAL_SYMBOL(scm_sym_set_x, scm_s_set_x);
 
 SCM 
-scm_m_set_x (xorig, env)
-     SCM xorig;
-     SCM env;
+scm_m_set_x (SCM xorig, SCM env)
 {
   SCM x = SCM_CDR (xorig);
   SCM_ASSYNT (2 == scm_ilength (x), xorig, scm_s_expression, scm_s_set_x);
@@ -579,9 +556,7 @@ scm_m_set_x (xorig, env)
 #if 0
 
 SCM 
-scm_m_vref (xorig, env)
-     SCM xorig;
-     SCM env;
+scm_m_vref (SCM xorig, SCM env)
 {
   SCM x = SCM_CDR (xorig);
   SCM_ASSYNT (1 == scm_ilength (x), xorig, scm_s_expression, s_vref);
@@ -600,9 +575,7 @@ scm_m_vref (xorig, env)
 
 
 SCM 
-scm_m_vset (xorig, env)
-     SCM xorig;
-     SCM env;
+scm_m_vset (SCM xorig, SCM env)
 {
   SCM x = SCM_CDR (xorig);
   SCM_ASSYNT (3 == scm_ilength (x), xorig, scm_s_expression, s_vset);
@@ -618,9 +591,7 @@ SCM_SYNTAX(s_and, "and", scm_makmmacro, scm_m_and);
 SCM_GLOBAL_SYMBOL(scm_sym_and, s_and);
 
 SCM 
-scm_m_and (xorig, env)
-     SCM xorig;
-     SCM env;
+scm_m_and (SCM xorig, SCM env)
 {
   int len = scm_ilength (SCM_CDR (xorig));
   SCM_ASSYNT (len >= 0, xorig, scm_s_test, s_and);
@@ -634,9 +605,7 @@ SCM_SYNTAX(s_or,"or", scm_makmmacro, scm_m_or);
 SCM_GLOBAL_SYMBOL(scm_sym_or,s_or);
 
 SCM 
-scm_m_or (xorig, env)
-     SCM xorig;
-     SCM env;
+scm_m_or (SCM xorig, SCM env)
 {
   int len = scm_ilength (SCM_CDR (xorig));
   SCM_ASSYNT (len >= 0, xorig, scm_s_test, s_or);
@@ -651,9 +620,7 @@ SCM_SYNTAX(s_case, "case", scm_makmmacro, scm_m_case);
 SCM_GLOBAL_SYMBOL(scm_sym_case, s_case);
 
 SCM 
-scm_m_case (xorig, env)
-     SCM xorig;
-     SCM env;
+scm_m_case (SCM xorig, SCM env)
 {
   SCM proc, cdrx = scm_list_copy (SCM_CDR (xorig)), x = cdrx;
   SCM_ASSYNT (scm_ilength (x) >= 2, xorig, scm_s_clauses, s_case);
@@ -674,9 +641,7 @@ SCM_GLOBAL_SYMBOL(scm_sym_cond, s_cond);
 
 
 SCM 
-scm_m_cond (xorig, env)
-     SCM xorig;
-     SCM env;
+scm_m_cond (SCM xorig, SCM env)
 {
   SCM arg1, cdrx = scm_list_copy (SCM_CDR (xorig)), x = cdrx;
   int len = scm_ilength (x);
@@ -704,9 +669,7 @@ SCM_SYNTAX(s_lambda, "lambda", scm_makmmacro, scm_m_lambda);
 SCM_GLOBAL_SYMBOL(scm_sym_lambda, s_lambda);
 
 SCM 
-scm_m_lambda (xorig, env)
-     SCM xorig;
-     SCM env;
+scm_m_lambda (SCM xorig, SCM env)
 {
   SCM proc, x = SCM_CDR (xorig);
   if (scm_ilength (x) < 2)
@@ -751,9 +714,7 @@ SCM_GLOBAL_SYMBOL(scm_sym_letstar,s_letstar);
 
 
 SCM 
-scm_m_letstar (xorig, env)
-     SCM xorig;
-     SCM env;
+scm_m_letstar (SCM xorig, SCM env)
 {
   SCM x = SCM_CDR (xorig), arg1, proc, vars = SCM_EOL, *varloc = &vars;
   int len = scm_ilength (x);
@@ -794,9 +755,7 @@ SCM_SYNTAX(s_do, "do", scm_makmmacro, scm_m_do);
 SCM_GLOBAL_SYMBOL(scm_sym_do, s_do);
 
 SCM 
-scm_m_do (xorig, env)
-     SCM xorig;
-     SCM env;
+scm_m_do (SCM xorig, SCM env)
 {
   SCM x = SCM_CDR (xorig), arg1, proc;
   SCM vars = SCM_EOL, inits = SCM_EOL, steps = SCM_EOL;
@@ -842,9 +801,7 @@ SCM_SYNTAX(s_quasiquote, "quasiquote", scm_makacro, scm_m_quasiquote);
 SCM_GLOBAL_SYMBOL(scm_sym_quasiquote, s_quasiquote);
 
 SCM 
-scm_m_quasiquote (xorig, env)
-     SCM xorig;
-     SCM env;
+scm_m_quasiquote (SCM xorig, SCM env)
 {
   SCM x = SCM_CDR (xorig);
   SCM_ASSYNT (scm_ilength (x) == 1, xorig, scm_s_expression, s_quasiquote);
@@ -902,9 +859,7 @@ SCM_SYNTAX (s_delay, "delay", scm_makmmacro, scm_m_delay);
 SCM_GLOBAL_SYMBOL (scm_sym_delay, s_delay);
 
 SCM 
-scm_m_delay (xorig, env)
-     SCM xorig;
-     SCM env;
+scm_m_delay (SCM xorig, SCM env)
 {
   SCM_ASSYNT (scm_ilength (xorig) == 2, xorig, scm_s_expression, s_delay);
   return scm_cons2 (SCM_IM_DELAY, SCM_EOL, SCM_CDR (xorig));
@@ -915,9 +870,7 @@ SCM_SYNTAX(s_define, "define", scm_makmmacro, scm_m_define);
 SCM_GLOBAL_SYMBOL(scm_sym_define, s_define);
 
 SCM 
-scm_m_define (x, env)
-     SCM x;
-     SCM env;
+scm_m_define (SCM x, SCM env)
 {
   SCM proc, arg1 = x;
   x = SCM_CDR (x);
@@ -977,11 +930,7 @@ scm_m_define (x, env)
 /* end of acros */
 
 static SCM
-scm_m_letrec1 (op, imm, xorig, env)
-     SCM op;
-     SCM imm;
-     SCM xorig;
-     SCM env;
+scm_m_letrec1 (SCM op, SCM imm, SCM xorig, SCM env)
 {
   SCM cdrx = SCM_CDR (xorig);	/* locally mutable version of form */
   char *what = SCM_CHARS (SCM_CAR (xorig));
@@ -1011,9 +960,7 @@ SCM_SYNTAX(s_letrec, "letrec", scm_makmmacro, scm_m_letrec);
 SCM_GLOBAL_SYMBOL(scm_sym_letrec, s_letrec);
 
 SCM 
-scm_m_letrec (xorig, env)
-     SCM xorig;
-     SCM env;
+scm_m_letrec (SCM xorig, SCM env)
 {
   SCM x = SCM_CDR (xorig);
   SCM_ASSYNT (scm_ilength (x) >= 2, xorig, scm_s_body, s_letrec);
@@ -1032,9 +979,7 @@ SCM_SYNTAX(s_let, "let", scm_makmmacro, scm_m_let);
 SCM_GLOBAL_SYMBOL(scm_sym_let, s_let);
 
 SCM 
-scm_m_let (xorig, env)
-     SCM xorig;
-     SCM env;
+scm_m_let (SCM xorig, SCM env)
 {
   SCM cdrx = SCM_CDR (xorig);	/* locally mutable version of form */
   SCM x = cdrx, proc, arg1, name;	/* structure traversers */
@@ -1096,9 +1041,7 @@ SCM_GLOBAL_SYMBOL (scm_sym_atapply, s_atapply);
 SCM_GLOBAL_SYMBOL (scm_sym_apply, s_atapply + 1);
 
 SCM 
-scm_m_apply (xorig, env)
-     SCM xorig;
-     SCM env;
+scm_m_apply (SCM xorig, SCM env)
 {
   SCM_ASSYNT (scm_ilength (SCM_CDR (xorig)) == 2,
 	      xorig, scm_s_expression, s_atapply);
@@ -1111,9 +1054,7 @@ SCM_GLOBAL_SYMBOL(scm_sym_atcall_cc,s_atcall_cc);
 
 
 SCM 
-scm_m_cont (xorig, env)
-     SCM xorig;
-     SCM env;
+scm_m_cont (SCM xorig, SCM env)
 {
   SCM_ASSYNT (scm_ilength (SCM_CDR (xorig)) == 1,
 	      xorig, scm_s_expression, s_atcall_cc);
@@ -1545,9 +1486,7 @@ loop:
 
 
 SCM
-scm_unmemocopy (x, env)
-     SCM x;
-     SCM env;
+scm_unmemocopy (SCM x, SCM env)
 {
   if (SCM_NNULLP (env))
     /* Make a copy of the lowest frame to protect it from
@@ -1560,9 +1499,7 @@ scm_unmemocopy (x, env)
 #ifndef SCM_RECKLESS
 
 int 
-scm_badargsp (formals, args)
-     SCM formals;
-     SCM args;
+scm_badargsp (SCM formals, SCM args)
 {
   while (SCM_NIMP (formals))
     {
@@ -1580,10 +1517,7 @@ scm_badargsp (formals, args)
 
 
 SCM 
-scm_eval_args (l, env, proc)
-     SCM l;
-     SCM env;
-     SCM proc;
+scm_eval_args (SCM l, SCM env, SCM proc)
 {
   SCM results = SCM_EOL, *lloc = &results, res;
   while (SCM_NIMP (l))
@@ -1802,8 +1736,7 @@ GUILE_PROC (scm_evaluator_traps, "evaluator-traps-interface", 0, 1, 0,
 #undef FUNC_NAME
 
 SCM
-scm_deval_args (l, env, proc, lloc)
-     SCM l, env, proc, *lloc;
+scm_deval_args (SCM l, SCM env, SCM proc, SCM *lloc)
 {
   SCM *results = lloc, res;
   while (SCM_NIMP (l))
@@ -3275,21 +3208,15 @@ GUILE_PROC(scm_nconc2last, "apply:nconc2last", 1, 0, 0,
 #if 0
 
 SCM 
-scm_apply (proc, arg1, args)
-     SCM proc;
-     SCM arg1;
-     SCM args;
+scm_apply (SCM proc, SCM arg1, SCM args)
 {}
 #endif
 
 #if 0
 
 SCM 
-scm_dapply (proc, arg1, args)
-     SCM proc;
-     SCM arg1;
-     SCM args;
-{}
+scm_dapply (SCM proc, SCM arg1, SCM args)
+{ /* empty */ }
 #endif
 
 
@@ -3742,9 +3669,7 @@ scm_for_each (SCM proc, SCM arg1, SCM args)
 
 
 SCM 
-scm_closure (code, env)
-     SCM code;
-     SCM env;
+scm_closure (SCM code, SCM env)
 {
   register SCM z;
   SCM_NEWCELL (z);
@@ -3757,8 +3682,7 @@ scm_closure (code, env)
 long scm_tc16_promise;
 
 SCM 
-scm_makprom (code)
-     SCM code;
+scm_makprom (SCM code)
 {
   SCM_RETURN_NEWSMOB (scm_tc16_promise, code);
 }

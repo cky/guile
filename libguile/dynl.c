@@ -145,9 +145,7 @@ struct moddata {
 static struct moddata *registered_mods = NULL;
 
 void
-scm_register_module_xxx (module_name, init_func)
-     char *module_name;
-     void *init_func;
+scm_register_module_xxx (char *module_name, void *init_func)
 {
     struct moddata *md;
 
