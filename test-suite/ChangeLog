@@ -1,5 +1,12 @@
 2001-03-01  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* exceptions.test, numbers.test:  Moved the number related test
+	cases from exceptions.test to numbers.test.
+
+	* numbers.test:  Added a test case.
+
+2001-03-01  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* symbols.test:  New file.
 
 	(exception:immutable-string):  New constant.  Currently, this is a

@@ -839,6 +839,46 @@
   )
 
 ;;;
+;;; lcm
+;;;
+
+;;;
+;;; number->string
+;;;
+
+;;;
+;;; string->number
+;;;
+
+;;;
+;;; number?
+;;;
+
+;;;
+;;; complex?
+;;;
+
+;;;
+;;; real?
+;;;
+
+;;;
+;;; rational?
+;;;
+
+;;;
+;;; integer?
+;;;
+
+;;;
+;;; inexact?
+;;;
+
+;;;
+;;; =
+;;;
+
+;;;
 ;;; <
 ;;;
 
@@ -1166,3 +1206,113 @@
 
     (pass-if "n = fixnum-min - 1"
       (not (< (- fixnum-min 1) (- fixnum-min 1))))))
+
+;;;
+;;; >
+;;;
+
+;;;
+;;; <=
+;;;
+
+;;;
+;;; >=
+;;;
+
+;;;
+;;; zero?
+;;;
+
+;;;
+;;; positive?
+;;;
+
+;;;
+;;; negative?
+;;;
+
+;;;
+;;; max
+;;;
+
+;;;
+;;; min
+;;;
+
+;;;
+;;; +
+;;;
+
+(with-test-prefix "+"
+
+  (expect-fail "documented?"
+    (documented? +))
+
+  (with-test-prefix "wrong type argument"
+
+    (pass-if-exception "1st argument string"
+      exception:wrong-type-arg
+      (+ "1" 2))
+
+    (pass-if-exception "2nd argument bool"
+      exception:wrong-type-arg
+      (+ 1 #f))))
+;;;
+;;; -
+;;;
+
+;;;
+;;; *
+;;;
+
+;;;
+;;; /
+;;;
+
+;;;
+;;; truncate
+;;;
+
+;;;
+;;; round
+;;;
+
+;;;
+;;; exact->inexact
+;;;
+
+;;;
+;;; floor
+;;;
+
+;;;
+;;; ceiling
+;;;
+
+;;;
+;;; make-rectangular
+;;;
+
+;;;
+;;; make-polar
+;;;
+
+;;;
+;;; real-part
+;;;
+
+;;;
+;;; imag-part
+;;;
+
+;;;
+;;; magnitude
+;;;
+
+;;;
+;;; angle
+;;;
+
+;;;
+;;; inexact->exact
+;;;

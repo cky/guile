@@ -278,8 +278,6 @@
   )
 
 (with-test-prefix "application"
-  (goad x:wrong-type-arg (+ 1 #f))
-  (goad x:wrong-type-arg (+ "1" 2))
   (goad x:wrong-num-args (let ((x (lambda (a b) (+ a b)))) (x 3)))
   ;; Add more (application) exceptions here.
   )
