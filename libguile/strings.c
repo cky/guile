@@ -350,12 +350,13 @@ SCM_DEFINE (scm_string_append, "string-append", 0, 0, 1,
    determine the length of the returned value.  However, the function always 
    copies the complete contents of OBJ, and sets *LENP to the length of the
    scheme string (if LENP is non-null).  */
+#define FUNC_NAME "scm_c_string2str"
 char *
 scm_c_string2str (SCM obj, char *str, size_t *lenp)
 {
   size_t len;
 
-  SCM_ASSERT (SCM_STRINGP (obj), obj, SCM_ARG1, "scm_c_string2str");
+  SCM_ASSERT (SCM_STRINGP (obj), obj, SCM_ARG1, FUNC_NAME);
   len = SCM_STRING_LENGTH (obj);
 
   if (str == NULL)
@@ -376,6 +377,30 @@ scm_c_string2str (SCM obj, char *str, size_t *lenp)
 
   return str;
 }
+#undef FUNC_NAME
+
+
+/* Copy LEN characters at START from the Scheme string OBJ to memory
+   at STR.  START is an index into OBJ; zero means the beginning of
+   the string.  STR has already been allocated by the caller.
+
+   If START + LEN is off the end of OBJ, silently truncate the source
+   region to fit the string.  If truncation occurs, the corresponding
+   area of STR is left unchanged.  */
+#define FUNC_NAME "scm_c_substring2str"
+char *
+scm_c_substring2str (SCM obj, char *str, size_t start, size_t len)
+{
+  size_t src_length, effective_length;
+
+  SCM_ASSERT (SCM_STRINGP (obj), obj, SCM_ARG2, FUNC_NAME);
+  src_length = SCM_STRING_LENGTH (obj);
+  effective_length = (len + start <= src_length) ? len : src_length - start;
+  memcpy (str, SCM_STRING_CHARS (obj) + start, effective_length);
+  scm_remember_upto_here_1 (obj);
+  return str;
+}
+#undef FUNC_NAME
 
 
 void

@@ -348,7 +348,12 @@ fi
 AC_MSG_CHECKING(whether uint32_t is defined)
 AC_CACHE_VAL(guile_cv_have_uint32_t,
   [AC_TRY_COMPILE([#include <sys/types.h>
-	           #include <netdb.h>],
+		   #if HAVE_STDINT_H
+		   #include <stdint.h>
+                   #endif
+		   #ifndef __MINGW32__
+	           #include <netdb.h>
+		   #endif],
 		  [uint32_t a;],
 		  guile_cv_have_uint32_t=yes, guile_cv_have_uint32_t=no)])
 AC_MSG_RESULT($guile_cv_have_uint32_t)

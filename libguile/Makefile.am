@@ -203,7 +203,7 @@ SUFFIXES = .x .doc
 .c.doc:
 	-(test -n "${AWK+set}" || AWK="@AWK@"; ${AWK} -f ./guile-func-name-check $<)
 	(./guile-snarf-docs $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< | \
-	./guile_filter_doc_snarfage --filter-snarfage) > $@ || { rm $@; false; }
+	./guile_filter_doc_snarfage$(EXEEXT) --filter-snarfage) > $@ || { rm $@; false; }
 
 $(DOT_X_FILES) $(EXTRA_DOT_DOC_FILES): snarf.h guile-snarf.in
 

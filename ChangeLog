@@ -1,3 +1,8 @@
+2002-01-28  Stefan Jahn  <stefan@lkcc.org>
+
+	* configure.in (guile_cv_have_uint32_t): Look also in 
+	`stdint.h' for uint32_t.
+
 2002-01-13  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* Makefile.am (SUBDIRS): Added lang.

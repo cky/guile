@@ -318,6 +318,50 @@ SCM_DEFINE (scm_symbol_pset_x, "symbol-pset!", 2, 0, 0,
 }
 #undef FUNC_NAME
 
+
+/* Converts the given Scheme symbol OBJ into a C string, containing a copy
+   of OBJ's content with a trailing null byte.  If LENP is non-NULL, set
+   *LENP to the string's length.
+
+   When STR is non-NULL it receives the copy and is returned by the function,
+   otherwise new memory is allocated and the caller is responsible for 
+   freeing it via free().  If out of memory, NULL is returned.
+
+   Note that Scheme symbols may contain arbitrary data, including null
+   characters.  This means that null termination is not a reliable way to 
+   determine the length of the returned value.  However, the function always 
+   copies the complete contents of OBJ, and sets *LENP to the length of the
+   scheme symbol (if LENP is non-null).  */
+#define FUNC_NAME "scm_c_symbol2str"
+char *
+scm_c_symbol2str (SCM obj, char *str, size_t *lenp)
+{
+  size_t len;
+
+  SCM_ASSERT (SCM_SYMBOLP (obj), obj, SCM_ARG1, FUNC_NAME);
+  len = SCM_SYMBOL_LENGTH (obj);
+
+  if (str == NULL)
+    {
+      /* FIXME: Should we use exported wrappers for malloc (and free), which
+       * allow windows DLLs to call the correct freeing function? */
+      str = (char *) malloc ((len + 1) * sizeof (char));
+      if (str == NULL)
+	return NULL;
+    }
+
+  memcpy (str, SCM_SYMBOL_CHARS (obj), len);
+  scm_remember_upto_here_1 (obj);
+  str[len] = '\0';
+
+  if (lenp != NULL)
+    *lenp = len;
+
+  return str;
+}
+#undef FUNC_NAME
+
+
 void
 scm_symbols_prehistory ()
 {

@@ -187,7 +187,7 @@ SCM_DEFINE (scm_sigaction, "sigaction", 1, 2, 0,
   struct sigaction action;
   struct sigaction old_action;
 #else
-  SIGRETTYPE (* chandler) (int);
+  SIGRETTYPE (* chandler) (int) = SIG_DFL;
   SIGRETTYPE (* old_chandler) (int);
 #endif
   int query_only = 0;

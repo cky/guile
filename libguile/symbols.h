@@ -89,6 +89,7 @@ SCM_API SCM scm_symbol_pset_x (SCM s, SCM val);
 SCM_API SCM scm_symbol_hash (SCM s);
 SCM_API SCM scm_gensym (SCM prefix);
 
+SCM_API char *scm_c_symbol2str (SCM obj, char *str, size_t *lenp);
 SCM_API void scm_symbols_prehistory (void);
 SCM_API void scm_init_symbols (void);
 

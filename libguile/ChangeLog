@@ -1,3 +1,19 @@
+2002-01-28  Stefan Jahn  <stefan@lkcc.org>
+
+	* symbols.c (scm_c_symbol2str): New function, replacement for
+	`gh_scm2newsymbol()'.
+
+	* strings.c (scm_c_substring2str): New function.  Proper 
+	replacement for `gh_get_substr()'.
+
+	* socket.c: Include `stdint.h' if available for the `uint32_t'
+	declaration.
+
+	* scmsigs.c (s_scm_sigaction): Initialize `chandler' (inhibits 
+	compiler warning).
+
+	* backtrace.c: Include `lang.h' for GUILE_DEBUG conditional.
+
 2002-01-22  Neil Jerram  <neil@ossau.uklinux.net>
 	
 	Other changes unrelated to Elisp...

@@ -67,6 +67,7 @@
 #include "libguile/strings.h"
 
 #include "libguile/validate.h"
+#include "libguile/lang.h"
 #include "libguile/backtrace.h"
 #include "libguile/filesys.h"
 
