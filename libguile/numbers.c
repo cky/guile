@@ -560,10 +560,15 @@ guile_ieee_init (void)
 /* Some version of gcc on some old version of Linux used to crash when
    trying to make Inf and NaN.  */
 
-#if defined (SCO)
-  double tmp = 1.0;
-  guile_Inf = 1.0 / (tmp - tmp);
-#elif defined (__alpha__) && ! defined (linux)
+#ifdef INFINITY
+  /* C99 INFINITY, when available.
+     FIXME: The standard allows for INFINITY to be something that overflows
+     at compile time.  We ought to have a configure test to check for that
+     before trying to use it.  (But in practice we believe this is not a
+     problem on any system guile is likely to target.)  */
+  guile_Inf = INFINITY;
+#elif HAVE_DINFINITY
+  /* OSF */
   extern unsigned int DINFINITY[2];
   guile_Inf = (*(X_CAST(double *, DINFINITY)));
 #else
@@ -582,7 +587,11 @@ guile_ieee_init (void)
 
 #if defined (HAVE_ISNAN)
 
-#if defined (__alpha__) && ! defined (linux)
+#ifdef NAN
+  /* C99 NAN, when available */
+  guile_NaN = NAN;
+#elif HAVE_DQNAN
+  /* OSF */
   extern unsigned int DQNAN[2];
   guile_NaN =  (*(X_CAST(double *, DQNAN)));
 #else
