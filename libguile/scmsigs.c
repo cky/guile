@@ -371,7 +371,7 @@ SCM_DEFINE (scm_sigaction_for_thread, "sigaction", 1, 3, 0,
     }
   else
     {
-      SCM_VALIDATE_NIM (2, handler);
+      SCM_VALIDATE_PROC (2, handler);
 #ifdef HAVE_SIGACTION
       action.sa_handler = take_signal;
       if (orig_handlers[csig].sa_handler == SIG_ERR)
