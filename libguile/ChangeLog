@@ -1,5 +1,38 @@
 2001-07-30  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* numbers.c (DIGITS, scm_small_istr2int, scm_istr2int,
+	scm_istr2flo, scm_istring2number):  Removed.
+
+	(iflo2str, scm_real_p, scm_integer_p):  Use SCM_<foo> instead of
+	SCM_SLOPPY_<foo>.
+
+	(t_exactness, t_radix, DIGIT2UINT, XDIGIT2UINT, mem2uinteger,
+	mem2decimal_from_point, mem2ureal, mem2complex, scm_i_mem2number):
+	Added.
+
+	(scm_string_to_number):  Use new number parser.
+
+	(scm_exact_to_inexact):  Replace dummy by a GPROC, which also
+	handles complex numbers.
+
+	* numbers.h (NUMBERSH, SCM_NUMBERS_H): Rename <foo>H to
+	SCM_<foo>_H.
+
+	(SCM_INEXACTP, SCM_REALP, SCM_COMPLEXP):  Prefer !SCM_<pred> over
+	SCM_N<pred>.
+
+	(scm_istr2int, scm_istr2flo, scm_istring2number):  Removed.
+
+	(scm_i_mem2number):  Added.
+
+	(scm_exact_to_inexact):  Changed signature.
+
+	* read.c (scm_lreadr):  Perform the shortcut test for '+ and '-
+	here instead of within scm_i_mem2number.  Call scm_i_mem2number
+	instead of scm_istr2int and scm_istring2number.
+
+2001-07-30  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* eval.c (scm_lookupcar, scm_m_body, scm_m_lambda, unmemocopy,
 	scm_unmemocopy, scm_badargsp, scm_eval_body, CHECK_EQVISH,
 	SCM_CEVAL, scm_nconc2last, SCM_APPLY, scm_copy_tree):  Prefer

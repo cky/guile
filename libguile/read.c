@@ -416,8 +416,13 @@ scm_lreadr (SCM *tok_buf,SCM port,SCM *copy)
 	    return SCM_MAKE_CHAR (c);
 	  if (c >= '0' && c < '8')
 	    {
-	      p = scm_istr2int (SCM_STRING_CHARS (*tok_buf), (long) j, 8);
-	      if (!SCM_FALSEP (p))
+	      /* Dirk:FIXME::  This type of character syntax is not R5RS
+	       * compliant.  Further, it should be verified that the constant
+	       * does only consist of octal digits.  Finally, it should be
+	       * checked whether the resulting fixnum is in the range of
+	       * characters.  */
+	      p = scm_i_mem2number (SCM_STRING_CHARS (*tok_buf), j, 8);
+	      if (SCM_INUMP (p))
 		return SCM_MAKE_CHAR (SCM_INUM (p));
 	    }
 	  for (c = 0; c < scm_n_charnames; c++)
@@ -503,27 +508,31 @@ scm_lreadr (SCM *tok_buf,SCM port,SCM *copy)
       SCM_STRING_CHARS (*tok_buf)[j] = 0;
       return scm_mem2string (SCM_STRING_CHARS (*tok_buf), j);
 
-      case'0':case '1':case '2':case '3':case '4':
-    case '5':case '6':case '7':case '8':case '9':
+    case '0': case '1': case '2': case '3': case '4':
+    case '5': case '6': case '7': case '8': case '9':
     case '.':
     case '-':
     case '+':
     num:
-		j = scm_read_token (c, tok_buf, port, 0);
-		p = scm_istring2number (SCM_STRING_CHARS (*tok_buf), (long) j, 10L);
-		if (!SCM_FALSEP (p))
-		  return p;
-		if (c == '#')
-		  {
-		    if ((j == 2) && (scm_getc (port) == '('))
-		      {
-			scm_ungetc ('(', port);
-			c = SCM_STRING_CHARS (*tok_buf)[1];
-			goto callshrp;
-		      }
-		    SCM_MISC_ERROR ("unknown # object", SCM_EOL);
-		  }
-		goto tok;
+      j = scm_read_token (c, tok_buf, port, 0);
+      if (j == 1 && (c == '+' || c == '-'))
+	/* Shortcut:  Detected symbol '+ or '- */
+	goto tok;
+
+      p = scm_i_mem2number (SCM_STRING_CHARS (*tok_buf), j, 10);
+      if (!SCM_FALSEP (p))
+	return p;
+      if (c == '#')
+	{
+	  if ((j == 2) && (scm_getc (port) == '('))
+	    {
+	      scm_ungetc ('(', port);
+	      c = SCM_STRING_CHARS (*tok_buf)[1];
+	      goto callshrp;
+	    }
+	  SCM_MISC_ERROR ("unknown # object", SCM_EOL);
+	}
+      goto tok;
 
     case ':':
       if (SCM_EQ_P (SCM_PACK (SCM_KEYWORD_STYLE), scm_keyword_prefix))

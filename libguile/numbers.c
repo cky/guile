@@ -43,6 +43,7 @@
 
 
 #include <math.h>
+#include <ctype.h>
 #include "libguile/_scm.h"
 #include "libguile/feature.h"
 #include "libguile/ports.h"
@@ -58,10 +59,6 @@
 
 static SCM scm_divbigbig (SCM_BIGDIG *x, size_t nx, SCM_BIGDIG *y, size_t ny, int sgn, int modes);
 static SCM scm_divbigint (SCM x, long z, int sgn, int mode);
-
-
-#define DIGITS '0':case '1':case '2':case '3':case '4':\
- case '5':case '6':case '7':case '8':case '9'
 
 
 #define SCM_SWAP(x,y) do { SCM __t = x; x = y; y = __t; } while (0)
@@ -2063,7 +2060,7 @@ static size_t
 iflo2str (SCM flt, char *str)
 {
   size_t i;
-  if (SCM_SLOPPY_REALP (flt))
+  if (SCM_REALP (flt))
     i = idbl2str (SCM_REAL_VALUE (flt), str);
   else
     {
@@ -2229,518 +2226,573 @@ scm_bigprint (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
 }
 /*** END nums->strs ***/
 
+
 /*** STRINGS -> NUMBERS ***/
 
+/* The following functions implement the conversion from strings to numbers.
+ * The implementation somehow follows the grammar for numbers as it is given
+ * in R5RS.  Thus, the functions resemble syntactic units (<ureal R>,
+ * <uinteger R>, ...) that are used to build up numbers in the grammar.  Some
+ * points should be noted about the implementation:
+ * * Each function keeps a local index variable 'idx' that points at the
+ * current position within the parsed string.  The global index is only
+ * updated if the function could parse the corresponding syntactic unit
+ * successfully.
+ * * Similarly, the functions keep track of indicators of inexactness ('#',
+ * '.' or exponents) using local variables ('hash_seen', 'x').  Again, the
+ * global exactness information is only updated after each part has been
+ * successfully parsed.
+ * * Sequences of digits are parsed into temporary variables holding fixnums.
+ * Only if these fixnums would overflow, the result variables are updated
+ * using the standard functions scm_add, scm_product, scm_divide etc.  Then,
+ * the temporary variables holding the fixnums are cleared, and the process
+ * starts over again.  If for example fixnums were able to store five decimal
+ * digits, a number 1234567890 would be parsed in two parts 12345 and 67890,
+ * and the result was computed as 12345 * 100000 + 67890.  In other words,
+ * only every five digits two bignum operations were performed.
+ */
+
+enum t_exactness {NO_EXACTNESS, INEXACT, EXACT};
+
+/* R5RS, section 7.1.1, lexical structure of numbers: <uinteger R>. */
+
+/* In non ASCII-style encodings the following macro might not work. */
+#define XDIGIT2UINT(d) (isdigit (d) ? (d) - '0' : tolower (d) - 'a' + 10)
+
 static SCM
-scm_small_istr2int (char *str, long len, long radix)
+mem2uinteger (const char* mem, size_t len, unsigned int *p_idx,
+	      unsigned int radix, enum t_exactness *p_exactness)
 {
-  register long n = 0, ln;
-  register int c;
-  register int i = 0;
-  int lead_neg = 0;
-  if (0 >= len)
-    return SCM_BOOL_F;		/* zero scm_length */
-  switch (*str)
-    {				/* leading sign */
-    case '-':
-      lead_neg = 1;
-    case '+':
-      if (++i == len)
-	return SCM_BOOL_F;	/* bad if lone `+' or `-' */
-    }
+  unsigned int idx = *p_idx;
+  unsigned int hash_seen = 0;
+  scm_t_bits shift = 1;
+  scm_t_bits add = 0;
+  unsigned int digit_value;
+  SCM result;
+  char c;
 
-  do
-    {
-      switch (c = str[i++])
-	{
-	case DIGITS:
-	  c = c - '0';
-	  goto accumulate;
-	case 'A':
-	case 'B':
-	case 'C':
-	case 'D':
-	case 'E':
-	case 'F':
-	  c = c - 'A' + 10;
-	  goto accumulate;
-	case 'a':
-	case 'b':
-	case 'c':
-	case 'd':
-	case 'e':
-	case 'f':
-	  c = c - 'a' + 10;
-	accumulate:
-	  if (c >= radix)
-	    return SCM_BOOL_F;	/* bad digit for radix */
-	  ln = n;
-	  n = n * radix - c;
-	  /* Negation is a workaround for HP700 cc bug */
-	  if (n > ln || (-n > -SCM_MOST_NEGATIVE_FIXNUM))
-	    goto ovfl;
-	  break;
-	default:
-	  return SCM_BOOL_F;	/* not a digit */
-	}
-    }
-  while (i < len);
-  if (!lead_neg)
-    if ((n = -n) > SCM_MOST_POSITIVE_FIXNUM)
-      goto ovfl;
-  return SCM_MAKINUM (n);
- ovfl:				/* overflow scheme integer */
-  return SCM_BOOL_F;
-}
-
-
-
-SCM
-scm_istr2int (char *str, long len, long radix)
-{
-  size_t j;
-  register size_t k, blen = 1;
-  size_t i = 0;
-  int c;
-  SCM res;
-  register SCM_BIGDIG *ds;
-  register unsigned long t2;
-
-  if (0 >= len)
-    return SCM_BOOL_F;		/* zero scm_length */
-
-  /* Short numbers we parse directly into an int, to avoid the overhead 
-     of creating a bignum.  */
-  if (len < 6)
-    return scm_small_istr2int (str, len, radix);
-
-  if (16 == radix)
-    j = 1 + (4 * len * sizeof (char)) / (SCM_BITSPERDIG);
-  else if (10 <= radix)
-    j = 1 + (84 * len * sizeof (char)) / (SCM_BITSPERDIG * 25);
-  else
-    j = 1 + (len * sizeof (char)) / (SCM_BITSPERDIG);
-  switch (str[0])
-    {				/* leading sign */
-    case '-':
-    case '+':
-      if (++i == (unsigned) len)
-	return SCM_BOOL_F;	/* bad if lone `+' or `-' */
-    }
-  res = scm_i_mkbig (j, '-' == str[0]);
-  ds = SCM_BDIGITS (res);
-  for (k = j; k--;)
-    ds[k] = 0;
-  do
-    {
-      switch (c = str[i++])
-	{
-	case DIGITS:
-	  c = c - '0';
-	  goto accumulate;
-	case 'A':
-	case 'B':
-	case 'C':
-	case 'D':
-	case 'E':
-	case 'F':
-	  c = c - 'A' + 10;
-	  goto accumulate;
-	case 'a':
-	case 'b':
-	case 'c':
-	case 'd':
-	case 'e':
-	case 'f':
-	  c = c - 'a' + 10;
-	accumulate:
-	  if (c >= radix)
-	    return SCM_BOOL_F;	/* bad digit for radix */
-	  k = 0;
-	  t2 = c;
-	moretodo:
-	  while (k < blen)
-	    {
-/* printf ("k = %d, blen = %d, t2 = %ld, ds[k] = %d\n", k, blen, t2, ds[k]); */
-	      t2 += ds[k] * radix;
-	      ds[k++] = SCM_BIGLO (t2);
-	      t2 = SCM_BIGDN (t2);
-	    }
-	  if (blen > j)
-	    scm_num_overflow ("bignum");
-	  if (t2)
-	    {
-	      blen++;
-	      goto moretodo;
-	    }
-	  break;
-	default:
-	  return SCM_BOOL_F;	/* not a digit */
-	}
-    }
-  while (i < (unsigned) len);
-  if (blen * SCM_BITSPERDIG / SCM_CHAR_BIT <= sizeof (SCM))
-    if (SCM_INUMP (res = scm_i_big2inum (res, blen)))
-      return res;
-  if (j == blen)
-    return res;
-  return scm_i_adjbig (res, blen);
-}
-
-SCM
-scm_istr2flo (char *str, long len, long radix)
-{
-  register int c, i = 0;
-  double lead_sgn;
-  double res = 0.0, tmp = 0.0;
-  int flg = 0;
-  int point = 0;
-  SCM second;
-
-  if (i >= len)
-    return SCM_BOOL_F;		/* zero scm_length */
-
-  switch (*str)
-    {				/* leading sign */
-    case '-':
-      lead_sgn = -1.0;
-      i++;
-      break;
-    case '+':
-      lead_sgn = 1.0;
-      i++;
-      break;
-    default:
-      lead_sgn = 0.0;
-    }
-  if (i == len)
-    return SCM_BOOL_F;		/* bad if lone `+' or `-' */
-
-  if (str[i] == 'i' || str[i] == 'I')
-    {				/* handle `+i' and `-i'   */
-      if (lead_sgn == 0.0)
-	return SCM_BOOL_F;	/* must have leading sign */
-      if (++i < len)
-	return SCM_BOOL_F;	/* `i' not last character */
-      return scm_make_complex (0.0, lead_sgn);
-    }
-  do
-    {				/* check initial digits */
-      switch (c = str[i])
-	{
-	case DIGITS:
-	  c = c - '0';
-	  goto accum1;
-	case 'D':
-	case 'E':
-	case 'F':
-	  if (radix == 10)
-	    goto out1;		/* must be exponent */
-	case 'A':
-	case 'B':
-	case 'C':
-	  c = c - 'A' + 10;
-	  goto accum1;
-	case 'd':
-	case 'e':
-	case 'f':
-	  if (radix == 10)
-	    goto out1;
-	case 'a':
-	case 'b':
-	case 'c':
-	  c = c - 'a' + 10;
-	accum1:
-	  if (c >= radix)
-	    return SCM_BOOL_F;	/* bad digit for radix */
-	  res = res * radix + c;
-	  flg = 1;		/* res is valid */
-	  break;
-	default:
-	  goto out1;
-	}
-    }
-  while (++i < len);
- out1:
-
-  /* if true, then we did see a digit above, and res is valid */
-  if (i == len)
-    goto done;
-
-  /* By here, must have seen a digit,
-     or must have next char be a `.' with radix==10 */
-  if (!flg)
-    if (!(str[i] == '.' && radix == 10))
-      return SCM_BOOL_F;
-
-  while (str[i] == '#')
-    {				/* optional sharps */
-      res *= radix;
-      if (++i == len)
-	goto done;
-    }
-
-  if (str[i] == '/')
-    {
-      while (++i < len)
-	{
-	  switch (c = str[i])
-	    {
-	    case DIGITS:
-	      c = c - '0';
-	      goto accum2;
-	    case 'A':
-	    case 'B':
-	    case 'C':
-	    case 'D':
-	    case 'E':
-	    case 'F':
-	      c = c - 'A' + 10;
-	      goto accum2;
-	    case 'a':
-	    case 'b':
-	    case 'c':
-	    case 'd':
-	    case 'e':
-	    case 'f':
-	      c = c - 'a' + 10;
-	    accum2:
-	      if (c >= radix)
-		return SCM_BOOL_F;
-	      tmp = tmp * radix + c;
-	      break;
-	    default:
-	      goto out2;
-	    }
-	}
-    out2:
-      if (tmp == 0.0)
-	return SCM_BOOL_F;	/* `slash zero' not allowed */
-      if (i < len)
-	while (str[i] == '#')
-	  {			/* optional sharps */
-	    tmp *= radix;
-	    if (++i == len)
-	      break;
-	  }
-      res /= tmp;
-      goto done;
-    }
-
-  if (str[i] == '.')
-    {				/* decimal point notation */
-      if (radix != 10)
-	return SCM_BOOL_F;	/* must be radix 10 */
-      while (++i < len)
-	{
-	  switch (c = str[i])
-	    {
-	    case DIGITS:
-	      point--;
-	      res = res * 10.0 + c - '0';
-	      flg = 1;
-	      break;
-	    default:
-	      goto out3;
-	    }
-	}
-    out3:
-      if (!flg)
-	return SCM_BOOL_F;	/* no digits before or after decimal point */
-      if (i == len)
-	goto adjust;
-      while (str[i] == '#')
-	{			/* ignore remaining sharps */
-	  if (++i == len)
-	    goto adjust;
-	}
-    }
-
-  switch (str[i])
-    {				/* exponent */
-    case 'd':
-    case 'D':
-    case 'e':
-    case 'E':
-    case 'f':
-    case 'F':
-    case 'l':
-    case 'L':
-    case 's':
-    case 'S':
-      {
-	int expsgn = 1, expon = 0;
-	if (radix != 10)
-	  return SCM_BOOL_F;	/* only in radix 10 */
-	if (++i == len)
-	  return SCM_BOOL_F;	/* bad exponent */
-	switch (str[i])
-	  {
-	  case '-':
-	    expsgn = (-1);
-	  case '+':
-	    if (++i == len)
-	      return SCM_BOOL_F;	/* bad exponent */
-	  }
-	if (str[i] < '0' || str[i] > '9')
-	  return SCM_BOOL_F;	/* bad exponent */
-	do
-	  {
-	    switch (c = str[i])
-	      {
-	      case DIGITS:
-		expon = expon * 10 + c - '0';
-		if (expon > SCM_MAXEXP)
-		  scm_out_of_range ("string->number", SCM_MAKINUM (expon));
-		break;
-	      default:
-		goto out4;
-	      }
-	  }
-	while (++i < len);
-      out4:
-	point += expsgn * expon;
-      }
-    }
-
- adjust:
-  if (point >= 0)
-    while (point--)
-      res *= 10.0;
-  else
-#ifdef _UNICOS
-    while (point++)
-      res *= 0.1;
-#else
-  while (point++)
-    res /= 10.0;
-#endif
-
- done:
-  /* at this point, we have a legitimate floating point result */
-  if (lead_sgn == -1.0)
-    res = -res;
-  if (i == len)
-    return scm_make_real (res);
-
-  if (str[i] == 'i' || str[i] == 'I')
-    {				/* pure imaginary number  */
-      if (lead_sgn == 0.0)
-	return SCM_BOOL_F;	/* must have leading sign */
-      if (++i < len)
-	return SCM_BOOL_F;	/* `i' not last character */
-      return scm_make_complex (0.0, res);
-    }
-
-  switch (str[i++])
-    {
-    case '-':
-      lead_sgn = -1.0;
-      break;
-    case '+':
-      lead_sgn = 1.0;
-      break;
-    case '@':
-      {				/* polar input for complex number */
-	/* get a `real' for scm_angle */
-	second = scm_istr2flo (&str[i], (long) (len - i), radix);
-	if (!SCM_SLOPPY_INEXACTP (second))
-	  return SCM_BOOL_F;	/* not `real' */
-	if (SCM_SLOPPY_COMPLEXP (second))
-	  return SCM_BOOL_F;	/* not `real' */
-	tmp = SCM_REAL_VALUE (second);
-	return scm_make_complex (res * cos (tmp), res * sin (tmp));
-      }
-    default:
-      return SCM_BOOL_F;
-    }
-
-  /* at this point, last char must be `i' */
-  if (str[len - 1] != 'i' && str[len - 1] != 'I')
+  if (idx == len)
     return SCM_BOOL_F;
-  /* handles `x+i' and `x-i' */
-  if (i == (len - 1))
-    return scm_make_complex (res, lead_sgn);
-  /* get a `ureal' for complex part */
-  second = scm_istr2flo (&str[i], (long) ((len - i) - 1), radix);
-  if (!SCM_INEXACTP (second))
-    return SCM_BOOL_F;		/* not `ureal' */
-  if (SCM_SLOPPY_COMPLEXP (second))
-    return SCM_BOOL_F;		/* not `ureal' */
-  tmp = SCM_REAL_VALUE (second);
-  if (tmp < 0.0)
-    return SCM_BOOL_F;		/* not `ureal' */
-  return scm_make_complex (res, (lead_sgn * tmp));
+
+  c = mem[idx];
+  if (!isxdigit (c))
+    return SCM_BOOL_F;
+  digit_value = XDIGIT2UINT (c);
+  if (digit_value >= radix)
+    return SCM_BOOL_F;
+
+  idx++;
+  result = SCM_MAKINUM (digit_value);
+  while (idx != len)
+    {
+      char c = mem[idx];
+      if (isxdigit (c))
+	{
+	  if (hash_seen)
+	    return SCM_BOOL_F;
+	  digit_value = XDIGIT2UINT (c);
+	  if (digit_value >= radix)
+	    return SCM_BOOL_F;
+	}
+      else if (c == '#')
+	{
+	  hash_seen = 1;
+	  digit_value = 0;
+	}
+      else
+	break;
+
+      idx++;
+      if (SCM_MOST_POSITIVE_FIXNUM / radix < shift)
+	{
+	  result = scm_product (result, SCM_MAKINUM (shift));
+	  if (add > 0)
+	    result = scm_sum (result, SCM_MAKINUM (add));
+
+	  shift = radix;
+	  add = digit_value;
+	}
+      else
+	{
+	  shift = shift * radix;
+	  add = add * radix + digit_value;
+	}
+    };
+
+  if (shift > 1)
+    result = scm_product (result, SCM_MAKINUM (shift));
+  if (add > 0)
+    result = scm_sum (result, SCM_MAKINUM (add));
+
+  *p_idx = idx;
+  if (hash_seen)
+    *p_exactness = INEXACT;
+
+  return result;
 }
 
 
+/* R5RS, section 7.1.1, lexical structure of numbers: <decimal 10>.  Only
+ * covers the parts of the rules that start at a potential point.  The value
+ * of the digits up to the point have been parsed by the caller and are given
+ * in variable prepoint.  The content of *p_exactness indicates, whether a
+ * hash has already been seen in the digits before the point.
+ */
+
+/* In non ASCII-style encodings the following macro might not work. */
+#define DIGIT2UINT(d) ((d) - '0')
+
+static SCM
+mem2decimal_from_point (SCM prepoint, const char* mem, size_t len, 
+			unsigned int *p_idx, enum t_exactness *p_exactness)
+{
+  unsigned int idx = *p_idx;
+  enum t_exactness x = *p_exactness;
+  SCM big_shift = SCM_MAKINUM (1);
+  SCM big_add = SCM_MAKINUM (0);
+  SCM result;
+
+  if (idx == len)
+    return prepoint;
+
+  if (mem[idx] == '.')
+    {
+      scm_t_bits shift = 1;
+      scm_t_bits add = 0;
+      unsigned int digit_value;
+
+      idx++;
+      while (idx != len)
+	{
+	  char c = mem[idx];
+	  if (isdigit (c))
+	    {
+	      if (x == INEXACT)
+		return SCM_BOOL_F;
+	      else
+		digit_value = DIGIT2UINT (c);
+	    }
+	  else if (c == '#')
+	    {
+	      x = INEXACT;
+	      digit_value = 0;
+	    }
+	  else
+	    break;
+
+	  idx++;
+	  if (SCM_MOST_POSITIVE_FIXNUM / 10 < shift)
+	    {
+	      big_shift = scm_product (big_shift, SCM_MAKINUM (shift));
+	      big_add = scm_product (big_add, SCM_MAKINUM (shift));
+	      if (add > 0)
+		big_add = scm_sum (big_add, SCM_MAKINUM (add));
+	      
+	      shift = 10;
+	      add = digit_value;
+	    }
+	  else
+	    {
+	      shift = shift * 10;
+	      add = add * 10 + digit_value;
+	    }
+	};
+
+      if (add > 0)
+	{
+	  big_shift = scm_product (big_shift, SCM_MAKINUM (shift));
+	  big_add = scm_product (big_add, SCM_MAKINUM (shift));
+	  big_add = scm_sum (big_add, SCM_MAKINUM (add));
+	}
+
+      /* We've seen a decimal point, thus the value is implicitly inexact. */
+      x = INEXACT;
+    }
+
+  big_add = scm_divide (big_add, big_shift);
+  result = scm_sum (prepoint, big_add);
+
+  if (idx != len)
+    {
+      int sign = 1;
+      unsigned int start;
+      char c;
+      int exponent;
+      SCM e;
+
+      /* R5RS, section 7.1.1, lexical structure of numbers: <suffix> */
+
+      switch (mem[idx])
+	{
+	case 'd': case 'D':
+	case 'e': case 'E':
+	case 'f': case 'F':
+	case 'l': case 'L':
+	case 's': case 'S':
+	  idx++;
+	  start = idx;
+	  c = mem[idx];
+	  if (c == '-')
+	    {
+	      idx++;
+	      sign = -1;
+	      c = mem[idx];
+	    }
+	  else if (c == '+')
+	    {
+	      idx++;
+	      sign = 1;
+	      c = mem[idx];
+	    }
+	  else
+	    sign = 1;
+
+	  if (!isdigit (c))
+	    return SCM_BOOL_F;
+
+	  idx++;
+	  exponent = DIGIT2UINT (c);
+	  while (idx != len)
+	    {
+	      char c = mem[idx];
+	      if (isdigit (c))
+		{
+		  idx++;
+		  if (exponent <= SCM_MAXEXP)
+		    exponent = exponent * 10 + DIGIT2UINT (c);
+		}
+	      else
+		break;
+	    }
+
+	  if (exponent > SCM_MAXEXP)
+	    {
+	      size_t exp_len = idx - start;
+	      SCM exp_string = scm_mem2string (&mem[start], exp_len);
+	      SCM exp_num = scm_string_to_number (exp_string, SCM_UNDEFINED);
+	      scm_out_of_range ("string->number", exp_num);
+	    }
+
+	  e = scm_integer_expt (SCM_MAKINUM (10), SCM_MAKINUM (exponent));
+	  if (sign == 1)
+	    result = scm_product (result, e);
+	  else
+	    result = scm_divide (result, e);
+
+	  /* We've seen an exponent, thus the value is implicitly inexact. */
+	  x = INEXACT;
+
+	  break;
+
+	default:
+	  break;
+	}
+    }
+
+  *p_idx = idx;
+  if (x == INEXACT)
+    *p_exactness = x;
+
+  return result;
+}
+
+
+/* R5RS, section 7.1.1, lexical structure of numbers: <ureal R> */
+
+static SCM
+mem2ureal (const char* mem, size_t len, unsigned int *p_idx,
+	   unsigned int radix, enum t_exactness *p_exactness)
+{
+  unsigned int idx = *p_idx;
+
+  if (idx == len)
+    return SCM_BOOL_F;
+
+  if (mem[idx] == '.')
+    {
+      if (radix != 10)
+	return SCM_BOOL_F;
+      else if (idx + 1 == len)
+	return SCM_BOOL_F;
+      else if (!isdigit (mem[idx + 1]))
+	return SCM_BOOL_F;
+      else
+	return mem2decimal_from_point (SCM_MAKINUM (0), mem, len,
+				       p_idx, p_exactness);
+    }
+  else
+    {
+      enum t_exactness x = EXACT;
+      SCM uinteger;
+      SCM result;
+
+      uinteger = mem2uinteger (mem, len, &idx, radix, &x);
+      if (SCM_FALSEP (uinteger))
+	return SCM_BOOL_F;
+
+      if (idx == len)
+	result = uinteger;
+      else if (mem[idx] == '/')
+	{
+	  SCM divisor;
+
+	  idx++;
+
+	  divisor = mem2uinteger (mem, len, &idx, radix, &x);
+	  if (SCM_FALSEP (divisor))
+	    return SCM_BOOL_F;
+
+	  result = scm_divide (uinteger, divisor);
+	}
+      else if (radix == 10)
+	{
+	  result = mem2decimal_from_point (uinteger, mem, len, &idx, &x);
+	  if (SCM_FALSEP (result))
+	    return SCM_BOOL_F;
+	}
+      else
+	result = uinteger;
+
+      *p_idx = idx;
+      if (x == INEXACT)
+	*p_exactness = x;
+
+      return result;
+    }
+}
+
+
+/* R5RS, section 7.1.1, lexical structure of numbers: <complex R> */
+
+static SCM
+mem2complex (const char* mem, size_t len, unsigned int idx,
+	     unsigned int radix, enum t_exactness *p_exactness)
+{
+  char c;
+  int sign = 0;
+  SCM ureal;
+
+  if (idx == len)
+    return SCM_BOOL_F;
+
+  c = mem[idx];
+  if (c == '+')
+    {
+      idx++;
+      sign = 1;
+    }
+  else if (c == '-')
+    {
+      idx++;
+      sign = -1;
+    }
+
+  if (idx == len)
+    return SCM_BOOL_F;
+
+  ureal = mem2ureal (mem, len, &idx, radix, p_exactness);
+  if (SCM_FALSEP (ureal))
+    {
+      /* input must be either +i or -i */
+
+      if (sign == 0)
+	return SCM_BOOL_F;
+
+      if (mem[idx] == 'i' || mem[idx] == 'I')
+	{
+	  idx++;
+	  if (idx != len)
+	    return SCM_BOOL_F;
+	  
+	  return scm_make_rectangular (SCM_MAKINUM (0), SCM_MAKINUM (sign));
+	}
+      else
+	return SCM_BOOL_F;
+    }
+  else
+    {
+      if (sign == -1)
+	ureal = scm_difference (ureal, SCM_UNDEFINED);
+
+      if (idx == len)
+	return ureal;
+
+      c = mem[idx];
+      switch (c)
+	{
+	case 'i': case 'I':
+	  /* either +<ureal>i or -<ureal>i */
+
+	  idx++;
+	  if (sign == 0)
+	    return SCM_BOOL_F;
+	  if (idx != len)
+	    return SCM_BOOL_F;
+	  return scm_make_rectangular (SCM_MAKINUM (0), ureal);
+
+	case '@':
+	  /* polar input: <real>@<real>. */
+
+	  idx++;
+	  if (idx == len)
+	    return SCM_BOOL_F;
+	  else
+	    {
+	      int sign;
+	      SCM angle;
+	      SCM result;
+
+	      c = mem[idx];
+	      if (c == '+')
+		{
+		  idx++;
+		  sign = 1;
+		}
+	      else if (c == '-')
+		{
+		  idx++;
+		  sign = -1;
+		}
+	      else
+		sign = 1;
+
+	      angle = mem2ureal (mem, len, &idx, radix, p_exactness);
+	      if (SCM_FALSEP (angle))
+		return SCM_BOOL_F;
+	      if (idx != len)
+		return SCM_BOOL_F;
+
+	      if (sign == -1)
+		angle = scm_difference (angle, SCM_UNDEFINED);
+
+	      result = scm_make_polar (ureal, angle);
+	      return result;
+	    }
+	case '+':
+	case '-':
+	  /* expecting input matching <real>[+-]<ureal>?i */
+
+	  idx++;
+	  if (idx == len)
+	    return SCM_BOOL_F;
+	  else
+	    {
+	      int sign = (c == '+') ? 1 : -1;
+	      SCM imag = mem2ureal (mem, len, &idx, radix, p_exactness);
+	      SCM result;
+
+	      if (SCM_FALSEP (imag))
+		imag = SCM_MAKINUM (sign);
+
+	      if (idx == len)
+		return SCM_BOOL_F;
+	      if (mem[idx] != 'i' && mem[idx] != 'I')
+		return SCM_BOOL_F;
+
+	      idx++;
+	      if (idx != len)
+		return SCM_BOOL_F;
+
+	      if (sign == -1)
+		imag = scm_difference (imag, SCM_UNDEFINED);
+	      result = scm_make_rectangular (ureal, imag);
+	      return result;
+	    }
+	default:
+	  return SCM_BOOL_F;
+	}
+    }
+}
+
+
+/* R5RS, section 7.1.1, lexical structure of numbers: <number> */
+
+enum t_radix {NO_RADIX=0, DUAL=2, OCT=8, DEC=10, HEX=16};
 
 SCM
-scm_istring2number (char *str, long len, long radix)
+scm_i_mem2number (const char* mem, size_t len, unsigned int default_radix)
 {
-  int i = 0;
-  char ex = 0;
-  char ex_p = 0, rx_p = 0;	/* Only allow 1 exactness and 1 radix prefix */
-  SCM res;
-  if (len == 1)
-    if (*str == '+' || *str == '-')    /* Catches lone `+' and `-' for speed */
-      return SCM_BOOL_F;
+  unsigned int idx = 0;
+  unsigned int radix = NO_RADIX;
+  enum t_exactness forced_x = NO_EXACTNESS;
+  enum t_exactness implicit_x = EXACT;
+  SCM result;
 
-  while ((len - i) >= 2 && str[i] == '#' && ++i)
-    switch (str[i++])
-      {
-      case 'b':
-      case 'B':
-	if (rx_p++)
-	  return SCM_BOOL_F;
-	radix = 2;
-	break;
-      case 'o':
-      case 'O':
-	if (rx_p++)
-	  return SCM_BOOL_F;
-	radix = 8;
-	break;
-      case 'd':
-      case 'D':
-	if (rx_p++)
-	  return SCM_BOOL_F;
-	radix = 10;
-	break;
-      case 'x':
-      case 'X':
-	if (rx_p++)
-	  return SCM_BOOL_F;
-	radix = 16;
-	break;
-      case 'i':
-      case 'I':
-	if (ex_p++)
-	  return SCM_BOOL_F;
-	ex = 2;
-	break;
-      case 'e':
-      case 'E':
-	if (ex_p++)
-	  return SCM_BOOL_F;
-	ex = 1;
-	break;
-      default:
-	return SCM_BOOL_F;
-      }
-
-  switch (ex)
+  /* R5RS, section 7.1.1, lexical structure of numbers: <prefix R> */
+  while (idx + 2 < len && mem[idx] == '#')
     {
-    case 1:
-      return scm_istr2int (&str[i], len - i, radix);
-    case 0:
-      res = scm_istr2int (&str[i], len - i, radix);
-      if (!SCM_FALSEP (res))
-	return res;
-    case 2:
-      return scm_istr2flo (&str[i], len - i, radix);
+      switch (mem[idx + 1])
+	{
+	case 'b': case 'B':
+	  if (radix != NO_RADIX)
+	    return SCM_BOOL_F;
+	  radix = DUAL;
+	  break;
+	case 'd': case 'D':
+	  if (radix != NO_RADIX)
+	    return SCM_BOOL_F;
+	  radix = DEC;
+	  break;
+	case 'i': case 'I':
+	  if (forced_x != NO_EXACTNESS)
+	    return SCM_BOOL_F;
+	  forced_x = INEXACT;
+	  break;
+	case 'e': case 'E':
+	  if (forced_x != NO_EXACTNESS)
+	    return SCM_BOOL_F;
+	  forced_x = EXACT;
+	  break;
+	case 'o': case 'O':
+	  if (radix != NO_RADIX)
+	    return SCM_BOOL_F;
+	  radix = OCT;
+	  break;
+	case 'x': case 'X':
+	  if (radix != NO_RADIX)
+	    return SCM_BOOL_F;
+	  radix = HEX;
+	  break;
+	default:
+	  return SCM_BOOL_F;
+	}
+      idx += 2;
     }
-  return SCM_BOOL_F;
+
+  /* R5RS, section 7.1.1, lexical structure of numbers: <complex R> */
+  if (radix == NO_RADIX)
+    result = mem2complex (mem, len, idx, default_radix, &implicit_x);
+  else
+    result = mem2complex (mem, len, idx, (unsigned int) radix, &implicit_x);
+
+  if (SCM_FALSEP (result))
+    return SCM_BOOL_F;
+
+  switch (forced_x)
+    {
+    case EXACT:
+      if (SCM_INEXACTP (result))
+	/* FIXME: This may change the value. */
+	return scm_inexact_to_exact (result);
+      else
+	return result;
+    case INEXACT:
+      if (SCM_INEXACTP (result))
+	return result;
+      else
+	return scm_exact_to_inexact (result);
+    case NO_EXACTNESS:
+    default:
+      if (implicit_x == INEXACT)
+	{
+	  if (SCM_INEXACTP (result))
+	    return result;
+	  else
+	    return scm_exact_to_inexact (result);
+	}
+      else
+	return result;
+    }
 }
 
 
@@ -2760,12 +2812,14 @@ SCM_DEFINE (scm_string_to_number, "string->number", 1, 1, 0,
   int base;
   SCM_VALIDATE_STRING (1, string);
   SCM_VALIDATE_INUM_MIN_DEF_COPY (2,radix,2,10,base);
-  answer = scm_istring2number (SCM_STRING_CHARS (string),
-			       SCM_STRING_LENGTH (string),
-                               base);
+  answer = scm_i_mem2number (SCM_STRING_CHARS (string),
+			   SCM_STRING_LENGTH (string),
+			   base);
   return scm_return_first (answer, string);
 }
 #undef FUNC_NAME
+
+
 /*** END strs->nums ***/
 
 
@@ -2860,7 +2914,7 @@ SCM_DEFINE (scm_real_p, "rational?", 1, 0, 0,
     return SCM_BOOL_T;
   } else if (SCM_IMP (x)) {
     return SCM_BOOL_F;
-  } else if (SCM_SLOPPY_REALP (x)) {
+  } else if (SCM_REALP (x)) {
     return SCM_BOOL_T;
   } else if (SCM_BIGP (x)) {
     return SCM_BOOL_T;
@@ -2884,9 +2938,9 @@ SCM_DEFINE (scm_integer_p, "integer?", 1, 0, 0,
     return SCM_BOOL_F;
   if (SCM_BIGP (x))
     return SCM_BOOL_T;
-  if (!SCM_SLOPPY_INEXACTP (x))
+  if (!SCM_INEXACTP (x))
     return SCM_BOOL_F;
-  if (SCM_SLOPPY_COMPLEXP (x))
+  if (SCM_COMPLEXP (x))
     return SCM_BOOL_F;
   r = SCM_REAL_VALUE (x);
   if (r == floor (r))
@@ -3860,17 +3914,6 @@ scm_round (double x)
 }
 
 
-
-SCM_GPROC1 (s_exact_to_inexact, "exact->inexact", scm_tc7_cxr, (SCM (*)()) scm_exact_to_inexact, g_exact_to_inexact);
-/* Convert the number @var{x} to its inexact representation.\n" 
- */
-double
-scm_exact_to_inexact (double z)
-{
-  return z;
-}
-
-
 SCM_GPROC1 (s_i_floor, "floor", scm_tc7_cxr, (SCM (*)()) floor, g_i_floor);
 /* "Round the number @var{x} towards minus infinity."
  */
@@ -4110,6 +4153,23 @@ scm_angle (SCM z)
   } else {
     SCM_WTA_DISPATCH_1 (g_angle, z, SCM_ARG1, s_angle);
   }
+}
+
+
+SCM_GPROC (s_exact_to_inexact, "exact->inexact", 1, 0, 0, scm_exact_to_inexact, g_exact_to_inexact);
+/* Convert the number @var{x} to its inexact representation.\n" 
+ */
+SCM
+scm_exact_to_inexact (SCM z)
+{
+  if (SCM_INUMP (z))
+    return scm_make_real ((double) SCM_INUM (z));
+  else if (SCM_BIGP (z))
+    return scm_make_real (scm_i_big2dbl (z));
+  else if (SCM_INEXACTP (z))
+    return z;
+  else
+    SCM_WTA_DISPATCH_1 (g_exact_to_inexact, z, 1, s_exact_to_inexact);
 }
 
 

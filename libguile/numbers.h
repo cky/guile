@@ -1,7 +1,7 @@
 /* classes: h_files */
 
-#ifndef NUMBERSH
-#define NUMBERSH
+#ifndef SCM_NUMBERS_H
+#define SCM_NUMBERS_H
 /* Copyright (C) 1995,1996,1998,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
@@ -56,7 +56,7 @@
  *
  * SCM_INUMP applies only to values known to be Scheme objects.
  * In particular, SCM_INUMP (SCM_CAR (x)) is valid only if x is known
- * to be a SCM_CONSP.  If x is only known to be a SCM_NIMP, 
+ * to be a SCM_CONSP.  If x is only known to be a non-immediate, 
  * SCM_INUMP (SCM_CAR (x)) can give wrong answers.
  */
 
@@ -123,9 +123,9 @@
 #define SCM_SLOPPY_INEXACTP(x) (SCM_TYP16S (x) == scm_tc16_real)
 #define SCM_SLOPPY_REALP(x) (SCM_TYP16 (x) == scm_tc16_real)
 #define SCM_SLOPPY_COMPLEXP(x) (SCM_TYP16 (x) == scm_tc16_complex)
-#define SCM_INEXACTP(x) (SCM_NIMP (x) && SCM_TYP16S (x) == scm_tc16_real)
-#define SCM_REALP(x) (SCM_NIMP (x) && SCM_TYP16 (x) == scm_tc16_real)
-#define SCM_COMPLEXP(x) (SCM_NIMP (x) && SCM_TYP16 (x) == scm_tc16_complex)
+#define SCM_INEXACTP(x) (!SCM_IMP (x) && SCM_TYP16S (x) == scm_tc16_real)
+#define SCM_REALP(x) (!SCM_IMP (x) && SCM_TYP16 (x) == scm_tc16_real)
+#define SCM_COMPLEXP(x) (!SCM_IMP (x) && SCM_TYP16 (x) == scm_tc16_complex)
 
 #define SCM_REAL_VALUE(x) (((scm_t_double *) SCM2PTR (x))->real)
 #define SCM_COMPLEX_MEM(x) ((scm_t_complex *) SCM_CELL_WORD_1 (x))
@@ -264,9 +264,7 @@ extern SCM scm_number_to_string (SCM x, SCM radix);
 extern int scm_print_real (SCM sexp, SCM port, scm_print_state *pstate);
 extern int scm_print_complex (SCM sexp, SCM port, scm_print_state *pstate);
 extern int scm_bigprint (SCM exp, SCM port, scm_print_state *pstate);
-extern SCM scm_istr2int (char *str, long len, long radix);
-extern SCM scm_istr2flo (char *str, long len, long radix);
-extern SCM scm_istring2number (char *str, long len, long radix);
+extern SCM scm_i_mem2number (const char *mem, size_t len, unsigned int radix);
 extern SCM scm_string_to_number (SCM str, SCM radix);
 extern SCM scm_make_real (double x);
 extern SCM scm_make_complex (double x, double y);
@@ -297,7 +295,6 @@ extern double scm_acosh (double x);
 extern double scm_atanh (double x);
 extern double scm_truncate (double x);
 extern double scm_round (double x);
-extern double scm_exact_to_inexact (double z);
 extern SCM scm_sys_expt (SCM z1, SCM z2);
 extern SCM scm_sys_atan2 (SCM z1, SCM z2);
 extern SCM scm_make_rectangular (SCM z1, SCM z2);
@@ -306,6 +303,7 @@ extern SCM scm_real_part (SCM z);
 extern SCM scm_imag_part (SCM z);
 extern SCM scm_magnitude (SCM z);
 extern SCM scm_angle (SCM z);
+extern SCM scm_exact_to_inexact (SCM z);
 extern SCM scm_inexact_to_exact (SCM z);
 extern SCM scm_trunc (SCM x);
 extern SCM scm_i_dbl2big (double d);
@@ -355,7 +353,7 @@ extern unsigned long long scm_num2ulong_long (SCM num, unsigned long int pos,
 
 extern void scm_init_numbers (void);
 
-#endif  /* NUMBERSH */
+#endif  /* SCM_NUMBERS_H */
 
 /*
   Local Variables:
