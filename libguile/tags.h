@@ -445,9 +445,9 @@ typedef unsigned long scm_t_bits;
 #define scm_tc7_unused_4	47
 #define scm_tc7_unused_5	53
 #define scm_tc7_unused_6	55
-#define scm_tc7_bvect		71
-#define scm_tc7_unused_7	77
-#define scm_tc7_unused_8	79
+#define scm_tc7_unused_7	71
+#define scm_tc7_unused_8	77
+#define scm_tc7_unused_9	79
 #endif
 
 #define scm_tc7_dsubr		61
