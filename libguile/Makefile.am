@@ -111,7 +111,8 @@ install-exec-hook:
 ## compile, since they are #included.  So instead we list them here.
 ## Perhaps we can deal with them normally once the merge seems to be
 ## working.
-noinst_HEADERS = coop-threads.c coop-threads.h coop.c num2integral.i.c
+noinst_HEADERS = coop-threads.c coop-threads.h coop.c \
+		 num2integral.i.c num2float.i.c
 
 libguile_la_DEPENDENCIES = @LIBLOBJS@
 libguile_la_LIBADD = @LIBLOBJS@ $(LIBLTDL)

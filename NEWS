@@ -1208,6 +1208,12 @@ These are conversion functions between the various ANSI C integral
 types and Scheme numbers.  NOTE: The scm_num2xxx functions don't
 accept an inexact argument.
 
+** New functions: scm_float2num, scm_double2num,
+   scm_num2float, scm_num2double.
+
+These are conversion functions between the two ANSI C float types and
+Scheme numbers.
+
 ** New number validation macros:
    SCM_NUM2{SIZE,PTRDIFF,SHORT,USHORT,INT,UINT}[_DEF]
 

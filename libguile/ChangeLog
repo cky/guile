@@ -1,3 +1,13 @@
+2001-09-22  Mikael Djurfeldt  <mdj@linnaeus>
+
+	* Makefile.am: Distribute num2float.i.c.
+
+	* num2float.i.c: New file, multiply included by numbers.c, used
+	to "templatize" the float <-> num conversion routines.
+
+	* numbers.c: New functions: scm_num2float, scm_float2num,
+	scm_num2double, scm_double2num.
+
 2001-09-21  Rob Browning  <rlb@defaultvalue.org>
 
 	* .cvsignore: really add version.h

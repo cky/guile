@@ -4365,6 +4365,16 @@ scm_i_big2dbl (SCM b)
 
 #endif /* HAVE_LONG_LONGS */
 
+#define NUM2FLOAT scm_num2float
+#define FLOAT2NUM scm_float2num
+#define FTYPE float
+#include "libguile/num2float.i.c"
+
+#define NUM2FLOAT scm_num2double
+#define FLOAT2NUM scm_double2num
+#define FTYPE double
+#include "libguile/num2float.i.c"
+
 #ifdef GUILE_DEBUG
 
 #define CHECK(type, v) \
