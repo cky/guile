@@ -1114,6 +1114,22 @@ initialized with the elements of the list @var{lst}.
 Return @code{1} when @var{uvec} is a uniform vector, @code{0} otherwise.
 @end deftypefn
 
+@deftypefn  {C Function} SCM scm_take_u8vector (const scm_t_uint8 *data, size_t len)
+@deftypefnx {C Function} SCM scm_take_s8vector (const scm_t_int8 *data, size_t len)
+@deftypefnx {C Function} SCM scm_take_u16vector (const scm_t_uint16 *data, size_t len)
+@deftypefnx {C Function} SCM scm_take_s168vector (const scm_t_int16 *data, size_t len)
+@deftypefnx {C Function} SCM scm_take_u32vector (const scm_t_uint32 *data, size_t len)
+@deftypefnx {C Function} SCM scm_take_s328vector (const scm_t_int32 *data, size_t len)
+@deftypefnx {C Function} SCM scm_take_u64vector (const scm_t_uint64 *data, size_t len)
+@deftypefnx {C Function} SCM scm_take_s64vector (const scm_t_int64 *data, size_t len)
+@deftypefnx {C Function} SCM scm_take_f32vector (const float *data, size_t len)
+@deftypefnx {C Function} SCM scm_take_f64vector (const double *data, size_t len)
+Return a new uniform vector of the indicated type and length that uses
+the memory pointed to by @var{data} to store its elements.  This memory
+will eventually be freed with @code{free}.  The argument @var{len}
+specifies the number of elements in @var{data}, not its size in bytes.
+@end deftypefn
+
 @deftypefn  {C Function} {void *} scm_uniform_vector_elements (SCM uvec)
 @deftypefnx {C Function} {scm_t_uint8 *} scm_u8vector_elements (SCM uvec)
 @deftypefnx {C Function} {scm_t_int8 *} scm_s8vector_elements (SCM uvec)
