@@ -1,3 +1,12 @@
+Wed Aug 27 11:35:09 1997  Jim Blandy  <jimb@totoro.red-bean.com>
+
+	* Makefile.in: Regenerated, so it uses "tar", not "gtar".
+
+	* configure.in: Use the QuickThreads assembler fragment with Irix
+	dynamic linking support for Irix 6 as well as Irix 5.  Thanks to
+	Jesse Glick.
+	* configure: Regenerated.
+
 Sun Aug 24 15:51:12 1997  Mikael Djurfeldt  <mdj@kenneth>
 
 	* acinclude.m4 (GUILE_NAMED_CHECK_FUNC): New macro: Tagged test,

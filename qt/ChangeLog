@@ -1,3 +1,12 @@
+Wed Aug 27 17:43:38 1997  Jim Blandy  <jimb@totoro.red-bean.com>
+
+	* Makefile.in, md/Makefile.in, time/Makefile.in: Regenerated, so
+ 	it uses "tar", not "gtar".
+
+	* config: Use the QuickThreads assembler fragment with Irix
+ 	dynamic linking support for Irix 6 as well as Irix 5.  Thanks to
+ 	Jesse Glick.
+
 Wed Jul 23 20:32:42 1997  Mikael Djurfeldt  <djurf@zafir.e.kth.se>
 
 	* md/axp.s, md/axp_b.s: Changed comments from C-style to # to

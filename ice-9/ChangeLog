@@ -1,3 +1,7 @@
+Wed Aug 27 11:35:09 1997  Jim Blandy  <jimb@totoro.red-bean.com>
+
+	* Makefile.in: Regenerated, so it uses "tar", not "gtar".
+
 Mon Aug 25 22:00:44 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* emacs.scm (object->string, format, error-args->string): New
