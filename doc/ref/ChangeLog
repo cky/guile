@@ -1,3 +1,7 @@
+2004-06-20  Rob Browning  <rlb@defaultvalue.org>
+
+	* srfi-modules.texi (SRFI-31): add documentation for srfi-31.
+
 2004-05-19  Kevin Ryde  <user42@zip.com.au>
 
 	* Makefile.am (CLEANFILES): Remove guile.cps guile.fns guile.rns

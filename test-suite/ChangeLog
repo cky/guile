@@ -1,3 +1,9 @@
+2004-06-20  Rob Browning  <rlb@defaultvalue.org>
+
+	* tests/srfi-31.test: new test for SRFI-31.
+
+	* Makefile.am (SCM_TESTS): add tests/srfi-31.scm.
+
 2004-06-15  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* tests/numbers.test (number->string): Some results might differ

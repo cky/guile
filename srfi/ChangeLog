@@ -1,3 +1,7 @@
+2004-06-20  Rob Browning  <rlb@defaultvalue.org>
+
+	* srfi-31.scm: new file.
+
 2004-04-24  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
 
 	* srfi-17.scm (setter, car, cdr etc.): When within one define
