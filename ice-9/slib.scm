@@ -1,6 +1,6 @@
 ;;;; slib.scm --- definitions needed to get SLIB to work with Guile
 ;;;;
-;;;;	Copyright (C) 1997, 1998, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
+;;;;	Copyright (C) 1997, 1998, 2000, 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -21,7 +21,9 @@
 	   implementation-vicinity library-vicinity home-vicinity
 	   scheme-implementation-type scheme-implementation-version
 	   output-port-width output-port-height array-indexes
-	   make-random-state require slib:error slib:exit slib:warn slib:eval
+	   make-random-state
+	   -1+ <? <=? =? >? >=?
+	   require slib:error slib:exit slib:warn slib:eval
 	   defmacro:eval logical:logand logical:logior logical:logxor
 	   logical:lognot logical:ash logical:logcount logical:integer-length
 	   logical:bit-extract logical:integer-expt logical:ipow-by-squaring
@@ -233,6 +235,16 @@
 		  (require 'object->string)
 		  (set! seed (object->limited-string seed 50)))))
     (seed->random-state seed)))
+
+;;; {rev2-procedures}
+;;;
+
+(define -1+ 1-)
+(define <?  <)
+(define <=? <=)
+(define =?  =)
+(define >?  >)
+(define >=? >=)
 
 ;;; {Time}
 ;;;
