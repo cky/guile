@@ -163,15 +163,12 @@ scm_gethost (name)
   struct in_addr inad;
   char **argv;
   int i = 0;
-#ifdef HAVE_GETHOSTENT
   if (SCM_UNBNDP (name))
     {
       SCM_DEFER_INTS;
       entry = gethostent ();
     }
-  else
-#endif
-  if (SCM_NIMP (name) && SCM_ROSTRINGP (name))
+  else if (SCM_NIMP (name) && SCM_ROSTRINGP (name))
     {
       SCM_DEFER_INTS;
       entry = gethostbyname (SCM_ROCHARS (name));
