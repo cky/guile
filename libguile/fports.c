@@ -481,7 +481,7 @@ fport_write (SCM port, void *data, size_t size)
 	  int space = pt->write_end - pt->write_pos;
 	  int write_len = (size > space) ? space : size;
 
-	  strncpy (pt->write_pos, input, write_len);
+	  memcpy (pt->write_pos, input, write_len);
 	  pt->write_pos += write_len;
 	  size -= write_len;
 	  input += write_len;

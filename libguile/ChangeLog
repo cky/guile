@@ -1,3 +1,8 @@
+1999-08-18  Gary Houston  <ghouston@easynet.co.uk>
+
+	* fports.c (fport_write): use memcpy instead of strncpy, in case
+	the data contains NUL.
+
 1999-08-17  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* gh.h (gh_vector_to_list): Bugfix.  (Thanks to Frank Cieslok.)
