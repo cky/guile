@@ -398,8 +398,10 @@ scm_stat2scm (struct stat *stat_temp)
       ve[13] = scm_sym_char_special;
     else if (S_ISFIFO (mode))
       ve[13] = scm_sym_fifo;
+#ifdef S_ISSOCK
     else if (S_ISSOCK (mode))
       ve[13] = scm_sym_sock;
+#endif
     else
       ve[13] = scm_sym_unknown;
 

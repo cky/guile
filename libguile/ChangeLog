@@ -1,3 +1,8 @@
+2000-09-30  Gary Houston  <ghouston@arglist.com>
+
+	* filesys.c (scm_stat2scm), posix.c (s_scm_mknod): don't use
+	S_ISSOCK or S_IFSOCK if not defined.  thanks to Bruce Korb.
+
 2000-09-29  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* Makefile.am (guile-procedures.txt): Insert a new rule such that

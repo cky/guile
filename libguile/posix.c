@@ -1226,8 +1226,10 @@ SCM_DEFINE (scm_mknod, "mknod", 4, 0, 0,
     ctype = S_IFCHR;
   else if (strcmp (p, "fifo") == 0)
     ctype = S_IFIFO;
+#ifdef S_IFSOCK
   else if (strcmp (p, "socket") == 0)
     ctype = S_IFSOCK;
+#endif
   else
     SCM_OUT_OF_RANGE (2,type);
 
