@@ -34,6 +34,8 @@ libguilereadline_la_SOURCES = readline.h readline.c
 
 BUILT_SOURCES = readline.x
 
+pkginclude_HEADERS = readline.h
+
 scmdir = $(datadir)/guile
 scm_DATA = readline-activator.scm
 
