@@ -82,17 +82,6 @@ SCM_DEFINE (scm_sys_symbols, "%symbols", 0, 0, 0,
 
 
 
-static char *
-duplicate_string (const char * src, unsigned long length)
-{
-  char * dst = scm_must_malloc (length + 1, "duplicate_string");
-  memcpy (dst, src, length);
-  dst[length] = 0;
-  return dst;
-}
-
-
-
 /* {Symbols}
  */
 
@@ -110,8 +99,9 @@ scm_mem2symbol (const char *name, scm_sizet len)
 
     for (l = SCM_VELTS (symbols) [hash]; !SCM_NULLP (l); l = SCM_CDR (l))
       {
-	SCM sym = SCM_CAAR (l);
-	if (SCM_SYMBOL_HASH (sym) == raw_hash && SCM_SYMBOL_LENGTH (sym) == len)
+	SCM sym = SCM_CAR (l);
+	if (SCM_SYMBOL_HASH (sym) == raw_hash
+	    && SCM_SYMBOL_LENGTH (sym) == len)
 	  {
 	    char *chrs = SCM_SYMBOL_CHARS (sym);
 	    scm_sizet i = len;
@@ -134,18 +124,16 @@ scm_mem2symbol (const char *name, scm_sizet len)
     /* The symbol was not found - create it. */
 
     SCM symbol;
-    SCM cell;
     SCM slot;
 
     SCM_NEWCELL2 (symbol);
-    SCM_SET_SYMBOL_CHARS (symbol, duplicate_string (name, len));
+    SCM_SET_SYMBOL_CHARS (symbol, scm_must_strndup (name, len));
     SCM_SET_SYMBOL_HASH (symbol, raw_hash);
     SCM_SET_PROP_SLOTS (symbol, scm_cons (SCM_BOOL_F, SCM_EOL));
     SCM_SET_SYMBOL_LENGTH (symbol, (long) len);
 
-    cell = scm_cons (symbol, SCM_UNDEFINED);
     slot = SCM_VELTS (symbols) [hash];
-    SCM_VELTS (symbols) [hash] = scm_cons (cell, slot);
+    SCM_VELTS (symbols) [hash] = scm_cons (symbol, slot);
 
     return symbol;
   }
