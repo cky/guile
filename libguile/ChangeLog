@@ -1,3 +1,15 @@
+Sun Mar  9 14:14:39 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* arbiters.c (scm_make_arbiter): Bugfix: Must SCM_DEFER_INTS
+	before constructing arbiter.
+
+	* eval.c (scm_m_define): Bugfix: Check that the object is a
+	closure before setting the procedure property!
+
+	* ports.h: Removed prototype for scm_ungetc_char_ready_p.
+
+	* ports.c: Removed `ungetc-char-ready?'.
+
 Sat Mar  8 00:27:05 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* read.c (scm_init_read): intitialise scm_read_hash_procedures

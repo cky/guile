@@ -15,6 +15,17 @@ snapshots or distributions, but is a strictly internal document.
 CONVENTIONS: ChangeLog format. (Reverse chronological order.)
 ----------------------------------------------------------------------
 
+Sun Mar  9 15:45:14 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* libguile/gc.c (scm_gc_sweep): The probability of collecting a
+	free cell should be very low (only occurring when a signal has
+	interrupted allocation).  Nevertheless, the GC immediately exits
+	when the free cell test is enabled in the sweeper.  Where does
+	this free cell come from?
+
+	* libguile/arbiters.c: Remove this file?  When we've implemented
+	POSIX thread support, "arbiters" will be superfluous.
+
 Thu Mar  6 00:54:59 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* libguile/unif.c: Introduce "fancy printing" for vectors.  "Fancy
