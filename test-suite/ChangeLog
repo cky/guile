@@ -1,3 +1,8 @@
+2004-07-10  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/hash.test: New file.
+	* Makefile.am (SCM_TESTS): Add it.
+
 2004-07-08  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* standalone/test-unwind.c: Use scm_from_int instead of
