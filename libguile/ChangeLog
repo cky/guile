@@ -1,3 +1,18 @@
+2000-11-07  Gary Houston  <ghouston@arglist.com>
+
+	* ports.c (scm_port_for_each): new proc.  implements port-for-each,
+	which applies a procedure to each port in the port table.
+	ports.h: declare scm_port_for_each.
+
+	* ioext.c (scm_dup2): new proc.  implements "dup2" which is a simple
+	wrapper for the dup2 system call (unlike dup->fdes or
+	primitive-move->fdes).
+	* ioext.h: declare scm_dup2.
+
+	* filesys.c (scm_close_fdes): new proc.  implements "close-fdes"
+	which is a simple wrapper for close system call (unlike scm_close).
+	* filesys.h: declare for scm_close_fdes.
+
 2000-11-06  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
 
 	* eval.c (SCM_IM_DISPATCH), objects.c (scm_mcache_lookup_cmethod):

@@ -668,6 +668,26 @@ SCM_DEFINE (scm_close_output_port, "close-output-port", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+SCM_DEFINE (scm_port_for_each, "port-for-each", 1, 0, 0,
+	    (SCM proc),
+	    "Apply @var{proc} to each port in the Guile port table\n"
+	    "in turn.  The return value is unspecified.")
+#define FUNC_NAME s_scm_port_for_each
+{
+  int i;
+  SCM_VALIDATE_PROC (1, proc);
+
+  /* when pre-emptive multithreading is supported, access to the port
+     table will need to be controlled by a mutex.  */
+  SCM_DEFER_INTS;
+  for (i = 0; i < scm_port_table_size; i++)
+    {
+      scm_apply (proc, scm_cons (scm_port_table[i]->port, SCM_EOL), SCM_EOL);
+    }
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_close_all_ports_except, "close-all-ports-except", 0, 0, 1,
            (SCM ports),
 	    "Close all open file ports used by the interpreter\n"

@@ -266,6 +266,7 @@ extern SCM scm_port_mode (SCM port);
 extern SCM scm_close_input_port (SCM port);
 extern SCM scm_close_output_port (SCM port);
 extern SCM scm_close_port (SCM port);
+extern SCM scm_port_for_each (SCM proc);
 extern SCM scm_close_all_ports_except (SCM ports);
 extern SCM scm_input_port_p (SCM x);
 extern SCM scm_output_port_p (SCM x);

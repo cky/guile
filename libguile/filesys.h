@@ -64,6 +64,7 @@ extern SCM scm_umask (SCM mode);
 extern SCM scm_open_fdes (SCM path, SCM flags, SCM mode);
 extern SCM scm_open (SCM path, SCM flags, SCM mode);
 extern SCM scm_close (SCM fd_or_port);
+extern SCM scm_close_fdes (SCM fd);
 extern SCM scm_stat (SCM object);
 extern SCM scm_link (SCM oldpath, SCM newpath);
 extern SCM scm_rename (SCM oldname, SCM newname);

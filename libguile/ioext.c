@@ -412,6 +412,31 @@ SCM_DEFINE (scm_dup_to_fdes, "dup->fdes", 1, 1, 0,
 }
 #undef FUNC_NAME
 
+SCM_DEFINE (scm_dup2, "dup2", 2, 0, 0, 
+            (SCM oldfd, SCM newfd),
+	    "A simple wrapper for the @code{dup2} system call.\n"
+	    "Copies the file descriptor @var{oldfd} to descriptor\n"
+	    "number @var{newfd}, replacing the previous meaning\n"
+	    "of @var{newfd}.  Both @var{oldfd} and @var{newfd} must\n"
+	    "be integers.\n"
+	    "Unlike for dup->fdes or primitive-move->fdes, no attempt\n"
+	    "is made to move away ports which are using @var{newfd}\n".
+	    "The return value is unspecified.")
+#define FUNC_NAME s_scm_dup2
+{
+  int c_oldfd;
+  int c_newfd;
+  int rv;
+
+  SCM_VALIDATE_INUM_COPY (1, oldfd, c_oldfd);
+  SCM_VALIDATE_INUM_COPY (2, newfd, c_newfd);
+  rv = dup2 (c_oldfd, c_newfd);
+  if (rv == -1)
+    SCM_SYSERROR;
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_fileno, "fileno", 1, 0, 0, 
             (SCM port),
 	    "Returns the integer file descriptor underlying @var{port}.\n"
