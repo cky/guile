@@ -1,3 +1,13 @@
+1998-07-26  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	* Makefile.am: Adjust for new thread configuration system.
+	(INCLUDES): Include the value of THREAD_CPPFLAGS.
+	(guile_LDADD, check_ldadd): THREAD_LIBS_LOCAL has been renamed from
+	THREAD_LIBS.
+	(THREAD_LIBS): Definition deleted; automake will generate such
+	things automatically.
+	* Makefile.in: Regenerated.
+
 1998-07-23  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	Simplify smob and port marking; set the mark bit in the generic

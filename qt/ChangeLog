@@ -1,3 +1,19 @@
+1998-07-26  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	Use libtool, and the thread configuration mechanism.
+	* Makefile.am (lib_LTLIBRARIES, EXTRA_LTLIBRARIES,
+	libqthreads_la_SOURCES, libqthreads_la_LIBADD): These replace
+	lib_LIBRARIES, EXTRA_LIBRARIES, libqthreads_a_SOURCES,
+	libqthreads_a_LIBADD.  Use the variables set by the new config
+	system.
+	(libqthreads_la_DEPENDENCIES): New var.
+	(libqthreads_la_LDFLAGS): Add -rpath; automake claims it can't set
+	it itself, but I don't completely understand why.
+	(qtmds.o, qtmdc.o): Rules removed.  Use implicit build rules.
+	(qtmds.s, qtmdc.c, qtdmdb.s): Rules added, to make symlinks to the
+	appropriate files in the source tree.
+	* Makefile.in, md/Makefile.in, time/Makefile.in: Regenerated.
+
 1998-04-15  Mikael Djurfeldt  <mdj@nada.kth.se>
 
 	* qt.h.in: Declare return type of qt_abort as void.

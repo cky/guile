@@ -1,3 +1,7 @@
+1998-07-26  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	* Makefile.in: Rebuilt, for config changes in parent dir.
+
 1998-01-05  Tim Pierce  <twp@skepsis.com>
 
 	* .cvsignore: New file.

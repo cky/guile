@@ -1,3 +1,25 @@
+1998-07-26  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	Clean up thread configuration.
+	* qthreads.m4: New file, which knows how to configure the qthreads
+	library.
+	* configure.in: Replace all thread package selection code.  Do the
+ 	--with-threads argument processing here.  Enable the appropriate
+ 	thread interface files in libguile.  Remove all qthreads
+ 	configuration code; call QTHREADS_CONFIGURE instead.  Set
+ 	GUILE_LIBS using the info provided by QTHREADS_CONFIGURE.
+	* threads.m4: Removed; not used any more.
+	* Makefile.am (aclocal_DATA): Mention qthreads.m4, not threads.m4.
+	* Makefile.in, aclocal.m4, configure: Rgnrtd.  (Sv th vwls!)
+	Note that these were regenerated with the tools available from
+	Cygnus's source tree, which have patches not available to the
+	general public.  I'm not sure this was a good idea; feel free to
+	revert them to the latest released versions of the tools.
+
+	Upgrade to the version of libtool available at Cygnus.  See note
+	above.
+	* config.guess, config.sub, ltconfig, ltmain.sh: Upgraded.
+
 1998-07-12  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
 	* configure.in: Changed variable HOSTNAME --> PROG_HOSTNAME in

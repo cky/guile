@@ -1,3 +1,7 @@
+1998-07-26  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	* Makefile.in Rebuilt, for config changes in parent dir.
+
 1998-07-21  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* readline.scm (make-readline-port): Set prompt string to "... "
