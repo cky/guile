@@ -1,5 +1,10 @@
 2002-09-05  Han-Wen Nienhuys  <hanwen@cs.uu.nl>
 
+	* struct.h: change scm_structs_to_free to scm_i_structs_to_free
+
+	* gc-malloc.c (scm_gc_register_collectable_memory): use floats;
+	these won't ever wrap around with high memory usage.
+
 	* gc-freelist.c: include <stdio.h>
 
 	* gc-malloc.c: add DEBUGINFO for mtrigger GCs.

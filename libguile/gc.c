@@ -120,8 +120,6 @@ int scm_i_cell_validation_already_running ;
   periods.
 
 */
-
-
 void
 scm_i_expensive_validation_check (SCM cell)
 {
@@ -276,10 +274,6 @@ int scm_block_gc = 1;
  * weak references.
  */
 SCM scm_weak_vectors;
-
-/* During collection, this accumulates structures which are to be freed.
- */
-SCM scm_structs_to_free;
 
 /* GC Statistics Keeping
  */
@@ -608,10 +602,19 @@ scm_igc (const char *what)
 
   scm_gc_sweep ();
 
+
+  /*
+    TODO: this hook should probably be moved to just before the mark,
+    since that's where the  sweep is finished in lazy sweeping.
+   */
   scm_c_hook_run (&scm_after_sweep_c_hook, 0);
   gc_end_stats ();
 
   SCM_CRITICAL_SECTION_END;
+
+  /*
+    See above.
+   */
   scm_c_hook_run (&scm_after_gc_c_hook, 0);
   --scm_gc_running_p;
 

@@ -360,7 +360,7 @@ scm_struct_gc_init (void *dummy1 SCM_UNUSED,
 		    void *dummy2 SCM_UNUSED,
 		    void *dummy3 SCM_UNUSED)
 {
-  scm_structs_to_free = SCM_EOL;
+  scm_i_structs_to_free = SCM_EOL;
   return 0;
 }
 
@@ -369,7 +369,7 @@ scm_free_structs (void *dummy1 SCM_UNUSED,
 		  void *dummy2 SCM_UNUSED,
 		  void *dummy3 SCM_UNUSED)
 {
-  SCM newchain = scm_structs_to_free;
+  SCM newchain = scm_i_structs_to_free;
   do
     {
       /* Mark vtables in GC chain.  GC mark set means delay freeing. */

@@ -296,7 +296,7 @@ scm_i_insert_segment (scm_t_heap_segment * seg)
       highest_cell = SCM_MAX (highest_cell, seg->bounds[1]);
     }
 
-  
+
   {
     int i = 0;
     int j = 0;
@@ -304,6 +304,17 @@ scm_i_insert_segment (scm_t_heap_segment * seg)
     while (i < scm_i_heap_segment_table_size
 	   && scm_i_heap_segment_table[i]->bounds[0] <= seg->bounds[0])
       i++;
+
+    /*
+      We insert a new entry; if that happens to be before the
+      "current" segment of a freelist, we must move the freelist index
+      as well.
+    */
+    if (scm_i_master_freelist.heap_segment_idx >= i)
+      scm_i_master_freelist.heap_segment_idx ++;
+    if (scm_i_master_freelist2.heap_segment_idx >= i)
+      scm_i_master_freelist2.heap_segment_idx ++;
+
     for (j = scm_i_heap_segment_table_size; j > i; --j)
       scm_i_heap_segment_table[j] = scm_i_heap_segment_table[j - 1];
 

@@ -103,7 +103,7 @@ SCM_API SCM scm_struct_table;
 
 #define SCM_STRUCT_GC_CHAIN(X) SCM_CELL_OBJECT_3 (X)
 #define SCM_SET_STRUCT_GC_CHAIN(X, Y) SCM_SET_CELL_OBJECT_3 (X, Y)
-SCM_API SCM scm_structs_to_free;
+SCM_API SCM scm_i_structs_to_free;
 
 
 

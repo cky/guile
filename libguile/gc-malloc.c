@@ -200,13 +200,15 @@ scm_gc_register_collectable_memory (void *mem, size_t size, const char *what)
    */
   if (scm_mallocated > scm_mtrigger)
     {
-      long prev_alloced  = scm_mallocated;
+      unsigned long prev_alloced  = scm_mallocated;
       float yield;
       
       scm_igc (what);
       scm_i_sweep_all_segments("mtrigger");
 
-      yield = (prev_alloced - scm_mallocated) / (float) prev_alloced;
+      yield = ((float)prev_alloced - (float) scm_mallocated)
+	/ (float) prev_alloced;
+      
       scm_gc_malloc_yield_percentage = (int) (100  * yield);
 
 #ifdef DEBUGINFO

@@ -68,6 +68,11 @@
 long int scm_i_deprecated_memory_return;
 
 
+/* During collection, this accumulates structures which are to be freed.
+ */
+SCM scm_i_structs_to_free;
+
+
 /*
   Init all the free cells in CARD, prepending to *FREE_LIST.
 
@@ -109,8 +114,8 @@ scm_i_sweep_card (scm_t_cell *  p, SCM *free_list, scm_t_heap_segment*seg)
 	    /* Structs need to be freed in a special order.
 	     * This is handled by GC C hooks in struct.c.
 	     */
-	    SCM_SET_STRUCT_GC_CHAIN (p, scm_structs_to_free);
-	    scm_structs_to_free = scmptr;
+	    SCM_SET_STRUCT_GC_CHAIN (p, scm_i_structs_to_free);
+	    scm_i_structs_to_free = scmptr;
 	  }
 	  continue;
       
