@@ -1,5 +1,9 @@
 2002-07-07  Marius Vollmer  <mvo@zagadka.ping.de>
 
+	* autogen.sh: Do not copy INSTALL from workbook since it is not
+	uniform across branches.
+	* INSTALL: Re-added to repository.
+	
 	Crosscompiling and Cygwin fixes from Jan Nieuwenhuizen.  Thanks!
 	
 	* autogen.sh: Only fix libltdl/configure.in if it exists.  Current
