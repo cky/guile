@@ -1,3 +1,8 @@
+2004-03-25  Kevin Ryde  <user42@zip.com.au>
+
+	* numbers.c (scm_min, scm_max): Correction to big/real and real/big,
+	return inexact as required by r5rs.
+
 2004-03-24  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
 
 	* eval.c: Separated some definitions relevant for execution from
