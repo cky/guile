@@ -67,11 +67,22 @@ extern int scm_block_gc;
 extern int scm_gc_heap_lock;
 
 
+typedef struct scm_freelist_t {
+  SCM cells;
+  /* number of cells per object on this list */
+  int span;
+  /* number of collected cells during last GC */
+  int collected;
+  /* total number of cells in heap segments
+   * belonging to this list.
+   */
+  int heap_size;
+} scm_freelist_t;
 
 extern unsigned long scm_heap_size;
 extern SCM_CELLPTR scm_heap_org;
-extern SCM scm_freelist;
-extern SCM scm_freelist2;
+extern scm_freelist_t scm_freelist;
+extern scm_freelist_t scm_freelist2;
 extern unsigned long scm_gc_cells_collected;
 extern unsigned long scm_gc_malloc_collected;
 extern unsigned long scm_gc_ports_collected;
@@ -94,8 +105,8 @@ extern SCM scm_gc_stats (void);
 extern void scm_gc_start (const char *what);
 extern void scm_gc_end (void);
 extern SCM scm_gc (void);
-extern void scm_gc_for_alloc (int ncells, SCM * freelistp);
-extern SCM scm_gc_for_newcell (int ncells, SCM * freelistp);
+extern void scm_gc_for_alloc (scm_freelist_t *freelistp);
+extern SCM scm_gc_for_newcell (scm_freelist_t *freelistp);
 extern void scm_igc (const char *what);
 extern void scm_gc_mark (SCM p);
 extern void scm_mark_locations (SCM_STACKITEM x[], scm_sizet n);
