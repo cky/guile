@@ -57,10 +57,12 @@ typedef struct scm_t_array_dim
 } scm_t_array_dim;
 
 SCM_API scm_t_bits scm_tc16_array;
+SCM_API scm_t_bits scm_tc16_enclosed_array;
 
 #define SCM_ARRAY_FLAG_CONTIGUOUS (1 << 16)
 
 #define SCM_ARRAYP(a) 	    SCM_TYP16_PREDICATE (scm_tc16_array, a)
+#define SCM_ENCLOSED_ARRAYP(a) SCM_TYP16_PREDICATE (scm_tc16_enclosed_array, a)
 #define SCM_ARRAY_NDIM(x)   ((size_t) (SCM_CELL_WORD_0 (x) >> 17))
 #define SCM_ARRAY_CONTP(x)  (SCM_CELL_WORD_0 (x) & SCM_ARRAY_FLAG_CONTIGUOUS)
 #define SCM_SET_ARRAY_CONTIGUOUS_FLAG(x) \
@@ -79,9 +81,6 @@ SCM_API SCM scm_array_dimensions (SCM ra);
 SCM_API SCM scm_shared_array_root (SCM ra);
 SCM_API SCM scm_shared_array_offset (SCM ra);
 SCM_API SCM scm_shared_array_increments (SCM ra);
-SCM_API long scm_aind (SCM ra, SCM args, const char *what);
-SCM_API SCM scm_shap2ra (SCM args, const char *what);
-SCM_API SCM scm_dimensions_to_uniform_array (SCM dims, SCM prot, SCM fill);
 SCM_API SCM scm_make_shared_array (SCM oldra, SCM mapfunc, SCM dims);
 SCM_API SCM scm_transpose_array (SCM ra, SCM args);
 SCM_API SCM scm_enclose_array (SCM ra, SCM axes);
@@ -89,11 +88,11 @@ SCM_API SCM scm_array_in_bounds_p (SCM v, SCM args);
 SCM_API SCM scm_array_ref (SCM v, SCM args);
 SCM_API SCM scm_array_set_x (SCM v, SCM obj, SCM args);
 SCM_API SCM scm_array_contents (SCM ra, SCM strict);
-SCM_API SCM scm_ra2contig (SCM ra, int copy);
-SCM_API SCM scm_uniform_array_read_x (SCM ra, SCM port_or_fd, SCM start, SCM end);
-SCM_API SCM scm_uniform_array_write (SCM v, SCM port_or_fd, SCM start, SCM end);
+SCM_API SCM scm_uniform_array_read_x (SCM ra, SCM port_or_fd,
+				      SCM start, SCM end);
+SCM_API SCM scm_uniform_array_write (SCM v, SCM port_or_fd,
+				     SCM start, SCM end);
 SCM_API SCM scm_array_to_list (SCM v);
-SCM_API SCM scm_list_to_uniform_array (SCM ndim, SCM prot, SCM lst);
 SCM_API SCM scm_array_creator (SCM ra);
 
 SCM_API SCM scm_i_read_array (SCM port, int c);
@@ -135,6 +134,11 @@ SCM_API SCM scm_cvref (SCM v, unsigned long pos, SCM last);
 SCM_API SCM scm_istr2bve (SCM str);
 SCM_API int scm_raprin1 (SCM exp, SCM port, scm_print_state *pstate);
 SCM_API SCM scm_array_prototype (SCM ra);
+SCM_API SCM scm_list_to_uniform_array (SCM ndim, SCM prot, SCM lst);
+SCM_API long scm_aind (SCM ra, SCM args, const char *what);
+SCM_API SCM scm_shap2ra (SCM args, const char *what);
+SCM_API SCM scm_dimensions_to_uniform_array (SCM dims, SCM prot, SCM fill);
+SCM_API SCM scm_ra2contig (SCM ra, int copy);
 
 SCM_API SCM scm_i_proc_make_vector;
 SCM_API SCM scm_i_proc_make_string;
