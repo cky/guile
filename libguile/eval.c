@@ -1158,6 +1158,34 @@ scm_eval_args (l, env)
     }
   return res;
 }
+
+
+/* The SCM_CEVAL and SCM_APPLY functions use this function instead of
+   calling setjmp directly, to make sure that local variables don't
+   have their values clobbered by a longjmp.
+
+   According to Harbison & Steele, "Automatic variables local to the
+   function containing setjmp are guaranteed to have their correct
+   value in ANSI C only if they have a volatile-qualified type or if
+   their values were not changed between the original call to setjmp
+   and the corresponding longjmp call."
+
+   SCM_CEVAL and SCM_APPLY are too complex for me to see how to meet
+   the second condition, and making x and env volatile would be a
+   speed problem, so we'll just trivially meet the first, by having no
+   "automatic variables local to the function containing setjmp."  */
+static int
+safe_setjmp (jmp_buf env)
+{
+  /* I think ANSI requires us to write the function this way, instead
+     of just saying "return setjmp (env)".  Maybe I'm being silly.
+     See Harbison & Steele, third edition, p. 353.  */
+  int val;
+  val = setjmp (env);
+  return val;
+}
+
+
 #endif /* !DEVAL */
 
 
@@ -1204,7 +1232,7 @@ scm_eval_args (l, env)
 	else\
 	  {\
 	    scm_make_cont (&tmp);\
-	    if (!setjmp (SCM_JMPBUF (tmp)))\
+	    if (!safe_setjmp (SCM_JMPBUF (tmp)))\
 	      scm_ithrow (scm_i_apply_frame, scm_cons2 (tmp, tail, SCM_EOL), 0);\
 	  }\
       }\
@@ -1371,7 +1399,7 @@ loop:
 	  SCM_RESET_DEBUG_MODE;
 	  SCM_CLEAR_TRACED_FRAME (debug);
 	  scm_make_cont (&t.arg1);
-	  if (!setjmp (SCM_JMPBUF (t.arg1)))
+	  if (!safe_setjmp (SCM_JMPBUF (t.arg1)))
 	    scm_ithrow (scm_i_exit_tail, scm_cons (t.arg1, SCM_EOL), 0);
 	}
     }
@@ -1400,7 +1428,7 @@ start:
 	else
 	  {
 	    scm_make_cont (&t.arg1);
-	    if (setjmp (SCM_JMPBUF (t.arg1)))
+	    if (safe_setjmp (SCM_JMPBUF (t.arg1)))
 	      {
 		x = SCM_THROW_VALUE (t.arg1);
 		if (SCM_IMP (x))
@@ -1726,7 +1754,7 @@ dispatch:
 
 	case (SCM_ISYMNUM (SCM_IM_CONT)):
 	  scm_make_cont (&t.arg1);
-	  if (setjmp (SCM_JMPBUF (t.arg1)))
+	  if (safe_setjmp (SCM_JMPBUF (t.arg1)))
 	    {
 	      SCM val;
 	      val = SCM_THROW_VALUE (t.arg1);
@@ -2185,7 +2213,7 @@ exit:
 	else
 	  {
 	    scm_make_cont (&t.arg1);
-	    if (setjmp (SCM_JMPBUF (t.arg1)))
+	    if (safe_setjmp (SCM_JMPBUF (t.arg1)))
 	      {
 		proc = SCM_THROW_VALUE (t.arg1);
 		goto ret;
@@ -2345,7 +2373,7 @@ SCM_APPLY (proc, arg1, args)
       else
 	{
 	  scm_make_cont (&tmp);
-	  if (setjmp (SCM_JMPBUF (tmp)))
+	  if (safe_setjmp (SCM_JMPBUF (tmp)))
 	    goto entap;
 	}
       scm_ithrow (scm_i_enter_frame, scm_cons (tmp, SCM_EOL), 0);
@@ -2492,7 +2520,7 @@ exit:
 	else
 	  {
 	    scm_make_cont (&arg1);
-	    if (setjmp (SCM_JMPBUF (arg1)))
+	    if (safe_setjmp (SCM_JMPBUF (arg1)))
 	      {
 		proc = SCM_THROW_VALUE (arg1);
 		goto ret;
