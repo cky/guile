@@ -71,12 +71,15 @@ static SCM scm_divbigint (SCM x, long z, int sgn, int mode);
 
 
 /* IS_INF tests its floating point number for infiniteness
+   Dirk:FIXME:: This test does not work if x == 0
  */
 #ifndef IS_INF
 #define IS_INF(x) ((x) == (x) / 2)
 #endif
 
+
 /* Return true if X is not infinite and is not a NaN
+   Dirk:FIXME:: Since IS_INF is broken, this test does not work if x == 0
  */
 #ifndef isfinite
 #define isfinite(x) (!IS_INF (x) && (x) == (x))
@@ -157,6 +160,8 @@ scm_abs (SCM x)
     } else {
       return scm_copybig (x, 0);
     }
+  } else if (SCM_REALP (x)) {
+    return scm_make_real (fabs (SCM_REAL_VALUE (x)));
   } else {
     SCM_WTA_DISPATCH_1 (g_abs, x, 1, s_abs);
   }
@@ -2674,7 +2679,7 @@ scm_istr2flo (char *str, long len, long radix)
 	  return SCM_BOOL_F;	/* not `real' */
 	if (SCM_SLOPPY_COMPLEXP (second))
 	  return SCM_BOOL_F;	/* not `real' */
-	tmp = SCM_REALPART (second);
+	tmp = SCM_REAL_VALUE (second);
 	return scm_make_complex (res * cos (tmp), res * sin (tmp));
       }
     default:
@@ -2693,7 +2698,7 @@ scm_istr2flo (char *str, long len, long radix)
     return SCM_BOOL_F;		/* not `ureal' */
   if (SCM_SLOPPY_COMPLEXP (second))
     return SCM_BOOL_F;		/* not `ureal' */
-  tmp = SCM_REALPART (second);
+  tmp = SCM_REAL_VALUE (second);
   if (tmp < 0.0)
     return SCM_BOOL_F;		/* not `ureal' */
   return scm_make_complex (res, (lead_sgn * tmp));
@@ -2793,6 +2798,7 @@ SCM_DEFINE (scm_string_to_number, "string->number", 1, 1, 0,
 #undef FUNC_NAME
 /*** END strs->nums ***/
 
+
 SCM
 scm_make_real (double x)
 {
@@ -2801,6 +2807,7 @@ scm_make_real (double x)
   return z;
 }
 
+
 SCM
 scm_make_complex (double x, double y)
 {
@@ -2808,6 +2815,7 @@ scm_make_complex (double x, double y)
   SCM_NEWCOMPLEX (z, x, y);
   return z;
 }
+
 
 SCM
 scm_bigequal (SCM x, SCM y)
@@ -2890,7 +2898,7 @@ SCM_DEFINE (scm_integer_p, "integer?", 1, 0, 0,
     return SCM_BOOL_F;
   if (SCM_SLOPPY_COMPLEXP (x))
     return SCM_BOOL_F;
-  r = SCM_REALPART (x);
+  r = SCM_REAL_VALUE (x);
   if (r == floor (r))
     return SCM_BOOL_T;
   return SCM_BOOL_F;
@@ -3967,9 +3975,24 @@ SCM
 scm_magnitude (SCM z)
 {
   if (SCM_INUMP (z)) {
-    return scm_abs (z);
+    long int zz = SCM_INUM (z);
+    if (zz >= 0) {
+      return z;
+    } else if (SCM_POSFIXABLE (-zz)) {
+      return SCM_MAKINUM (-zz);
+    } else {
+#ifdef SCM_BIGDIG
+      return scm_long2big (-zz);
+#else
+      scm_num_overflow (s_magnitude);
+#endif
+    }
   } else if (SCM_BIGP (z)) {
-    return scm_abs (z);
+    if (!SCM_BIGSIGN (z)) {
+      return z;
+    } else {
+      return scm_copybig (z, 0);
+    }
   } else if (SCM_REALP (z)) {
     return scm_make_real (fabs (SCM_REAL_VALUE (z)));
   } else if (SCM_COMPLEXP (z)) {
@@ -4286,7 +4309,7 @@ scm_init_numbers ()
 {
   scm_add_feature ("complex");
   scm_add_feature ("inexact");
-  SCM_NEWREAL (scm_flo0, 0.0);
+  scm_flo0 = scm_make_real (0.0);
 #ifdef DBL_DIG
   scm_dblprec = (DBL_DIG > 20) ? 20 : DBL_DIG;
 #else

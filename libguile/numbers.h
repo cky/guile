@@ -201,7 +201,7 @@
   (SCM_SLOPPY_REALP (x) ? SCM_REAL_VALUE (x) : SCM_COMPLEX_REAL (x))
 
 #define scm_makdbl scm_make_complex /* Deprecated */
-#define SCM_SINGP(x) SCM_BOOL_F /* Deprecated */
+#define SCM_SINGP(x) 0 /* Deprecated */
 
 /* Define SCM_BIGDIG to an integer type whose size is smaller than long if
  * you want bignums.  SCM_BIGRAD is one greater than the biggest SCM_BIGDIG. 

@@ -1,5 +1,20 @@
 2000-05-10  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* numbers.c (IS_INF, isfinite):  Added FIXME comment.
+
+	(scm_abs, scm_magnitude):  Make these two independent of each
+	other.  scm_abs now reports an error if given a complex argument.
+
+	(scm_istr2flo, scm_integer_p).  Use SCM_REAL_VALUE instead of
+	SCM_REALPART if the object is known to be real.
+
+	(scm_init_numbers):  No need to use SCM_NEWREAL macro for speed
+	here.
+
+	* numbers.h (SCM_SINGP):  Set to 0 instead of SCM_BOOL_F.
+
+2000-05-10  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* eq.c (scm_eqv_p):  Separate handling of real and complex
 	values.  Remove #ifdef SCM_BIGDIG #endif test.
 
