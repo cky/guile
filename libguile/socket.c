@@ -690,7 +690,7 @@ scm_recvfrom (sock, buff_or_size, flags)
 	  if (start > end)
 	    scm_out_of_range (s_recvfrom, s_start);
 	  c_buf = SCM_CHARS (tok_buf) + start;
-	  size = end - start
+	  size = end - start;
 	}
       else {
 	SCM_ASSERT (SCM_STRINGP (buff_or_size), buff_or_size, SCM_ARG2,

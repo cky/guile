@@ -1,3 +1,7 @@
+Tue Jan  7 15:04:06 1997  Mikael Djurfeldt  <mdj@kenneth>
+
+	* socket.c (scm_recvfrom): Added missing semicolon.
+
 Mon Jan  6 20:39:08 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* socket.c (scm_recvfrom): allow buff_or_size to be a list containing
