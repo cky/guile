@@ -34,6 +34,9 @@
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
 #endif
+#ifdef __MINGW32__
+#include <process.h>
+#endif
 
 /* We need to provide a type for gcc_uint64_t.  */
 #ifdef __GNUC__
