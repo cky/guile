@@ -34,11 +34,18 @@ Interesting files include:
 
 The Guile source tree is laid out as follows:
 
-doc:	  Documentation for Guile, in Texinfo form.
-libguile: The Guile Scheme interpreter, packaged as an object
-          library for you to link with your programs.
-guile:    An interactive front end for the Guile Scheme interpreter.
-rx:       A regular expression matching library, interfaced to Guile.
-ice-9:    Guile's module system, initialization code, and other infrastructure.
-lang:     A Guile module of tools for writing lexical analyzers and parsers.
-ctax:     A Guile module providing a C-like syntax for Scheme.
+doc:	Documentation for Guile, in Texinfo form.
+libguile:
+	The Guile Scheme interpreter, packaged as an object library
+	for you to link with your programs.
+guile:  An interactive front end for the Guile Scheme interpreter.
+rx:     A regular expression matching library, interfaced to Guile.
+ice-9:  Guile's module system, initialization code, and other infrastructure.
+lang:   A Guile module of tools for writing lexical analyzers and parsers.
+ctax:   A Guile module providing a C-like syntax for Scheme.
+gtcltk-lib:
+	Glue code for talking to tcl/tk from Guile.  The Tcl/Tk
+	developers have big plans for the next major release of Tcl/Tk
+	which will make possible a clean, direct interface between
+	Guile and Tk, so we're providing this very simple-minded
+	interface until that's ready.
