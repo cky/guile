@@ -1,0 +1,4 @@
+2000-10-23  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
+
+	* goops.scm (goops-error): Removed use of oldfmt.
+

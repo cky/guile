@@ -8,7 +8,72 @@ Changes since Guile 1.4:
 
 * Changes to the distribution
 
+** New modules (oop goops) etc
+
+The new modules
+
+  (oop goops)
+  (oop goops describe)
+  (oop goops save)
+  (oop goops active-slot)
+  (oop goops composite-slot)
+
+plus some GOOPS utility modules have been added.
+
 * Changes to the stand-alone interpreter
+
+** GOOPS has been merged into Guile
+
+The Guile Object Oriented Programming System has been integrated into
+Guile.
+
+Type
+
+  (use-modules (oop goops))
+
+access GOOPS bindings.
+
+We're now ready to try some basic GOOPS functionality.
+
+Generic functions
+
+  (define-method (+ (x <string>) (y <string>))
+    (string-append x y))
+
+  (+ 1 2) --> 3
+  (+ "abc" "de") --> "abcde"
+
+User-defined types
+
+  (define-class <2D-vector> ()
+    (x #:init-value 0 #:accessor x-component #:init-keyword #:x)
+    (y #:init-value 0 #:accessor y-component #:init-keyword #:y))
+
+  (define-method write ((obj <2D-vector>) port)
+    (display (format #f "<~S, ~S>" (x-component obj) (y-component obj))
+	     port))
+
+  (define v (make <2D-vector> #:x 3 #:y 4))
+  v --> <3, 4>
+
+  (define-method + ((x <2D-vector>) (y <2D-vector>))
+    (make <2D-vector>
+          #:x (+ (x-component x) (x-component y))
+          #:y (+ (y-component x) (y-component y))))
+
+  (+ v v) --> <6, 8>
+
+Asking for the type of an object
+
+  (class-of v) --> #<<class> <2D-vector> 40241ac0>
+  <2D-vector>  --> #<<class> <2D-vector> 40241ac0>
+  (class-of 1) --> #<<class> <integer> 401b2a98>
+  <integer>    --> #<<class> <integer> 401b2a98>
+
+  (is-a? v <2D-vector>) --> #t
+
+See further in the GOOPS tutorial available in the guile-doc
+distribution in info (goops.info) and texinfo formats.
 
 ** It's now possible to create modules with controlled environments
 

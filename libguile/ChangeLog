@@ -1,3 +1,37 @@
+2000-10-25  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
+
+	This change merges the GOOPS code into Guile.  However, GOOPS
+	is still not initialized until someone asks for the module.
+	We need to optimize GOOPS initialization time before initializing
+	it together with the rest of libguile.  We also need to add the
+	C API + primitive methods.  Then we can start using it to
+	modularize Guile, implement a real exception system etc.
+
+	* goops.c, objects.c, objects.h, eval.c (scm_make_extended_class,
+	scm_make_port_classes, scm_change_object_class,
+	scm_memoize_method): Changed to ordinary functions (was plugin
+	slots).
+
+	* goops.c (wrap_init, scm_wrap_object): Unconditionally use
+	SCM_STRUCT_GC_CHAIN.
+	(scm_goops_version): Removed.
+	(scm_oldfmt): and all uses of it: Removed.
+	(scm_shared_array_root, scm_shared_array_offset,
+	scm_shared_array_increments): Removed.
+	(scm_init_goops): No need to support two arg mutex init.
+	Removed #include "versiondat.h", #include "goops.h".
+
+	* goops.h: Removed various superfluous conditions.
+
+	* init.c (scm_init_guile_1): Call the goops module registration
+	function.
+	Added #include "libguile/goops.h".
+
+	* Makefile.am (libguile_la_SOURCES): Added goops.c
+	(DOT_X_FILES): Added goops.x
+	(DOT_DOC_FILES): Added goops.doc
+	(modinclude_HEADERS): Added goops.h
+
 2000-10-25  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* gc.c (scm_igc):  Remove references to scm_vector_set_length_x.
@@ -59,6 +93,7 @@
 
 	* validated.h (SCM_VALIDATE_STRINGORSUBSTR):  Deprecated.
 
+>>>>>>> 1.1152
 2000-10-20  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* init.c (scm_init_guile_1, invoke_main_func): Call

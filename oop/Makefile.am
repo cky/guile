@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in.
 ##
-##  	Copyright (C) 1998, 1999, 2000 Free Software Foundation, Inc.
+##  	Copyright (C) 2000 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##   
@@ -19,11 +19,15 @@
 ##   to the Free Software Foundation, Inc., 59 Temple Place, Suite
 ##   330, Boston, MA 02111-1307 USA
 
-SUBDIRS = ice-9 oop qt libltdl libguile guile-config guile-readline doc
+AUTOMAKE_OPTIONS = foreign
 
-include_HEADERS = libguile.h
+SUBDIRS = goops
 
-EXTRA_DIST = qthreads.m4 HACKING GUILE-VERSION ANON-CVS SNAPSHOTS
+# These should be installed and distributed.
+oop_sources = goops.scm
 
-# The rule will cd to $(top_srcdir).
-ACLOCAL = ./guile-aclocal.sh
+subpkgdatadir = $(pkgdatadir)/$(VERSION)/oop
+subpkgdata_DATA = $(oop_sources)
+ETAGS_ARGS = $(subpkgdata_DATA)
+
+EXTRA_DIST = $(oop_sources)

@@ -1,3 +1,10 @@
+2000-10-25  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
+
+	* GUILE-VERSION (LIBGUILE_MAJOR_VERSION): Incremented major
+	version number to 10 due to the merge of GOOPS.
+
+	* oop: New directory.
+
 2000-09-20  Keisuke Nishida  <kxn30@po.cwru.edu>
 
 	* libguile.h: #include "libguile/properties.h".
