@@ -1,45 +1,60 @@
 The Guile maintainer committee consists of
 
-	Jim Blandy
-     Mikael Djurfeldt
-     Maciej Stachowiak
-     Marius Vollmer
+	    Jim Blandy
+	 Mikael Djurfeldt
+	 Maciej Stachowiak
+	 Marius Vollmer
 
 Contributors since the last release:
 
-       Jost Boekemeier
-       Greg Harvey
-       Will Fitzgerald
-       Rob Browning
+	    Rob Browning
+	   Will Fitzgerald
+	 Martin Grabmueller
+	   Dirk Herrmann
+	   Gary Houston
+	   Neil Jerram
+       Matthias Koeppe
+	Michael Livshin
+      Thien-Thi Nguyen
+	Keisuke Nishida
+	  Niibe Yutaka
 
 For fixes or providing information which led to a fix:
 
-    Lars J. Aas
-        Ian Bicking
-        Rob Browning
-     George Caswell
-      Chris Cramer
-      I. N. Golubev
-     Martin Grabmueller
-     Andres Holst
-       Neil Jerram
-       Brad Knotwell
-   Matthias Köppe
-      Bruce Korb
-       Ralf Mattes
-      Shuji Narazaki
-    Nicolas Neuss
-  Thien-Thi Nguyen
-    Han-Wen Nienhuys
-      David Pirotte
-     Sergey Poznyakoff
-     Julian Satchell
-       Bill Schottstaedt
-   Miroslav Silovic
-    Dale P. Smith
-      Masao Uebayashi
- Jacques A. Vidrine
-      Brett Viren
-    William Webber
-      Keith Wright
-      Niibe Yutaka
+	Lars J. Aas
+	 Martin Baulig
+	    Ian Bicking
+   Quetzalcoatl Bradley
+	 George Caswell
+	 Albert Chin
+	  Chris Cramer
+	  I. N. Golubev
+	Utz-Uwe Haus
+        Karl M. Hegbloom
+	 Anders Holst
+      Steven G. Johnson
+	Richard Kim
+      Alexander Klimov
+	   Brad Knotwell
+	  Bruce Korb
+       Matthias Köppe
+	   Ralf Mattes
+	  Shuji Narazaki
+	Han-Wen Nienhuys
+       Bertrand Petit
+	  David Pirotte
+	 Sergey Poznyakoff
+	  Ariel Rios
+	 Julian Satchell
+	   Bill Schottstaedt
+       Miroslav Silovic
+	  David Skarda
+	Dale P. Smith
+	  Masao Uebayashi
+	Bernard Urban
+     Jacques A. Vidrine.
+	  Brett Viren
+	 Thomas Wawrzinek
+	Florian Weimer
+	  Keith Wright
+
