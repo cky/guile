@@ -1,3 +1,13 @@
+Sun Jan 16 14:01:51 2000  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* paths.scm: Assume that ~/guile-core/test-suite is the location
+	of the test suite now.
+
+	* tests/version.test: Added -- version.c had 0% coverage before,
+	now at 100%.
+
+	* tests/chars.test: Added -- needed test of char-is-both?.
+
 1999-12-22  Greg Harvey <Greg.Harvey@thezone.net>
 
 	* tests/weaks.test, tests/hooks.test: Added.

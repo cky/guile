@@ -1,7 +1,12 @@
+.cvsignore
 *.doc
 *.la
 *.lo
 *.x
+*.bb
+*.bbg
+*.gcov
+*.da
 .deps
 .libs
 Makefile
@@ -17,6 +22,8 @@ gh_test_c
 gh_test_repl
 guile
 guile-doc-snarf
+guile-func-name-check
+guile-procedures.txt
 guile-snarf
 guile-snarf.awk
 libpath.h

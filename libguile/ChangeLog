@@ -3,6 +3,11 @@
 	* Makefile.am: Augment path when running guile-doc-snarf so
 	guile-func-name-check is found.
 
+Fri Jan 14 09:34:55 2000  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* scm_validate.h (SCM_NUM2LONG_DEF): Fix this macro to just use
+	def, not SCM_MAKINUM(def);  thanks Janis Bzerins!
+
 Wed Jan 12 00:06:53 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* net_db.c (s_scm_inet_makeaddr): Use SCM_NUM2ULONG since that's
