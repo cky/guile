@@ -1,3 +1,9 @@
+2004-08-13  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* load.c (scm_init_load_path): Do not pass NULL to
+	scm_to_locale_string, which would happen when GUILE_LOAD_PATH is
+	not set.  Thanks to Bill Schottstaedt.
+
 2004-08-12  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* socket.c (scm_inet_aton, scm_inet_pton): Convert SCM strings to
