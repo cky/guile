@@ -1,3 +1,7 @@
+2002-04-29  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* summarize-guile-TODO: Fix commentary typo; nfc.
+
 2002-04-08  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* summarize-guile-TODO: Use (ice-9 getopt-long).
