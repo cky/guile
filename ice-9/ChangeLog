@@ -1,5 +1,10 @@
 1999-09-12  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
+	* debug.scm, emacs.scm: Updated copyrigth notices.
+
+	* boot-9.scm (make-autoload-interface): Bugfix.
+	(top-repl): Autoload debugger.
+
 	* debugger.scm ("backtrace"): Don't pass length param to
 	display-backtrace if it wasn't explicitly given by the user.
 	(write-frame-long/application): Also print corresponding source

@@ -1,3 +1,7 @@
+1999-09-12  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* readline.h, readline.scm: Updated copyrigth notices.
+
 1999-09-11  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* readline.scm (activate-readline): Set (using-readline?).
