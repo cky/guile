@@ -42,7 +42,6 @@
 
 #include <stdio.h>
 #include "_scm.h"
-#include "markers.h"
 
 #include "fports.h"
 

@@ -82,7 +82,6 @@ char *alloca ();
 #include "continuations.h"
 #include "throw.h"
 #include "smob.h"
-#include "markers.h"
 #include "macros.h"
 #include "procprop.h"
 #include "hashtab.h"
