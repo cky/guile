@@ -32,12 +32,11 @@ EXAMPLE_SMOB_FILES = \
 OLDFMT = oldfmt.c
 
 dist-hook:
+	cp $(srcdir)/$(OLDFMT) $(distdir)/
 	mkdir $(distdir)/example-smob
-	(cd $(srcdir); \
-	 cp $(OLDFMT) $(distdir); \
-	 dest="`cd $(distdir)/example-smob; pwd`"; \
-         cd example-smob; \
-	 cp $(EXAMPLE_SMOB_FILES) $$dest)
+	for f in $(EXAMPLE_SMOB_FILES); do \
+	  cp $(srcdir)/example-smob/$$f $(distdir)/example-smob/; \
+        done
 
 # pending the papers from Robert Merkel
 # EXTRA_DIST = guile.1
