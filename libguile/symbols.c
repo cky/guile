@@ -293,6 +293,7 @@ scm_intern_obarray_soft (name, len, obarray, softness)
   SCM_SETLENGTH (lsym, (long) len, scm_tc7_msymbol);
   SCM_SYMBOL_MULTI_BYTE_STRINGP (lsym) = SCM_BOOL_F;
   SCM_SYMBOL_HASH (lsym) = scm_hash;
+  SCM_SYMBOL_PROPS (lsym) = SCM_EOL;
   if (obarray == SCM_BOOL_F)
     {
       SCM answer;
