@@ -281,7 +281,7 @@ Unusual conditions may result in errors thrown to the
     }
   else
     {
-      inad.s_addr = htonl (SCM_NUM2ULONG (1,name);
+      inad.s_addr = htonl (SCM_NUM2ULONG (1,name));
       entry = gethostbyaddr ((char *) &inad, sizeof (inad), AF_INET);
     }
   if (!entry)
