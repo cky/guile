@@ -53,15 +53,18 @@
 #define scm_struct_n_extra_words 3
 
 /* These are how the initial words of a vtable are allocated. */
+#define scm_struct_i_proc	-7 /* Optional procedure slots */
 #define scm_struct_i_ptr	-3 /* start of block (see alloc_struct) */
 #define scm_struct_i_n_words	-2 /* How many words allocated to this struct? */
 #define scm_struct_i_tag	-1 /* A unique tag for this type.. */
+#define scm_struct_i_flags	-1 /* Upper 8 bits used as flags */
 #define scm_vtable_index_layout  0 /* A symbol describing the physical arrangement of this type. */
 #define scm_vtable_index_vcell   1 /* An opaque word, managed by the garbage collector.  */
 #define scm_vtable_index_vtable  2 /* A pointer to the handle for this vtable. */
 #define scm_vtable_index_printer 3 /* A printer for this struct type. */
 #define scm_vtable_offset_user   4 /* Where do user fields start? */
 
+#define SCM_STRUCTF_ENTITY (1L << 30) /* Indicates presence of proc slots */
 
 #define SCM_STRUCTP(X)  		(SCM_TYP3(X) == scm_tc3_cons_gloc)
 #define SCM_STRUCT_DATA(X) 		((SCM*)(SCM_CDR(X)))
@@ -75,6 +78,8 @@
 
 
 
+extern SCM *scm_alloc_struct SCM_P ((int n_words, int n_extra, char *who));
+extern void scm_struct_init SCM_P ((SCM handle, int tail_elts, SCM inits));
 extern SCM scm_make_struct_layout SCM_P ((SCM fields));
 extern SCM scm_struct_p SCM_P ((SCM x));
 extern SCM scm_struct_vtable_p SCM_P ((SCM x));
