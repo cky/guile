@@ -52,6 +52,26 @@ Use `substring-move!' instead.
 
 * Changes to the C interface
 
+** New functions for memory management
+
+A new set of functions for memory management has been added since the
+old way (scm_must_malloc, scm_must_free, etc) was error prone and
+indeed, Guile itself contained some long standing bugs that could
+cause aborts in long running programs.
+
+The new functions are more symmetrical and do not need cooperation
+from smob free routines, among other improvements.
+
+The new functions are scm_malloc, scm_realloc, scm_strdup,
+scm_strndup, scm_gc_malloc, scm_gc_realloc, scm_gc_free,
+scm_gc_register_collectable_memory, and
+scm_gc_unregister_collectable_memory.  Refer to the manual for more
+details and for upgrading instructions.
+
+The old functions for memory management have been deprecated.  They
+are: scm_must_malloc, scm_must_realloc, scm_must_free,
+scm_must_strdup, scm_must_strndup, scm_done_malloc, scm_done_free.
+
 ** New function: scm_str2string
 
 This function creates a scheme string from a 0-terminated C string.  The input
