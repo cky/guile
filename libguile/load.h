@@ -43,7 +43,7 @@
  * If you do not wish that, delete this exception notice.  
  */
 
-
+#include "libguile/__scm.h"
 
 
 extern void scm_init_load_path PROTO ((void));

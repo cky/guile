@@ -43,7 +43,9 @@
  * If you do not wish that, delete this exception notice.  
  */
 
+#include "libguile/__scm.h"
 
+
 extern int scm_tc16_malloc;
 
 #define SCM_MALLOCP(X)  (SCM_TYP16 (X) == scm_tc16_malloc)
