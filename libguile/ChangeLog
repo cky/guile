@@ -1,5 +1,13 @@
 2004-04-03  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
 
+	* eval.c (scm_unmemocopy): Don't distinguish between short and
+	long instructions when dispatching - just always dispatch on the
+	instruction code, which is common for short and long instructions.
+	Further, removed unnecessary goto statements, fixed indentation
+	and replaced SCM_IMP predicates by SCM_NULLP.
+
+2004-04-03  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
+
 	* eval.c (scm_lookupcar1, CEVAL): Use SCM_ILOCP instead of
 	comparison with SCM_ILOC00.  In CEVAL, eliminate goto-label
 	'checkmacro'.
