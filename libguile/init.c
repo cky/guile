@@ -39,6 +39,8 @@
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
 
+/* Include the headers for just about everything.
+   We call all their initialization functions.  */
 
 #include <stdio.h>
 #include "_scm.h"
@@ -126,6 +128,7 @@
 #include <unistd.h>
 #endif
 
+/* Setting up the stack.  */
 
 static void start_stack SCM_P ((void *base));
 static void restart_stack SCM_P ((void * base));
@@ -275,6 +278,34 @@ scm_init_standard_ports ()
 
 
 
+/* Loading the startup Scheme files.  */
+
+/* The boot code "ice-9/boot-9" is only loaded by scm_boot_guile when
+   this is false.  The unexec code uses this, to keep ice_9 from being
+   loaded into dumped guile executables.  */
+int scm_ice_9_already_loaded = 0;
+
+void
+scm_load_startup_files ()
+{
+  /* We want a path only containing directories from GUILE_LOAD_PATH,
+     SCM_SITE_DIR and SCM_LIBRARY_DIR when searching for the site init
+     file, so we do this before loading Ice-9.  */
+  SCM init_path = scm_sys_search_load_path (scm_makfrom0str ("init.scm"));
+
+  /* Load Ice-9.  */
+  if (!scm_ice_9_already_loaded)
+    scm_primitive_load_path (scm_makfrom0str ("ice-9/boot-9.scm"));
+
+  /* Load the init.scm file.  */
+  if (SCM_NFALSEP (init_path))
+    scm_primitive_load (init_path);
+}
+
+
+
+/* The main init code.  */
+
 #ifdef _UNICOS
 typedef int setjmp_type;
 #else
@@ -501,6 +532,8 @@ invoke_main_func (body_data)
      void *body_data;
 {
   struct main_func_closure *closure = (struct main_func_closure *) body_data;
+
+  scm_load_startup_files ();
 
   (*closure->main_func) (closure->closure, closure->argc, closure->argv);
 
