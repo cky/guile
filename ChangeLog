@@ -1,3 +1,9 @@
+2002-05-06  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* configure.in: Include <sys/types.h> before <netinet/in.h> when
+	checking vor IPv6.  This is for NetBSD 1.5.  Thanks to Greg
+	Troxel!
+
 2002-05-01  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* autogen.sh: Add call to $mscripts/render-bugs
