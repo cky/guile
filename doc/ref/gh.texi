@@ -944,7 +944,7 @@ Use @code{scm_c_longs2ivect} and @code{scm_c_ulongs2uvect} instead.
 Use @code{scm_c_floats2fvect} and @code{scm_c_doubles2dvect} instead.
 
 @item @code{gh_scm2bool}
-Use @code{SCM_NFALSEP} instead.
+Use @code{scm_is_true} or @code{scm_to_bool} instead.
 
 @item @code{gh_scm2int}
 Replace @code{gh_scm2int (@var{obj})} by
@@ -1005,109 +1005,102 @@ Use @code{scm_c_shorts2scm} and @code{scm_c_longs2scm} instead.
 Use @code{scm_c_floats2scm} and @code{scm_c_doubles2scm} instead.
 
 @item @code{gh_boolean_p}
-Use the @code{SCM_BOOLP} macro instead, or replace @code{gh_boolean_p
-(@var{obj})} by
-@example
-SCM_NFALSEP (scm_boolean_p (@var{obj}))
-@end example
+Use @code{scm_is_bool} instead.
 
 @item @code{gh_symbol_p}
 Use the @code{SCM_SYMBOLP} macro instead, or replace @code{gh_symbol_p
 (@var{obj})} by
 @example
-SCM_NFALSEP (scm_symbol_p (@var{obj}))
+scm_is_true (scm_symbol_p (@var{obj}))
 @end example
 
 @item @code{gh_char_p}
 Use the @code{SCM_CHARP} macro instead, or replace @code{gh_char_p
 (@var{obj})} by
 @example
-SCM_NFALSEP (scm_char_p (@var{obj}))
+scm_is_true (scm_char_p (@var{obj}))
 @end example
 
 @item @code{gh_vector_p}
 Use the @code{SCM_VECTORP} macro instead, or replace @code{gh_vector_p
 (@var{obj})} by
 @example
-SCM_NFALSEP (scm_vector_p (@var{obj}))
+scm_is_true (scm_vector_p (@var{obj}))
 @end example
 
 @item @code{gh_pair_p}
 Use the @code{SCM_CONSP} macro instead, or replace @code{gh_pair_p
 (@var{obj})} by
 @example
-SCM_NFALSEP (scm_pair_p (@var{obj}))
+scm_is_true (scm_pair_p (@var{obj}))
 @end example
 
 @item @code{gh_number_p}
 Use the @code{SCM_NUMBERP} macro instead, or replace @code{gh_number_p
 (@var{obj})} by
 @example
-SCM_NFALSEP (scm_number_p (@var{obj}))
+scm_is_true (scm_number_p (@var{obj}))
 @end example
 
 @item @code{gh_string_p}
 Use the @code{SCM_STRINGP} macro instead, or replace @code{gh_string_p
 (@var{obj})} by
 @example
-SCM_NFALSEP (scm_string_p (@var{obj}))
+scm_is_true (scm_string_p (@var{obj}))
 @end example
 
 @item @code{gh_procedure_p}
 Replace @code{gh_procedure_p (@var{obj})} by
 @example
-SCM_NFALSEP (scm_procedure_p (@var{obj}))
+scm_is_true (scm_procedure_p (@var{obj}))
 @end example
 
 @item @code{gh_list_p}
 Replace @code{gh_list_p (@var{obj})} by
 @example
-SCM_NFALSEP (scm_list_p (@var{obj}))
+scm_is_true (scm_list_p (@var{obj}))
 @end example
 
 @item @code{gh_inexact_p}
 Use the @code{SCM_INEXACTP} macro instead, or replace @code{gh_inexact_p
 (@var{obj})} by
 @example
-SCM_NFALSEP (scm_inexact_p (@var{obj}))
+scm_is_true (scm_inexact_p (@var{obj}))
 @end example
 
 @item @code{gh_exact_p}
 Replace @code{gh_exact_p (@var{obj})} by
 @example
-SCM_NFALSEP (scm_exact_p (@var{obj}))
+scm_is_true (scm_exact_p (@var{obj}))
 @end example
 
 @item @code{gh_eq_p}
-Use the @code{SCM_EQ_P} macro instead, or replace @code{gh_eq_p
-(@var{x}, @var{y})} by
-@example
-SCM_NFALSEP (scm_eq_p (@var{x}, @var{y}))
+Use @code{scm_is_eq} instead.
 @end example
 
 @item @code{gh_eqv_p}
 Replace @code{gh_eqv_p (@var{x}, @var{y})} by
 @example
-SCM_NFALSEP (scm_eqv_p (@var{x}, @var{y}))
+scm_is_true (scm_eqv_p (@var{x}, @var{y}))
 @end example
 
 @item @code{gh_equal_p}
 Replace @code{gh_equal_p (@var{x}, @var{y})} by
 @example
-SCM_NFALSEP (scm_equal_p (@var{x}, @var{y}))
+scm_is_true (scm_equal_p (@var{x}, @var{y}))
 @end example
 
 @item @code{gh_string_equal_p}
 Replace @code{gh_string_equal_p (@var{x}, @var{y})} by
 @example
-SCM_NFALSEP (scm_string_equal_p (@var{x}, @var{y}))
+scm_is_true (scm_string_equal_p (@var{x}, @var{y}))
 @end example
 
 @item @code{gh_null_p}
 Use the @code{SCM_NULLP} macro instead, or replace @code{gh_null_p
 (@var{obj})} by
 @example
-SCM_NFALSEP (scm_null_p (@var{obj}))
+scm_is_true (scm_null_p (@var{obj}))
 @end example
 
 @item @code{gh_cons}
