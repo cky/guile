@@ -581,9 +581,9 @@ scm_rmdir (path)
 
 long scm_tc16_dir;
 
-SCM_PROC (s_directory_p, "directory?", 1, 0, 0, scm_directory_p);
+SCM_PROC (s_directory_stream_p, "directory-stream?", 1, 0, 0, scm_directory_stream_p);
 SCM
-scm_directory_p (SCM obj)
+scm_directory_stream_p (SCM obj)
 {
   return SCM_NIMP (obj) && SCM_DIRP (obj) ? SCM_BOOL_T : SCM_BOOL_F;
 }
@@ -667,7 +667,7 @@ scm_dir_print (SCM exp, SCM port, scm_print_state *pstate)
   scm_puts ("#<", port);
   if (SCM_CLOSEDP (exp))
     scm_puts ("closed: ", port);
-  scm_puts ("directory ", port);
+  scm_puts ("directory stream ", port);
   scm_intprint (SCM_CDR (exp), 16, port);
   scm_putc ('>', port);
   return 1;

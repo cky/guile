@@ -2,7 +2,7 @@
 
 #ifndef FILESYSH
 #define FILESYSH
-/*	Copyright (C) 1995,1997,1998 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1997,1998, 1999 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -66,7 +66,7 @@ extern SCM scm_rename SCM_P ((SCM oldname, SCM newname));
 extern SCM scm_delete_file SCM_P ((SCM str));
 extern SCM scm_mkdir SCM_P ((SCM path, SCM mode));
 extern SCM scm_rmdir SCM_P ((SCM path));
-extern SCM scm_directory_p (SCM obj);
+extern SCM scm_directory_stream_p (SCM obj);
 extern SCM scm_opendir SCM_P ((SCM dirname));
 extern SCM scm_readdir SCM_P ((SCM port));
 extern SCM scm_rewinddir SCM_P ((SCM port));
