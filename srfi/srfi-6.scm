@@ -21,3 +21,5 @@
 
 ;; Currently, guile provides these functions by default, so no action
 ;; is needed, and this file is just a placeholder.
+
+(cond-expand-provide (current-module) '(srfi-6))

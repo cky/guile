@@ -20,6 +20,8 @@
 (define-module (srfi srfi-11)
   :use-module (ice-9 syncase))
 
+(cond-expand-provide (current-module) '(srfi-11))
+
 ;;;;;;;;;;;;;;
 ;; let-values
 ;;

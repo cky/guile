@@ -49,6 +49,8 @@
 	   caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr
 	   cdddar cddddr string-ref vector-ref))
 
+(cond-expand-provide (current-module) '(srfi-17))
+
 ;;; Procedures
 
 (define getter-with-setter make-procedure-with-setter)

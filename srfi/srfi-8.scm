@@ -21,3 +21,5 @@
   :use-module (ice-9 receive))
 
 (export-syntax receive)
+
+(cond-expand-provide (current-module) '(srfi-8))

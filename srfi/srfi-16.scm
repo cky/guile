@@ -49,6 +49,8 @@
 
 (export-syntax case-lambda)
 
+(cond-expand-provide (current-module) '(srfi-16))
+
 (define-macro (case-lambda . clauses)
 
   ;; Return the length of the list @var{l}, but allow dotted list.

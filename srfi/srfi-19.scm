@@ -119,6 +119,8 @@
            date->string
            string->date))
 
+(cond-expand-provide (current-module) '(srfi-19))
+
 ;; :OPTIONAL is nice
 
 (define-syntax :optional

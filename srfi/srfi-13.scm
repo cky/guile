@@ -110,6 +110,8 @@
  string-delete
  )
 
+(cond-expand-provide (current-module) '(srfi-13))
+
 (dynamic-call "scm_init_srfi_13" (dynamic-link "libguile-srfi-srfi-13-14"))
 
 (define string-hash
@@ -139,3 +141,4 @@
 		   (caddr rest)
 		   (string-length s))))
       (hash (string-upcase (substring/shared s start end)) bound))))
+

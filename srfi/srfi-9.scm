@@ -63,6 +63,8 @@
 
 (export-syntax define-record-type)
 
+(cond-expand-provide (current-module) '(srfi-9))
+
 (define-macro (define-record-type type-name constructor/field-tag
 		predicate-name . field-specs)
   `(begin

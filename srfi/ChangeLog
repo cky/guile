@@ -1,3 +1,14 @@
+2001-05-22  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* README: Update, document available SRFIs.
+
+2001-05-21  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* srfi-19.scm, srfi-17.scm, srfi-16.scm, srfi-14.scm, srfi-13.scm,
+	srfi-11.scm, srfi-10.scm, srfi-9.scm, srfi-8.scm, srfi-6.scm,
+	srfi-2.scm: Use `cond-expand-provide' for providing features to
+	`cond-expand'.
+
 2001-05-20  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* srfi-14.c (scm_c_init_srfi_14): Added "int" to declaration of

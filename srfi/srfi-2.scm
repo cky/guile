@@ -21,3 +21,5 @@
   :use-module (ice-9 and-let-star))
 
 (export-syntax and-let*)
+
+(cond-expand-provide (current-module) '(srfi-2))

@@ -49,6 +49,8 @@
 
 (export define-reader-ctor)
 
+(cond-expand-provide (current-module) '(srfi-10))
+
 ;; This hash table stores the association between comma-hash tags and
 ;; the corresponding constructor procedures.
 ;;
