@@ -97,14 +97,19 @@ extern SCM scm_eval_options_interface (SCM setting);
  *
  * For an explanation of symbols containing "EVAL", see beginning of eval.c.
  */
+#define SCM_EVALIM2(x) (((x) == SCM_EOL) \
+			? scm_wta ((x), scm_s_expression, NULL) \
+			: (x))
 #ifdef MEMOIZE_LOCALS
-#define SCM_EVALIM(x, env) (SCM_ILOCP (x) ? *scm_ilookup ((x), env) : x)
+#define SCM_EVALIM(x, env) (SCM_ILOCP (x) \
+                            ? *scm_ilookup ((x), env) \
+			    : SCM_EVALIM2(x))
 #else
-#define SCM_EVALIM(x, env) x
+#define SCM_EVALIM(x, env) SCM_EVALIM2(x)
 #endif
 #ifdef DEBUG_EXTENSIONS
 #define SCM_XEVAL(x, env) (SCM_IMP (x) \
-			   ? (x) \
+			   ? SCM_EVALIM2(x) \
 			   : (*scm_ceval_ptr) ((x), (env)))
 #define SCM_XEVALCAR(x, env) (SCM_NCELLP (SCM_CAR (x)) \
 			      ? (SCM_IMP (SCM_CAR (x)) \
@@ -114,7 +119,9 @@ extern SCM scm_eval_options_interface (SCM setting);
 			         ? *scm_lookupcar (x, env, 1) \
 			         : (*scm_ceval_ptr) (SCM_CAR (x), env)))
 #else
-#define SCM_XEVAL(x, env) (SCM_IMP (x) ? (x) : scm_ceval ((x), (env)))
+#define SCM_XEVAL(x, env) (SCM_IMP (x) \
+			   ? SCM_EVALIM2(x) \
+			   : scm_ceval ((x), (env)))
 #define SCM_XEVALCAR(x, env) EVALCAR (x, env)
 #endif /* DEBUG_EXTENSIONS */
 

@@ -448,6 +448,7 @@ const char scm_s_bindings[] = "bad bindings";
 const char scm_s_variable[] = "bad variable";
 const char scm_s_clauses[] = "bad or missing clauses";
 const char scm_s_formals[] = "bad formals";
+const char scm_s_duplicate_formals[] = "duplicate formals";
 
 SCM_GLOBAL_SYMBOL (scm_sym_dot, ".");
 SCM_GLOBAL_SYMBOL (scm_sym_arrow, "=>");
@@ -635,6 +636,21 @@ scm_m_cond (SCM xorig, SCM env)
 SCM_SYNTAX(s_lambda, "lambda", scm_makmmacro, scm_m_lambda);
 SCM_GLOBAL_SYMBOL(scm_sym_lambda, s_lambda);
 
+/* Return #t if OBJ is `eq?' to one of the elements of LIST or to the
+   cdr of the last cons.  (Thus, LIST is not required to be a proper
+   list and when OBJ also found in the improper ending.) */
+
+static int
+scm_c_improper_memq (SCM obj, SCM list)
+{
+  for (; SCM_CONSP (list); list = SCM_CDR (list))
+    {
+      if (SCM_EQ_P (SCM_CAR (list), obj))
+	return SCM_BOOL_T;
+    }
+  return SCM_EQ_P (list, obj);
+}
+
 SCM 
 scm_m_lambda (SCM xorig, SCM env)
 {
@@ -663,6 +679,8 @@ scm_m_lambda (SCM xorig, SCM env)
 	}
       if (!SCM_SYMBOLP (SCM_CAR (proc)))
 	goto badforms;
+      else if (scm_c_improper_memq (SCM_CAR(proc), SCM_CDR(proc)))
+	scm_wta (xorig, scm_s_duplicate_formals, s_lambda);
       proc = SCM_CDR (proc);
     }
   if (SCM_NNULLP (proc))
@@ -1911,34 +1929,49 @@ dispatch:
       if (SCM_CONSP(env) && !SCM_CONSP(SCM_CAR(env)))
 	{
 	  t.arg1 = x;
+	  {
+	    SCM p = scm_current_module_lookup_closure ();
+	    if (p != SCM_CAR(env))
+	      env = scm_top_level_env (p);
+	  }
 	  while (SCM_NNULLP (t.arg1 = SCM_CDR (t.arg1)))
 	    {
-	      env = scm_top_level_env (scm_current_module_lookup_closure ());
-	      SIDEVAL (SCM_CAR(x), env);
+	      EVALCAR (x, env);
 	      x = t.arg1;
+	      {
+		SCM p = scm_current_module_lookup_closure ();
+		if (p != SCM_CAR(env))
+		  env = scm_top_level_env (p);
+	      }
 	    }
-	  /* once more, for the last form */
-	  env = scm_top_level_env (scm_current_module_lookup_closure ());
+	  goto carloop;
 	}
       else
+	goto nontoplevel_begin;
+
+    nontoplevel_cdrxnoap:
+      PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
+    nontoplevel_cdrxbegin:
+      x = SCM_CDR (x);
+    nontoplevel_begin:
+      t.arg1 = x;
+      while (SCM_NNULLP (t.arg1 = SCM_CDR (t.arg1)))
 	{
-	  t.arg1 = x;
-	  while (SCM_NNULLP (t.arg1 = SCM_CDR (t.arg1)))
+	  if (SCM_IMP (SCM_CAR (x)))
 	    {
-	      if (SCM_IMP (SCM_CAR (x)))
+	      if (SCM_ISYMP (SCM_CAR (x)))
 		{
-		  if (SCM_ISYMP (SCM_CAR (x)))
-		    {
-		      x = scm_m_expand_body (x, env);
-		      goto begin;
-		    }
+		  x = scm_m_expand_body (x, env);
+		  goto nontoplevel_begin;
 		}
 	      else
-		SCM_CEVAL (SCM_CAR (x), env);
-	      x = t.arg1;
+		SCM_EVALIM2 (SCM_CAR(x));
 	    }
+	  else
+	    SCM_CEVAL (SCM_CAR (x), env);
+	  x = t.arg1;
 	}
-
+      
     carloop:			/* scm_eval car of last form in list */
       if (SCM_NCELLP (SCM_CAR (x)))
 	{
@@ -2041,7 +2074,7 @@ dispatch:
       if (SCM_NULLP (x))
 	RETURN (SCM_UNSPECIFIED);
       PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
-      goto begin;
+      goto nontoplevel_begin;
 
 
     case SCM_BIT8(SCM_IM_IF):
@@ -2067,7 +2100,7 @@ dispatch:
       while (SCM_NIMP (proc = SCM_CDR (proc)));
       env = EXTEND_ENV (SCM_CAR (x), t.arg1, env);
       x = SCM_CDR (x);
-      goto cdrxnoap;
+      goto nontoplevel_cdrxnoap;
 
 
     case SCM_BIT8(SCM_IM_LETREC):
@@ -2082,7 +2115,7 @@ dispatch:
 	}
       while (SCM_NIMP (proc = SCM_CDR (proc)));
       SCM_SETCDR (SCM_CAR (env), t.arg1);
-      goto cdrxnoap;
+      goto nontoplevel_cdrxnoap;
 
 
     case SCM_BIT8(SCM_IM_LETSTAR):
@@ -2091,7 +2124,7 @@ dispatch:
       if (SCM_IMP (proc))
 	{
 	  env = EXTEND_ENV (SCM_EOL, SCM_EOL, env);
-	  goto cdrxnoap;
+	  goto nontoplevel_cdrxnoap;
 	}
       do
 	{
@@ -2100,7 +2133,7 @@ dispatch:
 	  env = EXTEND_ENV (t.arg1, EVALCAR (proc, env), env);
 	}
       while (SCM_NIMP (proc = SCM_CDR (proc)));
-      goto cdrxnoap;
+      goto nontoplevel_cdrxnoap;
 
     case SCM_BIT8(SCM_IM_OR):
       x = SCM_CDR (x);
@@ -2197,7 +2230,7 @@ dispatch:
 	      
 	      env = EXTEND_ENV (SCM_CAR (SCM_CODE (proc)), argl, SCM_ENV (proc));
 	      x = SCM_CODE (proc);
-	      goto cdrxbegin;
+	      goto nontoplevel_cdrxbegin;
 	    }
 	  proc = scm_f_apply;
 	  goto evapply;
@@ -2310,7 +2343,7 @@ dispatch:
 				  arg2,
 				  SCM_CMETHOD_ENV (z));
 		x = SCM_CMETHOD_CODE (z);
-		goto cdrxbegin;
+		goto nontoplevel_cdrxbegin;
 	      next_method:
 		i = (i + 1) & mask;
 	      } while (i != end);
@@ -2631,7 +2664,7 @@ evapply:
       case scm_tcs_closures:
 	x = SCM_CODE (proc);
 	env = EXTEND_ENV (SCM_CAR (x), SCM_EOL, SCM_ENV (proc));
-	goto cdrxbegin;
+	goto nontoplevel_cdrxbegin;
       case scm_tcs_cons_gloc:
 	if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
 	  {
@@ -2786,7 +2819,7 @@ evapply:
 #else
 	  env = EXTEND_ENV (SCM_CAR (x), scm_cons (t.arg1, SCM_EOL), SCM_ENV (proc));
 #endif
-	  goto cdrxbegin;
+	  goto nontoplevel_cdrxbegin;
 	case scm_tcs_cons_gloc:
 	  if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
 	    {
@@ -2953,7 +2986,7 @@ evapply:
 			    scm_cons2 (t.arg1, arg2, SCM_EOL), SCM_ENV (proc));
 #endif
 	  x = SCM_CODE (proc);
-	  goto cdrxbegin;
+	  goto nontoplevel_cdrxbegin;
 	}
     }
 #ifdef SCM_CAUTIOUS
@@ -3031,7 +3064,7 @@ evapply:
 			      debug.info->a.args,
 			      SCM_ENV (proc));
 	x = SCM_CODE (proc);
-	goto cdrxbegin;
+	goto nontoplevel_cdrxbegin;
 #else /* DEVAL */
       case scm_tc7_subr_3:
 	SCM_ASRTGO (SCM_NULLP (SCM_CDR (x)), wrongnumargs);
@@ -3103,7 +3136,7 @@ evapply:
 					 scm_eval_args (x, env, proc)),
 			      SCM_ENV (proc));
 	x = SCM_CODE (proc);
-	goto cdrxbegin;
+	goto nontoplevel_cdrxbegin;
 #endif /* DEVAL */
       case scm_tcs_cons_gloc:
 	if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
@@ -3443,6 +3476,8 @@ tail:
 		  proc = scm_m_expand_body (proc, args);
 		  goto again;
 		}
+	      else
+		SCM_EVALIM2 (SCM_CAR (proc));
 	    }
 	  else
 	    SCM_CEVAL (SCM_CAR (proc), args);
