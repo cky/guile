@@ -1,5 +1,7 @@
 2004-09-08  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
+	* Makefile.am (EXTRA_libguile_la_SOURCES): Removed "alloca.c".
+
 	* eq.c (real_eqv): Pretend that all NaNs are equal.
 
 	* numbers.c (scm_integer_expt): Do not accept inexact integers.

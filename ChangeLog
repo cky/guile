@@ -1,3 +1,7 @@
+2004-09-08  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* configure.in: Fail when alloca can not be found natively.
+
 2004-09-03  Stefan Jahn  <stefan@lkcc.org>
 
 	* configure.in (isinf): Let configure find the isinf() function
