@@ -1,4 +1,4 @@
-;;;; 	Copyright (C) 1996, 1998, 2001, 2002 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1996, 1998, 2001, 2002, 2003 Free Software Foundation, Inc.
 ;;;;
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -73,12 +73,10 @@
 
 
 (define ((par-mapper mapper)  proc . arglists)
-  (mapper join-thread
+  (mapper future-ref
 	  (apply map
 		 (lambda args
-		   (call-with-new-thread (lambda ()
-					   (apply proc args))
-					 %thread-handler))
+		   (future (apply proc args)))
 		 arglists)))
 
 (define par-map (par-mapper map))
@@ -86,50 +84,46 @@
 
 (define (n-par-map n proc . arglists)
   (let* ((m (make-mutex))
-	 (threads '())
+	 (futures '())
 	 (results (make-list (length (car arglists))))
 	 (result results))
     (do ((i 0 (+ 1 i)))
 	((= i n)
-	 (for-each join-thread threads)
+	 (for-each future-ref futures)
 	 results)
-      (set! threads
-	    (cons (call-with-new-thread
-		   (lambda ()
-		     (let loop ()
-		       (lock-mutex m)
-		       (if (null? result)
+      (set! futures
+	    (cons (future
+		   (let loop ()
+		     (lock-mutex m)
+		     (if (null? result)
+			 (unlock-mutex m)
+			 (let ((args (map car arglists))
+			       (my-result result))
+			   (set! arglists (map cdr arglists))
+			   (set! result (cdr result))
 			   (unlock-mutex m)
-			   (let ((args (map car arglists))
-				 (my-result result))
-			     (set! arglists (map cdr arglists))
-			     (set! result (cdr result))
-			     (unlock-mutex m)
-			     (set-car! my-result (apply proc args))
-			     (loop)))))
-		   %thread-handler)
-		  threads)))))
+			   (set-car! my-result (apply proc args))
+			   (loop)))))
+		  futures)))))
 
 (define (n-par-for-each n proc . arglists)
   (let ((m (make-mutex))
-	(threads '()))
+	(futures '()))
     (do ((i 0 (+ 1 i)))
 	((= i n)
-	 (for-each join-thread threads))
-      (set! threads
-	    (cons (call-with-new-thread
-		   (lambda ()
-		     (let loop ()
-		       (lock-mutex m)
-		       (if (null? (car arglists))
+	 (for-each future-ref futures))
+      (set! futures
+	    (cons (future
+		   (let loop ()
+		     (lock-mutex m)
+		     (if (null? (car arglists))
+			 (unlock-mutex m)
+			 (let ((args (map car arglists)))
+			   (set! arglists (map cdr arglists))
 			   (unlock-mutex m)
-			   (let ((args (map car arglists)))
-			     (set! arglists (map cdr arglists))
-			     (unlock-mutex m)
-			     (apply proc args)
-			     (loop)))))
-		   %thread-handler)
-		  threads)))))
+			   (apply proc args)
+			   (loop)))))
+		  futures)))))
 
 (define (thread-handler tag . args)
   (fluid-set! the-last-stack #f)

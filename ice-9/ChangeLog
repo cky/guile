@@ -1,3 +1,8 @@
+2003-01-23  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* threads.scm (par-mapper, n-par-map, n-par-for-each): Use
+	futures.
+
 2003-01-20  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* occam-channel.scm (alt): New syntax.
