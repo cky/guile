@@ -1,3 +1,7 @@
+2001-08-30  Thien-Thi Nguyen  <ttn@revel.glug.org>
+
+	* HACKING: Mention libtool ./configure-regeneration requirement.
+
 2001-08-27  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* check-guile.in: Do not include ".libs" in LTDL_LIBRARY_PATH,
@@ -7,7 +11,7 @@
 
 	* configure.in (AC_CONFIG_FILES): Add per-manual doc directory
 	Makefiles.
-	
+
 2001-08-15  Rob Browning  <rlb@defaultvalue.org>
 
 	* configure.in
