@@ -40,6 +40,15 @@ Prints useful information.  Try `(help)'."
 					    "$")))
 		  ((string? name)
 		   (help-doc name name))
+		  ((and (list? name)
+			(= (length name) 2)
+			(eq? (car name) 'unquote))
+		   (let ((doc (object-documentation (local-eval (cadr name)
+								env))))
+		     (if (not doc)
+			 (simple-format #t "No documentation found for ~S\n"
+					(cadr name))
+			 (write-line doc))))
 		  (else
 		   (help-usage)))
 	    *unspecified*)))))
@@ -95,6 +104,7 @@ Prints useful information.  Try `(help)'."
 (define (help-usage)
   (display "Usage: (help NAME) gives documentation about objects named NAME (a symbol)
        (help REGEXP) ditto for objects with names matching REGEXP (a string)
+       (help ,EXPR) gives documentation for object returned by EXPR
        (help) gives this text
 
 `help' searches among bindings exported from loaded modules, while
