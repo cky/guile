@@ -51,6 +51,8 @@ AC_TYPE_GETGROUPS
 AC_TYPE_SIGNAL
 AC_TYPE_MODE_T
 
+ACG_CHECK_LIB (rx, main)
+
 AC_CHECK_FUNCS(ctermid ftime getcwd geteuid gethostent gettimeofday lstat mkdir mknod nice readlink rename rmdir select setegid seteuid setlocale setpgid setsid sigaction strftime strptime symlink sync tcgetpgrp tcsetpgrp times uname waitpid)
 
 AC_CACHE_CHECK([for restartable system calls], scm_cv_restarts,
@@ -65,7 +67,6 @@ AC_CACHE_CHECK([for restartable system calls], scm_cv_restarts,
 if test $scm_cv_restarts = yes; then
 	AC_DEFINE(HAVE_RESTARTS)
 fi
-
 
 AC_CHECK_FUNCS(regcomp, [LIBOBJS="regex-posix.o $LIBOBJS"])
 
