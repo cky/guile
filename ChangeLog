@@ -1,3 +1,10 @@
+2001-08-31  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* libguile.h:  Removed bogus comment, rearranged includes, removed
+	deprecated definitions.
+
+	(LIBGUILEH, SCM_LIBGUILE_H):  Renamed <foo>H to	SCM_<foo>_H.
+
 2001-08-30  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
 	* HACKING: Mention libtool ./configure-regeneration requirement.
