@@ -1,3 +1,12 @@
+1998-11-01  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+
+	* boot-9.scm (exit-hook): New hook: Is run at the very end of an
+	interactive session.
+	(top-repl): Run exit-hook on exit.
+
+	* readline.scm (readline-port): Maybe read history; Maybe write
+	history at exit (add to exit-hook).
+
 Fri Oct 30 15:15:37 1998  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* readline.scm (make-readline-port): Bugfixed last change...

@@ -6,6 +6,21 @@ Please send Guile bug reports to bug-guile@gnu.org.
 
 Changes since Guile 1.3:
 
+* Changes to the stand-alone interpreter
+
+** Command line history is now restored from and saved to file
+
+If readline is used and the read option `history-file' is enabled, the
+command line history is read from file when the interpreter is
+entered, and written to file on exit.  The filename used can be
+specified with the environment variable GUILE_HISTORY.  Default file
+name is "$HOME/.guile_history".  Nothing special happens if errors
+occur during read or write.
+
+** Command line history length can now be customized.
+Command line history length is now controlled by the read option
+`history-length'.  Default is 200 lines.
+
 * Changes to Scheme functions and syntax
 
 ** New function: unread-string STRING PORT
@@ -24,6 +39,10 @@ lists in serial order.
 Version of `begin' which returns a list of the results of the body
 forms instead of the result of the last body form.  In contrast to
 `begin', sequence->list allows an empty body.
+
+** New functions: read-history FILENAME, write-history FILENAME
+Read/write command line history from/to file.  Returns #t on success
+and #f if an error occured.
 
 * Changes to the gh_ interface
 
