@@ -56,6 +56,10 @@
 
 #include "libguile/modules.h"
 
+SCM scm_module_system_booted_p = 0;
+
+SCM scm_module_tag;
+
 static SCM the_root_module;
 static SCM root_module_lookup_closure;
 
@@ -75,6 +79,11 @@ scm_selected_module ()
 
 static SCM set_current_module;
 
+/* This is the module selected during loading of code.  Currently,
+ * this is the same as (interaction-environment), but need not be in
+ * the future.
+ */
+
 SCM
 scm_select_module (SCM module)
 {
@@ -82,6 +91,19 @@ scm_select_module (SCM module)
   scm_apply (SCM_CDR (set_current_module), SCM_LIST1 (module), SCM_EOL);
   return old;
 }
+
+SCM_DEFINE (scm_interaction_environment, "interaction-environment", 0, 0, 0,
+	    (),
+	    "This procedure returns a specifier for the environment that"
+	    "contains implementation-defined bindings, typically a superset of"
+	    "those listed in the report.  The intent is that this procedure"
+	    "will return the environment in which the implementation would"
+	    "evaluate expressions dynamically typed by the user.")
+#define FUNC_NAME s_scm_interaction_environment
+{
+  return scm_selected_module ();
+}
+#undef FUNC_NAME
 
 SCM_SYMBOL (scm_sym_app, "app");
 SCM_SYMBOL (scm_sym_modules, "modules");
@@ -115,14 +137,10 @@ scm_ensure_user_module (SCM module)
   return SCM_UNSPECIFIED;
 }
 
-static SCM module_eval_closure;
-
 SCM
 scm_module_lookup_closure (SCM module)
 {
-  return scm_apply (SCM_CDR (module_eval_closure),
-		    SCM_LIST1 (module),
-		    SCM_EOL);
+  return SCM_MODULE_EVAL_CLOSURE (module);
 }
 
 static SCM resolve_module;
@@ -141,8 +159,7 @@ scm_load_scheme_module (SCM name)
   return scm_apply (SCM_CDR (try_module_autoload), SCM_LIST1 (name), SCM_EOL);
 }
 
-/* Environments
- */
+/* Environments */
 
 SCM
 scm_top_level_env (SCM thunk)
@@ -188,21 +205,17 @@ scm_system_module_env_p (SCM env)
  * The code will be replaced by the low-level environments in next release.
  */
 
-#define OBARRAY(module) (SCM_PACK (SCM_STRUCT_DATA (module) [0]))
-#define USES(module) (SCM_PACK (SCM_STRUCT_DATA (module) [1]))
-#define BINDER(module) (SCM_PACK (SCM_STRUCT_DATA (module) [2]))
-
 static SCM module_make_local_var_x;
 
 static SCM
 module_variable (SCM module, SCM sym)
 {
   /* 1. Check module obarray */
-  SCM b = scm_hashq_ref (OBARRAY (module), sym, SCM_UNDEFINED);
+  SCM b = scm_hashq_ref (SCM_MODULE_OBARRAY (module), sym, SCM_UNDEFINED);
   if (SCM_VARIABLEP (b))
     return b;
   {
-    SCM binder = BINDER (module);
+    SCM binder = SCM_MODULE_BINDER (module);
     if (SCM_NFALSEP (binder))
       /* 2. Custom binder */
       {
@@ -215,7 +228,7 @@ module_variable (SCM module, SCM sym)
   }
   {
     /* 3. Search the use list */
-    SCM uses = USES (module);
+    SCM uses = SCM_MODULE_USES (module);
     while (SCM_CONSP (uses))
       {
 	b = module_variable (SCM_CAR (uses), sym);
@@ -267,6 +280,8 @@ scm_init_modules ()
 void
 scm_post_boot_init_modules ()
 {
+  scm_module_tag = (SCM_CELL_WORD_1 (SCM_CDR (scm_intern0 ("module-type")))
+		    + scm_tc3_cons_gloc);
   the_root_module = scm_intern0 ("the-root-module");
   the_module = scm_intern0 ("the-module");
   set_current_module = scm_intern0 ("set-current-module");
@@ -274,11 +289,11 @@ scm_post_boot_init_modules ()
 						   scm_sym_modules));
   make_modules_in = scm_intern0 ("make-modules-in");
   beautify_user_module_x = scm_intern0 ("beautify-user-module!");
-  module_eval_closure = scm_intern0 ("module-eval-closure");
   root_module_lookup_closure = scm_permanent_object
     (scm_module_lookup_closure (SCM_CDR (the_root_module)));
   resolve_module = scm_intern0 ("resolve-module");
   try_module_autoload = scm_intern0 ("try-module-autoload");
+  scm_module_system_booted_p = 1;
 }
 
 /*
