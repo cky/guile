@@ -1,3 +1,7 @@
+2002-05-13  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* Makefile.am (EXTRA_DIST): New var.
+
 2002-05-11  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* Makefile.am: Include ../am/maintainer-dirs (in MAINTAINER_MODE).
