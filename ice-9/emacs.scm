@@ -32,7 +32,6 @@
 (define-module (ice-9 emacs)
   :use-module (ice-9 debug)
   :use-module (ice-9 threads)
-  :use-module (ice-9 nonblocking)
   :use-module (ice-9 session))
 
 (define emacs-escape-character #\sub)
@@ -92,8 +91,7 @@
 	     (lambda () (close-port orig-port)))
      "r")))
 
-(set! repl-input-port (make-emacs-load-port (current-input-port)))
-(set-current-input-port repl-input-port)
+(set-current-input-port (make-emacs-load-port (current-input-port)))
 
 (define (result-to-emacs exp)
   (sending-result)

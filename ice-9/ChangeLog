@@ -1,3 +1,13 @@
+1998-04-19  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* nonblocking.scm: Removed.  libguile is now inherently
+	nonblocking through the use of scm_internal_select.
+	
+	* emacs.scm: Removed use of nonblocking.scm.
+
+	* gwish.scm, gtcl.scm: Removed.  tcltk.scm has made these
+	obsolete.
+	
 1998-04-15  Mikael Djurfeldt  <mdj@nada.kth.se>
 
 	* runq.scm (runq-control): Corrected spelling of enqueue!.
