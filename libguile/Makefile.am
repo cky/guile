@@ -26,7 +26,7 @@ DEFS = @DEFS@
 ## Check for headers in $(srcdir)/.., so that #include
 ## <libguile/MUMBLE.h> will find MUMBLE.h in this dir when we're
 ## building.
-INCLUDES = -I.. -I$(srcdir)/.. ${INCLTDL}
+INCLUDES = -I.. -I$(top_srcdir) -I$(top_srcdir)/libguile-ltdl
 
 ETAGS_ARGS = --regex='/SCM_\(GLOBAL_\)?\(G?PROC\|G?PROC1\|SYMBOL\|VCELL\|CONST_LONG\).*\"\([^\"]\)*\"/\3/' \
    --regex='/[ \t]*SCM_[G]?DEFINE1?[ \t]*(\([^,]*\),[^,]*/\1/'
@@ -135,7 +135,7 @@ noinst_HEADERS = coop-threads.c coop-threads.h coop.c \
 	private-gc.h
 
 libguile_la_DEPENDENCIES = @LIBLOBJS@
-libguile_la_LIBADD = @LIBLOBJS@ $(LIBLTDL) $(THREAD_LIBS_LOCAL)
+libguile_la_LIBADD = @LIBLOBJS@ ../libguile-ltdl/libguile-ltdl.la $(THREAD_LIBS_LOCAL)
 libguile_la_LDFLAGS = -version-info @LIBGUILE_INTERFACE_CURRENT@:@LIBGUILE_INTERFACE_REVISION@:@LIBGUILE_INTERFACE_AGE@ -export-dynamic -no-undefined
 
 # These are headers visible as <guile/mumble.h>
