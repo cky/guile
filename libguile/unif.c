@@ -853,23 +853,27 @@ SCM_DEFINE (scm_make_shared_array, "make-shared-array", 2, 0, 1,
 	    "@end lisp")
 #define FUNC_NAME s_scm_make_shared_array
 {
+  scm_t_array_handle old_handle;
   SCM ra;
   SCM inds, indptr;
   SCM imap;
-  size_t k, i;
+  size_t k;
+  ssize_t i;
   long old_min, new_min, old_max, new_max;
   scm_t_array_dim *s;
 
   SCM_VALIDATE_REST_ARGUMENT (dims);
-  SCM_VALIDATE_ARRAY (1, oldra);
   SCM_VALIDATE_PROC (2, mapfunc);
   ra = scm_shap2ra (dims, FUNC_NAME);
+
+  scm_array_get_handle (oldra, &old_handle);
+
   if (SCM_ARRAYP (oldra))
     {
       SCM_ARRAY_V (ra) = SCM_ARRAY_V (oldra);
       old_min = old_max = SCM_ARRAY_BASE (oldra);
-      s = SCM_ARRAY_DIMS (oldra);
-      k = SCM_ARRAY_NDIM (oldra);
+      s = scm_array_handle_dims (&old_handle);
+      k = scm_array_handle_rank (&old_handle);
       while (k--)
 	{
 	  if (s[k].inc > 0)
@@ -884,6 +888,7 @@ SCM_DEFINE (scm_make_shared_array, "make-shared-array", 2, 0, 1,
       old_min = 0;
       old_max = scm_c_generalized_vector_length (oldra) - 1;
     }
+
   inds = SCM_EOL;
   s = SCM_ARRAY_DIMS (ra);
   for (k = 0; k < SCM_ARRAY_NDIM (ra); k++)
@@ -895,22 +900,13 @@ SCM_DEFINE (scm_make_shared_array, "make-shared-array", 2, 0, 1,
 	    ra = make_typed_vector (scm_array_type (ra), 0);
 	  else
 	    SCM_ARRAY_V (ra) = make_typed_vector (scm_array_type (ra), 0);
+	  scm_array_handle_release (&old_handle);
 	  return ra;
 	}
     }
+
   imap = scm_apply_0 (mapfunc, scm_reverse (inds));
-  if (SCM_ARRAYP (oldra))
-      i = (size_t) scm_aind (oldra, imap, FUNC_NAME);
-  else
-    {
-      if (!scm_is_integer (imap))
-	{
-	  if (scm_ilength (imap) != 1 || !scm_is_integer (SCM_CAR (imap)))
-	    SCM_MISC_ERROR (s_bad_ind, SCM_EOL);
-	  imap = SCM_CAR (imap);
-	}
-      i = scm_to_size_t (imap);
-    }
+  i = indices_to_pos (&old_handle, imap);
   SCM_ARRAY_BASE (ra) = new_min = new_max = i;
   indptr = inds;
   k = SCM_ARRAY_NDIM (ra);
@@ -920,19 +916,7 @@ SCM_DEFINE (scm_make_shared_array, "make-shared-array", 2, 0, 1,
 	{
 	  SCM_SETCAR (indptr, scm_sum (SCM_CAR (indptr), scm_from_int (1)));
 	  imap = scm_apply_0 (mapfunc, scm_reverse (inds));
-	  if (SCM_ARRAYP (oldra))
-
-	      s[k].inc = scm_aind (oldra, imap, FUNC_NAME) - i;
-	  else
-	    {
-	      if (!scm_is_integer (imap))
-		{
-		  if (scm_ilength (imap) != 1 || !scm_is_integer (SCM_CAR (imap)))
-		    SCM_MISC_ERROR (s_bad_ind, SCM_EOL);
-		  imap = SCM_CAR (imap);
-		}
-	      s[k].inc = scm_to_long (imap) - i;
-	    }
+	  s[k].inc = indices_to_pos (&old_handle, imap) - i;
 	  i += s[k].inc;
 	  if (s[k].inc > 0)
 	    new_max += (s[k].ubnd - s[k].lbnd) * s[k].inc;
@@ -943,6 +927,9 @@ SCM_DEFINE (scm_make_shared_array, "make-shared-array", 2, 0, 1,
 	s[k].inc = new_max - new_min + 1;	/* contiguous by default */
       indptr = SCM_CDR (indptr);
     }
+
+  scm_array_handle_release (&old_handle);
+
   if (old_min > new_min || old_max < new_max)
     SCM_MISC_ERROR ("mapping out of range", SCM_EOL);
   if (1 == SCM_ARRAY_NDIM (ra) && 0 == SCM_ARRAY_BASE (ra))
