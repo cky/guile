@@ -649,9 +649,12 @@ AC_DEFUN([GUILE_FUNC_DECLARED], [
   fi
 ])
 
-GUILE_FUNC_DECLARED(strptime, time.h)
 GUILE_FUNC_DECLARED(sleep, unistd.h)
 GUILE_FUNC_DECLARED(usleep, unistd.h)
+
+AC_CHECK_DECLS([strptime],,,
+[#define _GNU_SOURCE /* ask glibc to give strptime prototype */
+#include <time.h>])
 
 ### On some systems usleep has no return value.  If it does have one,
 ### we'd like to return it; otherwise, we'll fake it.
