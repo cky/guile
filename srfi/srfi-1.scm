@@ -347,16 +347,9 @@
 
 (define (car+cdr x) (values (car x) (cdr x)))
 
-(define (take x i)
-  (let lp ((n i) (l x) (acc '()))
-    (if (<= n 0)
-      (reverse! acc)
-      (lp (- n 1) (cdr l) (cons (car l) acc)))))
-(define (drop x i)
-  (let lp ((n i) (l x))
-    (if (<= n 0)
-      l
-      (lp (- n 1) (cdr l)))))
+(define take list-head)
+(define drop list-tail)
+
 (define (take-right flist i)
   (let lp ((n i) (l flist))
     (if (<= n 0)
