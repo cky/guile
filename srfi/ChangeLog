@@ -1,3 +1,8 @@
+2002-02-23  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* srfi-19.scm (priv:month-assoc): Correct numbers so that they
+	match the expectations of priv:year-day.
+
 2002-02-22  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* srfi-19.scm (priv:year-day): Index into priv:month-assoc using

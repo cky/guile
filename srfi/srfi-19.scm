@@ -797,9 +797,11 @@
 (define (leap-year? date)
   (priv:leap-year? (date-year date)))
 
-(define  priv:month-assoc '((1 . 31)  (2 . 59)   (3 . 90)   (4 . 120)
-                            (5 . 151) (6 . 181)  (7 . 212)  (8 . 243)
-                            (9 . 273) (10 . 304) (11 . 334) (12 . 365)))
+;; Map 1-based month number M to number of days in the year before the
+;; start of month M (in a non-leap year).
+(define priv:month-assoc '((1 . 0)   (2 . 31)   (3 . 59)   (4 . 90)
+			   (5 . 120) (6 . 151)  (7 . 181)  (8 . 212)
+			   (9 . 243) (10 . 273) (11 . 304) (12 . 334)))
 
 (define (priv:year-day day month year)
   (let ((days-pr (assoc month priv:month-assoc)))
