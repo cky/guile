@@ -356,7 +356,9 @@ returned string.  For the old behavior, use (read-line PORT 'concat).
 take new optional START and END arguments, specifying the region of
 the array to read and write.
 
-*** The `ungetc-char-ready?' function has been removed.
+*** The `ungetc-char-ready?' function has been removed.  We feel it's
+inappropriate for an interface to expose implementation details this
+way.
 
 ** Changes to the Unix library and system call interface
 
