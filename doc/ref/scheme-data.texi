@@ -780,7 +780,8 @@ Round the inexact number @var{x} towards zero.
 
 @c begin (texi-doc-string "guile" "round")
 @deffn {Scheme Procedure} round x
-Round the inexact number @var{x} towards zero.
+Round the inexact number @var{x} to the nearest integer.  When exactly
+halfway between two integers, round to the even one.
 @end deffn
 
 @c begin (texi-doc-string "guile" "floor")
