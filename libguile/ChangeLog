@@ -1,5 +1,11 @@
 1999-09-05  James Blandy  <jimb@mule.m17n.org>
 
+	Handle errors properly in guile-snarf.  (Thanks to Han-Wen Nienhuys.)
+	* guile-snarf.in: Be sure to exit with an error if CPP does.
+	* Makefile.am (.c.x): Delete the .x file and exit with an error
+	status if guile-snarf exits with an error status.
+	* Makefile.in: Regenerated.
+
 	* snarf.h (SCM_GLOBAL_KEYWORD): Call scm_c_make_keyword, not
 	scm_makekey, which doesn't exist any more.  Guess nobody's using
 	this.
