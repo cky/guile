@@ -39,18 +39,26 @@ The following procedures and variables provide information about how
 Guile was configured, built and installed on your system.
 
 @deffn {Scheme Procedure} version
+@deffnx {Scheme Procedure} effective-version
 @deffnx {Scheme Procedure} major-version
 @deffnx {Scheme Procedure} minor-version
 @deffnx {Scheme Procedure} micro-version
 @deffnx {C Function} scm_version ()
+@deffnx {C Function} scm_effective_version ()
 @deffnx {C Function} scm_major_version ()
 @deffnx {C Function} scm_minor_version ()
 @deffnx {C Function} scm_micro_version ()
-Return a string describing Guile's version number, or its major, minor
-or micro version number, respectively.
+Return a string describing Guile's full version number, effective
+version number, major, minor or micro version number, respectively.
+The @code{effective-version} function returns the version name that
+should remain unchanged during a stable series.  Currently that means
+that it omits the micro version.  The effective version should be used
+for items like the versioned share directory name
+i.e. @file{/usr/share/guile/1.6/}
 
 @lisp
 (version) @result{} "1.6.0"
+(effective-version) @result{} "1.6"
 (major-version) @result{} "1"
 (minor-version) @result{} "6"
 (micro-version) @result{} "0"
@@ -69,9 +77,9 @@ general are stored.  On Unix-like systems, this is usually
 Return the name of the directory where the Guile Scheme files that
 belong to the core Guile installation (as opposed to files from a 3rd
 party package) are installed.  On Unix-like systems, this is usually
-@file{/usr/local/share/guile/<VERSION>} or
-@file{/usr/share/guile/<VERSION>}, for example:
-@file{/usr/local/share/guile/1.6.0}.
+@file{/usr/local/share/guile/<GUILE_EFFECTIVE_VERSION>} or
+@file{/usr/share/guile/<GUILE_EFFECTIVE_VERSION>}, for example:
+@file{/usr/local/share/guile/1.6}.
 @end deffn
 
 @deffn {Scheme Procedure} %site-dir
