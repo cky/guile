@@ -79,7 +79,9 @@ scm_option scm_read_opts[] = {
 
 SCM_DEFINE (scm_read_options, "read-options-interface", 0, 1, 0, 
             (SCM setting),
-"")
+	    "Option interface for the read options. Instead of using\n"
+	    "this procedure directly, use the procedures @code{read-enable},\n"
+	    "@code{read-disable}, @code{read-set!} and @var{read-options}.")
 #define FUNC_NAME s_scm_read_options
 {
   SCM ans = scm_options (setting,
@@ -97,7 +99,9 @@ static SCM *scm_read_hash_procedures;
 
 SCM_DEFINE (scm_read, "read", 0, 1, 0, 
             (SCM port),
-"")
+	    "Read an s-expression from the input port @var{port}, or from\n"
+	    "the current input port if @var{port} is not specified.\n"
+	    "Any whitespace before the next token is discarded.")
 #define FUNC_NAME s_scm_read
 {
   int c;
@@ -725,7 +729,11 @@ exit:
    Scheme, but maybe it will also be used by C code during initialisation.  */
 SCM_DEFINE (scm_read_hash_extend, "read-hash-extend", 2, 0, 0,
             (SCM chr, SCM proc),
-"")
+	    "Install the procedure @var{proc} for reading expressions\n"
+	    "starting with the character sequence @code{#} and @var{chr}.\n"
+	    "@var{proc} will be called with two arguments:  the character\n"
+	    "@var{chr} and the port to read further data from. The object\n"
+	    "returned will be the return value of @code{read}.")
 #define FUNC_NAME s_scm_read_hash_extend
 {
   SCM this;
