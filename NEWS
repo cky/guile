@@ -29,7 +29,7 @@ Changes since Guile 1.4:
 
   tag - no replacement.
   fseek - replaced by seek.
-  list* - replaced by cons*.  
+  list* - replaced by cons*.
 
 ** New SRFI modules have been added:
 
@@ -48,6 +48,19 @@ Changes since Guile 1.4:
 (srfi srfi-13) implements the SRFI String Library.
 
 (srfi srfi-14) implements the SRFI Character-Set Library.
+
+** New scripts / "executable modules"
+
+Subdirectory "scripts" contains Scheme modules that are packaged to
+also be executable as scripts.  At this time, these scripts are available:
+
+     display-commentary
+     doc-snarf
+     generate-autoload
+     punify
+     use2dot
+
+See README there for more info.
 
 ** New module (ice-9 stack-catch):
 
