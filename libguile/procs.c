@@ -144,6 +144,36 @@ scm_procedure_p (obj)
   return SCM_BOOL_F;
 }
 
+#ifdef __STDC__
+SCM 
+scm_thunk_p (SCM obj)
+#else
+SCM 
+scm_thunk_p (obj)
+     SCM obj;
+#endif
+{
+  if (SCM_NIMP (obj))
+    switch (SCM_TYP7 (obj))
+      {
+      case scm_tcs_closures:
+	if (SCM_NULLP (SCM_CAR (SCM_CODE (obj))))
+	  return SCM_BOOL_T;
+      case scm_tc7_subr_0:
+      case scm_tc7_subr_1o:
+      case scm_tc7_lsubr:
+      case scm_tc7_rpsubr:
+      case scm_tc7_asubr:
+#ifdef CCLO
+      case scm_tc7_cclo:
+#endif
+	return SCM_BOOL_T;
+      default:
+	;
+      }
+  return SCM_BOOL_F;
+}
+
 
 #ifdef __STDC__
 void
