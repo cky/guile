@@ -88,23 +88,6 @@ scm_debug_options (setting)
   return ans;
 }
 
-SCM_PROC (s_evaluator_traps, "evaluator-traps-interface", 0, 1, 0, scm_evaluator_traps);
-
-SCM
-scm_evaluator_traps (setting)
-     SCM setting;
-{
-  SCM ans;
-  SCM_DEFER_INTS;
-  ans = scm_options (setting,
-		     scm_evaluator_trap_table,
-		     SCM_N_EVALUATOR_TRAPS,
-		     s_evaluator_traps);
-  SCM_RESET_DEBUG_MODE;
-  SCM_ALLOW_INTS
-  return ans;
-}
-
 SCM_PROC (s_single_step, "single-step", 2, 0, 0, scm_single_step);
 
 SCM
@@ -142,7 +125,11 @@ prinmemoized (obj, port, pstate)
   int writingp = SCM_WRITINGP (pstate);
   scm_puts ("#<memoized ", port);
   SCM_SET_WRITINGP (pstate, 1);
+#ifdef GUILE_DEBUG
+  scm_iprin1 (SCM_MEMOIZED_EXP (obj), port, pstate);
+#else
   scm_iprin1 (scm_unmemoize (obj), port, pstate);
+#endif
   SCM_SET_WRITINGP (pstate, writingp);
   scm_putc ('>', port);
   return 1;
@@ -177,6 +164,212 @@ scm_make_memoized (exp, env)
   SCM_ALLOW_INTS;
   return ans;
 }
+
+#ifdef GUILE_DEBUG
+/*
+ * Some primitives for construction of memoized code
+ *
+ * - procedure: memcons CAR CDR [ENV]
+ *
+ *     Construct a pair, encapsulated in a memoized object.
+ *
+ *     The CAR and CDR can be either normal or memoized.  If ENV isn't
+ *     specified, the top-level environment of the current module will
+ *     be assumed.  All environments must match.
+ *
+ * - procedure: make-gloc VARIABLE [ENV]
+ *
+ *     Return a gloc, encapsulated in a memoized object.
+ *
+ *     (Glocs can't exist in normal list structures, since they will
+ *     be mistaken for structs.)
+ *
+ * - procedure: gloc? OBJECT
+ *
+ *     Return #t if OBJECT is a memoized gloc.
+ *
+ * - procedure: make-iloc FRAME BINDING CDRP
+ *
+ *     Return an iloc referring to frame no. FRAME, binding
+ *     no. BINDING.  If CDRP is non-#f, the iloc is referring to a
+ *     frame consisting of a single pair, with the value stored in the
+ *     CDR.
+ *
+ * - procedure: iloc? OBJECT
+ *
+ *     Return #t if OBJECT is an iloc.
+ *
+ * - procedure: mem->proc MEMOIZED
+ *
+ *     Construct a closure from the memoized lambda expression MEMOIZED
+ *
+ *     WARNING! The code is not copied!
+ *
+ * - procedure: proc->mem CLOSURE
+ *
+ *     Turn the closure CLOSURE into a memoized object.
+ *
+ *     WARNING! The code is not copied!
+ *
+ * - constant: SCM_IM_AND
+ * - constant: SCM_IM_BEGIN
+ * - constant: SCM_IM_CASE
+ * - constant: SCM_IM_COND
+ * - constant: SCM_IM_DO
+ * - constant: SCM_IM_IF
+ * - constant: SCM_IM_LAMBDA
+ * - constant: SCM_IM_LET
+ * - constant: SCM_IM_LETSTAR
+ * - constant: SCM_IM_LETREC
+ * - constant: SCM_IM_OR
+ * - constant: SCM_IM_QUOTE
+ * - constant: SCM_IM_SET
+ * - constant: SCM_IM_DEFINE
+ * - constant: SCM_IM_APPLY
+ * - constant: SCM_IM_CONT
+ */
+
+#include "variable.h"
+#include "procs.h"
+
+SCM_PROC (s_make_gloc, "make-gloc", 1, 1, 0, scm_make_gloc);
+
+SCM
+scm_make_gloc (var, env)
+     SCM var;
+     SCM env;
+{
+#if 1 /* Unsafe */
+  if (SCM_NIMP (var) && SCM_CONSP (var))
+    var = scm_cons (SCM_BOOL_F, var);
+  else
+#endif
+  SCM_ASSERT (SCM_NIMP (var) && SCM_VARIABLEP (var),
+	      var,
+	      SCM_ARG1,
+	      s_make_gloc);
+  if (SCM_UNBNDP (env))
+    env = scm_top_level_env (SCM_CDR (scm_top_level_lookup_closure_var));
+  else
+    SCM_ASSERT (SCM_NULLP (env) || (SCM_NIMP (env) && SCM_CONSP (env)),
+		env,
+		SCM_ARG2,
+		s_make_gloc);
+  return scm_make_memoized (SCM_VARVCELL (var) + 1, env);
+}
+
+SCM_PROC (s_gloc_p, "gloc?", 1, 0, 0, scm_gloc_p);
+
+SCM
+scm_gloc_p (obj)
+     SCM obj;
+{
+  return ((SCM_NIMP (obj)
+	   && SCM_MEMOIZEDP (obj)
+	   && (SCM_MEMOIZED_EXP (obj) & 7) == 1)
+	  ? SCM_BOOL_T
+	  : SCM_BOOL_F);
+}
+
+SCM_PROC (s_make_iloc, "make-iloc", 3, 0, 0, scm_make_iloc);
+
+SCM
+scm_make_iloc (frame, binding, cdrp)
+     SCM frame;
+     SCM binding;
+     SCM cdrp;
+{
+  SCM_ASSERT (SCM_INUMP (frame), frame, SCM_ARG1, s_make_iloc);
+  SCM_ASSERT (SCM_INUMP (binding), binding, SCM_ARG2, s_make_iloc);
+  return (SCM_ILOC00
+	  + SCM_IFRINC * SCM_INUM (frame)
+	  + (SCM_NFALSEP (cdrp) ? SCM_ICDR : 0)
+	  + SCM_IDINC * SCM_INUM (binding));
+}
+
+SCM_PROC (s_iloc_p, "iloc?", 1, 0, 0, scm_iloc_p);
+
+SCM
+scm_iloc_p (obj)
+     SCM obj;
+{
+  return SCM_ILOCP (obj) ? SCM_BOOL_T : SCM_BOOL_F;
+}
+
+SCM_PROC (s_memcons, "memcons", 2, 1, 0, scm_memcons);
+
+SCM
+scm_memcons (car, cdr, env)
+     SCM car;
+     SCM cdr;
+     SCM env;
+{
+  if (SCM_NIMP (car) && SCM_MEMOIZEDP (car))
+    {
+      /*fixme* environments may be two different but equal top-level envs */
+      if (!SCM_UNBNDP (env) && SCM_MEMOIZED_ENV (car) != env)
+	scm_misc_error (s_memcons,
+			"environment mismatch arg1 <-> arg3",
+			scm_cons2 (car, env, SCM_EOL));
+      else
+	env = SCM_MEMOIZED_ENV (car);
+      car = SCM_MEMOIZED_EXP (car);
+    }
+  if (SCM_NIMP (cdr) && SCM_MEMOIZEDP (cdr))
+    {
+      if (!SCM_UNBNDP (env) && SCM_MEMOIZED_ENV (cdr) != env)
+	scm_misc_error (s_memcons,
+			"environment mismatch arg2 <-> arg3",
+			scm_cons2 (cdr, env, SCM_EOL));
+      else
+	env = SCM_MEMOIZED_ENV (cdr);
+      cdr = SCM_MEMOIZED_EXP (cdr);
+    }
+  if (SCM_UNBNDP (env))
+    env = scm_top_level_env (SCM_CDR (scm_top_level_lookup_closure_var));
+  else
+    SCM_ASSERT (SCM_NULLP (env) || (SCM_NIMP (env) && SCM_CONSP (env)),
+		env,
+		SCM_ARG3,
+		s_make_iloc);
+  return scm_make_memoized (scm_cons (car, cdr), env);
+}
+
+SCM_PROC (s_mem_to_proc, "mem->proc", 1, 0, 0, scm_mem_to_proc);
+
+SCM
+scm_mem_to_proc (obj)
+     SCM obj;
+{
+  SCM env;
+  SCM_ASSERT (SCM_NIMP (obj) && SCM_MEMOIZEDP (obj),
+	      obj,
+	      SCM_ARG1,
+	      s_mem_to_proc);
+  env = SCM_MEMOIZED_ENV (obj);
+  obj = SCM_MEMOIZED_EXP (obj);
+  if (!(SCM_NIMP (obj) && SCM_CAR (obj) == SCM_IM_LAMBDA))
+    scm_misc_error (s_mem_to_proc,
+		    "expected lambda expression",
+		    scm_cons (obj, SCM_EOL));
+  return scm_closure (SCM_CDR (obj), env);
+}
+
+SCM_PROC (s_proc_to_mem, "proc->mem", 1, 0, 0, scm_proc_to_mem);
+
+SCM
+scm_proc_to_mem (obj)
+     SCM obj;
+{
+  SCM_ASSERT (SCM_NIMP (obj) && SCM_CLOSUREP (obj),
+	      obj,
+	      SCM_ARG1,
+	      s_proc_to_mem);
+  return scm_make_memoized (scm_cons (SCM_IM_LAMBDA, SCM_CODE (obj)),
+			    SCM_ENV (obj));
+}
+
+#endif /* GUILE_DEBUG */
 
 SCM_PROC (s_unmemoize, "unmemoize", 1, 0, 0, scm_unmemoize);
 
@@ -407,9 +600,6 @@ void
 scm_init_debug ()
 {
   scm_init_opts (scm_debug_options, scm_debug_opts, SCM_N_DEBUG_OPTIONS);
-  scm_init_opts (scm_evaluator_traps,
-		 scm_evaluator_trap_table,
-		 SCM_N_EVALUATOR_TRAPS);
 
   scm_tc16_memoized = scm_newsmob (&memoizedsmob);
   scm_tc16_debugobj = scm_newsmob (&debugobjsmob);
@@ -422,7 +612,25 @@ scm_init_debug ()
   scm_i_eval_args = SCM_CAR (scm_sysintern ("eval-args", SCM_UNDEFINED));
 
   scm_make_synt (s_start_stack, scm_makacro, scm_m_start_stack);
-  
+
+#ifdef GUILE_DEBUG
+  scm_sysintern ("SCM_IM_AND", SCM_IM_AND);
+  scm_sysintern ("SCM_IM_BEGIN", SCM_IM_BEGIN);
+  scm_sysintern ("SCM_IM_CASE", SCM_IM_CASE);
+  scm_sysintern ("SCM_IM_COND", SCM_IM_COND);
+  scm_sysintern ("SCM_IM_DO", SCM_IM_DO);
+  scm_sysintern ("SCM_IM_IF", SCM_IM_IF);
+  scm_sysintern ("SCM_IM_LAMBDA", SCM_IM_LAMBDA);
+  scm_sysintern ("SCM_IM_LET", SCM_IM_LET);
+  scm_sysintern ("SCM_IM_LETSTAR", SCM_IM_LETSTAR);
+  scm_sysintern ("SCM_IM_LETREC", SCM_IM_LETREC);
+  scm_sysintern ("SCM_IM_OR", SCM_IM_OR);
+  scm_sysintern ("SCM_IM_QUOTE", SCM_IM_QUOTE);
+  scm_sysintern ("SCM_IM_SET", SCM_IM_SET);
+  scm_sysintern ("SCM_IM_DEFINE", SCM_IM_DEFINE);
+  scm_sysintern ("SCM_IM_APPLY", SCM_IM_APPLY);
+  scm_sysintern ("SCM_IM_CONT", SCM_IM_CONT);
+#endif
   scm_add_feature ("debug-extensions");
 
 #include "debug.x"

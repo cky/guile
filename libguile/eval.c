@@ -280,6 +280,7 @@ scm_lookupcar1 (vloc, genv)
       for (fl = SCM_CAR (*al); SCM_NIMP (fl); fl = SCM_CDR (fl))
 	{
 	  if (SCM_NCONSP (fl))
+	    {
 	      if (fl == var)
 	      {
 #ifdef MEMOIZE_LOCALS
@@ -291,8 +292,9 @@ scm_lookupcar1 (vloc, genv)
 #endif
 		return SCM_CDRLOC (*al);
 	      }
-	    else
-	      break;
+	      else
+		break;
+	    }
 	  al = SCM_CDRLOC (*al);
 	  if (SCM_CAR (fl) == var)
 	    {
@@ -652,23 +654,23 @@ scm_m_lambda (xorig, env)
   if (scm_ilength (x) < 2)
     goto badforms;
   proc = SCM_CAR (x);
-  if SCM_NULLP
-    (proc) goto memlambda;
-  if SCM_IMP
-    (proc) goto badforms;
-  if SCM_SYMBOLP
-    (proc) goto memlambda;
-  if SCM_NCONSP
-    (proc) goto badforms;
-  while SCM_NIMP
-    (proc)
+  if (SCM_NULLP (proc))
+    goto memlambda;
+  if (SCM_IMP (proc))
+    goto badforms;
+  if (SCM_SYMBOLP (proc))
+    goto memlambda;
+  if (SCM_NCONSP (proc))
+    goto badforms;
+  while (SCM_NIMP (proc))
     {
-      if SCM_NCONSP
-	(proc)
+      if (SCM_NCONSP (proc))
+	{
 	  if (!SCM_SYMBOLP (proc))
-	  goto badforms;
-	else
-	  goto memlambda;
+	    goto badforms;
+	  else
+	    goto memlambda;
+	}
       if (!(SCM_NIMP (SCM_CAR (proc)) && SCM_SYMBOLP (SCM_CAR (proc))))
 	goto badforms;
       proc = SCM_CDR (proc);
@@ -1316,6 +1318,7 @@ scm_eval_args (l, env)
    returns, rendering the jump buffer invalid.  Duh.  Gotta find a
    better way...  -JimB  */
 #define safe_setjmp(x) setjmp (x)
+#if 0
 static int
 unsafe_setjmp (jmp_buf env)
 {
@@ -1326,6 +1329,7 @@ unsafe_setjmp (jmp_buf env)
   val = setjmp (env);
   return val;
 }
+#endif
 
 
 #endif /* !DEVAL */
@@ -1418,6 +1422,10 @@ int scm_debug_eframe_size;
 
 int scm_debug_mode, scm_check_entry_p, scm_check_apply_p, scm_check_exit_p;
 
+scm_option scm_eval_opts[] = {
+  { SCM_OPTION_INTEGER, "stack", 0x10000, "Size of thread stacks." }
+};
+
 scm_option scm_debug_opts[] = {
   { SCM_OPTION_BOOLEAN, "cheap", 1,
     "*Flyweight representation of the stack at traps." },
@@ -1443,6 +1451,39 @@ scm_option scm_evaluator_trap_table[] = {
   { SCM_OPTION_BOOLEAN, "apply-frame", 0, "Trap when entering apply." },
   { SCM_OPTION_BOOLEAN, "exit-frame", 0, "Trap when exiting eval or apply." }
 };
+
+SCM_PROC (s_eval_options_interface, "eval-options-interface", 0, 1, 0, scm_eval_options_interface);
+
+SCM
+scm_eval_options_interface (setting)
+     SCM setting;
+{
+  SCM ans;
+  SCM_DEFER_INTS;
+  ans = scm_options (setting,
+		     scm_eval_opts,
+		     SCM_N_EVAL_OPTIONS,
+		     s_eval_options_interface);
+  SCM_ALLOW_INTS;
+  return ans;
+}
+
+SCM_PROC (s_evaluator_traps, "evaluator-traps-interface", 0, 1, 0, scm_evaluator_traps);
+
+SCM
+scm_evaluator_traps (setting)
+     SCM setting;
+{
+  SCM ans;
+  SCM_DEFER_INTS;
+  ans = scm_options (setting,
+		     scm_evaluator_trap_table,
+		     SCM_N_EVALUATOR_TRAPS,
+		     s_evaluator_traps);
+  SCM_RESET_DEBUG_MODE;
+  SCM_ALLOW_INTS
+  return ans;
+}
 
 SCM
 scm_deval_args (l, env, lloc)
@@ -2104,18 +2145,20 @@ evapply:
 		 ? SCM_ENTITY_PROC_0 (proc)
 		 : SCM_OPERATOR_PROC_0 (proc));
 	    if (SCM_NIMP (x))
-	      if (SCM_TYP7 (x) == scm_tc7_subr_1)
-		RETURN (SCM_SUBRF (x) (proc))
-	      else if (SCM_CLOSUREP (x))
-		{
-		  t.arg1 = proc;
-		  proc = x;
+	      {
+		if (SCM_TYP7 (x) == scm_tc7_subr_1)
+		  RETURN (SCM_SUBRF (x) (proc))
+		else if (SCM_CLOSUREP (x))
+		  {
+		    t.arg1 = proc;
+		    proc = x;
 #ifdef DEVAL
-		  debug.info->a.args = scm_cons (t.arg1, SCM_EOL);
-		  debug.info->a.proc = proc;
+		    debug.info->a.args = scm_cons (t.arg1, SCM_EOL);
+		    debug.info->a.proc = proc;
 #endif
-		  goto clos1;
-		}
+		    goto clos1;
+		  }
+	      }
 	    /* Fall through. */
 	  }
       case scm_tc7_contin:
@@ -2230,19 +2273,22 @@ evapply:
 		   ? SCM_ENTITY_PROC_1 (proc)
 		   : SCM_OPERATOR_PROC_1 (proc));
 	      if (SCM_NIMP (x))
-		if (SCM_TYP7 (x) == scm_tc7_subr_2)
-		  RETURN (SCM_SUBRF (x) (proc, t.arg1))
-	        else if (SCM_CLOSUREP (x))
-		  {
-		    arg2 = t.arg1;
-		    t.arg1 = proc;
-		    proc = x;
+		{
+		  if (SCM_TYP7 (x) == scm_tc7_subr_2)
+		    RETURN (SCM_SUBRF (x) (proc, t.arg1))
+		  else if (SCM_CLOSUREP (x))
+		    {
+		      arg2 = t.arg1;
+		      t.arg1 = proc;
+		      proc = x;
 #ifdef DEVAL
-		    debug.info->a.args = scm_cons (t.arg1, debug.info->a.args);
-		    debug.info->a.proc = proc;
+		      debug.info->a.args = scm_cons (t.arg1,
+						     debug.info->a.args);
+		      debug.info->a.proc = proc;
 #endif
-		    goto clos2;
-		  }
+		      goto clos2;
+		    }
+		}
 	      /* Fall through. */
 	    }
 	case scm_tc7_contin:
@@ -2313,22 +2359,25 @@ evapply:
 		   ? SCM_ENTITY_PROC_2 (proc)
 		   : SCM_OPERATOR_PROC_2 (proc));
 	      if (SCM_NIMP (x))
-		if (SCM_TYP7 (x) == scm_tc7_subr_3)
-		  RETURN (SCM_SUBRF (x) (proc, t.arg1, arg2))
-		else if (SCM_CLOSUREP (x))
-		  {
+		{
+		  if (SCM_TYP7 (x) == scm_tc7_subr_3)
+		    RETURN (SCM_SUBRF (x) (proc, t.arg1, arg2))
+		  else if (SCM_CLOSUREP (x))
+		    {
 #ifdef DEVAL
-		    SCM_SET_ARGSREADY (debug);
-		    debug.info->a.args = scm_cons (proc, debug.info->a.args);
-		    debug.info->a.proc = x;
+		      SCM_SET_ARGSREADY (debug);
+		      debug.info->a.args = scm_cons (proc,
+						     debug.info->a.args);
+		      debug.info->a.proc = x;
 #endif
-		    env = EXTEND_ENV (SCM_CAR (SCM_CODE (x)),
-				      scm_cons2 (proc, t.arg1,
-						 scm_cons (arg2, env)),
-				      SCM_ENV (x));
-		    x = SCM_CODE (x);
-		    goto cdrxbegin;
-		  }
+		      env = EXTEND_ENV (SCM_CAR (SCM_CODE (x)),
+					scm_cons2 (proc, t.arg1,
+						   scm_cons (arg2, env)),
+					SCM_ENV (x));
+		      x = SCM_CODE (x);
+		      goto cdrxbegin;
+		    }
+		}
 	      /* Fall through. */
 	    }
 	case scm_tc7_subr_0:
@@ -2472,36 +2521,38 @@ evapply:
 		     ? SCM_ENTITY_PROC_3 (proc)
 		     : SCM_OPERATOR_PROC_3 (proc));
 	    if (SCM_NIMP (p))
-	      if (SCM_TYP7 (p) == scm_tc7_lsubr_2)
+	      {
+		if (SCM_TYP7 (p) == scm_tc7_lsubr_2)
 #ifdef DEVAL
-		RETURN (SCM_SUBRF (p) (proc, t.arg1,
-				       scm_cons (arg2, SCM_CDDR (debug.info->a.args))))
+		  RETURN (SCM_SUBRF (p) (proc, t.arg1,
+					 scm_cons (arg2, SCM_CDDR (debug.info->a.args))))
 #else
-		RETURN (SCM_SUBRF (p) (proc, t.arg1,
-				       scm_cons (arg2,
-						 scm_eval_args (x, env))))
+		  RETURN (SCM_SUBRF (p) (proc, t.arg1,
+					 scm_cons (arg2,
+						   scm_eval_args (x, env))))
 #endif
-	      else if (SCM_CLOSUREP (p))
-		{
+		else if (SCM_CLOSUREP (p))
+		  {
 #ifdef DEVAL
-		  SCM_SET_ARGSREADY (debug);
-		  debug.info->a.args = scm_cons (proc, debug.info->a.args);
-		  debug.info->a.proc = p;
-		  env = EXTEND_ENV (SCM_CAR (SCM_CODE (p)),
-				    scm_cons2 (proc, t.arg1,
-					       scm_cons (arg2,
-							 SCM_CDDDR (debug.info->a.args))),
-				    SCM_ENV (p));
+		    SCM_SET_ARGSREADY (debug);
+		    debug.info->a.args = scm_cons (proc, debug.info->a.args);
+		    debug.info->a.proc = p;
+		    env = EXTEND_ENV (SCM_CAR (SCM_CODE (p)),
+				      scm_cons2 (proc, t.arg1,
+						 scm_cons (arg2,
+							   SCM_CDDDR (debug.info->a.args))),
+				      SCM_ENV (p));
 #else
-		  env = EXTEND_ENV (SCM_CAR (SCM_CODE (p)),
-				    scm_cons2 (proc, t.arg1,
-					       scm_cons (arg2,
-							 scm_eval_args (x, env))),
-				    SCM_ENV (p));
+		    env = EXTEND_ENV (SCM_CAR (SCM_CODE (p)),
+				      scm_cons2 (proc, t.arg1,
+						 scm_cons (arg2,
+							   scm_eval_args (x, env))),
+				      SCM_ENV (p));
 #endif
-		  x = SCM_CODE (p);
-		  goto cdrxbegin;
-		}
+		    x = SCM_CODE (p);
+		    goto cdrxbegin;
+		  }
+	      }
 	    /* Fall through. */
 	  }
       case scm_tc7_subr_2:
@@ -3348,6 +3399,13 @@ scm_make_synt (name, macroizer, fcn)
 void 
 scm_init_eval ()
 {
+  scm_init_opts (scm_evaluator_traps,
+		 scm_evaluator_trap_table,
+		 SCM_N_EVALUATOR_TRAPS);
+  scm_init_opts (scm_eval_options_interface,
+		 scm_eval_opts,
+		 SCM_N_EVAL_OPTIONS);
+  
   scm_tc16_promise = scm_newsmob (&promsmob);
   scm_tc16_macro = scm_newsmob (&macrosmob);
   scm_i_apply = scm_make_subr ("apply", scm_tc7_lsubr_2, scm_apply);

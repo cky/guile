@@ -48,6 +48,23 @@
 
 
 
+/* {Options}
+ */
+
+extern scm_option scm_eval_opts[];
+
+#define SCM_EVAL_STACK	       scm_eval_opts[0].val
+#define SCM_N_EVAL_OPTIONS 1
+
+extern scm_option scm_evaluator_trap_table[];
+
+#define SCM_ENTER_FRAME_P      scm_evaluator_trap_table[0].val
+#define SCM_APPLY_FRAME_P      scm_evaluator_trap_table[1].val
+#define SCM_EXIT_FRAME_P       scm_evaluator_trap_table[2].val
+#define SCM_N_EVALUATOR_TRAPS 3
+
+
+
 /* {Ilocs}
  *
  * Ilocs are relative pointers into local environment structures.

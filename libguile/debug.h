@@ -63,7 +63,7 @@
 /* {Options}
  */
 
-/* scm_debug_opts and scm_evaluator_trap_table are defined in eval.c.
+/* scm_debug_opts is  defined in eval.c.
  */
 
 extern scm_option scm_debug_opts[];
@@ -81,13 +81,6 @@ extern scm_option scm_debug_opts[];
 #define SCM_DEVAL_P		scm_debug_opts[10].val
 #define SCM_STACK_LIMIT		scm_debug_opts[11].val
 #define SCM_N_DEBUG_OPTIONS 12
-
-extern scm_option scm_evaluator_trap_table[];
-
-#define SCM_ENTER_FRAME_P      scm_evaluator_trap_table[0].val
-#define SCM_APPLY_FRAME_P      scm_evaluator_trap_table[1].val
-#define SCM_EXIT_FRAME_P       scm_evaluator_trap_table[2].val
-#define SCM_N_EVALUATOR_TRAPS 3
 
 extern SCM (*scm_ceval_ptr) SCM_P ((SCM exp, SCM env));
 
