@@ -382,6 +382,12 @@ sparc-*-*)
 	qtmds_s=$qtsrcdir/md/sparc.s
 	qtdmdb_s=$qtsrcdir/md/sparc_b.s 
 	;;
+alpha-*-*)
+	qtmd_h=md/axp.h
+	qtmdc_c=$qtsrcdir/md/null.c
+	qtmds_s=$qtsrcdir/md/axp.s
+	qtdmdb_s=$qtsrcdir/md/axp_b.s 
+	;;
 *)
 	echo "Unknown configuration; threads package disabled"
 	threads_enabled=false

@@ -1,3 +1,8 @@
+Wed Jul 23 20:24:27 1997  Mikael Djurfeldt  <djurf@zafir.e.kth.se>
+
+	* configure.in: Added thread support for the alpha architecture.
+	configure: Regenerated.
+
 Thu Jul 17 07:56:05 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* configure.in: use AC_CHECK_FUNCS for sethostent etc.,
