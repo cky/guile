@@ -1,3 +1,23 @@
+2000-03-23  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* tags.h: Disabled definition of SCM_VOIDP_TEST.
+
+	Defining SCM as void * introduces problems which haven't been
+	handled yet.  Developers who work with these issues can enable it
+	in their working copies.
+
+	Disabling this definition exposes a set of newly introduced and
+	older misuses of types which causes warning messages during
+	compilation.  We'll fix this successively.
+
+	* gc.c (scm_mark_locations): Changed * (SCM **) X --> * (SCM *) X
+	in order to obtain a value of type SCM.
+	(scm_cellp): Updated with new changes to scm_mark_locations.
+
+	* continuations.h (SCM_SETJMPBUF): Cast second arg into SCM.
+
+	* symbols.h (SCM_SETCHARS): Cast second arg into SCM.
+
 2000-03-22  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* numbers.h (SCM_SETNUMDIGS):  Use SCM_BIGSIZEFIELD macro for
