@@ -1,3 +1,7 @@
+2001-11-22  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* numbers.c (scm_divide):  Fix more division by zero errors.
+
 2001-11-21  Gary Houston  <ghouston@arglist.com>
 
 	* Makefile.am (OMIT_DEPENDENCIES): removed, since it seems to be

@@ -3718,7 +3718,11 @@ scm_divide (SCM x, SCM y)
     } else if (SCM_BIGP (x)) {
       return scm_make_real (1.0 / scm_i_big2dbl (x));
     } else if (SCM_REALP (x)) {
-      return scm_make_real (1.0 / SCM_REAL_VALUE (x));
+      double xx = SCM_REAL_VALUE (x);
+      if (xx == 0.0)
+	scm_num_overflow (s_divide);
+      else
+	return scm_make_real (1.0 / xx);
     } else if (SCM_COMPLEXP (x)) {
       double r = SCM_COMPLEX_REAL (x);
       double i = SCM_COMPLEX_IMAG (x);
@@ -3752,7 +3756,11 @@ scm_divide (SCM x, SCM y)
     } else if (SCM_BIGP (y)) {
       return scm_make_real ((double) xx / scm_i_big2dbl (y));
     } else if (SCM_REALP (y)) {
-      return scm_make_real ((double) xx / SCM_REAL_VALUE (y));
+      double yy = SCM_REAL_VALUE (y);
+      if (yy == 0.0)
+	scm_num_overflow (s_divide);
+      else
+	return scm_make_real ((double) xx / yy);
     } else if (SCM_COMPLEXP (y)) {
       a = xx;
     complex_div: /* y _must_ be a complex number */
@@ -3807,7 +3815,11 @@ scm_divide (SCM x, SCM y)
 	? w 
 	: scm_make_real (scm_i_big2dbl (x) / scm_i_big2dbl (y));
     } else if (SCM_REALP (y)) {
-      return scm_make_real (scm_i_big2dbl (x) / SCM_REAL_VALUE (y));
+      double yy = SCM_REAL_VALUE (y);
+      if (yy == 0.0)
+	scm_num_overflow (s_divide);
+      else
+	return scm_make_real (scm_i_big2dbl (x) / yy);
     } else if (SCM_COMPLEXP (y)) {
       a = scm_i_big2dbl (x);
       goto complex_div;
@@ -3817,11 +3829,20 @@ scm_divide (SCM x, SCM y)
   } else if (SCM_REALP (x)) {
     double rx = SCM_REAL_VALUE (x);
     if (SCM_INUMP (y)) {
-      return scm_make_real (rx / (double) SCM_INUM (y));
+      long int yy = SCM_INUM (y);
+      if (yy == 0) {
+	scm_num_overflow (s_divide);
+      } else {
+	return scm_make_real (rx / (double) yy);
+      }
     } else if (SCM_BIGP (y)) {
       return scm_make_real (rx / scm_i_big2dbl (y));
     } else if (SCM_REALP (y)) {
-      return scm_make_real (rx / SCM_REAL_VALUE (y));
+      double yy = SCM_REAL_VALUE (y);
+      if (yy == 0.0)
+	scm_num_overflow (s_divide);
+      else
+	return scm_make_real (rx / yy);
     } else if (SCM_COMPLEXP (y)) {
       a = rx;
       goto complex_div;
@@ -3832,14 +3853,22 @@ scm_divide (SCM x, SCM y)
     double rx = SCM_COMPLEX_REAL (x);
     double ix = SCM_COMPLEX_IMAG (x);
     if (SCM_INUMP (y)) {
-      double d = SCM_INUM (y);
-      return scm_make_complex (rx / d, ix / d);
+      long int yy = SCM_INUM (y);
+      if (yy == 0) {
+	scm_num_overflow (s_divide);
+      } else {
+	double d = yy;
+	return scm_make_complex (rx / d, ix / d);
+      }
     } else if (SCM_BIGP (y)) {
       double d = scm_i_big2dbl (y);
       return scm_make_complex (rx / d, ix / d);
     } else if (SCM_REALP (y)) {
-      double d = SCM_REAL_VALUE (y);
-      return scm_make_complex (rx / d, ix / d);
+      double yy = SCM_REAL_VALUE (y);
+      if (yy == 0.0)
+	scm_num_overflow (s_divide);
+      else
+	return scm_make_complex (rx / yy, ix / yy);
     } else if (SCM_COMPLEXP (y)) {
       double ry = SCM_COMPLEX_REAL (y);
       double iy = SCM_COMPLEX_IMAG (y);
