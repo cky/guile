@@ -42,6 +42,7 @@
 
 #include <stdio.h>
 #include "_scm.h"
+#include "feature.h"
 
 #include "stime.h"
 
@@ -202,6 +203,7 @@ scm_init_stime()
 
   if (!scm_my_base) scm_my_base = mytime();
 
+  scm_add_feature ("current-time");
 #include "stime.x"
 }
 

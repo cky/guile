@@ -1,3 +1,7 @@
+Sun Mar  2 16:34:40 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* stime.c (scm_init_stime): Add feature "current-time".
+
 Sun Mar  2 06:37:31 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* throw.h: prototype for scm_exit_status.
