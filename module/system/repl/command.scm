@@ -1,4 +1,4 @@
-;;; REPL commands
+;;; Repl commands
 
 ;; Copyright (C) 2001 Free Software Foundation, Inc.
 
@@ -35,4 +35,4 @@
   :use-module (ice-9 debugger)
   :export (meta-command))
 
-(load "command.gsm")
+(load "command.gs")

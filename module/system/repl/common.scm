@@ -1,4 +1,4 @@
-;;; common.scm --- Repl common routines
+;;; Repl common routines
 
 ;; Copyright (C) 2001 Free Software Foundation, Inc.
 
@@ -89,5 +89,3 @@
 (define (repl-load-file repl file . opts)
   (let ((bytes (apply load-file-in file repl.module repl.language opts)))
     (repl.vm (vm-load repl.vm bytes))))
-
-;;; common.scm ends here

@@ -1,4 +1,4 @@
-;;; describe.scm --- describe objects
+;;; Describe objects
 
 ;; Copyright (C) 2001 Free Software Foundation, Inc.
 
@@ -360,5 +360,3 @@
 (define-method (display-documentation (obj <method>))
   (let ((doc (procedure-documentation (method-procedure obj))))
     (if doc (format-documentation doc) (next-method))))
-
-;;; describe.scm ends here
