@@ -137,7 +137,7 @@ x
 @comment The title is printed in a large font.
 @title Guile Reference Manual
 @subtitle Edition @value{MANUAL-EDITION}, for use with Guile @value{VERSION}
-@c @subtitle $Id: guile.texi,v 1.37 2004-09-23 18:45:54 mvo Exp $
+@c @subtitle $Id: guile.texi,v 1.38 2004-09-25 22:35:59 kryde Exp $
 
 @c See preface.texi for the list of authors
 @author The Guile Developers
@@ -344,6 +344,7 @@ available through both Scheme and C interfaces.
 * Rx Regexps::                  The Rx regular expression library.
 * File Tree Walk::              Traversing the file system.
 * Queues::                      First-in first-out queuing.
+* Streams::                     Sequences of values.
 * Expect::			Controlling interactive programs with Guile.
 * The Scheme shell (scsh)::     Using scsh interfaces in Guile.
 @end menu
