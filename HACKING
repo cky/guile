@@ -1,0 +1,53 @@
+Here are some guidelines for working on the Guile source tree at GNU.
+
+- As for any part of Project GNU, changes to Guile should follow the
+GNU coding standards.  The standards are available via anonymous FTP
+from prep.ai.mit.edu; does anyone remember what the filename is?
+
+- Make sure your changes compile and work, at least on your own
+machine, before checking them into the main branch of the Guile
+repository.  If you really need to check in untested changes, make a
+branch.
+
+- When you make a user-visible change (i.e. one that should be
+documented, and appear in NEWS, put an asterisk in column zero of the
+start of the ChangeLog entry, like so:
+
+Sat Aug  3 01:27:14 1996  Gary Houston  <ghouston@actrix.gen.nz>
+
+*	* fports.c (scm_open_file): don't return #f, throw error.
+
+- Include each log entry in both the ChangeLog and in the CVS logs.
+If you're using Emacs, the pcl-cvs interface to CVS has features to
+make this easier; it checks the ChangeLog, and generates good default
+CVS log entries from that.
+
+- If you add or remove files, don't forget to update the 'dist-dir'
+target in the relevant Makefile.in files, so the snapshot and
+distribution processes will work.
+
+- Make sure you have papers from people before integrating their
+changes or contributions.  This is very frustrating, but very
+important to do right.  From maintain.texi, "Information for
+Maintainers of GNU Software":
+
+    When incorporating changes from other people, make sure to follow the
+    correct procedures.  Doing this ensures that the FSF has the legal
+    right to distribute and defend GNU software.
+
+    For the sake of registering the copyright on later versions ofthe
+    software you need to keep track of each person who makes significant
+    changes.  A change of ten lines or so, or a few such changes, in a
+    large program is not significant.
+
+    *Before* incorporating significant changes, make sure that the person
+    has signed copyright papers, and that the Free Software Foundation has
+    received them.
+
+If you receive contributions you want to use from someone, let me know
+and I'll take care of the administrivia.  Put the contributions aside
+until we have the necessary papers.
+
+
+
+Jim Blandy

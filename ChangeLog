@@ -1,3 +1,12 @@
+Mon Aug 12 15:09:37 1996  Jim Blandy  <jimb@totoro.cyclic.com>
+
+	* NEWS: Fix bug reporting address.
+
+Fri Aug  9 15:58:42 1996  Jim Blandy  <jimb@totoro.cyclic.com>
+
+	* AUTHORS: New file, in accordance with the GNU maintainers'
+ 	standards.
+
 Tue Aug  6 14:40:44 1996  Jim Blandy  <jimb@totoro.cyclic.com>
 
 	* README: Renamed from ANNOUNCE; include bug report address,
