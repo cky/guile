@@ -1,3 +1,7 @@
+2001-07-19  Rob Browning  <rlb@defaultvalue.org>
+
+	* posix.texi (Signals): add docs for setitimer and getitimer.
+
 2001-07-11  Gary Houston  <ghouston@arglist.com>
 
 	* scheme-evaluation.texi: Added `load-from-path'.  Corrected `load':
