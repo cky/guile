@@ -1,3 +1,12 @@
+1998-12-07  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+
+	* Makefile.am: Added setf.scm.
+
+1998-12-05  Christian Lynbech  <chl@tbit.dk>
+
+	* setf.scm: New file.  Adds the new forms `setf!' and `setter'
+	which implements generalized references a la Common LISP.
+
 1998-12-02  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
 	* boot-9.scm (process-define-module): Added new specifier
