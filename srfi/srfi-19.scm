@@ -1,17 +1,17 @@
 ;;; srfi-19.scm --- SRFI-19 procedures for Guile
 ;;;
 ;;; 	Copyright (C) 2001 Free Software Foundation, Inc.
-;;; 
+;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU General Public License as
 ;;; published by the Free Software Foundation; either version 2, or
 ;;; (at your option) any later version.
-;;; 
+;;;
 ;;; This program is distributed in the hope that it will be useful,
 ;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 ;;; General Public License for more details.
-;;; 
+;;;
 ;;; You should have received a copy of the GNU General Public License
 ;;; along with this software; see the file COPYING.  If not, write to
 ;;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
@@ -173,13 +173,13 @@
 (define priv:locale-number-separator ".")
 
 (define priv:locale-abbr-weekday-vector
-  (vector "Sun" "Mon" "Tue" "Wed" "Thu" "Fri" "Sat")) 
+  (vector "Sun" "Mon" "Tue" "Wed" "Thu" "Fri" "Sat"))
 
 (define priv:locale-long-weekday-vector
   (vector
    "Sunday" "Monday" "Tuesday" "Wednesday" "Thursday" "Friday" "Saturday"))
 
-;; note empty string in 0th place. 
+;; note empty string in 0th place.
 (define priv:locale-abbr-month-vector
   (vector ""
           "Jan"
@@ -193,7 +193,7 @@
           "Sep"
           "Oct"
           "Nov"
-          "Dec")) 
+          "Dec"))
 
 (define priv:locale-long-month-vector
   (vector ""
@@ -208,7 +208,7 @@
           "September"
           "October"
           "November"
-          "December")) 
+          "December"))
 
 (define priv:locale-pm "PM")
 (define priv:locale-am "AM")
@@ -239,7 +239,7 @@
 ;; and update as necessary.
 ;; this procedures reads the file in the abover
 ;; format and creates the leap second table
-;; it also calls the almost standard, but not R5 procedures read-line 
+;; it also calls the almost standard, but not R5 procedures read-line
 ;; & open-input-string
 ;; ie (set! priv:leap-second-table (priv:read-tai-utc-date "tai-utc.dat"))
 
@@ -254,7 +254,7 @@
       (if (not (eq? line eof))
           (begin
             (let* ((data (read (open-input-string
-                                (string-append "(" line ")")))) 
+                                (string-append "(" line ")"))))
                    (year (car data))
                    (jd   (cadddr (cdr data)))
                    (secs (cadddr (cdddr data))))
@@ -501,7 +501,7 @@
 
 (define (add-duration t duration)
   (let ((result (copy-time t)))
-    (add-duration! result)))
+    (add-duration! result duration)))
 
 (define (subtract-duration! t duration)
   (if (not (eq? (time-type duration) time-duration))
@@ -524,7 +524,7 @@
   (set-time-type! time-out time-utc)
   (set-time-nanosecond! time-out (time-nanosecond time-in))
   (set-time-second!     time-out (- (time-second time-in)
-                                    (priv:leap-second-delta 
+                                    (priv:leap-second-delta
                                      (time-second time-in))))
   time-out)
 
@@ -541,7 +541,7 @@
   (set-time-type! time-out time-tai)
   (set-time-nanosecond! time-out (time-nanosecond time-in))
   (set-time-second!     time-out (+ (time-second time-in)
-                                    (priv:leap-second-delta 
+                                    (priv:leap-second-delta
                                      (time-second time-in))))
   time-out)
 
@@ -640,7 +640,7 @@
        (quotient y 400)
        -32045)))
 
-;; gives the seconds/date/month/year 
+;; gives the seconds/date/month/year
 (define (priv:decode-julian-day-number jdn)
   (let* ((days (inexact->exact (truncate jdn)))
          (a (+ days 32044))
@@ -677,7 +677,7 @@
   (if (not (eq? (time-type time) time-utc))
       (priv:time-error 'time->date 'incompatible-time-types  time))
   (let* ((offset (if (null? tz-offset)
-		     (priv:local-tz-offset time) 
+		     (priv:local-tz-offset time)
 		     (car tz-offset)))
          (leap-second? (priv:leap-second? (+ offset (time-second time))))
          (jdn (priv:time->julian-day-number (if leap-second?
@@ -775,7 +775,7 @@
 		   priv:tai-epoch-in-jd))
 	 ;; jdays is an integer plus 1/2,
 	 (jdays-1/2 (inexact->exact (- jdays 1/2))))
-    (make-time 
+    (make-time
      time-utc
      (date-nanosecond date)
      (+ (* jdays-1/2 24 60 60)
@@ -797,7 +797,7 @@
 (define (leap-year? date)
   (priv:leap-year? (date-year date)))
 
-(define  priv:month-assoc '((1 . 31)  (2 . 59)   (3 . 90)   (4 . 120) 
+(define  priv:month-assoc '((1 . 31)  (2 . 59)   (3 . 90)   (4 . 120)
                             (5 . 151) (6 . 181)  (7 . 212)  (8 . 243)
                             (9 . 273) (10 . 304) (11 . 334) (12 . 365)))
 
@@ -812,7 +812,7 @@
 (define (date-year-day date)
   (priv:year-day (date-day date) (date-month date) (date-year date)))
 
-;; from calendar faq 
+;; from calendar faq
 (define (priv:week-day day month year)
   (let* ((a (quotient (- 14 month) 12))
          (y (- year a))
@@ -843,7 +843,7 @@
                (priv:days-before-first-week  date day-of-week-starting-week))
             7))
 
-(define (current-date . tz-offset) 
+(define (current-date . tz-offset)
   (let ((time (current-time time-utc)))
     (time-utc->date
      time
@@ -895,7 +895,7 @@
 (define (time-tai->julian-day time)
   (if (not (eq? (time-type time) time-tai))
       (priv:time-error 'time->date 'incompatible-time-types  time))
-  (+ (/ (+ (- (time-second time) 
+  (+ (/ (+ (- (time-second time)
               (priv:leap-second-delta (time-second time)))
            (/ (time-nanosecond time) priv:nano))
         priv:sid)
@@ -909,7 +909,7 @@
 (define (time-monotonic->julian-day time)
   (if (not (eq? (time-type time) time-monotonic))
       (priv:time-error 'time->date 'incompatible-time-types  time))
-  (+ (/ (+ (- (time-second time) 
+  (+ (/ (+ (- (time-second time)
               (priv:leap-second-delta (time-second time)))
            (/ (time-nanosecond time) priv:nano))
         priv:sid)
@@ -923,7 +923,7 @@
   (let ((secs (* priv:sid (- jdn priv:tai-epoch-in-jd))))
     (receive (seconds parts)
 	(priv:split-real secs)
-      (make-time time-utc 
+      (make-time time-utc
 		 (* parts priv:nano)
 		 seconds))))
 
@@ -975,7 +975,7 @@
 (define (priv:last-n-digits i n)
   (abs (remainder i (expt 10 n))))
 
-(define (priv:locale-abbr-weekday n) 
+(define (priv:locale-abbr-weekday n)
   (vector-ref priv:locale-abbr-weekday-vector n))
 
 (define (priv:locale-long-weekday n)
@@ -1035,7 +1035,7 @@
 ;; the second is a procedure that takes the date, a padding character
 ;; (which might be #f), and the output port.
 ;;
-(define priv:directives 
+(define priv:directives
   (list
    (cons #\~ (lambda (date pad-with port)
                (display #\~ port)))
@@ -1072,8 +1072,8 @@
                    (display (priv:padding (date-second date)
                                           pad-with 2)
                             port))
-               (receive (i f) 
-                        (priv:split-real (/ 
+               (receive (i f)
+                        (priv:split-real (/
                                           (date-nanosecond date)
                                           priv:nano 1.0))
                         (let* ((ns (number->string f))
@@ -1165,7 +1165,7 @@
                    (display (priv:padding (date-week-number date 1)
                                           #\0 2) port))))
    (cons #\y (lambda (date pad-with port)
-               (display (priv:padding (priv:last-n-digits 
+               (display (priv:padding (priv:last-n-digits
                                        (date-year date) 2)
                                       pad-with
                                       2)
@@ -1201,21 +1201,21 @@
               (display current-char port)
               (priv:date-printer date (+ index 1) format-string str-len port))
             (if (= (+ index 1) str-len) ; bad format string.
-                (priv:time-error 'priv:date-printer 'bad-date-format-string 
+                (priv:time-error 'priv:date-printer 'bad-date-format-string
                                  format-string)
                 (let ((pad-char? (string-ref format-string (+ index 1))))
                   (cond
                    ((char=? pad-char? #\-)
                     (if (= (+ index 2) str-len) ; bad format string.
                         (priv:time-error 'priv:date-printer
-                                         'bad-date-format-string 
+                                         'bad-date-format-string
                                          format-string)
-                        (let ((formatter (priv:get-formatter 
+                        (let ((formatter (priv:get-formatter
                                           (string-ref format-string
                                                       (+ index 2)))))
                           (if (not formatter)
                               (priv:time-error 'priv:date-printer
-                                               'bad-date-format-string 
+                                               'bad-date-format-string
                                                format-string)
                               (begin
                                 (formatter date #f port)
@@ -1224,18 +1224,18 @@
                                                    format-string
                                                    str-len
                                                    port))))))
-                   
+
                    ((char=? pad-char? #\_)
                     (if (= (+ index 2) str-len) ; bad format string.
                         (priv:time-error 'priv:date-printer
-                                         'bad-date-format-string 
+                                         'bad-date-format-string
                                          format-string)
-                        (let ((formatter (priv:get-formatter 
+                        (let ((formatter (priv:get-formatter
                                           (string-ref format-string
                                                       (+ index 2)))))
                           (if (not formatter)
                               (priv:time-error 'priv:date-printer
-                                               'bad-date-format-string 
+                                               'bad-date-format-string
                                                format-string)
                               (begin
                                 (formatter date #\Space port)
@@ -1245,12 +1245,12 @@
                                                    str-len
                                                    port))))))
                    (else
-                    (let ((formatter (priv:get-formatter 
+                    (let ((formatter (priv:get-formatter
                                       (string-ref format-string
                                                   (+ index 1)))))
                       (if (not formatter)
                           (priv:time-error 'priv:date-printer
-                                           'bad-date-format-string 
+                                           'bad-date-format-string
                                            format-string)
                           (begin
                             (formatter date #\0 port)
@@ -1304,8 +1304,8 @@
       (let ((ch (peek-char port)))
 	(cond
 	 ((>= nchars n) accum)
-	 ((eof-object? ch) 
-	  (priv:time-error 'string->date 'bad-date-template-string 
+	 ((eof-object? ch)
+	  (priv:time-error 'string->date 'bad-date-template-string
                            "Premature ending to integer read."))
 	 ((char-numeric? ch)
 	  (set! padding-ok #f)
@@ -1316,7 +1316,7 @@
 	  (read-char port) ; consume padding
 	  (accum-int port accum (+ nchars 1)))
 	 (else ; padding where it shouldn't be
-	  (priv:time-error 'string->date 'bad-date-template-string 
+	  (priv:time-error 'string->date 'bad-date-template-string
                            "Non-numeric characters in integer read.")))))
     (accum-int port 0 0)))
 
@@ -1325,8 +1325,8 @@
   (lambda (port)
     (priv:integer-reader-exact n port)))
 
-(define (priv:zone-reader port) 
-  (let ((offset 0) 
+(define (priv:zone-reader port)
+  (let ((offset 0)
         (positive? #f))
     (let ((ch (read-char port)))
       (if (eof-object? ch)
@@ -1375,8 +1375,8 @@
       (if (char-alphabetic? ch)
           (read-char-string (cons (read-char port) result))
           (list->string (reverse! result)))))
-  
-  (let* ((str (read-char-string '())) 
+
+  (let* ((str (read-char-string '()))
          (index (indexer str)))
     (if index index (priv:time-error 'string->date
                                      'bad-date-template-string
@@ -1396,7 +1396,7 @@
 
 ;; A List of formatted read directives.
 ;; Each entry is a list.
-;; 1. the character directive; 
+;; 1. the character directive;
 ;; a procedure, which takes a character as input & returns
 ;; 2. #t as soon as a character on the input port is acceptable
 ;; for input,
@@ -1406,7 +1406,7 @@
 ;; object (here, always the date) and (probably) side-effects it.
 ;; In some cases (e.g., ~A) the action is to do nothing
 
-(define priv:read-directives 
+(define priv:read-directives
   (let ((ireader4 (priv:make-integer-reader 4))
         (ireader2 (priv:make-integer-reader 2))
         (ireaderf (priv:make-integer-reader #f))
@@ -1422,7 +1422,7 @@
                                      priv:locale-long-month->index))
         (char-fail (lambda (ch) #t))
         (do-nothing (lambda (val object) (values))))
-    
+
     (list
      (list #\~ char-fail (priv:make-char-id-reader #\~) do-nothing)
      (list #\a char-alphabetic? locale-reader-abbr-weekday do-nothing)
@@ -1452,7 +1452,7 @@
                                          object val)))
      (list #\S char-numeric? ireader2 (lambda (val object)
                                         (set-date-second! object val)))
-     (list #\y char-fail eireader2 
+     (list #\y char-fail eireader2
            (lambda (val object)
              (set-date-year! object (priv:natural-year val))))
      (list #\Y char-numeric? ireader4 (lambda (val object)
@@ -1473,7 +1473,7 @@
           (if (not (skipper ch))
               (begin (read-char port) (skip-until port skipper))))))
   (if (>= index str-len)
-      (begin 
+      (begin
         (values))
       (let ((current-char (string-ref format-string index)))
         (if (not (char=? current-char #\~))
@@ -1510,7 +1510,7 @@
                                 (actor val date)))
                           (priv:string->date date
                                              (+ index 2)
-                                             format-string 
+                                             format-string
                                              str-len
                                              port
                                              template-string))))))))))
@@ -1538,10 +1538,10 @@
 	  ;; get it right (think of the double/missing hour in the
 	  ;; night when we are switching between normal time and DST).
 	  (set-date-zone-offset! newdate
-				 (priv:local-tz-offset 
+				 (priv:local-tz-offset
 				  (make-time time-utc 0 0)))
 	  (set-date-zone-offset! newdate
-				 (priv:local-tz-offset 
+				 (priv:local-tz-offset
 				  (date->time-utc newdate)))))
     (if (priv:date-ok? newdate)
         newdate
@@ -1549,3 +1549,5 @@
          'string->date
          'bad-date-format-string
          (list "Incomplete date read. " newdate template-string)))))
+
+;;; srfi-19.scm ends here
