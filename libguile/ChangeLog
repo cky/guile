@@ -1,3 +1,11 @@
+2003-07-29  Kevin Ryde  <user42@zip.com.au>
+
+	* properties.c (scm_primitive_property_ref): In docstring, note
+	parameters to not-found-proc, use hyphens rather than underscores for
+	that parameter name.
+	(scm_primitive_property_set_x): In docstring, VAL is the value
+	parameter not CODE.
+	
 2003-07-27  Marius Vollmer  <mvo@zagadka.de>
 
 	* print.c (scm_print_symbol_name): handle more weird characters by

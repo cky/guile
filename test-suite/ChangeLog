@@ -1,3 +1,10 @@
+2003-07-29  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/srfi-1.test (concatenate, concatenate!): New tests.
+	(length+): New tests.
+
+	* tests/srfi-34.test: Check cond-expand srfi-34.
+
 2003-07-24  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/numbers.test (angle): New tests.

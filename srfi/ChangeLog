@@ -1,3 +1,12 @@
+2003-07-29  Kevin Ryde  <user42@zip.com.au>
+
+	* srfi-1.c, srfi-1.scm (concatenate, concatenate!): Use scm_append and
+	scm_append_x.
+
+	* srfi-1.c, srfi-1.h, srfi-1.scm (length+): Rewrite using scm_ilength.
+
+	* srfi-34.scm: Add cond-expand-provide srfi-34.
+
 2003-07-14  Matthias Koeppe  <mkoeppe@mail.math.uni-magdeburg.de>
 
 	* srfi-1.c, srfi-1.h (scm_srfi1_partition), srfi-1.scm (partition):

@@ -1,3 +1,13 @@
+2003-07-29  Kevin Ryde  <user42@zip.com.au>
+
+	* scheme-compound.texi (List Constructors): Remove scm_cons_star,
+	since it's not very helpful.
+
+	* scheme-utility.texi (Property Primitives): In primitive-property-ref,
+	note parameters to not-found-proc, use hyphens rather than underscores
+	for that parameter name.
+	In primitive-property-set!, VAL is the value parameter not CODE.
+
 2003-07-24  Kevin Ryde  <user42@zip.com.au>
 
 	* scheme-control.texi (Dynamic Wind): Untabify.
