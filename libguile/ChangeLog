@@ -2,6 +2,11 @@ Sat Dec 28 19:14:01 1996  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* socket.c (scm_addr_vector): fix faulty scm_listify.
 
+Sat Dec 28 13:55:58 1996  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* read.c (scm_lreadr): Encountering EOF after skipping a SCSH
+ 	style block comment is no longer considered an error.
+
 Fri Dec 27 13:44:23 1996  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* PLUGIN/guile.libs.in: New file.
