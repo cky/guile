@@ -666,7 +666,15 @@
      ((= n 21)	(unmask-signals) (timer-thunk))
      ((= n 20)	(unmask-signals) (gc-thunk))
      ((= n 19)	(unmask-signals) (alarm-thunk))
-     (else (set! the-last-stack (make-stack #f 1 7))
+     (else (set! the-last-stack
+		 (make-stack #t
+			     (list-ref (list %hup-thunk
+					     %int-thunk
+					     %fpe-thunk
+					     %bus-thunk
+					     %segv-thunk)
+				       (- n 14))
+			     1))
 	   (if (not (eq? (stack-id the-last-stack) 'repl-stack))
 	       (set! the-last-stack #f))
 	   (unmask-signals)
@@ -753,7 +761,8 @@
 ;;; {Load}
 ;;;
 
-(define %load-verbosely #t)
+(if (not (defined? %load-verbosely))
+    (define %load-verbosely #t))
 (define (assert-load-verbosity v) (set! %load-verbosely v))
 
 (define (%load-announce file)
@@ -800,13 +809,16 @@
 					       (scheme-file-suffix)))))))))
     (cond (full-path
 	   (%load-announce full-path)
-	   (primitive-load full-path #t read-sharp))
+	   (start-stack 'load-stack
+			(primitive-load full-path #t read-sharp)))
 	  (else
-	   (if full-path-supplied
-	       (scm-error 'misc-error "load" "Unable to find file %S"
-			  (list name) #f)
-	       (scm-error 'misc-error "load" "Unable to find file %S in %S"
-			  (list name %load-path) #f))))))
+	   (start-stack
+	    'load-error-stack
+	    (if full-path-supplied
+		(scm-error 'misc-error "load" "Unable to find file %S"
+			   (list name) #f)
+		(scm-error 'misc-error "load" "Unable to find file %S in %S"
+			   (list name %load-path) #f)))))))
 
 
 ;;; {Transcendental Functions}
@@ -1981,8 +1993,6 @@
 
 (define the-prompt-string "guile> ")
 
-(define the-last-stack #f)
-
 (define (error-catching-loop thunk)
   (define (loop first)
     (let ((next 
@@ -2004,17 +2014,8 @@
 		      #f)
 		    (lambda () (mask-signals))))
 
-		 (lambda (key . args)
-		   (let ((options (debug-options)))
-		     (if (and (or (memq 'deval options)
-				  (memq 'backtrace options))
-			      (not (memq key '(quit switch-repl abort error-signal))))
-			 (begin
-			   (set! the-last-stack (make-stack #f 1 7))
-			   (if (not (eq? (stack-id the-last-stack) 'repl-stack))
-			       (set! the-last-stack #f))))
-		     (apply throw key args)))))
-	       
+		 save-stack))
+	     
 	     (lambda (key . args)
 	       (case key
 		 ((quit)
@@ -2045,15 +2046,38 @@
       (and next (loop next))))
   (loop (lambda () #t)))
 
+(define the-last-stack #f)
+
+(define (save-stack key . args)
+  (cond ((not (or (memq 'deval (debug-options))
+		  (memq 'backtrace (debug-options))))
+	 (set! the-last-stack #f))
+	((memq key '(quit switch-repl abort error-signal)))
+	((eq? (stack-id #t) 'repl-stack)
+	 (set! the-last-stack (make-stack #t save-stack eval)))
+	((eq? (stack-id #t) 'load-stack)
+	 (set! the-last-stack (make-stack #t save-stack primitive-load)))
+	(else (set! the-last-stack #f)))
+  (apply throw key args))
+
+(define before-error-hook #f)
+(define after-error-hook #f)
+(define before-backtrace-hook #f)
+(define after-backtrace-hook #f)
+
 (define (handle-system-error key . args)
   (let ((cep (current-error-port)))
     (if (and (memq 'backtrace (debug-options))
 	     (stack? the-last-stack))
 	(begin
+	  (and before-backtrace-hook (before-backtrace-hook))
 	  (newline cep)
 	  (display-backtrace the-last-stack cep)
-	  (newline cep)))
-    (apply display-error the-last-stack cep args)
+	  (newline cep)
+	  (and after-backtrace-hook (after-backtrace-hook))))
+    (and before-error-hook (before-error-hook))
+    (apply display-error the-last-stack cep arg-list)
+    (and after-error-hook (after-error-hook))
     (force-output cep)
     (throw 'abort key)))
   
@@ -2065,6 +2089,8 @@
 
 (define (gc-run-time)
   (cdr (assq 'gc-time-taken (gc-stats))))
+
+(define after-read-hook #f)
 
 (define (scm-style-repl)
   (letrec (
@@ -2091,6 +2117,7 @@
 			  (force-output)
 			  (repl-report-reset)))
 		    (let ((val (read (current-input-port) #t read-sharp)))
+		      (and after-read-hook (after-read-hook))
 		      (if (eof-object? val)
 			  (begin
 			    (if scm-repl-verbose
@@ -2261,6 +2288,8 @@
 
 (define try-load try-load-module)
 (define load load-module)
+;(define (load . args)
+;  (start-stack 'load-stack (apply load-module args)))
 
 
 
