@@ -283,6 +283,7 @@ scm_lreadr (tok_buf, port, case_i, sharp, copy)
 
 tryagain:
   c = scm_flush_ws (port, s_read);
+tryagain_no_flush_ws:
   switch (c)
     {
     case EOF:
@@ -363,7 +364,9 @@ tryagain:
 	  /* start of a shell script.  Parse as a block comment,
 	     terminated by !#, just like SCSH.  */
 	  skip_scsh_block_comment (port);
-	  goto tryagain;
+	  /* EOF is not an error here */
+	  c = scm_flush_ws (port, (char *)NULL);
+	  goto tryagain_no_flush_ws;
 
 	case '*':
 	  j = scm_read_token (c, tok_buf, port, case_i, 0);
