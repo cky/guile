@@ -515,6 +515,9 @@ Character-set library (@pxref{SRFI-14}).
 @item (srfi srfi-17)
 Getter-with-setter support (@pxref{SRFI-17}).
 
+@item (srfi srfi-26)
+Convenient syntax for partial application (@pxref{SRFI-26})
+
 @item (ice-9 slib)
 This module contains hooks for using Aubrey Jaffer's portable Scheme
 library SLIB from Guile (@pxref{SLIB}).
