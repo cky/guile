@@ -81,6 +81,11 @@ this mechanism.
 Return an association list of statistics about Guile's current
 use of storage.
 
+@deffn {Scheme Procedure} gc-live-object-stats
+@deffnx {C Function} scm_gc_live_object_stats ()
+Return an alist of statistics of the current live objects. 
+@end deffn
+
 @deftypefun void scm_gc_mark (SCM @var{x})
 Mark the object @var{x}, and recurse on any objects @var{x} refers to.
 If @var{x}'s mark bit is already set, return immediately.  This function

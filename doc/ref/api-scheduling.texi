@@ -204,7 +204,7 @@ The non-local flow of control caused by continuations might sometimes
 not be wanted.  You can use @code{with-continuation-barrier} etc to
 errect fences that continuations can not pass.
 
-@deffn {Sheme Procedure} with-continuation-barrier proc
+@deffn {Scheme Procedure} with-continuation-barrier proc
 @deffnx {C Function} scm_with_continuation_barrier (proc)
 Call @var{proc} and return its result.  Do not allow the invocation of
 continuations that would leave or enter the dynamic extent of the call
@@ -659,14 +659,17 @@ in all threads is one way to avoid such problems.
 
 @sp 1
 @deffn {Scheme Procedure} make-mutex
+@deffnx {C Function} scm_make_mutex ()
 Return a new standard mutex.  It is initially unlocked.
 @end deffn
 
 @deffn {Scheme Procedure} make-recursive-mutex
-Return a new recursive mutex.  It is initialloy unlocked.
+@deffnx {C Function} scm_make_recursive_mutex ()
+Create a new recursive mutex.  It is initialloy unlocked.
 @end deffn
 
 @deffn {Scheme Procedure} lock-mutex mutex
+@deffnx {C Function} scm_lock_mutex (mutex)
 Lock @var{mutex}.  If the mutex is already locked by another thread
 then block and return only when @var{mutex} has been acquired.
 
@@ -683,7 +686,8 @@ blocked in @code{lock-mutex}, the wait is interrupted and the async is
 executed.  When the async returns, the wait resumes.
 @end deffn
 
- @deffn {Scheme Procedure} try-mutex mutex
+@deffn {Scheme Procedure} try-mutex mx
+@deffnx {C Function} scm_try_mutex (mx)
 Try to lock @var{mutex} as per @code{lock-mutex}.  If @var{mutex} can
 be acquired immediately then this is done and the return is @code{#t}.
 If @var{mutex} is locked by some other thread then nothing is done and
@@ -691,18 +695,19 @@ the return is @code{#f}.
 @end deffn
 
 @deffn {Scheme Procedure} unlock-mutex mutex
+@deffnx {C Function} scm_unlock_mutex (mutex)
 Unlock @var{mutex}.  An error is signalled if @var{mutex} is not
 locked by the calling thread.
 @end deffn
 
-@c begin (texi-doc-string "guile" "make-condition-variable")
 @deffn {Scheme Procedure} make-condition-variable
+@deffnx {C Function} scm_make_condition_variable ()
 Return a new condition variable.
 @end deffn
 
-@c begin (texi-doc-string "guile" "wait-condition-variable")
-@deffn {Scheme Procedure} wait-condition-variable cond-var mutex [time]
-Wait until @var{cond-var} has been signalled.  While waiting,
+@deffn {Scheme Procedure} wait-condition-variable condvar mutex [time]
+@deffnx {C Function} scm_wait_condition_variable (condvar, mutex, time)
+Wait until @var{condvar} has been signalled.  While waiting,
 @var{mutex} is atomically unlocked (as with @code{unlock-mutex}) and
 is locked again when this function returns.  When @var{time} is given,
 it specifies a point in time where the waiting should be aborted.  It
@@ -720,14 +725,14 @@ the thread block while re-acquiring the mutex, execution of asyncs is
 blocked.
 @end deffn
 
-@c begin (texi-doc-string "guile" "signal-condition-variable")
-@deffn {Scheme Procedure} signal-condition-variable cond-var
-Wake up one thread that is waiting for @var{cv}.
+@deffn {Scheme Procedure} signal-condition-variable condvar
+@deffnx {C Function} scm_signal_condition_variable (condvar)
+Wake up one thread that is waiting for @var{condvar}.
 @end deffn
 
-@c begin (texi-doc-string "guile" "broadcast-condition-variable")
-@deffn {Scheme Procedure} broadcast-condition-variable cond-var
-Wake up all threads that are waiting for @var{cv}.
+@deffn {Scheme Procedure} broadcast-condition-variable condvar
+@deffnx {C Function} scm_broadcast_condition_variable (condvar)
+Wake up all threads that are waiting for @var{condvar}.
 @end deffn
 
 @sp 1

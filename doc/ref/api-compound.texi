@@ -808,6 +808,11 @@ Store @var{fill} in every position of @var{vector}.  The value
 returned by @code{vector-fill!} is unspecified.
 @end deffn
 
+@deffn {Scheme Procedure} vector-copy vec
+@deffnx {C Function} scm_vector_copy (vec)
+Return a copy of @var{vec}.
+@end deffn
+
 @deffn {Scheme Procedure} vector-move-left! vec1 start1 end1 vec2 start2
 @deffnx {C Function} scm_vector_move_left_x (vec1, start1, end1, vec2, start2)
 Copy elements from @var{vec1}, positions @var{start1} to @var{end1},
@@ -1048,19 +1053,19 @@ anyway to make the intention clear, so this is rarely a problem.
 @deffnx {Scheme Procedure} f64vector? obj
 @deffnx {Scheme Procedure} c32vector? obj
 @deffnx {Scheme Procedure} c64vector? obj
-@deffnx {C Function} scm_uniform_vector_p obj
-@deffnx {C Function} scm_u8vector_p obj
-@deffnx {C Function} scm_s8vector_p obj
-@deffnx {C Function} scm_u16vector_p obj
-@deffnx {C Function} scm_s16vector_p obj
-@deffnx {C Function} scm_u32vector_p obj
-@deffnx {C Function} scm_s32vector_p obj
-@deffnx {C Function} scm_u64vector_p obj
-@deffnx {C Function} scm_s64vector_p obj
-@deffnx {C Function} scm_f32vector_p obj
-@deffnx {C Function} scm_f64vector_p obj
-@deffnx {C Function} scm_c32vector_p obj
-@deffnx {C Function} scm_c64vector_p obj
+@deffnx {C Function} scm_uniform_vector_p (obj)
+@deffnx {C Function} scm_u8vector_p (obj)
+@deffnx {C Function} scm_s8vector_p (obj)
+@deffnx {C Function} scm_u16vector_p (obj)
+@deffnx {C Function} scm_s16vector_p (obj)
+@deffnx {C Function} scm_u32vector_p (obj)
+@deffnx {C Function} scm_s32vector_p (obj)
+@deffnx {C Function} scm_u64vector_p (obj)
+@deffnx {C Function} scm_s64vector_p (obj)
+@deffnx {C Function} scm_f32vector_p (obj)
+@deffnx {C Function} scm_f64vector_p (obj)
+@deffnx {C Function} scm_c32vector_p (obj)
+@deffnx {C Function} scm_c64vector_p (obj)
 Return @code{#t} if @var{obj} is a homogeneous numeric vector of the
 indicated type.
 @end deffn
@@ -1107,18 +1112,18 @@ unspecified.
 @deffnx {Scheme Procedure} f64vector value @dots{}
 @deffnx {Scheme Procedure} c32vector value @dots{}
 @deffnx {Scheme Procedure} c64vector value @dots{}
-@deffnx {C Function} scm_u8vector values
-@deffnx {C Function} scm_s8vector values
-@deffnx {C Function} scm_u16vector values
-@deffnx {C Function} scm_s16vector values
-@deffnx {C Function} scm_u32vector values
-@deffnx {C Function} scm_s32vector values
-@deffnx {C Function} scm_u64vector values
-@deffnx {C Function} scm_s64vector values
-@deffnx {C Function} scm_f32vector values
-@deffnx {C Function} scm_f64vector values
-@deffnx {C Function} scm_c32vector values
-@deffnx {C Function} scm_c64vector values
+@deffnx {C Function} scm_u8vector (values)
+@deffnx {C Function} scm_s8vector (values)
+@deffnx {C Function} scm_u16vector (values)
+@deffnx {C Function} scm_s16vector (values)
+@deffnx {C Function} scm_u32vector (values)
+@deffnx {C Function} scm_s32vector (values)
+@deffnx {C Function} scm_u64vector (values)
+@deffnx {C Function} scm_s64vector (values)
+@deffnx {C Function} scm_f32vector (values)
+@deffnx {C Function} scm_f64vector (values)
+@deffnx {C Function} scm_c32vector (values)
+@deffnx {C Function} scm_c64vector (values)
 Return a newly allocated homogeneous numeric vector of the indicated
 type, holding the given parameter @var{value}s.  The vector length is
 the number of parameters given.
@@ -1137,19 +1142,19 @@ the number of parameters given.
 @deffnx {Scheme Procedure} f64vector-length vec
 @deffnx {Scheme Procedure} c32vector-length vec
 @deffnx {Scheme Procedure} c64vector-length vec
-@deffnx {C Function} scm_uniform_vector_length vec
-@deffnx {C Function} scm_u8vector_length vec
-@deffnx {C Function} scm_s8vector_length vec
-@deffnx {C Function} scm_u16vector_length vec
-@deffnx {C Function} scm_s16vector_length vec
-@deffnx {C Function} scm_u32vector_length vec
-@deffnx {C Function} scm_s32vector_length vec
-@deffnx {C Function} scm_u64vector_length vec
-@deffnx {C Function} scm_s64vector_length vec
-@deffnx {C Function} scm_f32vector_length vec
-@deffnx {C Function} scm_f64vector_length vec
-@deffnx {C Function} scm_c32vector_length vec
-@deffnx {C Function} scm_c64vector_length vec
+@deffnx {C Function} scm_uniform_vector_length (vec)
+@deffnx {C Function} scm_u8vector_length (vec)
+@deffnx {C Function} scm_s8vector_length (vec)
+@deffnx {C Function} scm_u16vector_length (vec)
+@deffnx {C Function} scm_s16vector_length (vec)
+@deffnx {C Function} scm_u32vector_length (vec)
+@deffnx {C Function} scm_s32vector_length (vec)
+@deffnx {C Function} scm_u64vector_length (vec)
+@deffnx {C Function} scm_s64vector_length (vec)
+@deffnx {C Function} scm_f32vector_length (vec)
+@deffnx {C Function} scm_f64vector_length (vec)
+@deffnx {C Function} scm_c32vector_length (vec)
+@deffnx {C Function} scm_c64vector_length (vec)
 Return the number of elements in @var{vec}.
 @end deffn
 
@@ -1166,19 +1171,19 @@ Return the number of elements in @var{vec}.
 @deffnx {Scheme Procedure} f64vector-ref vec i
 @deffnx {Scheme Procedure} c32vector-ref vec i
 @deffnx {Scheme Procedure} c64vector-ref vec i
-@deffnx {C Function} scm_uniform_vector_ref vec i
-@deffnx {C Function} scm_u8vector_ref vec i
-@deffnx {C Function} scm_s8vector_ref vec i
-@deffnx {C Function} scm_u16vector_ref vec i
-@deffnx {C Function} scm_s16vector_ref vec i
-@deffnx {C Function} scm_u32vector_ref vec i
-@deffnx {C Function} scm_s32vector_ref vec i
-@deffnx {C Function} scm_u64vector_ref vec i
-@deffnx {C Function} scm_s64vector_ref vec i
-@deffnx {C Function} scm_f32vector_ref vec i
-@deffnx {C Function} scm_f64vector_ref vec i
-@deffnx {C Function} scm_c32vector_ref vec i
-@deffnx {C Function} scm_c64vector_ref vec i
+@deffnx {C Function} scm_uniform_vector_ref (vec i)
+@deffnx {C Function} scm_u8vector_ref (vec i)
+@deffnx {C Function} scm_s8vector_ref (vec i)
+@deffnx {C Function} scm_u16vector_ref (vec i)
+@deffnx {C Function} scm_s16vector_ref (vec i)
+@deffnx {C Function} scm_u32vector_ref (vec i)
+@deffnx {C Function} scm_s32vector_ref (vec i)
+@deffnx {C Function} scm_u64vector_ref (vec i)
+@deffnx {C Function} scm_s64vector_ref (vec i)
+@deffnx {C Function} scm_f32vector_ref (vec i)
+@deffnx {C Function} scm_f64vector_ref (vec i)
+@deffnx {C Function} scm_c32vector_ref (vec i)
+@deffnx {C Function} scm_c64vector_ref (vec i)
 Return the element at index @var{i} in @var{vec}.  The first element
 in @var{vec} is index 0.
 @end deffn
@@ -1196,19 +1201,19 @@ in @var{vec} is index 0.
 @deffnx {Scheme Procedure} f64vector-set! vec i value
 @deffnx {Scheme Procedure} c32vector-set! vec i value
 @deffnx {Scheme Procedure} c64vector-set! vec i value
-@deffnx {C Function} scm_uniform_vector_set_x vec i value
-@deffnx {C Function} scm_u8vector_set_x vec i value
-@deffnx {C Function} scm_s8vector_set_x vec i value
-@deffnx {C Function} scm_u16vector_set_x vec i value
-@deffnx {C Function} scm_s16vector_set_x vec i value
-@deffnx {C Function} scm_u32vector_set_x vec i value
-@deffnx {C Function} scm_s32vector_set_x vec i value
-@deffnx {C Function} scm_u64vector_set_x vec i value
-@deffnx {C Function} scm_s64vector_set_x vec i value
-@deffnx {C Function} scm_f32vector_set_x vec i value
-@deffnx {C Function} scm_f64vector_set_x vec i value
-@deffnx {C Function} scm_c32vector_set_x vec i value
-@deffnx {C Function} scm_c64vector_set_x vec i value
+@deffnx {C Function} scm_uniform_vector_set_x (vec i value)
+@deffnx {C Function} scm_u8vector_set_x (vec i value)
+@deffnx {C Function} scm_s8vector_set_x (vec i value)
+@deffnx {C Function} scm_u16vector_set_x (vec i value)
+@deffnx {C Function} scm_s16vector_set_x (vec i value)
+@deffnx {C Function} scm_u32vector_set_x (vec i value)
+@deffnx {C Function} scm_s32vector_set_x (vec i value)
+@deffnx {C Function} scm_u64vector_set_x (vec i value)
+@deffnx {C Function} scm_s64vector_set_x (vec i value)
+@deffnx {C Function} scm_f32vector_set_x (vec i value)
+@deffnx {C Function} scm_f64vector_set_x (vec i value)
+@deffnx {C Function} scm_c32vector_set_x (vec i value)
+@deffnx {C Function} scm_c64vector_set_x (vec i value)
 Set the element at index @var{i} in @var{vec} to @var{value}.  The
 first element in @var{vec} is index 0.  The return value is
 unspecified.
@@ -1227,19 +1232,19 @@ unspecified.
 @deffnx {Scheme Procedure} f64vector->list vec
 @deffnx {Scheme Procedure} c32vector->list vec
 @deffnx {Scheme Procedure} c64vector->list vec
-@deffnx {C Function} scm_uniform_vector_to_list vec
-@deffnx {C Function} scm_u8vector_to_list vec
-@deffnx {C Function} scm_s8vector_to_list vec
-@deffnx {C Function} scm_u16vector_to_list vec
-@deffnx {C Function} scm_s16vector_to_list vec
-@deffnx {C Function} scm_u32vector_to_list vec
-@deffnx {C Function} scm_s32vector_to_list vec
-@deffnx {C Function} scm_u64vector_to_list vec
-@deffnx {C Function} scm_s64vector_to_list vec
-@deffnx {C Function} scm_f32vector_to_list vec
-@deffnx {C Function} scm_f64vector_to_list vec
-@deffnx {C Function} scm_c32vector_to_list vec
-@deffnx {C Function} scm_c64vector_to_list vec
+@deffnx {C Function} scm_uniform_vector_to_list (vec)
+@deffnx {C Function} scm_u8vector_to_list (vec)
+@deffnx {C Function} scm_s8vector_to_list (vec)
+@deffnx {C Function} scm_u16vector_to_list (vec)
+@deffnx {C Function} scm_s16vector_to_list (vec)
+@deffnx {C Function} scm_u32vector_to_list (vec)
+@deffnx {C Function} scm_s32vector_to_list (vec)
+@deffnx {C Function} scm_u64vector_to_list (vec)
+@deffnx {C Function} scm_s64vector_to_list (vec)
+@deffnx {C Function} scm_f32vector_to_list (vec)
+@deffnx {C Function} scm_f64vector_to_list (vec)
+@deffnx {C Function} scm_c32vector_to_list (vec)
+@deffnx {C Function} scm_c64vector_to_list (vec)
 Return a newly allocated list holding all elements of @var{vec}.
 @end deffn
 
@@ -1255,18 +1260,18 @@ Return a newly allocated list holding all elements of @var{vec}.
 @deffnx {Scheme Procedure} list->f64vector lst
 @deffnx {Scheme Procedure} list->c32vector lst
 @deffnx {Scheme Procedure} list->c64vector lst
-@deffnx {C Function} scm_list_to_u8vector lst
-@deffnx {C Function} scm_list_to_s8vector lst
-@deffnx {C Function} scm_list_to_u16vector lst
-@deffnx {C Function} scm_list_to_s16vector lst
-@deffnx {C Function} scm_list_to_u32vector lst
-@deffnx {C Function} scm_list_to_s32vector lst
-@deffnx {C Function} scm_list_to_u64vector lst
-@deffnx {C Function} scm_list_to_s64vector lst
-@deffnx {C Function} scm_list_to_f32vector lst
-@deffnx {C Function} scm_list_to_f64vector lst
-@deffnx {C Function} scm_list_to_c32vector lst
-@deffnx {C Function} scm_list_to_c64vector lst
+@deffnx {C Function} scm_list_to_u8vector (lst)
+@deffnx {C Function} scm_list_to_s8vector (lst)
+@deffnx {C Function} scm_list_to_u16vector (lst)
+@deffnx {C Function} scm_list_to_s16vector (lst)
+@deffnx {C Function} scm_list_to_u32vector (lst)
+@deffnx {C Function} scm_list_to_s32vector (lst)
+@deffnx {C Function} scm_list_to_u64vector (lst)
+@deffnx {C Function} scm_list_to_s64vector (lst)
+@deffnx {C Function} scm_list_to_f32vector (lst)
+@deffnx {C Function} scm_list_to_f64vector (lst)
+@deffnx {C Function} scm_list_to_c32vector (lst)
+@deffnx {C Function} scm_list_to_c64vector (lst)
 Return a newly allocated homogeneous numeric vector of the indicated type,
 initialized with the elements of the list @var{lst}.
 @end deffn
@@ -1283,18 +1288,18 @@ initialized with the elements of the list @var{lst}.
 @deffnx {Scheme Procedure} any->f64vector obj
 @deffnx {Scheme Procedure} any->c32vector obj
 @deffnx {Scheme Procedure} any->c64vector obj
-@deffnx {C Function} scm_any_to_u8vector obj
-@deffnx {C Function} scm_any_to_s8vector obj
-@deffnx {C Function} scm_any_to_u16vector obj
-@deffnx {C Function} scm_any_to_s16vector obj
-@deffnx {C Function} scm_any_to_u32vector obj
-@deffnx {C Function} scm_any_to_s32vector obj
-@deffnx {C Function} scm_any_to_u64vector obj
-@deffnx {C Function} scm_any_to_s64vector obj
-@deffnx {C Function} scm_any_to_f32vector obj
-@deffnx {C Function} scm_any_to_f64vector obj
-@deffnx {C Function} scm_any_to_c32vector obj
-@deffnx {C Function} scm_any_to_c64vector obj
+@deffnx {C Function} scm_any_to_u8vector (obj)
+@deffnx {C Function} scm_any_to_s8vector (obj)
+@deffnx {C Function} scm_any_to_u16vector (obj)
+@deffnx {C Function} scm_any_to_s16vector (obj)
+@deffnx {C Function} scm_any_to_u32vector (obj)
+@deffnx {C Function} scm_any_to_s32vector (obj)
+@deffnx {C Function} scm_any_to_u64vector (obj)
+@deffnx {C Function} scm_any_to_s64vector (obj)
+@deffnx {C Function} scm_any_to_f32vector (obj)
+@deffnx {C Function} scm_any_to_f64vector (obj)
+@deffnx {C Function} scm_any_to_c32vector (obj)
+@deffnx {C Function} scm_any_to_c64vector (obj)
 Return a (maybe newly allocated) uniform numeric vector of the indicated
 type, initialized with the elements of @var{obj}, which must be a list,
 a vector, or a uniform vector.  When @var{obj} is already a suitable
@@ -1367,6 +1372,57 @@ the elements of a uniform numeric vector of the indicated kind.
 Like @code{scm_vector_writable_elements} (which see), but returns a
 pointer to the elements of a uniform numeric vector of the indicated kind.
 @end deftypefn
+
+@deffn {Scheme Procedure} uniform-vector-read! uvec [port_or_fd [start [end]]]
+@deffnx {C Function} scm_uniform_vector_read_x (uvec, port_or_fd, start, end)
+Fill the elements of @var{uvec} by reading
+raw bytes from @var{port-or-fdes}, using host byte order.
+
+The optional arguments @var{start} (inclusive) and @var{end}
+(exclusive) allow a specified region to be read,
+leaving the remainder of the vector unchanged.
+
+When @var{port-or-fdes} is a port, all specified elements
+of @var{uvec} are attempted to be read, potentially blocking
+while waiting formore input or end-of-file.
+When @var{port-or-fd} is an integer, a single call to
+read(2) is made.
+
+An error is signalled when the last element has only
+been partially filled before reaching end-of-file or in
+the single call to read(2).
+
+@code{uniform-vector-read!} returns the number of elements
+read.
+
+@var{port-or-fdes} may be omitted, in which case it defaults
+to the value returned by @code{(current-input-port)}.
+@end deffn
+
+@deffn {Scheme Procedure} uniform-vector-write uvec [port_or_fd [start [end]]]
+@deffnx {C Function} scm_uniform_vector_write (uvec, port_or_fd, start, end)
+Write the elements of @var{uvec} as raw bytes to
+@var{port-or-fdes}, in the host byte order.
+
+The optional arguments @var{start} (inclusive)
+and @var{end} (exclusive) allow
+a specified region to be written.
+
+When @var{port-or-fdes} is a port, all specified elements
+of @var{uvec} are attempted to be written, potentially blocking
+while waiting for more room.
+When @var{port-or-fd} is an integer, a single call to
+write(2) is made.
+
+An error is signalled when the last element has only
+been partially written in the single call to write(2).
+
+The number of objects actually written is returned.
+@var{port-or-fdes} may be
+omitted, in which case it defaults to the value returned by
+@code{(current-output-port)}.
+@end deffn
+
 
 @node Bit Vectors
 @subsection Bit Vectors

@@ -855,3 +855,140 @@ Return the dash symbol for @var{keyword}.
 This is the inverse of @code{make-keyword-from-dash-symbol}.
 @end deffn
 
+@deffn {Scheme Procedure} dimensions->uniform-array dims prot [fill]
+@deffnx {Scheme Procedure} make-uniform-vector length prototype [fill]
+@deffnx {C Function} scm_dimensions_to_uniform_array (dims, prot, fill)
+Create and return a uniform array or vector of type
+corresponding to @var{prototype} with dimensions @var{dims} or
+length @var{length}.  If @var{fill} is supplied, it's used to
+fill the array, otherwise @var{prototype} is used.
+@end deffn
+
+@deffn {Scheme Procedure} list->uniform-array ndim prot lst
+@deffnx {C Function} scm_list_to_uniform_array (ndim, prot, lst)
+Return a uniform array of the type indicated by prototype
+@var{prot} with elements the same as those of @var{lst}.
+Elements must be of the appropriate type, no coercions are
+done.
+
+The argument @var{ndim} determines the number of dimensions
+of the array.  It is either an exact integer, giving the
+number directly, or a list of exact integers, whose length
+specifies the number of dimensions and each element is the
+lower index bound of its dimension.
+@end deffn
+
+@deffn {Scheme Procedure} array-prototype ra
+@deffnx {C Function} scm_array_prototype (ra)
+Return an object that would produce an array of the same type
+as @var{array}, if used as the @var{prototype} for
+@code{make-uniform-array}.
+@end deffn
+
+@deffn {Scheme Procedure} call-with-dynamic-root thunk handler
+@deffnx {C Function} scm_call_with_dynamic_root (thunk, handler)
+Call @var{thunk} with a new dynamic state and withina continuation barrier.  The @var{handler} catches allotherwise uncaught throws and executes within the samedynamic context as @var{thunk}.
+@end deffn
+
+@deffn {Scheme Procedure} dynamic-root
+@deffnx {C Function} scm_dynamic_root ()
+Return an object representing the current dynamic root.
+
+These objects are only useful for comparison using @code{eq?}.
+
+@end deffn
+
+@deffn {Scheme Procedure} uniform-vector? obj
+@deffnx {C Function} scm_uniform_vector_p (obj)
+Return @code{#t} if @var{obj} is a uniform vector.
+@end deffn
+
+@deffn {Scheme Procedure} uniform-vector-ref v idx
+@deffnx {C Function} scm_uniform_vector_ref (v, idx)
+Return the element at index @var{idx} of the
+homogenous numeric vector @var{v}.
+@end deffn
+
+@deffn {Scheme Procedure} uniform-vector-set! v idx val
+@deffnx {C Function} scm_uniform_vector_set_x (v, idx, val)
+Set the element at index @var{idx} of the
+homogenous numeric vector @var{v} to @var{val}.
+@end deffn
+
+@deffn {Scheme Procedure} uniform-vector->list uvec
+@deffnx {C Function} scm_uniform_vector_to_list (uvec)
+Convert the uniform numeric vector @var{uvec} to a list.
+@end deffn
+
+@deffn {Scheme Procedure} uniform-vector-length v
+@deffnx {C Function} scm_uniform_vector_length (v)
+Return the number of elements in the uniform vector @var{v}.
+@end deffn
+
+@deffn {Scheme Procedure} make-u8vector len [fill]
+@deffnx {C Function} scm_make_u8vector (len, fill)
+Return a newly allocated uniform numeric vector which can
+hold @var{len} elements.  If @var{fill} is given, it is used to
+initialize the elements, otherwise the contents of the vector
+is unspecified.
+@end deffn
+
+@deffn {Scheme Procedure} u8vector . l
+@deffnx {C Function} scm_u8vector (l)
+Return a newly allocated uniform numeric vector containing
+all argument values.
+@end deffn
+
+@deffn {Scheme Procedure} list->u8vector l
+@deffnx {C Function} scm_list_to_u8vector (l)
+Convert the list @var{l} to a numeric uniform vector.
+@end deffn
+
+@deffn {Scheme Procedure} any->u8vector obj
+@deffnx {C Function} scm_any_to_u8vector (obj)
+Convert @var{obj}, which can be a list, vector, or
+uniform vector, to a numeric uniform vector of
+type u8.
+@end deffn
+
+@deffn {Scheme Procedure} string-any-c-code char_pred s [start [end]]
+@deffnx {C Function} scm_string_any (char_pred, s, start, end)
+Check if the predicate @var{pred} is true for any character in
+the string @var{s}.
+
+Calls to @var{pred} are made from left to right across @var{s}.
+When it returns true (ie.@: non-@code{#f}), that return value
+is the return from @code{string-any}.
+
+The SRFI-13 specification requires that the call to @var{pred}
+on the last character of @var{s} (assuming that point is
+reached) be a tail call, but currently in Guile this is not the
+case.
+@end deffn
+
+@deffn {Scheme Procedure} string-every-c-code char_pred s [start [end]]
+@deffnx {C Function} scm_string_every (char_pred, s, start, end)
+Check if the predicate @var{pred} is true for every character
+in the string @var{s}.
+
+Calls to @var{pred} are made from left to right across @var{s}.
+If the predicate is true for every character then the return
+value from the last @var{pred} call is the return from
+@code{string-every}.
+
+If there are no characters in @var{s} (ie.@: @var{start} equals
+@var{end}) then the return is @code{#t}.
+
+The SRFI-13 specification requires that the call to @var{pred}
+on the last character of @var{s} (assuming that point is
+reached) be a tail call, but currently in Guile this is not the
+case.
+@end deffn
+
+@deffn {Scheme Procedure} inf? x
+@deffnx {C Function} scm_inf_p (x)
+Return @code{#t} if @var{x} is either @samp{+inf.0}
+or @samp{-inf.0}, @code{#f} otherwise.
+@end deffn
+
+
