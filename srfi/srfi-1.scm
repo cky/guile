@@ -236,6 +236,11 @@
 
 (cond-expand-provide (current-module) '(srfi-1))
 
+;; Load the compiled primitives from the shared library.
+;;
+(load-extension "libguile-srfi-srfi-1" "scm_init_srfi_1")
+
+
 ;;; Constructors
 
 (define (xcons d a)
@@ -615,41 +620,6 @@
                 (set-cdr! p (list (f (car ls))))
                 (lp (cdr ls) (cdr p))))))))
 
-;; This `map' is extended from the standard `map'.  It allows argument
-;; lists of different length, so that the shortest list determines the
-;; number of elements processed.
-;;
-(define (map f list1 . rest)
-  (if (null? rest)
-    (map1 f list1)
-    (let lp ((l (cons list1 rest)))
-      (if (any1 null? l)
-	'()
-	(cons (apply f (map1 car l)) (lp (map1 cdr l)))))))
-
-;; extended to lists of unequal length.
-(define map-in-order map)
-
-;; This `for-each' is extended from the standard `for-each'.  It
-;; allows argument lists of different length, so that the shortest
-;; list determines the number of elements processed.
-;;
-(define (for-each f list1 . rest)
-  (if (null? rest)
-    (let lp ((l list1))
-      (if (null? l)
-	(if #f #f)			; Return unspecified value.
-	(begin
-	  (f (car l))
-	  (lp (cdr l)))))
-    (let lp ((l (cons list1 rest)))
-      (if (any1 null? l)
-	(if #f #f)
-	(begin
-	  (apply f (map1 car l))
-	  (lp (map1 cdr l)))))))
-
-
 (define (append-map f clist1 . rest)
   (if (null? rest)
     (let lp ((l clist1))
@@ -871,15 +841,6 @@
 	    ((apply pred (map1 car lists)) i)
 	    (else
 	     (lp (map1 cdr lists) (+ i 1)))))))
-
-(define (member x list . rest)
-  (let ((l= (if (pair? rest) (car rest) equal?)))
-    (let lp ((l list))
-      (if (null? l)
-	#f
-	(if (l= x (car l))
-	  l
-	  (lp (cdr l)))))))
 
 ;;; Deletion
 

@@ -1,6 +1,6 @@
 ## Process this file with Automake to create Makefile.in
 ##
-##   Copyright (C) 2001 Free Software Foundation, Inc.
+##   Copyright (C) 2001, 2002 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##
@@ -33,9 +33,16 @@ srfiincludedir = $(pkgincludedir)/srfi
 # These headers are visible as <guile/srfi/mumble.h>
 srfiinclude_HEADERS = srfi-4.h srfi-13.h srfi-14.h
 
-lib_LTLIBRARIES = libguile-srfi-srfi-13-14.la libguile-srfi-srfi-4.la
+lib_LTLIBRARIES = libguile-srfi-srfi-1.la \
+		  libguile-srfi-srfi-4.la \
+		  libguile-srfi-srfi-13-14.la
 
-BUILT_SOURCES = srfi-13.x srfi-14.x srfi-4.x
+BUILT_SOURCES = srfi-1.x srfi-4.x srfi-13.x srfi-14.x
+
+libguile_srfi_srfi_1_la_SOURCES = srfi-1.x srfi-1.c
+libguile_srfi_srfi_1_la_LIBADD = ../libguile/libguile.la
+libguile_srfi_srfi_1_la_LDFLAGS = -export-dynamic \
+  -version-info @LIBGUILE_SRFI_SRFI_1_INTERFACE@
 
 libguile_srfi_srfi_4_la_SOURCES = srfi-4.x srfi-4.c
 libguile_srfi_srfi_4_la_LIBADD = ../libguile/libguile.la

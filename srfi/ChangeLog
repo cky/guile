@@ -1,3 +1,13 @@
+2002-12-01  Mikael Djurfeldt  <mdj@linnaeus>
+
+	* srfi-1.scm: Load srfi-1 extension.
+	(map, map-in-order, for-each, member): Replaced by primitives in
+	srfi-1.c.
+
+	* Makefile.am: Added rules for srfi-1.c.
+
+	* srfi-1.c, srfi-1.h: New files.
+
 2002-05-06  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* srfi-13.c (scm_string_tokenize): Instead of using "isgraphic" as
