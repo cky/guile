@@ -173,6 +173,10 @@ typedef struct scm_entity {
 extern SCM scm_metaclass_standard;
 extern SCM scm_metaclass_operator;
 
+extern SCM scm_set_object_procedure_x (SCM obj, SCM procs);
+extern SCM scm_make_class_object (SCM metaclass, SCM layout);
+extern SCM scm_make_subclass_object (SCM class, SCM layout);
+
 extern void scm_init_objects SCM_P ((void));
 
 #endif /* OBJECTSH */
