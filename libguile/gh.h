@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2005 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -19,11 +19,13 @@
 #ifndef __GH_H
 #define __GH_H
 
+/* This needs to be included outside of the extern "C" block.
+ */
+#include <libguile.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include <libguile.h>
 
 /* gcc has extern inline functions that are basically as fast as macros */
 #ifdef __GNUC__

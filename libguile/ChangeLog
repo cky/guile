@@ -1,3 +1,8 @@
+2005-02-27  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* gh.h: Bugfix: Include <libguile.h> outside of the extern "C"
+	block.
+
 2005-02-25  Marius Vollmer  <mvo@zagadka.de>
 
 	* hashtab.c (scm_i_rehash): Remove elements from old bucket vector
