@@ -1,3 +1,8 @@
+2000-09-05  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
+
+	* symbols.c (scm_gensym): Check that argument is a symbol, not a
+	string.  (Thanks to rm@mamma.varadinet.de.)
+
 2000-09-05  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* init.c: Include "libguile/properties.h".
