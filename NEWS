@@ -11,6 +11,16 @@ Changes since Guile 1.0 (Sun 5 Jan 1997):
 ** gh_eval_str() now returns an SCM object which is the result of the
 evaluation
 
+** gh_scm2str() now copies the Scheme data to a caller-provided C
+array
+
+** gh_scm2newstr() now makes a C array, copies the Scheme data to it,
+and returns the array
+
+** gh_scm2str0() is gone: there is no need to distinguish
+null-terminated from non-null-terminated, since gh_scm2newstr() allows
+the user to interpret the data both ways.
+
 * Changes to documentation
 
 ** the $(srcdir)/newdoc hierarchy now contains a new approach to the
