@@ -80,7 +80,7 @@ by the Free Software Foundation.
 @sp 10
 @comment The title is printed in a large font.
 @title Guile Reference Manual
-@subtitle $Id: guile.texi,v 1.11 2001-06-20 22:08:19 ossau Exp $
+@subtitle $Id: guile.texi,v 1.12 2001-06-29 21:43:17 mgrabmue Exp $
 @subtitle For use with Guile @value{VERSION}
 @include AUTHORS
 
@@ -171,6 +171,8 @@ Part III: Guile Modules
 * SRFI Support::                Support for various SRFIs.
 * Readline Support::            Module for using the readline library.
 * Value History::               Maintaining a value history in the REPL.
+* Pretty Printing::             Nicely formatting Scheme objects for output.
+* Formatted Output::            The @code{format} procedure.
 * Expect::			Controlling interactive programs with Guile.
 * The Scheme shell (scsh)::
 	The SCSH compatibility module has been made an
@@ -253,6 +255,7 @@ Indices
 @include posix.texi
 @include srfi-modules.texi
 @include repl-modules.texi
+@include misc-modules.texi
 @include expect.texi
 @include scsh.texi
 @c @include tcltk.texi

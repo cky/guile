@@ -1,3 +1,21 @@
+2001-06-29  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* misc-modules.texi: New file.
+	(Pretty Printing): New chapter.
+	(Formatted Output): New chapter.
+
+	* Makefile.am (guile_TEXINFOS): Added misc-modules.texi.
+
+	* guile.texi (Top): Added inclusion of misc-modules.texi.
+
+	* scheme-modules.texi (Included Guile Modules): Added (srfi
+	srfi-4) and (ice-9 rw) modules.
+	(Module System Quirks): Removed note that `module-export!' must be
+	called via gh_eval_str, now that we have scm_c_export.
+
+	* repl-modules.texi (Loading Readline Support, Readline Options):
+	New nodes.
+
 2001-06-27  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* posix.texi (Network Sockets and Communication): Grammar fix -

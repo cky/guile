@@ -35,7 +35,7 @@ guile_TEXINFOS = preface.texi intro.texi scheme-intro.texi \
 	scheme-reading.texi scheme-indices.texi slib.texi posix.texi \
 	expect.texi scsh.texi tcltk.texi scripts.texi gh.texi scm.texi \
 	appendices.texi indices.texi script-getopt.texi data-rep.texi \
-	extend.texi repl-modules.texi srfi-modules.texi \
+	extend.texi repl-modules.texi srfi-modules.texi misc-modules.texi \
 	AUTHORS
 
 guile_tut_TEXINFOS = guile-tut.texi AUTHORS
