@@ -60,15 +60,15 @@
 
 #define SCM_CHARSET_SIZE 256
 
-/* We expect 8-bit bytes here.  Shoule be no problem in the year
+/* We expect 8-bit bytes here.  Should be no problem in the year
    2001.  */
 #ifndef SCM_BITS_PER_LONG
 # define SCM_BITS_PER_LONG (sizeof (long) * 8)
 #endif
 
 #define SCM_CHARSET_GET(cs, idx) (((long *) SCM_SMOB_DATA (cs))\
-			           [(idx) / SCM_BITS_PER_LONG] &\
-			 	   (1L << ((idx) % SCM_BITS_PER_LONG)))
+			           [((unsigned char) (idx)) / SCM_BITS_PER_LONG] &\
+			 	   (1L << (((unsigned char) (idx)) % SCM_BITS_PER_LONG)))
 
 #define SCM_CHARSETP(x) (!SCM_IMP (x) && (SCM_TYP16 (x) == scm_tc16_charset))
 
