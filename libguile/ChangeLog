@@ -1,3 +1,29 @@
+2002-10-16  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* async.c (scm_system_async_mark_for_thread): Validate thread
+	argument.
+
+	* coop-threads.c (scm_i_thread_root): Do not validate argument.
+
+	* feature.c (scm_init_feature): Don't add 'threads' for
+	USE_NULL_THREADS.
+
+	* inline.h (scm_cell, scm_double_cell): Also allow
+	USE_NULL_THREADS to not protect the slot initializers.
+
+	* scmsigs.c (scm_sigaction_for_thread): It's "USE_THREADS" not
+	"USE_THREAD".
+
+	* Makefile.am (noinst_HEADERS): Added null-threads.c.
+	(modinclude_HEADERS): Added null-threads.h.
+
+	* threads.h: Include null-threads.h when !USE_COOP_THREADS.
+	* threads.c: Include null-threads.c when !USE_COOP_THREADS.
+	(scm_init_threads): Use generic type names scm_t_mutex and
+	scm_t_cond instead of coop_m and coop_c.
+
+	* null-threads.c, null-threads.h: New files.
+
 2002-10-15  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* Makefile.am: Replaced "$<" in non-pattern rules with its value.

@@ -1,3 +1,9 @@
+2002-10-16  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* configure.in: Shuffled around and extended the thread
+	configuration code to allow the "null" thread package to be
+	selected.  Define USE_NULL_THREADS in that case.
+
 2002-10-13  Gary Houston  <ghouston@arglist.com>
 
 	* autogen.sh (ac_version): try automake 1.7 too.
