@@ -1,3 +1,15 @@
+Thu Apr 24 00:41:08 1997  Jim Blandy  <jimb@floss.cyclic.com>
+
+	Changes for reduced Guile distribution: one configure script,
+	no plugins.
+	* configure.in, configure: Removed.
+	* acconfig.h, acinclude.m4: Moved to parent directory, where the
+	real configure script lives.
+	* Makefile.in, scmconfig.h.in: Regenerated.
+
+	* init.c: #include "script.h", to get prototype for script.c's
+ 	init function.
+
 Wed Apr 23 21:25:39 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* gh_data.c (gh_scm2newstr, gh_symbol2newstr): Use

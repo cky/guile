@@ -1,3 +1,10 @@
+Thu Apr 24 01:37:49 1997  Jim Blandy  <jimb@floss.cyclic.com>
+
+	Changes for reduced Guile distribution: one configure script,
+	no plugins.
+	* configure.in, configure: Removed.
+	* Makefile.in, md/Makefile.in, time/Makefile.in: Regenerated.
+
 Tue Apr 15 17:46:54 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* PLUGIN/OPT: Don't mention "threads", because that causes

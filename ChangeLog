@@ -1,3 +1,18 @@
+Thu Apr 24 01:20:34 1997  Jim Blandy  <jimb@floss.cyclic.com>
+
+	Changes for reduced Guile distribution: one configure script,
+	no plugins.
+	* configure.in: Merged the old text from qt/configure.in and
+	libguile/configure.in; Tom Tromey says automake only wants one
+	configure.in script.  This seems fishy, but...
+	* Makefile.am: List the subdirectories explicitly; no more PLUGIN
+	gubbish.
+	* acconfig.h, acinclude.m4: Moved here from libguile, since
+	libguile's configure script lives here now.
+	* AUTHORS, INSTALL, README: Updated.
+	* Makefile.in, aclocal.m4 configure: Regenerated.  Just like
+	amputated amphibian limbs.
+
 Tue Apr 22 16:57:38 1997  Jim Blandy  <jimb@totoro.cyclic.com>
 
 	* newdoc/ref/Makefile.am (dist_texis): Distribute the index files.
