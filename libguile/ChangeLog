@@ -1,3 +1,25 @@
+Sun Dec  8 21:06:38 1996  Jim Blandy  <jimb@duality.gnu.ai.mit.edu>
+
+	Add new interface to catch/throw, usable from C as well as
+	Scheme.
+	* throw.h (scm_catch_body_t, scm_catch_handler_t): New types.
+	(scm_internal_catch): New function, replaces...
+	(scm_catch_apply): Deleted.
+	* throw.c (scm_catch_apply): Deleted; replaced with a more general
+	mechanism which is a bit more code, but can be used nicely from C
+	and implement the Scheme semantics as well.
+	(scm_internal_catch): This is the replacement; it's named after
+	the analogous function in Emacs.
+	(scm_catch): Reimplemented in terms of the above.
+	(struct catch_body_data, catch_body, catch_handler): New
+	functions, used by scm_catch.
+	* root.c (cwdr): Reimplemented in terms of scm_internal_catch.
+	(struct cwdr_body_data, cwdr_body, cwdr_handler): New functions;
+	support for new cwdr.
+
+	* Makefile.am (libpath.h): Re-incorporate Mikael's changes of Wed
+	Oct 30.
+
 Sun Dec  8 17:55:34 1996  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* acconfig.h: Added DYNAMIC_LINKING symbol.
