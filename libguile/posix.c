@@ -96,8 +96,7 @@ extern char *ttyname();
 #ifdef HAVE_IO_H
 #include <io.h>
 #endif
-#if defined (HAVE_WINSOCK2_H) \
-  && !(defined (__CYGWIN32__) || defined (__CYGWIN__))
+#ifdef HAVE_WINSOCK2_H
 #include <winsock2.h>
 #endif
 

@@ -68,8 +68,7 @@
 #include <sys/select.h>
 #endif
 
-#if defined (HAVE_WINSOCK2_H) \
-  && !(defined (__CYGWIN32__) || defined (__CYGWIN__))
+#if HAVE_WINSOCK2_H
 #include <winsock2.h>
 #endif
 
