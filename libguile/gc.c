@@ -359,7 +359,7 @@ scm_t_freelist scm_master_freelist2 = {
 };
 
 /* scm_mtrigger
- * is the number of bytes of must_malloc allocation needed to trigger gc.
+ * is the number of bytes of malloc allocation needed to trigger gc.
  */
 unsigned long scm_mtrigger;
 
@@ -1920,7 +1920,8 @@ scm_gc_register_collectable_memory (void *mem, size_t size, const char *what)
     }
 
 #ifdef GUILE_DEBUG_MALLOC
-  scm_malloc_register (mem, what);
+  if (mem)
+    scm_malloc_register (mem, what);
 #endif
 }
 
@@ -1930,7 +1931,8 @@ scm_gc_unregister_collectable_memory (void *mem, size_t size, const char *what)
   scm_mallocated -= size;
 
 #ifdef GUILE_DEBUG_MALLOC
-  scm_malloc_unregister (mem);
+  if (mem)
+    scm_malloc_unregister (mem);
 #endif
 }
 
@@ -1940,7 +1942,7 @@ scm_gc_malloc (size_t size, const char *what)
   /* XXX - The straightforward implementation below has the problem
      that it might call the GC twice, once in scm_malloc and then
      again in scm_gc_register_collectable_memory.  We don't really
-     want the second GC.
+     want the second GC since it will not find new garbage.
   */
 
   void *ptr = scm_malloc (size);
@@ -1981,6 +1983,8 @@ scm_gc_strdup (const char *str, const char *what)
   return scm_gc_strndup (str, strlen (str), what);
 }
 
+#if SCM_ENABLE_DEPRECATED == 1
+
 /* {Deprecated front end to malloc}
  *
  * scm_must_malloc, scm_must_realloc, scm_must_free, scm_done_malloc,
@@ -1990,166 +1994,67 @@ scm_gc_strdup (const char *str, const char *what)
  * free.  They should be used when allocating memory that will be under
  * control of the garbage collector, i.e., if the memory may be freed
  * during garbage collection.
+ *
+ * They are deprecated because they weren't really used the way
+ * outlined above, and making sure to return the right amount from
+ * smob free routines was sometimes difficult when dealing with nested
+ * data structures.  We basically want everybody to review their code
+ * and use the more symmetrical scm_gc_malloc/scm_gc_free functions
+ * instead.  In some cases, where scm_must_malloc has been used
+ * incorrectly (i.e. for non-GC-able memory), use scm_malloc/free.
  */
 
-/* scm_must_malloc
- * Return newly malloced storage or throw an error.
- *
- * The parameter WHAT is a string for error reporting.
- * If the threshold scm_mtrigger will be passed by this
- * allocation, or if the first call to malloc fails,
- * garbage collect -- on the presumption that some objects
- * using malloced storage may be collected.
- *
- * The limit scm_mtrigger may be raised by this allocation.
- */
 void *
 scm_must_malloc (size_t size, const char *what)
 {
-  void *ptr;
-  unsigned long nm = scm_mallocated + size;
+  scm_c_issue_deprecation_warning
+    ("scm_must_malloc is deprecated.  "
+     "Use scm_gc_malloc and scm_gc_free instead.");
 
-  if (nm < size)
-    /* The byte count of allocated objects has overflowed.  This is
-       probably because you forgot to report the correct size of freed
-       memory in some of your smob free methods. */
-    abort ();
-
-  if (nm <= scm_mtrigger)
-    {
-      SCM_SYSCALL (ptr = malloc (size));
-      if (NULL != ptr)
-	{
-	  scm_mallocated = nm;
-#ifdef GUILE_DEBUG_MALLOC
-	  scm_malloc_register (ptr, what);
-#endif
-	  return ptr;
-	}
-    }
-
-  scm_igc (what);
-
-  nm = scm_mallocated + size;
-
-  if (nm < size)
-    /* The byte count of allocated objects has overflowed.  This is
-       probably because you forgot to report the correct size of freed
-       memory in some of your smob free methods. */
-    abort ();
-
-  SCM_SYSCALL (ptr = malloc (size));
-  if (NULL != ptr)
-    {
-      scm_mallocated = nm;
-      
-      if (nm > scm_mtrigger - SCM_MTRIGGER_HYSTERESIS) {
-	unsigned long old_trigger = scm_mtrigger;
-	if (nm > scm_mtrigger)
-	  scm_mtrigger = nm + nm / 2;
-	else
-	  scm_mtrigger += scm_mtrigger / 2;
-	if (scm_mtrigger < old_trigger)
-	  abort ();
-      }
-#ifdef GUILE_DEBUG_MALLOC
-      scm_malloc_register (ptr, what);
-#endif
-
-      return ptr;
-    }
-
-  scm_memory_error (what);
+  return scm_gc_malloc (size, what);
 }
 
-
-/* scm_must_realloc
- * is similar to scm_must_malloc.
- */
 void *
 scm_must_realloc (void *where,
 		  size_t old_size,
 		  size_t size,
 		  const char *what)
 {
-  void *ptr;
-  unsigned long nm;
+  scm_c_issue_deprecation_warning
+    ("scm_must_realloc is deprecated.  "
+     "Use scm_gc_realloc and scm_gc_free instead.");
 
-  if (size <= old_size)
-    return where;
-
-  nm = scm_mallocated + size - old_size;
-
-  if (nm < (size - old_size))
-    /* The byte count of allocated objects has overflowed.  This is
-       probably because you forgot to report the correct size of freed
-       memory in some of your smob free methods. */
-    abort ();
-
-  if (nm <= scm_mtrigger)
-    {
-      SCM_SYSCALL (ptr = realloc (where, size));
-      if (NULL != ptr)
-	{
-	  scm_mallocated = nm;
-#ifdef GUILE_DEBUG_MALLOC
-	  scm_malloc_reregister (where, ptr, what);
-#endif
-	  return ptr;
-	}
-    }
-
-  scm_igc (what);
-
-  nm = scm_mallocated + size - old_size;
-
-  if (nm < (size - old_size))
-    /* The byte count of allocated objects has overflowed.  This is
-       probably because you forgot to report the correct size of freed
-       memory in some of your smob free methods. */
-    abort ();
-
-  SCM_SYSCALL (ptr = realloc (where, size));
-  if (NULL != ptr)
-    {
-      scm_mallocated = nm;
-      if (nm > scm_mtrigger - SCM_MTRIGGER_HYSTERESIS) {
-	unsigned long old_trigger = scm_mtrigger;
-	if (nm > scm_mtrigger)
-	  scm_mtrigger = nm + nm / 2;
-	else
-	  scm_mtrigger += scm_mtrigger / 2;
-	if (scm_mtrigger < old_trigger)
-	  abort ();
-      }
-#ifdef GUILE_DEBUG_MALLOC
-      scm_malloc_reregister (where, ptr, what);
-#endif
-      return ptr;
-    }
-
-  scm_memory_error (what);
+  return scm_gc_realloc (where, old_size, size, what);
 }
 
 char *
 scm_must_strndup (const char *str, size_t length)
 {
-  char * dst = scm_must_malloc (length + 1, "scm_must_strndup");
-  memcpy (dst, str, length);
-  dst[length] = 0;
-  return dst;
+  scm_c_issue_deprecation_warning
+    ("scm_must_strndup is deprecated.  "
+     "Use scm_gc_strndup and scm_gc_free instead.");
+
+  return scm_gc_strndup (str, length, "string");
 }
 
 char *
 scm_must_strdup (const char *str)
 {
-  return scm_must_strndup (str, strlen (str));
+  scm_c_issue_deprecation_warning
+    ("scm_must_strdup is deprecated.  "
+     "Use scm_gc_strdup and scm_gc_free instead.");
+
+  return scm_gc_strdup (str, "string");
 }
 
 void
 scm_must_free (void *obj)
 #define FUNC_NAME "scm_must_free"
 {
+  scm_c_issue_deprecation_warning
+    ("scm_must_free is deprecated.  "
+     "Use scm_gc_malloc and scm_gc_free instead.");
+
 #ifdef GUILE_DEBUG_MALLOC
   scm_malloc_unregister (obj);
 #endif
@@ -2161,78 +2066,27 @@ scm_must_free (void *obj)
 #undef FUNC_NAME
 
 
-/* Announce that there has been some malloc done that will be freed
- * during gc.  A typical use is for a smob that uses some malloced
- * memory but can not get it from scm_must_malloc (for whatever
- * reason).  When a new object of this smob is created you call
- * scm_done_malloc with the size of the object.  When your smob free
- * function is called, be sure to include this size in the return
- * value.
- *
- * If you can't actually free the memory in the smob free function,
- * for whatever reason (like reference counting), you still can (and
- * should) report the amount of memory freed when you actually free it.
- * Do it by calling scm_done_malloc with the _negated_ size.  Clever,
- * eh?  Or even better, call scm_done_free. */
-
 void
 scm_done_malloc (long size)
 {
-  if (size < 0) {
-    if (scm_mallocated < size)
-      /* The byte count of allocated objects has underflowed.  This is
-         probably because you forgot to report the sizes of objects you
-         have allocated, by calling scm_done_malloc or some such.  When
-         the GC freed them, it subtracted their size from
-         scm_mallocated, which underflowed.  */
-      abort ();
-  } else {
-    unsigned long nm = scm_mallocated + size;
-    if (nm < size)
-      /* The byte count of allocated objects has overflowed.  This is
-         probably because you forgot to report the correct size of freed
-         memory in some of your smob free methods. */
-      abort ();
-  }
+  scm_c_issue_deprecation_warning
+    ("scm_done_malloc is deprecated.  "
+     "Use scm_gc_register_collectable_memory instead.");
 
-  scm_mallocated += size;
-
-  if (scm_mallocated > scm_mtrigger)
-    {
-      scm_igc ("foreign mallocs");
-      if (scm_mallocated > scm_mtrigger - SCM_MTRIGGER_HYSTERESIS)
-	{
-	  if (scm_mallocated > scm_mtrigger)
-	    scm_mtrigger = scm_mallocated + scm_mallocated / 2;
-	  else
-	    scm_mtrigger += scm_mtrigger / 2;
-	}
-    }
+  scm_gc_register_collectable_memory (NULL, size, "foreign mallocs");
 }
 
 void
 scm_done_free (long size)
 {
-  if (size >= 0) {
-    if (scm_mallocated < size)
-      /* The byte count of allocated objects has underflowed.  This is
-         probably because you forgot to report the sizes of objects you
-         have allocated, by calling scm_done_malloc or some such.  When
-         the GC freed them, it subtracted their size from
-         scm_mallocated, which underflowed.  */
-      abort ();
-  } else {
-    unsigned long nm = scm_mallocated - size;
-    if (nm < size)
-      /* The byte count of allocated objects has overflowed.  This is
-         probably because you forgot to report the correct size of freed
-         memory in some of your smob free methods. */
-      abort ();
-  }
+  scm_c_issue_deprecation_warning
+    ("scm_done_free is deprecated.  "
+     "Use scm_gc_unregister_collectable_memory instead.");
 
-  scm_mallocated -= size;
+  scm_gc_unregister_collectable_memory (NULL, size, "foreign mallocs");
 }
 
+#endif /* SCM_ENABLE_DEPRECATED == 1 */
 
 
 /* {Heap Segments}

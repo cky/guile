@@ -342,15 +342,6 @@ SCM_API void scm_gc_free (void *mem, size_t size, const char *what);
 SCM_API char *scm_gc_strdup (const char *str, const char *what);
 SCM_API char *scm_gc_strndup (const char *str, size_t n, const char *what);
 
-SCM_API void * scm_must_malloc (size_t len, const char *what);
-SCM_API void * scm_must_realloc (void *where,
-				 size_t olen, size_t len,
-				 const char *what);
-SCM_API char *scm_must_strdup (const char *str);
-SCM_API char *scm_must_strndup (const char *str, size_t n);
-SCM_API void scm_done_malloc (long size);
-SCM_API void scm_done_free (long size);
-SCM_API void scm_must_free (void *obj);
 SCM_API void scm_remember_upto_here_1 (SCM obj);
 SCM_API void scm_remember_upto_here_2 (SCM obj1, SCM obj2);
 SCM_API void scm_remember_upto_here (SCM obj1, ...);
@@ -376,6 +367,16 @@ SCM_API SCM scm_deprecated_newcell2 (void);
   do { _into = scm_deprecated_newcell (); } while (0)
 #define SCM_NEWCELL2(_into) \
   do { _into = scm_deprecated_newcell2 (); } while (0)
+
+SCM_API void * scm_must_malloc (size_t len, const char *what);
+SCM_API void * scm_must_realloc (void *where,
+				 size_t olen, size_t len,
+				 const char *what);
+SCM_API char *scm_must_strdup (const char *str);
+SCM_API char *scm_must_strndup (const char *str, size_t n);
+SCM_API void scm_done_malloc (long size);
+SCM_API void scm_done_free (long size);
+SCM_API void scm_must_free (void *obj);
 
 #endif
 
