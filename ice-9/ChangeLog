@@ -1,3 +1,9 @@
+Thu Jul 24 04:28:11 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* slib.scm (install-require-module): In newer versions of slib
+	*catalog* is #f until the first access.  Therefore we call
+	require:provided? for a random feature if *catalog* is #f.
+
 Wed Jul 23 20:13:04 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* boot-9.scm: If using emacs interface, enable backtraces

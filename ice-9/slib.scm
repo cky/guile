@@ -195,6 +195,8 @@
 	      (acons name vicinity *vicinity-table*)))))
 
 (define (install-require-module name vicinity-name file-name)
+  (if (not *catalog*)			;Fix which loads catalog in
+      (require:provided? 'random))	;slib2b2
   (let ((entry (assq name *catalog*))
 	(vicinity (cdr (assq vicinity-name *vicinity-table*))))
     (let ((path-name (in-vicinity vicinity file-name)))
