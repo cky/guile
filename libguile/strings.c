@@ -370,7 +370,8 @@ scm_make_shared_substring (str, frm, to)
   f = SCM_INUM (frm);
   t = SCM_INUM (to);
   SCM_ASSERT ((f >= 0), frm, SCM_OUTOFRANGE, s_make_shared_substring);
-  SCM_ASSERT ((f <= t) && (t <= SCM_ROLENGTH (str)), to, SCM_OUTOFRANGE, s_make_shared_substring);
+  SCM_ASSERT ((f <= t) && (t <= SCM_ROLENGTH (str)), to, SCM_OUTOFRANGE,
+	      s_make_shared_substring);
 
   SCM_NEWCELL (answer);
   SCM_NEWCELL (len_str);

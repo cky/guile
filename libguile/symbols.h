@@ -86,15 +86,16 @@ extern int scm_symhash_dim;
 #define SCM_SYMBOL_PROPS(X) (SCM_SLOTS(X)[1])
 #define SCM_SYMBOL_HASH(X) (*(unsigned long*)(&SCM_SLOTS(X)[2]))
 
-#define SCM_ROSTRINGP(x) ((SCM_TYP7S(x)==scm_tc7_string) || (SCM_TYP7S(x) == scm_tc7_ssymbol))
+#define SCM_ROSTRINGP(x) ((SCM_TYP7S(x)==scm_tc7_string) \
+			  || (SCM_TYP7S(x) == scm_tc7_ssymbol))
 #define SCM_ROCHARS(x) ((SCM_TYP7(x) == scm_tc7_substring) \
 			? SCM_INUM (SCM_CADR (x)) + SCM_CHARS (SCM_CDDR (x))  \
 			: SCM_CHARS (x))
 #define SCM_ROUCHARS(x) ((SCM_TYP7(x) == scm_tc7_substring) \
-			 ? SCM_INUM (SCM_CADR (x)) + SCM_UCHARS (SCM_CDDR (x))  \
+			 ? SCM_INUM (SCM_CADR (x)) + SCM_UCHARS (SCM_CDDR (x))\
 			 : SCM_UCHARS (x))
 #define SCM_ROLENGTH(x) SCM_LENGTH (x)
-#define SCM_SUBSTRP(x) ((SCM_TYP7S(x) == scm_tc7_substring))
+#define SCM_SUBSTRP(x) ((SCM_TYP7(x) == scm_tc7_substring))
 #define SCM_SUBSTR_STR(x) (SCM_CDDR (x))
 #define SCM_SUBSTR_OFFSET(x) (SCM_CADR (x))
 

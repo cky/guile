@@ -190,7 +190,7 @@ typedef long SCM;
  * gloc    ..........SCM vcell..........001  ...........SCM cdr.............G
  * struct  ..........void * type........001  ...........void * data.........G
  * closure ..........SCM code...........011  ...........SCM env.............G
- * tc7	   .........long length....GxxxD1S1  ..........void *data............
+ * tc7	   .........long length....Gxxxx1S1  ..........void *data............
  *
  *
  *
@@ -214,13 +214,13 @@ typedef long SCM;
  *		for that type.
  *
  *              Sometimes we choose the bottom seven bits carefully,
- *              so that the 4- and 1-valued bits (called the D and S
- *              bits) can be masked off to reveal a common type.
+ *              so that the 2-valued bit (called S bit) can be masked
+ *              off to reveal a common type.
  *
  *		TYP7S(X) returns TYP7, but masking out the option bit S.
  *
- *              For example, all strings have 001 in the 'xxx' bits in
- *              the diagram above, the D bit says whether it's a
+ *              For example, all strings have 0010 in the 'xxxx' bits
+ *              in the diagram above, the S bit says whether it's a
  *              substring.
  *
  *		for example:
@@ -228,9 +228,9 @@ typedef long SCM;
  *			scm_tc7_string    	= G0010101
  *			scm_tc7_substring	= G0010111
  *
- *		TYP7S turns all string tags into tc7_string; thus,
+ *		TYP7S turns both string tags into tc7_string; thus,
  *		testing TYP7S against tc7_string is a quick way to
- *		test for any kind of string.
+ *		test for any kind of string, shared or unshared.
  *
  *		Some TC7 types are subdivided into 256 subtypes giving
  *		rise to the macros:
@@ -250,14 +250,14 @@ typedef long SCM;
 /* {Non-immediate values.}
  *
  * If X is non-immediate, it is necessary to look at SCM_CAR (X) to
- * figure out Xs type.   X may be a cons pair, in which case the
- * value SCM_CAR (x) will be either an immediate or non-immediate value.
- * X may be something other than a cons pair, in which case the value SCM_CAR (x)
- * will be a non-object value.
+ * figure out Xs type.  X may be a cons pair, in which case the value
+ * SCM_CAR (x) will be either an immediate or non-immediate value.  X
+ * may be something other than a cons pair, in which case the value
+ * SCM_CAR (x) will be a non-object value.
  *
- * All immediates and non-immediates have a 0 in bit 0.  We additionally preserve
- * the invariant that all non-object values stored in the SCM_CAR of a non-immediate
- * object have a 1 in bit 1:
+ * All immediates and non-immediates have a 0 in bit 0.  We
+ * additionally preserve the invariant that all non-object values
+ * stored in the SCM_CAR of a non-immediate object have a 1 in bit 1:
  */
 
 #define SCM_NCONSP(x) (1 & (int)SCM_CAR(x))
@@ -299,8 +299,8 @@ typedef long SCM;
  */
 
 
-#define SCM_TYP7(x) 		(0x7f & (int)SCM_CAR(x))
-#define SCM_TYP7S(x) 		(0x7d & (int)SCM_CAR(x))
+#define SCM_TYP7(x) 		((int)SCM_CAR(x) & 0x7f)
+#define SCM_TYP7S(x) 		((int)SCM_CAR(x) & (0x7f & ~2))
 
 
 #define SCM_TYP16(x) 		(0xffff & (int)SCM_CAR(x))
