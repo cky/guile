@@ -1800,42 +1800,36 @@ Return @code{#t} iff @var{x} is greater than or equal to @var{y} in the
 @deffn {Scheme Procedure} char-alphabetic? chr
 @deffnx {C Function} scm_char_alphabetic_p (chr)
 Return @code{#t} iff @var{chr} is alphabetic, else @code{#f}.
-Alphabetic means the same thing as the @code{isalpha} C library function.
 @end deffn
 
 @rnindex char-numeric?
 @deffn {Scheme Procedure} char-numeric? chr
 @deffnx {C Function} scm_char_numeric_p (chr)
 Return @code{#t} iff @var{chr} is numeric, else @code{#f}.
-Numeric means the same thing as the @code{isdigit} C library function.
 @end deffn
 
 @rnindex char-whitespace?
 @deffn {Scheme Procedure} char-whitespace? chr
 @deffnx {C Function} scm_char_whitespace_p (chr)
 Return @code{#t} iff @var{chr} is whitespace, else @code{#f}.
-Whitespace means the same thing as the @code{isspace} C library function.
 @end deffn
 
 @rnindex char-upper-case?
 @deffn {Scheme Procedure} char-upper-case? chr
 @deffnx {C Function} scm_char_upper_case_p (chr)
 Return @code{#t} iff @var{chr} is uppercase, else @code{#f}.
-Uppercase means the same thing as the @code{isupper} C library function.
 @end deffn
 
 @rnindex char-lower-case?
 @deffn {Scheme Procedure} char-lower-case? chr
 @deffnx {C Function} scm_char_lower_case_p (chr)
 Return @code{#t} iff @var{chr} is lowercase, else @code{#f}.
-Lowercase means the same thing as the @code{islower} C library function.
 @end deffn
 
 @deffn {Scheme Procedure} char-is-both? chr
 @deffnx {C Function} scm_char_is_both_p (chr)
 Return @code{#t} iff @var{chr} is either uppercase or lowercase, else
-@code{#f}.  Uppercase and lowercase are as defined by the
-@code{isupper} and @code{islower} C library functions.
+@code{#f}.
 @end deffn
 
 @rnindex char->integer
@@ -2380,16 +2374,18 @@ substrings} since the substring and the original string share
 modifications to each other.
 
 @menu
-* String Syntax::               Read syntax for strings.
-* String Predicates::           Testing strings for certain properties.
-* String Constructors::         Creating new string objects.
-* List/String Conversion::      Converting from/to lists of characters.
-* String Selection::            Select portions from strings.
-* String Modification::         Modify parts or whole strings.
-* String Comparison::           Lexicographic ordering predicates.
-* String Searching::            Searching in strings.
-* Alphabetic Case Mapping::     Convert the alphabetic case of strings.
-* Appending Strings::           Appending strings to form a new string.
+* String Syntax::                   Read syntax for strings.
+* String Predicates::               Testing strings for certain properties.
+* String Constructors::             Creating new string objects.
+* List/String Conversion::          Converting from/to lists of characters.
+* String Selection::                Select portions from strings.
+* String Modification::             Modify parts or whole strings.
+* String Comparison::               Lexicographic ordering predicates.
+* String Searching::                Searching in strings.
+* Alphabetic Case Mapping::         Convert the alphabetic case of strings.
+* Reversing and Appending Strings:: Appending strings to form a new string.
+* Mapping Folding and Unfolding::   Iterating over strings.
+* Miscellaneous String Operations:: Replicating, insertion, parsing, ...
 * Conversion to/from C::       
 @end menu
 
@@ -2481,6 +2477,40 @@ y                    @result{} "foo"
 @end lisp
 @end deffn
 
+@deffn {Scheme Procedure} string-any char_pred s [start [end]]
+@deffnx {C Function} scm_string_any (char_pred, s, start, end)
+Check if the predicate @var{pred} is true for any character in
+the string @var{s}.
+
+Calls to @var{pred} are made from left to right across @var{s}.
+When it returns true (ie.@: non-@code{#f}), that return value
+is the return from @code{string-any}.
+
+The SRFI-13 specification requires that the call to @var{pred}
+on the last character of @var{s} (assuming that point is
+reached) be a tail call, but currently in Guile this is not the
+case.
+@end deffn
+
+@deffn {Scheme Procedure} string-every char_pred s [start [end]]
+@deffnx {C Function} scm_string_every (char_pred, s, start, end)
+Check if the predicate @var{pred} is true for every character
+in the string @var{s}.
+
+Calls to @var{pred} are made from left to right across @var{s}.
+If the predicate is true for every character then the return
+value from the last @var{pred} call is the return from
+@code{string-every}.
+
+If there are no characters in @var{s} (ie.@: @var{start} equals
+@var{end}) then the return is @code{#t}.
+
+The SRFI-13 specification requires that the call to @var{pred}
+on the last character of @var{s} (assuming that point is
+reached) be a tail call, but currently in Guile this is not the
+case.
+@end deffn
+
 @node String Constructors
 @subsubsection String Constructors
 
@@ -2514,6 +2544,46 @@ Like @code{scm_make_string}, but expects the length as a
 @code{size_t}.
 @end deftypefn
 
+@deffn {Scheme Procedure} string-tabulate proc len
+@deffnx {C Function} scm_string_tabulate (proc, len)
+@var{proc} is an integer->char procedure.  Construct a string
+of size @var{len} by applying @var{proc} to each index to
+produce the corresponding string element.  The order in which
+@var{proc} is applied to the indices is not specified.
+@end deffn
+
+@deffn {Scheme Procedure} reverse-list->string chrs
+@deffnx {C Function} scm_reverse_list_to_string (chrs)
+An efficient implementation of @code{(compose string->list
+reverse)}:
+
+@smalllisp
+(reverse-list->string '(#\a #\B #\c)) @result{} "cBa"
+@end smalllisp
+@end deffn
+
+@deffn {Scheme Procedure} string-join ls [delimiter [grammar]]
+@deffnx {C Function} scm_string_join (ls, delimiter, grammar)
+Append the string in the string list @var{ls}, using the string
+@var{delim} as a delimiter between the elements of @var{ls}.
+@var{grammar} is a symbol which specifies how the delimiter is
+placed between the strings, and defaults to the symbol
+@code{infix}.
+
+@table @code
+@item infix
+Insert the separator between list elements.  An empty string
+will produce an empty list.
+@item string-infix
+Like @code{infix}, but will raise an error if given the empty
+list.
+@item suffix
+Insert the separator after every list element.
+@item prefix
+Insert the separator before each list element.
+@end table
+@end deffn
+
 @node List/String Conversion
 @subsubsection List/String conversion
 
@@ -2523,12 +2593,10 @@ work with the resulting list, and then convert it back into a string.
 These procedures are useful for similar tasks.
 
 @rnindex string->list
-@deffn {Scheme Procedure} string->list str
+@deffn {Scheme Procedure} string->list str [start [end]]
+@deffnx {C Function} scm_substring_to_list (str, start, end)
 @deffnx {C Function} scm_string_to_list (str)
-Return a newly allocated list of the characters that make up
-the given string @var{str}. @code{string->list} and
-@code{list->string} are inverses as far as @samp{equal?} is
-concerned.
+Convert the string @var{str} into a list of characters.
 @end deffn
 
 @deffn {Scheme Procedure} string-split str chr
@@ -2584,9 +2652,10 @@ indexing. @var{k} must be a valid index of @var{str}.
 @end deftypefn
 
 @rnindex string-copy
-@deffn {Scheme Procedure} string-copy str
+@deffn {Scheme Procedure} string-copy str [start [end]]
+@deffnx {C Function} scm_substring_copy (str, start, end)
 @deffnx {C Function} scm_string_copy (str)
-Return a copy of the given @var{string}.
+Return a copy of the given string @var{str}.
 
 The returned string shares storage with @var{str} initially, but it is
 copied as soon as one of the two strings is modified.
@@ -2626,6 +2695,110 @@ immediately.
 Like @code{scm_substring}, etc. but the bounds are given as a @code{size_t}.
 @end deftypefn
 
+@deffn {Scheme Procedure} string-take s n
+@deffnx {C Function} scm_string_take (s, n)
+Return the @var{n} first characters of @var{s}.
+@end deffn
+
+@deffn {Scheme Procedure} string-drop s n
+@deffnx {C Function} scm_string_drop (s, n)
+Return all but the first @var{n} characters of @var{s}.
+@end deffn
+
+@deffn {Scheme Procedure} string-take-right s n
+@deffnx {C Function} scm_string_take_right (s, n)
+Return the @var{n} last characters of @var{s}.
+@end deffn
+
+@deffn {Scheme Procedure} string-drop-right s n
+@deffnx {C Function} scm_string_drop_right (s, n)
+Return all but the last @var{n} characters of @var{s}.
+@end deffn
+
+@deffn {Scheme Procedure} string-pad s len [chr [start [end]]]
+@deffnx {C Function} scm_string_pad (s, len, chr, start, end)
+Take that characters from @var{start} to @var{end} from the
+string @var{s} and return a new string, right-padded by the
+character @var{chr} to length @var{len}.  If the resulting
+string is longer than @var{len}, it is truncated on the right.
+@end deffn
+
+@deffn {Scheme Procedure} string-pad-right s len [chr [start [end]]]
+@deffnx {C Function} scm_string_pad_right (s, len, chr, start, end)
+Take that characters from @var{start} to @var{end} from the
+string @var{s} and return a new string, left-padded by the
+character @var{chr} to length @var{len}.  If the resulting
+string is longer than @var{len}, it is truncated on the left.
+@end deffn
+
+@deffn {Scheme Procedure} string-trim s [char_pred [start [end]]]
+@deffnx {C Function} scm_string_trim (s, char_pred, start, end)
+Trim @var{s} by skipping over all characters on the left
+that satisfy the parameter @var{char_pred}:
+
+@itemize @bullet
+@item
+if it is the character @var{ch}, characters equal to
+@var{ch} are trimmed,
+
+@item
+if it is a procedure @var{pred} characters that
+satisfy @var{pred} are trimmed,
+
+@item
+if it is a character set, characters in that set are trimmed.
+@end itemize
+
+If called without a @var{char_pred} argument, all whitespace is
+trimmed.
+@end deffn
+
+@deffn {Scheme Procedure} string-trim-right s [char_pred [start [end]]]
+@deffnx {C Function} scm_string_trim_right (s, char_pred, start, end)
+Trim @var{s} by skipping over all characters on the rightt
+that satisfy the parameter @var{char_pred}:
+
+@itemize @bullet
+@item
+if it is the character @var{ch}, characters equal to @var{ch}
+are trimmed,
+
+@item
+if it is a procedure @var{pred} characters that satisfy
+@var{pred} are trimmed,
+
+@item
+if it is a character sets, all characters in that set are
+trimmed.
+@end itemize
+
+If called without a @var{char_pred} argument, all whitespace is
+trimmed.
+@end deffn
+
+@deffn {Scheme Procedure} string-trim-both s [char_pred [start [end]]]
+@deffnx {C Function} scm_string_trim_both (s, char_pred, start, end)
+Trim @var{s} by skipping over all characters on both sides of
+the string that satisfy the parameter @var{char_pred}:
+
+@itemize @bullet
+@item
+if it is the character @var{ch}, characters equal to @var{ch}
+are trimmed,
+
+@item
+if it is a procedure @var{pred} characters that satisfy
+@var{pred} are trimmed,
+
+@item
+if it is a character set, the characters in the set are
+trimmed.
+@end itemize
+
+If called without a @var{char_pred} argument, all whitespace is
+trimmed.
+@end deffn
+
 @node String Modification
 @subsubsection String Modification
 
@@ -2646,10 +2819,11 @@ Like @code{scm_string_set_x}, but the index is given as a @code{size_t}.
 @end deftypefn
 
 @rnindex string-fill!
-@deffn {Scheme Procedure} string-fill! str chr
+@deffn {Scheme Procedure} string-fill! str chr [start [end]]
+@deffnx {C Function} scm_substring_fill_x (str, chr, start, end)
 @deffnx {C Function} scm_string_fill_x (str, chr)
-Store @var{char} in every element of the given @var{string} and
-return an unspecified value.
+Stores @var{chr} in every element of the given @var{str} and
+returns an unspecified value.
 @end deffn
 
 @deffn {Scheme Procedure} substring-fill! str start end fill
@@ -2672,16 +2846,28 @@ into @var{str2} beginning at position @var{start2}.
 @var{str1} and @var{str2} can be the same string.
 @end deffn
 
+@deffn {Scheme Procedure} string-copy! target tstart s [start [end]]
+@deffnx {C Function} scm_string_copy_x (target, tstart, s, start, end)
+Copy the sequence of characters from index range [@var{start},
+@var{end}) in string @var{s} to string @var{target}, beginning
+at index @var{tstart}.  The characters are copied left-to-right
+or right-to-left as needed -- the copy is guaranteed to work,
+even if @var{target} and @var{s} are the same string.  It is an
+error if the copy operation runs off the end of the target
+string.
+@end deffn
+
 
 @node String Comparison
 @subsubsection String Comparison
 
 The procedures in this section are similar to the character ordering
 predicates (@pxref{Characters}), but are defined on character sequences.
-They all return @code{#t} on success and @code{#f} on failure.  The
-predicates ending in @code{-ci} ignore the character case when comparing
-strings.
 
+The first set is specified in R5RS and has names that end in @code{?}.
+The second set is specified in SRFI-13 and the names have no ending
+@code{?}.  The predicates ending in @code{-ci} ignore the character case
+when comparing strings.
 
 @rnindex string=?
 @deffn {Scheme Procedure} string=? s1 s2
@@ -2727,7 +2913,7 @@ characters match (ignoring case) at each position; otherwise
 return @code{#f}.
 @end deffn
 
-@rnindex string-ci<
+@rnindex string-ci<?
 @deffn {Scheme Procedure} string-ci<? s1 s2
 Case insensitive lexicographic ordering predicate; return
 @code{#t} if @var{s1} is lexicographically less than @var{s2}
@@ -2755,50 +2941,281 @@ Case insensitive lexicographic ordering predicate; return
 equal to @var{s2} regardless of case.
 @end deffn
 
+@deffn {Scheme Procedure} string-compare s1 s2 proc_lt proc_eq proc_gt [start1 [end1 [start2 [end2]]]]
+@deffnx {C Function} scm_string_compare (s1, s2, proc_lt, proc_eq, proc_gt, start1, end1, start2, end2)
+Apply @var{proc_lt}, @var{proc_eq}, @var{proc_gt} to the
+mismatch index, depending upon whether @var{s1} is less than,
+equal to, or greater than @var{s2}.  The mismatch index is the
+largest index @var{i} such that for every 0 <= @var{j} <
+@var{i}, @var{s1}[@var{j}] = @var{s2}[@var{j}] -- that is,
+@var{i} is the first position that does not match.
+@end deffn
+
+@deffn {Scheme Procedure} string-compare-ci s1 s2 proc_lt proc_eq proc_gt [start1 [end1 [start2 [end2]]]]
+@deffnx {C Function} scm_string_compare_ci (s1, s2, proc_lt, proc_eq, proc_gt, start1, end1, start2, end2)
+Apply @var{proc_lt}, @var{proc_eq}, @var{proc_gt} to the
+mismatch index, depending upon whether @var{s1} is less than,
+equal to, or greater than @var{s2}.  The mismatch index is the
+largest index @var{i} such that for every 0 <= @var{j} <
+@var{i}, @var{s1}[@var{j}] = @var{s2}[@var{j}] -- that is,
+@var{i} is the first position that does not match.  The
+character comparison is done case-insensitively.
+@end deffn
+
+@deffn {Scheme Procedure} string= s1 s2 [start1 [end1 [start2 [end2]]]]
+@deffnx {C Function} scm_string_eq (s1, s2, start1, end1, start2, end2)
+Return @code{#f} if @var{s1} and @var{s2} are not equal, a true
+value otherwise.
+@end deffn
+
+@deffn {Scheme Procedure} string<> s1 s2 [start1 [end1 [start2 [end2]]]]
+@deffnx {C Function} scm_string_neq (s1, s2, start1, end1, start2, end2)
+Return @code{#f} if @var{s1} and @var{s2} are equal, a true
+value otherwise.
+@end deffn
+
+@deffn {Scheme Procedure} string< s1 s2 [start1 [end1 [start2 [end2]]]]
+@deffnx {C Function} scm_string_lt (s1, s2, start1, end1, start2, end2)
+Return @code{#f} if @var{s1} is greater or equal to @var{s2}, a
+true value otherwise.
+@end deffn
+
+@deffn {Scheme Procedure} string> s1 s2 [start1 [end1 [start2 [end2]]]]
+@deffnx {C Function} scm_string_gt (s1, s2, start1, end1, start2, end2)
+Return @code{#f} if @var{s1} is less or equal to @var{s2}, a
+true value otherwise.
+@end deffn
+
+@deffn {Scheme Procedure} string<= s1 s2 [start1 [end1 [start2 [end2]]]]
+@deffnx {C Function} scm_string_le (s1, s2, start1, end1, start2, end2)
+Return @code{#f} if @var{s1} is greater to @var{s2}, a true
+value otherwise.
+@end deffn
+
+@deffn {Scheme Procedure} string>= s1 s2 [start1 [end1 [start2 [end2]]]]
+@deffnx {C Function} scm_string_ge (s1, s2, start1, end1, start2, end2)
+Return @code{#f} if @var{s1} is less to @var{s2}, a true value
+otherwise.
+@end deffn
+
+@deffn {Scheme Procedure} string-ci= s1 s2 [start1 [end1 [start2 [end2]]]]
+@deffnx {C Function} scm_string_ci_eq (s1, s2, start1, end1, start2, end2)
+Return @code{#f} if @var{s1} and @var{s2} are not equal, a true
+value otherwise.  The character comparison is done
+case-insensitively.
+@end deffn
+
+@deffn {Scheme Procedure} string-ci<> s1 s2 [start1 [end1 [start2 [end2]]]]
+@deffnx {C Function} scm_string_ci_neq (s1, s2, start1, end1, start2, end2)
+Return @code{#f} if @var{s1} and @var{s2} are equal, a true
+value otherwise.  The character comparison is done
+case-insensitively.
+@end deffn
+
+@deffn {Scheme Procedure} string-ci< s1 s2 [start1 [end1 [start2 [end2]]]]
+@deffnx {C Function} scm_string_ci_lt (s1, s2, start1, end1, start2, end2)
+Return @code{#f} if @var{s1} is greater or equal to @var{s2}, a
+true value otherwise.  The character comparison is done
+case-insensitively.
+@end deffn
+
+@deffn {Scheme Procedure} string-ci> s1 s2 [start1 [end1 [start2 [end2]]]]
+@deffnx {C Function} scm_string_ci_gt (s1, s2, start1, end1, start2, end2)
+Return @code{#f} if @var{s1} is less or equal to @var{s2}, a
+true value otherwise.  The character comparison is done
+case-insensitively.
+@end deffn
+
+@deffn {Scheme Procedure} string-ci<= s1 s2 [start1 [end1 [start2 [end2]]]]
+@deffnx {C Function} scm_string_ci_le (s1, s2, start1, end1, start2, end2)
+Return @code{#f} if @var{s1} is greater to @var{s2}, a true
+value otherwise.  The character comparison is done
+case-insensitively.
+@end deffn
+
+@deffn {Scheme Procedure} string-ci>= s1 s2 [start1 [end1 [start2 [end2]]]]
+@deffnx {C Function} scm_string_ci_ge (s1, s2, start1, end1, start2, end2)
+Return @code{#f} if @var{s1} is less to @var{s2}, a true value
+otherwise.  The character comparison is done
+case-insensitively.
+@end deffn
+
+@deffn {Scheme Procedure} string-hash s [bound [start [end]]]
+@deffnx {C Function} scm_substring_hash (s, bound, start, end)
+Compute a hash value for @var{S}.  the optional argument @var{bound} is a non-negative exact integer specifying the range of the hash function. A positive value restricts the return value to the range [0,bound).
+@end deffn
+
+@deffn {Scheme Procedure} string-hash-ci s [bound [start [end]]]
+@deffnx {C Function} scm_substring_hash_ci (s, bound, start, end)
+Compute a hash value for @var{S}.  the optional argument @var{bound} is a non-negative exact integer specifying the range of the hash function. A positive value restricts the return value to the range [0,bound).
+@end deffn
 
 @node String Searching
 @subsubsection String Searching
 
-When searching for the index of a character in a string, these
-procedures can be used.
+@deffn {Scheme Procedure} string-index s char_pred [start [end]]
+@deffnx {C Function} scm_string_index (s, char_pred, start, end)
+Search through the string @var{s} from left to right, returning
+the index of the first occurence of a character which
 
-@deffn {Scheme Procedure} string-index str chr [frm [to]]
-@deffnx {C Function} scm_string_index (str, chr, frm, to)
-Return the index of the first occurrence of @var{chr} in
-@var{str}.  The optional integer arguments @var{frm} and
-@var{to} limit the search to a portion of the string.  This
-procedure essentially implements the @code{index} or
-@code{strchr} functions from the C library.
+@itemize @bullet
+@item
+equals @var{char_pred}, if it is character,
 
-@lisp
-(string-index "weiner" #\e)
-@result{} 1
+@item
+satisifies the predicate @var{char_pred}, if it is a procedure,
 
-(string-index "weiner" #\e 2)
-@result{} 4
-
-(string-index "weiner" #\e 2 4)
-@result{} #f
-@end lisp
+@item
+is in the set @var{char_pred}, if it is a character set.
+@end itemize
 @end deffn
 
-@deffn {Scheme Procedure} string-rindex str chr [frm [to]]
-@deffnx {C Function} scm_string_rindex (str, chr, frm, to)
-Like @code{string-index}, but search from the right of the
-string rather than from the left.  This procedure essentially
-implements the @code{rindex} or @code{strrchr} functions from
-the C library.
+@deffn {Scheme Procedure} string-rindex s char_pred [start [end]]
+@deffnx {C Function} scm_string_rindex (s, char_pred, start, end)
+Search through the string @var{s} from right to left, returning
+the index of the last occurence of a character which
 
-@lisp
-(string-rindex "weiner" #\e)
-@result{} 4
+@itemize @bullet
+@item
+equals @var{char_pred}, if it is character,
 
-(string-rindex "weiner" #\e 2 4)
-@result{} #f
+@item
+satisifies the predicate @var{char_pred}, if it is a procedure,
 
-(string-rindex "weiner" #\e 2 5)
-@result{} 4
-@end lisp
+@item
+is in the set if @var{char_pred} is a character set.
+@end itemize
+@end deffn
+
+@deffn {Scheme Procedure} string-prefix-length s1 s2 [start1 [end1 [start2 [end2]]]]
+@deffnx {C Function} scm_string_prefix_length (s1, s2, start1, end1, start2, end2)
+Return the length of the longest common prefix of the two
+strings.
+@end deffn
+
+@deffn {Scheme Procedure} string-prefix-length-ci s1 s2 [start1 [end1 [start2 [end2]]]]
+@deffnx {C Function} scm_string_prefix_length_ci (s1, s2, start1, end1, start2, end2)
+Return the length of the longest common prefix of the two
+strings, ignoring character case.
+@end deffn
+
+@deffn {Scheme Procedure} string-suffix-length s1 s2 [start1 [end1 [start2 [end2]]]]
+@deffnx {C Function} scm_string_suffix_length (s1, s2, start1, end1, start2, end2)
+Return the length of the longest common suffix of the two
+strings.
+@end deffn
+
+@deffn {Scheme Procedure} string-suffix-length-ci s1 s2 [start1 [end1 [start2 [end2]]]]
+@deffnx {C Function} scm_string_suffix_length_ci (s1, s2, start1, end1, start2, end2)
+Return the length of the longest common suffix of the two
+strings, ignoring character case.
+@end deffn
+
+@deffn {Scheme Procedure} string-prefix? s1 s2 [start1 [end1 [start2 [end2]]]]
+@deffnx {C Function} scm_string_prefix_p (s1, s2, start1, end1, start2, end2)
+Is @var{s1} a prefix of @var{s2}?
+@end deffn
+
+@deffn {Scheme Procedure} string-prefix-ci? s1 s2 [start1 [end1 [start2 [end2]]]]
+@deffnx {C Function} scm_string_prefix_ci_p (s1, s2, start1, end1, start2, end2)
+Is @var{s1} a prefix of @var{s2}, ignoring character case?
+@end deffn
+
+@deffn {Scheme Procedure} string-suffix? s1 s2 [start1 [end1 [start2 [end2]]]]
+@deffnx {C Function} scm_string_suffix_p (s1, s2, start1, end1, start2, end2)
+Is @var{s1} a suffix of @var{s2}?
+@end deffn
+
+@deffn {Scheme Procedure} string-suffix-ci? s1 s2 [start1 [end1 [start2 [end2]]]]
+@deffnx {C Function} scm_string_suffix_ci_p (s1, s2, start1, end1, start2, end2)
+Is @var{s1} a suffix of @var{s2}, ignoring character case?
+@end deffn
+
+@deffn {Scheme Procedure} string-index-right s char_pred [start [end]]
+@deffnx {C Function} scm_string_index_right (s, char_pred, start, end)
+Search through the string @var{s} from right to left, returning
+the index of the last occurence of a character which
+
+@itemize @bullet
+@item
+equals @var{char_pred}, if it is character,
+
+@item
+satisifies the predicate @var{char_pred}, if it is a procedure,
+
+@item
+is in the set if @var{char_pred} is a character set.
+@end itemize
+@end deffn
+
+@deffn {Scheme Procedure} string-skip s char_pred [start [end]]
+@deffnx {C Function} scm_string_skip (s, char_pred, start, end)
+Search through the string @var{s} from left to right, returning
+the index of the first occurence of a character which
+
+@itemize @bullet
+@item
+does not equal @var{char_pred}, if it is character,
+
+@item
+does not satisify the predicate @var{char_pred}, if it is a
+procedure,
+
+@item
+is not in the set if @var{char_pred} is a character set.
+@end itemize
+@end deffn
+
+@deffn {Scheme Procedure} string-skip-right s char_pred [start [end]]
+@deffnx {C Function} scm_string_skip_right (s, char_pred, start, end)
+Search through the string @var{s} from right to left, returning
+the index of the last occurence of a character which
+
+@itemize @bullet
+@item
+does not equal @var{char_pred}, if it is character,
+
+@item
+does not satisfy the predicate @var{char_pred}, if it is a
+procedure,
+
+@item
+is not in the set if @var{char_pred} is a character set.
+@end itemize
+@end deffn
+
+@deffn {Scheme Procedure} string-count s char_pred [start [end]]
+@deffnx {C Function} scm_string_count (s, char_pred, start, end)
+Return the count of the number of characters in the string
+@var{s} which
+
+@itemize @bullet
+@item
+equals @var{char_pred}, if it is character,
+
+@item
+satisifies the predicate @var{char_pred}, if it is a procedure.
+
+@item
+is in the set @var{char_pred}, if it is a character set.
+@end itemize
+@end deffn
+
+@deffn {Scheme Procedure} string-contains s1 s2 [start1 [end1 [start2 [end2]]]]
+@deffnx {C Function} scm_string_contains (s1, s2, start1, end1, start2, end2)
+Does string @var{s1} contain string @var{s2}?  Return the index
+in @var{s1} where @var{s2} occurs as a substring, or false.
+The optional start/end indices restrict the operation to the
+indicated substrings.
+@end deffn
+
+@deffn {Scheme Procedure} string-contains-ci s1 s2 [start1 [end1 [start2 [end2]]]]
+@deffnx {C Function} scm_string_contains_ci (s1, s2, start1, end1, start2, end2)
+Does string @var{s1} contain string @var{s2}?  Return the index
+in @var{s1} where @var{s2} occurs as a substring, or false.
+The optional start/end indices restrict the operation to the
+indicated substrings.  Character comparison is done
+case-insensitively.
 @end deffn
 
 @node Alphabetic Case Mapping
@@ -2807,37 +3224,43 @@ the C library.
 These are procedures for mapping strings to their upper- or lower-case
 equivalents, respectively, or for capitalizing strings.
 
-@deffn {Scheme Procedure} string-upcase str
+@deffn {Scheme Procedure} string-upcase str [start [end]]
+@deffnx {C Function} scm_substring_upcase (str, start, end)
 @deffnx {C Function} scm_string_upcase (str)
-Return a freshly allocated string containing the characters of
-@var{str} in upper case.
+Upcase every character in @code{str}.
 @end deffn
 
-@deffn {Scheme Procedure} string-upcase! str
+@deffn {Scheme Procedure} string-upcase! str [start [end]]
+@deffnx {C Function} scm_substring_upcase_x (str, start, end)
 @deffnx {C Function} scm_string_upcase_x (str)
-Destructively upcase every character in @var{str} and return
-@var{str}.
+Destructively upcase every character in @code{str}.
+
 @lisp
-y                  @result{} "arrdefg"
-(string-upcase! y) @result{} "ARRDEFG"
-y                  @result{} "ARRDEFG"
+(string-upcase! y)
+@result{} "ARRDEFG"
+y
+@result{} "ARRDEFG"
 @end lisp
 @end deffn
 
-@deffn {Scheme Procedure} string-downcase str
+@deffn {Scheme Procedure} string-downcase str [start [end]]
+@deffnx {C Function} scm_substring_downcase (str, start, end)
 @deffnx {C Function} scm_string_downcase (str)
-Return a freshly allocation string containing the characters in
-@var{str} in lower case.
+Downcase every character in @var{str}.
 @end deffn
 
-@deffn {Scheme Procedure} string-downcase! str
+@deffn {Scheme Procedure} string-downcase! str [start [end]]
+@deffnx {C Function} scm_substring_downcase_x (str, start, end)
 @deffnx {C Function} scm_string_downcase_x (str)
-Destructively downcase every character in @var{str} and return
-@var{str}.
+Destructively downcase every character in @var{str}.
+
 @lisp
-y                     @result{} "ARRDEFG"
-(string-downcase! y)  @result{} "arrdefg"
-y                     @result{} "arrdefg"
+y
+@result{} "ARRDEFG"
+(string-downcase! y)
+@result{} "arrdefg"
+y
+@result{} "arrdefg"
 @end lisp
 @end deffn
 
@@ -2860,12 +3283,33 @@ y                      @result{} "Hello World"
 @end lisp
 @end deffn
 
+@deffn {Scheme Procedure} string-titlecase str [start [end]]
+@deffnx {C Function} scm_string_titlecase (str, start, end)
+Titlecase every first character in a word in @var{str}.
+@end deffn
 
-@node Appending Strings
-@subsubsection Appending Strings
+@deffn {Scheme Procedure} string-titlecase! str [start [end]]
+@deffnx {C Function} scm_string_titlecase_x (str, start, end)
+Destructively titlecase every first character in a word in
+@var{str}.
+@end deffn
 
-The procedure @code{string-append} appends several strings together to
-form a longer result string.
+@node Reversing and Appending Strings
+@subsubsection Reversing and Appending Strings
+
+@deffn {Scheme Procedure} string-reverse str [start [end]]
+@deffnx {C Function} scm_string_reverse (str, start, end)
+Reverse the string @var{str}.  The optional arguments
+@var{start} and @var{end} delimit the region of @var{str} to
+operate on.
+@end deffn
+
+@deffn {Scheme Procedure} string-reverse! str [start [end]]
+@deffnx {C Function} scm_string_reverse_x (str, start, end)
+Reverse the string @var{str} in-place.  The optional arguments
+@var{start} and @var{end} delimit the region of @var{str} to
+operate on.  The return value is unspecified.
+@end deffn
 
 @rnindex string-append
 @deffn {Scheme Procedure} string-append . args
@@ -2878,6 +3322,200 @@ concatenation of the given strings, @var{args}.
   (string-append h "world"))
 @result{} "hello world"
 @end example
+@end deffn
+
+@deffn {Scheme Procedure} string-append/shared . ls
+@deffnx {C Function} scm_string_append_shared (ls)
+Like @code{string-append}, but the result may share memory
+with the argument strings.
+@end deffn
+
+@deffn {Scheme Procedure} string-concatenate ls
+@deffnx {C Function} scm_string_concatenate (ls)
+Append the elements of @var{ls} (which must be strings)
+together into a single string.  Guaranteed to return a freshly
+allocated string.
+@end deffn
+
+@deffn {Scheme Procedure} string-concatenate-reverse ls [final_string [end]]
+@deffnx {C Function} scm_string_concatenate_reverse (ls, final_string, end)
+Without optional arguments, this procedure is equivalent to
+
+@smalllisp
+(string-concatenate (reverse ls))
+@end smalllisp
+
+If the optional argument @var{final_string} is specified, it is
+consed onto the beginning to @var{ls} before performing the
+list-reverse and string-concatenate operations.  If @var{end}
+is given, only the characters of @var{final_string} up to index
+@var{end} are used.
+
+Guaranteed to return a freshly allocated string.
+@end deffn
+
+@deffn {Scheme Procedure} string-concatenate/shared ls
+@deffnx {C Function} scm_string_concatenate_shared (ls)
+Like @code{string-concatenate}, but the result may share memory
+with the strings in the list @var{ls}.
+@end deffn
+
+@deffn {Scheme Procedure} string-concatenate-reverse/shared ls [final_string [end]]
+@deffnx {C Function} scm_string_concatenate_reverse_shared (ls, final_string, end)
+Like @code{string-concatenate-reverse}, but the result may
+share memory with the the strings in the @var{ls} arguments.
+@end deffn
+
+@node Mapping Folding and Unfolding
+@subsubsection Mapping, Folding, and Unfolding
+
+@deffn {Scheme Procedure} string-map proc s [start [end]]
+@deffnx {C Function} scm_string_map (proc, s, start, end)
+@var{proc} is a char->char procedure, it is mapped over
+@var{s}.  The order in which the procedure is applied to the
+string elements is not specified.
+@end deffn
+
+@deffn {Scheme Procedure} string-map! proc s [start [end]]
+@deffnx {C Function} scm_string_map_x (proc, s, start, end)
+@var{proc} is a char->char procedure, it is mapped over
+@var{s}.  The order in which the procedure is applied to the
+string elements is not specified.  The string @var{s} is
+modified in-place, the return value is not specified.
+@end deffn
+
+@deffn {Scheme Procedure} string-for-each proc s [start [end]]
+@deffnx {C Function} scm_string_for_each (proc, s, start, end)
+@var{proc} is mapped over @var{s} in left-to-right order.  The
+return value is not specified.
+@end deffn
+
+@deffn {Scheme Procedure} string-for-each-index proc s [start [end]]
+@deffnx {C Function} scm_string_for_each_index (proc, s, start, end)
+@var{proc} is mapped over @var{s} in left-to-right order.  The
+return value is not specified.
+@end deffn
+
+@deffn {Scheme Procedure} string-fold kons knil s [start [end]]
+@deffnx {C Function} scm_string_fold (kons, knil, s, start, end)
+Fold @var{kons} over the characters of @var{s}, with @var{knil}
+as the terminating element, from left to right.  @var{kons}
+must expect two arguments: The actual character and the last
+result of @var{kons}' application.
+@end deffn
+
+@deffn {Scheme Procedure} string-fold-right kons knil s [start [end]]
+@deffnx {C Function} scm_string_fold_right (kons, knil, s, start, end)
+Fold @var{kons} over the characters of @var{s}, with @var{knil}
+as the terminating element, from right to left.  @var{kons}
+must expect two arguments: The actual character and the last
+result of @var{kons}' application.
+@end deffn
+
+@deffn {Scheme Procedure} string-unfold p f g seed [base [make_final]]
+@deffnx {C Function} scm_string_unfold (p, f, g, seed, base, make_final)
+@itemize @bullet
+@item @var{g} is used to generate a series of @emph{seed}
+values from the initial @var{seed}: @var{seed}, (@var{g}
+@var{seed}), (@var{g}^2 @var{seed}), (@var{g}^3 @var{seed}),
+@dots{}
+@item @var{p} tells us when to stop -- when it returns true
+when applied to one of these seed values.
+@item @var{f} maps each seed value to the corresponding
+character in the result string.  These chars are assembled
+into the string in a left-to-right order.
+@item @var{base} is the optional initial/leftmost portion
+of the constructed string; it default to the empty
+string.
+@item @var{make_final} is applied to the terminal seed
+value (on which @var{p} returns true) to produce
+the final/rightmost portion of the constructed string.
+It defaults to @code{(lambda (x) )}.
+@end itemize
+@end deffn
+
+@deffn {Scheme Procedure} string-unfold-right p f g seed [base [make_final]]
+@deffnx {C Function} scm_string_unfold_right (p, f, g, seed, base, make_final)
+@itemize @bullet
+@item @var{g} is used to generate a series of @emph{seed}
+values from the initial @var{seed}: @var{seed}, (@var{g}
+@var{seed}), (@var{g}^2 @var{seed}), (@var{g}^3 @var{seed}),
+@dots{}
+@item @var{p} tells us when to stop -- when it returns true
+when applied to one of these seed values.
+@item @var{f} maps each seed value to the corresponding
+character in the result string.  These chars are assembled
+into the string in a right-to-left order.
+@item @var{base} is the optional initial/rightmost portion
+of the constructed string; it default to the empty
+string.
+@item @var{make_final} is applied to the terminal seed
+value (on which @var{p} returns true) to produce
+the final/leftmost portion of the constructed string.
+It defaults to @code{(lambda (x) )}.
+@end itemize
+@end deffn
+
+@node Miscellaneous String Operations
+@subsubsection Miscellaneous String Operations
+
+@deffn {Scheme Procedure} xsubstring s from [to [start [end]]]
+@deffnx {C Function} scm_xsubstring (s, from, to, start, end)
+This is the @emph{extended substring} procedure that implements
+replicated copying of a substring of some string.
+
+@var{s} is a string, @var{start} and @var{end} are optional
+arguments that demarcate a substring of @var{s}, defaulting to
+0 and the length of @var{s}.  Replicate this substring up and
+down index space, in both the positive and negative directions.
+@code{xsubstring} returns the substring of this string
+beginning at index @var{from}, and ending at @var{to}, which
+defaults to @var{from} + (@var{end} - @var{start}).
+@end deffn
+
+@deffn {Scheme Procedure} string-xcopy! target tstart s sfrom [sto [start [end]]]
+@deffnx {C Function} scm_string_xcopy_x (target, tstart, s, sfrom, sto, start, end)
+Exactly the same as @code{xsubstring}, but the extracted text
+is written into the string @var{target} starting at index
+@var{tstart}.  The operation is not defined if @code{(eq?
+@var{target} @var{s})} or these arguments share storage -- you
+cannot copy a string on top of itself.
+@end deffn
+
+@deffn {Scheme Procedure} string-replace s1 s2 [start1 [end1 [start2 [end2]]]]
+@deffnx {C Function} scm_string_replace (s1, s2, start1, end1, start2, end2)
+Return the string @var{s1}, but with the characters
+@var{start1} @dots{} @var{end1} replaced by the characters
+@var{start2} @dots{} @var{end2} from @var{s2}.
+@end deffn
+
+@deffn {Scheme Procedure} string-tokenize s [token_set [start [end]]]
+@deffnx {C Function} scm_string_tokenize (s, token_set, start, end)
+Split the string @var{s} into a list of substrings, where each
+substring is a maximal non-empty contiguous sequence of
+characters from the character set @var{token_set}, which
+defaults to @code{char-set:graphic}.
+If @var{start} or @var{end} indices are provided, they restrict
+@code{string-tokenize} to operating on the indicated substring
+of @var{s}.
+@end deffn
+
+@deffn {Scheme Procedure} string-filter s char_pred [start [end]]
+@deffnx {C Function} scm_string_filter (s, char_pred, start, end)
+Filter the string @var{s}, retaining only those characters that
+satisfy the @var{char_pred} argument.  If the argument is a
+procedure, it is applied to each character as a predicate, if
+it is a character, it is tested for equality and if it is a
+character set, it is tested for membership.
+@end deffn
+
+@deffn {Scheme Procedure} string-delete s char_pred [start [end]]
+@deffnx {C Function} scm_string_delete (s, char_pred, start, end)
+Filter the string @var{s}, retaining only those characters that
+do not satisfy the @var{char_pred} argument.  If the argument
+is a procedure, it is applied to each character as a predicate,
+if it is a character, it is tested for equality and if it is a
+character set, it is tested for membership.
 @end deffn
 
 @node Conversion to/from C
