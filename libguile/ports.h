@@ -43,11 +43,13 @@
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
 
-
 #include "libguile/__scm.h"
 
 #include "libguile/print.h"
 #include "libguile/struct.h"
+
+/* Not sure if this is a good idea.  We need it for off_t.  */
+#include <sys/types.h>
 
 
 
