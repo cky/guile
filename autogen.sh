@@ -37,6 +37,7 @@ $mscripts/render-bugs > BUGS
 ######################################################################
 ### update infrastructure
 
+libtoolize --force --copy --ltdl  # autoreconf doesn't seem to update libltdl/
 autoreconf -i --force
 
 echo "guile-readline..."
