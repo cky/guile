@@ -1,0 +1,29 @@
+This is the Guile developer notice-board.  -*- change-log-mode -*-
+----------------------------------------------------------------------
+CONTENTS: Notes of various kinds which the Guile developers want to
+share among eachother, e. g., a memo about something which needs
+fixing.  Describing a certain problem here means that everyone is free
+to fix it when and as he wishes.  (Of course it can sometimes be suitable
+to discuss it first.)
+
+RULES: Entries should have a date and the name of the author.  Entries
+should be sufficiently detailed to enable other members of the team to
+understand them, but they need not be comprehensible to people who
+don't spend much time on Guile.  This file should not go into
+snapshots or distributions, but is a strictly internal document.
+
+CONVENTIONS: ChangeLog format. (Reverse chronological order.)
+----------------------------------------------------------------------
+
+Mon Mar  3 21:36:58 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* libguile/procprop.c: The current implementation of procedure
+ 	properties of closures uses a special property slot
+	(SCM_PROCPROPS (closure)), but primitive procedures don't have
+	such a slot.  Setting or getting source properties for primitive
+	procedures currently involves making fake closures.  These are
+	stored in an alist => finding the properties of a primitive
+	procedure is O (n primitive procedures with properties) which is
+	unacceptable.
+
+	
