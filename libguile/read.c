@@ -76,22 +76,21 @@ scm_t_option scm_read_opts[] = {
 
 
 static void
-scm_input_error(char const * function,
-		SCM port, const char * message, SCM arg)
+scm_input_error (char const *function,
+		 SCM port, const char *message, SCM arg)
 {
-  char *fn = SCM_STRINGP (SCM_FILENAME(port))
-    ? SCM_STRING_CHARS(SCM_FILENAME(port))
-    : "#<unknown port>";
+  SCM fn = (scm_is_string (SCM_FILENAME(port))
+	    ? SCM_FILENAME(port)
+	    : scm_from_locale_string ("#<unknown port>"));
 
-  SCM string_port =  scm_open_output_string ();
+  SCM string_port = scm_open_output_string ();
   SCM string = SCM_EOL;
   scm_simple_format (string_port,
 		     scm_makfrom0str ("~A:~S:~S: ~A"),
-		     scm_list_4 (scm_makfrom0str (fn),
+		     scm_list_4 (fn,
 				 scm_from_int (SCM_LINUM (port) + 1),
 				 scm_from_int (SCM_COL (port) + 1),
 				 scm_makfrom0str (message)));
-
     
   string = scm_get_output_string (string_port);
   scm_close_output_port (string_port);
