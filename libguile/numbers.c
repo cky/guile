@@ -4200,10 +4200,18 @@ scm_i_big2dbl (SCM b)
 # endif
 #endif
 
+#ifndef SIZE_MAX
 #define SIZE_MAX ((size_t) (-1))
+#endif
+
+#ifndef PTRDIFF_MIN
 /* the below is not really guaranteed to work (I think), but probably does: */
-#define PTRDIFF_MIN ((ptrdiff_t) ((ptrdiff_t)1 << (sizeof (ptrdiff_t) * 8 - 1)))
+#define PTRDIFF_MIN ((ptrdiff_t) ((ptrdiff_t)1 << (sizeof (ptrdiff_t)*8 - 1)))
+#endif
+
+#ifndef PTRDIFF_MAX
 #define PTRDIFF_MAX (~ PTRDIFF_MIN)
+#endif
 
 #define NUM2INTEGRAL scm_num2short
 #define INTEGRAL2NUM scm_short2num
