@@ -1,3 +1,14 @@
+2003-08-14  Kevin Ryde  <user42@zip.com.au>
+
+	* gc.h (scm_remember_upto_here_1, scm_remember_upto_here_2)
+	[__GNUC__]: Use volatile asm macros rather than a function call.
+	* gc.c (scm_remember_upto_here_1, scm_remember_upto_here_2): Undefine
+	macros while defining functions.
+
+	* simpos.c (getenv): Use <stdlib.h> for prototype.
+	(scm_system): In docstring, refer to status:exit-val rather than
+	"functions above".
+
 2003-08-09  Kevin Ryde  <user42@zip.com.au>
 
 	* srcprop.c (scm_source_properties): Return plist from hash if it's a

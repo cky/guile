@@ -1,3 +1,12 @@
+2003-08-14  Kevin Ryde  <user42@zip.com.au>
+
+	* boot-9.scm (while): Rewrite, continue as proper escape, break
+	without return value, break and continue new for each while form,
+	don't depend on bindings in expansion environment.
+
+	* popen.scm (open-process): Close input-fdes, output-fdes and
+	error-fdes after duping them to 0, 1 and 2.
+
 2003-06-19  Kevin Ryde  <user42@zip.com.au>
 
 	* threads.scm (parallel): For no forms, use `(values)' not `(begin)'.
