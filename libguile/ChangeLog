@@ -1,3 +1,13 @@
+2001-10-06  Mikael Djurfeldt  <mdj@linnaeus>
+
+	These changes fixes a race condition in the Guile coop - pthread
+	compatibility code.
+	
+	* coop.c (mother_awake_p): New variable.
+	(coop_create): Set mother_awake_p before creating or signalling
+	mother; wait until mother is going to sleep before returning.
+	(mother): Reset mother_awake_p before going to sleep.
+
 2001-10-05  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* options.c (protected_objects, scm_init_options):  The content of

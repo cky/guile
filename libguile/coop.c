@@ -40,7 +40,7 @@
  * If you do not wish that, delete this exception notice.  */
 
 
-/* $Id: coop.c,v 1.27 2001-03-10 03:09:07 mdj Exp $ */
+/* $Id: coop.c,v 1.28 2001-10-06 16:30:20 mdj Exp $ */
 
 /* Cooperative thread library, based on QuickThreads */
 
@@ -171,6 +171,7 @@ static pthread_cond_t coop_cond_quit;
 static pthread_cond_t coop_cond_create;
 static pthread_mutex_t coop_mutex_create;
 static pthread_t coop_mother;
+static int mother_awake_p = 0;
 static coop_t *coop_child;
 #endif
 
@@ -584,6 +585,7 @@ mother (void *dummy)
 		      NULL,
 		      dummy_start,
 		      coop_child);
+      mother_awake_p = 0;
       do
 	res = pthread_cond_wait (&coop_cond_create, &coop_mutex_create);
       while (res == EINTR);
@@ -618,6 +620,7 @@ coop_create (coop_userf_t *f, void *pu)
       t->n_keys = 0;
 #ifdef GUILE_PTHREAD_COMPAT
       coop_child = t;
+      mother_awake_p = 1;
       if (coop_quitting_p < 0)
 	{
 	  coop_quitting_p = 0;
@@ -635,7 +638,7 @@ coop_create (coop_userf_t *f, void *pu)
        * condition variable because they are not safe against
        * pre-emptive switching.
        */
-      while (coop_child)
+      while (coop_child || mother_awake_p)
 	usleep (0);
 #else
       t->sto = malloc (COOP_STKSIZE);
