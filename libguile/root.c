@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996,1997,1998 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996,1997,1998, 1999 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -133,6 +133,27 @@ scm_make_root (parent)
   else
     {
       root_state->parent = SCM_BOOL_F;
+
+      /* Initialize everything right now, in case a GC happens early.  */
+      root_state->rootcont
+	= root_state->dynwinds
+	= root_state->continuation_stack
+	= root_state->continuation_stack_ptr
+	= root_state->progargs
+	= root_state->exitval
+	= root_state->cur_inp
+	= root_state->cur_outp
+	= root_state->cur_errp
+	= root_state->def_inp
+	= root_state->def_outp
+	= root_state->def_errp
+	= root_state->cur_loadp
+	= root_state->fluids
+	= root_state->system_transformer
+	= root_state->top_level_lookup_closure_var
+	= root_state->handle
+	= root_state->parent
+	= SCM_BOOL_F;
     }
   SCM_REDEFER_INTS;
   SCM_NEWSMOB (root, scm_tc16_root, root_state);
