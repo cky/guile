@@ -1,3 +1,8 @@
+Wed Jun 11 00:33:00 1997  Jim Blandy  <jimb@floss.red-bean.com>
+
+	* Makefile.in: Regenerated after xtra_PLUGIN_guile_libs change in
+	../configure.in.
+
 Sun Jun  8 14:37:26 1997  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* eval.c (scm_lookupcar1): New procedure to cope with a race

@@ -1,3 +1,8 @@
+Wed Jun 11 00:31:40 1997  Jim Blandy  <jimb@floss.red-bean.com>
+
+	* Makefile.in: Regenerated after xtra_PLUGIN_guile_libs change in
+	../configure.in.
+
 Fri Jun  6 14:37:18 1997  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* boot-9.scm (struct-printer): Bugfix: Check the layout of the

@@ -1,3 +1,8 @@
+Wed Jun 11 00:33:10 1997  Jim Blandy  <jimb@floss.red-bean.com>
+
+	* Makefile.in, md/Makefile.in, time/Makefile.in: Regenerated after
+	xtra_PLUGIN_guile_libs change in ../configure.in.
+
 Tue May 13 16:40:06 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* Makefile.in: Regenerated, using automake-1.1p.
