@@ -718,7 +718,7 @@
 ;;; Filtering & partitioning
 
 (define (filter pred list)
-  (check-arg-type list? list "caller")  ; reject circular lists.
+  (check-arg-type list? list "filter")  ; reject circular lists.
   (letrec ((filiter (lambda (pred rest result)
 		      (if (null? rest)
 			  (reverse! result)

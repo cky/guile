@@ -1,3 +1,7 @@
+2001-09-12  Gary Houston  <ghouston@arglist.com>
+
+	* srfi-1.scm (filter): change "caller" to "filter" in check-arg-type.
+
 2001-08-31  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* srfi-1.scm, srfi-13.scm: Remove the defines that were needed to
