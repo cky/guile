@@ -986,7 +986,7 @@ Lists can be used to represent sets of objects.  The procedures in
 this section operate on such lists as sets.
 
 Note that lists are not an efficient way to implement large sets.  The
-procedures here typically take time @math{@var{m}@times{}@var{n}} when
+procedures here typically take time @math{@var{m}@cross{}@var{n}} when
 operating on @var{m} and @var{n} element lists.  Other data structures
 like trees, bitsets (@pxref{Bit Vectors}) or hash tables (@pxref{Hash
 Tables}) are faster.

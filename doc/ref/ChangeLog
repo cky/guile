@@ -1,3 +1,9 @@
+2005-04-04  Han-Wen Nienhuys  <hanwen@xs4all.nl>
+
+	* srfi-modules.texi (SRFI-1 Set Operations): use @cross iso. @times.
+
+	* guile.texi: add @cross for @tex
+
 2005-04-02  Kevin Ryde  <user42@zip.com.au>
 
 	* guile.texi (@times): New macro.
