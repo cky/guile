@@ -260,13 +260,13 @@ syntax_error (const char* const msg, const SCM form, const SCM expr)
   const char *format;
   SCM args;
 
-  if (SCM_CONSP (form))
+  if (scm_is_pair (form))
     {
       filename = scm_source_property (form, scm_sym_filename);
       linenr = scm_source_property (form, scm_sym_line);
     }
 
-  if (scm_is_false (filename) && scm_is_false (linenr) && SCM_CONSP (expr))
+  if (scm_is_false (filename) && scm_is_false (linenr) && scm_is_pair (expr))
     {
       filename = scm_source_property (expr, scm_sym_filename);
       linenr = scm_source_property (expr, scm_sym_line);
@@ -465,18 +465,18 @@ lookup_symbol (const SCM symbol, const SCM env)
   unsigned int frame_nr;
 
   for (frame_idx = env, frame_nr = 0;
-       !SCM_NULLP (frame_idx);
+       !scm_is_null (frame_idx);
        frame_idx = SCM_CDR (frame_idx), ++frame_nr)
     {
       const SCM frame = SCM_CAR (frame_idx);
-      if (SCM_CONSP (frame))
+      if (scm_is_pair (frame))
 	{
 	  /* frame holds a local environment frame */
 	  SCM symbol_idx;
 	  unsigned int symbol_nr;
 
 	  for (symbol_idx = SCM_CAR (frame), symbol_nr = 0;
-	       SCM_CONSP (symbol_idx);
+	       scm_is_pair (symbol_idx);
 	       symbol_idx = SCM_CDR (symbol_idx), ++symbol_nr)
 	    {
 	      if (scm_is_eq (SCM_CAR (symbol_idx), symbol))
@@ -522,11 +522,11 @@ literal_p (const SCM symbol, const SCM env)
 static int
 is_self_quoting_p (const SCM expr)
 {
-  if (SCM_CONSP (expr))
+  if (scm_is_pair (expr))
     return 0;
   else if (scm_is_symbol (expr))
     return 0;
-  else if (SCM_NULLP (expr))
+  else if (scm_is_null (expr))
     return 0;
   else return 1;
 }
@@ -563,7 +563,7 @@ unmemoize_expression (const SCM expr, const SCM env)
     {
       return scm_list_2 (scm_sym_quote, expr);
     }
-  else if (!SCM_CONSP (expr))
+  else if (!scm_is_pair (expr))
     {
       return expr;
     }
@@ -593,7 +593,7 @@ unmemoize_exprs (const SCM exprs, const SCM env)
    * quote expression is still in its unmemoized form.  For this reason, the
    * following code handles improper lists of expressions until memoization
    * and execution have been completely separated.  */
-  for (; SCM_CONSP (expr_idx); expr_idx = SCM_CDR (expr_idx))
+  for (; scm_is_pair (expr_idx); expr_idx = SCM_CDR (expr_idx))
     {
       const SCM expr = SCM_CAR (expr_idx);
 
@@ -610,7 +610,7 @@ unmemoize_exprs (const SCM exprs, const SCM env)
         }
     }
   um_expr = unmemoize_expression (expr_idx, env);
-  if (!SCM_NULLP (r_result))
+  if (!scm_is_null (r_result))
     {
       const SCM result = scm_reverse_x (r_result, SCM_UNDEFINED);
       SCM_SETCDR (r_result, um_expr);
@@ -674,7 +674,7 @@ try_macro_lookup (const SCM expr, const SCM env)
 static SCM
 expand_user_macros (SCM expr, const SCM env)
 {
-  while (SCM_CONSP (expr))
+  while (scm_is_pair (expr))
     {
       const SCM car_expr = SCM_CAR (expr);
       const SCM new_car = expand_user_macros (car_expr, env);
@@ -705,7 +705,7 @@ expand_user_macros (SCM expr, const SCM env)
 static int
 is_system_macro_p (const SCM syntactic_keyword, const SCM form, const SCM env)
 {
-  if (SCM_CONSP (form))
+  if (scm_is_pair (form))
     {
       const SCM car_form = SCM_CAR (form);
       const SCM value = try_macro_lookup (car_form, env);
@@ -736,7 +736,7 @@ m_expand_body (const SCM forms, const SCM env)
    * expressions.  The task of the following loop therefore is to split the
    * list of body forms into the list of definitions and the sequence of
    * expressions.  */ 
-  while (!SCM_NULLP (form_idx))
+  while (!scm_is_null (form_idx))
     {
       const SCM form = SCM_CAR (form_idx);
       const SCM new_form = expand_user_macros (form, env);
@@ -755,7 +755,7 @@ m_expand_body (const SCM forms, const SCM env)
           unsigned int found_definition = 0;
           unsigned int found_expression = 0;
           SCM grouped_form_idx = grouped_forms;
-          while (!found_expression && !SCM_NULLP (grouped_form_idx))
+          while (!found_expression && !scm_is_null (grouped_form_idx))
             {
               const SCM inner_form = SCM_CAR (grouped_form_idx);
               const SCM new_inner_form = expand_user_macros (inner_form, env);
@@ -807,9 +807,9 @@ m_expand_body (const SCM forms, const SCM env)
     }
 
   /* FIXME: forms does not hold information about the file location.  */
-  ASSERT_SYNTAX (SCM_CONSP (sequence), s_missing_body_expression, cdr_forms);
+  ASSERT_SYNTAX (scm_is_pair (sequence), s_missing_body_expression, cdr_forms);
 
-  if (!SCM_NULLP (definitions))
+  if (!scm_is_null (definitions))
     {
       SCM definition_idx;
       SCM letrec_tail;
@@ -818,7 +818,7 @@ m_expand_body (const SCM forms, const SCM env)
 
       SCM bindings = SCM_EOL;
       for (definition_idx = definitions;
-           !SCM_NULLP (definition_idx);
+           !scm_is_null (definition_idx);
            definition_idx = SCM_CDR (definition_idx))
 	{
 	  const SCM definition = SCM_CAR (definition_idx);
@@ -959,7 +959,7 @@ scm_m_case (SCM expr, SCM env)
   ASSERT_SYNTAX (scm_ilength (cdr_expr) >= 2, s_missing_clauses, expr);
 
   clauses = SCM_CDR (cdr_expr);
-  while (!SCM_NULLP (clauses))
+  while (!scm_is_null (clauses))
     {
       SCM labels;
 
@@ -968,13 +968,13 @@ scm_m_case (SCM expr, SCM env)
 		       s_bad_case_clause, clause, expr);
 
       labels = SCM_CAR (clause);
-      if (SCM_CONSP (labels))
+      if (scm_is_pair (labels))
         {
           ASSERT_SYNTAX_2 (scm_ilength (labels) >= 0,
                            s_bad_case_labels, labels, expr);
           all_labels = scm_append (scm_list_2 (labels, all_labels));
         }
-      else if (SCM_NULLP (labels))
+      else if (scm_is_null (labels))
         {
           /* The list of labels is empty.  According to R5RS this is allowed.
            * It means that the sequence of expressions will never be executed.
@@ -985,7 +985,7 @@ scm_m_case (SCM expr, SCM env)
         {
           ASSERT_SYNTAX_2 (scm_is_eq (labels, scm_sym_else) && else_literal_p,
                            s_bad_case_labels, labels, expr);
-          ASSERT_SYNTAX_2 (SCM_NULLP (SCM_CDR (clauses)),
+          ASSERT_SYNTAX_2 (scm_is_null (SCM_CDR (clauses)),
                            s_misplaced_else_clause, clause, expr);
         }
 
@@ -997,7 +997,7 @@ scm_m_case (SCM expr, SCM env)
     }
 
   /* Check whether all case labels are distinct. */
-  for (; !SCM_NULLP (all_labels); all_labels = SCM_CDR (all_labels))
+  for (; !scm_is_null (all_labels); all_labels = SCM_CDR (all_labels))
     {
       const SCM label = SCM_CAR (all_labels);
       ASSERT_SYNTAX_2 (scm_is_false (scm_c_memq (label, SCM_CDR (all_labels))),
@@ -1016,7 +1016,7 @@ unmemoize_case (const SCM expr, const SCM env)
   SCM clause_idx;
 
   for (clause_idx = SCM_CDDR (expr);
-       !SCM_NULLP (clause_idx);
+       !scm_is_null (clause_idx);
        clause_idx = SCM_CDR (clause_idx))
     {
       const SCM clause = SCM_CAR (clause_idx);
@@ -1055,7 +1055,7 @@ scm_m_cond (SCM expr, SCM env)
   ASSERT_SYNTAX (scm_ilength (clauses) >= 1, s_missing_clauses, expr);
 
   for (clause_idx = clauses;
-       !SCM_NULLP (clause_idx);
+       !scm_is_null (clause_idx);
        clause_idx = SCM_CDR (clause_idx))
     {
       SCM test;
@@ -1067,7 +1067,7 @@ scm_m_cond (SCM expr, SCM env)
       test = SCM_CAR (clause);
       if (scm_is_eq (test, scm_sym_else) && else_literal_p)
 	{
-	  const int last_clause_p = SCM_NULLP (SCM_CDR (clause_idx));
+	  const int last_clause_p = scm_is_null (SCM_CDR (clause_idx));
           ASSERT_SYNTAX_2 (length >= 2,
                            s_bad_cond_clause, clause, expr);
           ASSERT_SYNTAX_2 (last_clause_p,
@@ -1095,7 +1095,7 @@ unmemoize_cond (const SCM expr, const SCM env)
   SCM clause_idx;
 
   for (clause_idx = SCM_CDR (expr);
-       !SCM_NULLP (clause_idx);
+       !scm_is_null (clause_idx);
        clause_idx = SCM_CDR (clause_idx))
     {
       const SCM clause = SCM_CAR (clause_idx);
@@ -1110,7 +1110,7 @@ unmemoize_cond (const SCM expr, const SCM env)
       else
         um_test = unmemoize_expression (test, env);
 
-      if (!SCM_NULLP (sequence) && scm_is_eq (SCM_CAR (sequence),
+      if (!scm_is_null (sequence) && scm_is_eq (SCM_CAR (sequence),
 					      SCM_IM_ARROW))
         {
           const SCM target = SCM_CADR (sequence);
@@ -1165,7 +1165,7 @@ canonicalize_define (const SCM expr)
 
   body = SCM_CDR (cdr_expr);
   variable = SCM_CAR (cdr_expr);
-  while (SCM_CONSP (variable))
+  while (scm_is_pair (variable))
     {
       /* This while loop realizes function currying by variable nesting.
        * Variable is known to be a nested-variable.  In every iteration of the
@@ -1305,7 +1305,7 @@ scm_m_do (SCM expr, SCM env SCM_UNUSED)
   binding_idx = SCM_CAR (cdr_expr);
   ASSERT_SYNTAX_2 (scm_ilength (binding_idx) >= 0,
                    s_bad_bindings, binding_idx, expr);
-  for (; !SCM_NULLP (binding_idx); binding_idx = SCM_CDR (binding_idx))
+  for (; !scm_is_null (binding_idx); binding_idx = SCM_CDR (binding_idx))
     {
       const SCM binding = SCM_CAR (binding_idx);
       const long length = scm_ilength (binding);
@@ -1360,7 +1360,7 @@ unmemoize_do (const SCM expr, const SCM env)
   SCM um_inits = unmemoize_exprs (SCM_CAR (cdr_expr), env);
   SCM um_steps = unmemoize_exprs (SCM_CDR (cddddr_expr), extended_env);
   SCM um_bindings = SCM_EOL;
-  while (!SCM_NULLP (um_names))
+  while (!scm_is_null (um_names))
     {
       const SCM name = SCM_CAR (um_names);
       const SCM init = SCM_CAR (um_inits);
@@ -1402,7 +1402,7 @@ unmemoize_if (const SCM expr, const SCM env)
   const SCM um_then = unmemoize_expression (SCM_CAR (cddr_expr), env);
   const SCM cdddr_expr = SCM_CDR (cddr_expr);
 
-  if (SCM_NULLP (cdddr_expr))
+  if (scm_is_null (cdddr_expr))
     {
       return scm_list_3 (scm_sym_if, um_condition, um_then);
     }
@@ -1425,7 +1425,7 @@ SCM_GLOBAL_SYMBOL (scm_sym_lambda, s_lambda);
 static int
 c_improper_memq (SCM obj, SCM list)
 {
-  for (; SCM_CONSP (list); list = SCM_CDR (list))
+  for (; scm_is_pair (list); list = SCM_CDR (list))
     {
       if (scm_is_eq (SCM_CAR (list), obj))
         return 1;
@@ -1451,21 +1451,21 @@ scm_m_lambda (SCM expr, SCM env SCM_UNUSED)
   /* Before iterating the list of formal arguments, make sure the formals
    * actually are given as either a symbol or a non-cyclic list.  */
   formals = SCM_CAR (cdr_expr);
-  if (SCM_CONSP (formals))
+  if (scm_is_pair (formals))
     {
       /* Dirk:FIXME:: We should check for a cyclic list of formals, and if
        * detected, report a 'Bad formals' error.  */
     }
   else
     {
-      ASSERT_SYNTAX_2 (scm_is_symbol (formals) || SCM_NULLP (formals),
+      ASSERT_SYNTAX_2 (scm_is_symbol (formals) || scm_is_null (formals),
                        s_bad_formals, formals, expr);
     }
 
   /* Now iterate the list of formal arguments to check if all formals are
    * symbols, and that there are no duplicates.  */
   formals_idx = formals;
-  while (SCM_CONSP (formals_idx))
+  while (scm_is_pair (formals_idx))
     {
       const SCM formal = SCM_CAR (formals_idx);
       const SCM next_idx = SCM_CDR (formals_idx);
@@ -1474,7 +1474,7 @@ scm_m_lambda (SCM expr, SCM env SCM_UNUSED)
                        s_duplicate_formal, formal, expr);
       formals_idx = next_idx;
     }
-  ASSERT_SYNTAX_2 (SCM_NULLP (formals_idx) || scm_is_symbol (formals_idx),
+  ASSERT_SYNTAX_2 (scm_is_null (formals_idx) || scm_is_symbol (formals_idx),
                    s_bad_formal, formals_idx, expr);
 
   /* Memoize the body.  Keep a potential documentation string.  */
@@ -1519,7 +1519,7 @@ check_bindings (const SCM bindings, const SCM expr)
                    s_bad_bindings, bindings, expr);
 
   binding_idx = bindings;
-  for (; !SCM_NULLP (binding_idx); binding_idx = SCM_CDR (binding_idx))
+  for (; !scm_is_null (binding_idx); binding_idx = SCM_CDR (binding_idx))
     {
       SCM name;         /* const */
 
@@ -1547,7 +1547,7 @@ transform_bindings (
   SCM rvariables = SCM_EOL;
   SCM rinits = SCM_EOL;
   SCM binding_idx = bindings;
-  for (; !SCM_NULLP (binding_idx); binding_idx = SCM_CDR (binding_idx))
+  for (; !scm_is_null (binding_idx); binding_idx = SCM_CDR (binding_idx))
     {
       const SCM binding = SCM_CAR (binding_idx);
       const SCM cdr_binding = SCM_CDR (binding);
@@ -1621,7 +1621,7 @@ scm_m_let (SCM expr, SCM env)
     }
 
   check_bindings (bindings, expr);
-  if (SCM_NULLP (bindings) || SCM_NULLP (SCM_CDR (bindings)))
+  if (scm_is_null (bindings) || scm_is_null (SCM_CDR (bindings)))
     {
       /* Special case: no bindings or single binding => let* is faster. */
       const SCM body = m_body (SCM_IM_LET, SCM_CDR (cdr_expr));
@@ -1648,7 +1648,7 @@ static SCM
 build_binding_list (SCM rnames, SCM rinits)
 {
   SCM bindings = SCM_EOL;
-  while (!SCM_NULLP (rnames))
+  while (!scm_is_null (rnames))
     {
       const SCM binding = scm_list_2 (SCM_CAR (rnames), SCM_CAR (rinits));
       bindings = scm_cons (binding, bindings);
@@ -1687,7 +1687,7 @@ scm_m_letrec (SCM expr, SCM env)
   ASSERT_SYNTAX (scm_ilength (cdr_expr) >= 2, s_missing_expression, expr);
 
   bindings = SCM_CAR (cdr_expr);
-  if (SCM_NULLP (bindings))
+  if (scm_is_null (bindings))
     {
       /* no bindings, let* is executed faster */
       SCM body = m_body (SCM_IM_LETREC, SCM_CDR (cdr_expr));
@@ -1750,7 +1750,7 @@ scm_m_letstar (SCM expr, SCM env SCM_UNUSED)
    * untouched.  After the execution of the loop, P1 will hold
    *   P1:( vn . P2:(in . P3:( (vn+1 in+1) ... )) )
    * and binding_idx will hold P3.  */
-  while (!SCM_NULLP (binding_idx))
+  while (!scm_is_null (binding_idx))
     {
       const SCM cdr_binding_idx = SCM_CDR (binding_idx);  /* remember P3 */
       const SCM binding = SCM_CAR (binding_idx);
@@ -1781,7 +1781,7 @@ unmemoize_letstar (const SCM expr, const SCM env)
   SCM extended_env = env;
   SCM um_body;
 
-  while (!SCM_NULLP (bindings))
+  while (!scm_is_null (bindings))
     {
       const SCM variable = SCM_CAR (bindings);
       const SCM init = SCM_CADR (bindings);
@@ -1840,7 +1840,7 @@ SCM_GLOBAL_SYMBOL (scm_sym_uq_splicing, "unquote-splicing");
 static SCM 
 iqq (SCM form, SCM env, unsigned long int depth)
 {
-  if (SCM_CONSP (form))
+  if (scm_is_pair (form))
     {
       const SCM tmp = SCM_CAR (form);
       if (scm_is_eq (tmp, scm_sym_quasiquote))
@@ -1858,7 +1858,7 @@ iqq (SCM form, SCM env, unsigned long int depth)
 	  else
 	    return scm_list_2 (tmp, iqq (SCM_CAR (args), env, depth - 1));
 	}
-      else if (SCM_CONSP (tmp)
+      else if (scm_is_pair (tmp)
 	       && scm_is_eq (SCM_CAR (tmp), scm_sym_uq_splicing))
 	{
 	  const SCM args = SCM_CDR (tmp);
@@ -2027,7 +2027,7 @@ scm_m_atbind (SCM expr, SCM env)
   transform_bindings (bindings, expr, &rvariables, &inits);
 
   for (variable_idx = rvariables;
-       !SCM_NULLP (variable_idx);
+       !scm_is_null (variable_idx);
        variable_idx = SCM_CDR (variable_idx))
     {
       /* The first call to scm_sym2var will look beyond the current module,
@@ -2125,7 +2125,7 @@ scm_m_generalized_set_x (SCM expr, SCM env)
   ASSERT_SYNTAX (scm_ilength (cdr_expr) == 2, s_expression, expr);
 
   target = SCM_CAR (cdr_expr);
-  if (!SCM_CONSP (target))
+  if (!scm_is_pair (target))
     {
       /* R5RS usage */
       return scm_m_set_x (expr, env);
@@ -2139,8 +2139,8 @@ scm_m_generalized_set_x (SCM expr, SCM env)
       */
       exp_target = macroexp (target, env);
       if (scm_is_eq (SCM_CAR (exp_target), SCM_IM_BEGIN)
-	  && !SCM_NULLP (SCM_CDR (exp_target))
-	  && SCM_NULLP (SCM_CDDR (exp_target)))
+	  && !scm_is_null (SCM_CDR (exp_target))
+	  && scm_is_null (SCM_CDDR (exp_target)))
 	{
 	  exp_target= SCM_CADR (exp_target);
 	  ASSERT_SYNTAX_2 (scm_is_symbol (exp_target)
@@ -2491,7 +2491,7 @@ scm_unmemocar (SCM form, SCM env)
   scm_c_issue_deprecation_warning 
     ("`scm_unmemocar' is deprecated.");
 
-  if (!SCM_CONSP (form))
+  if (!scm_is_pair (form))
     return form;
   else
     {
@@ -2541,16 +2541,16 @@ static SCM undefineds;
 int
 scm_badargsp (SCM formals, SCM args)
 {
-  while (!SCM_NULLP (formals))
+  while (!scm_is_null (formals))
     {
-      if (!SCM_CONSP (formals)) 
+      if (!scm_is_pair (formals)) 
         return 0;
-      if (SCM_NULLP (args)) 
+      if (scm_is_null (args)) 
         return 1;
       formals = SCM_CDR (formals);
       args = SCM_CDR (args);
     }
-  return !SCM_NULLP (args) ? 1 : 0;
+  return !scm_is_null (args) ? 1 : 0;
 }
 
 
@@ -2610,7 +2610,7 @@ static SCM deval (SCM x, SCM env);
    ? SCM_I_EVALIM2 (x) \
    : (SCM_VARIABLEP (x) \
       ? SCM_VARIABLE_REF (x) \
-      : (SCM_CONSP (x) \
+      : (scm_is_pair (x) \
          ? (scm_debug_mode_p \
             ? deval ((x), (env)) \
             : ceval ((x), (env))) \
@@ -2621,7 +2621,7 @@ static SCM deval (SCM x, SCM env);
    ? SCM_I_EVALIM (SCM_CAR (x), (env)) \
    : (SCM_VARIABLEP (SCM_CAR (x)) \
       ? SCM_VARIABLE_REF (SCM_CAR (x)) \
-      : (SCM_CONSP (SCM_CAR (x)) \
+      : (scm_is_pair (SCM_CAR (x)) \
          ? (scm_debug_mode_p \
             ? deval (SCM_CAR (x), (env)) \
             : ceval (SCM_CAR (x), (env))) \
@@ -2634,7 +2634,7 @@ static SCM deval (SCM x, SCM env);
    ? SCM_I_EVALIM ((x), (env)) \
    : (SCM_VARIABLEP (x) \
       ? SCM_VARIABLE_REF (x) \
-      : (SCM_CONSP (x) \
+      : (scm_is_pair (x) \
          ? CEVAL ((x), (env)) \
          : (x))))
 
@@ -2643,7 +2643,7 @@ static SCM deval (SCM x, SCM env);
    ? SCM_I_EVALIM (SCM_CAR (x), (env)) \
    : (SCM_VARIABLEP (SCM_CAR (x)) \
       ? SCM_VARIABLE_REF (SCM_CAR (x)) \
-      : (SCM_CONSP (SCM_CAR (x)) \
+      : (scm_is_pair (SCM_CAR (x)) \
          ? CEVAL (SCM_CAR (x), (env)) \
          : (!scm_is_symbol (SCM_CAR (x)) \
             ? SCM_CAR (x) \
@@ -2791,12 +2791,12 @@ scm_lookupcar1 (SCM vloc, SCM genv, int check)
   register SCM iloc = SCM_ILOC00;
   for (; SCM_NIMP (env); env = SCM_CDR (env))
     {
-      if (!SCM_CONSP (SCM_CAR (env)))
+      if (!scm_is_pair (SCM_CAR (env)))
 	break;
       al = SCM_CARLOC (env);
       for (fl = SCM_CAR (*al); SCM_NIMP (fl); fl = SCM_CDR (fl))
 	{
-	  if (!SCM_CONSP (fl))
+	  if (!scm_is_pair (fl))
 	    {
 	      if (scm_is_eq (fl, var))
 	      {
@@ -2836,12 +2836,12 @@ scm_lookupcar1 (SCM vloc, SCM genv, int check)
     if (scm_is_false (real_var))
       goto errout;
 
-    if (!SCM_NULLP (env) || SCM_UNBNDP (SCM_VARIABLE_REF (real_var)))
+    if (!scm_is_null (env) || SCM_UNBNDP (SCM_VARIABLE_REF (real_var)))
       {
       errout:
 	if (check)
 	  {
-	    if (SCM_NULLP (env))
+	    if (scm_is_null (env))
               error_unbound_variable (var);
 	    else
 	      scm_misc_error (NULL, "Damaged environment: ~S",
@@ -2917,7 +2917,7 @@ SCM
 scm_eval_args (SCM l, SCM env, SCM proc)
 {
   SCM results = SCM_EOL, *lloc = &results, res;
-  while (SCM_CONSP (l))
+  while (scm_is_pair (l))
     {
       res = EVALCAR (l, env);
 
@@ -2925,7 +2925,7 @@ scm_eval_args (SCM l, SCM env, SCM proc)
       lloc = SCM_CDRLOC (*lloc);
       l = SCM_CDR (l);
     }
-  if (!SCM_NULLP (l))
+  if (!scm_is_null (l))
     scm_wrong_num_args (proc);
   return results;
 }
@@ -2938,7 +2938,7 @@ scm_eval_body (SCM code, SCM env)
 
  again:
   next = SCM_CDR (code);
-  while (!SCM_NULLP (next))
+  while (!scm_is_null (next))
     {
       if (SCM_IMP (SCM_CAR (code)))
 	{
@@ -3125,7 +3125,7 @@ static SCM
 deval_args (SCM l, SCM env, SCM proc, SCM *lloc)
 {
   SCM *results = lloc;
-  while (SCM_CONSP (l))
+  while (scm_is_pair (l))
     {
       const SCM res = EVALCAR (l, env);
 
@@ -3133,7 +3133,7 @@ deval_args (SCM l, SCM env, SCM proc, SCM *lloc)
       lloc = SCM_CDRLOC (*lloc);
       l = SCM_CDR (l);
     }
-  if (!SCM_NULLP (l))
+  if (!scm_is_null (l))
     scm_wrong_num_args (proc);
   return *results;
 }
@@ -3290,7 +3290,7 @@ dispatch:
         {
         case (ISYMNUM (SCM_IM_AND)):
           x = SCM_CDR (x);
-          while (!SCM_NULLP (SCM_CDR (x)))
+          while (!scm_is_null (SCM_CDR (x)))
             {
               SCM test_result = EVALCAR (x, env);
               if (scm_is_false (test_result) || SCM_NILP (test_result))
@@ -3303,7 +3303,7 @@ dispatch:
 
         case (ISYMNUM (SCM_IM_BEGIN)):
           x = SCM_CDR (x);
-          if (SCM_NULLP (x))
+          if (scm_is_null (x))
             RETURN (SCM_UNSPECIFIED);
 
           PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
@@ -3311,10 +3311,10 @@ dispatch:
         begin:
           /* If we are on toplevel with a lookup closure, we need to sync
              with the current module. */
-          if (SCM_CONSP (env) && !SCM_CONSP (SCM_CAR (env)))
+          if (scm_is_pair (env) && !scm_is_pair (SCM_CAR (env)))
             {
               UPDATE_TOPLEVEL_ENV (env);
-              while (!SCM_NULLP (SCM_CDR (x)))
+              while (!scm_is_null (SCM_CDR (x)))
                 {
                   EVALCAR (x, env);
                   UPDATE_TOPLEVEL_ENV (env);
@@ -3326,7 +3326,7 @@ dispatch:
             goto nontoplevel_begin;
 
         nontoplevel_begin:
-          while (!SCM_NULLP (SCM_CDR (x)))
+          while (!scm_is_null (SCM_CDR (x)))
             {
               const SCM form = SCM_CAR (x);
               if (SCM_IMP (form))
@@ -3353,7 +3353,7 @@ dispatch:
             /* scm_eval last form in list */
             const SCM last_form = SCM_CAR (x);
 
-            if (SCM_CONSP (last_form))
+            if (scm_is_pair (last_form))
               {
                 /* This is by far the most frequent case. */
                 x = last_form;
@@ -3375,7 +3375,7 @@ dispatch:
           {
             const SCM key = EVALCAR (x, env);
             x = SCM_CDR (x);
-            while (!SCM_NULLP (x))
+            while (!scm_is_null (x))
               {
                 const SCM clause = SCM_CAR (x);
                 SCM labels = SCM_CAR (clause);
@@ -3385,7 +3385,7 @@ dispatch:
                     PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
                     goto begin;
                   }
-                while (!SCM_NULLP (labels))
+                while (!scm_is_null (labels))
                   {
                     const SCM label = SCM_CAR (labels);
                     if (scm_is_eq (label, key)
@@ -3405,7 +3405,7 @@ dispatch:
 
         case (ISYMNUM (SCM_IM_COND)):
           x = SCM_CDR (x);
-          while (!SCM_NULLP (x))
+          while (!scm_is_null (x))
             {
               const SCM clause = SCM_CAR (x);
               if (scm_is_eq (SCM_CAR (clause), SCM_IM_ELSE))
@@ -3420,7 +3420,7 @@ dispatch:
                   if (scm_is_true (arg1) && !SCM_NILP (arg1))
                     {
                       x = SCM_CDR (clause);
-                      if (SCM_NULLP (x))
+                      if (scm_is_null (x))
                         RETURN (arg1);
                       else if (!scm_is_eq (SCM_CAR (x), SCM_IM_ARROW))
                         {
@@ -3448,7 +3448,7 @@ dispatch:
             /* Compute the initialization values and the initial environment.  */
             SCM init_forms = SCM_CAR (x);
             SCM init_values = SCM_EOL;
-            while (!SCM_NULLP (init_forms))
+            while (!scm_is_null (init_forms))
               {
                 init_values = scm_cons (EVALCAR (init_forms, env), init_values);
                 init_forms = SCM_CDR (init_forms);
@@ -3470,7 +3470,7 @@ dispatch:
                   /* Evaluate body forms.  */
                   SCM temp_forms;
                   for (temp_forms = body_forms;
-                       !SCM_NULLP (temp_forms);
+                       !scm_is_null (temp_forms);
                        temp_forms = SCM_CDR (temp_forms))
                     {
                       SCM form = SCM_CAR (temp_forms);
@@ -3492,7 +3492,7 @@ dispatch:
                   SCM temp_forms;
                   SCM step_values = SCM_EOL;
                   for (temp_forms = step_forms;
-                       !SCM_NULLP (temp_forms);
+                       !scm_is_null (temp_forms);
                        temp_forms = SCM_CDR (temp_forms))
                     {
                       const SCM value = EVALCAR (temp_forms, env);
@@ -3507,7 +3507,7 @@ dispatch:
               }
           }
           x = SCM_CDAR (x);
-          if (SCM_NULLP (x))
+          if (scm_is_null (x))
             RETURN (SCM_UNSPECIFIED);
           PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
           goto nontoplevel_begin;
@@ -3521,7 +3521,7 @@ dispatch:
             if (scm_is_false (test_result) || SCM_NILP (test_result))
               {
                 x = SCM_CDR (x);  /* else expression */
-                if (SCM_NULLP (x))
+                if (scm_is_null (x))
                   RETURN (SCM_UNSPECIFIED);
               }
           }
@@ -3539,7 +3539,7 @@ dispatch:
                 init_values = scm_cons (EVALCAR (init_forms, env), init_values);
                 init_forms = SCM_CDR (init_forms);
               }
-            while (!SCM_NULLP (init_forms));
+            while (!scm_is_null (init_forms));
             env = SCM_EXTEND_ENV (SCM_CAR (x), init_values, env);
           }
           x = SCM_CDDR (x);
@@ -3559,7 +3559,7 @@ dispatch:
                 init_values = scm_cons (EVALCAR (init_forms, env), init_values);
                 init_forms = SCM_CDR (init_forms);
               }
-            while (!SCM_NULLP (init_forms));
+            while (!scm_is_null (init_forms));
             SCM_SETCDR (SCM_CAR (env), init_values);
           }
           x = SCM_CDR (x);
@@ -3571,7 +3571,7 @@ dispatch:
           x = SCM_CDR (x);
           {
             SCM bindings = SCM_CAR (x);
-            if (!SCM_NULLP (bindings))
+            if (!scm_is_null (bindings))
               {
                 do
                   {
@@ -3580,7 +3580,7 @@ dispatch:
                     env = SCM_EXTEND_ENV (name, EVALCAR (init, env), env);
                     bindings = SCM_CDR (init);
                   }
-                while (!SCM_NULLP (bindings));
+                while (!scm_is_null (bindings));
               }
           }
           x = SCM_CDR (x);
@@ -3590,7 +3590,7 @@ dispatch:
 
         case (ISYMNUM (SCM_IM_OR)):
           x = SCM_CDR (x);
-          while (!SCM_NULLP (SCM_CDR (x)))
+          while (!scm_is_null (SCM_CDR (x)))
             {
               SCM val = EVALCAR (x, env);
               if (scm_is_true (val) && !SCM_NILP (val))
@@ -3786,7 +3786,7 @@ dispatch:
 		  unsigned long int counter = specializers + 1;
 		  SCM tmp_arg = arg1;
 		  hash_value = 0;
-		  while (!SCM_NULLP (tmp_arg) && counter != 0)
+		  while (!scm_is_null (tmp_arg) && counter != 0)
 		    {
 		      SCM class = scm_class_of (SCM_CAR (tmp_arg));
 		      hash_value += SCM_INSTANCE_HASH (class, hashset);
@@ -3815,7 +3815,7 @@ dispatch:
 		{
 		  SCM args = arg1; /* list of arguments */
 		  z = SCM_VELTS (method_cache)[hash_value];
-		  while (!SCM_NULLP (args))
+		  while (!scm_is_null (args))
 		    {
 		      /* More arguments than specifiers => CLASS != ENV */
 		      SCM class_of_arg = scm_class_of (SCM_CAR (args));
@@ -3825,7 +3825,7 @@ dispatch:
 		      z = SCM_CDR (z);
 		    }
 		  /* Fewer arguments than specifiers => CAR != ENV */
-		  if (SCM_NULLP (SCM_CAR (z)) || SCM_CONSP (SCM_CAR (z)))
+		  if (scm_is_null (SCM_CAR (z)) || scm_is_pair (SCM_CAR (z)))
 		    goto apply_cmethod;
 		next_method:
 		  hash_value = (hash_value + 1) & mask;
@@ -3903,7 +3903,7 @@ dispatch:
 	    vars = SCM_CAAR (x);
 	    exps = SCM_CDAR (x);
 	    vals = SCM_EOL;
-	    while (!SCM_NULLP (exps))
+	    while (!scm_is_null (exps))
 	      {
 		vals = scm_cons (EVALCAR (exps, env), vals);
 		exps = SCM_CDR (exps);
@@ -3913,9 +3913,9 @@ dispatch:
 	    scm_dynwinds = scm_acons (vars, vals, scm_dynwinds);
 
 	    /* Ignore all but the last evaluation result.  */
-	    for (x = SCM_CDR (x); !SCM_NULLP (SCM_CDR (x)); x = SCM_CDR (x))
+	    for (x = SCM_CDR (x); !scm_is_null (SCM_CDR (x)); x = SCM_CDR (x))
 	      {
-		if (SCM_CONSP (SCM_CAR (x)))
+		if (scm_is_pair (SCM_CAR (x)))
 		  CEVAL (SCM_CAR (x), env);
 	      }
 	    proc = EVALCAR (x, env);
@@ -3961,7 +3961,7 @@ dispatch:
         proc = SCM_VARIABLE_REF (SCM_CAR (x));
       else if (SCM_ILOCP (SCM_CAR (x)))
         proc = *scm_ilookup (SCM_CAR (x), env);
-      else if (SCM_CONSP (SCM_CAR (x)))
+      else if (scm_is_pair (SCM_CAR (x)))
 	proc = CEVAL (SCM_CAR (x), env);
       else if (scm_is_symbol (SCM_CAR (x)))
 	{
@@ -3995,7 +3995,7 @@ dispatch:
 		{
 		case 3:
 		case 2:
-		  if (!SCM_CONSP (arg1))
+		  if (!scm_is_pair (arg1))
 		    arg1 = scm_list_2 (SCM_IM_BEGIN, arg1);
 
                   assert (!scm_is_eq (x, SCM_CAR (arg1))
@@ -4055,7 +4055,7 @@ dispatch:
    * that are allowed to be passed to proc, also an error on the scheme level
    * will be signalled.  */
   PREP_APPLY (proc, SCM_EOL);
-  if (SCM_NULLP (SCM_CDR (x))) {
+  if (scm_is_null (SCM_CDR (x))) {
     ENTER_APPLY;
   evap0:
     SCM_ASRTGO (!SCM_IMP (proc), badfun);
@@ -4094,7 +4094,7 @@ dispatch:
       case scm_tcs_closures:
         {
           const SCM formals = SCM_CLOSURE_FORMALS (proc);
-          if (SCM_CONSP (formals))
+          if (scm_is_pair (formals))
             goto wrongnumargs;
           x = SCM_CLOSURE_BODY (proc);
           env = SCM_EXTEND_ENV (formals, SCM_EOL, SCM_ENV (proc));
@@ -4138,7 +4138,7 @@ dispatch:
 
   /* must handle macros by here */
   x = SCM_CDR (x);
-  if (SCM_CONSP (x))
+  if (scm_is_pair (x))
     arg1 = EVALCAR (x, env);
   else
     scm_wrong_num_args (proc);
@@ -4148,7 +4148,7 @@ dispatch:
   x = SCM_CDR (x);
   {
     SCM arg2;
-    if (SCM_NULLP (x))
+    if (scm_is_null (x))
       {
 	ENTER_APPLY;
       evap1: /* inputs: proc, arg1 */
@@ -4181,17 +4181,7 @@ dispatch:
                                 SCM_ARG1,
 				scm_i_symbol_chars (SCM_SNAME (proc)));
 	  case scm_tc7_cxr:
-	    {
-              unsigned char pattern = (scm_t_bits) SCM_SUBRF (proc);
-              do
-                {
-		  SCM_ASSERT (SCM_CONSP (arg1), arg1, SCM_ARG1,
-                              scm_i_symbol_chars (SCM_SNAME (proc)));
-                  arg1 = (pattern & 1) ? SCM_CAR (arg1) : SCM_CDR (arg1);
-                  pattern >>= 2;
-                } while (pattern);
-	      RETURN (arg1);
-	    }
+	    RETURN (scm_i_chase_pairs (arg1, (scm_t_bits) SCM_SUBRF (proc)));
 	  case scm_tc7_rpsubr:
 	    RETURN (SCM_BOOL_T);
 	  case scm_tc7_asubr:
@@ -4227,8 +4217,8 @@ dispatch:
             {
               /* clos1: */
               const SCM formals = SCM_CLOSURE_FORMALS (proc);
-              if (SCM_NULLP (formals)
-                  || (SCM_CONSP (formals) && SCM_CONSP (SCM_CDR (formals))))
+              if (scm_is_null (formals)
+                  || (scm_is_pair (formals) && scm_is_pair (SCM_CDR (formals))))
                 goto wrongnumargs;
               x = SCM_CLOSURE_BODY (proc);
 #ifdef DEVAL
@@ -4277,7 +4267,7 @@ dispatch:
 	    goto badfun;
 	  }
       }
-    if (SCM_CONSP (x))
+    if (scm_is_pair (x))
       arg2 = EVALCAR (x, env);
     else
       scm_wrong_num_args (proc);
@@ -4287,7 +4277,7 @@ dispatch:
       debug.info->a.args = scm_list_2 (arg1, arg2);
 #endif
       x = SCM_CDR (x);
-      if (SCM_NULLP (x)) {
+      if (scm_is_null (x)) {
 	ENTER_APPLY;
       evap2:
         SCM_ASRTGO (!SCM_IMP (proc), badfun);
@@ -4381,11 +4371,11 @@ dispatch:
             {
               /* clos2: */
               const SCM formals = SCM_CLOSURE_FORMALS (proc);
-              if (SCM_NULLP (formals)
-                  || (SCM_CONSP (formals)
-                      && (SCM_NULLP (SCM_CDR (formals))
-                          || (SCM_CONSP (SCM_CDR (formals))
-                              && SCM_CONSP (SCM_CDDR (formals))))))
+              if (scm_is_null (formals)
+                  || (scm_is_pair (formals)
+                      && (scm_is_null (SCM_CDR (formals))
+                          || (scm_is_pair (SCM_CDR (formals))
+                              && scm_is_pair (SCM_CDDR (formals))))))
                 goto wrongnumargs;
 #ifdef DEVAL
               env = SCM_EXTEND_ENV (formals,
@@ -4401,7 +4391,7 @@ dispatch:
             }
 	  }
       }
-      if (!SCM_CONSP (x))
+      if (!scm_is_pair (x))
 	scm_wrong_num_args (proc);
 #ifdef DEVAL
       debug.info->a.args = scm_cons2 (arg1, arg2,
@@ -4415,7 +4405,7 @@ dispatch:
 	{			/* have 3 or more arguments */
 #ifdef DEVAL
 	case scm_tc7_subr_3:
-	  if (!SCM_NULLP (SCM_CDR (x)))
+	  if (!scm_is_null (SCM_CDR (x)))
 	    scm_wrong_num_args (proc);
 	  else
 	    RETURN (SCM_SUBRF (proc) (arg1, arg2,
@@ -4464,10 +4454,10 @@ dispatch:
 	case scm_tcs_closures:
           {
             const SCM formals = SCM_CLOSURE_FORMALS (proc);
-            if (SCM_NULLP (formals)
-                || (SCM_CONSP (formals)
-                    && (SCM_NULLP (SCM_CDR (formals))
-                        || (SCM_CONSP (SCM_CDR (formals))
+            if (scm_is_null (formals)
+                || (scm_is_pair (formals)
+                    && (scm_is_null (SCM_CDR (formals))
+                        || (scm_is_pair (SCM_CDR (formals))
                             && scm_badargsp (SCM_CDDR (formals), x)))))
               goto wrongnumargs;
             SCM_SET_ARGSREADY (debug);
@@ -4479,7 +4469,7 @@ dispatch:
           }
 #else /* DEVAL */
 	case scm_tc7_subr_3:
-	  if (!SCM_NULLP (SCM_CDR (x)))
+	  if (!scm_is_null (SCM_CDR (x)))
 	    scm_wrong_num_args (proc);
 	  else
 	    RETURN (SCM_SUBRF (proc) (arg1, arg2, EVALCAR (x, env)));
@@ -4490,7 +4480,7 @@ dispatch:
 	      arg1 = SCM_SUBRF(proc)(arg1, EVALCAR(x, env));
 	      x = SCM_CDR(x);
 	    }
-	  while (!SCM_NULLP (x));
+	  while (!scm_is_null (x));
 	  RETURN (arg1);
 	case scm_tc7_rpsubr:
 	  if (scm_is_false (SCM_SUBRF (proc) (arg1, arg2)))
@@ -4503,7 +4493,7 @@ dispatch:
 	      arg2 = arg1;
 	      x = SCM_CDR (x);
 	    }
-	  while (!SCM_NULLP (x));
+	  while (!scm_is_null (x));
 	  RETURN (SCM_BOOL_T);
 	case scm_tc7_lsubr_2:
 	  RETURN (SCM_SUBRF (proc) (arg1, arg2, scm_eval_args (x, env, proc)));
@@ -4526,10 +4516,10 @@ dispatch:
 	case scm_tcs_closures:
 	  {
 	    const SCM formals = SCM_CLOSURE_FORMALS (proc);
-	    if (SCM_NULLP (formals)
-		|| (SCM_CONSP (formals)
-		    && (SCM_NULLP (SCM_CDR (formals))
-			|| (SCM_CONSP (SCM_CDR (formals))
+	    if (scm_is_null (formals)
+		|| (scm_is_pair (formals)
+		    && (scm_is_null (SCM_CDR (formals))
+			|| (scm_is_pair (SCM_CDR (formals))
 			    && scm_badargsp (SCM_CDDR (formals), x)))))
 	      goto wrongnumargs;
             env = SCM_EXTEND_ENV (formals,
@@ -4703,7 +4693,7 @@ SCM_DEFINE (scm_nconc2last, "apply:nconc2last", 1, 0, 0,
   SCM *lloc;
   SCM_VALIDATE_NONEMPTYLIST (1, lst);
   lloc = &lst;
-  while (!SCM_NULLP (SCM_CDR (*lloc))) /* Perhaps should be
+  while (!scm_is_null (SCM_CDR (*lloc))) /* Perhaps should be
                                           SCM_NULL_OR_NIL_P, but not
                                           needed in 99.99% of cases,
                                           and it could seriously hurt
@@ -4776,9 +4766,9 @@ SCM_APPLY (SCM proc, SCM arg1, SCM args)
      a relatively rare operation.  This works for now; if the Guile
      developer archives are still around, see Mikael's post of
      11-Apr-97.  */
-  if (SCM_NULLP (args))
+  if (scm_is_null (args))
     {
-      if (SCM_NULLP (arg1))
+      if (scm_is_null (arg1))
 	{
 	  arg1 = SCM_UNDEFINED;
 #ifdef DEVAL
@@ -4826,10 +4816,10 @@ tail:
   switch (SCM_TYP7 (proc))
     {
     case scm_tc7_subr_2o:
-      args = SCM_NULLP (args) ? SCM_UNDEFINED : SCM_CAR (args);
+      args = scm_is_null (args) ? SCM_UNDEFINED : SCM_CAR (args);
       RETURN (SCM_SUBRF (proc) (arg1, args));
     case scm_tc7_subr_2:
-      if (SCM_NULLP (args) || !SCM_NULLP (SCM_CDR (args)))
+      if (scm_is_null (args) || !scm_is_null (SCM_CDR (args)))
 	scm_wrong_num_args (proc);
       args = SCM_CAR (args);
       RETURN (SCM_SUBRF (proc) (arg1, args));
@@ -4842,12 +4832,12 @@ tail:
       if (SCM_UNBNDP (arg1))
 	scm_wrong_num_args (proc);
     case scm_tc7_subr_1o:
-      if (!SCM_NULLP (args))
+      if (!scm_is_null (args))
 	scm_wrong_num_args (proc);
       else
 	RETURN (SCM_SUBRF (proc) (arg1));
     case scm_tc7_dsubr:
-      if (SCM_UNBNDP (arg1) || !SCM_NULLP (args))
+      if (SCM_UNBNDP (arg1) || !scm_is_null (args))
 	scm_wrong_num_args (proc);
       if (SCM_I_INUMP (arg1))
         {
@@ -4868,23 +4858,13 @@ tail:
       SCM_WTA_DISPATCH_1 (*SCM_SUBR_GENERIC (proc), arg1,
                           SCM_ARG1, scm_i_symbol_chars (SCM_SNAME (proc)));
     case scm_tc7_cxr:
-      if (SCM_UNBNDP (arg1) || !SCM_NULLP (args))
+      if (SCM_UNBNDP (arg1) || !scm_is_null (args))
 	scm_wrong_num_args (proc);
-      {
-        unsigned char pattern = (scm_t_bits) SCM_SUBRF (proc);
-        do
-          {
-            SCM_ASSERT (SCM_CONSP (arg1), arg1, SCM_ARG1,
-                        scm_i_symbol_chars (SCM_SNAME (proc)));
-            arg1 = (pattern & 1) ? SCM_CAR (arg1) : SCM_CDR (arg1);
-            pattern >>= 2;
-          } while (pattern);
-        RETURN (arg1);
-      }
+      RETURN (scm_i_chase_pairs (arg1, (scm_t_bits) SCM_SUBRF (proc)));
     case scm_tc7_subr_3:
-      if (SCM_NULLP (args)
-	  || SCM_NULLP (SCM_CDR (args))
-	  || !SCM_NULLP (SCM_CDDR (args)))
+      if (scm_is_null (args)
+	  || scm_is_null (SCM_CDR (args))
+	  || !scm_is_null (SCM_CDDR (args)))
 	scm_wrong_num_args (proc);
       else
 	RETURN (SCM_SUBRF (proc) (arg1, SCM_CAR (args), SCM_CADR (args)));
@@ -4895,26 +4875,26 @@ tail:
       RETURN (SCM_SUBRF (proc) (SCM_UNBNDP (arg1) ? SCM_EOL : scm_cons (arg1, args)));
 #endif
     case scm_tc7_lsubr_2:
-      if (!SCM_CONSP (args))
+      if (!scm_is_pair (args))
 	scm_wrong_num_args (proc);
       else
 	RETURN (SCM_SUBRF (proc) (arg1, SCM_CAR (args), SCM_CDR (args)));
     case scm_tc7_asubr:
-      if (SCM_NULLP (args))
+      if (scm_is_null (args))
 	RETURN (SCM_SUBRF (proc) (arg1, SCM_UNDEFINED));
       while (SCM_NIMP (args))
 	{
-	  SCM_ASSERT (SCM_CONSP (args), args, SCM_ARG2, "apply");
+	  SCM_ASSERT (scm_is_pair (args), args, SCM_ARG2, "apply");
 	  arg1 = SCM_SUBRF (proc) (arg1, SCM_CAR (args));
 	  args = SCM_CDR (args);
 	}
       RETURN (arg1);
     case scm_tc7_rpsubr:
-      if (SCM_NULLP (args))
+      if (scm_is_null (args))
 	RETURN (SCM_BOOL_T);
       while (SCM_NIMP (args))
 	{
-	  SCM_ASSERT (SCM_CONSP (args), args, SCM_ARG2, "apply");
+	  SCM_ASSERT (scm_is_pair (args), args, SCM_ARG2, "apply");
 	  if (scm_is_false (SCM_SUBRF (proc) (arg1, SCM_CAR (args))))
 	    RETURN (SCM_BOOL_F);
 	  arg1 = SCM_CAR (args);
@@ -4936,7 +4916,7 @@ tail:
       else
 	{
 	  SCM tl = args = scm_cons (SCM_CAR (arg1), SCM_UNSPECIFIED);
-	  for (arg1 = SCM_CDR (arg1); SCM_CONSP (arg1); arg1 = SCM_CDR (arg1))
+	  for (arg1 = SCM_CDR (arg1); scm_is_pair (arg1); arg1 = SCM_CDR (arg1))
 	    {
 	      SCM_SETCDR (tl, scm_cons (SCM_CAR (arg1), SCM_UNSPECIFIED));
 	      tl = SCM_CDR (tl);
@@ -4950,7 +4930,7 @@ tail:
       proc = SCM_CLOSURE_BODY (proc);
     again:
       arg1 = SCM_CDR (proc);
-      while (!SCM_NULLP (arg1))
+      while (!scm_is_null (arg1))
 	{
 	  if (SCM_IMP (SCM_CAR (proc)))
 	    {
@@ -4977,9 +4957,9 @@ tail:
 	goto badproc;
       if (SCM_UNBNDP (arg1))
 	RETURN (SCM_SMOB_APPLY_0 (proc));
-      else if (SCM_NULLP (args))
+      else if (scm_is_null (args))
 	RETURN (SCM_SMOB_APPLY_1 (proc, arg1));
-      else if (SCM_NULLP (SCM_CDR (args)))
+      else if (scm_is_null (SCM_CDR (args)))
 	RETURN (SCM_SMOB_APPLY_2 (proc, arg1, SCM_CAR (args)));
       else
 	RETURN (SCM_SMOB_APPLY_3 (proc, arg1, SCM_CAR (args), SCM_CDR (args)));
@@ -5141,7 +5121,7 @@ scm_trampoline_0 (SCM proc)
     case scm_tcs_closures:
       {
 	SCM formals = SCM_CLOSURE_FORMALS (proc);
-	if (SCM_NULLP (formals) || !SCM_CONSP (formals))
+	if (scm_is_null (formals) || !scm_is_pair (formals))
 	  trampoline = scm_i_call_closure_0;
 	else
 	  return NULL;
@@ -5224,15 +5204,7 @@ call_dsubr_1 (SCM proc, SCM arg1)
 static SCM
 call_cxr_1 (SCM proc, SCM arg1)
 {
-  unsigned char pattern = (scm_t_bits) SCM_SUBRF (proc);
-  do
-    {
-      SCM_ASSERT (SCM_CONSP (arg1), arg1, SCM_ARG1,
-                  scm_i_symbol_chars (SCM_SNAME (proc)));
-      arg1 = (pattern & 1) ? SCM_CAR (arg1) : SCM_CDR (arg1);
-      pattern >>= 2;
-    } while (pattern);
-  return arg1;
+  return scm_i_chase_pairs (arg1, (scm_t_bits) SCM_SUBRF (proc));
 }
 
 static SCM 
@@ -5274,8 +5246,8 @@ scm_trampoline_1 (SCM proc)
     case scm_tcs_closures:
       {
 	SCM formals = SCM_CLOSURE_FORMALS (proc);
-	if (!SCM_NULLP (formals)
-	    && (!SCM_CONSP (formals) || !SCM_CONSP (SCM_CDR (formals))))
+	if (!scm_is_null (formals)
+	    && (!scm_is_pair (formals) || !scm_is_pair (SCM_CDR (formals))))
 	  trampoline = call_closure_1;
 	else
 	  return NULL;
@@ -5367,11 +5339,11 @@ scm_trampoline_2 (SCM proc)
     case scm_tcs_closures:
       {
 	SCM formals = SCM_CLOSURE_FORMALS (proc);
-	if (!SCM_NULLP (formals)
-	    && (!SCM_CONSP (formals)
-		|| (!SCM_NULLP (SCM_CDR (formals))
-		    && (!SCM_CONSP (SCM_CDR (formals))
-			|| !SCM_CONSP (SCM_CDDR (formals))))))
+	if (!scm_is_null (formals)
+	    && (!scm_is_pair (formals)
+		|| (!scm_is_null (SCM_CDR (formals))
+		    && (!scm_is_pair (SCM_CDR (formals))
+			|| !scm_is_pair (SCM_CDDR (formals))))))
 	  trampoline = call_closure_2;
 	else
 	  return NULL;
@@ -5466,7 +5438,7 @@ scm_map (SCM proc, SCM arg1, SCM args)
   SCM_GASSERTn (len >= 0,
 		g_map, scm_cons2 (proc, arg1, args), SCM_ARG2, s_map);
   SCM_VALIDATE_REST_ARGUMENT (args);
-  if (SCM_NULLP (args))
+  if (scm_is_null (args))
     {
       scm_t_trampoline_1 call = scm_trampoline_1 (proc);
       SCM_GASSERT2 (call, g_map, proc, arg1, SCM_ARG1, s_map);
@@ -5478,7 +5450,7 @@ scm_map (SCM proc, SCM arg1, SCM args)
 	}
       return res;
     }
-  if (SCM_NULLP (SCM_CDR (args)))
+  if (scm_is_null (SCM_CDR (args)))
     {
       SCM arg2 = SCM_CAR (args);
       int len2 = scm_ilength (arg2);
@@ -5531,7 +5503,7 @@ scm_for_each (SCM proc, SCM arg1, SCM args)
   SCM_GASSERTn (len >= 0, g_for_each, scm_cons2 (proc, arg1, args),
 		SCM_ARG2, s_for_each);
   SCM_VALIDATE_REST_ARGUMENT (args);
-  if (SCM_NULLP (args))
+  if (scm_is_null (args))
     {
       scm_t_trampoline_1 call = scm_trampoline_1 (proc);
       SCM_GASSERT2 (call, g_for_each, proc, arg1, SCM_ARG1, s_for_each);
@@ -5542,7 +5514,7 @@ scm_for_each (SCM proc, SCM arg1, SCM args)
 	}
       return SCM_UNSPECIFIED;
     }
-  if (SCM_NULLP (SCM_CDR (args)))
+  if (scm_is_null (SCM_CDR (args)))
     {
       SCM arg2 = SCM_CAR (args);
       int len2 = scm_ilength (arg2);
@@ -5711,7 +5683,7 @@ copy_tree (
   struct t_trace *tortoise,
   unsigned int tortoise_delay )
 {
-  if (!SCM_CONSP (hare->obj) && !SCM_VECTORP (hare->obj))
+  if (!scm_is_pair (hare->obj) && !SCM_VECTORP (hare->obj))
     {
       return hare->obj;
     }
@@ -5757,7 +5729,7 @@ copy_tree (
 
           return new_vector;
         }
-      else // SCM_CONSP (hare->obj)
+      else // scm_is_pair (hare->obj)
         {
           SCM result;
           SCM tail;
@@ -5778,7 +5750,7 @@ copy_tree (
            * having the turtle follow the rabbit, and, vertically, having the
            * tortoise follow the hare into the depths of the stack.  */
           rabbit = SCM_CDR (rabbit);
-          while (SCM_CONSP (rabbit))
+          while (scm_is_pair (rabbit))
             {
               new_hare.obj = SCM_CAR (rabbit);
               copy = copy_tree (&new_hare, tortoise, tortoise_delay);
@@ -5786,7 +5758,7 @@ copy_tree (
               tail = SCM_CDR (tail);
 
               rabbit = SCM_CDR (rabbit);
-              if (SCM_CONSP (rabbit))
+              if (scm_is_pair (rabbit))
                 {
                   new_hare.obj = SCM_CAR (rabbit);
                   copy = copy_tree (&new_hare, tortoise, tortoise_delay);
@@ -5997,7 +5969,7 @@ SCM_DEFINE (scm_eval, "eval", 2, 0, 0,
 /* Deprecated in guile 1.7.0 on 2004-03-29.  */
 SCM scm_ceval (SCM x, SCM env)
 {
-  if (SCM_CONSP (x))
+  if (scm_is_pair (x))
     return ceval (x, env);
   else if (scm_is_symbol (x))
     return *scm_lookupcar (scm_cons (x, SCM_UNDEFINED), env, 1);
@@ -6008,7 +5980,7 @@ SCM scm_ceval (SCM x, SCM env)
 /* Deprecated in guile 1.7.0 on 2004-03-29.  */
 SCM scm_deval (SCM x, SCM env)
 {
-  if (SCM_CONSP (x))
+  if (scm_is_pair (x))
     return deval (x, env);
   else if (scm_is_symbol (x))
     return *scm_lookupcar (scm_cons (x, SCM_UNDEFINED), env, 1);
