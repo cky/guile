@@ -138,7 +138,7 @@ void (*scm_memoize_method) (SCM, SCM);
 #define SIDEVAL(x, env) if (SCM_NIMP(x)) SCM_CEVAL((x), (env))
 
 #define EVALCELLCAR(x, env) (SCM_SYMBOLP (SCM_CAR(x)) \
-			     ? *scm_lookupcar(x, env) \
+			     ? *scm_lookupcar(x, env, 1) \
 			     : SCM_CEVAL(SCM_CAR(x), env))
 
 #define EVALCAR(x, env) (SCM_NCELLP(SCM_CAR(x))\
@@ -241,16 +241,22 @@ scm_ilookup (iloc, env)
    SCM_LOOKUPCAR1 and aborts on recieving NULL.  So SCM_LOOKUPCAR
    should only be called when it is known that VLOC is not the first
    pair of a special form.  Otherwise, use SCM_LOOKUPCAR1 and check
-   for NULL.  I think I've found the only place where this applies. */
+   for NULL.  I think I've found the only places where this
+   applies. */
 
 #endif /* USE_THREADS */
 
+/* scm_lookupcar returns a pointer to this when a variable could not
+   be found and it should not throw an error.  Never assign to this. 
+*/
+static scm_cell undef_cell = { SCM_UNDEFINED, SCM_UNDEFINED };
+
 #ifdef USE_THREADS
 static SCM *
-scm_lookupcar1 (SCM vloc, SCM genv)
+scm_lookupcar1 (SCM vloc, SCM genv, int check)
 #else
 SCM *
-scm_lookupcar (SCM vloc, SCM genv)
+scm_lookupcar (SCM vloc, SCM genv, int check)
 #endif
 {
   SCM env = genv;
@@ -332,11 +338,14 @@ scm_lookupcar (SCM vloc, SCM genv)
       var = SCM_CAR (var);
     errout:
       /* scm_everr (vloc, genv,...) */
-      scm_misc_error (NULL,
-		      SCM_NULLP (env)
-		      ? "Unbound variable: %S"
-		      : "Damaged environment: %S",
-		      scm_listify (var, SCM_UNDEFINED));
+      if (check)
+	scm_misc_error (NULL,
+			SCM_NULLP (env)
+			? "Unbound variable: %S"
+			: "Damaged environment: %S",
+			scm_listify (var, SCM_UNDEFINED));
+      else
+	return SCM_CDRLOC (&undef_cell);
     }
 #endif
 #ifdef USE_THREADS
@@ -370,11 +379,12 @@ scm_lookupcar (SCM vloc, SCM genv)
 
 #ifdef USE_THREADS
 SCM *
-scm_lookupcar (vloc, genv)
+scm_lookupcar (vloc, genv, check)
      SCM vloc;
      SCM genv;
+     int check;
 {
-  SCM *loc = scm_lookupcar1 (vloc, genv);
+  SCM *loc = scm_lookupcar1 (vloc, genv, check);
   if (loc == NULL)
     abort ();
   return loc;
@@ -459,6 +469,43 @@ bodycheck (xorig, bodyloc, what)
   ASRTSYNTAX (scm_ilength (*bodyloc) >= 1, scm_s_expression);
 }
 
+/* Check that the body denoted by XORIG is valid and rewrite it into
+   its internal form.  The internal form of a body is just the body
+   itself, but prefixed with an ISYM that denotes to what kind of
+   outer construct this body belongs.  A lambda body starts with
+   SCM_IM_LAMBDA, for example, a body of a let starts with SCM_IM_LET,
+   etc.  The one exception is a body that belongs to a letrec that has
+   been formed by rewriting internal defines: it starts with
+   SCM_IM_DEFINE. */
+
+/* XXX - Besides controlling the rewriting of internal defines, the
+         additional ISYM could be used for improved error messages.
+         This is not done yet.  */
+
+static SCM
+scm_m_body (op, xorig, what)
+     SCM op;
+     SCM xorig;
+     char *what;
+{
+  ASRTSYNTAX (scm_ilength (xorig) >= 1, scm_s_expression);
+
+  /* Don't add another ISYM if one is present already. */
+  if (SCM_ISYMP (SCM_CAR (xorig)))
+    return xorig;
+
+  /* Retain possible doc string. */
+  if (SCM_IMP (SCM_CAR(xorig)) || SCM_NCONSP (SCM_CAR (xorig)))
+    {
+      if (SCM_NNULLP (SCM_CDR(xorig)))
+	return scm_cons (SCM_CAR (xorig),
+			 scm_m_body (op, SCM_CDR(xorig), what));
+      return xorig;
+    }
+
+  return scm_cons2 (op, SCM_CAR (xorig), SCM_CDR(xorig));
+}
+
 SCM_SYNTAX(s_quote,"quote", scm_makmmacro, scm_m_quote);
 SCM_GLOBAL_SYMBOL(scm_i_quote,s_quote);
 
@@ -467,9 +514,11 @@ scm_m_quote (xorig, env)
      SCM xorig;
      SCM env;
 {
+  SCM x = scm_copy_tree (SCM_CDR (xorig));
+
   SCM_ASSYNT (scm_ilength (SCM_CDR (xorig)) == 1,
 	      xorig, scm_s_expression, s_quote);
-  return scm_cons (SCM_IM_QUOTE, SCM_CDR (xorig));
+  return scm_cons_source (xorig, SCM_IM_QUOTE, x);
 }
 
 
@@ -484,7 +533,7 @@ scm_m_begin (xorig, env)
 {
   SCM_ASSYNT (scm_ilength (SCM_CDR (xorig)) >= 1,
 	      xorig, scm_s_expression, s_begin);
-  return scm_cons (SCM_IM_BEGIN, SCM_CDR (xorig));
+  return scm_cons_source (xorig, SCM_IM_BEGIN, SCM_CDR (xorig));
 }
 
 SCM_SYNTAX(s_if, "if", scm_makmmacro, scm_m_if);
@@ -497,7 +546,7 @@ scm_m_if (xorig, env)
 {
   int len = scm_ilength (SCM_CDR (xorig));
   SCM_ASSYNT (len >= 2 && len <= 3, xorig, scm_s_expression, "if");
-  return scm_cons (SCM_IM_IF, SCM_CDR (xorig));
+  return scm_cons_source (xorig, SCM_IM_IF, SCM_CDR (xorig));
 }
 
 
@@ -515,7 +564,7 @@ scm_m_set_x (xorig, env)
   SCM_ASSYNT (2 == scm_ilength (x), xorig, scm_s_expression, scm_s_set_x);
   SCM_ASSYNT (SCM_NIMP (SCM_CAR (x)) && SCM_SYMBOLP (SCM_CAR (x)),
 	      xorig, scm_s_variable, scm_s_set_x);
-  return scm_cons (SCM_IM_SET_X, x);
+  return scm_cons_source (xorig, SCM_IM_SET_X, x);
 }
 
 
@@ -537,7 +586,6 @@ scm_m_vref (xorig, env)
     }
   SCM_ASSYNT (SCM_NIMP(x) && DEFSCM_VARIABLEP (SCM_CAR (x)),
 	      xorig, scm_s_variable, s_vref);
-  return 
   return scm_cons (IM_VREF, x);
 }
 
@@ -569,7 +617,7 @@ scm_m_and (xorig, env)
   int len = scm_ilength (SCM_CDR (xorig));
   SCM_ASSYNT (len >= 0, xorig, scm_s_test, s_and);
   if (len >= 1)
-    return scm_cons (SCM_IM_AND, SCM_CDR (xorig));
+    return scm_cons_source (xorig, SCM_IM_AND, SCM_CDR (xorig));
   else
     return SCM_BOOL_T;
 }
@@ -585,7 +633,7 @@ scm_m_or (xorig, env)
   int len = scm_ilength (SCM_CDR (xorig));
   SCM_ASSYNT (len >= 0, xorig, scm_s_test, s_or);
   if (len >= 1)
-    return scm_cons (SCM_IM_OR, SCM_CDR (xorig));
+    return scm_cons_source (xorig, SCM_IM_OR, SCM_CDR (xorig));
   else
     return SCM_BOOL_F;
 }
@@ -599,7 +647,7 @@ scm_m_case (xorig, env)
      SCM xorig;
      SCM env;
 {
-  SCM proc, x = SCM_CDR (xorig);
+  SCM proc, cdrx = scm_list_copy (SCM_CDR (xorig)), x = cdrx;
   SCM_ASSYNT (scm_ilength (x) >= 2, xorig, scm_s_clauses, s_case);
   while (SCM_NIMP (x = SCM_CDR (x)))
     {
@@ -609,7 +657,7 @@ scm_m_case (xorig, env)
 		  || scm_i_else == SCM_CAR (proc),
 		  xorig, scm_s_clauses, s_case);
     }
-  return scm_cons (SCM_IM_CASE, SCM_CDR (xorig));
+  return scm_cons_source (xorig, SCM_IM_CASE, cdrx);
 }
 
 
@@ -622,7 +670,7 @@ scm_m_cond (xorig, env)
      SCM xorig;
      SCM env;
 {
-  SCM arg1, x = SCM_CDR (xorig);
+  SCM arg1, cdrx = scm_list_copy (SCM_CDR (xorig)), x = cdrx;
   int len = scm_ilength (x);
   SCM_ASSYNT (len >= 1, xorig, scm_s_clauses, s_cond);
   while (SCM_NIMP (x))
@@ -641,7 +689,7 @@ scm_m_cond (xorig, env)
 		    xorig, "bad recipient", s_cond);
       x = SCM_CDR (x);
     }
-  return scm_cons (SCM_IM_COND, SCM_CDR (xorig));
+  return scm_cons_source (xorig, SCM_IM_COND, cdrx);
 }
 
 SCM_SYNTAX(s_lambda, "lambda", scm_makmmacro, scm_m_lambda);
@@ -653,10 +701,12 @@ scm_m_lambda (xorig, env)
      SCM env;
 {
   SCM proc, x = SCM_CDR (xorig);
-  if (scm_ilength (x) < 1)
+  if (scm_ilength (x) < 2)
     goto badforms;
   proc = SCM_CAR (x);
   if (SCM_NULLP (proc))
+    goto memlambda;
+  if (SCM_IM_LET == proc)  /* named let */
     goto memlambda;
   if (SCM_IMP (proc))
     goto badforms;
@@ -678,10 +728,18 @@ scm_m_lambda (xorig, env)
       proc = SCM_CDR (proc);
     }
   if (SCM_NNULLP (proc))
-  badforms:scm_wta (xorig, scm_s_formals, "lambda");
-memlambda:
-  bodycheck (xorig, SCM_CDRLOC (x), "lambda");
-  return scm_cons (SCM_IM_LAMBDA, SCM_CDR (xorig));
+    {
+    badforms:
+      scm_wta (xorig, scm_s_formals, s_lambda);
+    }
+
+ memlambda:
+  return scm_cons_source (xorig,
+			  SCM_IM_LAMBDA,
+			  scm_cons (SCM_CAR (x),
+				    scm_m_body (SCM_IM_LAMBDA,
+						SCM_CDR (x),
+						s_lambda)));
 }
 
 SCM_SYNTAX(s_letstar,"let*", scm_makmmacro, scm_m_letstar);
@@ -709,8 +767,13 @@ scm_m_letstar (xorig, env)
       proc = SCM_CDR (proc);
     }
   x = scm_cons (vars, SCM_CDR (x));
-  bodycheck (xorig, SCM_CDRLOC (x), s_letstar);
-  return scm_cons (SCM_IM_LETSTAR, x);
+
+  return scm_cons_source (xorig,
+			  SCM_IM_LETSTAR,
+			  scm_cons (SCM_CAR (x),
+				    scm_m_body (SCM_IM_LETSTAR,
+						SCM_CDR (x),
+						"let*")));
 }
 
 /* DO gets the most radically altered syntax
@@ -764,7 +827,7 @@ scm_m_do (xorig, env)
   x = scm_cons2 (SCM_CAR (x), SCM_CDR (x), steps);
   x = scm_cons2 (vars, inits, x);
   bodycheck (xorig, SCM_CARLOC (SCM_CDR (SCM_CDR (x))), "do");
-  return scm_cons (SCM_IM_DO, x);
+  return scm_cons_source (xorig, SCM_IM_DO, x);
 }
 
 /* evalcar is small version of inline EVALCAR when we don't care about
@@ -847,7 +910,8 @@ scm_m_delay (xorig, env)
 {
   SCM_ASSYNT (scm_ilength (xorig) == 2, xorig, scm_s_expression, s_delay);
   xorig = SCM_CDR (xorig);
-  return scm_makprom (scm_closure (scm_cons2 (SCM_EOL, SCM_CAR (xorig), SCM_CDR (xorig)),
+  return scm_makprom (scm_closure (scm_cons2 (SCM_EOL, SCM_CAR (xorig),
+					      SCM_CDR (xorig)),
 				   env));
 }
 
@@ -917,11 +981,10 @@ scm_m_define (x, env)
 
 /* end of acros */
 
-SCM_SYNTAX(s_letrec, "letrec", scm_makmmacro, scm_m_letrec);
-SCM_SYMBOL(scm_i_letrec, s_letrec);
-
-SCM 
-scm_m_letrec (xorig, env)
+static SCM
+scm_m_letrec1 (op, imm, xorig, env)
+     SCM op;
+     SCM imm;
      SCM xorig;
      SCM env;
 {
@@ -930,27 +993,50 @@ scm_m_letrec (xorig, env)
   SCM x = cdrx, proc, arg1;	/* structure traversers */
   SCM vars = SCM_EOL, inits = SCM_EOL, *initloc = &inits;
 
-  ASRTSYNTAX (scm_ilength (x) >= 2, scm_s_body);
   proc = SCM_CAR (x);
-  if (SCM_NULLP(proc)) 
-    return scm_m_letstar (xorig, env);	/* null binding, let* faster */
   ASRTSYNTAX (scm_ilength (proc) >= 1, scm_s_bindings);
   do
     {
       /* vars scm_list reversed here, inits reversed at evaluation */
       arg1 = SCM_CAR (proc);
       ASRTSYNTAX (2 == scm_ilength (arg1), scm_s_bindings);
-      ASRTSYNTAX (SCM_NIMP (SCM_CAR (arg1)) && SCM_SYMBOLP (SCM_CAR (arg1)), scm_s_variable);
+      ASRTSYNTAX (SCM_NIMP (SCM_CAR (arg1)) && SCM_SYMBOLP (SCM_CAR (arg1)),
+		  scm_s_variable);
       vars = scm_cons (SCM_CAR (arg1), vars);
       *initloc = scm_cons (SCM_CAR (SCM_CDR (arg1)), SCM_EOL);
       initloc = SCM_CDRLOC (*initloc);
     }
   while (SCM_NIMP (proc = SCM_CDR (proc)));
-  cdrx = scm_cons2 (vars, inits, SCM_CDR (x));
-  bodycheck (xorig, SCM_CDRLOC (SCM_CDR (cdrx)), what);
-  return scm_cons (SCM_IM_LETREC, cdrx);
+
+  return scm_cons_source (xorig, op,
+			  scm_cons (vars,
+				    scm_cons (inits,
+					      scm_m_body (imm, SCM_CDR (x),
+							  what))));
 }
 
+SCM_SYNTAX(s_letrec, "letrec", scm_makmmacro, scm_m_letrec);
+SCM_SYMBOL(scm_i_letrec, s_letrec);
+
+SCM 
+scm_m_letrec (xorig, env)
+     SCM xorig;
+     SCM env;
+{
+  SCM x = SCM_CDR (xorig);
+  SCM_ASSYNT (scm_ilength (x) >= 2, xorig, scm_s_body, s_letrec);
+  
+  if (SCM_NULLP (SCM_CAR (x)))   /* null binding, let* faster */
+    return scm_m_letstar (scm_cons_source (xorig,
+					   SCM_CAR (xorig),
+					   scm_cons (SCM_EOL,
+						     scm_m_body (SCM_IM_LETREC,
+								 SCM_CDR (x),
+								 "letrec"))),
+			  env);
+  else
+    return scm_m_letrec1 (SCM_IM_LETREC, SCM_IM_LETREC, xorig, env);
+}
 
 SCM_SYNTAX(s_let, "let", scm_makmmacro, scm_m_let);
 SCM_GLOBAL_SYMBOL(scm_i_let, s_let);
@@ -968,17 +1054,32 @@ scm_m_let (xorig, env)
   proc = SCM_CAR (x);
   if (SCM_NULLP (proc)
       || (SCM_NIMP (proc) && SCM_CONSP (proc)
-	  && SCM_NIMP (SCM_CAR (proc)) && SCM_CONSP (SCM_CAR (proc)) && SCM_NULLP (SCM_CDR (proc))))
-    return scm_m_letstar (xorig, env);	/* null or single binding, let* is faster */
+	  && SCM_NIMP (SCM_CAR (proc))
+	  && SCM_CONSP (SCM_CAR (proc)) && SCM_NULLP (SCM_CDR (proc))))
+    {
+      /* null or single binding, let* is faster */
+      return scm_m_letstar (scm_cons_source (xorig,
+					     SCM_CAR (xorig),
+					     scm_cons (proc,
+						       scm_m_body (SCM_IM_LET,
+								   SCM_CDR (x),
+								   "let"))),
+			    env);
+    }
+
   SCM_ASSYNT (SCM_NIMP (proc), xorig, scm_s_bindings, s_let);
-  if (SCM_CONSP (proc))			/* plain let, proc is <bindings> */
-      return scm_cons (SCM_IM_LET, SCM_CDR (scm_m_letrec (xorig, env)));
+  if (SCM_CONSP (proc))	
+    {
+      /* plain let, proc is <bindings> */
+      return scm_m_letrec1 (SCM_IM_LET, SCM_IM_LET, xorig, env);
+    }
+
   if (!SCM_SYMBOLP (proc))
     scm_wta (xorig, scm_s_bindings, s_let);	/* bad let */
   name = proc;			/* named let, build equiv letrec */
   x = SCM_CDR (x);
   SCM_ASSYNT (scm_ilength (x) >= 2, xorig, scm_s_body, s_let);
-  proc = SCM_CAR (x);		/* bindings scm_list */
+  proc = SCM_CAR (x);		/* bindings list */
   SCM_ASSYNT (scm_ilength (proc) >= 0, xorig, scm_s_bindings, s_let);
   while (SCM_NIMP (proc))
     {				/* vars and inits both in order */
@@ -992,11 +1093,13 @@ scm_m_let (xorig, env)
       initloc = SCM_CDRLOC (*initloc);
       proc = SCM_CDR (proc);
     }
-  return
-    scm_m_letrec (scm_cons2 (scm_i_let,
-			     scm_cons (scm_cons2 (name, scm_cons2 (scm_i_lambda, vars, SCM_CDR (x)), SCM_EOL), SCM_EOL),
-			     scm_acons (name, inits, SCM_EOL)), 	/* body */
-		  env);
+
+  proc = scm_cons2 (scm_i_lambda, vars,
+		    scm_m_body (SCM_IM_LET, SCM_CDR (x), "let"));
+  proc = scm_cons2 (scm_i_let, scm_cons (scm_cons2 (name, proc, SCM_EOL),
+					 SCM_EOL),
+		    scm_acons (name, inits, SCM_EOL));
+  return scm_m_letrec1 (SCM_IM_LETREC, SCM_IM_LET, proc, env);
 }
 
 
@@ -1025,7 +1128,7 @@ scm_m_cont (xorig, env)
 {
   SCM_ASSYNT (scm_ilength (SCM_CDR (xorig)) == 1,
 	      xorig, scm_s_expression, s_atcall_cc);
-  return scm_cons (SCM_IM_CONT, SCM_CDR (xorig));
+  return scm_cons_source (xorig, SCM_IM_CONT, SCM_CDR (xorig));
 }
 
 /* Multi-language support */
@@ -1137,6 +1240,130 @@ scm_m_atbind (SCM xorig, SCM env)
   return scm_cons (SCM_IM_BIND, SCM_CDR (xorig));
 }
 
+SCM
+scm_m_expand_body (SCM xorig, SCM env)
+{
+  SCM form, x = SCM_CDR (xorig), defs = SCM_EOL;
+  char *what = SCM_ISYMCHARS (SCM_CAR (xorig)) + 2;
+
+  while (SCM_NIMP (x))
+    {
+      form = SCM_CAR (x);
+      if (SCM_IMP (form) || SCM_NCONSP (form))
+	break;
+      if (SCM_IMP (SCM_CAR (form)))
+	break;
+      if (!SCM_SYMBOLP (SCM_CAR (form)))
+	break;
+ 
+      form = scm_macroexp (scm_cons (SCM_CAR (form), SCM_CDR (form)), env);
+
+      if (SCM_IM_DEFINE == SCM_CAR (form))
+	{
+	  defs = scm_cons (SCM_CDR (form), defs);
+	  x = SCM_CDR(x);
+	}
+      else if (SCM_NIMP(defs))
+	{
+	  break;
+	}
+      else if (SCM_IM_BEGIN == SCM_CAR (form))
+	{
+	  x = scm_append (scm_cons2 (SCM_CDR (form), SCM_CDR (x), SCM_EOL));
+	}
+      else
+	{
+	  x = scm_cons (form, SCM_CDR(x));
+	  break;
+	}
+    }
+
+  SCM_ASSYNT (SCM_NIMP (x), SCM_CDR (xorig), scm_s_body, what);
+  if (SCM_NIMP (defs))
+    {
+      x = scm_cons (scm_m_letrec1 (SCM_IM_LETREC,
+				   SCM_IM_DEFINE,
+				   scm_cons2 (scm_i_define, defs, x),
+				   env),
+		    SCM_EOL);
+    }
+
+  SCM_DEFER_INTS;
+  SCM_SETCAR (xorig, SCM_CAR (x));
+  SCM_SETCDR (xorig, SCM_CDR (x));
+  SCM_ALLOW_INTS;
+
+  return xorig;
+}
+
+SCM
+scm_macroexp (SCM x, SCM env)
+{
+  SCM res, proc;
+
+  /* Don't bother to produce error messages here.  We get them when we
+     eventually execute the code for real. */
+
+ macro_tail:
+  if (SCM_IMP (SCM_CAR (x)) || !SCM_SYMBOLP (SCM_CAR (x)))
+    return x;
+
+#ifdef USE_THREADS
+  {
+    SCM *proc_ptr = scm_lookupcar1 (x, env, 0);
+    if (proc_ptr == NULL)
+      {
+	/* We have lost the race. */
+	goto macro_tail;
+      }
+    proc = *proc_ptr;
+  }
+#else
+  proc = *scm_lookupcar (x, env, 0);
+#endif
+  
+  /* Only handle memoizing macros.  `Acros' and `macros' are really
+     special forms and should not be evaluated here. */
+
+  if (SCM_IMP (proc)
+      || scm_tc16_macro != SCM_TYP16 (proc)
+      || (int) (SCM_CAR (proc) >> 16) != 2)
+    return x;
+
+  unmemocar (x, env);
+  res = scm_apply (SCM_CDR (proc), x, scm_cons (env, scm_listofnull));
+  
+  if (scm_ilength (res) <= 0)
+    res = scm_cons2 (SCM_IM_BEGIN, res, SCM_EOL);
+      
+#if 0
+  /* XXX - what needs to be done for debugging? */
+      
+#ifdef DEVAL
+  if (!SCM_CLOSUREP (SCM_CDR (proc)))
+    {
+      SCM_DEFER_INTS;
+      SCM_SETCAR (x, SCM_CAR (res));
+      SCM_SETCDR (x, SCM_CDR (res));
+      SCM_ALLOW_INTS;
+      goto macro_tail;
+    }
+  
+  /* Prevent memoizing of debug info expression. */
+  debug.info->e.exp = scm_cons (SCM_CAR (x), SCM_CDR (x));
+  scm_set_source_properties_x (debug.info->e.exp,
+			       scm_source_properties (x));
+#endif
+  
+#endif
+      
+  SCM_DEFER_INTS;
+  SCM_SETCAR (x, SCM_CAR (res));
+  SCM_SETCDR (x, SCM_CDR (res));
+  SCM_ALLOW_INTS;
+
+  goto macro_tail;
+}
 
 /* scm_unmemocopy takes a memoized expression together with its
  * environment and rewrites it to its original form.  Thus, it is the
@@ -1145,6 +1372,13 @@ scm_m_atbind (SCM xorig, SCM env)
  * code of a closure, in scm_procedure_source, in display_frame when
  * generating the source for a stackframe in a backtrace, and in
  * display_expression.
+ */
+
+/* We should introduce an anti-macro interface so that it is possible
+ * to plug in transformers in both directions from other compilation
+ * units.  unmemocopy could then dispatch to anti-macro transformers.
+ * (Those transformers could perhaps be written in slightly more
+ *  readable style... :)
  */
 
 static SCM unmemocopy SCM_P ((SCM x, SCM env));
@@ -1192,15 +1426,19 @@ unmemocopy (x, env)
 	ls = scm_cons (scm_i_letrec, SCM_UNSPECIFIED);
       transform:
 	x = SCM_CDR (x);
+	/* binding names */
 	f = v = SCM_CAR (x);
 	x = SCM_CDR (x);
 	z = EXTEND_ENV (f, SCM_EOL, env);
+	/* inits */
 	e = scm_reverse (unmemocopy (SCM_CAR (x),
 				     SCM_CAR (ls) == scm_i_letrec ? z : env));
 	env = z;
+	/* increments */
 	s = SCM_CAR (ls) == scm_i_do
 	    ? scm_reverse (unmemocopy (SCM_CDR (SCM_CDR (SCM_CDR (x))), env))
 	    : f;
+	/* build transformed binding list */
 	z = SCM_EOL;
 	do
 	  {
@@ -1220,10 +1458,13 @@ unmemocopy (x, env)
 	if (SCM_CAR (ls) == scm_i_do)
 	  {
 	    x = SCM_CDR (x);
+	    /* test clause */
 	    SCM_SETCDR (z, scm_cons (unmemocopy (SCM_CAR (x), env),
 				     SCM_UNSPECIFIED));
 	    z = SCM_CDR (z);
 	    x = (SCM) (SCM_CARLOC (SCM_CDR (x)) - 1);
+	    /* body forms are now to be found in SCM_CDR (x)
+	       (this is how *real* code look like! :) */
 	  }
 	break;
       }
@@ -1315,6 +1556,9 @@ unmemocopy (x, env)
 loop:
   while (SCM_CELLP (x = SCM_CDR (x)) && SCM_ECONSP (x))
     {
+      if (SCM_IMP (SCM_CAR (x)) && SCM_ISYMP (SCM_CAR (x)))
+	/* skip body markers */
+	continue;
       SCM_SETCDR (z, unmemocar (scm_cons (unmemocopy (SCM_CAR (x), env),
 					  SCM_UNSPECIFIED),
 				env));
@@ -1754,7 +1998,16 @@ dispatch:
       t.arg1 = x;
       while (SCM_NNULLP (t.arg1 = SCM_CDR (t.arg1)))
 	{
-	  SIDEVAL (SCM_CAR (x), env);
+	  if (SCM_IMP (SCM_CAR (x)))
+	    {
+	      if (SCM_ISYMP (SCM_CAR (x)))
+		{
+		  x = scm_m_expand_body (x, env);
+		  goto begin;
+		}
+	    }
+	  else
+	    SCM_CEVAL (SCM_CAR (x), env);
 	  x = t.arg1;
 	}
 
@@ -1768,7 +2021,7 @@ dispatch:
       if (SCM_SYMBOLP (SCM_CAR (x)))
 	{
 	retval:
-	  RETURN (*scm_lookupcar (x, env))
+	  RETURN (*scm_lookupcar (x, env, 1))
 	}
 
       x = SCM_CAR (x);
@@ -1947,7 +2200,7 @@ dispatch:
       switch (7 & (int) proc)
 	{
 	case 0:
-	  t.lloc = scm_lookupcar (x, env);
+	  t.lloc = scm_lookupcar (x, env, 1);
 	  break;
 	case 1:
 	  t.lloc = SCM_GLOC_VAL_LOC (proc);
@@ -1968,6 +2221,9 @@ dispatch:
 
 
     case (127 & SCM_IM_DEFINE):	/* only for internal defines */
+      scm_misc_error (NULL, "Bad define placement", SCM_EOL);
+
+#if 0
       x = SCM_CDR (x);
       proc = SCM_CAR (x);
       x = SCM_CDR (x);
@@ -1996,6 +2252,8 @@ dispatch:
       SCM_SETCDR (env, scm_cons (x, SCM_CDR (env)));
       SCM_ALLOW_INTS;
       RETURN (SCM_UNSPECIFIED);
+
+#endif
 
 
       /* new syntactic forms go here. */
@@ -2293,7 +2551,7 @@ dispatch:
       if (SCM_SYMBOLP (SCM_CAR (x)))
 	{
 #ifdef USE_THREADS
-	  t.lloc = scm_lookupcar1 (x, env);
+	  t.lloc = scm_lookupcar1 (x, env, 1);
 	  if (t.lloc == NULL)
 	    {
 	      /* we have lost the race, start again. */
@@ -2301,7 +2559,7 @@ dispatch:
 	    }
 	  proc = *t.lloc;
 #else
-	  proc = *scm_lookupcar (x, env);
+	  proc = *scm_lookupcar (x, env, 1);
 #endif
 
 	  if (SCM_IMP (proc))
@@ -3149,7 +3407,7 @@ tail:
 	      RETURN (scm_makdbl (SCM_DSUBRF (proc) (SCM_REALPART (arg1)), 0.0));
 	    }
 #ifdef SCM_BIGDIG
-	  if (SCM_BIGP(arg1))
+	  if (SCM_BIGP (arg1))
 	      RETURN (scm_makdbl (SCM_DSUBRF (proc) (scm_big2dbl (arg1)), 0.0))
 #endif
 	floerr:
@@ -3528,14 +3786,30 @@ scm_promise_p (x)
 	   : SCM_BOOL_F);
 }
 
-SCM_PROC(s_copy_tree, "copy-tree", 1, 0, 0, scm_copy_tree);
+SCM_PROC (s_cons_source, "cons-source", 3, 0, 0, scm_cons_source);
+
+SCM
+scm_cons_source (SCM xorig, SCM x, SCM y)
+{
+  SCM p, z;
+  SCM_NEWCELL (z);
+  SCM_SETCAR (z, x);
+  SCM_SETCDR (z, y);
+  /* Copy source properties possibly associated with xorig. */
+  p = scm_whash_lookup (scm_source_whash, xorig);
+  if (SCM_NIMP (p))
+    scm_whash_insert (scm_source_whash, z, p);
+  return z;
+}
+
+SCM_PROC (s_copy_tree, "copy-tree", 1, 0, 0, scm_copy_tree);
 
 SCM 
 scm_copy_tree (obj)
      SCM obj;
 {
   SCM ans, tl;
-  if (SCM_IMP(obj)) 
+  if (SCM_IMP (obj)) 
     return obj;
   if (SCM_VECTORP (obj))
     {
@@ -3548,13 +3822,9 @@ scm_copy_tree (obj)
   if (SCM_NCONSP (obj))
     return obj;
 /*  return scm_cons(scm_copy_tree(SCM_CAR(obj)), scm_copy_tree(SCM_CDR(obj))); */
-  ans = tl = scm_cons (scm_copy_tree (SCM_CAR (obj)), SCM_UNSPECIFIED);
-  {
-    /* Copy source properties possibly associated with head pair. */
-    SCM p = scm_whash_lookup (scm_source_whash, obj);
-    if (SCM_NIMP (p))
-      scm_whash_insert (scm_source_whash, ans, p);
-  }
+  ans = tl = scm_cons_source (obj,
+			      scm_copy_tree (SCM_CAR (obj)),
+			      SCM_UNSPECIFIED);
   while (SCM_NIMP (obj = SCM_CDR (obj)) && SCM_CONSP (obj))
     {
       SCM_SETCDR (tl, scm_cons (scm_copy_tree (SCM_CAR (obj)),
