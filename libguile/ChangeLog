@@ -1,3 +1,10 @@
+2003-10-19  Kevin Ryde  <user42@zip.com.au>
+
+	* numbers.c (scm_ash): Revise docstring as per recent update to manual.
+
+	* numbers.c (scm_i_big2dbl): Rewrite, carefully rounding to "closest"
+	in accordance with R5RS, which just mpz_get_d doesn't really give.
+
 2003-10-18  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* eval.c (s_bad_slot_number): New static identifier.
