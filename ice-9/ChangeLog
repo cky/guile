@@ -77,6 +77,20 @@
 	(find-documentation): Renamed from `documentation'.  Return
 	documentation string instead of printing it.  Not exported.
 
+Tue Jun  6 09:21:28 2000  Greg J. Badros  <gregb@go2net.com>
+
+	* session.scm: Update references to `proc-doc' to be
+	`proc-documentation'
+
+	* doc.scm: Cleaned up a great deal.  Put variables at the top of
+	the file, eliminated `object-documentation' that was broken
+	(referencing Scwm), drop `help' as session.scm has a better
+	supported version of that procedure. Rename `proc-doc' to
+	`proc-documentation' -- `procedure-documentation' is a primitive
+	getter function, so I use the shorter name for this more useful
+	function.  (Alternatively, we could rename the primitive
+	getter...)
+
 2000-06-05  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* boot-9.scm (error-catching-loop): Inform about debugger on error.
