@@ -1,4 +1,4 @@
-/* $Id: validate.h,v 1.12 2000-06-05 11:39:46 dirk Exp $ */
+/* $Id: validate.h,v 1.13 2000-06-30 09:48:25 dirk Exp $ */
 /*	Copyright (C) 1999, 2000 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -83,7 +83,7 @@
   do { scm_out_of_range_pos (FUNC_NAME, arg, SCM_MAKINUM (pos)); } while (0)
 
 #define SCM_ASSERT_RANGE(pos, arg, f) \
-  do { SCM_ASSERT (f, arg, SCM_OUTOFRANGE, FUNC_NAME); } while (0)
+  do { if (!(f)) scm_out_of_range (FUNC_NAME, arg); } while (0)
 
 #define SCM_MUST_MALLOC_TYPE(type) \
   ((type *) scm_must_malloc (sizeof (type), FUNC_NAME))
@@ -212,8 +212,8 @@
 #define SCM_VALIDATE_INUM_MIN_COPY(pos, k, min, cvar) \
   do { \
     SCM_ASSERT (SCM_INUMP (k), k, pos, FUNC_NAME); \
+    SCM_ASSERT_RANGE (pos, k, (SCM_INUM (k) >= min)); \
     cvar = SCM_INUM (k); \
-    SCM_ASSERT_RANGE (pos, k, (cvar >= min)); \
   } while (0)
 
 #define SCM_VALIDATE_INUM_MIN_DEF_COPY(pos, k, min, default, cvar) \
@@ -221,8 +221,8 @@
     if (SCM_UNBNDP (k)) \
       k = SCM_MAKINUM (default); \
     SCM_ASSERT (SCM_INUMP (k), k, pos, FUNC_NAME); \
+    SCM_ASSERT_RANGE (pos, k, (SCM_INUM (k) >= min)); \
     cvar = SCM_INUM (k); \
-    SCM_ASSERT_RANGE (pos, k, (cvar >= min)); \
   } while (0)
 
 #define SCM_VALIDATE_INUM_DEF(pos, k, default) \
@@ -257,8 +257,8 @@
 #define SCM_VALIDATE_INUM_RANGE_COPY(pos, k, low, high, cvar) \
   do { \
     SCM_ASSERT (SCM_INUMP (k), k, pos, FUNC_NAME); \
+    SCM_ASSERT_RANGE (pos, k, low <= SCM_INUM (k) && SCM_INUM (k) < high); \
     cvar = SCM_INUM (k); \
-    SCM_ASSERT_RANGE (pos, k, cvar >= low && cvar < high); \
   } while (0)
 
 #define SCM_VALIDATE_NULL(pos, scm) SCM_MAKE_VALIDATE (pos, scm, NULLP)
