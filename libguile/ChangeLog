@@ -1,5 +1,11 @@
 2003-11-09  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* eval.c (scm_m_body, m_body, scm_m_lambda, memoize_named_let,
+	scm_m_let, scm_m_letrec, m_expand_body): Renamed static function
+	scm_m_body to m_body.
+
+2003-11-09  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* eval.c, eval.h (scm_m_expand_body, m_expand_body): Deprecated
 	public use of scm_m_expand_body in eval.h.  In eval.c, renamed
 	scm_m_expand_body to m_expand_body and made it static.  Added

@@ -694,7 +694,7 @@ SCM_GLOBAL_SYMBOL (scm_sym_trace, "trace");
  * It is assumed that the calling expression has already made sure that the
  * body is a proper list.  */
 static SCM
-scm_m_body (SCM op, SCM exprs)
+m_body (SCM op, SCM exprs)
 {
   /* Don't add another ISYM if one is present already. */
   if (SCM_ISYMP (SCM_CAR (exprs)))
@@ -1161,7 +1161,7 @@ scm_m_lambda (SCM expr, SCM env SCM_UNUSED)
   cddr_expr = SCM_CDR (cdr_expr);
   documentation = (length >= 3 && SCM_STRINGP (SCM_CAR (cddr_expr)));
   body = documentation ? SCM_CDR (cddr_expr) : cddr_expr;
-  new_body = scm_m_body (SCM_IM_LAMBDA, body);
+  new_body = m_body (SCM_IM_LAMBDA, body);
 
   SCM_SETCAR (expr, SCM_IM_LAMBDA);
   if (documentation)
@@ -1251,13 +1251,13 @@ memoize_named_let (const SCM expr, const SCM env SCM_UNUSED)
 
   {
     const SCM let_body = SCM_CDR (cddr_expr);
-    const SCM lambda_body = scm_m_body (SCM_IM_LET, let_body);
+    const SCM lambda_body = m_body (SCM_IM_LET, let_body);
     const SCM lambda_tail = scm_cons (variables, lambda_body);
     const SCM lambda_form = scm_cons_source (expr, scm_sym_lambda, lambda_tail);
 
     const SCM rvar = scm_list_1 (name);
     const SCM init = scm_list_1 (lambda_form);
-    const SCM body = scm_m_body (SCM_IM_LET, scm_list_1 (name));
+    const SCM body = m_body (SCM_IM_LET, scm_list_1 (name));
     const SCM letrec_tail = scm_cons (rvar, scm_cons (init, body));
     const SCM letrec_form = scm_cons_source (expr, SCM_IM_LETREC, letrec_tail);
     return scm_cons_source (expr, letrec_form, inits);
@@ -1287,7 +1287,7 @@ scm_m_let (SCM expr, SCM env)
   if (SCM_NULLP (bindings) || SCM_NULLP (SCM_CDR (bindings)))
     {
       /* Special case: no bindings or single binding => let* is faster. */
-      const SCM body = scm_m_body (SCM_IM_LET, SCM_CDR (cdr_expr));
+      const SCM body = m_body (SCM_IM_LET, SCM_CDR (cdr_expr));
       return scm_m_letstar (scm_cons2 (SCM_CAR (expr), bindings, body), env);
     }
   else
@@ -1298,7 +1298,7 @@ scm_m_let (SCM expr, SCM env)
       transform_bindings (bindings, expr, &rvariables, &inits);
 
       {
-        const SCM new_body = scm_m_body (SCM_IM_LET, SCM_CDR (cdr_expr));
+        const SCM new_body = m_body (SCM_IM_LET, SCM_CDR (cdr_expr));
         const SCM new_tail = scm_cons2 (rvariables, inits, new_body);
         SCM_SETCAR (expr, SCM_IM_LET);
         SCM_SETCDR (expr, new_tail);
@@ -1336,7 +1336,7 @@ scm_m_letstar (SCM expr, SCM env SCM_UNUSED)
     }
   new_bindings = scm_reverse_x (new_bindings, SCM_UNDEFINED);
 
-  new_body = scm_m_body (SCM_IM_LETSTAR, SCM_CDR (cdr_expr));
+  new_body = m_body (SCM_IM_LETSTAR, SCM_CDR (cdr_expr));
   return scm_cons2 (SCM_IM_LETSTAR, new_bindings, new_body);
 }
 
@@ -1357,7 +1357,7 @@ scm_m_letrec (SCM expr, SCM env)
   if (SCM_NULLP (bindings))
     {
       /* no bindings, let* is executed faster */
-      SCM body = scm_m_body (SCM_IM_LETREC, SCM_CDR (cdr_expr));
+      SCM body = m_body (SCM_IM_LETREC, SCM_CDR (cdr_expr));
       return scm_m_letstar (scm_cons2 (SCM_CAR (expr), SCM_EOL, body), env);
     }
   else
@@ -1368,7 +1368,7 @@ scm_m_letrec (SCM expr, SCM env)
 
       check_bindings (bindings, expr);
       transform_bindings (bindings, expr, &rvariables, &inits);
-      new_body = scm_m_body (SCM_IM_LETREC, SCM_CDR (cdr_expr));
+      new_body = m_body (SCM_IM_LETREC, SCM_CDR (cdr_expr));
       return scm_cons2 (SCM_IM_LETREC, rvariables, scm_cons (inits, new_body));
     }
 }
@@ -1875,7 +1875,7 @@ m_expand_body (const SCM xorig, const SCM env)
       SCM rvars, inits, body, letrec;
       check_bindings (defs, xorig);
       transform_bindings (defs, xorig, &rvars, &inits);
-      body = scm_m_body (SCM_IM_DEFINE, x);
+      body = m_body (SCM_IM_DEFINE, x);
       letrec = scm_cons2 (SCM_IM_LETREC, rvars, scm_cons (inits, body));
       SCM_SETCAR (xorig, letrec);
       SCM_SETCDR (xorig, SCM_EOL);
