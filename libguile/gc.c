@@ -275,6 +275,7 @@ double scm_gc_cells_marked_acc = 0.;
 double scm_gc_cells_swept_acc = 0.;
 int scm_gc_cell_yield_percentage =0;
 int scm_gc_malloc_yield_percentage = 0;
+unsigned long protected_obj_count = 0;
 
 
 SCM_SYMBOL (sym_cells_allocated, "cells-allocated");
@@ -289,6 +290,7 @@ SCM_SYMBOL (sym_cells_marked, "cells-marked");
 SCM_SYMBOL (sym_cells_swept, "cells-swept");
 SCM_SYMBOL (sym_malloc_yield, "malloc-yield");
 SCM_SYMBOL (sym_cell_yield, "cell-yield");
+SCM_SYMBOL (sym_protected_objects, "protected-objects");
 
 
 
@@ -318,6 +320,7 @@ SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
   unsigned long int local_scm_gc_time_taken;
   unsigned long int local_scm_gc_times;
   unsigned long int local_scm_gc_mark_time_taken;
+  unsigned long int local_protected_obj_count;
   double local_scm_gc_cells_swept;
   double local_scm_gc_cells_marked;
   SCM answer;
@@ -353,7 +356,7 @@ SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
   local_scm_gc_times = scm_gc_times;
   local_scm_gc_malloc_yield_percentage = scm_gc_malloc_yield_percentage;
   local_scm_gc_cell_yield_percentage=  scm_gc_cell_yield_percentage;
-  
+  local_protected_obj_count = protected_obj_count;
   local_scm_gc_cells_swept =
     (double) scm_gc_cells_swept_acc
     + (double) scm_gc_cells_swept;
@@ -378,7 +381,8 @@ SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
 		       scm_cons (sym_cells_marked, scm_i_dbl2big (local_scm_gc_cells_marked)),
 		       scm_cons (sym_cells_swept, scm_i_dbl2big (local_scm_gc_cells_swept)),
 		       scm_cons (sym_malloc_yield, scm_long2num (local_scm_gc_malloc_yield_percentage)),
-		       scm_cons (sym_cell_yield, scm_long2num (local_scm_gc_cell_yield_percentage)),		       
+		       scm_cons (sym_cell_yield, scm_long2num (local_scm_gc_cell_yield_percentage)),
+		       scm_cons (sym_protected_objects, scm_ulong2num (local_protected_obj_count)),
 		       scm_cons (sym_heap_segments, heap_segs),
 		       SCM_UNDEFINED);
   SCM_ALLOW_INTS;
@@ -725,6 +729,8 @@ scm_permanent_object (SCM obj)
    scm_gc_protect_object(X) increments and scm_gc_unprotect_object(X) decrements.
 */
 
+
+
 SCM
 scm_gc_protect_object (SCM obj)
 {
@@ -736,6 +742,8 @@ scm_gc_protect_object (SCM obj)
   handle = scm_hashq_create_handle_x (scm_protects, obj, SCM_MAKINUM (0));
   SCM_SETCDR (handle, scm_sum (SCM_CDR (handle), SCM_MAKINUM (1)));
 
+  protected_obj_count ++;
+  
   SCM_REALLOW_INTS;
 
   return obj;
@@ -769,6 +777,7 @@ scm_gc_unprotect_object (SCM obj)
       else
 	SCM_SETCDR (handle, count);
     }
+  protected_obj_count --;
 
   SCM_REALLOW_INTS;
 
