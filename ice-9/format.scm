@@ -432,13 +432,13 @@
 	       (anychar-dispatch))
 	      ((#\/)			; Tabulator character
 	       (if (one-positive-integer? params)
-		   (format:out-fill (car params) slib:tab)
-		   (format:out-char slib:tab))
+		   (format:out-fill (car params) #\tab)
+		   (format:out-char #\tab))
 	       (anychar-dispatch))
 	      ((#\|)			; Page seperator
 	       (if (one-positive-integer? params)
-		   (format:out-fill (car params) slib:form-feed)
-		   (format:out-char slib:form-feed))
+		   (format:out-fill (car params) #\page)
+		   (format:out-char #\page))
 	       (set! format:output-col 0)
 	       (anychar-dispatch))
 	      ((#\T)			; Tabulate
@@ -1668,7 +1668,7 @@
 ;; Aborts the program when a formatting error occures. This is a null
 ;; argument closure to jump to the interpreters toplevel continuation.
 
-(define format:abort (lambda () (slib:error "error in format")))
+(define format:abort (lambda () (error "error in format")))
 
 (define format format:format)
 
