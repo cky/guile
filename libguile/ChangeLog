@@ -1,3 +1,13 @@
+2004-07-27  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* deprecated.h (SCM_FALSEP, SCM_NFALSEP, SCM_BOOLP, SCM_BOOL):
+	Reimplement using scm_is_false, scm_is_true, scm_is_bool, and
+	scm_from_bool, respectively.
+	(SCM_NINUMP): Added.
+	
+	* tags.h, deprecated.h (SCM_EQ_P): Deprecated by moving it into
+	deprecated.h.  Replaced all uses with scm_is_eq.
+
 2004-07-24  Kevin Ryde  <user42@zip.com.au>
 
 	* threads.c, threads.h (scm_i_misc_mutex): New SCM_GLOBAL_MUTEX.
@@ -6,7 +16,7 @@
 2004-07-23  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* deprecated.h, deprecated.c, numbers.h (SCM_INUMP, SCM_NINUMP,
-	SCM_INUM): Deprecated by reenaming them to SCM_I_INUMP,
+	SCM_INUM): Deprecated by renaming them to SCM_I_INUMP,
 	SCM_I_NINUMP and SCM_I_INUM, respectively and adding deprecated
 	versions to deprecated.h and deprecated.c.  Changed all uses to
 	either use the SCM_I_ variants or scm_is_*, scm_to_*, or
