@@ -1,5 +1,8 @@
 1999-09-25  Jim Blandy  <jimb@savonarola.red-bean.com>
 
+	* numbers.c (scm_number_to_string): Signal an error if radix is
+	less than two.  (Thanks to Jorgen Schaefer.)
+
 	* Makefile.am (EXTRA_libguile_la_SOURCES): Add memmove.c here,
 	so automake will actually generate rules for it.
 	* Makefile.in: Regenerated.
