@@ -1,3 +1,7 @@
+2002-02-19  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* scheme-memory.texi (Memory Blocks): New section.
+
 2002-02-05  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* Makefile.am: Include $(top_srcdir)/pre-inst-guile.am.
