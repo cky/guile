@@ -1,3 +1,20 @@
+2004-07-31  Kevin Ryde  <user42@zip.com.au>
+
+	* error.c (scm_strerror): Use scm_i_misc_mutex around strerror since
+	it's not thread safe.
+	(scm_syserror): Use scm_strerror rather than SCM_I_STRERROR, to take
+	advantage of this.
+	* fports.c (scm_open_file): Use scm_strerror likewise.
+	* filesys.c (scm_stat, scm_lstat): Ditto.
+
+	* filesys.c (scm_copy_file): Avoid fd leak when destination file
+	cannot be opened.
+
+	* symbols.c (scm_gensym): Use scm_i_misc_mutex around gensym_counter
+	update, for thread safety.
+	(gensym_counter): Move into scm_gensym which is its only user.
+	(scm_init_symbols): No need to explicitly initialize gensym_counter.
+
 2004-07-29  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* numbers.h (scm_to_schar, scm_to_uchar, scm_to_char,
