@@ -1,15 +1,15 @@
 /* Copyright (C) 1995, 96, 97, 98, 2000 Free Software Foundation, Inc.
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2, or (at your option)
  * any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
@@ -71,7 +71,7 @@
  *
  * Setting the mark guarantees future execution of the thunk.  More
  * than one set may be satisfied by a single execution.
- * 
+ *
  * scm_tick_clock decremented once per SCM_ALLOW_INTS.
  * Async execution triggered by SCM_ALLOW_INTS when scm_tick_clock drops to 0.
  * Async execution prevented by scm_mask_ints != 0.
@@ -122,11 +122,8 @@ scm_asyncs_pending ()
   pos = scm_asyncs;
   while (pos != SCM_EOL)
     {
-      SCM a;
-      struct scm_async * it;
-      a = SCM_CAR (pos);
-      it = SCM_ASYNC (a);
-      if (it->got_it)
+      SCM a = SCM_CAR (pos);
+      if (SCM_ASYNC_GOT_IT (a))
 	return 1;
       pos = SCM_CDR (pos);
     }
@@ -186,7 +183,7 @@ scm_async_click ()
       scm_async_clock = 1;
       return;;
     }
-  
+
   if (!scm_tick_rate)
     {
       unsigned int r;
@@ -219,7 +216,7 @@ scm_async_click ()
 	}
     }
 
-  /* 
+  /*
      if (owe_tick)
        scm_async_mark (system_signal_asyncs[SCM_SIG_ORD(SCM_TICK_SIGNAL)]);
      */
@@ -286,23 +283,21 @@ scm_async_click ()
 static SCM
 mark_async (SCM obj)
 {
-  struct scm_async * it;
-  it = SCM_ASYNC (obj);
-  return it->thunk;
+  return SCM_ASYNC_THUNK (obj);
 }
 
 
 
-SCM_DEFINE (scm_async, "async", 1, 0, 0, 
+SCM_DEFINE (scm_async, "async", 1, 0, 0,
            (SCM thunk),
 "")
 #define FUNC_NAME s_scm_async
 {
-  SCM_RETURN_NEWSMOB2 (scm_tc16_async, 0, SCM_UNPACK (thunk));
+  SCM_RETURN_NEWSMOB (scm_tc16_async, SCM_UNPACK (thunk));
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_system_async, "system-async", 1, 0, 0, 
+SCM_DEFINE (scm_system_async, "system-async", 1, 0, 0,
             (SCM thunk),
 "")
 #define FUNC_NAME s_scm_system_async
@@ -319,37 +314,35 @@ SCM_DEFINE (scm_system_async, "system-async", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_async_mark, "async-mark", 1, 0, 0, 
+SCM_DEFINE (scm_async_mark, "async-mark", 1, 0, 0,
             (SCM a),
 "")
 #define FUNC_NAME s_scm_async_mark
 {
-  struct scm_async * it;
-  SCM_VALIDATE_ASYNC_COPY (1,a,it);
+  SCM_VALIDATE_ASYNC (1,a);
 #ifdef GUILE_OLD_ASYNC_CLICK
-  it->got_it = 1;
+  SCM_SET_ASYNC_GOT_IT (a, 1);
 #else
-  scm_asyncs_pending_p = it->got_it = 1;
+  SCM_SET_ASYNC_GOT_IT (a, scm_asyncs_pending_p = 1);
 #endif
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_system_async_mark, "system-async-mark", 1, 0, 0, 
+SCM_DEFINE (scm_system_async_mark, "system-async-mark", 1, 0, 0,
            (SCM a),
 "")
 #define FUNC_NAME s_scm_system_async_mark
 {
-  struct scm_async *it;
-  SCM_VALIDATE_ASYNC_COPY (1, a, it);
+  SCM_VALIDATE_ASYNC (1, a);
   SCM_REDEFER_INTS;
 #ifdef GUILE_OLD_ASYNC_CLICK
-  it->got_it = 1;
+  SCM_SET_ASYNC_GOT_IT (a, 1);
   scm_async_rate = 1 + scm_async_rate - scm_async_clock;
   scm_async_clock = 1;
 #else
-  scm_asyncs_pending_p = it->got_it = 1;
+  SCM_SET_ASYNC_GOT_IT (a, scm_asyncs_pending_p = 1);
 #endif
   SCM_REALLOW_INTS;
   return SCM_UNSPECIFIED;
@@ -357,7 +350,7 @@ SCM_DEFINE (scm_system_async_mark, "system-async-mark", 1, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_run_asyncs, "run-asyncs", 1, 0, 0, 
+SCM_DEFINE (scm_run_asyncs, "run-asyncs", 1, 0, 0,
            (SCM list_of_a),
 "")
 #define FUNC_NAME s_scm_run_asyncs
@@ -371,15 +364,14 @@ SCM_DEFINE (scm_run_asyncs, "run-asyncs", 1, 0, 0,
   while (! SCM_NULLP (list_of_a))
     {
       SCM a;
-      struct scm_async * it;
       SCM_VALIDATE_CONS (1, list_of_a);
       a = SCM_CAR (list_of_a);
-      SCM_VALIDATE_ASYNC_COPY (SCM_ARG1,a,it);
+      SCM_VALIDATE_ASYNC (SCM_ARG1,a);
       scm_mask_ints = 1;
-      if (it->got_it)
+      if (SCM_ASYNC_GOT_IT (a))
 	{
-	  it->got_it = 0;
-	  scm_apply (it->thunk, SCM_EOL, SCM_EOL);
+	  SCM_SET_ASYNC_GOT_IT (a, 0);
+	  scm_apply (SCM_ASYNC_THUNK (a), SCM_EOL, SCM_EOL);
 	}
       scm_mask_ints = 0;
       list_of_a = SCM_CDR (list_of_a);
@@ -391,7 +383,7 @@ SCM_DEFINE (scm_run_asyncs, "run-asyncs", 1, 0, 0,
 
 
 
-SCM_DEFINE (scm_noop, "noop", 0, 0, 1, 
+SCM_DEFINE (scm_noop, "noop", 0, 0, 1,
            (SCM args),
 "")
 #define FUNC_NAME s_scm_noop
@@ -405,7 +397,7 @@ SCM_DEFINE (scm_noop, "noop", 0, 0, 1,
 
 #ifdef GUILE_OLD_ASYNC_CLICK
 
-SCM_DEFINE (scm_set_tick_rate, "set-tick-rate", 1, 0, 0, 
+SCM_DEFINE (scm_set_tick_rate, "set-tick-rate", 1, 0, 0,
            (SCM n),
 "")
 #define FUNC_NAME s_scm_set_tick_rate
@@ -422,7 +414,7 @@ SCM_DEFINE (scm_set_tick_rate, "set-tick-rate", 1, 0, 0,
 
 
 
-SCM_DEFINE (scm_set_switch_rate, "set-switch-rate", 1, 0, 0, 
+SCM_DEFINE (scm_set_switch_rate, "set-switch-rate", 1, 0, 0,
            (SCM n),
 "")
 #define FUNC_NAME s_scm_set_switch_rate
@@ -462,7 +454,7 @@ scm_sys_gc_async_thunk (void)
 
 
 
-SCM_DEFINE (scm_unmask_signals, "unmask-signals", 0, 0, 0, 
+SCM_DEFINE (scm_unmask_signals, "unmask-signals", 0, 0, 0,
            (),
 "")
 #define FUNC_NAME s_scm_unmask_signals
@@ -473,7 +465,7 @@ SCM_DEFINE (scm_unmask_signals, "unmask-signals", 0, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_mask_signals, "mask-signals", 0, 0, 0, 
+SCM_DEFINE (scm_mask_signals, "mask-signals", 0, 0, 0,
            (),
 "")
 #define FUNC_NAME s_scm_mask_signals

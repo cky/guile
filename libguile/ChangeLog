@@ -1,3 +1,12 @@
+2000-04-04  Michael Livshin  <mlivshin@bigfoot.com>
+
+	* async.h: kill the scm_async_t struct.  having a heap cell
+ 	pretending to be a C struct is not helthy, and is not needed here
+ 	anyway, as asyncs happily fit in one heap cell.
+
+	* async.c: reflect the fact that asyncs are now represented by
+ 	single heap cell each.
+
 2000-04-04  Gary Houston  <ghouston@arglist.com>
 
 	* error.c (scm_syserror): save errno before doing anything else,
@@ -66,7 +75,7 @@
  	separate loop after processing all the currently known live
  	guardians, so as to not introduce order dependencies (thanks to
  	Gary Houston).  note that the order problems are still there if
-	some guardians are themselves zombies, but that's a sick case that 
+	some guardians are themselves zombies, but that's a sick case that
 	I'm not going to worry about.
 	also, make another outer loop to process zombified
  	guardians (which are uncovered while marking zombies).
@@ -104,7 +113,7 @@
 
 	* feature.c (print_hook), gc.c (scm_object_address), hash.c
 	(scm_ihashq, scm_ihashv), print.c (scm_iprin1, scm_ipruk), smob.c
-	(freeprint), struct.c (scm_print_struct):  Must unpack 
+	(freeprint), struct.c (scm_print_struct):  Must unpack
 	SCM values to access their raw contents.
 
 	* fluids.c (apply_thunk, scm_with_fluids), hashtab.c (fold_proc,
@@ -298,7 +307,7 @@
 	(coop_aborthelp): Free thread structures when threads die.
 	Finished LinuxThreads compatibility support => COOP threads now
 	mesh with LinuxThreads.
-	
+
 	* coop-threads.c (scm_call_with_new_thread, scm_spawn_thread):
 	Changed SETCDR --> SET_CELL_WORD_1.
 
@@ -323,7 +332,7 @@
 	SCM_DFRAME):  Use SCM_CONTREGS instead of SCM_CHARS to access
 	continuation data.
 
-	* continuations.c (scm_make_cont), init.c (start_stack), 
+	* continuations.c (scm_make_cont), init.c (start_stack),
 	root.c (scm_internal_cwdr):  Use SCM_SET_CONTREGS instead of
 	SCM_SETJMPBUF.
 

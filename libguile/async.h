@@ -3,17 +3,17 @@
 #ifndef ASYNCH
 #define ASYNCH
 /* Copyright (C) 1995, 96, 97, 98, 2000 Free Software Foundation, Inc.
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2, or (at your option)
  * any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
@@ -52,13 +52,10 @@
 
 
 #define SCM_ASYNCP(X) 	(SCM_NIMP(X) && (scm_tc16_async == SCM_GCTYP16 (X)))
-#define SCM_ASYNC(X) 	((struct scm_async *) &SCM_CDR (X))
 
-struct scm_async
-{
-  scm_bits_t got_it;		/* needs to be delivered? */
-  SCM thunk;			/* the handler. */
-};
+#define SCM_ASYNC_GOT_IT(X)        (SCM_CELL_WORD_0 (X) >> 16)
+#define SCM_SET_ASYNC_GOT_IT(X, V) (SCM_SET_CELL_WORD_0 (X, (SCM_CELL_WORD_0 (X) & ((1 << 16) - 1)) | ((V) << 16)))
+#define SCM_ASYNC_THUNK(X)         SCM_CELL_OBJECT_1 (X)
 
 
 
