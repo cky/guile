@@ -355,7 +355,6 @@ ancillary =	gscm.c \
 		acconfig.h \
 		configure \
 		configure.in \
-		def.sed \
 		scmconfig.h.in \
 		fd.h.in
 
