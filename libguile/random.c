@@ -251,33 +251,23 @@ SCM
 scm_i_random_bignum (SCM m, scm_rstate *state)
 {
   SCM b;
-  int i;
-  LONG32 *bits, w, r;
-  i = SCM_NUMDIGS (m);
-  b = scm_mkbig (i, 0);
-  bits = (LONG32 *) SCM_BDIGITS (b);
-  /* treat most significant digit specially */
+  int i, nd;
+  LONG32 *bits, mask, w;
+  nd = SCM_NUMDIGS (m);
+  /* calculate mask for most significant digit */
 #if SIZEOF_INT == 4
   /* 16 bit digits */
-  if (i & 1)
+  if (nd & 1)
     {
       /* fix most significant 16 bits */
-      unsigned short mask, r, s = SCM_BDIGITS (m)[--i];
+      unsigned short s = SCM_BDIGITS (m)[nd - 1];
       mask = s < 0x100 ? scm_masktab[s] : scm_masktab[s >> 8] << 8 | 0xFF;
-      while ((r = scm_the_rng.random_bits (state) & mask) > s);
-      
-      ((SCM_BIGDIG *) bits)[i] = r;
-      i /= 2;
-      if (r < s)
-	goto rest;
     }
   else
 #endif
     {
       /* fix most significant 32 bits */
-      LONG32 mask;
-      i /= 2;
-      w = ((LONG32 *) SCM_BDIGITS (m))[--i];
+      w = ((LONG32 *) SCM_BDIGITS (m))[nd / 2 - 1];
       mask = (w < 0x10000
 	      ? (w < 0x100
 		 ? scm_masktab[w]
@@ -285,25 +275,35 @@ scm_i_random_bignum (SCM m, scm_rstate *state)
 	      : (w < 0x1000000
 		 ? scm_masktab[w >> 16] << 16 | 0xFFFF
 		 : scm_masktab[w >> 24] << 24 | 0xFFFFFF));
-      while ((r = scm_the_rng.random_bits (state) & mask) > w);
-      bits[i] = r;
-      if (r < w)
-	goto rest;
     }
-  /* fill and compare */
-  while (i)
+  b = scm_mkbig (nd, 0);
+  bits = (LONG32 *) SCM_BDIGITS (b);
+  do
     {
-      w = ((LONG32 *) SCM_BDIGITS (m))[--i];
-      while ((r = scm_the_rng.random_bits (state)) > w);
-      bits[i] = r;
-      if (r < w)
-	goto rest;
-    }
-  /* now fill up the rest of the bignum */
- rest:
-  while (i)
-    bits[--i] = scm_the_rng.random_bits (state);
-  return scm_normbig (b);
+      i = nd;
+      /* treat most significant digit specially */
+#if SIZEOF_INT == 4
+      /* 16 bit digits */
+      if (i & 1)
+	{
+	  ((SCM_BIGDIG*) bits)[i - 1] = scm_the_rng.random_bits (state) & mask;
+	  i /= 2;
+	}
+      else
+#endif
+	{
+	  /* fix most significant 32 bits */
+	  i /= 2;
+	  bits[--i] = scm_the_rng.random_bits (state) & mask;
+	}
+      /* now fill up the rest of the bignum */
+      while (i)
+	bits[--i] = scm_the_rng.random_bits (state);
+      b = scm_normbig (b);
+      if (SCM_INUMP (b))
+	return b;
+    } while (scm_bigcomp (b, m) <= 0);
+  return b;
 }
 
 /*
