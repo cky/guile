@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,2000,2001, 2003 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,6 +45,7 @@
 #include "libguile/_scm.h"
 #include "libguile/vectors.h"
 #include "libguile/lang.h"
+#include "libguile/hashtab.h"
 
 #include "libguile/validate.h"
 #include "libguile/weaks.h"
@@ -169,7 +170,7 @@ SCM_DEFINE (scm_weak_vector_p, "weak-vector?", 1, 0, 0,
 
 
 
-SCM_DEFINE (scm_make_weak_key_hash_table, "make-weak-key-hash-table", 1, 0, 0, 
+SCM_DEFINE (scm_make_weak_key_hash_table, "make-weak-key-hash-table", 0, 1, 0, 
 	    (SCM size),
 	    "@deffnx {Scheme Procedure} make-weak-value-hash-table size\n"
 	    "@deffnx {Scheme Procedure} make-doubly-weak-hash-table size\n"
@@ -181,18 +182,26 @@ SCM_DEFINE (scm_make_weak_key_hash_table, "make-weak-key-hash-table", 1, 0, 0,
 	    "would modify regular hash tables. (@pxref{Hash Tables})")
 #define FUNC_NAME s_scm_make_weak_key_hash_table
 {
-  return allocate_weak_vector (1, size, SCM_EOL, FUNC_NAME);
+  if (SCM_UNBNDP (size))
+    return scm_vector_to_hash_table (allocate_weak_vector (1, SCM_MAKINUM (37),
+							   SCM_EOL, FUNC_NAME));
+  else
+    return allocate_weak_vector (1, size, SCM_EOL, FUNC_NAME);
 }
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_make_weak_value_hash_table, "make-weak-value-hash-table", 1, 0, 0, 
+SCM_DEFINE (scm_make_weak_value_hash_table, "make-weak-value-hash-table", 0, 1, 0, 
             (SCM size),
 	    "Return a hash table with weak values with @var{size} buckets.\n"
 	    "(@pxref{Hash Tables})")
 #define FUNC_NAME s_scm_make_weak_value_hash_table
 {
-  return allocate_weak_vector (2, size, SCM_EOL, FUNC_NAME);
+  if (SCM_UNBNDP (size))
+    return scm_vector_to_hash_table (allocate_weak_vector (2, SCM_MAKINUM (37),
+							   SCM_EOL, FUNC_NAME));
+  else
+    return allocate_weak_vector (2, size, SCM_EOL, FUNC_NAME);
 }
 #undef FUNC_NAME
 
@@ -203,7 +212,11 @@ SCM_DEFINE (scm_make_doubly_weak_hash_table, "make-doubly-weak-hash-table", 1, 0
 	    "buckets.  (@pxref{Hash Tables})")
 #define FUNC_NAME s_scm_make_doubly_weak_hash_table
 {
-  return allocate_weak_vector (3, size, SCM_EOL, FUNC_NAME);
+  if (SCM_UNBNDP (size))
+    return scm_vector_to_hash_table (allocate_weak_vector (3, SCM_MAKINUM (37),
+							   SCM_EOL, FUNC_NAME));
+  else
+    return allocate_weak_vector (3, size, SCM_EOL, FUNC_NAME);
 }
 #undef FUNC_NAME
 

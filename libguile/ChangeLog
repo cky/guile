@@ -1,3 +1,16 @@
+2003-02-11  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* hashtab.c (scm_vector_to_hash_table,
+	scm_c_make_resizing_hash_table, scm_make_hash_table): New
+	functions.
+	(scm_hash_fn_get_handle, scm_hash_fn_create_handle_x): Made thread
+	safe and handle resizing tables.
+
+	* weaks.c (scm_make_weak_key_hash_table,
+	scm_make_weak_value_hash_table, scm_make_doubly_weak_hash_table):
+	Size argument made optional.  Return resizable table if not
+	specified.
+
 2003-02-10  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* eval.c (scm_trampoline_0, scm_trampoline_1, scm_trampoline_2):

@@ -3,7 +3,7 @@
 #ifndef SCM_HASHTAB_H
 #define SCM_HASHTAB_H
 
-/* Copyright (C) 1995,1996,1999,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1999,2000,2001, 2003 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -56,7 +56,10 @@ typedef SCM scm_t_assoc_fn (SCM key, SCM alist, void *closure);
 typedef SCM scm_t_delete_fn (SCM elt, SCM list);
 #endif
 
+SCM_API SCM scm_vector_to_hash_table (SCM vector);
 SCM_API SCM scm_c_make_hash_table (unsigned long k);
+SCM_API SCM scm_c_make_resizing_hash_table (void);
+SCM_API SCM scm_make_hash_table (SCM n);
 
 SCM_API SCM scm_hash_fn_get_handle (SCM table, SCM obj, unsigned long (*hash_fn) (), SCM (*assoc_fn) (), void * closure);
 SCM_API SCM scm_hash_fn_create_handle_x (SCM table, SCM obj, SCM init, unsigned long (*hash_fn) (), SCM (*assoc_fn) (), void * closure);

@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,1999,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2003 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,10 +48,102 @@
 #include "libguile/eval.h"
 #include "libguile/root.h"
 #include "libguile/vectors.h"
+#include "libguile/ports.h"
+#include "libguile/weaks.h"
 
 #include "libguile/validate.h"
 #include "libguile/hashtab.h"
 
+
+/* Hash tables are either vectors of association lists or smobs
+   containing such vectors.  Currently, the vector version represents
+   constant size tables while those wrapped in a smob represents
+   resizing tables.
+ */
+
+/*fixme* Decrement and rehash when removing elemnts from a table.
+ */
+
+/*fixme* Update n_items correctly for weak tables.  This can be done
+  by representing such tables with ordinary vectors and adding a scan
+  function to the before sweep hook similarly to what is done in weaks.c.
+ */
+
+#define SCM_HASHTABLE_P(x)	   SCM_TYP16_PREDICATE (scm_tc16_hashtable, x)
+#define SCM_HASHTABLE_VECTOR(x)	   SCM_CELL_OBJECT_1 (x)
+#define SCM_SET_HASHTABLE_VECTOR(x, v) SCM_SET_CELL_OBJECT_1 (x, v)
+#define SCM_HASHTABLE(x)	   ((scm_t_hashtable *) SCM_CELL_WORD_2 (x))
+#define SCM_HASHTABLE_N_ITEMS(x)   (SCM_HASHTABLE (x)->n_items)
+#define SCM_HASHTABLE_INCREMENT(x) (SCM_HASHTABLE_N_ITEMS(x)++)
+#define SCM_HASHTABLE_DECREMENT(x) (SCM_HASHTABLE_N_ITEMS(x)--)
+#define SCM_HASHTABLE_UPPER(x)   (SCM_HASHTABLE (x)->upper)
+#define SCM_HASHTABLE_LOWER(x)   (SCM_HASHTABLE (x)->lower)
+
+scm_t_bits scm_tc16_hashtable;
+
+typedef struct scm_t_hashtable {
+  unsigned long n_items;
+  unsigned long lower;
+  unsigned long upper;
+  int size_index;
+  scm_t_mutex mutex;
+} scm_t_hashtable;
+
+#define HASHTABLE_SIZE_N 23
+
+unsigned long hashtable_size[] = {
+  37, 73, 139, 293, 587, 1181, 2357, 4733, 9467, 18919, 37879, 75773,
+  151549, 303097, 606181, 1212401, 2424827, 4849651, 9699323, 19398647,
+  38797303, 77594599, 155189239
+};
+
+static scm_t_mutex common_hashtable_mutex;
+
+/* Turn an empty vector hash table into an opaque resizable one. */
+
+static char *s_hashtable = "hashtable";
+
+SCM
+scm_vector_to_hash_table (SCM vector) {
+  SCM table;
+  scm_t_hashtable *t = scm_gc_malloc (sizeof (*t), s_hashtable);
+  int i = 0, len = SCM_VECTOR_LENGTH (vector);
+  while (i < HASHTABLE_SIZE_N && len > hashtable_size[i])
+    ++i;
+  if (i > 0)
+    i = i - 1;
+  t->size_index = i;
+  t->n_items = 0;
+  if (i == 0)
+    t->lower = 0;
+  else
+    t->lower = hashtable_size[i] / 4;
+  t->upper = 9 * hashtable_size[i] / 10;
+  scm_i_plugin_mutex_init (&t->mutex, &scm_i_plugin_mutex);
+  SCM_NEWSMOB2 (table, scm_tc16_hashtable, vector, t);
+  return table;
+}
+
+static int
+hashtable_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
+{
+  scm_t_hashtable *t = SCM_HASHTABLE (exp);
+  scm_puts ("#<resizing-hash-table ", port);
+  scm_intprint ((unsigned long)t->n_items, 10, port);
+  scm_putc ('/', port);
+  scm_intprint ((unsigned long) SCM_VECTOR_LENGTH (SCM_HASHTABLE_VECTOR (exp)),
+		10, port);
+  scm_puts (">", port);
+  return 1;
+}
+
+static size_t
+hashtable_free (SCM obj)
+{
+  scm_gc_free (SCM_HASHTABLE (obj), sizeof (scm_t_hashtable), s_hashtable);
+  return 0;
+}
+
 
 SCM
 scm_c_make_hash_table (unsigned long k)
@@ -59,6 +151,91 @@ scm_c_make_hash_table (unsigned long k)
   return scm_c_make_vector (k, SCM_EOL);
 }
 
+SCM
+scm_c_make_resizing_hash_table ()
+{
+  return scm_vector_to_hash_table (scm_c_make_vector (37, SCM_EOL));
+}
+
+SCM_DEFINE (scm_make_hash_table, "make-hash-table", 0, 1, 0,
+	    (SCM n),
+	    "Make a hash table with constant number of buckets @var{n}\n"
+	    "If called with zero arguments, create a resizing hash table.")
+#define FUNC_NAME s_scm_make_hash_table
+{
+  if (SCM_UNBNDP (n))
+    return scm_c_make_resizing_hash_table ();
+  else
+    {
+      int k;
+      SCM_VALIDATE_INUM_COPY (1, n, k);
+      return scm_c_make_hash_table (k);
+    }
+}
+#undef FUNC_NAME
+
+static void
+rehash (SCM table, unsigned long (*hash_fn)(), void *closure)
+{
+  SCM buckets, new_buckets;
+  int i;
+  unsigned long old_size;
+  unsigned long new_size;
+  if (SCM_HASHTABLE_N_ITEMS (table) < SCM_HASHTABLE_LOWER (table))
+    i = --SCM_HASHTABLE (table)->size_index;
+  else
+    i = ++SCM_HASHTABLE (table)->size_index;
+  new_size = hashtable_size[i];
+  if (i == 0)
+    SCM_HASHTABLE (table)->lower = 0;
+  else
+    SCM_HASHTABLE (table)->lower = new_size / 4;
+  SCM_HASHTABLE (table)->upper = 9 * new_size / 10;
+  buckets = SCM_HASHTABLE_VECTOR (table);
+  
+  if (SCM_VECTORP (buckets))
+    new_buckets = scm_c_make_vector (new_size, SCM_EOL);
+  else
+    switch (SCM_WVECT_TYPE (buckets)) {
+    case 1:
+      new_buckets = scm_make_weak_key_hash_table (SCM_MAKINUM (new_size));
+      break;
+    case 2:
+      new_buckets = scm_make_weak_value_hash_table (SCM_MAKINUM (new_size));
+      break;
+    case 3:
+      new_buckets = scm_make_doubly_weak_hash_table (SCM_MAKINUM (new_size));
+      break;
+    default:
+      abort (); /* never reached */
+    }
+
+  old_size = SCM_VECTOR_LENGTH (buckets);
+  for (i = 0; i < old_size; ++i)
+    {
+      SCM ls = SCM_VELTS (buckets)[i], handle;
+      while (!SCM_NULLP (ls))
+	{
+	  unsigned long h;
+	  if (!SCM_CONSP (ls))
+	    break;
+	  handle = SCM_CAR (ls);
+	  if (!SCM_CONSP (handle))
+	    continue;
+	  h = hash_fn (SCM_CAR (handle), new_size, closure);
+	  if (h >= new_size)
+	    {
+	      scm_mutex_unlock (&SCM_HASHTABLE (table)->mutex);
+	      scm_out_of_range ("hash_fn_create_handle_x",
+				scm_ulong2num (h));
+	    }
+	  SCM_VECTOR_SET (new_buckets, h,
+			  scm_cons (handle, SCM_VELTS (new_buckets)[h]));
+	  ls = SCM_CDR (ls);
+	}
+    }
+  SCM_SET_HASHTABLE_VECTOR (table, new_buckets);
+}
 
 SCM
 scm_hash_fn_get_handle (SCM table, SCM obj, unsigned long (*hash_fn)(), SCM (*assoc_fn)(), void * closure)
@@ -66,14 +243,29 @@ scm_hash_fn_get_handle (SCM table, SCM obj, unsigned long (*hash_fn)(), SCM (*as
 {
   unsigned long k;
   SCM h;
+  scm_t_mutex *m;
 
-  SCM_VALIDATE_VECTOR (1, table);
+  if (SCM_HASHTABLE_P (table))
+    {
+      m = &SCM_HASHTABLE (table)->mutex;
+      table = SCM_HASHTABLE_VECTOR (table);
+    }
+  else
+    {
+      SCM_VALIDATE_VECTOR (1, table);
+      m = &common_hashtable_mutex;
+    }
   if (SCM_VECTOR_LENGTH (table) == 0)
     return SCM_BOOL_F;
+  scm_mutex_lock (m);
   k = hash_fn (obj, SCM_VECTOR_LENGTH (table), closure);
   if (k >= SCM_VECTOR_LENGTH (table))
-    scm_out_of_range ("hash_fn_get_handle", scm_ulong2num (k));
+    {
+      scm_mutex_unlock (m);
+      scm_out_of_range ("hash_fn_get_handle", scm_ulong2num (k));
+    }
   h = assoc_fn (obj, SCM_VELTS (table)[k], closure);
+  scm_mutex_unlock (m);
   return h;
 }
 #undef FUNC_NAME
@@ -85,30 +277,61 @@ scm_hash_fn_create_handle_x (SCM table, SCM obj, SCM init, unsigned long (*hash_
 #define FUNC_NAME "scm_hash_fn_create_handle_x"
 {
   unsigned long k;
-  SCM it;
+  SCM buckets, it;
+  scm_t_mutex *m;
 
-  SCM_ASSERT (SCM_VECTORP (table), table, SCM_ARG1, "hash_fn_create_handle_x");
-  if (SCM_VECTOR_LENGTH (table) == 0)
+  if (SCM_HASHTABLE_P (table))
+    {
+      buckets = SCM_HASHTABLE_VECTOR (table);
+      m = &SCM_HASHTABLE (table)->mutex;
+    }
+  else
+    {
+      SCM_ASSERT (SCM_VECTORP (table),
+		  table, SCM_ARG1, "hash_fn_create_handle_x");
+      buckets = table;
+      m = &common_hashtable_mutex;
+    }
+  if (SCM_VECTOR_LENGTH (buckets) == 0)
     SCM_MISC_ERROR ("void hashtable", SCM_EOL);
 
-  k = hash_fn (obj, SCM_VECTOR_LENGTH (table), closure);
-  if (k >= SCM_VECTOR_LENGTH (table))
-    scm_out_of_range ("hash_fn_create_handle_x", scm_ulong2num (k));
-  SCM_REDEFER_INTS;
-  it = assoc_fn (obj, SCM_VELTS (table)[k], closure);
+  scm_mutex_lock (m);
+  k = hash_fn (obj, SCM_VECTOR_LENGTH (buckets), closure);
+  if (k >= SCM_VECTOR_LENGTH (buckets))
+    {
+      scm_mutex_unlock (m);
+      scm_out_of_range ("hash_fn_create_handle_x", scm_ulong2num (k));
+    }
+  it = assoc_fn (obj, SCM_VELTS (buckets)[k], closure);
   if (!SCM_FALSEP (it))
     {
-      SCM_REALLOW_INTS;
+      scm_mutex_unlock (m);      
       return it;
     }
   else
     {
       SCM new_bucket;
       SCM old_bucket;
-      old_bucket = SCM_VELTS (table)[k];
+      if (table != buckets)
+	{
+	  SCM_HASHTABLE_INCREMENT (table);
+	  if (SCM_HASHTABLE_N_ITEMS (table) > SCM_HASHTABLE_UPPER (table))
+	    {
+	      rehash (table, hash_fn, closure);
+	      buckets = SCM_HASHTABLE_VECTOR (table);
+	      k = hash_fn (obj, SCM_VECTOR_LENGTH (buckets), closure);
+	      if (k >= SCM_VECTOR_LENGTH (buckets))
+		{
+		  scm_mutex_unlock (m);
+		  scm_out_of_range ("hash_fn_create_handle_x",
+				    scm_ulong2num (k));
+		}
+	    }
+	}
+      old_bucket = SCM_VELTS (buckets)[k];
       new_bucket = scm_acons (obj, init, old_bucket);
-      SCM_VECTOR_SET (table, k, new_bucket);
-      SCM_REALLOW_INTS;
+      SCM_VECTOR_SET (buckets, k, new_bucket);
+      scm_mutex_unlock (m);
       return SCM_CAR (new_bucket);
     }
 }
@@ -562,6 +785,11 @@ scm_internal_hash_fold (SCM (*fn) (), void *closure, SCM init, SCM table)
 void
 scm_init_hashtab ()
 {
+  scm_tc16_hashtable = scm_make_smob_type (s_hashtable, 0);
+  scm_set_smob_mark (scm_tc16_hashtable, scm_markcdr);
+  scm_set_smob_print (scm_tc16_hashtable, hashtable_print);
+  scm_set_smob_free (scm_tc16_hashtable, hashtable_free);
+  scm_i_plugin_mutex_init (&common_hashtable_mutex, &scm_i_plugin_mutex);
 #include "libguile/hashtab.x"
 }
 

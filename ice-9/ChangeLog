@@ -1,3 +1,7 @@
+2003-02-11  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* boot-9.scm (make-hash-table): Turned primitive.
+
 2003-01-27  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* syncase.scm (guile-macro): Strip syntactic information from
