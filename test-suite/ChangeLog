@@ -1,3 +1,7 @@
+2005-01-24  Kevin Ryde  <user42@zip.com.au>
+
+	* tests/srfi-1.test (lset=, member): New tests.
+
 2005-01-12  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/srfi-39.test (current-input-port, current-output-port,
