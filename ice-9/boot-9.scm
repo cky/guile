@@ -104,10 +104,10 @@
 (define (ipow-by-squaring x k acc proc)
   (cond ((zero? k) acc)
 	((= 1 k) (proc acc x))
-	(else (logical:ipow-by-squaring (proc x x)
-					(quotient k 2)
-					(if (even? k) acc (proc acc x))
-					proc))))
+	(else (ipow-by-squaring (proc x x)
+				(quotient k 2)
+				(if (even? k) acc (proc acc x))
+				proc))))
 
 (define string-character-length string-length)
 
@@ -333,10 +333,11 @@
 
 (define (struct-printer s)
   (let ((vtable (struct-vtable s)))
-    (and (>= (string-length (struct-layout vtable))
-	     (* 2 struct-vtable-offset))
+    (and (> (string-length (struct-layout vtable))
+	    (* 2 struct-vtable-offset))
 	 (let ((p (struct-ref vtable struct-vtable-offset)))
-	   (and (eq? (car p) %struct-printer-tag)
+	   (and (pair? p)
+	        (eq? (car p) %struct-printer-tag)
 		(cdr p))))))
 
 (define (make-struct-printer printer)
@@ -2719,7 +2720,7 @@
   `(,proc ,@ (delegating-getter-and-setter-syntax vars get-delegate set-delegate)))
 
 
-;;; with-delegating-getter-and-setter <vars> get-delegate set-delegate proc
+;;; with-excursion-getter-and-setter <vars> proc
 ;;;   <vars> is an unevaluated list of names that are bound in the caller.
 ;;;   proc is called:
 ;;;
@@ -3046,7 +3047,7 @@
 			(cons (car lst) (bl (cdr lst) (+ -1 n))))
 		       (else '())))))
     (bl lst (if (negative? n)
-		(slib:error "negative argument to butlast" n)
+		(error "negative argument to butlast" n)
 		l))))
 
 (define-public (and? . args)
@@ -3263,7 +3264,7 @@
 ;;;  Return the first element of Q.
 (define-public (q-front q) (q-empty-check q) (caar q))
 
-;;; q-front q
+;;; q-rear q
 ;;;  Return the last element of Q.
 (define-public (q-rear q) (q-empty-check q) (cadr q))
 
@@ -3799,11 +3800,14 @@
 
 ;;; {String Fun: with-regexp-parts}
 
-(define-public (with-regexp-parts regexp fields str return fail)
-  (let ((parts (regexec regexp str fields)))
-    (if (number? parts)
-	(fail parts)
-	(apply return parts))))
+;;; This relies on the older, hairier regexp interface, which we don't
+;;; particularly want to implement, and it's not used anywhere, so
+;;; we're just going to drop it for now.
+;;; (define-public (with-regexp-parts regexp fields str return fail)
+;;;   (let ((parts (regexec regexp str fields)))
+;;;     (if (number? parts)
+;;;         (fail parts)
+;;;         (apply return parts))))
 
 
 ;;; {Load debug extension code if debug extensions present.}
