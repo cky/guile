@@ -17,6 +17,8 @@
 ;;;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
 ;;;; Boston, MA 02111-1307 USA
 
+;;; Commentary:
+
 ;;; This module exports the syntactic form `define-record-type', which
 ;;; is the means for creating record types defined in SRFI-9.
 ;;;
@@ -54,6 +56,8 @@
 ;;; #t
 ;;; guile> (foo? 1)
 ;;; #f
+
+;;; Code:
 
 (define-module (srfi srfi-9))
 

@@ -21,8 +21,6 @@
 
 AUTOMAKE_OPTIONS = foreign
 
-#info_TEXINFOS = guile-srfi.texi
-
 ## Prevent automake from adding extra -I options
 DEFS = @DEFS@
 ## Check for headers in $(srcdir)/.., so that #include
@@ -43,9 +41,11 @@ srfi_DATA = srfi-2.scm \
             srfi-6.scm \
             srfi-8.scm \
             srfi-9.scm \
+            srfi-10.scm \
             srfi-11.scm \
             srfi-13.scm \
-            srfi-14.scm
+            srfi-14.scm \
+            srfi-17.scm
 
 EXTRA_DIST = $(srfi_DATA)
 

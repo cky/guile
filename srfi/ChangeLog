@@ -1,3 +1,15 @@
+2001-05-02  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* Makefile.am (srfi_DATA): Added srfi-10.scm and srfi-17.scm.
+
+	* srfi-10.scm: New file.
+
+	* srfi-17.scm: New file, contributed by Matthias Koeppe.  Thanks a
+	lot!  
+	Added `Commentary:' tag.
+
+	* srfi-9.scm: Added `Commentary:' tag.
+
 2001-04-27  Rob Browning  <rlb@cs.utexas.edu>
 
 	* srfi-13.h
