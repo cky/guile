@@ -2223,7 +2223,11 @@
 
 ;;; {Run-time options}
 
-((let* ((names '((debug-options-interface
+((let* ((names '((eval-options-interface
+		  (eval-options eval-enable eval-disable)
+		  (eval-set!))
+		 
+		 (debug-options-interface
 		  (debug-options debug-enable debug-disable)
 		  (debug-set!))
 	       

@@ -1,3 +1,7 @@
+1998-03-30  Mikael Djurfeldt  <mdj@nada.kth.se>
+
+	* boot-9.scm: Added new run-time option interface eval-options.
+
 1998-03-28  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* boot-9.scm (remove-hook!): New macro.  (Thanks to Maciej
