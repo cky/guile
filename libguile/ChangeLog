@@ -1,5 +1,11 @@
 2001-03-08  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
 
+	* ramap.c (racp): Removed optimization which caused array copying
+	to fail if the two arrays shared storage.  Re-inserted the IVDEP
+	macros removed in the change of 2000-03-09.  (Don't really have a
+	complete grasp of what they are for, but they seem to be necessary
+	on Crays.  This needs testing!)  Thanks to Miroslav Silovic.
+
 	* hash.c (scm_string_hash): Don't downcase characters.
 
 2001-03-07  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>

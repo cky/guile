@@ -1,4 +1,4 @@
-/*	Copyright (C) 1996, 1998, 2000 Free Software Foundation, Inc.
+/*	Copyright (C) 1996, 1998, 2000, 2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -647,14 +647,6 @@ racp (SCM src, SCM dst)
   src = SCM_ARRAY_V (src);
   dst = SCM_ARRAY_V (dst);
 
-
-  /* untested optimization: don't copy if we're we. This allows the
-     ugly UNICOS macros (IVDEP) to go .     
-   */
-     
-  if (SCM_EQ_P (src, dst))
-    return 1 ;
-  
   switch SCM_TYP7 (dst)
     {
     default:
@@ -663,7 +655,9 @@ racp (SCM src, SCM dst)
     case scm_tc7_wvect:
 
       for (; n-- > 0; i_s += inc_s, i_d += inc_d)
-	scm_array_set_x (dst, scm_cvref (src, i_s, SCM_UNDEFINED), SCM_MAKINUM (i_d));
+	scm_array_set_x (dst,
+			 scm_cvref (src, i_s, SCM_UNDEFINED),
+			 SCM_MAKINUM (i_d));
       break;
     case scm_tc7_string:
       if (SCM_TYP7 (src) != scm_tc7_string)
@@ -675,7 +669,8 @@ racp (SCM src, SCM dst)
       if (SCM_TYP7 (src) != scm_tc7_byvect)
 	goto gencase;
       for (; n-- > 0; i_s += inc_s, i_d += inc_d)
-	((char *) SCM_UVECTOR_BASE (dst))[i_d] = ((char *) SCM_UVECTOR_BASE (src))[i_s];
+	((char *) SCM_UVECTOR_BASE (dst))[i_d]
+	  = ((char *) SCM_UVECTOR_BASE (src))[i_s];
       break;
     case scm_tc7_bvect:
       if (SCM_TYP7 (src) != scm_tc7_bvect)
@@ -693,8 +688,9 @@ racp (SCM src, SCM dst)
 	      sv++;
 	      n -= SCM_LONG_BIT - (i_s % SCM_LONG_BIT);
 	    }
+	  IVDEP (src != dst,
 		 for (; n >= SCM_LONG_BIT; n -= SCM_LONG_BIT, sv++, dv++)
-		 * dv = *sv;
+		 *dv = *sv;)
 	    if (n)		/* trailing partial word */
 	      *dv = (*dv & (~0L << n)) | (*sv & ~(~0L << n));
 	}
@@ -713,8 +709,9 @@ racp (SCM src, SCM dst)
       else
 	{
 	  long *d = (long *) SCM_VELTS (dst), *s = (long *) SCM_VELTS (src);
+	  IVDEP (src != dst,
 		 for (; n-- > 0; i_s += inc_s, i_d += inc_d)
-		 d[i_d] = s[i_s];
+		 d[i_d] = s[i_s];)
 	    break;
 	}
     case scm_tc7_ivect:
@@ -723,9 +720,10 @@ racp (SCM src, SCM dst)
       else
 	{
 	  long *d = (long *) SCM_VELTS (dst), *s = (long *) SCM_VELTS (src);
-	  for (; n-- > 0; i_s += inc_s, i_d += inc_d)
-            d[i_d] = s[i_s];
-          break;
+	  IVDEP (src != dst,
+		 for (; n-- > 0; i_s += inc_s, i_d += inc_d)
+		 d[i_d] = s[i_s];)
+	    break;
 	}
     case scm_tc7_fvect:
       {
@@ -738,17 +736,20 @@ racp (SCM src, SCM dst)
 	    goto gencase;
 	  case scm_tc7_ivect:
 	  case scm_tc7_uvect:
-	    for (; n-- > 0; i_s += inc_s, i_d += inc_d)
-		   d[i_d] = ((long *) s)[i_s];
+	    IVDEP (src != dst,
+		   for (; n-- > 0; i_s += inc_s, i_d += inc_d)
+		   d[i_d] = ((long *) s)[i_s];)
 	      break;
 	  case scm_tc7_fvect:
-	    for (; n-- > 0; i_s += inc_s, i_d += inc_d)
-		   d[i_d] = s[i_s];
+	    IVDEP (src != dst,
+		   for (; n-- > 0; i_s += inc_s, i_d += inc_d)
+		   d[i_d] = s[i_s];)
 	      break;
 	  case scm_tc7_dvect:
-	    for (; n-- > 0; i_s += inc_s, i_d += inc_d)
-	      d[i_d] = ((double *) s)[i_s];
-	    break;
+	    IVDEP (src !=dst,
+		   for (; n-- > 0; i_s += inc_s, i_d += inc_d)
+		   d[i_d] = ((double *) s)[i_s];)
+	      break;
 	  }
 	break;
       }
@@ -763,16 +764,19 @@ racp (SCM src, SCM dst)
 	    goto gencase;
 	  case scm_tc7_ivect:
 	  case scm_tc7_uvect:
-	    for (; n-- > 0; i_s += inc_s, i_d += inc_d)
-		   d[i_d] = ((long *) s)[i_s];
+	    IVDEP (src != dst,
+		   for (; n-- > 0; i_s += inc_s, i_d += inc_d)
+		   d[i_d] = ((long *) s)[i_s];)
 	      break;
 	  case scm_tc7_fvect:
-	    for (; n-- > 0; i_s += inc_s, i_d += inc_d)
-		   d[i_d] = ((float *) s)[i_s];
+	    IVDEP (src != dst,
+		   for (; n-- > 0; i_s += inc_s, i_d += inc_d)
+		   d[i_d] = ((float *) s)[i_s];)
 	      break;
 	  case scm_tc7_dvect:
-	    for (; n-- > 0; i_s += inc_s, i_d += inc_d)
-		   d[i_d] = s[i_s];
+	    IVDEP (src != dst,
+		   for (; n-- > 0; i_s += inc_s, i_d += inc_d)
+		   d[i_d] = s[i_s];)
 	      break;
 	  }
 	break;
@@ -788,33 +792,37 @@ racp (SCM src, SCM dst)
 	    goto gencase;
 	  case scm_tc7_ivect:
 	  case scm_tc7_uvect:
-	    for (; n-- > 0; i_s += inc_s, i_d += inc_d)
-	      {
-		d[i_d][0] = ((long *) s)[i_s];
-		d[i_d][1] = 0.0;
-	      }
+	    IVDEP (src != dst,
+		   for (; n-- > 0; i_s += inc_s, i_d += inc_d)
+	           {
+		     d[i_d][0] = ((long *) s)[i_s];
+		     d[i_d][1] = 0.0;
+		   })
 	      break;
 	  case scm_tc7_fvect:
-	    for (; n-- > 0; i_s += inc_s, i_d += inc_d)
-	      {
-		d[i_d][0] = ((float *) s)[i_s];
-		d[i_d][1] = 0.0;
-	      }
+	    IVDEP (src != dst,
+		   for (; n-- > 0; i_s += inc_s, i_d += inc_d)
+	           {
+		     d[i_d][0] = ((float *) s)[i_s];
+		     d[i_d][1] = 0.0;
+		   })
 	      break;
 	  case scm_tc7_dvect:
-	    for (; n-- > 0; i_s += inc_s, i_d += inc_d)
-	      {
-		d[i_d][0] = ((double *) s)[i_s];
-		d[i_d][1] = 0.0;
-	      }
+	    IVDEP (src != dst,
+		   for (; n-- > 0; i_s += inc_s, i_d += inc_d)
+	           {
+		     d[i_d][0] = ((double *) s)[i_s];
+		     d[i_d][1] = 0.0;
+		   })
 	      break;
 	  case scm_tc7_cvect:
-	    for (; n-- > 0; i_s += inc_s, i_d += inc_d)
-	      {
-		d[i_d][0] = s[i_s][0];
-		d[i_d][1] = s[i_s][1];
+	    IVDEP (src != dst,
+		   for (; n-- > 0; i_s += inc_s, i_d += inc_d)
+	           {
+		     d[i_d][0] = s[i_s][0];
+		     d[i_d][1] = s[i_s][1];
+		   })
 	      }
-	  }
 	break;
       }
     }
