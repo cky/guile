@@ -186,7 +186,7 @@ SCM_DEFINE (scm_substring_fill_x, "substring-fill!", 4, 0, 0,
   SCM_VALIDATE_STRING (1,str);
   SCM_VALIDATE_INUM_COPY (2,start,i);
   SCM_VALIDATE_INUM_COPY (3,end,e);
-  SCM_VALIDATE_CHAR_COPY (4,fill,c);
+  SCM_VALIDATE_ICHR_COPY (4,fill,c);
   SCM_ASSERT_RANGE (2,start,i <= SCM_LENGTH (str) && i >= 0);
   SCM_ASSERT_RANGE (3,end,e <= SCM_LENGTH (str) && e >= 0);
   while (i<e) SCM_CHARS (str)[i++] = c;
@@ -243,7 +243,7 @@ SCM_DEFINE (scm_string_fill_x, "string-fill!", 2, 0, 0,
   register char *dst, c;
   register long k;
   SCM_VALIDATE_STRING_COPY (1,str,dst);
-  SCM_VALIDATE_CHAR_COPY (2,chr,c);
+  SCM_VALIDATE_ICHR_COPY (2,chr,c);
   for (k = SCM_LENGTH (str)-1;k >= 0;k--) dst[k] = c;
   return SCM_UNSPECIFIED;
 }

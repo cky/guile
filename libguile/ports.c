@@ -973,7 +973,7 @@ not supplied, the current input port is used.")
 {
   int c;
 
-  SCM_VALIDATE_CHAR (1,cobj);
+  SCM_VALIDATE_ICHR (1,cobj);
   if (SCM_UNBNDP (port))
     port = scm_cur_inp;
   else

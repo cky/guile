@@ -709,7 +709,7 @@ SCM_DEFINE (scm_read_hash_extend, "read-hash-extend", 2, 0, 0,
   SCM this;
   SCM prev;
 
-  SCM_VALIDATE_CHAR (1,chr);
+  SCM_VALIDATE_ICHR (1,chr);
   SCM_ASSERT (SCM_FALSEP (proc) || SCM_NIMP(proc), proc, SCM_ARG2,
 	      FUNC_NAME);
 

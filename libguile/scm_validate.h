@@ -1,4 +1,4 @@
-/* $Id: scm_validate.h,v 1.15 2000-01-09 13:41:53 ghouston Exp $ */
+/* $Id: scm_validate.h,v 1.16 2000-01-11 19:19:59 gjb Exp $ */
 /*	Copyright (C) 1999 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
@@ -95,9 +95,9 @@
   do { SCM_ASSERT(SCM_BOOLP(flag), flag, pos, FUNC_NAME); \
        cvar = (SCM_BOOL_T == flag)? 1: 0; } while (0)
 
-#define SCM_VALIDATE_CHAR(pos,scm) SCM_MAKE_VALIDATE(pos,scm,ICHRP)
+#define SCM_VALIDATE_ICHR(pos,scm) SCM_MAKE_VALIDATE(pos,scm,ICHRP)
 
-#define SCM_VALIDATE_CHAR_COPY(pos,scm,cvar) \
+#define SCM_VALIDATE_ICHR_COPY(pos,scm,cvar) \
   do { SCM_ASSERT(SCM_ICHRP(scm), scm, pos, FUNC_NAME); \
        cvar = SCM_ICHR(scm); } while (0)
 

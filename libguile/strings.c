@@ -258,7 +258,7 @@ SCM_DEFINE (scm_make_string, "make-string", 1, 1, 0,
   res = scm_makstr (i, 0);
   if (!SCM_UNBNDP (chr))
     {
-      SCM_VALIDATE_CHAR (2,chr);
+      SCM_VALIDATE_ICHR (2,chr);
       {
 	unsigned char *dst = SCM_UCHARS (res);
 	char c = SCM_ICHR (chr);
@@ -299,7 +299,7 @@ SCM_DEFINE (scm_string_set_x, "string-set!", 3, 0, 0,
 {
   SCM_VALIDATE_RWSTRING (1,str);
   SCM_VALIDATE_INUM_RANGE (2,k,0,SCM_LENGTH(str));
-  SCM_VALIDATE_CHAR (3,chr);
+  SCM_VALIDATE_ICHR (3,chr);
   SCM_UCHARS (str)[SCM_INUM (k)] = SCM_ICHR (chr);
   return SCM_UNSPECIFIED;
 }
