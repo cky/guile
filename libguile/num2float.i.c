@@ -7,16 +7,7 @@ NUM2FLOAT (SCM num, unsigned long int pos, const char *s_caller)
     return SCM_INUM (num);
   else if (SCM_BIGP (num))
     { /* bignum */
-    
-      FTYPE res = 0.0;
-      size_t l;
-
-      for (l = SCM_NUMDIGS (num); l--;)
-	res = SCM_BIGRAD * res + SCM_BDIGITS (num)[l];
-      
-      if (SCM_BIGSIGN (num))
-	res = -res;
-      
+      FTYPE res = mpz_get_d (SCM_I_BIG_MPZ (num));
       if (isfinite (res))
 	return res;
       else
@@ -32,7 +23,6 @@ SCM
 FLOAT2NUM (FTYPE n)
 {
   SCM z = scm_double_cell (scm_tc16_real, 0, 0, 0);
-
   SCM_REAL_VALUE (z) = n;
   return z;
 }
