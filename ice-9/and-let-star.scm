@@ -1,7 +1,7 @@
 ;;;; and-let-star.scm --- and-let* syntactic form (draft SRFI-2) for Guile
 ;;;; written by Michael Livshin <mike@olan.com>
 ;;;;
-;;;; 	Copyright (C) 1999, 2001 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1999, 2001, 2004 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -34,8 +34,7 @@
            ((null? (cdr exp))
             `(and ,(car exp) ,(expand (cdr vars) body)))
            (else
-            (let ((var (car exp))
-                  (val (cadr exp)))
+            (let ((var (car exp)))
               `(let (,exp)
                  (and ,var ,(expand (cdr vars) body)))))))
          (else
