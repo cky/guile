@@ -2,7 +2,7 @@
    deprecate something, move it here when that is feasible.
 */
 
-/* Copyright (C) 2003 Free Software Foundation, Inc.
+/* Copyright (C) 2003, 2004 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -1127,6 +1127,22 @@ SCM_INUM (SCM obj)
   scm_c_issue_deprecation_warning
     ("SCM_INUM is deprecated.  Use scm_to_int or similar instead.");
   return scm_to_intmax (obj);
+}
+
+double
+scm_truncate (double x)
+{
+  scm_c_issue_deprecation_warning
+    ("scm_truncate is deprecated.  Use scm_c_truncate instead.");
+  return scm_c_truncate (x);
+}
+
+double
+scm_round (double x)
+{
+  scm_c_issue_deprecation_warning
+    ("scm_round is deprecated.  Use scm_c_round instead.");
+  return scm_c_round (x);
 }
 
 void

@@ -382,6 +382,12 @@ SCM_API scm_t_signed_bits SCM_INUM (SCM obj);
   } while (0)
 
 
+/* Deprecated because the names belong to what is now
+   scm_truncate_number and scm_round_number.
+*/
+SCM_API double scm_truncate (double x);
+SCM_API double scm_round (double x);
+
 void scm_i_init_deprecated (void);
 
 #endif

@@ -4895,13 +4895,8 @@ SCM_GPROC1 (s_atanh, "$atanh", scm_tc7_dsubr, (SCM (*)()) atanh, g_atanh);
  */
 
 
-/* XXX - eventually, we should remove this definition of scm_round and
-   rename scm_round_number to scm_round.  Likewise for scm_truncate
-   and scm_truncate_number.
- */
-
 double
-scm_truncate (double x)
+scm_c_truncate (double x)
 {
 #if HAVE_TRUNC
   return trunc (x);
@@ -4912,10 +4907,10 @@ scm_truncate (double x)
 #endif
 }
 
-/* scm_round is done using floor(x+0.5) to round to nearest and with
-   half-way case (ie. when x is an integer plus 0.5) going upwards.  Then
-   half-way cases are identified and adjusted down if the round-upwards
-   didn't give the desired even integer.
+/* scm_c_round is done using floor(x+0.5) to round to nearest and with
+   half-way case (ie. when x is an integer plus 0.5) going upwards.
+   Then half-way cases are identified and adjusted down if the
+   round-upwards didn't give the desired even integer.
 
    "plus_half == result" identifies a half-way case.  If plus_half, which is
    x + 0.5, is an integer then x must be an integer plus 0.5.
@@ -4939,7 +4934,7 @@ scm_truncate (double x)
    an 0.5 to be represented, and hence added without a bad rounding.  */
 
 double
-scm_round (double x)
+scm_c_round (double x)
 {
   double plus_half, result;
 
@@ -4948,7 +4943,7 @@ scm_round (double x)
 
   plus_half = x + 0.5;
   result = floor (plus_half);
-  /* Adjust so that the scm_round is towards even.  */
+  /* Adjust so that the rounding is towards even.  */
   return ((plus_half == result && plus_half / 2 != floor (plus_half / 2))
 	  ? result - 1
 	  : result);
@@ -4978,7 +4973,7 @@ SCM_DEFINE (scm_round_number, "round", 1, 0, 0,
   if (SCM_I_INUMP (x) || SCM_BIGP (x))
     return x;
   else if (SCM_REALP (x))
-    return scm_from_double (scm_round (SCM_REAL_VALUE (x)));
+    return scm_from_double (scm_c_round (SCM_REAL_VALUE (x)));
   else
     {
       /* OPTIMIZE-ME: Fraction case could be done more efficiently by a
@@ -4986,7 +4981,7 @@ SCM_DEFINE (scm_round_number, "round", 1, 0, 0,
          the rounding should go.  */
       SCM plus_half = scm_sum (x, exactly_one_half);
       SCM result = scm_floor (plus_half);
-      /* Adjust so that the scm_round is towards even.  */
+      /* Adjust so that the rounding is towards even.  */
       if (scm_is_true (scm_num_eq_p (plus_half, result))
           && scm_is_true (scm_odd_p (result)))
         return scm_difference (result, SCM_I_MAKINUM (1));
