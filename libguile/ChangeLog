@@ -13,7 +13,8 @@ Fri Aug 23 03:02:46 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
 	* gscm.c, init.c, root.c, throw.c: Bug fixes:
 	last_debug_info_frame is now updated in all cases.
 
-	* stackchk.h, stackchk.c: Guile now performs stack checking.
+	* __scm.h, stackchk.h, stackchk.c: Guile now performs stack
+	checking.
 
 Thu Aug 22 17:34:17 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
 

@@ -201,7 +201,7 @@ void
 scm_init_error ()
 #endif
 {
-  SCM_SYMBOL (system_error_sym, "%%system-error");
+  system_error_sym = scm_permanent_object (SCM_CAR (scm_intern0 ("%%system-error")));
 #include "error.x"
 }
 
