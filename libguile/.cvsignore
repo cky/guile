@@ -1,5 +1,6 @@
 *.bb
 *.bbg
+*.c.clean.c
 *.da
 *.doc
 *.gcov
@@ -40,3 +41,4 @@ stamp-h
 stamp-h.in
 stamp-h1
 version.h
+versiondat.h
