@@ -395,6 +395,9 @@ extra complexity it introduces.
 
 * Changes to the gh_ interface
 
+** The gh_enter function now takes care of loading the Guile startup files.
+gh_enter works by calling scm_boot_guile; see the remarks below.
+
 ** Function: void gh_write (SCM x)
 
 Write the printed representation of the scheme object x to the current
@@ -421,6 +424,33 @@ New function.  Converts double arrays back and forth between Scheme
 and C.
 
 * Changes to the scm_ interface
+
+** The function scm_boot_guile now takes care of loading the startup files.
+
+Guile's primary initialization function, scm_boot_guile, now takes
+care of loading `boot-9.scm', in the `ice-9' module, to initialize
+Guile, define the module system, and put together some standard
+bindings.  It also loads `init.scm', which is intended to hold
+site-specific initialization code.
+
+Since Guile cannot operate properly until boot-9.scm is loaded, there
+is no reason to separate loading boot-9.scm from Guile's other
+initialization processes.
+
+This job used to be done by scm_compile_shell_switches, which didn't
+make much sense; in particular, it meant that people using Guile for
+non-shell-like applications had to jump through hoops to get Guile
+initialized properly.
+
+** The function scm_compile_shell_switches no longer loads the startup files.
+Now, Guile always loads the startup files, whenever it is initialized;
+see the notes above for scm_boot_guile and scm_load_startup_files.
+
+** Function: scm_load_startup_files
+This new function takes care of loading Guile's initialization file
+(`boot-9.scm'), and the site initialization file, `init.scm'.  Since
+this is always called by the Guile initialization process, it's
+probably not too useful to call this yourself, but it's there anyway.
 
 ** The semantics of smob marking have changed slightly.
 
