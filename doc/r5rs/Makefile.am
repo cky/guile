@@ -21,23 +21,4 @@
 
 AUTOMAKE_OPTIONS = gnu
 
-SUBDIRS = ref tutorial goops r5rs
-
-# pending the papers from Robert Merkel
-# man_MANS = guile.1
-
-EXAMPLE_SMOB_FILES = \
-    ChangeLog Makefile README COPYING image-type.c image-type.h myguile.c
-
-OLDFMT = oldfmt.c
-
-dist-hook:
-	mkdir $(distdir)/example-smob
-	(cd $(srcdir); \
-	 cp $(OLDFMT) $(distdir); \
-	 dest="`cd $(distdir)/example-smob; pwd`"; \
-         cd example-smob; \
-	 cp $(EXAMPLE_SMOB_FILES) $$dest)
-
-# pending the papers from Robert Merkel
-# EXTRA_DIST = guile.1
+info_TEXINFOS = r5rs.texi

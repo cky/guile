@@ -21,23 +21,19 @@
 
 AUTOMAKE_OPTIONS = gnu
 
-SUBDIRS = ref tutorial goops r5rs
+info_TEXINFOS = guile-tut.texi
 
-# pending the papers from Robert Merkel
-# man_MANS = guile.1
+guile_tut_TEXINFOS = ../AUTHORS
 
-EXAMPLE_SMOB_FILES = \
-    ChangeLog Makefile README COPYING image-type.c image-type.h myguile.c
+# Optionally support building an HTML version of the reference manual.
 
-OLDFMT = oldfmt.c
+if HTMLDOC
 
-dist-hook:
-	mkdir $(distdir)/example-smob
-	(cd $(srcdir); \
-	 cp $(OLDFMT) $(distdir); \
-	 dest="`cd $(distdir)/example-smob; pwd`"; \
-         cd example-smob; \
-	 cp $(EXAMPLE_SMOB_FILES) $$dest)
+htmldir = $(prefix)/html/guile-$(VERSION)
 
-# pending the papers from Robert Merkel
-# EXTRA_DIST = guile.1
+html_DATA = guile-tut_toc.html $(shell ls guile-tut_*.html 2>/dev/null)
+
+guile-tut_toc.html: guile-tut.texi
+	$(TEXI2HTML) -split_chapter guile-tut.texi
+
+endif

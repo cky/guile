@@ -21,23 +21,19 @@
 
 AUTOMAKE_OPTIONS = gnu
 
-SUBDIRS = ref tutorial goops r5rs
+info_TEXINFOS = goops.texi
 
-# pending the papers from Robert Merkel
-# man_MANS = guile.1
+goops_TEXINFOS = goops-tutorial.texi hierarchy.eps hierarchy.txt ../AUTHORS
 
-EXAMPLE_SMOB_FILES = \
-    ChangeLog Makefile README COPYING image-type.c image-type.h myguile.c
+# Optionally support building an HTML version of the manual.
 
-OLDFMT = oldfmt.c
+if HTMLDOC
 
-dist-hook:
-	mkdir $(distdir)/example-smob
-	(cd $(srcdir); \
-	 cp $(OLDFMT) $(distdir); \
-	 dest="`cd $(distdir)/example-smob; pwd`"; \
-         cd example-smob; \
-	 cp $(EXAMPLE_SMOB_FILES) $$dest)
+htmldir = $(prefix)/html/guile-$(VERSION)
 
-# pending the papers from Robert Merkel
-# EXTRA_DIST = guile.1
+html_DATA = goops_toc.html $(shell ls goops_*.html 2>/dev/null)
+
+goops_toc.html: goops.texi $(goops_TEXINFOS)
+	$(TEXI2HTML) -split_chapter goops.texi
+
+endif

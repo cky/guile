@@ -1,3 +1,7 @@
+2001-08-24  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* Makefile.am: Split documentation into per-manual subdirectories.
+
 2001-08-22  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
 
 	* scheme-options.texi (Evaluator trap options): Splitted

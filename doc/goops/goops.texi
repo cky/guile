@@ -40,7 +40,7 @@ are preserved on all copies.
 @titlepage
 @title Goops Manual
 @subtitle For use with GOOPS @value{VERSION}
-@include AUTHORS
+@include ../AUTHORS
 
 @c  The following two commands
 @c  start the copyright page.

@@ -634,6 +634,10 @@ AC_CONFIG_FILES([
   qt/time/Makefile
   guile-config/Makefile
   doc/Makefile
+  doc/ref/Makefile
+  doc/tutorial/Makefile
+  doc/goops/Makefile
+  doc/r5rs/Makefile
   examples/Makefile
   examples/scripts/Makefile
   examples/box/Makefile

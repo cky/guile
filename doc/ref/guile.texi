@@ -80,9 +80,9 @@ by the Free Software Foundation.
 @sp 10
 @comment The title is printed in a large font.
 @title Guile Reference Manual
-@subtitle $Id: guile.texi,v 1.1 2001-08-24 09:40:29 ossau Exp $
+@subtitle $Id: guile.texi,v 1.2 2001-08-24 10:16:15 ossau Exp $
 @subtitle For use with Guile @value{VERSION}
-@include AUTHORS
+@include ../AUTHORS
 
 @c The following two commands start the copyright page.
 @page
