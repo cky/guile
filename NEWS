@@ -2243,7 +2243,7 @@ null-terminated string, and returns it.
 to a Scheme port object.
 
 ** The new function `scm_set_program_arguments' allows C code to set
-the value teruturned by the Scheme `program-arguments' function.
+the value returned by the Scheme `program-arguments' function.
 
 
 Older changes:
