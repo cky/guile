@@ -65,12 +65,10 @@ SCM_DEFINE (scm_system, "system", 0, 1, 0,
       return SCM_BOOL(rv);
     }
   SCM_VALIDATE_STRING (1, cmd);
-  SCM_DEFER_INTS;
   errno = 0;
   rv = system (SCM_STRING_CHARS (cmd));
   if (rv == -1 || (rv == 127 && errno != 0))
     SCM_SYSERROR;
-  SCM_ALLOW_INTS;
   return SCM_MAKINUM (rv);
 }
 #undef FUNC_NAME
