@@ -20,12 +20,12 @@
   '((version (single-char #\v) (value #f))
     (help    (single-char #\h) (value #f))))
 
-;; Display version information and exit.
+;; Display version information.
 ;;
 (define (display-version)
   (display "hello 0.0.1\n"))
 
-;; Display the usage help message and exit.
+;; Display the usage help message.
 ;;
 (define (display-help)
   (display "Usage: hello [options...]\n")
