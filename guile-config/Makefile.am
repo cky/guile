@@ -32,7 +32,7 @@ aclocal_DATA = guile.m4
 ## We use @-...-@ as the substitution brackets here, instead of the
 ## usual @...@, so autoconf doesn't go and substitute the values
 ## directly into the left-hand sides of the sed substitutions.  *sigh*
-guile-config: guile-config.in
+guile-config: guile-config.in ${top_builddir}/libguile/libpath.h
 	rm -f guile-config.tmp
 	sed < ${srcdir}/guile-config.in > guile-config.tmp \
 	    -e s:@-bindir-@:${bindir}: \
