@@ -174,6 +174,36 @@ Instead, use scm_memq, scm_memv, scm_member.
 Returns a boolean indicating whether X is a port.  Equivalent to
 `(or (input-port? X) (output-port? X))'.
 
+** New function: port-for-each proc
+
+Apply PROC to each port in the Guile port table in turn.  The
+return value is unspecified.
+
+** New function: dup2 oldfd newfd
+
+A simple wrapper for the `dup2' system call.  Copies the file
+descriptor OLDFD to descriptor number NEWFD, replacing the
+previous meaning of NEWFD.  Both OLDFD and NEWFD must be integers.
+Unlike for dup->fdes or primitive-move->fdes, no attempt is made
+to move away ports which are using NEWFD\n".  The return value is
+unspecified.
+
+** New function: close-fdes fd
+
+A simple wrapper for the `close' system call.  Close file
+descriptor FD, which must be an integer.  Unlike close (*note
+close: Ports and File Descriptors.), the file descriptor will be
+closed even if a port is using it.  The return value is
+unspecified.
+
+** Deprecated: close-all-ports-except.  This was intended for closing
+ports in a child process after a fork, but it has the undesirable side
+effect of flushing buffers.  port-for-each is more flexible.
+
+** The (ice-9 popen) module now attempts to set up file descriptors in
+the child process from the current Scheme ports, instead of using the
+current values of file descriptors 0, 1, and 2 in the parent process.
+
 * Changes to the gh_ interface
 
 * Changes to the scm_ interface
