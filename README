@@ -49,11 +49,17 @@ ice-9:  Guile's module system, initialization code, and other infrastructure.
 lang:   A Guile module of tools for writing lexical analyzers and parsers.
 ctax:   A Guile module providing a C-like syntax for Scheme.
 gtcltk-lib:
-	Glue code for talking to tcl/tk from Guile.  The Tcl/Tk
+	Glue code for talking to Tcl/Tk from Guile.  The Tcl/Tk
 	developers have big plans for the next major release of Tcl/Tk
 	which will make possible a clean, direct interface between
 	Guile and Tk, so we're providing this very simple-minded
 	interface until that's ready.
+threads: Glue code for using various threads packages from Guile, including
+	qt (see below).
+
+This distribution also includes `qt', a cooperative threads package
+from Washington University, which Guile can use.  Qt is under a
+separate copyright; see `qt/README' for more details.
 
 The mailing list `guile@cygnus.com' carries discussions, questions,
 and often answers, about Guile.  To subscribe, send mail to
@@ -76,10 +82,6 @@ expression matcher.
 
 Gary Houston wrote the Unix system call support, including the socket
 support.
-
-The `qt' threads library was written by David Keppel; contributors to
-it include: Weihaw Chuang, Richard O'Keefe, Laurent Perron, John
-Polstra, Shinji Suzuki, Assar Westerlund, and Uwe Reder.
 
 Anthony Green wrote the original version of `threads' the interface
 between Guile and qt.

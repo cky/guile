@@ -19,9 +19,8 @@ subdirectories ctax, gtcltk-lib, guile, ice-9, lang, and rx.  In doc,
 wrote ctax.texi, gtcltk.texi, in.texi, lang.texi, and major portions
 of guile.texi.
 
-Mikael Djurfeldt: wrote debug.c, debug.h, options.c, options.h,
-srcprop.c, srcprop.h.  Many changes throughout.
+Anthony Green: wrote the original code in the 'threads' directory.
 
-David Keppel wrote the 'qt' threads package.  Other contributors
-include: Weihaw Chuang, Richard O'Keefe, Laurent Perron, John Polstra,
-Shinji Suzuki, and Assar Westerlund.  Uwe Reder wrote the HP-PA port. 
+Mikael Djurfeldt: wrote debug.c, debug.h, options.c, options.h,
+srcprop.c, srcprop.h.  Rewrote the code in 'threads'.  Many changes
+throughout.

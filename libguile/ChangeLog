@@ -6,6 +6,12 @@ Sat Oct 12 21:49:29 1996  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* stime.c, stime.h: use SCM_P method.
 	
+Sat Oct 12 16:16:25 1996  Jim Blandy  <jimb@floss.cyclic.com>
+
+	* eval.c (scm_nconc2last): Don't accept an empty list; apply must
+ 	be given at least two arguments.  Insist that lst's last element
+ 	be a list, but don't make any requirements of its predecessors.
+
 Fri Oct 11 03:58:25 1996  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* eval.c (scm_nconc2last): Revert last change; there seems to be
