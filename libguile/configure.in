@@ -48,6 +48,8 @@ AC_CHECK_FUNCS(ctermid ftime getcwd geteuid lstat mkdir mknod nice putenv readli
 
 AC_REPLACE_FUNCS(inet_aton strerror)
 
+AC_FUNC_ALLOCA
+
 AC_STRUCT_ST_RDEV
 AC_STRUCT_ST_BLKSIZE
 AC_STRUCT_ST_BLOCKS
