@@ -1,6 +1,7 @@
 2003-01-10  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* occam-channel.scm (make-channel): Renamed from channel.
+	(make-timer): New function.
 
 	* Makefile.am (ice9_sources): Added occam-channel.scm.
 

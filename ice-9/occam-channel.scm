@@ -45,20 +45,27 @@
   #:use-module (oop goops)
   #:use-module (ice-9 threads)
   ;;#:export-syntax (alt)
-  #:export (make-channel ? !))
+  #:export (make-channel
+	    ?
+	    !
+	    make-timer
+	    )
+  )
 
 (define no-data '(no-data))
 (define receiver-waiting '(receiver-waiting))
 
-(define-class <channel> ()
+(define-class <channel> ())
+
+(define-class <data-channel> (<channel>)
   (data #:accessor data #:init-value no-data)
   (cv #:accessor cv #:init-form (make-condition-variable))
   (mutex #:accessor mutex #:init-form (make-mutex)))
 
 (define-method (make-channel)
-  (make <channel>))
+  (make <data-channel>))
 
-(define-method (? (ch <channel>))
+(define-method (? (ch <data-channel>))
   (lock-mutex (mutex ch))
   (cond ((eq? (data ch) no-data)
 	 (set! (data ch) receiver-waiting)
@@ -75,7 +82,10 @@
     (unlock-mutex (mutex ch))
     res))
 
-(define-method (! (ch <channel>) (x <top>))
+(define-method (! (ch <data-channel>))
+  (! ch *unspecified*))
+
+(define-method (! (ch <data-channel>) (x <top>))
   (lock-mutex (mutex ch))
   (cond ((eq? (data ch) no-data)
 	 (set! (data ch) x)
@@ -88,3 +98,43 @@
 	 (scm-error 'misc-error '! "another process is already sending on ~A"
 		    (list ch) #f)))
   (unlock-mutex (mutex ch)))
+
+;;; Add protocols?
+
+(define-class <port-channel> (<channel>)
+  (port #:accessor port #:init-keyword #:port))
+
+(define-method (make-channel (port <port>))
+  (make <port-channel> #:port port))
+
+(define-method (? (ch <port-channel>))
+  (read (port ch)))
+
+(define-method (! (ch <port-channel>))
+  (write (port ch)))
+
+(define-class <timer-channel> (<channel>))
+
+(define the-timer (make <timer-channel>))
+
+(define timer-cv (make-condition-variable))
+(define timer-mutex (make-mutex))
+
+(define (make-timer)
+  the-timer)
+
+(define (timeofday->us t)
+  (+ (* 1000000 (car t)) (cdr t)))
+
+(define (us->timeofday n)
+  (cons (quotient n 1000000)
+	(remainder n 1000000)))
+
+(define-method (? (ch <timer-channel>))
+  (timeofday->us (gettimeofday)))
+
+(define-method (? (ch <timer-channel>) (t <integer>))
+  (lock-mutex timer-mutex)
+  (wait-condition-variable timer-cv timer-mutex (us->timeofday t))
+  (unlock-mutex timer-mutex))
+
