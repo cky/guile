@@ -3590,7 +3590,7 @@ scm_max (SCM x, SCM y)
 	}
       else if (SCM_BIGP (y))
 	{
-          SCM t = x; x = y; y = t;
+          SCM_SWAP (x, y);
           goto big_real;
 	}
       else if (SCM_REALP (y))
@@ -3722,7 +3722,7 @@ scm_min (SCM x, SCM y)
 	}
       else if (SCM_BIGP (y))
 	{
-          SCM t = x; x = y; y = t;
+          SCM_SWAP (x, y);
           goto big_real;
 	}
       else if (SCM_REALP (y))
