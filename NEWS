@@ -19,6 +19,21 @@ compare their values.  This is no longer done.  Variables are now only
 This function creates a scheme string from a 0-terminated C string.  The input
 string is copied.
 
+** Declarations of exported features are marked with SCM_API.
+
+Every declaration of a feature that belongs to the exported Guile API
+has been marked by adding the macro "SCM_API" to the start of the
+declaration.  This macro can expand into different things, the most
+common of which is just "extern" for Unix platforms.  On Win32, it can
+be used to control which symbols are exported from a DLL.
+
+If you `#define __SCM_IMPORT__' before including <libguile.h>, SCM_API
+will expand into "__declspec (dllimport) extern", which is needed for
+linking to the Guile DLL in Windows.
+
+There are also __SCM_RL_IMPORT__, __SCM_SRFI1314_IMPORT__, and
+__SCM_SRFI4_IMPORT__, for the corresponding libraries.
+
 Changes since Guile 1.4:
 
 * Changes to the distribution

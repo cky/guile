@@ -5,6 +5,10 @@ The Guile maintainer committee consists of
 
 Contributors since the last release:
 
+	    Rob Browning
+         Stefan Jahn
+      Thien-Thi Nguyen
+
 For fixes or providing information which led to a fix:
 
 	 Martin Baulig
