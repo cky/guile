@@ -11,10 +11,10 @@ Revised$^5$
 @ifnottex
 Revised^5
 @end ifnottex
-Report on the Algorithmic Language Scheme (usually known as R5RS),
+Report on the Algorithmic Language Scheme (usually known as @acronym{R5RS}),
 providing clean and general data and control structures.  Guile goes
-beyond the rather austere language presented in R5RS, extending it with
-a module system, full access to POSIX system calls, networking support,
+beyond the rather austere language presented in @acronym{R5RS}, extending it with
+a module system, full access to @acronym{POSIX} system calls, networking support,
 multiple threads, dynamic linking, a foreign function call interface,
 powerful string processing, and many other features needed for
 programming in the real world.
@@ -24,7 +24,7 @@ user, evaluating them, and displaying the results, or as a script
 interpreter, reading and executing Scheme code from a file.  However,
 Guile is also packaged as an object library, allowing other applications
 to easily incorporate a complete Scheme interpreter.  An application can
-use Guile as an extension language, a clean and powerful configuration
+then use Guile as an extension language, a clean and powerful configuration
 language, or as multi-purpose ``glue'', connecting primitives provided
 by the application.  It is easy to call Scheme code from C code and vice
 versa, giving the application designer full control of how and when to
@@ -34,13 +34,13 @@ language tailored to the task at hand, but based on a robust language
 design.
 
 Guile's module system allows one to break up a large program into
-manageable sections with well-defined interfaces between them.  Modules
-may contain a mixture of interpreted and compiled code; Guile can use
-either static or dynamic linking to incorporate compiled code.  Modules
-also encourage developers to package up useful collections of routines
-for general distribution; as of this writing, one can find Emacs
-interfaces, database access routines, compilers, GUI toolkit interfaces,
-and HTTP client functions, among others.
+manageable sections with well-defined interfaces between them.
+Modules may contain a mixture of interpreted and compiled code; Guile
+can use either static or dynamic linking to incorporate compiled code.
+Modules also encourage developers to package up useful collections of
+routines for general distribution; as of this writing, one can find
+Emacs interfaces, database access routines, compilers, @acronym{GUI}
+toolkit interfaces, and @acronym{HTTP} client functions, among others.
 
 In the future, we hope to expand Guile to support other languages like
 Tcl and Perl by translating them to Scheme code.  This means that users
