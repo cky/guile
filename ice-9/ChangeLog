@@ -1,3 +1,11 @@
+2003-03-26  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* deprecated.scm: New file, to collect deprecated things.
+	* Makefile.am (ice9_sources): Added.
+
+	* boot-9.scm: Load "ice-9/deprecated.scm" when appropriate.
+	(try-load-module): Also try the old deprecated method, maybe.
+	
 2003-03-22  Marius Vollmer  <mvo@zagadka.de>
 
 	* boot-9.scm (call/cc): Added.
