@@ -133,7 +133,7 @@ scm_i_init_rstate (scm_t_i_rstate *state, const char *seed, int n)
       else
         c += seed[i] << (8 * (m - 4));
     }
-  if ((w == 0 && c == 0) || (w == 0xffffffffUL && c == A - 1))
+  if ((w == 0 && c == 0) || (w == -1 && c == A - 1))
     ++c;
   state->w = w;
   state->c = c;
