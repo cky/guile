@@ -51,6 +51,8 @@
 #include <stdio.h>
 #include <sys/types.h>
 
+#include "_scm.h"
+
 /* Supposedly, this file is never compiled unless we know we have
    POSIX regular expressions.  But we still put this in an #ifdef so
    the file is CPP'able (for dependency scanning) even on systems that
@@ -59,7 +61,6 @@
 #include <regex.h>
 #endif 
 
-#include "_scm.h"
 #include "smob.h"
 #include "symbols.h"
 #include "vectors.h"
