@@ -1,3 +1,12 @@
+Tue Jan  7 18:11:24 1997  Jim Blandy  <jimb@floss.cyclic.com>
+
+	* simpos.c (SYSTNAME): Add case for AIX; otherwise it won't
+ 	compile.  I have a feeling this function is a bad idea anyway ---
+ 	one should always test for features, not systems.
+
+	* smob.h (SCM_SMOBNUM, SCM_PTOBNUM): Remove extraneous
+	semicolons.  Only pure luck kept this from being noticed earlier.
+
 Tue Jan  7 15:04:06 1997  Mikael Djurfeldt  <mdj@kenneth>
 
 	* socket.c (scm_recvfrom): Added missing semicolon.
