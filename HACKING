@@ -22,8 +22,8 @@ You can hack whatever you want, thank GNU.
 
 However, to see what others have indicated as their interest (and avoid
 potential wasteful duplication of effort), see file TODO.  Note that
-the version you find may be out of date; a CVS checkout is recommended
-(see also file SNAPSHOTS).
+the version you find may be out of date; a CVS checkout is recommended:
+see below for details (see also file SNAPSHOTS).
 
 It's also a good idea to join the guile-devel@gnu.org mailing list.
 See http://www.gnu.org/software/guile/mail/mail.html for more info.
@@ -31,43 +31,42 @@ See http://www.gnu.org/software/guile/mail/mail.html for more info.
 
 Hacking It Yourself ==================================================
 
-As distributed, Guile needs only an ANSI C compiler and a Unix system
-to compile.  However, Guile's makefiles, configuration scripts, and a
-few other files are automatically generated, not written by hand.  If
-you want to make changes to the system (which we encourage!) you will
-find it helpful to have the tools we use to develop Guile.  They
-are the following:
+When Guile is obtained from CVS, a few extra steps must be taken
+before the usual configure, make, make install.  You will need to have
+up-to-date versions of the tools listed below, correctly installed.
+i.e., they must be found in the current PATH and not shadowed or
+otherwise broken by files left behind from older versions.
 
-Autoconf 2.50 --- a system for automatically generating `configure'
+"up-to-date" means the latest released versions at the time that Guile
+was obtained from CVS.  Sometimes older versions will work.
+
+Then you must run the autogen.sh script, as described below.
+
+In case of problems, it may be worth getting a fresh copy of Guile
+from CVS: synchronisation problems have been known to occur
+occasionally.
+
+Autoconf --- a system for automatically generating `configure'
 	scripts from templates which list the non-portable features a
 	program would like to use.  Available in
 	"ftp://ftp.gnu.org/pub/gnu/autoconf"
 
-Automake 1.4-p4 --- a system for automatically generating Makefiles that
+Automake --- a system for automatically generating Makefiles that
 	conform to the (rather Byzantine) GNU coding standards.  The
 	nice thing is that it takes care of hairy targets like 'make
 	dist' and 'make distclean', and automatically generates
 	Makefile dependencies.  Automake is available in
 	"ftp://ftp.gnu.org/pub/gnu/automake"
 
-	Before using automake, you may need to copy `threads.m4' and
-	`guile.m4' from the top directory of the Guile core disty to
-	`/usr/local/share/aclocal'.
-
-libtool 1.4 --- a system for managing the zillion hairy options needed
+libtool --- a system for managing the zillion hairy options needed
 	on various systems to produce shared libraries.  Available in
 	"ftp://ftp.gnu.org/pub/gnu/libtool"
 
-	To avoid reported tricky errors during the Guile build: After
-	unpacking the libtool distribution, use autoconf (2.50) to
-	regenerate its ./configure script.  Then build and install as
-	usual.
+flex --- a scanner generator.  It's probably not essential to have the
+        latest version.
 
-flex 2.5.4 (or newer) --- a scanner generator.  earlier versions will
-        most probably work too.
-
-You are lost in a little maze of automatically generated files, all
-different.
+One false move and you will be lost in a little maze of automatically
+generated files, all different.
 
 
 Sample GDB Initialization File=========================================

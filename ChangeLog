@@ -1,3 +1,8 @@
+2001-11-22  Gary Houston  <ghouston@arglist.com>
+
+	* HACKING: Modified the Hacking It Yourself section.  Removed the
+	version numbers from the tools.
+
 2001-11-21  Gary Houston  <ghouston@arglist.com>
 
 	* HACKING: Removed reference to no longer practiced * in ChangeLog
