@@ -3546,8 +3546,8 @@ scm_max (SCM x, SCM y)
 	}
       else if (SCM_FRACTIONP (y))
 	{
-	  double z = xx;
-	  return (z > scm_i_fraction2double (y)) ? x : y;
+        use_less:
+          return (SCM_FALSEP (scm_less_p (x, y)) ? x : y);
 	}
       else
 	SCM_WTA_DISPATCH_2 (g_max, x, y, SCM_ARGn, s_max);
@@ -3577,11 +3577,7 @@ scm_max (SCM x, SCM y)
 	}
       else if (SCM_FRACTIONP (y))
 	{
-	  double yy = scm_i_fraction2double (y);
-	  int cmp;
-	  cmp = xmpz_cmp_d (SCM_I_BIG_MPZ (x), yy);
-	  scm_remember_upto_here_1 (x);
-	  return (cmp > 0) ? x : y;
+          goto use_less;
 	}
       else
 	SCM_WTA_DISPATCH_2 (g_max, x, y, SCM_ARGn, s_max);
@@ -3621,16 +3617,11 @@ scm_max (SCM x, SCM y)
     {
       if (SCM_INUMP (y))
 	{
-	  double z = SCM_INUM (y);
-	  return (scm_i_fraction2double (x) < z) ? y : x;
+          goto use_less;
 	}
       else if (SCM_BIGP (y))
 	{
-	  double xx = scm_i_fraction2double (x);
-	  int cmp;
-	  cmp = xmpz_cmp_d (SCM_I_BIG_MPZ (y), xx);
-	  scm_remember_upto_here_1 (y);
-	  return (cmp < 0) ? x : y;
+          goto use_less;
 	}
       else if (SCM_REALP (y))
 	{
@@ -3639,9 +3630,7 @@ scm_max (SCM x, SCM y)
 	}
       else if (SCM_FRACTIONP (y))
 	{
-	  double yy = scm_i_fraction2double (y);
-	  double xx = scm_i_fraction2double (x);
-	  return (xx < yy) ? y : x;
+          goto use_less;
 	}
       else
 	SCM_WTA_DISPATCH_2 (g_max, x, y, SCM_ARGn, s_max);
@@ -3689,8 +3678,8 @@ scm_min (SCM x, SCM y)
 	}
       else if (SCM_FRACTIONP (y))
 	{
-	  double z = xx;
-	  return (z < scm_i_fraction2double (y)) ? x : y;
+        use_less:
+          return (SCM_FALSEP (scm_less_p (x, y)) ? y : x);
 	}
       else
 	SCM_WTA_DISPATCH_2 (g_min, x, y, SCM_ARGn, s_min);
@@ -3720,11 +3709,7 @@ scm_min (SCM x, SCM y)
 	}
       else if (SCM_FRACTIONP (y))
 	{
-	  double yy = scm_i_fraction2double (y);
-	  int cmp;
-	  cmp = xmpz_cmp_d (SCM_I_BIG_MPZ (x), yy);
-	  scm_remember_upto_here_1 (x);
-	  return (cmp > 0) ? y : x;
+          goto use_less;
 	}
       else
 	SCM_WTA_DISPATCH_2 (g_min, x, y, SCM_ARGn, s_min);
@@ -3764,16 +3749,11 @@ scm_min (SCM x, SCM y)
     {
       if (SCM_INUMP (y))
 	{
-	  double z = SCM_INUM (y);
-	  return (scm_i_fraction2double (x) < z) ? x : y;
+          goto use_less;
 	}
       else if (SCM_BIGP (y))
 	{
-	  double xx = scm_i_fraction2double (x);
-	  int cmp;
-	  cmp = xmpz_cmp_d (SCM_I_BIG_MPZ (y), xx);
-	  scm_remember_upto_here_1 (y);
-	  return (cmp < 0) ? y : x;
+          goto use_less;
 	}
       else if (SCM_REALP (y))
 	{
@@ -3782,9 +3762,7 @@ scm_min (SCM x, SCM y)
 	}
       else if (SCM_FRACTIONP (y))
 	{
-	  double yy = scm_i_fraction2double (y);
-	  double xx = scm_i_fraction2double (x);
-	  return (xx < yy) ? x : y;
+          goto use_less;
 	}
       else
 	SCM_WTA_DISPATCH_2 (g_max, x, y, SCM_ARGn, s_max);
