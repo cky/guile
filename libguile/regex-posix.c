@@ -87,7 +87,7 @@
 
 long scm_tc16_regex_t;
 
-static scm_size_t
+static scm_sizet
 scm_free_regex_t (obj)
      SCM obj;
 {
