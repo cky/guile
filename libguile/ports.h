@@ -138,16 +138,16 @@ extern int scm_port_table_size; /* Number of ports in scm_port_table.  */
 
 typedef struct scm_ptobfuns
 {
-  SCM (*mark) ();
-  int (*free) ();
-  int (*print) ();
-  SCM (*equalp) ();
-  int (*fputc) ();
-  int (*fputs) ();
-  scm_sizet (*fwrite) ();
-  int (*fflush) ();
-  int (*fgetc) ();
-  int (*fclose) ();
+  SCM (*mark) SCM_P ((SCM));
+  int (*free) SCM_P ((SCM));
+  int (*print) SCM_P ((SCM exp, SCM port, scm_print_state *pstate));
+  SCM (*equalp) SCM_P ((SCM, SCM));
+  int (*fputc) SCM_P ((int, SCM stream));
+  int (*fputs) SCM_P ((char *, SCM stream));
+  scm_sizet (*fwrite) SCM_P ((char *ptr, scm_sizet size, scm_sizet nitems, SCM stream));
+  int (*fflush) SCM_P ((SCM stream));
+  int (*fgetc) SCM_P ((SCM stream));
+  int (*fclose) SCM_P ((SCM stream));
 } scm_ptobfuns;
 
 #define SCM_PTOBNUM(x) (0x0ff & (SCM_CAR(x)>>8));
@@ -159,93 +159,42 @@ extern scm_sizet scm_numptob;
 extern int scm_port_table_room;
 
 
-#ifdef __STDC__
-extern SCM scm_markstream (SCM ptr);
-extern long scm_newptob (scm_ptobfuns *ptob);
-extern void scm_fflush (SCM port);
-extern SCM scm_char_ready_p (SCM port);
-extern SCM scm_ungetc_char_ready_p (SCM port);
-extern SCM scm_current_input_port (void);
-extern SCM scm_current_output_port (void);
-extern SCM scm_current_error_port (void);
-extern SCM scm_set_current_input_port (SCM port);
-extern SCM scm_set_current_output_port (SCM port);
-extern SCM scm_set_current_error_port (SCM port);
-extern struct scm_port_table * scm_add_to_port_table (SCM port);
-extern void scm_remove_from_port_table (SCM port);
-extern SCM scm_pt_size (void);
-extern SCM scm_pt_member (SCM member);
-extern int scm_revealed_count (SCM port);
-extern SCM scm_port_revealed (SCM port);
-extern SCM scm_set_port_revealed_x (SCM port, SCM rcount);
-extern SCM scm_close_port (SCM port);
-extern SCM scm_close_all_ports_except (SCM ports);
-extern SCM scm_input_port_p (SCM x);
-extern SCM scm_output_port_p (SCM x);
-extern SCM scm_eof_object_p (SCM x);
-extern SCM scm_force_output (SCM port);
-extern SCM scm_read_char (SCM port);
-extern SCM scm_peek_char (SCM port);
-extern SCM scm_unread_char (SCM cobj, SCM port);
-extern SCM scm_port_line (SCM port);
-extern SCM scm_port_column (SCM port);
-extern SCM scm_port_filename (SCM port);
-extern SCM scm_set_port_filename_x (SCM port, SCM filename);
-extern void scm_prinport (SCM exp, SCM port, char *type);
-extern void scm_ports_prehistory (void);
-extern SCM scm_void_port (char * mode_str);
-extern SCM scm_sys_make_void_port (SCM mode);
-extern void scm_init_ports (void);
 
-#else /* STDC */
-extern SCM scm_markstream ();
-extern long scm_newptob ();
-extern void scm_fflush ();
-extern SCM scm_char_ready_p ();
-extern SCM scm_ungetc_char_ready_p ();
-extern SCM scm_current_input_port ();
-extern SCM scm_current_output_port ();
-extern SCM scm_current_error_port ();
-extern SCM scm_set_current_input_port ();
-extern SCM scm_set_current_output_port ();
-extern SCM scm_set_current_error_port ();
-extern struct scm_port_table * scm_add_to_port_table ();
-extern void scm_remove_from_port_table ();
-extern SCM scm_pt_size ();
-extern SCM scm_pt_member ();
-extern int scm_revealed_count ();
-extern SCM scm_port_revealed ();
-extern SCM scm_set_port_revealed_x ();
-extern SCM scm_close_port ();
-extern SCM scm_close_all_ports_except ();
-extern SCM scm_input_port_p ();
-extern SCM scm_output_port_p ();
-extern SCM scm_eof_object_p ();
-extern SCM scm_force_output ();
-extern SCM scm_read_char ();
-extern SCM scm_peek_char ();
-extern SCM scm_unread_char ();
-extern SCM scm_port_line ();
-extern SCM scm_port_column ();
-extern SCM scm_port_filename ();
-extern SCM scm_set_port_filename_x ();
-extern void scm_prinport ();
-extern void scm_ports_prehistory ();
-extern SCM scm_void_port ();
-extern SCM scm_sys_make_void_port ();
-extern void scm_init_ports ();
-
-#endif /* STDC */
-
-
-
-
-
-
-
-
-
-
-
+extern SCM scm_markstream SCM_P ((SCM ptr));
+extern long scm_newptob SCM_P ((scm_ptobfuns *ptob));
+extern void scm_fflush SCM_P ((SCM port));
+extern SCM scm_char_ready_p SCM_P ((SCM port));
+extern SCM scm_ungetc_char_ready_p SCM_P ((SCM port));
+extern SCM scm_current_input_port SCM_P ((void));
+extern SCM scm_current_output_port SCM_P ((void));
+extern SCM scm_current_error_port SCM_P ((void));
+extern SCM scm_set_current_input_port SCM_P ((SCM port));
+extern SCM scm_set_current_output_port SCM_P ((SCM port));
+extern SCM scm_set_current_error_port SCM_P ((SCM port));
+extern struct scm_port_table * scm_add_to_port_table SCM_P ((SCM port));
+extern void scm_remove_from_port_table SCM_P ((SCM port));
+extern SCM scm_pt_size SCM_P ((void));
+extern SCM scm_pt_member SCM_P ((SCM member));
+extern int scm_revealed_count SCM_P ((SCM port));
+extern SCM scm_port_revealed SCM_P ((SCM port));
+extern SCM scm_set_port_revealed_x SCM_P ((SCM port, SCM rcount));
+extern SCM scm_close_port SCM_P ((SCM port));
+extern SCM scm_close_all_ports_except SCM_P ((SCM ports));
+extern SCM scm_input_port_p SCM_P ((SCM x));
+extern SCM scm_output_port_p SCM_P ((SCM x));
+extern SCM scm_eof_object_p SCM_P ((SCM x));
+extern SCM scm_force_output SCM_P ((SCM port));
+extern SCM scm_read_char SCM_P ((SCM port));
+extern SCM scm_peek_char SCM_P ((SCM port));
+extern SCM scm_unread_char SCM_P ((SCM cobj, SCM port));
+extern SCM scm_port_line SCM_P ((SCM port));
+extern SCM scm_port_column SCM_P ((SCM port));
+extern SCM scm_port_filename SCM_P ((SCM port));
+extern SCM scm_set_port_filename_x SCM_P ((SCM port, SCM filename));
+extern void scm_prinport SCM_P ((SCM exp, SCM port, char *type));
+extern void scm_ports_prehistory SCM_P ((void));
+extern SCM scm_void_port SCM_P ((char * mode_str));
+extern SCM scm_sys_make_void_port SCM_P ((SCM mode));
+extern void scm_init_ports SCM_P ((void));
 
 #endif  /* PORTSH */

@@ -265,33 +265,17 @@ typedef int GSCM_status;
 
 
 
-#ifdef __STDC__
-extern GSCM_status gscm_seval_str (SCM *answer, GSCM_top_level toplvl, char * str);
-extern GSCM_status gscm_seval_file (SCM *answer, GSCM_top_level toplvl, char * file_name);
-extern GSCM_status gscm_eval_str (char ** answer, GSCM_top_level toplvl, char * str);
-extern GSCM_status gscm_eval_file (char ** answer, GSCM_top_level toplvl, char * file_name);
-extern GSCM_status gscm_run_scm (int argc, char ** argv, FILE * in, FILE * out, FILE * err, GSCM_status (*initfn)(), char * initfile, char * initcmd);
-extern char * gscm_error_msg (int n);
-extern SCM gscm_make_subr (SCM (*fn)(), int req, int opt, int varp, char * doc);
-extern int gscm_2_char (SCM c);
-extern void gscm_2_str (char ** out, int * len_out, SCM * objp);
-extern void gscm_error (char * message, SCM args);
-extern void scm_init_guile (void);
+extern GSCM_status gscm_seval_str SCM_P ((SCM *answer, GSCM_top_level toplvl, char * str));
+extern GSCM_status gscm_seval_file SCM_P ((SCM *answer, GSCM_top_level toplvl, char * file_name));
+extern GSCM_status gscm_eval_str SCM_P ((char ** answer, GSCM_top_level toplvl, char * str));
+extern GSCM_status gscm_eval_file SCM_P ((char ** answer, GSCM_top_level toplvl, char * file_name));
+extern GSCM_status gscm_run_scm SCM_P ((int argc, char ** argv, FILE * in, FILE * out, FILE * err, GSCM_status (*initfn)(void), char * initfile, char * initcmd));
+extern char * gscm_error_msg SCM_P ((int n));
+extern SCM gscm_make_subr SCM_P ((SCM (*fn)(), int req, int opt, int varp, char * doc));
+extern int gscm_2_char SCM_P ((SCM c));
+extern void gscm_2_str SCM_P ((char ** out, int * len_out, SCM * objp));
+extern void gscm_error SCM_P ((char * message, SCM args));
+extern void scm_init_guile SCM_P ((void));
 
-#else /* STDC */
-extern GSCM_status gscm_seval_str ();
-extern void format_load_command ();
-extern GSCM_status gscm_seval_file ();
-extern GSCM_status gscm_eval_str ();
-extern GSCM_status gscm_eval_file ();
-extern char * gscm_error_msg ();
-extern SCM gscm_make_subr ();
-extern int gscm_2_char ();
-extern void gscm_2_str ();
-extern void gscm_error ();
-extern GSCM_status gscm_run_scm ();
-extern void scm_init_guile ();
-
-#endif /* STDC */
 #endif  /* GSCMH */
 

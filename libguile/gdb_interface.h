@@ -20,6 +20,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 The author can be reached at djurfeldt@nada.kth.se
 Mikael Djurfeldt, SANS/NADA KTH, 10044 STOCKHOLM, SWEDEN  */
 
+#ifndef GDB_INTERFACE_H
+#define GDB_INTERFACE_H
+
 /* This is the header file for GDB's interpreter interface.  The
    interpreter must supply definitions of all symbols declared in this
    file.
@@ -74,8 +77,6 @@ extern char *gdb_output;
 
 extern int gdb_output_length;
 
-#ifdef __STDC__
-
 /* Return TRUE if the interpreter regards VALUE's type as valid.  A
    lazy implementation is allowed to pass TRUE always.  FALSE should
    only be returned when it is certain that VALUE is not valid.
@@ -83,7 +84,7 @@ extern int gdb_output_length;
    In the "lisp/c" language mode, this is used to heuristically
    discriminate lisp values from C values during printing. */
 
-extern int gdb_maybe_valid_type_p (GDB_TYPE value);
+extern int gdb_maybe_valid_type_p SCM_P ((GDB_TYPE value));
 
 /* Parse expression in string STR.  Store result in GDB_RESULT, then
    return 0 to indicate success.  On error, return -1 to indicate
@@ -92,7 +93,7 @@ extern int gdb_maybe_valid_type_p (GDB_TYPE value);
    no message is passed.  Please note that the resulting value should
    be protected against garbage collection. */
 
-extern int gdb_read (char *str);
+extern int gdb_read SCM_P ((char *str));
 
 /* Evaluate expression EXP.  Store result in GDB_RESULT, then return 0
    to indicate success.  On error, return -1 to indicate failure.  Any
@@ -101,7 +102,7 @@ extern int gdb_read (char *str);
    if no output is passed.  Please note that the resulting lisp object
    should be protected against garbage collection. */
 
-extern int gdb_eval (GDB_TYPE exp);
+extern int gdb_eval SCM_P ((GDB_TYPE exp));
 
 /* Print VALUE.  Store output in GDB_OUTPUT and GDB_OUTPUT_LENGTH.
    Return 0 to indicate success.  On error, return -1 to indicate
@@ -109,7 +110,7 @@ extern int gdb_eval (GDB_TYPE exp);
    failure.  Note that this function should be robust against strange
    values.  It could in fact be passed any kind of value. */
 
-extern int gdb_print (GDB_TYPE value);
+extern int gdb_print SCM_P ((GDB_TYPE value));
 
 /* Bind NAME to VALUE in interpreter.  (GDB has previously obtained
    NAME by passing a string to gdb_read.)  Return 0 to indicate
@@ -121,18 +122,6 @@ extern int gdb_print (GDB_TYPE value);
    For scheme interpreters, this function should introduce top-level
    bindings. */
 
-extern int gdb_binding (GDB_TYPE name, GDB_TYPE value);
+extern int gdb_binding SCM_P ((GDB_TYPE name, GDB_TYPE value));
 
-#else
-
-extern int gdb_maybe_valid_type_p ();
-
-extern int gdb_read ();
-
-extern int gdb_eval ();
-
-extern int gdb_print ();
-
-extern int gdb_binding ();
-
-#endif /* __STDC__ */
+#endif /* GDB_INTERFACE_H */

@@ -52,30 +52,26 @@
 
 
 
-#ifdef __STDC__
-static void 
-scm_putc (int c, SCM port)
-#else
+
+static void scm_putc SCM_P ((int c, SCM port));
+
 static void 
 scm_putc (c, port)
      int c;
      SCM port;
-#endif
 {
   scm_sizet i = SCM_PTOBNUM (port);
   SCM_SYSCALL ((scm_ptobs[i].fputc) (c, SCM_STREAM (port)));
 }
 
 
-#ifdef __STDC__
-static void 
-scm_puts (char *s, SCM port)
-#else
+
+static void scm_puts SCM_P ((char *s, SCM port));
+
 static void 
 scm_puts (s, port)
      char *s;
      SCM port;
-#endif
 {
   scm_sizet i = SCM_PTOBNUM (port);
   SCM_SYSCALL ((scm_ptobs[i].fputs) (s, SCM_STREAM (port)));
@@ -86,17 +82,15 @@ scm_puts (s, port)
 }
 
 
-#ifdef __STDC__
-static int 
-scm_lfwrite (char *ptr, scm_sizet size, scm_sizet nitems, SCM port)
-#else
+
+static int scm_lfwrite SCM_P ((char *ptr, scm_sizet size, scm_sizet nitems, SCM port));
+
 static int 
 scm_lfwrite (ptr, size, nitems, port)
      char *ptr;
      scm_sizet size;
      scm_sizet nitems;
      SCM port;
-#endif
 {
   int ret;
   scm_sizet i = SCM_PTOBNUM (port);
@@ -111,15 +105,11 @@ scm_lfwrite (ptr, size, nitems, port)
 
 
 
-#ifdef __STDC__
-void
-scm_gen_putc (int c, SCM port)
-#else
+
 void
 scm_gen_putc (c, port)
      int c;
      SCM port;
-#endif
 {
   switch (SCM_PORT_REPRESENTATION (port))
     {
@@ -168,18 +158,12 @@ scm_gen_putc (c, port)
 
 
 
-#ifdef __STDC__
-void
-scm_gen_puts (enum scm_string_representation_type rep,
-	      char *str_data,
-	      SCM port)
-#else
+
 void
 scm_gen_puts (rep, str_data, port)
      enum scm_string_representation_type rep;
-     unsigned char *str_data;
+     char *str_data;
      SCM port;
-#endif
 {
   switch (rep)
     {
@@ -285,17 +269,13 @@ scm_gen_puts (rep, str_data, port)
 
 
 
-#ifdef __STDC__
-void
-scm_gen_write (enum scm_string_representation_type rep, char *str_data, scm_sizet nitems, SCM port)
-#else
+
 void
 scm_gen_write (rep, str_data, nitems, port)
      enum scm_string_representation_type rep;
      char *str_data;
      scm_sizet nitems;
      SCM port;
-#endif
 {
   /* is nitems bytes or characters in the mb_string case? */
 
@@ -401,33 +381,27 @@ scm_gen_write (rep, str_data, nitems, port)
 
 
 
-#ifdef __STDC__
-static int 
-scm_getc (SCM port)
-#else
+
+static int scm_getc SCM_P ((SCM port));
+
 static int 
 scm_getc (port)
      SCM port;
-#endif
 {
-  FILE *f;
+  SCM f;
   int c;
   scm_sizet i;
 
-  f = (FILE *)SCM_STREAM (port);
+  f = SCM_STREAM (port);
   i = SCM_PTOBNUM (port);
   SCM_SYSCALL (c = (scm_ptobs[i].fgetc) (f));
   return c;
 }
 
-#ifdef __STDC__
-int 
-scm_gen_getc (SCM port)
-#else
+
 int 
 scm_gen_getc (port)
      SCM port;
-#endif
 {
   int c;
 
@@ -512,15 +486,11 @@ scm_gen_getc (port)
     }
 }
 
-#ifdef __STDC__
-void 
-scm_gen_ungetc (int c, SCM port)
-#else
+
 void 
 scm_gen_ungetc (c, port)
      int c;
      SCM port;
-#endif
 {
 /*	SCM_ASSERT(!SCM_CRDYP(port), port, SCM_ARG2, "too many scm_gen_ungetc");*/
   SCM_CUNGET (c, port);

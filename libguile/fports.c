@@ -88,14 +88,10 @@ scm_sizet fwrite ();
  */
 
 /* should be called with SCM_DEFER_INTS active */
-#ifdef __STDC__
-SCM 
-scm_setbuf0 (SCM port)
-#else
+
 SCM 
 scm_setbuf0 (port)
      SCM port;
-#endif
 {
 #ifndef NOSETBUF
 #ifndef MSDOS
@@ -114,14 +110,10 @@ scm_setbuf0 (port)
  *
  * See PORT FLAGS in scm.h
  */
-#ifdef __STDC__
-long
-scm_mode_bits (char *modes)
-#else
+
 long
 scm_mode_bits (modes)
      char *modes;
-#endif
 {
   return (SCM_OPN
 	  | (strchr (modes, 'r') || strchr (modes, '+') ? SCM_RDNG : 0)
@@ -141,15 +133,11 @@ scm_mode_bits (modes)
  * Return the new port.
  */
 SCM_PROC(s_open_file, "open-file", 2, 0, 0, scm_open_file);
-#ifdef __STDC__
-SCM
-scm_open_file (SCM filename, SCM modes)
-#else
+
 SCM
 scm_open_file (filename, modes)
      SCM filename;
      SCM modes;
-#endif
 {
   SCM port;
   FILE *f;
@@ -197,14 +185,10 @@ scm_open_file (filename, modes)
  */
 
 SCM_PROC(s_port_mode, "port-mode", 1, 0, 0, scm_port_mode);
-#ifdef __STDC__
-SCM
-scm_port_mode (SCM port)
-#else
+
 SCM
 scm_port_mode (port)
      SCM port;
-#endif
 {
   char modes[3];
   modes[0] = '\0';
@@ -223,16 +207,14 @@ scm_port_mode (port)
 }
 
 
-#ifdef __STDC__
+
+static int prinfport SCM_P ((SCM exp, SCM port, scm_print_state *pstate));
+
 static int 
-prinfport (SCM exp, SCM port, int writing)
-#else
-static int 
-prinfport (exp, port, writing)
+prinfport (exp, port, pstate)
      SCM exp;
      SCM port;
-     int writing;
-#endif
+     scm_print_state *pstate;
 {
   SCM name;
   char * c;
@@ -254,14 +236,12 @@ prinfport (exp, port, writing)
 }
 
 
-#ifdef __STDC__
-static int
-scm_fgetc (FILE * s)
-#else
+
+static int scm_fgetc SCM_P ((FILE * s));
+
 static int
 scm_fgetc (s)
      FILE * s;
-#endif
 {
   if (feof (s))
     return EOF;
@@ -270,16 +250,14 @@ scm_fgetc (s)
 }
 
 #ifdef vms
-#ifdef __STDC__
-static scm_sizet 
-pwrite (char *ptr, scm_sizet size, nitems, FILE *port)
-#else
+
+static scm_sizet pwrite SCM_P ((char *ptr, scm_sizet size, nitems, FILE *port));
+
 static scm_sizet 
 pwrite (ptr, size, nitems, port)
      char *ptr;
      scm_sizet size, nitems;
      FILE *port;
-#endif
 {
   scm_sizet len = size * nitems;
   scm_sizet i = 0;
@@ -297,6 +275,9 @@ pwrite (ptr, size, nitems, port)
 /* This otherwise pointless code helps some poor 
  * crippled C compilers cope with life. 
  */
+
+static int local_fclose SCM_P ((FILE *fp));
+
 static int
 local_fclose (fp)
      FILE * fp;
@@ -304,12 +285,16 @@ local_fclose (fp)
   return fclose (fp);
 }
 
+static int local_fflush SCM_P ((FILE *fp));
+
 static int
 local_fflush (fp)
      FILE * fp;
 {
   return fflush (fp);
 }
+
+static int local_fputc SCM_P ((int c, FILE *fp));
 
 static int
 local_fputc (c, fp)
@@ -319,6 +304,8 @@ local_fputc (c, fp)
   return fputc (c, fp);
 }
 
+static int local_fputs SCM_P ((char *s, FILE *fp));
+
 static int
 local_fputs (s, fp)
      char * s;
@@ -326,6 +313,8 @@ local_fputs (s, fp)
 {
   return fputs (s, fp);
 }
+
+static scm_sizet local_ffwrite SCM_P ((void *ptr, int size, int nitems, FILE *fp));
 
 static scm_sizet
 local_ffwrite (ptr, size, nitems, fp)
@@ -341,15 +330,15 @@ local_ffwrite (ptr, size, nitems, fp)
 scm_ptobfuns scm_fptob =
 {
   scm_mark0,
-  local_fclose,
+  (int (*) SCM_P ((SCM))) local_fclose,
   prinfport,
   0,
-  local_fputc,
-  local_fputs,
-  local_ffwrite,
-  local_fflush,
-  scm_fgetc,
-  local_fclose
+  (int (*) SCM_P ((int, SCM))) local_fputc,
+  (int (*) SCM_P ((char *, SCM))) local_fputs,
+  (scm_sizet (*) SCM_P ((char *, scm_sizet, scm_sizet, SCM))) local_ffwrite,
+  (int (*) SCM_P ((SCM))) local_fflush,
+  (int (*) SCM_P ((SCM))) scm_fgetc,
+  (int (*) SCM_P ((SCM))) local_fclose
 };
 
 /* {Pipe ports}
@@ -360,23 +349,16 @@ scm_ptobfuns scm_pipob =
   0, 				/* replaced by pclose in scm_init_ioext() */
   0, 				/* replaced by prinpipe in scm_init_ioext() */
   0,
-  local_fputc,
-  local_fputs,
-  local_ffwrite,
-  local_fflush,
-  scm_fgetc,
+  (int (*) SCM_P ((int, SCM))) local_fputc,
+  (int (*) SCM_P ((char *, SCM))) local_fputs,
+  (scm_sizet (*) SCM_P ((char *, scm_sizet, scm_sizet, SCM))) local_ffwrite,
+  (int (*) SCM_P ((SCM))) local_fflush,
+  (int (*) SCM_P ((SCM))) scm_fgetc,
   0
 };				/* replaced by pclose in scm_init_ioext() */
 
-
-#ifdef __STDC__
-void
-scm_init_fports (void)
-#else
 void
 scm_init_fports ()
-#endif
 {
 #include "fports.x"
 }
-
