@@ -194,10 +194,16 @@ scm_run_hook (SCM hook, SCM args)
     scm_misc_error (s_add_hook_x,
 		    "This hook requires %s arguments",
 		    SCM_LIST1 (SCM_CADR (hook)));
+  scm_c_run_hook (hook, args);
+  return SCM_UNSPECIFIED;
+}
+
+void
+scm_c_run_hook (SCM hook, SCM args)
+{
   hook = SCM_CDR (hook);
   while (SCM_NIMP (hook = SCM_CDR (hook)))
     scm_apply (SCM_CAR (hook), args, SCM_EOL);
-  return SCM_UNSPECIFIED;
 }
 
 

@@ -55,6 +55,7 @@ extern SCM scm_add_hook_x (SCM hook, SCM thunk, SCM appendp);
 extern SCM scm_remove_hook_x (SCM hook, SCM thunk);
 extern SCM scm_reset_hook_x (SCM hook);
 extern SCM scm_run_hook (SCM hook, SCM args);
+extern void scm_c_run_hook (SCM hook, SCM args);
 extern void scm_init_feature (void);
 
 #endif  /* FEATUREH */
