@@ -103,6 +103,13 @@ become command-line arguments for the interactive session; the
 @code{(@var{guile} @var{arg...})}, where @var{guile} is the path of the
 Guile executable.
 
+@item -L @var{directory}
+Add @var{directory} to the front of Guile's module load path.  The
+given directories are searched in the order given on the command line
+and before any directories in the GUILE_LOAD_PATH environment
+variable.  Paths added here are @emph{not} in effect during execution
+of the user's @file{.guile} file.
+
 @item -l @var{file}
 Load Scheme source code from @var{file}, and continue processing the
 command line.
