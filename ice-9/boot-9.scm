@@ -1689,8 +1689,9 @@
 (define the-root-module (make-root-module))
 (define the-scm-module (make-scm-module))
 (set-module-public-interface! the-root-module the-scm-module)
-(set-module-name! the-root-module 'the-root-module)
-(set-module-name! the-scm-module 'the-scm-module)
+(set-module-name! the-root-module '(guile))
+(set-module-name! the-scm-module '(guile))
+(set-module-kind! the-scm-module 'interface)
 (for-each set-system-module! (list the-root-module the-scm-module) '(#t #t))
 
 (set-current-module the-root-module)
@@ -1750,7 +1751,9 @@
 	=> (lambda (m) (make-modules-in m (cdr name))))
        (else	(let ((m (make-module 31)))
 		  (set-module-kind! m 'directory)
-		  (set-module-name! m (car name))
+		  (set-module-name! m (append (or (module-name module)
+						  '())
+					      (list (car name))))
 		  (module-define! module (car name) m)
 		  (make-modules-in m (cdr name)))))))
 
@@ -1828,7 +1831,7 @@
 		    ;; Replace autoload-interface with interface
 		    (set-car! (memq a (module-uses module)) i)
 		    (module-local-variable i sym))))))
-    (module-constructor #() #f b #f #f name 'autoload
+    (module-constructor #() '() b #f #f name 'autoload
 			'() (make-weak-value-hash-table 31) 0)))
 
 
