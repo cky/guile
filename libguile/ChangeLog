@@ -1,3 +1,8 @@
+2003-07-12  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* values.c (scm_values): Build lists of length 1 by using
+	scm_list_1 instead of using scm_cons.
+
 2003-07-10  Kevin Ryde  <user42@zip.com.au>
 
 	* deprecation.c (scm_c_issue_deprecation_warning_fmt): Add va_end.

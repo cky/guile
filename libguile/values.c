@@ -62,7 +62,7 @@ SCM_DEFINE (scm_values, "values", 0, 0, 1,
   else
     {
       result = scm_make_struct (scm_values_vtable, SCM_INUM0,
-				scm_cons (args, SCM_EOL));
+				scm_list_1 (args));
     }
 
   return result;
