@@ -1,3 +1,13 @@
+1999-09-11  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* readline.scm: Moved to ../guile-readline.
+
+	* boot-9.scm (top-repl): Removed code for ativating readline.
+
+	* Makefile.am: Removed mention of readline.scm.
+
+	* Makefile.in: Regenerated.
+	
 1999-09-11  Jim Blandy  <jimb@savonarola.red-bean.com>
 
 	Delete the test which compares the configuration date of libguile

@@ -1,3 +1,25 @@
+1999-09-11  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* readline.scm: Moved from ../ice-9.
+	Dynamically link libguilereadline.so.
+	(readline): Just define in this module, do not overwrite builtin
+	variable.  The builtin readline function is now named "%readline",
+	so this works.  See below.
+	(activate-readline): New function which contains the readline
+	activation code formerly found in top-repl.
+	
+	* readline.c (scm_readline): Export it to Scheme as "%readline".
+
+	* configure.in: Get version from ../GUILE-VERSION and use it for
+	package version.
+
+	* Makefile.am: Do not install and distribute
+	readline-activator.scm.  Install and distribute readline.scm
+	instead.
+
+	* aclocal.m4, Makefile.in, configure, libtool: Regenerated, but
+	probably with the wrong version of the tools.
+
 1999-08-29  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	The following change makes it possible for applications to have
