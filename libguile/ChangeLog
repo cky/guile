@@ -1,3 +1,8 @@
+Tue Oct  1 05:15:10 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
+	
+	* feature.h (scm_loc_features): Removed external declaration.
+	(Bug fix suggested by Petr Adamek <adamek@mit.edu>.)
+
 Tue Oct  1 00:00:10 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
 
 	* feature.c (scm_init_feature): Added threads feature (needs to be
