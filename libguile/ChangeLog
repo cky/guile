@@ -1,3 +1,37 @@
+2000-06-04  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	The major reason for Guile's slow loading speed has been the fact
+	that a chain of Scheme level procedures has been evaluated for
+	every top-level symbol lookup during the first pass through the
+	code.
+	
+	The following is a kludge which I suggested four years ago, and
+	which I've repeatedly suggested since.  Personally, I've never
+	been bothered by Guile's slow loading speed, so I thought I would
+	let someone else do it...
+
+	But since the new environments will be included first in
+	Guile-1.5, I thought it would make people happy to get the kludge
+	into 1.4.
+	
+	* modules.c: Added #include "libguile/vectors.h";
+	Added #include "libguile/hashtab.h";
+	Added #include "libguile/struct.h";
+	Added #include "libguile/variable.h";
+	Capture Scheme level `module-make-local-var!' to be used in the
+	standard eval closure.
+	(scm_standard_eval_closure): New primitive.
+
+	* modules.h (scm_standard_eval_closure): Declare.
+
+	* eval.c (scm_lookupcar): Test for !SCM_CONSP (SCM_CAR (env))
+	instead of SCM_TRUE (scm_procedurep (SCM_CAR (env))).
+
+	* symbols.c (scm_sym2vcell): Bypass dispatch in the evaluator for
+	standard eval closures.
+
+	* variable.c: Code layout fixes.
+
 2000-06-03  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* Makefile.am: Added LIBS line to libpath which accidentally
