@@ -802,8 +802,9 @@ type @code{double} rather than the usual @code{SCM}.
 @end deftypefn
 
 For @code{floor} and @code{ceiling}, the equivalent C functions are
-@code{floor} and @code{ceil} from the standard mathematics library
-(which also take and return @code{double} arguments).
+@code{floor} and @code{ceil} from the standard mathematics library,
+which also take and return @code{double} arguments (@pxref{Rounding
+Functions,,, libc, GNU C Library Reference Manual}).
 
 
 @node Scientific
