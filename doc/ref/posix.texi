@@ -1810,6 +1810,29 @@ between numeric and string formats.
 
 @subsubsection IPv4 Address Conversion
 
+An IPv4 Internet address is a 4-byte value, represented in Guile as an
+integer in network byte order (meaning the first byte is the most
+significant in the number).
+
+@defvar INADDR_LOOPBACK
+The address of the local host using the loopback device, ie.@:
+@samp{127.0.0.1}.
+@end defvar
+
+@defvar INADDR_BROADCAST
+The broadcast address on the local network.
+@end defvar
+
+@c  INADDR_NONE is defined in the code, but serves no purpose.
+@c  inet_addr() returns it as an error indication, but that function
+@c  isn't provided, for the good reason that inet_aton() does the same
+@c  job and gives an unambiguous error indication.  (INADDR_NONE is a
+@c  valid 4-byte value, in glibc it's the same as INADDR_BROADCAST.)
+@c
+@c  @defvar INADDR_NONE
+@c  No address.
+@c  @end defvar
+
 @deffn {Scheme Procedure} inet-aton address
 @deffnx {C Function} scm_inet_aton (address)
 Convert an IPv4 Internet address from printable string
