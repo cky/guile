@@ -270,10 +270,7 @@ SCM_DEFINE (scm_struct_vtable_p, "struct-vtable?", 1, 0, 0,
 
   mem = SCM_STRUCT_DATA (x);
 
-  if (mem[1] != 0)
-    return SCM_BOOL_F;
-
-  return SCM_BOOL (SCM_SYMBOLP (SCM_PACK (mem[0])));
+  return SCM_BOOL (SCM_SYMBOLP (SCM_PACK (mem[scm_vtable_index_layout])));
 }
 #undef FUNC_NAME
 
@@ -823,7 +820,7 @@ scm_init_struct ()
 {
   scm_struct_table
     = scm_permanent_object (scm_make_weak_key_hash_table (SCM_MAKINUM (31)));
-  required_vtable_fields = scm_makfrom0str ("pruosrpw");
+  required_vtable_fields = scm_makfrom0str ("prsrpw");
   scm_permanent_object (required_vtable_fields);
   scm_c_define ("vtable-index-layout", SCM_MAKINUM (scm_vtable_index_layout));
   scm_c_define ("vtable-index-vtable", SCM_MAKINUM (scm_vtable_index_vtable));
