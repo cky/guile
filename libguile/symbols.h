@@ -122,7 +122,7 @@ extern SCM scm_sym2ovcell (SCM sym, SCM obarray);
 extern SCM scm_intern_obarray_soft (const char *name, scm_sizet len, SCM obarray, int softness);
 extern SCM scm_intern_obarray (const char *name, scm_sizet len, SCM obarray);
 extern SCM scm_intern (const char *name, scm_sizet len);
-extern SCM scm_intern0 (const char * name);
+extern SCM scm_intern0 (const char *name);
 extern SCM scm_sysintern (const char *name, SCM val);
 extern SCM scm_sysintern0 (const char *name);
 extern SCM scm_sysintern0_no_module_lookup (const char *name);
