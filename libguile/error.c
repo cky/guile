@@ -172,7 +172,7 @@ scm_everr (exp, env, arg, pos, s_subr)
   
   /* No return, but just in case: */
 
-  write (2, "unhandled system error", sizeof ("unhandled system error"));
+  write (2, "unhandled system error", sizeof ("unhandled system error") - 1);
   exit (1);
 }
 
@@ -201,8 +201,7 @@ void
 scm_init_error ()
 #endif
 {
-  system_error_sym = SCM_CAR (scm_intern0 ("%%system-error"));
-  scm_permanent_object (system_error_sym);
+  SCM_SYMBOL (system_error_sym, "%%system-error");
 #include "error.x"
 }
 
