@@ -40,7 +40,7 @@
 ;;;; whether to permit this exception to apply to your modifications.
 ;;;; If you do not wish that, delete this exception notice.  
 
-(use-modules (ice-9 doc))
+(use-modules (ice-9 documentation))
 
 
 ;;;
@@ -163,12 +163,7 @@
 
   ;; Is documentation available?
 
-  (pass-if "documented?"
-    (let ((documented #f))
-      (with-output-to-string
-	(lambda ()
-	  (set! documented (documentation 'append!))))
-      documented))
+  (pass-if "documented?" (object-documentation append!))
 
   ;; Is the handling of empty lists as arguments correct?
 

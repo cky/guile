@@ -40,7 +40,7 @@
 ;;;; whether to permit this exception to apply to your modifications.
 ;;;; If you do not wish that, delete this exception notice.
 
-(use-modules (ice-9 doc))
+(use-modules (ice-9 documentation))
 
 
 ;;;
@@ -48,12 +48,8 @@
 ;;;
 
 
-(define (documented? identifier)
-  (let ((documented #f))
-    (with-output-to-string
-      (lambda ()
-	(set! documented (documentation identifier))))
-    documented))
+(define (documented? object)
+  (object-documentation object))
 
 
 (define (make-test-name . args)
@@ -93,7 +89,7 @@
   ;; Is documentation available?
 
   (pass-if "documented?"
-    (documented? 'exact?))
+    (documented? exact?))
 
   ;; Special case:  0
 
@@ -148,7 +144,7 @@
   ;; Is documentation available?
 
   (expect-fail "documented?"
-    (documented? 'quotient))
+    (documented? quotient))
 
   ;; Special case:  0 / n
 
@@ -267,7 +263,7 @@
   ;; Is documentation available?
 
   (expect-fail "documented?"
-    (documented? 'remainder))
+    (documented? remainder))
 
   ;; Special case:  0 / n
 
@@ -386,7 +382,7 @@
   ;; Is documentation available?
 
   (expect-fail "documented?"
-    (documented? 'modulo))
+    (documented? modulo))
 
   ;; Special case:  0 % n
 
@@ -517,7 +513,7 @@
   ;; Is documentation available?
 
   (expect-fail "documented?"
-    (documented? 'gcd))
+    (documented? gcd))
 
   ;; Special case:  gcd 0 n
 
@@ -668,7 +664,7 @@
   ;; Is documentation available?
 
   (expect-fail "documented?"
-    (documented? '<))
+    (documented? <))
 
   ;; Special case:  0 < n
 
