@@ -269,9 +269,13 @@ static SCM module_make_local_var_x_var;
 static SCM
 module_variable (SCM module, SCM sym)
 {
+#define SCM_BOUND_THING_P(b) \
+  (SCM_NFALSEP(b) && \
+   (!SCM_VARIABLEP(b) || !SCM_UNBNDP (SCM_VARIABLE_REF (b))))
+
   /* 1. Check module obarray */
   SCM b = scm_hashq_ref (SCM_MODULE_OBARRAY (module), sym, SCM_UNDEFINED);
-  if (SCM_VARIABLEP (b))
+  if (SCM_BOUND_THING_P (b))
     return b;
   {
     SCM binder = SCM_MODULE_BINDER (module);
@@ -279,7 +283,7 @@ module_variable (SCM module, SCM sym)
       /* 2. Custom binder */
       {
 	b = scm_call_3 (binder, module, sym, SCM_BOOL_F);
-	if (SCM_NFALSEP (b))
+	if (SCM_BOUND_THING_P (b))
 	  return b;
       }
   }
@@ -289,12 +293,13 @@ module_variable (SCM module, SCM sym)
     while (SCM_CONSP (uses))
       {
 	b = module_variable (SCM_CAR (uses), sym);
-	if (SCM_NFALSEP (b))
+	if (SCM_BOUND_THING_P (b))
 	  return b;
 	uses = SCM_CDR (uses);
       }
     return SCM_BOOL_F;
   }
+#undef SCM_BOUND_THING_P
 }
 
 scm_t_bits scm_tc16_eval_closure;
