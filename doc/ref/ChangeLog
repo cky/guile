@@ -1,3 +1,7 @@
+2002-01-05  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* intro.texi: Spell check.  Thanks to Fabrice Bauzac.
+
 2002-01-02  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* guile.texi (Part II): Add "Autoconf Support"; include
