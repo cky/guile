@@ -53,6 +53,14 @@
 #define SCM_FALSEP(x) 		(SCM_BOOL_F == (x))
 #define SCM_NFALSEP(x) 		(SCM_BOOL_F != (x))
 
+#define SCM_BOOLP(x) ((x) == SCM_BOOL_T || (x) == SCM_BOOL_F)
+
+/* Convert from a C boolean to a SCM boolean value */
+#define SCM_BOOL(f) ((f)? SCM_BOOL_T : SCM_BOOL_F)
+
+/* Convert from a C boolean to a SCM boolean value and negate it */
+#define SCM_NEGATE_BOOL(f) ((f)? SCM_BOOL_F : SCM_BOOL_T)
+
 /* SCM_BOOL_NOT returns the other boolean.  
  * The order of ^s here is important for Borland C++ (!?!?!)
  */

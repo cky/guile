@@ -1,4 +1,4 @@
-/* $Id: scm_validate.h,v 1.3 1999-12-12 18:30:09 gjb Exp $ */
+/* $Id: scm_validate.h,v 1.4 1999-12-12 19:09:46 gjb Exp $ */
 /*	Copyright (C) 1999 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
@@ -45,9 +45,6 @@
 #ifndef SCM_VALIDATE_H__
 #define SCM_VALIDATE_H__
 
-#define SCM_BOOL(f) ((f)? SCM_BOOL_T : SCM_BOOL_F)
-#define SCM_NEGATE_BOOL(f) ((f)? SCM_BOOL_F : SCM_BOOL_T)
-
 #define SCM_FUNC_NAME (scm_makfrom0str(FUNC_NAME))
 
 #define SCM_SYSERROR do { scm_syserror(FUNC_NAME); } while (0)
@@ -88,7 +85,7 @@
 
 #define SCM_MUST_MALLOC(size) (scm_must_malloc((size), FUNC_NAME))
 
-#define SCM_VALIDATE_NIM (pos,scm) \
+#define SCM_VALIDATE_NIM(pos,scm) \
   do { SCM_ASSERT(SCM_NIMP(scm), scm, pos, FUNC_NAME); } while (0)
 
 #define SCM_MAKE_NIM_VALIDATE(pos,var,pred) \
