@@ -1,3 +1,23 @@
+2000-04-07  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* __scm.h (SCM_WTA_DISPATCH_[012n]):  To test whether a SCM value
+	contains a raw zero value it has to be unpacked.
+
+	* debug.c (with_traps_inner, scm_with_traps):  Passing SCM values
+	via void * requires unpacking / packing.
+
+	* stacks.h (SCM_STACKP):  Remove unnecessary SCM_NIMP test and use
+	SCM_EQ_P to compare SCM values.
+
+	* stacks.h (SCM_FRAME_VOID_P, SCM_FRAME_REAL_P, SCM_FRAME_PROC_P,
+	SCM_FRAME_EVAL_ARGS_P, SCM_FRAME_OVERFLOW_P):  Remove unnecessary
+	call to SCM_UNPACK.
+
+	* tags.h (SCM_NECONSP):  Define in terms of SCM_ECONSP
+
+	* tags.h (SCM_ECONSP):  Clarify the test for glocs.  This is still
+	quite ugly.
+
 2000-04-05  Michael Livshin  <mlivshin@bigfoot.com>
 
 	* async.[ch]: unexpose low-level async access macros (thanks to

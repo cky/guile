@@ -429,10 +429,15 @@ do { \
  * SCM_WTA_DISPATCH
  */
 
+/* Dirk:FIXME:: In all of the SCM_WTA_DISPATCH_* macros it is assumed that
+ * 'gf' is zero if uninitialized.  It would be cleaner if some valid SCM value
+ * like SCM_BOOL_F or SCM_UNDEFINED was chosen.
+ */
+
 extern SCM scm_call_generic_0 (SCM gf);
 
 #define SCM_WTA_DISPATCH_0(gf, arg, pos, subr) \
-  return ((gf) \
+  return (SCM_UNPACK (gf) \
           ? scm_call_generic_0 ((gf)) \
           : scm_wta ((arg), (char *) (pos), (subr)))
 #define SCM_GASSERT0(cond, gf, arg, pos, subr) \
@@ -441,7 +446,7 @@ extern SCM scm_call_generic_0 (SCM gf);
 extern SCM scm_call_generic_1 (SCM gf, SCM a1);
 
 #define SCM_WTA_DISPATCH_1(gf, a1, pos, subr) \
-  return ((gf) \
+  return (SCM_UNPACK (gf) \
           ? scm_call_generic_1 ((gf), (a1)) \
           : scm_wta ((a1), (char *) (pos), (subr)))
 #define SCM_GASSERT1(cond, gf, a1, pos, subr) \
@@ -450,7 +455,7 @@ extern SCM scm_call_generic_1 (SCM gf, SCM a1);
 extern SCM scm_call_generic_2 (SCM gf, SCM a1, SCM a2);
 
 #define SCM_WTA_DISPATCH_2(gf, a1, a2, pos, subr) \
-  return ((gf) \
+  return (SCM_UNPACK (gf) \
           ? scm_call_generic_2 ((gf), (a1), (a2)) \
           : scm_wta ((pos) == SCM_ARG1 ? (a1) : (a2), (char *) (pos), (subr)))
 #define SCM_GASSERT2(cond, gf, a1, a2, pos, subr) \
@@ -459,7 +464,7 @@ extern SCM scm_call_generic_2 (SCM gf, SCM a1, SCM a2);
 extern SCM scm_apply_generic (SCM gf, SCM args);
 
 #define SCM_WTA_DISPATCH_n(gf, args, pos, subr) \
-  return ((gf) \
+  return (SCM_UNPACK (gf) \
           ? scm_apply_generic ((gf), (args)) \
           : scm_wta (scm_list_ref ((args), SCM_MAKINUM ((pos) - 1)), \
 		     (char *) (pos), \

@@ -76,8 +76,7 @@ typedef struct scm_stack {
 
 extern SCM scm_stack_type;
 
-#define SCM_STACKP(obj) (SCM_NIMP(obj) && \
-                         SCM_STRUCTP (obj) && SCM_STRUCT_VTABLE (obj) == scm_stack_type)
+#define SCM_STACKP(obj) (SCM_STRUCTP (obj) && SCM_EQ_P (SCM_STRUCT_VTABLE (obj), scm_stack_type))
 #define SCM_STACK_LENGTH(stack) (SCM_STACK (stack) -> length)
 
 #define SCM_FRAMEP(obj) (SCM_CONSP (obj) \
@@ -108,11 +107,11 @@ extern SCM scm_stack_type;
 #define SCM_FRAMEF_EVAL_ARGS 	(1L << 5)
 #define SCM_FRAMEF_OVERFLOW	(1L << 6)
 
-#define SCM_FRAME_VOID_P(frame) (SCM_UNPACK (SCM_FRAME_FLAGS (frame)) & SCM_FRAMEF_VOID)
-#define SCM_FRAME_REAL_P(frame) (SCM_UNPACK (SCM_FRAME_FLAGS (frame)) & SCM_FRAMEF_REAL)
-#define SCM_FRAME_PROC_P(frame) (SCM_UNPACK (SCM_FRAME_FLAGS (frame)) & SCM_FRAMEF_PROC)
-#define SCM_FRAME_EVAL_ARGS_P(frame) (SCM_UNPACK (SCM_FRAME_FLAGS (frame)) & SCM_FRAMEF_EVAL_ARGS)
-#define SCM_FRAME_OVERFLOW_P(frame) (SCM_UNPACK (SCM_FRAME_FLAGS (frame)) & SCM_FRAMEF_OVERFLOW)
+#define SCM_FRAME_VOID_P(f)       (SCM_FRAME_FLAGS (f) & SCM_FRAMEF_VOID)
+#define SCM_FRAME_REAL_P(f)       (SCM_FRAME_FLAGS (f) & SCM_FRAMEF_REAL)
+#define SCM_FRAME_PROC_P(f)       (SCM_FRAME_FLAGS (f) & SCM_FRAMEF_PROC)
+#define SCM_FRAME_EVAL_ARGS_P(f)  (SCM_FRAME_FLAGS (f) & SCM_FRAMEF_EVAL_ARGS)
+#define SCM_FRAME_OVERFLOW_P(f)   (SCM_FRAME_FLAGS (f) & SCM_FRAMEF_OVERFLOW)
 
 
 

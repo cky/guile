@@ -117,7 +117,7 @@ with_traps_after (void *data)
 static SCM
 with_traps_inner (void *data)
 {
-  SCM thunk = (SCM) data;
+  SCM thunk = SCM_PACK (data);
   return scm_apply (thunk, SCM_EOL, SCM_EOL);
 }
 
@@ -131,7 +131,7 @@ SCM_DEFINE (scm_with_traps, "with-traps", 1, 0, 0,
   return scm_internal_dynamic_wind (with_traps_before,
 				    with_traps_inner,
 				    with_traps_after,
-				    (void *) thunk,
+				    (void *) SCM_UNPACK (thunk),
 				    &trap_flag);
 }
 #undef FUNC_NAME

@@ -304,14 +304,8 @@ typedef long scm_bits_t;
   (SCM_NIMP (x) \
    && (SCM_SLOPPY_CONSP (x) \
        || (SCM_TYP3 (x) == 1 \
-	   && (SCM_CDR ((SCM) SCM_STRUCT_VTABLE_DATA (x)) \
-	       != (SCM) 0))))
-#define SCM_NECONSP(x) \
-  (SCM_IMP (x) \
-   || (SCM_SLOPPY_NCONSP (x) \
-       && (SCM_TYP3 (x) != 1 \
-	   || (SCM_CDR ((SCM) SCM_STRUCT_VTABLE_DATA (x)) \
-	       == (SCM) 0))))
+	   && (SCM_STRUCT_VTABLE_DATA (x)[scm_vtable_index_vcell] != 0))))
+#define SCM_NECONSP(x) (!SCM_ECONSP (x))
 
 
 
