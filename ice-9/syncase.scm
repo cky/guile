@@ -1,4 +1,4 @@
-;;;; 	Copyright (C) 1997 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1997, 2000 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -152,11 +152,12 @@
 
 (define internal-eval (nested-ref the-scm-module '(app modules guile eval)))
 
-(define-public (eval x)
+(define-public (eval x environment)
   (internal-eval (if (and (pair? x)
 			  (string=? (car x) "noexpand"))
 		     (cadr x)
-		     (sc-expand x))))
+		     (sc-expand x))
+		 environment))
 
 ;;; Hack to make syncase macros work in the slib module
 (let ((m (nested-ref the-root-module '(app modules ice-9 slib))))
