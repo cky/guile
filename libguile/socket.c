@@ -174,6 +174,7 @@ scm_getsockopt (sock, level, optname)
   optlen = (int) sizeof (scm_sizet);
 #endif
 
+  sock = SCM_COERCE_OUTPORT (sock);
   SCM_ASSERT (SCM_NIMP (sock) && SCM_FPORTP (sock), sock, SCM_ARG1,
 	      s_getsockopt);
   SCM_ASSERT (SCM_INUMP (level), level, SCM_ARG2, s_getsockopt);
@@ -233,6 +234,7 @@ scm_setsockopt (sock, level, optname, value)
   char optval[sizeof (scm_sizet)];
 #endif
   int ilevel, ioptname;
+  sock = SCM_COERCE_OUTPORT (sock);
   SCM_ASSERT (SCM_NIMP (sock) && SCM_FPORTP (sock), sock, SCM_ARG1,
 	      s_setsockopt);
   SCM_ASSERT (SCM_INUMP (level), level, SCM_ARG2, s_setsockopt);
@@ -302,6 +304,7 @@ scm_shutdown (sock, how)
      SCM how;
 {
   int fd;
+  sock = SCM_COERCE_OUTPORT (sock);
   SCM_ASSERT (SCM_NIMP (sock) && SCM_FPORTP (sock), sock, SCM_ARG1,
 	      s_shutdown);
   SCM_ASSERT (SCM_INUMP (how) && 0 <= SCM_INUM (how) && 2 >= SCM_INUM (how),
@@ -387,6 +390,7 @@ scm_connect (sock, fam, address, args)
   struct sockaddr *soka;
   scm_sizet size;
 
+  sock = SCM_COERCE_OUTPORT (sock);
   SCM_ASSERT (SCM_NIMP (sock) && SCM_FPORTP (sock), sock, SCM_ARG1, s_connect);
   SCM_ASSERT (SCM_INUMP (fam), fam, SCM_ARG2, s_connect);
   fd = fileno ((FILE *)SCM_STREAM (sock));
@@ -413,6 +417,7 @@ scm_bind (sock, fam, address, args)
   scm_sizet size;
   int fd;
 
+  sock = SCM_COERCE_OUTPORT (sock);
   SCM_ASSERT (SCM_NIMP (sock) && SCM_FPORTP (sock), sock, SCM_ARG1, s_bind);
   SCM_ASSERT (SCM_INUMP (fam), fam, SCM_ARG2, s_bind);
   soka = scm_fill_sockaddr (SCM_INUM (fam), address, &args, 3, s_bind, &size);
@@ -431,6 +436,7 @@ scm_listen (sock, backlog)
      SCM backlog;
 {
   int fd;
+  sock = SCM_COERCE_OUTPORT (sock);
   SCM_ASSERT (SCM_NIMP (sock) && SCM_FPORTP (sock), sock, SCM_ARG1, s_listen);
   SCM_ASSERT (SCM_INUMP (backlog), backlog, SCM_ARG2, s_listen);
   fd = fileno ((FILE *)SCM_STREAM (sock));
@@ -512,6 +518,7 @@ scm_accept (sock)
   SCM newsock;
 
   int tmp_size;
+  sock = SCM_COERCE_OUTPORT (sock);
   SCM_ASSERT (SCM_NIMP (sock) && SCM_FPORTP (sock), sock, SCM_ARG1, s_accept);
   fd = fileno ((FILE *)SCM_STREAM (sock));
   SCM_DEFER_INTS;
@@ -536,6 +543,7 @@ scm_getsockname (sock)
   int tmp_size;
   int fd;
   SCM result;
+  sock = SCM_COERCE_OUTPORT (sock);
   SCM_ASSERT (SCM_NIMP (sock) && SCM_FPORTP (sock), sock, SCM_ARG1, s_getsockname);
   fd = fileno ((FILE *)SCM_STREAM (sock));
   SCM_DEFER_INTS;
@@ -559,6 +567,7 @@ scm_getpeername (sock)
   int tmp_size;
   int fd;
   SCM result;
+  sock = SCM_COERCE_OUTPORT (sock);
   SCM_ASSERT (SCM_NIMP (sock) && SCM_FPORTP (sock), sock, SCM_ARG1, s_getpeername);
   fd = fileno ((FILE *)SCM_STREAM (sock));
   SCM_DEFER_INTS;
@@ -613,6 +622,7 @@ scm_send (sock, message, flags)
   int fd;
   int flg;
 
+  sock = SCM_COERCE_OUTPORT (sock);
   SCM_ASSERT (SCM_NIMP (sock) && SCM_FPORTP (sock), sock, SCM_ARG1, s_send);
   SCM_ASSERT (SCM_NIMP (message) && SCM_ROSTRINGP (message), message, SCM_ARG2, s_send);
   fd = fileno ((FILE *)SCM_STREAM (sock));
@@ -711,6 +721,7 @@ scm_sendto (sock, message, fam, address, args_and_flags)
   struct sockaddr *soka;
   scm_sizet size;
 
+  sock = SCM_COERCE_OUTPORT (sock);
   SCM_ASSERT (SCM_NIMP (sock) && SCM_FPORTP (sock), sock, SCM_ARG1, s_sendto);
   SCM_ASSERT (SCM_NIMP (message) && SCM_ROSTRINGP (message), message,
 	      SCM_ARG2, s_sendto);

@@ -647,6 +647,8 @@ scm_ttyname (port)
 {
   char *ans;
   int fd;
+
+  port = SCM_COERCE_OUTPORT (port);
   SCM_ASSERT (SCM_NIMP (port) && SCM_OPPORTP (port), port, SCM_ARG1, s_ttyname);
   if (scm_tc16_fport != SCM_TYP16 (port))
     return SCM_BOOL_F;
@@ -685,6 +687,9 @@ scm_tcgetpgrp (port)
 #ifdef HAVE_TCGETPGRP
   int fd;
   pid_t pgid;
+
+  port = SCM_COERCE_OUTPORT (port);
+
   SCM_ASSERT (SCM_NIMP (port) && SCM_OPFPORTP (port), port, SCM_ARG1, s_tcgetpgrp);
   fd = fileno ((FILE *)SCM_STREAM (port));
   if (fd == -1 || (pgid = tcgetpgrp (fd)) == -1)
@@ -704,6 +709,9 @@ scm_tcsetpgrp (port, pgid)
 {
 #ifdef HAVE_TCSETPGRP
   int fd;
+
+  port = SCM_COERCE_OUTPORT (port);
+
   SCM_ASSERT (SCM_NIMP (port) && SCM_OPFPORTP (port), port, SCM_ARG1, s_tcsetpgrp);
   SCM_ASSERT (SCM_INUMP (pgid), pgid, SCM_ARG2, s_tcsetpgrp);
   fd = fileno ((FILE *)SCM_STREAM (port));

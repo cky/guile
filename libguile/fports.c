@@ -83,6 +83,8 @@ scm_setvbuf (SCM port, SCM mode, SCM size)
   int rv;
   int cmode, csize;
 
+  port = SCM_COERCE_OUTPORT (port);
+
   SCM_ASSERT (SCM_NIMP (port) && SCM_FPORTP (port), port, SCM_ARG1, s_setvbuf);
   SCM_ASSERT (SCM_INUMP (mode), mode, SCM_ARG2, s_setvbuf);
   if (SCM_UNBNDP (size))

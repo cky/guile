@@ -47,6 +47,7 @@
 #include "libguile/__scm.h"
 
 #include "libguile/print.h"
+#include "libguile/struct.h"
 
 
 

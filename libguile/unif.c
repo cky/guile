@@ -1588,6 +1588,8 @@ scm_uniform_array_write (v, port_or_fd, start, end)
   long cstart = 0;
   long cend;
 
+  port_or_fd = SCM_COERCE_OUTPORT (port_or_fd);
+
   SCM_ASRTGO (SCM_NIMP (v), badarg1);
   if (SCM_UNBNDP (port_or_fd))
     port_or_fd = scm_cur_outp;

@@ -139,6 +139,8 @@ scm_chown (object, owner, group)
   int rv;
   int fdes;
 
+  object = SCM_COERCE_OUTPORT (object);
+
   SCM_ASSERT (SCM_INUMP (owner), owner, SCM_ARG2, s_chown);
   SCM_ASSERT (SCM_INUMP (group), group, SCM_ARG3, s_chown);
   SCM_DEFER_INTS;
@@ -178,6 +180,8 @@ scm_chmod (object, mode)
 {
   int rv;
   int fdes;
+
+  object = SCM_COERCE_OUTPORT (object);
 
   SCM_ASSERT (SCM_INUMP (mode), mode, SCM_ARG2, s_chmod);
   SCM_DEFER_INTS;
@@ -306,6 +310,8 @@ scm_close (SCM fd_or_port)
 {
   int rv;
   int fd;
+
+  fd_or_port = SCM_COERCE_OUTPORT (fd_or_port);
 
   if (SCM_NIMP (fd_or_port) && SCM_PORTP (fd_or_port))
     return scm_close_port (fd_or_port);
@@ -436,6 +442,8 @@ scm_stat (object)
   int fdes;
   struct stat stat_temp;
 
+  object = SCM_COERCE_OUTPORT (object);
+
   SCM_DEFER_INTS;
   if (SCM_INUMP (object) || (SCM_NIMP (object) && SCM_OPFPORTP (object)))
     {
@@ -563,6 +571,8 @@ scm_truncate_file (SCM object, SCM size)
   int rv;
   scm_sizet csize;
   int fdes;
+
+  object = SCM_COERCE_OUTPORT (object);
 
   csize = (scm_sizet) scm_num2long (size, (char *) SCM_ARG2, s_truncate_file);
   SCM_DEFER_INTS;
@@ -831,6 +841,7 @@ scm_getcwd ()
 static void
 set_element (SELECT_TYPE *set, SCM element)
 {
+  element = SCM_COERCE_OUTPORT (element);
   if (SCM_NIMP (element) && SCM_TYP16 (element) == scm_tc16_fport
       && SCM_OPPORTP (element))
     FD_SET (fileno ((FILE *) SCM_STREAM (element)), set);
@@ -865,6 +876,7 @@ fill_select_type (SELECT_TYPE *set, SCM list)
 static SCM
 get_element (SELECT_TYPE *set, SCM element, SCM list)
 {
+  element = SCM_COERCE_OUTPORT (element);
   if (SCM_NIMP (element)
       && (scm_tc16_fport == SCM_TYP16 (element))
       && SCM_OPPORTP (element))
@@ -1113,6 +1125,8 @@ scm_fcntl (SCM object, SCM cmd, SCM value)
   int fdes;
   int ivalue;
 
+  object = SCM_COERCE_OUTPORT (object);
+
   SCM_ASSERT (SCM_INUMP (cmd), cmd, SCM_ARG2, s_fcntl);
   if (SCM_NIMP (object) && SCM_OPFPORTP (object))
     fdes = fileno ((FILE *) SCM_STREAM (object));
@@ -1144,6 +1158,8 @@ SCM
 scm_fsync (SCM object)
 {
   int fdes;
+
+  object = SCM_COERCE_OUTPORT (object);
 
   SCM_DEFER_INTS;
   if (SCM_NIMP (object) && SCM_OPFPORTP (object))

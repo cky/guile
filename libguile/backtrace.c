@@ -417,6 +417,8 @@ display_backtrace_body (struct display_backtrace_args *a, SCM jmpbuf)
   SCM frame, sport, print_state;
   scm_print_state *pstate;
 
+  a->port = SCM_COERCE_OUTPORT (a->port);
+
   /* Argument checking and extraction. */
   SCM_ASSERT (SCM_NIMP (a->stack) && SCM_STACKP (a->stack),
 	      a->stack,

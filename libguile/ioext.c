@@ -176,6 +176,9 @@ scm_ftell (object)
      SCM object;
 {
   long pos;
+
+  object = SCM_COERCE_OUTPORT (object);
+
   SCM_DEFER_INTS;
   if (SCM_NIMP (object) && SCM_OPFPORTP (object))
     {
@@ -206,6 +209,8 @@ scm_fseek (object, offset, whence)
 {
   int rv;
   long loff;
+
+  object = SCM_COERCE_OUTPORT (object);
 
   loff = scm_num2long (offset, (char *)SCM_ARG2, s_fseek);
   SCM_ASSERT (SCM_INUMP (whence), whence, SCM_ARG3, s_fseek);
@@ -242,6 +247,7 @@ scm_freopen (filename, modes, port)
 
   SCM_COERCE_SUBSTR (filename);
   SCM_COERCE_SUBSTR (modes);
+  port = SCM_COERCE_OUTPORT (port);
   SCM_DEFER_INTS;
   SCM_ASSERT (SCM_NIMP (port) && SCM_FPORTP (port), port, SCM_ARG3, s_freopen);
   SCM_SYSCALL (f = freopen (SCM_ROCHARS (filename), SCM_ROCHARS (modes),
@@ -275,6 +281,9 @@ scm_redirect_port (old, new)
 {
   int ans, oldfd, newfd;
 
+  old = SCM_COERCE_OUTPORT (old);
+  new = SCM_COERCE_OUTPORT (new);
+
   SCM_DEFER_INTS;
   SCM_ASSERT (SCM_NIMP (old) && SCM_OPPORTP (old), old, SCM_ARG1, s_redirect_port);
   SCM_ASSERT (SCM_NIMP (new) && SCM_OPPORTP (new), new, SCM_ARG2, s_redirect_port);
@@ -296,6 +305,8 @@ SCM
 scm_dup_to_fdes (SCM fd_or_port, SCM fd)
 {
   int oldfd, newfd, rv;
+
+  fd_or_port = SCM_COERCE_OUTPORT (fd_or_port);
 
   SCM_DEFER_INTS;
   if (SCM_INUMP (fd_or_port))
@@ -339,6 +350,9 @@ scm_fileno (port)
      SCM port;
 {
   int fd;
+
+  port = SCM_COERCE_OUTPORT (port);
+
   SCM_ASSERT (SCM_NIMP (port) && SCM_OPFPORTP (port), port, SCM_ARG1, s_fileno);
   fd = fileno ((FILE *)SCM_STREAM (port));
   if (fd == -1)
@@ -353,6 +367,9 @@ scm_isatty_p (port)
      SCM port;
 {
   int rv;
+
+  port = SCM_COERCE_OUTPORT (port);
+
   SCM_ASSERT (SCM_NIMP (port) && SCM_OPFPORTP (port), port, SCM_ARG1, s_isatty);
   rv = fileno ((FILE *)SCM_STREAM (port));
   if (rv == -1)
@@ -411,6 +428,8 @@ scm_primitive_move_to_fdes (port, fd)
   int old_fd;
   int new_fd;
   int rv;
+
+  port = SCM_COERCE_OUTPORT (port);
 
   SCM_ASSERT (SCM_NIMP (port) && SCM_OPFPORTP (port), port, SCM_ARG1, s_primitive_move_to_fdes);
   SCM_ASSERT (SCM_INUMP (fd), fd, SCM_ARG2, s_primitive_move_to_fdes);
