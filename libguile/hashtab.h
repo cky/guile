@@ -78,7 +78,7 @@ extern SCM scm_hashx_get_handle SCM_P ((SCM hash, SCM assoc, SCM table, SCM obj)
 extern SCM scm_hashx_create_handle_x SCM_P ((SCM hash, SCM assoc, SCM table, SCM obj, SCM init));
 extern SCM scm_hashx_ref SCM_P ((SCM hash, SCM assoc, SCM table, SCM obj, SCM dflt));
 extern SCM scm_hashx_set_x SCM_P ((SCM hash, SCM assoc, SCM table, SCM obj, SCM val));
-extern SCM scm_hashx_remove_x SCM_P ((SCM hash, SCM assoc, SCM delete, SCM table, SCM obj));
+extern SCM scm_hashx_remove_x SCM_P ((SCM hash, SCM assoc, SCM del, SCM table, SCM obj));
 extern void scm_init_hashtab SCM_P ((void));
 
 #endif  /* HASHTABH */
