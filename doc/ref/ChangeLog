@@ -1,3 +1,8 @@
+2001-11-25  Thien-Thi Nguyen  <ttn@glug.org>
+
+	* posix.texi: Fix spelling.  Thanks to Chris Cramer.
+	Reword `getpass' intro blurb.
+
 2001-11-23  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* program.texi (Program Control): Remove spurious placeholder
