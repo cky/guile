@@ -200,10 +200,13 @@ convention is used when indenting code in Emacs' Scheme mode.
 
 @node Block Comments
 @subsubsection Block Comments
+@cindex multiline comments
+@cindex block comments
+@cindex #!
+@cindex !#
 
 @c FIXME::martin: Review me!
 
-@cindex multiline comments
 In addition to the standard line comments defined by R5RS, Guile has
 another comment type for multiline comments, called @dfn{block
 comments}.  This type of comment begins with the character sequence
