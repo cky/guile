@@ -46,12 +46,13 @@
    C level threads.
 */
 
+#include "libguile/_scm.h"
+
 #include <unistd.h>
 #include <stdio.h>
 #include <assert.h>
 #include <sys/time.h>
 
-#include "libguile/_scm.h"
 #include "libguile/validate.h"
 #include "libguile/root.h"
 #include "libguile/eval.h"
@@ -272,7 +273,7 @@ block ()
    reached.  Return 0 when it has been unblocked; errno otherwise.
  */
 static int
-timed_block (const struct timespec *at)
+timed_block (const scm_t_timespec *at)
 {
   int err;
   scm_thread *t = suspend ();
@@ -658,7 +659,7 @@ SCM_DEFINE (scm_make_fair_condition_variable, "make-fair-condition-variable", 0,
 static int
 fair_cond_timedwait (fair_cond *c,
 		     fair_mutex *m,
-		     const struct timespec *waittime)
+		     const scm_t_timespec *waittime)
 {
   int err;
   scm_i_plugin_mutex_lock (&c->lock);
@@ -846,7 +847,7 @@ SCM_DEFINE (scm_timed_wait_condition_variable, "wait-condition-variable", 2, 1, 
 "is returned. ")
 #define FUNC_NAME s_scm_timed_wait_condition_variable
 {
-  struct timespec waittime;
+  scm_t_timespec waittime;
   int err;
 
   SCM_VALIDATE_CONDVAR (1, cv);
@@ -974,7 +975,7 @@ scm_threads_mark_stacks (void)
 	  /* Active thread */
 	  /* stack_len is long rather than sizet in order to guarantee
 	     that &stack_len is long aligned */
-#ifdef STACK_GROWS_UP
+#ifdef SCM_STACK_GROWS_UP
 	  stack_len = ((SCM_STACKITEM *) (&t) -
 		       (SCM_STACKITEM *) thread->base);
 	  
@@ -1021,7 +1022,7 @@ scm_threads_mark_stacks (void)
       else
 	{
 	  /* Suspended thread */
-#ifdef STACK_GROWS_UP
+#ifdef SCM_STACK_GROWS_UP
 	  long stack_len = t->top - t->base;
 	  scm_mark_locations (t->base, stack_len);
 #else
@@ -1106,7 +1107,7 @@ scm_cond_wait (scm_t_cond *c, scm_t_mutex *m)
 }
 
 int
-scm_cond_timedwait (scm_t_cond *c, scm_t_mutex *m, const struct timespec *wt)
+scm_cond_timedwait (scm_t_cond *c, scm_t_mutex *m, const scm_t_timespec *wt)
 {
   scm_thread *t = scm_i_leave_guile ();
   int res = scm_i_plugin_cond_timedwait (c, m, wt);
@@ -1260,7 +1261,7 @@ scm_i_thread_sleep_for_gc ()
 scm_t_mutex scm_i_critical_section_mutex;
 scm_t_rec_mutex scm_i_defer_mutex;
 
-#ifdef USE_PTHREAD_THREADS
+#ifdef SCM_USE_PTHREAD_THREADS
 #include "libguile/pthread-threads.c"
 #endif
 #include "libguile/threads-plugin.c"
@@ -1271,7 +1272,7 @@ void
 scm_threads_prehistory ()
 {
   scm_thread *t;
-#ifdef USE_PTHREAD_THREADS
+#ifdef SCM_USE_PTHREAD_THREADS
   /* Must be called before any initialization of a mutex. */
   scm_init_pthread_threads ();
 #endif  
