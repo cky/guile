@@ -106,8 +106,6 @@
 
 /* Random options (net yet supported or in final form). */
 
-#undef DEBUG_EXTENSIONS
-#undef READER_EXTENSIONS
 #undef SCM_STACK_LIMIT 20000
 #undef NO_CEVAL_STACK_CHECK
 #undef LONGLONGS
