@@ -1,5 +1,5 @@
 Guile Hacking Guide
-Copyright (c) 1996, 1997, 1998, 1999, 2000 Free software Foundation, Inc.
+Copyright (c) 1996, 1997, 1998, 1999, 2000, 2001 Free software Foundation, Inc.
 
    Permission is granted to anyone to make or distribute verbatim copies
    of this document as received, in any medium, provided that the
@@ -13,6 +13,19 @@ Copyright (c) 1996, 1997, 1998, 1999, 2000 Free software Foundation, Inc.
    carry prominent notices stating who last changed them,
    and that any new or changed statements about the activities
    of the Free Software Foundation are approved by the Foundation.
+
+
+What to Hack =========================================================
+
+You can hack whatever you want, thank GNU.
+
+However, to see what others have indicated as their interest (and avoid
+potential wasteful duplication of effort), see devel/tasks.text.  Note
+that this file is available only from CVS checkout and not distributed
+w/ Guile releases.
+
+It's also a good idea to join the guile-devel@gnu.org mailing list.
+See http://www.gnu.org/software/guile/mail/mail.html for more info.
 
 
 Hacking It Yourself ==================================================
@@ -46,7 +59,7 @@ libtool 1.3.5 --- a system for managing the zillion hairy options needed
 
 You are lost in a little maze of automatically generated files, all
 different.
-> 
+>
 
 
 Contributing Your Changes ============================================
@@ -309,7 +322,7 @@ diff -r -u cvs-1.10/src/cvs.h cvs-1.10.ignore-hack/src/cvs.h
 --- cvs-1.10/src/cvs.h	Mon Jul 27 04:54:11 1998
 +++ cvs-1.10.ignore-hack/src/cvs.h	Sun Jan 23 12:58:09 2000
 @@ -516,7 +516,7 @@
- 
+
  extern int ign_name PROTO ((char *name));
  void ign_add PROTO((char *ign, int hold));
 -void ign_add_file PROTO((char *file, int hold));
@@ -349,27 +362,27 @@ diff -r -u cvs-1.10/src/ignore.c cvs-1.10.ignore-hack/src/ignore.c
      free (line);
 +    return 1;
  }
- 
+
  /* Parse a line of space-separated wildcards and add them to the list. */
 @@ -375,6 +376,7 @@
      struct stat sb;
      char *file;
      char *xdir;
 +    char *cvsdotignore;
- 
+
      /* Set SUBDIRS if we have subdirectory information in ENTRIES.  */
      if (entries == NULL)
 @@ -397,7 +399,10 @@
      if (dirp == NULL)
  	return;
- 
+
 -    ign_add_file (CVSDOTIGNORE, 1);
 +    cvsdotignore = getenv("CVSDOTIGNORE");
 +    if (cvsdotignore == NULL || !ign_add_file (cvsdotignore, 1))
 +      ign_add_file (CVSDOTIGNORE, 1);
 +
      wrap_add_file (CVSDOTWRAPPER, 1);
- 
+
      while ((dp = readdir (dirp)) != NULL)
 === patch end ===
 
@@ -384,7 +397,7 @@ This one is for pcl-cvs-2.9.2, so that `i' adds to the local
  Can only be used in the *cvs* buffer."
    (save-window-excursion
 -    (set-buffer (find-file-noselect (expand-file-name ".cvsignore" dir)))
-+    (set-buffer (find-file-noselect 
++    (set-buffer (find-file-noselect
 +                (expand-file-name (or (getenv "CVSDOTIGNORE")
 +                                      ".cvsignore")
 +                                  dir)))
