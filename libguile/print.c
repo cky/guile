@@ -741,10 +741,17 @@ scm_prin1 (SCM exp, SCM port, int writingp)
  */
 
 void 
-scm_intprint (long n, int radix, SCM port)
+scm_intprint (scm_t_intmax n, int radix, SCM port)
 {
   char num_buf[SCM_INTBUFLEN];
   scm_lfwrite (num_buf, scm_iint2str (n, radix, num_buf), port);
+}
+
+void 
+scm_uintprint (scm_t_uintmax n, int radix, SCM port)
+{
+  char num_buf[SCM_INTBUFLEN];
+  scm_lfwrite (num_buf, scm_iuint2str (n, radix, num_buf), port);
 }
 
 /* Print an object of unrecognized type.
