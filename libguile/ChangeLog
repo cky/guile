@@ -1,3 +1,13 @@
+1999-07-30  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* eval.c (scm_m_expand_body): Use scm_cons_source.
+
+	* struct.c (scm_print_struct): Use vtable name.
+
+	* print.c (scm_init_print): Set name of print state type.
+
+	* stacks.c (scm_init_stacks): Set name of stack type.
+
 1999-07-29  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* eval.c (SCM_CEVAL): Removed old implementation of internal
@@ -20,10 +30,7 @@
 
 	* eval.c (scm_cons_source): Version of cons which copies source
 	properties from an existing cell.
-	(scm_m_quote, scm_m_begin, scm_m_if, scm_m_set_x, scm_m_and,
-	scm_m_or, scm_m_case, scm_m_cond, scm_m_lambda, scm_m_letstar,
-	scm_m_do, scm_m_letrec, scm_m_let, scm_copy_tree, SCM_CEVAL): Use
-	scm_cons_source.
+	(scm_copy_tree, SCM_CEVAL): Use	scm_cons_source.
 
 	* debug.c (scm_procedure_source): Cons SCM_IM_LAMBDA onto
 	procedure source before calling scm_unmemocopy instead of faking
