@@ -43,8 +43,13 @@
  * The author can be reached at djurfeldt@nada.kth.se
  * Mikael Djurfeldt, SANS/NADA KTH, 10044 STOCKHOLM, SWEDEN */
 
-#include <stdio.h>
 #include "_scm.h"
+
+#include <stdio.h>
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+
 #include "tag.h"
 #include "strports.h"
 #include "read.h"

@@ -40,8 +40,13 @@
  * If you do not wish that, delete this exception notice.  */
 
 
-#include <stdio.h>
 #include "_scm.h"
+
+#include <stdio.h>
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+
 #include "unif.h"
 #include "eval.h"
 #include "read.h"
