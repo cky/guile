@@ -20,35 +20,71 @@ and expressions.  This is important for modularity and data abstraction.
 @node Top Level
 @section Top Level Variable Definitions
 
-@c FIXME::martin: Review me!
-
 @cindex variable definition
 
-On the top level of a program (e.g. when not inside of a procedure
-definition or a @code{let}, @code{let*} or @code{letrec} expression), a
-definition of the form
+On the top level of a program (i.e. when not inside the body of a
+procedure definition or a @code{let}, @code{let*} or @code{letrec}
+expression), a definition of the form
 
 @lisp
-(define a 1)
+(define a @var{value})
 @end lisp
 
 @noindent
-defines a variable called @var{a} and sets it to the value 1.  When the
-variable already was bound with a @code{define} expression, the above
+defines a variable called @code{a} and sets it to the value @var{value}.
+
+If the variable already exists, because it has already been created by a
+previous @code{define} expression with the same name, its value is
+simply changed to the new @var{value}.  In this case, then, the above
 form is completely equivalent to
 
 @lisp
-(set! a 1)
+(set! a @var{value})
 @end lisp
 
 @noindent
-that means that @code{define} can be used interchangeably with
-@code{set!} when at the top level of the REPL or a Scheme source file.
-But note that a @code{set!} is not allowed if the variable was not bound
-before.
+This equivalence means that @code{define} can be used interchangeably
+with @code{set!} to change the value of variables at the top level of
+the REPL or a Scheme source file.  It is useful during interactive
+development when reloading a Scheme file that you have modified, because
+it allows the @code{define} expressions in that file to work as expected
+both the first time that the file is loaded and on subsequent occasions.
 
-Attention: definitions inside local binding constructs (@pxref{Local
-Bindings}) act differently (@pxref{Internal Definitions}).
+Note, though, that @code{define} and @code{set!} are not always
+equivalent.  For example, a @code{set!} is not allowed if the named
+variable does not already exist, and the two expressions can behave
+differently in the case where there are imported variables visible from
+another module.
+
+@deffn {Scheme Syntax} define name value
+Create a top level variable named @var{name} with value @var{value}.
+If the named variable already exists, just change its value.  The return
+value of a @code{define} expression is unspecified.
+@end deffn
+
+The C API equivalents of @code{define} are @code{scm_define} and
+@code{scm_c_define}, which differ from each other in whether the
+variable name is specified as a @code{SCM} symbol or as a
+null-terminated C string.
+
+@deffn {C Function} scm_define (sym, value)
+@deffnx {C Function} scm_c_define (const char *name, value)
+C equivalents of @code{define}, with variable name specified either by
+@var{sym}, a symbol, or by @var{name}, a null-terminated C string.  Both
+variants return the new or preexisting variable object.
+@end deffn
+
+@code{define} (when it occurs at top level), @code{scm_define} and
+@code{scm_c_define} all create or set the value of a variable in the top
+level environment of the current module.  If there was not already a
+variable with the specified name belonging to the current module, but a
+similarly named variable from another module was visible through having
+been imported, the newly created variable in the current module will
+shadow the imported variable, such that the imported variable is no
+longer visible.
+
+Attention: Scheme definitions inside local binding constructs
+(@pxref{Local Bindings}) act differently (@pxref{Internal Definitions}).
 
 
 @node Local Bindings

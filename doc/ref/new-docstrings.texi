@@ -573,11 +573,6 @@ Return the value from @var{obj}'s slot with the name
 @var{slot_name}.
 @end deffn
 
-@deffn {Scheme Procedure} builtin-bindings
-Create and return a copy of the global symbol table, removing all
-unbound symbols.
-@end deffn
-
 @deffn {Scheme Procedure} %tag-body body
 @deffnx {C Function} scm_sys_tag_body (body)
 Internal GOOPS magic---don't use this function!

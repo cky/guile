@@ -1,3 +1,14 @@
+2001-11-19  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scheme-data.texi (Symbol Tables), new-docstrings.texi: Removed
+	doc for builtin-bindings (no longer exists).
+	(Variables): Expanded existing description of variables.  Removed
+	doc for builtin-variable (no longer exists).
+
+	* scheme-binding.texi (Top Level): New docs for define, scm_define
+	and scm_c_define.  Also clarified point about interchangeability
+	of define and set!.
+
 2001-11-18  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* scheme-data.texi (Vectors): Autoupdate docs for
