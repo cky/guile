@@ -1362,18 +1362,18 @@
 
 ;; looking at a char, read the char string, run thru indexer, return index
 (define (priv:locale-reader port indexer)
-  (let ((string-port (open-output-string)))
-    (define (read-char-string)
-      (let ((ch (peek-char port)))
-        (if (char-alphabetic? ch)
-            (begin (write-char (read-char port) string-port) 
-                   (read-char-string))
-            (get-output-string string-port))))
-    (let* ((str (read-char-string)) 
-           (index (indexer str)))
-      (if index index (priv:time-error 'string->date
-                                       'bad-date-template-string
-                                       (list "Invalid string for " indexer))))))
+
+  (define (read-char-string result)
+    (let ((ch (peek-char port)))
+      (if (char-alphabetic? ch)
+          (read-char-string (cons (read-char port) result))
+          (list->string (reverse! result)))))
+  
+  (let* ((str (read-char-string '())) 
+         (index (indexer str)))
+    (if index index (priv:time-error 'string->date
+                                     'bad-date-template-string
+                                     (list "Invalid string for " indexer)))))
 
 (define (priv:make-locale-reader indexer)
   (lambda (port)
