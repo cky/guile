@@ -2167,16 +2167,16 @@ in host order.
 
 @deffn {Scheme Procedure} socket family style proto
 @deffnx {C Function} scm_socket (family, style, proto)
-@vindex AF_UNIX
-@vindex AF_INET
-@vindex AF_INET6
+@vindex PF_UNIX
+@vindex PF_INET
+@vindex PF_INET6
 @vindex SOCK_STREAM
 @vindex SOCK_DGRAM
 @vindex SOCK_RAW
 Return a new socket port of the type specified by @var{family},
 @var{style} and @var{proto}.  All three parameters are
 integers.  Supported values for @var{family} are
-@code{AF_UNIX}, @code{AF_INET} and @code{AF_INET6}.
+@code{PF_UNIX}, @code{PF_INET} and @code{PF_INET6}.
 Typical values for @var{style} are @code{SOCK_STREAM},
 @code{SOCK_DGRAM} and @code{SOCK_RAW}.
 
