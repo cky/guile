@@ -10,16 +10,16 @@ BEGIN { FS="|";
         printf "" > dot_doc_file;
 }
 
-/^[ \t]*%%%/ { copy = $0; 
-               gsub(/[ \t]*%%%/, "", copy); 
-               gsub(/\$\$\$.*$/, "", copy); 
+/^[ \t]* *% *% *%/ { copy = $0; 
+               gsub(/[ \t]* *% *% *%/, "", copy); 
+               gsub(/ *\$ *\$ *\$.*$/, "", copy); 
                print copy; } 
 
-/\$\$\$/,/@@@/ { copy = $0; 
-                 if (match(copy,/\$\$\$R/)) { registering = 1; } 
+/ *\$ *\$ *\$/,/ *@ *@ *@/ { copy = $0; 
+                 if (match(copy,/ *\$ *\$ *\$R/)) { registering = 1; } 
                  else {registering = 0; } 
-                 gsub(/.*\$\$\$./,"", copy); 
-                 gsub(/@@@.*/,"",copy); 
+                 gsub(/.* *\$ *\$ *\$./,"", copy); 
+                 gsub(/ *@ *@ *@.*/,"",copy); 
                  gsub(/[ \t]+/," ", copy); 
 		 sub(/^[ \t]*/,"(", copy);
                  gsub(/\"/,"",copy); 
@@ -52,10 +52,10 @@ BEGIN { FS="|";
 		   { print location ":*** `" copy "' is improperly registered as having " numactuals " arguments" > std_err; }
 		 print "\n" copy (registering?")":"") > dot_doc_file ; }
 
-/@@@/,/@!!!.*$/ { copy = $0; 
-                      gsub(/.*@@@/,"",copy); 
+/ *@ *@ *@/,/@ *! *! *!.*$/ { copy = $0; 
+                      gsub(/.* *@ *@ *@/,"",copy); 
 		      sub(/^[ \t]*"?/,"", copy);
-		      sub(/\"?[ \t]*@!!!.*$/,"", copy);
+		      sub(/\"?[ \t]*@ *! *! *!.*$/,"", copy);
                       gsub(/\\n\\n"?/,"\n",copy);
                       gsub(/\\n"?[ \t]*$/,"",copy);
                       gsub(/\\\"[ \t]*$/,"\"",copy);
@@ -63,7 +63,7 @@ BEGIN { FS="|";
                       if (copy != "") { print copy > dot_doc_file }
                 }
 
-/@!!![ \t]/ { print "[" location "]" >> dot_doc_file; }
+/@ *! *! *![ \t]/ { print "[" location "]" >> dot_doc_file; }
 
 /\*&\*&\*&\*SCM_ARG_BETTER_BE_IN_POSITION/ { copy = $0;
          sub(/.*\*&\*&\*&\*SCM_ARG_BETTER_BE_IN_POSITION\([ \t]*/,"",copy);
