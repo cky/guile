@@ -75,13 +75,13 @@ SCM_DEFINE (scm_minor_version, "minor-version", 0, 0, 0,
 }
 #undef FUNC_NAME
 
-/* Return a Scheme string containing Guile's minor version number.  */
+/* Return a Scheme string containing Guile's micro version number.  */
 
 SCM_DEFINE (scm_micro_version, "micro-version", 0, 0, 0, 
             (),
             "Return a string containing Guile's micro version number.\n"
             "E.g., the 5 in \"1.6.5\".")
-#define FUNC_NAME s_scm_minor_version
+#define FUNC_NAME s_scm_micro_version
 {
   return scm_makfrom0str (GUILE_MICRO_VERSION);
 }
