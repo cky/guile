@@ -1,3 +1,10 @@
+2004-06-21  Dirk Herrmann  <dirk@dirk-herrmanns-seiten.de>
+
+	* eval.c (unmemoize_exprs): Handle semi-memoized code.
+
+	(scm_cons_source, scm_primitive_eval): Prefer higher level
+	predicate SCM_FALSEP over SCM_IMP.
+
 2004-06-15  Rob Browning  <rlb@defaultvalue.org>
 
 	* script.c (scm_shell_usage): minor phrasing change.

@@ -358,6 +358,7 @@ scm_i_print_iloc (SCM iloc, SCM port)
 #if (SCM_DEBUG_DEBUGGING_SUPPORT == 1)
 
 SCM scm_dbg_make_iloc (SCM frame, SCM binding, SCM cdrp);
+
 SCM_DEFINE (scm_dbg_make_iloc, "dbg-make-iloc", 3, 0, 0,
             (SCM frame, SCM binding, SCM cdrp),
 	    "Return a new iloc with frame offset @var{frame}, binding\n"
@@ -373,6 +374,7 @@ SCM_DEFINE (scm_dbg_make_iloc, "dbg-make-iloc", 3, 0, 0,
 #undef FUNC_NAME
 
 SCM scm_dbg_iloc_p (SCM obj);
+
 SCM_DEFINE (scm_dbg_iloc_p, "dbg-iloc?", 1, 0, 0, 
           (SCM obj),
 	    "Return @code{#t} if @var{obj} is an iloc.")
@@ -577,17 +579,35 @@ unmemoize_expression (const SCM expr, const SCM env)
 static SCM
 unmemoize_exprs (const SCM exprs, const SCM env)
 {
-  SCM result = SCM_EOL;
+  SCM r_result = SCM_EOL;
   SCM expr_idx;
+  SCM um_expr;
 
+  /* Note that due to the current lazy memoizer we may find partially memoized
+   * code during execution.  In such code we have to expect improper lists of
+   * expressions: On the one hand, for such code syntax checks have not yet
+   * fully been performed, on the other hand, there may be even legal code
+   * like '(a . b) appear as an improper list of expressions as long as the
+   * quote expression is still in its unmemoized form.  For this reason, the
+   * following code handles improper lists of expressions until memoization
+   * and execution have been completely separated.  */
   for (expr_idx = exprs; SCM_CONSP (expr_idx); expr_idx = SCM_CDR (expr_idx))
     {
       const SCM expr = SCM_CAR (expr_idx);
-      const SCM um_expr = unmemoize_expression (expr, env);
-      result = scm_cons (um_expr, result);
+      um_expr = unmemoize_expression (expr, env);
+      r_result = scm_cons (um_expr, r_result);
     }
-  
-  return scm_reverse_x (result, SCM_UNDEFINED);
+  um_expr = unmemoize_expression (expr_idx, env);
+  if (!SCM_NULLP (r_result))
+    {
+      const SCM result = scm_reverse_x (r_result, SCM_UNDEFINED);
+      SCM_SETCDR (r_result, um_expr);
+      return result;
+    }
+  else
+    {
+      return um_expr;
+    }
 }
 
 
@@ -5605,7 +5625,7 @@ SCM_DEFINE (scm_cons_source, "cons-source", 3, 0, 0,
   z = scm_cons (x, y);
   /* Copy source properties possibly associated with xorig. */
   p = scm_whash_lookup (scm_source_whash, xorig);
-  if (!SCM_IMP (p))
+  if (!SCM_FALSEP (p))
     scm_whash_insert (scm_source_whash, z, p);
   return z;
 }
@@ -5846,7 +5866,7 @@ SCM_DEFINE (scm_primitive_eval, "primitive-eval", 1, 0, 0,
 {
   SCM env;
   SCM transformer = scm_current_module_transformer ();
-  if (SCM_NIMP (transformer))
+  if (!SCM_FALSEP (transformer))
     exp = scm_call_1 (transformer, exp);
   env = scm_top_level_env (scm_current_module_lookup_closure ());
   return scm_i_eval (exp, env);
