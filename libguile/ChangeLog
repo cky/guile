@@ -1,3 +1,32 @@
+Mon May 12 17:23:58 1997  Jim Blandy  <jimb@floss.cyclic.com>
+
+	Ensure that shared substrings are handled properly when passed to
+	a system call or other foreign function.  Many thanks to Tim
+	Pierce!
+	* symbols.h (SCM_COERCE_SUBSTR): new macro.
+	* filesys.c (scm_chmod, scm_rename, scm_delete_file, scm_mkdir,
+ 	scm_rmdir, scm_opendir, scm_chdir, scm_symlink, scm_readlink,
+ 	scm_lstat), ports.c (scm_sys_make_void_port), posix.c (scm_utime,
+ 	scm_putenv, scm_setlocale, scm_mknod), stime.c (setzone,
+ 	scm_strftime), vports.c (scm_make_soft_port), backtrace.c
+ 	(scm_display_error_message): use RO macros when strings may be RO.
+	* error.c (scm_error_scm), filesys.c (scm_chown, scm_chmod,
+ 	scm_rename, scm_delete_file, scm_mkdir, scm_rmdir, scm_opendir,
+ 	scm_chdir, scm_symlink, scm_readlink, scm_lstat), ioext.c
+ 	(scm_freopen, scm_duplicate_port, scm_fdopen), net_db.c
+ 	(scm_gethost, scm_getnet, scm_getproto, scm_getserv), ports.c
+ 	(scm_sys_make_void_port), posix.c (scm_getgrgid, scm_utime,
+ 	scm_setlocale, scm_mknod), stime.c (setzone, scm_strptime,
+ 	scm_strftime), vports.c (scm_make_soft_port): use
+ 	SCM_COERCE_SUBSTR to make sure shared substrings are
+ 	null-terminated.
+
+Mon May 12 15:33:10 1997  Jim Blandy  <jimb@totoro.cyclic.com>
+
+	* error.c (scm_error): Add newline to error message.
+
+	* init.c (scm_init_standard_ports): Doc fix.
+
 Thu May  8 14:38:01 1997  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* dynl-shl.c: Completely replaced with new code from Bernard
