@@ -1,3 +1,10 @@
+2001-09-06  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* gc.c (scm_done_free): Always subtract size from scm_mallocated
+	when computing nm, even if it's negative.
+	(scm_must_malloc): Abort on overflow of scm_mtrigger.
+	(scm_must_realloc): Likewise.
+
 2001-09-01  Michael Livshin  <mlivshin@bigfoot.com>
 
 	* numbers.c (scm_sys_check_number_conversions): new function,
