@@ -140,7 +140,7 @@ struct scm_metaclass_standard {
   SCM direct_slots;
 };
 
-#define SCM_METACLASS_OPERATOR_LAYOUT "pwpwpwpwpwpw"
+#define SCM_METACLASS_OPERATOR_LAYOUT "pwpwpopopopo"
 struct scm_metaclass_operator {
   SCM layout;
   SCM vcell;
@@ -162,7 +162,7 @@ struct scm_metaclass_operator {
  *
  * An example of an entity class is the class of generic methods.
  */
-#define SCM_ENTITY_LAYOUT "pwpwpwpw"
+#define SCM_ENTITY_LAYOUT "popopopo"
 typedef struct scm_entity {
   SCM proc0;
   SCM proc1;
