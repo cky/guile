@@ -295,7 +295,9 @@ scm_close (SCM fd_or_port)
 
 SCM_SYMBOL (scm_sym_regular, "regular");
 SCM_SYMBOL (scm_sym_directory, "directory");
+#ifdef HAVE_S_ISLNK
 SCM_SYMBOL (scm_sym_symlink, "symlink");
+#endif
 SCM_SYMBOL (scm_sym_block_special, "block-special");
 SCM_SYMBOL (scm_sym_char_special, "char-special");
 SCM_SYMBOL (scm_sym_fifo, "fifo");
@@ -343,8 +345,10 @@ scm_stat2scm (stat_temp)
       ve[13] = scm_sym_regular;
     else if (S_ISDIR (mode))
       ve[13] = scm_sym_directory;
+#ifdef HAVE_S_ISLNK
     else if (S_ISLNK (mode))
       ve[13] = scm_sym_symlink;
+#endif
     else if (S_ISBLK (mode))
       ve[13] = scm_sym_block_special;
     else if (S_ISCHR (mode))
