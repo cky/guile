@@ -147,15 +147,15 @@ returned by @var{proc}.  For the first two variants, call @var{proc}
 with no arguments; for the third, call it with @var{data}.
 @end deffn
 
-@deftypefn {C Function} void scm_with_blocked_asyncs ()
+@deftypefn {C Function} void scm_frame_block_asyncs ()
 This function must be used inside a pair of calls to
-@code{scm_begin_frame} and @code{scm_end_frame} (@pxref{Frames}).
+@code{scm_frame_begin} and @code{scm_frame_end} (@pxref{Frames}).
 During the dynamic extent of the frame, asyncs are blocked by one level.
 @end deftypefn
 
-@deftypefn {C Function} void scm_with_unblocked_asyncs ()
+@deftypefn {C Function} void scm_frame_unblock_asyncs ()
 This function must be used inside a pair of calls to
-@code{scm_begin_frame} and @code{scm_end_frame} (@pxref{Frames}).
+@code{scm_frame_begin} and @code{scm_frame_end} (@pxref{Frames}).
 During the dynamic extent of the frame, asyncs are unblocked by one
 level.
 @end deftypefn
@@ -631,8 +631,6 @@ You should call it in preference to the system @code{select}.
 
 @cindex fluids
 
-@c FIXME::martin: Review me!
-
 Fluids are objects to store values in.  They have a few properties
 which make them useful in certain situations: Fluids can have one
 value per dynamic root (@pxref{Dynamic Roots}), so that changes to the
@@ -704,6 +702,25 @@ executed inside a @code{dynamic-wind} and the fluids are set/restored
 when control enter or leaves the established dynamic extent.
 @end deffn
 
+@deftypefn {C Function} SCM scm_c_with_fluids (SCM fluids, SCM vals, SCM (*cproc)(void *), void *data)
+@deftypefnx {C Function} SCM scm_c_with_fluid (SCM fluid, SCM val, SCM (*cproc)(void *), void *data)
+The function @code{scm_c_with_fluids} is like @code{scm_with_fluids}
+except that it takes a C function to call instead of a Scheme thunk.
+
+The function @code{scm_c_with_fluid} is similar but only allows one
+fluid to be set instead of a list.
+@end deftypefn
+
+@deftypefn {C Function} void scm_frame_fluid (SCM fluid, SCM val)
+This function must be used inside a pair of calls to
+@code{scm_frame_begin} and @code{scm_frame_end} (@pxref{Frames}).
+During the dynamic extent of the frame, the fluid @var{fluid} is set
+to @var{val}.
+
+More precisely, the value of the fluid is swapped with a `backup'
+value whenever the frame is entered or left.  The backup value is
+initialized with the @var{val} argument.
+@end deftypefn
 
 @node Futures
 @section Futures

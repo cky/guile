@@ -1050,12 +1050,12 @@ convenient construction of anonymous procedures that close over lexical
 variables, this will be, well, inconvenient.  Instead, C code can use
 @dfn{frames}.
 
-Guile offers the functions @code{scm_begin_frame} and
-@code{scm_end_frame} to delimit a dynamic extent.  Within this dynamic
+Guile offers the functions @code{scm_frame_begin} and
+@code{scm_frame_end} to delimit a dynamic extent.  Within this dynamic
 extent, which is called a @dfn{frame}, you can perform various
 @dfn{frame actions} that control what happens when the frame is entered
 or left.  For example, you can register a cleanup routine with
-@code{scm_on_unwind} that is executed when the frame is left.  There are
+@code{scm_frame_unwind} that is executed when the frame is left.  There are
 several other more specialized frame actions as well, for example to
 temporarily block the execution of asyncs or to temporarily change the
 current output port.  They are described elsewhere in this manual.
@@ -1100,19 +1100,19 @@ scm_foo (SCM s1, SCM s2)
 @{
   char *c_s1, *c_s2, *c_res;
 
-  scm_begin_frame (0);
+  scm_frame_begin (0);
 
   c_s1 = scm_to_string (s1);
-  scm_on_unwind (free, s1, SCM_F_EXPLICIT);
+  scm_frame_unwind (free, c_s1, SCM_F_EXPLICIT);
 
   c_s2 = scm_to_string (s2);
-  scm_on_unwind (free, s2, SCM_F_EXPLICIT);
+  scm_frame_unwind (free, c_s2, SCM_F_EXPLICIT);
 
   c_res = foo (c_s1, c_s2);
   if (c_res == NULL)
     scm_memory_error ("foo");
 
-  scm_end_frame ();
+  scm_frame_end ();
 
   return scm_take0str (res);
 @}
@@ -1131,7 +1131,7 @@ a frame can not be reentered non-locally.
 
 @end deftp
 
-@deftypefn {C Function} void scm_begin_frame (scm_t_frame_flags flags)
+@deftypefn {C Function} void scm_frame_begin (scm_t_frame_flags flags)
 The function @code{scm_begin_frame} starts a new frame and makes it the
 `current' one.  
 
@@ -1146,7 +1146,7 @@ is indeed ended properly.  If you fail to call @code{scm_end_frame} each
 @code{scm_begin_frame}, the behavior is undefined.
 @end deftypefn
 
-@deftypefn {C Function} void scm_end_frame ()
+@deftypefn {C Function} void scm_frame_end ()
 End the current frame explicitly and make the previous frame current.
 @end deftypefn
 
@@ -1162,25 +1162,25 @@ left locally.
 @end table
 @end deftp
 
-@deftypefn {C Function} void scm_on_unwind (void (*func)(void *), void *data, scm_t_wind_flags flags)
-@deftypefnx {C Function} void scm_on_unwind_with_scm (void (*func)(SCM), SCM data, scm_t_wind_flags flags)
+@deftypefn {C Function} void scm_frame_unwind (void (*func)(void *), void *data, scm_t_wind_flags flags)
+@deftypefnx {C Function} void scm_frame_unwind_with_scm (void (*func)(SCM), SCM data, scm_t_wind_flags flags)
 Arranges for @var{func} to be called with @var{data} as its arguments
 when the current frame ends implicitly.  If @var{flags} contains
 @code{SCM_F_WIND_EXPLICITLY}, @var{func} is also called when the frame
-ends explicitly with @code{scm_end_frame}.
+ends explicitly with @code{scm_frame_end}.
 
-The function @code{scm_on_unwind_with_scm} takes care that @var{data}
+The function @code{scm_frame_unwind_with_scm} takes care that @var{data}
 is protected from garbage collected.
 @end deftypefn
 
-@deftypefn {C Function} void scm_on_rewind (void (*func)(void *), void *data, scm_t_wind_flags flags)
-@deftypefnx {C Function} void scm_on_rewind_with_scm (void (*func)(SCM), SCM data, scm_t_wind_flags flags)
+@deftypefn {C Function} void scm_frame_rewind (void (*func)(void *), void *data, scm_t_wind_flags flags)
+@deftypefnx {C Function} void scm_frame_rewind_with_scm (void (*func)(SCM), SCM data, scm_t_wind_flags flags)
 Arrange for @var{func} to be called with @var{data} as its argument when
 the current frame is restarted by rewinding the stack.  When @var{flags}
 contains @code{SCM_F_WIND_EXPLICITLY}, @var{func} is called immediately
 as well.
 
-The function @code{scm_on_rewind_with_scm} takes care that @var{data}
+The function @code{scm_frame_rewind_with_scm} takes care that @var{data}
 is protected from garbage collected.
 @end deftypefn
 

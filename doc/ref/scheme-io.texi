@@ -634,17 +634,17 @@ Change the ports returned by @code{current-input-port},
 so that they use the supplied @var{port} for input or output.
 @end deffn
 
-@deftypefn {C Function} void scm_with_current_input_port (SCM port)
-@deftypefnx {C Function} void scm_with_current_output_port (SCM port)
-@deftypefnx {C Function} void scm_with_current_error_port (SCM port)
+@deftypefn {C Function} void scm_frame_current_input_port (SCM port)
+@deftypefnx {C Function} void scm_frame_current_output_port (SCM port)
+@deftypefnx {C Function} void scm_frame_current_error_port (SCM port)
 These functions must be used inside a pair of calls to
-@code{scm_begin_frame} and @code{scm_end_frame} (@pxref{Frames}).
+@code{scm_frame_begin} and @code{scm_frame_end} (@pxref{Frames}).
 During the dynamic extent of the frame, the indicated port is set to
 @var{port}.
 
-More precisely, the the current port is saved when the dynamic extent is
-entered and set to @var{port}.  When the dynamic extent is left, the
-current port is stored in @var{port} and reset to the saved value.
+More precisely, the current port is swapped with a `backup' value
+whenever the frame is entered or left.  The backup value is
+initialized with the @var{port} argument.
 @end deftypefn
 
 @node Port Types
