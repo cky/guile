@@ -556,9 +556,6 @@
 		  (cdr rest))
 	    (scm-error 'misc-error #f msg args #f)))))
 
-(define (scm-error key subr message args rest)
-  (throw key subr message args rest))
-
 ;; bad-throw is the hook that is called upon a throw to a an unhandled
 ;; key (unless the throw has four arguments, in which case
 ;; it's usually interpreted as an error throw.)

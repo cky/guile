@@ -1,3 +1,7 @@
+Thu Mar 13 00:13:41 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* boot-9.scm (scm-error): deleted, reimplemented in C.
+
 Mon Mar 10 15:48:31 1997  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* boot-9.scm (process-define-module): Modified to handle both
