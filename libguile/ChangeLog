@@ -1,5 +1,11 @@
 2003-04-21  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* eval.c (unmemocopy, SCM_APPLY, scm_map, scm_for_each,
+	scm_copy_tree): Place assignment expressions which are part of
+	other expressions into an expression of their own.
+
+2003-04-21  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* goops.c (TEST_CHANGE_CLASS, scm_sys_initialize_object): Don't
 	compare SCM values with !=.
 

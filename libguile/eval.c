@@ -1422,7 +1422,8 @@ unmemocopy (SCM x, SCM env)
 	if (SCM_IMP (b))
 	  {
 	    SCM_SETCDR (y, SCM_EOL);
-	    ls = scm_cons (scm_sym_let, z = scm_cons (y, SCM_UNSPECIFIED));
+            z = scm_cons (y, SCM_UNSPECIFIED);
+            ls = scm_cons (scm_sym_let, z);
 	    break;
 	  }
 	do
@@ -1438,7 +1439,8 @@ unmemocopy (SCM x, SCM env)
 	while (SCM_NIMP (b));
 	SCM_SETCDR (z, SCM_EOL);
       letstar:
-	ls = scm_cons (scm_sym_letstar, z = scm_cons (y, SCM_UNSPECIFIED));
+        z = scm_cons (y, SCM_UNSPECIFIED);
+        ls = scm_cons (scm_sym_letstar, z);
 	break;
       }
     case SCM_BIT7 (SCM_IM_OR):
@@ -3636,10 +3638,9 @@ tail:
       else
 	{
 	  SCM tl = args = scm_cons (SCM_CAR (arg1), SCM_UNSPECIFIED);
-	  while (arg1 = SCM_CDR (arg1), SCM_CONSP (arg1))
+	  for (arg1 = SCM_CDR (arg1); SCM_CONSP (arg1); arg1 = SCM_CDR (arg1))
 	    {
-	      SCM_SETCDR (tl, scm_cons (SCM_CAR (arg1),
-					SCM_UNSPECIFIED));
+	      SCM_SETCDR (tl, scm_cons (SCM_CAR (arg1), SCM_UNSPECIFIED));
 	      tl = SCM_CDR (tl);
 	    }
 	  SCM_SETCDR (tl, arg1);
@@ -3648,8 +3649,8 @@ tail:
       args = EXTEND_ENV (SCM_CLOSURE_FORMALS (proc), args, SCM_ENV (proc));
       proc = SCM_CLOSURE_BODY (proc);
     again:
-      arg1 = proc;
-      while (!SCM_NULLP (arg1 = SCM_CDR (arg1)))
+      arg1 = SCM_CDR (proc);
+      while (!SCM_NULLP (arg1))
 	{
 	  if (SCM_IMP (SCM_CAR (proc)))
 	    {
@@ -3668,6 +3669,7 @@ tail:
 	  else
 	    SCM_CEVAL (SCM_CAR (proc), args);
 	  proc = arg1;
+          arg1 = SCM_CDR (proc);
 	}
       RETURN (EVALCAR (proc, args));
     case scm_tc7_smob:
@@ -4140,7 +4142,8 @@ scm_map (SCM proc, SCM arg1, SCM args)
 	}
       return res;
     }
-  args = scm_vector (arg1 = scm_cons (arg1, args));
+  arg1 = scm_cons (arg1, args);
+  args = scm_vector (arg1);
   ve = SCM_VELTS (args);
   check_map_args (args, len, g_map, proc, arg1, s_map);
   while (1)
@@ -4202,7 +4205,8 @@ scm_for_each (SCM proc, SCM arg1, SCM args)
 	}
       return SCM_UNSPECIFIED;
     }
-  args = scm_vector (arg1 = scm_cons (arg1, args));
+  arg1 = scm_cons (arg1, args);
+  args = scm_vector (arg1);
   ve = SCM_VELTS (args);
   check_map_args (args, len, g_for_each, proc, arg1, s_for_each);
   while (1)
@@ -4339,7 +4343,7 @@ SCM_DEFINE (scm_copy_tree, "copy-tree", 1, 0, 0,
   ans = tl = scm_cons_source (obj,
 			      scm_copy_tree (SCM_CAR (obj)),
 			      SCM_UNSPECIFIED);
-  while (obj = SCM_CDR (obj), SCM_CONSP (obj))
+  for (obj = SCM_CDR (obj); SCM_CONSP (obj); obj = SCM_CDR (obj))
     {
       SCM_SETCDR (tl, scm_cons (scm_copy_tree (SCM_CAR (obj)),
 				SCM_UNSPECIFIED));
