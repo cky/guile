@@ -56,6 +56,8 @@ extern scm_option scm_print_opts[];
 
 /* State information passed around during printing.
  */
+#define SCM_PRINT_STATE(obj) ((scm_print_state *) SCM_STRUCT_DATA (obj))
+
 #define RESET_PRINT_STATE(pstate) \
 { \
   pstate->list_offset = 0; \
@@ -81,8 +83,9 @@ typedef struct scm_print_state {
 				   circular reference detection */
 } scm_print_state;
 
-
 extern SCM scm_print_options SCM_P ((SCM setting));
+SCM scm_make_print_state SCM_P ((void));
+void scm_free_print_state SCM_P ((SCM print_state));
 extern void scm_intprint SCM_P ((long n, int radix, SCM port));
 extern void scm_ipruk SCM_P ((char *hdr, SCM ptr, SCM port));
 extern void scm_iprlist SCM_P ((char *hdr, SCM exp, char tlr, SCM port, scm_print_state *pstate));
