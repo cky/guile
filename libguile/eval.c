@@ -1171,8 +1171,11 @@ scm_eval_args (l, env)
    the second condition, and making x and env volatile would be a
    speed problem, so we'll just trivially meet the first, by having no
    "automatic variables local to the function containing setjmp."  */
-/* This doesn't work well together with continuations - I haven't had
-   time to check why, so I make this temporary fix. /mdj */
+
+/* Actually, this entire approach is bogus, because setjmp ends up
+   capturing the stack frame of the wrapper function, which then
+   returns, rendering the jump buffer invalid.  Duh.  Gotta find a
+   better way...  -JimB  */
 #define safe_setjmp(x) setjmp (x)
 static int
 unsafe_setjmp (jmp_buf env)
@@ -2386,13 +2389,28 @@ SCM_APPLY (proc, arg1, args)
      arguments --- ARG1 is the list of arguments for PROC.  Whatever
      the case, futz with things so that ARG1 is the first argument to
      give to PROC (or SCM_UNDEFINED if no args), and ARGS contains the
-     rest.  */
+     rest.
+
+     Setting the debug apply frame args this way is pretty messy.
+     Perhaps we should store arg1 and args directly in the frame as
+     received, and let scm_frame_arguments unpack them, because that's
+     a relatively rare operation.  This works for now; if the Guile
+     developer archives are still around, see Mikael's post of
+     11-Apr-97.  */
   if (SCM_NULLP (args))
     {
       if (SCM_NULLP (arg1))
-	arg1 = SCM_UNDEFINED;
+	{
+	  arg1 = SCM_UNDEFINED;
+#ifdef DEVAL
+	  debug.vect[0].a.args = SCM_EOL;
+#endif
+	}
       else
 	{
+#ifdef DEVAL
+	  debug.vect[0].a.args = arg1;
+#endif
 	  args = SCM_CDR (arg1);
 	  arg1 = SCM_CAR (arg1);
 	}
@@ -2401,10 +2419,11 @@ SCM_APPLY (proc, arg1, args)
     {
       /* SCM_ASRTGO(SCM_NIMP(args) && SCM_CONSP(args), wrongnumargs); */
       args = scm_nconc2last (args);
+#ifdef DEVAL
+      debug.vect[0].a.args = scm_cons (arg1, args);
+#endif
     }
 #ifdef DEVAL
-  /* Pretty sure this is wrong when applying PROC to no args.  */
-  debug.vect[0].a.args = scm_cons (arg1, args);
   if (SCM_ENTER_FRAME_P)
     {
       SCM tmp;
