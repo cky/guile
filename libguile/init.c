@@ -453,7 +453,9 @@ scm_init_guile_1 (SCM_STACKITEM *base)
 #ifdef GUILE_DEBUG_MALLOC
   scm_debug_malloc_prehistory ();
 #endif
-  scm_init_storage ();	          /* requires smob_prehistory */
+  if (scm_init_storage ())	          /* requires smob_prehistory */
+    abort ();
+  
   scm_struct_prehistory ();	  /* requires storage */
   scm_symbols_prehistory ();      /* requires storage */
   scm_weaks_prehistory ();	  /* requires storage */

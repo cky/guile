@@ -447,19 +447,19 @@ mark_dependencies_in_tconc (t_tconc *tc)
       SCM obj = SCM_CAR (pair);
       next_pair = SCM_CDR (pair);
             
-      if (! SCM_MARKEDP (obj))
+      if (! SCM_GC_MARK_P (obj))
         {
           /* a candidate for finalizing */
           scm_gc_mark_dependencies (obj);
 
-          if (SCM_MARKEDP (obj))
+          if (SCM_GC_MARK_P (obj))
             {
               /* uh oh.  a cycle.  transfer this object (the
                  spine cell, to be exact) to
                  self_centered_zombies, so we'll be able to
                  complain about it later. */
               *prev_ptr = next_pair;
-              SCM_SETGCMARK (pair);
+              SCM_SET_GC_MARK (pair);
               SCM_SETCDR (pair, self_centered_zombies);
               self_centered_zombies = pair;
             }
@@ -494,7 +494,7 @@ mark_and_zombify (t_guardian *g)
     {
       SCM next_pair = SCM_CDR (pair);
 
-      if (!SCM_MARKEDP (SCM_CAR (pair)))
+      if (!SCM_GC_MARK_P (SCM_CAR (pair)))
         {
           /* got you, zombie! */
 
@@ -504,7 +504,7 @@ mark_and_zombify (t_guardian *g)
           if (GREEDY_P (g))
             /* if the guardian is greedy, mark this zombie now.  this
                way it won't be zombified again this time around. */
-            SCM_SETGCMARK (SCM_CAR (pair));
+            SCM_SET_GC_MARK (SCM_CAR (pair));
 
           /* into the zombie list! */
           TCONC_IN (g->zombies, SCM_CAR (pair), pair);
@@ -519,7 +519,7 @@ mark_and_zombify (t_guardian *g)
      don't care about objects pointed to by the list cars, since we
      know they are already marked).  */
   for (pair = g->live.head; !SCM_NULLP (pair); pair = SCM_CDR (pair))
-    SCM_SETGCMARK (pair);
+    SCM_SET_GC_MARK (pair);
 }
 
 

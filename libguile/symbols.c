@@ -120,19 +120,14 @@ scm_mem2symbol (const char *name, size_t len)
 
   {
     /* The symbol was not found - create it. */
-
-    SCM symbol;
-    SCM cell;
-    SCM slot;
-
-    symbol = scm_double_cell (SCM_MAKE_SYMBOL_TAG (len),
+    SCM symbol = scm_double_cell (SCM_MAKE_SYMBOL_TAG (len),
 			      (scm_t_bits) scm_gc_strndup (name, len,
 							   "symbol"),
 			      raw_hash,
 			      SCM_UNPACK (scm_cons (SCM_BOOL_F, SCM_EOL)));
 
-    slot = SCM_VELTS (symbols) [hash];
-    cell = scm_cons (symbol, SCM_UNDEFINED);
+    SCM slot = SCM_VELTS (symbols) [hash];
+    SCM cell = scm_cons (symbol, SCM_UNDEFINED);
     SCM_VECTOR_SET (symbols, hash, scm_cons (cell, slot));
 
     return symbol;

@@ -2288,6 +2288,12 @@ big2str (SCM b, unsigned int radix)
   SCM_BIGDIG radpow = 1, radmod = 0;
   SCM ss = scm_allocate_string (j);
   char *s = SCM_STRING_CHARS (ss), c;
+
+  if (i == 0)
+    {
+      return scm_makfrom0str ("0");
+    }
+  
   while ((long) radpow * radix < SCM_BIGRAD)
     {
       radpow *= radix;

@@ -142,14 +142,14 @@ static void
 unmark_port (SCM port)
 {
   SCM stream, string;
-  port_mark_p = SCM_GCMARKP (port);
-  SCM_CLRGCMARK (port);
+  port_mark_p = SCM_GC_MARK_P (port);
+  SCM_CLEAR_GC_MARK (port);
   stream = SCM_PACK (SCM_STREAM (port));
-  stream_mark_p = SCM_GCMARKP (stream);
-  SCM_CLRGCMARK (stream);
+  stream_mark_p = SCM_GC_MARK_P (stream);
+  SCM_CLEAR_GC_MARK (stream);
   string = SCM_CDR (stream);
-  string_mark_p = SCM_GCMARKP (string);
-  SCM_CLRGCMARK (string);
+  string_mark_p = SCM_GC_MARK_P (string);
+  SCM_CLEAR_GC_MARK (string);
 }
 
 
@@ -158,16 +158,19 @@ remark_port (SCM port)
 {
   SCM stream = SCM_PACK (SCM_STREAM (port));
   SCM string = SCM_CDR (stream);
-  if (string_mark_p) SCM_SETGCMARK (string);
-  if (stream_mark_p) SCM_SETGCMARK (stream);
-  if (port_mark_p) SCM_SETGCMARK (port);
+  if (string_mark_p)
+    SCM_SET_GC_MARK (string);
+  if (stream_mark_p)
+    SCM_SET_GC_MARK (stream);
+  if (port_mark_p)
+    SCM_SET_GC_MARK (port);
 }
 
 
 int
 gdb_maybe_valid_type_p (SCM value)
 {
-  return SCM_IMP (value) || scm_cellp (value);
+  return SCM_IMP (value) || scm_in_heap_p (value);
 }
 
 
@@ -211,8 +214,8 @@ gdb_read (char *str)
   scm_truncate_file (gdb_input_port, SCM_UNDEFINED);
   scm_seek (gdb_input_port, SCM_INUM0, SCM_MAKINUM (SEEK_SET));
   /* Read one object */
-  tok_buf_mark_p = SCM_GCMARKP (tok_buf);
-  SCM_CLRGCMARK (tok_buf);
+  tok_buf_mark_p = SCM_GC_MARK_P (tok_buf);
+  SCM_CLEAR_GC_MARK (tok_buf);
   ans = scm_lreadr (&tok_buf, gdb_input_port, &ans);
   if (SCM_GC_P)
     {
@@ -229,7 +232,7 @@ gdb_read (char *str)
     scm_permanent_object (ans);
 exit:
   if (tok_buf_mark_p)
-    SCM_SETGCMARK (tok_buf);
+    SCM_SET_GC_MARK (tok_buf);
   remark_port (gdb_input_port);
   SCM_END_FOREIGN_BLOCK;
   return status;

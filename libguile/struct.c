@@ -378,7 +378,7 @@ scm_free_structs (void *dummy1 SCM_UNUSED,
 	{
 	  SCM vtable = SCM_STRUCT_VTABLE (chain);
 	  if (SCM_STRUCT_GC_CHAIN (vtable) != 0 && vtable != chain)
-	    SCM_SETGCMARK (vtable);
+	    SCM_SET_GC_MARK (vtable);
 	  chain = SCM_STRUCT_GC_CHAIN (chain);
 	}
       /* Free unmarked structs.  */
@@ -388,9 +388,9 @@ scm_free_structs (void *dummy1 SCM_UNUSED,
 	{
 	  SCM obj = chain;
 	  chain = SCM_STRUCT_GC_CHAIN (chain);
-	  if (SCM_GCMARKP (obj))
+	  if (SCM_GC_MARK_P (obj))
 	    {
-	      SCM_CLRGCMARK (obj);
+	      SCM_CLEAR_GC_MARK (obj);
 	      SCM_SET_STRUCT_GC_CHAIN (obj, newchain);
 	      newchain = obj;
 	    }

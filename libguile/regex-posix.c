@@ -270,14 +270,13 @@ SCM_DEFINE (scm_regexp_exec, "regexp-exec", 2, 2, 0,
       /* The match vector must include a cell for the string that was matched,
 	 so add 1. */
       mvec = scm_c_make_vector (nmatches + 1, SCM_UNSPECIFIED);
-      SCM_VELTS(mvec)[0] = str;
+      SCM_VECTOR_SET(mvec,0, str);
       for (i = 0; i < nmatches; ++i)
 	if (matches[i].rm_so == -1)
-	  SCM_VELTS(mvec)[i+1] = scm_cons (SCM_MAKINUM (-1), SCM_MAKINUM (-1));
+	  SCM_VECTOR_SET(mvec,i+1, scm_cons (SCM_MAKINUM (-1), SCM_MAKINUM (-1)));
 	else
-	  SCM_VELTS(mvec)[i+1]
-	    = scm_cons (scm_long2num (matches[i].rm_so + offset),
-			scm_long2num (matches[i].rm_eo + offset));
+	  SCM_VECTOR_SET(mvec,i+1,scm_cons (scm_long2num (matches[i].rm_so + offset),
+				       scm_long2num (matches[i].rm_eo + offset)));
     }
   free (matches);
   SCM_ALLOW_INTS;

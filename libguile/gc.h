@@ -58,11 +58,17 @@ typedef struct scm_t_cell
   scm_t_bits word_1;
 } scm_t_cell;
 
+/*
+  CARDS
 
-/* SCM_CELLPTR is a pointer to a cons cell which may be compared or
- * differenced.
- */
-typedef scm_t_cell * SCM_CELLPTR;
+  A card is a small `page' of memory; it will be the unit for lazy
+  sweeping, generations, etc. The first cell of a card contains a
+  pointer to the mark bitvector, so that we can find the bitvector efficiently: we
+  knock off some lowerorder bits.
+
+  The size on a 32 bit machine is 256 cells = 2kb. The card 
+*/
+
 
 
 /* Cray machines have pointers that are incremented once for each word,
@@ -73,39 +79,32 @@ typedef scm_t_cell * SCM_CELLPTR;
  * pointers to scm_vector elts, functions, &c are not munged.
  */
 #ifdef _UNICOS
-#  define SCM2PTR(x) ((SCM_CELLPTR) (SCM_UNPACK (x) >> 3))
+#  define SCM2PTR(x) ((scm_t_cell *) (SCM_UNPACK (x) >> 3))
 #  define PTR2SCM(x) (SCM_PACK (((scm_t_bits) (x)) << 3))
 #else
-#  define SCM2PTR(x) ((SCM_CELLPTR) (SCM_UNPACK (x)))
+#  define SCM2PTR(x) ((scm_t_cell *) (SCM_UNPACK (x)))
 #  define PTR2SCM(x) (SCM_PACK ((scm_t_bits) (x)))
 #endif /* def _UNICOS */
 
+
 #define SCM_GC_CARD_N_HEADER_CELLS 1
 #define SCM_GC_CARD_N_CELLS        256
+#define SCM_GC_SIZEOF_CARD 		SCM_GC_CARD_N_CELLS * sizeof (scm_t_cell)
 
-#define SCM_GC_CARD_BVEC(card)  ((scm_t_c_bvec_limb *) ((card)->word_0))
+#define SCM_GC_CARD_BVEC(card)  ((scm_t_c_bvec_long *) ((card)->word_0))
 #define SCM_GC_SET_CARD_BVEC(card, bvec) \
     ((card)->word_0 = (scm_t_bits) (bvec))
 
 
-#define SCM_GC_CARD_SIZE           (SCM_GC_CARD_N_CELLS * sizeof (scm_t_cell))
-#define SCM_GC_CARD_N_DATA_CELLS   (SCM_GC_CARD_N_CELLS - SCM_GC_CARD_N_HEADER_CELLS)
-
-#define SCM_GC_CARD_BVEC_SIZE_IN_LIMBS \
-    ((SCM_GC_CARD_N_CELLS + SCM_C_BVEC_LIMB_BITS - 1) / SCM_C_BVEC_LIMB_BITS)
-
-#define SCM_GC_IN_CARD_HEADERP(x) \
-    SCM_PTR_LT ((scm_t_cell *) (x), SCM_GC_CELL_CARD (x) + SCM_GC_CARD_N_HEADER_CELLS)
-
 #define SCM_GC_GET_CARD_FLAGS(card) ((long) ((card)->word_1))
 #define SCM_GC_SET_CARD_FLAGS(card, flags) \
     ((card)->word_1 = (scm_t_bits) (flags))
-#define SCM_GC_CLR_CARD_FLAGS(card) (SCM_GC_SET_CARD_FLAGS (card, 0L))
+#define SCM_GC_CLEAR_CARD_FLAGS(card) (SCM_GC_SET_CARD_FLAGS (card, 0L))
 
 #define SCM_GC_GET_CARD_FLAG(card, shift) (SCM_GC_GET_CARD_FLAGS (card) & (1L << (shift)))
 #define SCM_GC_SET_CARD_FLAG(card, shift) \
     (SCM_GC_SET_CARD_FLAGS (card, SCM_GC_GET_CARD_FLAGS(card) | (1L << (shift))))
-#define SCM_GC_CLR_CARD_FLAG(card, shift) \
+#define SCM_GC_CLEAR_CARD_FLAG(card, shift) \
     (SCM_GC_SET_CARD_FLAGS (card, SCM_GC_GET_CARD_FLAGS(card) & ~(1L << (shift))))
 
 #define SCM_GC_CARDF_DOUBLECELL 0
@@ -116,31 +115,31 @@ typedef scm_t_cell * SCM_CELLPTR;
 /* card addressing. for efficiency, cards are *always* aligned to
    SCM_GC_CARD_SIZE. */
 
-#define SCM_GC_CARD_SIZE_MASK  (SCM_GC_CARD_SIZE - 1)
+#define SCM_GC_CARD_SIZE_MASK  (SCM_GC_CARD_N_CELLS * sizeof (scm_t_cell) - 1)
 #define SCM_GC_CARD_ADDR_MASK  (~SCM_GC_CARD_SIZE_MASK)
 
-#define SCM_GC_CELL_CARD(x)    ((SCM_CELLPTR) ((long) (x) & SCM_GC_CARD_ADDR_MASK))
-#define SCM_GC_CELL_SPAN(x)    ((SCM_GC_CARD_DOUBLECELLP (SCM_GC_CELL_CARD (x))) ? 2 : 1)
+#define SCM_GC_CELL_CARD(x)    ((scm_t_cell *) ((long) (x) & SCM_GC_CARD_ADDR_MASK))
 #define SCM_GC_CELL_OFFSET(x)  (((long) (x) & SCM_GC_CARD_SIZE_MASK) >> SCM_CELL_SIZE_SHIFT)
 #define SCM_GC_CELL_BVEC(x)    SCM_GC_CARD_BVEC (SCM_GC_CELL_CARD (x))
 #define SCM_GC_CELL_GET_BIT(x) SCM_C_BVEC_GET (SCM_GC_CELL_BVEC (x), SCM_GC_CELL_OFFSET (x))
 #define SCM_GC_CELL_SET_BIT(x) SCM_C_BVEC_SET (SCM_GC_CELL_BVEC (x), SCM_GC_CELL_OFFSET (x))
-#define SCM_GC_CELL_CLR_BIT(x) SCM_C_BVEC_CLR (SCM_GC_CELL_BVEC (x), SCM_GC_CELL_OFFSET (x))
+#define SCM_GC_CELL_CLEAR_BIT(x) SCM_C_BVEC_CLEAR (SCM_GC_CELL_BVEC (x), SCM_GC_CELL_OFFSET (x))
 
-#define SCM_GC_CARD_UP(x)      SCM_GC_CELL_CARD ((char *) (x) + SCM_GC_CARD_SIZE - 1)
+#define SCM_GC_CARD_UP(x)      SCM_GC_CELL_CARD ((char *) (x) + SCM_GC_SIZEOF_CARD - 1)
 #define SCM_GC_CARD_DOWN       SCM_GC_CELL_CARD
 
 /* low level bit banging aids */
-
-typedef unsigned long scm_t_c_bvec_limb;
+typedef unsigned long scm_t_c_bvec_long;
 
 #if (SIZEOF_LONG == 8)
-#       define SCM_C_BVEC_LIMB_BITS    64
+#       define SCM_C_BVEC_LONG_BITS    64
 #       define SCM_C_BVEC_OFFSET_SHIFT 6
 #       define SCM_C_BVEC_POS_MASK     63
 #       define SCM_CELL_SIZE_SHIFT     4
+#	define SCM_SIZEOF_LONG SIZEOF_LONG
 #else
-#       define SCM_C_BVEC_LIMB_BITS    32
+#       define SCM_C_BVEC_LONG_BITS    32
+#	define SCM_SIZEOF_LONG SIZEOF_LONG
 #       define SCM_C_BVEC_OFFSET_SHIFT 5
 #       define SCM_C_BVEC_POS_MASK     31
 #       define SCM_CELL_SIZE_SHIFT     3
@@ -150,23 +149,12 @@ typedef unsigned long scm_t_c_bvec_limb;
 
 #define SCM_C_BVEC_GET(bvec, pos) (bvec[SCM_C_BVEC_OFFSET (pos)] & (1L << (pos & SCM_C_BVEC_POS_MASK)))
 #define SCM_C_BVEC_SET(bvec, pos) (bvec[SCM_C_BVEC_OFFSET (pos)] |= (1L << (pos & SCM_C_BVEC_POS_MASK)))
-#define SCM_C_BVEC_CLR(bvec, pos) (bvec[SCM_C_BVEC_OFFSET (pos)] &= ~(1L << (pos & SCM_C_BVEC_POS_MASK)))
-
-#define SCM_C_BVEC_BITS2BYTES(bits) \
-    (sizeof (scm_t_c_bvec_limb) * ((((bits) & SCM_C_BVEC_POS_MASK) ? 1L : 0L) + SCM_C_BVEC_OFFSET (bits)))
-
-#define SCM_C_BVEC_SET_BYTES(bvec, bytes)   (memset (bvec, 0xff, bytes))
-#define SCM_C_BVEC_SET_ALL_BITS(bvec, bits) SCM_C_BVEC_SET_BYTES (bvec, SCM_C_BVEC_BITS2BYTES (bits))
-
-#define SCM_C_BVEC_CLR_BYTES(bvec, bytes)   (memset (bvec, 0, bytes))
-#define SCM_C_BVEC_CLR_ALL_BITS(bvec, bits) SCM_C_BVEC_CLR_BYTES (bvec, SCM_C_BVEC_BITS2BYTES (bits))
+#define SCM_C_BVEC_CLEAR(bvec, pos) (bvec[SCM_C_BVEC_OFFSET (pos)] &= ~(1L << (pos & SCM_C_BVEC_POS_MASK)))
 
 /* testing and changing GC marks */
-
-#define SCM_GCMARKP(x)   SCM_GC_CELL_GET_BIT (x)
-#define SCM_SETGCMARK(x) SCM_GC_CELL_SET_BIT (x)
-#define SCM_CLRGCMARK(x) SCM_GC_CELL_CLR_BIT (x)
-
+#define SCM_GC_MARK_P(x)   SCM_GC_CELL_GET_BIT (x)
+#define SCM_SET_GC_MARK(x) SCM_GC_CELL_SET_BIT (x)
+#define SCM_CLEAR_GC_MARK(x) SCM_GC_CELL_CLEAR_BIT (x)
 
 /* Low level cell data accessing macros.  These macros should only be used
  * from within code related to garbage collection issues, since they will
@@ -181,7 +169,7 @@ typedef unsigned long scm_t_c_bvec_limb;
 #define SCM_GC_SET_CELL_WORD(x, n, v) \
   (((scm_t_bits *) SCM2PTR (x)) [n] = (scm_t_bits) (v))
 #define SCM_GC_SET_CELL_OBJECT(x, n, v) \
-  (((scm_t_bits *) SCM2PTR (x)) [n] = SCM_UNPACK (v))
+ (((scm_t_bits *) SCM2PTR (x)) [n] = SCM_UNPACK (v))
 #define SCM_GC_CELL_TYPE(x) SCM_GC_CELL_WORD (x, 0)
 
 
@@ -235,8 +223,14 @@ typedef unsigned long scm_t_c_bvec_limb;
  * the freelist.  Due to this structure, freelist cells are not cons cells
  * and thus may not be accessed using SCM_CAR and SCM_CDR.  */
 
-#define SCM_FREE_CELL_P(x) \
-  (!SCM_IMP (x) && (SCM_GC_CELL_TYPE (x) == scm_tc_free_cell))
+/*
+  SCM_FREECELL_P removed ; the semantics are ambiguous with lazy
+  sweeping. Could mean "this cell is no longer in use (will be swept)"
+  or "this cell has just been swept, and is not yet in use".
+ */
+
+#define SCM_FREECELL_P  this_macro_has_been_removed_see_gc_header_file
+
 #define SCM_FREE_CELL_CDR(x) \
   (SCM_GC_CELL_OBJECT ((x), 1))
 #define SCM_SET_FREE_CELL_CDR(x, v) \
@@ -248,48 +242,53 @@ typedef unsigned long scm_t_c_bvec_limb;
 #define SCM_CDRLOC(x) ((SCM *) SCM_CELL_WORD_LOC ((x), 1))
 
 
-/* SCM_PTR_LT and friends define how to compare two SCM_CELLPTRs (which may
- * point to cells in different heap segments).
- */
-#define SCM_PTR_LT(x, y) ((x) < (y))
-#define SCM_PTR_GT(x, y) (SCM_PTR_LT (y, x))
-#define SCM_PTR_LE(x, y) (!SCM_PTR_GT (x, y))
-#define SCM_PTR_GE(x, y) (!SCM_PTR_LT (x, y))
 
-
-#define SCM_MARKEDP    SCM_GCMARKP
-#define SCM_NMARKEDP(x) (!SCM_MARKEDP (x))
 
 #if (SCM_DEBUG_CELL_ACCESSES == 1)
 SCM_API unsigned int scm_debug_cell_accesses_p;
 #endif
 
-SCM_API struct scm_t_heap_seg_data *scm_heap_table;
-SCM_API size_t scm_n_heap_segs;
 SCM_API int scm_block_gc;
 SCM_API int scm_gc_heap_lock;
 SCM_API unsigned int scm_gc_running_p;
 
 
+#if (SCM_ENABLE_DEPRECATED == 1)
 SCM_API size_t scm_default_init_heap_size_1;
 SCM_API int scm_default_min_yield_1;
 SCM_API size_t scm_default_init_heap_size_2;
 SCM_API int scm_default_min_yield_2;
 SCM_API size_t scm_default_max_segment_size;
+#else
+#define  scm_default_init_heap_size_1 deprecated
+#define  scm_default_min_yield_1 deprecated
+#define  scm_default_init_heap_size_2 deprecated
+#define  scm_default_min_yield_2 deprecated
+#define  scm_default_max_segment_size deprecated
+#endif
+
 
 SCM_API size_t scm_max_segment_size;
-SCM_API SCM_CELLPTR scm_heap_org;
-SCM_API SCM scm_freelist;
-SCM_API struct scm_t_freelist scm_master_freelist;
-SCM_API SCM scm_freelist2;
-SCM_API struct scm_t_freelist scm_master_freelist2;
+
+/*
+  Deprecated scm_freelist, scm_master_freelist.
+  No warning; this is not a user serviceable part.
+ */
+SCM_API SCM scm_i_freelist;
+SCM_API struct scm_t_cell_type_statistics scm_i_master_freelist;
+SCM_API SCM scm_i_freelist2;
+SCM_API struct scm_t_cell_type_statistics scm_i_master_freelist2;
+
+SCM_API unsigned long scm_gc_cells_swept;
 SCM_API unsigned long scm_gc_cells_collected;
-SCM_API unsigned long scm_gc_yield;
+SCM_API unsigned long scm_gc_cells_collected;
 SCM_API unsigned long scm_gc_malloc_collected;
 SCM_API unsigned long scm_gc_ports_collected;
 SCM_API unsigned long scm_cells_allocated;
 SCM_API unsigned long scm_mallocated;
 SCM_API unsigned long scm_mtrigger;
+
+
 
 SCM_API SCM scm_after_gc_hook;
 
@@ -300,32 +299,32 @@ SCM_API scm_t_c_hook scm_after_sweep_c_hook;
 SCM_API scm_t_c_hook scm_after_gc_c_hook;
 
 #if defined (GUILE_DEBUG) || defined (GUILE_DEBUG_FREELIST)
-SCM_API SCM scm_map_free_list (void);
-SCM_API SCM scm_free_list_length (void);
-#endif
-#ifdef GUILE_DEBUG_FREELIST
-SCM_API SCM scm_gc_set_debug_check_freelist_x (SCM flag);
+#define scm_map_free_list deprecated
+#define scm_free_list_length deprecated
 #endif
 
+#if (SCM_ENABLE_DEPRECATED == 1) && defined (GUILE_DEBUG_FREELIST)
+SCM_API SCM scm_gc_set_debug_check_freelist_x (SCM flag);
+#endif
 
 
 #if (SCM_DEBUG_CELL_ACCESSES == 1)
 SCM_API void scm_assert_cell_valid (SCM);
-SCM_API SCM scm_set_debug_cell_accesses_x (SCM flag);
 #endif
+
+SCM_API SCM scm_set_debug_cell_accesses_x (SCM flag);
+
+
 SCM_API SCM scm_object_address (SCM obj);
 SCM_API SCM scm_gc_stats (void);
 SCM_API SCM scm_gc (void);
-SCM_API void scm_gc_for_alloc (struct scm_t_freelist *freelist);
-SCM_API SCM scm_gc_for_newcell (struct scm_t_freelist *master, SCM *freelist);
-#if 0
-SCM_API void scm_alloc_cluster (struct scm_t_freelist *master);
-#endif
+SCM_API void scm_gc_for_alloc (struct scm_t_cell_type_statistics *freelist);
+SCM_API SCM scm_gc_for_newcell (struct scm_t_cell_type_statistics *master, SCM *freelist);
 SCM_API void scm_igc (const char *what);
 SCM_API void scm_gc_mark (SCM p);
 SCM_API void scm_gc_mark_dependencies (SCM p);
 SCM_API void scm_mark_locations (SCM_STACKITEM x[], unsigned long n);
-SCM_API int scm_cellp (SCM value);
+SCM_API int scm_in_heap_p (SCM value);
 SCM_API void scm_gc_sweep (void);
 
 SCM_API void *scm_malloc (size_t size);

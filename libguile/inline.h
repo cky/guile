@@ -49,35 +49,73 @@
    "inline.c".
 */
 
+
+#if (SCM_DEBUG_CELL_ACCESSES == 1)
+#include <stdio.h>
+#endif
+
 #include "libguile/pairs.h"
 #include "libguile/gc.h"
 
+
+SCM_API SCM scm_cell (scm_t_bits car, scm_t_bits cdr);
+SCM_API SCM scm_double_cell (scm_t_bits car, scm_t_bits cbr,
+			     scm_t_bits ccr, scm_t_bits cdr);
+
 #ifdef HAVE_INLINE
 
-static inline SCM
+
+
+#ifndef EXTERN_INLINE
+#define EXTERN_INLINE extern inline
+#endif
+
+extern unsigned scm_newcell2_count;
+extern unsigned scm_newcell_count;
+
+
+EXTERN_INLINE
+SCM
 scm_cell (scm_t_bits car, scm_t_bits cdr)
 {
   SCM z;
 
-#ifdef GUILE_DEBUG_FREELIST
-  scm_newcell_count++;
-  if (scm_debug_check_freelist)
+  if (SCM_NULLP (scm_i_freelist))
     {
-      scm_check_freelist (scm_freelist);
-      scm_gc();
-    }
-#endif
-
-  if (SCM_NULLP (scm_freelist))
-    {
-      z = scm_gc_for_newcell (&scm_master_freelist, &scm_freelist);
+      z = scm_gc_for_newcell (&scm_i_master_freelist, &scm_i_freelist);
     }
   else
     {
-      z = scm_freelist;
-      scm_freelist = SCM_FREE_CELL_CDR (scm_freelist);
+      z = scm_i_freelist;
+      scm_i_freelist = SCM_FREE_CELL_CDR (scm_i_freelist);
     }
 
+  /*
+    We update scm_cells_allocated from this function. If we don't
+    update this explicitly, we will have to walk a freelist somewhere
+    later on, which seems a lot more expensive.
+   */
+  scm_cells_allocated += 1;  
+
+#if (SCM_DEBUG_CELL_ACCESSES == 1)
+    if (scm_debug_cell_accesses_p)
+    {
+      if (SCM_GC_MARK_P (z))
+	{
+	  fprintf(stderr, "scm_cell tried to allocate a marked cell.\n");
+	  abort();
+	}
+      else if (SCM_GC_CELL_TYPE(z) != scm_tc_free_cell)
+	{
+	  fprintf(stderr, "cell from freelist is not a free cell.\n");
+	  abort();
+	}
+      
+      SCM_SET_GC_MARK (z);
+    }
+#endif
+
+  
   /* Initialize the type slot last so that the cell is ignored by the
      GC until it is completely initialized.  This is only relevant
      when the GC can actually run during this code, which it can't for
@@ -98,33 +136,30 @@ scm_cell (scm_t_bits car, scm_t_bits cdr)
 #endif
 #endif
 
+
+  
   return z;
 }
 
-static inline SCM
+EXTERN_INLINE
+SCM
 scm_double_cell (scm_t_bits car, scm_t_bits cbr,
 		 scm_t_bits ccr, scm_t_bits cdr)
 {
   SCM z;
 
-#ifdef GUILE_DEBUG_FREELIST
-  scm_newcell2_count++;
-  if (scm_debug_check_freelist)
-    {
-      scm_check_freelist (scm_freelist2);
-      scm_gc();
-    }
-#endif
 
-  if (SCM_NULLP (scm_freelist2))
+  if (SCM_NULLP (scm_i_freelist2))
     {
-      z = scm_gc_for_newcell (&scm_master_freelist2, &scm_freelist2);
+      z = scm_gc_for_newcell (&scm_i_master_freelist2, &scm_i_freelist2);
     }
   else
     {
-      z = scm_freelist2;
-      scm_freelist2 = SCM_FREE_CELL_CDR (scm_freelist2);
+      z = scm_i_freelist2;
+      scm_i_freelist2 = SCM_FREE_CELL_CDR (scm_i_freelist2);
     }
+
+  scm_cells_allocated += 2;
 
   /* Initialize the type slot last so that the cell is ignored by the
      GC until it is completely initialized.  This is only relevant
@@ -148,15 +183,23 @@ scm_double_cell (scm_t_bits car, scm_t_bits cbr,
 #endif
 #endif
 
+
+#if (SCM_DEBUG_CELL_ACCESSES == 1)
+  if (scm_debug_cell_accesses_p)
+    {
+      if (SCM_GC_MARK_P (z))
+	{
+	  fprintf(stderr,
+		  "scm_double_cell tried to allocate a marked cell.\n");
+	  abort();
+	}
+
+      SCM_SET_GC_MARK (z);
+    }
+#endif
+
   return z;
 }
 
-#else /* !HAVE_INLINE */
-
-SCM_API SCM scm_cell (scm_t_bits car, scm_t_bits cdr);
-SCM_API SCM scm_double_cell (scm_t_bits car, scm_t_bits cbr,
-			     scm_t_bits ccr, scm_t_bits cdr);
-
 #endif
-
 #endif

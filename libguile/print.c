@@ -739,7 +739,7 @@ scm_ipruk (char *hdr, SCM ptr, SCM port)
 {
   scm_puts ("#<unknown-", port);
   scm_puts (hdr, port);
-  if (scm_cellp (ptr))
+  if (scm_in_heap_p (ptr))
     {
       scm_puts (" (0x", port);
       scm_intprint (SCM_CELL_WORD_0 (ptr), 16, port);

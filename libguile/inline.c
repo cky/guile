@@ -41,9 +41,10 @@
 
 #include "libguile/scmconfig.h"
 
-#ifndef HAVE_INLINE
 
 #define HAVE_INLINE
+#define EXTERN_INLINE
+#undef SCM_INLINE_H
+
 #include "libguile/inline.h"
 
-#endif

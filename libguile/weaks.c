@@ -278,11 +278,11 @@ scm_mark_weak_vector_spines (void *dummy1 SCM_UNUSED,
 
 	      alist = ptr[j];
 	      while (   SCM_CONSP (alist)
-		     && !SCM_GCMARKP (alist)
+		     && !SCM_GC_MARK_P (alist)
 		     && SCM_CONSP  (SCM_CAR (alist)))
 		{
-		  SCM_SETGCMARK (alist);
-		  SCM_SETGCMARK (SCM_CAR (alist));
+		  SCM_SET_GC_MARK (alist);
+		  SCM_SET_GC_MARK (SCM_CAR (alist));
 		  alist = SCM_CDR (alist);
 		}
 	    }
@@ -292,6 +292,7 @@ scm_mark_weak_vector_spines (void *dummy1 SCM_UNUSED,
   return 0;
 }
 
+#define UNMARKED_CELL_P(x) (SCM_NIMP(x) && !SCM_GC_MARK_P (x))
 
 static void *
 scm_scan_weak_vectors (void *dummy1 SCM_UNUSED,
@@ -308,7 +309,7 @@ scm_scan_weak_vectors (void *dummy1 SCM_UNUSED,
 	  ptr = SCM_GC_WRITABLE_VELTS (w);
 	  n = SCM_VECTOR_LENGTH (w);
 	  for (j = 0; j < n; ++j)
-	    if (SCM_FREE_CELL_P (ptr[j]))
+	    if (UNMARKED_CELL_P (ptr[j]))
 	      ptr[j] = SCM_BOOL_F;
 	}
       else /* if (SCM_IS_WHVEC_ANY (scm_weak_vectors[i])) */
@@ -329,16 +330,16 @@ scm_scan_weak_vectors (void *dummy1 SCM_UNUSED,
 	      fixup = ptr + j;
 	      alist = *fixup;
 
-	      while (   SCM_CONSP (alist)
-			&& SCM_CONSP (SCM_CAR (alist)))
+	      while (SCM_CONSP (alist)
+		     && SCM_CONSP (SCM_CAR (alist)))
 		{
 		  SCM key;
 		  SCM value;
 
 		  key = SCM_CAAR (alist);
 		  value = SCM_CDAR (alist);
-		  if (   (weak_keys && SCM_FREE_CELL_P (key))
-			 || (weak_values && SCM_FREE_CELL_P (value)))
+		  if (   (weak_keys && UNMARKED_CELL_P (key))
+			 || (weak_values && UNMARKED_CELL_P (value)))
 		    {
 		      *fixup = SCM_CDR (alist);
 		    }

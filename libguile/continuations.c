@@ -270,7 +270,7 @@ scm_dynthrow (SCM cont, SCM val)
     grow_stack (cont, val);
 #else
   dst -= continuation->num_stack_items;
-  if (SCM_PTR_LE (dst, &stack_top_element))
+  if (dst <= &stack_top_element)
     grow_stack (cont, val);
 #endif /* def SCM_STACK_GROWS_UP */
 
