@@ -13,6 +13,8 @@ libqthreads_la_LIBADD = qtmds.lo qtmdc.lo
 libqthreads_la_DEPENDENCIES = qtmds.lo qtmdc.lo
 libqthreads_la_LDFLAGS = -rpath $(libdir)
 
+.s.lo:
+	$(LIBTOOL) --mode=compile $(COMPILE) $(qthread_asflags) -c $<
 qtmds.s:
 	${LN_S} ${srcdir}/${qtmds_s} qtmds.s
 qtmdc.c:

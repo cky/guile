@@ -83,6 +83,7 @@ THREAD_LIBS_LOCAL = @THREAD_LIBS_LOCAL@
 THREAD_PACKAGE = @THREAD_PACKAGE@
 VERSION = @VERSION@
 qtdmdb_s = @qtdmdb_s@
+qthread_asflags = @qthread_asflags@
 qtmd_h = @qtmd_h@
 qtmdc_c = @qtmdc_c@
 qtmds_s = @qtmds_s@
@@ -181,9 +182,6 @@ distclean-compile:
 	-rm -f *.tab.c
 
 maintainer-clean-compile:
-
-.s.lo:
-	$(LIBTOOL) --mode=compile $(COMPILE) -c $<
 
 .S.lo:
 	$(LIBTOOL) --mode=compile $(COMPILE) -c $<
@@ -403,6 +401,8 @@ installdirs mostlyclean-generic distclean-generic clean-generic \
 maintainer-clean-generic clean mostlyclean distclean maintainer-clean
 
 
+.s.lo:
+	$(LIBTOOL) --mode=compile $(COMPILE) $(qthread_asflags) -c $<
 qtmds.s:
 	${LN_S} ${srcdir}/${qtmds_s} qtmds.s
 qtmdc.c:
