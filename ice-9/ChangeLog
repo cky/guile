@@ -1,3 +1,12 @@
+2001-03-10  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* buffered-input.scm (make-buffered-input-port): New, more general
+	buffered input procedure.  Does not assume that a newline
+	character should be interpolated between chunks of input returned
+	by the reader proc.
+	(make-line-buffered-input-port): Redefine in terms of
+	make-buffered-input-port.
+
 2001-03-09  Keisuke Nishida  <kxn30@po.cwru.edu>
 
 	* match.scm: Don't export defstruct.  Use (unquote defstruct) instead.

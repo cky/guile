@@ -18,7 +18,8 @@
 ;;;; Boston, MA 02111-1307 USA
 
 (define-module (ice-9 buffered-input)
-  #:export (make-line-buffered-input-port
+  #:export (make-buffered-input-port
+            make-line-buffered-input-port
             set-buffered-input-continuation?!))
 
 ;; @code{buffered-input-continuation?} is a property of the ports
@@ -29,20 +30,18 @@
 (define (set-buffered-input-continuation?! port val)
   "Set the read continuation flag for @var{port} to @var{val}.
 
-See @code{make-line-buffered-input-port} for the meaning and use of
-this flag."
+See @code{make-buffered-input-port} for the meaning and use of this
+flag."
   (set! (buffered-input-continuation? port) val))
 
-(define (make-line-buffered-input-port reader)
+(define (make-buffered-input-port reader)
   "Construct a line-buffered input port from the specified @var{reader}.
 @var{reader} should be a procedure of one argument that somehow reads
-a line of input and returns it as a string @emph{without} the
-terminating newline character.
+a chunk of input and returns it as a string.
 
-The port created by @code{make-line-buffered-input-port} automatically
-adds a newline character after each string returned by @var{reader};
-this makes these ports useful for reading strings that extend across
-more than one input line.
+The port created by @code{make-buffered-input-port} does @emph{not}
+interpolate any additional characters between the strings returned by
+@var{reader}.
 
 @var{reader} should take a boolean @var{continuation?} argument.
 @var{continuation?} indicates whether @var{reader} is being called to
@@ -54,12 +53,12 @@ use the @var{continuation?} argument to determine what prompt to
 display to the user.
 
 The new/continuation distinction is largely an application-level
-concept, and @code{set-buffered-input-continuation?!} allows an
-application some control over when a read operation is considered to
-be new.  But note that if there is data already buffered in the port
-when a new read operation starts, this data will be read before the
-first call to @var{reader}, and so @var{reader} will be called with
-@var{continuation?} set to @code{#t}."
+concept: @code{set-buffered-input-continuation?!} allows an
+application to specify when a read operation is considered to be new.
+But note that if there is non-whitespace data already buffered in the
+port when a new read operation starts, this data will be read before
+the first call to @var{reader}, and so @var{reader} will be called
+with @var{continuation?} set to @code{#t}."
   (let ((read-string "")
 	(string-index -1))
     (letrec ((get-character
@@ -69,7 +68,7 @@ first call to @var{reader}, and so @var{reader} will be called with
 		  read-string)
 		 ((>= string-index (string-length read-string))
 		  (set! string-index -1)
-                  #\nl)
+                  (get-character))
 		 ((= string-index -1)
 		  (set! read-string (reader (buffered-input-continuation? port)))
                   (set! string-index 0)
@@ -86,5 +85,24 @@ first call to @var{reader}, and so @var{reader} will be called with
       (set! port (make-soft-port (vector #f #f #f get-character #f) "r"))
       (set! (buffered-input-continuation? port) #f)
       port)))
+
+(define (make-line-buffered-input-port reader)
+  "Construct a line-buffered input port from the specified @var{reader}.
+@var{reader} should be a procedure of one argument that somehow reads
+a line of input and returns it as a string @emph{without} the
+terminating newline character.
+
+The port created by @code{make-line-buffered-input-port} automatically
+interpolates a newline character after each string returned by
+@var{reader}.
+
+@var{reader} should take a boolean @var{continuation?} argument.  For
+the meaning and use of this argument, see
+@code{make-buffered-input-port}."
+  (make-buffered-input-port (lambda (continuation?)
+                              (let ((str (reader continuation?)))
+                                (if (eof-object? str)
+                                    str
+                                    (string-append str "\n"))))))
 
 ;;; buffered-input.scm ends here
