@@ -1,3 +1,11 @@
+2002-03-15  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* tools.texi (guile-1.4 guile-snarf): Remove this node.
+	(How guile-snarf works): Update usage and description to
+	no longer mention "--compat=1.4" and instead "-d" and "-D".
+	(Macros guile-snarf recognizes): Add list of deprecated macros
+	and blurb.  Add cindex for deprecated macros.
+
 2002-03-15  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* scheme-utility.texi (Object Properties): Revamp documentation on
