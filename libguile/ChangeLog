@@ -1,3 +1,9 @@
+2003-11-02  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* eval.c (scm_trampoline_0, scm_trampoline_1, scm_trampoline_2):
+	Make sure that error checking in debug mode is not worse than in
+	standard mode.
+
 2003-11-01  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* eval.c (scm_m_body, scm_m_lambda): Documentation strings are not

@@ -4486,45 +4486,62 @@ scm_i_call_closure_0 (SCM proc)
 scm_t_trampoline_0
 scm_trampoline_0 (SCM proc)
 {
+  scm_t_trampoline_0 trampoline;
+
   if (SCM_IMP (proc))
     return NULL;
-  if (SCM_DEBUGGINGP)
-    return scm_call_0;
+
   switch (SCM_TYP7 (proc))
     {
     case scm_tc7_subr_0:
-      return call_subr0_0;
+      trampoline = call_subr0_0;
+      break;
     case scm_tc7_subr_1o:
-      return call_subr1o_0;
+      trampoline = call_subr1o_0;
+      break;
     case scm_tc7_lsubr:
-      return call_lsubr_0;
+      trampoline = call_lsubr_0;
+      break;
     case scm_tcs_closures:
       {
 	SCM formals = SCM_CLOSURE_FORMALS (proc);
 	if (SCM_NULLP (formals) || !SCM_CONSP (formals))
-	  return scm_i_call_closure_0;
+	  trampoline = scm_i_call_closure_0;
 	else
 	  return NULL;
+        break;
       }
     case scm_tcs_struct:
       if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
-	return scm_call_generic_0;
+	trampoline = scm_call_generic_0;
       else if (SCM_I_OPERATORP (proc))
-        return scm_call_0;
-      return NULL;
+        trampoline = scm_call_0;
+      else
+        return NULL;
+      break;
     case scm_tc7_smob:
       if (SCM_SMOB_APPLICABLE_P (proc))
-	return SCM_SMOB_DESCRIPTOR (proc).apply_0;
+	trampoline = SCM_SMOB_DESCRIPTOR (proc).apply_0;
       else
 	return NULL;
+      break;
     case scm_tc7_asubr:
     case scm_tc7_rpsubr:
     case scm_tc7_cclo:
     case scm_tc7_pws:
-      return scm_call_0;
+      trampoline = scm_call_0;
+      break;
     default:
-      return NULL; /* not applicable on one arg */
+      return NULL; /* not applicable on zero arguments */
     }
+  /* We only reach this point if a valid trampoline was determined.  */
+
+  /* If debugging is enabled, we want to see all calls to proc on the stack.
+   * Thus, we replace the trampoline shortcut with scm_call_0.  */
+  if (SCM_DEBUGGINGP)
+    return scm_call_0;
+  else
+    return trampoline;
 }
 
 static SCM
@@ -4589,51 +4606,70 @@ call_closure_1 (SCM proc, SCM arg1)
 scm_t_trampoline_1
 scm_trampoline_1 (SCM proc)
 {
+  scm_t_trampoline_1 trampoline;
+
   if (SCM_IMP (proc))
     return NULL;
-  if (SCM_DEBUGGINGP)
-    return scm_call_1;
+
   switch (SCM_TYP7 (proc))
     {
     case scm_tc7_subr_1:
     case scm_tc7_subr_1o:
-      return call_subr1_1;
+      trampoline = call_subr1_1;
+      break;
     case scm_tc7_subr_2o:
-      return call_subr2o_1;
+      trampoline = call_subr2o_1;
+      break;
     case scm_tc7_lsubr:
-      return call_lsubr_1;
+      trampoline = call_lsubr_1;
+      break;
     case scm_tc7_dsubr:
-      return call_dsubr_1;
+      trampoline = call_dsubr_1;
+      break;
     case scm_tc7_cxr:
-      return call_cxr_1;
+      trampoline = call_cxr_1;
+      break;
     case scm_tcs_closures:
       {
 	SCM formals = SCM_CLOSURE_FORMALS (proc);
 	if (!SCM_NULLP (formals)
 	    && (!SCM_CONSP (formals) || !SCM_CONSP (SCM_CDR (formals))))
-	  return call_closure_1;
+	  trampoline = call_closure_1;
 	else
 	  return NULL;
+        break;
       }
     case scm_tcs_struct:
       if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
-	return scm_call_generic_1;
+	trampoline = scm_call_generic_1;
       else if (SCM_I_OPERATORP (proc))
-        return scm_call_1;
-      return NULL;
+        trampoline = scm_call_1;
+      else
+        return NULL;
+      break;
     case scm_tc7_smob:
       if (SCM_SMOB_APPLICABLE_P (proc))
-	return SCM_SMOB_DESCRIPTOR (proc).apply_1;
+	trampoline = SCM_SMOB_DESCRIPTOR (proc).apply_1;
       else
 	return NULL;
+      break;
     case scm_tc7_asubr:
     case scm_tc7_rpsubr:
     case scm_tc7_cclo:
     case scm_tc7_pws:
-      return scm_call_1;
+      trampoline = scm_call_1;
+      break;
     default:
       return NULL; /* not applicable on one arg */
     }
+  /* We only reach this point if a valid trampoline was determined.  */
+
+  /* If debugging is enabled, we want to see all calls to proc on the stack.
+   * Thus, we replace the trampoline shortcut with scm_call_1.  */
+  if (SCM_DEBUGGINGP)
+    return scm_call_1;
+  else
+    return trampoline;
 }
 
 static SCM
@@ -4667,21 +4703,25 @@ call_closure_2 (SCM proc, SCM arg1, SCM arg2)
 scm_t_trampoline_2
 scm_trampoline_2 (SCM proc)
 {
+  scm_t_trampoline_2 trampoline;
+
   if (SCM_IMP (proc))
     return NULL;
-  if (SCM_DEBUGGINGP)
-    return scm_call_2;
+
   switch (SCM_TYP7 (proc))
     {
     case scm_tc7_subr_2:
     case scm_tc7_subr_2o:
     case scm_tc7_rpsubr:
     case scm_tc7_asubr:
-      return call_subr2_2;
+      trampoline = call_subr2_2;
+      break;
     case scm_tc7_lsubr_2:
-      return call_lsubr2_2;
+      trampoline = call_lsubr2_2;
+      break;
     case scm_tc7_lsubr:
-      return call_lsubr_2;
+      trampoline = call_lsubr_2;
+      break;
     case scm_tcs_closures:
       {
 	SCM formals = SCM_CLOSURE_FORMALS (proc);
@@ -4690,27 +4730,40 @@ scm_trampoline_2 (SCM proc)
 		|| (!SCM_NULLP (SCM_CDR (formals))
 		    && (!SCM_CONSP (SCM_CDR (formals))
 			|| !SCM_CONSP (SCM_CDDR (formals))))))
-	  return call_closure_2;
+	  trampoline = call_closure_2;
 	else
 	  return NULL;
+        break;
       }
     case scm_tcs_struct:
       if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
-	return scm_call_generic_2;
+	trampoline = scm_call_generic_2;
       else if (SCM_I_OPERATORP (proc))
-        return scm_call_2;
-      return NULL;
+        trampoline = scm_call_2;
+      else
+        return NULL;
+      break;
     case scm_tc7_smob:
       if (SCM_SMOB_APPLICABLE_P (proc))
-	return SCM_SMOB_DESCRIPTOR (proc).apply_2;
+	trampoline = SCM_SMOB_DESCRIPTOR (proc).apply_2;
       else
 	return NULL;
+      break;
     case scm_tc7_cclo:
     case scm_tc7_pws:
-      return scm_call_2;
+      trampoline = scm_call_2;
+      break;
     default:
       return NULL; /* not applicable on two args */
     }
+  /* We only reach this point if a valid trampoline was determined.  */
+
+  /* If debugging is enabled, we want to see all calls to proc on the stack.
+   * Thus, we replace the trampoline shortcut with scm_call_2.  */
+  if (SCM_DEBUGGINGP)
+    return scm_call_2;
+  else
+    return trampoline;
 }
 
 /* Typechecking for multi-argument MAP and FOR-EACH.
