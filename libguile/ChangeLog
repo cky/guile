@@ -1,3 +1,10 @@
+1999-02-12  Jim Blandy  <jimb@savonarola.red-bean.com>
+
+	* __scm.h (SCM_FENCE): Fix `asm volatile' warnings for EGCS.
+
+	* gc.c (scm_gc_sweep): Properly properly record the size of a
+	freed structure.  (Thanks to Greg Harvey.)
+
 1999-02-07  Jim Blandy  <jimb@savonarola.red-bean.com>
 
 	* gc.c (scm_gc_sweep): Properly record the size of a freed

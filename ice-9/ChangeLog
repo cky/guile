@@ -2,6 +2,9 @@
 
 	* getopt-long.scm: Remove debugging calls to `pk'.
 
+	* getopt-long.scm: Return list of ordinary arguments as the value
+	of the '() key, not `rest'.
+
 	A new argument-processing package from Russ McManus.
 	* getopt-long.scm: New file.
 	* Makefile.am (ice9_sources): Added getopt-long.scm.
