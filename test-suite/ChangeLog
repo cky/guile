@@ -1,3 +1,11 @@
+2002-01-25  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* tests/load.test: New test; for search-path with Elisp
+	nil-terminated lists for PATH and EXTENSIONS.
+
+	* tests/elisp.test: More tests for Scheme primitives that should
+	accept Elisp nil-terminated lists.
+
 2002-01-24  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* tests/elisp.test: More new tests for the Elisp nil value.

@@ -114,4 +114,13 @@
 (try-search-with-extensions path "ugly.scm" extensions "dir3/ugly.scm")
 (try-search-with-extensions path "ugly.ss"  extensions #f)
 
+(if (defined? '%nil)
+    ;; Check that search-path accepts Elisp nil-terminated lists for
+    ;; PATH and EXTENSIONS.
+    (with-test-prefix "elisp-nil"
+      (set-cdr! (last-pair path) %nil)
+      (set-cdr! (last-pair extensions) %nil)
+      (try-search-with-extensions path "ugly.scm" extensions "dir3/ugly.scm")
+      (try-search-with-extensions path "ugly.ss"  extensions #f)))
+      
 (delete-tree temp-dir)

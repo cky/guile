@@ -1,3 +1,44 @@
+2002-01-29  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* transform.scm (transform-1, transform-2, transform-3,
+	transform-list): Removed (unused).
+	
+	* transform.scm, primitives/syntax.scm: Add commas everywhere
+	before use of (guile) primitives in generated code, so that (lang
+	elisp base) doesn't have to import bindings from (guile).
+	
+	* base.scm: Move use-modules expressions inside the define-module,
+	and add #:pure so that we don't import bindings from (guile).
+
+2002-01-25  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* transform.scm (transform-application): Preserve source
+	properties of original elisp expression by using cons-source.
+
+	* transform.scm: Don't handle special forms specially in the
+	translator.  Instead, define them as macros in ...
+	
+	* primitives/syntax.scm: New file; special form definitions.
+
+	* primitives/fns.scm (run-hooks): Rewritten correctly.
+
+	* primitives/symprop.scm (symbol-value): Use `value'.
+
+	* internals/set.scm (value): New function.
+
+	* primitives/fns.scm: Use (lang elisp internals null), as null is
+	no longer a primitive.  Change generated #f values to %nil.
+
+	* internals/null.scm (null): Handle nil symbol.
+
+	* primitives/lists.scm (memq, member, assq, assoc): Handle all
+	possible nil values.
+
+	* transform.scm (transformer): Translate `nil' and `t' to #nil and
+	#t.
+
+	* base.scm: Remove setting of 'language read-option.
+
 2001-11-03  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* README (Resources): Fill in missing URLs.

@@ -187,7 +187,7 @@
       (set! *readline-completion-function* apropos-completion-function)
       ))
 
-(define-public (call-with-readline-completion-function completer thunk)
+(define-public (with-readline-completion-function completer thunk)
   "With @var{completer} as readline completion function, call @var{thunk}."
   (let ((old-completer *readline-completion-function*))
     (dynamic-wind

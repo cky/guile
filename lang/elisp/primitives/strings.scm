@@ -29,3 +29,5 @@
 	      (else (wta 'arrayp array 1)))))
 
 (fset 'stringp string?)
+
+(fset 'vector vector)

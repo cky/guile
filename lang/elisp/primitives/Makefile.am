@@ -39,6 +39,7 @@ elisp_sources = \
 	signal.scm \
 	strings.scm \
 	symprop.scm \
+	syntax.scm \
 	system.scm \
 	time.scm
 

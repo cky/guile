@@ -3,4 +3,5 @@
 
 (define (null obj)
   (or (not obj)
-      (null? obj)))
+      (null? obj)
+      (eq? obj 'nil)))			; Should be removed.

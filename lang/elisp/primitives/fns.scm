@@ -1,5 +1,7 @@
 (define-module (lang elisp primitives fns)
-  #:use-module (lang elisp internals fset))
+  #:use-module (lang elisp internals set)
+  #:use-module (lang elisp internals fset)
+  #:use-module (lang elisp internals null))
 
 (fset 'fset fset)
 (fset 'defalias fset)
@@ -12,11 +14,11 @@
 
 (fset 'interactive-p
       (lambda ()
-	#f))
+	%nil))
 
 (fset 'commandp
       (lambda (sym)
-	(if (interactive-spec (fref sym)) #t #f)))
+	(if (interactive-spec (fref sym)) #t %nil)))
 
 (fset 'fboundp
       (lambda (sym)
@@ -32,14 +34,12 @@
 
 (fset 'byte-code-function-p
       (lambda (object)
-	#f))
+	%nil))
 
 (fset 'run-hooks
-      (lambda (hooks)
-	(cond ((null hooks))
-	      ((list? hooks)
-	       (for-each (lambda (hook)
-			   (elisp-apply hook '()))
-			 hooks))
-	      (else
-	       (elisp-apply hooks '())))))
+      (lambda hooks
+	(for-each (lambda (hooksym)
+		    (for-each (lambda (fn)
+				(elisp-apply fn '()))
+			      (value hooksym #f)))
+		  hooks)))

@@ -109,12 +109,22 @@
         (pass-if "length (with backquoted list)"
           (= (length `(a b c . ,%nil)) 3))
 
-	(pass-if "write"
+	(pass-if "write (%nil)"
+          (string=? (with-output-to-string
+		      (lambda () (write %nil)))
+		    "#nil"))		; Hmmm... should be "()" ?
+
+	(pass-if "display (%nil)"
+          (string=? (with-output-to-string
+		      (lambda () (display %nil)))
+		    "#nil"))		; Ditto.
+
+	(pass-if "write (list)"
           (string=? (with-output-to-string
 		      (lambda () (write (cons 'a %nil))))
 		    "(a)"))
 
-	(pass-if "display"
+	(pass-if "display (list)"
           (string=? (with-output-to-string
 		      (lambda () (display (cons 'a %nil))))
 		    "(a)"))
@@ -185,6 +195,72 @@
 	  (let ((l (copy-tree `(0 1 2 3 4 . ,%nil))))
 	    (list-set! l 6 44)
 	    (= (list-ref l 6) 44)))
+
+	(pass-if "list-cdr-set!"
+	  (let ((l (copy-tree `(0 1 2 3 4 . ,%nil))))
+	    (and (begin
+		   (list-cdr-set! l 4 44)
+		   (equal? l '(0 1 2 3 4 . 44)))
+		 (begin
+		   (list-cdr-set! l 3 `(new . ,%nil))
+		   (equal? l `(0 1 2 3 new . ,%nil))))))
+
+	(pass-if-exception "list-cdr-set!"
+	  exception:out-of-range
+	  (let ((l (copy-tree `(0 1 2 3 4 . ,%nil))))
+	    (list-cdr-set! l 6 44)))
+
+        (pass-if "memq"
+          (equal? (memq 'c `(a b c d . ,%nil)) `(c d . ,%nil)))
+
+        (pass-if "memv"
+          (equal? (memv 'c `(a b c d . ,%nil)) `(c d . ,%nil)))
+
+        (pass-if "member"
+          (equal? (member "c" `("a" "b" "c" "d" . ,%nil)) `("c" "d" . ,%nil)))
+
+	(pass-if "list->vector"
+          (equal? #(1 2 3) (list->vector `(1 2 3 . ,%nil))))
+
+	(pass-if "list->vector"
+          (equal? #(1 2 3) (list->vector `(1 2 3 . ,%nil))))
+
+	(pass-if "list->weak-vector"
+          (equal? (weak-vector 1 2 3) (list->weak-vector `(1 2 3 . ,%nil))))
+
+	(pass-if "sorted?"
+	  (and (sorted? `(1 2 3 . ,%nil) <)
+	       (not (sorted? `(1 6 3 . ,%nil) <))))
+
+	(pass-if "merge"
+          (equal? (merge '(1 4 7 10)
+			 (merge `(2 5 8 11 . ,%nil)
+				`(3 6 9 12 . ,%nil)
+				<)
+			 <)
+		  `(1 2 3 4 5 6 7 8 9 10 11 12 . ,%nil)))
+
+	(pass-if "merge!"
+          (equal? (merge! (copy-tree '(1 4 7 10))
+			  (merge! (copy-tree `(2 5 8 11 . ,%nil))
+				  (copy-tree `(3 6 9 12 . ,%nil))
+				  <)
+			 <)
+		  `(1 2 3 4 5 6 7 8 9 10 11 12 . ,%nil)))
+
+	(pass-if "sort"
+          (equal? (sort `(1 5 3 8 4 . ,%nil) <) '(1 3 4 5 8)))
+
+	(pass-if "stable-sort"
+          (equal? (stable-sort `(1 5 3 8 4 . ,%nil) <) '(1 3 4 5 8)))
+
+	(pass-if "sort!"
+          (equal? (sort! (copy-tree `(1 5 3 8 4 . ,%nil)) <)
+		  '(1 3 4 5 8)))
+
+	(pass-if "stable-sort!"
+          (equal? (stable-sort! (copy-tree `(1 5 3 8 4 . ,%nil)) <)
+		  '(1 3 4 5 8)))
 
 	)
 

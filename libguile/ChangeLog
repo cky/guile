@@ -53,11 +53,11 @@
 	(scm_swap_fluids, scm_swap_fluids_reverse), list.c (scm_null_p,
 	scm_ilength, scm_append_x, scm_last_pair, scm_reverse,
 	scm_reverse_x, scm_list_ref, scm_list_set_x, scm_list_cdr_set_x,
-	scm_c_memq, scm_memv), load.c (scm_search_path), options.c
-	(change_option_setting, scm_options), posix.c (environ_list_to_c),
-	print.c (scm_iprlist), throw.c (scm_exit_status), vectors.c
-	(scm_vector), weaks.c (scm_weak_vector): Use SCM_NULL_OR_NIL_P
-	instead of SCM_NULLP.
+	scm_c_memq, scm_memv, scm_member), load.c (scm_search_path),
+	options.c (change_option_setting, scm_options), posix.c
+	(environ_list_to_c), print.c (scm_iprlist), throw.c
+	(scm_exit_status), vectors.c (scm_vector), weaks.c
+	(scm_weak_vector): Use SCM_NULL_OR_NIL_P instead of SCM_NULLP.
 
 	* boolean.c (scm_not): Use `SCM_FALSEP || SCM_NILP' instead of
 	just SCM_FALSEP.

@@ -22,9 +22,7 @@
 
 (fset 'symbol-value
       (lambda (sym)
-	(if (module-defined? the-elisp-module sym)
-	    (module-ref the-elisp-module sym)
-	    (error "Symbol's value as variable is void:" sym))))
+	(value sym #t)))
 
 (fset 'default-value 'symbol-value)
 

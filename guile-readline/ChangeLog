@@ -1,3 +1,8 @@
+2002-01-29  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* readline.scm (with-readline-completion-function): Renamed from
+	`call-with-readline-completion-function'.
+
 2001-11-30  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* Makefile.am (EXTRA_DIST): Refer to $(ice9_DATA) rather than

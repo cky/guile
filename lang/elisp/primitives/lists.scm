@@ -46,10 +46,16 @@
 	    (fset sym
 		  (lambda (elt list)
 		    (if (null list)
-			#f
+			%nil
 			(if (null elt)
 			    (or (proc #f list)
-				(proc '() list))
+				(proc '() list)
+				(proc %nil list)
+				(proc 'nil list)) ; 'nil shouldn't be
+						  ; here, as it should
+						  ; have been
+						  ; translated by the
+						  ; transformer.
 			    (proc elt list))))))
 	  '( memq  member  assq  assoc)
 	  `(,memq ,member ,assq ,assoc))
