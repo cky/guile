@@ -1,3 +1,8 @@
+2004-02-22  Kevin Ryde  <user42@zip.com.au>
+
+	* numbers.c (scm_max, scm_min): For one arg, dispatch to generic for
+	complex, same as for two args.  (Handle only inum, big, real, frac).
+
 2004-02-21  Kevin Ryde  <user42@zip.com.au>
 
 	* posix.c (scm_crypt): Use new HAVE_CRYPT.
