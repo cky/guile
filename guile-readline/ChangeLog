@@ -1,3 +1,8 @@
+2003-01-08  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* readline.c (scm_readline): Check that scm_cur_outp is an output
+	port, not an input one.
+
 2002-12-08  Rob Browning  <rlb@defaultvalue.org>
 
 	* configure.in (GUILE_EFFECTIVE_VERSION): AC_SUBST.

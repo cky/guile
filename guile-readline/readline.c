@@ -184,7 +184,7 @@ SCM_DEFINE (scm_readline, "%readline", 0, 4, 0,
 		      SCM_EOL);
     }
   
-  if (!((SCM_UNBNDP (outp) && SCM_OPINFPORTP (scm_cur_outp))
+  if (!((SCM_UNBNDP (outp) && SCM_OPOUTFPORTP (scm_cur_outp))
 	|| SCM_OPOUTFPORTP (outp)))
     {
       --in_readline;
