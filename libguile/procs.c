@@ -434,7 +434,7 @@ scm_make_subr_with_generic (const char *name, int type, SCM (*fcn) (), SCM *gf)
     ("`scm_make_subr_with_generic' is deprecated.  Use "
      "`scm_c_define_subr_with_generic' instead.");
   
-  return scm_c_define_subr_with_generic (name, type, fcn);
+  return scm_c_define_subr_with_generic (name, type, fcn, gf);
 }
 
 #endif /* !SCM_DEBUG_DEPRECATION */
