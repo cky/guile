@@ -1,5 +1,9 @@
 2000-05-08  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* tests/list.test, tests/numbers.test:  Added.
+
+2000-05-08  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* guile-test:  Eliminate use of catch-test-errors.
 
 	* lib.scm:  Adopted a couple of nice ideas from Greg.

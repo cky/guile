@@ -1,0 +1,877 @@
+;;;; numbers.test --- tests guile's numbers     -*- scheme -*-
+;;;; Copyright (C) 2000 Free Software Foundation, Inc.
+;;;;
+;;;; This program is free software; you can redistribute it and/or modify
+;;;; it under the terms of the GNU General Public License as published by
+;;;; the Free Software Foundation; either version 2, or (at your option)
+;;;; any later version.
+;;;;
+;;;; This program is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;;;; GNU General Public License for more details.
+;;;;
+;;;; You should have received a copy of the GNU General Public License
+;;;; along with this software; see the file COPYING.  If not, write to
+;;;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+;;;; Boston, MA 02111-1307 USA
+;;;;
+;;;; As a special exception, the Free Software Foundation gives permission
+;;;; for additional uses of the text contained in its release of GUILE.
+;;;;
+;;;; The exception is that, if you link the GUILE library with other files
+;;;; to produce an executable, this does not by itself cause the
+;;;; resulting executable to be covered by the GNU General Public License.
+;;;; Your use of that executable is in no way restricted on account of
+;;;; linking the GUILE library code into it.
+;;;;
+;;;; This exception does not however invalidate any other reasons why
+;;;; the executable file might be covered by the GNU General Public License.
+;;;;
+;;;; This exception applies only to the code released by the
+;;;; Free Software Foundation under the name GUILE.  If you copy
+;;;; code from other Free Software Foundation releases into a copy of
+;;;; GUILE, as the General Public License permits, the exception does
+;;;; not apply to the code that you add in this way.  To avoid misleading
+;;;; anyone as to the status of such modified files, you must delete
+;;;; this exception notice from them.
+;;;;
+;;;; If you write modifications of your own for GUILE, it is your choice
+;;;; whether to permit this exception to apply to your modifications.
+;;;; If you do not wish that, delete this exception notice.
+
+(use-modules (ice-9 doc))
+
+
+;;;
+;;; miscellaneous
+;;;
+
+
+(define (documented? identifier)
+  (let ((documented #f))
+    (with-output-to-string
+      (lambda ()
+	(set! documented (documentation identifier))))
+    documented))
+
+
+(define (make-test-name . args)
+  (with-output-to-string
+    (lambda ()
+      (for-each display args))))
+
+
+(define bit-widths '(8 16 27 28 29 30 31 32 64 128 256))
+
+
+(define (2^x-1 x)
+  (- (expt 2 x) 1))
+
+(define (2^ x)
+  (expt 2 x))
+
+(define (n=2^x-1 x)
+  (make-test-name "n = 2^" x " - 1"))
+
+(define (n=-2^x+1 x)
+  (make-test-name "n = -2^" x " + 1"))
+
+(define (n=2^ x)
+  (make-test-name "n = 2^" x))
+
+(define (n=-2^ x)
+  (make-test-name "n = -2^" x))
+
+
+;;;
+;;; exact?
+;;;
+
+(with-test-prefix "exact?"
+
+  ;; Is documentation available?
+
+  (pass-if "documented?"
+    (documented? 'exact?))
+
+  ;; Special case:  0
+
+  (pass-if "0"
+    (eq? #t (exact? 0)))
+
+  ;; integers:
+
+  (for-each 
+   (lambda (x)
+     (pass-if (make-test-name "2^" x " - 1")
+       (eq? #t (exact? (2^x-1 x))))
+     (pass-if (make-test-name "-2^" x " + 1")
+       (eq? #t (exact? (- (2^x-1 x)))))
+     (pass-if (make-test-name "2^" x)
+       (eq? #t (exact? (2^ x))))
+     (pass-if (make-test-name "-2^" x)
+       (eq? #t (exact? (- (2^ x))))))
+   bit-widths)
+
+  ;; floats: (FIXME: need more examples)
+
+  (for-each 
+   (lambda (x)
+     (pass-if (make-test-name "sqrt((2^" x " - 1)^2 - 1)")
+       (eq? #f (exact? (sqrt (- (* (2^x-1 x) (2^x-1 x)) 1)))))
+     (pass-if (make-test-name "sqrt((2^" x ")^2 + 1)")
+       (eq? #f (exact? (sqrt (+ (* (2^ x) (2^ x)) 1))))))
+   bit-widths))
+
+;;;
+;;; odd?
+;;;
+
+
+;;;
+;;; even?
+;;;
+
+
+;;;
+;;; abs
+;;;
+
+
+;;;
+;;; quotient
+;;;
+
+(with-test-prefix "quotient"
+
+  ;; Is documentation available?
+
+  (expect-fail "documented?"
+    (documented? 'quotient))
+
+  ;; Special case:  0 / n
+
+  (with-test-prefix "0 / n"
+
+    (pass-if "n = 1"
+      (eqv? 0 (quotient 0 1)))
+
+    (pass-if "n = -1"
+      (eqv? 0 (quotient 0 -1)))
+
+    (for-each 
+     (lambda (x)
+       (pass-if (n=2^x-1 x)
+	 (eqv? 0 (quotient 0 (2^x-1 x))))
+       (pass-if (n=-2^x+1 x)
+	 (eqv? 0 (quotient 0 (- (2^x-1 x)))))
+       (pass-if (n=2^ x)
+	 (eqv? 0 (quotient 0 (expt 2 x))))
+       (pass-if (n=-2^ x)
+	 (eqv? 0 (quotient 0 (- (expt 2 x))))))
+     bit-widths))
+  
+  ;; Special case:  n / 1
+
+  (with-test-prefix "n / 1"
+
+    (pass-if "n = 1"
+      (eqv? 1 (quotient 1 1)))
+
+    (pass-if "n = -1"
+      (eqv? -1 (quotient -1 1)))
+
+    (for-each 
+     (lambda (x)
+       (pass-if (n=2^x-1 x)
+	 (eqv? (2^x-1 x) (quotient (2^x-1 x) 1)))
+       (pass-if (n=-2^x+1 x)
+	 (eqv? (- (2^x-1 x)) (quotient (- (2^x-1 x)) 1)))
+       (pass-if (n=2^ x)
+	 (eqv? (2^ x) (quotient (2^ x) 1)))
+       (pass-if (n=-2^ x)
+	 (eqv? (- (2^ x)) (quotient (- (2^ x)) 1))))
+     bit-widths))
+
+  ;; Special case:  n / -1
+
+  (with-test-prefix "n / -1"
+
+    (pass-if "n = 1"
+      (eqv? -1 (quotient 1 -1)))
+
+    (pass-if "n = -1"
+      (eqv? 1 (quotient -1 -1)))
+
+    (for-each
+     (lambda (x)
+       (pass-if (n=2^x-1 x)
+	 (eqv? (- (2^x-1 x)) (quotient (2^x-1 x) -1)))
+       (pass-if (n=-2^x+1 x)
+	 (eqv? (2^x-1 x) (quotient (- (2^x-1 x)) -1)))
+       (pass-if (n=2^ x)
+	 (eqv? (- (2^ x)) (quotient (2^ x) -1)))
+       (pass-if (n=-2^ x)
+	 (eqv? (2^ x) (quotient (- (2^ x)) -1))))
+     bit-widths))
+
+  ;; Special case:  n / n
+
+  (with-test-prefix "n / n"
+
+    (for-each
+     (lambda (x)
+       (pass-if (n=2^x-1 x)
+	 (eqv? 1 (quotient (2^x-1 x) (2^x-1 x))))
+       (pass-if (n=-2^x+1 x)
+	 (eqv? 1 (quotient (- (2^x-1 x)) (- (2^x-1 x)))))
+       (pass-if (n=2^ x)
+	 (eqv? 1 (quotient (2^ x) (2^ x))))
+       (pass-if (n=-2^ x)
+	 (eqv? 1 (quotient (- (2^ x)) (- (2^ x))))))
+     bit-widths))
+  
+  ;; Positive dividend and divisor
+
+  (pass-if "35 / 7"
+    (eqv? 5 (quotient 35 7)))
+
+  ;; Negative dividend, positive divisor
+
+  (pass-if "-35 / 7"
+    (eqv? -5 (quotient -35 7)))
+
+  ;; Positive dividend, negative divisor
+
+  (pass-if "35 / -7"
+    (eqv? -5 (quotient 35 -7)))
+
+  ;; Negative dividend and divisor
+
+  (pass-if "-35 / -7"
+    (eqv? 5 (quotient -35 -7)))
+
+  ;; Are numerical overflows detected correctly?
+
+  ;; Are wrong type arguments detected correctly?
+
+  )
+
+;;;
+;;; remainder
+;;;
+
+(with-test-prefix "remainder"
+
+  ;; Is documentation available?
+
+  (expect-fail "documented?"
+    (documented? 'remainder))
+
+  ;; Special case:  0 / n
+
+  (with-test-prefix "0 / n"
+
+    (pass-if "n = 1"
+      (eqv? 0 (remainder 0 1)))
+
+    (pass-if "n = -1"
+      (eqv? 0 (remainder 0 -1)))
+
+    (for-each 
+     (lambda (x)
+       (pass-if (n=2^x-1 x)
+	 (eqv? 0 (remainder 0 (2^x-1 x))))
+       (pass-if (n=-2^x+1 x)
+	 (eqv? 0 (remainder 0 (- (2^x-1 x)))))
+       (pass-if (n=2^ x)
+	 (eqv? 0 (remainder 0 (2^ x))))
+       (pass-if (n=-2^ x)
+	 (eqv? 0 (remainder 0 (- (2^ x))))))
+     bit-widths))
+
+  ;; Special case:  n / 1
+
+  (with-test-prefix "n / 1"
+
+    (pass-if "n = 1"
+      (eqv? 0 (remainder 1 1)))
+
+    (pass-if "n = -1"
+      (eqv? 0 (remainder -1 1)))
+
+    (for-each 
+     (lambda (x)
+       (pass-if (n=2^x-1 x)
+	 (eqv? 0 (remainder (2^x-1 x) 1)))
+       (pass-if (n=-2^x+1 x)
+	 (eqv? 0 (remainder (- (2^x-1 x)) 1)))
+       (pass-if (n=2^ x)
+	 (eqv? 0 (remainder (2^ x) 1)))
+       (pass-if (n=-2^ x)
+	 (eqv? 0 (remainder (- (2^ x)) 1))))
+     bit-widths))
+
+  ;; Special case:  n / -1
+
+  (with-test-prefix "n / -1"
+
+    (pass-if "n = 1"
+      (eqv? 0 (remainder 1 -1)))
+
+    (pass-if "n = -1"
+      (eqv? 0 (remainder -1 -1)))
+
+    (for-each
+     (lambda (x)
+       (pass-if (n=2^x-1 x)
+	 (eqv? 0 (remainder (2^x-1 x) -1)))
+       (pass-if (n=-2^x+1 x)
+	 (eqv? 0 (remainder (- (2^x-1 x)) -1)))
+       (pass-if (n=2^ x)
+	 (eqv? 0 (remainder (2^ x) -1)))
+       (pass-if (n=-2^ x)
+	 (eqv? 0 (remainder (- (2^ x)) -1))))
+     bit-widths))
+
+  ;; Special case:  n / n
+
+  (with-test-prefix "n / n"
+
+    (for-each
+     (lambda (x)
+       (pass-if (n=2^x-1 x)
+	 (eqv? 0 (remainder (2^x-1 x) (2^x-1 x))))
+       (pass-if (n=-2^x+1 x)
+	 (eqv? 0 (remainder (- (2^x-1 x)) (- (2^x-1 x)))))
+       (pass-if (n=2^ x)
+	 (eqv? 0 (remainder (2^ x) (2^ x))))
+       (pass-if (n=-2^ x)
+	 (eqv? 0 (remainder (- (2^ x)) (- (2^ x))))))
+     bit-widths))
+
+  ;; Positive dividend and divisor
+
+  (pass-if "35 / 7"
+    (eqv? 0 (remainder 35 7)))
+
+  ;; Negative dividend, positive divisor
+
+  (pass-if "-35 / 7"
+    (eqv? 0 (remainder -35 7)))
+
+  ;; Positive dividend, negative divisor
+
+  (pass-if "35 / -7"
+    (eqv? 0 (remainder 35 -7)))
+
+  ;; Negative dividend and divisor
+
+  (pass-if "-35 / -7"
+    (eqv? 0 (remainder -35 -7)))
+
+  ;; Are numerical overflows detected correctly?
+
+  ;; Are wrong type arguments detected correctly?
+
+  )
+
+;;;
+;;; modulo
+;;;
+
+(with-test-prefix "modulo"
+
+  ;; Is documentation available?
+
+  (expect-fail "documented?"
+    (documented? 'modulo))
+
+  ;; Special case:  0 % n
+
+  (with-test-prefix "0 % n"
+
+    (pass-if "n = 1"
+      (eqv? 0 (modulo 0 1)))
+
+    (pass-if "n = -1"
+      (eqv? 0 (modulo 0 -1)))
+
+    (for-each 
+     (lambda (x)
+       (pass-if (n=2^x-1 x)
+	 (eqv? 0 (modulo 0 (2^x-1 x))))
+       (pass-if (n=-2^x+1 x)
+	 (eqv? 0 (modulo 0 (- (2^x-1 x)))))
+       (pass-if (n=2^ x)
+	 (eqv? 0 (modulo 0 (2^ x))))
+       (pass-if (n=-2^ x)
+	 (eqv? 0 (modulo 0 (- (2^ x))))))
+     bit-widths))
+
+  ;; Special case:  n % 1
+
+  (with-test-prefix "n % 1"
+
+    (pass-if "n = 1"
+      (eqv? 0 (modulo 1 1)))
+
+    (pass-if "n = -1"
+      (eqv? 0 (modulo -1 1)))
+
+    (for-each
+     (lambda (x)
+       (pass-if (n=2^x-1 x)
+	 (eqv? 0 (modulo (2^x-1 x) 1)))
+       (pass-if (n=-2^x+1 x)
+	 (eqv? 0 (modulo (- (2^x-1 x)) 1)))
+       (pass-if (n=2^ x)
+	 (eqv? 0 (modulo (2^ x) 1)))
+       (pass-if (n=-2^ x)
+	 (eqv? 0 (modulo (- (2^ x)) 1))))
+     bit-widths))
+
+  ;; Special case:  n % -1
+
+  (with-test-prefix "n % -1"
+
+    (pass-if "n = 1"
+      (eqv? 0 (modulo 1 -1)))
+
+    (pass-if "n = -1"
+      (eqv? 0 (modulo -1 -1)))
+
+    (for-each
+     (lambda (x)
+       (pass-if (n=2^x-1 x)
+	 (eqv? 0 (modulo (2^x-1 x) -1)))
+       (pass-if (n=-2^x+1 x)
+	 (eqv? 0 (modulo (- (2^x-1 x)) -1)))
+       (pass-if (n=2^ x)
+	 (eqv? 0 (modulo (2^ x) -1)))
+       (pass-if (n=-2^ x)
+	 (eqv? 0 (modulo (- (2^ x)) -1))))
+     bit-widths))
+
+  ;; Special case:  n % n
+
+  (with-test-prefix "n % n"
+
+  (for-each
+   (lambda (x)
+     (pass-if (n=2^x-1 x)
+       (eqv? 0 (modulo (2^x-1 x) (2^x-1 x))))
+     (pass-if (n=-2^x+1 x)
+       (eqv? 0 (modulo (- (2^x-1 x)) (- (2^x-1 x)))))
+     (pass-if (n=2^ x)
+       (eqv? 0 (modulo (2^ x) (2^ x))))
+     (pass-if (n=-2^ x)
+       (eqv? 0 (modulo (- (2^ x)) (- (2^ x))))))
+   bit-widths))
+
+  ;; Positive dividend and divisor
+
+  (pass-if "13 % 4"
+    (eqv? 1 (modulo 13 4)))
+
+  (pass-if "2177452800 % 86400"
+    (eqv? 0 (modulo 2177452800 86400)))
+
+  ;; Negative dividend, positive divisor
+
+  (pass-if "-13 % 4"
+    (eqv? 3 (modulo -13 4)))
+
+  (pass-if "-2177452800 % 86400"
+    (eqv? 0 (modulo -2177452800 86400)))
+
+  ;; Positive dividend, negative divisor
+
+  (pass-if "13 % -4"
+    (eqv? -3 (modulo 13 -4)))
+
+  (pass-if "2177452800 % -86400"
+    (eqv? 0 (modulo 2177452800 -86400)))
+
+  ;; Negative dividend and divisor
+
+  (pass-if "-13 % -4"
+    (eqv? -1 (modulo -13 -4)))
+
+  (pass-if "-2177452800 % -86400"
+    (eqv? 0 (modulo -2177452800 -86400)))
+
+  ;; Are numerical overflows detected correctly?
+
+  ;; Are wrong type arguments detected correctly?
+
+  )
+
+;;;
+;;; gcd
+;;;
+
+(with-test-prefix "gcd"
+
+  ;; Is documentation available?
+
+  (expect-fail "documented?"
+    (documented? 'gcd))
+
+  ;; Special case:  gcd 0 n
+
+  (with-test-prefix "(0 n)"
+
+    (pass-if "n = 1"
+      (eqv? 1 (gcd 0 1)))
+
+    (pass-if "n = -1"
+      (eqv? 1 (gcd 0 -1)))
+
+    (for-each 
+     (lambda (x)
+       (pass-if (n=2^x-1 x)
+	 (eqv? (2^x-1 x) (gcd 0 (2^x-1 x))))
+       (pass-if (n=-2^x+1 x)
+	 (eqv? (2^x-1 x) (gcd 0 (- (2^x-1 x)))))
+       (pass-if (n=2^ x)
+	 (eqv? (2^ x) (gcd 0 (2^ x))))
+       (pass-if (n=-2^ x)
+	 (eqv? (2^ x) (gcd 0 (- (2^ x))))))
+     bit-widths))
+
+  ;; Special case:  gcd n 0
+
+  (with-test-prefix "(n 0)"
+
+    (pass-if "n = 1"
+      (eqv? 1 (gcd 1 0)))
+
+    (pass-if "n = -1"
+      (eqv? 1 (gcd -1 0)))
+
+    (for-each 
+     (lambda (x)
+       (pass-if (n=2^x-1 x)
+	 (eqv? (2^x-1 x) (gcd (2^x-1 x) 0)))
+       (pass-if (n=-2^x+1 x)
+	 (eqv? (2^x-1 x) (gcd (- (2^x-1 x)) 0)))
+       (pass-if (n=2^ x)
+	 (eqv? (2^ x) (gcd (2^ x) 0)))
+       (pass-if (n=-2^ x)
+	 (eqv? (2^ x) (gcd (- (2^ x)) 0))))
+     bit-widths))
+
+  ;; Special case:  gcd 1 n
+
+  (with-test-prefix "(1 n)"
+
+    (pass-if "n = 1"
+      (eqv? 1 (gcd 1 1)))
+
+    (pass-if "n = -1"
+      (eqv? 1 (gcd 1 -1)))
+
+    (for-each 
+     (lambda (x)
+       (pass-if (n=2^x-1 x)
+	 (eqv? 1 (gcd 1 (2^x-1 x))))
+       (pass-if (n=-2^x+1 x)
+	 (eqv? 1 (gcd 1 (- (2^x-1 x)))))
+       (pass-if (n=2^ x)
+	 (eqv? 1 (gcd 1 (2^ x))))
+       (pass-if (n=-2^ x)
+	 (eqv? 1 (gcd 1 (- (2^ x))))))
+     bit-widths))
+
+  ;; Special case:  gcd n 1
+
+  (with-test-prefix "(n 1)"
+
+    (pass-if "n = -1"
+      (eqv? 1 (gcd -1 1)))
+
+    (for-each 
+     (lambda (x)
+       (pass-if (n=2^x-1 x)
+	 (eqv? 1 (gcd (2^x-1 x) 1)))
+       (pass-if (n=-2^x+1 x)
+	 (eqv? 1 (gcd (- (2^x-1 x)) 1)))
+       (pass-if (n=2^ x)
+	 (eqv? 1 (gcd (2^ x) 1)))
+       (pass-if (n=-2^ x)
+	 (eqv? 1 (gcd (- (2^ x)) 1))))
+     bit-widths))
+
+  ;; Special case:  gcd -1 n
+
+  (with-test-prefix "(-1 n)"
+
+    (pass-if "n = -1"
+      (eqv? 1 (gcd -1 -1)))
+
+    (for-each 
+     (lambda (x)
+       (pass-if (n=2^x-1 x)
+	 (eqv? 1 (gcd -1 (2^x-1 x))))
+       (pass-if (n=-2^x+1 x)
+	 (eqv? 1 (gcd -1 (- (2^x-1 x)))))
+       (pass-if (n=2^ x)
+	 (eqv? 1 (gcd -1 (2^ x))))
+       (pass-if (n=-2^ x)
+	 (eqv? 1 (gcd -1 (- (2^ x))))))
+     bit-widths))
+
+  ;; Special case:  gcd n -1
+
+  (with-test-prefix "(n -1)"
+
+    (for-each 
+     (lambda (x)
+       (pass-if (n=2^x-1 x)
+	 (eqv? 1 (gcd (2^x-1 x) -1)))
+       (pass-if (n=-2^x+1 x)
+	 (eqv? 1 (gcd (- (2^x-1 x)) -1)))
+       (pass-if (n=2^ x)
+	 (eqv? 1 (gcd (2^ x) -1)))
+       (pass-if (n=-2^ x)
+	 (eqv? 1 (gcd (- (2^ x)) -1))))
+     bit-widths))
+
+  ;; Special case:  gcd n n
+
+  (with-test-prefix "(n n)"
+
+    (for-each 
+     (lambda (x)
+       (pass-if (n=2^x-1 x)
+	 (eqv? (2^x-1 x) (gcd (2^x-1 x) (2^x-1 x))))
+       (pass-if (n=-2^x+1 x)
+	 (eqv? (2^x-1 x) (gcd (- (2^x-1 x)) (- (2^x-1 x)))))
+       (pass-if (n=2^ x)
+	 (eqv? (2^ x) (gcd (2^ x) (2^ x))))
+       (pass-if (n=-2^ x)
+	 (eqv? (2^ x) (gcd (- (2^ x)) (- (2^ x))))))
+     bit-widths))
+
+  ;; Are wrong type arguments detected correctly?
+
+  )
+
+;;;
+;;; <
+;;;
+
+(with-test-prefix "<"
+
+  ;; Is documentation available?
+
+  (expect-fail "documented?"
+    (documented? '<))
+
+  ;; Special case:  0 < n
+
+  (with-test-prefix "(< 0 n)"
+    
+    (pass-if "n = 0"
+      (not (< 0 0)))
+    
+    (pass-if "n = 0.0"
+      (not (< 0 0.0)))
+    
+    (pass-if "n = 1"
+      (< 0 1))
+    
+    (pass-if "n = 1.0"
+      (< 0 1.0))
+    
+    (pass-if "n = -1"
+      (not (< 0 -1)))
+    
+    (pass-if "n = -1.0"
+      (not (< 0 -1.0)))
+    
+    (for-each ;; FIXME: compare agains floats.
+     (lambda (x)
+       (pass-if (n=2^x-1 x)
+	 (< 0 (2^x-1 x)))
+       (pass-if (n=-2^x+1 x)
+	 (not (< 0 (- (2^x-1 x)))))
+       (pass-if (n=2^ x)
+	 (< 0 (2^ x)))
+       (pass-if (n=-2^ x)
+	 (not (< 0 (- (2^ x))))))
+     bit-widths))
+  
+  ;; Special case:  0.0 < n
+
+  (with-test-prefix "(< 0.0 n)"
+    
+    (pass-if "n = 0"
+      (not (< 0.0 0)))
+    
+    (pass-if "n = 0.0"
+      (not (< 0.0 0.0)))
+    
+    (pass-if "n = 1"
+      (< 0.0 1))
+    
+    (pass-if "n = 1.0"
+      (< 0.0 1.0))
+    
+    (pass-if "n = -1"
+      (not (< 0.0 -1)))
+    
+    (pass-if "n = -1.0"
+      (not (< 0.0 -1.0)))
+    
+    (for-each ;; FIXME: compare agains floats.
+     (lambda (x)
+       (pass-if (n=2^x-1 x)
+	 (< 0.0 (2^x-1 x)))
+       (pass-if (n=-2^x+1 x)
+	 (not (< 0.0 (- (2^x-1 x)))))
+       (pass-if (n=2^ x)
+	 (< 0.0 (2^ x)))
+       (pass-if (n=-2^ x)
+	 (not (< 0.0 (- (2^ x))))))
+     bit-widths))
+  
+  ;; Special case:  n < 0
+
+  (with-test-prefix "(< n 0)"
+    
+    (pass-if "n = 1"
+      (not (< 1 0)))
+    
+    (pass-if "n = 1.0"
+      (not (< 1.0 0)))
+    
+    (pass-if "n = -1"
+      (< -1 0))
+    
+    (pass-if "n = -1.0"
+      (< -1.0 0))
+    
+    (for-each ;; FIXME: compare agains floats.
+     (lambda (x)
+       (pass-if (n=2^x-1 x)
+	 (not (< (2^x-1 x) 0)))
+       (pass-if (n=-2^x+1 x)
+	 (< (- (2^x-1 x)) 0))
+       (pass-if (n=2^ x)
+	 (not (< (2^ x) 0)))
+       (pass-if (n=-2^ x)
+	 (< (- (2^ x)) 0)))
+     bit-widths))
+  
+  ;; Special case:  n < 0.0
+
+  (with-test-prefix "(< n 0.0)"
+    
+    (pass-if "n = 1"
+      (not (< 1 0.0)))
+    
+    (pass-if "n = 1.0"
+      (not (< 1.0 0.0)))
+    
+    (pass-if "n = -1"
+      (< -1 0.0))
+    
+    (pass-if "n = -1.0"
+      (< -1.0 0.0))
+    
+    (for-each ;; FIXME: compare agains floats.
+     (lambda (x)
+       (pass-if (n=2^x-1 x)
+	 (not (< (2^x-1 x) 0.0)))
+       (pass-if (n=-2^x+1 x)
+	 (< (- (2^x-1 x)) 0.0))
+       (pass-if (n=2^ x)
+	 (not (< (2^ x) 0.0)))
+       (pass-if (n=-2^ x)
+	 (< (- (2^ x)) 0.0)))
+     bit-widths))
+  
+  ;; Special case:  n < n
+
+  (with-test-prefix "(< n n)"
+    
+    (pass-if "n = 1"
+      (not (< 1 1)))
+    
+    (pass-if "n = 1.0"
+      (not (< 1.0 1.0)))
+    
+    (pass-if "n = -1"
+      (not (< -1 -1)))
+    
+    (pass-if "n = -1.0"
+      (not (< -1.0 -1.0)))
+    
+    (for-each ;; FIXME: compare agains floats.
+     (lambda (x)
+       (pass-if (n=2^x-1 x)
+	 (not (< (2^x-1 x) (2^x-1 x))))
+       (pass-if (n=-2^x+1 x)
+	 (not (< (- (2^x-1 x)) (- (2^x-1 x)))))
+       (pass-if (n=2^ x)
+	 (not (< (2^ x) (2^ x))))
+       (pass-if (n=-2^ x)
+	 (not (< (- (2^ x)) (- (2^ x))))))
+     bit-widths))
+
+  ;; Special case:  n < n + 1
+
+  (with-test-prefix "(< n (+ n 1))"
+    
+    (pass-if "n = 1"
+      (< 1 2))
+    
+    (pass-if "n = 1.0"
+      (< 1.0 2.0))
+    
+    (pass-if "n = -1"
+      (< -1 0))
+    
+    (pass-if "n = -1.0"
+      (< -1.0 0.0))
+    
+    (for-each ;; FIXME: compare agains floats.
+     (lambda (x)
+       (pass-if (n=2^x-1 x)
+	 (< (2^x-1 x) (+ (2^x-1 x) 1)))
+       (pass-if (n=-2^x+1 x)
+	 (< (- (2^x-1 x)) (+ (- (2^x-1 x)) 1)))
+       (pass-if (n=2^ x)
+	 (< (2^ x) (+ (2^ x) 1)))
+       (pass-if (n=-2^ x)
+	 (< (- (2^ x)) (+ (- (2^ x)) 1))))
+     bit-widths))
+
+  ;; Special case:  n < n - 1
+
+  (with-test-prefix "(< n (- n 1))"
+    
+    (pass-if "n = -1"
+      (not (< -1 -2)))
+    
+    (pass-if "n = -1.0"
+      (not (< -1.0 -2.0)))
+    
+    (for-each ;; FIXME: compare agains floats.
+     (lambda (x)
+       (pass-if (n=2^x-1 x)
+	 (not (< (2^x-1 x) (- (2^x-1 x) 1))))
+       (pass-if (n=-2^x+1 x)
+	 (not (< (- (2^x-1 x)) (- (- (2^x-1 x)) 1))))
+       (pass-if (n=2^ x)
+	 (not (< (2^ x) (- (2^ x) 1))))
+       (pass-if (n=-2^ x)
+	 (not (< (- (2^ x)) (- (- (2^ x)) 1)))))
+     bit-widths))
+
+  ;; Special case:  
+
+  )

@@ -1,0 +1,520 @@
+;;;; list.test --- tests guile's lists     -*- scheme -*-
+;;;; Copyright (C) 2000 Free Software Foundation, Inc.
+;;;; 
+;;;; This program is free software; you can redistribute it and/or modify
+;;;; it under the terms of the GNU General Public License as published by
+;;;; the Free Software Foundation; either version 2, or (at your option)
+;;;; any later version.
+;;;; 
+;;;; This program is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;;;; GNU General Public License for more details.
+;;;; 
+;;;; You should have received a copy of the GNU General Public License
+;;;; along with this software; see the file COPYING.  If not, write to
+;;;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+;;;; Boston, MA 02111-1307 USA
+;;;;
+;;;; As a special exception, the Free Software Foundation gives permission
+;;;; for additional uses of the text contained in its release of GUILE.
+;;;;
+;;;; The exception is that, if you link the GUILE library with other files
+;;;; to produce an executable, this does not by itself cause the
+;;;; resulting executable to be covered by the GNU General Public License.
+;;;; Your use of that executable is in no way restricted on account of
+;;;; linking the GUILE library code into it.
+;;;;
+;;;; This exception does not however invalidate any other reasons why
+;;;; the executable file might be covered by the GNU General Public License.
+;;;;
+;;;; This exception applies only to the code released by the
+;;;; Free Software Foundation under the name GUILE.  If you copy
+;;;; code from other Free Software Foundation releases into a copy of
+;;;; GUILE, as the General Public License permits, the exception does
+;;;; not apply to the code that you add in this way.  To avoid misleading
+;;;; anyone as to the status of such modified files, you must delete
+;;;; this exception notice from them.
+;;;;
+;;;; If you write modifications of your own for GUILE, it is your choice
+;;;; whether to permit this exception to apply to your modifications.
+;;;; If you do not wish that, delete this exception notice.  
+
+(use-modules (ice-9 doc))
+
+
+;;;
+;;; miscellaneous
+;;;
+
+;;
+;; This unique tag is reserved for the unroll and diff-unrolled functions.
+;;
+
+(define circle-indicator 
+  (cons 'circle 'indicator))
+
+;;
+;; Extract every single scheme object that is contained within OBJ into a new
+;; data structure.  That means, if OBJ somewhere contains a pair, the newly
+;; created structure holds a reference to the pair as well as references to
+;; the car and cdr of that pair.  For vectors, the newly created structure
+;; holds a reference to that vector as well as references to every element of
+;; that vector.  Since this is done recursively, the original data structure
+;; is deeply unrolled.  If there are circles within the original data
+;; structures, every reference that points backwards into the data structure
+;; is denoted by storing the circle-indicator tag as well as the object the
+;; circular reference points to.
+;;
+
+(define (unroll obj)
+  (let unroll* ((objct obj)
+                (hist '()))
+    (reverse!
+     (let loop ((object objct)
+                (histry hist)
+                (result '()))
+       (if (memq object histry)
+           (cons (cons circle-indicator object) result)
+           (let ((history (cons object histry)))
+             (cond ((pair? object)
+                    (loop (cdr object) history
+                          (cons (cons object (unroll* (car object) history))
+                                result)))
+                   ((vector? object)
+                    (cons (cons object 
+                                (map (lambda (x)
+                                       (unroll* x history))
+                                     (vector->list object))) 
+                          result))
+                   (else (cons object result)))))))))
+
+;;
+;; Compare two data-structures that were generated with unroll.  If any of the
+;; elements found not to be eq?, return a pair that holds the position of the
+;; first found differences of the two data structures.  If all elements are
+;; found to be eq?, #f is returned.
+;;
+
+(define (diff-unrolled a b)
+  (cond ;; has everything been compared already?
+        ((and (null? a) (null? b))
+	 #f)
+	;; do both structures still contain elements?
+	((and (pair? a) (pair? b))
+	 (cond ;; are the next elements both plain objects?
+	       ((and (not (pair? (car a))) (not (pair? (car b))))
+		(if (eq? (car a) (car b))
+		    (diff-unrolled (cdr a) (cdr b))
+		    (cons a b)))
+	       ;; are the next elements both container objects?
+	       ((and (pair? (car a)) (pair? (car b)))
+		(if (eq? (caar a) (caar b))
+		    (cond ;; do both objects close a circular structure?
+			  ((eq? circle-indicator (caar a))
+			   (if (eq? (cdar a) (cdar b))
+			       (diff-unrolled (cdr a) (cdr b))
+			       (cons a b)))
+			  ;; do both objects hold a vector?
+		          ((vector? (caar a))
+			   (or (let loop ((a1 (cdar a)) (b1 (cdar b)))
+				 (cond 
+				  ((and (null? a1) (null? b1))
+				   #f)
+				  ((and (pair? a1) (pair? b1))
+				   (or (diff-unrolled (car a1) (car b1))
+				       (loop (cdr a1) (cdr b1))))
+				  (else 
+				   (cons a1 b1))))
+			       (diff-unrolled (cdr a) (cdr b))))
+			  ;; do both objects hold a pair?
+			  (else
+			   (or (diff-unrolled (cdar a) (cdar b))
+			       (diff-unrolled (cdr a) (cdr b)))))
+		    (cons a b)))
+	       (else
+		(cons a b))))
+	(else
+	 (cons a b))))
+
+;;; list
+
+
+;;; list*
+
+
+;;; null?
+
+
+;;; list?
+
+
+;;; length
+
+
+;;; append
+
+
+;;;
+;;; append!
+;;;
+
+(with-test-prefix "append!"
+
+  ;; Is documentation available?
+
+  (pass-if "documented?"
+    (let ((documented #f))
+      (with-output-to-string
+	(lambda ()
+	  (set! documented (documentation 'append!))))
+      documented))
+
+  ;; Is the handling of empty lists as arguments correct?
+
+  (pass-if "no arguments"
+    (eq? (append!) 
+	 '()))
+
+  (pass-if "empty list argument"
+    (eq? (append! '()) 
+	 '()))
+
+  (pass-if "some empty list arguments"
+    (eq? (append! '() '() '()) 
+	 '()))
+
+  ;; Does the last non-empty-list argument remain unchanged?
+
+  (pass-if "some empty lists with non-empty list"
+    (let* ((foo (list 1 2))
+	   (foo-unrolled (unroll foo))
+	   (tst (append! '() '() '() foo))
+	   (tst-unrolled (unroll tst)))
+      (and (eq? tst foo)
+	   (not (diff-unrolled foo-unrolled tst-unrolled)))))
+
+  (pass-if "some empty lists with improper list"
+    (let* ((foo (cons 1 2))
+	   (foo-unrolled (unroll foo))
+	   (tst (append! '() '() '() foo))
+	   (tst-unrolled (unroll tst)))
+      (and (eq? tst foo)
+	   (not (diff-unrolled foo-unrolled tst-unrolled)))))
+
+  (pass-if "some empty lists with circular list"
+    (let ((foo (list 1 2)))
+      (set-cdr! (cdr foo) (cdr foo))
+      (let* ((foo-unrolled (unroll foo))
+	     (tst (append! '() '() '() foo))
+	     (tst-unrolled (unroll tst)))
+	(and (eq? tst foo)
+	     (not (diff-unrolled foo-unrolled tst-unrolled))))))
+
+  (pass-if "some empty lists with non list object"
+    (let* ((foo (vector 1 2 3))
+	   (foo-unrolled (unroll foo))
+	   (tst (append! '() '() '() foo))
+	   (tst-unrolled (unroll tst)))
+      (and (eq? tst foo)
+	   (not (diff-unrolled foo-unrolled tst-unrolled)))))
+
+  (pass-if "non-empty list between empty lists"
+    (let* ((foo (list 1 2))
+	   (foo-unrolled (unroll foo))
+	   (tst (append! '() '() '() foo '() '() '()))
+	   (tst-unrolled (unroll tst)))
+      (and (eq? tst foo)
+	   (not (diff-unrolled foo-unrolled tst-unrolled)))))
+
+  ;; Are arbitrary lists append!ed correctly?
+
+  (pass-if "two one-element lists"
+    (let* ((foo (list 1))
+	   (foo-unrolled (unroll foo))
+	   (bar (list 2))
+	   (bar-unrolled (unroll bar))
+	   (tst (append! foo bar))
+	   (tst-unrolled (unroll tst))
+	   (diff-foo-tst (diff-unrolled foo-unrolled tst-unrolled)))
+      (and (equal? tst '(1 2))
+	   (not (diff-unrolled (car diff-foo-tst) (unroll '())))
+	   (not (diff-unrolled bar-unrolled (cdr diff-foo-tst))))))
+
+  (pass-if "three one-element lists"
+    (let* ((foo (list 1))
+	   (foo-unrolled (unroll foo))
+	   (bar (list 2))
+	   (bar-unrolled (unroll bar))
+	   (baz (list 3))
+	   (baz-unrolled (unroll baz))
+	   (tst (append! foo bar baz))
+	   (tst-unrolled (unroll tst))
+	   (diff-foo-tst (diff-unrolled foo-unrolled tst-unrolled)))
+      (and (equal? tst '(1 2 3))
+	   (not (diff-unrolled (car diff-foo-tst) (unroll '())))
+	   (let* ((tst-unrolled-2 (cdr diff-foo-tst))
+		  (diff-foo-bar (diff-unrolled bar-unrolled tst-unrolled-2)))
+	     (and (not (diff-unrolled (car diff-foo-bar) (unroll '())))
+		  (not (diff-unrolled baz-unrolled (cdr diff-foo-bar))))))))
+
+  (pass-if "two two-element lists"
+    (let* ((foo (list 1 2))
+	   (foo-unrolled (unroll foo))
+	   (bar (list 3 4))
+	   (bar-unrolled (unroll bar))
+	   (tst (append! foo bar))
+	   (tst-unrolled (unroll tst))
+	   (diff-foo-tst (diff-unrolled foo-unrolled tst-unrolled)))
+      (and (equal? tst '(1 2 3 4))
+	   (not (diff-unrolled (car diff-foo-tst) (unroll '())))
+	   (not (diff-unrolled bar-unrolled (cdr diff-foo-tst))))))
+ 
+  (pass-if "three two-element lists"
+    (let* ((foo (list 1 2))
+	   (foo-unrolled (unroll foo))
+	   (bar (list 3 4))
+	   (bar-unrolled (unroll bar))
+	   (baz (list 5 6))
+	   (baz-unrolled (unroll baz))
+	   (tst (append! foo bar baz))
+	   (tst-unrolled (unroll tst))
+	   (diff-foo-tst (diff-unrolled foo-unrolled tst-unrolled)))
+      (and (equal? tst '(1 2 3 4 5 6))
+	   (not (diff-unrolled (car diff-foo-tst) (unroll '())))
+	   (let* ((tst-unrolled-2 (cdr diff-foo-tst))
+		  (diff-foo-bar (diff-unrolled bar-unrolled tst-unrolled-2)))
+	     (and (not (diff-unrolled (car diff-foo-bar) (unroll '())))
+		  (not (diff-unrolled baz-unrolled (cdr diff-foo-bar))))))))
+
+  (pass-if "empty list between non-empty lists"
+    (let* ((foo (list 1 2))
+	   (foo-unrolled (unroll foo))
+	   (bar (list 3 4))
+	   (bar-unrolled (unroll bar))
+	   (baz (list 5 6))
+	   (baz-unrolled (unroll baz))
+	   (tst (append! foo '() bar '() '() baz '() '() '()))
+	   (tst-unrolled (unroll tst))
+	   (diff-foo-tst (diff-unrolled foo-unrolled tst-unrolled)))
+      (and (equal? tst '(1 2 3 4 5 6))
+	   (not (diff-unrolled (car diff-foo-tst) (unroll '())))
+	   (let* ((tst-unrolled-2 (cdr diff-foo-tst))
+		  (diff-foo-bar (diff-unrolled bar-unrolled tst-unrolled-2)))
+	     (and (not (diff-unrolled (car diff-foo-bar) (unroll '())))
+		  (not (diff-unrolled baz-unrolled (cdr diff-foo-bar))))))))
+
+  (pass-if "list and improper list"
+    (let* ((foo (list 1 2))
+	   (foo-unrolled (unroll foo))
+	   (bar (cons 3 4))
+	   (bar-unrolled (unroll bar))
+	   (tst (append! foo bar))
+	   (tst-unrolled (unroll tst))
+	   (diff-foo-tst (diff-unrolled foo-unrolled tst-unrolled)))
+      (and (equal? tst '(1 2 3 . 4))
+	   (not (diff-unrolled (car diff-foo-tst) (unroll '())))
+	   (not (diff-unrolled bar-unrolled (cdr diff-foo-tst))))))
+
+  (pass-if "list and circular list"
+    (let* ((foo (list 1 2))
+	   (foo-unrolled (unroll foo))
+	   (bar (list 3 4 5)))
+      (set-cdr! (cddr bar) (cdr bar))
+      (let* ((bar-unrolled (unroll bar))
+	     (tst (append! foo bar))
+	     (tst-unrolled (unroll tst))
+	     (diff-foo-tst (diff-unrolled foo-unrolled tst-unrolled)))
+	(and (equal? (map (lambda (n x) (eqv? (list-ref tst n) x)) 
+			  (iota 9)
+			  '(1 2 3 4 5 4 5 4 5))
+		     '(#t #t #t #t #t #t #t #t #t))
+	     (not (diff-unrolled (car diff-foo-tst) (unroll '())))
+	     (not (diff-unrolled bar-unrolled (cdr diff-foo-tst)))))))
+
+  (pass-if "list and non list object"
+    (let* ((foo (list 1 2))
+	   (foo-unrolled (unroll foo))
+	   (bar (vector 3 4))
+	   (bar-unrolled (unroll bar))
+	   (tst (append! foo bar))
+	   (tst-unrolled (unroll tst))
+	   (diff-foo-tst (diff-unrolled foo-unrolled tst-unrolled)))
+      (and (equal? tst '(1 2 . #(3 4)))
+	   (not (diff-unrolled (car diff-foo-tst) (unroll '())))
+	   (not (diff-unrolled bar-unrolled (cdr diff-foo-tst))))))
+
+  (pass-if "several arbitrary lists"
+    (equal? (append! (list 1 2) 
+		     (list (list 3) 4) 
+		     (list (list 5) (list 6))
+		     (list 7 (cons 8 9))
+		     (list 10 11)
+		     (list (cons 12 13) 14)
+		     (list (list)))
+	    (list 1 2 
+		  (list 3) 4 
+		  (list 5) (list 6) 
+		  7 (cons 8 9) 
+		  10 11 
+		  (cons 12 13) 
+		  14 (list))))
+
+  (pass-if "list to itself"
+    (let* ((foo (list 1 2))
+	   (foo-unrolled (unroll foo))
+	   (tst (append! foo foo))
+	   (tst-unrolled (unroll tst))
+	   (diff-foo-tst (diff-unrolled foo-unrolled tst-unrolled)))
+      (and (equal? (map (lambda (n x) (eqv? (list-ref tst n) x)) 
+			(iota 6)
+			'(1 2 1 2 1 2))
+		   '(#t #t #t #t #t #t))
+	   (not (diff-unrolled (car diff-foo-tst) (unroll '())))
+	   (eq? (caar (cdr diff-foo-tst)) circle-indicator)
+	   (eq? (cdar (cdr diff-foo-tst)) foo))))
+
+  ;; Are wrong type arguments detected correctly?
+
+  (with-test-prefix "wrong argument"
+
+    (expect-fail "improper list and empty list"
+      (catch 'wrong-type-arg
+	(lambda () 
+	  (append! (cons 1 2) '())
+	  #f)
+	(lambda (key . args) 
+	  #t)))
+
+    (expect-fail "improper list and list"
+      (catch 'wrong-type-arg
+	(lambda () 
+	  (append! (cons 1 2) (list 3 4))
+	  #f)
+	(lambda (key . args)
+	  #t)))
+
+    (expect-fail "list, improper list and list"
+      (catch 'wrong-type-arg
+	(lambda () 
+	  (append! (list 1 2) (cons 3 4) (list 5 6))
+	  #f)
+	(lambda (key . args)
+	  #t)))
+
+    (expect-fail "circular list and empty list"
+      (let ((foo (list 1 2 3)))
+	(set-cdr! (cddr foo) (cdr foo))
+	(catch #t
+	  (lambda ()
+	    (catch 'wrong-type-arg
+	      (lambda ()
+		(append! foo '())
+		#f)
+	      (lambda (key . args)
+		#t)))
+	  (lambda (key . args)
+	    #f))))
+
+    (expect-fail "circular list and list"
+      (let ((foo (list 1 2 3)))
+	(set-cdr! (cddr foo) (cdr foo))
+	(catch #t
+	  (lambda ()
+	    (catch 'wrong-type-arg
+	      (lambda ()
+		(append! foo (list 4 5))
+		#f)
+	      (lambda (key . args)
+		#t)))
+	  (lambda (key . args)
+	    #f))))
+
+    (expect-fail "list, circular list and list"
+      (let ((foo (list 3 4 5)))
+	(set-cdr! (cddr foo) (cdr foo))
+	(catch #t
+	  (lambda ()
+	    (catch 'wrong-type-arg
+	      (lambda ()
+		(append! (list 1 2) foo (list 6 7))
+		#f)
+	      (lambda (key . args)
+		#t)))
+	  (lambda (key . args)
+	    #f))))))
+
+
+;;; last-pair
+
+
+;;; reverse
+
+
+;;; reverse!
+
+
+;;; list-ref
+
+
+;;; list-set!
+
+
+;;; list-cdr-ref
+
+
+;;; list-tail
+
+
+;;; list-cdr-set!
+
+
+;;; list-head
+
+
+;;; list-copy
+
+
+;;; sloppy-memq
+
+
+;;; sloppy-memv
+
+
+;;; sloppy-member
+
+
+;;; memq
+
+
+;;; memv
+
+
+;;; member
+
+
+;;; delq!
+
+
+;;; delv!
+
+
+;;; delete!
+
+
+;;; delq
+
+
+;;; delv
+
+
+;;; delete
+
+
+;;; delq1!
+
+
+;;; delv1!
+
+
+;;; delete1!
