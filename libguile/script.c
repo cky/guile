@@ -361,6 +361,7 @@ scm_shell_usage (int fatal, char *message)
            "remaining arguments as the value of (command-line).\n"
            "If FILE begins with `-' the -s switch is mandatory.\n"
            "\n"
+           "  -L DIRECTORY   add DIRECTORY to the front of the module load path\n"
            "  -l FILE        load Scheme source code from FILE\n"
            "  -e FUNCTION    after reading script, apply FUNCTION to\n"
            "                 command line arguments\n"
@@ -395,7 +396,9 @@ SCM_SYMBOL (sym_load_user_init, "load-user-init");
 SCM_SYMBOL (sym_top_repl, "top-repl");
 SCM_SYMBOL (sym_quit, "quit");
 SCM_SYMBOL (sym_use_srfis, "use-srfis");
-
+SCM_SYMBOL (sym_load_path, "%load-path");
+SCM_SYMBOL (sym_set_x, "set!");
+SCM_SYMBOL (sym_cons, "cons");
 
 /* Given an array of command-line switches, return a Scheme expression
    to carry out the actions specified by the switches.
@@ -418,6 +421,7 @@ scm_compile_shell_switches (int argc, char **argv)
 				   the "load" command, in case we get
 				   the "-ds" switch.  */
   SCM entry_point = SCM_EOL;	/* for -e switch */
+  SCM user_load_path = SCM_EOL; /* for -L switch */
   int interactive = 1;		/* Should we go interactive when done? */
   int inhibit_user_init = 0;	/* Don't load user init file */
   int use_emacs_interface = 0;
@@ -494,6 +498,19 @@ scm_compile_shell_switches (int argc, char **argv)
 			     tail);
 	  else
 	    scm_shell_usage (1, "missing argument to `-l' switch");
+	}	  
+
+      else if (! strcmp (argv[i], "-L")) /* add to %load-path */
+	{
+	  if (++i < argc)
+	    user_load_path = scm_cons (scm_list_3 (sym_set_x, 
+                                                   sym_load_path, 
+                                                   scm_list_3(sym_cons,
+                                                              scm_makfrom0str (argv[i]),
+                                                              sym_load_path)),
+                                       user_load_path);
+	  else
+	    scm_shell_usage (1, "missing argument to `-L' switch");
 	}	  
 
       else if (! strcmp (argv[i], "-e")) /* entry point */
@@ -629,6 +646,13 @@ scm_compile_shell_switches (int argc, char **argv)
 
   /* After the following line, actions will be added to the front. */
   tail = scm_reverse_x (tail, SCM_UNDEFINED);
+
+  /* add the user-specified load path here, so it won't be in effect
+     during the loading of the user's customization file. */
+  if(!SCM_NULLP(user_load_path)) 
+    {
+      tail = scm_append_x( scm_cons2(user_load_path, tail, SCM_EOL) );
+    }
   
   /* If we didn't end with a -c or a -s and didn't supply a -q, load
      the user's customization file.  */
