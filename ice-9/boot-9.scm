@@ -2021,10 +2021,11 @@
   (let ((defmacro-transformer
 	  (lambda (name parms . body)
 	    (let ((transformer `(lambda ,parms ,@body)))
-	      `(define ,name
-		 (,(lambda (transformer)
-		     (defmacro:transformer transformer))
-		  ,transformer))))))
+	      `(eval-case
+		((load-toplevel)
+		 (define ,name (defmacro:transformer ,transformer)))
+		(else
+		 (error "defmacro can only be used at the top level")))))))
     (defmacro:transformer defmacro-transformer)))
 
 (define defmacro:syntax-transformer
@@ -2560,7 +2561,11 @@
 	 (if (symbol? first)
 	     (car rest)
 	     `(lambda ,(cdr first) ,@rest))))
-    `(define ,name (defmacro:transformer ,transformer))))
+    `(eval-case
+      ((load-toplevel)
+       (define ,name (defmacro:transformer ,transformer)))
+      (else
+       (error "define-macro can only be used at the top level")))))
 
 
 (defmacro define-syntax-macro (first . rest)
@@ -2569,7 +2574,11 @@
 	 (if (symbol? first)
 	     (car rest)
 	     `(lambda ,(cdr first) ,@rest))))
-    `(define ,name (defmacro:syntax-transformer ,transformer))))
+    `(eval-case
+      ((load-toplevel)
+       (define ,name (defmacro:syntax-transformer ,transformer)))
+      (else
+       (error "define-syntax-macro can only be used at the top level")))))
 
 
 ;;; {Module System Macros}
