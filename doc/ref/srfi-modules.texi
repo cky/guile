@@ -35,7 +35,7 @@ get the relevant SRFI documents from the SRFI home page
 * SRFI-16::                     case-lambda
 * SRFI-17::                     Generalized set!
 * SRFI-19::                     Time/Date library.
-* SRFI-26::                     Convenient syntax for partial application
+* SRFI-26::                     Specializing parameters
 @end menu
 
 
@@ -2992,10 +2992,106 @@ month and weekday names are always expected in English.  This may
 change in the future.
 @end defun
 
-@node SRFI-26
-@section SRFI-26
 
-XXX - To be written.
+@node SRFI-26
+@section SRFI-26 - specializing parameters
+@cindex SRFI-26
+
+This SRFI provides a syntax for conveniently specializing selected
+parameters of a function.  It can be used with,
+
+@example
+(use-modules (srfi srfi-26))
+@end example
+
+@deffn {library syntax} cut slot @dots{}
+@deffnx {library syntax} cute slot @dots{}
+Return a new procedure which will make a call (@var{slot} @dots{}) but
+with selected parameters specialized to given expressions.
+
+An example will illustrate the idea.  The following is a
+specialization of @code{write}, sending output to
+@code{my-output-port},
+
+@example
+(cut write <> my-output-port)
+@result{}
+(lambda (obj) (write obj my-output-port))
+@end example
+
+The special symbol @code{<>} indicates a slot to be filled by an
+argument to the new procedure.  @code{my-output-port} on the other
+hand is an expression to be evaluated and passed, ie.@: it specializes
+the behaviour of @code{write}.
+
+@table @nicode
+@item <>
+A slot to be filled by an argument from the created procedure.
+Arguments are assigned to @code{<>} slots in the order they appear in
+the @code{cut} form, there's no way to re-arrange arguments.
+
+The first argument to @code{cut} is usually a procedure (or expression
+giving a procedure), but @code{<>} is allowed there too.  For example,
+
+@example
+(cut <> 1 2 3)
+@result{}
+(lambda (proc) (proc 1 2 3))
+@end example
+
+@item <...>
+A slot to be filled by all remaining arguments from the new procedure.
+This can only occur at the end of a @code{cut} form.
+
+For example, a procedure taking a variable number of arguments like
+@code{max} but in addition enforcing a lower bound,
+
+@example
+(define my-lower-bound 123)
+
+(cut max my-lower-bound <...>)
+@result{}
+(lambda arglist (apply max my-lower-bound arglist))
+@end example
+@end table
+
+For @code{cut} the specializing expressions are evaluated each time
+the new procedure is called.  For @code{cute} they're evaluated just
+once, when the new procedure is created.  The name @code{cute} stands
+for ``@code{cut} with evaluated arguments''.  In all cases the
+evaluations take place in an unspecified order.
+
+The following illustrates the difference between @code{cut} and
+@code{cute},
+
+@example
+(cut format <> "the time is ~s" (current-time))
+@result{}
+(lambda (port) (format port "the time is ~s" (current-time)))
+
+(cute format <> "the time is ~s" (current-time))
+@result{}
+(let ((val (current-time)))
+  (lambda (port) (format port "the time is ~s" val))
+@end example
+
+(There's no provision for a mixture of @code{cut} and @code{cute}
+where some expressions would be evaluated every time but others
+evaluated only once.)
+
+@code{cut} is really just a shorthand for the sort of @code{lambda}
+forms shown in the above examples.  But notice @code{cut} avoids the
+need to name unspecialized parameters, and is more compact.  Use in
+functional programming style or just with @code{map}, @code{for-each}
+or similar is typical.
+
+@example
+(map (cut * 2 <>) '(1 2 3 4))         
+
+(for-each (cut write <> my-port) my-list)  
+@end example
+@end deffn
+
 
 @c srfi-modules.texi ends here
 
