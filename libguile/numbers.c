@@ -1305,7 +1305,7 @@ scm_adjbig (SCM b, scm_sizet nlen)
       = ((SCM_BIGDIG *)
 	 scm_must_realloc ((char *) SCM_CHARS (b),
 			   (long) (SCM_NUMDIGS (b) * sizeof (SCM_BIGDIG)),
-			   (long) (nsiz * sizeof (SCM_BIGDIG)), s_adjbig));
+			   (long) (nsiz * sizeof (SCM_BIGDIG)), s_bignum));
 
     SCM_SETCHARS (b, digits);
     SCM_SETNUMDIGS (b, nsiz, SCM_BIGSIGN (b));
