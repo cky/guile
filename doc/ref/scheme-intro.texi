@@ -45,9 +45,8 @@ parts and Guile-specific extensions, the text indicates which parts of
 the documentation describe R5RS behaviour and which parts describe Guile
 extensions.
 
-For a breakdown of Guile's core language and features in terms of what
-is R5RS-compliant and what is Guile-specific, see the corresponding
-indices: @ref{R5RS Index} and @ref{Guile Extensions Index}.
+For a quick way of identifying the parts of Guile that implement
+R5RS-compliant features, see the R5RS index: @ref{R5RS Index}.
 
 
 @c Local Variables:

@@ -1,5 +1,20 @@
 2002-04-01  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* scheme-intro.texi (Scheme Layout): Remove reference to defunct
+	Guile Extensions index.
+
+	* guile.texi: Removed Guile Extensions index.
+
+	* scheme-indices.texi (Guile Extensions Index): Removed.
+
+	* guile.texi: Remove vgone, vdeprecated, vchanged and vnote
+	macros; they're not actually useful after all.  Update copyright
+	years.
+
+	* scheme-compound.texi (Vectors): Make subsections into nodes.
+	(Vectors): Review, slightly reorg and clarify docs in this
+	section.
+
 	* scheme-data.texi (Symbols): Reorganized node substructure and
 	added lots of explanatory text around the @deffn's.
 

@@ -528,11 +528,6 @@ return value is not specified.
 @section Vectors
 @tpindex Vectors
 
-@c FIXME::martin: Review me!
-
-@c FIXME::martin: Should the subsections of this section be nodes
-@c of their own, or are the resulting nodes too short, then?
-
 Vectors are sequences of Scheme objects.  Unlike lists, the length of a
 vector, once the vector is created, cannot be changed.  The advantage of
 vectors over lists is that the time required to access one element of a vector
@@ -545,7 +540,15 @@ different types of objects in the same vector.  For vectors containing
 vectors, you may wish to use arrays, instead.  Note, too, that some array
 procedures operate happily on vectors (@pxref{Arrays}).
 
-@subsection Vector Read Syntax
+@menu
+* Vector Syntax::               Read syntax for vectors.
+* Vector Creation::             Dynamic vector creation and validation.
+* Vector Accessors::            Accessing and modifying vector contents.
+@end menu
+
+
+@node Vector Syntax
+@subsection Read Syntax for Vectors
 
 Vectors can literally be entered in source code, just like strings,
 characters or some of the other data types.  The read syntax for vectors
@@ -561,25 +564,15 @@ number in hexadecimal notation.
 #("Hello" foo #xdeadbeef)
 @end lisp
 
-@subsection Vector Predicates
 
-@rnindex vector?
-@deffn {Scheme Procedure} vector? obj
-@deffnx {C Function} scm_vector_p (obj)
-Return @code{#t} if @var{obj} is a vector, otherwise return
-@code{#f}.
-@end deffn
+@node Vector Creation
+@subsection Dynamic Vector Creation and Validation
 
-@subsection Vector Constructors
-
-@rnindex make-vector
-@deffn {Scheme Procedure} make-vector k [fill]
-@deffnx {C Function} scm_make_vector (k, fill)
-Return a newly allocated vector of @var{k} elements.  If a
-second argument is given, then each position is initialized to
-@var{fill}.  Otherwise the initial contents of each position is
-unspecified.
-@end deffn
+Instead of creating a vector implicitly by using the read syntax just
+described, you can create a vector dynamically by calling one of the
+@code{vector} and @code{list->vector} primitives with the list of Scheme
+values that you want to place into a vector.  The size of the vector
+thus created is determined implicitly by the number of arguments given.
 
 @rnindex vector
 @rnindex list->vector
@@ -594,6 +587,14 @@ given arguments.  Analogous to @code{list}.
 @end lisp
 @end deffn
 
+(As an aside, an interesting implementation detail is that the Guile
+reader reads the @code{#(@dots{})} syntax by reading everything but the
+initial @code{#} as a @emph{list}, and then passing the list that
+results to @code{list->vector}.  Notice how neatly this fits with the
+similarity between the read (and print) syntaxes for lists and vectors.)
+
+The inverse operation is @code{vector->list}:
+
 @rnindex vector->list
 @deffn {Scheme Procedure} vector->list v
 @deffnx {C Function} scm_vector_to_list (v)
@@ -605,19 +606,71 @@ Return a newly allocated list composed of the elements of @var{v}.
 @end lisp
 @end deffn
 
-@subsection Vector Modification
+To allocate a vector with an explicitly specified size, use
+@code{make-vector}.  With this primitive you can also specify an initial
+value for the vector elements (the same value for all elements, that
+is):
 
-A vector created by any of the vector constructor procedures
-(@pxref{Vectors}) documented above can be modified using the
-following procedures.
+@rnindex make-vector
+@deffn {Scheme Procedure} make-vector k [fill]
+@deffnx {C Function} scm_make_vector (k, fill)
+Return a newly allocated vector of @var{k} elements.  If a
+second argument is given, then each position is initialized to
+@var{fill}.  Otherwise the initial contents of each position is
+unspecified.
+@end deffn
 
-@emph{NOTE:} According to R5RS, using any of these procedures on
-literally entered vectors is an error, because these vectors are
-considered to be constant, although Guile currently does not detect this
+To check whether an arbitrary Scheme value @emph{is} a vector, use the
+@code{vector?} primitive:
+
+@rnindex vector?
+@deffn {Scheme Procedure} vector? obj
+@deffnx {C Function} scm_vector_p (obj)
+Return @code{#t} if @var{obj} is a vector, otherwise return
+@code{#f}.
+@end deffn
+
+
+@node Vector Accessors
+@subsection Accessing and Modifying Vector Contents
+
+@code{vector-length} and @code{vector-ref} return information about a
+given vector, respectively its size and the elements that are contained
+in the vector.
+
+@rnindex vector-length
+@deffn {Scheme Procedure} vector-length vector
+@deffnx {C Function} scm_vector_length vector
+Return the number of elements in @var{vector} as an exact integer.
+@end deffn
+
+@rnindex vector-ref
+@deffn {Scheme Procedure} vector-ref vector k
+@deffnx {C Function} scm_vector_ref vector k
+Return the contents of position @var{k} of @var{vector}.
+@var{k} must be a valid index of @var{vector}.
+@lisp
+(vector-ref '#(1 1 2 3 5 8 13 21) 5) @result{} 8
+(vector-ref '#(1 1 2 3 5 8 13 21)
+    (let ((i (round (* 2 (acos -1)))))
+      (if (inexact? i)
+        (inexact->exact i)
+           i))) @result{} 13
+@end lisp
+@end deffn
+
+A vector created by one of the dynamic vector constructor procedures
+(@pxref{Vector Creation}) can be modified using the following
+procedures.
+
+@emph{NOTE:} According to R5RS, it is an error to use any of these
+procedures on a literally read vector, because such vectors should be
+considered as constants.  Currently, however, Guile does not detect this
 error.
 
 @rnindex vector-set!
 @deffn {Scheme Procedure} vector-set! vector k obj
+@deffnx {C Function} scm_vector_set_x vector k obj
 Store @var{obj} in position @var{k} of @var{vector}.
 @var{k} must be a valid index of @var{vector}.
 The value returned by @samp{vector-set!} is unspecified.
@@ -657,30 +710,6 @@ to @var{vec2} starting at position @var{start2}.  @var{start1} and
 Therefore, in the case where @var{vec1} and @var{vec2} refer to the
 same vector, @code{vector-move-right!} is usually appropriate when
 @var{start1} is less than @var{start2}.
-@end deffn
-
-@subsection Vector Selection
-
-These procedures return information about a given vector, such as the
-size or what elements are contained in the vector.
-
-@rnindex vector-length
-@deffn {Scheme Procedure} vector-length vector
-Return the number of elements in @var{vector} as an exact integer.
-@end deffn
-
-@rnindex vector-ref
-@deffn {Scheme Procedure} vector-ref vector k
-Return the contents of position @var{k} of @var{vector}.
-@var{k} must be a valid index of @var{vector}.
-@lisp
-(vector-ref '#(1 1 2 3 5 8 13 21) 5) @result{} 8
-(vector-ref '#(1 1 2 3 5 8 13 21)
-    (let ((i (round (* 2 (acos -1)))))
-      (if (inexact? i)
-        (inexact->exact i)
-           i))) @result{} 13
-@end lisp
 @end deffn
 
 

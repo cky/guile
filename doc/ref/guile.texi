@@ -46,35 +46,13 @@
 @c reference manual to group stuff according to whether it is R5RS or a
 @c Guile extension.
 @defcodeindex rn
-@defcodeindex ge
 
 @include version.texi
 
-@c Macros for describing version information.  I've initially defined
-@c all of these to expand to nothing, but they could perhaps be made to
-@c expand to something like "New in Guile 45!" in future.
-
-@c vnew - indicates the Guile version in which item first appeared.
+@c vnew - For (some) new items, indicates the Guile version in which
+@c item first appeared.  In future, this could be made to expand to
+@c something like a "New in Guile 45!" banner.
 @macro vnew{VERSION}
-@end macro
-
-@c vdeprecated - indicates that the item has been deprecated, and the
-@c Guile version in which the deprecation started.
-@macro vdeprecated{VERSION}
-@end macro
-
-@c vgone - a way of tracking items that are no longer here.  In this
-@c case, VERSION is the last Guile version in which the item was present.
-@macro vgone{WHAT, VERSION}
-@end macro
-
-@c vchanged - indicates the Guile version in which item's behaviour
-@c significantly changed.
-@macro vchanged{VERSION}
-@end macro
-
-@c vnote - catchall for any additional notes.
-@macro vnote{NOTE}
 @end macro
 
 @c @iftex
@@ -93,7 +71,8 @@ Guile Reference Manual
 Copyright (C) 1996 Free Software Foundation @*
 Copyright (C) 1997 Free Software Foundation @*
 Copyright (C) 2000 Free Software Foundation @*
-Copyright (C) 2001 Free Software Foundation
+Copyright (C) 2001 Free Software Foundation @*
+Copyright (C) 2002 Free Software Foundation
 
 Permission is granted to make and distribute verbatim copies of
 this manual provided the copyright notice and this permission notice
@@ -121,7 +100,7 @@ by the Free Software Foundation.
 @sp 10
 @comment The title is printed in a large font.
 @title Guile Reference Manual
-@subtitle $Id: guile.texi,v 1.16 2002-03-27 21:55:31 ossau Exp $
+@subtitle $Id: guile.texi,v 1.17 2002-04-01 18:46:26 ossau Exp $
 @subtitle For use with Guile @value{VERSION}
 
 @c AUTHORS
@@ -185,6 +164,10 @@ Copyright @copyright{} 1996 Free Software Foundation
 Copyright @copyright{} 1997 Free Software Foundation
 
 Copyright @copyright{} 2000 Free Software Foundation
+
+Copyright @copyright{} 2001 Free Software Foundation
+
+Copyright @copyright{} 2002 Free Software Foundation
 
 Permission is granted to make and distribute verbatim copies of
 this manual provided the copyright notice and this permission notice
@@ -291,7 +274,6 @@ Indices
 * Variable Index::
 * Type Index::
 * R5RS Index::
-* Guile Extensions Index::
 
 @end menu
 

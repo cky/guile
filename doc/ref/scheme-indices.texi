@@ -5,13 +5,6 @@
 @printindex rn
 
 
-@page
-@node Guile Extensions Index
-@unnumbered Guile Extensions Index
-
-@printindex ge
-
-
 @c Local Variables:
 @c TeX-master: "guile.texi"
 @c End:
