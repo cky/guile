@@ -74,7 +74,7 @@ SCM_DEFINE (scm_make_struct_layout, "make-struct-layout", 1, 0, 0,
 	    "strung together.  The first character of each pair describes a field\n"
 	    "type, the second a field protection.  Allowed types are 'p' for\n"
 	    "GC-protected Scheme data, 'u' for unprotected binary data, and 's' for\n"
-	    "fields that should point to the structure itself.    Allowed protections\n"
+	    "a field that points to the structure itself.    Allowed protections\n"
 	    "are 'w' for mutable fields, 'r' for read-only fields, and 'o' for opaque \n"
 	    "fields.  The last field protection specification may be capitalized to\n"
 	    "indicate that the field is a tail-array.")
@@ -362,11 +362,21 @@ SCM_DEFINE (scm_make_struct, "make-struct", 2, 0, 1,
 	    "@var{tail-elts} must be a non-negative integer.  If the layout\n"
 	    "specification indicated by @var{type} includes a tail-array,\n"
 	    "this is the number of elements allocated to that array.\n\n"
-	    "The @var{inits} are optional arguments describing how successive fields\n"
-	    "of the structure should be initialized.  Only fields with protection 'r'\n"
-	    "or 'w' can be initialized -- fields of protection 's' are automatically\n"
-	    "initialized to point to the new structure itself;  fields of protection 'o'\n"
-	    "can not be initialized by Scheme programs.")
+	    "The @var{init1}, @dots are optional arguments describing how\n"
+	    "successive fields of the structure should be initialized.  Only fields\n"
+	    "with protection 'r' or 'w' can be initialized, except for fields of\n"
+	    "type 's', which are automatically initialized to point to the new\n"
+	    "structure itself; fields with protection 'o' can not be initialized by\n"
+	    "Scheme programs.\n\n"
+	    "If fewer optional arguments than initializable fields are supplied,\n"
+	    "fields of type 'p' get default value #f while fields of type 'u' are\n"
+	    "initialized to 0.\n\n"
+	    "Structs are currently the basic representation for record-like data\n"
+	    "structures in Guile.  The plan is to eventually replace them with a\n"
+	    "new representation which will at the same time be easier to use and\n"
+	    "more powerful.\n\n"
+	    "For more information, see the documentation for @code{make-vtable-vtable}.\n"
+	    "")
 #define FUNC_NAME s_scm_make_struct
 {
   SCM layout;
@@ -407,59 +417,50 @@ SCM_DEFINE (scm_make_struct, "make-struct", 2, 0, 1,
 
 
 SCM_DEFINE (scm_make_vtable_vtable, "make-vtable-vtable", 2, 0, 1,
-            (SCM extra_fields, SCM tail_array_size, SCM init),
+            (SCM user_fields, SCM tail_array_size, SCM init),
 	    "Return a new, self-describing vtable structure.\n\n"
-	    "@var{new-fields} is a layout specification describing fields\n"
-	    "of the resulting structure beginning at the position bound to\n"
-	    "@code{vtable-offset-user}.\n\n"
+	    "@var{user-fields} is a string describing user defined fields of the\n"
+	    "vtable beginning at index @code{vtable-offset-user}\n"
+	    "(see @code{make-struct-layout}).\n\n"
 	    "@var{tail-size} specifies the size of the tail-array (if any) of\n"
 	    "this vtable.\n\n"
-	    "@var{inits} initializes the fields of the vtable.  Minimally, one\n"
-	    "initializer must be provided: the layout specification for instances\n"
-	    "of the type this vtable will describe.  If a second initializer is\n"
-	    "provided, it will be interpreted as a print call-back function.\n\n"
+	    "@var{init1}, @dots are the optional initializers for the fields of\n"
+	    "the vtable.\n\n"
+	    "Vtables have one initializable system field---the struct printer.\n"
+	    "This field comes before the user fields in the initializers passed\n"
+	    "to @code{make-vtable-vtable} and @code{make-struct}, and thus works as\n"
+	    "a third optional argument to @code{make-vtable-vtable} and a fourth to\n"
+	    "@code{make-struct} when creating vtables:\n\n"
+	    "If the value is a procedure, it will be called instead of the standard\n"
+	    "printer whenever a struct described by this vtable is printed.\n"
+	    "The procedure will be called with arguments STRUCT and PORT.\n\n"
+	    "The structure of a struct is described by a vtable, so the vtable is\n"
+	    "in essence the type of the struct.  The vtable is itself a struct with\n"
+	    "a vtable.  This could go on forever if it weren't for the\n"
+	    "vtable-vtables which are self-describing vtables, and thus terminates\n"
+	    "the chain.\n\n"
+	    "There are several potential ways of using structs, but the standard\n"
+	    "one is to use three kinds of structs, together building up a type\n"
+	    "sub-system: one vtable-vtable working as the root and one or several\n"
+	    "\"types\", each with a set of \"instances\".  (The vtable-vtable should be\n"
+	    "compared to the class <class> which is a class of itself.)\n\n"
 	    "@example\n"
-	    ";;; loading ,a...\n"
-	    "(define x\n"
-	    "  (make-vtable-vtable (make-struct-layout (quote pw))\n"
-	    "                      0\n"
-	    "                      'foo))\n\n"
-	    "(struct? x)\n"
-	    "@result{} #t\n"
-	    "(struct-vtable? x)\n"
-	    "@result{} #t\n"
-	    "(eq? x (struct-vtable x))\n"
-	    "@result{} #t\n"
-	    "(struct-ref x vtable-offset-user)\n"
-	    "@result{} foo\n"
-	    "(struct-ref x 0)\n"
-	    "@result{} pruosrpwpw\n\n\n"
-	    "(define y\n"
-	    "  (make-struct x\n"
-	    "               0\n"
-	    "               (make-struct-layout (quote pwpwpw))\n"
-	    "               'bar))\n\n"
-	    "(struct? y)\n"
-	    "@result{} #t\n"
-	    "(struct-vtable? y)\n"
-	    "@result{} #t\n"
-	    "(eq? x y)\n"
-	    "@result{} ()\n"
-	    "(eq? x (struct-vtable y))\n"
-	    "@result{} #t\n"
-	    "(struct-ref y 0)\n"
-	    "@result{} pwpwpw\n"
-	    "(struct-ref y vtable-offset-user)\n"
-	    "@result{} bar\n\n\n"
-	    "(define z (make-struct y 0 'a 'b 'c))\n\n"
-	    "(struct? z)\n"
-	    "@result{} #t\n"
-	    "(struct-vtable? z)\n"
-	    "@result{} ()\n"
-	    "(eq? y (struct-vtable z))\n"
-	    "@result{} #t\n"
-	    "(map (lambda (n) (struct-ref z n)) '(0 1 2))\n"
-	    "@result{} (a b c)\n"
+	    "(define ball-root (make-vtable-vtable \"pr\" 0))\n\n"
+	    "(define (make-ball-type ball-color)\n"
+	    "  (make-struct ball-root 0\n"
+	    "	       (make-struct-layout \"pw\")\n"
+	    "               (lambda (ball port)\n"
+	    "                 (format port \"#<a ~A ball owned by ~A>\"\n"
+	    "                         (color ball)\n"
+	    "                         (owner ball)))\n"
+	    "               ball-color))\n"
+	    "(define (color ball) (struct-ref (struct-vtable ball) vtable-offset-user))\n"
+	    "(define (owner ball) (struct-ref ball 0))\n\n"
+	    "(define red (make-ball-type 'red))\n"
+	    "(define green (make-ball-type 'green))\n\n"
+	    "(define (make-ball type owner) (make-struct type 0 owner))\n\n"
+	    "(define ball (make-ball green 'Nisse))\n"
+	    "ball @result{} #<a green ball owned by Nisse>\n"
 	    "@end example\n"
 	    "")
 #define FUNC_NAME s_scm_make_vtable_vtable
@@ -471,12 +472,12 @@ SCM_DEFINE (scm_make_vtable_vtable, "make-vtable-vtable", 2, 0, 1,
   scm_bits_t * data;
   SCM handle;
 
-  SCM_VALIDATE_ROSTRING (1,extra_fields);
-  SCM_VALIDATE_INUM (2,tail_array_size);
+  SCM_VALIDATE_ROSTRING (1, user_fields);
+  SCM_VALIDATE_INUM (2, tail_array_size);
   SCM_VALIDATE_REST_ARGUMENT (init);
 
   fields = scm_string_append (scm_listify (required_vtable_fields,
-					   extra_fields,
+					   user_fields,
 					   SCM_UNDEFINED));
   layout = scm_make_struct_layout (fields);
   basic_size = SCM_LENGTH (layout) / 2;
