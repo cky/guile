@@ -212,7 +212,7 @@
 			  '*sc-expander*
 			  '(define)))
 
-(define-public (slib:software-type)
+(define (software-type)
   "Return a symbol describing the current platform's operating system.
 This may be one of AIX, VMS, UNIX, COHERENT, WINDOWS, MS-DOS, OS/2,
 THINKC, AMIGA, ATARIST, MACH, or ACORN.
