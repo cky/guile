@@ -19,7 +19,7 @@
 ;;;; 
 
 
-(define-module (ice-9 expect))
+(define-module (ice-9 expect) :use-module (ice-9 regex))
 
 ;;; Expect: a macro for selecting actions based on what it reads from a port.
 ;;; The idea is from Don Libes' expect based on Tcl.
@@ -69,7 +69,7 @@
 		      (cond
 		       ,@(let next-expr ((tests (map car clauses))
 					 (exprs (map cdr clauses))
-					 (body ()))
+					 (body '()))
 			   (cond
 			    ((null? tests)
 			     (reverse body))
@@ -80,7 +80,7 @@
 			      (cons
 			       `((,(car tests) ,s)
 				 ,@(cond ((null? (car exprs))
-					  ())
+					  '())
 					 ((eq? (caar exprs) '=>)
 					  (if (not (= (length (car exprs))
 						      2))
@@ -101,8 +101,8 @@
 (defmacro-public expect-strings clauses
   `(let ,@(let next-test ((tests (map car clauses))
 			  (exprs (map cdr clauses))
-			  (defs ())
-			  (body ()))
+			  (defs '())
+			  (body '()))
 	    (cond ((null? tests)
 		   (list (reverse defs) `(expect ,@(reverse body))))
 		  (else
@@ -113,7 +113,7 @@
 							     regexp/newline))
 				      defs)
 				(cons `((lambda (s)
-					  (regexp-exec ,rxname s))
+					  (expect-regexec ,rxname s))
 					,@(car exprs))
 				      body))))))))
 
@@ -126,5 +126,14 @@
 		      (/ (cdr secs-usecs)
 			 1000000))))	; one million.
     (and (> relative 0)
-	 (pair? (car (select (list port) () ()
+	 (pair? (car (select (list port) '() '()
 			     relative))))))
+
+;;; convert a match object to a list of strings, for the => syntax.
+(define-public (expect-regexec rx s)
+  (let ((match (regexp-exec rx s)))
+    (if match
+	(do ((i (- (match:count match) 1) (- i 1))
+	     (result '() (cons (match:substring match i) result)))
+	    ((< i 0) result))
+	#f)))

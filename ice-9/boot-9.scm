@@ -2283,9 +2283,10 @@
 
 (define abort-hook '())
 
-;; defined in error-catching-loop as a closures.
-(define set-batch-mode?! #f)
-(define batch-mode? #f)
+;; these definitions are used if running a script.
+;; otherwise redefined in error-catching-loop.
+(define (set-batch-mode?! arg) #t)
+(define (batch-mode?) #t)
 
 (define (error-catching-loop thunk)
   (let ((status #f)
