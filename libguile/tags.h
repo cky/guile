@@ -290,10 +290,6 @@ typedef long scm_bits_t;
 #define SCM_CELLP(x) 	(((sizeof (scm_cell) - 1) & SCM_UNPACK (x)) == 0)
 #define SCM_NCELLP(x) 	(!SCM_CELLP (x))
 
-#if (SCM_DEBUG_DEPRECATED == 0)
-#define SCM_DOUBLE_CELLP(x)  (((2 * sizeof (scm_cell) - 1) & SCM_UNPACK (x)) == 0)
-#endif /* SCM_DEBUG_DEPRECATED == 0 */
-
 /* See numbers.h for macros relating to immediate integers.
  */
 
@@ -545,11 +541,6 @@ extern char *scm_isymnames[];   /* defined in print.c */
 #define scm_tc7_ssymbol		scm_tc7_symbol
 #define scm_tc7_msymbol		scm_tc7_symbol
 #define scm_tcs_symbols         scm_tc7_symbol
-
-#define scm_tc16_flo		scm_tc16_real
-#define scm_tc_flo		0x017fL
-#define scm_tc_dblr		scm_tc16_real
-#define scm_tc_dblc		scm_tc16_complex
 
 #endif  /* SCM_DEBUG_DEPRECATED == 0 */
 
