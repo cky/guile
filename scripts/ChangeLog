@@ -1,3 +1,9 @@
+2001-05-08  Thien-Thi Nguyen  <ttn@revel.glug.org>
+
+	* read-scheme-source: New file
+
+	* Makefile.am (scripts_sources): Add read-scheme-source.
+
 2001-04-29  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
 	* Makefile.am, PROGRAM, README, display-commentary,
