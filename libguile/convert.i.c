@@ -67,7 +67,7 @@ CTYPE *
 SCM2CTYPES (SCM obj, CTYPE *data)
 {
   size_t len, i;
-  UVEC_CTYPE *uvec_elements;
+  const UVEC_CTYPE *uvec_elements;
 
   obj = F(scm_any_to_,UVEC_TAG,vector) (obj);
   len = scm_c_uniform_vector_length (obj);
@@ -78,7 +78,7 @@ SCM2CTYPES (SCM obj, CTYPE *data)
   for (i = 0; i < len; i++)
     data[i] = uvec_elements[i];
 
-  scm_uniform_vector_release (obj);
+  scm_uniform_vector_release_elements (obj);
   return data;
 }
 
@@ -108,12 +108,12 @@ CTYPES2UVECT (const CTYPE *data, long n)
   UVEC_CTYPE *uvec_elements;
   
   uvec = F(scm_make_,UVEC_TAG,vector) (scm_from_long (n), SCM_UNDEFINED);
-  uvec_elements = F(scm_,UVEC_TAG,vector_elements) (uvec);
+  uvec_elements = F(scm_,UVEC_TAG,vector_writable_elements) (uvec);
 
   for (i = 0; i < n; i++)
     uvec_elements[i] = data[i];
 
-  scm_uniform_vector_release (uvec);
+  scm_uniform_vector_release_writable_elements (uvec);
   return uvec;
 }
 

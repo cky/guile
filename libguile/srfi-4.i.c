@@ -138,8 +138,15 @@ SCM_DEFINE (F(scm_any_to_,TAG,vector), "any->"S(TAG)"vector", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-CTYPE *
+const CTYPE *
 F(scm_,TAG,vector_elements) (SCM obj)
+{
+  uvec_assert (TYPE, obj);
+  return (const CTYPE *)SCM_UVEC_BASE (obj);
+}
+
+CTYPE *
+F(scm_,TAG,vector_writable_elements) (SCM obj)
 {
   uvec_assert (TYPE, obj);
   return (CTYPE *)SCM_UVEC_BASE (obj);

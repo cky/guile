@@ -284,7 +284,7 @@ scm2whatever (SCM obj, void *m, size_t size)
   if (m == NULL)
     return NULL;
   memcpy (m, scm_uniform_vector_elements (obj), n * size);
-  scm_uniform_vector_release (obj);
+  scm_uniform_vector_release_elements (obj);
   return m;
 }
 

@@ -596,7 +596,7 @@ SCM_DEFINE (scm_uniform_vector_to_list, "uniform-vector->list", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-void *
+const void *
 scm_uniform_vector_elements (SCM uvec)
 {
   if (scm_is_uniform_vector (uvec))
@@ -606,7 +606,7 @@ scm_uniform_vector_elements (SCM uvec)
 }
 
 void
-scm_uniform_vector_release (SCM uvec)
+scm_uniform_vector_release_elements (SCM uvec)
 {
   /* Nothing to do right now, but this function might come in handy
      when uniform vectors need to be locked when giving away a pointer
@@ -615,13 +615,46 @@ scm_uniform_vector_release (SCM uvec)
      Also, a call to scm_uniform_vector_release acts like
      scm_remember_upto_here, which is needed in any case.
   */
+
+  scm_remember_upto_here_1 (uvec);
 }
 
 void
-scm_frame_uniform_vector_release (SCM uvec)
+scm_frame_uniform_vector_release_elements (SCM uvec)
 {
-  scm_frame_unwind_handler_with_scm (scm_uniform_vector_release, uvec,
+  scm_frame_unwind_handler_with_scm (scm_uniform_vector_release_elements, uvec,
 				     SCM_F_WIND_EXPLICITLY);
+}
+
+void *
+scm_uniform_vector_writable_elements (SCM uvec)
+{
+  if (scm_is_uniform_vector (uvec))
+    return SCM_UVEC_BASE (uvec);
+  else
+    scm_wrong_type_arg_msg (NULL, 0, uvec, "uniform vector");
+}
+
+void
+scm_uniform_vector_release_writable_elements (SCM uvec)
+{
+  /* Nothing to do right now, but this function might come in handy
+     when uniform vectors need to be locked when giving away a pointer
+     to their elements.
+     
+     Also, a call to scm_uniform_vector_release acts like
+     scm_remember_upto_here, which is needed in any case.
+  */
+
+  scm_remember_upto_here_1 (uvec);
+}
+
+void
+scm_frame_uniform_vector_release_writable_elements (SCM uvec)
+{
+  scm_frame_unwind_handler_with_scm
+    (scm_uniform_vector_release_writable_elements, uvec,
+     SCM_F_WIND_EXPLICITLY);
 }
 
 size_t
@@ -690,8 +723,8 @@ SCM_DEFINE (scm_uniform_vector_read_x, "uniform-vector-read!", 1, 3, 0,
 
   vlen = scm_c_uniform_vector_length (uvec);
   sz = scm_uniform_vector_element_size (uvec);
-  base = scm_uniform_vector_elements (uvec);
-  scm_frame_uniform_vector_release (uvec);
+  base = scm_uniform_vector_writable_elements (uvec);
+  scm_frame_uniform_vector_release_writable_elements (uvec);
 
   cstart = 0;
   cend = vlen;
@@ -782,7 +815,7 @@ SCM_DEFINE (scm_uniform_vector_write, "uniform-vector-write", 1, 3, 0,
   size_t vlen, sz, ans;
   size_t cstart, cend;
   size_t amount, off;
-  void *base;
+  const void *base;
 
   port_or_fd = SCM_COERCE_OUTPORT (port_or_fd);
 
@@ -798,7 +831,7 @@ SCM_DEFINE (scm_uniform_vector_write, "uniform-vector-write", 1, 3, 0,
   vlen = scm_c_generalized_vector_length (uvec);
   sz = scm_uniform_vector_element_size (uvec);
   base = scm_uniform_vector_elements (uvec);
-  scm_frame_uniform_vector_release (uvec);
+  scm_frame_uniform_vector_release_elements (uvec);
 
   cstart = 0;
   cend = vlen;

@@ -439,11 +439,11 @@ vector_scale_x (SCM v, double c)
   else
     {
       /* must be a f64vector. */
-      double *elts = scm_f64vector_elements (v);
+      double *elts = scm_f64vector_writable_elements (v);
       n = scm_c_uniform_vector_length (v);
       while (n-- > 0)
 	elts[n] *= c;
-      scm_uniform_vector_release (v);
+      scm_uniform_vector_release_writable_elements (v);
     }
 }
 
@@ -464,14 +464,14 @@ vector_sum_squares (SCM v)
   else
     {
       /* must be a f64vector. */
-      double *elts = scm_f64vector_elements (v);
+      const double *elts = scm_f64vector_elements (v);
       n = scm_c_uniform_vector_length (v);
       while (n-- > 0)
 	{
 	  x = elts[n];
 	  sum += x * x;
 	}
-      scm_uniform_vector_release (v);
+      scm_uniform_vector_release_elements (v);
     }
   return sum;
 }
@@ -545,11 +545,11 @@ SCM_DEFINE (scm_random_normal_vector_x, "random:normal-vector!", 1, 1, 0,
   else
     {
       /* must be a f64vector. */
-      double *elts = scm_f64vector_elements (v);
+      double *elts = scm_f64vector_writable_elements (v);
       n = scm_c_uniform_vector_length (v);
       while (n-- > 0)
 	elts[n] = scm_c_normal01 (SCM_RSTATE (state));
-      scm_uniform_vector_release (v);
+      scm_uniform_vector_release_writable_elements (v);
     }
   return SCM_UNSPECIFIED;
 }
