@@ -1437,7 +1437,7 @@
 
 ; the flonum buffers
 
-(define format:fn-max 200)		; max. number of number digits
+(define format:fn-max 400)		; max. number of number digits
 (define format:fn-str (make-string format:fn-max)) ; number buffer
 (define format:fn-len 0)		; digit length of number
 (define format:fn-dot #f)		; dot position of number
