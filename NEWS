@@ -70,18 +70,18 @@ distribution in info (goops.info) and texinfo formats.
 ** New module (ice-9 rdelim).
 
 This exports the following procedures which were previously defined
-in the root module:
+in the default environment:
 
-read-line read-line! read-delimited read-delimited!
-;; TODO: read-string!/partial %read-delimited! %read-line write-line
+read-line read-line! read-delimited read-delimited! %read-delimited!
+%read-line write-line
 
-For backwards compatibility the definitions are also imported into the
-root module in this version of Guile.  However you should add:
+For backwards compatibility the definitions are still imported into the
+default environment in this version of Guile.  However you should add:
 
 (use-modules (ice-9 rdelim))
 
-to any program which uses the definitions, since this may be removed
-in in a future version.
+to any program which uses the definitions, since this may change in
+future.
 
 Alternatively, if guile-scsh is installed, the (scsh rdelim) module
 can be used for similar functionality.
