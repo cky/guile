@@ -1,3 +1,12 @@
+1999-07-24  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* readline.c, readline.h: Removed.
+
+	* objects.c, objects.h (scm_port_class): Added.
+	(scm_class_of): Look up port class in scm_port_class.
+	(SCM_IN_PCLASS_INDEX, SCM_OUT_PCLASS_INDEX,
+	SCM_INOUT_PCLASS_INDEX): Added.
+
 1999-07-23  Mikael Djurfeldt  <mdj@mdj-pc.nada.kth.se>
 
 	* init.c: Make sure that scm_post_boot_init_modules is called only
