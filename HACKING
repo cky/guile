@@ -292,6 +292,35 @@ the list of years in the copyright notice at the top of the file.
 them in THANKS.
 
 
+- Naming conventions.  We use certain naming conventions to structure
+  the considerable number of global identifiers.  All identifiers
+  should be either all lower case or all upper case.  Syllables are
+  separated by underscaores `_'.  All non-static identifiers should
+  start with scm_ or SCM_.  Then might follow zero or more one letter
+  syllables giving the category of the identifier.  The currently used
+  category identifiers are
+
+    t   - type name
+
+    c,C - something with a interface suited for C use.  This is used
+          to name functions that behave like Scheme primitives but
+          have a more C friendly calling convention.
+
+    i,I - internal to libguile.  It is global, but not considered part
+          of the libguile API.
+
+    f   - a SCM variable pointing to a Scheme function object.
+
+    F   - a bit mask for a flag.
+
+    m   - a macro transformer procedure
+
+    n,N - a count of something
+
+    s   - a constant C string
+
+    
+
 Helpful hints ========================================================
 
 - [From Mikael Djurfeldt] When working on the Guile internals, it is
