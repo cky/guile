@@ -86,9 +86,8 @@ scm_read_options (setting)
   return ans;
 }
 
-/* CDR contains an association list mapping extra hash characters to
-   procedures.  */
-static SCM scm_read_hash_procedures;
+/* An association list mapping extra hash characters to procedures.  */
+static SCM *scm_read_hash_procedures;
 
 SCM_PROC (s_read, "read", 0, 1, 0, scm_read);
 
@@ -762,8 +761,8 @@ exit:
 
 
 
-/* Register a procedure for extended # object processing and the character
-   that will trigger it.  */
+/* Manipulate the read-hash-procedures alist.  This could be written in
+   Scheme, but maybe it will also be used by C code during initialisation.  */
 SCM_PROC (s_read_hash_extend, "read-hash-extend", 2, 0, 0, scm_read_hash_extend);
 SCM
 scm_read_hash_extend (chr, proc)
@@ -777,9 +776,9 @@ scm_read_hash_extend (chr, proc)
   SCM_ASSERT (SCM_FALSEP (proc) || SCM_NIMP(proc), proc, SCM_ARG2,
 	      s_read_hash_extend);
 
-  /* See it this chr is already in the alist.  */
-  this = SCM_CDR (scm_read_hash_procedures);
-  prev = scm_read_hash_procedures;
+  /* Check if chr is already in the alist.  */
+  this = *scm_read_hash_procedures;
+  prev = SCM_BOOL_F;
   while (1)
     {
       if (SCM_NULLP (this))
@@ -787,9 +786,8 @@ scm_read_hash_extend (chr, proc)
 	  /* not found, so add it to the beginning.  */
 	  if (SCM_NFALSEP (proc))
 	    {
-	      scm_set_cdr_x (scm_read_hash_procedures,
-			     scm_cons (scm_cons (chr, proc),
-				       SCM_CDR (scm_read_hash_procedures)));
+	      *scm_read_hash_procedures = 
+		scm_cons (scm_cons (chr, proc), *scm_read_hash_procedures);
 	    }
 	  break;
 	}
@@ -797,9 +795,21 @@ scm_read_hash_extend (chr, proc)
 	{
 	  /* already in the alist.  */
 	  if (SCM_FALSEP (proc))
-	    scm_set_cdr_x (prev, SCM_CDR (this)); /* remove it.  */
+	    {
+	      /* remove it.  */
+	      if (prev == SCM_BOOL_F)
+		{
+		  *scm_read_hash_procedures =
+		    SCM_CDR (*scm_read_hash_procedures);
+		}
+	      else
+		scm_set_cdr_x (prev, SCM_CDR (this));
+	    }
 	  else
-	    scm_set_cdr_x (SCM_CAR (this), proc); /* replace it.  */
+	    {
+	      /* replace it.  */
+	      scm_set_cdr_x (SCM_CAR (this), proc);
+	    }
 	  break;
 	}
       prev = this;
@@ -814,7 +824,7 @@ static SCM
 scm_get_hash_procedure (c)
      int c;
 {
-  SCM rest = SCM_CDR (scm_read_hash_procedures);
+  SCM rest = *scm_read_hash_procedures;
 
   while (1)
     {
@@ -831,8 +841,8 @@ scm_get_hash_procedure (c)
 void
 scm_init_read ()
 {
-  scm_read_hash_procedures = scm_cons (SCM_BOOL_F, SCM_EOL);
-  scm_permanent_object (scm_read_hash_procedures);
+  scm_read_hash_procedures =
+    SCM_CDRLOC (scm_sysintern ("read-hash-procedures", SCM_EOL));
 
   scm_init_opts (scm_read_options, scm_read_opts, SCM_N_READ_OPTIONS);
 #include "read.x"

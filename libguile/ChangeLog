@@ -1,4 +1,11 @@
-Mon Mar 10 06:28:54 1997  Gary Houston  <ghouston@actrix.gen.nz>
+Tue Mar 11 03:51:00 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* read.c (scm_read_hash_extend): make scm_read_hash_procedures a 
+	pointer to the Scheme variable read-hash-procedures and intern it
+ 	in scm_init_read. Modify scm_read_hash_extend and 
+	scm_get_hash_procedure to use the pointer.
+
+Mon Mar 10 06:28:54 1997  Gary Houston  <ghouston@actrix.gen.nz>	
 
 	* read.h (SCM_N_READ_OPTIONS): increase SCM_N_READ_OPTIONS to 4.
 	(SCM_KEYWORD_STYLE): defined.
