@@ -1,3 +1,30 @@
+2000-01-11  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* libltdl/autogen.sh: New file.
+	* autogen.sh: Invoke libltdl/autogen.sh.
+
+2000-01-09  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	Finally applied the libltdl patch from Thomas Tanner, with slight
+	modifications.  All code copied from the libtool package is from
+	libtool-1.3.4.
+
+	* configure.in: Make "--with-modules=yes" the default.  Do not
+	clear INCLTDL, LIBLTDL prior to processing "--with-modules".
+	
+    1999-07-25  Thomas Tanner  <tanner@ffii.org>
+
+	    * Makefile.am: add libltdl to SUBDIRS, automake automatically
+	      includes ltconfig, ltmain.sh and acconfig.h in EXTRA_DIST
+	    * acinclude.m4: remove GUILE_DLSYM_USCORE, add libtool.m4
+	      (no need to install libtool any more)
+	    * configure.in: replace --enable-dynamic-linking with
+	      --with-modules, required modules can be specified using
+	      --with-modules="/path/to/mod.la" and will be linked
+	      statically on platforms that don't support dynamic loading,
+	      configure libltdl, configure libtool for dlopening
+	    * libltdl: added using libtoolize -c --ltdl
+
 2000-01-09  Gary Houston  <ghouston@arglist.com>
 
 	* configure.in: check whether localtime caches TZ.  copied from
