@@ -11,6 +11,6 @@ EXTRA_DIST = guile-benchmark lib.scm $(SCM_BENCHMARKS)
 ## etc without any help, but not all version can handle 'deep'
 ## directories.  So we do it on our own.
 dist-hook:
-	for d in $(SCM_BENCHMARKS_DIRS); do \
+	for d in "$(SCM_BENCHMARKS_DIRS)"; do \
 	  cp -pR $(srcdir)/$$d $(distdir)/$$d; \
         done
