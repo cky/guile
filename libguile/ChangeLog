@@ -1,3 +1,7 @@
+Thu Jan 20 13:00:38 2000  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* Makefile.in: Removed, this is auto-generated.
+
 Thu Jan 20 11:33:47 2000  Dirk Hermann <dirk@ida.ing.tu-bs.de> --applied 01/20/00 gjb
 
 	* list.c: Put some variable initialization code at the point of
