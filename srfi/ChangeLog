@@ -1,7 +1,13 @@
 2001-05-23  Rob Browning  <rlb@cs.utexas.edu>
 
 	* srfi-19.scm (:optional): renamed to optional to avoid reader
-	keywords conflict.  Thanks to Matthias Koeppe for the report.
+	keywords conflict.  Time passes... Removed :optional altogether
+	and just handle optional args directly.  Thanks to Matthias Koeppe
+	for the report of this and the two bits below.
+	(priv:decode-julian-day-number): add inexact->exact for truncate
+	result.
+	(time-utc->date): add inexact->exact and floor so quotient will
+	work.
 
 2001-05-22  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
