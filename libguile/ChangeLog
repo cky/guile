@@ -1,3 +1,8 @@
+2001-05-05  Gary Houston  <ghouston@arglist.com>
+
+	* socket.c: use HAVE_IPV6 instead of AF_INET6 to enable IPv6
+	support.
+
 2001-05-04  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* eval.c (scm_promise_p), list.c (scm_append_x, scm_reverse_x),

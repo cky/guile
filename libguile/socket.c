@@ -254,7 +254,7 @@ SCM_DEFINE (scm_inet_makeaddr, "inet-makeaddr", 2, 0, 0,
 #undef FUNC_NAME
 #endif
 
-#ifdef AF_INET6
+#ifdef HAVE_IPV6
 
 /* flip a 128 bit IPv6 address between host and network order.  */
 #ifdef WORDS_BIGENDIAN
@@ -419,7 +419,7 @@ SCM_DEFINE (scm_inet_ntop, "inet-ntop", 2, 0, 0,
 #undef FUNC_NAME
 #endif
 
-#endif  /* AF_INET6 */
+#endif  /* HAVE_IPV6 */
 
 SCM_SYMBOL (sym_socket, "socket");
 
@@ -713,7 +713,7 @@ scm_fill_sockaddr (int fam, SCM address, SCM *args, int which_arg,
 	*size = sizeof (struct sockaddr_in);
 	return (struct sockaddr *) soka;
       }
-#ifdef AF_INET6
+#ifdef HAVE_IPV6
     case AF_INET6:
       {
 	/* see RFC2553.  */
@@ -933,7 +933,7 @@ scm_addr_vector (const struct sockaddr *address, const char *proc)
 	ve[2] = scm_ulong2num ((unsigned long) ntohs (nad->sin_port));
       }
       break;
-#ifdef AF_INET6
+#ifdef HAVE_IPV6
     case AF_INET6:
       {
 	const struct sockaddr_in6 *nad = (struct sockaddr_in6 *) address;
@@ -982,7 +982,7 @@ scm_addr_vector (const struct sockaddr *address, const char *proc)
 #define MAX_SIZE_UN 0
 #endif
 
-#if defined (AF_INET6)
+#if defined (HAVE_IPV6)
 #define MAX_SIZE_IN6 sizeof (struct sockaddr_in6)
 #else
 #define MAX_SIZE_IN6 0
