@@ -109,7 +109,7 @@ SCM_API void gh_set_substr(char *src, SCM dst, long start, size_t len);
 SCM_API SCM gh_symbol2scm(const char *symbol_str);
 SCM_API SCM gh_ints2scm(const int *d, long n);
 
-#ifdef HAVE_ARRAYS
+#ifdef SCM_HAVE_ARRAYS
 SCM_API SCM gh_chars2byvect(const char *d, long n);
 SCM_API SCM gh_shorts2svect(const short *d, long n);
 SCM_API SCM gh_longs2ivect(const long *d, long n);
