@@ -138,11 +138,10 @@ gh_test_c_LDADD = ${check_ldadd}
 gh_test_repl_SOURCES = gh_test_repl.c
 gh_test_repl_LDADD = ${check_ldadd}
 
-EXTRA_DIST = ChangeLog-scm dynl-dl.c dynl-dld.c dynl-shl.c \
-    dynl-vms.c DYNAMIC-LINKING cpp_signal.c cpp_errno.c cpp_err_symbols.in \
-    cpp_sig_symbols.in cpp_cnvt.awk \
-    coop-threads.h.cygnus coop-threads.c.cygnus mit-pthreads.h mit-pthreads.c \
-    fsu-pthreads.h
+EXTRA_DIST = ChangeLog-gh ChangeLog-scm ChangeLog-threads dynl-dl.c \
+    dynl-dld.c dynl-shl.c dynl-vms.c DYNAMIC-LINKING cpp_signal.c cpp_errno.c \
+    cpp_err_symbols.in cpp_sig_symbols.in cpp_cnvt.awk coop-threads.h.cygnus \
+    coop-threads.c.cygnus mit-pthreads.h mit-pthreads.c fsu-pthreads.h
 
 SUFFIXES = .x
 

@@ -78,11 +78,10 @@ check-local:
 	echo '(+ 1 2 3)' | ./gh_test_c; echo
 	echo '(+ 1 2 3)' | ./gh_test_repl; echo
 
-EXTRA_DIST = ChangeLog-scm dynl-dl.c dynl-dld.c dynl-shl.c \
-    dynl-vms.c DYNAMIC-LINKING cpp_signal.c cpp_errno.c cpp_err_symbols.in \
-    cpp_sig_symbols.in cpp_cnvt.awk \
-    coop-threads.h.cygnus coop-threads.c.cygnus mit-pthreads.h mit-pthreads.c \
-    fsu-pthreads.h
+EXTRA_DIST = ChangeLog-gh ChangeLog-scm ChangeLog-threads dynl-dl.c \
+    dynl-dld.c dynl-shl.c dynl-vms.c DYNAMIC-LINKING cpp_signal.c cpp_errno.c \
+    cpp_err_symbols.in cpp_sig_symbols.in cpp_cnvt.awk coop-threads.h.cygnus \
+    coop-threads.c.cygnus mit-pthreads.h mit-pthreads.c fsu-pthreads.h
 
 ## FIXME: shouldn't directly generate file; instead generate temp file
 ## and "mv".  Consider using timestamp file as well, to avoid
