@@ -1,3 +1,8 @@
+2002-08-24  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* Makefile.am (EXTRA_DIST): Do not distribute guile-api.alist, it
+	can't be built currently.
+
 2002-05-13  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* Makefile.am (EXTRA_DIST): New var.
