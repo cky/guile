@@ -1,17 +1,17 @@
 /* srfi-14.c --- SRFI-14 procedures for Guile
  *
  * Copyright (C) 2001 Free Software Foundation, Inc.
- * 
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
  * published by the Free Software Foundation; either version 2, or (at
  * your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
@@ -98,14 +98,14 @@ static SCM
 make_char_set (const char * func_name)
 {
   long * p;
-  
+
   p = scm_gc_malloc (BYTES_PER_CHARSET, "character-set");
   memset (p, 0, BYTES_PER_CHARSET);
   SCM_RETURN_NEWSMOB (scm_tc16_charset, p);
 }
 
 
-SCM_DEFINE (scm_char_set_p, "char-set?", 1, 0, 0, 
+SCM_DEFINE (scm_char_set_p, "char-set?", 1, 0, 0,
             (SCM obj),
 	    "Return @code{#t} if @var{obj} is a character set, @code{#f}\n"
 	    "otherwise.")
@@ -167,7 +167,7 @@ SCM_DEFINE (scm_char_set_leq, "char-set<=", 0, 0, 1,
       if (prev_data)
 	{
 	  int k;
-	  
+
 	  for (k = 0; k < LONGS_PER_CHARSET; k++)
 	    {
 	      if ((prev_data[k] & csi_data[k]) != prev_data[k])
@@ -196,7 +196,7 @@ SCM_DEFINE (scm_char_set_hash, "char-set-hash", 1, 1, 0,
   int k;
 
   SCM_VALIDATE_SMOB (1, cs, charset);
-  
+
   if (SCM_UNBNDP (bound))
     bnd = default_bnd;
   else
@@ -1447,9 +1447,7 @@ scm_init_srfi_14 (void)
   scm_c_init_srfi_14 ();
 
   /* Install the charset primitives.  */
-#ifndef SCM_MAGIC_SNARFER
 #include "srfi/srfi-14.x"
-#endif
 }
 
 /* End of srfi-14.c.  */

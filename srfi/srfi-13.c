@@ -3037,9 +3037,7 @@ scm_init_srfi_13 (void)
   scm_c_init_srfi_14 ();
 
   /* Install the string primitives.  */
-#ifndef SCM_MAGIC_SNARFER
 #include "srfi/srfi-13.x"
-#endif
 }
 
 /* End of srfi-13.c.  */
