@@ -2325,7 +2325,7 @@ mem2decimal_from_point (SCM result, const char* mem, size_t len,
 	  result = scm_sum (result, SCM_MAKINUM (add));
 	}
 
-      result = scm_divide2real (result, big_shift);
+      result = scm_divide (result, big_shift);
 
       /* We've seen a decimal point, thus the value is implicitly inexact. */
       x = INEXACT;
@@ -2438,8 +2438,8 @@ mem2ureal (const char* mem, size_t len, unsigned int *p_idx,
     {
       enum t_exactness x = EXACT;
 
-      /* Cobble up the fraction.  We might want to set the NaN's
-	 mantissa from it. */
+      /* Cobble up the fractional part.  We might want to set the
+	 NaN's mantissa from it. */
       idx += 4;
       mem2uinteger (mem, len, &idx, 10, &x);
       *p_idx = idx;
@@ -2714,7 +2714,6 @@ scm_i_mem2number (const char* mem, size_t len, unsigned int default_radix)
     {
     case EXACT:
       if (SCM_INEXACTP (result))
-	/* FIXME: This may change the value. */
 	return scm_inexact_to_exact (result);
       else
 	return result;
@@ -2755,8 +2754,8 @@ SCM_DEFINE (scm_string_to_number, "string->number", 1, 1, 0,
   SCM_VALIDATE_STRING (1, string);
   SCM_VALIDATE_INUM_MIN_DEF_COPY (2, radix,2,10, base);
   answer = scm_i_mem2number (SCM_STRING_CHARS (string),
-			   SCM_STRING_LENGTH (string),
-			   base);
+			     SCM_STRING_LENGTH (string),
+			     base);
   return scm_return_first (answer, string);
 }
 #undef FUNC_NAME
