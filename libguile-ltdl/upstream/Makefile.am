@@ -43,7 +43,7 @@ ltdl.h.diff: ltdl.h $(srcdir)/../raw-ltdl.h
 	  -e 's/SCM_INSERTED_DLSYMLIST_STRUCT_DECL //go;' \
 	  raw-ltdl.guilemod.h.tmp
 	mv raw-ltdl.guilemod.h.tmp raw-ltdl.guilemod.h
-	diff -ru ltdl.h raw-ltdl.guilemod.h > ltdl.h.diff; \
+	diff -ru $(srcdir)/ltdl.h raw-ltdl.guilemod.h > ltdl.h.diff; \
 	  test "$$?" -eq 1
 
 ltdl.c.diff: ltdl.c $(srcdir)/../raw-ltdl.c
@@ -55,7 +55,7 @@ ltdl.c.diff: ltdl.c $(srcdir)/../raw-ltdl.c
 	  -e 's/SCM_INSERTED_DLSYMLIST_STRUCT_DECL //go;' \
 	  raw-ltdl.guilemod.c.tmp
 	mv raw-ltdl.guilemod.c.tmp raw-ltdl.guilemod.c
-	diff -ru ltdl.c raw-ltdl.guilemod.c > ltdl.c.diff; \
+	diff -ru $(srcdir)/ltdl.c raw-ltdl.guilemod.c > ltdl.c.diff; \
 	  test "$$?" -eq 1
 
 CLEANFILES := \

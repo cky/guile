@@ -1,3 +1,8 @@
+2002-10-27  Gary Houston  <ghouston@arglist.com>
+
+	* upstream/Makefile.am (ltdl.h.diff, ltdl.c.diff): add $(srcdir)
+	first file in diff commands.
+
 2002-10-25  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* upstream/ltdl.c: New copy from libtool 1.4.3.
