@@ -1,5 +1,13 @@
 2000-06-14  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
+	* socket.c (scm_getsockopt): Changed type for `optlen' from int to
+	size_t.
+	(scm_accept, scm_getsockname, scm_getpeername, scm_recvfrom):
+	Ditto for `tmp_size'.
+	(scm_addr_buffer_size): Changed type from int to size_t.
+
+	* random.c: #include <string.h>.  (Needed by memcpy.)
+
 	* guile-snarf.awk.in: Replace the dot_doc_file arg with "-",
 	indicating stdin, instead of "" and don't reset ARGC.  This is a
 	workaround for `nawk' in AIX 4.3 on RS6000 but, as far as I know,
