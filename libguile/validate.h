@@ -1,4 +1,4 @@
-/* $Id: validate.h,v 1.24 2001-01-08 23:10:06 ghouston Exp $ */
+/* $Id: validate.h,v 1.25 2001-01-24 00:02:43 dirk Exp $ */
 /*	Copyright (C) 1999, 2000 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -337,8 +337,6 @@
 
 #define SCM_VALIDATE_RGXP(pos, a) SCM_MAKE_VALIDATE (pos, a, RGXP)
 
-#define SCM_VALIDATE_OPDIR(pos, port) SCM_MAKE_VALIDATE (pos, port, OPDIRP)
-
 #define SCM_VALIDATE_DIR(pos, port) SCM_MAKE_VALIDATE (pos, port, DIRP)
 
 #define SCM_VALIDATE_PORT(pos, port) SCM_MAKE_VALIDATE (pos, port, PORTP)
@@ -436,6 +434,8 @@
     if (!SCM_RWSTRINGP (str)) \
       scm_misc_error (FUNC_NAME, "argument is a read-only string", str); \
   } while (0)
+
+#define SCM_VALIDATE_OPDIR(pos, port) SCM_MAKE_VALIDATE (pos, port, OPDIRP)
 
 #endif  /* SCM_DEBUG_DEPRECATED == 0 */
 

@@ -673,10 +673,12 @@ SCM_DEFINE (scm_rmdir, "rmdir", 1, 0, 0,
 #endif
 
 
+
 /* {Examining Directories}
  */
 
 scm_bits_t scm_tc16_dir;
+
 
 SCM_DEFINE (scm_directory_stream_p, "directory-stream?", 1, 0, 0, 
             (SCM obj),
@@ -684,9 +686,10 @@ SCM_DEFINE (scm_directory_stream_p, "directory-stream?", 1, 0, 0,
 	    "as returned by @code{opendir}.")
 #define FUNC_NAME s_scm_directory_stream_p
 {
-  return SCM_BOOL(SCM_DIRP (obj));
+  return SCM_BOOL (SCM_DIRP (obj));
 }
 #undef FUNC_NAME
+
 
 SCM_DEFINE (scm_opendir, "opendir", 1, 0, 0, 
             (SCM dirname),
@@ -700,7 +703,7 @@ SCM_DEFINE (scm_opendir, "opendir", 1, 0, 0,
   SCM_SYSCALL (ds = opendir (SCM_STRING_CHARS (dirname)));
   if (ds == NULL)
     SCM_SYSERROR;
-  SCM_RETURN_NEWSMOB (scm_tc16_dir | SCM_OPN, ds);
+  SCM_RETURN_NEWSMOB (scm_tc16_dir | SCM_DIR_FLAG_OPEN, ds);
 }
 #undef FUNC_NAME
 
@@ -713,16 +716,20 @@ SCM_DEFINE (scm_readdir, "readdir", 1, 0, 0,
 #define FUNC_NAME s_scm_readdir
 {
   struct dirent *rdent;
-  SCM_VALIDATE_OPDIR (1,port);
+
+  SCM_VALIDATE_DIR (1, port);
+  if (!SCM_DIR_OPEN_P (port))
+    SCM_MISC_ERROR ("Directory ~S is not open.", SCM_LIST1 (port));
+
   errno = 0;
   SCM_SYSCALL (rdent = readdir ((DIR *) SCM_CELL_WORD_1 (port)));
   if (errno != 0)
     SCM_SYSERROR;
+
   return (rdent ? scm_makfromstr (rdent->d_name, NAMLEN (rdent), 0)
 	  : SCM_EOF_VAL);
 }
 #undef FUNC_NAME
-
 
 
 SCM_DEFINE (scm_rewinddir, "rewinddir", 1, 0, 0, 
@@ -731,12 +738,15 @@ SCM_DEFINE (scm_rewinddir, "rewinddir", 1, 0, 0,
 	    "@code{readdir} will return the first directory entry.")
 #define FUNC_NAME s_scm_rewinddir
 {
-  SCM_VALIDATE_OPDIR (1,port);
+  SCM_VALIDATE_DIR (1, port);
+  if (!SCM_DIR_OPEN_P (port))
+    SCM_MISC_ERROR ("Directory ~S is not open.", SCM_LIST1 (port));
+
   rewinddir ((DIR *) SCM_CELL_WORD_1 (port));
+
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
-
 
 
 SCM_DEFINE (scm_closedir, "closedir", 1, 0, 0, 
@@ -745,29 +755,29 @@ SCM_DEFINE (scm_closedir, "closedir", 1, 0, 0,
 	    "The return value is unspecified.")
 #define FUNC_NAME s_scm_closedir
 {
-  int sts;
+  SCM_VALIDATE_DIR (1, port);
 
-  SCM_VALIDATE_DIR (1,port);
-  if (SCM_CLOSEDP (port))
+  if (SCM_DIR_OPEN_P (port))
     {
-      return SCM_UNSPECIFIED;
+      int sts;
+
+      SCM_SYSCALL (sts = closedir ((DIR *) SCM_CELL_WORD_1 (port)));
+      if (sts != 0)
+	SCM_SYSERROR;
+
+      SCM_SET_CELL_WORD_0 (port, scm_tc16_dir);
     }
-  SCM_SYSCALL (sts = closedir ((DIR *) SCM_CELL_WORD_1 (port)));
-  if (sts != 0)
-    SCM_SYSERROR;
-  SCM_SET_CELL_WORD_0 (port, scm_tc16_dir);
+
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
-
-
 
 
 static int 
 scm_dir_print (SCM exp, SCM port, scm_print_state *pstate)
 {
   scm_puts ("#<", port);
-  if (SCM_CLOSEDP (exp))
+  if (!SCM_DIR_OPEN_P (exp))
     scm_puts ("closed: ", port);
   scm_puts ("directory stream ", port);
   scm_intprint (SCM_CELL_WORD_1 (exp), 16, port);
@@ -779,7 +789,7 @@ scm_dir_print (SCM exp, SCM port, scm_print_state *pstate)
 static scm_sizet 
 scm_dir_free (SCM p)
 {
-  if (SCM_OPENP (p))
+  if (SCM_DIR_OPEN_P (p))
     closedir ((DIR *) SCM_CELL_WORD_1 (p));
   return 0;
 }

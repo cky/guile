@@ -53,8 +53,11 @@
 
 
 extern scm_bits_t scm_tc16_dir;
+
+#define SCM_DIR_FLAG_OPEN (1L << 16)
+
 #define SCM_DIRP(x) (!SCM_IMP (x) && (SCM_TYP16 (x) == scm_tc16_dir))
-#define SCM_OPDIRP(x) (!SCM_IMP (x) && (SCM_CELL_WORD_0 (x) == (scm_tc16_dir | SCM_OPN)))
+#define SCM_DIR_OPEN_P(x) (SCM_CELL_WORD_0 (x) & SCM_DIR_FLAG_OPEN)
 
 
 
@@ -89,6 +92,14 @@ extern SCM scm_dirname (SCM filename);
 extern SCM scm_basename (SCM filename, SCM suffix);
 
 extern void scm_init_filesys (void);
+
+
+
+#if (SCM_DEBUG_DEPRECATED == 0)
+
+#define SCM_OPDIRP(x) (SCM_DIRP (x) && (SCM_DIR_OPEN_P (x)))
+
+#endif  /* SCM_DEBUG_DEPRECATED == 0 */
 
 #endif  /* FILESYSH */
 

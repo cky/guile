@@ -1,3 +1,21 @@
+2001-01-24  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* filesys.h (SCM_DIR_FLAG_OPEN, SCM_DIR_OPEN_P):  Added.
+
+	(SCM_OPDIRP):  Deprecated.
+
+	* filesys.c (scm_opendir):  Use SCM_DIR_FLAG_OPEN instead of
+	SCM_OPN.
+
+	(scm_readdir, scm_rewinddir):  Don't use SCM_VALIDATE_OPDIR.
+	Instead, give an explicit error message in case the directory is
+	closed.
+
+	(scm_closedir, scm_dir_print):  Rewritten to use SCM_DIR_OPEN_P
+	instead of SCM_OPENP and SCM_CLOSEDP.
+
+	* validate.h (SCM_VALIDATE_OPDIR):  Deprecated.
+
 2001-01-22  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* eval.c (inner_eval, scm_eval):  Move all real functionality into
