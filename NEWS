@@ -1,5 +1,5 @@
 Guile NEWS --- history of user-visible changes.
-Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
+Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 See the end for copying conditions.
 
 Please send Guile bug reports to bug-guile@gnu.org.
@@ -877,7 +877,7 @@ SCM_VELTS_AS_STACKITEMS, SCM_SETVELTS, SCM_GC_WRITABLE_VELTS.
 
 Migrate according to the following table:
 
-    scm_make_uve        -> scm_make_typed_aray, scm_make_u8vector etc.
+    scm_make_uve        -> scm_make_typed_array, scm_make_u8vector etc.
     scm_make_ra         -> scm_make_array
     scm_shap2ra         -> scm_make_array
     scm_cvref           -> scm_c_generalized_vector_ref
