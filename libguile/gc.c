@@ -705,7 +705,7 @@ scm_gc_for_newcell (scm_freelist_t *master, SCM *freelist)
     {
       if (SCM_NULLP (master->clusters))
 	{
-	  if (master->grow_heap_p)
+	  if (master->grow_heap_p || scm_block_gc)
 	    {
 	      master->grow_heap_p = 0;
 	      alloc_some_heap (master);
