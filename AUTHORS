@@ -322,3 +322,6 @@ In the subdirectory libguile, changes to:
     continuations.h
     continuations.c
     gc.c
+
+John W. Eaton, based on code from AT&T Bell Laboratories and Bellcore:
+ The complex number division method in libguile/numbers.c.

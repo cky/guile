@@ -1,5 +1,8 @@
 2002-03-11  Marius Vollmer  <mvo@zagadka.ping.de>
 
+	* numbers.c (scm_divide): Adapt code from libstdc++/f2c to void
+	potential overflow problems.  Thanks to John W Eaton!
+
 	* strop.c (string_capitalize_x): Treat characters as unsigned so
 	that 8-bit chars work.  Thanks to David Pirotte!
 
