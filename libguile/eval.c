@@ -3827,8 +3827,13 @@ inner_eval (void *data)
   SCM pair = SCM_PACK (data);
   SCM exp = SCM_CAR (pair);
   SCM env = SCM_CDR (pair);
-  SCM result = scm_i_eval (exp, env);
-  return result;
+  SCM transformer = scm_fluid_ref (SCM_CDR (scm_system_transformer));
+
+  exp = scm_copy_tree (exp);
+  if (SCM_NIMP (transformer))
+    exp = scm_apply (transformer, exp, scm_listofnull);
+
+  return SCM_XEVAL (exp, env);
 }
 
 
@@ -3849,17 +3854,15 @@ SCM_DEFINE (scm_eval, "eval", 2, 0, 0,
 	    "environment given by @var{environment specifier}.")
 #define FUNC_NAME s_scm_eval
 {
-  SCM copied_exp;
   SCM env_closure;
 
   SCM_VALIDATE_MODULE (2, environment);
 
-  copied_exp = scm_copy_tree (exp);
   env_closure = scm_top_level_env (SCM_MODULE_EVAL_CLOSURE (environment));
 
   return scm_internal_dynamic_wind 
     (change_environment, inner_eval, restore_environment,
-     (void *) SCM_UNPACK (scm_cons (copied_exp, env_closure)),
+     (void *) SCM_UNPACK (scm_cons (exp, env_closure)),
      (void *) SCM_UNPACK (scm_cons (environment, SCM_BOOL_F)));
 }
 #undef FUNC_NAME

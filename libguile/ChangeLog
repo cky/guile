@@ -1,3 +1,9 @@
+2001-01-22  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* eval.c (inner_eval, scm_eval):  Move all real functionality into
+	inner_eval.  Avoid to copy the expression twice by inlining some
+	code from scm_i_eval.
+
 2001-01-19  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* eval.c (scm_m_case):  The 'else' clause of a 'case' statement
