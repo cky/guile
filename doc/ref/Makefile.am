@@ -56,17 +56,4 @@ autoconf.texi: autoconf-macros.texi
 autoconf-macros.texi: $(top_srcdir)/guile-config/guile.m4
 	$(preinstguiletool)/snarf-guile-m4-docs $< > $(srcdir)/$@
 
-# Optionally support building an HTML version of the reference manual.
-
-if HTMLDOC
-
-htmldir = $(prefix)/html/guile-$(VERSION)
-
-html_DATA = guile_toc.html $(shell ls guile_*.html 2>/dev/null)
-
-guile_toc.html: guile.texi $(guile_TEXINFOS)
-	$(TEXI2HTML) -split_chapter $(srcdir)/guile.texi
-
-endif
-
 CLEANFILES = autoconf-macros.texi
