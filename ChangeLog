@@ -1,3 +1,7 @@
+2003-05-30  Stefan Jahn  <stefan@lkcc.org>
+
+	* configure.in: Checking for unsetenv().
+
 2003-05-29  Stefan Jahn  <stefan@lkcc.org>
 
 	* configure.in: Removed -lm check and added a cached check for

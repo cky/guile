@@ -1,3 +1,11 @@
+2003-05-30  Stefan Jahn  <stefan@lkcc.org>
+
+	* posix.c (s_scm_putenv): Use the new HAVE_UNSETENV 
+	appropriately for mingw32 hosts.
+
+	* numbers.h: Defining copysign(), isnan() and finite() to
+	be prefixed by a single '_' for mingw32 hosts.
+
 2003-05-30  Kevin Ryde  <user42@zip.com.au>
 
 	* numbers.c (z_negative_one): New variable.

@@ -1162,16 +1162,26 @@ SCM_DEFINE (scm_putenv, "putenv", 1, 0, 0,
 
   SCM_VALIDATE_STRING (1, str);
 
-#ifndef __MINGW32__
   if (strchr (SCM_STRING_CHARS (str), '=') == NULL)
     {
+#ifdef HAVE_UNSETENV
       /* No '=' in argument means we should remove the variable from
 	 the environment.  Not all putenvs understand this.  To be
 	 safe, we do it explicitely using unsetenv. */
       unsetenv (SCM_STRING_CHARS (str));
+#else
+      /* On e.g. Win32 hosts putenv() called with 'name=' removes the
+	 environment variable 'name'. */
+      ptr = scm_malloc (SCM_STRING_LENGTH (str) + 2);
+      strncpy (ptr, SCM_STRING_CHARS (str), SCM_STRING_LENGTH (str));
+      ptr[SCM_STRING_LENGTH (str)] = '=';
+      ptr[SCM_STRING_LENGTH (str) + 1] = 0;
+      rv = putenv (ptr);
+      if (rv < 0)
+	SCM_SYSERROR;
+#endif
     }
   else
-#endif
     {
       /* must make a new copy to be left in the environment, safe from gc.  */
       ptr = scm_malloc (SCM_STRING_LENGTH (str) + 1);
