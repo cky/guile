@@ -1,3 +1,10 @@
+2000-01-25  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* autogen.sh: Call libtoolize.  Pass --add-missing option to
+	automake.  Do not decent into libltdl directory.  The libltdl
+	directory is now populated by libtoolize and does not need any
+	further autogeneration.
+
 2000-01-23  Gary Houston  <ghouston@arglist.com>
 
 	* configure.in: check for fchown.

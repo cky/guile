@@ -1,3 +1,11 @@
+2000-01-25  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* autogen.sh: Call libtoolize.  Pass --add-missing option to
+	automake.
+
+	* readline.scm: Only link glue code when the 'readline feature is
+	not already present.  Thanks to Clark McGrew.
+
 Tue Jan 11 17:51:40 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* readline.c (scm_init_readline): Drop extra argument to
