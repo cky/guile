@@ -792,6 +792,11 @@ SCM_DEFINE (scm_ttyname, "ttyname", 1, 0, 0,
 #undef FUNC_NAME
 #endif /* HAVE_TTYNAME */
 
+/* For thread safety "buf" is used instead of NULL for the ctermid static
+   buffer.  Actually it's unlikely the controlling terminal will change
+   during program execution, and indeed on glibc (2.3.2) it's always just
+   "/dev/tty", but L_ctermid on the stack is easy and fast and guarantees
+   safety everywhere.  */
 #ifdef HAVE_CTERMID
 SCM_DEFINE (scm_ctermid, "ctermid", 0, 0, 0,
             (),
@@ -799,7 +804,8 @@ SCM_DEFINE (scm_ctermid, "ctermid", 0, 0, 0,
 	    "terminal for the current process.")
 #define FUNC_NAME s_scm_ctermid
 {
-  char *result = ctermid (NULL);
+  char buf[L_ctermid];
+  char *result = ctermid (buf);
   if (*result == '\0')
     SCM_SYSERROR;
   return scm_makfrom0str (result);
