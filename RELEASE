@@ -17,6 +17,9 @@ After signal handling and threading have been fixed:
 
 === In release 1.6.0:
 
+- Make sure that the deprecation mechanism explained in INSTALL and
+  README is completed and works.
+
 - Q: Was SCM_FLOBUFLEN only deprecated publically, or was it supposed
   to be removed from numbers.c as well?
 
