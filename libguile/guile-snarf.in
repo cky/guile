@@ -23,14 +23,18 @@
 # Usage: guile-snarf [-d | -D] [-o OUTFILE] INFILE [CPP-OPTIONS ...]
 #
 # Process INFILE using the C pre-processor and some other programs.
-# Write output to a file, named OUTFILE if specified, or STEM.x if
-# INFILE looks like STEM.c and no OUTFILE is specified.  Ignore
-# lines from the input matching grep(1) regular expression:
+# Write output to a file named OUTFILE or to the standard output when no
+# OUTFILE has been specified or when OUTFILE is "-".  When writing
+# to a file, ignore lines from the input matching the following grep(1)
+# regular expression:
 #
 #       ^#include ".*OUTFILE"
 #
 # If there are errors during processing, delete OUTFILE and exit with
 # non-zero status.
+#
+# During snarfing, the pre-processor macro SCM_MAGIC_SNARFER is
+# defined.
 #
 # Optional arg "-d" means grep INFILE for deprecated macros and
 # issue a warning if any are found.  Alternatively, "-D" means
@@ -55,8 +59,12 @@ deprecated_list="
 
 modern_snarf ()                         # writes stdout
 {
-${cpp} -DSCM_MAGIC_SNARF_INITS "$@" > ${temp} && cpp_ok_p=true
-grep "^ *\^ *\^" ${temp} | sed -e "s/^ *\^ *\^//" -e "s/\^\ *:\ *\^.*/;/"
+    ## Apparently, AIX's preprocessor is unhappy if you try to #include an
+    ## empty file.
+    echo "/* source: $infile */" ;
+    echo "/* cpp arguments: $@ */" ;
+    ${cpp} -DSCM_MAGIC_SNARF_INITS -DSCM_MAGIC_SNARFER "$@" > ${temp} && cpp_ok_p=true
+    grep "^ *\^ *\^" ${temp} | sed -e "s/^ *\^ *\^//" -e "s/\^\ *:\ *\^.*/;/"
 }
 
 grep_deprecated ()                      # $1 is the filename
@@ -88,7 +96,7 @@ case x"$1" in x-d) grep_dep_p=true ; grep_dep_exit_p=false ; shift ;;
 esac
 if [ x"$1" = x-o ]
     then outfile=$2 ; shift ; shift ; infile=$1 ; shift
-    else infile=$1 ; shift ; outfile=`basename $infile .c`.x
+    else outfile="-"; infile=$1 ; shift 
 fi
 
 [ x"$infile" = x ] && { echo $0: No input file ; exit 1 ; }
@@ -98,30 +106,31 @@ fi
 cpp_ok_p=false
 temp="/tmp/snarf.$$"
 if [ x"$CPP" = x ] ; then cpp="@CPP@" ; else cpp="$CPP" ; fi
-self_blind_regexp='^#include ".*'`basename $outfile`'"'
-clean_infile=$infile.clean.c            # temp file in same dir as infile
+
+trap "rm -f $temp $clean_infile" 0 1 2 15
+
+if [ ! "$outfile" = "-" ]; then
+    self_blind_regexp='^#include ".*'`basename $outfile`'"'
+    clean_infile=$infile.clean.c        # temp file in same dir as infile
                                         # so that #include "foo" works
                                         # (e.g., see libguile/eval.c).
                                         # use .c to satisfy cpp heuristics.
-trap "rm -f $temp $clean_infile" 0 1 2 15
 
-# clean input file
-grep -v "$self_blind_regexp" $infile > $clean_infile
+    # clean input file
+    grep -v "$self_blind_regexp" $infile > $clean_infile
+    modern_snarf "$@" $clean_infile > $outfile
+else
+    modern_snarf "$@" $infile
+fi
 
 # grep deprecated
-$grep_dep_p && grep_deprecated $clean_infile
-
-# do the snarfing -- output something extra for needy cpp programs (AIX)
-{ echo "/* source: $infile */" ;
-  echo "/* cpp-options: $@ */" ;
-  modern_snarf "$@" $clean_infile ;
-} > $outfile
+$grep_dep_p && grep_deprecated $infile
 
 # zonk outfile if errors occurred
 if $cpp_ok_p ; then
     exit 0
 else
-    rm -f $outfile
+    [ ! "$outfile" = "-" ] && rm -f $outfile
     exit 1
 fi
 
