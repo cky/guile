@@ -45,6 +45,7 @@
 
 
 #include "libguile/__scm.h"
+#include "print.h"
 
 
 typedef struct scm_array
@@ -107,7 +108,7 @@ extern SCM scm_string_downcase_x (SCM v);
 extern SCM scm_istr2bve (char *str, long len);
 extern SCM scm_array_to_list (SCM v);
 extern SCM scm_list_to_uniform_array (SCM ndim, SCM prot, SCM lst);
-extern int scm_raprin1 (SCM exp, SCM port, int writing);
+extern int scm_raprin1 (SCM exp, SCM port, scm_print_state *pstate);
 extern SCM scm_array_prototype (SCM ra);
 extern void scm_init_unif (void);
 

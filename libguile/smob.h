@@ -44,13 +44,14 @@
  */
 
 #include "libguile/__scm.h"
+#include "print.h"
 
 
 typedef struct scm_smobfuns
 {
   SCM (*mark) SCM_P ((SCM));
   scm_sizet (*free) SCM_P ((SCM));
-  int (*print) SCM_P ((SCM exp, SCM port, int writing));
+  int (*print) SCM_P ((SCM exp, SCM port, scm_print_state *pstate));
   SCM (*equalp) SCM_P ((SCM, SCM));
 } scm_smobfuns;
 

@@ -68,6 +68,7 @@
 #include "procprop.h"
 #include "hashtab.h"
 #include "hash.h"
+#include "print.h"
 
 #ifdef DEBUG_EXTENSIONS
 #include "debug.h"
@@ -2772,17 +2773,20 @@ scm_makprom (code)
 
 #ifdef __STDC__
 static int 
-prinprom (SCM exp, SCM port, int writing)
+prinprom (SCM exp, SCM port, scm_print_state *pstate)
 #else
 static int 
-prinprom (exp, port, writing)
+prinprom (exp, port, pstate)
      SCM exp;
      SCM port;
-     int writing;
+     scm_print_state *pstate;
 #endif
 {
+  int writingp = SCM_WRITINGP (pstate);
   scm_gen_puts (scm_regular_string, "#<promise ", port);
-  scm_iprin1 (SCM_CDR (exp), port, writing);
+  SCM_SET_WRITINGP (pstate, 1);
+  scm_iprin1 (SCM_CDR (exp), port, pstate);
+  SCM_SET_WRITINGP (pstate, writingp);
   scm_gen_putc ('>', port);
   return !0;
 }
@@ -2844,15 +2848,16 @@ scm_makmmacro (code)
 
 #ifdef __STDC__
 static int 
-prinmacro (SCM exp, SCM port, int writing)
+prinmacro (SCM exp, SCM port, scm_print_state *pstate)
 #else
 static int 
-prinmacro (exp, port, writing)
+prinmacro (exp, port, pstate)
      SCM exp;
      SCM port;
-     int writing;
+     scm_print_state *pstate;
 #endif
 {
+  int writingp = SCM_WRITINGP (pstate);
   if (SCM_CAR (exp) & (3L << 16))
     scm_gen_puts (scm_regular_string, "#<macro", port);
   else
@@ -2860,7 +2865,9 @@ prinmacro (exp, port, writing)
   if (SCM_CAR (exp) & (2L << 16))
     scm_gen_putc ('!', port);
   scm_gen_putc (' ', port);
-  scm_iprin1 (SCM_CDR (exp), port, writing);
+  SCM_SET_WRITINGP (pstate, 1);
+  scm_iprin1 (SCM_CDR (exp), port, pstate);
+  SCM_SET_WRITINGP (pstate, writingp);
   scm_gen_putc ('>', port);
   return !0;
 }

@@ -51,6 +51,7 @@
 #include "hashtab.h"
 #include "hash.h"
 #include "weaks.h"
+#include "print.h"
 
 #include "srcprop.h"
 
@@ -108,17 +109,20 @@ freesrcprops (obj)
 
 #ifdef __STDC__
 static int
-prinsrcprops (SCM obj, SCM port, int writing)
+prinsrcprops (SCM obj, SCM port, scm_print_state *pstate)
 #else
 static int
-prinsrcprops (obj, port, writing)
+prinsrcprops (obj, port, pstate)
      SCM obj;
      SCM port;
-     int writing;
+     scm_print_state *pstate;
 #endif
 {
+  int writingp = SCM_WRITINGP (pstate);
   scm_gen_puts (scm_regular_string, "#<srcprops ", port);
-  scm_iprin1 (scm_srcprops_to_plist (obj), port, 1);
+  SCM_SET_WRITINGP (pstate, 1);
+  scm_iprin1 (scm_srcprops_to_plist (obj), port, pstate);
+  SCM_SET_WRITINGP (pstate, writingp);
   scm_gen_putc ('>', port);
   return 1;
 }

@@ -45,6 +45,7 @@
 
 
 #include "libguile/__scm.h"
+#include "print.h"
 
 
 
@@ -265,8 +266,8 @@ extern SCM scm_divbigint(SCM x, long z, int sgn, int mode);
 extern SCM scm_divbigbig(SCM_BIGDIG *x, scm_sizet nx, SCM_BIGDIG *y, scm_sizet ny, int sgn, int modes);
 extern scm_sizet scm_iint2str(long num, int rad, char *p);
 extern SCM scm_number_to_string(SCM x, SCM radix);
-extern int scm_floprint(SCM sexp, SCM port, int writing);
-extern int scm_bigprint(SCM exp, SCM port, int writing);
+extern int scm_floprint(SCM sexp, SCM port, scm_print_state *pstate);
+extern int scm_bigprint(SCM exp, SCM port, scm_print_state *pstate);
 extern SCM scm_istr2int(char *str, long len, long radix);
 extern SCM scm_istr2flo(char *str, long len, long radix);
 extern SCM scm_istring2number(char *str, long len, long radix);

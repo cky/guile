@@ -1581,13 +1581,13 @@ scm_number_to_string(x, radix)
    SCM_FLOATS or SCM_BIGDIGs conditionals */
 #ifdef __STDC__
 int
-scm_floprint(SCM sexp, SCM port, int writing)
+scm_floprint(SCM sexp, SCM port, scm_print_state *pstate)
 #else
 int
-scm_floprint(sexp, port, writing)
+scm_floprint(sexp, port, pstate)
      SCM sexp;
      SCM port;
-     int writing;
+     scm_print_state *pstate;
 #endif
 {
 #ifdef SCM_FLOATS
@@ -1602,13 +1602,13 @@ scm_floprint(sexp, port, writing)
 
 #ifdef __STDC__
 int
-scm_bigprint(SCM exp, SCM port, int writing)
+scm_bigprint(SCM exp, SCM port, scm_print_state *pstate)
 #else
 int
-scm_bigprint(exp, port, writing)
+scm_bigprint(exp, port, pstate)
      SCM exp;
      SCM port;
-     int writing;
+     scm_print_state *pstate;
 #endif
 {
 #ifdef SCM_BIGDIG
