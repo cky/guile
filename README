@@ -118,7 +118,7 @@ It works like this:
   When `--enable-deprecated=LEVEL' has been specified (for LEVEL not
   "no"), LEVEL will be used as the default value of the environment
   variable GUILE_WARN_DEPRECATED.  A value of "yes" is changed to
-  "summary", however.
+  "summary" and "shutup" is changed to "no", however.
 
   When GUILE_WARN_DEPRECATION has the value "no", nothing special will
   happen when a deprecated feature is used.
@@ -134,7 +134,7 @@ It works like this:
   warning is emitted immediatly for the first use of a deprecated
   feature.
 
-The default is `--enable-deprecation=yes'.
+The default is `--enable-deprecated=yes'.
 
 About This Distribution ==============================================
 

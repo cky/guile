@@ -271,7 +271,7 @@ to write the empty list as a literal constant is to use quote: "'()".
 ** Auto-loading of compiled-code modules is deprecated.
 
 Guile used to be able to automatically find and link a shared
-libraries to satisfy requests for a module.  For example, the module
+library to satisfy requests for a module.  For example, the module
 `(foo bar)' could be implemented by placing a shared library named
 "foo/libbar.so" (or with a different extension) in a directory on the
 load path of Guile.
@@ -373,20 +373,27 @@ objects are usually permanent.
 ** Escape procedures created by call-with-current-continuation now
 accept any number of arguments, as required by R5RS.
 
-** New function `call-with-deprecation'
+** New function `issue-deprecation-warning'
 
-Call a thunk, displaying a deprecation message at the first call:
+This function is used to displaying the deprecation messages that are
+controlled by GUILE_WARN_DEPRECATION as explained in the README.
 
   (define (id x)
-    (call-with-deprecation "`id' is deprecated.  Use `identity' instead."
-      (lambda ()
-	(identity x))))
+    (issue-deprecation-warning "`id' is deprecated.  Use `identity' instead.")
+    (identity x))
 
   guile> (id 1)
   ;; `id' is deprecated.  Use `identity' instead.
   1
   guile> (id 1)
   1
+
+** New syntax `begin-deprecated'
+
+When deprecated features are included (as determined by the configure
+option --enable-deprecated), `begin-deprecated' is identical to
+`begin'.  When deprecated features are excluded, it always evaluates
+to `#f', ignoring the body forms.
 
 ** New function `make-object-property'
 

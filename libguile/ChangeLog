@@ -1,3 +1,11 @@
+2001-05-05  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* objects.c, objects.h (scm_valid_object_procedure_p): New.
+	(scm_set_object_procedure_x): Use it to check argument.  Fix
+	docstring.
+
+	* evalext.c (scm_definedp): Fix docstring.
+
 2001-05-05  Gary Houston  <ghouston@arglist.com>
 
 	* socket.c: use HAVE_IPV6 instead of AF_INET6 to enable IPv6

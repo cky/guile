@@ -1,3 +1,12 @@
+2001-05-05  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* goops.scm (initialize-object-procedure): Use
+	`valid-object-procedure?' instead of explicit tag magic.
+	(object-procedure-tags): Removed.
+	
+	* goops/util.scm (top-level-env): Use `current-module' instead of
+	the deprecated *top-level-lookup-closure*.
+
 2001-04-28  Rob Browning  <rlb@cs.utexas.edu>
 
 	* goops/save.scm (write-readably): rename list* to cons*.
