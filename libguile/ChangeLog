@@ -1,3 +1,19 @@
+2001-07-25  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* tags.h (scm_tc7_variable): New.
+	* gc.c (scm_gc_mark): Handle scm_tc7_variable objects.
+	* print.c (scm_iprin1): Likewise.
+
+	* variable.h (scm_tc16_variable): Removed.
+	(SCM_VARIABLEP): Test for new tc7 code.
+	(scm_i_variable_print): New.
+	* variable.c (scm_tc16_variable): Removed.
+	(variable_print): Renamed to scm_i_variable_print and made
+	non-static.
+	(variable_equal_p): Removed.
+	(make_variable): Construct a tc7 object instead of a smob.
+	(scm_init_variable): Do not register smob.
+	
 2001-07-22  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* tags.h: Include inttypes.h when we have it.

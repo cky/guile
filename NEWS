@@ -4,6 +4,14 @@ See the end for copying conditions.
 
 Please send Guile bug reports to bug-guile@gnu.org.
 
+Changes since the stable branch:
+
+** Variables have no longer a special behavior for `equal?'. 
+
+Previously, comparing two variables with `equal?' would recursivly
+compare their values.  This is no longer done.  Variables are now only
+`equal?' if they are `eq?'.
+
 Changes since Guile 1.4:
 
 * Changes to the distribution
