@@ -25,6 +25,12 @@ Fri Apr  4 08:53:41 1997  Gary Houston  <ghouston@actrix.gen.nz>
 	* stime.c (scm_time_plus_ticks): new procedure, an scsh interface
 	which may be more usefully portable than a gettimeofday interface.
 
+Wed Apr  2 17:11:39 1997  Jim Blandy  <jimb@totoro.cyclic.com>
+
+	* Makefile.am (EXTRA_DIST): It's cpp_err_symbols, not
+	cpp_err_signals.
+	* Makefile.in: Regenerated.
+
 Mon Mar 31 03:22:37 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* stime.c (filltime): recovered static procedure.
