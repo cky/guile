@@ -1,3 +1,10 @@
+2003-02-12  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* hashtab.c (scm_hash_fn_remove_x, scm_internal_hash_fold): Made
+	thread safe and handle resizing tables.
+	(scm_ihashx, scm_sloppy_assx, scm_delx_x): Removed
+	SCM_DEFER/ALLOW_INTS.
+
 2003-02-11  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* hashtab.c (scm_vector_to_hash_table,
