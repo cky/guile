@@ -1,3 +1,10 @@
+2001-01-01  Gary Houston  <ghouston@arglist.com>
+
+	* fports.c (fport_write): bugfix: handle short writes for
+	unbuffered ports too.  optimize the buffered case by minimizing
+	the number of write/flush calls.
+	(write_all): new helper procedure.
+
 2000-12-30  Michael Livshin  <mlivshin@bigfoot.com>
 
 	* guardians.c (guardian_print): for sharing guardians, print that

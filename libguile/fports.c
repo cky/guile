@@ -573,41 +573,83 @@ fport_truncate (SCM port, off_t length)
     scm_syserror ("ftruncate");
 }
 
+/* helper for fport_write: try to write data, using multiple system
+   calls if required.  */
+#define FUNC_NAME "write_all"
+static void write_all (SCM port, const void *data, size_t remaining)
+{
+  int fdes = SCM_FSTREAM (port)->fdes;
+
+  while (remaining > 0)
+    {
+      ssize_t done;
+
+      SCM_SYSCALL (done = write (fdes, data, remaining));
+
+      if (done == -1)
+	SCM_SYSERROR;
+      remaining -= done;
+      data = ((const char *) data) + done;
+    }
+}
+#undef FUNC_NAME
+
 static void
 fport_write (SCM port, const void *data, size_t size)
 {
+  /* this procedure tries to minimize the number of writes/flushes.  */
   scm_port *pt = SCM_PTAB_ENTRY (port);
 
-  if (pt->write_buf == &pt->shortbuf)
+  if (pt->write_buf == &pt->shortbuf
+      || (pt->write_pos == pt->write_buf && size >= pt->write_buf_size))
     {
-      /* "unbuffered" port.  */
-      int fdes = SCM_FSTREAM (port)->fdes;
-
-      if (write (fdes, data, size) == -1)
-	scm_syserror ("fport_write");
+      /* "unbuffered" port, or
+	 port with empty buffer and data won't fit in buffer. */
+      write_all (port, data, size);
+      return;
     }
-  else 
-    {
-      const char *input = (char *) data;
-      size_t remaining = size;
 
-      while (remaining > 0)
-	{
-	  int space = pt->write_end - pt->write_pos;
-	  int write_len = (remaining > space) ? space : remaining;
+  {
+    off_t space = pt->write_end - pt->write_pos;
 
-	  memcpy (pt->write_pos, input, write_len);
-	  pt->write_pos += write_len;
-	  remaining -= write_len;
-	  input += write_len;
-	  if (write_len == space)
+    if (size <= space)
+      {
+	/* data fits in buffer.  */
+	memcpy (pt->write_pos, data, size);
+	pt->write_pos += size;
+	if (pt->write_pos == pt->write_end)
+	  {
 	    fport_flush (port);
-	}
-
-      /* handle line buffering.  */
-      if ((SCM_CELL_WORD_0 (port) & SCM_BUFLINE) && memchr (data, '\n', size))
+	    /* we can skip the line-buffering check if nothing's buffered. */
+	    return;
+	  }
+      }
+    else
+      {
+	memcpy (pt->write_pos, data, space);
+	pt->write_pos = pt->write_end;
 	fport_flush (port);
-    }
+	{
+	  const void *ptr = ((const char *) data) + space;
+	  size_t remaining = size - space;
+
+	  if (size >= pt->write_buf_size)
+	    {
+	      write_all (port, ptr, remaining);
+	      return;
+	    }
+	  else
+	    {
+	      memcpy (pt->write_pos, ptr, remaining);
+	      pt->write_pos += remaining;
+	    }
+	}
+      }
+
+    /* handle line buffering.  */     
+    if ((SCM_CELL_WORD_0 (port) & SCM_BUFLINE) && memchr (data, '\n', size))
+      fport_flush (port);
+  }
 }
 
 /* becomes 1 when process is exiting: normal exception handling won't
