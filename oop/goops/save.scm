@@ -307,7 +307,7 @@
     (display (cond ((not not-literal?) #\()
 		   (proper? "(list ")
 		   (1? "(cons ")
-		   (else "(list* "))
+		   (else "(cons* "))
 	     file)
     (if (and not-literal?
 	     (literal? (car o) env))
