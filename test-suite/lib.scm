@@ -42,7 +42,10 @@
  format-test-name
 
  ;; Finding test input files.
- data-file)
+ data-file
+
+ ;; Noticing whether an error occurs.
+ signals-error? signals-error?*)
 
 
 ;;;; If you're using Emacs's Scheme mode:
@@ -417,3 +420,22 @@
     (or (file-exists? f)
 	(error "Test suite data file does not exist: " f))
     f))
+
+
+;;;; Detecting whether errors occur
+
+;;; (signals-error?* KEY THUNK)
+;;; Apply THUNK, catching errors.  If any errors occur, return #t;
+;;; otherwise, return #f.
+;;;
+;;; KEY indicates the sort of errors to look for; it can be a symbol,
+;;; indicating that only errors with that name should be caught, or
+;;; #t, meaning that any kind of error should be caught.
+(define (signals-error?* key thunk)
+  (catch key
+	 (lambda () (thunk) #f)
+	 (lambda args #t)))
+
+(defmacro signals-error? key-and-body
+  `(signals-error?* ,(car key-and-body)
+		    (lambda () ,@(cdr key-and-body))))

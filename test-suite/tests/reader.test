@@ -5,12 +5,10 @@
   (pass-if (call-with-output-string (lambda (port)
 				      (display "Try to read " port)
 				      (write string port)))
-	   (catch 'signal
-		  (lambda ()
-		    (call-with-input-string string 
-					    (lambda (p) (read p)))
-		    #t)
-		  (lambda args #f))))
+	   (not (signals-error? 
+		 'signal
+		 (call-with-input-string string 
+					 (lambda (p) (read p)))))))
 
 (try-to-read "0")
 (try-to-read "1++i")
