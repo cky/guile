@@ -356,21 +356,20 @@ finalize_fd_sets_lazily (coop_t *t)
 {
   int i = (t->nfds + SCM_BITS_PER_LONG - 1) / SCM_BITS_PER_LONG;
   int n_ones = 0;
-  register unsigned long s;
   while (i > 0)
     {
       --i;
-      if (t->readfds != NULL && (s = ((ulongptr) t->readfds)[i]) != 0)
+      if (t->readfds != NULL && ((ulongptr) t->readfds)[i] != 0)
 	{
 	  ((ulongptr) t->readfds)[i] &= ((ulongptr) &rreadfds)[i];
 	  n_ones += SCM_NLONGBITS (&((ulongptr) t->readfds)[i]);
 	}
-      if (t->writefds != NULL && (s = ((ulongptr) t->writefds)[i]) != 0)
+      if (t->writefds != NULL && ((ulongptr) t->writefds)[i] != 0)
 	{
 	  ((ulongptr) t->writefds)[i] &= ((ulongptr) &rwritefds)[i];
 	  n_ones += SCM_NLONGBITS (&((ulongptr) t->writefds)[i]);
 	}
-      if (t->exceptfds != NULL && (s = ((ulongptr) t->exceptfds)[i]) != 0)
+      if (t->exceptfds != NULL && ((ulongptr) t->exceptfds)[i] != 0)
 	{
 	  ((ulongptr) t->exceptfds)[i] &= ((ulongptr) &rexceptfds)[i];
 	  n_ones += SCM_NLONGBITS (&((ulongptr) t->exceptfds)[i]);
@@ -624,11 +623,11 @@ scm_internal_select (int nfds,
   ++scm_ints_disabled;
 
   /* Add our file descriptor flags to the common set. */
-  coop_global_curr->nfds = nfds;
-  coop_global_curr->readfds = readfds;
-  coop_global_curr->writefds = writefds;
-  coop_global_curr->exceptfds = exceptfds;
-  add_fd_sets (coop_global_curr);
+  curr->nfds = nfds;
+  curr->readfds = readfds;
+  curr->writefds = writefds;
+  curr->exceptfds = exceptfds;
+  add_fd_sets (curr);
 
   /* Place ourselves on the sleep queue and get a new thread to run. */
   if (timeout == NULL)
