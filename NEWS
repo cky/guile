@@ -4,7 +4,11 @@ See the end for copying conditions.
 
 Please send Guile bug reports to bug-guile@prep.ai.mit.edu.
 
-Changes in Guile 1.1 (Sun 5 Jan 1997):
+Changes since Guile 1.1:
+
+
+
+Changes in Guile 1.1 (Fri May 16 1997):
 
 * Changes to the distribution.
 
