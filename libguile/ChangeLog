@@ -5,6 +5,8 @@
 	(This fixes a serious GC bug, introduced during the latest
 	reorganization of the GC, preventing freeing of structs and GOOPS
 	objects.)
+	(scm_struct_prehistory): Move scm_free_structs to
+	scm_before_mark_c_hook.
 
 2003-02-19  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 

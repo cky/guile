@@ -1,4 +1,4 @@
-/* Copyright (C) 1996,1997,1998,1999,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1996,1997,1998,1999,2000,2001, 2003 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -797,7 +797,9 @@ void
 scm_struct_prehistory ()
 {
   scm_i_structs_to_free = SCM_EOL;
-  scm_c_hook_add (&scm_after_sweep_c_hook, scm_free_structs, 0, 0);
+  /* With the new lazy sweep GC, the point at which the entire heap is
+     swept is just before the mark phase. */
+  scm_c_hook_add (&scm_before_mark_c_hook, scm_free_structs, 0, 0);
 }
 
 void
