@@ -54,6 +54,12 @@
 #include "root.h"
 
 
+/* Define this if you want to try out the stack allocation of cwdr's
+   jumpbuf.  It works for me but I'm still worried that the dynwinds
+   might be able to make a mess. */
+
+#undef USE_STACKJMPBUF
+
 SCM scm_sys_protects[SCM_NUM_PROTECTS];
 
 long scm_tc16_root;
@@ -159,8 +165,7 @@ scm_make_root (parent)
  * same C stack but under a new root.
  *
  * Calls to call-with-dynamic-root return exactly once (unless
- * the process is somehow exitted).
- */
+ * the process is somehow exitted).  */
 
 /* Some questions about cwdr:
 
@@ -181,13 +186,16 @@ SCM scm_exitval;		/* INUM with return value */
 static int n_dynamic_roots = 0;
 
 
-/* cwdr fills out one of these structures, and then passes a pointer
-   to it through scm_internal_catch to the cwdr_body function, to tell
-   it how to behave.
+/* cwdr fills out both of these structures, and then passes a pointer
+   to them through scm_internal_catch to the cwdr_body and
+   cwdr_handler functions, to tell them how to behave and to get
+   information back from them.
 
    A cwdr is a lot like a catch, except there is no tag (all
    exceptions are caught), and the body procedure takes the arguments
-   passed to cwdr as A1 and ARGS.  */
+   passed to cwdr as A1 and ARGS.  The handler is also special since
+   it is not directly run from scm_internal_catch.  It is executed
+   outside the new dynamic root. */
 
 struct cwdr_body_data {
   /* Arguments to pass to the cwdr body function.  */
@@ -195,9 +203,14 @@ struct cwdr_body_data {
 
   /* Scheme procedure to use as body of cwdr.  */
   SCM body_proc;
+};
 
-  /* Scheme handler function to establish.  */
-  SCM handler;
+struct cwdr_handler_data {
+  /* Do we need to run the handler? */
+  int run_handler;
+
+  /* The tag and args to pass it. */
+  SCM tag, args;
 };
 
 
@@ -208,27 +221,26 @@ struct cwdr_body_data {
    With a little thought, we could replace this with scm_body_thunk,
    but I don't want to mess with that at the moment.  */
 static SCM
-cwdr_inner_body (void *data, SCM jmpbuf)
+cwdr_body (void *data, SCM jmpbuf)
 {
   struct cwdr_body_data *c = (struct cwdr_body_data *) data;
 
   return scm_apply (c->body_proc, c->a1, c->args);
 }
 
+/* Record the fact that the body of the cwdr has thrown.  Record
+   enough information to invoke the handler later when the dynamic
+   root has been deestablished.  */
 
-/* Invoke the body of a cwdr, assuming that the last-ditch handler has
-   been established.  The structure DATA points to must live on the
-   stack, or else it won't be found by the GC.  Establish the user's
-   handler, and pass control to cwdr_inner_body, which will invoke the
-   users' body.  Maybe the user has a nice body.  */
 static SCM
-cwdr_outer_body (void *data, SCM jmpbuf)
+cwdr_handler (void *data, SCM tag, SCM args)
 {
-  struct cwdr_body_data *c = (struct cwdr_body_data *) data;
+  struct cwdr_handler_data *c = (struct cwdr_handler_data *) data;
 
-  return scm_internal_catch (SCM_BOOL_T,
-			     cwdr_inner_body, c,
-			     scm_handle_by_proc, &c->handler);
+  c->run_handler = 1;
+  c->tag = tag;
+  c->args = args;
+  return SCM_UNSPECIFIED;
 }
 
 /* This is the basic code for new root creation.
@@ -237,22 +249,31 @@ cwdr_outer_body (void *data, SCM jmpbuf)
  * critical.  E. g., it is essential that an error doesn't leave Guile
  * in a messed up state.  */
 
-static SCM 
-cwdr (SCM proc, SCM a1, SCM args, SCM handler, SCM_STACKITEM *stack_start)
+SCM 
+scm_internal_cwdr (scm_catch_body_t body, void *body_data,
+		   scm_catch_handler_t handler, void *handler_data,
+		   SCM_STACKITEM *stack_start)
 {
+#ifdef USE_STACKJMPBUF
+  scm_contregs static_jmpbuf;
+#endif
   int old_ints_disabled = scm_ints_disabled;
   SCM old_rootcont, old_winds;
+  struct cwdr_handler_data my_handler_data;
   SCM answer;
 
-  /* Create a fresh root continuation.
-   */
+  /* Create a fresh root continuation.  */
   {
     SCM new_rootcont;
     SCM_NEWCELL (new_rootcont);
     SCM_REDEFER_INTS;
+#ifdef USE_STACKJMPBUF
+    SCM_SETJMPBUF (new_rootcont, &static_jmpbuf);
+#else
     SCM_SETJMPBUF (new_rootcont,
 		   scm_must_malloc ((long) sizeof (scm_contregs),
 				    "inferior root continuation"));
+#endif
     SCM_SETCAR (new_rootcont, scm_tc7_contin);
     SCM_DYNENV (new_rootcont) = SCM_EOL;
     SCM_BASE (new_rootcont) = stack_start;
@@ -273,34 +294,48 @@ cwdr (SCM proc, SCM a1, SCM args, SCM handler, SCM_STACKITEM *stack_start)
   SCM_DFRAME (old_rootcont) = scm_last_debug_frame;
   scm_last_debug_frame = 0;
 #endif
-  
-  /* Catch absolutely all errors.  We actually use
-     scm_handle_by_message_noexit here, and then install HANDLER in
-     cwdr_outer_body, because HANDLER might encounter errors itself.  */
+
   {
-    struct cwdr_body_data c;
-
-    c.a1 = a1;
-    c.args = args;
-    c.body_proc = proc;
-    c.handler = handler;
-
+    my_handler_data.run_handler = 0;
     answer = scm_internal_catch (SCM_BOOL_T,
-				 cwdr_outer_body, &c,
-				 scm_handle_by_message_noexit, 0);
+				 body, body_data,
+				 cwdr_handler, &my_handler_data);
   }
-  
+
   scm_dowinds (old_winds, - scm_ilength (old_winds));
   SCM_REDEFER_INTS;
+#ifdef USE_STACKCJMPBUF
+  SCM_SETJMPBUF (scm_rootcont, NULL);
+#endif
 #ifdef DEBUG_EXTENSIONS
   scm_last_debug_frame = SCM_DFRAME (old_rootcont);
 #endif
   scm_rootcont = old_rootcont;
   SCM_REALLOW_INTS;
   scm_ints_disabled = old_ints_disabled;
-  return answer;
+
+  /* Now run the real handler iff the body did a throw. */
+  if (my_handler_data.run_handler)
+    return handler (handler_data, my_handler_data.tag, my_handler_data.args);
+  else
+    return answer;
 }
 
+/* The original CWDR for invoking Scheme code with a Scheme handler. */
+
+static SCM 
+cwdr (SCM proc, SCM a1, SCM args, SCM handler, SCM_STACKITEM *stack_start)
+{
+  struct cwdr_body_data c;
+  
+  c.a1 = a1;
+  c.args = args;
+  c.body_proc = proc;
+
+  return scm_internal_cwdr (cwdr_body, &c,
+			    scm_handle_by_proc, &handler,
+			    stack_start);
+}
 
 SCM_PROC(s_call_with_dynamic_root, "call-with-dynamic-root", 2, 0, 0, scm_call_with_dynamic_root);
 SCM
