@@ -2681,9 +2681,9 @@ inherits the print-state of OLD-PORT.
 
 ** New constants: vtable-index-layout, vtable-index-vtable, vtable-index-printer
 
-** There is now a fourth (optional) argument to make-vtable-vtable and
-   make-struct when constructing new types (vtables).  This argument
-   initializes field vtable-index-printer of the vtable.
+** There is now a third optional argument to make-vtable-vtable
+   (and fourth to make-struct) when constructing new types (vtables).
+   This argument initializes field vtable-index-printer of the vtable.
 
 ** The detection of circular references has been extended to structs.
 That is, a structure that -- in the process of being printed -- prints
