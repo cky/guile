@@ -79,13 +79,7 @@ SCM_DEFINE (scm_htons, "htons", 1, 0, 0,
 	    "and returned as a new integer.")
 #define FUNC_NAME s_scm_htons
 {
-  unsigned short c_in;
-
-  SCM_VALIDATE_INUM_COPY (1, value, c_in);
-  if (c_in != SCM_INUM (value))
-    SCM_OUT_OF_RANGE (1, value);
-
-  return SCM_I_MAKINUM (htons (c_in));
+  return scm_from_ushort (htons (scm_to_ushort (value)));
 }
 #undef FUNC_NAME
 
@@ -96,13 +90,7 @@ SCM_DEFINE (scm_ntohs, "ntohs", 1, 0, 0,
 	    "and returned as a new integer.")
 #define FUNC_NAME s_scm_ntohs
 {
-  unsigned short c_in;
-
-  SCM_VALIDATE_INUM_COPY (1, value, c_in);
-  if (c_in != SCM_INUM (value))
-    SCM_OUT_OF_RANGE (1, value);
-
-  return SCM_I_MAKINUM (ntohs (c_in));
+  return scm_from_ushort (ntohs (scm_to_ushort (value)));
 }
 #undef FUNC_NAME
 
@@ -282,7 +270,8 @@ SCM_DEFINE (scm_inet_makeaddr, "inet-makeaddr", 2, 0, 0,
 
 /* convert a 128 bit IPv6 address in network order to a host ordered
    SCM integer.  */
-static SCM ipv6_net_to_num (const scm_t_uint8 *src)
+static SCM
+scm_from_ipv6 (const scm_t_uint8 *src)
 {
   int i = 0;
   const scm_t_uint8 *ptr = src;
@@ -346,12 +335,14 @@ static SCM ipv6_net_to_num (const scm_t_uint8 *src)
 
 /* convert a host ordered SCM integer to a 128 bit IPv6 address in
    network order.  */
-static void ipv6_num_to_net (SCM src, scm_t_uint8 *dst)
+static void
+scm_to_ipv6 (scm_t_uint8 dst[16], SCM src)
 {
-  /* This code presumes that src has already been checked for range. */
   if (SCM_INUMP (src))
     {
       scm_t_signed_bits n = SCM_INUM (src);
+      if (n < 0)
+	scm_out_of_range (NULL, src);
 #ifdef WORDS_BIGENDIAN
       memset (dst, 0, 16 - sizeof (scm_t_signed_bits));
       memcpy (dst + (16 - sizeof (scm_t_signed_bits)),
@@ -367,10 +358,14 @@ static void ipv6_num_to_net (SCM src, scm_t_uint8 *dst)
       FLIP_NET_HOST_128 (dst);
 #endif
     }
-  else
+  else if (SCM_BIGP (src))
     {
-      /* Presumes src has already been checked for fit -- see above. */
       size_t count;
+      
+      if ((mpz_sgn (SCM_I_BIG_MPZ (src)) < 0)
+	  || mpz_sizeinbase (SCM_I_BIG_MPZ (src), 2) > 128)
+	scm_out_of_range (NULL, src);
+      
       memset (dst, 0, 16);
       mpz_export (dst,
                   &count,
@@ -381,36 +376,9 @@ static void ipv6_num_to_net (SCM src, scm_t_uint8 *dst)
                   SCM_I_BIG_MPZ (src));
       scm_remember_upto_here_1 (src);
     }
-}
-
-static int
-bignum_in_ipv6_range_p (SCM address)
-{
-  int result;
-  int sgn = mpz_sgn (SCM_I_BIG_MPZ (address));
-  
-  if (sgn < 0)
-    result = 0;
   else
-    {
-      int size = mpz_sizeinbase (SCM_I_BIG_MPZ (address), 2);
-      if (size > 128) result = 0;
-      else result = 1;
-    }
-  scm_remember_upto_here_1 (address);
-  return result;
+    scm_wrong_type_arg (NULL, 0, src);
 }
-
-/* check that an SCM variable contains an IPv6 integer address.  */
-#define VALIDATE_INET6(which_arg, address)\
-   if (SCM_INUMP (address))\
-      SCM_ASSERT_RANGE (which_arg, address, SCM_INUM (address) >= 0);\
-   else\
-   {\
-      SCM_VALIDATE_BIGINT (which_arg, address);\
-      SCM_ASSERT_RANGE (which_arg, address,    \
-                        bignum_in_ipv6_range_p (address));      \
-   }
 
 #ifdef HAVE_INET_PTON
 SCM_DEFINE (scm_inet_pton, "inet-pton", 2, 0, 0,
@@ -431,7 +399,7 @@ SCM_DEFINE (scm_inet_pton, "inet-pton", 2, 0, 0,
   char dst[16];
   int rv;
 
-  SCM_VALIDATE_INUM_COPY (1, family, af);
+  af = scm_to_int (family);
   SCM_ASSERT_RANGE (1, family, af == AF_INET || af == AF_INET6);
   SCM_VALIDATE_STRING_COPY (2, address, src);
   rv = inet_pton (af, src, dst);
@@ -442,7 +410,7 @@ SCM_DEFINE (scm_inet_pton, "inet-pton", 2, 0, 0,
   if (af == AF_INET)
     return scm_ulong2num (ntohl (*(scm_t_uint32 *) dst));
   else
-    return ipv6_net_to_num ((char *) dst);
+    return scm_from_ipv6 ((char *) dst);
 }
 #undef FUNC_NAME
 #endif
@@ -469,15 +437,12 @@ SCM_DEFINE (scm_inet_ntop, "inet-ntop", 2, 0, 0,
 #endif
   char addr6[16];
 
-  SCM_VALIDATE_INUM_COPY (1, family, af);
+  af = scm_to_int (family);
   SCM_ASSERT_RANGE (1, family, af == AF_INET || af == AF_INET6);
   if (af == AF_INET)
     *(scm_t_uint32 *) addr6 = htonl (SCM_NUM2ULONG (2, address));
   else
-    {
-      VALIDATE_INET6 (2, address);
-      ipv6_num_to_net (address, addr6);
-    }
+    scm_to_ipv6 (addr6, address);
   if (inet_ntop (af, &addr6, dst, sizeof dst) == NULL)
     SCM_SYSERROR;
   return scm_makfrom0str (dst);
@@ -508,10 +473,9 @@ SCM_DEFINE (scm_socket, "socket", 3, 0, 0,
 {
   int fd;
 
-  SCM_VALIDATE_INUM (1, family);
-  SCM_VALIDATE_INUM (2, style);
-  SCM_VALIDATE_INUM (3, proto);
-  fd = socket (SCM_INUM (family), SCM_INUM (style), SCM_INUM (proto));
+  fd = socket (scm_to_int (family),
+	       scm_to_int (style),
+	       scm_to_int (proto));
   if (fd == -1)
     SCM_SYSERROR;
   return SCM_SOCK_FD_TO_PORT (fd);
@@ -531,13 +495,9 @@ SCM_DEFINE (scm_socketpair, "socketpair", 3, 0, 0,
   int fam;
   int fd[2];
 
-  SCM_VALIDATE_INUM (1, family);
-  SCM_VALIDATE_INUM (2, style);
-  SCM_VALIDATE_INUM (3, proto);
+  fam = scm_to_int (family);
 
-  fam = SCM_INUM (family);
-
-  if (socketpair (fam, SCM_INUM (style), SCM_INUM (proto), fd) == -1)
+  if (socketpair (fam, scm_to_int (style), scm_to_int (proto), fd) == -1)
     SCM_SYSERROR;
 
   return scm_cons (SCM_SOCK_FD_TO_PORT (fd[0]), SCM_SOCK_FD_TO_PORT (fd[1]));
@@ -571,8 +531,8 @@ SCM_DEFINE (scm_getsockopt, "getsockopt", 3, 0, 0,
 
   sock = SCM_COERCE_OUTPORT (sock);
   SCM_VALIDATE_OPFPORT (1, sock);
-  SCM_VALIDATE_INUM_COPY (2, level, ilevel);
-  SCM_VALIDATE_INUM_COPY (3, optname, ioptname);
+  ilevel = scm_to_int (level);
+  ioptname = scm_to_int (optname);
 
   fd = SCM_FPORT_FDES (sock);
   if (getsockopt (fd, ilevel, ioptname, (void *) optval, &optlen) == -1)
@@ -590,7 +550,7 @@ SCM_DEFINE (scm_getsockopt, "getsockopt", 3, 0, 0,
 			   scm_long2num (ling->l_linger));
 #else
 	  return scm_cons (scm_long2num (*(int *) optval),
-			   SCM_I_MAKINUM (0));
+			   scm_from_int (0));
 #endif
 	}
       else
@@ -638,8 +598,8 @@ SCM_DEFINE (scm_setsockopt, "setsockopt", 4, 0, 0,
   sock = SCM_COERCE_OUTPORT (sock);
 
   SCM_VALIDATE_OPFPORT (1, sock);
-  SCM_VALIDATE_INUM_COPY (2, level, ilevel);
-  SCM_VALIDATE_INUM_COPY (3, optname, ioptname);
+  ilevel = scm_to_int (level);
+  ioptname = scm_to_int (optname);
 
   fd = SCM_FPORT_FDES (sock);
 
@@ -732,10 +692,8 @@ SCM_DEFINE (scm_shutdown, "shutdown", 2, 0, 0,
   int fd;
   sock = SCM_COERCE_OUTPORT (sock);
   SCM_VALIDATE_OPFPORT (1, sock);
-  SCM_VALIDATE_INUM (2, how);
-  SCM_ASSERT_RANGE(2, how,0 <= SCM_INUM (how) && 2 >= SCM_INUM (how));
   fd = SCM_FPORT_FDES (sock);
-  if (shutdown (fd, SCM_INUM (how)) == -1)
+  if (shutdown (fd, scm_to_signed_integer (how, 0, 2)) == -1)
     SCM_SYSERROR;
   return SCM_UNSPECIFIED;
 }
@@ -763,7 +721,7 @@ scm_fill_sockaddr (int fam, SCM address, SCM *args, int which_arg,
 
 	SCM_VALIDATE_ULONG_COPY (which_arg, address, addr);
 	SCM_VALIDATE_CONS (which_arg + 1, *args);
-	SCM_VALIDATE_INUM_COPY (which_arg + 1, SCM_CAR (*args), port);
+	port = scm_to_int (SCM_CAR (*args));
 	*args = SCM_CDR (*args);
 	soka = (struct sockaddr_in *) scm_malloc (sizeof (struct sockaddr_in));
 	if (!soka)
@@ -788,9 +746,8 @@ scm_fill_sockaddr (int fam, SCM address, SCM *args, int which_arg,
 	unsigned long flowinfo = 0;
 	unsigned long scope_id = 0;
 
-	VALIDATE_INET6 (which_arg, address);
 	SCM_VALIDATE_CONS (which_arg + 1, *args);
-	SCM_VALIDATE_INUM_COPY (which_arg + 1, SCM_CAR (*args), port);
+	port = scm_to_int (SCM_CAR (*args));
 	*args = SCM_CDR (*args);
 	if (SCM_CONSP (*args))
 	  {
@@ -810,7 +767,7 @@ scm_fill_sockaddr (int fam, SCM address, SCM *args, int which_arg,
 	soka->sin6_len = sizeof (struct sockaddr_in6);
 #endif
 	soka->sin6_family = AF_INET6;
-	ipv6_num_to_net (address, soka->sin6_addr.s6_addr);
+	scm_to_ipv6 (soka->sin6_addr.s6_addr, address);
 	soka->sin6_port = htons (port);
 	soka->sin6_flowinfo = flowinfo;
 #ifdef HAVE_SIN6_SCOPE_ID
@@ -879,9 +836,8 @@ SCM_DEFINE (scm_connect, "connect", 3, 0, 1,
 
   sock = SCM_COERCE_OUTPORT (sock);
   SCM_VALIDATE_OPFPORT (1, sock);
-  SCM_VALIDATE_INUM (2, fam);
   fd = SCM_FPORT_FDES (sock);
-  soka = scm_fill_sockaddr (SCM_INUM (fam), address, &args, 3, FUNC_NAME,
+  soka = scm_fill_sockaddr (scm_to_int (fam), address, &args, 3, FUNC_NAME,
 			    &size);
   if (connect (fd, soka, size) == -1)
     {
@@ -939,8 +895,7 @@ SCM_DEFINE (scm_bind, "bind", 3, 0, 1,
 
   sock = SCM_COERCE_OUTPORT (sock);
   SCM_VALIDATE_OPFPORT (1, sock);
-  SCM_VALIDATE_INUM (2, fam);
-  soka = scm_fill_sockaddr (SCM_INUM (fam), address, &args, 3, FUNC_NAME,
+  soka = scm_fill_sockaddr (scm_to_int (fam), address, &args, 3, FUNC_NAME,
 			    &size);
   fd = SCM_FPORT_FDES (sock);
   if (bind (fd, soka, size) == -1)
@@ -970,9 +925,8 @@ SCM_DEFINE (scm_listen, "listen", 2, 0, 0,
   int fd;
   sock = SCM_COERCE_OUTPORT (sock);
   SCM_VALIDATE_OPFPORT (1, sock);
-  SCM_VALIDATE_INUM (2, backlog);
   fd = SCM_FPORT_FDES (sock);
-  if (listen (fd, SCM_INUM (backlog)) == -1)
+  if (listen (fd, scm_to_int (backlog)) == -1)
     SCM_SYSERROR;
   return SCM_UNSPECIFIED;
 }
@@ -1007,7 +961,7 @@ scm_addr_vector (const struct sockaddr *address, int addr_size,
 
 	result = scm_c_make_vector (5, SCM_UNSPECIFIED);
 	SCM_VECTOR_SET(result, 0, scm_ulong2num ((unsigned long) fam));
-	SCM_VECTOR_SET(result, 1, ipv6_net_to_num (nad->sin6_addr.s6_addr));
+	SCM_VECTOR_SET(result, 1, scm_from_ipv6 (nad->sin6_addr.s6_addr));
 	SCM_VECTOR_SET(result, 2, scm_ulong2num ((unsigned long) ntohs (nad->sin6_port)));
 	SCM_VECTOR_SET(result, 3, scm_ulong2num ((unsigned long) nad->sin6_flowinfo));
 #ifdef HAVE_SIN6_SCOPE_ID
@@ -1168,14 +1122,17 @@ SCM_DEFINE (scm_recv, "recv!", 2, 1, 0,
 
   SCM_VALIDATE_OPFPORT (1, sock);
   SCM_VALIDATE_STRING (2, buf);
-  SCM_VALIDATE_INUM_DEF_COPY (3, flags,0, flg);
+  if (SCM_UNBNDP (flags))
+    flg = 0;
+  else
+    flg = scm_to_int (flags);
   fd = SCM_FPORT_FDES (sock);
 
   SCM_SYSCALL (rv = recv (fd, SCM_STRING_CHARS (buf), SCM_STRING_LENGTH (buf), flg));
   if (rv == -1)
     SCM_SYSERROR;
 
-  return SCM_I_MAKINUM (rv);
+  return scm_from_int (rv);
 }
 #undef FUNC_NAME
 
@@ -1202,13 +1159,16 @@ SCM_DEFINE (scm_send, "send", 2, 1, 0,
   sock = SCM_COERCE_OUTPORT (sock);
   SCM_VALIDATE_OPFPORT (1, sock);
   SCM_VALIDATE_STRING (2, message);
-  SCM_VALIDATE_INUM_DEF_COPY (3, flags,0, flg);
+  if (SCM_UNBNDP (flags))
+    flg = 0;
+  else
+    flg = scm_to_int (flags);
   fd = SCM_FPORT_FDES (sock);
 
   SCM_SYSCALL (rv = send (fd, SCM_STRING_CHARS (message), SCM_STRING_LENGTH (message), flg));
   if (rv == -1)
     SCM_SYSERROR;
-  return SCM_I_MAKINUM (rv);
+  return scm_from_int (rv);
 }
 #undef FUNC_NAME
 
@@ -1302,9 +1262,8 @@ SCM_DEFINE (scm_sendto, "sendto", 4, 0, 1,
   sock = SCM_COERCE_OUTPORT (sock);
   SCM_VALIDATE_FPORT (1, sock);
   SCM_VALIDATE_STRING (2, message);
-  SCM_VALIDATE_INUM (3, fam);
   fd = SCM_FPORT_FDES (sock);
-  soka = scm_fill_sockaddr (SCM_INUM (fam), address, &args_and_flags, 4,
+  soka = scm_fill_sockaddr (scm_to_int (fam), address, &args_and_flags, 4,
 			    FUNC_NAME, &size);
   if (SCM_NULLP (args_and_flags))
     flg = 0;
