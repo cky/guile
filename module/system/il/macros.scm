@@ -50,21 +50,6 @@
      (let ((sym (make-sym)))
        `(@let ((,sym ,x)) (@if ,sym ,sym (@or ,@rest)))))))
 
-;; (@cond (TEST BODY...) ...) =>
-;;
-;;   (@if TEST
-;;        (@begin BODY...)
-;;        (@cond ...))
-(define (@cond . clauses)
-  (cond ((null? clauses) (error "missing clauses"))
-	((pair? (car clauses))
-	 (let ((c (car clauses)) (l (cdr clauses)))
-	   (let ((rest (if (null? l) '(@void) `(@cond ,@l))))
-	     (cond ((eq? (car c) '@else) `(@begin (@void) ,@(cdr c)))
-		   ((null? (cdr c)) `(@or ,(car c) ,rest))
-		   (else `(@if ,(car c) (@begin ,@(cdr c)) ,rest))))))
-	(else (error "bad clause:" (car clauses)))))
-
 (define (@let* binds . body)
   (if (null? binds)
       `(@begin ,@body)

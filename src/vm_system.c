@@ -347,6 +347,7 @@ VM_DEFINE_INSTRUCTION (call, "call", 1, -1, 1)
       NEXT;
     }
 
+  program = x;
   goto vm_error_wrong_type_apply;
 }
 
@@ -415,6 +416,7 @@ VM_DEFINE_INSTRUCTION (tail_call, "tail-call", 1, -1, 1)
   if (SCM_VM_CONT_P (x))
     goto vm_call_cc;
 
+  program = x;
   goto vm_error_wrong_type_apply;
 }
 

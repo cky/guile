@@ -93,6 +93,17 @@
 				  (@begin ,@(map translate body)
 					  (_loop ,@(map translate update)))))))
 		    (_loop ,@(map translate init))))))
+
+      ((eval-case)
+       `(@eval-case
+	 ,@(let loop ((x rest))
+	     (match x
+	       (() '(()))
+	       ((('else . body)) `((@else ,@(map translate body))))
+	       (((keys . body) . rest)
+		`((,keys ,@(map translate body)) ,@(loop rest)))
+	       (else (error "bad eval-case" x))))))
+
       (else
        (let ((e (expand x)))
 	 (if (eq? e x)

@@ -82,7 +82,7 @@
      (integer->char n))
     (('load-string s) s)
     (('load-symbol s) (string->symbol s))
-    (('load-keyword s) (symbol->keyword (string->symbol s)))
+    (('load-keyword s) (make-keyword-from-dash-symbol (string->symbol s)))
     (else #f)))
 
 (define (code->bytes code)

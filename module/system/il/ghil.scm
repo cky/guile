@@ -126,6 +126,9 @@
 (define-method (make-ghil-env (e <ghil-env>))
   (make <ghil-env> :mod e.mod :parent e))
 
+(define (ghil-env-toplevel? e)
+  (eq? e.mod e.parent))
+
 (define-method (ghil-env-ref (env <ghil-env>) (sym <symbol>))
   (assq-ref env.table sym))
 
@@ -266,6 +269,20 @@
 				(ghil-env-add! e v) v))
 			    syms)))
 	    (make-<ghil-lambda> e vars rest (parse-body body e)))))))
+
+    ;; (@eval-case CLAUSE...)
+    ((@eval-case)
+     (match args
+       ((clause . rest)
+	(match clause
+	  (() (make-<ghil-void>))
+	  (((key ...) . body)
+	   (cond ((and (ghil-env-toplevel? e) (memq 'load-toplevel key))
+		  (parse-body body e))
+		 (else
+		  (error "No match clause"))))
+	  (else
+	   (error "No match clause"))))))
 
     (else (error "Unknown primitive:" prim))))
 
