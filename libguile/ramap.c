@@ -539,7 +539,7 @@ scm_array_fill_int (SCM ra, SCM fill, SCM ignore)
     case scm_tc7_fvect:
       { /* scope */
 	float f, *ve = (float *) SCM_VELTS (ra);
-	SCM_ASRTGO (SCM_NIMP (fill) && SCM_REALP (fill), badarg2);
+	SCM_ASRTGO (SCM_REALP (fill), badarg2);
 	f = SCM_REALPART (fill);
 	for (i = base; n--; i += inc)
 	  ve[i] = f;
@@ -549,7 +549,7 @@ scm_array_fill_int (SCM ra, SCM fill, SCM ignore)
     case scm_tc7_dvect:
       { /* scope */
 	double f, *ve = (double *) SCM_VELTS (ra);
-	SCM_ASRTGO (SCM_NIMP (fill) && SCM_REALP (fill), badarg2);
+	SCM_ASRTGO (SCM_REALP (fill), badarg2);
 	f = SCM_REALPART (fill);
 	for (i = base; n--; i += inc)
 	  ve[i] = f;
@@ -559,7 +559,7 @@ scm_array_fill_int (SCM ra, SCM fill, SCM ignore)
       { /* scope */
 	double fr, fi;
 	double (*ve)[2] = (double (*)[2]) SCM_VELTS (ra);
-	SCM_ASRTGO (SCM_NIMP (fill) && SCM_INEXP (fill), badarg2);
+	SCM_ASRTGO (SCM_INEXP (fill), badarg2);
 	fr = SCM_REALPART (fill);
 	fi = (SCM_CPLXP (fill) ? SCM_IMAG (fill) : 0.0);
 	for (i = base; n--; i += inc)
@@ -1656,7 +1656,7 @@ unspecified.  The order of application is unspecified.")
 	      if (SCM_INUMP(fill))
 		  {
 		    prot = scm_array_prototype (ra0);
-		    if (SCM_NIMP (prot) && SCM_INEXP (prot))
+		    if (SCM_INEXP (prot))
 		      fill = scm_makdbl ((double) SCM_INUM (fill), 0.0);
 		  }
 
@@ -1665,18 +1665,18 @@ unspecified.  The order of application is unspecified.")
 	else
 	  {
 	    SCM tail, ra1 = SCM_CAR (lra);
-	    SCM v0 = (SCM_NIMP (ra0) && SCM_ARRAYP (ra0) ? SCM_ARRAY_V (ra0) : ra0);
+	    SCM v0 = (SCM_ARRAYP (ra0) ? SCM_ARRAY_V (ra0) : ra0);
 	    ra_iproc *p;
 	    /* Check to see if order might matter.
 	       This might be an argument for a separate
 	       SERIAL-ARRAY-MAP! */
-	    if (v0 == ra1 || (SCM_NIMP (ra1) && SCM_ARRAYP (ra1) && v0 == SCM_ARRAY_V (ra1)))
+	    if (v0 == ra1 || (SCM_ARRAYP (ra1) && v0 == SCM_ARRAY_V (ra1)))
 	      if (ra0 != ra1 || (SCM_ARRAYP(ra0) && !SCM_ARRAY_CONTP(ra0)))
 		goto gencase;
 	    for (tail = SCM_CDR (lra); SCM_NNULLP (tail); tail = SCM_CDR (tail))
 	      {
 		ra1 = SCM_CAR (tail);
-		if (v0 == ra1 || (SCM_NIMP (ra1) && SCM_ARRAYP (ra1) && v0 == SCM_ARRAY_V (ra1)))
+		if (v0 == ra1 || (SCM_ARRAYP (ra1) && v0 == SCM_ARRAY_V (ra1)))
 		  goto gencase;
 	      }
 	    for (p = ra_asubrs; p->name; p++)

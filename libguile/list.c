@@ -341,11 +341,11 @@ GUILE_PROC(scm_list_ref, "list-ref", 2, 0, 0,
   register long i;
   SCM_VALIDATE_INT_MIN_COPY(2,k,0,i);
   while (i-- > 0) {
-    SCM_ASRTGO(SCM_NIMP(lst) && SCM_CONSP(lst), erout);
+    SCM_ASRTGO(SCM_CONSP(lst), erout);
     lst = SCM_CDR(lst);
   }
  erout:	
-  SCM_ASSERT(SCM_NIMP(lst) && SCM_CONSP(lst),
+  SCM_ASSERT(SCM_CONSP(lst),
              SCM_NULLP(lst)?k:lst, SCM_NULLP(lst)?SCM_OUTOFRANGE:SCM_ARG1, FUNC_NAME);
   return SCM_CAR(lst);
 }
@@ -359,11 +359,11 @@ GUILE_PROC(scm_list_set_x, "list-set!", 3, 0, 0,
   register long i;
   SCM_VALIDATE_INT_MIN_COPY(2,k,0,i);
   while (i-- > 0) {
-    SCM_ASRTGO(SCM_NIMP(lst) && SCM_CONSP(lst), erout);
+    SCM_ASRTGO(SCM_CONSP(lst), erout);
     lst = SCM_CDR(lst);
   }
  erout:	
-  SCM_ASSERT(SCM_NIMP(lst) && SCM_CONSP(lst),
+  SCM_ASSERT(SCM_CONSP(lst),
              SCM_NULLP(lst)?k:lst, SCM_NULLP(lst)?SCM_OUTOFRANGE:SCM_ARG1, FUNC_NAME);
   SCM_SETCAR (lst, val);
   return val;
@@ -402,11 +402,11 @@ GUILE_PROC(scm_list_cdr_set_x, "list-cdr-set!", 3, 0, 0,
   register long i;
   SCM_VALIDATE_INT_MIN_COPY(2,k,0,i);
   while (i-- > 0) {
-    SCM_ASRTGO(SCM_NIMP(lst) && SCM_CONSP(lst), erout);
+    SCM_ASRTGO(SCM_CONSP(lst), erout);
     lst = SCM_CDR(lst);
   }
 erout:
-  SCM_ASSERT(SCM_NIMP(lst) && SCM_CONSP(lst),
+  SCM_ASSERT(SCM_CONSP(lst),
              SCM_NULLP(lst)?k:lst, SCM_NULLP(lst)?SCM_OUTOFRANGE:SCM_ARG1, FUNC_NAME);
   SCM_SETCDR (lst, val);
   return val;
@@ -455,7 +455,7 @@ GUILE_PROC (scm_list_copy, "list-copy", 1, 0, 0,
   fill_here = &newlst;
   from_here = lst;
 
-  while (SCM_NIMP (from_here) && SCM_CONSP (from_here))
+  while (SCM_CONSP (from_here))
     {
       SCM c;
       c = scm_cons (SCM_CAR (from_here), SCM_CDR (from_here));
@@ -480,7 +480,7 @@ not perform any type or error checking.  Their use is recommended only
 in writing Guile internals, not for high-level Scheme programs.")
 #define FUNC_NAME s_scm_sloppy_memq
 {
-  for(;  SCM_NIMP(lst) && SCM_CONSP (lst);  lst = SCM_CDR(lst))
+  for(;  SCM_CONSP (lst);  lst = SCM_CDR(lst))
     {
       if (SCM_CAR(lst)==x)
 	return lst;
@@ -495,7 +495,7 @@ GUILE_PROC (scm_sloppy_memv, "sloppy-memv", 2, 0, 0,
 "")
 #define FUNC_NAME s_scm_sloppy_memv
 {
-  for(;  SCM_NIMP(lst) && SCM_CONSP (lst);  lst = SCM_CDR(lst))
+  for(;  SCM_CONSP (lst);  lst = SCM_CDR(lst))
     {
       if (SCM_BOOL_F != scm_eqv_p (SCM_CAR(lst), x))
 	return lst;
@@ -510,7 +510,7 @@ GUILE_PROC (scm_sloppy_member, "sloppy-member", 2, 0, 0,
 "")
 #define FUNC_NAME s_scm_sloppy_member
 {
-  for(;  SCM_NIMP(lst) && SCM_CONSP (lst);  lst = SCM_CDR(lst))
+  for(;  SCM_CONSP (lst);  lst = SCM_CDR(lst))
     {
       if (SCM_BOOL_F != scm_equal_p (SCM_CAR(lst), x))
 	return lst;
@@ -580,7 +580,7 @@ destructive list functions, these functions cannot modify the binding of
   SCM *prev;
 
   for (prev = &lst, walk = lst;
-       SCM_NIMP (walk) && SCM_CONSP (walk);
+       SCM_CONSP (walk);
        walk = SCM_CDR (walk))
     {
       if (SCM_CAR (walk) == item)
@@ -603,7 +603,7 @@ GUILE_PROC(scm_delv_x, "delv!", 2, 0, 0,
   SCM *prev;
 
   for (prev = &lst, walk = lst;
-       SCM_NIMP (walk) && SCM_CONSP (walk);
+       SCM_CONSP (walk);
        walk = SCM_CDR (walk))
     {
       if (SCM_BOOL_F != scm_eqv_p (SCM_CAR (walk), item))
@@ -627,7 +627,7 @@ GUILE_PROC(scm_delete_x, "delete!", 2, 0, 0,
   SCM *prev;
 
   for (prev = &lst, walk = lst;
-       SCM_NIMP (walk) && SCM_CONSP (walk);
+       SCM_CONSP (walk);
        walk = SCM_CDR (walk))
     {
       if (SCM_BOOL_F != scm_equal_p (SCM_CAR (walk), item))
@@ -689,7 +689,7 @@ GUILE_PROC(scm_delq1_x, "delq1!", 2, 0, 0,
   SCM *prev;
 
   for (prev = &lst, walk = lst;
-       SCM_NIMP (walk) && SCM_CONSP (walk);
+       SCM_CONSP (walk);
        walk = SCM_CDR (walk))
     {
       if (SCM_CAR (walk) == item)
@@ -715,7 +715,7 @@ GUILE_PROC(scm_delv1_x, "delv1!", 2, 0, 0,
   SCM *prev;
 
   for (prev = &lst, walk = lst;
-       SCM_NIMP (walk) && SCM_CONSP (walk);
+       SCM_CONSP (walk);
        walk = SCM_CDR (walk))
     {
       if (SCM_BOOL_F != scm_eqv_p (SCM_CAR (walk), item))
@@ -741,7 +741,7 @@ GUILE_PROC(scm_delete1_x, "delete1!", 2, 0, 0,
   SCM *prev;
 
   for (prev = &lst, walk = lst;
-       SCM_NIMP (walk) && SCM_CONSP (walk);
+       SCM_CONSP (walk);
        walk = SCM_CDR (walk))
     {
       if (SCM_BOOL_F != scm_equal_p (SCM_CAR (walk), item))

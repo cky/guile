@@ -694,7 +694,7 @@ scm_m_lambda (SCM xorig, SCM env)
 	  else
 	    goto memlambda;
 	}
-      if (!(SCM_NIMP (SCM_CAR (proc)) && SCM_SYMBOLP (SCM_CAR (proc))))
+      if (!SCM_SYMBOLP (SCM_CAR (proc)))
 	goto badforms;
       proc = SCM_CDR (proc);
     }
@@ -725,8 +725,7 @@ scm_m_letstar (SCM xorig, SCM env)
     {
       arg1 = SCM_CAR (proc);
       SCM_ASSYNT (2 == scm_ilength (arg1), xorig, scm_s_bindings, s_letstar);
-      SCM_ASSYNT (SCM_NIMP (SCM_CAR (arg1)) && SCM_SYMBOLP (SCM_CAR (arg1)),
-		  xorig, scm_s_variable, s_letstar);
+      SCM_ASSYNT (SCM_SYMBOLP (SCM_CAR (arg1)), xorig, scm_s_variable, s_letstar);
       *varloc = scm_cons2 (SCM_CAR (arg1), SCM_CAR (SCM_CDR (arg1)), SCM_EOL);
       varloc = SCM_CDRLOC (SCM_CDR (*varloc));
       proc = SCM_CDR (proc);
@@ -769,8 +768,7 @@ scm_m_do (SCM xorig, SCM env)
       arg1 = SCM_CAR (proc);
       len = scm_ilength (arg1);
       SCM_ASSYNT (2 == len || 3 == len, xorig, scm_s_bindings, "do");
-      SCM_ASSYNT (SCM_NIMP (SCM_CAR (arg1)) && SCM_SYMBOLP (SCM_CAR (arg1)),
-		  xorig, scm_s_variable, "do");
+      SCM_ASSYNT (SCM_SYMBOLP (SCM_CAR (arg1)), xorig, scm_s_variable, "do");
       /* vars reversed here, inits and steps reversed at evaluation */
       vars = scm_cons (SCM_CAR (arg1), vars);	/* variable */
       arg1 = SCM_CDR (arg1);
@@ -838,8 +836,8 @@ iqq (SCM form,SCM env,int depth)
       --depth;
     label:
       form = SCM_CDR (form);
-      SCM_ASSERT (SCM_NIMP (form) && SCM_ECONSP (form) && SCM_NULLP (SCM_CDR (form)),
-	      form, SCM_ARG1, s_quasiquote);
+      SCM_ASSERT (SCM_ECONSP (form) && SCM_NULLP (SCM_CDR (form)),
+                  form, SCM_ARG1, s_quasiquote);
       if (0 == depth)
 	return evalcar (form, env);
       return scm_cons2 (tmp, iqq (SCM_CAR (form), env, depth), SCM_EOL);
@@ -878,12 +876,12 @@ scm_m_define (SCM x, SCM env)
   SCM_ASSYNT (scm_ilength (x) >= 2, arg1, scm_s_expression, s_define);
   proc = SCM_CAR (x);
   x = SCM_CDR (x);
-  while (SCM_NIMP (proc) && SCM_CONSP (proc))
+  while (SCM_CONSP (proc))
     {				/* nested define syntax */
       x = scm_cons (scm_cons2 (scm_sym_lambda, SCM_CDR (proc), x), SCM_EOL);
       proc = SCM_CAR (proc);
     }
-  SCM_ASSYNT (SCM_NIMP (proc) && SCM_SYMBOLP (proc),
+  SCM_ASSYNT (SCM_SYMBOLP (proc),
 	      arg1, scm_s_variable, s_define);
   SCM_ASSYNT (1 == scm_ilength (x), arg1, scm_s_expression, s_define);
   if (SCM_TOP_LEVEL (env))
@@ -944,7 +942,7 @@ scm_m_letrec1 (SCM op, SCM imm, SCM xorig, SCM env)
       /* vars scm_list reversed here, inits reversed at evaluation */
       arg1 = SCM_CAR (proc);
       ASRTSYNTAX (2 == scm_ilength (arg1), scm_s_bindings);
-      ASRTSYNTAX (SCM_NIMP (SCM_CAR (arg1)) && SCM_SYMBOLP (SCM_CAR (arg1)),
+      ASRTSYNTAX (SCM_SYMBOLP (SCM_CAR (arg1)),
 		  scm_s_variable);
       vars = scm_cons (SCM_CAR (arg1), vars);
       *initloc = scm_cons (SCM_CAR (SCM_CDR (arg1)), SCM_EOL);
@@ -988,8 +986,7 @@ scm_m_let (SCM xorig, SCM env)
   SCM_ASSYNT (scm_ilength (x) >= 2, xorig, scm_s_body, s_let);
   proc = SCM_CAR (x);
   if (SCM_NULLP (proc)
-      || (SCM_NIMP (proc) && SCM_CONSP (proc)
-	  && SCM_NIMP (SCM_CAR (proc))
+      || (SCM_CONSP (proc)
 	  && SCM_CONSP (SCM_CAR (proc)) && SCM_NULLP (SCM_CDR (proc))))
     {
       /* null or single binding, let* is faster */
@@ -1018,7 +1015,7 @@ scm_m_let (SCM xorig, SCM env)
     {				/* vars and inits both in order */
       arg1 = SCM_CAR (proc);
       SCM_ASSYNT (2 == scm_ilength (arg1), xorig, scm_s_bindings, s_let);
-      SCM_ASSYNT (SCM_NIMP (SCM_CAR (arg1)) && SCM_SYMBOLP (SCM_CAR (arg1)),
+      SCM_ASSYNT (SCM_SYMBOLP (SCM_CAR (arg1)),
 		  xorig, scm_s_variable, s_let);
       *varloc = scm_cons (SCM_CAR (arg1), SCM_EOL);
       varloc = SCM_CDRLOC (*varloc);
@@ -1136,7 +1133,7 @@ scm_m_atfop (SCM xorig, SCM env)
   SCM x = SCM_CDR (xorig), vcell;
   SCM_ASSYNT (scm_ilength (x) >= 1, xorig, scm_s_expression, "@fop");
   vcell = scm_symbol_fref (SCM_CAR (x));
-  SCM_ASSYNT (SCM_NIMP (vcell) && SCM_CONSP (vcell), x,
+  SCM_ASSYNT (SCM_CONSP (vcell), x,
 	      "Symbol's function definition is void", NULL);
   SCM_SETCAR (x, vcell + 1);
   return x;
@@ -2766,7 +2763,7 @@ evapply:
 	    char *chrs = SCM_CHARS (proc) + SCM_LENGTH (proc) - 1;
 	    while ('c' != *--chrs)
 	      {
-		SCM_ASSERT (SCM_NIMP (t.arg1) && SCM_CONSP (t.arg1),
+		SCM_ASSERT (SCM_CONSP (t.arg1),
 			    t.arg1, SCM_ARG1, SCM_CHARS (proc));
 		t.arg1 = ('a' == *chrs) ? SCM_CAR (t.arg1) : SCM_CDR (t.arg1);
 	      }
@@ -3288,7 +3285,7 @@ SCM_APPLY (SCM proc, SCM arg1, SCM args)
     }
   else
     {
-      /* SCM_ASRTGO(SCM_NIMP(args) && SCM_CONSP(args), wrongnumargs); */
+      /* SCM_ASRTGO(SCM_CONSP(args), wrongnumargs); */
       args = scm_nconc2last (args);
 #ifdef DEVAL
       debug.vect[0].a.args = scm_cons (arg1, args);
@@ -3359,7 +3356,7 @@ tail:
 	char *chrs = SCM_CHARS (proc) + SCM_LENGTH (proc) - 1;
 	while ('c' != *--chrs)
 	  {
-	    SCM_ASSERT (SCM_NIMP (arg1) && SCM_CONSP (arg1),
+	    SCM_ASSERT (SCM_CONSP (arg1),
 		    arg1, SCM_ARG1, SCM_CHARS (proc));
 	    arg1 = ('a' == *chrs) ? SCM_CAR (arg1) : SCM_CDR (arg1);
 	  }
@@ -3374,7 +3371,7 @@ tail:
       RETURN (SCM_SUBRF (proc) (SCM_UNBNDP (arg1) ? SCM_EOL : scm_cons (arg1, args)))
 #endif
     case scm_tc7_lsubr_2:
-      SCM_ASRTGO (SCM_NIMP (args) && SCM_CONSP (args), wrongnumargs);
+      SCM_ASRTGO (SCM_CONSP (args), wrongnumargs);
       RETURN (SCM_SUBRF (proc) (arg1, SCM_CAR (args), SCM_CDR (args)))
     case scm_tc7_asubr:
       if (SCM_NULLP (args))

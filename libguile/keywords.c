@@ -113,7 +113,7 @@ GUILE_PROC(scm_keyword_p, "keyword?", 1, 0, 0,
 it returns @code{#f} otherwise.")
 #define FUNC_NAME s_scm_keyword_p
 {
-  return SCM_BOOL(SCM_NIMP(obj) && SCM_KEYWORDP (obj));
+  return SCM_BOOL(SCM_KEYWORDP (obj));
 }
 #undef FUNC_NAME
 

@@ -64,6 +64,7 @@
 #include "throw.h"
 #include "fluids.h"
 
+#include "scm_validate.h"
 #include "backtrace.h"
 
 /* {Error reporting and backtraces}
@@ -84,10 +85,10 @@ SCM scm_the_last_stack_fluid;
 static void
 display_header (SCM source, SCM port)
 {
-  SCM fname = (SCM_NIMP (source) && SCM_MEMOIZEDP (source)
+  SCM fname = (SCM_MEMOIZEDP (source)
 	       ? scm_source_property (source, scm_sym_filename)
 	       : SCM_BOOL_F);
-  if (SCM_NIMP (fname) && SCM_STRINGP (fname))
+  if (SCM_STRINGP (fname))
     {
       scm_prin1 (fname, port, 0);
       scm_putc (':', port);
@@ -154,7 +155,7 @@ display_expression (SCM frame,SCM pname,SCM source,SCM port)
   pstate->fancyp = 1;
   pstate->level = 2;
   pstate->length = 3;
-  if (SCM_NIMP (pname) && SCM_ROSTRINGP (pname))
+  if (SCM_ROSTRINGP (pname))
     {
       if (SCM_NIMP (frame)
 	  && SCM_FRAMEP (frame)
@@ -163,7 +164,7 @@ display_expression (SCM frame,SCM pname,SCM source,SCM port)
       else
 	scm_puts ("In procedure ", port);
       scm_iprin1 (pname, port, pstate);
-      if (SCM_NIMP (source) && SCM_MEMOIZEDP (source))
+      if (SCM_MEMOIZEDP (source))
 	{
 	  scm_puts (" in expression ", port);
 	  pstate->writingp = 1;
@@ -205,17 +206,16 @@ display_error_body (struct display_error_args *a)
       current_frame = scm_stack_ref (a->stack, SCM_INUM0);
       source = SCM_FRAME_SOURCE (current_frame);
       prev_frame = SCM_FRAME_PREV (current_frame);
-      if (!(SCM_NIMP (source) && SCM_MEMOIZEDP (source))
+      if (!SCM_MEMOIZEDP (source)
 	  && prev_frame != SCM_BOOL_F)
 	source = SCM_FRAME_SOURCE (prev_frame);
       if (SCM_FRAME_PROC_P (current_frame)
 	  && scm_procedure_p (SCM_FRAME_PROC (current_frame)) == SCM_BOOL_T)
 	pname = scm_procedure_name (SCM_FRAME_PROC (current_frame));
     }
-  if (!(SCM_NIMP (pname) && SCM_ROSTRINGP (pname)))
+  if (!SCM_ROSTRINGP (pname))
     pname = a->subr;
-  if ((SCM_NIMP (pname) && SCM_ROSTRINGP (pname))
-      || (SCM_NIMP (source) && SCM_MEMOIZEDP (source)))
+  if (SCM_ROSTRINGP (pname) || SCM_MEMOIZEDP (source))
     {
       display_header (source, a->port);
       display_expression (current_frame, pname, source, a->port);
@@ -338,7 +338,7 @@ display_frame_expr (char *hdr,SCM exp,char *tlr,int indentation,SCM sport,SCM po
     {
       pstate->length = print_params[i].length;
       ptob->seek (sport, 0, SEEK_SET);
-      if (SCM_NIMP (exp) && SCM_CONSP (exp))
+      if (SCM_CONSP (exp))
 	{
 	  pstate->level = print_params[i].level - 1;
 	  scm_iprlist (hdr, exp, tlr[0], sport, pstate);
@@ -392,17 +392,15 @@ GUILE_PROC(scm_display_application, "display-application", 1, 2, 0,
 "")
 #define FUNC_NAME s_scm_display_application
 {
-  SCM_ASSERT (SCM_NIMP (frame) && SCM_FRAMEP (frame),
-	      frame, SCM_ARG1, s_display_application);
+  SCM_VALIDATE_FRAME(1,frame);
   if (SCM_UNBNDP (port))
     port = scm_cur_outp;
   else
-    SCM_ASSERT (SCM_NIMP (port) && SCM_OPOUTPORTP (port),
-		port, SCM_ARG2, s_display_application);
+    SCM_VALIDATE_OPOUTPORT(2,port);
   if (SCM_UNBNDP (indent))
     indent = SCM_INUM0;
   else
-    SCM_ASSERT (SCM_INUMP (indent), indent, SCM_ARG3, s_display_application);
+    SCM_VALIDATE_INT(3,indent);
   
   if (SCM_FRAME_PROC_P (frame))
     /* Display an application. */
@@ -466,14 +464,14 @@ display_frame (SCM frame,int nfield,int indentation,SCM sport,SCM port,scm_print
     /* Display a special form. */
     {
       SCM source = SCM_FRAME_SOURCE (frame);
-      SCM copy = (SCM_NIMP (source) && SCM_CONSP (source) 
+      SCM copy = (SCM_CONSP (source) 
 		  ? scm_source_property (source, scm_sym_copy)
 		  : SCM_BOOL_F);
-      SCM umcopy = (SCM_NIMP (source) && SCM_MEMOIZEDP (source)
+      SCM umcopy = (SCM_MEMOIZEDP (source)
 		    ? scm_unmemoize (source)
 		    : SCM_BOOL_F);
       display_frame_expr ("(",
-			  SCM_NIMP (copy) && SCM_CONSP (copy) ? copy : umcopy,
+			  SCM_CONSP (copy) ? copy : umcopy,
 			  ")",
 			  nfield + 1 + indentation,
 			  sport,
@@ -509,11 +507,11 @@ display_backtrace_body(struct display_backtrace_args *a)
   a->port = SCM_COERCE_OUTPORT (a->port);
 
   /* Argument checking and extraction. */
-  SCM_ASSERT (SCM_NIMP (a->stack) && SCM_STACKP (a->stack),
+  SCM_ASSERT (SCM_STACKP (a->stack),
 	      a->stack,
 	      SCM_ARG1,
 	      s_display_backtrace);
-  SCM_ASSERT (SCM_NIMP (a->port) && SCM_OPOUTPORTP (a->port),
+  SCM_ASSERT (SCM_OPOUTPORTP (a->port),
 	      a->port,
 	      SCM_ARG2,
 	      s_display_backtrace);

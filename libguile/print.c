@@ -417,7 +417,7 @@ taloop:
 		env = SCM_ENV (exp);
 		scm_puts ("#<procedure", port);
 	      }
-	    if (SCM_NIMP (name) && SCM_ROSTRINGP (name))
+	    if (SCM_ROSTRINGP (name))
 	      {
 		scm_putc (' ', port);
 		scm_puts (SCM_ROCHARS (name), port);
@@ -708,7 +708,7 @@ scm_prin1 (SCM exp, SCM port, int writingp)
   /* If PORT is a print-state/port pair, use that.  Else create a new
      print-state. */
 
-  if (SCM_NIMP (port) && SCM_PORT_WITH_PS_P (port))
+  if (SCM_PORT_WITH_PS_P (port))
     {
       pstate_scm = SCM_PORT_WITH_PS_PS (port);
       port = SCM_PORT_WITH_PS_PORT (port);
@@ -794,7 +794,7 @@ scm_iprlist (char *hdr,SCM exp,int tlr,SCM port,scm_print_state *pstate)
      O(depth * N) instead of O(N^2). */
   hare = SCM_CDR (exp);
   tortoise = exp;
-  while (SCM_NIMP (hare) && SCM_ECONSP (hare))
+  while (SCM_ECONSP (hare))
     {
       if (hare == tortoise)
 	goto fancy_printing;

@@ -139,7 +139,7 @@ GUILE_PROC (scm_regexp_p, "regexp?", 1, 0, 0,
 @code{#f} otherwise.")
 #define FUNC_NAME s_scm_regexp_p
 {
-  return SCM_BOOL(SCM_NIMP (x) && SCM_RGXP (x));
+  return SCM_BOOL(SCM_RGXP (x));
 }
 #undef FUNC_NAME
 

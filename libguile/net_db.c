@@ -274,7 +274,7 @@ Unusual conditions may result in errors thrown to the
 	  return SCM_BOOL_F;
 	}
     }
-  else if (SCM_NIMP (name) && SCM_ROSTRINGP (name))
+  else if (SCM_ROSTRINGP (name))
     {
       SCM_COERCE_SUBSTR (name);
       entry = gethostbyname (SCM_ROCHARS (name));
@@ -348,7 +348,7 @@ given.")
 	    return SCM_BOOL_F;
 	}
     }
-  else if (SCM_NIMP (name) && SCM_ROSTRINGP (name))
+  else if (SCM_ROSTRINGP (name))
     {
       SCM_COERCE_SUBSTR (name);
       entry = getnetbyname (SCM_ROCHARS (name));
@@ -400,7 +400,7 @@ argument.  @code{getproto} will accept either type, behaving like
 	    return SCM_BOOL_F;
 	}
     }
-  else if (SCM_NIMP (name) && SCM_ROSTRINGP (name))
+  else if (SCM_ROSTRINGP (name))
     {
       SCM_COERCE_SUBSTR (name);
       entry = getprotobyname (SCM_ROCHARS (name));
@@ -468,7 +468,7 @@ as its first argument; if given no arguments, it behaves like
     }
   SCM_VALIDATE_ROSTRING(2,proto);
   SCM_COERCE_SUBSTR (proto);
-  if (SCM_NIMP (name) && SCM_ROSTRINGP (name))
+  if (SCM_ROSTRINGP (name))
     {
       SCM_COERCE_SUBSTR (name);
       entry = getservbyname (SCM_ROCHARS (name), SCM_ROCHARS (proto));

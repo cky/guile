@@ -104,7 +104,7 @@ gh_set_substr (char *src, SCM dst, int start, int len)
   unsigned long dst_len;
   unsigned long effective_length;
 
-  SCM_ASSERT (SCM_NIMP (dst) && SCM_STRINGP (dst), dst, SCM_ARG3,
+  SCM_ASSERT (SCM_STRINGP (dst), dst, SCM_ARG3,
 	      "gh_set_substr");
 
   dst_ptr = SCM_CHARS (dst);
@@ -366,7 +366,7 @@ gh_scm2longs (SCM obj, long *m)
       for (i = 0; i < n; ++i)
 	{
 	  val = SCM_VELTS (obj)[i];
-	  if (!SCM_INUMP (val) && !(SCM_NIMP (val) && SCM_BIGP (val)))
+	  if (!SCM_INUMP (val) && !SCM_BIGP (val))
 	    scm_wrong_type_arg (0, 0, obj);
 	}
       if (m == 0)
@@ -410,7 +410,7 @@ gh_scm2floats (SCM obj, float *m)
 	{
 	  val = SCM_VELTS (obj)[i];
 	  if (!SCM_INUMP (val)
-	      && !(SCM_NIMP (val) && (SCM_BIGP (val) || SCM_REALP (val))))
+	      && !(SCM_BIGP (val) || SCM_REALP (val)))
 	    scm_wrong_type_arg (0, 0, val);
 	}
       if (m == 0)
@@ -469,7 +469,7 @@ gh_scm2doubles (SCM obj, double *m)
 	{
 	  val = SCM_VELTS (obj)[i];
 	  if (!SCM_INUMP (val)
-	      && !(SCM_NIMP (val) && (SCM_BIGP (val) || SCM_REALP (val))))
+	      && !(SCM_BIGP (val) || SCM_REALP (val)))
 	    scm_wrong_type_arg (0, 0, val);
 	}
       if (m == 0)
@@ -530,7 +530,7 @@ gh_scm2newstr (SCM str, int *lenp)
   char *ret_str;
   int len;
 
-  SCM_ASSERT (SCM_NIMP (str) && SCM_ROSTRINGP (str), str, SCM_ARG3,
+  SCM_ASSERT (SCM_ROSTRINGP (str), str, SCM_ARG3,
 	      "gh_scm2newstr");
 
   /* protect str from GC while we copy off its data */
@@ -567,7 +567,7 @@ void
 gh_get_substr (SCM src, char *dst, int start, int len)
 {
   int src_len, effective_length;
-  SCM_ASSERT (SCM_NIMP (src) && SCM_ROSTRINGP (src), src, SCM_ARG3,
+  SCM_ASSERT (SCM_ROSTRINGP (src), src, SCM_ARG3,
 	      "gh_get_substr");
 
   scm_protect_object (src);
@@ -592,7 +592,7 @@ gh_symbol2newstr (SCM sym, int *lenp)
   char *ret_str;
   int len;
 
-  SCM_ASSERT (SCM_NIMP (sym) && SCM_SYMBOLP (sym), sym, SCM_ARG3,
+  SCM_ASSERT (SCM_SYMBOLP (sym), sym, SCM_ARG3,
 	      "gh_scm2newsymbol");
 
   /* protect str from GC while we copy off its data */

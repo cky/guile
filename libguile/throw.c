@@ -551,7 +551,7 @@ this call to @code{catch}.")
 {
   struct scm_body_thunk_data c;
 
-  SCM_ASSERT ((SCM_NIMP(tag) && SCM_SYMBOLP(tag)) || tag == SCM_BOOL_T,
+  SCM_ASSERT (SCM_SYMBOLP(tag) || tag == SCM_BOOL_T,
 	      tag, SCM_ARG1, FUNC_NAME);
 
   c.tag = tag;
@@ -576,8 +576,7 @@ GUILE_PROC(scm_lazy_catch, "lazy-catch", 3, 0, 0,
 {
   struct scm_body_thunk_data c;
 
-  SCM_ASSERT ((SCM_NIMP(tag) && SCM_SYMBOLP(tag))
-	      || (tag == SCM_BOOL_T),
+  SCM_ASSERT (SCM_SYMBOLP(tag) || (tag == SCM_BOOL_T),
 	      tag, SCM_ARG1, FUNC_NAME);
 
   c.tag = tag;
@@ -634,7 +633,7 @@ scm_ithrow (SCM key, SCM args, int noreturn)
 	abort ();
 
       dynpair = SCM_CAR (winds);
-      if (SCM_NIMP (dynpair) && SCM_CONSP (dynpair))
+      if (SCM_CONSP (dynpair))
 	{
 	  SCM this_key = SCM_CAR (dynpair);
 

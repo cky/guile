@@ -119,7 +119,7 @@ scm_make_root (SCM parent)
 
   root_state = (scm_root_state *) scm_must_malloc (sizeof (scm_root_state),
 						   "scm_make_root");
-  if (SCM_NIMP (parent) && SCM_ROOTP (parent))
+  if (SCM_ROOTP (parent))
     {
       memcpy (root_state, SCM_ROOT_STATE (parent), sizeof (scm_root_state));
       scm_copy_fluids (root_state);

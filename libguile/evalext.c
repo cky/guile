@@ -59,9 +59,9 @@ scm_m_generalized_set_x (SCM xorig, SCM env)
 {
   SCM x = SCM_CDR (xorig);
   SCM_ASSYNT (2 == scm_ilength (x), xorig, scm_s_expression, scm_s_set_x);
-  if (SCM_NIMP (SCM_CAR (x)) && SCM_SYMBOLP (SCM_CAR (x)))
+  if (SCM_SYMBOLP (SCM_CAR (x)))
     return scm_cons (SCM_IM_SET_X, x);
-  else if (SCM_NIMP (SCM_CAR (x)) && SCM_CONSP (SCM_CAR (x)))
+  else if (SCM_CONSP (SCM_CAR (x)))
     return scm_cons (SCM_LIST2 (scm_sym_setter, SCM_CAAR (x)),
 		     scm_append (SCM_LIST2 (SCM_CDAR (x), SCM_CDR (x))));
   return scm_wta (xorig, scm_s_variable, scm_s_set_x);
@@ -90,7 +90,7 @@ GUILE_PROC (scm_definedp, "defined?", 1, 1, 0,
 	  b = SCM_CAR (frames);
 	  if (SCM_NFALSEP (scm_procedure_p (b)))
 	    break;
-	  SCM_ASSERT (SCM_NIMP (b) && SCM_CONSP (b),
+	  SCM_ASSERT (SCM_CONSP (b),
 		      env, SCM_ARG2, FUNC_NAME);
 	  for (b = SCM_CAR (b); SCM_NIMP (b); b = SCM_CDR (b))
 	    {
@@ -125,10 +125,10 @@ scm_m_undefine (SCM x, SCM env)
   SCM arg1 = x;
   x = SCM_CDR (x);
   SCM_ASSYNT (SCM_TOP_LEVEL (env), arg1, "bad placement ", s_undefine);
-  SCM_ASSYNT (SCM_NIMP (x) && SCM_CONSP (x) && SCM_CDR (x) == SCM_EOL,
+  SCM_ASSYNT (SCM_CONSP (x) && SCM_CDR (x) == SCM_EOL,
 	      arg1, scm_s_expression, s_undefine);
   x = SCM_CAR (x);
-  SCM_ASSYNT (SCM_NIMP (x) && SCM_SYMBOLP (x), arg1, scm_s_variable, s_undefine);
+  SCM_ASSYNT (SCM_SYMBOLP (x), arg1, scm_s_variable, s_undefine);
   arg1 = scm_sym2vcell (x, scm_env_top_level (env), SCM_BOOL_F);
   SCM_ASSYNT (SCM_NFALSEP (arg1) && !SCM_UNBNDP (SCM_CDR (arg1)),
 	      x, "variable already unbound ", s_undefine);

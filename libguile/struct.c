@@ -245,7 +245,7 @@ GUILE_PROC (scm_struct_p, "struct?", 1, 0, 0,
 "Return #t iff @var{obj} is a structure object, else #f.")
 #define FUNC_NAME s_scm_struct_p
 {
-  return SCM_BOOL(SCM_NIMP (x) && SCM_STRUCTP (x));
+  return SCM_BOOL(SCM_STRUCTP (x));
 }
 #undef FUNC_NAME
 

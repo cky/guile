@@ -61,7 +61,7 @@ scm_hash_fn_get_handle (SCM table,SCM obj,unsigned int (*hash_fn)(),SCM (*assoc_
   unsigned int k;
   SCM h;
 
-  SCM_ASSERT (SCM_NIMP (table) && SCM_VECTORP (table), table, SCM_ARG1, "hash_fn_get_handle");
+  SCM_ASSERT (SCM_VECTORP (table), table, SCM_ARG1, "hash_fn_get_handle");
   if (SCM_LENGTH (table) == 0)
     return SCM_EOL;
   k = hash_fn (obj, SCM_LENGTH (table), closure);
@@ -82,7 +82,7 @@ scm_hash_fn_create_handle_x (SCM table,SCM obj,SCM init,unsigned int (*hash_fn)(
   unsigned int k;
   SCM it;
 
-  SCM_ASSERT (SCM_NIMP (table) && SCM_VECTORP (table), table, SCM_ARG1, "hash_fn_create_handle_x");
+  SCM_ASSERT (SCM_VECTORP (table), table, SCM_ARG1, "hash_fn_create_handle_x");
   if (SCM_LENGTH (table) == 0)
     return SCM_EOL;
   k = hash_fn (obj, SCM_LENGTH (table), closure);
@@ -148,7 +148,7 @@ scm_hash_fn_remove_x (SCM table,SCM obj,unsigned int (*hash_fn)(),SCM (*assoc_fn
   unsigned int k;
   SCM h;
 
-  SCM_ASSERT (SCM_NIMP (table) && SCM_VECTORP (table), table, SCM_ARG1, "hash_fn_remove_x");
+  SCM_ASSERT (SCM_VECTORP (table), table, SCM_ARG1, "hash_fn_remove_x");
   if (SCM_LENGTH (table) == 0)
     return SCM_EOL;
   k = hash_fn (obj, SCM_LENGTH (table), closure);
@@ -510,10 +510,10 @@ scm_internal_hash_fold (SCM (*fn) (), void *closure, SCM init, SCM table)
       SCM ls = SCM_VELTS (table)[i], handle;
       while (SCM_NNULLP (ls))
 	{
-	  SCM_ASSERT (SCM_NIMP (ls) && SCM_CONSP (ls),
+	  SCM_ASSERT (SCM_CONSP (ls),
 		      table, SCM_ARG1, s_scm_hash_fold);
 	  handle = SCM_CAR (ls);
-	  SCM_ASSERT (SCM_NIMP (handle) && SCM_CONSP (handle),
+	  SCM_ASSERT (SCM_CONSP (handle),
 		      table, SCM_ARG1, s_scm_hash_fold);
 	  result = fn (closure, SCM_CAR (handle), SCM_CDR (handle), result);
 	  ls = SCM_CDR (ls);

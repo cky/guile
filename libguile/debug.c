@@ -166,7 +166,7 @@ GUILE_PROC (scm_memoized_p, "memoized?", 1, 0, 0,
 "")
 #define FUNC_NAME s_scm_memoized_p
 {
-  return SCM_BOOL(SCM_NIMP (obj) && SCM_MEMOIZEDP (obj));
+  return SCM_BOOL(SCM_MEMOIZEDP (obj));
 }
 #undef FUNC_NAME
 
@@ -256,7 +256,7 @@ GUILE_PROC (scm_make_gloc, "make-gloc", 1, 1, 0,
 #define FUNC_NAME s_scm_make_gloc
 {
 #if 1 /* Unsafe */
-  if (SCM_NIMP (var) && SCM_CONSP (var))
+  if (SCM_CONSP (var))
     var = scm_cons (SCM_BOOL_F, var);
   else
 #endif
@@ -308,7 +308,7 @@ GUILE_PROC (scm_memcons, "memcons", 2, 1, 0,
 "")
 #define FUNC_NAME s_scm_memcons
 {
-  if (SCM_NIMP (car) && SCM_MEMOIZEDP (car))
+  if (SCM_MEMOIZEDP (car))
     {
       /*fixme* environments may be two different but equal top-level envs */
       if (!SCM_UNBNDP (env) && SCM_MEMOIZED_ENV (car) != env)
@@ -318,7 +318,7 @@ GUILE_PROC (scm_memcons, "memcons", 2, 1, 0,
 	env = SCM_MEMOIZED_ENV (car);
       car = SCM_MEMOIZED_EXP (car);
     }
-  if (SCM_NIMP (cdr) && SCM_MEMOIZEDP (cdr))
+  if (SCM_MEMOIZEDP (cdr))
     {
       if (!SCM_UNBNDP (env) && SCM_MEMOIZED_ENV (cdr) != env)
 	SCM_MISC_ERROR ("environment mismatch arg2 <-> arg3",
@@ -500,11 +500,11 @@ SCM
 scm_reverse_lookup (SCM env, SCM data)
 {
   SCM names, values;
-  while (SCM_NIMP (env) && SCM_CONSP (SCM_CAR (env)))
+  while (SCM_CONSP (SCM_CAR (env)))
     {
       names = SCM_CAAR (env);
       values = SCM_CDAR (env);
-      while (SCM_NIMP (names) && SCM_CONSP (names))
+      while (SCM_CONSP (names))
 	{
 	  if (SCM_CAR (values) == data)
 	    return SCM_CAR (names);
@@ -572,7 +572,7 @@ GUILE_PROC (scm_debug_object_p, "debug-object?", 1, 0, 0,
 "")
 #define FUNC_NAME s_scm_debug_object_p
 {
-  return SCM_BOOL(SCM_NIMP (obj) && SCM_DEBUGOBJP (obj));
+  return SCM_BOOL(SCM_DEBUGOBJP (obj));
 }
 #undef FUNC_NAME
 

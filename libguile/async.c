@@ -348,7 +348,7 @@ GUILE_PROC(scm_run_asyncs, "run-asyncs", 1, 0, 0,
       struct scm_async * it;
       SCM_VALIDATE_NIMCONS(1,list_of_a);
       a = SCM_CAR (list_of_a);
-      SCM_ASSERT (SCM_NIMP (a) &&  SCM_ASYNCP (a), a, SCM_ARG1, FUNC_NAME);
+      SCM_ASSERT (SCM_ASYNCP (a), a, SCM_ARG1, FUNC_NAME);
       it = SCM_ASYNC (a);
       scm_mask_ints = 1;
       if (it->got_it)

@@ -82,10 +82,10 @@ Recommended only for use in Guile internals.")
 #define FUNC_NAME s_scm_sloppy_assq
 {
 
-  for (; SCM_NIMP (alist) && SCM_CONSP (alist); alist = SCM_CDR (alist))
+  for (; SCM_CONSP (alist); alist = SCM_CDR (alist))
     {
       SCM tmp = SCM_CAR(alist);
-      if (SCM_NIMP (tmp) && SCM_CONSP (tmp) && (SCM_CAR (tmp)==x))
+      if (SCM_CONSP (tmp) && (SCM_CAR (tmp)==x))
 	return tmp;
     }
   return SCM_BOOL_F;
@@ -100,7 +100,7 @@ GUILE_PROC (scm_sloppy_assv, "sloppy-assv", 2, 0, 0,
 Recommended only for use in Guile internals.")
 #define FUNC_NAME s_scm_sloppy_assv
 {
-  for (; SCM_NIMP (alist) && SCM_CONSP (alist); alist = SCM_CDR (alist))
+  for (; SCM_CONSP (alist); alist = SCM_CDR (alist))
     {
       SCM tmp = SCM_CAR(alist);
       if (SCM_NIMP (tmp)
@@ -119,7 +119,7 @@ GUILE_PROC (scm_sloppy_assoc, "sloppy-assoc", 2, 0, 0,
 Recommended only for use in Guile internals.")
 #define FUNC_NAME s_scm_sloppy_assoc
 {
-  for (; SCM_NIMP (alist) && SCM_CONSP (alist); alist = SCM_CDR (alist))
+  for (; SCM_CONSP (alist); alist = SCM_CDR (alist))
     {
       SCM tmp = SCM_CAR(alist);
       if (SCM_NIMP (tmp)
@@ -167,7 +167,7 @@ GUILE_PROC(scm_assv, "assv", 2, 0, 0,
   for(;SCM_NIMP(alist);alist = SCM_CDR(alist)) {
     SCM_ASRTGO(SCM_CONSP(alist), badlst);
     tmp = SCM_CAR(alist);
-    SCM_ASRTGO(SCM_NIMP(tmp) && SCM_CONSP(tmp), badlst);
+    SCM_ASRTGO(SCM_CONSP(tmp), badlst);
     if SCM_NFALSEP(scm_eqv_p(SCM_CAR(tmp), x)) return tmp;
   }
 # ifndef SCM_RECKLESS
@@ -216,7 +216,7 @@ where @var{associator} is one of @code{assq}, @code{assv} or @code{assoc}.")
   SCM handle;
 
   handle = scm_sloppy_assq (key, alist);
-  if (SCM_NIMP (handle) && SCM_CONSP (handle))
+  if (SCM_CONSP (handle))
     {
       return SCM_CDR (handle);
     }
@@ -233,7 +233,7 @@ GUILE_PROC (scm_assv_ref, "assv-ref", 2, 0, 0,
   SCM handle;
 
   handle = scm_sloppy_assv (key, alist);
-  if (SCM_NIMP (handle) && SCM_CONSP (handle))
+  if (SCM_CONSP (handle))
     {
       return SCM_CDR (handle);
     }
@@ -250,7 +250,7 @@ GUILE_PROC (scm_assoc_ref, "assoc-ref", 2, 0, 0,
   SCM handle;
 
   handle = scm_sloppy_assoc (key, alist);
-  if (SCM_NIMP (handle) && SCM_CONSP (handle))
+  if (SCM_CONSP (handle))
     {
       return SCM_CDR (handle);
     }
@@ -280,7 +280,7 @@ association list.")
   SCM handle;
 
   handle = scm_sloppy_assq (key, alist);
-  if (SCM_NIMP (handle) && SCM_CONSP (handle))
+  if (SCM_CONSP (handle))
     {
       SCM_SETCDR (handle, val);
       return alist;
@@ -298,7 +298,7 @@ GUILE_PROC (scm_assv_set_x, "assv-set!", 3, 0, 0,
   SCM handle;
 
   handle = scm_sloppy_assv (key, alist);
-  if (SCM_NIMP (handle) && SCM_CONSP (handle))
+  if (SCM_CONSP (handle))
     {
       SCM_SETCDR (handle, val);
       return alist;
@@ -316,7 +316,7 @@ GUILE_PROC (scm_assoc_set_x, "assoc-set!", 3, 0, 0,
   SCM handle;
 
   handle = scm_sloppy_assoc (key, alist);
-  if (SCM_NIMP (handle) && SCM_CONSP (handle))
+  if (SCM_CONSP (handle))
     {
       SCM_SETCDR (handle, val);
       return alist;
@@ -340,7 +340,7 @@ the resulting alist.")
   SCM handle;
 
   handle = scm_sloppy_assq (key, alist);
-  if (SCM_NIMP (handle) && SCM_CONSP (handle))
+  if (SCM_CONSP (handle))
     {
       return scm_delq_x (handle, alist);
     }
@@ -358,7 +358,7 @@ GUILE_PROC (scm_assv_remove_x, "assv-remove!", 2, 0, 0,
   SCM handle;
 
   handle = scm_sloppy_assv (key, alist);
-  if (SCM_NIMP (handle) && SCM_CONSP (handle))
+  if (SCM_CONSP (handle))
     {
       return scm_delv_x (handle, alist);
     }
@@ -376,7 +376,7 @@ GUILE_PROC (scm_assoc_remove_x, "assoc-remove!", 2, 0, 0,
   SCM handle;
 
   handle = scm_sloppy_assoc (key, alist);
-  if (SCM_NIMP (handle) && SCM_CONSP (handle))
+  if (SCM_CONSP (handle))
     {
       return scm_delete_x (handle, alist);
     }

@@ -364,7 +364,7 @@ GUILE_PROC (scm_entity_p, "entity?", 1, 0, 0,
 "")
 #define FUNC_NAME s_scm_entity_p
 {
-  return SCM_BOOL(SCM_NIMP (obj) && SCM_STRUCTP (obj) && SCM_I_ENTITYP (obj));
+  return SCM_BOOL(SCM_STRUCTP (obj) && SCM_I_ENTITYP (obj));
 }
 #undef FUNC_NAME
 
@@ -385,7 +385,7 @@ GUILE_PROC (scm_set_object_procedure_x, "set-object-procedure!", 2, 0, 0,
 "")
 #define FUNC_NAME s_scm_set_object_procedure_x
 {
-  SCM_ASSERT (SCM_NIMP (obj) && SCM_STRUCTP (obj)
+  SCM_ASSERT (SCM_STRUCTP (obj)
 	      && ((SCM_CLASS_FLAGS (obj) & SCM_CLASSF_OPERATOR)
 		  || (SCM_I_ENTITYP (obj)
 		      && !(SCM_OBJ_CLASS_FLAGS (obj)
@@ -408,7 +408,7 @@ GUILE_PROC (scm_object_procedure, "object-procedure", 1, 0, 0,
 "")
 #define FUNC_NAME s_scm_object_procedure
 {
-  SCM_ASSERT (SCM_NIMP (obj) && SCM_STRUCTP (obj)
+  SCM_ASSERT (SCM_STRUCTP (obj)
 	      && ((SCM_CLASS_FLAGS (obj) & SCM_CLASSF_OPERATOR)
 		  || SCM_I_ENTITYP (obj)),
 	      obj, SCM_ARG1, FUNC_NAME);

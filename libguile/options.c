@@ -164,7 +164,7 @@ scm_options (SCM arg, scm_option options[], int n, const char *s)
 	  flags[i] = (unsigned long) options[i].val;
       while (SCM_NNULLP (new_mode))
 	{
-	  SCM_ASSERT (SCM_NIMP (new_mode) && SCM_CONSP (new_mode),
+	  SCM_ASSERT (SCM_CONSP (new_mode),
 		      new_mode,
 		      SCM_ARG1,
 		      s);

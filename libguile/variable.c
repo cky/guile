@@ -144,7 +144,7 @@ GUILE_PROC(scm_variable_p, "variable?", 1, 0, 0,
 "")
 #define FUNC_NAME s_scm_variable_p
 {
-  return SCM_BOOL(SCM_NIMP(obj) && SCM_VARIABLEP (obj));
+  return SCM_BOOL(SCM_VARIABLEP (obj));
 }
 #undef FUNC_NAME
 

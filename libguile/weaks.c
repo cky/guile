@@ -95,7 +95,7 @@ its arguments while @code{list->weak-vector} uses its only argument
   res = scm_make_weak_vector (SCM_MAKINUM (i), SCM_UNSPECIFIED);
   data = SCM_VELTS (res);
   for (;
-       i && SCM_NIMP (l) && SCM_CONSP (l);
+       i && SCM_CONSP (l);
        --i, l = SCM_CDR (l))
     *data++ = SCM_CAR (l);
   return res;
@@ -109,7 +109,7 @@ GUILE_PROC(scm_weak_vector_p, "weak-vector?", 1, 0, 0,
 hashes are also weak vectors.")
 #define FUNC_NAME s_scm_weak_vector_p
 {
-  return SCM_BOOL(SCM_NIMP (x) && SCM_WVECTP (x) && !SCM_IS_WHVEC (x));
+  return SCM_BOOL(SCM_WVECTP (x) && !SCM_IS_WHVEC (x));
 }
 #undef FUNC_NAME
 
@@ -182,7 +182,7 @@ that a doubly weak hash table is neither a weak key nor a weak value
 hash table.")
 #define FUNC_NAME s_scm_weak_key_hash_table_p
 {
-  return SCM_BOOL(SCM_NIMP (x) && SCM_WVECTP (x) && SCM_IS_WHVEC(x));
+  return SCM_BOOL(SCM_WVECTP (x) && SCM_IS_WHVEC(x));
 }
 #undef FUNC_NAME
 
@@ -192,7 +192,7 @@ GUILE_PROC (scm_weak_value_hash_table_p, "weak-value-hash-table?", 1, 0, 0,
 "")
 #define FUNC_NAME s_scm_weak_value_hash_table_p
 {
-  return SCM_BOOL(SCM_NIMP (x) && SCM_WVECTP (x) && SCM_IS_WHVEC_V(x));
+  return SCM_BOOL(SCM_WVECTP (x) && SCM_IS_WHVEC_V(x));
 }
 #undef FUNC_NAME
 
@@ -202,7 +202,7 @@ GUILE_PROC (scm_doubly_weak_hash_table_p, "doubly-weak-hash-table?", 1, 0, 0,
 "")
 #define FUNC_NAME s_scm_doubly_weak_hash_table_p
 {
-  return SCM_BOOL(SCM_NIMP (x) && SCM_WVECTP (x) && SCM_IS_WHVEC_B (x));
+  return SCM_BOOL(SCM_WVECTP (x) && SCM_IS_WHVEC_B (x));
 }
 #undef FUNC_NAME
 

@@ -145,7 +145,7 @@ as @code{-1}, then that ID is not changed.")
 
   SCM_VALIDATE_INT(2,owner);
   SCM_VALIDATE_INT(3,group);
-  if (SCM_INUMP (object) || (SCM_NIMP (object) && SCM_OPFPORTP (object)))
+  if (SCM_INUMP (object) || (SCM_OPFPORTP (object)))
     {
       if (SCM_INUMP (object))
 	fdes = SCM_INUM (object);
@@ -155,7 +155,7 @@ as @code{-1}, then that ID is not changed.")
     }
   else
     {
-      SCM_ASSERT (SCM_NIMP (object) && SCM_ROSTRINGP (object),
+      SCM_ASSERT (SCM_ROSTRINGP (object),
 		  object, SCM_ARG1, FUNC_NAME);
       SCM_COERCE_SUBSTR (object);
       SCM_SYSCALL (rv = chown (SCM_ROCHARS (object),
@@ -185,7 +185,7 @@ The return value is unspecified.")
   object = SCM_COERCE_OUTPORT (object);
 
   SCM_VALIDATE_INT(2,mode);
-  if (SCM_INUMP (object) || (SCM_NIMP (object) && SCM_OPFPORTP (object)))
+  if (SCM_INUMP (object) || SCM_OPFPORTP (object))
     {
       if (SCM_INUMP (object))
 	fdes = SCM_INUM (object);
@@ -326,7 +326,7 @@ their revealed counts set to zero.")
 
   fd_or_port = SCM_COERCE_OUTPORT (fd_or_port);
 
-  if (SCM_NIMP (fd_or_port) && SCM_PORTP (fd_or_port))
+  if (SCM_PORTP (fd_or_port))
     return scm_close_port (fd_or_port);
   SCM_VALIDATE_INT(1,fd_or_port);
   fd = SCM_INUM (fd_or_port);
@@ -685,7 +685,7 @@ GUILE_PROC (scm_directory_stream_p, "directory-stream?", 1, 0, 0,
 as returned by @code{opendir}.")
 #define FUNC_NAME s_scm_directory_stream_p
 {
-  return SCM_BOOL(SCM_NIMP (obj) && SCM_DIRP (obj));
+  return SCM_BOOL(SCM_DIRP (obj));
 }
 #undef FUNC_NAME
 
@@ -848,7 +848,7 @@ set_element (SELECT_TYPE *set, SCM element, int arg)
 {
   int fd;
   element = SCM_COERCE_OUTPORT (element);
-  if (SCM_NIMP (element) && SCM_OPFPORTP (element))
+  if (SCM_OPFPORTP (element))
     fd = SCM_FPORT_FDES (element);
   else {
     SCM_ASSERT (SCM_INUMP (element), element, arg, "select");
@@ -862,7 +862,7 @@ static int
 fill_select_type (SELECT_TYPE *set, SCM list, int arg)
 {
   int max_fd = 0, fd;
-  if (SCM_NIMP (list) && SCM_VECTORP (list))
+  if (SCM_VECTORP (list))
     {
       int len = SCM_LENGTH (list);
       SCM *ve = SCM_VELTS (list);
@@ -893,7 +893,7 @@ static SCM
 get_element (SELECT_TYPE *set, SCM element, SCM list)
 {
   element = SCM_COERCE_OUTPORT (element);
-  if (SCM_NIMP (element) && SCM_OPFPORTP (element))
+  if (SCM_OPFPORTP (element))
     {
       if (FD_ISSET (SCM_FPORT_FDES (element), set))
 	list = scm_cons (element, list);
@@ -911,7 +911,7 @@ retrieve_select_type (SELECT_TYPE *set, SCM list)
 {
   SCM answer_list = SCM_EOL;
 
-  if (SCM_NIMP (list) && SCM_VECTORP (list))
+  if (SCM_VECTORP (list))
     {
       int len = SCM_LENGTH (list);
       SCM *ve = SCM_VELTS (list);
@@ -973,7 +973,7 @@ values instead of a list and has an additional select! interface.
   int sreturn;
 
 #define assert_set(x, arg) \
-  SCM_ASSERT (scm_ilength (x) >= 0 || (SCM_NIMP (x) && SCM_VECTORP (x)), \
+  SCM_ASSERT (scm_ilength (x) >= 0 || (SCM_VECTORP (x)), \
 	      x, arg, FUNC_NAME)
   assert_set (reads, SCM_ARG1);
   assert_set (writes, SCM_ARG2);
@@ -1080,7 +1080,7 @@ The value used to indicate the "close on exec" flag with @code{F_GETFL} or
   object = SCM_COERCE_OUTPORT (object);
 
   SCM_VALIDATE_INT(2,cmd);
-  if (SCM_NIMP (object) && SCM_OPFPORTP (object))
+  if (SCM_OPFPORTP (object))
     fdes = SCM_FPORT_FDES (object);
   else
     {
@@ -1113,7 +1113,7 @@ The return value is unspecified.")
 
   object = SCM_COERCE_OUTPORT (object);
 
-  if (SCM_NIMP (object) && SCM_OPFPORTP (object))
+  if (SCM_OPFPORTP (object))
     {
       scm_flush (object);
       fdes = SCM_FPORT_FDES (object);
@@ -1307,7 +1307,7 @@ GUILE_PROC (scm_basename, "basename", 1, 1, 0,
   int i, j, len, end;
   SCM_VALIDATE_ROSTRING(1,filename);
   SCM_ASSERT (SCM_UNBNDP (suffix)
-	      || (SCM_NIMP (suffix) && SCM_ROSTRINGP (suffix)),
+	      || (SCM_ROSTRINGP (suffix)),
 	      suffix,
 	      SCM_ARG2,
 	      FUNC_NAME);

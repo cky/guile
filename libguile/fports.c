@@ -451,7 +451,7 @@ prinfport (SCM exp,SCM port,scm_print_state *pstate)
     {
       int fdes;
       SCM name = SCM_PTAB_ENTRY (exp)->file_name;
-      scm_puts (SCM_NIMP (name) && SCM_ROSTRINGP (name)
+      scm_puts (SCM_ROSTRINGP (name)
 		? SCM_ROCHARS (name)
 		: SCM_PTOBNAME (SCM_PTOBNUM (exp)),
 		port);

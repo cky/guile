@@ -419,7 +419,7 @@ scm_lock_mutex (m)
      SCM m;
 #endif
 {
-  SCM_ASSERT (SCM_NIMP (m) && SCM_MUTEXP (m), m, SCM_ARG1, s_lock_mutex);
+  SCM_ASSERT (SCM_MUTEXP (m), m, SCM_ARG1, s_lock_mutex);
   pthread_mutex_lock (SCM_MUTEX_DATA (m));
   return SCM_BOOL_T;
 }
@@ -433,7 +433,7 @@ scm_unlock_mutex (m)
      SCM m;
 #endif
 {
-  SCM_ASSERT (SCM_NIMP (m) && SCM_MUTEXP (m), m, SCM_ARG1, s_unlock_mutex);
+  SCM_ASSERT (SCM_MUTEXP (m), m, SCM_ARG1, s_unlock_mutex);
   pthread_mutex_unlock (SCM_MUTEX_DATA (m));
   return SCM_BOOL_T;
 }
@@ -463,11 +463,11 @@ scm_wait_condition_variable (c, m)
      SCM m;
 #endif
 {
-  SCM_ASSERT (SCM_NIMP (c) && SCM_CONDVARP (c),
+  SCM_ASSERT (SCM_CONDVARP (c),
 	      c,
 	      SCM_ARG1,
 	      s_wait_condition_variable);
-  SCM_ASSERT (SCM_NIMP (m) && SCM_MUTEXP (m),
+  SCM_ASSERT (SCM_MUTEXP (m),
 	      m,
 	      SCM_ARG2,
 	      s_wait_condition_variable);
@@ -484,7 +484,7 @@ scm_signal_condition_variable (c)
      SCM c;
 #endif
 {
-  SCM_ASSERT (SCM_NIMP (c) && SCM_CONDVARP (c),
+  SCM_ASSERT (SCM_CONDVARP (c),
 	      c,
 	      SCM_ARG1,
 	      s_signal_condition_variable);

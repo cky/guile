@@ -226,7 +226,7 @@ static SCM
 get_applybody ()
 {
   SCM proc = SCM_CDR (scm_sym2vcell (scm_sym_apply, SCM_BOOL_F, SCM_BOOL_F));
-  if (SCM_NIMP (proc) && SCM_CLOSUREP (proc))
+  if (SCM_CLOSUREP (proc))
     return SCM_CADR (SCM_CODE (proc));
   else
     return SCM_UNDEFINED;
@@ -415,7 +415,7 @@ GUILE_PROC (scm_stack_p, "stack?", 1, 0, 0,
 "Return @code{#t} if @var{obj} is a calling stack.")
 #define FUNC_NAME s_scm_stack_p
 {
-  return SCM_BOOL(SCM_NIMP (obj) && SCM_STACKP (obj));
+  return SCM_BOOL(SCM_STACKP (obj));
 }
 #undef FUNC_NAME
 
@@ -431,7 +431,7 @@ GUILE_PROC (scm_make_stack, "make-stack", 0, 0, 1,
   SCM stack, id;
   SCM obj, inner_cut, outer_cut;
 
-  SCM_ASSERT (SCM_NIMP (args) && SCM_CONSP (args),
+  SCM_ASSERT (SCM_CONSP (args),
 	      SCM_FUNC_NAME, SCM_WNA, NULL);
   obj = SCM_CAR (args);
   args = SCM_CDR (args);
@@ -480,11 +480,11 @@ GUILE_PROC (scm_make_stack, "make-stack", 0, 0, 1,
   SCM_STACK (stack) -> length = n;
 
   /* Narrow the stack according to the arguments given to scm_make_stack. */
-  while (n > 0 && SCM_NIMP (args) && SCM_CONSP (args))
+  while (n > 0 && SCM_CONSP (args))
     {
       inner_cut = SCM_CAR (args);
       args = SCM_CDR (args);
-      if (SCM_NIMP (args) && SCM_CONSP (args))
+      if (SCM_CONSP (args))
 	{
 	  outer_cut = SCM_CAR (args);
 	  args = SCM_CDR (args);
@@ -580,7 +580,7 @@ GUILE_PROC (scm_frame_p, "frame?", 1, 0, 0,
 "")
 #define FUNC_NAME s_scm_frame_p
 {
-  return SCM_BOOL(SCM_NIMP (obj) && SCM_FRAMEP (obj));
+  return SCM_BOOL(SCM_FRAMEP (obj));
 }
 #undef FUNC_NAME
 

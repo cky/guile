@@ -169,7 +169,7 @@ scm_ihashv (SCM obj, unsigned int n)
   if (SCM_ICHRP(obj))
     return ((unsigned int)(scm_downcase(SCM_ICHR(obj)))) % n; /* downcase!?!! */
 
-  if (SCM_NIMP(obj) && SCM_NUMP(obj))
+  if (SCM_NUMP(obj))
     return (unsigned int) scm_hasher(obj, n, 10);
   else
     return ((unsigned int)obj) % n;

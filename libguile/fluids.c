@@ -136,7 +136,7 @@ GUILE_PROC (scm_fluid_p, "fluid?", 1, 0, 0,
 "")
 #define FUNC_NAME s_scm_fluid_p
 {
-  return SCM_BOOL(SCM_NIMP (fl) && SCM_FLUIDP (fl));
+  return SCM_BOOL(SCM_FLUIDP (fl));
 }
 #undef FUNC_NAME
 

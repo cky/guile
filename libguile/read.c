@@ -197,7 +197,7 @@ recsexpr (SCM obj,int line,int column,SCM filename)
 	  {
 	    copy = scm_cons (recsexpr (SCM_CAR (obj), line, column, filename),
 			     SCM_UNDEFINED);
-	    while (SCM_NIMP (tmp = SCM_CDR (tmp)) && SCM_CONSP (tmp))
+	    while ((tmp = SCM_CDR (tmp)) && SCM_CONSP (tmp))
 	      {
 		SCM_SETCDR (copy, scm_cons (recsexpr (SCM_CAR (tmp),
 						      line,
@@ -211,7 +211,7 @@ recsexpr (SCM obj,int line,int column,SCM filename)
 	else
 	  {
 	    recsexpr (SCM_CAR (obj), line, column, filename);
-	    while (SCM_NIMP (tmp = SCM_CDR (tmp)) && SCM_CONSP (tmp))
+	    while ((tmp = SCM_CDR (tmp)) && SCM_CONSP (tmp))
 	      recsexpr (SCM_CAR (tmp), line, column, filename);
 	    copy = SCM_UNDEFINED;
 	  }
@@ -657,7 +657,7 @@ scm_lreadrecparen (SCM *tok_buf, SCM port, char *name, SCM *copy)
   /* Build the head of the list structure. */
   ans = tl = scm_cons (tmp, SCM_EOL);
   if (SCM_COPY_SOURCE_P)
-    ans2 = tl2 = scm_cons (SCM_NIMP (tmp) && SCM_CONSP (tmp)
+    ans2 = tl2 = scm_cons (SCM_CONSP (tmp)
 			   ? *copy
 			   : tmp,
 			   SCM_EOL);
@@ -668,7 +668,7 @@ scm_lreadrecparen (SCM *tok_buf, SCM port, char *name, SCM *copy)
 	{
 	  SCM_SETCDR (tl, tmp = scm_lreadr (tok_buf, port, copy));
 	  if (SCM_COPY_SOURCE_P)
-	    SCM_SETCDR (tl2, scm_cons (SCM_NIMP (tmp) && SCM_CONSP (tmp)
+	    SCM_SETCDR (tl2, scm_cons (SCM_CONSP (tmp)
 				       ? *copy
 				       : tmp,
 				       SCM_EOL));
@@ -678,7 +678,7 @@ scm_lreadrecparen (SCM *tok_buf, SCM port, char *name, SCM *copy)
 	}
       tl = SCM_SETCDR (tl, scm_cons (tmp, SCM_EOL));
       if (SCM_COPY_SOURCE_P)
-	tl2 = SCM_SETCDR (tl2, scm_cons (SCM_NIMP (tmp) && SCM_CONSP (tmp)
+	tl2 = SCM_SETCDR (tl2, scm_cons (SCM_CONSP (tmp)
 					 ? *copy
 					 : tmp,
 					 SCM_EOL));

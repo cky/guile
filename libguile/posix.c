@@ -845,7 +845,7 @@ scm_convert_exec_args (SCM args, int pos, const char *subr)
   int i;
 
   SCM_ASSERT (SCM_NULLP (args)
-	      || (SCM_NIMP (args) && SCM_CONSP (args)),
+	      || (SCM_CONSP (args)),
 	      args, pos, subr);
   num_args = scm_ilength (args);
   execargv = (char **) 
@@ -855,7 +855,7 @@ scm_convert_exec_args (SCM args, int pos, const char *subr)
       scm_sizet len;
       char *dst;
       char *src;
-      SCM_ASSERT (SCM_NIMP (SCM_CAR (args)) && SCM_ROSTRINGP (SCM_CAR (args)),
+      SCM_ASSERT (SCM_ROSTRINGP (SCM_CAR (args)),
 		  SCM_CAR (args), SCM_ARGn, subr);
       len = 1 + SCM_ROLENGTH (SCM_CAR (args));
       dst = (char *) scm_must_malloc ((long) len, subr);
@@ -923,8 +923,7 @@ environ_list_to_c (SCM envlist, int arg, const char *proc)
   char **result;
   int i = 0;
 
-  SCM_ASSERT (SCM_NULLP (envlist)
-	      || (SCM_NIMP (envlist) && SCM_CONSP (envlist)),
+  SCM_ASSERT (SCM_NULLP (envlist) || SCM_CONSP (envlist),
 	      envlist, arg, proc);
   num_strings = scm_ilength (envlist);
   result = (char **) malloc ((num_strings + 1) * sizeof (char *));

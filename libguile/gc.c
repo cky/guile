@@ -1379,7 +1379,7 @@ scm_gc_sweep ()
 	    ptr = SCM_VELTS (w);
 	    n = SCM_LENGTH (w);
 	    for (j = 0; j < n; ++j)
-	      if (SCM_NIMP (ptr[j]) && SCM_FREEP (ptr[j]))
+	      if (SCM_FREEP (ptr[j]))
 		ptr[j] = SCM_BOOL_F;
 	  }
 	else /* if (SCM_IS_WHVEC_ANY (scm_weak_vectors[i])) */
@@ -1413,8 +1413,8 @@ scm_gc_sweep ()
 
 		    key = SCM_CAAR (alist);
 		    value = SCM_CDAR (alist);
-		    if (   (weak_keys && SCM_NIMP (key) && SCM_FREEP (key))
-			|| (weak_values && SCM_NIMP (value) && SCM_FREEP (value)))
+		    if (   (weak_keys && SCM_FREEP (key))
+			|| (weak_values && SCM_FREEP (value)))
 		      {
 			*fixup = SCM_CDR (alist);
 		      }
@@ -1859,7 +1859,7 @@ scm_unprotect_object (SCM obj)
 {
   SCM *tail_ptr = &scm_protects;
 
-  while (SCM_NIMP (*tail_ptr) && SCM_CONSP (*tail_ptr))
+  while (SCM_CONSP (*tail_ptr))
     if (SCM_CAR (*tail_ptr) == obj)
       {
 	*tail_ptr = SCM_CDR (*tail_ptr);

@@ -208,7 +208,7 @@ GUILE_PROC(scm_closure_p, "closure?", 1, 0, 0,
 "")
 #define FUNC_NAME s_scm_closure_p
 {
-  return SCM_BOOL(SCM_NIMP (obj) && SCM_CLOSUREP (obj));
+  return SCM_BOOL(SCM_CLOSUREP (obj));
 }
 #undef FUNC_NAME
 
@@ -303,7 +303,7 @@ GUILE_PROC (scm_procedure_with_setter_p, "procedure-with-setter?", 1, 0, 0,
 "")
 #define FUNC_NAME s_scm_procedure_with_setter_p
 {
-  return SCM_BOOL(SCM_NIMP (obj) && SCM_PROCEDURE_WITH_SETTER_P (obj));
+  return SCM_BOOL(SCM_PROCEDURE_WITH_SETTER_P (obj));
 }
 #undef FUNC_NAME
 

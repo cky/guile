@@ -437,7 +437,7 @@ non-file device, otherwise @code{#f}.")
 
   port = SCM_COERCE_OUTPORT (port);
 
-  if (!(SCM_NIMP (port) && SCM_OPFPORTP (port)))
+  if (!SCM_OPFPORTP (port))
     return SCM_BOOL_F;
   
   rv = isatty (SCM_FPORT_FDES (port));

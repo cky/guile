@@ -196,7 +196,7 @@ scm_rstate *
 scm_c_default_rstate ()
 {
   SCM state = SCM_CDR (scm_var_random_state);
-  SCM_ASSERT (SCM_NIMP (state) && SCM_RSTATEP (state),
+  SCM_ASSERT (SCM_RSTATEP (state),
 	      state, "*random-state* contains bogus random state", 0);
   return SCM_RSTATE (state);
 }

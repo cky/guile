@@ -216,7 +216,7 @@ GUILE_PROC (scm_parse_path, "parse-path", 1, 1, 0,
 "")
 #define FUNC_NAME s_scm_parse_path
 {
-  SCM_ASSERT (SCM_FALSEP (path) || (SCM_NIMP (path) && SCM_ROSTRINGP (path)),
+  SCM_ASSERT (SCM_FALSEP (path) || (SCM_ROSTRINGP (path)),
 	      path,
 	      SCM_ARG1, FUNC_NAME);
   if (SCM_UNBNDP (tail))
@@ -288,7 +288,7 @@ GUILE_PROC(scm_search_path, "search-path", 2, 1, 0,
     for (walk = path; SCM_NIMP (walk); walk = SCM_CDR (walk))
       {
 	SCM elt = SCM_CAR (walk);
-	SCM_ASSERT (SCM_NIMP (elt) && SCM_ROSTRINGP (elt), elt,
+	SCM_ASSERT (SCM_ROSTRINGP (elt), elt,
 		    "path is not a list of strings",
 		    FUNC_NAME);
 	if (SCM_ROLENGTH (elt) > max_path_len)
@@ -327,7 +327,7 @@ GUILE_PROC(scm_search_path, "search-path", 2, 1, 0,
     for (walk = extensions; SCM_NIMP (walk); walk = SCM_CDR (walk))
       {
 	SCM elt = SCM_CAR (walk);
-	SCM_ASSERT (SCM_NIMP (elt) && SCM_ROSTRINGP (elt), elt,
+	SCM_ASSERT (SCM_ROSTRINGP (elt), elt,
 		    "extension list is not a list of strings",
 		    FUNC_NAME);
 	if (SCM_ROLENGTH (elt) > max_ext_len)

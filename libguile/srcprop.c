@@ -261,7 +261,7 @@ GUILE_PROC (scm_set_source_property_x, "set-source-property!", 3, 0, 0,
   if (scm_sym_breakpoint == key)
     {
       if (SCM_FALSEP (datum))
-	CLEARSRCPROPBRK (SCM_NIMP (p) && SRCPROPSP (p)
+	CLEARSRCPROPBRK (SRCPROPSP (p)
 			 ? p
 			 : SCM_WHASHSET (scm_source_whash, h,
 					 scm_make_srcprops (0,
@@ -270,7 +270,7 @@ GUILE_PROC (scm_set_source_property_x, "set-source-property!", 3, 0, 0,
 							    SCM_UNDEFINED,
 							    p)));
       else
-	SETSRCPROPBRK (SCM_NIMP (p) && SRCPROPSP (p)
+	SETSRCPROPBRK (SRCPROPSP (p)
 		       ? p
 		       : SCM_WHASHSET (scm_source_whash, h,
 				       scm_make_srcprops (0,
@@ -282,7 +282,7 @@ GUILE_PROC (scm_set_source_property_x, "set-source-property!", 3, 0, 0,
   else if (scm_sym_line == key)
     {
       SCM_VALIDATE_INT(3,datum);
-      if (SCM_NIMP (p) && SRCPROPSP (p))
+      if (SRCPROPSP (p))
 	SETSRCPROPLINE (p, SCM_INUM (datum));
       else
 	SCM_WHASHSET (scm_source_whash, h,
@@ -292,7 +292,7 @@ GUILE_PROC (scm_set_source_property_x, "set-source-property!", 3, 0, 0,
   else if (scm_sym_column == key)
     {
       SCM_VALIDATE_INT(3,datum);
-      if (SCM_NIMP (p) && SRCPROPSP (p))
+      if (SRCPROPSP (p))
 	SETSRCPROPCOL (p, SCM_INUM (datum));
       else
 	SCM_WHASHSET (scm_source_whash, h,
@@ -301,14 +301,14 @@ GUILE_PROC (scm_set_source_property_x, "set-source-property!", 3, 0, 0,
     }
   else if (scm_sym_filename == key)
     {
-      if (SCM_NIMP (p) && SRCPROPSP (p))
+      if (SRCPROPSP (p))
 	SRCPROPFNAME (p) = datum;
       else
 	SCM_WHASHSET (scm_source_whash, h, scm_make_srcprops (0, 0, datum, SCM_UNDEFINED, p));
     }
   else if (scm_sym_filename == key)
     {
-      if (SCM_NIMP (p) && SRCPROPSP (p))
+      if (SRCPROPSP (p))
 	SRCPROPCOPY (p) = datum;
       else
 	SCM_WHASHSET (scm_source_whash, h, scm_make_srcprops (0, 0, SCM_UNDEFINED, datum, p));

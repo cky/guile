@@ -92,7 +92,7 @@ scm_make_argv_from_stringlist (SCM args,int *argcp,const char *subr,int argn)
 	char *dst, *src;
 	SCM str = SCM_CAR (args);
 
-	SCM_ASSERT (SCM_NIMP (str) && SCM_ROSTRINGP (str), str, argn, subr);
+	SCM_ASSERT (SCM_ROSTRINGP (str), str, argn, subr);
 	len = 1 + SCM_ROLENGTH (str);
 	dst = (char *) scm_must_malloc ((long)len, subr);
 	src = SCM_ROCHARS (str);
@@ -122,7 +122,7 @@ scm_must_free_argv(char **argv)
 static SCM
 scm_coerce_rostring (SCM rostr,const char *subr,int argn)
 {
-    SCM_ASSERT (SCM_NIMP (rostr) && SCM_ROSTRINGP (rostr), rostr, argn, subr);
+    SCM_ASSERT (SCM_ROSTRINGP (rostr), rostr, argn, subr);
     if (SCM_SUBSTRP (rostr))
 	rostr = scm_makfromstr (SCM_ROCHARS (rostr), SCM_ROLENGTH (rostr), 0);
     return rostr;
@@ -332,14 +332,14 @@ as the @var{lib} argument to the following functions.")
     fname = scm_coerce_rostring (fname, FUNC_NAME, SCM_ARG1);
 
     /* collect flags */
-    while (SCM_NIMP (rest) && SCM_CONSP (rest))
+    while (SCM_CONSP (rest))
       {
 	SCM kw, val;
 
 	kw = SCM_CAR (rest);
 	rest = SCM_CDR (rest);
 	
-	if (!(SCM_NIMP (rest) && SCM_CONSP (rest)))
+	if (!SCM_CONSP (rest))
 	  scm_misc_error (FUNC_NAME, "keyword without value", SCM_EOL);
 	
 	val = SCM_CAR (rest);
@@ -474,7 +474,7 @@ Interrupts are deferred while the C function is executing (with
 {
     void (*fptr)();
 
-    if (SCM_NIMP (func) && SCM_ROSTRINGP (func))
+    if (SCM_ROSTRINGP (func))
 	func = scm_dynamic_func (func, dobj);
     fptr = (void (*)()) scm_num2ulong (func, (char *)SCM_ARG1, FUNC_NAME);
     SCM_DEFER_INTS;
@@ -517,7 +517,7 @@ and returned from the call to @code{dynamic-args-call}.
     int result, argc;
     char **argv;
 
-    if (SCM_NIMP (func) && SCM_ROSTRINGP (func))
+    if (SCM_ROSTRINGP (func))
 	func = scm_dynamic_func (func, dobj);
 
     fptr = (int (*)(int, char **)) scm_num2ulong (func, (char *)SCM_ARG1,

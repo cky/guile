@@ -1043,7 +1043,7 @@ the current position of a port can be obtained using:
   SCM_VALIDATE_INT_COPY(3,whence,how);
   if (how != SEEK_SET && how != SEEK_CUR && how != SEEK_END)
     SCM_OUT_OF_RANGE (3, whence);
-  if (SCM_NIMP (object) && SCM_OPPORTP (object))
+  if (SCM_OPPORTP (object))
     {
       scm_ptob_descriptor *ptob = scm_ptobs + SCM_PTOBNUM (object);
 
@@ -1083,7 +1083,7 @@ The return value is unspecified.")
   if (SCM_UNBNDP (length))
     {
       /* must supply length if object is a filename.  */
-      if (SCM_NIMP (object) && SCM_ROSTRINGP (object))
+      if (SCM_ROSTRINGP (object))
 	scm_wrong_num_args (SCM_FUNC_NAME);
       
       length = scm_seek (object, SCM_INUM0, SCM_MAKINUM (SEEK_CUR));
@@ -1097,7 +1097,7 @@ The return value is unspecified.")
     {
       SCM_SYSCALL (rv = ftruncate (SCM_INUM (object), c_length));
     }
-  else if (SCM_NIMP (object) && SCM_OPOUTPORTP (object))
+  else if (SCM_OPOUTPORTP (object))
     {
       scm_port *pt = SCM_PTAB_ENTRY (object);
       scm_ptob_descriptor *ptob = scm_ptobs + SCM_PTOBNUM (object);

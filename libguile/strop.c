@@ -44,7 +44,7 @@ scm_i_index (SCM *str, SCM chr, int direction, SCM sub_start,
   int upper;
   int ch;
 
-  SCM_ASSERT (SCM_NIMP (*str) && SCM_ROSTRINGP (*str), *str, SCM_ARG1, why);
+  SCM_ASSERT (SCM_ROSTRINGP (*str), *str, SCM_ARG1, why);
   SCM_ASSERT (SCM_ICHRP (chr), chr, SCM_ARG2, why);
 
   if (sub_start == SCM_BOOL_F)

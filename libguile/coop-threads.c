@@ -38,8 +38,13 @@
  * If you write modifications of your own for GUILE, it is your choice
  * whether to permit this exception to apply to your modifications.
  * If you do not wish that, delete this exception notice.  */
+
+/* Software engineering face-lift by Greg J. Badros, 11-Dec-1999,
+   gjb@cs.washington.edu, http://www.cs.washington.edu/homes/gjb */
+
 
 
+#include "scm_validate.h"
 #include "coop-threads.h"
 
 /* A counter of the current number of threads */
@@ -55,14 +60,8 @@ size_t scm_switch_counter = SCM_THREAD_SWITCH_COUNT;
 
 coop_m scm_critical_section_mutex;
 
-#ifdef __STDC__
 void
 scm_threads_init (SCM_STACKITEM *i)
-#else
-void
-scm_threads_init (i)
-     SCM_STACKITEM *i;
-#endif
 {
   coop_init();
 
@@ -78,13 +77,8 @@ scm_threads_init (i)
   coop_global_main.data = 0; /* Initialized in init.c */
 }
 
-#ifdef __STDC__
 void
-scm_threads_mark_stacks ()
-#else
-void
-scm_threads_mark_stacks ()
-#endif
+scm_threads_mark_stacks (void)
 {
   coop_t *thread;
   
@@ -377,27 +371,18 @@ scm_spawn_thread (scm_catch_body_t body, void *body_data,
   return thread;
 }
 
-#ifdef __STDC__
 SCM
 scm_join_thread (SCM t)
-#else
-SCM
-scm_join_thread (t)
-     SCM t;
-#endif
+#define FUNC_NAME s_join_thread
 {
-  SCM_ASSERT (SCM_NIMP (t) && SCM_THREADP (t), t, SCM_ARG1, s_join_thread);
+  SCM_VALIDATE_THREAD(1,t);
   coop_join (SCM_THREAD_DATA (t));
   return SCM_BOOL_T;
 }
+#undef FUNC_NAME
 
-#ifdef __STDC__
 SCM
-scm_yield ()
-#else
-SCM
-scm_yield ()
-#endif
+scm_yield (void)
 {
   /* Yield early */
   scm_switch_counter = SCM_THREAD_SWITCH_COUNT;
@@ -406,26 +391,16 @@ scm_yield ()
   return SCM_BOOL_T;
 }
 
-#ifdef __STDC__
 SCM
-scm_single_thread_p ()
-#else
-SCM
-scm_single_thread_p ()
-#endif
+scm_single_thread_p (void)
 {
   return (coop_global_runq.tail == &coop_global_runq.t
 	  ? SCM_BOOL_T
 	  : SCM_BOOL_F);
 }
 
-#ifdef __STDC__
 SCM
-scm_make_mutex ()
-#else
-SCM
-scm_make_mutex ()
-#endif
+scm_make_mutex (void)
 {
   SCM m;
   coop_m *data = (coop_m *) scm_must_malloc (sizeof (coop_m), "mutex");
@@ -435,30 +410,18 @@ scm_make_mutex ()
   return m;
 }
 
-#ifdef __STDC__
 SCM
 scm_lock_mutex (SCM m)
-#else
-SCM
-scm_lock_mutex (m)
-     SCM m;
-#endif
 {
   SCM_ASSERT (SCM_NIMP (m) && SCM_MUTEXP (m), m, SCM_ARG1, s_lock_mutex);
   coop_mutex_lock (SCM_MUTEX_DATA (m));
   return SCM_BOOL_T;
 }
 
-#ifdef __STDC__
 SCM
 scm_unlock_mutex (SCM m)
-#else
-SCM
-scm_unlock_mutex (m)
-     SCM m;
-#endif
 {
-  SCM_ASSERT (SCM_NIMP (m) && SCM_MUTEXP (m), m, SCM_ARG1, s_unlock_mutex);
+  SCM_ASSERT (SCM_MUTEXP (m), m, SCM_ARG1, s_unlock_mutex);
   coop_mutex_unlock(SCM_MUTEX_DATA (m));
 
   /* Yield early */
@@ -468,13 +431,8 @@ scm_unlock_mutex (m)
   return SCM_BOOL_T;
 }
 
-#ifdef __STDC__
 SCM
-scm_make_condition_variable ()
-#else
-SCM
-scm_make_condition_variable ()
-#endif
+scm_make_condition_variable (void)
 {
   SCM c;
   coop_c *data = (coop_c *) scm_must_malloc (sizeof (coop_c), "condvar");
@@ -483,21 +441,14 @@ scm_make_condition_variable ()
   return c;
 }
 
-#ifdef __STDC__
 SCM
 scm_wait_condition_variable (SCM c, SCM m)
-#else
-SCM
-scm_wait_condition_variable (c, m)
-     SCM c;
-     SCM m;
-#endif
 {
-  SCM_ASSERT (SCM_NIMP (c) && SCM_CONDVARP (c),
+  SCM_ASSERT (SCM_CONDVARP (c),
 	      c,
 	      SCM_ARG1,
 	      s_wait_condition_variable);
-  SCM_ASSERT (SCM_NIMP (m) && SCM_MUTEXP (m),
+  SCM_ASSERT (SCM_MUTEXP (m),
 	      m,
 	      SCM_ARG2,
 	      s_wait_condition_variable);
@@ -506,16 +457,10 @@ scm_wait_condition_variable (c, m)
   return SCM_BOOL_T;
 }
 
-#ifdef __STDC__
 SCM
 scm_signal_condition_variable (SCM c)
-#else
-SCM
-scm_signal_condition_variable (c)
-     SCM c;
-#endif
 {
-  SCM_ASSERT (SCM_NIMP (c) && SCM_CONDVARP (c),
+  SCM_ASSERT (SCM_CONDVARP (c),
 	      c,
 	      SCM_ARG1,
 	      s_signal_condition_variable);

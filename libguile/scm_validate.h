@@ -1,4 +1,4 @@
-/* $Id: scm_validate.h,v 1.6 1999-12-13 00:52:43 gjb Exp $ */
+/* $Id: scm_validate.h,v 1.7 1999-12-16 20:48:04 gjb Exp $ */
 /*	Copyright (C) 1999 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
@@ -222,6 +222,9 @@
 #define SCM_VALIDATE_ASYNC_COPY(pos,a,cvar) \
   do { SCM_ASSERT (SCM_NIMP (a) && SCM_ASYNCP (a), a, pos, FUNC_NAME); \
        cvar = SCM_ASYNC(a); } while (0)
+
+#define SCM_VALIDATE_THREAD(pos,a) \
+  do { SCM_ASSERT (SCM_NIMP (a) && SCM_THREADP (a), a, pos, FUNC_NAME); } while (0)
 
 #define SCM_VALIDATE_THUNK(pos,thunk) \
   do { SCM_ASSERT (SCM_NFALSEP (scm_thunk_p (thunk)), thunk, pos, FUNC_NAME); } while (0)

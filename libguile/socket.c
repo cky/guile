@@ -309,7 +309,7 @@ The return value is unspecified.")
     {
 #ifdef HAVE_STRUCT_LINGER
       struct linger ling;
-      SCM_ASSERT (SCM_NIMP (value) && SCM_CONSP (value)
+      SCM_ASSERT (SCM_CONSP (value)
 		  && SCM_INUMP (SCM_CAR (value))
 		  &&  SCM_INUMP (SCM_CDR (value)),
 		  value, SCM_ARG4, FUNC_NAME);
@@ -319,7 +319,7 @@ The return value is unspecified.")
       memcpy (optval, (void *) &ling, optlen);
 #else
       scm_sizet ling;
-      SCM_ASSERT (SCM_NIMP (value) && SCM_CONSP (value)
+      SCM_ASSERT (SCM_CONSP (value)
 		  && SCM_INUMP (SCM_CAR (value))
 		  &&  SCM_INUMP (SCM_CDR (value)),
 		  value, SCM_ARG4, FUNC_NAME);
@@ -416,7 +416,7 @@ scm_fill_sockaddr (int fam,SCM address,SCM *args,int which_arg,const char *proc,
 	soka->sin_family = AF_INET;
 	soka->sin_addr.s_addr =
 	  htonl (scm_num2ulong (address, (char *) which_arg, proc));
-	SCM_ASSERT (SCM_NIMP (*args) && SCM_CONSP (*args), *args, 
+	SCM_ASSERT (SCM_CONSP (*args), *args, 
 		    which_arg + 1, proc);
 	isport = SCM_CAR (*args);
 	*args = SCM_CDR (*args);
@@ -434,7 +434,7 @@ scm_fill_sockaddr (int fam,SCM address,SCM *args,int which_arg,const char *proc,
 	  scm_must_malloc (sizeof (struct sockaddr_un), proc);
 	memset (soka, 0, sizeof (struct sockaddr_un));
 	soka->sun_family = AF_UNIX;
-	SCM_ASSERT (SCM_NIMP (address) && SCM_ROSTRINGP (address), address,
+	SCM_ASSERT (SCM_ROSTRINGP (address), address,
 		    which_arg, proc);
 	memcpy (soka->sun_path, SCM_ROCHARS (address),
 		1 + SCM_ROLENGTH (address));

@@ -311,7 +311,7 @@ setzone (SCM zone, int pos, const char *subr)
       char *buf;
 
       /* if zone was supplied, set the environment temporarily.  */
-      SCM_ASSERT (SCM_NIMP (zone) && SCM_ROSTRINGP (zone), zone, pos, subr);
+      SCM_ASSERT (SCM_ROSTRINGP (zone), zone, pos, subr);
       SCM_COERCE_SUBSTR (zone);
       buf = scm_must_malloc (SCM_LENGTH (zone) + sizeof (tzvar) + 1,
 			     subr);
@@ -436,7 +436,7 @@ bdtime2c (SCM sbd_time, struct tm *lt, int pos, const char *subr)
   SCM *velts;
   int i;
 
-  SCM_ASSERT (SCM_NIMP (sbd_time) && SCM_VECTORP (sbd_time)
+  SCM_ASSERT (SCM_VECTORP (sbd_time)
 	      && SCM_LENGTH (sbd_time) == 11,
 	      sbd_time, pos, subr);
   velts = SCM_VELTS (sbd_time);
@@ -444,8 +444,7 @@ bdtime2c (SCM sbd_time, struct tm *lt, int pos, const char *subr)
     {
       SCM_ASSERT (SCM_INUMP (velts[i]), sbd_time, pos, subr);
     }
-  SCM_ASSERT (SCM_FALSEP (velts[10])
-	      || (SCM_NIMP (velts[10]) && SCM_STRINGP (velts[10])),
+  SCM_ASSERT (SCM_FALSEP (velts[10]) || SCM_STRINGP (velts[10]),
 	      sbd_time, pos, subr);
 
   lt->tm_sec = SCM_INUM (velts[0]);

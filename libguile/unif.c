@@ -179,7 +179,7 @@ scm_make_uve (long k, SCM prot)
       else
 	type = scm_tc7_ivect;
     }
-  else if (SCM_NIMP (prot) && SCM_SYMBOLP (prot) && (1 == SCM_LENGTH (prot)))
+  else if (SCM_SYMBOLP (prot) && (1 == SCM_LENGTH (prot)))
     {
       char s;
 
@@ -320,12 +320,12 @@ loop:
 # ifdef SCM_FLOATS
 #  ifdef SCM_SINGLES
     case scm_tc7_fvect:
-      return nprot || SCM_BOOL(SCM_NIMP(prot) && SCM_SINGP(prot));
+      return nprot || SCM_BOOL(SCM_SINGP(prot));
 #  endif
     case scm_tc7_dvect:
-      return nprot || SCM_BOOL(SCM_NIMP(prot) && SCM_REALP(prot));
+      return nprot || SCM_BOOL(SCM_REALP(prot));
     case scm_tc7_cvect:
-      return nprot || SCM_BOOL(SCM_NIMP(prot) && SCM_CPLXP(prot));
+      return nprot || SCM_BOOL(SCM_CPLXP(prot));
 # endif
     case scm_tc7_vector:
     case scm_tc7_wvect:
@@ -500,7 +500,7 @@ scm_shap2ra (SCM args, const char *what)
 		      s_bad_spec, what);
 	  s->lbnd = SCM_INUM (SCM_CAR (spec));
 	  sp = SCM_CDR (spec);
-	  SCM_ASSERT (SCM_NIMP (sp) && SCM_CONSP (sp)
+	  SCM_ASSERT (SCM_CONSP (sp)
 		      && SCM_INUMP (SCM_CAR (sp)) && SCM_NULLP (SCM_CDR (sp)),
 		      spec, s_bad_spec, what);
 	  s->ubnd = SCM_INUM (SCM_CAR (sp));
@@ -531,7 +531,7 @@ Creates and returns a uniform array or vector of type corresponding to
 
 	  if (!SCM_UNBNDP (fill))
 	    scm_array_fill_x (answer, fill);
-	  else if (SCM_NIMP (prot) && SCM_SYMBOLP (prot))
+	  else if (SCM_SYMBOLP (prot))
 	    scm_array_fill_x (answer, SCM_MAKINUM (0));
 	  else
 	    scm_array_fill_x (answer, prot);
@@ -540,8 +540,8 @@ Creates and returns a uniform array or vector of type corresponding to
     else
       dims = scm_cons (dims, SCM_EOL);
     }
-  SCM_ASSERT (SCM_NULLP (dims) || (SCM_NIMP (dims) && SCM_CONSP (dims)),
-	  dims, SCM_ARG1, FUNC_NAME);
+  SCM_ASSERT (SCM_NULLP (dims) || SCM_CONSP (dims),
+              dims, SCM_ARG1, FUNC_NAME);
   ra = scm_shap2ra (dims, FUNC_NAME);
   SCM_SETOR_CAR (ra, SCM_ARRAY_CONTIGUOUS);
   s = SCM_ARRAY_DIMS (ra);
@@ -587,7 +587,7 @@ Creates and returns a uniform array or vector of type corresponding to
     {
       scm_array_fill_x (ra, fill);
     }
-  else if (SCM_NIMP (prot) && SCM_SYMBOLP (prot))
+  else if (SCM_SYMBOLP (prot))
     scm_array_fill_x (ra, SCM_MAKINUM (0));
   else
     scm_array_fill_x (ra, prot);
@@ -1327,7 +1327,7 @@ GUILE_PROC(scm_array_set_x, "array-set!", 2, 0, 1,
       ((double *) SCM_CDR (v))[pos] = scm_num2dbl(obj, FUNC_NAME); break;
       break;
     case scm_tc7_cvect:
-      SCM_ASRTGO (SCM_NIMP (obj) && SCM_INEXP (obj), badobj);
+      SCM_ASRTGO (SCM_INEXP (obj), badobj);
       ((double *) SCM_CDR (v))[2 * pos] = SCM_REALPART (obj);
       ((double *) SCM_CDR (v))[2 * pos + 1] = SCM_CPLXP (obj) ? SCM_IMAG (obj) : 0.0;
       break;
@@ -1481,7 +1481,7 @@ returned by @code{(current-input-port)}.")
     port_or_fd = scm_cur_inp;
   else
     SCM_ASSERT (SCM_INUMP (port_or_fd)
-		|| (SCM_NIMP (port_or_fd) && SCM_OPINPORTP (port_or_fd)),
+		|| (SCM_OPINPORTP (port_or_fd)),
 		port_or_fd, SCM_ARG2, FUNC_NAME);
   vlen = SCM_LENGTH (v);
 
@@ -1639,7 +1639,7 @@ omitted, in which case it defaults to the value returned by
     port_or_fd = scm_cur_outp;
   else
     SCM_ASSERT (SCM_INUMP (port_or_fd)
-		|| (SCM_NIMP (port_or_fd) && SCM_OPOUTPORTP (port_or_fd)),
+		|| (SCM_OPOUTPORTP (port_or_fd)),
 		port_or_fd, SCM_ARG2, FUNC_NAME);
   vlen = SCM_LENGTH (v);
 

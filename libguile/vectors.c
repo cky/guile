@@ -137,7 +137,7 @@ SCM_GPROC(s_vector_length, "vector-length", 1, 0, 0, scm_vector_length, g_vector
 SCM
 scm_vector_length(SCM v)
 {
-  SCM_GASSERT1(SCM_NIMP(v) && SCM_VECTORP(v),
+  SCM_GASSERT1(SCM_VECTORP(v),
 	       g_vector_length, v, SCM_ARG1, s_vector_length);
   return SCM_MAKINUM(SCM_LENGTH(v));
 }
@@ -166,7 +166,7 @@ SCM_GPROC(s_vector_ref, "vector-ref", 2, 0, 0, scm_vector_ref, g_vector_ref);
 SCM
 scm_vector_ref (SCM v, SCM k)
 {
-  SCM_GASSERT2 (SCM_NIMP (v) && SCM_VECTORP (v),
+  SCM_GASSERT2 (SCM_VECTORP (v),
 		g_vector_ref, v, k, SCM_ARG1, s_vector_ref);
   SCM_GASSERT2 (SCM_INUMP (k),
 		g_vector_ref, v, k, SCM_ARG2, s_vector_ref);
@@ -180,7 +180,7 @@ SCM_GPROC(s_vector_set_x, "vector-set!", 3, 0, 0, scm_vector_set_x, g_vector_set
 SCM
 scm_vector_set_x(SCM v, SCM k, SCM obj)
 {
-  SCM_GASSERTn (SCM_NIMP(v) && SCM_VECTORP(v),
+  SCM_GASSERTn (SCM_VECTORP(v),
 		g_vector_set_x, SCM_LIST3 (v, k, obj),
 		SCM_ARG1, s_vector_set_x);
   SCM_GASSERTn (SCM_INUMP(k),

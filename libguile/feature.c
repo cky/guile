@@ -114,7 +114,7 @@ static SCM
 make_hook (SCM name, SCM n_args, const char *subr)
 {
   int n;
-  SCM_ASSERT (SCM_FALSEP (name) || (SCM_NIMP (name) && SCM_SYMBOLP (name)),
+  SCM_ASSERT (SCM_FALSEP (name) || (SCM_SYMBOLP (name)),
 	      name,
 	      SCM_ARG1,
 	      subr);
@@ -204,7 +204,7 @@ GUILE_PROC (scm_hook_p, "hook?", 1, 0, 0,
 "")
 #define FUNC_NAME s_scm_hook_p
 {
-  return SCM_BOOL(SCM_NIMP (x) && SCM_HOOKP (x));
+  return SCM_BOOL(SCM_HOOKP (x));
 }
 #undef FUNC_NAME
 

@@ -114,7 +114,7 @@ GUILE_PROC(scm_string, "string", 0, 0, 1,
     for (len = 0, s = chrs; s != SCM_EOL; s = SCM_CDR (s))
       if (SCM_ICHRP (SCM_CAR (s)))
 	len += 1;
-      else if (SCM_NIMP (SCM_CAR (s)) && SCM_ROSTRINGP (SCM_CAR (s)))
+      else if (SCM_ROSTRINGP (SCM_CAR (s)))
 	len += SCM_ROLENGTH (SCM_CAR (s));
       else
 	{

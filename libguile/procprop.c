@@ -116,7 +116,7 @@ scm_i_procedure_arity (SCM proc)
       proc = SCM_CAR (SCM_CODE (proc));
       if (SCM_IMP (proc))
 	break;
-      while (SCM_NIMP (proc) && SCM_CONSP (proc))
+      while (SCM_CONSP (proc))
 	{
 	  ++a;
 	  proc = SCM_CDR (proc);
@@ -169,7 +169,7 @@ GUILE_PROC(scm_procedure_properties, "procedure-properties", 1, 0, 0,
 {
   SCM_VALIDATE_PROC(1,proc);
   return scm_acons (scm_sym_arity, scm_i_procedure_arity (proc),
-		    SCM_PROCPROPS (SCM_NIMP (proc) && SCM_CLOSUREP (proc)
+		    SCM_PROCPROPS (SCM_CLOSUREP (proc)
 				   ? proc
 				   : scm_stand_in_scm_proc (proc)));
 }
@@ -180,7 +180,7 @@ GUILE_PROC(scm_set_procedure_properties_x, "set-procedure-properties!", 2, 0, 0,
 "Set @var{obj}'s property list to @var{alist}.")
 #define FUNC_NAME s_scm_set_procedure_properties_x
 {
-  if (!(SCM_NIMP (proc) && SCM_CLOSUREP (proc)))
+  if (!SCM_CLOSUREP (proc))
     proc = scm_stand_in_scm_proc(proc);
   SCM_VALIDATE_CLOSURE(1,proc);
   SCM_SETPROCPROPS (proc, new_val);
@@ -203,7 +203,7 @@ GUILE_PROC(scm_procedure_property, "procedure-property", 2, 0, 0,
     }
   SCM_VALIDATE_PROC(1,p);
   assoc = scm_sloppy_assq (k,
-			   SCM_PROCPROPS (SCM_NIMP (p) && SCM_CLOSUREP (p)
+			   SCM_PROCPROPS (SCM_CLOSUREP (p)
 					  ? p
 					  : scm_stand_in_scm_proc (p)));
   return (SCM_NIMP (assoc) ? SCM_CDR (assoc) : SCM_BOOL_F);
@@ -217,7 +217,7 @@ GUILE_PROC(scm_set_procedure_property_x, "set-procedure-property!", 3, 0, 0,
 #define FUNC_NAME s_scm_set_procedure_property_x
 {
   SCM assoc;
-  if (!(SCM_NIMP (p) && SCM_CLOSUREP (p)))
+  if (!SCM_CLOSUREP (p))
     p = scm_stand_in_scm_proc(p);
   SCM_VALIDATE_CLOSURE(1,p);
   if (k == scm_sym_arity)

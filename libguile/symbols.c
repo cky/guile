@@ -480,7 +480,7 @@ table; instead, simply return @code{#f}.")
   SCM_VALIDATE_ROSTRING(2,s);
   SCM_ASSERT((o == SCM_BOOL_F)
 	     || (o == SCM_BOOL_T)
-	     || (SCM_NIMP(o) && SCM_VECTORP(o)),
+	     || (SCM_VECTORP(o)),
 	     o, SCM_ARG1, FUNC_NAME);
 
   softness = ((softp != SCM_UNDEFINED) && (softp != SCM_BOOL_F));
