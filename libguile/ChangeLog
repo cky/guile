@@ -1,3 +1,26 @@
+2000-08-09  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
+
+	The following changes are intended to ensure that struct instances
+	are freed before their vtables.  It's optimized for the most
+	common case, which is freeing of struct instances.
+
+	* gc.c (scm_gc_mark, scm_gc_sweep): Remove vcell = 1 magic.
+	(scm_structs_to_free): New variable.
+	(scm_gc_sweep): Hook up structs to free on the scm_structs_to_free
+	chain.
+
+	* struct.h (SCM_STRUCT_GC_CHAIN, SCM_SET_STRUCT_GC_CHAIN): New
+	macros.
+	(scm_structs_to_free, scm_struct_prehistory): Declare.
+
+	* struct.c (scm_make_struct, scm_make_vtable_vtable): Structs
+	handles are now double cells; Initialize SCM_STRUCT_GC_CHAIN to
+	0.
+	(scm_struct_gc_init, scm_free_structs): New GC C hooks.
+	(scm_struct_prehistory): Install them.
+
+	* init.c (scm_boot_guile_1): Call scm_struct_prehistory.
+
 2000-08-06  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* read.c (scm_flush_ws): Include filename in error message when it
