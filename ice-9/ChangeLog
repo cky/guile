@@ -1,3 +1,7 @@
+1998-07-28  Jim Blandy  <jimb@totoro.red-bean.com>
+
+	* getopt-gnu-style.scm: New file.  (Thanks to Russ McManus.)
+
 1998-07-26  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	* Makefile.in Rebuilt, for config changes in parent dir.

@@ -101,6 +101,34 @@ Add STRING as the most recent line in the history used by the READLINE
 command.  READLINE does not add lines to the history itself; you must
 call ADD-HISTORY to make previous input available to the user.
 
+** New module (ice-9 getopt-gnu-style): Parse command-line arguments.
+
+This module provides some simple argument parsing.  It exports one
+function:
+
+Function: getopt-gnu-style ARG-LS
+    Parse a list of program arguments into an alist of option
+    descriptions.
+
+    Each item in the list of program arguments is examined to see if
+    it meets the syntax of a GNU long-named option.  An argument like
+    `--MUMBLE' produces an element of the form (MUMBLE . #t) in the
+    returned alist, where MUMBLE is a keyword object with the same
+    name as the argument.  An argument like `--MUMBLE=FROB' produces
+    an element of the form (MUMBLE . FROB), where FROB is a string.
+
+    As a special case, the returned alist also contains a pair whose
+    car is the symbol `rest'.  The cdr of this pair is a list
+    containing all the items in the argument list that are not options
+    of the form mentioned above.
+
+    The argument `--' is treated specially: all items in the argument
+    list appearing after such an argument are not examined, and are
+    returned in the special `rest' list.
+
+    This function does not parse normal single-character switches.
+    You will need to parse them out of the `rest' list yourself.
+
 ** macro-eval! is removed.  Use local-eval instead.
 
 ** Some magic has been added to the printer to better handle user
