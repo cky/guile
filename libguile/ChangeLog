@@ -1,3 +1,14 @@
+1999-07-29  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* eval.h: Added prototypes for multi language support functions.
+
+	* eval.c (SCM_IM_DISPATCH, SCM_IM_HASH_DISPATCH): Don't use
+	improper lists in the low-level representation, since that will
+	cause a begin to be prepended at macro expansion.
+
+	* eval.c, tags.h, print.c (SCM_IM_SLOT_REF, SCM_IM_SLOT_SET_X):
+	New isym operations.
+
 1999-07-27  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* Makefile.am (EXTRA_libguile_la_SOURCES): Added lang.c.
