@@ -1,7 +1,7 @@
 /* classes: h_files */
 
-#ifndef SSCM_IMPOSH
-#define SSCM_IMPOSH
+#ifndef SIMPOSH
+#define SIMPOSH
 /*	Copyright (C) 1995,1996 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
@@ -64,4 +64,4 @@ extern void scm_init_simpos ();
 
 
 
-#endif  /* SSCM_IMPOSH */
+#endif  /* SIMPOSH */

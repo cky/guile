@@ -71,9 +71,9 @@ SCM scm_bad_throw_vcell;
 #define JBJMPBUF(O) ((jmp_buf*)SCM_CDR (O) )
 #define SETJBJMPBUF SCM_SETCDR
 #else
-#define JBSCM_DFRAME(O) ((scm_debug_frame*)SCM_CAR (SCM_CDR (O)) )
+#define SCM_JBDFRAME(O) ((scm_debug_frame*)SCM_CAR (SCM_CDR (O)) )
 #define JBJMPBUF(O) ((jmp_buf*)SCM_CDR (SCM_CDR (O)) )
-#define SETJBSCM_DFRAME(O,X) SCM_CAR(SCM_CDR (O)) = (SCM)(X)
+#define SCM_SETJBDFRAME(O,X) SCM_CAR(SCM_CDR (O)) = (SCM)(X)
 #define SETJBJMPBUF(O,X) SCM_SETCDR(SCM_CDR (O), X)
 
 #ifdef __STDC__
@@ -174,7 +174,7 @@ scm_catch (tag, thunk, handler)
   scm_dynwinds = scm_acons (tag, jmpbuf, scm_dynwinds);
   SETJBJMPBUF(jmpbuf, &jbr.buf);
 #ifdef DEBUG_EXTENSIONS
-  SETJBSCM_DFRAME(jmpbuf, last_debug_info_frame);
+  SCM_SETJBDFRAME(jmpbuf, last_debug_info_frame);
 #endif
   if (setjmp (jbr.buf))
     {
@@ -287,7 +287,7 @@ scm_ithrow (key, args, noreturn)
   }
   scm_dowinds (wind_goal, scm_ilength (scm_dynwinds) - scm_ilength (wind_goal));
 #ifdef DEBUG_EXTENSIONS
-  last_debug_info_frame = JBSCM_DFRAME (jmpbuf);
+  last_debug_info_frame = SCM_JBDFRAME (jmpbuf);
 #endif
   longjmp (*JBJMPBUF (jmpbuf), 1);
 }

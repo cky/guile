@@ -225,7 +225,7 @@ taloop:
 	}
       else if (SCM_IFLAGP (exp)
 	       && (SCM_ISYMNUM (exp) < (sizeof scm_isymnames / sizeof (char *))))
-	  scm_gen_puts (scm_regular_string, SCM_ISYMSCM_CHARS (exp), port);
+	  scm_gen_puts (scm_regular_string, SCM_ISYMCHARS (exp), port);
       else if (SCM_ILOCP (exp))
 	{
 	  scm_gen_puts (scm_regular_string, "#@", port);
@@ -296,7 +296,7 @@ taloop:
 	    {
 	      SCM code = SCM_CODE (exp);
 	      exp = scm_unmemocopy (code,
-				    SCM_EXTEND_SCM_ENV (SCM_CAR (code),
+				    SCM_EXTEND_ENV (SCM_CAR (code),
 							SCM_EOL,
 							SCM_ENV (exp)));
 	      scm_iprlist ("#<CLOSURE ", exp, '>', port, writing);

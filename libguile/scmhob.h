@@ -131,7 +131,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #define CHCI_LESSP(x,y) ((upcase[SCM_ICHR(x)] < upcase[SCM_ICHR(y)]) ? SCM_BOOL_T : SCM_BOOL_F)
 #define CHCI_LEQP(x,y) ((upcase[SCM_ICHR(x)] <= upcase[SCM_ICHR(y)]) ? SCM_BOOL_T : SCM_BOOL_F)
 #define CHAR_ALPHAP(chr) ((isascii(SCM_ICHR(chr)) && isalpha(SCM_ICHR(chr))) ? SCM_BOOL_T : SCM_BOOL_F)
-#define CHAR_SCM_NUMP(chr) ((isascii(SCM_ICHR(chr)) && isdigit(SCM_ICHR(chr))) ? SCM_BOOL_T : SCM_BOOL_F)
+#define SCM_CHAR_NUMP(chr) ((isascii(SCM_ICHR(chr)) && isdigit(SCM_ICHR(chr))) ? SCM_BOOL_T : SCM_BOOL_F)
 #define CHAR_WHITEP(chr) ((isascii(SCM_ICHR(chr)) && isspace(SCM_ICHR(chr))) ? SCM_BOOL_T : SCM_BOOL_F)
 #define CHAR_UPPERP(chr) ((isascii(SCM_ICHR(chr)) && isupper(SCM_ICHR(chr))) ? SCM_BOOL_T : SCM_BOOL_F)
 #define CHAR_LOWERP(chr) ((isascii(SCM_ICHR(chr)) && islower(SCM_ICHR(chr))) ? SCM_BOOL_T : SCM_BOOL_F)
@@ -139,9 +139,9 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #define INT2CHAR(n) SCM_MAKICHR(SCM_INUM(n))
 #define CHAR_UPCASE(chr) SCM_MAKICHR(upcase[SCM_ICHR(chr)])
 #define CHAR_DOWNCASE(chr) SCM_MAKICHR(downcase[SCM_ICHR(chr)])
-#define ST_SCM_LENGTH(str) SCM_MAKINUM(SCM_LENGTH(str))
+#define ST_LENGTH(str) SCM_MAKINUM(SCM_LENGTH(str))
 #define ST_REF(str,k) SCM_MAKICHR(SCM_CHARS(str)[SCM_INUM(k)])
-#define VECTOR_SCM_LENGTH(v)  SCM_MAKINUM(SCM_LENGTH(v))
+#define VECTOR_LENGTH(v)  SCM_MAKINUM(SCM_LENGTH(v))
 
 #ifdef SCM_FLOATS
 #include <math.h>

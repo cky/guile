@@ -97,10 +97,10 @@
 
 /* SCM_FIXABLE is non-0 if its long argument can be encoded in an SCM_INUM.
  */
-#define SCM_POSSCM_FIXABLE(n) ((n) <= SCM_MOST_POSITIVE_FIXNUM)
-#define SCM_NEGSCM_FIXABLE(n) ((n) >= SCM_MOST_NEGATIVE_FIXNUM)
-#define SCM_UNEGSCM_FIXABLE(n) ((n) <= -SCM_MOST_NEGATIVE_FIXNUM)
-#define SCM_FIXABLE(n) (SCM_POSSCM_FIXABLE(n) && SCM_NEGSCM_FIXABLE(n))
+#define SCM_POSFIXABLE(n) ((n) <= SCM_MOST_POSITIVE_FIXNUM)
+#define SCM_NEGFIXABLE(n) ((n) >= SCM_MOST_NEGATIVE_FIXNUM)
+#define SCM_UNEGFIXABLE(n) ((n) <= -SCM_MOST_NEGATIVE_FIXNUM)
+#define SCM_FIXABLE(n) (SCM_POSFIXABLE(n) && SCM_NEGFIXABLE(n))
 
 /* SCM_INTBUFLEN is the maximum number of characters neccessary for the
  * printed or scm_string representation of an exact immediate.
@@ -167,7 +167,7 @@
 # define SCM_DIGSPERLONG ((scm_sizet)((sizeof(long)*SCM_CHAR_BIT+SCM_BITSPERDIG-1)/SCM_BITSPERDIG))
 # define SCM_DIGSPERLONGLONG ((scm_sizet)((sizeof(long long)*SCM_CHAR_BIT+SCM_BITSPERDIG-1)/SCM_BITSPERDIG))
 # define SCM_BIGUP(x) ((unsigned long)(x) << SCM_BITSPERDIG)
-# define SCM_LONGLONGSCM_BIGUP(x) ((ulong_long)(x) << SCM_BITSPERDIG)
+# define SCM_LONGLONGBIGUP(x) ((ulong_long)(x) << SCM_BITSPERDIG)
 # define SCM_BIGDN(x) ((x) >> SCM_BITSPERDIG)
 # define SCM_BIGLO(x) ((x) & (SCM_BIGRAD-1))
 #endif /* def BIGNUMS */
@@ -177,7 +177,7 @@
  * prototypes to compile with conditionalization.
  */
 # define SCM_BIGDIG unsigned short
-# define NO_SCM_BIGDIG
+# define SCM_NO_BIGDIG
 # ifndef SCM_FLOATS
 #  define SCM_INUMS_ONLY
 # endif /* ndef SCM_FLOATS */

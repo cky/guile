@@ -431,7 +431,7 @@ enum scm_tags
 /* SCM_IFLAGP tests for ISPCSYM, ISYM and IFLAG */
 #define SCM_IFLAGP(n) 		((0x87 & (int)(n))==4)
 #define SCM_ISYMNUM(n) 		((int)((n)>>9))
-#define SCM_ISYMSCM_CHARS(n) 	(scm_isymnames[SCM_ISYMNUM(n)])
+#define SCM_ISYMCHARS(n) 	(scm_isymnames[SCM_ISYMNUM(n)])
 #define SCM_MAKSPCSYM(n) 	(((n)<<9)+((n)<<3)+4L)
 #define SCM_MAKISYM(n) 		(((n)<<9)+0x74L)
 #define SCM_MAKIFLAG(n) 	(((n)<<9)+0x174L)

@@ -291,7 +291,7 @@ scm_intern_obarray_soft (name, len, obarray, softness)
   lsym = scm_makfromstr (name, len, SCM_SYMBOL_SLOTS);
 
   SCM_SETLENGTH (lsym, (long) len, scm_tc7_msymbol);
-  SCM_SYMBOL_MULTI_BYTE_SCM_STRINGP (lsym) = SCM_BOOL_F;
+  SCM_SYMBOL_MULTI_BYTE_STRINGP (lsym) = SCM_BOOL_F;
   SCM_SYMBOL_HASH (lsym) = scm_hash;
   if (obarray == SCM_BOOL_F)
     {
@@ -446,9 +446,9 @@ scm_string_to_symbol(s)
   if (SCM_TYP7 (answer) == scm_tc7_msymbol)
     {
       if (SCM_REGULAR_STRINGP (s))
-	SCM_SYMBOL_MULTI_BYTE_SCM_STRINGP (answer) = SCM_BOOL_F;
+	SCM_SYMBOL_MULTI_BYTE_STRINGP (answer) = SCM_BOOL_F;
       else
-	SCM_SYMBOL_MULTI_BYTE_SCM_STRINGP (answer) = SCM_BOOL_T;
+	SCM_SYMBOL_MULTI_BYTE_STRINGP (answer) = SCM_BOOL_T;
     }
   return answer;
 }
@@ -488,9 +488,9 @@ scm_string_to_obarray_symbol(o, s, softp)
   if (SCM_TYP7 (s) == scm_tc7_msymbol)
     {
       if (SCM_REGULAR_STRINGP (s))
-	SCM_SYMBOL_MULTI_BYTE_SCM_STRINGP (answer) = SCM_BOOL_F;
+	SCM_SYMBOL_MULTI_BYTE_STRINGP (answer) = SCM_BOOL_F;
       else
-	SCM_SYMBOL_MULTI_BYTE_SCM_STRINGP (answer) = SCM_BOOL_T;
+	SCM_SYMBOL_MULTI_BYTE_STRINGP (answer) = SCM_BOOL_T;
     }
   return answer;
 }
@@ -678,7 +678,7 @@ msymbolize (s)
   string = scm_makfromstr (SCM_CHARS (s), SCM_LENGTH (s), SCM_SYMBOL_SLOTS);
   SCM_SETCHARS (s, SCM_CHARS (string));
   SCM_SETLENGTH (s, SCM_LENGTH (s), scm_tc7_msymbol);
-  SCM_SYMBOL_MULTI_BYTE_SCM_STRINGP (s) = SCM_BOOL_F;
+  SCM_SYMBOL_MULTI_BYTE_STRINGP (s) = SCM_BOOL_F;
   SCM_CDR (string) = SCM_EOL;
   SCM_CAR (string) = SCM_EOL;
 }

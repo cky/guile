@@ -61,7 +61,7 @@ extern int scm_symhash_dim;
 #define SCM_SYMBOL_FUNC(X) (SCM_SLOTS(X)[0])
 #define SCM_SYMBOL_PROPS(X) (SCM_SLOTS(X)[1])
 #define SCM_SYMBOL_HASH(X) (*(unsigned long*)(&SCM_SLOTS(X)[2]))
-#define SCM_SYMBOL_MULTI_BYTE_SCM_STRINGP(X) (*(unsigned long*)(&SCM_SLOTS(X)[3]))
+#define SCM_SYMBOL_MULTI_BYTE_STRINGP(X) (*(unsigned long*)(&SCM_SLOTS(X)[3]))
 
 #define SCM_ROSTRINGP(x) ((SCM_TYP7SD(x)==scm_tc7_string) || (SCM_TYP7S(x) == scm_tc7_ssymbol))
 #define SCM_ROCHARS(x) ((SCM_TYP7(x) == scm_tc7_substring) \
