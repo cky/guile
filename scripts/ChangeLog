@@ -1,3 +1,10 @@
+2004-11-09  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* snarf-check-and-output-texi (process-multiline-directive): Allow
+	the fname attribute to a sequence of strings and append them all
+	to form the fname.  This is needed for string literals like
+	"u8""vector?".
+
 2004-09-08  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* Makefile.am (scripts_sources): Added snarf-guile-m4-docs.
