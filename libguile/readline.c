@@ -50,11 +50,17 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 
+#include <sys/time.h>
+#include "iselect.h"
+
+
 scm_option scm_readline_opts[] = {
   { SCM_OPTION_BOOLEAN, "history-file", 1,
     "Use history file." },
   { SCM_OPTION_INTEGER, "history-length", 200,
-    "History length." }
+    "History length." },
+  { SCM_OPTION_INTEGER, "bounce-parens", 500,
+    "Time (ms) to show matching opening parenthesis (0 = off)."}
 };
 
 extern void stifle_history (int max);
@@ -155,9 +161,9 @@ redisplay ()
 
 SCM_PROC (s_readline, "readline", 0, 4, 0, scm_readline);
 
-int in_readline = 0;
+static int in_readline = 0;
 #ifdef USE_THREADS
-scm_mutex_t reentry_barrier_mutex;
+static scm_mutex_t reentry_barrier_mutex;
 #endif
 
 static void
@@ -360,6 +366,94 @@ completion_function (char *text, int continuep)
     }
 }
 
+/*Bouncing parenthesis (reimplemented by GH, 11/23/98, since readline is strict gpl)*/
+
+static void match_paren(int x, int k);
+static int find_matching_paren(int k);
+static void init_bouncing_parens();
+
+static void
+init_bouncing_parens()
+{
+  if(strncmp(rl_get_keymap_name(rl_get_keymap()), "vi", 2)) {
+    rl_bind_key(')', match_paren);
+    rl_bind_key(']', match_paren);
+    rl_bind_key('}', match_paren);
+  }
+}
+
+static int
+find_matching_paren(int k)
+{
+  register int i;
+  register char c = 0;
+  int end_parens_found = 0;
+
+  /* Choose the corresponding opening bracket.  */
+  if (k == ')') c = '(';
+  else if (k == ']') c = '[';
+  else if (k == '}') c = '{';
+
+  for (i=rl_point-2; i>=0; i--)
+    {
+      /* Is the current character part of a character literal?  */
+      if (i - 2 >= 0
+	  && rl_line_buffer[i - 1] == '\\'
+	  && rl_line_buffer[i - 2] == '#')
+	;
+      else if (rl_line_buffer[i] == k)
+	end_parens_found++;
+      else if (rl_line_buffer[i] == '"')
+	{
+	  /* Skip over a string literal.  */
+	  for (i--; i >= 0; i--)
+	    if (rl_line_buffer[i] == '"'
+		&& ! (i - 1 >= 0
+		      && rl_line_buffer[i - 1] == '\\'))
+	      break;
+	}
+      else if (rl_line_buffer[i] == c)
+	{
+	  if (end_parens_found==0) return i;
+	  else --end_parens_found;
+	}
+    }
+  return -1;
+}
+
+static void
+match_paren(int x, int k)
+{
+  int tmp;
+  fd_set readset;
+  struct timeval timeout;
+  
+  rl_insert(x, k);
+  if (!SCM_READLINE_BOUNCE_PARENS)
+    return;
+
+  /* Did we just insert a quoted paren?  If so, then don't bounce.  */
+  if (rl_point - 1 >= 1
+      && rl_line_buffer[rl_point - 2] == '\\')
+    return;
+
+  tmp = 1000 * SCM_READLINE_BOUNCE_PARENS;
+  timeout.tv_sec = tmp / 1000000;
+  timeout.tv_usec = tmp % 1000000;
+  FD_ZERO(&readset);
+  FD_SET(fileno(rl_instream), &readset);
+  
+  if(rl_point > 1) {
+    tmp = rl_point;
+    rl_point = find_matching_paren(k);
+    if(rl_point > -1) {
+      rl_redisplay();
+      scm_internal_select(1, &readset, NULL, NULL, &timeout);
+    }
+    rl_point = tmp;
+  }
+}
+
 
 void
 scm_init_readline ()
@@ -377,6 +471,7 @@ scm_init_readline ()
   scm_init_opts (scm_readline_options,
 		 scm_readline_opts,
 		 SCM_N_READLINE_OPTIONS);
+  init_bouncing_parens();
   scm_add_feature ("readline");
 }
 
