@@ -20,6 +20,8 @@
 #include <stdio.h>
 #include <assert.h>
 
+#if SCM_ENABLE_DISCOURAGED == 1
+
 SCM out_of_range_handler (void *data, SCM key, SCM args);
 SCM call_num2long_long_body (void *data);
 SCM call_num2ulong_long_body (void *data);
@@ -147,3 +149,13 @@ main (int argc, char *argv[])
   test_ulong_long ();
   return 0;
 }
+
+#else  /* SCM_ENABLE_DISCOURAGED == 0 */
+
+int
+main (int argc, char *argv[])
+{
+  return 0;
+}
+
+#endif /* SCM_ENABLE_DISCOURAGED == 0 */
