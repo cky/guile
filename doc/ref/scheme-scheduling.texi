@@ -445,7 +445,7 @@ This data type represents a thread, to be used with scm_thread_create,
 etc.
 @end deftp
 
-@deftypefun {C Function} int scm_thread_create (scm_t_thread *t, void (*proc)(void *), void *data)
+@deftypefn {C Function} int scm_thread_create (scm_t_thread *t, void (*proc)(void *), void *data)
 Create a new thread that will start by calling @var{proc}, passing it
 @var{data}.  A handle for the new thread is stored in @var{t}, which
 must be non-NULL.  The thread terminated when @var{proc} returns.
@@ -453,121 +453,121 @@ When the thread has not been detached, its handle remains valid after
 is has terminated so that it can be used with @var{scm_thread_join},
 for example.  When it has been detached, the handle becomes invalid as
 soon as the thread terminates.
-@end deftypefun
+@end deftypefn
 
-@deftypefun {C Function} void scm_thread_detach (scm_t_thread t)
+@deftypefn {C Function} void scm_thread_detach (scm_t_thread t)
 Detach the thread @var{t}.  See @code{scm_thread_create}.
-@end deftypefun
+@end deftypefn
 
-@deftypefun {C Function} void scm_thread_join (scm_t_thread t)
+@deftypefn {C Function} void scm_thread_join (scm_t_thread t)
 Wait for thread @var{t} to terminate.  The thread must not have been
 detached at the time that @code{scm_thread_join} is called, but it
 might have been detached by the time it terminates.
-@end deftypefun
+@end deftypefn
 
-@deftypefun {C Function} scm_t_thread scm_thread_self ()
+@deftypefn {C Function} scm_t_thread scm_thread_self ()
 Return the handle of the calling thread.
-@end deftypefun
+@end deftypefn
 
 @deftp {C Data Type} scm_t_mutex
 This data type represents a mutex, to be used with scm_mutex_init,
 etc.
 @end deftp
 
-@deftypefun {C Function} void scm_mutex_init (scm_t_mutex *m)
+@deftypefn {C Function} void scm_mutex_init (scm_t_mutex *m)
 Initialize the mutex structure pointed to by @var{m}.
-@end deftypefun
+@end deftypefn
 
-@deftypefun {C Function} void scm_mutex_destroy (scm_t_mutex *m)
+@deftypefn {C Function} void scm_mutex_destroy (scm_t_mutex *m)
 Deallocate all resources associated with @var{m}.
-@end deftypefun
+@end deftypefn
 
-@deftypefun {C Function} void scm_mutex_lock (scm_t_mutex *m)
+@deftypefn {C Function} void scm_mutex_lock (scm_t_mutex *m)
 Lock the mutex @var{m}.  When it is already locked by a different
 thread, wait until it becomes available.  Locking a mutex that is
 already locked by the current threads is not allowd and results in
 undefined behavior.  The mutices are not guaranteed to be fair.  That
 is, a thread that attempts a lock after yourself might be granted it
 before you.
-@end deftypefun
+@end deftypefn
 
-@deftypefun {C Function} int scm_mutex_trylock (scm_t_mutex *m)
+@deftypefn {C Function} int scm_mutex_trylock (scm_t_mutex *m)
 Lock @var{m} as with @code{scm_mutex_lock} but don't wait when this
 does succeed immediately.  Returns non-zero when the mutex could in
 fact be locked , and zero when it is already locked by some other
 thread.
-@end deftypefun
+@end deftypefn
 
-@deftypefun {C Function} void scm_mutex_unlock (scm_t_mutex *m)
+@deftypefn {C Function} void scm_mutex_unlock (scm_t_mutex *m)
 Unlock the mutex @var{m}.  The mutex must have been locked by the
 current thread, else the behavior is undefined.
-@end deftypefun
+@end deftypefn
 
 @deftp {C Data Type} scm_t_cond
 This data type represents a condition variable, to be used with
 scm_cond_init, etc.
 @end deftp
 
-@deftypefun {C Function} void scm_cond_init (scm_t_cond *c)
+@deftypefn {C Function} void scm_cond_init (scm_t_cond *c)
 Initialize the mutex structure pointed to by @var{c}.
-@end deftypefun
+@end deftypefn
 
-@deftypefun {C Function} void scm_cond_destroy (scm_t_cond *c)
+@deftypefn {C Function} void scm_cond_destroy (scm_t_cond *c)
 Deallocate all resources associated with @var{c}.
-@end deftypefun
+@end deftypefn
 
-@deftypefun {C Function} void scm_cond_wait (scm_t_cond *c, scm_t_mutex *m)
+@deftypefn {C Function} void scm_cond_wait (scm_t_cond *c, scm_t_mutex *m)
 Wait for @var{c} to be signalled.  While waiting @var{m} is unlocked
 and locked again before @code{scm_cond_wait} returns.
-@end deftypefun
+@end deftypefn
 
-@deftypefun {C Function} void scm_cond_timedwait (scm_t_cond *c, scm_t_mutex *m, timespec *abstime)
+@deftypefn {C Function} void scm_cond_timedwait (scm_t_cond *c, scm_t_mutex *m, timespec *abstime)
 Wait for @var{c} to be signalled as with @code{scm_cond_wait} but
 don't wait longer than the point in time specified by @var{abstime}.
 when the waiting is aborted, zero is returned; non-zero else.
-@end deftypefun
+@end deftypefn
 
-@deftypefun {C Function} void scm_cond_signal (scm_t_cond *c)
+@deftypefn {C Function} void scm_cond_signal (scm_t_cond *c)
 Signal the condition variable @var{c}.  When one or more threads are
 waiting for it to be signalled, select one arbitrarily and let its
 wait succeed.
-@end deftypefun
+@end deftypefn
 
-@deftypefun {C Function} void scm_cond_broadcast (scm_t_cond *c)
+@deftypefn {C Function} void scm_cond_broadcast (scm_t_cond *c)
 Signal the condition variable @var{c}.  When there are threads waiting
 for it to be signalled, wake them all up and make all their waits
 succeed.
-@end deftypefun
+@end deftypefn
 
 @deftp {C Type} scm_t_key
 This type represents a key for a thread-specific value.
 @end deftp
 
-@deftypefun {C Function} void scm_key_create (scm_t_key *keyp)
+@deftypefn {C Function} void scm_key_create (scm_t_key *keyp)
 Create a new key for a thread-specific value.  Each thread has its own
 value associated to such a handle.  The new handle is stored into
 @var{keyp}, which must be non-NULL.
-@end deftypefun
+@end deftypefn
 
-@deftypefun {C Function} void scm_key_delete (scm_t_key key)
+@deftypefn {C Function} void scm_key_delete (scm_t_key key)
 This function makes @var{key} invalid as a key for thread-specific data.
-@end deftypefun
+@end deftypefn
 
-@deftypefun {C Function} void scm_key_setspecific (scm_t_key key, const void *value)
+@deftypefn {C Function} void scm_key_setspecific (scm_t_key key, const void *value)
 Associate @var{value} with @var{key} in the calling thread.
-@end deftypefun
+@end deftypefn
 
-@deftypefun {C Function} int scm_key_getspecific (scm_t_key key)
+@deftypefn {C Function} int scm_key_getspecific (scm_t_key key)
 Return the value currently associated with @var{key} in the calling
 thread.  When @code{scm_key_setspecific} has not yet been called in
 this thread with this key, @code{NULL} is returned.
-@end deftypefun
+@end deftypefn
 
-@deftypefun {C Function} int scm_thread_select (...)
+@deftypefn {C Function} int scm_thread_select (...)
 This function does the same thing as the system's @code{select}
 function, but in a way that is friendly to the thread implementation.
 You should call it in preference to the system @code{select}.
-@end deftypefun
+@end deftypefn
 
 @node Fluids
 @section Fluids
