@@ -128,7 +128,7 @@ scm_i_clear_segment_mark_space (scm_t_heap_segment *seg)
 }
 
 /*
-  Sweep cards from SEG until we've gather THRESHOLD cells
+  Sweep cards from SEG until we've gathered THRESHOLD cells
   
   RETURN:
 

@@ -1,3 +1,9 @@
+2004-09-13  Jan Nieuwenhuizen  <janneke@gnu.org>
+
+	* srfi-13.c (scm_string_contains, s_scm_string_contains_ci):
+	Bugfix: when subtracting unsigned values, make sure that result
+	does not wrap.
+
 2004-09-09  Kevin Ryde  <user42@zip.com.au>
 
 	* filesys.c, stime.c (_POSIX_C_SOURCE): Use this only on hpux, it

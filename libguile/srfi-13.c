@@ -2253,7 +2253,7 @@ SCM_DEFINE (scm_string_contains, "string-contains", 2, 4, 0,
 				   5, start2, cstart2,
 				   6, end2, cend2);
   len2 = cend2 - cstart2;
-  while (cstart1 <= cend1 - len2)
+  while (cstart1 <= cend1 - len2 && cend1 >= len2)
     {
       i = cstart1;
       j = cstart2;
@@ -2299,7 +2299,7 @@ SCM_DEFINE (scm_string_contains_ci, "string-contains-ci", 2, 4, 0,
 				   5, start2, cstart2,
 				   6, end2, cend2);
   len2 = cend2 - cstart2;
-  while (cstart1 <= cend1 - len2)
+  while (cstart1 <= cend1 - len2 && cend1 >= len2)
     {
       i = cstart1;
       j = cstart2;
