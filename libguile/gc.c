@@ -44,6 +44,11 @@
 
 /* #define DEBUGINFO */
 
+/* SECTION: This code is compiled once.
+ */
+
+#ifndef MARK_DEPENDENCIES
+
 
 #include <stdio.h>
 #include "libguile/_scm.h"
@@ -1087,24 +1092,47 @@ scm_igc (const char *what)
 /* {Mark/Sweep}
  */
 
+#define MARK scm_gc_mark
+#define FNAME "scm_gc_mark"
 
+#endif /*!MARK_DEPENDENCIES*/
 
 /* Mark an object precisely.
  */
 void
-scm_gc_mark (SCM p)
-#define FUNC_NAME "scm_gc_mark"
+MARK (SCM p)
+#define FUNC_NAME FNAME
 {
   register long i;
   register SCM ptr;
 
+#ifndef MARK_DEPENDENCIES
+# define RECURSE scm_gc_mark
+#else
+  /* go through the usual marking, but not for self-cycles. */
+# define RECURSE(x) do { if ((x) != p) scm_gc_mark (x); } while (0)
+#endif        
   ptr = p;
+
+#ifdef MARK_DEPENDENCIES
+  goto gc_mark_loop_first_time;
+#endif
 
 gc_mark_loop:
   if (SCM_IMP (ptr))
     return;
 
 gc_mark_nimp:
+  
+#ifdef MARK_DEPENDENCIES
+  if (ptr == p)
+    return;
+
+  scm_gc_mark (ptr);
+
+gc_mark_loop_first_time:
+#endif
+  
   if (!SCM_CELLP (ptr))
     SCM_MISC_ERROR ("rogue pointer in heap", SCM_EOL);
 
@@ -1115,10 +1143,14 @@ gc_mark_nimp:
 
 #endif
 
+#ifndef MARK_DEPENDENCIES
+  
   if (SCM_GCMARKP (ptr))
     return;
-
+  
   SCM_SETGCMARK (ptr);
+
+#endif
 
   switch (SCM_TYP7 (ptr))
     {
@@ -1128,14 +1160,14 @@ gc_mark_nimp:
 	  ptr = SCM_CAR (ptr);
 	  goto gc_mark_nimp;
 	}
-      scm_gc_mark (SCM_CAR (ptr));
+      RECURSE (SCM_CAR (ptr));
       ptr = SCM_CDR (ptr);
       goto gc_mark_nimp;
     case scm_tcs_cons_imcar:
       ptr = SCM_CDR (ptr);
       goto gc_mark_loop;
     case scm_tc7_pws:
-      scm_gc_mark (SCM_CELL_OBJECT_2 (ptr));
+      RECURSE (SCM_CELL_OBJECT_2 (ptr));
       ptr = SCM_CDR (ptr);
       goto gc_mark_loop;
     case scm_tcs_cons_gloc:
@@ -1153,7 +1185,7 @@ gc_mark_nimp:
 	  {
             /* ptr is a gloc */
             SCM gloc_car = SCM_PACK (word0);
-            scm_gc_mark (gloc_car);
+            RECURSE (gloc_car);
             ptr = SCM_CDR (ptr);
             goto gc_mark_loop;
           }
@@ -1167,8 +1199,8 @@ gc_mark_nimp:
 
             if (vtable_data[scm_struct_i_flags] & SCM_STRUCTF_ENTITY)
               {
-                scm_gc_mark (SCM_PACK (struct_data[scm_struct_i_procedure]));
-                scm_gc_mark (SCM_PACK (struct_data[scm_struct_i_setter]));
+                RECURSE (SCM_PACK (struct_data[scm_struct_i_procedure]));
+                RECURSE (SCM_PACK (struct_data[scm_struct_i_setter]));
               }
             if (len)
               {
@@ -1176,14 +1208,14 @@ gc_mark_nimp:
 
                 for (x = 0; x < len - 2; x += 2, ++struct_data)
                   if (fields_desc[x] == 'p')
-                    scm_gc_mark (SCM_PACK (*struct_data));
+                    RECURSE (SCM_PACK (*struct_data));
                 if (fields_desc[x] == 'p')
                   {
                     if (SCM_LAYOUT_TAILP (fields_desc[x + 1]))
-                      for (x = *struct_data; x; --x)
-                        scm_gc_mark (SCM_PACK (*++struct_data));
+                      for (x = *struct_data++; x; --x, ++struct_data)
+                        RECURSE (SCM_PACK (*struct_data));
                     else
-                      scm_gc_mark (SCM_PACK (*struct_data));
+                      RECURSE (SCM_PACK (*struct_data));
                   }
               }
             /* mark vtable */
@@ -1198,7 +1230,7 @@ gc_mark_nimp:
 	  ptr = SCM_CLOSCAR (ptr);
 	  goto gc_mark_nimp;
 	}
-      scm_gc_mark (SCM_CLOSCAR (ptr));
+      RECURSE (SCM_CLOSCAR (ptr));
       ptr = SCM_CDR (ptr);
       goto gc_mark_nimp;
     case scm_tc7_vector:
@@ -1207,7 +1239,7 @@ gc_mark_nimp:
 	break;
       while (--i > 0)
 	if (SCM_NIMP (SCM_VELTS (ptr)[i]))
-	  scm_gc_mark (SCM_VELTS (ptr)[i]);
+	  RECURSE (SCM_VELTS (ptr)[i]);
       ptr = SCM_VELTS (ptr)[0];
       goto gc_mark_loop;
 #ifdef CCLO
@@ -1219,7 +1251,7 @@ gc_mark_nimp:
 	  {
 	    SCM obj = SCM_CCLO_REF (ptr, j);
 	    if (!SCM_IMP (obj))
-	      scm_gc_mark (obj);
+	      RECURSE (obj);
 	  }
 	ptr = SCM_CCLO_REF (ptr, 0);
 	goto gc_mark_loop;
@@ -1293,13 +1325,13 @@ gc_mark_nimp:
 		   * won't prematurely drop table entries.
 		   */
 		  if (!weak_keys)
-		    scm_gc_mark (SCM_CAR (kvpair));
+		    RECURSE (SCM_CAR (kvpair));
 		  if (!weak_values)
-		    scm_gc_mark (SCM_CDR (kvpair));
+		    RECURSE (SCM_CDR (kvpair));
 		  alist = next_alist;
 		}
 	      if (SCM_NIMP (alist))
-		scm_gc_mark (alist);
+		RECURSE (alist);
 	    }
 	}
       break;
@@ -1314,7 +1346,7 @@ gc_mark_nimp:
       if (!(i < scm_numptob))
 	goto def;
       if (SCM_PTAB_ENTRY(ptr))
-	scm_gc_mark (SCM_FILENAME (ptr));
+	RECURSE (SCM_FILENAME (ptr));
       if (scm_ptobs[i].mark)
 	{
 	  ptr = (scm_ptobs[i].mark) (ptr);
@@ -1351,6 +1383,24 @@ gc_mark_nimp:
     }
 }
 #undef FUNC_NAME
+
+#ifndef MARK_DEPENDENCIES
+
+#undef MARK
+#undef RECURSE
+#undef FNAME
+
+/* And here we define `scm_gc_mark_dependencies', by including this
+ * same file in itself.
+ */
+#define MARK scm_gc_mark_dependencies
+#define FNAME "scm_gc_mark_dependencies"
+#define MARK_DEPENDENCIES
+#include "gc.c"
+#undef MARK_DEPENDENCIES
+#undef MARK
+#undef RECURSE
+#undef FNAME
 
 
 /* Mark a Region Conservatively
@@ -2598,6 +2648,8 @@ scm_init_gc ()
 #include "libguile/gc.x"
 #endif
 }
+
+#endif /*MARK_DEPENDENCIES*/
 
 /*
   Local Variables:

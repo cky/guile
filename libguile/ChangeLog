@@ -1,3 +1,55 @@
+2000-12-24  Michael Livshin  <mlivshin@bigfoot.com>
+
+	* gc.c: (scm_gc_mark_dependencies): new function.  like
+	`scm_gc_mark', but doesn't mark the argument itself.  defined
+	using an arrangement similar to that in eval.c: `scm_gc_mark' and
+	`scm_gc_mark_dependencies' are derived from the same "template"
+	by ugly preprocessor magic.
+
+	* gc.h: added prototype for `scm_gc_mark_dependencies'.
+
+	* init.c (scm_init_guile_1): call the renamed
+	`scm_init_guardians'.
+
+	* guardians.h: changed prototypes for `scm_make_guardian' and
+	`scm_init_guardians'.
+
+	* guardians.c (guardian_t): added new fields `greedy_p' and
+	`listed_p'.
+	(GUARDIAN_P): predicate that says whether its argument is a
+	guardian.
+	(GUARDIAN_GREEDY_P, GUARDIAN_LISTED_P): new predicates.
+	(greedy_guardians, sharing_guardians): new variables.  hold the
+	greedy and sharing live guardian lists, respectively.
+	(first_live_guardian, current_link_field): removed.
+	(greedily_guarded_prop): new variable.  holds the "is greedily
+	guarded" object property.
+	(self_centered_zombies): new variable.  stores guarded objects
+	that are parts of cycles.
+	(add_to_live_list): new function, introduced to decouple marking a
+	guardian and adding it to the live list.
+	(guardian_mark): call `add_to_live_list'.
+	(guardian_print): print whether the guardian is greedy or not.
+	also change "live" and "zombie" to "reachable" and "unreachable"
+	respectively, to be less confusing.
+	(scm_guard): if the guardian is greedy, test whether the object is
+	already greedily marked.  throw an error if so.
+	(scm_get_one_zombie): if the guardian is greedy, remove the
+	"greedily guarded" property from the object.
+	(scm_make_guardian): add a new optional boolean argument which
+	says whether the guardian is greedy or sharing.
+	(guardian_gc_init): init the new live lists.
+	(mark_dependencies): new function.
+	(mark_and_zombify): new function.
+	(guardian_zombify): reworked to support the new guardian
+	semantics.  move some logic to `mark_dependencies' and
+	`mark_and_zombify'.
+	(whine_about_self_centered_zombies): new function.  installed in
+	the `after-gc-hook' to complain about guarded objects which are
+	parts of cycles.
+	(scm_init_guardians): init the new stuff.  renamed from
+	`scm_init_guardian'.
+
 2000-12-23  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* procs.h (scm_subr_entry):  Removed unused struct member

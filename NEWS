@@ -87,6 +87,28 @@ Example:
 
 * Changes to Scheme functions and syntax
 
+** The "guardian" facility has changed (mostly compatibly).
+
+There are now two types of guardians: greedy and sharing.
+
+If you call (make-guardian #t) or without any arguments, you get a
+greedy guardian, else a sharing guardian.
+
+Greedy guardians are made the default because they are more
+"defensive".  You can only greedily guard an object once.  If you
+guard an object more than once, then it is guaranteed that the object
+won't be returned from sharing guardians as long as it is greedily
+guarded.
+
+The second change is making sure that all objects returned by
+guardians are properly live, i.e. it is impossible to return a
+contained object before the containing object.
+
+One incompatible (but probably not very important) change resulting
+from this is that it is no longer possible to guard objects that
+indirectly reference themselves (i.e. are parts of cycles).  If you do
+so accidentally, you'll get a warning.
+
 ** Escape procedures created by call-with-current-continuation now
 accept any number of arguments, as required by R5RS.
 

@@ -50,8 +50,14 @@
  * Programming Language Design and Implementation, June 1993
  * ftp://ftp.cs.indiana.edu/pub/scheme-repository/doc/pubs/guardians.ps.gz
  *
- * Author:      Michael N. Livshin
- * Modified by: Mikael Djurfeldt
+ * By this point, the semantics are actually quite different from
+ * those described in the abovementioned paper.  The semantic changes
+ * are there to improve safety and intuitiveness.  The interface is
+ * still (mostly) the one described by the paper, however.
+ *
+ * Original design:         Mikael Djurfeldt
+ * Original implementation: Michael Livshin
+ * Hacked on since by:      everybody
  */
 
 
@@ -59,8 +65,10 @@
 #include "libguile/ports.h"
 #include "libguile/print.h"
 #include "libguile/smob.h"
-
 #include "libguile/validate.h"
+#include "libguile/properties.h"
+#include "libguile/root.h"
+
 #include "libguile/guardians.h"
 
 
@@ -100,30 +108,63 @@ typedef struct guardian_t
   tconc_t live;
   tconc_t zombies;
   struct guardian_t *next;
+  int greedy_p;
+  int listed_p;
 } guardian_t;
 
+#define GUARDIAN_P(x) SCM_SMOB_PREDICATE(tc16_guardian, x)
 #define GUARDIAN(x) ((guardian_t *) SCM_CELL_WORD_1 (x))
 #define GUARDIAN_LIVE(x) (GUARDIAN (x)->live)
 #define GUARDIAN_ZOMBIES(x) (GUARDIAN (x)->zombies)
 #define GUARDIAN_NEXT(x) (GUARDIAN (x)->next)
+#define GUARDIAN_GREEDY_P(x) (GUARDIAN (x)->greedy_p)
+#define GUARDIAN_LISTED_P(x) (GUARDIAN (x)->listed_p)
 
 
-/* during the gc mark phase, live guardians are linked into a list here. */
-static guardian_t *first_live_guardian = NULL;
-static guardian_t **current_link_field = NULL;
+/* during the gc mark phase, live guardians are linked into the lists
+   here. */
+static guardian_t *greedy_guardians = NULL;
+static guardian_t *sharing_guardians = NULL;
 
+/* greedily guarded objects have this property set, so that we can
+   catch any attempt to greedily guard them again */
+static SCM greedily_guarded_prop = SCM_EOL;
+
+/* this is the list of guarded objects that are parts of cycles.  we
+   don't know in which order to return them from guardians, so we just
+   unguard them and whine about it in after-gc-hook */
+static SCM self_centered_zombies = SCM_EOL;
+
+
+static void
+add_to_live_list (SCM g)
+{
+  if (GUARDIAN_LISTED_P (g))
+    return;
+
+  if (GUARDIAN_GREEDY_P (g))
+    {
+      GUARDIAN_NEXT (g) = greedy_guardians;
+      greedy_guardians = GUARDIAN (g);
+    }
+  else
+    {
+      GUARDIAN_NEXT (g) = sharing_guardians;
+      sharing_guardians = GUARDIAN (g);
+    }
+
+  GUARDIAN_LISTED_P (g) = 1;
+}
 
 /* mark a guardian by adding it to the live guardian list.  */
 static SCM
 guardian_mark (SCM ptr)
 {
-  *current_link_field = GUARDIAN (ptr);
-  current_link_field = &GUARDIAN_NEXT (ptr);
-  GUARDIAN_NEXT (ptr) = NULL;
+  add_to_live_list (ptr);
 
   /* the objects protected by the guardian are not marked here: that
      would prevent them from ever getting collected.  instead marking
-     is done at the end of the mark phase by scm_guardian_zombify.  */
+     is done at the end of the mark phase by guardian_zombify.  */
   return SCM_BOOL_F;
 }
 
@@ -139,11 +180,14 @@ guardian_free (SCM ptr)
 static int
 guardian_print (SCM g, SCM port, scm_print_state *pstate)
 {
-  scm_puts ("#<guardian live objs: ", port);
+  scm_puts ("#<", port);
+  if (GUARDIAN_GREEDY_P (g))
+    scm_puts ("greedy ", port);
+  scm_puts ("guardian (reachable: ", port);
   scm_display (scm_length (SCM_CDR (GUARDIAN_LIVE (g).head)), port);
-  scm_puts (" zombies: ", port);
+  scm_puts (" unreachable: ", port);
   scm_display (scm_length (SCM_CDR (GUARDIAN_ZOMBIES (g).head)), port);
-  scm_puts (">", port);
+  scm_puts (")>", port);
 
   return 1;
 }
@@ -173,8 +217,19 @@ scm_guard (SCM guardian, SCM obj)
     {
       SCM z;
 
-      SCM_NEWCELL (z);
+      if (GUARDIAN_GREEDY_P (guardian))
+        {
+          if (SCM_NFALSEP (scm_primitive_property_ref
+                           (greedily_guarded_prop, obj)))
+            scm_misc_error ("guard",
+                            "object is already greedily guarded", obj);
+          else
+            scm_primitive_property_set_x (greedily_guarded_prop,
+                                          obj, SCM_BOOL_T);
+        }
 
+      SCM_NEWCELL (z);
+      
       /* This critical section barrier will be replaced by a mutex. */
       SCM_DEFER_INTS;
       TCONC_IN (GUARDIAN_LIVE (guardian), obj, z);
@@ -193,12 +248,19 @@ scm_get_one_zombie (SCM guardian)
   if (!TCONC_EMPTYP (GUARDIAN_ZOMBIES (guardian)))
     TCONC_OUT (GUARDIAN_ZOMBIES (guardian), res);
   SCM_ALLOW_INTS;
+
+  if (SCM_NFALSEP (res)
+      && GUARDIAN_GREEDY_P (guardian)
+      && SCM_NFALSEP (scm_primitive_property_ref
+                      (greedily_guarded_prop, res)))
+    scm_primitive_property_del_x (greedily_guarded_prop, res);
+  
   return res;
 }
 
 
-SCM_DEFINE (scm_make_guardian, "make-guardian", 0, 0, 0, 
-            (),
+SCM_DEFINE (scm_make_guardian, "make-guardian", 0, 1, 0, 
+            (SCM greedy_p),
             "Create a new guardian.\n"
 	    "A guardian protects a set of objects from garbage collection,\n"
 	    "allowing a program to apply cleanup or other actions.\n\n"
@@ -212,10 +274,18 @@ SCM_DEFINE (scm_make_guardian, "make-guardian", 0, 0, 0,
 	    "Objects which are returned in this way are removed from\n"
 	    "the guardian.\n\n"
 
+            "make-guardian takes one optional argument that says whether the\n"
+            "new guardian should be greedy or not.  if there is any chance\n"
+            "that any object protected by the guardian may be resurrected,\n"
+            "then make the guardian greedy (this is the default).\n\n"
+
             "See R. Kent Dybvig, Carl Bruggeman, and David Eby (1993)\n"
             "\"Guardians in a Generation-Based Garbage Collector\".\n"
             "ACM SIGPLAN Conference on Programming Language Design\n"
-            "and Implementation, June 1993.")
+            "and Implementation, June 1993.\n\n"
+
+            "(the semantics are slightly different at this point, but the\n"
+            "paper still (mostly) accurately describes the interface).")
 #define FUNC_NAME s_scm_make_guardian
 {
   guardian_t *g = SCM_MUST_MALLOC_TYPE (guardian_t);
@@ -226,6 +296,12 @@ SCM_DEFINE (scm_make_guardian, "make-guardian", 0, 0, 0,
   /* A tconc starts out with one tail pair. */
   g->live.head = g->live.tail = z1;
   g->zombies.head = g->zombies.tail = z2;
+  g->listed_p = 0;
+
+  if (SCM_UNBNDP (greedy_p))
+    g->greedy_p = 1;
+  else
+    g->greedy_p = SCM_NFALSEP (greedy_p);
 
   SCM_NEWSMOB (z, tc16_guardian, g);
 
@@ -238,10 +314,92 @@ SCM_DEFINE (scm_make_guardian, "make-guardian", 0, 0, 0,
 static void *
 guardian_gc_init (void *dummy1, void *dummy2, void *dummy3)
 {
-  current_link_field = &first_live_guardian;
-  first_live_guardian = NULL;
+  greedy_guardians = sharing_guardians = NULL;
 
   return 0;
+}
+
+static void
+mark_dependencies (guardian_t *g)
+{
+  SCM pair, next_pair;
+  SCM *prev_ptr;
+
+  /* scan the live list for unmarked objects, and mark their
+     dependencies */
+  for (pair = g->live.head, prev_ptr = &g->live.head;
+       ! SCM_EQ_P (pair, g->live.tail);
+       pair = next_pair)
+    {
+      SCM obj = SCM_CAR (pair);
+      next_pair = SCM_CDR (pair);
+            
+      if (! SCM_MARKEDP (obj))
+        {
+          /* a candidate for finalizing */
+          scm_gc_mark_dependencies (obj);
+
+          if (SCM_MARKEDP (obj))
+            {
+              /* uh oh.  a cycle.  transfer this object (the
+                 spine cell, to be exact) to
+                 self_centered_zombies, so we'll be able to
+                 complain about it later. */
+              *prev_ptr = next_pair;
+              SCM_SETGCMARK (pair);
+              SCM_SETCDR (pair, SCM_CDR (self_centered_zombies));
+              SCM_SETCDR (self_centered_zombies, pair);
+            }
+          else
+            {
+              /* see if this is a guardian.  if yes, list it (but don't   
+                 mark it yet). */
+              if (GUARDIAN_P (obj))
+                add_to_live_list (obj);
+
+              prev_ptr = SCM_CDRLOC (pair);
+            }
+        }
+    }
+}
+
+static void
+mark_and_zombify (guardian_t *g)
+{
+  SCM tconc_tail = g->live.tail;
+  SCM *prev_ptr = &g->live.head;
+  SCM pair = g->live.head;
+
+  while (! SCM_EQ_P (pair, tconc_tail))
+    {
+      SCM next_pair = SCM_CDR (pair);
+
+      if (SCM_NMARKEDP (SCM_CAR (pair)))
+        {
+          /* got you, zombie! */
+
+          /* out of the live list! */
+          *prev_ptr = next_pair;
+
+          if (g->greedy_p)
+            /* if the guardian is greedy, mark this zombie now.  this
+               way it won't be zombified again this time around. */
+            SCM_SETGCMARK (SCM_CAR (pair));
+
+          /* into the zombie list! */
+          TCONC_IN (g->zombies, SCM_CAR (pair), pair);
+        }
+      else
+        prev_ptr = SCM_CDRLOC (pair);
+
+      pair = next_pair;
+    }
+
+  /* Mark the cells of the live list (yes, the cells in the list, we
+     don't care about objects pointed to by the list cars, since we
+     know they are already marked).  */
+  for (pair = g->live.head; !SCM_NULLP (pair); pair = SCM_CDR (pair))
+    SCM_SETGCMARK (pair);
 }
 
 
@@ -251,83 +409,86 @@ guardian_gc_init (void *dummy1, void *dummy2, void *dummy3)
 static void *
 guardian_zombify (void *dummy1, void *dummy2, void *dummy3)
 {
-  guardian_t *first_guardian;
-  guardian_t **link_field = &first_live_guardian;
+  guardian_t *last_greedy_guardian = NULL;
+  guardian_t *last_sharing_guardian = NULL;
+  guardian_t *first_greedy_guardian = NULL;
+  guardian_t *first_sharing_guardian = NULL;
+  guardian_t *g;
 
-  /* Note that new guardians may be stuck on the end of the live
-     guardian list as we run this loop.  As we move unmarked objects
-     to the zombie list and mark them, we may find some guarded
-     guardians.  The guardian mark function will stick them on the end
-     of this list, so they'll be processed properly.  */
+  /* First, find all newly unreachable objects and mark their
+     dependencies.
+     
+     Note that new guardians may be stuck on the end of the live
+     guardian lists as we run this loop, since guardians might be
+     guarded too.  When we mark a guarded guardian, its mark function
+     sticks in the appropriate live guardian list.  The loop
+     terminates when no new guardians are found. */
 
   do {
-    guardian_t *g;
-    
-    first_guardian = *link_field;
-    link_field = current_link_field;
+    first_greedy_guardian = greedy_guardians;
+    first_sharing_guardian = sharing_guardians;
 
-    /* first, scan all the guardians that are currently known to be live
-       and move their unmarked objects to zombie lists. */
+    for (g = greedy_guardians; g != last_greedy_guardian;
+         g = g->next)
+      mark_dependencies (g);
+    for (g = sharing_guardians; g != last_sharing_guardian;
+         g = g->next)
+      mark_dependencies (g);
 
-    for (g = first_guardian; g; g = g->next)
-      {
-        SCM tconc_tail = g->live.tail;
-        SCM *prev_ptr = &g->live.head;
-        SCM pair = g->live.head;
+    last_greedy_guardian = first_greedy_guardian;
+    last_sharing_guardian = first_sharing_guardian;
+  } while (first_greedy_guardian != greedy_guardians
+           || first_sharing_guardian != sharing_guardians);
 
-        while (! SCM_EQ_P (pair, tconc_tail))
-          {
-            SCM next_pair = SCM_CDR (pair);
+  /* now, scan all the guardians that are currently known to be live
+     and move their unmarked objects to zombie lists. */
 
-            if (SCM_NMARKEDP (SCM_CAR (pair)))
-              {
-                /* got you, zombie! */
+  for (g = greedy_guardians; g; g = g->next)
+    {
+      mark_and_zombify (g);
+      g->listed_p = 0;
+    }
+  for (g = sharing_guardians; g; g = g->next)
+    {
+      mark_and_zombify (g);
+      g->listed_p = 0;
+    }
+  
+  /* Preserve the zombies in their undead state, by marking to prevent
+     collection. */
+  for (g = greedy_guardians; g; g = g->next)
+    scm_gc_mark (g->zombies.head);
+  for (g = sharing_guardians; g; g = g->next)
+    scm_gc_mark (g->zombies.head);
 
-                /* out of the live list! */
-                *prev_ptr = next_pair;
+  return 0;
+}
 
-                /* into the zombie list! */
-                TCONC_IN (g->zombies, SCM_CAR (pair), pair);
-              }
-            else
-              prev_ptr = SCM_CDRLOC (pair);
+static void *
+whine_about_self_centered_zombies (void *dummy1, void *dummy2, void *dummy3)
+{
+  if (! SCM_NULLP (SCM_CDR (self_centered_zombies)))
+    {
+      SCM pair;
+      
+      scm_puts ("** WARNING: the following guarded objects were unguarded due to cycles:",
+                scm_cur_errp);
+      scm_newline (scm_cur_errp);
+      for (pair = SCM_CDR (self_centered_zombies);
+           ! SCM_NULLP (pair); pair = SCM_CDR (pair))
+        {
+          scm_display (SCM_CAR (pair), scm_cur_errp);
+          scm_newline (scm_cur_errp);
+        }
 
-            pair = next_pair;
-          }
-
-        /* Mark the cells of the live list (yes, the cells in the list,
-           even though we don't care about objects pointed to by the list
-           cars, since we know they are already marked).  */
-        for (pair = g->live.head; !SCM_NULLP (pair); pair = SCM_CDR (pair))
-          SCM_SETGCMARK (pair);
-      }
-
-    /* ghouston: Doesn't it seem a bit disturbing that if a zombie
-       is returned to full life after getting returned from the
-       guardian procedure, it may reference objects which are in a
-       guardian's zombie list?  Is it not necessary to move such
-       zombies back to the live list, to avoid allowing the
-       guardian procedure to return an object which is referenced,
-       so not collectable?  The paper doesn't give this
-       impression.
-
-       cmm: the paper does explicitly say that an object that is    
-       guarded more than once should be returned more than once.    
-       I believe this covers the above scenario. */
-
-    /* Preserve the zombies in their undead state, by marking to    
-       prevent collection.  Note that this may uncover zombified    
-       guardians -- if so, they'll be processed in the next loop. */
-    for (g = first_guardian; g != *link_field; g = g->next)
-      scm_gc_mark (g->zombies.head);
-  } while (current_link_field != link_field);
+      SCM_SETCDR (self_centered_zombies, SCM_EOL);
+    }
   
   return 0;
 }
 
-
 void
-scm_init_guardian()
+scm_init_guardians ()
 {
   tc16_guardian = scm_make_smob_type ("guardian", 0);
   scm_set_smob_mark (tc16_guardian, guardian_mark);
@@ -337,6 +498,14 @@ scm_init_guardian()
 
   scm_c_hook_add (&scm_before_mark_c_hook, guardian_gc_init, 0, 0);
   scm_c_hook_add (&scm_before_sweep_c_hook, guardian_zombify, 0, 0);
+
+  greedily_guarded_prop =
+    scm_permanent_object (scm_primitive_make_property (SCM_BOOL_F));
+
+  self_centered_zombies =
+    scm_permanent_object (scm_cons (SCM_UNDEFINED, SCM_EOL));
+  scm_c_hook_add (&scm_after_gc_c_hook,
+                  whine_about_self_centered_zombies, 0, 0);
 
 #ifndef SCM_MAGIC_SNARFER
 #include "libguile/guardians.x"

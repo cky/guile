@@ -338,6 +338,7 @@ extern void scm_alloc_cluster (struct scm_freelist_t *master);
 #endif
 extern void scm_igc (const char *what);
 extern void scm_gc_mark (SCM p);
+extern void scm_gc_mark_dependencies (SCM p);
 extern void scm_mark_locations (SCM_STACKITEM x[], scm_sizet n);
 extern int scm_cellp (SCM value);
 extern void scm_gc_sweep (void);

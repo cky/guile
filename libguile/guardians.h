@@ -46,13 +46,13 @@
 
 #include "libguile/__scm.h"
 
-SCM scm_make_guardian (void);
+SCM scm_make_guardian (SCM exclusive_p);
 
 /* these are to be called from C: */
 void scm_guard (SCM guardian, SCM obj);
 SCM scm_get_one_zombie (SCM guardian);
 
-void scm_init_guardian (void);
+void scm_init_guardians (void);
 
 #endif /* !SCM_GUARDIANH */
 
