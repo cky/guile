@@ -5,6 +5,7 @@ then skipped town for a week.  Mikael Djurfeldt did a fantastic job of
 fixing my mistakes and putting together a new release file.  I'm very
 grateful to Mikael for this; Guile is very lucky to have him.
 
+
 Bug reports and fixes from:
 
    Greg Badros
@@ -27,4 +28,5 @@ Bernard Urban
  Suzuki Toshiya (sort under Suzuki, not Toshiya)
 
 
-Also, thanks to:
+Also, thanks to Tom Tromey for helping Mikael Djurfeldt and me sort
+out some weird automake behavior.
