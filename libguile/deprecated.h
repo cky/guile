@@ -476,6 +476,17 @@ SCM_API SCM SCM_VECTOR_REF (SCM x, size_t idx);
 SCM_API void SCM_VECTOR_SET (SCM x, size_t idx, SCM val);
 SCM_API SCM scm_vector_equal_p (SCM x, SCM y);
 
+typedef scm_i_t_array scm_t_array;
+
+SCM_API int SCM_ARRAYP (SCM a);
+SCM_API size_t SCM_ARRAY_NDIM (SCM a);
+SCM_API int SCM_ARRAY_CONTP (SCM a);
+
+SCM_API scm_t_array *SCM_ARRAY_MEM (SCM a);
+SCM_API SCM SCM_ARRAY_V (SCM a);
+SCM_API size_t SCM_ARRAY_BASE (SCM a);
+SCM_API scm_t_array_dim *SCM_ARRAY_DIMS (SCM a);
+
 void scm_i_init_deprecated (void);
 
 #endif

@@ -1297,6 +1297,66 @@ scm_vector_equal_p (SCM x, SCM y)
   return scm_equal_p (x, y);
 }
 
+int
+SCM_ARRAYP (SCM a)
+{
+  scm_c_issue_deprecation_warning
+    ("SCM_ARRAYP is deprecated.  Use scm_is_array instead.");
+  return SCM_I_ARRAYP(a) || SCM_I_ENCLOSED_ARRAYP(a);
+}
+
+size_t
+SCM_ARRAY_NDIM (SCM a)
+{
+  scm_c_issue_deprecation_warning
+    ("SCM_ARRAY_NDIM is deprecated.  "
+     "Use scm_c_array_rank or scm_array_handle_rank instead.");
+  return scm_c_array_rank (a);
+}
+
+int
+SCM_ARRAY_CONTP (SCM a)
+{
+  scm_c_issue_deprecation_warning
+    ("SCM_ARRAY_CONTP is deprecated.  Do not use it.");
+  return SCM_I_ARRAY_CONTP (a);
+}
+
+scm_t_array *
+SCM_ARRAY_MEM (SCM a)
+{
+  scm_c_issue_deprecation_warning
+    ("SCM_ARRAY_MEM is deprecated.  Do not use it.");
+  return (scm_t_array *)SCM_I_ARRAY_MEM (a);
+}
+
+SCM
+SCM_ARRAY_V (SCM a)
+{
+  /* We could use scm_shared_array_root here, but it is better to move
+     them away from expecting vectors as the basic storage for arrays.
+  */
+  scm_c_issue_deprecation_warning
+    ("SCM_ARRAY_V is deprecated.  Do not use it.");
+  return SCM_I_ARRAY_V (a);
+}
+
+size_t
+SCM_ARRAY_BASE (SCM a)
+{
+  scm_c_issue_deprecation_warning
+    ("SCM_ARRAY_BASE is deprecated.  Do not use it.");
+  return SCM_I_ARRAY_BASE (a);
+}
+
+scm_t_array_dim *
+SCM_ARRAY_DIMS (SCM a)
+{
+  scm_c_issue_deprecation_warning
+    ("SCM_ARRAY_DIMS is deprecated.  Use scm_array_handle_dims instead.");
+  return SCM_I_ARRAY_DIMS (a);
+}
+
 void
 scm_i_init_deprecated ()
 {
