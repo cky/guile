@@ -57,6 +57,14 @@ general rule is that you should be able to check out a working
 directory of Guile from CVS, and then type "configure" and "make",
 without running any other tools.
 
+- (Automake 1.4 only) Be sure to run automake at the top of the tree
+with no arguments.  Do not use `automake Makefile' to regenerate
+specific Makefile.in files, and do not trust the Makefile rules to
+rebuild them when they are out of date.  Automake 1.4 will add
+extraneous rules to the top-level Makefile if you specify specific
+Makefiles to rebuild on the command line.  Running the command
+`autoreconf --force' should take care of everything correctly.
+
 - Make sure your changes compile and work, at least on your own
 machine, before checking them into the main branch of the Guile
 repository.  If you really need to check in untested changes, make a
