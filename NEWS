@@ -55,6 +55,15 @@ Example:
 
 * Changes to the scm_ interface
 
+** New global variable scm_gc_running_p introduced.
+
+Use this variable to find out if garbage collection is being executed.  Up to
+now applications have used scm_gc_heap_lock to test if garbage collection was
+running, which also works because of the fact that up to know only the garbage
+collector has set this variable.  But, this is an implementation detail that
+may change.  Further, scm_gc_heap_lock is not set throughout gc, thus the use
+of this variable is (and has been) not fully safe anyway.
+
 ** Deprecated macros:  SCM_OUTOFRANGE, SCM_NALLOC, SCM_HUP_SIGNAL, 
 SCM_INT_SIGNAL, SCM_FPE_SIGNAL, SCM_BUS_SIGNAL, SCM_SEGV_SIGNAL, 
 SCM_ALRM_SIGNAL, SCM_GC_SIGNAL, SCM_TICK_SIGNAL, SCM_SIG_ORD, 
