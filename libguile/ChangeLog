@@ -1,3 +1,38 @@
+2002-05-06  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* posix.c (scm_putenv): Handle removing variables explicitely by
+	calling unsetenv.
+
+	From John W. Eaton.
+	
+	* numbers.h: Conditionally include floatingpoint.h, ieeefp.h, and
+	nan.h.	Provide declarations for scm_inf_p, scm_nan_p, scn_inf,
+	and scm_nan.
+	* numbers.c: [SCO && ! HAVE_ISNAN] (isnan): New function.
+	[SCO && ! HAVE_ISINF] (isinf): New function.
+	(xisinf, xisnan): New functions.
+	(IS_INF): Delete.
+	(isfinite): Define in terms of xisinf.
+	(scm_inf_p, scm_nan_p): New functions.
+	(guile_Inf, guile_NaN): New file-scope vars.
+	(guile_ieee_init): New function.
+	(scm_inf, scm_nan): New functions.
+	(idbl2str): Handle Inf and NaN.	Remove funny label and
+	corresponding gotos.
+	(ALLOW_DIVIDE_BY_ZERO): New macro.
+	(scm_divide): Allow division by zero to occur if
+	ALLOW_DIVIDE_BY_ZERO is defined.
+	Handle bignums and ints as special cases.
+
+	Additional stuff by me:
+
+	numbers.c (mem2ureal): Recognize "inf.0" and "nan.xxx".
+	(scm_even_p, scm_odd_p): Treat infinity as even and odd.
+	(iflo2str): Don't output a '+' for negative numbers or for Inf and
+	NaN.  They will provide their own sign.
+	(scm_divide): Only allow divides by inexact zeros.  Dividing by
+	exact zeros still signals an errors.
+	
 2002-04-22  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* goops.h (scm_slot_exists_p): Rename from scm_slots_exists_p.
