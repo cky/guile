@@ -64,6 +64,15 @@ The only exceptions are the warnings about variables being clobbered
 by longjmp/vfork in eval.c.  (Tho' if you can figure out how to get
 rid of those, too, I'd be happy.)
 
+Note that the warnings generated vary from one version of GCC to the
+next, and from one architecture to the next (apparently).  To provide
+a concrete common standard, Guile should compile without warnings from
+GCC 2.7.2.3 in a Red Hat 5.0 i386 Linux machine.  Furthermore, each
+developer should pursue any additional warnings noted by on their
+compiler.  This means that people using more stringent compilers will
+have more work to do, and assures that everyone won't switch to the
+most lenient compiler they can find.
+
 - When you make a user-visible change (i.e. one that should be
 documented, and appear in NEWS, put an asterisk in column zero of the
 start of the ChangeLog entry, like so:
