@@ -382,10 +382,10 @@ char scm_charnums[] =
 char *scm_charnames[] =
 {
   "nul","soh","stx","etx","eot","enq","ack","bel",
-   "bs", "ht", "nl", "vt", "np", "cr", "so", "si",
+   "bs", "ht", "newline", "vt", "np", "cr", "so", "si",
   "dle","dc1","dc2","dc3","dc4","nak","syn","etb",
   "can", "em","sub","esc", "fs", "gs", "rs", "us",
-  "space", "newline", "tab", "backspace", "return", "page", "null", "del"};
+  "space", "nl", "tab", "backspace", "return", "page", "null", "del"};
 char scm_charnums[] =
 "\000\001\002\003\004\005\006\007\
 \010\011\012\013\014\015\016\017\
