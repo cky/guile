@@ -2,7 +2,7 @@ Tue Feb  4 16:57:40 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* configure.in: Call AC_FUNC_ALLOCA, to see if we have alloca.
 	* eval.c: Add necessary CPP cruft to support that.
-	* configure, Makefile.in: regenerated.
+	* configure, Makefile.in, scmconfig.h.in: regenerated.
 
 	Change from Thomas Morgan:
 	* procprop.c (scm_procedure_properties): Convert the Scheme
