@@ -1,3 +1,8 @@
+2004-09-28  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* configure.in: Do use AM_GNU_GETTEXT, since gettextize is not run
+	with autoconf 2.59.
+
 2004-09-25  Marius Vollmer  <mvo@zagadka.de>
 
 	* configure.in: Do not use AM_GNU_GETTEXT for now, it causes
