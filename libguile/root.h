@@ -48,6 +48,7 @@
 
 
 #include "libguile/__scm.h"
+#include "libguile/debug.h"
 
 
 
@@ -92,7 +93,11 @@ typedef struct scm_root_state
   SCM dynwinds;
   SCM continuation_stack;
   SCM continuation_stack_ptr;
-
+#ifdef DEBUG_EXTENSIONS
+  /* It is very inefficient to have this variable in the root state. */
+  scm_debug_frame *last_debug_frame;
+#endif
+  
   SCM progargs;			/* vestigial */
   SCM exitval;			/* vestigial */
 
@@ -119,6 +124,9 @@ typedef struct scm_root_state
 #define scm_continuation_stack		(scm_root->continuation_stack)
 #define scm_continuation_stack_ptr	(scm_root->continuation_stack_ptr)
 #define scm_progargs			(scm_root->progargs)
+#ifdef USE_THREADS
+#define scm_last_debug_frame		(scm_root->last_debug_frame)
+#endif
 #define scm_exitval 			(scm_root->exitval)
 #define scm_cur_inp			(scm_root->cur_inp)
 #define scm_cur_outp			(scm_root->cur_outp)
@@ -140,7 +148,8 @@ extern struct scm_root_state *scm_root;
 
 
 extern SCM scm_make_root SCM_P ((SCM parent));
-extern SCM scm_call_with_new_root SCM_P ((SCM thunk, SCM handler));
+extern SCM scm_call_with_dynamic_root SCM_P ((SCM thunk, SCM handler));
+extern SCM scm_apply_with_dynamic_root SCM_P ((SCM proc, SCM a1, SCM args, SCM handler));
 extern SCM scm_call_catching_errors SCM_P ((SCM (*thunk)(), SCM (*err_filter)(), void * closure));
 extern void scm_init_root SCM_P ((void));
 
