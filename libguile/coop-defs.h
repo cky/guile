@@ -3,7 +3,7 @@
 #ifndef COOP_DEFSH
 #define COOP_DEFSH
 
-/*	Copyright (C) 1996, 1997, 1998 Free Software Foundation, Inc.
+/*	Copyright (C) 1996, 1997, 1998, 1999 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -65,6 +65,11 @@
 #include "iselect.h"
 #endif
 
+/* #define GUILE_PTHREAD_COMPAT 1 */
+#ifdef GUILE_PTHREAD_COMPAT
+#include <pthread.h>
+#endif
+
 /* This file is included by threads.h, which, in turn, is included by
    libguile.h while coop-threads.h only is included by
    coop-threads.c. */
@@ -89,6 +94,8 @@ typedef struct coop_t {
   struct coop_t *all_prev;    
 
   void *data;            /* Thread local data */
+  void **specific;	 /* Data associated with keys */
+  int n_keys;		 /* Upper limit for keys on this thread */
   
   void *base;            /* Base of stack */
   void *top;             /* Top of stack */
@@ -109,6 +116,11 @@ typedef struct coop_t {
   time_t wakeup_time;    /* Time to stop sleeping */
 #endif
 
+#ifdef GUILE_PTHREAD_COMPAT
+  pthread_t dummy_thread;
+  pthread_mutex_t dummy_mutex;
+  pthread_cond_t dummy_cond;
+#endif
 } coop_t;
 
 /* A queue is a circular list of threads.  The queue head is a
@@ -131,14 +143,19 @@ typedef struct coop_m {
   coop_q_t waiting;      /* Queue of waiting threads */
 } coop_m;
 
+typedef int coop_mattr;
+
 typedef coop_m scm_mutex_t;
 
 extern int coop_mutex_init (coop_m*);
+extern int coop_new_mutex_init (coop_m*, coop_mattr*);
 extern int coop_mutex_lock (coop_m*);
+extern int coop_mutex_trylock (coop_m*);
 extern int coop_mutex_unlock (coop_m*);
 extern int coop_mutex_destroy (coop_m*);
-#define scm_mutex_init coop_mutex_init
+#define scm_mutex_init coop_new_mutex_init
 #define scm_mutex_lock coop_mutex_lock
+#define scm_mutex_trylock coop_mutex_lock
 #define scm_mutex_unlock coop_mutex_unlock
 #define scm_mutex_destroy coop_mutex_destroy
 
@@ -149,16 +166,37 @@ typedef struct coop_c {
   coop_q_t waiting;      /* Queue of waiting threads */
 } coop_c;
 
+typedef int coop_cattr;
+
 typedef coop_c scm_cond_t;
 
 extern int coop_condition_variable_init (coop_c*);
+extern int coop_new_condition_variable_init (coop_c*, coop_cattr*);
 extern int coop_condition_variable_wait_mutex (coop_c*, coop_m*);
+extern int coop_condition_variable_timed_wait_mutex (coop_c*,
+						     coop_m*,
+						     const struct timespec *abstime);
 extern int coop_condition_variable_signal (coop_c*);
 extern int coop_condition_variable_destroy (coop_c*);
-#define scm_cond_init(cond, attr) coop_condition_variable_init (cond)
+#define scm_cond_init coop_new_condition_variable_init
 #define scm_cond_wait coop_condition_variable_wait_mutex
+#define scm_cond_timedwait coop_condition_variable_timed_wait_mutex
 #define scm_cond_signal coop_condition_variable_signal
+#define scm_cond_broadcast coop_condition_variable_signal /* yes */
 #define scm_cond_destroy coop_condition_variable_destroy
+
+typedef int coop_k;
+
+typedef coop_k scm_key_t;
+
+extern int coop_key_create (coop_k *keyp, void (*destructor) (void *value));
+extern int coop_setspecific (coop_k key, const void *value);
+extern void *coop_getspecific (coop_k key);
+extern int coop_key_delete (coop_k);
+#define scm_key_create coop_key_create
+#define scm_setspecific coop_setspecific
+#define scm_getspecific coop_getspecific
+#define scm_key_delete coop_key_delete
 
 extern coop_t *coop_global_curr;       	/* Currently-executing thread. */
 
@@ -177,6 +215,9 @@ extern size_t scm_thread_count;
    defined in iselect.h.  Basically, we're making at best a flailing
    (and failing) attempt at modularity here, and I don't have time to
    rethink this at the moment.  This code awaits a Hero.  --JimB */
+#ifdef GUILE_ISELECT
+void coop_timeout_qinsert (coop_q_t *, coop_t *);
+#endif
 extern coop_t *coop_next_runnable_thread (void);
 extern coop_t *coop_wait_for_runnable_thread_now (struct timeval *);
 extern coop_t *coop_wait_for_runnable_thread (void);
@@ -225,6 +266,9 @@ do { \
 
 #endif
 
+/* For pthreads, this is a value associated with a specific key.
+ * For coop, we use a special field for increased efficiency.
+ */
 #define SCM_THREAD_LOCAL_DATA (coop_global_curr->data)
 #define SCM_SET_THREAD_LOCAL_DATA(ptr) (coop_global_curr->data = (ptr))
 
