@@ -1,3 +1,21 @@
+2001-05-10  Thien-Thi Nguyen  <ttn@revel.glug.org>
+
+	* boot-9.scm (resolve-module): Abstraction maintenance: Use
+	`module-public-interface'.
+	(resolve-module): Extend to handle selection and renaming in spec.
+	Arg is now `spec' which can be a simple module name (list of symbols)
+	or a interface spec.
+	(symbol-prefix-proc): New proc.
+	(%autoloader-developer-mode): Delete.
+	(process-define-module): Use "define-module" in error messages
+	instead of "defmodule".  Factor error into internal proc.
+	Rewrite `use-module' and `use-syntax' handlers.
+	Replace some single-arm `if-not' constructs w/ `or'.
+	(process-use-modules): Arg is now `module-interface-specs',
+	which is passed through to `resolve-interface' as before; nfc.
+	(named-module-use!, top-repl): Abstraction maintenance: Use
+	`provided?'.
+
 2001-05-06  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
 	* q.scm, runq.scm, getopt-long.scm: Update copyright.
