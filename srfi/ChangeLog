@@ -1,3 +1,7 @@
+2005-03-14  Kevin Ryde  <user42@zip.com.au>
+
+	* srfi-1.scm, srfi-1.c, srfi-1.h (find, find-tail): Rewrite in C.
+
 2005-03-13  Kevin Ryde  <user42@zip.com.au>
 
 	* srfi-1.scm (lset-union): Call `=' procedure with args in the order
