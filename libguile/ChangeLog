@@ -1,5 +1,13 @@
 2002-12-10  Mikael Djurfeldt  <mdj@kvast.blakulla.net>
 
+	* gc-malloc.c (malloc_mutex): New mutex.
+	(scm_gc_init_malloc): Initialize it.
+	(scm_realloc): Serialize call to realloc
+	(scm_calloc): Same for calloc.
+	Thanks to Wolfgang Jaehrling!
+	(Now we have to make sure all calls to malloc/realloc are made
+	through scm_malloc.)
+
 	* threads.c (really_launch): Release heap (to prevent deadlock).
 	(create_thread): Release heap before locking thread admin mutex.
 
