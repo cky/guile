@@ -82,7 +82,7 @@ for module (a b c) is expected to be in the file
 
 (defvar docstring-snarfed-roots (mapcar
                                  #'(lambda (frag)
-                                     (expand-file-name frag guile-core-dir))
+                                     (expand-file-name frag guile-build-dir))
                                  '("libguile" "ice-9" "oop"))
   "*List of possible root directories for snarfed docstring files.
 For each entry in this list, the snarfed docstring file for module (a
