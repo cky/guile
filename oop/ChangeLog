@@ -1,3 +1,9 @@
+2001-04-28  Rob Browning  <rlb@cs.utexas.edu>
+
+	* goops/save.scm (write-readably): rename list* to cons*.
+
+	* goops.scm (method): rename list* to cons*.
+
 2001-04-10  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
 
 	* goops/Makefile.am, goops/goopscore.scm: Reverted changes of
