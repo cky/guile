@@ -1,3 +1,20 @@
+2003-10-18  Kevin Ryde  <user42@zip.com.au>
+
+	* gh.texi (Calling Scheme procedures from C, scm transition summary):
+	Refer to scm_list_n, not the old name scm_listify.
+	(scm transition summary): For gh_apply, recommend scm_apply_0, which
+	is now documented.
+
+	* gh.texi (Defining new Scheme procedures in C): Don't use
+	@strong{Note:}, latest makeinfo will complain it looks like a cross
+	reference.
+
+	* posix.texi (Time): Correction to strftime glibc cross reference
+	node, now "Formatting Calendar Time".
+
+	* srfi-modules.texi (SRFI-1 Searching): In break, note conflict with
+	binding established by `while'.
+
 2003-10-09  Kevin Ryde  <user42@zip.com.au>
 
 	* scheme-compound.texi (Hash Table Reference): Decribe rehashing, note
