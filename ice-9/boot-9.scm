@@ -2832,8 +2832,8 @@
   (let ((guile-user-module (resolve-module '(guile-user))))
 
     ;; Load emacs interface support if emacs option is given.
-    (if (and (module-defined? the-root-module 'use-emacs-interface)
-	     (module-ref the-root-module 'use-emacs-interface))
+    (if (and (module-defined? guile-user-module 'use-emacs-interface)
+	     (module-ref guile-user-module 'use-emacs-interface))
 	(load-emacs-interface))
 
     ;; Use some convenient modules (in reverse order)
