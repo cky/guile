@@ -100,12 +100,18 @@ In the subdirectory libguile, wrote:
 In the subdirectory ice-9, wrote:
     session.scm
 
-Michael N. Livshin:
+Michael Livshin: Some changes throughout.
 Implemented support for double-word heap cells and converted some
 smobs to use them.
 In the subdirectory libguile, wrote:
-    guardians.c
-    guardians.h
+    guardians.c guardians.h filter-doc-snarfage.c
+    guile-snarf-docs.in guile-snarf-docs-texi.in
+In the subdirectory libguile, changed extensively:
+    gc.c gc.h
+In the subdirectory ice-9, wrote:
+    streams.scm and-let*.scm
+In the subdirectory scripts, wrote:
+    snarf-check-and-output-texi
 
 Tim Pierce:
 In the subdirectory libguile, wrote:
