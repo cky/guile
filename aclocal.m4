@@ -302,11 +302,12 @@ done<<>>dnl>>)
 changequote([,]))])
 
 
-# serial 24 AM_PROG_LIBTOOL
+# serial 25 AM_PROG_LIBTOOL
 AC_DEFUN(AM_PROG_LIBTOOL,
 [AC_REQUIRE([AM_ENABLE_SHARED])dnl
 AC_REQUIRE([AM_ENABLE_STATIC])dnl
 AC_REQUIRE([AC_CANONICAL_HOST])dnl
+AC_REQUIRE([AC_CANONICAL_BUILD])dnl
 AC_REQUIRE([AC_PROG_RANLIB])dnl
 AC_REQUIRE([AC_PROG_CC])dnl
 AC_REQUIRE([AM_PROG_LD])dnl
@@ -351,14 +352,24 @@ case "$host" in
   # On SCO OpenServer 5, we need -belf to get full-featured binaries.
   CFLAGS="$CFLAGS -belf"
   ;;
+
+*-*-cygwin32*)
+  AM_SYS_LIBTOOL_CYGWIN32
+  ;;
+
 esac
 
 # Actually configure libtool.  ac_aux_dir is where install-sh is found.
 CC="$CC" CFLAGS="$CFLAGS" CPPFLAGS="$CPPFLAGS" \
 LD="$LD" NM="$NM" RANLIB="$RANLIB" LN_S="$LN_S" \
-${CONFIG_SHELL-/bin/sh} $ac_aux_dir/ltconfig \
+DLLTOOL="$DLLTOOL" AS="$AS" \
+${CONFIG_SHELL-/bin/sh} $ac_aux_dir/ltconfig --no-reexec \
 $libtool_flags --no-verify $ac_aux_dir/ltmain.sh $host \
 || AC_MSG_ERROR([libtool configure failed])
+
+# Redirect the config.log output again, so that the ltconfig log is not
+# clobbered by the next message.
+exec 5>>./config.log
 ])
 
 # AM_ENABLE_SHARED - implement the --enable-shared flag
@@ -369,10 +380,8 @@ AC_DEFUN(AM_ENABLE_SHARED,
 [define([AM_ENABLE_SHARED_DEFAULT], ifelse($1, no, no, yes))dnl
 AC_ARG_ENABLE(shared,
 changequote(<<, >>)dnl
-<<  --enable-shared         build shared libraries [default=>>AM_ENABLE_SHARED_DEFAULT]
+<<  --enable-shared[=PKGS]  build shared libraries [default=>>AM_ENABLE_SHARED_DEFAULT],
 changequote([, ])dnl
-[  --enable-shared=PKGS    only build shared libraries if the current package
-                          appears as an element in the PKGS list],
 [p=${PACKAGE-default}
 case "$enableval" in
 yes) enable_shared=yes ;;
@@ -408,10 +417,8 @@ AC_DEFUN(AM_ENABLE_STATIC,
 [define([AM_ENABLE_STATIC_DEFAULT], ifelse($1, no, no, yes))dnl
 AC_ARG_ENABLE(static,
 changequote(<<, >>)dnl
-<<  --enable-static         build static libraries [default=>>AM_ENABLE_STATIC_DEFAULT]
+<<  --enable-static[=PKGS]  build static libraries [default=>>AM_ENABLE_STATIC_DEFAULT],
 changequote([, ])dnl
-[  --enable-static=PKGS    only build shared libraries if the current package
-                          appears as an element in the PKGS list],
 [p=${PACKAGE-default}
 case "$enableval" in
 yes) enable_static=yes ;;
@@ -445,7 +452,9 @@ if test "$ac_cv_prog_gcc" = yes; then
   ac_prog=`($CC -print-prog-name=ld) 2>&5`
   case "$ac_prog" in
   # Accept absolute paths.
+changequote(,)dnl
   /* | [A-Za-z]:\\*)
+changequote([,])dnl
     test -z "$LD" && LD="$ac_prog"
     ;;
   "")
@@ -508,11 +517,10 @@ fi])
 AC_DEFUN(AM_PROG_NM,
 [AC_MSG_CHECKING([for BSD-compatible nm])
 AC_CACHE_VAL(ac_cv_path_NM,
-[case "$NM" in
-/* | [A-Za-z]:\\*)
-  ac_cv_path_NM="$NM" # Let the user override the test with a path.
-  ;;
-*)
+[if test -n "$NM"; then
+  # Let the user override the test.
+  ac_cv_path_NM="$NM"
+else
   IFS="${IFS= 	}"; ac_save_ifs="$IFS"; IFS="${IFS}:"
   for ac_dir in /usr/ucb /usr/ccs/bin $PATH /bin; do
     test -z "$ac_dir" && ac_dir=.
@@ -532,112 +540,137 @@ AC_CACHE_VAL(ac_cv_path_NM,
   done
   IFS="$ac_save_ifs"
   test -z "$ac_cv_path_NM" && ac_cv_path_NM=nm
-  ;;
-esac])
+fi])
 NM="$ac_cv_path_NM"
 AC_MSG_RESULT([$NM])
 AC_SUBST(NM)
 ])
 
-dnl
-dnl CY_AC_WITH_THREADS determines which thread library the user intends
-dnl to put underneath guile.  Pass it the path to find the guile top-level
-dnl source directory.  Eg CY_AC_WITH_THREADS(../..) for tcl/unix.
-dnl
+# AM_SYS_LIBTOOL_CYGWIN32 - find tools needed on cygwin32
+AC_DEFUN(AM_SYS_LIBTOOL_CYGWIN32,
+[AC_CHECK_TOOL(DLLTOOL, dlltool, false)
+AC_CHECK_TOOL(AS, as, false)
+])
 
-AC_DEFUN([CY_AC_WITH_THREADS],[
-AC_CACHE_CHECK("threads package type",cy_cv_threads_package,[
-AC_CACHE_VAL(cy_cv_threads_cflags,[
-AC_CACHE_VAL(cy_cv_threads_libs,[
-use_threads=no;
-AC_ARG_WITH(threads,[  --with-threads          thread interface],
-            use_threads=$withval, use_threads=no)
-test -n "$use_threads" || use_threads=qt
-threads_package=unknown
-if test "$use_threads" != no; then
+dnl   Autoconf macros for configuring the QuickThreads package
+
+dnl   QTHREADS_CONFIGURE configures the QuickThreads package.  The QT
+dnl   sources should be in $srcdir/qt.  If configuration succeeds, this
+dnl   macro creates the appropriate symlinks in the qt object directory,
+dnl   and sets the following variables, used in building libqthreads.a:
+dnl      QTHREAD_LTLIBS --- set to libqthreads.la if configuration
+dnl         succeeds, or the empty string if configuration fails.
+dnl      qtmd_h --- the name of the machine-dependent header file.
 dnl
-dnl Test for the qt threads package - used for cooperative threads
-dnl This may not necessarily be built yet - so just check for the
-dnl header files.
+dnl   It also sets the following variables, which describe how clients
+dnl   can link against libqthreads.a:
+dnl      THREAD_PACKAGE --- set to "QT" if configuration succeeds, or
+dnl         the empty string if configuration fails.
+dnl	 THREAD_CPPFLAGS --- set to `-I' flags for thread header files
+dnl	 THREAD_LIBS_LOCAL --- linker options for use in this source tree
+dnl	 THREAD_LIBS_INSTALLED --- linker options for use after this package
+dnl	    is installed
+dnl   It would be nice if all thread configuration packages for Guile
+dnl   followed the same conventions.
 dnl
-  if test "$use_threads" = yes || test "$use_threads" = qt; then
-     # Look for qt in source directory. 
-     if test -f $srcdir/qt/qt.c; then
-	qtsrcdir="`(cd $srcdir; pwd)`/qt"
-	threads_package=COOP
-	cy_cv_threads_cflags="-I$qtsrcdir -I../qt"
-	cy_cv_threads_libs="../qt/libqthreads.a"
-     fi
-  else
-     if test -f $use_threads/qt.c; then
-	# FIXME seems as though we should try to use an installed qt here.
-	threads_package=COOP
-	cy_cv_threads_cflags="-I$use_threads -I../qt"
-	cy_cv_threads_libs="../qt/libqthreads.a"
-     fi
+dnl   All of the above variables will be substituted into Makefiles in
+dnl   the usual autoconf fashion.
+dnl
+dnl   We distinguish between THREAD_LIBS_LOCAL and
+dnl   THREAD_LIBS_INSTALLED because the thread library might be in
+dnl   this tree, and be built using libtool.  This means that:
+dnl	 1) when building other executables in this tree, one must
+dnl	    pass the relative path to the ../libfoo.la file, but 
+dnl	 2) once the whole package has been installed, users should
+dnl	    link using -lfoo. 
+dnl   Normally, we only care about the first case, but since the
+dnl   build-guile script needs to give users all the flags they need
+dnl   to link programs against guile, the GUILE_WITH_THREADS macro
+dnl   needs to supply the second piece of information as well.
+dnl
+dnl   This whole thing is a little confused about what ought to be
+dnl   done in the top-level configure script, and what ought to be
+dnl   taken care of in the subdirectory.  For example, qtmdc_lo and
+dnl   friends really ought not to be even mentioned in the top-level
+dnl   configure script, but here they are.
+
+AC_DEFUN([QTHREADS_CONFIGURE],[
+
+  # For some reason, AC_REQUIRE doesn't seem to work with the aclocal
+  # program.  So we'll just do this runtime check.
+  if test "${LN_S}" = ""; then
+    f=''
+    AC_MSG_ERROR(The QTHREADS${f}_CONFIGURE macro requires A${f}C_PROG_LN_S)
   fi
-  if test "$use_threads" = pthreads; then
-     # Look for pthreads in srcdir.  See above to understand why
-     # we always set threads_package.
-     if test -f $srcdir/../../pthreads/pthreads/queue.c \
-	  || test -f $srcdir/../pthreads/pthreads/queue.c; then
-	threads_package=MIT
-	cy_cv_threads_cflags="-I$srcdir/../../pthreads/include"
-	cy_cv_threads_libs="-L../../pthreads/lib -lpthread"
-     fi
+
+  # How can we refer to the qt source directory from within the qt build
+  # directory?  For headers, we can rely on the fact that the qt src
+  # directory appears in the #include path.
+  qtsrcdir="`(cd $srcdir; pwd)`/qt"
+
+  changequote(,)dnl We use [ and ] in a regexp in the case
+
+  THREAD_PACKAGE=QT
+  case "$host" in
+    i[3456]86-*-*)
+      qtmd_h=md/i386.h
+      qtmds_s=md/i386.s
+      qtmdc_c=md/null.c 
+      qtdmdb_s=
+      ;;
+    mips-sgi-irix[56]*)
+      qtmd_h=md/mips.h
+      qtmds_s=md/mips-irix5.s
+      qtmdc_c=md/null.c
+      qtdmdb_s=md/mips_b.s 
+      ;;
+    mips-*-*)
+      qtmd_h=md/mips.h
+      qtmds_s=md/mips.s
+      qtmdc_c=md/null.c
+      qtdmdb_s=md/mips_b.s 
+      ;;
+    sparc-*-sunos*)
+      qtmd_h=md/sparc.h
+      qtmds_s=md/_sparc.s
+      qtmdc_c=md/null.c
+      qtdmdb_s=md/_sparc_b.s 
+      ;;
+    sparc-*-*)
+      qtmd_h=md/sparc.h
+      qtmds_s=md/sparc.s
+      qtmdc_c=md/null.c
+      qtdmdb_s=md/sparc_b.s 
+      ;;
+    alpha-*-*)
+      qtmd_h=md/axp.h
+      qtmds_s=md/axp.s
+      qtmdc_c=md/null.c
+      qtdmdb_s=md/axp_b.s 
+      ;;
+    *)
+      echo "Unknown configuration; threads package disabled"
+      THREAD_PACKAGE=""
+      ;;
+  esac
+  changequote([, ])
+
+  # Did configuration succeed?
+  if test -n "$THREAD_PACKAGE"; then
+    QTHREAD_LTLIBS=libqthreads.la
+    THREAD_CPPFLAGS="-I$qtsrcdir -I../qt"
+    THREAD_LIBS_LOCAL="../qt/libqthreads.la"
+    THREAD_LIBS_INSTALLED="-lqthreads"
   fi
-  saved_CPP="$CPPFLAGS"
-  saved_LD="$LDFLAGS"
-  saved_LIBS="$LIBS"
-  if test "$threads_package" = unknown; then
-dnl
-dnl Test for the FSU threads package
-dnl
-    CPPFLAGS="-I$use_threads/include"
-    LDFLAGS="-L$use_threads/lib"
-    LIBS="-lgthreads -lmalloc"
-    AC_TRY_LINK([#include <pthread.h>],[
-pthread_equal(NULL,NULL);
-], threads_package=FSU)
-  fi
-  if test "$threads_package" = unknown; then
-dnl
-dnl Test for the MIT threads package
-dnl
-    LIBS="-lpthread"
-    AC_TRY_LINK([#include <pthread.h>],[
-pthread_equal(NULL,NULL);
-], threads_package=MIT)
-  fi
-  if test "$threads_package" = unknown; then
-dnl
-dnl Test for the PCthreads package
-dnl
-    LIBS="-lpthreads"
-    AC_TRY_LINK([#include <pthread.h>],[
-pthread_equal(NULL,NULL);
-], threads_package=PCthreads)
-  fi
-dnl
-dnl Set the appropriate flags!
-dnl 
-  cy_cv_threads_cflags="$CPPFLAGS $cy_cv_threads_cflags"
-  cy_cv_threads_package=$threads_package
-  CPPFLAGS="$saved_CPP"
-  LDFLAGS="$saved_LD"
-  LIBS="$saved_LIBS"
-  if test "$threads_package" = unknown; then
-    AC_MSG_ERROR("cannot find thread library installation")
-  fi
-fi
-])
-])
-],
-dnl
-dnl Set flags according to what is cached.
-dnl
-CPPFLAGS="$cy_cv_threads_cflags"
-LIBS="$cy_cv_threads_libs"
-)
+
+  AC_SUBST(QTHREAD_LTLIBS)
+  AC_SUBST(qtmd_h)
+  AC_SUBST(qtmds_s)
+  AC_SUBST(qtmdc_c)
+  AC_SUBST(qtdmdb_s)
+  AC_SUBST(THREAD_PACKAGE)
+  AC_SUBST(THREAD_CPPFLAGS)
+  AC_SUBST(THREAD_LIBS_LOCAL)
+  AC_SUBST(THREAD_LIBS_INSTALLED)
 ])
 

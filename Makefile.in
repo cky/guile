@@ -11,7 +11,7 @@
 # PARTICULAR PURPOSE.
 
 
-SHELL = /bin/sh
+SHELL = @SHELL@
 
 srcdir = @srcdir@
 top_srcdir = @top_srcdir@
@@ -59,9 +59,11 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 host_alias = @host_alias@
 host_triplet = @host@
+AS = @AS@
 AWK = @AWK@
 CC = @CC@
 CPP = @CPP@
+DLLTOOL = @DLLTOOL@
 GUILE_LIBS = @GUILE_LIBS@
 GUILE_MAJOR_VERSION = @GUILE_MAJOR_VERSION@
 GUILE_MINOR_VERSION = @GUILE_MINOR_VERSION@
@@ -76,21 +78,22 @@ MAKEINFO = @MAKEINFO@
 NM = @NM@
 PACKAGE = @PACKAGE@
 PROG_HOSTNAME = @PROG_HOSTNAME@
+QTHREAD_LTLIBS = @QTHREAD_LTLIBS@
 RANLIB = @RANLIB@
-THREAD_LIBS = @THREAD_LIBS@
+THREAD_CPPFLAGS = @THREAD_CPPFLAGS@
+THREAD_LIBS_INSTALLED = @THREAD_LIBS_INSTALLED@
+THREAD_LIBS_LOCAL = @THREAD_LIBS_LOCAL@
+THREAD_PACKAGE = @THREAD_PACKAGE@
 VERSION = @VERSION@
+qtdmdb_s = @qtdmdb_s@
 qtmd_h = @qtmd_h@
-qtmdb_s = @qtmdb_s@
 qtmdc_c = @qtmdc_c@
-qtmdc_o = @qtmdc_o@
-qtmds_o = @qtmds_o@
 qtmds_s = @qtmds_s@
-target_libs = @target_libs@
 
 SUBDIRS = ice-9 qt libguile build
 
 aclocaldir = $(datadir)/aclocal
-aclocal_DATA = guile.m4 threads.m4
+aclocal_DATA = guile.m4 qthreads.m4
 
 EXTRA_DIST = $(aclocal_DATA) ltconfig ltmain.sh acconfig.h \
 	HACKING GUILE-VERSION
