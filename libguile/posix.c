@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995, 1996, 1997, 1998 Free Software Foundation, Inc.
+/*	Copyright (C) 1995-2000 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1286,6 +1286,7 @@ The return value is unspecified.")
 #define FUNC_NAME s_scm_sync
 {
   sync();
+  return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
 #endif /* HAVE_SYNC */
