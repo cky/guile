@@ -1,3 +1,9 @@
+Thu May  1 17:01:45 1997  Jim Blandy  <jimb@floss.cyclic.com>
+
+	* Makefile.am (check-local): New target, which causes 'make check'
+ 	to run gh_test_c and gh_test_repl, with some trivial input.
+	* Makefile.in: Rgnrtd.
+
 Tue Apr 29 19:00:40 1997  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* dynl.c (print_dynl_obj): Indicate whether the dynamic object has
