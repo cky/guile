@@ -715,21 +715,18 @@ scm_ithrow (SCM key, SCM args, int noreturn)
 void
 scm_init_throw ()
 {
-#ifdef DEBUG_EXTENSIONS
   scm_tc16_jmpbuffer = scm_make_smob_type_mfpe ("jmpbuffer",
+#ifdef DEBUG_EXTENSIONS
 						sizeof (scm_cell),
 						NULL, /* mark */
 						freejb,
-						printjb,
-						NULL);
 #else
-  scm_tc16_jmpbuffer = scm_make_smob_type_mfpe ("jmpbuffer",
 						0,
 						NULL, /* mark */
-						NULL
+						NULL,
+#endif
 						printjb,
 						NULL);
-#endif
 
   tc16_lazy_catch = scm_make_smob_type_mfpe ("lazy-catch", 0,
 					     NULL,

@@ -32,7 +32,18 @@ Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
 #include "read.h" /*For SCM_CASE_INSENSITIVE_P*/
 
 
-
+/*
+SCM_DEFINE (scm_i_index, "i-index", 2, 2, 0, 
+           (SCM str, SCM chr, SCM frm, SCM to),
+	   "@deftypefn {Internal C Function} {static int} scm_i_index (SCM *@var{str}, \n"
+	   "SCM @var{chr}, int @var{direction}, SCM @var{sub_start}, SCM @var{sub_end}, char *@var{why})
+	   "This is a workhorse function that performs either an @code{index} or\n"
+	   "@code{rindex} function, depending on the value of @var{direction}. I'm\n"
+	   "not at all clear on the usage of the pos arguments, though the purpose\n"
+	   "seems to be correct reporting of which argument values are reporting\n"
+	   "errors. Why you would do that, rather than just use @code{SCM_ARG[1234]}\n"
+	   "explicitly is beyond me. Anyone holding any enlightenment?"
+*/
 /* implements index if direction > 0 otherwise rindex.  */
 static int
 scm_i_index (SCM *str, SCM chr, int direction, SCM sub_start, 
@@ -91,7 +102,19 @@ SCM_DEFINE (scm_string_index, "string-index", 2, 2, 0,
 	    "Return the index of the first occurrence of @var{chr} in @var{str}.  The\n"
 	    "optional integer arguments @var{frm} and @var{to} limit the search to\n"
 	    "a portion of the string.  This procedure essentially implements the\n"
-	    "@code{index} or @code{strchr} functions from the C library.")
+	    "@code{index} or @code{strchr} functions from the C library.\n\n"
+	    "(qdocs:)  Returns the index of @var{char} in @var{str}, or @code{#f} if the\n"
+	    "@var{char} isn't in @var{str}. If @var{frm} is given and not @code{#f},\n"
+	    "it is used as the starting index; if @var{to} is given and not @var{#f},\n"
+	    "it is used as the ending index (exclusive).\n\n"
+	    "@example\n"
+	    "(string-index "weiner" #\e)\n"
+	    "@result{} 1\n\n"
+	    "(string-index "weiner" #\e 2)\n"
+	    "@result{} 4\n\n"
+	    "(string-index "weiner" #\e 2 4)\n"
+	    "@result{} #f\n"
+	    "@end example")
 #define FUNC_NAME s_scm_string_index
 {
   int pos;
@@ -111,7 +134,18 @@ SCM_DEFINE (scm_string_rindex, "string-rindex", 2, 2, 0,
            (SCM str, SCM chr, SCM frm, SCM to),
 	    "Like @code{string-index}, but search from the right of the string rather\n"
 	    "than from the left.  This procedure essentially implements the\n"
-	    "@code{rindex} or @code{strrchr} functions from the C library.")
+	    "@code{rindex} or @code{strrchr} functions from the C library.\n\n"
+	    "(qdocs:) The same as @code{string-index}, except it gives the rightmost occurance\n"
+	    "of @var{char} in the range [@var{frm}, @var{to}-1], which defaults to\n"
+	    "the entire string.\n\n"
+	    "@example\n"
+	    "(string-rindex "weiner" #\e)\n"
+	    "@result{} 4\n\n"
+	    "(string-rindex "weiner" #\e 2 4)\n"
+	    "@result{} #f\n\n"
+	    "(string-rindex "weiner" #\e 2 5)\n"
+	    "@result{} 4\n"
+	    "@end example")
 #define FUNC_NAME s_scm_string_rindex
 {
   int pos;
@@ -131,6 +165,59 @@ SCM_DEFINE (scm_string_rindex, "string-rindex", 2, 2, 0,
 SCM_REGISTER_PROC(s_substring_move_left_x, "substring-move-left!", 5, 0, 0, scm_substring_move_x);
 SCM_REGISTER_PROC(s_substring_move_right_x, "substring-move-right!", 5, 0, 0, scm_substring_move_x);
 
+/*
+@defun substring-move-left! str1 start1 end1 str2 start2
+@end defun
+@deftypefn {C Function} SCM scm_substring_move_left_x (SCM @var{str1}, SCM @var{start1}, SCM @var{end1}, SCM @var{str2}, SCM @var{start2})
+[@strong{Note:} this is only valid if you've applied the strop patch].
+
+Moves a substring of @var{str1}, from @var{start1} to @var{end1}
+(@var{end1} is exclusive), into @var{str2}, starting at
+@var{start2}. Allows overlapping strings.
+
+@example
+(define x (make-string 10 #\a))
+(define y "bcd")
+(substring-move-left! x 2 5 y 0)
+y
+@result{} "aaa"
+
+x
+@result{} "aaaaaaaaaa"
+
+(define y "bcdefg")
+(substring-move-left! x 2 5 y 0)
+y
+@result{} "aaaefg"
+
+(define y "abcdefg")
+(substring-move-left! y 2 5 y 3)
+y
+@result{} "abccccg"
+@end example
+*/
+
+/*
+@defun substring-move-right! str1 start1 end1 str2 start2
+@end defun
+@deftypefn {C Function} SCM scm_substring_move_right_x (SCM @var{str1}, SCM @var{start1}, SCM @var{end1}, SCM @var{str2}, SCM @var{start2})
+[@strong{Note:} this is only valid if you've applied the strop patch, if
+it hasn't made it into the guile tree].
+
+Does much the same thing as @code{substring-move-left!}, except it
+starts moving at the end of the sequence, rather than the beginning.
+@example
+(define y "abcdefg")
+(substring-move-right! y 2 5 y 0)
+y
+@result{} "ededefg"
+
+(define y "abcdefg")
+(substring-move-right! y 2 5 y 3)
+y
+@result{} "abccdeg"
+@end example
+*/ 
 
 SCM_DEFINE (scm_substring_move_x, "substring-move!", 5, 0, 0, 
            (SCM str1, SCM start1, SCM end1, SCM str2, SCM start2),
@@ -177,7 +264,14 @@ SCM_DEFINE (scm_substring_move_x, "substring-move!", 5, 0, 0,
 SCM_DEFINE (scm_substring_fill_x, "substring-fill!", 4, 0, 0, 
            (SCM str, SCM start, SCM end, SCM fill),
 	    "Change every character in @var{str} between @var{start} and @var{end} to\n"
-	    "@var{fill-char}.")
+	    "@var{fill-char}.\n\n"
+	    "(qdocs:) Destructively fills @var{str}, from @var{start} to @var{end}, with @var{fill}.\n\n"
+	    "@example\n"
+	    "(define y \"abcdefg\")\n"
+	    "(substring-fill! y 1 3 #\r)\n"
+	    "y\n"
+	    "@result{} \"arrdefg\"\n"
+	    "@end example")
 #define FUNC_NAME s_scm_substring_fill_x
 {
   long i, e;
@@ -197,7 +291,14 @@ SCM_DEFINE (scm_substring_fill_x, "substring-fill!", 4, 0, 0,
 SCM_DEFINE (scm_string_null_p, "string-null?", 1, 0, 0, 
            (SCM str),
 	    "Return @code{#t} if @var{str}'s length is nonzero, and @code{#f}\n"
-	    "otherwise.")
+	    "otherwise.\n\n"
+	    "(qdocs:) Returns @code{#t} if @var{str} is empty, else returns @code{#f}.\n\n"
+	    "@example\n"
+	    "(string-null? \"\")\n"
+	    "@result{} #t\n\n"
+	    "(string-null? y)\n"
+	    "@result{} #f\n"
+	    "@end example")
 #define FUNC_NAME s_scm_string_null_p
 {
   SCM_VALIDATE_ROSTRING (1,str);
@@ -208,7 +309,12 @@ SCM_DEFINE (scm_string_null_p, "string-null?", 1, 0, 0,
 
 SCM_DEFINE (scm_string_to_list, "string->list", 1, 0, 0, 
            (SCM str),
-	    "")
+	    "@samp{String->list} returns a newly allocated list of the\n"
+	    "characters that make up the given string.  @samp{List->string}\n"
+	    "returns a newly allocated string formed from the characters in the list\n"
+	    "@var{list}, which must be a list of characters. @samp{String->list}\n"
+	    "and @samp{list->string} are\n"
+	    "inverses so far as @samp{equal?} is concerned.  (r5rs)")
 #define FUNC_NAME s_scm_string_to_list
 {
   long i;
@@ -225,7 +331,7 @@ SCM_DEFINE (scm_string_to_list, "string->list", 1, 0, 0,
 
 SCM_DEFINE (scm_string_copy, "string-copy", 1, 0, 0, 
            (SCM str),
-	    "")
+	    "Returns a newly allocated copy of the given @var{string}. (r5rs)")
 #define FUNC_NAME s_scm_string_copy
 {
   SCM_VALIDATE_STRINGORSUBSTR (1,str);
@@ -236,7 +342,8 @@ SCM_DEFINE (scm_string_copy, "string-copy", 1, 0, 0,
 
 SCM_DEFINE (scm_string_fill_x, "string-fill!", 2, 0, 0,
            (SCM str, SCM chr),
-	    "")
+	    "Stores @var{char} in every element of the given @var{string} and returns an\n"
+	    "unspecified value.  (r5rs)")
 #define FUNC_NAME s_scm_string_fill_x
 {
   register char *dst, c;
@@ -250,8 +357,14 @@ SCM_DEFINE (scm_string_fill_x, "string-fill!", 2, 0, 0,
 
 SCM_DEFINE (scm_string_upcase_x, "string-upcase!", 1, 0, 0, 
            (SCM v),
-	    "@deffnx primitive string-downcase! str\n"
-	    "Upcase or downcase every character in @code{str}, respectively.")
+	    "Destructively upcase every character in @code{str}.\n\n"
+	    "(qdocs:) Converts each element in @var{str} to upper case.\n\n"
+	    "@example\n"
+	    "(string-upcase! y)\n"
+	    "@result{} \"ARRDEFG\"\n\n"
+	    "y\n"
+	    "@result{} \"ARRDEFG\"\n"
+	    "@end example")
 #define FUNC_NAME s_scm_string_upcase_x
 {
   register long k;
@@ -275,7 +388,7 @@ SCM_DEFINE (scm_string_upcase_x, "string-upcase!", 1, 0, 0,
 
 SCM_DEFINE (scm_string_upcase, "string-upcase", 1, 0, 0, 
            (SCM str),
-	    "")
+	    "Upcase every character in @code{str}.")
 #define FUNC_NAME s_scm_string_upcase
 {
   return scm_string_upcase_x(scm_string_copy(str));
@@ -284,7 +397,16 @@ SCM_DEFINE (scm_string_upcase, "string-upcase", 1, 0, 0,
 
 SCM_DEFINE (scm_string_downcase_x, "string-downcase!", 1, 0, 0, 
            (SCM v),
-	    "")
+	    "Destructively downcase every character in @code{str}.\n\n"
+	    "(qdocs:) Converts each element in @var{str} to lower case.\n\n"
+	    "@example\n"
+	    "y\n"
+	    "@result{} \"ARRDEFG\"\n\n"
+	    "(string-downcase! y)\n"
+	    "@result{} \"arrdefg\"\n\n"
+	    "y\n"
+	    "@result{} \"arrdefg\"\n"
+	    "@end example")
 #define FUNC_NAME s_scm_string_downcase_x
 {
   register long k;
@@ -307,7 +429,7 @@ SCM_DEFINE (scm_string_downcase_x, "string-downcase!", 1, 0, 0,
 
 SCM_DEFINE (scm_string_downcase, "string-downcase", 1, 0, 0, 
            (SCM str),
-	    "")
+	    "Downcase every character in @code{str}.")
 #define FUNC_NAME s_scm_string_downcase
 {
   SCM_VALIDATE_STRING (1,str);
@@ -316,43 +438,43 @@ SCM_DEFINE (scm_string_downcase, "string-downcase", 1, 0, 0,
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_string_capitalize_x, "string-capitalize!", 1, 0, 0, 
-           (SCM s),
-	    "")
+           (SCM str),
+	    "Destructively capitalize every character in @code{str}.")
 #define FUNC_NAME s_scm_string_capitalize_x
 {
-  char *str;
+  char *sz;
   int i, len, in_word=0;
-  SCM_VALIDATE_STRING (1,s);
-  len = SCM_LENGTH(s);
-  str = SCM_CHARS(s);
+  SCM_VALIDATE_STRING (1,str);
+  len = SCM_LENGTH(str);
+  sz = SCM_CHARS(str);
   for(i=0; i<len;  i++) {
-    if(SCM_NFALSEP(scm_char_alphabetic_p(SCM_MAKICHR(str[i])))) {
+    if(SCM_NFALSEP(scm_char_alphabetic_p(SCM_MAKICHR(sz[i])))) {
       if(!in_word) {
-        str[i] = scm_upcase(str[i]);
+        sz[i] = scm_upcase(sz[i]);
         in_word = 1;
       } else {
-        str[i] = scm_downcase(str[i]);
+        sz[i] = scm_downcase(sz[i]);
       }
     }
     else in_word = 0;
   }
-  return s;
+  return str;
 }
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_string_capitalize, "string-capitalize", 1, 0, 0, 
-           (SCM s),
-	    "")
+           (SCM str),
+	    "Capitalize every character in @code{str}.")
 #define FUNC_NAME s_scm_string_capitalize
 {
-  SCM_VALIDATE_STRING (1,s);
-  return scm_string_capitalize_x(scm_string_copy(s));
+  SCM_VALIDATE_STRING (1,str);
+  return scm_string_capitalize_x(scm_string_copy(str));
 }
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_string_ci_to_symbol, "string-ci->symbol", 1, 0, 0, 
            (SCM str),
-	    "")
+	    "Return the symbol whose name is @var{str}, downcased in necessary(???).")
 #define FUNC_NAME s_scm_string_ci_to_symbol
 {
   return scm_string_to_symbol (SCM_CASE_INSENSITIVE_P
