@@ -1,3 +1,22 @@
+1999-10-11  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* ioext.c: Added #include "feature.h".
+
+	These changes turns `delay' into a memoizing macro.  This is
+	because it may be expanded before evaluation if it occurs at the
+	beginning of a body.  (Thanks to Lauri Alanko.)
+	
+	* eval.c, eval.h (scm_sym_delay): New global symbol.
+
+	* tags.h (SCM_IM_DELAY): New immediate symbol.
+
+	* print.c (scm_isymnames): Printed representation.
+
+	* eval.c (unmemocopy, SCM_CEVAL): Handle SCM_IM_DELAY.
+	(scm_m_delay): Turned into a memoizing macro.
+
+	* Makefile.am (libguile_la_LDFLAGS): Bumped libguile version.
+
 1999-10-11  Jim Blandy  <jimb@savonarola.red-bean.com>
 
 	* gh_data.c (gh_ints2scm, gh_doubles2scm): Make sure elements are
