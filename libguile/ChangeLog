@@ -1,3 +1,10 @@
+1999-09-08  Gary Houston  <ghouston@easynet.co.uk>
+
+	* stime.c (bdtime2c): rewrite the ASSERTs.  Accept a value
+	of #f for the 10th vector element to avoid an exception
+	seen by Bernard Urban.
+	(scm_mktime): unneeded ASSERT removed.
+
 1999-09-07  Mikael Djurfeldt  <mdj@mdj-pc.nada.kth.se>
 
 	* eval.c (scm_map, scm_for_each): Converted to dispatch on generic

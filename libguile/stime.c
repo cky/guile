@@ -380,31 +380,36 @@ scm_gmtime (SCM time)
 static void
 bdtime2c (SCM sbd_time, struct tm *lt, int pos, const char *subr)
 {
+  SCM *velts;
+  int i;
+
   SCM_ASSERT (SCM_NIMP (sbd_time) && SCM_VECTORP (sbd_time)
-	      && SCM_LENGTH (sbd_time) == 11
-	      && SCM_INUMP (SCM_VELTS (sbd_time)[0]) 
-	      && SCM_INUMP (SCM_VELTS (sbd_time)[1])
-	      && SCM_INUMP (SCM_VELTS (sbd_time)[2])
-	      && SCM_INUMP (SCM_VELTS (sbd_time)[3])
-	      && SCM_INUMP (SCM_VELTS (sbd_time)[4])
-	      && SCM_INUMP (SCM_VELTS (sbd_time)[5])
-	      && SCM_INUMP (SCM_VELTS (sbd_time)[6])
-	      && SCM_INUMP (SCM_VELTS (sbd_time)[7])
-	      && SCM_INUMP (SCM_VELTS (sbd_time)[8])
-	      && SCM_STRINGP (SCM_VELTS (sbd_time)[10]),
+	      && SCM_LENGTH (sbd_time) == 11,
 	      sbd_time, pos, subr);
-  lt->tm_sec = SCM_INUM (SCM_VELTS (sbd_time)[0]);
-  lt->tm_min = SCM_INUM (SCM_VELTS (sbd_time)[1]);
-  lt->tm_hour = SCM_INUM (SCM_VELTS (sbd_time)[2]);
-  lt->tm_mday = SCM_INUM (SCM_VELTS (sbd_time)[3]);
-  lt->tm_mon = SCM_INUM (SCM_VELTS (sbd_time)[4]);
-  lt->tm_year = SCM_INUM (SCM_VELTS (sbd_time)[5]);
-  lt->tm_wday = SCM_INUM (SCM_VELTS (sbd_time)[6]);
-  lt->tm_yday = SCM_INUM (SCM_VELTS (sbd_time)[7]);
-  lt->tm_isdst = SCM_INUM (SCM_VELTS (sbd_time)[8]);
+  velts = SCM_VELTS (sbd_time);
+  for (i = 0; i < 10; i++)
+    {
+      SCM_ASSERT (SCM_INUMP (velts[i]), sbd_time, pos, subr);
+    }
+  SCM_ASSERT (SCM_FALSEP (velts[10])
+	      || (SCM_NIMP (velts[10]) && SCM_STRINGP (velts[10])),
+	      sbd_time, pos, subr);
+
+  lt->tm_sec = SCM_INUM (velts[0]);
+  lt->tm_min = SCM_INUM (velts[1]);
+  lt->tm_hour = SCM_INUM (velts[2]);
+  lt->tm_mday = SCM_INUM (velts[3]);
+  lt->tm_mon = SCM_INUM (velts[4]);
+  lt->tm_year = SCM_INUM (velts[5]);
+  lt->tm_wday = SCM_INUM (velts[6]);
+  lt->tm_yday = SCM_INUM (velts[7]);
+  lt->tm_isdst = SCM_INUM (velts[8]);
 #ifdef HAVE_TM_ZONE
-  lt->tm_gmtoff = SCM_INUM (SCM_VELTS (sbd_time)[9]);
-  lt->tm_zone  = SCM_CHARS (SCM_VELTS (sbd_time)[10]);
+  lt->tm_gmtoff = SCM_INUM (velts[9]);
+  if (SCM_FALSEP (velts[10]))
+    lt->tm_zone = NULL;
+  else
+    lt->tm_zone  = SCM_CHARS (velts[10]);
 #endif
 }
 
@@ -420,8 +425,6 @@ scm_mktime (SCM sbd_time, SCM zone)
   char **oldenv;
   int err;
 
-  SCM_ASSERT (SCM_NIMP (sbd_time) && SCM_VECTORP (sbd_time), sbd_time,
-	      SCM_ARG1, s_mktime);
   bdtime2c (sbd_time, &lt, SCM_ARG1, s_mktime);
 
   SCM_DEFER_INTS;
