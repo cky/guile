@@ -20,6 +20,8 @@ debugging evaluator gives better error messages.
 
 * Changes to Scheme functions and syntax
 
+** New function 'unsetenv'.
+
 ** There is support for Infinity and NaNs.
 
 Following PLT Scheme, Guile can now work with infinite numbers, and
@@ -44,6 +46,9 @@ For example
 
     (/ 0)
     ERROR: Numerical overflow
+
+Two new predicates 'inf?' and 'nan?' can be used to test for the
+special values.
 
 ** We now have uninterned symbols.
 
