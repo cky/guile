@@ -292,7 +292,6 @@ extern SCM scm_sum SCM_P ((SCM x, SCM y));
 extern SCM scm_difference SCM_P ((SCM x, SCM y));
 extern SCM scm_product SCM_P ((SCM x, SCM y));
 extern double scm_num2dbl SCM_P ((SCM a, char * why));
-extern SCM scm_fuck SCM_P ((SCM a));
 extern SCM scm_divide SCM_P ((SCM x, SCM y));
 extern double scm_asinh SCM_P ((double x));
 extern double scm_acosh SCM_P ((double x));
