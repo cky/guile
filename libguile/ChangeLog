@@ -1,5 +1,13 @@
 2000-12-12  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* hooks.c (scm_create_hook), script.c
+	(scm_compile_shell_switches), snarf.h (SCM_VCELL,
+	SCM_GLOBAL_VCELL, SCM_VCELL_INIT, SCM_GLOBAL_VCELL_INIT):  Create
+	a binding in one go (instead of first creating a vcell and then
+	setting its cdr).
+
+2000-12-12  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* hash.[ch] (scm_string_hash), symbols.[ch] (scm_string_hash):
 	Moved function scm_string_hash to hash.c.
 
