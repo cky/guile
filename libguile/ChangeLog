@@ -1,3 +1,18 @@
+2001-06-25  Michael Livshin  <mlivshin@bigfoot.com>
+
+	* snarf.h (SCM_SNARF_DOCS): change the "grammar" slightly.
+
+	* guile-snarf-docs.in, guile-snarf-docs-texi.in: rewrite &
+	simplify.
+
+	* eval.c: all hash signs are in column 0.
+
+	* Makefile.am (guile_filter_doc_snarfage): build using
+	c-tokenize.c, not filter-doc-snarfage.c.
+	rearrange snarfing dependencies a bit.
+
+	* c-tokenize.lex: new file.
+
 2001-06-25  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* srcprop.h, srcprop.c (scm_srcprops_to_plist): Renamed from

@@ -20,13 +20,7 @@
 
 bindir=`dirname $0`
 
-temp="/tmp/snarf.$$"
-trap "rm -f $temp" 0 1 2 15
-
 ## Let the user override the preprocessor autoconf found.
 test -n "${CPP+set}" || CPP="@CPP@"
 
-## We must use a temporary file here, instead of a pipe, because we
-## need to know if CPP exits with a non-zero status.
-${CPP} -DSCM_MAGIC_SNARF_DOCS "$@" > ${temp} || exit $?
-< ${temp} ${bindir}/guile_filter_doc_snarfage
+${CPP} -DSCM_MAGIC_SNARF_DOCS "$@"

@@ -24,37 +24,14 @@ bindir=`dirname $0`
 bindir=`(cd $bindir; pwd)`
 srcdir=`(cd $srcdir; pwd)`
 
-temp0="/tmp/snarf.0.$$"
-temp1="/tmp/snarf.1.$$"
-trap "rm -f $temp0 $temp1" 0 1 2 15
-
-# cat all the small files together:
-cat "$@" > ${temp1}
-
-## massage the arglists
-
-# lose the SCM types and commas, and texi-quote @'s in names and args
-< ${temp1} sed -e '/^arglist/s/[ 	]*SCM[ 	]*//g' \
-               -e '/^arglist/s/,/ /g' \
-               -e '/^arglist/s/([ 	]*void[ 	]*)/()/g' \
-               -e '/^fname/s/@/@@/g' \
-               -e '/^arglist/s/@/@@/g' \
-           > ${temp0}
-
-# nothing to do with the docstrings
-< ${temp0} sed -e 's/^string //' > ${temp1}
-
-# we're too lame to check argpos assertions other then for straight names, so...
-< ${temp1} sed -e 's/^argpos.*[(\[].*//' > ${temp0}
-
 echo "@paragraphindent 0"
 
-# now run the script that will generate texinfo
+# run the script that will generate texinfo
 main='(module-ref (resolve-module '\''(scripts snarf-check-and-output-texi)) '\''main)'
 apply_main="(apply $main (cdr (command-line)))"
 
 if [ `basename ${bindir}` = libguile ]; then
-   GUILE_LOAD_PATH=${srcdir}/.. ${bindir}/guile -c "${apply_main}" < ${temp0}
-else
-   ${bindir}/guile -c "${apply_main}" < ${temp0}
+   GUILE_LOAD_PATH=${srcdir}/..; export GUILE_LOAD_PATH
 fi
+
+cat "$@" | ${bindir}/guile_filter_doc_snarfage --filter-snarfage | ${bindir}/guile -c "${apply_main}"

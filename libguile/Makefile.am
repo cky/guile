@@ -38,7 +38,7 @@ guile_SOURCES = guile.c
 guile_LDADD = libguile.la ${THREAD_LIBS_LOCAL}
 guile_LDFLAGS = @DLPREOPEN@
 
-guile_filter_doc_snarfage_SOURCES = filter-doc-snarfage.c
+guile_filter_doc_snarfage_SOURCES = c-tokenize.c
 
 libguile_la_SOURCES = alist.c arbiters.c async.c backtrace.c boolean.c	    \
     chars.c continuations.c debug.c deprecation.c dynl.c dynwind.c	    \
@@ -185,8 +185,6 @@ libpath.h: $(srcdir)/Makefile.in  $(top_builddir)/config.status
 	@mv libpath.tmp libpath.h
 
 
-#	./guile-snarf $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< > $@ 
-
 SUFFIXES = .x .doc
 .c.x:
 	./guile-snarf $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $< > $@ \
@@ -198,13 +196,13 @@ SUFFIXES = .x .doc
 
 $(DOT_X_FILES) $(EXTRA_DOT_DOC_FILES): snarf.h guile-snarf.in
 
-$(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES): snarf.h guile-snarf-docs.in guile_filter_doc_snarfage
+$(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES): snarf.h guile-snarf-docs.in
 
 error.x: cpp_err_symbols.c
 posix.x: cpp_sig_symbols.c
 load.x: libpath.h
 
-guile.texi: $(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES) guile-snarf-docs-texi.in guile
+guile.texi: $(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES) guile-snarf-docs-texi.in guile guile_filter_doc_snarfage
 	./guile-snarf-docs-texi $(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES) > $@ \
 	|| { rm $@; false; }
 

@@ -85,14 +85,13 @@
 #  define SCM_SNARF_HERE(X)
 #  define SCM_SNARF_INIT(X)
 #  define SCM_SNARF_DOCS(TYPE, FNAME, ARGLIST, REQ, OPT, VAR, DOCSTRING) \
-^^{ \
-^^%fname . FNAME \
-^^%type . TYPE \
-^^%location __FILE__ . __LINE__ \
-^^%arglist . ARGLIST \
-^^%argsig REQ OPT VAR \
-^^(DOCSTRING) \
-^^}
+^^ { \
+fname FNAME ^^ \
+type TYPE ^^ \
+location __FILE__ __LINE__ ^^ \
+arglist ARGLIST ^^ \
+argsig REQ OPT VAR ^^ \
+DOCSTRING ^^ }
 # else
 #  define SCM_SNARF_HERE(X) X
 #  define SCM_SNARF_INIT(X)
@@ -219,7 +218,7 @@ SCM_SNARF_INIT(c_name = scm_permanent_object (scm_sysintern (scheme_name, init_v
 
 #ifdef SCM_MAGIC_SNARF_DOCS
 #undef SCM_ASSERT
-#define SCM_ASSERT(_cond, _arg, _pos, _subr) ^^[ argpos _arg _pos __LINE__ ]
+#define SCM_ASSERT(_cond, _arg, _pos, _subr) ^^ argpos _arg _pos __LINE__ ^^
 #endif /* SCM_MAGIC_SNARF_DOCS */
 
 #endif /* LIBGUILE_SNARF_H */
