@@ -2,7 +2,7 @@
 
 #ifndef PORTSH
 #define PORTSH
-/*	Copyright (C) 1995,1996 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996,1997 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -183,6 +183,7 @@ extern SCM scm_input_port_p SCM_P ((SCM x));
 extern SCM scm_output_port_p SCM_P ((SCM x));
 extern SCM scm_eof_object_p SCM_P ((SCM x));
 extern SCM scm_force_output SCM_P ((SCM port));
+extern SCM scm_flush_all_ports SCM_P ((void));
 extern SCM scm_read_char SCM_P ((SCM port));
 extern SCM scm_peek_char SCM_P ((SCM port));
 extern SCM scm_unread_char SCM_P ((SCM cobj, SCM port));

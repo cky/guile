@@ -196,6 +196,9 @@ facility.  Maybe this is not needed, since the thread support may
 provide solutions to the problem of consistent access to data
 structures.
 
+** A new procedure `flush-all-ports' is equivalent to running
+`force-output' on every port open for output.
+
 
 Changes in Guile 1.1 (Fri May 16 1997):
 

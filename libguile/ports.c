@@ -49,6 +49,7 @@
 #include "fports.h"
 #include "strports.h"
 #include "vports.h"
+#include "kw.h"
 
 #include "ports.h"
 
@@ -456,6 +457,23 @@ scm_force_output (port)
   }
 }
 
+SCM_PROC (s_flush_all_ports, "flush-all-ports", 0, 1, 0, scm_flush_all_ports);
+SCM
+scm_flush_all_ports (void)
+{
+  int i;
+
+  for (i = 0; i < scm_port_table_size; i++)
+    {
+      SCM port = scm_port_table[i]->port;
+      if (SCM_OPOUTPORTP (port))
+	{
+	  scm_sizet ptob = SCM_PTOBNUM (port);
+	  (scm_ptobs[ptob].fflush) (SCM_STREAM (port));
+	}
+    }
+  return SCM_UNSPECIFIED;
+}
 
 SCM_PROC(s_read_char, "read-char", 0, 1, 0, scm_read_char);
 

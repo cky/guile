@@ -1,3 +1,8 @@
+Sat Jun 21 18:44:03 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* ports.h: new prototype.
+	* ports.c (scm_flush_all_ports): new procedure, scsh compatible.
+
 Sat Jun 21 00:25:03 1997  Jim Blandy  <jimb@floss.red-bean.com>
 
 	Make things compile neatly under Sun's C compiler.
