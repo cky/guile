@@ -246,13 +246,13 @@ wanted.
 
 There are situations, however, where a @code{SCM} object needs to be
 around longer than its reference from a local variable or function
-parameter.  This happens, for example, when you retrieve the array of
-characters from a Scheme string and work on that array directly.  The
-reference to the @code{SCM} string object might be dead after the
-character array has been retrieved, but the array itself is still in use
-and thus the string object must be protected.  The compiler does not
-know about this connection and might overwrite the @code{SCM} reference
-too early.
+parameter.  This happens, for example, when you retrieve some pointer
+from a smob and work with that pointer directly.  The reference to the
+@code{SCM} smob object might be dead after the pointer has been
+retrieved, but the pointer itself (and the memory pointed to) is still
+in use and thus the smob object must be protected.  The compiler does
+not know about this connection and might overwrite the @code{SCM}
+reference too early.
 
 To get around this problem, you can use @code{scm_remember_upto_here_1}
 and its cousins.  It will keep the compiler from overwriting the
@@ -382,6 +382,11 @@ setting and resetting of the global state.  C code could use the
 corresponding @code{scm_internal_dynamic_wind} function, but it might
 prefer to use the @dfn{frames} concept that is more natural for C code,
 (@pxref{Frames}).
+
+Instead of coping with non-local control flow, you can also prevent it
+by errecting a @emph{continuation barrier}, @xref{Continuation
+Barriers}.  The function @code{scm_c_with_continuation_barrier}, for
+example, is guaranteed to return exactly once.
 
 @node Asynchronous Signals
 @subsection Asynchronous Signals
