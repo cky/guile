@@ -1,0 +1,91 @@
+;;;; posix.test --- Test suite for Guile POSIX functions. -*- scheme -*-
+;;;;
+;;;; Copyright 2003 Free Software Foundation, Inc.
+;;;;
+;;;; This program is free software; you can redistribute it and/or modify
+;;;; it under the terms of the GNU General Public License as published by
+;;;; the Free Software Foundation; either version 2, or (at your option)
+;;;; any later version.
+;;;;
+;;;; This program is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;;;; GNU General Public License for more details.
+;;;;
+;;;; You should have received a copy of the GNU General Public License
+;;;; along with this software; see the file COPYING.  If not, write to
+;;;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+;;;; Boston, MA 02111-1307 USA
+
+(use-modules (test-suite lib))
+
+
+;;
+;; putenv
+;;
+
+(with-test-prefix "putenv"
+  
+  (pass-if "something"
+    (putenv "FOO=something")
+    (equal? "something" (getenv "FOO")))
+  
+  (pass-if "replacing"
+    (putenv "FOO=one")
+    (putenv "FOO=two")
+    (equal? "two" (getenv "FOO")))
+  
+  (pass-if "empty"
+    (putenv "FOO=")
+    (equal? "" (getenv "FOO")))
+  
+  (pass-if "removing"
+    (putenv "FOO=bar")
+    (putenv "FOO")
+    (not (getenv "FOO")))
+  
+  (pass-if "modifying string doesn't change env"
+    (let ((s (string-copy "FOO=bar")))
+      (putenv s)
+      (string-set! s 5 #\x)
+      (equal? "bar" (getenv "FOO")))))
+
+;;
+;; setenv
+;;
+
+(with-test-prefix "setenv"
+  
+  (pass-if "something"
+    (setenv "FOO" "something")
+    (equal? "something" (getenv "FOO")))
+  
+  (pass-if "replacing"
+    (setenv "FOO" "one")
+    (setenv "FOO" "two")
+    (equal? "two" (getenv "FOO")))
+
+  (pass-if "empty"
+    (setenv "FOO" "")
+    (equal? "" (getenv "FOO")))
+  
+  (pass-if "removing"
+    (setenv "FOO" "something")
+    (setenv "FOO" #f)
+    (not (getenv "FOO"))))
+  
+;;
+;; unsetenv
+;;
+
+(with-test-prefix "unsetenv"
+  
+  (pass-if "something"
+    (putenv "FOO=something")
+    (unsetenv "FOO")
+    (not (getenv "FOO")))
+  
+  (pass-if "empty"
+    (putenv "FOO=")
+    (unsetenv "FOO")
+    (not (getenv "FOO"))))
