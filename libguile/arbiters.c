@@ -55,9 +55,8 @@ arbiter_print (SCM exp, SCM port, scm_print_state *pstate)
 
 SCM_DEFINE (scm_make_arbiter, "make-arbiter", 1, 0, 0, 
 	    (SCM name),
-	    "Return an object of type arbiter and name @var{name}. Its\n"
-	    "state is initially unlocked.  Arbiters are a way to achieve\n"
-	    "process synchronization.")
+	    "Return an arbiter object, initially unlocked.  Currently\n"
+	    "@var{name} is only used for diagnostic output.")
 #define FUNC_NAME s_scm_make_arbiter
 {
   SCM_RETURN_NEWSMOB (scm_tc16_arbiter, SCM_UNPACK (name));
@@ -72,8 +71,9 @@ SCM_DEFINE (scm_make_arbiter, "make-arbiter", 1, 0, 0,
 
 SCM_DEFINE (scm_try_arbiter, "try-arbiter", 1, 0, 0, 
 	    (SCM arb),
-	    "Return @code{#t} and lock the arbiter @var{arb} if the arbiter\n"
-	    "was unlocked. Otherwise, return @code{#f}.")
+	    "If @var{arb} is unlocked, then lock it and return @code{#t}.\n"
+	    "If @var{arb} is already locked, then do nothing and return\n"
+	    "@code{#f}.")
 #define FUNC_NAME s_scm_try_arbiter
 {
   SCM_VALIDATE_SMOB (1, arb, arbiter);
@@ -101,8 +101,13 @@ SCM_DEFINE (scm_try_arbiter, "try-arbiter", 1, 0, 0,
 
 SCM_DEFINE (scm_release_arbiter, "release-arbiter", 1, 0, 0,
 	    (SCM arb),
-	    "Return @code{#t} and unlock the arbiter @var{arb} if the\n"
-	    "arbiter was locked. Otherwise, return @code{#f}.")
+	    "If @var{arb} is locked, then unlock it and return @code{#t}.\n"
+	    "If @var{arb} is already unlocked, then do nothing and return\n"
+	    "@code{#f}.\n"
+	    "\n"
+	    "Typical usage is for the thread which locked an arbiter to\n"
+	    "later release it, but that's not required, any thread can\n"
+	    "release it.")
 #define FUNC_NAME s_scm_release_arbiter
 {
   SCM ret;
