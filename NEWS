@@ -21,7 +21,7 @@ guile-rgx-ctax --- the interface between Guile and the Rx regular
 
 * Changes to the stand-alone interpreter
 
-** [[accepts scsh arguments]]
+** 
 
 * Changes to Scheme functions
 
