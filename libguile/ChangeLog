@@ -1,3 +1,11 @@
+Thu Jan 20 11:33:47 2000  Dirk Hermann <dirk@ida.ing.tu-bs.de> --applied 01/20/00 gjb
+
+	* list.c: Put some variable initialization code at the point of
+	declaration; Added a comment for list*; Formatting changes.
+
+	* load.c: use SCM_NNULLP to make sure the end of a list is not
+	reached yet.
+
 2000-01-18  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* backtrace.c (scm_display_error_message): Bugfix: Don't use

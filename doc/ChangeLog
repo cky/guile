@@ -1,3 +1,7 @@
+Thu Jan 20 13:00:18 2000  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* version.texi, stamp-vti: Removed -- these are auto-generated.
+
 2000-01-12  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* Makefile.am (dist-hook): Updated to include oldfmt.c in
