@@ -102,7 +102,7 @@
 		  futures)))))
 
 ;;; The following procedure is motivated by the common and important
-;;; case where a lot of work should be done (not too much) in parallel
+;;; case where a lot of work should be done, (not too much) in parallel,
 ;;; but the results need to be handled serially (for example when
 ;;; writing them to a file).
 ;;;
