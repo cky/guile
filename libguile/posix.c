@@ -114,6 +114,14 @@ extern char ** environ;
 #  include <crypt.h>
 #endif
 
+#ifdef HAVE_NETDB_H
+#include <netdb.h>      /* for MAXHOSTNAMELEN on Solaris */
+#endif
+
+#ifdef HAVE_SYS_PARAM_H
+#include <sys/param.h>  /* for MAXHOSTNAMELEN */
+#endif
+
 #if HAVE_SYS_RESOURCE_H
 #  include <sys/resource.h>
 #endif
@@ -1746,11 +1754,31 @@ SCM_DEFINE (scm_gethostname, "gethostname", 0, 0, 0,
 	    "Return the host name of the current processor.")
 #define FUNC_NAME s_scm_gethostname
 {
-  /* 256 is for Solaris, under Linux ENAMETOOLONG is returned if not
-     large enough.  */
-  int len = 256, res, save_errno;
+  int len, res, save_errno;
   char *p = scm_malloc (len);
   SCM name;
+
+  /* Default 256 is for Solaris, under Linux ENAMETOOLONG is returned if not
+     large enough.  SUSv2 specifies 255 maximum too, apparently.  */
+  len = 256;
+
+  /* Various systems define MAXHOSTNAMELEN (including Solaris in fact).
+     On GNU/Linux this doesn't include the terminating '\0', hence "+ 1".  */
+#ifdef MAXHOSTNAMELEN
+  len = MAXHOSTNAMELEN + 1;
+#endif
+
+  /* POSIX specifies the HOST_NAME_MAX system parameter for the max size,
+     which may reflect a particular kernel configuration.
+     Must watch out for this existing but giving -1, as happens for instance
+     in gnu/linux glibc 2.3.2.  */
+#if HAVE_SYSCONF && defined (_SC_HOST_NAME_MAX)
+  {
+    long n = sysconf (_SC_HOST_NAME_MAX);
+    if (n != -1L)
+      len = n;
+  }
+#endif
 
   res = gethostname (p, len);
   while (res == -1 && errno == ENAMETOOLONG)
