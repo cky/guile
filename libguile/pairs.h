@@ -144,6 +144,9 @@ typedef SCM  huge *SCMPTR;
 #define SCM_CDDDDR(OBJ)		SCM_CDR (SCM_CDR (SCM_CDR (SCM_CDR (OBJ))))
 
 
+#ifdef DEBUG_FREELIST
+#define SCM_NEWCELL(_into) (scm_debug_newcell (&_into))
+#else
 #define SCM_NEWCELL(_into) \
 	{ \
 	  if (SCM_IMP(scm_freelist)) \
@@ -155,6 +158,7 @@ typedef SCM  huge *SCMPTR;
 	       ++scm_cells_allocated; \
 	    } \
 	}
+#endif
 
 
 

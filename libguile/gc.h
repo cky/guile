@@ -68,6 +68,10 @@ extern unsigned long scm_cells_allocated;
 extern unsigned long scm_mallocated;
 extern long scm_mtrigger;
 
+#ifdef DEBUG_FREELIST
+extern void scm_debug_newcell SCM_P ((SCM *into));
+#endif
+
 
 
 extern SCM scm_object_addr SCM_P ((SCM obj));
