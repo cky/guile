@@ -57,9 +57,7 @@
 /* AIX requires this to be the first thing in the file.  The #pragma
    directive is indented so pre-ANSI compilers will ignore it, rather
    than choke on it.  */
-#ifdef __GNUC__
-# define alloca __builtin_alloca
-#else
+#ifndef __GNUC__
 # if HAVE_ALLOCA_H
 #  include <alloca.h>
 # else

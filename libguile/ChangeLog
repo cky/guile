@@ -1,3 +1,8 @@
+Tue Feb  4 18:17:50 1997  Tom Tromey  <tromey@cygnus.com>
+
+	* eval.c: Don't define alloca in GCC case.  gcc will automatically
+	use __builtin_alloca if appropriate.
+
 Tue Feb  4 16:57:40 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* eval.c (safe_setjmp): New function: trivial wrapper for setjmp.
