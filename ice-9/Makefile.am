@@ -35,7 +35,7 @@ ice9_sources =								   \
 	streams.scm string-fun.scm syncase.scm threads.scm	   	   \
 	buffered-input.scm time.scm history.scm channel.scm		   \
         pretty-print.scm ftw.scm gap-buffer.scm occam-channel.scm	   \
-	weak-vector.scm
+	weak-vector.scm deprecated.scm
 
 subpkgdatadir = $(pkgdatadir)/${GUILE_EFFECTIVE_VERSION}/ice-9
 subpkgdata_DATA = $(ice9_sources)
