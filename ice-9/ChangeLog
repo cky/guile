@@ -1,5 +1,10 @@
 2001-03-20  Keisuke Nishida  <kxn30@po.cwru.edu>
 
+	* time.scm (time): Reimplemented as a procedure call.
+	(Thanks to Marius Vollmer)
+
+2001-03-20  Keisuke Nishida  <kxn30@po.cwru.edu>
+
 	* safe-r5rs.scm (list): Export.
 
 2001-03-17  Keisuke Nishida  <kxn30@po.cwru.edu>
