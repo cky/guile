@@ -167,8 +167,21 @@
 			   (pass-if "unread residue"
 				    (string=? (read-line) "moon")))))
 
+;;; non-blocking mode on a port.  create a pipe and set O_NONBLOCK on
+;;; the reading end.  try to read a byte: should get EAGAIN error.
+(catch-test-errors
+ (let* ((p (pipe))
+	(r (car p)))
+   (fcntl r F_SETFL O_NONBLOCK)
+   (pass-if "non-blocking-I/O"
+	    (catch 'system-error
+		   (lambda () (read-char r))
+		   (lambda (key . args)
+		     (and (eq? key 'system-error)
+			  (= (car (list-ref args 3)) EAGAIN)))))))
+
 
-;;;; Pipe ports.
+;;;; Pipe (popen) ports.
 
 ;;; Run a command, and read its output.
 (catch-test-errors

@@ -1,3 +1,7 @@
+1999-09-14  Gary Houston  <ghouston@freewire.co.uk>
+
+	* tests/ports.test: test non-blocking I/O.
+
 1999-09-11  Jim Blandy  <jimb@savonarola.red-bean.com>
 
 	* tests/strings.test: Add test for substring-move! argument checking.
