@@ -72,7 +72,7 @@ scm_t_option scm_read_opts[] = {
   { SCM_OPTION_BOOLEAN, "case-insensitive", 0,
     "Convert symbols to lower case."},
   { SCM_OPTION_SCM, "keywords", SCM_UNPACK (SCM_BOOL_F),
-    "Style of keyword recognition: #f or 'prefix"}
+    "Style of keyword recognition: #f or 'prefix."}
 };
 
 SCM_DEFINE (scm_read_options, "read-options-interface", 0, 1, 0, 

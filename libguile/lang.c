@@ -62,6 +62,9 @@
  * in all data structures.
  */
 
+#ifdef SCM_ENABLE_ELISP
+#if 0
+
 SCM_DEFINE (scm_nil_cons, "nil-cons", 2, 0, 0,
             (SCM x, SCM y),
 	    "Create a new cons cell with @var{x} as the car and @var{y} as\n"
@@ -145,16 +148,23 @@ SCM_DEFINE1 (scm_nil_eq, "nil-eq", scm_tc7_rpsubr,
 }
 #undef FUNC_NAME
 
+#endif /* 0 */
 
 
 void
 scm_init_lang ()
 {
+#if 0
 #ifndef SCM_MAGIC_SNARFER
 #include "libguile/lang.x"
 #endif
   scm_make_synt ("nil-while", scm_makacro, scm_m_while);
+#endif
+
+  scm_c_define ("%nil", SCM_ELISP_NIL);
 }
+
+#endif /* SCM_ENABLE_ELISP */
 
 /*
   Local Variables:

@@ -46,6 +46,7 @@
 #include "libguile/eq.h"
 #include "libguile/root.h"
 #include "libguile/strings.h"
+#include "libguile/lang.h"
 
 #include "libguile/validate.h"
 #include "libguile/vectors.h"
@@ -101,7 +102,7 @@ SCM_DEFINE (scm_vector, "vector", 0, 0, 1,
   SCM_VALIDATE_LIST_COPYLEN (1, l, i);
   res = scm_c_make_vector (i, SCM_UNSPECIFIED);
   data = SCM_VELTS (res);
-  while (!SCM_NULLP (l)) 
+  while (!SCM_NULL_OR_NIL_P (l)) 
     {
       *data++ = SCM_CAR (l);
       l = SCM_CDR (l);

@@ -50,10 +50,14 @@
 
 
 
+#ifdef SCM_ENABLE_ELISP
+
+#define SCM_NILP(x) (SCM_EQ_P ((x), SCM_ELISP_NIL))
+
+#if 0
 SCM_API SCM scm_lisp_nil;
 SCM_API SCM scm_lisp_t;
 
-#define SCM_NILP(x) (SCM_EQ_P ((x), scm_lisp_nil))
 #define SCM_NILNULLP(x) (SCM_NILP (x) || SCM_NULLP (x))
 #define SCM_NIL2EOL(x, tmp) (SCM_EQ_P ((tmp = (x)), scm_lisp_nil) ? SCM_EOL : tmp)
 #define SCM_EOL2NIL(x, tmp) (SCM_NULLP (tmp = (x)) ? scm_lisp_nil : tmp)
@@ -68,7 +72,13 @@ SCM_API SCM scm_nil_cdr (SCM x);
 SCM_API SCM scm_null (SCM x);
 SCM_API SCM scm_m_while (SCM exp, SCM env);
 SCM_API SCM scm_nil_eq (SCM x, SCM y);
+#endif /* 0 */
 SCM_API void scm_init_lang (void);
+#else  /* ! SCM_ENABLE_ELISP */
+#define SCM_NILP(x) 0
+#endif /* ! SCM_ENABLE_ELISP */
+
+#define SCM_NULL_OR_NIL_P(x) (SCM_NULLP (x) || SCM_NILP (x))
 
 #endif  /* SCM_LANG_H */
 

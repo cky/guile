@@ -48,6 +48,7 @@
 #include "libguile/throw.h"
 #include "libguile/root.h"
 #include "libguile/smob.h"
+#include "libguile/lang.h"
 
 #include "libguile/validate.h"
 #include "libguile/async.h"
@@ -128,7 +129,7 @@ scm_asyncs_pending ()
 {
   SCM pos;
   pos = scm_asyncs;
-  while (!SCM_NULLP (pos))
+  while (!SCM_NULL_OR_NIL_P (pos))
     {
       SCM a = SCM_CAR (pos);
       if (ASYNC_GOT_IT (a))
@@ -356,7 +357,7 @@ SCM_DEFINE (scm_run_asyncs, "run-asyncs", 1, 0, 0,
 #else
   scm_asyncs_pending_p = 0;
 #endif
-  while (! SCM_NULLP (list_of_a))
+  while (! SCM_NULL_OR_NIL_P (list_of_a))
     {
       SCM a;
       SCM_VALIDATE_CONS (1, list_of_a);
@@ -385,7 +386,7 @@ SCM_DEFINE (scm_noop, "noop", 0, 0, 1,
 #define FUNC_NAME s_scm_noop
 {
   SCM_VALIDATE_REST_ARGUMENT (args);
-  return (SCM_NULLP (args) ? SCM_BOOL_F : SCM_CAR (args));
+  return (SCM_NULL_OR_NIL_P (args) ? SCM_BOOL_F : SCM_CAR (args));
 }
 #undef FUNC_NAME
 

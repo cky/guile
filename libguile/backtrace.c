@@ -302,7 +302,7 @@ SCM_DEFINE (scm_set_print_params_x, "set-print-params!", 1, 0, 0,
   print_params_t *new_params;
 
   SCM_VALIDATE_NONEMPTYLIST_COPYLEN (2, params, n);
-  for (ls = params; !SCM_NULLP (ls); ls = SCM_CDR (ls))
+  for (ls = params; !SCM_NULL_OR_NIL_P (ls); ls = SCM_CDR (ls))
     SCM_ASSERT (scm_ilength (SCM_CAR (params)) == 2
 		&& SCM_INUMP (SCM_CAAR (ls))
 		&& SCM_INUM (SCM_CAAR (ls)) >= 0

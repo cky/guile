@@ -50,6 +50,7 @@
 #include "libguile/eval.h"
 #include "libguile/ports.h"
 #include "libguile/deprecation.h"
+#include "libguile/lang.h"
 
 #define INITIAL_FLUIDS 10
 #include "libguile/validate.h"
@@ -178,7 +179,7 @@ SCM_DEFINE (scm_fluid_set_x, "fluid-set!", 2, 0, 0,
 void
 scm_swap_fluids (SCM fluids, SCM vals)
 {
-  while (!SCM_NULLP (fluids))
+  while (!SCM_NULL_OR_NIL_P (fluids))
     {
       SCM fl = SCM_CAR (fluids);
       SCM old_val = scm_fluid_ref (fl);
@@ -195,7 +196,7 @@ same fluid appears multiple times in the fluids list. */
 void
 scm_swap_fluids_reverse (SCM fluids, SCM vals)
 {
-  if (!SCM_NULLP (fluids))
+  if (!SCM_NULL_OR_NIL_P (fluids))
     {
       SCM fl, old_val;
 

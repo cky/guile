@@ -204,13 +204,10 @@ SCM_API SCM scm_m_letrec (SCM xorig, SCM env);
 SCM_API SCM scm_m_let (SCM xorig, SCM env);
 SCM_API SCM scm_m_apply (SCM xorig, SCM env);
 SCM_API SCM scm_m_cont (SCM xorig, SCM env);
+#ifdef SCM_ENABLE_ELISP
 SCM_API SCM scm_m_nil_cond (SCM xorig, SCM env);
-SCM_API SCM scm_m_nil_ify (SCM xorig, SCM env);
-SCM_API SCM scm_m_t_ify (SCM xorig, SCM env);
-SCM_API SCM scm_m_0_cond (SCM xorig, SCM env);
-SCM_API SCM scm_m_0_ify (SCM xorig, SCM env);
-SCM_API SCM scm_m_1_ify (SCM xorig, SCM env);
 SCM_API SCM scm_m_atfop (SCM xorig, SCM env);
+#endif /* SCM_ENABLE_ELISP */
 SCM_API SCM scm_m_atbind (SCM xorig, SCM env);
 SCM_API SCM scm_m_at_call_with_values (SCM xorig, SCM env);
 SCM_API int scm_badargsp (SCM formals, SCM args);

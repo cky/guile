@@ -44,6 +44,7 @@
 #include "libguile/_scm.h"
 #include "libguile/eq.h"
 #include "libguile/list.h"
+#include "libguile/lang.h"
 
 #include "libguile/validate.h"
 #include "libguile/alist.h"
@@ -144,7 +145,7 @@ SCM_DEFINE (scm_assq, "assq", 2, 0, 0,
       if (SCM_EQ_P (SCM_CAR (tmp), key))
 	return tmp;
     }
-  SCM_ASSERT_TYPE (SCM_NULLP (ls), alist, SCM_ARG2, FUNC_NAME,
+  SCM_ASSERT_TYPE (SCM_NULL_OR_NIL_P (ls), alist, SCM_ARG2, FUNC_NAME,
 		   "association list");
   return SCM_BOOL_F;
 }
@@ -165,7 +166,7 @@ SCM_DEFINE (scm_assv, "assv", 2, 0, 0,
       if (SCM_NFALSEP (scm_eqv_p (SCM_CAR (tmp), key)))
 	return tmp;
     }
-  SCM_ASSERT_TYPE (SCM_NULLP (ls), alist, SCM_ARG2, FUNC_NAME,
+  SCM_ASSERT_TYPE (SCM_NULL_OR_NIL_P (ls), alist, SCM_ARG2, FUNC_NAME,
 		   "association list");
   return SCM_BOOL_F;
 }
@@ -186,7 +187,7 @@ SCM_DEFINE (scm_assoc, "assoc", 2, 0, 0,
       if (SCM_NFALSEP (scm_equal_p (SCM_CAR (tmp), key)))
 	return tmp;
     }
-  SCM_ASSERT_TYPE (SCM_NULLP (ls), alist, SCM_ARG2, FUNC_NAME,
+  SCM_ASSERT_TYPE (SCM_NULL_OR_NIL_P (ls), alist, SCM_ARG2, FUNC_NAME,
 		   "association list");
   return SCM_BOOL_F;
 }

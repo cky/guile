@@ -1,3 +1,98 @@
+2002-01-22  Neil Jerram  <neil@ossau.uklinux.net>
+	
+	Other changes unrelated to Elisp...
+	
+	* eval.c (scm_m_if): Use s_if rather than repeating string literal
+	"if".
+	(comments): Fix a few typos.
+	(scm_for_each): Add parentheses around oddly unparenthesized
+	if/while conditions.
+
+	* read.c (scm_read_opts): Add full stop at end of doc for
+	`keywords' option.
+
+	* script.c (scm_compile_shell_switches): Use scm_str2symbol
+	instead of gh_symbol2scm.
+
+	* srcprop.h (SRCPROPBRK): Return C type rather than SCM.
+	(SRCBRKP): Use SRCPROPBRK rather than duplicating its logic.
+
+	* srcprop.c (scm_srcprops_to_plist, scm_source_property): Change
+	SRCPROPBRK (x) to SCM_BOOL (SRCPROPBRK (x)).
+
+	First batch of changes for Elisp support...
+
+	* alist.c, async.c, boolean.c, dynl.c, eval.c, filesys.c,
+	fluids.c, list.c, load.c, options.c, posix.c, print.c, sort.c,
+	throw.c, vectors.c, weaks.c: Add #include for lang.h.
+
+	* eval.c, eval.h, init.c, lang.c, lang.h: Use SCM_ENABLE_ELISP to
+	conditionalize compilation and initialization of Elisp support
+	function.
+	
+	* alist.c (scm_assq, scm_assv, scm_assoc), async.c
+	(scm_asyncs_pending, scm_run_asyncs, noop), backtrace.c
+	(scm_set_print_params_x), dynl.c (scm_make_argv_from_stringlist),
+	filesys.c (fill_select_type, retrieve_select_type), fluids.c
+	(scm_swap_fluids, scm_swap_fluids_reverse), list.c (scm_null_p,
+	scm_ilength, scm_append_x, scm_last_pair, scm_reverse,
+	scm_reverse_x, scm_list_ref, scm_list_set_x, scm_list_cdr_set_x,
+	scm_c_memq, scm_memv), load.c (scm_search_path), options.c
+	(change_option_setting, scm_options), posix.c (environ_list_to_c),
+	print.c (scm_iprlist), throw.c (scm_exit_status), vectors.c
+	(scm_vector), weaks.c (scm_weak_vector): Use SCM_NULL_OR_NIL_P
+	instead of SCM_NULLP.
+
+	* boolean.c (scm_not): Use `SCM_FALSEP || SCM_NILP' instead of
+	just SCM_FALSEP.
+	
+	* boolean.c (scm_boolean_p): Use `SCM_BOOLP || SCM_NILP' instead
+	of just SCM_BOOLP.
+
+	* eval.c (scm_lisp_nil, scm_lisp_t, s_nil_ify, scm_m_nil_ify,
+	s_t_ify, scm_m_t_ify, s_0_cond, scm_m_0_cond, s_0_ify,
+	scm_m_0_ify, s_1_ify, scm_m_1_ify): Removed.
+	(scm_m_atfop): Support function aliasing.  Support both function
+	args, which need transformation, and macro args, which do not.
+	Add explanatory comments.
+	(SCM_CEVAL): In switch cases for SCM_IM_AND, SCM_IM_COND,
+	SCM_IM_DO, SCM_IM_IF and SCM_IM_OR, add `|| SCM_NILP' to existing
+	checks for SCM_FALSEP.  In switch case for SCM_IM_NIL_COND, use
+	SCM_NULLP || SCM_NILP instead of checks against (removed)
+	scm_lisp_nil.  Removed switch cases for SCM_IM_NIL_IFY,
+	SCM_IM_T_IFY, SCM_IM_0_COND, SCM_IM_0_IFY, SCM_IM_1_IFY.
+
+	* lang.c (scm_nil_cons, scm_nil_car, scm_nil_cdr, scm_null,
+	scm_m_while, scm_nil_eq): Commented out; I don't think we need
+	these, but I don't want to remove them yet, just in case.
+	(scm_init_lang): Define `%nil' variable on Scheme level to hold
+	Elisp nil value.
+
+	* lang.h (SCM_NILP): Test against Elisp nil value instead of
+	against (removed) scm_lisp_nil.
+	(SCM_NILNULLP, SCM_NIL2EOL, SCM_EOL2NIL): Commented out.
+	(SCM_NULL_OR_NIL_P): New.
+
+	* list.c (scm_append): Use SCM_VALIDATE_NULL_OR_NIL instead of
+	SCM_VALIDATE_NULL.
+
+	* print.c (scm_isymnames): Fix comment.  Remove #@nil-ify,
+	#@t-ify, #@0-cond, #@0-ify, #@1-ify.  Add #nil (for SCM_ELISP_NIL
+	value).
+
+	* sort.c (scm_sorted_p, scm_merge, scm_merge_list_x, scm_merge_x,
+	scm_sort_x, scm_sort, scm_stable_sort_x, scm_stable_sort): Use
+	SCM_NULL_OR_NIL_P instead of SCM_NULLP.  In constructions like `if
+	(SCM_NULLP (x)) return SCM_EOL;', return x rather than SCM_EOL.
+
+	* tags.h (SCM_IM_NIL_IFY, SCM_IM_T_IFY, SCM_IM_0_COND,
+	SCM_IM_0_IFY, SCM_IM_1_IFY): Removed.
+	(SCM_IM_BIND, SCM_IM_DELAY, SCM_IM_CALL_WITH_VALUES, SCM_UNBOUND):
+	Numbering shifted down accordingly.
+	(SCM_ELISP_NIL): New IFLAG.
+
+	* validate.h (SCM_VALIDATE_NULL_OR_NIL): New.
+	
 2002-01-10  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* eval.c:  Removed outdated references to "everr".  Improved some

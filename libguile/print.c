@@ -62,6 +62,7 @@
 #include "libguile/strings.h"
 #include "libguile/strports.h"
 #include "libguile/vectors.h"
+#include "libguile/lang.h"
 
 #include "libguile/validate.h"
 #include "libguile/print.h"
@@ -74,7 +75,7 @@
 
 char *scm_isymnames[] =
 {
-  /* This table must agree with the declarations */
+  /* This table must agree with the list of SCM_IM_ constants in tags.h */
   "#@and",
   "#@begin",
   "#@case",
@@ -113,17 +114,17 @@ char *scm_isymnames[] =
   /* Multi-language support */
   
   "#@nil-cond",
-  "#@nil-ify",
-  "#@t-ify",
-  "#@0-cond",
-  "#@0-ify",
-  "#@1-ify",
   "#@bind",
   
   "#@delay",
   "#@call-with-values",
 
-  "#<unbound>"
+  "#<unbound>",
+
+  /* Elisp nil value.  This is its Scheme name; whenever it's printed
+     in Elisp, it should appear as the symbol `nil'. */
+
+  "#nil"
 };
 
 scm_t_option scm_print_opts[] = {
@@ -781,7 +782,7 @@ scm_iprlist (char *hdr,SCM exp,int tlr,SCM port,scm_print_state *pstate)
       /* CHECK_INTS; */
       scm_iprin1 (SCM_CAR (exp), port, pstate);
     }
-  if (!SCM_NULLP (exp))
+  if (!SCM_NULL_OR_NIL_P (exp))
     {
       scm_puts (" . ", port);
       scm_iprin1 (exp, port, pstate);
@@ -822,7 +823,7 @@ fancy_printing:
 	scm_iprin1 (SCM_CAR (exp), port, pstate);
       }
   }
-  if (!SCM_NULLP (exp))
+  if (!SCM_NULL_OR_NIL_P (exp))
     {
       scm_puts (" . ", port);
       scm_iprin1 (exp, port, pstate);

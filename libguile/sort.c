@@ -86,6 +86,7 @@ char *alloca ();
 #include "libguile/feature.h"
 #include "libguile/root.h"
 #include "libguile/vectors.h"
+#include "libguile/lang.h"
 
 #include "libguile/validate.h"
 #include "libguile/sort.h"
@@ -457,7 +458,7 @@ SCM_DEFINE (scm_sorted_p, "sorted?", 2, 0, 0,
   SCM *vp;
   cmp_fun_t cmp = scm_cmp_function (less);
 
-  if (SCM_NULLP (items))
+  if (SCM_NULL_OR_NIL_P (items))
     return SCM_BOOL_T;
 
   SCM_VALIDATE_NIM (2,less);
@@ -530,9 +531,9 @@ SCM_DEFINE (scm_merge, "merge", 3, 0, 0,
   cmp_fun_t cmp = scm_cmp_function (less);
   SCM_VALIDATE_NIM (3,less);
 
-  if (SCM_NULLP (alist))
+  if (SCM_NULL_OR_NIL_P (alist))
     return blist;
-  else if (SCM_NULLP (blist))
+  else if (SCM_NULL_OR_NIL_P (blist))
     return alist;
   else
     {
@@ -584,9 +585,9 @@ scm_merge_list_x (SCM alist, SCM blist,
 {
   SCM build, last;
 
-  if (SCM_NULLP (alist))
+  if (SCM_NULL_OR_NIL_P (alist))
     return blist;
-  else if (SCM_NULLP (blist))
+  else if (SCM_NULL_OR_NIL_P (blist))
     return alist;
   else
     {
@@ -641,9 +642,9 @@ SCM_DEFINE (scm_merge_x, "merge!", 3, 0, 0,
   long alen, blen;		/* list lengths */
 
   SCM_VALIDATE_NIM (3,less);
-  if (SCM_NULLP (alist))
+  if (SCM_NULL_OR_NIL_P (alist))
     return blist;
-  else if (SCM_NULLP (blist))
+  else if (SCM_NULL_OR_NIL_P (blist))
     return alist;
   else
     {
@@ -715,8 +716,8 @@ SCM_DEFINE (scm_sort_x, "sort!", 2, 0, 0,
 #define FUNC_NAME s_scm_sort_x
 {
   long len;			/* list/vector length */
-  if (SCM_NULLP(items))
-    return SCM_EOL;
+  if (SCM_NULL_OR_NIL_P (items))
+    return items;
 
   SCM_VALIDATE_NIM (2,less);
 
@@ -748,8 +749,8 @@ SCM_DEFINE (scm_sort, "sort", 2, 0, 0,
 	    "elements.  This is not a stable sort.")
 #define FUNC_NAME s_scm_sort
 {
-  if (SCM_NULLP(items))
-    return SCM_EOL;
+  if (SCM_NULL_OR_NIL_P (items))
+    return items;
 
   SCM_VALIDATE_NIM (2,less);
   if (SCM_CONSP (items))
@@ -846,8 +847,8 @@ SCM_DEFINE (scm_stable_sort_x, "stable-sort!", 2, 0, 0,
 {
   long len;			/* list/vector length */
 
-  if (SCM_NULLP (items))
-    return SCM_EOL;
+  if (SCM_NULL_OR_NIL_P (items))
+    return items;
 
   SCM_VALIDATE_NIM (2,less);
   if (SCM_CONSP (items))
@@ -885,8 +886,8 @@ SCM_DEFINE (scm_stable_sort, "stable-sort", 2, 0, 0,
 #define FUNC_NAME s_scm_stable_sort
 {
   long len;			/* list/vector length */
-  if (SCM_NULLP (items))
-    return SCM_EOL;
+  if (SCM_NULL_OR_NIL_P (items))
+    return items;
 
   SCM_VALIDATE_NIM (2,less);
   if (SCM_CONSP (items))

@@ -55,6 +55,7 @@
 #include "libguile/root.h"
 #include "libguile/strings.h"
 #include "libguile/modules.h"
+#include "libguile/lang.h"
 
 #include "libguile/validate.h"
 #include "libguile/load.h"
@@ -300,7 +301,7 @@ SCM_DEFINE (scm_search_path, "search-path", 2, 1, 0,
     SCM walk;
 
     max_path_len = 0;
-    for (walk = path; !SCM_NULLP (walk); walk = SCM_CDR (walk))
+    for (walk = path; !SCM_NULL_OR_NIL_P (walk); walk = SCM_CDR (walk))
       {
 	SCM elt = SCM_CAR (walk);
 	SCM_ASSERT_TYPE (SCM_STRINGP (elt), path, 1, FUNC_NAME,
@@ -338,7 +339,7 @@ SCM_DEFINE (scm_search_path, "search-path", 2, 1, 0,
     SCM walk;
 
     max_ext_len = 0;
-    for (walk = extensions; !SCM_NULLP (walk); walk = SCM_CDR (walk))
+    for (walk = extensions; !SCM_NULL_OR_NIL_P (walk); walk = SCM_CDR (walk))
       {
 	SCM elt = SCM_CAR (walk);
 	SCM_ASSERT_TYPE (SCM_STRINGP (elt), elt, 3, FUNC_NAME,
@@ -356,12 +357,12 @@ SCM_DEFINE (scm_search_path, "search-path", 2, 1, 0,
     char *buf = SCM_MUST_MALLOC (buf_size);
 
     /* This simplifies the loop below a bit.  */
-    if (SCM_NULLP (extensions))
+    if (SCM_NULL_OR_NIL_P (extensions))
       extensions = scm_listofnullstr;
 
     /* Try every path element.  At this point, we know the path is a
        proper list of strings.  */
-    for (; !SCM_NULLP (path); path = SCM_CDR (path))
+    for (; !SCM_NULL_OR_NIL_P (path); path = SCM_CDR (path))
       {
 	size_t len;
 	SCM dir = SCM_CAR (path);
@@ -377,7 +378,7 @@ SCM_DEFINE (scm_search_path, "search-path", 2, 1, 0,
 
 	/* Try every extension.  At this point, we know the extension
 	   list is a proper, nonempty list of strings.  */
-	for (exts = extensions; !SCM_NULLP (exts); exts = SCM_CDR (exts))
+	for (exts = extensions; !SCM_NULL_OR_NIL_P (exts); exts = SCM_CDR (exts))
 	  {
 	    SCM ext = SCM_CAR (exts);
 	    size_t ext_len = SCM_STRING_LENGTH (ext);

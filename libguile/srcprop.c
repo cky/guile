@@ -161,7 +161,7 @@ scm_srcprops_to_plist (SCM obj)
     plist = scm_acons (scm_sym_filename, SRCPROPFNAME (obj), plist);
   plist = scm_acons (scm_sym_column, SCM_MAKINUM (SRCPROPCOL (obj)), plist);
   plist = scm_acons (scm_sym_line, SCM_MAKINUM (SRCPROPLINE (obj)), plist);
-  plist = scm_acons (scm_sym_breakpoint, SRCPROPBRK (obj), plist);
+  plist = scm_acons (scm_sym_breakpoint, SCM_BOOL (SRCPROPBRK (obj)), plist);
   return plist;
 }
 
@@ -224,7 +224,7 @@ SCM_DEFINE (scm_source_property, "source-property", 2, 0, 0,
   p = scm_hashq_ref (scm_source_whash, obj, SCM_EOL);
   if (!SRCPROPSP (p))
     goto plist;
-  if      (SCM_EQ_P (scm_sym_breakpoint, key)) p = SRCPROPBRK (p);
+  if      (SCM_EQ_P (scm_sym_breakpoint, key)) p = SCM_BOOL (SRCPROPBRK (p));
   else if (SCM_EQ_P (scm_sym_line,       key)) p = SCM_MAKINUM (SRCPROPLINE (p));
   else if (SCM_EQ_P (scm_sym_column,     key)) p = SCM_MAKINUM (SRCPROPCOL (p));
   else if (SCM_EQ_P (scm_sym_filename,   key)) p = SRCPROPFNAME (p);

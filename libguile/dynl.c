@@ -72,6 +72,7 @@ maybe_drag_in_eprintf ()
 #include "libguile/ports.h"
 #include "libguile/strings.h"
 #include "libguile/deprecation.h"
+#include "libguile/lang.h"
 #include "libguile/validate.h"
 
 /* Create a new C argv array from a scheme list of strings. */
@@ -97,7 +98,7 @@ scm_make_argv_from_stringlist (SCM args,int *argcp,const char *subr,int argn)
   argc = scm_ilength (args);
   SCM_ASSERT (argc >= 0, args, argn, subr);
   argv = (char **) scm_must_malloc ((argc + 1) * sizeof (char *), subr);
-  for (i = 0; !SCM_NULLP (args); args = SCM_CDR (args), ++i) {
+  for (i = 0; !SCM_NULL_OR_NIL_P (args); args = SCM_CDR (args), ++i) {
     SCM arg = SCM_CAR (args);
     size_t len;
     char *dst;

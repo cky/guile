@@ -97,8 +97,7 @@ typedef struct scm_t_srcprops_chunk
 #define SCM_SOURCE_PROPERTY_FLAG_BREAK (1L << 16)
 
 #define SRCPROPSP(p) (SCM_TYP16_PREDICATE (scm_tc16_srcprops, p))
-#define SRCPROPBRK(p) \
-  (SCM_BOOL (SCM_CELL_WORD_0 (p) & SCM_SOURCE_PROPERTY_FLAG_BREAK))
+#define SRCPROPBRK(p) (SCM_CELL_WORD_0 (p) & SCM_SOURCE_PROPERTY_FLAG_BREAK)
 #define SRCPROPPOS(p) ((scm_t_srcprops *) SCM_CELL_WORD_1 (p))->pos
 #define SRCPROPLINE(p) (SRCPROPPOS(p) >> 12)
 #define SRCPROPCOL(p) (SRCPROPPOS(p) & 0x0fffL)
@@ -118,7 +117,7 @@ typedef struct scm_t_srcprops_chunk
 
 #define SRCBRKP(x) (!SCM_IMP (t.arg1 = scm_whash_lookup (scm_source_whash, (x)))\
 		    && SRCPROPSP (t.arg1)\
-		    && (SCM_CELL_WORD_0 (t.arg1) & (1L << 16)))
+		    && SRCPROPBRK (t.arg1))
 
 #define PROCTRACEP(x) (!SCM_FALSEP (scm_procedure_property (x, scm_sym_trace)))
 

@@ -43,6 +43,7 @@
 
 #include "libguile/_scm.h"
 #include "libguile/eq.h"
+#include "libguile/lang.h"
 
 #include "libguile/validate.h"
 #include "libguile/list.h"
@@ -165,7 +166,7 @@ SCM_DEFINE (scm_null_p, "null?", 1, 0, 0,
 	    "Return @code{#t} iff @var{x} is the empty list, else @code{#f}.")
 #define FUNC_NAME s_scm_null_p
 {
-  return SCM_BOOL (SCM_NULLP (x));
+  return SCM_BOOL (SCM_NULL_OR_NIL_P (x));
 }
 #undef FUNC_NAME
 
@@ -192,11 +193,11 @@ scm_ilength(SCM sx)
   SCM hare = sx;
 
   do {
-    if (SCM_NULLP(hare)) return i;
+    if (SCM_NULL_OR_NIL_P(hare)) return i;
     if (SCM_NCONSP(hare)) return -1;
     hare = SCM_CDR(hare);
     i++;
-    if (SCM_NULLP(hare)) return i;
+    if (SCM_NULL_OR_NIL_P(hare)) return i;
     if (SCM_NCONSP(hare)) return -1;
     hare = SCM_CDR(hare);
     i++;
@@ -259,7 +260,7 @@ SCM_DEFINE (scm_append, "append", 0, 0, 1,
 	lloc = SCM_CDRLOC (*lloc);
 	arg = SCM_CDR (arg);
       }
-      SCM_VALIDATE_NULL (SCM_ARGn, arg);
+      SCM_VALIDATE_NULL_OR_NIL (SCM_ARGn, arg);
       arg = SCM_CAR (args);
       args = SCM_CDR (args);
     };
@@ -288,7 +289,7 @@ SCM_DEFINE (scm_append_x, "append!", 0, 0, 1,
       lists = SCM_CDR (lists);
       if (SCM_NULLP (lists)) {
 	return arg;
-      } else if (!SCM_NULLP (arg)) {
+      } else if (!SCM_NULL_OR_NIL_P (arg)) {
 	SCM_VALIDATE_CONS (SCM_ARG1, arg);
 	SCM_SETCDR (scm_last_pair (arg), scm_append_x (lists));
 	return arg;
@@ -308,8 +309,8 @@ SCM_DEFINE (scm_last_pair, "last-pair", 1, 0, 0,
   SCM tortoise = lst;
   SCM hare = lst;
 
-  if (SCM_NULLP (lst))
-    return SCM_EOL;
+  if (SCM_NULL_OR_NIL_P (lst))
+    return lst;
 
   SCM_VALIDATE_CONS (SCM_ARG1, lst);
   do {
@@ -340,11 +341,11 @@ SCM_DEFINE (scm_reverse, "reverse", 1, 0, 0,
   SCM hare = lst;
 
   do {
-      if (SCM_NULLP(hare)) return result;
+      if (SCM_NULL_OR_NIL_P(hare)) return result;
       SCM_ASSERT(SCM_CONSP(hare), lst, 1, FUNC_NAME);
       result = scm_cons (SCM_CAR (hare), result);
       hare = SCM_CDR (hare);
-      if (SCM_NULLP(hare)) return result;
+      if (SCM_NULL_OR_NIL_P(hare)) return result;
       SCM_ASSERT(SCM_CONSP(hare), lst, 1, FUNC_NAME);
       result = scm_cons (SCM_CAR (hare), result);
       hare = SCM_CDR (hare);
@@ -375,7 +376,7 @@ SCM_DEFINE (scm_reverse_x, "reverse!", 1, 1, 0,
   else
     SCM_VALIDATE_LIST (2, new_tail);
 
-  while (SCM_NNULLP (lst))
+  while (!SCM_NULL_OR_NIL_P (lst))
     {
       SCM old_tail = SCM_CDR (lst);
       SCM_SETCDR (lst, new_tail);
@@ -406,7 +407,7 @@ SCM_DEFINE (scm_list_ref, "list-ref", 2, 0, 0,
       lst = SCM_CDR (lst);
     }
   };
-  if (SCM_NULLP (lst))
+  if (SCM_NULL_OR_NIL_P (lst))
     SCM_OUT_OF_RANGE (2, k);
   else
     SCM_WRONG_TYPE_ARG (1, list);
@@ -431,7 +432,7 @@ SCM_DEFINE (scm_list_set_x, "list-set!", 3, 0, 0,
       lst = SCM_CDR (lst);
     }
   };
-  if (SCM_NULLP (lst))
+  if (SCM_NULL_OR_NIL_P (lst))
     SCM_OUT_OF_RANGE (2, k);
   else
     SCM_WRONG_TYPE_ARG (1, list);
@@ -479,7 +480,7 @@ SCM_DEFINE (scm_list_cdr_set_x, "list-cdr-set!", 3, 0, 0,
       lst = SCM_CDR (lst);
     }
   };
-  if (SCM_NULLP (lst))
+  if (SCM_NULL_OR_NIL_P (lst))
     SCM_OUT_OF_RANGE (2, k);
   else
     SCM_WRONG_TYPE_ARG (1, list);
@@ -555,7 +556,7 @@ SCM_DEFINE (scm_list_copy, "list-copy", 1, 0, 0,
 SCM
 scm_c_memq (SCM obj, SCM list)
 {
-  for (; !SCM_NULLP (list); list = SCM_CDR (list))
+  for (; !SCM_NULL_OR_NIL_P (list); list = SCM_CDR (list))
     {
       if (SCM_EQ_P (SCM_CAR (list), obj))
 	return list;
@@ -591,7 +592,7 @@ SCM_DEFINE (scm_memv, "memv", 2, 0, 0,
 #define FUNC_NAME s_scm_memv
 {
   SCM_VALIDATE_LIST (2, lst);
-  for (; !SCM_NULLP (lst); lst = SCM_CDR (lst))
+  for (; !SCM_NULL_OR_NIL_P (lst); lst = SCM_CDR (lst))
     {
       if (! SCM_FALSEP (scm_eqv_p (SCM_CAR (lst), x)))
 	return lst;
@@ -612,7 +613,7 @@ SCM_DEFINE (scm_member, "member", 2, 0, 0,
 #define FUNC_NAME s_scm_member
 {
   SCM_VALIDATE_LIST (2, lst);
-  for (; !SCM_NULLP (lst); lst = SCM_CDR (lst))
+  for (; !SCM_NULL_OR_NIL_P (lst); lst = SCM_CDR (lst))
     {
       if (! SCM_FALSEP (scm_equal_p (SCM_CAR (lst), x)))
 	return lst;

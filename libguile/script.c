@@ -515,7 +515,7 @@ scm_compile_shell_switches (int argc, char **argv)
       else if (! strcmp (argv[i], "-e")) /* entry point */
 	{
 	  if (++i < argc)
-	    entry_point = gh_symbol2scm (argv[i]);
+	    entry_point = scm_str2symbol (argv[i]);
 	  else
 	    scm_shell_usage (1, "missing argument to `-e' switch");
 	}

@@ -54,6 +54,7 @@
 #include "libguile/feature.h"
 #include "libguile/strings.h"
 #include "libguile/vectors.h"
+#include "libguile/lang.h"
 
 #include "libguile/validate.h"
 #include "libguile/posix.h"
@@ -916,7 +917,7 @@ environ_list_to_c (SCM envlist, int arg, const char *proc)
   result = (char **) malloc ((num_strings + 1) * sizeof (char *));
   if (result == NULL)
     scm_memory_error (proc);
-  for (i = 0; !SCM_NULLP (envlist); ++i, envlist = SCM_CDR (envlist))
+  for (i = 0; !SCM_NULL_OR_NIL_P (envlist); ++i, envlist = SCM_CDR (envlist))
     {
       SCM str = SCM_CAR (envlist);
       int len;

@@ -58,6 +58,7 @@
 #include "libguile/stacks.h"
 #include "libguile/fluids.h"
 #include "libguile/ports.h"
+#include "libguile/lang.h"
 
 #include "libguile/validate.h"
 #include "libguile/throw.h"
@@ -401,7 +402,7 @@ scm_handle_by_proc_catching_all (void *handler_data, SCM tag, SCM throw_args)
 int
 scm_exit_status (SCM args)
 {
-  if (SCM_NNULLP (args))
+  if (!SCM_NULL_OR_NIL_P (args))
     {
       SCM cqa = SCM_CAR (args);
       

@@ -100,6 +100,7 @@ char *alloca ();
 
 #include "libguile/validate.h"
 #include "libguile/eval.h"
+#include "libguile/lang.h"
 
 
 
@@ -537,7 +538,7 @@ SCM
 scm_m_if (SCM xorig, SCM env SCM_UNUSED)
 {
   long len = scm_ilength (SCM_CDR (xorig));
-  SCM_ASSYNT (len >= 2 && len <= 3, scm_s_expression, "if");
+  SCM_ASSYNT (len >= 2 && len <= 3, scm_s_expression, s_if);
   return scm_cons (SCM_IM_IF, SCM_CDR (xorig));
 }
 
@@ -1073,10 +1074,7 @@ scm_m_cont (SCM xorig, SCM env SCM_UNUSED)
   return scm_cons (SCM_IM_CONT, SCM_CDR (xorig));
 }
 
-/* Multi-language support */
-
-SCM_GLOBAL_SYMBOL (scm_lisp_nil, "nil");
-SCM_GLOBAL_SYMBOL (scm_lisp_t, "t");
+#ifdef SCM_ENABLE_ELISP
 
 SCM_SYNTAX (s_nil_cond, "nil-cond", scm_makmmacro, scm_m_nil_cond);
 
@@ -1088,52 +1086,6 @@ scm_m_nil_cond (SCM xorig, SCM env SCM_UNUSED)
   return scm_cons (SCM_IM_NIL_COND, SCM_CDR (xorig));
 }
 
-SCM_SYNTAX (s_nil_ify, "nil-ify", scm_makmmacro, scm_m_nil_ify);
-
-SCM
-scm_m_nil_ify (SCM xorig, SCM env SCM_UNUSED)
-{
-  SCM_ASSYNT (scm_ilength (SCM_CDR (xorig)) == 1, scm_s_expression, "nil-ify");
-  return scm_cons (SCM_IM_NIL_IFY, SCM_CDR (xorig));
-}
-
-SCM_SYNTAX (s_t_ify, "t-ify", scm_makmmacro, scm_m_t_ify);
-
-SCM
-scm_m_t_ify (SCM xorig, SCM env SCM_UNUSED)
-{
-  SCM_ASSYNT (scm_ilength (SCM_CDR (xorig)) == 1, scm_s_expression, "t-ify");
-  return scm_cons (SCM_IM_T_IFY, SCM_CDR (xorig));
-}
-
-SCM_SYNTAX (s_0_cond, "0-cond", scm_makmmacro, scm_m_0_cond);
-
-SCM
-scm_m_0_cond (SCM xorig, SCM env SCM_UNUSED)
-{
-  long len = scm_ilength (SCM_CDR (xorig));
-  SCM_ASSYNT (len >= 1 && (len & 1) == 1, scm_s_expression, "0-cond");
-  return scm_cons (SCM_IM_0_COND, SCM_CDR (xorig));
-}
-
-SCM_SYNTAX (s_0_ify, "0-ify", scm_makmmacro, scm_m_0_ify);
-
-SCM
-scm_m_0_ify (SCM xorig, SCM env SCM_UNUSED)
-{
-  SCM_ASSYNT (scm_ilength (SCM_CDR (xorig)) == 1, scm_s_expression, "0-ify");
-  return scm_cons (SCM_IM_0_IFY, SCM_CDR (xorig));
-}
-
-SCM_SYNTAX (s_1_ify, "1-ify", scm_makmmacro, scm_m_1_ify);
-
-SCM
-scm_m_1_ify (SCM xorig, SCM env SCM_UNUSED)
-{
-  SCM_ASSYNT (scm_ilength (SCM_CDR (xorig)) == 1, scm_s_expression, "1-ify");
-  return scm_cons (SCM_IM_1_IFY, SCM_CDR (xorig));
-}
-
 SCM_SYNTAX (s_atfop, "@fop", scm_makmmacro, scm_m_atfop);
 
 SCM
@@ -1142,11 +1094,44 @@ scm_m_atfop (SCM xorig, SCM env SCM_UNUSED)
   SCM x = SCM_CDR (xorig), var;
   SCM_ASSYNT (scm_ilength (x) >= 1, scm_s_expression, "@fop");
   var = scm_symbol_fref (SCM_CAR (x));
+  /* Passing the symbol name as the `subr' arg here isn't really
+     right, but without it it can be very difficult to work out from
+     the error message which function definition was missing.  In any
+     case, we shouldn't really use SCM_ASSYNT here at all, but instead
+     something equivalent to (signal void-function (list SYM)) in
+     Elisp. */
   SCM_ASSYNT (SCM_VARIABLEP (var),
-	      "Symbol's function definition is void", NULL);
+	      "Symbol's function definition is void",
+	      SCM_SYMBOL_CHARS (SCM_CAR (x)));
+  /* Support `defalias'. */
+  while (SCM_SYMBOLP (SCM_VARIABLE_REF (var)))
+    {
+      var = scm_symbol_fref (SCM_VARIABLE_REF (var));
+      SCM_ASSYNT (SCM_VARIABLEP (var),
+		  "Symbol's function definition is void",
+		  SCM_SYMBOL_CHARS (SCM_CAR (x)));
+    }
+  /* Use `var' here rather than `SCM_VARIABLE_REF (var)' because the
+     former allows for automatically picking up redefinitions of the
+     corresponding symbol. */
   SCM_SETCAR (x, var);
+  /* If the variable contains a procedure, leave the
+     `transformer-macro' in place so that the procedure's arguments
+     get properly transformed, and change the initial @fop to
+     SCM_IM_APPLY. */
+  if (!SCM_MACROP (SCM_VARIABLE_REF (var)))
+    {
+      SCM_SETCAR (xorig, SCM_IM_APPLY);
+      return xorig;
+    }
+  /* Otherwise (the variable contains a macro), the arguments should
+     not be transformed, so cut the `transformer-macro' out and return
+     the resulting expression starting with the variable. */
+  SCM_SETCDR (x, SCM_CDADR (x));
   return x;
 }
+
+#endif /* SCM_ENABLE_ELISP */
 
 /* (@bind ((var exp) ...) body ...)
 
@@ -1158,7 +1143,7 @@ scm_m_atfop (SCM xorig, SCM env SCM_UNUSED)
   error when a symbol appears more than once among the `var's.
   All `exp's are evaluated before any `var' is set.
 
-  This of this as `let' for dynamic scope.
+  Think of this as `let' for dynamic scope.
 
   It is memoized into (#@bind ((var ...) . (reversed-val ...)) body ...).
 
@@ -1325,7 +1310,7 @@ scm_macroexp (SCM x, SCM env)
  * generating the source for a stackframe in a backtrace, and in
  * display_expression.
  *
- * Unmemoizing is not a realiable process.  You can not in general
+ * Unmemoizing is not a reliable process.  You cannot in general
  * expect to get the original source back.
  *
  * However, GOOPS currently relies on this for method compilation.
@@ -2018,7 +2003,7 @@ dispatch:
       x = SCM_CDR (x);
       while (!SCM_NULLP (SCM_CDR (x)))
 	{
-	  if (SCM_FALSEP (EVALCAR (x, env)))
+	  if (SCM_FALSEP (t.arg1 = EVALCAR (x, env)) || SCM_NILP (t.arg1))
 	    RETURN (SCM_BOOL_F);
 	  else
 	    x = SCM_CDR (x);
@@ -2129,7 +2114,7 @@ dispatch:
 	      goto begin;
 	    }
 	  t.arg1 = EVALCAR (proc, env);
-	  if (!SCM_FALSEP (t.arg1))
+	  if (!SCM_FALSEP (t.arg1) && !SCM_NILP (t.arg1))
 	    {
 	      x = SCM_CDR (proc);
 	      if (SCM_NULLP (x))
@@ -2164,7 +2149,8 @@ dispatch:
 	}
       env = EXTEND_ENV (SCM_CAR (x), t.arg1, env);
       x = SCM_CDDR (x);
-      while (proc = SCM_CAR (x), SCM_FALSEP (EVALCAR (proc, env)))
+      while (proc = SCM_CAR (x),
+	     SCM_FALSEP (t.arg1 = EVALCAR (proc, env)) || SCM_NILP (t.arg1))
 	{
 	  for (proc = SCM_CADR (x); SCM_NIMP (proc); proc = SCM_CDR (proc))
 	    {
@@ -2186,7 +2172,7 @@ dispatch:
 
     case SCM_BIT8(SCM_IM_IF):
       x = SCM_CDR (x);
-      if (!SCM_FALSEP (EVALCAR (x, env)))
+      if (!SCM_FALSEP (t.arg1 = EVALCAR (x, env)) && !SCM_NILP (t.arg1))
 	x = SCM_CDR (x);
       else if (SCM_IMP (x = SCM_CDDR (x)))
 	RETURN (SCM_UNSPECIFIED);
@@ -2249,7 +2235,7 @@ dispatch:
       while (!SCM_NULLP (SCM_CDR (x)))
 	{
 	  SCM val = EVALCAR (x, env);
-	  if (!SCM_FALSEP (val))
+	  if (!SCM_FALSEP (val) && !SCM_NILP (val))
 	    RETURN (val);
 	  else
 	    x = SCM_CDR (x);
@@ -2477,13 +2463,16 @@ dispatch:
 	  SCM_STRUCT_DATA (t.arg1) [SCM_INUM (SCM_CAR (x))]
 	    = SCM_UNPACK (EVALCAR (proc, env));
 	  RETURN (SCM_UNSPECIFIED);
+
+#ifdef SCM_ENABLE_ELISP
 	  
 	case (SCM_ISYMNUM (SCM_IM_NIL_COND)):
 	  proc = SCM_CDR (x);
 	  while (SCM_NIMP (x = SCM_CDR (proc)))
 	    {
 	      if (!(SCM_FALSEP (t.arg1 = EVALCAR (proc, env))
-		    || SCM_EQ_P (t.arg1, scm_lisp_nil)))
+		    || SCM_NILP (t.arg1)
+		    || SCM_NULLP (t.arg1)))
 		{
 		  if (SCM_EQ_P (SCM_CAR (x), SCM_UNSPECIFIED))
 		    RETURN (t.arg1);
@@ -2496,45 +2485,7 @@ dispatch:
 	  PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
 	  goto carloop;
 
-	case (SCM_ISYMNUM (SCM_IM_NIL_IFY)):
-	  x = SCM_CDR (x);
-	  RETURN ((SCM_FALSEP (proc = EVALCAR (x, env)) || SCM_NULLP (proc))
-		  ? scm_lisp_nil
-		  : proc);
-	    
-	case (SCM_ISYMNUM (SCM_IM_T_IFY)):
-	  x = SCM_CDR (x);
-	  RETURN (!SCM_FALSEP (EVALCAR (x, env)) ? scm_lisp_t : scm_lisp_nil);
-	    
-	case (SCM_ISYMNUM (SCM_IM_0_COND)):
-	  proc = SCM_CDR (x);
-	  while (SCM_NIMP (x = SCM_CDR (proc)))
-	    {
-	      if (!(SCM_FALSEP (t.arg1 = EVALCAR (proc, env))
-		    || SCM_EQ_P (t.arg1, SCM_INUM0)))
-		{
-		  if (SCM_EQ_P (SCM_CAR (x), SCM_UNSPECIFIED))
-		    RETURN (t.arg1);
-		  PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
-		  goto carloop;
-		}
-	      proc = SCM_CDR (x);
-	    }
-	  x = proc;
-	  PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
-	  goto carloop;
-
-	case (SCM_ISYMNUM (SCM_IM_0_IFY)):
-	  x = SCM_CDR (x);
-	  RETURN (SCM_FALSEP (proc = EVALCAR (x, env))
-		  ? SCM_INUM0
-		  : proc);
-	    
-	case (SCM_ISYMNUM (SCM_IM_1_IFY)):
-	  x = SCM_CDR (x);
-	  RETURN (!SCM_FALSEP (EVALCAR (x, env))
-		  ? SCM_MAKINUM (1)
-		  : SCM_INUM0);
+#endif /* SCM_ENABLE_ELISP */
 
 	case (SCM_ISYMNUM (SCM_IM_BIND)):
 	  {
@@ -2568,7 +2519,7 @@ dispatch:
 
 	    RETURN (proc);
 	  }
-	  
+
 	case (SCM_ISYMNUM (SCM_IM_CALL_WITH_VALUES)):
 	  {
 	    proc = SCM_CDR (x);
@@ -3388,7 +3339,11 @@ SCM_DEFINE (scm_nconc2last, "apply:nconc2last", 1, 0, 0,
   SCM *lloc;
   SCM_VALIDATE_NONEMPTYLIST (1,lst);
   lloc = &lst;
-  while (!SCM_NULLP (SCM_CDR (*lloc)))
+  while (!SCM_NULLP (SCM_CDR (*lloc))) /* Perhaps should be
+                                          SCM_NULL_OR_NIL_P, but not
+                                          needed in 99.99% of cases,
+                                          and it could seriously hurt
+                                          performance. - Neil */
     lloc = SCM_CDRLOC (*lloc);
   SCM_ASSERT (scm_ilength (SCM_CAR (*lloc)) >= 0, lst, SCM_ARG1, FUNC_NAME);
   *lloc = SCM_CAR (*lloc);
@@ -3846,9 +3801,9 @@ scm_for_each (SCM proc, SCM arg1, SCM args)
   SCM_GASSERTn (len >= 0, g_for_each, scm_cons2 (proc, arg1, args),
 		SCM_ARG2, s_for_each);
   SCM_VALIDATE_REST_ARGUMENT (args);
-  if SCM_NULLP (args)
+  if (SCM_NULLP (args))
     {
-      while SCM_NIMP (arg1)
+      while (SCM_NIMP (arg1))
 	{
 	  scm_apply (proc, SCM_CAR (arg1), scm_listofnull);
 	  arg1 = SCM_CDR (arg1);
@@ -3865,8 +3820,8 @@ scm_for_each (SCM proc, SCM arg1, SCM args)
       arg1 = SCM_EOL;
       for (i = SCM_VECTOR_LENGTH (args) - 1; i >= 0; i--)
 	{
-	  if SCM_IMP
-	    (ve[i]) return SCM_UNSPECIFIED;
+	  if (SCM_IMP (ve[i]))
+	    return SCM_UNSPECIFIED;
 	  arg1 = scm_cons (SCM_CAR (ve[i]), arg1);
 	  ve[i] = SCM_CDR (ve[i]);
 	}
@@ -4182,9 +4137,6 @@ scm_init_eval ()
 #ifndef SCM_MAGIC_SNARFER
 #include "libguile/eval.x"
 #endif
-
-  scm_c_define ("nil", scm_lisp_nil);
-  scm_c_define ("t", scm_lisp_t);
   
   scm_add_feature ("delay");
 }

@@ -47,6 +47,7 @@
 #include "libguile/_scm.h"
 #include "libguile/mallocs.h"
 #include "libguile/strings.h"
+#include "libguile/lang.h"
 
 #include "libguile/options.h"
 
@@ -198,7 +199,7 @@ change_option_setting (SCM args, scm_t_option options[], unsigned int n, const c
 	flags[i] = options[i].val;
     }
 
-  while (!SCM_NULLP (args))
+  while (!SCM_NULL_OR_NIL_P (args))
     {
       SCM name = SCM_CAR (args);
       int found = 0;
@@ -257,7 +258,7 @@ scm_options (SCM args, scm_t_option options[], unsigned int n, const char *s)
 {
   if (SCM_UNBNDP (args))
     return get_option_setting (options, n);
-  else if (!SCM_NULLP (args) && !SCM_CONSP (args))
+  else if (!SCM_NULL_OR_NIL_P (args) && !SCM_CONSP (args))
     /* Dirk:FIXME:: This criterion should be improved.  IMO it is better to
      * demand that args is #t if documentation should be shown than to say
      * that every argument except a list will print out documentation.  */

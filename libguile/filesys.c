@@ -51,6 +51,7 @@
 #include "libguile/iselect.h"
 #include "libguile/strings.h"
 #include "libguile/vectors.h"
+#include "libguile/lang.h"
 
 #include "libguile/validate.h"
 #include "libguile/filesys.h"
@@ -1032,7 +1033,7 @@ fill_select_type (SELECT_TYPE *set, SCM *ports_ready, SCM list_or_vec, int pos)
     }
   else
     {
-      while (!SCM_NULLP (list_or_vec))
+      while (!SCM_NULL_OR_NIL_P (list_or_vec))
 	{
 	  int fd = set_element (set, ports_ready, SCM_CAR (list_or_vec), pos);
 
@@ -1092,7 +1093,7 @@ retrieve_select_type (SELECT_TYPE *set, SCM ports_ready, SCM list_or_vec)
   else
     {
       /* list_or_vec must be a list.  */
-      while (!SCM_NULLP (list_or_vec))
+      while (!SCM_NULL_OR_NIL_P (list_or_vec))
 	{
 	  answer_list = get_element (set, SCM_CAR (list_or_vec), answer_list);
 	  list_or_vec = SCM_CDR (list_or_vec);

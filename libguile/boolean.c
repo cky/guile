@@ -46,6 +46,7 @@
 
 #include "libguile/validate.h"
 #include "libguile/boolean.h"
+#include "libguile/lang.h"
 
 
 
@@ -54,7 +55,7 @@ SCM_DEFINE (scm_not, "not", 1, 0, 0,
             "Return @code{#t} iff @var{x} is @code{#f}, else return @code{#f}.")
 #define FUNC_NAME s_scm_not
 {
-  return SCM_BOOL(SCM_FALSEP(x));
+  return SCM_BOOL(SCM_FALSEP (x) || SCM_NILP (x));
 }
 #undef FUNC_NAME
 
@@ -64,7 +65,7 @@ SCM_DEFINE (scm_boolean_p, "boolean?", 1, 0, 0,
             "Return @code{#t} iff @var{obj} is either @code{#t} or @code{#f}.")
 #define FUNC_NAME s_scm_boolean_p
 {
-  return SCM_BOOL (SCM_BOOLP (obj));
+  return SCM_BOOL (SCM_BOOLP (obj) || SCM_NILP (obj));
 }
 #undef FUNC_NAME
 

@@ -323,6 +323,8 @@
 
 #define SCM_VALIDATE_NULL(pos, scm) SCM_MAKE_VALIDATE (pos, scm, NULLP)
 
+#define SCM_VALIDATE_NULL_OR_NIL(pos, scm) SCM_MAKE_VALIDATE (pos, scm, NULL_OR_NIL_P)
+
 #define SCM_VALIDATE_CONS(pos, scm) SCM_MAKE_VALIDATE (pos, scm, CONSP)
 
 #define SCM_VALIDATE_LIST(pos, lst) \

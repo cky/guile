@@ -44,6 +44,7 @@
 
 #include "libguile/_scm.h"
 #include "libguile/vectors.h"
+#include "libguile/lang.h"
 
 #include "libguile/validate.h"
 #include "libguile/weaks.h"
@@ -144,7 +145,7 @@ SCM_DEFINE (scm_weak_vector, "weak-vector", 0, 0, 1,
   res = scm_make_weak_vector (SCM_MAKINUM (i), SCM_UNSPECIFIED);
   data = SCM_VELTS (res);
 
-  while (!SCM_NULLP (l))
+  while (!SCM_NULL_OR_NIL_P (l))
     {
       *data++ = SCM_CAR (l);
       l = SCM_CDR (l);
