@@ -1,3 +1,8 @@
+2003-05-13  Kevin Ryde  <user42@zip.com.au>
+
+	* numbers.c (xmpz_cmp_d): New macro, handling infs if gmp doesn't.
+	(scm_num_eq_p, scm_less_p, scm_max, scm_min): Use it.
+
 2003-05-12  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* backtrace.c (scm_display_error_message): Introduced fancy
