@@ -311,6 +311,31 @@ SCM scm_strport_to_string (SCM port)
   return scm_makfromstr ((char *) pt->read_buf, pt->read_buf_size, 0);
 }
 
+SCM_DEFINE (scm_object_to_string, "object->string", 1, 0, 0,
+	    (SCM obj),
+	    "Return a Scheme string obtained by printing a given object.")
+#define FUNC_NAME s_scm_object_to_string
+{
+  SCM str;
+  SCM port;
+
+  str = scm_makstr (0, 0);
+  port = scm_mkstrport (SCM_INUM0, str, SCM_OPN | SCM_WRTNG, "scm_strprint_obj");
+  scm_prin1 (obj, port, 1);
+  return scm_strport_to_string (port);
+}
+#undef FUNC_NAME
+
+#if (SCM_DEBUG_DEPRECATED == 0)
+
+SCM
+scm_strprint_obj (SCM obj)
+{
+  return scm_object_to_string (obj);
+}
+
+#endif /* (SCM_DEBUG_DEPRECATED == 0) */
+
 SCM_DEFINE (scm_call_with_output_string, "call-with-output-string", 1, 0, 0, 
            (SCM proc),
 	    "Calls the one-argument procedure @var{proc} with a newly created output\n"
@@ -329,29 +354,6 @@ SCM_DEFINE (scm_call_with_output_string, "call-with-output-string", 1, 0, 0,
   return scm_strport_to_string (p);
 }
 #undef FUNC_NAME
-
-
-
-/* Return a Scheme string obtained by printing a given object.
- */
-
-
-SCM
-scm_strprint_obj (SCM obj)
-{
-  SCM str;
-  SCM port;
-
-  str = scm_makstr (0, 0);
-  port = scm_mkstrport (SCM_INUM0, str, SCM_OPN | SCM_WRTNG, "scm_strprint_obj");
-  scm_prin1 (obj, port, 1);
-  {
-    return scm_strport_to_string (port);
-  }
-}
-
-
-
 
 SCM_DEFINE (scm_call_with_input_string, "call-with-input-string", 2, 0, 0,
            (SCM str, SCM proc),

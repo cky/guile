@@ -334,6 +334,10 @@ Instead, use scm_c_memq or scm_memq, scm_memv, scm_member.
         * return 0 if the request is for 0 bytes, with no end-of-file
           check
 
+** New function: object->string OBJ
+
+Return a Scheme string obtained by printing a given object.
+
 ** New function: port? X
 
 Returns a boolean indicating whether X is a port.  Equivalent to
@@ -621,6 +625,10 @@ Use scm_make_smob_type and scm_set_smob_XXX instead.
 ** New function scm_set_smob_apply.
 
 This can be used to set an apply function to a smob type.
+
+** Deprecated function:  scm_strprint_obj
+
+Use scm_object_to_string instead.
 
 
 Changes since Guile 1.3.4:

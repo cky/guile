@@ -1,3 +1,9 @@
+2001-03-12  Keisuke Nishida  <kxn30@po.cwru.edu>
+
+	* strports.c (scm_object_to_string): New procedure.
+	(scm_strprint_obj): Deprecated.
+	* strports.h: Reflect the changes.
+
 2001-03-12  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* goops.h (SCM_VALIDATE_PUREGENERIC):  New macro.
