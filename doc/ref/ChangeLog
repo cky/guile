@@ -1,3 +1,9 @@
+2001-11-12  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* scheme-data.texi (Vtables, Structure Basics): Automatic doc
+	updates for struct? and struct-vtable?.
+	(String Searching): Add missing "for".  Thanks to Scott Lenser.
+
 2001-11-08  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* guile.texi (Top): Added new chapter `Programming Options'.

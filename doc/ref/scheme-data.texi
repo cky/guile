@@ -1415,7 +1415,7 @@ Return @code{#t} iff @var{obj} is a string, else @code{#f}.
 @end deffn
 
 @deffn primitive string-null? str
-Return @code{#t} if @var{str}'s length is nonzero, and
+Return @code{#t} if @var{str}'s length is zero, and
 @code{#f} otherwise.
 @lisp
 (string-null? "")  @result{} #t
@@ -1691,8 +1691,8 @@ equal to @var{s2} regardless of case.
 @node String Searching
 @subsection String Searching
 
-When searching the index of a character in a string, these procedures
-can be used.
+When searching for the index of a character in a string, these
+procedures can be used.
 
 @deffn primitive string-index str chr [frm [to]]
 Return the index of the first occurrence of @var{chr} in
@@ -3762,7 +3762,7 @@ For more information, see the documentation for @code{make-vtable-vtable}.
 @end deffn
 
 @deffn primitive struct? x
-Return @code{#t} iff @var{obj} is a structure object, else
+Return @code{#t} iff @var{x} is a structure object, else
 @code{#f}.
 @end deffn
 
@@ -3795,7 +3795,7 @@ Return the vtable structure that describes the type of @var{struct}.
 @end deffn
 
 @deffn primitive struct-vtable? x
-Return @code{#t} iff obj is a vtable structure.
+Return @code{#t} iff @var{x} is a vtable structure.
 @end deffn
 
 If you have a vtable structure, @code{V}, you can create an instance of
