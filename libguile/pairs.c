@@ -54,7 +54,7 @@
 
 #if (SCM_DEBUG_PAIR_ACCESSES == 1)
 
-/~#include "libguile/ports.h"
+#include "libguile/ports.h"
 #include "libguile/strings.h"
 
 void scm_error_pair_access (SCM non_pair)

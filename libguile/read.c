@@ -55,9 +55,10 @@
 #include "libguile/ports.h"
 #include "libguile/root.h"
 #include "libguile/strings.h"
+#include "libguile/strports.h"
 #include "libguile/vectors.h"
-
 #include "libguile/validate.h"
+
 #include "libguile/read.h"
 
 
@@ -80,58 +81,41 @@ scm_t_option scm_read_opts[] = {
 
   We use the format
 
-  MESSAGE
+  FILE:LINE:COL: MESSAGE
   This happened in ....
 
   This is not standard GNU format, but the test-suite likes the real
   message to be in front.
 
-  Hmmm.
-
-  Maybe this is a kludge? Perhaps we should throw (list EXPR FILENAME
-  LINENO COLUMNO), and have the exception handler sort out the error
-  message?Where does the handler live, what are the conventions for
-  the expression argument of the handler? How does this work for an
-  error message like
-
-Backtrace:
-In standard input:
-   4: 0* [list ...
-
-standard input:4:1: While evaluating arguments to list in expression (list a b):standard input:4:1: Unbound variable: a
-ABORT: (unbound-variable)
-
-
-
-  In any case, we would have to assemble that information anyway. 
  */
 
 
-#if 0
+static void
+scm_input_error(char const * function,
+		SCM port, const char * message, SCM arg)
+{
+  char *fn = SCM_STRINGP (SCM_FILENAME(port))
+    ? SCM_STRING_CHARS(SCM_FILENAME(port))
+    : "#<unknown port>";
 
-#ifndef HAVE_SNPRINTF
-#define snprintf  sprintf
-/*
-  should warn about buffer overflow? 
- */
-#endif
+  SCM string_port =  scm_open_output_string ();
+  SCM string = SCM_EOL;
+  scm_simple_format (string_port,
+		     scm_makfrom0str ("~A:~S:~S: ~A"),
+		     scm_list_4 (scm_makfrom0str (fn),
+				 scm_int2num (SCM_LINUM (port) + 1),
+				 scm_int2num (SCM_COL (port) + 1),
+				 scm_makfrom0str (message)));
 
-#define  INPUT_ERROR(port, message, arg) { 									\
-      char s[1024];\
-      int fn_found =  SCM_STRINGP (SCM_FILENAME(port));\
-      char *fn = "";\
-      if (fn_found)\
-         fn = SCM_STRING_CHARS(SCM_FILENAME(port));\
-      snprintf (s, 1024, "%s\nThis happened in %s%s%s line %d column %d", message, \
-		fn_found ? "`" : "", \
-		fn,\
-		fn_found ? "'" : "", \
-	       SCM_LINUM(port) + 1, SCM_COL(port) + 1);			\
-      SCM_MISC_ERROR(s, arg);											\
-    }
-#else
-#define  INPUT_ERROR(port, message, arg) SCM_MISC_ERROR(message, arg)
-#endif
+    
+  string = scm_get_output_string (string_port);
+  scm_close_output_port (string_port);
+  scm_error_scm (scm_str2symbol ("read-error"),
+		 scm_makfrom0str (function),
+		 string,
+		 SCM_EOL,
+		 SCM_BOOL_F);
+}
 
 
 SCM_DEFINE (scm_read_options, "read-options-interface", 0, 1, 0, 
@@ -359,7 +343,7 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
 	? scm_lreadrecparen (tok_buf, port, s_list, copy)
 	: scm_lreadparen (tok_buf, port, s_list, copy);
     case ')':
-      INPUT_ERROR(port,"unexpected \")\"", SCM_EOL);
+      scm_input_error (FUNC_NAME, port,"unexpected \")\"", SCM_EOL);
       goto tryagain;
     
     case '\'':
@@ -489,7 +473,7 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
 	    if (scm_charnames[c]
 		&& (scm_casei_streq (scm_charnames[c], SCM_STRING_CHARS (*tok_buf))))
 	      return SCM_MAKE_CHAR (scm_charnums[c]);
-	  INPUT_ERROR (port, "unknown # object", SCM_EOL);
+	  scm_input_error (FUNC_NAME, port, "unknown # object", SCM_EOL);
 
 	  /* #:SYMBOL is a syntax for keywords supported in all contexts.  */
 	case ':':
@@ -519,7 +503,7 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
 	      }
 	  }
 	unkshrp:
-	INPUT_ERROR (port, "Unknown # object: ~S",
+	scm_input_error (FUNC_NAME, port, "Unknown # object: ~S",
 		     scm_list_1 (SCM_MAKE_CHAR (c)));
 	}
 
@@ -528,7 +512,7 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
       while ('"' != (c = scm_getc (port)))
 	{
 	  if (c == EOF)
-	    INPUT_ERROR (port, "end of file in string constant", SCM_EOL);
+	    scm_input_error (FUNC_NAME, port, "end of file in string constant", SCM_EOL);
 
 	  while (j + 2 >= SCM_STRING_LENGTH (*tok_buf))
 	    scm_grow_tok_buf (tok_buf);
@@ -590,7 +574,7 @@ scm_lreadr (SCM *tok_buf, SCM port, SCM *copy)
 	      c = SCM_STRING_CHARS (*tok_buf)[1];
 	      goto callshrp;
 	    }
-	  INPUT_ERROR (port, "unknown # object", SCM_EOL);
+	  scm_input_error (FUNC_NAME, port, "unknown # object", SCM_EOL);
 	}
       goto tok;
 
@@ -721,7 +705,7 @@ scm_lreadparen (SCM *tok_buf, SCM port, char *name, SCM *copy)
       ans = scm_lreadr (tok_buf, port, copy);
     closeit:
       if (')' != (c = scm_flush_ws (port, name)))
-	INPUT_ERROR (port, "missing close paren", SCM_EOL);
+	scm_input_error (FUNC_NAME, port, "missing close paren", SCM_EOL);
       return ans;
     }
   ans = tl = scm_cons (tmp, SCM_EOL);
@@ -761,7 +745,7 @@ scm_lreadrecparen (SCM *tok_buf, SCM port, char *name, SCM *copy)
     {
       ans = scm_lreadr (tok_buf, port, copy);
       if (')' != (c = scm_flush_ws (port, name)))
-	INPUT_ERROR (port, "missing close paren", SCM_EOL);
+	scm_input_error (FUNC_NAME, port, "missing close paren", SCM_EOL);
       return ans;
     }
   /* Build the head of the list structure. */
@@ -785,7 +769,7 @@ scm_lreadrecparen (SCM *tok_buf, SCM port, char *name, SCM *copy)
 				       : tmp,
 				       SCM_EOL));
 	  if (')' != (c = scm_flush_ws (port, name)))
-	    INPUT_ERROR (port, "missing close paren", SCM_EOL);
+	    scm_input_error (FUNC_NAME, port, "missing close paren", SCM_EOL);
 	  goto exit;
 	}
 

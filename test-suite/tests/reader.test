@@ -2,9 +2,10 @@
 ;;;; Jim Blandy <jimb@red-bean.com> --- September 1999
 
 (define exception:eof
-  (cons 'misc-error "^end of file"))
+  (cons 'read-error "end of file$"))
+
 (define exception:unexpected-rparen
-  (cons 'misc-error "^unexpected \")\""))
+  (cons 'read-error "unexpected \")\"$"))
 
 (define (read-string s)
   (with-input-from-string s (lambda () (read))))

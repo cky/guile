@@ -142,7 +142,19 @@ scm_malloc (size_t sz)
 {
   return scm_realloc (NULL, sz);
 }
-	    
+
+/*
+  Hmm. Should we use the C convention for arguments (i.e. N_ELTS,
+  SIZEOF_ELT)? --hwn
+ */
+void *
+scm_calloc (size_t sz)
+{
+  void * ptr = scm_realloc (NULL, sz);
+  memset (ptr, 0x0, sz);
+  return ptr;
+}
+
 
 char *
 scm_strndup (const char *str, size_t n)

@@ -7,11 +7,11 @@ This means that the memory used to store a Scheme string, say, is
 automatically reclaimed when no one is using this string any longer.
 This can work because Guile knows enough about its objects at run-time
 to be able to trace all references between them.  Thus, it can find
-all 'life' objects (objects that are still in use) by starting from a
+all 'live' objects (objects that are still in use) by starting from a
 known set of 'root' objects and following the links that these objects
 have to other objects, and so on.  The objects that are not reached by
 this recursive process can be considered 'dead' and their memory can
-be used for new objects.
+be  reused for new objects.
 
 When you are programming in Scheme, you don't need to worry about the
 garbage collector.  When programming in C, there are a few rules that
@@ -67,7 +67,9 @@ be freed by a garbage collection.  The memory can be freed with
 @code{free}.
 
 There is also @code{scm_gc_realloc} and @code{scm_realloc}, to be used
-in place of @code{realloc} when appropriate.
+in place of @code{realloc} when appropriate, @code{scm_gc_calloc} and
+@code{scm_calloc}, to be used in place of @code{calloc} when
+appropriate.
 
 For really specialized needs, take at look at
 @code{scm_gc_register_collectable_memory} and

@@ -1,3 +1,10 @@
+2002-08-06  Han-Wen Nienhuys  <hanwen@cs.uu.nl>
+
+	* read.c (scm_input_error): new function: give meaningful error
+	messages, and throw read-error
+
+	* gc-malloc.c (scm_calloc): add scm_calloc.
+
 2002-08-05  Han-Wen Nienhuys  <hanwen@cs.uu.nl>
 
 	* tags.h: remove GC bits documentation from the tags table. 

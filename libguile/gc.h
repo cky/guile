@@ -330,6 +330,7 @@ SCM_API int scm_in_heap_p (SCM value);
 SCM_API void scm_gc_sweep (void);
 
 SCM_API void *scm_malloc (size_t size);
+SCM_API void *scm_calloc (size_t size);
 SCM_API void *scm_realloc (void *mem, size_t size);
 SCM_API char *scm_strdup (const char *str);
 SCM_API char *scm_strndup (const char *str, size_t n);
