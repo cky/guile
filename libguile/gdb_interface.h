@@ -59,7 +59,7 @@ Mikael Djurfeldt, SANS/NADA KTH, 10044 STOCKHOLM, SWEDEN  */
    interface in your main program.  This is necessary if the interface
    is defined in a library, such as Guile. */
 
-#ifndef __MINGW32__
+#if !defined (__MINGW32__) && !defined (__CYGWIN__)
 #define GDB_INTERFACE \
 void *gdb_interface[] = { \
   &gdb_options, \
@@ -73,7 +73,7 @@ void *gdb_interface[] = { \
   (void *) gdb_print, \
   (void *) gdb_binding \
 }
-#else /* __MINGW32__ */
+#else /* __MINGW32__, __CYGWIN__  */
 /* Because the following functions are imported from a DLL (some kind of
    shared library) these are NO static initializers. That is why you need to
    define them and assign the functions and data items at run time. */
@@ -103,25 +103,25 @@ void *gdb_interface[] = \
 
 #define GDB_HAVE_BINDINGS 1
 
-extern unsigned short gdb_options;
+SCM_API unsigned short gdb_options;
 
 /* GDB_LANGUAGE holds the name of the preferred language mode for this
    interpreter.  For lisp interpreters, the suggested mode is "lisp/c". */
 
-extern char *gdb_language;
+SCM_API char *gdb_language;
    
 /* GDB_RESULT is used for passing results from the interpreter to GDB */
 
-extern GDB_TYPE gdb_result;
+SCM_API GDB_TYPE gdb_result;
 
 /* The interpreter passes strings to GDB in GDB_OUTPUT and
    GDB_OUTPUT_LENGTH.  GDB_OUTPUT should hold the pointer to the
    string.  GDB_OUTPUT_LENGTH should hold its length.  The string
    doesn't need to be terminated by '\0'. */
 
-extern char *gdb_output;
+SCM_API char *gdb_output;
 
-extern int gdb_output_length;
+SCM_API int gdb_output_length;
 
 /* Return TRUE if the interpreter regards VALUE's type as valid.  A
    lazy implementation is allowed to pass TRUE always.  FALSE should
@@ -130,7 +130,7 @@ extern int gdb_output_length;
    In the "lisp/c" language mode, this is used to heuristically
    discriminate lisp values from C values during printing. */
 
-extern int gdb_maybe_valid_type_p (GDB_TYPE value);
+SCM_API int gdb_maybe_valid_type_p (GDB_TYPE value);
 
 /* Parse expression in string STR.  Store result in GDB_RESULT, then
    return 0 to indicate success.  On error, return -1 to indicate
@@ -139,7 +139,7 @@ extern int gdb_maybe_valid_type_p (GDB_TYPE value);
    no message is passed.  Please note that the resulting value should
    be protected against garbage collection. */
 
-extern int gdb_read (char *str);
+SCM_API int gdb_read (char *str);
 
 /* Evaluate expression EXP.  Store result in GDB_RESULT, then return 0
    to indicate success.  On error, return -1 to indicate failure.  Any
@@ -148,7 +148,7 @@ extern int gdb_read (char *str);
    if no output is passed.  Please note that the resulting lisp object
    should be protected against garbage collection. */
 
-extern int gdb_eval (GDB_TYPE exp);
+SCM_API int gdb_eval (GDB_TYPE exp);
 
 /* Print VALUE.  Store output in GDB_OUTPUT and GDB_OUTPUT_LENGTH.
    Return 0 to indicate success.  On error, return -1 to indicate
@@ -156,7 +156,7 @@ extern int gdb_eval (GDB_TYPE exp);
    failure.  Note that this function should be robust against strange
    values.  It could in fact be passed any kind of value. */
 
-extern int gdb_print (GDB_TYPE value);
+SCM_API int gdb_print (GDB_TYPE value);
 
 /* Bind NAME to VALUE in interpreter.  (GDB has previously obtained
    NAME by passing a string to gdb_read.)  Return 0 to indicate
@@ -168,7 +168,7 @@ extern int gdb_print (GDB_TYPE value);
    For scheme interpreters, this function should introduce top-level
    bindings. */
 
-extern int gdb_binding (GDB_TYPE name, GDB_TYPE value);
+SCM_API int gdb_binding (GDB_TYPE name, GDB_TYPE value);
 
 #endif  /* GDB_INTERFACE_H */
 
