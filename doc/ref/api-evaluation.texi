@@ -433,7 +433,7 @@ documentation for @code{%load-hook} later in this section.
 
 @deffn {Scheme Procedure} primitive-load-path filename
 @deffnx {C Function} scm_primitive_load_path (filename)
-Search @var{%load-path} for the file named @var{filename} and
+Search @code{%load-path} for the file named @var{filename} and
 load it into the top-level environment.  If @var{filename} is a
 relative pathname and is not found in the list of search paths,
 an error is signalled.
@@ -441,7 +441,7 @@ an error is signalled.
 
 @deffn {Scheme Procedure} %search-load-path filename
 @deffnx {C Function} scm_sys_search_load_path (filename)
-Search @var{%load-path} for the file named @var{filename},
+Search @code{%load-path} for the file named @var{filename},
 which must be readable by the current user.  If @var{filename}
 is found in the list of paths to search or is an absolute
 pathname, return its full pathname.  Otherwise, return

@@ -217,7 +217,7 @@ types of access are handled by the syntactic form @code{use-modules},
 which accepts one or more interface specifications and, upon evaluation,
 arranges for those interfaces to be available to the current module.
 This process may include locating and loading code for a given module if
-that code has not yet been loaded, following %load-path (@pxref{Build
+that code has not yet been loaded, following @code{%load-path} (@pxref{Build
 Config}).
 
 An @dfn{interface specification} has one of two forms.  The first
