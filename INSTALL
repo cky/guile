@@ -29,6 +29,9 @@ HP/UX: GCC 2.7.2 (and maybe other versions) have trouble creating
     suggest you configure Guile to use the system's C compiler:
 	CC=cc ./configure
 
+NetBSD: Perry Metzger says, "Guile will build under NetBSD only using
+    gmake -- the native make will not work.  (gmake is in our package
+    system, so this will not be a problem when we packagize 1.3.)"
 
 What You Get ==============================================================
 
