@@ -1,3 +1,15 @@
+1999-06-29  Mikael Djurfeldt  <mdj@mdj-pc.nada.kth.se>
+
+	* readline.scm: Bugfix: Avoid getting the continued-lines prompt
+	at multiple calls to read.
+	(promtp2): Variable for continued-lines prompt.
+	(make-readline-port): Use prompt2.
+	(set-readline-prompt!): New optional arg which sets
+	continued-lines prompt.
+
+	* boot-9.scm (top-repl): Set/clear readline prompts before/after
+	reading expressions.
+
 1999-06-18  Jim Blandy  <jimb@savonarola.red-bean.com>
 
 	* ls.scm (ls, lls): Handle no arguments as meaning to look in
