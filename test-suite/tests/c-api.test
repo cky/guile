@@ -27,7 +27,9 @@
   (let ((dir (opendir dirname)))
     (do ((filename (readdir dir) (readdir dir)))
 	((eof-object? filename))
-      (if (eqv? (string-ref filename (- (string-length filename) 1)) #\c)
+      (if (and 
+	   (eqv? (string-ref filename (- (string-length filename) 1)) #\c)
+	   (eqv? (string-ref filename (- (string-length filename) 2)) #\.))
 	  (let ((file (string-append dirname "/" filename)))
 	    (if (and (file-exists? file)
 		     (egrep "SEEK_(SET|CUR|END)" file)
