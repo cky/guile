@@ -133,7 +133,6 @@
            modified-julian-day->time-tai
            modified-julian-day->time-utc
            time-monotonic->date
-           time-monotonic->time-monotonic
            time-monotonic->time-tai
            time-monotonic->time-tai!
            time-monotonic->time-utc
