@@ -6,6 +6,12 @@
 
 	* TODO: bye bye
 
+	* autogen.sh: Add usage comment.
+	Add workbook specification.
+	Add dist-files symlinking.
+
+	* ANON-CVS, HACKING, INSTALL, SNAPSHOTS: bye bye
+
 2002-03-06  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* guile-tools.in: Handle "--source" option.
