@@ -1,3 +1,8 @@
+2000-01-12  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* snarf.h (SCM_PROC1): Replaced SCM (*) (...) with
+	SCM_FUNC_CAST_ARBITRARY_ARGS.
+
 Tue Jan 11 13:44:07 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* guile-func-name-check.in: Added this script to statically check
