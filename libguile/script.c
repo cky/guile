@@ -577,6 +577,11 @@ SCM_SYMBOL (sym_top_repl, "top-repl");
 SCM_SYMBOL (sym_quit, "quit");
 
 
+/* The boot code "ice-9/boot-9" is only loaded by
+   SCM_COMPILE_SHELL_SWITCHES when this is false. */
+
+int scm_ice_9_already_loaded = 0;
+
 /* Given an array of command-line switches, return a Scheme expression
    to carry out the actions specified by the switches.
 
@@ -593,7 +598,7 @@ SCM_SYMBOL (sym_quit, "quit");
    ice-9 into modules which can be frozen and statically linked like any
    other module.  Then all the modules can describe their dependencies in
    the usual way, and the auto-generated inner_main will do the right
-   thing.  */
+   thing. */
 
 SCM
 scm_compile_shell_switches (int argc, char **argv)
@@ -769,7 +774,8 @@ scm_compile_shell_switches (int argc, char **argv)
     SCM init_path = scm_sys_search_load_path (scm_makfrom0str ("init.scm"));
 
     /* Load Ice-9.  */
-    scm_primitive_load_path (scm_makfrom0str ("ice-9/boot-9.scm"));
+    if (!scm_ice_9_already_loaded)
+      scm_primitive_load_path (scm_makfrom0str ("ice-9/boot-9.scm"));
 
     /* Load the init.scm file.  */
     if (SCM_NFALSEP (init_path))
