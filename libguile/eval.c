@@ -90,6 +90,9 @@ char *alloca ();
 
 static SCM canonicalize_define (SCM expr);
 
+/* prototype in eval.h is not given under --disable-deprecated */
+SCM_API SCM scm_macroexp (SCM x, SCM env);
+
 
 
 /* {Syntax Errors}
