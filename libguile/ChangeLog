@@ -1,5 +1,38 @@
 2000-06-30  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* __scm.h (SCM_OUTOFRANGE):  Removed.
+
+	* error.c (scm_wta):  Removed sick dispatch code for range
+	errors.  (More sick dispatches still to be removed.)
+
+	* hashtab.c (scm_hash_fn_get_handle, scm_hash_fn_create_handle_x,
+	scm_hash_fn_remove_x):  Eliminate redundant test for if unsigned
+	value is non-negative.  Use scm_out_of_range to signal range
+	errors.
+
+	* hooks.c (make_hook), unif.c (scm_aind):  Use scm_out_of_range to
+	signal range errors.
+
+	* list.c (scm_list_ref, scm_list_set_x, scm_list_cdr_set_x):  Fix
+	error reporting (now uses original input parameter to report wrong
+	type argument errors).  Use SCM_OUT_OF_RANGE to report range
+	errors and SCM_WRONG_TYPE_ARG to report type errors.
+
+	* strings.c (scm_substring):  Make range checks for negative
+	values explicit (former behaviour relied on an implicit
+	conversion from signed to unsigned).  Don't use SCM_ASSERT for
+	range checks.
+
+	* unif.c (scm_aind, scm_transpose_array, scm_bit_set_star_x,
+	scm_bit_count_star):  Use scm_out_of_range to signal range
+	errors.
+
+	* unif.c (scm_transpose_array, scm_bit_position), vectors.c
+	(scm_vector_ref, scm_vector_set_x, scm_vector_move_left_x,
+	scm_vector_move_right_x):  Use SCM_ASSERT_RANGE to check ranges.
+
+2000-06-30  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* validate.h (SCM_VALIDATE_INUM_MIN_COPY,
 	SCM_VALIDATE_INUM_MIN_DEF_COPY, SCM_VALIDATE_INUM_RANGE_COPY):
 	Perform all range checks based on the input value.  The former way

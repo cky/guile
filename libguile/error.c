@@ -316,8 +316,6 @@ scm_wta (SCM arg, const char *pos, const char *s_subr)
 	  scm_wrong_type_arg (s_subr, 7, arg);
 	case SCM_WNA:
 	  scm_wrong_num_args (arg);
-	case SCM_OUTOFRANGE:
-	  scm_out_of_range (s_subr, arg);
 	default:
 	  /* this shouldn't happen.  */
 	  scm_misc_error (s_subr, "Unknown error", SCM_EOL);

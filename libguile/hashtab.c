@@ -66,10 +66,8 @@ scm_hash_fn_get_handle (SCM table,SCM obj,unsigned int (*hash_fn)(),SCM (*assoc_
   if (SCM_LENGTH (table) == 0)
     return SCM_EOL;
   k = hash_fn (obj, SCM_LENGTH (table), closure);
-  SCM_ASSERT ((0 <= k) && (k < SCM_LENGTH (table)),
-	      scm_ulong2num (k),
-	      SCM_OUTOFRANGE,
-	      "hash_fn_get_handle");
+  if (k >= SCM_LENGTH (table))
+    scm_out_of_range ("hash_fn_get_handle", scm_ulong2num (k));
   h = assoc_fn (obj, SCM_VELTS (table)[k], closure);
   return h;
 }
@@ -87,10 +85,8 @@ scm_hash_fn_create_handle_x (SCM table,SCM obj,SCM init,unsigned int (*hash_fn)(
   if (SCM_LENGTH (table) == 0)
     return SCM_EOL;
   k = hash_fn (obj, SCM_LENGTH (table), closure);
-  SCM_ASSERT ((0 <= k) && (k < SCM_LENGTH (table)),
-	      scm_ulong2num (k),
-	      SCM_OUTOFRANGE,
-	      "hash_fn_create_handle_x");
+  if (k >= SCM_LENGTH (table))
+    scm_out_of_range ("hash_fn_create_handle_x", scm_ulong2num (k));
   SCM_REDEFER_INTS;
   it = assoc_fn (obj, SCM_VELTS (table)[k], closure);
   if (SCM_NIMP (it))
@@ -154,10 +150,8 @@ scm_hash_fn_remove_x (SCM table,SCM obj,unsigned int (*hash_fn)(),SCM (*assoc_fn
   if (SCM_LENGTH (table) == 0)
     return SCM_EOL;
   k = hash_fn (obj, SCM_LENGTH (table), closure);
-  SCM_ASSERT ((0 <= k) && (k < SCM_LENGTH (table)),
-	      scm_ulong2num (k),
-	      SCM_OUTOFRANGE,
-	      "hash_fn_remove_x");
+  if (k >= SCM_LENGTH (table))
+    scm_out_of_range ("hash_fn_remove_x", scm_ulong2num (k));
   h = assoc_fn (obj, SCM_VELTS (table)[k], closure);
   SCM_VELTS(table)[k] = delete_fn (h, SCM_VELTS(table)[k]);
   return h;

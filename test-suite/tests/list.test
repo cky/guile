@@ -451,8 +451,137 @@
 
 ;;; list-ref
 
+(with-test-prefix "list-ref"
+
+  ;; Is documentation available?
+
+  (pass-if "documented?" (object-documentation list-ref))
+
+  (with-test-prefix "argument error"
+    
+    (with-test-prefix "non list argument"
+      #t)
+
+    (with-test-prefix "improper list argument"
+      #t)
+
+    (with-test-prefix "non integer index"
+      #t)
+
+    (with-test-prefix "index out of range"
+
+      (with-test-prefix "empty list"
+
+	(pass-if "index 0"
+	  (catch 'out-of-range
+	    (lambda ()
+	      (list-ref '() 0)
+	      #f)
+	    (lambda (key . args)
+	      #t)))
+
+	(pass-if "index > 0"
+	  (catch 'out-of-range
+	    (lambda ()
+	      (list-ref '() 1)
+	      #f)
+	    (lambda (key . args)
+	      #t)))
+
+	(pass-if "index < 0"
+	  (catch 'out-of-range
+	    (lambda ()
+	      (list-ref '() -1)
+	      #f)
+	    (lambda (key . args)
+	      #t))))
+
+      (with-test-prefix "non-empty list"
+
+	(pass-if "index > length"
+	  (catch 'out-of-range
+	    (lambda ()
+	      (list-ref '(1) 1)
+	      #f)
+	    (lambda (key . args)
+	      #t)))
+
+	(pass-if "index < 0"
+	  (catch 'out-of-range
+	    (lambda ()
+	      (list-ref '(1) -1)
+	      #f)
+	    (lambda (key . args)
+	      #t)))))))
+
 
 ;;; list-set!
+
+(with-test-prefix "list-set!"
+
+  ;; Is documentation available?
+
+  (pass-if "documented?" (object-documentation list-set!))
+
+  (with-test-prefix "argument error"
+    
+    (with-test-prefix "non list argument"
+      #t)
+
+    (with-test-prefix "improper list argument"
+      #t)
+
+    (with-test-prefix "read-only list argument"
+      #t)
+
+    (with-test-prefix "non integer index"
+      #t)
+
+    (with-test-prefix "index out of range"
+
+      (with-test-prefix "empty list"
+
+	(pass-if "index 0"
+	  (catch 'out-of-range
+	    (lambda ()
+	      (list-set! (list) 0 #t)
+	      #f)
+	    (lambda (key . args)
+	      #t)))
+
+	(pass-if "index > 0"
+	  (catch 'out-of-range
+	    (lambda ()
+	      (list-set! (list) 1 #t)
+	      #f)
+	    (lambda (key . args)
+	      #t)))
+
+	(pass-if "index < 0"
+	  (catch 'out-of-range
+	    (lambda ()
+	      (list-set! (list) -1 #t)
+	      #f)
+	    (lambda (key . args)
+	      #t))))
+
+      (with-test-prefix "non-empty list"
+
+	(pass-if "index > length"
+	  (catch 'out-of-range
+	    (lambda ()
+	      (list-set! (list 1) 1 #t)
+	      #f)
+	    (lambda (key . args)
+	      #t)))
+
+	(pass-if "index < 0"
+	  (catch 'out-of-range
+	    (lambda ()
+	      (list-set! (list 1) -1 #t)
+	      #f)
+	    (lambda (key . args)
+	      #t)))))))
 
 
 ;;; list-cdr-ref
@@ -462,6 +591,72 @@
 
 
 ;;; list-cdr-set!
+
+(with-test-prefix "list-cdr-set!"
+
+  ;; Is documentation available?
+
+  (pass-if "documented?" (object-documentation list-cdr-set!))
+
+  (with-test-prefix "argument error"
+    
+    (with-test-prefix "non list argument"
+      #t)
+
+    (with-test-prefix "improper list argument"
+      #t)
+
+    (with-test-prefix "read-only list argument"
+      #t)
+
+    (with-test-prefix "non integer index"
+      #t)
+
+    (with-test-prefix "index out of range"
+
+      (with-test-prefix "empty list"
+
+	(pass-if "index 0"
+	  (catch 'out-of-range
+	    (lambda ()
+	      (list-cdr-set! (list) 0 #t)
+	      #f)
+	    (lambda (key . args)
+	      #t)))
+
+	(pass-if "index > 0"
+	  (catch 'out-of-range
+	    (lambda ()
+	      (list-cdr-set! (list) 1 #t)
+	      #f)
+	    (lambda (key . args)
+	      #t)))
+
+	(pass-if "index < 0"
+	  (catch 'out-of-range
+	    (lambda ()
+	      (list-cdr-set! (list) -1 #t)
+	      #f)
+	    (lambda (key . args)
+	      #t))))
+
+      (with-test-prefix "non-empty list"
+
+	(pass-if "index > length"
+	  (catch 'out-of-range
+	    (lambda ()
+	      (list-cdr-set! (list 1) 1 #t)
+	      #f)
+	    (lambda (key . args)
+	      #t)))
+
+	(pass-if "index < 0"
+	  (catch 'out-of-range
+	    (lambda ()
+	      (list-cdr-set! (list 1) -1 #t)
+	      #f)
+	    (lambda (key . args)
+	      #t)))))))
 
 
 ;;; list-head

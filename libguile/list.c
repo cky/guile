@@ -346,44 +346,55 @@ SCM_DEFINE (scm_reverse_x, "reverse!", 1, 1, 0,
 }
 #undef FUNC_NAME
 
-
 
+
 /* indexing lists by element number */
 
 SCM_DEFINE (scm_list_ref, "list-ref", 2, 0, 0,
-           (SCM lst, SCM k),
-	    "Return the Kth element from list LST.")
+	    (SCM list, SCM k),
+	    "Return the Kth element from LIST.")
 #define FUNC_NAME s_scm_list_ref
 {
-  register long i;
+  SCM lst = list;
+  unsigned long int i;
   SCM_VALIDATE_INUM_MIN_COPY (2,k,0,i);
-  while (i-- > 0) {
-    SCM_ASRTGO(SCM_CONSP(lst), erout);
-    lst = SCM_CDR(lst);
-  }
- erout:	
-  SCM_ASSERT(SCM_CONSP(lst),
-             SCM_NULLP(lst)?k:lst, SCM_NULLP(lst)?SCM_OUTOFRANGE:SCM_ARG1, FUNC_NAME);
-  return SCM_CAR(lst);
+  while (SCM_CONSP (lst)) {
+    if (i == 0)
+      return SCM_CAR (lst);
+    else {
+      --i;
+      lst = SCM_CDR (lst);
+    }
+  };
+  if (SCM_NULLP (lst))
+    SCM_OUT_OF_RANGE (2, k);
+  else
+    SCM_WRONG_TYPE_ARG (1, list);
 }
 #undef FUNC_NAME
 
+
 SCM_DEFINE (scm_list_set_x, "list-set!", 3, 0, 0,
-           (SCM lst, SCM k, SCM val),
-	    "Set the @var{k}th element of @var{lst} to @var{val}.")
+	    (SCM list, SCM k, SCM val),
+	    "Set the @var{k}th element of @var{list} to @var{val}.")
 #define FUNC_NAME s_scm_list_set_x
 {
-  register long i;
+  SCM lst = list;
+  unsigned long int i;
   SCM_VALIDATE_INUM_MIN_COPY (2,k,0,i);
-  while (i-- > 0) {
-    SCM_ASRTGO(SCM_CONSP(lst), erout);
-    lst = SCM_CDR(lst);
-  }
- erout:	
-  SCM_ASSERT(SCM_CONSP(lst),
-             SCM_NULLP(lst)?k:lst, SCM_NULLP(lst)?SCM_OUTOFRANGE:SCM_ARG1, FUNC_NAME);
-  SCM_SETCAR (lst, val);
-  return val;
+  while (SCM_CONSP (lst)) {
+    if (i == 0) {
+      SCM_SETCAR (lst, val);
+      return val;
+    } else {
+      --i;
+      lst = SCM_CDR (lst);
+    }
+  };
+  if (SCM_NULLP (lst))
+    SCM_OUT_OF_RANGE (2, k);
+  else
+    SCM_WRONG_TYPE_ARG (1, list);
 }
 #undef FUNC_NAME
 
@@ -411,21 +422,26 @@ SCM_DEFINE (scm_list_tail, "list-tail", 2, 0, 0,
 
 
 SCM_DEFINE (scm_list_cdr_set_x, "list-cdr-set!", 3, 0, 0,
-           (SCM lst, SCM k, SCM val),
-	    "Set the @var{k}th cdr of @var{lst} to @var{val}.")
+           (SCM list, SCM k, SCM val),
+	    "Set the @var{k}th cdr of @var{list} to @var{val}.")
 #define FUNC_NAME s_scm_list_cdr_set_x
 {
-  register long i;
+  SCM lst = list;
+  unsigned long int i;
   SCM_VALIDATE_INUM_MIN_COPY (2,k,0,i);
-  while (i-- > 0) {
-    SCM_ASRTGO(SCM_CONSP(lst), erout);
-    lst = SCM_CDR(lst);
-  }
-erout:
-  SCM_ASSERT(SCM_CONSP(lst),
-             SCM_NULLP(lst)?k:lst, SCM_NULLP(lst)?SCM_OUTOFRANGE:SCM_ARG1, FUNC_NAME);
-  SCM_SETCDR (lst, val);
-  return val;
+  while (SCM_CONSP (lst)) {
+    if (i == 0) {
+      SCM_SETCDR (lst, val);
+      return val;
+    } else {
+      --i;
+      lst = SCM_CDR (lst);
+    }
+  };
+  if (SCM_NULLP (lst))
+    SCM_OUT_OF_RANGE (2, k);
+  else
+    SCM_WRONG_TYPE_ARG (1, list);
 }
 #undef FUNC_NAME
 

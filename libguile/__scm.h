@@ -554,7 +554,6 @@ extern SCM scm_apply_generic (SCM gf, SCM args);
 /* SCM_WNA must follow the last SCM_ARGn in sequence.
  */
 #define SCM_WNA 		8
-#define SCM_OUTOFRANGE 		10
 
 #endif /* SCM_MAGIC_SNARFER */
 

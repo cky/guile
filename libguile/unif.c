@@ -480,7 +480,8 @@ scm_aind (SCM ra, SCM args, const char *what)
       args = SCM_CDR (args);
       SCM_ASSERT (SCM_INUMP (ind), ind, s_bad_ind, what);
       j = SCM_INUM (ind);
-      SCM_ASSERT (j >= (s->lbnd) && j <= (s->ubnd), ind, SCM_OUTOFRANGE, what);
+      if (j < s->lbnd || j > s->ubnd)
+	scm_out_of_range (what, ind);
       pos += (j - s->lbnd) * (s->inc);
       k--;
       s++;
@@ -831,8 +832,8 @@ SCM_DEFINE (scm_transpose_array, "transpose-array", 1, 0, 1,
 		  scm_makfrom0str (FUNC_NAME), SCM_WNA, NULL);
       SCM_ASSERT (SCM_INUMP (SCM_CAR (args)), SCM_CAR (args), SCM_ARG2,
 		  FUNC_NAME);
-      SCM_ASSERT (SCM_EQ_P (SCM_INUM0, SCM_CAR (args)), SCM_CAR (args), SCM_OUTOFRANGE,
-		  FUNC_NAME);
+      SCM_ASSERT_RANGE (SCM_ARG2, SCM_CAR (args), 
+			SCM_EQ_P (SCM_INUM0, SCM_CAR (args)));
       return ra;
     case scm_tc7_smob:
       SCM_ASRTGO (SCM_ARRAYP (ra), badarg);
@@ -846,8 +847,8 @@ SCM_DEFINE (scm_transpose_array, "transpose-array", 1, 0, 1,
 	  SCM_ASSERT (SCM_INUMP (ve[k]), ve[k], (SCM_ARG2 + k),
 		      FUNC_NAME);
 	  i = SCM_INUM (ve[k]);
-	  SCM_ASSERT (i >= 0 && i < SCM_ARRAY_NDIM (ra), ve[k],
-		      SCM_OUTOFRANGE, FUNC_NAME);
+	  if (i < 0 || i >= SCM_ARRAY_NDIM (ra))
+	    scm_out_of_range (FUNC_NAME, ve[k]);
 	  if (ndim < i)
 	    ndim = i;
 	}
@@ -1770,8 +1771,7 @@ SCM_DEFINE (scm_bit_position, "bit-position", 3, 0, 0,
   register unsigned long w;
   SCM_VALIDATE_NIM (2,v);
   SCM_VALIDATE_INUM_COPY (3,k,pos);
-  SCM_ASSERT ((pos <= SCM_LENGTH (v)) && (pos >= 0),
-	  k, SCM_OUTOFRANGE, FUNC_NAME);
+  SCM_ASSERT_RANGE (3, k, (pos <= SCM_LENGTH (v)) && (pos >= 0));
   if (pos == SCM_LENGTH (v))
     return SCM_BOOL_F;
   switch SCM_TYP7 (v)
@@ -1856,14 +1856,16 @@ SCM_DEFINE (scm_bit_set_star_x, "bit-set*!", 3, 0, 0,
 	    for (i = SCM_LENGTH (kv); i;)
 	      {
 		k = SCM_UNPACK (SCM_VELTS (kv)[--i]);
-		SCM_ASSERT ((k < vlen), SCM_MAKINUM (k), SCM_OUTOFRANGE, FUNC_NAME);
+		if (k >= vlen)
+		  scm_out_of_range (FUNC_NAME, SCM_MAKINUM (k));
 		SCM_BITVEC_CLR(v,k);
 	      }
 	  else if (SCM_EQ_P (obj, SCM_BOOL_T))
 	    for (i = SCM_LENGTH (kv); i;)
 	      {
 		k = SCM_UNPACK (SCM_VELTS (kv)[--i]);
-		SCM_ASSERT ((k < vlen), SCM_MAKINUM (k), SCM_OUTOFRANGE, FUNC_NAME);
+		if (k >= vlen)
+		  scm_out_of_range (FUNC_NAME, SCM_MAKINUM (k));
 		SCM_BITVEC_SET(v,k);
 	      }
 	  else
@@ -1920,7 +1922,8 @@ SCM_DEFINE (scm_bit_count_star, "bit-count*", 3, 0, 0,
 	    for (i = SCM_LENGTH (kv); i;)
 	      {
 		k = SCM_UNPACK (SCM_VELTS (kv)[--i]);
-		SCM_ASSERT ((k < vlen), SCM_MAKINUM (k), SCM_OUTOFRANGE, FUNC_NAME);
+		if (k >= vlen)
+		  scm_out_of_range (FUNC_NAME, SCM_MAKINUM (k));
 		if (!SCM_BITVEC_REF(v,k))
 		  count++;
 	      }
@@ -1928,7 +1931,8 @@ SCM_DEFINE (scm_bit_count_star, "bit-count*", 3, 0, 0,
 	    for (i = SCM_LENGTH (kv); i;)
 	      {
 		k = SCM_UNPACK (SCM_VELTS (kv)[--i]);
-		SCM_ASSERT ((k < vlen), SCM_MAKINUM (k), SCM_OUTOFRANGE, FUNC_NAME);
+		if (k >= vlen)
+		  scm_out_of_range (FUNC_NAME, SCM_MAKINUM (k));
 		if (SCM_BITVEC_REF (v,k))
 		  count++;
 	      }

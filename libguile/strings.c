@@ -278,7 +278,6 @@ SCM_DEFINE (scm_string_set_x, "string-set!", 3, 0, 0,
 #undef FUNC_NAME
 
 
-
 SCM_DEFINE (scm_substring, "substring", 2, 1, 0,
            (SCM str, SCM start, SCM end),
 	    "Returns a newly allocated string formed from the characters\n"
@@ -288,17 +287,22 @@ SCM_DEFINE (scm_substring, "substring", 2, 1, 0,
             "0 <= START <= END <= (string-length STR).")
 #define FUNC_NAME s_scm_substring
 {
-  long l;
+  long int from;
+  long int to;
+
   SCM_VALIDATE_ROSTRING (1,str);
-  SCM_VALIDATE_INUM (2,start);
+  SCM_VALIDATE_INUM (2, start);
   SCM_VALIDATE_INUM_DEF (3,end,SCM_ROLENGTH(str));
-  SCM_ASSERT_RANGE (2,start,SCM_INUM (start) <= SCM_ROLENGTH (str));
-  SCM_ASSERT_RANGE (2,end,SCM_INUM (end) <= SCM_ROLENGTH (str));
-  l = SCM_INUM (end)-SCM_INUM (start);
-  SCM_ASSERT (l >= 0, SCM_MAKINUM (l), SCM_OUTOFRANGE, FUNC_NAME);
-  return scm_makfromstr (&SCM_ROCHARS (str)[SCM_INUM (start)], (scm_sizet)l, 0);
+
+  from = SCM_INUM (start);
+  SCM_ASSERT_RANGE (2, start, 0 <= from && from <= SCM_ROLENGTH (str));
+  to = SCM_INUM (end);
+  SCM_ASSERT_RANGE (3, end, from <= to && to <= SCM_ROLENGTH (str));
+
+  return scm_makfromstr (&SCM_ROCHARS (str)[from], (scm_sizet) (to - from), 0);
 }
 #undef FUNC_NAME
+
 
 SCM_DEFINE (scm_string_append, "string-append", 0, 0, 1, 
             (SCM args),

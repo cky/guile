@@ -46,7 +46,7 @@ by the Free Software Foundation.
 @sp 10
 @comment The title is printed in a large font.
 @title Data Representation in Guile
-@subtitle $Id: data-rep.texi,v 1.11 2000-06-20 03:22:56 mdj Exp $
+@subtitle $Id: data-rep.texi,v 1.12 2000-06-30 10:46:33 dirk Exp $
 @subtitle For use with Guile @value{VERSION}
 @author Jim Blandy
 @author Free Software Foundation
@@ -1075,11 +1075,6 @@ Interestingly, the message is attributed to the function named by
 @var{obj}, not @var{subr}, so @var{obj} must be a Scheme string object
 naming the function.  Usually, Guile catches these errors before ever
 invoking the subr, so we don't run into these problems.
-@end deftypefn
-
-@deftypefn Macro int SCM_OUTOFRANGE
-Signal an error complaining that @var{obj} is ``out of range'' for
-@var{subr}.
 @end deftypefn
 
 
