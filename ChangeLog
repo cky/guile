@@ -1,3 +1,7 @@
+2001-07-10  Thien-Thi Nguyen  <ttn@revel.glug.org>
+
+	* INSTALL: Point to HACKING for tool versions.
+
 2001-07-08  Rob Browning  <rlb@defaultvalue.org>
 
 	* TODO: updated to include relevant itemized post-1.6-RELEASE
