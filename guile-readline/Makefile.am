@@ -42,7 +42,7 @@ BUILT_SOURCES = readline.x
 
 pkginclude_HEADERS = readline.h
 
-ice9dir = $(datadir)/guile/$(VERSION)/ice-9
+ice9dir = $(datadir)/guile/$(GUILE_EFFECTIVE_VERSION)/ice-9
 ice9_DATA = readline.scm
 
 snarfcppopts = $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
