@@ -103,7 +103,7 @@ call ADD-HISTORY to make previous input available to the user.
 written printing routines (like record printers, closure printers).
 
 The problem is that these user written routines must have access to
-the current `prine-state' to be able to handle fancy things like
+the current `print-state' to be able to handle fancy things like
 detection of circular references.  These print-states have to be
 passed to the builtin printing routines (display, write, etc) to
 properly continue the print chain.
