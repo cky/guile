@@ -1,3 +1,12 @@
+2000-05-08  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* common-list.scm (doc fixes): Talk about `true values' instead of
+	`#t' when a function treats all non-#f valuers the same.
+	(remove-if-not): Bug fix: call remove-if-not
+	instead of remove-if when iterating.
+	(delete-if-not!): Bug fix: call delete-if-not! instead of
+	delete-if! when iterating.
+
 2000-04-16  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* r4rs.scm (close-input-port, close-output-port): Removed.
