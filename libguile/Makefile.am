@@ -159,11 +159,9 @@ modinclude_HEADERS = __scm.h alist.h arbiters.h async.h backtrace.h boolean.h \
     rdelim.h read.h root.h rw.h scmsigs.h validate.h script.h simpos.h smob.h \
     snarf.h socket.h sort.h srcprop.h stackchk.h stacks.h stime.h strings.h   \
     strop.h strorder.h strports.h struct.h symbols.h tags.h threads.h	      \
-    throw.h unif.h values.h variable.h vectors.h version.h vports.h weaks.h
+    throw.h unif.h values.h variable.h vectors.h vports.h weaks.h
 
-## This file is generated at configure time.  That is why it is DATA
-## and not a header -- headers are included in the distribution.
-modinclude_DATA = scmconfig.h
+nodist_modinclude_HEADERS = version.h scmconfig.h
 
 bin_SCRIPTS = guile-snarf
 
@@ -188,6 +186,12 @@ version.h: version.h.in
 	  -e s:@-GUILE_MINOR_VERSION-@:${GUILE_MINOR_VERSION}: \
 	  -e s:@-GUILE_MICRO_VERSION-@:${GUILE_MICRO_VERSION}:
 	mv $@.tmp $@
+
+scmconfig.h: $(top_builddir)/config.h
+	rm -f scmconfig.h
+	sed -e 's|\(#define PACKAGE_.*\)|/* do not publish: \1 */|' \
+	  < $(top_builddir)/config.h > scmconfig.h.tmp
+	mv scmconfig.h.tmp scmconfig.h
 
 ## FIXME: Consider using timestamp file, to avoid unnecessary rebuilds.
 libpath.h: $(srcdir)/Makefile.in  $(top_builddir)/config.status
