@@ -95,15 +95,14 @@
 
 	 (read-string (lambda ()
 		       (cond
-			(buffers 	(let ((answer (car buffers)))
-					  (set! buffers (cdr buffers))
-					  answer))
-
-			((ungetc-char-ready? self)	(read-line self 'include-newline))
-
-			(else				(read-line underlying-port 'include-newline)))))
-			   
-	 )
+			((not (null? buffers))
+			 (let ((answer (car buffers)))
+			   (set! buffers (cdr buffers))
+			   answer))
+			((ungetc-char-ready? self)
+			 (read-line self 'include-newline))
+			(else
+			 (read-line underlying-port 'include-newline))))))
 
     (set-object-property! self 'unread-string unread-string)
     (set-object-property! self 'read-string read-string)
