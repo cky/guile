@@ -1970,10 +1970,6 @@
 
 (define %autoloader-developer-mode #t)
 
-(define (internal-use-syntax transformer)
-  (set-module-transformer! (current-module) transformer)
-  (set! scm:eval-transformer transformer))
-
 (define (process-define-module args)
   (let*  ((module-id (car args))
 	  (module (resolve-module module-id #f))
@@ -2009,7 +2005,8 @@
 		       (error "missing interface for use-module"
 			      used-module))
 		   (if (eq? keyword 'use-syntax)
-		       (internal-use-syntax
+		       (set-module-transformer!
+			module
 			(module-ref interface (car (last-pair used-name))
 				    #f)))
 		   (loop (cddr kws)
@@ -2898,11 +2895,13 @@
   `(process-use-modules ',modules))
 
 (defmacro use-syntax (spec)
-  (if (pair? spec)
-      `(begin
-	 (process-use-modules ',(list spec))
-	 (internal-use-syntax ,(car (last-pair spec))))
-      `(internal-use-syntax ,spec)))
+  `(begin
+     ,@(if (pair? spec)
+	   `((process-use-modules ',(list spec))
+	     (set-module-transformer! (current-module)
+				      ,(car (last-pair spec))))
+	   `((set-module-transformer! (current-module) ,spec)))
+     (set! scm:eval-transformer (module-transformer (current-module)))))
 
 (define define-private define)
 
