@@ -1,3 +1,10 @@
+2003-06-05  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* tags.h: Fixed comment about the immediate type code layout.
+
+	* eval.c: Fixed handling of non-special instructions.  Without
+	this patch, guile will segfault on (#\0) and similar instructions.
+
 2003-06-05  Kevin Ryde  <user42@zip.com.au>
 
 	* numbers.c (scm_max, scm_min): For inum, bignum and real, if other

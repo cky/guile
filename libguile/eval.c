@@ -2448,6 +2448,9 @@ dispatch:
       /* new syntactic forms go here. */
     case SCM_BIT7 (SCM_MAKISYM (0)):
       proc = SCM_CAR (x);
+      if (!SCM_IFLAGP (proc))
+        goto evapply;
+
       switch (SCM_ISYMNUM (proc))
 	{
 

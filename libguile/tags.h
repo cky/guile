@@ -3,7 +3,7 @@
 #ifndef SCM_TAGS_H
 #define SCM_TAGS_H
 
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -156,7 +156,7 @@ typedef unsigned long scm_t_bits;
  * 0011-100	short instruction
  * 0100-100	short instruction
  * 0101-100	short instruction
- * 0110-100	various immediates and long instructions
+ * 0110-100	short instruction
  * 0111-100	short instruction
  * 1000-100	short instruction
  * 1001-100	short instruction
@@ -164,13 +164,14 @@ typedef unsigned long scm_t_bits;
  * 1011-100	short instruction
  * 1100-100	short instruction
  * 1101-100	short instruction
- * 1110-100	immediate characters
+ * 1110-100	immediate characters, various immediates and long instructions
  * 1111-100	ilocs
  *
- * Some of the 0110100 immediates are long instructions (they dispatch
- * in two steps compared to one step for a short instruction).
- * The two steps are, (1) dispatch on 7 bits to the long instruction
- * handler, (2) dispatch on 7 additional bits.
+ * Some of the 1110100 immediates are long instructions (they dispatch in
+ * three steps compared to one step for a short instruction).  The three steps
+ * are, (1) dispatch on 7 bits to the long instruction handler, (2) check, if
+ * the immediate indicates a long instruction (rather than a character or
+ * other immediate) (3) dispatch on the additional bits.
  *
  * One way to think of it is that there are 128 short instructions,
  * with the 13 immediates above being some of the most interesting.
@@ -235,9 +236,7 @@ typedef unsigned long scm_t_bits;
  *		TYP16S functions similarly wrt to TYP16 as TYP7S to TYP7,
  *		but a different option bit is used (bit 2 for TYP7S,
  *		bit 8 for TYP16S).
- * */
-
-
+ */
 
 
 /* {Non-immediate values.}
@@ -397,7 +396,6 @@ SCM_API char *scm_isymnames[];   /* defined in print.c */
  *
  * These are used only in eval but their values
  * have to be allocated here.
- *
  */
 
 #define SCM_IM_AND		SCM_MAKSPCSYM (0)

@@ -21,6 +21,21 @@
 
 (use-modules (test-suite lib))
 
+(define exception:wrong-type-to-apply
+  (cons 'misc-error "^Wrong type to apply:"))
+
+
+(with-test-prefix "basic char handling"
+
+  (with-test-prefix "evaluator"
+
+    ;; Guile prior to 2003-06-05 segfaulted on the following test, because
+    ;; within the evaluator there was no distinction between the
+    ;; evaluator-internal instruction codes and characters.
+    (pass-if-exception "evaluating chars"
+      exception:wrong-type-to-apply
+      (eval '(#\0) (interaction-environment)))))
+
 (pass-if "char-is-both? works"
 	 (and
 	  (not (char-is-both? #\?))

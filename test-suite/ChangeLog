@@ -1,3 +1,9 @@
+2003-06-05  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* tests/chars.test: Added test, attempting to apply a character.
+	This test will only pass if the other changes that are submitted
+	together with this patch are also applied.
+
 2003-06-05  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/numbers.test (logcount): Add a few more tests, to exercise
