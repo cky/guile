@@ -77,20 +77,14 @@ scm_make_gsubr(name, req, opt, rst, fcn)
   case SCM_GSUBR_MAKTYPE(2, 0, 1): return scm_make_subr(name, scm_tc7_lsubr_2, fcn);
   default:
     {
-      SCM symcell = scm_sysintern(name, SCM_UNDEFINED);
-      SCM z, cclo = scm_makcclo(scm_f_gsubr_apply, 3L);
-      long tmp = ((((SCM_CELLPTR)(SCM_CAR(symcell)))-scm_heap_org)<<8);
+      SCM symcell = scm_sysintern (name, SCM_UNDEFINED);
+      SCM cclo = scm_makcclo (scm_f_gsubr_apply, 3L);
       if (SCM_GSUBR_MAX < req + opt + rst) {
 	fputs("ERROR in scm_make_gsubr: too many args\n", stderr);
 	exit (1);
       }
-      if ((tmp>>8) != ((SCM_CELLPTR)(SCM_CAR(symcell))-scm_heap_org))
-	tmp = 0;
-      SCM_NEWCELL(z);
-      SCM_SUBRF(z) = fcn;
-      SCM_SETCAR (z, tmp + scm_tc7_subr_0);
-      SCM_GSUBR_PROC(cclo) = z;
-      SCM_GSUBR_TYPE(cclo) = SCM_MAKINUM(SCM_GSUBR_MAKTYPE(req, opt, rst));
+      SCM_GSUBR_PROC (cclo) = scm_make_subr_opt (name, scm_tc7_subr_0, fcn, 0);
+      SCM_GSUBR_TYPE (cclo) = SCM_MAKINUM (SCM_GSUBR_MAKTYPE (req, opt, rst));
       SCM_SETCDR (symcell, cclo);
 #ifdef DEBUG_EXTENSIONS
       if (SCM_REC_PROCNAMES_P)
