@@ -1,0 +1,40 @@
+#!/bin/sh
+
+# must be run from this directory
+guile=${GUILE-../../libguile/guile}
+
+if test "X$srcdir" = X; then
+    srcdir=.
+fi
+
+set -e
+
+#
+# ./safe untrusted.scm
+#
+$guile -s $srcdir/safe $srcdir/untrusted.scm > TMP
+cat <<EOF | diff -u - TMP
+1
+1
+2
+6
+24
+120
+720
+5040
+40320
+362880
+3628800
+EOF
+rm -f TMP
+
+#
+# ./safe evil.scm
+#
+$guile -s $srcdir/safe $srcdir/evil.scm > TMP
+cat <<EOF | diff -u - TMP
+** Exception: (unbound-variable #f "Unbound variable: ~S" (open-input-file) #f)
+EOF
+rm -f TMP
+
+# check.test ends here
