@@ -70,8 +70,8 @@
     (if x (cdr x) x)))
   
 ;;; Creators, getters
-(let ((a (acons 'a 'b (acons 'c 'd (acons 'e 'f ()))))
-      (b (acons "this" "is" (acons "a" "test" ())))
+(let ((a (acons 'a 'b (acons 'c 'd (acons 'e 'f '()))))
+      (b (acons "this" "is" (acons "a" "test" '())))
       (deformed '(a b c d e f g)))
   (pass-if "acons"
 	   (and (equal? a '((a . b) (c . d) (e . f)))
