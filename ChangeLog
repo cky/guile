@@ -1,3 +1,8 @@
+2002-02-11  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* acconfig.h (GUILE_DEBUG_MALLOC): Refer to scm_gc_malloc, etc,
+	instead of to scm_must_malloc.
+
 2002-02-07  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* Makefile.am (EXTRA_DIST): Added pre-inst-guile and
