@@ -2802,7 +2802,7 @@ SCM_DEFINE (scm_string_tokenize, "string-tokenize", 1, 3, 0,
 	    "Split the string @var{s} into a list of substrings, where each\n"
 	    "substring is a maximal non-empty contiguous sequence of\n"
 	    "characters from the character set @var{token_set}, which\n"
-	    "defaults to an equivalent of @code{char-set:graphic}.\n"
+	    "defaults to @code{char-set:graphic} from module (srfi srfi-14).\n"
 	    "If @var{start} or @var{end} indices are provided, they restrict\n"
 	    "@code{string-tokenize} to operating on the indicated substring\n"
 	    "of @var{s}.")
@@ -2812,34 +2812,26 @@ SCM_DEFINE (scm_string_tokenize, "string-tokenize", 1, 3, 0,
   int cstart, cend;
   SCM result = SCM_EOL;
 
+  static SCM charset_graphic = SCM_BOOL_F;
+
   SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, s, cstr,
 				    3, start, cstart,
 				    4, end, cend);
+
   if (SCM_UNBNDP (token_set))
     {
-      int idx;
-
-      while (cstart < cend)
+      if (charset_graphic == SCM_BOOL_F)
 	{
-	  while (cstart < cend)
-	    {
-	      if (isgraph (cstr[cend - 1]))
-		break;
-	      cend--;
-	    }
-	  if (cstart >= cend)
-	    break;
-	  idx = cend;
-	  while (cstart < cend)
-	    {
-	      if (!isgraph (cstr[cend - 1]))
-		break;
-	      cend--;
-	    }
-	  result = scm_cons (scm_mem2string (cstr + cend, idx - cend), result);
+	  SCM srfi_14_module = scm_c_resolve_module ("srfi srfi-14");
+	  SCM charset_graphic_var = scm_c_module_lookup (srfi_14_module,
+							 "char-set:graphic");
+	  charset_graphic =
+	    scm_permanent_object (SCM_VARIABLE_REF (charset_graphic_var));
 	}
+      token_set = charset_graphic;
     }
-  else if (SCM_CHARSETP (token_set))
+
+  if (SCM_CHARSETP (token_set))
     {
       int idx;
 
