@@ -1421,7 +1421,30 @@
 
     (pass-if-exception "(/ +i 0.0)"
       exception:numerical-overflow
-      (/ +i 0.0))))
+      (/ +i 0.0)))
+
+  (with-test-prefix "complex division"
+
+    (pass-if "(/ 3+4i)"
+      (= (/ 3+4i) 0.12-0.16i))
+
+    (pass-if "(/ 4+3i)"
+      (= (/ 4+3i) 0.16-0.12i))
+
+    (pass-if "(/ 25+125i 3+4i)"
+      (= (/ 25+125i 3+4i) 23.0+11.0i))
+
+    (pass-if "(/ 25+125i 4+3i)"
+      (= (/ 25+125i 4+3i) 19.0+17.0i))
+
+    (pass-if "(/ 25 3+4i)"
+      (= (/ 25 3+4i) 3.0-4.0i))
+
+    (pass-if "(/ 25 4+3i)"
+      (= (/ 25 4+3i) 4.0-3.0i))
+
+    (pass-if "(/ 1e200+1e200i)"
+      (= (/ 1e200+1e200i) 5.0e-201-5.0e-201i))))
 
 ;;;
 ;;; truncate
