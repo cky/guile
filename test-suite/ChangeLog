@@ -1,3 +1,7 @@
+2001-11-22  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* tests/numbers.test: Added division by zero tests.
+
 2001-11-17  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* tests/syntax.test: Added some tests, updated some others with

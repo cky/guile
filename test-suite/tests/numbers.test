@@ -47,6 +47,9 @@
 ;;; miscellaneous
 ;;;
 
+(define exception:numerical-overflow
+  (cons 'numerical-overflow "^Numerical overflow"))
+
 (define (documented? object)
   (not (not (object-documentation object))))
 
@@ -1342,6 +1345,21 @@
 ;;;
 ;;; /
 ;;;
+
+(with-test-prefix "/"
+
+  (expect-fail "documented?"
+    (documented? /))
+
+  (with-test-prefix "division by zero"
+
+    (pass-if-exception "(/ 0)"
+      exception:numerical-overflow
+      (/ 0))
+
+    (pass-if-exception "(/ 1 0)"
+      exception:numerical-overflow
+      (/ 1 0))))
 
 ;;;
 ;;; truncate
