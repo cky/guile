@@ -1,4 +1,4 @@
-/* Copyright (C) 1995-1999,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995-1999,2000,2001, 2002 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -601,7 +601,7 @@ scm_iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 	  break;
 #endif
 	case scm_tcs_subrs:
-	  scm_puts (SCM_SUBR_GENERIC (exp) && *SCM_SUBR_GENERIC (exp)
+	  scm_puts (SCM_SUBR_GENERIC (exp)
 		    ? "#<primitive-generic "
 		    : "#<primitive-procedure ",
 		    port);
