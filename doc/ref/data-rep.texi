@@ -46,7 +46,7 @@
 @c essay @sp 10
 @c essay @comment The title is printed in a large font.
 @c essay @title Data Representation in Guile
-@c essay @subtitle $Id: data-rep.texi,v 1.12 2003-06-13 23:32:33 kryde Exp $
+@c essay @subtitle $Id: data-rep.texi,v 1.13 2003-06-21 23:02:58 kryde Exp $
 @c essay @subtitle For use with Guile @value{VERSION}
 @c essay @author Jim Blandy
 @c essay @author Free Software Foundation
@@ -1956,22 +1956,22 @@ value and the compiler will certainly keep it in a register or
 somewhere throughout the routine.
 
 The @code{clear_image} example previously shown (@pxref{Type
-checking}) did not use @code{scm_remember_upto_here_1}.  This is
+checking}) didn't use @code{scm_remember_upto_here_1}.  This is
 because it didn't do anything that could result in a garbage collect.
 
 It's only in quite rare circumstances that a missing
 @code{scm_remember_upto_here_1} will bite, but when it happens the
 consequences are serious.  Fortunately the rule is simple: whenever
-allocating memory or doing something that might, ensure the @code{SCM}
-of a smob is referenced past all accesses to its insides.  Do this by
-adding an @code{scm_remember_upto_here_1} if there are no other
-references.
+calling a Guile library function or doing something that might, ensure
+the @code{SCM} of a smob is referenced past all accesses to its
+insides.  Do this by adding an @code{scm_remember_upto_here_1} if
+there are no other references.
 
 In a multi-threaded program, the rule is the same.  As far as a given
 thread is concerned, a garbage collect still only occurs within a
-memory allocation function, not at an arbitrary time.  (Guile waits
-for all threads to reach a memory function, and holds them there while
-the collector runs.)
+Guile library function, not at an arbitrary time.  (Guile waits for
+all threads to reach one of its library functions, and holds them
+there while the collector runs.)
 
 
 @node A Complete Example
