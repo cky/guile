@@ -1,3 +1,7 @@
+2002-04-03  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* RELEASE: bye bye
+
 2002-03-31  Thien-Thi Nguyen  <ttn@giblet.glug.org>
 
 	* Makefile.am: Update copyright.
