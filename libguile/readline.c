@@ -50,6 +50,48 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 
+#ifndef HAVE_RL_CLEANUP_AFTER_SIGNAL
+
+/* This is readline functions added in release 2.3.  They will work
+ * together with readline-2.1 and 2.2.  (The readline interface is
+ * disabled for earlier releases.)
+ */
+
+extern void _rl_clean_up_for_exit ();
+extern void _rl_kill_kbd_macro ();
+extern int _rl_init_argument ();
+
+void
+rl_cleanup_after_signal ()
+{
+#ifdef HAVE_RL_CLEAR_SIGNALS
+  _rl_clean_up_for_exit ();
+#endif
+  (*rl_deprep_term_function) ();
+#ifdef HAVE_RL_CLEAR_SIGNALS
+  rl_clear_signals ();
+#endif
+  rl_pending_input = 0;
+}
+
+void
+rl_free_line_state ()
+{
+  register HIST_ENTRY *entry;
+   
+  free_undo_list ();
+
+  entry = current_history ();
+  if (entry)
+    entry->data = (char *)NULL; 
+  
+  _rl_kill_kbd_macro ();
+  rl_clear_message ();
+  _rl_init_argument ();
+}
+
+#endif /* !HAVE_RL_CLEANUP_AFTER_SIGNAL */
+
 static int promptp;
 static SCM input_port;
 static SCM before_read;
@@ -103,10 +145,8 @@ reentry_barrier ()
 static SCM
 handle_error (void *data, SCM tag, SCM args)
 {
-  (*rl_deprep_term_function) ();
-#ifdef HAVE_RL_CLEAR_SIGNALS
-  rl_clear_signals ();
-#endif
+  rl_free_line_state ();
+  rl_cleanup_after_signal ();
   --in_readline;
   scm_handle_by_throw (data, tag, args);
   return SCM_UNSPECIFIED; /* never reached */

@@ -1,3 +1,10 @@
+1998-05-19  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* readline.c (rl_cleanup_after_signals, rl_free_line_state): New
+	readline functions to come in release 2.3.  (Thanks to Chet
+	Ramey.)
+	(handle_errors): Use the above functions.
+
 1998-05-12  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* readline.c: Improvements for readline support: Handle errors
