@@ -196,7 +196,7 @@ If found, return that element, otherwise return #f."
 	(else (find-if pred (cdr l)))))
 
 (define-public (member-if pred l)
-  "Return #f iff (PRED element) is not true for any element in L."
+  "Return the first sublist of L for whose car PRED is true."
   (cond ((null? l) #f)
 	((pred (car l)) l)
 	(else (member-if pred (cdr l)))))
