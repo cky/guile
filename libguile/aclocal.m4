@@ -158,8 +158,7 @@ AC_DEFUN(AM_MAINTAINER_MODE,
 ]
 )
 
-
-# serial 2 AM_PROG_LIBTOOL
+# serial 1 AM_PROG_LIBTOOL
 AC_DEFUN(AM_PROG_LIBTOOL,
 [AC_REQUIRE([AC_CANONICAL_HOST])
 AC_REQUIRE([AC_PROG_CC])
@@ -178,11 +177,6 @@ libtool_shared=)
 libtool_flags="$libtool_shared"
 test "$silent" = yes && libtool_flags="$libtool_flags --silent"
 test "$ac_cv_prog_gcc" = yes && libtool_flags="$libtool_flags --with-gcc"
-
-# On SCO OpenServer 5, we need -belf to get full-featured binaries.
-case "$host" in
-*-*-sco3.2v5*) CFLAGS="$CFLAGS -belf" ;;
-esac
 
 # Actually configure libtool.  ac_aux_dir is where install-sh is found.
 CC="$CC" CFLAGS="$CFLAGS" CPPFLAGS="$CPPFLAGS" LD="$LD" RANLIB="$RANLIB" \
