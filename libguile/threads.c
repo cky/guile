@@ -119,7 +119,6 @@ thread_mark (SCM obj)
   scm_gc_mark (t->join_queue);
   scm_gc_mark (t->dynwinds);
   scm_gc_mark (t->active_asyncs);
-  scm_gc_mark (t->signal_asyncs);
   scm_gc_mark (t->continuation_root);
   return t->dynamic_state;
 }
@@ -287,16 +286,17 @@ guilify_self_1 (SCM_STACKITEM *base)
   t->dynamic_state = SCM_BOOL_F;
   t->dynwinds = SCM_EOL;
   t->active_asyncs = SCM_EOL;
-  t->signal_asyncs = SCM_EOL;
   t->block_asyncs = 1;
   t->pending_asyncs = 1;
   t->last_debug_frame = NULL;
   t->base = base;
+  t->continuation_root = SCM_EOL;
   t->continuation_base = base;
   scm_i_pthread_cond_init (&t->sleep_cond, NULL);
   t->sleep_mutex = NULL;
   t->sleep_object = SCM_BOOL_F;
   t->sleep_fd = -1;
+  /* XXX - check for errors. */
   pipe (t->sleep_pipe);
   scm_i_pthread_mutex_init (&t->heap_mutex, NULL);
   t->clear_freelists_p = 0;
@@ -344,21 +344,15 @@ guilify_self_2 (SCM parent)
 static void *
 do_thread_exit (void *v)
 {
-  scm_i_thread *t = (scm_i_thread *)v, **tp;
+  scm_i_thread *t = (scm_i_thread *)v;
 
   scm_i_scm_pthread_mutex_lock (&thread_admin_mutex);
 
   t->exited = 1;
+  close (t->sleep_pipe[0]);
+  close (t->sleep_pipe[1]);
   while (scm_is_true (unblock_from_queue (t->join_queue)))
     ;
-      
-  for (tp = &all_threads; *tp; tp = &(*tp)->next_thread)
-    if (*tp == t)
-      {
-	*tp = t->next_thread;
-	break;
-      }
-  thread_count--;
 
   scm_i_pthread_mutex_unlock (&thread_admin_mutex);
   return NULL;
@@ -367,8 +361,30 @@ do_thread_exit (void *v)
 static void
 on_thread_exit (void *v)
 {
+  scm_i_thread *t = (scm_i_thread *)v, **tp;
+
   scm_i_pthread_setspecific (scm_i_thread_key, v);
+
+  /* Unblocking the joining threads needs to happen in guile mode
+     since the queue is a SCM data structure.
+  */
   scm_with_guile (do_thread_exit, v);
+
+  /* Removing ourself from the list of all threads needs to happen in
+     non-guile mode since all SCM values on our stack become
+     unprotected once we are no longer in the list.
+  */
+  scm_leave_guile ();
+  scm_i_pthread_mutex_lock (&thread_admin_mutex);
+  for (tp = &all_threads; *tp; tp = &(*tp)->next_thread)
+    if (*tp == t)
+      {
+	*tp = t->next_thread;
+	break;
+      }
+  thread_count--;
+  scm_i_pthread_mutex_unlock (&thread_admin_mutex);
+
   scm_i_pthread_setspecific (scm_i_thread_key, NULL);
 }
 
@@ -1406,7 +1422,6 @@ scm_c_thread_exited_p (SCM thread)
 static scm_i_pthread_cond_t wake_up_cond;
 int scm_i_thread_go_to_sleep;
 static int threads_initialized_p = 0;
-static int sleep_level = 0;
 
 void
 scm_i_thread_put_to_sleep ()
@@ -1418,25 +1433,12 @@ scm_i_thread_put_to_sleep ()
       scm_leave_guile ();
       scm_i_pthread_mutex_lock (&thread_admin_mutex);
 
-      if (sleep_level == 0)
-	{
-	  /* Signal all threads to go to sleep 
-	   */
-	  scm_i_thread_go_to_sleep = 1;
-	  for (t = all_threads; t; t = t->next_thread)
-	    scm_i_pthread_mutex_lock (&t->heap_mutex);
-	  scm_i_thread_go_to_sleep = 0;
-	}
-      else
-	{
-	  /* We are already single threaded.  Suspend again to update
-	     the recorded stack information.
-	   */
-	  suspend ();
-	}
-      sleep_level += 1;
-
-      scm_i_pthread_mutex_unlock (&thread_admin_mutex);
+      /* Signal all threads to go to sleep 
+       */
+      scm_i_thread_go_to_sleep = 1;
+      for (t = all_threads; t; t = t->next_thread)
+	scm_i_pthread_mutex_lock (&t->heap_mutex);
+      scm_i_thread_go_to_sleep = 0;
     }
 }
 
@@ -1457,16 +1459,10 @@ scm_i_thread_wake_up ()
   if (threads_initialized_p)
     {
       scm_i_thread *t;
-      scm_i_pthread_mutex_lock (&thread_admin_mutex);
 
-      sleep_level -= 1;
-      if (sleep_level == 0)
-	{
-	  scm_i_pthread_cond_broadcast (&wake_up_cond);
-	  for (t = all_threads; t; t = t->next_thread)
-	    scm_i_pthread_mutex_unlock (&t->heap_mutex);
-	}
-
+      scm_i_pthread_cond_broadcast (&wake_up_cond);
+      for (t = all_threads; t; t = t->next_thread)
+	scm_i_pthread_mutex_unlock (&t->heap_mutex);
       scm_i_pthread_mutex_unlock (&thread_admin_mutex);
       scm_enter_guile ((scm_t_guile_ticket) SCM_I_CURRENT_THREAD);
     }
@@ -1478,25 +1474,6 @@ scm_i_thread_sleep_for_gc ()
   scm_i_thread *t = suspend ();
   scm_i_pthread_cond_wait (&wake_up_cond, &t->heap_mutex);
   resume (t);
-}
-
-static void
-put_to_sleep (void *unused)
-{
-  scm_i_thread_put_to_sleep ();
-}
-
-static void
-wake_up (void *unused)
-{
-  scm_i_thread_wake_up ();
-}
-
-void
-scm_i_frame_single_threaded ()
-{
-  scm_frame_rewind_handler (put_to_sleep, NULL, SCM_F_WIND_EXPLICITLY);
-  scm_frame_unwind_handler (wake_up, NULL, SCM_F_WIND_EXPLICITLY);
 }
 
 /* This mutex is used by SCM_CRITICAL_SECTION_START/END.

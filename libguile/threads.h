@@ -80,8 +80,6 @@ typedef struct scm_i_thread {
    */
   SCM active_asyncs;            /* The thunks to be run at the next
                                    safe point */
-  SCM signal_asyncs;            /* The pre-queued cells for signal handlers.
-                                 */
   unsigned int block_asyncs;    /* Non-zero means that asyncs should 
                                    not be run. */
   unsigned int pending_asyncs;  /* Non-zero means that asyncs might be pending.
@@ -139,7 +137,6 @@ void scm_i_thread_put_to_sleep (void);
 void scm_i_thread_wake_up (void);
 void scm_i_thread_invalidate_freelists (void);
 void scm_i_thread_sleep_for_gc (void);
-SCM_API void scm_i_frame_single_threaded (void);
 
 void scm_threads_prehistory (SCM_STACKITEM *);
 void scm_threads_init_first_thread (void);
