@@ -1,3 +1,9 @@
+2001-04-16  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* data-rep.texi (Signalling Type Errors):  Update SCM_ASSERT doc
+	for recent changes to disallow passing a string parameter as the
+	`pos'.  Thanks to Dirk Herrmann for the patch!
+
 2001-04-13  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* data-rep.texi (Unpacking the SCM type): New section, taken from

@@ -46,7 +46,7 @@
 @c essay @sp 10
 @c essay @comment The title is printed in a large font.
 @c essay @title Data Representation in Guile
-@c essay @subtitle $Id: data-rep.texi,v 1.20 2001-04-13 11:12:01 ossau Exp $
+@c essay @subtitle $Id: data-rep.texi,v 1.21 2001-04-16 09:38:32 ossau Exp $
 @c essay @subtitle For use with Guile @value{VERSION}
 @c essay @author Jim Blandy
 @c essay @author Free Software Foundation
@@ -1021,15 +1021,10 @@ types of its arguments, to avoid misinterpreting a value, and perhaps
 causing a segmentation fault.  Guile provides some macros to make this
 easier.
 
-@deftypefn Macro void SCM_ASSERT (int @var{test}, SCM @var{obj}, int @var{position}, char *@var{subr})
-If @var{test} is zero, signal an error, attributed to the subroutine
-named @var{subr}, operating on the value @var{obj}.  The @var{position}
-value determines exactly what sort of error to signal.
-
-If @var{position} is a string, @code{SCM_ASSERT} raises a
-``miscellaneous'' error whose message is that string.
-
-Otherwise, @var{position} should be one of the values defined below.
+@deftypefn Macro void SCM_ASSERT (int @var{test}, SCM @var{obj}, unsigned int @var{position}, const char *@var{subr})
+If @var{test} is zero, signal a ``wrong type argument'' error,
+attributed to the subroutine named @var{subr}, operating on the value
+@var{obj}, which is the @var{position}'th argument of @var{subr}.
 @end deftypefn
 
 @deftypefn Macro int SCM_ARG1
@@ -1037,35 +1032,21 @@ Otherwise, @var{position} should be one of the values defined below.
 @deftypefnx Macro int SCM_ARG3
 @deftypefnx Macro int SCM_ARG4
 @deftypefnx Macro int SCM_ARG5
-Signal a ``wrong type argument'' error.  When used as the @var{position}
-argument of @code{SCM_ASSERT}, @code{SCM_ARG@var{n}} claims that
-@var{obj} has the wrong type for the @var{n}'th argument of @var{subr}.
-
-The only way to complain about the type of an argument after the fifth
-is to use @code{SCM_ARGn}, defined below, which doesn't specify which
-argument is wrong.  You could pass your own error message to
-@code{SCM_ASSERT} as the @var{position}, but then the error signalled is
-a ``miscellaneous'' error, not a ``wrong type argument'' error.  This
-seems kludgy to me.
-@comment Any function with more than two arguments is wrong --- Perlis
-@comment Despite Perlis, I agree.  Why not have two Macros, one with
-@comment a string error message, and the other with an integer position
-@comment that only claims a type error in an argument?
-@comment --- Keith Wright
+@deftypefnx Macro int SCM_ARG6
+@deftypefnx Macro int SCM_ARG7
+One of the above values can be used for @var{position} to indicate the
+number of the argument of @var{subr} which is being checked.
+Alternatively, a positive integer number can be used, which allows to
+check arguments after the seventh.  However, for parameter numbers up to
+seven it is preferable to use @code{SCM_ARGN} instead of the
+corresponding raw number, since it will make the code easier to
+understand.
 @end deftypefn
 
 @deftypefn Macro int SCM_ARGn
-As above, but does not specify which argument's type is incorrect.
-@end deftypefn
-
-@deftypefn Macro int SCM_WNA
-Signal an error complaining that the function received the wrong number
-of arguments.
-
-Interestingly, the message is attributed to the function named by
-@var{obj}, not @var{subr}, so @var{obj} must be a Scheme string object
-naming the function.  Usually, Guile catches these errors before ever
-invoking the subr, so we don't run into these problems.
+Passing a value of zero or @code{SCM_ARGn} for @var{position} allows to
+leave it unspecified which argument's type is incorrect.  Again,
+@code{SCM_ARGn} should be preferred over a raw zero constant.
 @end deftypefn
 
 
