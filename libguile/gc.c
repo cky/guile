@@ -441,7 +441,7 @@ scm_igc (what)
   SCM_THREAD_CRITICAL_SECTION_START;
 #endif
 
-  // fprintf (stderr, "gc: %s\n", what);
+  /* fprintf (stderr, "gc: %s\n", what); */
 
   scm_gc_start (what);
   if (!scm_stack_base || scm_block_gc)
