@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995, 1996, 1998 Free Software Foundation, Inc.
+/*	Copyright (C) 1995, 1996, 1998, 1999 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -233,19 +233,27 @@ scm_vector_move_right_x (vec1, start1, end1, vec2, start2)
   long j;
   long e;
 
-  SCM_ASSERT (SCM_NIMP (vec1) && SCM_VECTORP (vec1), vec1, SCM_ARG1, s_vector_move_right_x);
+  SCM_ASSERT (SCM_NIMP (vec1) && SCM_VECTORP (vec1),
+	      vec1, SCM_ARG1, s_vector_move_right_x);
   SCM_ASSERT (SCM_INUMP (start1), start1, SCM_ARG2, s_vector_move_right_x);
   SCM_ASSERT (SCM_INUMP (end1), end1, SCM_ARG3, s_vector_move_right_x);
-  SCM_ASSERT (SCM_NIMP (vec2) && SCM_VECTORP (vec2), vec2, SCM_ARG4, s_vector_move_right_x);
+  SCM_ASSERT (SCM_NIMP (vec2) && SCM_VECTORP (vec2),
+	      vec2, SCM_ARG4, s_vector_move_right_x);
   SCM_ASSERT (SCM_INUMP (start2), start2, SCM_ARG5, s_vector_move_right_x);
   i = SCM_INUM (start1);
   j = SCM_INUM (start2);
   e = SCM_INUM (end1);
-  SCM_ASSERT (i <= SCM_LENGTH (vec1) && i >= 0, start1, SCM_OUTOFRANGE, s_vector_move_right_x);
-  SCM_ASSERT (j <= SCM_LENGTH (vec2) && j >= 0, start2, SCM_OUTOFRANGE, s_vector_move_right_x);
-  SCM_ASSERT (e <= SCM_LENGTH (vec1) && e >= 0, end1, SCM_OUTOFRANGE, s_vector_move_right_x);
-  SCM_ASSERT ((j = e-i+j) <= SCM_LENGTH (vec2), start2, SCM_OUTOFRANGE, s_vector_move_right_x);
-  while (i<e) SCM_VELTS (vec2)[--j] = SCM_VELTS (vec1)[--e];
+  SCM_ASSERT (i <= SCM_LENGTH (vec1) && i >= 0,
+	      start1, SCM_OUTOFRANGE, s_vector_move_right_x);
+  SCM_ASSERT (j <= SCM_LENGTH (vec2) && j >= 0,
+	      start2, SCM_OUTOFRANGE, s_vector_move_right_x);
+  SCM_ASSERT (e <= SCM_LENGTH (vec1) && e >= 0,
+	      end1, SCM_OUTOFRANGE, s_vector_move_right_x);
+  j = e - i + j;
+  SCM_ASSERT (j <= SCM_LENGTH (vec2),
+	      start2, SCM_OUTOFRANGE, s_vector_move_right_x);
+  while (i < e)
+    SCM_VELTS (vec2)[--j] = SCM_VELTS (vec1)[--e];
   return SCM_UNSPECIFIED;
 }
 

@@ -220,13 +220,11 @@ scm_quotient (x, y)
     }
   if (SCM_NINUMP (y))
     {
-#ifndef SCM_RECKLESS
       if (!(SCM_NIMP (y) && SCM_BIGP (y)))
 	{
 	bady:
 	  SCM_WTA_DISPATCH_2 (g_quotient, x, y, SCM_ARG2, s_quotient);
 	}
-#endif
       return SCM_INUM0;
     }
 #else
@@ -290,13 +288,11 @@ scm_remainder (x, y)
     }
   if (SCM_NINUMP (y))
     {
-#ifndef SCM_RECKLESS
       if (!(SCM_NIMP (y) && SCM_BIGP (y)))
 	{
 	bady:
 	  SCM_WTA_DISPATCH_2 (g_remainder, x, y, SCM_ARG2, s_remainder);
 	}
-#endif
       return x;
     }
 #else
@@ -353,13 +349,11 @@ scm_modulo (x, y)
     }
   if (SCM_NINUMP (y))
     {
-#ifndef SCM_RECKLESS
       if (!(SCM_NIMP (y) && SCM_BIGP (y)))
 	{
 	bady:
 	  SCM_WTA_DISPATCH_2 (g_modulo, x, y, SCM_ARG2, s_modulo);
 	}
-#endif
       return (SCM_BIGSIGN (y) ? (x > 0) : (x < 0)) ? scm_sum (x, y) : x;
     }
 #else
@@ -2636,13 +2630,11 @@ scm_num_eq_p (x, y)
   if (SCM_NINUMP (x))
     {
 #ifdef SCM_BIGDIG
-#ifndef SCM_RECKLESS
       if (!(SCM_NIMP (x)))
 	{
 	badx:
 	  SCM_WTA_DISPATCH_2 (g_eq_p, x, y, SCM_ARG1, s_eq_p);
 	}
-#endif
       if (SCM_BIGP (x))
 	{
 	  if (SCM_INUMP (y))
@@ -2695,21 +2687,17 @@ scm_num_eq_p (x, y)
       SCM_ASRTGO (SCM_NIMP (y), bady);
       if (SCM_BIGP (y))
 	return SCM_BOOL_F;
-#ifndef SCM_RECKLESS
       if (!(SCM_INEXP (y)))
 	{
 	bady:
 	  SCM_WTA_DISPATCH_2 (g_eq_p, x, y, SCM_ARGn, s_eq_p);
 	}
-#endif
 #else
-#ifndef SCM_RECKLESS
       if (!(SCM_NIMP (y) && SCM_INEXP (y)))
 	{
 	bady:
 	  SCM_WTA_DISPATCH_2 (g_eq_p, x, y, SCM_ARGn, s_eq_p);
 	}
-#endif
 #endif
     realint:
       return ((SCM_REALP (y) && (((double) SCM_INUM (x)) == SCM_REALPART (y)))
@@ -2729,13 +2717,11 @@ scm_num_eq_p (x, y)
     }
   if (SCM_NINUMP (y))
     {
-#ifndef SCM_RECKLESS
       if (!(SCM_NIMP (y) && SCM_BIGP (y)))
 	{
 	bady:
 	  SCM_WTA_DISPATCH_2 (g_eq_p, x, y, SCM_ARGn, s_eq_p);
 	}
-#endif
       return SCM_BOOL_F;
     }
 #else
@@ -2759,13 +2745,11 @@ scm_less_p (x, y)
   if (SCM_NINUMP (x))
     {
 #ifdef SCM_BIGDIG
-#ifndef SCM_RECKLESS
       if (!(SCM_NIMP (x)))
 	{
 	badx:
 	  SCM_WTA_DISPATCH_2 (g_less_p, x, y, SCM_ARG1, s_less_p);
 	}
-#endif
       if (SCM_BIGP (x))
 	{
 	  if (SCM_INUMP (y))
@@ -2803,21 +2787,17 @@ scm_less_p (x, y)
       SCM_ASRTGO (SCM_NIMP (y), bady);
       if (SCM_BIGP (y))
 	return SCM_BIGSIGN (y) ? SCM_BOOL_F : SCM_BOOL_T;
-#ifndef SCM_RECKLESS
       if (!(SCM_REALP (y)))
 	{
 	bady:
 	  SCM_WTA_DISPATCH_2 (g_less_p, x, y, SCM_ARGn, s_less_p);
 	}
-#endif
 #else
-#ifndef SCM_RECKLESS
       if (!(SCM_NIMP (y) && SCM_REALP (y)))
 	{
 	bady:
 	  SCM_WTA_DISPATCH_2 (g_less_p, x, y, SCM_ARGn, s_less_p);
 	}
-#endif
 #endif
       return ((((double) SCM_INUM (x)) < SCM_REALPART (y))
 	      ? SCM_BOOL_T
@@ -2836,13 +2816,11 @@ scm_less_p (x, y)
     }
   if (SCM_NINUMP (y))
     {
-#ifndef SCM_RECKLESS
       if (!(SCM_NIMP (y) && SCM_BIGP (y)))
 	{
 	bady:
 	  SCM_WTA_DISPATCH_2 (g_less_p, x, y, SCM_ARGn, s_less_p);
 	}
-#endif
       return SCM_BIGSIGN (y) ? SCM_BOOL_F : SCM_BOOL_T;
     }
 #else
@@ -2903,13 +2881,11 @@ scm_zero_p (z)
       SCM_ASRTGO (SCM_NIMP (z), badz);
       if (SCM_BIGP (z))
 	return SCM_BOOL_F;
-#ifndef SCM_RECKLESS
       if (!(SCM_INEXP (z)))
 	{
 	badz:
 	  SCM_WTA_DISPATCH_1 (g_zero_p, z, SCM_ARG1, s_zero_p);
 	}
-#endif
 #else
       SCM_GASSERT1 (SCM_NIMP (z) && SCM_INEXP (z),
 		    g_zero_p, z, SCM_ARG1, s_zero_p);
@@ -2946,13 +2922,11 @@ scm_positive_p (x)
       SCM_ASRTGO (SCM_NIMP (x), badx);
       if (SCM_BIGP (x))
 	return SCM_TYP16 (x) == scm_tc16_bigpos ? SCM_BOOL_T : SCM_BOOL_F;
-#ifndef SCM_RECKLESS
       if (!(SCM_REALP (x)))
 	{
 	badx:
 	  SCM_WTA_DISPATCH_1 (g_positive_p, x, SCM_ARG1, s_positive_p);
 	}
-#endif
 #else
       SCM_GASSERT1 (SCM_NIMP (x) && SCM_REALP (x),
 		    g_positive_p, x, SCM_ARG1, s_positive_p);
@@ -2989,13 +2963,11 @@ scm_negative_p (x)
       SCM_ASRTGO (SCM_NIMP (x), badx);
       if (SCM_BIGP (x))
 	return SCM_TYP16 (x) == scm_tc16_bigpos ? SCM_BOOL_F : SCM_BOOL_T;
-#ifndef SCM_RECKLESS
       if (!(SCM_REALP (x)))
 	{
 	badx:
 	  SCM_WTA_DISPATCH_1 (g_negative_p, x, SCM_ARG1, s_negative_p);
 	}
-#endif
 #else
       SCM_GASSERT1 (SCM_NIMP (x) && SCM_REALP (x),
 		    g_negative_p, x, SCM_ARG1, s_negative_p);
@@ -3082,21 +3054,17 @@ scm_max (x, y)
       SCM_ASRTGO (SCM_NIMP (y), bady);
       if (SCM_BIGP (y))
 	return SCM_BIGSIGN (y) ? x : y;
-#ifndef SCM_RECKLESS
       if (!(SCM_REALP (y)))
 	{
 	bady:
 	  SCM_WTA_DISPATCH_2 (g_max, x, y, SCM_ARGn, s_max);
 	}
-#endif
 #else
-#ifndef SCM_RECKLESS
       if (!(SCM_NIMP (y) && SCM_REALP (y)))
 	{
 	bady:
 	  SCM_WTA_DISPATCH_2 (g_max, x, y, SCM_ARGn, s_max);
 	}
-#endif
 #endif
       return (((z = SCM_INUM (x)) < SCM_REALPART (y))
 	      ? y
@@ -3115,13 +3083,11 @@ scm_max (x, y)
     }
   if (SCM_NINUMP (y))
     {
-#ifndef SCM_RECKLESS
       if (!(SCM_NIMP (y) && SCM_BIGP (y)))
 	{
 	bady:
 	  SCM_WTA_DISPATCH_2 (g_max, x, y, SCM_ARGn, s_max);
 	}
-#endif
       return SCM_BIGSIGN (y) ? x : y;
     }
 #else
@@ -3199,21 +3165,17 @@ scm_min (x, y)
       SCM_ASRTGO (SCM_NIMP (y), bady);
       if (SCM_BIGP (y))
 	return SCM_BIGSIGN (y) ? y : x;
-#ifndef SCM_RECKLESS
       if (!(SCM_REALP (y)))
 	{
 	bady:
 	  SCM_WTA_DISPATCH_2 (g_min, x, y, SCM_ARGn, s_min);
 	}
-#endif
 #else
-#ifndef SCM_RECKLESS
       if (!(SCM_NIMP (y) && SCM_REALP (y)))
 	{
 	bady:
 	  SCM_WTA_DISPATCH_2 (g_min, x, y, SCM_ARGn, s_min);
 	}
-#endif
 #endif
       return (((z = SCM_INUM (x)) > SCM_REALPART (y))
 	      ? y
@@ -3232,13 +3194,11 @@ scm_min (x, y)
     }
   if (SCM_NINUMP (y))
     {
-#ifndef SCM_RECKLESS
       if (!(SCM_NIMP (y) && SCM_BIGP (y)))
 	{
 	bady:
 	  SCM_WTA_DISPATCH_2 (g_min, x, y, SCM_ARGn, s_min);
 	}
-#endif
       return SCM_BIGSIGN (y) ? y : x;
     }
 #else
@@ -3263,9 +3223,7 @@ scm_sum (x, y)
     {
       if (SCM_UNBNDP (x))
 	return SCM_INUM0;
-#ifndef SCM_RECKLESS
       SCM_GASSERT1 (SCM_NUMBERP (x), g_sum, x, SCM_ARG1, s_sum);
-#endif
       return x;
     }
 #ifdef SCM_FLOATS
@@ -3325,21 +3283,17 @@ scm_sum (x, y)
 	  y = t;
 	  goto bigreal;
 	}
-#ifndef SCM_RECKLESS
       else if (!(SCM_INEXP (y)))
 	{
 	bady:
 	  SCM_WTA_DISPATCH_2 (g_sum, x, y, SCM_ARGn, s_sum);
 	}
-#endif
 #else
-#ifndef SCM_RECKLESS
       if (!(SCM_NIMP (y) && SCM_INEXP (y)))
 	{
 	bady:
 	  SCM_WTA_DISPATCH_2 (g_sum, x, y, SCM_ARGn, s_sum);
 	}
-#endif
 #endif
       {
 	double i = 0.0;
@@ -3405,13 +3359,11 @@ scm_sum (x, y)
     }
   if (SCM_NINUMP (y))
     {
-#ifndef SCM_RECKLESS
       if (!(SCM_NIMP (y) && SCM_BIGP (y)))
 	{
 	bady:
 	  SCM_WTA_DISPATCH_2 (g_sum, x, y, SCM_ARGn, s_sum);
 	}
-#endif
     intbig:
       {
 #ifndef SCM_DIGSTOOBIG
@@ -3457,7 +3409,6 @@ scm_difference (x, y)
 #ifdef SCM_FLOATS
   if (SCM_NINUMP (x))
     {
-#ifndef SCM_RECKLESS
       if (!(SCM_NIMP (x)))
 	{
 	  if (SCM_UNBNDP (y))
@@ -3473,7 +3424,6 @@ scm_difference (x, y)
 	      SCM_WTA_DISPATCH_2 (g_difference, x, y, SCM_ARG1, s_difference);
 	    }
 	}
-#endif
       if (SCM_UNBNDP (y))
 	{
 #ifdef SCM_BIGDIG
@@ -3551,21 +3501,17 @@ scm_difference (x, y)
 			     y, 0x0100);
 #endif
 	}
-#ifndef SCM_RECKLESS
       if (!(SCM_INEXP (y)))
 	{
 	bady:
 	  SCM_WTA_DISPATCH_2 (g_difference, x, y, SCM_ARGn, s_difference);
 	}
-#endif
 #else
-#ifndef SCM_RECKLESS
       if (!(SCM_NIMP (y) && SCM_INEXP (y)))
 	{
 	bady:
 	  SCM_WTA_DISPATCH_2 (g_difference, x, y, SCM_ARGn, s_difference);
 	}
-#endif
 #endif
       return scm_makdbl (SCM_INUM (x) - SCM_REALPART (y),
 			 SCM_CPLXP (y) ? -SCM_IMAG (y) : 0.0);
@@ -3610,13 +3556,11 @@ scm_difference (x, y)
     }
   if (SCM_NINUMP (y))
     {
-#ifndef SCM_RECKLESS
       if (!(SCM_NIMP (y) && SCM_BIGP (y)))
 	{
 	bady:
 	  SCM_WTA_DISPATCH_2 (g_difference, x, y, SCM_ARGn, s_difference);
 	}
-#endif
       {
 #ifndef SCM_DIGSTOOBIG
 	long z = scm_pseudolong (SCM_INUM (x));
@@ -3670,9 +3614,7 @@ scm_product (x, y)
     {
       if (SCM_UNBNDP (x))
 	return SCM_MAKINUM (1L);
-#ifndef SCM_RECKLESS
       SCM_GASSERT1 (SCM_NUMBERP (x), g_product, x, SCM_ARG1, s_product);
-#endif
       return x;
     }
 #ifdef SCM_FLOATS
@@ -3727,21 +3669,17 @@ scm_product (x, y)
 	  y = t;
 	  goto bigreal;
 	}
-#ifndef SCM_RECKLESS
       else if (!(SCM_INEXP (y)))
 	{
 	bady:
 	  SCM_WTA_DISPATCH_2 (g_product, x, y, SCM_ARGn, s_product);
 	}
-#endif
 #else
-#ifndef SCM_RECKLESS
       if (!(SCM_NIMP (y) && SCM_INEXP (y)))
 	{
 	bady:
 	  SCM_WTA_DISPATCH_2 (g_product, x, y, SCM_ARGn, s_product);
 	}
-#endif
 #endif
       if (SCM_CPLXP (x))
 	{
@@ -3812,13 +3750,11 @@ scm_product (x, y)
     }
   if (SCM_NINUMP (y))
     {
-#ifndef SCM_RECKLESS
       if (!(SCM_NIMP (y) && SCM_BIGP (y)))
 	{
 	bady:
 	  SCM_WTA_DISPATCH_2 (g_product, x, y, SCM_ARGn, s_product);
 	}
-#endif
     intbig:
       if (SCM_INUM0 == x)
 	return x;
@@ -3915,7 +3851,6 @@ scm_divide (x, y)
   double d, r, i, a;
   if (SCM_NINUMP (x))
     {
-#ifndef SCM_RECKLESS
       if (!(SCM_NIMP (x)))
 	{
 	  if (SCM_UNBNDP (y))
@@ -3931,7 +3866,6 @@ scm_divide (x, y)
 	      SCM_WTA_DISPATCH_2 (g_divide, x, y, SCM_ARG1, s_divide);
 	    }
 	}
-#endif
       if (SCM_UNBNDP (y))
 	{
 #ifdef SCM_BIGDIG
@@ -4046,21 +3980,17 @@ scm_divide (x, y)
       SCM_ASRTGO (SCM_NIMP (y), bady);
       if (SCM_BIGP (y))
 	return scm_makdbl (SCM_INUM (x) / scm_big2dbl (y), 0.0);
-#ifndef SCM_RECKLESS
       if (!(SCM_INEXP (y)))
 	{
 	bady:
 	  SCM_WTA_DISPATCH_2 (g_divide, x, y, SCM_ARGn, s_divide);
 	}
-#endif
 #else
-#ifndef SCM_RECKLESS
       if (!(SCM_NIMP (y) && SCM_INEXP (y)))
 	{
 	bady:
 	  SCM_WTA_DISPATCH_2 (g_divide, x, y, SCM_ARGn, s_divide);
 	}
-#endif
 #endif
       if (SCM_REALP (y))
 	return scm_makdbl (SCM_INUM (x) / SCM_REALPART (y), 0.0);
@@ -4131,13 +4061,11 @@ scm_divide (x, y)
     }
   if (SCM_NINUMP (y))
     {
-#ifndef SCM_RECKLESS
       if (!(SCM_NIMP (y) && SCM_BIGP (y)))
 	{
 	bady:
 	  SCM_WTA_DISPATCH_2 (g_divide, x, y, SCM_ARGn, s_divide);
 	}
-#endif
       goto ov;
     }
 #else
@@ -4402,13 +4330,11 @@ scm_real_part (z)
       SCM_ASRTGO (SCM_NIMP (z), badz);
       if (SCM_BIGP (z))
 	return z;
-#ifndef SCM_RECKLESS
       if (!(SCM_INEXP (z)))
 	{
 	badz:
 	  SCM_WTA_DISPATCH_1 (g_real_part, z, SCM_ARG1, s_real_part);
 	}
-#endif
 #else
       SCM_GASSERT1 (SCM_NIMP (z) && SCM_INEXP (z),
 		    g_real_part, z, SCM_ARG1, s_real_part);
@@ -4433,13 +4359,11 @@ scm_imag_part (z)
   SCM_ASRTGO (SCM_NIMP (z), badz);
   if (SCM_BIGP (z))
     return SCM_INUM0;
-#ifndef SCM_RECKLESS
   if (!(SCM_INEXP (z)))
     {
     badz:
       SCM_WTA_DISPATCH_1 (g_imag_part, z, SCM_ARG1, s_imag_part);
     }
-#endif
 #else
   SCM_GASSERT1 (SCM_NIMP (z) && SCM_INEXP (z),
 		g_imag_part, z, SCM_ARG1, s_imag_part);
@@ -4463,13 +4387,11 @@ scm_magnitude (z)
   SCM_ASRTGO (SCM_NIMP (z), badz);
   if (SCM_BIGP (z))
     return scm_abs (z);
-#ifndef SCM_RECKLESS
   if (!(SCM_INEXP (z)))
     {
     badz:
       SCM_WTA_DISPATCH_1 (g_magnitude, z, SCM_ARG1, s_magnitude);
     }
-#endif
 #else
   SCM_GASSERT1 (SCM_NIMP (z) && SCM_INEXP (z),
 		g_magnitude, z, SCM_ARG1, s_magnitude);
@@ -4504,13 +4426,11 @@ scm_angle (z)
       x = (SCM_TYP16 (z) == scm_tc16_bigpos) ? 1.0 : -1.0;
       goto do_angle;
     }
-#ifndef SCM_RECKLESS
   if (!(SCM_INEXP (z)))
     {
     badz:
       SCM_WTA_DISPATCH_1 (g_angle, z, SCM_ARG1, s_angle);
     }
-#endif
 #else
   SCM_GASSERT1 (SCM_NIMP (z) && SCM_INEXP (z), g_angle, z, SCM_ARG1, s_angle);
 #endif
