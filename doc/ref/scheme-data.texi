@@ -5,13 +5,13 @@
 This chapter describes those of Guile's simple data types which are
 primarily used for their role as items of generic data.  By
 @dfn{simple} we mean data types that are not primarily used as
-containers to hold other data --- i.e. pairs, lists, vectors and so on.
+containers to hold other data --- i.e.@: pairs, lists, vectors and so on.
 For the documentation of such @dfn{compound} data types, see
 @ref{Compound Data Types}.
 
 One of the great strengths of Scheme is that there is no straightforward
 distinction between ``data'' and ``functionality''.  For example,
-Guile's support for dynamic linking could be described
+Guile's support for dynamic linking could be described:
 
 @itemize @bullet
 @item
@@ -59,16 +59,13 @@ equality predicates @code{eq?}, @code{eqv?} and @code{equal?}
 
 @lisp
 (<= 3 8)
-@result{}
-#t
+@result{} #t
 
 (<= 3 -3)
-@result{}
-#f
+@result{} #f
 
 (equal? "house" "houses")
-@result{}
-#f
+@result{} #f
 
 (eq? #f #f)
 @result{}
@@ -82,16 +79,13 @@ value at all except @code{#f}.
 
 @lisp
 (if #t "yes" "no")
-@result{}
-"yes"
+@result{} "yes"
 
 (if 0 "yes" "no")
-@result{}
-"yes"
+@result{} "yes"
 
 (if #f "yes" "no")
-@result{}
-"no"
+@result{} "no"
 @end lisp
 
 A result of this asymmetry is that typical Scheme source code more often
@@ -133,7 +127,7 @@ data.  This section of the manual documents those types and functions.
 
 You may also find it illuminating to read R5RS's presentation of numbers
 in Scheme, which is particularly clear and accessible: see
-@xref{Numbers,,,r5rs}.
+@ref{Numbers,,,r5rs,R5RS}.
 
 @menu
 * Numerical Tower::             Scheme's numerical "tower".
@@ -161,22 +155,28 @@ in Scheme, which is particularly clear and accessible: see
 Scheme's numerical ``tower'' consists of the following categories of
 numbers:
 
-@itemize @bullet
-@item
-integers (whole numbers)
+@table @dfn
+@item integers
+Whole numbers, positive or negative; e.g.@: --5, 0, 18.
 
-@item
-rationals (the set of numbers that can be expressed as P/Q where P and Q
-are integers)
+@item rationals
+The set of numbers that can be expressed as @math{@var{p}/@var{q}}
+where @var{p} and @var{q} are integers; e.g.@: @math{9/16} works, but
+pi (an irrational number) doesn't. These include integers
+(@math{@var{n}/1}).
 
-@item
-real numbers (the set of numbers that describes all possible positions
-along a one dimensional line)
+@item real numbers
+The set of numbers that describes all possible positions along a
+one-dimensional line. This includes rationals as well as irrational
+numbers.
 
-@item
-complex numbers (the set of numbers that describes all possible
-positions in a two dimensional space)
-@end itemize
+@item complex numbers
+The set of numbers that describes all possible positions in a two
+dimensional space. This includes real as well as imaginary numbers
+(@math{@var{a}+@var{b}i}, where @var{a} is the @dfn{real part},
+@var{b} is the @dfn{imaginary part}, and @math{i} is the square root of
+@minus{}1.)
+@end table
 
 It is called a tower because each category ``sits on'' the one that
 follows it, in the sense that every integer is also a rational, every
@@ -200,17 +200,14 @@ For example:
 
 @lisp
 (number? 3)
-@result{}
-#t
+@result{} #t
 
 (number? "hello there!")
-@result{}
-#f
+@result{} #f
 
 (define pi 3.141592654)
 (number? pi)
-@result{}
-#t
+@result{} #t
 @end lisp
 
 The next few subsections document each of Guile's numerical data types
@@ -224,7 +221,7 @@ in detail.
 @rnindex integer?
 
 Integers are whole numbers, that is numbers with no fractional part,
-such as 2, 83 and -3789.
+such as 2, 83, and @minus{}3789.
 
 Integers in Guile can be arbitrarily big, as shown by the following
 example.
@@ -237,16 +234,13 @@ example.
         (loop (- n 1) (* product n)))))
 
 (factorial 3)
-@result{}
-6
+@result{} 6
 
 (factorial 20)
-@result{}
-2432902008176640000
+@result{} 2432902008176640000
 
 (- (factorial 45))
-@result{}
--119622220865480194561963161495657715064383733760000000000
+@result{} -119622220865480194561963161495657715064383733760000000000
 @end lisp
 
 Readers whose background is in programming languages where integers are
@@ -259,7 +253,7 @@ representation where the required number does not fit in the native
 form.  Conversion between these two representations is automatic and
 completely invisible to the Scheme level programmer.
 
-The infinities @code{+inf.0} and @code{-inf.0} are considered to be
+The infinities @samp{+inf.0} and @samp{-inf.0} are considered to be
 inexact integers.  They are explained in detail in the next section,
 together with reals and rationals.
 
@@ -272,16 +266,13 @@ Return @code{#t} if @var{x} is an integer number, else @code{#f}.
 
 @lisp
 (integer? 487)
-@result{}
-#t
+@result{} #t
 
 (integer? -3.4)
-@result{}
-#f
+@result{} #f
 
 (integer? +inf.0)
-@result{}
-#t
+@result{} #t
 @end lisp
 @end deffn
 
@@ -297,9 +288,9 @@ Return @code{#t} if @var{x} is an integer number, else @code{#f}.
 Mathematically, the real numbers are the set of numbers that describe
 all possible points along a continuous, infinite, one-dimensional line.
 The rational numbers are the set of all numbers that can be written as
-fractions P/Q, where P and Q are integers.  All rational numbers are
-also real, but there are real numbers that are not rational, for example
-the square root of 2, and pi.
+fractions @var{p}/@var{q}, where @var{p} and @var{q} are integers.
+All rational numbers are also real, but there are real numbers that
+are not rational, for example the square root of 2, and pi.
 
 Guile represents both real and rational numbers approximately using a
 floating point encoding with limited precision.  Even though the actual
@@ -318,9 +309,9 @@ numbers.  For example:
 The limited precision of Guile's encoding means that any ``real'' number
 in Guile can be written in a rational form, by multiplying and then dividing
 by sufficient powers of 10 (or in fact, 2).  For example,
-@code{-0.00000142857931198} is the same as @code{142857931198} divided by
-@code{100000000000000000}.  In Guile's current incarnation, therefore,
-the @code{rational?} and @code{real?} predicates are equivalent.
+@samp{-0.00000142857931198} is the same as @minus{}142857931198 divided by
+100000000000000000.  In Guile's current incarnation, therefore, the
+@code{rational?} and @code{real?} predicates are equivalent.
 
 Another aspect of this equivalence is that Guile currently does not
 preserve the exactness that is possible with rational arithmetic.
@@ -344,13 +335,13 @@ respectibly.  This syntax is also recognized by @code{read} as an
 extension to the usual Scheme syntax.
 
 Dividing zero by zero yields something that is not a number at all:
-@samp{+nan.0}.  This is the special 'not a number' value.
+@samp{+nan.0}.  This is the special `not a number' value.
 
-On platforms that follow IEEE 754 for their floating point arithmetic,
-the @samp{+inf.0}, @samp{-inf.0}, and @samp{+nan.0} values are
-implemented using the corresponding IEEE 754 values.  They behave in
-arithmetic operations like IEEE 754 describes it, i.e., @code{(=
-+nan.0 +nan.0) @result{#f}}.
+On platforms that follow @acronym{IEEE} 754 for their floating point
+arithmetic, the @samp{+inf.0}, @samp{-inf.0}, and @samp{+nan.0} values
+are implemented using the corresponding @acronym{IEEE} 754 values.
+They behave in arithmetic operations like @acronym{IEEE} 754 describes
+it, i.e., @code{(= +nan.0 +nan.0) @result{#f}}.
 
 The infinities are inexact integers and are considered to be both even
 and odd.  While @samp{+nan.0} is not @code{=} to itself, it is
@@ -437,9 +428,9 @@ rational or integer number.
 
 R5RS requires that a calculation involving inexact numbers always
 produces an inexact result.  To meet this requirement, Guile
-distinguishes between an exact integer value such as @code{5} and the
+distinguishes between an exact integer value such as @samp{5} and the
 corresponding inexact real value which, to the limited precision
-available, has no fractional part, and is printed as @code{5.0}.  Guile
+available, has no fractional part, and is printed as @samp{5.0}.  Guile
 will only convert the latter value to the former when forced to do so by
 an invocation of the @code{inexact->exact} procedure.
 
@@ -474,70 +465,71 @@ preceded by a minus or plus character, a code indicating the
 base in which the integer is encoded, and a code indicating whether
 the number is exact or inexact.  The supported base codes are:
 
-@itemize @bullet
-@item
-@code{#b}, @code{#B} --- the integer is written in binary (base 2)
+@table @code
+@item #b
+@itemx #B
+the integer is written in binary (base 2)
 
-@item
-@code{#o}, @code{#O} --- the integer is written in octal (base 8)
+@item #o
+@itemx #O
+the integer is written in octal (base 8)
 
-@item
-@code{#d}, @code{#D} --- the integer is written in decimal (base 10)
+@item #d
+@itemx #D
+the integer is written in decimal (base 10)
 
-@item
-@code{#x}, @code{#X} --- the integer is written in hexadecimal (base 16).
-@end itemize
+@item #x
+@itemx #X
+the integer is written in hexadecimal (base 16)
+@end table
 
 If the base code is omitted, the integer is assumed to be decimal.  The
 following examples show how these base codes are used.
 
 @lisp
 -13
-@result{}
--13
+@result{} -13
 
 #d-13
-@result{}
--13
+@result{} -13
 
 #x-13
-@result{}
--19
+@result{} -19
 
 #b+1101
-@result{}
-13
+@result{} 13
 
 #o377
-@result{}
-255
+@result{} 255
 @end lisp
 
 The codes for indicating exactness (which can, incidentally, be applied
 to all numerical values) are:
 
-@itemize @bullet
-@item
-@code{#e}, @code{#E} --- the number is exact
+@table @code
+@item #e
+@itemx #E
+the number is exact
 
-@item
-@code{#i}, @code{#I} --- the number is inexact.
-@end itemize
+@item #i
+@itemx #I
+the number is inexact.
+@end table
 
 If the exactness indicator is omitted, the integer is assumed to be exact,
 since Guile's internal representation for integers is always exact.
 Real numbers have limited precision similar to the precision of the
 @code{double} type in C.  A consequence of the limited precision is that
-all real numbers in Guile are also rational, since any number R with a
-limited number of decimal places, say N, can be made into an integer by
-multiplying by 10^N.
+all real numbers in Guile are also rational, since any number @var{r} with a
+limited number of decimal places, say @var{n}, can be made into an integer by
+multiplying by @math{10^n}.
 
 Guile also understands the syntax @samp{+inf.0} and @samp{-inf.0} for
 plus and minus infinity, respectively.  The value must be written
 exactly as shown, that is, the always must have a sign and exactly one
 zero digit after the decimal point.  It also understands @samp{+nan.0}
-and @samp{-nan.0} for the special 'not-a-number' value.  The sign is
-ignored for 'not-a-number' and the value is always printed as @samp{+nan.0}.
+and @samp{-nan.0} for the special `not-a-number' value.  The sign is
+ignored for `not-a-number' and the value is always printed as @samp{+nan.0}.
 
 @node Integer Operations
 @subsection Operations on Integer Values
@@ -963,7 +955,8 @@ Return the arccosine of @var{x}.
 
 @c begin (texi-doc-string "guile" "$atan")
 @deffn {Scheme Procedure} $atan x
-Return the arctangent of @var{x} in the range -PI/2 to PI/2.
+Return the arctangent of @var{x} in the range @minus{}@math{PI/2} to
+@math{PI/2}.
 @end deffn
 
 @deffn {Scheme Procedure} $atan2 x y
@@ -1058,7 +1051,7 @@ Naturally, these C functions expect and return @code{double} arguments.
 @subsection Bitwise Operations
 
 @deffn {Scheme Procedure} logand n1 n2
-Return the bitwise AND of the integer arguments.
+Return the bitwise @sc{and} of the integer arguments.
 
 @lisp
 (logand) @result{} -1
@@ -1068,7 +1061,7 @@ Return the bitwise AND of the integer arguments.
 @end deffn
 
 @deffn {Scheme Procedure} logior n1 n2
-Return the bitwise OR of the integer arguments.
+Return the bitwise @sc{or} of the integer arguments.
 
 @lisp
 (logior) @result{} 0
@@ -1078,7 +1071,7 @@ Return the bitwise OR of the integer arguments.
 @end deffn
 
 @deffn {Scheme Procedure} logxor n1 n2
-Return the bitwise XOR of the integer arguments.  A bit is
+Return the bitwise @sc{xor} of the integer arguments.  A bit is
 set in the result if it is set in an odd number of arguments.
 @lisp
 (logxor) @result{} 0
@@ -1126,12 +1119,12 @@ argument.
 
 @deffn {Scheme Procedure} ash n cnt
 @deffnx {C Function} scm_ash (n, cnt)
-The function ash performs an arithmetic shift left by @var{cnt}
-bits (or shift right, if @var{cnt} is negative).  'Arithmetic'
-means, that the function does not guarantee to keep the bit
+The function @code{ash} performs an arithmetic shift left by @var{cnt}
+bits (or shift right, if @var{cnt} is negative).  `Arithmetic'
+means that the function does not guarantee to keep the bit
 structure of @var{n}, but rather guarantees that the result
 will always be rounded towards minus infinity.  Therefore, the
-results of ash and a corresponding bitwise shift will differ if
+results of @code{ash} and a corresponding bitwise shift will differ if
 @var{n} is negative.
 
 Formally, the function returns an integer equivalent to
@@ -1212,11 +1205,11 @@ Return a copy of the random state @var{state}.
 
 @deffn {Scheme Procedure} random n [state]
 @deffnx {C Function} scm_random (n, state)
-Return a number in [0, N).
+Return a number in [0, @var{n}).
 
 Accepts a positive integer or real n and returns a
 number of the same type between zero (inclusive) and
-N (exclusive). The values returned have a uniform
+@var{n} (exclusive). The values returned have a uniform
 distribution.
 
 The optional argument @var{state} must be of the type produced
@@ -1229,43 +1222,42 @@ as a side effect of the random operation.
 @deffn {Scheme Procedure} random:exp [state]
 @deffnx {C Function} scm_random_exp (state)
 Return an inexact real in an exponential distribution with mean
-1.  For an exponential distribution with mean u use (* u
-(random:exp)).
+1.  For an exponential distribution with mean @var{u} use @code{(*
+@var{u} (random:exp))}.
 @end deffn
 
-@deffn {Scheme Procedure} random:hollow-sphere! v [state]
-@deffnx {C Function} scm_random_hollow_sphere_x (v, state)
-Fills vect with inexact real random numbers
-the sum of whose squares is equal to 1.0.
-Thinking of vect as coordinates in space of
-dimension n = (vector-length vect), the coordinates
-are uniformly distributed over the surface of the
-unit n-sphere.
+@deffn {Scheme Procedure} random:hollow-sphere! vect [state]
+@deffnx {C Function} scm_random_hollow_sphere_x (vect, state)
+Fills @var{vect} with inexact real random numbers the sum of whose
+squares is equal to 1.0.  Thinking of @var{vect} as coordinates in
+space of dimension @var{n} @math{=} @code{(vector-length @var{vect})},
+the coordinates are uniformly distributed over the surface of the unit
+n-sphere.
 @end deffn
 
 @deffn {Scheme Procedure} random:normal [state]
 @deffnx {C Function} scm_random_normal (state)
-Return an inexact real in a normal distribution.  The
-distribution used has mean 0 and standard deviation 1.  For a
-normal distribution with mean m and standard deviation d use
-@code{(+ m (* d (random:normal)))}.
+Return an inexact real in a normal distribution.  The distribution
+used has mean 0 and standard deviation 1.  For a normal distribution
+with mean @var{m} and standard deviation @var{d} use @code{(+ @var{m}
+(* @var{d} (random:normal)))}.
 @end deffn
 
-@deffn {Scheme Procedure} random:normal-vector! v [state]
-@deffnx {C Function} scm_random_normal_vector_x (v, state)
-Fills vect with inexact real random numbers that are
+@deffn {Scheme Procedure} random:normal-vector! vect [state]
+@deffnx {C Function} scm_random_normal_vector_x (vect, state)
+Fills @var{vect} with inexact real random numbers that are
 independent and standard normally distributed
 (i.e., with mean 0 and variance 1).
 @end deffn
 
-@deffn {Scheme Procedure} random:solid-sphere! v [state]
-@deffnx {C Function} scm_random_solid_sphere_x (v, state)
-Fills vect with inexact real random numbers
-the sum of whose squares is less than 1.0.
-Thinking of vect as coordinates in space of
-dimension n = (vector-length vect), the coordinates
-are uniformly distributed within the unit n-sphere.
-The sum of the squares of the numbers is returned.
+@deffn {Scheme Procedure} random:solid-sphere! vect [state]
+@deffnx {C Function} scm_random_solid_sphere_x (vect, state)
+Fills @var{vect} with inexact real random numbers the sum of whose
+squares is less than 1.0.  Thinking of @var{vect} as coordinates in
+space of dimension @var{n} @math{=} @code{(vector-length @var{vect})},
+the coordinates are uniformly distributed within the unit
+@var{n}-sphere.  The sum of the squares of the numbers is returned.
+@c FIXME: What does this mean, particularly the n-sphere part?
 @end deffn
 
 @deffn {Scheme Procedure} random:uniform [state]
@@ -1284,9 +1276,14 @@ Return a new random state using @var{seed}.
 @section Characters
 @tpindex Characters
 
-Most of the characters in the ASCII character set may be referred to by
-name: for example, @code{#\tab}, @code{#\esc}, @code{#\stx}, and so on.
-The following table describes the ASCII names for each character.
+@noindent
+[@strong{FIXME}: how do you specify regular (non-control) characters?]
+
+Most of the ``control characters'' (those below codepoint 32) in the
+@acronym{ASCII} character set, as well as the space, may be referred
+to by name: for example, @code{#\tab}, @code{#\esc}, @code{#\stx}, and
+so on.  The following table describes the @acronym{ASCII} names for
+each character.
 
 @multitable @columnfractions .25 .25 .25 .25
 @item 0 = @code{#\nul}
@@ -1324,27 +1321,21 @@ The following table describes the ASCII names for each character.
 @item 32 = @code{#\sp}
 @end multitable
 
-The @code{delete} character (octal 177) may be referred to with the name
+The ``delete'' character (octal 177) may be referred to with the name
 @code{#\del}.
 
 Several characters have more than one name:
 
-@itemize @bullet
-@item
-@code{#\space}, @code{#\sp}
-@item
-@code{#\newline}, @code{#\nl}
-@item
-@code{#\tab}, @code{#\ht}
-@item
-@code{#\backspace}, @code{#\bs}
-@item
-@code{#\return}, @code{#\cr}
-@item
-@code{#\page}, @code{#\np}
-@item
-@code{#\null}, @code{#\nul}
-@end itemize
+@multitable {@code{#\backspace}} {Original}
+@item Alias @tab Original
+@item @code{#\space} @tab @code{#\sp}
+@item @code{#\newline} @tab @code{#\nl}
+@item @code{#\tab} @tab @code{#\ht}
+@item @code{#\backspace} @tab @code{#\bs}
+@item @code{#\return} @tab @code{#\cr}
+@item @code{#\page} @tab @code{#\np}
+@item @code{#\null} @tab @code{#\nul}
+@end multitable
 
 @rnindex char?
 @deffn {Scheme Procedure} char? x
@@ -1359,26 +1350,26 @@ Return @code{#t} iff @var{x} is the same character as @var{y}, else @code{#f}.
 
 @rnindex char<?
 @deffn {Scheme Procedure} char<? x y
-Return @code{#t} iff @var{x} is less than @var{y} in the ASCII sequence,
+Return @code{#t} iff @var{x} is less than @var{y} in the @acronym{ASCII} sequence,
 else @code{#f}.
 @end deffn
 
 @rnindex char<=?
 @deffn {Scheme Procedure} char<=? x y
 Return @code{#t} iff @var{x} is less than or equal to @var{y} in the
-ASCII sequence, else @code{#f}.
+@acronym{ASCII} sequence, else @code{#f}.
 @end deffn
 
 @rnindex char>?
 @deffn {Scheme Procedure} char>? x y
-Return @code{#t} iff @var{x} is greater than @var{y} in the ASCII
+Return @code{#t} iff @var{x} is greater than @var{y} in the @acronym{ASCII}
 sequence, else @code{#f}.
 @end deffn
 
 @rnindex char>=?
 @deffn {Scheme Procedure} char>=? x y
 Return @code{#t} iff @var{x} is greater than or equal to @var{y} in the
-ASCII sequence, else @code{#f}.
+@acronym{ASCII} sequence, else @code{#f}.
 @end deffn
 
 @rnindex char-ci=?
@@ -1389,81 +1380,81 @@ case, else @code{#f}.
 
 @rnindex char-ci<?
 @deffn {Scheme Procedure} char-ci<? x y
-Return @code{#t} iff @var{x} is less than @var{y} in the ASCII sequence
+Return @code{#t} iff @var{x} is less than @var{y} in the @acronym{ASCII} sequence
 ignoring case, else @code{#f}.
 @end deffn
 
 @rnindex char-ci<=?
 @deffn {Scheme Procedure} char-ci<=? x y
 Return @code{#t} iff @var{x} is less than or equal to @var{y} in the
-ASCII sequence ignoring case, else @code{#f}.
+@acronym{ASCII} sequence ignoring case, else @code{#f}.
 @end deffn
 
 @rnindex char-ci>?
 @deffn {Scheme Procedure} char-ci>? x y
-Return @code{#t} iff @var{x} is greater than @var{y} in the ASCII
+Return @code{#t} iff @var{x} is greater than @var{y} in the @acronym{ASCII}
 sequence ignoring case, else @code{#f}.
 @end deffn
 
 @rnindex char-ci>=?
 @deffn {Scheme Procedure} char-ci>=? x y
 Return @code{#t} iff @var{x} is greater than or equal to @var{y} in the
-ASCII sequence ignoring case, else @code{#f}.
+@acronym{ASCII} sequence ignoring case, else @code{#f}.
 @end deffn
 
 @rnindex char-alphabetic?
 @deffn {Scheme Procedure} char-alphabetic? chr
 @deffnx {C Function} scm_char_alphabetic_p (chr)
 Return @code{#t} iff @var{chr} is alphabetic, else @code{#f}.
-Alphabetic means the same thing as the isalpha C library function.
+Alphabetic means the same thing as the @code{isalpha} C library function.
 @end deffn
 
 @rnindex char-numeric?
 @deffn {Scheme Procedure} char-numeric? chr
 @deffnx {C Function} scm_char_numeric_p (chr)
 Return @code{#t} iff @var{chr} is numeric, else @code{#f}.
-Numeric means the same thing as the isdigit C library function.
+Numeric means the same thing as the @code{isdigit} C library function.
 @end deffn
 
 @rnindex char-whitespace?
 @deffn {Scheme Procedure} char-whitespace? chr
 @deffnx {C Function} scm_char_whitespace_p (chr)
 Return @code{#t} iff @var{chr} is whitespace, else @code{#f}.
-Whitespace means the same thing as the isspace C library function.
+Whitespace means the same thing as the @code{isspace} C library function.
 @end deffn
 
 @rnindex char-upper-case?
 @deffn {Scheme Procedure} char-upper-case? chr
 @deffnx {C Function} scm_char_upper_case_p (chr)
 Return @code{#t} iff @var{chr} is uppercase, else @code{#f}.
-Uppercase means the same thing as the isupper C library function.
+Uppercase means the same thing as the @code{isupper} C library function.
 @end deffn
 
 @rnindex char-lower-case?
 @deffn {Scheme Procedure} char-lower-case? chr
 @deffnx {C Function} scm_char_lower_case_p (chr)
 Return @code{#t} iff @var{chr} is lowercase, else @code{#f}.
-Lowercase means the same thing as the islower C library function.
+Lowercase means the same thing as the @code{islower} C library function.
 @end deffn
 
 @deffn {Scheme Procedure} char-is-both? chr
 @deffnx {C Function} scm_char_is_both_p (chr)
-Return @code{#t} iff @var{chr} is either uppercase or lowercase, else @code{#f}.
-Uppercase and lowercase are as defined by the isupper and islower
-C library functions.
+Return @code{#t} iff @var{chr} is either uppercase or lowercase, else
+@code{#f}.  Uppercase and lowercase are as defined by the
+@code{isupper} and @code{islower} C library functions.
 @end deffn
 
 @rnindex char->integer
 @deffn {Scheme Procedure} char->integer chr
 @deffnx {C Function} scm_char_to_integer (chr)
 Return the number corresponding to ordinal position of @var{chr} in the
-ASCII sequence.
+@acronym{ASCII} sequence.
 @end deffn
 
 @rnindex integer->char
 @deffn {Scheme Procedure} integer->char n
 @deffnx {C Function} scm_integer_to_char (n)
-Return the character at position @var{n} in the ASCII sequence.
+Return the character at position @var{n} in the @acronym{ASCII} sequence.
 @end deffn
 
 @rnindex char-upcase
@@ -1478,6 +1469,10 @@ Return the uppercase character version of @var{chr}.
 Return the lowercase character version of @var{chr}.
 @end deffn
 
+@xref{Classification of Characters,,,libc,GNU C Library Reference
+Manual}, for information about the @code{is*} Standard C functions
+mentioned above.
+
 
 @node Strings
 @section Strings
@@ -1485,7 +1480,7 @@ Return the lowercase character version of @var{chr}.
 
 Strings are fixed-length sequences of characters.  They can be created
 by calling constructor procedures, but they can also literally get
-entered at the REPL or in Scheme source files.
+entered at the @acronym{REPL} or in Scheme source files.
 
 Guile provides a rich set of string processing procedures, because text
 handling is very important when Guile is used as a scripting language.
@@ -1493,7 +1488,7 @@ handling is very important when Guile is used as a scripting language.
 Strings always carry the information about how many characters they are
 composed of with them, so there is no special end-of-string character,
 like in C.  That means that Scheme strings can contain any character,
-even the NUL character @code{'\0'}.  But note: Since most operating
+even the @samp{NUL} character @samp{\0}.  But note: Since most operating
 system calls dealing with strings (such as for file operations) expect
 strings to be zero-terminated, they might do unexpected things when
 called with string containing unusual characters.
@@ -1515,11 +1510,12 @@ called with string containing unusual characters.
 @subsection String Read Syntax
 
 The read syntax for strings is an arbitrarily long sequence of
-characters enclosed in double quotes (@code{"}). @footnote{Actually, the
-current implementation restricts strings to a length of 2^24
-characters.}  If you want to insert a double quote character into a
-string literal, it must be prefixed with a backslash @code{\} character
-(called an @dfn{escape character}).
+characters enclosed in double quotes (@code{"}).@footnote{Actually,
+the current implementation restricts strings to a length of
+@math{2^24}, or 16,777,216, characters.  Sorry.}  If you want to
+insert a double quote character into a string literal, it must be
+prefixed with a backslash @samp{\} character (called an @dfn{escape
+character}).
 
 The following are examples of string literals:
 
@@ -1656,7 +1652,7 @@ ending with index @var{end} (exclusive).
 @var{str} must be a string, @var{start} and @var{end} must be
 exact integers satisfying:
 
-0 <= @var{start} <= @var{end} <= (string-length @var{str}).
+0 <= @var{start} <= @var{end} <= @code{(string-length @var{str})}.
 @end deffn
 
 @node String Modification
@@ -2103,7 +2099,7 @@ specified @var{item}s and returns that.
 @end deffn
 
 The following example takes a regular expression that matches a standard
-YYYYMMDD-format date such as @code{"20020828"}.  The
+@sc{yyyymmdd}-format date such as @code{"20020828"}.  The
 @code{regexp-substitute} call returns a string computed from the
 information in the match structure, consisting of the fields and text
 from the original string reordered and reformatted.
@@ -2124,7 +2120,7 @@ argument, @code{regexp-substitute/global} takes two string arguments: a
 @var{regexp} string describing a regular expression, and a @var{target}
 string which should be matched against this regular expression.
 
-Each @var{item} behaves as in @var{regexp-substitute}, with the
+Each @var{item} behaves as in @code{regexp-substitute}, with the
 following exceptions:
 
 @itemize @bullet

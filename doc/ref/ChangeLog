@@ -1,3 +1,16 @@
+2002-11-17  Neil Jerram  <neil@ossau.uklinux.net>
+
+	Applied patch from Stephen Compall as follows.  (Thanks!)
+
+	2002-10-26  Stephen Compall  <rushing@sigecom.net>
+
+	* scheme-data.texi: Addition and change of many Texinfo tags,
+	particularly usage of @var and @samp, as well as reformatting of
+	some lists into tables and usage of @result.
+
+	Notes about some things I didn't understand, as well as a
+	missing section on non-control characters.
+
 2002-10-27  Gary Houston  <ghouston@arglist.com>
 
 	* scheme-modules.texi (Environments): only available when
