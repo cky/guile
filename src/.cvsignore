@@ -1,5 +1,6 @@
 .libs
 .deps
+guilec
 guile-vm
 stamp-h
 config.h

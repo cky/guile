@@ -24,11 +24,11 @@
   :use-syntax (system base syntax)
   :use-module (system il glil)
   :use-module (system il ghil)
+  :use-module (ice-9 match)
   :use-module (ice-9 common-list)
   :export (compile))
 
 (define (compile x e . opts)
-  (set! x (parse-ghil x e))
   (if (memq :O opts) (set! x (optimize x)))
   (codegen x))
 
@@ -103,36 +103,75 @@
     (define (push-code! code)
       (set! stack (cons code stack)))
     (define (comp tree tail drop)
+      (define (push-label! label)
+	(push-code! (make-<glil-label> label)))
+      (define (push-branch! inst label)
+	(push-code! (make-<glil-branch> inst label)))
+      (define (push-call! inst args)
+	(for-each comp-push args)
+	(push-code! (make-<glil-call> inst (length args))))
       ;; possible tail position
       (define (comp-tail tree) (comp tree tail drop))
       ;; push the result
       (define (comp-push tree) (comp tree #f #f))
       ;; drop the result
       (define (comp-drop tree) (comp tree #f #t))
+      ;; drop the result if unnecessary
+      (define (maybe-drop)
+	(if drop (push-code! *ia-drop*)))
+      ;; return here if necessary
+      (define (maybe-return)
+	(if tail (push-code! *ia-return*)))
       ;; return this code if necessary
       (define (return-code! code)
 	(if (not drop) (push-code! code))
-	(if tail (push-code! *ia-return*)))
+	(maybe-return))
       ;; return void if necessary
-      (define (return-void!) (return-code! *ia-void*))
+      (define (return-void!)
+	(return-code! *ia-void*))
+      ;; return object if necessary
+      (define (return-object! obj)
+	(return-code! (make-<glil-const> obj)))
       ;;
       ;; dispatch
       (match tree
 	(($ <ghil-void>)
 	 (return-void!))
 
-	(($ <ghil-quote> obj)
-	 (return-code! (make-<glil-const> obj)))
+	(($ <ghil-quote> env loc obj)
+	 (return-object! obj))
 
-	(($ <ghil-ref> env var)
+	(($ <ghil-quasiquote> env loc exp)
+	 (let loop ((x exp))
+	   (match x
+	     ((? list? ls)
+	      (push-call! 'mark '())
+	      (for-each loop ls)
+	      (push-call! 'list-mark '()))
+	     ((? pair? pp)
+	      (loop (car pp))
+	      (loop (cdr pp))
+	      (push-code! (make-<glil-call> 'cons 2)))
+	     (($ <ghil-unquote> env loc exp)
+	      (comp-push exp))
+	     (($ <ghil-unquote-splicing> env loc exp)
+	      (comp-push exp)
+	      (push-call! 'list-break '()))
+	     (else
+	      (push-code! (make-<glil-const> x)))))
+	 (maybe-drop)
+	 (maybe-return))
+
+	(($ <ghil-ref> env loc var)
 	 (return-code! (make-glil-var 'ref env var)))
 
-	(($ <ghil-set> env var val)
+	((or ($ <ghil-set> env loc var val)
+	     ($ <ghil-define> env loc var val))
 	 (comp-push val)
 	 (push-code! (make-glil-var 'set env var))
 	 (return-void!))
 
-	(($ <ghil-if> test then else)
+	(($ <ghil-if> env loc test then else)
 	 ;;     TEST
 	 ;;     (br-if-not L1)
 	 ;;     THEN
@@ -141,14 +180,59 @@
 	 ;; L2:
 	 (let ((L1 (make-label)) (L2 (make-label)))
 	   (comp-push test)
-	   (push-code! (make-<glil-branch> 'br-if-not L1))
+	   (push-branch! 'br-if-not L1)
 	   (comp-tail then)
-	   (if (not tail) (push-code! (make-<glil-branch> 'br L2)))
-	   (push-code! (make-<glil-label> L1))
+	   (if (not tail) (push-branch! 'br L2))
+	   (push-label! L1)
 	   (comp-tail else)
-	   (if (not tail) (push-code! (make-<glil-label> L2)))))
+	   (if (not tail) (push-label! L2))))
 
-	(($ <ghil-begin> exps)
+	(($ <ghil-and> env loc exps)
+	 ;;     EXP
+	 ;;     (br-if-not L1)
+	 ;;     ...
+	 ;;     TAIL
+	 ;;     (br L2)
+	 ;; L1: (const #f)
+	 ;; L2:
+	 (let ((L1 (make-label)) (L2 (make-label)))
+	   (if (null? exps)
+	       (return-object! #t)
+	       (do ((exps exps (cdr exps)))
+		   ((null? (cdr exps))
+		    (comp-tail (car exps))
+		    (if (not tail) (push-branch! 'br L2))
+		    (push-label! L1)
+		    (return-object! #f)
+		    (if (not tail) (push-label! L2))
+		    (maybe-drop)
+		    (maybe-return))
+		 (comp-push (car exps))
+		 (push-branch! 'br-if-not L1)))))
+
+	(($ <ghil-or> env loc exps)
+	 ;;     EXP
+	 ;;     (dup)
+	 ;;     (br-if L1)
+	 ;;     (drop)
+	 ;;     ...
+	 ;;     TAIL
+	 ;; L1:
+	 (let ((L1 (make-label)))
+	   (if (null? exps)
+	       (return-object! #f)
+	       (do ((exps exps (cdr exps)))
+		   ((null? (cdr exps))
+		    (comp-tail (car exps))
+		    (push-label! L1)
+		    (maybe-drop)
+		    (maybe-return))
+		 (comp-push (car exps))
+		 (push-call! 'dup '())
+		 (push-branch! 'br-if L1)
+		 (push-call! 'drop '())))))
+
+	(($ <ghil-begin> env loc exps)
 	 ;; EXPS...
 	 ;; TAIL
 	 (if (null? exps)
@@ -158,7 +242,7 @@
 		  (comp-tail (car exps)))
 	       (comp-drop (car exps)))))
 
-	(($ <ghil-bind> env vars vals body)
+	(($ <ghil-bind> env loc vars vals body)
 	 ;; VALS...
 	 ;; (set VARS)...
 	 ;; BODY
@@ -167,30 +251,27 @@
 		   (reverse vars))
 	 (comp-tail body))
 
-	(($ <ghil-lambda> env vars rest body)
+	(($ <ghil-lambda> env loc vars rest body)
 	 (return-code! (codegen tree)))
 
-	(($ <ghil-inst> inst args)
+	(($ <ghil-inline> env loc inst args)
 	 ;; ARGS...
 	 ;; (INST NARGS)
-	 (for-each comp-push args)
-	 (push-code! (make-<glil-call> inst (length args)))
-	 (if drop (push-code! *ia-drop*))
-	 (if tail (push-code! *ia-return*)))
+	 (push-call! inst args)
+	 (maybe-drop)
+	 (maybe-return))
 
-	(($ <ghil-call> env proc args)
+	(($ <ghil-call> env loc proc args)
 	 ;; PROC
 	 ;; ARGS...
 	 ;; ([tail-]call NARGS)
 	 (comp-push proc)
-	 (for-each comp-push args)
-	 (let ((inst (if tail 'tail-call 'call)))
-	   (push-code! (make-<glil-call> inst (length args))))
-	 (if drop (push-code! *ia-drop*)))))
+	 (push-call! (if tail 'tail-call 'call) args)
+	 (maybe-drop))))
     ;;
     ;; main
     (match ghil
-      (($ <ghil-lambda> env args rest body)
+      (($ <ghil-lambda> env loc args rest body)
        (let* ((vars env.variables)
 	      (locs (pick (lambda (v) (eq? v.kind 'local)) vars))
 	      (exts (pick (lambda (v) (eq? v.kind 'external)) vars)))

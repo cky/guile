@@ -65,8 +65,8 @@
 ;;; 6.1 Equivalence predicates
 
 (define (@eq? x y)	`(@@ eq? ,x ,y))
-(define (@eqv? x y)	`(@@ eqv? ,x ,y))
-(define (@equal? x y)	`(@@ equal? ,x ,y))
+;(define (@eqv? x y)	`(@@ eqv? ,x ,y))
+;(define (@equal? x y)	`(@@ equal? ,x ,y))
 
 ;;; 6.2 Numbers
 
@@ -79,7 +79,7 @@
 (define (@exact? x)	`((@ Core::exact?) ,x))
 (define (@inexact? x)	`((@ Core::inexact?) ,x))
 
-(define (@= x y)	`(@@ ee? ,x ,y))
+;(define (@= x y)	`(@@ ee? ,x ,y))
 ;(define (@< x y)	`(@@ lt? ,x ,y))
 ;(define (@> x y)	`(@@ gt? ,x ,y))
 ;(define (@<= x y)	`(@@ le? ,x ,y))

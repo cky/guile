@@ -20,7 +20,6 @@
 ;;; Code:
 
 (define-module (system vm assemble)
-  :use-syntax (system base syntax)
   :use-module (system il glil)
   :use-module (system vm core)
   :use-module (system vm conv)
@@ -210,8 +209,7 @@
 	 (push-code! `(load-program ,bytes)))))
      ((vlink? x)
       ;;; (dump! (vlink-module x))  ;; FIXME: no module support now
-      (dump! (vlink-name x))
-      (push-code! `(link)))
+      (push-code! `(link ,(symbol->string (vlink-name x)))))
      ((vmod? x)
       (push-code! `(load-module ,(vmod-id x))))
      ((and (integer? x) (exact? x))

@@ -1,5 +1,5 @@
 AC_INIT(src/guile-vm.c)
-AM_INIT_AUTOMAKE(guile-vm, 0.4)
+AM_INIT_AUTOMAKE(guile-vm, 0.5)
 AM_CONFIG_HEADER(src/config.h)
 
 GUILE_FLAGS
@@ -12,4 +12,4 @@ AC_PROG_LN_S
 AM_PROG_LIBTOOL
 AC_C_LABELS_AS_VALUES
 
-AC_OUTPUT(Makefile src/Makefile doc/Makefile module/Makefile)
+AC_OUTPUT(Makefile src/Makefile doc/Makefile module/Makefile src/guilec)

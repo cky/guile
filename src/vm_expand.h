@@ -64,7 +64,7 @@
 #define VM_DEFINE_INSTRUCTION(tag,name,len,npop,npush) \
   {VM_OPCODE (tag), name, len, npop, npush},
 #define VM_DEFINE_FUNCTION(tag,name,nargs) \
-  {VM_OPCODE (tag), name, (nargs < 0) ? 1 : 0, nargs, 1},
+  {VM_OPCODE (tag), name, 0, nargs, 1},
 #define VM_DEFINE_LOADER(tag,name) \
   {VM_OPCODE (tag), name, -1, 0, 1},
 

@@ -41,7 +41,7 @@
     (make <repl>
 	  :vm vm
 	  :language (lookup-language lang)
-	  :module #f ;; (global-ref 'user)
+	  :module (current-module) ;; (global-ref 'user)
 	  :value-count 0
 ;	  :value-history (make-vmodule)
 	  :tm-stats (times)
@@ -66,9 +66,9 @@
   (apply compile-in form repl.module repl.language opts))
 
 (define (repl-eval repl form)
-  (let ((evaler repl.language.evaler))
-    (if evaler
-	(evaler form repl.module)
+  (let ((eval repl.language.evaluator))
+    (if eval
+	(eval form repl.module)
 	(vm-load repl.vm (repl-compile repl form)))))
 
 (define (repl-print repl val)
@@ -81,11 +81,11 @@
 	(newline)
 	(set! repl.value-count num))))
 
-(define (repl-compile-file repl form . opts)
-  (apply compile-file-in form repl.module repl.language opts))
+(define (repl-compile-file repl file . opts)
+  (apply compile-file-in file repl.language opts))
 
 (define (repl-load-file repl file . opts)
-  (let ((bytes (apply load-file-in file repl.module repl.language opts)))
-    (if (memq :t opts)
-	(vm-trace repl.vm bytes :a)
+  (let ((bytes (apply repl-compile-file repl file opts)))
+    (if (or (memq :b opts) (memq :r opts))
+	(apply vm-trace repl.vm bytes opts)
 	(vm-load repl.vm bytes))))

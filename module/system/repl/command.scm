@@ -20,19 +20,16 @@
 ;;; Code:
 
 (define-module (system repl command)
-  :use-module (oop goops)
   :use-syntax (system base syntax)
   :use-module (system base language)
   :use-module (system repl common)
   :use-module (system il glil)
   :use-module (system vm core)
-  :use-module (system vm load)
-  :use-module (system vm trace)
-  :use-module (system vm disasm)
-  :use-module (system vm profile)
+  :autoload (system vm trace) (vm-trace)
+  :autoload (system vm disasm) (disassemble-program disassemble-dumpcode)
+  :autoload (system vm profile) (vm-profile)
   :use-module (ice-9 format)
   :use-module (ice-9 session)
-  :use-module (ice-9 debugger)
   :export (meta-command))
 
 (define (puts x) (display x) (newline))
@@ -318,8 +315,7 @@ Disassemble a program."
 (define (disassemble-file repl file)
   "disassemble-file FILE
 Disassemble a file."
-  (disassemble-dumpcode
-   (load-file-in (->string file) repl.module repl.language)))
+  (disassemble-dumpcode (load-dumpcode (->string file))))
 
 (define (->string x)
   (object->string x display))
@@ -388,37 +384,15 @@ Time execution."
 	    (get id gc-start gc-end))
     result))
 
-;;;
-;;; Statistics
-;;;
-
 (define guile-gc gc)
 (define (gc repl)
   "gc
 Garbage collection."
   (guile-gc))
 
-(define (display-stat title flag field1 field2 unit)
-  (let ((str (format #f "~~20~AA ~~10@A /~~10@A ~~A~~%" (if flag "" "@"))))
-    (format #t str title field1 field2 unit)))
-
-(define (display-stat-title title field1 field2)
-  (display-stat title #t field1 field2 ""))
-
-(define (display-diff-stat title flag this last unit)
-  (display-stat title flag (- this last) this unit))
-
-(define (display-time-stat title this last)
-  (define (conv num)
-    (format #f "~10,2F" (/ num internal-time-units-per-second)))
-  (display-stat title #f (conv (- this last)) (conv this) "s"))
-
-(define (display-mips-stat title this-time this-clock last-time last-clock)
-  (define (mips time clock)
-    (if (= time 0) "----" (format #f "~10,2F" (/ clock time 1000000))))
-  (display-stat title #f
-		(mips (- this-time last-time) (- this-clock last-clock))
-		(mips this-time this-clock) "mips"))
+;;;
+;;; Statistics
+;;;
 
 (define (statistics repl)
   "statistics
@@ -494,3 +468,25 @@ Display statistics."
     (set! repl.tm-stats this-tms)
     (set! repl.vm-stats this-vms)
     (set! repl.gc-stats this-gcs)))
+
+(define (display-stat title flag field1 field2 unit)
+  (let ((str (format #f "~~20~AA ~~10@A /~~10@A ~~A~~%" (if flag "" "@"))))
+    (format #t str title field1 field2 unit)))
+
+(define (display-stat-title title field1 field2)
+  (display-stat title #t field1 field2 ""))
+
+(define (display-diff-stat title flag this last unit)
+  (display-stat title flag (- this last) this unit))
+
+(define (display-time-stat title this last)
+  (define (conv num)
+    (format #f "~10,2F" (/ num internal-time-units-per-second)))
+  (display-stat title #f (conv (- this last)) (conv this) "s"))
+
+(define (display-mips-stat title this-time this-clock last-time last-clock)
+  (define (mips time clock)
+    (if (= time 0) "----" (format #f "~10,2F" (/ clock time 1000000))))
+  (display-stat title #f
+		(mips (- this-time last-time) (- this-clock last-clock))
+		(mips this-time this-clock) "mips"))

@@ -68,6 +68,12 @@ VM_DEFINE_INSTRUCTION (drop, "drop", 0, 0, 0)
   NEXT;
 }
 
+VM_DEFINE_INSTRUCTION (mark, "mark", 0, 0, 1)
+{
+  PUSH (SCM_UNDEFINED);
+  NEXT;
+}
+
 VM_DEFINE_INSTRUCTION (dup, "dup", 0, 0, 1)
 {
   SCM x = *sp;
@@ -136,6 +142,43 @@ VM_DEFINE_INSTRUCTION (make_char8, "make-char8", 1, 0, 1)
   NEXT;
 }
 
+VM_DEFINE_INSTRUCTION (list, "list", 1, -1, 1)
+{
+  int n = FETCH ();
+  POP_LIST (n);
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (vector, "vector", 1, -1, 1)
+{
+  int n = FETCH ();
+  POP_LIST (n);
+  *sp = scm_vector (*sp);
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (list_mark, "list-mark", 0, 0, 0)
+{
+  POP_LIST_MARK ();
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (vector_mark, "vector-mark", 0, 0, 0)
+{
+  POP_LIST_MARK ();
+  *sp = scm_vector (*sp);
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (list_break, "list-break", 0, 0, 0)
+{
+  SCM l;
+  POP (l);
+  for (; !SCM_NULLP (l); l = SCM_CDR (l))
+    PUSH (SCM_CAR (l));
+  NEXT;
+}
+
 
 /*
  * Variable access
@@ -180,7 +223,6 @@ VM_DEFINE_INSTRUCTION (variable_ref, "variable-ref", 0, 0, 1)
   SCM o = VARIABLE_REF (x);
   if (SCM_UNBNDP (o))
     {
-      /* Try autoload here */
       err_args = SCM_LIST1 (SCM_CAR (x));
       goto vm_error_unbound;
     }

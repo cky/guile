@@ -1,0 +1,5 @@
+#!@bindir@/guile					-*- scheme -*-
+!#
+
+(use-modules (system base compile))
+(for-each compile-file (cdr (command-line)))

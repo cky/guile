@@ -20,22 +20,34 @@
 ;;; Code:
 
 (define-module (system vm load)
+  :autoload (system base compile) (compile-file)
   :use-module (system vm core)
-  :autoload (system base language) (compile-file-in lookup-language)
   :use-module (ice-9 regex)
-  :export (load/compile))
+  :export (load-compiled-file compile-and-load load/compile))
 
-(define (load/compile file)
-  (let* ((file (file-name-full-name file))
+(define (load-compiled-file file . opts)
+  (vm-load (the-vm) (load-dumpcode file)))
+
+(define (compile-and-load file . opts)
+  (let ((comp (object-file-name file)))
+    (if (or (not (file-exists? comp))
+	    (> (stat:mtime (stat file)) (stat:mtime (stat comp))))
+	(compile-file file))
+    (load-compiled-file comp)))
+
+(define (load/compile file . opts)
+  (let* ((file (file-full-name file))
 	 (compiled (object-file-name file)))
     (if (or (not (file-exists? compiled))
 	    (> (stat:mtime (stat file)) (stat:mtime (stat compiled))))
-	(compile-file-in file #f (lookup-language 'gscheme) #:O))
-    (vm-load (the-vm) (load-dumpcode compiled))))
+	(apply compile-file file #f opts))
+    (if (memq #:b opts)
+	(apply vm-trace (the-vm) (load-dumpcode compiled) opts)
+	(vm-load (the-vm) (load-dumpcode compiled)))))
 
-(define (file-name-full-name filename)
-  (let ((oldname (and (current-load-port)
-		      (port-filename (current-load-port)))))
+(define (file-full-name filename)
+  (let* ((port (current-load-port))
+	 (oldname (and port (port-filename port))))
     (if (and oldname
 	     (> (string-length filename) 0)
 	     (not (char=? (string-ref filename 0) #\/))
@@ -43,6 +55,6 @@
 	(string-append (dirname oldname) "/" filename)
 	filename)))
 
-(define (object-file-name file)
+(define-public (object-file-name file)
   (let ((m (string-match "\\.[^.]*$" file)))
     (string-append (if m (match:prefix m) file) ".go")))

@@ -219,6 +219,19 @@ do {						\
   PUSH (l);					\
 } while (0)
 
+#define POP_LIST_MARK()				\
+do {						\
+  SCM o;					\
+  SCM l = SCM_EOL;				\
+  POP (o);					\
+  while (!SCM_UNBNDP (o))			\
+    {						\
+      CONS (l, o, l);				\
+      POP (o);					\
+    }						\
+  PUSH (l);					\
+} while (0)
+
 
 /*
  * Instruction operation
@@ -256,7 +269,6 @@ do {						\
 #define ARGS1(a1)	SCM a1 = sp[0];
 #define ARGS2(a1,a2)	SCM a1 = sp[-1], a2 = sp[0]; sp--;
 #define ARGS3(a1,a2,a3)	SCM a1 = sp[-2], a2 = sp[-1], a3 = sp[0]; sp -= 2;
-#define ARGSN(an)	int an = FETCH ();
 
 #define RETURN(x)	do { *sp = x; NEXT; } while (0)
 

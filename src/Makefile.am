@@ -1,4 +1,5 @@
 bin_PROGRAMS = guile-vm
+bin_SCRIPTS = guilec
 guile_vm_SOURCES = guile-vm.c
 guile_vm_LDADD = libguilevm.la 
 guile_vm_LDFLAGS = $(GUILE_LDFLAGS)

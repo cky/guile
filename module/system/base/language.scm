@@ -26,8 +26,8 @@
   :use-module (system vm core)
   :use-module (system vm assemble)
   :use-module (ice-9 regex)
-  :export (define-language lookup-language
-	    read-in compile-in print-in compile-file-in load-file-in))
+  :export (define-language lookup-language read-in compile-in print-in
+	    compile-file-in))
 
 
 ;;;
@@ -37,10 +37,11 @@
 (define-vm-class <language> ()
   name title version environment
   (reader)
-  (expander (lambda (x) x))
-  (translator (lambda (x) x))
-  (evaler #f)
+  (expander (lambda (x e) x))
+  (translator (lambda (x e) x))
+  (evaluator #f)
   (printer)
+  (compiler)
   )
 
 (define-method (write (lang <language>) port)
@@ -65,41 +66,34 @@
 (define (read-in lang . port)
   (lang.reader (if (null? port) (current-input-port) (car port))))
 
-(define (compile-in form env lang . opts)
+(define (compile-in x e lang . opts)
   (catch 'result
     (lambda ()
       ;; expand
-      (set! form (lang.expander form))
-      (if (memq :e opts) (throw 'result form))
+      (set! x (lang.expander x e))
+      (if (memq :e opts) (throw 'result x))
       ;; translate
-      (set! form (lang.translator form))
-      (if (memq :t opts) (throw 'result form))
+      (set! x (lang.translator x e))
+      (if (memq :t opts) (throw 'result x))
       ;; compile
-      (set! form (apply compile form env opts))
-      (if (memq :c opts) (throw 'result form))
+      (set! x (apply compile x e opts))
+      (if (memq :c opts) (throw 'result x))
       ;; assemble
-      (apply assemble form env opts))
+      (apply assemble x e opts))
     (lambda (key val) val)))
 
 (define (print-in val lang . port)
   (lang.printer val (if (null? port) (current-output-port) (car port))))
 
-(define (compile-file-in file env lang . opts)
-  (let* ((code (call-with-input-file file
-		 (lambda (in)
-		   (do ((x (read-in lang in) (read-in lang in))
-			(l '() (cons (lang.translator (lang.expander x)) l)))
-		       ((eof-object? x) (reverse! l))))))
-	 (asm (apply compile (cons '@begin code) env opts)))
-    (save-dumpcode (apply assemble asm env opts) (object-file-name file))))
+(define (compile-file-in file lang . opts)
+  (call-with-input-file file
+    (lambda (port) (apply lang.compiler port (current-module) opts))))
 
-(define (load-file-in file env lang . opts)
-  (let ((compiled (object-file-name file)))
-    (if (or (not (file-exists? compiled))
-	    (> (stat:mtime (stat file)) (stat:mtime (stat compiled))))
-	(compile-file-in file env lang :O))
-    (load-dumpcode compiled)))
+(define-public (syntax-error loc msg exp)
+  (throw 'syntax-error loc msg exp))
 
-(define (object-file-name file)
-  (let ((m (string-match "\\.[^.]*$" file)))
-    (string-append (if m (match:prefix m) file) ".go")))
+(define-public (call-with-compile-error-catch thunk)
+  (catch 'syntax-error
+    thunk
+    (lambda (key loc msg exp)
+      (format #t "~A:~A: ~A: ~A" (car loc) (cdr loc) msg exp))))

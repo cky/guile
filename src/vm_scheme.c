@@ -158,20 +158,6 @@ VM_DEFINE_FUNCTION (set_cdr, "set-cdr!", 2)
   RETURN (SCM_UNSPECIFIED);
 }
 
-VM_DEFINE_FUNCTION (list, "list", -1)
-{
-  ARGSN (n);
-  POP_LIST (n);
-  NEXT;
-}
-
-VM_DEFINE_FUNCTION (vector, "vector", -1)
-{
-  ARGSN (n);
-  POP_LIST (n);
-  RETURN (scm_vector (*sp));
-}
-
 
 /*
  * Numeric relational tests
