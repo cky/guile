@@ -1,3 +1,18 @@
+2003-11-15  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* eval.c (s_mixed_body_forms): New static identifier.
+
+	(canonicalize_define, scm_m_define): The check for a bad
+	expression is performed in canonicalize_define now.
+
+	(try_macro_lookup, expand_user_macros, is_system_macro_p): New
+	static helper functions for m_expand_body.
+
+	(m_expand_body): Use ASSERT_SYNTAX to signal syntax errors.  Only
+	expand user defined macros.  Fixed handling of the definition/
+	expression boundary.  Fixed handling of definitions grouped with
+	'begin.  Use canonicalize_define to expand definitions.
+
 2003-11-13  Marius Vollmer  <mvo@zagadka.de>
 
 	* snarf.h (SCM_SMOB, SCM_GLOBAL_SMOB, SCM_SMOB_MARK,

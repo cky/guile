@@ -619,7 +619,7 @@
                   (eq? 'c (a 2) (a 5))))
           (interaction-environment)))
 
-  (expect-fail "internal defines with begin"
+  (pass-if "internal defines with begin"
     (false-if-exception
      (eval '(let ((a identity) (b identity) (c identity))
               (define (a x) (if (= x 0) 'a (b (- x 1))))
@@ -631,7 +631,7 @@
                    (eq? 'c (a 2) (a 5))))
            (interaction-environment))))
 
-  (expect-fail "internal defines with empty begin"
+  (pass-if "internal defines with empty begin"
     (false-if-exception
      (eval '(let ((a identity) (b identity) (c identity))
               (define (a x) (if (= x 0) 'a (b (- x 1))))

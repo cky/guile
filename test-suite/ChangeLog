@@ -1,5 +1,10 @@
 2003-11-15  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* tests/syntax.test: Tests that check for the correct handling of
+	internal defines with begin work now.
+
+2003-11-15  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* tests/syntax.test: Fixed test that checks for the correct
 	handling of macros in the context of internal defines.
 
