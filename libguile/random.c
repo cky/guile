@@ -361,7 +361,7 @@ SCM_DEFINE (scm_random, "random", 1, 1, 0,
             "distribution.\n"
             "\n"
             "The optional argument STATE must be of the type produced by\n"
-            "`seed->andom-state'. It defaults to the value of the variable\n"
+            "`seed->random-state'. It defaults to the value of the variable\n"
             "*random-state*. This object is used to maintain the state of\n"
             "the pseudo-random-number generator and is altered as a side\n"
             "effect of the random operation.\n"
