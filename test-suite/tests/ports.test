@@ -352,3 +352,17 @@
      (lambda ()
        (pass-if "char-ready? returns true on string port as default port"
 		(char-ready?))))))
+
+
+;;;; Close current-input-port, and make sure everyone can handle it.
+
+(with-test-prefix "closing current-input-port"
+  (for-each (lambda (procedure name)
+	      (with-input-from-port
+		  (call-with-input-string "foo" (lambda (p) p))
+		(lambda ()
+		  (close-port (current-input-port))
+		  (pass-if name
+			   (signals-error? 'wrong-type-arg (procedure))))))
+	    (list read read-char read-line)
+	    '("read" "read-char" "read-line")))
