@@ -37,7 +37,7 @@ AC_DEFUN([GUILE_HEADER_LIBC_WITH_UNISTD],
       [
         if test "$ac_cv_header_libc_h" = "no"; then
           guile_cv_header_libc_with_unistd="no"
-        elif test "$ac_cv_header_unistd.h" = "no"; then
+        elif test "$ac_cv_header_unistd_h" = "no"; then
           guile_cv_header_libc_with_unistd="yes"
         else
           AC_TRY_COMPILE(
