@@ -2056,7 +2056,7 @@ scm_init_ramap ()
   init_raprocs (ra_rpsubrs);
   init_raprocs (ra_asubrs);
   scm_make_subr (s_array_equal_p, scm_tc7_rpsubr, scm_array_equal_p);
-  scm_smobs[0x0ff & (scm_tc16_array >> 8)].equalp = scm_raequal;
+  scm_smobs[SCM_TC2SMOBNUM (scm_tc16_array)].equalp = scm_raequal;
 #ifndef SCM_MAGIC_SNARFER
 #include "libguile/ramap.x"
 #endif

@@ -1,8 +1,8 @@
 /* classes: h_files */
 
-#ifndef SMOBH
-#define SMOBH
-/*	Copyright (C) 1995, 1996, 1998, 1999, 2000 Free Software Foundation, Inc.
+#ifndef SCM_SMOB_H
+#define SCM_SMOB_H
+/* Copyright (C) 1995,1996,1998,1999,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -125,7 +125,7 @@ do { \
 #define SCM_SMOB_APPLY_3(x,a1,a2,rst)	(SCM_SMOB_DESCRIPTOR (x).apply_3 (x, (a1), (a2), (rst)))
 
 extern int scm_numsmob;
-extern scm_smob_descriptor *scm_smobs;
+extern scm_smob_descriptor scm_smobs[];
 
 
 
@@ -179,7 +179,7 @@ extern void scm_set_smob_mfpe (long tc,
 
 #endif  /* SCM_DEBUG_DEPRECATED == 0 */
 
-#endif  /* SMOBH */
+#endif  /* SCM_SMOB_H */
 
 /*
   Local Variables:

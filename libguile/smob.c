@@ -61,12 +61,14 @@
 
 
 /* scm_smobs scm_numsmob
- * implement a dynamicly resized array of smob records.
+ * implement a fixed sized array of smob records.
  * Indexes into this table are used when generating type
  * tags for smobjects (if you know a tag you can get an index and conversely).
  */
+
+#define MAX_SMOB_COUNT 256
 int scm_numsmob;
-scm_smob_descriptor *scm_smobs;
+scm_smob_descriptor scm_smobs[MAX_SMOB_COUNT];
 
 /* {Mark}
  */
@@ -117,11 +119,14 @@ scm_smob_free (SCM obj)
 int
 scm_smob_print (SCM exp, SCM port, scm_print_state *pstate)
 {
-  int n = SCM_SMOBNUM (exp);
+  unsigned int n = SCM_SMOBNUM (exp);
   scm_puts ("#<", port);
   scm_puts (SCM_SMOBNAME (n) ? SCM_SMOBNAME (n) : "smob", port);
   scm_putc (' ', port);
-  scm_intprint (SCM_UNPACK (scm_smobs[n].size ? SCM_CDR (exp) : exp), 16, port);
+  if (scm_smobs[n].size)
+    scm_intprint (SCM_CELL_WORD_1 (exp), 16, port);
+  else
+    scm_intprint (SCM_UNPACK (exp), 16, port);
   scm_putc ('>', port);
   return 1;
 }
@@ -279,45 +284,37 @@ scm_smob_apply_3_error (SCM smob, SCM a1, SCM a2, SCM rst)
 }
 
 
+
 scm_bits_t 
 scm_make_smob_type (char *name, scm_sizet size)
+#define FUNC_NAME "scm_make_smob_type"
 {
-  char *tmp;
-  if (255 <= scm_numsmob)
-    goto smoberr;
-  SCM_DEFER_INTS;
-  SCM_SYSCALL (tmp = (char *) realloc ((char *) scm_smobs,
-				       (1 + scm_numsmob)
-				       * sizeof (scm_smob_descriptor)));
-  if (tmp)
+  unsigned int new_smob;
+
+  SCM_ENTER_A_SECTION;  /* scm_numsmob */
+  new_smob = scm_numsmob;
+  if (scm_numsmob != MAX_SMOB_COUNT)
+    ++scm_numsmob;
+  SCM_EXIT_A_SECTION;
+
+  if (new_smob == MAX_SMOB_COUNT)
+    scm_misc_error (FUNC_NAME, "maximum number of smobs exceeded", SCM_EOL);
+
+  scm_smobs[new_smob].name = name;
+  if (size != 0)
     {
-      scm_smobs = (scm_smob_descriptor *) tmp;
-      scm_smobs[scm_numsmob].name    = name;
-      scm_smobs[scm_numsmob].size    = size;
-      scm_smobs[scm_numsmob].mark    = 0;
-      scm_smobs[scm_numsmob].free    = (size == 0 ? scm_free0 : scm_smob_free);
-      scm_smobs[scm_numsmob].print   = scm_smob_print;
-      scm_smobs[scm_numsmob].equalp  = 0;
-      scm_smobs[scm_numsmob].apply   = 0;
-      scm_smobs[scm_numsmob].apply_0 = 0;
-      scm_smobs[scm_numsmob].apply_1 = 0;
-      scm_smobs[scm_numsmob].apply_2 = 0;
-      scm_smobs[scm_numsmob].apply_3 = 0;
-      scm_smobs[scm_numsmob].gsubr_type = 0;
-      scm_numsmob++;
+      scm_smobs[new_smob].size = size;
+      scm_smobs[new_smob].free = scm_smob_free;
     }
-  SCM_ALLOW_INTS;
-  if (!tmp) 
-    {
-    smoberr:
-      scm_memory_error ("scm_make_smob_type");
-    }
+
   /* Make a class object if Goops is present. */
   if (scm_smob_class)
-    scm_smob_class[scm_numsmob - 1]
-      = scm_make_extended_class (SCM_SMOBNAME (scm_numsmob - 1));
-  return scm_tc7_smob + (scm_numsmob - 1) * 256;
+    scm_smob_class[new_smob] = scm_make_extended_class (name);
+
+  return scm_tc7_smob + new_smob * 256;
 }
+#undef FUNC_NAME
+
 
 void
 scm_set_smob_mark (scm_bits_t tc, SCM (*mark) (SCM))
@@ -529,17 +526,31 @@ free_print (SCM exp, SCM port, scm_print_state *pstate)
 void
 scm_smob_prehistory ()
 {
+  unsigned int i;
   scm_bits_t tc;
 
   scm_numsmob = 0;
-  scm_smobs = ((scm_smob_descriptor *)
-	       malloc (7 * sizeof (scm_smob_descriptor)));
+  for (i = 0; i < MAX_SMOB_COUNT; ++i)
+    {
+      scm_smobs[i].name       = 0;
+      scm_smobs[i].size       = 0;
+      scm_smobs[i].mark       = 0;
+      scm_smobs[i].free       = 0;
+      scm_smobs[i].print      = scm_smob_print;
+      scm_smobs[i].equalp     = 0;
+      scm_smobs[i].apply      = 0;
+      scm_smobs[i].apply_0    = 0;
+      scm_smobs[i].apply_1    = 0;
+      scm_smobs[i].apply_2    = 0;
+      scm_smobs[i].apply_3    = 0;
+      scm_smobs[i].gsubr_type = 0;
+    }
 
   /* WARNING: These scm_make_smob_type calls must be done in this order */
   tc = scm_make_smob_type ("free", 0);
   scm_set_smob_print (tc, free_print);
 
-  tc = scm_make_smob_type ("big", 0);		/* freed in gc */
+  tc = scm_make_smob_type ("big", 0);  /* freed in gc */
   scm_set_smob_print (tc, scm_bigprint);
   scm_set_smob_equalp (tc, scm_bigequal);
 
@@ -547,7 +558,7 @@ scm_smob_prehistory ()
   scm_set_smob_print (tc, scm_print_real);
   scm_set_smob_equalp (tc, scm_real_equalp);
 
-  tc = scm_make_smob_type ("complex", 0);	/* freed in gc */
+  tc = scm_make_smob_type ("complex", 0);  /* freed in gc */
   scm_set_smob_print (tc, scm_print_complex);
   scm_set_smob_equalp (tc, scm_complex_equalp);
 }

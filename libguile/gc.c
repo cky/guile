@@ -1364,8 +1364,10 @@ gc_mark_loop_first_time:
       break;
     case scm_tc7_port:
       i = SCM_PTOBNUM (ptr);
+#if (SCM_DEBUG_CELL_ACCESSES == 1) || (defined (GUILE_DEBUG_FREELIST))
       if (!(i < scm_numptob))
-	goto def;
+	SCM_MISC_ERROR ("undefined port type", SCM_EOL);
+#endif
       if (SCM_PTAB_ENTRY(ptr))
 	RECURSE (SCM_FILENAME (ptr));
       if (scm_ptobs[i].mark)
@@ -1387,8 +1389,10 @@ gc_mark_loop_first_time:
 	  break;
 	default:
 	  i = SCM_SMOBNUM (ptr);
+#if (SCM_DEBUG_CELL_ACCESSES == 1) || (defined (GUILE_DEBUG_FREELIST))
 	  if (!(i < scm_numsmob))
-	    goto def;
+	    SCM_MISC_ERROR ("undefined smob type", SCM_EOL);
+#endif
 	  if (scm_smobs[i].mark)
 	    {
 	      ptr = (scm_smobs[i].mark) (ptr);
@@ -1399,7 +1403,6 @@ gc_mark_loop_first_time:
 	}
       break;
     default:
-    def:
       SCM_MISC_ERROR ("unknown type", SCM_EOL);
     }
 #undef RECURSE
@@ -1729,8 +1732,10 @@ scm_gc_sweep ()
 	      if SCM_OPENP (scmptr)
 		{
 		  int k = SCM_PTOBNUM (scmptr);
+#if (SCM_DEBUG_CELL_ACCESSES == 1) || (defined (GUILE_DEBUG_FREELIST))
 		  if (!(k < scm_numptob))
-		    goto sweeperr;
+		    SCM_MISC_ERROR ("undefined port type", SCM_EOL);
+#endif
 		  /* Keep "revealed" ports alive.  */
 		  if (scm_revealed_count (scmptr) > 0)
 		    continue;
@@ -1764,15 +1769,17 @@ scm_gc_sweep ()
 		  {
 		    int k;
 		    k = SCM_SMOBNUM (scmptr);
+#if (SCM_DEBUG_CELL_ACCESSES == 1) || (defined (GUILE_DEBUG_FREELIST))
 		    if (!(k < scm_numsmob))
-		      goto sweeperr;
-		    m += (scm_smobs[k].free) (scmptr);
+		      SCM_MISC_ERROR ("undefined smob type", SCM_EOL);
+#endif
+		    if (scm_smobs[k].free)
+		      m += (scm_smobs[k].free) (scmptr);
 		    break;
 		  }
 		}
 	      break;
 	    default:
-	    sweeperr:
 	      SCM_MISC_ERROR ("unknown type", SCM_EOL);
 	    }
 

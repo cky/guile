@@ -641,15 +641,10 @@ taloop:
 	    goto punk;
 	  }
 	case scm_tc7_smob:
-	  {
-	    register long i;
-	    ENTER_NESTED_DATA (pstate, exp, circref);
-	    i = SCM_SMOBNUM (exp);
-	    if (i < scm_numsmob && scm_smobs[i].print)
-	      (scm_smobs[i].print) (exp, port, pstate);
-	    EXIT_NESTED_DATA (pstate);
-	    break;
-	  }
+	  ENTER_NESTED_DATA (pstate, exp, circref);
+	  SCM_SMOB_DESCRIPTOR (exp).print (exp, port, pstate);
+	  EXIT_NESTED_DATA (pstate);
+	  break;
 	default:
 	punk:
 	  scm_ipruk ("type", exp, port);

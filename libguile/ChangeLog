@@ -1,3 +1,31 @@
+2001-04-21  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* eq.c (scm_equal_p), ramap.c (scm_init_ramap):  Don't compute the
+	smob number explicitly.  Use SCM_TC2SMOBNUM instead.
+
+	* gc.c (MARK, scm_gc_sweep):  Only check for illegal heap objects
+	when compiled in debug mode.
+
+	(scm_gc_sweep):  Only call smob's free function if it is defined.
+
+	* print.c (scm_iprin1):  No need to check for validity of smob
+	type or existence of print function.
+
+	* smob.[ch] (scm_smobs):  Made into a fixed size global array.
+	Resizing will not work well with preemptive threading.
+
+	* smob.c (scm_smob_print):  Don't use SCM_CDR to access smob data.
+
+	(scm_make_smob_type):  Extracted initialization of smob
+	descriptors to scm_smob_prehistory.  Don't use scm_numsmob outside
+	of the critical section.
+
+	(scm_smob_prehistory):  Initialize all smob descriptors.  By
+	default, don't assign a smob free function:  Most smob types don't
+	need one.
+
+	* smob.h (SMOBH, SCM_SMOB_H):  Renamed SMOBH to SCM_SMOB_H.
+
 2001-04-21  Gary Houston  <ghouston@arglist.com>
 
 	* socket.c (FLIP_NET_HOST_128): new macro.
