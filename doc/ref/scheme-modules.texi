@@ -178,7 +178,7 @@ them to suit the current module's needs.  For example:
 @smalllisp
 (use-modules ((ice-9 popen)
               :select ((open-pipe . pipe-open) close-pipe)
-              :rename (symbol-prefix-proc 'unixy:)))
+              :renamer (symbol-prefix-proc 'unixy:)))
 @end smalllisp
 
 Here, the interface specification is more complex than before, and the
@@ -215,7 +215,7 @@ whose public interface is found and used.
 @var{spec} can also be of the form:
 
 @smalllisp
- (MODULE-NAME [:select SELECTION] [:rename RENAMER])
+ (MODULE-NAME [:select SELECTION] [:renamer RENAMER])
 @end smalllisp
 
 in which case a custom interface is newly created and used.
@@ -226,7 +226,7 @@ a pair of symbols @code{(ORIG . SEEN)}, where @var{orig} is the name in
 the used module and @var{seen} is the name in the using module.  Note
 that @var{seen} is also passed through @var{renamer}.
 
-The @code{:select} and @code{:rename} clauses are optional.  If both are
+The @code{:select} and @code{:renamer} clauses are optional.  If both are
 omitted, the returned interface has no bindings.  If the @code{:select}
 clause is omitted, @var{renamer} operates on the used module's public
 interface.
