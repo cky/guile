@@ -1379,15 +1379,19 @@ word x;
 # endif
 
 # if defined(LINUX) && !defined(POWERPC)
+
+#if 0 
 #   include <linux/version.h>
 #   if (LINUX_VERSION_CODE <= 0x10400)
-      /* Ugly hack to get struct sigcontext_struct definition.  Required      */
+      /* Ugly hack to get struct sigcontext_struct definition.  Required  */
       /* for some early 1.3.X releases.  Will hopefully go away soon. */
       /* in some later Linux releases, asm/sigcontext.h may have to   */
       /* be included instead.                                         */
 #     define __KERNEL__
 #     include <asm/signal.h>
 #     undef __KERNEL__
+#endif
+
 #   else
       /* Kernels prior to 2.1.1 defined struct sigcontext_struct instead of */
       /* struct sigcontext.  libc6 (glibc2) uses "struct sigcontext" in     */
