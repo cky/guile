@@ -167,7 +167,7 @@ sys_deliver_signals (void)
 	  signal (i, take_signal);
 #endif
 	  scm_apply (SCM_VELTS (*signal_handlers)[i],
-		     scm_listify (SCM_MAKINUM (i), SCM_UNDEFINED),
+		     SCM_LIST1 (SCM_MAKINUM (i)),
 		     SCM_EOL);
 	}
     }

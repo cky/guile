@@ -81,11 +81,10 @@ scm_error (SCM key, const char *subr, const char *message, SCM args, SCM rest)
 	       message ? message : "<empty message>");
       abort ();
     }
-  arg_list = scm_listify (subr ? scm_makfrom0str (subr) : SCM_BOOL_F,
-			  message ? scm_makfrom0str (message) : SCM_BOOL_F,
-			  args,
-			  rest,
-			  SCM_UNDEFINED);
+  arg_list = SCM_LIST4 (subr ? scm_makfrom0str (subr) : SCM_BOOL_F,
+			message ? scm_makfrom0str (message) : SCM_BOOL_F,
+			args,
+			rest);
   scm_ithrow (key, arg_list, 1);
   
   /* No return, but just in case: */

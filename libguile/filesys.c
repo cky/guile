@@ -545,9 +545,8 @@ SCM_DEFINE (scm_stat, "stat", 1, 0, 0,
       int en = errno;
 
       SCM_SYSERROR_MSG ("~A: ~S",
-			scm_listify (scm_makfrom0str (strerror (errno)),
-				     object,
-				     SCM_UNDEFINED), en);
+			SCM_LIST2 (scm_makfrom0str (strerror (errno)), object),
+			en);
     }
   return scm_stat2scm (&stat_temp);
 }
@@ -1132,12 +1131,9 @@ SCM_DEFINE (scm_select, "select", 3, 2, 0,
     if (rv < 0)
       SCM_SYSERROR;
   }
-  return scm_listify (retrieve_select_type (&read_set, read_ports_ready,
-					    reads),
-		      retrieve_select_type (&write_set, write_ports_ready,
-					    writes),
-		      retrieve_select_type (&except_set, SCM_EOL, excepts),
-		      SCM_UNDEFINED);
+  return SCM_LIST3 (retrieve_select_type (&read_set, read_ports_ready, reads),
+		    retrieve_select_type (&write_set, write_ports_ready, writes),
+		    retrieve_select_type (&except_set, SCM_EOL, excepts));
 }
 #undef FUNC_NAME
 #endif /* HAVE_SELECT */
@@ -1297,9 +1293,8 @@ SCM_DEFINE (scm_lstat, "lstat", 1, 0, 0,
       int en = errno;
 
       SCM_SYSERROR_MSG ("~A: ~S",
-			scm_listify (scm_makfrom0str (strerror (errno)),
-				     str,
-				     SCM_UNDEFINED), en);
+			SCM_LIST2 (scm_makfrom0str (strerror (errno)), str),
+			en);
     }
   return scm_stat2scm(&stat_temp);
 }

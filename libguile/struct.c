@@ -534,9 +534,7 @@ SCM_DEFINE (scm_make_vtable_vtable, "make-vtable-vtable", 2, 0, 1,
   SCM_VALIDATE_INUM (2, tail_array_size);
   SCM_VALIDATE_REST_ARGUMENT (init);
 
-  fields = scm_string_append (scm_listify (required_vtable_fields,
-					   user_fields,
-					   SCM_UNDEFINED));
+  fields = scm_string_append (SCM_LIST2 (required_vtable_fields, user_fields));
   layout = scm_make_struct_layout (fields);
   basic_size = SCM_SYMBOL_LENGTH (layout) / 2;
   tail_elts = SCM_INUM (tail_array_size);

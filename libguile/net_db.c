@@ -358,8 +358,7 @@ SCM_DEFINE (scm_getnet, "getnet", 0, 1, 0,
       entry = getnetbyaddr (netnum, AF_INET);
     }
   if (!entry)
-    SCM_SYSERROR_MSG ("no such network ~A",
-		      scm_listify (net, SCM_UNDEFINED), errno);
+    SCM_SYSERROR_MSG ("no such network ~A", SCM_LIST1 (net), errno);
   ve[0] = scm_makfromstr (entry->n_name, (scm_sizet) strlen (entry->n_name), 0);
   ve[1] = scm_makfromstrs (-1, entry->n_aliases);
   ve[2] = SCM_MAKINUM (entry->n_addrtype + 0L);
@@ -409,8 +408,7 @@ SCM_DEFINE (scm_getproto, "getproto", 0, 1, 0,
       entry = getprotobynumber (protonum);
     }
   if (!entry)
-    SCM_SYSERROR_MSG ("no such protocol ~A",
-		      scm_listify (protocol, SCM_UNDEFINED), errno);
+    SCM_SYSERROR_MSG ("no such protocol ~A", SCM_LIST1 (protocol), errno);
   ve[0] = scm_makfromstr (entry->p_name, (scm_sizet) strlen (entry->p_name), 0);
   ve[1] = scm_makfromstrs (-1, entry->p_aliases);
   ve[2] = SCM_MAKINUM (entry->p_proto + 0L);
@@ -474,8 +472,7 @@ SCM_DEFINE (scm_getserv, "getserv", 0, 2, 0,
       entry = getservbyport (htons (SCM_INUM (name)), SCM_STRING_CHARS (protocol));
     }
   if (!entry)
-    SCM_SYSERROR_MSG("no such service ~A", 
-                     scm_listify (name, SCM_UNDEFINED), errno);
+    SCM_SYSERROR_MSG("no such service ~A", SCM_LIST1 (name), errno);
   return scm_return_entry (entry);
 }
 #undef FUNC_NAME

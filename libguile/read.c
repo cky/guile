@@ -438,7 +438,7 @@ tryagain_no_flush_ws:
 	  }
 	unkshrp:
 	  scm_misc_error (s_scm_read, "Unknown # object: ~S",
-			  scm_listify (SCM_MAKE_CHAR (c), SCM_UNDEFINED));
+			  SCM_LIST1 (SCM_MAKE_CHAR (c)));
 	}
 
     case '"':

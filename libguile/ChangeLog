@@ -1,3 +1,9 @@
+2001-03-11  Keisuke Nishida  <kxn30@po.cwru.edu>
+
+	* environments.c, error.c, eval.c, filesys.c, hashtab.c, load.c,
+	net_db.c, procprop.c, read.c, scmsigs.c, socket.c, struct.c:
+	Use SCM_LISTn instead of scm_listify.
+
 2001-03-10  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
 
 	* _scm.h: Removed #include <errno.h>.

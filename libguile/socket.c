@@ -605,7 +605,7 @@ scm_addr_vector (struct sockaddr *address, const char *proc)
     }
   else
     scm_misc_error (proc, "Unrecognised address family: ~A",
-		    scm_listify (SCM_MAKINUM (fam), SCM_UNDEFINED));
+		    SCM_LIST1 (SCM_MAKINUM (fam)));
 
   return result;
 }

@@ -118,7 +118,7 @@ SCM_DEFINE (scm_primitive_load, "primitive-load", 1, 0, 0,
 		    SCM_EOL);
 
   if (! SCM_FALSEP (hook))
-    scm_apply (hook, scm_listify (filename, SCM_UNDEFINED), SCM_EOL);
+    scm_apply (hook, SCM_LIST1 (filename), SCM_EOL);
 
   { /* scope */
     SCM port, save_port;
@@ -243,10 +243,9 @@ scm_init_load_path ()
   SCM path = SCM_EOL;
 
 #ifdef SCM_LIBRARY_DIR
-  path = scm_listify (scm_makfrom0str (SCM_SITE_DIR),
-		      scm_makfrom0str (SCM_LIBRARY_DIR),
-		      scm_makfrom0str (SCM_PKGDATA_DIR),
-		      SCM_UNDEFINED);
+  path = SCM_LIST3 (scm_makfrom0str (SCM_SITE_DIR),
+		    scm_makfrom0str (SCM_LIBRARY_DIR),
+		    scm_makfrom0str (SCM_PKGDATA_DIR));
 #endif /* SCM_LIBRARY_DIR */
 
   path = scm_internal_parse_path (getenv ("GUILE_LOAD_PATH"), path);
@@ -452,7 +451,7 @@ SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 1, 0, 0,
       SCM_MISC_ERROR ((absolute
 		       ? "Unable to load file ~S"
 		       : "Unable to find file ~S in load path"),
-		      scm_listify (filename, SCM_UNDEFINED));
+		      SCM_LIST1 (filename));
     }
 
   return scm_primitive_load (full_filename);
@@ -510,9 +509,8 @@ scm_init_load ()
   scm_loc_load_path = SCM_CDRLOC (scm_sysintern ("%load-path", SCM_EOL));
   scm_loc_load_extensions
     = SCM_CDRLOC (scm_sysintern ("%load-extensions",
-				 scm_listify (scm_makfrom0str (".scm"),
-					      scm_makfrom0str (""),
-					      SCM_UNDEFINED)));
+				 SCM_LIST2 (scm_makfrom0str (".scm"),
+					    scm_makfrom0str (""))));
   scm_loc_load_hook = SCM_CDRLOC (scm_sysintern ("%load-hook", SCM_BOOL_F));
 
   init_build_info ();

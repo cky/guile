@@ -381,7 +381,7 @@ scm_ihashx (SCM obj,unsigned int n,struct scm_ihashx_closure * closure)
   SCM answer;
   SCM_DEFER_INTS;
   answer = scm_apply (closure->hash,
-		      scm_listify (obj, scm_ulong2num ((unsigned long)n), SCM_UNDEFINED),
+		      SCM_LIST2 (obj, scm_ulong2num ((unsigned long)n)),
 		      SCM_EOL);
   SCM_ALLOW_INTS;
   return SCM_INUM (answer);
@@ -395,7 +395,7 @@ scm_sloppy_assx (SCM obj,SCM alist,struct scm_ihashx_closure * closure)
   SCM answer;
   SCM_DEFER_INTS;
   answer = scm_apply (closure->assoc,
-		      scm_listify (obj, alist, SCM_UNDEFINED),
+		      SCM_LIST2 (obj, alist),
 		      SCM_EOL);
   SCM_ALLOW_INTS;
   return answer;
@@ -410,7 +410,7 @@ scm_delx_x (SCM obj,SCM alist,struct scm_ihashx_closure * closure)
   SCM answer;
   SCM_DEFER_INTS;
   answer = scm_apply (closure->delete,
-		      scm_listify (obj, alist, SCM_UNDEFINED),
+		      SCM_LIST2 (obj, alist),
 		      SCM_EOL);
   SCM_ALLOW_INTS;
   return answer;

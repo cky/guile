@@ -167,10 +167,8 @@ scm_stand_in_scm_proc(SCM proc)
   answer = scm_assoc (proc, scm_stand_in_procs);
   if (SCM_FALSEP (answer))
     {
-      answer = scm_closure (scm_listify (SCM_EOL, SCM_BOOL_F, SCM_UNDEFINED),
-			    SCM_EOL);
-      scm_stand_in_procs = scm_cons (scm_cons (proc, answer),
-				     scm_stand_in_procs);
+      answer = scm_closure (SCM_LIST2 (SCM_EOL, SCM_BOOL_F), SCM_EOL);
+      scm_stand_in_procs = scm_acons (proc, answer, scm_stand_in_procs);
     }
   else
     answer = SCM_CDR (answer);
