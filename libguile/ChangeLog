@@ -1,3 +1,10 @@
+1999-12-17  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
+
+	* tags.h (SCM_SLOPPY_NCONSP, SCM_SLOPPY_CONSP): New macros.
+	(SCM_ECONSP): Version which doesn't mix && and || without
+	parenthesis.
+	(SCM_NECONSP): Bugfree version.
+
 Fri Dec 17 12:09:11 1999  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* tags.h (SCM_ECONSP, SCM_NECONSP): Fix these macros to have the
