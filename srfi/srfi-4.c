@@ -31,7 +31,7 @@ typedef scm_t_int16 int_s16;
 typedef scm_t_uint32 int_u32;
 typedef scm_t_int32 int_s32;
 
-#ifdef SCM_HAVE_T_INT64
+#if SCM_HAVE_T_INT64
 typedef scm_t_uint64 int_u64;
 typedef scm_t_int64 int_s64;
 #endif /* SCM_HAVE_T_INT64 */
@@ -73,7 +73,7 @@ int scm_tc16_uvec = 0;
 static int uvec_sizes[10] = {1, 1, 2, 2, 4, 4, 8, 8, 4, 8};
 
 
-#ifdef SCM_HAVE_T_INT64
+#if SCM_HAVE_T_INT64
 
 // This is a modified version of scm_iint2str and should go away once
 // we have a public scm_print_integer or similar.
@@ -113,7 +113,7 @@ print_int64 (scm_t_int64 num, SCM port)
 
 #endif /* SCM_HAVE_T_INT64 */
 
-#ifdef SCM_HAVE_T_UINT64
+#if SCM_HAVE_T_UINT64
 
 // This is a modified version of scm_iint2str and should go away once
 // we have a public scm_print_integer or similar.
@@ -1324,7 +1324,7 @@ SCM_DEFINE (scm_list_to_s32vector, "list->s32vector", 1, 0, 0,
 #undef FUNC_NAME
 
 
-#ifdef SCM_HAVE_T_INT64
+#if SCM_HAVE_T_INT64
 
 /* ================================================================ */
 /* U64 procedures.                                                   */
