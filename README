@@ -1,6 +1,7 @@
-This is not a Guile release; it is a source tree retrieved via
+!!! This is not a Guile release; it is a source tree retrieved via
 anonymous CVS or as a nightly snapshot at some random time after the
-Guile 1.4 release.
+Guile 1.4 release.  If this were a Guile release, you would not see
+this message. !!!  [fixme: zonk on release]
 
 This is a 1.5 development version of Guile, Project GNU's extension
 language library.  Guile is an interpreter for Scheme, packaged as a
@@ -148,48 +149,54 @@ configure, /usr/local by default.  Building and installing gives you:
 
 Executables, in ${prefix}/bin:
 
-guile --- a stand-alone interpreter for Guile.  With no arguments, this
-	is a simple interactive Scheme interpreter.  It can also be used
-	as an interpreter for script files; see the NEWS file for details.
-guile-config --- a Guile script which provides the information necessary
-	to link your programs against the Guile library.
-guile-snarf --- a script to parse declarations in your C code for
-	Scheme-visible C functions, Scheme objects to be used by C code,
-	etc.
-guile-tools --- a wrapper to invoke the executable modules in
-	subdirectory `scripts' (also installed).
+ guile --- a stand-alone interpreter for Guile.  With no arguments, this
+ 	is a simple interactive Scheme interpreter.  It can also be used
+ 	as an interpreter for script files; see the NEWS file for details.
+ guile-config --- a Guile script which provides the information necessary
+ 	to link your programs against the Guile library.
+ guile-snarf --- a script to parse declarations in your C code for
+ 	Scheme-visible C functions, Scheme objects to be used by C code,
+ 	etc.
+ guile-tools --- a wrapper to invoke the executable modules in
+ 	subdirectory `scripts' (also installed).
 
 Libraries, in ${prefix}/lib.  Depending on the platform and options
         given to configure, you may get shared libraries in addition
 	to or instead of these static libraries:
 
-libguile.a --- an object library containing the Guile interpreter,
-	You can use Guile in your own programs by linking against this.
-libqthreads.a --- an object library containing the QuickThreads
-	primitives.  If you enabled thread support when you configured
-	Guile, you will need to link your code against this too.
-libguilereadline.a --- an object library containing glue code for the
-        GNU readline library.  See NEWS for instructions on how to enable
-	readline for your personal use.
+ libguile.a --- an object library containing the Guile interpreter,
+ 	You can use Guile in your own programs by linking against this.
+ libqthreads.a --- an object library containing the QuickThreads
+ 	primitives.  If you enabled thread support when you configured
+ 	Guile, you will need to link your code against this too.
+ libguilereadline.a --- an object library containing glue code for the
+         GNU readline library.  See NEWS for instructions on how to enable
+ 	readline for your personal use.
+ libguile-srfi-*.a --- various SRFI support libraries
 
 Header files, in ${prefix}/include:
 
-libguile.h, guile/gh.h, libguile/*.h --- for libguile.
-guile-readline/readline.h --- for guile-readline.
+ libguile.h, guile/gh.h, libguile/*.h --- for libguile.
+ guile-readline/readline.h --- for guile-readline.
 
 Support files, in ${prefix}/share/guile/<version>:
 
-ice-9/* --- run-time support for Guile: the module system,
-	read-eval-print loop, some R4RS code and other infrastructure.
+ ice-9/* --- run-time support for Guile: the module system,
+ 	read-eval-print loop, some R4RS code and other infrastructure.
+ oop/* --- the Guile Object-Oriented Programming System (GOOPS)
+ scripts/* --- executable modules, i.e., scheme programs that can be both
+ 	called as an executable from the shell, and loaded and used as a
+ 	module from scheme code.  See scripts/README for more info.
+ srfi/* --- SRFI support modules.  See srfi/README for more info.
 
 Automake macros, in ${prefix}/share/aclocal:
 
-guile.m4
+ guile.m4
 
 Documentation in Info format, in ${prefix}/info:
 
-data-rep.info --- an essay on how to write C code that works with
-	Guile Scheme values.
+ data-rep.info --- an essay on how to write C code that works with
+ 	Guile Scheme values.
 
 The Guile source tree is laid out as follows:
 
