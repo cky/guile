@@ -42,22 +42,31 @@
 
 #include <stdio.h>
 #include "_scm.h"
+#include "libpath.h"
+
+#include <sys/types.h>
+#include <sys/stat.h>
+
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif /* HAVE_UNISTD_H */
+
+#ifndef R_OK
+#define R_OK 4
+#endif
 
 
+/* Loading a file, given an absolute filename.  */
 
 SCM_PROC(s_sys_try_load, "%try-load", 1, 2, 0, scm_sys_try_load);
-#ifdef __STDC__
 SCM 
-scm_sys_try_load (SCM filename, SCM case_insensative_p, SCM sharp)
-#else
-SCM 
-scm_sys_try_load (filename, case_insensative_p, sharp)
+scm_sys_try_load (filename, case_insensitive_p, sharp)
      SCM filename;
-     SCM case_insensative_p;
+     SCM case_insensitive_p;
      SCM sharp;
-#endif
 {
-  SCM_ASSERT (SCM_NIMP (filename) && SCM_ROSTRINGP (filename), filename, SCM_ARG1, s_sys_try_load);
+  SCM_ASSERT (SCM_NIMP (filename) && SCM_ROSTRINGP (filename), filename,
+	      SCM_ARG1, s_sys_try_load);
   {
     SCM form, port;
     port = scm_open_file (filename,
@@ -66,7 +75,7 @@ scm_sys_try_load (filename, case_insensative_p, sharp)
       return SCM_BOOL_F;
     while (1)
       {
-	form = scm_read (port, case_insensative_p, sharp);
+	form = scm_read (port, case_insensitive_p, sharp);
 	if (SCM_EOF_VAL == form)
 	  break;
 	scm_eval_x (form);
@@ -77,15 +86,135 @@ scm_sys_try_load (filename, case_insensative_p, sharp)
 }
 
 
+/* Initializing the load path, and searching it.  */
 
-#ifdef __STDC__
+static SCM *scm_loc_load_path;
+
+/* Initialize the global variable %load-path, given the value of the
+   LIBRARY_PATH preprocessor symbol and the SCHEME_LOAD_PATH
+   environment variable.  */
 void
-scm_init_load (void)
-#else
-void
-scm_init_load ()
-#endif
+scm_init_load_path ()
 {
-#include "load.x"
+  SCM path = SCM_EOL;
+
+#ifdef LIBRARY_PATH
+  path = scm_cons (scm_makfrom0str (LIBRARY_PATH), path);
+#endif /* LIBRARY_PATH */
+  
+  {
+    char *path_string = getenv ("SCHEME_LOAD_PATH");
+
+    if (path_string && path_string[0] != '\0')
+      {
+	char *scan, *elt_end;
+
+	/* Scan backwards from the end of the string, to help
+           construct the list in the right order.  */
+	scan = elt_end = path_string + strlen (path_string);
+	do {
+	  /* Scan back to the beginning of the current element.  */
+	  do scan--;
+	  while (scan >= path_string && *scan != ':');
+	  path = scm_cons (scm_makfromstr (scan + 1, elt_end - (scan + 1), 0),
+			   path);
+	  elt_end = scan;
+	} while (scan >= path_string);
+      }
+  }
+
+  *scm_loc_load_path = path;
 }
 
+
+/* Search %load-path for a directory containing a file named FILENAME.
+   The file must be readable, and not a directory.
+   If we find one, return its full filename; otherwise, return #f.  */
+SCM_PROC(s_sys_search_load_path, "%search-load-path", 1, 0, 0, scm_sys_search_load_path);
+SCM 
+scm_sys_search_load_path (filename)
+     SCM filename;
+{
+  SCM path = *scm_loc_load_path;
+  char *buf;
+  int buf_size;
+  int filename_len;
+
+  SCM_ASSERT (SCM_NIMP (filename) && SCM_ROSTRINGP (filename), filename,
+	      SCM_ARG1, s_sys_search_load_path);
+  filename_len = SCM_ROLENGTH (filename);
+
+  SCM_DEFER_INTS;
+
+  buf_size = 80;
+  buf = scm_must_malloc (buf_size, s_sys_search_load_path);
+
+  while (SCM_NIMP (path) && SCM_CONSP (path))
+    {
+      SCM elt = SCM_CAR (path);
+      if (SCM_NIMP (elt) && SCM_ROSTRINGP (elt))
+	{
+	  int len = SCM_ROLENGTH (elt) + 1 + filename_len;
+
+	  if (len + 1 > buf_size)
+	    {
+	      int old_size = buf_size;
+	      buf_size = len + 50;
+	      buf = scm_must_realloc (buf, old_size, buf_size,
+				      s_sys_search_load_path);
+	    }
+
+	  memcpy (buf, SCM_ROCHARS (elt), SCM_ROLENGTH (elt));
+	  buf[SCM_ROLENGTH (elt)] = '/';
+	  memcpy (buf + SCM_ROLENGTH (elt) + 1,
+		  SCM_ROCHARS (filename), filename_len);
+	  buf[len] = '\0';
+
+	  {
+	    struct stat mode;
+
+	    if (stat (buf, &mode) >= 0
+		&& ! (mode.st_mode & S_IFDIR)
+		&& access (buf, R_OK) == 0)
+	      {
+		SCM result = scm_makfromstr (buf, len, 0);
+		scm_must_free (buf);
+		SCM_ALLOW_INTS;
+		return result;
+	      }
+	  }
+	}
+
+      path = SCM_CDR (path);
+    }
+  
+  scm_must_free (buf);
+  SCM_ALLOW_INTS;
+  return SCM_BOOL_F;
+}
+
+
+SCM_PROC(s_sys_try_load_path, "%try-load-path", 1, 2, 0,scm_sys_try_load_path);
+SCM 
+scm_sys_try_load_path (filename, case_insensitive_p, sharp)
+     SCM filename;
+     SCM case_insensitive_p;
+     SCM sharp;
+{
+  SCM full_filename = scm_sys_search_load_path (filename);
+
+  if (SCM_NIMP (full_filename) && SCM_ROSTRINGP (full_filename))
+    return scm_sys_try_load (full_filename, case_insensitive_p, sharp);
+  else
+    return scm_sys_try_load (filename,      case_insensitive_p, sharp);
+}
+
+
+
+void
+scm_init_load ()
+{
+  scm_loc_load_path = &SCM_CDR(scm_sysintern("%load-path", SCM_EOL));
+
+#include "load.x"
+}
