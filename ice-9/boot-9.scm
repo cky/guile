@@ -2211,7 +2211,6 @@
 		    (lambda (key . args)
 		      (case key
 			((quit)
-			 (read-line)	; discard trailing junk and linefeed.
 			 (force-output)
 			 (set! status args)
 			 #f)

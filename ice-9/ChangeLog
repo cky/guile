@@ -1,3 +1,9 @@
+Tue May 13 02:48:49 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* boot-9.scm (error-catching-loop): don't read a line from
+	current input when quit is encountered, the previous change
+	fixes this too.
+
 Mon May 12 19:00:21 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* boot-9.scm (scm-style-repl): After reading an expression,
