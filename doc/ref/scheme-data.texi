@@ -794,18 +794,25 @@ Round the number @var{x} towards minus infinity.
 Round the number @var{x} towards infinity.
 @end deffn
 
-For the @code{truncate} and @code{round} procedures, the Guile library
-exports equivalent C functions, but taking and returning arguments of
-type @code{double} rather than the usual @code{SCM}.
+C functions for some of the above rounding functions are provided by
+the standard C mathematics library.  Naturally these expect and return
+@code{double} arguments (@pxref{Rounding Functions,,, libc, GNU C
+Library Reference Manual}).
+
+@multitable {xx} {Scheme Procedure} {C Function}
+@item @tab Scheme Procedure @tab C Function
+@item @tab @code{floor}     @tab @code{floor}
+@item @tab @code{ceiling}   @tab @code{ceil}
+@item @tab @code{truncate}  @tab @code{trunc}
+@end multitable
+
+@code{trunc} is C99 standard and might not be available on older
+systems.  Guile provides an @code{scm_truncate} equivalent (on all
+systems), plus a C level version of the Scheme @code{round} procedure.
 
 @deftypefn {C Function} double scm_truncate (double x)
 @deftypefnx {C Function} double scm_round (double x)
 @end deftypefn
-
-For @code{floor} and @code{ceiling}, the equivalent C functions are
-@code{floor} and @code{ceil} from the standard mathematics library,
-which also take and return @code{double} arguments (@pxref{Rounding
-Functions,,, libc, GNU C Library Reference Manual}).
 
 
 @node Scientific
