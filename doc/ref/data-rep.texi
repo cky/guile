@@ -1,3 +1,9 @@
+@c -*-texinfo-*-
+@c This is part of the GNU Guile Reference Manual.
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004
+@c   Free Software Foundation, Inc.
+@c See the file guile.texi for copying conditions.
+
 @c essay \input texinfo
 @c essay @c -*-texinfo-*-
 @c essay @c %**start of header
@@ -46,7 +52,7 @@
 @c essay @sp 10
 @c essay @comment The title is printed in a large font.
 @c essay @title Data Representation in Guile
-@c essay @subtitle $Id: data-rep.texi,v 1.15 2003-10-06 19:24:15 mvo Exp $
+@c essay @subtitle $Id: data-rep.texi,v 1.16 2004-01-21 22:40:39 mvo Exp $
 @c essay @subtitle For use with Guile @value{VERSION}
 @c essay @author Jim Blandy
 @c essay @author Free Software Foundation
