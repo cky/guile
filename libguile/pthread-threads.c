@@ -77,6 +77,9 @@ scm_init_pthread_threads ()
   scm_i_plugin_rec_mutex_unlock = (scm_t_rec_mutex_unlock) pthread_mutex_unlock;
 #endif
 
+  scm_i_plugin_cond_wait = (scm_t_cond_wait) pthread_cond_wait;
+  scm_i_plugin_cond_timedwait = (scm_t_cond_timedwait) pthread_cond_timedwait;
+
   scm_init_threads_plugin ();
 }
 
