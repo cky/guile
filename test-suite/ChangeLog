@@ -1,3 +1,10 @@
+2004-09-22  Marius Vollmer  <mvo@zagadka.de>
+
+	* tests/ports.test ("string ports"): Copy string literal so that
+	it can be modified.
+	* tests/srfi-13.test ("string-copy!"): Likewise.
+	* tests/strings.test ("substring/shared"): Likewise.
+
 2004-09-09  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/streams.test: New file.
