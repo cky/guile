@@ -2361,156 +2361,557 @@ specified in the SRFI.  Using it avoids the described problems.
 @section SRFI-19 - Time/Date Library
 @cindex SRFI-19
 
-This is an implementation of SRFI-19: Time/Date Library
+This is an implementation of the SRFI-19 time/date library.  The
+functions and variables described here are provided by
 
-It depends on SRFIs: 6 (@pxref{SRFI-6}), 8 (@pxref{SRFI-8}),
-9 (@pxref{SRFI-9}).
-
-This section documents constants and procedure signatures.
+@example
+(use-modules (srfi srfi-19))
+@end example
 
 @menu
-* SRFI-19 Constants::
-* SRFI-19 Current time and clock resolution::
-* SRFI-19 Time object and accessors::
-* SRFI-19 Time comparison procedures::
-* SRFI-19 Time arithmetic procedures::
-* SRFI-19 Date object and accessors::
-* SRFI-19 Time/Date/Julian Day/Modified Julian Day converters::
-* SRFI-19 Date to string/string to date converters::
+* SRFI-19 Introduction::        
+* SRFI-19 Time::                
+* SRFI-19 Date::                
+* SRFI-19 Time/Date conversions::  
+* SRFI-19 Date to string::      
+* SRFI-19 String to date::      
 @end menu
 
-@node SRFI-19 Constants
-@subsection SRFI-19 Constants
+@node SRFI-19 Introduction
+@subsection SRFI-19 Introduction
 
-All these are bound to their symbol names:
+@cindex universal time
+@cindex atomic time
+@cindex UTC
+@cindex TAI
+This module implements time and date representations and calculations,
+in various time systems, including universal time (UTC) and atomic
+time (TAI).
 
-@example
-           time-duration
-           time-monotonic
-           time-process
-           time-tai
-           time-thread
-           time-utc
-@end example
+For those not familiar with these time systems, TAI is based on a
+fixed length second derived from oscillations of certain atoms.  UTC
+differs from TAI by an integral number of seconds, which is increased
+or decreased at announced times to keep UTC aligned to a mean solar
+day (the orbit and rotation of the earth are not quite constant).
 
-@node SRFI-19 Current time and clock resolution
-@subsection SRFI-19 Current time and clock resolution
+@cindex leap second
+So far, only increases in the TAI
+@tex
+$\leftrightarrow$
+@end tex
+@ifnottex
+<->
+@end ifnottex
+UTC difference have been needed.  Such an increase is a ``leap
+second'', an extra second of TAI introduced at the end of a UTC day.
+When working entirely within UTC this is never seen, every day simply
+has 86400 seconds.  But when converting from TAI to a UTC date, an
+extra 23:59:60 is present, where normally a day would end at 23:59:59.
+Effectively the UTC second from 23:59:59 to 00:00:00 has taken two TAI
+seconds.
 
-@example
-           (current-date . tz-offset)
-           (current-julian-day)
-           (current-modified-julian-day)
-           (current-time . clock-type)
-           (time-resolution . clock-type)
-@end example
+@cindex system clock
+In the current implementation, the system clock is assumed to be UTC,
+and a table of leap seconds in the code converts to TAI.  See comments
+in @file{srfi-19.scm} for how to update this table.
 
-@node SRFI-19 Time object and accessors
-@subsection SRFI-19 Time object and accessors
+@cindex julian day
+@cindex modified julian day
+Also, for those not familiar with the terminology, a @dfn{Julian Day}
+is a real number which is a count of days and fraction of a day, in
+UTC, starting from -4713-01-01T12:00:00Z, ie.@: midday Monday 1 Jan
+4713 B.C.  And a @dfn{Modified Julian Day} is the same, but starting
+from 1858-11-17T00:00:00Z, ie.@: midnight 17 November 1858 UTC.
 
-@example
-           (make-time type nanosecond second)
-           (time? obj)
-           (time-type time)
-           (time-nanosecond time)
-           (time-second time)
-           (set-time-type! time type)
-           (set-time-nanosecond! time nsec)
-           (set-time-second! time sec)
-           (copy-time time)
-@end example
+@c  The SRFI-1 spec says -4714-11-24T12:00:00Z (November 24, -4714 at
+@c  noon, UTC), but this is incorrect.  It looks like it might have
+@c  arisen from the code incorrectly treating years a multiple of 100
+@c  but not 400 prior to 1582 as leap years, where instead the Julian
+@c  calendar should be used so all multiples of 4 before 1582 are leap
+@c  years.
 
-@node SRFI-19 Time comparison procedures
-@subsection SRFI-19 Time comparison procedures
 
-Args are all @code{time} values.
+@node SRFI-19 Time
+@subsection SRFI-19 Time
+@cindex time
 
-@example
-           (time<=? t1 t2)
-           (time<? t1 t2)
-           (time=? t1 t2)
-           (time>=? t1 t2)
-           (time>? t1 t2)
-@end example
+A @dfn{time} object has type, seconds and nanoseconds fields
+representing a point in time starting from some epoch.  This is an
+arbitrary point in time, not just a time of day.  Although times are
+represented in nanoseconds, the actual resolution may be lower.
 
-@node SRFI-19 Time arithmetic procedures
-@subsection SRFI-19 Time arithmetic procedures
+The following variables hold the possible time types.  For instance
+@code{(current-time time-process)} would give the current CPU process
+time.
 
-The @code{foo!} variants modify in place.  Time difference
-is expressed in @code{time-duration} values.
+@defvar time-utc
+Universal Coordinated Time (UTC).
+@cindex UTC
+@end defvar
 
-@example
-           (time-difference t1 t2)
-           (time-difference! t1 t2)
-           (add-duration time duration)
-           (add-duration! time duration)
-           (subtract-duration time duration)
-           (subtract-duration! time duration)
- @end example
+@defvar time-tai
+International Atomic Time (TAI).
+@cindex TAI
+@end defvar
 
-@node SRFI-19 Date object and accessors
-@subsection SRFI-19 Date object and accessors
+@defvar time-monotonic
+Monotonic time, meaning a monotonically increasing time starting from
+an unspecified epoch.
 
-@example
-           (make-date nsecs seconds minutes hours
-                      date month year offset)
-           (date? obj)
-           (date-nanosecond date)
-           (date-second date)
-           (date-minute date)
-           (date-hour date)
-           (date-day date)
-           (date-month date)
-           (date-year date)
-           (date-zone-offset date)
-           (date-year-day date)
-           (date-week-day date)
-           (date-week-number date day-of-week-starting-week)
-@end example
+Note that in the current implementation @code{time-monotonic} is the
+same as @code{time-tai}, and unfortunately is therefore affected by
+adjustments to the system clock.  Perhaps this will change in the
+future.
+@end defvar
 
-@node SRFI-19 Time/Date/Julian Day/Modified Julian Day converters
-@subsection SRFI-19 Time/Date/Julian Day/Modified Julian Day converters
+@defvar time-duration
+A duration, meaning simply a difference between two times.
+@end defvar
 
-@example
-           (date->julian-day date)
-           (date->modified-julian-day date)
-           (date->time-monotonic date)
-           (date->time-tai date)
-           (date->time-utc date)
-           (julian-day->date jdn . tz-offset)
-           (julian-day->time-monotonic jdn)
-           (julian-day->time-tai jdn)
-           (julian-day->time-utc jdn)
-           (modified-julian-day->date jdn . tz-offset)
-           (modified-julian-day->time-monotonic jdn)
-           (modified-julian-day->time-tai jdn)
-           (modified-julian-day->time-utc jdn)
-           (time-monotonic->date time . tz-offset)
-           (time-monotonic->time-tai time-in)
-           (time-monotonic->time-tai! time-in)
-           (time-monotonic->time-utc time-in)
-           (time-monotonic->time-utc! time-in)
-           (time-tai->date time . tz-offset)
-           (time-tai->julian-day time)
-           (time-tai->modified-julian-day time)
-           (time-tai->time-monotonic time-in)
-           (time-tai->time-monotonic! time-in)
-           (time-tai->time-utc time-in)
-           (time-tai->time-utc! time-in)
-           (time-utc->date time . tz-offset)
-           (time-utc->julian-day time)
-           (time-utc->modified-julian-day time)
-           (time-utc->time-monotonic time-in)
-           (time-utc->time-monotonic! time-in)
-           (time-utc->time-tai time-in)
-           (time-utc->time-tai! time-in)
-@end example
+@defvar time-process
+CPU time spent in the current process, starting from when the process
+began.
+@cindex process time
+@end defvar
 
-@node SRFI-19 Date to string/string to date converters
-@subsection SRFI-19 Date to string/string to date converters
+@defvar time-thread
+CPU time spent in the current thread.  Not currently implemented.
+@cindex thread time
+@end defvar
 
-@example
-           (date->string date . format-string)
-           (string->date input-string template-string)
-@end example
+@sp 1
+@defun time? obj
+Return @code{#t} if @var{obj} is a time object, or @code{#f} if not.
+@end defun
+
+@defun make-time type nanoseconds seconds
+Create a time object with the given @var{type}, @var{seconds} and
+@var{nanoseconds}.
+@end defun
+
+@defun time-type time
+@defunx time-nanosecond time
+@defunx time-second time
+@defunx set-time-type! time type
+@defunx set-time-nanosecond! time nsec
+@defunx set-time-second! time sec
+Get or set the type, seconds or nanoseconds fields of a time object.
+
+@code{set-time-type!} merely changes the field, it doesn't convert the
+time value.  For conversions, see @ref{SRFI-19 Time/Date conversions}.
+@end defun
+
+@defun copy-time time
+Return a new time object, which is a copy of the given @var{time}.
+@end defun
+
+@defun current-time [type]
+Return the current time of the given @var{type}.  The default
+@var{type} is @code{time-utc}.
+
+Note that the name @code{current-time} conflicts with the Guile core
+@code{current-time} function (@pxref{Time}).  Applications wanting to
+use both will need to use a different name for one of them.
+@end defun
+
+@defun time-resolution [type]
+Return the resolution, in nanoseconds, of the given time @var{type}.
+The default @var{type} is @code{time-utc}.
+@end defun
+
+@defun time<=? t1 t2
+@defunx time<? t1 t2
+@defunx time=? t1 t2
+@defunx time>=? t1 t2
+@defunx time>? t1 t2
+Return @code{#t} or @code{#f} according to the respective relation
+between time objects @var{t1} and @var{t2}.  @var{t1} and @var{t2}
+must be the same time type.
+@end defun
+
+@defun time-difference t1 t2
+@defunx time-difference! t1 t2
+Return a time object of type @code{time-duration} representing the
+period between @var{t1} and @var{t2}.  @var{t1} and @var{t2} must be
+the same time type.
+
+@code{time-difference} returns a new time object,
+@code{time-difference!} may modify @var{t1} to form its return.
+@end defun
+
+@defun add-duration time duration
+@defunx add-duration! time duration
+@defunx subtract-duration time duration
+@defunx subtract-duration! time duration
+Return a time object which is @var{time} with the given @var{duration}
+added or subtracted.  @var{duration} must be a time object of type
+@code{time-duration}.
+
+@code{add-duration} and @code{subtract-duration} return a new time
+object.  @code{add-duration!} and @code{subtract-duration!} may modify
+the given @var{time} to form their return.
+@end defun
+
+
+@node SRFI-19 Date
+@subsection SRFI-19 Date
+@cindex date
+
+A @dfn{date} object represents a date in the Gregorian calendar and a
+time of day on that date in some timezone.
+
+The fields are year, month, day, hour, minute, second, nanoseconds and
+timezone.  A date object is immutable, its fields can be read but they
+cannot be modified once the object is created.
+
+@defun date? obj
+Return @code{#t} if @var{obj} is a date object, or @code{#f} if not.
+@end defun
+
+@defun make-date nsecs seconds minutes hours date month year zone-offset
+Create a new date object.
+@c
+@c  FIXME: What can we say about the ranges of the values.  The
+@c  current code looks it doesn't normalize, but expects then in their
+@c  usual range already.
+@c
+@end defun
+
+@defun date-nanosecond date
+Nanoseconds, 0 to 999999999.
+@end defun
+
+@defun date-second date
+Seconds, 0 to 60.  0 to 59 is the usual range, 60 is for a leap second.
+@end defun
+
+@defun date-minute date
+Minutes, 0 to 59.
+@end defun
+
+@defun date-hour date
+Hour, 0 to 23.
+@end defun
+
+@defun date-day date
+Day of the month, 1 to 31 (or less, according to the month).
+@end defun
+
+@defun date-month date
+Month, 1 to 12.
+@end defun
+
+@defun date-year date
+Year, eg.@: 2003.
+@end defun
+
+@defun date-zone-offset date
+Time zone, an integer number of seconds east of Greenwich.
+@end defun
+
+@defun date-year-day date
+Day of the year, starting from 1 for 1st January.
+@end defun
+
+@defun date-week-day date
+Day of the week, starting from 0 for Sunday.
+@end defun
+
+@defun date-week-number date dstartw
+Week of the year, ignoring a first partial week.  @var{dstartw} is the
+day of the week which is taken to start a week, 0 for Sunday, 1 for
+Monday, etc.
+@c
+@c  FIXME: The spec doesn't say whether numbering starts at 0 or 1.
+@c  The code looks like it's 0, if that's the correct intention.
+@c
+@end defun
+
+@c  The SRFI text doesn't actually give the default for tz-offset, but
+@c  the reference implementation has the local timezone and the
+@c  conversions functions all specify that, so it should be ok to
+@c  document it here.
+@c
+@defun current-date [tz-offset]
+Return a date object representing the current date/time UTC.
+@var{tz-offset} is seconds east of Greenwich, and defaults to the
+local timezone.
+@end defun
+
+@defun current-julian-day
+@cindex julian day
+Return the current Julian Day.
+@end defun
+
+@defun current-modified-julian-day
+@cindex modified julian day
+Return the current Modified Julian Day.
+@end defun
+
+
+@node SRFI-19 Time/Date conversions
+@subsection SRFI-19 Time/Date conversions
+
+@defun date->julian-day date
+@defunx date->modified-julian-day date
+@defunx date->time-monotonic date
+@defunx date->time-tai date
+@defunx date->time-utc date
+@end defun
+@defun julian-day->date jdn [tz-offset]
+@defunx julian-day->time-monotonic jdn
+@defunx julian-day->time-tai jdn
+@defunx julian-day->time-utc jdn
+@end defun
+@defun modified-julian-day->date jdn [tz-offset]
+@defunx modified-julian-day->time-monotonic jdn
+@defunx modified-julian-day->time-tai jdn
+@defunx modified-julian-day->time-utc jdn
+@end defun
+@defun time-monotonic->date time [tz-offset]
+@defunx time-monotonic->time-tai time
+@defunx time-monotonic->time-tai! time
+@defunx time-monotonic->time-utc time
+@defunx time-monotonic->time-utc! time
+@end defun
+@defun time-tai->date time [tz-offset]
+@defunx time-tai->julian-day time
+@defunx time-tai->modified-julian-day time
+@defunx time-tai->time-monotonic time
+@defunx time-tai->time-monotonic! time
+@defunx time-tai->time-utc time
+@defunx time-tai->time-utc! time
+@end defun
+@defun time-utc->date time [tz-offset]
+@defunx time-utc->julian-day time
+@defunx time-utc->modified-julian-day time
+@defunx time-utc->time-monotonic time
+@defunx time-utc->time-monotonic! time
+@defunx time-utc->time-tai time
+@defunx time-utc->time-tai! time
+@sp 1
+Convert between dates, times and days of the respective types.  For
+instance @code{time-tai->time-utc} accepts a @var{time} object of type
+@code{time-tai} and returns an object of type @code{time-utc}.
+
+For conversions to dates, @var{tz-offset} is seconds east of
+Greenwich.  The default is the local timezone.
+
+The @code{!} variants may modify their @var{time} argument to form
+their return.  The plain functions create a new object.
+@end defun
+
+@node SRFI-19 Date to string
+@subsection SRFI-19 Date to string
+@cindex date to string
+
+@defun date->string date [format]
+Convert a date to a string under the control of a format.
+@var{format} should be a string containing @samp{~} escapes, which
+will be expanded as per the following conversion table.  The default
+@var{format} is @samp{~c}, a locale-dependent date and time.
+
+Many of these conversion characters are the same as POSIX
+@code{strftime} (@pxref{Time}), but there are some extras and some
+variations.
+
+@multitable {MMMM} {MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM}
+@item @nicode{~~} @tab literal ~
+@item @nicode{~a} @tab locale abbreviated weekday, eg.@: @samp{Sun}
+@item @nicode{~A} @tab locale full weekday, eg.@: @samp{Sunday}
+@item @nicode{~b} @tab locale abbreviated month, eg.@: @samp{Jan}
+@item @nicode{~B} @tab locale full month, eg.@: @samp{January}
+@item @nicode{~c} @tab locale date and time, eg.@: @*
+@samp{Fri Jul 14 20:28:42-0400 2000}
+@item @nicode{~d} @tab day of month, zero padded, @samp{01} to @samp{31}
+
+@c  Spec says d/m/y, reference implementation says m/d/y.
+@c  Apparently the reference code was the intention, but would like to
+@c  see an errata published for the spec before contradicting it here.
+@c
+@c  @item @nicode{~D} @tab date @nicode{~d/~m/~y}
+
+@item @nicode{~e} @tab day of month, blank padded, @samp{ 1} to @samp{31}
+@item @nicode{~f} @tab seconds and fractional seconds,
+with locale decimal point, eg.@: @samp{5.2}
+@item @nicode{~h} @tab same as @nicode{~b}
+@item @nicode{~H} @tab hour, 24-hour clock, zero padded, @samp{00} to @samp{23}
+@item @nicode{~I} @tab hour, 12-hour clock, zero padded, @samp{01} to @samp{12}
+@item @nicode{~j} @tab day of year, zero padded, @samp{001} to @samp{366}
+@item @nicode{~k} @tab hour, 24-hour clock, blank padded, @samp{ 0} to @samp{23}
+@item @nicode{~l} @tab hour, 12-hour clock, blank padded, @samp{ 1} to @samp{12}
+@item @nicode{~m} @tab month, zero padded, @samp{01} to @samp{12}
+@item @nicode{~M} @tab minute, zero padded, @samp{00} to @samp{59}
+@item @nicode{~n} @tab newline
+@item @nicode{~N} @tab nanosecond, zero padded, @samp{000000000} to @samp{999999999}
+@item @nicode{~p} @tab locale AM or PM
+@item @nicode{~r} @tab time, 12 hour clock, @samp{~I:~M:~S ~p}
+@item @nicode{~s} @tab number of full seconds since ``the epoch'' in UTC
+@item @nicode{~S} @tab second, zero padded @samp{00} to @samp{60} @*
+(usual limit is 59, 60 is a leap second)
+@item @nicode{~t} @tab horizontal tab character
+@item @nicode{~T} @tab time, 24 hour clock, @samp{~H:~M:~S}
+@item @nicode{~U} @tab week of year, Sunday first day of week,
+@samp{00} to @samp{52}
+@item @nicode{~V} @tab week of year, Monday first day of week,
+@samp{01} to @samp{53}
+@item @nicode{~w} @tab day of week, 0 for Sunday, @samp{0} to @samp{6}
+@item @nicode{~W} @tab week of year, Monday first day of week,
+@samp{00} to @samp{52}
+
+@c  The spec has ~x as an apparent duplicate of ~W, and ~X as a locale
+@c  date.  The reference code has ~x as the locale date and ~X as a
+@c  locale time.  The rule is apparently that the code should be
+@c  believed, but would like to see an errata for the spec before
+@c  contradicting it here.
+@c
+@c  @item @nicode{~x} @tab week of year, Monday as first day of week,
+@c  @samp{00} to @samp{53}
+@c  @item @nicode{~X} @tab locale date, eg.@: @samp{07/31/00}
+
+@item @nicode{~y} @tab year, two digits, @samp{00} to @samp{99}
+@item @nicode{~Y} @tab year, full, eg.@: @samp{2003}
+@item @nicode{~z} @tab time zone, RFC-822 style
+@item @nicode{~Z} @tab time zone symbol (not currently implemented)
+@item @nicode{~1} @tab ISO-8601 date, @samp{~Y-~m-~d}
+@item @nicode{~2} @tab ISO-8601 time+zone, @samp{~k:~M:~S~z}
+@item @nicode{~3} @tab ISO-8601 time, @samp{~k:~M:~S}
+@item @nicode{~4} @tab ISO-8601 date/time+zone, @samp{~Y-~m-~dT~k:~M:~S~z}
+@item @nicode{~5} @tab ISO-8601 date/time, @samp{~Y-~m-~dT~k:~M:~S}
+@end multitable
+@end defun
+
+Conversions @samp{~D}, @samp{~x} and @samp{~X} are not currently
+described here, since the specification and reference implementation
+differ.
+
+Currently Guile doesn't implement any localizations for the above, all
+outputs are in English, and the @samp{~c} conversion is POSIX
+@code{ctime} style @samp{~a ~b ~d ~H:~M:~S~z ~Y}.  This may change in
+the future.
+
+
+@node SRFI-19 String to date
+@subsection SRFI-19 String to date
+@cindex string to date
+
+@c  FIXME: Can we say what happens when an incomplete date is
+@c  converted?  Ie. fields left as 0, or what?  The spec seems to be
+@c  silent on this.
+
+@defun string->date input template
+Convert an @var{input} string to a date under the control of a
+@var{template} string.  Return a newly created date object.
+
+Literal characters in @var{template} must match characters in
+@var{input} and @samp{~} escapes must match the input forms described
+in the table below.  ``Skip to'' means characters up to one of the
+given type are ignored, or ``no skip'' for no skipping.  ``Read'' is
+what's then read, and ``Set'' is the field affected in the date
+object.
+
+For example @samp{~Y} skips input characters until a digit is reached,
+at which point it expects a year and stores that to the year field of
+the date.
+
+@multitable {MMMM} {@nicode{char-alphabetic?}} {MMMMMMMMMMMMMMMMMMMMMMMMM} {@nicode{date-zone-offset}}
+@item
+@tab Skip to
+@tab Read
+@tab Set
+
+@item @nicode{~~}
+@tab no skip
+@tab literal ~
+@tab nothing
+
+@item @nicode{~a}
+@tab @nicode{char-alphabetic?}
+@tab locale abbreviated weekday name
+@tab nothing
+
+@item @nicode{~A}
+@tab @nicode{char-alphabetic?}
+@tab locale full weekday name
+@tab nothing
+
+@c  Note that the SRFI spec says that ~b and ~B don't set anything,
+@c  but that looks like a mistake.  The reference implementation sets
+@c  the month field, which seems sensible and is what we describe
+@c  here.
+
+@item @nicode{~b}
+@tab @nicode{char-alphabetic?}
+@tab locale abbreviated month name
+@tab @nicode{date-month}
+
+@item @nicode{~B}
+@tab @nicode{char-alphabetic?}
+@tab locale full month name
+@tab @nicode{date-month}
+
+@item @nicode{~d}
+@tab @nicode{char-numeric?}
+@tab day of month
+@tab @nicode{date-day}
+
+@item @nicode{~e}
+@tab no skip
+@tab day of month, blank padded
+@tab @nicode{date-day}
+
+@item @nicode{~h}
+@tab same as @samp{~b}
+
+@item @nicode{~H}
+@tab @nicode{char-numeric?}
+@tab hour
+@tab @nicode{date-hour}
+
+@item @nicode{~k}
+@tab no skip
+@tab hour, blank padded
+@tab @nicode{date-hour}
+
+@item @nicode{~m}
+@tab @nicode{char-numeric?}
+@tab month
+@tab @nicode{date-month}
+
+@item @nicode{~M}
+@tab @nicode{char-numeric?}
+@tab minute
+@tab @nicode{date-minute}
+
+@item @nicode{~S}
+@tab @nicode{char-numeric?}
+@tab second
+@tab @nicode{date-second}
+
+@item @nicode{~y}
+@tab no skip
+@tab 2-digit year
+@tab @nicode{date-year} within 50 years
+
+@item @nicode{~Y}
+@tab @nicode{char-numeric?}
+@tab year
+@tab @nicode{date-year}
+
+@item @nicode{~z}
+@tab no skip
+@tab time zone
+@tab date-zone-offset
+@end multitable
+
+Notice that the weekday matching forms don't affect the date object
+returned, instead the weekday will be derived from the day, month and
+year.
+
+Currently Guile doesn't implement any localizations for the above,
+month and weekday names are always expected in English.  This may
+change in the future.
+@end defun
+
 
 @c srfi-modules.texi ends here
