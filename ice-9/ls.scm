@@ -64,7 +64,7 @@
 			   (module-uses m)))))))
 
 (define-public (ls . various-refs)
-  (and various-refs
+  (and (pair? various-refs)
        (if (cdr various-refs)
 	   (map (lambda (ref)
 		  (cons ref (definitions-in (current-module) ref)))
@@ -72,7 +72,7 @@
 	   (definitions-in (current-module) (car various-refs)))))
 
 (define-public (lls . various-refs)
-  (and various-refs
+  (and (pair? various-refs)
        (if (cdr various-refs)
 	   (map (lambda (ref)
 		  (cons ref (local-definitions-in (current-module) ref)))
