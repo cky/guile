@@ -51,15 +51,6 @@
 			      start, &c_start, end, &c_end);  \
   } while (0)
 
-/* Likewise for SCM_VALIDATE_STRING_COPY. */
-
-#define MY_VALIDATE_STRING_COPY(pos, str, cvar)  \
-  do {                                           \
-    scm_validate_string (pos, str);              \
-    cvar = scm_i_string_chars (str);             \
-  } while (0)
-
-
 SCM_DEFINE (scm_string_null_p, "string-null?", 1, 0, 0,
            (SCM str),
 	    "Return @code{#t} if @var{str}'s length is zero, and\n"
@@ -75,6 +66,14 @@ SCM_DEFINE (scm_string_null_p, "string-null?", 1, 0, 0,
   return scm_from_bool (scm_i_string_length (str) == 0);
 }
 #undef FUNC_NAME
+
+#if 0
+static void
+race_error ()
+{
+  scm_misc_error (NULL, "race condition detected", SCM_EOL);
+}
+#endif
 
 SCM_DEFINE (scm_string_any, "string-any", 2, 2, 0,
             (SCM char_pred, SCM s, SCM start, SCM end),
@@ -92,8 +91,8 @@ SCM_DEFINE (scm_string_any, "string-any", 2, 2, 0,
 #define FUNC_NAME s_scm_string_any
 {
   const char *cstr;
-  int cstart, cend;
-  SCM res;
+  size_t cstart, cend;
+  SCM res = SCM_BOOL_F;
 
   MY_VALIDATE_SUBSTRING_SPEC_COPY (2, s, cstr,
 				   3, start, cstart,
@@ -101,32 +100,36 @@ SCM_DEFINE (scm_string_any, "string-any", 2, 2, 0,
 
   if (SCM_CHARP (char_pred))
     {
-      return (memchr (cstr+cstart, (int) SCM_CHAR (char_pred),
-                      cend-cstart) == NULL
-              ? SCM_BOOL_F : SCM_BOOL_T);
+      res = (memchr (cstr+cstart, (int) SCM_CHAR (char_pred),
+		     cend-cstart) == NULL
+	     ? SCM_BOOL_F : SCM_BOOL_T);
     }
   else if (SCM_CHARSETP (char_pred))
     {
       int i;
       for (i = cstart; i < cend; i++)
         if (SCM_CHARSET_GET (char_pred, cstr[i]))
-          return SCM_BOOL_T;
+	  {
+	    res = SCM_BOOL_T;
+	    break;
+	  }
     }
   else
     {
       SCM_VALIDATE_PROC (1, char_pred);
 
-      cstr += cstart;
       while (cstart < cend)
         {
-          res = scm_call_1 (char_pred, SCM_MAKE_CHAR (*cstr));
+          res = scm_call_1 (char_pred, SCM_MAKE_CHAR (cstr[cstart]));
           if (scm_is_true (res))
-            return res;
-          cstr++;
+            break;
+	  cstr = scm_i_string_chars (s);
           cstart++;
         }
     }
-  return SCM_BOOL_F;
+
+  scm_remember_upto_here_1 (s);
+  return res;
 }
 #undef FUNC_NAME
 
@@ -151,8 +154,8 @@ SCM_DEFINE (scm_string_every, "string-every", 2, 2, 0,
 #define FUNC_NAME s_scm_string_every
 {
   const char *cstr;
-  int cstart, cend;
-  SCM res;
+  size_t cstart, cend;
+  SCM res = SCM_BOOL_T;
 
   MY_VALIDATE_SUBSTRING_SPEC_COPY (2, s, cstr,
 				   3, start, cstart,
@@ -163,33 +166,37 @@ SCM_DEFINE (scm_string_every, "string-every", 2, 2, 0,
       int i;
       for (i = cstart; i < cend; i++)
         if (cstr[i] != cchr)
-          return SCM_BOOL_F;
-      return SCM_BOOL_T;
+	  {
+	    res = SCM_BOOL_F;
+	    break;
+	  }
     }
   else if (SCM_CHARSETP (char_pred))
     {
       int i;
       for (i = cstart; i < cend; i++)
-        if (! SCM_CHARSET_GET (char_pred, cstr[i]))
-          return SCM_BOOL_F;
-      return SCM_BOOL_T;
+        if (!SCM_CHARSET_GET (char_pred, cstr[i]))
+	  {
+	    res = SCM_BOOL_F;
+	    break;
+	  }
     }
   else
     {
       SCM_VALIDATE_PROC (1, char_pred);
 
-      res = SCM_BOOL_T;
-      cstr += cstart;
       while (cstart < cend)
         {
-          res = scm_call_1 (char_pred, SCM_MAKE_CHAR (*cstr));
+          res = scm_call_1 (char_pred, SCM_MAKE_CHAR (cstr[cstart]));
           if (scm_is_false (res))
-            return res;
-          cstr++;
+            break;
+          cstr = scm_i_string_chars (s);
           cstart++;
         }
-      return res;
     }
+
+  scm_remember_upto_here_1 (s);
+  return res;
 }
 #undef FUNC_NAME
 
@@ -235,7 +242,7 @@ SCM_DEFINE (scm_substring_to_list, "string->list", 1, 2, 0,
 #define FUNC_NAME s_scm_substring_to_list
 {
   const char *cstr;
-  int cstart, cend;
+  size_t cstart, cend;
   SCM result = SCM_EOL;
 
   MY_VALIDATE_SUBSTRING_SPEC_COPY (1, str, cstr,
@@ -245,7 +252,9 @@ SCM_DEFINE (scm_substring_to_list, "string->list", 1, 2, 0,
     {
       cend--;
       result = scm_cons (SCM_MAKE_CHAR (cstr[cend]), result);
+      cstr = scm_i_string_chars (str);
     }
+  scm_remember_upto_here_1 (str);
   return result;
 }
 #undef FUNC_NAME
@@ -282,7 +291,7 @@ SCM_DEFINE (scm_reverse_list_to_string, "reverse-list->string", 1, 0, 0,
   {
     
     data += i;
-    while (!SCM_NULLP (chrs))
+    while (i > 0 && SCM_CONSP (chrs))
       {
 	SCM elt = SCM_CAR (chrs);
 
@@ -290,8 +299,10 @@ SCM_DEFINE (scm_reverse_list_to_string, "reverse-list->string", 1, 0, 0,
 	data--;
 	*data = SCM_CHAR (elt);
 	chrs = SCM_CDR (chrs);
+	i--;
       }
   }
+
   return result;
 }
 #undef FUNC_NAME
@@ -301,6 +312,18 @@ SCM_SYMBOL (scm_sym_infix, "infix");
 SCM_SYMBOL (scm_sym_strict_infix, "strict-infix");
 SCM_SYMBOL (scm_sym_suffix, "suffix");
 SCM_SYMBOL (scm_sym_prefix, "prefix");
+
+static void
+append_string (char **sp, size_t *lp, SCM str)
+{
+  size_t len;
+  len = scm_c_string_length (str);
+  if (len > *lp)
+    len = *lp;
+  memcpy (*sp, scm_i_string_chars (str), len);
+  *lp -= len;
+  *sp += len;
+}
 
 SCM_DEFINE (scm_string_join, "string-join", 1, 2, 0,
             (SCM ls, SCM delimiter, SCM grammar),
@@ -331,9 +354,9 @@ SCM_DEFINE (scm_string_join, "string-join", 1, 2, 0,
   SCM tmp;
   SCM result;
   int gram = GRAM_INFIX;
-  int del_len = 0, extra_len = 0;
-  int len = 0;
-  char * p;
+  size_t del_len = 0;
+  size_t len = 0;
+  char *p;
   long strings = scm_ilength (ls);
 
   /* Validate the string list.  */
@@ -347,10 +370,7 @@ SCM_DEFINE (scm_string_join, "string-join", 1, 2, 0,
       del_len = 1;
     }
   else
-    {
-      SCM_VALIDATE_STRING (2, delimiter);
-      del_len = scm_i_string_length (delimiter);
-    }
+    del_len = scm_c_string_length (delimiter);
 
   /* Validate the grammar symbol and remember the grammar.  */
   if (SCM_UNBNDP (grammar))
@@ -372,80 +392,61 @@ SCM_DEFINE (scm_string_join, "string-join", 1, 2, 0,
     {
     case GRAM_INFIX:
       if (!SCM_NULLP (ls))
-	extra_len = (strings > 0) ? ((strings - 1) * del_len) : 0;
+	len = (strings > 0) ? ((strings - 1) * del_len) : 0;
       break;
     case GRAM_STRICT_INFIX:
       if (strings == 0)
 	SCM_MISC_ERROR ("strict-infix grammar requires non-empty list",
 			SCM_EOL);
-      extra_len = (strings - 1) * del_len;
+      len = (strings - 1) * del_len;
       break;
     default:
-      extra_len = strings * del_len;
+      len = strings * del_len;
       break;
     }
 
   tmp = ls;
   while (SCM_CONSP (tmp))
     {
-      SCM elt = SCM_CAR (tmp);
-      SCM_VALIDATE_STRING (1, elt);
-      len += scm_i_string_length (elt);
+      len += scm_c_string_length (SCM_CAR (tmp));
       tmp = SCM_CDR (tmp);
     }
 
-  result = scm_i_make_string (len + extra_len, &p);
+  result = scm_i_make_string (len, &p);
 
   tmp = ls;
   switch (gram)
     {
     case GRAM_INFIX:
     case GRAM_STRICT_INFIX:
-      while (!SCM_NULLP (tmp))
+      while (SCM_CONSP (tmp))
 	{
-	  SCM elt = SCM_CAR (tmp);
-	  memmove (p, scm_i_string_chars (elt),
-		   scm_i_string_length (elt));
-	  p += scm_i_string_length (elt);
+	  append_string (&p, &len, SCM_CAR (tmp));
 	  if (!SCM_NULLP (SCM_CDR (tmp)) && del_len > 0)
-	    {
-	      memmove (p, scm_i_string_chars (delimiter), del_len);
-	      p += del_len;
-	    }
+	    append_string (&p, &len, delimiter);
 	  tmp = SCM_CDR (tmp);
 	}
       break;
     case GRAM_SUFFIX:
-      while (!SCM_NULLP (tmp))
+      while (SCM_CONSP (tmp))
 	{
-	  SCM elt = SCM_CAR (tmp);
-	  memmove (p, scm_i_string_chars (elt),
-		   scm_i_string_length (elt));
-	  p += scm_i_string_length (elt);
+	  append_string (&p, &len, SCM_CAR (tmp));
 	  if (del_len > 0)
-	    {
-	      memmove (p, scm_i_string_chars (delimiter), del_len);
-	      p += del_len;
-	    }
+	    append_string (&p, &len, delimiter);
 	  tmp = SCM_CDR (tmp);
 	}
       break;
     case GRAM_PREFIX:
-      while (!SCM_NULLP (tmp))
+      while (SCM_CONSP (tmp))
 	{
-	  SCM elt = SCM_CAR (tmp);
 	  if (del_len > 0)
-	    {
-	      memmove (p, scm_i_string_chars (delimiter), del_len);
-	      p += del_len;
-	    }
-	  memmove (p, scm_i_string_chars (elt),
-		   scm_i_string_length (elt));
-	  p += scm_i_string_length (elt);
+	    append_string (&p, &len, delimiter);
+	  append_string (&p, &len, SCM_CAR (tmp));
 	  tmp = SCM_CDR (tmp);
 	}
       break;
     }
+
   return result;
 #undef GRAM_INFIX
 #undef GRAM_STRICT_INFIX
@@ -524,6 +525,7 @@ SCM_DEFINE (scm_string_copy_x, "string-copy!", 3, 2, 0,
   ctarget = scm_i_string_writable_chars (target);
   memmove (ctarget + ctstart, cstr + cstart, len);
   scm_i_string_stop_writing ();
+  scm_remember_upto_here_1 (target);
 
   return SCM_UNSPECIFIED;
 }
@@ -593,12 +595,11 @@ SCM_DEFINE (scm_string_pad, "string-pad", 2, 3, 0,
 #define FUNC_NAME s_scm_string_pad
 {
   char cchr;
-  const char *cstr;
   size_t cstart, cend, clen;
 
-  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, s, cstr,
-				   4, start, cstart,
-				   5, end, cend);
+  MY_VALIDATE_SUBSTRING_SPEC (1, s,
+			      4, start, cstart,
+			      5, end, cend);
   clen = scm_to_size_t (len);
 
   if (SCM_UNBNDP (chr))
@@ -617,7 +618,8 @@ SCM_DEFINE (scm_string_pad, "string-pad", 2, 3, 0,
 
       result = scm_i_make_string (clen, &dst);
       memset (dst, cchr, (clen - (cend - cstart)));
-      memmove (dst + clen - (cend - cstart), cstr + cstart, cend - cstart);
+      memmove (dst + clen - (cend - cstart),
+	       scm_i_string_chars (s) + cstart, cend - cstart);
       return result;
     }
 }
@@ -633,12 +635,11 @@ SCM_DEFINE (scm_string_pad_right, "string-pad-right", 2, 3, 0,
 #define FUNC_NAME s_scm_string_pad_right
 {
   char cchr;
-  const char *cstr;
   size_t cstart, cend, clen;
 
-  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, s, cstr,
-				   4, start, cstart,
-				   5, end, cend);
+  MY_VALIDATE_SUBSTRING_SPEC (1, s,
+			      4, start, cstart,
+			      5, end, cend);
   clen = scm_to_size_t (len);
 
   if (SCM_UNBNDP (chr))
@@ -657,7 +658,7 @@ SCM_DEFINE (scm_string_pad_right, "string-pad-right", 2, 3, 0,
 
       result = scm_i_make_string (clen, &dst);
       memset (dst + (cend - cstart), cchr, clen - (cend - cstart));
-      memmove (dst, cstr + cstart, cend - cstart);
+      memmove (dst, scm_i_string_chars (s) + cstart, cend - cstart);
       return result;
     }
 }
@@ -955,6 +956,8 @@ SCM_DEFINE (scm_substring_fill_x, "string-fill!", 2, 2, 0,
   for (k = cstart; k < cend; k++)
     cstr[k] = c;
   scm_i_string_stop_writing ();
+  scm_remember_upto_here_1 (str);
+
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -977,6 +980,7 @@ SCM_DEFINE (scm_string_compare, "string-compare", 5, 4, 0,
 {
   const char *cstr1, *cstr2;
   size_t cstart1, cend1, cstart2, cend2;
+  SCM proc;
 
   MY_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cstr1,
 				   6, start1, cstart1,
@@ -991,18 +995,28 @@ SCM_DEFINE (scm_string_compare, "string-compare", 5, 4, 0,
   while (cstart1 < cend1 && cstart2 < cend2)
     {
       if (cstr1[cstart1] < cstr2[cstart2])
-	return scm_call_1 (proc_lt, scm_from_size_t (cstart1));
+	{
+	  proc = proc_lt;
+	  goto ret;
+	}
       else if (cstr1[cstart1] > cstr2[cstart2])
-	return scm_call_1 (proc_gt, scm_from_size_t (cstart1));
+	{
+	  proc = proc_gt;
+	  goto ret;
+	}
       cstart1++;
       cstart2++;
     }
   if (cstart1 < cend1)
-    return scm_call_1 (proc_gt, scm_from_size_t (cstart1));
+    proc = proc_gt;
   else if (cstart2 < cend2)
-    return scm_call_1 (proc_lt, scm_from_size_t (cstart1));
+    proc = proc_lt;
   else
-    return scm_call_1 (proc_eq, scm_from_size_t (cstart1));
+    proc = proc_eq;
+
+ ret:
+  scm_remember_upto_here_2 (s1, s2);
+  return scm_call_1 (proc, scm_from_size_t (cstart1));
 }
 #undef FUNC_NAME
 
@@ -1020,6 +1034,7 @@ SCM_DEFINE (scm_string_compare_ci, "string-compare-ci", 5, 4, 0,
 {
   const char *cstr1, *cstr2;
   size_t cstart1, cend1, cstart2, cend2;
+  SCM proc;
 
   MY_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cstr1,
 				   6, start1, cstart1,
@@ -1034,18 +1049,30 @@ SCM_DEFINE (scm_string_compare_ci, "string-compare-ci", 5, 4, 0,
   while (cstart1 < cend1 && cstart2 < cend2)
     {
       if (scm_c_downcase (cstr1[cstart1]) < scm_c_downcase (cstr2[cstart2]))
-	return scm_call_1 (proc_lt, scm_from_size_t (cstart1));
-      else if (scm_c_downcase (cstr1[cstart1]) > scm_c_downcase (cstr2[cstart2]))
-	return scm_call_1 (proc_gt, scm_from_size_t (cstart1));
+	{
+	  proc = proc_lt;
+	  goto ret;
+	}
+      else if (scm_c_downcase (cstr1[cstart1]) 
+	       > scm_c_downcase (cstr2[cstart2]))
+	{
+	  proc = proc_gt;
+	  goto ret;
+	}
       cstart1++;
       cstart2++;
     }
+
   if (cstart1 < cend1)
-    return scm_call_1 (proc_gt, scm_from_size_t (cstart1));
+    proc = proc_gt;
   else if (cstart2 < cend2)
-    return scm_call_1 (proc_lt, scm_from_size_t (cstart1));
+    proc = proc_lt;
   else
-    return scm_call_1 (proc_eq, scm_from_size_t (cstart1));
+    proc = proc_eq;
+
+ ret:
+  scm_remember_upto_here (s1, s2);
+  return scm_call_1 (proc, scm_from_size_t (cstart1));
 }
 #undef FUNC_NAME
 
@@ -1618,11 +1645,14 @@ SCM_DEFINE (scm_string_prefix_length, "string-prefix-length", 2, 4, 0,
   while (cstart1 < cend1 && cstart2 < cend2)
     {
       if (cstr1[cstart1] != cstr2[cstart2])
-	return scm_from_size_t (len);
+	goto ret;
       len++;
       cstart1++;
       cstart2++;
     }
+
+ ret:
+  scm_remember_upto_here_2 (s1, s2);
   return scm_from_size_t (len);
 }
 #undef FUNC_NAME
@@ -1647,11 +1677,14 @@ SCM_DEFINE (scm_string_prefix_length_ci, "string-prefix-length-ci", 2, 4, 0,
   while (cstart1 < cend1 && cstart2 < cend2)
     {
       if (scm_c_downcase (cstr1[cstart1]) != scm_c_downcase (cstr2[cstart2]))
-	return scm_from_size_t (len);
+	goto ret;
       len++;
       cstart1++;
       cstart2++;
     }
+
+ ret:
+  scm_remember_upto_here_2 (s1, s2);
   return scm_from_size_t (len);
 }
 #undef FUNC_NAME
@@ -1678,9 +1711,12 @@ SCM_DEFINE (scm_string_suffix_length, "string-suffix-length", 2, 4, 0,
       cend1--;
       cend2--;
       if (cstr1[cend1] != cstr2[cend2])
-	return scm_from_size_t (len);
+	goto ret;
       len++;
     }
+
+ ret:
+  scm_remember_upto_here_2 (s1, s2);
   return scm_from_size_t (len);
 }
 #undef FUNC_NAME
@@ -1707,9 +1743,12 @@ SCM_DEFINE (scm_string_suffix_length_ci, "string-suffix-length-ci", 2, 4, 0,
       cend1--;
       cend2--;
       if (scm_c_downcase (cstr1[cend1]) != scm_c_downcase (cstr2[cend2]))
-	return scm_from_size_t (len);
+	goto ret;
       len++;
     }
+
+ ret:
+  scm_remember_upto_here_2 (s1, s2);
   return scm_from_size_t (len);
 }
 #undef FUNC_NAME
@@ -1734,11 +1773,14 @@ SCM_DEFINE (scm_string_prefix_p, "string-prefix?", 2, 4, 0,
   while (cstart1 < cend1 && cstart2 < cend2)
     {
       if (cstr1[cstart1] != cstr2[cstart2])
-	return scm_from_bool (len == len1);
+	goto ret;
       len++;
       cstart1++;
       cstart2++;
     }
+
+ ret:
+  scm_remember_upto_here_2 (s1, s2);
   return scm_from_bool (len == len1);
 }
 #undef FUNC_NAME
@@ -1763,11 +1805,14 @@ SCM_DEFINE (scm_string_prefix_ci_p, "string-prefix-ci?", 2, 4, 0,
   while (cstart1 < cend1 && cstart2 < cend2)
     {
       if (scm_c_downcase (cstr1[cstart1]) != scm_c_downcase (cstr2[cstart2]))
-	return scm_from_bool (len == len1);
+	goto ret;
       len++;
       cstart1++;
       cstart2++;
     }
+
+ ret:
+  scm_remember_upto_here_2 (s1, s2);
   return scm_from_bool (len == len1);
 }
 #undef FUNC_NAME
@@ -1794,9 +1839,12 @@ SCM_DEFINE (scm_string_suffix_p, "string-suffix?", 2, 4, 0,
       cend1--;
       cend2--;
       if (cstr1[cend1] != cstr2[cend2])
-	return scm_from_bool (len == len1);
+	goto ret;
       len++;
     }
+
+ ret:
+  scm_remember_upto_here_2 (s1, s2);
   return scm_from_bool (len == len1);
 }
 #undef FUNC_NAME
@@ -1823,9 +1871,12 @@ SCM_DEFINE (scm_string_suffix_ci_p, "string-suffix-ci?", 2, 4, 0,
       cend1--;
       cend2--;
       if (scm_c_downcase (cstr1[cend1]) != scm_c_downcase (cstr2[cend2]))
-	return scm_from_bool (len == len1);
+	goto ret;
       len++;
     }
+
+ ret:
+  scm_remember_upto_here_2 (s1, s2);
   return scm_from_bool (len == len1);
 }
 #undef FUNC_NAME
@@ -1860,7 +1911,7 @@ SCM_DEFINE (scm_string_index, "string-index", 2, 2, 0,
       while (cstart < cend)
 	{
 	  if (cchr == cstr[cstart])
-	    return scm_from_size_t (cstart);
+	    goto found;
 	  cstart++;
 	}
     }
@@ -1869,7 +1920,7 @@ SCM_DEFINE (scm_string_index, "string-index", 2, 2, 0,
       while (cstart < cend)
 	{
 	  if (SCM_CHARSET_GET (char_pred, cstr[cstart]))
-	    return scm_from_size_t (cstart);
+	    goto found;
 	  cstart++;
 	}
     }
@@ -1881,12 +1932,18 @@ SCM_DEFINE (scm_string_index, "string-index", 2, 2, 0,
 	  SCM res;
 	  res = scm_call_1 (char_pred, SCM_MAKE_CHAR (cstr[cstart]));
 	  if (scm_is_true (res))
-	    return scm_from_size_t (cstart);
+	    goto found;
 	  cstr = scm_i_string_chars (s);
 	  cstart++;
 	}
     }
+  
+  scm_remember_upto_here_1 (s);
   return SCM_BOOL_F;
+  
+ found:
+  scm_remember_upto_here_1 (s);
+  return scm_from_size_t (cstart);
 }
 #undef FUNC_NAME
 
@@ -1920,7 +1977,7 @@ SCM_DEFINE (scm_string_index_right, "string-index-right", 2, 2, 0,
 	{
 	  cend--;
 	  if (cchr == cstr[cend])
-	    return scm_from_size_t (cend);
+	    goto found;
 	}
     }
   else if (SCM_CHARSETP (char_pred))
@@ -1929,7 +1986,7 @@ SCM_DEFINE (scm_string_index_right, "string-index-right", 2, 2, 0,
 	{
 	  cend--;
 	  if (SCM_CHARSET_GET (char_pred, cstr[cend]))
-	    return scm_from_size_t (cend);
+	    goto found;
 	}
     }
   else
@@ -1941,11 +1998,17 @@ SCM_DEFINE (scm_string_index_right, "string-index-right", 2, 2, 0,
 	  cend--;
 	  res = scm_call_1 (char_pred, SCM_MAKE_CHAR (cstr[cend]));
 	  if (scm_is_true (res))
-	    return scm_from_size_t (cend);
+	    goto found;
 	  cstr = scm_i_string_chars (s);
 	}
     }
+
+  scm_remember_upto_here_1 (s);
   return SCM_BOOL_F;
+
+ found:
+  scm_remember_upto_here_1 (s);
+  return scm_from_size_t (cend);
 }
 #undef FUNC_NAME
 
@@ -1964,9 +2027,11 @@ SCM_DEFINE (scm_string_rindex, "string-rindex", 2, 2, 0,
 	    "@item\n"
 	    "is in the set if @var{char_pred} is a character set.\n"
 	    "@end itemize")
+#define FUNC_NAME s_scm_string_rindex
 {
   return scm_string_index_right (s, char_pred, start, end);
 }
+#undef FUNC_NAME
 
 SCM_DEFINE (scm_string_skip, "string-skip", 2, 2, 0,
 	    (SCM s, SCM char_pred, SCM start, SCM end),
@@ -1998,7 +2063,7 @@ SCM_DEFINE (scm_string_skip, "string-skip", 2, 2, 0,
       while (cstart < cend)
 	{
 	  if (cchr != cstr[cstart])
-	    return scm_from_size_t (cstart);
+	    goto found;
 	  cstart++;
 	}
     }
@@ -2007,7 +2072,7 @@ SCM_DEFINE (scm_string_skip, "string-skip", 2, 2, 0,
       while (cstart < cend)
 	{
 	  if (!SCM_CHARSET_GET (char_pred, cstr[cstart]))
-	    return scm_from_size_t (cstart);
+	    goto found;
 	  cstart++;
 	}
     }
@@ -2019,12 +2084,18 @@ SCM_DEFINE (scm_string_skip, "string-skip", 2, 2, 0,
 	  SCM res;
 	  res = scm_call_1 (char_pred, SCM_MAKE_CHAR (cstr[cstart]));
 	  if (scm_is_false (res))
-	    return scm_from_size_t (cstart);
+	    goto found;
 	  cstr = scm_i_string_chars (s);
 	  cstart++;
 	}
     }
+
+  scm_remember_upto_here_1 (s);
   return SCM_BOOL_F;
+
+ found:
+  scm_remember_upto_here_1 (s);
+  return scm_from_size_t (cstart);
 }
 #undef FUNC_NAME
 
@@ -2060,7 +2131,7 @@ SCM_DEFINE (scm_string_skip_right, "string-skip-right", 2, 2, 0,
 	{
 	  cend--;
 	  if (cchr != cstr[cend])
-	    return scm_from_size_t (cend);
+	    goto found;
 	}
     }
   else if (SCM_CHARSETP (char_pred))
@@ -2069,7 +2140,7 @@ SCM_DEFINE (scm_string_skip_right, "string-skip-right", 2, 2, 0,
 	{
 	  cend--;
 	  if (!SCM_CHARSET_GET (char_pred, cstr[cend]))
-	    return scm_from_size_t (cend);
+	    goto found;
 	}
     }
   else
@@ -2081,11 +2152,18 @@ SCM_DEFINE (scm_string_skip_right, "string-skip-right", 2, 2, 0,
 	  cend--;
 	  res = scm_call_1 (char_pred, SCM_MAKE_CHAR (cstr[cend]));
 	  if (scm_is_false (res))
-	    return scm_from_size_t (cend);
+	    goto found;
 	  cstr = scm_i_string_chars (s);
 	}
     }
+
+  scm_remember_upto_here_1 (s);
   return SCM_BOOL_F;
+
+ found:
+  scm_remember_upto_here_1 (s);
+  return scm_from_size_t (cend);
+
 }
 #undef FUNC_NAME
 
@@ -2146,6 +2224,8 @@ SCM_DEFINE (scm_string_count, "string-count", 2, 2, 0,
 	  cstart++;
 	}
     }
+
+  scm_remember_upto_here_1 (s);
   return scm_from_size_t (count);
 }
 #undef FUNC_NAME
@@ -2183,9 +2263,14 @@ SCM_DEFINE (scm_string_contains, "string-contains", 2, 4, 0,
 	  j++;
 	}
       if (j == cend2)
-	return scm_from_size_t (cstart1);
+	{
+	  scm_remember_upto_here_2 (s1, s2);
+	  return scm_from_size_t (cstart1);
+	}
       cstart1++;
     }
+
+  scm_remember_upto_here_2 (s1, s2);
   return SCM_BOOL_F;
 }
 #undef FUNC_NAME
@@ -2225,9 +2310,14 @@ SCM_DEFINE (scm_string_contains_ci, "string-contains-ci", 2, 4, 0,
 	  j++;
 	}
       if (j == cend2)
-	return scm_from_size_t (cstart1);
+	{
+	  scm_remember_upto_here_2 (s1, s2);
+	  return scm_from_size_t (cstart1);
+	}
       cstart1++;
     }
+  
+  scm_remember_upto_here_2 (s1, s2);
   return SCM_BOOL_F;
 }
 #undef FUNC_NAME
@@ -2245,6 +2335,7 @@ string_upcase_x (SCM v, int start, int end)
   for (k = start; k < end; ++k)
     dst[k] = scm_c_upcase (dst[k]);
   scm_i_string_stop_writing ();
+  scm_remember_upto_here_1 (v);
 
   return v;
 }
@@ -2310,6 +2401,7 @@ string_downcase_x (SCM v, int start, int end)
   for (k = start; k < end; ++k)
     dst[k] = scm_c_downcase (dst[k]);
   scm_i_string_stop_writing ();
+  scm_remember_upto_here_1 (v);
 
   return v;
 }
@@ -2393,6 +2485,7 @@ string_titlecase_x (SCM str, int start, int end)
 	in_word = 0;
     }
   scm_i_string_stop_writing ();
+  scm_remember_upto_here_1 (str);
 
   return str;
 }
@@ -2429,9 +2522,6 @@ SCM_DEFINE (scm_string_titlecase, "string-titlecase", 1, 2, 0,
   return string_titlecase_x (scm_string_copy (str), cstart, cend);
 }
 #undef FUNC_NAME
-
-/* Old names, the functions.
- */
 
 SCM_DEFINE (scm_string_capitalize_x, "string-capitalize!", 1, 0, 0,
 	    (SCM str),
@@ -2500,6 +2590,7 @@ SCM_DEFINE (scm_string_reverse, "string-reverse", 1, 2, 0,
   ctarget = scm_i_string_writable_chars (result);
   string_reverse_x (ctarget, cstart, cend);
   scm_i_string_stop_writing ();
+  scm_remember_upto_here_1 (str);
   return result;
 }
 #undef FUNC_NAME
@@ -2522,7 +2613,6 @@ SCM_DEFINE (scm_string_reverse_x, "string-reverse!", 1, 2, 0,
   cstr = scm_i_string_writable_chars (str);
   string_reverse_x (cstr, cstart, cend);
   scm_i_string_stop_writing ();
-
   scm_remember_upto_here_1 (str);
   return SCM_UNSPECIFIED;
 }
@@ -2578,65 +2668,13 @@ SCM_DEFINE (scm_string_concatenate_reverse, "string-concatenate-reverse", 1, 2, 
 	    "Guaranteed to return a freshly allocated string.")
 #define FUNC_NAME s_scm_string_concatenate_reverse
 {
-  long strings;
-  SCM tmp, result;
-  size_t len = 0;
-  char * p;
-  size_t cend = 0;
+  if (!SCM_UNBNDP (end))
+    final_string = scm_substring (final_string, SCM_INUM0, end);
 
-  /* Check the optional arguments and calculate the additional length
-     of the result string.  */
   if (!SCM_UNBNDP (final_string))
-    {
-      SCM_VALIDATE_STRING (2, final_string);
-      if (!SCM_UNBNDP (end))
-	{
-	  cend = scm_to_unsigned_integer (end,
-					  0,
-					  scm_i_string_length (final_string));
-	}
-      else
-	{
-	  cend = scm_i_string_length (final_string);
-	}
-      len += cend;
-    }
-  strings = scm_ilength (ls);
-  /* Validate the string list.  */
-  if (strings < 0)
-    SCM_WRONG_TYPE_ARG (1, ls);
+    ls = scm_cons (final_string, ls);
 
-  /* Calculate the length of the result string.  */
-  tmp = ls;
-  while (!SCM_NULLP (tmp))
-    {
-      SCM elt = SCM_CAR (tmp);
-      SCM_VALIDATE_STRING (1, elt);
-      len += scm_i_string_length (elt);
-      tmp = SCM_CDR (tmp);
-    }
-
-  result = scm_i_make_string (len, &p);
-
-  p += len;
-
-  /* Construct the result string, possibly by using the optional final
-     string.  */
-  if (!SCM_UNBNDP (final_string))
-    {
-      p -= cend;
-      memmove (p, scm_i_string_chars (final_string), cend);
-    }
-  tmp = ls;
-  while (!SCM_NULLP (tmp))
-    {
-      SCM elt = SCM_CAR (tmp);
-      p -= scm_i_string_length (elt);
-      memmove (p, scm_i_string_chars (elt),
-	       scm_i_string_length (elt));
-      tmp = SCM_CDR (tmp);
-    }
-  return result;
+  return scm_string_concatenate (scm_reverse (ls));
 }
 #undef FUNC_NAME
 
@@ -2671,23 +2709,20 @@ SCM_DEFINE (scm_string_map, "string-map", 2, 2, 0,
 	    "string elements is not specified.")
 #define FUNC_NAME s_scm_string_map
 {
-  const char *cstr;
   char *p;
   size_t cstart, cend;
   SCM result;
 
   SCM_VALIDATE_PROC (1, proc);
-  MY_VALIDATE_SUBSTRING_SPEC_COPY (2, s, cstr,
-				   3, start, cstart,
-				   4, end, cend);
+  MY_VALIDATE_SUBSTRING_SPEC (2, s,
+			      3, start, cstart,
+			      4, end, cend);
   result = scm_i_make_string (cend - cstart, &p);
   while (cstart < cend)
     {
-      unsigned int c =  (unsigned char) cstr[cstart];
-      SCM ch = scm_call_1 (proc, SCM_MAKE_CHAR (c));
+      SCM ch = scm_call_1 (proc, scm_c_string_ref (s, cstart));
       if (!SCM_CHARP (ch))
 	SCM_MISC_ERROR ("procedure ~S returned non-char", scm_list_1 (proc));
-      cstr = scm_i_string_chars (s);
       cstart++;
       *p++ = SCM_CHAR (ch);
     }
@@ -2747,6 +2782,8 @@ SCM_DEFINE (scm_string_fold, "string-fold", 3, 2, 0,
       cstr = scm_i_string_chars (s);
       cstart++;
     }
+
+  scm_remember_upto_here_1 (s);
   return result;
 }
 #undef FUNC_NAME
@@ -2776,6 +2813,8 @@ SCM_DEFINE (scm_string_fold_right, "string-fold-right", 3, 2, 0,
       cstr = scm_i_string_chars (s);
       cend--;
     }
+
+  scm_remember_upto_here_1 (s);
   return result;
 }
 #undef FUNC_NAME
@@ -2927,6 +2966,8 @@ SCM_DEFINE (scm_string_for_each, "string-for-each", 2, 2, 0,
       cstr = scm_i_string_chars (s);
       cstart++;
     }
+
+  scm_remember_upto_here_1 (s);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -2937,18 +2978,20 @@ SCM_DEFINE (scm_string_for_each_index, "string-for-each-index", 2, 2, 0,
 	    "return value is not specified.")
 #define FUNC_NAME s_scm_string_for_each_index
 {
-  const char *cstr;
   size_t cstart, cend;
 
   SCM_VALIDATE_PROC (1, proc);
-  MY_VALIDATE_SUBSTRING_SPEC_COPY (2, s, cstr,
-				   3, start, cstart,
-				   4, end, cend);
+  MY_VALIDATE_SUBSTRING_SPEC (2, s,
+			      3, start, cstart,
+			      4, end, cend);
+
   while (cstart < cend)
     {
       scm_call_1 (proc, scm_from_size_t (cstart));
       cstart++;
     }
+
+  scm_remember_upto_here_1 (s);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -2972,9 +3015,10 @@ SCM_DEFINE (scm_xsubstring, "xsubstring", 2, 3, 0,
   size_t cstart, cend, cfrom, cto;
   SCM result;
 
-  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, s, cs,
-				   4, start, cstart,
-				   5, end, cend);
+  MY_VALIDATE_SUBSTRING_SPEC (1, s,
+			      4, start, cstart,
+			      5, end, cend);
+
   cfrom = scm_to_size_t (from);
   if (SCM_UNBNDP (to))
     cto = cfrom + (cend - cstart);
@@ -2985,6 +3029,7 @@ SCM_DEFINE (scm_xsubstring, "xsubstring", 2, 3, 0,
 
   result = scm_i_make_string (cto - cfrom, &p);
 
+  cs = scm_i_string_chars (s);
   while (cfrom < cto)
     {
       int t = ((cfrom < 0) ? -cfrom : cfrom) % (cend - cstart);
@@ -2995,6 +3040,7 @@ SCM_DEFINE (scm_xsubstring, "xsubstring", 2, 3, 0,
       cfrom++;
       p++;
     }
+
   scm_remember_upto_here_1 (s);
   return result;
 }
@@ -3019,9 +3065,9 @@ SCM_DEFINE (scm_string_xcopy_x, "string-xcopy!", 4, 3, 0,
   MY_VALIDATE_SUBSTRING_SPEC (1, target,
 			      2, tstart, ctstart,
 			      2, dummy, cdummy);
-  MY_VALIDATE_SUBSTRING_SPEC_COPY (3, s, cs,
-				   6, start, cstart,
-				   7, end, cend);
+  MY_VALIDATE_SUBSTRING_SPEC (3, s,
+			      6, start, cstart,
+			      7, end, cend);
   csfrom = scm_to_size_t (sfrom);
   if (SCM_UNBNDP (sto))
     csto = csfrom + (cend - cstart);
@@ -3033,6 +3079,7 @@ SCM_DEFINE (scm_string_xcopy_x, "string-xcopy!", 4, 3, 0,
 		    ctstart + (csto - csfrom) <= scm_i_string_length (target));
 
   p = scm_i_string_writable_chars (target) + ctstart;
+  cs = scm_i_string_chars (s);
   while (csfrom < csto)
     {
       int t = ((csfrom < 0) ? -csfrom : csfrom) % (cend - cstart);
@@ -3063,14 +3110,16 @@ SCM_DEFINE (scm_string_replace, "string-replace", 2, 4, 0,
   size_t cstart1, cend1, cstart2, cend2;
   SCM result;
 
-  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, s1, cstr1,
-				   3, start1, cstart1,
-				   4, end1, cend1);
-  MY_VALIDATE_SUBSTRING_SPEC_COPY (2, s2, cstr2,
-				   5, start2, cstart2,
-				   6, end2, cend2);
+  MY_VALIDATE_SUBSTRING_SPEC (1, s1,
+			      3, start1, cstart1,
+			      4, end1, cend1);
+  MY_VALIDATE_SUBSTRING_SPEC (2, s2,
+			      5, start2, cstart2,
+			      6, end2, cend2);
   result = scm_i_make_string (cstart1 + (cend2 - cstart2) +
 			      scm_i_string_length (s1) - cend1, &p);
+  cstr1 = scm_i_string_chars (s1);
+  cstr2 = scm_i_string_chars (s2);
   memmove (p, cstr1, cstart1 * sizeof (char));
   memmove (p + cstart1, cstr2 + cstart2, (cend2 - cstart2) * sizeof (char));
   memmove (p + cstart1 + (cend2 - cstart2),
@@ -3129,7 +3178,9 @@ SCM_DEFINE (scm_string_tokenize, "string-tokenize", 1, 3, 0,
 	  cstr = scm_i_string_chars (s);
 	}
     }
-  else SCM_WRONG_TYPE_ARG (2, token_set);
+  else
+    SCM_WRONG_TYPE_ARG (2, token_set);
+
   scm_remember_upto_here_1 (s);
   return result;
 }
@@ -3241,15 +3292,17 @@ SCM_DEFINE (scm_string_filter, "string-filter", 2, 2, 0,
       idx = cstart;
       while (idx < cend)
 	{
-	  SCM res;
-	  res = scm_call_1 (char_pred, SCM_MAKE_CHAR (cstr[idx]));
+	  SCM res, ch;
+	  ch = SCM_MAKE_CHAR (cstr[idx]);
+	  res = scm_call_1 (char_pred, ch);
 	  if (scm_is_true (res))
-	    ls = scm_cons (SCM_MAKE_CHAR (cstr[idx]), ls);
+	    ls = scm_cons (ch, ls);
 	  cstr = scm_i_string_chars (s);
 	  idx++;
 	}
       result = scm_reverse_list_to_string (ls);
     }
+
   scm_remember_upto_here_1 (s);
   return result;
 }
@@ -3311,22 +3364,21 @@ SCM_DEFINE (scm_string_delete, "string-delete", 2, 2, 0,
       idx = cstart;
       while (idx < cend)
 	{
-	  SCM res;
-	  res = scm_call_1 (char_pred, SCM_MAKE_CHAR (cstr[idx]));
+	  SCM res, ch = SCM_MAKE_CHAR (cstr[idx]);
+	  res = scm_call_1 (char_pred, ch);
 	  if (scm_is_false (res))
-	    ls = scm_cons (SCM_MAKE_CHAR (cstr[idx]), ls);
+	    ls = scm_cons (ch, ls);
 	  cstr = scm_i_string_chars (s);
 	  idx++;
 	}
       result = scm_reverse_list_to_string (ls);
     }
+
+  scm_remember_upto_here_1 (s);
   return result;
 }
 #undef FUNC_NAME
 
-
-/* Initialize the SRFI-13 module.  This function will be called by the
-   loading Scheme module.  */
 void
 scm_init_srfi_13 (void)
 {
