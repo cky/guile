@@ -152,12 +152,10 @@ void
 scm_gc_mark (SCM ptr)
 {
   if (SCM_IMP (ptr))
-    return ;
+    return;
   
   if (SCM_GC_MARK_P (ptr))
-    {
-      return;
-    }
+    return;
 
   SCM_SET_GC_MARK (ptr);
   scm_gc_mark_dependencies (ptr);
