@@ -18,7 +18,8 @@
 ;;;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
 ;;;; Boston, MA 02111-1307 USA
 
-(use-modules (srfi srfi-4))
+(use-modules (srfi srfi-4)
+	     (test-suite lib))
 
 (with-test-prefix "u8 vectors"
 
