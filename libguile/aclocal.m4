@@ -80,31 +80,18 @@ dnl top-level srcdir, and will initialize automake.  It also
 dnl defines the `module' variable.
 AC_DEFUN([AM_INIT_GUILE_MODULE],[
 . $srcdir/../GUILE-VERSION
-AM_INIT_AUTOMAKE($PACKAGE, $VERSION)
-AC_CONFIG_AUX_DIR(..)
-module=[$1]
-AC_SUBST(module)])
-
-# Do all the work for Automake.  This macro actually does too much --
-# some checks are only needed if your package does certain things.
-# But this isn't really a big deal.
-
-# serial 1
-
-dnl Usage:
-dnl AM_INIT_AUTOMAKE(package,version)
-
-AC_DEFUN(AM_INIT_AUTOMAKE,
-[AC_REQUIRE([AM_PROG_INSTALL])
+AC_REQUIRE([AM_PROG_INSTALL])
 PACKAGE=[$1]
 AC_SUBST(PACKAGE)
-AC_DEFINE_UNQUOTED(PACKAGE, "$PACKAGE")
 VERSION=[$2]
 AC_SUBST(VERSION)
 AC_DEFINE_UNQUOTED(VERSION, "$VERSION")
 AM_SANITY_CHECK
 AC_ARG_PROGRAM
-AC_PROG_MAKE_SET])
+AC_PROG_MAKE_SET
+AC_CONFIG_AUX_DIR(..)
+module=[$1]
+AC_SUBST(module)])
 
 
 # serial 1
@@ -158,7 +145,8 @@ AC_DEFUN(AM_MAINTAINER_MODE,
 ]
 )
 
-# serial 1 AM_PROG_LIBTOOL
+
+# serial 4 AM_PROG_LIBTOOL
 AC_DEFUN(AM_PROG_LIBTOOL,
 [AC_REQUIRE([AC_CANONICAL_HOST])
 AC_REQUIRE([AC_PROG_CC])
@@ -178,9 +166,24 @@ libtool_flags="$libtool_shared"
 test "$silent" = yes && libtool_flags="$libtool_flags --silent"
 test "$ac_cv_prog_gcc" = yes && libtool_flags="$libtool_flags --with-gcc"
 
+[case "$host" in
+*-*-irix6*)
+  # For IRIX 6, ld needs -n32 if cc uses it.
+  if echo " $CC $CFLAGS " | egrep -e '[ 	]-n32[	 ]' > /dev/null; then
+    LD="${LD-ld} -n32"
+  fi
+  ;;
+
+*-*-sco3.2v5*)
+  # On SCO OpenServer 5, we need -belf to get full-featured binaries.
+  CFLAGS="$CFLAGS -belf"
+  ;;
+esac]
+
 # Actually configure libtool.  ac_aux_dir is where install-sh is found.
 CC="$CC" CFLAGS="$CFLAGS" CPPFLAGS="$CPPFLAGS" LD="$LD" RANLIB="$RANLIB" \
-$ac_aux_dir/ltconfig $libtool_flags --no-verify $ac_aux_dir/ltmain.sh $host \
+${CONFIG_SHELL-/bin/sh} $ac_aux_dir/ltconfig \
+$libtool_flags --no-verify $ac_aux_dir/ltmain.sh $host \
 || AC_MSG_ERROR([libtool configure failed])
 ])
 

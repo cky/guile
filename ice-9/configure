@@ -606,20 +606,16 @@ test -z "$INSTALL_SCRIPT" && INSTALL_SCRIPT='${INSTALL_PROGRAM}'
 
 . $srcdir/../GUILE-VERSION
 
-PACKAGE=$PACKAGE
+PACKAGE=ice-9
 
-cat >> confdefs.h <<EOF
-#define PACKAGE "$PACKAGE"
-EOF
-
-VERSION=$VERSION
+VERSION=
 
 cat >> confdefs.h <<EOF
 #define VERSION "$VERSION"
 EOF
 
 echo $ac_n "checking whether build environment is sane""... $ac_c" 1>&6
-echo "configure:623: checking whether build environment is sane" >&5
+echo "configure:619: checking whether build environment is sane" >&5
 echo timestamp > conftestfile
 # Do this in a subshell so we don't clobber the current shell's
 # arguments.  FIXME: maybe try `-L' hack like GETLOADAVG test?
@@ -653,7 +649,7 @@ test "$program_suffix" != NONE &&
 test "$program_transform_name" = "" && program_transform_name="s,x,x,"
 
 echo $ac_n "checking whether ${MAKE-make} sets \${MAKE}""... $ac_c" 1>&6
-echo "configure:657: checking whether ${MAKE-make} sets \${MAKE}" >&5
+echo "configure:653: checking whether ${MAKE-make} sets \${MAKE}" >&5
 set dummy ${MAKE-make}; ac_make=`echo "$2" | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_prog_make_${ac_make}_set'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -701,7 +697,7 @@ ac_configure=$ac_aux_dir/configure # This should be Cygnus configure.
 module=ice-9
 
 echo $ac_n "checking whether to enable maintainer-specific portions of Makefiles""... $ac_c" 1>&6
-echo "configure:705: checking whether to enable maintainer-specific portions of Makefiles" >&5
+echo "configure:701: checking whether to enable maintainer-specific portions of Makefiles" >&5
     # Check whether --enable-maintainer-mode or --disable-maintainer-mode was given.
 if test "${enable_maintainer_mode+set}" = set; then
   enableval="$enable_maintainer_mode"

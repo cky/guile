@@ -37,11 +37,11 @@ INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 transform = @program_transform_name@
-MAINT = @MAINT@
+VERSION = @VERSION@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 PACKAGE = @PACKAGE@
+MAINT = @MAINT@
 existingdirs = @existingdirs@
-VERSION = @VERSION@
 
 SUBDIRS = @existingdirs@ doc newdoc
 
