@@ -1,3 +1,25 @@
+2001-04-27  Thien-Thi Nguyen  <ttn@revel.glug.org>
+
+	* documentation.scm: Update copyright.
+	Add commentary.
+	Use `define-module' `:export' clause instead of `define-public'.
+	Autoload (ice-9 regex) on `match:suffix'.
+
+	(default-in-line-re, default-after-line-re): New vars.
+	(default-scrub): New proc.
+	(file-commentary): New proc, exported.
+	(object-documentation): Expand docstring; nfc.
+
+	* session.scm: Update copyright.
+	Use (ice-9 rdelim).
+
+	(help): Consider a list of symbols that does not start with
+	`quote' as a module name and call `module-commentary' on it.
+	(module-filename, module-commentary): New procs.
+	(id): Delete.
+	(apropos): Use `identity' instead of deprecated `id'.
+	(help-usage): Add blurb about "(help (my module))" support.
+
 2001-04-27  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* Makefile.am (ice9_sources): Remove srfi-8.scm.
@@ -25,7 +47,7 @@
 
 	* boot-9.scm (call-with-deprecation): New procedure.
 	(identity): New procedure.
-	(id): Deprecated.	
+	(id): Deprecated.
 
 2001-04-15  Keisuke Nishida  <kxn30@po.cwru.edu>
 
