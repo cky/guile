@@ -2376,7 +2376,7 @@
 			       (if (and (not has-shown-debugger-hint?)
 					(not (memq 'backtrace
 						   (debug-options-interface)))
-					(stack? the-last-stack))
+					(stack? (fluid-ref the-last-stack)))
 				   (begin
 				     (newline (current-error-port))
 				     (display
@@ -2396,28 +2396,29 @@
 	(if next (loop next) status)))
     (loop (lambda () #t))))
 
-;;(define the-last-stack #f) Defined by scm_init_backtrace ()
+;;(define the-last-stack (make-fluid)) Defined by scm_init_backtrace ()
 (define stack-saved? #f)
 
 (define (save-stack . narrowing)
   (cond (stack-saved?)
 	((not (memq 'debug (debug-options-interface)))
-	 (set! the-last-stack #f)
+	 (fluid-set! the-last-stack #f)
 	 (set! stack-saved? #t))
 	(else
-	 (set! the-last-stack
-	       (case (stack-id #t)
-		 ((repl-stack)
-		  (apply make-stack #t save-stack eval narrowing))
-		 ((load-stack)
-		  (apply make-stack #t save-stack 0 narrowing))
-		 ((tk-stack)
-		  (apply make-stack #t save-stack tk-stack-mark narrowing))
-		 ((#t)
-		  (apply make-stack #t save-stack 0 1 narrowing))
-		 (else (let ((id (stack-id #t)))
-			 (and (procedure? id)
-			      (apply make-stack #t save-stack id narrowing))))))
+	 (fluid-set!
+	  the-last-stack
+	  (case (stack-id #t)
+	    ((repl-stack)
+	     (apply make-stack #t save-stack eval narrowing))
+	    ((load-stack)
+	     (apply make-stack #t save-stack 0 narrowing))
+	    ((tk-stack)
+	     (apply make-stack #t save-stack tk-stack-mark narrowing))
+	    ((#t)
+	     (apply make-stack #t save-stack 0 1 narrowing))
+	    (else (let ((id (stack-id #t)))
+		    (and (procedure? id)
+			 (apply make-stack #t save-stack id narrowing))))))
 	 (set! stack-saved? #t))))
 
 (define before-error-hook '())
@@ -2429,15 +2430,15 @@
 
 (define (handle-system-error key . args)
   (let ((cep (current-error-port)))
-    (cond ((not (stack? the-last-stack)))
+    (cond ((not (stack? (fluid-ref the-last-stack))))
 	  ((memq 'backtrace (debug-options-interface))
 	   (run-hooks before-backtrace-hook)
 	   (newline cep)
-	   (display-backtrace the-last-stack cep)
+	   (display-backtrace (fluid-ref the-last-stack) cep)
 	   (newline cep)
 	   (run-hooks after-backtrace-hook)))
     (run-hooks before-error-hook)
-    (apply display-error the-last-stack cep args)
+    (apply display-error (fluid-ref the-last-stack) cep args)
     (run-hooks after-error-hook)
     (force-output cep)
     (throw 'abort key)))
@@ -2451,10 +2452,10 @@
 
 ;; Replaced by C code:
 ;;(define (backtrace)
-;;  (if the-last-stack
+;;  (if (fluid-ref the-last-stack)
 ;;      (begin
 ;;	(newline)
-;;	(display-backtrace the-last-stack (current-output-port))
+;;	(display-backtrace (fluid-ref the-last-stack) (current-output-port))
 ;;	(newline)
 ;;	(if (and (not has-shown-backtrace-hint?)
 ;;		 (not (memq 'backtrace (debug-options-interface))))
