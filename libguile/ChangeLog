@@ -1,5 +1,12 @@
 1998-10-14  Jim Blandy  <jimb@zwingli.cygnus.com>
 
+	* (__scm.h, alist.c, eval.c, feature.c, gsubr.c, numbers.c,
+ 	options.c): Rename RECKLESS -> SCM_RECKLESS, CAUTIOUS ->
+	SCM_CAUTIOUS; this way, 1) there's only one version of each flag
+	to define (we used to have both RECKLESS and SCM_RECKLESS), and 2)
+	if we want to use them in a header file some day, we can.  (Thanks
+	to Michael Livshin.)
+
 	* stime.c (scm_get_internal_real_time): Do the arithmetic using
  	SCM numbers, so we won't have rollover problems; the range of a
  	signed long in milliseconds is about 25 days.  (Thanks to Karl
