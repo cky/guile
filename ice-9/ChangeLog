@@ -1,3 +1,9 @@
+2000-10-10  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* session.scm (apropos, apropos-fold):  regexp-exec does not
+	accept symbol arguments any more.  Thanks to Dale P. Smith for the
+	patch.
+
 2000-09-30  Gary Houston  <ghouston@arglist.com>
 
 	* posix.scm (setgrent): pass #t, not #f.  thanks to

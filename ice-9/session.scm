@@ -212,7 +212,7 @@ where OPTIONSET is one of debug, read, eval, print
 		 (lambda (oblist)
 		   (for-each
 		    (lambda (x)
-		      (cond ((regexp-exec match (car x))
+		      (cond ((regexp-exec match (symbol->string (car x)))
 			     (display name)
 			     (display ": ")
 			     (display (car x))
@@ -266,7 +266,7 @@ Fourth arg FOLDER is one of
 	   (lambda (module data)
 	     (let* ((obarray-filter
 		     (lambda (name val data)
-		       (if (and (regexp-exec match name)
+		       (if (and (regexp-exec match (symbol->string name))
 				(not (hashq-get-handle recorded name)))
 			   (begin
 			     (hashq-set! recorded name #t)
