@@ -91,11 +91,14 @@
 #define SCM_OBJ_CLASS_REDEF(x) (SCM_STRUCT_VTABLE_DATA(x)[scm_si_redefined])
 */
 
-#define TEST_CHANGE_CLASS(obj, class) 					      \
-	{ 								      \
-	  class = SCM_CLASS_OF (obj);					      \
-          if (SCM_OBJ_CLASS_REDEF (obj) != SCM_BOOL_F) 			      \
-	    scm_change_object_class (obj, class, SCM_OBJ_CLASS_REDEF (obj));  \
+#define TEST_CHANGE_CLASS(obj, class)				       \
+	{							       \
+	  class = SCM_CLASS_OF (obj);				       \
+          if (SCM_OBJ_CLASS_REDEF (obj) != SCM_BOOL_F)		       \
+	    {							       \
+	      scm_change_object_class (obj, class, SCM_OBJ_CLASS_REDEF (obj));\
+	      class = SCM_CLASS_OF (obj);			       \
+	    }							       \
 	}
 
 #define NXT_MTHD_METHODS(m)	(SCM_VELTS (m)[1])

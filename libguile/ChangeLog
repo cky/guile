@@ -6,6 +6,9 @@
 
 2003-04-17  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
+	* goops.c (TEST_CHANGE_CLASS): Update variable class after class
+	change.
+
 	* eq.c (scm_eqv_p): Turned into a primitive generic.
 
 2003-04-16  Rob Browning  <rlb@defaultvalue.org>
