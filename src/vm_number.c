@@ -45,50 +45,54 @@
 
 SCM_DEFINE_VM_FUNCTION (zero_p, "zero?", "zero?", 1, 0)
 {
-  if (SCM_INUMP (ac))
-    RETURN (SCM_BOOL (SCM_EQ_P (ac, SCM_INUM0)));
-  RETURN (scm_zero_p (ac));
+  VM_SETUP_ARGS1 ();
+  if (SCM_INUMP (a1))
+    RETURN (SCM_BOOL (SCM_EQ_P (a1, SCM_INUM0)));
+  RETURN (scm_zero_p (a1));
 }
 
 SCM_DEFINE_VM_FUNCTION (inc, "1+", "inc", 1, 0)
 {
-  if (SCM_INUMP (ac))
+  VM_SETUP_ARGS1 ();
+  if (SCM_INUMP (a1))
     {
-      int n = SCM_INUM (ac) + 1;
+      int n = SCM_INUM (a1) + 1;
       if (SCM_FIXABLE (n))
 	RETURN (SCM_MAKINUM (n));
     }
-  RETURN (scm_sum (ac, SCM_MAKINUM (1)));
+  RETURN (scm_sum (a1, SCM_MAKINUM (1)));
 }
 
 SCM_DEFINE_VM_FUNCTION (dec, "1-", "dec", 1, 0)
 {
-  if (SCM_INUMP (ac))
+  VM_SETUP_ARGS1 ();
+  if (SCM_INUMP (a1))
     {
-      int n = SCM_INUM (ac) - 1;
+      int n = SCM_INUM (a1) - 1;
       if (SCM_FIXABLE (n))
 	RETURN (SCM_MAKINUM (n));
     }
-  RETURN (scm_difference (ac, SCM_MAKINUM (1)));
+  RETURN (scm_difference (a1, SCM_MAKINUM (1)));
 }
 
 SCM_DEFINE_VM_FUNCTION (add, "+", "add", 0, 1)
 {
   VM_SETUP_ARGSN ();
   ac = SCM_MAKINUM (0);
-  while (an-- > 0)
+  while (nargs-- > 0)
     {
-      POP (a2);
-      if (SCM_INUMP (ac) && SCM_INUMP (a2))
+      SCM x;
+      POP (x);
+      if (SCM_INUMP (ac) && SCM_INUMP (x))
 	{
-	  int n = SCM_INUM (ac) + SCM_INUM (a2);
+	  int n = SCM_INUM (ac) + SCM_INUM (x);
 	  if (SCM_FIXABLE (n))
 	    {
 	      ac = SCM_MAKINUM (n);
 	      continue;
 	    }
 	}
-      ac = scm_sum (ac, a2);
+      ac = scm_sum (ac, x);
     }
   NEXT;
 }
@@ -96,71 +100,73 @@ SCM_DEFINE_VM_FUNCTION (add, "+", "add", 0, 1)
 SCM_DEFINE_VM_FUNCTION (add2, "+", "add2", 2, 0)
 {
   VM_SETUP_ARGS2 ();
-  if (SCM_INUMP (ac) && SCM_INUMP (a2))
+  if (SCM_INUMP (a1) && SCM_INUMP (a2))
     {
-      int n = SCM_INUM (ac) + SCM_INUM (a2);
+      int n = SCM_INUM (a1) + SCM_INUM (a2);
       if (SCM_FIXABLE (n))
 	RETURN (SCM_MAKINUM (n));
     }
-  RETURN (scm_sum (ac, a2));
+  RETURN (scm_sum (a1, a2));
 }
 
 SCM_DEFINE_VM_FUNCTION (sub, "-", "sub", 1, 1)
 {
+  SCM x;
   VM_SETUP_ARGSN ();
   ac = SCM_MAKINUM (0);
-  while (an-- > 1)
+  while (nargs-- > 1)
     {
-      POP (a2);
-      if (SCM_INUMP (ac) && SCM_INUMP (a2))
+      POP (x);
+      if (SCM_INUMP (ac) && SCM_INUMP (x))
 	{
-	  int n = SCM_INUM (ac) + SCM_INUM (a2);
+	  int n = SCM_INUM (ac) + SCM_INUM (x);
 	  if (SCM_FIXABLE (n))
 	    {
 	      ac = SCM_MAKINUM (n);
 	      continue;
 	    }
 	}
-      ac = scm_difference (ac, a2);
+      ac = scm_difference (ac, x);
     }
-  POP (a2);
-  if (SCM_INUMP (ac) && SCM_INUMP (a2))
+  POP (x);
+  if (SCM_INUMP (ac) && SCM_INUMP (x))
     {
-      int n = SCM_INUM (a2) - SCM_INUM (ac);
+      int n = SCM_INUM (x) - SCM_INUM (ac);
       if (SCM_FIXABLE (n))
 	RETURN (SCM_MAKINUM (n));
     }
-  RETURN (scm_difference (a2, ac));
+  RETURN (scm_difference (x, ac));
 }
 
 SCM_DEFINE_VM_FUNCTION (sub2, "-", "sub2", 2, 0)
 {
   VM_SETUP_ARGS2 ();
-  if (SCM_INUMP (ac) && SCM_INUMP (a2))
+  if (SCM_INUMP (a1) && SCM_INUMP (a2))
     {
-      int n = SCM_INUM (ac) - SCM_INUM (a2);
+      int n = SCM_INUM (a1) - SCM_INUM (a2);
       if (SCM_FIXABLE (n))
 	RETURN (SCM_MAKINUM (n));
     }
-  RETURN (scm_difference (ac, a2));
+  RETURN (scm_difference (a1, a2));
 }
 
 SCM_DEFINE_VM_FUNCTION (minus, "-", "minus", 1, 0)
 {
-  if (SCM_INUMP (ac))
+  VM_SETUP_ARGS1 ();
+  if (SCM_INUMP (a1))
     {
-      int n = - SCM_INUM (ac);
+      int n = - SCM_INUM (a1);
       if (SCM_FIXABLE (n))
 	RETURN (SCM_MAKINUM (n));
     }
-  RETURN (scm_difference (ac, SCM_UNDEFINED));
+  RETURN (scm_difference (a1, SCM_UNDEFINED));
 }
 
 #define REL2(CREL,SREL)						\
   VM_SETUP_ARGS2 ();						\
-  if (SCM_INUMP (ac) && SCM_INUMP (a2))				\
-    RETURN (SCM_BOOL (SCM_INUM (ac) CREL SCM_INUM (a2)));	\
-  RETURN (SREL (ac, a2))
+  if (SCM_INUMP (a1) && SCM_INUMP (a2))				\
+    RETURN (SCM_BOOL (SCM_INUM (a1) CREL SCM_INUM (a2)));	\
+  RETURN (SREL (a1, a2))
 
 SCM_DEFINE_VM_FUNCTION (lt2, "<", "lt2", 2, 0)
 {

@@ -45,7 +45,8 @@
 
 SCM_DEFINE_VM_FUNCTION (null_p, "null?", "null?", 1, 0)
 {
-  RETURN (SCM_BOOL (SCM_NULLP (ac)));
+  VM_SETUP_ARGS1 ();
+  RETURN (SCM_BOOL (SCM_NULLP (a1)));
 }
 
 SCM_DEFINE_VM_FUNCTION (cons, "cons", "cons", 2, 0)
@@ -59,32 +60,35 @@ SCM_DEFINE_VM_FUNCTION (list, "list", "list", 0, 1)
 {
   VM_SETUP_ARGSN ();
   ac = SCM_EOL;
-  POP_LIST (an, ac);
+  POP_LIST (nargs, ac);
   NEXT;
 }
 
 SCM_DEFINE_VM_FUNCTION (car, "car", "car", 1, 0)
 {
-  SCM_VALIDATE_CONS (0, ac);
-  RETURN (SCM_CAR (ac));
+  VM_SETUP_ARGS1 ();
+  SCM_VALIDATE_CONS (0, a1);
+  RETURN (SCM_CAR (a1));
 }
 
 SCM_DEFINE_VM_FUNCTION (cdr, "cdr", "cdr", 1, 0)
 {
-  SCM_VALIDATE_CONS (0, ac);
-  RETURN (SCM_CDR (ac));
+  VM_SETUP_ARGS1 ();
+  SCM_VALIDATE_CONS (0, a1);
+  RETURN (SCM_CDR (a1));
 }
 
 SCM_DEFINE_VM_FUNCTION (not, "not", "not", 1, 0)
 {
-  RETURN (SCM_BOOL (SCM_FALSEP (ac)));
+  VM_SETUP_ARGS1 ();
+  RETURN (SCM_BOOL (SCM_FALSEP (a1)));
 }
 
 SCM_DEFINE_VM_FUNCTION (append, "append", "append", 0, 1)
 {
   VM_SETUP_ARGSN ();
   ac = SCM_EOL;
-  POP_LIST (an, ac);
+  POP_LIST (nargs, ac);
   RETURN (scm_append (ac));
 }
 
@@ -92,7 +96,7 @@ SCM_DEFINE_VM_FUNCTION (append_x, "append!", "append!", 0, 1)
 {
   VM_SETUP_ARGSN ();
   ac = SCM_EOL;
-  POP_LIST (an, ac);
+  POP_LIST (nargs, ac);
   RETURN (scm_append_x (ac));
 }
 
@@ -106,6 +110,6 @@ SCM_DEFINE_VM_FUNCTION (call_cc, "call-with-current-continuation", "call/cc", 1,
 {
   SYNC (); /* must sync all registers */
   PUSH (SCM_VM_CAPTURE_CONT (vmp)); /* argument 1 */
-  an = 1; /* the number of arguments */
+  nargs = 1; /* the number of arguments */
   goto vm_call;
 }

@@ -402,7 +402,7 @@ SCM_DEFINE_INSTRUCTION (make_program, "%make-program", INST_CODE)
 */
 SCM_DEFINE_INSTRUCTION (call, "%call", INST_INUM)
 {
-  an = SCM_INUM (FETCH ());	/* the number of arguments */
+  nargs = SCM_INUM (FETCH ());	/* the number of arguments */
 
  vm_call:
   /*
@@ -412,7 +412,7 @@ SCM_DEFINE_INSTRUCTION (call, "%call", INST_INUM)
     {
       /* Create a new frame */
       SCM *last_fp = fp;
-      SCM *last_sp = sp + an;
+      SCM *last_sp = sp + nargs;
       VM_NEW_FRAME (fp, ac,
 		    SCM_VM_MAKE_ADDRESS (last_fp),
 		    SCM_VM_MAKE_ADDRESS (last_sp),
@@ -431,7 +431,7 @@ SCM_DEFINE_INSTRUCTION (call, "%call", INST_INUM)
     {
       /* Construct an argument list */
       SCM list = SCM_EOL;
-      POP_LIST (an, list);
+      POP_LIST (nargs, list);
       RETURN (scm_apply (ac, list, SCM_EOL));
     }
   /*
@@ -441,7 +441,7 @@ SCM_DEFINE_INSTRUCTION (call, "%call", INST_INUM)
     {
     vm_call_cc:
       /* Check the number of arguments */
-      if (an != 1)
+      if (nargs != 1)
 	scm_wrong_num_args (ac);
 
       /* Reinstate the continuation */
@@ -464,7 +464,7 @@ SCM_DEFINE_INSTRUCTION (call, "%call", INST_INUM)
 */
 SCM_DEFINE_INSTRUCTION (tail_call, "%tail-call", INST_INUM)
 {
-  an = SCM_INUM (FETCH ());	/* the number of arguments */
+  nargs = SCM_INUM (FETCH ());	/* the number of arguments */
 
   /*
    * Subprogram call
@@ -514,7 +514,7 @@ SCM_DEFINE_INSTRUCTION (tail_call, "%tail-call", INST_INUM)
     {
       /* Construct an argument list */
       SCM list = SCM_EOL;
-      POP_LIST (an, list);
+      POP_LIST (nargs, list);
       ac = scm_apply (ac, list, SCM_EOL);
       goto vm_return;
     }

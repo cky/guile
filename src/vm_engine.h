@@ -203,10 +203,10 @@
   X = cell;					\
 }
 
-#define VM_SETUP_ARGS2() an = 2; a2 = ac; POP (ac);
-#define VM_SETUP_ARGS3() an = 3; a3 = ac; POP (a2); POP (ac);
-#define VM_SETUP_ARGS4() an = 4; a4 = ac; POP (a3); POP (a2); POP (ac);
-#define VM_SETUP_ARGSN() an = SCM_INUM (FETCH ());
+#define VM_SETUP_ARGS1() SCM a1 = ac;
+#define VM_SETUP_ARGS2() SCM a1, a2; a2 = ac; POP (a1);
+#define VM_SETUP_ARGS3() SCM a1, a2, a3; a3 = ac; POP (a2); POP (a1);
+#define VM_SETUP_ARGSN() nargs = SCM_INUM (FETCH ());
 
 
 /*
@@ -242,26 +242,26 @@
  * Frame allocation
  */
 
-/* an = the number of arguments */
+/* nargs = the number of arguments */
 #define VM_FRAME_INIT_ARGS(PROG,NREQS,RESTP)			\
 {								\
   if (RESTP)							\
     /* have a rest argument */					\
     {								\
       SCM list;							\
-      if (an < NREQS)						\
+      if (nargs < NREQS)					\
 	scm_wrong_num_args (PROG);				\
 								\
       /* Construct the rest argument list */			\
-      an -= NREQS;	/* the number of rest arguments */	\
+      nargs -= NREQS;	/* the number of rest arguments */	\
       list = SCM_EOL;	/* list of the rest arguments */	\
-      POP_LIST (an, list);					\
+      POP_LIST (nargs, list);					\
       PUSH (list);						\
     }								\
   else								\
     /* not have a rest argument */				\
     {								\
-      if (an != NREQS)						\
+      if (nargs != NREQS)					\
 	scm_wrong_num_args (PROG);				\
     }								\
 }

@@ -72,12 +72,8 @@ VM_NAME (SCM vm, SCM program)
   SCM *stack_base = NULL;	/* stack base address */
   SCM *stack_limit = NULL;	/* stack limit address */
 
-  /* Function arguments */
-  int an = 0;
-  SCM a2 = SCM_PACK (0);
-  SCM a3 = SCM_PACK (0);
-
   /* Internal variables */
+  int nargs = 0;		/* the number of arguments */
   SCM dynwinds = SCM_EOL;
 #if VM_USE_HOOK
   SCM hook_args = SCM_LIST1 (vm);
