@@ -1,3 +1,8 @@
+2004-09-30  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* tests/strings.test (string-set!): Explicitely construct
+	read-only string.  String literals are not yet read-only.
+
 2004-09-29  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* tests/unif.test (array-equal?): New test.
