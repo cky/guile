@@ -1,3 +1,9 @@
+Thu May 15 07:56:08 1997  Gary Houston  <ghouston@actrix.gen.nz>
+
+	* expect.scm: use gettimeofday instead of get-internal-real-time
+	and use a floating point timeout when calling select.  Untested,
+	since the regex library is currently AWOL.
+
 Wed May 14 21:00:30 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* boot-9.scm (eval-string): Function deleted; it was already

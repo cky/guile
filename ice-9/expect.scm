@@ -38,9 +38,13 @@
 	(timeout (gentemp)))
     `(let ((,s "")
 	   (,port (or expect-port (current-input-port)))
+	   ;; when timeout occurs, in floating point seconds.
 	   (,timeout (if expect-timeout
-			 (+ (* expect-timeout internal-time-units-per-second)
-			    (get-internal-real-time))
+			 (let* ((secs-usecs (gettimeofday)))
+			   (+ (car secs-usecs)
+			      expect-timeout
+			      (/ (cdr secs-usecs)
+				 1000000))) ; one million.
 			 #f)))
        (let next-char ()
 	 (if (and expect-timeout
@@ -111,14 +115,13 @@
 				      body))))))))
 
 ;;; simplified select: returns #t if input is waiting or #f if timed out.
-;;; timeout is absolute in terms of get-internal-real-time.
+;;; timeout is an absolute time in floating point seconds.
 (define (expect-select port timeout)
-  (let* ((relative (/ (- timeout (get-internal-real-time))
-		      internal-time-units-per-second))
-	 (relative-s (inexact->exact (floor relative)))
-	 (relative-ms (inexact->exact
-		       (round (* (- relative relative-s) 1000)))))
+  (let* ((secs-usecs (gettimeofday))
+	 (relative (- timeout 
+		      (car secs-usecs)
+		      (/ (cdr secs-usecs)
+			 1000000))))	; one million.
     (and (> relative 0)
 	 (pair? (car (select (list port) () ()
-			     relative-s
-			     relative-ms))))))
+			     relative))))))
