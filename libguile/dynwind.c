@@ -41,8 +41,6 @@
    (tag . lazy-catch)            lazy-catch
      tag is either a symbol or a boolean
 
-   ((fluid ...) . (value ...))   with-fluids
-
 */
 
 
@@ -314,15 +312,13 @@ scm_i_dowinds (SCM to, long delta, int explicit,
 	  else
 	    {
 	      wind_key = SCM_CAR (wind_elt);
-	      /* key = #t | symbol | thunk | list of variables | list of fluids */
+	      /* key = #t | symbol | thunk | list of variables */
 	      if (SCM_NIMP (wind_key))
 		{
 		  if (SCM_CONSP (wind_key))
 		    {
 		      if (SCM_VARIABLEP (SCM_CAR (wind_key)))
 			scm_swap_bindings (wind_key, SCM_CDR (wind_elt));
-		      else if (SCM_FLUIDP (SCM_CAR (wind_key)))
-			scm_i_swap_fluids (wind_key, SCM_CDR (wind_elt));
 		    }
 		  else if (SCM_TYP3 (wind_key) == scm_tc3_closure)
 		    scm_call_0 (wind_key);
@@ -370,9 +366,6 @@ scm_i_dowinds (SCM to, long delta, int explicit,
 		    {
 		      if (SCM_VARIABLEP (SCM_CAR (wind_key)))
 			scm_swap_bindings (wind_key, SCM_CDR (wind_elt));
-		      else if (SCM_FLUIDP (SCM_CAR (wind_key)))
-			scm_i_swap_fluids_reverse (wind_key,
-						   SCM_CDR (wind_elt));
 		    }
 		  else if (SCM_TYP3 (wind_key) == scm_tc3_closure)
 		    scm_call_0 (SCM_CDR (wind_elt));
