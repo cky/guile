@@ -1,3 +1,12 @@
+Thu Oct  3 11:12:33 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
+
+	* root.h (scm_root, scm_set_root): Decouple thread support details
+ 	by introducing the selector SCM_THREAD_LOCAL_DATA and the mutator
+ 	SCM_SET_THREAD_LOCAL_DATA.
+
+	* print.c (scm_iprlist): Bugfix: Added SCM_ECONSP tests in hare
+	and tortoise scanning loop.
+
 Thu Oct  3 00:04:53 1996  Jim Blandy  <jimb@totoro.cyclic.com>
 
 	* Makefile.in: Rebuild dependencies.
