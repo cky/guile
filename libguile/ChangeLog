@@ -1,3 +1,24 @@
+1999-06-22  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* dynl.c (DYNL_GLOBAL): New.
+	(sysdep_dynl_link): Added `flags' argument.
+	(kw_global, sym_global): New.
+	(scm_dynamic_link): Handle keyword arguments.  Pass suitable flags
+	to sysdep_dynl_link.
+	* dynl-dl.c (sysdep_dynl_link): Handle new `flags' argument by
+	conditrionally adding RTLD_GLOBAL to DLOPEN_MODES.
+	* dynl-shl.c (sysdep_dynl_link): Add and ignore new flags
+	argument.
+	* dynl-dld.c (sysdep_dynl_link): Add and ignore new flags
+	argument.
+        * dynl.h (scm_dynamic_link): Added rest argument.
+
+1999-06-21  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* dynl.c (sysdep_dynl_unlink, sysdep_dynl_func): Use const
+	qualifier for char* argument, to match prototypes.  Thanks to Mark
+	Elbrecht.
+
 1999-06-21  Jim Blandy  <jimb@savonarola.red-bean.com>
 
 	* dynl.c (no_dynl_error, sysdep_dynl_link, sysdep_dynl_unlink,
