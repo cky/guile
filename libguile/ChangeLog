@@ -1,3 +1,24 @@
+Tue Oct 29 14:55:40 1996  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* snarf.h: New file.
+	* guile-snarf.sh: New file.
+	* Makefile.in (inner_h_files): Added snarf.h 
+	(ancillary, install, uninstall, distclean): Added actions for
+	guile-snarf.
+	(.c.x): Use guile-snarf.
+	(guile-snarf): New rule, to produce guile-snarf from guile-snarf.sh.
+	(gen_c_files): Note that these depend on guile-snarf.
+	* _scm.h: Removed the snarfing macros (SCM_PROC, etc). They are
+ 	now in "snarf.h".  Added #include "snarf.h" to get them.
+	* libguile.h: Added #include "snarf.h".
+	(Patches applied and tweaked by Jim Blandy.)
+	
+Tue Oct 29 13:21:13 1996  Jim Blandy  <jimb@totoro.cyclic.com>
+
+	* socket.c: Use K&R style declaration for 'close'; the GNU coding
+	standards suggest against providing prototypes for system
+	functions.  Thanks to Greg Troxel. 
+
 Mon Oct 28 16:48:32 1996  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* strports.c (scm_eval_0str): New function.
