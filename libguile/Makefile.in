@@ -64,7 +64,7 @@ CFLAGS=@CFLAGS@
 # building.
 INCLUDE_CFLAGS=-I. -I$(srcdir)/.. -I$(srcdir)
 ALL_CFLAGS=$(X_CFLAGS) $(INCLUDE_CFLAGS) $(X11_INCLUDES) @DEFS@
-CC=@CC@ $(ALL_CFLAGS) -Wall
+CC=@CC@ $(ALL_CFLAGS)
 
 # CC used as a front end for ld
 LDFLAGS = @LDFLAGS@
