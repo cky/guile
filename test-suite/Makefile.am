@@ -32,6 +32,7 @@ SCM_TESTS = tests/alist.test			\
 	    tests/eval.test			\
 	    tests/exceptions.test		\
 	    tests/format.test			\
+	    tests/fractions.test		\
 	    tests/gc.test			\
 	    tests/getopt-long.test		\
 	    tests/goops.test			\
