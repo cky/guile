@@ -1,5 +1,14 @@
 1999-07-29  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
+	* eval.c (SCM_CEVAL): Removed old implementation of internal
+	define.
+
+	* gsubr.c, procprop.h (scm_i_inner_name): Removed.
+
+	* debug.c, debug.h (scm_reverse_lookup): Added.
+	(scm_procedure_name): Use scm_reverse_lookup to lookup the name of
+	internal procedure definitions; Don't use scm_i_inner_name.
+
 	* eval.c, tags.h, print.c (SCM_IM_SLOT_REF, SCM_IM_SLOT_SET_X):
 	New isym operations.
 
