@@ -1,3 +1,11 @@
+1998-08-15  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+
+	* boot-9.scm: Make the root module use (ice-9 regex) if
+	available.  The dynamic linking facilities in boot-9.scm are
+	currently dependent upon regular expressions.  My change of
+	1998-07-14 removed (ice-9 regex) from the use-list of the root
+	module and thereby destroyed dynamic linking.
+
 1998-07-29  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	* Makefile.in: Regenerated using the last public version of

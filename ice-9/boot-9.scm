@@ -2974,7 +2974,9 @@
 ;;; {Load regexp code if regexp primitives are available.}
 
 (if (memq 'regex *features*)
-    (define-module (guile-user) :use-module (ice-9 regex)))
+    (begin
+      (define-module (guile) :use-module (ice-9 regex))
+      (define-module (guile-user) :use-module (ice-9 regex))))
 
 
 (define-module (guile))
