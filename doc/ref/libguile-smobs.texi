@@ -452,7 +452,7 @@ scm_markcdr (SCM obj)
 
 @node Remembering During Operations
 @subsection Remembering During Operations
-@cindex Remembering
+@cindex remembering
 
 It's important that a smob is visible to the garbage collector
 whenever its contents are being accessed.  Otherwise it could be freed
