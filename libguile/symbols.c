@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996,1997,1998 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996,1997,1998, 2000 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -105,11 +105,18 @@ int scm_symhash_dim = NUM_HASH_BUCKETS;
  */
 
 SCM 
-scm_sym2vcell (SCM sym,SCM thunk,SCM definep)
+scm_sym2vcell (SCM sym, SCM thunk, SCM definep)
 {
-  if (SCM_NIMP(thunk))
+  if (SCM_NIMP (thunk))
     {
-      SCM var = scm_apply (thunk, sym, scm_cons(definep, scm_listofnull));
+      SCM var;
+
+      if (SCM_TYP7 (thunk) == scm_tc7_cclo
+	  && SCM_TYP7 (SCM_CCLO_SUBR (thunk)) == scm_tc7_subr_3)
+	/* Bypass evaluator in the standard case. */
+	var = SCM_SUBRF (SCM_CCLO_SUBR (thunk)) (thunk, sym, definep);
+      else
+	var = scm_apply (thunk, sym, scm_cons (definep, scm_listofnull));
 
       if (SCM_FALSEP (var))
 	return SCM_BOOL_F;
