@@ -138,7 +138,7 @@ scm_mark_subr_table ()
   int i;
   for (i = 0; i < scm_subr_table_size; ++i)
     {
-      SCM_SETGC8MARK (scm_subr_table[i].name);
+      SCM_SETGCMARK (scm_subr_table[i].name);
       if (scm_subr_table[i].generic && *scm_subr_table[i].generic)
 	scm_gc_mark (*scm_subr_table[i].generic);
       if (SCM_NIMP (scm_subr_table[i].properties))

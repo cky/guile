@@ -547,40 +547,6 @@ scm_m_set_x (SCM xorig, SCM env)
 }
 
 
-#if 0
-
-SCM 
-scm_m_vref (SCM xorig, SCM env)
-{
-  SCM x = SCM_CDR (xorig);
-  SCM_ASSYNT (1 == scm_ilength (x), xorig, scm_s_expression, s_vref);
-  if (SCM_NIMP(x) && UDSCM_VARIABLEP (SCM_CAR (x)))
-    {
-      /* scm_everr (SCM_UNDEFINED, env,..., "global variable reference") */
-      scm_misc_error (NULL,
-		      "Bad variable: ~S",
-		      scm_listify (SCM_CAR (SCM_CDR (x)), SCM_UNDEFINED));
-    }
-  SCM_ASSYNT (SCM_NIMP(x) && DEFSCM_VARIABLEP (SCM_CAR (x)),
-	      xorig, scm_s_variable, s_vref);
-  return scm_cons (IM_VREF, x);
-}
-
-
-
-SCM 
-scm_m_vset (SCM xorig, SCM env)
-{
-  SCM x = SCM_CDR (xorig);
-  SCM_ASSYNT (3 == scm_ilength (x), xorig, scm_s_expression, s_vset);
-  SCM_ASSYNT ((DEFSCM_VARIABLEP (SCM_CAR (x))
-	       || UDSCM_VARIABLEP (SCM_CAR (x))),
-	      xorig, scm_s_variable, s_vset);
-  return scm_cons (IM_VSET, x);
-}
-#endif 
-
-
 SCM_SYNTAX(s_and, "and", scm_makmmacro, scm_m_and);
 SCM_GLOBAL_SYMBOL(scm_sym_and, s_and);
 
@@ -865,7 +831,6 @@ scm_m_define (SCM x, SCM env)
 {
   SCM proc, arg1 = x;
   x = SCM_CDR (x);
-  /*  SCM_ASSYNT(SCM_NULLP(env), x, "bad placement", s_define);*/
   SCM_ASSYNT (scm_ilength (x) >= 2, arg1, scm_s_expression, s_define);
   proc = SCM_CAR (x);
   x = SCM_CDR (x);
@@ -2168,19 +2133,6 @@ dispatch:
       SCM_ASRTGO (SCM_ISYMP (proc), badfun);
       switch SCM_ISYMNUM (proc)
 	{
-#if 0
-	case (SCM_ISYMNUM (IM_VREF)):
-	  {
-	    SCM var;
-	    var = SCM_CAR (SCM_CDR (x));
-	    RETURN (SCM_CDR(var));
-	  }
-	case (SCM_ISYMNUM (IM_VSET)):
-	  SCM_CDR (SCM_CAR ( SCM_CDR (x))) = EVALCAR( SCM_CDR ( SCM_CDR (x)), env);
-	  SCM_CAR (SCM_CAR ( SCM_CDR (x))) = scm_tc16_variable;
-	  RETURN (SCM_UNSPECIFIED)
-#endif
-
 	case (SCM_ISYMNUM (SCM_IM_APPLY)):
 	  proc = SCM_CDR (x);
 	  proc = EVALCAR (proc, env);
@@ -2476,9 +2428,7 @@ dispatch:
     case scm_tc7_substring:
     case scm_tc7_smob:
     case scm_tcs_closures:
-#ifdef CCLO
     case scm_tc7_cclo:
-#endif
     case scm_tc7_pws:
     case scm_tcs_subrs:
       RETURN (x);
@@ -2557,16 +2507,6 @@ dispatch:
 #ifdef DEVAL
 		  if (!SCM_CLOSUREP (SCM_CDR (proc)))
 		    {
-
-#if 0 /* Top-level defines doesn't very often occur in backtraces */
-		      if (scm_m_define == SCM_SUBRF (SCM_CDR (proc)) && SCM_TOP_LEVEL (env))
-			/* Prevent memoizing result of define macro */
-			{
-			  debug.info->e.exp = scm_cons (SCM_CAR (x), SCM_CDR (x));
-			  scm_set_source_properties_x (debug.info->e.exp,
-						       scm_source_properties (x));
-			}
-#endif
 		      SCM_DEFER_INTS;
 		      SCM_SETCAR (x, SCM_CAR (t.arg1));
 		      SCM_SETCDR (x, SCM_CDR (t.arg1));
@@ -2641,7 +2581,6 @@ evapply:
 	if (!SCM_SMOB_DESCRIPTOR (proc).apply)
 	  goto badfun;
 	RETURN (scm_smob_apply_0 (proc));
-#ifdef CCLO
       case scm_tc7_cclo:
 	t.arg1 = proc;
 	proc = SCM_CCLO_SUBR (proc);
@@ -2650,7 +2589,6 @@ evapply:
 	debug.info->a.args = scm_cons (t.arg1, SCM_EOL);
 #endif
 	goto evap1;
-#endif
       case scm_tc7_pws:
 	proc = SCM_PROCEDURE (proc);
 #ifdef DEVAL
@@ -2792,7 +2730,6 @@ evapply:
 	  if (!SCM_SMOB_DESCRIPTOR (proc).apply)
 	    goto badfun;
 	  RETURN (scm_smob_apply_1 (proc, t.arg1));
-#ifdef CCLO
 	case scm_tc7_cclo:
 	  arg2 = t.arg1;
 	  t.arg1 = proc;
@@ -2802,7 +2739,6 @@ evapply:
 	  debug.info->a.proc = proc;
 #endif
 	  goto evap2;
-#endif
 	case scm_tc7_pws:
 	  proc = SCM_PROCEDURE (proc);
 #ifdef DEVAL
@@ -2889,9 +2825,7 @@ evapply:
     x = SCM_CDR (x);
     if (SCM_NULLP (x)) {
       ENTER_APPLY;
-#ifdef CCLO
     evap2:
-#endif
       switch (SCM_TYP7 (proc))
 	{			/* have two arguments */
 	case scm_tc7_subr_2:
@@ -2912,7 +2846,6 @@ evapply:
 	  if (!SCM_SMOB_DESCRIPTOR (proc).apply)
 	    goto badfun;
 	  RETURN (scm_smob_apply_2 (proc, t.arg1, arg2));
-#ifdef CCLO
 	cclon:
 	case scm_tc7_cclo:
 #ifdef DEVAL
@@ -2927,13 +2860,6 @@ evapply:
 								 env,
 								 proc))),
 			     SCM_EOL));
-#endif
-	  /*    case scm_tc7_cclo:
-		x = scm_cons(arg2, scm_eval_args(x, env));
-		arg2 = t.arg1;
-		t.arg1 = proc;
-		proc = SCM_CCLO_SUBR(proc);
-		goto evap3; */
 #endif
 	case scm_tcs_cons_gloc:
 	  if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
@@ -3060,10 +2986,8 @@ evapply:
 	  goto badfun;
 	RETURN (scm_smob_apply_3 (proc, t.arg1, arg2,
 				  SCM_CDDR (debug.info->a.args)));
-#ifdef CCLO
       case scm_tc7_cclo:
 	goto cclon;
-#endif
       case scm_tc7_pws:
 	proc = SCM_PROCEDURE (proc);
 	debug.info->a.proc = proc;
@@ -3124,10 +3048,8 @@ evapply:
 	  goto badfun;
 	RETURN (scm_smob_apply_3 (proc, t.arg1, arg2,
 				  scm_eval_args (x, env, proc)));
-#ifdef CCLO
       case scm_tc7_cclo:
 	goto cclon;
-#endif
       case scm_tc7_pws:
 	proc = SCM_PROCEDURE (proc);
 	if (!SCM_CLOSUREP (proc))
@@ -3334,7 +3256,6 @@ SCM_APPLY (SCM proc, SCM arg1, SCM args)
     }
   else
     {
-      /* SCM_ASRTGO(SCM_CONSP(args), wrongnumargs); */
       args = scm_nconc2last (args);
 #ifdef DEVAL
       debug.vect[0].a.args = scm_cons (arg1, args);
@@ -3359,9 +3280,7 @@ SCM_APPLY (SCM proc, SCM arg1, SCM args)
 entap:
   ENTER_APPLY;
 #endif
-#ifdef CCLO
 tail:
-#endif
   switch (SCM_TYP7 (proc))
     {
     case scm_tc7_subr_2o:
@@ -3500,7 +3419,6 @@ tail:
 	RETURN (scm_smob_apply_2 (proc, arg1, SCM_CAR (args)))
       else
 	RETURN (scm_smob_apply_3 (proc, arg1, SCM_CAR (args), SCM_CDR (args)));
-#ifdef CCLO
     case scm_tc7_cclo:
 #ifdef DEVAL
       args = (SCM_UNBNDP(arg1) ? SCM_EOL : debug.vect[0].a.args);
@@ -3514,7 +3432,6 @@ tail:
       proc = SCM_CCLO_SUBR (proc);
 #endif
       goto tail;
-#endif
     case scm_tc7_pws:
       proc = SCM_PROCEDURE (proc);
 #ifdef DEVAL
@@ -3838,7 +3755,6 @@ SCM_DEFINE (scm_copy_tree, "copy-tree", 1, 0, 0,
     }
   if (SCM_NCONSP (obj))
     return obj;
-/*  return scm_cons(scm_copy_tree(SCM_CAR(obj)), scm_copy_tree(SCM_CDR(obj))); */
   ans = tl = scm_cons_source (obj,
 			      scm_copy_tree (SCM_CAR (obj)),
 			      SCM_UNSPECIFIED);

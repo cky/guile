@@ -243,7 +243,7 @@ scm_mark_weak_vector_spines (void *dummy1, void *dummy2, void *dummy3)
 		{
 		  SCM_SETGCMARK (alist);
 		  SCM_SETGCMARK (SCM_CAR (alist));
-		  alist = SCM_GCCDR (alist);
+		  alist = SCM_CDR (alist);
 		}
 	    }
 	}

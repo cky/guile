@@ -1,3 +1,27 @@
+2000-12-06  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* async.c (SCM_ASYNCP):  Use SCM_TYP16 instead of SCM_GCTYP16.
+
+	* eval.c (scm_m_vref, scm_m_vset, scm_m_define, SCM_CEVAL,
+	SCM_APPLY, scm_copy_tree):  Remove commented code.
+
+	(SCM_CEVAL, SCM_APPLY):  Remove #ifdef CCLO conditionals.  Without
+	CCLO being defined, guile would not compile at all anyway.
+
+	* gc.h (SCM_GC8MARKP, SCM_SETGC8MARK, SCM_CLRGC8MARK, SCM_GCTYP16,
+	SCM_GCCDR):  Deprecated.
+
+	* gdbint.c (unmark_port, remark_port, gdb_read), procs.c
+	(scm_mark_subr_table):  Use SCM_(SET|CLR)?GCMARK(P)? instead of
+	SCM_(SET|CLR)?GC8MARK(P)?.
+
+	* gh_data.c (gh_scm2char):  Remove bogus ';'.
+
+	* tags.h:  Removed comment about GCTYP16 macro.
+
+	* weaks.c (scm_mark_weak_vector_spines):  Use SCM_CDR instead of
+	SCM_GCCDR.
+
 2000-12-05  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* print.c (scm_iprin1):  Use scm_tc3_* codes instead of hardcoded

@@ -162,15 +162,6 @@ typedef unsigned long scm_c_bvec_limb_t;
 #define SCM_SETGCMARK(x) SCM_GC_CELL_SET_BIT (x)
 #define SCM_CLRGCMARK(x) SCM_GC_CELL_CLR_BIT (x)
 
-/* compatibility stuff: */
-
-#define SCM_GC8MARKP(x)   SCM_GCMARKP (x)
-#define SCM_SETGC8MARK(x) SCM_SETGCMARK (x)
-#define SCM_CLRGC8MARK(x) SCM_CLRGCMARK (x)
-
-#define SCM_GCTYP16(x) SCM_TYP16 (x)
-#define SCM_GCCDR(x)   SCM_CDR (x)
-
 /* Low level cell data accessing macros:
  */
 
@@ -375,6 +366,11 @@ extern void scm_init_gc (void);
 
 #define SCM_FREEP(x) (SCM_FREE_CELL_P (x))
 #define SCM_NFREEP(x) (!SCM_FREE_CELL_P (x))
+#define SCM_GC8MARKP(x) SCM_GCMARKP (x)
+#define SCM_SETGC8MARK(x) SCM_SETGCMARK (x)
+#define SCM_CLRGC8MARK(x) SCM_CLRGCMARK (x)
+#define SCM_GCTYP16(x) SCM_TYP16 (x)
+#define SCM_GCCDR(x) SCM_CDR (x)
 
 #endif  /* SCM_DEBUG_DEPRECATED == 0 */
 

@@ -249,7 +249,6 @@ typedef long scm_bits_t;
  *
  *		TYP16
  *		TYP16S
- *		GCTYP16
  *
  *		TYP16S functions similarly wrt to TYP16 as TYP7S to TYP7,
  *		but a different option bit is used (bit 2 for TYP7S,

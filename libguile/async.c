@@ -116,7 +116,7 @@ static long tc16_async;
 
 /* cmm: this has SCM_ prefix because SCM_MAKE_VALIDATE expects it.
    this is ugly.  */
-#define SCM_ASYNCP(X) (SCM_NIMP(X) && (tc16_async == SCM_GCTYP16 (X)))
+#define SCM_ASYNCP(X) (SCM_NIMP(X) && (tc16_async == SCM_TYP16 (X)))
 
 #define VALIDATE_ASYNC(pos,a) SCM_MAKE_VALIDATE(pos, a, ASYNCP)
 
