@@ -1,3 +1,8 @@
+2004-01-10  Marius Vollmer  <mvo@zagadka.de>
+
+	* guile-snarf.in: Use mktemp to create a truely unique temporary
+	file name.  Thanks to Stefan Nordhausen!
+
 2004-01-07  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* dynwind.h, dynwind.c (scm_i_dowinds): Removed 'explicit'
