@@ -3,10 +3,27 @@
 	[Almost all of these changes should be documented in the NEWS
 	file.]
 
+	* gc.h (scm_freelist_t): New type.
+
+	* pairs.h (SCM_NEWCELL, SCM_NEWCELL2): Use new style freelists.
+
+	* gc.c (SCM_INIT_HEAP_SIZE): Changed from 32768 --> 40000 so that
+	all of Guile basics fits into one segment and there suitable room
+	for work.
+	(SCM_EXPHEAP): Now takes an argument.  Grow by a factor of 1.5
+	instead of 2.
+	(scm_freelist, scm_freelist2): Now of type scm_freelist_t.
+	Freelists now contains information about object span, cells
+	collected and amount of cells in heap segments belonging to the
+	list.
+	(scm_heap_size, scm_gc_cells_collected): Removed.
+
+	* init.c (scm_boot_guile_1): Make 2-word segment 8K (512 cells).
+
 	* Makefile.am (libguile_la_LDFLAGS): Bumped library version
 	number.
 
-	* __scm.h eq.c, eval.c, gc.c, hc.h, gh_data, hash.c, numbers.c,
+	* __scm.h eq.c, eval.c, gc.c, gc.h, gh_data, hash.c, numbers.c,
 	numbers.h, objects.c, ramap.c, random.c, unif.c, unif.h: Extensive
 	rewrite of handling of real and complex numbers.
 	(SCM_FLOATS, SCM_SINGLES): These #ifdef conditionals have been
