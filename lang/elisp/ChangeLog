@@ -1,3 +1,9 @@
+2002-12-28  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* base.scm (lang): Use char-table module.
+
+	* primitives/char-table.scm (lang): New (stub definitions).
+
 2002-12-08  Rob Browning  <rlb@defaultvalue.org>
 
 	* Makefile.am (subpkgdatadir): VERSION -> GUILE_EFFECTIVE_VERSION.

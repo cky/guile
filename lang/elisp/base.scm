@@ -12,6 +12,7 @@
   ;; In other words, Scheme definitions of elisp primitives.  This
   ;; should (ultimately) include everything that Emacs defines in C.
   #:use-module (lang elisp primitives buffers)
+  #:use-module (lang elisp primitives char-table)
   #:use-module (lang elisp primitives features)
   #:use-module (lang elisp primitives format)
   #:use-module (lang elisp primitives fns)
