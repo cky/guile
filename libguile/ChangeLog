@@ -1,3 +1,53 @@
+2001-04-17  Niibe Yutaka  <gniibe@m17n.org>
+
+	* srcprop.c (scm_make_srcprops): Added SCM_ALLOW_INTS which
+	matches	SCM_DEFER_INTS at the beginning of the function.
+
+	* mallocs.c (scm_malloc_obj): Remove un-matched SCM_ALLOW_INTS.
+
+	* gc.c (scm_igc): Unconditionally call
+	SCM_CRITICAL_SECTION_START/END.
+
+	* fluids.c (next_fluid_num): Unconditionally call
+	SCM_CRITICAL_SECTION_START/END.
+	(s_scm_make_fluid): Remove un-matched SCM_DEFER_INTS.
+
+	* coop-defs.h (SCM_THREAD_DEFER, SCM_THREAD_ALLOW,
+	SCM_THREAD_REDEFER, SCM_THREAD_REALLOW_1, SCM_THREAD_REALLOW_2):
+	Removed.
+
+	* __scm.h (SCM_CRITICAL_SECTION_START, SCM_CRITICAL_SECTION_END):
+	Defined as nothing for the case of !defined(USE_THREADS).
+	(SCM_THREAD_DEFER, SCM_THREAD_ALLOW, SCM_THREAD_REDEFER):
+	Removed.
+	(<stdio.h>): Include when (SCM_DEBUG_INTERRUPTS == 1).
+	(SCM_CHECK_NOT_DISABLED, SCM_CHECK_NOT_ENABLED): Print FILE and
+	LINE.
+	(SCM_DEFER_INTS, SCM_ALLOW_INTS_ONLY, SCM_ALLOW_INTS,
+	SCM_REDEFER_INTS, SCM_REALLOW_INTS): Don't use
+	SCM_THREAD_DEFER/SCM_THREAD_ALLOW.  Instead, use
+	SCM_CRITICAL_SECTION_START/END.
+	(SCM_REALLOW_INTS: Bug fix.  Don't call
+	SCM_THREAD_SWITCHING_CODE.
+	(SCM_TICK): Don't use SCM_DEFER_INTS/SCM_ALLOW_INTS.  Instead, use
+	SCM_THREAD_SWITCHING_CODE directly.
+	(SCM_ENTER_A_SECTION): Unconditionally use
+	SCM_CRITICAL_SECTION_START/END. (was:
+	SCM_DEFER_INTS/SCM_ALLOW_INTS when SCM_POSIX_THREADS defined).
+
+2001-04-17  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* __scm.h (SCM_CAREFUL_INTS, SCM_DEBUG_INTERRUPTS):  Replaced the
+	macro SCM_CAREFUL_INTS by the macro SCM_DEBUG_INTERRUPTS and
+	allowed to explicitly set this macro via the CFLAGS variable
+	during make.
+
+	* fluids.c (next_fluid_num), gc.c (scm_igc), coop-defs.h
+	(SCM_THREAD_CRITICAL_SECTION_START,
+	SCM_THREAD_CRITICAL_SECTION_END):  Renamed
+	SCM_THREAD_CRITICAL_SECTION_START/END to
+	SCM_CRITICAL_SECTION_START/END.
+
 2001-04-11  Keisuke Nishida  <kxn30@po.cwru.edu>
 
 	* debug-malloc.c (grow, scm_debug_malloc_prehistory): Use memset

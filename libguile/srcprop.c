@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001 Free Software Foundation
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001 Free Software Foundation
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -148,6 +148,7 @@ scm_make_srcprops (int line, int col, SCM filename, SCM copy, SCM plist)
   ptr->fname = filename;
   ptr->copy = copy;
   ptr->plist = plist;
+  SCM_ALLOW_INTS;
   SCM_RETURN_NEWSMOB (scm_tc16_srcprops, ptr);
 }
 

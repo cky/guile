@@ -100,7 +100,6 @@
  */
 #undef ENGNOT
 
-#undef SCM_CAREFUL_INTS
 
 /* {Unsupported Options}
  *
@@ -169,6 +168,13 @@
  */
 #ifndef SCM_DEBUG_DEPRECATED
 #define SCM_DEBUG_DEPRECATED SCM_DEBUG
+#endif
+
+/* If SCM_DEBUG_INTERRUPTS is set to 1, with every deferring and allowing of
+ * interrupts a consistency check will be performed.
+ */
+#ifndef SCM_DEBUG_INTERRUPTS
+#define SCM_DEBUG_INTERRUPTS SCM_DEBUG
 #endif
 
 /* If SCM_DEBUG_REST_ARGUMENT is set to 1, functions that take rest arguments
@@ -319,9 +325,8 @@ typedef long SCM_STACKITEM;
 
 
 #ifndef USE_THREADS
-#define SCM_THREAD_DEFER
-#define SCM_THREAD_ALLOW
-#define SCM_THREAD_REDEFER
+#define SCM_CRITICAL_SECTION_START 
+#define SCM_CRITICAL_SECTION_END 
 #define SCM_THREAD_SWITCHING_CODE
 #endif
 
@@ -343,14 +348,21 @@ do { \
 } while (0)
 #endif
 
-#ifdef SCM_CAREFUL_INTS
+#if (SCM_DEBUG_INTERRUPTS == 1)
+#include <stdio.h>
 #define SCM_CHECK_NOT_DISABLED \
-  if (scm_ints_disabled) \
-    fputs("ints already disabled\n", stderr); \
+  do { \
+    if (scm_ints_disabled) \
+      fprintf(stderr, "ints already disabled (at %s:%d)\n", \
+              __FILE__, __LINE__); \
+  } while (0)
 
 #define SCM_CHECK_NOT_ENABLED \
-  if (!scm_ints_disabled) \
-    fputs("ints already enabled\n", stderr); \
+  do { \
+    if (!scm_ints_disabled) \
+      fprintf(stderr, "ints already enabled (at %s:%d)\n", \
+              __FILE__, __LINE__); \
+  } while (0)
 
 #else
 #define SCM_CHECK_NOT_DISABLED
@@ -383,7 +395,7 @@ do { \
 do { \
   SCM_FENCE; \
   SCM_CHECK_NOT_DISABLED; \
-  SCM_THREAD_DEFER; \
+  SCM_CRITICAL_SECTION_START; \
   SCM_FENCE; \
   scm_ints_disabled = 1; \
   SCM_FENCE; \
@@ -392,7 +404,7 @@ do { \
 
 #define SCM_ALLOW_INTS_ONLY \
 do { \
-  SCM_THREAD_ALLOW; \
+  SCM_CRITICAL_SECTION_END; \
   scm_ints_disabled = 0; \
 } while (0)
 
@@ -401,11 +413,11 @@ do { \
 do { \
   SCM_FENCE; \
   SCM_CHECK_NOT_ENABLED; \
-  SCM_THREAD_SWITCHING_CODE; \
+  SCM_CRITICAL_SECTION_END; \
   SCM_FENCE; \
   scm_ints_disabled = 0; \
   SCM_FENCE; \
-  SCM_THREAD_ALLOW; \
+  SCM_THREAD_SWITCHING_CODE; \
   SCM_FENCE; \
 } while (0)
 
@@ -413,7 +425,7 @@ do { \
 #define SCM_REDEFER_INTS  \
 do { \
   SCM_FENCE; \
-  SCM_THREAD_REDEFER; \
+  SCM_CRITICAL_SECTION_START; \
   ++scm_ints_disabled; \
   SCM_FENCE; \
 } while (0)
@@ -422,7 +434,7 @@ do { \
 #define SCM_REALLOW_INTS \
 do { \
   SCM_FENCE; \
-  SCM_THREAD_SWITCHING_CODE; \
+  SCM_CRITICAL_SECTION_END; \
   SCM_FENCE; \
   --scm_ints_disabled; \
   SCM_FENCE; \
@@ -431,9 +443,8 @@ do { \
 
 #define SCM_TICK \
 do { \
-  SCM_DEFER_INTS; \
-  SCM_ALLOW_INTS; \
   SCM_ASYNC_TICK; \
+  SCM_THREAD_SWITCHING_CODE; \
 } while (0)
 
 
@@ -466,13 +477,8 @@ do { \
  * at all times.
  */
 
-#ifdef SCM_POSIX_THREADS
-#define SCM_ENTER_A_SECTION
-#define SCM_EXIT_A_SECTION
-#else
-#define SCM_ENTER_A_SECTION SCM_DEFER_INTS
-#define SCM_EXIT_A_SECTION SCM_ALLOW_INTS
-#endif
+#define SCM_ENTER_A_SECTION SCM_CRITICAL_SECTION_START
+#define SCM_EXIT_A_SECTION SCM_CRITICAL_SECTION_END
 
 
 

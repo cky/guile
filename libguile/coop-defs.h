@@ -3,7 +3,7 @@
 #ifndef COOP_DEFSH
 #define COOP_DEFSH
 
-/*	Copyright (C) 1996, 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
+/* Copyright (C) 1996,1997,1998,1999,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -235,8 +235,8 @@ extern coop_t *coop_wait_for_runnable_thread (void);
 
 /* Cooperative threads don't need to have these defined */
 
-#define SCM_THREAD_CRITICAL_SECTION_START 
-#define SCM_THREAD_CRITICAL_SECTION_END 
+#define SCM_CRITICAL_SECTION_START 
+#define SCM_CRITICAL_SECTION_END 
 
 
 
@@ -244,12 +244,6 @@ extern coop_t *coop_wait_for_runnable_thread (void);
 #define SCM_THREAD_SWITCH_COUNT       50 /* was 10 /mdj */
 
 
-
-#define SCM_THREAD_DEFER
-#define SCM_THREAD_ALLOW
-#define SCM_THREAD_REDEFER
-#define SCM_THREAD_REALLOW_1
-#define SCM_THREAD_REALLOW_2
 
 #if 0
 #define SCM_THREAD_SWITCHING_CODE \

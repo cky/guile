@@ -1001,10 +1001,8 @@ scm_igc (const char *what)
 	   ? "*"
 	   : (SCM_NULLP (scm_freelist2) ? "o" : "m"));
 #endif
-#ifdef USE_THREADS
   /* During the critical section, only the current thread may run. */
-  SCM_THREAD_CRITICAL_SECTION_START;
-#endif
+  SCM_CRITICAL_SECTION_START;
 
   /* fprintf (stderr, "gc: %s\n", what); */
 
@@ -1102,9 +1100,7 @@ scm_igc (const char *what)
   --scm_gc_heap_lock;
   gc_end_stats ();
 
-#ifdef USE_THREADS
-  SCM_THREAD_CRITICAL_SECTION_END;
-#endif
+  SCM_CRITICAL_SECTION_END;
   scm_c_hook_run (&scm_after_gc_c_hook, 0);
   --scm_gc_running_p;
 }

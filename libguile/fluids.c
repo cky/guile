@@ -107,13 +107,9 @@ static int
 next_fluid_num ()
 {
   int n;
-#ifdef USE_THREADS
-  SCM_THREAD_CRITICAL_SECTION_START;
-#endif
+  SCM_CRITICAL_SECTION_START;
   n = n_fluids++;
-#ifdef USE_THREADS
-  SCM_THREAD_CRITICAL_SECTION_END;
-#endif
+  SCM_CRITICAL_SECTION_END;
   return n;
 }
 
@@ -130,7 +126,6 @@ SCM_DEFINE (scm_make_fluid, "make-fluid", 0, 0, 0,
 {
   int n;
 
-  SCM_DEFER_INTS;
   n = next_fluid_num ();
   SCM_RETURN_NEWSMOB (scm_tc16_fluid, n);
 }

@@ -1,5 +1,5 @@
 /* classes: src_files 
- *	Copyright (C) 1995, 1997, 1998, 2000 Free Software Foundation, Inc.
+ * Copyright (C) 1995,1997,1998,2000,2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -64,10 +64,7 @@ scm_malloc_obj (scm_sizet n)
 {
   scm_bits_t mem = n ? (scm_bits_t) malloc (n) : 0;
   if (n && !mem)
-    {
-      SCM_ALLOW_INTS;
-      return SCM_BOOL_F;
-    }
+    return SCM_BOOL_F;
   SCM_RETURN_NEWSMOB (scm_tc16_malloc, mem);
 }
 
