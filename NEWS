@@ -170,7 +170,7 @@ Guile.
 
 ** Deprecated: scm_sloppy_memq, scm_sloppy_memv, scm_sloppy_member
 
-Instead, use scm_memq, scm_memv, scm_member.
+Instead, use scm_c_memq or scm_memq, scm_memv, scm_member.
 
 ** New function: port? X
 
@@ -230,6 +230,16 @@ This function is the inverse of scm_done_malloc.  Use it to report the
 amount of smob memory you free.  The previous method, which involved
 calling scm_done_malloc with negative argument, was somewhat
 unintuitive (and is still available, of course).
+
+** New function: scm_c_memq (SCM obj, SCM list)
+
+This function provides a fast C level alternative for scm_memq for the case
+that the list parameter is known to be a proper list.  The function is a
+replacement for scm_sloppy_memq, but is stricter in its requirements on its
+list input parameter, since for anything else but a proper list the function's
+behaviour is undefined - it may even crash or loop endlessly.  Further, for
+the case that the object is not found in the list, scm_c_memq returns #f which
+is similar to scm_memq, but different from scm_sloppy_memq's behaviour.
 
 ** New global variable scm_gc_running_p introduced.
 

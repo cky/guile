@@ -558,6 +558,25 @@ SCM_DEFINE (scm_sloppy_member, "sloppy-member", 2, 0, 0,
 
 #endif /* DEPRECATED */
 
+/* The function scm_c_memq returns the first sublist of list whose car is
+ * 'eq?' obj, where the sublists of list are the non-empty lists returned by
+ * (list-tail list k) for k less than the length of list.  If obj does not
+ * occur in list, then #f (not the empty list) is returned.  (r5rs)
+ * List must be a proper list, otherwise scm_c_memq may crash or loop
+ * endlessly.
+ */
+SCM
+scm_c_memq (SCM obj, SCM list)
+{
+  for (; !SCM_NULLP (list); list = SCM_CDR (list))
+    {
+      if (SCM_EQ_P (SCM_CAR (list), obj))
+	return list;
+    }
+  return SCM_BOOL_F;
+}
+
+
 SCM_DEFINE (scm_memq, "memq", 2, 0, 0,
            (SCM x, SCM lst),
             "Return the first sublist of LST whose car is `eq?' to X\n"
@@ -568,12 +587,7 @@ SCM_DEFINE (scm_memq, "memq", 2, 0, 0,
 #define FUNC_NAME s_scm_memq
 {
   SCM_VALIDATE_LIST (2, lst);
-  for (; !SCM_NULLP (lst); lst = SCM_CDR (lst))
-    {
-      if (SCM_EQ_P (SCM_CAR (lst), x))
-	return lst;
-    }
-  return SCM_BOOL_F;
+  return scm_c_memq (x, lst);
 }
 #undef FUNC_NAME
 

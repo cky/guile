@@ -218,7 +218,7 @@ filter_cpl (SCM ls)
   while (SCM_NIMP (ls))
     {
       SCM el = SCM_CAR (ls);
-      if (SCM_FALSEP (scm_memq (el, res)))
+      if (SCM_FALSEP (scm_c_memq (el, res)))
 	res = scm_cons (el, res);
       ls = SCM_CDR (ls);
     }
@@ -259,7 +259,7 @@ remove_duplicate_slots (SCM l, SCM res, SCM slots_already_seen)
 		    "bad slot name ~S",
 		    SCM_LIST1 (tmp));
   
-  if (SCM_FALSEP (scm_memq (tmp, slots_already_seen))) {
+  if (SCM_FALSEP (scm_c_memq (tmp, slots_already_seen))) {
     res 	       = scm_cons (SCM_CAR (l), res);
     slots_already_seen = scm_cons (tmp, slots_already_seen);
   }
@@ -1674,23 +1674,8 @@ scm_primitive_generic_generic (SCM subr)
 static int
 applicablep (SCM actual, SCM formal)
 {
-  register SCM ptr;
-
-  /* We test that (memq formal (slot-ref actual 'cpl))
-   * However, we don't call memq here since we already know that
-   * the list is well formed 
-   */
-  for (ptr=SCM_SLOT(actual, scm_si_cpl); SCM_NNULLP(ptr); ptr = SCM_CDR(ptr)) { 
-    if (SCM_NIMP (ptr) && SCM_CONSP (ptr)) {
-      if (SCM_CAR (ptr) == formal)
-	return 1;
-    }
-    else 
-      scm_misc_error (0,
-		      "Internal error in applicable: bad list ~S",
-		      SCM_LIST1 (actual));
-  }
-  return 0;
+  /* We already know that the cpl is well formed. */
+  return !SCM_FALSEP (scm_c_memq (formal, SCM_SLOT (actual, scm_si_cpl)));
 }
 
 static int

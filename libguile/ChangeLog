@@ -1,5 +1,15 @@
 2000-12-01  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* list.[ch] (scm_c_memq):  Added as a fast C level alternative for
+	scm_memq for the case that the list parameter is known to be a
+	proper list.
+
+	* goops.c (filter_cpl, remove_duplicate_slots, applicablep),
+	goops.h (SCM_SUBCLASSP):  Use scm_c_memq if we are sure that we
+	pass proper lists. 
+
+2000-12-01  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* goops.c (scm_sys_compute_slots, scm_i_get_keyword,
 	scm_get_keyword, scm_slot_ref_using_class,
 	scm_slot_set_using_class_x):  Update the code to match guile's

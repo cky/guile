@@ -83,6 +83,7 @@ extern SCM scm_list_set_x (SCM lst, SCM k, SCM val);
 extern SCM scm_list_cdr_set_x (SCM lst, SCM k, SCM val);
 extern SCM scm_last_pair (SCM sx);
 extern SCM scm_list_tail (SCM lst, SCM k);
+extern SCM scm_c_memq (SCM x, SCM lst);
 extern SCM scm_memq (SCM x, SCM lst);
 extern SCM scm_memv (SCM x, SCM lst);
 extern SCM scm_member (SCM x, SCM lst);
