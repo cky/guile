@@ -185,21 +185,20 @@ do { \
 
 #define EXIT_NESTED_DATA(pstate) { --pstate->top; }
 
-SCM scm_print_state_vtable;
-
-static SCM print_state_pool;
+SCM scm_print_state_vtable = SCM_BOOL_F;
+static SCM print_state_pool = SCM_EOL;
 
 #ifdef GUILE_DEBUG /* Used for debugging purposes */
 
 SCM_DEFINE (scm_current_pstate, "current-pstate", 0, 0, 0, 
            (),
-	    "Return the current-pstate -- the cadr of the\n"
+	    "Return the current-pstate -- the car of the\n"
 	    "@code{print_state_pool}.  @code{current-pstate} is only\n"
 	    "included in @code{--enable-guile-debug} builds.")
 #define FUNC_NAME s_scm_current_pstate
 {
-  if (SCM_NNULLP (SCM_CDR (print_state_pool)))
-    return SCM_CADR (print_state_pool);
+  if (!SCM_NULLP (print_state_pool))
+    return SCM_CAR (print_state_pool);
   else
     return SCM_BOOL_F;
 }
@@ -212,9 +211,8 @@ SCM_DEFINE (scm_current_pstate, "current-pstate", 0, 0, 0,
 static SCM
 make_print_state (void)
 {
-  SCM print_state = scm_make_struct (SCM_CAR (print_state_pool), /* pstate type */
-				     SCM_INUM0,
-				     SCM_EOL);
+  SCM print_state
+    = scm_make_struct (scm_print_state_vtable, SCM_INUM0, SCM_EOL);
   scm_print_state *pstate = SCM_PRINT_STATE (print_state);
   pstate->ref_vect = scm_c_make_vector (PSTATE_SIZE, SCM_UNDEFINED);
   pstate->ref_stack = SCM_VELTS (pstate->ref_vect);
@@ -229,10 +227,10 @@ scm_make_print_state ()
 
   /* First try to allocate a print state from the pool */
   SCM_DEFER_INTS;
-  if (SCM_NNULLP (SCM_CDR (print_state_pool)))
+  if (!SCM_NULLP (print_state_pool))
     {
-      answer = SCM_CADR (print_state_pool);
-      SCM_SETCDR (print_state_pool, SCM_CDDR (print_state_pool));
+      answer = SCM_CAR (print_state_pool);
+      print_state_pool = SCM_CDR (print_state_pool);
     }
   SCM_ALLOW_INTS;
   
@@ -254,8 +252,8 @@ scm_free_print_state (SCM print_state)
   SCM_NEWCELL (handle);
   SCM_DEFER_INTS;
   SCM_SET_CELL_WORD_0 (handle, print_state);
-  SCM_SET_CELL_WORD_1 (handle, SCM_CDR (print_state_pool));
-  SCM_SETCDR (print_state_pool, handle);
+  SCM_SET_CELL_WORD_1 (handle, print_state_pool);
+  print_state_pool = handle;
   SCM_ALLOW_INTS;
 }
 
@@ -288,7 +286,7 @@ print_circref (SCM port,scm_print_state *pstate,SCM ref)
     {
       while (i > 0)
 	{
-	  if (SCM_NCONSP (pstate->ref_stack[i - 1])
+	  if (!SCM_CONSP (pstate->ref_stack[i - 1])
 	      || !SCM_EQ_P (SCM_CDR (pstate->ref_stack[i - 1]), 
 			    pstate->ref_stack[i]))
 	    break;
@@ -607,7 +605,7 @@ scm_iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 		/* Print gsubrs as primitives */
 		SCM name = scm_procedure_name (exp);
 		scm_puts ("#<primitive-procedure", port);
-		if (SCM_NFALSEP (name))
+		if (!SCM_FALSEP (name))
 		  {
 		    scm_putc (' ', port);
 		    scm_puts (SCM_SYMBOL_CHARS (name), port);
@@ -626,7 +624,7 @@ scm_iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 	  scm_puts ("#<procedure-with-setter", port);
 	  {
 	    SCM name = scm_procedure_name (exp);
-	    if (SCM_NFALSEP (name))
+	    if (!SCM_FALSEP (name))
 	      {
 		scm_putc (' ', port);
 		scm_display (name, port);
@@ -683,14 +681,14 @@ scm_prin1 (SCM exp, SCM port, int writingp)
     {
       /* First try to allocate a print state from the pool */
       SCM_DEFER_INTS;
-      if (SCM_NNULLP (SCM_CDR (print_state_pool)))
+      if (!SCM_NULLP (print_state_pool))
 	{
-	  handle = SCM_CDR (print_state_pool);
-	  SCM_SETCDR (print_state_pool, SCM_CDDR (print_state_pool));
+	  handle = print_state_pool;
+	  print_state_pool = SCM_CDR (print_state_pool);
 	}
       SCM_ALLOW_INTS;
       if (SCM_FALSEP (handle))
-	handle = scm_cons (make_print_state (), SCM_EOL);
+	handle = scm_list_1 (make_print_state ());
       pstate_scm = SCM_CAR (handle);
     }
 
@@ -704,8 +702,8 @@ scm_prin1 (SCM exp, SCM port, int writingp)
   if (!SCM_FALSEP (handle) && !pstate->revealed)
     {
       SCM_DEFER_INTS;
-      SCM_SETCDR (handle, SCM_CDR (print_state_pool));
-      SCM_SETCDR (print_state_pool, handle);
+      SCM_SETCDR (handle, print_state_pool);
+      print_state_pool = handle;
       SCM_ALLOW_INTS;
     }
 }
@@ -764,7 +762,7 @@ scm_iprlist (char *hdr,SCM exp,int tlr,SCM port,scm_print_state *pstate)
       if (SCM_EQ_P (hare, tortoise))
 	goto fancy_printing;
       hare = SCM_CDR (hare);
-      if (SCM_IMP (hare) || SCM_NCONSP (hare))
+      if (!SCM_CONSP (hare))
 	break;
       hare = SCM_CDR (hare);
       tortoise = SCM_CDR (tortoise);
@@ -825,7 +823,7 @@ fancy_printing:
 	scm_iprin1 (SCM_CAR (exp), port, pstate);
       }
   }
-  if (SCM_NNULLP (exp))
+  if (!SCM_NULLP (exp))
     {
       scm_puts (" . ", port);
       scm_iprin1 (exp, port, pstate);
@@ -979,7 +977,7 @@ SCM_DEFINE (scm_simple_format, "simple-format", 2, 0, 1,
       }
 
   scm_lfwrite (start, p - start, destination);
-  if (args != SCM_EOL)
+  if (!SCM_EQ_P (args, SCM_EOL))
     SCM_MISC_ERROR ("FORMAT: ~A superfluous arguments",
 		    scm_list_1 (scm_length (args)));
 
@@ -1094,14 +1092,15 @@ void
 scm_init_print ()
 {
   SCM vtable, layout, type;
-  
+
   scm_init_opts (scm_print_options, scm_print_opts, SCM_N_PRINT_OPTIONS);
+
+  scm_gc_register_root (&print_state_pool);
+  scm_gc_register_root (&scm_print_state_vtable);
   vtable = scm_make_vtable_vtable (scm_nullstr, SCM_INUM0, SCM_EOL);
   layout = scm_make_struct_layout (scm_makfrom0str (SCM_PRINT_STATE_LAYOUT));
   type = scm_make_struct (vtable, SCM_INUM0, scm_list_1 (layout));
   scm_set_struct_vtable_name_x (type, scm_str2symbol ("print-state"));
-  print_state_pool = scm_permanent_object (scm_cons (type, SCM_EOL));
-
   scm_print_state_vtable = type;
 
   /* Don't want to bind a wrapper class in GOOPS, so pass 0 as arg1. */

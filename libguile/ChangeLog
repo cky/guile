@@ -1,3 +1,29 @@
+2001-10-12  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* print.c (scm_print_state_vtable, print_state_pool):
+	Initialize.  These variables are now registered as gc roots.
+
+	(scm_current_pstate):  Update documentation.
+
+	(scm_current_pstate, scm_make_print_state, scm_free_print_state,
+	scm_prin1, scm_init_print):  print_state_pool is registered as a
+	gc root and thus does not need to be protected by a surrounding
+	pair any more.
+
+	(make_print_state):  The car of print_state_pool no longer holds
+	the scm_print_state_vtable.
+
+	(scm_current_pstate, scm_make_print_state, print_circref,
+	scm_iprin1, scm_prin1, scm_iprlist):  Prefer !SCM_<foo> over
+	SCM_N<foo>.
+
+	(scm_prin1):  When building lists, prefer scm_list_<n> over
+	scm_cons[2]?.
+
+	(scm_iprlist):  Removed a redundant SCM_IMP test.
+
+	(scm_simple_format):  Use SCM_EQ_P to compare SCM values.
+
 2001-10-11  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* debug.c (scm_make_iloc):  Prefer !SCM_<foo> over SCM_N<foo>.
