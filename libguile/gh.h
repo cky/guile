@@ -81,7 +81,7 @@ SCM_API SCM gh_double2scm(double x);
 SCM_API SCM gh_char2scm(char c);
 SCM_API SCM gh_str2scm(const char *s, size_t len);
 SCM_API SCM gh_str02scm(const char *s);
-SCM_API void gh_set_substr(char *src, SCM dst, long start, size_t len);
+SCM_API void gh_set_substr(const char *src, SCM dst, long start, size_t len);
 SCM_API SCM gh_symbol2scm(const char *symbol_str);
 SCM_API SCM gh_ints2scm(const int *d, long n);
 
