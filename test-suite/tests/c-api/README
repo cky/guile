@@ -1,0 +1,7 @@
+This directory contains tests for Guile's C API.  At the moment, the
+test suite doesn't have any way to run these automatically --- we need
+to 1) figure out how to run the compiler, and 2) figure out how to
+integrate results from C tests into the test suite statistics.
+
+Nonetheless, it's better to have this code accumulating here than
+someplace else where nobody can find it.
