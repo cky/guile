@@ -444,6 +444,12 @@ buffer objekt as an argument to throw.
 This mechanism has been removed since its utility doesn't motivate the
 extra complexity it introduces.
 
+** The `#/' notation for lists now provokes a warning message from Guile.
+This syntax will be removed from Guile in the near future.
+
+To disable the warning message, set the GUILE_HUSH environment
+variable to any non-empty value.
+
 * Changes to the gh_ interface
 
 ** The gh_enter function now takes care of loading the Guile startup files.
