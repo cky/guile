@@ -397,6 +397,12 @@ SCM_DEFINE (scm_localtime, "localtime", 1, 1, 0,
 }
 #undef FUNC_NAME
 
+/* tm_zone is normally a pointer, not an array within struct tm, so we might
+   have to worry about the lifespan of what it points to.  The posix specs
+   don't seem to say anything about this, let's assume here that tm_zone
+   will be a constant and therefore no protection or anything is needed
+   until we copy it in filltime().  */
+
 SCM_DEFINE (scm_gmtime, "gmtime", 1, 0, 0,
             (SCM time),
 	    "Return an object representing the broken down components of\n"
@@ -405,26 +411,33 @@ SCM_DEFINE (scm_gmtime, "gmtime", 1, 0, 0,
 #define FUNC_NAME s_scm_gmtime
 {
   timet itime;
-  struct tm *bd_time;
-  SCM result;
+  struct tm bd_buf, *bd_time;
   const char *zname;
 
   itime = SCM_NUM2LONG (1, time);
-  SCM_DEFER_INTS;
+
   /* POSIX says gmtime sets errno, but C99 doesn't say that.
      Give a sensible default value in case gmtime doesn't set it.  */
   errno = EINVAL;
+
+#if HAVE_GMTIME_R
+  bd_time = gmtime_r (&itime, &bd_buf);
+#else
+  SCM_DEFER_INTS;
   bd_time = gmtime (&itime);
+  if (bd_time != NULL)
+    bd_buf = *bd_time;
+  SCM_ALLOW_INTS;
+#endif
   if (bd_time == NULL)
     SCM_SYSERROR;
+
 #if HAVE_STRUCT_TM_TM_ZONE
-  zname = bd_time->tm_zone;
+  zname = bd_buf.tm_zone;
 #else
   zname = "GMT";
 #endif
-  result = filltime (bd_time, 0, zname);
-  SCM_ALLOW_INTS;
-  return result;
+  return filltime (&bd_buf, 0, zname);
 }
 #undef FUNC_NAME
 
