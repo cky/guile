@@ -27,4 +27,4 @@ aclocaldir = $(datadir)/aclocal
 aclocal_DATA = guile.m4 qthreads.m4
 
 EXTRA_DIST = $(aclocal_DATA) ltconfig ltmain.sh acconfig.h \
-	HACKING GUILE-VERSION
+	HACKING GUILE-VERSION ANON-CVS SNAPSHOTS
