@@ -769,29 +769,10 @@ scm_getc (port)
 
 void 
 scm_putc (c, port)
-     int c;
+     char c;
      SCM port;
 {
-  scm_port *pt = SCM_PTAB_ENTRY (port);  
-  scm_ptob_descriptor *ptob = &scm_ptobs[SCM_PTOBNUM (port)];
-
-  if (pt->rw_active == SCM_PORT_READ)
-    scm_read_flush (port);
-
-  *(pt->write_pos++) = (char) c;
-
-  if (pt->write_pos == pt->write_end)
-    ptob->fflush (port);
-  else
-    {
-      /* check for line-buffering.  */
-      if ((SCM_CAR (port) & SCM_BUFLINE)
-	  && c == '\n')
-	ptob->fflush (port);
-    }
-  
-  if (pt->rw_random)
-    pt->rw_active = SCM_PORT_WRITE;
+  scm_lfwrite (&c, 1, port);
 }
 
 void 
@@ -799,16 +780,7 @@ scm_puts (s, port)
      char *s;
      SCM port;
 {
-  scm_port *pt = SCM_PTAB_ENTRY (port);
-  scm_ptob_descriptor *ptob = &scm_ptobs[SCM_PTOBNUM (port)];
-
-  if (pt->rw_active == SCM_PORT_READ)
-    scm_read_flush (port);
-
-  ptob->write (port, s, strlen (s));
-
-  if (pt->rw_random)
-    pt->rw_active = SCM_PORT_WRITE;
+  scm_lfwrite (s, strlen (s), port);
 }
 
 void 

@@ -1692,31 +1692,10 @@ loop:
 
   if (SCM_NIMP (port_or_fd))
     {
-      scm_port *pt = SCM_PTAB_ENTRY (port_or_fd);
-      int remaining = (cend - offset) * sz;
       char *source = SCM_CHARS (v) + (cstart + offset) * sz;
-      scm_ptob_descriptor *ptob = &scm_ptobs[SCM_PTOBNUM (port_or_fd)];
 
       ans = cend - offset;
-      if (pt->rw_active == SCM_PORT_READ)
-	scm_read_flush (port_or_fd);
-
-      while (remaining > 0)
-	{
-	  int to_copy = min (pt->write_end - pt->write_pos, remaining);
-
-	  memcpy (pt->write_pos, source, to_copy);
-	  pt->write_pos += to_copy;
-	  source += to_copy;
-	  remaining -= to_copy;
-	  if (pt->write_pos == pt->write_end)
-	    ptob->fflush (port_or_fd);
-	}
-      
-      if (pt->rw_random)
-	{
-	  pt->rw_active = SCM_PORT_WRITE;
-	}
+      scm_lfwrite (source, ans * sz, port_or_fd);
     }
   else /* file descriptor.  */
     {

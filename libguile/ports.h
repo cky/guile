@@ -253,7 +253,7 @@ extern SCM scm_eof_object_p SCM_P ((SCM x));
 extern SCM scm_force_output SCM_P ((SCM port));
 extern SCM scm_flush_all_ports SCM_P ((void));
 extern SCM scm_read_char SCM_P ((SCM port));
-extern void scm_putc SCM_P ((int c, SCM port));
+extern void scm_putc SCM_P ((char c, SCM port));
 extern void scm_puts SCM_P ((char *str_data, SCM port));
 extern void scm_lfwrite SCM_P ((char *ptr, scm_sizet size, SCM port));
 extern void scm_fflush SCM_P ((SCM port));

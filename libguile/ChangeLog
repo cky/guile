@@ -1,3 +1,9 @@
+1999-08-04  Gary Houston  <ghouston@easynet.co.uk>
+
+	* ports.c (scm_putc, scm_puts),
+	* unif.c (scm_uniform_array_write): use scm_lfwrite.
+	* ports.c (scm_putc): change type of first argument from int to	char.
+	
 1999-08-04  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* eval.c (SCM_CEVAL): Improvements to SCM_IM_DISPATCH and
