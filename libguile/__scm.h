@@ -112,11 +112,6 @@
 #undef SCM_RECKLESS
 #define SCM_CAUTIOUS
 
-/* After looking up a local for the first time, rewrite the
- * code graph, caching its position.
- */
-#define MEMOIZE_LOCALS
-
 /* All the number support there is.
  */
 #define BIGNUMS

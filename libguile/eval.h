@@ -105,13 +105,9 @@ SCM_API SCM scm_eval_options_interface (SCM setting);
     ? scm_misc_error (NULL, scm_s_expression, SCM_EOL), 0 \
     : 0), \
    (x))
-#ifdef MEMOIZE_LOCALS
 #define SCM_EVALIM(x, env) (SCM_ILOCP (x) \
                             ? *scm_ilookup ((x), env) \
 			    : SCM_EVALIM2(x))
-#else
-#define SCM_EVALIM(x, env) SCM_EVALIM2(x)
-#endif
 #ifdef DEBUG_EXTENSIONS
 #define SCM_XEVAL(x, env) (SCM_IMP (x) \
 			   ? SCM_EVALIM2(x) \

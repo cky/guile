@@ -152,8 +152,6 @@ char *alloca ();
 
 #define EXTEND_ENV SCM_EXTEND_ENV
 
-#ifdef MEMOIZE_LOCALS
-
 SCM *
 scm_ilookup (SCM iloc, SCM env)
 {
@@ -168,7 +166,6 @@ scm_ilookup (SCM iloc, SCM env)
     return SCM_CDRLOC (er);
   return SCM_CARLOC (SCM_CDR (er));
 }
-#endif
 
 #ifdef USE_THREADS
 
@@ -259,9 +256,7 @@ scm_lookupcar (SCM vloc, SCM genv, int check)
 {
   SCM env = genv;
   register SCM *al, fl, var = SCM_CAR (vloc);
-#ifdef MEMOIZE_LOCALS
   register SCM iloc = SCM_ILOC00;
-#endif
   for (; SCM_NIMP (env); env = SCM_CDR (env))
     {
       if (!SCM_CONSP (SCM_CAR (env)))
@@ -273,13 +268,11 @@ scm_lookupcar (SCM vloc, SCM genv, int check)
 	    {
 	      if (SCM_EQ_P (fl, var))
 	      {
-#ifdef MEMOIZE_LOCALS
 #ifdef USE_THREADS
 		if (! SCM_EQ_P (SCM_CAR (vloc), var))
 		  goto race;
 #endif
 		SCM_SET_CELL_WORD_0 (vloc, SCM_UNPACK (iloc) + SCM_ICDR);
-#endif
 		return SCM_CDRLOC (*al);
 	      }
 	      else
@@ -288,7 +281,6 @@ scm_lookupcar (SCM vloc, SCM genv, int check)
 	  al = SCM_CDRLOC (*al);
 	  if (SCM_EQ_P (SCM_CAR (fl), var))
 	    {
-#ifdef MEMOIZE_LOCALS
 #ifndef SCM_RECKLESS		/* letrec inits to SCM_UNDEFINED */
 	      if (SCM_UNBNDP (SCM_CAR (*al)))
 		{
@@ -301,16 +293,11 @@ scm_lookupcar (SCM vloc, SCM genv, int check)
 		goto race;
 #endif
 	      SCM_SETCAR (vloc, iloc);
-#endif
 	      return SCM_CARLOC (*al);
 	    }
-#ifdef MEMOIZE_LOCALS
 	  iloc = SCM_PACK (SCM_UNPACK (iloc) + SCM_IDINC);
-#endif
 	}
-#ifdef MEMOIZE_LOCALS
       iloc = SCM_PACK ((~SCM_IDSTMSK) & (SCM_UNPACK(iloc) + SCM_IFRINC));
-#endif
     }
   {
     SCM top_thunk, real_var;
@@ -360,10 +347,8 @@ scm_lookupcar (SCM vloc, SCM genv, int check)
 	var = SCM_CAR (vloc);
 	if (SCM_VARIABLEP (var))
 	  return SCM_VARIABLE_LOC (var);
-#ifdef MEMOIZE_LOCALS
 	if (SCM_ITAG7 (var) == SCM_ITAG7 (SCM_ILOC00))
 	  return scm_ilookup (var, genv);
-#endif
 	/* We can't cope with anything else than variables and ilocs.  When
 	   a special form has been memoized (i.e. `let' into `#@let') we
 	   return NULL and expect the calling function to do the right
@@ -408,7 +393,6 @@ scm_unmemocar (SCM form, SCM env)
 	    sym = sym_three_question_marks;
 	  SCM_SETCAR (form, sym);
 	}
-#ifdef MEMOIZE_LOCALS
       else if (SCM_ILOCP (c))
 	{
 	  unsigned long int ir;
@@ -420,7 +404,6 @@ scm_unmemocar (SCM form, SCM env)
 	    env = SCM_CDR (env);
 	  SCM_SETCAR (form, SCM_ICDRP (c) ? env : SCM_CAR (env));
 	}
-#endif
       return form;
     }
 }
@@ -2313,11 +2296,9 @@ dispatch:
       {
 	SCM *location;
 	SCM variable = SCM_CAR (x);
-#ifdef MEMOIZE_LOCALS
 	if (SCM_ILOCP (variable))
 	  location = scm_ilookup (variable, env);
 	else
-#endif
 	if (SCM_VARIABLEP (variable))
 	  location = SCM_VARIABLE_LOC (variable);
 	else /* (SCM_SYMBOLP (variable)) is known to be true */
@@ -2713,7 +2694,6 @@ dispatch:
     case scm_tc7_variable:
       RETURN (SCM_VARIABLE_REF(x));
 
-#ifdef MEMOIZE_LOCALS
     case SCM_BIT8(SCM_ILOC00):
       proc = *scm_ilookup (SCM_CAR (x), env);
       SCM_ASRTGO (SCM_NIMP (proc), badfun);
@@ -2723,7 +2703,6 @@ dispatch:
 #endif
 #endif
       break;
-#endif /* ifdef MEMOIZE_LOCALS */
 
     case scm_tcs_cons_nimcar:
       if (SCM_SYMBOLP (SCM_CAR (x)))

@@ -167,6 +167,12 @@ used instead, obtained from scm_current_input_port () etc.  If an
 application needs to retain earlier ports, it should save them in a
 gc-protected location.
 
+** Removed compile time option MEMOIZE_LOCALS
+
+Now, caching of local variable positions during memoization is mandatory.
+However, the option to disable the caching has most probably not been used
+anyway.
+
 ** Removed definitions:  scm_lisp_nil, scm_lisp_t, s_nil_ify, scm_m_nil_ify,
 s_t_ify, scm_m_t_ify, s_0_cond, scm_m_0_cond, s_0_ify, scm_m_0_ify, s_1_ify,
 scm_m_1_ify, scm_debug_newcell,	scm_debug_newcell2, scm_tc16_allocated,

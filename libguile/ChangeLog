@@ -1,3 +1,11 @@
+2002-06-28  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* __scm.h, eval.c, eval.h:  Removed compile time option
+	MEMOIZE_LOCALS to clean up the code.  Now, caching of local
+	variable positions during memoization is mandatory.  However, the
+	option to disable the caching has most probably not been used
+	anyway.
+
 2002-06-18  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* print.c (scm_simple_format): Print missing part of format before
