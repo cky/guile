@@ -1,4 +1,4 @@
-;;;; 	Copyright (C) 1996, 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -278,10 +278,19 @@
 
 ;;; A fix to get the emacs interface to work together with the module system.
 ;;;
-(variable-set! (builtin-variable '%%load-port) load-port)
-(variable-set! (builtin-variable '%%emacs-load) emacs-load)
-(variable-set! (builtin-variable '%%emacs-eval-request) emacs-eval-request)
-(variable-set! (builtin-variable '%%emacs-select-frame) emacs-select-frame)
-(variable-set! (builtin-variable '%%emacs-frame-eval) emacs-frame-eval)
-(variable-set! (builtin-variable '%%emacs-symdoc) emacs-symdoc)
-(variable-set! (builtin-variable '%%apropos-internal) apropos-internal)
+(for-each (lambda (name value)
+	    (module-define! the-root-module name value))
+	  '(%%load-port
+	    %%emacs-load
+	    %%emacs-eval-request
+	    %%emacs-select-frame
+	    %%emacs-frame-eval
+	    %%emacs-symdoc
+	    %%apropos-internal)
+	  (list load-port
+		emacs-load
+		emacs-eval-request
+		emacs-select-frame
+		emacs-frame-eval
+		emacs-symdoc
+		apropos-internal))
