@@ -21,33 +21,8 @@
 ;;;
 ;;; BUGS:
 ;;;
-;;;
-;;; Setup load-path
 
-(if (featurep 'guileint)
-    nil
-  
 (require 'cl-19 "cl")
-
-(defconst guileint-init-file "guileint")
-
-(defvar guileint-emacs-dir nil)
-(let ((pathlist (getenv "EMACSSITELOAD")))
-  (if (and pathlist
-	   (string-match (concat "\\(\\(/[^:/]+\\)*\\)/?"
-				 guileint-init-file
-				 "\\(\.elc?\\)?\\(:\\|\\'\\)")
-			 pathlist))
-      (setq guileint-emacs-dir (match-string 1 pathlist))))
-
-(defvar guileint-default-load-path load-path)
-(setq load-path
-      (append (list
-	       guileint-emacs-dir
-	       )
-	      guileint-default-load-path
-	      '(
-		)))
 
 (setq scheme-program-name
       (let ((v (getenv "SCHEME_PROGRAM_NAME")))
@@ -114,4 +89,3 @@
 (load "inda-scheme")
 
 (provide 'guileint)
-)

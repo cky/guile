@@ -1,5 +1,15 @@
 2003-08-21  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* xscheme.el.diff: Removed (because no diffs left).
+
+	* inda-scheme.el (guile-init): `require' form removed.
+
+	* guileint.el (load-path, guileint-default-load-path,
+	guileint-emacs-dir, guileint-init-file): Remove strange load-path
+	handling.
+
+	* guileint.el: Remove guileint feature test.
+
 	* guile-init.el: Removed (because now empty).
 
 	* inda-scheme.el (scheme-send-buffer, indent-buffer,
