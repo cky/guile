@@ -14,21 +14,48 @@ Changes since Guile 1.2:
 
 * Changes to Scheme functions and syntax
 
+** The detection of circular references has been extended to structs.
+That is, a structure that -- in the process of being printed -- prints
+itself does not lead to infinite recursion.
+
 ** There is now some basic support for fluids.  Please read
 "libguile/fluid.h" to find out more. It is accessible from Scheme with
-the following builtin procedures:
+the following functions and macros:
 
-  (make-fluid)
+Function: make-fluid
 
-    Create a new fluid object.
+    Create a new fluid object.  Fluids are not special variables or
+    some other extension to the semantics of Scheme, but rather
+    ordinary Scheme objects.  You can store them into variables (that
+    are still lexically scoped, of course) or into any other place you
+    like.  Every fluid has a initial value of `#f'.
 
-  (fluid-ref FLUID)
-  (fluid-set! FLUID VAL)
+Function: fluid? OBJ
+
+    Test whether OBJ is a fluid.
+
+Function: fluid-ref FLUID
+Function: fluid-set! FLUID VAL
 
     Access/modify the fluid FLUID.  Modifications are only visible
     within the current dynamic root (that includes threads).
 
-There is no `fluid-let' yet.
+Function: with-fluids* FLUIDS VALUES THUNK
+
+    FLUIDS is a list of fluids and VALUES a corresponding list of
+    values for these fluids.  Before THUNK gets called the values are
+    installed in the fluids and the old values of the fluids are 
+    saved in the VALUES list.  When the flow of control leaves THUNK
+    or reenters it, the values get swapped again.  You might think of
+    this as a `safe-fluid-excursion'.  Note that the VALUES list is
+    modified by `with-fluids*'.
+
+Macro: with-fluids ((FLUID VALUE) ...) FORM ...
+
+    The same as `with-fluids*' but with a different syntax.  It looks
+    just like `let', but both FLUID and VALUE are evaluated.  Remember,
+    fluids are not special variables but ordinary objects.  FLUID
+    should evaluate to a fluid.
 
 * Changes to system call interfaces:
 
