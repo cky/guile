@@ -1,3 +1,7 @@
+2004-08-29  Kevin Ryde  <user42@zip.com.au>
+
+	* srfi-modules.texi (SRFI-2): Note empty body is #t.
+
 2004-08-25  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* api-data.texi, srfi-modules.texi: Moved docs for SRFI-14 into
