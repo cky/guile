@@ -372,6 +372,8 @@ scm_lookupcar (SCM vloc, SCM genv, int check)
 	var = SCM_CAR (vloc);
 	if (SCM_ITAG3 (var) == scm_tc3_cons_gloc)
 	  return SCM_GLOC_VAL_LOC (var);
+	if (SCM_VARIABLEP (var))
+	  return SCM_VARIABLE_LOC (var);
 #ifdef MEMOIZE_LOCALS
 	if (SCM_ITAG7 (var) == SCM_ITAG7 (SCM_ILOC00))
 	  return scm_ilookup (var, genv);
@@ -385,7 +387,7 @@ scm_lookupcar (SCM vloc, SCM genv, int check)
       }
 #endif /* USE_THREADS */
 
-    SCM_SET_CELL_WORD_0 (vloc, SCM_UNPACK (real_var) + scm_tc3_cons_gloc);
+    SCM_SETCAR (vloc, real_var);
     return SCM_VARIABLE_LOC (real_var);
   }
 }
@@ -417,6 +419,14 @@ scm_unmemocar (SCM form, SCM env)
     {
       SCM sym =
 	scm_module_reverse_lookup (scm_env_module (env), SCM_GLOC_VAR (c));
+      if (SCM_EQ_P (sym, SCM_BOOL_F))
+	sym = sym_three_question_marks;
+      SCM_SETCAR (form, sym);
+    }
+  else if (SCM_VARIABLEP (c))
+    {
+      SCM sym =
+	scm_module_reverse_lookup (scm_env_module (env), c);
       if (SCM_EQ_P (sym, SCM_BOOL_F))
 	sym = sym_three_question_marks;
       SCM_SETCAR (form, sym);
@@ -2193,7 +2203,10 @@ dispatch:
       switch (SCM_ITAG3 (proc))
 	{
 	case scm_tc3_cons:
-	  t.lloc = scm_lookupcar (x, env, 1);
+	  if (SCM_VARIABLEP (proc))
+	    t.lloc = SCM_VARIABLE_LOC (proc);
+	  else
+	    t.lloc = scm_lookupcar (x, env, 1);
 	  break;
 	case scm_tc3_cons_gloc:
 	  t.lloc = SCM_GLOC_VAL_LOC (proc);
@@ -2546,6 +2559,9 @@ dispatch:
     case scm_tcs_subrs:
       RETURN (x);
 
+    case scm_tc7_variable:
+      return SCM_VARIABLE_REF(x);
+
 #ifdef MEMOIZE_LOCALS
     case SCM_BIT8(SCM_ILOC00):
       proc = *scm_ilookup (SCM_CAR (x), env);
@@ -2558,7 +2574,7 @@ dispatch:
       break;
 #endif /* ifdef MEMOIZE_LOCALS */
 
-
+      
     case scm_tcs_cons_gloc: {
       scm_t_bits vcell = SCM_STRUCT_VTABLE_DATA (x) [scm_vtable_index_vcell];
       if (vcell == 0) {
