@@ -1,3 +1,7 @@
+2001-02-27  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* lib.scm (data-file):  Remove from export list.
+
 2001-02-22  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
 	* tests/exceptions.test (syntax lambda): Renamed from (lambda).

@@ -34,9 +34,6 @@
  user-reporter
  format-test-name
 
- ;; Finding test input files.
- data-file
-
  ;; Noticing whether an error occurs.
  signals-error? signals-error?*)
 
