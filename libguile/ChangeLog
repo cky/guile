@@ -1,3 +1,92 @@
+2004-08-12  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* socket.c (scm_inet_aton, scm_inet_pton): Convert SCM strings to
+	locale strings instead of accessing their internals.
+	(scm_recv, scm_send, scm_recvfrom, scm_sendto): Use
+	SCM_I_STRING_CHARS and SCM_I_STRING_LENGTH instead of
+	SCM_STRING_CHARS and SCM_STRING_LENGTH.
+	
+	* simpos.c (scm_system): Convert SCM strings to locale strings
+	instead of accessing their internals.
+
+	* script.c (scm_compile_shell_switches): Convert version to locale
+	string before printing it.
+
+	* rdelim.c (scm_read_delimited_x): Avoid
+	SCM_VALIDATE_SUBSTRING_SPEC_COPY and use scm_from_size_t instead
+	of scm_from_long for the returned number of read characters.
+
+	* ioext.c (scm_fdopen): Use scm_i_fdes_to_port together with
+	scm_i_mode_bits to avoid accessing internals of SCM string from C.
+
+	* filesys.c (STRING_SYSCALL, STRING2_SYSCALL): New helper macros.
+	Use them instead of SCM_SYSCALL when one or two strings need to be
+	converted into locale strings.
+	(my_rename): New, gathers platform dependent code for renaming.
+	(scm_rename): Use it.
+	(scm_readlink, scm_copy_file): Convert SCM strings to locale
+	strings instead of accessing their internals.
+	(scm_basename, scm_dirname): Use SCM_I_STRING_CHARS and
+	SCM_I_STRING_LENGTH instead of SCM_STRING_CHARS and
+	SCM_STRING_LENGTH.
+	
+	* extensions.c (load_extension): Convert lib and init to locale
+	strings instead of accessing the internals directly.
+	(scm_c_load_extension): Use scm_from_locale_string instead of
+	scm_makfrom0str.
+	
+	* fports.h, fports.c (scm_i_fdes_to_port): New, like
+	scm_fdes_to_port, but take mode bits directly instead of as a C
+	string.
+	(scm_i_fdes_to_port): Implement using above.
+	(scm_open_file): Use scm_i_fdes_to_port together with
+	scm_i_mode_bits to avoid accessing internals of SCM string from C.
+	* vports.c (scm_make_soft_port): Use scm_i_fdes_to_port together
+	with scm_i_mode_bits to avoid accessing internals of SCM string
+	from C.
+
+	* ports.h (scm_i_mode_bits): New, same as scm_mode_bits but with a
+	SCM string as argument.
+
+	* ports.c (scm_i_void_port): New, like scm_void_port but take mode
+	bits directly instead of C string.
+	(scm_void_port): Implement using above.
+	(scm_sys_make_void_port): Use scm_i_void_port together with
+	scm_i_mode_bits to avoid accessing internals of SCM string.
+	
+	* strings.h, strings.c (scm_i_get_substring_spec): New.
+
+	* socket.c, rw.c, deprecated.h, validate.h
+	(SCM_VALIDATE_STRING_COPY): Deprecated.  Replaced all uses with
+	SCM_VALIDATE_STRING plus SCM_I_STRING_CHARS or
+	scm_to_locale_string, etc.
+	(SCM_VALIDATE_SUBSTRING_SPEC_COPY): Deprecated.  Replaced as
+	above, plus scm_i_get_substring_spec.
+	
+	* regex-posix.c, read.c, random.c, ramap.c, print.c, numbers.c,
+	hash.c, gc.c, gc-card.c, convert.i.c, backtrace.c, strop.c,
+	strorder.c, strports.c, struct.c, symbols.c, unif.c, ports.c: Use
+	SCM_I_STRING_CHARS, SCM_I_STRING_UCHARS, and SCM_I_STRING_LENGTH
+	instead of SCM_STRING_CHARS, SCM_STRING_UCHARS, and
+	SCM_STRING_LENGTH, respectively.  Also, replaced scm_return_first
+	with more explicit scm_remember_upto_here_1, etc, or introduced
+	them in the first place.
+
+	* posix.c (WITH_STRING): New helper macro.  Use it where one
+	locale string is needed for a short piece of code.
+	(STRING_SYSCALL): New helper macro.  Use it instead of SCM_SYSCALL
+	when one locale string is needed.
+	(scm_mkstemp): Convert tmpl to a locale string.
+	(scm_putenv): Rewritten to use only C strings.
+	(scm_setlocale, scm_crpt): Convert argument strings to locale
+	strings.
+	
+2004-08-11  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* load.c (scm_primitive_load_path): Do not check for absolute
+	filenames when scm_sys_search_load_path returns false, which will
+	return absolute filenames unchanged.
+
 2004-08-11  Marius Vollmer  <mvo@zagadka.de>
 
 	* gc.c, procprop.c (scm_init_storage, scm_stand_in_procs,
