@@ -15,14 +15,14 @@ Thu Sep  5 11:38:07 1996  Jim Blandy  <jimb@floss.cyclic.com>
 	this makes it easier to run Guile without installing it.  See
 	corresponding changes in guile/Makefile.in.
 	* feature.c: Move stuff concerned with the load path to load.c.
-	(scm_compiled_library_path): Deleted.
+*	(scm_compiled_library_path): Deleted.
 	Don't #include libpath.h here.
 	* feature.h: Don't mention scm_compiled_library_path.
 	* load.c: #include "libpath.h" here, as well as <sys/types.h>,
 	<sys/stat.h>, and <unistd.h> (if present).
 	(R_OK): #define if the system hasn't deigned to.
 	(scm_loc_load_path): New variable.
-	(scm_init_load_path, scm_sys_search_load_path,
+*	(scm_init_load_path, scm_sys_search_load_path,
 	scm_sys_try_load_path): New functions.
 	(scm_init_load): Initialize scm_loc_load_path to point to the
 	value cell of the Scheme %load-path variable.
@@ -88,7 +88,7 @@ Wed Sep  4 00:55:49 1996  Jim Blandy  <jimb@floss.cyclic.com>
 	* feature.c: ... #include "libpath.h" here.
 	* .cvsignore: Ignore libpath.h.
 
-	Don't install the unwashed masses of Guile header files in the
+*	Don't install the unwashed masses of Guile header files in the
 	main #include path; put most of them in a subdirectory called
 	'libguile'.  This avoids naming conflicts between Guile header
 	files and system header files (of which there were a few).
