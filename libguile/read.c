@@ -769,8 +769,6 @@ void
 scm_init_read ()
 #endif
 {
-#ifdef READER_EXTENSIONS
   scm_init_opts (scm_read_options, scm_read_opts, SCM_N_READ_OPTIONS);
-#endif
 #include "read.x"
 }
