@@ -257,8 +257,9 @@
 ;; waitpid with WUNTRACED, but allow for it anyway, just in case.
 ;;
 (if (defined? 'system)
-    (define-public system
-      (let ((guile-core-system system))
+    (begin
+      (define guile-core-system system)
+      (define-public system
 	(lambda (str)
 	  (let ((st (guile-core-system str)))
 	    (or (status:exit-val st)
