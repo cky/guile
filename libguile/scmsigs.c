@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2004 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -299,7 +299,7 @@ SCM_DEFINE (scm_sigaction_for_thread, "sigaction", 1, 3, 0,
   SCM old_handler;
 
   SCM_VALIDATE_INUM_COPY (1, signum, csig);
-  if (csig < 0 || csig > NSIG)
+  if (csig < 0 || csig >= NSIG)
     SCM_OUT_OF_RANGE (1, signum);
 #if defined(HAVE_SIGACTION)
 #if defined(SA_RESTART) && defined(HAVE_RESTARTABLE_SYSCALLS)
