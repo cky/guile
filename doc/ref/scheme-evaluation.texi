@@ -205,12 +205,14 @@ return the environment in which the implementation would
 evaluate expressions dynamically typed by the user.
 @end deffn
 
-@deffn {Scheme Procedure} eval-string string
+@deffn {Scheme Procedure} eval-string string [module]
 @deffnx {C Function} scm_eval_string (string)
-Evaluate @var{string} as the text representation of a Scheme
-form or forms, and return whatever value they produce.
-Evaluation takes place in the environment returned by the
-procedure @code{interaction-environment}.
+@deffnx {C Function} scm_eval_string_in_module (string, module)
+Evaluate @var{string} as the text representation of a Scheme form or
+forms, and return whatever value they produce.  Evaluation takes place
+in the given module, or in the current module when no module is given.
+While the code is evaluated, the given module is made the current one.
+The current module is restored when this procedure returns.
 @end deffn
 
 @deffn {Scheme Procedure} apply:nconc2last lst
