@@ -209,7 +209,7 @@ scm_i_get_old_prototype (SCM uvec)
     scm_misc_error (NULL, "~a has no prototype", scm_list_1 (uvec));
 }
 
-SCM 
+SCM
 scm_make_uve (long k, SCM prot)
 #define FUNC_NAME "scm_make_uve"
 {
@@ -622,46 +622,8 @@ SCM_DEFINE (scm_shared_array_increments, "shared-array-increments", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-
-static char s_bad_ind[] = "Bad scm_array index";
-
-
-long 
-scm_aind (SCM ra, SCM args, const char *what)
-{
-  SCM ind;
-  register long j;
-  register unsigned long pos = SCM_ARRAY_BASE (ra);
-  register unsigned long k = SCM_ARRAY_NDIM (ra);
-  scm_t_array_dim *s = SCM_ARRAY_DIMS (ra);
-
-  if (scm_is_integer (args))
-    {
-      if (k != 1)
-	scm_error_num_args_subr (what);
-      return pos + (scm_to_long (args) - s->lbnd) * (s->inc);
-    }
-  while (k && scm_is_pair (args))
-    {
-      ind = SCM_CAR (args);
-      args = SCM_CDR (args);
-      if (!scm_is_integer (ind))
-	scm_misc_error (what, s_bad_ind, SCM_EOL);
-      j = scm_to_long (ind);
-      if (j < s->lbnd || j > s->ubnd)
-	scm_out_of_range (what, ind);
-      pos += (j - s->lbnd) * (s->inc);
-      k--;
-      s++;
-    }
-  if (k != 0 || !scm_is_null (args))
-    scm_error_num_args_subr (what);
-
-  return pos;
-}
-
-static ssize_t
-indices_to_pos (scm_t_array_handle *h, SCM indices)
+ssize_t
+scm_array_handle_pos (scm_t_array_handle *h, SCM indices)
 {
   scm_t_array_dim *s = scm_array_handle_dims (h);
   ssize_t pos = 0, i;
@@ -681,9 +643,10 @@ indices_to_pos (scm_t_array_handle *h, SCM indices)
   return pos;
 }
 
-static SCM 
-scm_i_make_ra (int ndim, scm_t_bits tag)
+SCM 
+scm_i_make_ra (int ndim, int enclosed)
 {
+  scm_t_bits tag = enclosed? scm_tc16_enclosed_array : scm_tc16_array;
   SCM ra;
   SCM_NEWSMOB(ra, ((scm_t_bits) ndim << 17) + tag,
               scm_gc_malloc ((sizeof (scm_t_array) +
@@ -693,28 +656,21 @@ scm_i_make_ra (int ndim, scm_t_bits tag)
   return ra;
 }
 
-SCM 
-scm_make_ra (int ndim)
-{
-  return scm_i_make_ra (ndim, scm_tc16_array);
-}
-
-
 static char s_bad_spec[] = "Bad scm_array dimension";
 
 
 /* Increments will still need to be set. */
 
-SCM 
-scm_shap2ra (SCM args, const char *what)
+static SCM 
+scm_i_shap2ra (SCM args)
 {
   scm_t_array_dim *s;
   SCM ra, spec, sp;
   int ndim = scm_ilength (args);
   if (ndim < 0)
-    scm_misc_error (what, s_bad_spec, SCM_EOL);
+    scm_misc_error (NULL, s_bad_spec, SCM_EOL);
 
-  ra = scm_make_ra (ndim);
+  ra = scm_i_make_ra (ndim, 0);
   SCM_ARRAY_BASE (ra) = 0;
   s = SCM_ARRAY_DIMS (ra);
   for (; !scm_is_null (args); s++, args = SCM_CDR (args))
@@ -723,7 +679,7 @@ scm_shap2ra (SCM args, const char *what)
       if (scm_is_integer (spec))
 	{
 	  if (scm_to_long (spec) < 0)
-	    scm_misc_error (what, s_bad_spec, SCM_EOL);
+	    scm_misc_error (NULL, s_bad_spec, SCM_EOL);
 	  s->lbnd = 0;
 	  s->ubnd = scm_to_long (spec) - 1;
 	  s->inc = 1;
@@ -731,13 +687,13 @@ scm_shap2ra (SCM args, const char *what)
       else
 	{
 	  if (!scm_is_pair (spec) || !scm_is_integer (SCM_CAR (spec)))
-	    scm_misc_error (what, s_bad_spec, SCM_EOL);
+	    scm_misc_error (NULL, s_bad_spec, SCM_EOL);
 	  s->lbnd = scm_to_long (SCM_CAR (spec));
 	  sp = SCM_CDR (spec);
 	  if (!scm_is_pair (sp) 
 	      || !scm_is_integer (SCM_CAR (sp))
 	      || !scm_is_null (SCM_CDR (sp)))
-	    scm_misc_error (what, s_bad_spec, SCM_EOL);
+	    scm_misc_error (NULL, s_bad_spec, SCM_EOL);
 	  s->ubnd = scm_to_long (SCM_CAR (sp));
 	  s->inc = 1;
 	}
@@ -756,7 +712,7 @@ SCM_DEFINE (scm_make_typed_array, "make-typed-array", 2, 0, 1,
   SCM ra;
   
   creator = type_to_creator (type);
-  ra = scm_shap2ra (bounds, FUNC_NAME);
+  ra = scm_i_shap2ra (bounds);
   SCM_SET_ARRAY_CONTIGUOUS_FLAG (ra);
   s = SCM_ARRAY_DIMS (ra);
   k = SCM_ARRAY_NDIM (ra);
@@ -812,8 +768,8 @@ SCM_DEFINE (scm_dimensions_to_uniform_array, "dimensions->uniform-array", 2, 1, 
 
 #endif
 
-void 
-scm_ra_set_contp (SCM ra)
+static void 
+scm_i_ra_set_contp (SCM ra)
 {
   size_t k = SCM_ARRAY_NDIM (ra);
   if (k)
@@ -864,7 +820,7 @@ SCM_DEFINE (scm_make_shared_array, "make-shared-array", 2, 0, 1,
 
   SCM_VALIDATE_REST_ARGUMENT (dims);
   SCM_VALIDATE_PROC (2, mapfunc);
-  ra = scm_shap2ra (dims, FUNC_NAME);
+  ra = scm_i_shap2ra (dims);
 
   scm_array_get_handle (oldra, &old_handle);
 
@@ -906,7 +862,7 @@ SCM_DEFINE (scm_make_shared_array, "make-shared-array", 2, 0, 1,
     }
 
   imap = scm_apply_0 (mapfunc, scm_reverse (inds));
-  i = indices_to_pos (&old_handle, imap);
+  i = scm_array_handle_pos (&old_handle, imap);
   SCM_ARRAY_BASE (ra) = new_min = new_max = i;
   indptr = inds;
   k = SCM_ARRAY_NDIM (ra);
@@ -916,7 +872,7 @@ SCM_DEFINE (scm_make_shared_array, "make-shared-array", 2, 0, 1,
 	{
 	  SCM_SETCAR (indptr, scm_sum (SCM_CAR (indptr), scm_from_int (1)));
 	  imap = scm_apply_0 (mapfunc, scm_reverse (inds));
-	  s[k].inc = indices_to_pos (&old_handle, imap) - i;
+	  s[k].inc = scm_array_handle_pos (&old_handle, imap) - i;
 	  i += s[k].inc;
 	  if (s[k].inc > 0)
 	    new_max += (s[k].ubnd - s[k].lbnd) * s[k].inc;
@@ -941,7 +897,7 @@ SCM_DEFINE (scm_make_shared_array, "make-shared-array", 2, 0, 1,
       if (s->ubnd < s->lbnd)
 	return make_typed_vector (scm_array_type (ra), 0);
     }
-  scm_ra_set_contp (ra);
+  scm_i_ra_set_contp (ra);
   return ra;
 }
 #undef FUNC_NAME
@@ -1004,7 +960,7 @@ SCM_DEFINE (scm_transpose_array, "transpose-array", 1, 0, 1,
 	    ndim = i;
 	}
       ndim++;
-      res = scm_make_ra (ndim);
+      res = scm_i_make_ra (ndim, 0);
       SCM_ARRAY_V (res) = SCM_ARRAY_V (ra);
       SCM_ARRAY_BASE (res) = SCM_ARRAY_BASE (ra);
       for (k = ndim; k--;)
@@ -1038,7 +994,7 @@ SCM_DEFINE (scm_transpose_array, "transpose-array", 1, 0, 1,
 	}
       if (ndim > 0)
 	SCM_MISC_ERROR ("bad argument list", SCM_EOL);
-      scm_ra_set_contp (res);
+      scm_i_ra_set_contp (res);
       return res;
     }
 
@@ -1080,7 +1036,7 @@ SCM_DEFINE (scm_enclose_array, "enclose-array", 1, 0, 1,
   ninr = scm_ilength (axes);
   if (ninr < 0)
     SCM_WRONG_NUM_ARGS ();
-  ra_inr = scm_make_ra (ninr);
+  ra_inr = scm_i_make_ra (ninr, 0);
 
   if (scm_is_generalized_vector (ra))
     {
@@ -1105,7 +1061,7 @@ SCM_DEFINE (scm_enclose_array, "enclose-array", 1, 0, 1,
   if (noutr < 0)
     SCM_WRONG_NUM_ARGS ();
   axv = scm_make_string (scm_from_int (ndim), SCM_MAKE_CHAR (0));
-  res = scm_i_make_ra (noutr, scm_tc16_enclosed_array);
+  res = scm_i_make_ra (noutr, 1);
   SCM_ARRAY_BASE (res) = SCM_ARRAY_BASE (ra_inr);
   SCM_ARRAY_V (res) = ra_inr;
   for (k = 0; k < ninr; k++, axes = SCM_CDR (axes))
@@ -1128,8 +1084,8 @@ SCM_DEFINE (scm_enclose_array, "enclose-array", 1, 0, 1,
       SCM_ARRAY_DIMS (res)[k].inc = s[j].inc;
     }
   scm_remember_upto_here_1 (axv);
-  scm_ra_set_contp (ra_inr);
-  scm_ra_set_contp (res);
+  scm_i_ra_set_contp (ra_inr);
+  scm_i_ra_set_contp (res);
   return res;
 }
 #undef FUNC_NAME
@@ -1198,7 +1154,7 @@ scm_i_cvref (SCM v, size_t pos, int enclosed)
   if (enclosed)
     {
       int k = SCM_ARRAY_NDIM (v);
-      SCM res = scm_make_ra (k);
+      SCM res = scm_i_make_ra (k, 0);
       SCM_ARRAY_V (res) = SCM_ARRAY_V (v);
       SCM_ARRAY_BASE (res) = pos;
       while (k--)
@@ -1213,12 +1169,6 @@ scm_i_cvref (SCM v, size_t pos, int enclosed)
     return scm_c_generalized_vector_ref (v, pos);
 }
 
-SCM
-scm_cvref (SCM v, unsigned long pos, SCM last)
-{
-  return scm_i_cvref (v, pos, 0);
-}
-
 SCM_DEFINE (scm_array_ref, "array-ref", 1, 0, 1,
            (SCM v, SCM args),
 	    "Return the element at the @code{(index1, index2)} element in\n"
@@ -1229,7 +1179,7 @@ SCM_DEFINE (scm_array_ref, "array-ref", 1, 0, 1,
   SCM res;
 
   scm_array_get_handle (v, &handle);
-  res = scm_array_handle_ref (&handle, indices_to_pos (&handle, args));
+  res = scm_array_handle_ref (&handle, scm_array_handle_pos (&handle, args));
   scm_array_handle_release (&handle);
   return res;
 }
@@ -1245,7 +1195,7 @@ SCM_DEFINE (scm_array_set_x, "array-set!", 2, 0, 1,
   scm_t_array_handle handle;
 
   scm_array_get_handle (v, &handle);
-  scm_array_handle_set (&handle, indices_to_pos (&handle, args), obj);
+  scm_array_handle_set (&handle, scm_array_handle_pos (&handle, args), obj);
   scm_array_handle_release (&handle);
   return SCM_UNSPECIFIED;
 }
@@ -1300,7 +1250,7 @@ SCM_DEFINE (scm_array_contents, "array-contents", 1, 1, 0,
 	  return v;
       }
       
-      sra = scm_make_ra (1);
+      sra = scm_i_make_ra (1, 0);
       SCM_ARRAY_DIMS (sra)->lbnd = 0;
       SCM_ARRAY_DIMS (sra)->ubnd = len - 1;
       SCM_ARRAY_V (sra) = SCM_ARRAY_V (ra);
@@ -1334,7 +1284,7 @@ scm_ra2contig (SCM ra, int copy)
 	   0 == len % SCM_LONG_BIT))
 	return ra;
     }
-  ret = scm_make_ra (k);
+  ret = scm_i_make_ra (k, 0);
   SCM_ARRAY_BASE (ret) = 0;
   while (k--)
     {
@@ -2244,7 +2194,7 @@ SCM_DEFINE (scm_bit_invert_x, "bit-invert!", 1, 0, 0,
 #undef FUNC_NAME
 
 
-SCM 
+SCM
 scm_istr2bve (SCM str)
 {
   scm_t_array_handle handle;
@@ -2800,13 +2750,6 @@ scm_i_read_array (SCM port, int c)
   return scm_list_to_typed_array (tag_to_type (tag, port), shape, elements);
 }
 
-int 
-scm_raprin1 (SCM exp, SCM port, scm_print_state *pstate)
-{
-  scm_iprin1 (exp, port, pstate);
-  return 1;
-}
-
 SCM_DEFINE (scm_array_type, "array-type", 1, 0, 0, 
            (SCM ra),
 	    "")
@@ -2860,6 +2803,70 @@ array_free (SCM ptr)
 	       "array");
   return 0;
 }
+
+#if SCM_ENABLE_DEPRECATED
+
+SCM 
+scm_make_ra (int ndim)
+{
+  scm_c_issue_deprecation_warning
+    ("scm_make_ra is deprecated.  Use scm_make_array or similar instead.");
+  return scm_i_make_ra (ndim, 0);
+}
+
+SCM 
+scm_shap2ra (SCM args, const char *what)
+{
+  scm_c_issue_deprecation_warning
+    ("scm_shap2ra is deprecated.  Use scm_make_array or similar instead.");
+  return scm_i_shap2ra (args);
+}
+
+SCM
+scm_cvref (SCM v, unsigned long pos, SCM last)
+{
+  scm_c_issue_deprecation_warning
+    ("scm_cvref is deprecated.  Use scm_c_generalized_vector_ref instead.");
+  return scm_c_generalized_vector_ref (v, pos);
+}
+
+void 
+scm_ra_set_contp (SCM ra)
+{
+  scm_c_issue_deprecation_warning
+    ("scm_ra_set_contp is deprecated.  There should be no need for it.");
+  scm_i_ra_set_contp (ra);
+}
+
+long 
+scm_aind (SCM ra, SCM args, const char *what)
+{
+  scm_t_array_handle handle;
+  ssize_t pos;
+
+  scm_c_issue_deprecation_warning
+    ("scm_aind is deprecated.  Use scm_array_handle_pos instead.");
+
+  if (scm_is_integer (args))
+    args = scm_list_1 (args);
+  
+  scm_array_get_handle (ra, &handle);
+  pos = scm_array_handle_pos (&handle, args);
+  scm_array_handle_release (&handle);
+  return pos;
+}
+
+int 
+scm_raprin1 (SCM exp, SCM port, scm_print_state *pstate)
+{
+  scm_c_issue_deprecation_warning
+    ("scm_raprin1 is deprecated.  Use scm_display or scm_write instead.");
+
+  scm_iprin1 (exp, port, pstate);
+  return 1;
+}
+
+#endif
 
 void
 scm_init_unif ()

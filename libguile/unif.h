@@ -94,7 +94,7 @@ SCM_API SCM scm_array_type (SCM ra);
 SCM_API int scm_is_array (SCM obj);
 SCM_API int scm_is_typed_array (SCM obj, SCM type);
 
-SCM_API SCM scm_i_read_array (SCM port, int c);
+SCM_API SCM scm_ra2contig (SCM ra, int copy);
 
 struct scm_t_array_handle;
 
@@ -115,6 +115,7 @@ typedef struct scm_t_array_handle {
 SCM_API void scm_array_get_handle (SCM array, scm_t_array_handle *h);
 SCM_API size_t scm_array_handle_rank (scm_t_array_handle *h);
 SCM_API scm_t_array_dim *scm_array_handle_dims (scm_t_array_handle *h);
+SCM_API ssize_t scm_array_handle_pos (scm_t_array_handle *h, SCM indices);
 SCM_API const SCM *scm_array_handle_elements (scm_t_array_handle *h);
 SCM_API SCM *scm_array_handle_writable_elements (scm_t_array_handle *h);
 SCM_API void scm_array_handle_release (scm_t_array_handle *h);
@@ -139,6 +140,7 @@ SCM_API SCM scm_bit_position (SCM item, SCM v, SCM k);
 SCM_API SCM scm_bit_set_star_x (SCM v, SCM kv, SCM obj);
 SCM_API SCM scm_bit_count_star (SCM v, SCM kv, SCM obj);
 SCM_API SCM scm_bit_invert_x (SCM v);
+SCM_API SCM scm_istr2bve (SCM str);
 
 SCM_API int scm_is_bitvector (SCM obj);
 SCM_API SCM scm_c_make_bitvector (size_t len, SCM fill);
@@ -159,6 +161,12 @@ SCM_API scm_t_uint32 *scm_bitvector_writable_elements (SCM vec,
 						       size_t *lenp,
 						       ssize_t *incp);
 
+/* internal. */
+
+SCM_API SCM scm_i_make_ra (int ndim, int enclosed);
+SCM_API SCM scm_i_cvref (SCM v, size_t p, int enclosed);
+SCM_API SCM scm_i_read_array (SCM port, int c);
+
 /* deprecated. */
 
 #if SCM_ENABLE_DEPRECATED
@@ -167,19 +175,13 @@ SCM_API SCM scm_make_uve (long k, SCM prot);
 SCM_API SCM scm_array_prototype (SCM ra);
 SCM_API SCM scm_list_to_uniform_array (SCM ndim, SCM prot, SCM lst);
 SCM_API SCM scm_dimensions_to_uniform_array (SCM dims, SCM prot, SCM fill);
-
-#endif
-
 SCM_API SCM scm_make_ra (int ndim);
-SCM_API void scm_ra_set_contp (SCM ra);
-SCM_API SCM scm_cvref (SCM v, unsigned long pos, SCM last);
-SCM_API SCM scm_istr2bve (SCM str);
-SCM_API int scm_raprin1 (SCM exp, SCM port, scm_print_state *pstate);
-SCM_API long scm_aind (SCM ra, SCM args, const char *what);
 SCM_API SCM scm_shap2ra (SCM args, const char *what);
-SCM_API SCM scm_ra2contig (SCM ra, int copy);
-
-SCM_API SCM scm_i_cvref (SCM v, size_t p, int enclosed);
+SCM_API SCM scm_cvref (SCM v, unsigned long pos, SCM last);
+SCM_API void scm_ra_set_contp (SCM ra);
+SCM_API long scm_aind (SCM ra, SCM args, const char *what);
+SCM_API int scm_raprin1 (SCM exp, SCM port, scm_print_state *pstate);
+#endif
 
 SCM_API void scm_init_unif (void);
 
