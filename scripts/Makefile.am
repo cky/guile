@@ -24,6 +24,7 @@ AUTOMAKE_OPTIONS = gnu
 # These should be installed and distributed.
 scripts_sources =		\
 	PROGRAM			\
+	autofrisk		\
 	display-commentary	\
 	doc-snarf		\
 	frisk			\
