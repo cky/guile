@@ -1,3 +1,9 @@
+2001-03-07  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* buffered-input.scm (make-line-buffered-input-port): Don't set
+	the continuation flag for leading whitespace.  Thanks to Dirk
+	Herrmann for the suggestion.
+
 2001-03-05  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* optargs.scm (rest-arg->keyword-binding-list): Use "'()" instead

@@ -79,7 +79,8 @@ first call to @var{reader}, and so @var{reader} will be called with
 		 (else
 		  (let ((res (string-ref read-string string-index)))
 		    (set! string-index (+ 1 string-index))
-                    (set! (buffered-input-continuation? port) #t)
+                    (if (not (char-whitespace? res))
+                        (set! (buffered-input-continuation? port) #t))
 		    res)))))
              (port #f))
       (set! port (make-soft-port (vector #f #f #f get-character #f) "r"))
