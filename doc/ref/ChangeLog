@@ -1,3 +1,8 @@
+2003-01-02  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* scheme-scheduling.texi (Low level thread primitives): Fixed typo
+	in broadcast-condition-variable.
+
 2002-12-08  Rob Browning  <rlb@defaultvalue.org>
 
 	* scheme-options.texi (Build Config): add effective-version docs.

@@ -388,7 +388,7 @@ Wake up one thread that is waiting for @var{cv}.
 @end deffn
 
 @c begin (texi-doc-string "guile" "broadcast-condition-variable")
-@deffn {Scheme Procedure} signal-condition-variable cond-var
+@deffn {Scheme Procedure} broadcast-condition-variable cond-var
 Wake up all threads that are waiting for @var{cv}.
 @end deffn
 
