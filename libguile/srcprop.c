@@ -69,9 +69,11 @@
  *
  */
 
+SCM scm_i_filename;
 SCM scm_i_copy;
-static SCM scm_i_breakpoint, scm_i_line, scm_i_column;
-static SCM scm_i_filename;
+SCM scm_i_line;
+SCM scm_i_column;
+SCM scm_i_breakpoint;
 
 long scm_tc16_srcprops;
 static scm_srcprops_chunk *srcprops_chunklist = 0;
@@ -188,8 +190,13 @@ scm_source_properties (obj)
      SCM obj;
 {
   SCM p;
+  SCM_ASSERT (SCM_NIMP (obj), obj, SCM_ARG1, s_source_properties);
   if (SCM_MEMOIZEDP (obj))
-    obj = SCM_MEMOEXP (obj);
+    obj = SCM_MEMOIZED_EXP (obj);
+#ifndef SCM_RECKLESS
+  else if (SCM_NCONSP (obj))
+    scm_wrong_type_arg (s_source_properties, 1, obj);
+#endif
   p = scm_hashq_ref (scm_source_whash, obj, (SCM) NULL);
   if (p != (SCM) NULL && SRCPROPSP (p))
     return scm_srcprops_to_plist (p);
@@ -206,8 +213,13 @@ scm_set_source_properties_x (obj, plist)
      SCM plist;
 {
   SCM handle;
+  SCM_ASSERT (SCM_NIMP (obj), obj, SCM_ARG1, s_set_source_properties_x);
   if (SCM_MEMOIZEDP (obj))
-    obj = SCM_MEMOEXP (obj);
+    obj = SCM_MEMOIZED_EXP (obj);
+#ifndef SCM_RECKLESS
+  else if (SCM_NCONSP (obj))
+    scm_wrong_type_arg (s_set_source_properties_x, 1, obj);
+#endif
   handle = scm_hashq_create_handle_x (scm_source_whash, obj, plist);
   SCM_SETCDR (handle, plist);
   return plist;
@@ -221,8 +233,13 @@ scm_source_property (obj, key)
      SCM key;
 {
   SCM p;
+  SCM_ASSERT (SCM_NIMP (obj), obj, SCM_ARG1, s_source_property);
   if (SCM_MEMOIZEDP (obj))
-    obj = SCM_MEMOEXP (obj);
+    obj = SCM_MEMOIZED_EXP (obj);
+#ifndef SCM_RECKLESS
+  else if (SCM_NCONSP (obj))
+    scm_wrong_type_arg (s_source_property, 1, obj);
+#endif
   p = scm_hashq_ref (scm_source_whash, obj, SCM_EOL);
   if (SCM_IMP (p) || !SRCPROPSP (p))
     goto plist;
@@ -251,8 +268,13 @@ scm_set_source_property_x (obj, key, datum)
 {
   scm_whash_handle h;
   SCM p;
+  SCM_ASSERT (SCM_NIMP (obj), obj, SCM_ARG1, s_set_source_property_x);
   if (SCM_MEMOIZEDP (obj))
-    obj = SCM_MEMOEXP (obj);
+    obj = SCM_MEMOIZED_EXP (obj);
+#ifndef SCM_RECKLESS
+  else if (SCM_NCONSP (obj))
+    scm_wrong_type_arg (s_set_source_property_x, 1, obj);
+#endif
   h = scm_whash_get_handle (scm_source_whash, obj);
   if (SCM_WHASHFOUNDP (h))
     p = SCM_WHASHREF (scm_source_whash, h);
