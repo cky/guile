@@ -59,14 +59,10 @@
 scm_sizet scm_numsmob;
 scm_smobfuns *scm_smobs;
 
-#ifdef __STDC__
-long 
-scm_newsmob (scm_smobfuns *smob)
-#else
+
 long 
 scm_newsmob (smob)
      scm_smobfuns *smob;
-#endif
 {
   char *tmp;
   if (255 <= scm_numsmob)
@@ -117,13 +113,9 @@ static scm_smobfuns bigob =
 
 
 
-#ifdef __STDC__
-void
-scm_smob_prehistory (void)
-#else
+
 void
 scm_smob_prehistory ()
-#endif
 {
   scm_numsmob = 0;
   scm_smobs = (scm_smobfuns *) malloc (7 * sizeof (scm_smobfuns));

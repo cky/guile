@@ -55,14 +55,10 @@
 
 
 SCM_PROC(s_multi_byte_string_p, "multi-byte-string?", 1, 0, 0, scm_multi_byte_string_p);
-#ifdef __STDC__
-SCM
-scm_multi_byte_string_p (SCM obj)
-#else
+
 SCM
 scm_multi_byte_string_p (obj)
      SCM obj;
-#endif
 {
   return (SCM_MB_STRINGP (obj)
 	  ? SCM_BOOL_T
@@ -70,14 +66,10 @@ scm_multi_byte_string_p (obj)
 }
 
 
-#ifdef __STDC__
-SCM
-scm_regular_string_p (SCM obj)
-#else
+
 SCM
 scm_regular_string_p (obj)
      SCM obj;
-#endif
 {
   return (SCM_REGULAR_STRINGP (obj)
 	  ? SCM_BOOL_T
@@ -86,14 +78,10 @@ scm_regular_string_p (obj)
 
 SCM_PROC(s_list_to_multi_byte_string, "list->multi-byte-string", 1, 0, 0, scm_multi_byte_string);
 SCM_PROC(s_multi_byte_string, "multi-byte-string", 0, 0, 1, scm_multi_byte_string);
-#ifdef __STDC__
-SCM
-scm_multi_byte_string (SCM chrs)
-#else
+
 SCM
 scm_multi_byte_string (chrs)
      SCM chrs;
-#endif
 {
   SCM res;
   register char *data;
@@ -125,15 +113,11 @@ scm_multi_byte_string (chrs)
   return res;
 }
 
-#ifdef __STDC__
-int
-scm_mb_ilength (unsigned char * data, int size)
-#else
+
 int
 scm_mb_ilength (data, size)
      unsigned char * data;
      int size;
-#endif
 {
   int pos;
   int len;
@@ -160,14 +144,10 @@ scm_mb_ilength (data, size)
 }
 
 SCM_PROC(s_multi_byte_string_length, "multi-byte-string-length", 1, 0, 0, scm_multi_byte_string_length);
-#ifdef __STDC__
-SCM
-scm_multi_byte_string_length (SCM str)
-#else
+
 SCM
 scm_multi_byte_string_length (str)
      SCM str;
-#endif
 {
   int size;
   int len;
@@ -184,28 +164,20 @@ scm_multi_byte_string_length (str)
 
 
 SCM_PROC(s_symbol_multi_byte_p, "symbol-multi-byte?", 1, 0, 0, scm_symbol_multi_byte_p);
-#ifdef __STDC__
-SCM
-scm_symbol_multi_byte_p (SCM symbol)
-#else
+
 SCM
 scm_symbol_multi_byte_p (symbol)
      SCM symbol;
-#endif
 {
   return SCM_SYMBOL_MULTI_BYTE_STRINGP(symbol);
 }
 
 SCM_PROC(s_set_symbol_multi_byte_x, "set-symbol-multi-byte!", 2, 0, 0, scm_set_symbol_multi_byte_x);
-#ifdef __STDC__
-SCM
-scm_set_symbol_multi_byte_x (SCM symbol, SCM val)
-#else
+
 SCM
 scm_set_symbol_multi_byte_x (symbol, val)
      SCM symbol;
      SCM val;
-#endif
 {
   if (SCM_TYP7 (symbol) == scm_tc7_msymbol)
     {
@@ -218,14 +190,10 @@ scm_set_symbol_multi_byte_x (symbol, val)
 
 
 SCM_PROC(s_regular_port_p, "regular-port?", 1, 0, 0, scm_regular_port_p);
-#ifdef __STDC__
-SCM 
-scm_regular_port_p (SCM p)
-#else
+
 SCM 
 scm_regular_port_p (p)
      SCM p;
-#endif
 {
   return (SCM_PORT_REPRESENTATION(p) == scm_regular_port
 	  ? SCM_BOOL_T
@@ -233,28 +201,20 @@ scm_regular_port_p (p)
 }
 
 SCM_PROC(s_regular_port_x, "regular-port!", 1, 0, 0, scm_regular_port_x);
-#ifdef __STDC__
-SCM 
-scm_regular_port_x (SCM p)
-#else
+
 SCM 
 scm_regular_port_x (p)
      SCM p;
-#endif
 {
   SCM_PORT_REPRESENTATION(p) = scm_regular_port;
   return SCM_UNSPECIFIED;
 }
 
 SCM_PROC(s_multi_byte_port_p, "multi-byte-port?", 1, 0, 0, scm_multi_byte_port_p);
-#ifdef __STDC__
-SCM 
-scm_multi_byte_port_p (SCM p)
-#else
+
 SCM 
 scm_multi_byte_port_p (p)
      SCM p;
-#endif
 {
   return (SCM_PORT_REPRESENTATION(p) == scm_mb_port
 	  ? SCM_BOOL_T
@@ -262,14 +222,10 @@ scm_multi_byte_port_p (p)
 }
 
 SCM_PROC(s_multi_byte_port_x, "multi-byte-port!", 1, 0, 0, scm_multi_byte_port_x);
-#ifdef __STDC__
-SCM 
-scm_multi_byte_port_x (SCM p)
-#else
+
 SCM 
 scm_multi_byte_port_x (p)
      SCM p;
-#endif
 {
   SCM_PORT_REPRESENTATION(p) = scm_mb_port;
   return SCM_UNSPECIFIED;
@@ -277,14 +233,10 @@ scm_multi_byte_port_x (p)
 
 
 SCM_PROC(s_wide_character_port_p, "wide-character-port?", 1, 0, 0, scm_wide_character_port_p);
-#ifdef __STDC__
-SCM 
-scm_wide_character_port_p (SCM p)
-#else
+
 SCM 
 scm_wide_character_port_p (p)
      SCM p;
-#endif
 {
   return (SCM_PORT_REPRESENTATION(p) == scm_wchar_port
 	  ? SCM_BOOL_T
@@ -292,14 +244,10 @@ scm_wide_character_port_p (p)
 }
 
 SCM_PROC(s_wide_character_port_x, "wide-character-port!", 1, 0, 0, scm_wide_character_port_x);
-#ifdef __STDC__
-SCM 
-scm_wide_character_port_x (SCM p)
-#else
+
 SCM 
 scm_wide_character_port_x (p)
      SCM p;
-#endif
 {
   SCM_PORT_REPRESENTATION(p) = scm_wchar_port;
   return SCM_UNSPECIFIED;
@@ -309,16 +257,12 @@ scm_wide_character_port_x (p)
 
 
 
-#ifdef __STDC__
-void
-scm_put_wchar (int c, SCM port, int writing)
-#else
+
 void
 scm_put_wchar (c, port, writing)
      int c;
      SCM port;
      int writing;
-#endif
 {
   if (writing)
     scm_gen_puts (scm_regular_string, "#\\", port);
@@ -379,16 +323,12 @@ scm_put_wchar (c, port, writing)
 
 
 
-#ifdef __STDC__
-void
-scm_print_mb_string (SCM exp, SCM port, int writing)
-#else
+
 void
 scm_print_mb_string (exp, port, writing)
      SCM exp;
      SCM port;
      int writing;
-#endif
 {
   if (writing)
     {
@@ -431,15 +371,11 @@ scm_print_mb_string (exp, port, writing)
 }
 
 
-#ifdef __STDC__
-void
-scm_print_mb_symbol (SCM exp, SCM port)
-#else
+
 void
 scm_print_mb_symbol (exp, port)
      SCM exp;
      SCM port;
-#endif
 {
   int pos;
   int end;
@@ -560,13 +496,9 @@ scm_print_mb_symbol (exp, port)
 
 
 
-#ifdef __STDC__
-void
-scm_init_mbstrings (void)
-#else
+
 void
 scm_init_mbstrings ()
-#endif
 {
 #include "mbstrings.x"
 }

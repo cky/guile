@@ -47,22 +47,10 @@
 #include "libguile/__scm.h"
 
 
-#ifdef __STDC__
-extern SCM scm_make_arbiter (SCM name);
-extern SCM scm_try_arbiter (SCM arb);
-extern SCM scm_release_arbiter (SCM arb);
-extern void scm_init_arbiters (void);
 
-#else /* STDC */
-extern SCM scm_make_arbiter ();
-extern SCM scm_try_arbiter ();
-extern SCM scm_release_arbiter ();
-extern void scm_init_arbiters ();
-
-#endif /* STDC */
-
-
-
-
+extern SCM scm_make_arbiter SCM_P ((SCM name));
+extern SCM scm_try_arbiter SCM_P ((SCM arb));
+extern SCM scm_release_arbiter SCM_P ((SCM arb));
+extern void scm_init_arbiters SCM_P ((void));
 
 #endif  /* ARBITERSH */

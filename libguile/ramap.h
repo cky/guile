@@ -47,55 +47,27 @@
 #include "libguile/__scm.h"
 
 
-#ifdef __STDC__
-extern int scm_ra_matchp (SCM ra0, SCM ras);
-extern int scm_ramapc (int (*cproc) (), SCM data, SCM ra0, SCM lra, char *what);
-extern int scm_array_fill_int (SCM ra, SCM fill, SCM ignore);
-extern SCM scm_array_fill_x (SCM ra, SCM fill);
-extern SCM scm_array_copy_x (SCM src, SCM dst);
-extern int scm_ra_eqp (SCM ra0, SCM ras);
-extern int scm_ra_lessp (SCM ra0, SCM ras);
-extern int scm_ra_leqp (SCM ra0, SCM ras);
-extern int scm_ra_grp (SCM ra0, SCM ras);
-extern int scm_ra_greqp (SCM ra0, SCM ras);
-extern int scm_ra_sum (SCM ra0, SCM ras);
-extern int scm_ra_difference (SCM ra0, SCM ras);
-extern int scm_ra_product (SCM ra0, SCM ras);
-extern int scm_ra_divide (SCM ra0, SCM ras);
-extern int scm_array_identity (SCM src, SCM dst);
-extern SCM scm_array_map (SCM ra0, SCM proc, SCM lra);
-extern SCM scm_array_for_each (SCM proc, SCM ra0, SCM lra);
-extern SCM scm_array_index_map_x (SCM ra, SCM proc);
-extern SCM scm_raequal (SCM ra0, SCM ra1);
-extern SCM scm_array_equal_p (SCM ra0, SCM ra1);
-extern void scm_init_ramap (void);
 
-#else /* STDC */
-extern int scm_ra_matchp ();
-extern int scm_ramapc ();
-extern int scm_array_fill_int ();
-extern SCM scm_array_fill_x ();
-extern SCM scm_array_copy_x ();
-extern int scm_ra_eqp ();
-extern int scm_ra_lessp ();
-extern int scm_ra_leqp ();
-extern int scm_ra_grp ();
-extern int scm_ra_greqp ();
-extern int scm_ra_sum ();
-extern int scm_ra_difference ();
-extern int scm_ra_product ();
-extern int scm_ra_divide ();
-extern int scm_array_identity ();
-extern SCM scm_array_map ();
-extern SCM scm_array_for_each ();
-extern SCM scm_array_index_map_x ();
-extern SCM scm_raequal ();
-extern SCM scm_array_equal_p ();
-extern void scm_init_ramap ();
-
-#endif /* STDC */
-
-
-
+extern int scm_ra_matchp SCM_P ((SCM ra0, SCM ras));
+extern int scm_ramapc SCM_P ((int (*cproc) (), SCM data, SCM ra0, SCM lra, char *what));
+extern int scm_array_fill_int SCM_P ((SCM ra, SCM fill, SCM ignore));
+extern SCM scm_array_fill_x SCM_P ((SCM ra, SCM fill));
+extern SCM scm_array_copy_x SCM_P ((SCM src, SCM dst));
+extern int scm_ra_eqp SCM_P ((SCM ra0, SCM ras));
+extern int scm_ra_lessp SCM_P ((SCM ra0, SCM ras));
+extern int scm_ra_leqp SCM_P ((SCM ra0, SCM ras));
+extern int scm_ra_grp SCM_P ((SCM ra0, SCM ras));
+extern int scm_ra_greqp SCM_P ((SCM ra0, SCM ras));
+extern int scm_ra_sum SCM_P ((SCM ra0, SCM ras));
+extern int scm_ra_difference SCM_P ((SCM ra0, SCM ras));
+extern int scm_ra_product SCM_P ((SCM ra0, SCM ras));
+extern int scm_ra_divide SCM_P ((SCM ra0, SCM ras));
+extern int scm_array_identity SCM_P ((SCM src, SCM dst));
+extern SCM scm_array_map SCM_P ((SCM ra0, SCM proc, SCM lra));
+extern SCM scm_array_for_each SCM_P ((SCM proc, SCM ra0, SCM lra));
+extern SCM scm_array_index_map_x SCM_P ((SCM ra, SCM proc));
+extern SCM scm_raequal SCM_P ((SCM ra0, SCM ra1));
+extern SCM scm_array_equal_p SCM_P ((SCM ra0, SCM ra1));
+extern void scm_init_ramap SCM_P ((void));
 
 #endif  /* RAMAPH */

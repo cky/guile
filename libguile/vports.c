@@ -59,16 +59,14 @@
  */
 
 
-#ifdef __STDC__
+
+static int prinsfpt SCM_P ((SCM exp, SCM port, scm_print_state *pstate));
+
 static int 
-prinsfpt (SCM exp, SCM port, int writing)
-#else
-static int 
-prinsfpt (exp, port, writing)
+prinsfpt (exp, port, pstate)
      SCM exp;
      SCM port;
-     int writing;
-#endif
+     scm_print_state *pstate;
 {
   scm_prinport (exp, port, "soft");
   return !0;
@@ -82,32 +80,28 @@ prinsfpt (exp, port, writing)
  * before returning.
  */
 
-#ifdef __STDC__
-static int 
-sfputc (int c, SCM p)
-#else
+
+static int sfputc SCM_P ((int c, SCM p));
+
 static int 
 sfputc (c, p)
      int c;
      SCM p;
-#endif
 {
   scm_apply (SCM_VELTS (p)[0], SCM_MAKICHR (c), scm_listofnull);
   errno = 0;
   return c;
 }
 
-#ifdef __STDC__
-static scm_sizet 
-sfwrite (char *str, scm_sizet siz, scm_sizet num, SCM p)
-#else
+
+static scm_sizet sfwrite SCM_P ((char *str, scm_sizet siz, scm_sizet num, SCM p));
+
 static scm_sizet 
 sfwrite (str, siz, num, p)
      char *str;
      scm_sizet siz;
      scm_sizet num;
      SCM p;
-#endif
 {
   SCM sstr;
   sstr = scm_makfromstr (str, siz * num, 0);
@@ -116,28 +110,24 @@ sfwrite (str, siz, num, p)
   return num;
 }
 
-#ifdef __STDC__
-static int 
-sfputs (char *s, SCM p)
-#else
+
+static int sfputs SCM_P ((char *s, SCM p));
+
 static int 
 sfputs (s, p)
      char *s;
      SCM p;
-#endif
 {
   sfwrite (s, 1, strlen (s), p);
   return 0;
 }
 
-#ifdef __STDC__
-static int 
-sfflush (SCM stream)
-#else
+
+static int sfflush SCM_P ((SCM stream));
+
 static int 
 sfflush (stream)
      SCM stream;
-#endif
 {
   SCM f = SCM_VELTS (stream)[2];
   if (SCM_BOOL_F == f)
@@ -147,14 +137,12 @@ sfflush (stream)
   return SCM_BOOL_F == f ? EOF : 0;
 }
 
-#ifdef __STDC__
-static int 
-sfgetc (SCM p)
-#else
+
+static int sfgetc SCM_P ((SCM p));
+
 static int 
 sfgetc (p)
      SCM p;
-#endif
 {
   SCM ans;
   ans = scm_apply (SCM_VELTS (p)[3], SCM_EOL, SCM_EOL);
@@ -165,14 +153,12 @@ sfgetc (p)
   return SCM_ICHR (ans);
 }
 
-#ifdef __STDC__
-static int 
-sfclose (SCM p)
-#else
+
+static int sfclose SCM_P ((SCM p));
+
 static int 
 sfclose (p)
      SCM p;
-#endif
 {
   SCM f = SCM_VELTS (p)[4];
   if (SCM_BOOL_F == f)
@@ -185,15 +171,11 @@ sfclose (p)
 
 
 SCM_PROC(s_make_soft_port, "make-soft-port", 2, 0, 0, scm_make_soft_port);
-#ifdef __STDC__
-SCM 
-scm_make_soft_port (SCM pv, SCM modes)
-#else
+
 SCM 
 scm_make_soft_port (pv, modes)
      SCM pv;
      SCM modes;
-#endif
 {
   struct scm_port_table * pt;
   SCM z;
@@ -209,14 +191,12 @@ scm_make_soft_port (pv, modes)
   return z;
 }
 
-#ifdef __STDC__
-static int 
-noop0 (FILE *stream)
-#else
+
+static int noop0 SCM_P ((SCM stream));
+
 static int 
 noop0 (stream)
-     FILE *stream;
-#endif
+     SCM stream;
 {
   return 0;
 }
@@ -237,13 +217,9 @@ scm_ptobfuns scm_sfptob =
 };
 
 
-#ifdef __STDC__
-void
-scm_init_vports (void)
-#else
+
 void
 scm_init_vports ()
-#endif
 {
 #include "vports.x"
 }

@@ -49,16 +49,12 @@
 
 
 SCM_PROC(s_acons, "acons", 3, 0, 0, scm_acons);
-#ifdef __STDC__
-SCM 
-scm_acons (SCM w, SCM x, SCM y)
-#else
+
 SCM 
 scm_acons (w, x, y)
      SCM w;
      SCM x;
      SCM y;
-#endif
 {
   register SCM z;
   SCM_NEWCELL (z);
@@ -74,15 +70,11 @@ scm_acons (w, x, y)
 
 
 SCM_PROC (s_sloppy_assq, "sloppy-assq", 2, 0, 0, scm_sloppy_assq);
-#ifdef __STDC__
-SCM
-scm_sloppy_assq(SCM x, SCM alist)
-#else
+
 SCM
 scm_sloppy_assq(x, alist)
      SCM x;
      SCM alist;
-#endif
 {
   SCM tmp;
   for(;SCM_NIMP(alist);alist = SCM_CDR(alist))
@@ -100,15 +92,11 @@ scm_sloppy_assq(x, alist)
 
 
 SCM_PROC (s_sloppy_assv, "sloppy-assv", 2, 0, 0, scm_sloppy_assv);
-#ifdef __STDC__
-SCM
-scm_sloppy_assv(SCM x, SCM alist)
-#else
+
 SCM
 scm_sloppy_assv(x, alist)
      SCM x;
      SCM alist;
-#endif
 {
   SCM tmp;
   for(;SCM_NIMP(alist);alist = SCM_CDR(alist))
@@ -127,15 +115,11 @@ scm_sloppy_assv(x, alist)
 
 
 SCM_PROC (s_sloppy_assoc, "sloppy-assoc", 2, 0, 0, scm_sloppy_assoc);
-#ifdef __STDC__
-SCM
-scm_sloppy_assoc(SCM x, SCM alist)
-#else
+
 SCM
 scm_sloppy_assoc(x, alist)
      SCM x;
      SCM alist;
-#endif
 {
   SCM tmp;
   for(;SCM_NIMP(alist);alist = SCM_CDR(alist))
@@ -156,15 +140,11 @@ scm_sloppy_assoc(x, alist)
 
 
 SCM_PROC(s_assq, "assq", 2, 0, 0, scm_assq);
-#ifdef __STDC__
-SCM
-scm_assq(SCM x, SCM alist)
-#else
+
 SCM
 scm_assq(x, alist)
      SCM x;
      SCM alist;
-#endif
 {
 	SCM tmp;
 	for(;SCM_NIMP(alist);alist = SCM_CDR(alist)) {
@@ -179,15 +159,11 @@ scm_assq(x, alist)
 
 
 SCM_PROC(s_assv, "assv", 2, 0, 0, scm_assv);
-#ifdef __STDC__
-SCM
-scm_assv(SCM x, SCM alist)
-#else
+
 SCM
 scm_assv(x, alist)
      SCM x;
      SCM alist;
-#endif
 {
   SCM tmp;
   for(;SCM_NIMP(alist);alist = SCM_CDR(alist)) {
@@ -205,15 +181,11 @@ scm_assv(x, alist)
 
 
 SCM_PROC(s_assoc, "assoc", 2, 0, 0, scm_assoc);
-#ifdef __STDC__
-SCM
-scm_assoc(SCM x, SCM alist)
-#else
+
 SCM
 scm_assoc(x, alist)
      SCM x;
      SCM alist;
-#endif
 {
 	SCM tmp;
 	for(;SCM_NIMP(alist);alist = SCM_CDR(alist)) {
@@ -230,15 +202,11 @@ scm_assoc(x, alist)
 
 
 SCM_PROC (s_assq_ref, "assq-ref", 2, 0, 0, scm_assq_ref);
-#ifdef __STDC__
-SCM
-scm_assq_ref (SCM alist, SCM key)
-#else
+
 SCM
 scm_assq_ref (alist, key)
      SCM alist;
      SCM key;
-#endif
 {
   SCM handle;
 
@@ -252,15 +220,11 @@ scm_assq_ref (alist, key)
 
 
 SCM_PROC (s_assv_ref, "assv-ref", 2, 0, 0, scm_assv_ref);
-#ifdef __STDC__
-SCM
-scm_assv_ref (SCM alist, SCM key)
-#else
+
 SCM
 scm_assv_ref (alist, key)
      SCM alist;
      SCM key;
-#endif
 {
   SCM handle;
 
@@ -274,15 +238,11 @@ scm_assv_ref (alist, key)
 
 
 SCM_PROC (s_assoc_ref, "assoc-ref", 2, 0, 0, scm_assoc_ref);
-#ifdef __STDC__
-SCM
-scm_assoc_ref (SCM alist, SCM key)
-#else
+
 SCM
 scm_assoc_ref (alist, key)
      SCM alist;
      SCM key;
-#endif
 {
   SCM handle;
 
@@ -300,16 +260,12 @@ scm_assoc_ref (alist, key)
 
 
 SCM_PROC (s_assq_set_x, "assq-set!", 3, 0, 0, scm_assq_set_x);
-#ifdef __STDC__
-SCM
-scm_assq_set_x (SCM alist, SCM key, SCM val)
-#else
+
 SCM
 scm_assq_set_x (alist, key, val)
      SCM alist;
      SCM key;
      SCM val;
-#endif
 {
   SCM handle;
 
@@ -324,16 +280,12 @@ scm_assq_set_x (alist, key, val)
 }
 
 SCM_PROC (s_assv_set_x, "assv-set!", 3, 0, 0, scm_assv_set_x);
-#ifdef __STDC__
-SCM
-scm_assv_set_x (SCM alist, SCM key, SCM val)
-#else
+
 SCM
 scm_assv_set_x (alist, key, val)
      SCM alist;
      SCM key;
      SCM val;
-#endif
 {
   SCM handle;
 
@@ -348,16 +300,12 @@ scm_assv_set_x (alist, key, val)
 }
 
 SCM_PROC (s_assoc_set_x, "assoc-set!", 3, 0, 0, scm_assoc_set_x);
-#ifdef __STDC__
-SCM
-scm_assoc_set_x (SCM alist, SCM key, SCM val)
-#else
+
 SCM
 scm_assoc_set_x (alist, key, val)
      SCM alist;
      SCM key;
      SCM val;
-#endif
 {
   SCM handle;
 
@@ -375,15 +323,11 @@ scm_assoc_set_x (alist, key, val)
 
 
 SCM_PROC (s_assq_remove_x, "assq-remove!", 2, 0, 0, scm_assq_remove_x);
-#ifdef __STDC__
-SCM
-scm_assq_remove_x (SCM alist, SCM key)
-#else
+
 SCM
 scm_assq_remove_x (alist, key)
      SCM alist;
      SCM key;
-#endif
 {
   SCM handle;
 
@@ -398,15 +342,11 @@ scm_assq_remove_x (alist, key)
 
 
 SCM_PROC (s_assv_remove_x, "assv-remove!", 2, 0, 0, scm_assv_remove_x);
-#ifdef __STDC__
-SCM
-scm_assv_remove_x (SCM alist, SCM key)
-#else
+
 SCM
 scm_assv_remove_x (alist, key)
      SCM alist;
      SCM key;
-#endif
 {
   SCM handle;
 
@@ -421,15 +361,11 @@ scm_assv_remove_x (alist, key)
 
 
 SCM_PROC (s_assoc_remove_x, "assoc-remove!", 2, 0, 0, scm_assoc_remove_x);
-#ifdef __STDC__
-SCM
-scm_assoc_remove_x (SCM alist, SCM key)
-#else
+
 SCM
 scm_assoc_remove_x (alist, key)
      SCM alist;
      SCM key;
-#endif
 {
   SCM handle;
 
@@ -446,13 +382,9 @@ scm_assoc_remove_x (alist, key)
 
 
 
-#ifdef __STDC__
-void
-scm_init_alist (void)
-#else
+
 void
 scm_init_alist ()
-#endif
 {
 #include "alist.x"
 }

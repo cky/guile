@@ -102,65 +102,31 @@ extern int scm_symhash_dim;
 
 
 
-#ifdef __STDC__
-extern unsigned long scm_strhash (unsigned char *str, scm_sizet len, unsigned long n);
-extern SCM scm_sym2vcell (SCM sym, SCM thunk, SCM definep);
-extern SCM scm_sym2ovcell_soft (SCM sym, SCM obarray);
-extern SCM scm_sym2ovcell (SCM sym, SCM obarray);
-extern SCM scm_intern_obarray_soft (char *name, scm_sizet len, SCM obarray, int softness);
-extern SCM scm_intern_obarray (char *name, scm_sizet len, SCM obarray);
-extern SCM scm_intern (char *name, scm_sizet len);
-extern SCM scm_intern0 (char * name);
-extern SCM scm_sysintern (char *name, SCM val);
-extern SCM scm_symbol_p(SCM x);
-extern SCM scm_symbol_to_string(SCM s);
-extern SCM scm_string_to_symbol(SCM s);
-extern SCM scm_string_to_obarray_symbol(SCM o, SCM s, SCM softp);
-extern SCM scm_intern_symbol(SCM o, SCM s);
-extern SCM scm_unintern_symbol(SCM o, SCM s);
-extern SCM scm_symbol_binding (SCM o, SCM s);
-extern SCM scm_symbol_interned_p (SCM o, SCM s);
-extern SCM scm_symbol_bound_p (SCM o, SCM s);
-extern SCM scm_symbol_set_x (SCM o, SCM s, SCM v);
-extern SCM scm_symbol_fref (SCM s);
-extern SCM scm_symbol_pref (SCM s);
-extern SCM scm_symbol_fset_x (SCM s, SCM val);
-extern SCM scm_symbol_pset_x (SCM s, SCM val);
-extern SCM scm_symbol_hash (SCM s);
-extern void scm_init_symbols (void);
 
-#else /* STDC */
-extern unsigned long scm_strhash ();
-extern SCM scm_sym2vcell ();
-extern SCM scm_sym2ovcell_soft ();
-extern SCM scm_sym2ovcell ();
-extern SCM scm_intern_obarray_soft ();
-extern SCM scm_intern_obarray ();
-extern SCM scm_intern ();
-extern SCM scm_intern0 ();
-extern SCM scm_sysintern ();
-extern SCM scm_symbol_p();
-extern SCM scm_symbol_to_string();
-extern SCM scm_string_to_symbol();
-extern SCM scm_string_to_obarray_symbol();
-extern SCM scm_intern_symbol();
-extern SCM scm_unintern_symbol();
-extern SCM scm_symbol_binding ();
-extern SCM scm_symbol_interned_p ();
-extern SCM scm_symbol_bound_p ();
-extern SCM scm_symbol_set_x ();
-extern SCM scm_symbol_fref ();
-extern SCM scm_symbol_pref ();
-extern SCM scm_symbol_fset_x ();
-extern SCM scm_symbol_pset_x ();
-extern SCM scm_symbol_hash ();
-extern void scm_init_symbols ();
-
-#endif /* STDC */
-
-
-
-
-
+extern unsigned long scm_strhash SCM_P ((unsigned char *str, scm_sizet len, unsigned long n));
+extern SCM scm_sym2vcell SCM_P ((SCM sym, SCM thunk, SCM definep));
+extern SCM scm_sym2ovcell_soft SCM_P ((SCM sym, SCM obarray));
+extern SCM scm_sym2ovcell SCM_P ((SCM sym, SCM obarray));
+extern SCM scm_intern_obarray_soft SCM_P ((char *name, scm_sizet len, SCM obarray, int softness));
+extern SCM scm_intern_obarray SCM_P ((char *name, scm_sizet len, SCM obarray));
+extern SCM scm_intern SCM_P ((char *name, scm_sizet len));
+extern SCM scm_intern0 SCM_P ((char * name));
+extern SCM scm_sysintern SCM_P ((char *name, SCM val));
+extern SCM scm_symbol_p SCM_P ((SCM x));
+extern SCM scm_symbol_to_string SCM_P ((SCM s));
+extern SCM scm_string_to_symbol SCM_P ((SCM s));
+extern SCM scm_string_to_obarray_symbol SCM_P ((SCM o, SCM s, SCM softp));
+extern SCM scm_intern_symbol SCM_P ((SCM o, SCM s));
+extern SCM scm_unintern_symbol SCM_P ((SCM o, SCM s));
+extern SCM scm_symbol_binding SCM_P ((SCM o, SCM s));
+extern SCM scm_symbol_interned_p SCM_P ((SCM o, SCM s));
+extern SCM scm_symbol_bound_p SCM_P ((SCM o, SCM s));
+extern SCM scm_symbol_set_x SCM_P ((SCM o, SCM s, SCM v));
+extern SCM scm_symbol_fref SCM_P ((SCM s));
+extern SCM scm_symbol_pref SCM_P ((SCM s));
+extern SCM scm_symbol_fset_x SCM_P ((SCM s, SCM val));
+extern SCM scm_symbol_pset_x SCM_P ((SCM s, SCM val));
+extern SCM scm_symbol_hash SCM_P ((SCM s));
+extern void scm_init_symbols SCM_P ((void));
 
 #endif  /* SYMBOLSH */

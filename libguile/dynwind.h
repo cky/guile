@@ -46,21 +46,9 @@
 #include "libguile/__scm.h"
 
 
-#ifdef __STDC__
-extern SCM scm_dynamic_wind (SCM thunk1, SCM thunk2, SCM thunk3);
-extern void scm_dowinds (SCM to, long delta);
-extern void scm_init_dynwind (void);
 
-#else /* STDC */
-extern SCM scm_dynamic_wind ();
-extern void scm_dowinds ();
-extern void scm_init_dynwind ();
-
-#endif /* STDC */
-
-
-
-
-
+extern SCM scm_dynamic_wind SCM_P ((SCM thunk1, SCM thunk2, SCM thunk3));
+extern void scm_dowinds SCM_P ((SCM to, long delta));
+extern void scm_init_dynwind SCM_P ((void));
 
 #endif  /* DYNWINDH */

@@ -51,18 +51,9 @@
 
 
 
-#ifdef __STDC__
-extern SCM scm_mark0 (SCM ptr);
-extern SCM scm_markcdr (SCM ptr);
-extern scm_sizet scm_free0 (SCM ptr);
 
-#else /* STDC */
-extern SCM scm_mark0 ();
-extern SCM scm_markcdr ();
-extern scm_sizet scm_free0 ();
-
-#endif /* STDC */
-
-
+extern SCM scm_mark0 SCM_P ((SCM ptr));
+extern SCM scm_markcdr SCM_P ((SCM ptr));
+extern scm_sizet scm_free0 SCM_P ((SCM ptr));
 
 #endif  /* MARKERSH */

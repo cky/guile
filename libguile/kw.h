@@ -54,17 +54,10 @@ extern int scm_tc16_kw;
 
 
 
-#ifdef __STDC__
-extern SCM scm_make_keyword_from_dash_symbol (SCM symbol);
-extern SCM scm_keyword_p (SCM obj);
-extern SCM scm_keyword_dash_symbol (SCM kw);
-extern void scm_init_kw (void);
 
-#else /* STDC */
-extern SCM scm_make_keyword_from_dash_symbol ();
-extern SCM scm_keyword_p ();
-extern SCM scm_keyword_dash_symbol ();
-extern void scm_init_kw ();
+extern SCM scm_make_keyword_from_dash_symbol SCM_P ((SCM symbol));
+extern SCM scm_keyword_p SCM_P ((SCM obj));
+extern SCM scm_keyword_dash_symbol SCM_P ((SCM kw));
+extern void scm_init_kw SCM_P ((void));
 
-#endif /* STDC */
 #endif  /* KWH */

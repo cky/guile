@@ -49,10 +49,7 @@
 #include "hashtab.h"
 
 
-#ifdef __STDC__
-SCM
-scm_hash_fn_get_handle (SCM table, SCM obj, unsigned int (*hash_fn)(), SCM (*assoc_fn)(), void * closure)
-#else
+
 SCM
 scm_hash_fn_get_handle (table, obj, hash_fn, assoc_fn, closure)
      SCM table;
@@ -60,7 +57,6 @@ scm_hash_fn_get_handle (table, obj, hash_fn, assoc_fn, closure)
      unsigned int (*hash_fn)();
      SCM (*assoc_fn)();
      void * closure;
-#endif
 {
   int k;
   SCM h;
@@ -78,10 +74,7 @@ scm_hash_fn_get_handle (table, obj, hash_fn, assoc_fn, closure)
 }
 
 
-#ifdef __STDC__
-SCM
-scm_hash_fn_create_handle_x (SCM table, SCM obj, SCM init, unsigned int (*hash_fn)(), SCM (*assoc_fn)(), void * closure)
-#else
+
 SCM
 scm_hash_fn_create_handle_x (table, obj, init, hash_fn, assoc_fn, closure)
      SCM table;
@@ -90,7 +83,6 @@ scm_hash_fn_create_handle_x (table, obj, init, hash_fn, assoc_fn, closure)
      unsigned int (*hash_fn)();
      SCM (*assoc_fn)();
      void * closure;
-#endif
 {
   int k;
   SCM it;
@@ -122,10 +114,7 @@ scm_hash_fn_create_handle_x (table, obj, init, hash_fn, assoc_fn, closure)
 
 
 
-#ifdef __STDC__
-SCM 
-scm_hash_fn_ref (SCM table, SCM obj, SCM dflt, unsigned int (*hash_fn)(), SCM (*assoc_fn)(), void * closure)
-#else
+
 SCM 
 scm_hash_fn_ref (table, obj, dflt, hash_fn, assoc_fn, closure)
      SCM table;
@@ -134,7 +123,6 @@ scm_hash_fn_ref (table, obj, dflt, hash_fn, assoc_fn, closure)
      unsigned int (*hash_fn)();
      SCM (*assoc_fn)();
      void * closure;
-#endif
 {
   SCM it;
 
@@ -147,10 +135,7 @@ scm_hash_fn_ref (table, obj, dflt, hash_fn, assoc_fn, closure)
 
 
 
-#ifdef __STDC__
-SCM 
-scm_hash_fn_set_x (SCM table, SCM obj, SCM val, unsigned int (*hash_fn)(), SCM (*assoc_fn)(), void * closure)
-#else
+
 SCM 
 scm_hash_fn_set_x (table, obj, val, hash_fn, assoc_fn, closure)
      SCM table;
@@ -159,7 +144,6 @@ scm_hash_fn_set_x (table, obj, val, hash_fn, assoc_fn, closure)
      unsigned int (*hash_fn)();
      SCM (*assoc_fn)();
      void * closure;
-#endif
 {
   SCM it;
 
@@ -171,15 +155,7 @@ scm_hash_fn_set_x (table, obj, val, hash_fn, assoc_fn, closure)
 
 
 
-#ifdef __STDC__
-SCM 
-scm_hash_fn_remove_x (SCM table,
-		      SCM obj,
-		      unsigned int (*hash_fn)(),
-		      SCM (*assoc_fn)(),
-		      SCM (*delete_fn)(),
-		      void * closure)
-#else
+
 SCM 
 scm_hash_fn_remove_x (table, obj, hash_fn, assoc_fn, delete_fn, closure)
      SCM table;
@@ -188,7 +164,6 @@ scm_hash_fn_remove_x (table, obj, hash_fn, assoc_fn, delete_fn, closure)
      SCM (*assoc_fn)();
      SCM (*delete_fn)();
      void * closure;
-#endif
 {
   int k;
   SCM h;
@@ -210,47 +185,35 @@ scm_hash_fn_remove_x (table, obj, hash_fn, assoc_fn, delete_fn, closure)
 
 
 SCM_PROC (s_hashq_get_handle, "hashq-get-handle", 2, 0, 0, scm_hashq_get_handle);
-#ifdef __STDC__
-SCM
-scm_hashq_get_handle (SCM table, SCM obj)
-#else
+
 SCM
 scm_hashq_get_handle (table, obj)
      SCM table;
      SCM obj;
-#endif
 {
   return scm_hash_fn_get_handle (table, obj, scm_ihashq, scm_sloppy_assq, 0);
 }
 
 
 SCM_PROC (s_hashq_create_handle_x, "hashq-create-handle!", 3, 0, 0, scm_hashq_create_handle_x);
-#ifdef __STDC__
-SCM
-scm_hashq_create_handle_x (SCM table, SCM obj, SCM init)
-#else
+
 SCM
 scm_hashq_create_handle_x (table, obj, init)
      SCM table;
      SCM obj;
      SCM init;
-#endif
 {
   return scm_hash_fn_create_handle_x (table, obj, init, scm_ihashq, scm_sloppy_assq, 0);
 }
 
 
 SCM_PROC (s_hashq_ref, "hashq-ref", 2, 1, 0, scm_hashq_ref);
-#ifdef __STDC__
-SCM 
-scm_hashq_ref (SCM table, SCM obj, SCM dflt)
-#else
+
 SCM 
 scm_hashq_ref (table, obj, dflt)
      SCM table;
      SCM obj;
      SCM dflt;
-#endif
 {
   if (dflt == SCM_UNDEFINED)
     dflt = SCM_BOOL_F;
@@ -260,16 +223,12 @@ scm_hashq_ref (table, obj, dflt)
 
 
 SCM_PROC (s_hashq_set_x, "hashq-set!", 3, 0, 0, scm_hashq_set_x);
-#ifdef __STDC__
-SCM 
-scm_hashq_set_x (SCM table, SCM obj, SCM val)
-#else
+
 SCM 
 scm_hashq_set_x (table, obj, val)
      SCM table;
      SCM obj;
      SCM val;
-#endif
 {
   return scm_hash_fn_set_x (table, obj, val, scm_ihashq, scm_sloppy_assq, 0);
 }
@@ -277,15 +236,11 @@ scm_hashq_set_x (table, obj, val)
 
 
 SCM_PROC (s_hashq_remove_x, "hashq-remove!", 2, 0, 0, scm_hashq_remove_x);
-#ifdef __STDC__
-SCM
-scm_hashq_remove_x (SCM table, SCM obj)
-#else
+
 SCM
 scm_hashq_remove_x (table, obj)
      SCM table;
      SCM obj;
-#endif
 {
   return scm_hash_fn_remove_x (table, obj, scm_ihashq, scm_sloppy_assq, scm_delq_x, 0);
 }
@@ -294,47 +249,35 @@ scm_hashq_remove_x (table, obj)
 
 
 SCM_PROC (s_hashv_get_handle, "hashv-get-handle", 2, 0, 0, scm_hashv_get_handle);
-#ifdef __STDC__
-SCM
-scm_hashv_get_handle (SCM table, SCM obj)
-#else
+
 SCM
 scm_hashv_get_handle (table, obj)
      SCM table;
      SCM obj;
-#endif
 {
   return scm_hash_fn_get_handle (table, obj, scm_ihashv, scm_sloppy_assv, 0);
 }
 
 
 SCM_PROC (s_hashv_create_handle_x, "hashv-create-handle!", 3, 0, 0, scm_hashv_create_handle_x);
-#ifdef __STDC__
-SCM
-scm_hashv_create_handle_x (SCM table, SCM obj, SCM init)
-#else
+
 SCM
 scm_hashv_create_handle_x (table, obj, init)
      SCM table;
      SCM obj;
      SCM init;
-#endif
 {
   return scm_hash_fn_create_handle_x (table, obj, init, scm_ihashv, scm_sloppy_assv, 0);
 }
 
 
 SCM_PROC (s_hashv_ref, "hashv-ref", 2, 1, 0, scm_hashv_ref);
-#ifdef __STDC__
-SCM 
-scm_hashv_ref (SCM table, SCM obj, SCM dflt)
-#else
+
 SCM 
 scm_hashv_ref (table, obj, dflt)
      SCM table;
      SCM obj;
      SCM dflt;
-#endif
 {
   if (dflt == SCM_UNDEFINED)
     dflt = SCM_BOOL_F;
@@ -344,31 +287,23 @@ scm_hashv_ref (table, obj, dflt)
 
 
 SCM_PROC (s_hashv_set_x, "hashv-set!", 3, 0, 0, scm_hashv_set_x);
-#ifdef __STDC__
-SCM 
-scm_hashv_set_x (SCM table, SCM obj, SCM val)
-#else
+
 SCM 
 scm_hashv_set_x (table, obj, val)
      SCM table;
      SCM obj;
      SCM val;
-#endif
 {
   return scm_hash_fn_set_x (table, obj, val, scm_ihashv, scm_sloppy_assv, 0);
 }
 
 
 SCM_PROC (s_hashv_remove_x, "hashv-remove!", 2, 0, 0, scm_hashv_remove_x);
-#ifdef __STDC__
-SCM
-scm_hashv_remove_x (SCM table, SCM obj)
-#else
+
 SCM
 scm_hashv_remove_x (table, obj)
      SCM table;
      SCM obj;
-#endif
 {
   return scm_hash_fn_remove_x (table, obj, scm_ihashv, scm_sloppy_assv, scm_delv_x, 0);
 }
@@ -376,47 +311,35 @@ scm_hashv_remove_x (table, obj)
 
 
 SCM_PROC (s_hash_get_handle, "hash-get-handle", 2, 0, 0, scm_hash_get_handle);
-#ifdef __STDC__
-SCM
-scm_hash_get_handle (SCM table, SCM obj)
-#else
+
 SCM
 scm_hash_get_handle (table, obj)
      SCM table;
      SCM obj;
-#endif
 {
   return scm_hash_fn_get_handle (table, obj, scm_ihash, scm_sloppy_assoc, 0);
 }
 
 
 SCM_PROC (s_hash_create_handle_x, "hash-create-handle!", 3, 0, 0, scm_hash_create_handle_x);
-#ifdef __STDC__
-SCM
-scm_hash_create_handle_x (SCM table, SCM obj, SCM init)
-#else
+
 SCM
 scm_hash_create_handle_x (table, obj, init)
      SCM table;
      SCM obj;
      SCM init;
-#endif
 {
   return scm_hash_fn_create_handle_x (table, obj, init, scm_ihash, scm_sloppy_assoc, 0);
 }
 
 
 SCM_PROC (s_hash_ref, "hash-ref", 2, 1, 0, scm_hash_ref);
-#ifdef __STDC__
-SCM 
-scm_hash_ref (SCM table, SCM obj, SCM dflt)
-#else
+
 SCM 
 scm_hash_ref (table, obj, dflt)
      SCM table;
      SCM obj;
      SCM dflt;
-#endif
 {
   if (dflt == SCM_UNDEFINED)
     dflt = SCM_BOOL_F;
@@ -426,16 +349,12 @@ scm_hash_ref (table, obj, dflt)
 
 
 SCM_PROC (s_hash_set_x, "hash-set!", 3, 0, 0, scm_hash_set_x);
-#ifdef __STDC__
-SCM 
-scm_hash_set_x (SCM table, SCM obj, SCM val)
-#else
+
 SCM 
 scm_hash_set_x (table, obj, val)
      SCM table;
      SCM obj;
      SCM val;
-#endif
 {
   return scm_hash_fn_set_x (table, obj, val, scm_ihash, scm_sloppy_assoc, 0);
 }
@@ -443,15 +362,11 @@ scm_hash_set_x (table, obj, val)
 
 
 SCM_PROC (s_hash_remove_x, "hash-remove!", 2, 0, 0, scm_hash_remove_x);
-#ifdef __STDC__
-SCM
-scm_hash_remove_x (SCM table, SCM obj)
-#else
+
 SCM
 scm_hash_remove_x (table, obj)
      SCM table;
      SCM obj;
-#endif
 {
   return scm_hash_fn_remove_x (table, obj, scm_ihash, scm_sloppy_assoc, scm_delete_x, 0);
 }
@@ -467,16 +382,14 @@ struct scm_ihashx_closure
 };
 
 
-#ifdef __STDC__
-static unsigned int
-scm_ihashx (SCM obj, unsigned int n, struct scm_ihashx_closure * closure)
-#else
+
+static unsigned int scm_ihashx SCM_P ((SCM obj, unsigned int n, struct scm_ihashx_closure * closure));
+
 static unsigned int
 scm_ihashx (obj, n, closure)
      SCM obj;
      unsigned int n;
      struct scm_ihashx_closure * closure;
-#endif
 {
   SCM answer;
   SCM_ALLOW_INTS;
@@ -488,16 +401,14 @@ scm_ihashx (obj, n, closure)
 }
 
 
-#ifdef __STDC__
-static SCM
-scm_sloppy_assx (SCM obj, SCM alist, struct scm_ihashx_closure * closure)
-#else
+
+static SCM scm_sloppy_assx SCM_P ((SCM obj, SCM alist, struct scm_ihashx_closure * closure));
+
 static SCM
 scm_sloppy_assx (obj, alist, closure)
      SCM obj;
      SCM alist;
      struct scm_ihashx_closure * closure;
-#endif
 {
   SCM answer;
   SCM_ALLOW_INTS;
@@ -510,16 +421,14 @@ scm_sloppy_assx (obj, alist, closure)
 
 
 
-#ifdef __STDC__
-static SCM
-scm_delx_x (SCM obj, SCM alist, struct scm_ihashx_closure * closure)
-#else
+
+static SCM scm_delx_x SCM_P ((SCM obj, SCM alist, struct scm_ihashx_closure * closure));
+
 static SCM
 scm_delx_x (obj, alist, closure)
      SCM obj;
      SCM alist;
      struct scm_ihashx_closure * closure;
-#endif
 {
   SCM answer;
   SCM_ALLOW_INTS;
@@ -533,17 +442,13 @@ scm_delx_x (obj, alist, closure)
 
 
 SCM_PROC (s_hashx_get_handle, "hashx-get-handle", 4, 0, 0, scm_hashx_get_handle);
-#ifdef __STDC__
-SCM
-scm_hashx_get_handle (SCM hash, SCM assoc, SCM table, SCM obj)
-#else
+
 SCM
 scm_hashx_get_handle (hash, assoc, table, obj)
      SCM hash;
      SCM assoc;
      SCM table;
      SCM obj;
-#endif
 {
   struct scm_ihashx_closure closure;
   closure.hash = hash;
@@ -553,10 +458,7 @@ scm_hashx_get_handle (hash, assoc, table, obj)
 
 
 SCM_PROC (s_hashx_create_handle_x, "hashx-create-handle!", 5, 0, 0, scm_hashx_create_handle_x);
-#ifdef __STDC__
-SCM
-scm_hashx_create_handle_x (SCM hash, SCM assoc, SCM table, SCM obj, SCM init)
-#else
+
 SCM
 scm_hashx_create_handle_x (hash, assoc, table, obj, init)
      SCM hash;
@@ -564,7 +466,6 @@ scm_hashx_create_handle_x (hash, assoc, table, obj, init)
      SCM table;
      SCM obj;
      SCM init;
-#endif
 {
   struct scm_ihashx_closure closure;
   closure.hash = hash;
@@ -575,10 +476,7 @@ scm_hashx_create_handle_x (hash, assoc, table, obj, init)
 
 
 SCM_PROC (s_hashx_ref, "hashx-ref", 4, 1, 0, scm_hashx_ref);
-#ifdef __STDC__
-SCM 
-scm_hashx_ref (SCM hash, SCM assoc, SCM table, SCM obj, SCM dflt)
-#else
+
 SCM 
 scm_hashx_ref (hash, assoc, table, obj, dflt)
      SCM hash;
@@ -586,7 +484,6 @@ scm_hashx_ref (hash, assoc, table, obj, dflt)
      SCM table;
      SCM obj;
      SCM dflt;
-#endif
 {
   struct scm_ihashx_closure closure;
   if (dflt == SCM_UNDEFINED)
@@ -600,10 +497,7 @@ scm_hashx_ref (hash, assoc, table, obj, dflt)
 
 
 SCM_PROC (s_hashx_set_x, "hashx-set!", 5, 0, 0, scm_hashx_set_x);
-#ifdef __STDC__
-SCM 
-scm_hashx_set_x (SCM hash, SCM assoc, SCM table, SCM obj, SCM val)
-#else
+
 SCM 
 scm_hashx_set_x (hash, assoc, table, obj, val)
      SCM hash;
@@ -611,7 +505,6 @@ scm_hashx_set_x (hash, assoc, table, obj, val)
      SCM table;
      SCM obj;
      SCM val;
-#endif
 {
   struct scm_ihashx_closure closure;
   closure.hash = hash;
@@ -620,10 +513,7 @@ scm_hashx_set_x (hash, assoc, table, obj, val)
 }
 
 
-#ifdef __STDC__
-SCM
-scm_hashx_remove_x (SCM hash, SCM assoc, SCM delete, SCM table, SCM obj)
-#else
+
 SCM
 scm_hashx_remove_x (hash, assoc, delete, table, obj)
      SCM hash;
@@ -631,7 +521,6 @@ scm_hashx_remove_x (hash, assoc, delete, table, obj)
      SCM delete;
      SCM table;
      SCM obj;
-#endif
 {
   struct scm_ihashx_closure closure;
   closure.hash = hash;
@@ -642,13 +531,9 @@ scm_hashx_remove_x (hash, assoc, delete, table, obj)
 
 
 
-#ifdef __STDC__
-void
-scm_init_hashtab (void)
-#else
+
 void
 scm_init_hashtab ()
-#endif
 {
 #include "hashtab.x"
 }

@@ -406,11 +406,5 @@ extern struct errdesc scm_errmsgs[];
 
 
 
-#ifdef __STDC__
-
-#else /* STDC */
-
-#endif /* STDC */
-
 
 #endif  /* __SCMH */

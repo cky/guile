@@ -50,21 +50,10 @@
 
 
 
-#ifdef __STDC__
-extern int scm_obj_length (SCM obj);
-extern SCM scm_length(SCM x);
-extern SCM scm_reverse (SCM objs);
-extern void scm_init_sequences (void);
 
-#else /* STDC */
-extern int scm_obj_length ();
-extern SCM scm_length();
-extern SCM scm_reverse ();
-extern void scm_init_sequences ();
-
-#endif /* STDC */
-
-
-
+extern int scm_obj_length SCM_P ((SCM obj));
+extern SCM scm_length SCM_P ((SCM x));
+extern SCM scm_reverse SCM_P ((SCM objs));
+extern void scm_init_sequences SCM_P ((void));
 
 #endif  /* SEQUENCESH */

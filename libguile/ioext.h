@@ -50,38 +50,19 @@
 
 
 
-#ifdef __STDC__
-extern SCM scm_sys_ftell (SCM port);
-extern SCM scm_sys_fseek (SCM port, SCM offset, SCM whence);
-extern SCM scm_sys_freopen (SCM filename, SCM modes, SCM port);
-extern SCM scm_sys_duplicate_port (SCM oldpt, SCM modes);
-extern SCM scm_sys_redirect_port (SCM into_pt, SCM from_pt);
-extern SCM scm_sys_fileno (SCM port);
-extern SCM scm_sys_isatty_p (SCM port);
-extern SCM scm_sys_fdopen (SCM fdes, SCM modes);
-extern SCM scm_sys_primitive_move_to_fdes (SCM port, SCM fd);
-extern void scm_setfileno (FILE *fs, int fd);
-extern void scm_evict_ports (int fd);
-extern SCM scm_fdes_to_ports (SCM fd);
-extern void scm_init_ioext (void);
 
-#else /* STDC */
-extern SCM scm_sys_ftell ();
-extern SCM scm_sys_fseek ();
-extern SCM scm_sys_freopen ();
-extern SCM scm_sys_duplicate_port ();
-extern SCM scm_sys_redirect_port ();
-extern SCM scm_sys_fileno ();
-extern SCM scm_sys_isatty_p ();
-extern SCM scm_sys_fdopen ();
-extern SCM scm_sys_primitive_move_to_fdes ();
-extern void scm_setfileno ();
-extern void scm_evict_ports ();
-extern SCM scm_fdes_to_ports ();
-extern void scm_init_ioext ();
-
-#endif /* STDC */
-
-
+extern SCM scm_sys_ftell SCM_P ((SCM port));
+extern SCM scm_sys_fseek SCM_P ((SCM port, SCM offset, SCM whence));
+extern SCM scm_sys_freopen SCM_P ((SCM filename, SCM modes, SCM port));
+extern SCM scm_sys_duplicate_port SCM_P ((SCM oldpt, SCM modes));
+extern SCM scm_sys_redirect_port SCM_P ((SCM into_pt, SCM from_pt));
+extern SCM scm_sys_fileno SCM_P ((SCM port));
+extern SCM scm_sys_isatty_p SCM_P ((SCM port));
+extern SCM scm_sys_fdopen SCM_P ((SCM fdes, SCM modes));
+extern SCM scm_sys_primitive_move_to_fdes SCM_P ((SCM port, SCM fd));
+extern void scm_setfileno SCM_P ((FILE *fs, int fd));
+extern void scm_evict_ports SCM_P ((int fd));
+extern SCM scm_fdes_to_ports SCM_P ((SCM fd));
+extern void scm_init_ioext SCM_P ((void));
 
 #endif  /* IOEXTH */

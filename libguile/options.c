@@ -114,17 +114,13 @@
 SCM_SYMBOL (scm_yes_sym, "yes");
 SCM_SYMBOL (scm_no_sym, "no");
 
-#ifdef __STDC__
-SCM
-scm_options (SCM new_mode, scm_option options[], int n, char *s)
-#else
+
 SCM
 scm_options (new_mode, options, n, s)
      SCM new_mode;
      scm_option options[];
      int n;
      char *s;
-#endif
 {
   int i, docp = (!SCM_UNBNDP (new_mode)
 		 && (SCM_IMP (new_mode) || SCM_NCONSP (new_mode)));
@@ -204,16 +200,12 @@ scm_options (new_mode, options, n, s)
   return ans;
 }
 
-#ifdef __STDC__
-void
-scm_init_opts (SCM (*func) (SCM), scm_option options[], int n)
-#else
+
 void
 scm_init_opts (func, options, n)
      SCM (*func) (SCM);
      scm_option options[];
      int n;
-#endif
 {
   int i;
 
@@ -227,13 +219,9 @@ scm_init_opts (func, options, n)
   func (SCM_UNDEFINED);
 }
 
-#ifdef __STDC__
-void
-scm_init_options (void)
-#else
+
 void
 scm_init_options ()
-#endif
 {
 #include "options.x"
 }

@@ -53,10 +53,6 @@
 
 extern int scm_print_carefully_p;
 
-#ifdef __STDC__
-extern void scm_init_gdbint (void);
-#else
-extern void scm_init_gdbint ();
-#endif __STDC__
+extern void scm_init_gdbint SCM_P ((void));
 
 #endif /* GDBINTH */

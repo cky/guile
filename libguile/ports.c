@@ -73,14 +73,10 @@
 scm_ptobfuns *scm_ptobs;
 scm_sizet scm_numptob;
 
-#ifdef __STDC__
-SCM 
-scm_markstream (SCM ptr)
-#else
+
 SCM 
 scm_markstream (ptr)
      SCM ptr;
-#endif
 {
   int openp;
   if (SCM_GC8MARKP (ptr))
@@ -94,14 +90,10 @@ scm_markstream (ptr)
 }
 
 
-#ifdef __STDC__
-long 
-scm_newptob (scm_ptobfuns *ptob)
-#else
+
 long 
 scm_newptob (ptob)
      scm_ptobfuns *ptob;
-#endif
 {
   char *tmp;
   if (255 <= scm_numptob)
@@ -131,14 +123,10 @@ scm_newptob (ptob)
 
 
 /* internal SCM call */
-#ifdef __STDC__
-void 
-scm_fflush (SCM port)
-#else
+
 void 
 scm_fflush (port)
      SCM port;
-#endif
 {
   scm_sizet i = SCM_PTOBNUM (port);
   (scm_ptobs[i].fflush) (SCM_STREAM (port));
@@ -154,14 +142,12 @@ scm_fflush (port)
 # ifndef GO32
 #  include <io.h>
 #  include <conio.h>
-#ifdef __STDC__
-static int 
-input_waiting (FILE *f)
-#else
+
+static int  input_waiting SCM_P ((FILE *f));
+
 static int 
 input_waiting (f)
      FILE *f;
-#endif
 {
   if (feof (f))
     return 1;
@@ -190,14 +176,12 @@ input_waiting (f)
 # endif
 
 
-#ifdef __STDC__
-static int
-input_waiting(FILE *f)
-#else
+
+static int input_waiting SCM_P ((FILE *f));
+
 static int
 input_waiting(f)
      FILE *f;
-#endif
 {
 # ifdef FIONREAD
   long remir;
@@ -211,14 +195,10 @@ input_waiting(f)
 #endif
 
 SCM_PROC(s_char_ready_p, "char-ready?", 1, 0, 0, scm_char_ready_p);
-#ifdef __STDC__
-SCM 
-scm_char_ready_p (SCM port)
-#else
+
 SCM 
 scm_char_ready_p (port)
      SCM port;
-#endif
 {
   if (SCM_UNBNDP (port))
     port = scm_cur_inp;
@@ -233,14 +213,10 @@ scm_char_ready_p (port)
 
 
 SCM_PROC (s_ungetc_char_ready_p, "ungetc-char-ready?", 1, 0, 0, scm_ungetc_char_ready_p);
-#ifdef __STDC__
-SCM 
-scm_ungetc_char_ready_p (SCM port)
-#else
+
 SCM 
 scm_ungetc_char_ready_p (port)
      SCM port;
-#endif
 {
   if (SCM_UNBNDP (port))
     port = scm_cur_inp;
@@ -258,50 +234,34 @@ scm_ungetc_char_ready_p (port)
 /* {Standard Ports}
  */
 SCM_PROC(s_current_input_port, "current-input-port", 0, 0, 0, scm_current_input_port);
-#ifdef __STDC__
-SCM 
-scm_current_input_port (void)
-#else
+
 SCM 
 scm_current_input_port ()
-#endif
 {
   return scm_cur_inp;
 }
 
 SCM_PROC(s_current_output_port, "current-output-port", 0, 0, 0, scm_current_output_port);
-#ifdef __STDC__
-SCM 
-scm_current_output_port (void)
-#else
+
 SCM 
 scm_current_output_port ()
-#endif
 {
   return scm_cur_outp;
 }
 
 SCM_PROC(s_current_error_port, "current-error-port", 0, 0, 0, scm_current_error_port);
-#ifdef __STDC__
-SCM 
-scm_current_error_port (void)
-#else
+
 SCM 
 scm_current_error_port ()
-#endif
 {
   return scm_cur_errp;
 }
 
 SCM_PROC(s_set_current_input_port, "set-current-input-port", 1, 0, 0, scm_set_current_input_port);
-#ifdef __STDC__
-SCM 
-scm_set_current_input_port (SCM port)
-#else
+
 SCM 
 scm_set_current_input_port (port)
      SCM port;
-#endif
 {
   SCM oinp = scm_cur_inp;
   SCM_ASSERT (SCM_NIMP (port) && SCM_OPINPORTP (port), port, SCM_ARG1, s_set_current_input_port);
@@ -311,14 +271,10 @@ scm_set_current_input_port (port)
 
 
 SCM_PROC(s_set_current_output_port, "set-current-output-port", 1, 0, 0, scm_set_current_output_port);
-#ifdef __STDC__
-SCM 
-scm_set_current_output_port (SCM port)
-#else
+
 SCM 
 scm_set_current_output_port (port)
      SCM port;
-#endif
 {
   SCM ooutp = scm_cur_outp;
   SCM_ASSERT (SCM_NIMP (port) && SCM_OPOUTPORTP (port), port, SCM_ARG1, s_set_current_output_port);
@@ -328,14 +284,10 @@ scm_set_current_output_port (port)
 
 
 SCM_PROC(s_set_current_error_port, "set-current-error-port", 1, 0, 0, scm_set_current_error_port);
-#ifdef __STDC__
-SCM 
-scm_set_current_error_port (SCM port)
-#else
+
 SCM 
 scm_set_current_error_port (port)
      SCM port;
-#endif
 {
   SCM oerrp = scm_cur_errp;
   SCM_ASSERT (SCM_NIMP (port) && SCM_OPOUTPORTP (port), port, SCM_ARG1, s_set_current_error_port);
@@ -356,14 +308,10 @@ int scm_port_table_size = 0;	/* Number of ports in scm_port_table.  */
 int scm_port_table_room = 20;	/* Size of the array.  */
 
 /* Add a port to the table.  Call with SCM_DEFER_INTS active.  */
-#ifdef __STDC__
-struct scm_port_table *
-scm_add_to_port_table (SCM port)
-#else
+
 struct scm_port_table *
 scm_add_to_port_table (port)
      SCM port;
-#endif
 {
   if (scm_port_table_size == scm_port_table_room)
     {
@@ -388,14 +336,10 @@ scm_add_to_port_table (port)
 }
 
 /* Remove a port from the table.  Call with SCM_DEFER_INTS active.  */
-#ifdef __STDC__
-void
-scm_remove_from_port_table (SCM port)
-#else
+
 void
 scm_remove_from_port_table (port)
      SCM port;
-#endif
 {
   int i = 0;
   while (scm_port_table[i]->port != port)
@@ -416,27 +360,19 @@ scm_remove_from_port_table (port)
 /* Undocumented functions for debugging.  */
 /* Return the number of ports in the table.  */
 static char s_pt_size[] = "pt-size";
-#ifdef __STDC__
-SCM
-scm_pt_size (void)
-#else
+
 SCM
 scm_pt_size ()
-#endif
 {
   return SCM_MAKINUM (scm_port_table_size);
 }
 
 /* Return the ith member of the port table.  */
 static char s_pt_member[] = "pt-member";
-#ifdef __STDC__
-SCM
-scm_pt_member (SCM member)
-#else
+
 SCM
 scm_pt_member (member)
      SCM member;
-#endif
 {
   int i;
   SCM_ASSERT (SCM_INUMP (member), member, SCM_ARG1, s_pt_member);
@@ -452,14 +388,10 @@ scm_pt_member (member)
 /* Find a port in the table and return its revealed count.
    Also used by the garbage collector.
  */
-#ifdef __STDC__
-int
-scm_revealed_count (SCM port)
-#else
+
 int
 scm_revealed_count (port)
      SCM port;
-#endif
 {
   return SCM_REVEALED(port);
 }
@@ -469,14 +401,10 @@ scm_revealed_count (port)
 /* Return the revealed count for a port.  */
 
 SCM_PROC(s_port_revealed, "port-revealed", 1, 0, 0, scm_port_revealed);
-#ifdef __STDC__
-SCM
-scm_port_revealed (SCM port)
-#else
+
 SCM
 scm_port_revealed (port)
      SCM port;
-#endif
 {
   SCM_ASSERT (SCM_NIMP (port) && SCM_PORTP (port), port, SCM_ARG1, s_port_revealed);
   return SCM_MAKINUM (scm_revealed_count (port));
@@ -484,15 +412,11 @@ scm_port_revealed (port)
 
 /* Set the revealed count for a port.  */
 SCM_PROC(s_set_port_revealed_x, "set-port-revealed!", 2, 0, 0, scm_set_port_revealed_x);
-#ifdef __STDC__
-SCM
-scm_set_port_revealed_x (SCM port, SCM rcount)
-#else
+
 SCM
 scm_set_port_revealed_x (port, rcount)
      SCM port;
      SCM rcount;
-#endif
 {
   SCM_ASSERT (SCM_NIMP (port) && SCM_PORTP (port), port, SCM_ARG1, s_set_port_revealed_x);
   SCM_ASSERT (SCM_INUMP (rcount), rcount, SCM_ARG2, s_set_port_revealed_x);
@@ -506,14 +430,10 @@ scm_set_port_revealed_x (port, rcount)
  * Call the close operation on a port object. 
  */
 SCM_PROC(s_close_port, "close-port", 1, 0, 0, scm_close_port);
-#ifdef __STDC__
-SCM
-scm_close_port (SCM port)
-#else
+
 SCM
 scm_close_port (port)
      SCM port;
-#endif
 {
   scm_sizet i;
   SCM_ASSERT (SCM_NIMP (port) && SCM_PORTP (port), port, SCM_ARG1, s_close_port);
@@ -530,14 +450,10 @@ scm_close_port (port)
 }
 
 SCM_PROC(s_close_all_ports_except, "close-all-ports-except", 0, 0, 1, scm_close_all_ports_except);
-#ifdef __STDC__
-SCM
-scm_close_all_ports_except (SCM ports)
-#else
+
 SCM
 scm_close_all_ports_except (ports)
      SCM ports;
-#endif
 {
   int i = 0;
   SCM_ASSERT (SCM_NIMP (ports) && SCM_CONSP (ports), ports, SCM_ARG1, s_close_all_ports_except);
@@ -568,14 +484,10 @@ scm_close_all_ports_except (ports)
 }
 
 SCM_PROC(s_input_port_p, "input-port?", 1, 0, 0, scm_input_port_p);
-#ifdef __STDC__
-SCM 
-scm_input_port_p (SCM x)
-#else
+
 SCM 
 scm_input_port_p (x)
      SCM x;
-#endif
 {
   if (SCM_IMP (x))
  return SCM_BOOL_F;
@@ -583,14 +495,10 @@ scm_input_port_p (x)
 }
 
 SCM_PROC(s_output_port_p, "output-port?", 1, 0, 0, scm_output_port_p);
-#ifdef __STDC__
-SCM 
-scm_output_port_p (SCM x)
-#else
+
 SCM 
 scm_output_port_p (x)
      SCM x;
-#endif
 {
   if (SCM_IMP (x))
  return SCM_BOOL_F;
@@ -599,27 +507,19 @@ scm_output_port_p (x)
 
 
 SCM_PROC(s_eof_object_p, "eof-object?", 1, 0, 0, scm_eof_object_p);
-#ifdef __STDC__
-SCM 
-scm_eof_object_p (SCM x)
-#else
+
 SCM 
 scm_eof_object_p (x)
      SCM x;
-#endif
 {
   return (SCM_EOF_VAL == x) ? SCM_BOOL_T : SCM_BOOL_F;
 }
 
 SCM_PROC(s_force_output, "force-output", 0, 1, 0, scm_force_output);
-#ifdef __STDC__
-SCM 
-scm_force_output (SCM port)
-#else
+
 SCM 
 scm_force_output (port)
      SCM port;
-#endif
 {
   if (SCM_UNBNDP (port))
  port = scm_cur_outp;
@@ -634,14 +534,10 @@ scm_force_output (port)
 
 
 SCM_PROC(s_read_char, "read-char", 0, 1, 0, scm_read_char);
-#ifdef __STDC__
-SCM 
-scm_read_char (SCM port)
-#else
+
 SCM 
 scm_read_char (port)
      SCM port;
-#endif
 {
   int c;
   if (SCM_UNBNDP (port))
@@ -656,14 +552,10 @@ scm_read_char (port)
 
 
 SCM_PROC(s_peek_char, "peek-char", 0, 1, 0, scm_peek_char);
-#ifdef __STDC__
-SCM 
-scm_peek_char (SCM port)
-#else
+
 SCM 
 scm_peek_char (port)
      SCM port;
-#endif
 {
   int c;
   if (SCM_UNBNDP (port))
@@ -678,15 +570,11 @@ scm_peek_char (port)
 }
 
 SCM_PROC (s_unread_char, "unread-char", 2, 0, 0, scm_unread_char);
-#ifdef __STDC__
-SCM 
-scm_unread_char (SCM cobj, SCM port)
-#else
+
 SCM 
 scm_unread_char (cobj, port)
      SCM cobj;
      SCM port;
-#endif
 {
   int c;
 
@@ -707,14 +595,10 @@ scm_unread_char (cobj, port)
 
 
 SCM_PROC (s_port_line, "port-line", 0, 1, 0, scm_port_line);
-#ifdef __STDC__
-SCM 
-scm_port_line (SCM port)
-#else
+
 SCM 
 scm_port_line (port)
      SCM port;
-#endif
 {
   SCM p;
   p = ((port == SCM_UNDEFINED)
@@ -727,14 +611,10 @@ scm_port_line (port)
 }
 
 SCM_PROC (s_port_column, "port-column", 0, 1, 0, scm_port_column);
-#ifdef __STDC__
-SCM
-scm_port_column (SCM port)
-#else
+
 SCM
 scm_port_column  (port)
      SCM port;
-#endif
 {
   SCM p;
   p = ((port == SCM_UNDEFINED)
@@ -747,14 +627,10 @@ scm_port_column  (port)
 }
 
 SCM_PROC (s_port_filename, "port-filename", 0, 1, 0, scm_port_filename);
-#ifdef __STDC__
-SCM 
-scm_port_filename (SCM port)
-#else
+
 SCM 
 scm_port_filename (port)
      SCM port;
-#endif
 {
   SCM p;
   p = ((port == SCM_UNDEFINED)
@@ -767,15 +643,11 @@ scm_port_filename (port)
 }
 
 SCM_PROC (s_set_port_filename_x, "set-port-filename!", 1, 1, 0, scm_set_port_filename_x);
-#ifdef __STDC__
-SCM 
-scm_set_port_filename_x (SCM port, SCM filename)
-#else
+
 SCM 
 scm_set_port_filename_x (port, filename)
      SCM port;
      SCM filename;
-#endif
 {
   if (filename == SCM_UNDEFINED)
     {
@@ -794,16 +666,12 @@ scm_set_port_filename_x (port, filename)
 extern char * ttyname();
 #endif
 
-#ifdef __STDC__
-void 
-scm_prinport (SCM exp, SCM port, char *type)
-#else
+
 void 
 scm_prinport (exp, port, type)
      SCM exp;
      SCM port;
      char *type;
-#endif
 {
   scm_gen_puts (scm_regular_string, "#<", port);
   if (SCM_CLOSEDP (exp))
@@ -837,13 +705,9 @@ scm_prinport (exp, port, type)
   scm_gen_putc ('>', port);
 }
 
-#ifdef __STDC__
-void
-scm_ports_prehistory (void)
-#else
+
 void
 scm_ports_prehistory ()
-#endif
 {
   scm_numptob = 0;
   scm_ptobs = (scm_ptobfuns *) malloc (sizeof (scm_ptobfuns));
@@ -902,51 +766,43 @@ write_void_port (ptr, size, nitems, strm)
   return len;
 }
 
-#ifdef __STDC__
-static int
-flush_void_port (SCM strm)
-#else
+
+static int flush_void_port SCM_P ((SCM strm));
+
 static int
 flush_void_port (strm)
      SCM strm;
-#endif
 {
   return 0;
 }
 
-#ifdef __STDC__
-static int
-getc_void_port (SCM strm)
-#else
+
+static int getc_void_port SCM_P ((SCM strm));
+
 static int
 getc_void_port (strm)
      SCM strm;
-#endif
 {
   return EOF;
 }
 
-#ifdef __STDC__
-static int
-close_void_port (SCM strm)
-#else
+
+static int close_void_port SCM_P ((SCM strm));
+
 static int
 close_void_port (strm)
      SCM strm;
-#endif
 {
   return 0;			/* this is ignored by scm_close_port. */
 }
 
 
-#ifdef __STDC__
-static int 
-noop0 (FILE *stream)
-#else
+
+static int noop0 SCM_P ((SCM stream));
+
 static int 
 noop0 (stream)
-     FILE *stream;
-#endif
+     SCM stream;
 {
   return 0;
 }
@@ -968,14 +824,10 @@ static struct scm_ptobfuns  void_port_ptob =
 
 
 
-#ifdef __STDC__
-SCM
-scm_void_port (char * mode_str)
-#else
+
 SCM
 scm_void_port (mode_str)
      char * mode_str;
-#endif
 {
   int mode_bits;
   SCM answer;
@@ -994,14 +846,10 @@ scm_void_port (mode_str)
 
 
 SCM_PROC (s_sys_make_void_port, "%make-void-port", 1, 0, 0, scm_sys_make_void_port);
-#ifdef __STDC__
-SCM
-scm_sys_make_void_port (SCM mode)
-#else
+
 SCM
 scm_sys_make_void_port (mode)
      SCM mode;
-#endif
 {
   SCM_ASSERT (SCM_NIMP (mode) && SCM_STRINGP (mode), mode,
 	      SCM_ARG1, s_sys_make_void_port);
@@ -1013,13 +861,9 @@ scm_sys_make_void_port (mode)
 
 
 
-#ifdef __STDC__
-void
-scm_init_ports (void)
-#else
+
 void
 scm_init_ports ()
-#endif
 {
   scm_tc16_void_port = scm_newptob (&void_port_ptob);
 #include "ports.x"

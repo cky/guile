@@ -51,14 +51,10 @@
  */
 
 SCM_PROC(s_string_p, "string?", 1, 0, 0, scm_string_p);
-#ifdef __STDC__
-SCM
-scm_string_p (SCM x)
-#else
+
 SCM
 scm_string_p (x)
      SCM x;
-#endif
 {
   if (SCM_IMP (x))
     return SCM_BOOL_F;
@@ -66,14 +62,10 @@ scm_string_p (x)
 }
 
 SCM_PROC(s_read_only_string_p, "read-only-string?", 1, 0, 0, scm_read_only_string_p);
-#ifdef __STDC__
-SCM
-scm_read_only_string_p (SCM x)
-#else
+
 SCM
 scm_read_only_string_p (x)
      SCM x;
-#endif
 {
   if (SCM_IMP (x))
     return SCM_BOOL_F;
@@ -82,14 +74,10 @@ scm_read_only_string_p (x)
 
 SCM_PROC(s_list_to_string, "list->string", 1, 0, 0, scm_string);
 SCM_PROC(s_string, "string", 0, 0, 1, scm_string);
-#ifdef __STDC__
-SCM
-scm_string (SCM chrs)
-#else
+
 SCM
 scm_string (chrs)
      SCM chrs;
-#endif
 {
   SCM res;
   register char *data;
@@ -140,15 +128,11 @@ scm_string (chrs)
   return res;
 }
 
-#ifdef __STDC__
-SCM 
-scm_makstr (long len, int slots)
-#else
+
 SCM 
 scm_makstr (len, slots)
      long len;
      int slots;
-#endif
 {
   SCM s;
   SCM * mem;
@@ -173,15 +157,11 @@ scm_makstr (len, slots)
 
 /* converts C scm_array of strings to SCM scm_list of strings. */
 /* If argc < 0, a null terminated scm_array is assumed. */
-#ifdef __STDC__
-SCM 
-scm_makfromstrs (int argc, char **argv)
-#else
+
 SCM 
 scm_makfromstrs (argc, argv)
      int argc;
      char **argv;
-#endif
 {
   int i = argc;
   SCM lst = SCM_EOL;
@@ -193,14 +173,10 @@ scm_makfromstrs (argc, argv)
 }
 
 
-#ifdef __STDC__
-SCM
-scm_take0str (char * it)
-#else
+
 SCM
 scm_take0str (it)
      char * it;
-#endif
 {
   SCM answer;
   SCM_NEWCELL (answer);
@@ -211,16 +187,12 @@ scm_take0str (it)
   return answer;
 }
 
-#ifdef __STDC__
-SCM 
-scm_makfromstr (const char *src, scm_sizet len, int slots)
-#else
+
 SCM 
 scm_makfromstr (src, len, slots)
      const char *src;
      scm_sizet len;
      int slots;
-#endif
 {
   SCM s;
   register char *dst;
@@ -232,27 +204,19 @@ scm_makfromstr (src, len, slots)
 }
 
 
-#ifdef __STDC__
-SCM 
-scm_makfrom0str (const char *src)
-#else
+
 SCM 
 scm_makfrom0str (src)
      const char *src;
-#endif
 {
   if (!src) return SCM_BOOL_F;
   return scm_makfromstr (src, (scm_sizet) strlen (src), 0);
 }
 
-#ifdef __STDC__
-SCM 
-scm_makfrom0str_opt (const char *src)
-#else
+
 SCM 
 scm_makfrom0str_opt (src)
      const char *src;
-#endif
 {
   return scm_makfrom0str (src);
 }
@@ -261,15 +225,11 @@ scm_makfrom0str_opt (src)
 
 
 SCM_PROC(s_make_string, "make-string", 1, 1, 0, scm_make_string);
-#ifdef __STDC__
-SCM
-scm_make_string (SCM k, SCM chr)
-#else
+
 SCM
 scm_make_string (k, chr)
      SCM k;
      SCM chr;
-#endif
 {
   SCM res;
   register char *dst;
@@ -290,29 +250,21 @@ scm_make_string (k, chr)
 }
 
 SCM_PROC(s_string_length, "string-length", 1, 0, 0, scm_string_length);
-#ifdef __STDC__
-SCM
-scm_string_length (SCM str)
-#else
+
 SCM
 scm_string_length (str)
      SCM str;
-#endif
 {
   SCM_ASSERT (SCM_NIMP (str) && SCM_ROSTRINGP (str), str, SCM_ARG1, s_string_length);
   return SCM_MAKINUM (SCM_ROLENGTH (str));
 }
 
 SCM_PROC(s_string_ref, "string-ref", 1, 1, 0, scm_string_ref);
-#ifdef __STDC__
-SCM
-scm_string_ref (SCM str, SCM k)
-#else
+
 SCM
 scm_string_ref (str, k)
      SCM str;
      SCM k;
-#endif
 {
   SCM_ASSERT (SCM_NIMP (str) && SCM_ROSTRINGP (str), str, SCM_ARG1, s_string_ref);
   if (k == SCM_UNDEFINED)
@@ -323,16 +275,12 @@ scm_string_ref (str, k)
 }
 
 SCM_PROC(s_string_set_x, "string-set!", 3, 0, 0, scm_string_set_x);
-#ifdef __STDC__
-SCM
-scm_string_set_x (SCM str, SCM k, SCM chr)
-#else
+
 SCM
 scm_string_set_x (str, k, chr)
      SCM str;
      SCM k;
      SCM chr;
-#endif
 {
   SCM_ASSERT (SCM_NIMP (str) && SCM_STRINGP (str), str, SCM_ARG1, s_string_set_x);
   SCM_ASSERT (SCM_INUMP (k), k, SCM_ARG2, s_string_set_x);
@@ -345,16 +293,12 @@ scm_string_set_x (str, k, chr)
 
 
 SCM_PROC(s_substring, "substring", 2, 1, 0, scm_substring);
-#ifdef __STDC__
-SCM
-scm_substring (SCM str, SCM start, SCM end)
-#else
+
 SCM
 scm_substring (str, start, end)
      SCM str;
      SCM start;
      SCM end;
-#endif
 {
   long l;
   SCM_ASSERT (SCM_NIMP (str) && SCM_ROSTRINGP (str),
@@ -371,14 +315,10 @@ scm_substring (str, start, end)
 }
 
 SCM_PROC(s_string_append, "string-append", 0, 0, 1, scm_string_append);
-#ifdef __STDC__
-SCM
-scm_string_append (SCM args)
-#else
+
 SCM
 scm_string_append (args)
      SCM args;
-#endif
 {
   SCM res;
   register long i = 0;
@@ -403,16 +343,12 @@ scm_string_append (args)
 }
 
 SCM_PROC(s_make_shared_substring, "make-shared-substring", 1, 2, 0, scm_make_shared_substring);
-#ifdef __STDC__
-SCM
-scm_make_shared_substring (SCM str, SCM frm, SCM to)
-#else
+
 SCM
 scm_make_shared_substring (str, frm, to)
      SCM str;
      SCM frm;
      SCM to;
-#endif
 {
   long f;
   long t;
@@ -462,13 +398,9 @@ scm_make_shared_substring (str, frm, to)
   return answer;
 }
 
-#ifdef __STDC__
-void
-scm_init_strings (void)
-#else
+
 void
 scm_init_strings ()
-#endif
 {
 #include "strings.x"
 }

@@ -37,30 +37,26 @@
 
 
 
-#ifdef __STDC__
-static scm_sizet
-fmalloc(SCM ptr)
-#else
+
+static scm_sizet fmalloc SCM_P ((SCM ptr));
+
 static scm_sizet
 fmalloc(ptr)
      SCM ptr;
-#endif
 {
   if (SCM_MALLOCDATA (ptr))
     free (SCM_MALLOCDATA (ptr));
   return 0;
 }
 
-#ifdef __STDC__
-static int
-prinmalloc (SCM exp, SCM port, scm_print_state *pstate)
-#else
+
+static int prinmalloc SCM_P ((SCM exp, SCM port, scm_print_state *pstate));
+
 static int
 prinmalloc (exp, port, pstate)
      SCM exp;
      SCM port;
      scm_print_state *pstate;
-#endif
 {
   scm_gen_puts(scm_regular_string, "#<malloc ", port);
   scm_intprint(SCM_CDR(exp), 16, port);
@@ -74,14 +70,10 @@ static scm_smobfuns mallocsmob = {scm_mark0, fmalloc, prinmalloc, 0};
 
 
 
-#ifdef __STDC__
-SCM
-scm_malloc_obj (scm_sizet n)
-#else
+
 SCM
 scm_malloc_obj (n)
      scm_sizet n;
-#endif
 {
   SCM answer;
   SCM mem;
@@ -104,13 +96,9 @@ scm_malloc_obj (n)
 
 
 
-#ifdef __STDC__
-void 
-scm_init_mallocs (void)
-#else
+
 void 
 scm_init_mallocs ()
-#endif
 {
   scm_tc16_malloc = scm_newsmob (&mallocsmob);
 }

@@ -57,14 +57,10 @@ static int struct_num = 0;
 
 
 SCM_PROC (s_struct_make_layout, "make-struct-layout", 1, 0, 0, scm_make_struct_layout);
-#ifdef __STDC__
-SCM
-scm_make_struct_layout (SCM fields)
-#else
+
 SCM
 scm_make_struct_layout (fields)
      SCM fields;
-#endif
 {
   SCM new_sym;
   SCM_ASSERT (SCM_NIMP (fields) && SCM_ROSTRINGP (fields),
@@ -134,16 +130,14 @@ scm_make_struct_layout (fields)
 
 
 
-#ifdef __STDC__
-static void
-init_struct (SCM handle, int tail_elts, SCM inits)
-#else
+
+static void init_struct SCM_P ((SCM handle, int tail_elts, SCM inits));
+
 static void
 init_struct (handle, tail_elts, inits)
      SCM handle;
      int tail_elts;
      SCM inits;
-#endif
 {
   SCM layout;
   SCM * data;
@@ -235,14 +229,10 @@ init_struct (handle, tail_elts, inits)
 
 
 SCM_PROC (s_struct_p, "struct?", 1, 0, 0, scm_struct_p);
-#ifdef __STDC__
-SCM
-scm_struct_p (SCM x)
-#else
+
 SCM
 scm_struct_p (x)
      SCM x;
-#endif
 {
   return ((SCM_NIMP (x) && SCM_STRUCTP (x))
 	  ? SCM_BOOL_T
@@ -250,14 +240,10 @@ scm_struct_p (x)
 }
 
 SCM_PROC (s_struct_vtable_p, "struct-vtable?", 1, 0, 0, scm_struct_vtable_p);
-#ifdef __STDC__
-SCM
-scm_struct_vtable_p (SCM x)
-#else
+
 SCM
 scm_struct_vtable_p (x)
      SCM x;
-#endif
 {
   SCM layout;
   SCM * mem;
@@ -291,16 +277,12 @@ scm_struct_vtable_p (x)
 }
 
 SCM_PROC (s_make_struct, "make-struct", 2, 0, 1, scm_make_struct);
-#ifdef __STDC__
-SCM
-scm_make_struct (SCM vtable, SCM tail_array_size, SCM init)
-#else
+
 SCM
 scm_make_struct (vtable, tail_array_size, init)
      SCM vtable;
      SCM tail_array_size;
      SCM init;
-#endif
 {
   SCM layout;
   int basic_size;
@@ -336,16 +318,12 @@ scm_make_struct (vtable, tail_array_size, init)
 
 
 SCM_PROC (s_make_vtable_vtable, "make-vtable-vtable", 2, 0, 1, scm_make_vtable_vtable);
-#ifdef __STDC__
-SCM
-scm_make_vtable_vtable (SCM extra_fields, SCM tail_array_size, SCM init)
-#else
+
 SCM
 scm_make_vtable_vtable (extra_fields, tail_array_size, init)
      SCM extra_fields;
      SCM tail_array_size;
      SCM init;
-#endif
 {
   SCM fields;
   SCM layout;
@@ -388,15 +366,11 @@ scm_make_vtable_vtable (extra_fields, tail_array_size, init)
 
 
 SCM_PROC (s_struct_ref, "struct-ref", 2, 0, 0, scm_struct_ref);
-#ifdef __STDC__
-SCM
-scm_struct_ref (SCM handle, SCM pos)
-#else
+
 SCM
 scm_struct_ref (handle, pos)
      SCM handle;
      SCM pos;
-#endif
 {
   SCM answer = SCM_UNDEFINED;
   SCM * data;
@@ -472,16 +446,12 @@ scm_struct_ref (handle, pos)
 
 
 SCM_PROC (s_struct_set_x, "struct-set!", 3, 0, 0, scm_struct_set_x);
-#ifdef __STDC__
-SCM
-scm_struct_set_x (SCM handle, SCM pos, SCM val)
-#else
+
 SCM
 scm_struct_set_x (handle, pos, val)
      SCM handle;
      SCM pos;
      SCM val;
-#endif
 {
   SCM * data;
   SCM layout;
@@ -554,14 +524,10 @@ scm_struct_set_x (handle, pos, val)
 
 
 SCM_PROC (s_struct_vtable, "struct-vtable", 1, 0, 0, scm_struct_vtable);
-#ifdef __STDC__
-SCM
-scm_struct_vtable (SCM handle)
-#else
+
 SCM
 scm_struct_vtable (handle)
      SCM handle;
-#endif
 {
   SCM_ASSERT (SCM_NIMP (handle) && SCM_STRUCTP (handle), handle,
 	      SCM_ARG1, s_struct_vtable);
@@ -570,14 +536,10 @@ scm_struct_vtable (handle)
 
 
 SCM_PROC (s_struct_vtable_tag, "struct-vtable-tag", 1, 0, 0, scm_struct_vtable_tag);
-#ifdef __STDC__
-SCM
-scm_struct_vtable_tag (SCM handle)
-#else
+
 SCM
 scm_struct_vtable_tag (handle)
      SCM handle;
-#endif
 {
   SCM_ASSERT (SCM_NIMP (handle) && (SCM_BOOL_F != scm_struct_vtable_p (handle)),
 	      handle, SCM_ARG1, s_struct_vtable_tag);
@@ -587,13 +549,9 @@ scm_struct_vtable_tag (handle)
 
 
 
-#ifdef __STDC__
-void
-scm_init_struct (void)
-#else
+
 void
 scm_init_struct ()
-#endif
 {
   required_vtable_fields = SCM_CAR (scm_intern_obarray ("pruosr", sizeof ("pruosr") - 1, SCM_BOOL_F));
   scm_permanent_object (required_vtable_fields);

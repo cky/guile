@@ -47,22 +47,13 @@
 #include "libguile/__scm.h"
 
 
-#ifdef __STDC__
-extern void scm_gen_putc (int c, SCM port);
-extern void scm_gen_puts (enum scm_string_representation_type rep,
+
+extern void scm_gen_putc SCM_P ((int c, SCM port));
+extern void scm_gen_puts SCM_P ((enum scm_string_representation_type rep,
 			  char *str_data,
-			  SCM port);
-extern void scm_gen_write (enum scm_string_representation_type rep, char *str_data, scm_sizet nitems, SCM port);
-extern int scm_gen_getc (SCM port);
-extern void scm_gen_ungetc (int c, SCM port);
-
-#else /* STDC */
-extern void scm_gen_putc ();
-extern void scm_gen_puts ();
-extern void scm_gen_write ();
-extern int scm_gen_getc ();
-extern void scm_gen_ungetc ();
-
-#endif /* STDC */
+			  SCM port));
+extern void scm_gen_write SCM_P ((enum scm_string_representation_type rep, char *str_data, scm_sizet nitems, SCM port));
+extern int scm_gen_getc SCM_P ((SCM port));
+extern void scm_gen_ungetc SCM_P ((int c, SCM port));
 
 #endif  /* GENIOH */

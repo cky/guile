@@ -25,10 +25,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "strop.h"
 
 
-#ifdef __STDC__
-int
-scm_i_index (SCM * str, SCM chr, SCM sub_start, SCM sub_end, int pos, int pos2, int pos3, int pos4, char * why)
-#else
+
 int
 scm_i_index (str, chr, sub_start, sub_end, pos, pos2, pos3, pos4, why)
      SCM * str;
@@ -40,7 +37,6 @@ scm_i_index (str, chr, sub_start, sub_end, pos, pos2, pos3, pos4, why)
      int pos3;
      int pos4;
      char * why;
-#endif
 {
   unsigned char * p;
   int x;
@@ -77,10 +73,7 @@ scm_i_index (str, chr, sub_start, sub_end, pos, pos2, pos3, pos4, why)
   return -1;
 }
 
-#ifdef __STDC__
-int
-scm_i_rindex (SCM * str, SCM chr, SCM sub_start, SCM sub_end, int pos, int pos2, int pos3, int pos4, char * why)
-#else
+
 int
 scm_i_rindex (str, chr, sub_start, sub_end, pos, pos2, pos3, pos4, why)
      SCM * str;
@@ -92,7 +85,6 @@ scm_i_rindex (str, chr, sub_start, sub_end, pos, pos2, pos3, pos4, why)
      int pos3;
      int pos4;
      char * why;
-#endif
 {
   unsigned char * p;
   int x;
@@ -132,17 +124,13 @@ scm_i_rindex (str, chr, sub_start, sub_end, pos, pos2, pos3, pos4, why)
 
 
 SCM_PROC(s_string_index, "string-index", 2, 2, 0, scm_string_index);
-#ifdef __STDC__
-SCM 
-scm_string_index (SCM str, SCM chr, SCM frm, SCM to)
-#else
+
 SCM 
 scm_string_index (str, chr, frm, to)
      SCM str;
      SCM chr;
      SCM frm;
      SCM to;
-#endif
 {
   int pos;
   
@@ -157,17 +145,13 @@ scm_string_index (str, chr, frm, to)
 }
 
 SCM_PROC(s_string_rindex, "string-rindex", 2, 2, 0, scm_string_rindex);
-#ifdef __STDC__
-SCM 
-scm_string_rindex (SCM str, SCM chr, SCM frm, SCM to)
-#else
+
 SCM 
 scm_string_rindex (str, chr, frm, to)
      SCM str;
      SCM chr;
      SCM frm;
      SCM to;
-#endif
 {
   int pos;
   
@@ -187,16 +171,12 @@ scm_string_rindex (str, chr, frm, to)
 
  
 SCM_PROC(s_substring_move_left_x, "substring-move-left!", 2, 0, 1, scm_substring_move_left_x);
-#ifdef __STDC__
-SCM
-scm_substring_move_left_x (SCM str1, SCM start1, SCM args)
-#else
+
 SCM
 scm_substring_move_left_x (str1, start1, args)
      SCM str1;
      SCM start1;
      SCM args;
-#endif
 {
   SCM end1, str2, start2;
   long i, j, e;
@@ -221,16 +201,12 @@ scm_substring_move_left_x (str1, start1, args)
 
 
 SCM_PROC(s_substring_move_right_x, "substring-move-right!", 2, 0, 1, scm_substring_move_right_x);
-#ifdef __STDC__
-SCM
-scm_substring_move_right_x (SCM str1, SCM start1, SCM args)
-#else
+
 SCM
 scm_substring_move_right_x (str1, start1, args)
      SCM str1;
      SCM start1;
      SCM args;
-#endif
 {
   SCM end1, str2, start2;
   long i, j, e;
@@ -255,16 +231,12 @@ scm_substring_move_right_x (str1, start1, args)
 
 
 SCM_PROC(s_substring_fill_x, "substring-fill!", 2, 0, 1, scm_substring_fill_x);
-#ifdef __STDC__
-SCM
-scm_substring_fill_x (SCM str, SCM start, SCM args)
-#else
+
 SCM
 scm_substring_fill_x (str, start, args)
      SCM str;
      SCM start;
      SCM args;
-#endif
 {
   SCM end, fill;
   long i, e;
@@ -286,14 +258,10 @@ scm_substring_fill_x (str, start, args)
 
 
 SCM_PROC(s_string_null_p, "string-null?", 1, 0, 0, scm_string_null_p);
-#ifdef __STDC__
-SCM
-scm_string_null_p (SCM str)
-#else
+
 SCM
 scm_string_null_p (str)
      SCM str;
-#endif
 {
   SCM_ASSERT (SCM_NIMP (str) && SCM_ROSTRINGP (str), str, SCM_ARG1, s_string_null_p);
   return (SCM_ROLENGTH (str)
@@ -303,14 +271,10 @@ scm_string_null_p (str)
 
 
 SCM_PROC(s_string_to_list, "string->list", 1, 0, 0, scm_string_to_list);
-#ifdef __STDC__
-SCM
-scm_string_to_list (SCM str)
-#else
+
 SCM
 scm_string_to_list (str)
      SCM str;
-#endif
 {
   long i;
   SCM res = SCM_EOL;
@@ -324,14 +288,10 @@ scm_string_to_list (str)
 
 
 SCM_PROC(s_string_copy, "string-copy", 1, 0, 0, scm_string_copy);
-#ifdef __STDC__
-SCM
-scm_string_copy (SCM str)
-#else
+
 SCM
 scm_string_copy (str)
      SCM str;
-#endif
 {
   SCM_ASSERT (SCM_NIMP (str) && SCM_STRINGP (str), str, SCM_ARG1, s_string_copy);
   return scm_makfromstr (SCM_CHARS (str), (scm_sizet)SCM_LENGTH (str), 0);
@@ -339,15 +299,11 @@ scm_string_copy (str)
 
 
 SCM_PROC(s_string_fill_x, "string-fill!", 2, 0, 0, scm_string_fill_x);
-#ifdef __STDC__
-SCM
-scm_string_fill_x (SCM str, SCM chr)
-#else
+
 SCM
 scm_string_fill_x (str, chr)
      SCM str;
      SCM chr;
-#endif
 {
   register char *dst, c;
   register long k;
@@ -360,13 +316,9 @@ scm_string_fill_x (str, chr)
 }
 
 
-#ifdef __STDC__
-void
-scm_init_strop (void)
-#else
+
 void
 scm_init_strop ()
-#endif
 {
 #include "strop.x"
 }

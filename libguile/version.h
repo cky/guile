@@ -48,16 +48,9 @@
 
 
 
-#ifdef __STDC__
-extern SCM scm_major_version (void);
-extern SCM scm_minor_version (void);
-extern SCM scm_version (void);
-extern void scm_init_version (void);
-#else /* STDC */
-extern SCM scm_major_version ();
-extern SCM scm_minor_version ();
-extern SCM scm_version ();
-extern void scm_init_version ();
-#endif /* STDC */
+extern SCM scm_major_version SCM_P ((void));
+extern SCM scm_minor_version SCM_P ((void));
+extern SCM scm_version SCM_P ((void));
+extern void scm_init_version SCM_P ((void));
 
 #endif  /* VERSIONH */

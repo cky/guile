@@ -57,14 +57,10 @@
 
 
 SCM_PROC (s_sys_ftell, "ftell", 1, 0, 0, scm_sys_ftell);
-#ifdef __STDC__
-SCM 
-scm_sys_ftell (SCM port)
-#else
+
 SCM 
 scm_sys_ftell (port)
      SCM port;
-#endif
 {
   long pos;
   SCM_ASSERT (SCM_NIMP (port) && SCM_OPFPORTP (port), port, SCM_ARG1, s_sys_ftell);
@@ -79,16 +75,12 @@ scm_sys_ftell (port)
 
 
 SCM_PROC (s_sys_fseek, "fseek", 3, 0, 0, scm_sys_fseek);
-#ifdef __STDC__
-SCM 
-scm_sys_fseek (SCM port, SCM offset, SCM whence)
-#else
+
 SCM 
 scm_sys_fseek (port, offset, whence)
      SCM port;
      SCM offset;
      SCM whence;
-#endif
 {
   int rv;
   SCM_ASSERT (SCM_NIMP (port) && SCM_OPFPORTP (port), port, SCM_ARG1, s_sys_fseek);
@@ -106,16 +98,12 @@ scm_sys_fseek (port, offset, whence)
 
 
 SCM_PROC (s_sys_freopen, "freopen", 3, 0, 0, scm_sys_freopen);
-#ifdef __STDC__
-SCM 
-scm_sys_freopen (SCM filename, SCM modes, SCM port)
-#else
+
 SCM 
 scm_sys_freopen (filename, modes, port)
      SCM filename;
      SCM modes;
      SCM port;
-#endif
 {
   FILE *f;
   SCM_ASSERT (SCM_NIMP (filename) && SCM_STRINGP (filename), filename, SCM_ARG1, s_sys_freopen);
@@ -145,15 +133,11 @@ scm_sys_freopen (filename, modes, port)
 
 
 SCM_PROC (s_sys_duplicate_port, "duplicate-port", 2, 0, 0, scm_sys_duplicate_port);
-#ifdef __STDC__
-SCM 
-scm_sys_duplicate_port (SCM oldpt, SCM modes)
-#else
+
 SCM 
 scm_sys_duplicate_port (oldpt, modes)
      SCM oldpt;
      SCM modes;
-#endif
 {
   int oldfd;
   int newfd;
@@ -191,15 +175,11 @@ scm_sys_duplicate_port (oldpt, modes)
 
 
 SCM_PROC (s_sys_redirect_port, "redirect-port", 2, 0, 0, scm_sys_redirect_port);
-#ifdef __STDC__
-SCM 
-scm_sys_redirect_port (SCM into_pt, SCM from_pt)
-#else
+
 SCM 
 scm_sys_redirect_port (into_pt, from_pt)
      SCM into_pt;
      SCM from_pt;
-#endif
 {
   int ans, oldfd, newfd;
   SCM_DEFER_INTS;
@@ -219,14 +199,10 @@ scm_sys_redirect_port (into_pt, from_pt)
 }
 
 SCM_PROC (s_sys_fileno, "fileno", 1, 0, 0, scm_sys_fileno);
-#ifdef __STDC__
-SCM 
-scm_sys_fileno (SCM port)
-#else
+
 SCM 
 scm_sys_fileno (port)
      SCM port;
-#endif
 {
   int fd;
   SCM_ASSERT (SCM_NIMP (port) && SCM_OPFPORTP (port), port, SCM_ARG1, s_sys_fileno);
@@ -237,14 +213,10 @@ scm_sys_fileno (port)
 }
 
 SCM_PROC (s_sys_isatty, "isatty?", 1, 0, 0, scm_sys_isatty_p);
-#ifdef __STDC__
-SCM 
-scm_sys_isatty_p (SCM port)
-#else
+
 SCM 
 scm_sys_isatty_p (port)
      SCM port;
-#endif
 {
   int rv;
   SCM_ASSERT (SCM_NIMP (port) && SCM_OPFPORTP (port), port, SCM_ARG1, s_sys_isatty);
@@ -258,15 +230,11 @@ scm_sys_isatty_p (port)
 
 
 SCM_PROC (s_sys_fdopen, "fdopen", 2, 0, 0, scm_sys_fdopen);
-#ifdef __STDC__
-SCM
-scm_sys_fdopen (SCM fdes, SCM modes)
-#else
+
 SCM
 scm_sys_fdopen (fdes, modes)
      SCM fdes;
      SCM modes;
-#endif
 {
   FILE *f;
   SCM port;
@@ -297,15 +265,11 @@ scm_sys_fdopen (fdes, modes)
  * MOVE->FDES is implemented in Scheme and calls this primitive.
  */
 SCM_PROC (s_sys_primitive_move_to_fdes, "primitive-move->fdes", 2, 0, 0, scm_sys_primitive_move_to_fdes);
-#ifdef __STDC__
-SCM
-scm_sys_primitive_move_to_fdes (SCM port, SCM fd)
-#else
+
 SCM
 scm_sys_primitive_move_to_fdes (port, fd)
      SCM port;
      SCM fd;
-#endif
 {
   FILE *stream;
   int old_fd;
@@ -333,15 +297,11 @@ scm_sys_primitive_move_to_fdes (port, fd)
   return SCM_BOOL_T;
 }
 
-#ifdef __STDC__
-void
-scm_setfileno (FILE *fs, int fd)
-#else
+
 void
 scm_setfileno (fs, fd)
      FILE *fs;
      int fd;
-#endif
 {
 #ifdef SET_FILE_FD_FIELD
   SET_FILE_FD_FIELD(fs, fd);
@@ -362,14 +322,10 @@ scm_setfileno (fs, fd)
  * reseting the revealed count to 0.
  * Should be called with SCM_DEFER_INTS active.
  */
-#ifdef __STDC__
-void
-scm_evict_ports (int fd)
-#else
+
 void
 scm_evict_ports (fd)
      int fd;
-#endif
 {
   int i;
 
@@ -386,14 +342,10 @@ scm_evict_ports (fd)
 
 /* Return a list of ports using a given file descriptor.  */
 SCM_PROC(s_fdes_to_ports, "fdes->ports", 1, 0, 0, scm_fdes_to_ports);
-#ifdef __STDC__
-SCM
-scm_fdes_to_ports (SCM fd)
-#else
+
 SCM
 scm_fdes_to_ports (fd)
      SCM fd;
-#endif
 {
   SCM result = SCM_EOL;
   int int_fd;
@@ -413,13 +365,9 @@ scm_fdes_to_ports (fd)
   return result;
 }    
 
-#ifdef __STDC__
-void 
-scm_init_ioext (void)
-#else
+
 void 
 scm_init_ioext ()
-#endif
 {
   /* fseek() symbols.  */
   scm_sysintern ("SEEK_SET", SCM_MAKINUM (SEEK_SET));

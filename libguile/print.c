@@ -106,14 +106,10 @@ scm_option scm_print_opts[] = {
 };
 
 SCM_PROC (s_print_options, "print-options-interface", 0, 1, 0, scm_print_options);
-#ifdef __STDC__
-SCM
-scm_print_options (SCM setting)
-#else
+
 SCM
 scm_print_options (setting)
      SCM setting;
-#endif
 {
   SCM ans = scm_options (setting,
 			 scm_print_opts,
@@ -163,13 +159,9 @@ static SCM print_state_pool;
 
 #if 1 /* Used for debugging purposes */
 SCM_PROC(s_current_pstate, "current-pstate", 0, 0, 0, scm_current_pstate);
-#ifdef __STDC__
-SCM
-scm_current_pstate (void)
-#else
+
 SCM
 scm_current_pstate ()
-#endif
 {
   return SCM_CADR (print_state_pool);
 }
@@ -177,27 +169,21 @@ scm_current_pstate ()
 
 #define PSTATE_SIZE 50L
 
-#ifdef __STDC__
-SCM
-scm_make_print_state (void)
-#else
+
 SCM
 scm_make_print_state ()
-#endif
 {
   return scm_make_struct (SCM_CAR (print_state_pool), /* pstate type */
 			  SCM_MAKINUM (PSTATE_SIZE),
 			  SCM_EOL);
 }
 
-#ifdef __STDC__
-static void
-grow_ref_stack (scm_print_state *pstate)
-#else
+
+static void grow_ref_stack SCM_P ((scm_print_state *pstate));
+
 static void
 grow_ref_stack (pstate)
      scm_print_state *pstate;
-#endif
 {
   int i, size = pstate->ceiling;
   int total_size;
@@ -220,16 +206,14 @@ grow_ref_stack (pstate)
   SCM_ALLOW_INTS;
 }
 
-#ifdef __STDC__
-static void
-print_circref (SCM port, scm_print_state *pstate, SCM ref)
-#else
+
+static void print_circref SCM_P ((SCM port, scm_print_state *pstate, SCM ref));
+
 static void
 print_circref (port, pstate, ref)
      SCM port;
      scm_print_state *pstate;
      SCM ref;
-#endif
 {
   register int i;
   int self = pstate->top - 1;
@@ -256,16 +240,12 @@ print_circref (port, pstate, ref)
 /* Print generally.  Handles both write and display according to PSTATE.
  */
 
-#ifdef __STDC__
-void 
-scm_iprin1 (SCM exp, SCM port, scm_print_state *pstate)
-#else
+
 void 
 scm_iprin1 (exp, port, pstate)
      SCM exp;
      SCM port;
      scm_print_state *pstate;
-#endif
 {
   register long i;
 taloop:
@@ -562,16 +542,12 @@ taloop:
  * They are also expensive to allocate.  Therefore print states are
  * kept in a pool so that they can be reused.
  */
-#ifdef __STDC__
-void 
-scm_prin1 (SCM exp, SCM port, int writingp)
-#else
+
 void 
 scm_prin1 (exp, port, writingp)
      SCM exp;
      SCM port;
      int writingp;
-#endif
 {
   SCM handle = 0; /* Will GC protect the handle whilst unlinked */
   scm_print_state *pstate;
@@ -602,16 +578,12 @@ scm_prin1 (exp, port, writingp)
 
 /* Print an integer.
  */
-#ifdef __STDC__
-void 
-scm_intprint (long n, int radix, SCM port)
-#else
+
 void 
 scm_intprint (n, radix, port)
      long n;
      int radix;
      SCM port;
-#endif
 {
   char num_buf[SCM_INTBUFLEN];
   scm_gen_write (scm_regular_string, num_buf, scm_iint2str (n, radix, num_buf), port);
@@ -619,16 +591,12 @@ scm_intprint (n, radix, port)
 
 /* Print an object of unrecognized type.
  */
-#ifdef __STDC__
-void 
-scm_ipruk (char *hdr, SCM ptr, SCM port)
-#else
+
 void 
 scm_ipruk (hdr, ptr, port)
      char *hdr;
      SCM ptr;
      SCM port;
-#endif
 {
   scm_gen_puts (scm_regular_string, "#<unknown-", port);
   scm_gen_puts (scm_regular_string, hdr, port);
@@ -648,10 +616,7 @@ scm_ipruk (hdr, ptr, port)
 /* Print a list.
  */
 
-#ifdef __STDC__
-void 
-scm_iprlist (char *hdr, SCM exp, char tlr, SCM port, scm_print_state *pstate)
-#else
+
 void 
 scm_iprlist (hdr, exp, tlr, port, pstate)
      char *hdr;
@@ -659,7 +624,6 @@ scm_iprlist (hdr, exp, tlr, port, pstate)
      char tlr;
      SCM port;
      scm_print_state *pstate;
-#endif
 {
   register int i;
   register SCM hare, tortoise;
@@ -761,15 +725,11 @@ circref:
 
 
 SCM_PROC(s_write, "write", 1, 1, 0, scm_write);
-#ifdef __STDC__
-SCM 
-scm_write (SCM obj, SCM port)
-#else
+
 SCM 
 scm_write (obj, port)
      SCM obj;
      SCM port;
-#endif
 {
   if (SCM_UNBNDP (port))
     port = scm_cur_outp;
@@ -787,15 +747,11 @@ scm_write (obj, port)
 
 
 SCM_PROC(s_display, "display", 1, 1, 0, scm_display);
-#ifdef __STDC__
-SCM 
-scm_display (SCM obj, SCM port)
-#else
+
 SCM 
 scm_display (obj, port)
      SCM obj;
      SCM port;
-#endif
 {
   if (SCM_UNBNDP (port))
     port = scm_cur_outp;
@@ -812,14 +768,10 @@ scm_display (obj, port)
 }
 
 SCM_PROC(s_newline, "newline", 0, 1, 0, scm_newline);
-#ifdef __STDC__
-SCM
-scm_newline(SCM port)
-#else
+
 SCM 
 scm_newline (port)
      SCM port;
-#endif
 {
   if (SCM_UNBNDP (port))
  port = scm_cur_outp;
@@ -839,15 +791,11 @@ scm_newline (port)
 }
 
 SCM_PROC(s_write_char, "write-char", 1, 1, 0, scm_write_char);
-#ifdef __STDC__
-SCM 
-scm_write_char (SCM chr, SCM port)
-#else
+
 SCM 
 scm_write_char (chr, port)
      SCM chr;
      SCM port;
-#endif
 {
   if (SCM_UNBNDP (port))
  port = scm_cur_outp;
@@ -867,13 +815,9 @@ scm_write_char (chr, port)
 
 
 
-#ifdef __STDC__
-void
-scm_init_print (void)
-#else
+
 void
 scm_init_print ()
-#endif
 {
   SCM vtable, type;
   scm_init_opts (scm_print_options, scm_print_opts, SCM_N_PRINT_OPTIONS);

@@ -67,14 +67,10 @@ scm_stand_in_scm_proc(proc)
 }
 
 SCM_PROC(s_procedure_properties, "procedure-properties", 1, 0, 0, scm_procedure_properties);
-#ifdef __STDC__
-SCM
-scm_procedure_properties (SCM proc)
-#else
+
 SCM
 scm_procedure_properties (proc)
      SCM proc;
-#endif
 {
   SCM_ASSERT (scm_procedure_p (proc), proc, SCM_ARG1, s_procedure_properties);
   if (!(SCM_NIMP (proc) && SCM_CLOSUREP (proc)))
@@ -83,15 +79,11 @@ scm_procedure_properties (proc)
 }
 
 SCM_PROC(s_set_procedure_properties_x, "set-procedure-properties!", 2, 0, 0, scm_set_procedure_properties_x);
-#ifdef __STDC__
-SCM
-scm_set_procedure_properties_x (SCM proc, SCM new_val)
-#else
+
 SCM
 scm_set_procedure_properties_x (proc, new_val)
      SCM proc;
      SCM new_val;
-#endif
 {
   if (!(SCM_NIMP (proc) && SCM_CLOSUREP (proc)))
     proc = scm_stand_in_scm_proc(proc);
@@ -101,15 +93,11 @@ scm_set_procedure_properties_x (proc, new_val)
 }
 
 SCM_PROC(s_procedure_property, "procedure-property", 2, 0, 0, scm_procedure_property);
-#ifdef __STDC__
-SCM
-scm_procedure_property (SCM p, SCM k)
-#else
+
 SCM
 scm_procedure_property (p, k)
      SCM p;
      SCM k;
-#endif
 {
   SCM assoc;
   if (!(SCM_NIMP (p) && SCM_CLOSUREP (p)))
@@ -120,16 +108,12 @@ scm_procedure_property (p, k)
 }
 
 SCM_PROC(s_set_procedure_property_x, "set-procedure-property!", 3, 0, 0, scm_set_procedure_property_x);
-#ifdef __STDC__
-SCM
-scm_set_procedure_property_x (SCM p, SCM k, SCM v)
-#else
+
 SCM
 scm_set_procedure_property_x (p, k, v)
      SCM p;
      SCM k;
      SCM v;
-#endif
 {
   SCM assoc;
   if (!(SCM_NIMP (p) && SCM_CLOSUREP (p)))
@@ -145,13 +129,9 @@ scm_set_procedure_property_x (p, k, v)
 
 
 
-#ifdef __STDC__
-void
-scm_init_procprop (void)
-#else
+
 void
 scm_init_procprop ()
-#endif
 {
 #include "procprop.x"
 }

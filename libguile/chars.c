@@ -50,28 +50,20 @@
 
 
 SCM_PROC(s_char_p, "char?", 1, 0, 0, scm_char_p);
-#ifdef __STDC__
-SCM
-scm_char_p(SCM x)
-#else
+
 SCM
 scm_char_p(x)
      SCM x;
-#endif
 {
   return SCM_ICHRP(x) ? SCM_BOOL_T : SCM_BOOL_F;
 }
 
 SCM_PROC1 (s_char_eq_p, "char=?", scm_tc7_rpsubr, scm_char_eq_p);
-#ifdef __STDC__
-SCM
-scm_char_eq_p(SCM x, SCM y)
-#else
+
 SCM
 scm_char_eq_p(x, y)
      SCM x;
      SCM y;
-#endif
 {
   SCM_ASSERT(SCM_ICHRP(x), x, SCM_ARG1, s_char_eq_p);
   SCM_ASSERT(SCM_ICHRP(y), y, SCM_ARG2, s_char_eq_p);
@@ -80,15 +72,11 @@ scm_char_eq_p(x, y)
 
 
 SCM_PROC1 (s_char_less_p, "char<?", scm_tc7_rpsubr, scm_char_less_p);
-#ifdef __STDC__
-SCM
-scm_char_less_p(SCM x, SCM y)
-#else
+
 SCM
 scm_char_less_p(x, y)
      SCM x;
      SCM y;
-#endif
 {
   SCM_ASSERT(SCM_ICHRP(x), x, SCM_ARG1, s_char_less_p);
   SCM_ASSERT(SCM_ICHRP(y), y, SCM_ARG2, s_char_less_p);
@@ -96,15 +84,11 @@ scm_char_less_p(x, y)
 }
 
 SCM_PROC1 (s_char_leq_p, "char<=?", scm_tc7_rpsubr, scm_char_leq_p);
-#ifdef __STDC__
-SCM
-scm_char_leq_p(SCM x, SCM y)
-#else
+
 SCM
 scm_char_leq_p(x, y)
      SCM x;
      SCM y;
-#endif
 {
   SCM_ASSERT(SCM_ICHRP(x), x, SCM_ARG1, s_char_leq_p);
   SCM_ASSERT(SCM_ICHRP(y), y, SCM_ARG2, s_char_leq_p);
@@ -112,15 +96,11 @@ scm_char_leq_p(x, y)
 }
 
 SCM_PROC1 (s_char_gr_p, "char>?", scm_tc7_rpsubr, scm_char_gr_p);
-#ifdef __STDC__
-SCM
-scm_char_gr_p(SCM x, SCM y)
-#else
+
 SCM
 scm_char_gr_p(x, y)
      SCM x;
      SCM y;
-#endif
 {
   SCM_ASSERT(SCM_ICHRP(x), x, SCM_ARG1, s_char_gr_p);
   SCM_ASSERT(SCM_ICHRP(y), y, SCM_ARG2, s_char_gr_p);
@@ -128,15 +108,11 @@ scm_char_gr_p(x, y)
 }
 
 SCM_PROC1 (s_char_geq_p, "char>=?", scm_tc7_rpsubr, scm_char_geq_p);
-#ifdef __STDC__
-SCM
-scm_char_geq_p(SCM x, SCM y)
-#else
+
 SCM
 scm_char_geq_p(x, y)
      SCM x;
      SCM y;
-#endif
 {
   SCM_ASSERT(SCM_ICHRP(x), x, SCM_ARG1, s_char_geq_p);
   SCM_ASSERT(SCM_ICHRP(y), y, SCM_ARG2, s_char_geq_p);
@@ -144,15 +120,11 @@ scm_char_geq_p(x, y)
 }
 
 SCM_PROC1 (s_char_ci_eq_p, "char-ci=?", scm_tc7_rpsubr, scm_char_ci_eq_p);
-#ifdef __STDC__
-SCM
-scm_char_ci_eq_p(SCM x, SCM y)
-#else
+
 SCM
 scm_char_ci_eq_p(x, y)
      SCM x;
      SCM y;
-#endif
 {
   SCM_ASSERT(SCM_ICHRP(x), x, SCM_ARG1, s_char_ci_eq_p);
   SCM_ASSERT(SCM_ICHRP(y), y, SCM_ARG2, s_char_ci_eq_p);
@@ -160,15 +132,11 @@ scm_char_ci_eq_p(x, y)
 }
 
 SCM_PROC1 (s_char_ci_less_p, "char-ci<?", scm_tc7_rpsubr, scm_char_ci_less_p);
-#ifdef __STDC__
-SCM
-scm_char_ci_less_p(SCM x, SCM y)
-#else
+
 SCM
 scm_char_ci_less_p(x, y)
      SCM x;
      SCM y;
-#endif
 {
   SCM_ASSERT(SCM_ICHRP(x), x, SCM_ARG1, s_char_ci_less_p);
   SCM_ASSERT(SCM_ICHRP(y), y, SCM_ARG2, s_char_ci_less_p);
@@ -176,15 +144,11 @@ scm_char_ci_less_p(x, y)
 }
 
 SCM_PROC1 (s_char_ci_leq_p, "char-ci<=?", scm_tc7_rpsubr, scm_char_ci_leq_p);
-#ifdef __STDC__
-SCM
-scm_char_ci_leq_p(SCM x, SCM y)
-#else
+
 SCM
 scm_char_ci_leq_p(x, y)
      SCM x;
      SCM y;
-#endif
 {
   SCM_ASSERT(SCM_ICHRP(x), x, SCM_ARG1, s_char_ci_leq_p);
   SCM_ASSERT(SCM_ICHRP(y), y, SCM_ARG2, s_char_ci_leq_p);
@@ -192,15 +156,11 @@ scm_char_ci_leq_p(x, y)
 }
 
 SCM_PROC1 (s_char_ci_gr_p, "char-ci>?", scm_tc7_rpsubr, scm_char_ci_gr_p);
-#ifdef __STDC__
-SCM
-scm_char_ci_gr_p(SCM x, SCM y)
-#else
+
 SCM
 scm_char_ci_gr_p(x, y)
      SCM x;
      SCM y;
-#endif
 {
   SCM_ASSERT(SCM_ICHRP(x), x, SCM_ARG1, s_char_ci_gr_p);
   SCM_ASSERT(SCM_ICHRP(y), y, SCM_ARG2, s_char_ci_gr_p);
@@ -208,15 +168,11 @@ scm_char_ci_gr_p(x, y)
 }
 
 SCM_PROC1 (s_char_ci_geq_p, "char-ci>=?", scm_tc7_rpsubr, scm_char_ci_geq_p);
-#ifdef __STDC__
-SCM
-scm_char_ci_geq_p(SCM x, SCM y)
-#else
+
 SCM
 scm_char_ci_geq_p(x, y)
      SCM x;
      SCM y;
-#endif
 {
   SCM_ASSERT(SCM_ICHRP(x), x, SCM_ARG1, s_char_ci_geq_p);
   SCM_ASSERT(SCM_ICHRP(y), y, SCM_ARG2, s_char_ci_geq_p);
@@ -225,42 +181,30 @@ scm_char_ci_geq_p(x, y)
 
 
 SCM_PROC(s_char_alphabetic_p, "char-alphabetic?", 1, 0, 0, scm_char_alphabetic_p);
-#ifdef __STDC__
-SCM
-scm_char_alphabetic_p(SCM chr)
-#else
+
 SCM
 scm_char_alphabetic_p(chr)
      SCM chr;
-#endif
 {
   SCM_ASSERT(SCM_ICHRP(chr), chr, SCM_ARG1, s_char_alphabetic_p);
   return (isascii(SCM_ICHR(chr)) && isalpha(SCM_ICHR(chr))) ? SCM_BOOL_T : SCM_BOOL_F;
 }
 
 SCM_PROC(s_char_numeric_p, "char-numeric?", 1, 0, 0, scm_char_numeric_p);
-#ifdef __STDC__
-SCM
-scm_char_numeric_p(SCM chr)
-#else
+
 SCM
 scm_char_numeric_p(chr)
      SCM chr;
-#endif
 {
   SCM_ASSERT(SCM_ICHRP(chr), chr, SCM_ARG1, s_char_numeric_p);
   return (isascii(SCM_ICHR(chr)) && isdigit(SCM_ICHR(chr))) ? SCM_BOOL_T : SCM_BOOL_F;
 }
 
 SCM_PROC(s_char_whitespace_p, "char-whitespace?", 1, 0, 0, scm_char_whitespace_p);
-#ifdef __STDC__
-SCM
-scm_char_whitespace_p(SCM chr)
-#else
+
 SCM
 scm_char_whitespace_p(chr)
      SCM chr;
-#endif
 {
   SCM_ASSERT(SCM_ICHRP(chr), chr, SCM_ARG1, s_char_whitespace_p);
   return (isascii(SCM_ICHR(chr)) && isspace(SCM_ICHR(chr))) ? SCM_BOOL_T : SCM_BOOL_F;
@@ -269,14 +213,10 @@ scm_char_whitespace_p(chr)
 
 
 SCM_PROC(s_char_upper_case_p, "char-upper-case?", 1, 0, 0, scm_char_upper_case_p);
-#ifdef __STDC__
-SCM
-scm_char_upper_case_p(SCM chr)
-#else
+
 SCM
 scm_char_upper_case_p(chr)
      SCM chr;
-#endif
 {
   SCM_ASSERT(SCM_ICHRP(chr), chr, SCM_ARG1, s_char_upper_case_p);
   return (isascii(SCM_ICHR(chr)) && isupper(SCM_ICHR(chr))) ? SCM_BOOL_T : SCM_BOOL_F;
@@ -284,14 +224,10 @@ scm_char_upper_case_p(chr)
 
 
 SCM_PROC(s_char_lower_case_p, "char-lower-case?", 1, 0, 0, scm_char_lower_case_p);
-#ifdef __STDC__
-SCM
-scm_char_lower_case_p(SCM chr)
-#else
+
 SCM
 scm_char_lower_case_p(chr)
      SCM chr;
-#endif
 {
   SCM_ASSERT(SCM_ICHRP(chr), chr, SCM_ARG1, s_char_lower_case_p);
   return (isascii(SCM_ICHR(chr)) && islower(SCM_ICHR(chr))) ? SCM_BOOL_T : SCM_BOOL_F;
@@ -300,14 +236,10 @@ scm_char_lower_case_p(chr)
 
 
 SCM_PROC (s_char_is_both_p, "char-is-both?", 1, 0, 0, scm_char_is_both_p);
-#ifdef __STDC__
-SCM
-scm_char_is_both_p (SCM chr)
-#else
+
 SCM
 scm_char_is_both_p (chr)
      SCM chr;
-#endif
 {
   SCM_ASSERT(SCM_ICHRP(chr), chr, SCM_ARG1, s_char_upper_case_p);
   return ((isascii(SCM_ICHR(chr)) && (isupper(SCM_ICHR(chr)) || islower(SCM_ICHR(chr))))
@@ -319,14 +251,10 @@ scm_char_is_both_p (chr)
 
 
 SCM_PROC(s_char_to_integer, "char->integer", 1, 0, 0, scm_char_to_integer);
-#ifdef __STDC__
-SCM
-scm_char_to_integer(SCM chr)
-#else
+
 SCM
 scm_char_to_integer(chr)
      SCM chr;
-#endif
 {
   SCM_ASSERT(SCM_ICHRP(chr), chr, SCM_ARG1, s_char_to_integer);
   return scm_ulong2num((unsigned long)SCM_ICHR(chr));
@@ -335,14 +263,10 @@ scm_char_to_integer(chr)
 
 
 SCM_PROC(s_integer_to_char, "integer->char", 1, 0, 0, scm_integer_to_char);
-#ifdef __STDC__
-SCM
-scm_integer_to_char(SCM n)
-#else
+
 SCM
 scm_integer_to_char(n)
      SCM n;
-#endif
 {
   unsigned long ni;
 
@@ -352,14 +276,10 @@ scm_integer_to_char(n)
 
 
 SCM_PROC(s_char_upcase, "char-upcase", 1, 0, 0, scm_char_upcase);
-#ifdef __STDC__
-SCM
-scm_char_upcase(SCM chr)
-#else
+
 SCM
 scm_char_upcase(chr)
      SCM chr;
-#endif
 {
   SCM_ASSERT(SCM_ICHRP(chr), chr, SCM_ARG1, s_char_upcase);
   return SCM_MAKICHR(scm_upcase(SCM_ICHR(chr)));
@@ -367,14 +287,10 @@ scm_char_upcase(chr)
 
 
 SCM_PROC(s_char_downcase, "char-downcase", 1, 0, 0, scm_char_downcase);
-#ifdef __STDC__
-SCM
-scm_char_downcase(SCM chr)
-#else
+
 SCM
 scm_char_downcase(chr)
      SCM chr;
-#endif
 {
   SCM_ASSERT(SCM_ICHRP(chr), chr, SCM_ARG1, s_char_downcase);
   return SCM_MAKICHR(scm_downcase(SCM_ICHR(chr)));
@@ -389,13 +305,9 @@ static unsigned char scm_downcase_table[SCM_CHAR_CODE_LIMIT];
 static unsigned char scm_lowers[] = "abcdefghijklmnopqrstuvwxyz";
 static unsigned char scm_uppers[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-#ifdef __STDC__
-void 
-scm_tables_prehistory (void)
-#else
+
 void 
 scm_tables_prehistory ()
-#endif
 {
   int i;
   for (i = 0; i < SCM_CHAR_CODE_LIMIT; i++)
@@ -407,14 +319,10 @@ scm_tables_prehistory ()
     }
 }
 
-#ifdef __STDC__
-int
-scm_upcase (unsigned int c)
-#else
+
 int
 scm_upcase (c)
      unsigned int c;
-#endif
 {
   if (c < sizeof (scm_upcase_table))
     return scm_upcase_table[c];
@@ -422,14 +330,10 @@ scm_upcase (c)
     return c;
 }
 
-#ifdef __STDC__
-int
-scm_downcase (unsigned int c)
-#else
+
 int
 scm_downcase (c)
      unsigned int c;
-#endif
 {
   if (c < sizeof (scm_downcase_table))
     return scm_downcase_table[c];
@@ -495,13 +399,9 @@ int scm_n_charnames = sizeof (scm_charnames) / sizeof (char *);
 
 
 
-#ifdef __STDC__
-void
-scm_init_chars (void)
-#else
+
 void
 scm_init_chars ()
-#endif
 {
 #include "chars.x"
 }

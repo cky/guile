@@ -149,12 +149,12 @@ scm_make_root (parent)
   return root;
 }
 
-/* {call-with-new-root}
+/* {call-with-dynamic-root}
  *
  * Suspending the current thread to evaluate a thunk on the
  * same C stack but under a new root.
  *
- * Calls to call-with-new-root return exactly once (unless
+ * Calls to call-with-dynamic-root return exactly once (unless
  * the process is somehow exitted).
  */
 
@@ -229,15 +229,10 @@ cwdr (proc, a1, args, handler, stack_start)
 
 
 SCM_PROC(s_call_with_dynamic_root, "call-with-dynamic-root", 2, 0, 0, scm_call_with_dynamic_root);
-#ifdef __STDC__
-SCM
-scm_call_with_dynamic_root (SCM thunk, SCM handler)
-#else
 SCM
 scm_call_with_dynamic_root (thunk, handler)
      SCM thunk;
      SCM handler;
-#endif
 {
   SCM_STACKITEM stack_place;
 
@@ -245,28 +240,18 @@ scm_call_with_dynamic_root (thunk, handler)
 }
 
 SCM_PROC(s_dynamic_root, "dynamic-root", 0, 0, 0, scm_dynamic_root);
-#ifdef __STDC__
-SCM
-scm_dynamic_root (void)
-#else
 SCM
 scm_dynamic_root ()
-#endif
 {
   return scm_ulong2num (SCM_SEQ (scm_root->rootcont));
 }
 
-#ifdef __STDC__
-SCM
-scm_apply_with_dynamic_root (SCM proc, SCM a1, SCM args, SCM handler)
-#else
 SCM
 scm_apply_with_dynamic_root (proc, a1, args, handler)
      SCM proc;
      SCM a1;
      SCM args;
-     SCM error;
-#endif
+     SCM handler;
 {
   SCM_STACKITEM stack_place;
   return cwdr (proc, a1, args, handler, &stack_place);
@@ -287,16 +272,12 @@ typedef long setjmp_type;
 #endif
 
 
-#ifdef __STDC__
-SCM
-scm_call_catching_errors (SCM (*thunk)(), SCM (*err_filter)(), void *closure)
-#else
+
 SCM
 scm_call_catching_errors (thunk, err_filter, closure)
      SCM (*thunk)();
      SCM (*err_filter)();
      void *closure;
-#endif
 {
   SCM answer;
   setjmp_type i;

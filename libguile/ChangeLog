@@ -1,3 +1,39 @@
+Sun Oct 13 20:14:53 1996  Jim Blandy  <jimb@totoro.cyclic.com>
+
+	* __scm.h, alist.c, alist.h, append.c, append.h, appinit.c,
+ 	arbiters.c, arbiters.h, async.c, async.h, boolean.c, boolean.h,
+ 	chars.c, chars.h, continuations.c, continuations.h, debug.c,
+ 	debug.h, dynwind.c, dynwind.h, eq.c, eq.h, error.c, eval.c,
+ 	eval.h, extchrs.c, extchrs.h, fdsocket.c, fdsocket.h, filesys.c,
+ 	filesys.h, fports.c, fports.h, gc.c, gdb_interface.h, gdbint.c,
+ 	gdbint.h, genio.c, genio.h, gscm.c, gscm.h, gsubr.c, gsubr.h,
+ 	hash.c, hash.h, hashtab.c, hashtab.h, init.c, ioext.c, ioext.h,
+ 	kw.c, kw.h, libguile.h, mallocs.c, mallocs.h, markers.c,
+ 	markers.h, mbstrings.c, mbstrings.h, numbers.c, numbers.h,
+ 	objprop.c, objprop.h, options.c, options.h, pairs.c, pairs.h,
+ 	ports.c, ports.h, posix.c, posix.h, print.c, print.h, procprop.c,
+ 	procprop.h, procs.c, procs.h, ramap.c, ramap.h, read.c, read.h,
+ 	root.c, scmsigs.c, scmsigs.h, sequences.c, sequences.h, simpos.c,
+ 	simpos.h, smob.c, socket.c, socket.h, srcprop.c, srcprop.h,
+ 	stackchk.c, stackchk.h, stime.c, stime.h, strings.c, strings.h,
+ 	strop.c, strop.h, strorder.c, strorder.h, strports.c, strports.h,
+ 	struct.c, struct.h, symbols.c, symbols.h, tag.c, tag.h, unif.c,
+ 	unif.h, variable.c, variable.h, vectors.c, vectors.h, version.c,
+ 	version.h, vports.c, vports.h, weaks.c, weaks.h: Use SCM_P to
+	declare functions with prototypes.  (Patch thanks to Marius
+	Vollmer.)
+
+	More prototype-related changes from Marius Vollmer:
+	* gdb_interface.h: Wrapped header file in #ifdef/#endif
+	* gscm.h (gscm_run_scm): Added prototype for `initfn' paramter.
+	* ports.h (ptobfuns): Added prototypes. This means some casting in
+        fports.c.
+	* fports.c: Added casts for initializations, since the functions
+	are defined to take FILE * as their stream argument, not SCM.
+	* fdsocket.c, fdsocket.h: Made `init_addr_buffer' static.
+	* genio.c (scm_gen_puts): Changed `unsigned char *str_data' parameter
+        to `char *str_data' to conform to prototype.
+
 Sat Oct 12 21:49:29 1996  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* error.c, eval.c, load.c, stackchk.c: use scm_error not lgh_error.

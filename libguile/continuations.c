@@ -56,14 +56,10 @@
 
 static char s_cont[] = "continuation";
 
-#ifdef __STDC__
-SCM 
-scm_make_cont (SCM * answer)
-#else
+
 SCM 
 scm_make_cont (answer)
      SCM * answer;
-#endif
 {
   long j;
   SCM cont;
@@ -126,14 +122,12 @@ scm_make_cont (answer)
 /* Grow the stack so that there is room */
 /* to copy in the continuation.  Then */
 #ifndef CHEAP_CONTINUATIONS
-#ifdef __STDC__
-static void 
-grow_throw (SCM *a)
-#else
+
+static void grow_throw SCM_P ((SCM *a));
+
 static void 
 grow_throw (a)
      SCM *a;
-#endif
 {				/* retry the throw. */
   SCM growth[100];
   growth[0] = a[0];
@@ -144,14 +138,10 @@ grow_throw (a)
 }
 #endif /* ndef CHEAP_CONTINUATIONS */
 
-#ifdef __STDC__
-void 
-scm_dynthrow (SCM *a)
-#else
+
 void 
 scm_dynthrow (a)
      SCM *a;
-#endif
 {
   SCM cont = a[0], val = a[1];
 #ifndef CHEAP_CONTINUATIONS
@@ -191,15 +181,11 @@ scm_dynthrow (a)
   longjmp (SCM_JMPBUF (cont), 1);
 }
 
-#ifdef __STDC__
-SCM
-scm_call_continuation (SCM cont, SCM val)
-#else
+
 SCM
 scm_call_continuation (cont, val)
      SCM cont;
      SCM val;
-#endif
 {
   SCM a[3];
   a[0] = cont;
@@ -217,13 +203,9 @@ scm_call_continuation (cont, val)
 }
 
 
-#ifdef __STDC__
-void
-scm_init_continuations (void)
-#else
+
 void
 scm_init_continuations ()
-#endif
 {
 #include "continuations.x"
 }

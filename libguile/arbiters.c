@@ -56,16 +56,12 @@
 
 static long scm_tc16_arbiter;
 
-#ifdef __STDC__
-static int 
-prinarb (SCM exp, SCM port, scm_print_state *pstate)
-#else
+
 static int 
 prinarb (exp, port, pstate)
      SCM exp;
      SCM port;
      scm_print_state *pstate;
-#endif
 {
   scm_gen_puts (scm_regular_string, "#<arbiter ", port);
   if (SCM_CAR (exp) & (1L << 16))
@@ -81,14 +77,10 @@ static scm_smobfuns arbsmob =
 };
 
 SCM_PROC(s_make_arbiter, "make-arbiter", 1, 0, 0, scm_make_arbiter);
-#ifdef __STDC__
-SCM 
-scm_make_arbiter (SCM name)
-#else
+
 SCM 
 scm_make_arbiter (name)
      SCM name;
-#endif
 {
   register SCM z;
   SCM_NEWCELL (z);
@@ -98,14 +90,10 @@ scm_make_arbiter (name)
 }
 
 SCM_PROC(s_try_arbiter, "try-arbiter", 1, 0, 0, scm_try_arbiter);
-#ifdef __STDC__
-SCM 
-scm_try_arbiter (SCM arb)
-#else
+
 SCM 
 scm_try_arbiter (arb)
      SCM arb;
-#endif
 {
   SCM_ASSERT ((SCM_TYP16 (arb) == scm_tc16_arbiter), arb, SCM_ARG1, s_try_arbiter);
   SCM_DEFER_INTS;
@@ -122,14 +110,10 @@ scm_try_arbiter (arb)
 
 
 SCM_PROC(s_release_arbiter, "release-arbiter", 1, 0, 0, scm_release_arbiter);
-#ifdef __STDC__
-SCM 
-scm_release_arbiter (SCM arb)
-#else
+
 SCM 
 scm_release_arbiter (arb)
      SCM arb;
-#endif
 {
   SCM_ASSERT ((SCM_TYP16 (arb) == scm_tc16_arbiter), arb, SCM_ARG1, s_release_arbiter);
   if (!(SCM_CAR (arb) & (1L << 16)))
@@ -139,13 +123,9 @@ scm_release_arbiter (arb)
 }
 
 
-#ifdef __STDC__
-void
-scm_init_arbiters (void)
-#else
+
 void
 scm_init_arbiters ()
-#endif
 {
   scm_tc16_arbiter = scm_newsmob (&arbsmob);
 #include "arbiters.x"

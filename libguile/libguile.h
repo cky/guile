@@ -122,14 +122,6 @@
 #include "libguile/../threads/threads.h"
 #endif
 
-
 
-
-#ifdef __STDC__
-
-#else /* STDC */
-
-#endif /* STDC */
-
 
 #endif  /* LIBGUILEH */

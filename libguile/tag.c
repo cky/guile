@@ -84,14 +84,10 @@ SCM_CONST_LONG (scm_utag_struct_base, "utag_struct_base", 255);
 
 
 SCM_PROC (s_tag, "tag", 1, 0, 0, scm_tag);
-#ifdef __STDC__
-SCM
-scm_tag (SCM x)
-#else
+
 SCM
 scm_tag (x)
      SCM x;
-#endif
 {
   switch (SCM_ITAG3 (x))
     {
@@ -210,13 +206,9 @@ scm_tag (x)
 
 
 
-#ifdef __STDC__
-void
-scm_init_tag (void)
-#else
+
 void
 scm_init_tag ()
-#endif
 {
 #include "tag.x"
 }

@@ -48,13 +48,9 @@
 /* Return a Scheme string containing Guile's major version number.  */
 
 SCM_PROC(s_major_version, "major-version", 0, 0, 0, scm_major_version);
-#ifdef __STDC__
-SCM 
-scm_major_version (void)
-#else
+
 SCM
 scm_major_version ()
-#endif
 {
   return scm_makfrom0str (GUILE_MAJOR_VERSION);
 }
@@ -62,13 +58,9 @@ scm_major_version ()
 /* Return a Scheme string containing Guile's minor version number.  */
 
 SCM_PROC(s_minor_version, "minor-version", 0, 0, 0, scm_minor_version);
-#ifdef __STDC__
-SCM 
-scm_minor_version (void)
-#else
+
 SCM
 scm_minor_version ()
-#endif
 {
   return scm_makfrom0str (GUILE_MINOR_VERSION);
 }
@@ -76,26 +68,18 @@ scm_minor_version ()
 /* Return a Scheme string containing Guile's complete version.  */
 
 SCM_PROC(s_version, "version", 0, 0, 0, scm_version);
-#ifdef __STDC__
-SCM 
-scm_version (void)
-#else
+
 SCM
 scm_version ()
-#endif
 {
   return scm_makfrom0str (GUILE_VERSION);
 }
 
 
 
-#ifdef __STDC__
-void
-scm_init_version (void)
-#else
+
 void
 scm_init_version ()
-#endif
 {
 #include "version.x"
 }

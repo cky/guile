@@ -53,16 +53,8 @@ extern int scm_tc16_malloc;
 #define SCM_SETMALLOCDATA(obj, val) ((char *)SCM_SETCDR(obj, val))
 
 
-#ifdef __STDC__
-extern SCM scm_malloc_obj (scm_sizet n);
-extern void scm_init_mallocs (void);
 
-#else /* STDC */
-extern SCM scm_malloc_obj ();
-extern void scm_init_mallocs ();
-
-#endif /* STDC */
-
-
+extern SCM scm_malloc_obj SCM_P ((scm_sizet n));
+extern void scm_init_mallocs SCM_P ((void));
 
 #endif  /* MALLOCSH */

@@ -56,45 +56,23 @@
 
 
 
-#ifdef __STDC__
-extern SCM scm_multi_byte_string_p (SCM obj);
-extern SCM scm_regular_string_p (SCM obj);
-extern SCM scm_multi_byte_string (SCM chrs);
-extern int scm_mb_ilength (unsigned char * data, int size);
-extern SCM scm_multi_byte_string_length (SCM str);
-extern SCM scm_symbol_multi_byte_p (SCM symbol);
-extern SCM scm_set_symbol_multi_byte_x (SCM symbol, SCM val);
-extern SCM scm_regular_port_p (SCM p);
-extern SCM scm_regular_port_x (SCM p);
-extern SCM scm_multi_byte_port_p (SCM p);
-extern SCM scm_multi_byte_port_x (SCM p);
-extern SCM scm_wide_character_port_p (SCM p);
-extern SCM scm_wide_character_port_x (SCM p);
-extern void scm_put_wchar (int c, SCM port, int writing);
-extern void scm_print_mb_string (SCM exp, SCM port, int writing);
-extern void scm_print_mb_symbol (SCM exp, SCM port);
-extern void scm_init_mbstrings (void);
 
-#else /* STDC */
-extern SCM scm_multi_byte_string_p ();
-extern SCM scm_regular_string_p ();
-extern SCM scm_multi_byte_string ();
-extern int scm_mb_ilength ();
-extern SCM scm_multi_byte_string_length ();
-extern SCM scm_symbol_multi_byte_p ();
-extern SCM scm_set_symbol_multi_byte_x ();
-extern SCM scm_regular_port_p ();
-extern SCM scm_regular_port_x ();
-extern SCM scm_multi_byte_port_p ();
-extern SCM scm_multi_byte_port_x ();
-extern SCM scm_wide_character_port_p ();
-extern SCM scm_wide_character_port_x ();
-extern void scm_put_wchar ();
-extern void scm_print_mb_string ();
-extern void scm_print_mb_symbol ();
-extern void scm_init_mbstrings ();
-
-#endif /* STDC */
-
+extern SCM scm_multi_byte_string_p SCM_P ((SCM obj));
+extern SCM scm_regular_string_p SCM_P ((SCM obj));
+extern SCM scm_multi_byte_string SCM_P ((SCM chrs));
+extern int scm_mb_ilength SCM_P ((unsigned char * data, int size));
+extern SCM scm_multi_byte_string_length SCM_P ((SCM str));
+extern SCM scm_symbol_multi_byte_p SCM_P ((SCM symbol));
+extern SCM scm_set_symbol_multi_byte_x SCM_P ((SCM symbol, SCM val));
+extern SCM scm_regular_port_p SCM_P ((SCM p));
+extern SCM scm_regular_port_x SCM_P ((SCM p));
+extern SCM scm_multi_byte_port_p SCM_P ((SCM p));
+extern SCM scm_multi_byte_port_x SCM_P ((SCM p));
+extern SCM scm_wide_character_port_p SCM_P ((SCM p));
+extern SCM scm_wide_character_port_x SCM_P ((SCM p));
+extern void scm_put_wchar SCM_P ((int c, SCM port, int writing));
+extern void scm_print_mb_string SCM_P ((SCM exp, SCM port, int writing));
+extern void scm_print_mb_symbol SCM_P ((SCM exp, SCM port));
+extern void scm_init_mbstrings SCM_P ((void));
 
 #endif  /* MBSTRINGSH */

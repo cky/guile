@@ -88,15 +88,13 @@ static ra_iproc ra_asubrs[];
 
 /* inds must be a uvect or ivect, no check. */
 
-#ifdef __STDC__
-static scm_sizet 
-cind (SCM ra, SCM inds)
-#else
+
+static scm_sizet cind SCM_P ((SCM ra, SCM inds));
+
 static scm_sizet 
 cind (ra, inds)
      SCM ra;
      SCM inds;
-#endif
 {
   scm_sizet i;
   int k;
@@ -117,15 +115,11 @@ cind (ra, inds)
    1 --> ras are at least as big as ra0;
    0 --> no match.
    */
-#ifdef __STDC__
-int 
-scm_ra_matchp (SCM ra0, SCM ras)
-#else
+
 int 
 scm_ra_matchp (ra0, ras)
      SCM ra0;
      SCM ras;
-#endif
 {
   SCM ra1;
   scm_array_dim dims;
@@ -228,10 +222,6 @@ scm_ra_matchp (ra0, ras)
 
 static char s_ra_mismatch[] = "array shape mismatch";
 
-#ifdef __STDC__
-int 
-scm_ramapc (int (*cproc) (), SCM data, SCM ra0, SCM lra, char *what)
-#else
 int 
 scm_ramapc (cproc, data, ra0, lra, what)
      int (*cproc) ();
@@ -239,7 +229,6 @@ scm_ramapc (cproc, data, ra0, lra, what)
      SCM ra0;
      SCM lra;
      char *what;
-#endif
 {
   SCM inds, z;
   SCM vra0, ra1, vra1;
@@ -385,16 +374,12 @@ scm_ramapc (cproc, data, ra0, lra, what)
 
 
 static char s_array_fill_x[];
-#ifdef __STDC__
-int 
-scm_array_fill_int (SCM ra, SCM fill, SCM ignore)
-#else
+
 int 
 scm_array_fill_int (ra, fill, ignore)
      SCM ra;
      SCM fill;
      SCM ignore;
-#endif
 {
   scm_sizet i, n = SCM_ARRAY_DIMS (ra)->ubnd - SCM_ARRAY_DIMS (ra)->lbnd + 1;
   long inc = SCM_ARRAY_DIMS (ra)->inc;
@@ -507,15 +492,11 @@ scm_array_fill_int (ra, fill, ignore)
 }
 
 SCM_PROC(s_array_fill_x, "array-fill!", 2, 0, 0, scm_array_fill_x);
-#ifdef __STDC__
-SCM 
-scm_array_fill_x (SCM ra, SCM fill)
-#else
+
 SCM 
 scm_array_fill_x (ra, fill)
      SCM ra;
      SCM fill;
-#endif
 {
   scm_ramapc (scm_array_fill_int, fill, ra, SCM_EOL, s_array_fill_x);
   return SCM_UNSPECIFIED;
@@ -523,15 +504,13 @@ scm_array_fill_x (ra, fill)
 
 
 
-#ifdef __STDC__
-static int 
-racp (SCM dst, SCM src)
-#else
+
+static int racp SCM_P ((SCM dst, SCM src));
+
 static int 
 racp (src, dst)
      SCM dst;
      SCM src;
-#endif
 {
   long n = (SCM_ARRAY_DIMS (src)->ubnd - SCM_ARRAY_DIMS (src)->lbnd + 1);
   long inc_d, inc_s = SCM_ARRAY_DIMS (src)->inc;
@@ -723,15 +702,11 @@ racp (src, dst)
 
 SCM_PROC(s_serial_array_copy_x, "serial-array-copy!", 2, 0, 0, scm_array_copy_x);
 SCM_PROC(s_array_copy_x, "array-copy!", 2, 0, 0, scm_array_copy_x);
-#ifdef __STDC__
-SCM
-scm_array_copy_x (SCM src, SCM dst)
-#else
+
 SCM
 scm_array_copy_x (src, dst)
      SCM src;
      SCM dst;
-#endif
 {
   scm_ramapc (racp, SCM_UNDEFINED, src, scm_cons (dst, SCM_EOL), s_array_copy_x);
   return SCM_UNSPECIFIED;
@@ -739,15 +714,11 @@ scm_array_copy_x (src, dst)
 
 /* Functions callable by ARRAY-MAP! */
 
-#ifdef __STDC__
-int
-scm_ra_eqp (SCM ra0, SCM ras)
-#else
+
 int
 scm_ra_eqp (ra0, ras)
      SCM ra0;
      SCM ras;
-#endif
 {
   SCM ra1 = SCM_CAR (ras), ra2 = SCM_CAR (SCM_CDR (ras));
   long n = SCM_ARRAY_DIMS (ra0)->ubnd - SCM_ARRAY_DIMS (ra0)->lbnd + 1;
@@ -810,17 +781,15 @@ scm_ra_eqp (ra0, ras)
 }
 
 /* opt 0 means <, nonzero means >= */
-#ifdef __STDC__
-static int
-ra_compare (SCM ra0, SCM ra1, SCM ra2, int opt)
-#else
+
+static int ra_compare SCM_P ((SCM ra0, SCM ra1, SCM ra2, int opt));
+
 static int
 ra_compare (ra0, ra1, ra2, opt)
      SCM ra0;
      SCM ra1;
      SCM ra2;
      int opt;
-#endif
 {
   long n = SCM_ARRAY_DIMS (ra0)->ubnd - SCM_ARRAY_DIMS (ra0)->lbnd + 1;
   scm_sizet i0 = SCM_ARRAY_BASE (ra0), i1 = SCM_ARRAY_BASE (ra1), i2 = SCM_ARRAY_BASE (ra2);
@@ -883,68 +852,48 @@ ra_compare (ra0, ra1, ra2, opt)
 }
 
 
-#ifdef __STDC__
-int
-scm_ra_lessp (SCM ra0, SCM ras)
-#else
+
 int
 scm_ra_lessp (ra0, ras)
      SCM ra0;
      SCM ras;
-#endif
 {
   return ra_compare (ra0, SCM_CAR (ras), SCM_CAR (SCM_CDR (ras)), 0);
 }
 
-#ifdef __STDC__
-int
-scm_ra_leqp (SCM ra0, SCM ras)
-#else
+
 int
 scm_ra_leqp (ra0, ras)
      SCM ra0;
      SCM ras;
-#endif
 {
   return ra_compare (ra0, SCM_CAR (SCM_CDR (ras)), SCM_CAR (ras), 1);
 }
 
-#ifdef __STDC__
-int
-scm_ra_grp (SCM ra0, SCM ras)
-#else
+
 int
 scm_ra_grp (ra0, ras)
      SCM ra0;
      SCM ras;
-#endif
 {
   return ra_compare (ra0, SCM_CAR (SCM_CDR (ras)), SCM_CAR (ras), 0);
 }
 
-#ifdef __STDC__
-int
-scm_ra_greqp (SCM ra0, SCM ras)
-#else
+
 int
 scm_ra_greqp (ra0, ras)
      SCM ra0;
      SCM ras;
-#endif
 {
   return ra_compare (ra0, SCM_CAR (ras), SCM_CAR (SCM_CDR (ras)), 1);
 }
 
 
-#ifdef __STDC__
-int
-scm_ra_sum (SCM ra0, SCM ras)
-#else
+
 int
 scm_ra_sum (ra0, ras)
      SCM ra0;
      SCM ras;
-#endif
 {
   long n = SCM_ARRAY_DIMS (ra0)->ubnd - SCM_ARRAY_DIMS (ra0)->lbnd + 1;
   scm_sizet i0 = SCM_ARRAY_BASE (ra0);
@@ -1018,15 +967,11 @@ scm_ra_sum (ra0, ras)
 }
 
 
-#ifdef __STDC__
-int
-scm_ra_difference (SCM ra0, SCM ras)
-#else
+
 int
 scm_ra_difference (ra0, ras)
      SCM ra0;
      SCM ras;
-#endif
 {
   long n = SCM_ARRAY_DIMS (ra0)->ubnd - SCM_ARRAY_DIMS (ra0)->lbnd + 1;
   scm_sizet i0 = SCM_ARRAY_BASE (ra0);
@@ -1131,15 +1076,11 @@ scm_ra_difference (ra0, ras)
 }
 
 
-#ifdef __STDC__
-int
-scm_ra_product (SCM ra0, SCM ras)
-#else
+
 int
 scm_ra_product (ra0, ras)
      SCM ra0;
      SCM ras;
-#endif
 {
   long n = SCM_ARRAY_DIMS (ra0)->ubnd - SCM_ARRAY_DIMS (ra0)->lbnd + 1;
   scm_sizet i0 = SCM_ARRAY_BASE (ra0);
@@ -1214,15 +1155,11 @@ scm_ra_product (ra0, ras)
   return 1;
 }
 
-#ifdef __STDC__
-int
-scm_ra_divide (SCM ra0, SCM ras)
-#else
+
 int
 scm_ra_divide (ra0, ras)
      SCM ra0;
      SCM ras;
-#endif
 {
   long n = SCM_ARRAY_DIMS (ra0)->ubnd - SCM_ARRAY_DIMS (ra0)->lbnd + 1;
   scm_sizet i0 = SCM_ARRAY_BASE (ra0);
@@ -1331,31 +1268,24 @@ scm_ra_divide (ra0, ras)
   return 1;
 }
 
-#ifdef __STDC__
-int
-scm_array_identity (SCM src, SCM dst)
-#else
+
 int
 scm_array_identity (dst, src)
      SCM src;
      SCM dst;
-#endif
 {
   return racp (SCM_CAR (src), scm_cons (dst, SCM_EOL));
 }
 
 
-#ifdef __STDC__
-static
-int
-ramap (SCM ra0, SCM proc, SCM ras)
-#else
+
+static int ramap SCM_P ((SCM ra0, SCM proc, SCM ras));
+
 static int 
 ramap (ra0, proc, ras)
      SCM ra0;
      SCM proc;
      SCM ras;
-#endif
 {
   long i = SCM_ARRAY_DIMS (ra0)->lbnd;
   long inc = SCM_ARRAY_DIMS (ra0)->inc;
@@ -1394,16 +1324,14 @@ ramap (ra0, proc, ras)
   return 1;
 }
 
-#ifdef __STDC__
-static int
-ramap_cxr (SCM ra0, SCM proc, SCM ras)
-#else
+
+static int ramap_cxr SCM_P ((SCM ra0, SCM proc, SCM ras));
+
 static int
 ramap_cxr (ra0, proc, ras)
      SCM ra0;
      SCM proc;
      SCM ras;
-#endif
 {
   SCM ra1 = SCM_CAR (ras);
   SCM e1 = SCM_UNDEFINED;
@@ -1469,16 +1397,14 @@ ramap_cxr (ra0, proc, ras)
 }
 
 
-#ifdef __STDC__
-static int
-ramap_rp (SCM ra0, SCM proc, SCM ras)
-#else
+
+static int ramap_rp SCM_P ((SCM ra0, SCM proc, SCM ras));
+
 static int
 ramap_rp (ra0, proc, ras)
      SCM ra0;
      SCM proc;
      SCM ras;
-#endif
 {
   SCM ra1 = SCM_CAR (ras), ra2 = SCM_CAR (SCM_CDR (ras));
   SCM e1 = SCM_UNDEFINED, e2 = SCM_UNDEFINED;
@@ -1568,16 +1494,14 @@ ramap_rp (ra0, proc, ras)
 }
 
 
-#ifdef __STDC__
-static int
-ramap_1 (SCM ra0, SCM proc, SCM ras)
-#else
+
+static int ramap_1 SCM_P ((SCM ra0, SCM proc, SCM ras));
+
 static int
 ramap_1 (ra0, proc, ras)
      SCM ra0;
      SCM proc;
      SCM ras;
-#endif
 {
   SCM ra1 = SCM_CAR (ras);
   SCM e1 = SCM_UNDEFINED;
@@ -1596,16 +1520,14 @@ ramap_1 (ra0, proc, ras)
 }
 
 
-#ifdef __STDC__
-static int
-ramap_2o (SCM ra0, SCM proc, SCM ras)
-#else
+
+static int ramap_2o SCM_P ((SCM ra0, SCM proc, SCM ras));
+
 static int
 ramap_2o (ra0, proc, ras)
      SCM ra0;
      SCM proc;
      SCM ras;
-#endif
 {
   SCM ra1 = SCM_CAR (ras);
   SCM e1 = SCM_UNDEFINED;
@@ -1649,16 +1571,14 @@ ramap_2o (ra0, proc, ras)
 }
 
 
-#ifdef __STDC__
-static int
-ramap_a (SCM ra0, SCM proc, SCM ras)
-#else
+
+static int ramap_a SCM_P ((SCM ra0, SCM proc, SCM ras));
+
 static int
 ramap_a (ra0, proc, ras)
      SCM ra0;
      SCM proc;
      SCM ras;
-#endif
 {
   SCM e0 = SCM_UNDEFINED, e1 = SCM_UNDEFINED;
   long n = SCM_ARRAY_DIMS (ra0)->ubnd - SCM_ARRAY_DIMS (ra0)->lbnd + 1;
@@ -1684,16 +1604,12 @@ ramap_a (ra0, proc, ras)
 
 SCM_PROC(s_serial_array_map, "serial-array-map", 2, 0, 1, scm_array_map);
 SCM_PROC(s_array_map, "array-map", 2, 0, 1, scm_array_map);
-#ifdef __STDC__
-SCM
-scm_array_map (SCM ra0, SCM proc, SCM lra)
-#else
+
 SCM
 scm_array_map (ra0, proc, lra)
      SCM ra0;
      SCM proc;
      SCM lra;
-#endif
 {
   SCM_ASSERT (SCM_BOOL_T == scm_procedure_p (proc), proc, SCM_ARG2, s_array_map);
   switch (SCM_TYP7 (proc))
@@ -1794,16 +1710,14 @@ scm_array_map (ra0, proc, lra)
       }
 }
 
-#ifdef __STDC__
-static int
-rafe (SCM ra0, SCM proc, SCM ras)
-#else
+
+static int rafe SCM_P ((SCM ra0, SCM proc, SCM ras));
+
 static int
 rafe (ra0, proc, ras)
      SCM ra0;
      SCM proc;
      SCM ras;
-#endif
 {
   long i = SCM_ARRAY_DIMS (ra0)->lbnd;
   scm_sizet i0 = SCM_ARRAY_BASE (ra0);
@@ -1844,16 +1758,12 @@ rafe (ra0, proc, ras)
 
 
 SCM_PROC(s_array_for_each, "array-for-each", 2, 0, 1, scm_array_for_each);
-#ifdef __STDC__
-SCM
-scm_array_for_each (SCM proc, SCM ra0, SCM lra)
-#else
+
 SCM
 scm_array_for_each (proc, ra0, lra)
      SCM proc;
      SCM ra0;
      SCM lra;
-#endif
 {
   SCM_ASSERT (SCM_BOOL_T == scm_procedure_p (proc), proc, SCM_ARG1, s_array_for_each);
   scm_ramapc (rafe, proc, ra0, lra, s_array_for_each);
@@ -1861,15 +1771,11 @@ scm_array_for_each (proc, ra0, lra)
 }
 
 SCM_PROC(s_array_index_map_x, "array-index-map!", 2, 0, 0, scm_array_index_map_x);
-#ifdef __STDC__
-SCM
-scm_array_index_map_x (SCM ra, SCM proc)
-#else
+
 SCM
 scm_array_index_map_x (ra, proc)
      SCM ra;
      SCM proc;
-#endif
 {
   scm_sizet i;
   SCM_ASSERT (SCM_NIMP (ra), ra, SCM_ARG1, s_array_index_map_x);
@@ -1937,16 +1843,14 @@ scm_array_index_map_x (ra, proc)
       }
 }
 
-#ifdef __STDC__
-static int
-raeql_1 (SCM ra0, SCM as_equal, SCM ra1)
-#else
+
+static int raeql_1 SCM_P ((SCM ra0, SCM as_equal, SCM ra1));
+
 static int
 raeql_1 (ra0, as_equal, ra1)
      SCM ra0;
      SCM as_equal;
      SCM ra1;
-#endif
 {
   SCM e0 = SCM_UNDEFINED, e1 = SCM_UNDEFINED;
   scm_sizet i0 = 0, i1 = 0;
@@ -2050,16 +1954,14 @@ raeql_1 (ra0, as_equal, ra1)
 }
 
 
-#ifdef __STDC__
-static int
-raeql (SCM ra0, SCM as_equal, SCM ra1)
-#else
+
+static int raeql SCM_P ((SCM ra0, SCM as_equal, SCM ra1));
+
 static int
 raeql (ra0, as_equal, ra1)
      SCM ra0;
      SCM as_equal;
      SCM ra1;
-#endif
 {
   SCM v0 = ra0, v1 = ra1;
   scm_array_dim dim0, dim1;
@@ -2116,30 +2018,22 @@ raeql (ra0, as_equal, ra1)
   return scm_ramapc (raeql_1, as_equal, ra0, scm_cons (ra1, SCM_EOL), "");
 }
 
-#ifdef __STDC__
-SCM
-scm_raequal (SCM ra0, SCM ra1)
-#else
+
 SCM
 scm_raequal (ra0, ra1)
      SCM ra0;
      SCM ra1;
-#endif
 {
   return (raeql (ra0, SCM_BOOL_T, ra1) ? SCM_BOOL_T : SCM_BOOL_F);
 }
 
 static char s_array_equal_p[] = "array-equal?";
 
-#ifdef __STDC__
-SCM
-scm_array_equal_p (SCM ra0, SCM ra1)
-#else
+
 SCM
 scm_array_equal_p (ra0, ra1)
      SCM ra0;
      SCM ra1;
-#endif
 {
   if (SCM_IMP (ra0) || SCM_IMP (ra1))
   callequal:return scm_equal_p (ra0, ra1);
@@ -2210,20 +2104,17 @@ static ra_iproc ra_asubrs[] =
   {0, 0, 0}
 };
 
-static void init_raprocs (subra)
+static void
+init_raprocs (subra)
      ra_iproc *subra;
 {
   for (; subra->name; subra++)
     subra->sproc = SCM_CDR (scm_intern (subra->name, strlen (subra->name)));
 }
 
-#ifdef __STDC__
-void
-scm_init_ramap (void)
-#else
+
 void
 scm_init_ramap ()
-#endif
 {
   init_raprocs (ra_rpsubrs);
   init_raprocs (ra_asubrs);

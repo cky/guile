@@ -141,14 +141,10 @@ FAKESIGFN(scm_tick_signal, SCM_TICK_SIGNAL)
 
 
 SCM_PROC(s_alarm, "alarm", 1, 0, 0, scm_alarm);
-#ifdef __STDC__
-SCM 
-scm_alarm (SCM i)
-#else
+
 SCM 
 scm_alarm (i)
      SCM i;
-#endif
 {
   unsigned int j;
   SCM_ASSERT (SCM_INUMP (i) && (SCM_INUM (i) >= 0), i, SCM_ARG1, s_alarm);
@@ -158,27 +154,19 @@ scm_alarm (i)
 
 
 SCM_PROC(s_pause, "pause", 0, 0, 0, scm_pause);
-#ifdef __STDC__
-SCM 
-scm_pause (void)
-#else
+
 SCM 
 scm_pause ()
-#endif
 {
   pause ();
   return SCM_UNSPECIFIED;
 }
 
 SCM_PROC(s_sleep, "sleep", 1, 0, 0, scm_sleep);
-#ifdef __STDC__
-SCM 
-scm_sleep (SCM i)
-#else
+
 SCM 
 scm_sleep (i)
      SCM i;
-#endif
 {
   unsigned int j;
   SCM_ASSERT (SCM_INUMP (i) && (SCM_INUM (i) >= 0), i, SCM_ARG1, s_sleep);
@@ -191,14 +179,10 @@ scm_sleep (i)
 }
 
 SCM_PROC(s_raise, "raise", 1, 0, 0, scm_raise);
-#ifdef __STDC__
-SCM
-scm_raise(SCM sig)
-#else
+
 SCM
 scm_raise(sig)
      SCM sig;
-#endif
 {
   SCM_ASSERT(SCM_INUMP(sig), sig, SCM_ARG1, s_raise);
 # ifdef vms
@@ -238,13 +222,9 @@ static SIGRETTYPE (*oldpipe) ();
 #endif
 
 
-#ifdef __STDC__
-void 
-scm_init_signals (void)
-#else
+
 void 
 scm_init_signals ()
-#endif
 {
 #ifdef SIGINT
   oldint = signal (SIGINT, scm_int_signal);
@@ -279,13 +259,9 @@ scm_init_signals ()
 /* This is used in preparation for a possible fork().  Ignore all
    signals before the fork so that child will catch only if it
    establishes a handler */
-#ifdef __STDC__
-void 
-scm_ignore_signals (void)
-#else
+
 void 
 scm_ignore_signals ()
-#endif
 {
 #ifdef ultrix
   siginterrupt (SIGINT, 0);
@@ -320,13 +296,9 @@ scm_ignore_signals ()
   fflush (stderr);
 }
 
-#ifdef __STDC__
-void 
-scm_unignore_signals (void)
-#else
+
 void 
 scm_unignore_signals ()
-#endif
 {
   signal (SIGINT, scm_int_signal);
 #ifdef SIGHUP
@@ -353,13 +325,9 @@ scm_unignore_signals ()
 }
 
 SCM_PROC (s_restore_signals, "restore-signals", 0, 0, 0, scm_restore_signals);
-#ifdef __STDC__
-SCM
-scm_restore_signals (void)
-#else
+
 SCM
 scm_restore_signals ()
-#endif
 {
 #ifdef ultrix
   siginterrupt (SIGINT, 0);
@@ -391,13 +359,9 @@ scm_restore_signals ()
 }
 
 
-#ifdef __STDC__
-void
-scm_init_scmsigs (void)
-#else
+
 void
 scm_init_scmsigs ()
-#endif
 {
 #include "scmsigs.x"
 }

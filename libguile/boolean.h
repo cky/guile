@@ -60,17 +60,8 @@
 
 
 
-#ifdef __STDC__
-extern SCM scm_not(SCM x);
-extern SCM scm_boolean_p(SCM obj);
-extern void scm_init_boolean (void);
-
-#else /* STDC */
-extern SCM scm_not();
-extern SCM scm_boolean_p();
-extern void scm_init_boolean ();
-
-#endif /* STDC */
-
+extern SCM scm_not SCM_P ((SCM x));
+extern SCM scm_boolean_p SCM_P ((SCM obj));
+extern void scm_init_boolean SCM_P ((void));
 
 #endif  /* BOOLEANH */

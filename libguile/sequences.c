@@ -48,14 +48,10 @@
 
 
 
-#ifdef __STDC__
-int
-scm_obj_length (SCM obj)
-#else
+
 int
 scm_obj_length (obj)
      SCM obj;
-#endif
 {
   int i;
   i = scm_ilength(obj);
@@ -76,14 +72,10 @@ scm_obj_length (obj)
 
 
 SCM_PROC(s_length, "length", 1, 0, 0, scm_length);
-#ifdef __STDC__
-SCM
-scm_length(SCM x)
-#else
+
 SCM
 scm_length(x)
      SCM x;
-#endif
 {
   int i;
   i = scm_obj_length(x);
@@ -101,14 +93,10 @@ scm_length(x)
 
 
 SCM_PROC (s_reverse, "reverse", 1, 0, 0, scm_reverse);
-#ifdef __STDC__
-SCM
-scm_reverse (SCM objs)
-#else
+
 SCM
 scm_reverse (objs)
      SCM objs;
-#endif
 {
   return scm_list_reverse (objs);
 }
@@ -116,13 +104,9 @@ scm_reverse (objs)
 
 
 
-#ifdef __STDC__
-void
-scm_init_sequences (void)
-#else
+
 void
 scm_init_sequences ()
-#endif
 {
 #include "sequences.x"
 }

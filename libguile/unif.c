@@ -79,15 +79,11 @@ long scm_tc16_array;
  */
 static char s_vector_set_length_x[] = "vector-set-length!";
 
-#ifdef __STDC__
-SCM 
-scm_vector_set_length_x (SCM vect, SCM len)
-#else
+
 SCM 
 scm_vector_set_length_x (vect, len)
      SCM vect;
      SCM len;
-#endif
 {
   long l;
   scm_sizet siz;
@@ -176,14 +172,10 @@ scm_vector_set_length_x (vect, len)
 #ifdef SCM_FLOATS
 #ifdef SCM_SINGLES
 
-#ifdef __STDC__
-SCM 
-scm_makflo (float x)
-#else
+
 SCM 
 scm_makflo (x)
      float x;
-#endif
 {
   SCM z;
   if (x == 0.0)
@@ -198,15 +190,11 @@ scm_makflo (x)
 #endif
 #endif
 
-#ifdef __STDC__
-SCM 
-scm_make_uve (long k, SCM prot)
-#else
+
 SCM 
 scm_make_uve (k, prot)
      long k;
      SCM prot;
-#endif
 {
   SCM v;
   long i, type;
@@ -295,14 +283,10 @@ scm_make_uve (k, prot)
 }
 
 SCM_PROC(s_uniform_vector_length, "uniform-vector-length", 1, 0, 0, scm_uniform_vector_length);
-#ifdef __STDC__
-SCM 
-scm_uniform_vector_length (SCM v)
-#else
+
 SCM 
 scm_uniform_vector_length (v)
      SCM v;
-#endif
 {
   SCM_ASRTGO (SCM_NIMP (v), badarg1);
   switch SCM_TYP7
@@ -328,15 +312,11 @@ scm_uniform_vector_length (v)
 }
 
 SCM_PROC(s_array_p, "array?", 1, 1, 0, scm_array_p);
-#ifdef __STDC__
-SCM 
-scm_array_p (SCM v, SCM prot)
-#else
+
 SCM 
 scm_array_p (v, prot)
      SCM v;
      SCM prot;
-#endif
 {
   int nprot;
   int enclosed;
@@ -399,14 +379,10 @@ loop:
 
 
 SCM_PROC(s_array_rank, "array-rank", 1, 0, 0, scm_array_rank);
-#ifdef __STDC__
-SCM 
-scm_array_rank (SCM ra)
-#else
+
 SCM 
 scm_array_rank (ra)
      SCM ra;
-#endif
 {
   if (SCM_IMP (ra))
  return SCM_INUM0;
@@ -436,14 +412,10 @@ scm_array_rank (ra)
 
 
 SCM_PROC(s_array_dimensions, "array-dimensions", 1, 0, 0, scm_array_dimensions);
-#ifdef __STDC__
-SCM 
-scm_array_dimensions (SCM ra)
-#else
+
 SCM 
 scm_array_dimensions (ra)
      SCM ra;
-#endif
 {
   SCM res = SCM_EOL;
   scm_sizet k;
@@ -484,16 +456,12 @@ scm_array_dimensions (ra)
 
 static char s_bad_ind[] = "Bad scm_array index";
 
-#ifdef __STDC__
-long 
-scm_aind (SCM ra, SCM args, char *what)
-#else
+
 long 
 scm_aind (ra, args, what)
-     SCM ra,
+     SCM ra;
      SCM args;
      char *what;
-#endif
 {
   SCM ind;
   register long j;
@@ -523,14 +491,10 @@ scm_aind (ra, args, what)
 }
 
 
-#ifdef __STDC__
-SCM 
-scm_make_ra (int ndim)
-#else
+
 SCM 
 scm_make_ra (ndim)
      int ndim;
-#endif
 {
   SCM ra;
   SCM_NEWCELL (ra);
@@ -546,15 +510,11 @@ scm_make_ra (ndim)
 static char s_bad_spec[] = "Bad scm_array dimension";
 /* Increments will still need to be set. */
 
-#ifdef __STDC__
-SCM 
-scm_shap2ra (SCM args, char *what)
-#else
+
 SCM 
 scm_shap2ra (args, what)
      SCM args;
      char *what;
-#endif
 {
   scm_array_dim *s;
   SCM ra, spec, sp;
@@ -589,16 +549,12 @@ scm_shap2ra (args, what)
 }
 
 SCM_PROC(s_dimensions_to_uniform_array, "dimensions->uniform-array", 2, 0, 1, scm_dimensions_to_uniform_array);
-#ifdef __STDC__
-SCM 
-scm_dimensions_to_uniform_array (SCM dims, SCM prot, SCM fill)
-#else
+
 SCM 
 scm_dimensions_to_uniform_array (dims, prot, fill)
      SCM dims;
      SCM prot;
      SCM fill;
-#endif
 {
   scm_sizet k, vlen = 1;
   long rlen = 1;
@@ -684,14 +640,10 @@ scm_dimensions_to_uniform_array (dims, prot, fill)
   return ra;
 }
 
-#ifdef __STDC__
-void 
-scm_ra_set_contp (SCM ra)
-#else
+
 void 
 scm_ra_set_contp (ra)
      SCM ra;
-#endif
 {
   scm_sizet k = SCM_ARRAY_NDIM (ra);
   if (k)
@@ -713,16 +665,12 @@ scm_ra_set_contp (ra)
 
 
 SCM_PROC(s_make_shared_array, "make-shared-array", 2, 0, 1, scm_make_shared_array);
-#ifdef __STDC__
-SCM 
-scm_make_shared_array (SCM oldra, SCM mapfunc, SCM dims)
-#else
+
 SCM 
 scm_make_shared_array (oldra, mapfunc, dims)
      SCM oldra;
      SCM mapfunc;
      SCM dims;
-#endif
 {
   SCM ra;
   SCM inds, indptr;
@@ -831,14 +779,10 @@ scm_make_shared_array (oldra, mapfunc, dims)
 
 /* args are RA . DIMS */
 SCM_PROC(s_transpose_array, "transpose-array", 0, 0, 1, scm_transpose_array);
-#ifdef __STDC__
-SCM 
-scm_transpose_array (SCM args)
-#else
+
 SCM 
 scm_transpose_array (args)
      SCM args;
-#endif
 {
   SCM ra, res, vargs, *ve = &vargs;
   scm_array_dim *s, *r;
@@ -927,14 +871,10 @@ scm_transpose_array (args)
 
 /* args are RA . AXES */
 SCM_PROC(s_enclose_array, "enclose-array", 0, 0, 1, scm_enclose_array);
-#ifdef __STDC__
-SCM 
-scm_enclose_array (SCM axes)
-#else
+
 SCM 
 scm_enclose_array (axes)
      SCM axes;
-#endif
 {
   SCM axv, ra, res, ra_inr;
   scm_array_dim vdim, *s = &vdim;
@@ -1014,14 +954,10 @@ scm_enclose_array (axes)
 
 
 SCM_PROC(s_array_in_bounds_p, "array-in-bounds?", 0, 0, 1, scm_array_in_bounds_p);
-#ifdef __STDC__
-SCM 
-scm_array_in_bounds_p (SCM args)
-#else
+
 SCM 
 scm_array_in_bounds_p (args)
      SCM args;
-#endif
 {
   SCM v, ind = SCM_EOL;
   long pos = 0;
@@ -1098,15 +1034,11 @@ tail:
 
 SCM_PROC(s_array_ref, "array-ref", 1, 0, 1, scm_uniform_vector_ref);
 SCM_PROC(s_uniform_vector_ref, "uniform-vector-ref", 2, 0, 0, scm_uniform_vector_ref);
-#ifdef __STDC__
-SCM 
-scm_uniform_vector_ref (SCM v, SCM args)
-#else
+
 SCM 
 scm_uniform_vector_ref (v, args)
      SCM v;
      SCM args;
-#endif
 {
   long pos;
   if (SCM_IMP (v))
@@ -1205,16 +1137,12 @@ scm_uniform_vector_ref (v, args)
 
 /* Internal version of scm_uniform_vector_ref for uves that does no error checking and
    tries to recycle conses.  (Make *sure* you want them recycled.) */
-#ifdef __STDC__
-SCM 
-scm_cvref (SCM v, scm_sizet pos, SCM last)
-#else
+
 SCM 
 scm_cvref (v, pos, last)
      SCM v;
      scm_sizet pos;
      SCM last;
-#endif
 {
   switch SCM_TYP7
     (v)
@@ -1298,16 +1226,12 @@ scm_cvref (v, pos, last)
 
 SCM_PROC(s_uniform_array_set1_x, "uniform-array-set1!", 3, 0, 0, scm_array_set_x);
 SCM_PROC(s_array_set_x, "array-set!", 2, 0, 1, scm_array_set_x);
-#ifdef __STDC__
-SCM 
-scm_array_set_x (SCM v, SCM obj, SCM args)
-#else
+
 SCM 
 scm_array_set_x (v, obj, args)
      SCM v;
      SCM obj;
      SCM args;
-#endif
 {
   long pos;
   SCM_ASRTGO (SCM_NIMP (v), badarg1);
@@ -1408,15 +1332,11 @@ scm_array_set_x (v, obj, args)
 }
 
 SCM_PROC(s_array_contents, "array-contents", 1, 1, 0, scm_array_contents);
-#ifdef __STDC__
-SCM 
-scm_array_contents (SCM ra, SCM strict)
-#else
+
 SCM 
 scm_array_contents (ra, strict)
      SCM ra;
      SCM strict;
-#endif
 {
   SCM sra;
   if (SCM_IMP (ra))
@@ -1474,15 +1394,11 @@ scm_array_contents (ra, strict)
     }
 }
 
-#ifdef __STDC__
-SCM 
-scm_ra2contig (SCM ra, int copy)
-#else
+
 SCM 
 scm_ra2contig (ra, copy)
      SCM ra;
      int copy;
-#endif
 {
   SCM ret;
   long inc = 1;
@@ -1517,15 +1433,11 @@ scm_ra2contig (ra, copy)
 
 
 SCM_PROC(s_uniform_array_read_x, "uniform-array-read!", 1, 1, 0, scm_uniform_array_read_x);
-#ifdef __STDC__
-SCM 
-scm_uniform_array_read_x (SCM ra, SCM port)
-#else
+
 SCM 
 scm_uniform_array_read_x (ra, port)
      SCM ra;
      SCM port;
-#endif
 {
   SCM cra, v = ra;
   long sz, len, ans;
@@ -1600,15 +1512,11 @@ loop:
 }
 
 SCM_PROC(s_uniform_array_write, "uniform-array-write", 1, 1, 0, scm_uniform_array_write);
-#ifdef __STDC__
-SCM 
-scm_uniform_array_write (SCM v, SCM port)
-#else
+
 SCM 
 scm_uniform_array_write (v, port)
      SCM v;
      SCM port;
-#endif
 {
   long sz, len, ans;
   long start = 0;
@@ -1675,15 +1583,11 @@ static char cnt_tab[16] =
 {0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4};
 
 SCM_PROC(s_bit_count, "bit-count", 2, 0, 0, scm_bit_count);
-#ifdef __STDC__
-SCM 
-scm_bit_count (SCM item, SCM seq)
-#else
+
 SCM 
 scm_bit_count (item, seq)
      SCM item;
      SCM seq;
-#endif
 {
   long i;
   register unsigned long cnt = 0, w;
@@ -1716,16 +1620,12 @@ scm_bit_count (item, seq)
 
 
 SCM_PROC(s_bit_position, "bit-position", 3, 0, 0, scm_bit_position);
-#ifdef __STDC__
-SCM 
-scm_bit_position (SCM item, SCM v, SCM k)
-#else
+
 SCM 
 scm_bit_position (item, v, k)
      SCM item;
      SCM v;
      SCM k;
-#endif
 {
   long i, lenw, xbits, pos = SCM_INUM (k);
   register unsigned long w;
@@ -1789,16 +1689,12 @@ scm_bit_position (item, v, k)
 
 
 SCM_PROC(s_bit_set_star_x, "bit-set*!", 3, 0, 0, scm_bit_set_star_x);
-#ifdef __STDC__
-SCM 
-scm_bit_set_star_x (SCM v, SCM kv, SCM obj)
-#else
+
 SCM 
 scm_bit_set_star_x (v, kv, obj)
      SCM v;
      SCM kv;
      SCM obj;
-#endif
 {
   register long i, k, vlen;
   SCM_ASRTGO (SCM_NIMP (v), badarg1);
@@ -1851,16 +1747,12 @@ scm_bit_set_star_x (v, kv, obj)
 
 
 SCM_PROC(s_bit_count_star, "bit-count*", 3, 0, 0, scm_bit_count_star);
-#ifdef __STDC__
-SCM 
-scm_bit_count_star (SCM v, SCM kv, SCM obj)
-#else
+
 SCM 
 scm_bit_count_star (v, kv, obj)
      SCM v;
      SCM kv;
      SCM obj;
-#endif
 {
   register long i, vlen, count = 0;
   register unsigned long k;
@@ -1922,14 +1814,10 @@ scm_bit_count_star (v, kv, obj)
 
 
 SCM_PROC(s_bit_invert_x, "bit-invert!", 1, 0, 0, scm_bit_invert_x);
-#ifdef __STDC__
-SCM 
-scm_bit_invert_x (SCM v)
-#else
+
 SCM 
 scm_bit_invert_x (v)
      SCM v;
-#endif
 {
   register long k;
   SCM_ASRTGO (SCM_NIMP (v), badarg1);
@@ -1949,14 +1837,10 @@ scm_bit_invert_x (v)
 
 
 SCM_PROC(s_string_upcase_x, "string-upcase!", 1, 0, 0, scm_string_upcase_x);
-#ifdef __STDC__
-SCM 
-scm_string_upcase_x (SCM v)
-#else
+
 SCM 
 scm_string_upcase_x (v)
      SCM v;
-#endif
 {
   register long k;
   register unsigned char *cs;
@@ -1977,14 +1861,10 @@ scm_string_upcase_x (v)
 }
 
 SCM_PROC(s_string_downcase_x, "string-downcase!", 1, 0, 0, scm_string_downcase_x);
-#ifdef __STDC__
-SCM 
-scm_string_downcase_x (SCM v)
-#else
+
 SCM 
 scm_string_downcase_x (v)
      SCM v;
-#endif
 {
   register long k;
   register unsigned char *cs;
@@ -2005,15 +1885,11 @@ scm_string_downcase_x (v)
 }
 
 
-#ifdef __STDC__
-SCM 
-scm_istr2bve (char *str, long len)
-#else
+
 SCM 
 scm_istr2bve (str, len)
      char *str;
      long len;
-#endif
 {
   SCM v = scm_make_uve (len, SCM_BOOL_T);
   long *data = (long *) SCM_VELTS (v);
@@ -2042,16 +1918,14 @@ scm_istr2bve (str, len)
 }
 
 
-#ifdef __STDC__
-static SCM 
-ra2l (SCM ra, scm_sizet base, scm_sizet k)
-#else
+
+static SCM ra2l SCM_P ((SCM ra, scm_sizet base, scm_sizet k));
+
 static SCM 
 ra2l (ra, base, k)
      SCM ra;
      scm_sizet base;
      scm_sizet k;
-#endif
 {
   register SCM res = SCM_EOL;
   register long inc = SCM_ARRAY_DIMS (ra)[k].inc;
@@ -2080,14 +1954,10 @@ ra2l (ra, base, k)
 
 
 SCM_PROC(s_array_to_list, "array->list", 1, 0, 0, scm_array_to_list);
-#ifdef __STDC__
-SCM 
-scm_array_to_list (SCM v)
-#else
+
 SCM 
 scm_array_to_list (v)
      SCM v;
-#endif
 {
   SCM res = SCM_EOL;
   register long k;
@@ -2186,23 +2056,16 @@ scm_array_to_list (v)
 
 
 static char s_bad_ralst[] = "Bad scm_array contents scm_list";
-#ifdef __STDC__
-static int l2ra (SCM lst, SCM ra, scm_sizet base, scm_sizet k);
-#else
-static int l2ra ();
-#endif
+
+static int l2ra SCM_P ((SCM lst, SCM ra, scm_sizet base, scm_sizet k));
 
 SCM_PROC(s_list_to_uniform_array, "list->uniform-array", 3, 0, 0, scm_list_to_uniform_array);
-#ifdef __STDC__
-SCM 
-scm_list_to_uniform_array (SCM ndim, SCM prot, SCM lst)
-#else
+
 SCM 
 scm_list_to_uniform_array (ndim, prot, lst)
      SCM ndim;
      SCM prot;
      SCM lst;
-#endif
 {
   SCM shp = SCM_EOL;
   SCM row = lst;
@@ -2240,18 +2103,12 @@ scm_list_to_uniform_array (ndim, prot, lst)
   return SCM_BOOL_F;
 }
 
-
-#ifdef __STDC__
-static int 
-l2ra (SCM lst, SCM ra, scm_sizet base, scm_sizet k)
-#else
 static int 
 l2ra (lst, ra, base, k)
      SCM lst;
      SCM ra;
      scm_sizet base;
      scm_sizet k;
-#endif
 {
   register long inc = SCM_ARRAY_DIMS (ra)[k].inc;
   register long n = (1 + SCM_ARRAY_DIMS (ra)[k].ubnd - SCM_ARRAY_DIMS (ra)[k].lbnd);
@@ -2287,10 +2144,9 @@ l2ra (lst, ra, base, k)
   return ok;
 }
 
-#ifdef __STDC__
-static void 
-rapr1 (SCM ra, scm_sizet j, scm_sizet k, SCM port, scm_print_state *pstate)
-#else
+
+static void rapr1 SCM_P ((SCM ra, scm_sizet j, scm_sizet k, SCM port, scm_print_state *pstate));
+
 static void 
 rapr1 (ra, j, k, port, pstate)
      SCM ra;
@@ -2298,7 +2154,6 @@ rapr1 (ra, j, k, port, pstate)
      scm_sizet k;
      SCM port;
      scm_print_state *pstate;
-#endif
 {
   long inc = 1;
   long n = SCM_LENGTH (ra);
@@ -2455,16 +2310,12 @@ tail:
 }
 
 
-#ifdef __STDC__
-int 
-scm_raprin1 (SCM exp, SCM port, scm_print_state *pstate)
-#else
+
 int 
 scm_raprin1 (exp, port, pstate)
      SCM exp;
      SCM port;
      scm_print_state *pstate;
-#endif
 {
   SCM v = exp;
   scm_sizet base = 0;
@@ -2562,14 +2413,10 @@ tail:
 }
 
 SCM_PROC(s_array_prototype, "array-prototype", 1, 0, 0, scm_array_prototype);
-#ifdef __STDC__
-SCM 
-scm_array_prototype (SCM ra)
-#else
+
 SCM 
 scm_array_prototype (ra)
      SCM ra;
-#endif
 {
   int enclosed = 0;
   SCM_ASRTGO (SCM_NIMP (ra), badarg);
@@ -2616,14 +2463,12 @@ loop:
     }
 }
 
-#ifdef __STDC__
-static SCM
-markra (SCM ptr)
-#else
+
+static SCM markra SCM_P ((SCM ptr));
+
 static SCM
 markra (ptr)
      SCM ptr;
-#endif
 {
   if SCM_GC8MARKP
     (ptr) return SCM_BOOL_F;
@@ -2631,14 +2476,12 @@ markra (ptr)
   return SCM_ARRAY_V (ptr);
 }
 
-#ifdef __STDC__
-static scm_sizet
-freera (SCM ptr)
-#else
+
+static scm_sizet freera SCM_P ((SCM ptr));
+
 static scm_sizet
 freera (ptr)
      SCM ptr;
-#endif
 {
   scm_must_free (SCM_CHARS (ptr));
   return sizeof (scm_array) + SCM_ARRAY_NDIM (ptr) * sizeof (scm_array_dim);
@@ -2649,13 +2492,9 @@ static scm_smobfuns rasmob =
 
 
 /* This must be done after scm_init_scl() */
-#ifdef __STDC__
-void
-scm_init_unif (void)
-#else
+
 void
 scm_init_unif ()
-#endif
 {
 #include "unif.x"
   scm_tc16_array = scm_newsmob (&rasmob);
@@ -2664,29 +2503,21 @@ scm_init_unif ()
 
 #else /* ARRAYS */
 
-#ifdef __STDC__
-int 
-scm_raprin1 (SCM exp, SCM port, scm_print_state *pstate)
-#else
+
 int 
 scm_raprin1 (exp, port, pstate)
      SCM exp;
      SCM port;
      scm_print_state *pstate;
-#endif
 {
   return 0;
 }
 
-#ifdef __STDC__
-SCM 
-scm_istr2bve (char *str, long len)
-#else
+
 SCM 
 scm_istr2bve (str, len)
      char *str;
      long len;
-#endif
 {
   return SCM_BOOL_F;
 }
@@ -2698,7 +2529,3 @@ scm_init_unif ()
 }
 
 #endif /* ARRAYS */
-
-
-
-

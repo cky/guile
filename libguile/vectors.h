@@ -54,35 +54,20 @@
 #define SCM_SETVELTS SCM_SETCDR
 
 
-#ifdef __STDC__
-extern SCM scm_vector_p(SCM x);
-extern SCM scm_vector_length(SCM v);
-extern SCM scm_vector(SCM l);
-extern SCM scm_vector_ref(SCM v, SCM k);
-extern SCM scm_vector_set_x(SCM v, SCM k, SCM obj);
-extern SCM scm_make_vector(SCM k, SCM fill, SCM multi);
-extern SCM scm_vector_to_list(SCM v);
-extern SCM scm_vector_fill_x(SCM v, SCM fill_x);
-extern SCM scm_vector_equal_p(SCM x, SCM y);
-extern SCM scm_vector_move_left_x (SCM vec1, SCM start1, SCM end1, SCM
-				   vec2, SCM start2);
-extern SCM scm_vector_move_right_x (SCM vec1, SCM start1, SCM end1, SCM
-				   vec2, SCM start2);
-extern void scm_init_vectors (void);
 
-#else /* STDC */
-extern SCM scm_vector_p();
-extern SCM scm_vector_length();
-extern SCM scm_vector();
-extern SCM scm_vector_ref();
-extern SCM scm_vector_set_x();
-extern SCM scm_make_vector();
-extern SCM scm_vector_to_list();
-extern SCM scm_vector_fill_x();
-extern SCM scm_vector_equal_p();
-extern SCM scm_vector_move_left_x ();
-extern SCM scm_vector_move_right_x ();
-extern void scm_init_vectors ();
+extern SCM scm_vector_p SCM_P ((SCM x));
+extern SCM scm_vector_length SCM_P ((SCM v));
+extern SCM scm_vector SCM_P ((SCM l));
+extern SCM scm_vector_ref SCM_P ((SCM v, SCM k));
+extern SCM scm_vector_set_x SCM_P ((SCM v, SCM k, SCM obj));
+extern SCM scm_make_vector SCM_P ((SCM k, SCM fill, SCM multi));
+extern SCM scm_vector_to_list SCM_P ((SCM v));
+extern SCM scm_vector_fill_x SCM_P ((SCM v, SCM fill_x));
+extern SCM scm_vector_equal_p SCM_P ((SCM x, SCM y));
+extern SCM scm_vector_move_left_x SCM_P ((SCM vec1, SCM start1, SCM end1, SCM
+				   vec2, SCM start2));
+extern SCM scm_vector_move_right_x SCM_P ((SCM vec1, SCM start1, SCM end1, SCM
+				   vec2, SCM start2));
+extern void scm_init_vectors SCM_P ((void));
 
-#endif /* STDC */
 #endif  /* VECTORSH */

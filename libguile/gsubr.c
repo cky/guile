@@ -66,10 +66,7 @@
 #define GSUBR_PROC(cclo) (SCM_VELTS(cclo)[2])
 
 static SCM f_gsubr_apply;
-#ifdef __STDC__
-SCM
-scm_make_gsubr(char *name, int req, int opt, int rst, SCM (*fcn)())
-#else
+
 SCM
 scm_make_gsubr(name, req, opt, rst, fcn)
      char *name;
@@ -77,7 +74,6 @@ scm_make_gsubr(name, req, opt, rst, fcn)
      int opt;
      int rst;
      SCM (*fcn)();
-#endif
 {
   switch GSUBR_MAKTYPE(req, opt, rst) {
   case GSUBR_MAKTYPE(0, 0, 0): return scm_make_subr(name, scm_tc7_subr_0, fcn);
@@ -112,14 +108,10 @@ scm_make_gsubr(name, req, opt, rst, fcn)
 
 
 SCM_PROC(s_gsubr_apply, "gsubr-apply", 0, 0, 1, scm_gsubr_apply);
-#ifdef __STDC__
-SCM
-scm_gsubr_apply(SCM args)
-#else
+
 SCM
 scm_gsubr_apply(args)
      SCM args;
-#endif
 {
   SCM self = SCM_CAR(args);
   SCM (*fcn)() = SCM_SUBRF(GSUBR_PROC(self));
@@ -182,13 +174,9 @@ gsubr_21l(req1, req2, opt, rst)
 #endif
 
 
-#ifdef __STDC__
-void
-scm_init_gsubr(void)
-#else
+
 void
 scm_init_gsubr()
-#endif
 {
   f_gsubr_apply = scm_make_subr(s_gsubr_apply, scm_tc7_lsubr, scm_gsubr_apply);
 #ifdef GSUBR_TEST

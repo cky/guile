@@ -46,15 +46,11 @@
 
 #ifdef SCM_FAKE_EXT_CHARS
 
-#ifdef __STDC__
-int
-xmblen (const char * str, size_t size)
-#else
+
 int
 xmblen (str, size)
      const char * str;
      size_t size;
-#endif
 {
   if (!str)
     return 0;
@@ -69,15 +65,11 @@ xmblen (str, size)
     return 1;
 }
 
-#ifdef __STDC__
-int
-xwctomb (char * _str, int c)
-#else
+
 int
 xwctomb (_str, c)
      char * _str;
      int c;
-#endif
 {
   unsigned char * str;
   str = (unsigned char *)_str;
@@ -104,16 +96,12 @@ xwctomb (_str, c)
   return 4;
 }
 
-#ifdef __STDC__
+
 int
-xmbtowc (xwchar_t * result, const unsigned char * _str, size_t size)
-#else
-int
-xmbtowc (result, str, size)
+xmbtowc (result, _str, size)
      xwchar_t * result;
      const unsigned char * _str;
      size_t size;
-#endif
 {
   const unsigned char * str;
   str = (const unsigned char *)_str;

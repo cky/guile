@@ -49,27 +49,11 @@
 extern scm_ptobfuns scm_stptob;
 
 
-#ifdef __STDC__
-extern SCM scm_mkstrport (SCM pos, SCM str, long modes, char * caller);
-extern SCM scm_call_with_output_string (SCM proc);
-extern SCM scm_strprint_obj (SCM obj);
-extern SCM scm_call_with_input_string (SCM str, SCM proc);
-extern void scm_init_strports (void);
 
-#else /* STDC */
-extern SCM scm_mkstrport ();
-extern SCM scm_call_with_output_string ();
-extern SCM scm_strprint_obj ();
-extern SCM scm_call_with_input_string ();
-extern void scm_init_strports ();
-
-#endif /* STDC */
-
-
-
-
-
-
-
+extern SCM scm_mkstrport SCM_P ((SCM pos, SCM str, long modes, char * caller));
+extern SCM scm_call_with_output_string SCM_P ((SCM proc));
+extern SCM scm_strprint_obj SCM_P ((SCM obj));
+extern SCM scm_call_with_input_string SCM_P ((SCM str, SCM proc));
+extern void scm_init_strports SCM_P ((void));
 
 #endif  /* STRPORTSH */

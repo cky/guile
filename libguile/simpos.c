@@ -59,14 +59,10 @@ extern int system();
 
 #ifndef _Windows
 SCM_PROC(s_system, "system", 1, 0, 0, scm_system);
-#ifdef __STDC__
-SCM
-scm_system(SCM cmd)
-#else
+
 SCM
 scm_system(cmd)
      SCM cmd;
-#endif
 {
   SCM_ASSERT(SCM_NIMP(cmd) && SCM_ROSTRINGP(cmd), cmd, SCM_ARG1, s_system);
   if (SCM_ROSTRINGP (cmd))
@@ -84,14 +80,10 @@ scm_system(cmd)
 
 extern char *getenv();
 SCM_PROC (s_sys_getenv, "getenv", 1, 0, 0, scm_sys_getenv);
-#ifdef __STDC__
-SCM
-scm_sys_getenv(SCM nam)
-#else
+
 SCM
 scm_sys_getenv(nam)
      SCM nam;
-#endif
 {
   char *val;
   SCM_ASSERT(SCM_NIMP(nam) && SCM_ROSTRINGP(nam), nam, SCM_ARG1, s_sys_getenv);
@@ -142,13 +134,9 @@ scm_sys_getenv(nam)
 #endif
 
 SCM_PROC(s_software_type, "software-type", 0, 0, 0, scm_software_type);
-#ifdef __STDC__
-SCM
-scm_software_type(void)
-#else
+
 SCM
 scm_software_type()
-#endif
 {
 #ifdef nosve
   return SCM_CAR(scm_intern("nosve", 5));
@@ -157,13 +145,9 @@ scm_software_type()
 #endif
 }
 
-#ifdef __STDC__
-void
-scm_init_simpos (void)
-#else
+
 void
 scm_init_simpos ()
-#endif
 {
 #include "simpos.x"
 }

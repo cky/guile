@@ -52,19 +52,8 @@ extern scm_ptobfuns scm_sfptob;
 
 
 
-#ifdef __STDC__
-extern SCM scm_make_soft_port (SCM pv, SCM modes);
-extern void scm_init_vports (void);
 
-#else /* STDC */
-extern SCM scm_make_soft_port ();
-extern void scm_init_vports ();
-
-#endif /* STDC */
-
-
-
-
-
+extern SCM scm_make_soft_port SCM_P ((SCM pv, SCM modes));
+extern void scm_init_vports SCM_P ((void));
 
 #endif  /* VPORTSH */

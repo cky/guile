@@ -87,11 +87,8 @@ extern scm_option scm_evaluator_trap_table[];
 #define SCM_EXIT_FRAME_P       scm_evaluator_trap_table[2].val
 #define SCM_N_EVALUATOR_TRAPS 3
 
-#ifdef __STDC__
-extern SCM (*scm_ceval_ptr) (SCM exp, SCM env);
-#else
-extern SCM (*scm_ceval_ptr) ();
-#endif
+extern SCM (*scm_ceval_ptr) SCM_P ((SCM exp, SCM env));
+
 extern int scm_debug_mode;
 extern int scm_check_entry_p, scm_check_apply_p, scm_check_exit_p;
 
@@ -165,52 +162,27 @@ extern long scm_tc16_memoized;
 
 
 
-#ifdef __STDC__
-extern SCM * scm_lookup_cstr (char *str, int len, SCM env);
-extern SCM * scm_lookup_soft (SCM var, SCM genv);
-extern SCM scm_evstr (char *str);
-extern SCM scm_eval_string (SCM str);
-extern int scm_ready_p (void);
-extern void debug_print (SCM obj);
-extern SCM scm_expr_stack (SCM obj);
-extern SCM scm_last_stack_frame (SCM obj);
-extern SCM scm_debug_object_p (SCM obj);
-extern SCM scm_local_eval (SCM exp, SCM env);
-extern SCM scm_procedure_environment (SCM proc);
-extern SCM scm_procedure_source (SCM proc);
-extern SCM scm_procedure_name (SCM proc);
-extern SCM scm_memoized_environment (SCM m);
-extern SCM scm_make_memoized (SCM exp, SCM env);
-extern SCM scm_memoized_p (SCM obj);
-extern SCM scm_single_step (SCM cont, SCM val);
-extern SCM scm_evaluator_traps (SCM setting);
-extern SCM scm_debug_options (SCM setting);
-extern SCM scm_unmemoize (SCM memoized);
-extern SCM scm_make_debugobj (scm_debug_frame* debug);
-extern void scm_init_debug (void);
-#else
-extern SCM * scm_lookup_cstr ();
-extern SCM * scm_lookup_soft ();
-extern SCM scm_evstr ();
-extern SCM scm_eval_string ();
-extern int scm_ready_p ();
-extern void debug_print ();
-extern SCM scm_expr_stack ();
-extern SCM scm_last_stack_frame ();
-extern SCM scm_debug_object_p ();
-extern SCM scm_local_eval ();
-extern SCM scm_procedure_environment ();
-extern SCM scm_procedure_source ();
-extern SCM scm_procedure_name ();
-extern SCM scm_memoized_environment ();
-extern SCM scm_make_memoized ();
-extern SCM scm_memoized_p (SCM obj);
-extern SCM scm_single_step ();
-extern SCM scm_evaluator_traps ();
-extern SCM scm_debug_options ();
-extern SCM scm_unmemoize ();
-extern SCM scm_make_debugobj ();
-extern void scm_init_debug ();
-#endif
+extern SCM * scm_lookup_cstr SCM_P ((char *str, int len, SCM env));
+extern SCM * scm_lookup_soft SCM_P ((SCM var, SCM genv));
+extern SCM scm_evstr SCM_P ((char *str));
+extern SCM scm_eval_string SCM_P ((SCM str));
+extern int scm_ready_p SCM_P ((void));
+extern void debug_print SCM_P ((SCM obj));
+extern SCM scm_expr_stack SCM_P ((SCM obj));
+extern SCM scm_last_stack_frame SCM_P ((SCM obj));
+extern SCM scm_debug_object_p SCM_P ((SCM obj));
+extern SCM scm_local_eval SCM_P ((SCM exp, SCM env));
+extern SCM scm_procedure_environment SCM_P ((SCM proc));
+extern SCM scm_procedure_source SCM_P ((SCM proc));
+extern SCM scm_procedure_name SCM_P ((SCM proc));
+extern SCM scm_memoized_environment SCM_P ((SCM m));
+extern SCM scm_make_memoized SCM_P ((SCM exp, SCM env));
+extern SCM scm_memoized_p SCM_P ((SCM obj));
+extern SCM scm_single_step SCM_P ((SCM cont, SCM val));
+extern SCM scm_evaluator_traps SCM_P ((SCM setting));
+extern SCM scm_debug_options SCM_P ((SCM setting));
+extern SCM scm_unmemoize SCM_P ((SCM memoized));
+extern SCM scm_make_debugobj SCM_P ((scm_debug_frame* debug));
+extern void scm_init_debug SCM_P ((void));
 
 #endif /* DEBUGH */

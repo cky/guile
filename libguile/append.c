@@ -49,28 +49,20 @@
 
 
 SCM_PROC (s_append, "append", 0, 0, 1, scm_append);
-#ifdef __STDC__
-SCM
-scm_append (SCM objs)
-#else
+
 SCM
 scm_append (objs)
      SCM objs;
-#endif
 {
   return scm_list_append (objs);
 }
 
 
 SCM_PROC (s_append_x, "append!", 0, 0, 1, scm_append_x);
-#ifdef __STDC__
-SCM
-scm_append_x (SCM objs)
-#else
+
 SCM
 scm_append_x (objs)
      SCM objs;
-#endif
 {
   return scm_list_append_x (objs);
 }
@@ -78,13 +70,8 @@ scm_append_x (objs)
 
 
 
-#ifdef __STDC__
-void
-scm_init_append (void)
-#else
 void
 scm_init_append ()
-#endif
 {
 #include "append.x"
 }

@@ -46,22 +46,10 @@
 #include "libguile/__scm.h"
 
 
-#ifdef __STDC__
-extern SCM scm_system(SCM cmd);
-extern SCM scm_sys_getenv(SCM nam);
-extern SCM scm_software_type(void);
-extern void scm_init_simpos (void);
 
-#else /* STDC */
-extern SCM scm_system();
-extern SCM scm_sys_getenv();
-extern SCM scm_software_type();
-extern void scm_init_simpos ();
-
-#endif /* STDC */
-
-
-
-
+extern SCM scm_system SCM_P ((SCM cmd));
+extern SCM scm_sys_getenv SCM_P ((SCM nam));
+extern SCM scm_software_type SCM_P ((void));
+extern void scm_init_simpos SCM_P ((void));
 
 #endif  /* SIMPOSH */

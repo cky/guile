@@ -75,31 +75,15 @@ extern scm_option scm_read_opts[];
 
 
 
-#ifdef __STDC__
-extern SCM scm_read_options (SCM setting);
-extern SCM scm_read (SCM port, SCM casep, SCM sharp);
-extern char * scm_grow_tok_buf (SCM * tok_buf);
-extern int scm_flush_ws (SCM port, char *eoferr);
-extern int scm_casei_streq (char * s1, char * s2);
-extern SCM scm_lreadr (SCM * tok_buf, SCM port, int case_i, SCM sharp, SCM *copy);
-extern scm_sizet scm_read_token (int ic, SCM * tok_buf, SCM port, int case_i, int weird);
-extern SCM scm_lreadparen (SCM * tok_buf, SCM port, char *name, int case_i, SCM sharp, SCM *copy);
-extern SCM scm_lreadrecparen (SCM * tok_buf, SCM port, char *name, int case_i, SCM sharp, SCM *copy);
-extern void scm_init_read (void);
-
-#else /* STDC */
-extern SCM scm_read_options ();
-extern SCM scm_read ();
-extern char * scm_grow_tok_buf ();
-extern int scm_flush_ws ();
-extern int scm_casei_streq ();
-extern SCM scm_lreadr ();
-extern scm_sizet scm_read_token ();
-extern SCM scm_lreadparen ();
-extern SCM scm_lreadrecparen ();
-extern void scm_init_read ();
-
-#endif /* STDC */
-
+extern SCM scm_read_options SCM_P ((SCM setting));
+extern SCM scm_read SCM_P ((SCM port, SCM casep, SCM sharp));
+extern char * scm_grow_tok_buf SCM_P ((SCM * tok_buf));
+extern int scm_flush_ws SCM_P ((SCM port, char *eoferr));
+extern int scm_casei_streq SCM_P ((char * s1, char * s2));
+extern SCM scm_lreadr SCM_P ((SCM * tok_buf, SCM port, int case_i, SCM sharp, SCM *copy));
+extern scm_sizet scm_read_token SCM_P ((int ic, SCM * tok_buf, SCM port, int case_i, int weird));
+extern SCM scm_lreadparen SCM_P ((SCM * tok_buf, SCM port, char *name, int case_i, SCM sharp, SCM *copy));
+extern SCM scm_lreadrecparen SCM_P ((SCM * tok_buf, SCM port, char *name, int case_i, SCM sharp, SCM *copy));
+extern void scm_init_read SCM_P ((void));
 
 #endif  /* READH */

@@ -51,16 +51,12 @@
 extern double floor();
 #endif
 
-#ifdef __STDC__
-unsigned long
-scm_hasher(SCM obj, unsigned long n, scm_sizet d)
-#else
+
 unsigned long
 scm_hasher(obj, n, d)
      SCM obj;
      unsigned long n;
      scm_sizet d;
-#endif
 {
   switch (7 & (int) obj) {
   case 2: case 6:		/* SCM_INUMP(obj) */
@@ -140,30 +136,22 @@ scm_hasher(obj, n, d)
 
 
 
-#ifdef __STDC__
-unsigned int
-scm_ihashq (SCM obj, unsigned int n)
-#else
+
 unsigned int
 scm_ihashq (obj, n)
      SCM obj;
      unsigned int n;
-#endif
 {
   return (((unsigned int) obj) >> 1) % n;
 }
 
 
 SCM_PROC(s_hashq, "hashq", 2, 0, 0, scm_hashq);
-#ifdef __STDC__
-SCM
-scm_hashq(SCM obj, SCM n)
-#else
+
 SCM
 scm_hashq(obj, n)
      SCM obj;
      SCM n;
-#endif
 {
   SCM_ASSERT(SCM_INUMP(n) && 0 <= n, n, SCM_ARG2, s_hashq);
   return SCM_MAKINUM(scm_ihashq (obj, SCM_INUM (n)));
@@ -172,15 +160,11 @@ scm_hashq(obj, n)
 
 
 
-#ifdef __STDC__
-unsigned int
-scm_ihashv (SCM obj, unsigned int n)
-#else
+
 unsigned int
 scm_ihashv (obj, n)
      SCM obj;
      unsigned int n;
-#endif
 {
   if (SCM_ICHRP(obj))
     return ((unsigned int)(scm_downcase(SCM_ICHR(obj)))) % n; /* downcase!?!! */
@@ -193,15 +177,11 @@ scm_ihashv (obj, n)
 
 
 SCM_PROC(s_hashv, "hashv", 2, 0, 0, scm_hashv);
-#ifdef __STDC__
-SCM
-scm_hashv(SCM obj, SCM n)
-#else
+
 SCM
 scm_hashv(obj, n)
      SCM obj;
      SCM n;
-#endif
 {
   SCM_ASSERT(SCM_INUMP(n) && 0 <= n, n, SCM_ARG2, s_hashv);
   return SCM_MAKINUM(scm_ihashv (obj, SCM_INUM (n)));
@@ -210,29 +190,21 @@ scm_hashv(obj, n)
 
 
 
-#ifdef __STDC__
-unsigned int
-scm_ihash (SCM obj, unsigned int n)
-#else
+
 unsigned int
 scm_ihash (obj, n)
      SCM obj;
      unsigned int n;
-#endif
 {
   return (unsigned int)scm_hasher (obj, n, 10);
 }
 
 SCM_PROC(s_hash, "hash", 2, 0, 0, scm_hash);
-#ifdef __STDC__
-SCM
-scm_hash(SCM obj, SCM n)
-#else
+
 SCM
 scm_hash(obj, n)
      SCM obj;
      SCM n;
-#endif
 {
   SCM_ASSERT(SCM_INUMP(n) && 0 <= n, n, SCM_ARG2, s_hash);
   return SCM_MAKINUM(scm_ihash(obj, SCM_INUM(n)));
@@ -241,13 +213,9 @@ scm_hash(obj, n)
 
 
 
-#ifdef __STDC__
-void
-scm_init_hash (void)
-#else
+
 void
 scm_init_hash ()
-#endif
 {
 #include "hash.x"
 }

@@ -48,28 +48,20 @@
 
 
 SCM_PROC(s_not, "not", 1, 0, 0, scm_not);
-#ifdef __STDC__
-SCM
-scm_not(SCM x)
-#else
+
 SCM
 scm_not(x)
      SCM x;
-#endif
 {
 	return SCM_FALSEP(x) ? SCM_BOOL_T : SCM_BOOL_F;
 }
 
 
 SCM_PROC(s_boolean_p, "boolean?", 1, 0, 0, scm_boolean_p);
-#ifdef __STDC__
-SCM
-scm_boolean_p(SCM obj)
-#else
+
 SCM
 scm_boolean_p(obj)
      SCM obj;
-#endif
 {
 	if (SCM_BOOL_F==obj) return SCM_BOOL_T;
 	if (SCM_BOOL_T==obj) return SCM_BOOL_T;
@@ -77,13 +69,9 @@ scm_boolean_p(obj)
 }
 
 
-#ifdef __STDC__
-void
-scm_init_boolean (void)
-#else
+
 void
 scm_init_boolean ()
-#endif
 {
 #include "boolean.x"
 }

@@ -57,57 +57,23 @@
 
 
 
-#ifdef __STDC__
-extern SCM scm_string_p (SCM x);
-extern SCM scm_read_only_string_p (SCM x);
-extern SCM scm_string (SCM chrs);
-extern SCM scm_makstr (long len, int slots);
-extern SCM scm_makfromstrs (int argc, char **argv);
-extern SCM scm_take0str (char * it);
-extern SCM scm_makfromstr (const char *src, scm_sizet len, int slots);
-extern SCM scm_makfrom0str (const char *src);
-extern SCM scm_makfrom0str_opt (const char *src);
-extern SCM scm_make_string (SCM k, SCM chr);
-extern SCM scm_string_length (SCM str);
-extern SCM scm_string_ref (SCM str, SCM k);
-extern SCM scm_string_set_x (SCM str, SCM k, SCM chr);
-extern SCM scm_substring (SCM str, SCM start, SCM end);
-extern SCM scm_string_append (SCM args);
-extern SCM scm_make_shared_substring (SCM str, SCM frm, SCM to);
-extern void scm_init_strings (void);
 
-#else /* STDC */
-extern SCM scm_string_p ();
-extern SCM scm_read_only_string_p ();
-extern SCM scm_string ();
-extern SCM scm_makstr ();
-extern SCM scm_makfromstrs ();
-extern SCM scm_take0str ();
-extern SCM scm_makfromstr ();
-extern SCM scm_makfrom0str ();
-extern SCM scm_makfrom0str_opt ();
-extern SCM scm_make_string ();
-extern SCM scm_string_length ();
-extern SCM scm_string_ref ();
-extern SCM scm_string_set_x ();
-extern SCM scm_substring ();
-extern SCM scm_string_append ();
-extern SCM scm_make_shared_substring ();
-extern void scm_init_strings ();
-
-#endif /* STDC */
-
-
-
-
-
-
-
-
-
-
-
-
-
+extern SCM scm_string_p SCM_P ((SCM x));
+extern SCM scm_read_only_string_p SCM_P ((SCM x));
+extern SCM scm_string SCM_P ((SCM chrs));
+extern SCM scm_makstr SCM_P ((long len, int slots));
+extern SCM scm_makfromstrs SCM_P ((int argc, char **argv));
+extern SCM scm_take0str SCM_P ((char * it));
+extern SCM scm_makfromstr SCM_P ((const char *src, scm_sizet len, int slots));
+extern SCM scm_makfrom0str SCM_P ((const char *src));
+extern SCM scm_makfrom0str_opt SCM_P ((const char *src));
+extern SCM scm_make_string SCM_P ((SCM k, SCM chr));
+extern SCM scm_string_length SCM_P ((SCM str));
+extern SCM scm_string_ref SCM_P ((SCM str, SCM k));
+extern SCM scm_string_set_x SCM_P ((SCM str, SCM k, SCM chr));
+extern SCM scm_substring SCM_P ((SCM str, SCM start, SCM end));
+extern SCM scm_string_append SCM_P ((SCM args));
+extern SCM scm_make_shared_substring SCM_P ((SCM str, SCM frm, SCM to));
+extern void scm_init_strings SCM_P ((void));
 
 #endif  /* STRINGSH */

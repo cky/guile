@@ -46,6 +46,8 @@
 
 #include <stdlib.h>
 
+#include "libguile/__scm.h"
+
 #define SCM_FAKE_EXT_CHARS 1
 
 #if !defined(SCM_FAKE_EXT_CHARS)
@@ -63,21 +65,10 @@ typedef unsigned short xwchar_t;
 
 #endif
 
-
 
-#ifdef __STDC__
-extern int xmblen (const char * str, size_t size);
-extern int xwctomb (char * _str, int c);
-extern int xmbtowc (xwchar_t * result, const unsigned char * _str, size_t size);
 
-#else /* STDC */
-extern int xmblen ();
-extern int xwctomb ();
-extern int xmbtowc ();
-
-#endif /* STDC */
-
-
-
+extern int xmblen SCM_P ((const char * str, size_t size));
+extern int xwctomb SCM_P ((char * _str, int c));
+extern int xmbtowc SCM_P ((xwchar_t * result, const unsigned char * _str, size_t size));
 
 #endif  /* EXTCHRSH */

@@ -50,108 +50,52 @@
 
 
 
-#ifdef __STDC__
-extern SCM scm_tcsetpgrp (SCM port, SCM pgid);
-extern SCM scm_tcgetpgrp (SCM port);
-extern SCM scm_ctermid (void);
-extern SCM scm_setsid (void);
-extern SCM scm_setpgid (SCM pid, SCM pgid);
-extern SCM scm_sys_pipe (void);
-extern SCM scm_sys_getgroups(void);
-extern SCM scm_getpgrp (void);
-extern SCM scm_sys_getpwuid (SCM user);
-extern SCM scm_setpwent (SCM arg);
-extern SCM scm_sys_getgrgid (SCM name);
-extern SCM scm_setgrent (SCM arg);
-extern SCM scm_sys_kill (SCM pid, SCM sig);
-extern SCM scm_sys_waitpid (SCM pid, SCM options);
-extern SCM scm_getppid (void);
-extern SCM scm_getuid (void);
-extern SCM scm_getgid (void);
-extern SCM scm_geteuid (void);
-extern SCM scm_getegid (void);
-extern SCM scm_sys_setuid (SCM id);
-extern SCM scm_sys_setgid (SCM id);
-extern SCM scm_sys_seteuid (SCM id);
-extern SCM scm_sys_setegid (SCM id);
-extern SCM scm_ttyname (SCM port);
-extern SCM scm_sys_execl (SCM args);
-extern SCM scm_sys_execlp (SCM args);
-extern SCM scm_sys_fork(void);
-extern SCM scm_sys_uname (void);
-extern SCM scm_environ (SCM env);
-extern SCM scm_open_pipe (SCM pipestr, SCM modes);
-extern SCM scm_open_input_pipe(SCM pipestr);
-extern SCM scm_open_output_pipe(SCM pipestr);
-extern SCM scm_sys_utime (SCM pathname, SCM actime, SCM modtime);
-extern SCM scm_sys_access (SCM path, SCM how);
-extern SCM scm_getpid (void);
-extern SCM scm_sys_putenv (SCM str);
-extern SCM scm_read_line (SCM port, SCM include_terminator);
-extern SCM scm_read_line_x (SCM str, SCM port);
-extern SCM scm_write_line (SCM obj, SCM port);
-extern SCM scm_setlocale (SCM category, SCM locale);
-extern SCM scm_strftime (SCM format, SCM stime);
-extern SCM scm_sys_strptime (SCM format, SCM string);
-extern SCM scm_sys_mknod(SCM path, SCM mode, SCM dev);
-extern SCM scm_sys_nice(SCM incr);
-extern SCM scm_sync(void);
-extern void scm_init_posix (void);
 
-#else /* STDC */
-extern SCM scm_tcsetpgrp ();
-extern SCM scm_tcgetpgrp ();
-extern SCM scm_ctermid ();
-extern SCM scm_setsid ();
-extern SCM scm_setpgid ();
-extern SCM scm_sys_pipe ();
-extern SCM scm_sys_getgroups();
-extern SCM scm_getpgrp ();
-extern SCM scm_sys_getpwuid ();
-extern SCM scm_setpwent ();
-extern SCM scm_sys_getgrgid ();
-extern SCM scm_setgrent ();
-extern SCM scm_sys_kill ();
-extern SCM scm_sys_waitpid ();
-extern SCM scm_getppid ();
-extern SCM scm_getuid ();
-extern SCM scm_getgid ();
-extern SCM scm_geteuid ();
-extern SCM scm_getegid ();
-extern SCM scm_sys_setuid ();
-extern SCM scm_sys_setgid ();
-extern SCM scm_sys_seteuid ();
-extern SCM scm_sys_setegid ();
-extern SCM scm_ttyname ();
-extern SCM scm_sys_execl ();
-extern SCM scm_sys_execlp ();
-extern SCM scm_sys_fork();
-extern SCM scm_sys_uname ();
-extern SCM scm_environ ();
-extern SCM scm_open_pipe ();
-extern SCM scm_open_input_pipe();
-extern SCM scm_open_output_pipe();
-extern SCM scm_sys_utime ();
-extern SCM scm_sys_access ();
-extern SCM scm_getpid ();
-extern SCM scm_sys_putenv ();
-extern SCM scm_read_line ();
-extern SCM scm_read_line_x ();
-extern SCM scm_write_line ();
-extern SCM scm_setlocale ();
-extern SCM scm_strftime ();
-extern SCM scm_sys_strptime ();
-extern SCM scm_sys_mknod();
-extern SCM scm_sys_nice();
-extern SCM scm_sync();
-extern void scm_init_posix ();
-
-#endif /* STDC */
-
-
-
-
-
-
+extern SCM scm_tcsetpgrp SCM_P ((SCM port, SCM pgid));
+extern SCM scm_tcgetpgrp SCM_P ((SCM port));
+extern SCM scm_ctermid SCM_P ((void));
+extern SCM scm_setsid SCM_P ((void));
+extern SCM scm_setpgid SCM_P ((SCM pid, SCM pgid));
+extern SCM scm_sys_pipe SCM_P ((void));
+extern SCM scm_sys_getgroups SCM_P ((void));
+extern SCM scm_getpgrp SCM_P ((void));
+extern SCM scm_sys_getpwuid SCM_P ((SCM user));
+extern SCM scm_setpwent SCM_P ((SCM arg));
+extern SCM scm_sys_getgrgid SCM_P ((SCM name));
+extern SCM scm_setgrent SCM_P ((SCM arg));
+extern SCM scm_sys_kill SCM_P ((SCM pid, SCM sig));
+extern SCM scm_sys_waitpid SCM_P ((SCM pid, SCM options));
+extern SCM scm_getppid SCM_P ((void));
+extern SCM scm_getuid SCM_P ((void));
+extern SCM scm_getgid SCM_P ((void));
+extern SCM scm_geteuid SCM_P ((void));
+extern SCM scm_getegid SCM_P ((void));
+extern SCM scm_sys_setuid SCM_P ((SCM id));
+extern SCM scm_sys_setgid SCM_P ((SCM id));
+extern SCM scm_sys_seteuid SCM_P ((SCM id));
+extern SCM scm_sys_setegid SCM_P ((SCM id));
+extern SCM scm_ttyname SCM_P ((SCM port));
+extern SCM scm_sys_execl SCM_P ((SCM args));
+extern SCM scm_sys_execlp SCM_P ((SCM args));
+extern SCM scm_sys_fork SCM_P ((void));
+extern SCM scm_sys_uname SCM_P ((void));
+extern SCM scm_environ SCM_P ((SCM env));
+extern SCM scm_open_pipe SCM_P ((SCM pipestr, SCM modes));
+extern SCM scm_open_input_pipe SCM_P ((SCM pipestr));
+extern SCM scm_open_output_pipe SCM_P ((SCM pipestr));
+extern SCM scm_sys_utime SCM_P ((SCM pathname, SCM actime, SCM modtime));
+extern SCM scm_sys_access SCM_P ((SCM path, SCM how));
+extern SCM scm_getpid SCM_P ((void));
+extern SCM scm_sys_putenv SCM_P ((SCM str));
+extern SCM scm_read_line SCM_P ((SCM port, SCM include_terminator));
+extern SCM scm_read_line_x SCM_P ((SCM str, SCM port));
+extern SCM scm_write_line SCM_P ((SCM obj, SCM port));
+extern SCM scm_setlocale SCM_P ((SCM category, SCM locale));
+extern SCM scm_strftime SCM_P ((SCM format, SCM stime));
+extern SCM scm_sys_strptime SCM_P ((SCM format, SCM string));
+extern SCM scm_sys_mknod SCM_P ((SCM path, SCM mode, SCM dev));
+extern SCM scm_sys_nice SCM_P ((SCM incr));
+extern SCM scm_sync SCM_P ((void));
+extern void scm_init_posix SCM_P ((void));
 
 #endif  /* POSIXH */

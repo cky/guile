@@ -231,16 +231,14 @@ scm_restart_stack (base)
 #if 0
 static char remsg[] = "remove\n#define ", addmsg[] = "add\n#define ";
 
-#ifdef __STDC__
-static void 
-fixconfig (char *s1, char *s2, int s)
-#else
+
+static void fixconfig SCM_P ((char *s1, char *s2, int s));
+
 static void 
 fixconfig (s1, s2, s)
      char *s1;
      char *s2;
      int s;
-#endif
 {
   fputs (s1, stderr);
   fputs (s2, stderr);
@@ -251,6 +249,7 @@ fixconfig (s1, s2, s)
 }
 
 
+static void check_config SCM_P ((void));
 
 static void
 check_config ()

@@ -65,14 +65,10 @@ scm_report_stack_overflow ()
 }
 
 #endif
-#ifdef __STDC__
-long 
-scm_stack_size (SCM_STACKITEM *start)
-#else
+
 long 
 scm_stack_size (start)
      SCM_STACKITEM *start;
-#endif
 {
   SCM_STACKITEM stack;
 #ifdef SCM_STACK_GROWS_UP
@@ -82,13 +78,9 @@ scm_stack_size (start)
 #endif /* def SCM_STACK_GROWS_UP */
 }
 
-#ifdef __STDC__
-void 
-scm_stack_report (void)
-#else
+
 void 
 scm_stack_report ()
-#endif
 {
   SCM_STACKITEM stack;
   scm_intprint (scm_stack_size (SCM_BASE (scm_rootcont)) * sizeof (SCM_STACKITEM),
@@ -102,13 +94,9 @@ scm_stack_report ()
 
 
 
-#ifdef __STDC__
-void
-scm_init_stackchk (void)
-#else
+
 void
 scm_init_stackchk ()
-#endif
 {
 #include "stackchk.x"
 }

@@ -54,16 +54,12 @@
 
 
 SCM_PROC(s_dynamic_wind, "dynamic-wind", 3, 0, 0, scm_dynamic_wind);
-#ifdef __STDC__
-SCM 
-scm_dynamic_wind (SCM thunk1, SCM thunk2, SCM thunk3)
-#else
+
 SCM 
 scm_dynamic_wind (thunk1, thunk2, thunk3)
      SCM thunk1;
      SCM thunk2;
      SCM thunk3;
-#endif
 {
   SCM ans;
   scm_apply (thunk1, SCM_EOL, SCM_EOL);
@@ -74,15 +70,11 @@ scm_dynamic_wind (thunk1, thunk2, thunk3)
   return ans;
 }
 
-#ifdef __STDC__
-void 
-scm_dowinds (SCM to, long delta)
-#else
+
 void 
 scm_dowinds (to, delta)
      SCM to;
      long delta;
-#endif
 {
  tail:
   if (scm_dynwinds == to);
@@ -138,13 +130,9 @@ scm_dowinds (to, delta)
 }
 
 
-#ifdef __STDC__
-void
-scm_init_dynwind (void)
-#else
+
 void
 scm_init_dynwind ()
-#endif
 {
 #include "dynwind.x"
 }

@@ -49,28 +49,24 @@
 #include "kw.h"
 
 
-#ifdef __STDC__
-static scm_sizet
-free_kw (SCM obj)
-#else
+
+static scm_sizet free_kw SCM_P ((SCM obj));
+
 static scm_sizet
 free_kw (obj)
      SCM obj;
-#endif
 {
   return 0;
 }
 
-#ifdef __STDC__
-static int
-prin_kw (SCM exp, SCM port, scm_print_state *pstate)
-#else
+
+static int prin_kw SCM_P ((SCM exp, SCM port, scm_print_state *pstate));
+
 static int
 prin_kw (exp, port, pstate)
      SCM exp;
      SCM port;
      scm_print_state *pstate;
-#endif
 {
   scm_gen_puts (scm_regular_string, ":", port);
   scm_gen_puts((SCM_MB_STRINGP(SCM_CDR (exp))
@@ -88,14 +84,10 @@ static scm_smobfuns kw_smob = {scm_markcdr, free_kw, prin_kw, 0};
 
 
 SCM_PROC (s_make_keyword_from_dash_symbol, "make-keyword-from-dash-symbol", 1, 0, 0, scm_make_keyword_from_dash_symbol);
-#ifdef __STDC__
-SCM
-scm_make_keyword_from_dash_symbol (SCM symbol)
-#else
+
 SCM
 scm_make_keyword_from_dash_symbol (symbol)
      SCM symbol;
-#endif
 {
   SCM vcell;
 
@@ -120,14 +112,10 @@ scm_make_keyword_from_dash_symbol (symbol)
 }
 
 SCM_PROC(s_keyword_p, "keyword?", 1, 0, 0, scm_keyword_p);
-#ifdef __STDC__
-SCM
-scm_keyword_p (SCM obj)
-#else
+
 SCM
 scm_keyword_p (obj)
      SCM obj;
-#endif
 {
   return ( (SCM_NIMP(obj) && SCM_KEYWORDP (obj))
 	  ? SCM_BOOL_T
@@ -137,14 +125,10 @@ scm_keyword_p (obj)
 
 
 SCM_PROC(s_keyword_dash_symbol, "keyword-dash-symbol", 1, 0, 0, scm_keyword_dash_symbol);
-#ifdef __STDC__
-SCM
-scm_keyword_dash_symbol (SCM kw)
-#else
+
 SCM
 scm_keyword_dash_symbol (kw)
      SCM kw;
-#endif
 {
   SCM_ASSERT (SCM_NIMP (kw) && SCM_KEYWORDP (kw), kw, SCM_ARG1, s_keyword_dash_symbol);
   return SCM_CDR (kw);
@@ -153,13 +137,9 @@ scm_keyword_dash_symbol (kw)
 
 
 
-#ifdef __STDC__
-void
-scm_init_kw (void)
-#else
+
 void
 scm_init_kw ()
-#endif
 {
   scm_tc16_kw = scm_newsmob (&kw_smob);
   scm_kw_obarray = scm_make_vector (SCM_MAKINUM (256), SCM_EOL, SCM_UNDEFINED);

@@ -72,14 +72,10 @@ int close P ((int fd));
 extern int inet_aton ();
 
 SCM_PROC (s_sys_inet_aton, "inet-aton", 1, 0, 0, scm_sys_inet_aton);
-#ifdef __STDC__
-SCM 
-scm_sys_inet_aton (SCM address)
-#else
+
 SCM 
 scm_sys_inet_aton (address)
      SCM address;
-#endif
 {
   struct in_addr soka;
 
@@ -93,14 +89,10 @@ scm_sys_inet_aton (address)
 
 
 SCM_PROC (s_inet_ntoa, "inet-ntoa", 1, 0, 0, scm_inet_ntoa);
-#ifdef __STDC__
-SCM 
-scm_inet_ntoa (SCM inetid)
-#else
+
 SCM 
 scm_inet_ntoa (inetid)
      SCM inetid;
-#endif
 {
   struct in_addr addr;
   char *s;
@@ -114,14 +106,10 @@ scm_inet_ntoa (inetid)
 }
 
 SCM_PROC (s_inet_netof, "inet-netof", 1, 0, 0, scm_inet_netof);
-#ifdef __STDC__
-SCM 
-scm_inet_netof (SCM address)
-#else
+
 SCM 
 scm_inet_netof (address)
      SCM address;
-#endif
 {
   struct in_addr addr;
   addr.s_addr = htonl (scm_num2ulong (address, (char *) SCM_ARG1, s_inet_netof));
@@ -129,14 +117,10 @@ scm_inet_netof (address)
 }
 
 SCM_PROC (s_lnaof, "lnaof", 1, 0, 0, scm_lnaof);
-#ifdef __STDC__
-SCM 
-scm_lnaof (SCM address)
-#else
+
 SCM 
 scm_lnaof (address)
      SCM address;
-#endif
 {
   struct in_addr addr;
   addr.s_addr = htonl (scm_num2ulong (address, (char *) SCM_ARG1, s_lnaof));
@@ -145,15 +129,11 @@ scm_lnaof (address)
 
 
 SCM_PROC (s_inet_makeaddr, "inet-makeaddr", 2, 0, 0, scm_inet_makeaddr);
-#ifdef __STDC__
-SCM 
-scm_inet_makeaddr (SCM net, SCM lna)
-#else
+
 SCM 
 scm_inet_makeaddr (net, lna)
      SCM net;
      SCM lna;
-#endif
 {
   struct in_addr addr;
   unsigned long netnum;
@@ -171,14 +151,10 @@ scm_inet_makeaddr (net, lna)
  */
 
 SCM_PROC (s_sys_gethost, "gethost", 0, 1, 0, scm_sys_gethost);
-#ifdef __STDC__
-SCM 
-scm_sys_gethost (SCM name)
-#else
+
 SCM 
 scm_sys_gethost (name)
      SCM name;
-#endif
 {
   SCM ans = scm_make_vector (SCM_MAKINUM (5), SCM_UNSPECIFIED, SCM_BOOL_F);
   SCM *ve = SCM_VELTS (ans);
@@ -230,14 +206,10 @@ scm_sys_gethost (name)
 
 
 SCM_PROC (s_sys_getnet, "getnet", 0, 1, 0, scm_sys_getnet);
-#ifdef __STDC__
-SCM 
-scm_sys_getnet (SCM name)
-#else
+
 SCM 
 scm_sys_getnet (name)
      SCM name;
-#endif
 {
   SCM ans;
   SCM *ve;
@@ -273,14 +245,10 @@ scm_sys_getnet (name)
 }
 
 SCM_PROC (s_sys_getproto, "getproto", 0, 1, 0, scm_sys_getproto);
-#ifdef __STDC__
-SCM 
-scm_sys_getproto (SCM name)
-#else
+
 SCM 
 scm_sys_getproto (name)
      SCM name;
-#endif
 {
   SCM ans;
   SCM *ve;
@@ -314,14 +282,12 @@ scm_sys_getproto (name)
   return ans;
 }
 
-#ifdef __STDC__
-static SCM
-scm_return_entry (struct servent *entry)
-#else
+
+static SCM scm_return_entry SCM_P ((struct servent *entry));
+
 static SCM
 scm_return_entry (entry)
      struct servent *entry;
-#endif
 {
   SCM ans;
   SCM *ve;
@@ -337,15 +303,11 @@ scm_return_entry (entry)
 }
 
 SCM_PROC (s_sys_getserv, "getserv", 0, 2, 0, scm_sys_getserv);
-#ifdef __STDC__
-SCM 
-scm_sys_getserv (SCM name, SCM proto)
-#else
+
 SCM 
 scm_sys_getserv (name, proto)
      SCM name;
      SCM proto;
-#endif
 {
   struct servent *entry;
   if (SCM_UNBNDP (name))
@@ -374,14 +336,10 @@ scm_sys_getserv (name, proto)
 }
 
 SCM_PROC (s_sethost, "sethost", 0, 1, 0, scm_sethost);
-#ifdef __STDC__
-SCM 
-scm_sethost (SCM arg)
-#else
+
 SCM 
 scm_sethost (arg)
      SCM arg;
-#endif
 {
   if (SCM_UNBNDP (arg))
     endhostent ();
@@ -391,14 +349,10 @@ scm_sethost (arg)
 }
 
 SCM_PROC (s_setnet, "setnet", 0, 1, 0, scm_setnet);
-#ifdef __STDC__
-SCM 
-scm_setnet (SCM arg)
-#else
+
 SCM 
 scm_setnet (arg)
      SCM arg;
-#endif
 {
   if (SCM_UNBNDP (arg))
     endnetent ();
@@ -408,14 +362,10 @@ scm_setnet (arg)
 }
 
 SCM_PROC (s_setproto, "setproto", 0, 1, 0, scm_setproto);
-#ifdef __STDC__
-SCM 
-scm_setproto (SCM arg)
-#else
+
 SCM 
 scm_setproto (arg)
      SCM arg;
-#endif
 {
   if (SCM_UNBNDP (arg))
     endprotoent ();
@@ -425,14 +375,10 @@ scm_setproto (arg)
 }
 
 SCM_PROC (s_setserv, "setserv", 0, 1, 0, scm_setserv);
-#ifdef __STDC__
-SCM 
-scm_setserv (SCM arg)
-#else
+
 SCM 
 scm_setserv (arg)
      SCM arg;
-#endif
 {
   if (SCM_UNBNDP (arg))
     endservent ();
@@ -441,13 +387,9 @@ scm_setserv (arg)
   return SCM_UNSPECIFIED;
 }
 
-#ifdef __STDC__
-void 
-scm_init_socket (void)
-#else
+
 void 
 scm_init_socket ()
-#endif
 {
   scm_add_feature ("socket");
 #include "socket.x"

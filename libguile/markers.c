@@ -49,28 +49,20 @@
 /* {GC marking}
  */
 
-#ifdef __STDC__
-SCM 
-scm_mark0 (SCM ptr)
-#else
+
 SCM 
 scm_mark0 (ptr)
      SCM ptr;
-#endif
 {
   SCM_SETGC8MARK (ptr);
   return SCM_BOOL_F;
 }
 
 
-#ifdef __STDC__
-SCM 
-scm_markcdr (SCM ptr)
-#else
+
 SCM 
 scm_markcdr (ptr)
      SCM ptr;
-#endif
 {
   if (SCM_GC8MARKP (ptr))
     return SCM_BOOL_F;
@@ -78,14 +70,10 @@ scm_markcdr (ptr)
   return SCM_CDR (ptr);
 }
 
-#ifdef __STDC__
-scm_sizet 
-scm_free0 (SCM ptr)
-#else
+
 scm_sizet 
 scm_free0 (ptr)
      SCM ptr;
-#endif
 {
   return 0;
 }

@@ -149,21 +149,12 @@ typedef SCM  huge *SCMPTR;
 	}
 
 
-#ifdef __STDC__
-extern SCM scm_cons (SCM x, SCM y);
-extern SCM scm_cons2 (SCM w, SCM x, SCM y);
-extern SCM scm_pair_p(SCM x);
-extern SCM scm_set_car_x(SCM pair, SCM value);
-extern SCM scm_set_cdr_x(SCM pair, SCM value);
-extern void scm_init_pairs (void);
 
-#else /* STDC */
-extern SCM scm_cons ();
-extern SCM scm_cons2 ();
-extern SCM scm_pair_p();
-extern SCM scm_set_car_x();
-extern SCM scm_set_cdr_x();
-extern void scm_init_pairs ();
+extern SCM scm_cons SCM_P ((SCM x, SCM y));
+extern SCM scm_cons2 SCM_P ((SCM w, SCM x, SCM y));
+extern SCM scm_pair_p SCM_P ((SCM x));
+extern SCM scm_set_car_x SCM_P ((SCM pair, SCM value));
+extern SCM scm_set_cdr_x SCM_P ((SCM pair, SCM value));
+extern void scm_init_pairs SCM_P ((void));
 
-#endif /* STDC */
 #endif  /* PAIRSH */

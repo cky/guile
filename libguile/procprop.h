@@ -51,22 +51,11 @@
 
 
 
-#ifdef __STDC__
-extern SCM scm_procedure_properties (SCM proc);
-extern SCM scm_set_procedure_properties_x (SCM proc, SCM new_val);
-extern SCM scm_procedure_property (SCM p, SCM k);
-extern SCM scm_set_procedure_property_x (SCM p, SCM k, SCM v);
-extern void scm_init_procprop (void);
 
-#else /* STDC */
-extern SCM scm_procedure_properties ();
-extern SCM scm_set_procedure_properties_x ();
-extern SCM scm_procedure_property ();
-extern SCM scm_set_procedure_property_x ();
-extern void scm_init_procprop ();
-
-#endif /* STDC */
-
-
+extern SCM scm_procedure_properties SCM_P ((SCM proc));
+extern SCM scm_set_procedure_properties_x SCM_P ((SCM proc, SCM new_val));
+extern SCM scm_procedure_property SCM_P ((SCM p, SCM k));
+extern SCM scm_set_procedure_property_x SCM_P ((SCM p, SCM k, SCM v));
+extern void scm_init_procprop SCM_P ((void));
 
 #endif  /* PROCPROPH */

@@ -48,50 +48,22 @@
 
 
 
-
-
-
-#ifdef __STDC__
-extern SCM scm_acons (SCM w, SCM x, SCM y);
-extern SCM scm_sloppy_assq(SCM x, SCM alist);
-extern SCM scm_sloppy_assv(SCM x, SCM alist);
-extern SCM scm_sloppy_assoc(SCM x, SCM alist);
-extern SCM scm_assq(SCM x, SCM alist);
-extern SCM scm_assv(SCM x, SCM alist);
-extern SCM scm_assoc(SCM x, SCM alist);
-extern SCM scm_assq_ref (SCM alist, SCM key);
-extern SCM scm_assv_ref (SCM alist, SCM key);
-extern SCM scm_assoc_ref (SCM alist, SCM key);
-extern SCM scm_assq_set_x (SCM alist, SCM key, SCM val);
-extern SCM scm_assv_set_x (SCM alist, SCM key, SCM val);
-extern SCM scm_assoc_set_x (SCM alist, SCM key, SCM val);
-extern SCM scm_assq_remove_x (SCM alist, SCM key);
-extern SCM scm_assv_remove_x (SCM alist, SCM key);
-extern SCM scm_assoc_remove_x (SCM alist, SCM key);
-extern void scm_init_alist (void);
-
-#else /* STDC */
-extern SCM scm_acons ();
-extern SCM scm_sloppy_assq();
-extern SCM scm_sloppy_assv();
-extern SCM scm_sloppy_assoc();
-extern SCM scm_assq();
-extern SCM scm_assv();
-extern SCM scm_assoc();
-extern SCM scm_assq_ref ();
-extern SCM scm_assv_ref ();
-extern SCM scm_assoc_ref ();
-extern SCM scm_assq_set_x ();
-extern SCM scm_assv_set_x ();
-extern SCM scm_assoc_set_x ();
-extern SCM scm_assq_remove_x ();
-extern SCM scm_assv_remove_x ();
-extern SCM scm_assoc_remove_x ();
-extern void scm_init_alist ();
-
-#endif /* STDC */
-
-
-
+extern SCM scm_acons SCM_P ((SCM w, SCM x, SCM y));
+extern SCM scm_sloppy_assq SCM_P ((SCM x, SCM alist));
+extern SCM scm_sloppy_assv SCM_P ((SCM x, SCM alist));
+extern SCM scm_sloppy_assoc SCM_P ((SCM x, SCM alist));
+extern SCM scm_assq SCM_P ((SCM x, SCM alist));
+extern SCM scm_assv SCM_P ((SCM x, SCM alist));
+extern SCM scm_assoc SCM_P ((SCM x, SCM alist));
+extern SCM scm_assq_ref SCM_P ((SCM alist, SCM key));
+extern SCM scm_assv_ref SCM_P ((SCM alist, SCM key));
+extern SCM scm_assoc_ref SCM_P ((SCM alist, SCM key));
+extern SCM scm_assq_set_x SCM_P ((SCM alist, SCM key, SCM val));
+extern SCM scm_assv_set_x SCM_P ((SCM alist, SCM key, SCM val));
+extern SCM scm_assoc_set_x SCM_P ((SCM alist, SCM key, SCM val));
+extern SCM scm_assq_remove_x SCM_P ((SCM alist, SCM key));
+extern SCM scm_assv_remove_x SCM_P ((SCM alist, SCM key));
+extern SCM scm_assoc_remove_x SCM_P ((SCM alist, SCM key));
+extern void scm_init_alist SCM_P ((void));
 
 #endif  /* ALISTH */

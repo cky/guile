@@ -47,19 +47,9 @@
 #include "libguile/__scm.h"
 
 
-#ifdef __STDC__
-extern SCM scm_make_gsubr(char *name, int req, int opt, int rst, SCM (*fcn)());
-extern SCM scm_gsubr_apply(SCM args);
-extern void scm_init_gsubr(void);
 
-#else /* STDC */
-extern SCM scm_make_gsubr();
-extern SCM scm_gsubr_apply();
-extern void scm_init_gsubr();
-
-#endif /* STDC */
-
-
-
+extern SCM scm_make_gsubr SCM_P ((char *name, int req, int opt, int rst, SCM (*fcn)()));
+extern SCM scm_gsubr_apply SCM_P ((SCM args));
+extern void scm_init_gsubr SCM_P ((void));
 
 #endif  /* GSUBRH */

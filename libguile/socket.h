@@ -50,39 +50,20 @@
 
 
 
-#ifdef __STDC__
-extern SCM scm_sys_gethost (SCM name);
-extern SCM scm_sys_inet_aton (SCM address);
-extern SCM scm_inet_ntoa (SCM inetid);
-extern SCM scm_inet_netof (SCM address);
-extern SCM scm_lnaof (SCM address);
-extern SCM scm_inet_makeaddr (SCM net, SCM lna);
-extern SCM scm_sys_getnet (SCM name);
-extern SCM scm_sys_getproto (SCM name);
-extern SCM scm_sys_getserv (SCM name, SCM proto);
-extern SCM scm_sethost (SCM arg);
-extern SCM scm_setnet (SCM arg);
-extern SCM scm_setproto (SCM arg);
-extern SCM scm_setserv (SCM arg);
-extern void scm_init_socket (void);
 
-#else /* STDC */
-extern SCM scm_sys_gethost ();
-extern SCM scm_sys_inet_aton ();
-extern SCM scm_inet_ntoa ();
-extern SCM scm_inet_netof ();
-extern SCM scm_lnaof ();
-extern SCM scm_inet_makeaddr ();
-extern SCM scm_sys_getnet ();
-extern SCM scm_sys_getproto ();
-extern SCM scm_sys_getserv ();
-extern SCM scm_sethost ();
-extern SCM scm_setnet ();
-extern SCM scm_setproto ();
-extern SCM scm_setserv ();
-extern void scm_init_socket ();
-
-#endif /* STDC */
-
+extern SCM scm_sys_gethost SCM_P ((SCM name));
+extern SCM scm_sys_inet_aton SCM_P ((SCM address));
+extern SCM scm_inet_ntoa SCM_P ((SCM inetid));
+extern SCM scm_inet_netof SCM_P ((SCM address));
+extern SCM scm_lnaof SCM_P ((SCM address));
+extern SCM scm_inet_makeaddr SCM_P ((SCM net, SCM lna));
+extern SCM scm_sys_getnet SCM_P ((SCM name));
+extern SCM scm_sys_getproto SCM_P ((SCM name));
+extern SCM scm_sys_getserv SCM_P ((SCM name, SCM proto));
+extern SCM scm_sethost SCM_P ((SCM arg));
+extern SCM scm_setnet SCM_P ((SCM arg));
+extern SCM scm_setproto SCM_P ((SCM arg));
+extern SCM scm_setserv SCM_P ((SCM arg));
+extern void scm_init_socket SCM_P ((void));
 
 #endif  /* SOCKETH */

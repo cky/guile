@@ -156,16 +156,12 @@ SCM_CONST_LONG (scm_O_SYNC, "O_SYNC", O_SYNC);
  */
 
 SCM_PROC (s_sys_chown, "chown", 3, 0, 0, scm_sys_chown);
-#ifdef __STDC__
-SCM 
-scm_sys_chown (SCM path, SCM owner, SCM group)
-#else
+
 SCM 
 scm_sys_chown (path, owner, group)
      SCM path;
      SCM owner;
      SCM group;
-#endif
 {
   int val;
 
@@ -183,15 +179,11 @@ scm_sys_chown (path, owner, group)
 
 
 SCM_PROC (s_sys_chmod, "chmod", 2, 0, 0, scm_sys_chmod);
-#ifdef __STDC__
-SCM 
-scm_sys_chmod (SCM port_or_path, SCM mode)
-#else
+
 SCM 
 scm_sys_chmod (port_or_path, mode)
      SCM port_or_path;
      SCM mode;
-#endif
 {
   int rv;
   SCM_ASSERT (SCM_INUMP (mode), mode, SCM_ARG2, s_sys_chmod);
@@ -211,14 +203,10 @@ scm_sys_chmod (port_or_path, mode)
 }
 
 SCM_PROC (s_umask, "umask", 0, 1, 0, scm_umask);
-#ifdef __STDC__
-SCM 
-scm_umask (SCM mode)
-#else
+
 SCM 
 scm_umask (mode)
      SCM mode;
-#endif
 {
   mode_t mask;
   if (SCM_UNBNDP (mode))
@@ -239,16 +227,14 @@ scm_umask (mode)
  */
 long scm_tc16_fd;
 
-#ifdef __STDC__
-static int 
-scm_fd_print (SCM sexp, SCM port, scm_print_state *pstate)
-#else
+
+static int scm_fd_print SCM_P ((SCM sexp, SCM port, scm_print_state *pstate));
+
 static int 
 scm_fd_print (sexp, port, pstate)
      SCM sexp;
      SCM port;
      scm_print_state *pstate;
-#endif
 {
   scm_gen_puts (scm_regular_string, "#<fd ", port);
   scm_intprint (SCM_CDR (sexp), 10, port);
@@ -256,14 +242,12 @@ scm_fd_print (sexp, port, pstate)
   return 1;
 }
 
-#ifdef __STDC__
-static scm_sizet 
-scm_fd_free (SCM p)
-#else
+
+static scm_sizet scm_fd_free SCM_P ((SCM p));
+
 static scm_sizet 
 scm_fd_free (p)
      SCM p;
-#endif
 {
   SCM flags;
 
@@ -277,15 +261,11 @@ scm_fd_free (p)
 
 static scm_smobfuns fd_smob = {scm_mark0, scm_fd_free, scm_fd_print, 0};
 
-#ifdef __STDC__
-SCM
-scm_intern_fd (int fd, int flags)
-#else
+
 SCM
 scm_intern_fd (fd, flags)
      int fd;
      int flags;
-#endif
 {
   SCM it;
   SCM_NEWCELL (it);
@@ -299,16 +279,12 @@ scm_intern_fd (fd, flags)
 
 
 SCM_PROC (s_sys_open, "open", 3, 0, 0, scm_sys_open);
-#ifdef __STDC__
-SCM
-scm_sys_open (SCM path, SCM flags, SCM mode)
-#else
+
 SCM
 scm_sys_open (path, flags, mode)
      SCM path;
      SCM flags;
      SCM mode;
-#endif
 {
   int fd;
   SCM sfd;
@@ -332,15 +308,11 @@ scm_sys_open (path, flags, mode)
 
 
 SCM_PROC (s_sys_create, "create", 2, 0, 0, scm_sys_create);
-#ifdef __STDC__
-SCM
-scm_sys_create (SCM path, SCM mode)
-#else
+
 SCM
 scm_sys_create (path, mode)
      SCM path;
      SCM mode;
-#endif
 {
   int fd;
   SCM sfd;
@@ -363,14 +335,10 @@ scm_sys_create (path, mode)
 
 
 SCM_PROC (s_sys_close, "close", 1, 0, 0, scm_sys_close);
-#ifdef __STDC__
-SCM
-scm_sys_close (SCM sfd)
-#else
+
 SCM
 scm_sys_close (sfd)
      SCM sfd;
-#endif
 {
   int fd;
   int got;
@@ -388,15 +356,11 @@ scm_sys_close (sfd)
 
 
 SCM_PROC (s_sys_write_fd, "write-fd", 2, 0, 0, scm_sys_write_fd);
-#ifdef __STDC__
-SCM
-scm_sys_write_fd (SCM sfd, SCM buf)
-#else
+
 SCM
 scm_sys_write_fd (sfd, buf)
      SCM sfd;
      SCM buf;
-#endif
 {
   SCM answer;
   int fd;
@@ -415,17 +379,13 @@ scm_sys_write_fd (sfd, buf)
 
 
 SCM_PROC (s_sys_read_fd, "read-fd", 2, 2, 0, scm_sys_read_fd);
-#ifdef __STDC__
-SCM
-scm_sys_read_fd (SCM sfd, SCM buf, SCM offset, SCM length)
-#else
+
 SCM
 scm_sys_read_fd (sfd, buf, offset, length)
      SCM sfd;
      SCM buf;
      SCM offset;
      SCM length;
-#endif
 {
   SCM answer;
   int fd;
@@ -466,16 +426,12 @@ scm_sys_read_fd (sfd, buf, offset, length)
 }
 
 SCM_PROC (s_sys_lseek, "lseek", 2, 1, 0, scm_sys_lseek);
-#ifdef __STDC__
-SCM
-scm_sys_lseek (SCM sfd, SCM offset, SCM whence)
-#else
+
 SCM
 scm_sys_lseek (sfd, offset, whence)
      SCM sfd;
      SCM offset;
      SCM whence;
-#endif
 {
   SCM answer;
   int fd;
@@ -506,15 +462,11 @@ scm_sys_lseek (sfd, offset, whence)
 
 
 SCM_PROC (s_sys_dup, "dup", 1, 1, 0, scm_sys_dup);
-#ifdef __STDC__
-SCM
-scm_sys_dup (SCM oldfd, SCM newfd)
-#else
+
 SCM
 scm_sys_dup (oldfd, newfd)
      SCM oldfd;
      SCM newfd;
-#endif
 {
   SCM answer;
   int fd;
@@ -540,14 +492,12 @@ scm_sys_dup (oldfd, newfd)
 
 /* {Files}
  */
-#ifdef __STDC__
-static SCM 
-scm_stat2scm (struct stat *stat_temp)
-#else
+
+static SCM scm_stat2scm SCM_P ((struct stat *stat_temp));
+
 static SCM 
 scm_stat2scm (stat_temp)
      struct stat *stat_temp;
-#endif
 {
   SCM ans = scm_make_vector (SCM_MAKINUM (13), SCM_UNSPECIFIED, SCM_BOOL_F);
   SCM *ve = SCM_VELTS (ans);
@@ -581,14 +531,10 @@ scm_stat2scm (stat_temp)
 }
 
 SCM_PROC (s_sys_stat, "stat", 1, 0, 0, scm_sys_stat);
-#ifdef __STDC__
-SCM 
-scm_sys_stat (SCM fd_or_path)
-#else
+
 SCM 
 scm_sys_stat (fd_or_path)
      SCM fd_or_path;
-#endif
 {
   int rv = 1;
   struct stat stat_temp;
@@ -629,15 +575,11 @@ scm_sys_stat (fd_or_path)
  */
 
 SCM_PROC (s_sys_link, "link", 2, 0, 0, scm_sys_link);
-#ifdef __STDC__
-SCM 
-scm_sys_link (SCM oldpath, SCM newpath)
-#else
+
 SCM 
 scm_sys_link (oldpath, newpath)
      SCM oldpath;
      SCM newpath;
-#endif
 {
   int val;
 
@@ -656,15 +598,11 @@ scm_sys_link (oldpath, newpath)
 
 
 SCM_PROC (s_sys_rename, "rename-file", 2, 0, 0, scm_sys_rename);
-#ifdef __STDC__
-SCM 
-scm_sys_rename (SCM oldname, SCM newname)
-#else
+
 SCM 
 scm_sys_rename (oldname, newname)
      SCM oldname;
      SCM newname;
-#endif
 {
   int rv;
   SCM_ASSERT (SCM_NIMP (oldname) && SCM_STRINGP (oldname), oldname, SCM_ARG1, s_sys_rename);
@@ -693,14 +631,10 @@ scm_sys_rename (oldname, newname)
 
 
 SCM_PROC(s_sys_delete_file, "delete-file", 1, 0, 0, scm_sys_delete_file);
-#ifdef __STDC__
-SCM 
-scm_sys_delete_file (SCM str)
-#else
+
 SCM 
 scm_sys_delete_file (str)
      SCM str;
-#endif
 {
   int ans;
   SCM_ASSERT (SCM_NIMP (str) && SCM_STRINGP (str), str, SCM_ARG1, s_sys_delete_file);
@@ -712,15 +646,11 @@ scm_sys_delete_file (str)
 
 
 SCM_PROC (s_sys_mkdir, "mkdir", 1, 1, 0, scm_sys_mkdir);
-#ifdef __STDC__
-SCM 
-scm_sys_mkdir (SCM path, SCM mode)
-#else
+
 SCM 
 scm_sys_mkdir (path, mode)
      SCM path;
      SCM mode;
-#endif
 {
 #ifdef HAVE_MKDIR
   int rv;
@@ -749,14 +679,10 @@ scm_sys_mkdir (path, mode)
 
 
 SCM_PROC (s_sys_rmdir, "rmdir", 1, 0, 0, scm_sys_rmdir);
-#ifdef __STDC__
-SCM 
-scm_sys_rmdir (SCM path)
-#else
+
 SCM 
 scm_sys_rmdir (path)
      SCM path;
-#endif
 {
 #ifdef HAVE_RMDIR
   int val;
@@ -780,14 +706,10 @@ scm_sys_rmdir (path)
 long scm_tc16_dir;
 
 SCM_PROC (s_sys_opendir, "opendir", 1, 0, 0, scm_sys_opendir);
-#ifdef __STDC__
-SCM 
-scm_sys_opendir (SCM dirname)
-#else
+
 SCM 
 scm_sys_opendir (dirname)
      SCM dirname;
-#endif
 {
   DIR *ds;
   SCM dir;
@@ -805,14 +727,10 @@ scm_sys_opendir (dirname)
 
 
 SCM_PROC (s_sys_readdir, "readdir", 1, 0, 0, scm_sys_readdir);
-#ifdef __STDC__
-SCM 
-scm_sys_readdir (SCM port)
-#else
+
 SCM 
 scm_sys_readdir (port)
      SCM port;
-#endif
 {
   struct dirent *rdent;
   SCM_DEFER_INTS;
@@ -829,14 +747,10 @@ scm_sys_readdir (port)
 
 
 SCM_PROC (s_rewinddir, "rewinddir", 1, 0, 0, scm_rewinddir);
-#ifdef __STDC__
-SCM 
-scm_rewinddir (SCM port)
-#else
+
 SCM 
 scm_rewinddir (port)
      SCM port;
-#endif
 {
   SCM_ASSERT (SCM_NIMP (port) && SCM_OPDIRP (port), port, SCM_ARG1, s_rewinddir);
   rewinddir ((DIR *) SCM_CDR (port));
@@ -846,14 +760,10 @@ scm_rewinddir (port)
 
 
 SCM_PROC (s_sys_closedir, "closedir", 1, 0, 0, scm_sys_closedir);
-#ifdef __STDC__
-SCM 
-scm_sys_closedir (SCM port)
-#else
+
 SCM 
 scm_sys_closedir (port)
      SCM port;
-#endif
 {
   int sts;
 
@@ -874,29 +784,25 @@ scm_sys_closedir (port)
 
 
 
-#ifdef __STDC__
-static int 
-scm_dir_print (SCM sexp, SCM port, scm_print_state *pstate)
-#else
+
+static int scm_dir_print SCM_P ((SCM sexp, SCM port, scm_print_state *pstate));
+
 static int 
 scm_dir_print (sexp, port, pstate)
      SCM sexp;
      SCM port;
      scm_print_state *pstate;
-#endif
 {
   scm_prinport (sexp, port, "directory");
   return 1;
 }
 
-#ifdef __STDC__
-static scm_sizet 
-scm_dir_free (SCM p)
-#else
+
+static scm_sizet scm_dir_free SCM_P ((SCM p));
+
 static scm_sizet 
 scm_dir_free (p)
      SCM p;
-#endif
 {
   if (SCM_OPENP (p))
     closedir ((DIR *) SCM_CDR (p));
@@ -911,14 +817,10 @@ static scm_smobfuns dir_smob = {scm_mark0, scm_dir_free, scm_dir_print, 0};
 
 
 SCM_PROC (s_sys_chdir, "chdir", 1, 0, 0, scm_sys_chdir);
-#ifdef __STDC__
-SCM 
-scm_sys_chdir (SCM str)
-#else
+
 SCM 
 scm_sys_chdir (str)
      SCM str;
-#endif
 {
   int ans;
 
@@ -932,13 +834,9 @@ scm_sys_chdir (str)
 
 
 SCM_PROC (s_sys_getcwd, "getcwd", 0, 0, 0, scm_sys_getcwd);
-#ifdef __STDC__
-SCM 
-scm_sys_getcwd (void)
-#else
+
 SCM 
 scm_sys_getcwd ()
-#endif
 {
 #ifdef HAVE_GETCWD
   char *rv;
@@ -970,15 +868,13 @@ scm_sys_getcwd ()
 
 
 
-#ifdef __STDC__
-static void
-fill_select_type (SELECT_TYPE * set, SCM list)
-#else
+
+static void fill_select_type SCM_P ((SELECT_TYPE * set, SCM list));
+
 static void
 fill_select_type (set, list)
      SELECT_TYPE * set;
      SCM list;
-#endif
 {
   while (list != SCM_EOL)
     {
@@ -994,15 +890,13 @@ fill_select_type (set, list)
     }
 }
 
-#ifdef __STDC__
-static SCM 
-retrieve_select_type (SELECT_TYPE * set, SCM list)
-#else
+
+static SCM retrieve_select_type SCM_P ((SELECT_TYPE * set, SCM list));
+
 static SCM 
 retrieve_select_type (set, list)
      SELECT_TYPE * set;
      SCM list;
-#endif
 {
   SCM answer;
   answer = SCM_EOL;
@@ -1032,10 +926,7 @@ retrieve_select_type (set, list)
 
 
 SCM_PROC (s_sys_select, "select", 3, 2, 0, scm_sys_select);
-#ifdef __STDC__
-SCM
-scm_sys_select (SCM reads, SCM writes, SCM excepts, SCM secs, SCM msecs)
-#else
+
 SCM
 scm_sys_select (reads, writes, excepts, secs, msecs)
      SCM reads;
@@ -1043,7 +934,6 @@ scm_sys_select (reads, writes, excepts, secs, msecs)
      SCM excepts;
      SCM secs;
      SCM msecs;
-#endif
 {
 #ifdef HAVE_SELECT
   struct timeval timeout;
@@ -1102,15 +992,11 @@ scm_sys_select (reads, writes, excepts, secs, msecs)
  */
 
 SCM_PROC (s_sys_symlink, "symlink", 2, 0, 0, scm_sys_symlink);
-#ifdef __STDC__
-SCM
-scm_sys_symlink(SCM oldpath, SCM newpath)
-#else
+
 SCM
 scm_sys_symlink(oldpath, newpath)
      SCM oldpath;
      SCM newpath;
-#endif
 {
 #ifdef HAVE_SYMLINK
   int val;
@@ -1130,14 +1016,10 @@ scm_sys_symlink(oldpath, newpath)
 
 
 SCM_PROC (s_sys_readlink, "readlink", 1, 0, 0, scm_sys_readlink);
-#ifdef __STDC__
-SCM
-scm_sys_readlink(SCM path)
-#else
+
 SCM
 scm_sys_readlink(path)
   SCM path;
-#endif
 {
 #ifdef HAVE_READLINK
   scm_sizet rv;
@@ -1168,14 +1050,10 @@ scm_sys_readlink(path)
 
 
 SCM_PROC (s_sys_lstat, "lstat", 1, 0, 0, scm_sys_lstat);
-#ifdef __STDC__
-SCM
-scm_sys_lstat(SCM str)
-#else
+
 SCM
 scm_sys_lstat(str)
   SCM str;
-#endif
 {
 #ifdef HAVE_LSTAT
   int rv;
@@ -1198,15 +1076,11 @@ scm_sys_lstat(str)
 
 
 SCM_PROC (s_sys_copy_file, "copy-file", 2, 0, 0, scm_sys_copy_file);
-#ifdef __STDC__
-SCM
-scm_sys_copy_file (SCM oldfile, SCM newfile)
-#else
+
 SCM
 scm_sys_copy_file (oldfile, newfile)
      SCM oldfile;
      SCM newfile;
-#endif
 {
   int oldfd, newfd;
   int n;
@@ -1247,13 +1121,9 @@ scm_sys_copy_file (oldfile, newfile)
 }
 
 
-#ifdef __STDC__
-void
-scm_init_filesys (void)
-#else
+
 void
 scm_init_filesys ()
-#endif
 {
   scm_add_feature ("i/o-extensions");
   /* File type/permission bits.  */

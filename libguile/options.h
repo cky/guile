@@ -65,14 +65,9 @@ typedef struct scm_option
 
 extern SCM scm_yes_sym, scm_no_sym;
 
-#ifdef __STDC__
-extern SCM scm_options (SCM new_mode, scm_option options[], int n, char *s);
-extern void scm_init_opts (SCM (*func) (SCM), scm_option options[], int n);
-extern void scm_init_options (void);
-#else /* STDC */
-extern SCM scm_options ();
-extern void scm_init_opts ();
-extern void scm_init_options ();
-#endif /* STDC */
+
+extern SCM scm_options SCM_P ((SCM new_mode, scm_option options[], int n, char *s));
+extern void scm_init_opts SCM_P ((SCM (*func) (SCM), scm_option options[], int n));
+extern void scm_init_options SCM_P ((void));
 
 #endif /* OPTIONSH */

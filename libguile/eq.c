@@ -50,15 +50,11 @@
 #include "eq.h"
 
 SCM_PROC1 (s_eq_p, "eq?", scm_tc7_rpsubr, scm_eq_p);
-#ifdef __STDC__
-SCM
-scm_eq_p (SCM x, SCM y)
-#else
+
 SCM
 scm_eq_p (x, y)
      SCM x;
      SCM y;
-#endif
 {
   return ((x==y)
 	  ? SCM_BOOL_T
@@ -67,15 +63,11 @@ scm_eq_p (x, y)
 
 
 SCM_PROC1 (s_eqv_p, "eqv?", scm_tc7_rpsubr, scm_eqv_p);
-#ifdef __STDC__
-SCM
-scm_eqv_p (SCM x, SCM y)
-#else
+
 SCM
 scm_eqv_p (x, y)
      SCM x;
      SCM y;
-#endif
 {
   if (x==y) return SCM_BOOL_T;
   if SCM_IMP(x) return SCM_BOOL_F;
@@ -97,15 +89,11 @@ scm_eqv_p (x, y)
 
 
 SCM_PROC1 (s_equal_p, "equal?", scm_tc7_rpsubr, scm_equal_p);
-#ifdef __STDC__
-SCM
-scm_equal_p (SCM x, SCM y)
-#else
+
 SCM
 scm_equal_p (x, y)
      SCM x;
      SCM y;
-#endif
 {
   SCM_CHECK_STACK;
  tailrecurse: SCM_ASYNC_TICK;
@@ -155,13 +143,9 @@ scm_equal_p (x, y)
 
 
 
-#ifdef __STDC__
-void
-scm_init_eq (void)
-#else
+
 void
 scm_init_eq ()
-#endif
 {
 #include "eq.x"
 }

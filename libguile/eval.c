@@ -144,15 +144,11 @@
 #define EXTEND_ENV SCM_EXTEND_ENV
 
 #ifdef MEMOIZE_LOCALS
-#ifdef __STDC__
-SCM *
-scm_ilookup (SCM iloc, SCM env)
-#else
+
 SCM *
 scm_ilookup (iloc, env)
      SCM iloc;
      SCM env;
-#endif
 {
   register int ir = SCM_IFRAME (iloc);
   register SCM er = env;
@@ -167,15 +163,11 @@ scm_ilookup (iloc, env)
 }
 #endif
 
-#ifdef __STDC__
-SCM *
-scm_lookupcar (SCM vloc, SCM genv)
-#else
+
 SCM *
 scm_lookupcar (vloc, genv)
      SCM vloc;
      SCM genv;
-#endif
 {
   SCM env = genv;
   register SCM *al, fl, var = SCM_CAR (vloc);
@@ -260,15 +252,11 @@ scm_lookupcar (vloc, genv)
 }
 
 #define unmemocar scm_unmemocar
-#ifdef __STDC__
-SCM 
-scm_unmemocar (SCM form, SCM env)
-#else
+
 SCM 
 scm_unmemocar (form, env)
      SCM form;
      SCM env;
-#endif
 {
 #ifdef DEBUG_EXTENSIONS
   register int ir;
@@ -296,15 +284,11 @@ scm_unmemocar (form, env)
   return form;
 }
 
-#ifdef __STDC__
-SCM
-scm_eval_car (SCM pair, SCM env)
-#else
+
 SCM
 scm_eval_car (pair, env)
      SCM pair;
      SCM env;
-#endif
 {
   return XEVALCAR (pair, env);
 }
@@ -341,60 +325,46 @@ SCM scm_i_trace;
 #define ASRTSYNTAX(cond_, msg_) if(!(cond_))scm_wta(xorig, (msg_), what);
 
 
-#ifdef __STDC__
-static void 
-bodycheck (SCM xorig, SCM *bodyloc, char *what)
-#else
+
+static void  bodycheck SCM_P ((SCM xorig, SCM *bodyloc, char *what));
+
 static void 
 bodycheck (xorig, bodyloc, what)
      SCM xorig;
      SCM *bodyloc;
      char *what;
-#endif
 {
   ASRTSYNTAX (scm_ilength (*bodyloc) >= 1, s_expression);
 }
 
 
-#ifdef __STDC__
-SCM 
-scm_m_quote (SCM xorig, SCM env)
-#else
+
 SCM 
 scm_m_quote (xorig, env)
      SCM xorig;
      SCM env;
-#endif
 {
   ASSYNT (scm_ilength (SCM_CDR (xorig)) == 1, xorig, s_expression, "quote");
   return scm_cons (SCM_IM_QUOTE, SCM_CDR (xorig));
 }
 
 
-#ifdef __STDC__
-SCM 
-scm_m_begin (SCM xorig, SCM env)
-#else
+
 SCM 
 scm_m_begin (xorig, env)
      SCM xorig;
      SCM env;
-#endif
 {
   ASSYNT (scm_ilength (SCM_CDR (xorig)) >= 1, xorig, s_expression, "begin");
   return scm_cons (SCM_IM_BEGIN, SCM_CDR (xorig));
 }
 
 
-#ifdef __STDC__
-SCM 
-scm_m_if (SCM xorig, SCM env)
-#else
+
 SCM 
 scm_m_if (xorig, env)
      SCM xorig;
      SCM env;
-#endif
 {
   int len = scm_ilength (SCM_CDR (xorig));
   ASSYNT (len >= 2 && len <= 3, xorig, s_expression, "if");
@@ -402,15 +372,11 @@ scm_m_if (xorig, env)
 }
 
 
-#ifdef __STDC__
-SCM 
-scm_m_set (SCM xorig, SCM env)
-#else
+
 SCM 
 scm_m_set (xorig, env)
      SCM xorig;
      SCM env;
-#endif
 {
   SCM x = SCM_CDR (xorig);
   ASSYNT (2 == scm_ilength (x), xorig, s_expression, "set!");
@@ -421,15 +387,11 @@ scm_m_set (xorig, env)
 
 
 #if 0
-#ifdef __STDC__
-SCM 
-scm_m_vref (SCM xorig, SCM env)
-#else
+
 SCM 
 scm_m_vref (xorig, env)
      SCM xorig;
      SCM env;
-#endif
 {
   SCM x = SCM_CDR (xorig);
   ASSYNT (1 == scm_ilength (x), xorig, s_expression, s_vref);
@@ -449,15 +411,11 @@ scm_m_vref (xorig, env)
 }
 
 
-#ifdef __STDC__
-SCM 
-scm_m_vset (SCM xorig, SCM env)
-#else
+
 SCM 
 scm_m_vset (xorig, env)
      SCM xorig;
      SCM env;
-#endif
 {
   SCM x = SCM_CDR (xorig);
   ASSYNT (3 == scm_ilength (x), xorig, s_expression, s_vset);
@@ -469,15 +427,11 @@ scm_m_vset (xorig, env)
 #endif 
 
 
-#ifdef __STDC__
-SCM 
-scm_m_and (SCM xorig, SCM env)
-#else
+
 SCM 
 scm_m_and (xorig, env)
      SCM xorig;
      SCM env;
-#endif
 {
   int len = scm_ilength (SCM_CDR (xorig));
   ASSYNT (len >= 0, xorig, s_test, "and");
@@ -488,15 +442,11 @@ scm_m_and (xorig, env)
 }
 
 
-#ifdef __STDC__
-SCM 
-scm_m_or (SCM xorig, SCM env)
-#else
+
 SCM 
 scm_m_or (xorig, env)
      SCM xorig;
      SCM env;
-#endif
 {
   int len = scm_ilength (SCM_CDR (xorig));
   ASSYNT (len >= 0, xorig, s_test, "or");
@@ -507,15 +457,11 @@ scm_m_or (xorig, env)
 }
 
 
-#ifdef __STDC__
-SCM 
-scm_m_case (SCM xorig, SCM env)
-#else
+
 SCM 
 scm_m_case (xorig, env)
      SCM xorig;
      SCM env;
-#endif
 {
   SCM proc, x = SCM_CDR (xorig);
   ASSYNT (scm_ilength (x) >= 2, xorig, s_clauses, "case");
@@ -530,15 +476,11 @@ scm_m_case (xorig, env)
 }
 
 
-#ifdef __STDC__
-SCM 
-scm_m_cond (SCM xorig, SCM env)
-#else
+
 SCM 
 scm_m_cond (xorig, env)
      SCM xorig;
      SCM env;
-#endif
 {
   SCM arg1, x = SCM_CDR (xorig);
   int len = scm_ilength (x);
@@ -562,15 +504,11 @@ scm_m_cond (xorig, env)
 }
 
 
-#ifdef __STDC__
-SCM 
-scm_m_lambda (SCM xorig, SCM env)
-#else
+
 SCM 
 scm_m_lambda (xorig, env)
      SCM xorig;
      SCM env;
-#endif
 {
   SCM proc, x = SCM_CDR (xorig);
   if (scm_ilength (x) < 2)
@@ -606,15 +544,11 @@ memlambda:
 }
 
 
-#ifdef __STDC__
-SCM 
-scm_m_letstar (SCM xorig, SCM env)
-#else
+
 SCM 
 scm_m_letstar (xorig, env)
      SCM xorig;
      SCM env;
-#endif
 {
   SCM x = SCM_CDR (xorig), arg1, proc, vars = SCM_EOL, *varloc = &vars;
   int len = scm_ilength (x);
@@ -650,15 +584,11 @@ scm_m_letstar (xorig, env)
    */
 
 
-#ifdef __STDC__
-SCM 
-scm_m_do (SCM xorig, SCM env)
-#else
+
 SCM 
 scm_m_do (xorig, env)
      SCM xorig;
      SCM env;
-#endif
 {
   SCM x = SCM_CDR (xorig), arg1, proc;
   SCM vars = SCM_EOL, inits = SCM_EOL, steps = SCM_EOL;
@@ -697,16 +627,14 @@ scm_m_do (xorig, env)
  */
 #define evalcar scm_eval_car
 
-#ifdef __STDC__
-static SCM 
-iqq (SCM form, SCM env, int depth)
-#else
+
+static SCM  iqq SCM_P ((SCM form, SCM env, int depth));
+
 static SCM 
 iqq (form, env, depth)
      SCM form;
      SCM env;
      int depth;
-#endif
 {
   SCM tmp;
   int edepth = depth;
@@ -752,30 +680,22 @@ iqq (form, env, depth)
 
 /* Here are acros which return values rather than code. */
 
-#ifdef __STDC__
-SCM 
-scm_m_quasiquote (SCM xorig, SCM env)
-#else
+
 SCM 
 scm_m_quasiquote (xorig, env)
      SCM xorig;
      SCM env;
-#endif
 {
   SCM x = SCM_CDR (xorig);
   ASSYNT (scm_ilength (x) == 1, xorig, s_expression, s_quasiquote);
   return iqq (SCM_CAR (x), env, 1);
 }
 
-#ifdef __STDC__
-SCM 
-scm_m_delay (SCM xorig, SCM env)
-#else
+
 SCM 
 scm_m_delay (xorig, env)
      SCM xorig;
      SCM env;
-#endif
 {
   ASSYNT (scm_ilength (xorig) == 2, xorig, s_expression, s_delay);
   xorig = SCM_CDR (xorig);
@@ -783,14 +703,12 @@ scm_m_delay (xorig, env)
 				   env));
 }
 
-#ifdef __STDC__
-static SCM
-env_top_level (SCM env)
-#else
+
+static SCM env_top_level SCM_P ((SCM env));
+
 static SCM
 env_top_level (env)
      SCM env;
-#endif
 {
   while (SCM_NIMP(env))
     {
@@ -801,15 +719,11 @@ env_top_level (env)
   return SCM_BOOL_F;
 }
 
-#ifdef __STDC__
-SCM 
-scm_m_define (SCM x, SCM env)
-#else
+
 SCM 
 scm_m_define (x, env)
      SCM x;
      SCM env;
-#endif
 {
   SCM proc, arg1 = x;
   x = SCM_CDR (x);
@@ -885,15 +799,11 @@ scm_m_undefine (x, env)
 
 /* end of acros */
 
-#ifdef __STDC__
-SCM 
-scm_m_letrec (SCM xorig, SCM env)
-#else
+
 SCM 
 scm_m_letrec (xorig, env)
      SCM xorig;
      SCM env;
-#endif
 {
   SCM cdrx = SCM_CDR (xorig);	/* locally mutable version of form */
   char *what = SCM_CHARS (SCM_CAR (xorig));
@@ -922,15 +832,11 @@ scm_m_letrec (xorig, env)
   return scm_cons (SCM_IM_LETREC, cdrx);
 }
 
-#ifdef __STDC__
-SCM 
-scm_m_let (SCM xorig, SCM env)
-#else
+
 SCM 
 scm_m_let (xorig, env)
      SCM xorig;
      SCM env;
-#endif
 {
   SCM cdrx = SCM_CDR (xorig);	/* locally mutable version of form */
   SCM x = cdrx, proc, arg1, name;	/* structure traversers */
@@ -972,15 +878,11 @@ scm_m_let (xorig, env)
 }
 
 
-#ifdef __STDC__
-SCM 
-scm_m_apply (SCM xorig, SCM env)
-#else
+
 SCM 
 scm_m_apply (xorig, env)
      SCM xorig;
      SCM env;
-#endif
 {
   ASSYNT (scm_ilength (SCM_CDR (xorig)) == 2, xorig, s_expression, "@apply");
   return scm_cons (SCM_IM_APPLY, SCM_CDR (xorig));
@@ -988,15 +890,11 @@ scm_m_apply (xorig, env)
 
 #define s_atcall_cc (SCM_ISYMCHARS(SCM_IM_CONT)+1)
 
-#ifdef __STDC__
-SCM 
-scm_m_cont (SCM xorig, SCM env)
-#else
+
 SCM 
 scm_m_cont (xorig, env)
      SCM xorig;
      SCM env;
-#endif
 {
   ASSYNT (scm_ilength (SCM_CDR (xorig)) == 1, xorig, s_expression, "@call-with-current-continuation");
   return scm_cons (SCM_IM_CONT, SCM_CDR (xorig));
@@ -1010,15 +908,13 @@ scm_m_cont (xorig, env)
  * when generating the source for a stackframe.
  */
 
-#ifdef __STDC__
-static SCM
-unmemocopy (SCM x, SCM env)
-#else
+
+static SCM unmemocopy SCM_P ((SCM x, SCM env));
+
 static SCM
 unmemocopy (x, env)
      SCM x;
      SCM env;
-#endif
 {
   SCM ls, z;
 #ifdef DEBUG_EXTENSIONS
@@ -1187,15 +1083,11 @@ loop:
   return ls;
 }
 
-#ifdef __STDC__
-SCM
-scm_unmemocopy (SCM x, SCM env)
-#else
+
 SCM
 scm_unmemocopy (x, env)
      SCM x;
      SCM env;
-#endif
 {
   if (SCM_NNULLP (env))
     /* Make a copy of the lowest frame to protect it from
@@ -1206,15 +1098,11 @@ scm_unmemocopy (x, env)
 }
 
 #ifndef RECKLESS
-#ifdef __STDC__
-int 
-scm_badargsp (SCM formals, SCM args)
-#else
+
 int 
 scm_badargsp (formals, args)
      SCM formals;
      SCM args;
-#endif
 {
   while SCM_NIMP
     (formals)
@@ -1234,15 +1122,11 @@ scm_badargsp (formals, args)
 
 long scm_tc16_macro;
 
-#ifdef __STDC__
-SCM 
-scm_eval_args (SCM l, SCM env)
-#else
+
 SCM 
 scm_eval_args (l, env)
      SCM l;
      SCM env;
-#endif
 {
   SCM res = SCM_EOL, *lloc = &res;
   while (SCM_NIMP (l))
@@ -1318,11 +1202,8 @@ scm_eval_args (l, env)
  * current repl.
  */
 
-#ifdef __STDC__
-SCM (*scm_ceval_ptr) (SCM exp, SCM env);
-#else
-SCM (*scm_ceval_ptr) ();
-#endif
+
+SCM (*scm_ceval_ptr) SCM_P ((SCM x, SCM env));
 
 /* scm_last_debug_frame contains a pointer to the last debugging
  * information stack frame.  It is accessed very often from the
@@ -1401,39 +1282,27 @@ scm_deval_args (l, env, lloc)
  */
 
 #if 0
-#ifdef __STDC__
-SCM 
-scm_ceval (SCM x, SCM env)
-#else
+
 SCM 
 scm_ceval (x, env)
      SCM x;
      SCM env;
-#endif
 {}
 #endif
 #if 0
-#ifdef __STDC__
-SCM 
-scm_deval (SCM x, SCM env)
-#else
+
 SCM 
 scm_deval (x, env)
      SCM x;
      SCM env;
-#endif
 {}
 #endif
 
-#ifdef __STDC__
-SCM 
-SCM_CEVAL (SCM x, SCM env)
-#else
+
 SCM 
 SCM_CEVAL (x, env)
      SCM x;
      SCM env;
-#endif
 {
   union
     {
@@ -2319,14 +2188,10 @@ ret:
 #ifndef DEVAL
 
 SCM_PROC(s_procedure_documentation, "procedure-documentation", 1, 0, 0, scm_procedure_documentation);
-#ifdef __STDC__
-SCM 
-scm_procedure_documentation (SCM proc)
-#else
+
 SCM 
 scm_procedure_documentation (proc)
      SCM proc;
-#endif
 {
   SCM code;
   SCM_ASSERT (SCM_BOOL_T == scm_procedure_p (proc) && SCM_NIMP (proc) && SCM_TYP7 (proc) != scm_tc7_contin,
@@ -2369,14 +2234,10 @@ scm_procedure_documentation (proc)
    me a patch to this comment.  */
 
 SCM_PROC(s_nconc2last, "apply:nconc2last", 1, 0, 0, scm_nconc2last);
-#ifdef __STDC__
-SCM 
-scm_nconc2last (SCM lst)
-#else
+
 SCM 
 scm_nconc2last (lst)
      SCM lst;
-#endif
 {
   SCM *lloc;
   SCM_ASSERT (scm_ilength (lst) > 0, lst, SCM_ARG1, s_nconc2last);
@@ -2396,43 +2257,31 @@ scm_nconc2last (lst)
  */
 
 #if 0
-#ifdef __STDC__
-SCM 
-scm_apply (SCM proc, SCM arg1, SCM args)
-#else
+
 SCM 
 scm_apply (proc, arg1, args)
      SCM proc;
      SCM arg1;
      SCM args;
-#endif
 {}
 #endif
 
 #if 0
-#ifdef __STDC__
-SCM 
-scm_dapply (SCM proc, SCM arg1, SCM args)
-#else
+
 SCM 
 scm_dapply (proc, arg1, args)
      SCM proc;
      SCM arg1;
      SCM args;
-#endif
 {}
 #endif
 
-#ifdef __STDC__
-SCM 
-SCM_APPLY (SCM proc, SCM arg1, SCM args)
-#else
+
 SCM 
 SCM_APPLY (proc, arg1, args)
      SCM proc;
      SCM arg1;
      SCM args;
-#endif
 {
 #ifdef DEBUG_EXTENSIONS
 #ifdef DEVAL
@@ -2644,16 +2493,12 @@ ret:
 #ifndef DEVAL
 
 SCM_PROC(s_map, "map", 2, 0, 1, scm_map);
-#ifdef __STDC__
-SCM 
-scm_map (SCM proc, SCM arg1, SCM args)
-#else
+
 SCM 
 scm_map (proc, arg1, args)
      SCM proc;
      SCM arg1;
      SCM args;
-#endif
 {
   long i;
   SCM res = SCM_EOL;
@@ -2697,16 +2542,12 @@ scm_map (proc, arg1, args)
 
 
 SCM_PROC(s_for_each, "for-each", 2, 0, 1, scm_for_each);
-#ifdef __STDC__
-SCM 
-scm_for_each (SCM proc, SCM arg1, SCM args)
-#else
+
 SCM 
 scm_for_each (proc, arg1, args)
      SCM proc;
      SCM arg1;
      SCM args;
-#endif
 {
   SCM *ve = &args;		/* Keep args from being optimized away. */
   long i;
@@ -2744,15 +2585,11 @@ scm_for_each (proc, arg1, args)
 }
 
 
-#ifdef __STDC__
-SCM 
-scm_closure (SCM code, SCM env)
-#else
+
 SCM 
 scm_closure (code, env)
      SCM code;
      SCM env;
-#endif
 {
   register SCM z;
   SCM_NEWCELL (z);
@@ -2763,14 +2600,10 @@ scm_closure (code, env)
 
 
 long scm_tc16_promise;
-#ifdef __STDC__
-SCM 
-scm_makprom (SCM code)
-#else
+
 SCM 
 scm_makprom (code)
      SCM code;
-#endif
 {
   register SCM z;
   SCM_NEWCELL (z);
@@ -2780,16 +2613,14 @@ scm_makprom (code)
 }
 
 
-#ifdef __STDC__
-static int 
-prinprom (SCM exp, SCM port, scm_print_state *pstate)
-#else
+
+static int  prinprom SCM_P ((SCM exp, SCM port, scm_print_state *pstate));
+
 static int 
 prinprom (exp, port, pstate)
      SCM exp;
      SCM port;
      scm_print_state *pstate;
-#endif
 {
   int writingp = SCM_WRITINGP (pstate);
   scm_gen_puts (scm_regular_string, "#<promise ", port);
@@ -2802,14 +2633,10 @@ prinprom (exp, port, pstate)
 
 
 SCM_PROC(s_makacro, "procedure->syntax", 1, 0, 0, scm_makacro);
-#ifdef __STDC__
-SCM 
-scm_makacro (SCM code)
-#else
+
 SCM 
 scm_makacro (code)
      SCM code;
-#endif
 {
   register SCM z;
   SCM_NEWCELL (z);
@@ -2820,14 +2647,10 @@ scm_makacro (code)
 
 
 SCM_PROC(s_makmacro, "procedure->macro", 1, 0, 0, scm_makmacro);
-#ifdef __STDC__
-SCM 
-scm_makmacro (SCM code)
-#else
+
 SCM 
 scm_makmacro (code)
      SCM code;
-#endif
 {
   register SCM z;
   SCM_NEWCELL (z);
@@ -2838,14 +2661,10 @@ scm_makmacro (code)
 
 
 SCM_PROC(s_makmmacro, "procedure->memoizing-macro", 1, 0, 0, scm_makmmacro);
-#ifdef __STDC__
-SCM 
-scm_makmmacro (SCM code)
-#else
+
 SCM 
 scm_makmmacro (code)
      SCM code;
-#endif
 {
   register SCM z;
   SCM_NEWCELL (z);
@@ -2855,16 +2674,14 @@ scm_makmmacro (code)
 }
 
 
-#ifdef __STDC__
-static int 
-prinmacro (SCM exp, SCM port, scm_print_state *pstate)
-#else
+
+static int  prinmacro SCM_P ((SCM exp, SCM port, scm_print_state *pstate));
+
 static int 
 prinmacro (exp, port, pstate)
      SCM exp;
      SCM port;
      scm_print_state *pstate;
-#endif
 {
   int writingp = SCM_WRITINGP (pstate);
   if (SCM_CAR (exp) & (3L << 16))
@@ -2882,14 +2699,10 @@ prinmacro (exp, port, pstate)
 }
 
 SCM_PROC(s_force, "force", 1, 0, 0, scm_force);
-#ifdef __STDC__
-SCM 
-scm_force (SCM x)
-#else
+
 SCM 
 scm_force (x)
      SCM x;
-#endif
 {
   SCM_ASSERT ((SCM_TYP16 (x) == scm_tc16_promise), x, SCM_ARG1, s_force);
   if (!((1L << 16) & SCM_CAR (x)))
@@ -2907,14 +2720,10 @@ scm_force (x)
 }
 
 SCM_PROC (s_promise_p, "promise?", 1, 0, 0, scm_promise_p);
-#ifdef __STDC__
-SCM
-scm_promise_p (SCM x)
-#else
+
 SCM
 scm_promise_p (x)
      SCM x;
-#endif
 {
   return ((SCM_NIMP (x) && (SCM_TYP16 (x) == scm_tc16_promise))
 	   ? SCM_BOOL_T
@@ -2922,14 +2731,10 @@ scm_promise_p (x)
 }
 
 SCM_PROC(s_copy_tree, "copy-tree", 1, 0, 0, scm_copy_tree);
-#ifdef __STDC__
-SCM 
-scm_copy_tree (SCM obj)
-#else
+
 SCM 
 scm_copy_tree (obj)
      SCM obj;
-#endif
 {
   SCM ans, tl;
   if SCM_IMP
@@ -2952,16 +2757,12 @@ scm_copy_tree (obj)
   return ans;
 }
 
-#ifdef __STDC__
-SCM 
-scm_eval_3 (SCM obj, int copyp, SCM env)
-#else
+
 SCM 
 scm_eval_3 (obj, copyp, env)
      SCM obj;
      int copyp;
      SCM env;
-#endif
 {
   if (SCM_NIMP (SCM_CDR (scm_system_transformer)))
     obj = scm_apply (SCM_CDR (scm_system_transformer), obj, scm_listofnull);
@@ -2970,14 +2771,10 @@ scm_eval_3 (obj, copyp, env)
   return XEVAL (obj, env);
 }
 
-#ifdef __STDC__
-SCM
-scm_top_level_env (SCM thunk)
-#else
+
 SCM
 scm_top_level_env (thunk)
      SCM thunk;
-#endif
 {
   if (SCM_IMP(thunk))
     return SCM_EOL;
@@ -2986,42 +2783,30 @@ scm_top_level_env (thunk)
 }
 
 SCM_PROC(s_eval2, "eval2", 2, 0, 0, scm_eval2);
-#ifdef __STDC__
-SCM
-scm_eval2 (SCM obj, SCM env_thunk)
-#else
+
 SCM
 scm_eval2 (obj, env_thunk)
      SCM obj;
      SCM env_thunk;
-#endif
 {
   return scm_eval_3 (obj, 1, scm_top_level_env(env_thunk));
 }
 
 SCM_PROC(s_eval, "eval", 1, 0, 0, scm_eval);
-#ifdef __STDC__
-SCM
-scm_eval (SCM obj)
-#else
+
 SCM
 scm_eval (obj)
      SCM obj;
-#endif
 {
   return
     scm_eval_3(obj, 1, scm_top_level_env(SCM_CDR(scm_top_level_lookup_thunk_var)));
 }
 
 SCM_PROC(s_eval_x, "eval!", 1, 0, 0, scm_eval_x);
-#ifdef __STDC__
-SCM
-scm_eval_x (SCM obj)
-#else
+
 SCM
 scm_eval_x (obj)
      SCM obj;
-#endif
 {
   return
     scm_eval_3(obj,
@@ -3030,28 +2815,20 @@ scm_eval_x (obj)
 }
 
 SCM_PROC (s_macro_eval_x, "macro-eval!", 2, 0, 0, scm_macro_eval_x);
-#ifdef __STDC__
-SCM
-scm_macro_eval_x (SCM exp, SCM env)
-#else
+
 SCM
 scm_macro_eval_x (exp, env)
      SCM exp;
      SCM env;
-#endif
 {
   return scm_eval_3 (exp, 0, env);
 }
 
-#ifdef __STDC__
-SCM 
-scm_definedp (SCM x, SCM env)
-#else
+
 SCM 
 scm_definedp (x, env)
      SCM x;
      SCM env;
-#endif
 {
   SCM proc = SCM_CAR (x = SCM_CDR (x));
   if (SCM_ISYMP (proc))
@@ -3071,16 +2848,12 @@ static scm_smobfuns promsmob =
 static scm_smobfuns macrosmob =
 {scm_markcdr, scm_free0, prinmacro};
 
-#ifdef __STDC__
-SCM 
-scm_make_synt (char *name, SCM (*macroizer) (), SCM (*fcn) ())
-#else
+
 SCM 
 scm_make_synt (name, macroizer, fcn)
      char *name;
      SCM (*macroizer) ();
      SCM (*fcn) ();
-#endif
 {
   SCM symcell = scm_sysintern (name, SCM_UNDEFINED);
   long tmp = ((((SCM_CELLPTR) (SCM_CAR (symcell))) - scm_heap_org) << 8);
@@ -3104,13 +2877,9 @@ scm_make_synt (name, macroizer, fcn)
 #endif
 
 
-#ifdef __STDC__
-void 
-scm_init_eval (void)
-#else
+
 void 
 scm_init_eval ()
-#endif
 {
   scm_tc16_promise = scm_newsmob (&promsmob);
   scm_tc16_macro = scm_newsmob (&macrosmob);

@@ -71,15 +71,13 @@ extern char *getenv ();
 /* {Printing Objects to Strings} 
  */
 
-#ifdef __STDC__
-static GSCM_status
-gscm_portprint_obj (SCM port, SCM obj)
-#else
+
+static GSCM_status gscm_portprint_obj SCM_P ((SCM port, SCM obj));
+
 static GSCM_status
 gscm_portprint_obj (port, obj)
      SCM port;
      SCM obj;
-#endif
 {
   scm_prin1 (obj, port, 1);
   return GSCM_OK;
@@ -94,14 +92,12 @@ struct seval_str_frame
   char * str;
 };
 
-#ifdef __STDC__
-static void
-_seval_str_fn (void * vframe)
-#else
+
+static void _seval_str_fn SCM_P ((void * vframe));
+
 static void
 _seval_str_fn (vframe)
      void * vframe;
-#endif
 {
   struct seval_str_frame * frame;
   frame = (struct seval_str_frame *)vframe;
@@ -110,15 +106,13 @@ _seval_str_fn (vframe)
 
 
 
-#ifdef __STDC__
-static GSCM_status
-gscm_strprint_obj (SCM * answer, SCM obj)
-#else
+
+static GSCM_status gscm_strprint_obj SCM_P ((SCM * answer, SCM obj));
+
 static GSCM_status
 gscm_strprint_obj (answer, obj)
      SCM * answer;
      SCM obj;
-#endif
 {
   SCM str;
   SCM port;
@@ -133,15 +127,13 @@ gscm_strprint_obj (answer, obj)
   return stat;
 }
 
-#ifdef __STDC__
-static GSCM_status
-gscm_cstr (char ** answer, SCM obj)
-#else
+
+static GSCM_status gscm_cstr SCM_P ((char ** answer, SCM obj));
+
 static GSCM_status
 gscm_cstr (answer, obj)
      char ** answer;
      SCM obj;
-#endif
 {
   GSCM_status stat;
 
@@ -158,14 +150,12 @@ gscm_cstr (answer, obj)
 /* {Invoking The Interpreter}
  */
 
-#ifdef __STDC__
-static SCM
-gscm_silent_repl (SCM env)
-#else
+
+static SCM gscm_silent_repl SCM_P ((SCM env));
+
 static SCM
 gscm_silent_repl (env)
      SCM env;
-#endif
 {
   SCM source;
   SCM answer;
@@ -182,17 +172,15 @@ typedef int setjmp_type;
 typedef long setjmp_type;
 #endif
 
-#ifdef __STDC__
-static GSCM_status
-_eval_port (SCM * answer, GSCM_top_level toplvl, SCM port, int printp)
-#else
+
+static GSCM_status _eval_port SCM_P ((SCM * answer, GSCM_top_level toplvl, SCM port, int printp));
+
 static GSCM_status
 _eval_port (answer, toplvl, port, printp)
      SCM * answer;
      GSCM_top_level toplvl;
      SCM port;
      int printp;
-#endif
 {
   SCM saved_inp;
   GSCM_status status;
@@ -259,16 +247,14 @@ _eval_port (answer, toplvl, port, printp)
   return status;
 }
 
-#ifdef __STDC__
-static GSCM_status
-seval_str (SCM *answer, GSCM_top_level toplvl, char * str)
-#else
+
+static GSCM_status seval_str SCM_P ((SCM *answer, GSCM_top_level toplvl, char * str));
+
 static GSCM_status
 seval_str (answer, toplvl, str)
      SCM *answer;
      GSCM_top_level toplvl;
      char * str;
-#endif
 {
   SCM scheme_str;
   SCM port;
@@ -281,16 +267,12 @@ seval_str (answer, toplvl, str)
 }
 
 
-#ifdef __STDC__
-GSCM_status
-gscm_seval_str (SCM *answer, GSCM_top_level toplvl, char * str)
-#else
+
 GSCM_status
 gscm_seval_str (answer, toplvl, str)
      SCM *answer;
      GSCM_top_level toplvl;
      char * str;
-#endif
 {
   SCM_STACKITEM i;
   GSCM_status status;
@@ -300,15 +282,11 @@ gscm_seval_str (answer, toplvl, str)
   return status;
 }
 
-#ifdef __STDC__
-void
-format_load_command (char * buf, char *file_name)
-#else
+
 void
 format_load_command (buf, file_name)
      char * buf;
      char *file_name;
-#endif
 {
   char quoted_name[MAXPATHLEN + 1];
   int source;
@@ -324,16 +302,12 @@ format_load_command (buf, file_name)
   sprintf (buf, "(%%try-load \"%s\")", quoted_name);
 }
 
-#ifdef __STDC__
-GSCM_status
-gscm_seval_file (SCM *answer, GSCM_top_level toplvl, char * file_name)
-#else
+
 GSCM_status
 gscm_seval_file (answer, toplvl, file_name)
      SCM *answer;
      GSCM_top_level toplvl;
      char * file_name;
-#endif
 {
   char command[MAXPATHLEN * 3];
   format_load_command (command, file_name);
@@ -341,16 +315,14 @@ gscm_seval_file (answer, toplvl, file_name)
 }
 
 
-#ifdef __STDC__
-static GSCM_status
-eval_str (char ** answer, GSCM_top_level toplvl, char * str)
-#else
+
+static GSCM_status eval_str SCM_P ((char ** answer, GSCM_top_level toplvl, char * str));
+
 static GSCM_status
 eval_str (answer, toplvl, str)
      char ** answer;
      GSCM_top_level toplvl;
      char * str;
-#endif
 {
   SCM sanswer;
   SCM scheme_str;
@@ -371,16 +343,12 @@ eval_str (answer, toplvl, str)
 }
 
 
-#ifdef __STDC__
-GSCM_status
-gscm_eval_str (char ** answer, GSCM_top_level toplvl, char * str)
-#else
+
 GSCM_status
 gscm_eval_str (answer, toplvl, str)
      char ** answer;
      GSCM_top_level toplvl;
      char * str;
-#endif
 {
   SCM_STACKITEM i;
   GSCM_status status;
@@ -391,16 +359,12 @@ gscm_eval_str (answer, toplvl, str)
 }
 
 
-#ifdef __STDC__
-GSCM_status
-gscm_eval_file (char ** answer, GSCM_top_level toplvl, char * file_name)
-#else
+
 GSCM_status
 gscm_eval_file (answer, toplvl, file_name)
      char ** answer;
      GSCM_top_level toplvl;
      char * file_name;
-#endif
 {
   char command[MAXPATHLEN * 3];
   format_load_command (command, file_name);
@@ -430,14 +394,10 @@ static char * gscm_error_msgs[] =
   AT(GSCM_ERROR_OPENING_INIT_FILE) "Error opening init file."
 };
 
-#ifdef __STDC__
-char *
-gscm_error_msg (int n)
-#else
+
 char *
 gscm_error_msg (n)
      int n;
-#endif
 {
   if ((n < 0) || (n > (sizeof (gscm_error_msgs) / sizeof (char *))))
     return "Unrecognized error.";
@@ -450,10 +410,7 @@ gscm_error_msg (n)
 /* {Defining New Procedures}
  */
 
-#ifdef __STDC__
-SCM
-gscm_make_subr (SCM (*fn)(), int req, int opt, int varp, char * doc)
-#else
+
 SCM
 gscm_make_subr (fn, req, opt, varp, doc)
      SCM (*fn)();
@@ -461,19 +418,14 @@ gscm_make_subr (fn, req, opt, varp, doc)
      int opt;
      int varp;
      char * doc;
-#endif
 {
   return scm_make_gsubr ("*anonymous*", req, opt, varp, fn);
 }
 
-#ifdef __STDC__
-int
-gscm_2_char (SCM c)
-#else
+
 int
 gscm_2_char (c)
      SCM c;
-#endif
 {
   SCM_ASSERT (SCM_ICHRP (c), c, SCM_ARG1, "gscm_2_char");
   return SCM_ICHR (c);
@@ -481,16 +433,12 @@ gscm_2_char (c)
 
 
 
-#ifdef __STDC__
-void
-gscm_2_str (char ** out, int * len_out, SCM * objp)
-#else
+
 void
 gscm_2_str (out, len_out, objp)
      char ** out;
      int * len_out;
      SCM * objp;
-#endif
 {
   SCM_ASSERT (SCM_NIMP (*objp) && SCM_STRINGP (*objp), *objp, SCM_ARG3, "gscm_2_str");
   if (out)
@@ -500,15 +448,11 @@ gscm_2_str (out, len_out, objp)
 }
 
 
-#ifdef __STDC__
-void
-gscm_error (char * message, SCM args)
-#else
+
 void
 gscm_error (message, args)
      char * message;
      SCM args;
-#endif
 {
   SCM errsym;
   SCM str;
@@ -519,10 +463,7 @@ gscm_error (message, args)
 }
 
 
-#ifdef __STDC__
-GSCM_status
-gscm_run_scm (int argc, char ** argv, FILE * in, FILE * out, FILE * err, GSCM_status (*initfn)(), char * initfile, char * initcmd)
-#else
+
 GSCM_status
 gscm_run_scm (argc, argv, in, out, err, initfn, initfile, initcmd)
      int argc;
@@ -533,7 +474,6 @@ gscm_run_scm (argc, argv, in, out, err, initfn, initfile, initcmd)
      GSCM_status (*initfn)();
      char * initfile;
      char * initcmd;
-#endif
 {
   SCM_STACKITEM i;
   GSCM_status status;
@@ -645,13 +585,9 @@ gscm_run_scm (argc, argv, in, out, err, initfn, initfile, initcmd)
 
 
 
-#ifdef __STDC__
-void
-scm_init_guile (void)
-#else
+
 void
 scm_init_guile ()
-#endif
 {
 #include "gscm.x"
 }

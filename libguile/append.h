@@ -48,21 +48,8 @@
 
 
 
-
-
-
-#ifdef __STDC__
-extern SCM scm_append (SCM objs);
-extern SCM scm_append_x (SCM objs);
-extern void scm_init_append (void);
-
-#else /* STDC */
-extern SCM scm_append ();
-extern SCM scm_append_x ();
-extern void scm_init_append ();
-
-#endif /* STDC */
-
-
+extern SCM scm_append SCM_P ((SCM objs));
+extern SCM scm_append_x SCM_P ((SCM objs));
+extern void scm_init_append SCM_P ((void));
 
 #endif  /* APPENDH */

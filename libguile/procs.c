@@ -50,17 +50,13 @@
 /* {Procedures}
  */
 
-#ifdef __STDC__
-SCM 
-scm_make_subr_opt (char *name, int type, SCM (*fcn) (), int set)
-#else
+
 SCM 
 scm_make_subr_opt (name, type, fcn, set)
      char *name;
      int type;
      SCM (*fcn) ();
      int set;
-#endif
 {
   SCM symcell;
   long tmp;
@@ -78,30 +74,22 @@ scm_make_subr_opt (name, type, fcn, set)
 }
 
 
-#ifdef __STDC__
-SCM 
-scm_make_subr (char *name, int type, SCM (*fcn) ())
-#else
+
 SCM 
 scm_make_subr (name, type, fcn)
      char *name;
      int type;
      SCM (*fcn) ();
-#endif
 {
   return scm_make_subr_opt (name, type, fcn, 1);
 }
 
 #ifdef CCLO
-#ifdef __STDC__
-SCM 
-scm_makcclo (SCM proc, long len)
-#else
+
 SCM 
 scm_makcclo (proc, len)
      SCM proc;
      long len;
-#endif
 {
   SCM s;
   SCM_NEWCELL (s);
@@ -119,14 +107,10 @@ scm_makcclo (proc, len)
 
 
 SCM_PROC(s_procedure_p, "procedure?", 1, 0, 0, scm_procedure_p);
-#ifdef __STDC__
-SCM 
-scm_procedure_p (SCM obj)
-#else
+
 SCM 
 scm_procedure_p (obj)
      SCM obj;
-#endif
 {
   if (SCM_NIMP (obj))
     switch (SCM_TYP7 (obj))
@@ -175,15 +159,11 @@ scm_thunk_p (obj)
 }
 
 
-#ifdef __STDC__
-void
-scm_init_iprocs(scm_iproc *subra, int type)
-#else
+
 void
 scm_init_iprocs(subra, type)
      scm_iproc *subra;
      int type;
-#endif
 {
   for(;subra->scm_string; subra++)
     scm_make_subr(subra->scm_string,
@@ -194,13 +174,9 @@ scm_init_iprocs(subra, type)
 
 
 
-#ifdef __STDC__
-void
-scm_init_procs (void)
-#else
+
 void
 scm_init_procs ()
-#endif
 {
 #include "procs.x"
 }

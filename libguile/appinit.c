@@ -45,13 +45,8 @@
 
 
 
-#ifdef __STDC__
-void
-scm_appinit (void)
-#else
+
 void
 scm_appinit ()
-#endif
 {
 }
-

@@ -60,6 +60,14 @@
 #include <unistd.h>
 #endif
 
+#ifdef __STDC__
+#include <stdarg.h>
+#define var_start(x, y) va_start(x, y)
+#else
+#include <varargs.h>
+#define var_start(x, y) va_start(x)
+#endif
+
 
 /* {heap tuning parameters}
  * 
@@ -798,14 +806,10 @@ scm_mark_locations (x, n)
    regarded as a pointer to a cell on the heap.  The code is duplicated
    from scm_mark_locations.  */
 
-#ifdef __STDC__
-int
-scm_cellp (SCM value)
-#else
+
 int
 scm_cellp (value)
      SCM value;
-#endif
 {
   register int i, j;
   register SCM_CELLPTR ptr;
@@ -1585,6 +1589,7 @@ void
 scm_remember (ptr)
      SCM * ptr;
 {}
+
 
 #ifdef __STDC__
 SCM

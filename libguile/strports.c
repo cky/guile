@@ -57,30 +57,26 @@
  *
  */
 
-#ifdef __STDC__
+
+static int prinstpt SCM_P ((SCM exp, SCM port, scm_print_state *pstate));
+
 static int 
-prinstpt (SCM exp, SCM port, int writing)
-#else
-static int 
-prinstpt (exp, port, writing)
+prinstpt (exp, port, pstate)
      SCM exp;
      SCM port;
-     int writing;
-#endif
+     scm_print_state *pstate;
 {
   scm_prinport (exp, port, "string");
   return !0;
 }
 
-#ifdef __STDC__
-static int 
-stputc (int c, SCM p)
-#else
+
+static int stputc SCM_P ((int c, SCM p));
+
 static int 
 stputc (c, p)
      int c;
      SCM p;
-#endif
 {
   scm_sizet ind = SCM_INUM (SCM_CAR (p));
   SCM_DEFER_INTS;
@@ -92,17 +88,15 @@ stputc (c, p)
   return c;
 }
 
-#ifdef __STDC__
-static scm_sizet 
-stwrite (char *str, scm_sizet siz, scm_sizet num, SCM p)
-#else
+
+static scm_sizet stwrite SCM_P ((char *str, scm_sizet siz, scm_sizet num, SCM p));
+
 static scm_sizet 
 stwrite (str, siz, num, p)
      char *str;
      scm_sizet siz;
      scm_sizet num;
      SCM p;
-#endif
 {
   scm_sizet ind = SCM_INUM (SCM_CAR (p));
   scm_sizet len = siz * num;
@@ -118,28 +112,24 @@ stwrite (str, siz, num, p)
   return num;
 }
 
-#ifdef __STDC__
-static int 
-stputs (char *s, SCM p)
-#else
+
+static int stputs SCM_P ((char *s, SCM p));
+
 static int 
 stputs (s, p)
      char *s;
      SCM p;
-#endif
 {
   stwrite (s, 1, strlen (s), p);
   return 0;
 }
 
-#ifdef __STDC__
-static int 
-stgetc (SCM p)
-#else
+
+static int stgetc SCM_P ((SCM p));
+
 static int 
 stgetc (p)
      SCM p;
-#endif
 {
   scm_sizet ind = SCM_INUM (SCM_CAR (p));
   if (ind >= SCM_ROLENGTH (SCM_CDR (p)))
@@ -148,17 +138,13 @@ stgetc (p)
   return SCM_ROUCHARS (SCM_CDR (p))[ind];
 }
 
-#ifdef __STDC__
-SCM 
-scm_mkstrport (SCM pos, SCM str, long modes, char * caller)
-#else
+
 SCM 
 scm_mkstrport (pos, str, modes, caller)
      SCM pos;
      SCM str;
      long modes;
      char * caller;
-#endif
 {
   SCM z;
   SCM stream;
@@ -178,14 +164,10 @@ scm_mkstrport (pos, str, modes, caller)
 }
 
 SCM_PROC(s_call_with_output_string, "call-with-output-string", 1, 0, 0, scm_call_with_output_string);
-#ifdef __STDC__
-SCM 
-scm_call_with_output_string (SCM proc)
-#else
+
 SCM 
 scm_call_with_output_string (proc)
      SCM proc;
-#endif
 {
   SCM p;
   p = scm_mkstrport(SCM_INUM0, scm_make_string(SCM_MAKINUM(30), SCM_UNDEFINED),
@@ -208,14 +190,10 @@ scm_call_with_output_string (proc)
 /* Return a Scheme string obtained by printing a given object.
  */
 
-#ifdef __STDC__
-SCM
-scm_strprint_obj (SCM obj)
-#else
+
 SCM
 scm_strprint_obj (obj)
      SCM obj;
-#endif
 {
   SCM str;
   SCM port;
@@ -238,28 +216,22 @@ scm_strprint_obj (obj)
 
 
 SCM_PROC(s_call_with_input_string, "call-with-input-string", 2, 0, 0, scm_call_with_input_string);
-#ifdef __STDC__
-SCM 
-scm_call_with_input_string (SCM str, SCM proc)
-#else
+
 SCM 
 scm_call_with_input_string (str, proc)
      SCM str;
      SCM proc;
-#endif
 {
   SCM p = scm_mkstrport(SCM_INUM0, str, SCM_OPN | SCM_RDNG, s_call_with_input_string);
   return scm_apply (proc, p, scm_listofnull);
 }
 
-#ifdef __STDC__
-static int 
-noop0 (FILE *stream)
-#else
+
+static int noop0 SCM_P ((SCM stream));
+
 static int 
 noop0 (stream)
-     FILE *stream;
-#endif
+     SCM stream;
 {
   return 0;
 }
@@ -280,13 +252,9 @@ scm_ptobfuns scm_stptob =
 };
 
 
-#ifdef __STDC__
-void
-scm_init_strports (void)
-#else
+
 void
 scm_init_strports ()
-#endif
 {
 #include "strports.x"
 }

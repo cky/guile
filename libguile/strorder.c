@@ -48,15 +48,11 @@
 
 
 SCM_PROC1 (s_string_equal_p, "string=?", scm_tc7_rpsubr, scm_string_equal_p);
-#ifdef __STDC__
-SCM
-scm_string_equal_p (SCM s1, SCM s2)
-#else
+
 SCM
 scm_string_equal_p (s1, s2)
      SCM s1;
      SCM s2;
-#endif
 {
   register scm_sizet i;
   register char *c1, *c2;
@@ -77,15 +73,11 @@ scm_string_equal_p (s1, s2)
 }
 
 SCM_PROC1 (s_string_ci_equal_p, "string-ci=?", scm_tc7_rpsubr, scm_string_ci_equal_p);
-#ifdef __STDC__
-SCM
-scm_string_ci_equal_p (SCM s1, SCM s2)
-#else
+
 SCM
 scm_string_ci_equal_p (s1, s2)
      SCM s1;
      SCM s2;
-#endif
 {
   register scm_sizet i;
   register unsigned char *c1, *c2;
@@ -105,15 +97,11 @@ scm_string_ci_equal_p (s1, s2)
 }
 
 SCM_PROC1 (s_string_less_p, "string<?", scm_tc7_rpsubr, scm_string_less_p);
-#ifdef __STDC__
-SCM
-scm_string_less_p (SCM s1, SCM s2)
-#else
+
 SCM
 scm_string_less_p (s1, s2)
      SCM s1;
      SCM s2;
-#endif
 {
   register scm_sizet i, len, s2len;
   register unsigned char *c1, *c2;
@@ -142,57 +130,41 @@ scm_string_less_p (s1, s2)
 }
 
 SCM_PROC1 (s_string_leq_p, "string<=?", scm_tc7_rpsubr, scm_string_leq_p);
-#ifdef __STDC__
-SCM
-scm_string_leq_p (SCM s1, SCM s2)
-#else
+
 SCM
 scm_string_leq_p (s1, s2)
      SCM s1;
      SCM s2;
-#endif
 {
   return SCM_BOOL_NOT (scm_string_less_p (s2, s1));
 }
 
 SCM_PROC1 (s_string_gr_p, "string>?", scm_tc7_rpsubr, scm_string_gr_p);
-#ifdef __STDC__
-SCM
-scm_string_gr_p (SCM s1, SCM s2)
-#else
+
 SCM
 scm_string_gr_p (s1, s2)
      SCM s1;
      SCM s2;
-#endif
 {
   return scm_string_less_p (s2, s1);
 }
 
 SCM_PROC1 (s_string_geq_p, "string>=?", scm_tc7_rpsubr, scm_string_geq_p);
-#ifdef __STDC__
-SCM
-scm_string_geq_p (SCM s1, SCM s2)
-#else
+
 SCM
 scm_string_geq_p (s1, s2)
      SCM s1;
      SCM s2;
-#endif
 {
   return SCM_BOOL_NOT (scm_string_less_p (s1, s2));
 }
 
 SCM_PROC1 (s_string_ci_less_p, "string-ci<?", scm_tc7_rpsubr, scm_string_ci_less_p);
-#ifdef __STDC__
-SCM
-scm_string_ci_less_p (SCM s1, SCM s2)
-#else
+
 SCM
 scm_string_ci_less_p (s1, s2)
      SCM s1;
      SCM s2;
-#endif
 {
   register scm_sizet i, len, s2len;
   register unsigned char *c1, *c2;
@@ -213,55 +185,39 @@ scm_string_ci_less_p (s1, s2)
 }
 
 SCM_PROC1 (s_string_ci_leq_p, "string-ci<=?", scm_tc7_rpsubr, scm_string_ci_leq_p);
-#ifdef __STDC__
-SCM
-scm_string_ci_leq_p (SCM s1, SCM s2)
-#else
+
 SCM
 scm_string_ci_leq_p (s1, s2)
      SCM s1;
      SCM s2;
-#endif
 {
   return SCM_BOOL_NOT (scm_string_ci_less_p (s2, s1));
 }
 
 SCM_PROC1 (s_string_ci_gr_p, "string-ci>?", scm_tc7_rpsubr, scm_string_ci_gr_p);
-#ifdef __STDC__
-SCM
-scm_string_ci_gr_p (SCM s1, SCM s2)
-#else
+
 SCM
 scm_string_ci_gr_p (s1, s2)
      SCM s1;
      SCM s2;
-#endif
 {
   return scm_string_ci_less_p (s2, s1);
 }
 
 SCM_PROC1 (s_string_ci_geq_p, "string-ci>=?", scm_tc7_rpsubr, scm_string_ci_geq_p);
-#ifdef __STDC__
-SCM
-scm_string_ci_geq_p (SCM s1, SCM s2)
-#else
+
 SCM
 scm_string_ci_geq_p (s1, s2)
      SCM s1;
      SCM s2;
-#endif
 {
   return SCM_BOOL_NOT (scm_string_ci_less_p (s1, s2));
 }
 
 
-#ifdef __STDC__
-void
-scm_init_strorder (void)
-#else
+
 void
 scm_init_strorder ()
-#endif
 {
 #include "strorder.x"
 }

@@ -47,29 +47,25 @@
 
 #include "variable.h"
 
-#ifdef __STDC__
-static scm_sizet
-free_var (SCM obj)
-#else
+
+static scm_sizet free_var SCM_P ((SCM obj));
+
 static scm_sizet
 free_var (obj)
      SCM obj;
-#endif
 {
   return 0;
 }
 
 
-#ifdef __STDC__
-static int
-prin_var (SCM exp, SCM port, scm_print_state *pstate)
-#else
+
+static int prin_var SCM_P ((SCM exp, SCM port, scm_print_state *pstate));
+
 static int
 prin_var (exp, port, pstate)
      SCM exp;
      SCM port;
      scm_print_state *pstate;
-#endif
 {
   scm_gen_puts (scm_regular_string, "#<variable ", port);
   scm_intprint(exp, 16, port);
@@ -88,14 +84,12 @@ prin_var (exp, port, pstate)
   return 1;
 }
 
-#ifdef __STDC__
-static SCM 
-scm_markvar (SCM ptr)
-#else
+
+static SCM scm_markvar SCM_P ((SCM ptr));
+
 static SCM 
 scm_markvar (ptr)
      SCM ptr;
-#endif
 {
   if (SCM_GC8MARKP (ptr))
     return SCM_BOOL_F;
@@ -109,14 +103,12 @@ static scm_smobfuns variable_smob = {scm_markvar, free_var, prin_var, 0};
 
 static SCM variable_sym;
 
-#ifdef __STDC__
-static SCM
-make_vcell_variable (SCM vcell)
-#else
+
+static SCM make_vcell_variable SCM_P ((SCM vcell));
+
 static SCM
 make_vcell_variable (vcell)
      SCM vcell;
-#endif
 {
   SCM answer;
   SCM_NEWCELL(answer);
@@ -128,15 +120,11 @@ make_vcell_variable (vcell)
 }
 
 SCM_PROC(s_make_variable, "make-variable", 2, 0, 0, scm_make_variable);
-#ifdef __STDC__
-SCM
-scm_make_variable (SCM init, SCM name_hint)
-#else
+
 SCM
 scm_make_variable (init, name_hint)
      SCM init;
      SCM name_hint;
-#endif
 {
   SCM val_cell;
   SCM_NEWCELL(val_cell);
@@ -149,14 +137,10 @@ scm_make_variable (init, name_hint)
 
 
 SCM_PROC(s_make_undefined_variable, "make-undefined-variable", 0, 1, 0, scm_make_undefined_variable);
-#ifdef __STDC__
-SCM
-scm_make_undefined_variable (SCM name_hint)
-#else
+
 SCM
 scm_make_undefined_variable (name_hint)
      SCM name_hint;
-#endif
 {
   SCM vcell;
 
@@ -173,14 +157,10 @@ scm_make_undefined_variable (name_hint)
 
 
 SCM_PROC(s_variable_p, "variable?", 1, 0, 0, scm_variable_p);
-#ifdef __STDC__
-SCM
-scm_variable_p (SCM obj)
-#else
+
 SCM
 scm_variable_p (obj)
      SCM obj;
-#endif
 {
   return ( (SCM_NIMP(obj) && SCM_VARIABLEP (obj))
 	  ? SCM_BOOL_T
@@ -189,14 +169,10 @@ scm_variable_p (obj)
 
 
 SCM_PROC(s_variable_ref, "variable-ref", 1, 0, 0, scm_variable_ref);
-#ifdef __STDC__
-SCM
-scm_variable_ref (SCM var)
-#else
+
 SCM
 scm_variable_ref (var)
      SCM var;
-#endif
 {
   SCM_ASSERT (SCM_NIMP(var) && SCM_VARIABLEP(var), var, SCM_ARG1, s_variable_ref);
   return SCM_CDR (SCM_CDR (var));
@@ -205,15 +181,11 @@ scm_variable_ref (var)
 
 
 SCM_PROC(s_variable_set_x, "variable-set!", 2, 0, 0, scm_variable_set_x);
-#ifdef __STDC__
-SCM
-scm_variable_set_x (SCM var, SCM val)
-#else
+
 SCM
 scm_variable_set_x (var, val)
      SCM var;
      SCM val;
-#endif
 {
   SCM_ASSERT (SCM_NIMP(var) && SCM_VARIABLEP (var), var, SCM_ARG1, s_variable_set_x);
   SCM_CDR (SCM_CDR (var)) = val;
@@ -222,14 +194,10 @@ scm_variable_set_x (var, val)
 
 
 SCM_PROC(s_builtin_variable, "builtin-variable", 1, 0, 0, scm_builtin_variable);
-#ifdef __STDC__
-SCM
-scm_builtin_variable (SCM name)
-#else
+
 SCM
 scm_builtin_variable (name)
      SCM name;
-#endif
 {
   SCM vcell;
   SCM var_slot;
@@ -253,14 +221,10 @@ scm_builtin_variable (name)
 
 
 SCM_PROC(s_variable_bound_p, "variable-bound?", 1, 0, 0, scm_variable_bound_p);
-#ifdef __STDC__
-SCM 
-scm_variable_bound_p (SCM var)
-#else
+
 SCM 
 scm_variable_bound_p (var)
      SCM var;
-#endif
 {
   SCM_ASSERT (SCM_NIMP(var) && SCM_VARIABLEP (var), var, SCM_ARG1, s_variable_bound_p);
   return (SCM_UNBNDP (SCM_CDR (SCM_VARVCELL (var)))
@@ -270,13 +234,9 @@ scm_variable_bound_p (var)
 
 
 
-#ifdef __STDC__
-void
-scm_init_variable (void)
-#else
+
 void
 scm_init_variable ()
-#endif
 {
   scm_tc16_variable = scm_newsmob (&variable_smob);
   variable_sym = SCM_CAR (scm_sysintern ("anonymous-variable", SCM_UNDEFINED));

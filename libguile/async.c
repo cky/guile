@@ -121,13 +121,10 @@ static long scm_tc16_async;
 
 
 
-#ifdef __STDC__
-static int
-asyncs_pending (void)
-#else
+static int asyncs_pending SCM_P ((void));
+
 static int
 asyncs_pending ()
-#endif
 {
   SCM pos;
   pos = scm_asyncs;
@@ -145,13 +142,9 @@ asyncs_pending ()
 }
 
 
-#ifdef __STDC__
-void
-scm_async_click (void)
-#else
+
 void
 scm_async_click ()
-#endif
 {
   int owe_switch;
   int owe_tick;
@@ -266,24 +259,18 @@ scm_async_click ()
 
 
 
-#ifdef __STDC__
-void
-scm_switch (void)
-#else
+
 void
 scm_switch ()
-#endif
 {}
 
 
-#ifdef __STDC__
-static void
-scm_deliver_signal (int num)
-#else
+
+static void scm_deliver_signal SCM_P ((int num));
+
 static void
 scm_deliver_signal (num)
      int num;
-#endif
 {
   SCM handler;
   handler = SCM_CDR (handler_var);
@@ -300,16 +287,14 @@ scm_deliver_signal (num)
 
 
 
-#ifdef __STDC__
-static int
-print_async (SCM exp, SCM port, scm_print_state *pstate)
-#else
+
+static int print_async SCM_P ((SCM exp, SCM port, scm_print_state *pstate));
+
 static int
 print_async (exp, port, pstate)
      SCM exp;
      SCM port;
      scm_print_state *pstate;
-#endif
 {
   scm_gen_puts (scm_regular_string, "#<async ", port);
   scm_intprint(exp, 16, port);
@@ -317,14 +302,12 @@ print_async (exp, port, pstate)
   return 1;
 }
 
-#ifdef __STDC__
-static SCM
-mark_async (SCM obj)
-#else
+
+static SCM mark_async SCM_P ((SCM obj));
+
 static SCM
 mark_async (obj)
      SCM obj;
-#endif
 {
   struct scm_async * it;
   if (SCM_GC8MARKP (obj))
@@ -334,14 +317,12 @@ mark_async (obj)
   return it->thunk;
 }
 
-#ifdef __STDC__
+
+static scm_sizet free_async SCM_P ((SCM obj));
+
 static scm_sizet
-free_async (SCM obj)
-#else
-static scm_sizet
-free_async (SCM obj)
+free_async (obj)
      SCM obj;
-#endif
 {
   struct scm_async * it;
   it = SCM_ASYNC (obj);
@@ -362,14 +343,10 @@ static scm_smobfuns  async_smob =
 
 
 SCM_PROC(s_async, "async", 1, 0, 0, scm_async);
-#ifdef __STDC__
-SCM
-scm_async (SCM thunk)
-#else
+
 SCM
 scm_async (thunk)
      SCM thunk;
-#endif
 {
   SCM it;
   struct scm_async * async;
@@ -387,14 +364,10 @@ scm_async (thunk)
 }
 
 SCM_PROC(s_system_async, "system-async", 1, 0, 0, scm_system_async);
-#ifdef __STDC__
-SCM 
-scm_system_async (SCM thunk)
-#else
+
 SCM 
 scm_system_async (thunk)
      SCM thunk;
-#endif
 {
   SCM it;
   SCM list;
@@ -410,14 +383,10 @@ scm_system_async (thunk)
 }
 
 SCM_PROC(s_async_mark, "async-mark", 1, 0, 0, scm_async_mark);
-#ifdef __STDC__
-SCM
-scm_async_mark (SCM a)
-#else
+
 SCM
 scm_async_mark (a)
      SCM a;
-#endif
 {
   struct scm_async * it;
   SCM_ASSERT (SCM_NIMP (a) &&  SCM_ASYNCP (a), a, SCM_ARG1, s_async_mark);
@@ -428,14 +397,10 @@ scm_async_mark (a)
 
 
 SCM_PROC(s_system_async_mark, "system-async-mark", 1, 0, 0, scm_system_async_mark);
-#ifdef __STDC__
-SCM
-scm_system_async_mark (SCM a)
-#else
+
 SCM
 scm_system_async_mark (a)
      SCM a;
-#endif
 {
   struct scm_async * it;
   SCM_ASSERT (SCM_NIMP (a) &&  SCM_ASYNCP (a), a, SCM_ARG1, s_async_mark);
@@ -450,14 +415,10 @@ scm_system_async_mark (a)
 
 
 SCM_PROC(s_run_asyncs, "run-asyncs", 1, 0, 0, scm_run_asyncs);
-#ifdef __STDC__
-SCM
-scm_run_asyncs (SCM list_of_a)
-#else
+
 SCM
 scm_run_asyncs (list_of_a)
      SCM list_of_a;
-#endif
 {
   SCM pos;
 
@@ -488,14 +449,10 @@ scm_run_asyncs (list_of_a)
 
 
 SCM_PROC(s_noop, "noop", 0, 0, 1, scm_noop);
-#ifdef __STDC__
-SCM
-scm_noop (SCM args)
-#else
+
 SCM
 scm_noop (args)
      SCM args;
-#endif
 {
   return (SCM_NULLP (args)
 	  ? SCM_BOOL_F
@@ -506,14 +463,10 @@ scm_noop (args)
 
 
 SCM_PROC(s_set_tick_rate, "set-tick-rate", 1, 0, 0, scm_set_tick_rate);
-#ifdef __STDC__
-SCM
-scm_set_tick_rate (SCM n)
-#else
+
 SCM
 scm_set_tick_rate (n)
      SCM n;
-#endif
 {
   unsigned int old_n;
   SCM_ASSERT (SCM_INUMP (n), n, SCM_ARG1, s_set_tick_rate);
@@ -528,14 +481,10 @@ scm_set_tick_rate (n)
 
 
 SCM_PROC(s_set_switch_rate, "set-switch-rate", 1, 0, 0, scm_set_switch_rate);
-#ifdef __STDC__
-SCM
-scm_set_switch_rate (SCM n)
-#else
+
 SCM
 scm_set_switch_rate (n)
      SCM n;
-#endif
 {
   unsigned int old_n;
   SCM_ASSERT (SCM_INUMP (n), n, SCM_ARG1, s_set_switch_rate);
@@ -548,97 +497,81 @@ scm_set_switch_rate (n)
 
 
 
-#ifdef __STDC__
-static SCM
-scm_sys_hup_async_thunk (void)
-#else
+
+static SCM scm_sys_hup_async_thunk SCM_P ((void));
+
 static SCM
 scm_sys_hup_async_thunk ()
-#endif
 {
   scm_deliver_signal (SCM_HUP_SIGNAL);
   return SCM_BOOL_F;
 }
 
-#ifdef __STDC__
-static SCM
-scm_sys_int_async_thunk (void)
-#else
+
+static SCM scm_sys_int_async_thunk SCM_P ((void));
+
 static SCM
 scm_sys_int_async_thunk ()
-#endif
 {
   scm_deliver_signal (SCM_INT_SIGNAL);
   return SCM_BOOL_F;
 }
 
-#ifdef __STDC__
-static SCM
-scm_sys_fpe_async_thunk (void)
-#else
+
+static SCM scm_sys_fpe_async_thunk SCM_P ((void));
+
 static SCM
 scm_sys_fpe_async_thunk ()
-#endif
 {
   scm_deliver_signal (SCM_FPE_SIGNAL);
   return SCM_BOOL_F;
 }
 
-#ifdef __STDC__
-static SCM
-scm_sys_bus_async_thunk (void)
-#else
+
+static SCM scm_sys_bus_async_thunk SCM_P ((void));
+
 static SCM
 scm_sys_bus_async_thunk ()
-#endif
 {
   scm_deliver_signal (SCM_BUS_SIGNAL);
   return SCM_BOOL_F;
 }
 
-#ifdef __STDC__
-static SCM
-scm_sys_segv_async_thunk (void)
-#else
+
+static SCM scm_sys_segv_async_thunk SCM_P ((void));
+
 static SCM
 scm_sys_segv_async_thunk ()
-#endif
 {
   scm_deliver_signal (SCM_SEGV_SIGNAL);
   return SCM_BOOL_F;
 }
 
-#ifdef __STDC__
-static SCM
-scm_sys_alrm_async_thunk (void)
-#else
+
+static SCM scm_sys_alrm_async_thunk SCM_P ((void));
+
 static SCM
 scm_sys_alrm_async_thunk ()
-#endif
 {
   scm_deliver_signal (SCM_ALRM_SIGNAL);
   return SCM_BOOL_F;
 }
 
-#ifdef __STDC__
-static SCM
-scm_sys_gc_async_thunk (void)
-#else
+
+static SCM scm_sys_gc_async_thunk SCM_P ((void));
+
 static SCM
 scm_sys_gc_async_thunk ()
-#endif
 {
   scm_deliver_signal (SCM_GC_SIGNAL);
   return SCM_BOOL_F;
 }
 
-#ifdef __STDC__
-static SCM
-scm_sys_tick_async_thunk (void)
-#else
+
+static SCM scm_sys_tick_async_thunk SCM_P ((void));
+
 static SCM
 scm_sys_tick_async_thunk ()
-#endif
 {
   scm_deliver_signal (SCM_TICK_SIGNAL);
   return SCM_BOOL_F;
@@ -648,14 +581,10 @@ scm_sys_tick_async_thunk ()
 
 
 
-#ifdef __STDC__
-SCM
-scm_take_signal (int n)
-#else
+
 SCM
 scm_take_signal (n)
      int n;
-#endif
 {
   SCM ignored;
   if (!scm_ints_disabled)
@@ -680,13 +609,9 @@ scm_take_signal (n)
 
 
 SCM_PROC(s_unmask_signals, "unmask-signals", 0, 0, 0, scm_unmask_signals);
-#ifdef __STDC__
-SCM
-scm_unmask_signals (void)
-#else
+
 SCM
 scm_unmask_signals ()
-#endif
 {
   scm_mask_ints = 0;
   return SCM_UNSPECIFIED;
@@ -694,13 +619,9 @@ scm_unmask_signals ()
 
 
 SCM_PROC(s_mask_signals, "mask-signals", 0, 0, 0, scm_mask_signals);
-#ifdef __STDC__
-SCM
-scm_mask_signals (void)
-#else
+
 SCM
 scm_mask_signals ()
-#endif
 {
   scm_mask_ints = 1;
   return SCM_UNSPECIFIED;
@@ -708,13 +629,9 @@ scm_mask_signals ()
 
 
 
-#ifdef __STDC__
-void
-scm_init_async (void)
-#else
+
 void
 scm_init_async ()
-#endif
 {
   SCM a_thunk;
   scm_tc16_async = scm_newsmob (&async_smob);

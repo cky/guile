@@ -53,29 +53,21 @@
  */
 
 SCM_PROC(s_object_properties, "object-properties", 1, 0, 0, scm_object_properties);
-#ifdef __STDC__
-SCM
-scm_object_properties (SCM obj)
-#else
+
 SCM
 scm_object_properties (obj)
      SCM obj;
-#endif
 {
   return scm_hashq_ref (scm_object_whash, obj, SCM_EOL);
 }
 
 
 SCM_PROC(s_set_object_properties_x, "set-object-properties!", 2, 0, 0, scm_set_object_properties_x);
-#ifdef __STDC__
-SCM
-scm_set_object_properties_x (SCM obj, SCM plist)
-#else
+
 SCM
 scm_set_object_properties_x (obj, plist)
      SCM obj;
      SCM plist;
-#endif
 {
   SCM handle = scm_hashq_create_handle_x (scm_object_whash, obj, plist);
   SCM_SETCDR (handle, plist);
@@ -83,15 +75,11 @@ scm_set_object_properties_x (obj, plist)
 }
 
 SCM_PROC(s_object_property, "object-property", 2, 0, 0, scm_object_property);
-#ifdef __STDC__
-SCM
-scm_object_property (SCM obj, SCM key)
-#else
+
 SCM
 scm_object_property (obj, key)
      SCM obj;
      SCM key;
-#endif
 {
   SCM assoc;
   assoc = scm_assq (key, SCM_CDR (scm_object_properties (obj)));
@@ -99,16 +87,12 @@ scm_object_property (obj, key)
 }
 
 SCM_PROC(s_set_object_property_x, "set-object-property!", 3, 0, 0, scm_set_object_property_x);
-#ifdef __STDC__
-SCM
-scm_set_object_property_x (SCM obj, SCM key, SCM val)
-#else
+
 SCM
 scm_set_object_property_x (obj, key, val)
      SCM obj;
      SCM key;
      SCM val;
-#endif
 {
   SCM h;
   SCM assoc;
@@ -126,13 +110,9 @@ scm_set_object_property_x (obj, key, val)
   return val;
 }
 
-#ifdef __STDC__
-void
-scm_init_objprop (void)
-#else
+
 void
 scm_init_objprop ()
-#endif
 {
   scm_object_whash = scm_make_weak_key_hash_table (SCM_MAKINUM (511));
 #include "objprop.x"

@@ -81,32 +81,17 @@ typedef struct scm_print_state {
 				   circular reference detection */
 } scm_print_state;
 
-#ifdef __STDC__
-extern SCM scm_print_options (SCM setting);
-extern void scm_intprint (long n, int radix, SCM port);
-extern void scm_ipruk (char *hdr, SCM ptr, SCM port);
-extern void scm_iprlist (char *hdr, SCM exp, char tlr, SCM port, scm_print_state *pstate);
-extern void scm_prin1 (SCM exp, SCM port, int writingp);
-extern void scm_iprin1 (SCM exp, SCM port, scm_print_state *pstate);
-extern SCM scm_write (SCM obj, SCM port);
-extern SCM scm_display (SCM obj, SCM port);
-extern SCM scm_newline(SCM port);
-extern SCM scm_write_char (SCM chr, SCM port);
-extern void scm_init_print (void);
 
-#else /* STDC */
-extern SCM scm_print_options ();
-extern void scm_intprint ();
-extern void scm_ipruk ();
-extern void scm_iprlist ();
-extern void scm_prin1 ();
-extern void scm_iprin1 ();
-extern SCM scm_write ();
-extern SCM scm_display ();
-extern SCM scm_newline();
-extern SCM scm_write_char ();
-extern void scm_init_print ();
-
-#endif /* STDC */
+extern SCM scm_print_options SCM_P ((SCM setting));
+extern void scm_intprint SCM_P ((long n, int radix, SCM port));
+extern void scm_ipruk SCM_P ((char *hdr, SCM ptr, SCM port));
+extern void scm_iprlist SCM_P ((char *hdr, SCM exp, char tlr, SCM port, scm_print_state *pstate));
+extern void scm_prin1 SCM_P ((SCM exp, SCM port, int writingp));
+extern void scm_iprin1 SCM_P ((SCM exp, SCM port, scm_print_state *pstate));
+extern SCM scm_write SCM_P ((SCM obj, SCM port));
+extern SCM scm_display SCM_P ((SCM obj, SCM port));
+extern SCM scm_newline SCM_P ((SCM port));
+extern SCM scm_write_char SCM_P ((SCM chr, SCM port));
+extern void scm_init_print SCM_P ((void));
 
 #endif  /* PRINTH */

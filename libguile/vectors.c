@@ -49,28 +49,20 @@
 
 
 SCM_PROC(s_vector_p, "vector?", 1, 0, 0, scm_vector_p);
-#ifdef __STDC__
-SCM
-scm_vector_p(SCM x)
-#else
+
 SCM
 scm_vector_p(x)
      SCM x;
-#endif
 {
   if SCM_IMP(x) return SCM_BOOL_F;
   return SCM_VECTORP(x) ? SCM_BOOL_T : SCM_BOOL_F;
 }
 
 SCM_PROC(s_vector_length, "vector-length", 1, 0, 0, scm_vector_length);
-#ifdef __STDC__
-SCM
-scm_vector_length(SCM v)
-#else
+
 SCM
 scm_vector_length(v)
      SCM v;
-#endif
 {
   SCM_ASSERT(SCM_NIMP(v) && SCM_VECTORP(v), v, SCM_ARG1, s_vector_length);
   return SCM_MAKINUM(SCM_LENGTH(v));
@@ -78,14 +70,10 @@ scm_vector_length(v)
 
 SCM_PROC(s_list_to_vector, "list->vector", 1, 0, 0, scm_vector);
 SCM_PROC(s_vector, "vector", 0, 0, 1, scm_vector);
-#ifdef __STDC__
-SCM
-scm_vector(SCM l)
-#else
+
 SCM
 scm_vector(l)
      SCM l;
-#endif
 {
   SCM res;
   register SCM *data;
@@ -99,15 +87,11 @@ scm_vector(l)
 }
 
 SCM_PROC(s_vector_ref, "vector-ref", 2, 0, 0, scm_vector_ref);
-#ifdef __STDC__
-SCM
-scm_vector_ref(SCM v, SCM k)
-#else
+
 SCM
 scm_vector_ref(v, k)
      SCM v;
      SCM k;
-#endif
 {
   SCM_ASSERT(SCM_NIMP(v) && SCM_VECTORP(v), v, SCM_ARG1, s_vector_ref);
   SCM_ASSERT(SCM_INUMP(k), k, SCM_ARG2, s_vector_ref);
@@ -117,16 +101,12 @@ scm_vector_ref(v, k)
 
 
 SCM_PROC(s_vector_set_x, "vector-set!", 3, 0, 0, scm_vector_set_x);
-#ifdef __STDC__
-SCM
-scm_vector_set_x(SCM v, SCM k, SCM obj)
-#else
+
 SCM
 scm_vector_set_x(v, k, obj)
      SCM v;
      SCM k;
      SCM obj;
-#endif
 {
   SCM_ASSERT(SCM_NIMP(v) && SCM_VECTORP(v), v, SCM_ARG1, s_vector_set_x);
   SCM_ASSERT(SCM_INUMP(k), k, SCM_ARG2, s_vector_set_x);
@@ -137,16 +117,12 @@ scm_vector_set_x(v, k, obj)
 
 
 SCM_PROC(s_make_vector, "make-vector", 1, 2, 0, scm_make_vector);
-#ifdef __STDC__
-SCM
-scm_make_vector(SCM k, SCM fill, SCM multip)
-#else
+
 SCM
 scm_make_vector(k, fill, multip)
      SCM k;
      SCM fill;
      SCM multip;
-#endif
 {
   SCM v;
   int multi;
@@ -180,14 +156,10 @@ scm_make_vector(k, fill, multip)
 
 
 SCM_PROC(s_vector_to_list, "vector->list", 1, 0, 0, scm_vector_to_list);
-#ifdef __STDC__
-SCM
-scm_vector_to_list(SCM v)
-#else
+
 SCM
 scm_vector_to_list(v)
      SCM v;
-#endif
 {
   SCM res = SCM_EOL;
   long i;
@@ -200,15 +172,11 @@ scm_vector_to_list(v)
 
 
 SCM_PROC(s_vector_fill_x, "vector-fill!", 2, 0, 0, scm_vector_fill_x);
-#ifdef __STDC__
-SCM
-scm_vector_fill_x(SCM v, SCM fill_x)
-#else
+
 SCM
 scm_vector_fill_x(v, fill_x)
      SCM v;
      SCM fill_x;
-#endif
 {
   register long i;
   register SCM *data;
@@ -219,15 +187,11 @@ scm_vector_fill_x(v, fill_x)
 }
 
 
-#ifdef __STDC__
-SCM
-scm_vector_equal_p(SCM x, SCM y)
-#else
+
 SCM
 scm_vector_equal_p(x, y)
      SCM x;
      SCM y;
-#endif
 {
   long i;
   for(i = SCM_LENGTH(x)-1;i >= 0;i--)
@@ -238,10 +202,7 @@ scm_vector_equal_p(x, y)
 
 
 SCM_PROC (s_vector_move_left_x, "vector-move-left!", 5, 0, 0, scm_vector_move_left_x);
-#ifdef __STDC__
-SCM
-scm_vector_move_left_x (SCM vec1, SCM start1, SCM end1, SCM vec2, SCM start2)
-#else
+
 SCM
 scm_vector_move_left_x (vec1, start1, end1, vec2, start2)
      SCM vec1;
@@ -249,7 +210,6 @@ scm_vector_move_left_x (vec1, start1, end1, vec2, start2)
      SCM end1;
      SCM vec2;
      SCM start2;
-#endif
 {
   long i;
   long j;
@@ -272,10 +232,7 @@ scm_vector_move_left_x (vec1, start1, end1, vec2, start2)
 }
 
 SCM_PROC (s_vector_move_right_x, "vector-move-right!", 5, 0, 0, scm_vector_move_right_x);
-#ifdef __STDC__
-SCM
-scm_vector_move_right_x (SCM vec1, SCM start1, SCM end1, SCM vec2, SCM start2)
-#else
+
 SCM
 scm_vector_move_right_x (vec1, start1, end1, vec2, start2)
      SCM vec1;
@@ -283,7 +240,6 @@ scm_vector_move_right_x (vec1, start1, end1, vec2, start2)
      SCM end1;
      SCM vec2;
      SCM start2;
-#endif
 {
   long i;
   long j;
@@ -306,13 +262,9 @@ scm_vector_move_right_x (vec1, start1, end1, vec2, start2)
 }
 
 
-#ifdef __STDC__
-void
-scm_init_vectors (void)
-#else
+
 void
 scm_init_vectors ()
-#endif
 {
 #include "vectors.x"
 }

@@ -46,18 +46,10 @@
 #include "libguile/__scm.h"
 
 
-#ifdef __STDC__
-extern SCM scm_eq_p (SCM x, SCM y);
-extern SCM scm_eqv_p (SCM x, SCM y);
-extern SCM scm_equal_p (SCM x, SCM y);
-extern void scm_init_eq (void);
 
-#else /* STDC */
-extern SCM scm_eq_p ();
-extern SCM scm_eqv_p ();
-extern SCM scm_equal_p ();
-extern void scm_init_eq ();
-
-#endif /* STDC */
+extern SCM scm_eq_p SCM_P ((SCM x, SCM y));
+extern SCM scm_eqv_p SCM_P ((SCM x, SCM y));
+extern SCM scm_equal_p SCM_P ((SCM x, SCM y));
+extern void scm_init_eq SCM_P ((void));
 
 #endif  /* EQH */

@@ -47,31 +47,14 @@
 #include "libguile/__scm.h"
 
 
-#ifdef __STDC__
-extern unsigned long scm_hasher(SCM obj, unsigned long n, scm_sizet d);
-extern unsigned int scm_ihashq (SCM obj, unsigned int n);
-extern SCM scm_hashq(SCM obj, SCM n);
-extern unsigned int scm_ihashv (SCM obj, unsigned int n);
-extern SCM scm_hashv(SCM obj, SCM n);
-extern unsigned int scm_ihash (SCM obj, unsigned int n);
-extern SCM scm_hash(SCM obj, SCM n);
-extern void scm_init_hash (void);
 
-#else /* STDC */
-extern unsigned long scm_hasher();
-extern unsigned int scm_ihashq ();
-extern SCM scm_hashq();
-extern unsigned int scm_ihashv ();
-extern SCM scm_hashv();
-extern unsigned int scm_ihash ();
-extern SCM scm_hash();
-extern void scm_init_hash ();
-
-#endif /* STDC */
-
-
-
-
-
+extern unsigned long scm_hasher SCM_P ((SCM obj, unsigned long n, scm_sizet d));
+extern unsigned int scm_ihashq SCM_P ((SCM obj, unsigned int n));
+extern SCM scm_hashq SCM_P ((SCM obj, SCM n));
+extern unsigned int scm_ihashv SCM_P ((SCM obj, unsigned int n));
+extern SCM scm_hashv SCM_P ((SCM obj, SCM n));
+extern unsigned int scm_ihash SCM_P ((SCM obj, unsigned int n));
+extern SCM scm_hash SCM_P ((SCM obj, SCM n));
+extern void scm_init_hash SCM_P ((void));
 
 #endif  /* HASHH */

@@ -48,42 +48,18 @@
 
 
 
-#ifdef __STDC__
-extern int scm_i_index (SCM * str, SCM chr, SCM sub_start, SCM sub_end, int pos, int pos2, int pos3, int pos4, char * why);
-extern int scm_i_rindex (SCM * str, SCM chr, SCM sub_start, SCM sub_end, int pos, int pos2, int pos3, int pos4, char * why);
-extern SCM scm_string_index (SCM str, SCM chr, SCM frm, SCM to);
-extern SCM scm_string_rindex (SCM str, SCM chr, SCM frm, SCM to);
-extern SCM scm_substring_move_left_x (SCM str1, SCM start1, SCM args);
-extern SCM scm_substring_move_right_x (SCM str1, SCM start1, SCM args);
-extern SCM scm_substring_fill_x (SCM str, SCM start, SCM args);
-extern SCM scm_string_null_p (SCM str);
-extern SCM scm_string_to_list (SCM str);
-extern SCM scm_string_copy (SCM str);
-extern SCM scm_string_fill_x (SCM str, SCM chr);
-extern void scm_init_strop (void);
 
-#else /* STDC */
-extern int scm_i_index ();
-extern int scm_i_rindex ();
-extern SCM scm_string_index ();
-extern SCM scm_string_rindex ();
-extern SCM scm_substring_move_left_x ();
-extern SCM scm_substring_move_right_x ();
-extern SCM scm_substring_fill_x ();
-extern SCM scm_string_null_p ();
-extern SCM scm_string_to_list ();
-extern SCM scm_string_copy ();
-extern SCM scm_string_fill_x ();
-extern void scm_init_strop ();
-
-#endif /* STDC */
-
-
-
-
-
-
-
-
+extern int scm_i_index SCM_P ((SCM * str, SCM chr, SCM sub_start, SCM sub_end, int pos, int pos2, int pos3, int pos4, char * why));
+extern int scm_i_rindex SCM_P ((SCM * str, SCM chr, SCM sub_start, SCM sub_end, int pos, int pos2, int pos3, int pos4, char * why));
+extern SCM scm_string_index SCM_P ((SCM str, SCM chr, SCM frm, SCM to));
+extern SCM scm_string_rindex SCM_P ((SCM str, SCM chr, SCM frm, SCM to));
+extern SCM scm_substring_move_left_x SCM_P ((SCM str1, SCM start1, SCM args));
+extern SCM scm_substring_move_right_x SCM_P ((SCM str1, SCM start1, SCM args));
+extern SCM scm_substring_fill_x SCM_P ((SCM str, SCM start, SCM args));
+extern SCM scm_string_null_p SCM_P ((SCM str));
+extern SCM scm_string_to_list SCM_P ((SCM str));
+extern SCM scm_string_copy SCM_P ((SCM str));
+extern SCM scm_string_fill_x SCM_P ((SCM str, SCM chr));
+extern void scm_init_strop SCM_P ((void));
 
 #endif  /* STROPH */

@@ -65,6 +65,8 @@ int scm_ints_disabled = 1;
 
 extern int errno;
 
+static void err_head SCM_P ((char *str));
+
 static void 
 err_head (str)
      char *str;

@@ -70,37 +70,16 @@
 
 
 
-#ifdef __STDC__
-extern SCM scm_make_struct_layout (SCM fields);
-extern SCM scm_struct_p (SCM x);
-extern SCM scm_struct_vtable_p (SCM x);
-extern SCM scm_make_struct (SCM vtable, SCM tail_array_size, SCM init);
-extern SCM scm_make_vtable_vtable (SCM extra_fields, SCM tail_array_size, SCM init);
-extern SCM scm_struct_ref (SCM handle, SCM pos);
-extern SCM scm_struct_set_x (SCM handle, SCM pos, SCM val);
-extern SCM scm_struct_vtable (SCM handle);
-extern SCM scm_struct_vtable_tag (SCM handle);
-extern void scm_init_struct (void);
 
-#else /* STDC */
-extern SCM scm_make_struct_layout ();
-extern SCM scm_struct_p ();
-extern SCM scm_struct_vtable_p ();
-extern SCM scm_make_struct ();
-extern SCM scm_make_vtable_vtable ();
-extern SCM scm_struct_ref ();
-extern SCM scm_struct_set_x ();
-extern SCM scm_struct_vtable ();
-extern SCM scm_struct_vtable_tag ();
-extern void scm_init_struct ();
-
-#endif /* STDC */
-
-
-
-
-
-
-
+extern SCM scm_make_struct_layout SCM_P ((SCM fields));
+extern SCM scm_struct_p SCM_P ((SCM x));
+extern SCM scm_struct_vtable_p SCM_P ((SCM x));
+extern SCM scm_make_struct SCM_P ((SCM vtable, SCM tail_array_size, SCM init));
+extern SCM scm_make_vtable_vtable SCM_P ((SCM extra_fields, SCM tail_array_size, SCM init));
+extern SCM scm_struct_ref SCM_P ((SCM handle, SCM pos));
+extern SCM scm_struct_set_x SCM_P ((SCM handle, SCM pos, SCM val));
+extern SCM scm_struct_vtable SCM_P ((SCM handle));
+extern SCM scm_struct_vtable_tag SCM_P ((SCM handle));
+extern void scm_init_struct SCM_P ((void));
 
 #endif  /* STRUCTH */

@@ -77,14 +77,12 @@ long scm_tc16_srcprops;
 static scm_srcprops_chunk *srcprops_chunklist = 0;
 static scm_srcprops *srcprops_freelist = 0;
 
-#ifdef __STDC__
-static SCM
-marksrcprops (SCM obj)
-#else
+
+static SCM marksrcprops SCM_P ((SCM obj));
+
 static SCM
 marksrcprops (obj)
      SCM obj;
-#endif
 {
   SCM_SETGC8MARK (obj);
   scm_gc_mark (SRCPROPFNAME (obj));
@@ -92,30 +90,26 @@ marksrcprops (obj)
   return SRCPROPPLIST (obj);
 }
 
-#ifdef __STDC__
-static scm_sizet
-freesrcprops (SCM obj)
-#else
+
+static scm_sizet freesrcprops SCM_P ((SCM obj));
+
 static scm_sizet
 freesrcprops (obj)
      SCM obj;
-#endif
 {
   *((scm_srcprops **) SCM_CDR (obj)) = srcprops_freelist;
   srcprops_freelist = (scm_srcprops *) SCM_CDR (obj);
   return 0; /* srcprops_chunks are not freed until leaving guile */
 }
 
-#ifdef __STDC__
-static int
-prinsrcprops (SCM obj, SCM port, scm_print_state *pstate)
-#else
+
+static int prinsrcprops SCM_P ((SCM obj, SCM port, scm_print_state *pstate));
+
 static int
 prinsrcprops (obj, port, pstate)
      SCM obj;
      SCM port;
      scm_print_state *pstate;
-#endif
 {
   int writingp = SCM_WRITINGP (pstate);
   scm_gen_puts (scm_regular_string, "#<srcprops ", port);
@@ -129,10 +123,7 @@ prinsrcprops (obj, port, pstate)
 static scm_smobfuns srcpropssmob =
 {marksrcprops, freesrcprops, prinsrcprops, 0};
 
-#ifdef __STDC__
-SCM
-scm_make_srcprops (int line, int col, SCM filename, SCM copy, SCM plist)
-#else
+
 SCM
 scm_make_srcprops (line, col, filename, copy, plist)
      int line;
@@ -140,7 +131,6 @@ scm_make_srcprops (line, col, filename, copy, plist)
      SCM filename;
      SCM copy;
      SCM plist;
-#endif
 {
   register SCM ans;
   register scm_srcprops *ptr;
@@ -175,14 +165,10 @@ scm_make_srcprops (line, col, filename, copy, plist)
   return ans;
 }
 
-#ifdef __STDC__
-SCM
-scm_srcprops_to_plist (SCM obj)
-#else
+
 SCM
 scm_srcprops_to_plist (obj)
      SCM obj;
-#endif
 {
   SCM plist = SRCPROPPLIST (obj);
   if (!SCM_UNBNDP (SRCPROPCOPY (obj)))
@@ -196,14 +182,10 @@ scm_srcprops_to_plist (obj)
 }
 
 SCM_PROC (s_source_properties, "source-properties", 1, 0, 0, scm_source_properties);
-#ifdef __STDC__
-SCM
-scm_source_properties (SCM obj)
-#else
+
 SCM
 scm_source_properties (obj)
      SCM obj;
-#endif
 {
   SCM p;
   if (SCM_MEMOIZEDP (obj))
@@ -217,15 +199,11 @@ scm_source_properties (obj)
 /* Perhaps this procedure should look through an alist
    and try to make a srcprops-object...? */
 SCM_PROC (s_set_source_properties_x, "set-source-properties!", 2, 0, 0, scm_set_source_properties_x);
-#ifdef __STDC__
-SCM
-scm_set_source_properties_x (SCM obj, SCM plist)
-#else
+
 SCM
 scm_set_source_properties_x (obj, plist)
      SCM obj;
      SCM plist;
-#endif
 {
   SCM handle;
   if (SCM_MEMOIZEDP (obj))
@@ -236,15 +214,11 @@ scm_set_source_properties_x (obj, plist)
 }
 
 SCM_PROC (s_source_property, "source-property", 2, 0, 0, scm_source_property);
-#ifdef __STDC__
-SCM
-scm_source_property (SCM obj, SCM key)
-#else
+
 SCM
 scm_source_property (obj, key)
      SCM obj;
      SCM key;
-#endif
 {
   SCM p;
   if (SCM_MEMOIZEDP (obj))
@@ -268,16 +242,12 @@ scm_source_property (obj, key)
 }
 
 SCM_PROC (s_set_source_property_x, "set-source-property!", 3, 0, 0, scm_set_source_property_x);
-#ifdef __STDC__
-SCM
-scm_set_source_property_x (SCM obj, SCM key, SCM datum)
-#else
+
 SCM
 scm_set_source_property_x (obj, key, datum)
      SCM obj;
      SCM key;
      SCM datum;
-#endif
 {
   scm_whash_handle h;
   SCM p;
@@ -339,13 +309,9 @@ scm_set_source_property_x (obj, key, datum)
   return SCM_UNSPECIFIED;
 }
 
-#ifdef __STDC__
-void
-scm_init_srcprop (void)
-#else
+
 void
 scm_init_srcprop ()
-#endif
 {
   scm_tc16_srcprops = scm_newsmob (&srcpropssmob);
   scm_source_whash = scm_make_weak_key_hash_table (SCM_MAKINUM (2047));

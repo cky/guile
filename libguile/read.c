@@ -70,14 +70,10 @@ scm_option scm_read_opts[] = {
 };
 
 SCM_PROC (s_read_options, "read-options-interface", 0, 1, 0, scm_read_options);
-#ifdef __STDC__
-SCM
-scm_read_options (SCM setting)
-#else
+
 SCM
 scm_read_options (setting)
      SCM setting;
-#endif
 {
   SCM ans = scm_options (setting,
 			 scm_read_opts,
@@ -89,16 +85,12 @@ scm_read_options (setting)
 }
 
 SCM_PROC (s_read, "read", 0, 3, 0, scm_read);
-#ifdef __STDC__
-SCM 
-scm_read (SCM port, SCM case_insensitive_p, SCM sharp)
-#else
+
 SCM 
 scm_read (port, case_insensitive_p, sharp)
      SCM port;
      SCM case_insensitive_p;
      SCM sharp;
-#endif
 {
   int c;
   SCM tok_buf, copy;
@@ -129,29 +121,21 @@ scm_read (port, case_insensitive_p, sharp)
 }
 
 
-#ifdef __STDC__
-char *
-scm_grow_tok_buf (SCM * tok_buf)
-#else
+
 char *
 scm_grow_tok_buf (tok_buf)
      SCM * tok_buf;
-#endif
 {
   scm_vector_set_length_x (*tok_buf, SCM_MAKINUM (2 * SCM_LENGTH (*tok_buf)));
   return SCM_CHARS (*tok_buf);
 }
 
 
-#ifdef __STDC__
-int 
-scm_flush_ws (SCM port, char *eoferr)
-#else
+
 int 
 scm_flush_ws (port, eoferr)
      SCM port;
      char *eoferr;
-#endif
 {
   register int c;
   while (1)
@@ -184,15 +168,11 @@ scm_flush_ws (port, eoferr)
 }
 
 
-#ifdef __STDC__
-int
-scm_casei_streq (char * s1, char * s2)
-#else
+
 int
 scm_casei_streq (s1, s2)
      char * s1;
      char * s2;
-#endif
 {
   while (*s1 && *s2)
     if (scm_downcase((int)*s1) != scm_downcase((int)*s2))
@@ -209,17 +189,15 @@ scm_casei_streq (s1, s2)
 /* recsexpr is used when recording expressions
  * constructed by read:sharp.
  */
-#ifdef __STDC__
-static SCM
-recsexpr (SCM obj, int line, int column, SCM filename)
-#else
+
+static SCM recsexpr SCM_P ((SCM obj, int line, int column, SCM filename));
+
 static SCM
 recsexpr (obj, line, column, filename)
      SCM obj;
      int line;
      int column;
      SCM filename;
-#endif
 {
   if (SCM_IMP (obj) || SCM_NCONSP(obj))
     return obj;
@@ -262,10 +240,7 @@ recsexpr (obj, line, column, filename)
 }
 
 static char s_list[]="list";
-#ifdef __STDC__
-SCM 
-scm_lreadr (SCM *tok_buf, SCM port, int case_i, SCM sharp, SCM *copy)
-#else
+
 SCM 
 scm_lreadr (tok_buf, port, case_i, sharp, copy)
      SCM *tok_buf;
@@ -273,7 +248,6 @@ scm_lreadr (tok_buf, port, case_i, sharp, copy)
      int case_i;
      SCM sharp;
      SCM *copy;
-#endif
 {
   int c;
   scm_sizet j;
@@ -519,18 +493,14 @@ tryagain:
 #ifdef _UNICOS
 _Pragma ("noopt");		/* # pragma _CRI noopt */
 #endif
-#ifdef __STDC__
+
 scm_sizet 
-scm_read_token (int ic, SCM * tok_buf, SCM port, int case_i, int weird)
-#else
-scm_sizet 
-scm_read_token (ic, * tok_buf, port, case_i, weird)
+scm_read_token (ic, tok_buf, port, case_i, weird)
      int ic;
      SCM *tok_buf;
      SCM port;
      int case_i;
      int weird;
-#endif
 {
   register scm_sizet j;
   register int c;
@@ -634,22 +604,19 @@ scm_read_token (ic, * tok_buf, port, case_i, weird)
 	}
     }
 }
+
 #ifdef _UNICOS
 _Pragma ("opt");		/* # pragma _CRI opt */
 #endif
 
-#ifdef __STDC__
 SCM 
-scm_lreadparen (SCM * tok_buf, SCM port, char *name, int case_i, SCM sharp, SCM *copy)
-#else
-SCM 
-scm_lreadparen (tok_buf, port, name, case_i, sharp, SCM *copy)
+scm_lreadparen (tok_buf, port, name, case_i, sharp, copy)
      SCM *tok_buf;
      SCM port;
      char *name;
      int case_i;
      SCM sharp;
-#endif
+     SCM *copy;
 {
   SCM tmp;
   SCM tl;
@@ -682,10 +649,7 @@ scm_lreadparen (tok_buf, port, name, case_i, sharp, SCM *copy)
   return ans;
 }
 
-#ifdef __STDC__
-SCM 
-scm_lreadrecparen (SCM * tok_buf, SCM port, char *name, int case_i, SCM sharp, SCM *copy)
-#else
+
 SCM 
 scm_lreadrecparen (tok_buf, port, name, case_i, sharp, copy)
      SCM *tok_buf;
@@ -694,7 +658,6 @@ scm_lreadrecparen (tok_buf, port, name, case_i, sharp, copy)
      int case_i;
      SCM sharp;
      SCM *copy;
-#endif
 {
   register int c;
   register SCM tmp;
@@ -761,13 +724,9 @@ exit:
 
 
 
-#ifdef __STDC__
-void
-scm_init_read (void)
-#else
+
 void
 scm_init_read ()
-#endif
 {
   scm_init_opts (scm_read_options, scm_read_opts, SCM_N_READ_OPTIONS);
 #include "read.x"

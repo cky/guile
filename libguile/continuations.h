@@ -70,17 +70,9 @@ typedef struct
 
 
 
-#ifdef __STDC__
-extern SCM scm_make_cont (SCM * answer);
-extern void scm_dynthrow (SCM *a);
-extern SCM scm_call_continuation (SCM cont, SCM val);
-extern void scm_init_continuations (void);
+extern SCM scm_make_cont SCM_P ((SCM * answer));
+extern void scm_dynthrow SCM_P ((SCM *a));
+extern SCM scm_call_continuation SCM_P ((SCM cont, SCM val));
+extern void scm_init_continuations SCM_P ((void));
 
-#else /* STDC */
-extern SCM scm_make_cont ();
-extern void scm_dynthrow ();
-extern SCM scm_call_continuation ();
-extern void scm_init_continuations ();
-
-#endif /* STDC */
 #endif  /* CONTINUATIONSH */

@@ -52,22 +52,11 @@
 
 
 
-#ifdef __STDC__
-extern SCM scm_object_properties (SCM obj);
-extern SCM scm_set_object_properties_x (SCM obj, SCM plist);
-extern SCM scm_object_property (SCM obj, SCM key);
-extern SCM scm_set_object_property_x (SCM obj, SCM key, SCM val);
-extern void scm_init_objprop (void);
 
-#else /* STDC */
-extern SCM scm_object_properties ();
-extern SCM scm_set_object_properties_x ();
-extern SCM scm_object_property ();
-extern SCM scm_set_object_property_x ();
-extern void scm_init_objprop ();
-
-#endif /* STDC */
-
-
+extern SCM scm_object_properties SCM_P ((SCM obj));
+extern SCM scm_set_object_properties_x SCM_P ((SCM obj, SCM plist));
+extern SCM scm_object_property SCM_P ((SCM obj, SCM key));
+extern SCM scm_set_object_property_x SCM_P ((SCM obj, SCM key, SCM val));
+extern void scm_init_objprop SCM_P ((void));
 
 #endif  /* OBJPROPH */

@@ -188,13 +188,9 @@ char *strptime ();
 
 
 SCM_PROC (s_sys_pipe, "pipe", 0, 0, 0, scm_sys_pipe);
-#ifdef __STDC__
-SCM 
-scm_sys_pipe (void)
-#else
+
 SCM 
 scm_sys_pipe ()
-#endif
 {
   int fd[2], rv;
   FILE *f_rd, *f_wt;
@@ -240,13 +236,9 @@ scm_sys_pipe ()
 
 
 SCM_PROC (s_sys_getgroups, "getgroups", 0, 0, 0, scm_sys_getgroups);
-#ifdef __STDC__
-SCM
-scm_sys_getgroups(void)
-#else
+
 SCM
 scm_sys_getgroups()
-#endif
 {
   SCM grps, ans;
   int ngroups = getgroups (0, NULL);
@@ -279,14 +271,10 @@ scm_sys_getgroups()
 
 
 SCM_PROC (s_sys_getpwuid, "getpw", 0, 1, 0, scm_sys_getpwuid);
-#ifdef __STDC__
-SCM 
-scm_sys_getpwuid (SCM user)
-#else
+
 SCM 
 scm_sys_getpwuid (user)
      SCM user;
-#endif
 {
   SCM result;
   struct passwd *entry;
@@ -335,14 +323,10 @@ scm_sys_getpwuid (user)
 
 
 SCM_PROC (s_setpwent, "setpw", 0, 1, 0, scm_setpwent);
-#ifdef __STDC__
-SCM 
-scm_setpwent (SCM arg)
-#else
+
 SCM 
 scm_setpwent (arg)
      SCM arg;
-#endif
 {
   if (SCM_UNBNDP (arg) || SCM_FALSEP (arg))
     endpwent ();
@@ -355,14 +339,10 @@ scm_setpwent (arg)
 
 /* Combines getgrgid and getgrnam.  */
 SCM_PROC (s_sys_getgrgid, "getgr", 0, 1, 0, scm_sys_getgrgid);
-#ifdef __STDC__
-SCM 
-scm_sys_getgrgid (SCM name)
-#else
+
 SCM 
 scm_sys_getgrgid (name)
      SCM name;
-#endif
 {
   SCM result;
   struct group *entry;
@@ -395,14 +375,10 @@ scm_sys_getgrgid (name)
 
 
 SCM_PROC (s_setgrent, "setgr", 0, 1, 0, scm_setgrent);
-#ifdef __STDC__
-SCM 
-scm_setgrent (SCM arg)
-#else
+
 SCM 
 scm_setgrent (arg)
      SCM arg;
-#endif
 {
   if (SCM_UNBNDP (arg) || SCM_FALSEP (arg))
     endgrent ();
@@ -414,15 +390,11 @@ scm_setgrent (arg)
 
 
 SCM_PROC (s_sys_kill, "kill", 2, 0, 0, scm_sys_kill);
-#ifdef __STDC__
-SCM 
-scm_sys_kill (SCM pid, SCM sig)
-#else
+
 SCM 
 scm_sys_kill (pid, sig)
      SCM pid;
      SCM sig;
-#endif
 {
   SCM_ASSERT (SCM_INUMP (pid), pid, SCM_ARG1, s_sys_kill);
   SCM_ASSERT (SCM_INUMP (sig), sig, SCM_ARG2, s_sys_kill);
@@ -435,15 +407,11 @@ scm_sys_kill (pid, sig)
 
 
 SCM_PROC (s_sys_waitpid, "waitpid", 1, 1, 0, scm_sys_waitpid);
-#ifdef __STDC__
-SCM 
-scm_sys_waitpid (SCM pid, SCM options)
-#else
+
 SCM 
 scm_sys_waitpid (pid, options)
      SCM pid;
      SCM options;
-#endif
 {
 #ifdef HAVE_WAITPID
   int i;
@@ -472,13 +440,9 @@ scm_sys_waitpid (pid, options)
 
 
 SCM_PROC (s_getppid, "getppid", 0, 0, 0, scm_getppid);
-#ifdef __STDC__
-SCM 
-scm_getppid (void)
-#else
+
 SCM 
 scm_getppid ()
-#endif
 {
   return SCM_MAKINUM (0L + getppid ());
 }
@@ -486,13 +450,9 @@ scm_getppid ()
 
 
 SCM_PROC (s_getuid, "getuid", 0, 0, 0, scm_getuid);
-#ifdef __STDC__
-SCM 
-scm_getuid (void)
-#else
+
 SCM 
 scm_getuid ()
-#endif
 {
   return SCM_MAKINUM (0L + getuid ());
 }
@@ -500,13 +460,9 @@ scm_getuid ()
 
 
 SCM_PROC (s_getgid, "getgid", 0, 0, 0, scm_getgid);
-#ifdef __STDC__
-SCM 
-scm_getgid (void)
-#else
+
 SCM 
 scm_getgid ()
-#endif
 {
   return SCM_MAKINUM (0L + getgid ());
 }
@@ -514,13 +470,9 @@ scm_getgid ()
 
 
 SCM_PROC (s_geteuid, "geteuid", 0, 0, 0, scm_geteuid);
-#ifdef __STDC__
-SCM 
-scm_geteuid (void)
-#else
+
 SCM 
 scm_geteuid ()
-#endif
 {
 #ifdef HAVE_GETEUID
   return SCM_MAKINUM (0L + geteuid ());
@@ -532,13 +484,9 @@ scm_geteuid ()
 
 
 SCM_PROC (s_getegid, "getegid", 0, 0, 0, scm_getegid);
-#ifdef __STDC__
-SCM 
-scm_getegid (void)
-#else
+
 SCM 
 scm_getegid ()
-#endif
 {
 #ifdef HAVE_GETEUID
   return SCM_MAKINUM (0L + getegid ());
@@ -549,14 +497,10 @@ scm_getegid ()
 
 
 SCM_PROC (s_sys_setuid, "setuid", 1, 0, 0, scm_sys_setuid);
-#ifdef __STDC__
-SCM 
-scm_sys_setuid (SCM id)
-#else
+
 SCM 
 scm_sys_setuid (id)
      SCM id;
-#endif
 {
   SCM_ASSERT (SCM_INUMP (id), id, SCM_ARG1, s_sys_setuid);
   if (setuid (SCM_INUM (id)) != 0)
@@ -565,14 +509,10 @@ scm_sys_setuid (id)
 }
 
 SCM_PROC (s_sys_setgid, "setgid", 1, 0, 0, scm_sys_setgid);
-#ifdef __STDC__
-SCM 
-scm_sys_setgid (SCM id)
-#else
+
 SCM 
 scm_sys_setgid (id)
      SCM id;
-#endif
 {
   SCM_ASSERT (SCM_INUMP (id), id, SCM_ARG1, s_sys_setgid);
   if (setgid (SCM_INUM (id)) != 0)
@@ -581,14 +521,10 @@ scm_sys_setgid (id)
 }
 
 SCM_PROC (s_sys_seteuid, "seteuid", 1, 0, 0, scm_sys_seteuid);
-#ifdef __STDC__
-SCM 
-scm_sys_seteuid (SCM id)
-#else
+
 SCM 
 scm_sys_seteuid (id)
      SCM id;
-#endif
 {
   int rv;
 
@@ -604,14 +540,10 @@ scm_sys_seteuid (id)
 }
 
 SCM_PROC (s_sys_setegid, "setegid", 1, 0, 0, scm_sys_setegid);
-#ifdef __STDC__
-SCM 
-scm_sys_setegid (SCM id)
-#else
+
 SCM 
 scm_sys_setegid (id)
      SCM id;
-#endif
 {
   int rv;
 
@@ -672,14 +604,10 @@ scm_setsid ()
 }
 
 SCM_PROC (s_ttyname, "ttyname", 1, 0, 0, scm_ttyname);
-#ifdef __STDC__
-SCM 
-scm_ttyname (SCM port)
-#else
+
 SCM 
 scm_ttyname (port)
      SCM port;
-#endif
 {
   char *ans;
   int fd;
@@ -754,14 +682,12 @@ scm_tcsetpgrp (port, pgid)
 }    
 
 /* Copy exec args from an SCM vector into a new C array.  */
-#ifdef __STDC__
-static char **
-scm_convert_exec_args (SCM args)
-#else
+
+static char ** scm_convert_exec_args SCM_P ((SCM args));
+
 static char **
 scm_convert_exec_args (args)
      SCM args;
-#endif
 {
   char **execargv;
   int num_args;
@@ -790,14 +716,10 @@ scm_convert_exec_args (args)
 }
 
 SCM_PROC (s_sys_execl, "execl", 0, 0, 1, scm_sys_execl);
-#ifdef __STDC__
-SCM
-scm_sys_execl (SCM args)
-#else
+
 SCM
 scm_sys_execl (args)
      SCM args;
-#endif
 {
   char **execargv;
   SCM filename = SCM_CAR (args);
@@ -813,14 +735,10 @@ scm_sys_execl (args)
 }
 
 SCM_PROC (s_sys_execlp, "execlp", 0, 0, 1, scm_sys_execlp);
-#ifdef __STDC__
-SCM
-scm_sys_execlp (SCM args)
-#else
+
 SCM
 scm_sys_execlp (args)
      SCM args;
-#endif
 {
   char **execargv;
   SCM filename = SCM_CAR (args);
@@ -837,13 +755,9 @@ scm_sys_execlp (args)
 
 /* Flushing streams etc., is not done here.  */
 SCM_PROC (s_sys_fork, "fork", 0, 0, 0, scm_sys_fork);
-#ifdef __STDC__
-SCM
-scm_sys_fork(void)
-#else
+
 SCM
 scm_sys_fork()
-#endif
 {
   int pid;
   pid = fork ();
@@ -854,13 +768,9 @@ scm_sys_fork()
 
 
 SCM_PROC (s_sys_uname, "uname", 0, 0, 0, scm_sys_uname);
-#ifdef __STDC__
-SCM 
-scm_sys_uname (void)
-#else
+
 SCM 
 scm_sys_uname ()
-#endif
 {
 #ifdef HAVE_UNAME
   struct utsname buf;
@@ -886,14 +796,10 @@ scm_sys_uname ()
 }
 
 SCM_PROC (s_environ, "environ", 0, 1, 0, scm_environ);
-#ifdef __STDC__
-SCM
-scm_environ (SCM env)
-#else
+
 SCM
 scm_environ (env)
      SCM env;
-#endif
 {
   if (SCM_UNBNDP (env))
     return scm_makfromstrs (-1, environ);
@@ -944,15 +850,11 @@ scm_environ (env)
 
 
 SCM_PROC (s_open_pipe, "open-pipe", 2, 0, 0, scm_open_pipe);
-#ifdef __STDC__
-SCM 
-scm_open_pipe (SCM pipestr, SCM modes)
-#else
+
 SCM 
 scm_open_pipe (pipestr, modes)
      SCM pipestr;
      SCM modes;
-#endif
 {
   FILE *f;
   register SCM z;
@@ -982,43 +884,31 @@ scm_open_pipe (pipestr, modes)
 
 
 SCM_PROC (s_open_input_pipe, "open-input-pipe", 1, 0, 0, scm_open_input_pipe);
-#ifdef __STDC__
-SCM
-scm_open_input_pipe(SCM pipestr)
-#else
+
 SCM
 scm_open_input_pipe(pipestr)
      SCM pipestr;
-#endif
 {
   return scm_open_pipe(pipestr, scm_makfromstr("r", (sizeof "r")-1, 0));
 }
 
 SCM_PROC (s_open_output_pipe, "open-output-pipe", 1, 0, 0, scm_open_output_pipe);
-#ifdef __STDC__
-SCM
-scm_open_output_pipe(SCM pipestr)
-#else
+
 SCM
 scm_open_output_pipe(pipestr)
      SCM pipestr;
-#endif
 {
   return scm_open_pipe(pipestr, scm_makfromstr("w", (sizeof "w")-1, 0));
 }
 
 
 SCM_PROC (s_sys_utime, "utime", 1, 2, 0, scm_sys_utime);
-#ifdef __STDC__
-SCM 
-scm_sys_utime (SCM pathname, SCM actime, SCM modtime)
-#else
+
 SCM 
 scm_sys_utime (pathname, actime, modtime)
      SCM pathname;
      SCM actime;
      SCM modtime;
-#endif
 {
   int rv;
   struct utimbuf utm_tmp;
@@ -1042,15 +932,11 @@ scm_sys_utime (pathname, actime, modtime)
 }
 
 SCM_PROC (s_sys_access, "access?", 2, 0, 0, scm_sys_access);
-#ifdef __STDC__
-SCM 
-scm_sys_access (SCM path, SCM how)
-#else
+
 SCM 
 scm_sys_access (path, how)
      SCM path;
      SCM how;
-#endif
 {
   int rv;
 
@@ -1063,26 +949,18 @@ scm_sys_access (path, how)
 }
 
 SCM_PROC (s_getpid, "getpid", 0, 0, 0, scm_getpid);
-#ifdef __STDC__
-SCM 
-scm_getpid (void)
-#else
+
 SCM 
 scm_getpid ()
-#endif
 {
   return SCM_MAKINUM ((unsigned long) getpid ());
 }
 
 SCM_PROC (s_sys_putenv, "putenv", 1, 0, 0, scm_sys_putenv);
-#ifdef __STDC__
-SCM
-scm_sys_putenv (SCM str)
-#else
+
 SCM
 scm_sys_putenv (str)
      SCM str;
-#endif
 {
 #ifdef HAVE_PUTENV
   SCM_ASSERT (SCM_NIMP (str) && SCM_STRINGP (str), str, SCM_ARG1, s_sys_putenv);
@@ -1095,15 +973,11 @@ scm_sys_putenv (str)
 }
 
 SCM_PROC (s_read_line, "read-line", 0, 2, 0, scm_read_line);
-#ifdef __STDC__
-SCM 
-scm_read_line (SCM port, SCM include_terminator)
-#else
+
 SCM 
 scm_read_line (port, include_terminator)
      SCM port;
      SCM include_terminator;
-#endif
 {
   register int c;
   register int j = 0;
@@ -1157,15 +1031,11 @@ scm_read_line (port, include_terminator)
 }
 
 SCM_PROC (s_read_line_x, "read-line!", 1, 1, 0, scm_read_line_x);
-#ifdef __STDC__
-SCM 
-scm_read_line_x (SCM str, SCM port)
-#else
+
 SCM 
 scm_read_line_x (str, port)
      SCM str;
      SCM port;
-#endif
 {
   register int c;
   register int j = 0;
@@ -1201,30 +1071,22 @@ scm_read_line_x (str, port)
 }
 
 SCM_PROC (s_write_line, "write-line", 1, 1, 0, scm_write_line);
-#ifdef __STDC__
-SCM 
-scm_write_line (SCM obj, SCM port)
-#else
+
 SCM 
 scm_write_line (obj, port)
      SCM obj;
      SCM port;
-#endif
 {
   scm_display (obj, port);
   return scm_newline (port);
 }
 
 SCM_PROC (s_setlocale, "setlocale", 1, 1, 0, scm_setlocale);
-#ifdef __STDC__
-SCM
-scm_setlocale (SCM category, SCM locale)
-#else
+
 SCM
 scm_setlocale (category, locale)
      SCM category;
      SCM locale;
-#endif
 {
 #ifdef HAVE_SETLOCALE
   char *clocale;
@@ -1253,15 +1115,11 @@ scm_setlocale (category, locale)
 }
 
 SCM_PROC (s_strftime, "strftime", 2, 0, 0, scm_strftime);
-#ifdef __STDC__
-SCM
-scm_strftime (SCM format, SCM stime)
-#else
+
 SCM
 scm_strftime (format, stime)
      SCM format;
      SCM stime;
-#endif
 {
   struct tm t;
 
@@ -1306,15 +1164,11 @@ scm_strftime (format, stime)
 }
 
 SCM_PROC (s_sys_strptime, "strptime", 2, 0, 0, scm_sys_strptime);
-#ifdef __STDC__
-SCM
-scm_sys_strptime (SCM format, SCM string)
-#else
+
 SCM
 scm_sys_strptime (format, string)
      SCM format;
      SCM string;
-#endif
 {
 #ifdef HAVE_STRPTIME
   SCM stime;
@@ -1377,16 +1231,12 @@ scm_sys_strptime (format, string)
 }
 
 SCM_PROC (s_sys_mknod, "mknod", 3, 0, 0, scm_sys_mknod);
-#ifdef __STDC__
-SCM
-scm_sys_mknod(SCM path, SCM mode, SCM dev)
-#else
+
 SCM
 scm_sys_mknod(path, mode, dev)
      SCM path;
      SCM mode;
      SCM dev;
-#endif
 {
 #ifdef HAVE_MKNOD
   int val;
@@ -1406,14 +1256,10 @@ scm_sys_mknod(path, mode, dev)
 
 
 SCM_PROC (s_sys_nice, "nice", 1, 0, 0, scm_sys_nice);
-#ifdef __STDC__
-SCM
-scm_sys_nice(SCM incr)
-#else
+
 SCM
 scm_sys_nice(incr)
      SCM incr;
-#endif
 {
 #ifdef HAVE_NICE
   SCM_ASSERT(SCM_INUMP(incr), incr, SCM_ARG1, s_sys_nice);
@@ -1429,13 +1275,9 @@ scm_sys_nice(incr)
 
 
 SCM_PROC (s_sync, "sync", 0, 0, 0, scm_sync);
-#ifdef __STDC__
-SCM
-scm_sync(void)
-#else
+
 SCM
 scm_sync()
-#endif
 {
 #ifdef HAVE_SYNC
   sync();
@@ -1448,13 +1290,9 @@ scm_sync()
 
 
 
-#ifdef __STDC__
-void 
-scm_init_posix (void)
-#else
+
 void 
 scm_init_posix ()
-#endif
 {
   scm_add_feature ("posix");
 #ifdef HAVE_GETEUID

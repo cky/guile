@@ -128,14 +128,12 @@ static int tok_buf_mark_p;
 static SCM gdb_output_port;
 static int old_ints, old_gc;
 
-#ifdef __STDC__
-static void
-unmark_port (SCM port)
-#else
+
+static void unmark_port SCM_P ((SCM port));
+
 static void
 unmark_port (port)
      SCM port;
-#endif
 {
   SCM stream, string;
   port_mark_p = SCM_GC8MARKP (port);
@@ -148,14 +146,12 @@ unmark_port (port)
   SCM_CLRGC8MARK (string);
 }
 
-#ifdef __STDC__
-static void
-remark_port (SCM port)
-#else
+
+static void remark_port SCM_P ((SCM port));
+
 static void
 remark_port (port)
      SCM port;
-#endif
 {
   SCM stream = SCM_STREAM (port);
   SCM string = SCM_CDR (stream);
@@ -164,28 +160,20 @@ remark_port (port)
   if (port_mark_p) SCM_SETGC8MARK (port);
 }
 
-#ifdef __STDC__
-int
-gdb_maybe_valid_type_p (SCM value)
-#else
+
 int
 gdb_maybe_valid_type_p (value)
      SCM value;
-#endif
 {
   if (SCM_IMP (value) || scm_cellp (value))
     return scm_tag (value) != SCM_MAKINUM (-1);
   return 0;
 }
 
-#ifdef __STDC__
-int
-gdb_read (char *str)
-#else
+
 int
 gdb_read (str)
      char *str;
-#endif
 {
   SCM ans;
   int status = 0;
@@ -249,14 +237,10 @@ exit:
   return status;
 }
 
-#ifdef __STDC__
-int
-gdb_eval (SCM exp)
-#else
+
 int
 gdb_eval (exp)
      SCM exp;
-#endif
 {
   RESET_STRING;
   if (SCM_IMP (exp))
@@ -278,14 +262,10 @@ gdb_eval (exp)
   return 0;
 }
 
-#ifdef __STDC__
-int
-gdb_print (SCM obj)
-#else
+
 int
 gdb_print (obj)
      SCM obj;
-#endif
 {
   RESET_STRING;
   SCM_BEGIN_FOREIGN_BLOCK;
@@ -298,15 +278,11 @@ gdb_print (obj)
   return 0;
 }
 
-#ifdef __STDC__
-int
-gdb_binding (SCM name, SCM value)
-#else
+
 int
 gdb_binding (name, value)
      SCM name;
      SCM value;
-#endif
 {
   RESET_STRING;
   if (SCM_GC_P)

@@ -51,13 +51,8 @@
 
 
 
-#ifdef __STDC__
-extern SCM scm_tag (SCM x);
-extern void scm_init_tag (void);
 
-#else /* STDC */
-extern SCM scm_tag ();
-extern void scm_init_tag ();
+extern SCM scm_tag SCM_P ((SCM x));
+extern void scm_init_tag SCM_P ((void));
 
-#endif /* STDC */
 #endif  /* TAGH */

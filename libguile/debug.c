@@ -64,14 +64,10 @@
  */
 
 SCM_PROC (s_debug_options, "debug-options-interface", 0, 1, 0, scm_debug_options);
-#ifdef __STDC__
-SCM
-scm_debug_options (SCM setting)
-#else
+
 SCM
 scm_debug_options (setting)
      SCM setting;
-#endif
 {
   SCM ans;
   SCM_DEFER_INTS;
@@ -93,14 +89,10 @@ scm_debug_options (setting)
 }
 
 SCM_PROC (s_evaluator_traps, "evaluator-traps-interface", 0, 1, 0, scm_evaluator_traps);
-#ifdef __STDC__
-SCM
-scm_evaluator_traps (SCM setting)
-#else
+
 SCM
 scm_evaluator_traps (setting)
      SCM setting;
-#endif
 {
   SCM ans;
   SCM_DEFER_INTS;
@@ -114,14 +106,11 @@ scm_evaluator_traps (setting)
 }
 
 SCM_PROC (s_single_step, "single-step", 2, 0, 0, scm_single_step);
-#ifdef __STDC__
-SCM
-scm_single_step (SCM cont, SCM val)
-#else
+
 SCM
 scm_single_step (cont, val)
-     SCM cont, SCM val;
-#endif
+     SCM cont;
+     SCM val;
 {
   SCM_DEFER_INTS;
   SCM_ENTER_FRAME_P = SCM_EXIT_FRAME_P = 1;
@@ -141,16 +130,14 @@ static SCM scm_i_procname;
 
 long scm_tc16_memoized;
 
-#ifdef __STDC__
-static int
-prinmemoized (SCM obj, SCM port, scm_print_state *pstate)
-#else
+
+static int prinmemoized SCM_P ((SCM obj, SCM port, scm_print_state *pstate));
+
 static int
 prinmemoized (obj, port, pstate)
      SCM obj;
      SCM port;
      scm_print_state *pstate;
-#endif
 {
   int writingp = SCM_WRITINGP (pstate);
   scm_gen_puts (scm_regular_string, "#<memoized ", port);
@@ -165,26 +152,19 @@ static scm_smobfuns memoizedsmob =
 {scm_markcdr, scm_free0, prinmemoized, 0};
 
 SCM_PROC (s_memoized_p, "memoized?", 1, 0, 0, scm_memoized_p);
-#ifdef __STDC__
-SCM
-scm_memoized_p (SCM obj)
-#else
+
 SCM
 scm_memoized_p (obj)
      SCM obj;
-#endif
 {
   return SCM_NIMP (obj) && SCM_MEMOIZEDP (obj) ? SCM_BOOL_T : SCM_BOOL_F;
 }
 
-#ifdef __STDC__
-SCM
-scm_make_memoized (SCM exp, SCM env)
-#else
+
 SCM
 scm_make_memoized (exp, env)
-     SCM exp, SCM env;
-#endif
+     SCM exp;
+     SCM env;
 {
   register SCM z, ans;
   SCM_DEFER_INTS;
@@ -199,42 +179,30 @@ scm_make_memoized (exp, env)
 }
 
 SCM_PROC (s_unmemoize, "unmemoize", 1, 0, 0, scm_unmemoize);
-#ifdef __STDC__
-SCM
-scm_unmemoize (SCM m)
-#else
+
 SCM
 scm_unmemoize (m)
      SCM m;
-#endif
 {
   SCM_ASSERT (SCM_MEMOIZEDP (m), m, SCM_ARG1, s_unmemoize);
   return scm_unmemocopy (SCM_MEMOEXP (m), SCM_MEMOENV (m));
 }
 
 SCM_PROC (s_memoized_environment, "memoized-environment", 1, 0, 0, scm_memoized_environment);
-#ifdef __STDC__
-SCM
-scm_memoized_environment (SCM m)
-#else
+
 SCM
 scm_memoized_environment (m)
      SCM m;
-#endif
 {
   SCM_ASSERT (SCM_MEMOIZEDP (m), m, SCM_ARG1, s_unmemoize);
   return SCM_MEMOENV (m);
 }
 
 SCM_PROC (s_procedure_name, "procedure-name", 1, 0, 0, scm_procedure_name);
-#ifdef __STDC__
-SCM
-scm_procedure_name (SCM proc)
-#else
+
 SCM
 scm_procedure_name (proc)
      SCM proc;
-#endif
 {
   SCM_ASSERT(scm_procedure_p (proc) == SCM_BOOL_T,
 	     proc,
@@ -260,14 +228,10 @@ scm_procedure_name (proc)
 }
 
 SCM_PROC (s_procedure_source, "procedure-source", 1, 0, 0, scm_procedure_source);
-#ifdef __STDC__
-SCM
-scm_procedure_source (SCM proc)
-#else
+
 SCM
 scm_procedure_source (proc)
      SCM proc;
-#endif
 {
   SCM_ASSERT(SCM_NIMP (proc), proc, SCM_ARG1, s_procedure_source);
   switch (SCM_TYP7 (proc)) {
@@ -299,14 +263,10 @@ scm_procedure_source (proc)
 }
 
 SCM_PROC (s_procedure_environment, "procedure-environment", 1, 0, 0, scm_procedure_environment);
-#ifdef __STDC__
-SCM
-scm_procedure_environment (SCM proc)
-#else
+
 SCM
 scm_procedure_environment (proc)
      SCM proc;
-#endif
 {
   SCM_ASSERT (SCM_NIMP (proc), proc, SCM_ARG1, s_procedure_environment);
   switch (SCM_TYP7 (proc)) {
@@ -332,15 +292,11 @@ scm_procedure_environment (proc)
  * yet another evaluator.  They are not very big actually.
  */
 SCM_PROC (s_local_eval, "local-eval", 2, 0, 0, scm_local_eval);
-#ifdef __STDC__
-SCM
-scm_local_eval (SCM exp, SCM env)
-#else
+
 SCM
 scm_local_eval (exp, env)
      SCM exp;
      SCM env;
-#endif
 {
   return scm_eval_3 (exp, 1, env);
 }
@@ -380,16 +336,14 @@ long scm_tc16_debugobj;
 #define DEBUGOBJP(x) (scm_tc16_debugobj == SCM_TYP16 (x))
 #define DBGFRAME(x) SCM_CDR (x)
 
-#ifdef __STDC__
+
+static int prindebugobj SCM_P ((SCM obj, SCM port, scm_print_state *pstate));
+
 static int
-prindebugobj (SCM obj, SCM port, scm_print_state *pstate)
-#else
-static int
-prindebugobj (pstate)
+prindebugobj (obj, port, pstate)
      SCM obj;
      SCM port;
      scm_print_state *pstate;
-#endif
 {
   scm_gen_puts (scm_regular_string, "#<debug-object ", port);
   scm_intprint (DBGFRAME (obj), 16, port);
@@ -401,26 +355,18 @@ static scm_smobfuns debugobjsmob =
 {scm_mark0, scm_free0, prindebugobj, 0};
 
 SCM_PROC (s_debug_object_p, "debug-object?", 1, 0, 0, scm_debug_object_p);
-#ifdef __STDC__
-SCM
-scm_debug_object_p (SCM obj)
-#else
+
 SCM
 scm_debug_object_p (obj)
      SCM obj;
-#endif
 {
   return SCM_NIMP (obj) && DEBUGOBJP (obj) ? SCM_BOOL_T : SCM_BOOL_F;
 }
 
-#ifdef __STDC__
-SCM
-scm_make_debugobj (scm_debug_frame *frame)
-#else
+
 SCM
 scm_make_debugobj (frame)
      scm_debug_frame *frame;
-#endif
 {
   register SCM z;
   SCM_DEFER_INTS;
@@ -431,15 +377,13 @@ scm_make_debugobj (frame)
   return z;
 }
 
-#ifdef __STDC__
-static SCM
-_scm_stack_frame_to_plist (scm_debug_frame *frame, long offset)
-#else
+
+static SCM _scm_stack_frame_to_plist SCM_P ((scm_debug_frame *frame, long offset));
+
 static SCM
 _scm_stack_frame_to_plist (frame, offset)
      scm_debug_frame *frame;
      long offset;
-#endif
 {
   int size;
   scm_debug_info *info;
@@ -481,14 +425,10 @@ _scm_stack_frame_to_plist (frame, offset)
 }
 
 SCM_PROC (s_last_stack_frame, "last-stack-frame", 1, 0, 0, scm_last_stack_frame);
-#ifdef __STDC__
-SCM
-scm_last_stack_frame (SCM obj)
-#else
+
 SCM
 scm_last_stack_frame (obj)
      SCM obj;
-#endif
 {
   scm_debug_frame *frame;
   long offset = 0;
@@ -513,14 +453,10 @@ scm_last_stack_frame (obj)
  */
 
 SCM_PROC (s_expr_stack, "expr-stack", 0, 1, 0, scm_expr_stack);
-#ifdef __STDC__
-SCM
-scm_expr_stack (SCM obj)
-#else
+
 SCM
 scm_expr_stack (obj)
      SCM obj;
-#endif
 {
   SCM frs = SCM_EOL, vfrs, p;
   int size;

@@ -73,86 +73,42 @@ extern long scm_tc16_array;
 #define SCM_HUGE_LENGTH(x) (SCM_LENGTH_MAX==SCM_LENGTH(x) ? *((long *)SCM_VELTS(x)) : SCM_LENGTH(x))
 
 
-#ifdef __STDC__
-extern SCM scm_vector_set_length_x (SCM vect, SCM len);
-extern SCM scm_makflo (float x);
-extern SCM scm_make_uve (long k, SCM prot);
-extern SCM scm_uniform_vector_length (SCM v);
-extern SCM scm_array_p (SCM v, SCM prot);
-extern SCM scm_array_rank (SCM ra);
-extern SCM scm_array_dimensions (SCM ra);
-extern long scm_aind (SCM ra, SCM args, char *what);
-extern SCM scm_make_ra (int ndim);
-extern SCM scm_shap2ra (SCM args, char *what);
-extern SCM scm_dimensions_to_uniform_array (SCM dims, SCM prot, SCM fill);
-extern void scm_ra_set_contp (SCM ra);
-extern SCM scm_make_shared_array (SCM oldra, SCM mapfunc, SCM dims);
-extern SCM scm_transpose_array (SCM args);
-extern SCM scm_enclose_array (SCM axes);
-extern SCM scm_array_in_bounds_p (SCM args);
-extern SCM scm_uniform_vector_ref (SCM v, SCM args);
-extern SCM scm_cvref (SCM v, scm_sizet pos, SCM last);
-extern SCM scm_array_set_x (SCM v, SCM obj, SCM args);
-extern SCM scm_array_contents (SCM ra, SCM strict);
-extern SCM scm_ra2contig (SCM ra, int copy);
-extern SCM scm_uniform_array_read_x (SCM ra, SCM port);
-extern SCM scm_uniform_array_write (SCM v, SCM port);
-extern SCM scm_bit_count (SCM item, SCM seq);
-extern SCM scm_bit_position (SCM item, SCM v, SCM k);
-extern SCM scm_bit_set_star_x (SCM v, SCM kv, SCM obj);
-extern SCM scm_bit_count_star (SCM v, SCM kv, SCM obj);
-extern SCM scm_bit_invert_x (SCM v);
-extern SCM scm_string_upcase_x (SCM v);
-extern SCM scm_string_downcase_x (SCM v);
-extern SCM scm_istr2bve (char *str, long len);
-extern SCM scm_array_to_list (SCM v);
-extern SCM scm_list_to_uniform_array (SCM ndim, SCM prot, SCM lst);
-extern int scm_raprin1 (SCM exp, SCM port, scm_print_state *pstate);
-extern SCM scm_array_prototype (SCM ra);
-extern void scm_init_unif (void);
 
-#else /* STDC */
-extern SCM scm_vector_set_length_x ();
-extern SCM scm_makflo ();
-extern SCM scm_make_uve ();
-extern SCM scm_uniform_vector_length ();
-extern SCM scm_array_p ();
-extern SCM scm_array_rank ();
-extern SCM scm_array_dimensions ();
-extern long scm_aind ();
-extern SCM scm_make_ra ();
-extern SCM scm_shap2ra ();
-extern SCM scm_dimensions_to_uniform_array ();
-extern void scm_ra_set_contp ();
-extern SCM scm_make_shared_array ();
-extern SCM scm_transpose_array ();
-extern SCM scm_enclose_array ();
-extern SCM scm_array_in_bounds_p ();
-extern SCM scm_uniform_vector_ref ();
-extern SCM scm_cvref ();
-extern SCM scm_array_set_x ();
-extern SCM scm_array_contents ();
-extern SCM scm_ra2contig ();
-extern SCM scm_uniform_array_read_x ();
-extern SCM scm_uniform_array_write ();
-extern SCM scm_bit_count ();
-extern SCM scm_bit_position ();
-extern SCM scm_bit_set_star_x ();
-extern SCM scm_bit_count_star ();
-extern SCM scm_bit_invert_x ();
-extern SCM scm_string_upcase_x ();
-extern SCM scm_string_downcase_x ();
-extern SCM scm_istr2bve ();
-extern SCM scm_array_to_list ();
-extern SCM scm_list_to_uniform_array ();
-extern int scm_raprin1 ();
-extern SCM scm_array_prototype ();
-extern void scm_init_unif ();
-
-#endif /* STDC */
-
-
-
-
+extern SCM scm_vector_set_length_x SCM_P ((SCM vect, SCM len));
+extern SCM scm_makflo SCM_P ((float x));
+extern SCM scm_make_uve SCM_P ((long k, SCM prot));
+extern SCM scm_uniform_vector_length SCM_P ((SCM v));
+extern SCM scm_array_p SCM_P ((SCM v, SCM prot));
+extern SCM scm_array_rank SCM_P ((SCM ra));
+extern SCM scm_array_dimensions SCM_P ((SCM ra));
+extern long scm_aind SCM_P ((SCM ra, SCM args, char *what));
+extern SCM scm_make_ra SCM_P ((int ndim));
+extern SCM scm_shap2ra SCM_P ((SCM args, char *what));
+extern SCM scm_dimensions_to_uniform_array SCM_P ((SCM dims, SCM prot, SCM fill));
+extern void scm_ra_set_contp SCM_P ((SCM ra));
+extern SCM scm_make_shared_array SCM_P ((SCM oldra, SCM mapfunc, SCM dims));
+extern SCM scm_transpose_array SCM_P ((SCM args));
+extern SCM scm_enclose_array SCM_P ((SCM axes));
+extern SCM scm_array_in_bounds_p SCM_P ((SCM args));
+extern SCM scm_uniform_vector_ref SCM_P ((SCM v, SCM args));
+extern SCM scm_cvref SCM_P ((SCM v, scm_sizet pos, SCM last));
+extern SCM scm_array_set_x SCM_P ((SCM v, SCM obj, SCM args));
+extern SCM scm_array_contents SCM_P ((SCM ra, SCM strict));
+extern SCM scm_ra2contig SCM_P ((SCM ra, int copy));
+extern SCM scm_uniform_array_read_x SCM_P ((SCM ra, SCM port));
+extern SCM scm_uniform_array_write SCM_P ((SCM v, SCM port));
+extern SCM scm_bit_count SCM_P ((SCM item, SCM seq));
+extern SCM scm_bit_position SCM_P ((SCM item, SCM v, SCM k));
+extern SCM scm_bit_set_star_x SCM_P ((SCM v, SCM kv, SCM obj));
+extern SCM scm_bit_count_star SCM_P ((SCM v, SCM kv, SCM obj));
+extern SCM scm_bit_invert_x SCM_P ((SCM v));
+extern SCM scm_string_upcase_x SCM_P ((SCM v));
+extern SCM scm_string_downcase_x SCM_P ((SCM v));
+extern SCM scm_istr2bve SCM_P ((char *str, long len));
+extern SCM scm_array_to_list SCM_P ((SCM v));
+extern SCM scm_list_to_uniform_array SCM_P ((SCM ndim, SCM prot, SCM lst));
+extern int scm_raprin1 SCM_P ((SCM exp, SCM port, scm_print_state *pstate));
+extern SCM scm_array_prototype SCM_P ((SCM ra));
+extern void scm_init_unif SCM_P ((void));
 
 #endif  /* UNIFH */

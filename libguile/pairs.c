@@ -42,30 +42,17 @@
 #include <stdio.h>
 #include "_scm.h"
 
-#ifdef __STDC__
-#include <stdarg.h>
-#define var_start(x, y) va_start(x, y)
-#else
-#include <varargs.h>
-#define var_start(x, y) va_start(x)
-#endif
-
 
-
 
 /* {Pairs}
  */
 
 SCM_PROC(s_cons, "cons", 2, 0, 0, scm_cons);
-#ifdef __STDC__
-SCM 
-scm_cons (SCM x, SCM y)
-#else
+
 SCM 
 scm_cons (x, y)
      SCM x;
      SCM y;
-#endif
 {
   register SCM z;
   SCM_NEWCELL (z);
@@ -74,16 +61,12 @@ scm_cons (x, y)
   return z;
 }
 
-#ifdef __STDC__
-SCM 
-scm_cons2 (SCM w, SCM x, SCM y)
-#else
+
 SCM 
 scm_cons2 (w, x, y)
      SCM w;
      SCM x;
      SCM y;
-#endif
 {
   register SCM z;
   SCM_NEWCELL (z);
@@ -98,29 +81,21 @@ scm_cons2 (w, x, y)
 
 
 SCM_PROC(s_pair_p, "pair?", 1, 0, 0, scm_pair_p);
-#ifdef __STDC__
-SCM
-scm_pair_p(SCM x)
-#else
+
 SCM
 scm_pair_p(x)
      SCM x;
-#endif
 {
 	if SCM_IMP(x) return SCM_BOOL_F;
 	return SCM_CONSP(x) ? SCM_BOOL_T : SCM_BOOL_F;
 }
 
 SCM_PROC(s_set_car_x, "set-car!", 2, 0, 0, scm_set_car_x);
-#ifdef __STDC__
-SCM
-scm_set_car_x(SCM pair, SCM value)
-#else
+
 SCM
 scm_set_car_x(pair, value)
      SCM pair;
      SCM value;
-#endif
 {
 	SCM_ASSERT(SCM_NIMP(pair) && SCM_CONSP(pair), pair, SCM_ARG1, s_set_car_x);
 	SCM_CAR(pair) = value;
@@ -128,15 +103,11 @@ scm_set_car_x(pair, value)
 }
 
 SCM_PROC(s_set_cdr_x, "set-cdr!", 2, 0, 0, scm_set_cdr_x);
-#ifdef __STDC__
-SCM
-scm_set_cdr_x(SCM pair, SCM value)
-#else
+
 SCM
 scm_set_cdr_x(pair, value)
      SCM pair;
      SCM value;
-#endif
 {
 	SCM_ASSERT(SCM_NIMP(pair) && SCM_CONSP(pair), pair, SCM_ARG1, s_set_cdr_x);
 	SCM_CDR(pair) = value;
@@ -182,13 +153,9 @@ static scm_iproc cxrs[] =
 };
 
 
-#ifdef __STDC__
-void
-scm_init_pairs (void)
-#else
+
 void
 scm_init_pairs ()
-#endif
 {
   scm_init_iprocs(cxrs, scm_tc7_cxr);
 #include "pairs.x"
