@@ -213,7 +213,7 @@ scmconfig.h.in stamp-h.in
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
-TAR = gtar
+TAR = tar
 GZIP = --best
 DEP_FILES =  .deps/alist.P .deps/alloca.P .deps/append.P .deps/appinit.P \
 .deps/arbiters.P .deps/async.P .deps/backtrace.P .deps/boolean.P \
