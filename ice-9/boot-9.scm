@@ -599,6 +599,10 @@
       (putenv (string-append name "=" value))
       (putenv name)))
 
+(define (unsetenv name)
+  "Remove the entry for NAME from the environment."
+  (putenv name))
+
 
 ;;; {Load Paths}
 ;;;
