@@ -278,27 +278,10 @@ Returns the "effective" version number.  This is just the normal full
 version string without the final micro-version number.  See "Changes
 to the distribution" above.
 
-** Futures
+** Futures: future, make-future, future-ref
 
-Futures is a way of providing an alternative evaluation policy, very
-similar in principle to "promises".  Like promises, futures allow the
-main process to continue instantly, but while promises postpone
-evaluation ("lazy" evaluation) until the value is requested, futures
-immediately starts evaluation in a parallel thread.
-
-Futures are good when you want to express that "I'll need the value of
-this computation sometime soon" and want to allow processing to go on
-in the background until that time arrives.
-
-** New syntax: future FORM
-
-Begin evaluation of FORM in a parallel thread and return the future
-immediately.  (Akin to 'delay'.)
-
-** New procedure: future-ref FUTURE
-
-Return the computed value of the future.  Wait if the computation is
-not finished.  (Akin to 'force'.)
+Futures are like promises, but begun immediately in a new thread.  See
+the "Futures" section in the reference manual.
 
 ** New syntax: parallel FORM ...
 
