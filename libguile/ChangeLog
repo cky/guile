@@ -1,3 +1,7 @@
+Wed Jan  5 11:04:24 2000  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* *.[ch]: Replace GUILE_PROC w/ SCM_DEFINE.
+
 Wed Jan  5 10:59:06 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* *.[ch]:  Replace SCM_VALIDATE_INT w/ SCM_VALIDATE_INUM for

@@ -1,3 +1,7 @@
+Wed Jan  5 11:02:40 2000  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* readline.c: Rename GUILE_PROC to SCM_DEFINE.
+
 Mon Dec 13 13:57:57 1999  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* readline.c: Include libguile/scm_validate.h
