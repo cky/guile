@@ -58,7 +58,7 @@ scm_object_properties (obj)
      SCM obj;
 #endif
 {
-  return scm_hashq_create_handle_x (scm_object_whash, obj, SCM_EOL);
+  return scm_hashq_ref (scm_object_whash, obj, SCM_EOL);
 }
 
 
@@ -73,8 +73,7 @@ scm_set_object_properties_x (obj, plist)
      SCM plist;
 #endif
 {
-  SCM handle;
-  scm_hashq_create_handle_x (scm_object_whash, obj, plist);
+  SCM handle = scm_hashq_create_handle_x (scm_object_whash, obj, plist);
   SCM_SETCDR (handle, plist);
   return plist;
 }
@@ -131,7 +130,7 @@ void
 scm_init_objprop ()
 #endif
 {
-  scm_object_whash = scm_make_weak_hash_table (SCM_MAKINUM (511));
+  scm_object_whash = scm_make_weak_key_hash_table (SCM_MAKINUM (511));
 #include "objprop.x"
 }
 
