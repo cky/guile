@@ -2,8 +2,14 @@ The Guile core distribution:
 
 Bug reports and fixes from:
 
+    Ian Grant
+ Anders Holst
+ Karoly Lorentey
 Keisuke Nishida
-Ken Raeburn
-Bill Schottstaedt
+    Ken Raeburn
+   Bill Schottstaedt
+Bernard Urban
+
+suzukis@file.phys.tohoku.ac.jp
 
 Also, thanks to:
