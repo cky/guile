@@ -428,6 +428,39 @@ scm_handle_by_proc (handler_data, tag, throw_args)
   return scm_apply (*handler_proc_p, scm_cons (tag, throw_args), SCM_EOL);
 }
 
+/* SCM_HANDLE_BY_PROC_CATCHING_ALL is like SCM_HANDLE_BY_PROC but
+   catches all throws that the handler might emit itself.  The handler
+   used for these `secondary' throws is SCM_HANDLE_BY_MESSAGE_NO_EXIT.  */
+
+struct hbpca_data {
+  SCM proc;
+  SCM args;
+};
+
+static SCM
+hbpca_body (body_data, jmpbuf)
+     void *body_data;
+     SCM jmpbuf;
+{
+  struct hbpca_data *data = (struct hbpca_data *)body_data;
+  return scm_apply (data->proc, data->args, SCM_EOL);
+}
+
+SCM
+scm_handle_by_proc_catching_all (handler_data, tag, throw_args)
+     void *handler_data;
+     SCM tag;
+     SCM throw_args;
+{
+  SCM *handler_proc_p = (SCM *) handler_data;
+  struct hbpca_data data;
+  data.proc = *handler_proc_p;
+  data.args = scm_cons (tag, throw_args);
+
+  return scm_internal_catch (SCM_BOOL_T,
+			     hbpca_body, &data,
+			     scm_handle_by_message_noexit, NULL);
+}
 
 /* Derive the an exit status from the arguments to (quit ...).  */
 int

@@ -88,6 +88,7 @@ extern SCM scm_body_thunk SCM_P ((void *, SCM));
 
 
 extern SCM scm_handle_by_proc SCM_P ((void *, SCM, SCM));
+extern SCM scm_handle_by_proc_catching_all SCM_P ((void *, SCM, SCM));
 extern SCM scm_handle_by_message SCM_P ((void *, SCM, SCM));
 extern SCM scm_handle_by_message_noexit SCM_P ((void *, SCM, SCM));
 extern int scm_exit_status SCM_P ((SCM args));
