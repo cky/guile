@@ -235,21 +235,57 @@ APL language.
 The procedures in this section test specific properties of lists.
 
 @deffn {Scheme Procedure} proper-list? obj
-Return @code{#t} if @var{obj} is a proper list, that is a finite list,
-terminated with the empty list.  Otherwise, return @code{#f}.
+Return @code{#t} if @var{obj} is a proper list, or @code{#f}
+otherwise.  This is the same as the core @code{list?} (@pxref{List
+Predicates}).
+
+A proper list is a list which ends with the empty list @code{()} in
+the usual way.  The empty list @code{()} itself is a proper list too.
+
+@example
+(proper-list? '(1 2 3))  @result{} #t
+(proper-list? '())       @result{} #t
+@end example
 @end deffn
 
 @deffn {Scheme Procedure} circular-list? obj
-Return @code{#t} if @var{obj} is a circular list, otherwise return
-@code{#f}.
+Return @code{#t} if @var{obj} is a circular list, or @code{#f}
+otherwise.
+
+A circular list is a list where at some point the @code{cdr} refers
+back to a previous pair in the list (either the start or some later
+point), so that following the @code{cdr}s takes you around in a
+circle, with no end.
+
+@example
+(define x (list 1 2 3 4))
+(set-cdr! (last-pair x) (cddr x))
+x @result{} (1 2 3 4 3 4 3 4 ...)
+(circular-list? x)  @result{} #t
+@end example
 @end deffn
 
 @deffn {Scheme Procedure} dotted-list? obj
-Return @code{#t} if @var{obj} is a dotted list, return @code{#f}
-otherwise.  A dotted list is a finite list which is not terminated by
-the empty list, but some other value.
+Return @code{#t} if @var{obj} is a dotted list, or @code{#f}
+otherwise.
+
+A dotted list is a list where the @code{cdr} of the last pair is not
+the empty list @code{()}.  Any non-pair @var{obj} is also considered a
+dotted list, with length zero.
+
+@example
+(dotted-list? '(1 2 . 3))  @result{} #t
+(dotted-list? 99)          @result{} #t
+@end example
 @end deffn
 
+It will be noted that any Scheme object passes exactly one of the
+above three tests @code{proper-list?}, @code{circular-list?} and
+@code{dotted-list?}.  Non-lists are @code{dotted-list?}, finite lists
+are either @code{proper-list?} or @code{dotted-list?}, and infinite
+lists are @code{circular-list?}.
+
+@sp 1
 @deffn {Scheme Procedure} null-list? lst
 Return @code{#t} if @var{lst} is the empty list @code{()}, @code{#f}
 otherwise.  If something else than a proper or circular list is passed
