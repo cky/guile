@@ -290,7 +290,7 @@ SCM_DEFINE (scm_drain_input, "drain-input", 1, 0, 0,
     count += pt->saved_read_end - pt->saved_read_pos;
 
   result = scm_makstr (count, 0);
-  dst = SCM_CHARS (result);
+  dst = SCM_STRING_CHARS (result);
 
   while (pt->read_pos < pt->read_end)
     *dst++ = *(pt->read_pos++);

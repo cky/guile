@@ -107,7 +107,7 @@ SCM_DEFINE (scm_getenv, "getenv", 1, 0, 0,
   char *val;
   SCM_VALIDATE_ROSTRING (1,nam);
   nam = scm_makfromstr (SCM_ROCHARS (nam), SCM_ROLENGTH (nam), 0);
-  val = getenv(SCM_CHARS(nam));
+  val = getenv (SCM_STRING_CHARS (nam));
   return (val) ? scm_makfromstr(val, (scm_sizet)strlen(val), 0) : SCM_BOOL_F;
 }
 #undef FUNC_NAME

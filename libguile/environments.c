@@ -498,7 +498,7 @@ print_observer (SCM type, SCM port, scm_print_state *pstate)
   SCM base16 = scm_number_to_string (address, SCM_MAKINUM (16));
 
   scm_puts ("#<observer ", port);
-  scm_puts (SCM_CHARS (base16), port);
+  scm_puts (SCM_STRING_CHARS (base16), port);
   scm_puts (">", port);
 
   return 1;
@@ -994,7 +994,7 @@ print_leaf_environment (SCM type, SCM port, scm_print_state *pstate)
   SCM base16 = scm_number_to_string (address, SCM_MAKINUM (16));
 
   scm_puts ("#<leaf environment ", port);
-  scm_puts (SCM_CHARS (base16), port);
+  scm_puts (SCM_STRING_CHARS (base16), port);
   scm_puts (">", port);
 
   return 1;
@@ -1354,7 +1354,7 @@ print_eval_environment (SCM type, SCM port, scm_print_state *pstate)
   SCM base16 = scm_number_to_string (address, SCM_MAKINUM (16));
 
   scm_puts ("#<eval environment ", port);
-  scm_puts (SCM_CHARS (base16), port);
+  scm_puts (SCM_STRING_CHARS (base16), port);
   scm_puts (">", port);
 
   return 1;
@@ -1765,7 +1765,7 @@ print_import_environment (SCM type, SCM port, scm_print_state *pstate)
   SCM base16 = scm_number_to_string (address, SCM_MAKINUM (16));
 
   scm_puts ("#<import environment ", port);
-  scm_puts (SCM_CHARS (base16), port);
+  scm_puts (SCM_STRING_CHARS (base16), port);
   scm_puts (">", port);
 
   return 1;
@@ -2062,7 +2062,7 @@ print_export_environment (SCM type, SCM port, scm_print_state *pstate)
   SCM base16 = scm_number_to_string (address, SCM_MAKINUM (16));
 
   scm_puts ("#<export environment ", port);
-  scm_puts (SCM_CHARS (base16), port);
+  scm_puts (SCM_STRING_CHARS (base16), port);
   scm_puts (">", port);
 
   return 1;

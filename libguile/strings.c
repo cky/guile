@@ -186,7 +186,7 @@ SCM
 scm_makfromstr (const char *src, scm_sizet len, int dummy)
 {
   SCM s = scm_makstr (len, 0);
-  char *dst = SCM_CHARS (s);
+  char *dst = SCM_STRING_CHARS (s);
 
   while (len--)
     *dst++ = *src++;

@@ -460,7 +460,7 @@ SCM_DEFINE (scm_symbol_to_string, "symbol->string", 1, 0, 0,
 #define FUNC_NAME s_scm_symbol_to_string
 {
   SCM_VALIDATE_SYMBOL (1, s);
-  return scm_makfromstr (SCM_CHARS (s), SCM_LENGTH (s), 0);
+  return scm_makfromstr (SCM_SYMBOL_CHARS (s), SCM_LENGTH (s), 0);
 }
 #undef FUNC_NAME
 

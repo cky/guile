@@ -74,7 +74,7 @@ SCM_DEFINE (scm_make_keyword_from_dash_symbol, "make-keyword-from-dash-symbol", 
   SCM vcell;
 
   SCM_ASSERT (SCM_SYMBOLP (symbol)
-	      && ('-' == SCM_CHARS(symbol)[0]),
+	      && ('-' == SCM_SYMBOL_CHARS(symbol)[0]),
 	      symbol, SCM_ARG1, FUNC_NAME);
 
   SCM_DEFER_INTS;

@@ -1,5 +1,21 @@
 2000-09-22  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* backtrace.c (display_frame_expr), environments.c
+	(print_observer, print_leaf_environment, print_eval_environment,
+	print_import_environment, print_export_environment), gh_data.c
+	(gh_set_substr, gh_symbol2newstr), keywords.c
+	(scm_make_keyword_from_dash_symbol), ports.c (scm_drain_input),
+	posix.c (scm_mknod), print.c (scm_iprin1), regexp-posix.c
+	(scm_regexp_error_msg), script.c (scm_compile_shell_switches),
+	simpos.c (scm_getenv), socket.c (scm_recv, scm_recvfrom),
+	strings.c (scm_makfromstr), strop.c (scm_substring_move_x,
+	scm_substring_fill_x, scm_string_capitalize_x), symbols.c
+	(scm_symbol_to_string), unif.c (scm_make_uve, scm_array_p),
+	validate.h (SCM_VALIDATE_STRING_COPY):  Use SCM_STRING_CHARS or
+	SCM_SYMBOL_CHARS instead of SCM_CHARS.
+
+2000-09-22  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* strings.h (SCM_STRING_CHARS):  Added, should be used instead of
 	SCM_CHARS whenever the argument is known to be a string.
 

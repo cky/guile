@@ -1213,7 +1213,7 @@ SCM_DEFINE (scm_mknod, "mknod", 4, 0, 0,
   SCM_VALIDATE_INUM (4,dev);
   SCM_COERCE_SUBSTR (path);
 
-  p = SCM_CHARS (type);
+  p = SCM_SYMBOL_CHARS (type);
   if (strcmp (p, "regular") == 0)
     ctype = S_IFREG;
   else if (strcmp (p, "directory") == 0)

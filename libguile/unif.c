@@ -183,7 +183,7 @@ scm_make_uve (long k, SCM prot)
     {
       char s;
 
-      s = SCM_CHARS (prot)[0];
+      s = SCM_SYMBOL_CHARS (prot)[0];
       if (s == 's')
 	{
 	  i = sizeof (short) * k;
@@ -306,12 +306,12 @@ SCM_DEFINE (scm_array_p, "array?", 1, 1, 0,
  	case scm_tc7_svect:
  	  protp = SCM_SYMBOLP (prot)
  	    && (1 == SCM_LENGTH (prot))
- 	    && ('s' == SCM_CHARS (prot)[0]);
+ 	    && ('s' == SCM_SYMBOL_CHARS (prot)[0]);
 #ifdef HAVE_LONG_LONGS
  	case scm_tc7_llvect:
  	  protp = SCM_SYMBOLP (prot)
  	    && (1 == SCM_LENGTH (prot))
- 	    && ('s' == SCM_CHARS (prot)[0]);
+ 	    && ('s' == SCM_SYMBOL_CHARS (prot)[0]);
 #endif
  	case scm_tc7_fvect:
  	  protp = singp (prot);

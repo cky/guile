@@ -1,4 +1,4 @@
-/* $Id: validate.h,v 1.14 2000-09-03 21:56:03 mdj Exp $ */
+/* $Id: validate.h,v 1.15 2000-09-22 17:17:55 dirk Exp $ */
 /*	Copyright (C) 1999, 2000 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -156,7 +156,7 @@
 #define SCM_VALIDATE_STRING_COPY(pos, str, cvar) \
   do { \
     SCM_ASSERT (SCM_STRINGP (str), str, pos, FUNC_NAME); \
-    cvar = SCM_CHARS(str); \
+    cvar = SCM_STRING_CHARS(str); \
   } while (0)
 
 #define SCM_VALIDATE_RWSTRING(pos, str) \

@@ -709,7 +709,7 @@ SCM_DEFINE (scm_recv, "recv!", 2, 1, 0,
   SCM_VALIDATE_INUM_DEF_COPY (3,flags,0,flg);
   fd = SCM_FPORT_FDES (sock);
 
-  SCM_SYSCALL (rv = recv (fd, SCM_CHARS (buf), SCM_LENGTH (buf), flg));
+  SCM_SYSCALL (rv = recv (fd, SCM_STRING_CHARS (buf), SCM_LENGTH (buf), flg));
   if (rv == -1)
     SCM_SYSERROR;
 
@@ -807,7 +807,7 @@ SCM_DEFINE (scm_recvfrom, "recvfrom!", 2, 3, 0,
   fd = SCM_FPORT_FDES (sock);
 
   tmp_size = scm_addr_buffer_size;
-  SCM_SYSCALL (rv = recvfrom (fd, SCM_CHARS (buf) + offset,
+  SCM_SYSCALL (rv = recvfrom (fd, SCM_STRING_CHARS (buf) + offset,
 			      cend - offset, flg,
 			      (struct sockaddr *) scm_addr_buffer,
 			      &tmp_size));

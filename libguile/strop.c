@@ -260,8 +260,8 @@ SCM_DEFINE (scm_substring_move_x, "substring-move!", 5, 0, 0,
   SCM_ASSERT_RANGE (3,end1,e <= SCM_LENGTH (str1) && e >= 0);
   SCM_ASSERT_RANGE (5,start2,len+s2 <= SCM_LENGTH (str2));
 
-  SCM_SYSCALL(memmove((void *)(&(SCM_CHARS(str2)[s2])),
-		      (void *)(&(SCM_CHARS(str1)[s1])),
+  SCM_SYSCALL(memmove((void *)(&(SCM_STRING_CHARS(str2)[s2])),
+		      (void *)(&(SCM_STRING_CHARS(str1)[s1])),
 		      len));
   
   return scm_return_first(SCM_UNSPECIFIED, str1, str2);
@@ -290,7 +290,7 @@ SCM_DEFINE (scm_substring_fill_x, "substring-fill!", 4, 0, 0,
   SCM_VALIDATE_CHAR_COPY (4,fill,c);
   SCM_ASSERT_RANGE (2,start,i <= SCM_LENGTH (str) && i >= 0);
   SCM_ASSERT_RANGE (3,end,e <= SCM_LENGTH (str) && e >= 0);
-  while (i<e) SCM_CHARS (str)[i++] = c;
+  while (i<e) SCM_STRING_CHARS (str)[i++] = c;
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -454,7 +454,7 @@ SCM_DEFINE (scm_string_capitalize_x, "string-capitalize!", 1, 0, 0,
   int i, len, in_word=0;
   SCM_VALIDATE_STRING (1,str);
   len = SCM_LENGTH(str);
-  sz = SCM_CHARS(str);
+  sz = SCM_STRING_CHARS (str);
   for(i=0; i<len;  i++) {
     if(SCM_NFALSEP(scm_char_alphabetic_p(SCM_MAKE_CHAR(sz[i])))) {
       if(!in_word) {

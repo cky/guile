@@ -333,16 +333,16 @@ display_frame_expr (char *hdr,SCM exp,char *tlr,int indentation,SCM sport,SCM po
   string = scm_strport_to_string (sport);
   /* Remove control characters */
   for (i = 0; i < n; ++i)
-    if (iscntrl (SCM_CHARS (string)[i]))
-      SCM_CHARS (string)[i] = ' ';
+    if (iscntrl (SCM_STRING_CHARS (string)[i]))
+      SCM_STRING_CHARS (string)[i] = ' ';
   /* Truncate */
   if (indentation + n > SCM_BACKTRACE_WIDTH)
     {
       n = SCM_BACKTRACE_WIDTH - indentation;
-      SCM_CHARS (string)[n - 1] = '$';
+      SCM_STRING_CHARS (string)[n - 1] = '$';
     }
       
-  scm_lfwrite (SCM_CHARS (string), n, port);
+  scm_lfwrite (SCM_STRING_CHARS (string), n, port);
 }
 
 static void

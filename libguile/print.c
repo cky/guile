@@ -494,7 +494,7 @@ taloop:
 	      int mw_pos = 0;
 
 	      len = SCM_LENGTH (exp);
-	      str = SCM_CHARS (exp);
+	      str = SCM_SYMBOL_CHARS (exp);
 	      scm_remember (&exp);
 	      pos = 0;
 	      weird = 0;

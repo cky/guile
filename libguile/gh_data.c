@@ -116,7 +116,7 @@ gh_set_substr (char *src, SCM dst, int start, int len)
   SCM_ASSERT (SCM_STRINGP (dst), dst, SCM_ARG3,
 	      "gh_set_substr");
 
-  dst_ptr = SCM_CHARS (dst);
+  dst_ptr = SCM_STRING_CHARS (dst);
   dst_len = SCM_LENGTH (dst);
   SCM_ASSERT (len >= 0 && (unsigned) len <= dst_len,
 	      dst, SCM_ARG4, "gh_set_substr");
@@ -605,7 +605,7 @@ gh_symbol2newstr (SCM sym, int *lenp)
   ret_str = (char *) scm_must_malloc ((len + 1) * sizeof (char),
 				      "gh_symbol2newstr");
   /* so we copy tmp_str to ret_str, which is what we will allocate */
-  memcpy (ret_str, SCM_CHARS (sym), len);
+  memcpy (ret_str, SCM_SYMBOL_CHARS (sym), len);
   /* now make sure we null-terminate it */
   ret_str[len] = '\0';
 
