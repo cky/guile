@@ -23,10 +23,13 @@
 @node Interactive Debugging
 @subsection Interactive Debugging
 
-@deffn {Scheme Procedure} backtrace
+@deffn {Scheme Procedure} backtrace [highlights]
+@deffnx {C Function} scm_backtrace_with_highlights (highlights)
 @deffnx {C Function} scm_backtrace ()
 Display a backtrace of the stack saved by the last error
-to the current output port.
+to the current output port.  When @var{highlights} is given,
+it should be a list and all members of it are highligthed in
+the backtrace.
 @end deffn
 
 @deffn {Scheme Procedure} debug
@@ -246,13 +249,17 @@ Return the length of @var{stack}.
 Return the @var{index}'th frame from @var{stack}.
 @end deffn
 
-@deffn {Scheme Procedure} display-backtrace stack port [first [depth]]
+@deffn {Scheme Procedure} display-backtrace stack port [first [depth [highlights]]]
+@deffnx {C Function} scm_display_backtrace_with_highlights (stack, port, first, depth, highlights)
 @deffnx {C Function} scm_display_backtrace (stack, port, first, depth)
 Display a backtrace to the output port @var{port}. @var{stack}
 is the stack to take the backtrace from, @var{first} specifies
 where in the stack to start and @var{depth} how much frames
 to display. Both @var{first} and @var{depth} can be @code{#f},
 which means that default values will be used.
+When @var{highlights} is given,
+it should be a list and all members of it are highligthed in
+the backtrace.
 @end deffn
 
 

@@ -966,7 +966,9 @@ Guile) formats using @code{display} and @code{~S} (was
 @code{#f} depending on @var{key}: if @var{key} is
 @code{system-error} then it should be a list containing the
 Unix @code{errno} value; If @var{key} is @code{signal} then it
-should be a list containing the Unix signal number; otherwise
+should be a list containing the Unix signal number; If
+@var{key} is @code{out-of-range} or @code{wrong-type-arg},
+it is a list containing the bad value; otherwise
 it will usually be @code{#f}.
 @end deffn
 
