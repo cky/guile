@@ -1,5 +1,19 @@
 2001-03-30  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* scheme-reading.texi (Further Reading): Add bullets to further
+	reading list.
+
+	* gh.texi: Insert page break before chapter.  Remove page breaks
+	within the chapter.
+
+	* Makefile.am: Add script-getopt.texi.
+
+	* guile.texi (Top): Include and link to new script-getopt.texi
+	chapter.
+
+	* script-getopt.texi: New chapter on command line handling.
+	(Written and contributed by Martin Grabmueller, revised by me.)
+
 	* intro.texi (Modules and Extensions): Fix typo.
 
 2001-03-27  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>

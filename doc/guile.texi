@@ -144,7 +144,7 @@ by the Free Software Foundation.
 @sp 10
 @comment The title is printed in a large font.
 @title Guile Reference Manual
-@subtitle $Id: guile.texi,v 1.1 2001-03-09 08:21:59 ossau Exp $
+@subtitle $Id: guile.texi,v 1.2 2001-03-30 22:16:20 ossau Exp $
 @subtitle For use with Guile @value{VERSION}
 @author Mark Galassi
 @author Cygnus Solution and Los Alamos National Laboratory
@@ -256,7 +256,8 @@ Part III: Guile Modules
 Part IV: Guile Scripting
 
 * Guile Scripting::             How to write Guile scripts.
-
+* Command Line Handling::       Command line options and arguments.
+ 
 Part V: Extending Applications Using Guile
 
 * Libguile Intro::              Using Guile as an extension language.
@@ -335,6 +336,7 @@ Indices
 @end iftex
 
 @include scripts.texi
+@include script-getopt.texi
 
 @c Guile as an extension language
 @iftex

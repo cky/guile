@@ -2,7 +2,7 @@
 @node Further Reading
 @chapter Further Reading
 
-@itemize
+@itemize @bullet
 @item
 Dorai Sitaram's online Scheme tutorial, @dfn{Teach Yourself Scheme in
 Fixnum Days}, at

@@ -31,7 +31,7 @@ guile_TEXINFOS = preface.texi intro.texi scheme-intro.texi \
 	scheme-translation.texi scheme-debug.texi deprecated.texi \
 	scheme-reading.texi scheme-indices.texi slib.texi posix.texi \
 	expect.texi scsh.texi tcltk.texi scripts.texi gh.texi scm.texi \
-	appendices.texi indices.texi
+	appendices.texi indices.texi script-getopt.texi
 
 goops_TEXINFOS = goops-tutorial.texi hierarchy.eps hierarchy.txt
 

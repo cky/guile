@@ -1,3 +1,4 @@
+@page
 @node GH
 @chapter GH: A Portable C to Scheme Interface
 @cindex libguile - gh
@@ -52,7 +53,7 @@ developed.
 * Mixing gh and scm APIs::      
 @end menu
 
-@page
+
 @node gh preliminaries
 @section gh preliminaries
 
@@ -69,7 +70,6 @@ interpreter, you will have to add more libraries.
 @cindex gh - linking
 
 
-@page
 @node Data types and constants defined by gh
 @section Data types and constants defined by gh
 @cindex libguile - data types
@@ -103,7 +103,7 @@ value.  It can be used in C to terminate functions with variable numbers
 of arguments, such as @code{gh_list()}.
 @end defvr
 
-@page
+
 @node Starting and controlling the interpreter
 @section Starting and controlling the interpreter
 @cindex libguile - start interpreter
@@ -215,7 +215,6 @@ The resulting program @file{guile-gsl} would have new primitive
 procedures @code{gsl-ran-random}, @code{gsl-ran-gaussian} and so forth.
 
 
-@page
 @node Error messages
 @section Error messages
 @cindex libguile - error messages
@@ -224,7 +223,6 @@ procedures @code{gsl-ran-random}, @code{gsl-ran-gaussian} and so forth.
 [FIXME: need to fill this based on Jim's new mechanism]
 
 
-@page
 @node Executing Scheme code
 @section Executing Scheme code
 @cindex libguile - executing Scheme
@@ -256,8 +254,6 @@ closely.
 @end deftypefun
 
 
-
-@page
 @node Defining new Scheme procedures in C
 @section Defining new Scheme procedures in C
 @cindex libguile - new procedures
@@ -329,7 +325,6 @@ These macros disable and reenable Scheme's flow control.  They
 @c combinations of required and optional args...]
 
 
-@page
 @node Converting data between C and Scheme
 @section Converting data between C and Scheme
 @cindex libguile - converting data
@@ -468,7 +463,6 @@ that is, data will be copied as if the destination array was unsigned.
 @end deftypefun
 
 
-@page
 @node Type predicates
 @section Type predicates
 
@@ -518,7 +512,6 @@ Returns 1 if @var{val} is an exact number, 0 otherwise.
 @end deftypefun
 
 
-@page
 @node Equality predicates
 @section Equality predicates
 
@@ -555,7 +548,6 @@ Returns 1 if @var{l} is an empty list or pair; 0 otherwise.
 @end deftypefun
 
 
-@page
 @node Memory allocation and garbage collection
 @section Memory allocation and garbage collection
 
@@ -568,7 +560,6 @@ Returns 1 if @var{l} is an empty list or pair; 0 otherwise.
 @c @end deftypefun
 
 
-@page
 @node Calling Scheme procedures from C
 @section Calling Scheme procedures from C
 
@@ -810,6 +801,5 @@ here.
 @end smallexample
 
 
-@page
 @node Mixing gh and scm APIs
 @section Mixing gh and scm APIs
