@@ -1,3 +1,13 @@
+2000-04-19  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* struct.c (scm_struct_free_light, scm_struct_free_standard,
+	scm_struct_free_entity): Use `scm_must_free' instead of	`free'.
+
+	* procs.c (scm_make_subr_opt): Tell scm_must_realloc that we're
+	realloc:ing scm_subr_table ("what" instead of "who").
+
+	* numbers.c (scm_adjbig): Ditto.
+
 2000-04-18  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* unif.c (l2ra):  Don't eliminate the call to scm_array_set_x
@@ -72,6 +82,7 @@
 	* eval.h (SCM_IFRAME, SCM_IDIST), weaks.h (SCM_IS_WHVEC_ANY):
 	Added missing call to SCM_UNPACK.
 
+>>>>>>> 1.913
 2000-04-17  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* validate.h (SCM_VALIDATE_INUM_RANGE_COPY,
