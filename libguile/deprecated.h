@@ -218,6 +218,28 @@ SCM_API long scm_i_object_length (SCM);
 
 #define SCM_LENGTH(x) scm_i_object_length(x)
 
+#define scm_strhash(str, len, n) (scm_string_hash ((str), (len)) % (n))
+
+SCM_API SCM scm_sym2ovcell_soft (SCM sym, SCM obarray);
+SCM_API SCM scm_sym2ovcell (SCM sym, SCM obarray);
+SCM_API SCM scm_intern_obarray_soft (const char *name, size_t len,
+				     SCM obarray, unsigned int softness);
+SCM_API SCM scm_intern_obarray (const char *name, size_t len, SCM obarray);
+SCM_API SCM scm_symbol_value0 (const char *name);
+
+SCM_API SCM scm_string_to_obarray_symbol (SCM o, SCM s, SCM softp);
+SCM_API SCM scm_intern_symbol (SCM o, SCM s);
+SCM_API SCM scm_unintern_symbol (SCM o, SCM s);
+SCM_API SCM scm_symbol_binding (SCM o, SCM s);
+#if 0
+/* This name has been reused for real uninterned symbols. */
+SCM_API SCM scm_symbol_interned_p (SCM o, SCM s);
+#endif
+SCM_API SCM scm_symbol_bound_p (SCM o, SCM s);
+SCM_API SCM scm_symbol_set_x (SCM o, SCM s, SCM v);
+
+SCM_API SCM scm_gentemp (SCM prefix, SCM obarray);
+
 void scm_i_init_deprecated (void);
 
 #endif
@@ -227,34 +249,6 @@ void scm_i_init_deprecated (void);
 #if 0 
 /* TODO */
 
-scm_strhash
-
-scm_sym2vcell
-scm_sym2ovcell_soft
-scm_sym2ovcell
-
-scm_intern_obarray_soft
-scm_intern_obarray
-scm_intern
-scm_intern0
-
-scm_sysintern
-scm_sysintern0
-scm_sysintern0_no_module_lookup
-
-scm_symbol_value0
-scm_string_to_obarray_symbol
-scm_intern_symbol
-
-scm_unintern_symbol
-scm_symbol_binding
-scm_symbol_interned_p
-
-scm_symbol_bound_p
-scm_symbol_set_x
-scm_gentemp
-
-scm_init_symbols_deprecated
 scm_vector_set_length_x
 
 SCM_OPDIRP
