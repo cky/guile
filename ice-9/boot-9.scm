@@ -2056,7 +2056,7 @@
 	((eq? (stack-id #t) 'repl-stack)
 	 (set! the-last-stack (make-stack #t save-stack eval)))
 	((eq? (stack-id #t) 'load-stack)
-	 (set! the-last-stack (make-stack #t save-stack primitive-load)))
+	 (set! the-last-stack (make-stack #t save-stack gsubr-apply)))
 	(else (set! the-last-stack #f)))
   (apply throw key args))
 
