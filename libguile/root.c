@@ -60,10 +60,6 @@ SCM scm_sys_protects[SCM_NUM_PROTECTS];
 
 scm_t_bits scm_tc16_root;
 
-#ifndef USE_THREADS
-struct scm_root_state *scm_root;
-#endif
-
 
 
 static SCM

@@ -3,7 +3,7 @@
 #ifndef SCM_COOP_THREADS_H
 #define SCM_COOP_THREADS_H
 
-/* Copyright (C) 1996,1997,1998,2000 Free Software Foundation, Inc.
+/* Copyright (C) 1996,1997,1998,2000, 2002 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -112,15 +112,13 @@ SCM_API coop_t *coop_qget (coop_q_t *);
 SCM_API void coop_qput (coop_q_t *, coop_t *);
 SCM_API void *coop_sleephelp (qt_t *, void *, void *);
 
-#ifdef GUILE_ISELECT
 SCM_API coop_t *coop_wait_for_runnable_thread ();
-#endif
 
 SCM_API coop_q_t coop_global_runq;	/* A queue of runable threads. */
 SCM_API coop_q_t coop_global_sleepq;
 SCM_API coop_q_t coop_tmp_queue;
 SCM_API coop_q_t coop_global_allq;	/* A queue of all threads. */
-SCM_API coop_t *coop_global_curr;       	/* Currently-executing thread. */
+SCM_API coop_t *coop_global_curr;      	/* Currently-executing thread. */
 
 #endif  /* SCM_COOP_THREADS_H */
 

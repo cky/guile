@@ -110,33 +110,8 @@ scm_mark_all (void)
   
   scm_i_clear_mark_space ();
   
-#ifndef USE_THREADS
-
-  /* Mark objects on the C stack. */
-  SCM_FLUSH_REGISTER_WINDOWS;
-  /* This assumes that all registers are saved into the jmp_buf */
-  setjmp (scm_save_regs_gc_mark);
-  scm_mark_locations ((SCM_STACKITEM *) scm_save_regs_gc_mark,
-		      (   (size_t) (sizeof (SCM_STACKITEM) - 1 +
-				       sizeof scm_save_regs_gc_mark)
-			  / sizeof (SCM_STACKITEM)));
-
-  {
-    unsigned long stack_len = scm_stack_size (scm_stack_base);
-#ifdef SCM_STACK_GROWS_UP
-    scm_mark_locations (scm_stack_base, stack_len);
-#else
-    scm_mark_locations (scm_stack_base - stack_len, stack_len);
-#endif
-  }
-  SCM_MARK_BACKING_STORE();
-
-#else /* USE_THREADS */
-
   /* Mark every thread's stack and registers */
   scm_threads_mark_stacks ();
-
-#endif /* USE_THREADS */
 
   j = SCM_NUM_PROTECTS;
   while (j--)
@@ -161,11 +136,6 @@ scm_mark_all (void)
    * in different phases of GC
    */
   scm_mark_subr_table ();
-
-
-#ifndef USE_THREADS
-  scm_gc_mark (scm_root->handle);
-#endif
 }
 
 /* {Mark/Sweep}

@@ -124,22 +124,15 @@ typedef struct scm_root_state
 #define scm_rootcont			(scm_root->rootcont)
 #define scm_dynwinds			(scm_root->dynwinds)
 #define scm_progargs			(scm_root->progargs)
-#ifdef USE_THREADS
 #define scm_last_debug_frame		(scm_root->last_debug_frame)
-#endif
 #define scm_exitval 			(scm_root->exitval)
 #define scm_cur_inp			(scm_root->cur_inp)
 #define scm_cur_outp			(scm_root->cur_outp)
 #define scm_cur_errp			(scm_root->cur_errp)
 #define scm_cur_loadp			(scm_root->cur_loadp)
 
-#ifdef USE_THREADS
-#define scm_root ((scm_root_state *) SCM_THREAD_LOCAL_DATA)
-#define scm_set_root(new_root) SCM_SET_THREAD_LOCAL_DATA (new_root)
-#else /* USE_THREADS */
-SCM_API struct scm_root_state *scm_root;
-#define scm_set_root(new_root) (scm_root = (new_root))
-#endif /* USE_THREADS */
+#define scm_root                ((scm_root_state *) SCM_THREAD_LOCAL_DATA)
+#define scm_set_root(new_root)  SCM_SET_THREAD_LOCAL_DATA (new_root)
 
 
 

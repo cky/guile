@@ -40,7 +40,7 @@
  * If you do not wish that, delete this exception notice.  */
 
 
-/* $Id: coop.c,v 1.32 2002-10-27 20:12:07 mvo Exp $ */
+/* $Id: coop.c,v 1.33 2002-11-03 22:05:10 mvo Exp $ */
 
 /* Cooperative thread library, based on QuickThreads */
 
@@ -73,13 +73,11 @@ coop_qinit (coop_q_t *q)
 
   q->t.all_prev = NULL;
   q->t.all_next = NULL;
-#ifdef GUILE_ISELECT
   q->t.nfds = 0;
   q->t.readfds = NULL;
   q->t.writefds = NULL;
   q->t.exceptfds = NULL;
   q->t.timeoutp = 0;
-#endif
 }
 
 
@@ -131,7 +129,6 @@ coop_all_qremove (coop_q_t *q, coop_t *t)
       t->all_next->all_prev = t->all_prev;
 }
 
-#ifdef GUILE_ISELECT
 /* Insert thread t into the ordered queue q.
    q is ordered after wakeup_time.  Threads which aren't sleeping but
    waiting for I/O go last into the queue. */
@@ -152,10 +149,10 @@ coop_timeout_qinsert (coop_q_t *q, coop_t *t)
   if (t->next == &q->t)
     q->tail = t;
 }
-#endif
 
+
 
-/* Thread routines. */
+/* Thread routines. */
 
 coop_q_t coop_global_runq;	/* A queue of runable threads. */
 coop_q_t coop_global_sleepq;	/* A queue of sleeping threads. */
@@ -230,7 +227,6 @@ coop_init ()
    and there are sleeping threads - wait until one wakes up. Otherwise,
    return NULL. */
 
-#ifndef GUILE_ISELECT
 coop_t *
 coop_next_runnable_thread()
 {
@@ -260,7 +256,6 @@ coop_next_runnable_thread()
 
   return t;
 }
-#endif
 
 void
 coop_start()
@@ -333,13 +328,9 @@ coop_mutex_lock (coop_m *m)
       /* Record the current top-of-stack before going to sleep */
       coop_global_curr->top = &old;
 
-#ifdef GUILE_ISELECT
       newthread = coop_wait_for_runnable_thread();
       if (newthread == coop_global_curr)
 	coop_abort ();
-#else
-      newthread = coop_next_runnable_thread();
-#endif
       old = coop_global_curr;
       coop_global_curr = newthread;
       QT_BLOCK (coop_yieldhelp, old, &(m->waiting), newthread->sp);
@@ -417,13 +408,9 @@ coop_condition_variable_wait_mutex (coop_c *c, coop_m *m)
     {
       m->owner = NULL;
       /*fixme* Should we really wait here?  Isn't it OK just to proceed? */
-#ifdef GUILE_ISELECT
       newthread = coop_wait_for_runnable_thread();
       if (newthread == coop_global_curr)
 	coop_abort ();
-#else
-      newthread = coop_next_runnable_thread();
-#endif
     }
   coop_global_curr->top = &old;
   old = coop_global_curr;
@@ -457,16 +444,11 @@ coop_condition_variable_timed_wait_mutex (coop_c *c,
   else
     {
       m->owner = NULL;
-#ifdef GUILE_ISELECT
       coop_global_curr->timeoutp = 1;
       coop_global_curr->wakeup_time.tv_sec = abstime->tv_sec;
       coop_global_curr->wakeup_time.tv_usec = abstime->tv_nsec / 1000;
       coop_timeout_qinsert (&coop_global_sleepq, coop_global_curr);
       t = coop_wait_for_runnable_thread();
-#else
-      /*fixme* Implement!*/
-      t = coop_next_runnable_thread();
-#endif
     }
   if (t != coop_global_curr)
     {
@@ -712,15 +694,11 @@ coop_abort ()
       free (coop_global_curr->joining);
     }
 
-#ifdef GUILE_ISELECT
   scm_I_am_dead = 1;
   do {
     newthread = coop_wait_for_runnable_thread();
   } while (newthread == coop_global_curr);
   scm_I_am_dead = 0;
-#else
-  newthread = coop_next_runnable_thread();
-#endif
   coop_all_qremove (&coop_global_allq, coop_global_curr);
   old = coop_global_curr;
   coop_global_curr = newthread;
@@ -758,13 +736,9 @@ coop_join(coop_t *t)
       coop_qinit((coop_q_t *) t->joining);
     }
 
-#ifdef GUILE_ISELECT
   newthread = coop_wait_for_runnable_thread();
   if (newthread == coop_global_curr)
     return;
-#else
-  newthread = coop_next_runnable_thread();
-#endif
   old = coop_global_curr;
   coop_global_curr = newthread;
   QT_BLOCK (coop_yieldhelp, old, (coop_q_t *) t->joining, newthread->sp);
@@ -780,13 +754,8 @@ coop_yield()
 
   /* There may be no other runnable threads. Return if this is the 
      case. */
-#if GUILE_ISELECT
   if (newthread == coop_global_curr)
       return;
-#else
-  if (newthread == NULL)
-      return;
-#endif
 
   old = coop_global_curr;
 
@@ -815,8 +784,6 @@ coop_sleephelp (qt_t *sp, void *old, void *blockq)
   return NULL;
 }
 
-#ifdef GUILE_ISELECT
-
 unsigned long 
 scm_thread_usleep (unsigned long usec)
 {
@@ -840,43 +807,6 @@ scm_thread_sleep (unsigned long sec)
   slept = time (NULL) - now;
   return slept > sec ? 0 : sec - slept;
 }
-
-#else /* GUILE_ISELECT */
-
-unsigned long
-scm_thread_sleep (unsigned long s)
-{
-  coop_t *newthread, *old;
-  time_t now = time (NULL);
-  coop_global_curr->wakeup_time = now + s;
-
-  /* Put the current thread on the sleep queue */
-  coop_qput (&coop_global_sleepq, coop_global_curr);
-
-  newthread = coop_next_runnable_thread();
-
-  /* If newthread is the same as the sleeping thread, do nothing */
-  if (newthread == coop_global_curr)
-    return s;
-
-  old = coop_global_curr;
-
-  coop_global_curr = newthread;
-  QT_BLOCK (coop_sleephelp, old, NULL, newthread->sp);
-
-  return s;
-}
-
-unsigned long 
-scm_thread_usleep (unsigned long usec)
-{
-  /* We're so cheap.  */
-  scm_thread_sleep (usec / 1000000);
-  return 0;  /* Maybe we should calculate actual time slept,
-		but this is faster... :) */
-}
-
-#endif /* GUILE_ISELECT */
 
 /*
   Local Variables:

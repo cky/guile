@@ -59,9 +59,7 @@
 #  endif
 # endif
 
-#ifdef GUILE_ISELECT
 #include "libguile/iselect.h"
-#endif
 
 #if HAVE_WINSOCK2_H
 #include <winsock2.h>
@@ -106,7 +104,6 @@ typedef struct coop_t {
 
   SCM handle;            /* SCM handle, protected via scm_all_threads. */
 
-#ifdef GUILE_ISELECT
   int nfds;
   SELECT_TYPE *readfds;
   SELECT_TYPE *writefds;
@@ -115,9 +112,6 @@ typedef struct coop_t {
   struct timeval wakeup_time;	/* Time to stop sleeping */
   int _errno;
   int retval;
-#else
-  time_t wakeup_time;    /* Time to stop sleeping */
-#endif
 
 #ifdef GUILE_PTHREAD_COMPAT
   pthread_t dummy_thread;
@@ -203,10 +197,9 @@ SCM_API size_t scm_thread_count;
    iselect.h, but they use coop_t, defined above, which uses things
    defined in iselect.h.  Basically, we're making at best a flailing
    (and failing) attempt at modularity here, and I don't have time to
-   rethink this at the moment.  This code awaits a Hero.  --JimB */
-#ifdef GUILE_ISELECT
+   rethink this at the moment.  This code awaits a Hero.  --JimB
+ */
 SCM_API void coop_timeout_qinsert (coop_q_t *, coop_t *);
-#endif
 SCM_API coop_t *coop_next_runnable_thread (void);
 SCM_API coop_t *coop_wait_for_runnable_thread_now (struct timeval *);
 SCM_API coop_t *coop_wait_for_runnable_thread (void);

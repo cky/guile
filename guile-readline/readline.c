@@ -148,9 +148,7 @@ redisplay ()
 }
 
 static int in_readline = 0;
-#ifdef USE_THREADS
 static SCM reentry_barrier_mutex;
-#endif
 
 static SCM internal_readline (SCM text);
 static SCM handle_error (void *data, SCM tag, SCM args);
@@ -227,17 +225,13 @@ static void
 reentry_barrier ()
 {
   int reentryp = 0;
-#ifdef USE_THREADS
   /* We should rather use scm_try_mutex when it becomes available */
   scm_lock_mutex (reentry_barrier_mutex);
-#endif
   if (in_readline)
     reentryp = 1;
   else
     ++in_readline;
-#ifdef USE_THREADS
   scm_unlock_mutex (reentry_barrier_mutex);
-#endif
   if (reentryp)
     scm_misc_error (s_scm_readline, "readline is not reentrant", SCM_EOL);
 }
@@ -576,9 +570,7 @@ scm_init_readline ()
   rl_pre_input_hook = sigwinch_enable_restart;
 #endif
 
-#ifdef USE_THREADS
   reentry_barrier_mutex = scm_permanent_object (scm_make_mutex ());
-#endif
   scm_init_opts (scm_readline_options,
 		 scm_readline_opts,
 		 SCM_N_READLINE_OPTIONS);

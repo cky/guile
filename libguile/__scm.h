@@ -94,9 +94,6 @@
  * These may be defined or undefined.
  */
 
-/* Old async mechanism */
-/* #define GUILE_OLD_ASYNC_CLICK */
-
 /* #define GUILE_DEBUG_FREELIST */
 
 /* All the number support there is.
@@ -149,6 +146,15 @@
 # define SCM_API __declspec (dllexport) extern
 #else
 # define SCM_API extern
+#endif
+
+#if defined (SCM_ENABLE_DEPRECATED)
+
+/* These options are always active.
+ */
+#define USE_THREADS
+#define GUILE_ISELECT
+
 #endif
 
 
@@ -399,12 +405,6 @@ typedef short SCM_STACKITEM;
 typedef long SCM_STACKITEM;
 #endif
 
-
-#ifndef USE_THREADS
-#define SCM_CRITICAL_SECTION_START
-#define SCM_CRITICAL_SECTION_END
-#define SCM_THREAD_SWITCHING_CODE
-#endif
 
 #define SCM_ASYNC_TICK /*fixme* should change names */ \
 do { \

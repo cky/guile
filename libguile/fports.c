@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -530,7 +530,6 @@ fport_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
   return 1;
 }
 
-#ifdef GUILE_ISELECT
 /* thread-local block for input on fport's fdes.  */
 static void
 fport_wait_for_input (SCM port)
@@ -555,7 +554,6 @@ fport_wait_for_input (SCM port)
 	while (n == -1 && errno == EINTR);
     }
 }
-#endif
 
 static void fport_flush (SCM port);
 
@@ -568,9 +566,7 @@ fport_fill_input (SCM port)
   scm_t_port *pt = SCM_PTAB_ENTRY (port);
   scm_t_fport *fp = SCM_FSTREAM (port);
 
-#ifdef GUILE_ISELECT
   fport_wait_for_input (port);
-#endif
   SCM_SYSCALL (count = read (fp->fdes, pt->read_buf, pt->read_buf_size));
   if (count == -1)
     scm_syserror ("fport_fill_input");

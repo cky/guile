@@ -126,10 +126,6 @@ typedef struct scm_t_debug_frame
   scm_t_debug_info *info;
 } scm_t_debug_frame;
 
-#ifndef USE_THREADS
-SCM_API scm_t_debug_frame *scm_last_debug_frame;
-#endif
-
 #define SCM_EVALFRAME    (0L << 11)
 #define SCM_APPLYFRAME   (1L << 11)
 #define SCM_VOIDFRAME    (3L << 11)

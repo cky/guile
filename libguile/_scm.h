@@ -74,10 +74,7 @@
 #include "libguile/numbers.h"	/* Everyone deals with fixnums.  */
 #include "libguile/symbols.h"	/* For length, chars, values, miscellany.  */
 #include "libguile/boolean.h"	/* Everyone wonders about the truth.  */
-#ifdef USE_THREADS		
-#include "libguile/threads.h"	/* The cooperative thread package does
-				   switching at async ticks.  */
-#endif
+#include "libguile/threads.h"	/* You are not alone. */
 #include "libguile/snarf.h"	/* Everyone snarfs. */
 #include "libguile/variable.h"
 #include "libguile/modules.h"

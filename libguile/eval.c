@@ -167,8 +167,6 @@ scm_ilookup (SCM iloc, SCM env)
   return SCM_CARLOC (SCM_CDR (er));
 }
 
-#ifdef USE_THREADS
-
 /* The Lookup Car Race
     - by Eva Luator
 
@@ -242,17 +240,10 @@ scm_ilookup (SCM iloc, SCM env)
    for NULL.  I think I've found the only places where this
    applies. */
 
-#endif /* USE_THREADS */
-
 SCM_SYMBOL (scm_unbound_variable_key, "unbound-variable");
 
-#ifdef USE_THREADS
 static SCM *
 scm_lookupcar1 (SCM vloc, SCM genv, int check)
-#else
-SCM *
-scm_lookupcar (SCM vloc, SCM genv, int check)
-#endif
 {
   SCM env = genv;
   register SCM *al, fl, var = SCM_CAR (vloc);
@@ -268,10 +259,8 @@ scm_lookupcar (SCM vloc, SCM genv, int check)
 	    {
 	      if (SCM_EQ_P (fl, var))
 	      {
-#ifdef USE_THREADS
 		if (! SCM_EQ_P (SCM_CAR (vloc), var))
 		  goto race;
-#endif
 		SCM_SET_CELL_WORD_0 (vloc, SCM_UNPACK (iloc) + SCM_ICDR);
 		return SCM_CDRLOC (*al);
 	      }
@@ -286,10 +275,8 @@ scm_lookupcar (SCM vloc, SCM genv, int check)
 		  env = SCM_EOL;
 		  goto errout;
 		}
-#ifdef USE_THREADS
 	      if (!SCM_EQ_P (SCM_CAR (vloc), var))
 		goto race;
-#endif
 	      SCM_SETCAR (vloc, iloc);
 	      return SCM_CARLOC (*al);
 	    }
@@ -333,7 +320,6 @@ scm_lookupcar (SCM vloc, SCM genv, int check)
 	  }
       }
 
-#ifdef USE_THREADS
     if (!SCM_EQ_P (SCM_CAR (vloc), var))
       {
 	/* Some other thread has changed the very cell we are working
@@ -352,14 +338,12 @@ scm_lookupcar (SCM vloc, SCM genv, int check)
 	   the dispatch on the car of the form. */
 	return NULL;
       }
-#endif /* USE_THREADS */
 
     SCM_SETCAR (vloc, real_var);
     return SCM_VARIABLE_LOC (real_var);
   }
 }
 
-#ifdef USE_THREADS
 SCM *
 scm_lookupcar (SCM vloc, SCM genv, int check)
 {
@@ -368,7 +352,6 @@ scm_lookupcar (SCM vloc, SCM genv, int check)
     abort ();
   return loc;
 }
-#endif
 
 #define unmemocar scm_unmemocar
 
@@ -1238,7 +1221,6 @@ scm_macroexp (SCM x, SCM env)
   if (!SCM_SYMBOLP (orig_sym))
     return x;
 
-#ifdef USE_THREADS
   {
     SCM *proc_ptr = scm_lookupcar1 (x, env, 0);
     if (proc_ptr == NULL)
@@ -1248,9 +1230,6 @@ scm_macroexp (SCM x, SCM env)
       }
     proc = *proc_ptr;
   }
-#else
-  proc = *scm_lookupcar (x, env, 0);
-#endif
   
   /* Only handle memoizing macros.  `Acros' and `macros' are really
      special forms and should not be evaluated here. */
@@ -1692,10 +1671,6 @@ SCM (*scm_ceval_ptr) (SCM x, SCM env);
  * any stack swaps.
  */
 
-#ifndef USE_THREADS
-scm_t_debug_frame *scm_last_debug_frame;
-#endif
-
 /* scm_debug_eframe_size is the number of slots available for pseudo
  * stack frames at each real stack frame.
  */
@@ -1950,9 +1925,7 @@ start:
 	}
     }
 #endif
-#if defined (USE_THREADS) || defined (DEVAL)
 dispatch:
-#endif
   SCM_TICK;
   switch (SCM_TYP7 (x))
     {
@@ -2692,7 +2665,6 @@ dispatch:
       if (SCM_SYMBOLP (SCM_CAR (x)))
 	{
 	  SCM orig_sym = SCM_CAR (x);
-#ifdef USE_THREADS
 	  {
 	    SCM *location = scm_lookupcar1 (x, env, 1);
 	    if (location == NULL)
@@ -2702,9 +2674,6 @@ dispatch:
 	      }
 	    proc = *location;
 	  }
-#else
-	  proc = *scm_lookupcar (x, env, 1);
-#endif
 
 	  if (SCM_IMP (proc))
 	    {

@@ -63,19 +63,6 @@
 #include <sys/time.h>
 #endif
 
-/* The thread system has its own sleep and usleep functions.  */
-#ifndef USE_THREADS
-
-#if defined(MISSING_SLEEP_DECL)
-int sleep ();
-#endif
-
-#if defined(HAVE_USLEEP) && defined(MISSING_USLEEP_DECL)
-int usleep ();
-#endif
-
-#endif
-
 #ifdef __MINGW32__
 #include <windows.h>
 #define alarm(sec) (0)
@@ -351,7 +338,6 @@ SCM_DEFINE (scm_sigaction_for_thread, "sigaction", 1, 3, 0,
   sigemptyset (&action.sa_mask);
 #endif
 
-#ifdef USE_THREADS
   if (SCM_UNBNDP (thread))
     thread = scm_current_thread ();
   else
@@ -360,9 +346,6 @@ SCM_DEFINE (scm_sigaction_for_thread, "sigaction", 1, 3, 0,
       if (scm_c_thread_exited_p (thread))
 	SCM_MISC_ERROR ("thread has already exited", SCM_EOL);
     }
-#else
-  thread = SCM_BOOL_F;
-#endif
 
   SCM_DEFER_INTS;
   old_handler = SCM_VECTOR_REF(*signal_handlers, csig);
@@ -647,44 +630,23 @@ SCM_DEFINE (scm_sleep, "sleep", 1, 0, 0,
 {
   unsigned long j;
   SCM_VALIDATE_INUM_MIN (1, i,0);
-#ifdef USE_THREADS
   j = scm_thread_sleep (SCM_INUM(i));
-#else
-  j = sleep (SCM_INUM(i));
-#endif
   return scm_ulong2num (j);
 }
 #undef FUNC_NAME
 
-#if defined(USE_THREADS) || defined(HAVE_USLEEP) || defined(__MINGW32__)
 SCM_DEFINE (scm_usleep, "usleep", 1, 0, 0,
            (SCM i),
 	    "Sleep for I microseconds.  @code{usleep} is not available on\n"
 	    "all platforms.")
 #define FUNC_NAME s_scm_usleep
 {
+  unsigned long j;
   SCM_VALIDATE_INUM_MIN (1, i,0);
-
-#ifdef USE_THREADS
-  /* If we have threads, we use the thread system's sleep function.  */
-  {
-    unsigned long j = scm_thread_usleep (SCM_INUM (i));
-    return scm_ulong2num (j);
-  }
-#else
-#ifdef USLEEP_RETURNS_VOID
-  usleep (SCM_INUM (i));
-  return SCM_INUM0;
-#else
-  {
-    int j = usleep (SCM_INUM (i));
-    return SCM_MAKINUM (j);
-  }
-#endif
-#endif
+  j = scm_thread_usleep (SCM_INUM (i));
+  return scm_ulong2num (j);
 }
 #undef FUNC_NAME
-#endif /* USE_THREADS || HAVE_USLEEP || __MINGW32__ */
 
 SCM_DEFINE (scm_raise, "raise", 1, 0, 0,
            (SCM sig),

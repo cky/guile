@@ -248,7 +248,6 @@ SCM_DEFINE (scm_system_async_mark_for_thread, "system-async-mark", 1, 1, 0,
 	    "signal handlers.")
 #define FUNC_NAME s_scm_system_async_mark_for_thread
 {
-#ifdef USE_THREADS
   if (SCM_UNBNDP (thread))
     thread = scm_current_thread ();
   else
@@ -259,9 +258,6 @@ SCM_DEFINE (scm_system_async_mark_for_thread, "system-async-mark", 1, 1, 0,
     }
   scm_i_queue_async_cell (scm_cons (proc, SCM_BOOL_F),
 			  scm_i_thread_root (thread));
-#else
-  scm_i_queue_async_cell (scm_cons (proc, SCM_BOOL_F), scm_root);
-#endif
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME

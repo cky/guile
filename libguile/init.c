@@ -83,9 +83,7 @@
 #include "libguile/hash.h"
 #include "libguile/hashtab.h"
 #include "libguile/hooks.h"
-#ifdef GUILE_ISELECT
 #include "libguile/iselect.h"
-#endif
 #include "libguile/ioext.h"
 #include "libguile/keywords.h"
 #include "libguile/lang.h"
@@ -465,12 +463,10 @@ scm_init_guile_1 (SCM_STACKITEM *base)
   scm_init_variable ();           /* all bindings need variables */
   scm_init_continuations ();
   scm_init_root ();		  /* requires continuations */
-#ifdef USE_THREADS
   scm_init_threads (base);
-#endif
   start_stack (base);
   scm_init_gsubr ();
-  scm_init_thread_procs ();    /* Requires gsubrs */
+  scm_init_thread_procs ();       /* requires gsubrs */
   scm_init_procprop ();
   scm_init_environments ();
   scm_init_feature ();
@@ -497,9 +493,7 @@ scm_init_guile_1 (SCM_STACKITEM *base)
   scm_init_properties ();
   scm_init_hooks ();            /* Requires smob_prehistory */
   scm_init_gc ();		/* Requires hooks, async */
-#ifdef GUILE_ISELECT
   scm_init_iselect ();
-#endif
   scm_init_ioext ();
   scm_init_keywords ();
   scm_init_list ();

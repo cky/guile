@@ -1,4 +1,4 @@
-/* Copyright (C) 1996,1997,1998,1999,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1996,1997,1998,1999,2000,2001, 2002 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1230,14 +1230,9 @@ SCM_DEFINE (scm_select, "select", 3, 2, 0,
     }
 
   {
-#ifdef GUILE_ISELECT
     int rv = scm_internal_select (max_fd + 1,
 				  &read_set, &write_set, &except_set,
 				  time_ptr);
-#else
-    int rv = select (max_fd + 1,
-		     &read_set, &write_set, &except_set, time_ptr);
-#endif
     if (rv < 0)
       SCM_SYSERROR;
   }

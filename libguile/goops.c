@@ -1477,9 +1477,7 @@ SCM_DEFINE (scm_sys_invalidate_class, "%invalidate-class", 1, 0, 0,
 static scm_t_bits **hell;
 static long n_hell = 1;		/* one place for the evil one himself */
 static long hell_size = 4;
-#ifdef USE_THREADS
 static SCM hell_mutex;
-#endif
 
 static long
 burnin (SCM o)
@@ -1495,9 +1493,7 @@ static void
 go_to_hell (void *o)
 {
   SCM obj = SCM_PACK ((scm_t_bits) o);
-#ifdef USE_THREADS
   scm_lock_mutex (hell_mutex);
-#endif
   if (n_hell == hell_size)
     {
       long new_size = 2 * hell_size;
@@ -1505,21 +1501,15 @@ go_to_hell (void *o)
       hell_size = new_size;
     }
   hell[n_hell++] = SCM_STRUCT_DATA (obj);
-#ifdef USE_THREADS
   scm_unlock_mutex (hell_mutex);
-#endif
 }
 
 static void
 go_to_heaven (void *o)
 {
-#ifdef USE_THREADS
   scm_lock_mutex (hell_mutex);
-#endif
   hell[burnin (SCM_PACK ((scm_t_bits) o))] = hell[--n_hell];
-#ifdef USE_THREADS
   scm_unlock_mutex (hell_mutex);
-#endif
 }
 
 
@@ -1955,7 +1945,6 @@ scm_m_atdispatch (SCM xorig, SCM env)
 #undef FUNC_NAME
 
 
-#ifdef USE_THREADS
 static void
 lock_cache_mutex (void *m)
 {
@@ -1969,7 +1958,6 @@ unlock_cache_mutex (void *m)
   SCM mutex = SCM_PACK ((scm_t_bits) m);
   scm_unlock_mutex (mutex);
 }
-#endif
 
 static SCM
 call_memoize_method (void *a)
@@ -1991,16 +1979,12 @@ SCM
 scm_memoize_method (SCM x, SCM args)
 {
   SCM gf = SCM_CAR (scm_last_pair (x));
-#ifdef USE_THREADS
   return scm_internal_dynamic_wind (
     lock_cache_mutex,
     call_memoize_method,
     unlock_cache_mutex,
     (void *) SCM_UNPACK (scm_cons2 (gf, x, args)),
     (void *) SCM_UNPACK (SCM_SLOT (gf, scm_si_cache_mutex)));
-#else
-  return call_memoize_method ((void *) SCM_UNPACK (scm_cons2 (gf, x, args)));
-#endif
 }
 
 /******************************************************************************
@@ -2037,16 +2021,11 @@ SCM_DEFINE (scm_make, "make",  0, 0, 1,
 
   if (class == scm_class_generic || class == scm_class_generic_with_setter)
     {
-#ifdef USE_THREADS
       z = scm_make_struct (class, SCM_INUM0,
 			   scm_list_4 (SCM_EOL,
 				       SCM_INUM0,
 				       SCM_BOOL_F,
 				       scm_make_mutex ()));
-#else
-      z = scm_make_struct (class, SCM_INUM0,
-			   scm_list_3 (SCM_EOL, SCM_INUM0, SCM_BOOL_F));
-#endif
       scm_set_procedure_property_x (z, scm_sym_name,
 				    scm_get_keyword (k_name,
 						     args,
@@ -2194,11 +2173,7 @@ create_standard_classes (void)
   SCM amethod_slots = scm_list_1 (scm_list_3 (scm_str2symbol ("slot-definition"),
 					      k_init_keyword,
 					      k_slot_definition));
-#ifdef USE_THREADS
   SCM mutex_slot = scm_list_1 (scm_str2symbol ("make-mutex"));
-#else
-  SCM mutex_slot = SCM_BOOL_F;
-#endif
   SCM gf_slots = scm_list_4 (scm_str2symbol ("methods"),
 			     scm_list_3 (scm_str2symbol ("n-specialized"),
 					 k_init_value,
@@ -2695,9 +2670,7 @@ scm_init_goops_builtins (void)
   list_of_no_method = scm_permanent_object (scm_list_1 (sym_no_method));
 
   hell = scm_malloc (hell_size);
-#ifdef USE_THREADS
   hell_mutex = scm_permanent_object (scm_make_mutex ());
-#endif
 
   create_basic_classes ();
   create_standard_classes ();
