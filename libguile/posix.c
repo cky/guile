@@ -1028,18 +1028,47 @@ SCM_DEFINE (scm_environ, "environ", 0, 1, 0,
 
 SCM_DEFINE (scm_tmpnam, "tmpnam", 0, 0, 0,
             (),
-	    "Create a new file in the file system with a unique name.  The return\n"
-	    "value is the name of the new file.  This function is implemented with\n"
-	    "the @code{tmpnam} function in the system libraries.")
+	    "tmpnam returns a name in the file system that does not match\n"
+	    "any existing file.  However there is no guarantee that\n"
+	    "another process will not create the file after tmpnam\n"
+	    "is called.  Care should be taken if opening the file,\n"
+	    "e.g., use the O_EXCL open flag or use @code{mkstemp!} instead.")
 #define FUNC_NAME s_scm_tmpnam
 {
   char name[L_tmpnam];
-  SCM_SYSCALL (tmpnam (name););
+  char *rv;
+
+  SCM_SYSCALL (rv = tmpnam (name));
+  if (rv == NULL)
+    /* not SCM_SYSERROR since errno probably not set.  */
+    SCM_MISC_ERROR ("tmpnam failed", SCM_EOL);
   return scm_makfrom0str (name);
 }
 #undef FUNC_NAME
 
 #endif
+
+SCM_DEFINE (scm_mkstemp, "mkstemp!", 1, 0, 0,
+	    (SCM tmpl),
+	    "mkstemp creates a new unique file in the file system and\n"
+	    "returns a new buffered port open for reading and writing to\n"
+	    "the file.  @var{tmpl} is a string specifying where the\n"
+	    "file should be created: it must end with @code{XXXXXX}\n"
+	    "and will be changed in place to return the name of the\n"
+	    "temporary file.\n")
+#define FUNC_NAME s_scm_mkstemp
+{
+  char *c_tmpl;
+  int rv;
+  
+  SCM_STRING_COERCE_0TERMINATION_X (tmpl);
+  SCM_VALIDATE_STRING_COPY (1, tmpl, c_tmpl);
+  SCM_SYSCALL (rv = mkstemp (c_tmpl));
+  if (rv == -1)
+    SCM_SYSERROR;
+  return scm_fdes_to_port (rv, "w+", tmpl);
+}
+#undef FUNC_NAME
 
 SCM_DEFINE (scm_utime, "utime", 1, 2, 0,
             (SCM pathname, SCM actime, SCM modtime),

@@ -2,7 +2,7 @@
 
 #ifndef POSIXH
 #define POSIXH
-/*	Copyright (C) 1995, 1996, 1997, 1998, 2000 Free Software Foundation, Inc.
+/*	Copyright (C) 1995, 1996, 1997, 1998, 2000, 2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -85,6 +85,7 @@ extern SCM scm_fork (void);
 extern SCM scm_uname (void);
 extern SCM scm_environ (SCM env);
 extern SCM scm_tmpnam (void);
+extern SCM scm_mkstemp (SCM tmpl);
 extern SCM scm_open_pipe (SCM pipestr, SCM modes);
 extern SCM scm_close_pipe (SCM port);
 extern SCM scm_utime (SCM pathname, SCM actime, SCM modtime);

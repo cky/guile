@@ -401,6 +401,13 @@ Set/remove an advisory shared or exclusive lock on `file'.
 Set or get the hostname of the machine the current process is running
 on.
 
+** New function: mkstemp! tmpl
+mkstemp creates a new unique file in the file system and returns a
+new buffered port open for reading and writing to the file.  TMPL
+is a string specifying where the file should be created: it must
+end with `XXXXXX' and will be changed in place to return the name
+of the temporary file.
+
 ** New function: open-input-string string
 
 Return an input string port which delivers the characters from
