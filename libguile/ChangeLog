@@ -1,5 +1,17 @@
 1998-10-12  Jim Blandy  <jimb@zwingli.cygnus.com>
 
+	* threads.c: Doc fix.
+
+	The argument type of usleep varies from system to system,
+	as does the return type.  We really shouldn't be redefining usleep
+	at all, but I don't have time to clean that up before the 1.3.
+	release.  It's on the schedule for afterwards.  (Thanks to Julian
+	Satchell.)
+	* coop.c (usleep): Use USLEEP_ARG_TYPE in prototype and
+	definition.
+	* scmsigs.c (usleep): Use USLEEP_ARG_TYPE in prototype.
+	* scmconfig.h: Regenerated.
+
 	* simpos.c (scm_software_type): Procedure deleted.  This isn't the
 	right way to handle system variation.  Autoconf's approach is the
 	way and the light.

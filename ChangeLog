@@ -1,3 +1,18 @@
+1998-10-12  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	* configure: Regenerated.
+	
+	* configure.in (GUILE_FUNC_DECLARED): Name the cache variables
+	starting with guile_cv_; ac_cv_ is autoconf's namespace.
+
+	The type of the argument to usleep varies from system to system,
+	as does the return type.  We really shouldn't be redefining usleep
+	at all, but I don't have time to clean that up before the 1.3
+	release.  It's on the schedule for afterwards.
+	* configure.in: Cache results from usleep return value test.
+	Test for the type of the usleep argument, and cache that too.
+	* acconfig.h (USLEEP_ARG_TYPE): New macro.
+
 1998-10-11  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	* acconfig.h (HAVE_RL_GETC_FUNCTION): Fix this entry.
