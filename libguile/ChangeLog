@@ -1,3 +1,10 @@
+2002-11-16  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* eval.h (SCM_MAKE_ILOC):  New macro.
+
+	* debug.c (scm_make_iloc):  Use SCM_MAKE_ILOC instead of computing
+	the iloc bitpattern here.
+
 2002-11-14  Mikael Djurfeldt  <mdj@linnaeus>
 
 	* coop-pthreads.c, coop-pthreads.h: scm_internal_select should be

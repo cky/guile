@@ -245,10 +245,7 @@ SCM_DEFINE (scm_make_iloc, "make-iloc", 3, 0, 0,
 {
   SCM_VALIDATE_INUM (1, frame);
   SCM_VALIDATE_INUM (2, binding);
-  return SCM_PACK (SCM_UNPACK (SCM_ILOC00)
-                   + SCM_IFRINC * SCM_INUM (frame)
-                   + (!SCM_FALSEP (cdrp) ? SCM_ICDR : 0)
-                   + SCM_IDINC * SCM_INUM (binding));
+  SCM_MAKE_ILOC (SCM_INUM (frame), SCM_INUM (binding), !SCM_FALSEP (cdrp));
 }
 #undef FUNC_NAME
 

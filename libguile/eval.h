@@ -92,6 +92,12 @@ SCM_API SCM scm_eval_options_interface (SCM setting);
 				 & (SCM_UNPACK (n) >> 8))
 #define SCM_IDIST(n) 		(SCM_UNPACK (n) >> 20)
 #define SCM_ICDRP(n) 		(SCM_ICDR & SCM_UNPACK (n))
+#define SCM_MAKE_ILOC(frame_nr, binding_nr, last_p) \
+  SCM_PACK ( \
+    ((frame_nr) << 8) \
+    + ((binding_nr) << 20) \
+    + ((last_p) ? SCM_ICDR : 0) \
+    + scm_tc8_iloc )
 
 
 
