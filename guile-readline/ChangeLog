@@ -1,3 +1,8 @@
+2001-06-30  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* readline.c (completion_function):  Use scm_list_n instead of
+	SCM_LISTn.
+
 2001-06-14  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* readline.c, readline.h: Replace "scm_*_t" with "scm_t_*".

@@ -410,7 +410,7 @@ completion_function (char *text, int continuep)
     {
       SCM t = scm_makfrom0str (text);
       SCM c = continuep ? SCM_BOOL_T : SCM_BOOL_F;
-      res = scm_apply (compfunc, SCM_LIST2 (t, c), SCM_EOL);
+      res = scm_apply (compfunc, scm_list_2 (t, c), SCM_EOL);
   
       if (SCM_FALSEP (res))
 	return NULL;
@@ -418,7 +418,7 @@ completion_function (char *text, int continuep)
       if (!SCM_STRINGP (res))
 	scm_misc_error (s_scm_readline,
 			"Completion function returned bogus value: %S",
-			SCM_LIST1 (res));
+			scm_list_1 (res));
       SCM_STRING_COERCE_0TERMINATION_X (res);
       return strdup (SCM_STRING_CHARS (res));
     }
