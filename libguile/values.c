@@ -52,10 +52,7 @@
 
 #include "libguile/values.h"
 
-static SCM values_vtable;
-
-#define SCM_VALUESP(x) (SCM_STRUCTP (x)\
-                        && SCM_EQ_P (scm_struct_vtable (x), values_vtable))
+SCM scm_values_vtable;
 
 static SCM
 print_values (SCM obj, SCM pwps)
@@ -91,42 +88,11 @@ SCM_DEFINE (scm_values, "values", 0, 0, 1,
     result = SCM_CAR (args);
   else
     {
-      result = scm_make_struct (values_vtable, SCM_INUM0,
+      result = scm_make_struct (scm_values_vtable, SCM_INUM0,
 				scm_cons (args, SCM_EOL));
     }
 
   return result;
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_call_with_values, "call-with-values", 2, 0, 0,
-	    (SCM producer, SCM consumer),
-	    "Calls its @var{producer} argument with no values and a\n"
-	    "continuation that, when passed some values, calls the\n"
-	    "@var{consumer} procedure with those values as arguments.  The\n"
-	    "continuation for the call to @var{consumer} is the continuation\n"
-	    "of the call to @code{call-with-values}.\n\n"
-	    "@example\n"
-	    "(call-with-values (lambda () (values 4 5))\n"
-	    "                  (lambda (a b) b))\n"
-	    "                                             ==>  5\n\n"
-	    "@end example\n"
-	    "@example\n"
-	    "(call-with-values * -)                             ==>  -1\n"
-	    "@end example")
-#define FUNC_NAME s_scm_call_with_values
-{
-  SCM product;
-
-  SCM_VALIDATE_PROC (1, producer);
-  SCM_VALIDATE_PROC (2, consumer);
-
-  product = scm_apply (producer, SCM_EOL, SCM_EOL);
-  if (SCM_VALUESP (product))
-    product = scm_struct_ref (product, SCM_INUM0);
-  else
-    product = scm_cons (product, SCM_EOL);
-  return scm_apply (consumer, product, SCM_EOL);
 }
 #undef FUNC_NAME
 
@@ -135,10 +101,10 @@ scm_init_values (void)
 {
   SCM print = scm_make_subr ("%print-values", scm_tc7_subr_2, print_values);
 
-  values_vtable 
+  scm_values_vtable 
     = scm_permanent_object (scm_make_vtable_vtable (scm_makfrom0str ("pr"),
 						    SCM_INUM0, SCM_EOL));
-  SCM_SET_STRUCT_PRINTER (values_vtable, print);
+  SCM_SET_STRUCT_PRINTER (scm_values_vtable, print);
 
   scm_add_feature ("values");
 
