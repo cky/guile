@@ -2401,8 +2401,7 @@ added.
 @deffnx {C Function} scm_hashx_ref (hash, assoc, table, key, dflt)
 Lookup @var{key} in the given hash @var{table}, and return the
 associated value.  If @var{key} is not found, return @var{dflt}, or
-@code{#f} if @var{dflt} is not given.  (For the C functions,
-@var{dflt} must be given.)
+@code{#f} if @var{dflt} is not given.
 @end deffn
 
 @deffn {Scheme Procedure} hash-set! table key val
