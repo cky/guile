@@ -42,7 +42,8 @@ scm_files = \
 	mapping.scm \
 	poe.scm \
 	slib.scm  \
-	tags.scm
+	tags.scm \
+	threads.scm
 
 aux_files = \
 	.cvsignore \
