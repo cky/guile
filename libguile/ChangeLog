@@ -13,7 +13,7 @@
 	properties from an existing cell.
 	(scm_m_quote, scm_m_begin, scm_m_if, scm_m_set_x, scm_m_and,
 	scm_m_or, scm_m_case, scm_m_cond, scm_m_lambda, scm_m_letstar,
-	scm_m_do, scm_m_letrec, scm_m_let, scm_copy_tree): Use
+	scm_m_do, scm_m_letrec, scm_m_let, scm_copy_tree, SCM_CEVAL): Use
 	scm_cons_source.
 
 	* debug.c (scm_procedure_source): Cons SCM_IM_LAMBDA onto
