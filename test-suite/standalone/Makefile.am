@@ -27,6 +27,9 @@ CLEANFILES = *.x
 check_SCRIPTS += test-system-cmds
 TESTS += test-system-cmds
 
+check_SCRIPTS += test-require-extension
+TESTS += test-require-extension
+
 # test-num2integral
 test_num2integral_SOURCES = test-num2integral.c
 test_num2integral_CFLAGS = ${test_cflags}
