@@ -1352,7 +1352,9 @@ SCM scm_dot_string;
 
 SCM_DEFINE (scm_dirname, "dirname", 1, 0, 0, 
             (SCM filename),
-	    "")
+	    "Return the directory name component of the file name\n"
+	    "@var{filename}. If @var{filename} does not contain a directory\n"
+	    "component, @code{.} is returned.")
 #define FUNC_NAME s_scm_dirname
 {
   char *s;
@@ -1382,7 +1384,10 @@ SCM_DEFINE (scm_dirname, "dirname", 1, 0, 0,
 
 SCM_DEFINE (scm_basename, "basename", 1, 1, 0, 
             (SCM filename, SCM suffix),
-	    "")
+	    "Return the base name of the file name @var{filename}. The\n"
+	    "base name is the file name without any directory components.\n"
+	    "If @var{suffix} is privided, and is equal to the end of\n"
+	    "@var{basename}, it is removed also.")
 #define FUNC_NAME s_scm_basename
 {
   char *f, *s = 0;
