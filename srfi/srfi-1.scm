@@ -366,22 +366,6 @@
 	  '()
 	  (lp (- n 1) (cdr l)))))))
 
-(define (split-at x i)
-  (let lp ((l x) (n i) (acc '()))
-    (if (<= n 0)
-      (values (reverse! acc) l)
-      (lp (cdr l) (- n 1) (cons (car l) acc)))))
-
-(define (split-at! x i)
-  (if (<= i 0)
-    (values '() x)
-    (let lp ((l x) (n (- i 1)))
-      (if (<= n 0)
-	(let ((tmp (cdr l)))
-	  (set-cdr! l '())
-	  (values x tmp))
-	(lp (cdr l) (- n 1))))))
-
 (define (last pair)
   (car (last-pair pair)))
 
