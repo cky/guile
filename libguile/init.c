@@ -475,10 +475,11 @@ scm_boot_guile_1 (SCM_STACKITEM *base, struct main_func_closure *closure)
       scm_smob_prehistory ();
       scm_tables_prehistory ();
 #if defined (GUILE_NEW_GC_SCHEME)
-      scm_init_storage (scm_i_getenv_int ("GUILE_INIT_HEAP_SIZE", 0),
-			scm_i_getenv_int ("GUILE_GC_TRIGGER", 0),
-			scm_i_getenv_int ("GUILE_INIT_HEAP_SIZE2", 40000),
-			scm_i_getenv_int ("GUILE_GC_TRIGGER2", 0));
+      scm_init_storage (scm_i_getenv_int ("GUILE_INIT_SEGMENT_SIZE_1", 0),
+			scm_i_getenv_int ("GUILE_GC_TRIGGER_1", 0),
+			scm_i_getenv_int ("GUILE_INIT_SEGMENT_SIZE_2", 0),
+			scm_i_getenv_int ("GUILE_GC_TRIGGER_2", 0),
+			scm_i_getenv_int ("GUILE_MAX_SEGMENT_SIZE", 0));
 #else
       scm_init_storage (0, 0);
 #endif
