@@ -1889,6 +1889,8 @@
 
 ;; (define-special-value '(app modules new-ws) (lambda () (make-scm-module)))
 
+;; NOTE: This binding is used in libguile/modules.c.
+;;
 (define (resolve-module name . maybe-autoload)
   (let ((full-name (append '(app modules) name)))
     (let ((already (local-ref full-name)))
