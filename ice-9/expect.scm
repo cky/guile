@@ -78,7 +78,7 @@
 			      (cdr tests)
 			      (cdr exprs)
 			      (cons
-			       `((,(car tests) ,s)
+			       `((,(car tests) ,s ,port)
 				 ,@(cond ((null? (car exprs))
 					  '())
 					 ((eq? (caar exprs) '=>)
@@ -90,11 +90,15 @@
 							 (list (car exprs))
 							 #f)
 					      `((apply ,(cadar exprs)
-						       (,(car tests) ,s)))))
+						       (,(car tests) ,s ,port)))))
 					 (else 
 					  (car exprs))))
 			       body)))))
 		       (else (next-char)))))))))))
+
+
+(define-public expect-strings-compile-flags regexp/newline)
+(define-public expect-strings-exec-flags 0)
 
 ;;; the regexec front-end to expect:
 ;;; each test must evaluate to a regular expression.
@@ -109,11 +113,13 @@
 		   (let ((rxname (gentemp)))
 		     (next-test (cdr tests)
 				(cdr exprs)
-				(cons `(,rxname (make-regexp ,(car tests)
-							     regexp/newline))
+				(cons `(,rxname (make-regexp
+						 ,(car tests)
+						 expect-strings-compile-flags))
 				      defs)
-				(cons `((lambda (s)
-					  (expect-regexec ,rxname s))
+				(cons `((lambda (s port)
+					  (expect-regexec
+					   ,rxname s port))
 					,@(car exprs))
 				      body))))))))
 
@@ -130,8 +136,11 @@
 			     relative))))))
 
 ;;; convert a match object to a list of strings, for the => syntax.
-(define-public (expect-regexec rx s)
-  (let ((match (regexp-exec rx s)))
+(define-public (expect-regexec rx s port)
+  (let* ((flags (if eof-next?
+		    expect-strings-exec-flags
+		    (logior expect-strings-exec-flags regexp/noteol)))
+	 (match (regexp-exec rx s 0 flags)))
     (if match
 	(do ((i (- (match:count match) 1) (- i 1))
 	     (result '() (cons (match:substring match i) result)))
