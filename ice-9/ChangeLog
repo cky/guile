@@ -1,3 +1,13 @@
+2004-07-10  Kevin Ryde  <user42@zip.com.au>
+
+	* and-let-star.scm (and-let*): Remove unused variable "val".
+	* pretty-print.scm (read-macro-prefix): Remove unused variable "tail".
+
+	* boot-9.scm (%cond-expand-features): Add srfi-6 which is in the core.
+
+	* safe-r5rs.scm (re-export): Uncomment numerator, denominator,
+	rationalize, since they now exist.
+	
 2004-07-05  Kevin Ryde  <user42@zip.com.au>
 
 	* slib.scm (system): Correction to redefinition, now guile is stricter
