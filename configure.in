@@ -130,7 +130,7 @@ fi
 
 GUILE_DLSYM_USCORE
 
-AC_CHECK_FUNCS(ctermid ftime getcwd geteuid gettimeofday lstat mkdir mknod nice readlink rename rmdir select setegid seteuid setlocale setpgid setsid sigaction strftime strptime symlink sync tcgetpgrp tcsetpgrp times uname waitpid bzero strdup system usleep)
+AC_CHECK_FUNCS(ctermid ftime getcwd geteuid gettimeofday lstat mkdir mknod nice readlink rename rmdir select setegid seteuid setlocale setpgid setsid sigaction strftime strptime symlink sync tcgetpgrp tcsetpgrp times uname waitpid bzero strdup system usleep memmove bcopy)
 
 ### Some systems don't declare some functions.  On such systems, we
 ### need to at least provide our own K&R-style declarations.
@@ -255,6 +255,17 @@ AC_CACHE_CHECK([for st_blocks in struct stat], ac_cv_struct_st_blocks,
 ac_cv_struct_st_blocks=yes, ac_cv_struct_st_blocks=no)])
 if test $ac_cv_struct_st_blocks = yes; then
   AC_DEFINE(HAVE_ST_BLOCKS)
+fi
+
+AC_CACHE_CHECK([for S_ISLNK in sys/stat.h], ac_cv_macro_S_ISLNK,
+  [AC_TRY_CPP([#include <sys/stat.h>
+               #ifndef S_ISLNK
+               #error no S_ISLNK
+               #endif],
+               ac_cv_macro_S_ISLNK=yes,
+               ac_cv_macro_S_ISLNK=no)])
+if test $ac_cv_macro_S_ISLNK = yes; then
+  AC_DEFINE(HAVE_S_ISLNK)
 fi
 
 AC_STRUCT_TIMEZONE
