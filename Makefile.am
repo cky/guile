@@ -22,6 +22,8 @@
 SUBDIRS = ice-9 oop qt libltdl libguile guile-config guile-readline \
 	  scripts srfi doc
 
+bin_SCRIPTS = guile-tools
+
 include_HEADERS = libguile.h
 
 EXTRA_DIST = qthreads.m4 HACKING GUILE-VERSION ANON-CVS SNAPSHOTS
