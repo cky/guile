@@ -1,6 +1,6 @@
 ;;;; -*-scheme-*-
 ;;;;
-;;;; 	Copyright (C) 2001 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2001, 2004 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -42,7 +42,7 @@
     (cadr l))
 
   (define (read-macro-prefix l)
-    (let ((head (car l)) (tail (cdr l)))
+    (let ((head (car l)))
       (case head
         ((quote)            "'")
         ((quasiquote)       "`")
