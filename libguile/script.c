@@ -578,8 +578,9 @@ SCM_SYMBOL (sym_quit, "quit");
 
 
 /* The boot code "ice-9/boot-9" is only loaded by
-   SCM_COMPILE_SHELL_SWITCHES when this is false. */
-
+   SCM_COMPILE_SHELL_SWITCHES when this is false.  The unexec code
+   uses this, to keep ice_9 from being loaded into dumped guile
+   executables.  */
 int scm_ice_9_already_loaded = 0;
 
 /* Given an array of command-line switches, return a Scheme expression
