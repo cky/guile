@@ -120,7 +120,7 @@ scm_init_feature()
 #ifndef CHEAP_CONTINUATIONS
   scm_add_feature ("full-continuation");
 #endif
-#ifndef SCM_USE_NULL_THREADS
+#if SCM_USE_NULL_THREADS
   scm_add_feature ("threads");
 #endif
   
