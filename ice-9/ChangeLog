@@ -1,3 +1,12 @@
+2005-01-10  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* arrays.scm, deprecated.scm (uniform-vector-fill!,
+	make-uniform-vector, make-uniform-array, list->uniform-vector):
+	Moved from arrays.scm to deprecated.scm.
+	* arrays.scm, boot-9.scm (array-dimensions): Moved from arrays.scm
+	to boo-9.scm.
+	* Makefile.am (ice9_sources): Removed arrays.scm.
+	
 2005-01-02  Marius Vollmer  <mvo@zagadka.de>
 
 	* arrays.scm (uniform-vector-fill!, make-uniform-vector,
