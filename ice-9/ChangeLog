@@ -8,9 +8,9 @@
 	(module-type): Added slots `observers',	`weak-observers' and
 	`observer-id'.
 	(module-observe, module-observe-weak, module-unobserve,
-	module-modified!): New procedures.
+	module-modified): New procedures.
 	(module-make-local-var!, module-add!, module-remove!,
-	module-clear!, module-define!, module-use!): Call module-modified!.
+	module-clear!, module-define!, module-use!): Call module-modified.
 
 1999-07-29  Marius Vollmer  <mvo@zagadka.ping.de>
 

@@ -1428,7 +1428,7 @@
 	(set-module-observers! module (delq1! id (module-observers module)))))
   *unspecified*)
 
-(define (module-modified! m)
+(define (module-modified m)
   (for-each (lambda (proc) (proc m)) (module-observers m))
   (hash-fold (lambda (id proc res) (proc m)) #f (module-weak-observers m)))
 
@@ -1624,14 +1624,14 @@
   (or (let ((b (module-obarray-ref (module-obarray m) v)))
 	(and (variable? b)
 	     (begin
-	       (module-modified! m)
+	       (module-modified m)
 	       b)))
       (and (module-binder m)
 	   ((module-binder m) m v #t))
       (begin
 	(let ((answer (make-undefined-variable v)))
 	  (module-obarray-set! (module-obarray m) v answer)
-	  (module-modified! m)
+	  (module-modified m)
 	  answer))))
 
 ;; module-add! module symbol var
@@ -1642,7 +1642,7 @@
   (if (not (variable? var))
       (error "Bad variable to module-add!" var))
   (module-obarray-set! (module-obarray m) v var)
-  (module-modified! m))
+  (module-modified m))
 
 ;; module-remove! 
 ;; 
@@ -1650,11 +1650,11 @@
 ;;
 (define (module-remove! m v)
   (module-obarray-remove!  (module-obarray m) v)
-  (module-modified! m))
+  (module-modified m))
 
 (define (module-clear! m)
   (vector-fill! (module-obarray m) '())
-  (module-modified! m))
+  (module-modified m))
 
 ;; MODULE-FOR-EACH -- exported
 ;; 
@@ -1833,7 +1833,7 @@
     (if variable
 	(begin
 	  (variable-set! variable value)
-	  (module-modified! module))
+	  (module-modified module))
 	(module-add! module name (make-variable value name)))))
 
 ;; MODULE-DEFINED? -- exported
@@ -1852,7 +1852,7 @@
 (define (module-use! module interface)
   (set-module-uses! module
 		    (cons interface (delq! interface (module-uses module))))
-  (module-modified! module))
+  (module-modified module))
 
 
 ;;; {Recursive Namespaces}
