@@ -1,5 +1,31 @@
 2005-01-09  Marius Vollmer  <mvo@zagadka.de>
 
+	* srfi-4.h, srfi-4.c, srfi-4.i.c (scm_i_uniform_vector_ref_proc,
+	scm_i_uniform_vector_set_proc): New.
+	(u8ref, u8set, s8ref, s8set, etc): New.
+	(uvec_reffers, uvec_setters): New.
+	(uvec_to_list): Use generic scm_array_handle_ref instead of
+	uvec_fast_ref since scm_array_handle_ref should be faster now.
+	More changes like this are upcoming.
+	
+	* unif.h, unif.c, inline.h (scm_i_t_array_ref, scm_i_t_array_set):
+	New.
+	(scm_t_array_handle): Added ref, set, elements and
+	writable_elements for fast inline operation of
+	scm_array_handle_ref and scm_array_handle_set.
+	(scm_array_handle_ref, scm_array_handle_set): Moved to inline.h
+	and replaced with inline code that simply calls the ref/set
+	members of the handle.
+	(enclosed_ref, vector_ref, string_ref, bitvector_ref, memoize_ref,
+	enclosed_set, vector_set, string_set, bitvector_set, memoize_set):
+	New.
+	(scm_array_handle_get): Initialize ref/set fields to memoize_ref
+	and memoize_set.
+	(scm_bitvector_fill_x, scm_bitvector_to_list, scm_bit_count,
+	scm_bit_position, scm_bit_set_star_x, scm_bit_count_star,
+	scm_bit_invert_x): Correctly multiply index with increment in the
+	general case.
+	
 	* unif.c (scm_array_handle_set): Correctly execute only one
 	alternative.  D'Oh!
 	(scm_list_to_typed_array, l2ra): Use scm_t_array_handle to fill
