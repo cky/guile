@@ -119,6 +119,7 @@ isinf (double x)
 
 
 static SCM abs_most_negative_fixnum;
+static mpz_t z_negative_one;
 
 
 
@@ -1396,20 +1397,11 @@ SCM_DEFINE (scm_logcount, "logcount", 1, 0, 0,
   else if (SCM_BIGP (n))
     {
       unsigned long count;
-      if (mpz_sgn (SCM_I_BIG_MPZ (n)) < 0)
-        {
-          mpz_t z_n;
-          mpz_init (z_n);
-          mpz_com (z_n, SCM_I_BIG_MPZ (n));
-          scm_remember_upto_here_1 (n);
-          count = mpz_popcount (z_n);
-          mpz_clear (z_n);
-        }
+      if (mpz_sgn (SCM_I_BIG_MPZ (n)) >= 0)
+        count = mpz_popcount (SCM_I_BIG_MPZ (n));
       else
-        {
-          count = mpz_popcount (SCM_I_BIG_MPZ (n));
-          scm_remember_upto_here_1 (n);
-        }
+        count = mpz_hamdist (SCM_I_BIG_MPZ (n), z_negative_one);
+      scm_remember_upto_here_1 (n);
       return SCM_MAKINUM (count);
     }
   else
@@ -4216,6 +4208,8 @@ scm_init_numbers ()
 {
   abs_most_negative_fixnum = scm_i_long2big (- SCM_MOST_NEGATIVE_FIXNUM);
   scm_permanent_object (abs_most_negative_fixnum);
+
+  mpz_init_set_si (z_negative_one, -1);
 
   /* It may be possible to tune the performance of some algorithms by using
    * the following constants to avoid the creation of bignums.  Please, before
