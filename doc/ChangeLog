@@ -1,3 +1,11 @@
+2001-08-22  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
+
+	* scheme-options.texi (Evaluator trap options): Splitted
+	section "Evaluator options".
+
+	* scheme-evaluation.texi (Evaluator Behaviour): Typo "reader
+	options" --> "evaluator options".
+
 2001-08-17  Rob Browning  <rlb@defaultvalue.org>
 
 	* Makefile.am (guile_tut_TEXINFOS): remove guile-tut.texi.  It's
