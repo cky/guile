@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in.
 ##
-##  	Copyright (C) 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
+##  	Copyright (C) 1998, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##
@@ -36,3 +36,13 @@ TESTS = check-guile
 
 # The rule will cd to $(top_srcdir).
 ACLOCAL = ./guile-aclocal.sh
+
+if MAINTAINER_MODE
+# Fill dist tree.
+include $(top_srcdir)/am/maintainer-dirs
+dist-hook:
+	( echo 'This is a snapshot of the TODO file.' ; date ; echo ; \
+	  cat $(workbook)/tasks/TODO ) > TODO
+endif
+
+# Makefile.am ends here
