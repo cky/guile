@@ -103,7 +103,7 @@ Automake 1.2c --- a system for automatically generating Makefiles that
 
 libtool 1.0e --- a system for managing the zillion hairy options needed
 	on various systems to produce shared libraries.  Available in
-	"ftp://alpha.gnu.ai.mit.edu/gnu".
+	"ftp://alpha.gnu.org/gnu".
 
 You are lost in a little maze of automatically generated files, all
 different.
