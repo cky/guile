@@ -165,6 +165,7 @@ do { \
 
 SCM scm_print_state_vtable = SCM_BOOL_F;
 static SCM print_state_pool = SCM_EOL;
+SCM_MUTEX (print_state_mutex);
 
 #ifdef GUILE_DEBUG /* Used for debugging purposes */
 
@@ -204,13 +205,13 @@ scm_make_print_state ()
   SCM answer = SCM_BOOL_F;
 
   /* First try to allocate a print state from the pool */
-  SCM_DEFER_INTS;
+  scm_i_plugin_mutex_lock (&print_state_mutex);
   if (!SCM_NULLP (print_state_pool))
     {
       answer = SCM_CAR (print_state_pool);
       print_state_pool = SCM_CDR (print_state_pool);
     }
-  SCM_ALLOW_INTS;
+  scm_i_plugin_mutex_unlock (&print_state_mutex);
   
   return SCM_FALSEP (answer) ? make_print_state () : answer;
 }
@@ -227,10 +228,27 @@ scm_free_print_state (SCM print_state)
    */
   pstate->fancyp = 0;
   pstate->revealed = 0;
-  SCM_DEFER_INTS;
+  scm_i_plugin_mutex_lock (&print_state_mutex);
   handle = scm_cons (print_state, print_state_pool);
   print_state_pool = handle;
-  SCM_ALLOW_INTS;
+  scm_i_plugin_mutex_unlock (&print_state_mutex);
+}
+
+SCM
+scm_i_port_with_print_state (SCM port, SCM print_state)
+{
+  if (SCM_UNBNDP (print_state))
+    {
+      if (SCM_PORT_WITH_PS_P (port))
+	return port;
+      else
+	print_state = scm_make_print_state ();
+      /* port does not need to be coerced since it doesn't have ps */
+    }
+  else
+    port = SCM_COERCE_OUTPORT (port);
+  SCM_RETURN_NEWSMOB (scm_tc16_port_with_ps,
+		      SCM_UNPACK (scm_cons (port, print_state)));
 }
 
 static void
@@ -434,9 +452,7 @@ scm_iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 		SCM pwps, print = pstate->writingp ? g_write : g_display;
 		if (!print)
 		  goto print_struct;
-		SCM_NEWSMOB (pwps,
-			     scm_tc16_port_with_ps,
-			     SCM_UNPACK (scm_cons (port, pstate->handle)));
+		pwps = scm_i_port_with_print_state (port, pstate->handle);
 		pstate->revealed = 1;
 		scm_call_generic_2 (print, exp, pwps);
 	      }
@@ -670,13 +686,13 @@ scm_prin1 (SCM exp, SCM port, int writingp)
   else
     {
       /* First try to allocate a print state from the pool */
-      SCM_DEFER_INTS;
+      scm_i_plugin_mutex_lock (&print_state_mutex);
       if (!SCM_NULLP (print_state_pool))
 	{
 	  handle = print_state_pool;
 	  print_state_pool = SCM_CDR (print_state_pool);
 	}
-      SCM_ALLOW_INTS;
+      scm_i_plugin_mutex_unlock (&print_state_mutex);
       if (SCM_FALSEP (handle))
 	handle = scm_list_1 (make_print_state ());
       pstate_scm = SCM_CAR (handle);
@@ -693,10 +709,10 @@ scm_prin1 (SCM exp, SCM port, int writingp)
 
   if (!SCM_FALSEP (handle) && !pstate->revealed)
     {
-      SCM_DEFER_INTS;
+      scm_i_plugin_mutex_lock (&print_state_mutex);
       SCM_SETCDR (handle, print_state_pool);
       print_state_pool = handle;
-      SCM_ALLOW_INTS;
+      scm_i_plugin_mutex_unlock (&print_state_mutex);
     }
 }
 
@@ -900,7 +916,7 @@ SCM_DEFINE (scm_simple_format, "simple-format", 2, 0, 1,
 	    "containing the formatted text. Does not add a trailing newline.")
 #define FUNC_NAME s_scm_simple_format
 {
-  SCM answer = SCM_UNSPECIFIED;
+  SCM port, answer = SCM_UNSPECIFIED;
   int fReturnString = 0;
   int writingp;
   char *start;
@@ -909,20 +925,21 @@ SCM_DEFINE (scm_simple_format, "simple-format", 2, 0, 1,
 
   if (SCM_EQ_P (destination, SCM_BOOL_T))
     {
-      destination = scm_cur_outp;
+      destination = port = scm_cur_outp;
     }
   else if (SCM_FALSEP (destination))
     {
       fReturnString = 1;
-      destination = scm_mkstrport (SCM_INUM0, 
-				   scm_make_string (SCM_INUM0, SCM_UNDEFINED),
-				   SCM_OPN | SCM_WRTNG,
-				   FUNC_NAME);
+      port = scm_mkstrport (SCM_INUM0, 
+			    scm_make_string (SCM_INUM0, SCM_UNDEFINED),
+			    SCM_OPN | SCM_WRTNG,
+			    FUNC_NAME);
+      destination = port;
     }
   else
     {
       SCM_VALIDATE_OPORT_VALUE (1, destination);
-      destination = SCM_COERCE_OUTPORT (destination);
+      port = SCM_COERCE_OUTPORT (destination);
     }
   SCM_VALIDATE_STRING (2, message);
   SCM_VALIDATE_REST_ARGUMENT (args);
@@ -944,12 +961,12 @@ SCM_DEFINE (scm_simple_format, "simple-format", 2, 0, 1,
 	    writingp = 1;
 	    break;
 	  case '~':
-	    scm_lfwrite (start, p - start, destination);
+	    scm_lfwrite (start, p - start, port);
 	    start = p + 1;
 	    continue;
 	  case '%':
-	    scm_lfwrite (start, p - start - 1, destination);
-	    scm_newline (destination);
+	    scm_lfwrite (start, p - start - 1, port);
+	    scm_newline (port);
 	    start = p + 1;
 	    continue;
 	  default:
@@ -963,13 +980,14 @@ SCM_DEFINE (scm_simple_format, "simple-format", 2, 0, 1,
 	  SCM_MISC_ERROR ("FORMAT: Missing argument for ~~~A",
 			  scm_list_1 (SCM_MAKE_CHAR (*p)));
 			  		
-	scm_lfwrite (start, p - start - 1, destination);
+	scm_lfwrite (start, p - start - 1, port);
+	/* we pass destination here */
 	scm_prin1 (SCM_CAR (args), destination, writingp);
 	args = SCM_CDR (args);
 	start = p + 1;
       }
 
-  scm_lfwrite (start, p - start, destination);
+  scm_lfwrite (start, p - start, port);
   if (!SCM_EQ_P (args, SCM_EOL))
     SCM_MISC_ERROR ("FORMAT: ~A superfluous arguments",
 		    scm_list_1 (scm_length (args)));
@@ -1044,25 +1062,23 @@ port_with_ps_print (SCM obj, SCM port, scm_print_state *pstate)
 SCM
 scm_printer_apply (SCM proc, SCM exp, SCM port, scm_print_state *pstate)
 {
-  SCM pwps;
-  SCM pair = scm_cons (port, pstate->handle);
-  SCM_NEWSMOB (pwps, scm_tc16_port_with_ps, SCM_UNPACK (pair));
   pstate->revealed = 1;
-  return scm_call_2 (proc, exp, pwps);
+  return scm_call_2 (proc, exp,
+		     scm_i_port_with_print_state (port, pstate->handle));
 }
 
-SCM_DEFINE (scm_port_with_print_state, "port-with-print-state", 2, 0, 0, 
+SCM_DEFINE (scm_port_with_print_state, "port-with-print-state", 1, 1, 0, 
             (SCM port, SCM pstate),
 	    "Create a new port which behaves like @var{port}, but with an\n"
-	    "included print state @var{pstate}.")
+	    "included print state @var{pstate}.  @var{pstate} is optional.\n"
+	    "If @var{pstate} isn't supplied and @var{port} already has\n"
+	    "a print state, the old print state is reused.")
 #define FUNC_NAME s_scm_port_with_print_state
 {
-  SCM pwps;
   SCM_VALIDATE_OPORT_VALUE (1, port);
-  SCM_VALIDATE_PRINTSTATE (2, pstate);
-  port = SCM_COERCE_OUTPORT (port);
-  SCM_NEWSMOB (pwps, scm_tc16_port_with_ps, SCM_UNPACK (scm_cons (port, pstate)));
-  return pwps;
+  if (!SCM_UNBNDP (pstate))
+    SCM_VALIDATE_PRINTSTATE (2, pstate);
+  return scm_i_port_with_print_state (port, pstate);
 }
 #undef FUNC_NAME
 

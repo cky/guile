@@ -1,5 +1,5 @@
 /* Printing of backtraces and error messages
- * Copyright (C) 1996,1997,1998,1999,2000,2001 Free Software Foundation
+ * Copyright (C) 1996,1997,1998,1999,2000,2001, 2003 Free Software Foundation
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -40,6 +40,7 @@
 #include "libguile/fluids.h"
 #include "libguile/ports.h"
 #include "libguile/strings.h"
+#include "libguile/dynwind.h"
 
 #include "libguile/validate.h"
 #include "libguile/lang.h"
@@ -47,10 +48,21 @@
 #include "libguile/filesys.h"
 
 /* {Error reporting and backtraces}
- * (A first approximation.)
  *
  * Note that these functions shouldn't generate errors themselves.
  */
+
+/* Print parameters for error messages. */
+
+#define DISPLAY_ERROR_MESSAGE_MAX_LEVEL   7
+#define DISPLAY_ERROR_MESSAGE_MAX_LENGTH 10
+
+/* Print parameters for failing expressions in error messages.
+ * (See also `print_params' below for backtrace print parameters.)
+ */
+
+#define DISPLAY_EXPRESSION_MAX_LEVEL      2
+#define DISPLAY_EXPRESSION_MAX_LENGTH     3
 
 #undef SCM_ASSERT
 #define SCM_ASSERT(_cond, _arg, _pos, _subr) \
@@ -91,19 +103,68 @@ display_header (SCM source, SCM port)
 }
 
 
+struct display_error_message_data {
+  SCM message;
+  SCM args;
+  SCM port;
+  scm_print_state *pstate;
+  int old_fancyp;
+  int old_level;
+  int old_length;
+};
+
+static SCM
+display_error_message (struct display_error_message_data *d)
+{
+  if (SCM_STRINGP (d->message) && !SCM_FALSEP (scm_list_p (d->args)))
+    scm_simple_format (d->port, d->message, d->args);
+  else
+    scm_display (d->message, d->port);
+  scm_newline (d->port);
+  return SCM_UNSPECIFIED;
+}
+
+static void
+before_display_error_message (struct display_error_message_data *d)
+{
+  scm_print_state *pstate = d->pstate;
+  d->old_fancyp = pstate->fancyp;
+  d->old_level  = pstate->level;
+  d->old_length = pstate->length;
+  pstate->fancyp = 1;
+  pstate->level  = DISPLAY_ERROR_MESSAGE_MAX_LEVEL;
+  pstate->length = DISPLAY_ERROR_MESSAGE_MAX_LENGTH;
+}
+
+static void
+after_display_error_message (struct display_error_message_data *d)
+{
+  scm_print_state *pstate = d->pstate;
+  pstate->fancyp = d->old_fancyp;
+  pstate->level  = d->old_level;
+  pstate->length = d->old_length;
+}
+
 void
 scm_display_error_message (SCM message, SCM args, SCM port)
 {
-  if (SCM_STRINGP (message) && !SCM_FALSEP (scm_list_p (args)))
-    {
-      scm_simple_format (port, message, args);
-      scm_newline (port);
-    }
-  else
-    {
-      scm_display (message, port);
-      scm_newline (port);
-    }
+  struct display_error_message_data d;
+  SCM print_state;
+  scm_print_state *pstate;
+
+  port = scm_i_port_with_print_state (port, SCM_UNDEFINED);
+  print_state = SCM_PORT_WITH_PS_PS (port);
+  pstate = SCM_PRINT_STATE (print_state);
+  
+  d.message = message;
+  d.args = args;
+  d.port = port;
+  d.pstate = pstate;
+  scm_internal_dynamic_wind ((scm_t_guard) before_display_error_message,
+			     (scm_t_inner) display_error_message,
+			     (scm_t_guard) after_display_error_message,
+			     &d,
+			     &d);
 }
 
 static void
@@ -113,8 +174,8 @@ display_expression (SCM frame, SCM pname, SCM source, SCM port)
   scm_print_state *pstate = SCM_PRINT_STATE (print_state);
   pstate->writingp = 0;
   pstate->fancyp = 1;
-  pstate->level = 2;
-  pstate->length = 3;
+  pstate->level  = DISPLAY_EXPRESSION_MAX_LEVEL;
+  pstate->length = DISPLAY_EXPRESSION_MAX_LENGTH;
   if (SCM_SYMBOLP (pname) || SCM_STRINGP (pname))
     {
       if (SCM_FRAMEP (frame)

@@ -1,5 +1,18 @@
 2003-05-12  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
+	* backtrace.c (scm_display_error_message): Introduced fancy
+	printing with max level 7 and length 10.  (Purpose: avoid printing
+	gigantic objects in error messages.)
+
+	* print.c, print.h (scm_i_port_with_print_state): New function.
+
+	* print.c (scm_iprin1, scm_printer_apply,
+	scm_port_with_print_state): Use scm_i_port_with_print_state.
+	(scm_simple_format): Modified not to destroy print states.
+	(print_state_mutex): New mutex.
+	(scm_make_print_state, scm_free_print_state, scm_prin1):
+	Lock/unlock print_state_mutex.
+	
 	* deprecated.h (SCM_GC8MARKP, SCM_SETGC8MARK, SCM_CLRGC8MARK):
 	Use current names in definitions.
 
