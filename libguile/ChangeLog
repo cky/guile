@@ -1,8 +1,8 @@
 2001-04-10  Mikael Djurfeldt  <mdj@linnaeus.mit.edu>
 
-	* init.c, goops.c: Reverted change of 2001-03-29.  (The goops
-	module should be registered in order to work for an application
-	which uses libguile statically linked.)
+	* init.c, goops.c, goops.h: Reverted change of 2001-03-29.  (The
+	goops module should be registered in order to work for an
+	application which uses libguile statically linked.)
 
 2001-04-10  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 

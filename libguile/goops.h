@@ -237,9 +237,7 @@ SCM scm_m_atdispatch (SCM xorig, SCM env);
 #ifdef GUILE_DEBUG
 SCM scm_pure_generic_p (SCM obj);
 #endif
-#if (SCM_DEBUG_DEPRECATED == 0)
 extern void scm_init_oop_goops_goopscore_module (void);
-#endif /* (SCM_DEBUG_DEPRECATED == 0) */
 
 SCM scm_sys_compute_slots (SCM c); 
 SCM scm_i_get_keyword (SCM key, SCM l, int len, SCM default_value, const char *subr); 
