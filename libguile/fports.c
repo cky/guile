@@ -311,9 +311,9 @@ scm_fdes_to_port (int fdes, char *mode, SCM name)
 }
 
 
-/* Check whether an fport's fdes can supply input.  */
+/* Return a lower bound on the number of bytes available for input.  */
 static int
-fport_input_waiting_p (SCM port)
+fport_input_waiting (SCM port)
 {
   int fdes = SCM_FSTREAM (port)->fdes;
 
@@ -335,14 +335,14 @@ fport_input_waiting_p (SCM port)
   if (select (SELECT_SET_SIZE,
 	      &read_set, &write_set, &except_set, &timeout)
       < 0)
-    scm_syserror ("fport_input_waiting_p");
-  return FD_ISSET (fdes, &read_set);
+    scm_syserror ("fport_input_waiting");
+  return FD_ISSET (fdes, &read_set) ? 1 : 0;
 #elif defined (FIONREAD)
   int remir;
   ioctl(fdes, FIONREAD, &remir);
   return remir;
 #else    
-  scm_misc_error ("fport_input_waiting_p",
+  scm_misc_error ("fport_input_waiting",
 		  "Not fully implemented on this platform",
 		  SCM_EOL);
 #endif
@@ -392,7 +392,7 @@ fport_wait_for_input (SCM port)
 {
   int fdes = SCM_FSTREAM (port)->fdes;
 
-  if (!fport_input_waiting_p (port))
+  if (!fport_input_waiting (port))
     {
       int n;
       SELECT_TYPE readfds;
@@ -412,13 +412,13 @@ fport_wait_for_input (SCM port)
 }
 #endif
 
-static void local_fflush (SCM port);
+static void fport_flush (SCM port);
 
 /* fill a port's read-buffer with a single read.
    returns the first char and moves the read_pos pointer past it.
    or returns EOF if end of file.  */
 static int
-fport_fill_buffer (SCM port)
+fport_fill_input (SCM port)
 {
   int count;
   scm_port *pt = SCM_PTAB_ENTRY (port);
@@ -429,7 +429,7 @@ fport_fill_buffer (SCM port)
 #endif
   SCM_SYSCALL (count = read (fp->fdes, pt->read_buf, pt->read_buf_size));
   if (count == -1)
-    scm_syserror ("fport_fill_buffer");
+    scm_syserror ("fport_fill_input");
   if (count == 0)
     return EOF;
   else
@@ -441,18 +441,18 @@ fport_fill_buffer (SCM port)
 }
 
 static off_t
-local_seek (SCM port, off_t offset, int whence)
+fport_seek (SCM port, off_t offset, int whence)
 {
   struct scm_fport *fp = SCM_FSTREAM (port);
   off_t result = lseek (fp->fdes, offset, whence);
 
   if (result == -1)
-    scm_syserror ("local_seek");
+    scm_syserror ("fport_seek");
   return result;
 }
 
 static void
-local_ftruncate (SCM port, off_t length)
+fport_truncate (SCM port, off_t length)
 {
   struct scm_fport *fp = SCM_FSTREAM (port);
 
@@ -486,12 +486,12 @@ fport_write (SCM port, void *data, size_t size)
 	  size -= write_len;
 	  input += write_len;
 	  if (write_len == space)
-	    local_fflush (port);
+	    fport_flush (port);
 	}
 
       /* handle line buffering.  */
       if ((SCM_CAR (port) & SCM_BUFLINE) && memchr (data, '\n', size))
-	local_fflush (port);
+	fport_flush (port);
     }
 }
 
@@ -500,7 +500,7 @@ fport_write (SCM port, void *data, size_t size)
 extern int terminating; 
 
 static void
-local_fflush (SCM port)
+fport_flush (SCM port)
 {
   scm_port *pt = SCM_PTAB_ENTRY (port);
   struct scm_fport *fp = SCM_FSTREAM (port);
@@ -530,7 +530,7 @@ local_fflush (SCM port)
 	      pt->write_pos = pt->write_buf + remaining;
 	    }
 	  if (!terminating)
-	    scm_syserror ("local_fflush");
+	    scm_syserror ("fport_flush");
 	  else
 	    {
 	      const char *msg = "Error: could not flush file-descriptor ";
@@ -552,7 +552,7 @@ local_fflush (SCM port)
 
 /* clear the read buffer and adjust the file position for unread bytes. */
 static void
-local_read_flush (SCM port, int offset)
+fport_end_input (SCM port, int offset)
 {
   struct scm_fport *fp = SCM_FSTREAM (port);
   scm_port *pt = SCM_PTAB_ENTRY (port);
@@ -565,22 +565,22 @@ local_read_flush (SCM port, int offset)
       /* will throw error if unread-char used at beginning of file
 	 then attempting to write.  seems correct.  */
       if (lseek (fp->fdes, -offset, SEEK_CUR) == -1)
-	scm_syserror ("local_read_flush");
+	scm_syserror ("fport_end_input");
     }
   pt->rw_active = 0;
 }
 
 static int
-local_fclose (SCM port)
+fport_close (SCM port)
 {
   struct scm_fport *fp = SCM_FSTREAM (port);
   scm_port *pt = SCM_PTAB_ENTRY (port);
   int rv;
 
-  local_fflush (port);
+  fport_flush (port);
   SCM_SYSCALL (rv = close (fp->fdes));
   if (rv == -1 && errno != EBADF)
-    scm_syserror ("local_fclose");
+    scm_syserror ("fport_close");
   if (pt->read_buf == pt->putback_buf)
     pt->read_buf = pt->saved_read_buf;
   if (pt->read_buf != &pt->shortbuf)
@@ -592,9 +592,9 @@ local_fclose (SCM port)
 }
 
 static scm_sizet
-local_free (SCM port)
+fport_free (SCM port)
 {
-  local_fclose (port);
+  fport_close (port);
   return 0;
 }
 
@@ -603,15 +603,15 @@ void scm_make_fptob (void); /* Called from ports.c */
 void
 scm_make_fptob ()
 {
-  long tc = scm_make_port_type ("file", fport_fill_buffer, local_fflush);
-  scm_set_port_free            (tc, local_free);
+  long tc = scm_make_port_type ("file", fport_fill_input, fport_write);
+  scm_set_port_free            (tc, fport_free);
   scm_set_port_print           (tc, prinfport);
-  scm_set_port_write           (tc, fport_write);
-  scm_set_port_flush_input     (tc, local_read_flush);
-  scm_set_port_close           (tc, local_fclose);
-  scm_set_port_seek            (tc, local_seek);
-  scm_set_port_truncate        (tc, local_ftruncate);
-  scm_set_port_input_waiting_p (tc, fport_input_waiting_p);
+  scm_set_port_flush           (tc, fport_flush);
+  scm_set_port_end_input       (tc, fport_end_input);
+  scm_set_port_close           (tc, fport_close);
+  scm_set_port_seek            (tc, fport_seek);
+  scm_set_port_truncate        (tc, fport_truncate);
+  scm_set_port_input_waiting   (tc, fport_input_waiting);
 }
 
 void

@@ -956,7 +956,7 @@ scm_fsync (SCM object)
 
   if (SCM_NIMP (object) && SCM_OPFPORTP (object))
     {
-      scm_fflush (object);
+      scm_flush (object);
       fdes = SCM_FPORT_FDES (object);
     }
   else

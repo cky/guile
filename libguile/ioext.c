@@ -196,7 +196,7 @@ scm_do_read_line (SCM port, int *len_p)
 	  break;
 
 	/* Get more characters.  */
-	if (scm_fill_buffer (port) == EOF)
+	if (scm_fill_input (port) == EOF)
 	  {
 	    /* If we're missing a final newline in the file, return
 	       what we did get, sans newline.  */
@@ -252,7 +252,7 @@ scm_read_line (port)
 
   pt = SCM_PTAB_ENTRY (port);
   if (pt->rw_active == SCM_PORT_WRITE)
-    scm_ptobs[SCM_PTOBNUM (port)].fflush (port);
+    scm_ptobs[SCM_PTOBNUM (port)].flush (port);
 
   s = scm_do_read_line (port, &slen);
 
@@ -341,9 +341,9 @@ scm_redirect_port (old, new)
 
       /* must flush to old fdes.  */
       if (pt->rw_active == SCM_PORT_WRITE)
-	ptob->fflush (new);
+	ptob->flush (new);
       else if (pt->rw_active == SCM_PORT_READ)
-	scm_read_flush (new);
+	scm_end_input (new);
       ans = dup2 (oldfd, newfd);
       if (ans == -1)
 	scm_syserror (s_redirect_port);

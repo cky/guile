@@ -1,3 +1,43 @@
+1999-08-11  Gary Houston  <ghouston@easynet.co.uk>
+
+	* fports.c (fport_input_waiting): if select is used, return 1
+	instead of whatever FD_ISSET expands to.  maybe it will be useful
+	to interpret the value from the input_waiting ptob procedure as a
+	lower bound on the number of bytes available.
+
+	* Mikael asked for a few names to be changed...
+
+	* ports.c (scm_make_port_type): take the write procedure as the 
+	second argument instead of the flush procedure.
+	* ports.h (scm_ptob_descriptor): rename the ptob procedures:
+	fflush -> flush,  read_flush -> end_input,  fclose -> close,
+	fill_buffer -> fill_input,  ftruncate -> truncate,
+	input_waiting_p -> input_waiting.
+
+	* ports.c (end_input_void_port): was read_flush_void_port.
+	(scm_set_port_end_input): was scm_set_port_flush_input.
+	(scm_set_port_flush): was scm_set_port_write.
+	(scm_set_port_input_waiting): was scm_set_port_input_waiting_p
+	(scm_end_input): was scm_read_flush.
+	(scm_fill_input): was scm_fill_buffer.
+	(scm_flush): was scm_fflush.
+	* fports.c (fport_input_waiting): renamed from fport_input_waiting_p.
+	(fport_end_input): was local_read_flush.
+	(fport_flush): was local_fflush.
+	(fport_close): was local_fclose.
+	(fport_truncate): was local_ftruncate.
+	(fport_seek): was local_seek.
+	(fport_free): was local_free.
+	(fport_fill_input): was fport_fill_buffer.
+	* strports.c (st_end_input): was st_read_flush.
+	(st_truncate): was st_ftruncate.
+	* vports.c: (sf_flush): was sfflush.
+	(sf_close): was sfclose.
+	(sf_fill_input): was sf_fill_buffer.
+	
+	* ports.c, fports.c, strports, vports.c, ioext.c, unif.c, filesys.c:
+	change callers.
+
 1999-08-06  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* eval.c (SCM_IM_DISPATCH): Rewrote dispatch protocol.  Dispatch

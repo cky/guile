@@ -141,7 +141,7 @@ st_write (SCM port, void *data, size_t size)
 }
 
 static void
-st_read_flush (SCM port, int offset)
+st_end_input (SCM port, int offset)
 {
   scm_port *pt = SCM_PTAB_ENTRY (port);
 
@@ -197,7 +197,7 @@ st_seek (SCM port, off_t offset, int whence)
 }
 
 static void
-st_ftruncate (SCM port, off_t length)
+st_truncate (SCM port, off_t length)
 {
   scm_port *pt = SCM_PTAB_ENTRY (port);
 
@@ -376,12 +376,12 @@ void scm_make_stptob (void); /* Called from ports.c */
 void
 scm_make_stptob ()
 {
-  long tc = scm_make_port_type ("string", stfill_buffer, st_flush);
+  long tc = scm_make_port_type ("string", stfill_buffer, st_write);
   scm_set_port_mark        (tc, scm_markstream);
-  scm_set_port_flush_input (tc, st_read_flush);
-  scm_set_port_write       (tc, st_write);
+  scm_set_port_end_input   (tc, st_end_input);
+  scm_set_port_flush       (tc, st_flush);
   scm_set_port_seek        (tc, st_seek);
-  scm_set_port_truncate    (tc, st_ftruncate);
+  scm_set_port_truncate    (tc, st_truncate);
 }
 
 void

@@ -1547,7 +1547,7 @@ loop:
       char *dest = SCM_CHARS (v) + (cstart + offset) * sz;
 
       if (pt->rw_active == SCM_PORT_WRITE)
-	scm_fflush (port_or_fd);
+	scm_flush (port_or_fd);
 
       ans = cend - offset;
       while (remaining > 0)
@@ -1564,7 +1564,7 @@ loop:
 	    }
 	  else
 	    {
-	      if (scm_fill_buffer (port_or_fd) == EOF)
+	      if (scm_fill_input (port_or_fd) == EOF)
 		{
 		  if (remaining % sz != 0)
 		    {

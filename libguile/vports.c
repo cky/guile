@@ -60,7 +60,7 @@
 
 
 static void
-sfflush (SCM port)
+sf_flush (SCM port)
 {
   scm_port *pt = SCM_PTAB_ENTRY (port);
   SCM stream = pt->stream;
@@ -96,9 +96,9 @@ sf_write (SCM port, void *data, size_t size)
    but perhaps softports could the use port buffer in the same way as
    fports.  */
 
-/* returns a single character.  */
+/* places a single char in the input buffer.  */
 static int 
-sf_fill_buffer (SCM port)
+sf_fill_input (SCM port)
 {
   SCM p = SCM_STREAM (port);
   SCM ans;
@@ -106,7 +106,7 @@ sf_fill_buffer (SCM port)
   ans = scm_apply (SCM_VELTS (p)[3], SCM_EOL, SCM_EOL); /* get char.  */
   if (SCM_FALSEP (ans) || SCM_EOF_OBJECT_P (ans))
     return EOF;
-  SCM_ASSERT (SCM_ICHRP (ans), ans, SCM_ARG1, "sf_fill_buffer");
+  SCM_ASSERT (SCM_ICHRP (ans), ans, SCM_ARG1, "sf_fill_input");
   {
     scm_port *pt = SCM_PTAB_ENTRY (port);    
 
@@ -119,7 +119,7 @@ sf_fill_buffer (SCM port)
 
 
 static int 
-sfclose (SCM port)
+sf_close (SCM port)
 {
   SCM p = SCM_STREAM (port);
   SCM f = SCM_VELTS (p)[4];
@@ -165,10 +165,10 @@ void scm_make_sfptob (void); /* Called from ports.c */
 void
 scm_make_sfptob ()
 {
-  long tc = scm_make_port_type ("soft", sf_fill_buffer, sfflush);
+  long tc = scm_make_port_type ("soft", sf_fill_input, sf_write);
   scm_set_port_mark (tc, scm_markstream);
-  scm_set_port_write (tc, sf_write);
-  scm_set_port_close (tc, sfclose);
+  scm_set_port_flush (tc, sf_flush);
+  scm_set_port_close (tc, sf_close);
 }
 
 void

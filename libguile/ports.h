@@ -169,6 +169,7 @@ extern int scm_port_table_size; /* Number of ports in scm_port_table.  */
 
 
 
+/* port-type description.  */
 typedef struct scm_ptob_descriptor
 {
   char *name;
@@ -176,14 +177,18 @@ typedef struct scm_ptob_descriptor
   scm_sizet (*free) (SCM);
   int (*print) (SCM exp, SCM port, scm_print_state *pstate);
   SCM (*equalp) (SCM, SCM);
+  int (*close) (SCM port);
+
   void (*write) (SCM port, void *data, size_t size);
-  void (*fflush) (SCM port);
-  void (*read_flush) (SCM port, int offset);
-  int (*fclose) (SCM port);
-  int (*fill_buffer) (SCM port);
+  void (*flush) (SCM port);
+
+  void (*end_input) (SCM port, int offset);
+  int (*fill_input) (SCM port);
+  int (*input_waiting) (SCM port);
+
   off_t (*seek) (SCM port, off_t OFFSET, int WHENCE);
-  void (*ftruncate) (SCM port, off_t length);
-  int (*input_waiting_p) (SCM port);
+  void (*truncate) (SCM port, off_t length);
+
 } scm_ptob_descriptor;
 
 #define SCM_TC2PTOBNUM(x) (0x0ff & ((x) >> 8))
@@ -201,8 +206,9 @@ extern int scm_port_table_room;
 
 extern SCM scm_markstream SCM_P ((SCM ptr));
 extern long scm_make_port_type (char *name,
-				int (*fill_buffer) (SCM port),
-				void (*write_flush) (SCM port));
+				int (*fill_input) (SCM port),
+				void (*write) (SCM port, void *data,
+					       size_t size));
 extern void scm_set_port_mark (long tc, SCM (*mark) (SCM));
 extern void scm_set_port_free (long tc, scm_sizet (*free) (SCM));
 extern void scm_set_port_print (long tc,
@@ -210,14 +216,13 @@ extern void scm_set_port_print (long tc,
 					      SCM port,
 					      scm_print_state *pstate));
 extern void scm_set_port_equalp (long tc, SCM (*equalp) (SCM, SCM));
-extern void scm_set_port_write (long tc, 
-				void (*write_proc) (SCM port, 
-						    void *data,
-						    size_t size));
-extern void scm_set_port_flush_input (long tc,
-				      void (*flush_input) (SCM port,
-							   int offset));
 extern void scm_set_port_close (long tc, int (*close) (SCM));
+
+extern void scm_set_port_flush (long tc, 
+				void (*flush) (SCM port));
+extern void scm_set_port_end_input (long tc,
+				    void (*end_input) (SCM port,
+						       int offset));
 extern void scm_set_port_seek (long tc,
 			       off_t (*seek) (SCM port,
 					      off_t OFFSET,
@@ -225,7 +230,7 @@ extern void scm_set_port_seek (long tc,
 extern void scm_set_port_truncate (long tc,
 				   void (*truncate) (SCM port,
 						     off_t length));
-extern void scm_set_port_input_waiting_p (long tc, int (*waitingp) (SCM));
+extern void scm_set_port_input_waiting (long tc, int (*input_waiting) (SCM));
 extern SCM scm_char_ready_p SCM_P ((SCM port));
 extern SCM scm_drain_input (SCM port);
 extern SCM scm_current_input_port SCM_P ((void));
@@ -256,9 +261,9 @@ extern SCM scm_read_char SCM_P ((SCM port));
 extern void scm_putc SCM_P ((char c, SCM port));
 extern void scm_puts SCM_P ((char *str_data, SCM port));
 extern void scm_lfwrite SCM_P ((char *ptr, scm_sizet size, SCM port));
-extern void scm_fflush SCM_P ((SCM port));
-extern void scm_read_flush (SCM port);
-extern int scm_fill_buffer (SCM port);
+extern void scm_flush SCM_P ((SCM port));
+extern void scm_end_input (SCM port);
+extern int scm_fill_input (SCM port);
 extern int scm_getc SCM_P ((SCM port));
 extern void scm_ungetc SCM_P ((int c, SCM port));
 extern void scm_ungets SCM_P ((char *s, int n, SCM port));
