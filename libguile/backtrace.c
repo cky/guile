@@ -77,12 +77,10 @@
  * Note that these functions shouldn't generate errors themselves.
  */
 
-#ifndef SCM_RECKLESS
 #undef SCM_ASSERT
 #define SCM_ASSERT(_cond, _arg, _pos, _subr) \
 	if (!(_cond)) \
           return SCM_BOOL_F;
-#endif
 
 SCM scm_the_last_stack_fluid_var;
 

@@ -223,10 +223,8 @@ scm_gsubr_apply (SCM args)
 #endif
   args = SCM_CDR (args);
   for (i = 0; i < SCM_GSUBR_REQ (typ); i++) {
-#ifndef SCM_RECKLESS
     if (SCM_NULLP (args))
       scm_wrong_num_args (SCM_SNAME (SCM_GSUBR_PROC (self)));
-#endif
     v[i] = SCM_CAR(args);
     args = SCM_CDR(args);
   }

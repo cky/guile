@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995, 1996, 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001,2002 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -102,9 +102,6 @@ void
 scm_init_feature()
 {
   features_var = scm_c_define ("*features*", SCM_EOL);
-#ifdef SCM_RECKLESS
-  scm_add_feature("reckless");
-#endif
 #ifndef _Windows
   scm_add_feature("system");
 #endif

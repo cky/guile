@@ -281,13 +281,11 @@ scm_lookupcar (SCM vloc, SCM genv, int check)
 	  al = SCM_CDRLOC (*al);
 	  if (SCM_EQ_P (SCM_CAR (fl), var))
 	    {
-#ifndef SCM_RECKLESS		/* letrec inits to SCM_UNDEFINED */
 	      if (SCM_UNBNDP (SCM_CAR (*al)))
 		{
 		  env = SCM_EOL;
 		  goto errout;
 		}
-#endif
 #ifdef USE_THREADS
 	      if (!SCM_EQ_P (SCM_CAR (vloc), var))
 		goto race;
@@ -313,7 +311,6 @@ scm_lookupcar (SCM vloc, SCM genv, int check)
     if (SCM_FALSEP (real_var))
       goto errout;
 
-#ifndef SCM_RECKLESS
     if (!SCM_NULLP (env) || SCM_UNBNDP (SCM_VARIABLE_REF (real_var)))
       {
       errout:
@@ -335,7 +332,6 @@ scm_lookupcar (SCM vloc, SCM genv, int check)
 	    return &undef_object;
 	  }
       }
-#endif
 
 #ifdef USE_THREADS
     if (!SCM_EQ_P (SCM_CAR (vloc), var))
@@ -1540,7 +1536,6 @@ scm_unmemocopy (SCM x, SCM env)
     return unmemocopy (x, env);
 }
 
-#ifndef SCM_RECKLESS
 
 int 
 scm_badargsp (SCM formals, SCM args)
@@ -1557,7 +1552,6 @@ scm_badargsp (SCM formals, SCM args)
   return !SCM_NULLP (args) ? 1 : 0;
 }
 
-#endif
 
 static int 
 scm_badformalsp (SCM closure, int n)
@@ -2339,10 +2333,8 @@ dispatch:
 #ifdef DEVAL
 		debug.info->a.args = arg1;
 #endif
-#ifndef SCM_RECKLESS
 		if (scm_badargsp (formals, arg1))
 		  scm_wrong_num_args (proc);
-#endif
 		ENTER_APPLY;
 		/* Copy argument list */
 		if (SCM_NULL_OR_NIL_P (arg1))
@@ -2697,10 +2689,8 @@ dispatch:
     case SCM_BIT8(SCM_ILOC00):
       proc = *scm_ilookup (SCM_CAR (x), env);
       SCM_ASRTGO (SCM_NIMP (proc), badfun);
-#ifndef SCM_RECKLESS
 #ifdef SCM_CAUTIOUS
       goto checkargs;
-#endif
 #endif
       break;
 
@@ -2786,7 +2776,6 @@ dispatch:
       else
 	proc = SCM_CEVAL (SCM_CAR (x), env);
       SCM_ASRTGO (!SCM_IMP (proc), badfun);
-#ifndef SCM_RECKLESS
 #ifdef SCM_CAUTIOUS
     checkargs:
 #endif
@@ -2808,7 +2797,6 @@ dispatch:
 	}
       else if (SCM_MACROP (proc))
 	goto handle_a_macro;
-#endif
     }
 
 
@@ -3663,10 +3651,8 @@ tail:
 #else
       arg1 = (SCM_UNBNDP (arg1) ? SCM_EOL : scm_cons (arg1, args));
 #endif
-#ifndef SCM_RECKLESS
       if (scm_badargsp (SCM_CLOSURE_FORMALS (proc), arg1))
 	scm_wrong_num_args (proc);
-#endif
       
       /* Copy argument list */
       if (SCM_IMP (arg1))
@@ -3877,9 +3863,7 @@ scm_map (SCM proc, SCM arg1, SCM args)
     }
   args = scm_vector (arg1 = scm_cons (arg1, args));
   ve = SCM_VELTS (args);
-#ifndef SCM_RECKLESS
   check_map_args (args, len, g_map, proc, arg1, s_map);
-#endif
   while (1)
     {
       arg1 = SCM_EOL;
@@ -3920,9 +3904,7 @@ scm_for_each (SCM proc, SCM arg1, SCM args)
     }
   args = scm_vector (arg1 = scm_cons (arg1, args));
   ve = SCM_VELTS (args);
-#ifndef SCM_RECKLESS
   check_map_args (args, len, g_for_each, proc, arg1, s_for_each);
-#endif
   while (1)
     {
       arg1 = SCM_EOL;

@@ -81,17 +81,12 @@ SCM_DEFINE (scm_debug_options, "debug-options-interface", 0, 1, 0,
 {
   SCM ans;
   SCM_DEFER_INTS;
-  ans = scm_options (setting,
-		     scm_debug_opts,
-		     SCM_N_DEBUG_OPTIONS,
-		     FUNC_NAME);
-#ifndef SCM_RECKLESS
+  ans = scm_options (setting, scm_debug_opts, SCM_N_DEBUG_OPTIONS, FUNC_NAME);
   if (!(1 <= SCM_N_FRAMES && SCM_N_FRAMES <= SCM_MAX_FRAME_SIZE))
     {
       scm_options (ans, scm_debug_opts, SCM_N_DEBUG_OPTIONS, FUNC_NAME);
       SCM_OUT_OF_RANGE (1, setting);
     }
-#endif
   SCM_RESET_DEBUG_MODE;
   scm_stack_checking_enabled_p = SCM_STACK_CHECKING_P;
   scm_debug_eframe_size = 2 * SCM_N_FRAMES;

@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001 Free Software Foundation
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002 Free Software Foundation
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -182,10 +182,8 @@ SCM_DEFINE (scm_source_properties, "source-properties", 1, 0, 0,
   SCM_VALIDATE_NIM (1,obj);
   if (SCM_MEMOIZEDP (obj))
     obj = SCM_MEMOIZED_EXP (obj);
-#ifndef SCM_RECKLESS
-  else if (SCM_NCONSP (obj))
+  else if (!SCM_CONSP (obj))
     SCM_WRONG_TYPE_ARG (1, obj);
-#endif
   p = scm_hashq_ref (scm_source_whash, obj, SCM_BOOL_F);
   if (SRCPROPSP (p))
     return scm_srcprops_to_plist (p);
@@ -205,10 +203,8 @@ SCM_DEFINE (scm_set_source_properties_x, "set-source-properties!", 2, 0, 0,
   SCM_VALIDATE_NIM (1,obj);
   if (SCM_MEMOIZEDP (obj))
     obj = SCM_MEMOIZED_EXP (obj);
-#ifndef SCM_RECKLESS
-  else if (SCM_NCONSP (obj))
+  else if (!SCM_CONSP (obj))
     SCM_WRONG_TYPE_ARG(1, obj);
-#endif
   handle = scm_hashq_create_handle_x (scm_source_whash, obj, plist);
   SCM_SETCDR (handle, plist);
   return plist;
@@ -225,10 +221,8 @@ SCM_DEFINE (scm_source_property, "source-property", 2, 0, 0,
   SCM_VALIDATE_NIM (1,obj);
   if (SCM_MEMOIZEDP (obj))
     obj = SCM_MEMOIZED_EXP (obj);
-#ifndef SCM_RECKLESS
-  else if (SCM_NCONSP (obj))
+  else if (!SCM_CONSP (obj))
     SCM_WRONG_TYPE_ARG (1, obj);
-#endif
   p = scm_hashq_ref (scm_source_whash, obj, SCM_EOL);
   if (!SRCPROPSP (p))
     goto plist;
@@ -259,10 +253,8 @@ SCM_DEFINE (scm_set_source_property_x, "set-source-property!", 3, 0, 0,
   SCM_VALIDATE_NIM (1,obj);
   if (SCM_MEMOIZEDP (obj))
     obj = SCM_MEMOIZED_EXP (obj);
-#ifndef SCM_RECKLESS
-  else if (SCM_NCONSP (obj))
+  else if (!SCM_CONSP (obj))
     SCM_WRONG_TYPE_ARG (1, obj);
-#endif
   h = scm_whash_get_handle (scm_source_whash, obj);
   if (SCM_WHASHFOUNDP (h))
     p = SCM_WHASHREF (scm_source_whash, h);

@@ -100,16 +100,8 @@
 /* #define GUILE_DEBUG_FREELIST */
 
 /* If the compile FLAG `SCM_CAUTIOUS' is #defined then the number of
- * arguments is always checked for application of closures.  If the
- * compile FLAG `SCM_RECKLESS' is #defined then they are not checked.
- * Otherwise, number of argument checks for closures are made only
- * when the function position (whose value is the closure) of a
- * combination is not an ILOC or a variable (true?).  When the
- * function position of a combination is a symbol it will be checked
- * only the first time it is evaluated because it will then be
- * replaced with an ILOC or variable.
+ * arguments is always checked for application of closures.
  */
-#undef SCM_RECKLESS
 #define SCM_CAUTIOUS
 
 /* All the number support there is.

@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002 Free Software Foundation, Inc.
  *
  * Portions Copyright 1990, 1991, 1992, 1993 by AT&T Bell Laboratories
  * and Bellcore.  See scm_divide.
@@ -898,15 +898,10 @@ SCM_DEFINE1 (scm_logand, "logand", scm_tc7_asubr,
       return SCM_MAKINUM (-1);
     } else if (!SCM_NUMBERP (n1)) {
       SCM_WRONG_TYPE_ARG (SCM_ARG1, n1);
-#ifndef SCM_RECKLESS
     } else if (SCM_NUMBERP (n1)) {
       return n1;
     } else {
       SCM_WRONG_TYPE_ARG (SCM_ARG1, n1);
-#else
-    } else {
-      return n1;
-#endif
     }
   }
 
@@ -982,15 +977,10 @@ SCM_DEFINE1 (scm_logior, "logior", scm_tc7_asubr,
   if (SCM_UNBNDP (n2)) {
     if (SCM_UNBNDP (n1)) {
       return SCM_INUM0;
-#ifndef SCM_RECKLESS
     } else if (SCM_NUMBERP (n1)) {
       return n1;
     } else {
       SCM_WRONG_TYPE_ARG (SCM_ARG1, n1);
-#else
-    } else {
-      return n1;
-#endif
     }
   }
 
@@ -1069,15 +1059,10 @@ SCM_DEFINE1 (scm_logxor, "logxor", scm_tc7_asubr,
   if (SCM_UNBNDP (n2)) {
     if (SCM_UNBNDP (n1)) {
       return SCM_INUM0;
-#ifndef SCM_RECKLESS
     } else if (SCM_NUMBERP (n1)) {
       return n1;
     } else {
       SCM_WRONG_TYPE_ARG (SCM_ARG1, n1);
-#else
-    } else {
-      return n1;
-#endif
     }
   }
 
@@ -4537,10 +4522,8 @@ scm_i_dbl2big (double d)
       u -= c;
       digits[i] = c;
     }
-#ifndef SCM_RECKLESS
   if (u != 0)
     scm_num_overflow ("dbl2big");
-#endif
   return ans;
 }
 
