@@ -46,6 +46,7 @@
 #include "fports.h"
 #include "read.h"
 #include "eval.h"
+#include "throw.h"
 
 #include "load.h"
 
@@ -246,7 +247,8 @@ scm_sys_search_load_path (filename)
 	  /* Concatenate the path name, the filename, and the extension. */
 	  i = SCM_ROLENGTH (path_elt);
 	  memcpy (buf, SCM_ROCHARS (path_elt), i);
-	  buf[i++] = '/';
+	  if (i >= 1 && buf[i - 1] != '/')
+	    buf[i++] = '/';
 	  memcpy (buf + i, SCM_ROCHARS (filename), filename_len);
 	  i += filename_len;
 	  memcpy (buf + i, SCM_ROCHARS (ext_elt), SCM_LENGTH (ext_elt));
@@ -301,6 +303,27 @@ scm_primitive_load_path (filename, case_insensitive_p, sharp)
     }
 
   return scm_primitive_load (full_filename, case_insensitive_p, sharp);
+}
+
+/* The following function seems trivial - and indeed it is.  Its
+ * existence is motivated by its ability to evaluate expressions
+ * without copying them first (as is done in "eval").
+ */
+
+SCM_SYMBOL (scm_end_of_file_key, "end-of-file");
+
+SCM_PROC (s_read_and_eval_x, "read-and-eval!", 0, 3, 0, scm_read_and_eval_x);
+
+SCM
+scm_read_and_eval_x (port, case_insensitive_p, sharp)
+     SCM port;
+     SCM case_insensitive_p;
+     SCM sharp;
+{
+  SCM form = scm_read (port, case_insensitive_p, sharp);
+  if (form == SCM_EOF_VAL)
+    scm_ithrow (scm_end_of_file_key, SCM_EOL, 1);
+  return scm_eval_x (form);
 }
 
 
