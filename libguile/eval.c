@@ -2005,6 +2005,8 @@ dispatch:
 	      SCM_ASRTGO (SCM_NIMP (proc), badfun);
 	      PREP_APPLY (proc, scm_cons (t.arg1, SCM_EOL));
 	      ENTER_APPLY;
+	      if (scm_badformalsp (proc, 1))
+		goto umwrongnumargs;
 	      goto evap1;
 	    }
 	}
@@ -2215,6 +2217,8 @@ dispatch:
 	  SCM_ASRTGO (SCM_NIMP (proc), badfun);
 	  PREP_APPLY (proc, scm_cons (t.arg1, SCM_EOL));
 	  ENTER_APPLY;
+	  if (scm_badformalsp (proc, 1))
+	    goto umwrongnumargs;
 	  goto evap1;
 
 	case (SCM_ISYMNUM (SCM_IM_DELAY)):
@@ -3863,7 +3867,8 @@ scm_i_eval (SCM exp, SCM env)
   SCM transformer = scm_fluid_ref (SCM_CDR (scm_system_transformer));
   if (SCM_NIMP (transformer))
     exp = scm_apply (transformer, exp, scm_listofnull);
-  return SCM_XEVAL (scm_copy_tree (exp), env);
+  exp = scm_copy_tree (exp);
+  return SCM_XEVAL (exp, env);
 }
 
 SCM
