@@ -1061,14 +1061,6 @@ function in the init section.
 
 ** The snarfer macro SCM_SNARF_INIT is now officially supported.
 
-** New macros SCM_VECTOR_REF and SCM_VECTOR_SET.
-
-Use these in preference to SCM_VELTS.
-
-** The SCM_VELTS macros now returns a read-only vector. For writing,
-use the new macros SCM_WRITABLE_VELTS or SCM_VECTOR_SET.  The use of
-SCM_WRITABLE_VELTS is discouraged, though.
-
 ** Garbage collector rewrite.
 
 The garbage collector is cleaned up a lot, and now uses lazy
@@ -1164,6 +1156,19 @@ Scheme, using 'define-macro'.
 
 This function is like scm_port_for_each but takes a pointer to a C
 function as the callback instead of a SCM value.
+
+** The names scm_internal_select, scm_thread_sleep, and
+   scm_thread_usleep have been discouraged.
+
+Use scm_std_select, scm_std_sleep, scm_std_usleep instead.
+
+** SCM_DEFER_INTS and SCM_ALLOW_INTS have been deprecated.
+
+Use, for example, scm_frame_critical_section to mark critical
+sections.
+
+SCM_REDEFER_INTS and SCM_REALLOW_INTS are deprecated as well, of
+course.
 
 ** Many definitions have been removed that were previously deprecated.
 
