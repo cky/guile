@@ -1,12 +1,157 @@
 This file gathers entries that have been automatically generated from
 docstrings in libguile.  They are not included in the manual, however,
-for various reasons.  They are here in this file to give docstring.el a
-chance to update them automatically.
+for various reasons, mostly because they have been deprecated.  They
+are here in this file to give docstring.el a chance to update them
+automatically.
 
 - The 'environments' are only in Guile by accident and are not used at
   all and we don't want to advertise them.
 
 - GOOPS is documented in its own manual.
+
+
+
+@deffn {Scheme Procedure} substring-move-right!
+implemented by the C function "scm_substring_move_x"
+@end deffn
+
+@deffn {Scheme Procedure} substring-move-left!
+implemented by the C function "scm_substring_move_x"
+@end deffn
+
+@deffn {Scheme Procedure} gentemp [prefix [obarray]]
+@deffnx {C Function} scm_gentemp (prefix, obarray)
+Create a new symbol with a name unique in an obarray.
+The name is constructed from an optional string @var{prefix}
+and a counter value.  The default prefix is @code{t}.  The
+@var{obarray} is specified as a second optional argument.
+Default is the system obarray where all normal symbols are
+interned.  The counter is increased by 1 at each
+call.  There is no provision for resetting the counter.
+@end deffn
+
+@deffn {Scheme Procedure} symbol-set! o s v
+@deffnx {C Function} scm_symbol_set_x (o, s, v)
+Find the symbol in @var{obarray} whose name is @var{string}, and rebind
+it to @var{value}.  An error is signalled if @var{string} is not present
+in @var{obarray}.
+@end deffn
+
+@deffn {Scheme Procedure} symbol-bound? o s
+@deffnx {C Function} scm_symbol_bound_p (o, s)
+Return @code{#t} if @var{obarray} contains a symbol with name
+@var{string} bound to a defined value.  This differs from
+@var{symbol-interned?} in that the mere mention of a symbol
+usually causes it to be interned; @code{symbol-bound?}
+determines whether a symbol has been given any meaningful
+value.
+@end deffn
+
+@deffn {Scheme Procedure} symbol-binding o s
+@deffnx {C Function} scm_symbol_binding (o, s)
+Look up in @var{obarray} the symbol whose name is @var{string}, and
+return the value to which it is bound.  If @var{obarray} is @code{#f},
+use the global symbol table.  If @var{string} is not interned in
+@var{obarray}, an error is signalled.
+@end deffn
+
+@deffn {Scheme Procedure} unintern-symbol o s
+@deffnx {C Function} scm_unintern_symbol (o, s)
+Remove the symbol with name @var{string} from @var{obarray}.  This
+function returns @code{#t} if the symbol was present and @code{#f}
+otherwise.
+@end deffn
+
+@deffn {Scheme Procedure} intern-symbol o s
+@deffnx {C Function} scm_intern_symbol (o, s)
+Add a new symbol to @var{obarray} with name @var{string}, bound to an
+unspecified initial value.  The symbol table is not modified if a symbol
+with this name is already present.
+@end deffn
+
+@deffn {Scheme Procedure} string->obarray-symbol o s [softp]
+@deffnx {C Function} scm_string_to_obarray_symbol (o, s, softp)
+Intern a new symbol in @var{obarray}, a symbol table, with name
+@var{string}.
+
+If @var{obarray} is @code{#f}, use the default system symbol table.  If
+@var{obarray} is @code{#t}, the symbol should not be interned in any
+symbol table; merely return the pair (@var{symbol}
+. @var{#<undefined>}).
+
+The @var{soft?} argument determines whether new symbol table entries
+should be created when the specified symbol is not already present in
+@var{obarray}.  If @var{soft?} is specified and is a true value, then
+new entries should not be added for symbols not already present in the
+table; instead, simply return @code{#f}.
+@end deffn
+
+@deffn {Scheme Procedure} read-and-eval! [port]
+@deffnx {C Function} scm_read_and_eval_x (port)
+Read a form from @var{port} (standard input by default), and evaluate it
+(memoizing it in the process) in the top-level environment.  If no data
+is left to be read from @var{port}, an @code{end-of-file} error is
+signalled.
+@end deffn
+
+@deffn {Scheme Procedure} sloppy-member x lst
+@deffnx {C Function} scm_sloppy_member (x, lst)
+This procedure behaves like @code{member}, but does no type or error checking.
+Its use is recommended only in writing Guile internals,
+not for high-level Scheme programs.
+@end deffn
+
+@deffn {Scheme Procedure} sloppy-memv x lst
+@deffnx {C Function} scm_sloppy_memv (x, lst)
+This procedure behaves like @code{memv}, but does no type or error checking.
+Its use is recommended only in writing Guile internals,
+not for high-level Scheme programs.
+@end deffn
+
+@deffn {Scheme Procedure} sloppy-memq x lst
+@deffnx {C Function} scm_sloppy_memq (x, lst)
+This procedure behaves like @code{memq}, but does no type or error checking.
+Its use is recommended only in writing Guile internals,
+not for high-level Scheme programs.
+@end deffn
+
+@deffn {Scheme Procedure} builtin-variable name
+@deffnx {C Function} scm_builtin_variable (name)
+Do not use this function.
+@end deffn
+
+@deffn {Scheme Procedure} variable-set-name-hint! var hint
+@deffnx {C Function} scm_variable_set_name_hint (var, hint)
+Do not use this function.
+@end deffn
+
+@deffn {Scheme Procedure} close-all-ports-except . ports
+@deffnx {C Function} scm_close_all_ports_except (ports)
+[DEPRECATED] Close all open file ports used by the interpreter
+except for those supplied as arguments.  This procedure
+was intended to be used before an exec call to close file descriptors
+which are not needed in the new process.  However it has the
+undesirable side effect of flushing buffers, so it's deprecated.
+Use port-for-each instead.
+@end deffn
+
+@deffn {Scheme Procedure} c-clear-registered-modules
+@deffnx {C Function} scm_clear_registered_modules ()
+Destroy the list of modules registered with the current Guile process.
+The return value is unspecified.  @strong{Warning:} this function does
+not actually unlink or deallocate these modules, but only destroys the
+records of which modules have been loaded.  It should therefore be used
+only by module bookkeeping operations.
+@end deffn
+
+@deffn {Scheme Procedure} c-registered-modules
+@deffnx {C Function} scm_registered_modules ()
+Return a list of the object code modules that have been imported into
+the current Guile process.  Each element of the list is a pair whose
+car is the name of the module, and whose cdr is the function handle
+for that module's initializer function.  The name is the string that
+has been passed to scm_register_module_xxx.
+@end deffn
 
 @deffn {Scheme Procedure} module-import-interface module sym
 @deffnx {C Function} scm_module_import_interface (module, sym)
