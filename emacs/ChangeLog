@@ -1,3 +1,9 @@
+2001-06-21  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* guile.el (guile-channel-file): Signal an error if unable to find
+	channel.scm.
+	Change "gulie" typos to "guile".
+
 2001-05-06  Keisuke Nishida  <kxn30@po.cwru.edu>
 
 	* guile.el (guile:eval): Propagate user interrupt.

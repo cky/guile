@@ -25,7 +25,7 @@
 ;;; Low level interface
 ;;;
 
-(defvar gulie-emacs-file
+(defvar guile-emacs-file
   (catch 'return
     (mapc (lambda (dir)
 	    (let ((file (expand-file-name "guile-emacs.scm" dir)))
@@ -33,21 +33,22 @@
 	  load-path)
     (error "Cannot find guile-emacs.scm")))
 
-(defvar gulie-channel-file
+(defvar guile-channel-file
   (catch 'return
     (mapc (lambda (dir)
 	    (let ((file (expand-file-name "channel.scm" dir)))
 	      (if (file-exists-p file) (throw 'return file))))
-	  load-path)))
+	  load-path)
+    (error "Cannot find channel.scm")))
 
 (defvar guile-libs
-  (nconc (if gulie-channel-file (list "-l" gulie-channel-file) '())
-	 (list "-l" gulie-emacs-file)))
+  (nconc (if guile-channel-file (list "-l" guile-channel-file) '())
+	 (list "-l" guile-emacs-file)))
 
 ;;;###autoload
 (defun guile:make-adapter (command channel)
   (let* ((buff (generate-new-buffer " *guile object channel*"))
-	 (libs (if gulie-channel-file (list "-l" gulie-channel-file) nil))
+	 (libs (if guile-channel-file (list "-l" guile-channel-file) nil))
 	 (proc (apply 'start-process "guile-oa" buff command "-q" guile-libs)))
     (process-kill-without-query proc)
     (accept-process-output proc)
