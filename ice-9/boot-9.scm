@@ -1369,7 +1369,6 @@
 ;; NOTE: This binding is used in libguile/modules.c.
 (define module-eval-closure (record-accessor module-type 'eval-closure))
 
-(define set-module-eval-closure! (record-modifier module-type 'eval-closure))
 (define module-transformer (record-accessor module-type 'transformer))
 (define set-module-transformer! (record-modifier module-type 'transformer))
 (define module-name (record-accessor module-type 'name))
@@ -1378,6 +1377,14 @@
 (define set-module-kind! (record-modifier module-type 'kind))
 (define module? (record-predicate module-type))
 
+(define set-module-eval-closure!
+  (let ((setter (record-modifier module-type 'eval-closure)))
+    (lambda (module closure)
+      (setter module closure)
+      ;; Make it possible to lookup the module from the environment.
+      ;; This implementation is correct since an eval closure can belong
+      ;; to maximally one module.
+      (set-procedure-property! closure 'module module))))
 
 (define (eval-in-module exp module)
   (eval2 exp (module-eval-closure module)))
@@ -1877,13 +1884,18 @@
 ;;; The directory of all modules and the standard root module.
 ;;;
 
-(define (module-public-interface m) (module-ref m '%module-public-interface #f))
-(define (set-module-public-interface! m i) (module-define! m '%module-public-interface i))
+(define (module-public-interface m)
+  (module-ref m '%module-public-interface #f))
+(define (set-module-public-interface! m i)
+  (module-define! m '%module-public-interface i))
+(define (set-system-module! m s)
+  (set-procedure-property! (module-eval-closure m) 'system-module s))
 (define the-root-module (make-root-module))
 (define the-scm-module (make-scm-module))
 (set-module-public-interface! the-root-module the-scm-module)
 (set-module-name! the-root-module 'the-root-module)
 (set-module-name! the-scm-module 'the-scm-module)
+(for-each set-system-module! (list the-root-module the-scm-module) '(#t #t))
 
 (set-current-module the-root-module)
 
@@ -1991,6 +2003,9 @@
 						    (cadr kws)
 						    (caddr kws))
 			   reversed-interfaces)))
+	      ((no-backtrace)
+	       (set-system-module! module #t)
+	       (loop (cdr kws) reversed-interfaces))
 	      (else	
 	       (error "unrecognized defmodule argument" kws))))))
     module))
@@ -2577,26 +2592,27 @@
 (define stack-saved? #f)
 
 (define (save-stack . narrowing)
-  (cond (stack-saved?)
-	((not (memq 'debug (debug-options-interface)))
-	 (fluid-set! the-last-stack #f)
-	 (set! stack-saved? #t))
-	(else
-	 (fluid-set!
-	  the-last-stack
-	  (case (stack-id #t)
-	    ((repl-stack)
-	     (apply make-stack #t save-stack eval narrowing))
-	    ((load-stack)
-	     (apply make-stack #t save-stack 0 narrowing))
-	    ((tk-stack)
-	     (apply make-stack #t save-stack tk-stack-mark narrowing))
-	    ((#t)
-	     (apply make-stack #t save-stack 0 1 narrowing))
-	    (else (let ((id (stack-id #t)))
-		    (and (procedure? id)
-			 (apply make-stack #t save-stack id narrowing))))))
-	 (set! stack-saved? #t))))
+  (or stack-saved?
+      (cond ((not (memq 'debug (debug-options-interface)))
+	     (fluid-set! the-last-stack #f)
+	     (set! stack-saved? #t))
+	    (else
+	     (fluid-set!
+	      the-last-stack
+	      (case (stack-id #t)
+		((repl-stack)
+		 (apply make-stack #t save-stack eval #t 0 narrowing))
+		((load-stack)
+		 (apply make-stack #t save-stack 0 #t 0 narrowing))
+		((tk-stack)
+		 (apply make-stack #t save-stack tk-stack-mark #t 0 narrowing))
+		((#t)
+		 (apply make-stack #t save-stack 0 1 narrowing))
+		(else
+		 (let ((id (stack-id #t)))
+		   (and (procedure? id)
+			(apply make-stack #t save-stack id #t 0 narrowing))))))
+	     (set! stack-saved? #t)))))
 
 (define before-error-hook (make-hook))
 (define after-error-hook (make-hook))
@@ -2810,7 +2826,8 @@
      e)))
 
 (define (environment-module env)
-  (car (last-pair env)))
+  (let ((closure (and (pair? env) (car (last-pair? env)))))
+    (and closure (procedure-property closure 'module))))
 
 
 
