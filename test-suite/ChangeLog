@@ -1,3 +1,8 @@
+2001-03-12  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* tests/syntax.test:  Added a test for let* bindings and
+	re-arranged and slightly improved the existing one.
+
 2001-03-09  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* tests/syntax.test ("let*"): Changed the `duplicate bindings'

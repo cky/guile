@@ -163,6 +163,16 @@
 
 (with-test-prefix "let*"
 
+  (with-test-prefix "bindings"
+
+    (pass-if "(let* ((x 1) (x 2)) ...)"
+      (let* ((x 1) (x 2))
+	(= x 2)))
+
+    (pass-if "(let* ((x 1) (x x)) ...)"
+      (let* ((x 1) (x x))
+	(= x 1))))
+
   (with-test-prefix "bad body"
 
     (pass-if-exception "(let* ())"
@@ -215,12 +225,7 @@
 
     (pass-if-exception "(let* ((1 2)) 3)"
       exception:bad-var
-      (let* ((1 2)) 3)))
-
-  (with-test-prefix "duplicate bindings"
-
-    (pass-if "(let* ((x 1) (x 2)) x)"
-      (let* ((x 1) (x 2)) #t))))
+      (let* ((1 2)) 3))))
 
 (with-test-prefix "letrec"
 
