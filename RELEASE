@@ -104,7 +104,7 @@ Julian Satchell <satchell@merry.dra.hmg.gb>:
     h) Give the volunteer pre-release testers above a few days to run
        the distribution on their systems (make the disty available to them
        via ftp).
-    j) If you made any fixes, commit them, and start from a) again
+    i) If you made any fixes, commit them, and start from a) again
 11a) Add "Guile N.M released." entry to ChangeLog, and commit it.
 12) Tag the entire source tree with a tag of the form "release_N_M".
 13) Copy the tar file over to the GNU machines, and send mail to
