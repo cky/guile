@@ -186,7 +186,23 @@ scm_gethost (name)
     }
   SCM_ALLOW_INTS;
   if (!entry)
-    scm_syserror (s_gethost);
+    {
+      char *errmsg;
+      SCM args;
+      if (SCM_UNBNDP (name))
+	args = SCM_BOOL_F;
+      else
+	args = scm_listify (name, SCM_UNDEFINED);
+      switch (h_errno)
+	{
+	case HOST_NOT_FOUND: errmsg = "host %s not found"; break;
+	case TRY_AGAIN:	     errmsg = "nameserver failure (try later)"; break;
+	case NO_RECOVERY:    errmsg = "non-recoverable error"; break;
+	case NO_DATA:        errmsg = "no address associated with %s"; break;
+	default:	     errmsg = "undefined error"; break;
+	}
+      scm_syserror_msg (s_gethost, errmsg, args, h_errno);
+    }
   ve[0] = scm_makfromstr (entry->h_name, (scm_sizet) strlen (entry->h_name), 0);
   ve[1] = scm_makfromstrs (-1, entry->h_aliases);
   ve[2] = SCM_MAKINUM (entry->h_addrtype + 0L);
@@ -239,7 +255,13 @@ scm_getnet (name)
     }
   SCM_ALLOW_INTS;
   if (!entry)
-    scm_syserror (s_getnet);
+    {
+      if (SCM_UNBNDP (name))
+	scm_syserror (s_getnet);
+      else
+	scm_syserror_msg (s_getnet, "no such network %s",
+			  scm_listify (name, SCM_UNDEFINED), errno);
+    }
   ve[0] = scm_makfromstr (entry->n_name, (scm_sizet) strlen (entry->n_name), 0);
   ve[1] = scm_makfromstrs (-1, entry->n_aliases);
   ve[2] = SCM_MAKINUM (entry->n_addrtype + 0L);
@@ -279,7 +301,13 @@ scm_getproto (name)
     }
   SCM_ALLOW_INTS;
   if (!entry)
-    scm_syserror (s_getproto);
+    {
+      if (SCM_UNBNDP (name))
+	scm_syserror (s_getproto);
+      else
+	scm_syserror_msg (s_getproto, "no such protocol %s",
+			  scm_listify (name, SCM_UNDEFINED), errno);
+    }
   ve[0] = scm_makfromstr (entry->p_name, (scm_sizet) strlen (entry->p_name), 0);
   ve[1] = scm_makfromstrs (-1, entry->p_aliases);
   ve[2] = SCM_MAKINUM (entry->p_proto + 0L);
@@ -338,7 +366,8 @@ scm_getserv (name, proto)
       entry = getservbyport (htons (SCM_INUM (name)), SCM_ROCHARS (proto));
     }
   if (!entry)
-    scm_syserror (s_getserv);
+    scm_syserror_msg (s_getserv, "no such service %s",
+		      scm_listify (name, SCM_UNDEFINED), errno);
   SCM_ALLOW_INTS;
   return scm_return_entry (entry);
 }
