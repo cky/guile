@@ -1,7 +1,7 @@
 dnl   configuration script for Guile
 dnl   Process this file with autoconf to produce configure.
 dnl
-dnl  Copyright (C) 1998 Free Software Foundation, Inc.
+dnl  Copyright (C) 1998, 1999 Free Software Foundation, Inc.
 dnl
 dnl  This file is part of GUILE
 dnl
@@ -76,7 +76,7 @@ AC_HEADER_STDC
 AC_HEADER_DIRENT
 AC_HEADER_TIME
 AC_HEADER_SYS_WAIT
-AC_CHECK_HEADERS(libc.h limits.h malloc.h memory.h string.h regex.h rxposix.h rx/rxposix.h sys/ioctl.h sys/select.h sys/time.h sys/timeb.h sys/times.h sys/types.h sys/utime.h time.h unistd.h utime.h)
+AC_CHECK_HEADERS(io.h libc.h limits.h malloc.h memory.h string.h regex.h rxposix.h rx/rxposix.h sys/ioctl.h sys/select.h sys/time.h sys/timeb.h sys/times.h sys/types.h sys/utime.h time.h unistd.h utime.h)
 GUILE_HEADER_LIBC_WITH_UNISTD
 
 AC_TYPE_GETGROUPS

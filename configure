@@ -2667,7 +2667,7 @@ EOF
 
 fi
 
-for ac_hdr in libc.h limits.h malloc.h memory.h string.h regex.h rxposix.h rx/rxposix.h sys/ioctl.h sys/select.h sys/time.h sys/timeb.h sys/times.h sys/types.h sys/utime.h time.h unistd.h utime.h
+for ac_hdr in io.h libc.h limits.h malloc.h memory.h string.h regex.h rxposix.h rx/rxposix.h sys/ioctl.h sys/select.h sys/time.h sys/timeb.h sys/times.h sys/types.h sys/utime.h time.h unistd.h utime.h
 do
 ac_safe=`echo "$ac_hdr" | sed 'y%./+-%__p_%'`
 echo $ac_n "checking for $ac_hdr""... $ac_c" 1>&6
