@@ -1,3 +1,19 @@
+1999-06-19  Michael Livshin  <mike@olan.com>
+
+	* guardians.c (guardian_t): `next' - new field to be used for
+ 	chaining the live guardians in a single-linked list during the GC
+ 	mark phase.
+	(GUARDIAN_NEXT): convenience macro to access the `next' field.
+	(guardians, guardians_size, n_guardians): deleted.
+	(first_live_guardian, current_link_field): new globals used to
+	point to the head of the live guardian list and current `next'
+	field, respectively.
+	(g_mark): append the guardian to the live guardian list.
+	(scm_guardian_gc_init): zero the live guardian list.
+	(scm_guardian_zombify): iterate through the live guardian list.
+
+	(Applied by Jim Blandy.)
+	
 1999-06-16  Jim Blandy  <jimb@savonarola.red-bean.com>
 
 	* gc.c (scm_mallocated): Just make this signed.
