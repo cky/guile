@@ -80,7 +80,7 @@ by the Free Software Foundation.
 @sp 10
 @comment The title is printed in a large font.
 @title Guile Reference Manual
-@subtitle $Id: guile.texi,v 1.4 2001-08-30 20:19:20 ossau Exp $
+@subtitle $Id: guile.texi,v 1.5 2001-10-27 16:53:34 ghouston Exp $
 @subtitle For use with Guile @value{VERSION}
 
 @c AUTHORS
@@ -223,11 +223,7 @@ Part III: Guile Modules
 * Pretty Printing::             Nicely formatting Scheme objects for output.
 * Formatted Output::            The @code{format} procedure.
 * Expect::			Controlling interactive programs with Guile.
-* The Scheme shell (scsh)::
-	The SCSH compatibility module has been made an
-	add-on, so maybe it shouldn't be documented here
-	(though it is nice to have a link from here to the
-	Guile-scsh manual, if one exists).
+* The Scheme shell (scsh)::     Using scsh interfaces in Guile.
 @c * Tcl/Tk Interface::
 
 Part IV: Guile Scripting

@@ -1,5 +1,9 @@
 2001-10-27  Gary Houston  <ghouston@arglist.com>
 
+	* guile.texi, scsh.texi: removed obsolete guile-scsh material
+	and updated links (I don't know if it should remain in the
+	main menu.  It's like slib I think.)
+
 	* minor updates to the slib installation notes.
 
 2001-10-05  Neil Jerram  <neil@ossau.uklinux.net>
