@@ -4,6 +4,7 @@
 	we do find the rl_getc_function variable in the readline library;
 	AC_CHECK_FUNCS used to do this for us, but we're not using it any
 	more.
+	* acconfig.h: Add an entry for HAVE_RL_GETC_FUNCTION.
 
 	* configure.in: Properly test for the presence of rl_getc_function;
 	it's a variable, not a function.

@@ -1,3 +1,7 @@
+1998-10-07  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	* scmconfig.h.in: Regenerated; ../acconfig.h has changed.
+
 1998-10-07  Jim Blandy  <jimb@totoro.red-bean.com>
 
 	* eval.c (safe_setjmp): Remove this misunderstanding.
