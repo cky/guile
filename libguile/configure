@@ -619,9 +619,9 @@ test -z "$INSTALL_SCRIPT" && INSTALL_SCRIPT='${INSTALL_PROGRAM}'
 
 . $srcdir/../GUILE-VERSION
 
-PACKAGE=libguile
+PACKAGE=$PACKAGE
 
-VERSION=
+VERSION=$VERSION
 
 cat >> confdefs.h <<EOF
 #define VERSION "$VERSION"

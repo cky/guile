@@ -81,9 +81,9 @@ dnl defines the `module' variable.
 AC_DEFUN([AM_INIT_GUILE_MODULE],[
 . $srcdir/../GUILE-VERSION
 AC_REQUIRE([AM_PROG_INSTALL])
-PACKAGE=[$1]
+PACKAGE=$PACKAGE
 AC_SUBST(PACKAGE)
-VERSION=[$2]
+VERSION=$VERSION
 AC_SUBST(VERSION)
 AC_DEFINE_UNQUOTED(VERSION, "$VERSION")
 AM_SANITY_CHECK
@@ -185,6 +185,21 @@ CC="$CC" CFLAGS="$CFLAGS" CPPFLAGS="$CPPFLAGS" LD="$LD" RANLIB="$RANLIB" \
 ${CONFIG_SHELL-/bin/sh} $ac_aux_dir/ltconfig \
 $libtool_flags --no-verify $ac_aux_dir/ltmain.sh $host \
 || AC_MSG_ERROR([libtool configure failed])
+])
+
+dnl From Jim Meyering.
+
+# serial 1
+
+AC_DEFUN(AM_SYS_POSIX_TERMIOS,
+[AC_CACHE_CHECK([POSIX termios], am_cv_sys_posix_termios,
+  [AC_TRY_LINK([#include <sys/types.h>
+#include <unistd.h>
+#include <termios.h>],
+  [/* SunOS 4.0.3 has termios.h but not the library calls.  */
+   tcgetattr(0, 0);],
+  am_cv_sys_posix_termios=yes,
+  am_cv_sys_posix_termios=no)])
 ])
 
 dnl
