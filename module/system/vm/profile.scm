@@ -34,9 +34,8 @@
 	  (add-hook! (vm-enter-hook vm) profile-enter)
 	  (add-hook! (vm-exit-hook vm) profile-exit))
 	(lambda ()
-	  (let ((val (vm-load vm objcode)))
-	    (display-result vm)
-	    val))
+	  (vm-load vm objcode)
+	  (print-result vm))
 	(lambda ()
 	  (set-vm-option! vm 'debug flag)
 	  (remove-hook! (vm-next-hook vm) profile-next)
@@ -53,7 +52,7 @@
 (define (profile-exit vm)
   #f)
 
-(define (display-result vm . opts)
+(define (print-result vm . opts)
   (do ((data (vm-option vm 'profile-data) (cdr data))
        (summary '() (let ((inst (caar data)))
 		      (assq-set! summary inst

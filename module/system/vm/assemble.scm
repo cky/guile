@@ -71,7 +71,7 @@
   (match glil
     (($ <vm-asm> venv ($ <glil-asm> vars _) body)
      (let ((stack '())
-	   (bind-alist '())
+	   (binding-alist '())
 	   (source-alist '())
 	   (label-alist '())
 	   (object-alist '()))
@@ -99,17 +99,19 @@
 	    (if venv.closure? (push-code! `(make-closure))))
 
 	   (($ <glil-bind> binds)
-	    (let ((binds (map (lambda (v)
-				(case (cadr v)
-				  ((argument) (list (car v) #f (caddr v)))
-				  ((local) (list (car v) #f
-						 (+ vars.nargs (caddr v))))
-				  ((external) (list (car v) #t (caddr v)))))
-			      binds)))
-	      (set! bind-alist (acons (current-address) binds bind-alist))))
+	    (let ((bindings
+		   (map (lambda (v)
+			  (let ((name (car v)) (type (cadr v)) (i (caddr v)))
+			    (case type
+			      ((argument) (make-binding name #f i))
+			      ((local) (make-binding name #f (+ vars.nargs i)))
+			      ((external) (make-binding name #t i)))))
+			binds)))
+	      (set! binding-alist
+		    (acons (current-address) bindings binding-alist))))
 
 	   (($ <glil-unbind>)
-	    (set! bind-alist (acons (current-address) #f bind-alist)))
+	    (set! binding-alist (acons (current-address) #f binding-alist)))
 
 	   (($ <glil-source> loc)
 	    (set! source-alist (acons (current-address) loc source-alist)))
@@ -168,10 +170,10 @@
 	 (if toplevel
 	     (bytecode->objcode bytes vars.nlocs vars.nexts)
 	     (<bytespec> :vars vars :bytes bytes
-			 :meta (if (and (null? bind-alist)
+			 :meta (if (and (null? binding-alist)
 					(null? source-alist))
 				 #f
-				 (cons (reverse! bind-alist)
+				 (cons (reverse! binding-alist)
 				       (reverse! source-alist)))
 			 :objs (let ((objs (map car (reverse! object-alist))))
 				 (if (null? objs) #f (list->vector objs)))

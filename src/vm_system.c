@@ -187,8 +187,8 @@ VM_DEFINE_INSTRUCTION (list_break, "list-break", 0, 0, 0)
 #define OBJECT_REF(i)		objects[i]
 #define OBJECT_SET(i,o)		objects[i] = o
 
-#define LOCAL_REF(i)		SCM_STACK_FRAME_VARIABLE (fp, i)
-#define LOCAL_SET(i,o)		SCM_STACK_FRAME_VARIABLE (fp, i) = o
+#define LOCAL_REF(i)		SCM_FRAME_VARIABLE (fp, i)
+#define LOCAL_SET(i,o)		SCM_FRAME_VARIABLE (fp, i) = o
 
 #define VARIABLE_REF(v)		SCM_CDR (v)
 #define VARIABLE_SET(v,o)	SCM_SETCDR (v, o)
@@ -379,7 +379,7 @@ VM_DEFINE_INSTRUCTION (call, "call", 1, -1, 1)
       EXIT_HOOK ();
       reinstate_vm_cont (vp, x);
       CACHE_REGISTER ();
-      program = SCM_STACK_FRAME_PROGRAM (fp);
+      program = SCM_FRAME_PROGRAM (fp);
       CACHE_PROGRAM ();
       NEXT;
     }
@@ -490,15 +490,15 @@ VM_DEFINE_INSTRUCTION (return, "return", 0, 0, 1)
 {
   SCM ret;
  vm_return:
-  ret = *sp;
+  POP (ret);
   EXIT_HOOK ();
   RETURN_HOOK ();
   FREE_FRAME ();
 
   /* Restore the last program */
-  program = SCM_STACK_FRAME_PROGRAM (fp);
+  program = SCM_FRAME_PROGRAM (fp);
   CACHE_PROGRAM ();
-  external = fp[bp->nargs + bp->nlocs];
+  CACHE_EXTERNAL ();
   PUSH (ret);
   NEXT;
 }

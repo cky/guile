@@ -148,6 +148,63 @@ vm_fetch_length (scm_byte_t *ip, size_t *lenp)
   return ip;
 }
 
+static SCM
+vm_heapify_frames_1 (struct scm_vm *vp, SCM *fp, SCM *limit, SCM **basep)
+{
+  SCM *base, frame;
+  SCM *dl = SCM_FRAME_DYNAMIC_LINK (fp);
+  SCM *sp = SCM_FRAME_UPPER_ADDRESS (fp);
+
+  if (!dl)
+    {
+      /* The top frame */
+      base  = vp->stack_base;
+      frame = scm_c_make_heap_frame (fp);
+      fp = SCM_HEAP_FRAME_POINTER (frame);
+      SCM_FRAME_HEAP_LINK (fp) = SCM_BOOL_T;
+    }
+  else
+    {
+      /* Other frames */
+      SCM link = SCM_FRAME_HEAP_LINK (dl);
+      if (!SCM_FALSEP (link))
+	{
+	  link = SCM_FRAME_LOWER_ADDRESS (dl)[-1]; /* self link */
+	  base = SCM_FRAME_LOWER_ADDRESS (fp);
+	}
+      else
+	{
+	  link = vm_heapify_frames_1 (vp, dl, SCM_FRAME_LOWER_ADDRESS (fp),
+				      &base);
+	}
+      frame = scm_c_make_heap_frame (fp);
+      fp = SCM_HEAP_FRAME_POINTER (frame);
+      SCM_FRAME_HEAP_LINK (fp)    = link;
+      SCM_FRAME_DYNAMIC_LINK (fp) = SCM_HEAP_FRAME_POINTER (link);
+    }
+
+  /* Move stack data */
+  for (; sp < limit; base++, sp++)
+    *base = *sp;
+  *basep = base;
+
+  return frame;
+}
+
+static SCM
+vm_heapify_frames (SCM vm)
+{
+  struct scm_vm *vp = SCM_VM_DATA (vm);
+  if (SCM_FALSEP (SCM_FRAME_HEAP_LINK (vp->fp)))
+    {
+      SCM *base;
+      vp->this_frame = vm_heapify_frames_1 (vp, vp->fp, vp->sp + 1, &base);
+      vp->fp = SCM_HEAP_FRAME_POINTER (vp->this_frame);
+      vp->sp = base - 1;
+    }
+  return vp->this_frame;
+}
+
 
 /*
  * VM
@@ -191,6 +248,7 @@ make_vm (void)
   vp->time        = 0;
   vp->clock       = 0;
   vp->options     = SCM_EOL;
+  vp->this_frame  = SCM_BOOL_F;
   vp->last_frame  = SCM_BOOL_F;
   for (i = 0; i < SCM_VM_NUM_HOOKS; i++)
     vp->hooks[i] = SCM_BOOL_F;
@@ -202,30 +260,16 @@ static SCM
 vm_mark (SCM obj)
 {
   int i;
-  SCM *sp, *fp;
   struct scm_vm *vp = SCM_VM_DATA (obj);
 
-  /* Mark the stack */
-  sp = vp->sp;
-  fp = vp->fp;
-  while (fp)
-    {
-      SCM *upper = SCM_STACK_FRAME_UPPER_ADDRESS (fp);
-      SCM *lower = SCM_STACK_FRAME_LOWER_ADDRESS (fp);
-      /* Mark intermediate data */
-      for (; sp >= upper; sp--)
-	if (SCM_NIMP (*sp))
-	  scm_gc_mark (*sp);
-      fp = SCM_VM_STACK_ADDRESS (sp[-1]);	/* dynamic link */
-      /* Mark external link, frame variables, and program */
-      for (sp -= 2; sp >= lower; sp--)
-	if (SCM_NIMP (*sp))
-	  scm_gc_mark (*sp);
-    }
+  /* mark the stack conservatively */
+  scm_mark_locations ((SCM_STACKITEM *) vp->stack_base,
+		      sizeof (SCM) * (vp->sp - vp->stack_base + 1));
 
-  /* Mark the options */
+  /* mark other objects  */
   for (i = 0; i < SCM_VM_NUM_HOOKS; i++)
     scm_gc_mark (vp->hooks[i]);
+  scm_gc_mark (vp->this_frame);
   scm_gc_mark (vp->last_frame);
   return vp->options;
 }
@@ -425,8 +469,8 @@ SCM_DEFINE (scm_vm_stats, "vm-stats", 1, 0, 0,
   SCM_VALIDATE_VM (1, vm);
 
   stats = scm_c_make_vector (2, SCM_MAKINUM (0));
-  SCM_VELTS (stats)[0] = scm_long2num (SCM_VM_DATA (vm)->time);
-  SCM_VELTS (stats)[1] = scm_long2num (SCM_VM_DATA (vm)->clock);
+  SCM_VELTS (stats)[0] = scm_ulong2num (SCM_VM_DATA (vm)->time);
+  SCM_VELTS (stats)[1] = scm_ulong2num (SCM_VM_DATA (vm)->clock);
 
   return stats;
 }
@@ -436,14 +480,13 @@ SCM_DEFINE (scm_vm_stats, "vm-stats", 1, 0, 0,
   if (!SCM_VM_DATA (vm)->ip)				\
     SCM_MISC_ERROR ("Not running", SCM_LIST1 (vm))
 
-SCM_DEFINE (scm_vm_current_frame, "vm-current-frame", 1, 0, 0,
+SCM_DEFINE (scm_vm_this_frame, "vm-this-frame", 1, 0, 0,
 	    (SCM vm),
 	    "")
-#define FUNC_NAME s_scm_vm_current_frame
+#define FUNC_NAME s_scm_vm_this_frame
 {
   SCM_VALIDATE_VM (1, vm);
-  VM_CHECK_RUNNING (vm);
-  return scm_c_make_heap_frame (SCM_VM_DATA (vm)->fp);
+  return SCM_VM_DATA (vm)->this_frame;
 }
 #undef FUNC_NAME
 
@@ -493,7 +536,7 @@ SCM_DEFINE (scm_vm_fetch_stack, "vm-fetch-stack", 1, 0, 0,
   VM_CHECK_RUNNING (vm);
 
   vp = SCM_VM_DATA (vm);
-  for (sp = SCM_STACK_FRAME_UPPER_ADDRESS (vp->fp); sp <= vp->sp; sp++)
+  for (sp = vp->stack_base; sp <= vp->sp; sp++)
     ls = scm_cons (*sp, ls);
   return ls;
 }

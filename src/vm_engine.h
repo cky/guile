@@ -170,8 +170,10 @@
 {						\
   if (!SCM_FALSEP (vp->hooks[h]))		\
     {						\
-      SYNC_BEFORE_GC ();			\
+      SYNC_REGISTER ();				\
+      vm_heapify_frames (vm);			\
       scm_c_run_hook (vp->hooks[h], hook_args);	\
+      CACHE_REGISTER ();			\
     }						\
 }
 #else
@@ -291,15 +293,15 @@ do {						\
 #define NEW_FRAME()				\
 {						\
   int i;					\
-  SCM ra = SCM_VM_MAKE_BYTE_ADDRESS (ip);	\
-  SCM dl = SCM_VM_MAKE_STACK_ADDRESS (fp);	\
+  SCM ra = SCM_PACK (ip);			\
+  SCM dl = SCM_PACK (fp);			\
   SCM *p = sp + 1;				\
   SCM *q = p + bp->nlocs;			\
 						\
   /* New pointers */				\
   ip = bp->base;				\
   fp = p - bp->nargs;				\
-  sp = q + 2;					\
+  sp = q + 3;					\
   CHECK_OVERFLOW ();				\
 						\
   /* Init local variables */			\
@@ -312,18 +314,24 @@ do {						\
     CONS (external, SCM_UNDEFINED, external);	\
 						\
   /* Set frame data */				\
+  p[3] = ra;					\
+  p[2] = dl;					\
+  p[1] = SCM_BOOL_F;				\
   p[0] = external;				\
-  p[1] = dl;					\
-  p[2] = ra;					\
 }
 
 #define FREE_FRAME()				\
 {						\
   SCM *p = fp + bp->nargs + bp->nlocs;		\
-  sp = fp - 2;					\
-  ip = SCM_VM_BYTE_ADDRESS (p[2]);		\
-  fp = SCM_VM_STACK_ADDRESS (p[1]);		\
+  if (!SCM_FALSEP (p[1]))			\
+    vp->this_frame = p[1];			\
+  else						\
+    sp = SCM_FRAME_LOWER_ADDRESS (fp) - 1;	\
+  fp = SCM_FRAME_STACK_CAST (p[2]);		\
+  ip = SCM_FRAME_BYTE_CAST (p[3]);		\
 }
+
+#define CACHE_EXTERNAL() external = fp[bp->nargs + bp->nlocs]
 
 
 /*

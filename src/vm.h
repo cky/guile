@@ -61,9 +61,10 @@ struct scm_vm {
   size_t stack_size;		/* stack size */
   SCM *stack_base;		/* stack base address */
   SCM *stack_limit;		/* stack limit address */
+  SCM this_frame;		/* currrent frame */
+  SCM last_frame;		/* last frame */
   SCM hooks[SCM_VM_NUM_HOOKS];	/* hooks */
   SCM options;			/* options */
-  SCM last_frame;		/* last frame */
   unsigned long time;		/* time spent */
   unsigned long clock;		/* bogos clock */
 };
@@ -77,8 +78,6 @@ extern SCM scm_make_vm (void);
 extern SCM scm_vm_apply (SCM vm, SCM program, SCM args);
 extern SCM scm_vm_option_ref (SCM vm, SCM key);
 extern SCM scm_vm_option_set_x (SCM vm, SCM key, SCM val);
-
-extern SCM scm_vm_current_frame (SCM vm);
 
 extern void scm_init_vm (void);
 

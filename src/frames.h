@@ -46,73 +46,55 @@
 #include "config.h"
 #include "programs.h"
 
-/*
- * VM Address
- */
-
-#define SCM_VM_MAKE_STACK_ADDRESS(ptr)	SCM_PACK (ptr)
-#define SCM_VM_STACK_ADDRESS(addr)	((SCM *) SCM_UNPACK (addr))
-
-#define SCM_VM_MAKE_BYTE_ADDRESS(ptr)	SCM_PACK (ptr)
-#define SCM_VM_BYTE_ADDRESS(addr)	((scm_byte_t *) SCM_UNPACK (addr))
-
 
 /*
- * VM Stack frames
+ * VM frames
  */
 
-/* Stack frames are allocated on the VM stack as follows:
-
-   |                  | <- fp + bp->nargs + bp->nlocs + 3
-   +------------------+    = SCM_STACK_FRAME_UPPER_ADDRESS (fp)
+/* 
+   |                  | <- fp + bp->nargs + bp->nlocs + 4
+   +------------------+    = SCM_FRAME_UPPER_ADDRESS (fp)
    | Return address   |
    | Dynamic link     |
+   | Heap link        |
    | External link    | <- fp + bp->nargs + bp->nlocs
-   | Local varialbe 1 |    = SCM_STACK_FRAME_DATA_ADDRESS (fp)
+   | Local varialbe 1 |    = SCM_FRAME_DATA_ADDRESS (fp)
    | Local variable 0 | <- fp + bp->nargs
    | Argument 1       |
    | Argument 0       | <- fp
    | Program          | <- fp - 1
-   +------------------+    = SCM_STACK_FRAME_LOWER_ADDRESS (fp)
+   +------------------+    = SCM_FRAME_LOWER_ADDRESS (fp)
    |                  |
 */
 
-#define SCM_STACK_FRAME_DATA_ADDRESS(fp)			\
-  (fp + SCM_PROGRAM_DATA (SCM_STACK_FRAME_PROGRAM (fp))->nargs	\
-      + SCM_PROGRAM_DATA (SCM_STACK_FRAME_PROGRAM (fp))->nlocs)
-#define SCM_STACK_FRAME_UPPER_ADDRESS(fp)			\
-  (SCM_STACK_FRAME_DATA_ADDRESS (fp) + 3)
-#define SCM_STACK_FRAME_LOWER_ADDRESS(fp)	(fp - 1)
+#define SCM_FRAME_DATA_ADDRESS(fp)				\
+  (fp + SCM_PROGRAM_DATA (SCM_FRAME_PROGRAM (fp))->nargs	\
+      + SCM_PROGRAM_DATA (SCM_FRAME_PROGRAM (fp))->nlocs)
+#define SCM_FRAME_UPPER_ADDRESS(fp)	(SCM_FRAME_DATA_ADDRESS (fp) + 4)
+#define SCM_FRAME_LOWER_ADDRESS(fp)	(fp - 1)
 
-#define SCM_STACK_FRAME_RETURN_ADDRESS(fp) SCM_STACK_FRAME_DATA_ADDRESS (fp)[2]
-#define SCM_STACK_FRAME_DYNAMIC_LINK(fp)   SCM_STACK_FRAME_DATA_ADDRESS (fp)[1]
-#define SCM_STACK_FRAME_EXTERNAL_LINK(fp)  SCM_STACK_FRAME_DATA_ADDRESS (fp)[0]
-#define SCM_STACK_FRAME_VARIABLE(fp,i)	   fp[i]
-#define SCM_STACK_FRAME_PROGRAM(fp)	   fp[-1]
+#define SCM_FRAME_BYTE_CAST(x)		((scm_byte_t *) SCM_UNPACK (x))
+#define SCM_FRAME_STACK_CAST(x)		((SCM *) SCM_UNPACK (x))
+
+#define SCM_FRAME_RETURN_ADDRESS(fp)	SCM_FRAME_BYTE_CAST (SCM_FRAME_DATA_ADDRESS (fp)[3])
+#define SCM_FRAME_DYNAMIC_LINK(fp)	SCM_FRAME_STACK_CAST (SCM_FRAME_DATA_ADDRESS (fp)[2])
+#define SCM_FRAME_HEAP_LINK(fp)		SCM_FRAME_DATA_ADDRESS (fp)[1]
+#define SCM_FRAME_EXTERNAL_LINK(fp)	SCM_FRAME_DATA_ADDRESS (fp)[0]
+#define SCM_FRAME_VARIABLE(fp,i)	fp[i]
+#define SCM_FRAME_PROGRAM(fp)		fp[-1]
 
 
 /*
- * VM Heap frames
+ * Heap frames
  */
-
-struct scm_heap_frame {
-  SCM *fp;
-  SCM program;
-  SCM variables;
-  SCM dynamic_link;
-  SCM external_link;
-};
 
 extern scm_bits_t scm_tc16_heap_frame;
 
 #define SCM_HEAP_FRAME_P(x)	SCM_SMOB_PREDICATE (scm_tc16_heap_frame, x)
-#define SCM_HEAP_FRAME_DATA(f) ((struct scm_heap_frame *) SCM_SMOB_DATA (f))
+#define SCM_HEAP_FRAME_DATA(f)		((SCM *) SCM_SMOB_DATA (f))
+#define SCM_HEAP_FRAME_SELF(f)		(SCM_HEAP_FRAME_DATA (f)[0])
+#define SCM_HEAP_FRAME_POINTER(f)	(SCM_HEAP_FRAME_DATA (f) + 2)
 #define SCM_VALIDATE_HEAP_FRAME(p,x)	SCM_MAKE_VALIDATE (p, x, HEAP_FRAME_P)
-
-#define SCM_HEAP_FRAME_PROGRAM(f)	SCM_HEAP_FRAME_DATA (f)->program
-#define SCM_HEAP_FRAME_VARIABLES(f)	SCM_HEAP_FRAME_DATA (f)->variables
-#define SCM_HEAP_FRAME_DYNAMIC_LINK(f)	SCM_HEAP_FRAME_DATA (f)->dynamic_link
-#define SCM_HEAP_FRAME_EXTERNAL_LINK(f) SCM_HEAP_FRAME_DATA (f)->external_link
 
 extern SCM scm_c_make_heap_frame (SCM *fp);
 extern void scm_init_frames (void);

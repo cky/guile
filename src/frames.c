@@ -48,24 +48,40 @@ scm_bits_t scm_tc16_heap_frame;
 SCM
 scm_c_make_heap_frame (SCM *fp)
 {
-  struct scm_heap_frame *p =
-    scm_must_malloc (sizeof (struct scm_heap_frame), "make_heap_frame");
-  p->fp            = fp;
-  p->program       = SCM_UNDEFINED;
-  p->variables     = SCM_UNDEFINED;
-  p->dynamic_link  = SCM_UNDEFINED;
-  p->external_link = SCM_UNDEFINED;
-  SCM_RETURN_NEWSMOB (scm_tc16_heap_frame, p);
+  SCM frame;
+  SCM *lower = SCM_FRAME_LOWER_ADDRESS (fp);
+  SCM *upper = SCM_FRAME_UPPER_ADDRESS (fp);
+  size_t size = sizeof (SCM) * (upper - lower + 1);
+  SCM *p = scm_must_malloc (size, "scm_c_make_heap_frame");
+  SCM_NEWSMOB (frame, scm_tc16_heap_frame, p);
+  p[0] = frame; /* self link */
+  memcpy (p + 1, lower, size - sizeof (SCM));
+  return frame;
 }
 
 static SCM
 heap_frame_mark (SCM obj)
 {
-  struct scm_heap_frame *p = SCM_HEAP_FRAME_DATA (obj);
-  scm_gc_mark (p->program);
-  scm_gc_mark (p->variables);
-  scm_gc_mark (p->dynamic_link);
-  return p->external_link;
+  SCM *sp;
+  SCM *fp = SCM_HEAP_FRAME_POINTER (obj);
+  SCM *limit = &SCM_FRAME_HEAP_LINK (fp);
+
+  for (sp = SCM_FRAME_LOWER_ADDRESS (fp); sp <= limit; sp++)
+    if (SCM_NIMP (*sp))
+      scm_gc_mark (*sp);
+
+  return SCM_BOOL_F;
+}
+
+static scm_sizet
+heap_frame_free (SCM obj)
+{
+  SCM *fp = SCM_HEAP_FRAME_POINTER (obj);
+  SCM *lower = SCM_FRAME_LOWER_ADDRESS (fp);
+  SCM *upper = SCM_FRAME_UPPER_ADDRESS (fp);
+  size_t size = sizeof (SCM) * (upper - lower + 1);
+  scm_must_free (SCM_HEAP_FRAME_DATA (obj));
+  return size;
 }
 
 /* Scheme interface */
@@ -85,30 +101,31 @@ SCM_DEFINE (scm_frame_program, "frame-program", 1, 0, 0,
 #define FUNC_NAME s_scm_frame_program
 {
   SCM_VALIDATE_HEAP_FRAME (1, frame);
-  return SCM_STACK_FRAME_PROGRAM (SCM_HEAP_FRAME_DATA (frame)->fp);
+  return SCM_FRAME_PROGRAM (SCM_HEAP_FRAME_POINTER (frame));
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_frame_local_variables, "frame-local-variables", 1, 0, 0,
-	    (SCM frame),
+SCM_DEFINE (scm_frame_local_ref, "frame-local-ref", 2, 0, 0,
+	    (SCM frame, SCM index),
 	    "")
-#define FUNC_NAME s_scm_frame_local_variables
+#define FUNC_NAME s_scm_frame_local_ref
 {
-  struct scm_heap_frame *p;
-
   SCM_VALIDATE_HEAP_FRAME (1, frame);
-  p = SCM_HEAP_FRAME_DATA (frame);
+  SCM_VALIDATE_INUM (2, index); /* FIXME: Check the range! */
+  return SCM_FRAME_VARIABLE (SCM_HEAP_FRAME_POINTER (frame),
+			     SCM_INUM (index));
+}
+#undef FUNC_NAME
 
-  if (SCM_UNBNDP (p->variables))
-    {
-      SCM prog = scm_frame_program (frame);
-      struct scm_program *pp = SCM_PROGRAM_DATA (prog);
-      int i, size = pp->nargs + pp->nlocs;
-      p->variables = scm_make_vector (SCM_MAKINUM (size), SCM_BOOL_F);
-      for (i = 0; i < size; i++)
-	SCM_VELTS (p->variables)[i] = SCM_STACK_FRAME_VARIABLE (p->fp, i);
-    }
-  return p->variables;
+SCM_DEFINE (scm_frame_local_set_x, "frame-local-set!", 3, 0, 0,
+	    (SCM frame, SCM index, SCM val),
+	    "")
+#define FUNC_NAME s_scm_frame_local_set_x
+{
+  SCM_VALIDATE_HEAP_FRAME (1, frame);
+  SCM_VALIDATE_INUM (2, index); /* FIXME: Check the range! */
+  SCM_FRAME_VARIABLE (SCM_HEAP_FRAME_POINTER (frame), SCM_INUM (index)) = val;
+  return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
 
@@ -118,10 +135,8 @@ SCM_DEFINE (scm_frame_return_address, "frame-return-address", 1, 0, 0,
 #define FUNC_NAME s_scm_frame_return_address
 {
   SCM_VALIDATE_HEAP_FRAME (1, frame);
-
-  return scm_long2num ((long) SCM_VM_BYTE_ADDRESS
-		       (SCM_STACK_FRAME_RETURN_ADDRESS
-			(SCM_HEAP_FRAME_DATA (frame)->fp)));
+  return scm_ulong2num ((unsigned long) (SCM_FRAME_RETURN_ADDRESS
+					 (SCM_HEAP_FRAME_POINTER (frame))));
 }
 #undef FUNC_NAME
 
@@ -130,21 +145,8 @@ SCM_DEFINE (scm_frame_dynamic_link, "frame-dynamic-link", 1, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_frame_dynamic_link
 {
-  struct scm_heap_frame *p;
-
   SCM_VALIDATE_HEAP_FRAME (1, frame);
-  p = SCM_HEAP_FRAME_DATA (frame);
-
-  if (SCM_UNBNDP (p->dynamic_link))
-    {
-      SCM *fp = SCM_VM_STACK_ADDRESS (SCM_STACK_FRAME_DYNAMIC_LINK (p->fp));
-      if (fp)
-	p->dynamic_link = scm_c_make_heap_frame (fp);
-      else
-	p->dynamic_link = SCM_BOOL_F;
-    }
-
-  return p->dynamic_link;
+  return SCM_FRAME_HEAP_LINK (SCM_HEAP_FRAME_POINTER (frame));
 }
 #undef FUNC_NAME
 
@@ -153,15 +155,8 @@ SCM_DEFINE (scm_frame_external_link, "frame-external-link", 1, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_frame_external_link
 {
-  struct scm_heap_frame *p;
-
   SCM_VALIDATE_HEAP_FRAME (1, frame);
-  p = SCM_HEAP_FRAME_DATA (frame);
-
-  if (SCM_UNBNDP (p->external_link))
-    p->external_link = SCM_STACK_FRAME_EXTERNAL_LINK (p->fp);
-
-  return p->external_link;
+  return SCM_FRAME_EXTERNAL_LINK (SCM_HEAP_FRAME_POINTER (frame));
 }
 #undef FUNC_NAME
 
@@ -169,8 +164,9 @@ SCM_DEFINE (scm_frame_external_link, "frame-external-link", 1, 0, 0,
 void
 scm_init_frames (void)
 {
-  scm_tc16_heap_frame = scm_make_smob_type ("heap_frame", 0);
+  scm_tc16_heap_frame = scm_make_smob_type ("frame", 0);
   scm_set_smob_mark (scm_tc16_heap_frame, heap_frame_mark);
+  scm_set_smob_free (scm_tc16_heap_frame, heap_frame_free);
 
 #ifndef SCM_MAGIC_SNARFER
 #include "frames.x"

@@ -22,78 +22,39 @@
 (define-module (system vm frame)
   :use-module (system vm core))
 
-(define-public (vm-return-value vm)
-  (car (vm-fetch-stack vm)))
-
-(define-public (frame-local-ref frame index)
-  (vector-ref (frame-local-variables frame) index))
-
-(define-public (frame-external-ref frame index)
-  (list-ref (frame-external-link frame) index))
-
 
 ;;;
-;;; Debug frames
+;;; Frame chain
 ;;;
 
-(define-public frame-index (make-object-property))
+(define-public frame-number (make-object-property))
 (define-public frame-address (make-object-property))
 
-(define-public (vm-last-frame-stack vm)
-  (make-frame-stack (vm-last-frame vm) (vm:ip vm)))
+(define-public (vm-current-frame-chain vm)
+  (make-frame-chain (vm-this-frame vm) (vm:ip vm)))
 
-(define-public (vm-current-frame-stack vm)
-  (make-frame-stack (vm-current-frame vm) (vm:ip vm)))
+(define-public (vm-last-frame-chain vm)
+  (make-frame-chain (vm-last-frame vm) (vm:ip vm)))
 
-(define (make-frame-stack frame addr)
-  (cond ((frame-dynamic-link frame) =>
-	 (lambda (link)
-	   (let ((stack (make-frame-stack link (frame-return-address frame)))
-		 (base (program-base (frame-program frame))))
-	     (set! (frame-index frame) (1+ (length stack)))
-	     (set! (frame-address frame) (- addr base))
-	     (cons frame stack))))
-	(else '())))
-
-(define-public (frame-bindings frame addr)
-  (do ((bs (program-bindings (frame-program frame)) (cdr bs))
-       (ls '() (if (cdar bs) (cons (cdar bs) ls) (cdr ls))))
-      ((or (null? bs) (> (caar bs) addr))
-       (apply append ls))))
-
-(define-public (frame-environment frame addr)
-  (map (lambda (binding)
-	 (let ((name (car binding))
-	       (extp (cadr binding))
-	       (index (caddr binding)))
-	   (cons name (if extp
-			(frame-external-ref frame index)
-			(frame-local-ref frame index)))))
-       (frame-bindings frame addr)))
-
-(define (frame-variable-ref frame sym)
-  (cond ((assq sym (frame-environment frame)) => cdr)
-	(else (error "Unbound"))))
-
-(define (frame-object-name frame obj)
-  (display (frame-address frame))
-  (let loop ((alist (frame-environment frame (frame-address frame))))
-    (cond ((null? alist) #f)
-	  ((eq? obj (cdar alist)) (caar alist))
-	  (else (loop (cdr alist))))))
+(define (make-frame-chain frame addr)
+  (let ((link (frame-dynamic-link frame)))
+    (if (eq? link #t)
+      '()
+      (let ((chain (make-frame-chain link (frame-return-address frame)))
+	    (base (program-base (frame-program frame))))
+	(set! (frame-number frame) (1+ (length chain)))
+	(set! (frame-address frame) (- addr base))
+	(cons frame chain)))))
 
 
 ;;;
 ;;; Pretty printing
 ;;;
 
-(define-public (frame-call-list frame)
-  (let* ((prog (frame-program frame))
-	 (locs (vector->list (frame-local-variables frame)))
-	 (args (list-truncate locs (car (program-arity prog))))
-	 (name (or (frame-object-name (frame-dynamic-link frame) prog)
-		   (object-name prog))))
-    (cons name args)))
+(define-public (print-frame frame)
+  (format #t "#~A " (frame-number frame))
+  (print-frame-call frame)
+  (newline))
 
 (define-public (print-frame-call frame)
   (define (abbrev x)
@@ -106,20 +67,12 @@
 			 ((1) (vector (abbrev (vector-ref x 0))))
 			 (else (vector (abbrev (vector-ref x 0)) '...))))
 	  (else x)))
-  (write (abbrev (frame-call-list frame))))
+  (write (abbrev (cons (program-name frame) (frame-arguments frame)))))
 
-(define-public (print-frame frame)
-  (format #t "#~A " (frame-index frame))
-  (print-frame-call frame)
-  (newline))
-
-(define (list-truncate l n)
-  (do ((i 0 (1+ i))
-       (l l (cdr l))
-       (r '() (cons (car l) r)))
-      ((= i n) (reverse! r))))
-
-(define (object-name x)
-  (or (object-property x 'name)
-      (hash-fold (lambda (s v d) (if (eq? x (variable-ref v)) s d))
-		 x (module-obarray (current-module)))))
+(define (program-name frame)
+  (let ((prog (frame-program frame))
+	(link (frame-dynamic-link frame)))
+    (or (object-property prog 'name)
+	(frame-object-name link (1- (frame-address link)) prog)
+	(hash-fold (lambda (s v d) (if (eq? prog (variable-ref v)) s d))
+		   prog (module-obarray (current-module))))))

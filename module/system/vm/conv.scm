@@ -130,7 +130,7 @@
 ;;; Variable-length interface
 ;;;
 
-;; NOTE: decoded in vm_fetch_length in vm.c.
+;; NOTE: decoded in vm_fetch_length in vm.c as well.
 
 (define (encode-length len)
   (define C integer->char)

@@ -167,7 +167,7 @@ vm_run (SCM vm, SCM program, SCM args)
 
   vm_error:
     SYNC_ALL ();
-    vp->last_frame = scm_vm_current_frame (vm);
+    vp->last_frame = vm_heapify_frames (vm);
     scm_ithrow (sym_vm_error, SCM_LIST3 (sym_vm_run, err_msg, err_args), 1);
   }
 
