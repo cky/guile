@@ -1,3 +1,17 @@
+Mon Jan  3 08:30:02 2000  Greg Harvey  <Greg.Harvey@thezone.net> (applied --01/03/00 gjb)
+
+	* gc.c (scm_debug_newcell): Added SCM_SETCAR of the newly
+	allocated cell. 
+
+	* pairs.h: Added a comment about the need for the SCM_SETCAR in
+	SCM_NEWCELL macro.
+
+Mon Jan  3 08:25:19 2000  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* dynl-vms.c, debug.c, coop-threads.c, backtrace.c, eval.c: More
+ 	SCM_NIMP tests that were redundant are now eliminated.  Patches
+ 	from Dirk Hermann applied by hand.
+
 1999-12-28  Gary Houston  <ghouston@arglist.com>
 
 	* posix.c (scm_waitpid): move the HAVE_WAITPID test out of the
