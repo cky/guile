@@ -390,7 +390,10 @@ SCM_DEFINE_INSTRUCTION (br_if_not_null, "%br-if-not-null", INST_ADDR)
 {
   SCM addr = FETCH (); /* must always fetch */
   if (!SCM_NULLP (ac))
-    pc = SCM_VM_ADDRESS (addr);
+    {
+      ac = SCM_BOOL_F;
+      pc = SCM_VM_ADDRESS (addr);
+    }
   NEXT;
 }
 
