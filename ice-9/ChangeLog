@@ -1,3 +1,8 @@
+2001-06-10  Gary Houston  <ghouston@arglist.com>
+
+	* boot-9.scm: use the (ice-9 rdelim) module if
+	include-deprecated-features is true.
+
 2001-06-09  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* pretty-print.scm (generic-write): Use `object->string' to print

@@ -1,3 +1,9 @@
+2001-06-10  Gary Houston  <ghouston@arglist.com>
+
+	* rdelim.c (scm_init_rdelim_builtins): don't try to activate the
+	(ice-9 rdelim) module in (guile) and (guile-user).  it didn't
+	work reliably anymore.  try it from boot-9.scm instead.
+
 2001-06-09  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* ports.c (scm_lfwrite): Maintain columnd and row count in port.
