@@ -430,16 +430,9 @@ scm_array_fill_int (SCM ra, SCM fill, SCM ignore SCM_UNUSED)
 
   ra = SCM_ARRAY_V (ra);
 
-  if (scm_is_generalized_vector (ra))
-    {
-      for (i = base; n--; i += inc)
-	scm_c_generalized_vector_set_x (ra, i, fill);
-    }
-  else
-    {
-      for (i = base; n--; i += inc)
-	scm_array_set_x (ra, fill, scm_from_ulong (i));
-    }
+  for (i = base; n--; i += inc)
+    scm_c_generalized_vector_set_x (ra, i, fill);
+
   return 1;
 }
 #undef FUNC_NAME
@@ -459,8 +452,8 @@ racp (SCM src, SCM dst)
   dst = SCM_ARRAY_V (dst);
 
   for (; n-- > 0; i_s += inc_s, i_d += inc_d)
-    scm_array_set_x (dst, scm_cvref (src, i_s, SCM_UNDEFINED),
-		     scm_from_ulong (i_d));
+    scm_c_generalized_vector_set_x (dst, i_d,
+				    scm_cvref (src, i_s, SCM_UNDEFINED));
   return 1;
 }
 
@@ -584,8 +577,9 @@ scm_ra_sum (SCM ra0, SCM ras)
 	  {
 	    SCM e0 = SCM_UNDEFINED, e1 = SCM_UNDEFINED;
 	    for (; n-- > 0; i0 += inc0, i1 += inc1)
-	      scm_array_set_x (ra0, scm_sum (RVREF (ra0, i0, e0), RVREF (ra1, i1, e1)),
-			       scm_from_ulong (i0));
+	      scm_c_generalized_vector_set_x (ra0, i0,
+					      scm_sum (RVREF(ra0, i0, e0),
+						       RVREF(ra1, i1, e1)));
 	    break;
 	  }
 	}
@@ -610,9 +604,10 @@ scm_ra_difference (SCM ra0, SCM ras)
 	  {
 	    SCM e0 = SCM_UNDEFINED;
 	    for (; n-- > 0; i0 += inc0)
-	      scm_array_set_x (ra0, 
-                               scm_difference (RVREF (ra0, i0, e0), SCM_UNDEFINED), 
-                               scm_from_ulong (i0));
+	      {
+		SCM res = scm_difference (RVREF(ra0, i0, e0), SCM_UNDEFINED); 
+		scm_c_generalized_vector_set_x (ra0, i0, res);
+	      }
 	    break;
 	  }
 	}
@@ -629,7 +624,11 @@ scm_ra_difference (SCM ra0, SCM ras)
 	  {
 	    SCM e0 = SCM_UNDEFINED, e1 = SCM_UNDEFINED;
 	    for (; n-- > 0; i0 += inc0, i1 += inc1)
-	      scm_array_set_x (ra0, scm_difference (RVREF (ra0, i0, e0), RVREF (ra1, i1, e1)), scm_from_ulong (i0));
+	      {
+		SCM res = scm_difference (RVREF (ra0, i0, e0),
+					  RVREF (ra1, i1, e1));
+		scm_c_generalized_vector_set_x (ra0, i0, res);
+	      }
 	    break;
 	  }
 	}
@@ -658,9 +657,12 @@ scm_ra_product (SCM ra0, SCM ras)
 	  {
 	    SCM e0 = SCM_UNDEFINED, e1 = SCM_UNDEFINED;
 	    for (; n-- > 0; i0 += inc0, i1 += inc1)
-	      scm_array_set_x (ra0, scm_product (RVREF (ra0, i0, e0), RVREF (ra1, i1, e1)),
-			       scm_from_ulong (i0));
-	    break;
+	      {
+		SCM res = scm_product (RVREF (ra0, i0, e0),
+				       RVREF (ra1, i1, e1));
+		scm_c_generalized_vector_set_x (ra0, i0, res);
+		break;
+	      }
 	  }
 	}
     }
@@ -683,7 +685,10 @@ scm_ra_divide (SCM ra0, SCM ras)
 	  {
 	    SCM e0 = SCM_UNDEFINED;
 	    for (; n-- > 0; i0 += inc0)
-	      scm_array_set_x (ra0, scm_divide (RVREF (ra0, i0, e0), SCM_UNDEFINED), scm_from_ulong (i0));
+	      {
+		SCM res = scm_divide (RVREF (ra0, i0, e0), SCM_UNDEFINED);
+		scm_c_generalized_vector_set_x (ra0, i0, res);
+	      }
 	    break;
 	  }
 	}
@@ -700,7 +705,11 @@ scm_ra_divide (SCM ra0, SCM ras)
 	  {
 	    SCM e0 = SCM_UNDEFINED, e1 = SCM_UNDEFINED;
 	    for (; n-- > 0; i0 += inc0, i1 += inc1)
-	      scm_array_set_x (ra0, scm_divide (RVREF (ra0, i0, e0), RVREF (ra1, i1, e1)), scm_from_ulong (i0));
+	      {
+		SCM res =  scm_divide (RVREF (ra0, i0, e0),
+				       RVREF (ra1, i1, e1));
+		scm_c_generalized_vector_set_x (ra0, i0, res);
+	      }
 	    break;
 	  }
 	}
@@ -727,7 +736,7 @@ ramap (SCM ra0, SCM proc, SCM ras)
   ra0 = SCM_ARRAY_V (ra0);
   if (scm_is_null (ras))
     for (; i <= n; i++)
-      scm_array_set_x (ra0, scm_call_0 (proc), scm_from_long (i * inc + base));
+      scm_c_generalized_vector_set_x (ra0, i*inc+base, scm_call_0 (proc));
   else
     {
       SCM ra1 = SCM_CAR (ras);
@@ -747,7 +756,8 @@ ramap (SCM ra0, SCM proc, SCM ras)
 	  for (k = scm_c_vector_length (ras); k--;)
 	    args = scm_cons (scm_c_generalized_vector_ref (scm_c_vector_ref (ras, k), i), args);
 	  args = scm_cons (scm_cvref (ra1, i1, SCM_UNDEFINED), args);
-	  scm_array_set_x (ra0, scm_apply_0 (proc, args), scm_from_long (i * inc + base));
+	  scm_c_generalized_vector_set_x (ra0, i*inc+base,
+					  scm_apply_0 (proc, args));
 	}
     }
   return 1;
@@ -767,9 +777,10 @@ ramap_dsubr (SCM ra0, SCM proc, SCM ras)
   switch (SCM_TYP7 (ra0))
     {
     default:
- for (; n-- > 0; i0 += inc0, i1 += inc1)
-   scm_array_set_x (ra0, scm_call_1 (proc, RVREF (ra1, i1, e1)), scm_from_ulong (i0));
- break;
+      for (; n-- > 0; i0 += inc0, i1 += inc1)
+	scm_c_generalized_vector_set_x (ra0, i0,
+					scm_call_1 (proc, RVREF (ra1, i1, e1)));
+      break;
     }
   return 1;
 }
@@ -812,10 +823,16 @@ ramap_1 (SCM ra0, SCM proc, SCM ras)
   ra1 = SCM_ARRAY_V (ra1);
   if (scm_tc7_vector == SCM_TYP7 (ra0) || scm_tc7_wvect == SCM_TYP7 (ra0))
     for (; n-- > 0; i0 += inc0, i1 += inc1)
-      scm_array_set_x (ra0, SCM_SUBRF (proc) (scm_cvref (ra1, i1, SCM_UNDEFINED)), scm_from_ulong (i0));
+      {
+	SCM res = SCM_SUBRF (proc) (scm_cvref (ra1, i1, SCM_UNDEFINED));
+	scm_c_generalized_vector_set_x (ra0, i0, res);
+      }
   else
     for (; n-- > 0; i0 += inc0, i1 += inc1)
-      scm_array_set_x (ra0, SCM_SUBRF (proc) (RVREF (ra1, i1, e1)), scm_from_ulong (i0));
+      {
+	SCM res = SCM_SUBRF (proc) (RVREF (ra1, i1, e1));
+	scm_c_generalized_vector_set_x (ra0, i0, res);
+      }
   return 1;
 }
 
@@ -838,12 +855,10 @@ ramap_2o (SCM ra0, SCM proc, SCM ras)
 	  || scm_tc7_wvect == SCM_TYP7 (ra0))
 
 	for (; n-- > 0; i0 += inc0, i1 += inc1)
-	  scm_array_set_x (ra0, SCM_SUBRF (proc) (scm_cvref (ra1, i1, SCM_UNDEFINED), SCM_UNDEFINED),
-			   scm_from_ulong (i0));
+	  scm_c_generalized_vector_set_x (ra0, i0, SCM_SUBRF (proc) (scm_cvref (ra1, i1, SCM_UNDEFINED), SCM_UNDEFINED));
       else
 	for (; n-- > 0; i0 += inc0, i1 += inc1)
-	  scm_array_set_x (ra0, SCM_SUBRF (proc) (RVREF (ra1, i1, e1), SCM_UNDEFINED),
-			   scm_from_ulong (i0));
+	  scm_c_generalized_vector_set_x (ra0, i0, SCM_SUBRF (proc) (RVREF (ra1, i1, e1), SCM_UNDEFINED));
     }
   else
     {
@@ -854,14 +869,12 @@ ramap_2o (SCM ra0, SCM proc, SCM ras)
       ra2 = SCM_ARRAY_V (ra2);
       if (scm_tc7_vector == SCM_TYP7 (ra0) || scm_tc7_wvect == SCM_TYP7 (ra0))
 	for (; n-- > 0; i0 += inc0, i1 += inc1, i2 += inc2)
-	  scm_array_set_x (ra0,
-			   SCM_SUBRF (proc) (scm_cvref (ra1, i1, SCM_UNDEFINED), scm_cvref (ra2, i2, SCM_UNDEFINED)),
-			   scm_from_ulong (i0));
+	  scm_c_generalized_vector_set_x (ra0, i0,
+					  SCM_SUBRF (proc) (scm_cvref (ra1, i1, SCM_UNDEFINED), scm_cvref (ra2, i2, SCM_UNDEFINED)));
       else
 	for (; n-- > 0; i0 += inc0, i1 += inc1, i2 += inc2)
-	  scm_array_set_x (ra0,
-			   SCM_SUBRF (proc) (RVREF (ra1, i1, e1), RVREF (ra2, i2, e2)),
-			   scm_from_ulong (i0));
+	  scm_c_generalized_vector_set_x (ra0, i0,
+					  SCM_SUBRF (proc) (RVREF (ra1, i1, e1), RVREF (ra2, i2, e2)));
     }
   return 1;
 }
@@ -878,7 +891,7 @@ ramap_a (SCM ra0, SCM proc, SCM ras)
   ra0 = SCM_ARRAY_V (ra0);
   if (scm_is_null (ras))
     for (; n-- > 0; i0 += inc0)
-      scm_array_set_x (ra0, SCM_SUBRF (proc) (RVREF (ra0, i0, e0), SCM_UNDEFINED), scm_from_ulong (i0));
+      scm_c_generalized_vector_set_x (ra0, i0, SCM_SUBRF (proc) (RVREF (ra0, i0, e0), SCM_UNDEFINED));
   else
     {
       SCM ra1 = SCM_CAR (ras);
@@ -886,8 +899,7 @@ ramap_a (SCM ra0, SCM proc, SCM ras)
       long inc1 = SCM_ARRAY_DIMS (ra1)->inc;
       ra1 = SCM_ARRAY_V (ra1);
       for (; n-- > 0; i0 += inc0, i1 += inc1)
-	scm_array_set_x (ra0, SCM_SUBRF (proc) (RVREF (ra0, i0, e0), RVREF (ra1, i1, e1)),
-			 scm_from_ulong (i0));
+	scm_c_generalized_vector_set_x (ra0, i0, SCM_SUBRF (proc) (RVREF (ra0, i0, e0), RVREF (ra1, i1, e1)));
     }
   return 1;
 }
@@ -1114,9 +1126,8 @@ SCM_DEFINE (scm_array_index_map_x, "array-index-map!", 2, 0, 0,
 		{
 		  for (j = kmax + 1, args = SCM_EOL; j--;)
 		    args = scm_cons (scm_from_long (vinds[j]), args);
-		  scm_array_set_x (SCM_ARRAY_V (ra),
-				   scm_apply_0 (proc, args),
-				   scm_from_ulong (i));
+		  scm_c_generalized_vector_set_x (SCM_ARRAY_V (ra), i,
+						  scm_apply_0 (proc, args));
 		  i += SCM_ARRAY_DIMS (ra)[k].inc;
 		}
 	      k--;
