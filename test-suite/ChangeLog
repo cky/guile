@@ -1,3 +1,10 @@
+2000-09-12  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* tests/environments.test:  For tests that rely on garbage
+	collection, conservative scanning can be a problem.  Add a comment
+	for these tests and make them turn out unresolved if things don't
+	work as expected.
+
 2000-09-05  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* tests/environments.test:  Finished and cleaned up the tests for

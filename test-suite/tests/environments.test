@@ -382,7 +382,9 @@
 	(environment-observe-weak env func)
 	(gc)
 	(environment-define env 'a 1)
-	(eqv? (func) 0))))
+	(if (not (eqv? (func) 0))
+	    (throw 'unresolved) ; note: conservative scanning
+	    #t))))
 
 
   (with-test-prefix "erroneous observers"
@@ -1043,7 +1045,9 @@
 	(environment-observe-weak env func)
 	(gc)
 	(environment-define env 'a 1)
-	(eqv? (func) 0))))
+	(if (not (eqv? (func) 0))
+	    (throw 'unresolved) ; note: conservative scanning
+	    #t))))
 
 
   (with-test-prefix "erroneous observers"
