@@ -122,7 +122,9 @@
 		(cond
 		 ((eof-object? entry) #f)
 		 ((or (string=? entry ".")
-		      (string=? entry ".."))
+		      (string=? entry "..")
+                      (string=? entry "CVS")
+                      (string=? entry "RCS"))
 		  (loop))
 		 (else
 		  (visit (string-append root "/" entry))
