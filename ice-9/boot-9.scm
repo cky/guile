@@ -507,7 +507,8 @@
 	     n
 	     (loop (+ n 1) (cdr l))))))
 
-(define (make-list n init)
+(define (make-list n . init)
+  (if (pair? init) (set! init (car init)))
   (let loop ((answer '())
 	     (n n))
     (if (<= n 0)
@@ -2948,13 +2949,6 @@
 ;material, there shall be no use of my name in any advertising,
 ;promotional, or sales literature without prior written consent in
 ;each case.
-
-;;;From: hugh@ear.mit.edu (Hugh Secker-Walker)
-(define-public (make-list k . init)
-  (set! init (if (pair? init) (car init)))
-  (do ((k k (+ -1 k))
-       (result '() (cons init result)))
-      ((<= k 0) result)))
 
 (define-public (adjoin e l) (if (memq e l) l (cons e l)))
 
