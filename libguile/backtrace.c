@@ -180,21 +180,6 @@ display_expression (frame, pname, source, port)
   scm_free_print_state (print_state);
 }
 
-SCM_SYMBOL (scm_sym_apply, "apply");
-
-/* Look up the first body form of the apply closure.  We'll use this
-   below to prevent it from being displayed.
-*/
-static SCM
-get_applybody ()
-{
-  SCM proc = SCM_CDR (scm_sym2vcell (scm_sym_apply, SCM_BOOL_F, SCM_BOOL_F));
-  if (SCM_NIMP (proc) && SCM_CLOSUREP (proc))
-    return SCM_CADR (SCM_CODE (proc));
-  else
-    return SCM_UNDEFINED;
-}
-
 struct display_error_args {
   SCM stack;
   SCM port;
@@ -211,7 +196,6 @@ display_error_body (struct display_error_args *a)
   SCM source = SCM_BOOL_F;
   SCM pname = SCM_BOOL_F;
   SCM prev_frame = SCM_BOOL_F;
-  static SCM applybody = SCM_UNDEFINED;
 
   if (SCM_DEBUGGINGP
       && SCM_NIMP (a->stack)
@@ -230,14 +214,8 @@ display_error_body (struct display_error_args *a)
     }
   if (!(SCM_NIMP (pname) && SCM_ROSTRINGP (pname)))
     pname = a->subr;
-  /* The value of applybody has to be setup after r4rs.scm has executed. */
-  if (SCM_UNBNDP (applybody))
-    applybody = get_applybody ();
   if ((SCM_NIMP (pname) && SCM_ROSTRINGP (pname))
-      || (SCM_NIMP (source)
-	  && SCM_MEMOIZEDP (source)
-	  /* Exception: We don't want the body of apply to be displayed. */
-	  && SCM_MEMOIZED_EXP (source) != applybody))
+      || (SCM_NIMP (source) && SCM_MEMOIZEDP (source)))
     {
       display_header (source, a->port);
       display_expression (current_frame, pname, source, a->port);
