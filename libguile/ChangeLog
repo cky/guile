@@ -1,3 +1,105 @@
+2005-01-02  Marius Vollmer  <mvo@zagadka.de>
+
+	* sort.c (quicksort): Added INC parameter for non-contigous
+	vectors.
+	(quicksort1): New, for contigous vectors.  Both functions are
+	generated from the same code by including "quicksort.i.c".
+	(scm_restricted_vector_sort_x): Call one of quicksort and
+	quicksort1, depending on increment of vector.
+	(scm_sort): Simply call scm_sort_x on a copy of the list or
+	vector.
+	(scm_merge_vector_x, scm_merge_vector_step): Changed indices to
+	size_t, added inc parameter.
+	(scm_stable_sort_x): Allocate temporary storage as Scheme vector
+	so that it doesn't leak.
+	(scm_stable_sort): Simply call scm_stable_sort_x on a copy of the
+	list or vector.
+	
+	* ramap.c (scm_array_map_x): Do not try to convert fill value
+	before filling, any necessary conversion is done while storing.
+
+	* gc-card.c (scm_i_sweep_card): Call scm_i_vector_free instead of
+	doing it inline.
+
+	* hashtab.c, hashtab.h (SCM_HASHTABLE_BUCKETS): Removed.
+	(SCM_HASHTABLE_BUCKET, SCM_HASHTABLE_BUCKET_LOC): New.  Replaced
+	all uses of SCM_HASHTABLE_BUCKETS with SCM_HASHTABLE_BUCKET.
+
+	* tags.h, weaks.c, vports.c, hashtab.c, convert.c, sort.c,
+	convert.c, convert.h, convert.i.c, deprecated.c, environments.c,
+	eval.c, filesys.c, fluids.c, gc-mark.c, gh.h, gh_data.c, goops.c,
+	hash.c, init.c, libguile_la-arrays.loT, modules.c, net_db.c,
+	objects.c, ports.c, posix.c, print.c, random.c, read.c,
+	regex-posix.c, scmsigs.c, socket.c, stime.c, symbols.c: Use new
+	vector elements API or simple vector API, as appropriate.  Removed
+	SCM_HAVE_ARRAYS ifdefery.  Replaced all uses of
+	SCM_HASHTABLE_BUCKETS with SCM_HASHTABLE_BUCKET.
+	
+	* srfi-4.h, srfi-4.c,
+	srfi-4.i.c (scm_array_handle_uniform_elements,
+	scm_array_handle_uniform_writable_elements,
+	scm_uniform_vector_elements,
+	scm_uniform_vector_writable_elements):
+	(scm_<foo>vector_elements, scm_<foo>vector_writable_elements): Use
+	scm_t_array_handle, deliver length and increment.
+	(scm_array_handle_<foo>_elements,
+	scm_array_handle_<foo>_writable_elements): New.
+	
+	* gen-scmconfig.h.in (SCM_I_GSC_HAVE_ARRAYS): Removed.
+	* gen-scmconfig.c: Hard code SCM_HAVE_ARRAYS to "1".
+	
+	* unif.h, unif.c (scm_t_array_handle, scm_array_get_handle,
+	scm_array_handle_rank, scm_array_handle_dims, scm_array_handle_ref
+	scm_array_handle_set, scm_array_handle_elements
+	scm_array_handle_writable_elements, scm_vector_get_handle): New.
+	(scm_make_uve, scm_array_prototype, scm_list_to_uniform_array,
+	scm_dimensions_to_uniform_array): Deprecated for real.
+	(scm_array_p, scm_i_array_p): Use latter for SCM_DEFINE since
+	snarfing wont allow a mismatch between C and Scheme arglists.
+	(scm_make_shared_array, scm_enclose_array): Correctly use
+	scm_c_generalized_vector_length instead of
+	scm_uniform_vector_length.
+	
+	* validate.h (SCM_VALIDATE_VECTOR,
+	SCM_VALIDATE_VECTOR_OR_DVECTOR): use scm_is_simple_vector instead
+	of SCM_VECTORP.
+
+	* weaks.h, weaks.c: Use new internal weak vector API from
+	vectors.h.
+
+	* Makefile.am (libguile_la_SOURCES, DOT_X_FILES, DOT_DOC_FILES,
+	EXTRA_libguile_la_SOURCES): Changed ramap.c and unif.c from being
+	'extra' to being regular sources.
+	(noinst_HEADERS): Added quicksort.i.c.
+	* quicksort.i.c: New file.
+
+	* vectors.h, vector.c (SCM_VECTORP, SCM_VECTOR_LENGTH, SCM_VELTS,
+	SCM_WRITABLE_VELTS, SCM_VECTOR_REF, SCM_VECTOR_SET): Deprecated
+	and reimplemented.  Replaced all uses with scm_vector_elements,
+	scm_vector_writable_elements, or SCM_SIMPLE_VECTOR_*, as
+	appropriate.
+	(scm_is_simple_vector, SCM_SIMPLE_VECTOR_LENGTH,
+	SCM_SIMPLE_VECTOR_REF, SCM_SIMPLE_VECTOR_SET,
+	SCM_SIMPLE_VECTOR_LOC): New.
+	(SCM_VECTOR_BASE, SCM_SET_VECTOR_BASE, SCM_VECTOR_MAX_LENGTH,
+	SCM_MAKE_VECTOR_TAG, SCM_SET_VECTOR_LENGTH,
+	SCM_VELTS_AS_STACKITEMS, SCM_SETVELTS, SCM_GC_WRITABLE_VELTS):
+	Removed.
+	(scm_vector_copy): New.
+	(scm_vector_elements, scm_vector_writable_elements): Use
+	scm_t_array_handle, deliver length and increment.  Moved to
+	unif.h. Changed all uses.
+	(scm_vector_release_elements,
+	scm_vector_release_writable_elements,
+	(scm_frame_vector_release_elements,
+	scm_frame_vector_release_writable_elements): Removed.
+	(SCM_I_IS_VECTOR, SCM_I_VECTOR_ELTS, SCM_I_VECTOR_WELTS,
+	SCM_I_VECTOR_LENGTH, scm_i_vector_free): New internal API.
+	(SCM_I_WVECTP SCM_I_WVECT_LENGTH SCM_I_WVECT_VELTS
+	SCM_I_WVECT_GC_WVELTS SCM_I_WVECT_TYPE SCM_I_WVECT_GC_CHAIN
+	SCM_I_SET_WVECT_GC_CHAIN, scm_i_allocate_weak_vector): New, for
+	weak vectors.
+
 2004-12-29  Marius Vollmer  <mvo@zagadka.de>
 
 	No longer use creators to specify the type of an array.  Creators
