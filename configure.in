@@ -443,7 +443,7 @@ AC_SUBST(GUILE_STAMP)
 AC_SUBST(AWK)
 AC_SUBST(LIBLOBJS)
 
-AC_OUTPUT([Makefile libguile/Makefile libguile/guile-snarf ice-9/Makefile ice-9/version.scm qt/Makefile qt/qt.h qt/md/Makefile qt/time/Makefile guile-config/Makefile doc/Makefile], [chmod +x libguile/guile-snarf])
+AC_OUTPUT([Makefile libguile/Makefile libguile/guile-snarf libguile/versiondat.h ice-9/Makefile ice-9/version.scm qt/Makefile qt/qt.h qt/md/Makefile qt/time/Makefile guile-config/Makefile doc/Makefile], [chmod +x libguile/guile-snarf])
 
 dnl Local Variables:
 dnl comment-start: "dnl "
