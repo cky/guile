@@ -55,7 +55,7 @@
 
 /* #define GSUBR_TEST */
 
-SCM scm_i_name;
+SCM scm_sym_name;
 SCM scm_f_gsubr_apply;
 
 SCM
@@ -94,7 +94,7 @@ scm_make_gsubr(name, req, opt, rst, fcn)
       SCM_SETCDR (symcell, cclo);
 #ifdef DEBUG_EXTENSIONS
       if (SCM_REC_PROCNAMES_P)
-	scm_set_procedure_property_x (cclo, scm_i_name, SCM_CAR (symcell));
+	scm_set_procedure_property_x (cclo, scm_sym_name, SCM_CAR (symcell));
 #endif
       return cclo;
     }
@@ -180,8 +180,8 @@ void
 scm_init_gsubr()
 {
   scm_f_gsubr_apply = scm_make_subr(s_gsubr_apply, scm_tc7_lsubr, scm_gsubr_apply);
-  scm_i_name = SCM_CAR (scm_sysintern ("name", SCM_UNDEFINED));
-  scm_permanent_object (scm_i_name);
+  scm_sym_name = SCM_CAR (scm_sysintern ("name", SCM_UNDEFINED));
+  scm_permanent_object (scm_sym_name);
 #ifdef GSUBR_TEST
   scm_make_gsubr("gsubr-2-1-l", 2, 1, 1, gsubr_21l); /* example */
 #endif
