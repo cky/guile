@@ -496,7 +496,7 @@ match_paren (int x, int k)
       if (rl_point > -1)
 	{
 	  rl_redisplay ();
-	  scm_internal_select (1, &readset, NULL, NULL, &timeout);
+	  scm_internal_select (fileno + 1, &readset, NULL, NULL, &timeout);
 	}
       rl_point = tmp;
     }
@@ -517,7 +517,7 @@ scm_init_readline ()
   rl_readline_name = "Guile";
 
 #ifdef USE_THREADS
-  scm_mutex_init (&reentry_barrier_mutex);
+  scm_mutex_init (&reentry_barrier_mutex, NULL);
 #endif
   scm_init_opts (scm_readline_options,
 		 scm_readline_opts,
