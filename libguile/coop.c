@@ -40,7 +40,7 @@
  * If you do not wish that, delete this exception notice.  */
 
 
-/* $Id: coop.c,v 1.22 2000-03-30 23:23:10 mdj Exp $ */
+/* $Id: coop.c,v 1.23 2000-04-10 12:35:57 mdj Exp $ */
 
 /* Cooperative thread library, based on QuickThreads */
 
@@ -574,11 +574,14 @@ mother (void *dummy)
   pthread_mutex_lock (&coop_mutex_create);
   while (!coop_quitting_p)
     {
+      int res;
       pthread_create (&coop_child->dummy_thread,
 		      NULL,
 		      dummy_start,
 		      coop_child);
-      pthread_cond_wait (&coop_cond_create, &coop_mutex_create);
+      do
+	res = pthread_cond_wait (&coop_cond_create, &coop_mutex_create);
+      while (res == EINTR);
     }
   return 0;
 }
