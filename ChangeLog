@@ -1,3 +1,8 @@
+2000-08-18  Gary Houston  <ghouston@arglist.com>
+
+	* acconfig.h: added BROKEN_GCSE.
+	* configure.in: check for a gcc GCSE optimisation bug.
+
 2000-07-31  Gary Houston  <ghouston@arglist.com>
 
 	* acconfig.h: added HAVE_H_ERRNO
