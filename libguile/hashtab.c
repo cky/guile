@@ -508,7 +508,7 @@ scm_hash_fn_create_handle_x (SCM table, SCM obj, SCM init, unsigned long (*hash_
 	}
       SCM_SETCDR (new_bucket, SCM_SIMPLE_VECTOR_REF (buckets, k));
       SCM_SIMPLE_VECTOR_SET (buckets, k, new_bucket);
-      if (table != buckets)
+      if (!scm_is_eq (table, buckets))
 	{
 	  SCM_HASHTABLE_INCREMENT (table);
 	  if (SCM_HASHTABLE_N_ITEMS (table) > SCM_HASHTABLE_UPPER (table))
@@ -576,7 +576,7 @@ scm_hash_fn_remove_x (SCM table, SCM obj, unsigned long (*hash_fn)(), SCM (*asso
       SCM_SIMPLE_VECTOR_SET 
 	(buckets, k,
 	 delete_fn (h, SCM_SIMPLE_VECTOR_REF (buckets, k)));
-      if (table != buckets)
+      if (!scm_is_eq (table, buckets))
 	{
 	  SCM_HASHTABLE_DECREMENT (table);
 	  if (SCM_HASHTABLE_N_ITEMS (table) < SCM_HASHTABLE_LOWER (table))
