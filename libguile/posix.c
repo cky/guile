@@ -1506,7 +1506,9 @@ SCM_DEFINE (scm_gethostname, "gethostname", 0, 0, 0,
 	    "Return the host name of the current processor.")
 #define FUNC_NAME s_scm_gethostname
 {
-  int len = 2, res;
+  /* 256 is for Solaris, under Linux ENAMETOOLONG is returned if not
+     large enough.  */
+  int len = 256, res;
   char *p = scm_must_malloc (len, "gethostname");
   SCM name;
 
