@@ -44,6 +44,6 @@
 (define-module (srfi srfi-2)
   :use-module (ice-9 and-let-star))
 
-(export-syntax and-let*)
+(re-export-syntax and-let*)
 
 (cond-expand-provide (current-module) '(srfi-2))
