@@ -1,3 +1,11 @@
+1998-10-17  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
+
+	* script.c (scm_compile_shell_switches): Add handling of -q switch
+	(inhibit loading of user init file).
+	(scm_shell_usage): Add usage text for -q switch.
+	(scm_compile_shell_switches): Always load user init file first if
+	it is loaded at all.
+
 1998-10-16  Jim Blandy  <jimb@zwingli.cygnus.com>
 
 	* stime.c: The CPP hair to determine a value for CLKTCK is weird,

@@ -385,6 +385,7 @@ scm_shell_usage (int fatal, char *message)
            "  -e FUNCTION    after reading script, apply FUNCTION to\n"
            "                 command line arguments\n"
            "  -ds            do -s script at this point\n"
+	   "  -q             inhibit loading of user init file\n"
            "  --emacs        enable Emacs protocol (experimental)\n"
            "  -h, --help     display this help and exit\n"
            "  -v, --version  display version information and exit\n"
@@ -437,6 +438,7 @@ scm_compile_shell_switches (int argc, char **argv)
 				   the "-ds" switch.  */
   SCM entry_point = SCM_EOL;	/* for -e switch */
   int interactive = 1;		/* Should we go interactive when done? */
+  int inhibit_user_init = 0;	/* Don't load user init file */
   int use_emacs_interface = 0;
   int i;
   char *argv0 = guile;
@@ -532,6 +534,9 @@ scm_compile_shell_switches (int argc, char **argv)
       else if (! strcmp (argv[i], "--emacs")) /* use emacs protocol */ 
 	use_emacs_interface = 1;
 
+      else if (! strcmp (argv[i], "-q")) /* don't load user init */ 
+	inhibit_user_init = 1;
+
       else if (! strcmp (argv[i], "-h")
 	       || ! strcmp (argv[i], "--help"))
 	{
@@ -580,11 +585,9 @@ scm_compile_shell_switches (int argc, char **argv)
 				SCM_EOL),
 		       tail);
 
-  /* If we didn't end with a -c or a -s, load the user's customization
-     file, and start the repl.  */
+  /* If we didn't end with a -c or a -s, start the repl.  */
   if (interactive)
     {
-      tail = scm_cons (scm_cons (sym_load_user_init, SCM_EOL), tail);
       tail = scm_cons (scm_cons (sym_top_repl, SCM_EOL), tail);
     }
   else
@@ -597,8 +600,18 @@ scm_compile_shell_switches (int argc, char **argv)
       scm_mask_ints = 0;
     }
 
+  /* After the following line, actions will be added to the front. */
+  tail = scm_reverse_x (tail, SCM_UNDEFINED);
+  
+  /* If we didn't end with a -c or a -s and didn't supply a -q, load
+     the user's customization file.  */
+  if (interactive && !inhibit_user_init)
+    {
+      tail = scm_cons (scm_cons (sym_load_user_init, SCM_EOL), tail);
+    }
+
   {
-    SCM val = scm_cons (sym_begin, scm_reverse_x (tail, SCM_UNDEFINED));
+    SCM val = scm_cons (sym_begin, tail);
 
 #if 0
     scm_write (val, SCM_UNDEFINED);
