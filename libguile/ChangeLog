@@ -1,3 +1,19 @@
+Tue Jun  3 23:01:39 1997  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* struct.c (scm_struct_ref, scm_struct_set_x): Use
+ 	scm_struct_i_n_words to get the number of fields, not
+ 	-scm_struct_n_extra_words.
+
+	On the route to fancier struct printing:
+	* struct.c (scm_print_struct): New function to print a structure.
+  	Include "genio.h" to support it.  This function doesn't do
+ 	anything interesting right now, but I think it should be here
+ 	anyway.
+	* struct.h: Include "print.h" and add prototype for
+ 	scm_print_struct.
+	* print.c (scm_iprin1): Call scm_print_struct instead of trying to
+ 	print structures ourself.
+	
 Sun Jun  1 07:58:41 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* scmsigs.c (sys_deliver_signals): bug fix: reset got_signal[i]
