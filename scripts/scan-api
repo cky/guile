@@ -26,7 +26,7 @@ exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
 
 ;;; Commentary:
 
-;; Usage: scan-api GUILE SOFILE [GROUPINGS]
+;; Usage: scan-api GUILE SOFILE [GROUPINGS ...]
 ;;
 ;; Invoke GUILE, an executable guile interpreter, and use nm(1) on SOFILE, a
 ;; shared-object library, to determine available interface elements, and
@@ -40,8 +40,8 @@ exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
 ;; initially belong in one of two groups `Scheme' or `C' (but not both --
 ;; signal error if that happens).
 ;;
-;; Optional arg GROUPINGS is a file containing a grouping definition alist,
-;; each entry of which has the form:
+;; Optional GROUPINGS ... are files each containing a single "grouping
+;; definition" alist with each entry of the form:
 ;;
 ;;   (NAME (description "DESCRIPTION") (members SYM...))
 ;;
@@ -59,8 +59,8 @@ exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
 ;;   (in-group? x GROUP)
 ;;   (name-prefix? x PREFIX)
 ;;
-;; TODO: Move symbol->string to hash-fold to make sorting more efficient.
-;;       Allow for concurrent Scheme/C membership.
+;; TODO: Allow for concurrent Scheme/C membership.
+;;       Completely separate reporting.
 
 ;;; Code:
 
@@ -72,6 +72,15 @@ exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
 
 (define put set-object-property!)
 (define get object-property)
+
+(define (add-props object . args)
+  (let loop ((args args))
+    (if (null? args)
+        object                          ; retval
+        (let ((key (car args))
+              (value (cadr args)))
+          (put object key value)
+          (loop (cddr args))))))
 
 (define (scan re command match)
   (let ((rx (make-regexp re))
@@ -115,7 +124,7 @@ exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
 (define (add-group-name! x name)
   (put x 'groups (cons name (get x 'groups))))
 
-(define (make-grok-hook name form)
+(define (make-grok-proc name form)
   (let* ((predicate? (eval form THIS-MODULE))
          (p (lambda (x)
               (and (predicate? x)
@@ -123,53 +132,58 @@ exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
     (put p 'name name)
     p))
 
-(define (make-members-hook name members)
+(define (make-members-proc name members)
   (let ((p (lambda (x)
              (and (memq x members)
                   (add-group-name! x name)))))
     (put p 'name name)
     p))
 
-(define (make-grouping-hook file)
-  (let ((hook (make-hook 1)))
-    (for-each (lambda (gdef)
-                (let ((name (car gdef))
-                      (members (assq-ref gdef 'members))
-                      (grok (assq-ref gdef 'grok)))
-                  (or members grok
-                      (error "bad grouping, must have `members' or `grok'"))
-                  (add-hook! hook
-                             (if grok
-                                 (make-grok-hook name (cadr grok))
-                                 (make-members-hook name members))
-                             #t)))      ; append
-              (read (open-file file "r")))
+(define (make-grouper files)            ; \/^^^o/ . o
+  (let ((hook (make-hook 1)))           ; /\____\
+    (for-each
+     (lambda (file)
+       (for-each
+        (lambda (gdef)
+          (let ((name (car gdef))
+                (members (assq-ref gdef 'members))
+                (grok (assq-ref gdef 'grok)))
+            (or members grok
+                (error "bad grouping, must have `members' or `grok'"))
+            (add-hook! hook
+                       (if grok
+                           (add-props (make-grok-proc name (cadr grok))
+                                      'description
+                                      (assq-ref gdef 'description))
+                           (make-members-proc name members))
+                       #t)))            ; append
+        (read (open-file file OPEN_READ))))
+     files)
     hook))
 
 (define (scan-api . args)
   (let ((guile (list-ref args 0))
         (sofile (list-ref args 1))
-        (grouping-hook (false-if-exception
-                        (make-grouping-hook (list-ref args 2))))
+        (grouper (false-if-exception (make-grouper (cddr args))))
         (ht (make-hash-table 3331)))
     (scan-Scheme! ht guile)
     (scan-C!      ht sofile)
     (let ((all (sort (hash-fold (lambda (key value prior-result)
-                                  (put key 'scan-data
-                                       (or (get key 'Scheme)
-                                           (get key 'C)))
-                                  (put key 'groups
-                                       (if (get key 'Scheme)
-                                           '(Scheme)
-                                           '(C)))
-                                  (and grouping-hook
-                                       (run-hook grouping-hook key))
+                                  (add-props
+                                   key
+                                   'string (symbol->string key)
+                                   'scan-data (or (get key 'Scheme)
+                                                  (get key 'C))
+                                   'groups (if (get key 'Scheme)
+                                               '(Scheme)
+                                               '(C)))
+                                  (and grouper (run-hook grouper key))
                                   (cons key prior-result))
                                 '()
                                 ht)
                      (lambda (a b)
-                       (string<? (symbol->string a)
-                                 (symbol->string b))))))
+                       (string<? (get a 'string)
+                                 (get b 'string))))))
       (format #t ";;; generated ~A UTC by scan-api -- do not edit!\n\n"
               (strftime "%Y-%m-%d %H:%M:%S" (gmtime (current-time))))
       (format #t "(\n")
@@ -190,9 +204,9 @@ exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
                 i))
       (format #t "  (sofile . ~S)\n" sofile)
       (format #t "  ~A\n"
-              (cons 'groups (if grouping-hook
+              (cons 'groups (if grouper
                                 (map (lambda (p) (get p 'name))
-                                     (hook->list grouping-hook))
+                                     (hook->list grouper))
                                 '(Scheme C))))
       (format #t ") ;; end of meta\n")
       (format #t "(interface\n")
