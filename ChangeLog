@@ -1,3 +1,20 @@
+2002-02-26  Thien-Thi Nguyen  <ttn@giblet.glug.org>
+
+	* pre-inst-guile.in: New file.
+
+	* pre-inst-guile, pre-inst-guile.am: bye bye
+
+	* configure.in (top_builddir_absolute): New AC_SUBST var.
+	(AC_CONFIG_FILES): Add am/Makefile, pre-inst-guile.
+	(AC_CONFIG_COMMANDS): Also chmod +x pre-inst-guile.
+
+	* check-guile.in (top_builddir): Use AC_SUBST var
+	`top_builddir_absolute'.
+	(guile): Look for pre-inst-guile in $top_builddir.
+
+	* Makefile.am (EXTRA_DIST): Remove pre-inst-guile,
+	pre-inst-guile.am.
+
 2002-02-24  Rob Browning  <rlb@defaultvalue.org>
 
 	* GUILE-VERSION: move all but guile-readline library versioning
