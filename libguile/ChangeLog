@@ -1,3 +1,12 @@
+Thu Mar  2 15:33:12 2000  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* hashtab.c: Improved documentation for lots of functions.  Added
+	handwritten docs for `hash-fold'.
+
+Thu Mar  2 15:13:25 2000  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* list.c: Added hand-written docs for `del{q,v,ete}1!'.
+
 Thu Mar  2 12:38:30 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* list.c: Moved append docs to append! Thanks Dirk Hermann.  Also, 
