@@ -1,3 +1,7 @@
+2005-03-24  Neil Jerram  <neil@ossau.uklinux.net>
+
+	* debug.c (scm_make_memoized): Restore use of SCM_UNPACK.
+
 2005-03-23  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* debug.c (scm_make_memoized): Remove unnecessary critical
