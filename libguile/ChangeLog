@@ -1,3 +1,8 @@
+2003-05-19  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* eval.c (scm_m_do, unmemocopy, SCM_CEVAL):  Reversed order of
+	names and inits in the memoized code of do.
+
 2003-05-19  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* c-tokenize.lex (yyget_lineno, yyget_in, yyget_out, yyget_leng,

@@ -623,8 +623,8 @@ scm_m_delay (SCM xorig, SCM env SCM_UNUSED)
 
    ;; becomes
 
-   (#@do (varn ... var2 var1)
-   (<init1> <init2> ... <initn>)
+   (#@do (<init1> <init2> ... <initn>)
+   (varn ... var2 var1)
    (<test> <return>)
    (<body>)
    <step1> <step2> ... <stepn>) ;; missing steps replaced by var
@@ -667,7 +667,7 @@ scm_m_do (SCM xorig, SCM env SCM_UNUSED)
   x = SCM_CDR (x);
   SCM_ASSYNT (scm_ilength (SCM_CAR (x)) >= 1, scm_s_test, "do");
   x = scm_cons2 (SCM_CAR (x), SCM_CDR (x), steps);
-  x = scm_cons2 (vars, inits, x);
+  x = scm_cons2 (inits, vars, x);
   return scm_cons (SCM_IM_DO, x);
 }
 
@@ -1413,17 +1413,17 @@ unmemocopy (SCM x, SCM env)
       break;
     case SCM_BIT7 (SCM_IM_DO):
       {
-	/* format: (#@do (nk nk-1 ...) (i1 ... ik) (test) (body) s1 ... sk),
-	 * where nx is the name of a local variable, ix is an initializer for
+	/* format: (#@do (i1 ... ik) (nk nk-1 ...) (test) (body) s1 ... sk),
+	 * where ix is an initializer for a local variable, nx is the name of
 	 * the local variable, test is the test clause of the do loop, body is
 	 * the body of the do loop and sx are the step clauses for the local
 	 * variables.  */
 	SCM names, inits, test, memoized_body, steps, bindings;
 
 	x = SCM_CDR (x);
-	names = SCM_CAR (x);
-	x = SCM_CDR (x);
 	inits = scm_reverse (unmemocopy (SCM_CAR (x), env));
+	x = SCM_CDR (x);
+	names = SCM_CAR (x);
 	env = SCM_EXTEND_ENV (names, SCM_EOL, env);
 	x = SCM_CDR (x);
 	test = unmemocopy (SCM_CAR (x), env);
@@ -2208,16 +2208,17 @@ dispatch:
       x = SCM_CDR (x);
       {
 	/* Compute the initialization values and the initial environment.  */
-	SCM init_forms = SCM_CADR (x);
+	SCM init_forms = SCM_CAR (x);
 	SCM init_values = SCM_EOL;
 	while (!SCM_NULLP (init_forms))
 	  {
 	    init_values = scm_cons (EVALCAR (init_forms, env), init_values);
 	    init_forms = SCM_CDR (init_forms);
 	  }
+        x = SCM_CDR (x);
 	env = SCM_EXTEND_ENV (SCM_CAR (x), init_values, env);
       }
-      x = SCM_CDDR (x);
+      x = SCM_CDR (x);
       {
 	SCM test_form = SCM_CAR (x);
 	SCM body_forms = SCM_CADR (x);
