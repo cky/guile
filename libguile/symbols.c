@@ -844,45 +844,95 @@ SCM_DEFINE (scm_builtin_weak_bindings, "builtin-weak-bindings", 0, 0, 0,
 }
 #undef FUNC_NAME
 
-static int gensym_counter;
-static SCM gensym_prefix;
+#define MAX_PREFIX_LENGTH 30
 
-/* :FIXME:OPTIMIZE */
-SCM_DEFINE (scm_gensym, "gensym", 0, 2, 0,
-            (SCM name, SCM obarray),
-	    "Create a new, unique symbol in @var{obarray}, using the global symbol\n"
-	    "table by default.  If @var{name} is specified, it should be used as a\n"
-	    "prefix for the new symbol's name.  The default prefix is @code{%%gensym}.")
+static int gensym_counter;
+
+SCM_DEFINE (scm_gensym, "gensym", 0, 1, 0,
+            (SCM prefix),
+	    "Create a new symbol with name constructed from a prefix and a counter value.\n"
+	    "The string PREFIX can be specified as an optional argument.\n"
+	    "Default prefix is @code{g}.  The counter is increased by 1 at each call.\n"
+	    "There is no provision for resetting the counter.")
 #define FUNC_NAME s_scm_gensym
 {
-  SCM new;
-  if (SCM_UNBNDP (name))
-    name = gensym_prefix;
+  char buf[MAX_PREFIX_LENGTH + SCM_INTBUFLEN];
+  char *name = buf;
+  int len;
+  if (SCM_UNBNDP (prefix))
+    {
+      name[0] = 'g';
+      len = 1;
+    }
   else
     {
-      SCM_VALIDATE_SYMBOL (1, name);
-      name = scm_symbol_to_string (name);
+      SCM_VALIDATE_STRINGORSUBSTR (1, prefix);
+      len = SCM_ROLENGTH (prefix);
+      if (len > MAX_PREFIX_LENGTH)
+	name = SCM_MUST_MALLOC (MAX_PREFIX_LENGTH + SCM_INTBUFLEN);
+      strncpy (name, SCM_ROCHARS (prefix), len);
+    }
+  {
+    int n_digits = scm_iint2str (gensym_counter++, 10, &name[len]);
+    SCM res = SCM_CAR (scm_intern (name, len + n_digits));
+    if (name != buf)
+      scm_must_free (name);
+    return res;
+  }
+}
+#undef FUNC_NAME
+
+static int gentemp_counter;
+
+SCM_DEFINE (scm_gentemp, "gentemp", 0, 2, 0,
+            (SCM prefix, SCM obarray),
+	    "Create a new symbol with a name unique in an obarray.\n"
+	    "The name is constructed from an optional string PREFIX and a counter\n"
+	    "value.  The default prefix is @var{t}.  The OBARRAY is specified as a\n"
+	    "second optional argument.  Default is the system obarray where all\n"
+	    "normal symbols are interned.  The counter is increased by 1 at each\n"
+	    "call.  There is no provision for resetting the counter.")
+#define FUNC_NAME s_scm_gentemp
+{
+  char buf[MAX_PREFIX_LENGTH + SCM_INTBUFLEN];
+  char *name = buf;
+  int len, n_digits;
+  if (SCM_UNBNDP (prefix))
+    {
+      name[0] = 't';
+      len = 1;
+    }
+  else
+    {
+      SCM_VALIDATE_STRINGORSUBSTR (1, prefix);
+      len = SCM_ROLENGTH (prefix);
+      if (len > MAX_PREFIX_LENGTH)
+	name = SCM_MUST_MALLOC (MAX_PREFIX_LENGTH + SCM_INTBUFLEN);
+      strncpy (name, SCM_ROCHARS (prefix), len);
     }
 
-  new = name;
   if (SCM_UNBNDP (obarray))
-    {
-      obarray = SCM_BOOL_F;
-      goto skip_test;
-    }
+    obarray = scm_symhash;
   else
     SCM_ASSERT ((SCM_VECTORP (obarray) || SCM_WVECTP (obarray)),
 		obarray,
 		SCM_ARG2,
 		FUNC_NAME);
-  while (!SCM_FALSEP (scm_string_to_obarray_symbol (obarray, new, SCM_BOOL_T)))
-    skip_test:
-    new = scm_string_append
-      (scm_cons2 (name,
-		  scm_number_to_string (SCM_MAKINUM (gensym_counter++),
-					SCM_UNDEFINED),
-		  SCM_EOL));
-  return scm_string_to_obarray_symbol (obarray, new, SCM_BOOL_F);
+  do
+    n_digits = scm_iint2str (gentemp_counter++, 10, &name[len]);
+  while (!SCM_FALSEP (scm_intern_obarray_soft (name,
+					       len + n_digits,
+					       obarray,
+					       1)));
+  {
+    SCM vcell = scm_intern_obarray_soft (name,
+					 len + n_digits,
+					 obarray,
+					 0);
+    if (name != buf)
+      scm_must_free (name);
+    return SCM_CAR (vcell);
+  }
 }
 #undef FUNC_NAME
 
@@ -890,7 +940,7 @@ void
 scm_init_symbols ()
 {
   gensym_counter = 0;
-  gensym_prefix = scm_permanent_object (scm_makfrom0str ("%%gensym"));
+  gentemp_counter = 0;
 #include "libguile/symbols.x"
 }
 
