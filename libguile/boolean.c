@@ -54,7 +54,7 @@
 
 SCM_DEFINE (scm_not, "not", 1, 0, 0, 
             (SCM x),
-            "Return #t iff X is #f, else return #f.\n")
+            "Return @code{#t} iff @var{x} is @code{#f}, else return @code{#f}.")
 #define FUNC_NAME s_scm_not
 {
   return SCM_BOOL(SCM_FALSEP(x));
@@ -64,7 +64,7 @@ SCM_DEFINE (scm_not, "not", 1, 0, 0,
 
 SCM_DEFINE (scm_boolean_p, "boolean?", 1, 0, 0, 
            (SCM obj),
-            "Return #t iff OBJ is either #t or #f.\n")
+            "Return @code{#t} iff @var{obj} is either @code{#t} or @code{#f}.")
 #define FUNC_NAME s_scm_boolean_p
 {
   return SCM_BOOL (SCM_BOOLP (obj));

@@ -59,10 +59,10 @@
 
 SCM_DEFINE1 (scm_eq_p, "eq?", scm_tc7_rpsubr,
              (SCM x, SCM y),
-             "Return #t iff X references the same object as Y.\n"
-             "`eq?' is similar to `eqv?' except that in some cases\n"
-             "it is capable of discerning distinctions finer than\n"
-             "those detectable by `eqv?'.\n")
+	     "Return @code{#t} iff @var{x} references the same object as @var{y}.\n"
+	     "@code{eq?} is similar to @code{eqv?} except that in some cases it is\n"
+	     "capable of discerning distinctions finer than those detectable by\n"
+	     "@code{eqv?}.")
 #define FUNC_NAME s_scm_eq_p
 {
   return SCM_BOOL (SCM_EQ_P (x, y));
@@ -72,11 +72,11 @@ SCM_DEFINE1 (scm_eq_p, "eq?", scm_tc7_rpsubr,
 
 SCM_DEFINE1 (scm_eqv_p, "eqv?", scm_tc7_rpsubr,
              (SCM x, SCM y),
-             "The `eqv?' procedure defines a useful equivalence relation on objects.\n"
-             "Briefly, it returns #t if X and Y should normally be\n"
-             "regarded as the same object.  This relation is left\n"
-             "slightly open to interpretation, but works for comparing\n"
-             "immediate integers, characters, and inexact numbers.\n")
+	     "The @code{eqv?} procedure defines a useful equivalence relation on objects.\n"
+	     "Briefly, it returns @code{#t} if @var{x} and @var{y} should normally be\n"
+	     "regarded as the same object.  This relation is left slightly open to\n"
+	     "interpretation, but works for comparing immediate integers, characters,\n"
+	     "and inexact numbers.")
 #define FUNC_NAME s_scm_eqv_p
 {
   if (SCM_EQ_P (x, y))
@@ -120,12 +120,12 @@ SCM_DEFINE1 (scm_eqv_p, "eqv?", scm_tc7_rpsubr,
 
 SCM_DEFINE1 (scm_equal_p, "equal?", scm_tc7_rpsubr,
              (SCM x, SCM y),
-             "Return #t iff X and Y are recursively `eqv?' equivalent.\n"
-             "`equal?' recursively compares the contents of pairs, vectors, and\n"
-             "strings, applying `eqv?' on other objects such as numbers and\n"
-             "symbols.  A rule of thumb is that objects are generally `equal?'\n"
-             "if they print the same.  `Equal?' may fail to terminate if its\n"
-             "arguments are circular data structures.\n")
+	     "Return @code{#t} iff @var{x} and @var{y} are recursively @code{eqv?} equivalent.\n"
+	     "@code{equal?} recursively compares the contents of pairs,\n"
+	     "vectors, and strings, applying @code{eqv?} on other objects such as\n"
+	     "numbers and symbols.  A rule of thumb is that objects are generally\n"
+	     "@code{equal?}  if they print the same.  @code{equal?} may fail to\n"
+	     "terminate if its arguments are circular data structures.")
 #define FUNC_NAME s_scm_equal_p
 {
   SCM_CHECK_STACK;
