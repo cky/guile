@@ -57,6 +57,20 @@
 
 (with-test-prefix "evaluator"
 
+  (with-test-prefix "symbol lookup"
+
+    (with-test-prefix "top level"
+
+      (with-test-prefix "unbound"
+
+	(pass-if-exception "variable reference"
+	  exception:unbound-var
+	  x)
+
+	(pass-if-exception "procedure"
+	  exception:unbound-var
+	  (x)))))
+
   (with-test-prefix "parameter error"
 
     ;; This is currently a bug in guile:
@@ -76,6 +90,50 @@
 	(equal? (procedure-source f) foo)))
 
     ))
+
+;;;
+;;; apply
+;;;
+
+(with-test-prefix "application"
+
+  (with-test-prefix "wrong number of arguments"
+
+    (pass-if-exception "((lambda () #f) 1)"
+      exception:wrong-num-args
+      ((lambda () #f) 1))
+
+    (pass-if-exception "((lambda (x) #f))"
+      exception:wrong-num-args
+      ((lambda (x) #f)))
+
+    (pass-if-exception "((lambda (x) #f) 1 2)"
+      exception:wrong-num-args
+      ((lambda (x) #f) 1 2))
+
+    (pass-if-exception "((lambda (x y) #f))"
+      exception:wrong-num-args
+      ((lambda (x y) #f)))
+
+    (pass-if-exception "((lambda (x y) #f) 1)"
+      exception:wrong-num-args
+      ((lambda (x y) #f) 1))
+
+    (pass-if-exception "((lambda (x y) #f) 1 2 3)"
+      exception:wrong-num-args
+      ((lambda (x y) #f) 1 2 3))
+
+    (pass-if-exception "((lambda (x . rest) #f))"
+      exception:wrong-num-args
+      ((lambda (x . rest) #f)))
+
+    (pass-if-exception "((lambda (x y . rest) #f))"
+      exception:wrong-num-args
+      ((lambda (x y . rest) #f)))
+
+    (pass-if-exception "((lambda (x y . rest) #f) 1)"
+      exception:wrong-num-args
+      ((lambda (x y . rest) #f) 1))))
 
 ;;;
 ;;; map

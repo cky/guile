@@ -1012,3 +1012,9 @@
 (test-sc4)
 (test-delay)
 "last item in file"
+
+
+;; FIXME:  We shouldn't create any global bindings in the test files or
+;; alternatively execute every test file's code in a module of its own
+(if (defined? 'x) (undefine x))
+(if (defined? 'y) (undefine y))

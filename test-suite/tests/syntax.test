@@ -1,0 +1,397 @@
+;;;; syntax.test --- test suite for Guile's syntactic forms    -*- scheme -*-
+;;;;
+;;;; Copyright (C) 2001 Free Software Foundation, Inc.
+;;;; 
+;;;; This program is free software; you can redistribute it and/or modify
+;;;; it under the terms of the GNU General Public License as published by
+;;;; the Free Software Foundation; either version 2, or (at your option)
+;;;; any later version.
+;;;; 
+;;;; This program is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;;;; GNU General Public License for more details.
+;;;; 
+;;;; You should have received a copy of the GNU General Public License
+;;;; along with this software; see the file COPYING.  If not, write to
+;;;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+;;;; Boston, MA 02111-1307 USA
+
+
+(define exception:bad-bindings
+  (cons 'misc-error "^bad bindings"))
+(define exception:bad-body
+  (cons 'misc-error "^bad body"))
+(define exception:bad-formals
+  (cons 'misc-error "^bad formals"))
+(define exception:bad-var
+  (cons 'misc-error "^bad variable"))
+(define exception:bad/missing-clauses
+  (cons 'misc-error "^bad or missing clauses"))
+(define exception:missing/extra-expr
+  (cons 'misc-error "^missing or extra expression"))
+
+
+(with-test-prefix "expressions"
+
+  (with-test-prefix "missing or extra expression"
+
+    ;; R5RS says:
+    ;; *Note:* In many dialects of Lisp, the empty combination, (),
+    ;; is a legitimate expression.  In Scheme, combinations must
+    ;; have at least one subexpression, so () is not a syntactically
+    ;; valid expression.
+    (expect-fail-exception "empty parentheses \"()\""
+      exception:missing/extra-expr
+      ())))
+
+(with-test-prefix "lambda"
+
+  (with-test-prefix "bad formals"
+
+    (pass-if-exception "(lambda (x 1) 2)" 
+      exception:bad-formals
+      (lambda (x 1) 2))
+
+    (pass-if-exception "(lambda (1 x) 2)"
+      exception:bad-formals
+      (lambda (1 x) 2))
+
+    (pass-if-exception "(lambda (x \"a\") 2)"
+      exception:bad-formals
+      (lambda (x "a") 2))
+
+    (pass-if-exception "(lambda (\"a\" x) 2)"
+      exception:bad-formals
+      (lambda ("a" x) 2))
+
+    (expect-fail-exception "(lambda (x x) 1)"
+      exception:bad-formals
+      (lambda (x x) 1))
+
+    (expect-fail-exception "(lambda (x x x) 1)"
+      exception:bad-formals
+      (lambda (x x x) 1))))
+
+(with-test-prefix "let"
+
+  (with-test-prefix "bindings"
+
+    (pass-if-exception "late binding"
+      exception:unbound-var
+      (let ((x 1) (y x)) y)))
+
+  (with-test-prefix "bad body"
+
+    (pass-if-exception "(let ())"
+      exception:bad-body
+      (let ()))
+
+    (pass-if-exception "(let ((x 1)))"
+      exception:bad-body
+      (let ((x 1))))
+
+    ;; FIXME:  Wouldn't one rather expect a 'bad bindings' error?
+    (pass-if-exception "(let)"
+      exception:bad-body
+      (let))
+
+    ;; FIXME:  Wouldn't one rather expect a 'bad bindings' error?
+    (pass-if-exception "(let 1)"
+      exception:bad-body
+      (let 1))
+
+    ;; FIXME:  Wouldn't one rather expect a 'bad bindings' error?
+    (pass-if-exception "(let (x))"
+      exception:bad-body
+      (let (x))))
+
+  (with-test-prefix "bad bindings"
+
+    (pass-if-exception "(let (x) 1)"
+      exception:bad-bindings
+      (let (x) 1))
+
+    (pass-if-exception "(let ((x)) 3)"
+      exception:bad-bindings
+      (let ((x)) 3))
+
+    (pass-if-exception "(let ((x 1) y) x)"
+      exception:bad-bindings
+      (let ((x 1) y) x))
+
+    (pass-if-exception "(let ((1 2)) 3)"
+      exception:bad-var
+      (let ((1 2)) 3))
+
+    (expect-fail-exception "(let ((x 1) (x 2)) x)"
+      exception:bad-bindings
+      (let ((x 1) (x 2)) x))))
+
+(with-test-prefix "named let"
+
+  (with-test-prefix "bad body"
+
+    (pass-if-exception "(let x ())"
+      exception:bad-body
+      (let x ()))
+
+    (pass-if-exception "(let x ((y 1)))"
+      exception:bad-body
+      (let x ((y 1))))
+
+    ;; FIXME:  Wouldn't one rather expect a 'bad bindings' error?
+    (pass-if-exception "(let x (y))"
+      exception:bad-body
+      (let x (y)))))
+
+(with-test-prefix "let*"
+
+  (with-test-prefix "bad body"
+
+    (pass-if-exception "(let* ())"
+      exception:bad-body
+      (let* ()))
+
+    (pass-if-exception "(let* ((x 1)))"
+      exception:bad-body
+      (let* ((x 1))))
+
+    ;; FIXME:  Wouldn't one rather expect a 'bad bindings' error?
+    (pass-if-exception "(let*)"
+      exception:bad-body
+      (let*))
+
+    ;; FIXME:  Wouldn't one rather expect a 'bad bindings' error?
+    (pass-if-exception "(let* 1)"
+      exception:bad-body
+      (let* 1))
+
+    ;; FIXME:  Wouldn't one rather expect a 'bad bindings' error?
+    (pass-if-exception "(let* (x))"
+      exception:bad-body
+      (let* (x))))
+
+  (with-test-prefix "bad bindings"
+
+    (pass-if-exception "(let* (x) 1)"
+      exception:bad-bindings
+      (let* (x) 1))
+
+    (pass-if-exception "(let* ((x)) 3)"
+      exception:bad-bindings
+      (let* ((x)) 3))
+
+    (pass-if-exception "(let* ((x 1) y) x)"
+      exception:bad-bindings
+      (let* ((x 1) y) x))
+
+    (pass-if-exception "(let* x ())"
+      exception:bad-bindings
+      (let* x ()))
+
+    (pass-if-exception "(let* x (y))"
+      exception:bad-bindings
+      (let* x (y)))
+
+    (pass-if-exception "(let* ((1 2)) 3)"
+      exception:bad-var
+      (let* ((1 2)) 3))
+
+    (expect-fail-exception "(let* ((x 1) (x 2)) x)"
+      exception:bad-bindings
+      (let* ((x 1) (x 2)) x))))
+
+(with-test-prefix "letrec"
+
+  (with-test-prefix "bindings"
+
+    (pass-if-exception "initial bindings are undefined"
+      exception:unbound-var
+      (let ((x 1))
+	(letrec ((x 1) (y x)) y))))
+
+  (with-test-prefix "bad body"
+
+    (pass-if-exception "(letrec ())"
+      exception:bad-body
+      (letrec ()))
+
+    (pass-if-exception "(letrec ((x 1)))"
+      exception:bad-body
+      (letrec ((x 1))))
+
+    ;; FIXME:  Wouldn't one rather expect a 'bad bindings' error?
+    (pass-if-exception "(letrec)"
+      exception:bad-body
+      (letrec))
+
+    ;; FIXME:  Wouldn't one rather expect a 'bad bindings' error?
+    (pass-if-exception "(letrec 1)"
+      exception:bad-body
+      (letrec 1))
+
+    ;; FIXME:  Wouldn't one rather expect a 'bad bindings' error?
+    (pass-if-exception "(letrec (x))"
+      exception:bad-body
+      (letrec (x))))
+
+  (with-test-prefix "bad bindings"
+
+    (pass-if-exception "(letrec (x) 1)"
+      exception:bad-bindings
+      (letrec (x) 1))
+
+    (pass-if-exception "(letrec ((x)) 3)"
+      exception:bad-bindings
+      (letrec ((x)) 3))
+
+    (pass-if-exception "(letrec ((x 1) y) x)"
+      exception:bad-bindings
+      (letrec ((x 1) y) x))
+
+    (pass-if-exception "(letrec x ())"
+      exception:bad-bindings
+      (letrec x ()))
+
+    (pass-if-exception "(letrec x (y))"
+      exception:bad-bindings
+      (letrec x (y)))
+
+    (pass-if-exception "(letrec ((1 2)) 3)"
+      exception:bad-var
+      (letrec ((1 2)) 3))
+
+    (expect-fail-exception "(letrec ((x 1) (x 2)) x)"
+      exception:bad-bindings
+      (letrec ((x 1) (x 2)) x))))
+
+(with-test-prefix "if"
+
+  (with-test-prefix "missing or extra expressions"
+
+    (pass-if-exception "(if)"
+      exception:missing/extra-expr
+      (if))
+
+    (pass-if-exception "(if 1 2 3 4)"
+      exception:missing/extra-expr
+      (if 1 2 3 4))))
+
+(with-test-prefix "cond"
+
+  (with-test-prefix "bad or missing clauses"
+
+    (pass-if-exception "(cond)"
+      exception:bad/missing-clauses
+      (cond))
+
+    (pass-if-exception "(cond #t)"
+      exception:bad/missing-clauses
+      (cond #t))
+
+    (pass-if-exception "(cond 1)"
+      exception:bad/missing-clauses
+      (cond 1))
+
+    (pass-if-exception "(cond 1 2)"
+      exception:bad/missing-clauses
+      (cond 1 2))
+
+    (pass-if-exception "(cond 1 2 3)"
+      exception:bad/missing-clauses
+      (cond 1 2 3))
+
+    (pass-if-exception "(cond 1 2 3 4)"
+      exception:bad/missing-clauses
+      (cond 1 2 3 4))
+
+    (pass-if-exception "(cond ())"
+      exception:bad/missing-clauses
+      (cond ()))
+
+    (pass-if-exception "(cond () 1)"
+      exception:bad/missing-clauses
+      (cond () 1))
+
+    (pass-if-exception "(cond (1) 1)"
+      exception:bad/missing-clauses
+      (cond (1) 1))))
+
+(with-test-prefix "cond =>"
+
+  (with-test-prefix "bad formals"
+
+    (pass-if-exception "=> (lambda (x 1) 2)"
+      exception:bad-formals
+      (cond (1 => (lambda (x 1) 2))))))
+
+(with-test-prefix "define"
+
+  (with-test-prefix "missing or extra expressions"
+
+    (pass-if-exception "(define)"
+      exception:missing/extra-expr
+      (define))))
+
+(with-test-prefix "set!"
+
+  (with-test-prefix "missing or extra expressions"
+
+    (pass-if-exception "(set!)"
+      exception:missing/extra-expr
+      (set!))
+
+    (pass-if-exception "(set! 1)"
+      exception:missing/extra-expr
+      (set! 1))
+
+    (pass-if-exception "(set! 1 2 3)"
+      exception:missing/extra-expr
+      (set! 1 2 3)))
+
+  (with-test-prefix "bad variable"
+
+    (pass-if-exception "(set! \"\" #t)"
+      exception:bad-var
+      (set! "" #t))
+
+    (pass-if-exception "(set! 1 #t)"
+      exception:bad-var
+      (set! 1 #t))
+
+    (pass-if-exception "(set! #t #f)"
+      exception:bad-var
+      (set! #t #f))
+
+    (pass-if-exception "(set! #f #t)"
+      exception:bad-var
+      (set! #f #t))
+
+    (pass-if-exception "(set! #\space #f)"
+      exception:bad-var
+      (set! #\space #f))))
+
+(with-test-prefix "generalized set! (SRFI 17)"
+
+  (with-test-prefix "target is not procedure with setter"
+
+    (pass-if-exception "(set! (symbol->string 'x) 1)"
+      exception:wrong-type-arg
+      (set! (symbol->string 'x) 1))
+
+    (pass-if-exception "(set! '#f 1)"
+      exception:wrong-type-arg
+      (set! '#f 1))))
+
+(with-test-prefix "quote"
+
+  (with-test-prefix "missing or extra expression"
+
+    (pass-if-exception "(quote)"
+      exception:missing/extra-expr
+      (quote))
+
+    (pass-if-exception "(quote a b)"
+      exception:missing/extra-expr
+      (quote a b))))

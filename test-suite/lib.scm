@@ -22,7 +22,8 @@
 (export
 
  ;; Exceptions which are commonly being tested for.
- exception:out-of-range exception:wrong-type-arg
+ exception:out-of-range exception:unbound-var
+ exception:wrong-num-args exception:wrong-type-arg
 
  ;; Reporting passes and failures.
  run-test
@@ -219,6 +220,10 @@
 ;;; Define some exceptions which are commonly being tested for.
 (define exception:out-of-range
   (cons 'out-of-range "^Argument .*out of range"))
+(define exception:unbound-var
+  (cons 'unbound-variable "^Unbound variable"))
+(define exception:wrong-num-args
+  (cons 'wrong-number-of-args "^Wrong number of arguments"))
 (define exception:wrong-type-arg
   (cons 'wrong-type-arg "^Wrong type argument"))
 

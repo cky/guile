@@ -1,44 +1,65 @@
 2001-03-01  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
-	* exceptions.test, numbers.test:  Moved the number related test
-	cases from exceptions.test to numbers.test.
+	* lib.scm (exception:unbound-var, exception:wrong-num-args):  New
+	exported constants.
 
-	* numbers.test:  Added a test case.
+	* tests/r4rs.test:  Make sure that no bindings for x and y exist
+	after the file is loaded.
+
+	* tests/syntax.test:  New file.
+
+	* tests/exceptions.test, tests/syntax.test, tests/eval.test:
+	Moved the test cases that are related to guile's syntactic forms
+	from tests/exceptions.test to tests/syntax.test.  Moved tests
+	related to evaluation and application to tests/eval.test.
+
+	* tests/exceptions.test:  Added some test cases that check guile's
+	exception handling.
 
 2001-03-01  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
-	* symbols.test:  New file.
+	* tests/exceptions.test, tests/numbers.test:  Moved the number
+	related test cases from tests/exceptions.test to
+	tests/numbers.test.
+
+	* tests/numbers.test:  Added a test case.
+
+2001-03-01  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* tests/symbols.test:  New file.
 
 	(exception:immutable-string):  New constant.  Currently, this is a
 	dummy since guile does not have immutable strings.
 
-	* exceptions.test, strings.test, symbols.test:  Moved the string
-	related test cases from exceptions.test to strings.test and the
-	symbol related test cases to symbols.test.
+	* tests/exceptions.test, tests/strings.test, tests/symbols.test:
+	Moved the string related test cases from tests/exceptions.test to
+	tests/strings.test and the symbol related test cases to
+	tests/symbols.test.
 
-	* strings.test:  Copyright notice updated.  Added a couple of test
-	cases.
+	* tests/strings.test:  Copyright notice updated.  Added a couple
+	of test cases.
 
 	(exception:immutable-string):  New constant.  Currently, this is a
 	dummy since guile does not have immutable strings.
 
 2001-02-28  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
-	* exceptions.test:  Use expect-fail-exception to indicate test
-	cases where exceptions should occur, but don't.
+	* tests/exceptions.test:  Use expect-fail-exception to indicate
+	test cases where exceptions should occur, but don't.
 
 	(exception:bad-bindings, exception:bad-formals, exception:bad-var,
 	exception:missing/extra-expr):  New constants.
 
 2001-02-28  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
-	* reader.test, exceptions.test:  Moved the reader related test
-	cases from exceptions.test to reader.test.
+	* tests/reader.test, tests/exceptions.test:  Moved the reader
+	related test cases from tests/exceptions.test to
+	tests/reader.test.
 
-	* reader.test (exception:eof, exception:unexpected-rparen):  New
-	constants.
+	* tests/reader.test (exception:eof, exception:unexpected-rparen):
+	New constants.
 
-	* exceptions.test (read-string, x:eof, x:unexpected-rparen):
+	* tests/exceptions.test (read-string, x:eof, x:unexpected-rparen):
 	Removed.
 
 2001-02-28  Dirk Herrmann  <D.Herrmann@tu-bs.de>
