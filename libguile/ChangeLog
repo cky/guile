@@ -1,3 +1,17 @@
+Tue Jan 25 17:15:47 2000  Greg J. Badros  <gjb@cs.washington.edu>
+
+	* sort.c: typo in comment fixed.
+
+	* keywords.c: Added documentation.
+
+	* guardians.c: Added documentation (could be better).
+
+	* gc.c: Added docs for gc-set-debug-check-freelist.
+
+	* eq.c: Added docs for eq?, eqv? equal? abridged from R4RS.
+
+	* boolean.c: Added docs for `not', `boolean?' (by hand).
+	
 Tue Jan 25 13:28:56 2000  Greg J. Badros  <gjb@cs.washington.edu>
 
 	* random.c: Added documentation, from SLIB page:
