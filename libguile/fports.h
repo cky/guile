@@ -46,6 +46,8 @@
 
 #include "libguile/__scm.h"
 
+#include "libguile/ports.h"
+
 
 
 extern scm_ptobfuns scm_fptob;
