@@ -415,7 +415,7 @@ scm_mktime (SCM sbd_time, SCM zone)
   if (itime != -1)
     {
 #ifdef HAVE_TM_ZONE
-      zname = lt->tm_zone;
+      zname = lt.tm_zone;
 #else
 # ifdef HAVE_TZNAME
       /* must be copied before calling tzset again.  */
