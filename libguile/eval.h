@@ -196,6 +196,8 @@ extern SCM scm_copy_tree SCM_P ((SCM obj));
 extern SCM scm_eval_3 SCM_P ((SCM obj, int copyp, SCM env));
 extern SCM scm_env_top_level SCM_P ((SCM env));
 extern SCM scm_top_level_env SCM_P ((SCM thunk));
+extern SCM scm_top_level_lookup_closure SCM_P ((SCM env));
+extern SCM scm_system_module_env_p SCM_P ((SCM env));
 extern SCM scm_eval2 SCM_P ((SCM obj, SCM env_thunk));
 extern SCM scm_eval SCM_P ((SCM obj));
 extern SCM scm_eval_x SCM_P ((SCM obj));
