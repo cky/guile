@@ -1,3 +1,8 @@
+Tue Apr 29 19:00:40 1997  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* dynl.c (print_dynl_obj): Indicate whether the dynamic object has
+ 	been unlinked.
+
 Mon Apr 28 06:10:14 1997  Gary Houston  <ghouston@actrix.gen.nz>
 
 	* async.c (scm_sys_tick_async_thunk): commented out.  I'm not
