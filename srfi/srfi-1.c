@@ -39,11 +39,11 @@ srfi1_ilength (SCM sx)
 
   do {
     if (SCM_NULL_OR_NIL_P(hare)) return i;
-    if (!SCM_CONSP (hare)) return -2;
+    if (!scm_is_pair (hare)) return -2;
     hare = SCM_CDR(hare);
     i++;
     if (SCM_NULL_OR_NIL_P(hare)) return i;
-    if (!SCM_CONSP (hare)) return -2;
+    if (!scm_is_pair (hare)) return -2;
     hare = SCM_CDR(hare);
     i++;
     /* For every two steps the hare takes, the tortoise takes one.  */
@@ -91,21 +91,21 @@ SCM_DEFINE (scm_srfi1_count, "count", 2, 0, 1,
 
   count = 0;
 
-  if (SCM_NULLP (rest))
+  if (scm_is_null (rest))
     {
       /* one list */
       scm_t_trampoline_1 pred_tramp;
       pred_tramp = scm_trampoline_1 (pred);
       SCM_ASSERT (pred_tramp, pred, SCM_ARG1, FUNC_NAME);
 
-      for ( ; SCM_CONSP (list1); list1 = SCM_CDR (list1))
+      for ( ; scm_is_pair (list1); list1 = SCM_CDR (list1))
         count += scm_is_true (pred_tramp (pred, SCM_CAR (list1)));
 
     end_lst1:
       SCM_ASSERT_TYPE (SCM_NULL_OR_NIL_P (list1), list1, SCM_ARG2, FUNC_NAME,
                        "list");
     }
-  else if (SCM_CONSP (rest) && SCM_NULLP (SCM_CDR (rest)))
+  else if (scm_is_pair (rest) && scm_is_null (SCM_CDR (rest)))
     {
       /* two lists */
       scm_t_trampoline_2 pred_tramp;
@@ -117,9 +117,9 @@ SCM_DEFINE (scm_srfi1_count, "count", 2, 0, 1,
       list2 = SCM_CAR (rest);
       for (;;)
         {
-          if (! SCM_CONSP (list1))
+          if (! scm_is_pair (list1))
             goto end_lst1;
-          if (! SCM_CONSP (list2))
+          if (! scm_is_pair (list2))
             {
               SCM_ASSERT_TYPE (SCM_NULL_OR_NIL_P (list2), list2, SCM_ARG3,
                                FUNC_NAME, "list");
@@ -143,7 +143,7 @@ SCM_DEFINE (scm_srfi1_count, "count", 2, 0, 1,
       /* args is the argument list to pass to pred, same length as lstlst,
          re-used for each call */
       args = SCM_EOL;
-      for (l = lstlst; SCM_CONSP (l); l = SCM_CDR (l))
+      for (l = lstlst; scm_is_pair (l); l = SCM_CDR (l))
         args = scm_cons (SCM_BOOL_F, args);
 
       for (;;)
@@ -151,11 +151,11 @@ SCM_DEFINE (scm_srfi1_count, "count", 2, 0, 1,
           /* first elem of each list in lstlst into args, and step those
              lstlst entries onto their next element */
           for (l = lstlst, a = args, argnum = 2;
-               SCM_CONSP (l);
+               scm_is_pair (l);
                l = SCM_CDR (l), a = SCM_CDR (a), argnum++)
             {
               lst = SCM_CAR (l);  /* list argument */
-              if (! SCM_CONSP (lst))
+              if (! scm_is_pair (lst))
                 {
                   SCM_ASSERT_TYPE (SCM_NULL_OR_NIL_P (lst), lst,
                                    argnum, FUNC_NAME, "list");
@@ -216,7 +216,7 @@ SCM_DEFINE (scm_srfi1_delete, "delete", 2, 1, 0,
   ret = SCM_EOL;
   p = &ret;
 
-  for ( ; SCM_CONSP (lst); lst = SCM_CDR (lst))
+  for ( ; scm_is_pair (lst); lst = SCM_CDR (lst))
     {
       if (scm_is_true (equal_p (pred, x, SCM_CAR (lst))))
         {
@@ -274,7 +274,7 @@ SCM_DEFINE (scm_srfi1_delete_x, "delete!", 2, 1, 0,
   SCM_ASSERT (equal_p, pred, SCM_ARG3, FUNC_NAME);
 
   for (prev = &lst, walk = lst;
-       SCM_CONSP (walk);
+       scm_is_pair (walk);
        walk = SCM_CDR (walk))
     {
       if (scm_is_true (equal_p (pred, x, SCM_CAR (walk))))
@@ -338,7 +338,7 @@ SCM_DEFINE (scm_srfi1_delete_duplicates, "delete-duplicates", 1, 1, 0,
 
   /* skip to end if an empty list (or something invalid) */
   ret = lst;
-  if (SCM_CONSP (lst))
+  if (scm_is_pair (lst))
     {
       if (SCM_UNBNDP (pred))
         equal_p = equal_trampoline;
@@ -355,7 +355,7 @@ SCM_DEFINE (scm_srfi1_delete_duplicates, "delete-duplicates", 1, 1, 0,
       for (;;)
         {
           lst = SCM_CDR (lst);
-          if (! SCM_CONSP (lst))
+          if (! scm_is_pair (lst))
             break;
           item = SCM_CAR (lst);
 
@@ -423,7 +423,7 @@ SCM_DEFINE (scm_srfi1_delete_duplicates_x, "delete-duplicates!", 1, 1, 0,
 
   /* skip to end if an empty list (or something invalid) */
   ret = lst;
-  if (SCM_CONSP (lst))
+  if (scm_is_pair (lst))
     {
       if (SCM_UNBNDP (pred))
         equal_p = equal_trampoline;
@@ -439,7 +439,7 @@ SCM_DEFINE (scm_srfi1_delete_duplicates_x, "delete-duplicates!", 1, 1, 0,
       for (;;)
         {
           lst = SCM_CDR (lst);
-          if (! SCM_CONSP (lst))
+          if (! scm_is_pair (lst))
             break;
           item = SCM_CAR (lst);
 
@@ -505,7 +505,7 @@ SCM_DEFINE (scm_srfi1_list_copy, "list-copy", 1, 0, 0,
   fill_here = &newlst;
   from_here = lst;
 
-  while (SCM_CONSP (from_here))
+  while (scm_is_pair (from_here))
     {
       SCM c;
       c = scm_cons (SCM_CAR (from_here), SCM_CDR (from_here));
@@ -538,7 +538,7 @@ check_map_args (SCM argv,
       SCM elt = SCM_SIMPLE_VECTOR_REF (argv, i);
       long elt_len;
 
-      if (!(SCM_NULLP (elt) || SCM_CONSP (elt)))
+      if (!(scm_is_null (elt) || scm_is_pair (elt)))
 	{
 	check_map_error:
 	  if (gf)
@@ -581,11 +581,11 @@ scm_srfi1_map (SCM proc, SCM arg1, SCM args)
   SCM *pres = &res;
 
   len = srfi1_ilength (arg1);
-  SCM_GASSERTn ((SCM_NULLP (arg1) || SCM_CONSP (arg1)) && len >= -1,
+  SCM_GASSERTn ((scm_is_null (arg1) || scm_is_pair (arg1)) && len >= -1,
 		g_srfi1_map,
 		scm_cons2 (proc, arg1, args), SCM_ARG2, s_srfi1_map);
   SCM_VALIDATE_REST_ARGUMENT (args);
-  if (SCM_NULLP (args))
+  if (scm_is_null (args))
     {
       scm_t_trampoline_1 call = scm_trampoline_1 (proc);
       SCM_GASSERT2 (call, g_srfi1_map, proc, arg1, SCM_ARG1, s_srfi1_map);
@@ -598,7 +598,7 @@ scm_srfi1_map (SCM proc, SCM arg1, SCM args)
 	}
       return res;
     }
-  if (SCM_NULLP (SCM_CDR (args)))
+  if (scm_is_null (SCM_CDR (args)))
     {
       SCM arg2 = SCM_CAR (args);
       int len2 = srfi1_ilength (arg2);
@@ -607,7 +607,7 @@ scm_srfi1_map (SCM proc, SCM arg1, SCM args)
 		    scm_cons2 (proc, arg1, args), SCM_ARG1, s_srfi1_map);
       if (len < 0 || (len2 >= 0 && len2 < len))
 	len = len2;
-      SCM_GASSERTn ((SCM_NULLP (arg2) || SCM_CONSP (arg2))
+      SCM_GASSERTn ((scm_is_null (arg2) || scm_is_pair (arg2))
 		    && len >= 0 && len2 >= -1,
 		    g_srfi1_map,
 		    scm_cons2 (proc, arg1, args),
@@ -652,11 +652,11 @@ scm_srfi1_for_each (SCM proc, SCM arg1, SCM args)
 {
   long i, len;
   len = srfi1_ilength (arg1);
-  SCM_GASSERTn ((SCM_NULLP (arg1) || SCM_CONSP (arg1)) && len >= -1,
+  SCM_GASSERTn ((scm_is_null (arg1) || scm_is_pair (arg1)) && len >= -1,
 		g_srfi1_for_each, scm_cons2 (proc, arg1, args),
 		SCM_ARG2, s_srfi1_for_each);
   SCM_VALIDATE_REST_ARGUMENT (args);
-  if (SCM_NULLP (args))
+  if (scm_is_null (args))
     {
       scm_t_trampoline_1 call = scm_trampoline_1 (proc);
       SCM_GASSERT2 (call, g_srfi1_for_each, proc, arg1,
@@ -670,7 +670,7 @@ scm_srfi1_for_each (SCM proc, SCM arg1, SCM args)
 	}
       return SCM_UNSPECIFIED;
     }
-  if (SCM_NULLP (SCM_CDR (args)))
+  if (scm_is_null (SCM_CDR (args)))
     {
       SCM arg2 = SCM_CAR (args);
       int len2 = srfi1_ilength (arg2);
@@ -679,7 +679,7 @@ scm_srfi1_for_each (SCM proc, SCM arg1, SCM args)
 		    scm_cons2 (proc, arg1, args), SCM_ARG1, s_srfi1_for_each);
       if (len < 0 || (len2 >= 0 && len2 < len))
 	len = len2;
-      SCM_GASSERTn ((SCM_NULLP (arg2) || SCM_CONSP (arg2))
+      SCM_GASSERTn ((scm_is_null (arg2) || scm_is_pair (arg2))
 		    && len >= 0 && len2 >= -1,
 		    g_srfi1_for_each,
 		    scm_cons2 (proc, arg1, args),
@@ -767,10 +767,10 @@ SCM_DEFINE (scm_srfi1_assoc, "assoc", 2, 1, 0,
       equal_p = scm_trampoline_2 (pred);
       SCM_ASSERT (equal_p, pred, 3, FUNC_NAME);
     }
-  for(; SCM_CONSP (ls); ls = SCM_CDR (ls)) 
+  for(; scm_is_pair (ls); ls = SCM_CDR (ls)) 
     {
       SCM tmp = SCM_CAR (ls);
-      SCM_ASSERT_TYPE (SCM_CONSP (tmp), alist, SCM_ARG2, FUNC_NAME,
+      SCM_ASSERT_TYPE (scm_is_pair (tmp), alist, SCM_ARG2, FUNC_NAME,
 		       "association list");
       if (scm_is_true (equal_p (pred, SCM_CAR (tmp), key)))
 	return tmp;
