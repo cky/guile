@@ -76,7 +76,7 @@ scm_program_arguments ()
 void
 scm_init_feature()
 {
-  scm_loc_features = &SCM_CDR(scm_sysintern("*features*", SCM_EOL));
+  scm_loc_features = SCM_CDRLOC (scm_sysintern ("*features*", SCM_EOL));
 #ifdef RECKLESS
   scm_add_feature("reckless");
 #endif

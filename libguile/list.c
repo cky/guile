@@ -77,7 +77,7 @@ scm_listify (elt, va_alist)
   while (elt != SCM_UNDEFINED)
     {
       *pos = scm_cons (elt, SCM_EOL);
-      pos = &SCM_CDR (*pos);
+      pos = SCM_CDRLOC (*pos);
       elt = va_arg (foo, SCM);
     }
   return answer;
@@ -187,7 +187,7 @@ scm_list_append(args)
     for(;SCM_NIMP(arg);arg = SCM_CDR(arg)) {
       SCM_ASSERT(SCM_CONSP(arg), arg, SCM_ARGn, s_list_append);
       *lloc = scm_cons(SCM_CAR(arg), SCM_EOL);
-      lloc = &SCM_CDR(*lloc);
+      lloc = SCM_CDRLOC(*lloc);
     }
     SCM_ASSERT(SCM_NULLP(arg), arg, SCM_ARGn, s_list_append);
   }
@@ -207,7 +207,7 @@ scm_list_append_x(args)
   args = SCM_CDR(args);
   if SCM_NULLP(args) return arg;
   if SCM_NULLP(arg) goto tail;
-  SCM_CDR(scm_last_pair(arg)) = scm_list_append_x(args);
+  SCM_SETCDR (scm_last_pair (arg), scm_list_append_x (args));
   return arg;
 }
 
@@ -318,7 +318,7 @@ scm_list_set_x(lst, k, val)
 	}
 erout:	SCM_ASSERT(SCM_NIMP(lst) && SCM_CONSP(lst),
 	       SCM_NULLP(lst)?k:lst, SCM_NULLP(lst)?SCM_OUTOFRANGE:SCM_ARG1, s_list_set_x);
-	SCM_CAR (lst) = val;
+	SCM_SETCAR (lst, val);
 	return val;
 }
 
@@ -384,7 +384,7 @@ scm_list_head(lst, k)
     {
       SCM_ASSERT(SCM_NIMP(lst) && SCM_CONSP(lst), lst, SCM_ARG1, s_list_head);
       *pos = scm_cons (SCM_CAR (lst), SCM_EOL);
-      pos = &SCM_CDR (*pos);
+      pos = SCM_CDRLOC (*pos);
       lst = SCM_CDR(lst);
     }
   return answer;
@@ -409,7 +409,7 @@ scm_list_copy (lst)
       SCM c;
       c = scm_cons (SCM_CAR (from_here), SCM_CDR (from_here));
       *fill_here = c;
-      fill_here = &SCM_CDR (c);
+      fill_here = SCM_CDRLOC (c);
       from_here = SCM_CDR (from_here);
     }
   return newlst;

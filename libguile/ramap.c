@@ -282,7 +282,7 @@ scm_ramapc (cproc, data, ra0, lra, what)
 	      SCM_ARRAY_V (vra1) = SCM_ARRAY_V (ra1);
 	    }
 	  *plvra = scm_cons (vra1, SCM_EOL);
-	  plvra = &SCM_CDR (*plvra);
+	  plvra = SCM_CDRLOC (*plvra);
 	}
       return (SCM_UNBNDP (data) ? cproc(vra0, lvra) : cproc(vra0, data, lvra));
     case 1:
@@ -338,7 +338,7 @@ scm_ramapc (cproc, data, ra0, lra, what)
 	      SCM_ARRAY_V (vra1) = ra1;
 	    }
 	  *plvra = scm_cons (vra1, SCM_EOL);
-	  plvra = &SCM_CDR (*plvra);
+	  plvra = SCM_CDRLOC (*plvra);
 	}
       inds = scm_make_uve (SCM_ARRAY_NDIM (ra0), SCM_MAKINUM (-1L));
       vinds = (long *) SCM_VELTS (inds);

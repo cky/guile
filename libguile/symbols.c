@@ -139,7 +139,7 @@ scm_sym2vcell (sym, thunk, definep)
 
       for (lsym = *(lsymp = &SCM_VELTS (scm_weak_symhash)[scm_hash]);
 	   SCM_NIMP (lsym);
-	   lsym = *(lsymp = &SCM_CDR (lsym)))
+	   lsym = *(lsymp = SCM_CDRLOC (lsym)))
 	{
 	  z = SCM_CAR (lsym);
 	  if (SCM_CAR (z) == sym)
@@ -306,8 +306,8 @@ scm_intern_obarray_soft (name, len, obarray, softness)
       SCM_REALLOW_INTS;
       SCM_NEWCELL (answer);
       SCM_DEFER_INTS;
-      SCM_CAR (answer) = lsym;
-      SCM_CDR (answer) = SCM_UNDEFINED;
+      SCM_SETCAR (answer, lsym);
+      SCM_SETCDR (answer, SCM_UNDEFINED);
       SCM_REALLOW_INTS;
       return answer;
     }
@@ -368,7 +368,7 @@ scm_sysintern (name, val)
   easy_answer = scm_intern_obarray_soft (name, strlen (name), scm_symhash, 1);
   if (SCM_NIMP (easy_answer))
     {
-      SCM_CDR (easy_answer) = val;
+      SCM_SETCDR (easy_answer, val);
       SCM_ALLOW_INTS;
       return easy_answer;
     }
@@ -543,7 +543,7 @@ scm_unintern_symbol(o, s)
 	    if (lsym_follow == SCM_BOOL_F)
 	      SCM_VELTS(o)[hval] = lsym;
 	    else
-	      SCM_CDR(lsym_follow) = SCM_CDR(lsym);
+	      SCM_SETCDR (lsym_follow, SCM_CDR(lsym));
 	    SCM_ALLOW_INTS;
 	    return SCM_BOOL_T;
 	  }
@@ -625,7 +625,7 @@ scm_symbol_set_x (o, s, v)
     o = scm_symhash;
   SCM_ASSERT(SCM_NIMP(o) && SCM_VECTORP(o), o, SCM_ARG1, s_symbol_set_x);
   vcell = scm_sym2ovcell (s, o);
-  SCM_CDR(vcell) = v;
+  SCM_SETCDR (vcell, v);
   return SCM_UNSPECIFIED;
 }
 
@@ -638,8 +638,8 @@ msymbolize (s)
   SCM_SETCHARS (s, SCM_CHARS (string));
   SCM_SETLENGTH (s, SCM_LENGTH (s), scm_tc7_msymbol);
   SCM_SYMBOL_MULTI_BYTE_STRINGP (s) = SCM_BOOL_F;
-  SCM_CDR (string) = SCM_EOL;
-  SCM_CAR (string) = SCM_EOL;
+  SCM_SETCDR (string, SCM_EOL);
+  SCM_SETCAR (string, SCM_EOL);
 }
 
 

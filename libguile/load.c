@@ -221,7 +221,7 @@ scm_primitive_load_path (filename, case_insensitive_p, sharp)
 void
 scm_init_load ()
 {
-  scm_loc_load_path = &SCM_CDR(scm_sysintern("%load-path", SCM_EOL));
+  scm_loc_load_path = SCM_CDRLOC(scm_sysintern("%load-path", SCM_EOL));
 
 #include "load.x"
 }
