@@ -16,6 +16,7 @@ fi
 # Determine the host we are working on
 AC_CANONICAL_HOST
 
+changequote(,)dnl We use [ and ] in a regexp in the case
 case "$host" in
 i[3456]86-*-*)
 	qtmds_s=$srcdir/md/i386.s
@@ -51,6 +52,7 @@ sparc-*-*)
 	threads_enabled=false
 	;;
 esac
+changequote([, ])
 
 
 if $threads_enabled; then

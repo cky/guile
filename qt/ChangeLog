@@ -1,3 +1,9 @@
+Sun Feb  9 15:20:59 1997  Mikael Djurfeldt  <mdj@kenneth>
+
+	* configure.in: Added changequote(,) before the host case (since
+	we use [ and ] in a pattern).
+	* configure: Regenerated.
+
 Fri Feb  7 18:00:07 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* configure.in: Recognize i686 as an okay processor too.
