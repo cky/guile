@@ -175,9 +175,10 @@
  * These compile time options determine whether to include code that is only
  * useful for debugging guile itself or C level extensions to guile.  The
  * common prefix for all option macros of this kind is "SCM_DEBUG_".  It is
- * guaranteed that a macro named SCM_DEBUG_XXX is defined to be either 0 or 1,
- * i. e. there is no need to test for the undefined case.  This allows to use
- * these definitions comfortably within code, as in the following example:
+ * guaranteed that a macro named SCM_DEBUG_XXX is always defined (typically to
+ * either 0 or 1), i. e. there is no need to test for the undefined case.
+ * This allows to use these definitions comfortably within code, as in the
+ * following example:
  *   #define FOO do { if (SCM_DEBUG_XXX) bar(); else baz(); } while (0)
  * Any sane compiler will remove the unused branch without any performance
  * penalty for the resulting code.
@@ -230,9 +231,25 @@
 #define SCM_DEBUG_REST_ARGUMENT SCM_DEBUG
 #endif
 
-/* Use this for _compile time_ type checking only, since the compiled result
- * will be quite inefficient.  The right way to make use of this option is to
- * do a 'make clean; make CFLAGS=-DSCM_DEBUG_TYPING_STRICTNESS=1', fix your
+/* The macro SCM_DEBUG_TYPING_STRICTNESS indicates what level of type checking
+ * shall be performed with respect to the use of the SCM datatype.  The macro
+ * may be defined to one of the values 0, 1 and 2.
+ *
+ * A value of 0 means that there will be no compile time type checking, since
+ * the SCM datatype will be declared as an integral type.  This setting should
+ * only be used on systems, where casting from integral types to pointers may
+ * lead to loss of bit information.
+ *
+ * A value of 1 means that there will an intermediate level of compile time
+ * type checking, since the SCM datatype will be declared as a pointer to an
+ * undefined struct.  This setting is the default, since it does not cost
+ * anything in terms of performance or code size.
+ *
+ * A value of 2 provides a maximum level of compile time type checking since
+ * the SCM datatype will be declared as a struct.  This setting should be used
+ * for _compile time_ type checking only, since the compiled result is likely
+ * to be quite inefficient.  The right way to make use of this option is to do
+ * a 'make clean; make CFLAGS=-DSCM_DEBUG_TYPING_STRICTNESS=2', fix your
  * errors, and then do 'make clean; make'.
  */
 #ifndef SCM_DEBUG_TYPING_STRICTNESS

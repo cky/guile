@@ -1,5 +1,10 @@
 2003-04-21  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* __scm.h: Fixed comment about the SCM_DEBUG_TYPING_STRICTNESS
+	debug option.
+
+2003-04-21  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* list.c (scm_ilength, scm_last_pair), unif.c (l2ra):Prefer
 	!SCM_CONSP over SCM_NCONSP.  Now, guile itself does not include
 	any calls to SCM_NCONSP any more.
