@@ -1,0 +1,12 @@
+#!/bin/sh
+
+set -e
+
+! guile -c '(require-extension 7)' 2> /dev/null
+! guile -c '(require-extension (blarg))' 2> /dev/null
+! guile -c '(require-extension (srfi "foo"))' 2> /dev/null
+
+guile -c '(require-extension (srfi 1)) (exit (procedure? take-right))'
+guile -c '(require-extension (srfi))'
+
+exit 0
