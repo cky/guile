@@ -144,6 +144,8 @@ scm_closure_p (obj)
   return SCM_BOOL_F;
 }
 
+SCM_PROC(s_thunk_p, "thunk?", 1, 0, 0, scm_thunk_p);
+
 #ifdef __STDC__
 SCM 
 scm_thunk_p (SCM obj)
