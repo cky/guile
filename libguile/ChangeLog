@@ -1,3 +1,7 @@
+2001-07-12  Michael Livshin  <mlivshin@bigfoot.com>
+
+	* strings.c (s_scm_string): fix arg position in assert.
+
 2001-07-11  Gary Houston  <ghouston@arglist.com>
 
 	* strports.c (st_write): use memcpy, not strncpy.  thanks to

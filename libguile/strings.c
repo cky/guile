@@ -98,7 +98,7 @@ SCM_DEFINE (scm_string, "string", 0, 0, 1,
   {
     long i = scm_ilength (chrs);
 
-    SCM_ASSERT (i >= 0, chrs, SCM_ARGn, FUNC_NAME);
+    SCM_ASSERT (i >= 0, chrs, SCM_ARG1, FUNC_NAME);
     result = scm_allocate_string (i);
   }
 
