@@ -1,4 +1,4 @@
-2000-03-20  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+2000-03-21  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* async.c (scm_set_tick_rate, scm_set_switch_rate):  Don't unpack
 	results of SCM_INUM.
