@@ -115,3 +115,6 @@
 ;;; A fix to get the error handling working together with the module system.
 ;;;
 (variable-set! (builtin-variable 'debug-options) debug-options)
+
+(debug-enable 'debug)
+(read-enable 'positions)
