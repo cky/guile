@@ -1,3 +1,8 @@
+2004-01-21  Marius Vollmer  <mvo@zagadka.de>
+
+	* tests/srfi-26.test: New.
+	* Makefile.am (SCM_TESTS): Added it.
+
 2004-01-11  Marius Vollmer  <mvo@zagadka.de>
 
 	* tests/r5rs_pitfall.scm: New.

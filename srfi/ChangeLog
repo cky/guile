@@ -1,3 +1,7 @@
+2004-01-21  Marius Vollmer  <m.vollmer@ping.de>
+
+	* srfi-26.scm: New, from Daniel Skarda.  Thanks!
+
 2003-12-03  Kevin Ryde  <user42@zip.com.au>
 
 	* srfi-1.c, srfi-1.h, srfi-1.scm (count): Rewrite in C, avoiding

@@ -112,6 +112,10 @@ form around the code performing the heavy computations (typically a
 C code primitive), enabling the computations to run in parallel
 while the scripting code runs single-threadedly.
 
+** New module (srfi srfi-26)
+
+This is an implementation of SRFI-26.
+
 ** Guile now includes its own version of libltdl.
 
 We now use a modified version of libltdl that allows us to make
