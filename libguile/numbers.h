@@ -324,8 +324,6 @@ extern void scm_longdigs (long x, SCM_BIGDIG digs[]);
 extern SCM scm_addbig (SCM_BIGDIG *x, scm_sizet nx, int xsgn, SCM bigy, int sgny);
 extern SCM scm_mulbig (SCM_BIGDIG *x, scm_sizet nx, SCM_BIGDIG *y, scm_sizet ny, int sgn);
 extern unsigned int scm_divbigdig (SCM_BIGDIG *ds, scm_sizet h, SCM_BIGDIG div);
-extern SCM scm_divbigint (SCM x, long z, int sgn, int mode);
-extern SCM scm_divbigbig (SCM_BIGDIG *x, scm_sizet nx, SCM_BIGDIG *y, scm_sizet ny, int sgn, int modes);
 extern scm_sizet scm_iint2str (long num, int rad, char *p);
 extern SCM scm_number_to_string (SCM x, SCM radix);
 extern int scm_print_real (SCM sexp, SCM port, scm_print_state *pstate);

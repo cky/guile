@@ -1,3 +1,31 @@
+2000-05-03  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* numbers.c (scm_divbigbig, scm_divbigint), numbers.h
+	(scm_divbigbig, scm_divbigint):  Don't return zero any more to
+	indicate that a division has a remainder, return SCM_UNDEFINED
+	instead.  It is improbable that anyone actually used these
+	functions outside of numbers.c.  For this reason and due to the
+	change in behaviour the functions are static now.  Thus, if
+	surprisingly there are users of	these functions they will at least
+	get alarmed.
+
+	* numbers.c:  Removed #ifdef SCM_BIGDIG #endif in those functions,
+	that already have a clean dispatch order.  Note: SCM_BIGDIG is
+	always defined.
+
+	* numbers.c (scm_inexact_p):  Simplified.
+
+	* numbers.c (scm_num_eq_p, scm_less_p, scm_max, scm_min,
+	scm_product, scm_num2dbl, scm_angle):  Reordered dispatch
+	sequence, thereby fixing some comparisons of SCM values with
+	integer constants.
+
+	* numbers.c (scm_divide):  Division by zero of inums leads to an
+	error now.  (Formerly, an infinite number was returned.)
+
+	Respect the fact, that scm_divbigbig does now return SCM_UNDEFINED
+	if a division has a remainder.
+
 2000-05-02  Gary Houston  <ghouston@arglist.com>
 
 	* Makefile.am (INCLUDES): add ${INCLTDL} (thanks to Tim Mooney).
