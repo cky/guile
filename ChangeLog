@@ -1,5 +1,14 @@
 1998-10-14  Jim Blandy  <jimb@zwingli.cygnus.com>
 
+	* configure.in: Define SCM_SINGLES whenever a float can fit in a
+	long, not only when a float is the same size as a long.  This gets
+	us SCM_SINGLES defined on alphas.  (Thanks to Clark McGrew.)
+	* configure: Regenerated.
+
+	* configure.in: Construct libguile/versiondat.h here; see
+	log entry in libguile/ChangeLog for details.
+	* configure: Regenerated.
+
 	* configure.in: Allow tabs and whitespace between `void' and
 	`usleep'.  (Thanks to Harvey J. Stein.)
 	* configure: Regenerated.
