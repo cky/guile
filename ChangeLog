@@ -1,3 +1,8 @@
+2004-11-28  Kevin Ryde  <user42@zip.com.au>
+
+	* configure.in (AC_SUBST): Correction, LTDLINC should be LTDLINCL, the
+	latter is what libtool defines.
+
 2004-10-27  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* libguile.h: Include "libguile/srfi-4.h".
