@@ -66,6 +66,15 @@ SCM_DEFINE1 (scm_eq_p, "eq?", scm_tc7_rpsubr,
 }
 #undef FUNC_NAME
 
+/* We compare doubles in a special way for 'eqv?' to be able to
+   distinguish plus and minus zero and to identify NaNs.
+*/
+
+static int
+real_eqv (double x, double y)
+{
+  return !memcmp (&x, &y, sizeof(double));
+}
 
 SCM_DEFINE1 (scm_eqv_p, "eqv?", scm_tc7_rpsubr,
              (SCM x, SCM y),
@@ -90,11 +99,13 @@ SCM_DEFINE1 (scm_eqv_p, "eqv?", scm_tc7_rpsubr,
 	{
 	  if (SCM_SLOPPY_REALP (x))
 	    return SCM_BOOL (SCM_SLOPPY_COMPLEXP (y)
-			     && SCM_REAL_VALUE (x) == SCM_COMPLEX_REAL (y)
+			     && real_eqv (SCM_REAL_VALUE (x),
+					  SCM_COMPLEX_REAL (y))
 			     && 0.0 == SCM_COMPLEX_IMAG (y));
 	  else
 	    return SCM_BOOL (SCM_SLOPPY_REALP (y)
-			     && SCM_COMPLEX_REAL (x) == SCM_REAL_VALUE (y)
+			     && real_eqv (SCM_COMPLEX_REAL (x),
+					  SCM_REAL_VALUE (y))
 			     && SCM_COMPLEX_IMAG (x) == 0.0);
 	}
       return SCM_BOOL_F;
@@ -104,10 +115,12 @@ SCM_DEFINE1 (scm_eqv_p, "eqv?", scm_tc7_rpsubr,
       if (SCM_BIGP (x)) {
 	return SCM_BOOL (0 == scm_bigcomp (x, y));
       } else if (SCM_SLOPPY_REALP (x)) {
-	return SCM_BOOL (SCM_REAL_VALUE (x) == SCM_REAL_VALUE (y));
+	return SCM_BOOL (real_eqv (SCM_REAL_VALUE (x), SCM_REAL_VALUE (y)));
       } else { /* complex */
-	return SCM_BOOL (SCM_COMPLEX_REAL (x) == SCM_COMPLEX_REAL (y) 
-			 && SCM_COMPLEX_IMAG (x) == SCM_COMPLEX_IMAG (y));
+	return SCM_BOOL (real_eqv (SCM_COMPLEX_REAL (x),
+				   SCM_COMPLEX_REAL (y)) 
+			 && real_eqv (SCM_COMPLEX_IMAG (x),
+				      SCM_COMPLEX_IMAG (y)));
       }
     }
   return SCM_BOOL_F;
