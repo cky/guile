@@ -7,11 +7,11 @@ plus the Cygnus programmer's manual; it should be *very* carefully
 reviewed and largely reorganized.]
 
 @menu
-* Arbiters::            Synchronization primitives.
-* Asyncs::              Asynchronous procedure invocation.
-* Dynamic Roots::       Root frames of execution.
-* Threads::             Multiple threads of execution.
-* Fluids::              Thread-local variables.
+* Arbiters::                    Synchronization primitives.
+* Asyncs::                      Asynchronous procedure invocation.
+* Dynamic Roots::               Root frames of execution.
+* Threads::                     Multiple threads of execution.
+* Fluids::                      Thread-local variables.
 @end menu
 
 
@@ -54,54 +54,40 @@ arbiter was locked. Otherwise, return @code{#f}.
 @section Asyncs
 
 @cindex asyncs
+@cindex user asyncs
 @cindex system asyncs
 
 @c FIXME::martin: Review me!
 
-An async is a pair of one thunk (a parameterless procedure) and a mark.
-Setting the mark on an async guarantees that the thunk will be executed
-somewhen in the future (@dfn{asynchronously}).  Setting the mark more
-than once is satisfied by one execution of the thunk.
+Asyncs are a means of deferring the excution of Scheme code until it is
+safe to do so.
 
-Guile supports two types of asyncs: Normal asyncs and system asyncs.
-They differ in that marked system asyncs are executed implicitly as soon
-as possible, whereas normal asyncs have to be invoked explicitly.
-System asyncs are held in an internal data structure and are maintained
-by Guile.
+Guile provides two kinds of asyncs that share the basic concept but are
+otherwise quite different: system asyncs and user asyncs.  System asyncs
+are integrated into the core of Guile and are executed automatically
+when the system is in a state to allow the execution of Scheme code.
+For example, it is not possible to execute Scheme code in a POSIX signal
+handler, but such a signal handler can queue a system async to be
+executed in the near future, when it is safe to do so.
 
-Normal asyncs are created with @code{async}, system asyncs with
-@code{system-async}.  They are marked with @code{async-mark} or
-@code{system-async-mark}, respectively.
+System asyncs can also be queued for threads other than the current one.
+This way, you can cause threads to asynchronously execute arbitrary
+code.
 
-@deffn {Scheme Procedure} async thunk
-@deffnx {C Function} scm_async (thunk)
-Create a new async for the procedure @var{thunk}.
-@end deffn
+User asyncs offer a convenient means of queueing procedures for future
+execution and triggering this execution.  They will not be executed
+automatically.
 
-@deffn {Scheme Procedure} system-async thunk
-@deffnx {C Function} scm_system_async (thunk)
-Create a new async for the procedure @var{thunk}.  Also
-add it to the system's list of active async objects.
-@end deffn
+@menu
+* System asyncs::               
+* User asyncs::                 
+@end menu
 
-@deffn {Scheme Procedure} async-mark a
-@deffnx {C Function} scm_async_mark (a)
-Mark the async @var{a} for future execution.
-@end deffn
+@node System asyncs
+@subsection System asyncs
 
-@deffn {Scheme Procedure} system-async-mark a
-@deffnx {C Function} scm_system_async_mark (a)
-Mark the async @var{a} for future execution.
-@end deffn
-
-As already mentioned above, system asyncs are executed automatically.
-Normal asyncs have to be explicitly invoked by storing one or more of
-them into a list and passing them to @code{run-asyncs}.
-
-@deffn {Scheme Procedure} run-asyncs list_of_a
-@deffnx {C Function} scm_run_asyncs (list_of_a)
-Execute all thunks from the asyncs of the list @var{list_of_a}.
-@end deffn
+To cause the future asynchronous execution of a procedure in a given
+thread, use @code{system-async-mark}.
 
 Automatic invocation of system asyncs can be temporarily disabled by
 calling @code{mask-signals} and @code{unmask-signals}.  Setting the mark
@@ -109,6 +95,20 @@ while async execution is disabled will nevertheless cause the async to
 run once execution is enabled again.  Please note that calls to these
 procedures should always be paired, and they must not be nested, e.g. no
 @code{mask-signals} is allowed if another one is still active.
+
+@deffn {Scheme procedure} system-async-mark proc [thread]
+@deffnx {C Function} scm_system_async_mark (proc)
+@deffnx {C Function} scm_system_async_mark_for_thread (proc, thread)
+Mark @var{proc} (a procedure with zero arguments) for future execution
+in @var{thread}.  When @var{proc} has already been marked for
+@var{thread} but has not been executed yet, this call has no effect.
+When @var{thread} is omitted, the thread that called
+@code{system-async-mark} is used.
+
+This procedure is not safe to be called from signal handlers.  Use
+@code{scm_sigaction} or @code{scm_sigaction_for_thread} to install
+signal handlers.
+@end deffn
 
 @deffn {Scheme Procedure} mask-signals
 @deffnx {C Function} scm_mask_signals ()
@@ -120,13 +120,30 @@ Mask signals. The returned value is not specified.
 Unmask signals. The returned value is not specified.
 @end deffn
 
-@c FIXME::martin: Find an example for usage of `noop'.  What is that
-@c procedure for anyway?
+@node User asyncs
+@subsection User asyncs
 
-@deffn {Scheme Procedure} noop . args
-@deffnx {C Function} scm_noop (args)
-Do nothing.  When called without arguments, return @code{#f},
-otherwise return the first argument.
+A user async is a pair of a thunk (a parameterless procedure) and a
+mark.  Setting the mark on a user async will cause the thunk to be
+executed when the user async is passed to @code{run-asyncs}.  Setting
+the mark more than once is satisfied by one execution of the thunk.
+
+User asyncs are created with @code{async}.  They are marked with
+@code{async-mark}.
+
+@deffn {Scheme Procedure} async thunk
+@deffnx {C Function} scm_async (thunk)
+Create a new user async for the procedure @var{thunk}.
+@end deffn
+
+@deffn {Scheme Procedure} async-mark a
+@deffnx {C Function} scm_async_mark (a)
+Mark the user async @var{a} for future execution.
+@end deffn
+
+@deffn {Scheme Procedure} run-asyncs list_of_a
+@deffnx {C Function} scm_run_asyncs (list_of_a)
+Execute all thunks from the marked asyncs of the list @var{list_of_a}.
 @end deffn
 
 
@@ -259,8 +276,8 @@ When using Guile threads, keep in mind that each guile thread is
 executed in a new dynamic root.
 
 @menu
-* Low level thread primitives::
-* Higher level thread procedures::
+* Low level thread primitives::  
+* Higher level thread procedures::  
 @end menu
 
 
