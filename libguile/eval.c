@@ -3199,6 +3199,12 @@ scm_copy_tree (obj)
     return obj;
 /*  return scm_cons(scm_copy_tree(SCM_CAR(obj)), scm_copy_tree(SCM_CDR(obj))); */
   ans = tl = scm_cons (scm_copy_tree (SCM_CAR (obj)), SCM_UNSPECIFIED);
+  {
+    /* Copy source properties possibly associated with head pair. */
+    SCM p = scm_whash_lookup (scm_source_whash, obj);
+    if (SCM_NIMP (p))
+      scm_whash_insert (scm_source_whash, ans, p);
+  }
   while (SCM_NIMP (obj = SCM_CDR (obj)) && SCM_CONSP (obj))
     {
       SCM_SETCDR (tl, scm_cons (scm_copy_tree (SCM_CAR (obj)),
