@@ -1,5 +1,7 @@
 2003-05-08  Kevin Ryde  <kevin@swox.se>
 
+	* scheme-data.texi (Bitwise Operations): Fix lognot to ones-complement.
+
 	* slib.texi (JACAL): Fix @ref title.
 	Add index entries, use @file and @code variously.
 
