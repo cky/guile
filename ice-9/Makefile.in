@@ -65,7 +65,6 @@ GUILE_VERSION = @GUILE_VERSION@
 LD = @LD@
 LIBLOBJS = @LIBLOBJS@
 LIBTOOL = @LIBTOOL@
-LN_S = @LN_S@
 MAINT = @MAINT@
 MAKEINFO = @MAKEINFO@
 PACKAGE = @PACKAGE@
@@ -85,7 +84,7 @@ AUTOMAKE_OPTIONS = foreign
 # These should be installed and distributed.
 ice9_sources = boot-9.scm debug.scm expect.scm hcons.scm lineio.scm \
 mapping.scm poe.scm regex.scm slib.scm tags.scm threads.scm r4rs.scm \
-session.scm
+session.scm syncase.scm psyntax.pp psyntax.ss
 
 # These should be installed, but not distributed.
 ice9_generated = version.scm
@@ -105,7 +104,7 @@ DIST_COMMON =  COPYING ChangeLog Makefile.am Makefile.in version.scm.in
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
-TAR = gtar
+TAR = tar
 GZIP = --best
 default: all
 

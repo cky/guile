@@ -5,7 +5,7 @@ AUTOMAKE_OPTIONS = foreign
 # These should be installed and distributed.
 ice9_sources = boot-9.scm debug.scm expect.scm hcons.scm lineio.scm \
 mapping.scm poe.scm regex.scm slib.scm tags.scm threads.scm r4rs.scm \
-session.scm
+session.scm syncase.scm psyntax.pp psyntax.ss
 
 # These should be installed, but not distributed.
 ice9_generated = version.scm
