@@ -75,65 +75,64 @@
 ;;; Creation functions 
 
 
-(catch-test-errors
- (with-test-prefix
-  "weak-creation"
-  (with-test-prefix "make-weak-vector"
-   (pass-if "normal"
-            (catch-error-returning-false #t
-            (define x (make-weak-vector 10 #f))))
-   (pass-if "bad size"
-            (catch-error-returning-true 
-             'wrong-type-arg
-             (define x (make-weak-vector 'foo)))))
-             
-  (with-test-prefix "list->weak-vector"
-                    (pass-if "create"
-                             (let* ((lst '(a b c d e f g))
-                                    (wv (list->weak-vector lst)))
-                               (and (eq? (vector-ref wv 0) 'a)
-                                    (eq? (vector-ref wv 1) 'b)
-                                    (eq? (vector-ref wv 2) 'c)
-                                    (eq? (vector-ref wv 3) 'd)
-                                    (eq? (vector-ref wv 4) 'e)
-                                    (eq? (vector-ref wv 5) 'f)
-                                    (eq? (vector-ref wv 6) 'g))))
-                    (pass-if "bad-args"
-                             (catch-error-returning-true 
-                              'wrong-type-arg
-                              (define x (list->weak-vector 32)))))
+(with-test-prefix
+ "weak-creation"
+ (with-test-prefix "make-weak-vector"
+  (pass-if "normal"
+	   (catch-error-returning-false #t
+	   (define x (make-weak-vector 10 #f))))
+  (pass-if "bad size"
+	   (catch-error-returning-true 
+	    'wrong-type-arg
+	    (define x (make-weak-vector 'foo)))))
 
-  (with-test-prefix "make-weak-key-hash-table"
-                    (pass-if "create"
-                             (catch-error-returning-false 
-                              #t
-                              (define x (make-weak-key-hash-table 17))))
-                    (pass-if "bad-args"
-                             (catch-error-returning-true 
-                              'wrong-type-arg
-                              (define x 
-                                (make-weak-key-hash-table '(bad arg))))))
-  (with-test-prefix "make-weak-value-hash-table"
-                    (pass-if "create"
-                             (catch-error-returning-false 
-                              #t
-                              (define x (make-weak-value-hash-table 17))))
-                    (pass-if "bad-args"
-                             (catch-error-returning-true 
-                              'wrong-type-arg
-                              (define x 
-                                (make-weak-value-hash-table '(bad arg))))))
-  
-  (with-test-prefix "make-doubly-weak-hash-table"
-                    (pass-if "create"
-                             (catch-error-returning-false 
-                              #t
-                              (define x (make-doubly-weak-hash-table 17))))
-                    (pass-if "bad-args"
-                             (catch-error-returning-true 
-                              'wrong-type-arg
-                              (define x 
-                                (make-doubly-weak-hash-table '(bad arg))))))))
+ (with-test-prefix "list->weak-vector"
+		   (pass-if "create"
+			    (let* ((lst '(a b c d e f g))
+				   (wv (list->weak-vector lst)))
+			      (and (eq? (vector-ref wv 0) 'a)
+				   (eq? (vector-ref wv 1) 'b)
+				   (eq? (vector-ref wv 2) 'c)
+				   (eq? (vector-ref wv 3) 'd)
+				   (eq? (vector-ref wv 4) 'e)
+				   (eq? (vector-ref wv 5) 'f)
+				   (eq? (vector-ref wv 6) 'g))))
+		   (pass-if "bad-args"
+			    (catch-error-returning-true 
+			     'wrong-type-arg
+			     (define x (list->weak-vector 32)))))
+
+ (with-test-prefix "make-weak-key-hash-table"
+		   (pass-if "create"
+			    (catch-error-returning-false 
+			     #t
+			     (define x (make-weak-key-hash-table 17))))
+		   (pass-if "bad-args"
+			    (catch-error-returning-true 
+			     'wrong-type-arg
+			     (define x 
+			       (make-weak-key-hash-table '(bad arg))))))
+ (with-test-prefix "make-weak-value-hash-table"
+		   (pass-if "create"
+			    (catch-error-returning-false 
+			     #t
+			     (define x (make-weak-value-hash-table 17))))
+		   (pass-if "bad-args"
+			    (catch-error-returning-true 
+			     'wrong-type-arg
+			     (define x 
+			       (make-weak-value-hash-table '(bad arg))))))
+
+ (with-test-prefix "make-doubly-weak-hash-table"
+		   (pass-if "create"
+			    (catch-error-returning-false 
+			     #t
+			     (define x (make-doubly-weak-hash-table 17))))
+		   (pass-if "bad-args"
+			    (catch-error-returning-true 
+			     'wrong-type-arg
+			     (define x 
+			       (make-doubly-weak-hash-table '(bad arg)))))))
 
 
 
@@ -151,84 +150,82 @@
   (gc))
 
 ;;; Normal weak vectors
-(catch-test-errors
- (let ((x (make-weak-vector 10 #f))
-       (bar "bar"))
-   (with-test-prefix 
-    "weak-vector"
-    (pass-if "lives"
-             (begin
-               (vector-set! x 0 bar)
-               (gc)
-               (and (vector-ref x 0) (eq? bar (vector-ref x 0)))))
-    (pass-if "dies"
-             (begin
-               (gc)
-               (or (not (vector-ref global-weak 0))
-                   (not (vector-ref global-weak 1))
-                   (not (vector-ref global-weak 2))
-                   (not (vector-ref global-weak 3))
-                   (not (vector-ref global-weak 4))))))))
-               
-(catch-test-errors
- (let ((x (make-weak-key-hash-table 17))
-       (y (make-weak-value-hash-table 17))
-       (z (make-doubly-weak-hash-table 17))
-       (test-key "foo")
-       (test-value "bar"))
-   (with-test-prefix
-    "weak-hash"
-    (pass-if "lives"
-             (begin
-               (hashq-set! x test-key test-value)
-               (hashq-set! y test-key test-value)
-               (hashq-set! z test-key test-value)
-               (gc)
-               (gc)
-               (and (hashq-ref x test-key)
-                    (hashq-ref y test-key)
-                    (hashq-ref z test-key))))
-    (pass-if "weak-key dies"
-             (begin
-               (hashq-set! x "this" "is")
-               (hashq-set! x "a" "test")
-               (hashq-set! x "of" "the")
-               (hashq-set! x "emergency" "weak")
-               (hashq-set! x "key" "hash system")
-               (gc)
-               (and 
-                (or (not (hashq-ref x "this"))
-                    (not (hashq-ref x "a"))
-                    (not (hashq-ref x "of"))
-                    (not (hashq-ref x "emergency"))
-                    (not (hashq-ref x "key")))
-                (hashq-ref x test-key))))
+(let ((x (make-weak-vector 10 #f))
+      (bar "bar"))
+  (with-test-prefix 
+   "weak-vector"
+   (pass-if "lives"
+	    (begin
+	      (vector-set! x 0 bar)
+	      (gc)
+	      (and (vector-ref x 0) (eq? bar (vector-ref x 0)))))
+   (pass-if "dies"
+	    (begin
+	      (gc)
+	      (or (not (vector-ref global-weak 0))
+		  (not (vector-ref global-weak 1))
+		  (not (vector-ref global-weak 2))
+		  (not (vector-ref global-weak 3))
+		  (not (vector-ref global-weak 4)))))))
 
-    (pass-if "weak-value dies"
-             (begin
-               (hashq-set! y "this" "is")
-               (hashq-set! y "a" "test")
-               (hashq-set! y "of" "the")
-               (hashq-set! y "emergency" "weak")
-               (hashq-set! y "value" "hash system")
-               (gc)
-               (and (or (not (hashq-ref y "this"))
-                        (not (hashq-ref y "a"))
-                        (not (hashq-ref y "of"))
-                        (not (hashq-ref y "emergency"))
-                        (not (hashq-ref y "value")))
-                    (hashq-ref y test-key))))
-    (pass-if "doubly-weak dies"
-             (begin
-               (hashq-set! z "this" "is")
-               (hashq-set! z "a" "test")
-               (hashq-set! z "of" "the")
-               (hashq-set! z "emergency" "weak")
-               (hashq-set! z "all" "hash system")
-               (gc)
-               (and (or (not (hashq-ref z "this"))
-                        (not (hashq-ref z "a"))
-                        (not (hashq-ref z "of"))
-                        (not (hashq-ref z "emergency"))
-                        (not (hashq-ref z "all")))
-                    (hashq-ref z test-key)))))))
+ (let ((x (make-weak-key-hash-table 17))
+      (y (make-weak-value-hash-table 17))
+      (z (make-doubly-weak-hash-table 17))
+      (test-key "foo")
+      (test-value "bar"))
+  (with-test-prefix
+   "weak-hash"
+   (pass-if "lives"
+	    (begin
+	      (hashq-set! x test-key test-value)
+	      (hashq-set! y test-key test-value)
+	      (hashq-set! z test-key test-value)
+	      (gc)
+	      (gc)
+	      (and (hashq-ref x test-key)
+		   (hashq-ref y test-key)
+		   (hashq-ref z test-key))))
+   (pass-if "weak-key dies"
+	    (begin
+	      (hashq-set! x "this" "is")
+	      (hashq-set! x "a" "test")
+	      (hashq-set! x "of" "the")
+	      (hashq-set! x "emergency" "weak")
+	      (hashq-set! x "key" "hash system")
+	      (gc)
+	      (and 
+	       (or (not (hashq-ref x "this"))
+		   (not (hashq-ref x "a"))
+		   (not (hashq-ref x "of"))
+		   (not (hashq-ref x "emergency"))
+		   (not (hashq-ref x "key")))
+	       (hashq-ref x test-key))))
+
+   (pass-if "weak-value dies"
+	    (begin
+	      (hashq-set! y "this" "is")
+	      (hashq-set! y "a" "test")
+	      (hashq-set! y "of" "the")
+	      (hashq-set! y "emergency" "weak")
+	      (hashq-set! y "value" "hash system")
+	      (gc)
+	      (and (or (not (hashq-ref y "this"))
+		       (not (hashq-ref y "a"))
+		       (not (hashq-ref y "of"))
+		       (not (hashq-ref y "emergency"))
+		       (not (hashq-ref y "value")))
+		   (hashq-ref y test-key))))
+   (pass-if "doubly-weak dies"
+	    (begin
+	      (hashq-set! z "this" "is")
+	      (hashq-set! z "a" "test")
+	      (hashq-set! z "of" "the")
+	      (hashq-set! z "emergency" "weak")
+	      (hashq-set! z "all" "hash system")
+	      (gc)
+	      (and (or (not (hashq-ref z "this"))
+		       (not (hashq-ref z "a"))
+		       (not (hashq-ref z "of"))
+		       (not (hashq-ref z "emergency"))
+		       (not (hashq-ref z "all")))
+		   (hashq-ref z test-key))))))

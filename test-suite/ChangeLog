@@ -1,3 +1,25 @@
+2000-05-08  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* guile-test:  Eliminate use of catch-test-errors.
+
+	* lib.scm:  Adopted a couple of nice ideas from Greg.
+
+	(pass, fail, expect-failure, expect-failure-if,
+	expect-failure-if*, catch-test-errors, catch-test-errors*,
+	expected-failure-fluid, pessimist?):  Removed.
+
+	(run-test, expect-fail, result-tags, important-result-tags):
+	Added.
+
+	(report, make-count-reporter, print-counts, make-log-reporter,
+	full-reporter, user-reporter):  Reporters take two mandatory
+	arguments and make use of the tag descriptions in result-tags and
+	important-result-tags.
+
+	* tests/alist.test, tests/hooks.test, tests/ports.test,
+	tests/weaks.test:  Don't use catch-test-errors and
+	expect-failure-if.
+
 2000-05-05  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* mambo.test:  Removed dummy file.

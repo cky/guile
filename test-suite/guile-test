@@ -144,8 +144,7 @@
 	  ;; Run the tests.
 	  (for-each (lambda (test)
 		      (with-test-prefix test
-			(catch-test-errors
-			 (load (test-file-name test)))))
+			(load (test-file-name test))))
 		    tests)
 
 	  ;; Display the final counts, both to the user and in the log

@@ -49,188 +49,177 @@
 ;;;; Normal file ports.
 
 ;;; Write out an s-expression, and read it back.
-(catch-test-errors
- (let ((string '("From fairest creatures we desire increase,"
-		 "That thereby beauty's rose might never die,"))
-       (filename (test-file)))
-   (let ((port (open-output-file filename)))
-     (write string port)
-     (close-port port))
-   (let ((port (open-input-file filename)))
-     (let ((in-string (read port)))
-       (pass-if "file: write and read back list of strings" 
-		(equal? string in-string)))
-     (close-port port))
-   (delete-file filename)))
+(let ((string '("From fairest creatures we desire increase,"
+		"That thereby beauty's rose might never die,"))
+      (filename (test-file)))
+  (let ((port (open-output-file filename)))
+    (write string port)
+    (close-port port))
+  (let ((port (open-input-file filename)))
+    (let ((in-string (read port)))
+      (pass-if "file: write and read back list of strings" 
+	       (equal? string in-string)))
+    (close-port port))
+  (delete-file filename))
 	  
 ;;; Write out a string, and read it back a character at a time.
-(catch-test-errors
- (let ((string "This is a test string\nwith no newline at the end")
-       (filename (test-file)))
-   (let ((port (open-output-file filename)))
-     (display string port)
-     (close-port port))
-   (let ((in-string (read-file filename)))
-     (pass-if "file: write and read back characters"
-	      (equal? string in-string)))
-   (delete-file filename)))
+(let ((string "This is a test string\nwith no newline at the end")
+      (filename (test-file)))
+  (let ((port (open-output-file filename)))
+    (display string port)
+    (close-port port))
+  (let ((in-string (read-file filename)))
+    (pass-if "file: write and read back characters"
+	     (equal? string in-string)))
+  (delete-file filename))
 
 ;;; Buffered input/output port with seeking.
-(catch-test-errors
- (let* ((filename (test-file))
-	(port (open-file filename "w+")))
-   (display "J'Accuse" port)
-   (seek port -1 SEEK_CUR)
-   (pass-if "file: r/w 1"
-	    (char=? (read-char port) #\e))
-   (pass-if "file: r/w 2"
-	    (eof-object? (read-char port)))
-   (seek port -1 SEEK_CUR)
-   (write-char #\x port)
-   (seek port 7 SEEK_SET)
-   (pass-if "file: r/w 3"
-	    (char=? (read-char port) #\x))
-   (seek port -2 SEEK_END)
-   (pass-if "file: r/w 4"
-	    (char=? (read-char port) #\s))
-   (delete-file filename)))
+(let* ((filename (test-file))
+       (port (open-file filename "w+")))
+  (display "J'Accuse" port)
+  (seek port -1 SEEK_CUR)
+  (pass-if "file: r/w 1"
+	   (char=? (read-char port) #\e))
+  (pass-if "file: r/w 2"
+	   (eof-object? (read-char port)))
+  (seek port -1 SEEK_CUR)
+  (write-char #\x port)
+  (seek port 7 SEEK_SET)
+  (pass-if "file: r/w 3"
+	   (char=? (read-char port) #\x))
+  (seek port -2 SEEK_END)
+  (pass-if "file: r/w 4"
+	   (char=? (read-char port) #\s))
+  (delete-file filename))
 
 ;;; Unbuffered input/output port with seeking.
-(catch-test-errors
- (let* ((filename (test-file))
-	(port (open-file filename "w+0")))
-   (display "J'Accuse" port)
-   (seek port -1 SEEK_CUR)
-   (pass-if "file: ub r/w 1"
-	    (char=? (read-char port) #\e))
-   (pass-if "file: ub r/w 2"
-	    (eof-object? (read-char port)))
-   (seek port -1 SEEK_CUR)
-   (write-char #\x port)
-   (seek port 7 SEEK_SET)
-   (pass-if "file: ub r/w 3"
-	    (char=? (read-char port) #\x))
-   (seek port -2 SEEK_END)
-   (pass-if "file: ub r/w 4"
-	    (char=? (read-char port) #\s))
-   (delete-file filename)))
+(let* ((filename (test-file))
+       (port (open-file filename "w+0")))
+  (display "J'Accuse" port)
+  (seek port -1 SEEK_CUR)
+  (pass-if "file: ub r/w 1"
+	   (char=? (read-char port) #\e))
+  (pass-if "file: ub r/w 2"
+	   (eof-object? (read-char port)))
+  (seek port -1 SEEK_CUR)
+  (write-char #\x port)
+  (seek port 7 SEEK_SET)
+  (pass-if "file: ub r/w 3"
+	   (char=? (read-char port) #\x))
+  (seek port -2 SEEK_END)
+  (pass-if "file: ub r/w 4"
+	   (char=? (read-char port) #\s))
+  (delete-file filename))
 
 ;;; Buffered output-only and input-only ports with seeking.
-(catch-test-errors
- (let* ((filename (test-file))
-	(port (open-output-file filename)))
-   (display "J'Accuse" port)
-   (pass-if "file: out tell"
-	    (= (seek port 0 SEEK_CUR) 8))
-   (seek port -1 SEEK_CUR)
-   (write-char #\x port)
-   (close-port port)
-   (let ((iport (open-input-file filename)))
-     (pass-if "file: in tell 0"
-	      (= (seek iport 0 SEEK_CUR) 0))
-     (read-char iport)
-     (pass-if "file: in tell 1"
-	      (= (seek iport 0 SEEK_CUR) 1))
-     (unread-char #\z iport)
-     (pass-if "file: in tell 0 after unread"
-	      (= (seek iport 0 SEEK_CUR) 0))
-     (pass-if "file: unread char still there"
-	      (char=? (read-char iport) #\z))
-     (seek iport 7 SEEK_SET)
-     (pass-if "file: in last char"
-	      (char=? (read-char iport) #\x))
-     (close-port iport))
-   (delete-file filename)))
+(let* ((filename (test-file))
+       (port (open-output-file filename)))
+  (display "J'Accuse" port)
+  (pass-if "file: out tell"
+	   (= (seek port 0 SEEK_CUR) 8))
+  (seek port -1 SEEK_CUR)
+  (write-char #\x port)
+  (close-port port)
+  (let ((iport (open-input-file filename)))
+    (pass-if "file: in tell 0"
+	     (= (seek iport 0 SEEK_CUR) 0))
+    (read-char iport)
+    (pass-if "file: in tell 1"
+	     (= (seek iport 0 SEEK_CUR) 1))
+    (unread-char #\z iport)
+    (pass-if "file: in tell 0 after unread"
+	     (= (seek iport 0 SEEK_CUR) 0))
+    (pass-if "file: unread char still there"
+	     (char=? (read-char iport) #\z))
+    (seek iport 7 SEEK_SET)
+    (pass-if "file: in last char"
+	     (char=? (read-char iport) #\x))
+    (close-port iport))
+  (delete-file filename))
 
 ;;; unusual characters.
-(catch-test-errors
- (let* ((filename (test-file))
-	(port (open-output-file filename)))
-   (display (string #\nul (integer->char 255) (integer->char 128)
-		    #\nul) port)
-   (close-port port)
-   (let* ((port (open-input-file filename))
-	  (line (read-line port)))
-     (pass-if "file: read back NUL 1"
-	      (char=? (string-ref line 0) #\nul))
-     (pass-if "file: read back 255"
-	      (char=? (string-ref line 1) (integer->char 255)))
-     (pass-if "file: read back 128"
-	      (char=? (string-ref line 2) (integer->char 128)))
-     (pass-if "file: read back NUL 2"
-	      (char=? (string-ref line 3) #\nul))
-     (pass-if "file: EOF"
-	      (eof-object? (read-char port))))
-   (delete-file filename)))
+(let* ((filename (test-file))
+       (port (open-output-file filename)))
+  (display (string #\nul (integer->char 255) (integer->char 128)
+		   #\nul) port)
+  (close-port port)
+  (let* ((port (open-input-file filename))
+	 (line (read-line port)))
+    (pass-if "file: read back NUL 1"
+	     (char=? (string-ref line 0) #\nul))
+    (pass-if "file: read back 255"
+	     (char=? (string-ref line 1) (integer->char 255)))
+    (pass-if "file: read back 128"
+	     (char=? (string-ref line 2) (integer->char 128)))
+    (pass-if "file: read back NUL 2"
+	     (char=? (string-ref line 3) #\nul))
+    (pass-if "file: EOF"
+	     (eof-object? (read-char port))))
+  (delete-file filename))
 
 ;;; line buffering mode.
-(catch-test-errors 
- (let* ((filename (test-file))
-	(port (open-file filename "wl"))
-	(test-string "one line more or less"))
-   (write-line test-string port)
-   (let* ((in-port (open-input-file filename))
-	  (line (read-line in-port)))
-     (close-port in-port)
-     (close-port port)
-     (pass-if "file: line buffering"
-	      (string=? line test-string)))
-   (delete-file filename)))
+(let* ((filename (test-file))
+       (port (open-file filename "wl"))
+       (test-string "one line more or less"))
+  (write-line test-string port)
+  (let* ((in-port (open-input-file filename))
+	 (line (read-line in-port)))
+    (close-port in-port)
+    (close-port port)
+    (pass-if "file: line buffering"
+	     (string=? line test-string)))
+  (delete-file filename))
 
 ;;; ungetting characters and strings.
-(catch-test-errors
- (with-input-from-string "walk on the moon\nmoon"
-			 (lambda ()
-			   (read-char)
-			   (unread-char #\a (current-input-port))
-			   (pass-if "unread-char"
-				    (char=? (read-char) #\a))
-			   (read-line)
-			   (let ((replacenoid "chicken enchilada"))
-			     (unread-char #\newline (current-input-port))
-			     (unread-string replacenoid (current-input-port))
-			     (pass-if "unread-string"
-				      (string=? (read-line) replacenoid)))
-			   (pass-if "unread residue"
-				    (string=? (read-line) "moon")))))
+(with-input-from-string "walk on the moon\nmoon"
+			(lambda ()
+			  (read-char)
+			  (unread-char #\a (current-input-port))
+			  (pass-if "unread-char"
+				   (char=? (read-char) #\a))
+			  (read-line)
+			  (let ((replacenoid "chicken enchilada"))
+			    (unread-char #\newline (current-input-port))
+			    (unread-string replacenoid (current-input-port))
+			    (pass-if "unread-string"
+				     (string=? (read-line) replacenoid)))
+			  (pass-if "unread residue"
+				   (string=? (read-line) "moon"))))
 
 ;;; non-blocking mode on a port.  create a pipe and set O_NONBLOCK on
 ;;; the reading end.  try to read a byte: should get EAGAIN or
 ;;; EWOULDBLOCK error.
-(catch-test-errors
- (let* ((p (pipe))
-	(r (car p)))
-   (fcntl r F_SETFL (logior (fcntl r F_GETFL) O_NONBLOCK))
-   (pass-if "non-blocking-I/O"
-	    (catch 'system-error
-		   (lambda () (read-char r) #f)
-		   (lambda (key . args)
-		     (and (eq? key 'system-error)
-			  (let ((errno (car (list-ref args 3))))
-			    (or (= errno EAGAIN)
-				(= errno EWOULDBLOCK)))))))))
+(let* ((p (pipe))
+       (r (car p)))
+  (fcntl r F_SETFL (logior (fcntl r F_GETFL) O_NONBLOCK))
+  (pass-if "non-blocking-I/O"
+	   (catch 'system-error
+		  (lambda () (read-char r) #f)
+		  (lambda (key . args)
+		    (and (eq? key 'system-error)
+			 (let ((errno (car (list-ref args 3))))
+			   (or (= errno EAGAIN)
+			       (= errno EWOULDBLOCK))))))))
 
 ;;;; Pipe (popen) ports.
 
 ;;; Run a command, and read its output.
-(catch-test-errors
- (let* ((pipe (open-pipe "echo 'Howdy there, partner!'" "r"))
-	(in-string (read-all pipe)))
-   (close-pipe pipe)
-   (pass-if "pipe: read"
-	    (equal? in-string "Howdy there, partner!\n"))))
+(let* ((pipe (open-pipe "echo 'Howdy there, partner!'" "r"))
+       (in-string (read-all pipe)))
+  (close-pipe pipe)
+  (pass-if "pipe: read"
+	   (equal? in-string "Howdy there, partner!\n")))
 
 ;;; Run a command, send some output to it, and see if it worked.
-(catch-test-errors
- (let* ((filename (test-file))
-	(pipe (open-pipe (string-append "grep Mommy > " filename) "w")))
-   (display "Now Jimmy lives on a mushroom cloud\n" pipe)
-   (display "Mommy, why does everybody have a bomb?\n" pipe)
-   (close-pipe pipe)
-   (let ((in-string (read-file filename)))
-     (pass-if "pipe: write"
-	      (equal? in-string "Mommy, why does everybody have a bomb?\n")))
-   (delete-file filename)))
+(let* ((filename (test-file))
+       (pipe (open-pipe (string-append "grep Mommy > " filename) "w")))
+  (display "Now Jimmy lives on a mushroom cloud\n" pipe)
+  (display "Mommy, why does everybody have a bomb?\n" pipe)
+  (close-pipe pipe)
+  (let ((in-string (read-file filename)))
+    (pass-if "pipe: write"
+	     (equal? in-string "Mommy, why does everybody have a bomb?\n")))
+  (delete-file filename))
 
 
 ;;;; Void ports.  These are so trivial we don't test them.
@@ -241,75 +230,71 @@
 (with-test-prefix "string ports"
 
   ;; Write text to a string port.
-  (catch-test-errors
-   (let* ((string "Howdy there, partner!")
-          (in-string (call-with-output-string
-                      (lambda (port)
-                        (display string port)
-                        (newline port)))))
-     (pass-if "display text"
-              (equal? in-string (string-append string "\n")))))
+  (let* ((string "Howdy there, partner!")
+	 (in-string (call-with-output-string
+		     (lambda (port)
+		       (display string port)
+		       (newline port)))))
+    (pass-if "display text"
+	     (equal? in-string (string-append string "\n"))))
 		   
   ;; Write an s-expression to a string port.
-  (catch-test-errors
-   (let* ((sexpr '("more utterly random text" 1729 #(a vector) 3.1415926))
-	  (in-sexpr 
-	   (call-with-input-string (call-with-output-string
-				    (lambda (port)
-				      (write sexpr port)))
-				   read)))
-     (pass-if "write/read sexpr"
-	      (equal? in-sexpr sexpr))))
+  (let* ((sexpr '("more utterly random text" 1729 #(a vector) 3.1415926))
+	 (in-sexpr 
+	  (call-with-input-string (call-with-output-string
+				   (lambda (port)
+				     (write sexpr port)))
+				  read)))
+    (pass-if "write/read sexpr"
+	     (equal? in-sexpr sexpr)))
 
   ;; seeking and unreading from an input string.
-  (catch-test-errors
-   (let ((text "that text didn't look random to me"))
-     (call-with-input-string text
-			     (lambda (p)
-			       (pass-if "input tell 0"
-					(= (seek p 0 SEEK_CUR) 0))
-			       (read-char p)
-			       (pass-if "input tell 1"
-					(= (seek p 0 SEEK_CUR) 1))
-			       (unread-char #\x p)
-			       (pass-if "input tell back to 0"
-					(= (seek p 0 SEEK_CUR) 0))
-			       (pass-if "input ungetted char"
-					(char=? (read-char p) #\x))
-			       (seek p 0 SEEK_END)
-			       (pass-if "input seek to end"
-					(= (seek p 0 SEEK_CUR)
-					   (string-length text)))
-			       (unread-char #\x p)
-			       (pass-if "input seek to beginning"
-					(= (seek p 0 SEEK_SET) 0))
-			       (pass-if "input reread first char"
-					(char=? (read-char p)
-						(string-ref text 0)))))))
-					   
+  (let ((text "that text didn't look random to me"))
+    (call-with-input-string text
+			    (lambda (p)
+			      (pass-if "input tell 0"
+				       (= (seek p 0 SEEK_CUR) 0))
+			      (read-char p)
+			      (pass-if "input tell 1"
+				       (= (seek p 0 SEEK_CUR) 1))
+			      (unread-char #\x p)
+			      (pass-if "input tell back to 0"
+				       (= (seek p 0 SEEK_CUR) 0))
+			      (pass-if "input ungetted char"
+				       (char=? (read-char p) #\x))
+			      (seek p 0 SEEK_END)
+			      (pass-if "input seek to end"
+				       (= (seek p 0 SEEK_CUR)
+					  (string-length text)))
+			      (unread-char #\x p)
+			      (pass-if "input seek to beginning"
+				       (= (seek p 0 SEEK_SET) 0))
+			      (pass-if "input reread first char"
+				       (char=? (read-char p)
+					       (string-ref text 0))))))
+
   ;; seeking an output string.
-  (catch-test-errors
-   (let* ((text "123456789")
-	  (len (string-length text))
-	  (result (call-with-output-string
-		   (lambda (p)
-		     (pass-if "output tell 0"
-			      (= (seek p 0 SEEK_CUR) 0))
-		     (display text p)
-		     (pass-if "output tell end"
-			      (= (seek p 0 SEEK_CUR) len))
-		     (pass-if "output seek to beginning"
-			      (= (seek p 0 SEEK_SET) 0))
-		     (write-char #\a p)
-		     (seek p -1 SEEK_END)
-		     (pass-if "output seek to last char"
-			      (= (seek p 0 SEEK_CUR)
-				 (- len 1)))
-		     (write-char #\b p)))))
-     (string-set! text 0 #\a)
-     (string-set! text (- len 1) #\b)
-     (pass-if "output check"
-	      (string=? text result)))))
+  (let* ((text "123456789")
+	 (len (string-length text))
+	 (result (call-with-output-string
+		  (lambda (p)
+		    (pass-if "output tell 0"
+			     (= (seek p 0 SEEK_CUR) 0))
+		    (display text p)
+		    (pass-if "output tell end"
+			     (= (seek p 0 SEEK_CUR) len))
+		    (pass-if "output seek to beginning"
+			     (= (seek p 0 SEEK_SET) 0))
+		    (write-char #\a p)
+		    (seek p -1 SEEK_END)
+		    (pass-if "output seek to last char"
+			     (= (seek p 0 SEEK_CUR)
+				(- len 1)))
+		    (write-char #\b p)))))
+    (string-set! text 0 #\a)
+    (string-set! text (- len 1) #\b)
+    (pass-if "output check"
+	     (string=? text result))))
 
 
 
@@ -372,28 +357,26 @@
 	(for-each close-port ports)
 	(delete-file port-loop-temp))))
 
-  (catch-test-errors
-   (with-test-prefix "newline"
-     (test-line-counter
-      (string-append "x\n"
-		     "He who receives an idea from me, receives instruction\n"
-		     "himself without lessening mine; as he who lights his\n"
-		     "taper at mine, receives light without darkening me.\n"
-		     "  --- Thomas Jefferson\n")
-      "He who receives an idea from me, receives instruction"
-      0)))
+  (with-test-prefix "newline"
+    (test-line-counter
+     (string-append "x\n"
+		    "He who receives an idea from me, receives instruction\n"
+		    "himself without lessening mine; as he who lights his\n"
+		    "taper at mine, receives light without darkening me.\n"
+		    "  --- Thomas Jefferson\n")
+     "He who receives an idea from me, receives instruction"
+     0))
 
-  (catch-test-errors
-   (with-test-prefix "no newline"
-     (test-line-counter
-      (string-append "x\n"
-		     "He who receives an idea from me, receives instruction\n"
-		     "himself without lessening mine; as he who lights his\n"
-		     "taper at mine, receives light without darkening me.\n"
-		     "  --- Thomas Jefferson\n"
-		     "no newline here")
-      "He who receives an idea from me, receives instruction"
-      15))))
+  (with-test-prefix "no newline"
+    (test-line-counter
+     (string-append "x\n"
+		    "He who receives an idea from me, receives instruction\n"
+		    "himself without lessening mine; as he who lights his\n"
+		    "taper at mine, receives light without darkening me.\n"
+		    "  --- Thomas Jefferson\n"
+		    "no newline here")
+     "He who receives an idea from me, receives instruction"
+     15)))
 
 
 ;;;; testing read-delimited and friends

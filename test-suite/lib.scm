@@ -1,5 +1,5 @@
 ;;;; test-suite/lib.scm --- generic support for testing
-;;;; 	Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+;;;; Copyright (C) 1999, 2000 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -22,13 +22,7 @@
 (export
 
  ;; Reporting passes and failures.
- pass fail pass-if
-
- ;; Indicating tests that are expected to fail.
- expect-failure expect-failure-if expect-failure-if*
-
- ;; Marking independent groups of tests.
- catch-test-errors catch-test-errors*
+ run-test pass-if expect-fail
 
  ;; Naming groups of tests in a regular fashion.
  with-test-prefix with-test-prefix* current-test-prefix
@@ -49,8 +43,44 @@
 
 
 ;;;; If you're using Emacs's Scheme mode:
-;;;;   (put 'expect-failure 'scheme-indent-function 0)
 ;;;;   (put 'with-test-prefix 'scheme-indent-function 1)
+
+
+;;;; CORE FUNCTIONS
+;;;;
+;;;; The function (run-test name expected-result thunk) is the heart of the
+;;;; testing environment.  The first parameter NAME is a unique name for the
+;;;; test to be executed (for an explanation of this parameter see below under
+;;;; TEST NAMES).  The second parameter EXPECTED-RESULT is a boolean value
+;;;; that indicates whether the corresponding test is expected to pass.  If
+;;;; EXPECTED-RESULT is #t the test is expected to pass, if EXPECTED-RESULT is
+;;;; #f the test is expected to fail.  Finally, THUNK is the function that
+;;;; actually performs the test.  For example:
+;;;;
+;;;;    (run-test "integer addition" #t (lambda () (= 2 (+ 1 1))))
+;;;;
+;;;; To report success, THUNK should either return #t or throw 'pass.  To
+;;;; report failure, THUNK should either return #f or throw 'fail.  If THUNK
+;;;; returns a non boolean value or throws 'unresolved, this indicates that
+;;;; the test did not perform as expected.  For example the property that was
+;;;; to be tested could not be tested because something else went wrong.
+;;;; THUNK may also throw 'untested to indicate that the test was deliberately
+;;;; not performed, for example because the test case is not complete yet.
+;;;; Finally, if THUNK throws 'unsupported, this indicates that this test
+;;;; requires some feature that is not available in the configured testing
+;;;; environment.  All other exceptions thrown by THUNK are considered as
+;;;; errors.
+;;;;
+;;;; For convenience, the following macros are provided:
+;;;; * (pass-if name body) is a short form for 
+;;;;   (run-test name #t (lambda () body))
+;;;; * (expect-fail name body) is a short form for 
+;;;;   (run-test name #f (lambda () body))
+;;;;
+;;;; For example:  
+;;;;
+;;;;    (pass-if "integer addition" (= 2 (+ 1 1)))
+
 
 
 ;;;; TEST NAMES
@@ -69,12 +99,9 @@
 ;;;; - Test names can be reliably stored and retrieved with the standard WRITE
 ;;;;   and READ procedures; doing so preserves their identity.
 ;;;; 
-;;;; The functions for reporting results (PASS, FAIL, PASS-IF, ...)
-;;;; take the name of the passing/failing test as an argument.
 ;;;; For example:
 ;;;; 
-;;;;    (if (= 4 (+ 2 2))
-;;;;      (pass "simple addition"))
+;;;;    (pass-if "simple addition" (= 4 (+ 2 2)))
 ;;;; 
 ;;;; In that case, the test name is the list ("simple addition").
 ;;;;
@@ -126,21 +153,37 @@
 
 
 ;;;; REPORTERS
-
+;;;; 
 ;;;; A reporter is a function which we apply to each test outcome.
 ;;;; Reporters can log results, print interesting results to the
 ;;;; standard output, collect statistics, etc.
 ;;;; 
-;;;; A reporter function takes one argument, RESULT; its return value
+;;;; A reporter function takes two mandatory arguments, RESULT and TEST, and
+;;;; possibly additional arguments depending on RESULT; its return value
 ;;;; is ignored.  RESULT has one of the following forms:
 ;;;;
-;;;; (pass TEST)    - The test named TEST passed.
-;;;; (fail TEST)    - The test named TEST failed.
-;;;; (xpass TEST)   - The test named TEST passed unexpectedly.
-;;;; (xfail TEST)   - The test named TEST failed, as expected.
-;;;; (error PREFIX) - An error occurred, with TEST as the current
-;;;;                  test name prefix.  Some tests were
-;;;;                  probably not executed because of this.
+;;;; pass         - The test named TEST passed.  
+;;;;                Additional arguments are ignored.
+;;;; upass        - The test named TEST passed unexpectedly.
+;;;;                Additional arguments are ignored.
+;;;; fail         - The test named TEST failed.
+;;;;                Additional arguments are ignored.
+;;;; xfail        - The test named TEST failed, as expected.
+;;;;                Additional arguments are ignored.
+;;;; unresolved   - The test named TEST did not perform as expected, for
+;;;;                example the property that was to be tested could not be
+;;;;                tested because something else went wrong.
+;;;;                Additional arguments are ignored.
+;;;; untested     - The test named TEST was not actually performed, for
+;;;;                example because the test case is not complete yet. 
+;;;;                Additional arguments are ignored.
+;;;; unsupported  - The test named TEST requires some feature that is not
+;;;;                available in the configured testing environment.
+;;;;                Additional arguments are ignored.
+;;;; error        - An error occurred while the test named TEST was
+;;;;                performed.  Since this result means that the system caught
+;;;;                an exception it could not handle, the exception arguments
+;;;;                are passed as additional arguments.
 ;;;;
 ;;;; This library provides some standard reporters for logging results
 ;;;; to a file, reporting interesting results to the user, and
@@ -152,12 +195,87 @@
 ;;;; all results to the standard output.
 
 
-;;;; with-test-prefix: naming groups of tests
-;;;; See the discussion of TEST NAMES, above.
+;;;; MISCELLANEOUS
+;;;;
+
+;;; Display all parameters to the default output port, followed by a newline.
+(define (display-line . objs)
+  (for-each display objs)
+  (newline))
+
+;;; Display all parameters to the given output port, followed by a newline.
+(define (display-line-port port . objs)
+  (for-each (lambda (obj) (display obj port)) objs)
+  (newline port))
+
+
+;;;; CORE FUNCTIONS
+;;;;
+
+;;; The central testing routine.
+;;; The idea is taken from Greg, the GNUstep regression test environment.
+(define run-test #f)
+(let ((test-running #f))
+  (define (local-run-test name expect-pass thunk)
+    (if test-running
+	(error "Nested calls to run-test are not permitted.")
+	(let ((test-name (full-name name)))
+	  (set! test-running #t)
+	  (catch #t
+	    (lambda ()
+	      (let ((result (thunk)))
+		(if (eq? result #t) (throw 'pass))
+		(if (eq? result #f) (throw 'fail))
+		(throw 'unresolved)))
+	    (lambda (key . args)
+	      (case key
+		((pass) 
+		 (report (if expect-pass 'pass 'upass) test-name))
+		((fail) 
+		 (report (if expect-pass 'fail 'xfail) test-name))
+		((unresolved untested unsupported) 
+		 (report key test-name))
+		((quit) 
+		 (report 'unresolved test-name)
+		 (quit))
+		(else 
+		 (report 'error test-name (cons key args))))))
+	  (set! test-running #f))))
+  (set! run-test local-run-test))
+
+;;; A short form for tests that are expected to pass, taken from Greg.
+(defmacro pass-if (name body)
+  `(run-test ,name #t (lambda () (not (not (begin ,body))))))
+
+;;; A short form for tests that are expected to fail, taken from Greg.
+(defmacro expect-fail (name body)
+  `(run-test ,name #f (lambda () ,body)))
+
+
+;;;; TEST NAMES
+;;;;
+
+;;;; Turn a test name into a nice human-readable string.
+(define (format-test-name name)
+  (call-with-output-string
+   (lambda (port)
+     (let loop ((name name)
+		(separator ""))
+       (if (pair? name)
+	   (begin
+	     (display separator port)
+	     (display (car name) port)
+	     (loop (cdr name) ": ")))))))
+
+;;;; For a given test-name, deliver the full name including all prefixes.
+(define (full-name name)
+  (append (current-test-prefix) (list name)))
 
 ;;; A fluid containing the current test prefix, as a list.
 (define prefix-fluid (make-fluid))
 (fluid-set! prefix-fluid '())
+(define (current-test-prefix)
+  (fluid-ref prefix-fluid))
 
 ;;; Postpend PREFIX to the current name prefix while evaluting THUNK.
 ;;; The name prefix is only changed within the dynamic scope of the
@@ -175,11 +293,9 @@
 (defmacro with-test-prefix (prefix . body)
   `(with-test-prefix* ,prefix (lambda () ,@body)))
 
-(define (current-test-prefix)
-  (fluid-ref prefix-fluid))
-
 
-;;;; register-reporter, etc. --- the global reporter list
+;;;; REPORTERS
+;;;; 
 
 ;;; The global list of reporters.
 (define reporters '())
@@ -205,16 +321,51 @@
 (define (reporter-registered? reporter)
   (if (memq reporter reporters) #t #f))
 
-
 ;;; Send RESULT to all currently registered reporter functions.
-(define (report result)
+(define (report . args)
   (if (pair? reporters)
-      (for-each (lambda (reporter) (reporter result))
+      (for-each (lambda (reporter) (apply reporter args))
 		reporters)
-      (default-reporter result)))
+      (apply default-reporter args)))
 
 
-;;;; Some useful reporter functions.
+;;;; Some useful standard reporters:
+;;;; Count reporters count the occurrence of each test result type.
+;;;; Log reporters write all test results to a given log file.
+;;;; Full reporters write all test results to the standard output.
+;;;; User reporters write interesting test results to the standard output.
+
+;;; The complete list of possible test results.
+(define result-tags 
+  '((pass        "PASS"        "passes:                 ")
+    (fail        "FAIL"        "failures:               ")
+    (upass       "UPASS"       "unexpected passes:      ")
+    (xfail       "XFAIL"       "expected failures:      ")
+    (unresolved  "UNRESOLVED"  "unresolved test cases:  ")
+    (untested    "UNTESTED"    "untested test cases:    ")
+    (unsupported "UNSUPPORTED" "unsupported test cases: ")
+    (error       "ERROR"       "errors:                 ")))
+
+;;; The list of important test results.
+(define important-result-tags 
+  '(fail upass unresolved error))
+
+;;; Display a single test result in formatted form to the given port
+(define (print-result port result name . args)
+  (let* ((tag (assq result result-tags))
+	 (label (if tag (cadr tag) #f)))
+    (if label
+	(begin
+	  (display label port)
+	  (display ": " port)
+	  (display (format-test-name name) port)
+	  (if (pair? args)
+	      (begin
+		(display " - arguments: " port)
+		(write args port)))
+	  (newline port))
+	(error "(test-suite lib) FULL-REPORTER: unrecognized result: "
+	       result))))
 
 ;;; Return a list of the form (COUNTER RESULTS), where:
 ;;; - COUNTER is a reporter procedure, and
@@ -222,193 +373,56 @@
 ;;;   results seen so far by COUNTER.  The return value is an alist
 ;;;   mapping outcome symbols (`pass', `fail', etc.) onto counts.
 (define (make-count-reporter)
-  (let ((counts (map (lambda (outcome) (cons outcome 0))
-		     '(pass fail xpass xfail error))))
+  (let ((counts (map (lambda (tag) (cons (car tag) 0)) result-tags)))
     (list
-     (lambda (result)
-       (let ((pair (assq (car result) counts)))
-	 (if pair (set-cdr! pair (+ 1 (cdr pair)))
-	     (error "count-reporter: unexpected test result: " result))))
+     (lambda (result name . args)
+       (let ((pair (assq result counts)))
+	 (if pair 
+	     (set-cdr! pair (+ 1 (cdr pair)))
+	     (error "count-reporter: unexpected test result: " 
+		    (cons result (cons name args))))))
      (lambda ()
        (append counts '())))))
 
 ;;; Print a count reporter's results nicely.  Pass this function the value
 ;;; returned by a count reporter's RESULTS procedure.
-(define print-counts
-  (let ((tags '(pass fail xpass xfail error))
-	(labels
-	 '("passes:               "
-	   "failures:             "
-	   "unexpected passes:    "
-	   "expected failures:    "
-	   "errors:               ")))
-    (lambda (results . port?)
-      (let ((port (if (pair? port?) 
-		      (car port?)
-		      (current-output-port))))
-	(newline port)
-	(display-line-port port "Totals for this test run:")
-	(for-each
-	 (lambda (tag label)
-	   (let ((result (assq tag results)))
-	     (if result
-		 (display-line-port port label (cdr result))
-		 (display-line-port port
-				    "Test suite bug: "
-				    "no total available for `" tag "'"))))
-	 tags labels)
-	(newline port)))))
-				 
-;;; Handy functions.  Should be in a library somewhere.
-(define (display-line . objs)
-  (for-each display objs)
-  (newline))
-(define (display-line-port port . objs)
-  (for-each (lambda (obj) (display obj port))
-	    objs)
-  (newline port))
-
-;;; Turn a test name into a nice human-readable string.
-(define (format-test-name name)
-  (call-with-output-string
-   (lambda (port)
-     (let loop ((name name))
-       (if (pair? name) 
-	   (begin 
-	     (display (car name) port)
-	     (if (pair? (cdr name))
-		 (display ": " port))
-	     (loop (cdr name))))))))
+(define (print-counts results . port?)
+  (let ((port (if (pair? port?) 
+		  (car port?)
+		  (current-output-port))))
+    (newline port)
+    (display-line-port port "Totals for this test run:")
+    (for-each
+     (lambda (tag)
+       (let ((result (assq (car tag) results)))
+	 (if result
+	     (display-line-port port (caddr tag) (cdr result))
+	     (display-line-port port
+				"Test suite bug: "
+				"no total available for `" (car tag) "'"))))
+     result-tags)
+    (newline port)))
 
 ;;; Return a reporter procedure which prints all results to the file
 ;;; FILE, in human-readable form.  FILE may be a filename, or a port.
 (define (make-log-reporter file)
   (let ((port (if (output-port? file) file
 		  (open-output-file file))))
-    (lambda (result)
-      (display (car result) port)
-      (display ": " port)
-      (display (format-test-name (cadr result)) port)
-      (newline port)
+    (lambda args
+      (apply print-result port args)
       (force-output port))))
 
 ;;; A reporter that reports all results to the user.
-(define (full-reporter result)
-  (let ((label (case (car result)
-		 ((pass) "pass")
-		 ((fail) "FAIL")
-		 ((xpass) "XPASS")
-		 ((xfail) "xfail")
-		 ((error) "ERROR")
-		 (else #f))))
-    (if label
-	(display-line label ": " (format-test-name (cadr result)))
-	(error "(test-suite lib) FULL-REPORTER: unrecognized result: "
-	       result))))
+(define (full-reporter . args)
+  (apply print-result (current-output-port) args))
 
 ;;; A reporter procedure which shows interesting results (failures,
-;;; unexpected passes) to the user.
-(define (user-reporter result)
-  (case (car result)
-    ((fail xpass) (full-reporter result))))
+;;; unexpected passes etc.) to the user.
+(define (user-reporter result name . args)
+  (if (memq result important-result-tags)
+      (apply full-reporter result name args)))
 
 (set! default-reporter full-reporter)
-
-
-;;;; Marking independent groups of tests.
-
-;;; When test code encounters an error (like "file not found" or "()
-;;; is not a pair"), that may mean that that particular test can't
-;;; continue, or that some nearby tests shouldn't be run, but it
-;;; doesn't mean the whole test suite must be aborted.
-;;;
-;;; Wrap each group of interdependent tests in a CATCH-TEST-ERRORS
-;;; form, so that if an error occurs, that group will be aborted, but
-;;; control will continue after the catch-test-errors form.
-
-;;; Evaluate thunk, catching errors.  If THUNK returns without
-;;; signalling any errors, return a list containing its value.
-;;; Otherwise, return #f.
-(define (catch-test-errors* thunk)
-
-  (letrec ((handler
-	    (lambda (key . args)
-	      (display-line "ERROR in test "
-			    (format-test-name (current-test-prefix))
-			    ":")
-	      (apply display-error
-		     (make-stack #t handler)
-		     (current-error-port)
-		     args)
-	      (throw 'catch-test-errors))))
-
-    ;; I don't know if we should really catch everything here.  If you
-    ;; find a case where an error is signalled which really should abort
-    ;; the whole test case, feel free to adjust this appropriately.
-    (catch 'catch-test-errors
-	   (lambda ()
-	     (lazy-catch #t
-			 (lambda () (list (thunk)))
-			 handler))
-	   (lambda args
-	     (report (list 'error (current-test-prefix)))
-	     #f))))
-
-;;; (catch-test-errors BODY ...)
-;;; Evaluate the expressions BODY ...  If a BODY expression signals an
-;;; error, record that in the test results, and return #f.  Otherwise,
-;;; return a list containing the value of the last BODY expression.
-(defmacro catch-test-errors body
-  `(catch-test-errors* (lambda () ,@body)))
-
-
-;;;; Indicating tests that are expected to fail.
-
-;;; Fluid indicating whether we're currently expecting tests to fail.
-(define expected-failure-fluid (make-fluid))
-
-;;; Hmm.  The documentation treats EXPECT-FAILURE-IF as the primitive,
-;;; but in the implementation, EXPECT-FAILURE-IF* is the primitive.
-
-;;; (expect-failure-if TEST BODY ...)
-;;; Evaluate the expression TEST, then evaluate BODY ...
-;;; If TEST evaluates to a true value, expect all tests whose results
-;;; are reported by the BODY expressions to fail.
-;;; Return the value of the last BODY form.
-(defmacro expect-failure-if (test . body)
-  `(expect-failure-if* ,test (lambda () ,@body)))
-
-;;; Call THUNK; if SHOULD-FAIL is true, expect any tests whose results
-;;; are reported by THUNK to fail.  Return the value returned by THUNK.
-(define (expect-failure-if* should-fail thunk)
-  (with-fluids ((expected-failure-fluid (not (not should-fail))))
-    (thunk)))
-
-;;; (expect-failure BODY ...)
-;;; Evaluate the expressions BODY ..., expecting all tests whose results
-;;; they report to fail.
-(defmacro expect-failure body 
-  `(expect-failure-if #t ,@body))
-
-(define (pessimist?)
-  (fluid-ref expected-failure-fluid))
-
-
-;;;; Reporting passes and failures.
-
-(define (full-name name)
-  (append (current-test-prefix) (list name)))
-
-(define (pass name)
-  (report (list (if (pessimist?) 'xpass 'pass)
-		(full-name name))))
-
-(define (fail name)
-  (report (list (if (pessimist?) 'xfail 'fail)
-		(full-name name))))
-
-(define (pass-if name condition)
-  ((if condition pass fail) name))
 
 
 ;;;; Helping test cases find their files
@@ -446,5 +460,3 @@
   (catch key
 	 (lambda () (thunk) #f)
 	 (lambda args #t)))
-
-
