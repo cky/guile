@@ -1543,7 +1543,7 @@ coerce_to_big (SCM in, mpz_t out)
   return 1;
 }
 
-SCM_DEFINE (scm_modular_expt, "modulo-expt", 3, 0, 0,
+SCM_DEFINE (scm_modulo_expt, "modulo-expt", 3, 0, 0,
             (SCM n, SCM k, SCM m),
             "Return @var{n} raised to the integer exponent\n"
 	    "@var{k}, modulo @var{m}.\n"
@@ -1552,7 +1552,7 @@ SCM_DEFINE (scm_modular_expt, "modulo-expt", 3, 0, 0,
 	    "(modulo-expt 2 3 5)\n"
 	    "   @result{} 3\n"
 	    "@end lisp")
-#define FUNC_NAME s_scm_modular_expt
+#define FUNC_NAME s_scm_modulo_expt
 {
   mpz_t n_tmp; 
   mpz_t k_tmp; 

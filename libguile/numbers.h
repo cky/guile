@@ -201,7 +201,7 @@ SCM_API SCM scm_logxor (SCM n1, SCM n2);
 SCM_API SCM scm_logtest (SCM n1, SCM n2);
 SCM_API SCM scm_logbit_p (SCM n1, SCM n2);
 SCM_API SCM scm_lognot (SCM n);
-SCM_API SCM scm_modular_expt (SCM n, SCM k, SCM m);
+SCM_API SCM scm_modulo_expt (SCM n, SCM k, SCM m);
 SCM_API SCM scm_integer_expt (SCM z1, SCM z2);
 SCM_API SCM scm_ash (SCM n, SCM cnt);
 SCM_API SCM scm_bit_extract (SCM n, SCM start, SCM end);
