@@ -4407,6 +4407,52 @@ check_sanity ()
 #endif
 }
 
+#undef CHECK
+
+#define CHECK \
+        scm_internal_catch (SCM_BOOL_T, check_body, &data, check_handler, &data); \
+        if (!SCM_FALSEP (data)) abort();
+
+static SCM
+check_body (void *data)
+{
+  SCM num = *(SCM *) data;
+  scm_num2ulong (num, 1, NULL);
+  
+  return SCM_UNSPECIFIED;
+}
+
+static SCM
+check_handler (void *data, SCM tag, SCM throw_args)
+{
+  SCM *num = (SCM *) data;
+  *num = SCM_BOOL_F;
+
+  return SCM_UNSPECIFIED;
+}
+  
+SCM_DEFINE (scm_sys_check_number_conversions, "%check-number-conversions", 0, 0, 0, 
+            (),
+	    "Number conversion sanity checking.")
+#define FUNC_NAME s_scm_sys_check_number_conversions
+{
+  SCM data = SCM_MAKINUM (-1);
+  CHECK;
+  data = scm_int2num (INT_MIN);
+  CHECK;
+  data = scm_ulong2num (ULONG_MAX);
+  data = scm_difference (SCM_INUM0, data);
+  CHECK;
+  data = scm_ulong2num (ULONG_MAX);
+  data = scm_sum (SCM_MAKINUM (1), data); data = scm_difference (SCM_INUM0, data);
+  CHECK;
+  data = scm_int2num (-10000); data = scm_product (data, data); data = scm_product (data, data);
+  CHECK;
+
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+
 #endif
 
 void

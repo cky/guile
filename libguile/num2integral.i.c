@@ -47,8 +47,10 @@ NUM2INTEGRAL (SCM num, unsigned long int pos, const char *s_caller)
           res = new;
         }
     
-#ifndef UNSIGNED
       if (SCM_BIGSIGN (num))
+#ifdef UNSIGNED
+        scm_out_of_range (s_caller, num);
+#else
         {
           res = -res;
           if (res <= 0)
@@ -56,6 +58,7 @@ NUM2INTEGRAL (SCM num, unsigned long int pos, const char *s_caller)
           else
             scm_out_of_range (s_caller, num);
         }
+#endif
       else
         {
           if (res >= 0)
@@ -63,8 +66,7 @@ NUM2INTEGRAL (SCM num, unsigned long int pos, const char *s_caller)
           else
             scm_out_of_range (s_caller, num);
         }
-#endif
-      
+
       return res;
     }
   else if (SCM_REALP (num))

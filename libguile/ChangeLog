@@ -1,3 +1,12 @@
+2001-09-01  Michael Livshin  <mlivshin@bigfoot.com>
+
+	* numbers.c (scm_sys_check_number_conversions): new function,
+	defined if Guile is compiled in debugging mode.  currently checks
+	`scm_num2ulong', should check much much more.
+
+	* num2integral.i.c (NUM2INTEGRAL): when converting a bignum to
+	unsigned, ensure that it's positive.  thanks to Martin Baulig!
+	
 2001-08-31  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* __scm.h: Added new section about compile time selectable
