@@ -95,7 +95,7 @@
 	 (handle-delim (if (pair? args)
 			   (car args)
 			   'trim)))
-    (let loop ((substrings ())
+    (let loop ((substrings '())
 	       (total-chars 0)
 	       (buf-size 100))		; doubled each time through.
       (let* ((buf (make-string buf-size))

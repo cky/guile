@@ -2745,5 +2745,5 @@
 
 (define-module (guile))
 
-(append! %load-path (cons "." ()))
+(append! %load-path (cons "." '()))
 
