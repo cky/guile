@@ -1173,6 +1173,12 @@ function as the callback instead of a SCM value.
 
 Use scm_std_select, scm_std_sleep, scm_std_usleep instead.
 
+** The GC can no longer be blocked.
+
+The global flags scm_gc_heap_lock and scm_block_gc have been removed.
+The GC can now run (partially) concurrently with other code and thus
+blocking it is not well defined.
+
 ** Many definitions have been removed that were previously deprecated.
 
 scm_lisp_nil, scm_lisp_t, s_nil_ify, scm_m_nil_ify, s_t_ify,
