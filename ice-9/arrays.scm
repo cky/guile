@@ -18,17 +18,13 @@
 ;;;; Boston, MA 02111-1307 USA
 ;;;; 
 
-(define uniform-vector-fill! array-fill!)
-
-(define (make-array fill . args)
-  (dimensions->uniform-array args make-vector fill))
-(define (list->array ndim lst)
-  (list->uniform-array ndim make-vector lst))
 (define (array-shape a)
   (map (lambda (ind) (if (number? ind) (list 0 (+ -1 ind)) ind))
        (array-dimensions a)))
 
 ;; deprecated
+
+(define uniform-vector-fill! array-fill!)
 
 (define make-uniform-vector dimensions->uniform-array)
 
