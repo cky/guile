@@ -3918,6 +3918,7 @@ scm_i_eval_x (SCM exp, SCM env)
 SCM 
 scm_i_eval (SCM exp, SCM env)
 {
+  exp = scm_copy_tree (exp);
   return SCM_XEVAL (exp, env);
 }
 
