@@ -1646,6 +1646,15 @@
 	(variable-set! variable value)
 	(module-add! module name (make-variable value name)))))
 
+;; MODULE-DEFINED? -- exported
+;;
+;; Return #t iff NAME is defined in MODULE (or in a module that MODULE
+;; uses)
+;;
+(define (module-defined? module name)
+  (let ((variable (module-variable module name)))
+    (and variable (variable-bound? variable))))
+
 ;; MODULE-USE! module interface
 ;;
 ;; Add INTERFACE to the list of interfaces used by MODULE.
@@ -1896,7 +1905,7 @@
 ;;   
 ;;   "ice-9 gtcltk" is the C version of the module name. Slashes are
 ;;   replaced by spaces, the rest is untouched. `scm_init_gtcltk' is
-;;   the real init function that executes the usual initilizations
+;;   the real init function that executes the usual initializations
 ;;   like making new smobs, etc.
 ;;
 ;; - Make a shared library with your code and a name like
@@ -1956,6 +1965,13 @@
 	 (lambda args
 	   #f)))
 
+(define (dynamic-maybe-link filename)
+  (catch #t				; could use false-if-exception here
+	 (lambda ()
+	   (dynamic-link filename))
+	 (lambda args
+	   #f)))
+
 (define (find-and-link-dynamic-module module-name)
   (define (make-init-name mod-name)
     (string-append 'scm_init
@@ -1991,16 +2007,22 @@
      %load-path)))
 
 (define (link-dynamic-module filename initname)
-  (let ((dynobj (dynamic-link filename)))
-    (if (dynamic-maybe-call initname dynobj)
-	(set! registered-modules (append! (convert-c-registered-modules dynobj)
-					  registered-modules))
-	(dynamic-unlink dynobj))))
-
+  (let ((dynobj (dynamic-maybe-link filename)))
+    (if dynobj
+	(if (dynamic-maybe-call initname dynobj)
+	    (set! registered-modules 
+		  (append! (convert-c-registered-modules dynobj)
+			   registered-modules))
+	    (begin
+	      (pk 'no_init)
+	      (dynamic-unlink dynobj))))))
+	    
 (define (try-module-dynamic-link module-name)
   (or (init-dynamic-module module-name)
       (and (find-and-link-dynamic-module module-name)
 	   (init-dynamic-module module-name))))
+
+
 
 (define autoloads-done '((guile . guile)))
 
@@ -2070,10 +2092,14 @@
 	      (lambda (exp env)
 		(copy-tree (apply f (cdr exp)))))))
 
+
+;; XXX - should the definition of the car really be looked up in the
+;; current module?
+
 (define (macroexpand-1 e)
   (cond
    ((pair? e) (let* ((a (car e))
-		     (val (and (symbol? a) (defined? a) (eval a))))
+		     (val (and (symbol? a) (local-ref (list a)))))
 		(if (defmacro? val)
 		    (apply (defmacro-transformer val) (cdr e))
 		    e)))
@@ -2082,7 +2108,7 @@
 (define (macroexpand e)
   (cond
    ((pair? e) (let* ((a (car e))
-		     (val (and (symbol? a) (defined? a) (eval a))))
+		     (val (and (symbol? a) (local-ref (list a)))))
 		(if (defmacro? val)
 		    (macroexpand (apply (defmacro-transformer val) (cdr e)))
 		    e)))

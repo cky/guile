@@ -35,6 +35,11 @@
 (define slib:tab #\tab)
 (define slib:form-feed #\page)
 
+(define slib-module (current-module))
+
+(define (defined? symbol)
+  (module-defined? slib-module symbol))
+
 (define slib:features
   (append '(source
 	    eval
@@ -101,8 +106,6 @@
 		'(bignum)
 		'()))))
 
-
-(define slib-module (current-module))
 
 (define (slib:load name)
   (save-module-excursion

@@ -124,7 +124,7 @@
 
 ;;;; Loading
 
-(if (not (defined? '%load-verbosely))
+(if (not (module-defined? (current-module) '%load-verbosely))
     (define %load-verbosely #f))
 (define (assert-load-verbosity v) (set! %load-verbosely v))
 
