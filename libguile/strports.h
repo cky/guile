@@ -76,7 +76,9 @@ SCM_API SCM scm_open_output_string (void);
 SCM_API SCM scm_get_output_string (SCM port);
 SCM_API SCM scm_c_read_string (const char *expr);
 SCM_API SCM scm_c_eval_string (const char *expr);
+SCM_API SCM scm_c_eval_string_in_module (const char *expr, SCM module);
 SCM_API SCM scm_eval_string (SCM string);
+SCM_API SCM scm_eval_string_in_module (SCM string, SCM module);
 SCM_API void scm_init_strports (void);
 
 #endif  /* SCM_STRPORTS_H */

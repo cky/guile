@@ -440,6 +440,13 @@ scm_c_eval_string (const char *expr)
   return scm_eval_string (scm_makfrom0str (expr));
 }
 
+SCM
+scm_c_eval_string_in_module (const char *expr, SCM module)
+{
+  return scm_eval_string_in_module (scm_makfrom0str (expr), module);
+}
+
+
 static SCM
 inner_eval_string (void *data)
 {
@@ -459,20 +466,31 @@ inner_eval_string (void *data)
   return ans;
 }
 
-SCM_DEFINE (scm_eval_string, "eval-string", 1, 0, 0, 
-            (SCM string),
+SCM_DEFINE (scm_eval_string_in_module, "eval-string", 1, 1, 0, 
+            (SCM string, SCM module),
 	    "Evaluate @var{string} as the text representation of a Scheme\n"
 	    "form or forms, and return whatever value they produce.\n"
-	    "Evaluation takes place in the environment returned by the\n"
-	    "procedure @code{interaction-environment}.")
-#define FUNC_NAME s_scm_eval_string
+	    "Evaluation takes place in the given module, or the current\n"
+            "module when no module is given.\n"
+            "While the code is evaluated, the given module is made the\n"
+	    "current one.  The current module is restored when this\n"
+            "procedure returns.")
+#define FUNC_NAME s_scm_eval_string_in_module
 {
   SCM port = scm_mkstrport (SCM_INUM0, string, SCM_OPN | SCM_RDNG,
-			    "eval-string");
-  return scm_c_call_with_current_module (scm_interaction_environment (),
+			    FUNC_NAME);
+  if (SCM_UNBNDP (module))
+    module = scm_current_module ();
+  return scm_c_call_with_current_module (module,
 					 inner_eval_string, (void *)port);
 }
 #undef FUNC_NAME
+
+SCM
+scm_eval_string (SCM string)
+{
+  return scm_eval_string_in_module (string, SCM_UNDEFINED);
+}
 
 static scm_t_bits
 scm_make_stptob ()
