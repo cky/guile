@@ -527,6 +527,7 @@ SCM_DEFINE (scm_srfi1_filter_map, "filter-map", 2, 0, 1,
         }
 
       /* check below that list1 is a proper list, and done */
+    end_list1:
       lst = list1;
       argnum = 2;
     }
@@ -540,11 +541,7 @@ SCM_DEFINE (scm_srfi1_filter_map, "filter-map", 2, 0, 1,
       for (;;)
         {
           if (! scm_is_pair (list1))
-            {
-              lst = list1;
-              argnum = 2;
-              goto check_lst_and_done;
-            }
+            goto end_list1;
           if (! scm_is_pair (list2))
             {
               lst = list2;
