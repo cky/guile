@@ -26,9 +26,11 @@ exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
 
 ;;; Commentary:
 
-;; Usage: display-commentary FILE1 FILE2 ...
+;; Usage: display-commentary REF1 REF2 ...
 ;;
-;; Display Commentary section from FILE1, FILE2 and so on.
+;; Display Commentary section from REF1, REF2 and so on.
+;; Each REF may be a filename or module name (list of symbols).
+;; In the latter case, a filename is computed by searching `%load-path'.
 
 ;;; Code:
 
@@ -39,8 +41,29 @@ exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
 (define (display-commentary-one file)
   (format #t "~A commentary:\n~A" file (file-commentary file)))
 
-(define (display-commentary . files)
-  (for-each display-commentary-one files))
+(define (module-name->filename-frag ls) ; todo: export or move
+  (let ((ls (map symbol->string ls)))
+    (let loop ((ls (cdr ls)) (acc (car ls)))
+      (if (null? ls)
+          acc
+          (loop (cdr ls) (string-append acc "/" (car ls)))))))
+
+(define (display-module-commentary module-name)
+  (cond ((%search-load-path (module-name->filename-frag module-name))
+         => (lambda (file)
+              (format #t "module ~A\n" module-name)
+              (display-commentary-one file)))))
+
+(define (display-commentary . refs)
+  (for-each (lambda (ref)
+              (cond ((string? ref)
+                     (if (equal? 0 (string-index ref #\())
+                         (display-module-commentary
+                          (with-input-from-string ref read))
+                         (display-commentary-one ref)))
+                    ((list? ref)
+                     (display-module-commentary ref))))
+            refs))
 
 (define main display-commentary)
 
