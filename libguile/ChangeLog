@@ -1,3 +1,9 @@
+2004-07-10  Kevin Ryde  <user42@zip.com.au>
+
+	* hash.c (scm_hashq, scm_hashv, scm_hash): Restrict to size>=1 rather
+	than size>=0, since 0<=hash<size cannot be satisfied for size==0, and
+	such a size causes divide-by-zeros in scm_hasher.
+
 2004-07-08  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* numbers.c (scm_is_signed_integer, scm_is_unsigned_integer):
