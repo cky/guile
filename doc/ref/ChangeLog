@@ -1,3 +1,9 @@
+2004-10-27  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* srfi-modules.texi, api-compound.texi: Moved SRFI-4 docs into
+	main part.  Moved bit vectors out of array section to make them
+	more visible.
+
 2004-10-19  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* api-smobs.texi (smob mark function): List admissible functions

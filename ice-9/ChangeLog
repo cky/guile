@@ -1,3 +1,8 @@
+2004-10-27  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* arrays.scm (uniform-vector?, uniform-vector-set!): Removed, now
+	provided by libguile.
+
 2004-10-26  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* boot-9.scm: Added srfi-4 to cond-expand features.

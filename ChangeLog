@@ -1,3 +1,7 @@
+2004-10-27  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* libguile.h: Include "libguile/srfi-4.h".
+
 2004-10-25  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* autogen.sh: Added explicit invocation of libtoolize before

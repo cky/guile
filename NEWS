@@ -109,8 +109,9 @@ This is an implementation of SRFI-26.
 This is an implementation of SRFI-31 which provides a special form
 `rec' for recursive evaluation.
 
-** The modules (srfi srfi-13) and (srfi srfi-14) have been merged with
-   the core, making their functionality always available.
+** The modules (srfi srfi-13), (srfi srfi-14) and (srfi srfi-4) have
+   been merged with the core, making their functionality always
+   available.
 
 The modules are still available, tho, and you could use them together
 with a renaming import, for example.
@@ -157,6 +158,11 @@ be used with '-e'.  For example, you can now write a script like
 
 
 * Changes to Scheme functions and syntax
+
+** The uniform vector and array support has been overhauled.
+
+It now complies with SRFI-4 and the weird prototype based uniform
+array creation has been deprecated.  See the manual for more details.
 
 ** There is now support for copy-on-write substrings, mutation-sharing
    substrings and read-only strings.
