@@ -759,7 +759,8 @@
 
 (with-test-prefix "lset="
 
-  ;; prior to guile 1.6.8 at least one list arg was (incorrectly) required
+  ;; in guile 1.6.7 and earlier, lset= incorrectly demanded at least one
+  ;; list arg
   (pass-if "no args"
     (eq? #t (lset= eq?)))
 
