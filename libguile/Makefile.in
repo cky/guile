@@ -108,7 +108,6 @@ libobjs=	alist.o \
 		load.o \
 		mallocs.o \
 		markers.o \
-		markers.o \
 		marksweep.o \
 		mbstrings.o \
 		numbers.o \
