@@ -146,6 +146,10 @@ for Guile's SRFI modules and modules associated with the Guile REPL.
 
 @node Guile License
 @section The Guile License
+@cindex Copying
+@cindex GPL
+@cindex LGPL
+@cindex License
 
 Guile is Free Software.  Guile is copyrighted, not public domain, and
 there are restrictions on its distribution or redistribution, but
