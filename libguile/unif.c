@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996,1997,1998, 2000 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996,1997,1998, 2000, 2001 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -2225,7 +2225,9 @@ static void
 rapr1 (SCM ra,scm_sizet j,scm_sizet k,SCM port,scm_print_state *pstate)
 {
   long inc = 1;
-  long n = SCM_INUM (scm_uniform_vector_length (ra));
+  long n = (SCM_TYP7 (ra) == scm_tc7_smob
+	    ? 0
+	    : SCM_INUM (scm_uniform_vector_length (ra)));
   int enclosed = 0;
 tail:
   switch SCM_TYP7 (ra)
