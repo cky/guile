@@ -1,3 +1,14 @@
+2003-01-20  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* psyntax.ss (self-evaluating?): Removed.  Guile now provides this
+	operator as a primitive procedure.
+	(build-data): Quote vectors (psyntax.ss requires this).
+
+2003-01-19  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* psyntax.ss (self-evaluating?): Allow procedures implanted in
+	source.  (Guile uses this internally.)
+
 2003-01-16  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* psyntax.ss (build-data): Don't quote self-evaluating expressions

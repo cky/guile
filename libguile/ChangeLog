@@ -1,3 +1,7 @@
+2003-01-20  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
+
+	* evalext.c, evalext.h (scm_self_evaluating_p): New function.
+
 2003-01-10  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* threads.c (scm_timed_wait_condition_variable): Support timed

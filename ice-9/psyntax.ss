@@ -419,7 +419,8 @@
     ((_ src level name) name)))
 
 (define (build-data src exp)
-  (if (self-evaluating? exp)
+  (if (and (self-evaluating? exp)
+	   (not (vector? exp)))
       exp
       (list 'quote exp)))
 
@@ -450,13 +451,6 @@
 (define-syntax build-lexical-var
   (syntax-rules ()
     ((_ src id) (gensym (symbol->string id)))))
-
-(define-syntax self-evaluating?
-  (syntax-rules ()
-    ((_ e)
-     (let ((x e))
-       (or (boolean? x) (number? x) (string? x) (char? x) (keyword? x)
-	   (procedure? x))))))
 )
 
 (define-structure (syntax-object expression wrap))
