@@ -1,5 +1,11 @@
 2000-05-08  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* numbers.c (scm_zero_p, scm_positive_p, scm_negative_p,
+	scm_real_part, scm_imag_part, scm_magnitude,
+	scm_inexact_to_exact):  Reordered dispatch sequence.
+
+2000-05-08  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* feature.c:  No need to include "libguile/smob.h"
 
 	(scm_loc_features, features, scm_add_feature, scm_init_feature):

@@ -3067,30 +3067,19 @@ SCM_GPROC (s_zero_p, "zero?", 1, 0, 0, scm_zero_p, g_zero_p);
 SCM
 scm_zero_p (SCM z)
 {
-  if (SCM_NINUMP (z))
-    {
-#ifdef SCM_BIGDIG
-      SCM_ASRTGO (SCM_NIMP (z), badz);
-      if (SCM_BIGP (z))
-	return SCM_BOOL_F;
-      if (!SCM_SLOPPY_INEXACTP (z))
-	{
-	badz:
-	  SCM_WTA_DISPATCH_1 (g_zero_p, z, SCM_ARG1, s_zero_p);
-	}
-#else
-      SCM_GASSERT1 (SCM_SLOPPY_INEXACTP (z),
-		    g_zero_p, z, SCM_ARG1, s_zero_p);
-#endif
-      if (SCM_SLOPPY_REALP (z))
-	return SCM_BOOL (SCM_REAL_VALUE (z) == 0.0);
-      else
-	return SCM_BOOL (SCM_COMPLEX_REAL (z) == 0.0
-			 && SCM_COMPLEX_IMAG (z) == 0.0);
-    }
-  return SCM_BOOL (SCM_EQ_P (z, SCM_INUM0));
+  if (SCM_INUMP (z)) {
+    return SCM_BOOL (SCM_EQ_P (z, SCM_INUM0));
+  } else if (SCM_BIGP (z)) {
+    return SCM_BOOL_F;
+  } else if (SCM_REALP (z)) {
+    return SCM_BOOL (SCM_REAL_VALUE (z) == 0.0);
+  } else if (SCM_COMPLEXP (z)) {
+    return SCM_BOOL (SCM_COMPLEX_REAL (z) == 0.0
+		     && SCM_COMPLEX_IMAG (z) == 0.0);
+  } else {
+    SCM_WTA_DISPATCH_1 (g_zero_p, z, SCM_ARG1, s_zero_p);
+  }
 }
-
 
 
 SCM_GPROC (s_positive_p, "positive?", 1, 0, 0, scm_positive_p, g_positive_p);
@@ -3098,26 +3087,16 @@ SCM_GPROC (s_positive_p, "positive?", 1, 0, 0, scm_positive_p, g_positive_p);
 SCM
 scm_positive_p (SCM x)
 {
-  if (SCM_NINUMP (x))
-    {
-#ifdef SCM_BIGDIG
-      SCM_ASRTGO (SCM_NIMP (x), badx);
-      if (SCM_BIGP (x))
-	return SCM_BOOL (!SCM_BIGSIGN (x));
-      if (!SCM_SLOPPY_REALP (x))
-	{
-	badx:
-	  SCM_WTA_DISPATCH_1 (g_positive_p, x, SCM_ARG1, s_positive_p);
-	}
-#else
-      SCM_GASSERT1 (SCM_SLOPPY_REALP (x),
-		    g_positive_p, x, SCM_ARG1, s_positive_p);
-#endif
-      return SCM_BOOL(SCM_REALPART (x) > 0.0);
-    }
-  return SCM_BOOL(SCM_INUM(x) > 0);
+  if (SCM_INUMP (x)) {
+    return SCM_BOOL (SCM_INUM (x) > 0);
+  } else if (SCM_BIGP (x)) {
+    return SCM_BOOL (!SCM_BIGSIGN (x));
+  } else if (SCM_REALP (x)) {
+    return SCM_BOOL(SCM_REAL_VALUE (x) > 0.0);
+  } else {
+    SCM_WTA_DISPATCH_1 (g_positive_p, x, SCM_ARG1, s_positive_p);
+  }
 }
-
 
 
 SCM_GPROC (s_negative_p, "negative?", 1, 0, 0, scm_negative_p, g_negative_p);
@@ -3125,24 +3104,15 @@ SCM_GPROC (s_negative_p, "negative?", 1, 0, 0, scm_negative_p, g_negative_p);
 SCM
 scm_negative_p (SCM x)
 {
-  if (SCM_NINUMP (x))
-    {
-#ifdef SCM_BIGDIG
-      SCM_ASRTGO (SCM_NIMP (x), badx);
-      if (SCM_BIGP (x))
-	return SCM_BOOL (SCM_BIGSIGN (x));
-      if (!(SCM_SLOPPY_REALP (x)))
-	{
-	badx:
-	  SCM_WTA_DISPATCH_1 (g_negative_p, x, SCM_ARG1, s_negative_p);
-	}
-#else
-      SCM_GASSERT1 (SCM_SLOPPY_REALP (x),
-		    g_negative_p, x, SCM_ARG1, s_negative_p);
-#endif
-      return SCM_BOOL(SCM_REALPART (x) < 0.0);
-    }
-  return SCM_BOOL(SCM_INUM(x) < 0);
+  if (SCM_INUMP (x)) {
+    return SCM_BOOL (SCM_INUM (x) < 0);
+  } else if (SCM_BIGP (x)) {
+    return SCM_BOOL (SCM_BIGSIGN (x));
+  } else if (SCM_REALP (x)) {
+    return SCM_BOOL(SCM_REAL_VALUE (x) < 0.0);
+  } else {
+    SCM_WTA_DISPATCH_1 (g_negative_p, x, SCM_ARG1, s_negative_p);
+  }
 }
 
 
@@ -4055,34 +4025,23 @@ SCM_DEFINE (scm_make_polar, "make-polar", 2, 0, 0,
 #undef FUNC_NAME
 
 
-
-
 SCM_GPROC (s_real_part, "real-part", 1, 0, 0, scm_real_part, g_real_part);
 
 SCM
 scm_real_part (SCM z)
 {
-  if (SCM_NINUMP (z))
-    {
-#ifdef SCM_BIGDIG
-      SCM_ASRTGO (SCM_NIMP (z), badz);
-      if (SCM_BIGP (z))
-	return z;
-      if (!(SCM_SLOPPY_INEXACTP (z)))
-	{
-	badz:
-	  SCM_WTA_DISPATCH_1 (g_real_part, z, SCM_ARG1, s_real_part);
-	}
-#else
-      SCM_GASSERT1 (SCM_SLOPPY_INEXACTP (z),
-		    g_real_part, z, SCM_ARG1, s_real_part);
-#endif
-      if (SCM_SLOPPY_COMPLEXP (z))
-	return scm_make_real (SCM_REAL (z));
-    }
-  return z;
+  if (SCM_INUMP (z)) {
+    return z;
+  } else if (SCM_BIGP (z)) {
+    return z;
+  } else if (SCM_REALP (z)) {
+    return z;
+  } else if (SCM_COMPLEXP (z)) {
+    return scm_make_real (SCM_COMPLEX_REAL (z));
+  } else {
+    SCM_WTA_DISPATCH_1 (g_real_part, z, SCM_ARG1, s_real_part);
+  }
 }
-
 
 
 SCM_GPROC (s_imag_part, "imag-part", 1, 0, 0, scm_imag_part, g_imag_part);
@@ -4090,26 +4049,18 @@ SCM_GPROC (s_imag_part, "imag-part", 1, 0, 0, scm_imag_part, g_imag_part);
 SCM
 scm_imag_part (SCM z)
 {
-  if (SCM_INUMP (z))
+  if (SCM_INUMP (z)) {
     return SCM_INUM0;
-#ifdef SCM_BIGDIG
-  SCM_ASRTGO (SCM_NIMP (z), badz);
-  if (SCM_BIGP (z))
+  } else if (SCM_BIGP (z)) {
     return SCM_INUM0;
-  if (!(SCM_SLOPPY_INEXACTP (z)))
-    {
-    badz:
-      SCM_WTA_DISPATCH_1 (g_imag_part, z, SCM_ARG1, s_imag_part);
-    }
-#else
-  SCM_GASSERT1 (SCM_SLOPPY_INEXACTP (z),
-		g_imag_part, z, SCM_ARG1, s_imag_part);
-#endif
-  if (SCM_SLOPPY_COMPLEXP (z))
-    return scm_make_real (SCM_IMAG (z));
-  return scm_flo0;
+  } else if (SCM_REALP (z)) {
+    return scm_flo0;
+  } else if (SCM_COMPLEXP (z)) {
+    return scm_make_real (SCM_COMPLEX_IMAG (z));
+  } else {
+    SCM_WTA_DISPATCH_1 (g_imag_part, z, SCM_ARG1, s_imag_part);
+  }
 }
-
 
 
 SCM_GPROC (s_magnitude, "magnitude", 1, 0, 0, scm_magnitude, g_magnitude);
@@ -4117,30 +4068,20 @@ SCM_GPROC (s_magnitude, "magnitude", 1, 0, 0, scm_magnitude, g_magnitude);
 SCM
 scm_magnitude (SCM z)
 {
-  if (SCM_INUMP (z))
+  if (SCM_INUMP (z)) {
     return scm_abs (z);
-#ifdef SCM_BIGDIG
-  SCM_ASRTGO (SCM_NIMP (z), badz);
-  if (SCM_BIGP (z))
+  } else if (SCM_BIGP (z)) {
     return scm_abs (z);
-  if (!(SCM_SLOPPY_INEXACTP (z)))
-    {
-    badz:
-      SCM_WTA_DISPATCH_1 (g_magnitude, z, SCM_ARG1, s_magnitude);
-    }
-#else
-  SCM_GASSERT1 (SCM_SLOPPY_INEXACTP (z),
-		g_magnitude, z, SCM_ARG1, s_magnitude);
-#endif
-  if (SCM_SLOPPY_COMPLEXP (z))
-    {
-      double i = SCM_IMAG (z), r = SCM_REAL (z);
-      return scm_make_real (sqrt (i * i + r * r));
-    }
-  return scm_make_real (fabs (SCM_REALPART (z)));
+  } else if (SCM_REALP (z)) {
+    return scm_make_real (fabs (SCM_REAL_VALUE (z)));
+  } else if (SCM_COMPLEXP (z)) {
+    double r = SCM_COMPLEX_REAL (z);
+    double i = SCM_COMPLEX_IMAG (z);
+    return scm_make_real (sqrt (i * i + r * r));
+  } else {
+    SCM_WTA_DISPATCH_1 (g_magnitude, z, SCM_ARG1, s_magnitude);
+  }
 }
-
-
 
 
 SCM_GPROC (s_angle, "angle", 1, 0, 0, scm_angle, g_angle);
@@ -4175,41 +4116,27 @@ SCM_DEFINE (scm_inexact_to_exact, "inexact->exact", 1, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_inexact_to_exact
 {
-  if (SCM_INUMP (z))
+  if (SCM_INUMP (z)) {
     return z;
+  } else if (SCM_BIGP (z)) {
+    return z;
+  } else if (SCM_REALP (z)) {
+    double u = floor (SCM_REAL_VALUE (z) + 0.5);
+    long lu = (long) u;
+    if (SCM_FIXABLE (lu)) {
+      return SCM_MAKINUM (lu);
 #ifdef SCM_BIGDIG
-  SCM_ASRTGO (SCM_NIMP (z), badz);
-  if (SCM_BIGP (z))
-    return z;
-#ifndef SCM_RECKLESS
-  if (!(SCM_SLOPPY_REALP (z)))
-    {
-    badz:
-      SCM_WTA (1, z);
+    } else if (isfinite (u)) {
+      return scm_dbl2big (u);
+#endif
+    } else {
+      scm_num_overflow (s_scm_inexact_to_exact);
     }
-#endif
-#else
-  SCM_VALIDATE_REAL (1,z);
-#endif
-#ifdef SCM_BIGDIG
-  {
-    double u = floor (SCM_REALPART (z) + 0.5);
-    if ((u <= SCM_MOST_POSITIVE_FIXNUM) && (-u <= -SCM_MOST_NEGATIVE_FIXNUM))
-      {
-	/* Negation is a workaround for HP700 cc bug */
-	SCM ans = SCM_MAKINUM ((long) u);
-	if (SCM_INUM (ans) == (long) u)
-	  return ans;
-      }
-    SCM_ASRTGO (isfinite (u), badz);	/* problem? */
-    return scm_dbl2big (u);
+  } else {
+    SCM_WRONG_TYPE_ARG (1, z);
   }
-#else
-  return SCM_MAKINUM ((long) floor (SCM_REALPART (z) + 0.5));
-#endif
 }
 #undef FUNC_NAME
-
 
 
 #ifdef SCM_BIGDIG
