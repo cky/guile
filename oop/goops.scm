@@ -1281,15 +1281,12 @@
     ;; Set the layout slot
     (%prep-layout! class)))
 
-(define object-procedure-tags
-  '(utag_closure utag_subr_1 utag_subr_2 utag_subr3 utag_lsubr_2))
-
 (define (initialize-object-procedure object initargs)
   (let ((proc (get-keyword #:procedure initargs #f)))
     (cond ((not proc))
 	  ((pair? proc)
 	   (apply set-object-procedure! object proc))
-	  ((memq (tag proc) object-procedure-tags)
+	  ((valid-object-procedure? proc)
 	   (set-object-procedure! object proc))
 	  (else
 	   (set-object-procedure! object
