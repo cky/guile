@@ -1,3 +1,7 @@
+2004-12-06  Kevin Ryde  <user42@zip.com.au>
+
+	* srfi-1.scm (alist-copy): Change to a tail-recursive form.
+
 2004-12-05  Kevin Ryde  <user42@zip.com.au>
 
 	* srfi-1.scm (filter-map): Change to a tail-recursive form.
