@@ -1,3 +1,8 @@
+2001-01-26  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* continuations.c, dynl.c, keywords.c, load.c:  Include
+	strings.h.  Thanks to Bill Schottstaedt for the bug report.
+
 2001-01-25  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* backtrace.c (display_header):  Make sure that line and column

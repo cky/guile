@@ -65,6 +65,8 @@ maybe_drag_in_eprintf ()
 #endif
 
 #include <stdio.h>
+#include <string.h>
+
 #include "libguile/_scm.h"
 #include "libguile/dynl.h"
 #include "libguile/smob.h"
