@@ -33,27 +33,6 @@ NetBSD: Perry Metzger says, "Guile will build under NetBSD only using
     gmake -- the native make will not work.  (gmake is in our package
     system, so this will not be a problem when we packagize 1.3.)"
 
-What You Get ==============================================================
-
-The `configure' script examines your system, and adapts Guile to
-compile and run on it.
-
-The `make' command builds several things:
-- An executable file `guile/guile', which is an interactive shell for
-  talking with the Guile Scheme interpreter.
-- An object library `libguile/.libs/libguile.a', containing the Guile Scheme
-  interpreter, ready to be linked into your programs.
-
-To install Guile, type `make install'.  This installs the executable
-and libraries mentioned above, as well as Guile's header files and
-Scheme libraries.
-
-Make also builds shared libraries, on systems that support them.
-Because of the nature of shared libraries, before linking against
-them, you should probably install them; `make install' takes care of
-this.
-
-
 Flags Accepted by Configure ===============================================
 
 If you run the configure script with no arguments, it should examine
@@ -69,24 +48,20 @@ The README file says which versions of those tools you will need.
 --with-threads --- Build a Guile executable and library that supports
 cooperative threading.  If you use this switch, Guile will also build
 and install the QuickThreads non-preemptive threading library,
-libqt.a, which you will need to link into your programs after
-libguile.a.  That is, you should pass the switches -lguile -lqt to your
-linker.
+libqthreads, which you will need to link into your programs after
+libguile.  When you use `guile-config', you will pick up all
+neccessary linker flags automatically.
 
 Cooperative threads are not yet thoroughly tested; once they are, they
 will be enabled by default.  The interaction with blocking I/O is
 pretty ad hoc at the moment.  In our experience, bugs in the thread
 support do not affect you if you don't actually use threads.
 
---enable-dynamic-linking --- Build a Guile executable and library
-providing Scheme functions which can load a shared library and
-initialize it, perhaps thereby adding new functions to Guile.  This
-feature is enabled by default; you only need to use this option (as
-`--enable-dynamic-linking=no') if you want to build a Guile which does
-not support dynamic linking.
-
-This option has no effect on systems that do not support shared
-libraries.
+--with-modules --- Guile can dynamically load `plugin modules' during
+runtime, using facilities provided by libtool.  Not all platforms
+support this, however.  On these platforms, you can statically link
+the plugin modules into libguile when Guile itself is build.  XXX -
+how does one specify the modules?
 
 --disable-shared --- Do not build shared libraries.  Normally, Guile
 will build shared libraries if your system supports them.  Guile
@@ -111,18 +86,6 @@ you're using Bash or any other Bourne shell variant,
 or if you're using CSH or one of its variants:
 
   setenv GUILE_LOAD_PATH /home/jimb/guile-snap
-
-
-Building a Statically Linked Guile ========================================
-
-Sometimes it's useful to build a statically-linked version of the
-Guile executable.  It's helpful in debugging, and for producing
-stand-alone executables for distribution to machines you don't
-control.
-
-To do this, set the LDFLAGS environment variable to `-static' before
-you configure, or before you run the `make' command to build the
-executable.
 
 
 Generic Instructions for Building Auto-Configured Packages ================
