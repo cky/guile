@@ -6,6 +6,7 @@
 
 @node POSIX
 @section @acronym{POSIX} System Calls and Networking
+@cindex POSIX
 
 @menu
 * Conventions::                 Conventions employed by the POSIX interface.
@@ -74,6 +75,7 @@ the documentation.
 
 For ways to deal with exceptions, see @ref{Exceptions}.
 
+@cindex @code{errno}
 Errors which the C library would report by returning a null pointer or
 through some other means are reported by raising a @code{system-error}
 exception with @code{scm-error} (@pxref{Error Reporting}).  The
@@ -101,6 +103,7 @@ Bad file descriptor
 
 @sp 1
 @defun system-error-errno arglist
+@cindex @code{errno}
 Return the @code{errno} value from a list which is the arguments to an
 exception handler.  If the exception is not a @code{system-error},
 then the return is @code{#f}.  For example,
@@ -126,6 +129,7 @@ then the return is @code{#f}.  For example,
 
 @node Ports and File Descriptors
 @subsection Ports and File Descriptors
+@cindex file descriptor
 
 Conventions generally follow those of scsh, @ref{The Scheme shell (scsh)}.
 
@@ -328,6 +332,7 @@ unread characters will be read again in last-in first-out order.  If
 
 @deffn {Scheme Procedure} pipe
 @deffnx {C Function} scm_pipe ()
+@cindex pipe
 Return a newly created pipe: a pair of ports which are linked
 together on the local machine.  The @acronym{CAR} is the input
 port and the @acronym{CDR} is the output port.  Data written (and
@@ -452,6 +457,7 @@ cookie.
 
 @deffn {Scheme Procedure} setvbuf port mode [size]
 @deffnx {C Function} scm_setvbuf (port, mode, size)
+@cindex port buffering
 Set the buffering mode for @var{port}.  @var{mode} can be:
 
 @defvar _IONBF
@@ -503,6 +509,7 @@ The value used to indicate the ``close on exec'' flag with @code{F_GETFL} or
 
 @deffn {Scheme Procedure} flock file operation
 @deffnx {C Function} scm_flock (file, operation)
+@cindex file locking
 Apply or remove an advisory lock on an open file.
 @var{operation} specifies the action to be done:
 
@@ -561,6 +568,7 @@ An additional @code{select!} interface is provided.
 
 @node File System
 @subsection File System
+@cindex file system
 
 These procedures allow querying and setting file system attributes
 (such as owner,
@@ -732,6 +740,7 @@ The return value is unspecified.
 
 @deffn {Scheme Procedure} utime pathname [actime [modtime]]
 @deffnx {C Function} scm_utime (pathname, actime, modtime)
+@cindex file times
 @code{utime} sets the access and modification times for the
 file named by @var{path}.  If @var{actime} or @var{modtime} is
 not supplied, then the current time is used.  @var{actime} and
@@ -794,6 +803,7 @@ be empty for this to succeed.  The return value is unspecified.
 
 @deffn {Scheme Procedure} opendir dirname
 @deffnx {C Function} scm_opendir (dirname)
+@cindex directory contents
 Open the directory specified by @var{dirname} and return a directory
 stream.
 @end deffn
@@ -842,6 +852,7 @@ The return value is unspecified.
 
 @deffn {Scheme Procedure} mknod path type perms dev
 @deffnx {C Function} scm_mknod (path, type, perms, dev)
+@cindex device file
 Creates a new special file, such as a file corresponding to a device.
 @var{path} specifies the name of the file.  @var{type} should be one
 of the following symbols: @samp{regular}, @samp{directory},
@@ -861,6 +872,7 @@ The return value is unspecified.
 
 @deffn {Scheme Procedure} tmpnam
 @deffnx {C Function} scm_tmpnam ()
+@cindex temporary file
 Return a name in the file system that does not match any
 existing file.  However there is no guarantee that another
 process will not create the file after @code{tmpnam} is called.
@@ -870,6 +882,7 @@ Care should be taken if opening the file, e.g., use the
 
 @deffn {Scheme Procedure} mkstemp! tmpl
 @deffnx {C Function} scm_mkstemp (tmpl)
+@cindex temporary file
 Create a new unique file in the file system and returns a new
 buffered port open for reading and writing to the file.
 
@@ -904,6 +917,9 @@ If @var{suffix} is provided, and is equal to the end of
 
 @node User Information
 @subsection User Information
+@cindex user information
+@cindex password file
+@cindex group file
 
 The facilities in this section provide an interface to the user and
 group database.
@@ -1047,6 +1063,7 @@ information cannot be obtained.
 
 @node Time
 @subsection Time
+@cindex time
 
 @deffn {Scheme Procedure} current-time
 @deffnx {C Function} scm_current_time ()
@@ -1116,6 +1133,7 @@ Time zone label (a string), not necessarily unique.
 
 @deffn {Scheme Procedure} localtime time [zone]
 @deffnx {C Function} scm_localtime (time, zone)
+@cindex local time
 Return an object representing the broken down components of
 @var{time}, an integer like the one returned by
 @code{current-time}.  The time zone for the calculation is
@@ -1153,6 +1171,7 @@ timezone.
 
 @deffn {Scheme Procedure} strftime format stime
 @deffnx {C Function} scm_strftime (format, stime)
+@cindex time formatting
 Formats a time specification @var{time} using @var{template}.  @var{time}
 is an object with time components in the form returned by @code{localtime}
 or @code{gmtime}.  @var{template} is a string which can include formatting
@@ -1169,6 +1188,7 @@ is the formatted string.
 
 @deffn {Scheme Procedure} strptime format string
 @deffnx {C Function} scm_strptime (format, string)
+@cindex time parsing
 Performs the reverse action to @code{strftime}, parsing
 @var{string} according to the specification supplied in
 @var{template}.  The interpretation of month and day names is
@@ -1233,6 +1253,8 @@ included but subprocesses are not.
 @deffn {Scheme Procedure} program-arguments
 @deffnx {Scheme Procedure} command-line
 @deffnx {C Function} scm_program_arguments ()
+@cindex command line
+@cindex program arguments
 Return the list of command line arguments passed to Guile, as a list of
 strings.  The list includes the invoked program name, which is usually
 @code{"guile"}, but excludes switches and parameters for command line
@@ -1241,6 +1263,7 @@ options like @code{-e} and @code{-l}.
 
 @deffn {Scheme Procedure} getenv nam
 @deffnx {C Function} scm_getenv (nam)
+@cindex environment
 Looks up the string @var{name} in the current environment.  The return
 value is @code{#f} unless a string of the form @code{NAME=VALUE} is
 found, in which case the string @code{VALUE} is returned.
@@ -1292,10 +1315,13 @@ The return value is unspecified.
 
 @node Processes
 @subsection Processes
+@cindex processes
+@cindex child processes
 
 @findex cd
 @deffn {Scheme Procedure} chdir str
 @deffnx {C Function} scm_chdir (str)
+@cindex current directory
 Change the current working directory to @var{path}.
 The return value is unspecified.
 @end deffn
@@ -1591,6 +1617,7 @@ with the scsh fork.
 
 @deffn {Scheme Procedure} nice incr
 @deffnx {C Function} scm_nice (incr)
+@cindex process priority
 Increment the priority of the current process by @var{incr}.  A higher
 priority value means that the process runs less often.
 The return value is unspecified.
@@ -1636,6 +1663,7 @@ specified processes.
 
 @node Signals
 @subsection Signals
+@cindex signal
 
 Procedures to raise, handle and wait for signals.
 
@@ -1790,24 +1818,28 @@ the seconds and microseconds of the timer @code{it_value}.
 
 @deffn {Scheme Procedure} isatty? port
 @deffnx {C Function} scm_isatty_p (port)
+@cindex terminal
 Return @code{#t} if @var{port} is using a serial non--file
 device, otherwise @code{#f}.
 @end deffn
 
 @deffn {Scheme Procedure} ttyname port
 @deffnx {C Function} scm_ttyname (port)
+@cindex terminal
 Return a string with the name of the serial terminal device
 underlying @var{port}.
 @end deffn
 
 @deffn {Scheme Procedure} ctermid
 @deffnx {C Function} scm_ctermid ()
+@cindex terminal
 Return a string containing the file name of the controlling
 terminal for the current process.
 @end deffn
 
 @deffn {Scheme Procedure} tcgetpgrp port
 @deffnx {C Function} scm_tcgetpgrp (port)
+@cindex process group
 Return the process group ID of the foreground process group
 associated with the terminal open on the file descriptor
 underlying @var{port}.
@@ -1822,6 +1854,7 @@ foreground.
 
 @deffn {Scheme Procedure} tcsetpgrp port pgid
 @deffnx {C Function} scm_tcsetpgrp (port, pgid)
+@cindex process group
 Set the foreground process group ID for the terminal used by the file
 descriptor underlying @var{port} to the integer @var{pgid}.
 The calling process
@@ -1831,6 +1864,7 @@ controlling terminal.  The return value is unspecified.
 
 @node Pipes
 @subsection Pipes
+@cindex pipe
 
 The following procedures are similar to the @code{popen} and
 @code{pclose} system routines.  The code is in a separate ``popen''
@@ -1934,6 +1968,7 @@ the garbage collector pick them up at some later time.
 
 @node Networking
 @subsection Networking
+@cindex network
 
 @menu
 * Network Address Conversion::
@@ -1944,11 +1979,13 @@ the garbage collector pick them up at some later time.
 
 @node Network Address Conversion
 @subsubsection Network Address Conversion
+@cindex network address
 
 This section describes procedures which convert internet addresses
 between numeric and string formats.
 
 @subsubheading IPv4 Address Conversion
+@cindex IPv4
 
 An IPv4 Internet address is a 4-byte value, represented in Guile as an
 integer in network byte order (meaning the first byte is the most
@@ -2026,6 +2063,7 @@ Make an IPv4 Internet address by combining the network number
 @end deffn
 
 @subsubheading IPv6 Address Conversion
+@cindex IPv6
 
 @deffn {Scheme Procedure} inet-ntop family address
 @deffnx {C Function} scm_inet_ntop (family, address)
@@ -2058,12 +2096,15 @@ the result is an integer with normal host byte ordering.
 
 @node Network Databases
 @subsubsection Network Databases
+@cindex network database
 
 This section describes procedures which query various network databases.
 Care should be taken when using the database routines since they are not
 reentrant.
 
 @subsubheading The Host Database
+@cindex @file{/etc/hosts}
+@cindex network database
 
 A @dfn{host object} is a structure that represents what is known about a
 network host, and is the usual way of representing a system's network
@@ -2143,6 +2184,7 @@ Otherwise it is equivalent to @code{sethostent stayopen}.
 @end deffn
 
 @subsubheading The Network Database
+@cindex network database
 
 The following functions accept an object representing a network
 and return a selected component:
@@ -2201,6 +2243,9 @@ Otherwise it is equivalent to @code{setnetent stayopen}.
 @end deffn
 
 @subsubheading The Protocol Database
+@cindex @file{/etc/protocols}
+@cindex protocols
+@cindex network protocols
 
 The following functions accept an object representing a protocol
 and return a selected component:
@@ -2254,6 +2299,9 @@ Otherwise it is equivalent to @code{setprotoent stayopen}.
 @end deffn
 
 @subsubheading The Service Database
+@cindex @file{/etc/services}
+@cindex services
+@cindex network services
 
 The following functions accept an object representing a service
 and return a selected component:
@@ -2324,6 +2372,8 @@ Otherwise it is equivalent to @code{setservent stayopen}.
 
 @node Network Sockets and Communication
 @subsubsection Network Sockets and Communication
+@cindex socket
+@cindex network socket
 
 Socket ports can be created using @code{socket} and @code{socketpair}.
 The ports are initially unbuffered, to make reading and writing to the
@@ -2716,6 +2766,8 @@ These procedures are inconvenient to use at present, but consider:
 
 @node Internet Socket Examples
 @subsubsection Network Socket Examples
+@cindex network examples
+@cindex socket examples
 
 The following give examples of how to use network sockets.
 
@@ -2775,6 +2827,7 @@ client.
 
 @node System Identification
 @subsection System Identification
+@cindex system name
 
 This section lists the various procedures Guile provides for accessing
 information about the system it runs on.
@@ -2806,6 +2859,7 @@ A description of the hardware.
 
 @deffn {Scheme Procedure} gethostname
 @deffnx {C Function} scm_gethostname ()
+@cindex host name
 Return the host name of the current processor.
 @end deffn
 
@@ -2818,6 +2872,7 @@ specified.
 
 @node Locales
 @subsection Locales
+@cindex locale
 
 @deffn {Scheme Procedure} setlocale category [locale]
 @deffnx {C Function} scm_setlocale (category, locale)
@@ -2838,6 +2893,7 @@ following values
 @defvarx LC_TIME
 @end defvar
 
+@cindex @code{LANG}
 A common usage is @samp{(setlocale LC_ALL "")}, which initializes all
 categories based on standard environment variables (@code{LANG} etc).
 For full details on categories and locale names @pxref{Locales,,
@@ -2847,6 +2903,7 @@ Manual}.
 
 @node Encryption
 @subsection Encryption
+@cindex encryption
 
 Please note that the procedures in this section are not suited for
 strong encryption, they are only interfaces to the well-known and
@@ -2865,6 +2922,7 @@ appears here because it is often used in combination with @code{crypt}:
 
 @deffn {Scheme Procedure} getpass prompt
 @deffnx {C Function} scm_getpass (prompt)
+@cindex password
 Display @var{prompt} to the standard error output and read
 a password from @file{/dev/tty}.  If this file is not
 accessible, it reads from standard input.  The password may be
