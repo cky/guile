@@ -1,3 +1,13 @@
+2001-07-18  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
+
+	* tests/alist.test, tests/bit-operations.test,
+	tests/common-list.test, tests/environments.test, tests/eval.test,
+	tests/gc.test, tests/hooks.test, tests/import.test,
+	tests/interp.test, tests/list.test, tests/load.test,
+	tests/numbers.test, tests/ports.test, tests/r4rs.test,
+	tests/version.test, tests/weaks.test, lib.scm, guile-test: Updated
+	copyright notice.
+
 2001-07-16  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* tests/srfi-14.test: New file.
