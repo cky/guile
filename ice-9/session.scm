@@ -167,6 +167,7 @@ You don't seem to have regular expressions installed.\n"))
   (display "Usage: (help NAME) gives documentation about objects named NAME (a symbol)
        (help REGEXP) ditto for objects with names matching REGEXP (a string)
        (help ,EXPR) gives documentation for object returned by EXPR
+       (help (my module)) gives module commentary for `(my module)'
        (help) gives this text
 
 `help' searches among bindings exported from loaded modules, while
