@@ -139,22 +139,6 @@ char *strptime ();
 #include <locale.h>
 #endif
 
-/* On NextStep, <utime.h> doesn't define struct utime, unless we
-   #define _POSIX_SOURCE before #including it.  */
-#ifdef UTIMBUF_NEEDS_POSIX
-#define _POSIX_SOURCE
-#endif
-
-#ifdef HAVE_SYS_UTIME_H
-#include <sys/utime.h>
-#endif
-
-#ifdef HAVE_UTIME_H
-#include <utime.h>
-#endif
-
-
-
 /* Some Unix systems don't define these.  CPP hair is dangerous, but
    this seems safe enough... */
 #ifndef R_OK
@@ -172,6 +156,26 @@ char *strptime ();
 #ifndef F_OK
 #define F_OK 0
 #endif
+
+/* On NextStep, <utime.h> doesn't define struct utime, unless we
+   #define _POSIX_SOURCE before #including it.  I think this is less
+   of a kludge than defining struct utimbuf ourselves.  */
+#ifdef UTIMBUF_NEEDS_POSIX
+#define _POSIX_SOURCE
+#endif
+
+#ifdef HAVE_SYS_UTIME_H
+#include <sys/utime.h>
+#endif
+
+#ifdef HAVE_UTIME_H
+#include <utime.h>
+#endif
+
+/* Please don't add any more #includes or #defines here.  The hack
+   above means that _POSIX_SOURCE may be #defined, which will
+   encourage header files to do strange things.  */
+
 
 
 
