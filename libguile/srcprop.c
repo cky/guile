@@ -317,7 +317,12 @@ SCM_DEFINE (scm_set_source_property_x, "set-source-property!", 3, 0, 0,
 	SCM_WHASHSET (scm_source_whash, h, scm_make_srcprops (0, 0, SCM_UNDEFINED, datum, p));
     }
   else
-    SCM_WHASHSET (scm_source_whash, h, scm_acons (key, datum, p));
+    {
+      if (SRCPROPSP (p))
+	SRCPROPPLIST (p) = scm_acons (key, datum, SRCPROPPLIST (p));
+      else
+	SCM_WHASHSET (scm_source_whash, h, scm_acons (key, datum, p));
+    }
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME

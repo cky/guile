@@ -1,5 +1,10 @@
 2002-03-08  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* srcprop.c (scm_set_source_property_x): If SRCPROPS obj already
+	exists when adding a source property other than those that are
+	handled explicitly, add the new property to the SRCPROPS obj's
+	plist.
+
 	* debug.h (SCM_MAX_FRAME_SIZE): Remove incorrect comment about use
 	of SCM_MAX_FRAME_SIZE as a bit mask; it isn't used like this.
 
