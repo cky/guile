@@ -187,6 +187,10 @@ static const char s_bad_formal[] = "Bad formal";
  * more than once, a 'Duplicate formal' error is signalled.  */
 static const char s_duplicate_formal[] = "Duplicate formal";
 
+/* If something else than an exact integer is detected as the argument for
+ * @slot-ref and @slot-set!, a 'Bad slot number' error is signalled.  */
+static const char s_bad_slot_number[] = "Bad slot number";
+
 
 /* Signal a syntax error.  We distinguish between the form that caused the
  * error and the enclosing expression.  The error message will print out as
@@ -1658,40 +1662,44 @@ scm_m_generalized_set_x (SCM expr, SCM env SCM_UNUSED)
 }
 
 
-static const char* s_atslot_ref = "@slot-ref";
-
 /* @slot-ref is bound privately in the (oop goops) module from goops.c.  As
  * soon as the module system allows us to more freely create bindings in
  * arbitrary modules during the startup phase, the code from goops.c should be
  * moved here.  */
 SCM
-scm_m_atslot_ref (SCM xorig, SCM env SCM_UNUSED)
-#define FUNC_NAME s_atslot_ref
+scm_m_atslot_ref (SCM expr, SCM env SCM_UNUSED)
 {
-  SCM x = SCM_CDR (xorig);
-  SCM_ASSYNT (scm_ilength (x) == 2, s_expression, FUNC_NAME);
-  SCM_VALIDATE_INUM (SCM_ARG2, SCM_CADR (x));
-  return scm_cons (SCM_IM_SLOT_REF, x);
+  SCM slot_nr;
+
+  const SCM cdr_expr = SCM_CDR (expr);
+  ASSERT_SYNTAX (scm_ilength (cdr_expr) >= 0, s_bad_expression, expr);
+  ASSERT_SYNTAX (scm_ilength (cdr_expr) == 2, s_expression, expr);
+  slot_nr = SCM_CADR (cdr_expr);
+  ASSERT_SYNTAX_2 (SCM_INUMP (slot_nr), s_bad_slot_number, slot_nr, expr);
+
+  SCM_SETCAR (expr, SCM_IM_SLOT_REF);
+  return expr;
 }
-#undef FUNC_NAME
 
-
-static const char* s_atslot_set_x = "@slot-set!";
 
 /* @slot-set! is bound privately in the (oop goops) module from goops.c.  As
  * soon as the module system allows us to more freely create bindings in
  * arbitrary modules during the startup phase, the code from goops.c should be
  * moved here.  */
 SCM
-scm_m_atslot_set_x (SCM xorig, SCM env SCM_UNUSED)
-#define FUNC_NAME s_atslot_set_x
+scm_m_atslot_set_x (SCM expr, SCM env SCM_UNUSED)
 {
-  SCM x = SCM_CDR (xorig);
-  SCM_ASSYNT (scm_ilength (x) == 3, s_expression, FUNC_NAME);
-  SCM_VALIDATE_INUM (SCM_ARG2, SCM_CADR (x));
-  return scm_cons (SCM_IM_SLOT_SET_X, x);
+  SCM slot_nr;
+
+  const SCM cdr_expr = SCM_CDR (expr);
+  ASSERT_SYNTAX (scm_ilength (cdr_expr) >= 0, s_bad_expression, expr);
+  ASSERT_SYNTAX (scm_ilength (cdr_expr) == 3, s_expression, expr);
+  slot_nr = SCM_CADR (cdr_expr);
+  ASSERT_SYNTAX_2 (SCM_INUMP (slot_nr), s_bad_slot_number, slot_nr, expr);
+
+  SCM_SETCAR (expr, SCM_IM_SLOT_SET_X);
+  return expr;
 }
-#undef FUNC_NAME
 
 
 #if SCM_ENABLE_ELISP

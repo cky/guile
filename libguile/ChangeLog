@@ -1,5 +1,13 @@
 2003-10-18  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* eval.c (s_bad_slot_number): New static identifier.
+
+	(scm_m_atslot_ref, scm_m_atslot_set_x): Use ASSERT_SYNTAX to
+	signal syntax errors.  Avoid unnecessary consing when creating the
+	memoized code.
+
+2003-10-18  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* eval.c (scm_m_cont, scm_m_at_call_with_values,
 	scm_m_generalized_set_x): Use ASSERT_SYNTAX to signal syntax
 	errors.  Avoid unnecessary consing when creating the memoized
