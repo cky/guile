@@ -231,8 +231,6 @@ typedef long SCM_STACKITEM;
 #define SCM_THREAD_DEFER
 #define SCM_THREAD_ALLOW
 #define SCM_THREAD_REDEFER
-#define SCM_THREAD_REALLOW_1
-#define SCM_THREAD_REALLOW_2
 #define SCM_THREAD_SWITCHING_CODE
 #endif
 
@@ -307,7 +305,6 @@ do { \
   scm_ints_disabled = 0; \
   SCM_FENCE; \
   SCM_THREAD_ALLOW; \
-  SCM_ASYNC_TICK; \
   SCM_FENCE; \
 } while (0)
 
@@ -324,15 +321,9 @@ do { \
 #define SCM_REALLOW_INTS \
 do { \
   SCM_FENCE; \
-  SCM_THREAD_REALLOW_1; \
   SCM_THREAD_SWITCHING_CODE; \
   SCM_FENCE; \
   --scm_ints_disabled; \
-  if (!scm_ints_disabled) \
-    { \
-      SCM_THREAD_REALLOW_2; \
-      SCM_ASYNC_TICK; \
-    } \
   SCM_FENCE; \
 } while (0)
 
