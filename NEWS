@@ -95,6 +95,20 @@ future.
 Alternatively, if guile-scsh is installed, the (scsh rdelim) module
 can be used for similar functionality.
 
+** New module (ice-9 match)
+
+This module includes Andrew K. Wright's pattern matcher:
+
+(use-modules (ice-9 match))
+
+(match '(+ 1 2)
+  (('+ x) x)
+  (('+ x y) `(add ,x ,y))
+  (('- x y) `(sub ,x ,y)))  => (add 1 2)
+
+See ice-9/match.scm for brief description or
+http://www.star-lab.com/wright/code.html for complete documentation.
+
 * Changes to the stand-alone interpreter
 
 ** It's now possible to create modules with controlled environments
