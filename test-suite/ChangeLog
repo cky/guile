@@ -1,3 +1,7 @@
+2001-01-24  Gary Houston  <ghouston@arglist.com>
+
+	* tests/ports.test: include (ice-9 rdelim) module.
+
 2001-01-18  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* tests/numbers.test:  Converted to do real boundary testing.
