@@ -1,3 +1,9 @@
+2005-01-10  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* deprecated.h, deprecated.c (SCM_CHARS, SCM_UCHARS, SCM_LENGTH,
+	scm_i_object_chars, scm_i_object_length): Brought back from the
+	dead.
+
 2005-01-10  Marius Vollmer  <mvo@zagadka.de>
 
 	* ramap.c: Replaced single-index uses of scm_array_set_x with
