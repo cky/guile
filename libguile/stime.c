@@ -130,6 +130,8 @@ long mytime()
 
 #ifdef HAVE_FTIME
 
+extern int ftime (struct timeb *);
+
 struct timeb scm_your_base = {0};
 SCM_PROC(s_get_internal_real_time, "get-internal-real-time", 0, 0, 0, scm_get_internal_real_time);
 #ifdef __STDC__
