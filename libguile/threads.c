@@ -956,17 +956,17 @@ scm_threads_mark_stacks (void)
 
       {
 #if SCM_STACK_GROWS_UP
-	long stack_len = t->top - t->base;
-	scm_mark_locations (t->base, stack_len);
+	scm_mark_locations (t->base, t->top - t->base);
 #else
-	long stack_len = t->base - t->top;
-	scm_mark_locations (t->top, stack_len);
+	scm_mark_locations (t->top, t->base - t->top);
 #endif
       }
       scm_mark_locations ((SCM_STACKITEM *) t->regs,
 			  ((size_t) sizeof(t->regs)
 			   / sizeof (SCM_STACKITEM)));
     }
+
+  SCM_MARK_BACKING_STORE ();
 }
 
 /*** Select */
