@@ -554,13 +554,14 @@ otherwise.
 @end deffn
 
 @c begin (texi-doc-string "guile" "quotient")
-@deffn {Scheme Procedure} quotient
-Return the quotient of the numbers @var{x} and @var{y}.
-@end deffn
-
 @c begin (texi-doc-string "guile" "remainder")
-@deffn {Scheme Procedure} remainder
-Return the remainder of the numbers @var{x} and @var{y}.
+@deffn {Scheme Procedure} quotient n d
+@deffnx {Scheme Procedure} remainder n d
+Return the quotient or remainder from @var{n} divided by @var{d}.  The
+quotient is rounded towards zero, and the remainder will have the same
+sign as @var{n}.  In all cases quotient and remainder satisfy
+@math{@var{n} = @var{q}*@var{d} + @var{r}}.
+
 @lisp
 (remainder 13 4) @result{} 1
 (remainder -13 4) @result{} -1
@@ -568,11 +569,15 @@ Return the remainder of the numbers @var{x} and @var{y}.
 @end deffn
 
 @c begin (texi-doc-string "guile" "modulo")
-@deffn {Scheme Procedure} modulo
-Return the modulo of the numbers @var{x} and @var{y}.
+@deffn {Scheme Procedure} modulo n d
+Return the remainder from @var{n} divided by @var{d}, with the same
+sign as @var{d}.
+
 @lisp
 (modulo 13 4) @result{} 1
 (modulo -13 4) @result{} 3
+(modulo 13 -4) @result{} -3
+(modulo -13 -4) @result{} -1
 @end lisp
 @end deffn
 
