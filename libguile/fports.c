@@ -212,7 +212,7 @@ SCM_DEFINE (scm_setvbuf, "setvbuf", 2, 1, 0,
 #undef FUNC_NAME
 
 /* Move ports with the specified file descriptor to new descriptors,
- * reseting the revealed count to 0.
+ * resetting the revealed count to 0.
  */
 
 void

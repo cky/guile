@@ -714,7 +714,11 @@ called with one argument @var{z1}, 1/@var{z1} is returned.
 
 @c begin (texi-doc-string "guile" "abs")
 @deffn {Scheme Procedure} abs x
+@deffnx {C Function} scm_abs (x)
 Return the absolute value of @var{x}.
+
+@var{x} must be a number with zero imaginary part.  To calculate the
+magnitude of a complex number, use @code{magnitude} instead.
 @end deffn
 
 @c begin (texi-doc-string "guile" "max")
@@ -746,6 +750,18 @@ Round the number @var{x} towards minus infinity.
 @deffn {Scheme Procedure} ceiling x
 Round the number @var{x} towards infinity.
 @end deffn
+
+For the @code{truncate} and @code{round} procedures, the Guile library
+exports equivalent C functions, but taking and returning arguments of
+type @code{double} rather than the usual @code{SCM}.
+
+@deftypefn {C Function} double scm_truncate (double x)
+@deftypefnx {C Function} double scm_round (double x)
+@end deftypefn
+
+For @code{floor} and @code{ceiling}, the equivalent C functions are
+@code{floor} and @code{ceil} from the standard mathematics library
+(which also take and return @code{double} arguments).
 
 
 @node Scientific
@@ -954,6 +970,43 @@ Return the hyperbolic arccosine of @var{x}.
 @deffn {Scheme Procedure} $atanh x
 Return the hyperbolic arctangent of @var{x}.
 @end deffn
+
+For the hyperbolic arc-functions, the Guile library exports C functions
+corresponding to these Scheme procedures, but taking and returning
+arguments of type @code{double} rather than the usual @code{SCM}.
+
+@deftypefn {C Function} double scm_asinh (double x)
+@deftypefnx {C Function} double scm_acosh (double x)
+@deftypefnx {C Function} double scm_atanh (double x)
+Return the hyperbolic arcsine, arccosine or arctangent of @var{x}
+respectively.
+@end deftypefn
+
+For all the other Scheme procedures above, except @code{expt} and
+@code{atan2} (whose entries specifically mention an equivalent C
+function), the equivalent C functions are those provided by the standard
+mathematics library.  The mapping is as follows.
+
+@multitable {xx} {Scheme Procedure} {C Function}
+@item @tab Scheme Procedure @tab C Function
+
+@item @tab @code{$abs}      @tab @code{fabs}
+@item @tab @code{$sqrt}     @tab @code{sqrt}
+@item @tab @code{$sin}      @tab @code{sin}
+@item @tab @code{$cos}      @tab @code{cos}
+@item @tab @code{$tan}      @tab @code{tan}
+@item @tab @code{$asin}     @tab @code{asin}
+@item @tab @code{$acos}     @tab @code{acos}
+@item @tab @code{$atan}     @tab @code{atan}
+@item @tab @code{$exp}      @tab @code{exp}
+@item @tab @code{$log}      @tab @code{log}
+@item @tab @code{$sinh}     @tab @code{sinh}
+@item @tab @code{$cosh}     @tab @code{cosh}
+@item @tab @code{$tanh}     @tab @code{tanh}
+@end multitable
+
+@noindent
+Naturally, these C functions expect and return @code{double} arguments.
 
 
 @node Bitwise Operations

@@ -23,6 +23,7 @@ configure @emph{reading}, @emph{printing}, @emph{debugging} or
 * Evaluator trap options::
 * Examples of option use::
 * Install Config::              Installation and configuration data.
+* Feature Tracking::            Available features in the Guile process.
 @end menu
 
 @node General option interface
@@ -430,6 +431,186 @@ In the source, @code{%guile-build-info} is initialized from
 libguile/libpath.h, which is completely generated, so deleting this file
 before a build guarantees up-to-date values for that build.
 @end defvar
+
+
+@node Feature Tracking
+@section Feature Tracking
+
+Guile has a Scheme level variable @code{*features*} that keeps track to
+some extent of the features that are available in a running Guile.
+@code{*features*} is a list of symbols, for example @code{threads}, each
+of which describes a feature of the running Guile process.
+
+@defvar *features*
+A list of symbols describing available features of the Guile process.
+@end defvar
+
+You shouldn't modify the @code{*features*} variable directly using
+@code{set!}.  Instead, see the procedures that are provided for this
+purpose in the following subsection.
+
+@menu
+* Feature Manipulation::        Checking for and advertising features.
+* Common Feature Symbols::      Commonly available features.
+@end menu
+
+
+@node Feature Manipulation
+@subsection Feature Manipulation
+
+To check whether a particular feature is available, use the
+@code{provided?} procedure:
+
+@deffn {Scheme Procedure} provided? feature
+@deffnx {Deprecated Scheme Procedure} feature? feature
+Return @code{#t} if the specified @var{feature} is available, otherwise
+@code{#f}.
+@end deffn
+
+To advertise a feature from your own Scheme code, you can use the
+@code{provide} procedure:
+
+@deffn {Scheme Procedure} provide feature
+Add @var{feature} to the list of available features in this Guile
+process.
+@end deffn
+
+For C code, the equivalent function takes its feature name as a
+@code{char *} argument for convenience:
+
+@deftypefn {C Function} void scm_add_feature (const char *str)
+Add a symbol with name @var{str} to the list of available features in
+this Guile process.
+@end deftypefn
+
+
+@node Common Feature Symbols
+@subsection Common Feature Symbols
+
+In general, a particular feature may be available for one of two
+reasons.  Either because the Guile library was configured and compiled
+with that feature enabled --- i.e. the feature is built into the library
+on your system.  Or because some C or Scheme code that was dynamically
+loaded by Guile has added that feature to the list.
+
+In the first category, here are the features that the current version of
+Guile may define (depending on how it is built), and what they mean.
+
+@table @code
+@item array
+Indicates support for arrays (@pxref{Arrays}).
+
+@item array-for-each
+Indicates availability of @code{array-for-each} and other array mapping
+procedures (@pxref{Array Mapping}).
+
+@item char-ready?
+Indicates that the @code{char-ready?} function is available
+(@pxref{Reading}).
+
+@item complex
+Indicates support for complex numbers.
+
+@item current-time
+Indicates availability of time-related functions: @code{times},
+@code{get-internal-run-time} and so on (@pxref{Time}).
+
+@item debug-extensions
+Indicates that the debugging evaluator is available, together with the
+options for controlling it.
+
+@item delay
+Indicates support for promises (@pxref{Delayed Evaluation}).
+
+@item EIDs
+Indicates that the @code{geteuid} and @code{getegid} really return
+effective user and group IDs (@pxref{Processes}).
+
+@item inexact
+Indicates support for inexact numbers.
+
+@item i/o-extensions
+Indicates availability of the following extended I/O procedures:
+@code{ftell}, @code{redirect-port}, @code{dup->fdes}, @code{dup2},
+@code{fileno}, @code{isatty?}, @code{fdopen},
+@code{primitive-move->fdes} and @code{fdes->ports} (@pxref{Ports and
+File Descriptors}).
+
+@item net-db
+Indicates availability of network database functions:
+@code{scm_gethost}, @code{scm_getnet}, @code{scm_getproto},
+@code{scm_getserv}, @code{scm_sethost}, @code{scm_setnet}, @code{scm_setproto},
+@code{scm_setserv}, and their `byXXX' variants (@pxref{Network
+Databases}).
+
+@item posix
+Indicates support for POSIX functions: @code{pipe}, @code{getgroups},
+@code{kill}, @code{execl} and so on (@pxref{POSIX}).
+
+@item random
+Indicates availability of random number generation functions:
+@code{random}, @code{copy-random-state}, @code{random-uniform} and so on
+(@pxref{Random}).
+
+@item reckless
+Indicates that Guile was built with important checks omitted --- you
+should never see this!
+
+@item regex
+Indicates support for POSIX regular expressions using
+@code{make-regexp}, @code{regexp-exec} and friends (@pxref{Regexp
+Functions}).
+
+@item socket
+Indicates availability of socket-related functions: @code{socket},
+@code{bind}, @code{connect} and so on (@pxref{Network Sockets and
+Communication}).
+
+@item sort
+Indicates availability of sorting and merging functions
+(@pxref{Sorting}).
+
+@item system
+Indicates that the @code{system} function is available
+(@pxref{Processes}).
+
+@item threads
+Indicates support for multithreading (@pxref{Threads}).
+
+@item values
+Indicates support for multiple return values using @code{values} and
+@code{call-with-values} (@pxref{Multiple Values}).
+@end table
+
+Available features in the second category depend, by definition, on what
+additional code your Guile process has loaded in.  The following table
+lists features that you might encounter for this reason.
+
+@table @code
+@item defmacro
+Indicates that the @code{defmacro} macro is available (@pxref{Macros}).
+
+@item describe
+Indicates that the @code{(oop goops describe)} module has been loaded,
+which provides a procedure for describing the contents of GOOPS
+instances.
+
+@item readline
+Indicates that Guile has loaded in Readline support, for command line
+editing (@pxref{Readline Support}).
+
+@item record
+Indicates support for record definition using @code{make-record-type}
+and friends (@pxref{Records}).
+@end table
+
+Although these tables may seem exhaustive, it is probably unwise in
+practice to rely on them, as the correspondences between feature symbols
+and available procedures/behaviour are not strictly defined.  If you are
+writing code that needs to check for the existence of some procedure, it
+is probably safer to do so directly using the @code{defined?} procedure
+than to test for the corresponding feature using @code{feature?}.
+
 
 @c Local Variables:
 @c TeX-master: "guile.texi"

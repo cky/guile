@@ -64,7 +64,7 @@
  */
 
 void
-scm_c_hook_init (scm_t_c_hook *hook, void *hook_data, scm_t_c_hookype_t type)
+scm_c_hook_init (scm_t_c_hook *hook, void *hook_data, scm_t_c_hook_type type)
 {
   hook->first = 0;
   hook->type = type;
@@ -113,7 +113,7 @@ void *
 scm_c_hook_run (scm_t_c_hook *hook, void *data)
 {
   scm_t_c_hook_entry *entry = hook->first;
-  scm_t_c_hookype_t type = hook->type;
+  scm_t_c_hook_type type = hook->type;
   void *res = 0;
   while (entry)
     {

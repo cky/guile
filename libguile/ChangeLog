@@ -10,6 +10,9 @@
 
 2002-03-15  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* hooks.h: Change scm_t_c_hookype_t everywhere to
+	scm_t_c_hook_type.
+
 	Docstring fixes:
 
 	* strings.c (scm_string_p): Change unnecessary `iff' to `if'.

@@ -8,6 +8,13 @@
 
 2002-03-15  Neil Jerram  <neil@ossau.uklinux.net>
 
+	* scheme-utility.texi (Hooks): Reviewed and updated.
+
+	* scheme-options.texi (Feature Tracking): New section.
+
+	* scheme-data.texi (Arithmetic, Primitive Numerics): Add
+	description of corresponding C functions.
+
 	* scheme-utility.texi (Object Properties): Revamp documentation on
 	object properties.
 

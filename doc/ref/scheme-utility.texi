@@ -377,24 +377,38 @@ argument @var{printer} (default: @code{write}).
 @section Hooks
 @tpindex Hooks
 
-@c FIXME::martin: Review me!
+A hook is a list of procedures to be called at well defined points in
+time.  Typically, an application provides a hook @var{h} and promises
+its users that it will call all of the procedures in @var{h} at a
+defined point in the application's processing.  By adding its own
+procedure to @var{h}, an application user can tap into or even influence
+the progress of the application.
 
-A hook is basically a list of procedures to be called at well defined
-points in time.  Hooks are used internally for several debugging
-facilities, but they can be used in user code, too.
+Guile itself provides several such hooks for debugging and customization
+purposes: these are listed in a subsection below.
 
-Hooks are created with @code{make-hook}, then procedures can be added to
-a hook with @code{add-hook!} or removed with @code{remove-hook!} or
-@code{reset-hook!}.  The procedures stored in a hook can be invoked with
-@code{run-hook}.
+When an application first creates a hook, it needs to know how many
+arguments will be passed to the hook's procedures when the hook is run.
+The chosen number of arguments (which may be none) is declared when the
+hook is created, and all the procedures that are added to that hook must
+be capable of accepting that number of arguments.
+
+A hook is created using @code{make-hook}.  A procedure can be added to
+or removed from a hook using @code{add-hook!} or @code{remove-hook!},
+and all of a hook's procedures can be removed together using
+@code{reset-hook!}.  When an application wants to run a hook, it does so
+using @code{run-hook}.
 
 @menu
-* Hook Examples::               Hook usage by example.
+* Hook Example::                Hook usage by example.
 * Hook Reference::              Reference of all hook procedures.
+* C Hooks::                     Hooks for use from C code.
+* Guile Hooks::                 Hooks provided by Guile.
 @end menu
 
-@node Hook Examples
-@subsection Hook Examples
+
+@node Hook Example
+@subsection Hook Usage by Example
 
 Hook usage is shown by some examples in this section.  First, we will
 define a hook of arity 2 --- that is, the procedures stored in the hook
@@ -409,8 +423,7 @@ hook
 Now we are ready to add some procedures to the newly created hook with
 @code{add-hook!}.  In the following example, two procedures are added,
 which print different messages and do different things with their
-arguments.  When the procedures have been added, we can invoke them
-using @code{run-hook}.
+arguments.
 
 @lisp
 (add-hook! hook (lambda (x y)
@@ -421,14 +434,23 @@ using @code{run-hook}.
                     (display "Bar: ")
                     (display (* x y))
                     (newline)))
+@end lisp
+
+Once the procedures have been added, we can invoke the hook using
+@code{run-hook}.
+
+@lisp
 (run-hook hook 3 4)
 @print{} Bar: 12
 @print{} Foo: 7
 @end lisp
 
-Note that the procedures are called in reverse order than they were
-added.  This can be changed by providing the optional third argument
-on the second call to @code{add-hook!}.
+Note that the procedures are called in the reverse of the order with
+which they were added.  This is because the default behaviour of
+@code{add-hook!} is to add its procedure to the @emph{front} of the
+hook's procedure list.  You can force @code{add-hook!} to add its
+procedure to the @emph{end} of the list instead by providing a third
+@code{#t} argument on the second call to @code{add-hook!}.
 
 @lisp
 (add-hook! hook (lambda (x y)
@@ -439,30 +461,34 @@ on the second call to @code{add-hook!}.
                     (display "Bar: ")
                     (display (* x y))
                     (newline))
-                    #t)   ; @r{<- Change here!}
+                    #t)             ; @r{<- Change here!}
+
 (run-hook hook 3 4)
 @print{} Foo: 7
 @print{} Bar: 12
 @end lisp
 
+
 @node Hook Reference
 @subsection Hook Reference
 
-When a hook is created with @code{make-hook}, you can supply the arity
-of the procedures which can be added to the hook.  The arity defaults to
-zero.  All procedures of a hook must have the same arity, and when the
-procedures are invoked using @code{run-hook}, the number of arguments
-must match the arity of the procedures.
+When you create a hook with @code{make-hook}, you must specify the arity
+of the procedures which can be added to the hook.  If the arity is not
+given explicitly as an argument to @code{make-hook}, it defaults to
+zero.  All procedures of a given hook must have the same arity, and when
+the procedures are invoked using @code{run-hook}, the number of
+arguments passed must match the arity specified at hook creation time.
 
 The order in which procedures are added to a hook matters.  If the third
-parameter to @var{add-hook!} is omitted or is equal to @code{#f}, the
+parameter to @code{add-hook!} is omitted or is equal to @code{#f}, the
 procedure is added in front of the procedures which might already be on
 that hook, otherwise the procedure is added at the end.  The procedures
-are always called from first to last when they are invoked via
-@code{run-hook}.
+are always called from the front to the end of the list when they are
+invoked via @code{run-hook}.
 
-When calling @code{hook->list}, the procedures in the resulting list are
-in the same order as they would have been called by @code{run-hook}.
+The ordering of the list of procedures returned by @code{hook->list}
+matches the order in which those procedures would be called if the hook
+was run using @code{run-hook}.
 
 @deffn {Scheme Procedure} make-hook [n_args]
 @deffnx {C Function} scm_make_hook (n_args)
@@ -502,6 +528,11 @@ Remove all procedures from the hook @var{hook}.  The return
 value of this procedure is not specified.
 @end deffn
 
+@deffn {Scheme Procedure} hook->list hook
+@deffnx {C Function} scm_hook_to_list (hook)
+Convert the procedure list of @var{hook} to a list.
+@end deffn
+
 @deffn {Scheme Procedure} run-hook hook . args
 @deffnx {C Function} scm_run_hook (hook, args)
 Apply all procedures from the hook @var{hook} to the arguments
@@ -509,10 +540,127 @@ Apply all procedures from the hook @var{hook} to the arguments
 last.  The return value of this procedure is not specified.
 @end deffn
 
-@deffn {Scheme Procedure} hook->list hook
-@deffnx {C Function} scm_hook_to_list (hook)
-Convert the procedure list of @var{hook} to a list.
+If, in C code, you are certain that you have a hook object and well
+formed argument list for that hook, you can also use
+@code{scm_c_run_hook}, which is identical to @code{scm_run_hook} but
+does no type checking.
+
+@deftypefn {C Function} void scm_c_run_hook (SCM hook, SCM args)
+The same as @code{scm_run_hook} but without any type checking to confirm
+that @var{hook} is actually a hook object and that @var{args} is a
+well-formed list matching the arity of the hook.
+@end deftypefn
+
+
+@node C Hooks
+@subsection Hooks For C Code.
+
+The hooks already described are intended to be populated by Scheme-level
+procedures.  In addition to this, the Guile library provides an
+independent set of interfaces for the creation and manipulation of hooks
+that are designed to be populated by functions implemented in C.
+
+The original motivation here was to provide a kind of hook that could
+safely be invoked at various points during garbage collection.
+Scheme-level hooks are unsuitable for this purpose as running them could
+itself require memory allocation, which would then invoke garbage
+collection recursively @dots{}  However, it is also the case that these
+hooks are easier to work with than the Scheme-level ones if you only
+want to register C functions with them.  So if that is mainly what your
+code needs to do, you may prefer to use this interface.
+
+To create a C hook, you should allocate storage for a structure of type
+@code{scm_t_c_hook} and then initialize it using @code{scm_c_hook_init}.
+
+@deffn {C Type} scm_t_c_hook
+Data type for a C hook.  The internals of this type should be treated as
+opaque.
 @end deffn
+
+@deffn {C Enum} scm_t_c_hook_type
+Enumeration of possible hook types, which are:
+
+@table @code
+@item SCM_C_HOOK_NORMAL
+Type of hook for which all the registered functions will always be called.
+@item SCM_C_HOOK_OR
+Type of hook for which the sequence of registered functions will be
+called only until one of them returns C true (a non-NULL pointer).
+@item SCM_C_HOOK_AND
+Type of hook for which the sequence of registered functions will be
+called only until one of them returns C false (a NULL pointer).
+@end table
+@end deffn
+
+@deftypefn {C Function} void scm_c_hook_init (scm_t_c_hook *hook, void *hook_data, scm_t_c_hook_type type)
+Initialize the C hook at memory pointed to by @var{hook}.  @var{type}
+should be one of the values of the @code{scm_t_c_hook_type} enumeration,
+and controls how the hook functions will be called.  @var{hook_data} is
+a closure parameter that will be passed to all registered hook functions
+when they are called.
+@end deftypefn
+
+To add or remove a C function from a C hook, use @code{scm_c_hook_add}
+or @code{scm_c_hook_remove}.  A hook function must expect three
+@code{void *} parameters which are, respectively:
+
+@table @var
+@item hook_data
+The hook closure data that was specified at the time the hook was
+initialized by @code{scm_c_hook_init}.
+
+@item func_data
+The function closure data that was specified at the time that that
+function was registered with the hook by @code{scm_c_hook_add}.
+
+@item data
+The call closure data specified by the @code{scm_c_hook_run} call that
+runs the hook.
+@end table
+
+@deffn {C Type} scm_t_c_hook_function
+Function type for a C hook function: takes three @code{void *}
+parameters and returns a @code{void *} result.
+@end deffn
+
+@deftypefn {C Function} void scm_c_hook_add (scm_t_c_hook *hook, scm_t_c_hook_function func, void *func_data, int appendp)
+Add function @var{func}, with function closure data @var{func_data}, to
+the C hook @var{hook}.  The new function is appended to the hook's list
+of functions if @var{appendp} is non-zero, otherwise prepended.
+@end deftypefn
+
+@deftypefn {C Function} void scm_c_hook_remove (scm_t_c_hook *hook, scm_t_c_hook_function func, void *func_data)
+Remove function @var{func}, with function closure data @var{func_data},
+from the C hook @var{hook}.  @code{scm_c_hook_remove} checks both
+@var{func} and @var{func_data} so as to allow for the same @var{func}
+being registered multiple times with different closure data.
+@end deftypefn
+
+Finally, to invoke a C hook, call the @code{scm_c_hook_run} function
+specifying the hook and the call closure data for this run:
+
+@deftypefn {C Function} void * scm_c_hook_run (scm_t_c_hook *hook, void *data)
+Run the C hook @var{hook} will call closure data @var{data}.  Subject to
+the variations for hook types @code{SCM_C_HOOK_OR} and
+@code{SCM_C_HOOK_AND}, @code{scm_c_hook_run} calls @var{hook}'s
+registered functions in turn, passing them the hook's closure data, each
+function's closure data, and the call closure data.
+
+@code{scm_c_hook_run}'s return value is the return value of the last
+function to be called.
+@end deftypefn
+
+
+@node Guile Hooks
+@subsection Hooks Provided by Guile
+
+@table @code
+@item scm_before_gc_c_hook
+@item scm_before_mark_c_hook
+@item scm_before_sweep_c_hook
+@item scm_after_sweep_c_hook
+@item scm_after_gc_c_hook
+@end table
 
 
 @c Local Variables:

@@ -57,11 +57,11 @@
  * both may want to indicate success/failure and return a result.
  */
 
-typedef enum scm_t_c_hookype_t {
+typedef enum scm_t_c_hook_type {
   SCM_C_HOOK_NORMAL,
   SCM_C_HOOK_OR,
   SCM_C_HOOK_AND
-} scm_t_c_hookype_t;
+} scm_t_c_hook_type;
 
 typedef void  *(*scm_t_c_hook_function) (void *hook_data,
 					 void *func_data,
@@ -75,13 +75,13 @@ typedef struct scm_t_c_hook_entry {
 
 typedef struct scm_t_c_hook {
   scm_t_c_hook_entry *first;
-  scm_t_c_hookype_t type;
+  scm_t_c_hook_type type;
   void *data;
 } scm_t_c_hook;
 
 SCM_API void scm_c_hook_init (scm_t_c_hook *hook,
 			      void *hook_data,
-			      scm_t_c_hookype_t type);
+			      scm_t_c_hook_type type);
 SCM_API void scm_c_hook_add (scm_t_c_hook *hook,
 			     scm_t_c_hook_function func,
 			     void *func_data, 
