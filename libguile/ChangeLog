@@ -1,3 +1,46 @@
+Tue Oct 22 20:54:42 1996  Jim Blandy  <jimb@floss.cyclic.com>
+
+	* init.c (scm_start_stack): Don't initialize scm_progargs here.
+	(scm_boot_guile): Call scm_set_program_arguments here, later than
+	the old initialization.
+
+*	* init.c: (scm_boot_guile, scm_boot_guile_1):  New, simplified
+	initialization procedure.
+	- Delete in, out, err arguments; there are other perfectly good
+ 	ways to override these when desired.
+	- Delete result argument; this function shouldn't ever return.
+	- Rename init_func argument to main_func, for less confusion.
+	- Delete boot_cmd argument; main_func is more general.
+  	-Add 'closure' argument, to help people pass data to main_func
+ 	without resorting to global variables.
+	- Abort if reentered; don't bother returning an error code.
+	- Call scm_init_standard_ports to set up the default/current
+ 	standard ports; no need to pass them to scm_start_stack.
+	- Remove code to evaluate the boot_cmd, and start the repl; let
+ 	the user do something like that in main_func if they want.
+	- Remove code to package up a return value; main_func can do any
+ 	of that as needed.
+	- Call exit (0), instead of returning.
+	(scm_start_stack): Don't initialize the I/O ports here; that's
+ 	weird.  Delete in, out, err arguments.  Move guts to
+	scm_init_standard_ports, scm_stdio_to_port.
+	(scm_init_standard_ports): New function, to set up current and
+	default standard ports.
+	(scm_start_stack, scm_restart_stack): Make these static.
+	* init.h (scm_boot_guile): Adjust declaration.
+	(scm_start_stack, scm_restart_stack): Remove externally
+	visible declarations for these.
+	(enum scm_boot_status): Removed; now scm_boot_guile never returns.
+	
+*	* fports.c (scm_stdio_to_port): New function.  Its guts used to be
+	written out several times in scm_start_stack.
+	* fports.h: New declaration for the above.
+	
+*	* feature.c (scm_set_program_arguments): New function.
+	* feature.h: New declaration for the above.
+
+	* ports.c: Formatting tweak.
+
 Sun Oct 20 03:29:32 1996  Mikael Djurfeldt  <mdj@kenneth>
 
 	* pairs.h, eval.c, eval.h, feature.c, gc.c, list.c, load.c,
