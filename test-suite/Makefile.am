@@ -24,6 +24,7 @@ SCM_TESTS = tests/alist.test			\
 	    tests/optargs.test			\
 	    tests/options.test			\
 	    tests/ports.test			\
+	    tests/posix.test			\
 	    tests/r4rs.test			\
 	    tests/reader.test			\
 	    tests/regexp.test			\
@@ -40,6 +41,7 @@ SCM_TESTS = tests/alist.test			\
 	    tests/symbols.test			\
 	    tests/syncase.test			\
 	    tests/syntax.test			\
+	    tests/threads.test			\
 	    tests/time.test			\
 	    tests/version.test			\
 	    tests/weaks.test
