@@ -14,10 +14,10 @@ test_cflags := \
   -I$(top_srcdir)/libguile-ltdl
 
 snarfcppopts = $(DEFS) $(DEFAULT_INCLUDES) $(CPPFLAGS) $(CFLAGS)
-%.c.x: %.c
+%.x: %.c
 	${top_builddir}/libguile/guile-snarf -o $@ $< $(snarfcppopts)
 
-CLEANFILES = *.c.x
+CLEANFILES = *.x
 
 .DELETE_ON_ERROR:
 
@@ -37,11 +37,11 @@ TESTS += test-gh
 
 # test-asmobs
 noinst_LTLIBRARIES += libtest-asmobs.la
-libtest_asmobs_la_SOURCES = test-asmobs-lib.c test-asmobs-lib.c.x
+libtest_asmobs_la_SOURCES = test-asmobs-lib.c test-asmobs-lib.x
 libtest_asmobs_la_CFLAGS = ${test_cflags}
 libtest_asmobs_la_LDFLAGS = -rpath `pwd` # so libtool will really build an .so
 libtest_asmobs_la_LIBADD = ${top_builddir}/libguile/libguile.la
-BUILT_SOURCES += test-asmobs-lib.c.x
+BUILT_SOURCES += test-asmobs-lib.x
 check_SCRIPTS += test-asmobs
 TESTS += test-asmobs
 
