@@ -86,6 +86,7 @@
 #include <libguile/filesys.h>
 #include <libguile/fports.h>
 #include <libguile/gc.h>
+#include <libguile/gdbint.h>
 #include <libguile/genio.h>
 #include <libguile/gsubr.h>
 #include <libguile/hash.h>
