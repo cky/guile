@@ -17,7 +17,8 @@
 
 
 
-#define _POSIX_C_SOURCE 199506L  /* for readdir_r prototype */
+#define _GNU_SOURCE              /* ask glibc for everything */
+#define _POSIX_C_SOURCE 199506L  /* for readdir_r elsewhere */
 
 #if HAVE_CONFIG_H
 #  include <config.h>
