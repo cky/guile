@@ -67,6 +67,8 @@
 # endif
 #endif /* SCM_HAVE_NAN_H */
 
+#include <gmp.h>
+
 
 
 /* Immediate Numbers, also known as fixnums
@@ -151,56 +153,13 @@
 #define SCM_COMPLEX_REAL(x) (SCM_COMPLEX_MEM (x)->real)
 #define SCM_COMPLEX_IMAG(x) (SCM_COMPLEX_MEM (x)->imag)
 
-/* Define SCM_BIGDIG to an integer type whose size is smaller than long if
- * you want bignums.  SCM_BIGRAD is one greater than the biggest SCM_BIGDIG. 
- *
- * Define SCM_DIGSTOOBIG if the digits equivalent to a long won't fit in a long. 
- */
-#ifdef BIGNUMS
-# ifdef _UNICOS
-#  define SCM_DIGSTOOBIG
-#  if (1L << 31) <= SCM_USHRT_MAX
-#   define SCM_BIGDIG unsigned  short
-#  else
-#   define SCM_BIGDIG unsigned int
-#  endif /*  (1L << 31) <= USHRT_MAX */
-#  define SCM_BITSPERDIG 32
-# else
-#  define SCM_BIGDIG unsigned short
-#  define SCM_BITSPERDIG (sizeof(SCM_BIGDIG)*SCM_CHAR_BIT)
-# endif /* def _UNICOS */
-
-# define SCM_BIGRAD (1L << SCM_BITSPERDIG)
-# define SCM_DIGSPERLONG ((size_t)((sizeof(long)*SCM_CHAR_BIT+SCM_BITSPERDIG-1)/SCM_BITSPERDIG))
-# define SCM_I_BIGUP(type, x) ((type)(x) << SCM_BITSPERDIG)
-# define SCM_BIGUP(x) SCM_I_BIGUP (unsigned long, x)
-# define SCM_LONGLONGBIGUP(x) SCM_I_BIGUP (unsigned long long, x)
-# define SCM_BIGDN(x) ((x) >> SCM_BITSPERDIG)
-# define SCM_BIGLO(x) ((x) & (SCM_BIGRAD-1))
-#endif /* def BIGNUMS */
-
-#ifndef SCM_BIGDIG
-/* Definition is not really used but helps various function
- * prototypes to compile with conditionalization.
- */
-# define SCM_BIGDIG unsigned short
-#endif /* ndef SCM_BIGDIG */
+/* Each bignum is just an mpz_t stored in a double cell starting at word 1. */
+#define SCM_I_BIG_MPZ(x) (*((mpz_t *) (&(SCM_CELL_WORD_1(x)))))
+#define SCM_BIGP(x) (!SCM_IMP (x) && SCM_TYP16 (x) == scm_tc16_big)
 
 #define SCM_NUMBERP(x) (SCM_INUMP(x) || SCM_NUMP(x))
-#define SCM_NUMP(x) (!SCM_IMP(x) && (0xfcff & SCM_CELL_TYPE (x)) == scm_tc7_smob)
-#define SCM_BIGP(x) (!SCM_IMP (x) && (SCM_TYP16 (x) == scm_tc16_big))
-#define SCM_BIGSIGNFLAG 0x10000L
-#define SCM_BIGSIZEFIELD 17
-#define SCM_BIGSIGN(x) (SCM_CELL_WORD_0 (x) & SCM_BIGSIGNFLAG)
-#define SCM_BDIGITS(x) ((SCM_BIGDIG *) (SCM_CELL_WORD_1 (x)))
-#define SCM_SET_BIGNUM_BASE(n, b) (SCM_SET_CELL_WORD_1 ((n), (b)))
-#define SCM_NUMDIGS(x) ((size_t) (SCM_CELL_WORD_0 (x) >> SCM_BIGSIZEFIELD))
-#define SCM_MAKE_BIGNUM_TAG(v, sign)              \
-	      (scm_tc16_big                       \
-	       | ((sign) ? SCM_BIGSIGNFLAG : 0)   \
-	       | (((v) + 0L) << SCM_BIGSIZEFIELD))
-#define SCM_SETNUMDIGS(x, v, sign) \
-  SCM_SET_CELL_WORD_0 (x, SCM_MAKE_BIGNUM_TAG (v, sign))
+#define SCM_NUMP(x) (!SCM_IMP(x) \
+  && (0xfcff & SCM_CELL_TYPE (x)) == scm_tc7_smob)
 
 
 
@@ -243,31 +202,7 @@ SCM_API SCM scm_ash (SCM n, SCM cnt);
 SCM_API SCM scm_bit_extract (SCM n, SCM start, SCM end);
 SCM_API SCM scm_logcount (SCM n);
 SCM_API SCM scm_integer_length (SCM n);
-SCM_API SCM scm_i_mkbig (size_t nlen, int sign);
-SCM_API SCM scm_i_big2inum (SCM b, size_t l);
-SCM_API SCM scm_i_adjbig (SCM b, size_t nlen);
-SCM_API SCM scm_i_normbig (SCM b);
-SCM_API SCM scm_i_copybig (SCM b, int sign);
-SCM_API SCM scm_i_short2big (short n);
-SCM_API SCM scm_i_ushort2big (unsigned short n);
-SCM_API SCM scm_i_int2big (int n);
-SCM_API SCM scm_i_uint2big (unsigned int n);
-SCM_API SCM scm_i_long2big (long n);
-SCM_API SCM scm_i_ulong2big (unsigned long n);
-SCM_API SCM scm_i_size2big (size_t n);
-SCM_API SCM scm_i_ptrdiff2big (scm_t_ptrdiff n);
 
-#if SCM_SIZEOF_LONG_LONG != 0
-SCM_API SCM scm_i_long_long2big (long long n);
-SCM_API SCM scm_i_ulong_long2big (unsigned long long n);
-#endif
-
-SCM_API int scm_bigcomp (SCM x, SCM y);
-SCM_API long scm_pseudolong (long x);
-SCM_API void scm_longdigs (long x, SCM_BIGDIG digs[]);
-SCM_API SCM scm_addbig (SCM_BIGDIG *x, size_t nx, int xsgn, SCM bigy, int sgny);
-SCM_API SCM scm_mulbig (SCM_BIGDIG *x, size_t nx, SCM_BIGDIG *y, size_t ny, int sgn);
-SCM_API unsigned int scm_divbigdig (SCM_BIGDIG *ds, size_t h, SCM_BIGDIG div);
 SCM_API size_t scm_iint2str (long num, int rad, char *p);
 SCM_API SCM scm_number_to_string (SCM x, SCM radix);
 SCM_API int scm_print_real (SCM sexp, SCM port, scm_print_state *pstate);
@@ -315,8 +250,6 @@ SCM_API SCM scm_angle (SCM z);
 SCM_API SCM scm_exact_to_inexact (SCM z);
 SCM_API SCM scm_inexact_to_exact (SCM z);
 SCM_API SCM scm_trunc (SCM x);
-SCM_API SCM scm_i_dbl2big (double d);
-SCM_API double scm_i_big2dbl (SCM b);
 
 SCM_API SCM scm_short2num (short n);
 SCM_API SCM scm_ushort2num (unsigned short n);
@@ -357,6 +290,29 @@ SCM_API float scm_num2float (SCM num, unsigned long int pos,
 			     const char *s_caller);
 SCM_API double scm_num2double (SCM num, unsigned long int pos,
 			       const char *s_caller);
+
+
+/* bignum internal functions */
+SCM_API SCM scm_i_mkbig (void);
+SCM_API SCM scm_i_normbig (SCM x);
+SCM_API int scm_i_bigcmp (SCM a, SCM b);
+SCM_API SCM scm_i_dbl2big (double d);
+SCM_API double scm_i_big2dbl (SCM b);
+SCM_API SCM scm_i_short2big (short n);
+SCM_API SCM scm_i_ushort2big (unsigned short n);
+SCM_API SCM scm_i_int2big (int n);
+SCM_API SCM scm_i_uint2big (unsigned int n);
+SCM_API SCM scm_i_long2big (long n);
+SCM_API SCM scm_i_ulong2big (unsigned long n);
+SCM_API SCM scm_i_size2big (size_t n);
+SCM_API SCM scm_i_ptrdiff2big (scm_t_ptrdiff n);
+
+#if SCM_SIZEOF_LONG_LONG != 0
+SCM_API SCM scm_i_long_long2big (long long n);
+SCM_API SCM scm_i_ulong_long2big (unsigned long long n);
+#endif
+
+
 
 #ifdef GUILE_DEBUG
 SCM_API SCM scm_sys_check_number_conversions (void);
