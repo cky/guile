@@ -1,3 +1,14 @@
+2005-03-13  Kevin Ryde  <user42@zip.com.au>
+
+	* numbers.c, numbers.h (scm_i_clonebig): Remove static, so can use in
+	srfi-60.
+
+	* numbers.c (scm_logior): Must scm_i_normbig results as per scm_logand,
+	because OR-ing bits into a negative can reduce the value to an inum.
+
+	* numbers.c (scm_num_eq_p): On 64-bit systems, be careful about
+	casting inum to double since that can lose precision.
+
 2005-03-10  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
 
 	* threads.h, threads.c (scm_i_thread): Added gc_running_p field.
