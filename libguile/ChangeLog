@@ -8,6 +8,10 @@ Thu Aug  1 02:58:39 1996  Jim Blandy  <jimb@totoro.cyclic.com>
  	PLUGIN; it's a directory, and needs special treatment in dist-dir.
   	Remove all the ../doc/* files; doc/Makefile.in handles that.
 
+	* Makefile.in (.c.x): Compensate for Ultrix's broken Bourne shell:
+	every if must have an else, or else the whole command has a
+	non-zero exit code whenever the if's condition is false.
+
 Wed Jun 12 00:28:31 1996  Tom Lord  <lord@beehive>
 
 	* struct.c (scm_init_struct): new file.
