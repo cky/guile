@@ -1577,8 +1577,13 @@
 	    ;; Get/create it.
 	    (make-modules-in (current-module) full-name))))))
 
-;; Cheat.
+;; Cheat.  These bindings are needed by modules.c, but we don't want
+;; to move their real definition here because that would be unnatural.
+;;
 (define try-module-autoload #f)
+(define process-define-module #f)
+(define process-use-modules #f)
+(define module-export! #f)
 
 ;; This boots the module system.  All bindings needed by modules.c
 ;; must have been defined by now.
@@ -1724,7 +1729,6 @@
 		     (append (cadr kws) exports)))
 	      (else
                (unrecognized kws))))))
-    (set-current-module module)
     module))
 
 ;;; {Autoload}
@@ -2594,7 +2598,7 @@
 (defmacro define-module args
   `(eval-case
     ((load-toplevel)
-     (process-define-module ',args))
+     (set-current-module (process-define-module ',args)))
     (else
      (error "define-module can only be used at the top level"))))
 
@@ -2817,18 +2821,6 @@
 	   (module-ref the-root-module 'use-emacs-interface))
       (load-emacs-interface))
 
-  ;; Place the user in the guile-user module.
-  (process-define-module
-   '((guile-user)
-     :use-module (guile)    ;so that bindings will be checked here first
-     :use-module (ice-9 session)
-     :use-module (ice-9 debug)
-     :autoload (ice-9 debugger) (debug)))  ;load debugger on demand
-  (and (provided? 'threads)
-       (named-module-use! '(guile-user) '(ice-9 threads)))
-  (and (provided? 'regex)
-       (named-module-use! '(guile-user) '(ice-9 regex)))
-
   (let ((old-handlers #f)
 	(signals (if (provided? 'posix)
 		     `((,SIGINT . "User interrupt")
@@ -2886,8 +2878,19 @@
 (define exit-hook (make-hook))
 
 
-(define-module (guile))
+(append! %load-path (list "."))
 
-(append! %load-path (cons "." '()))
+;; Place the user in the guile-user module.
+;;
+(define-module (guile-user)
+  :use-module (guile)    ;so that bindings will be checked here first
+  :use-module (ice-9 session)
+  :use-module (ice-9 debug)
+  :autoload (ice-9 debugger) (debug))  ;load debugger on demand
+
+(if (provided? 'threads)
+    (use-modules (ice-9 threads)))
+(if (provided? 'regex)
+    (use-modules (ice-9 regex)))
 
 ;;; boot-9.scm ends here
