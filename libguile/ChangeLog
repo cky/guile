@@ -37,6 +37,16 @@ Fri Apr 11 14:12:13 1997  Jim Blandy  <jimb@floss.cyclic.com>
 	* eval.c (SCM_APPLY): Set debug apply frame argument list correctly
  	when PROC is receiving no arguments.
 
+Fri Apr 11 19:39:32 1997  Jim Blandy  <jimb@totoro.cyclic.com>
+
+ 	* filesys.c (S_ISSOCK): Define this if it's missing, but we do
+	have S_IFSOCK.  This is the case under Ultrix.
+
+	* posix.c (scm_status_exit_val, scm_status_exit_val,
+	scm_status_term_sig, scm_status_stop_sig): Modified to work with
+	Ultrix versions of WIFSTOPPED, etc., which assume that their
+	arguments are lvalues (hmm).
+
 Thu Apr 10 15:10:07 1997  Jim Blandy  <jimb@floss.cyclic.com>
 
 	* eval.c: Doc fixes.
