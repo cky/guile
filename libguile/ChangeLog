@@ -1,6 +1,7 @@
 1998-07-17  Mikael Djurfeldt  <mdj@barbara.nada.kth.se>
 
 	* eval.c (scm_copy_tree): Removed ability to copy vectors.
+	(Thanks to Doug Evans.)
 
 	* gh_data.c, gh.h (gh_ints2scm, gh_longs2ivect,
 	gh_ulongs2uvect): New procedures.  (Complements gh_doubles2scm and
