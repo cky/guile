@@ -1,3 +1,10 @@
+1998-10-09  Jim Blandy  <jimb@zwingli.cygnus.com>
+
+	* q.scm (sync-q!, q?, q-remove!, q-push!, enq!): Lots of bugs, and
+ 	(eq?  #f '()) assumptions.  Make functions that aren't documented
+ 	to return anything else return the queue itself.  (Bug report from
+ 	Michael Livshin --- thanks!)
+
 1998-08-21  Mikael Djurfeldt  <mdj@mdj.nada.kth.se>
 
 	* debug.scm (trace-entry, trace-exit): Removed re-enabling of
