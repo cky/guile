@@ -26,7 +26,7 @@ AUTOMAKE_OPTIONS = foreign
 ## building.
 INCLUDES = -I.. -I$(srcdir)/.. ${THREAD_CPPFLAGS}
 
-ETAGS_ARGS = --regex='/SCM_\(GLOBAL_\)?\(PROC\|PROC1\|SYMBOL\|VCELL\|CONST_LONG\).*\"\([^\"]\)*\"/\3/'
+ETAGS_ARGS = --regex='/SCM_\(GLOBAL_\)?\(G?PROC\|G?PROC1\|SYMBOL\|VCELL\|CONST_LONG\).*\"\([^\"]\)*\"/\3/'
 
 lib_LTLIBRARIES = libguile.la
 bin_PROGRAMS = guile
