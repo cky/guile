@@ -523,7 +523,7 @@ GUILE_PROC (scm_stack_id, "stack-id", 1, 0, 0,
     dframe = scm_last_debug_frame;
   else
     {
-      SCM_VALIDATE_NIMP(1,stack);
+      SCM_VALIDATE_NIM (1,stack);
       if (SCM_DEBUGOBJP (stack))
 	dframe = (scm_debug_frame *) SCM_DEBUGOBJ_FRAME (stack);
       else if (scm_tc7_contin == SCM_TYP7 (stack))
@@ -593,7 +593,7 @@ GUILE_PROC(scm_last_stack_frame, "last-stack-frame", 1, 0, 0,
   long offset = 0;
   SCM stack;
   
-  SCM_VALIDATE_NIMP(1,obj);
+  SCM_VALIDATE_NIM (1,obj);
   if (SCM_DEBUGOBJP (obj))
     dframe = (scm_debug_frame *) SCM_DEBUGOBJ_FRAME (obj);
   else if (scm_tc7_contin == SCM_TYP7 (obj))

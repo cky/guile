@@ -1754,7 +1754,7 @@ GUILE_PROC(scm_array_index_map_x, "array-index-map!", 2, 0, 0,
 #define FUNC_NAME s_scm_array_index_map_x
 {
   scm_sizet i;
-  SCM_VALIDATE_NIMP(1,ra);
+  SCM_VALIDATE_NIM (1,ra);
   SCM_VALIDATE_PROC(2,proc);
   switch (SCM_TYP7(ra))
     {

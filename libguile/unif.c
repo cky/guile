@@ -1683,7 +1683,7 @@ GUILE_PROC(scm_bit_position, "bit-position", 3, 0, 0,
 {
   long i, lenw, xbits, pos;
   register unsigned long w;
-  SCM_VALIDATE_NIMP(2,v);
+  SCM_VALIDATE_NIM (2,v);
   SCM_VALIDATE_INT_COPY(3,k,pos);
   SCM_ASSERT ((pos <= SCM_LENGTH (v)) && (pos >= 0),
 	  k, SCM_OUTOFRANGE, FUNC_NAME);

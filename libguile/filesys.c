@@ -406,7 +406,7 @@ GUILE_PROC (scm_stat, "stat", 1, 0, 0,
     SCM_SYSCALL (rv = fstat (SCM_INUM (object), &stat_temp));
   else
     {
-      SCM_VALIDATE_NIMP(1,object);
+      SCM_VALIDATE_NIM (1,object);
       if (SCM_ROSTRINGP (object))
 	{
 	  SCM_COERCE_SUBSTR (object);

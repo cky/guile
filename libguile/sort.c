@@ -423,8 +423,8 @@ GUILE_PROC (scm_restricted_vector_sort_x, "restricted-vector-sort!", 4, 0, 0,
   size_t  vlen, spos, len, size = sizeof (SCM);
   SCM *vp;
 
-  SCM_VALIDATE_NIMP(1,vec);
-  SCM_VALIDATE_NIMP(2,less);
+  SCM_VALIDATE_NIM (1,vec);
+  SCM_VALIDATE_NIM (2,less);
   switch (SCM_TYP7 (vec))
     {
     case scm_tc7_vector:	/* the only type we manage is vector */
@@ -469,8 +469,8 @@ GUILE_PROC (scm_sorted_p, "sorted?", 2, 0, 0,
   if (SCM_NULLP (items))
     return SCM_BOOL_T;
 
-  SCM_VALIDATE_NIMP(1,items);
-  SCM_VALIDATE_NIMP(2,less);
+  SCM_VALIDATE_NIM (1,items);
+  SCM_VALIDATE_NIM (2,less);
 
   if (SCM_CONSP (items))
     {
@@ -544,7 +544,7 @@ GUILE_PROC (scm_merge, "merge", 3, 0, 0,
   long alen, blen;		/* list lengths */
   SCM build, last;
   cmp_fun_t cmp = scm_cmp_function (less);
-  SCM_VALIDATE_NIMP(3,less);
+  SCM_VALIDATE_NIM (3,less);
 
   if (SCM_NULLP (alist))
     return blist;
@@ -650,7 +650,7 @@ GUILE_PROC (scm_merge_x, "merge!", 3, 0, 0,
 {
   long alen, blen;		/* list lengths */
 
-  SCM_VALIDATE_NIMP(3,less);
+  SCM_VALIDATE_NIM (3,less);
   if (SCM_NULLP (alist))
     return blist;
   else if (SCM_NULLP (blist))
@@ -723,8 +723,8 @@ GUILE_PROC (scm_sort_x, "sort!", 2, 0, 0,
   long len;			/* list/vector length */
   if (SCM_NULLP(items))
     return SCM_EOL;
-  SCM_VALIDATE_NIMP(1,items);
-  SCM_VALIDATE_NIMP(2,less);
+  SCM_VALIDATE_NIM (1,items);
+  SCM_VALIDATE_NIM (2,less);
 
   if (SCM_CONSP (items))
     {
@@ -756,8 +756,8 @@ GUILE_PROC (scm_sort, "sort", 2, 0, 0,
   long len;			/* list/vector length */
   if (SCM_NULLP(items))
     return SCM_EOL;
-  SCM_VALIDATE_NIMP(1,items);
-  SCM_VALIDATE_NIMP(2,less);
+  SCM_VALIDATE_NIM (1,items);
+  SCM_VALIDATE_NIM (2,less);
   if (SCM_CONSP (items))
     {
       SCM_VALIDATE_LIST_COPYLEN(1,items,len);
@@ -847,8 +847,8 @@ GUILE_PROC (scm_stable_sort_x, "stable-sort!", 2, 0, 0,
 
   if (SCM_NULLP (items))
     return SCM_EOL;
-  SCM_VALIDATE_NIMP(1,items);
-  SCM_VALIDATE_NIMP(2,less);
+  SCM_VALIDATE_NIM (1,items);
+  SCM_VALIDATE_NIM (2,less);
   if (SCM_CONSP (items))
     {
       SCM_VALIDATE_LIST_COPYLEN(1,items,len);
@@ -884,8 +884,8 @@ GUILE_PROC (scm_stable_sort, "stable-sort", 2, 0, 0,
   long len;			/* list/vector length */
   if (SCM_NULLP (items))
     return SCM_EOL;
-  SCM_VALIDATE_NIMP(1,items);
-  SCM_VALIDATE_NIMP(2,less);
+  SCM_VALIDATE_NIM (1,items);
+  SCM_VALIDATE_NIM (2,less);
   if (SCM_CONSP (items))
     {
       SCM_VALIDATE_LIST_COPYLEN(1,items,len);
@@ -926,7 +926,7 @@ GUILE_PROC (scm_sort_list_x, "sort-list!", 2, 0, 0,
 {
   long len;
   SCM_VALIDATE_LIST_COPYLEN(1,items,len);
-  SCM_VALIDATE_NIMP(2,less);
+  SCM_VALIDATE_NIM (2,less);
   return scm_merge_list_step (&items, scm_cmp_function (less), less, len);
 }
 #undef FUNC_NAME				/* scm_sort_list_x */
@@ -939,7 +939,7 @@ GUILE_PROC (scm_sort_list, "sort-list", 2, 0, 0,
 {
   long len;
   SCM_VALIDATE_LIST_COPYLEN(1,items,len);
-  SCM_VALIDATE_NIMP(2,less);
+  SCM_VALIDATE_NIM (2,less);
   items = scm_list_copy (items);
   return scm_merge_list_step (&items, scm_cmp_function (less), less, len);
 }

@@ -364,7 +364,7 @@ GUILE_PROC (scm_random, "random", 1, 1, 0,
       SCM_ASSERT_RANGE (1,n,m > 0);
       return SCM_MAKINUM (scm_c_random (SCM_RSTATE (state), m));
     }
-  SCM_VALIDATE_NIMP(1,n);
+  SCM_VALIDATE_NIM (1,n);
   if (SCM_REALP (n))
     return scm_makdbl (SCM_REALPART (n) * scm_c_uniform01 (SCM_RSTATE (state)),
 		       0.0);

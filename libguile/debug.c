@@ -421,7 +421,7 @@ GUILE_PROC (scm_procedure_source, "procedure-source", 1, 0, 0,
 "")
 #define FUNC_NAME s_scm_procedure_source
 {
-  SCM_VALIDATE_NIMP(1,proc);
+  SCM_VALIDATE_NIM (1,proc);
   switch (SCM_TYP7 (proc)) {
   case scm_tcs_closures:
     {
@@ -456,7 +456,7 @@ GUILE_PROC (scm_procedure_environment, "procedure-environment", 1, 0, 0,
 "")
 #define FUNC_NAME s_scm_procedure_environment
 {
-  SCM_VALIDATE_NIMP(1,proc);
+  SCM_VALIDATE_NIM (1,proc);
   switch (SCM_TYP7 (proc)) {
   case scm_tcs_closures:
     return SCM_ENV (proc);

@@ -326,7 +326,7 @@ GUILE_PROC (scm_procedure, "procedure", 1, 0, 0,
             "")
 #define FUNC_NAME s_scm_procedure
 {
-  SCM_VALIDATE_NIMP(1,proc);
+  SCM_VALIDATE_NIM (1,proc);
   if (SCM_PROCEDURE_WITH_SETTER_P (proc))
     return SCM_PROCEDURE (proc);
   else if (SCM_STRUCTP (proc))

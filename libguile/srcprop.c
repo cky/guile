@@ -169,7 +169,7 @@ GUILE_PROC (scm_source_properties, "source-properties", 1, 0, 0,
 #define FUNC_NAME s_scm_source_properties
 {
   SCM p;
-  SCM_VALIDATE_NIMP(1,obj);
+  SCM_VALIDATE_NIM (1,obj);
   if (SCM_MEMOIZEDP (obj))
     obj = SCM_MEMOIZED_EXP (obj);
 #ifndef SCM_RECKLESS
@@ -191,7 +191,7 @@ GUILE_PROC (scm_set_source_properties_x, "set-source-properties!", 2, 0, 0,
 #define FUNC_NAME s_scm_set_source_properties_x
 {
   SCM handle;
-  SCM_VALIDATE_NIMP(1,obj);
+  SCM_VALIDATE_NIM (1,obj);
   if (SCM_MEMOIZEDP (obj))
     obj = SCM_MEMOIZED_EXP (obj);
 #ifndef SCM_RECKLESS
@@ -210,7 +210,7 @@ GUILE_PROC (scm_source_property, "source-property", 2, 0, 0,
 #define FUNC_NAME s_scm_source_property
 {
   SCM p;
-  SCM_VALIDATE_NIMP(1,obj);
+  SCM_VALIDATE_NIM (1,obj);
   if (SCM_MEMOIZEDP (obj))
     obj = SCM_MEMOIZED_EXP (obj);
 #ifndef SCM_RECKLESS
@@ -243,7 +243,7 @@ GUILE_PROC (scm_set_source_property_x, "set-source-property!", 3, 0, 0,
 {
   scm_whash_handle h;
   SCM p;
-  SCM_VALIDATE_NIMP(1,obj);
+  SCM_VALIDATE_NIM (1,obj);
   if (SCM_MEMOIZEDP (obj))
     obj = SCM_MEMOIZED_EXP (obj);
 #ifndef SCM_RECKLESS
