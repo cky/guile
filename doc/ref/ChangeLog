@@ -1,5 +1,10 @@
 2004-08-14  Kevin Ryde  <user42@zip.com.au>
 
+	* api-scheduling.texi (Mutexes): New datatype-centric section, adding
+	fair mutexes and collecting up material from ...
+	(Low level thread primitives, Higher level thread procedures, C level
+	thread interface): ... these nodes.
+
 	* srfi-modules.texi (SRFI-13 Predicates): Add string-any and
 	string-every support for char and charset predicates.
 
