@@ -60,7 +60,7 @@ extern "C" {
 #define EXTINL
 #endif /* __GNUC__ */
 
-void gh_enter(int argc, char *argv[], void (*c_main_prog)());
+void gh_enter(int argc, char *argv[], void (*c_main_prog)(int, char **));
 void gh_repl(int argc, char *argv[]);
 SCM gh_catch(SCM tag, scm_catch_body_t body, void *body_data,
 	     scm_catch_handler_t handler, void *handler_data);
@@ -82,18 +82,18 @@ SCM gh_eval_file_with_standard_handler(char *scheme_code);
 
 SCM gh_new_procedure(char *proc_name, SCM (*fn)(),
 		     int n_required_args, int n_optional_args, int varp);
-SCM gh_new_procedure0_0(char *proc_name, SCM (*fn)());
-SCM gh_new_procedure0_1(char *proc_name, SCM (*fn)());
-SCM gh_new_procedure0_2(char *proc_name, SCM (*fn)());
-SCM gh_new_procedure1_0(char *proc_name, SCM (*fn)());
-SCM gh_new_procedure1_1(char *proc_name, SCM (*fn)());
-SCM gh_new_procedure1_2(char *proc_name, SCM (*fn)());
-SCM gh_new_procedure2_0(char *proc_name, SCM (*fn)());
-SCM gh_new_procedure2_1(char *proc_name, SCM (*fn)());
-SCM gh_new_procedure2_2(char *proc_name, SCM (*fn)());
-SCM gh_new_procedure3_0(char *proc_name, SCM (*fn)());
-SCM gh_new_procedure4_0(char *proc_name, SCM (*fn)());
-SCM gh_new_procedure5_0(char *proc_name, SCM (*fn)());
+SCM gh_new_procedure0_0(char *proc_name, SCM (*fn)(void));
+SCM gh_new_procedure0_1(char *proc_name, SCM (*fn)(SCM));
+SCM gh_new_procedure0_2(char *proc_name, SCM (*fn)(SCM, SCM));
+SCM gh_new_procedure1_0(char *proc_name, SCM (*fn)(SCM));
+SCM gh_new_procedure1_1(char *proc_name, SCM (*fn)(SCM, SCM));
+SCM gh_new_procedure1_2(char *proc_name, SCM (*fn)(SCM, SCM, SCM));
+SCM gh_new_procedure2_0(char *proc_name, SCM (*fn)(SCM, SCM));
+SCM gh_new_procedure2_1(char *proc_name, SCM (*fn)(SCM, SCM, SCM));
+SCM gh_new_procedure2_2(char *proc_name, SCM (*fn)(SCM, SCM, SCM, SCM));
+SCM gh_new_procedure3_0(char *proc_name, SCM (*fn)(SCM, SCM, SCM));
+SCM gh_new_procedure4_0(char *proc_name, SCM (*fn)(SCM, SCM, SCM, SCM));
+SCM gh_new_procedure5_0(char *proc_name, SCM (*fn)(SCM, SCM, SCM, SCM, SCM));
 
 /* C to Scheme conversion */
 SCM gh_int2scmb(int x);		/* this is being phased out */
