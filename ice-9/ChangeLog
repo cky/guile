@@ -1,3 +1,22 @@
+2001-02-13  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* boot-9.scm (define-public): Removed spurious call to
+	`interaction-evironment'.
+	(define-public, defmacro-public): Use `export' instead of explicit
+	module magic.
+	(eval-when): New macro.
+	(define-module, use-modules, use-syntax, export): Use it to
+	restrict the use of these forms to the top level.
+	(define-public, defmacro-public): Only export binding when on
+	top-level.
+	(process-define-module): Call `set-current-module' with the
+	defined module.
+	(define-module): Simply call `process-define-module' without any
+	fuss (but only on top-level).
+	(named-module-use!): New function.
+	(top-repl): Do not use `define-module'.  Use equivalent low-level
+	means instead.
+	
 2001-02-11  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* boot-9.scm (scm-style-repl): Use `primitive-eval' instead of
