@@ -1,3 +1,8 @@
+2000-07-12  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* boot-9.scm (expt):  Make sure that integer-expt is only called
+	if the exponent is a non-negative integer.
+
 2000-07-01  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
 	* boot-9.scm (process-define-module): Bugfix: Only check the CDR
