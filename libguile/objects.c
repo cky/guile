@@ -276,7 +276,7 @@ scm_mcache_lookup_cmethod (SCM cache, SCM args)
 		 [scm_si_hashsets + hashset];
 	    ls = SCM_CDR (ls);
 	  }
-	while (--j && SCM_NIMP (ls));
+	while (j-- && SCM_NIMP (ls));
       i &= mask;
       end = i;
     }
@@ -296,7 +296,7 @@ scm_mcache_lookup_cmethod (SCM cache, SCM args)
 	    ls = SCM_CDR (ls);
 	    z = SCM_CDR (z);
 	  }
-	while (--j && SCM_NIMP (ls));
+	while (j-- && SCM_NIMP (ls));
       /* Fewer arguments than specifiers => CAR != ENV */
       if (!(SCM_IMP (SCM_CAR (z)) || SCM_CONSP (SCM_CAR (z))))
 	goto next_method;

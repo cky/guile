@@ -2292,7 +2292,7 @@ dispatch:
 			   [scm_si_hashsets + hashset];
 		      t.arg1 = SCM_CDR (t.arg1);
 		    }
-		  while (--j && SCM_NIMP (t.arg1));
+		  while (j-- && SCM_NIMP (t.arg1));
 		i &= mask;
 		end = i;
 	      }
@@ -2312,7 +2312,7 @@ dispatch:
 		      t.arg1 = SCM_CDR (t.arg1);
 		      z = SCM_CDR (z);
 		    }
-		  while (--j && SCM_NIMP (t.arg1));
+		  while (j-- && SCM_NIMP (t.arg1));
 		/* Fewer arguments than specifiers => CAR != ENV */
 		if (!(SCM_IMP (SCM_CAR (z)) || SCM_CONSP (SCM_CAR (z))))
 		  goto next_method;
