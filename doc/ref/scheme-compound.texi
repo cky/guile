@@ -232,11 +232,25 @@ This section describes the procedures for constructing new lists.
 @code{cons*} is similar, but the last argument is stored in the cdr of
 the last pair of the list.
 
+@c  C Function scm_list(rest) used to be documented here, but it's a
+@c  no-op since it does nothing but return the list the caller must
+@c  have already created.
+@c
+@deffn {Scheme Procedure} list elem1 @dots{} elemN
+@deffnx {C Function} scm_list_1 (elem1)
+@deffnx {C Function} scm_list_2 (elem1, elem2)
+@deffnx {C Function} scm_list_3 (elem1, elem2, elem3)
+@deffnx {C Function} scm_list_4 (elem1, elem2, elem3, elem4)
+@deffnx {C Function} scm_list_5 (elem1, elem2, elem3, elem4, elem5)
+@deffnx {C Function} scm_list_n (elem1, @dots{}, elemN, @nicode{SCM_UNDEFINED})
 @rnindex list
-@deffn {Scheme Procedure} list . objs
-@deffnx {C Function} scm_list (objs)
-Return a list containing @var{objs}, the arguments to
-@code{list}.
+Return a new list containing elements @var{elem1} to @var{elemN}.
+
+@code{scm_list_n} takes a variable number of arguments, terminated by
+the special @code{SCM_UNDEFINED}.  That final @code{SCM_UNDEFINED} is
+not included in the list.  None of @var{elem1} to @var{elemN} can
+themselves be @code{SCM_UNDEFINED}, or @code{scm_list_n} will
+terminate at that point.
 @end deffn
 
 @deffn {Scheme Procedure} cons* arg1 arg2 @dots{}
