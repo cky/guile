@@ -1,3 +1,17 @@
+Tue Dec 17 20:29:03 1996  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* backtrace.c (scm_display_error): Bugfix: scm_procedure_p returns
+ 	a SCM boolean, not a C boolean.
+
+Sat Dec 14 23:21:45 1996  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* gc.c (SCM_MTRIGGER_HYSTERESIS): New memory management parameter.
+ 	(scm_must_malloc, scm_must_realloc): Added a hysteresis to the
+ 	rules for raising scm_mtrigger. Previously, unfortunate but not
+ 	unlikely circumstances could result in almost constant invokation
+ 	of the gc. Now, this situations should be less likely, but they
+ 	are not prevented completely.
+
 Tue Dec 17 16:19:07 1996  Jim Blandy  <jimb@totoro.cyclic.com>
 
 	* numbers.c (scm_fuck): Procedure removed; looks like old test

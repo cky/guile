@@ -1,5 +1,6 @@
 Random notes about dynamic linking for Guile. I will update this file
-as I go along. Comments are very welcome.
+as I go along. Comments are very welcome. I can be reached at
+mvo@zagadka.ping.de (Marius Vollmer).
 
 The dynamic linking support is mostly untested. I can't test it
 because I don't have all the different platforms, of course. Please
