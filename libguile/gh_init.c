@@ -57,7 +57,7 @@ gh_launch_pad (void *closure, int argc, char **argv)
 {
   main_prog_t c_main_prog = (main_prog_t) closure;
 
-  gh_eval_str ("(primitive-load-path \"ice-9/boot-9.scm\")");
+/*   gh_eval_str ("(primitive-load-path \"ice-9/boot-9.scm\")"); */
   c_main_prog (argc, argv);
   exit (0);
 }
@@ -76,10 +76,10 @@ gh_enter (int argc, char *argv[], main_prog_t c_main_prog)
 /* offer a REPL to the C programmer; for now I just invoke the ice-9
    REPL that is written in Scheme */
 void 
-gh_repl ()
+gh_repl (int argc, char *argv[])
 {
-/*   gh_eval_str("(primitive-load-path \"ice-9/boot-9.scm\")"); */
-  gh_eval_str ("(top-repl)");
+/*   gh_eval_str ("(top-repl)"); */
+  scm_shell (argc, argv);
 }
 
 /* libguile programmers need exception handling mechanisms; here is

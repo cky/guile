@@ -295,6 +295,30 @@ gh_vector_length (SCM v)
   return gh_scm2ulong (scm_vector_length (v));
 }
 
+
+/* uniform vector support */
+
+/* returns the length as a C unsigned long integer */
+unsigned long
+gh_uniform_vector_length (SCM v)
+{
+  return gh_scm2ulong (scm_uniform_vector_length (v));
+}
+
+/* gets the given element from a uniform vector; ilist is a list (or
+   possibly a single integer) of indices, and its length is the
+   dimension of the uniform vector */
+SCM
+gh_uniform_vector_ref (SCM v, SCM ilist)
+{
+  return scm_uniform_vector_ref (v, ilist);
+}
+
+/* sets an individual element in a uniform vector */
+/* SCM */
+/* gh_list_to_uniform_array ( */
+
+
 /* Data lookups between C and Scheme
 
    Look up a symbol with a given name, and return the object to which
