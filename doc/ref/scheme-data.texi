@@ -98,7 +98,11 @@ other Scheme value.  In particular, @code{#f} is not the same as the
 number 0 (like in C and C++), and not the same as the ``empty list''
 (like in some Lisp dialects).
 
-The @code{not} procedure returns the boolean inverse of its argument:
+In C, the two Scheme boolean values are available as the two constants
+@code{SCM_BOOL_T} for @code{#t} and @code{SCM_BOOL_F} for @code{#f}.
+Care must be taken with the false value @code{SCM_BOOL_F}: it is not
+false when used in C conditionals.  In order to test for it, use
+@code{SCM_FALSEP} or @code{SCM_NFALSEP}.
 
 @rnindex not
 @deffn {Scheme Procedure} not x
@@ -106,15 +110,33 @@ The @code{not} procedure returns the boolean inverse of its argument:
 Return @code{#t} iff @var{x} is @code{#f}, else return @code{#f}.
 @end deffn
 
-The @code{boolean?} procedure is a predicate that returns @code{#t} if
-its argument is one of the boolean values, otherwise @code{#f}.
-
 @rnindex boolean?
 @deffn {Scheme Procedure} boolean? obj
 @deffnx {C Function} scm_boolean_p (obj)
 Return @code{#t} iff @var{obj} is either @code{#t} or @code{#f}.
 @end deffn
 
+@rnindex SCM_BOOL_T
+@deffn {C Macro} SCM_BOOL_T
+Represents a value that is true in the Scheme sense.
+@end deffn
+
+@rnindex SCM_BOOL_T
+@deffn {C Macro} SCM_BOOL_F
+Represents a value that is false in the Scheme sense.
+@end deffn
+
+@rnindex SCM_FALSEP
+@deffn {C Macro} SCM_FALSEP (SCM obj)
+Return true in the C sense when @var{obj} is false in the Scheme
+sense; return false in the C sense otherwise.
+@end deffn
+
+@rnindex SCM_NFALSEP
+@deffn {C Macro} SCM_NFALSEP (SCM obj)
+Return true in the C sense when @var{obj} is true in the Scheme
+sense; return false in the C sense otherwise.
+@end deffn
 
 @node Numbers
 @section Numerical data types
@@ -183,10 +205,17 @@ follows it, in the sense that every integer is also a rational, every
 rational is also real, and every real number is also a complex number
 (but with zero imaginary part).
 
-Of these, Guile implements integers, reals and complex numbers as
-distinct types.  Rationals are implemented as regards the read syntax
-for rational numbers that is specified by R5RS, but are immediately
-converted by Guile to the corresponding real number.
+In addition to the classification into integers, rationals, reals and
+complex numbers, Scheme also distinguishes between whether a number is
+represented exactly or not.  For example, the result of
+@m{2\sin(\pi/4),sin(pi/4)} is exactly @m{\sqrt{2},2^(1/2)} but Guile
+can neither represent @m{\pi/4,pi/4} nor @m{\sqrt{2},2^(1/2)} exactly.
+Instead, it stores an inexact approximation, using the C type
+@code{double}.
+
+Guile can represent exact rationals of any magnitude, inexact
+rationals that fit into a C @code{double}, and inexact complex numbers
+with @code{double} real and imaginary parts.
 
 The @code{number?} predicate may be applied to any Scheme value to
 discover whether the value is any of the supported numerical types.
@@ -292,12 +321,25 @@ fractions @var{p}/@var{q}, where @var{p} and @var{q} are integers.
 All rational numbers are also real, but there are real numbers that
 are not rational, for example the square root of 2, and pi.
 
-Guile represents both real and rational numbers approximately using a
-floating point encoding with limited precision.  Even though the actual
-encoding is in binary, it may be helpful to think of it as a decimal
-number with a limited number of significant figures and a decimal point
-somewhere, since this corresponds to the standard notation for non-whole
-numbers.  For example:
+Guile can represent both exact and inexact rational numbers, but it
+can not represent irrational numbers.  Exact rationals are represented
+by storing the numerator and denominator as two exact integers.
+Inexact rationals are stored as floating point numbers using the C
+type @code{double}.
+
+Exact rationals are written as a fraction of integers.  There must be
+no whitespace around the slash:
+
+@lisp
+1/2
+-22/7
+@end lisp
+
+Even though the actual encoding of inexact rationals is in binary, it
+may be helpful to think of it as a decimal number with a limited
+number of significant figures and a decimal point somewhere, since
+this corresponds to the standard notation for non-whole numbers.  For
+example:
 
 @lisp
 0.34
@@ -313,17 +355,6 @@ by sufficient powers of 10 (or in fact, 2).  For example,
 100000000000000000.  In Guile's current incarnation, therefore, the
 @code{rational?} and @code{real?} predicates are equivalent.
 
-Another aspect of this equivalence is that Guile currently does not
-preserve the exactness that is possible with rational arithmetic.
-If such exactness is needed, it is of course possible to implement
-exact rational arithmetic at the Scheme level using Guile's arbitrary
-size integers.
-
-A planned future revision of Guile's numerical tower will make it
-possible to implement exact representations and arithmetic for both
-rational numbers and real irrational numbers such as square roots,
-and in such a way that the new kinds of number integrate seamlessly
-with those that are already implemented.
 
 Dividing by an exact zero leads to a error message, as one might
 expect.  However, dividing by an inexact zero does not produce an
@@ -331,7 +362,7 @@ error.  Instead, the result of the division is either plus or minus
 infinity, depending on the sign of the divided number.
 
 The infinities are written @samp{+inf.0} and @samp{-inf.0},
-respectibly.  This syntax is also recognized by @code{read} as an
+respectivly.  This syntax is also recognized by @code{read} as an
 extension to the usual Scheme syntax.
 
 Dividing zero by zero yields something that is not a number at all:
@@ -352,20 +383,37 @@ To test for the special values, use the functions @code{inf?} and
 
 @deffn {Scheme Procedure} real? obj
 @deffnx {C Function} scm_real_p (obj)
-Return @code{#t} if @var{obj} is a real number, else @code{#f}.
-Note that the sets of integer and rational values form subsets
-of the set of real numbers, so the predicate will also be fulfilled
-if @var{obj} is an integer number or a rational number.
+Return @code{#t} if @var{obj} is a real number, else @code{#f}.  Note
+that the sets of integer and rational values form subsets of the set
+of real numbers, so the predicate will also be fulfilled if @var{obj}
+is an integer number or a rational number.
 @end deffn
 
 @deffn {Scheme Procedure} rational? x
-@deffnx {C Function} scm_real_p (x)
-Return @code{#t} if @var{x} is a rational number, @code{#f}
-otherwise.  Note that the set of integer values forms a subset of
-the set of rational numbers, i. e. the predicate will also be
-fulfilled if @var{x} is an integer number.  Real numbers
-will also satisfy this predicate, because of their limited
-precision.
+@deffnx {C Function} scm_rational_p (x)
+Return @code{#t} if @var{x} is a rational number, @code{#f} otherwise.
+Note that the set of integer values forms a subset of the set of
+rational numbers, i. e. the predicate will also be fulfilled if
+@var{x} is an integer number.
+
+Since Guile can not represent irrational numbers, every number
+satisfying @code{real?} also satisfies @code{rational?} in Guile.
+@end deffn
+
+@deffn {Scheme Procedure} rationalize x eps
+@deffnx {C Function} scm_rationalize (x, eps)
+Returns the @emph{simplest} rational number differing
+from @var{x} by no more than @var{eps}.  
+
+As required by @acronym{R5RS}, @code{rationalize} returns only then an
+exact result when both its arguments are exact.  Thus, you might need
+to use @code{inexact->exact} on the arguments.
+
+@lisp
+(rationalize (inexact->exact 1.2) 1/100)
+@result{} 6/5
+@end lisp
+
 @end deffn
 
 @deffn {Scheme Procedure} inf? x
@@ -402,9 +450,11 @@ the imaginary part.
 9.3-17.5i
 @end lisp
 
-Guile represents a complex number as a pair of numbers both of which are
-real, so the real and imaginary parts of a complex number have the same
-properties of inexactness and limited precision as single real numbers.
+Guile represents a complex number with a non-zero imaginary part as a
+pair of inexact rationals, so the real and imaginary parts of a
+complex number have the same properties of inexactness and limited
+precision as single inexact rational numbers.  Guile can not represent
+exact complex numbers with non-zero imaginary parts.
 
 @deffn {Scheme Procedure} complex? x
 @deffnx {C Function} scm_number_p (x)
@@ -434,25 +484,60 @@ available, has no fractional part, and is printed as @samp{5.0}.  Guile
 will only convert the latter value to the former when forced to do so by
 an invocation of the @code{inexact->exact} procedure.
 
-@deffn {Scheme Procedure} exact? x
-@deffnx {C Function} scm_exact_p (x)
-Return @code{#t} if @var{x} is an exact number, @code{#f}
+@deffn {Scheme Procedure} exact? z
+@deffnx {C Function} scm_exact_p (z)
+Return @code{#t} if the number @var{z} is exact, @code{#f}
 otherwise.
+
+@lisp
+(exact? 2)
+@result{} #t
+
+(exact? 0.5)
+@result{} #f
+
+(exact? (/ 2))
+@result{} #t
+@end lisp
+
 @end deffn
 
-@deffn {Scheme Procedure} inexact? x
-@deffnx {C Function} scm_inexact_p (x)
-Return @code{#t} if @var{x} is an inexact number, @code{#f}
+@deffn {Scheme Procedure} inexact? z
+@deffnx {C Function} scm_inexact_p (z)
+Return @code{#t} if the number @var{z} is inexact, @code{#f}
 else.
 @end deffn
 
 @deffn {Scheme Procedure} inexact->exact z
 @deffnx {C Function} scm_inexact_to_exact (z)
-Return an exact number that is numerically closest to @var{z}.
+Return an exact number that is numerically closest to @var{z}, when
+there is one.  For inexact rationals, Guile returns the exact rational
+that is numerically equal to the inexact rational.  Inexact complex
+numbers with a non-zero imaginary part can not be made exact.
+
+@lisp
+(inexact->exact 0.5)
+@result{} 1/2
+@end lisp
+
+The following happens because 12/10 is not exactly representable as a
+@code{double} (on most platforms).  However, when reading a decimal
+number that has been marked exact with the ``#e'' prefix, Guile is
+able to represent it correctly.
+
+@lisp
+(inexact->exact 1.2)  
+@result{} 5404319552844595/4503599627370496
+
+#e1.2
+@result{} 6/5
+@end lisp
+
 @end deffn
 
 @c begin (texi-doc-string "guile" "exact->inexact")
 @deffn {Scheme Procedure} exact->inexact z
+@deffnx {C Function} scm_exact_to_inexact (z)
 Convert the number @var{z} to its inexact representation.
 @end deffn
 
@@ -516,20 +601,28 @@ the number is exact
 the number is inexact.
 @end table
 
-If the exactness indicator is omitted, the integer is assumed to be exact,
-since Guile's internal representation for integers is always exact.
-Real numbers have limited precision similar to the precision of the
-@code{double} type in C.  A consequence of the limited precision is that
-all real numbers in Guile are also rational, since any number @var{r} with a
-limited number of decimal places, say @var{n}, can be made into an integer by
-multiplying by @math{10^n}.
+If the exactness indicator is omitted, the number is exact unless it
+contains a radix point.  Since Guile can not represent exact complex
+numbers, an error is signalled when asking for them.
+
+@lisp
+(exact? 1.2)
+@result{} #f
+
+(exact? #e1.2)
+@result{} #t
+
+(exact? #e+1i)
+ERROR: Wrong type argument
+@end lisp
 
 Guile also understands the syntax @samp{+inf.0} and @samp{-inf.0} for
 plus and minus infinity, respectively.  The value must be written
-exactly as shown, that is, the always must have a sign and exactly one
-zero digit after the decimal point.  It also understands @samp{+nan.0}
-and @samp{-nan.0} for the special `not-a-number' value.  The sign is
-ignored for `not-a-number' and the value is always printed as @samp{+nan.0}.
+exactly as shown, that is, they always must have a sign and exactly
+one zero digit after the decimal point.  It also understands
+@samp{+nan.0} and @samp{-nan.0} for the special `not-a-number' value.
+The sign is ignored for `not-a-number' and the value is always printed
+as @samp{+nan.0}.
 
 @node Integer Operations
 @subsection Operations on Integer Values
@@ -557,6 +650,8 @@ otherwise.
 @c begin (texi-doc-string "guile" "remainder")
 @deffn {Scheme Procedure} quotient n d
 @deffnx {Scheme Procedure} remainder n d
+@deffnx {C Function} scm_quotient (n, d)
+@deffnx {C Function} scm_remainder (n, d)
 Return the quotient or remainder from @var{n} divided by @var{d}.  The
 quotient is rounded towards zero, and the remainder will have the same
 sign as @var{n}.  In all cases quotient and remainder satisfy
@@ -570,6 +665,7 @@ sign as @var{n}.  In all cases quotient and remainder satisfy
 
 @c begin (texi-doc-string "guile" "modulo")
 @deffn {Scheme Procedure} modulo n d
+@deffnx {C Function} scm_modulo (n, d)
 Return the remainder from @var{n} divided by @var{d}, with the same
 sign as @var{d}.
 
@@ -583,14 +679,22 @@ sign as @var{d}.
 
 @c begin (texi-doc-string "guile" "gcd")
 @deffn {Scheme Procedure} gcd
+@deffnx {C Function} scm_gcd (x, y)
 Return the greatest common divisor of all arguments.
 If called without arguments, 0 is returned.
+
+The C function @code{scm_gcd} always takes two arguments, while the
+Scheme function can take an arbitrary number.
 @end deffn
 
 @c begin (texi-doc-string "guile" "lcm")
 @deffn {Scheme Procedure} lcm
+@deffnx {C Function} scm_lcm (x, y)
 Return the least common multiple of the arguments.
 If called without arguments, 1 is returned.
+
+The C function @code{scm_lcm} always takes two arguments, while the
+Scheme function can take an arbitrary number.
 @end deffn
 
 
@@ -600,49 +704,65 @@ If called without arguments, 1 is returned.
 @rnindex positive?
 @rnindex negative?
 
+The C comparison functions below always takes two arguments, while the
+Scheme functions can take an arbitrary number.  Also keep in mind that
+the C functions return one of the Scheme boolean values
+@code{SCM_BOOL_T} or @code{SCM_BOOL_F} which are both true as far as C
+is concerned.  Thus, always write @code{SCM_NFALSEP (scm_num_eq_p (x,
+y))} when testing the two Scheme numbers @code{x} and @code{y} for
+equality, for example.
+
 @c begin (texi-doc-string "guile" "=")
 @deffn {Scheme Procedure} =
+@deffnx {C Function} scm_num_eq_p (x, y)
 Return @code{#t} if all parameters are numerically equal.
 @end deffn
 
 @c begin (texi-doc-string "guile" "<")
 @deffn {Scheme Procedure} <
+@deffnx {C Function} scm_less_p (x, y)
 Return @code{#t} if the list of parameters is monotonically
 increasing.
 @end deffn
 
 @c begin (texi-doc-string "guile" ">")
 @deffn {Scheme Procedure} >
+@deffnx {C Function} scm_gr_p (x, y)
 Return @code{#t} if the list of parameters is monotonically
 decreasing.
 @end deffn
 
 @c begin (texi-doc-string "guile" "<=")
 @deffn {Scheme Procedure} <=
+@deffnx {C Function} scm_leq_p (x, y)
 Return @code{#t} if the list of parameters is monotonically
 non-decreasing.
 @end deffn
 
 @c begin (texi-doc-string "guile" ">=")
 @deffn {Scheme Procedure} >=
+@deffnx {C Function} scm_geq_p (x, y)
 Return @code{#t} if the list of parameters is monotonically
 non-increasing.
 @end deffn
 
 @c begin (texi-doc-string "guile" "zero?")
-@deffn {Scheme Procedure} zero?
+@deffn {Scheme Procedure} zero? z
+@deffnx {C Function} scm_zero_p (z)
 Return @code{#t} if @var{z} is an exact or inexact number equal to
 zero.
 @end deffn
 
 @c begin (texi-doc-string "guile" "positive?")
-@deffn {Scheme Procedure} positive?
+@deffn {Scheme Procedure} positive? x
+@deffnx {C Function} scm_positive_p (x)
 Return @code{#t} if @var{x} is an exact or inexact number greater than
 zero.
 @end deffn
 
 @c begin (texi-doc-string "guile" "negative?")
-@deffn {Scheme Procedure} negative?
+@deffn {Scheme Procedure} negative? x
+@deffnx {C Function} scm_negative_p (x)
 Return @code{#t} if @var{x} is an exact or inexact number less than
 zero.
 @end deffn
@@ -695,22 +815,26 @@ Return the complex number @var{x} * e^(i * @var{y}).
 
 @c begin (texi-doc-string "guile" "real-part")
 @deffn {Scheme Procedure} real-part z
+@deffnx {C Function} scm_real_part (z)
 Return the real part of the number @var{z}.
 @end deffn
 
 @c begin (texi-doc-string "guile" "imag-part")
 @deffn {Scheme Procedure} imag-part z
+@deffnx {C Function} scm_imag_part (z)
 Return the imaginary part of the number @var{z}.
 @end deffn
 
 @c begin (texi-doc-string "guile" "magnitude")
 @deffn {Scheme Procedure} magnitude z
+@deffnx {C Function} scm_magnitude (z)
 Return the magnitude of the number @var{z}. This is the same as
 @code{abs} for real arguments, but also allows complex numbers.
 @end deffn
 
 @c begin (texi-doc-string "guile" "angle")
 @deffn {Scheme Procedure} angle z
+@deffnx {C Function} scm_angle (z)
 Return the angle of the complex number @var{z}.
 @end deffn
 
@@ -729,14 +853,22 @@ Return the angle of the complex number @var{z}.
 @rnindex truncate
 @rnindex round
 
+The C arithmetic functions below always takes two arguments, while the
+Scheme functions can take an arbitrary number.  When you need to
+invoke them with just one argument, for example to compute the
+equivalent od @code{(- x)}, pass @code{SCM_UNDEFINED} as the second
+one: @code{scm_difference (x, SCM_UNDEFINED)}.
+
 @c begin (texi-doc-string "guile" "+")
 @deffn {Scheme Procedure} + z1 @dots{}
+@deffnx {C Function} scm_sum (z1, z2)
 Return the sum of all parameter values.  Return 0 if called without any
 parameters.
 @end deffn
 
 @c begin (texi-doc-string "guile" "-")
 @deffn {Scheme Procedure} - z1 z2 @dots{}
+@deffnx {C Function} scm_difference (z1, z2)
 If called with one argument @var{z1}, -@var{z1} is returned. Otherwise
 the sum of all but the first argument are subtracted from the first
 argument.
@@ -744,12 +876,14 @@ argument.
 
 @c begin (texi-doc-string "guile" "*")
 @deffn {Scheme Procedure} * z1 @dots{}
+@deffnx {C Function} scm_product (z1, z2)
 Return the product of all arguments.  If called without arguments, 1 is
 returned.
 @end deffn
 
 @c begin (texi-doc-string "guile" "/")
 @deffn {Scheme Procedure} / z1 z2 @dots{}
+@deffnx {C Function} scm_divide (z1, z2)
 Divide the first argument by the product of the remaining arguments.  If
 called with one argument @var{z1}, 1/@var{z1} is returned.
 @end deffn
@@ -765,54 +899,40 @@ magnitude of a complex number, use @code{magnitude} instead.
 
 @c begin (texi-doc-string "guile" "max")
 @deffn {Scheme Procedure} max x1 x2 @dots{}
+@deffnx {C Function} scm_max (x1, x2)
 Return the maximum of all parameter values.
 @end deffn
 
 @c begin (texi-doc-string "guile" "min")
 @deffn {Scheme Procedure} min x1 x2 @dots{}
+@deffnx {C Function} scm_min (x1, x2)
 Return the minimum of all parameter values.
 @end deffn
 
 @c begin (texi-doc-string "guile" "truncate")
 @deffn {Scheme Procedure} truncate
+@deffnx {C Function} scm_truncate_number (x)
 Round the inexact number @var{x} towards zero.
 @end deffn
 
 @c begin (texi-doc-string "guile" "round")
 @deffn {Scheme Procedure} round x
+@deffnx {C Function} scm_round_number (x)
 Round the inexact number @var{x} to the nearest integer.  When exactly
 halfway between two integers, round to the even one.
 @end deffn
 
 @c begin (texi-doc-string "guile" "floor")
 @deffn {Scheme Procedure} floor x
+@deffnx {C Function} scm_floor (x)
 Round the number @var{x} towards minus infinity.
 @end deffn
 
 @c begin (texi-doc-string "guile" "ceiling")
 @deffn {Scheme Procedure} ceiling x
+@deffnx {C Function} scm_ceiling (x)
 Round the number @var{x} towards infinity.
 @end deffn
-
-C functions for some of the above rounding functions are provided by
-the standard C mathematics library.  Naturally these expect and return
-@code{double} arguments (@pxref{Rounding Functions,,, libc, GNU C
-Library Reference Manual}).
-
-@multitable {xx} {Scheme Procedure} {C Function}
-@item @tab Scheme Procedure @tab C Function
-@item @tab @code{floor}     @tab @code{floor}
-@item @tab @code{ceiling}   @tab @code{ceil}
-@item @tab @code{truncate}  @tab @code{trunc}
-@end multitable
-
-@code{trunc} is C99 standard and might not be available on older
-systems.  Guile provides an @code{scm_truncate} equivalent (on all
-systems), plus a C level version of the Scheme @code{round} procedure.
-
-@deftypefn {C Function} double scm_truncate (double x)
-@deftypefnx {C Function} double scm_round (double x)
-@end deftypefn
 
 
 @node Scientific
@@ -1073,6 +1193,7 @@ be seen that adding 6 (binary 110) to such a bit pattern gives all
 zeros.
 
 @deffn {Scheme Procedure} logand n1 n2 @dots{}
+@deffnx {C Function} scm_logand (n1, n2)
 Return the bitwise @sc{and} of the integer arguments.
 
 @lisp
@@ -1083,6 +1204,7 @@ Return the bitwise @sc{and} of the integer arguments.
 @end deffn
 
 @deffn {Scheme Procedure} logior n1 n2 @dots{}
+@deffnx {C Function} scm_logior (n1, n2)
 Return the bitwise @sc{or} of the integer arguments.
 
 @lisp
@@ -1093,6 +1215,7 @@ Return the bitwise @sc{or} of the integer arguments.
 @end deffn
 
 @deffn {Scheme Procedure} logxor n1 n2 @dots{}
+@deffnx {C Function} scm_loxor (n1, n2)
 Return the bitwise @sc{xor} of the integer arguments.  A bit is
 set in the result if it is set in an odd number of arguments.
 
