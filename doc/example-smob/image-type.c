@@ -1,6 +1,6 @@
 /* image-type.c
  * 
- *	Copyright (C) 1998 Free Software Foundation, Inc.
+ *	Copyright (C) 1998, 2000 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -115,15 +115,13 @@ print_image (SCM image_smob, SCM port, scm_print_state *pstate)
   return 1;
 }
 
-static scm_smobfuns image_funs = {
-  mark_image, free_image, print_image, 0
-};
-
 void
 init_image_type ()
 {
-  image_tag = scm_make_smob_type_mfpe ("image", sizeof (struct image),
-                                      mark_image, free_image, print_image, NULL);
+  image_tag = scm_make_smob_type ("image", sizeof (struct image));
+  scm_set_smob_mark (image_tag, mark_image);
+  scm_set_smob_free (image_tag, free_image);
+  scm_set_smob_print (image_tag, print_image);
 
   scm_make_gsubr ("clear-image", 1, 0, 0, clear_image);
   scm_make_gsubr ("make-image", 3, 0, 0, make_image);
