@@ -1,3 +1,8 @@
+2001-11-11  Thien-Thi Nguyen  <ttn@glug.org>
+
+	* HACKING: Restrict documentation change log
+	waiver to only apply to ChangeLog files.
+
 2001-11-12  Marius Vollmer  <mvo@zagadka.ping.de>
 
 	* configure.in: Check for sizes of short, size_t, uintptr_t, and
