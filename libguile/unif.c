@@ -1125,9 +1125,9 @@ SCM_DEFINE (scm_uniform_vector_ref, "uniform-vector-ref", 2, 0, 0,
 #endif
 
     case scm_tc7_fvect:
-      return scm_make_real (((float *) SCM_CELL_WORD_1 (v))[pos]);
+      return scm_from_double (((float *) SCM_CELL_WORD_1 (v))[pos]);
     case scm_tc7_dvect:
-      return scm_make_real (((double *) SCM_CELL_WORD_1 (v))[pos]);
+      return scm_from_double (((double *) SCM_CELL_WORD_1 (v))[pos]);
     case scm_tc7_cvect:
       return scm_make_complex (((double *) SCM_CELL_WORD_1 (v))[2 * pos],
 			       ((double *) SCM_CELL_WORD_1 (v))[2 * pos + 1]);
@@ -1174,14 +1174,14 @@ scm_cvref (SCM v, unsigned long pos, SCM last)
 	  SCM_REAL_VALUE (last) = ((float *) SCM_CELL_WORD_1 (v))[pos];
 	  return last;
 	}
-      return scm_make_real (((float *) SCM_CELL_WORD_1 (v))[pos]);
+      return scm_from_double (((float *) SCM_CELL_WORD_1 (v))[pos]);
     case scm_tc7_dvect:
       if (SCM_REALP (last) && !scm_is_eq (last, scm_flo0))
 	{
 	  SCM_REAL_VALUE (last) = ((double *) SCM_CELL_WORD_1 (v))[pos];
 	  return last;
 	}
-      return scm_make_real (((double *) SCM_CELL_WORD_1 (v))[pos]);
+      return scm_from_double (((double *) SCM_CELL_WORD_1 (v))[pos]);
     case scm_tc7_cvect:
       if (SCM_COMPLEXP (last))
 	{
@@ -1291,12 +1291,10 @@ SCM_DEFINE (scm_array_set_x, "array-set!", 2, 0, 1,
       break;
 #endif
     case scm_tc7_fvect:
-      ((float *) SCM_UVECTOR_BASE (v))[pos]
-	= (float) scm_num2dbl (obj, FUNC_NAME);
+      ((float *) SCM_UVECTOR_BASE (v))[pos] = scm_to_double (obj);
       break;
     case scm_tc7_dvect:
-      ((double *) SCM_UVECTOR_BASE (v))[pos]
-	= scm_num2dbl (obj, FUNC_NAME);
+      ((double *) SCM_UVECTOR_BASE (v))[pos] = scm_to_double (obj);
       break;
     case scm_tc7_cvect:
       SCM_ASRTGO (SCM_INEXACTP (obj), badobj);
@@ -2149,14 +2147,14 @@ SCM_DEFINE (scm_array_to_list, "array->list", 1, 0, 0,
       {
 	float *data = (float *) SCM_VELTS (v);
 	for (k = SCM_UVECTOR_LENGTH (v) - 1; k >= 0; k--)
-	  res = scm_cons (scm_make_real (data[k]), res);
+	  res = scm_cons (scm_from_double (data[k]), res);
 	return res;
       }
     case scm_tc7_dvect:
       {
 	double *data = (double *) SCM_VELTS (v);
 	for (k = SCM_UVECTOR_LENGTH (v) - 1; k >= 0; k--)
-	  res = scm_cons (scm_make_real (data[k]), res);
+	  res = scm_cons (scm_from_double (data[k]), res);
 	return res;
       }
     case scm_tc7_cvect:
@@ -2383,7 +2381,7 @@ tail:
     case scm_tc7_fvect:
       if (n-- > 0)
 	{
-	  SCM z = scm_make_real (1.0);
+	  SCM z = scm_from_double (1.0);
 	  SCM_REAL_VALUE (z) = ((float *) SCM_VELTS (ra))[j];
 	  scm_print_real (z, port, pstate);
 	  for (j += inc; n-- > 0; j += inc)
@@ -2397,7 +2395,7 @@ tail:
     case scm_tc7_dvect:
       if (n-- > 0)
 	{
-	  SCM z = scm_make_real (1.0 / 3.0);
+	  SCM z = scm_from_double (1.0 / 3.0);
 	  SCM_REAL_VALUE (z) = ((double *) SCM_VELTS (ra))[j];
 	  scm_print_real (z, port, pstate);
 	  for (j += inc; n-- > 0; j += inc)
@@ -2411,7 +2409,7 @@ tail:
     case scm_tc7_cvect:
       if (n-- > 0)
 	{
-	  SCM cz = scm_make_complex (0.0, 1.0), z = scm_make_real (1.0 / 3.0);
+	  SCM cz = scm_make_complex (0.0, 1.0), z = scm_from_double (1.0/3.0);
 	  SCM_REAL_VALUE (z) =
 	    SCM_COMPLEX_REAL (cz) = ((double *) SCM_VELTS (ra))[2 * j];
 	  SCM_COMPLEX_IMAG (cz) = ((double *) SCM_VELTS (ra))[2 * j + 1];
@@ -2566,7 +2564,7 @@ loop:
       return scm_str2symbol ("l");
 #endif
     case scm_tc7_fvect:
-      return scm_make_real (1.0);
+      return scm_from_double (1.0);
     case scm_tc7_dvect:
       return exactly_one_third;
     case scm_tc7_cvect:

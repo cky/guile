@@ -51,7 +51,7 @@ gh_long2scm (long x)
 SCM 
 gh_double2scm (double x)
 {
-  return scm_make_real (x);
+  return scm_from_double (x);
 }
 SCM 
 gh_char2scm (char c)
@@ -115,7 +115,7 @@ gh_doubles2scm (const double *d, long n)
   SCM v = scm_c_make_vector (n, SCM_UNSPECIFIED);
 
   for(i = 0; i < n; i++) 
-    SCM_VECTOR_SET (v, i, scm_make_real (d[i]));
+    SCM_VECTOR_SET (v, i, scm_from_double (d[i]));
   return v;
 }
 
@@ -202,7 +202,7 @@ gh_scm2int (SCM obj)
 double 
 gh_scm2double (SCM obj)
 {
-  return scm_num2dbl (obj, "gh_scm2double");
+  return scm_to_double (obj);
 }
 char 
 gh_scm2char (SCM obj)

@@ -1710,7 +1710,7 @@ SCM_DEFINE (scm_f64vector_ref, "f64vector-ref", 2, 0, 0,
     scm_wrong_type_arg (FUNC_NAME, 1, uvec);
 
   idx = scm_to_unsigned_integer (index, 0, SCM_UVEC_LENGTH (uvec)-1);
-  return scm_make_real (((float_f64 *) SCM_UVEC_BASE (uvec))[idx]);
+  return scm_from_double (((float_f64 *) SCM_UVEC_BASE (uvec))[idx]);
 }
 #undef FUNC_NAME
 

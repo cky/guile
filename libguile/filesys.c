@@ -1217,7 +1217,7 @@ SCM_DEFINE (scm_select, "select", 3, 2, 0,
 	}
       else
 	{
-	  double fl = scm_num2dbl (secs, FUNC_NAME);
+	  double fl = scm_to_double (secs);
 
 	  if (!SCM_UNBNDP (usecs))
 	    SCM_WRONG_TYPE_ARG (4, secs);

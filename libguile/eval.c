@@ -4145,19 +4145,19 @@ dispatch:
 	  case scm_tc7_dsubr:
             if (SCM_I_INUMP (arg1))
               {
-                RETURN (scm_make_real (SCM_DSUBRF (proc) ((double) SCM_I_INUM (arg1))));
+                RETURN (scm_from_double (SCM_DSUBRF (proc) ((double) SCM_I_INUM (arg1))));
               }
             else if (SCM_REALP (arg1))
               {
-                RETURN (scm_make_real (SCM_DSUBRF (proc) (SCM_REAL_VALUE (arg1))));
+                RETURN (scm_from_double (SCM_DSUBRF (proc) (SCM_REAL_VALUE (arg1))));
               }
             else if (SCM_BIGP (arg1))
               {
-                RETURN (scm_make_real (SCM_DSUBRF (proc) (scm_i_big2dbl (arg1))));
+                RETURN (scm_from_double (SCM_DSUBRF (proc) (scm_i_big2dbl (arg1))));
               }
 	    else if (SCM_FRACTIONP (arg1))
 	      {
-                RETURN (scm_make_real (SCM_DSUBRF (proc) (scm_i_fraction2double (arg1))));
+                RETURN (scm_from_double (SCM_DSUBRF (proc) (scm_i_fraction2double (arg1))));
 	      }
 	    SCM_WTA_DISPATCH_1 (*SCM_SUBR_GENERIC (proc), arg1,
                                 SCM_ARG1, SCM_SYMBOL_CHARS (SCM_SNAME (proc)));
@@ -4832,19 +4832,19 @@ tail:
 	scm_wrong_num_args (proc);
       if (SCM_I_INUMP (arg1))
         {
-          RETURN (scm_make_real (SCM_DSUBRF (proc) ((double) SCM_I_INUM (arg1))));
+          RETURN (scm_from_double (SCM_DSUBRF (proc) ((double) SCM_I_INUM (arg1))));
         }
       else if (SCM_REALP (arg1))
         {
-          RETURN (scm_make_real (SCM_DSUBRF (proc) (SCM_REAL_VALUE (arg1))));
+          RETURN (scm_from_double (SCM_DSUBRF (proc) (SCM_REAL_VALUE (arg1))));
         }
       else if (SCM_BIGP (arg1))
 	{
-	  RETURN (scm_make_real (SCM_DSUBRF (proc) (scm_i_big2dbl (arg1))));
+	  RETURN (scm_from_double (SCM_DSUBRF (proc) (scm_i_big2dbl (arg1))));
 	}
       else if (SCM_FRACTIONP (arg1))
 	{
-	  RETURN (scm_make_real (SCM_DSUBRF (proc) (scm_i_fraction2double (arg1))));
+	  RETURN (scm_from_double (SCM_DSUBRF (proc) (scm_i_fraction2double (arg1))));
 	}
       SCM_WTA_DISPATCH_1 (*SCM_SUBR_GENERIC (proc), arg1,
                           SCM_ARG1, SCM_SYMBOL_CHARS (SCM_SNAME (proc)));
@@ -5184,19 +5184,19 @@ call_dsubr_1 (SCM proc, SCM arg1)
 {
   if (SCM_I_INUMP (arg1))
     {
-      RETURN (scm_make_real (SCM_DSUBRF (proc) ((double) SCM_I_INUM (arg1))));
+      RETURN (scm_from_double (SCM_DSUBRF (proc) ((double) SCM_I_INUM (arg1))));
     }
   else if (SCM_REALP (arg1))
     {
-      RETURN (scm_make_real (SCM_DSUBRF (proc) (SCM_REAL_VALUE (arg1))));
+      RETURN (scm_from_double (SCM_DSUBRF (proc) (SCM_REAL_VALUE (arg1))));
     }
   else if (SCM_BIGP (arg1))
     {
-      RETURN (scm_make_real (SCM_DSUBRF (proc) (scm_i_big2dbl (arg1))));
+      RETURN (scm_from_double (SCM_DSUBRF (proc) (scm_i_big2dbl (arg1))));
     }
   else if (SCM_FRACTIONP (arg1))
     {
-      RETURN (scm_make_real (SCM_DSUBRF (proc) (scm_i_fraction2double (arg1))));
+      RETURN (scm_from_double (SCM_DSUBRF (proc) (scm_i_fraction2double (arg1))));
     }
   SCM_WTA_DISPATCH_1 (*SCM_SUBR_GENERIC (proc), arg1,
 		      SCM_ARG1, SCM_SYMBOL_CHARS (SCM_SNAME (proc)));

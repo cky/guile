@@ -564,7 +564,7 @@ scm_array_fill_int (SCM ra, SCM fill, SCM ignore SCM_UNUSED)
     case scm_tc7_fvect:
       { /* scope */
 	float f, *ve = (float *) SCM_VELTS (ra);
-        f = (float) scm_num2dbl (fill, FUNC_NAME);
+        f = (float) scm_to_double (fill);
 	for (i = base; n--; i += inc)
 	  ve[i] = f;
 	break;
@@ -572,7 +572,7 @@ scm_array_fill_int (SCM ra, SCM fill, SCM ignore SCM_UNUSED)
     case scm_tc7_dvect:
       { /* scope */
 	double f, *ve = (double *) SCM_VELTS (ra);
-        f = scm_num2dbl (fill, FUNC_NAME);
+        f = scm_to_double (fill);
 	for (i = base; n--; i += inc)
 	  ve[i] = f;
 	break;
@@ -1342,7 +1342,7 @@ ramap_rp (SCM ra0, SCM proc, SCM ras)
       break;
     case scm_tc7_fvect:
       {
-	SCM a1 = scm_make_real (1.0), a2 = scm_make_real (1.0);
+	SCM a1 = scm_from_double (1.0), a2 = scm_from_double (1.0);
 	for (; n-- > 0; i0 += inc0, i1 += inc1, i2 += inc2)
 	  if (SCM_BITVEC_REF (ra0, i0))
 	    {
@@ -1355,8 +1355,8 @@ ramap_rp (SCM ra0, SCM proc, SCM ras)
       }
     case scm_tc7_dvect:
       {
-	SCM a1 = scm_make_real (1.0 / 3.0);
-	SCM a2 = scm_make_real (1.0 / 3.0);
+	SCM a1 = scm_from_double (1.0 / 3.0);
+	SCM a2 = scm_from_double (1.0 / 3.0);
 	for (; n-- > 0; i0 += inc0, i1 += inc1, i2 += inc2)
 	  if (SCM_BITVEC_REF (ra0, i0))
 	    {
@@ -1545,7 +1545,7 @@ SCM_DEFINE (scm_array_map_x, "array-map!", 2, 0, 1,
 	    {
 	      prot = scm_array_prototype (ra0);
 	      if (SCM_INEXACTP (prot))
-		fill = scm_make_real ((double) SCM_I_INUM (fill));
+		fill = scm_from_double ((double) SCM_I_INUM (fill));
 	    }
 
 	  scm_array_fill_x (ra0, fill);

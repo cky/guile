@@ -253,7 +253,7 @@ CTYPES2SCM (const CTYPE *data, long n)
 
   for (i = 0; i < n; i++)
 #ifdef FLOATTYPE
-    SCM_VECTOR_SET (v, i, scm_make_real ((double) data[i]));
+    SCM_VECTOR_SET (v, i, scm_from_double ((double) data[i]));
 #else
     SCM_VECTOR_SET (v, i, scm_from_signed_integer (data[i]));
 #endif
