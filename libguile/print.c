@@ -39,6 +39,7 @@
 #include "libguile/strports.h"
 #include "libguile/vectors.h"
 #include "libguile/lang.h"
+#include "libguile/numbers.h"
 
 #include "libguile/validate.h"
 #include "libguile/print.h"
@@ -315,16 +316,16 @@ scm_print_symbol_name (const char *str, size_t len, SCM port)
    * weird because of other characters, backslahes need to be escaped too.
    * The first time we see a backslash, we set maybe_weird, and mw_pos points
    * to the backslash.  Then if the name turns out to be weird, we re-process
-   * everything starting from mw_pos. */
+   * everything starting from mw_pos.
+   * We could instead make backslashes always weird.  This is not necessary
+   * to ensure that the output is (read)-able, but it would make this code
+   * simpler and faster. */
   int maybe_weird = 0;
   size_t mw_pos = 0;
-  /* If the name is purely numeric, then it's weird as a whole, even though
-   * none of the individual characters is weird.  But we won't know this
-   * until we reach the end of the name.  This flag describes the part of the
-   * name we've looked at so far. */
-  int all_digits = 1;
 
-  if (len == 0 || str[0] == '\'' || str[0] == ':' || str[len-1] == ':')
+  if (len == 0 || str[0] == '\'' || str[0] == '`' || str[0] == ',' ||
+      str[0] == ':' || str[len-1] == ':' || (str[0] == '.' && len == 1) ||
+      !SCM_FALSEP (scm_i_mem2number(str, len, 10)))
     {
       scm_lfwrite ("#{", 2, port);
       weird = 1;
@@ -344,7 +345,6 @@ scm_print_symbol_name (const char *str, size_t len, SCM port)
       case '#':
       case SCM_WHITE_SPACES:
       case SCM_LINE_INCREMENTORS:
-	all_digits = 0;
       weird_handler:
 	if (maybe_weird)
 	  {
@@ -367,7 +367,6 @@ scm_print_symbol_name (const char *str, size_t len, SCM port)
 	pos = end + 1;
 	break;
       case '\\':
-	all_digits = 0;
 	if (weird)
 	  goto weird_handler;
 	if (!maybe_weird)
@@ -376,18 +375,9 @@ scm_print_symbol_name (const char *str, size_t len, SCM port)
 	    mw_pos = pos;
 	  }
 	break;
-      case '0': case '1': case '2': case '3': case '4':
-      case '5': case '6': case '7': case '8': case '9':
-	break;
       default:
-	all_digits = 0;
 	break;
       }
-  if (all_digits)
-    {
-      scm_lfwrite ("#{", 2, port);
-      weird = 1;
-    }
   if (pos < end)
     scm_lfwrite (str + pos, end - pos, port);
   if (weird)
