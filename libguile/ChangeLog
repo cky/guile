@@ -1,7 +1,7 @@
 2001-08-18  Neil Jerram  <neil@ossau.uklinux.net>
 
 	* __scm.h (SCM_ENABLE_VCELLS): Fix spelling mistake in comment.
-	
+
 2001-08-17  Thien-Thi Nguyen  <ttn@revel.glug.org>
 
 	* gc.c: Fix omission bug: Add `heap_segment' forward decl
@@ -1017,7 +1017,7 @@
 
 	* print.c (scm_simple_format): Support "~~" and "~%".  Signal
 	error for unsupported format controls and for superflous
-	arguments.  Thanks to David Skarda!
+	arguments.  Thanks to Daniel Skarda!
 
 	* print.h, print.c (scm_print_symbol_name): Factored out of
 	scm_iprin1.
