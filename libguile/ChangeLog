@@ -1,3 +1,16 @@
+2004-09-21  Marius Vollmer  <mvo@zagadka.de>
+
+	* read.c (skip_scsh_block_comment): Recognize "!#" everywhere, not
+	just on a line of its own.
+
+	* srfi-13.c (scm_string_any, scm_string_every,
+	scm_string_tabulate, string_upcase_x, string_down_case_x,
+	string_titlecase_x, string_reverse_x, scm_string_tokenize): Use
+	size_t instead of int for indices into strings.  Make sure that no
+	over- or underflow occurs.  Thanks to Andreas Vögele!
+	(scm_xsubstring, scm_string_xcopy_x): Use ints for 'extended'
+	indices, which can also be negative.
+	
 2004-09-20  Marius Vollmer  <mvo@zagadka.de>
 
 	* gc-mark.c (SCM_MARK_BACKING_STORE): Removed, it was unused.
