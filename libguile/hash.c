@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996,1997, 2000, 2001 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996,1997, 2000, 2001, 2003 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -37,22 +37,13 @@ extern double floor();
 unsigned long 
 scm_string_hash (const unsigned char *str, size_t len)
 {
-  if (len > 5)
-    {
-      size_t i = 5;
-      unsigned long h = 264;
-      while (i--)
-	h = (h << 8) + (unsigned) str[h % len];
-      return h;
-    }
-  else
-    {
-      size_t i = len;
-      unsigned long h = 0;
-      while (i)
-	h = (h << 8) + (unsigned) str[--i];
-      return h;
-    }
+  /* from suggestion at: */
+  /* http://srfi.schemers.org/srfi-13/mail-archive/msg00112.html */
+
+  unsigned long h = 0;
+  while (len-- > 0)
+    h = *str++ + h*37;
+  return h;
 }
 
 
