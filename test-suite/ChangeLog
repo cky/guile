@@ -1,3 +1,8 @@
+2002-09-09  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	* Makefile.am (dist-hook): Do not distribute CVS directories.
+	Thanks to Greg Troxel!
+
 2002-08-06  Han-Wen Nienhuys  <hanwen@cs.uu.nl>
 
 	* tests/reader.test: change misc-error in read-error.
