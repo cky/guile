@@ -1,5 +1,8 @@
 1998-10-09  Jim Blandy  <jimb@zwingli.cygnus.com>
 
+	* boot-9.scm (read-path-list-notation-warning): New function:
+	print a warning the first time we see `#/' notation.
+
 	* q.scm (sync-q!, q?, q-remove!, q-push!, enq!): Lots of bugs, and
  	(eq?  #f '()) assumptions.  Make functions that aren't documented
  	to return anything else return the queue itself.  (Bug report from
