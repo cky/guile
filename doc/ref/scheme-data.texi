@@ -379,11 +379,11 @@ precision.
 
 @deffn {Scheme Procedure} inf? x
 Return @code{#t} if @var{x} is either @samp{+inf.0} or @samp{-inf.0},
-code @var{#f} otherwise.
+@code{#f} otherwise.
 @end deffn
 
 @deffn {Scheme Procedure} nan? x
-Return @code{#t} if @var{x} is @samp{+nan.0}, code @var{#f} otherwise.
+Return @code{#t} if @var{x} is @samp{+nan.0}, @code{#f} otherwise.
 @end deffn
 
 @node Complex Numbers
