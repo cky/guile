@@ -502,8 +502,10 @@ void
 scm_init_async ()
 {
   SCM a_thunk;
-  tc16_async = scm_make_smob_type_mfpe ("async", 0,
-                                           mark_async, NULL, NULL, NULL);
+
+  tc16_async = scm_make_smob_type ("async", 0);
+  scm_set_smob_mark (tc16_async, mark_async);
+
   scm_gc_vcell = scm_sysintern ("gc-thunk", SCM_BOOL_F);
   a_thunk = scm_make_gsubr ("%gc-thunk", 0, 0, 0, scm_sys_gc_async_thunk);
   scm_gc_async = scm_system_async (a_thunk);
