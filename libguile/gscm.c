@@ -225,8 +225,8 @@ _eval_port (answer, toplvl, port, printp)
 #endif
   saved_inp = scm_cur_inp;
   i = setjmp (SCM_JMPBUF (scm_rootcont));
-#ifdef SCM_STACK_CHECK
-  scm_check_stack_p = 1;
+#ifdef STACK_CHECKING
+  scm_stack_checking_enabled_p = SCM_STACK_CHECKING_P;
 #endif
   if (!i)
     {

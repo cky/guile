@@ -363,6 +363,9 @@ scm_boot_guile (result, argc, argv, in, out, err, init_func, boot_cmd)
 
     setjmp_val = setjmp (SCM_JMPBUF (scm_rootcont));
 
+#ifdef STACK_CHECKING
+    scm_stack_checking_enabled_p = SCM_STACK_CHECKING_P;
+#endif
     if (!setjmp_val)
       {
 	SCM last;

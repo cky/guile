@@ -67,10 +67,10 @@ SCM scm_bad_throw_vcell;
 #define SETJBJMPBUF(O,X) SCM_SETCDR(SCM_CDR (O), X)
 
 #ifdef __STDC__
-static int
+static scm_sizet
 freejb (SCM jbsmob)
 #else
-static int
+static scm_sizet
 freejb (jbsmob)
      SCM jbsmob;
 #endif
@@ -258,13 +258,13 @@ scm_ithrow (key, args, noreturn)
 	    {
 	      scm_exitval = scm_cons (key, args);
 	      scm_dowinds (SCM_EOL, scm_ilength (scm_dynwinds));
+#ifdef DEBUG_EXTENSIONS
+	      last_debug_info_frame = SCM_DFRAME (scm_rootcont);
+#endif
 	      longjmp (SCM_JMPBUF (scm_rootcont), 1);
 	    }
 	}
     }
-#ifdef DEBUG_EXTENSIONS
-  last_debug_info_frame = JBSCM_DFRAME (jmpbuf);
-#endif
   for (wind_goal = scm_dynwinds;
        SCM_CDAR (wind_goal) != jmpbuf;
        wind_goal = SCM_CDR (wind_goal))
@@ -276,6 +276,9 @@ scm_ithrow (key, args, noreturn)
     jbr->retval = args;
   }
   scm_dowinds (wind_goal, scm_ilength (scm_dynwinds) - scm_ilength (wind_goal));
+#ifdef DEBUG_EXTENSIONS
+  last_debug_info_frame = JBSCM_DFRAME (jmpbuf);
+#endif
   longjmp (*JBJMPBUF (jmpbuf), 1);
 }
 

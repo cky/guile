@@ -81,7 +81,13 @@ scm_call_catching_errors (thunk, err_filter, closure)
 {
   SCM answer;
   setjmp_type i;
+#ifdef DEBUG_EXTENSIONS
+  SCM_DFRAME (scm_rootcont) = last_debug_info_frame;
+#endif
   i = setjmp (SCM_JMPBUF (scm_rootcont));
+#ifdef STACK_CHECKING
+  scm_stack_checking_enabled_p = SCM_STACK_CHECKING_P;
+#endif
   if (!i)
     {
       scm_gc_heap_lock = 0;
