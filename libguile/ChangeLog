@@ -9,7 +9,7 @@
 	* ports.c (scm_port_for_each): Make a snapshot of the port table
 	before iterating over it.  The table might change while the user
 	code is running.  With the snapshot, the user can depend on the
-	fact that each port that was open at teh start of the iteration is
+	fact that each port that existed at the start of the iteration is
 	encountered exactly once.  (ice-9 popen) depends on this.
 
 2001-02-08  Dirk Herrmann  <D.Herrmann@tu-bs.de>
