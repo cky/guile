@@ -1,3 +1,16 @@
+2001-05-19  Marius Vollmer  <mvo@zagadka.ping.de>
+
+	Avoid using module operations from C.
+	
+	* srfi-13.c (scm_init_srfi_13_14): Removed.
+	* srfi-14.h, srfi-14.c (scm_c_init_srfi_14): New.  Contains
+	initializations needed by C clients of srfi-14.
+	(scm_init_srfi_13, scm_init_srfi_14): Call it.
+	* srfi-13.scm: Call "scm_init_srf_13" instead of
+	"scm_init_srfi_13_14".
+	* srfi-14.scm: Call "scm_init_srf_14" instead of
+	"scm_init_srfi_13_14".
+
 2001-05-14  Martin Grabmueller  <mgrabmue@cs.tu-berlin.de>
 
 	* Makefile.am (srfi_DATA): Added srfi-16.scm.
