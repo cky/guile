@@ -681,11 +681,15 @@
 		   file)))
 
 
-;;; {try-load}
-;;;
+;;; {Loading by paths}
 
-(define (try-load name)
-  (primitive-load-path name #t read-sharp))
+;;; Load a Scheme source file named NAME, searching for it in the
+;;; directories listed in %load-path, and applying each of the file
+;;; name extensions listed in %load-extensions.
+(define (load-from-path name)
+  (start-stack 'load-stack
+	       (primitive-load-path name #t read-sharp)))
+
 
 
 ;;; {Transcendental Functions}
@@ -1475,11 +1479,7 @@
 		    (set-current-module outer-module)
 		    (set! outer-module #f)))))
 
-(define basic-try-load try-load)
 (define basic-load load)
-
-(define (try-load-module . args)
-  (save-module-excursion (lambda () (apply basic-try-load args))))
 
 (define (load-module . args)
   (save-module-excursion (lambda () (apply basic-load args))))
@@ -2147,7 +2147,6 @@
 
 
 
-(define try-load try-load-module)
 (define load load-module)
 ;(define (load . args)
 ;  (start-stack 'load-stack (apply load-module args)))
