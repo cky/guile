@@ -155,7 +155,7 @@ scm_do_read_line (SCM port, int *len_p)
     {
       int buf_len = (end + 1) - pt->read_pos;
       /* Allocate a buffer of the perfect size.  */
-      unsigned char *buf = malloc (buf_len + 1);
+      unsigned char *buf = scm_must_malloc (buf_len + 1, "%read-line");
 
       memcpy (buf, pt->read_pos, buf_len);
       pt->read_pos += buf_len;
@@ -174,7 +174,7 @@ scm_do_read_line (SCM port, int *len_p)
     int buf_size = (len < 50) ? 60 : len * 2;
     /* Invariant: buf always has buf_size + 1 characters allocated;
        the `+ 1' is for the final '\0'.  */
-    unsigned char *buf = malloc (buf_size + 1);
+    unsigned char *buf = scm_must_malloc (buf_size + 1, "%read-line");
     int buf_len = 0;
 
     for (;;)
@@ -182,7 +182,8 @@ scm_do_read_line (SCM port, int *len_p)
 	if (buf_len + len > buf_size)
 	  {
 	    int new_size = (buf_len + len) * 2;
-	    buf = realloc (buf, new_size + 1);
+	    buf = scm_must_realloc (buf, buf_size + 1, new_size + 1,
+				    "%read-line");
 	    buf_size = new_size;
 	  }
 
@@ -215,7 +216,7 @@ scm_do_read_line (SCM port, int *len_p)
       }
 
     /* I wonder how expensive this realloc is.  */
-    buf = realloc (buf, buf_len + 1);
+    buf = scm_must_realloc (buf, buf_size + 1, buf_len + 1, "%read-line");
     buf[buf_len] = '\0';
     *len_p = buf_len;
     return buf;
@@ -265,6 +266,7 @@ scm_read_line (port)
 	  term = SCM_MAKICHR ('\n');
 	  s[slen-1] = '\0';
 	  line = scm_take_str (s, slen-1);
+	  scm_done_malloc (-1);
 	  SCM_INCLINE (port);
 	}
       else
