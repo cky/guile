@@ -693,10 +693,10 @@ scm_prin1 (exp, port, writingp)
   /* If PORT is a print-state/port pair, use that.  Else create a new
      print-state. */
 
-  if (SCM_NIMP (port) && SCM_CONSP (port))
+  if (SCM_NIMP (port) && SCM_PORT_WITH_PS_P (port))
     {
-      pstate_scm = SCM_CDR (port);
-      port = SCM_CAR (port);
+      pstate_scm = SCM_PORT_WITH_PS_PS (port);
+      port = SCM_PORT_WITH_PS_PORT (port);
     }
   else
     {
