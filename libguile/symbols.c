@@ -402,7 +402,8 @@ scm_symbol_value0 (const char *name)
 
 SCM_DEFINE (scm_symbol_p, "symbol?", 1, 0, 0, 
 	    (SCM obj),
-	    "Returns @t{#t} if @var{obj} is a symbol, otherwise returns @t{#f}. (r5rs)")
+	    "Returns @code{#t} if @var{obj} is a symbol, otherwise returns\n"
+	    "@code{#f}. (r5rs)")
 #define FUNC_NAME s_scm_symbol_p
 {
   return SCM_BOOL (SCM_SYMBOLP (obj));
@@ -411,28 +412,27 @@ SCM_DEFINE (scm_symbol_p, "symbol?", 1, 0, 0,
 
 SCM_DEFINE (scm_symbol_to_string, "symbol->string", 1, 0, 0, 
            (SCM s),
-	    "Returns the name of @var{symbol} as a string.  If the symbol was part of\n"
-	    "an object returned as the value of a literal expression (section\n"
-	    "@pxref{Literal expressions,,,r4rs, The Revised^4 Report on Scheme}) or\n"
-	    "by a call to the @samp{read} procedure, and its name contains alphabetic\n"
-	    "characters, then the string returned will contain characters in the\n"
-	    "implementation's preferred standard case---some implementations will\n"
-	    "prefer upper case, others lower case.  If the symbol was returned by\n"
-	    "@samp{string->symbol}, the case of characters in the string returned\n"
-	    "will be the same as the case in the string that was passed to\n"
-	    "@samp{string->symbol}.  It is an error to apply mutation procedures like\n"
-	    "@code{string-set!} to strings returned by this procedure. (r5rs)\n\n"
-	    "The following examples assume that the implementation's standard case is\n"
-	    "lower case:\n\n"
-	    "@format\n"
-	    "@t{(symbol->string 'flying-fish)     \n"
-	    "                                ==>  \"flying-fish\"\n"
-	    "(symbol->string 'Martin)               ==>  \"martin\"\n"
+	    "Returns the name of @var{symbol} as a string.  If the symbol\n"
+	    "was part of an object returned as the value of a literal\n"
+	    "expression (section @pxref{Literal expressions,,,r4rs, The\n"
+	    "Revised^4 Report on Scheme}) or by a call to the @code{read}\n"
+	    "procedure, and its name contains alphabetic characters, then\n"
+	    "the string returned will contain characters in the\n"
+	    "implementation's preferred standard case---some implementations\n"
+	    "will prefer upper case, others lower case.  If the symbol was\n"
+	    "returned by @code{string->symbol}, the case of characters in\n"
+	    "the string returned will be the same as the case in the string\n"
+	    "that was passed to @code{string->symbol}.  It is an error to\n"
+	    "apply mutation procedures like @code{string-set!} to strings\n"
+	    "returned by this procedure. (r5rs)\n\n"
+	    "The following examples assume that the implementation's\n"
+	    "standard case is lower case:\n\n"
+	    "@lisp\n"
+	    "(symbol->string 'flying-fish) @result{} \"flying-fish\"\n"
+	    "(symbol->string 'Martin)      @result{}  \"martin\"\n"
 	    "(symbol->string\n"
-	    "   (string->symbol \"Malvina\"))     \n"
-	    "                           ==>  \"Malvina\"\n"
-	    "}\n"
-	    "@end format")
+	    "   (string->symbol \"Malvina\")) @result{} \"Malvina\"\n"
+	    "@end lisp")
 #define FUNC_NAME s_scm_symbol_to_string
 {
   SCM_VALIDATE_SYMBOL (1, s);
@@ -443,31 +443,23 @@ SCM_DEFINE (scm_symbol_to_string, "symbol->string", 1, 0, 0,
 
 SCM_DEFINE (scm_string_to_symbol, "string->symbol", 1, 0, 0, 
            (SCM s),
-	    "Returns the symbol whose name is @var{string}.  This procedure can\n"
-	    "create symbols with names containing special characters or letters in\n"
-	    "the non-standard case, but it is usually a bad idea to create such\n"
-	    "symbols because in some implementations of Scheme they cannot be read as\n"
-	    "themselves.  See @samp{symbol->string}.\n\n"
-	    "The following examples assume that the implementation's standard case is\n"
-	    "lower case:\n\n"
-"@format\n"
-"@t{(eq? 'mISSISSIppi 'mississippi)  \n"
-"          ==>  #t\n"
-"(string->symbol \"mISSISSIppi\")  \n"
-"          ==>\n"
-"  @r{}the symbol with name \"mISSISSIppi\"\n"
-"(eq? 'bitBlt (string->symbol \"bitBlt\"))     \n"
-"          ==>  #f\n"
-"(eq? 'JollyWog\n"
-"     (string->symbol\n"
-"       (symbol->string 'JollyWog)))  \n"
-"          ==>  #t\n"
-"(string=? \"K. Harper, M.D.\"\n"
-"          (symbol->string\n"
-"            (string->symbol \"K. Harper, M.D.\")))  \n"
-"          ==>  #t\n"
-"}\n"
-	    "@end format")
+	    "Returns the symbol whose name is @var{string}. This procedure\n"
+	    "can create symbols with names containing special characters or\n"
+	    "letters in the non-standard case, but it is usually a bad idea\n"
+	    "to create such because in some implementations of Scheme they\n"
+	    "cannot be read as themselves.  See @code{symbol->string}.\n\n"
+	    "The following examples assume that the implementation's\n"
+	    "standard case is lower case:\n\n"
+	    "@lisp\n"
+	    "(eq? 'mISSISSIppi 'mississippi) @result{} #t\n"
+	    "(string->symbol \"mISSISSIppi\") @result{} @r{the symbol with name \"mISSISSIppi\"}\n"
+	    "(eq? 'bitBlt (string->symbol \"bitBlt\")) @result{} #f\n"
+	    "(eq? 'JollyWog\n"
+	    "  (string->symbol (symbol->string 'JollyWog))) @result{} #t\n"
+	    "(string=? \"K. Harper, M.D.\"\n"
+	    "  (symbol->string\n"
+	    "    (string->symbol \"K. Harper, M.D.\"))) @result{}#t\n"
+	    "@end lisp")
 #define FUNC_NAME s_scm_string_to_symbol
 {
   SCM_VALIDATE_STRING (1, s);

@@ -103,7 +103,8 @@ static SCM abs_most_negative_fixnum;
 
 SCM_DEFINE (scm_exact_p, "exact?", 1, 0, 0, 
             (SCM x),
-	    "Return #t if X is an exact number, #f otherwise.")
+	    "Return @code{#t} if @var{x} is an exact number, @code{#f}\n"
+	    "otherwise.")
 #define FUNC_NAME s_scm_exact_p
 {
   if (SCM_INUMP (x)) {
@@ -119,7 +120,8 @@ SCM_DEFINE (scm_exact_p, "exact?", 1, 0, 0,
 
 SCM_DEFINE (scm_odd_p, "odd?", 1, 0, 0, 
             (SCM n),
-	    "Return #t if N is an odd number, #f otherwise.")
+	    "Return @code{#t} if @var{n} is an odd number, @code{#f}\n"
+	    "otherwise.")
 #define FUNC_NAME s_scm_odd_p
 {
   if (SCM_INUMP (n)) {
@@ -135,7 +137,8 @@ SCM_DEFINE (scm_odd_p, "odd?", 1, 0, 0,
 
 SCM_DEFINE (scm_even_p, "even?", 1, 0, 0, 
             (SCM n),
-	    "Return #t if N is an even number, #f otherwise.")
+	    "Return @code{#t} if @var{n} is an even number, @code{#f}\n"
+	    "otherwise.")
 #define FUNC_NAME s_scm_even_p
 {
   if (SCM_INUMP (n)) {
@@ -150,7 +153,8 @@ SCM_DEFINE (scm_even_p, "even?", 1, 0, 0,
 
 
 SCM_GPROC (s_abs, "abs", 1, 0, 0, scm_abs, g_abs);
-
+/* "Return the absolute value of @var{x}."
+ */
 SCM
 scm_abs (SCM x)
 {
@@ -182,7 +186,8 @@ scm_abs (SCM x)
 
 
 SCM_GPROC (s_quotient, "quotient", 2, 0, 0, scm_quotient, g_quotient);
-
+/* "Return the quotient of the numbers @var{x} and @var{y}."
+ */
 SCM
 scm_quotient (SCM x, SCM y)
 {
@@ -259,7 +264,12 @@ scm_quotient (SCM x, SCM y)
 
 
 SCM_GPROC (s_remainder, "remainder", 2, 0, 0, scm_remainder, g_remainder);
-
+/* "Return the remainder of the numbers @var{x} and @var{y}.\n"
+ * "@lisp\n"
+ * "(remainder 13 4) @result{} 1\n"
+ * "(remainder -13 4) @result{} -1\n"
+ * "@end lisp"
+ */
 SCM
 scm_remainder (SCM x, SCM y)
 {
@@ -306,7 +316,12 @@ scm_remainder (SCM x, SCM y)
 
 
 SCM_GPROC (s_modulo, "modulo", 2, 0, 0, scm_modulo, g_modulo);
-
+/* "Return the modulo of the numbers @var{x} and @var{y}.\n"
+ * "@lisp\n"
+ * "(modulo 13 4) @result{} 1\n"
+ * "(modulo -13 4) @result{} 3\n"
+ * "@end lisp"
+ */
 SCM
 scm_modulo (SCM x, SCM y)
 {
@@ -349,7 +364,9 @@ scm_modulo (SCM x, SCM y)
 
 
 SCM_GPROC1 (s_gcd, "gcd", scm_tc7_asubr, scm_gcd, g_gcd);
-
+/* "Return the greatest common divisor of all arguments.\n"
+ * "If called without arguments, 0 is returned."
+ */
 SCM
 scm_gcd (SCM x, SCM y)
 {
@@ -462,7 +479,9 @@ scm_gcd (SCM x, SCM y)
 
 
 SCM_GPROC1 (s_lcm, "lcm", scm_tc7_asubr, scm_lcm, g_lcm);
-
+/* "Return the least common multiple of the arguments.\n"
+ * "If called without arguments, 1 is returned."
+ */
 SCM
 scm_lcm (SCM n1, SCM n2)
 {
@@ -1130,14 +1149,15 @@ SCM_DEFINE (scm_integer_expt, "integer-expt", 2, 0, 0,
 
 SCM_DEFINE (scm_ash, "ash", 2, 0, 0,
             (SCM n, SCM cnt),
-	    "The function ash performs an arithmetic shift left by CNT bits\n"
-	    "(or shift right, if CNT is negative).  'Arithmetic' means, that\n"
-	    "the function does not guarantee to keep the bit structure of N,\n"
-	    "but rather guarantees that the result will always be rounded\n"
-	    "towards minus infinity.  Therefore, the results of ash and a\n"
-	    "corresponding bitwise shift will differ if N is negative.\n\n"
+	    "The function ash performs an arithmetic shift left by @var{CNT}\n"
+	    "bits (or shift right, if @var{cnt} is negative).\n"
+	    "'Arithmetic' means, that the function does not guarantee to\n"
+	    "keep the bit structure of @var{n}, but rather guarantees that\n"
+	    "the result will always be rounded towards minus infinity.\n"
+	    "Therefore, the results of ash and a corresponding bitwise\n"
+	    "shift will differ if N is negative.\n\n"
 	    "Formally, the function returns an integer equivalent to\n"
-	    "@code{(inexact->exact (floor (* N (expt 2 CNT))))}.@refill\n\n"
+	    "@code{(inexact->exact (floor (* @var{n} (expt 2 @var{cnt}))))}.\n\n"
 	    "Example:\n"
 	    "@lisp\n"
 	    "(number->string (ash #b1 3) 2)\n"
@@ -2265,8 +2285,8 @@ big2str (SCM b, unsigned int radix)
 SCM_DEFINE (scm_number_to_string, "number->string", 1, 1, 0,
             (SCM n, SCM radix),
 	    "Return a string holding the external representation of the\n"
-	    "number N in the given RADIX.  If N is inexact, a radix of 10\n"
-	    "will be used.")
+	    "number @var{n} in the given @var{radix}.  If @var{n} is\n"
+	    "inexact, a radix of 10 will be used.")
 #define FUNC_NAME s_scm_number_to_string
 {
   int base;
@@ -2845,12 +2865,13 @@ scm_istring2number (char *str, long len, long radix)
 SCM_DEFINE (scm_string_to_number, "string->number", 1, 1, 0,
             (SCM string, SCM radix),
 	    "Returns a number of the maximally precise representation\n"
-	    "expressed by the given STRING. RADIX must be an exact integer,\n"
-	    "either 2, 8, 10, or 16. If supplied, RADIX is a default radix\n"
-	    "that may be overridden by an explicit radix prefix in STRING\n"
-	    "(e.g. \"#o177\"). If RADIX is not supplied, then the default\n"
-	    "radix is 10. If string is not a syntactically valid notation\n"
-	    "for a number, then `string->number' returns #f.  (r5rs)") 
+	    "expressed by the given @var{string}. @var{radix} must be an\n"
+	    "exact integer, either 2, 8, 10, or 16. If supplied, @var{RADIX}\n"
+	    "is a default radix that may be overridden by an explicit\n"
+	    "radix prefix in @var{string} (e.g. \"#o177\"). If @var{radix}\n"
+	    "is not supplied, then the default radix is 10. If string is\n"
+	    "not a syntactically valid notation for a number, then\n"
+	    "@code{string->number} returns @code{#f}.  (r5rs)") 
 #define FUNC_NAME s_scm_string_to_number
 {
   SCM answer;
@@ -2918,13 +2939,18 @@ scm_complex_equalp (SCM x, SCM y)
 
 
 SCM_REGISTER_PROC (s_number_p, "number?", 1, 0, 0, scm_number_p);
-
+/* "Return @code{#t} if @var{x} is a number, @code{#f}\n"
+ * "else.  Note that the sets of complex, real, rational and\n"
+ * "integer values form subsets of the set of numbers, i. e. the\n"
+ * "predicate will be fulfilled for any number."
+ */
 SCM_DEFINE (scm_number_p, "complex?", 1, 0, 0, 
             (SCM x),
-	    "Return #t if X is a complex number, #f else.  Note that the\n"
-	    "sets of real, rational and integer values form subsets of the\n"
-	    "set of complex numbers, i. e. the predicate will also be\n"
-	    "fulfilled if X is a real, rational or integer number.")
+	    "Return @code{#t} if @var{x} is a complex number, @code{#f}\n"
+	    "else.  Note that the sets of real, rational and integer\n"
+	    "values form subsets of the set of complex numbers, i. e. the\n"
+	    "predicate will also be fulfilled if @var{x} is a real,\n"
+	    "rational or integer number.")
 #define FUNC_NAME s_scm_number_p
 {
   return SCM_BOOL (SCM_NUMBERP (x));
@@ -2933,13 +2959,19 @@ SCM_DEFINE (scm_number_p, "complex?", 1, 0, 0,
 
 
 SCM_REGISTER_PROC (s_real_p, "real?", 1, 0, 0, scm_real_p);
-
+/* "Return @code{#t} if @var{x} is a real number, @code{#f} else.\n"
+ * "Note that the sets of integer and rational values form a subset\n"
+ * "of the set of real numbers, i. e. the predicate will also\n"
+ * "be fulfilled if @var{x} is an integer or a rational number."
+ */
 SCM_DEFINE (scm_real_p, "rational?", 1, 0, 0, 
             (SCM x),
-	    "Return #t if X is a rational number, #f else.  Note that the\n"
-	    "set of integer values forms a subset of the set of rational\n"
-	    "numbers, i. e. the predicate will also be fulfilled if X is an\n"
-	    "integer number.")
+	    "Return @code{#t} if @var{x} is a rational number, @code{#f}\n"
+	    "else.  Note that the set of integer values forms a subset of\n"
+	    "the set of rational numbers, i. e. the predicate will also be\n"
+	    "fulfilled if @var{x} is an integer number.  Real numbers\n"
+	    "will also satisfy this predicate, because of their limited\n"
+	    "precision.")
 #define FUNC_NAME s_scm_real_p
 {
   if (SCM_INUMP (x)) {
@@ -2959,7 +2991,8 @@ SCM_DEFINE (scm_real_p, "rational?", 1, 0, 0,
 
 SCM_DEFINE (scm_integer_p, "integer?", 1, 0, 0, 
             (SCM x),
-	    "Return #t if X is an integer number, #f else.")
+	    "Return @code{#t} if @var{x} is an integer number, @code{#f}\n"
+	    "else.")
 #define FUNC_NAME s_scm_integer_p
 {
   double r;
@@ -2983,7 +3016,8 @@ SCM_DEFINE (scm_integer_p, "integer?", 1, 0, 0,
 
 SCM_DEFINE (scm_inexact_p, "inexact?", 1, 0, 0, 
             (SCM x),
-	    "Return #t if X is an inexact number, #f else.")
+	    "Return @code{#t} if @var{x} is an inexact number, @code{#f}\n"
+	    "else.")
 #define FUNC_NAME s_scm_inexact_p
 {
   return SCM_BOOL (SCM_INEXACTP (x));
@@ -2992,7 +3026,7 @@ SCM_DEFINE (scm_inexact_p, "inexact?", 1, 0, 0,
 
 
 SCM_GPROC1 (s_eq_p, "=", scm_tc7_rpsubr, scm_num_eq_p, g_eq_p);
-
+/* "Return @code{#t} if all parameters are numerically equal."  */
 SCM
 scm_num_eq_p (SCM x, SCM y)
 {
@@ -3060,7 +3094,9 @@ scm_num_eq_p (SCM x, SCM y)
 
 
 SCM_GPROC1 (s_less_p, "<", scm_tc7_rpsubr, scm_less_p, g_less_p);
-
+/* "Return @code{#t} if the list of parameters is monotonically\n"
+ * "increasing."
+ */
 SCM
 scm_less_p (SCM x, SCM y)
 {
@@ -3103,8 +3139,8 @@ scm_less_p (SCM x, SCM y)
 
 
 SCM_GPROC1 (s_scm_gr_p, ">", scm_tc7_rpsubr, scm_gr_p, g_gr_p);
-/* "Return #t if the list of parameters is monotonically\n"
- *  "increasing."
+/* "Return @code{#t} if the list of parameters is monotonically\n"
+ * "decreasing."
  */
 #define FUNC_NAME s_scm_gr_p
 SCM
@@ -3121,7 +3157,7 @@ scm_gr_p (SCM x, SCM y)
 
 
 SCM_GPROC1 (s_scm_leq_p, "<=", scm_tc7_rpsubr, scm_leq_p, g_leq_p);
-/* "Return #t if the list of parameters is monotonically\n"
+/* "Return @code{#t} if the list of parameters is monotonically\n"
  * "non-decreasing."
  */
 #define FUNC_NAME s_scm_leq_p
@@ -3139,7 +3175,7 @@ scm_leq_p (SCM x, SCM y)
 
 
 SCM_GPROC1 (s_scm_geq_p, ">=", scm_tc7_rpsubr, scm_geq_p, g_geq_p);
-/* "Return #t if the list of parameters is monotonically\n"
+/* "Return @code{#t} if the list of parameters is monotonically\n"
  * "non-increasing."
  */
 #define FUNC_NAME s_scm_geq_p
@@ -3157,7 +3193,9 @@ scm_geq_p (SCM x, SCM y)
 
 
 SCM_GPROC (s_zero_p, "zero?", 1, 0, 0, scm_zero_p, g_zero_p);
-
+/* "Return @code{#t} if @var{z} is an exact or inexact number equal to\n"
+ * "zero."
+ */
 SCM
 scm_zero_p (SCM z)
 {
@@ -3177,7 +3215,9 @@ scm_zero_p (SCM z)
 
 
 SCM_GPROC (s_positive_p, "positive?", 1, 0, 0, scm_positive_p, g_positive_p);
-
+/* "Return @code{#t} if @var{x} is an exact or inexact number greater than\n"
+ * "zero."
+ */
 SCM
 scm_positive_p (SCM x)
 {
@@ -3194,7 +3234,9 @@ scm_positive_p (SCM x)
 
 
 SCM_GPROC (s_negative_p, "negative?", 1, 0, 0, scm_negative_p, g_negative_p);
-
+/* "Return @code{#t} if @var{x} is an exact or inexact number less than\n"
+ * "zero."
+ */
 SCM
 scm_negative_p (SCM x)
 {
@@ -3211,7 +3253,8 @@ scm_negative_p (SCM x)
 
 
 SCM_GPROC1 (s_max, "max", scm_tc7_asubr, scm_max, g_max);
-
+/* "Return the maximum of all parameter values."
+ */
 SCM
 scm_max (SCM x, SCM y)
 {
@@ -3268,7 +3311,8 @@ scm_max (SCM x, SCM y)
 
 
 SCM_GPROC1 (s_min, "min", scm_tc7_asubr, scm_min, g_min);
-
+/* "Return the minium of all parameter values."
+ */
 SCM
 scm_min (SCM x, SCM y)
 {
@@ -3325,7 +3369,9 @@ scm_min (SCM x, SCM y)
 
 
 SCM_GPROC1 (s_sum, "+", scm_tc7_asubr, scm_sum, g_sum);
-
+/* "Return the sum of all parameter values.  Return 0 if called without\n"
+ * "any parameters." 
+ */
 SCM
 scm_sum (SCM x, SCM y)
 {
@@ -3430,7 +3476,10 @@ scm_sum (SCM x, SCM y)
 
 
 SCM_GPROC1 (s_difference, "-", scm_tc7_asubr, scm_difference, g_difference);
-
+/* "If called without arguments, 0 is returned. Otherwise the sum of\n"
+ * "all but the first argument are subtracted from the first\n"
+ * "argument."
+ */
 SCM
 scm_difference (SCM x, SCM y)
 {
@@ -3556,7 +3605,9 @@ scm_difference (SCM x, SCM y)
 
 
 SCM_GPROC1 (s_product, "*", scm_tc7_asubr, scm_product, g_product);
-
+/* "Return the product of all arguments.  If called without arguments,\n"
+ * "1 is returned."
+ */
 SCM
 scm_product (SCM x, SCM y)
 {
@@ -3703,7 +3754,8 @@ scm_num2dbl (SCM a, const char *why)
 
 
 SCM_GPROC1 (s_divide, "/", scm_tc7_asubr, scm_divide, g_divide);
-
+/* "Divide the first argument by the product of the remaining arguments."
+ */
 SCM
 scm_divide (SCM x, SCM y)
 {
@@ -3859,7 +3911,8 @@ scm_divide (SCM x, SCM y)
 
 
 SCM_GPROC1 (s_asinh, "$asinh", scm_tc7_cxr, (SCM (*)()) scm_asinh, g_asinh);
-
+/* "Return the inverse hyperbolic sine of @var{x}."
+ */
 double
 scm_asinh (double x)
 {
@@ -3870,7 +3923,8 @@ scm_asinh (double x)
 
 
 SCM_GPROC1 (s_acosh, "$acosh", scm_tc7_cxr, (SCM (*)()) scm_acosh, g_acosh);
-
+/* "Return the inverse hyperbolic cosine of @var{x}."
+ */
 double
 scm_acosh (double x)
 {
@@ -3881,7 +3935,8 @@ scm_acosh (double x)
 
 
 SCM_GPROC1 (s_atanh, "$atanh", scm_tc7_cxr, (SCM (*)()) scm_atanh, g_atanh);
-
+/* "Return the inverse hyperbolic tangent of @var{x}."
+ */
 double
 scm_atanh (double x)
 {
@@ -3892,7 +3947,8 @@ scm_atanh (double x)
 
 
 SCM_GPROC1 (s_truncate, "truncate", scm_tc7_cxr, (SCM (*)()) scm_truncate, g_truncate);
-
+/* "Round the inexact number @var{x} towards zero."
+ */
 double
 scm_truncate (double x)
 {
@@ -3904,7 +3960,9 @@ scm_truncate (double x)
 
 
 SCM_GPROC1 (s_round, "round", scm_tc7_cxr, (SCM (*)()) scm_round, g_round);
-
+/* "Round the inexact number @var{x}. If @var{x} is halfway between two\n"
+ * "numbers, round towards even."
+ */
 double
 scm_round (double x)
 {
@@ -3918,7 +3976,8 @@ scm_round (double x)
 
 
 SCM_GPROC1 (s_exact_to_inexact, "exact->inexact", scm_tc7_cxr, (SCM (*)()) scm_exact_to_inexact, g_exact_to_inexact);
-
+/* Convert the number @var{x} to its inexact representation.\n" 
+ */
 double
 scm_exact_to_inexact (double z)
 {
@@ -3927,20 +3986,50 @@ scm_exact_to_inexact (double z)
 
 
 SCM_GPROC1 (s_i_floor, "floor", scm_tc7_cxr, (SCM (*)()) floor, g_i_floor);
+/* "Round the number @var{x} towards minus infinity."
+ */
 SCM_GPROC1 (s_i_ceil, "ceiling", scm_tc7_cxr, (SCM (*)()) ceil, g_i_ceil);
+/* "Round the number @var{x} towards infinity."
+ */
 SCM_GPROC1 (s_i_sqrt, "$sqrt", scm_tc7_cxr, (SCM (*)()) sqrt, g_i_sqrt);
+/* "Return the square root of the real number @var{x}."
+ */
 SCM_GPROC1 (s_i_abs, "$abs", scm_tc7_cxr, (SCM (*)()) fabs, g_i_abs);
+/* "Return the absolute value of the real number @var{x}."
+ */
 SCM_GPROC1 (s_i_exp, "$exp", scm_tc7_cxr, (SCM (*)()) exp, g_i_exp);
+/* "Return the @var{x}th power of e."
+ */
 SCM_GPROC1 (s_i_log, "$log", scm_tc7_cxr, (SCM (*)()) log, g_i_log);
+/* "Return the natural logarithm of the real number@var{x}."
+ */
 SCM_GPROC1 (s_i_sin, "$sin", scm_tc7_cxr, (SCM (*)()) sin, g_i_sin);
+/* "Return the sine of the real number @var{x}."
+ */
 SCM_GPROC1 (s_i_cos, "$cos", scm_tc7_cxr, (SCM (*)()) cos, g_i_cos);
+/* "Return the cosine of the real number @var{x}."
+ */
 SCM_GPROC1 (s_i_tan, "$tan", scm_tc7_cxr, (SCM (*)()) tan, g_i_tan);
+/* "Return the tangent of the real number @var{x}."
+ */
 SCM_GPROC1 (s_i_asin, "$asin", scm_tc7_cxr, (SCM (*)()) asin, g_i_asin);
+/* "Return the arc sine of the real number @var{x}."
+ */
 SCM_GPROC1 (s_i_acos, "$acos", scm_tc7_cxr, (SCM (*)()) acos, g_i_acos);
+/* "Return the arc cosine of the real number @var{x}."
+ */
 SCM_GPROC1 (s_i_atan, "$atan", scm_tc7_cxr, (SCM (*)()) atan, g_i_atan);
+/* "Return the arc tangent of the real number @var{x}."
+ */
 SCM_GPROC1 (s_i_sinh, "$sinh", scm_tc7_cxr, (SCM (*)()) sinh, g_i_sinh);
+/* "Return the hyperbolic sine of the real number @var{x}."
+ */
 SCM_GPROC1 (s_i_cosh, "$cosh", scm_tc7_cxr, (SCM (*)()) cosh, g_i_cosh);
+/* "Return the hyperbolic cosine of the real number @var{x}."
+ */
 SCM_GPROC1 (s_i_tanh, "$tanh", scm_tc7_cxr, (SCM (*)()) tanh, g_i_tanh);
+/* "Return the hyperbolic tangent of the real number @var{x}."
+ */
 
 struct dpair
 {
@@ -4008,8 +4097,8 @@ SCM_DEFINE (scm_sys_atan2, "$atan2", 2, 0, 0,
 
 SCM_DEFINE (scm_make_rectangular, "make-rectangular", 2, 0, 0,
             (SCM real, SCM imaginary),
-	    "Return a complex number constructed of the given REAL and\n"
-	    "IMAGINARY parts.")
+	    "Return a complex number constructed of the given @var{real} and\n"
+	    "@var{imaginary} parts.")
 #define FUNC_NAME s_scm_make_rectangular
 {
   struct dpair xy;
@@ -4022,7 +4111,7 @@ SCM_DEFINE (scm_make_rectangular, "make-rectangular", 2, 0, 0,
 
 SCM_DEFINE (scm_make_polar, "make-polar", 2, 0, 0,
             (SCM x, SCM y),
-	    "Return the complex number X * e^(i * Y).")
+	    "Return the complex number @var{x} * e^(i * @var{y}).")
 #define FUNC_NAME s_scm_make_polar
 {
   struct dpair xy;
@@ -4033,7 +4122,8 @@ SCM_DEFINE (scm_make_polar, "make-polar", 2, 0, 0,
 
 
 SCM_GPROC (s_real_part, "real-part", 1, 0, 0, scm_real_part, g_real_part);
-
+/* "Return the real part of the number @var{z}."
+ */
 SCM
 scm_real_part (SCM z)
 {
@@ -4052,7 +4142,8 @@ scm_real_part (SCM z)
 
 
 SCM_GPROC (s_imag_part, "imag-part", 1, 0, 0, scm_imag_part, g_imag_part);
-
+/* "Return the imaginary part of the number @var{z}."
+ */
 SCM
 scm_imag_part (SCM z)
 {
@@ -4071,7 +4162,9 @@ scm_imag_part (SCM z)
 
 
 SCM_GPROC (s_magnitude, "magnitude", 1, 0, 0, scm_magnitude, g_magnitude);
-
+/* "Return the magnitude of the number @var{z}. This is the same as\n"
+ * "@code{abs} for real arguments, but also allows complex numbers."
+ */
 SCM
 scm_magnitude (SCM z)
 {
@@ -4107,7 +4200,8 @@ scm_magnitude (SCM z)
 
 
 SCM_GPROC (s_angle, "angle", 1, 0, 0, scm_angle, g_angle);
-
+/* "Return the angle of the complex number @var{z}."
+ */
 SCM
 scm_angle (SCM z)
 {
@@ -4135,7 +4229,7 @@ scm_angle (SCM z)
 
 SCM_DEFINE (scm_inexact_to_exact, "inexact->exact", 1, 0, 0, 
             (SCM z),
-	    "Returns an exact number that is numerically closest to Z.")
+	    "Returns an exact number that is numerically closest to @var{z}.")
 #define FUNC_NAME s_scm_inexact_to_exact
 {
   if (SCM_INUMP (z)) {

@@ -396,9 +396,10 @@ scm_eval_0str (const char *expr)
 
 SCM_DEFINE (scm_eval_string, "eval-string", 1, 0, 0, 
             (SCM string),
-	    "Evaluate @var{string} as the text representation of a Scheme form\n"
-	    "or forms, and return whatever value they produce.\n"
-	    "Evaluation takes place in (interaction-environment).")
+	    "Evaluate @var{string} as the text representation of a Scheme\n"
+	    "form or forms, and return whatever value they produce.\n"
+	    "Evaluation takes place in the environment returned by the\n"
+	    "procedure @code{interaction-environment}.")
 #define FUNC_NAME s_scm_eval_string
 {
   SCM port = scm_mkstrport (SCM_INUM0, string, SCM_OPN | SCM_RDNG,

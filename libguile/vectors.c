@@ -139,7 +139,8 @@ scm_vector_set_length_x (SCM vect, SCM len)
 
 SCM_DEFINE (scm_vector_p, "vector?", 1, 0, 0, 
 	    (SCM obj),
-	    "Returns @t{#t} if @var{obj} is a vector, otherwise returns @t{#f}. (r5rs)")
+	    "Returns @code{#t} if @var{obj} is a vector, otherwise returns\n"
+	    "@code{#f}. (r5rs)")
 #define FUNC_NAME s_scm_vector_p
 {
   if (SCM_IMP (obj))
@@ -160,24 +161,21 @@ scm_vector_length (SCM v)
 
 SCM_REGISTER_PROC (s_list_to_vector, "list->vector", 1, 0, 0, scm_vector);
 /*
-	    "@samp{List->vector} returns a newly\n"
-	    "created vector initialized to the elements of the list @var{list}.\n\n"
-	    "@format\n"
-	    "@t{(vector->list '#(dah dah didah))\n"
-	    "=>  (dah dah didah)\n"
-	    "list->vector '(dididit dah))\n"
-	    "=>  #(dididit dah)\n"
-	    "}\n"
-	    "@end format")
+	    "Return a newly created vector initialized to the elements of"
+	    "the list @var{list}.\n\n"
+	    "@lisp\n"
+	    "(vector->list '#(dah dah didah)) @result{} (dah dah didah)\n"
+	    "(list->vector '(dididit dah)) @result{}   #(dididit dah)\n"
+	    "@end lisp")
 */
 SCM_DEFINE (scm_vector, "vector", 0, 0, 1, 
 	    (SCM l),
 	    "@deffnx primitive list->vector l\n"
-	    "Returns a newly allocated vector whose elements contain the given\n"
-	    "arguments.  Analogous to @samp{list}. (r5rs)\n\n"
-	    "@format\n"
-	    "@t{(vector 'a 'b 'c)                      ==>  #(a b c) }\n"
-	    "@end format")
+	    "Returns a newly allocated vector whose elements contain the\n"
+	    "given arguments.  Analogous to @code{list}. (r5rs)\n\n"
+	    "@lisp\n"
+	    "(vector 'a 'b 'c) @result{}  #(a b c)\n"
+	    "@end lisp")
 #define FUNC_NAME s_scm_vector
 {
   SCM res;
@@ -198,18 +196,14 @@ SCM_GPROC (s_vector_ref, "vector-ref", 2, 0, 0, scm_vector_ref, g_vector_ref);
            "@var{k} must be a valid index of @var{vector}.\n"
 	   "@samp{Vector-ref} returns the contents of element @var{k} of\n"
 	   "@var{vector}.\n\n"
-	   "@format\n"
-	   "@t{(vector-ref '#(1 1 2 3 5 8 13 21)\n"
-	   "                5)\n"
-	   "        ==>  8\n"
+	   "@lisp\n"
+	   "(vector-ref '#(1 1 2 3 5 8 13 21) 5) @result{} 8\n"
 	   "(vector-ref '#(1 1 2 3 5 8 13 21)\n"
 	   "    (let ((i (round (* 2 (acos -1)))))\n"
 	   "      (if (inexact? i)\n"
 	   "        (inexact->exact i)\n"
-	   "           i))) \n"
-	   "     ==> 13\n"
-	   "}\n"
-	   "@end format"
+	   "           i))) @result{} 13\n"
+	   "@end lisp"
 */
 
 SCM
@@ -227,23 +221,15 @@ scm_vector_ref (SCM v, SCM k)
 
 SCM_GPROC (s_vector_set_x, "vector-set!", 3, 0, 0, scm_vector_set_x, g_vector_set_x);
 
-/* (r5rs)
-@var{k} must be a valid index of @var{vector}.
-@samp{Vector-set!} stores @var{obj} in element @var{k} of @var{vector}.
-The value returned by @samp{vector-set!} is unspecified.  
-@c  <!>
-
-
-@format
-@t{(let ((vec (vector 0 '(2 2 2 2) "Anna")))
-  (vector-set! vec 1 '("Sue" "Sue"))
-  vec)      
-          ==>  #(0 ("Sue" "Sue") "Anna")
-
-(vector-set! '#(0 1 2) 1 "doe")  
-          ==>  @emph{error}  ; constant vector
-}
-@end format
+/* "@var{k} must be a valid index of @var{vector}.\n"
+   "@code{Vector-set!} stores @var{obj} in element @var{k} of @var{vector}.\n"
+   "The value returned by @samp{vector-set!} is unspecified.\n"
+   "@lisp\n"
+   "(let ((vec (vector 0 '(2 2 2 2) "Anna")))\n"
+   "  (vector-set! vec 1 '("Sue" "Sue"))\n"
+   "  vec) @result{}  #(0 ("Sue" "Sue") "Anna")\n"
+   "(vector-set! '#(0 1 2) 1 "doe") @result{} @emph{error} ; constant vector\n"
+   "@end lisp"
 */
 
 SCM
@@ -318,15 +304,12 @@ scm_c_make_vector (unsigned long int k, SCM fill)
 
 SCM_DEFINE (scm_vector_to_list, "vector->list", 1, 0, 0, 
            (SCM v),
-	    "@samp{Vector->list} returns a newly allocated list of the objects contained\n"
-	    "in the elements of @var{vector}.  (r5rs)\n\n"
-	    "@format\n"
-	    "@t{(vector->list '#(dah dah didah))\n"
-	    "=>  (dah dah didah)\n"
-	    "list->vector '(dididit dah))\n"
-	    "=>  #(dididit dah)\n"
-	    "}\n"
-	    "@end format")
+	    "@samp{Vector->list} returns a newly allocated list of the\n"
+	    "objects contained in the elements of @var{vector}.  (r5rs)\n\n"
+	    "@lisp\n"
+	    "(vector->list '#(dah dah didah)) @result{}  (dah dah didah)\n"
+	    "(list->vector '(dididit dah)) @result{}  #(dididit dah)\n"
+	    "@end lisp")
 #define FUNC_NAME s_scm_vector_to_list
 {
   SCM res = SCM_EOL;
@@ -343,7 +326,7 @@ SCM_DEFINE (scm_vector_to_list, "vector->list", 1, 0, 0,
 SCM_DEFINE (scm_vector_fill_x, "vector-fill!", 2, 0, 0,
             (SCM v, SCM fill_x),
 	    "Stores @var{fill} in every element of @var{vector}.\n"
-	    "The value returned by @samp{vector-fill!} is unspecified. (r5rs)")
+	    "The value returned by @code{vector-fill!} is unspecified. (r5rs)")
 #define FUNC_NAME s_scm_vector_fill_x
 {
   register long i;
