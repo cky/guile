@@ -1,3 +1,5 @@
+gen-scmconfig
+gen-scmconfig.h
 *.bb
 *.bbg
 *.c.clean.c

@@ -1,3 +1,4 @@
+
 SCM_TESTS = tests/alist.test			\
 	    tests/bit-operations.test		\
 	    tests/c-api.test			\

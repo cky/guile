@@ -1,3 +1,7 @@
+depcomp
+install-sh
+missing
+mkinstalldirs
 BUGS
 Makefile
 Makefile.in
