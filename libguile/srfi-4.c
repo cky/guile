@@ -326,7 +326,8 @@ uvec_fast_set_x (int type, void *base, size_t c_idx, SCM val)
 static SCM_C_INLINE SCM
 make_uvec (int type, SCM len, SCM fill)
 {
-  size_t c_len = scm_to_unsigned_integer (len, 0, SIZE_MAX / uvec_sizes[type]);
+  size_t c_len = scm_to_unsigned_integer (len, 0,
+					  SCM_I_SIZE_MAX / uvec_sizes[type]);
   SCM uvec = alloc_uvec (type, c_len);
   if (!SCM_UNBNDP (fill))
     {
