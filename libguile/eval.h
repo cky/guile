@@ -127,16 +127,28 @@ extern const char scm_s_clauses[];
 extern const char scm_s_formals[];
 extern const char scm_s_set_x[];
 
-extern SCM scm_i_dot;
-extern SCM scm_i_quote;
-extern SCM scm_i_quasiquote;
-extern SCM scm_i_lambda;
-extern SCM scm_i_let;
-extern SCM scm_i_arrow;
-extern SCM scm_i_else;
-extern SCM scm_i_unquote;
-extern SCM scm_i_uq_splicing;
-extern SCM scm_i_apply;
+extern SCM scm_sym_and;
+extern SCM scm_sym_begin;
+extern SCM scm_sym_case;
+extern SCM scm_sym_cond;
+extern SCM scm_sym_define;
+extern SCM scm_sym_do;
+extern SCM scm_sym_if;
+extern SCM scm_sym_lambda;
+extern SCM scm_sym_let;
+extern SCM scm_sym_letstar;
+extern SCM scm_sym_letrec;
+extern SCM scm_sym_quote;
+extern SCM scm_sym_quasiquote;
+extern SCM scm_sym_unquote;
+extern SCM scm_sym_uq_splicing;
+
+extern SCM scm_sym_dot;
+extern SCM scm_sym_atapply;
+extern SCM scm_sym_atcall_cc;
+extern SCM scm_sym_arrow;
+extern SCM scm_sym_else;
+extern SCM scm_sym_apply;
 extern SCM scm_sym_set_x;
 extern SCM scm_sym_args;
 

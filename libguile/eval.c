@@ -447,11 +447,11 @@ const char scm_s_variable[] = "bad variable";
 const char scm_s_clauses[] = "bad or missing clauses";
 const char scm_s_formals[] = "bad formals";
 
-SCM scm_i_dot, scm_i_arrow, scm_i_else, scm_i_unquote, scm_i_uq_splicing, scm_i_apply;
+SCM scm_sym_dot, scm_sym_arrow, scm_sym_else, scm_sym_unquote, scm_sym_uq_splicing, scm_sym_apply;
 
 #ifdef DEBUG_EXTENSIONS
-SCM scm_i_enter_frame, scm_i_apply_frame, scm_i_exit_frame;
-SCM scm_i_trace;
+SCM scm_sym_enter_frame, scm_sym_apply_frame, scm_sym_exit_frame;
+SCM scm_sym_trace;
 #endif
 
 #define ASRTSYNTAX(cond_, msg_) if(!(cond_))scm_wta(xorig, (msg_), what);
@@ -507,7 +507,7 @@ scm_m_body (op, xorig, what)
 }
 
 SCM_SYNTAX(s_quote,"quote", scm_makmmacro, scm_m_quote);
-SCM_GLOBAL_SYMBOL(scm_i_quote, s_quote);
+SCM_GLOBAL_SYMBOL(scm_sym_quote, s_quote);
 
 SCM 
 scm_m_quote (xorig, env)
@@ -524,7 +524,7 @@ scm_m_quote (xorig, env)
 
 
 SCM_SYNTAX(s_begin, "begin", scm_makmmacro, scm_m_begin);
-SCM_SYMBOL(scm_i_begin, s_begin);
+SCM_GLOBAL_SYMBOL(scm_sym_begin, s_begin);
 
 SCM 
 scm_m_begin (xorig, env)
@@ -537,7 +537,7 @@ scm_m_begin (xorig, env)
 }
 
 SCM_SYNTAX(s_if, "if", scm_makmmacro, scm_m_if);
-SCM_SYMBOL(scm_i_if, s_if);
+SCM_GLOBAL_SYMBOL(scm_sym_if, s_if);
 
 SCM 
 scm_m_if (xorig, env)
@@ -607,7 +607,7 @@ scm_m_vset (xorig, env)
 
 
 SCM_SYNTAX(s_and, "and", scm_makmmacro, scm_m_and);
-SCM_GLOBAL_SYMBOL(scm_i_and, s_and);
+SCM_GLOBAL_SYMBOL(scm_sym_and, s_and);
 
 SCM 
 scm_m_and (xorig, env)
@@ -623,7 +623,7 @@ scm_m_and (xorig, env)
 }
 
 SCM_SYNTAX(s_or,"or", scm_makmmacro, scm_m_or);
-SCM_SYMBOL(scm_i_or,s_or);
+SCM_GLOBAL_SYMBOL(scm_sym_or,s_or);
 
 SCM 
 scm_m_or (xorig, env)
@@ -640,7 +640,7 @@ scm_m_or (xorig, env)
 
 
 SCM_SYNTAX(s_case, "case", scm_makmmacro, scm_m_case);
-SCM_SYMBOL(scm_i_case, s_case);
+SCM_GLOBAL_SYMBOL(scm_sym_case, s_case);
 
 SCM 
 scm_m_case (xorig, env)
@@ -654,7 +654,7 @@ scm_m_case (xorig, env)
       proc = SCM_CAR (x);
       SCM_ASSYNT (scm_ilength (proc) >= 2, xorig, scm_s_clauses, s_case);
       SCM_ASSYNT (scm_ilength (SCM_CAR (proc)) >= 0
-		  || scm_i_else == SCM_CAR (proc),
+		  || scm_sym_else == SCM_CAR (proc),
 		  xorig, scm_s_clauses, s_case);
     }
   return scm_cons (SCM_IM_CASE, cdrx);
@@ -662,7 +662,7 @@ scm_m_case (xorig, env)
 
 
 SCM_SYNTAX(s_cond, "cond", scm_makmmacro, scm_m_cond);
-SCM_SYMBOL(scm_i_cond, s_cond);
+SCM_GLOBAL_SYMBOL(scm_sym_cond, s_cond);
 
 
 SCM 
@@ -678,13 +678,13 @@ scm_m_cond (xorig, env)
       arg1 = SCM_CAR (x);
       len = scm_ilength (arg1);
       SCM_ASSYNT (len >= 1, xorig, scm_s_clauses, s_cond);
-      if (scm_i_else == SCM_CAR (arg1))
+      if (scm_sym_else == SCM_CAR (arg1))
 	{
 	  SCM_ASSYNT (SCM_NULLP (SCM_CDR (x)) && len >= 2,
 		      xorig, "bad ELSE clause", s_cond);
 	  SCM_SETCAR (arg1, SCM_BOOL_T);
 	}
-      if (len >= 2 && scm_i_arrow == SCM_CAR (SCM_CDR (arg1)))
+      if (len >= 2 && scm_sym_arrow == SCM_CAR (SCM_CDR (arg1)))
 	SCM_ASSYNT (3 == len && SCM_NIMP (SCM_CAR (SCM_CDR (SCM_CDR (arg1)))),
 		    xorig, "bad recipient", s_cond);
       x = SCM_CDR (x);
@@ -693,7 +693,7 @@ scm_m_cond (xorig, env)
 }
 
 SCM_SYNTAX(s_lambda, "lambda", scm_makmmacro, scm_m_lambda);
-SCM_GLOBAL_SYMBOL(scm_i_lambda, s_lambda);
+SCM_GLOBAL_SYMBOL(scm_sym_lambda, s_lambda);
 
 SCM 
 scm_m_lambda (xorig, env)
@@ -739,7 +739,7 @@ scm_m_lambda (xorig, env)
 }
 
 SCM_SYNTAX(s_letstar,"let*", scm_makmmacro, scm_m_letstar);
-SCM_SYMBOL(scm_i_letstar,s_letstar);
+SCM_GLOBAL_SYMBOL(scm_sym_letstar,s_letstar);
 
 
 SCM 
@@ -783,7 +783,7 @@ scm_m_letstar (xorig, env)
    */
 
 SCM_SYNTAX(s_do, "do", scm_makmmacro, scm_m_do);
-SCM_SYMBOL(scm_i_do, s_do);
+SCM_GLOBAL_SYMBOL(scm_sym_do, s_do);
 
 SCM 
 scm_m_do (xorig, env)
@@ -831,7 +831,7 @@ scm_m_do (xorig, env)
 static SCM  iqq SCM_P ((SCM form, SCM env, int depth));
 
 SCM_SYNTAX(s_quasiquote, "quasiquote", scm_makacro, scm_m_quasiquote);
-SCM_GLOBAL_SYMBOL(scm_i_quasiquote, s_quasiquote);
+SCM_GLOBAL_SYMBOL(scm_sym_quasiquote, s_quasiquote);
 
 SCM 
 scm_m_quasiquote (xorig, env)
@@ -866,12 +866,12 @@ iqq (form, env, depth)
   if (SCM_NCONSP(form)) 
     return form;
   tmp = SCM_CAR (form);
-  if (scm_i_quasiquote == tmp)
+  if (scm_sym_quasiquote == tmp)
     {
       depth++;
       goto label;
     }
-  if (scm_i_unquote == tmp)
+  if (scm_sym_unquote == tmp)
     {
       --depth;
     label:
@@ -882,7 +882,7 @@ iqq (form, env, depth)
 	return evalcar (form, env);
       return scm_cons2 (tmp, iqq (SCM_CAR (form), env, depth), SCM_EOL);
     }
-  if (SCM_NIMP (tmp) && (scm_i_uq_splicing == SCM_CAR (tmp)))
+  if (SCM_NIMP (tmp) && (scm_sym_uq_splicing == SCM_CAR (tmp)))
     {
       tmp = SCM_CDR (tmp);
       if (0 == --edepth)
@@ -909,7 +909,7 @@ scm_m_delay (xorig, env)
 
 
 SCM_SYNTAX(s_define, "define", scm_makmmacro, scm_m_define);
-SCM_SYMBOL(scm_i_define, s_define);
+SCM_GLOBAL_SYMBOL(scm_sym_define, s_define);
 
 SCM 
 scm_m_define (x, env)
@@ -924,7 +924,7 @@ scm_m_define (x, env)
   x = SCM_CDR (x);
   while (SCM_NIMP (proc) && SCM_CONSP (proc))
     {				/* nested define syntax */
-      x = scm_cons (scm_cons2 (scm_i_lambda, SCM_CDR (proc), x), SCM_EOL);
+      x = scm_cons (scm_cons2 (scm_sym_lambda, SCM_CDR (proc), x), SCM_EOL);
       proc = SCM_CAR (proc);
     }
   SCM_ASSYNT (SCM_NIMP (proc) && SCM_SYMBOLP (proc),
@@ -940,8 +940,8 @@ scm_m_define (x, env)
 	proc:
 	  if (SCM_CLOSUREP (arg1)
 	      /* Only the first definition determines the name. */
-	      && scm_procedure_property (arg1, scm_i_name) == SCM_BOOL_F)
-	    scm_set_procedure_property_x (arg1, scm_i_name, proc);
+	      && scm_procedure_property (arg1, scm_sym_name) == SCM_BOOL_F)
+	    scm_set_procedure_property_x (arg1, scm_sym_name, proc);
 	  else if (SCM_TYP16 (arg1) == scm_tc16_macro
 		   && SCM_CDR (arg1) != arg1)
 	    {
@@ -963,7 +963,7 @@ scm_m_define (x, env)
 #endif
       SCM_SETCDR (arg1, x);
 #ifdef SICP
-      return scm_cons2 (scm_i_quote, SCM_CAR (arg1), SCM_EOL);
+      return scm_cons2 (scm_sym_quote, SCM_CAR (arg1), SCM_EOL);
 #else
       return SCM_UNSPECIFIED;
 #endif
@@ -1005,7 +1005,7 @@ scm_m_letrec1 (op, imm, xorig, env)
 }
 
 SCM_SYNTAX(s_letrec, "letrec", scm_makmmacro, scm_m_letrec);
-SCM_SYMBOL(scm_i_letrec, s_letrec);
+SCM_GLOBAL_SYMBOL(scm_sym_letrec, s_letrec);
 
 SCM 
 scm_m_letrec (xorig, env)
@@ -1026,7 +1026,7 @@ scm_m_letrec (xorig, env)
 }
 
 SCM_SYNTAX(s_let, "let", scm_makmmacro, scm_m_let);
-SCM_GLOBAL_SYMBOL(scm_i_let, s_let);
+SCM_GLOBAL_SYMBOL(scm_sym_let, s_let);
 
 SCM 
 scm_m_let (xorig, env)
@@ -1079,9 +1079,9 @@ scm_m_let (xorig, env)
       proc = SCM_CDR (proc);
     }
 
-  proc = scm_cons2 (scm_i_lambda, vars,
+  proc = scm_cons2 (scm_sym_lambda, vars,
 		    scm_m_body (SCM_IM_LET, SCM_CDR (x), "let"));
-  proc = scm_cons2 (scm_i_let, scm_cons (scm_cons2 (name, proc, SCM_EOL),
+  proc = scm_cons2 (scm_sym_let, scm_cons (scm_cons2 (name, proc, SCM_EOL),
 					 SCM_EOL),
 		    scm_acons (name, inits, SCM_EOL));
   return scm_m_letrec1 (SCM_IM_LETREC, SCM_IM_LET, proc, env);
@@ -1089,7 +1089,7 @@ scm_m_let (xorig, env)
 
 
 SCM_SYNTAX(s_atapply,"@apply", scm_makmmacro, scm_m_apply);
-SCM_SYMBOL(scm_i_atapply, s_atapply);
+SCM_GLOBAL_SYMBOL(scm_sym_atapply, s_atapply);
 
 SCM 
 scm_m_apply (xorig, env)
@@ -1103,7 +1103,7 @@ scm_m_apply (xorig, env)
 
 
 SCM_SYNTAX(s_atcall_cc,"@call-with-current-continuation", scm_makmmacro, scm_m_cont);
-SCM_SYMBOL(scm_i_atcall_cc,s_atcall_cc);
+SCM_GLOBAL_SYMBOL(scm_sym_atcall_cc,s_atcall_cc);
 
 
 SCM 
@@ -1271,7 +1271,7 @@ scm_m_expand_body (SCM xorig, SCM env)
     {
       x = scm_cons (scm_m_letrec1 (SCM_IM_LETREC,
 				   SCM_IM_DEFINE,
-				   scm_cons2 (scm_i_define, defs, x),
+				   scm_cons2 (scm_sym_define, defs, x),
 				   env),
 		    SCM_EOL);
     }
@@ -1367,30 +1367,30 @@ unmemocopy (x, env)
   switch (SCM_TYP7 (x))
     {
     case (127 & SCM_IM_AND):
-      ls = z = scm_cons (scm_i_and, SCM_UNSPECIFIED);
+      ls = z = scm_cons (scm_sym_and, SCM_UNSPECIFIED);
       break;
     case (127 & SCM_IM_BEGIN):
-      ls = z = scm_cons (scm_i_begin, SCM_UNSPECIFIED);
+      ls = z = scm_cons (scm_sym_begin, SCM_UNSPECIFIED);
       break;
     case (127 & SCM_IM_CASE):
-      ls = z = scm_cons (scm_i_case, SCM_UNSPECIFIED);
+      ls = z = scm_cons (scm_sym_case, SCM_UNSPECIFIED);
       break;
     case (127 & SCM_IM_COND):
-      ls = z = scm_cons (scm_i_cond, SCM_UNSPECIFIED);
+      ls = z = scm_cons (scm_sym_cond, SCM_UNSPECIFIED);
       break;
     case (127 & SCM_IM_DO):
-      ls = scm_cons (scm_i_do, SCM_UNSPECIFIED);
+      ls = scm_cons (scm_sym_do, SCM_UNSPECIFIED);
       goto transform;
     case (127 & SCM_IM_IF):
-      ls = z = scm_cons (scm_i_if, SCM_UNSPECIFIED);
+      ls = z = scm_cons (scm_sym_if, SCM_UNSPECIFIED);
       break;
     case (127 & SCM_IM_LET):
-      ls = scm_cons (scm_i_let, SCM_UNSPECIFIED);
+      ls = scm_cons (scm_sym_let, SCM_UNSPECIFIED);
       goto transform;
     case (127 & SCM_IM_LETREC):
       {
 	SCM f, v, e, s;
-	ls = scm_cons (scm_i_letrec, SCM_UNSPECIFIED);
+	ls = scm_cons (scm_sym_letrec, SCM_UNSPECIFIED);
       transform:
 	x = SCM_CDR (x);
 	/* binding names */
@@ -1399,10 +1399,10 @@ unmemocopy (x, env)
 	z = EXTEND_ENV (f, SCM_EOL, env);
 	/* inits */
 	e = scm_reverse (unmemocopy (SCM_CAR (x),
-				     SCM_CAR (ls) == scm_i_letrec ? z : env));
+				     SCM_CAR (ls) == scm_sym_letrec ? z : env));
 	env = z;
 	/* increments */
-	s = SCM_CAR (ls) == scm_i_do
+	s = SCM_CAR (ls) == scm_sym_do
 	    ? scm_reverse (unmemocopy (SCM_CDR (SCM_CDR (SCM_CDR (x))), env))
 	    : f;
 	/* build transformed binding list */
@@ -1422,7 +1422,7 @@ unmemocopy (x, env)
 	while (SCM_NIMP (v));
 	z = scm_cons (z, SCM_UNSPECIFIED);
 	SCM_SETCDR (ls, z);
-	if (SCM_CAR (ls) == scm_i_do)
+	if (SCM_CAR (ls) == scm_sym_do)
 	  {
 	    x = SCM_CDR (x);
 	    /* test clause */
@@ -1455,7 +1455,7 @@ unmemocopy (x, env)
 	if (SCM_IMP (b))
 	  {
 	    SCM_SETCDR (y, SCM_EOL);
-	    ls = scm_cons (scm_i_let, z = scm_cons (y, SCM_UNSPECIFIED));
+	    ls = scm_cons (scm_sym_let, z = scm_cons (y, SCM_UNSPECIFIED));
 	    break;
 	  }
 	do
@@ -1471,20 +1471,20 @@ unmemocopy (x, env)
 	while (SCM_NIMP (b));
 	SCM_SETCDR (z, SCM_EOL);
       letstar:
-	ls = scm_cons (scm_i_letstar, z = scm_cons (y, SCM_UNSPECIFIED));
+	ls = scm_cons (scm_sym_letstar, z = scm_cons (y, SCM_UNSPECIFIED));
 	break;
       }
     case (127 & SCM_IM_OR):
-      ls = z = scm_cons (scm_i_or, SCM_UNSPECIFIED);
+      ls = z = scm_cons (scm_sym_or, SCM_UNSPECIFIED);
       break;
     case (127 & SCM_IM_LAMBDA):
       x = SCM_CDR (x);
-      ls = scm_cons (scm_i_lambda,
+      ls = scm_cons (scm_sym_lambda,
 		     z = scm_cons (SCM_CAR (x), SCM_UNSPECIFIED));
       env = EXTEND_ENV (SCM_CAR (x), SCM_EOL, env);
       break;
     case (127 & SCM_IM_QUOTE):
-      ls = z = scm_cons (scm_i_quote, SCM_UNSPECIFIED);
+      ls = z = scm_cons (scm_sym_quote, SCM_UNSPECIFIED);
       break;
     case (127 & SCM_IM_SET_X):
       ls = z = scm_cons (scm_sym_set_x, SCM_UNSPECIFIED);
@@ -1493,7 +1493,7 @@ unmemocopy (x, env)
       {
 	SCM n;
 	x = SCM_CDR (x);
-	ls = scm_cons (scm_i_define,
+	ls = scm_cons (scm_sym_define,
 		       z = scm_cons (n = SCM_CAR (x), SCM_UNSPECIFIED));
 	if (SCM_NNULLP (env))
 	  SCM_SETCAR (SCM_CAR (env), scm_cons (n, SCM_CAR (SCM_CAR (env))));
@@ -1506,10 +1506,10 @@ unmemocopy (x, env)
       switch (SCM_ISYMNUM (z))
 	{
 	case (SCM_ISYMNUM (SCM_IM_APPLY)):
-	  ls = z = scm_cons (scm_i_atapply, SCM_UNSPECIFIED);
+	  ls = z = scm_cons (scm_sym_atapply, SCM_UNSPECIFIED);
 	  goto loop;
 	case (SCM_ISYMNUM (SCM_IM_CONT)):
-	  ls = z = scm_cons (scm_i_atcall_cc, SCM_UNSPECIFIED);
+	  ls = z = scm_cons (scm_sym_atcall_cc, SCM_UNSPECIFIED);
 	  goto loop;
 	default:
 	  /* appease the Sun compiler god: */ ;
@@ -1660,13 +1660,13 @@ scm_eval_args (l, env, proc)
 	if (SCM_CHEAPTRAPS_P)\
 	  {\
 	    tmp = scm_make_debugobj (&debug);\
-	    scm_ithrow (scm_i_apply_frame, scm_cons2 (tmp, tail, SCM_EOL), 0);\
+	    scm_ithrow (scm_sym_apply_frame, scm_cons2 (tmp, tail, SCM_EOL), 0);\
  	  }\
 	else\
 	  {\
 	    scm_make_cont (&tmp);\
 	    if (!setjmp (SCM_JMPBUF (tmp)))\
-	      scm_ithrow (scm_i_apply_frame, scm_cons2 (tmp, tail, SCM_EOL), 0);\
+	      scm_ithrow (scm_sym_apply_frame, scm_cons2 (tmp, tail, SCM_EOL), 0);\
 	  }\
       }\
 }
@@ -1940,7 +1940,7 @@ start:
 		  goto dispatch;
 	      }
 	  }
-	scm_ithrow (scm_i_enter_frame,
+	scm_ithrow (scm_sym_enter_frame,
 		    scm_cons2 (t.arg1, tail,
 			       scm_cons (scm_unmemocopy (x, env), SCM_EOL)),
 		    0);
@@ -2017,7 +2017,7 @@ dispatch:
       while (SCM_NIMP (x = SCM_CDR (x)))
 	{
 	  proc = SCM_CAR (x);
-	  if (scm_i_else == SCM_CAR (proc))
+	  if (scm_sym_else == SCM_CAR (proc))
 	    {
 	      x = SCM_CDR (proc);
 	      PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
@@ -2050,7 +2050,7 @@ dispatch:
 		{
 		  RETURN (t.arg1)
 		}
-	      if (scm_i_arrow != SCM_CAR (x))
+	      if (scm_sym_arrow != SCM_CAR (x))
 		{
 		  PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
 		  goto begin;
@@ -2265,7 +2265,7 @@ dispatch:
 	      x = SCM_CODE (proc);
 	      goto cdrxbegin;
 	    }
-	  proc = scm_i_apply;
+	  proc = scm_sym_apply;
 	  goto evapply;
 
 	case (SCM_ISYMNUM (SCM_IM_CONT)):
@@ -3260,7 +3260,7 @@ exit:
 		goto ret;
 	      }
 	  }
-	scm_ithrow (scm_i_exit_frame, scm_cons2 (t.arg1, proc, SCM_EOL), 0);
+	scm_ithrow (scm_sym_exit_frame, scm_cons2 (t.arg1, proc, SCM_EOL), 0);
       }
 ret:
   scm_last_debug_frame = debug.prev;
@@ -3423,7 +3423,7 @@ SCM_APPLY (proc, arg1, args)
 	  if (setjmp (SCM_JMPBUF (tmp)))
 	    goto entap;
 	}
-      scm_ithrow (scm_i_enter_frame, scm_cons (tmp, SCM_EOL), 0);
+      scm_ithrow (scm_sym_enter_frame, scm_cons (tmp, SCM_EOL), 0);
     }
 entap:
   ENTER_APPLY;
@@ -3652,7 +3652,7 @@ exit:
 		goto ret;
 	      }
 	  }
-	scm_ithrow (scm_i_exit_frame, scm_cons2 (arg1, proc, SCM_EOL), 0);
+	scm_ithrow (scm_sym_exit_frame, scm_cons2 (arg1, proc, SCM_EOL), 0);
       }
 ret:
   scm_last_debug_frame = debug.prev;
@@ -3990,13 +3990,13 @@ scm_init_eval ()
   
   scm_tc16_promise = scm_newsmob (&promsmob);
 
-  scm_i_apply = scm_make_subr ("apply", scm_tc7_lsubr_2, scm_apply);
+  scm_sym_apply = scm_make_subr ("apply", scm_tc7_lsubr_2, scm_apply);
   scm_system_transformer = scm_sysintern ("scm:eval-transformer", SCM_UNDEFINED);
-  scm_i_dot = SCM_CAR (scm_sysintern (".", SCM_UNDEFINED));
-  scm_i_arrow = SCM_CAR (scm_sysintern ("=>", SCM_UNDEFINED));
-  scm_i_else = SCM_CAR (scm_sysintern ("else", SCM_UNDEFINED));
-  scm_i_unquote = SCM_CAR (scm_sysintern ("unquote", SCM_UNDEFINED));
-  scm_i_uq_splicing = SCM_CAR (scm_sysintern ("unquote-splicing", SCM_UNDEFINED));
+  scm_sym_dot = SCM_CAR (scm_sysintern (".", SCM_UNDEFINED));
+  scm_sym_arrow = SCM_CAR (scm_sysintern ("=>", SCM_UNDEFINED));
+  scm_sym_else = SCM_CAR (scm_sysintern ("else", SCM_UNDEFINED));
+  scm_sym_unquote = SCM_CAR (scm_sysintern ("unquote", SCM_UNDEFINED));
+  scm_sym_uq_splicing = SCM_CAR (scm_sysintern ("unquote-splicing", SCM_UNDEFINED));
 
   scm_nil = scm_sysintern ("nil", SCM_UNDEFINED);
   SCM_SETCDR (scm_nil, SCM_CAR (scm_nil));
@@ -4013,10 +4013,10 @@ scm_init_eval ()
   scm_can_use_top_level_lookup_closure_var = 1;
 
 #ifdef DEBUG_EXTENSIONS
-  scm_i_enter_frame = SCM_CAR (scm_sysintern ("enter-frame", SCM_UNDEFINED));
-  scm_i_apply_frame = SCM_CAR (scm_sysintern ("apply-frame", SCM_UNDEFINED));
-  scm_i_exit_frame = SCM_CAR (scm_sysintern ("exit-frame", SCM_UNDEFINED));
-  scm_i_trace = SCM_CAR (scm_sysintern ("trace", SCM_UNDEFINED));
+  scm_sym_enter_frame = SCM_CAR (scm_sysintern ("enter-frame", SCM_UNDEFINED));
+  scm_sym_apply_frame = SCM_CAR (scm_sysintern ("apply-frame", SCM_UNDEFINED));
+  scm_sym_exit_frame = SCM_CAR (scm_sysintern ("exit-frame", SCM_UNDEFINED));
+  scm_sym_trace = SCM_CAR (scm_sysintern ("trace", SCM_UNDEFINED));
 #endif
 
 #include "eval.x"
