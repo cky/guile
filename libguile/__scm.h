@@ -239,8 +239,18 @@ typedef long SCM_STACKITEM;
 #endif
 
 
+#ifndef USE_THREADS
+#define SCM_THREADS_SWITCHING_CODE
+#endif
+
 extern unsigned int scm_async_clock;
-#define SCM_ASYNC_TICK		if (0 == --scm_async_clock) scm_async_click ()
+#define SCM_ASYNC_TICK \
+{ \
+  if (0 == --scm_async_clock) \
+    scm_async_click (); \
+  SCM_THREADS_SWITCHING_CODE; \
+} \
+
 
 #ifdef SCM_CAREFUL_INTS
 #define SCM_CHECK_NOT_DISABLED \
@@ -358,6 +368,7 @@ extern unsigned int scm_async_clock;
 #define SCM_ORD_SIG(X)		((X) + SCM_HUP_SIGNAL)
 #define SCM_NUM_SIGS		(SCM_SIG_ORD (SCM_TICK_SIGNAL) + 1)
 
+#if 0
 struct errdesc
 {
   char *msg;
@@ -367,6 +378,7 @@ struct errdesc
 
 
 extern struct errdesc scm_errmsgs[];
+#endif
 
 
 
