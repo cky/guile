@@ -145,7 +145,7 @@ Spiffing checklist:
   copyright notices.  This can be as simple as doing:
  	grep 'Copyright' * | grep -v 1999
   and looking for files you know you've worked on a lot.
-* Make sure NEWS, INSTALL and the docs are up to date:
+* Make sure NEWS, INSTALL, AUTHORS and THANKS and the docs are up to date:
   + Scan the ChangeLogs for user-visible changes, marked with an asterisk
     at the left margin.
   + Update NEWS and the Texinfo documentation as appropriate.
@@ -153,6 +153,7 @@ Spiffing checklist:
     documented.
   + Check for any [[incomplete]] sections of NEWS.
   + Fact-check INSTALL.
+  + Make sure AUTHORS and THANKS are up-to-date.
 * Make sure the downloading addresses and filenames in README are
   current.  (But don't bump the version number yet.  We do that below.)
 * Check that the versions of aclocal, automake, autoconf, and autoheader
