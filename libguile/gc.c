@@ -1428,15 +1428,15 @@ scm_gc_sweep ()
  *
  * The limit scm_mtrigger may be raised by this allocation.
  */
-char *
+void *
 scm_must_malloc (scm_sizet size, const char *what)
 {
-  char *ptr;
+  void *ptr;
   unsigned long nm = scm_mallocated + size;
 
   if (nm <= scm_mtrigger)
     {
-      SCM_SYSCALL (ptr = (char *) malloc (size));
+      SCM_SYSCALL (ptr = malloc (size));
       if (NULL != ptr)
 	{
 	  scm_mallocated = nm;
@@ -1447,7 +1447,7 @@ scm_must_malloc (scm_sizet size, const char *what)
   scm_igc (what);
 
   nm = scm_mallocated + size;
-  SCM_SYSCALL (ptr = (char *) malloc (size));
+  SCM_SYSCALL (ptr = malloc (size));
   if (NULL != ptr)
     {
       scm_mallocated = nm;
@@ -1468,18 +1468,18 @@ scm_must_malloc (scm_sizet size, const char *what)
 /* scm_must_realloc
  * is similar to scm_must_malloc.
  */
-char *
-scm_must_realloc (char *where,
+void *
+scm_must_realloc (void *where,
 		  scm_sizet old_size,
 		  scm_sizet size,
 		  const char *what)
 {
-  char *ptr;
+  void *ptr;
   scm_sizet nm = scm_mallocated + size - old_size;
 
   if (nm <= scm_mtrigger)
     {
-      SCM_SYSCALL (ptr = (char *) realloc (where, size));
+      SCM_SYSCALL (ptr = realloc (where, size));
       if (NULL != ptr)
 	{
 	  scm_mallocated = nm;
@@ -1490,7 +1490,7 @@ scm_must_realloc (char *where,
   scm_igc (what);
 
   nm = scm_mallocated + size - old_size;
-  SCM_SYSCALL (ptr = (char *) realloc (where, size));
+  SCM_SYSCALL (ptr = realloc (where, size));
   if (NULL != ptr)
     {
       scm_mallocated = nm;
@@ -1508,8 +1508,7 @@ scm_must_realloc (char *where,
 }
 
 void 
-scm_must_free (obj)
-     char *obj;
+scm_must_free (void *obj)
 {
   if (obj)
     free (obj);

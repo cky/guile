@@ -94,12 +94,12 @@ extern void scm_gc_mark (SCM p);
 extern void scm_mark_locations (SCM_STACKITEM x[], scm_sizet n);
 extern int scm_cellp (SCM value);
 extern void scm_gc_sweep (void);
-extern char * scm_must_malloc (scm_sizet len, const char *what);
-extern char * scm_must_realloc (char *where,
+extern void * scm_must_malloc (scm_sizet len, const char *what);
+extern void * scm_must_realloc (void *where,
 				scm_sizet olen, scm_sizet len,
 				const char *what);
 extern void scm_done_malloc (long size);
-extern void scm_must_free (char *obj);
+extern void scm_must_free (void *obj);
 extern void scm_remember (SCM * ptr);
 extern SCM scm_return_first (SCM elt, ...);
 extern SCM scm_permanent_object (SCM obj);
