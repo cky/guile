@@ -319,7 +319,8 @@
   (make-time (time-type time) (time-nanosecond time) (time-second time)))
 
 (define (priv:split-real r)
-  (if (integer? r) (values r 0)
+  (if (integer? r)
+      (values (inexact->exact r) 0)
       (let ((l (truncate r)))
         (values (inexact->exact l) (- r l)))))
 

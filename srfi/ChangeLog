@@ -1,3 +1,8 @@
+2001-09-22  Mikael Djurfeldt  <mdj@linnaeus>
+
+	* srfi-19.scm (priv:split-real): Inserted missing call to
+	inexact->exact.
+
 2001-09-21  Rob Browning  <rlb@defaultvalue.org>
 
 	* srfi-14.h (SCM_CHARSET_GET): need 1L, not just 1 in "<<".
