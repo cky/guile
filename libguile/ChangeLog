@@ -1,5 +1,10 @@
 1999-09-21  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
 
+	* vectors.c (scm_vector_move_right_x): Bugfix: Remove side effect
+	in SCM_ASSERT macro.
+	numbers.c: Removed #ifndef SCM_RECKLESS at places where type
+	checking may invoke a generic.  (Thanks to Michael Livshin.)
+
 	* __scm.h (SCM_WTA_DISPATCH_0, SCM_GASSERT0): New macros.
 
 	* numbers.c (scm_max, scm_min, scm_sum, scm_difference,
