@@ -56,8 +56,8 @@ typedef struct scm_smobfuns
 
 
 
-#define SCM_SMOBNUM(x) (0x0ff & (SCM_CAR(x)>>8));
-#define SCM_PTOBNUM(x) (0x0ff & (SCM_CAR(x)>>8));
+#define SCM_SMOBNUM(x) (0x0ff & (SCM_CAR(x)>>8))
+#define SCM_PTOBNUM(x) (0x0ff & (SCM_CAR(x)>>8))
 
 extern scm_sizet scm_numsmob;
 extern scm_smobfuns *scm_smobs;
