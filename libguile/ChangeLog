@@ -1,3 +1,8 @@
+2004-09-29  Marius Vollmer  <marius.vollmer@uni-dortmund.de>
+
+	* ramap.c (scm_array_equal_p): Include scm_tc7_svect in switch.
+	Thanks to Roland Orre!
+
 2004-09-29  Kevin Ryde  <user42@zip.com.au>
 
 	* regex-posix.c (scm_regexp_exec): Correction to last change, should
