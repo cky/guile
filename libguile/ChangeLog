@@ -1,3 +1,7 @@
+2000-01-09  Mikael Djurfeldt  <mdj@thalamus.nada.kth.se>
+
+	* posix.c (scm_sync): Return SCM_UNSPECIFIED.
+
 2000-01-09  Gary Houston  <ghouston@arglist.com>
 
 	* eval.c: define scm_unbound_variable_key ('unbound-variable).
