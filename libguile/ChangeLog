@@ -1,3 +1,15 @@
+Thu Aug 29 15:21:39 1996  Jim Blandy  <jimb@totoro.cyclic.com>
+
+	* symbols.c (scm_strhash): scm_downcase is now a function, not an
+ 	array; use it appropriately.  Since GCC is quite happy to
+ 	subscript functions, it never warned us about this; we should use
+ 	-Wpointer-arith in the future.  I guess we never tested
+ 	case-insensitivity.
+
+Wed Aug 28 18:52:22 1996  Jim Blandy  <jimb@totoro.cyclic.com>
+
+	* socket.c: Doc and copyright fixes.
+
 Sat Aug 24 05:29:19 1996  Mikael Djurfeldt  <mdj@woody.nada.kth.se>
 
 	* debug.c: Fixed and improved gdb support.
@@ -769,9 +781,9 @@ Sat Jan 20 23:21:37 1996  Tom Lord  <lord@beehive>
 
 Wed Dec  6 02:40:49 1995  Tom Lord  <lord@beehive>
 
-	* ports.h fports.c vports.c marksweep.c gc.c strports.c: moved the STREAM
-	of ports into the port table and replaced it with a port-table
-	index.
+	* ports.h fports.c vports.c marksweep.c gc.c strports.c: moved the
+	STREAM of ports into the port table and replaced it with a
+	port-table index.
 
 	* repl.c (iprin1): added tc7_mb_string -- same as tc7_string.
 
@@ -782,8 +794,8 @@ Wed Dec  6 02:40:49 1995  Tom Lord  <lord@beehive>
 	* tags.h (scm_typ7_string, scm_typ7_mb_string): added a tag
 	for multi-byte strings. Moved the string tag.
 
-	* chars.h chars.c repl.c (many functions): made scm_upcase and scm_downcase
-	functions that are safe for extended character sets.  
+	* chars.h chars.c repl.c (many functions): made scm_upcase and
+	scm_downcase functions that are safe for extended character sets.
 
 	Changed the range of integer->char.
 
