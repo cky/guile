@@ -1,4 +1,4 @@
-;;;; 	Copyright (C) 2000,2001, 2002 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2000,2001, 2002, 2003 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -115,24 +115,25 @@
                    default-scrub
                    (let ((v (caddr cust)))
                      (cond ((procedure? v) v)
-                           (else default-scrub)))))
-        (port (open-input-file filename)))
-    (let loop ((line (read-delimited "\n" port))
-               (doc "")
-               (parse-state 'before))
-      (if (or (eof-object? line) (eq? 'after parse-state))
-          doc
-          (let ((new-state
-                 (cond ((regexp-exec in-line-re line) 'in)
-                       ((regexp-exec after-line-re line) 'after)
-                       (else parse-state))))
-            (if (eq? 'after new-state)
-                doc
-                (loop (read-delimited "\n" port)
-                      (if (and (eq? 'in new-state) (eq? 'in parse-state))
-                          (string-append doc (scrub line) "\n")
-                          doc)
-                      new-state)))))))
+                           (else default-scrub))))))
+    (call-with-input-file filename
+      (lambda (port)
+	(let loop ((line (read-delimited "\n" port))
+		   (doc "")
+		   (parse-state 'before))
+	  (if (or (eof-object? line) (eq? 'after parse-state))
+	      doc
+	      (let ((new-state
+		     (cond ((regexp-exec in-line-re line) 'in)
+			   ((regexp-exec after-line-re line) 'after)
+			   (else parse-state))))
+		(if (eq? 'after new-state)
+		    doc
+		    (loop (read-delimited "\n" port)
+			  (if (and (eq? 'in new-state) (eq? 'in parse-state))
+			      (string-append doc (scrub line) "\n")
+			      doc)
+			  new-state)))))))))
 
 
 
@@ -151,22 +152,23 @@
 
 (define (find-documentation-in-file name file)
   (and (file-exists? file)
-       (let ((port (open-input-file file))
-	     (name (symbol->string name)))
-	 (let ((len (string-length name)))
-	   (read-delimited entry-delimiter port) ;skip to first entry
-	   (let loop ((entry (read-delimited entry-delimiter port)))
-	     (cond ((eof-object? entry) #f)
-		   ;; match?
-		   ((and ;; large enough?
+       (call-with-input-file file
+	 (lambda (port)
+	   (let ((name (symbol->string name)))
+	     (let ((len (string-length name)))
+	       (read-delimited entry-delimiter port) ;skip to first entry
+	       (let loop ((entry (read-delimited entry-delimiter port)))
+		 (cond ((eof-object? entry) #f)
+		       ;; match?
+		       ((and ;; large enough?
 		         (>= (string-length entry) len)
 			 ;; matching name?
 			 (string=? (substring entry 0 len) name)
 			 ;; terminated?
 			 (memq (string-ref entry len) '(#\newline)))
-		    ;; cut away name tag and extra surrounding newlines
-		    (substring entry (+ len 2) (- (string-length entry) 2)))
-		   (else (loop (read-delimited entry-delimiter port)))))))))
+			;; cut away name tag and extra surrounding newlines
+			(substring entry (+ len 2) (- (string-length entry) 2)))
+		       (else (loop (read-delimited entry-delimiter port)))))))))))
 
 (define (search-documentation-files name . files)
   (or-map (lambda (file)
