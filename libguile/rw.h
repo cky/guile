@@ -13,8 +13,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
+ *  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, MA 02111-1307 USA
@@ -48,6 +47,9 @@
 
 extern SCM scm_read_string_x_partial (SCM str, SCM port_or_fdes, SCM start,
 				      SCM end);
+extern SCM scm_write_string_partial (SCM str, SCM port_or_fdes, SCM start,
+				     SCM end);
+
 SCM scm_init_rw_builtins (void);
 void scm_init_rw (void);
 

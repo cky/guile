@@ -79,9 +79,11 @@
 
 SCM_DEFINE (scm_read_string_x_partial, "read-string!/partial", 1, 3, 0,
 	    (SCM str, SCM port_or_fdes, SCM start, SCM end),
-	    "Read characters from an fport or file descriptor into a\n"
-	    "string @var{str}.  This procedure is scsh-compatible\n"
-	    "and can efficiently read large strings.  It will:\n\n"
+	    "Read characters from a port or file descriptor into a\n"
+	    "string @var{str}.  A port must have an underlying file\n"
+	    "descriptor --- a so-called fport.  This procedure is\n"
+	    "scsh-compatible and can efficiently read large strings.\n"
+	    "It will:\n\n"
 	    "@itemize\n"
 	    "@item\n"
 	    "attempt to fill the entire string, unless the @var{start}\n"
@@ -92,11 +94,16 @@ SCM_DEFINE (scm_read_string_x_partial, "read-string!/partial", 1, 3, 0,
 	    "use the current input port if @var{port_or_fdes} is not\n"
 	    "supplied.\n" 
 	    "@item\n"
-	    "read any characters that are currently available,\n"
-	    "without waiting for the rest (short reads are possible).\n\n"
+	    "return fewer than the requested number of characters in some\n"
+	    "cases, e.g., on end of file, if interrupted by a signal, or if\n"
+	    "not all the characters are immediately available.\n"
 	    "@item\n"
-	    "wait for as long as it needs to for the first character to\n"
-	    "become available, unless the port is in non-blocking mode\n"
+	    "wait indefinitely for some input if no characters are\n"
+	    "currently available,\n"
+	    "unless the port is in non-blocking mode.\n"
+	    "@item\n"
+	    "read characters from the port's input buffers if available,\n"
+	    "instead from the underlying file descriptor.\n"
 	    "@item\n"
 	    "return @code{#f} if end-of-file is encountered before reading\n"
             "any characters, otherwise return the number of characters\n"
@@ -106,7 +113,7 @@ SCM_DEFINE (scm_read_string_x_partial, "read-string!/partial", 1, 3, 0,
 	    "are immediately available.\n"
 	    "@item\n"
 	    "return 0 if the request is for 0 bytes, with no\n"
-	    "end-of-file check\n"
+	    "end-of-file check.\n"
 	    "@end itemize")
 #define FUNC_NAME s_scm_read_string_x_partial
 {
@@ -157,6 +164,107 @@ SCM_DEFINE (scm_read_string_x_partial, "read-string!/partial", 1, 3, 0,
 	return SCM_BOOL_F;
     }
   return scm_long2num (chars_read);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_write_string_partial, "write-string/partial", 1, 3, 0,
+	    (SCM str, SCM port_or_fdes, SCM start, SCM end),
+	    "Write characters from a string @var{str} to a port or file\n"
+	    "descriptor.  A port must have an underlying file descriptor\n"
+	    "--- a so-called fport.  This procedure is\n"
+	    "scsh-compatible and can efficiently write large strings.\n"
+	    "It will:\n\n"
+	    "@itemize\n"
+	    "@item\n"
+	    "attempt to write the entire string, unless the @var{start}\n"
+	    "and/or @var{end} arguments are supplied.  i.e., @var{start}\n"
+	    "defaults to 0 and @var{end} defaults to\n"
+	    "@code{(string-length str)}\n"
+	    "@item\n"
+	    "use the current output port if @var{port_of_fdes} is not\n"
+	    "supplied.\n"
+	    "@item\n"
+	    "in the case of a buffered port, store the characters in the\n"
+	    "port's output buffer, if all will fit.  If they will not fit\n"
+	    "then any existing buffered characters will be flushed\n"
+	    "before attempting\n"
+	    "to write the new characters directly to the underlying file\n"
+	    "descriptor.  If the port is in non-blocking mode and\n"
+	    "buffered characters can not be flushed immediately, then an\n"
+	    "@code{EAGAIN} system-error exception will be raised (Note:\n"
+	    "scsh does not support the use of non-blocking buffered ports.)\n"
+	    "@item\n"
+	    "write fewer than the requested number of\n"
+	    "characters in some cases, e.g., if interrupted by a signal or\n"
+	    "if not all of the output can be accepted immediately.\n"
+	    "@item\n"
+	    "wait indefinitely for at least one character\n"
+	    "from @var{str} to be accepted by the port, unless the port is\n"
+	    "in non-blocking mode.\n"
+	    "@item\n"
+	    "return the number of characters accepted by the port.\n"
+	    "@item\n"
+	    "return 0 if the port is in non-blocking mode and can not accept\n"
+	    "at least one character from @var{str} immediately\n"
+	    "@item\n"
+	    "return 0 immediately if the request size is 0 bytes.\n"
+	    "@end itemize")
+#define FUNC_NAME s_scm_write_string_partial
+{
+  char *src;
+  long write_len;
+  int fdes;
+
+  {
+    long offset;
+    long last;
+
+    SCM_VALIDATE_SUBSTRING_SPEC_COPY (1, str, src, 3, start, offset,
+				      4, end, last);
+    src += offset;
+    write_len = last - offset;
+  }
+
+  if (write_len == 0)
+    return SCM_INUM0;
+
+  if (SCM_INUMP (port_or_fdes))
+    fdes = SCM_INUM (port_or_fdes);
+  else
+    {
+      SCM port = SCM_UNBNDP (port_or_fdes) ? scm_cur_outp : port_or_fdes;
+      scm_port_t *pt;
+      off_t space;
+
+      SCM_VALIDATE_OPFPORT (2, port);
+      SCM_VALIDATE_OUTPUT_PORT (2, port);
+      pt = SCM_PTAB_ENTRY (port);
+      /* filling the last character in the buffer would require a flush.  */
+      space = pt->write_end - pt->write_pos - 1;
+      if (space >= write_len)
+	{
+	  memcpy (pt->write_pos, src, write_len);
+	  pt->write_pos += write_len;
+	  return scm_long2num (write_len);
+	}
+      if (pt->write_pos > pt->write_buf)
+	scm_flush (port);
+      fdes = SCM_FPORT_FDES (port);
+    }
+  {
+    long rv;
+
+    SCM_SYSCALL (rv = write (fdes, src, write_len));
+    if (rv == -1)
+      {
+	if (SCM_EBLOCK (errno))
+	  rv = 0;
+	else
+	  SCM_SYSERROR;
+      }
+    
+    return scm_long2num (rv);
+  }
 }
 #undef FUNC_NAME
 
