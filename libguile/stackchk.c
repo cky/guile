@@ -62,12 +62,12 @@ void
 scm_stack_report ()
 {
   SCM_STACKITEM stack;
-  scm_intprint (scm_stack_size (SCM_BASE (scm_rootcont)) * sizeof (SCM_STACKITEM),
+  scm_uintprint (scm_stack_size (SCM_BASE (scm_rootcont)) * sizeof (SCM_STACKITEM),
 		16, scm_cur_errp);
   scm_puts (" of stack: 0x", scm_cur_errp);
-  scm_intprint ((long) SCM_BASE (scm_rootcont), 16, scm_cur_errp);
+  scm_uintprint ((scm_t_bits) SCM_BASE (scm_rootcont), 16, scm_cur_errp);
   scm_puts (" - 0x", scm_cur_errp);
-  scm_intprint ((long) &stack, 16, scm_cur_errp);
+  scm_uintprint ((scm_t_bits) &stack, 16, scm_cur_errp);
   scm_puts ("\n", scm_cur_errp);
 }
 

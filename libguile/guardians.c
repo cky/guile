@@ -172,7 +172,7 @@ guardian_print (SCM guardian, SCM port, scm_print_state *pstate SCM_UNUSED)
     scm_puts ("sharing", port);
 
   scm_puts (" guardian 0x", port);
-  scm_intprint ((long) g, 16, port);
+  scm_uintprint ((scm_t_bits) g, 16, port);
 
   if (! DESTROYED_P (g))
     {

@@ -59,7 +59,7 @@ jmpbuffer_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
   scm_puts ("#<jmpbuffer ", port);
   scm_puts (JBACTIVE(exp) ? "(active) " : "(inactive) ", port);
-  scm_intprint((long) JBJMPBUF (exp), 16, port);
+  scm_uintprint((scm_t_bits) JBJMPBUF (exp), 16, port);
   scm_putc ('>', port);
   return 1 ;
 }

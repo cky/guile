@@ -193,10 +193,9 @@ hashtable_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
   else if (SCM_HASHTABLE_DOUBLY_WEAK_P (exp))
     scm_puts ("doubly-weak-", port);
   scm_puts ("hash-table ", port);
-  scm_intprint ((unsigned long) t->n_items, 10, port);
+  scm_uintprint (t->n_items, 10, port);
   scm_putc ('/', port);
-  scm_intprint ((unsigned long) SCM_VECTOR_LENGTH (SCM_HASHTABLE_VECTOR (exp)),
-		10, port);
+  scm_uintprint (SCM_VECTOR_LENGTH (SCM_HASHTABLE_VECTOR (exp)), 10, port);
   scm_puts (">", port);
   return 1;
 }

@@ -553,7 +553,7 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 				     scm_i_symbol_length (exp),
 				     port);
 	      scm_putc (' ', port);
-	      scm_intprint ((long)exp, 16, port);
+	      scm_uintprint (SCM_UNPACK (exp), 16, port);
 	      scm_putc ('>', port);
 	    }
 	  break;
@@ -765,13 +765,13 @@ scm_ipruk (char *hdr, SCM ptr, SCM port)
   if (scm_in_heap_p (ptr))
     {
       scm_puts (" (0x", port);
-      scm_intprint (SCM_CELL_WORD_0 (ptr), 16, port);
+      scm_uintprint (SCM_CELL_WORD_0 (ptr), 16, port);
       scm_puts (" . 0x", port);
-      scm_intprint (SCM_CELL_WORD_1 (ptr), 16, port);
+      scm_uintprint (SCM_CELL_WORD_1 (ptr), 16, port);
       scm_puts (") @", port);
     }
   scm_puts (" 0x", port);
-  scm_intprint (SCM_UNPACK (ptr), 16, port);
+  scm_uintprint (SCM_UNPACK (ptr), 16, port);
   scm_putc ('>', port);
 }
 

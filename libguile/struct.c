@@ -777,9 +777,9 @@ scm_print_struct (SCM exp, SCM port, scm_print_state *pstate)
       else
 	scm_puts ("struct", port);
       scm_putc (' ', port);
-      scm_intprint (SCM_UNPACK (vtable), 16, port);
+      scm_uintprint (SCM_UNPACK (vtable), 16, port);
       scm_putc (':', port);
-      scm_intprint (SCM_UNPACK (exp), 16, port);
+      scm_uintprint (SCM_UNPACK (exp), 16, port);
       scm_putc ('>', port);
     }
 }

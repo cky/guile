@@ -1604,7 +1604,7 @@ scm_port_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
   scm_print_port_mode (exp, port);
   scm_puts (type, port);
   scm_putc (' ', port);
-  scm_intprint (SCM_CELL_WORD_1 (exp), 16, port);
+  scm_uintprint (SCM_CELL_WORD_1 (exp), 16, port);
   scm_putc ('>', port);
   return 1;
 }
