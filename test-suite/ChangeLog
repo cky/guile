@@ -1,3 +1,11 @@
+2005-01-02  Marius Vollmer  <mvo@zagadka.de>
+
+	* tests/unif.test: Rewritten for new 'typed' approach to uniform
+	arrays.
+
+	* tests/sort.test: New tests, especially for sorting non-contigous
+	and negative-incrementing vectors.
+
 2005-01-02  Kevin Ryde  <user42@zip.com.au>
 
 	* tests/srfi-39.test: Use define-module to keep bindings from

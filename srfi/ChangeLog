@@ -1,3 +1,8 @@
+2005-01-02  Marius Vollmer  <mvo@zagadka.de>
+
+	* srfi-1.c: Use new vector elements API or simple vector API, as
+	appropriate.
+	
 2005-01-02  Kevin Ryde  <user42@zip.com.au>
 
 	* Makefile.am (srfi_DATA): Add srfi-39.scm.
