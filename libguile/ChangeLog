@@ -1,5 +1,11 @@
 2003-04-23  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
+	* eval.h (SCM_ENTER_FRAME_HDLR, SCM_APPLY_FRAME_HDLR,
+	SCM_EXIT_FRAME_HDLR): Use SCM_PACK to convert data to a SCM value
+	rather than casting to SCM.
+
+2003-04-23  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
 	* sort.c, pairs.h: Removed unnecessary includes.
 
 2003-04-23  Dirk Herrmann  <D.Herrmann@tu-bs.de>

@@ -3,7 +3,7 @@
 #ifndef SCM_EVAL_H
 #define SCM_EVAL_H
 
-/* Copyright (C) 1995,1996,1998,1999,2000,2001,2002, 2003 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001,2002,2003 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -33,7 +33,7 @@
 
 SCM_API scm_t_option scm_eval_opts[];
 
-#define SCM_EVAL_STACK	       scm_eval_opts[0].val
+#define SCM_EVAL_STACK         scm_eval_opts[0].val
 #define SCM_N_EVAL_OPTIONS 1
 
 SCM_API long scm_eval_stack;
@@ -46,9 +46,9 @@ SCM_API SCM scm_eval_options_interface (SCM setting);
 #define SCM_ENTER_FRAME_P      scm_evaluator_trap_table[1].val
 #define SCM_APPLY_FRAME_P      scm_evaluator_trap_table[2].val
 #define SCM_EXIT_FRAME_P       scm_evaluator_trap_table[3].val
-#define SCM_ENTER_FRAME_HDLR   (SCM)(scm_evaluator_trap_table[4].val)
-#define SCM_APPLY_FRAME_HDLR   (SCM)(scm_evaluator_trap_table[5].val)
-#define SCM_EXIT_FRAME_HDLR    (SCM)(scm_evaluator_trap_table[6].val)
+#define SCM_ENTER_FRAME_HDLR   (SCM_PACK (scm_evaluator_trap_table[4].val))
+#define SCM_APPLY_FRAME_HDLR   (SCM_PACK (scm_evaluator_trap_table[5].val))
+#define SCM_EXIT_FRAME_HDLR    (SCM_PACK (scm_evaluator_trap_table[6].val))
 #define SCM_N_EVALUATOR_TRAPS 7
 
 
@@ -127,6 +127,7 @@ typedef SCM (*scm_t_trampoline_2) (SCM proc, SCM arg1, SCM arg2);
 #define SCM_TOP_LEVEL_LOOKUP_CLOSURE (scm_current_module_lookup_closure())
 
 
+
 SCM_API const char scm_s_expression[];
 SCM_API const char scm_s_test[];
 SCM_API const char scm_s_body[];
