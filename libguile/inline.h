@@ -151,6 +151,12 @@ scm_alloc_double_cell (scm_t_bits car, scm_t_bits cbr,
   return z;
 }
 
+#else /* !HAVE_INLINE */
+
+SCM_API SCM scm_alloc_cell (scm_t_bits car, scm_t_bits cdr);
+SCM_API SCM scm_alloc_double_cell (scm_t_bits car, scm_t_bits cbr,
+				   scm_t_bits ccr, scm_t_bits cdr);
+
 #endif
 
 #endif
