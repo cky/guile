@@ -74,33 +74,6 @@
  * purpose.
  */
 
-/* A queue is a circular list of threads.  The queue head is a
-   designated list element.  If this is a uniprocessor-only
-   implementation we can store the `main' thread in this, but in a
-   multiprocessor there are several `heavy' threads but only one run
-   queue.  A fancier implementation might have private run queues,
-   which would lead to a simpler (trivial) implementation */
-
-typedef struct coop_q_t {
-  coop_t t;
-  coop_t *tail;
-} coop_q_t;
-
-/* A Mutex variable is made up of a owner thread, and a queue of threads
-   waiting on the mutex */
-
-typedef struct coop_m {
-  coop_t *owner;          /* Mutex owner */
-  coop_q_t waiting;      /* Queue of waiting threads */
-} coop_m;
-
-/* A Condition variable is made up of a list of threads waiting on the
-   condition. */
-
-typedef struct coop_c {
-  coop_q_t waiting;      /* Queue of waiting threads */
-} coop_c;
-
 /* Each thread starts by calling a user-supplied function of this
    type. */
 

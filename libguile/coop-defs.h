@@ -108,6 +108,55 @@ typedef struct coop_t {
 
 } coop_t;
 
+/* A queue is a circular list of threads.  The queue head is a
+   designated list element.  If this is a uniprocessor-only
+   implementation we can store the `main' thread in this, but in a
+   multiprocessor there are several `heavy' threads but only one run
+   queue.  A fancier implementation might have private run queues,
+   which would lead to a simpler (trivial) implementation */
+
+typedef struct coop_q_t {
+  coop_t t;
+  coop_t *tail;
+} coop_q_t;
+
+/* A Mutex variable is made up of a owner thread, and a queue of threads
+   waiting on the mutex */
+
+typedef struct coop_m {
+  coop_t *owner;          /* Mutex owner */
+  coop_q_t waiting;      /* Queue of waiting threads */
+} coop_m;
+
+typedef coop_m scm_mutex_t;
+
+extern int coop_mutex_init (coop_m*);
+extern int coop_mutex_lock (coop_m*);
+extern int coop_mutex_unlock (coop_m*);
+extern int coop_mutex_destroy (coop_m*);
+#define scm_mutex_init coop_mutex_init
+#define scm_mutex_lock coop_mutex_lock
+#define scm_mutex_unlock coop_mutex_unlock
+#define scm_mutex_destroy coop_mutex_destroy
+
+/* A Condition variable is made up of a list of threads waiting on the
+   condition. */
+
+typedef struct coop_c {
+  coop_q_t waiting;      /* Queue of waiting threads */
+} coop_c;
+
+typedef coop_c scm_cond_t;
+
+extern int coop_condition_variable_init (coop_c*);
+extern int coop_condition_variable_wait_mutex (coop_c*, coop_m*);
+extern int coop_condition_variable_signal (coop_c*);
+extern int coop_condition_variable_destroy (coop_c*);
+#define scm_cond_init(cond, attr) coop_condition_variable_init (cond)
+#define scm_cond_wait coop_condition_variable_wait_mutex
+#define scm_cond_signal coop_condition_variable_signal
+#define scm_cond_destroy coop_condition_variable_destroy
+
 extern coop_t *coop_global_curr;       	/* Currently-executing thread. */
 
 extern void coop_yield (void);

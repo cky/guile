@@ -40,7 +40,7 @@
  * If you do not wish that, delete this exception notice.  */
 
 
-/* $Id: coop.c,v 1.3 1997-11-27 18:04:53 mdj Exp $ */
+/* $Id: coop.c,v 1.4 1998-01-26 01:43:16 mdj Exp $ */
 
 /* Cooperative thread library, based on QuickThreads */
 
@@ -262,23 +262,24 @@ coop_starthelp (old, ignore0, ignore1)
 }
 
 #ifdef __STDC__
-void 
+int
 coop_mutex_init (coop_m *m)
 #else
-void 
+int
 coop_mutex_init (m)
      coop_m *m;
 #endif
 {
   m->owner = NULL;
   coop_qinit(&(m->waiting));
+  return 0;
 }
 
 #ifdef __STDC__
-void 
+int
 coop_mutex_lock (coop_m *m)
 #else
-void 
+int 
 coop_mutex_lock ()
      coop_m *m;
 #endif
@@ -303,14 +304,15 @@ coop_mutex_lock ()
       coop_global_curr = newthread;
       QT_BLOCK (coop_yieldhelp, old, &(m->waiting), newthread->sp);
     }
+  return 0;
 }
 
 
 #ifdef __STDC__
-void 
+int 
 coop_mutex_unlock (coop_m *m)
 #else
-void 
+int 
 coop_mutex_unlock (m)
      coop_m *m;
 #endif
@@ -332,26 +334,41 @@ coop_mutex_unlock (m)
     {
       m->owner = NULL;
     }
+  return 0;
 }
 
 
 #ifdef __STDC__
-void 
+int 
+coop_mutex_destroy (coop_m *m)
+#else
+int 
+coop_mutex_destroy (m)
+     coop_m *m;
+#endif
+{
+  return 0;
+}
+
+
+#ifdef __STDC__
+int 
 coop_condition_variable_init (coop_c *c)
 #else
-void 
+int 
 coop_condition_variable_init (c)
      coop_c *c;
 #endif
 {
   coop_qinit(&(c->waiting));
+  return 0;
 }
 
 #ifdef __STDC__
-void 
+int 
 coop_condition_variable_wait (coop_c *c)
 #else
-void 
+int 
 coop_condition_variable_wait (c)
      coop_c *c;
 #endif
@@ -366,13 +383,32 @@ coop_condition_variable_wait (c)
   old = coop_global_curr;
   coop_global_curr = newthread;
   QT_BLOCK (coop_yieldhelp, old, &(c->waiting), newthread->sp);
+  return 0;
 }
 
+
 #ifdef __STDC__
-void 
+int 
+coop_condition_variable_wait_mutex (coop_c *c, coop_m *m)
+#else
+int 
+coop_condition_variable_wait_mutex (c, m)
+     coop_c *c;
+     coop_m *m;
+#endif
+{
+  coop_mutex_unlock (m);
+  coop_condition_variable_wait (c);
+  coop_mutex_lock (m);
+  return 0;
+}
+
+
+#ifdef __STDC__
+int 
 coop_condition_variable_signal (coop_c *c)
 #else
-void 
+int 
 coop_condition_variable_signal (c)
      coop_c *c;
 #endif
@@ -383,6 +419,20 @@ coop_condition_variable_signal (c)
     {
       coop_qput (&coop_global_runq, newthread);
     }
+  return 0;
+}
+
+
+#ifdef __STDC__
+int 
+coop_condition_variable_destroy (coop_c *c)
+#else
+int 
+coop_condition_variable_destroy (c)
+     coop_c *c;
+#endif
+{
+  return 0;
 }
 
 
