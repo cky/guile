@@ -115,6 +115,15 @@ Wed Nov 27 14:14:56 1996  Marius Vollmer  <mvo@zagadka.ping.de>
  	Scheme function, instead of syntax. Single argument is now a
  	symbol.
 
+Thu Nov 21 20:26:36 1996  Jim Blandy  <jimb@totoro.cyclic.com>
+
+	* ramap.c (scm_ra_sum, scm_ra_difference, scm_ra_product,
+	scm_ra_divide): Properly terminate statements passed as arguments
+	to IVDEP macros.  (Thanks to Bernard Urban.)
+
+	* eval.c (SCM_CEVAL): Use alloca, not GCC's extensions for arrays
+	with non-constant sizes.  (Thanks to Bernard Urban.)
+
 Thu Nov 21 11:17:42 1996  Jim Blandy  <jimb@floss.cyclic.com>
 
 	It's an "eval closure", not an "eval thunk."  A thunk is a
