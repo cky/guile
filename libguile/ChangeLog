@@ -1,3 +1,9 @@
+2004-01-11  Kevin Ryde  <user42@zip.com.au>
+
+	* unif.c (scm_bit_count, scm_bit_position, s_scm_bit_set_star_x,
+	s_scm_bit_count_star, s_scm_bit_invert_x): Clarify docstrings, as per
+	changes made to scheme-compound.texi.
+
 2004-01-10  Marius Vollmer  <mvo@zagadka.de>
 
 	* guile-snarf.in: Use mktemp to create a truely unique temporary
