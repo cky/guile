@@ -254,7 +254,13 @@ scm_i_display_error (SCM stack, SCM port, SCM subr, SCM message, SCM args, SCM r
 
 SCM_DEFINE (scm_display_error, "display-error", 6, 0, 0,
 	    (SCM stack, SCM port, SCM subr, SCM message, SCM args, SCM rest),
-	    "")
+	    "Display an error message to the output port @var{port}.\n"
+	    "@var{stack} is the saved stack for the error, @var{subr} is\n"
+	    "the name of the procedure in which the error occured and\n"
+	    "@var{message} is the actual error message, which may contain\n"
+	    "formatting instructions. These will format the arguments in\n"
+	    "the list @var{args} accordingly.  @var{rest} is currently\n"
+	    "ignored.")
 #define FUNC_NAME s_scm_display_error
 {
   SCM_VALIDATE_OUTPUT_PORT (2, port);
@@ -283,7 +289,9 @@ static print_params_t *print_params = default_print_params;
 #ifdef GUILE_DEBUG
 SCM_DEFINE (scm_set_print_params_x, "set-print-params!", 1, 0, 0,
            (SCM params),
-"")
+	    "Set the print parameters to the values from @var{params}.\n"
+	    "@var{params} must be a list of two-element lists which must\n"
+	    "hold two integer values.")
 #define FUNC_NAME s_scm_set_print_params_x
 {
   int i;
@@ -387,7 +395,9 @@ display_application (SCM frame,int indentation,SCM sport,SCM port,scm_print_stat
 
 SCM_DEFINE (scm_display_application, "display-application", 1, 2, 0, 
            (SCM frame, SCM port, SCM indent),
-"")
+	    "Display a procedure application @var{frame} to the output port\n"
+	    "@var{port}. @var{indent} specifies the indentation of the\n"
+	    "output.")
 #define FUNC_NAME s_scm_display_application
 {
   SCM_VALIDATE_FRAME (1,frame);
@@ -600,8 +610,12 @@ display_backtrace_body(struct display_backtrace_args *a)
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_display_backtrace, "display-backtrace", 2, 2, 0, 
-           (SCM stack, SCM port, SCM first, SCM depth),
-"")
+	    (SCM stack, SCM port, SCM first, SCM depth),
+	    "Display a backtrace to the output port @var{port}. @var{stack}\n"
+	    "is the stack to take the backtrace from, @var{first} specifies\n"
+	    "where in the stack to start and @var{depth} how much frames\n"
+	    "to display. Both @var{first} and @var{depth} can be @code{#f},\n"
+	    "which means that default values will be used.")
 #define FUNC_NAME s_scm_display_backtrace
 {
   struct display_backtrace_args a;
@@ -622,8 +636,9 @@ SCM_DEFINE (scm_display_backtrace, "display-backtrace", 2, 2, 0,
 SCM_VCELL (scm_has_shown_backtrace_hint_p_var, "has-shown-backtrace-hint?");
 
 SCM_DEFINE (scm_backtrace, "backtrace", 0, 0, 0, 
-           (),
-"")
+	    (),
+	    "Display a backtrace of the stack saved by the last error\n"
+	    "to the current output port.")
 #define FUNC_NAME s_scm_backtrace
 {
   SCM the_last_stack = scm_fluid_ref (SCM_CDR (scm_the_last_stack_fluid));
